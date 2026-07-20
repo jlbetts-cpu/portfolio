@@ -1,0 +1,938 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Bearings · Case Study · Jayden Betts</title>
+<link rel="icon" type="image/png" sizes="192x192" href="favicon-192.png">
+<link rel="icon" type="image/png" sizes="96x96" href="favicon-96.png">
+<link rel="icon" type="image/png" sizes="48x48" href="favicon-48.png">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="favicon-180.png">
+<link rel="icon" href="favicon.ico" sizes="any">
+<meta name="description" content="Bearings is a group road-trip planner concept that pulls the route, stops, costs, and memories into one shared space. A product design case study by Jayden Betts.">
+<meta name="author" content="Jayden Betts">
+<meta name="robots" content="index,follow,max-image-preview:large">
+<link rel="canonical" href="https://jaydenbetts.design/bearings.html">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Jayden Betts">
+<meta property="og:title" content="Bearings: A Product Design Case Study">
+<meta property="og:description" content="A group road-trip planner concept: plan the route, discover the detours, keep the memories.">
+<meta property="og:url" content="https://jaydenbetts.design/bearings.html">
+<meta property="og:image" content="https://jaydenbetts.design/images/cs/bearings.webp">
+<meta property="og:image:alt" content="Bearings, a group road-trip planner designed by Jayden Betts, shown across four iOS screens">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preload" as="font" type="font/woff2" href="fonts/instrument-sans-latin-400-normal.woff2" crossorigin><link rel="preload" as="font" type="font/woff2" href="fonts/instrument-sans-latin-500-normal.woff2" crossorigin><link rel="preload" as="font" type="font/woff2" href="fonts/instrument-sans-latin-600-normal.woff2" crossorigin><link rel="preload" as="font" type="font/woff2" href="fonts/instrument-sans-latin-700-normal.woff2" crossorigin>
+<link rel="preload" as="image" href="images/cs/bearings.webp" fetchpriority="high">
+<style>
+:root{--sp-8-16:16px;--sp-16-24:24px;--sp-16-32:32px;--sp-16-40:40px;--sp-16-56:56px;--sp-24-32:32px;--sp-24-40:40px;--sp-24-48:48px;--sp-32-48:48px;--sp-32-56:56px;--sp-32-64:64px;--sp-40-64:64px;--sp-40-72:72px;--sp-48-64:64px;--sp-48-72:72px;--sp-48-80:80px;--sp-56-96:96px;--sp-56-112:112px;--sp-64-168:168px;--sp-72-144:144px;--sp-80-152:152px;--c50:#FDFDFD;--c100:#E6E6E6;--c500:#838383;--c600:#6B6B6B;--c700:#525252;--c900:#212121;--c950:#121212;--yellow:#FED259;
+ --sans:"Instrument Sans",-apple-system,system-ui,sans-serif;--serif:"Fraunces","Fraunces Fallback",Georgia,serif;--fs-display:clamp(40px,12vw,168px);--fs-hero:clamp(33px,3.9vw,52px);--fs-h2:clamp(26px,2.5vw,36px);--fs-h3:clamp(21px,2.4vw,32px);--fs-h4:clamp(19px,2.1vw,28px);--fs-h5:clamp(20px,1.7vw,24px);--fs-lead:clamp(15px,1.4vw,18px);--fs-prose:clamp(17px,1.39vw,20px);--fs-body:16px;--fs-small:15px;--fs-tab:clamp(17px,1.5vw,20px);--fs-label:13px;--fs-caption:12px;--fs-micro:11px;--lh-display:1.0;--lh-tight:1.08;--lh-body:1.5;--lh-prose:1.6;--lh-flat:1;--rail-w:clamp(85px,7vw,110px);--rail-gutter:clamp(20px,2vw,32px);--rail-gap:var(--sp-40-72);}
+@font-face{font-family:"Instrument Sans";font-style:normal;font-weight:400;font-display:swap;src:url(fonts/instrument-sans-latin-400-normal.woff2) format("woff2")}@font-face{font-family:"Instrument Sans";font-style:normal;font-weight:500;font-display:swap;src:url(fonts/instrument-sans-latin-500-normal.woff2) format("woff2")}@font-face{font-family:"Instrument Sans";font-style:normal;font-weight:600;font-display:swap;src:url(fonts/instrument-sans-latin-600-normal.woff2) format("woff2")}@font-face{font-family:"Instrument Sans";font-style:normal;font-weight:700;font-display:swap;src:url(fonts/instrument-sans-latin-700-normal.woff2) format("woff2")}
+*{box-sizing:border-box;margin:0;padding:0}
+html{overflow-x:clip;scroll-behavior:smooth}
+body{background:var(--c50);color:var(--c950);font-family:var(--sans);-webkit-font-smoothing:antialiased;overflow-x:clip}
+img{display:block;max-width:100%}
+*{-webkit-tap-highlight-color:transparent}
+.wrap{position:relative;z-index:2;max-width:1200px;margin:0 auto;padding:0 40px}
+
+/* top nav: mirrors the About header — Back · title · Let's talk */
+nav{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;column-gap:16px;padding:32px 0 0}
+.back,.talk{background:var(--c50);border:1px solid var(--c100);color:var(--c900);font-family:var(--sans);font-weight:400;font-size:var(--fs-body);line-height:1;padding:9px 16px;text-decoration:none;filter:url(#inkSm);transition:border-color .2s cubic-bezier(.2,.8,.2,1),color .2s cubic-bezier(.2,.8,.2,1)}
+.back{grid-column:1;justify-self:start;display:inline-flex;align-items:center;gap:.45em}
+.talk{grid-column:3;justify-self:end}
+.back:hover,.back:focus-visible,.talk:hover,.talk:focus-visible{border-color:var(--c500);color:var(--c950)}
+.navTitle{grid-column:2;justify-self:center;font-family:var(--sans);font-weight:600;font-size:var(--fs-small);letter-spacing:.005em;color:var(--c700);filter:url(#inkSm);white-space:nowrap}
+
+/* left-aligned content on the page margin; a slim section indicator floats in the right margin */
+.layout{display:block;margin-top:var(--sp-48-64);position:relative}
+.content{min-width:0}
+.rail{position:absolute;right:100%;top:0;bottom:0;width:var(--rail-w);margin-right:var(--rail-gutter);z-index:3;pointer-events:none}
+.rail.railGone .chapters{opacity:0;pointer-events:none}
+
+/* section indicator: subtle uniform chapter ticks, the current one emphasized; hovering the rail reveals the labels */
+.chapters{display:flex;flex-direction:column;align-items:flex-start;gap:16px;padding:0;pointer-events:auto;position:sticky;top:50vh;transform:translateY(-50%);transition:opacity .4s ease}
+.chap{display:grid;grid-template-columns:2px minmax(0,1fr);align-items:center;column-gap:16px;height:14px;text-decoration:none;outline-offset:4px}
+.tick{grid-column:1;grid-row:1;justify-self:start;width:2px;height:14px;background:var(--c500);opacity:.4;transition:opacity .25s cubic-bezier(.2,.8,.2,1),background .25s cubic-bezier(.2,.8,.2,1);filter:url(#inkSm)}
+.chap[aria-current="true"] .tick{background:var(--c950);opacity:1}
+.clabel{grid-column:2;grid-row:1;justify-self:start;text-align:left;font-family:var(--sans);font-weight:500;font-size:var(--fs-small);letter-spacing:.005em;color:var(--c500);white-space:nowrap;opacity:1;transform:none;transition:opacity .3s cubic-bezier(.2,.8,.2,1),transform .3s cubic-bezier(.2,.8,.2,1),color .25s cubic-bezier(.2,.8,.2,1);filter:url(#inkSm)}
+.chap[aria-current="true"] .clabel{color:var(--c950);font-weight:600}
+.rail:hover .clabel,.rail:focus-within .clabel{opacity:1;transform:none}
+.chap:hover .clabel,.chap:focus-visible .clabel{color:var(--c900)}
+.chap:hover .tick{opacity:.75}
+
+/* content tiers: text holds a readable measure on a strong left edge; the cover runs margin to margin */
+.content :where(.eyebrow,.lede,.role,.ov,.kicker,.secHead,.secBody,.head,.facts,.subHead,.subKick,.hmwLabel,.statRowSrc){max-width:680px}
+.wide{position:relative;overflow:hidden;background:var(--c100);margin:var(--sp-40-64) 0 0;width:100%}
+.closeShot{display:block;margin:var(--sp-48-80) 0 0;width:100%}
+.closeShot img{width:100%;height:auto;display:block;background:var(--c100);box-shadow:inset 0 0 0 1px rgba(8,8,8,.3)}
+.darlings{display:flex;flex-wrap:wrap;justify-content:center;align-items:flex-start;gap:16px;width:100%}
+.darlings img{height:clamp(200px,28vh,285px);width:auto;max-width:100%;display:block;background:var(--c50);border-radius:4px;box-shadow:inset 0 0 0 1px rgba(8,8,8,.3)}
+@media(max-width:880px){.darlings{width:100%}}
+@media(max-width:560px){.darlings img{height:auto;width:100%}}
+.wide img{width:100%;height:auto;display:block}
+.wide::after{content:"";position:absolute;inset:0;box-shadow:inset 0 0 0 1px rgba(8,8,8,.3);border-radius:inherit;pointer-events:none}
+
+/* full-bleed process photo / comparison slider with a caption underneath */
+.photoFig{margin:var(--sp-40-64) 0 0}
+.cmp{position:relative;overflow:hidden;aspect-ratio:16/9;background:var(--c100);width:100%;user-select:none;-webkit-user-select:none}
+.cmpImg{position:absolute;inset:0}
+.cmpImg img,.cmpImg video{width:100%;height:100%;object-fit:cover;object-position:center;display:block;pointer-events:none;-webkit-user-drag:none;user-select:none}
+.cmpAfter img{object-position:center 35%}
+.cmpClip{clip-path:inset(0 0 0 0);will-change:clip-path}
+.cmp::after{content:"";position:absolute;inset:0;box-shadow:inset 0 0 0 1px rgba(8,8,8,.3);pointer-events:none;z-index:3}
+.cmpHandle{position:absolute;top:0;bottom:0;left:100%;width:44px;transform:translateX(-50%);background:none;border:0;padding:0;margin:0;z-index:4;outline:none;cursor:ew-resize;touch-action:none}
+.cmpLine{position:absolute;top:0;bottom:0;left:50%;width:2px;transform:translateX(-50%);background:var(--c50);box-shadow:0 0 0 1px rgba(8,8,8,.18)}
+.cmpKnob{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:34px;height:34px;border-radius:50%;background:var(--c50);color:var(--c700);display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 1px rgba(8,8,8,.18);transition:box-shadow .2s cubic-bezier(.2,.8,.2,1)}
+.cmpHandle:hover .cmpKnob{box-shadow:0 0 0 1px rgba(8,8,8,.34)}
+.cmpHandle:focus-visible .cmpKnob{box-shadow:0 0 0 1px rgba(8,8,8,.18),0 0 0 2px var(--c950)}
+.cmpBoard{aspect-ratio:2400/1112}
+.cmp img{box-shadow:inset 0 0 0 1px rgba(8,8,8,.3)}
+.cmpYellow .cmpLine{background:var(--yellow)}
+.cmpYellow .cmpKnob{background:var(--yellow);color:var(--c950)}
+.cap{margin:16px 0 0;font-family:var(--sans);font-weight:400;font-size:var(--fs-small);line-height:1.5;color:var(--c500);max-width:680px;text-wrap:pretty;filter:url(#inkSm)}
+
+.hero{padding:0;scroll-margin-top:var(--sp-16-40)}
+.eyebrow{font-family:var(--sans);font-weight:600;font-size:var(--fs-label);letter-spacing:.01em;text-transform:none;color:var(--c500);filter:url(#inkSm)}
+.head{font-family:var(--sans);font-weight:600;font-size:var(--fs-hero);line-height:1.12;letter-spacing:-.016em;color:var(--c950);margin:16px 0 0;filter:url(#inkBig)}
+.head .hl{display:block}
+.lede{font-family:var(--sans);font-weight:400;font-size:var(--fs-prose);line-height:var(--lh-prose);color:var(--c700);margin:var(--sp-24-32) 0 0;text-wrap:pretty}
+
+.cover{position:relative;aspect-ratio:12/5;overflow:hidden;background:var(--c100);margin-top:var(--sp-24-32);width:100%;transform:scale(.985);opacity:0}
+.cover img{width:100%;height:100%;object-fit:cover;box-shadow:inset 0 0 0 1px rgba(8,8,8,.3)}
+.cover::after{content:"";position:absolute;inset:0;box-shadow:inset 0 0 0 1px rgba(8,8,8,.3);border-radius:inherit;pointer-events:none}
+.cover.in{animation:coverIn .7s cubic-bezier(.2,.8,.2,1) forwards}
+@keyframes coverIn{0%{opacity:0;transform:scale(.985) translateY(8px)}26%{opacity:1}82%{transform:scale(1.002) translateY(0)}100%{opacity:1;transform:scale(1) translateY(0)}}
+
+/* at a glance — spec list */
+/* project facts — a full-width band under the cover so the header's weight spreads across the measure instead of stacking on the left */
+.facts{width:100%;max-width:none;display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));column-gap:var(--sp-16-32);row-gap:var(--sp-16-32);margin:var(--sp-24-32) 0 0;border-top:1px solid rgba(8,8,8,.14);border-bottom:1px solid rgba(8,8,8,.14);padding:var(--sp-16-24) 0}
+.fact{min-width:0}
+.fk{display:block;font-family:var(--sans);font-weight:600;font-size:var(--fs-label);letter-spacing:.01em;text-transform:none;color:var(--c500);filter:url(#inkSm);margin:0 0 var(--sp-8-16)}
+.fv{font-family:var(--sans);font-weight:500;font-size:var(--fs-body);line-height:1.35;color:var(--c950);margin:0;text-wrap:pretty}
+.fvsub{display:block;font-weight:400;font-size:var(--fs-small);line-height:1.35;color:var(--c500);margin-top:4px}
+
+/* overview — a couple of orienting sentences before the role block */
+.ov{margin:var(--sp-40-64) 0 0}
+.ovBody{font-family:var(--sans);font-weight:400;font-size:var(--fs-prose);line-height:var(--lh-prose);color:var(--c900);text-wrap:pretty}
+
+/* my role */
+.role{margin:var(--sp-40-64) 0 0}
+.rlabel{display:block;font-family:var(--sans);font-weight:600;font-size:var(--fs-label);letter-spacing:.01em;text-transform:none;color:var(--c500);margin:0 0 var(--sp-16-24);filter:url(#inkSm)}
+.roleHead{font-family:var(--sans);font-weight:700;font-size:var(--fs-h2);line-height:1.1;letter-spacing:-.015em;color:var(--c950);margin:0 0 var(--sp-16-24);text-wrap:pretty}
+.role p{font-family:var(--sans);font-weight:400;font-size:var(--fs-prose);line-height:var(--lh-prose);color:var(--c900);text-wrap:pretty}
+
+/* scaffolded chapters — structure so the rail works end to end; copy drafted next */
+.sec{padding-top:var(--sp-72-144);scroll-margin-top:var(--sp-16-40)}
+.kicker{font-family:var(--sans);font-weight:600;font-size:var(--fs-label);letter-spacing:.01em;text-transform:none;color:var(--c500);filter:url(#inkSm)}
+.secHead{font-family:var(--sans);font-weight:700;font-size:var(--fs-h2);line-height:1.1;letter-spacing:-.015em;color:var(--c950);margin:var(--sp-16-24) 0 var(--sp-16-24);text-wrap:pretty}
+.secBody{font-family:var(--sans);font-weight:400;font-size:var(--fs-prose);line-height:var(--lh-prose);color:var(--c700);margin:16px 0 0;text-wrap:pretty}
+/* pulled stat — clean editorial callout (no ink; texture stays on the hero title only) */
+.stat{margin:var(--sp-32-48) 0;max-width:540px}
+.statNum{font-family:var(--sans);font-weight:500;font-size:clamp(34px,3.6vw,48px);line-height:1;letter-spacing:-.02em;color:var(--c950);margin:0;display:flex;align-items:baseline;gap:.16em}
+.statUnit{font-size:.36em;font-weight:500;letter-spacing:0;color:var(--c600)}
+.statCap{font-family:var(--sans);font-weight:400;font-size:var(--fs-prose);line-height:1.5;color:var(--c700);margin:16px 0 0;text-wrap:pretty}
+.statSrc{font-family:var(--sans);font-weight:500;font-size:var(--fs-label);letter-spacing:0;color:var(--c500);margin:16px 0 0;filter:url(#inkSm)}
+.statRow{margin:var(--sp-32-48) 0 0}
+.statRow .stat{margin:0}
+.statRow .stat + .stat{margin-top:var(--sp-16-32)}
+.statRowSrc{margin:16px 0 0}
+.photoRow{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--sp-8-16);width:100%}
+.photoRow img{width:100%;aspect-ratio:1;object-fit:cover;object-position:center;display:block;background:var(--c100);box-shadow:inset 0 0 0 1px rgba(8,8,8,.3)}
+.photoRow img:nth-child(1){object-position:center bottom}
+.photoRow img:nth-child(2){object-position:center top}
+.photoRow img:nth-child(3){object-position:center 82%}
+/* lo-fi / mid-fi process gallery: full-bleed horizontal scroll-through, drag or swipe */
+.scrollbox{display:flex;gap:var(--sp-24-32);overflow-x:auto;overflow-y:hidden;scroll-snap-type:none;scroll-padding-inline:var(--sp-24-32);margin:var(--sp-40-64) 0 0;width:100%;padding:var(--sp-24-32);background:var(--c50);box-shadow:inset 0 0 0 1px rgba(8,8,8,.3);cursor:grab;-webkit-overflow-scrolling:touch}
+.scrollbox.dragging{cursor:grabbing;scroll-snap-type:none}
+.shot{flex:0 0 auto;scroll-snap-align:start;margin:0}
+.shot:last-child{scroll-snap-align:end}
+.shot img{width:clamp(300px,38vw,420px);height:clamp(300px,38vw,420px);object-fit:contain;display:block;background:var(--c50);box-shadow:inset 0 0 0 1px rgba(8,8,8,.3);pointer-events:none;-webkit-user-drag:none}
+.shotCap{margin:var(--sp-8-16) 0 0;font-family:var(--sans);font-weight:600;font-size:var(--fs-label);letter-spacing:.01em;text-transform:none;color:var(--c500);filter:url(#inkSm)}
+.hmw{margin:var(--sp-40-64) 0 0}
+.hmwLabel{font-family:var(--sans);font-weight:600;font-size:var(--fs-label);letter-spacing:.01em;text-transform:none;color:var(--c500);filter:url(#inkSm);margin:0 0 var(--sp-16-24)}
+.hmwQ{font-family:var(--sans);font-weight:500;font-size:var(--fs-h2);line-height:1.2;letter-spacing:-.012em;color:var(--c950);margin:0;max-width:860px;text-wrap:pretty}
+.scaffold{color:var(--c500)}
+/* site footer: reach-me line over a full-width ghost wordmark */
+.siteFoot{margin-top:var(--sp-80-152);padding-bottom:var(--sp-32-64);text-align:center}
+.footReach{font-family:var(--sans);font-weight:400;font-size:clamp(18px,1.9vw,22px);line-height:1.55;color:var(--c700);margin:0 auto;max-width:42ch;text-wrap:balance}
+.footIn{font-weight:700;color:var(--c950);text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:3px;text-decoration-color:var(--c600);transition:text-decoration-color .15s cubic-bezier(.2,.8,.2,1),color .15s cubic-bezier(.2,.8,.2,1)}
+.footIn:hover,.footIn:focus-visible{text-decoration-color:var(--c950)}
+.hq{position:absolute;left:var(--x);top:var(--qt);width:var(--w,20%);margin:0;font-family:var(--sans);font-weight:500;font-size:var(--fs-body);line-height:1.3;color:var(--c900);text-wrap:pretty}
+.hval{position:absolute;left:var(--x);top:var(--nt);width:var(--w,20%)}
+.hlabel{margin:.45em 0 0;font-family:var(--sans);font-weight:600;font-size:var(--fs-body);line-height:1.25;color:var(--c950);text-wrap:pretty}
+.hsrc{position:absolute;left:0;bottom:1.5%;margin:0;font-family:var(--sans);font-weight:500;font-size:var(--fs-caption);letter-spacing:.01em;text-transform:none;color:var(--c500);filter:url(#inkSm)}
+.hs1{--x:23%;--qt:5%;--nt:41%}
+.hs2{--x:50%;--qt:13%;--nt:53%}
+.hs3{--x:79%;--qt:21%;--nt:69%}
+
+.heroFoot{height:clamp(40px,7vh,90px)}
+
+/* flow rows: the whole journey lined up; one screen performs at a time, grows to take focus, the rest wait dimmed */
+.flow .shot{transition:transform .375s cubic-bezier(.2,.8,.2,1),opacity .375s cubic-bezier(.2,.8,.2,1),filter .375s cubic-bezier(.2,.8,.2,1);transform-origin:50% 55%;cursor:pointer}
+.flow .shot.act{transform:translateY(-6px) scale(1.06);position:relative;z-index:2;transition:none}
+.flow.playing .shot:not(.act){opacity:.62;filter:grayscale(.4)}
+.flow .shot:not(.act):hover{opacity:.85;transform:translateY(-2px)}
+.flow .shot img{transition:box-shadow .375s cubic-bezier(.2,.8,.2,1)}
+.flow .shot.act img{box-shadow:inset 0 0 0 1px rgba(8,8,8,.3)}
+.flow .shot.act .shotCap{color:var(--c950)}
+/* focus handoff borrows the About reveal: the incoming screen develops in (blur to sharp, gentle rise) */
+@keyframes actIn{0%{opacity:.6;filter:blur(3px);transform:translateY(2px) scale(1)}100%{opacity:1;filter:none;transform:translateY(-6px) scale(1.06)}}
+.flow .shot.act{animation:actIn .375s steps(3,end)}
+@media (prefers-reduced-motion:reduce){.flow .shot.act{animation:none}}
+.flow{padding-top:48px;padding-bottom:32px}
+/* scrollytelling stage: the step texts scroll, one phone stays and performs the active step (mobile keeps per-step figures) */
+.buildFlow{display:grid;grid-template-columns:minmax(0,1fr) clamp(220px,24vw,300px);column-gap:var(--sp-32-56);align-items:start;width:100%}
+.flowSteps{min-width:0;padding-bottom:var(--sp-64-168)}
+.buildFlow .step{display:block;width:auto;margin:var(--sp-56-112) 0 0}
+.buildFlow .step:first-child{margin-top:16px}
+.buildFlow .step .stepShot{display:none}
+.buildStage{position:sticky;top:max(96px,calc(50vh - clamp(240px,36vh,360px)));margin-top:16px}
+.buildStage figure{margin:0;cursor:pointer;outline:none}
+.buildStage img{width:100%;height:auto;aspect-ratio:804/1748;display:block;background:#fff;box-shadow:inset 0 0 0 1px rgba(8,8,8,.3);transition:box-shadow .25s cubic-bezier(.2,.8,.2,1)}
+.buildStage figure:hover img,.buildStage figure:focus-visible img{box-shadow:inset 0 0 0 1px rgba(8,8,8,.3)}
+/* ===== the system: onboarding gallery + the five-step build — one hero screen per step, the reasoning beside it ===== */
+.subBlock{margin:clamp(64px,8.5vh,96px) 0 0}
+.subKick{font-family:var(--sans);font-weight:600;font-size:var(--fs-label);letter-spacing:.01em;text-transform:none;color:var(--c500);filter:url(#inkSm);margin:0}
+.subHead{font-family:var(--sans);font-weight:700;font-size:var(--fs-h2);line-height:1.1;letter-spacing:-.015em;color:var(--c950);margin:var(--sp-16-24) 0 var(--sp-16-24);text-wrap:pretty}
+/* onboarding shots are portrait phones: sized so the gallery browses, the steps read */
+.shot.phone{width:calc((100% - 72px)/3)}
+.shot.phone img{width:100%;height:auto;aspect-ratio:804/1748;object-fit:contain;background:#fff;border-radius:clamp(20px,2.6vw,32px);box-shadow:inset 0 0 0 1px rgba(8,8,8,.3)}
+.shotNote{display:block;margin:8px 0 0;font-family:var(--sans);font-weight:400;font-size:var(--fs-small);line-height:1.45;letter-spacing:0;text-transform:none;color:var(--c600);text-wrap:pretty;filter:none}
+/* the five-step build: screen on the grid line, the why beside it */
+.step{display:grid;grid-template-columns:minmax(0,1fr) clamp(220px,24vw,300px);column-gap:var(--sp-32-56);align-items:center;margin:var(--sp-32-48) 0 0;width:100%}
+.stepShot{margin:0}
+.stepShot img{width:100%;height:auto;aspect-ratio:804/1748;display:block;background:#fff;box-shadow:inset 0 0 0 1px rgba(8,8,8,.3)}
+.stepHead{font-family:var(--sans);font-weight:500;font-size:var(--fs-h5);line-height:1.22;letter-spacing:-.008em;color:var(--c950);margin:var(--sp-8-16) 0 0;text-wrap:pretty}
+.step .secBody{margin-top:var(--sp-8-16)}
+/* the payoff screen sits a size up: the whole section has been building to it */
+.step.payoff{grid-template-columns:minmax(0,1fr) clamp(250px,27vw,330px);margin-top:var(--sp-48-72)}
+/* one-shot stage sequences: each step performs its stages once on arrival (hard cuts on the 8fps clock), rests on the resolved frame, and replays a stage per tap. Motion stops inside ~5s, so no pause chrome is needed (WCAG 2.2.2) */
+.seq{cursor:pointer;outline:none}
+.seq img{transition:box-shadow .25s cubic-bezier(.2,.8,.2,1)}
+.seq:hover img,.seq:focus-visible img{box-shadow:inset 0 0 0 1px rgba(8,8,8,.3)}
+.seqWrap{position:relative}
+.seqTap{position:absolute;width:11%;aspect-ratio:1;border-radius:50%;background:rgba(8,8,8,.20);box-shadow:0 0 0 1.5px rgba(8,8,8,.28);transform:translate(-50%,-50%) scale(1);opacity:0;pointer-events:none}
+.seqTap.show{opacity:1;transform:translate(-50%,-50%) scale(.82);transition:opacity .125s cubic-bezier(.2,.8,.2,1),transform .25s cubic-bezier(.2,.8,.2,1)}
+.seqTicks{display:flex;gap:8px;justify-content:center;margin:var(--sp-8-16) 0 0}
+.seqTicks i{width:14px;height:2px;background:var(--c100);transition:background .25s cubic-bezier(.2,.8,.2,1)}
+.seqTicks i.on{background:var(--c950)}
+/* step rows develop like the photo row: the screen lands, its reasoning follows one frame later */
+.step.dv,.step.dv.shown{opacity:1;transform:none;transition:none;filter:none}
+.step.dv .stepShot,.step.dv .stepText{transition:opacity .55s cubic-bezier(.2,.8,.2,1),transform .55s cubic-bezier(.2,.8,.2,1),filter .55s cubic-bezier(.2,.8,.2,1);will-change:transform,opacity,filter}
+.step.dv:not(.shown) .stepShot,.step.dv:not(.shown) .stepText{opacity:0;transform:translateY(12px);filter:blur(6px)}
+.step.dv.shown .stepText{transition-delay:0s}
+.step.dv.shown .stepShot{transition-delay:.125s}
+
+/* ===== reveal system (word-by-word prose + block fade) — 8fps stepped ===== */
+.rv .abw{display:inline-block;opacity:0;filter:blur(6px);transform:translateY(.4em);transition:opacity .55s cubic-bezier(.2,.8,.2,1),filter .55s cubic-bezier(.2,.8,.2,1),transform .55s cubic-bezier(.2,.8,.2,1);will-change:transform,opacity,filter}
+.rv.shown .abw{opacity:1;filter:blur(0);transform:none}
+/* ===== chapter develop (block-level: rise for inked text, blur-develop for prose and imagery) — 8fps stepped, staggered on the 125ms grid ===== */
+.dv{opacity:0;transform:translateY(12px);transition:opacity .55s cubic-bezier(.2,.8,.2,1),transform .55s cubic-bezier(.2,.8,.2,1);will-change:transform,opacity}
+.dv.dvb{filter:blur(6px);transition:opacity .55s cubic-bezier(.2,.8,.2,1),transform .55s cubic-bezier(.2,.8,.2,1),filter .55s cubic-bezier(.2,.8,.2,1);will-change:transform,opacity,filter}
+.dv.shown{opacity:1;transform:none}
+.dv.dvb.shown{filter:blur(0)}
+.photoRow.dv>img{transition:opacity .55s cubic-bezier(.2,.8,.2,1),transform .55s cubic-bezier(.2,.8,.2,1),filter .55s cubic-bezier(.2,.8,.2,1)}
+.photoRow.dv:not(.shown)>img{opacity:0;transform:translateY(12px);filter:blur(6px)}
+.photoRow.dv.shown>img{opacity:1;transform:none;filter:blur(0)}
+.photoRow.dv.shown>img:nth-child(1){transition-delay:0s}
+.photoRow.dv.shown>img:nth-child(2){transition-delay:.125s}
+.photoRow.dv.shown>img:nth-child(3){transition-delay:.25s}
+.photoRow.dv,.photoRow.dv.shown{opacity:1;transform:none;transition:none}
+.statNum{font-variant-numeric:tabular-nums}
+.facts{opacity:0;transform:translateY(12px);transition:opacity .55s cubic-bezier(.2,.8,.2,1),transform .55s cubic-bezier(.2,.8,.2,1)}
+.facts.shown{opacity:1;transform:none}
+
+/* emerge: the page develops out of the portal's white */
+.emerge{position:fixed;inset:0;z-index:9999;background:#fff;opacity:1;pointer-events:none}
+.emerge.clear{opacity:0;transition:opacity .7s cubic-bezier(.2,.8,.2,1)}
+
+@media(max-width:880px){
+ .layout{margin-top:var(--sp-48-64)}
+ .rail{display:none}
+ .cover{width:100%}
+ .wide{width:100%}
+ .closeShot{width:100%}
+ .facts{width:100%;grid-template-columns:repeat(3,minmax(0,1fr))}
+ .cmp{width:100%}
+ .photoRow{width:100%}
+ .scrollbox{width:100%}
+ .step{width:100%}
+ .buildFlow{display:block;width:100%}
+ .buildFlow .step{display:grid}
+ .buildFlow .step .stepShot{display:block}
+ .buildStage{display:none}
+ .step,.step.payoff{grid-template-columns:1fr;row-gap:var(--sp-16-24)}
+ .stepShot{width:min(62vw,300px)}
+ .sec{min-height:0;padding-top:var(--sp-56-96)}
+ .hq{position:relative;left:auto;top:auto;width:auto;margin:0 0 .35em;font-size:var(--fs-small);color:var(--c600)}
+ .hval{position:relative;left:auto;top:auto;width:auto}
+ .hsrc{position:relative;left:auto;bottom:auto;margin-top:var(--sp-24-32);display:block}
+}
+@media(max-width:760px){
+ .wrap{padding:0 24px}
+ nav{column-gap:8px;padding:24px 0 0}
+ .back,.talk{min-height:44px;display:inline-flex;align-items:center}
+ .cover{aspect-ratio:4/3}
+ .head{font-size:clamp(30px,8.2vw,40px);line-height:1.14}
+ .shot img{width:clamp(220px,70vw,300px);height:clamp(220px,70vw,300px)}
+ .shot.phone{width:calc(clamp(340px,52vh,440px)*.46)}
+ .shot.phone img{width:100%;height:auto}
+ .scrollbox{padding:16px;gap:16px}
+ .facts{grid-template-columns:repeat(2,minmax(0,1fr));column-gap:var(--sp-16-32);row-gap:var(--sp-24-32)}
+}
+@media(prefers-reduced-motion:reduce){
+ html{scroll-behavior:auto}
+ .emerge{display:none}
+ .cover{opacity:1;transform:none;animation:none}
+ .rv .abw{opacity:1!important;filter:none!important;transform:none!important;transition:none}
+ .facts{opacity:1!important;transform:none!important;transition:none}
+ .dv,.photoRow.dv>img,.step.dv .stepShot,.step.dv .stepText{opacity:1!important;transform:none!important;filter:none!important;transition:none;will-change:auto!important}
+}
+.toTop{position:fixed;right:clamp(18px,2.6vw,36px);bottom:clamp(18px,2.6vw,36px);width:46px;height:46px;display:grid;place-items:center;background:var(--c50);border:1px solid var(--c100);border-radius:50%;color:var(--c700);cursor:pointer;z-index:90;opacity:0;pointer-events:none;filter:url(#inkSm);transition:opacity .3s ease,transform .12s cubic-bezier(.2,.8,.2,1),border-color .2s cubic-bezier(.2,.8,.2,1),color .2s cubic-bezier(.2,.8,.2,1);-webkit-tap-highlight-color:transparent}
+.toTop.show{opacity:1;pointer-events:auto}.toTop:hover .toTopLabel,.toTop:focus-visible @media(hover:none){}
+.toTop:hover,.toTop:focus-visible{border-color:var(--c500);color:var(--c950)}
+.toTop:active{transform:scale(.92)}
+.toTop svg{transition:transform .14s cubic-bezier(.2,.8,.2,1)}
+.toTop:hover svg,.toTop:focus-visible svg{transform:translateY(-2px)}
+.toTop:focus-visible{outline:2px solid var(--c950);outline-offset:3px}
+@media (prefers-reduced-motion:reduce){.toTop svg{transition:none}}
+.photoPair{display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-8-16);margin:var(--sp-48-80) 0 0;width:100%}
+.photoPair figure{margin:0}
+.photoPair img{width:100%;aspect-ratio:1/1;object-fit:cover;display:block;box-shadow:inset 0 0 0 1px rgba(8,8,8,.3);background:var(--c100)}
+.photoPair figcaption{margin-top:var(--sp-8-16);font-family:var(--sans);font-size:13px;line-height:1.45;color:var(--c500)}
+
+/* --- 4px corner softening pass --- */
+.workCta,.back,.heroBack,.abLink,.abLinkPrimary,.abTalk,.abBack,.moodMenu,.moodMenu button,.moodMenu a,.csInfoCard,.amsImg,.abShot img,.abShot,.reelClose{border-radius:4px!important}
+.csFrame,.csImg,.cover,.cover img,.shot img,.photoFig img,.photoPair figure,.photoPair img,.stat,.reelOverlayVid,.reelOverlayYt{border-radius:4px}
+.talk{border-radius:4px!important}
+.workcard{border-radius:4px 4px 0 0 !important}
+/* horizontal-scroll affordance */.sbWrap{position:relative}.sbWrap::after{content:none}.sbMore{position:absolute;right:14px;top:-30px;display:inline-flex;align-items:center;gap:4px;font-family:var(--sans);font-size:12px;font-weight:600;color:var(--c500);letter-spacing:.01em;opacity:0;transform:translateY(4px);transition:opacity .3s cubic-bezier(.2,.8,.2,1),transform .3s cubic-bezier(.2,.8,.2,1);pointer-events:none;z-index:3}.sbWrap.canScroll .sbMore{opacity:1;transform:none}.sbWrap.atEnd .sbMore{opacity:0}.sbMore svg{width:14px;height:14px}@media(prefers-reduced-motion:reduce){.sbWrap::after,.sbMore{transition:none}}.csReach{font-family:var(--sans);font-weight:400;font-size:var(--fs-small);color:var(--c500);margin:var(--sp-32-56) auto var(--sp-8-16);max-width:64ch;text-align:center;filter:url(#inkSm)}.shot.phone img{border-radius:clamp(20px,2.6vw,32px);background:#000;object-fit:cover;aspect-ratio:720/1565}@media(max-width:768px){.footIn{display:inline-block;padding-top:8px;padding-bottom:8px;margin-top:-8px;margin-bottom:-8px}}/* --- case-study 4px corner pass (carousels, frames, boards) --- */.scrollbox,.videoFrame,.cmpBoard,.cmp,.shot,.cover,.photoFig,.photoPair figure,.sbItem,.sbCard{border-radius:4px}.shot img,.cover img,.photoFig img,.photoPair img,.videoFrame iframe,.cmpBoard img,.cmp img{border-radius:4px}.shot.phone img{border-radius:clamp(20px,2.6vw,32px)}.videoFrame,.cmpBoard{overflow:hidden}.scrollbox{overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain}/* refined thin carousel scrollbar (palette-matched) */.scrollbox{scrollbar-width:thin;scrollbar-color:var(--c100) transparent}.scrollbox::-webkit-scrollbar{height:8px}.scrollbox::-webkit-scrollbar-track{background:transparent;margin:0 4px}.scrollbox::-webkit-scrollbar-thumb{background:var(--c100);border-radius:99px;border:2px solid transparent;background-clip:padding-box}.scrollbox::-webkit-scrollbar-thumb:hover{background:var(--c500);background-clip:padding-box}.secBody strong,.ovBody strong,.ov strong,.rv strong,.role strong,.lede strong{font-weight:600;color:var(--c950)}@media(max-width:1360px){.rail{display:none}}.content :is(.eyebrow,.lede,.role,.ov,.kicker,.secHead,.secBody,.head,.facts,.cap,.stat,.hmwQ,.csReach,.subHead,.subKick,.hmwLabel,.statRowSrc){margin-inline:auto}@media(max-width:880px){:root{--sp-8-16:8px;--sp-16-24:16px;--sp-16-32:16px;--sp-16-40:16px;--sp-16-56:16px;--sp-24-32:24px;--sp-24-40:24px;--sp-24-48:24px;--sp-32-48:32px;--sp-32-56:32px;--sp-32-64:32px;--sp-40-64:40px;--sp-40-72:40px;--sp-48-64:48px;--sp-48-72:48px;--sp-48-80:48px;--sp-56-96:56px;--sp-56-112:56px;--sp-64-168:64px;--sp-72-144:72px;--sp-80-152:80px}}.scrollbox:focus-visible{outline:2px solid var(--c950);outline-offset:3px}.scrollbox{scrollbar-width:none}.scrollbox::-webkit-scrollbar{display:none}.sbNav{display:flex;gap:10px;justify-content:flex-end;margin-top:14px}.sbBtn{width:42px;height:42px;border-radius:50%;background:var(--c50);border:1px solid rgba(8,8,8,.16);color:var(--c700);display:grid;place-items:center;cursor:pointer;transition:border-color .2s cubic-bezier(.2,.8,.2,1),color .2s cubic-bezier(.2,.8,.2,1),opacity .2s cubic-bezier(.2,.8,.2,1)}.sbBtn:hover{border-color:var(--c500);color:var(--c950)}.sbBtn:focus-visible{outline:2px solid var(--c950);outline-offset:3px}.sbBtn[disabled]{opacity:.28;pointer-events:none}.sbBtn svg{width:16px;height:16px}@media(max-width:880px){.sbNav{display:none}}@media(prefers-reduced-motion:reduce){.sbBtn{transition:none}}.cap{text-align:center}.chapters::before{content:"";position:absolute;left:0;top:1px;bottom:1px;width:2px;background:rgba(8,8,8,.08)}.back:focus-visible,.talk:focus-visible,.footIn:focus-visible,.chap:focus-visible{outline:2px solid var(--c950);outline-offset:3px;border-radius:4px}@media(max-width:880px){.subBlock{margin-top:56px}}.sec>.stat:last-child{margin-bottom:0}/* ===== single-phone flow player: the whole flow in one device, like a demo video ===== */.player{margin:var(--sp-40-64) auto 0;max-width:680px;text-align:center}.playerStage{width:min(320px,62vw);margin:0 auto}.playerStage img{width:100%;aspect-ratio:720/1565;object-fit:cover;display:block;background:#000;border-radius:clamp(20px,2.6vw,32px);box-shadow:inset 0 0 0 1.5px rgba(8,8,8,.42);transition:filter .25s steps(2,end),opacity .25s steps(2,end)}.player.dev .playerStage img{filter:blur(4px);opacity:.7}.playerCap{margin:var(--sp-16-24) auto 0;max-width:420px}.playerStep{display:block;font-family:var(--sans);font-weight:600;font-size:var(--fs-label);letter-spacing:.01em;color:var(--c950);filter:url(#inkSm)}.playerNote{display:block;margin-top:6px;font-family:var(--sans);font-weight:400;font-size:var(--fs-small);line-height:1.45;color:var(--c600);text-wrap:pretty}.playerBar{display:flex;align-items:center;justify-content:center;gap:18px;margin-top:var(--sp-16-24)}.playerTicks{display:flex;gap:10px}.playerTicks i{width:14px;height:2px;background:var(--c100);cursor:pointer;transition:background .25s cubic-bezier(.2,.8,.2,1)}.playerTicks i.on{background:var(--c950)}.playerBar .sbBtn{width:42px;height:42px}/* ===== tabbed viewer: every artifact one tap away, nothing hidden behind a drag ===== */.tv{margin:var(--sp-40-64) auto 0;text-align:center}.tvTabs{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}.tvTab{font-family:var(--sans);font-size:var(--fs-label);font-weight:600;letter-spacing:.01em;color:var(--c700);background:var(--c50);border:1px solid rgba(8,8,8,.16);border-radius:999px;padding:8px 16px;cursor:pointer;transition:border-color .2s cubic-bezier(.2,.8,.2,1),color .2s cubic-bezier(.2,.8,.2,1),background .2s cubic-bezier(.2,.8,.2,1)}.tvTab:hover{border-color:var(--c500);color:var(--c950)}.tvTab.on{background:var(--c950);border-color:var(--c950);color:var(--c50)}.tvTab:focus-visible{outline:2px solid var(--c950);outline-offset:3px}.tvFrame{margin:var(--sp-16-24) auto 0}.tv.tvBoard .tvFrame{max-width:980px}.tv.tvBoard .tvFrame img{width:100%;max-height:64vh;object-fit:contain;display:block;background:var(--c50);border-radius:4px;box-shadow:inset 0 0 0 1px rgba(8,8,8,.22);transition:filter .25s steps(2,end),opacity .25s steps(2,end)}.tv.tvPhone .tvFrame{width:min(320px,62vw)}.tv.tvPhone .tvFrame img{width:100%;aspect-ratio:720/1565;object-fit:cover;display:block;background:#fff;border-radius:clamp(20px,2.6vw,32px);box-shadow:inset 0 0 0 1.5px rgba(8,8,8,.42);transition:filter .25s steps(2,end),opacity .25s steps(2,end)}.tv.dev .tvFrame img{filter:blur(4px);opacity:.7}@media(prefers-reduced-motion:reduce){.playerStage img,.tv .tvFrame img{transition:none}}.darlings img{filter:grayscale(.35);opacity:.94}.scrapTag{display:table;margin:0 auto var(--sp-16-24);padding:7px 16px;border-radius:999px;border:1px dashed rgba(8,8,8,.34);color:var(--c700);font-family:var(--sans);font-size:var(--fs-label);font-weight:600;letter-spacing:.01em;background:var(--c50)}.playerTicks i{position:relative}.playerTicks i::after{content:"";position:absolute;left:-5px;right:-5px;top:-21px;bottom:-21px}.tvTab{min-height:36px}@media(max-width:880px){.playerBar .sbBtn{width:44px;height:44px}.tvTab{min-height:44px;padding:10px 18px}.playerTicks i::after{top:-24px;bottom:-24px}}</style>
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Jayden Betts","item":"https://jaydenbetts.design/"},{"@type":"ListItem","position":2,"name":"Bearings Case Study","item":"https://jaydenbetts.design/bearings.html"}]},{"@type":"CreativeWork","@id":"https://jaydenbetts.design/bearings.html#work","url":"https://jaydenbetts.design/bearings.html","name":"Bearings: A Product Design Case Study by Jayden Betts","description":"Bearings is a group road-trip planner concept for iOS that unifies route planning, stop discovery, and group collaboration. A product design case study by Jayden Betts.","image":"https://jaydenbetts.design/images/cs/bearings.webp","author":{"@type":"Person","@id":"https://jaydenbetts.design/#person","name":"Jayden Betts","alternateName":"Jayden Lee Betts","url":"https://jaydenbetts.design/","sameAs":["https://www.linkedin.com/in/jaydenbetts","https://www.instagram.com/jaydenleebetts"]},"genre":"Product Design","inLanguage":"en"}]}</script>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><filter id="inkBig"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="7" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="1.1" xChannelSelector="R" yChannelSelector="G" result="d"/><feTurbulence type="fractalNoise" baseFrequency="0.5 0.42" numOctaves="2" seed="13" result="g"/><feColorMatrix in="g" type="matrix" values="0 0 0 0 0.055 0 0 0 0 0.055 0 0 0 0 0.055 0 0 0 0.42 0" result="grain"/><feComposite in="grain" in2="d" operator="atop"/></filter>
+<filter id="inkSm"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="1" seed="4" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="0.55" xChannelSelector="R" yChannelSelector="G"/></filter></svg>
+
+<div class="wrap">
+ <nav>
+  <a class="back backlink" id="back" href="index.html"><span aria-hidden="true">&larr;</span> Back</a>
+  <span class="navTitle">Bearings</span>
+  <a class="talk" href="#contact" aria-label="Jump to contact">Let's talk</a>
+ </nav>
+
+ <div class="layout">
+  <aside class="rail" aria-label="Sections">
+   <nav class="chapters" aria-label="Chapters">
+    <a href="#overview" class="chap" aria-current="true"><span class="clabel">Overview</span><span class="tick" aria-hidden="true"></span></a>
+    <a href="#problem" class="chap"><span class="clabel">Problem</span><span class="tick" aria-hidden="true"></span></a>
+    <a href="#research" class="chap"><span class="clabel">Research</span><span class="tick" aria-hidden="true"></span></a>
+    <a href="#system" class="chap"><span class="clabel">Solution</span><span class="tick" aria-hidden="true"></span></a>
+    <a href="#outcome" class="chap"><span class="clabel">Outcome</span><span class="tick" aria-hidden="true"></span></a>
+   </nav>
+  </aside>
+
+  <div class="content">
+   <section id="overview" class="hero">
+    <h1 class="head rv" data-f="0.05">Plan the whole trip, together.</h1>
+
+    <figure class="cover" id="cover"><img src="images/cs/bearings-cover.webp" alt="Bearings shown across four iOS screens on a wildflower meadow: planning a new trip with the bear mascot, choosing a route, the home feed of saved trips, and the live trip hub with map and crew activity"></figure>
+
+    <dl class="facts">
+     <div class="fact"><dt class="fk">Role</dt><dd class="fv">Product Designer</dd></div>
+     <div class="fact"><dt class="fk">Team</dt><dd class="fv">4 designers + a lead</dd></div>
+     <div class="fact"><dt class="fk">Timeline</dt><dd class="fv">5 weeks</dd></div>
+     <div class="fact"><dt class="fk">Recognition</dt><dd class="fv">Audience Choice Award</dd></div>
+     <div class="fact"><dt class="fk">Year</dt><dd class="fv">2026</dd></div>
+    </dl>
+
+    <div class="ov">
+     <span class="rlabel">Overview</span>
+     <p class="ovBody rv" data-f="0.011">Bearings is a group road-trip planner for iOS. It turns trip planning from a one-person job into something the whole group shapes together, from the first idea to the final route.</p>
+    </div>
+
+    <div class="role">
+     <span class="rlabel">My role</span>
+     <h3 class="roleHead rv" data-f="0.03">I led the visual design and built the system.</h3>
+     <p class="rv" data-f="0.011">Early on, I proposed making Bearings a group-focused road-trip planner, which narrowed our audience and gave the concept a sharper focus. I created the user interview questions, helped with ideation, and made tons of drafts in both lo-fi and hi-fi before jumping into the final designs. From there, I led the visual design. I built the design system and a set of shared components so the team could move fast and keep every screen feeling like one product, and I set the type, spacing, and sizing that held it all together. <strong>I designed the logo and most of the assets, and I designed 28 of the final screens</strong>, including onboarding, the home page, building a trip, and the My Trips hub. I often jumped in to help teammates finalize their screens against the system.</p>
+    </div>
+
+    <figure class="photoFig">
+     <div class="cmp cmpBoard" data-start="95">
+      <div class="cmpImg cmpAfter"><img src="images/cs/work-car.webp" alt="The project's design work, screens and prototypes, arranged into a car cruising over a mountain landscape." draggable="false"></div>
+      <div class="cmpImg cmpClip" style="clip-path:inset(0 5% 0 0)"><img src="images/cs/bearings-system.webp" alt="The Bearings visual identity board: the serif wordmark and its bear tracker, a three-ramp color system in grey, brown, and yellow with hex values, the type scale, Lucide icons, buttons, search, sliders, secondary and bottom navigation, hand-drawn bear illustrations, and the paper-map style." draggable="false"></div>
+      <button class="cmpHandle" type="button" role="slider" style="left:95%" aria-label="Slide to compare the visual identity system with the design work behind it" aria-valuemin="0" aria-valuemax="100" aria-valuenow="95">
+       <span class="cmpLine" aria-hidden="true"></span>
+       <span class="cmpKnob" aria-hidden="true"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 4 12 9 18"/><polyline points="15 6 20 12 15 18"/></svg></span>
+      </button>
+     </div>
+     <figcaption class="cap">Drag the knob to see the work behind it.</figcaption>
+    </figure>
+   </section>
+
+   <section id="problem" class="sec">
+    <p class="kicker">The problem</p>
+    <h3 class="secHead">Road trips are fun. Planning them isn't.</h3>
+    <p class="secBody">The best part of a road trip is the drive. The worst part is everything that comes before it: the group chat where everyone drops a place they want to stop, the note with the budget, the open tabs for gas, food, and where to sleep. None of it talks to each other, and it all lands on whoever ends up planning. With airfare and everyday costs climbing, group road trips have become one of the most popular ways people travel, especially for the trips built around a milestone: a birthday, a reunion, a wedding, a celebration worth the drive.</p>
+    <aside class="stat" aria-label="Trip planning statistic">
+     <p class="statNum">18<span class="statUnit">hours</span></p>
+     <p class="statCap">is what the average American spends planning a single trip, scattered across search engines, travel sites, and social feeds that were never built to work together.</p>
+     <p class="statSrc">Talker Research, 2024 &middot; survey of 2,000 U.S. travelers</p>
+    </aside>
+    <aside class="stat" aria-label="Group travel statistic">
+     <p class="statNum" style="gap:0">59<span class="statUnit">%</span></p>
+     <p class="statCap">of travelers have faced tension or an argument with a travel partner. Planning a trip is a group effort with no shared place to do it.</p>
+     <p class="statSrc">AAA / Bread Financial, 2026 &middot; U.S. traveler survey</p>
+    </aside>
+    <div class="hmw">
+     <p class="hmwLabel">How might we&hellip;</p>
+     <p class="hmwQ">Design a road trip app that unifies route planning, stop discovery, and group collaboration into one experience that&rsquo;s as fun to use as the trip itself?</p>
+    </div>
+   </section>
+
+   <figure class="photoFig">
+    <div class="photoRow">
+     <img src="images/cs/roadtrip-1.webp" alt="Palm trees and tall clouds over a California parking lot." draggable="false">
+     <img src="images/cs/roadtrip-2.webp" alt="A rope swing over a still mountain lake ringed by pine forest." draggable="false">
+     <img src="images/cs/roadtrip-3.webp" alt="A palm-lined street with a fresh green bike lane." draggable="false">
+    </div>
+    <figcaption class="cap">A few aesthetic shots from my road trips.</figcaption>
+   </figure>
+
+   <section id="research" class="sec">
+    <p class="kicker">Research &amp; ideation</p>
+    <h3 class="secHead">Every tool left the group out.</h3>
+    <p class="secBody">We started with what people already use. Roadtrippers, Roadie, and Google Maps are all great at routes and directions, but every one of them assumes a single planner on a single path, with no room for a group to shape the trip together. To see how real that gap was, <strong>we surveyed and interviewed road trippers</strong>.</p>
+    <div class="statRow"> <aside class="stat" aria-label="Survey finding"><p class="statNum" style="gap:0">90<span class="statUnit">%</span></p><p class="statCap">of the people we surveyed plan their trips as a group.</p><p class="statSrc">Bearings survey &middot; 42 road trippers</p></aside> <aside class="stat" aria-label="Trips that fall apart"><p class="statNum">~50<span class="statUnit">%</span></p><p class="statCap">of group trips fall apart in the planning stage, before anyone gets on the road, undone by the money and logistics no single app holds together.</p><p class="statSrc">Design Interactive project research, 2026</p></aside> </div>
+    <p class="secBody">The interviews put a face to it. The friend who always ends up planning told us the hard part was never the route or the budget. It was getting everyone else to care about the trip as much as she did. I knew the feeling, because I&rsquo;m usually the one planning, and it&rsquo;s hard to hold a trip together when no one else feels any ownership over it.</p>
+    <p class="secBody">She became Jasmine, our persona: 23, social, always up for a road trip and always the one organizing it. She wants trips worth remembering without carrying them alone, she watches the plan scatter across a Notes app and a group chat that never sync, and what she needs is one place to build the trip and a way to pull her friends into it.</p>
+    <p class="secBody">Jasmine set the brief. Bearings had to adapt to her from the first screen, hold the whole trip in one place, and leave real room for the group to shape it.</p>
+    <p class="secBody">We moved from sketches to lo-fi to mid-fi, testing as we went. <strong>People kept looking for their group and their trip on the same screen, so we merged the two into a single shared hub</strong>.</p>
+    <div class="tv tvBoard" aria-label="Low and mid fidelity wireframes"><div class="tvTabs" role="tablist" aria-label="Low and mid fidelity wireframes"><button class="tvTab on" type="button" role="tab" aria-selected="true">Lo-fi sketches</button><button class="tvTab" type="button" role="tab" aria-selected="false">Lo-fi wireframes</button><button class="tvTab" type="button" role="tab" aria-selected="false">Mid-fi</button></div><figure class="tvFrame"><img src="images/cs/lofi-sketches.webp" alt="Hand-drawn low-fidelity sketches of the onboarding, group, home, and trip itinerary screens." decoding="async"></figure><script type="application/json" class="tvItems">[{"src": "images/cs/lofi-sketches.webp", "alt": "Hand-drawn low-fidelity sketches of the onboarding, group, home, and trip itinerary screens.", "label": "Lo-fi sketches"}, {"src": "images/cs/lofi-wires.webp", "alt": "Low-fidelity digital wireframes of the Bearings flows.", "label": "Lo-fi wireframes"}, {"src": "images/cs/midfi.webp", "alt": "Mid-fidelity wireframes of the Bearings flows.", "label": "Mid-fi"}]</script></div>
+   </section>
+   <section id="system" class="sec">
+    <p class="kicker">The solution</p>
+    <h3 class="secHead">So we built one for the whole crew.</h3>
+    <p class="secBody">Everything the research surfaced became a requirement. Jasmine needed one place to build the trip and a way to pull her friends into it, so that became the spine of the system: onboarding that learns how she travels, five steps that turn an idea into a trip, and a shared page where the trip lives. I designed 28 of the final screens. These are the ones that carry the story.</p>
+    <p class="secBody">The hardest part was never the screens, it was us. My team came from different design backgrounds and rarely felt on the same page, and our instinct was to add everything. I could see the scope getting away from us, so I pushed us to focus on the flows that actually mattered. A lot of design, for me, comes down to consistency: every page should feel like it was sewn from the same yarn. So <strong>I took it on myself to build shared components for the team</strong>, not to override anyone, but to give us one direction to move in together. When our design lead stepped away, I started running the discussions after our scheduled meetings, leaving notes on my teammates&rsquo; work about what was landing and what wasn&rsquo;t. I was that vocal because I was set on making something I could be proud to put here. I am.</p>
+    <div class="subBlock">
+     <p class="subKick">Process</p>
+     <h4 class="subHead">The best calls were the ones to cut.</h4>
+     <p class="secBody">I don&rsquo;t design in a straight line. I pull a wall of references into Figma, chase a mood, and start building, and then, every single time, an idea hits me mid-build and I end up somewhere completely different from where I started. I love that. It is where most of the good work comes from.</p>
+     <p class="secBody">It is also how I fell for a paper-collage direction: hand-torn cars and characters with real texture and imperfection, buttons that felt handmade. I was attached to them. But the more I built, the more the whole app tipped childlike, away from the premium feel I was after. <strong>So I scrapped the style, characters and all</strong>, even though it stung.</p>
+     <figure class="photoFig">
+      <span class="scrapTag">Scrapped direction · not the final design</span><div class="darlings">
+       <img src="images/cs/darlings-board.webp" alt="The paper-collage character set: hand-cut cars, a motorcycle and scooter, and people and pet avatars with photo faces." loading="lazy" decoding="async">
+       <img src="images/cs/darlings-collage.webp" alt="The paper-collage direction in the Trips screen: a plush bear riding a hand-cut car carrying the crew, over the Painted Ladies." loading="lazy" decoding="async">
+       <img src="images/cs/darlings-feed.webp" alt="The collage direction shown in the trip feed before it was pulled back." loading="lazy" decoding="async">
+      </div>
+      <figcaption class="cap">A paper-collage direction I fell for, then let go.</figcaption>
+     </figure>
+     <p class="secBody">The smaller calls went the same way. I had leaned on drop shadows to make things feel pressable, but <strong>testing kept coming back calling them tacky and inconsistent, so they went</strong>. And I badly wanted a Spotify-Wrapped-style trip recap, but with five weeks including research, it could not earn its place over the flows that actually make the app work. Focus over fun.</p>
+    </div>
+    <div class="subBlock">
+     <p class="subKick">Onboarding</p>
+     <h4 class="subHead">The feeling comes before the form.</h4>
+     <p class="secBody">I saw the first screens as a chance to set the tone. Instead of dropping people into a form, I opened on real photos of friends on real road trips under one line, Roadtrips Made Together, so you feel what Bearings is for before you touch a single field.</p>
+     <p class="secBody">From there I kept it easy and intuitive: a few quick questions about how she travels, one at a time, each one sharpening what Bearings suggests on the road. And I moved account creation to the very end on purpose, since asking someone to sign up before they&rsquo;ve felt the product is a well-documented way to lose them, and <strong>deferring it can lift completion by 10 to 30 percent</strong>. Jasmine explores first, and commits once she&rsquo;s already in.</p>
+     <div class="player" role="group" aria-label="Onboarding flow, one screen at a time"><div class="playerStage"><img src="images/cs/hifi/onboarding/onboarding-start-page.webp" alt="The Bearings welcome screen: Get Started under the line Roadtrips Made Together." decoding="async"></div><p class="playerCap"><strong class="playerStep">Welcome</strong><span class="playerNote">Get started, then allow location so nearby stops surface.</span></p><div class="playerBar"><button class="sbBtn" type="button" data-dir="-1" aria-label="Previous screen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg></button><div class="playerTicks" aria-hidden="true"></div><button class="sbBtn" type="button" data-dir="1" aria-label="Next screen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 6 15 12 9 18"/></svg></button></div><script type="application/json" class="playerBeats">[{"src": "images/cs/hifi/onboarding/onboarding-start-page.webp", "alt": "The Bearings welcome screen: Get Started under the line Roadtrips Made Together.", "step": "Welcome", "note": "Get started, then allow location so nearby stops surface."}, {"src": "images/cs/hifi/onboarding/onboarding-2.webp", "alt": "Onboarding vehicle screen with sedan selected and a 2013 Honda Accord entered.", "step": "Your vehicle", "note": "Car details drive fuel stops and cost estimates later."}, {"src": "images/cs/hifi/onboarding/onboarding-7.webp", "alt": "Onboarding travel style screen with selectable cards for fastest route, scenic, and nature.", "step": "Travel style", "note": "Fastest, scenic, or nature tunes what Bearings suggests."}, {"src": "images/cs/hifi/onboarding/onboarding-9.webp", "alt": "Onboarding stop preferences screen with sliders for stop frequency, detour distance, and gas budget.", "step": "Stops", "note": "How often she stops, and how far she will stray, shapes the route."}, {"src": "images/cs/hifi/onboarding/onboarding-10-viewport.webp", "alt": "Onboarding needs and accessibility screen with lodging style and accessibility options selected.", "step": "Needs & lodging", "note": "Accessibility and lodging are asked once, not mid-trip."}, {"src": "images/cs/hifi/onboarding/new-account-1.webp", "alt": "The Bearings create-account screen filled with name, email, and password.", "step": "Create account", "note": "An account so trips save and the crew stays in sync."}, {"src": "images/cs/hifi/onboarding/home-screen-5.webp", "alt": "The Bearings home screen after onboarding with personalized scenic stop suggestions.", "step": "Home", "note": "By the home screen, Bearings already knows how she travels."}]</script></div>
+    </div>
+    <div class="subBlock">
+     <p class="subKick">Create a trip</p>
+     <h4 class="subHead">Five steps against eighteen hours.</h4>
+     <p class="secBody">Planning eats eighteen hours because every decision lives in a different app, so I <strong>collapsed it into five clear steps</strong>. I put the most care into the paper map at the center of it, I wanted planning to feel playful but still premium, like part of the trip instead of a chore. Yellow carries through the whole flow as the accent, never enough to overwhelm, just enough to feel unmistakably Bearings.</p>
+     <p class="secBody">This screen is the whole case for Bearings, so it&rsquo;s the one I sweated most. The research kept telling me a group falls apart without a shared place, so I made the trip itself that place. The route sits up top where everyone can see it, and below it are the things groups actually fight over: where to eat becomes a quick poll, the bill splits itself as you go, and the itinerary bends the second plans change. The road trip games I added just because they would make me smile on a long drive.</p>
+    <div class="player" role="group" aria-label="Create-a-trip flow, one step at a time"><div class="playerStage"><img src="images/cs/hifi/createtripsflow/step-1-8.webp" alt="Step one: San Francisco to Los Angeles set on the paper map." decoding="async"></div><p class="playerCap"><strong class="playerStep">Step 1 · Where to?</strong><span class="playerNote">Start and end. Two fields, no tabs.</span></p><div class="playerBar"><button class="sbBtn" type="button" data-dir="-1" aria-label="Previous screen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg></button><div class="playerTicks" aria-hidden="true"></div><button class="sbBtn" type="button" data-dir="1" aria-label="Next screen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 6 15 12 9 18"/></svg></button></div><script type="application/json" class="playerBeats">[{"src": "images/cs/hifi/createtripsflow/step-1-8.webp", "alt": "Step one: San Francisco to Los Angeles set on the paper map.", "step": "Step 1 · Where to?", "note": "Start and end. Two fields, no tabs."}, {"src": "images/cs/hifi/createtripsflow/step-2-6.webp", "alt": "Step two: May 6 to 9 picked on one shared calendar.", "step": "Step 2 · When?", "note": "One calendar replaces the group poll."}, {"src": "images/cs/hifi/createtripsflow/step-3-10.webp", "alt": "Step three: stops added with their detour cost shown in minutes.", "step": "Step 3 · Add stops", "note": "Detours priced in minutes, so the group debates with numbers."}, {"src": "images/cs/hifi/createtripsflow/step-4-6.webp", "alt": "Step four: Marge and Enoch join by iMessage with a 600 dollar budget set.", "step": "Step 4 · Who’s coming?", "note": "Crew in by iMessage, budget beside them."}, {"src": "images/cs/hifi/createtripsflow/step-5-6.webp", "alt": "Step five: the trip named and reviewed.", "step": "Step 5 · Name it", "note": "Lighthouse epic waterfall adventure. Go."}, {"src": "images/cs/hifi/createtripsflow/home-screen-main.webp", "alt": "The home screen with the new trip on top and past trips below.", "step": "Home", "note": "Current trip up top, past trips below, one yellow plus for the next."}, {"src": "images/cs/hifi/createtripsflow/trip-screen-main.webp", "alt": "The Bearings trip page: shared route map, a group vote on where to eat, and split expenses.", "step": "The trip page", "note": "Every trip lands here: one map, group votes, split costs."}]</script></div>
+   </section>
+   <section id="outcome" class="sec">
+    <p class="kicker">Outcome</p>
+    <h3 class="secHead">Road trips are fun. Now the planning is too.</h3>
+    <p class="secBody"><strong>Bearings took the Audience Choice Award at our showcase, and judges from LinkedIn and ServiceNow singled out its brand identity</strong>. Still, the numbers I actually care about are the ones tied to the problem. It hasn&rsquo;t shipped yet, so those are <strong>the first things I&rsquo;d instrument</strong>: planning time dropping from eighteen hours toward minutes, the whole group contributing instead of one person, and a plan that holds together instead of falling apart.</p>
+    <p class="secBody">There&rsquo;s more to build. A recap page to relive the trip once it&rsquo;s over, a light badge system to make planning feel rewarding, and the truest test of all, taking Bearings on a real road trip to see where it holds and where it breaks.</p>
+    <p class="secBody">The biggest lesson was that <strong>designing for a group is a different problem than designing for a person</strong>. The hard part was never the interface. It was getting everyone to care, and that shaped how I approached every screen.</p>
+    <p class="secBody">What I&rsquo;m proudest of isn&rsquo;t the award, it&rsquo;s the voice I found. When we lost direction, I could have given up, but I stood up, ran the discussions, and gave real feedback on my teammates&rsquo; work. It grew me as a designer, and it helped a friend and teammate push his own designs further. Being able to give feedback I believed in, built from everything I&rsquo;d studied about UX, is when this stopped feeling like practice and started feeling like the work I want to do.</p>
+   </section>
+
+   <div class="photoPair">
+     <figure><img src="images/cs/photos/bearings-1.webp" alt="The team at Bixby Bridge on the Big Sur coast" loading="lazy" decoding="async"><figcaption>The team at Bixby Bridge, Big Sur.</figcaption></figure>
+     <figure><img src="images/cs/photos/bearings-mock.webp" alt="The Bearings app shown on a phone on a desk" loading="lazy" decoding="async"><figcaption>Bearings at home on a desk.</figcaption></figure>
+    </div>
+  </div>
+ </div>
+
+ <p class="csReach caseInset">Reach out to learn more about full products, files, and slides.</p>
+   <footer class="siteFoot" id="contact" role="contentinfo">
+  <p class="footReach">Thanks for checking out my website. I&rsquo;d love to chat, you can find me on <a class="footIn" href="https://www.linkedin.com/in/jaydenbetts" target="_blank" rel="noopener noreferrer">LinkedIn</a>, <a class="footIn" href="https://www.instagram.com/jaydenleebetts" target="_blank" rel="noopener noreferrer">Instagram</a>, or through <a class="footIn" href="mailto:jaydenlbetts@gmail.com">email</a>.</p>
+ </footer>
+
+ <div class="heroFoot" aria-hidden="true"></div>
+</div>
+
+<div class="emerge" id="emerge" aria-hidden="true"></div>
+
+<script>
+(function(){
+ var reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+
+ /* split prose blocks into word spans (recursive: keeps line wrappers, splits text) */
+ function splitWords(container,factor){
+  var wi={n:0};
+  function walk(node){
+   var kids=[].slice.call(node.childNodes);
+   kids.forEach(function(ch){
+    if(ch.nodeType===3){
+     var parts=ch.nodeValue.split(/(\s+)/);
+     var frag=document.createDocumentFragment();
+     parts.forEach(function(w){
+      if(!w)return;
+      if(/^\s+$/.test(w)){frag.appendChild(document.createTextNode(w));return;}
+      var sp=document.createElement('span');sp.className='abw';sp.textContent=w;
+      sp.style.transitionDelay=(wi.n*factor).toFixed(3)+'s';wi.n++;
+      frag.appendChild(sp);
+     });
+     node.replaceChild(frag,ch);
+    }else if(ch.nodeType===1){
+     walk(ch);
+    }
+   });
+  }
+  walk(container);
+ }
+
+ var rvs=[].slice.call(document.querySelectorAll('.rv'));
+ rvs.forEach(function(el){ splitWords(el, parseFloat(el.dataset.f)||0.014); });
+
+ function reveal(el){
+  if(!el||el.classList.contains('shown'))return;
+  el.classList.add('shown');
+  /* Safari: a child that keeps its own filter OR a will-change compositing layer isolates it from the parent ink filter — clear both after the reveal so the #inkBig texture passes through the headline */
+  if(el.classList.contains('rv')){
+   setTimeout(function(){
+    var ws=el.querySelectorAll('.abw');
+    for(var i=0;i<ws.length;i++){ws[i].style.filter='none';ws[i].style.willChange='auto';}
+   },680);
+  }
+ }
+
+ var em=document.getElementById('emerge');
+ var cover=document.getElementById('cover');
+ var head=document.querySelector('.head');
+ var glance=document.querySelector('.facts');
+ var role=[].slice.call(document.querySelectorAll('.ov .rv, .role .rv'));
+
+ if(reduce){
+  rvs.forEach(reveal);
+  if(glance)glance.classList.add('shown');
+  if(cover){cover.style.opacity='1';cover.style.transform='none';}
+ }else{
+  if(em){ requestAnimationFrame(function(){requestAnimationFrame(function(){em.classList.add('clear');});}); setTimeout(function(){em.style.display='none';},900); }
+  /* orchestrated arrival out of the white: the title writes out, then the cover lands */
+  setTimeout(function(){reveal(head);},280);
+  setTimeout(function(){if(cover)cover.classList.add('in');},900);
+  setTimeout(function(){if(glance)glance.classList.add('shown');},1300);
+  setTimeout(function(){role.forEach(function(el,i){setTimeout(function(){reveal(el);},i*170);});},1480);
+ }
+
+ /* hand back to the work rail so it emerges from white on return */
+ [].slice.call(document.querySelectorAll('.backlink')).forEach(function(b){
+  b.addEventListener('click',function(){try{sessionStorage.setItem('csReturn','1');}catch(e){}});
+ });
+
+ /* chapter rail scrollspy: mark the section nearest the viewport centre as current */
+ var chaps=[].slice.call(document.querySelectorAll('.chap'));
+ if(chaps.length && 'IntersectionObserver' in window){
+  var cmap={};
+  chaps.forEach(function(a){cmap[a.getAttribute('href').slice(1)]=a;});
+  var spy=new IntersectionObserver(function(entries){
+   entries.forEach(function(e){
+    if(e.isIntersecting){
+     var a=cmap[e.target.id];
+     if(a){chaps.forEach(function(x){x.removeAttribute('aria-current');});a.setAttribute('aria-current','true');}
+    }
+   });
+  },{rootMargin:'-45% 0px -45% 0px',threshold:0});
+  [].slice.call(document.querySelectorAll('.content section[id]')).forEach(function(s){spy.observe(s);});
+  chaps.forEach(function(a){a.addEventListener('click',function(){chaps.forEach(function(x){x.removeAttribute('aria-current');});a.setAttribute('aria-current','true');});});
+ }
+
+ /* a margin-to-margin image runs under the indicator's lane: fade the indicator while they overlap, restore it on the far side */
+ (function(){
+  var rail=document.querySelector('.rail');
+  var imgs=[].slice.call(document.querySelectorAll('.cover,.wide,.facts,.cmp,.scrollbox,.photoRow,.stepShot,.closeShot,.darlings'));
+  if(!rail||!imgs.length||reduce)return;
+  function hush(){
+   var rb=rail.getBoundingClientRect(),over=false;
+   for(var i=0;i<imgs.length;i++){var b=imgs[i].getBoundingClientRect();if(b.top<rb.bottom&&b.bottom>rb.top){over=true;break;}}
+   rail.classList.toggle('hush',over);
+  }
+  var ticking=false;
+  window.addEventListener('scroll',function(){if(!ticking){ticking=true;requestAnimationFrame(function(){hush();ticking=false;});}},{passive:true});
+  window.addEventListener('resize',hush,{passive:true});
+  hush();
+ })();
+
+ /* the chapter rail begins at the My role block, so the indicator only appears once the hero cover is behind you; recomputed on resize/load/font-settle since the cover height scales with viewport width */
+ (function(){
+  var rail=document.querySelector('.rail'),role=document.querySelector('.ov')||document.querySelector('.role'),layout=document.querySelector('.layout');
+  if(!rail||!role||!layout)return;
+  function align(){
+   var off=role.getBoundingClientRect().top-layout.getBoundingClientRect().top;
+   rail.style.marginTop=Math.max(0,Math.round(off))+'px';
+  }
+  align();
+  window.addEventListener('resize',align,{passive:true});
+  window.addEventListener('load',align);
+  if(document.fonts&&document.fonts.ready){document.fonts.ready.then(align);}
+  var cov=document.querySelector('.cover img');
+  if(cov&&!cov.complete){cov.addEventListener('load',align);}
+  setTimeout(align,320);setTimeout(align,1100);
+ })();
+
+ /* comparison sliders: grab and drag the handle to wipe between two layers. pointer capture keeps mouse/touch tracking 1:1 with a grab offset so it never jumps; drag only starts on the handle (never the image); full keyboard control; each slider reads its own start position from data-start */
+ [].slice.call(document.querySelectorAll('.cmp')).forEach(function(cmp){
+  var clip=cmp.querySelector('.cmpClip'),handle=cmp.querySelector('.cmpHandle');
+  if(!clip||!handle)return;
+  var vid=cmp.querySelector('video');
+  var start=parseFloat(cmp.getAttribute('data-start'));if(isNaN(start))start=50;
+  var pos=start,dragging=false,grab=0;
+  function set(p){
+   p=Math.max(0,Math.min(100,p));pos=p;
+   clip.style.clipPath='inset(0 '+(100-p).toFixed(2)+'% 0 0)';
+   handle.style.left=p.toFixed(2)+'%';
+   handle.setAttribute('aria-valuenow',Math.round(p));
+  }
+  function pct(x){var r=cmp.getBoundingClientRect();return (x-r.left)/r.width*100;}
+  handle.addEventListener('pointerdown',function(e){
+   dragging=true;grab=pos-pct(e.clientX);
+   if(vid){vid.play().catch(function(){});}
+   try{handle.setPointerCapture(e.pointerId);}catch(_){}
+   e.preventDefault();
+  });
+  handle.addEventListener('pointermove',function(e){if(dragging)set(pct(e.clientX)+grab);});
+  function end(e){dragging=false;try{handle.releasePointerCapture(e.pointerId);}catch(_){}}
+  handle.addEventListener('pointerup',end);
+  handle.addEventListener('pointercancel',end);
+  handle.addEventListener('keydown',function(e){
+   var s=e.shiftKey?10:2,k=e.key;
+   if(k==='ArrowLeft'||k==='ArrowDown'){set(pos-s);e.preventDefault();}
+   else if(k==='ArrowRight'||k==='ArrowUp'){set(pos+s);e.preventDefault();}
+   else if(k==='Home'){set(0);e.preventDefault();}
+   else if(k==='End'){set(100);e.preventDefault();}
+  });
+  set(start);
+  if(vid){vid.play().catch(function(){});}
+ });
+
+ /* process gallery: click-drag to scroll on desktop; native swipe/trackpad still works */
+ [].slice.call(document.querySelectorAll('.scrollbox')).forEach(function(box){
+  if(!box.hasAttribute('tabindex'))box.setAttribute('tabindex','0');
+  var down=false,sx=0,sl=0,vx=0,lastX=0,lastT=0,glide=0;
+  box.addEventListener('pointerdown',function(e){
+   if(e.pointerType==='touch')return;
+   cancelAnimationFrame(glide);
+   down=true;sx=e.clientX;sl=box.scrollLeft;vx=0;lastX=e.clientX;lastT=performance.now();
+  });
+  box.addEventListener('pointermove',function(e){
+   if(!down)return;
+   if(!box.classList.contains('dragging')){
+    if(Math.abs(e.clientX-sx)<7)return;
+    box.classList.add('dragging');try{box.setPointerCapture(e.pointerId);}catch(_){}
+   }
+   box.scrollLeft=sl-(e.clientX-sx);
+   var t=performance.now(),dt=t-lastT;
+   if(dt>0){vx=0.8*vx+0.2*((lastX-e.clientX)/dt);lastX=e.clientX;lastT=t;}
+  });
+  function endDrag(e){
+   if(!down)return;down=false;try{box.releasePointerCapture(e.pointerId);}catch(_){}
+   /* glide with the release velocity, then hand back to native snap for the landing */
+   var v=Math.max(-3.2,Math.min(3.2,vx)),last=performance.now();
+   if(Math.abs(v)<0.12){box.classList.remove('dragging');return;}
+   (function step(){
+    var t=performance.now(),dt=t-last;last=t;
+    box.scrollLeft+=v*dt;
+    v*=Math.pow(0.994,dt);
+    var atEdge=box.scrollLeft<=0||box.scrollLeft>=box.scrollWidth-box.clientWidth-1;
+    if(Math.abs(v)>0.05&&!atEdge){glide=requestAnimationFrame(step);}
+    else{box.classList.remove('dragging');}
+   })();
+  }
+  box.addEventListener('pointerup',endDrag);box.addEventListener('pointercancel',endDrag);
+ });
+
+ /* moving ink: reseed the turbulence on the 8fps house clock so the textured type "boils" exactly like the home-page headline */
+ (function(){
+  if(reduce)return;
+  var tb=document.querySelector('#inkBig feTurbulence'),ts=document.querySelector('#inkSm feTurbulence');
+  if(!tb&&!ts)return;
+  var SEEDS=[7,19,3,28,11,23,5,31],tk=0;
+  setInterval(function(){tk++;var s=SEEDS[tk%SEEDS.length];if(tb)tb.setAttribute('seed',s);if(ts)ts.setAttribute('seed',(s*2+5)%37);},125);
+ })();
+
+ /* read time: a rough estimate from the page's prose so recruiters can gauge the commitment; recomputes from whatever copy exists, so it stays honest as the sections get written */
+ (function(){
+  var rt=document.getElementById('readTime'),content=document.querySelector('.content');
+  if(!rt||!content)return;
+  var read=content.querySelectorAll('.secBody,.secHead,.ovBody,.subHead,.cap,.statCap');
+  var txt=[].map.call(read,function(e){return e.textContent||'';}).join(' ').replace(/\s+/g,' ').trim();
+  var words=txt?txt.split(' ').length:0;
+  rt.textContent=Math.max(2,Math.ceil(words/225))+' min';
+ })();
+
+
+
+
+ /* flow conductor: each flow row plays its screens ONE AT A TIME, left to right — the active shot grows and
+    performs its stages with the demo grammar (dwell, fingertip on the real control, cut), then focus moves on
+    and the row gently scrolls to keep it in view. One full pass, then it rests on the finished flow (motion
+    stops; WCAG). Any tap or drag hands over control: tap a screen and it plays, only ever one at a time.
+    Reduced motion: resolved frames, tap still plays a single screen's stages. */
+ [].slice.call(document.querySelectorAll('.scrollbox.flow')).forEach(function(box){
+  var shots=[].slice.call(box.querySelectorAll('.shot'));
+  if(!shots.length)return;
+  var DWELL=1350,TAPMS=375,BEAT=1600,timers=[],auto=true,playing=null,passDone=false;
+  function clearT(){timers.forEach(clearTimeout);timers=[];}
+  function later(f,ms){timers.push(setTimeout(f,ms));}
+  shots.forEach(function(sh){
+   var img=sh.querySelector('img');
+   var wrapEl=document.createElement('div');wrapEl.className='seqWrap';img.parentNode.insertBefore(wrapEl,img);wrapEl.appendChild(img);
+   var d=document.createElement('div');d.className='seqTap';d.setAttribute('aria-hidden','true');wrapEl.appendChild(d);
+   sh.__img=img;sh.__dot=d;
+   sh.__frames=(sh.getAttribute('data-fr')||'').split('|').filter(Boolean).map(function(f){return sh.getAttribute('data-base')+f;});
+   sh.__taps=(sh.getAttribute('data-tp')||'').split('|');sh.__exit=sh.getAttribute('data-ex')||null;
+   sh.__loaded=false;
+  });
+  function preload(sh,cb){
+   if(sh.__loaded||!sh.__frames.length){sh.__loaded=true;cb();return;}
+   var n=0;sh.__frames.forEach(function(src){var im=new Image();im.onload=im.onerror=function(){n++;if(n===sh.__frames.length){sh.__loaded=true;cb();}};im.src=src;});
+  }
+  function focus(sh){
+   shots.forEach(function(x){x.classList.toggle('act',x===sh);});
+   box.classList.add('playing');
+   var r=sh.offsetLeft-(box.clientWidth-sh.offsetWidth)/2;
+   box.scrollTo({left:Math.max(0,r),behavior:'smooth'});
+  }
+  function unfocus(){shots.forEach(function(x){x.classList.remove('act');});box.classList.remove('playing');}
+  function playShot(sh,done){
+   playing=sh;focus(sh);
+   var fr=sh.__frames,img=sh.__img,dot=sh.__dot;
+   if(fr.length<2){later(function(){if(done)done();},BEAT);return;}
+   preload(sh,function(){
+    if(playing!==sh)return;
+    var i=0;img.src=fr[0];
+    (function step(){
+     if(playing!==sh)return;
+     later(function(){
+      if(playing!==sh)return;
+      if(i>=fr.length-1){if(done)done();return;}
+      var t=sh.__taps[i];
+      function cut(){img.src=fr[++i];step();}
+      if(t&&t!=='x'&&t.indexOf(',')>0){
+       var xy=t.split(',');dot.style.left=xy[0]+'%';dot.style.top=xy[1]+'%';dot.classList.add('show');
+       later(function(){dot.classList.remove('show');cut();},TAPMS);
+      }else cut();
+     },DWELL);
+    })();
+   });
+  }
+  function exitThen(sh,cb){
+   if(!sh.__exit||reduce){later(cb,420);return;}
+   var xy=sh.__exit.split(',');sh.__dot.style.left=xy[0]+'%';sh.__dot.style.top=xy[1]+'%';
+   later(function(){sh.__dot.classList.add('show');
+    later(function(){sh.__dot.classList.remove('show');later(cb,140);},TAPMS);},260);
+  }
+  function restImg(sh){if(!sh.__frames.length)return;sh.__img.src=(sh.getAttribute("data-rest")==="first")?sh.__frames[0]:sh.__frames[sh.__frames.length-1];}
+  function runFrom(k){
+   if(k>=shots.length){passDone=true;auto=false;unfocus();box.scrollTo({left:0,behavior:'smooth'});return;}
+   playShot(shots[k],function(){exitThen(shots[k],function(){restImg(shots[k]);if(auto)runFrom(k+1);});});
+  }
+  function takeover(sh){
+   auto=true;clearT();
+   if(playing===sh)playing=null;
+   else if(playing){var of=playing;restImg(of);}
+   var k=shots.indexOf(sh);
+   playShot(sh,function(){exitThen(sh,function(){restImg(sh);if(auto)runFrom(k+1);});});
+  }
+  shots.forEach(function(sh){sh.addEventListener('click',function(){takeover(sh);});});
+  var idleT=null;
+  box.addEventListener('pointerdown',function(){auto=false;clearT();clearTimeout(idleT);},true);
+  box.addEventListener('pointerup',function(){clearTimeout(idleT);idleT=setTimeout(function(){
+   if(reduce||playing)return;auto=true;var k=Math.max(0,shots.findIndex(function(x){return x.classList.contains('act');}));
+   runFrom(k);},1500);},true);
+  box.setAttribute('tabindex','0');
+  box.addEventListener('keydown',function(e){
+   if(e.key!=='ArrowRight'&&e.key!=='ArrowLeft')return;e.preventDefault();
+   var k=shots.findIndex(function(x){return x.classList.contains('act');});
+   var n=Math.min(shots.length-1,Math.max(0,(k<0?0:k)+(e.key==='ArrowRight'?1:-1)));
+   takeover(shots[n]);});
+  if(!reduce&&'IntersectionObserver' in window){
+   var started=false;
+   new IntersectionObserver(function(en){
+    en.forEach(function(e){if(e.isIntersecting&&!started){started=true;later(function(){if(auto&&!playing)runFrom(0);},800);}});
+   },{threshold:0.35}).observe(box);
+  }
+ });
+
+ /* chapter develop: everything below the fold arrives the way the site loads — a stepped rise into focus.
+    Inked text (kickers, sources, labels) rises without blur so the SVG ink filter is never fought; prose,
+    stats, and imagery blur-develop like a polaroid. Stat figures tick 0 -> value in 8fps odometer jumps.
+    Staggers sit on the 125ms frame grid. Static under reduced motion. */
+ (function(){
+  if(!('IntersectionObserver' in window))return;
+  var SEL='#problem .kicker,#problem .secHead,#problem .secBody,#problem .stat,#problem .hmw,'+
+          '#research .kicker,#research .secHead,#research .secBody,#research .statRow,#research .statSrc,'+
+          '.photoRow,.photoRow + .cap,#research .scrollbox,.cmp,.cmp + .cap,'+
+          '#system .kicker,#system .secHead,#system .secBody,#system .subKick,#system .subHead,#system .scrollbox,#system .step';
+  var els=[].slice.call(document.querySelectorAll(SEL)).concat([].slice.call(document.querySelectorAll('.player,.tv')));
+  if(!els.length)return;
+  var INK=/(^|\s)(kicker|statSrc|cap|subKick)(\s|$)/;
+  els.forEach(function(el){
+    el.classList.add('dv');
+    if(!INK.test(el.className) && !el.classList.contains('photoRow') && !el.classList.contains('step')) el.classList.add('dvb');   // blur-develop for prose/stats/imagery; inked labels rise clean
+  });
+  if(reduce){els.forEach(function(el){el.classList.add('shown');});return;}
+  function tickNum(el){                                  // 8fps odometer: 9 stepped jumps, lands exact
+    var t=parseInt(el.getAttribute('data-t'),10);if(!t&&t!==0)return;
+    var frames=9,f=0;
+    var iv=setInterval(function(){f++;el.textContent=String(Math.round(t*f/frames));if(f>=frames){clearInterval(iv);el.textContent=String(t);}},125);
+  }
+  // wrap each stat figure so only the number ticks (unit span stays put; tabular-nums holds the width)
+  [].slice.call(document.querySelectorAll('.statNum')).forEach(function(n){
+    var tn=n.firstChild;if(!tn||tn.nodeType!==3)return;
+    var v=(tn.nodeValue||'').trim();if(!/^\d+$/.test(v))return;
+    var sp=document.createElement('span');sp.className='sn';sp.setAttribute('data-t',v);sp.textContent=v;
+    n.replaceChild(sp,tn);
+  });
+  // per-section stagger on the 125ms grid, capped so late blocks never lag a fast scroller
+  els.forEach(function(el){
+    var sec=el.closest('section')||document;
+    var sibs=[].slice.call(sec.querySelectorAll('.dv'));
+    var k=Math.min(sibs.indexOf(el),2);
+    if(k>0)el.style.transitionDelay=(k*0.125)+'s';
+  });
+  var ticked=false;
+  var io=new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if(!e.isIntersecting)return;
+      if(e.intersectionRatio<0.16&&e.intersectionRect.height<innerHeight*0.35)return;
+      var el=e.target;io.unobserve(el);
+      el.classList.add('shown');
+      if(el.classList.contains('scrollbox'))[].slice.call(el.querySelectorAll('img[loading="lazy"]')).forEach(function(im){im.removeAttribute('loading');});
+      
+      if(el.classList.contains('stat')||el.classList.contains('statRow')){
+        [].slice.call(el.querySelectorAll('.sn')).forEach(function(sn){sn.textContent='0';setTimeout(function(){tickNum(sn);},150);});
+      }
+      setTimeout(function(){if(el.classList.contains('dvb'))el.style.filter='none';el.style.willChange='auto';el.style.transitionDelay='';
+        if(el.classList.contains('photoRow'))[].slice.call(el.querySelectorAll(':scope>img')).forEach(function(sh){sh.style.filter='none';});
+        if(el.classList.contains('step'))[].slice.call(el.querySelectorAll('.stepShot,.stepText')).forEach(function(ch){ch.style.filter='none';ch.style.willChange='auto';});
+      },1400);                                            // clear compositing hints after the develop settles
+    });
+  },{threshold:[0.02,0.16],rootMargin:'0px 0px -7% 0px'});
+  els.forEach(function(el){io.observe(el);});
+ })();
+})();
+</script>
+
+ <button class="toTop" type="button" aria-label="Back to top" aria-hidden="true"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="6 11 12 5 18 11"></polyline></svg></button>
+ <script>
+ (function(){var b=document.querySelector('.toTop');if(!b)return;var shown=false,tick=false;
+ function u(){var s=window.scrollY>window.innerHeight*1.2;if(s!==shown){shown=s;b.classList.toggle('show',s);b.setAttribute('aria-hidden',s?'false':'true');}tick=false;}
+ addEventListener('scroll',function(){if(!tick){requestAnimationFrame(u);tick=true;}},{passive:true});u();
+ var r=matchMedia('(prefers-reduced-motion:reduce)').matches;
+ b.addEventListener('click',function(){scrollTo({top:0,behavior:r?'auto':'smooth'});var h=document.querySelector('h1');if(h){h.setAttribute('tabindex','-1');h.focus({preventScroll:true});}});})();
+ </script>
+<script>
+(function(){var rail=document.querySelector('.rail');if(!rail)return;var tick=false;
+function u(){var docH=document.documentElement.scrollHeight;var y=window.scrollY+window.innerHeight;var wasGone=rail.classList.contains('railGone');var nearEnd=wasGone?(y>docH-60):(y>docH-24);rail.classList.toggle('railGone',nearEnd);tick=false;}
+addEventListener('scroll',function(){if(!tick){requestAnimationFrame(u);tick=true;}},{passive:true});u();})();
+
+/* gallery paddles: prev/next controls with disabled ends; drag, swipe, and keyboard still work */
+(function(){
+  var boxes=[].slice.call(document.querySelectorAll('.scrollbox'));
+  boxes.forEach(function(box){
+    if(box.parentElement && box.parentElement.classList.contains('sbWrap')) return;
+    var wrap=document.createElement('div'); wrap.className='sbWrap';
+    box.parentNode.insertBefore(wrap, box); wrap.appendChild(box);
+    var nav=document.createElement('div'); nav.className='sbNav';
+    function mk(dir,label){
+      var b=document.createElement('button'); b.type='button'; b.className='sbBtn'; b.setAttribute('aria-label',label);
+      b.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="'+(dir<0?'15 18 9 12 15 6':'9 6 15 12 9 18')+'"/></svg>';
+      b.addEventListener('click',function(){
+        if(box.classList.contains('flow')){
+          box.dispatchEvent(new KeyboardEvent('keydown',{key:dir<0?'ArrowLeft':'ArrowRight',bubbles:true}));
+          return;
+        }
+        var shots=[].slice.call(box.querySelectorAll('.shot'));
+        var max=box.scrollWidth-box.clientWidth,t;
+        if(shots.length){
+          var bl=box.getBoundingClientRect().left,cur=box.scrollLeft;
+          var pad=parseFloat(getComputedStyle(box).paddingLeft)||0;
+          var pos=shots.map(function(sh){return sh.getBoundingClientRect().left-bl+cur-pad;});
+          if(dir>0){t=pos.filter(function(x){return x>cur+8;})[0];if(t==null)t=max;}
+          else{var rev=pos.filter(function(x){return x<cur-8;});t=rev.length?rev[rev.length-1]:0;}
+        }else{
+          t=box.scrollLeft+dir*Math.round(box.clientWidth*0.8);
+        }
+        t=Math.max(0,Math.min(t,max));
+        if(window.matchMedia&&matchMedia('(prefers-reduced-motion:reduce)').matches){box.scrollLeft=t;return;}
+        cancelAnimationFrame(box.__pg);clearTimeout(box.__pgf);
+        var s0=box.scrollLeft,d0=t-s0,t0=performance.now(),landed=false;
+        box.__pgf=setTimeout(function(){if(!landed){box.scrollLeft=t;upd();}},600);
+        (function fr(now){
+          var p=Math.min(1,(now-t0)/380),e=1-Math.pow(1-p,3);
+          box.scrollLeft=s0+d0*e;
+          if(p<1)box.__pg=requestAnimationFrame(fr);
+          else{landed=true;clearTimeout(box.__pgf);upd();}
+        })(t0);
+      });
+      nav.appendChild(b); return b;
+    }
+    var prev=mk(-1,'Previous screens'),next=mk(1,'Next screens');
+    wrap.appendChild(nav);
+    function upd(){
+      var max=box.scrollWidth-box.clientWidth;
+      nav.style.display=(max>8)?'':'none';
+      prev.disabled=box.scrollLeft<=4;
+      next.disabled=box.scrollLeft>=max-4;
+    }
+    box.addEventListener('scroll',upd,{passive:true});
+    window.addEventListener('resize',upd);
+    [].slice.call(box.querySelectorAll('img')).forEach(function(im){ if(!im.complete) im.addEventListener('load',upd); });
+    setTimeout(upd,400); setTimeout(upd,1200); upd();
+  });
+})();
+</script>
+
+<script>
+/* flow players + tabbed viewers (carousel replacements): one thing at a time, direct access, motion stops on contact */
+(function(){
+ var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion:reduce)').matches;
+ function parse(el,sel){var sc=el.querySelector(sel);if(!sc)return[];try{return JSON.parse(sc.textContent);}catch(e){return[];}}
+ [].slice.call(document.querySelectorAll('.player')).forEach(function(pl){
+  var beats=parse(pl,'.playerBeats');if(!beats.length)return;
+  var img=pl.querySelector('.playerStage img'),step=pl.querySelector('.playerStep'),note=pl.querySelector('.playerNote');
+  var ticksBox=pl.querySelector('.playerTicks'),i=0,auto=!reduce,timer=null,started=false;
+  beats.forEach(function(b,k){var t=document.createElement('i');if(k===0)t.className='on';t.addEventListener('click',function(){auto=false;clearTimeout(timer);show(k);});ticksBox.appendChild(t);});
+  var ticks=[].slice.call(ticksBox.children);
+  beats.forEach(function(b){var im=new Image();im.src=b.src;});
+  function render(){img.src=beats[i].src;img.alt=beats[i].alt||'';if(step)step.textContent=beats[i].step||'';if(note)note.textContent=beats[i].note||'';ticks.forEach(function(t,k){t.className=(k===i)?'on':'';});}
+  function show(k){i=(k+beats.length)%beats.length;if(reduce){render();return;}pl.classList.add('dev');setTimeout(function(){render();pl.classList.remove('dev');},250);}
+  function schedule(){clearTimeout(timer);if(!auto)return;timer=setTimeout(function(){if(!auto)return;if(i>=beats.length-1){auto=false;return;}show(i+1);schedule();},2600);}
+  [].slice.call(pl.querySelectorAll('.sbBtn')).forEach(function(b){b.addEventListener('click',function(){auto=false;clearTimeout(timer);show(i+(b.getAttribute('data-dir')==='-1'?-1:1));});});
+  pl.addEventListener('pointerenter',function(){clearTimeout(timer);});
+  pl.addEventListener('pointerleave',function(){if(auto&&started)schedule();});
+  if(!reduce&&'IntersectionObserver' in window){new IntersectionObserver(function(es,io){es.forEach(function(e){if(e.isIntersecting&&!started){started=true;schedule();io.disconnect();}});},{threshold:0.5}).observe(pl);}
+  render();
+ });
+ [].slice.call(document.querySelectorAll('.tv')).forEach(function(tv){
+  var items=parse(tv,'.tvItems');if(!items.length)return;
+  var img=tv.querySelector('.tvFrame img');var tabs=[].slice.call(tv.querySelectorAll('.tvTab'));
+  items.forEach(function(it){var im=new Image();im.src=it.src;});
+  function go(k){tabs.forEach(function(t,j){t.classList.toggle('on',j===k);t.setAttribute('aria-selected',j===k?'true':'false');});
+   if(reduce){img.src=items[k].src;img.alt=items[k].alt||'';return;}
+   tv.classList.add('dev');setTimeout(function(){img.src=items[k].src;img.alt=items[k].alt||'';tv.classList.remove('dev');},250);}
+  tabs.forEach(function(t,k){t.addEventListener('click',function(){go(k);});});
+ });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+  <url>
+    <loc>https://jaydenbetts.design/</loc>
+    <lastmod>2026-07-02</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>1.0</priority>
+    <image:image>
+      <image:loc>https://jaydenbetts.design/images/og/jayden-betts-portfolio.jpg</image:loc>
+      <image:title>Jayden Betts Portfolio</image:title>
+      <image:caption>Jayden Betts, product designer: portfolio site</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://jaydenbetts.design/images/about/jayden-betts-portrait.webp</image:loc>
+      <image:title>Jayden Betts, product designer</image:title>
+      <image:caption>Portrait of Jayden Betts, product designer and founder of Apollo</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://jaydenbetts.design/images/about/jayden-betts-graduation.webp</image:loc>
+      <image:title>Jayden Betts at his UC Davis graduation</image:title>
+      <image:caption>Jayden Betts graduating from UC Davis with a B.A. in Design</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://jaydenbetts.design/bearings.html</loc>
+    <lastmod>2026-07-02</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://jaydenbetts.design/images/cs/bearings.webp</image:loc>
+      <image:title>Bearings, a product design case study by Jayden Betts</image:title>
+      <image:caption>Bearings group road-trip planner iOS screens, designed by Jayden Betts</image:caption>
+    </image:image>
+  </url>
+</urlset>
