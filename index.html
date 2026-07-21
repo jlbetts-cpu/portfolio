@@ -931,10 +931,16 @@ function tickFidget(){
  else if(fidget.type==="tilt"){tgx=fidget.dir*0.10*env;trot=fidget.dir*3.0*env;}                       // slight head tilt
  else if(fidget.type==="look"){try{var sr=stage.getBoundingClientRect();var lx=Math.max(-1,Math.min(1,(pointer.px-(sr.left+sr.width*0.5))/SENS)),ly=Math.max(-1,Math.min(1,(pointer.py-(sr.top+sr.height*0.42))/SENS));tgx=lx*0.7*env;tgy=ly*0.55*env;}catch(_){}}   // glances toward your cursor
  else if(fidget.type==="brow"){tgy=-0.04*env;brow=env>0.45;}
+ else if(fidget.type==="rock"){tgx=0;tgy=0.07*env;trot=fidget.dir*4.6*env;brow=(p>0.14&&p<0.9);}                       /* the People's Eyebrow: head cocks, brows up, dead-level stare */
+ else if(fidget.type==="side"){var sp=p<0.14?(p/0.14):(p>0.82?((1-p)/0.18):1);tgx=fidget.dir*0.85*sp;tgy=0.05*sp;trot=0;}   /* deadpan side-eye: eyes dart, head does NOT move — that's the joke */
+ else if(fidget.type==="roll"){var fade=Math.min(1,Math.min(p,1-p)*7);var ang=p*Math.PI;tgx=Math.cos(ang)*-0.75*fade*fidget.dir;tgy=-Math.sin(ang)*0.95*fade;trot=Math.sin(p*Math.PI)*2.2*fidget.dir;}   /* the eye roll: a full arc over the top */
+ else if(fidget.type==="dtake"){if(p<0.42){var q=p/0.42;tgx=fidget.dir*0.8*q;trot=fidget.dir*1.6*q;}else{var q2=Math.max(0,1-(p-0.42)/0.12);tgx=fidget.dir*0.8*q2;trot=fidget.dir*1.6*q2;brow=(p>0.5&&p<0.92);}}   /* double-take: drift away, SNAP back, brows up */
+ else if(fidget.type==="bruh"){tgx=0;tgy=0.04;trot=0;if(!fidget.blinked&&p>0.28){fidget.blinked=true;slowBlink();}}   /* the unimpressed slow blink */
  else if(fidget.type==="word"||fidget.type==="corner"){try{var _tel=fidget.type==="word"?cycWord:document.querySelector(".faceMoodCorner");if(_tel){var _er=_tel.getBoundingClientRect(),_sr2=stage.getBoundingClientRect();tgx=Math.max(-1,Math.min(1,((_er.left+_er.width/2)-(_sr2.left+_sr2.width*0.5))/(_sr2.width*0.8)))*0.85*env;tgy=Math.max(-1,Math.min(1,((_er.top+_er.height/2)-(_sr2.top+_sr2.height*0.42))/(_sr2.height*0.8)))*0.7*env;trot=tgx*2.2;}}catch(_){}}                                           // eyebrow raise
  fidgetGX+=(tgx-fidgetGX)*0.22;fidgetGY+=(tgy-fidgetGY)*0.22;fidgetROT+=(trot-fidgetROT)*0.22;
- if(fidget.type==="brow"&&!blinking){if(brow&&!fidgetBrow){faceImg.src=PFX+FACES.neutral.browsup;fidgetBrow=true;}else if(!brow&&fidgetBrow){faceImg.src=PFX+FACES.neutral.img;fidgetBrow=false;}}
- if(p>=1){if(fidgetBrow&&!blinking){faceImg.src=PFX+FACES.neutral.img;}fidgetBrow=false;fidget=null;}
+ var _browType=(fidget.type==="brow"||fidget.type==="rock"||fidget.type==="dtake");
+ if(_browType&&!blinking&&(curFace==="neutral"||curFace==="rest")){if(brow&&!fidgetBrow){faceImg.src=PFX+FACES.neutral.browsup;fidgetBrow=true;}else if(!brow&&fidgetBrow){faceImg.src=PFX+FACES[curFace].img;fidgetBrow=false;}}
+ if(p>=1){if(fidgetBrow&&!blinking){faceImg.src=PFX+FACES[(curFace==="neutral"||curFace==="rest")?curFace:"neutral"].img;}fidgetBrow=false;var _aft=fidget&&fidget.after;fidget=null;if(_aft)try{_aft();}catch(_){}}
 }
 /* welcome beat: every so often in true idle, a brief soft smile — idle-animation research: living characters acknowledge you (breath, blinks, warmth); they never just stare */
 function idleWarm(){
@@ -965,7 +971,9 @@ function idleDrowse(){
 }
 setTimeout(idleDrowse,20000);
 addEventListener("pointermove",function(){if(drowsy){drowsy=false;if(holdFace==="rest")holdFace=null;browFlash(function(){resolve();});}},{passive:true});
-/* rare quirks: a friendly wink, and (rarer) a quick blep */
+/* the disappointed slow blink: shut, a long beat, reopen (mirrors buildBlink's grid steps) */
+function slowBlink(){if(blinking||reduce)return;blinking=true;blinkQ=[{close:1,sq:0.9},{close:1,sq:0.93},{close:1,sq:0.94},{close:1,sq:0.94},{close:1,sq:0.94},{open:1,face:curFace,sq:1}];applyStep(blinkQ.shift());}
+/* rare quirks: pop-culture beats plus the wink and the blep — one roll, long gaps, never twice in a row */
 function blep(){
  if(!tongueEl||reduce)return;
  [0.4,0.85,1].forEach(function(v,i){setTimeout(function(){if(eating||dragging)return;tongueEl.style.opacity="0.96";tongueEl.style.transform="translateY(4%) rotate(2deg) scale(0.9,"+v+")";},i*125);});
@@ -974,10 +982,19 @@ function blep(){
 }
 function idleQuirk(){
  if(idleFree()&&!fidget&&!drowsy&&!holdFace&&!activeHover&&(curFace==="neutral"||curFace==="rest")){
-  if(Math.random()<0.72){setHold("wink",680);showFace("wink");}
-  else blep();
+  var _d=(Math.random()<0.5?-1:1),_now=performance.now(),_r=Math.random(),_pick;
+  if(_r<0.20)_pick="wink";else if(_r<0.30)_pick="blep";else if(_r<0.50)_pick="rock";else if(_r<0.66)_pick="side";else if(_r<0.80)_pick="roll";else if(_r<0.91)_pick="dtake";else _pick="bruh";
+  if(_pick===window.__lastQuirk)_pick=(_pick==="rock"?"side":"rock");   // never the same gag twice running
+  window.__lastQuirk=_pick;
+  if(_pick==="wink"){setHold("wink",680);showFace("wink");}
+  else if(_pick==="blep")blep();
+  else if(_pick==="rock")fidget={type:"rock",start:_now,dur:1700,dir:_d};
+  else if(_pick==="side")fidget={type:"side",start:_now,dur:1500,dir:_d};
+  else if(_pick==="roll")fidget={type:"roll",start:_now,dur:1150,dir:_d,after:function(){if(Math.random()<0.4&&idleFree()&&!holdFace){setHold("smile",700);showFace("smile");}}};   // sometimes amused with himself after
+  else if(_pick==="dtake")fidget={type:"dtake",start:_now,dur:1350,dir:_d};
+  else fidget={type:"bruh",start:_now,dur:1500,dir:_d};
  }
- setTimeout(idleQuirk,42000+Math.random()*38000);
+ setTimeout(idleQuirk,34000+Math.random()*30000);
 }
 setTimeout(idleQuirk,18000);
 /* warm every face frame once the page settles, so no expression swap ever flashes a half-loaded frame */
