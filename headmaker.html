@@ -480,7 +480,7 @@ function buildLive(){
   w.style.width=(_ew*100)+"%";w.style.height=(_eh/1.2*100)+"%";   /* /1.2: the stage is 5/6, heights need the aspect taken out */
   w.style.left=((c.x-_ew/2)*100)+"%";w.style.top=((c.y-_eh/2/1.2)*100)+"%";
   w.style.transform="rotate("+(c.ang||0)+"rad)";
-  var irD=c.w*0.42;   /* true circle: 11.5mm on a 28mm eye */
+  var irD=c.w*0.54;   /* identical to the homepage companion: the friendly 54% ratio */
   var fill=document.createElement("div");   /* the white is a lit sphere, not a flat paint chip */
   fill.style.cssText="position:absolute;inset:0;background:radial-gradient(ellipse at 16% 50%,rgba(112,80,60,.18),rgba(112,80,60,0) 34%),radial-gradient(ellipse at 84% 50%,rgba(112,80,60,.18),rgba(112,80,60,0) 34%),radial-gradient(ellipse at 50% 38%,"+owB+" 0%,"+sc+" 52%,"+owD+" 100%)";
   var ir=document.createElement("div");ir.className="hmIris";
@@ -492,12 +492,12 @@ function buildLive(){
   var shd=document.createElement("div");    /* the upper lid throws a soft shadow across everything */
   shd.style.cssText="position:absolute;inset:0;pointer-events:none;background:linear-gradient(to bottom,rgba(46,32,26,.40) 0%,rgba(46,32,26,.13) 22%,rgba(46,32,26,0) 46%),linear-gradient(to top,rgba(255,255,255,.09) 0%,rgba(255,255,255,0) 16%)";
   var gl=document.createElement("div");gl.className="hmGlint";
-  gl.style.width=(0.2*irD/_ew*100)+"%";gl.style.height=(0.2*irD/_eh*100)+"%";gl.style.left="37%";gl.style.top=((0.5-irD/_eh/2)*100+irD/_eh*30)+"%";   /* on the iris, never clipped by the lid */
+  gl.style.width=(0.19*irD/_ew*100)+"%";gl.style.height=(0.19*irD/_eh*100)+"%";gl.style.left="37%";gl.style.top=((0.5-irD/_eh/2)*100+irD/_eh*30)+"%";   /* on the iris, never clipped by the lid */
   var gl2=document.createElement("div");gl2.className="hmGlint";
   gl2.style.width=(0.10*irD/_ew*100)+"%";gl2.style.height=(0.10*irD/_eh*100)+"%";gl2.style.left=(50+irD/_ew*14)+"%";gl2.style.top=(50+irD/_eh*15)+"%";gl2.style.opacity="0.45";
   w.appendChild(fill);w.appendChild(ir);w.appendChild(shd);w.appendChild(gl);w.appendChild(gl2);
   headEl.appendChild(w);
-  var lwW=c.w*1.12,lwH=c.h*1.42;
+  var lwW=c.w*0.95,lwH=c.w*0.6;   /* the companion's lid window, verbatim */
   var lw=document.createElement("div");lw.className="hmLidW";
   lw.style.width=(lwW*100)+"%";lw.style.height=(lwH*100)+"%";
   lw.style.left=((c.x-lwW/2)*100)+"%";lw.style.top=((c.y-lwH/2)*100)+"%";
@@ -620,7 +620,7 @@ document.getElementById("save").addEventListener("click",function(){
   var wB="rgb("+Math.min(255,rgb[0]+8)+","+Math.min(255,rgb[1]+8)+","+Math.min(255,rgb[2]+7)+")";
   var wD="rgb("+Math.round(rgb[0]*0.84)+","+Math.round(rgb[1]*0.82)+","+Math.round(rgb[2]*0.80)+")";
   var gx=look[0]*ew*0.15,gy=look[1]*eh*0.18,ix=ex+gx,iy=ey+gy;
-  var irx=ew*0.21,iry=ew*0.21;   // a true circle, 42% of the eye width
+  var irx=ew*0.27,iry=ew*0.27;   // a true circle, the same 54% the live heads wear
   x.save();x.beginPath();x.ellipse(ex,ey,ew*0.5,Math.max(eh*0.5,ew*0.14),0,0,Math.PI*2);x.clip();   // everything lives inside the lids
   var grd=x.createRadialGradient(ex,ey-eh*0.12,ew*0.04,ex,ey,ew*0.55);   // the white is a lit sphere
   grd.addColorStop(0,wB);grd.addColorStop(0.55,"rgb("+rgb[0]+","+rgb[1]+","+rgb[2]+")");grd.addColorStop(1,wD);
