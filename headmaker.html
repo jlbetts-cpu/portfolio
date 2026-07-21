@@ -158,6 +158,7 @@ a:focus-visible,button:focus-visible,.hmDot:focus-visible{outline:2px solid var(
    <p class="kicker">Step 4 of 4 &middot; Alive</p>
    <h2 class="stepHead">There you are.</h2>
    <p class="stepBody">Floating, blinking, watching your cursor. Your own brows still work. Save it, or send it to someone who will get it.</p>
+   <div class="hmRow" role="group" aria-label="Pose presets"><button class="hmBtn ghost" type="button" data-pose="">Live</button><button class="hmBtn ghost" type="button" data-pose="wink">Wink</button><button class="hmBtn ghost" type="button" data-pose="brows">Surprised</button><button class="hmBtn ghost" type="button" data-pose="side">Side-eye</button></div>
    <div class="hmStage bare" id="stage4">
     <div class="hmShadow" aria-hidden="true"></div>
     <div id="hmHead"><img id="hmLive" alt="Your floating cutout head, eyes following the cursor"></div>
@@ -274,6 +275,7 @@ document.getElementById("next3").addEventListener("click",function(){buildLive()
 /* ---------- step 4: alive ---------- */
 var stage4=document.getElementById("stage4"),headEl=document.getElementById("hmHead"),liveImg=document.getElementById("hmLive");
 var eyeEls=[],tick=null,gx=0,gy=0,blinkAt=0,blinkFrames=0,browAt=0,browFrames=0,sniffAt=0,sniffFrames=0,smileAt=0,smiling=false;
+var pose="";document.querySelectorAll("[data-pose]").forEach(function(b){b.addEventListener("click",function(){pose=b.getAttribute("data-pose");document.querySelectorAll("[data-pose]").forEach(function(o){o.style.borderColor=o===b?"var(--c950)":"";});});});
 function eyeGeom(){var d=deriveEyes();return{w:(d[0].w+d[1].w)/2,h:(d[0].h+d[1].h)/2};}
 function sclera(e){ // the white of THEIR eye: sample along the corner line, keep only the brightest pixels
  try{var x=bakedCanvas.getContext("2d"),px=[];
@@ -350,8 +352,11 @@ function liveTick(){
  if(now>=sniffAt&&sniffFrames===0){sniffFrames=3;sniffAt=now+16000+Math.random()*20000;}
  if(sniffFrames>0){noseEl.style.transform="translateX("+(sniffFrames===2?1.2:-0.8)+"px)";sniffFrames--;}
  else if(noseEl)noseEl.style.transform="";
- if(now>=blinkAt&&blinkFrames===0){blinkFrames=2;blinkAt=now+2600+Math.random()*3400;}
- eyeEls.forEach(function(e){
+ if(pose==="side"){nx=-0.78;ny=0.06;}
+ if(pose==="brows"){browEls.forEach(function(b){b.style.transform="translateY(-3px)";});}
+ if(now>=blinkAt&&blinkFrames===0&&pose!=="wink"){blinkFrames=2;blinkAt=now+2600+Math.random()*3400;}
+ eyeEls.forEach(function(e,ei){
+  if(pose==="wink"&&ei===0){e.wrap.style.background=e.lid;e.iris.style.opacity="0";e.glint.style.opacity="0";return;}
   if(blinkFrames>0){e.wrap.style.background=e.lid;e.iris.style.opacity="0";e.glint.style.opacity="0";}
   else{e.wrap.style.background=e.sc;e.iris.style.opacity="1";e.glint.style.opacity="1";
    var ew=e.wrap.offsetWidth,eh=e.wrap.offsetHeight;

@@ -775,7 +775,6 @@ body.about-open.headheal .abTear{animation:tearClose .5s steps(1,end) forwards}
  </div>
 
  <div class="csPanel" data-panel="goodness" role="tabpanel" aria-label="Extras" hidden>
-  <section class="reel" id="reel"><div class="reelTrack"><div class="reelStage" id="reelStage"><figure class="reelFrame" id="reelFrame"><video class="reelVid" id="reelVid" muted loop playsinline preload="none" poster="images/reel_poster.webp"><source src="videos/reel.mp4" type="video/mp4"></video><button class="reelTap" id="reelTap" type="button" aria-label="Play video"><span class="tri"></span>Play video</button><div class="playCursor" id="playCursor" aria-hidden="true"><span class="pcInner"><span class="tri"></span>Play video</span></div></figure><div class="reelMeta"><span class="csName">Wired to fail</span><span class="csYear">2026</span></div></div></div></section>
   <article class="csItem" data-slug="headmaker">
    <div class="csTrack">
     <div class="csStage">
@@ -791,6 +790,7 @@ body.about-open.headheal .abTear{animation:tearClose .5s steps(1,end) forwards}
     </div>
    </div>
   </article>
+  <section class="reel" id="reel"><div class="reelTrack"><div class="reelStage" id="reelStage"><figure class="reelFrame" id="reelFrame"><video class="reelVid" id="reelVid" muted loop playsinline preload="none" poster="images/reel_poster.webp"><source src="videos/reel.mp4" type="video/mp4"></video><button class="reelTap" id="reelTap" type="button" aria-label="Play video"><span class="tri"></span>Play video</button><div class="playCursor" id="playCursor" aria-hidden="true"><span class="pcInner"><span class="tri"></span>Play video</span></div></figure><div class="reelMeta"><span class="csName">Wired to fail</span><span class="csYear">2026</span></div></div></div></section>
  </div>
 </section>
  <footer class="siteFoot" id="contact" role="contentinfo">
@@ -2517,4 +2517,12 @@ requestAnimationFrame(function(){requestAnimationFrame(startIntro);});
 </script>
 <div class="csBackveil" id="csBackveil" aria-hidden="true"></div>
 <div class="flash" id="flash" aria-hidden="true"></div>
+<script>
+/* the head-maker card lives in a panel hidden at load, so the main reveal observer never sees it:
+   reveal it the moment the Extras tab opens (one beat later, so it develops in like everything else) */
+(function(){var c=document.querySelector('[data-slug=headmaker]');if(!c)return;
+function on(){setTimeout(function(){c.classList.add('csIn');},250);}
+document.addEventListener('click',function(e){var t=e.target&&e.target.closest&&e.target.closest('.csTab');if(t&&t.getAttribute('data-tab')==='goodness')on();},true);
+var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
+</script>
 </body></html>
