@@ -2620,7 +2620,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
  // --- state ---
  var x=bigR?(bigR.l+(bigR.r-bigR.l)/2-HW/2):Math.max(8,heroR.w*0.06),y=bigR?(bigR.t-HH+6):floorY,vx=0,vy=0,dir=1,depth=1,depthT=1,air=false,surface=floorY,
      st="idle",stT=0,hopsLeft=0,grabbed=false,gpx=0,gpy=0,lastPX=0,lastPY=0,pvx=0,pvy=0,
-     offAt=0,gone=false,goneUntil=0,decideAt=performance.now()+4200,spin=0,heldOff=0,heldV=0,cTop=false,bornAt=performance.now()+1600,perched=false,hs=1,hsT=1,dockUntil=0,moodB=false,downT=0,downX=0,downY=0,shakeN=0,heartsF=0,danceHops=0,dblBlink=false,
+     offAt=0,gone=false,goneUntil=0,decideAt=performance.now()+4200,spin=0,heldOff=0,heldV=0,cTop=false,bornAt=performance.now()+1600,perched=false,hs=1,hsT=1,dockUntil=0,moodB=false,pbAt=0,mirrorAt=0,downT=0,downX=0,downY=0,shakeN=0,heartsF=0,danceHops=0,dblBlink=false,
      bAt=performance.now()+2800,bf=0,brAt=performance.now()+7000,brf=0,moAt=performance.now()+11000,mof=0,
      dzf=0,sqx=1,sqy=1,sqxv=0,sqyv=0,sqxP=1,sqyP=1,sqT=0,shown=false,first=true,tk3=0,gzx=0,gzy=0,sacAt=0;
  var G=2600,DT=0.04,facc=0,CEIL=2,surpriseAt=0;   // real units: px/s and px/s^2, integrated at 25fps
@@ -2704,6 +2704,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   if(!shown)return;
   if(now>=decideAt)decide(now);
   // while perched it RIDES the breathing head: the hair moves, so does it
+  if(perched&&moodB&&now>=pbAt){pbAt=now+700+Math.random()*500;sqT=0.12;sqyP=1.12;sqxP=1/1.12;}   // docked at a show: it bounces along
   if(perched&&!grabbed&&!air){var fEl2=document.getElementById("face");
    if(fEl2){var fr2=fEl2.getBoundingClientRect(),hb2=hero.getBoundingClientRect();
     var txp=fr2.left-hb2.left+fr2.width/2-HW/2,typ=fr2.top-hb2.top+fr2.height*crownFrac-HH*FOOT+HH*0.07;
@@ -2758,6 +2759,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   var act=(typeof lastMove!=="undefined")&&(now-lastMove<2500)&&dcur<190;   // the cursor only matters up close
   var nx,ny;
   if(grabbed){nx=0.14;ny=0.1;}   // held: eyes quietly to one side, never panicked
+  else if(perched&&moodB){nx=0;ny=0.9;}   // front-row seat: watching the show below
   else if(act){nx=Math.max(-1,Math.min(1,(px-(rr.left+rr.width/2))/280));ny=Math.max(-1,Math.min(1,(py-(rr.top+rr.height/2))/280));
    if(Math.abs(nx)<0.09&&Math.abs(ny)<0.09){nx=0.13*(dir||1);ny=0.05;}}   // same rule as mine: never a dead stare into the camera
   else if(air||Math.abs(vx)>0.5){nx=dir*0.7;ny=0.12;}   // busy going somewhere: it watches where it is going
@@ -2766,6 +2768,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   if(now>=bAt&&bf===0&&!grabbed&&dzf===0){bf=5;dblBlink=Math.random()<0.22;bAt=now+2700+Math.random()*3800;}
   if(bf>0){sqy=Math.min(sqy,0.955);sqx=Math.max(sqx,1.03);}   // the whole head takes part in a blink, like mine
   if(bf===1&&dblBlink){dblBlink=false;bf=5;}
+  try{if(perched&&faceImg&&faceImg.src.indexOf("smile")>-1&&now>=mirrorAt){mirrorAt=now+3000;brf=6;mof=4;}}catch(_){}   // he smiles, it beams back
   if(perched&&moodB){brows.forEach(function(b){b.style.transform="translateY(-3px)";});}
   else if(now>=brAt&&brf===0){brf=6;brAt=now+8000+Math.random()*9000;}
   if(brf>0){var lift=(brf>4||brf===1)?-1.5:-3;brows.forEach(function(b){b.style.transform="translateY("+lift+"px)";});brf--;}
