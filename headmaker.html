@@ -207,10 +207,10 @@ a:focus-visible,button:focus-visible,.hmDot:focus-visible{outline:2px solid var(
   </section>
 
   <section class="hmPitSec hidden" id="hmPitSec" aria-label="Your saved heads">
-   <p class="kicker">Your little crowd &middot; up to three</p>
+   <p class="kicker">Your little crowd &middot; up to five</p>
    <div class="hmPit" id="hmPitRow"></div>
    <div class="hmRow"><button class="hmBtn" type="button" id="addAnother">Add another head</button></div>
-   <p class="cap">Every head you make joins the crowd on my homepage &mdash; adding never replaces the ones already there. Three at most; the oldest hops out.</p>
+   <p class="cap">Every head you make joins the crowd on my homepage &mdash; adding never replaces the ones already there. Five at most; the oldest hops out.</p>
   </section>
  </div>
 
@@ -630,7 +630,7 @@ function buildLive(){
   if(!(_all instanceof Array))_all=[];
   if(_rawS===null){try{var _lg=JSON.parse(localStorage.getItem("hmCompanion")||"null");if(_lg&&_lg.cut&&_lg.cut.length>100)_all=[_lg];}catch(_){}}
   _all=_all.filter(function(h){return h&&h.cut&&h.cut.length>=15000&&h.cut!==_nh.cut;});   // real faces only; the same face re-saved just moves to newest
-  _all.push(_nh);while(_all.length>3)_all.shift();   // the pit holds three: the oldest head retires
+  _all.push(_nh);while(_all.length>5)_all.shift();   // the pit holds five: the oldest head retires
   localStorage.setItem("hmCompanions",JSON.stringify(_all));
   localStorage.setItem("hmCompanion",JSON.stringify(_nh));renderPit();}catch(_){}
 }
@@ -694,14 +694,14 @@ function loadSmile(f){
 function readPit(){var all=[],rawN1=null;
  try{var raw1=localStorage.getItem("hmCompanions");if(raw1!==null){all=JSON.parse(raw1)||[];rawN1=all.length;}}catch(_){}
  if(rawN1===null){try{var lg1=JSON.parse(localStorage.getItem("hmCompanion")||"null");if(lg1&&lg1.cut)all=[lg1];}catch(_){}}
- var seenP={};all=all.filter(function(d){if(!d||!d.cut||d.cut.length<15000||seenP[d.cut])return false;seenP[d.cut]=1;return true;}).slice(0,3);
+ var seenP={};all=all.filter(function(d){if(!d||!d.cut||d.cut.length<15000||seenP[d.cut])return false;seenP[d.cut]=1;return true;}).slice(0,5);
  if(rawN1!==null&&rawN1!==all.length){try{localStorage.setItem("hmCompanions",JSON.stringify(all));}catch(_){}}   // heal: duplicates and debris leave the record for good
  return all;}
 function renderPit(){try{var row=document.getElementById("hmPitRow"),sec=document.getElementById("hmPitSec");if(!row)return;
  var all=readPit();
  if(sec)sec.classList.toggle("hidden",!all.length);   // present the moment you have a head, on every step
  row.innerHTML="";
- for(var i=0;i<3;i++){(function(idx){
+ for(var i=0;i<5;i++){(function(idx){
   if(all[idx]&&all[idx].cut){var it=document.createElement("span");it.className="hmPitItem";
    var im1=document.createElement("img");im1.src=all[idx].cut;im1.alt="A saved head";it.appendChild(im1);
    var xb=document.createElement("button");xb.className="hmPitX";xb.type="button";xb.setAttribute("aria-label","Remove this head from the homepage");xb.textContent="\u00d7";

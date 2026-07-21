@@ -259,7 +259,7 @@ body.partyLock{overflow:hidden}
 @media (prefers-reduced-motion:reduce){.loveHeart{animation:none}.heartDot::before,.discoDot::after,.cookieDot::before{animation:none}}
 .queueDots{position:absolute;left:50%;top:-7%;transform:translateX(-50%);display:flex;gap:.42rem;z-index:8;opacity:0;pointer-events:none;transition:opacity .16s cubic-bezier(.2,.8,.2,1)}.queueDots.on{opacity:.92}.queueDots i{width:.5rem;height:.5rem;border-radius:50%;background:var(--c950);filter:url(#inkSm);animation:qbounce .92s steps(7,end) infinite;animation-play-state:paused}.queueDots.on i{animation-play-state:running}.queueDots i:nth-of-type(2){animation-delay:.12s}.queueDots i:nth-of-type(3){animation-delay:.24s}@keyframes qbounce{0%{transform:translateY(0)}30%{transform:translateY(-95%)}60%{transform:translateY(0)}100%{transform:translateY(0)}}.qsr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}@media (prefers-reduced-motion:reduce){.queueDots i{animation:none}}.tongue{position:absolute;left:41%;top:56%;width:12%;height:auto;transform-origin:50% 100%;transform:scaleY(0);opacity:0;z-index:4;pointer-events:none;filter:url(#inkSm) drop-shadow(0 1px 1px rgba(0,0,0,.3));will-change:transform,opacity}.stachecrumb{animation:stachePop .5s steps(4,end) forwards}@keyframes stachePop{0%{transform:rotate(var(--r)) scale(0);opacity:0}55%{transform:rotate(var(--r)) scale(1.22);opacity:1}80%{transform:rotate(var(--r)) scale(.93);opacity:1}100%{transform:rotate(var(--r)) scale(1);opacity:1}}@media (prefers-reduced-motion:reduce){.stachecrumb{animation:none;opacity:1;transform:rotate(var(--r))}}.collabdrag{position:fixed;pointer-events:none;font-family:var(--serif);font-weight:700;font-size:var(--fs-hero);transform:translate(-50%,-50%);transform-origin:50% 18%;z-index:70;will-change:transform,left,top;color:var(--c900);display:inline-flex;align-items:baseline;gap:.06em;white-space:nowrap}
 .camDot{display:inline-block;width:.92em;height:.66em;vertical-align:baseline;position:relative;color:transparent}
-.moodHeads{display:flex;gap:10px;margin:10px 4px 2px}.moodHeads:empty{display:none}
+.moodHeads{display:flex;flex-wrap:wrap;gap:10px;margin:10px 4px 2px}.moodHeads:empty{display:none}
 .mhItem{position:relative}.mhItem img{width:34px;height:40px;object-fit:contain;background:var(--c100);border-radius:4px;display:block}
 .mhX{position:absolute;top:-6px;right:-6px;width:16px;height:16px;border-radius:50%;border:1px solid var(--c100);background:var(--c50);color:var(--c700);font-size:11px;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0}
 .mhX:hover{color:var(--c950);border-color:var(--c500)}
@@ -2529,7 +2529,7 @@ requestAnimationFrame(function(){requestAnimationFrame(startIntro);});
  function readAll(){var a=[],rawN=null;
   try{var raw=localStorage.getItem("hmCompanions");if(raw!==null){a=JSON.parse(raw)||[];rawN=a.length;}}catch(_){}
   if(rawN===null){try{var l=JSON.parse(localStorage.getItem("hmCompanion")||"null");if(l&&l.cut)a=[l];}catch(_){}}   // an emptied pit stays empty
-  var seen={};a=a.filter(function(d){if(!d||!d.cut||d.cut.length<15000||seen[d.cut])return false;seen[d.cut]=1;return true;}).slice(0,3);
+  var seen={};a=a.filter(function(d){if(!d||!d.cut||d.cut.length<15000||seen[d.cut])return false;seen[d.cut]=1;return true;}).slice(0,5);
   if(rawN!==null&&rawN!==a.length){try{localStorage.setItem("hmCompanions",JSON.stringify(a));}catch(_){}}   // heal duplicates so one x is always one head
   return a;}
  function render(){var a=readAll();box.innerHTML="";
@@ -2564,10 +2564,10 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    stands on the CTA buttons, never covers the big head or the text, wanders off screen and
    comes back, and you can pick it up like a Mii — it panics, you drop it, it bounces, it gets dizzy. */
 (function(){
- var list=[],_rawN=null;   // up to three little heads: the ball pit
+ var list=[],_rawN=null;   // up to five little heads: the ball pit
  try{var _raw=localStorage.getItem("hmCompanions");if(_raw!==null){var _m=JSON.parse(_raw)||[];_rawN=_m.length;list=_m;}}catch(_){}
  if(_rawN===null){try{var _one=JSON.parse(localStorage.getItem("hmCompanion")||"null");if(_one)list=[_one];}catch(_){}}   // legacy only when the new key has never existed: an emptied pit stays empty
- var seenC={};list=list.filter(function(d){if(!d||!d.cut||d.cut.length<15000||seenC[d.cut])return false;seenC[d.cut]=1;return true;}).slice(0,3);   // unique REAL faces only: baked heads are never tiny, debris is
+ var seenC={};list=list.filter(function(d){if(!d||!d.cut||d.cut.length<15000||seenC[d.cut])return false;seenC[d.cut]=1;return true;}).slice(0,5);   // unique REAL faces only: baked heads are never tiny, debris is
  if(_rawN!==null&&_rawN!==list.length){try{localStorage.setItem("hmCompanions",JSON.stringify(list));}catch(_){}}   // heal stale duplicates once, physically
  if(!list.length)return;
  var peers=[];   // every head knows where every other head is, every frame
