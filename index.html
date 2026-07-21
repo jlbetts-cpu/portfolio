@@ -2728,11 +2728,12 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   else if(r<0.82){wig={t:0.55,dur:0.55,type:"stretch"};sqT=0.5;sqyP=1.11;sqxP=1/1.11;}   // a tall luxurious stretch
   else if(r<0.87){wig={t:0.95,dur:0.95,type:"shimmy"};wigP=0;}   // a happy little shimmy
   else if(r<0.92){wig={t:1.15,dur:1.15,type:"tilt",a:(Math.random()<0.5?-1:1)*7};}   // curious head-tilt
-  else if(r<0.935&&bigR&&(Math.abs(x-(bigR.l-HW-14))<90||Math.abs(x-(bigR.r+14))<90)){ // the lap: a dash BEHIND him to the other side
+  else if(r<0.935&&bigR&&(Math.abs(x-(bigR.l-HW-14))<90||Math.abs(x-(bigR.r+14))<90)){ // a little lap around his feet: cute hops across, watching him the whole way
    var sd=Math.abs(x-(bigR.l-HW-14))<90?1:-1;
-   plane(false);lapBack=true;dir=sd;surface=floorY;st="fall";air=true;
-   var span=(bigR.r-bigR.l)+HW+28,vy0=880+Math.random()*140,tt2=2*vy0/G;
-   vy=-vy0;vx=sd*span/tt2;sqT=0.14;sqyP=1.16;sqxP=1/1.16;gzx=sd*0.8;sacAt=now+900;}
+   var txl=sd>0?Math.min(heroR.w-HW-M,bigR.r+14):Math.max(M,bigR.l-HW-14);
+   dir=sd;surface=floorY;st="hop";hopsLeft=Math.min(6,Math.max(2,Math.round(Math.abs(txl-x)/85)));
+   window.__hmVisit=performance.now()+6500;   // it keeps looking up at him as it passes
+   setTimeout(function(){if(!grabbed&&st==="hop"&&!air)hop(false);},200+Math.random()*140);}
   else if(r<0.955){if(Math.random()<0.5&&tryHide()){}else{ // a tiny sneeze: inhale tall, pop back, blink
    sqT=0.14;sqyP=1.15;sqxP=1/1.15;
    setTimeout(function(){if(grabbed||perched||air)return;bf=5;air=true;st="fall";surface=floorY;

@@ -585,9 +585,22 @@ document.getElementById("save").addEventListener("click",function(){
  if(!bakedCanvas)return;
  var c=document.createElement("canvas");c.width=BAKE_W;c.height=BAKE_H;
  var x=c.getContext("2d");
- var sh=x.createRadialGradient(BAKE_W/2,BAKE_H*0.965,10,BAKE_W/2,BAKE_H*0.965,BAKE_W*0.30);
+ // the card: this is an artifact worth sharing, not a screenshot — paper, light, and a quiet signature
+ x.fillStyle="#fdfdfd";x.fillRect(0,0,BAKE_W,BAKE_H);
+ var vg=x.createRadialGradient(BAKE_W/2,BAKE_H*0.44,BAKE_W*0.18,BAKE_W/2,BAKE_H*0.5,BAKE_W*0.72);
+ vg.addColorStop(0,"rgba(8,8,8,0)");vg.addColorStop(1,"rgba(8,8,8,0.05)");
+ x.fillStyle=vg;x.fillRect(0,0,BAKE_W,BAKE_H);
+ var sh=x.createRadialGradient(BAKE_W/2,BAKE_H*0.905,10,BAKE_W/2,BAKE_H*0.905,BAKE_W*0.30);
  sh.addColorStop(0,"rgba(8,8,8,.20)");sh.addColorStop(1,"rgba(8,8,8,0)");
- x.fillStyle=sh;x.save();x.translate(0,BAKE_H*0.965);x.scale(1,0.09);x.translate(0,-BAKE_H*0.965);x.beginPath();x.arc(BAKE_W/2,BAKE_H*0.965,BAKE_W*0.30,0,Math.PI*2);x.fill();x.restore();
+ x.fillStyle=sh;x.save();x.translate(0,BAKE_H*0.905);x.scale(1,0.09);x.translate(0,-BAKE_H*0.905);x.beginPath();x.arc(BAKE_W/2,BAKE_H*0.905,BAKE_W*0.30,0,Math.PI*2);x.fill();x.restore();
+ function caption(){try{
+  x.fillStyle="rgba(8,8,8,0.44)";x.textAlign="center";
+  try{x.letterSpacing="0.06em";}catch(_){}
+  x.font='600 24px "Instrument Sans",-apple-system,system-ui,sans-serif';
+  x.fillText("my floating head",BAKE_W/2,BAKE_H-72);
+  x.fillStyle="rgba(8,8,8,0.30)";x.font='500 19px "Instrument Sans",-apple-system,system-ui,sans-serif';
+  x.fillText("made at jaydenbetts.design",BAKE_W/2,BAKE_H-40);
+ }catch(_){}}
  function finish(){var a=document.createElement("a");a.download="my-floating-head.png";a.href=c.toDataURL("image/png");a.click();}
  // the faithful path: photograph the LIVING head itself — the PNG can never drift from the rig again
  try{
@@ -595,6 +608,10 @@ document.getElementById("save").addEventListener("click",function(){
   var cl=live.cloneNode(true);
   cl.style.transform="none";   // no mid-boop squish in the portrait
   [].slice.call(cl.querySelectorAll(".hmLidS")).forEach(function(n){n.style.transform="translateY(-105%)";});   // never mid-blink
+  var pg=[[4,2],[-4,2],[3,-2],[-3,-2]][Math.floor(Math.random()*4)];   // a curated gentle glance, never a mid-saccade stare
+  if(pose==="side")pg=[-7,1];
+  [].slice.call(cl.querySelectorAll(".hmIris")).forEach(function(n){n.style.transform="translate("+pg[0]+"px,"+pg[1]+"px)";});
+  [].slice.call(cl.querySelectorAll(".hmGlint")).forEach(function(n){n.style.transform="translate("+(pg[0]*0.62).toFixed(1)+"px,"+(pg[1]*0.62).toFixed(1)+"px)";});
   var css="";
   [].slice.call(document.styleSheets).forEach(function(shq){try{
    [].slice.call(shq.cssRules).forEach(function(rr){if(rr.selectorText&&/hm(Head|Scl|Eye|Iris|Pupil|Glint|LidW|LidS|Brow|Nose|Smize|Mouth)/.test(rr.selectorText))css+=rr.cssText+"\n";});}catch(_){}});
@@ -603,7 +620,7 @@ document.getElementById("save").addEventListener("click",function(){
   var svg='<svg xmlns="http://www.w3.org/2000/svg" width="'+BAKE_W+'" height="'+BAKE_H+'" viewBox="0 0 440 528"><defs>'+defs+'</defs>'+
    '<foreignObject width="440" height="528"><div xmlns="http://www.w3.org/1999/xhtml" id="cap"><style>'+css+'</style>'+cl.outerHTML+'</div></foreignObject></svg>';
   var im=new Image();
-  im.onload=function(){try{x.drawImage(im,0,0,BAKE_W,BAKE_H);finish();}catch(_e2){legacy();}};
+  im.onload=function(){try{x.drawImage(im,BAKE_W*0.045,BAKE_H*0.005,BAKE_W*0.91,BAKE_H*0.91);caption();finish();}catch(_e2){legacy();}};
   im.onerror=function(){legacy();};
   im.src="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(svg);
   return;
@@ -668,7 +685,7 @@ document.getElementById("save").addEventListener("click",function(){
   x.fillStyle=fz;x.fillRect(ex-ew*0.7,ey-eh*0.9,ew*1.4,eh*1.8);
   x.restore();
  });
- finish();
+ caption();finish();
  }
 });
 /* returning visitors get their head back — this runs last, after all state exists
