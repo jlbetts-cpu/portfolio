@@ -259,6 +259,10 @@ body.partyLock{overflow:hidden}
 @media (prefers-reduced-motion:reduce){.loveHeart{animation:none}.heartDot::before,.discoDot::after,.cookieDot::before{animation:none}}
 .queueDots{position:absolute;left:50%;top:-7%;transform:translateX(-50%);display:flex;gap:.42rem;z-index:8;opacity:0;pointer-events:none;transition:opacity .16s cubic-bezier(.2,.8,.2,1)}.queueDots.on{opacity:.92}.queueDots i{width:.5rem;height:.5rem;border-radius:50%;background:var(--c950);filter:url(#inkSm);animation:qbounce .92s steps(7,end) infinite;animation-play-state:paused}.queueDots.on i{animation-play-state:running}.queueDots i:nth-of-type(2){animation-delay:.12s}.queueDots i:nth-of-type(3){animation-delay:.24s}@keyframes qbounce{0%{transform:translateY(0)}30%{transform:translateY(-95%)}60%{transform:translateY(0)}100%{transform:translateY(0)}}.qsr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}@media (prefers-reduced-motion:reduce){.queueDots i{animation:none}}.tongue{position:absolute;left:41%;top:56%;width:12%;height:auto;transform-origin:50% 100%;transform:scaleY(0);opacity:0;z-index:4;pointer-events:none;filter:url(#inkSm) drop-shadow(0 1px 1px rgba(0,0,0,.3));will-change:transform,opacity}.stachecrumb{animation:stachePop .5s steps(4,end) forwards}@keyframes stachePop{0%{transform:rotate(var(--r)) scale(0);opacity:0}55%{transform:rotate(var(--r)) scale(1.22);opacity:1}80%{transform:rotate(var(--r)) scale(.93);opacity:1}100%{transform:rotate(var(--r)) scale(1);opacity:1}}@media (prefers-reduced-motion:reduce){.stachecrumb{animation:none;opacity:1;transform:rotate(var(--r))}}.collabdrag{position:fixed;pointer-events:none;font-family:var(--serif);font-weight:700;font-size:var(--fs-hero);transform:translate(-50%,-50%);transform-origin:50% 18%;z-index:70;will-change:transform,left,top;color:var(--c900);display:inline-flex;align-items:baseline;gap:.06em;white-space:nowrap}
 .camDot{display:inline-block;width:.92em;height:.66em;vertical-align:baseline;position:relative;color:transparent}
+.moodHeads{display:flex;gap:10px;margin:10px 4px 2px}.moodHeads:empty{display:none}
+.mhItem{position:relative}.mhItem img{width:34px;height:40px;object-fit:contain;background:var(--c100);border-radius:4px;display:block}
+.mhX{position:absolute;top:-6px;right:-6px;width:16px;height:16px;border-radius:50%;border:1px solid var(--c100);background:var(--c50);color:var(--c700);font-size:11px;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0}
+.mhX:hover{color:var(--c950);border-color:var(--c500)}
 .dieDot::before{content:"";position:absolute;left:2px;top:2px;right:2px;bottom:2px;border:1.5px solid var(--c950);border-radius:3.5px;background-color:var(--c50);background-image:radial-gradient(circle at 31% 31%,var(--c950) 1.2px,transparent 1.45px),radial-gradient(circle at 69% 69%,var(--c950) 1.2px,transparent 1.45px),radial-gradient(circle at 50% 50%,var(--c950) 1.2px,transparent 1.45px)}
 .camDot::before{content:"";position:absolute;inset:0;background:center/contain no-repeat;background-image:url(images/cam.webp);filter:url(#inkSm);animation:camSnap 2.8s steps(1,end) infinite;transform-origin:50% 70%}
 @keyframes camSnap{0%,88%{transform:scale(1)}91%{transform:scale(1.12)}94%{transform:scale(.95)}97%,100%{transform:scale(1)}}
@@ -673,7 +677,7 @@ body.about-open.headheal .abTear{animation:tearClose .5s steps(1,end) forwards}
  <section class="hero">
   <div class="heroCopy"><h1 id="h1"></h1><p class="sub" id="sub"></p><div class="heroCtas"><button class="workCta" id="workBtn" type="button">View my work</button><button class="aboutCta" id="aboutBtn" type="button">About me</button></div><div class="heroAbout" id="heroAbout" aria-hidden="true"><div class="abMobShot" id="abMobShot" role="button" tabindex="0" aria-label="More photos of Jayden — tap to change"><img class="amsImg" src="images/about/jayden-betts-head-grid.webp" alt="A four-panel grid of Jayden&rsquo;s making, including a charcoal shark he drew"><img class="amsImg" src="images/about/jayden-betts-graduation.webp" alt="" aria-hidden="true" style="opacity:0"></div><div class="amsBar"><span class="amsDots" aria-hidden="true"><i class="on"></i><i></i><i></i><i></i><i></i></span><span class="amsHint" aria-hidden="true">Tap to change</span></div><div class="amsCap" id="amsCap">Making the floating head</div><section class="abSec abLede"><p class="abGreet">Hello, I’m Jayden Betts.</p><h3>I design products end to end (and I built a few of my own).</h3><p>I am a San Francisco-based product designer and recent UC Davis Design graduate with an entrepreneurial spirit. A maker at heart, I focus on iOS, B2B, and design systems, loving the challenge of creating playful, accessible experiences that tickle your brain.</p><p>I am currently designing AI manufacturing digital experiences at R3SHORE. Inspired by accessible design, I also founded Apollo, an iOS app helping neurodivergent students track and celebrate their wins.</p></section><section class="abSec abFactsSec"><p class="abLabel">At a glance</p><div class="abFacts" data-photo="1"><div class="abFact"><span class="abFactK">Status</span><span class="abFactV">Open to full-time opportunities</span></div><div class="abFact"><span class="abFactK">Based in</span><span class="abFactV">San Francisco, CA · open to relocating</span></div><div class="abFact"><span class="abFactK">Focus</span><span class="abFactV">iOS · B2B · design systems</span></div><div class="abFact"><span class="abFactK">Education</span><span class="abFactV">B.A. Design, UC Davis</span></div></div></section><section class="abSec"><h3 data-photo="2">Design has always been my playground.</h3><p>At the age of 10 I built my first company, a greeting card business where I sold my family cards I would design for fun. I built an entire website in Wix, creating “onboarding flows” to understand what they wanted me to design. I took months on it to use it by myself, but it was fun to me. Afterwards I liked it so much I immediately launched a second site so my three-year-old sister could sell her art, too. She could barely draw but I made an artsy website for her out of my selfish intuition.</p><p data-photo="3">I didn’t realize it was something I could do in the future, so I kept designing as a hobby. Whether it be making a hundred-page comic book about a talking pea that turned into a superhero, or learning 3D modeling in Blender five times just to forget it the next month (I will be back), I was always making.</p><p>Little did I know, that childhood obsession with building, scaling, and playing would entirely shape the product designer I am today.</p></section><section class="abSec"><h3 data-photo="4">My best ideas come from real life.</h3><p>Outside of work, I draw inspiration from connecting with friends over coffee, pushing my limits at the gym, hiking, and drawing animals. You can always catch my latest adventure on <a class="abIn" href="https://www.instagram.com/jaydenleebetts" target="_blank" rel="noopener noreferrer">Instagram</a> (or making dancing videos) and <a class="abIn" href="https://www.linkedin.com/in/jaydenbetts" target="_blank" rel="noopener noreferrer">LinkedIn</a>.</p></section><section class="abSec abConnect" id="getInTouch"><p class="abLabel">Get in touch</p><div class="abLinkRow"><a class="abLink abLinkPrimary" href="mailto:jaydenlbetts@gmail.com?subject=Let%27s%20work%20together" aria-label="Email Jayden Betts"><svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M3 4.5h18c.55 0 1 .45 1 1v13c0 .55-.45 1-1 1H3c-.55 0-1-.45-1-1v-13c0-.55.45-1 1-1Zm1.4 1.5L12 11.6 19.6 6H4.4ZM20 7.4l-7.4 5.5a1 1 0 0 1-1.2 0L4 7.4V18h16V7.4Z"/></svg>Email<span class="abLinkArrow" aria-hidden="true">↗</span></a><a class="abLink" href="https://www.linkedin.com/in/jaydenbetts" target="_blank" rel="noopener noreferrer" aria-label="Jayden Betts on LinkedIn — opens in a new tab"><svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.34V9h3.42v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29zM5.34 7.43a2.06 2.06 0 1 1 0-4.13 2.06 2.06 0 0 1 0 4.13zM7.12 20.45H3.55V9h3.57v11.45zM22.22 0H1.77C.8 0 0 .78 0 1.74v20.52C0 23.22.8 24 1.77 24h20.45c.98 0 1.78-.78 1.78-1.74V1.74C24 .78 23.2 0 22.22 0z"/></svg>LinkedIn<span class="abLinkArrow" aria-hidden="true">↗</span></a><a class="abLink" href="https://www.instagram.com/jaydenleebetts" target="_blank" rel="noopener noreferrer" aria-label="Jayden Betts on Instagram — opens in a new tab"><svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>Instagram<span class="abLinkArrow" aria-hidden="true">↗</span></a><a class="abLink" href="Jayden-Betts-Resume.pdf" target="_blank" rel="noopener noreferrer" aria-label="Jayden Betts résumé (PDF, opens in a new tab)"><svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M6 2h8l4 4v16H6V2Zm7.5 1.5V7H17l-3.5-3.5ZM8.5 11h7v1.5h-7V11Zm0 3.4h7v1.5h-7v-1.5Zm0 3.4h4.5v1.5H8.5v-1.5Z"/></svg>Résumé<span class="abLinkArrow" aria-hidden="true">↗</span></a></div></section></div></div>
   <div class="stagewrap"><div class="queueDots" id="qdots" role="status" aria-live="polite"><span class="qsr"></span><i></i><i></i><i></i></div><div id="stageMorph"><div class="floorshadow" id="fsh"></div><div class="stage" id="stage"><img class="face" id="face" alt="Jayden" draggable="false"><img class="tongue" id="tongue" src="images/tongue.webp" alt="" aria-hidden="true">
-<svg class="glasses" id="glasses" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><defs><pattern id="glCard" patternUnits="userSpaceOnUse" width="100" height="100"><image href="images/glass_frame_tex.webp" x="0" y="0" width="100" height="100" preserveAspectRatio="xMidYMid slice"/></pattern><linearGradient id="glSheen" x1="0" y1="0" x2="0.62" y2="1"><stop offset="0" stop-color="#fff" stop-opacity="0.5"/><stop offset="0.4" stop-color="#fff" stop-opacity="0.06"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient><mask id="glMask" maskUnits="userSpaceOnUse" x="0" y="0" width="100" height="100"><rect x="28" y="45.3" width="44" height="13.2" rx="2.4" fill="#fff"/><polygon points="28,47.2 26,48 26,50.4 28,51.2" fill="#fff"/><polygon points="72,47.2 74,48 74,50.4 72,51.2" fill="#fff"/><rect x="32.5" y="47.3" width="13" height="9.2" rx="1.8" fill="#000"/><rect x="54.5" y="47.3" width="13" height="9.2" rx="1.8" fill="#000"/><path d="M46.7 58.6 Q50 54.3 53.3 58.6 Z" fill="#000"/></mask></defs><rect class="gl-red" x="32.5" y="47.3" width="13" height="9.2" rx="1.8"/><rect class="gl-cyan" x="54.5" y="47.3" width="13" height="9.2" rx="1.8"/><rect class="gl-plast" x="32.5" y="47.3" width="13" height="9.2" rx="1.8" fill="url(#glSheen)"/><rect class="gl-plast" x="54.5" y="47.3" width="13" height="9.2" rx="1.8" fill="url(#glSheen)"/><rect x="0" y="0" width="100" height="100" fill="url(#glCard)" mask="url(#glMask)"/></svg></div><div class="faceMoodCorner"><div class="moodbar" id="moodbar"><button class="moodBtn" id="moodBtn" type="button" aria-label="Play a mood" aria-haspopup="true" aria-expanded="false" aria-controls="moodMenu"><span class="moodLbl">Play a mood</span><svg class="moodCar" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M2.5 7.5L6 4l3.5 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button><div class="moodMenu" id="moodMenu" role="menu" aria-label="Head animations"><button class="moodItem" type="button" role="menuitem" data-mood="empathy"><span class="moodIco camDot" aria-hidden="true"></span>Empathy</button><button class="moodItem" type="button" role="menuitem" data-mood="hunger"><span class="moodIco cookieDot" aria-hidden="true"></span>Hunger</button><button class="moodItem" type="button" role="menuitem" data-mood="delight"><span class="moodIco discoDot" aria-hidden="true"></span>Delight</button><button class="moodItem" type="button" role="menuitem" data-mood="love"><span class="moodIco heartDot" aria-hidden="true"></span>Love</button><button class="moodItem" type="button" role="menuitem" data-mood="identity"><span class="moodIco fpDot" aria-hidden="true"></span>Identity</button><button class="moodItem" type="button" role="menuitem" data-mood="pose"><span class="moodIco dieDot" aria-hidden="true"></span>Random pose</button><div class="moodSep" aria-hidden="true"></div><a class="moodGo" href="headmaker.html" role="menuitem"><svg viewBox="0 0 20 20" width="18" height="18" fill="none" aria-hidden="true"><path d="M10 2.6c3.6 0 6 3 6 7 0 4.4-2.7 7.8-6 7.8s-6-3.4-6-7.8c0-4 2.4-7 6-7Z" stroke="currentColor" stroke-width="1.4"/><circle cx="7.8" cy="9" r="1" fill="currentColor"/><circle cx="12.2" cy="9" r="1" fill="currentColor"/></svg>Add your head</a></div></div></div></div><div class="abShots" id="abShots" aria-hidden="true"><div class="abShot abBurstHost" data-i="0"><div class="abPhotoFrame"><img src="images/about/jayden-betts-head-grid.webp" alt="A four-panel grid of Jayden&rsquo;s making: a color selfie, a black-and-white version, his face cut out in Procreate, and a charcoal shark he drew"></div><img class="abTear" src="images/paper_tear.webp" alt=""><div class="abCap">Making the floating head</div></div><div class="abShot" data-i="1"><div class="abPhotoFrame"><img src="images/about/jayden-betts-graduation.webp" alt="Jayden Betts at his UC Davis graduation in a gold honor stole"></div><div class="abCap">Graduating from UC Davis</div></div><div class="abShot" data-i="2"><div class="abPhotoFrame"><img src="images/about/jayden-betts-and-sister.webp" alt="Jayden Betts as a kid with his younger sister Jolee"></div><div class="abCap">Me and my sister Jolee</div></div><div class="abShot" data-i="3"><div class="abPhotoFrame"><img src="images/about/jayden-betts-blender-clay.webp" alt="A clay-style 3D self-portrait Jayden modeled in Blender"></div><div class="abCap">Clay Self Portrait in Blender</div></div><div class="abShot" data-i="4"><div class="abPhotoFrame"><img src="images/about/jayden-betts-life-grid.webp" alt="A four-panel grid of Jayden Betts off the clock: iced matcha, hiking a trail, a charcoal otter drawing, and a selfie"></div><div class="abCap">Life outside work</div></div></div></div>
+<svg class="glasses" id="glasses" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><defs><pattern id="glCard" patternUnits="userSpaceOnUse" width="100" height="100"><image href="images/glass_frame_tex.webp" x="0" y="0" width="100" height="100" preserveAspectRatio="xMidYMid slice"/></pattern><linearGradient id="glSheen" x1="0" y1="0" x2="0.62" y2="1"><stop offset="0" stop-color="#fff" stop-opacity="0.5"/><stop offset="0.4" stop-color="#fff" stop-opacity="0.06"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient><mask id="glMask" maskUnits="userSpaceOnUse" x="0" y="0" width="100" height="100"><rect x="28" y="45.3" width="44" height="13.2" rx="2.4" fill="#fff"/><polygon points="28,47.2 26,48 26,50.4 28,51.2" fill="#fff"/><polygon points="72,47.2 74,48 74,50.4 72,51.2" fill="#fff"/><rect x="32.5" y="47.3" width="13" height="9.2" rx="1.8" fill="#000"/><rect x="54.5" y="47.3" width="13" height="9.2" rx="1.8" fill="#000"/><path d="M46.7 58.6 Q50 54.3 53.3 58.6 Z" fill="#000"/></mask></defs><rect class="gl-red" x="32.5" y="47.3" width="13" height="9.2" rx="1.8"/><rect class="gl-cyan" x="54.5" y="47.3" width="13" height="9.2" rx="1.8"/><rect class="gl-plast" x="32.5" y="47.3" width="13" height="9.2" rx="1.8" fill="url(#glSheen)"/><rect class="gl-plast" x="54.5" y="47.3" width="13" height="9.2" rx="1.8" fill="url(#glSheen)"/><rect x="0" y="0" width="100" height="100" fill="url(#glCard)" mask="url(#glMask)"/></svg></div><div class="faceMoodCorner"><div class="moodbar" id="moodbar"><button class="moodBtn" id="moodBtn" type="button" aria-label="Play a mood" aria-haspopup="true" aria-expanded="false" aria-controls="moodMenu"><span class="moodLbl">Play a mood</span><svg class="moodCar" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M2.5 7.5L6 4l3.5 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button><div class="moodMenu" id="moodMenu" role="menu" aria-label="Head animations"><button class="moodItem" type="button" role="menuitem" data-mood="empathy"><span class="moodIco camDot" aria-hidden="true"></span>Empathy</button><button class="moodItem" type="button" role="menuitem" data-mood="hunger"><span class="moodIco cookieDot" aria-hidden="true"></span>Hunger</button><button class="moodItem" type="button" role="menuitem" data-mood="delight"><span class="moodIco discoDot" aria-hidden="true"></span>Delight</button><button class="moodItem" type="button" role="menuitem" data-mood="love"><span class="moodIco heartDot" aria-hidden="true"></span>Love</button><button class="moodItem" type="button" role="menuitem" data-mood="identity"><span class="moodIco fpDot" aria-hidden="true"></span>Identity</button><button class="moodItem" type="button" role="menuitem" data-mood="pose"><span class="moodIco dieDot" aria-hidden="true"></span>Random mood</button><div class="moodSep" aria-hidden="true"></div><a class="moodGo" href="headmaker.html" role="menuitem"><svg viewBox="0 0 20 20" width="18" height="18" fill="none" aria-hidden="true"><path d="M10 2.6c3.6 0 6 3 6 7 0 4.4-2.7 7.8-6 7.8s-6-3.4-6-7.8c0-4 2.4-7 6-7Z" stroke="currentColor" stroke-width="1.4"/><circle cx="7.8" cy="9" r="1" fill="currentColor"/><circle cx="12.2" cy="9" r="1" fill="currentColor"/></svg>Add your head</a><div class="moodHeads" id="moodHeads" aria-label="Your saved heads"></div></div></div></div></div><div class="abShots" id="abShots" aria-hidden="true"><div class="abShot abBurstHost" data-i="0"><div class="abPhotoFrame"><img src="images/about/jayden-betts-head-grid.webp" alt="A four-panel grid of Jayden&rsquo;s making: a color selfie, a black-and-white version, his face cut out in Procreate, and a charcoal shark he drew"></div><img class="abTear" src="images/paper_tear.webp" alt=""><div class="abCap">Making the floating head</div></div><div class="abShot" data-i="1"><div class="abPhotoFrame"><img src="images/about/jayden-betts-graduation.webp" alt="Jayden Betts at his UC Davis graduation in a gold honor stole"></div><div class="abCap">Graduating from UC Davis</div></div><div class="abShot" data-i="2"><div class="abPhotoFrame"><img src="images/about/jayden-betts-and-sister.webp" alt="Jayden Betts as a kid with his younger sister Jolee"></div><div class="abCap">Me and my sister Jolee</div></div><div class="abShot" data-i="3"><div class="abPhotoFrame"><img src="images/about/jayden-betts-blender-clay.webp" alt="A clay-style 3D self-portrait Jayden modeled in Blender"></div><div class="abCap">Clay Self Portrait in Blender</div></div><div class="abShot" data-i="4"><div class="abPhotoFrame"><img src="images/about/jayden-betts-life-grid.webp" alt="A four-panel grid of Jayden Betts off the clock: iced matcha, hiking a trail, a charcoal otter drawing, and a selfie"></div><div class="abCap">Life outside work</div></div></div></div>
  </section>
 
 </div>
@@ -1019,31 +1023,6 @@ function blep(){
  setTimeout(function(){if(eating)return;tongueEl.style.transform="translateY(4%) rotate(1deg) scale(0.9,0.45)";},760);
  setTimeout(function(){if(eating)return;tongueEl.style.opacity="0";tongueEl.style.transform="scaleY(0)";},920);
 }
-function bigRandomPose(){ // a real expression engine: gaze x face x brows x tilt compose to hundreds of poses, never a camera stare
- try{
-  if((typeof busyNow==="function"&&busyNow())||(typeof eventLock!=="undefined"&&eventLock))return;
-  var _n=performance.now();
-  var looks=[[0.85,0.1],[-0.85,0.1],[0.6,-0.55],[-0.55,-0.5],[0.7,0.5],[-0.7,0.45],[0.25,-0.75],[-0.3,0.7]];
-  var lk=looks[Math.floor(Math.random()*looks.length)];
-  gaze={x:lk[0],y:lk[1]};nextSaccade=_n+2600;
-  var rF=Math.random();   // the mouth-and-lids channel
-  if(rF<0.34){setHold("smile",2300);showFace("smile");}
-  else if(rF<0.55){setHold("rest",2300);showFace("rest");}
-  else if(rF<0.72){setHold("wink",900);showFace("wink");}
-  else if(rF<0.82){try{blep();}catch(_){}}
-  else{}   // deadpan is a pose too
-  var rB=Math.random();   // the brow channel
-  if(rB<0.4)browFlash();
-  else if(rB<0.55){browFlash();setTimeout(function(){try{browFlash();}catch(_){}},420);}   // the double-flash
-  var rT=Math.random();   // the tilt channel
-  if(rT<0.62&&!fidget){var fts=["rock","side","dtake"],ft=fts[Math.floor(Math.random()*fts.length)];
-   fidget={type:ft,start:_n,dur:ft==="rock"?1700:(ft==="side"?1500:1350),dir:Math.random()<0.5?-1:1};}
-  window.__pitPose={until:_n+2600,seed:Math.random()};   // the little heads strike one too
-  var done=false;function clearPose(){if(done)return;done=true;document.removeEventListener("pointerdown",clearPose,true);
-   try{clearHold();settleFace();}catch(_){}}
-  setTimeout(function(){document.addEventListener("pointerdown",clearPose,true);},350);   // clicking elsewhere ends it (not the triggering click)
-  setTimeout(clearPose,2700);
- }catch(_){}}
 function idleQuirk(){
  if(idleFree()&&!fidget&&!drowsy&&!holdFace&&!activeHover&&(curFace==="neutral"||curFace==="rest")){
   var _d=(Math.random()<0.5?-1:1),_now=performance.now(),_r=Math.random(),_pick;
@@ -2411,7 +2390,7 @@ requestAnimationFrame(function(){requestAnimationFrame(startIntro);});
   function closeM(){bar.classList.remove("open");if(btn)btn.setAttribute("aria-expanded","false");}
   function openM(){bar.classList.add("open");if(btn)btn.setAttribute("aria-expanded","true");}
   if(btn)btn.addEventListener("click",function(e){e.stopPropagation();bar.classList.contains("open")?closeM():openM();});
-  if(menu)menu.addEventListener("click",function(e){var it=e.target.closest(".moodItem");if(!it)return;var mood=it.getAttribute("data-mood");closeM();if(mood==="pose"){try{bigRandomPose();}catch(_){}return;}if(mood==="identity"){openAbout();return;}var fn=MAP[mood];if(typeof fn!=="function")return;var now=!busyNow();runOrQueue(fn);if(now)moodHoldWord(IDX[mood]);});
+  if(menu)menu.addEventListener("click",function(e){var it=e.target.closest(".moodItem");if(!it)return;var mood=it.getAttribute("data-mood");closeM();if(mood==="pose"){var ks2=["empathy","hunger","delight","love"];mood=ks2[Math.floor(Math.random()*ks2.length)];}if(mood==="identity"){openAbout();return;}var fn=MAP[mood];if(typeof fn!=="function")return;var now=!busyNow();runOrQueue(fn);if(now)moodHoldWord(IDX[mood]);});
   document.addEventListener("click",function(e){if(bar.classList.contains("open")&&!bar.contains(e.target))closeM();});
   document.addEventListener("keydown",function(e){if(e.key==="Escape")closeM();});
 
@@ -2544,6 +2523,28 @@ requestAnimationFrame(function(){requestAnimationFrame(startIntro);});
   },200);
 })();
 </script>
+<script>
+(function(){ // the crowd in the menu: your saved heads, each removable with one quiet x
+ var box=document.getElementById("moodHeads");if(!box)return;
+ function readAll(){var a=[];try{a=JSON.parse(localStorage.getItem("hmCompanions")||"[]")||[];}catch(_){}
+  if(!a.length){try{var l=JSON.parse(localStorage.getItem("hmCompanion")||"null");if(l&&l.cut)a=[l];}catch(_){}}
+  var seen={};return a.filter(function(d){if(!d||!d.cut||d.cut.length<101||seen[d.cut])return false;seen[d.cut]=1;return true;}).slice(0,3);}
+ function render(){var a=readAll();box.innerHTML="";
+  a.forEach(function(h){var it=document.createElement("span");it.className="mhItem";
+   var im=document.createElement("img");im.src=h.cut;im.alt="A saved head";it.appendChild(im);
+   var xb=document.createElement("button");xb.className="mhX";xb.type="button";xb.setAttribute("aria-label","Remove this head");xb.textContent="\u00d7";
+   xb.addEventListener("click",function(ev){ev.stopPropagation();ev.preventDefault();
+    var cur=readAll().filter(function(d){return d.cut!==h.cut;});
+    try{localStorage.setItem("hmCompanions",JSON.stringify(cur));
+     if(cur.length)localStorage.setItem("hmCompanion",JSON.stringify(cur[cur.length-1]));
+     else localStorage.removeItem("hmCompanion");}catch(_){}
+    try{if(window.__hmKill)window.__hmKill(h.cut);}catch(_){}
+    render();});
+   it.appendChild(xb);box.appendChild(it);});}
+ render();
+ var bar=document.getElementById("moodbar");if(bar)bar.addEventListener("click",function(){setTimeout(render,60);});
+})();
+</script>
 <div class="csBackveil" id="csBackveil" aria-hidden="true"></div>
 <div class="flash" id="flash" aria-hidden="true"></div>
 <script>
@@ -2563,7 +2564,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
  var list=[];   // up to three little heads: the ball pit
  try{var _m=JSON.parse(localStorage.getItem("hmCompanions")||"null");if(_m&&_m.length)list=_m;}catch(_){}
  if(!list.length){try{var _one=JSON.parse(localStorage.getItem("hmCompanion")||"null");if(_one)list=[_one];}catch(_){}}
- list=list.filter(function(d){return d&&d.cut&&d.cut.length>100;}).slice(0,3);
+ var seenC={};list=list.filter(function(d){if(!d||!d.cut||d.cut.length<101||seenC[d.cut])return false;seenC[d.cut]=1;return true;}).slice(0,3);   // unique faces only: stale storage can never conjure phantom heads
  if(!list.length)return;
  var peers=[];   // every head knows where every other head is, every frame
  function spawnCompanion(data,slot){
@@ -2680,11 +2681,14 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
      st="idle",stT=0,hopsLeft=0,grabbed=false,gpx=0,gpy=0,lastPX=0,lastPY=0,pvx=0,pvy=0,
      offAt=0,gone=false,goneUntil=0,decideAt=performance.now()+4200,spin=0,heldOff=0,heldV=0,cTop=false,bornAt=performance.now()+1600,perched=false,hs=1,hsT=1,dockUntil=0,moodB=false,pbAt=0,mirrorAt=0,downT=0,downX=0,downY=0,shakeN=0,heartsF=0,danceHops=0,dblBlink=false,
      bAt=performance.now()+2800,bf=0,brAt=performance.now()+7000,brf=0,moAt=performance.now()+11000,mof=0,
-     dzf=0,sqx=1,sqy=1,sqxv=0,sqyv=0,sqxP=1,sqyP=1,sqT=0,shown=false,first=true,tk3=0,gzx=0,gzy=0,sacAt=0,flipA=0,flipV=0,wig=null,wigP=0,bounceN=0,perchT=0,leapDelay=Infinity,hmOverT=0,introSettled=false,bornWall=0,introFrames=0,shakeAfter=false,drowse2=false,lastNearT=performance.now(),perchWigAt=performance.now()+9000,greetAt=performance.now()+6000,visitUntil=0,hmOverNow=false,pitPoseSeen=0,vaulting=false,
+     dzf=0,sqx=1,sqy=1,sqxv=0,sqyv=0,sqxP=1,sqyP=1,sqT=0,shown=false,first=true,tk3=0,gzx=0,gzy=0,sacAt=0,flipA=0,flipV=0,wig=null,wigP=0,bounceN=0,perchT=0,leapDelay=Infinity,hmOverT=0,introSettled=false,bornWall=0,introFrames=0,shakeAfter=false,drowse2=false,lastNearT=performance.now(),perchWigAt=performance.now()+9000,greetAt=performance.now()+6000,visitUntil=0,hmOverNow=false,vaulting=false,audAt=0,killed=false,
      pendingHide=null,hideToken=0,lapBack=false,forceHide=/[?&]hide=1/.test(location.search);
  function plane(front){root.style.zIndex=front?"3":"1";shadow.style.zIndex=front?"2":"1";}   // two planes only: the front (where hands live) and behind the furniture
  var G=2600,DT=0.04,facc=0,CEIL=2,surpriseAt=0;   // real units: px/s and px/s^2, integrated at 25fps
  var me={x:0,y:0,HW:HW,HH:HH,vx:0,vy:0,ground:false,perched:false,kx:0,ky:0,slot:slot};peers.push(me);
+ window.__hmKill=window.__hmKill||function(cut){(window.__hmLive||[]).forEach(function(k){if(k.cut===cut)k.kill();});};
+ (window.__hmLive=window.__hmLive||[]).push({cut:data.cut,kill:function(){killed=true;
+  try{root.remove();shadow.remove();var ix9=peers.indexOf(me);if(ix9>-1)peers.splice(ix9,1);}catch(_){}}});
  function startFlip(){var tt=Math.max(0.45,2*Math.abs(vy)/G);   // one full turn, timed to land on its feet
   flipV=Math.max(-700,Math.min(700,(360/tt)*(dir||1)));flipA=flipV>0?0.01:-0.01;}
  function hop(big){ // anticipation: a real jump loads the spring first (countermovement crouch, ~100ms)
@@ -2717,7 +2721,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
  var rollT=0;
  function decide(now){
   decideAt=now+2100+Math.random()*3400;
-  if(st!=="idle"||grabbed||perched)return;
+  if(st!=="idle"||grabbed||perched||moodB)return;   // during his show the audience does not wander off
   function tryHide(){ // hide-and-seek: it slips behind a button and thinks nobody saw
    var bt=document.getElementById(Math.random()<0.7?"workBtn":"aboutBtn");if(!bt)return false;
    var br=bt.getBoundingClientRect(),hh0=hero.getBoundingClientRect();if(!br.width)return false;
@@ -2833,10 +2837,11 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
  // --- the loop: physics at display rate, face beats stay 8fps ---
  var _lastF=performance.now();
  function _frame(_nowF){requestAnimationFrame(_frame);
+  if(killed)return;
   var DT=Math.min(0.05,Math.max(0.006,(_nowF-_lastF)/1000));_lastF=_nowF;
   tk3++;var now=_nowF,aboutB=false;moodB=false;
   try{aboutB=document.body.classList.contains("about-open");moodB=(typeof busyNow==="function"&&busyNow());}catch(_){}
-  var want=!aboutB&&(!moodB||perched)&&!gone;   // docked, it stays for his moods and rides along
+  var want=!aboutB&&!gone;   // moods never hide the pit: the little heads are the audience
   if(first){ // the pit opens after his intro: each head is TOSSED in from the edge, one at a time
    if(now<bornAt)return;
    var stEl1=document.getElementById("stage"),fEl1=document.getElementById("face");
@@ -2862,19 +2867,12 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   if(!first&&want!==shown){shown=want;root.style.opacity=want?"1":"0";root.style.filter=want?"blur(0)":"blur(6px)";shadow.style.opacity=want?"1":"0";}
   if(reduce){root.style.transform="translate("+(heroR.w*0.05)+"px,"+floorY+"px)";shadow.style.transform="translate("+(heroR.w*0.05)+"px,"+(floorY+HH-4)+"px)";return;}
   if(!shown)return;
-  try{var pp=window.__pitPose;   // Random pose: the whole pit strikes one together
-   if(pp&&pp.until>now&&pp.seed!==pitPoseSeen&&!grabbed&&!perched){pitPoseSeen=pp.seed;
-    var bcx0=bigR?(bigR.l+bigR.r)/2:heroR.w/2,ddx0=bcx0-(x+HW/2);
-    if(bigR&&Math.abs(ddx0)>(bigR.r-bigR.l)*0.95&&st==="idle"&&!air){   // far away: hurry over to be in the picture
-     dir=ddx0>0?1:-1;surface=floorY;st="hop";hopsLeft=2;
-     setTimeout(function(){if(!grabbed&&st==="hop"&&!air)hop(false);},120);}
-    else if(st==="idle"&&!air){air=true;st="fall";surface=floorY;vy=-(320+Math.random()*160);vx=dir*(20+Math.random()*40);sqT=0.12;sqyP=1.09;sqxP=1/1.09;}
-    brf=6;mof=4;   // silly face, on cue — and never at the camera
-    var sgn0=Math.random()<0.5?-1:1;gzx=sgn0*(0.45+Math.random()*0.45);gzy=(Math.random()*0.9-0.45);sacAt=now+2400;
-    if(Math.random()<0.3&&bf===0)bf=5;
-    var rw0=Math.random();   // their pose channels mirror his: tilt, shimmy, or a held lean
-    if(!wig){if(rw0<0.4)wig={t:0.9,dur:0.9,type:"tilt",a:sgn0*(5+Math.random()*4)};
-     else if(rw0<0.65)wig={t:0.85,dur:0.85,type:"shimmy"};wigP=0;}}}catch(_){}
+  if(moodB&&!grabbed&&!perched&&shown&&now>=audAt){audAt=now+900+Math.random()*1400;   // showtime: gather in, watch, bounce along
+   if(!air&&st==="idle"){var bcx2=bigR?(bigR.l+bigR.r)/2:heroR.w/2,dx4=bcx2-(x+HW/2);
+    if(bigR&&Math.abs(dx4)>(bigR.r-bigR.l)*0.95){dir=dx4>0?1:-1;surface=floorY;st="hop";hopsLeft=1;
+     setTimeout(function(){if(!grabbed&&st==="hop"&&!air)hop(false);},100);}
+    else if(Math.random()<0.7){air=true;st="fall";surface=floorY;vy=-(260+Math.random()*140);vx=dir*(8+Math.random()*20);sqT=0.11;sqyP=1.08;sqxP=1/1.08;}
+    if(Math.random()<0.4)brf=6;}}
   if(now>=decideAt)decide(now);
   // while perched it RIDES the breathing head: the hair moves, so does it
   if(perched&&moodB&&now>=pbAt){pbAt=now+700+Math.random()*500;sqT=0.11;sqyP=1.08;sqxP=1/1.08;}   // docked at a show: it bounces along
@@ -2987,6 +2985,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   var nx,ny;
   if(grabbed){nx=0.14;ny=0.1;}   // held: eyes quietly to one side, never panicked
   else if(perched&&moodB){nx=0;ny=0.9;}   // front-row seat: watching the show below
+  else if(moodB&&bigR){nx=((bigR.l+bigR.r)/2>(x+HW/2))?0.6:-0.6;ny=-0.6;}   // the audience watches HIM
   else if(act){nx=Math.max(-1,Math.min(1,(px-(rr.left+rr.width/2))/280));ny=Math.max(-1,Math.min(1,(py-(rr.top+rr.height/2))/280));
    if(Math.abs(nx)<0.09&&Math.abs(ny)<0.09){nx=0.13*(dir||1);ny=0.05;}}   // same rule as mine: never a dead stare into the camera
   else if(air||Math.abs(vx)>0.5){nx=dir*0.7;ny=0.12;}   // busy going somewhere: it watches where it is going
