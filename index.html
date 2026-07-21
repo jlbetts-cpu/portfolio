@@ -2641,7 +2641,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
      st="idle",stT=0,hopsLeft=0,grabbed=false,gpx=0,gpy=0,lastPX=0,lastPY=0,pvx=0,pvy=0,
      offAt=0,gone=false,goneUntil=0,decideAt=performance.now()+4200,spin=0,heldOff=0,heldV=0,cTop=false,bornAt=performance.now()+1600,perched=false,hs=1,hsT=1,dockUntil=0,moodB=false,pbAt=0,mirrorAt=0,downT=0,downX=0,downY=0,shakeN=0,heartsF=0,danceHops=0,dblBlink=false,
      bAt=performance.now()+2800,bf=0,brAt=performance.now()+7000,brf=0,moAt=performance.now()+11000,mof=0,
-     dzf=0,sqx=1,sqy=1,sqxv=0,sqyv=0,sqxP=1,sqyP=1,sqT=0,shown=false,first=true,tk3=0,gzx=0,gzy=0,sacAt=0,flipA=0,flipV=0,wig=null,wigP=0,bounceN=0,perchT=0,leapDelay=Infinity;
+     dzf=0,sqx=1,sqy=1,sqxv=0,sqyv=0,sqxP=1,sqyP=1,sqT=0,shown=false,first=true,tk3=0,gzx=0,gzy=0,sacAt=0,flipA=0,flipV=0,wig=null,wigP=0,bounceN=0,perchT=0,leapDelay=Infinity,hmOverT=0;
  var G=2600,DT=0.04,facc=0,CEIL=2,surpriseAt=0;   // real units: px/s and px/s^2, integrated at 25fps
  function startFlip(){var tt=Math.max(0.45,2*Math.abs(vy)/G);   // one full turn, timed to land on its feet
   flipV=Math.max(-700,Math.min(700,(360/tt)*(dir||1)));flipA=flipV>0?0.01:-0.01;}
@@ -2686,7 +2686,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   grabbed=true;perched=false;st="grab";root.style.cursor="grabbing";flipA=0;flipV=0;wig=null;
   try{root.setPointerCapture(e.pointerId);}catch(_){}
   var hr=hero.getBoundingClientRect();
-  downT=performance.now();downX=e.clientX;downY=e.clientY;shakeN=0;
+  downT=performance.now();downX=e.clientX;downY=e.clientY;shakeN=0;hmOverT=0;
   gpx=e.clientX-hr.left-x;gpy=e.clientY-hr.top-y;lastPX=e.clientX;lastPY=e.clientY;
  });
  var vSamp=[];
@@ -2701,7 +2701,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
  function release(e){if(!grabbed)return;grabbed=false;root.style.cursor="grab";
   var tap=(performance.now()-downT<230)&&e&&Math.hypot(e.clientX-downX,e.clientY-downY)<6;
   var relSp=0;(function(){var nw2=performance.now();for(var q2=0;q2<vSamp.length;q2++){if(nw2-vSamp[q2].t<=95){var dtq=nw2-vSamp[q2].t;if(dtq>8)relSp=Math.hypot(lastPX-vSamp[q2].x,lastPY-vSamp[q2].y)/dtq*1000;break;}}})();
-  if(!tap&&window.__hmOver&&relSp<450){ // placed with intent: it docks and he notices
+  if(!tap&&window.__hmOver&&hmOverT>0.35&&relSp<250){ // placed with intent: held over the head a beat, released gently
    perched=true;dockUntil=performance.now()+650;st="idle";air=false;vx=0;vy=0;hsT=1;vSamp=[];shakeN=0;leapDelay=Infinity;
    try{gaze={x:0.05,y:-0.95};nextSaccade=performance.now()+1500;lastMove=performance.now()-9000;
     setTimeout(function(){try{if(typeof busyNow==="function"&&!busyNow()){setHold("smile",1000);showFace("smile");}}catch(_){}},420);}catch(_){}
@@ -2716,7 +2716,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
     vy=Math.max(-2100,Math.min(1500,(lastPY-vpt.y)/dt2*1000));}
    else{vx=Math.max(-1100,Math.min(1100,pvx*60));vy=Math.max(-1200,Math.min(900,pvy*60));}
    vy+=heldV*12;   // the spring adds its stored energy to the throw
-   dir=vx>=0?1:-1;if(Math.abs(vx)>900&&Math.random()<0.5)startFlip();}
+   dir=vx>=0?1:-1;if(Math.hypot(vx,vy)>650&&Math.random()<0.45)startFlip();}   // a real throw often sends it somersaulting
   vSamp=[];if(shakeN>4)dzf=16;shakeN=0;}
  root.addEventListener("pointerup",release);root.addEventListener("pointercancel",release);
  // --- the loop: physics at display rate, face beats stay 8fps ---
@@ -2773,7 +2773,8 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    var fEl3=document.getElementById("face"),ovh=false;
    if(fEl3){var fr3=fEl3.getBoundingClientRect(),hb3=hero.getBoundingClientRect();
     var ccx=x+HW/2,ccy=y+HH/2;
-    ovh=ccx>fr3.left-hb3.left-HW*0.3&&ccx<fr3.right-hb3.left+HW*0.3&&ccy>fr3.top-hb3.top-HH*0.4&&ccy<fr3.bottom-hb3.top;}
+    ovh=ccx>fr3.left-hb3.left+HW*0.05&&ccx<fr3.right-hb3.left-HW*0.05&&ccy>fr3.top-hb3.top-HH*0.15&&ccy<fr3.bottom-hb3.top-HH*0.2;}
+   hmOverT=ovh?hmOverT+DT:0;   // intent is dwell: you have to HOLD it over the head, not brush past
    hsT=ovh?1.12:1;window.__hmOver=ovh;
    if(x!==cx0||y!==cy0){if(sqT<=0){sqT=0.1;sqxP=(y!==cy0)?1.16:0.86;sqyP=(y!==cy0)?0.82:1.14;}cTop=(y!==cy0&&y===CEIL);}   // shoved into a wall while held: it squashes against it
    var dsp=Math.min(16,Math.hypot(pvx,pvy));if(sqT<=0){sqyP=1+dsp*0.006;sqxP=1/(1+dsp*0.006);}
