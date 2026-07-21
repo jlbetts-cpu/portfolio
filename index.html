@@ -2641,7 +2641,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
      st="idle",stT=0,hopsLeft=0,grabbed=false,gpx=0,gpy=0,lastPX=0,lastPY=0,pvx=0,pvy=0,
      offAt=0,gone=false,goneUntil=0,decideAt=performance.now()+4200,spin=0,heldOff=0,heldV=0,cTop=false,bornAt=performance.now()+1600,perched=false,hs=1,hsT=1,dockUntil=0,moodB=false,pbAt=0,mirrorAt=0,downT=0,downX=0,downY=0,shakeN=0,heartsF=0,danceHops=0,dblBlink=false,
      bAt=performance.now()+2800,bf=0,brAt=performance.now()+7000,brf=0,moAt=performance.now()+11000,mof=0,
-     dzf=0,sqx=1,sqy=1,sqxv=0,sqyv=0,sqxP=1,sqyP=1,sqT=0,shown=false,first=true,tk3=0,gzx=0,gzy=0,sacAt=0,flipA=0,flipV=0,wig=null,wigP=0,bounceN=0,perchT=0,leapDelay=Infinity,hmOverT=0;
+     dzf=0,sqx=1,sqy=1,sqxv=0,sqyv=0,sqxP=1,sqyP=1,sqT=0,shown=false,first=true,tk3=0,gzx=0,gzy=0,sacAt=0,flipA=0,flipV=0,wig=null,wigP=0,bounceN=0,perchT=0,leapDelay=Infinity,hmOverT=0,introSettled=false,bornWall=0;
  var G=2600,DT=0.04,facc=0,CEIL=2,surpriseAt=0;   // real units: px/s and px/s^2, integrated at 25fps
  function startFlip(){var tt=Math.max(0.45,2*Math.abs(vy)/G);   // one full turn, timed to land on its feet
   flipV=Math.max(-700,Math.min(700,(360/tt)*(dir||1)));flipA=flipV>0?0.01:-0.01;}
@@ -2738,13 +2738,16 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
     if(frc&&frc.height){x=frc.left-hr2.left+frc.width/2-HW/2;y=frc.top-hr2.top+frc.height*crownFrac-HH*FOOT+HH*0.07;surface=floorY;}   // feet settle INTO the hair
     else if(bigR){x=bigR.l+(bigR.r-bigR.l)/2-HW/2;y=bigR.t-HH*FOOT;surface=floorY;}   // feet on the visible hair itself
     perched=true;
-    if(!/[?&]stand=1/.test(location.search)){perchT=0;leapDelay=1.4+Math.random()*0.9;}}}   // the leap clock only ticks on rendered frames: every visitor SEES it perched first (?stand=1 holds the pose)
+    if(!/[?&]stand=1/.test(location.search)){perchT=0;leapDelay=1.4+Math.random()*0.9;bornWall=performance.now();}}}   // the leap clock only ticks on rendered frames: every visitor SEES it perched first (?stand=1 holds the pose)
   if(reduce){root.style.transform="translate("+(heroR.w*0.05)+"px,"+floorY+"px)";shadow.style.transform="translate("+(heroR.w*0.05)+"px,"+(floorY+HH-4)+"px)";return;}
   if(!shown)return;
   if(now>=decideAt)decide(now);
   // while perched it RIDES the breathing head: the hair moves, so does it
   if(perched&&moodB&&now>=pbAt){pbAt=now+700+Math.random()*500;sqT=0.12;sqyP=1.12;sqxP=1/1.12;}   // docked at a show: it bounces along
-  if(perched&&!grabbed&&!air&&leapDelay<Infinity){perchT+=DT;
+  if(perched&&!grabbed&&!air&&leapDelay<Infinity){
+   if(!introSettled){try{var ey0=document.querySelector(".eye");if(ey0&&ey0.classList.contains("eclosed"))introSettled=true;}catch(_){}
+    if(!introSettled&&performance.now()-bornWall>12000)introSettled=true;}   // his intro finishes first: it sits on his hair until the show is over
+   if(introSettled&&!moodB)perchT+=DT;
    if(perchT>=leapDelay){leapDelay=Infinity;perched=false;st="fall";air=true;surface=floorY;
     var lsp=Math.max(1,x-M),rsp=Math.max(1,heroR.w-(x+HW)-M),side=Math.random()<0.5?-1:1;   // a fair coin, with just enough sense to avoid a wall
     if(side<0&&lsp<HW*2)side=1;if(side>0&&rsp<HW*2)side=-1;
