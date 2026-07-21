@@ -861,7 +861,7 @@ function cycle(){if(CALIB||cycHold||dragging||eating)return;          // never s
  cycWord.classList.add("out");                                        // play each character's personality EXIT
  clearTimeout(cycTimer);cycTimer=setTimeout(advanceCycle,560);}
 function advanceCycle(){clearTimeout(cycTimer);if(cycHold||dragging||eating)return;
- wi=(wi+1)%WORDS.length;const nw=makeCycWord(wi);cycWord.replaceWith(nw);cycWord=nw;   // new word enters char-by-char with its personality
+ wi=(wi+1)%WORDS.length;const nw=makeCycWord(wi);cycWord.replaceWith(nw);cycWord=nw;try{if(window.__wordNotice)window.__wordNotice();}catch(_){}   // new word enters char-by-char with its personality; he may glance at it
  nextCycle();}
 
 function buildEyes(name){
@@ -912,7 +912,7 @@ function showFace(name){
  requestBlink(name,true,false);
 }
 // spontaneous blinks only while calm (neutral/rest); varied interval (research: ~3-5s, highly variable)
-function idleBlink(){if(!reduce&&!eventLock&&!reactType&&!dizzy&&!CALIB&&!blinking&&(curFace==="neutral"||curFace==="rest")){if(curFace==="rest"&&window.__pointerOverFace===false){setFace("neutral");}requestBlink(curFace,false,true);}setTimeout(idleBlink,2100+Math.random()*3200);}
+function idleBlink(){if(!reduce&&!eventLock&&!reactType&&!dizzy&&!CALIB&&!blinking&&(curFace==="neutral"||curFace==="rest")){if(curFace==="rest"&&!holdFace&&window.__pointerOverFace===false){setFace("neutral");}requestBlink(curFace,false,true);}setTimeout(idleBlink,2100+Math.random()*3200);}
 // ===== IDLE CYCLE-BREAKERS: subtle fidgets that keep him alive between actions (research: base loop + randomized secondary idles) =====
 var fidget=null,fidgetGX=0,fidgetGY=0,fidgetROT=0,fidgetBrow=false;
 function idleFidget(){
@@ -930,7 +930,8 @@ function tickFidget(){
  if(fidget.type==="glance"){tgx=fidget.dir*0.50*env;tgy=-0.05*env;trot=fidget.dir*1.1*env;}            // curious look to one side and back
  else if(fidget.type==="tilt"){tgx=fidget.dir*0.10*env;trot=fidget.dir*3.0*env;}                       // slight head tilt
  else if(fidget.type==="look"){try{var sr=stage.getBoundingClientRect();var lx=Math.max(-1,Math.min(1,(pointer.px-(sr.left+sr.width*0.5))/SENS)),ly=Math.max(-1,Math.min(1,(pointer.py-(sr.top+sr.height*0.42))/SENS));tgx=lx*0.7*env;tgy=ly*0.55*env;}catch(_){}}   // glances toward your cursor
- else if(fidget.type==="brow"){tgy=-0.04*env;brow=env>0.45;}                                           // eyebrow raise
+ else if(fidget.type==="brow"){tgy=-0.04*env;brow=env>0.45;}
+ else if(fidget.type==="word"||fidget.type==="corner"){try{var _tel=fidget.type==="word"?cycWord:document.querySelector(".faceMoodCorner");if(_tel){var _er=_tel.getBoundingClientRect(),_sr2=stage.getBoundingClientRect();tgx=Math.max(-1,Math.min(1,((_er.left+_er.width/2)-(_sr2.left+_sr2.width*0.5))/(_sr2.width*0.8)))*0.85*env;tgy=Math.max(-1,Math.min(1,((_er.top+_er.height/2)-(_sr2.top+_sr2.height*0.42))/(_sr2.height*0.8)))*0.7*env;trot=tgx*2.2;}}catch(_){}}                                           // eyebrow raise
  fidgetGX+=(tgx-fidgetGX)*0.22;fidgetGY+=(tgy-fidgetGY)*0.22;fidgetROT+=(trot-fidgetROT)*0.22;
  if(fidget.type==="brow"&&!blinking){if(brow&&!fidgetBrow){faceImg.src=PFX+FACES.neutral.browsup;fidgetBrow=true;}else if(!brow&&fidgetBrow){faceImg.src=PFX+FACES.neutral.img;fidgetBrow=false;}}
  if(p>=1){if(fidgetBrow&&!blinking){faceImg.src=PFX+FACES.neutral.img;}fidgetBrow=false;fidget=null;}
@@ -941,6 +942,44 @@ function idleWarm(){
  setTimeout(idleWarm,8500+Math.random()*9000);
 }
 setTimeout(idleWarm,7200);
+/* ===== quirky idle beats: he notices his own toys — every hint is diegetic, gated, rare ===== */
+function idleFree(){return !reduce&&!eventLock&&!reactType&&!dizzy&&!CALIB&&!eating&&!partyMode&&!loveMode&&!rainMode&&!bearMode&&!movieMode&&!aboutOpen&&!introMode&&!dragging&&!blinking;}
+/* word-notice: when the headline cycles, he glances at the new word (it is draggable, after all) */
+window.__wordNotice=function(){if(idleFree()&&!fidget&&Math.random()<0.55)fidget={type:"word",start:performance.now(),dur:850,dir:1};};
+/* corner tease: until the menu is first opened, an occasional glance at Play-a-mood while it lights up */
+var moodOpenedOnce=false;try{var _mbT=document.getElementById("moodBtn");if(_mbT)_mbT.addEventListener("click",function(){moodOpenedOnce=true;},{once:true});}catch(_){}
+function idleCornerTease(){
+ if(idleFree()&&!fidget&&!moodOpenedOnce&&!holdFace&&(curFace==="neutral"||curFace==="rest")){
+  fidget={type:"corner",start:performance.now(),dur:1150,dir:1};
+  document.body.classList.add("moodTeach");
+  setTimeout(function(){document.body.classList.remove("moodTeach");},2400);
+ }
+ setTimeout(idleCornerTease,50000+Math.random()*35000);
+}
+setTimeout(idleCornerTease,26000);
+/* drowse: half a minute of stillness and he settles into rest; your return wakes him with a brow flash */
+var drowsy=false;
+function idleDrowse(){
+ if(idleFree()&&!drowsy&&!holdFace&&!activeHover&&curFace==="neutral"&&performance.now()-lastMove>35000){drowsy=true;holdFace="rest";showFace("rest");}
+ setTimeout(idleDrowse,9000+Math.random()*6000);
+}
+setTimeout(idleDrowse,20000);
+addEventListener("pointermove",function(){if(drowsy){drowsy=false;if(holdFace==="rest")holdFace=null;browFlash(function(){resolve();});}},{passive:true});
+/* rare quirks: a friendly wink, and (rarer) a quick blep */
+function blep(){
+ if(!tongueEl||reduce)return;
+ [0.4,0.85,1].forEach(function(v,i){setTimeout(function(){if(eating||dragging)return;tongueEl.style.opacity="0.96";tongueEl.style.transform="translateY(4%) rotate(2deg) scale(0.9,"+v+")";},i*125);});
+ setTimeout(function(){if(eating)return;tongueEl.style.transform="translateY(4%) rotate(1deg) scale(0.9,0.45)";},760);
+ setTimeout(function(){if(eating)return;tongueEl.style.opacity="0";tongueEl.style.transform="scaleY(0)";},920);
+}
+function idleQuirk(){
+ if(idleFree()&&!fidget&&!drowsy&&!holdFace&&!activeHover&&(curFace==="neutral"||curFace==="rest")){
+  if(Math.random()<0.72){setHold("wink",680);showFace("wink");}
+  else blep();
+ }
+ setTimeout(idleQuirk,42000+Math.random()*38000);
+}
+setTimeout(idleQuirk,18000);
 /* warm every face frame once the page settles, so no expression swap ever flashes a half-loaded frame */
 window.addEventListener("load",function(){setTimeout(function(){var W=["images/neutral_browsup.webp","images/neutral_closed.webp","images/rest.webp","images/rest_closed.webp","images/wink.webp","images/wink_closed.webp","images/smile.webp","images/smile_closed.webp","images/tongue.webp","images/heart.webp","images/heart_eye.webp","images/cookie.webp","images/cookie_b1.webp","images/cookie_b2.webp","images/cookie_b3.webp","images/discoball.webp","images/discoglints.webp","images/cam.webp","images/fingerprint.webp","images/bucket.webp","images/kernel.webp","images/crumbtex.webp","images/procreate.webp","images/overlay.webp","images/paper.webp"];window.__faceWarm=W.map(function(src){var im=new Image();im.decoding="async";im.src=src;return im;});},900);});
 /* eyebrow flash (Eibl-Eibesfeldt): a ~220ms brow raise that precedes warm expressions — anticipation, never a snap */
