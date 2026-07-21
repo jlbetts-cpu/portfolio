@@ -967,7 +967,7 @@ function tickFidget(){
 }
 /* welcome beat: every so often in true idle, a brief soft smile — idle-animation research: living characters acknowledge you (breath, blinks, warmth); they never just stare */
 function idleWarm(){
- if(!reduce&&!eventLock&&!reactType&&!dizzy&&!CALIB&&!eating&&!partyMode&&!loveMode&&!rainMode&&!bearMode&&!movieMode&&!aboutOpen&&!introMode&&!dragging&&!blinking&&!fidget&&!activeHover&&!holdFace&&(curFace==="neutral"||curFace==="rest")){browFlash(function(){setHold("smile",1050);showFace("smile");});}
+ if(!reduce&&!eventLock&&!reactType&&!dizzy&&!CALIB&&!eating&&!partyMode&&!loveMode&&!rainMode&&!bearMode&&!movieMode&&!aboutOpen&&!introMode&&!dragging&&!blinking&&!fidget&&!activeHover&&!holdFace&&(curFace==="neutral"||curFace==="rest")){browFlash();}   /* the warm beat is now just the eyebrow flash he loves; the random smile is gone */
  setTimeout(idleWarm,8500+Math.random()*9000);
 }
 setTimeout(idleWarm,7200);
