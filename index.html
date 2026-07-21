@@ -699,7 +699,7 @@ body.about-open.headheal .abTear{animation:tearClose .5s steps(1,end) forwards}
    <div class="csTrack">
     <div class="csStage">
      <div class="csStageInner">
-      <a class="csGo" href="apollo.html" aria-label="View the Apollo case study"><figure class="csFrame"><img class="csImg" src="images/cs/apollo.webp" alt="Apollo — a social app for celebrating wins, shown across four iOS screens over rolling hills" loading="lazy" decoding="async"></figure></a>
+      <a class="csGo" href="apollo.html" aria-label="View the Apollo case study"><figure class="csFrame"><img class="csImg" src="images/cs/apollo-cover.webp" alt="Apollo — a social app for celebrating wins, shown across four iOS screens over rolling hills" loading="lazy" decoding="async"></figure></a>
       <div class="csMeta"><span class="csName">Apollo</span><span class="csYear">2026</span></div>
      </div>
     </div>
@@ -732,7 +732,7 @@ body.about-open.headheal .abTear{animation:tearClose .5s steps(1,end) forwards}
    <div class="csTrack">
     <div class="csStage">
      <div class="csStageInner">
-      <a class="csGo" href="apollo.html" aria-label="View the Apollo case study"><figure class="csFrame"><img class="csImg" src="images/cs/apollo.webp" alt="Apollo — a social app for celebrating wins, shown across four iOS screens over rolling hills" loading="lazy" decoding="async"></figure></a>
+      <a class="csGo" href="apollo.html" aria-label="View the Apollo case study"><figure class="csFrame"><img class="csImg" src="images/cs/apollo-cover.webp" alt="Apollo — a social app for celebrating wins, shown across four iOS screens over rolling hills" loading="lazy" decoding="async"></figure></a>
       <div class="csMeta"><span class="csName">Apollo</span><span class="csYear">2026</span></div>
      </div>
     </div>
@@ -762,7 +762,7 @@ body.about-open.headheal .abTear{animation:tearClose .5s steps(1,end) forwards}
    <div class="csTrack">
     <div class="csStage">
      <div class="csStageInner">
-      <a class="csGo" href="cluster.html" aria-label="View the Cluster case study"><figure class="csFrame"><img class="csImg" src="images/cs/cluster.webp" alt="Cluster — a campus interest-and-clubs social app, shown across three iOS screens over a forest" loading="lazy" decoding="async"></figure></a>
+      <a class="csGo" href="cluster.html" aria-label="View the Cluster case study"><figure class="csFrame"><img class="csImg" src="images/cs/cluster/cluster-cover.webp" alt="Cluster — a campus interest-and-clubs social app, shown across three iOS screens over a forest" loading="lazy" decoding="async"></figure></a>
       <div class="csMeta"><span class="csName">Cluster</span><span class="csYear">2024</span></div>
      </div>
     </div>
@@ -772,7 +772,7 @@ body.about-open.headheal .abTear{animation:tearClose .5s steps(1,end) forwards}
  </div>
 
  <div class="csPanel" data-panel="goodness" role="tabpanel" aria-label="Extras" hidden>
-  <section class="reel" id="reel"><div class="reelTrack"><div class="reelStage" id="reelStage"><figure class="reelFrame" id="reelFrame"><video class="reelVid" id="reelVid" muted loop playsinline autoplay preload="metadata" poster="images/reel_poster.webp"><source src="videos/reel.mp4" type="video/mp4"></video><button class="reelTap" id="reelTap" type="button" aria-label="Play video"><span class="tri"></span>Play video</button><div class="playCursor" id="playCursor" aria-hidden="true"><span class="pcInner"><span class="tri"></span>Play video</span></div></figure><div class="reelMeta"><span class="csName">Wired to fail</span><span class="csYear">2026</span></div></div></div></section>
+  <section class="reel" id="reel"><div class="reelTrack"><div class="reelStage" id="reelStage"><figure class="reelFrame" id="reelFrame"><video class="reelVid" id="reelVid" muted loop playsinline preload="none" poster="images/reel_poster.webp"><source src="videos/reel.mp4" type="video/mp4"></video><button class="reelTap" id="reelTap" type="button" aria-label="Play video"><span class="tri"></span>Play video</button><div class="playCursor" id="playCursor" aria-hidden="true"><span class="pcInner"><span class="tri"></span>Play video</span></div></figure><div class="reelMeta"><span class="csName">Wired to fail</span><span class="csYear">2026</span></div></div></div></section>
  </div>
 </section>
  <footer class="siteFoot" id="contact" role="contentinfo">
@@ -2240,6 +2240,8 @@ requestAnimationFrame(function(){requestAnimationFrame(startIntro);});
  var raf=0;
  addEventListener("scroll",function(){if(!raf)raf=requestAnimationFrame(function(){raf=0;onScroll();});},{passive:true});
  window.__reelOnScroll=onScroll;addEventListener("resize",onScroll);onScroll();
+ /* the reel only downloads once the visitor nears it; it rests when far away */
+ if("IntersectionObserver" in window){var reelSeen=false;new IntersectionObserver(function(en){en.forEach(function(x){if(x.isIntersecting){reelSeen=true;if(!reduce){var rp=vid.play();if(rp&&rp.catch)rp.catch(function(){});}}else if(reelSeen){try{vid.pause();}catch(_){}}});},{rootMargin:"600px 0px"}).observe(reel);}else if(!reduce){var rp0=vid.play();if(rp0&&rp0.catch)rp0.catch(function(){});}
  vid.addEventListener("loadeddata",function(){if(ph)ph.style.display="none";if(!reduce){var pr=vid.play();if(pr&&pr.catch)pr.catch(function(){});}});
  if(fine){
    var _gl=document.getElementById("glasses");function glOn(){if(_gl){_gl.classList.remove("off");_gl.classList.add("on");}}function glOff(){if(_gl){_gl.classList.remove("on");_gl.classList.add("off");}}
