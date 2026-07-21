@@ -333,6 +333,14 @@ body.partyLock{overflow:hidden}
 .csInfoVal{font-family:var(--sans);font-weight:500;font-size:var(--fs-body);line-height:1.4;color:var(--c900);margin:0;letter-spacing:-.003em}
 @media(prefers-reduced-motion:reduce){.csCursor{display:none}}
 @media(hover:none),(pointer:coarse){.csCursor,.csInfoCard{display:none!important}}
+/* the head-maker teaser: an empty oval with living eyes, waiting for a face */
+.hmTease{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;background:var(--c100)}
+.hmOvalT{width:clamp(96px,12vw,150px);aspect-ratio:5/6;border-radius:50%;background:var(--c50);box-shadow:inset 0 0 0 1px rgba(8,8,8,.3);display:flex;align-items:center;justify-content:center;gap:14%;padding-top:4%}
+.hmEyeT{width:20%;aspect-ratio:2/1;border-radius:50%;background:#fff;box-shadow:inset 0 0 0 1px rgba(8,8,8,.22);position:relative;overflow:hidden}
+.hmEyeT i{position:absolute;left:22%;top:-4%;width:56%;height:108%;border-radius:50%;background:#141414;animation:hmLookT 7s steps(1,end) infinite}
+@keyframes hmLookT{0%,34%{transform:translateX(0)}38%,58%{transform:translateX(-38%)}62%,80%{transform:translateX(30%)}84%,100%{transform:translateX(0)}}
+.hmTeaseLine{font-family:var(--sans);font-weight:600;font-size:var(--fs-small);letter-spacing:.005em;color:var(--c600);filter:url(#inkSm)}
+@media(prefers-reduced-motion:reduce){.hmEyeT i{animation:none}}
 /* the video tab keeps the existing contained reel */
 .csPanel[data-panel="goodness"] .reel{margin-top:0}
 @media(max-width:760px){
@@ -768,6 +776,21 @@ body.about-open.headheal .abTear{animation:tearClose .5s steps(1,end) forwards}
 
  <div class="csPanel" data-panel="goodness" role="tabpanel" aria-label="Extras" hidden>
   <section class="reel" id="reel"><div class="reelTrack"><div class="reelStage" id="reelStage"><figure class="reelFrame" id="reelFrame"><video class="reelVid" id="reelVid" muted loop playsinline preload="none" poster="images/reel_poster.webp"><source src="videos/reel.mp4" type="video/mp4"></video><button class="reelTap" id="reelTap" type="button" aria-label="Play video"><span class="tri"></span>Play video</button><div class="playCursor" id="playCursor" aria-hidden="true"><span class="pcInner"><span class="tri"></span>Play video</span></div></figure><div class="reelMeta"><span class="csName">Wired to fail</span><span class="csYear">2026</span></div></div></div></section>
+  <article class="csItem" data-slug="headmaker">
+   <div class="csTrack">
+    <div class="csStage">
+     <div class="csStageInner">
+      <a class="csGo" href="headmaker.html" aria-label="Make your own floating head — turn a photo into a cutout like mine">
+       <figure class="csFrame hmTease">
+        <span class="hmOvalT" aria-hidden="true"><span class="hmEyeT"><i></i></span><span class="hmEyeT"><i></i></span></span>
+        <span class="hmTeaseLine" aria-hidden="true">Your face, cut out like mine.</span>
+       </figure>
+      </a>
+      <div class="csMeta"><span class="csName">Make your own head</span><span class="csYear">Interactive</span></div>
+     </div>
+    </div>
+   </div>
+  </article>
  </div>
 </section>
  <footer class="siteFoot" id="contact" role="contentinfo">
