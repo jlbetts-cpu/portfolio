@@ -290,7 +290,7 @@ body.partyLock{overflow:hidden}
 .cases{position:relative;z-index:61;margin:clamp(80px,12vh,144px) auto 0;background:var(--c50)}
 .caseInset{max-width:1280px;margin:0 auto;padding:0 40px}
 /* tab bar: Instrument Sans, active = ink + underline, others muted; stepped like the rest of the site */
-.csTabs{display:flex;flex-wrap:wrap;gap:38px;align-items:flex-end;margin:0 auto clamp(24px,3.2vh,40px);position:relative;border-bottom:1px solid rgba(8,8,8,.14)}
+.csTabs{display:flex;flex-wrap:wrap;gap:38px;align-items:flex-end;margin:0 auto clamp(24px,3.2vh,40px);position:relative}.csTabs::before{content:"";position:absolute;left:40px;right:40px;bottom:0;height:1px;background:rgba(8,8,8,.14)}@media(max-width:760px){.csTabs::before{left:24px;right:24px}}
 .csTab{position:relative;background:none;border:0;padding:0 0 13px;margin:0;font:inherit;font-family:var(--sans);font-weight:600;font-size:var(--fs-tab);letter-spacing:.01em;text-transform:none;color:var(--c500);cursor:pointer;transition:color .25s cubic-bezier(.2,.8,.2,1);filter:url(#inkSm)}
 .csTab:hover{color:var(--c700)}
 .csTab.on{color:var(--c950)}
