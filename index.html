@@ -2574,7 +2574,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   root.appendChild(cov);
   var e=document.createElement("div");e.className="eye";
   e.style.left=((c.x-w2/2)*100)+"%";e.style.top=((c.y-h2/2/1.2)*100)+"%";e.style.width=(w2*100)+"%";e.style.height=(h2/1.2*100)+"%";   /* /1.2: the box is 1:1.2, heights need the aspect taken out */
-  var irD=c.w*0.42;   // a true circle: the anatomical 42% of eye width, cropped by the lids
+  var irD=c.w*0.54;   // the INFANT ratio, not the adult 42%: a newborn iris is near adult size in a small aperture, and this head is the baby of the pair
   var ir=document.createElement("div");ir.className="iris";
   ir.style.width=(irD/w2*100)+"%";ir.style.height=(irD/h2*100)+"%";ir.style.left=((0.5-irD/w2/2)*100)+"%";ir.style.top=((0.5-irD/h2/2)*100)+"%";ir.style.borderRadius="50%";
   ir.style.background="radial-gradient(circle at 39% 33%,#343434 0%,#1c1c1c 34%,#0c0c0c 66%,#030303 100%)";   // smooth and deep, lit from above
