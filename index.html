@@ -2639,29 +2639,49 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
      st="idle",stT=0,hopsLeft=0,grabbed=false,gpx=0,gpy=0,lastPX=0,lastPY=0,pvx=0,pvy=0,
      offAt=0,gone=false,goneUntil=0,decideAt=performance.now()+4200,spin=0,heldOff=0,heldV=0,cTop=false,bornAt=performance.now()+1600,perched=false,hs=1,hsT=1,dockUntil=0,moodB=false,pbAt=0,mirrorAt=0,downT=0,downX=0,downY=0,shakeN=0,heartsF=0,danceHops=0,dblBlink=false,
      bAt=performance.now()+2800,bf=0,brAt=performance.now()+7000,brf=0,moAt=performance.now()+11000,mof=0,
-     dzf=0,sqx=1,sqy=1,sqxv=0,sqyv=0,sqxP=1,sqyP=1,sqT=0,shown=false,first=true,tk3=0,gzx=0,gzy=0,sacAt=0;
+     dzf=0,sqx=1,sqy=1,sqxv=0,sqyv=0,sqxP=1,sqyP=1,sqT=0,shown=false,first=true,tk3=0,gzx=0,gzy=0,sacAt=0,flipA=0,flipV=0,wig=null,wigP=0,bounceN=0;
  var G=2600,DT=0.04,facc=0,CEIL=2,surpriseAt=0;   // real units: px/s and px/s^2, integrated at 25fps
- function hop(big){vy=-(big?900:(470+Math.random()*170));vx=dir*(130+Math.random()*100)*(mob?0.75:1);air=true;sqT=0.13;sqyP=1.12;sqxP=1/1.12;}
- function land(){air=false;vy=0;vx=0;y=surface;sqT=0.13;sqyP=0.87;sqxP=1/0.87;
-  if(hopsLeft>0){hopsLeft--;setTimeout(function(){if(!grabbed&&st==="hop")hop(false);},240+Math.random()*160);}else st="idle";}
+ function startFlip(){var tt=Math.max(0.45,2*Math.abs(vy)/G);   // one full turn, timed to land on its feet
+  flipV=Math.max(-700,Math.min(700,(360/tt)*(dir||1)));flipA=flipV>0?0.01:-0.01;}
+ function hop(big){vy=-(big?900:(470+Math.random()*170));vx=dir*(130+Math.random()*100)*(mob?0.75:1);air=true;sqT=0.13;sqyP=1.12;sqxP=1/1.12;
+  if(!big&&Math.random()<0.09){vy=-(730+Math.random()*160);startFlip();}}   // every so often a hop becomes a little somersault
+ function land(){air=false;vy=0;vx=0;y=surface;sqT=0.13;sqyP=0.87;sqxP=1/0.87;flipA=0;flipV=0;
+  if(hopsLeft>0){hopsLeft--;setTimeout(function(){if(!grabbed&&st==="hop")hop(false);},240+Math.random()*160);}
+  else if(bounceN>0){bounceN--;st="idle";setTimeout(function(){if(!grabbed&&!perched&&st==="idle"&&!air){air=true;st="fall";vy=-(370+Math.random()*130);vx=dir*(10+Math.random()*24);sqT=0.12;sqyP=1.1;sqxP=1/1.1;}},170+Math.random()*130);}
+  else st="idle";}
  var rollT=0;
  function decide(now){
   decideAt=now+2100+Math.random()*3400;
   if(st!=="idle"||grabbed||perched)return;
   var r=Math.random();
-  if(r<0.58){ // hop all the way there, however many hops it takes
+  if(r<0.38){ // hop all the way there, however many hops it takes
    var tx=M+Math.random()*(heroR.w-HW-M*2);
    dir=tx>x?1:-1;surface=floorY;st="hop";hopsLeft=Math.min(11,Math.max(1,Math.round(Math.abs(tx-x)/70)));hop(false);}
-  else if(r<0.88&&bigR){ // secure base: come home beside the big head, either side
+  else if(r<0.56&&bigR){ // secure base: come home beside the big head, either side
    var side=Math.random()<0.5?-1:1;
    var tx2=side<0?Math.max(M,bigR.l-HW-14):Math.min(heroR.w-HW-M,bigR.r+14);
    dir=tx2>x?1:-1;surface=floorY;st="hop";hopsLeft=Math.min(11,Math.max(1,Math.round(Math.abs(tx2-x)/70)));hop(false);window.__hmVisit=performance.now()+9000;}
+  else if(r<0.66){ // happy little bounces on the spot
+   bounceN=1+(Math.random()<0.5?1:0);surface=floorY;st="fall";air=true;
+   vy=-(400+Math.random()*140);vx=dir*(12+Math.random()*26);sqT=0.13;sqyP=1.12;sqxP=1/1.12;}
+  else if(r<0.74){ // a show-off leap, often with a somersault
+   dir=Math.random()<0.5?-1:1;if(x<M+40)dir=1;if(x>heroR.w-HW-M-40)dir=-1;
+   surface=floorY;st="fall";air=true;hopsLeft=0;
+   vy=-(760+Math.random()*180);vx=dir*(170+Math.random()*160)*(mob?0.75:1);sqT=0.14;sqyP=1.16;sqxP=1/1.16;
+   if(Math.random()<0.7)startFlip();}
+  else if(r<0.81){wig={t:0.55,dur:0.55,type:"stretch"};sqT=0.5;sqyP=1.11;sqxP=1/1.11;}   // a tall luxurious stretch
+  else if(r<0.87){wig={t:0.95,dur:0.95,type:"shimmy"};wigP=0;}   // a happy little shimmy
+  else if(r<0.93){wig={t:1.15,dur:1.15,type:"tilt",a:(Math.random()<0.5?-1:1)*7};}   // curious head-tilt
+  else if(r<0.965){ // a tiny sneeze: inhale tall, pop back, blink
+   sqT=0.14;sqyP=1.15;sqxP=1/1.15;
+   setTimeout(function(){if(grabbed||perched||air)return;bf=5;air=true;st="fall";surface=floorY;
+    vx=-dir*(70+Math.random()*50);vy=-(240+Math.random()*80);sqT=0.12;sqyP=0.82;sqxP=1/0.82;},170);}
   else {} // otherwise: a beat of rest
  }
  // --- grab like a Mii ---
  root.addEventListener("pointerdown",function(e){
   if(reduce)return;e.preventDefault();
-  grabbed=true;perched=false;st="grab";root.style.cursor="grabbing";
+  grabbed=true;perched=false;st="grab";root.style.cursor="grabbing";flipA=0;flipV=0;wig=null;
   try{root.setPointerCapture(e.pointerId);}catch(_){}
   var hr=hero.getBoundingClientRect();
   downT=performance.now();downX=e.clientX;downY=e.clientY;shakeN=0;
@@ -2694,7 +2714,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
     vy=Math.max(-2100,Math.min(1500,(lastPY-vpt.y)/dt2*1000));}
    else{vx=Math.max(-1100,Math.min(1100,pvx*60));vy=Math.max(-1200,Math.min(900,pvy*60));}
    vy+=heldV*12;   // the spring adds its stored energy to the throw
-   dir=vx>=0?1:-1;}
+   dir=vx>=0?1:-1;if(Math.abs(vx)>900&&Math.random()<0.5)startFlip();}
   vSamp=[];if(shakeN>4)dzf=16;shakeN=0;}
  root.addEventListener("pointerup",release);root.addEventListener("pointercancel",release);
  // --- the loop: physics at display rate, face beats stay 8fps ---
@@ -2710,13 +2730,16 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    var so1=stEl1?parseFloat(getComputedStyle(stEl1).opacity||"1"):1;
    if(so1<0.95||!fEl1||!fEl1.complete||!fEl1.naturalWidth){bornAt=now+250;return;}
   }
-  if(want!==shown||first){shown=want;root.style.opacity=want?"1":"0";root.style.filter=want?"blur(0)":"blur(6px)";shadow.style.opacity=want?"1":"0";
-   if(first&&want){survey();var fEl=document.getElementById("face"),hr2=hero.getBoundingClientRect();
+  if(want!==shown||(first&&want)){shown=want;root.style.opacity=want?"1":"0";root.style.filter=want?"blur(0)":"blur(6px)";shadow.style.opacity=want?"1":"0";
+   if(first&&want){first=false;survey();   // consumed only at a REAL birth: a busy intro can no longer swallow itvar fEl=document.getElementById("face"),hr2=hero.getBoundingClientRect();
     var frc=fEl?fEl.getBoundingClientRect():null;
     if(frc&&frc.height){x=frc.left-hr2.left+frc.width/2-HW/2;y=frc.top-hr2.top+frc.height*crownFrac-HH*FOOT+HH*0.07;surface=floorY;}   // feet settle INTO the hair
     else if(bigR){x=bigR.l+(bigR.r-bigR.l)/2-HW/2;y=bigR.t-HH*FOOT;surface=floorY;}   // feet on the visible hair itself
     perched=true;
-    if(!/[?&]stand=1/.test(location.search))setTimeout(function(){if(!grabbed){perched=false;st="fall";air=true;surface=floorY;vx=-(300+Math.random()*130);vy=-940;dir=-1;sqT=0.16;sqxP=0.84;sqyP=1.19;}},1400);} first=false;}   // then a real leap off (?stand=1 holds the pose for tuning)
+    if(!/[?&]stand=1/.test(location.search))setTimeout(function(){if(!grabbed){perched=false;st="fall";air=true;surface=floorY;
+     var ls=Math.max(1,x-M),rs=Math.max(1,heroR.w-(x+HW)-M),side=Math.random()<ls/(ls+rs)?-1:1;   // it leaps toward open floor, never by rote
+     dir=side;vx=side*(240+Math.random()*220);vy=-(820+Math.random()*280);sqT=0.16;sqxP=0.84;sqyP=1.19;
+     if(Math.random()<0.4)startFlip();}},1200+Math.random()*900);}}   // then a real leap off (?stand=1 holds the pose for tuning)
   if(reduce){root.style.transform="translate("+(heroR.w*0.05)+"px,"+floorY+"px)";shadow.style.transform="translate("+(heroR.w*0.05)+"px,"+(floorY+HH-4)+"px)";return;}
   if(!shown)return;
   if(now>=decideAt)decide(now);
@@ -2730,11 +2753,11 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
 
   // physics: walls, floor, ceiling, and the caregiver — nothing else is solid
   if(!grabbed&&air){
-   vy+=G*DT;if(vy>1800)vy=1800;x+=vx*DT;y+=vy*DT;   // terminal velocity keeps dt-stepping sound
+   vy+=G*DT;if(vy>1800)vy=1800;x+=vx*DT;y+=vy*DT;if(flipA)flipA+=flipV*DT;   // terminal velocity keeps dt-stepping sound
    if(x<WL){x=WL;vx=Math.abs(vx)*0.72;dir=1;sqT=0.13;sqxP=0.86;sqyP=1.163;}
    if(x>WR){x=WR;vx=-Math.abs(vx)*0.72;dir=-1;sqT=0.13;sqxP=0.86;sqyP=1.163;}
    if(y<CEIL){y=CEIL;vy=Math.abs(vy)*0.72;sqT=0.13;sqxP=1.163;sqyP=0.86;cTop=true;}
-   if(vy>0&&y>=surface){ cTop=false; if(st==="fall"&&Math.abs(vy)>340){var k=Math.min(0.28,Math.abs(vy)*0.00055);y=surface;vy=-vy*0.72;vx*=0.85;sqT=0.16;sqyP=1-k;sqxP=1/(1-k);}  // e=0.72 (toy ball), tangential 0.85, volume-true squash
+   if(vy>0&&y>=surface){ cTop=false; if(st==="fall"&&Math.abs(vy)>340){var k=Math.min(0.28,Math.abs(vy)*0.00055);y=surface;vy=-vy*0.72;vx*=0.85;sqT=0.16;sqyP=1-k;sqxP=1/(1-k);flipA=0;flipV=0;}  // e=0.72 (toy ball), tangential 0.85, volume-true squash
     else land();}
    else if(air&&sqT<=0){var vst=Math.min(0.18,Math.hypot(vx,vy)*0.00016);sqyP=1+vst;sqxP=1/(1+vst);}   // stretch scales with speed, volume conserved
   }
@@ -2759,9 +2782,13 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   sqyv+=((sqyP-sqy)*900-sqyv*34)*DT;sqy+=sqyv*DT;
   var swing=grabbed?Math.max(-12,Math.min(12,pvx*0.9)):0;pvx*=Math.pow(0.8,DT/0.04);   // body leans with the drag; the face stays calm
   var lean=air&&!grabbed?Math.max(-10,Math.min(10,vx*0.028)):0;   // it leans into the jump, in control, never tumbling
-  var breathe=0;
-  var rot=lean+(grabbed?swing:0);
-  root.style.transformOrigin="50% "+(cTop?"4%":"94%");   // deform against whichever surface it touched
+  var breathe=0,rotX=0;
+  if(wig){wig.t-=DT;var wp=1-Math.max(0,wig.t)/wig.dur,env=Math.sin(Math.PI*Math.min(1,wp));
+   if(wig.type==="shimmy"){wigP+=DT*24;rotX=Math.sin(wigP)*6*env;}
+   else if(wig.type==="tilt")rotX=wig.a*env;
+   if(wig.t<=0)wig=null;}
+  var rot=(flipA?flipA:lean+(grabbed?swing:0))+rotX;   // mid-somersault the flip owns the body
+  root.style.transformOrigin=flipA?"50% 50%":"50% "+(cTop?"4%":"94%");   // deform against whichever surface it touched
   root.style.transform="translate("+x.toFixed(1)+"px,"+(y+breathe+(grabbed?heldOff:0)).toFixed(1)+"px) rotate("+rot.toFixed(1)+"deg) scale("+(depth*hs*sqx).toFixed(3)+","+(depth*hs*sqy).toFixed(3)+")";
   // the shadow stays on the ground it belongs to
   var airH=Math.max(0,surface-y);
@@ -2794,7 +2821,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   if(mof>0&&mouth){mouth.style.transform=(mof%2)?"translateY(1.2px) scaleY(1.06)":"translateY(0.5px) scaleY(1.02)";mof--;}
   else if(mouth&&mof===0)mouth.style.transform="";
   eyeEls3.forEach(function(o,oi){
-   if(o.box)o.box.style.transform="rotate("+(-rot).toFixed(1)+"deg)";   // the glint's light source does not tilt with the head
+   if(o.box)o.box.style.transform="rotate("+(Math.abs(rot)>20?0:-rot).toFixed(1)+"deg)";   // the glint's light source does not tilt with the head (but rides along mid-flip)
    if(bf>0){var lp=(bf===5||bf===1)?-44:(bf===4?-14:-4);o.lid.style.transform="translateY("+lp+"%)";}
    else o.lid.style.transform="translateY(-105%)";
    if(dzf>0){var ph=(12-dzf)*0.95+(oi?2.2:0);var ebw2=o.box?o.box.offsetWidth:34;o.iris.style.transform="translate("+Math.round(Math.cos(ph)*ebw2*0.22)+"px,"+Math.round(Math.sin(ph)*ebw2*0.14)+"px)";}
