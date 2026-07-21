@@ -2561,9 +2561,12 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   root.appendChild(d);return d;}
  var oneWhite2=(function(){function px3(cc){var m=/rgb\((\d+), ?(\d+), ?(\d+)/.exec(cc||"");return m?[+m[1],+m[2],+m[3]]:[239,236,231];}
   var pa=px3(eyesArr[0]&&eyesArr[0].sc),pb=px3(eyesArr[1]&&eyesArr[1].sc);
-  return"rgb("+Math.round((pa[0]+pb[0])/2)+","+Math.round((pa[1]+pb[1])/2)+","+Math.round((pa[2]+pb[2])/2)+")";})();
+  var mr=(pa[0]+pb[0])/2,mg=(pa[1]+pb[1])/2,mb2=(pa[2]+pb[2])/2;
+  var Lw=mr*0.299+mg*0.587+mb2*0.114;
+  if(Lw>226){var kw=226/Lw;mr*=kw;mg*=kw*0.997;mb2*=kw*0.98;}   // the realism ceiling: saved heads from before also calm down
+  return"rgb("+Math.round(mr)+","+Math.round(mg)+","+Math.round(mb2)+")";})();
  var owm=/rgb\((\d+),\s*(\d+),\s*(\d+)/.exec(oneWhite2)||[0,239,236,231],owr=+owm[1],owg=+owm[2],owb=+owm[3];
- var owB="rgb("+Math.min(255,owr+8)+","+Math.min(255,owg+8)+","+Math.min(255,owb+7)+")";   // catches the light
+ var owB="rgb("+Math.min(255,owr+4)+","+Math.min(255,owg+4)+","+Math.min(255,owb+3)+")";   // catches the light, gently
  var owD="rgb("+Math.round(owr*0.84)+","+Math.round(owg*0.82)+","+Math.round(owb*0.80)+")"; // turns away from it
  eyesArr.forEach(function(c){
   var w2=c.w*0.94, h2=Math.max(c.w*0.26,Math.min(c.w*0.44,(c.h||c.w*0.3)*1.05));   // the window is the aperture they marked
@@ -2585,9 +2588,9 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   var gl=document.createElement("div");gl.className="glint";
   gl.style.width=(0.19*irD/w2*100)+"%";gl.style.height=(0.19*irD/h2*100)+"%";gl.style.left="37%";gl.style.top=((0.5-irD/h2/2)*100+irD/h2*30)+"%";   // on the iris, never clipped by the lid
   var fill=document.createElement("div");   // the white is a lit sphere, not a flat paint chip
-  fill.style.cssText="position:absolute;inset:0;background:radial-gradient(ellipse at 16% 50%,rgba(112,80,60,.18),rgba(112,80,60,0) 34%),radial-gradient(ellipse at 84% 50%,rgba(112,80,60,.18),rgba(112,80,60,0) 34%),radial-gradient(ellipse at 50% 38%,"+owB+" 0%,"+oneWhite2+" 52%,"+owD+" 100%)";
+  fill.style.cssText="position:absolute;inset:0;background:radial-gradient(ellipse at 16% 50%,rgba(112,80,60,.13),rgba(112,80,60,0) 32%),radial-gradient(ellipse at 84% 50%,rgba(112,80,60,.13),rgba(112,80,60,0) 32%),radial-gradient(ellipse at 50% 38%,"+owB+" 0%,"+oneWhite2+" 52%,"+owD+" 100%)";
   var shd=document.createElement("div");    // the upper lid throws a soft shadow across everything
-  shd.style.cssText="position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,rgba(58,40,30,0) 66%,rgba(58,40,30,.20) 96%),linear-gradient(to bottom,rgba(46,32,26,.40) 0%,rgba(46,32,26,.13) 22%,rgba(46,32,26,0) 46%),linear-gradient(to top,rgba(255,255,255,.09) 0%,rgba(255,255,255,0) 16%)";
+  shd.style.cssText="position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,rgba(58,40,30,0) 68%,rgba(58,40,30,.15) 96%),linear-gradient(to bottom,rgba(46,32,26,.40) 0%,rgba(46,32,26,.13) 22%,rgba(46,32,26,0) 46%),linear-gradient(to top,rgba(255,255,255,.09) 0%,rgba(255,255,255,0) 16%)";
   var gl2=document.createElement("div");gl2.className="glint";
   gl2.style.width=(0.10*irD/w2*100)+"%";gl2.style.height=(0.10*irD/h2*100)+"%";gl2.style.left=(50+irD/w2*14)+"%";gl2.style.top=(50+irD/h2*15)+"%";gl2.style.opacity="0.45";
   e.appendChild(fill);e.appendChild(ir);e.appendChild(shd);e.appendChild(gl);e.appendChild(gl2);root.appendChild(e);
