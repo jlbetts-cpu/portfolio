@@ -593,14 +593,7 @@ document.getElementById("save").addEventListener("click",function(){
  var sh=x.createRadialGradient(BAKE_W/2,BAKE_H*0.905,10,BAKE_W/2,BAKE_H*0.905,BAKE_W*0.30);
  sh.addColorStop(0,"rgba(8,8,8,.20)");sh.addColorStop(1,"rgba(8,8,8,0)");
  x.fillStyle=sh;x.save();x.translate(0,BAKE_H*0.905);x.scale(1,0.09);x.translate(0,-BAKE_H*0.905);x.beginPath();x.arc(BAKE_W/2,BAKE_H*0.905,BAKE_W*0.30,0,Math.PI*2);x.fill();x.restore();
- function caption(){try{
-  x.fillStyle="rgba(8,8,8,0.44)";x.textAlign="center";
-  try{x.letterSpacing="0.06em";}catch(_){}
-  x.font='600 24px "Instrument Sans",-apple-system,system-ui,sans-serif';
-  x.fillText("my floating head",BAKE_W/2,BAKE_H-72);
-  x.fillStyle="rgba(8,8,8,0.30)";x.font='500 19px "Instrument Sans",-apple-system,system-ui,sans-serif';
-  x.fillText("made at jaydenbetts.design",BAKE_W/2,BAKE_H-40);
- }catch(_){}}
+
  function finish(){var a=document.createElement("a");a.download="my-floating-head.png";a.href=c.toDataURL("image/png");a.click();}
  // the faithful path: photograph the LIVING head itself — the PNG can never drift from the rig again
  try{
@@ -620,7 +613,7 @@ document.getElementById("save").addEventListener("click",function(){
   var svg='<svg xmlns="http://www.w3.org/2000/svg" width="'+BAKE_W+'" height="'+BAKE_H+'" viewBox="0 0 440 528"><defs>'+defs+'</defs>'+
    '<foreignObject width="440" height="528"><div xmlns="http://www.w3.org/1999/xhtml" id="cap"><style>'+css+'</style>'+cl.outerHTML+'</div></foreignObject></svg>';
   var im=new Image();
-  im.onload=function(){try{x.drawImage(im,BAKE_W*0.045,BAKE_H*0.005,BAKE_W*0.91,BAKE_H*0.91);caption();finish();}catch(_e2){legacy();}};
+  im.onload=function(){try{x.drawImage(im,BAKE_W*0.045,BAKE_H*0.005,BAKE_W*0.91,BAKE_H*0.91);finish();}catch(_e2){legacy();}};
   im.onerror=function(){legacy();};
   im.src="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(svg);
   return;
@@ -685,7 +678,7 @@ document.getElementById("save").addEventListener("click",function(){
   x.fillStyle=fz;x.fillRect(ex-ew*0.7,ey-eh*0.9,ew*1.4,eh*1.8);
   x.restore();
  });
- caption();finish();
+ finish();
  }
 });
 /* returning visitors get their head back — this runs last, after all state exists
