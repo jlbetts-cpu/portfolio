@@ -55,7 +55,7 @@ nav{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;column-ga
 .hmDot{position:absolute;width:44px;height:44px;margin:-22px 0 0 -22px;cursor:grab;touch-action:none}
 .hmDot::before{content:"";position:absolute;left:50%;top:50%;width:18px;height:18px;margin:-9px 0 0 -9px;border-radius:50%;border:2px solid var(--c950);background:rgba(253,253,253,.55);box-shadow:0 0 0 1px rgba(253,253,253,.8)}
 .hmDot::after{content:"";position:absolute;left:50%;top:50%;width:4px;height:4px;margin:-2px 0 0 -2px;border-radius:50%;background:var(--c950)}
-.hmDot.grabbed,.hmMark.grabbed{cursor:grabbing}
+.hmDot.grabbed,.hmMark.grabbed{cursor:grabbing}.hmDot.lid::before{width:14px;height:0;border:0;border-top:2px solid var(--c950);border-radius:2px;margin:-1px 0 0 -7px;background:none;box-shadow:0 0 0 1px rgba(253,253,253,.8)}.hmDot.lid::after{display:none}
 .hmDot::before{width:12px;height:12px;margin:-6px 0 0 -6px;border-width:1.5px}
 .hmMark{position:absolute;width:52px;height:44px;margin:-22px 0 0 -26px;cursor:grab;touch-action:none}
 .hmMark.bar::before{content:"";position:absolute;left:50%;top:50%;width:34px;height:0;margin:-1px 0 0 -17px;border-top:2px solid var(--c950);border-radius:2px;box-shadow:0 0 0 1px rgba(253,253,253,.7)}
@@ -142,10 +142,10 @@ a:focus-visible,button:focus-visible,.hmDot:focus-visible{outline:2px solid var(
     <div class="hmDot" id="dLo" role="slider" tabindex="0" aria-label="Left eye, outer corner"></div>
     <div class="hmDot" id="dRi" role="slider" tabindex="0" aria-label="Right eye, inner corner"></div>
     <div class="hmDot" id="dRo" role="slider" tabindex="0" aria-label="Right eye, outer corner"></div>
-    <div class="hmDot" id="dLt" role="slider" tabindex="0" aria-label="Left eye, top lid"></div>
-    <div class="hmDot" id="dLb" role="slider" tabindex="0" aria-label="Left eye, bottom lid"></div>
-    <div class="hmDot" id="dRt" role="slider" tabindex="0" aria-label="Right eye, top lid"></div>
-    <div class="hmDot" id="dRb" role="slider" tabindex="0" aria-label="Right eye, bottom lid"></div>
+    <div class="hmDot lid" id="dLt" role="slider" tabindex="0" aria-label="Left eye, top lid"></div>
+    <div class="hmDot lid" id="dLb" role="slider" tabindex="0" aria-label="Left eye, bottom lid"></div>
+    <div class="hmDot lid" id="dRt" role="slider" tabindex="0" aria-label="Right eye, top lid"></div>
+    <div class="hmDot lid" id="dRb" role="slider" tabindex="0" aria-label="Right eye, bottom lid"></div>
     <div class="hmMark bar" id="dBL" role="slider" tabindex="0" aria-label="Left eyebrow"></div>
     <div class="hmMark bar" id="dBR" role="slider" tabindex="0" aria-label="Right eyebrow"></div>
     <div class="hmMark ring" id="dN" role="slider" tabindex="0" aria-label="Nose tip"></div>
@@ -294,7 +294,7 @@ function sclera(e){ // the white of THEIR eye: sample along the corner line, kee
   var l=function(v){return Math.min(255,Math.round(v/n*1.06+10));};
   return"rgb("+l(r)+","+l(g)+","+l(b)+")";}catch(_){return"#f1eee9";}
 }
-var browEls=[],noseEl=null;
+var browEls=[],noseEl=null,mouthEl=null,mouthAt=0,mouthFrames=0;
 function faceStrip(cx,cy,w,h,cls){ // a feathered strip of THEIR OWN photo that can move (brow raise, nose twitch)
  var d=document.createElement("div");d.className=cls;
  d.style.width=(w*100)+"%";d.style.height=(h*100)+"%";
@@ -309,7 +309,7 @@ function faceStrip(cx,cy,w,h,cls){ // a feathered strip of THEIR OWN photo that 
 function buildLive(){
  liveImg.src=cutURL;
  eyeEls.forEach(function(e){e.wrap.remove();if(e.scl)e.scl.remove();if(e.lidW)e.lidW.remove();});eyeEls=[];
- browEls.forEach(function(b){b.remove();});browEls=[];if(noseEl){noseEl.remove();noseEl=null;}
+ browEls.forEach(function(b){b.remove();});browEls=[];if(noseEl){noseEl.remove();noseEl=null;}if(mouthEl){mouthEl.remove();mouthEl=null;}
  var des=deriveEyes(),g={w:(des[0].w+des[1].w)/2,h:(des[0].h+des[1].h)/2};
  des.forEach(function(c){
   var sc=sclera(c);
@@ -345,6 +345,7 @@ function buildLive(){
  });
  browEls=[faceStrip(marks.BL.x,marks.BL.y,g.w*1.5,g.h*1.7,"hmBrow"),faceStrip(marks.BR.x,marks.BR.y,g.w*1.5,g.h*1.7,"hmBrow")];
  noseEl=faceStrip(marks.N.x,marks.N.y,g.w*1.1,g.h*2.1,"hmNose");
+ mouthEl=faceStrip(marks.M.x,marks.M.y,g.w*1.8,g.h*1.6,"hmNose");mouthAt=performance.now()+5000+Math.random()*6000;
  try{localStorage.setItem("hmCompanion",JSON.stringify({cut:cutURL,eyes:deriveEyes(),t:Date.now()}));}catch(_){}
  if(tick)clearInterval(tick);
  blinkAt=performance.now()+2600+Math.random()*2800;
@@ -365,13 +366,16 @@ function liveTick(){
  if(smileURL&&!smiling&&now>=smileAt){smiling=true;liveImg.src=smileURL;setTimeout(function(){smiling=false;liveImg.src=cutURL;},1150);smileAt=now+9000+Math.random()*8000;}
  var hide=smiling?"0":"1";
  eyeEls.forEach(function(e){e.wrap.style.opacity=hide;if(e.scl)e.scl.style.opacity=hide;if(e.lidW)e.lidW.style.opacity=hide;});
- browEls.forEach(function(b){b.style.opacity=hide;});if(noseEl)noseEl.style.opacity=hide;
+ browEls.forEach(function(b){b.style.opacity=hide;});if(noseEl)noseEl.style.opacity=hide;if(mouthEl)mouthEl.style.opacity=hide;
  if(smiling)return;
  /* the brows are their own: raise a strip of their photo, hold a beat, settle */
  if(now>=browAt&&browFrames===0){browFrames=6;browAt=now+6000+Math.random()*8000;}
  if(browFrames>0){var lift=(browFrames>4||browFrames===1)?-1.5:-3;browEls.forEach(function(b){b.style.transform="translateY("+lift+"px)";});browFrames--;}
  else browEls.forEach(function(b){b.style.transform="";});
  /* a tiny sniff: the nose strip nudges sideways for two frames */
+ if(now>=mouthAt&&mouthFrames===0){mouthFrames=4;mouthAt=now+9000+Math.random()*9000;}
+ if(mouthFrames>0&&mouthEl){mouthEl.style.transform=(mouthFrames%2)?"translateY(1.6px) scaleY(1.08)":"translateY(0.6px) scaleY(1.03)";mouthFrames--;}
+ else if(mouthEl)mouthEl.style.transform="";
  if(now>=sniffAt&&sniffFrames===0){sniffFrames=3;sniffAt=now+16000+Math.random()*20000;}
  if(sniffFrames>0){noseEl.style.transform="translateX("+(sniffFrames===2?1.2:-0.8)+"px)";sniffFrames--;}
  else if(noseEl)noseEl.style.transform="";
@@ -412,6 +416,9 @@ document.getElementById("save").addEventListener("click",function(){
  if(!bakedCanvas)return;
  var c=document.createElement("canvas");c.width=BAKE_W;c.height=BAKE_H;
  var x=c.getContext("2d");
+ var sh=x.createRadialGradient(BAKE_W/2,BAKE_H*0.965,10,BAKE_W/2,BAKE_H*0.965,BAKE_W*0.30);
+ sh.addColorStop(0,"rgba(8,8,8,.20)");sh.addColorStop(1,"rgba(8,8,8,0)");
+ x.fillStyle=sh;x.save();x.translate(0,BAKE_H*0.965);x.scale(1,0.09);x.translate(0,-BAKE_H*0.965);x.beginPath();x.arc(BAKE_W/2,BAKE_H*0.965,BAKE_W*0.30,0,Math.PI*2);x.fill();x.restore();
  x.drawImage(bakedCanvas,0,0);
  var W=BAKE_W,H=BAKE_H;
  deriveEyes().forEach(function(e){
@@ -420,8 +427,13 @@ document.getElementById("save").addEventListener("click",function(){
   var sc=sclera(e);var grd=x.createRadialGradient(ex,ey,0,ex,ey,ew/2);
   grd.addColorStop(0,sc);grd.addColorStop(0.62,sc);grd.addColorStop(1,sc.replace("rgb","rgba").replace(")",",0)"));
   x.fillStyle=grd;x.beginPath();x.ellipse(ex,ey,ew/2,eh/2,0,0,Math.PI*2);x.fill();
-  x.fillStyle="#141414";x.beginPath();x.ellipse(ex,ey,ew*0.3,eh*0.52,0,0,Math.PI*2);x.fill();
-  x.fillStyle="rgba(255,255,255,.9)";x.beginPath();x.ellipse(ex-ew*0.07,ey-eh*0.14,ew*0.055,eh*0.095,0,0,Math.PI*2);x.fill();
+  x.fillStyle="#0d0d0d";x.beginPath();x.ellipse(ex,ey,ew*0.30,eh*0.52,0,0,Math.PI*2);x.fill();
+  x.save();x.beginPath();x.ellipse(ex,ey,ew*0.30,eh*0.52,0,0,Math.PI*2);x.clip();
+  for(var st=0;st<44;st++){var a2=st/44*Math.PI*2;x.strokeStyle=st%2?"rgba(255,255,255,.05)":"rgba(0,0,0,.25)";x.lineWidth=1.2;x.beginPath();x.moveTo(ex,ey);x.lineTo(ex+Math.cos(a2)*ew*0.30,ey+Math.sin(a2)*eh*0.52);x.stroke();}
+  var ig=x.createRadialGradient(ex,ey,1,ex,ey,ew*0.30);ig.addColorStop(0,"rgba(25,25,25,.9)");ig.addColorStop(0.55,"rgba(10,10,10,.4)");ig.addColorStop(1,"rgba(3,3,3,.95)");x.fillStyle=ig;x.beginPath();x.ellipse(ex,ey,ew*0.30,eh*0.52,0,0,Math.PI*2);x.fill();x.restore();
+  x.fillStyle="#000";x.beginPath();x.ellipse(ex,ey,ew*0.165,eh*0.29,0,0,Math.PI*2);x.fill();
+  x.fillStyle="rgba(255,255,255,.95)";x.beginPath();x.ellipse(ex-ew*0.07,ey-eh*0.14,ew*0.06,eh*0.10,0,0,Math.PI*2);x.fill();
+  x.fillStyle="rgba(255,255,255,.5)";x.beginPath();x.ellipse(ex+ew*0.09,ey+eh*0.16,ew*0.03,eh*0.05,0,0,Math.PI*2);x.fill();
   x.restore();
  });
  var a=document.createElement("a");a.download="my-floating-head.png";a.href=c.toDataURL("image/png");a.click();
