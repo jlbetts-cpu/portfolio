@@ -62,8 +62,8 @@ nav{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;column-ga
 #hmHead{position:absolute;left:0;top:0;width:100%;height:100%;will-change:transform}
 #hmHead img{width:100%;height:100%}
 .hmEye{position:absolute;border-radius:50%;background:#fff;box-shadow:inset 0 0 0 1px rgba(8,8,8,.22);overflow:hidden}
-.hmIris{position:absolute;left:20%;top:-2%;width:60%;height:104%;border-radius:50%;background:#141414}
-.hmGlint{position:absolute;left:34%;top:22%;width:18%;height:18%;border-radius:50%;background:#fff;opacity:.9}
+.hmIris{position:absolute;left:20%;top:-2%;width:60%;height:104%;border-radius:46%;background:repeating-conic-gradient(from 4deg,rgba(255,255,255,.045) 0deg 2deg,rgba(0,0,0,.24) 2deg 4.3deg),radial-gradient(circle at 50% 50%,#050505 0%,#080808 25%,#191919 39%,#121212 57%,#181818 72%,#0a0a0a 88%,#030303 100%),radial-gradient(circle at 38% 32%,#1e1e1e 0%,#0d0d0d 52%,#050505 100%);background-blend-mode:multiply,normal,normal}.hmPupil{position:absolute;left:50%;top:50%;width:55%;height:55%;border-radius:50%;background:radial-gradient(circle at 50% 50%,#000 0%,#000 58%,#060606 80%,rgba(6,6,6,0) 100%);transform:translate(-50%,-50%)}
+.hmGlint{position:absolute;left:32%;top:26%;width:20%;height:20%;border-radius:50%;background:radial-gradient(circle at 50% 50%,rgba(255,255,255,.98) 0%,rgba(252,252,252,.72) 24%,rgba(250,250,250,0) 60%)}
 .hmShadow{position:absolute;left:50%;bottom:2%;width:52%;height:5%;transform:translateX(-50%);border-radius:50%;background:radial-gradient(ellipse at center,rgba(8,8,8,.28),rgba(8,8,8,0) 70%)}
 .hidden{display:none!important}
 /* step blocks develop in like the case pages */
@@ -91,28 +91,28 @@ a:focus-visible,button:focus-visible,.hmDot:focus-visible{outline:2px solid var(
 
  <div class="content">
   <h1 class="head">Make your own floating head.</h1>
-  <p class="lede">The same treatment as the head on my homepage: an oval cutout, a floating pose, and living eyes that follow your cursor. Four small steps. <strong>Everything happens right here in your browser &mdash; your photo never leaves this page.</strong></p>
+  <p class="lede">The same cutout as the head on my homepage. Your photo, your color, and a pair of living eyes. <strong>Everything happens in your browser, nothing gets uploaded.</strong></p>
 
   <!-- STEP 1 · the photo -->
   <section class="hmStep" id="step1">
    <p class="kicker">Step 1 of 4 &middot; The photo</p>
    <h2 class="stepHead">Start with your face.</h2>
-   <p class="stepBody">A straight-on photo works best: face the camera, even light, eyes open. Selfies are perfect.</p>
+   <p class="stepBody">Face the camera in even light, eyes open. A selfie works great.</p>
    <div class="hmStage" id="stage1">
     <div class="hmDrop" id="drop" role="button" tabindex="0" aria-label="Choose or drop a photo">
      <span class="hmDropTxt">Drop a photo here, or</span>
      <span class="hmBtn" aria-hidden="true">Choose a photo</span>
     </div>
    </div>
-   <p class="cap">Nothing is uploaded. The photo stays on your device, and leaves when you close the tab.</p>
+   <p class="cap">Your photo stays on your device. Close the tab and it is gone.</p>
    <input type="file" id="file" accept="image/*" class="hidden" aria-hidden="true">
   </section>
 
   <!-- STEP 2 · the crop -->
   <section class="hmStep hidden" id="step2">
    <p class="kicker">Step 2 of 4 &middot; The cutout</p>
-   <h2 class="stepHead">Frame your face in the oval.</h2>
-   <p class="stepBody">Drag the photo to move it. Use the slider to zoom. Chin near the bottom of the oval, a little air above the hair.</p>
+   <h2 class="stepHead">Frame your face.</h2>
+   <p class="stepBody">Drag to move. Slide to zoom. Chin near the bottom, a little room above your hair.</p>
    <div class="hmStage" id="stage2">
     <img id="hmPhoto" alt="">
     <div class="hmOvalMask" aria-hidden="true"></div>
@@ -128,7 +128,7 @@ a:focus-visible,button:focus-visible,.hmDot:focus-visible{outline:2px solid var(
   <section class="hmStep hidden" id="step3">
    <p class="kicker">Step 3 of 4 &middot; The eyes</p>
    <h2 class="stepHead">Mark your face.</h2>
-   <p class="stepBody">Drag each ring onto a pupil, the small dots onto your eyebrows, and the last two onto your nose tip and mouth. These points are what bring the head to life.</p>
+   <p class="stepBody">Rings on your pupils. Small dots on your brows, your nose, and your mouth. This is what brings it to life.</p>
    <div class="hmStage bare" id="stage3">
     <img id="hmCut" alt="Your cutout head">
     <div class="hmDot" id="dotL" role="slider" tabindex="0" aria-label="Left eye position"></div>
@@ -148,7 +148,7 @@ a:focus-visible,button:focus-visible,.hmDot:focus-visible{outline:2px solid var(
   <section class="hmStep hidden" id="step4">
    <p class="kicker">Step 4 of 4 &middot; Alive</p>
    <h2 class="stepHead">There you are.</h2>
-   <p class="stepBody">Floating like mine, watching your cursor with living eyes, breathing, blinking, raising your own eyebrows. Save it, make it a profile picture, send it to someone who will get it.</p>
+   <p class="stepBody">Floating, blinking, watching your cursor. Your own brows still work. Save it, or send it to someone who will get it.</p>
    <div class="hmStage bare" id="stage4">
     <div class="hmShadow" aria-hidden="true"></div>
     <div id="hmHead"><img id="hmLive" alt="Your floating cutout head, eyes following the cursor"></div>
@@ -158,7 +158,7 @@ a:focus-visible,button:focus-visible,.hmDot:focus-visible{outline:2px solid var(
     <button class="hmBtn ghost" type="button" id="addSmile">Add a smiling photo</button>
     <button class="hmBtn" type="button" id="save">Download your head</button>
    </div>
-   <p class="cap">The download is a transparent PNG, eyes looking straight at you.</p>
+   <p class="cap">Downloads as a transparent PNG.</p>
   </section>
  </div>
 
@@ -300,9 +300,10 @@ function buildLive(){
   w.style.webkitMaskImage="radial-gradient(ellipse at center,#000 58%,transparent 80%)";
   w.style.maskImage="radial-gradient(ellipse at center,#000 58%,transparent 80%)";
   var ir=document.createElement("div");ir.className="hmIris";
+  var pu=document.createElement("div");pu.className="hmPupil";ir.appendChild(pu);
   var gl=document.createElement("div");gl.className="hmGlint";
-  ir.appendChild(gl);w.appendChild(ir);
-  headEl.appendChild(w);eyeEls.push({wrap:w,iris:ir});
+  w.appendChild(ir);w.appendChild(gl);
+  headEl.appendChild(w);eyeEls.push({wrap:w,iris:ir,glint:gl,sc:w.style.background,lid:sclera({x:c.x,y:c.y-eyeGeom().h*1.25})});
  });
  browEls=[faceStrip(marks.BL.x,marks.BL.y,g.w*1.5,g.h*1.7,"hmBrow"),faceStrip(marks.BR.x,marks.BR.y,g.w*1.5,g.h*1.7,"hmBrow")];
  noseEl=faceStrip(marks.N.x,marks.N.y,g.w*1.1,g.h*2.1,"hmNose");
@@ -337,10 +338,12 @@ function liveTick(){
  else if(noseEl)noseEl.style.transform="";
  if(now>=blinkAt&&blinkFrames===0){blinkFrames=2;blinkAt=now+2600+Math.random()*3400;}
  eyeEls.forEach(function(e){
-  if(blinkFrames>0){e.wrap.style.transform="scaleY(0.08)";e.iris.style.opacity="0";}
-  else{e.wrap.style.transform="";e.iris.style.opacity="1";
+  if(blinkFrames>0){e.wrap.style.background=e.lid;e.iris.style.opacity="0";e.glint.style.opacity="0";}
+  else{e.wrap.style.background=e.sc;e.iris.style.opacity="1";e.glint.style.opacity="1";
    var ew=e.wrap.offsetWidth,eh=e.wrap.offsetHeight;
-   e.iris.style.transform="translate("+Math.round(nx*ew*0.16)+"px,"+Math.round(ny*eh*0.22)+"px)";}
+   var gtx=Math.round(nx*ew*0.16),gty=Math.round(ny*eh*0.22);
+   e.iris.style.transform="translate("+gtx+"px,"+gty+"px)";
+   e.glint.style.transform="translate("+Math.round(gtx*0.62)+"px,"+Math.round(gty*0.62)+"px)";}
  });
  if(blinkFrames>0)blinkFrames--;
 }
