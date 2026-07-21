@@ -212,7 +212,7 @@ body.catchReady:not(.about-open) #stageMorph{transform:scale(1.055)}
 .cycw.cwtug{animation:cwTug 1.5s steps(1,end) both}
 @keyframes cwTug{0%{transform:translateX(0)}6%{transform:translateX(3px)}12%{transform:translateX(6px)}18%{transform:translateX(9px)}24%{transform:translateX(6px)}30%{transform:translateX(3px)}36%{transform:translateX(0)}44%{transform:translateX(4px)}50%{transform:translateX(8px)}56%{transform:translateX(4px)}62%{transform:translateX(0)}100%{transform:translateX(0)}}
 @media(prefers-reduced-motion:reduce){.cycw.cwtug{animation:none}}
-#party{position:fixed;inset:0;z-index:63;pointer-events:none;opacity:0;transition:opacity .55s cubic-bezier(.2,.8,.2,1)}
+#party{position:absolute;top:0;left:0;right:0;height:100vh;-webkit-mask-image:linear-gradient(#000 86%,transparent 100%);mask-image:linear-gradient(#000 86%,transparent 100%);z-index:63;pointer-events:none;opacity:0;transition:opacity .55s cubic-bezier(.2,.8,.2,1)}
 #party.on{opacity:1}
 .partyDark{position:absolute;inset:0;background:radial-gradient(circle var(--hr,180px) at var(--hx,50%) var(--hy,38%),rgba(6,5,16,0) 0%,rgba(6,5,16,.55) 44%,rgba(2,1,8,.96) 100%)}
 .partyHaze{position:absolute;left:var(--bx,50%);top:var(--by,30%);width:120vmax;height:120vmax;margin:-60vmax 0 0 -60vmax;background:radial-gradient(circle,rgba(120,150,255,.16),rgba(180,90,220,.06) 40%,transparent 66%);mix-blend-mode:screen;animation:hazePulse 1.5s steps(12,end) infinite,hueShift 5.6s steps(7,end) infinite}
@@ -228,7 +228,7 @@ body.catchReady:not(.about-open) #stageMorph{transform:scale(1.055)}
 @keyframes hazePulse{0%,100%{opacity:.55}50%{opacity:1}}
 @keyframes beat{0%,62%,100%{opacity:0}70%{opacity:.5}82%{opacity:.12}}
 @keyframes hueShift{to{filter:hue-rotate(360deg)}}
-#discoWrap{position:fixed;z-index:64;pointer-events:none;opacity:0;transform:translate(-50%,-50%);transition:opacity .45s cubic-bezier(.2,.8,.2,1)}
+#discoWrap{position:absolute;z-index:64;pointer-events:none;opacity:0;transform:translate(-50%,-50%);transition:opacity .45s cubic-bezier(.2,.8,.2,1)}
 #discoWrap.on{opacity:1}
 .dbGlow{position:absolute;left:50%;top:50%;width:300%;height:300%;transform:translate(-50%,-50%);background:radial-gradient(circle,rgba(190,210,255,.45),rgba(150,120,220,.12) 30%,transparent 60%);mix-blend-mode:screen;animation:hazePulse 1.25s steps(10,end) infinite}
 #discoBall{position:relative;width:clamp(104px,12.5vw,156px);height:clamp(104px,12.5vw,156px);border-radius:50%;overflow:hidden;clip-path:circle(50%);filter:drop-shadow(0 7px 18px rgba(0,0,0,.55))}
@@ -244,7 +244,7 @@ body.partyLock{overflow:hidden}
 .cycw.love{cursor:grab}
 .heartDot{display:inline-block;width:.62em;height:.62em;vertical-align:baseline;position:relative;overflow:visible;color:transparent}.heartDot::before{content:"";position:absolute;inset:0;background:url(images/heart.webp) center/contain no-repeat;filter:url(#inkSm) drop-shadow(0 1px 1px rgba(0,0,0,.28));transform-origin:50% 50%;animation:heartDotBeat 1s steps(1,end) infinite}@keyframes heartDotBeat{0%{transform:scale(1)}12.5%{transform:scale(1.14)}25%{transform:scale(1.07)}37.5%{transform:scale(1)}100%{transform:scale(1)}}
 .lovedrag{position:fixed;pointer-events:none;font-family:var(--serif);font-weight:700;font-size:var(--fs-hero);transform:translate(-50%,-50%);transform-origin:50% 18%;z-index:70;will-change:transform,left,top;color:var(--c900);display:inline-flex;align-items:baseline;gap:.05em}
-#loveScene{position:fixed;inset:0;z-index:55;pointer-events:none;opacity:0;transition:opacity .45s cubic-bezier(.2,.8,.2,1)}
+#loveScene{position:absolute;top:0;left:0;right:0;height:100vh;z-index:55;pointer-events:none;opacity:0;transition:opacity .45s cubic-bezier(.2,.8,.2,1)}
 #loveScene.on{opacity:1}
 .heartLayer{position:absolute;inset:0}
 .heartEye{position:absolute;width:17%;transform:translate(-50%,-50%);transform-origin:50% 50%;z-index:5;pointer-events:none;will-change:transform,opacity;filter:url(#inkSm) drop-shadow(0 1px 2px rgba(0,0,0,.32))}
@@ -260,8 +260,8 @@ body.partyLock{overflow:hidden}
 .camDot{display:inline-block;width:.92em;height:.66em;vertical-align:baseline;position:relative;color:transparent}
 .camDot::before{content:"";position:absolute;inset:0;background:center/contain no-repeat;background-image:url(images/cam.webp);filter:url(#inkSm);animation:camSnap 2.8s steps(1,end) infinite;transform-origin:50% 70%}
 @keyframes camSnap{0%,88%{transform:scale(1)}91%{transform:scale(1.12)}94%{transform:scale(.95)}97%,100%{transform:scale(1)}}
-#photorain{position:fixed;inset:0;z-index:95;pointer-events:none;overflow:hidden}
-#camflash{position:fixed;inset:0;z-index:98;pointer-events:none;opacity:0;background:radial-gradient(circle at 50% 42%,#fff 0%,#fff 56%,rgba(255,255,255,.8) 100%)}
+#photorain{position:absolute;top:0;left:0;right:0;height:100vh;-webkit-mask-image:linear-gradient(#000 86%,transparent 100%);mask-image:linear-gradient(#000 86%,transparent 100%);z-index:95;pointer-events:none;overflow:hidden}
+#camflash{position:absolute;top:0;left:0;right:0;height:100vh;z-index:98;pointer-events:none;opacity:0;background:radial-gradient(circle at 50% 42%,#fff 0%,#fff 56%,rgba(255,255,255,.8) 100%)}
 #photorain .pgrain{position:absolute;inset:0;background:url(images/overlay.webp) repeat;opacity:.18;mix-blend-mode:multiply;animation:rainGrain 1s steps(8,end) infinite}
 @keyframes rainGrain{0%{background-position:0 0}12.5%{background-position:-13px 7px}25%{background-position:9px -11px}37.5%{background-position:-7px -6px}50%{background-position:12px 8px}62.5%{background-position:-11px 10px}75%{background-position:6px -9px}87.5%{background-position:-9px 4px}100%{background-position:0 0}}
 .rainphoto{position:absolute;display:block;background:#f7f6f1 url(images/paper.webp) center/cover;padding:6px 6px 16px 6px;border-radius:2px;box-shadow:0 1px 2px rgba(0,0,0,.16),0 11px 26px rgba(0,0,0,.17);transform:translate(-50%,-50%);will-change:transform,opacity}
@@ -918,10 +918,10 @@ var fidget=null,fidgetGX=0,fidgetGY=0,fidgetROT=0,fidgetBrow=false;
 function idleFidget(){
  var now=performance.now();
  if(!reduce&&!eventLock&&!reactType&&!dizzy&&!CALIB&&!eating&&!partyMode&&!loveMode&&!rainMode&&!bearMode&&!movieMode&&!aboutOpen&&!introMode&&!dragging&&!blinking&&!fidget&&(curFace==="neutral"||curFace==="rest")){
-  var r=Math.random(),t=r<0.34?"glance":(r<0.60?"tilt":(r<0.80?"look":"brow"));
-  fidget={type:t,start:now,dur:(t==="brow"?820:(t==="tilt"?1500:1150)),dir:(Math.random()<0.5?-1:1)};   // one beat at a time, never repeats back-to-back
+  var r=Math.random(),t=r<0.28?"glance":(r<0.50?"tilt":(r<0.68?"look":"brow"));
+  fidget={type:t,start:now,dur:(t==="brow"?940:(t==="tilt"?1500:1150)),dir:(Math.random()<0.5?-1:1)};   // one beat at a time, never repeats back-to-back
  }
- setTimeout(idleFidget,5500+Math.random()*8000);
+ setTimeout(idleFidget,4500+Math.random()*6500);
 }
 function tickFidget(){
  if(!fidget){fidgetGX+=(0-fidgetGX)*0.18;fidgetGY+=(0-fidgetGY)*0.18;fidgetROT+=(0-fidgetROT)*0.18;if(fidgetBrow&&!blinking){faceImg.src=PFX+FACES.neutral.img;fidgetBrow=false;}return;}
@@ -937,12 +937,14 @@ function tickFidget(){
 }
 /* welcome beat: every so often in true idle, a brief soft smile — idle-animation research: living characters acknowledge you (breath, blinks, warmth); they never just stare */
 function idleWarm(){
- if(!reduce&&!eventLock&&!reactType&&!dizzy&&!CALIB&&!eating&&!partyMode&&!loveMode&&!rainMode&&!bearMode&&!movieMode&&!aboutOpen&&!introMode&&!dragging&&!blinking&&!fidget&&!activeHover&&!holdFace&&(curFace==="neutral"||curFace==="rest")){setHold("smile",1050);showFace("smile");}
+ if(!reduce&&!eventLock&&!reactType&&!dizzy&&!CALIB&&!eating&&!partyMode&&!loveMode&&!rainMode&&!bearMode&&!movieMode&&!aboutOpen&&!introMode&&!dragging&&!blinking&&!fidget&&!activeHover&&!holdFace&&(curFace==="neutral"||curFace==="rest")){browFlash(function(){setHold("smile",1050);showFace("smile");});}
  setTimeout(idleWarm,8500+Math.random()*9000);
 }
 setTimeout(idleWarm,7200);
 /* warm every face frame once the page settles, so no expression swap ever flashes a half-loaded frame */
 window.addEventListener("load",function(){setTimeout(function(){var W=["images/neutral_browsup.webp","images/neutral_closed.webp","images/rest.webp","images/rest_closed.webp","images/wink.webp","images/wink_closed.webp","images/smile.webp","images/smile_closed.webp","images/tongue.webp","images/heart.webp","images/heart_eye.webp","images/cookie.webp","images/cookie_b1.webp","images/cookie_b2.webp","images/cookie_b3.webp","images/discoball.webp","images/discoglints.webp","images/cam.webp","images/fingerprint.webp","images/bucket.webp","images/kernel.webp","images/crumbtex.webp","images/procreate.webp","images/overlay.webp","images/paper.webp"];window.__faceWarm=W.map(function(src){var im=new Image();im.decoding="async";im.src=src;return im;});},900);});
+/* eyebrow flash (Eibl-Eibesfeldt): a ~220ms brow raise that precedes warm expressions — anticipation, never a snap */
+function browFlash(cb){if(reduce||blinking||(curFace!=="neutral"&&curFace!=="rest")){if(cb)cb();return;}faceImg.src=PFX+FACES.neutral.browsup;setTimeout(function(){if(!blinking&&(curFace==="neutral"||curFace==="rest"))faceImg.src=PFX+FACES[curFace].img;if(cb)cb();},220);}
 function clearHold(){holdFace=null;if(holdTimer){clearTimeout(holdTimer);holdTimer=null;}}
 function setHold(face,ms){holdFace=face;if(holdTimer)clearTimeout(holdTimer);holdTimer=setTimeout(()=>{holdFace=null;holdTimer=null;resolve();},ms);}
 function resolve(){if(eventLock||CALIB)return;if(activeHover==="rest"&&window.__pointerOverFace===false){activeHover=null;}showFace(activeHover||holdFace||baseFace);}
@@ -1057,8 +1059,6 @@ function faceTrackTo(cx,cy){pointer.px=cx;pointer.py=cy;lastMove=performance.now
 let dragCookie=null,dragDisco=null,dragLove=null,dragCam=null,dragWordEl=null,queued=null;
 var rainMode=false,rainTk0=0,rainDropStart=0,rainHoldStart=0,rainPerTick=1,rainList=[],rainWrap=null,rainHeadState="",rainHr=null,camflash=null;
 var partyMode=false,partyStart=0,partyTk0=0,partyEl=null,partyLights=null,discoWrap=null,discoBall=null,partyGrain=null,PARTY_DUR=6.6;
-/* the lights-off gag never follows you into the work: the moment the case studies reach the viewport, the party wraps */
-addEventListener('scroll',function(){if(!partyMode)return;var cs=document.querySelector('.cases');if(cs&&cs.getBoundingClientRect().top<innerHeight*0.62){try{endParty();}catch(_){}}},{passive:true});
 var GP=["0 0","7px 4px","-5px 6px","4px -7px","-7px -3px","6px 5px","-4px -6px","3px 7px"];
 var pCX=0,pHEADY=0,pHR=180,pBALLY=0;
 var loveMode=false,loveStart=0,loveTk0=0,loveEl=null,heartEyeEls=null,heartLayer=null,blushEl=null,loveHearts=[],LOVE_DUR=4.3,gHW=120,loveSY0=0,loveBaseX=0,loveBaseY=0;
@@ -1124,7 +1124,7 @@ function startLove(){try{document.body.classList.remove("catchReady");}catch(_){
  loveMode=true;eventLock=true;cycHold=true;clearTimeout(cycTimer);
  loveStart=performance.now();loveTk0=tk;loveHearts=[];
  var _pt=stage.style.transform;stage.style.transform="none";var r0=stage.getBoundingClientRect();stage.style.transform=_pt;
- pCX=r0.left+r0.width/2;pHEADY=r0.top+r0.height*0.42;gHW=r0.width*0.5;loveBaseX=pCX;loveBaseY=pHEADY;loveSY0=window.scrollY||window.pageYOffset||0;
+ pCX=r0.left+r0.width/2;pHEADY=r0.top+(window.scrollY||0)+r0.height*0.42;gHW=r0.width*0.5;loveBaseX=pCX;loveBaseY=pHEADY;loveSY0=window.scrollY||window.pageYOffset||0;
  blinking=false;blinkQ=[];eyesClosed=false;setFace("neutral");
  buildLoveDOM();
  mouthimg.style.opacity="0";
@@ -1133,7 +1133,7 @@ function startLove(){try{document.body.classList.remove("catchReady");}catch(_){
 }
 function loveTick(sec){
  if(sec>=LOVE_DUR){endLove();return;}
- var _sd=(window.scrollY||window.pageYOffset||0)-loveSY0;pCX=loveBaseX;pHEADY=loveBaseY-_sd;
+ pCX=loveBaseX;pHEADY=loveBaseY;   /* page-anchored layer scrolls with the page; no compensation */
  function L(a,b,t){t=t<0?0:t>1?1:t;return a+(b-a)*t;}
  function E(t){t=t<0?0:t>1?1:t;return t*t*(3-2*t);}
  var b=tk-loveTk0,hw=gHW;
@@ -1242,7 +1242,7 @@ function startParty(){try{document.body.classList.remove("catchReady");}catch(_)
  partyMode=true;eventLock=true;cycHold=true;clearTimeout(cycTimer);
  partyStart=performance.now();partyTk0=tk;
  var _pt=stage.style.transform;stage.style.transform="none";var r0=stage.getBoundingClientRect();stage.style.transform=_pt;
- pCX=r0.left+r0.width/2;pHEADY=r0.top+r0.height*0.42;pHR=Math.round(r0.width*0.52);pBALLY=Math.max(54,Math.round(r0.top-r0.height*0.04));
+ var _psy=window.scrollY||0;pCX=r0.left+r0.width/2;pHEADY=r0.top+_psy+r0.height*0.42;pHR=Math.round(r0.width*0.52);pBALLY=Math.max(54,Math.round(r0.top+_psy-r0.height*0.04));
  buildPartyDOM();layoutParty();document.body.classList.add("partyLock");
  setMouth(0);mouthimg.style.opacity="0";
  blinking=false;blinkQ=[];eyesClosed=false;setFace("neutral");faceImg.src=FACES.neutral.browsup;   // cancel any frozen mid-blink so the irises are open from frame 1
@@ -2092,7 +2092,7 @@ function introGaze(gx,gy){gaze.x=gx;gaze.y=gy;if(eyeEls.length&&typeof updateIri
 function startIntro(){
   var _seen=false;try{_seen=sessionStorage.getItem("introSeen")==="1";}catch(e){}
   setFace("neutral");stage.style.opacity="";
-  if(_seen||reduce||!swrap){requestAnimationFrame(function(){requestAnimationFrame(revealAll);});if(!reduce)setTimeout(function(){if(!eventLock&&!reactType&&!aboutOpen&&!dragging&&(curFace==="neutral"||curFace==="rest")){setHold("smile",950);showFace("smile");}},1500);return;}
+  if(_seen||reduce||!swrap){requestAnimationFrame(function(){requestAnimationFrame(revealAll);});if(!reduce)setTimeout(function(){if(!eventLock&&!reactType&&!aboutOpen&&!dragging&&(curFace==="neutral"||curFace==="rest")){browFlash(function(){setHold("smile",950);showFace("smile");});}},1500);return;}
   try{sessionStorage.setItem("introSeen","1");}catch(e){}
   var w=document.querySelector(".wrap");
   if(!w){requestAnimationFrame(function(){requestAnimationFrame(revealAll);});return;}
@@ -2107,7 +2107,7 @@ function startIntro(){
     w.classList.remove("developing","developed");
     document.documentElement.style.overflow="";eventLock=false;
     if(!reduce)setTimeout(idleBlink,400);
-    if(!reduce)setTimeout(function(){if(!eventLock&&!reactType&&!aboutOpen&&!dragging&&(curFace==="neutral"||curFace==="rest")){setHold("smile",950);showFace("smile");}},700);
+    if(!reduce)setTimeout(function(){if(!eventLock&&!reactType&&!aboutOpen&&!dragging&&(curFace==="neutral"||curFace==="rest")){browFlash(function(){setHold("smile",950);showFace("smile");});}},700);
   },1150);
 }
 var introLoader=null;
