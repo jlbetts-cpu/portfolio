@@ -935,7 +935,7 @@ function showFace(name){
  requestBlink(name,true,false);
 }
 // spontaneous blinks only while calm (neutral/rest); varied interval (research: ~3-5s, highly variable)
-function idleBlink(){if(!reduce&&!eventLock&&!reactType&&!dizzy&&!CALIB&&!blinking&&(curFace==="neutral"||curFace==="rest")){if(curFace==="rest"&&!holdFace&&window.__pointerOverFace===false){setFace("neutral");}requestBlink(curFace,false,true);}setTimeout(idleBlink,2100+Math.random()*3200);}
+function idleBlink(){if(!reduce&&!eventLock&&!reactType&&!dizzy&&!CALIB&&!blinking&&(curFace==="neutral"||curFace==="rest")){if(curFace==="rest"&&!holdFace&&window.__pointerOverFace===false&&!drowsy){setFace("neutral");}if(drowsy&&Math.random()<0.5){slowBlink();}else{requestBlink(curFace,false,true);}}setTimeout(idleBlink,2100+Math.random()*3200);}
 // ===== IDLE CYCLE-BREAKERS: subtle fidgets that keep him alive between actions (research: base loop + randomized secondary idles) =====
 var fidget=null,fidgetGX=0,fidgetGY=0,fidgetROT=0,fidgetBrow=false,cfR=0;
 function idleFidget(){
@@ -1038,6 +1038,11 @@ setTimeout(idleQuirk,18000);
 window.addEventListener("load",function(){setTimeout(function(){var W=["images/neutral_browsup.webp","images/neutral_closed.webp","images/rest.webp","images/rest_closed.webp","images/wink.webp","images/wink_closed.webp","images/smile.webp","images/smile_closed.webp","images/tongue.webp","images/heart.webp","images/heart_eye.webp","images/cookie.webp","images/cookie_b1.webp","images/cookie_b2.webp","images/cookie_b3.webp","images/discoball.webp","images/discoglints.webp","images/cam.webp","images/fingerprint.webp","images/bucket.webp","images/kernel.webp","images/crumbtex.webp","images/procreate.webp","images/overlay.webp","images/paper.webp"];window.__faceWarm=W.map(function(src){var im=new Image();im.decoding="async";im.src=src;return im;});},900);});
 /* eyebrow flash (Eibl-Eibesfeldt): a ~220ms brow raise that precedes warm expressions — anticipation, never a snap */
 function browFlash(cb){if(reduce||blinking||(curFace!=="neutral"&&curFace!=="rest")){if(cb)cb();return;}faceImg.src=PFX+FACES.neutral.browsup;setTimeout(function(){if(!blinking&&(curFace==="neutral"||curFace==="rest"))faceImg.src=PFX+FACES[curFace].img;if(cb)cb();},220);}
+/* mood exits come home through a blink, never a hard swap; sometimes he looks quietly pleased after */
+function settleFace(){var t=activeHover||holdFace||baseFace;
+ if(reduce||t==="smile"||t==="wink"){setFace(t);return;}
+ requestBlink(t,false,false);
+ if(Math.random()<0.3)setTimeout(function(){if(!busyNow()&&!activeHover&&!holdFace&&!dragging&&(curFace==="neutral"||curFace==="rest")){setHold("smile",800);showFace("smile");}},700);}
 function clearHold(){holdFace=null;if(holdTimer){clearTimeout(holdTimer);holdTimer=null;}}
 function setHold(face,ms){holdFace=face;if(holdTimer)clearTimeout(holdTimer);holdTimer=setTimeout(()=>{holdFace=null;holdTimer=null;resolve();},ms);}
 function resolve(){if(eventLock||CALIB)return;if(activeHover==="rest"&&window.__pointerOverFace===false){activeHover=null;}showFace(activeHover||holdFace||baseFace);}
@@ -1284,7 +1289,7 @@ function endLove(){
  document.body.classList.remove("partyLock");
  loveMode=false;eventLock=false;cycHold=false;
  stage.style.transform="none";updateShadow(0,0,0);mouthimg.style.opacity="0";
- blinking=false;blinkQ=[];eyesClosed=false;setFace(activeHover||holdFace||baseFace);eyeEls.forEach(function(e){e.el.style.display="";e.el.style.visibility="";e.el.classList.remove("eclosed");});dragWordEl=null;
+ blinking=false;blinkQ=[];eyesClosed=false;settleFace();eyeEls.forEach(function(e){e.el.style.display="";e.el.style.visibility="";e.el.classList.remove("eclosed");});dragWordEl=null;
  wi=(wi+1)%WORDS.length;var nw=makeCycWord(wi);if(cycWord){cycWord.replaceWith(nw);cycWord=nw;}
  nextCycle();
 }
@@ -1376,7 +1381,7 @@ function endParty(){
  setTimeout(function(){if(pe&&pe.remove)pe.remove();if(dw&&dw.remove)dw.remove();},650);
  partyMode=false;eventLock=false;cycHold=false;
  stage.style.transform="none";updateShadow(0,0,0);mouthimg.style.opacity="0";
- blinking=false;blinkQ=[];eyesClosed=false;setFace(activeHover||holdFace||baseFace);eyeEls.forEach(function(e){e.el.style.display="";e.el.style.visibility="";e.el.classList.remove("eclosed");});
+ blinking=false;blinkQ=[];eyesClosed=false;settleFace();eyeEls.forEach(function(e){e.el.style.display="";e.el.style.visibility="";e.el.classList.remove("eclosed");});
  dragWordEl=null;
  wi=(wi+1)%WORDS.length;var nw=makeCycWord(wi);if(cycWord){cycWord.replaceWith(nw);cycWord=nw;}
  nextCycle();
@@ -1498,7 +1503,7 @@ function eatLick(lt){var cl=function(v,a,b){return Math.max(a,Math.min(b,v));},e
  return{rot:(-2+swipe*4),ty:Math.round(Math.sin(p*Math.PI)*-3),sx:1+0.01*Math.sin(p*6),sy:1-0.01*Math.sin(p*6)};}
 function finishEat(){eating=false;eventLock=!!reactType;eatCrumbed=false;eatHopped=false;if(tongueEl){tongueEl.style.opacity="0";tongueEl.style.transform="scaleY(0)";}if(mustCrumb){mustCrumb.remove();mustCrumb=null;}flushQueued();
  if(dragCookie){dragCookie.remove();dragCookie=null;}dragWordEl=null;                       // NOTE: crumbs are NOT cleared - they settle on the floor on their own
- mouthimg.style.opacity="0";blinking=false;blinkQ=[];eyesClosed=false;blinkSquash=1;setFace(activeHover||holdFace||baseFace);eyeEls.forEach(e=>{e.el.style.display="";e.el.style.visibility="";e.el.classList.remove("eclosed");});gaze={x:0,y:0};stage.style.transform="none";updateShadow(0,0,0);
+ mouthimg.style.opacity="0";blinking=false;blinkQ=[];eyesClosed=false;blinkSquash=1;settleFace();eyeEls.forEach(e=>{e.el.style.display="";e.el.style.visibility="";e.el.classList.remove("eclosed");});gaze={x:0,y:0};stage.style.transform="none";updateShadow(0,0,0);
  cycHold=false;advanceCycle();}                                                              // the eaten Hunger word is replaced by the next word
 // the eat performance: anticipation -> chew cycle (squash & stretch) -> swallow -> savor into a smile
 function eatTick(t){const cl=(v,a,b)=>Math.max(a,Math.min(b,v));const sp=speech.getBoundingClientRect();
@@ -2088,7 +2093,7 @@ function endRain(){
  if(rainWrap&&rainWrap.parentNode)rainWrap.remove();rainWrap=null;rainList=[];rainHeadState="";
  if(camflash&&camflash.parentNode)camflash.remove();camflash=null;
  rainMode=false;eventLock=false;cycHold=false;gaze.x=0;gaze.y=0;
- blinking=false;blinkQ=[];eyesClosed=false;setFace(activeHover||holdFace||baseFace);
+ blinking=false;blinkQ=[];eyesClosed=false;settleFace();
  eyeEls.forEach(function(e){e.el.style.display="";e.el.style.visibility="";e.el.classList.remove("eclosed");});dragWordEl=null;
  wi=(wi+1)%WORDS.length;var nw=makeCycWord(wi);if(cycWord){cycWord.replaceWith(nw);cycWord=nw;}
  nextCycle(1200);flushQueued();
