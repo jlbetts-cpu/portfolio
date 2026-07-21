@@ -788,7 +788,7 @@ const FACES={
  smile:{img:"images/smile.webp",closed:"images/smile_closed.webp",eyes:[],noIris:true}
 };
 const PFX="";
-const RX=0.0385,RY=0.0192,IRIS_W=0.6,IRIS_H=1.05,TRAVEL=0.16,SENS=300;
+const RX=0.0385,RY=0.0192,IRIS_W=0.6,IRIS_H=1.05,TRAVEL=0.16,SENS=340;
 const WINK_LINGER=300,SMILE_LINGER=350,IDLE_MS=2500;
 const HOVER=matchMedia("(hover: hover) and (pointer: fine)").matches;
 const WORDS=["Hunger.","Delight.","Love.","Empathy.","Identity."];
@@ -917,7 +917,7 @@ function showFace(name){
  requestBlink(name,true,false);
 }
 // spontaneous blinks only while calm (neutral/rest); varied interval (research: ~3-5s, highly variable)
-function idleBlink(){if(!reduce&&!eventLock&&!reactType&&!dizzy&&!CALIB&&!blinking&&(curFace==="neutral"||curFace==="rest")){if(curFace==="rest"&&window.__pointerOverFace===false){setFace("neutral");}requestBlink(curFace,false,true);}setTimeout(idleBlink,2900+Math.random()*4600);}
+function idleBlink(){if(!reduce&&!eventLock&&!reactType&&!dizzy&&!CALIB&&!blinking&&(curFace==="neutral"||curFace==="rest")){if(curFace==="rest"&&window.__pointerOverFace===false){setFace("neutral");}requestBlink(curFace,false,true);}setTimeout(idleBlink,2100+Math.random()*3200);}
 // ===== IDLE CYCLE-BREAKERS: subtle fidgets that keep him alive between actions (research: base loop + randomized secondary idles) =====
 var fidget=null,fidgetGX=0,fidgetGY=0,fidgetROT=0,fidgetBrow=false;
 function idleFidget(){
@@ -943,9 +943,9 @@ function tickFidget(){
 /* welcome beat: every so often in true idle, a brief soft smile — idle-animation research: living characters acknowledge you (breath, blinks, warmth); they never just stare */
 function idleWarm(){
  if(!reduce&&!eventLock&&!reactType&&!dizzy&&!CALIB&&!eating&&!partyMode&&!loveMode&&!rainMode&&!bearMode&&!movieMode&&!aboutOpen&&!introMode&&!dragging&&!blinking&&!fidget&&!activeHover&&!holdFace&&(curFace==="neutral"||curFace==="rest")){setHold("smile",1050);showFace("smile");}
- setTimeout(idleWarm,15000+Math.random()*14000);
+ setTimeout(idleWarm,8500+Math.random()*9000);
 }
-setTimeout(idleWarm,6800);
+setTimeout(idleWarm,7200);
 /* warm every face frame once the page settles, so no expression swap ever flashes a half-loaded frame */
 window.addEventListener("load",function(){setTimeout(function(){var W=["images/neutral_browsup.webp","images/neutral_closed.webp","images/rest.webp","images/rest_closed.webp","images/wink.webp","images/wink_closed.webp","images/smile.webp","images/smile_closed.webp","images/tongue.webp","images/heart.webp","images/heart_eye.webp","images/cookie.webp","images/cookie_b1.webp","images/cookie_b2.webp","images/cookie_b3.webp","images/discoball.webp","images/discoglints.webp","images/cam.webp","images/fingerprint.webp","images/bucket.webp","images/kernel.webp","images/crumbtex.webp","images/procreate.webp","images/overlay.webp","images/paper.webp"];window.__faceWarm=W.map(function(src){var im=new Image();im.decoding="async";im.src=src;return im;});},900);});
 function clearHold(){holdFace=null;if(holdTimer){clearTimeout(holdTimer);holdTimer=null;}}
@@ -1062,6 +1062,8 @@ function faceTrackTo(cx,cy){pointer.px=cx;pointer.py=cy;lastMove=performance.now
 let dragCookie=null,dragDisco=null,dragLove=null,dragCam=null,dragWordEl=null,queued=null;
 var rainMode=false,rainTk0=0,rainDropStart=0,rainHoldStart=0,rainPerTick=1,rainList=[],rainWrap=null,rainHeadState="",rainHr=null,camflash=null;
 var partyMode=false,partyStart=0,partyTk0=0,partyEl=null,partyLights=null,discoWrap=null,discoBall=null,partyGrain=null,PARTY_DUR=6.6;
+/* the lights-off gag never follows you into the work: the moment the case studies reach the viewport, the party wraps */
+addEventListener('scroll',function(){if(!partyMode)return;var cs=document.querySelector('.cases');if(cs&&cs.getBoundingClientRect().top<innerHeight*0.62){try{endParty();}catch(_){}}},{passive:true});
 var GP=["0 0","7px 4px","-5px 6px","4px -7px","-7px -3px","6px 5px","-4px -6px","3px 7px"];
 var pCX=0,pHEADY=0,pHR=180,pBALLY=0;
 var loveMode=false,loveStart=0,loveTk0=0,loveEl=null,heartEyeEls=null,heartLayer=null,blushEl=null,loveHearts=[],LOVE_DUR=4.3,gHW=120,loveSY0=0,loveBaseX=0,loveBaseY=0;
@@ -1277,6 +1279,7 @@ function partyTick(sec){
  stage.style.transform="translate("+tx+"px,"+ty+"px) rotate("+rot.toFixed(1)+"deg) scale("+sc.toFixed(3)+")";updateShadow(tx,ty,rot);
 }
 function endParty(){
+ if(!partyMode&&!partyEl)return;   // idempotent: early-end and scheduled-end can both fire
  flushQueued();
  if(partyEl)partyEl.classList.remove("on");
  if(discoWrap)discoWrap.classList.remove("on");
@@ -2094,7 +2097,7 @@ function introGaze(gx,gy){gaze.x=gx;gaze.y=gy;if(eyeEls.length&&typeof updateIri
 function startIntro(){
   var _seen=false;try{_seen=sessionStorage.getItem("introSeen")==="1";}catch(e){}
   setFace("neutral");stage.style.opacity="";
-  if(_seen||reduce||!swrap){requestAnimationFrame(function(){requestAnimationFrame(revealAll);});return;}
+  if(_seen||reduce||!swrap){requestAnimationFrame(function(){requestAnimationFrame(revealAll);});if(!reduce)setTimeout(function(){if(!eventLock&&!reactType&&!aboutOpen&&!dragging&&(curFace==="neutral"||curFace==="rest")){setHold("smile",950);showFace("smile");}},1500);return;}
   try{sessionStorage.setItem("introSeen","1");}catch(e){}
   var w=document.querySelector(".wrap");
   if(!w){requestAnimationFrame(function(){requestAnimationFrame(revealAll);});return;}
@@ -2109,6 +2112,7 @@ function startIntro(){
     w.classList.remove("developing","developed");
     document.documentElement.style.overflow="";eventLock=false;
     if(!reduce)setTimeout(idleBlink,400);
+    if(!reduce)setTimeout(function(){if(!eventLock&&!reactType&&!aboutOpen&&!dragging&&(curFace==="neutral"||curFace==="rest")){setHold("smile",950);showFace("smile");}},700);
   },1150);
 }
 var introLoader=null;
