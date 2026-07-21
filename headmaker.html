@@ -374,22 +374,29 @@ function buildLive(){
   var pa=px2(a),pb=px2(b);return"rgb("+Math.round((pa[0]+pb[0])/2)+","+Math.round((pa[1]+pb[1])/2)+","+Math.round((pa[2]+pb[2])/2)+")";})();
  des.forEach(function(c){
   var sc=oneWhite;   /* both eyes share one white: mismatched whites read uncanny */
+  /* anatomy: the eye window is the aperture THEY marked; the iris is a circle 42% of eye width,
+     taller than the window so the lids crop it top and bottom, the way every human eye works */
+  var _ew=c.w*0.94, _eh=Math.max(c.w*0.26,Math.min(c.w*0.44,c.h*1.05));
   var scl=document.createElement("div");scl.className="hmScl";
-  scl.style.width=(c.w*82)+"%";scl.style.height=(c.w*46)+"%";
-  scl.style.left=((c.x-c.w*0.41)*100)+"%";scl.style.top=((c.y-c.w*0.23)*100)+"%";
+  scl.style.width=(_ew*106)+"%";scl.style.height=(_eh/1.2*138)+"%";
+  scl.style.left=((c.x-_ew*0.53)*100)+"%";scl.style.top=((c.y-_eh*0.69/1.2)*100)+"%";
   scl.style.transform="rotate("+(c.ang||0)+"rad)";
   scl.style.background=sc;
-  scl.style.webkitMaskImage="radial-gradient(ellipse at center,#000 55%,transparent 78%)";
-  scl.style.maskImage="radial-gradient(ellipse at center,#000 55%,transparent 78%)";
+  scl.style.webkitMaskImage="radial-gradient(ellipse at center,#000 62%,transparent 90%)";
+  scl.style.maskImage="radial-gradient(ellipse at center,#000 62%,transparent 90%)";
   headEl.appendChild(scl);
   var w=document.createElement("div");w.className="hmEye";
-  var _ew=c.w*0.78,_eh=c.w*0.40;   /* smaller, friendlier eyes: oversized eyes read uncanny */
-  w.style.width=(_ew*100)+"%";w.style.height=(_eh*100)+"%";
-  w.style.left=((c.x-_ew/2)*100)+"%";w.style.top=((c.y-_eh/2)*100)+"%";
+  w.style.width=(_ew*100)+"%";w.style.height=(_eh/1.2*100)+"%";   /* /1.2: the stage is 5/6, heights need the aspect taken out */
+  w.style.left=((c.x-_ew/2)*100)+"%";w.style.top=((c.y-_eh/2/1.2)*100)+"%";
   w.style.transform="rotate("+(c.ang||0)+"rad)";
+  var irD=c.w*0.42;   /* true circle: 11.5mm on a 28mm eye */
   var ir=document.createElement("div");ir.className="hmIris";
+  ir.style.width=(irD/_ew*100)+"%";ir.style.height=(irD/_eh*100)+"%";
+  ir.style.left=((0.5-irD/_ew/2)*100)+"%";ir.style.top=((0.5-irD/_eh/2)*100)+"%";
+  ir.style.borderRadius="50%";
   var pu=document.createElement("div");pu.className="hmPupil";ir.appendChild(pu);
   var gl=document.createElement("div");gl.className="hmGlint";
+  gl.style.width=(0.2*irD/_ew*100)+"%";gl.style.height=(0.2*irD/_eh*100)+"%";gl.style.left="37%";gl.style.top=((0.5-irD/_eh/2)*100+irD/_eh*14)+"%";
   w.appendChild(ir);w.appendChild(gl);
   headEl.appendChild(w);
   var lwW=c.w*1.12,lwH=c.h*1.42;
@@ -510,7 +517,8 @@ document.getElementById("save").addEventListener("click",function(){
   grd.addColorStop(1,"rgba("+rgb[0]+","+rgb[1]+","+rgb[2]+",0)");
   x.fillStyle=grd;x.beginPath();x.ellipse(ex,ey,ew*0.52,eh*0.55,0,0,Math.PI*2);x.fill();
   var gx=look[0]*ew*0.15,gy=look[1]*eh*0.18,ix=ex+gx,iy=ey+gy;
-  var irx=ew*0.27,iry=Math.min(eh*0.46,ew*0.3);   // the iris always fits inside its white
+  var irx=ew*0.21,iry=ew*0.21;   // a true circle, 42% of the eye width
+  x.save();x.beginPath();x.ellipse(ex,ey,ew*0.5,Math.max(eh*0.5,ew*0.14),0,0,Math.PI*2);x.clip();   // the lids crop it
   x.fillStyle="#0d0d0d";x.beginPath();x.ellipse(ix,iy,irx,iry,0,0,Math.PI*2);x.fill();
   x.save();x.beginPath();x.ellipse(ix,iy,irx,iry,0,0,Math.PI*2);x.clip();
   for(var st=0;st<44;st++){var a2=st/44*Math.PI*2;x.strokeStyle=st%2?"rgba(255,255,255,.05)":"rgba(0,0,0,.25)";x.lineWidth=1.2;x.beginPath();x.moveTo(ix,iy);x.lineTo(ix+Math.cos(a2)*irx,iy+Math.sin(a2)*iry);x.stroke();}
@@ -518,6 +526,7 @@ document.getElementById("save").addEventListener("click",function(){
   x.fillStyle="#000";x.beginPath();x.ellipse(ix,iy,irx*0.55,iry*0.55,0,0,Math.PI*2);x.fill();
   x.fillStyle="rgba(255,255,255,.95)";x.beginPath();x.ellipse(ix-irx*0.25,iy-iry*0.3,irx*0.2,iry*0.2,0,0,Math.PI*2);x.fill();
   x.fillStyle="rgba(255,255,255,.5)";x.beginPath();x.ellipse(ix+irx*0.3,iy+iry*0.32,irx*0.1,iry*0.1,0,0,Math.PI*2);x.fill();
+  x.restore();
   x.restore();
  });
  var a=document.createElement("a");a.download="my-floating-head.png";a.href=c.toDataURL("image/png");a.click();

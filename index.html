@@ -2562,18 +2562,19 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   return"rgb("+Math.round((pa[0]+pb[0])/2)+","+Math.round((pa[1]+pb[1])/2)+","+Math.round((pa[2]+pb[2])/2)+")";})();
  eyesArr.forEach(function(c){
   var sc2=document.createElement("div");
-  sc2.style.cssText="position:absolute;border-radius:50%;pointer-events:none;background:"+oneWhite2+";-webkit-mask-image:radial-gradient(ellipse at center,#000 62%,transparent 92%);mask-image:radial-gradient(ellipse at center,#000 62%,transparent 92%)";
-  var bw=c.w*0.82,bh=c.w*0.46;   // the white sits just under the eye, never beyond it
-  sc2.style.width=(bw*100)+"%";sc2.style.height=(bh*100)+"%";sc2.style.left=((c.x-bw/2)*100)+"%";sc2.style.top=((c.y-bh/2)*100)+"%";
+  sc2.style.cssText="position:absolute;border-radius:50%;pointer-events:none;background:"+oneWhite2+";-webkit-mask-image:radial-gradient(ellipse at center,#000 62%,transparent 90%);mask-image:radial-gradient(ellipse at center,#000 62%,transparent 90%)";
+  var w2=c.w*0.94, h2=Math.max(c.w*0.26,Math.min(c.w*0.44,(c.h||c.w*0.3)*1.05));   // the window is the aperture they marked
+  sc2.style.width=(w2*106)+"%";sc2.style.height=(h2/1.2*138)+"%";sc2.style.left=((c.x-w2*0.53)*100)+"%";sc2.style.top=((c.y-h2*0.69/1.2)*100)+"%";
   root.appendChild(sc2);
   var e=document.createElement("div");e.className="eye";
-  var w2=c.w*0.78,h2=c.w*0.40;   // clipped inside the white: the iris can never cross it
-  e.style.left=((c.x-w2/2)*100)+"%";e.style.top=((c.y-h2/2)*100)+"%";e.style.width=(w2*100)+"%";e.style.height=(h2*100)+"%";
+  e.style.left=((c.x-w2/2)*100)+"%";e.style.top=((c.y-h2/2/1.2)*100)+"%";e.style.width=(w2*100)+"%";e.style.height=(h2/1.2*100)+"%";   /* /1.2: the box is 1:1.2, heights need the aspect taken out */
+  var irD=c.w*0.42;   // a true circle: the anatomical 42% of eye width, cropped by the lids
   var ir=document.createElement("div");ir.className="iris";
-  ir.style.width="60%";ir.style.height="105%";ir.style.left="20%";ir.style.top="-2.5%";
+  ir.style.width=(irD/w2*100)+"%";ir.style.height=(irD/h2*100)+"%";ir.style.left=((0.5-irD/w2/2)*100)+"%";ir.style.top=((0.5-irD/h2/2)*100)+"%";ir.style.borderRadius="50%";
   ir.style.background="repeating-conic-gradient(from 4deg,rgba(255,255,255,.025) 0deg 2deg,rgba(0,0,0,.09) 2deg 4.3deg),radial-gradient(circle at 50% 50%,#050505 0%,#080808 25%,#191919 39%,#121212 57%,#181818 72%,#0a0a0a 88%,#030303 100%),radial-gradient(circle at 38% 32%,#1e1e1e 0%,#0d0d0d 52%,#050505 100%)";ir.style.backgroundBlendMode="multiply,normal,normal";
   var pu=document.createElement("div");pu.className="pupil";ir.appendChild(pu);
   var gl=document.createElement("div");gl.className="glint";
+  gl.style.width=(0.19*irD/w2*100)+"%";gl.style.height=(0.19*irD/h2*100)+"%";gl.style.left="37%";gl.style.top=((0.5-irD/h2/2)*100+irD/h2*13)+"%";
   e.appendChild(ir);e.appendChild(gl);root.appendChild(e);
   var lidW=c.w*0.95,lidH=c.w*0.6;
   var lw=document.createElement("div");lw.style.cssText="position:absolute;border-radius:50%;overflow:hidden;pointer-events:none";
