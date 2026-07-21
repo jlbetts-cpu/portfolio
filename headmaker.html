@@ -72,6 +72,10 @@ nav{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;column-ga
 
 .hmMark.eyeC::before{display:none}   /* invisible: dragging the middle of the eye just works, like dragging a shape body */
 .hmErr{color:rgba(146,62,42,.9)}
+.hmPitSec{margin-top:var(--sp-32-48);padding-top:var(--sp-24-32);border-top:1px solid rgba(8,8,8,.14)}
+.hmPit{display:flex;gap:14px;justify-content:center;margin:var(--sp-16-24) 0}
+.hmPit img{width:64px;height:76px;object-fit:contain;background:var(--c100);border-radius:4px;padding:4px}
+.hmPit .hmPitEmpty{width:64px;height:76px;border:1.5px dashed rgba(8,8,8,.25);border-radius:4px}
 .hmRoll{display:inline-flex;align-items:center;gap:8px}
 .hmDie{display:block;transition:transform .55s cubic-bezier(.34,1.35,.4,1)}
 .hmZoom{-webkit-appearance:none;appearance:none;height:2px;background:rgba(8,8,8,.18);border-radius:2px;outline-offset:6px}
@@ -195,7 +199,13 @@ a:focus-visible,button:focus-visible,.hmDot:focus-visible{outline:2px solid var(
     <button class="hmBtn ghost" type="button" id="saveFile"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>Save head file</button>
     <a class="hmBtn" href="index.html">See it on my homepage</a>
    </div>
-   <p class="cap">Downloads as a little keepsake card.</p>
+   <p class="cap">Downloads as a transparent PNG &mdash; drop it anywhere.</p>
+   <div class="hmPitSec">
+    <p class="kicker">Your little crowd &middot; up to three</p>
+    <div class="hmPit" id="hmPitRow" aria-label="Heads currently on the homepage"></div>
+    <div class="hmRow"><button class="hmBtn" type="button" id="addAnother">Add another head</button></div>
+    <p class="cap">Every head you make here joins the crowd on my homepage. Three at most &mdash; the oldest hops out.</p>
+   </div>
   </section>
  </div>
 
@@ -617,7 +627,7 @@ function buildLive(){
   _all=_all.filter(function(h){return h&&h.cut&&h.cut.length>100&&h.cut!==_nh.cut;});   // same face re-saved just moves to newest: never a duplicate in the pit
   _all.push(_nh);while(_all.length>3)_all.shift();   // the pit holds three: the oldest head retires
   localStorage.setItem("hmCompanions",JSON.stringify(_all));
-  localStorage.setItem("hmCompanion",JSON.stringify(_nh));}catch(_){}
+  localStorage.setItem("hmCompanion",JSON.stringify(_nh));renderPit();}catch(_){}
 }
 var mx=innerWidth/2,my=innerHeight*0.4,tk=0;
 addEventListener("pointermove",function(e){mx=e.clientX;my=e.clientY;},{passive:true});
@@ -676,6 +686,13 @@ function loadSmile(f){
   smileAt=performance.now()+1200;   // show it off right away
  },function(){smileSlot=false;});
 }
+function renderPit(){try{var row=document.getElementById("hmPitRow");if(!row)return;
+ var all=[];try{all=JSON.parse(localStorage.getItem("hmCompanions")||"[]")||[];}catch(_){}
+ if(!all.length){try{var lg1=JSON.parse(localStorage.getItem("hmCompanion")||"null");if(lg1&&lg1.cut)all=[lg1];}catch(_){}}
+ row.innerHTML="";
+ for(var i=0;i<3;i++){if(all[i]&&all[i].cut){var im1=document.createElement("img");im1.src=all[i].cut;im1.alt="A saved head";row.appendChild(im1);}
+  else{var d1=document.createElement("div");d1.className="hmPitEmpty";row.appendChild(d1);}}}catch(_){}}
+document.getElementById("addAnother").addEventListener("click",function(){document.getElementById("restart").click();});
 document.getElementById("saveFile").addEventListener("click",function(){ // your head as a keepsake file: reupload it any time
  try{if(!cutURL||cutURL.length<100)return;
   var _d2=deriveEyes();
@@ -695,14 +712,10 @@ document.getElementById("save").addEventListener("click",function(){
  if(!cutURL||cutURL.length<100)return;   // restored heads download too: the capture photographs the live rig
  var c=document.createElement("canvas");c.width=BAKE_W;c.height=BAKE_H;
  var x=c.getContext("2d");
- // the card: this is an artifact worth sharing, not a screenshot — paper, light, and a quiet signature
- x.fillStyle="#fdfdfd";x.fillRect(0,0,BAKE_W,BAKE_H);
- var vg=x.createRadialGradient(BAKE_W/2,BAKE_H*0.44,BAKE_W*0.18,BAKE_W/2,BAKE_H*0.5,BAKE_W*0.72);
- vg.addColorStop(0,"rgba(8,8,8,0)");vg.addColorStop(1,"rgba(8,8,8,0.05)");
- x.fillStyle=vg;x.fillRect(0,0,BAKE_W,BAKE_H);
- var sh=x.createRadialGradient(BAKE_W/2,BAKE_H*0.905,10,BAKE_W/2,BAKE_H*0.905,BAKE_W*0.30);
+ // transparent PNG: the head and its soft shadow, nothing else — drop it anywhere
+ var sh=x.createRadialGradient(BAKE_W/2,BAKE_H*0.965,10,BAKE_W/2,BAKE_H*0.965,BAKE_W*0.30);
  sh.addColorStop(0,"rgba(8,8,8,.20)");sh.addColorStop(1,"rgba(8,8,8,0)");
- x.fillStyle=sh;x.save();x.translate(0,BAKE_H*0.905);x.scale(1,0.09);x.translate(0,-BAKE_H*0.905);x.beginPath();x.arc(BAKE_W/2,BAKE_H*0.905,BAKE_W*0.30,0,Math.PI*2);x.fill();x.restore();
+ x.fillStyle=sh;x.save();x.translate(0,BAKE_H*0.965);x.scale(1,0.09);x.translate(0,-BAKE_H*0.965);x.beginPath();x.arc(BAKE_W/2,BAKE_H*0.965,BAKE_W*0.30,0,Math.PI*2);x.fill();x.restore();
 
  function finish(){var a=document.createElement("a");a.download="my-floating-head.png";a.href=c.toDataURL("image/png");a.click();}
  // the faithful path: photograph the LIVING head itself — the PNG can never drift from the rig again
@@ -724,7 +737,7 @@ document.getElementById("save").addEventListener("click",function(){
   var svg='<svg xmlns="http://www.w3.org/2000/svg" width="'+BAKE_W+'" height="'+BAKE_H+'" viewBox="0 0 440 528"><defs>'+defs+'</defs>'+
    '<foreignObject width="440" height="528"><div xmlns="http://www.w3.org/1999/xhtml" id="cap"><style>'+css+'</style>'+cl.outerHTML+'</div></foreignObject></svg>';
   var im=new Image();
-  im.onload=function(){try{x.drawImage(im,BAKE_W*0.045,BAKE_H*0.005,BAKE_W*0.91,BAKE_H*0.91);finish();}catch(_e2){legacy();}};
+  im.onload=function(){try{x.drawImage(im,0,0,BAKE_W,BAKE_H);finish();}catch(_e2){legacy();}};
   im.onerror=function(){legacy();};
   im.src="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(svg);
   return;
