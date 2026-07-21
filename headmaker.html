@@ -61,11 +61,11 @@ nav{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;column-ga
 .hmLoupe::after{content:"";position:absolute;left:50%;top:50%;width:10px;height:10px;margin:-5px 0 0 -5px;border:1.5px solid var(--c950);border-radius:50%;background:rgba(253,253,253,.35)}
 .hmWhich{text-align:center;font-family:var(--sans);font-size:var(--fs-label);font-weight:600;color:var(--c700);margin:14px 0 0;min-height:18px;filter:url(#inkSm)}
 .hmGuides{position:absolute;inset:0;pointer-events:none}.hmDot.lid::before{width:14px;height:0;border:0;border-top:2px solid var(--c950);border-radius:2px;margin:-1px 0 0 -7px;background:none;box-shadow:0 0 0 1px rgba(253,253,253,.8)}.hmDot.lid::after{display:none}
-.hmDot::before{width:12px;height:12px;margin:-6px 0 0 -6px;border-width:1.5px}
+.hmDot::before{width:9px;height:9px;margin:-4.5px 0 0 -4.5px;border-width:1.5px;background:var(--c50)}.hmDot::after{width:3px;height:3px;margin:-1.5px 0 0 -1.5px}
 .hmMark{position:absolute;width:52px;height:44px;margin:-22px 0 0 -26px;cursor:grab;touch-action:none}
-.hmMark.bar::before{content:"";position:absolute;left:50%;top:50%;width:34px;height:0;margin:-1px 0 0 -17px;border-top:2px solid var(--c950);border-radius:2px;box-shadow:0 0 0 1px rgba(253,253,253,.7)}
+.hmMark.bar::before{content:"";position:absolute;left:50%;top:50%;width:30px;height:0;margin:-1px 0 0 -15px;border-top:1.5px solid var(--c950);border-radius:2px;box-shadow:0 0 0 1px rgba(253,253,253,.8)}
 .hmMark.bar.wide::before{width:46px;margin-left:-23px}
-.hmMark.ring::before{content:"";position:absolute;left:50%;top:50%;width:16px;height:14px;margin:-7px 0 0 -8px;border:1.5px dashed var(--c950);border-radius:50%;background:rgba(253,253,253,.4)}
+.hmMark.ring::before{content:"";position:absolute;left:50%;top:50%;width:14px;height:12px;margin:-6px 0 0 -7px;border:1.5px solid var(--c950);border-radius:50%;background:rgba(253,253,253,.5)}
 .hmZoom{-webkit-appearance:none;appearance:none;height:2px;background:rgba(8,8,8,.18);border-radius:2px;outline-offset:6px}
 .hmZoom::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--c950);border:0;cursor:pointer}
 .hmZoom::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:var(--c950);border:0;cursor:pointer}
@@ -144,7 +144,7 @@ a:focus-visible,button:focus-visible,.hmDot:focus-visible{outline:2px solid var(
    <p class="stepBody">Dots on the corners, top, and bottom of each eye. Bars on your brows and mouth, the ring on your nose. This is what brings it to life.</p>
    <div class="hmStage bare" id="stage3">
     <img id="hmCut" alt="Your cutout head">
-    <svg class="hmGuides" id="hmGuides" aria-hidden="true"><line id="gL" stroke="rgba(8,8,8,.30)" stroke-width="1" stroke-dasharray="3 3"/><line id="gR" stroke="rgba(8,8,8,.30)" stroke-width="1" stroke-dasharray="3 3"/></svg>
+    <svg class="hmGuides" id="hmGuides" aria-hidden="true"><line id="gL" stroke="rgba(8,8,8,.22)" stroke-width="1"/><line id="gR" stroke="rgba(8,8,8,.22)" stroke-width="1"/></svg>
     <div class="hmLoupe" id="hmLoupe" aria-hidden="true"></div>
     <div class="hmDot" id="dLi" role="slider" tabindex="0" aria-label="Left eye, inner corner"></div>
     <div class="hmDot" id="dLo" role="slider" tabindex="0" aria-label="Left eye, outer corner"></div>
@@ -435,9 +435,9 @@ function liveTick(){
  else if(noseEl)noseEl.style.transform="";
  if(pose==="side"){nx=-0.78;ny=0.06;}
  if(pose==="brows"){browEls.forEach(function(b){b.style.transform="translateY(-6px)";});if(mouthEl){mouthEl.style.transform="translateY(2px) scaleY(1.6)";}}
- if(now>=blinkAt&&blinkFrames===0&&pose!=="wink"){blinkFrames=4;blinkAt=now+2600+Math.random()*3400;}
+ if(now>=blinkAt&&blinkFrames===0&&pose!=="wink"){blinkFrames=5;blinkAt=now+2600+Math.random()*3400;}
  eyeEls.forEach(function(e,ei){
-  if(blinkFrames>0){var lp=(blinkFrames===4||blinkFrames===1)?-56:-6;e.lidEl.style.transform="translateY("+lp+"%)";}
+  if(blinkFrames>0){var lp=(blinkFrames===5||blinkFrames===1)?-44:(blinkFrames===4?-14:-4);e.lidEl.style.transform="translateY("+lp+"%)";}
   else{e.lidEl.style.transform="translateY(-105%)";
    var ew=e.wrap.offsetWidth,eh=e.wrap.offsetHeight;
    var gtx=Math.round(nx*ew*0.16),gty=Math.round(ny*eh*0.22);

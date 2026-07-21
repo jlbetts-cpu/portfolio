@@ -2583,7 +2583,18 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   nose=strip(mk.N.x,mk.N.y,ew0*1.1,ew0*1.2);mouth=strip(mk.M.x,mk.M.y,ew0*1.8,ew0*0.95);mouth.style.transformOrigin="50% 18%";}
  hero.appendChild(shadow);hero.appendChild(root);
  // --- world geometry ---
- var heroR,floorY,plats,avoids,bigR,M=40,WL=2,WR=9999,FOOT=0.945;
+ var heroR,floorY,plats,avoids,bigR,M=40,WL=2,WR=9999,FOOT=0.945,crownFrac=0.08;
+ (function(){try{var ci=new Image();ci.onload=function(){try{
+  var cv3=document.createElement("canvas");cv3.width=36;cv3.height=44;var cx3=cv3.getContext("2d");
+  cx3.drawImage(ci,0,0,36,44);var d3=cx3.getImageData(0,0,36,44).data;
+  for(var row=43;row>=0;row--){for(var col=0;col<36;col++){if(d3[(row*36+col)*4+3]>40){FOOT=Math.min(0.99,(row+1)/44);return;}}}
+ }catch(_){}};ci.src=data.cut;}catch(_){}})();   // its own true foot line, from its own pixels
+ (function(){try{var fi=document.getElementById("face");function scan(){try{
+  var cv=document.createElement("canvas");cv.width=36;cv.height=44;var cx2=cv.getContext("2d");
+  cx2.drawImage(fi,0,0,36,44);var d=cx2.getImageData(0,0,36,44).data;
+  for(var row=0;row<44;row++){for(var col=0;col<36;col++){if(d[(row*36+col)*4+3]>40){crownFrac=row/44;return;}}}
+ }catch(_){}}
+ if(fi&&fi.complete&&fi.naturalWidth)scan();else if(fi)fi.addEventListener("load",scan);}catch(_){}})();
  function survey(){
   heroR={w:hero.clientWidth,h:hero.clientHeight};
   var hr=hero.getBoundingClientRect();
@@ -2643,6 +2654,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
  function release(e){if(!grabbed)return;grabbed=false;root.style.cursor="grab";
   var tap=(performance.now()-downT<230)&&e&&Math.hypot(e.clientX-downX,e.clientY-downY)<6;
   st="fall";air=true;surface=floorY;
+  y+=heldOff;heldOff=0;   // the spring's stretch becomes real position: momentum conserved
   if(tap){y-=4;vy=-13-Math.random()*4;vx=dir*(2+Math.random()*3);sqf=2;sqx=0.84;sqy=1.18;}   // bop! (lift off the ground so the pop always plays)
   else{var vpt=null,nw=performance.now();
    for(var q=0;q<vSamp.length;q++){if(nw-vSamp[q].t<=95){vpt=vSamp[q];break;}}
@@ -2650,6 +2662,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
     vx=Math.max(-34,Math.min(34,(lastPX-vpt.x)/dt2*125));
     vy=Math.max(-32,Math.min(22,(lastPY-vpt.y)/dt2*125));}
    else{vx=Math.max(-16,Math.min(16,pvx*1.1));vy=Math.max(-18,Math.min(12,pvy*1.1));}
+   vy+=heldV*0.5;   // the spring adds its stored energy to the throw
    dir=vx>=0?1:-1;}
   vSamp=[];if(shakeN>4)dzf=16;shakeN=0;}
  root.addEventListener("pointerup",release);root.addEventListener("pointercancel",release);
@@ -2659,8 +2672,11 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   try{busy=document.body.classList.contains("about-open")||(typeof busyNow==="function"&&busyNow());}catch(_){}
   var want=!busy&&!gone;
   if(want!==shown||first){shown=want;root.style.opacity=want?"1":"0";root.style.filter=want?"blur(0)":"blur(6px)";shadow.style.opacity=want?"1":"0";
-   if(first&&want){survey();if(bigR){x=bigR.l+(bigR.r-bigR.l)/2-HW/2;y=bigR.t-HH*FOOT;surface=floorY;}   // re-measure after layout settles, stand exactly on the crown
-    setTimeout(function(){if(!grabbed){st="fall";air=true;surface=floorY;vx=-(5+Math.random()*3);vy=-13;dir=-1;sqf=2;sqx=0.84;sqy=1.18;}},1100);} first=false;}   // then a real leap off
+   if(first&&want){survey();var fEl=document.getElementById("face"),hr2=hero.getBoundingClientRect();
+    var frc=fEl?fEl.getBoundingClientRect():null;
+    if(frc&&frc.height){x=frc.left-hr2.left+frc.width/2-HW/2;y=frc.top-hr2.top+frc.height*crownFrac-HH*FOOT+2;surface=floorY;}
+    else if(bigR){x=bigR.l+(bigR.r-bigR.l)/2-HW/2;y=bigR.t-HH*FOOT;surface=floorY;}   // feet on the visible hair itself
+    if(!/[?&]stand=1/.test(location.search))setTimeout(function(){if(!grabbed){st="fall";air=true;surface=floorY;vx=-(5+Math.random()*3);vy=-13;dir=-1;sqf=2;sqx=0.84;sqy=1.18;}},1100);} first=false;}   // then a real leap off (?stand=1 holds the pose for tuning)
   if(reduce){root.style.transform="translate("+(heroR.w*0.05)+"px,"+floorY+"px)";shadow.style.transform="translate("+(heroR.w*0.05)+"px,"+(floorY+HH-4)+"px)";return;}
   if(!shown)return;
   if(now>=decideAt)decide(now);
@@ -2671,7 +2687,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    if(x<WL){x=WL;vx=Math.abs(vx)*0.72;dir=1;sqf=2;sqx=0.86;sqy=1.12;}
    if(x>WR){x=WR;vx=-Math.abs(vx)*0.72;dir=-1;sqf=2;sqx=0.86;sqy=1.12;}
    if(y<2){y=2;vy=Math.abs(vy)*0.6;}
-   if(vy>0&&y>=surface){ if(Math.abs(vy)>5.5){var k=Math.min(0.32,Math.abs(vy)*0.014);y=surface;vy=-vy*0.62;vx*=0.82;sqf=3;sqx=1+k;sqy=1-k;}  // lively restitution: it really bounces
+   if(vy>0&&y>=surface){ if(st==="fall"&&Math.abs(vy)>5.5){var k=Math.min(0.32,Math.abs(vy)*0.014);y=surface;vy=-vy*0.62;vx*=0.82;sqf=3;sqx=1+k;sqy=1-k;}  // thrown = bouncy; its own hops land clean
     else land();}
    else if(air){var vst=Math.min(0.2,Math.abs(vy)*0.009);sqy=Math.max(sqy,1+vst);sqx=Math.min(sqx,1-vst*0.8);}   // stretch along the motion in the air
   }
