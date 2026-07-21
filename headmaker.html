@@ -35,7 +35,7 @@ nav{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;column-ga
 .stepBody{font-weight:400;font-size:var(--fs-prose);line-height:var(--lh-prose);color:var(--c700);margin:16px 0 0;text-wrap:pretty}
 .cap{margin:16px 0 0;font-size:var(--fs-small);line-height:1.5;color:var(--c500);filter:url(#inkSm)}
 /* the workspace: one stage, restyled per step */
-.hmStage{position:relative;width:min(440px,100%);aspect-ratio:5/6;margin:var(--sp-32-48) auto 0;background:var(--c100);border-radius:4px;box-shadow:inset 0 0 0 1px rgba(8,8,8,.3);overflow:hidden;touch-action:none}
+.hmStage{position:relative;width:min(440px,100%);aspect-ratio:5/6;margin:var(--sp-32-48) auto 0;background:var(--c50);border-radius:4px;box-shadow:inset 0 0 0 1px rgba(8,8,8,.16);overflow:hidden;touch-action:none}#hmRot{position:absolute;inset:0;transform-origin:50% 50%}.hmCtl{display:flex;align-items:center;gap:14px;width:min(340px,86%);margin:var(--sp-16-24) auto 0}.hmCtlL{font-family:var(--sans);font-size:var(--fs-label);font-weight:600;color:var(--c500);width:76px;flex:0 0 auto;filter:url(#inkSm)}.hmCtl .hmZoom{flex:1;margin:0;width:auto}
 .hmStage.bare{background:var(--c50)}
 /* step 1: the drop zone */
 .hmDrop{position:absolute;inset:14px;border:1px dashed rgba(8,8,8,.34);border-radius:4px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;cursor:pointer;transition:border-color .2s cubic-bezier(.2,.8,.2,1)}
@@ -48,9 +48,8 @@ nav{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;column-ga
 .hmRow{display:flex;align-items:center;justify-content:center;gap:14px;margin:var(--sp-24-32) 0 0;flex-wrap:wrap}
 /* step 2: frame the face */
 #hmPhoto{position:absolute;left:0;top:0;transform-origin:0 0;will-change:transform;pointer-events:none;user-select:none;-webkit-user-drag:none;max-width:none}
-.hmOvalMask{position:absolute;left:50%;top:50%;width:80%;height:88%;transform:translate(-50%,-50%);border-radius:50%;box-shadow:0 0 0 2000px rgba(253,253,253,.86);pointer-events:none}
-.hmOvalMask::after{content:"";position:absolute;inset:0;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(8,8,8,.3)}
-.hmZoom{display:block;width:min(300px,80%);margin:var(--sp-24-32) auto 0;accent-color:var(--c950)}
+.hmOvalMask{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.hmZoom{display:block;accent-color:var(--c950)}
 /* step 3: eyes */
 .hmDot{position:absolute;width:44px;height:44px;margin:-22px 0 0 -22px;cursor:grab;touch-action:none}
 .hmDot::before{content:"";position:absolute;left:50%;top:50%;width:18px;height:18px;margin:-9px 0 0 -9px;border-radius:50%;border:2px solid var(--c950);background:rgba(253,253,253,.55);box-shadow:0 0 0 1px rgba(253,253,253,.8)}
@@ -121,10 +120,11 @@ a:focus-visible,button:focus-visible,.hmDot:focus-visible{outline:2px solid var(
    <h2 class="stepHead">Frame your face.</h2>
    <p class="stepBody">Drag to move. Slide to zoom. Chin near the bottom, a little room above your hair. The cut follows a head shape, tapered at the chin.</p>
    <div class="hmStage" id="stage2">
-    <img id="hmPhoto" alt="">
-    <div class="hmOvalMask" aria-hidden="true"></div>
+    <div id="hmRot"><img id="hmPhoto" alt=""></div>
+    <svg class="hmOvalMask" viewBox="0 0 500 600" preserveAspectRatio="none" aria-hidden="true"><path fill-rule="evenodd" fill="rgba(253,253,253,.92)" d="M0,0 H500 V600 H0 Z M50,268.3 C46,109.9 126,30.7 250,36 C374,30.7 454,109.9 450,268.3 C446,392.4 374,505.9 310,548.2 C278,566.6 222,566.6 190,548.2 C126,505.9 54,392.4 50,268.3 Z"/><path fill="none" stroke="rgba(8,8,8,.3)" stroke-width="1" vector-effect="non-scaling-stroke" d="M50,268.3 C46,109.9 126,30.7 250,36 C374,30.7 454,109.9 450,268.3 C446,392.4 374,505.9 310,548.2 C278,566.6 222,566.6 190,548.2 C126,505.9 54,392.4 50,268.3 Z"/></svg>
    </div>
-   <input type="range" class="hmZoom" id="zoom" min="1" max="3.5" step="0.01" value="1.2" aria-label="Zoom">
+   <div class="hmCtl"><label class="hmCtlL" for="zoom">Zoom</label><input type="range" class="hmZoom" id="zoom" min="1" max="3.5" step="0.01" value="1.2" aria-label="Zoom"></div>
+   <div class="hmCtl"><label class="hmCtlL" for="rota">Straighten</label><input type="range" class="hmZoom" id="rota" min="-30" max="30" step="0.5" value="0" aria-label="Rotate photo"></div>
    <div class="hmRow">
     <button class="hmBtn ghost" type="button" id="back2">Different photo</button>
     <button class="hmBtn" type="button" id="next2">Cut it out</button>
@@ -193,7 +193,7 @@ steps[0].classList.add("shown");
 
 /* ---------- state ---------- */
 var photo=new Image(),photoURL=null,cutURL=null;      // the raw photo, the baked cutout
-var pz={s:1.2,x:0,y:0};                               // pan/zoom in stage-2 space
+var pz={s:1.2,x:0,y:0,r:0};                               // pan/zoom in stage-2 space
 var pts={Li:{x:0.335,y:0.42},Lo:{x:0.455,y:0.42},Ri:{x:0.545,y:0.42},Ro:{x:0.665,y:0.42},Lt:{x:0.395,y:0.405},Lb:{x:0.395,y:0.437},Rt:{x:0.605,y:0.405},Rb:{x:0.605,y:0.437}};   // corners + lids
 var marks={BL:{x:0.395,y:0.345},BR:{x:0.605,y:0.345},N:{x:0.5,y:0.555},M:{x:0.5,y:0.685}};   // brows, nose, mouth
 var restoredEyes=null;
@@ -224,19 +224,20 @@ function load(f){
 }
 
 /* ---------- step 2: pan + zoom inside the oval ---------- */
-var stage2=document.getElementById("stage2"),photoEl=document.getElementById("hmPhoto"),zoom=document.getElementById("zoom");
+var stage2=document.getElementById("stage2"),photoEl=document.getElementById("hmPhoto"),zoom=document.getElementById("zoom"),rota=document.getElementById("rota"),rotEl=document.getElementById("hmRot");
 function stageSize(){var r=stage2.getBoundingClientRect();return{w:r.width,h:r.height};}
 function coverScale(){var s=stageSize();return Math.max(s.w/photo.naturalWidth,s.h/photo.naturalHeight);}
-function initFrame(){pz.s=1.2;var s=stageSize(),base=coverScale();pz.x=(s.w-photo.naturalWidth*base*pz.s)/2;pz.y=(s.h-photo.naturalHeight*base*pz.s)/2;zoom.value="1.2";photoEl.src=photoURL;apply();}
+function initFrame(){pz.s=1.2;pz.r=0;rota.value="0";rotEl.style.transform="rotate(0deg)";var s=stageSize(),base=coverScale();pz.x=(s.w-photo.naturalWidth*base*pz.s)/2;pz.y=(s.h-photo.naturalHeight*base*pz.s)/2;zoom.value="1.2";photoEl.src=photoURL;apply();}
 function clampPan(){var s=stageSize(),base=coverScale(),w=photo.naturalWidth*base*pz.s,h=photo.naturalHeight*base*pz.s;
  pz.x=Math.min(0,Math.max(s.w-w,pz.x));pz.y=Math.min(0,Math.max(s.h-h,pz.y));}
-function apply(){var base=coverScale();clampPan();photoEl.style.transform="translate("+pz.x.toFixed(1)+"px,"+pz.y.toFixed(1)+"px) scale("+(base*pz.s).toFixed(4)+")";}
+function apply(){var base=coverScale();clampPan();photoEl.style.transform="translate("+pz.x.toFixed(1)+"px,"+pz.y.toFixed(1)+"px) scale("+(base*pz.s).toFixed(4)+")";rotEl.style.transform="rotate("+pz.r+"deg)";}
 var panOn=false,px0=0,py0=0;
 stage2.addEventListener("pointerdown",function(e){panOn=true;px0=e.clientX-pz.x;py0=e.clientY-pz.y;try{stage2.setPointerCapture(e.pointerId);}catch(_){}});
 stage2.addEventListener("pointermove",function(e){if(!panOn)return;pz.x=e.clientX-px0;pz.y=e.clientY-py0;apply();});
 ["pointerup","pointercancel"].forEach(function(ev){stage2.addEventListener(ev,function(){panOn=false;});});
 zoom.addEventListener("input",function(){var s=stageSize(),base=coverScale(),ns=parseFloat(zoom.value);
  var cx=s.w/2,cy=s.h/2;pz.x=cx-((cx-pz.x)/(base*pz.s))*(base*ns);pz.y=cy-((cy-pz.y)/(base*pz.s))*(base*ns);pz.s=ns;apply();});
+rota.addEventListener("input",function(){pz.r=parseFloat(rota.value)||0;apply();});
 document.getElementById("back2").addEventListener("click",function(){show(0);});
 
 /* bake: grayscale, oval mask, done on a canvas that mirrors the stage exactly */
@@ -245,9 +246,11 @@ function bake(){
  var c=document.createElement("canvas");c.width=BAKE_W;c.height=BAKE_H;
  var x=c.getContext("2d");
  x.filter="contrast(1.05) saturate(1.02)";
- x.setTransform(base*pz.s*k,0,0,base*pz.s*k,pz.x*k,pz.y*k);
+ x.save();
+ x.translate(BAKE_W/2,BAKE_H/2);x.rotate(pz.r*Math.PI/180);x.translate(-BAKE_W/2,-BAKE_H/2);   /* same pivot as the preview */
+ x.transform(base*pz.s*k,0,0,base*pz.s*k,pz.x*k,pz.y*k);
  x.drawImage(photo,0,0);
- x.setTransform(1,0,0,1,0,0);x.filter="none";
+ x.restore();x.filter="none";
  x.globalCompositeOperation="destination-in";
  (function(){var cx=BAKE_W/2,cy=BAKE_H/2,rx=BAKE_W*0.40,ry=BAKE_H*0.44;
   x.beginPath();

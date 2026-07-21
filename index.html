@@ -2597,14 +2597,15 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
  function collides(nx,ny,pad){for(var i=0;i<avoids.length;i++){var a=avoids[i];
   if(nx+HW>a.l-pad&&nx<a.r+pad&&ny+HH>a.t-pad&&ny<a.b+pad)return true;}return false;}
  // --- state ---
- var x=bigR?(bigR.l+(bigR.r-bigR.l)/2-HW/2):Math.max(8,heroR.w*0.06),y=bigR?(bigR.t+(bigR.b-bigR.t)*0.3):floorY,vx=0,vy=0,dir=1,depth=1,depthT=1,air=false,surface=floorY,
+ var x=bigR?(bigR.l+(bigR.r-bigR.l)/2-HW/2):Math.max(8,heroR.w*0.06),y=bigR?(bigR.t-HH+6):floorY,vx=0,vy=0,dir=1,depth=1,depthT=1,air=false,surface=floorY,
      st="idle",stT=0,hopsLeft=0,grabbed=false,gpx=0,gpy=0,lastPX=0,lastPY=0,pvx=0,pvy=0,
      offAt=0,gone=false,goneUntil=0,decideAt=performance.now()+3000,spin=0,downT=0,downX=0,downY=0,shakeN=0,heartsF=0,danceHops=0,dblBlink=false,
      bAt=performance.now()+2800,bf=0,brAt=performance.now()+7000,brf=0,moAt=performance.now()+11000,mof=0,
      dzf=0,sqx=1,sqy=1,sqf=0,shown=false,first=true,tk3=0,gzx=0,gzy=0,sacAt=0;
  var G=4.6,HOPV=(mob?14:17),HOPX=(mob?6:9),surpriseAt=0;
  function hop(big){vy=-HOPV*(big?1.25:0.8+Math.random()*0.35);vx=dir*HOPX*(0.6+Math.random()*0.6);air=true;sqf=2;sqx=0.86;sqy=1.16;}
- function land(){air=false;vy=0;vx=0;y=surface;sqf=3;sqx=1.18;sqy=0.8;
+ function land(){var vx0=vx;air=false;vy=0;vx=0;y=surface;sqf=3;sqx=1.18;sqy=0.8;
+  if(st==="fall"&&Math.abs(vx0)>2.5){st="roll";rollT=Math.max(M,Math.min(heroR.w-HW-M,x+vx0*9));return;}   // a thrown ball rolls out its momentum
   if(hopsLeft>0){hopsLeft--;setTimeout(function(){if(!grabbed&&st==="hop")hop(false);},130);}else st="idle";}
  var rollT=0;
  function decide(now){
@@ -2633,19 +2634,27 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   downT=performance.now();downX=e.clientX;downY=e.clientY;shakeN=0;
   gpx=e.clientX-hr.left-x;gpy=e.clientY-hr.top-y;lastPX=e.clientX;lastPY=e.clientY;
  });
+ var vSamp=[];
  root.addEventListener("pointermove",function(e){
   if(!grabbed)return;var hr=hero.getBoundingClientRect();
   var npx=(e.clientX-lastPX);
   if(npx*pvx<0&&Math.abs(npx)>6)shakeN++;   // direction flips at speed = getting shaken
   pvx=npx;pvy=(e.clientY-lastPY);lastPX=e.clientX;lastPY=e.clientY;
+  vSamp.push({t:performance.now(),x:e.clientX,y:e.clientY});if(vSamp.length>8)vSamp.shift();
   x=e.clientX-hr.left-gpx;y=e.clientY-hr.top-gpy;
  });
  function release(e){if(!grabbed)return;grabbed=false;root.style.cursor="grab";
   var tap=(performance.now()-downT<230)&&e&&Math.hypot(e.clientX-downX,e.clientY-downY)<6;
   st="fall";air=true;surface=floorY;
   if(tap){y-=4;vy=-13-Math.random()*4;vx=dir*(2+Math.random()*3);sqf=2;sqx=0.84;sqy=1.18;}   // bop! (lift off the ground so the pop always plays)
-  else{vx=Math.max(-16,Math.min(16,pvx*1.1));vy=Math.max(-18,Math.min(12,pvy*1.1));}
-  if(shakeN>4)dzf=16;shakeN=0;}
+  else{var vpt=null,nw=performance.now();
+   for(var q=0;q<vSamp.length;q++){if(nw-vSamp[q].t<=95){vpt=vSamp[q];break;}}
+   if(vpt&&nw-vpt.t>8){var dt2=nw-vpt.t;   // real cursor velocity, px per tick
+    vx=Math.max(-34,Math.min(34,(lastPX-vpt.x)/dt2*125));
+    vy=Math.max(-32,Math.min(22,(lastPY-vpt.y)/dt2*125));}
+   else{vx=Math.max(-16,Math.min(16,pvx*1.1));vy=Math.max(-18,Math.min(12,pvy*1.1));}
+   dir=vx>=0?1:-1;}
+  vSamp=[];if(shakeN>4)dzf=16;shakeN=0;}
  root.addEventListener("pointerup",release);root.addEventListener("pointercancel",release);
  // --- tick ---
  setInterval(function(){
@@ -2653,7 +2662,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   try{busy=document.body.classList.contains("about-open")||(typeof busyNow==="function"&&busyNow());}catch(_){}
   var want=!busy&&!gone;
   if(want!==shown||first){shown=want;root.style.opacity=want?"1":"0";root.style.filter=want?"blur(0)":"blur(6px)";shadow.style.opacity=want?"1":"0";
-   if(first&&want){setTimeout(function(){st="fall";air=true;surface=floorY;vx=-(4+Math.random()*3);vy=-6;dir=-1;},950);} first=false;}   // develops in on the caregiver, then hops down
+   if(first&&want){setTimeout(function(){st="fall";air=true;surface=floorY;vx=-(5+Math.random()*3);vy=-10;dir=-1;sqf=2;sqx=0.86;sqy=1.16;},1000);} first=false;}   // develops in standing on the crown, then leaps off
   if(reduce){root.style.transform="translate("+(heroR.w*0.05)+"px,"+floorY+"px)";shadow.style.transform="translate("+(heroR.w*0.05)+"px,"+(floorY+HH-4)+"px)";return;}
   if(!shown)return;
   if(now>=decideAt)decide(now);
