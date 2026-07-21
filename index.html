@@ -2531,7 +2531,7 @@ requestAnimationFrame(function(){requestAnimationFrame(startIntro);});
  function readAll(){var a=[],rawN=null;
   try{var raw=localStorage.getItem("hmCompanions");if(raw!==null){a=JSON.parse(raw)||[];rawN=a.length;}}catch(_){}
   if(rawN===null){try{var l=JSON.parse(localStorage.getItem("hmCompanion")||"null");if(l&&l.cut)a=[l];}catch(_){}}   // an emptied pit stays empty
-  var seen={};a=a.filter(function(d){if(!d||!d.cut||d.cut.length<15000||seen[d.cut])return false;seen[d.cut]=1;return true;}).slice(0,5);
+  var seen={};a=a.filter(function(d){if(!d||!d.cut||d.cut.length<15000||seen[d.cut])return false;seen[d.cut]=1;return true;}).slice(0,8);
   if(rawN!==null&&rawN!==a.length){try{localStorage.setItem("hmCompanions",JSON.stringify(a));}catch(_){}}   // heal duplicates so one x is always one head
   return a;}
  function render(){var a=readAll();box.innerHTML="";
@@ -2571,10 +2571,10 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    stands on the CTA buttons, never covers the big head or the text, wanders off screen and
    comes back, and you can pick it up like a Mii — it panics, you drop it, it bounces, it gets dizzy. */
 (function(){
- var list=[],_rawN=null;   // up to five little heads: the ball pit
+ var list=[],_rawN=null;   // up to eight little heads: the ball pit
  try{var _raw=localStorage.getItem("hmCompanions");if(_raw!==null){var _m=JSON.parse(_raw)||[];_rawN=_m.length;list=_m;}}catch(_){}
  if(_rawN===null){try{var _one=JSON.parse(localStorage.getItem("hmCompanion")||"null");if(_one)list=[_one];}catch(_){}}   // legacy only when the new key has never existed: an emptied pit stays empty
- var seenC={};list=list.filter(function(d){if(!d||!d.cut||d.cut.length<15000||seenC[d.cut])return false;seenC[d.cut]=1;return true;}).slice(0,5);   // unique REAL faces only: baked heads are never tiny, debris is
+ var seenC={};list=list.filter(function(d){if(!d||!d.cut||d.cut.length<15000||seenC[d.cut])return false;seenC[d.cut]=1;return true;}).slice(0,8);   // unique REAL faces only: baked heads are never tiny, debris is
  if(_rawN!==null&&_rawN!==list.length){try{localStorage.setItem("hmCompanions",JSON.stringify(list));}catch(_){}}   // heal stale duplicates once, physically
  if(!list.length)return;
  var peers=[];   // every head knows where every other head is, every frame
@@ -2863,7 +2863,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
     introFrames++;   // rendered time, not wall time: face swaps and hidden tabs can never stall the door
     if(!introSettled&&(now-bornAt>9000||introFrames>200))introSettled=true;
     if(!introSettled)return;}
-   if(!bornWall){bornWall=now+150+slot*850+Math.random()*450;return;}
+   if(!bornWall){bornWall=now+150+slot*620+Math.random()*380;return;}
    if(now<bornWall)return;
    first=false;shown=true;survey();
    var fromLeft=Math.random()<0.5;
