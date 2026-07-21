@@ -27,10 +27,10 @@ nav{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;column-ga
 .back:hover,.talk:hover,.back:focus-visible,.talk:focus-visible{border-color:var(--c500);color:var(--c950)}
 .navTitle{grid-column:2;justify-self:center;font-weight:600;font-size:var(--fs-small);color:var(--c700);filter:url(#inkSm);white-space:nowrap}
 .content{max-width:680px;margin:0 auto}
-.head{font-weight:600;font-size:var(--fs-hero);line-height:1.12;letter-spacing:-.016em;margin:var(--sp-48-80) 0 0;filter:url(#inkBig)}
+.head{font-weight:600;font-size:var(--fs-hero);line-height:1.12;letter-spacing:-.016em;margin:28px 0 0;filter:url(#inkBig)}
 .lede{font-weight:400;font-size:var(--fs-prose);line-height:var(--lh-prose);color:var(--c700);margin:var(--sp-16-24) 0 0;text-wrap:pretty}
 .lede strong{font-weight:600;color:var(--c950)}
-.kicker{font-weight:600;font-size:var(--fs-label);letter-spacing:.01em;color:var(--c500);filter:url(#inkSm);margin:var(--sp-72-144) 0 0}
+.kicker{font-weight:600;font-size:var(--fs-label);letter-spacing:.01em;color:var(--c500);filter:url(#inkSm);margin:var(--sp-72-144) 0 0}#step1 .kicker{margin-top:36px}
 .stepHead{font-weight:700;font-size:var(--fs-h2);line-height:1.1;letter-spacing:-.015em;margin:var(--sp-16-24) 0 0;text-wrap:pretty}
 .stepBody{font-weight:400;font-size:var(--fs-prose);line-height:var(--lh-prose);color:var(--c700);margin:16px 0 0;text-wrap:pretty}
 .cap{margin:16px 0 0;font-size:var(--fs-small);line-height:1.5;color:var(--c500);filter:url(#inkSm)}
@@ -189,13 +189,17 @@ var steps=["step1","step2","step3","step4"].map(function(id){return document.get
 function show(n){steps.forEach(function(s,i){s.classList.toggle("hidden",i!==n);});requestAnimationFrame(function(){requestAnimationFrame(function(){steps[n].classList.add("shown");});});
  var k=steps[n].querySelector(".kicker");if(k)k.scrollIntoView({behavior:reduce?"auto":"smooth",block:"start"});}
 steps[0].classList.add("shown");
+try{var _sv=JSON.parse(localStorage.getItem("hmCompanion")||"null");
+ if(_sv&&_sv.cut){cutURL=_sv.cut;restoredEyes=_sv.eyes;if(_sv.marks)marks=_sv.marks;
+  setTimeout(function(){buildLive();show(3);},60);}}catch(_){}
 
 /* ---------- state ---------- */
 var photo=new Image(),photoURL=null,cutURL=null;      // the raw photo, the baked cutout
 var pz={s:1.2,x:0,y:0};                               // pan/zoom in stage-2 space
 var pts={Li:{x:0.335,y:0.42},Lo:{x:0.455,y:0.42},Ri:{x:0.545,y:0.42},Ro:{x:0.665,y:0.42},Lt:{x:0.395,y:0.405},Lb:{x:0.395,y:0.437},Rt:{x:0.605,y:0.405},Rb:{x:0.605,y:0.437}};   // corners + lids
 var marks={BL:{x:0.395,y:0.345},BR:{x:0.605,y:0.345},N:{x:0.5,y:0.555},M:{x:0.5,y:0.685}};   // brows, nose, mouth
-function deriveEyes(){ // centre, width, and tilt straight from the corners the visitor marked
+var restoredEyes=null;
+function deriveEyes(){if(restoredEyes)return restoredEyes; // centre, width, and tilt straight from the corners the visitor marked
  function one(a,b,t,btm){var w=Math.hypot(b.x-a.x,(b.y-a.y)*(BAKE_H/BAKE_W))*1.02;
   var ap=Math.abs(btm.y-t.y)*1.18;   // true lid aperture, marked by the visitor
   return{x:(a.x+b.x)/2,y:(t.y+btm.y)/2,w:Math.max(0.035,Math.min(0.15,w)),h:Math.max(0.015,Math.min(0.09,ap)),ang:Math.atan2((b.y-a.y)*BAKE_H,(b.x-a.x)*BAKE_W)};}
@@ -279,6 +283,7 @@ document.getElementById("next3").addEventListener("click",function(){buildLive()
 
 /* ---------- step 4: alive ---------- */
 var stage4=document.getElementById("stage4"),headEl=document.getElementById("hmHead"),liveImg=document.getElementById("hmLive");
+var boopF=0;stage4.style.cursor="pointer";stage4.addEventListener("pointerdown",function(){if(boopF===0)boopF=6;});
 var eyeEls=[],tick=null,gx=0,gy=0,blinkAt=0,blinkFrames=0,browAt=0,browFrames=0,sniffAt=0,sniffFrames=0,smileAt=0,smiling=false;
 var pose="";document.querySelectorAll("[data-pose]").forEach(function(b){b.addEventListener("click",function(){pose=b.getAttribute("data-pose");document.querySelectorAll("[data-pose]").forEach(function(o){o.style.borderColor=o===b?"var(--c950)":"";});});});
 function eyeGeom(){var d=deriveEyes();return{w:(d[0].w+d[1].w)/2,h:(d[0].h+d[1].h)/2};}
@@ -312,7 +317,7 @@ function buildLive(){
  browEls.forEach(function(b){b.remove();});browEls=[];if(noseEl){noseEl.remove();noseEl=null;}if(mouthEl){mouthEl.remove();mouthEl=null;}
  var des=deriveEyes(),g={w:(des[0].w+des[1].w)/2,h:(des[0].h+des[1].h)/2};
  des.forEach(function(c){
-  var sc=sclera(c);
+  var sc=c.sc||sclera(c);
   var scl=document.createElement("div");scl.className="hmScl";
   scl.style.width=(c.w*112)+"%";scl.style.height=(c.h*118)+"%";
   scl.style.left=((c.x-c.w*0.56)*100)+"%";scl.style.top=((c.y-c.h*0.59)*100)+"%";
@@ -346,11 +351,11 @@ function buildLive(){
  browEls=[faceStrip(marks.BL.x,marks.BL.y,g.w*1.5,g.h*1.7,"hmBrow"),faceStrip(marks.BR.x,marks.BR.y,g.w*1.5,g.h*1.7,"hmBrow")];
  noseEl=faceStrip(marks.N.x,marks.N.y,g.w*1.1,g.h*2.1,"hmNose");
  mouthEl=faceStrip(marks.M.x,marks.M.y,g.w*1.8,g.h*1.6,"hmNose");mouthAt=performance.now()+5000+Math.random()*6000;
- try{localStorage.setItem("hmCompanion",JSON.stringify({cut:cutURL,eyes:deriveEyes(),marks:marks,t:Date.now()}));}catch(_){}
  if(tick)clearInterval(tick);
  blinkAt=performance.now()+2600+Math.random()*2800;smAt=performance.now()+7000;
  browAt=performance.now()+3200+Math.random()*5000;sniffAt=performance.now()+9000+Math.random()*14000;smileAt=performance.now()+8000;
  if(!reduce){tick=setInterval(liveTick,125);}
+ try{var _des2=deriveEyes();localStorage.setItem("hmCompanion",JSON.stringify({cut:cutURL,eyes:eyeEls.map(function(e,i){var o=Object.assign({},_des2[i]);o.sc=e.sc;return o;}),marks:marks,t:Date.now()}));}catch(_){}
 }
 var mx=innerWidth/2,my=innerHeight*0.4,tk=0;
 addEventListener("pointermove",function(e){mx=e.clientX;my=e.clientY;},{passive:true});
@@ -361,7 +366,8 @@ function liveTick(){
  var nx=Math.max(-1,Math.min(1,(mx-cx)/300)),ny=Math.max(-1,Math.min(1,(my-cy)/300));
  var fy=Math.sin(t*0.85)*4,fx=Math.sin(t*0.55)*2.5,rot=Math.sin(t*0.4)*0.7+nx*2.0;
  headEl.style.transformOrigin=(marks.N.x*100)+"% "+(marks.N.y*100)+"%";   // rotate about the nose: anatomical, not cardboard
- headEl.style.transform="translate("+fx.toFixed(1)+"px,"+fy.toFixed(1)+"px) rotate("+rot.toFixed(2)+"deg)";
+ var bq="";if(boopF>0){var bpv=boopF/6;bq=" scale("+(1+Math.sin(bpv*Math.PI)*0.08).toFixed(3)+","+(1-Math.sin(bpv*Math.PI)*0.10).toFixed(3)+") rotate("+(Math.sin(bpv*Math.PI*3)*4).toFixed(1)+"deg)";boopF--;}
+ headEl.style.transform="translate("+fx.toFixed(1)+"px,"+fy.toFixed(1)+"px) rotate("+rot.toFixed(2)+"deg)"+bq;
  /* smile beats: if they gave a smiling photo, swap the whole face like my smile frame (overlays hide) */
  if(smileURL&&!smiling&&now>=smileAt){smiling=true;liveImg.src=smileURL;setTimeout(function(){smiling=false;liveImg.src=cutURL;},1150);smileAt=now+9000+Math.random()*8000;}
  var hide=smiling?"0":"1";
@@ -408,7 +414,7 @@ function loadSmile(f){
  };
  im.src=u;
 }
-document.getElementById("restart").addEventListener("click",function(){
+document.getElementById("restart").addEventListener("click",function(){restoredEyes=null;try{localStorage.removeItem("hmCompanion");}catch(_){}
  if(tick){clearInterval(tick);tick=null;}
  eyeEls.forEach(function(e){e.wrap.remove();});eyeEls=[];
  if(photoURL){URL.revokeObjectURL(photoURL);photoURL=null;}
