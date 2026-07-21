@@ -2534,8 +2534,13 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    stands on the CTA buttons, never covers the big head or the text, wanders off screen and
    comes back, and you can pick it up like a Mii — it panics, you drop it, it bounces, it gets dizzy. */
 (function(){
- var data=null;try{data=JSON.parse(localStorage.getItem("hmCompanion")||"null");}catch(_){}
- if(!data||!data.cut||data.cut.length<100)return;
+ var list=[];   // up to three little heads: the ball pit
+ try{var _m=JSON.parse(localStorage.getItem("hmCompanions")||"null");if(_m&&_m.length)list=_m;}catch(_){}
+ if(!list.length){try{var _one=JSON.parse(localStorage.getItem("hmCompanion")||"null");if(_one)list=[_one];}catch(_){}}
+ list=list.filter(function(d){return d&&d.cut&&d.cut.length>100;}).slice(0,3);
+ if(!list.length)return;
+ var peers=[];   // every head knows where every other head is, every frame
+ function spawnCompanion(data,slot){
  var reduce=matchMedia("(prefers-reduced-motion:reduce)").matches;
  var hero=document.querySelector(".hero");if(!hero)return;
  if(getComputedStyle(hero).position==="static")hero.style.position="relative";
@@ -2578,7 +2583,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   cov.style.backgroundPosition=((c.x-cvW/2)/(1-cvW)*100)+"% "+(((c.y+c.h*1.55)-cvH/2)/(1-cvH)*100)+"%";
   root.appendChild(cov);
   var ALM="50% 50% 50% 50% / 66% 66% 34% 34%";   // upper-heavy almond: the top lid arcs, the bottom barely does
-  sc2.style.borderRadius=ALM;sc2.style.transform="rotate("+(c.ang||0)+"rad)";
+  cov.style.transform="rotate("+(c.ang||0)+"rad)";
   var e=document.createElement("div");e.className="eye";e.style.borderRadius=ALM;
   e.style.left=((c.x-w2/2)*100)+"%";e.style.top=((c.y-h2/2/1.2)*100)+"%";e.style.width=(w2*100)+"%";e.style.height=(h2/1.2*100)+"%";   /* /1.2: the box is 1:1.2, heights need the aspect taken out */
   e.style.webkitMaskImage="radial-gradient(ellipse at center,#000 74%,rgba(0,0,0,.55) 88%,transparent 99%)";e.style.maskImage="radial-gradient(ellipse at center,#000 74%,rgba(0,0,0,.55) 88%,transparent 99%)";   /* no outline: the sclera recedes under the lids, so its edge is a fade, never a line */
@@ -2649,10 +2654,11 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
      st="idle",stT=0,hopsLeft=0,grabbed=false,gpx=0,gpy=0,lastPX=0,lastPY=0,pvx=0,pvy=0,
      offAt=0,gone=false,goneUntil=0,decideAt=performance.now()+4200,spin=0,heldOff=0,heldV=0,cTop=false,bornAt=performance.now()+1600,perched=false,hs=1,hsT=1,dockUntil=0,moodB=false,pbAt=0,mirrorAt=0,downT=0,downX=0,downY=0,shakeN=0,heartsF=0,danceHops=0,dblBlink=false,
      bAt=performance.now()+2800,bf=0,brAt=performance.now()+7000,brf=0,moAt=performance.now()+11000,mof=0,
-     dzf=0,sqx=1,sqy=1,sqxv=0,sqyv=0,sqxP=1,sqyP=1,sqT=0,shown=false,first=true,tk3=0,gzx=0,gzy=0,sacAt=0,flipA=0,flipV=0,wig=null,wigP=0,bounceN=0,perchT=0,leapDelay=Infinity,hmOverT=0,introSettled=false,bornWall=0,shakeAfter=false,drowse2=false,lastNearT=performance.now(),perchWigAt=performance.now()+9000,greetAt=performance.now()+6000,
+     dzf=0,sqx=1,sqy=1,sqxv=0,sqyv=0,sqxP=1,sqyP=1,sqT=0,shown=false,first=true,tk3=0,gzx=0,gzy=0,sacAt=0,flipA=0,flipV=0,wig=null,wigP=0,bounceN=0,perchT=0,leapDelay=Infinity,hmOverT=0,introSettled=false,bornWall=0,shakeAfter=false,drowse2=false,lastNearT=performance.now(),perchWigAt=performance.now()+9000,greetAt=performance.now()+6000,visitUntil=0,hmOverNow=false,
      pendingHide=null,hideToken=0,lapBack=false,forceHide=/[?&]hide=1/.test(location.search);
  function plane(front){root.style.zIndex=front?"3":"1";shadow.style.zIndex=front?"2":"1";}   // two planes only: the front (where hands live) and behind the furniture
  var G=2600,DT=0.04,facc=0,CEIL=2,surpriseAt=0;   // real units: px/s and px/s^2, integrated at 25fps
+ var me={x:0,y:0,HW:HW,HH:HH,vx:0,vy:0,ground:false,perched:false,kx:0,ky:0,slot:slot};peers.push(me);
  function startFlip(){var tt=Math.max(0.45,2*Math.abs(vy)/G);   // one full turn, timed to land on its feet
   flipV=Math.max(-700,Math.min(700,(360/tt)*(dir||1)));flipA=flipV>0?0.01:-0.01;}
  function hop(big){ // anticipation: a real jump loads the spring first (countermovement crouch, ~100ms)
@@ -2705,6 +2711,16 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
      dir=cxr>x?1:-1;gzx=dir*0.8;gzy=0.15;sacAt=now+900;
      surface=floorY;st="hop";hopsLeft=Math.min(3,Math.max(1,Math.round(dxc/85)));
      setTimeout(function(){if(!grabbed&&st==="hop"&&!air)hop(false);},260+Math.random()*140);return;}}}catch(_){}
+  if(peers.length>1&&Math.random()<0.14){ // leapfrog: it sizes up a neighbour and jumps clean over
+   var bestP=null,bdP=1e9;
+   for(var vq=0;vq<peers.length;vq++){var o3=peers[vq];if(o3===me||!o3.ground)continue;
+    var ddP=Math.abs((o3.x+o3.HW/2)-(x+HW/2));if(ddP>70&&ddP<300&&ddP<bdP){bdP=ddP;bestP=o3;}}
+   if(bestP){dir=(bestP.x+bestP.HW/2)>(x+HW/2)?1:-1;gzx=dir*0.8;gzy=0.1;sacAt=now+700;
+    surface=floorY;st="fall";air=true;
+    var vyV=840+Math.random()*140,ttV=2*vyV/G;
+    var dxV=bdP+bestP.HW*0.9+HW*0.4;
+    vy=-vyV;vx=dir*Math.min(760,dxV/ttV);sqT=0.13;sqyP=1.11;sqxP=1/1.11;
+    if(Math.random()<0.3)startFlip();return;}}
   var r=Math.random();
   if(r<0.36){ // travel: look where you are going first (the orienting reflex), then go
    var tx=M+Math.random()*(heroR.w-HW-M*2);
@@ -2716,7 +2732,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    var tx2=side<0?Math.max(M,bigR.l-HW-14):Math.min(heroR.w-HW-M,bigR.r+14);
    dir=tx2>x?1:-1;gzx=dir*0.75;gzy=-0.1;sacAt=now+900;
    surface=floorY;st="hop";hopsLeft=Math.min(11,Math.max(1,Math.round(Math.abs(tx2-x)/70)));
-   setTimeout(function(){if(!grabbed&&st==="hop"&&!air)hop(false);},240+Math.random()*160);window.__hmVisit=performance.now()+9000;}
+   setTimeout(function(){if(!grabbed&&st==="hop"&&!air)hop(false);},240+Math.random()*160);visitUntil=performance.now()+9000;}
   else if(r<0.62){ // happy little bounces on the spot
    bounceN=1+(Math.random()<0.5?1:0);surface=floorY;st="fall";air=true;
    vy=-(400+Math.random()*140);vx=dir*(12+Math.random()*26);sqT=0.12;sqyP=1.09;sqxP=1/1.09;}
@@ -2739,7 +2755,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    var sd=Math.abs(x-(bigR.l-HW-14))<90?1:-1;
    var txl=sd>0?Math.min(heroR.w-HW-M,bigR.r+14):Math.max(M,bigR.l-HW-14);
    dir=sd;surface=floorY;st="hop";hopsLeft=Math.min(6,Math.max(2,Math.round(Math.abs(txl-x)/85)));
-   window.__hmVisit=performance.now()+6500;   // it keeps looking up at him as it passes
+   visitUntil=performance.now()+6500;   // it keeps looking up at him as it passes
    setTimeout(function(){if(!grabbed&&st==="hop"&&!air)hop(false);},200+Math.random()*140);}
   else if(r<0.955){if(Math.random()<0.5&&tryHide()){}else{ // a tiny sneeze: inhale tall, pop back, blink
    sqT=0.12;sqyP=1.1;sqxP=1/1.1;
@@ -2774,7 +2790,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
     var w2=Math.exp(-age/50);sx+=w2*(b2.x-a2.x)/dtq*1000;sy+=w2*(b2.y-a2.y)/dtq*1000;sw+=w2;}
    return sw>0?{vx:sx/sw,vy:sy/sw,sp:Math.hypot(sx/sw,sy/sw)}:null;})();
   var relSp=_fv?_fv.sp:0;
-  if(!tap&&window.__hmOver&&hmOverT>0.35&&relSp<250){ // placed with intent: held over the head a beat, released gently
+  if(!tap&&hmOverNow&&hmOverT>0.35&&relSp<250){ // placed with intent: held over the head a beat, released gently
    perched=true;dockUntil=performance.now()+650;st="idle";air=false;vx=0;vy=0;hsT=1;vSamp=[];shakeN=0;leapDelay=Infinity;
    try{gaze={x:0.05,y:-0.95};nextSaccade=performance.now()+1500;lastMove=performance.now()-9000;
     setTimeout(function(){try{if(typeof busyNow==="function"&&!busyNow()){setHold("smile",1000);showFace("smile");}}catch(_){}},420);}catch(_){}
@@ -2795,20 +2811,27 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   tk3++;var now=_nowF,aboutB=false;moodB=false;
   try{aboutB=document.body.classList.contains("about-open");moodB=(typeof busyNow==="function"&&busyNow());}catch(_){}
   var want=!aboutB&&(!moodB||perched)&&!gone;   // docked, it stays for his moods and rides along
-  if(first){ // born only when the big head is truly on stage: fresh tabs run the full intro
+  if(first){ // the pit opens after his intro: each head is TOSSED in from the edge, one at a time
    if(now<bornAt)return;
    var stEl1=document.getElementById("stage"),fEl1=document.getElementById("face");
    var so1=stEl1?parseFloat(getComputedStyle(stEl1).opacity||"1"):1;
    if(so1<0.95||!fEl1||!fEl1.complete||!fEl1.naturalWidth){bornAt=now+250;return;}
+   if(!introSettled){try{var ey0=document.querySelector(".eye");if(ey0&&ey0.classList.contains("eclosed"))introSettled=true;}catch(_){}
+    if(!introSettled&&now-bornAt>12000)introSettled=true;
+    if(!introSettled)return;}
+   if(!bornWall){bornWall=now+400+slot*1600+Math.random()*1200;return;}
+   if(now<bornWall)return;
+   first=false;shown=true;survey();
+   var fromLeft=Math.random()<0.5;
+   x=fromLeft?WL+2:WR-2;y=floorY-(140+Math.random()*240);surface=floorY;
+   dir=fromLeft?1:-1;air=true;st="fall";
+   vx=dir*(380+Math.random()*260);vy=-(120+Math.random()*300);
+   if(Math.random()<0.35)startFlip();
+   root.style.opacity="1";root.style.filter="blur(0)";shadow.style.opacity="1";
+   try{if(typeof browFlash==="function")browFlash();   // he sees each one fly in
+    if(typeof busyNow==="function"&&!busyNow()&&typeof setHold==="function"){setHold("smile",900);showFace("smile");}}catch(_){}
   }
-  if(want!==shown||(first&&want)){shown=want;root.style.opacity=want?"1":"0";root.style.filter=want?"blur(0)":"blur(6px)";shadow.style.opacity=want?"1":"0";
-   if(first&&want){first=false;survey();   // consumed only at a REAL birth: a busy intro can no longer swallow it
-    var fEl=document.getElementById("face"),hr2=hero.getBoundingClientRect();
-    var frc=fEl?fEl.getBoundingClientRect():null;
-    if(frc&&frc.height){x=frc.left-hr2.left+frc.width/2-HW/2;y=frc.top-hr2.top+frc.height*crownFrac-HH*FOOT+HH*0.07;surface=floorY;}   // feet settle INTO the hair
-    else if(bigR){x=bigR.l+(bigR.r-bigR.l)/2-HW/2;y=bigR.t-HH*FOOT;surface=floorY;}   // feet on the visible hair itself
-    perched=true;
-    if(!/[?&]stand=1/.test(location.search)){perchT=0;leapDelay=1.4+Math.random()*0.9;bornWall=performance.now();}}}   // the leap clock only ticks on rendered frames: every visitor SEES it perched first (?stand=1 holds the pose)
+  if(!first&&want!==shown){shown=want;root.style.opacity=want?"1":"0";root.style.filter=want?"blur(0)":"blur(6px)";shadow.style.opacity=want?"1":"0";}
   if(reduce){root.style.transform="translate("+(heroR.w*0.05)+"px,"+floorY+"px)";shadow.style.transform="translate("+(heroR.w*0.05)+"px,"+(floorY+HH-4)+"px)";return;}
   if(!shown)return;
   if(now>=decideAt)decide(now);
@@ -2843,6 +2866,21 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
     else land();}
    else if(air&&sqT<=0){var vst=Math.min(0.1,Math.abs(vy)*0.00012+Math.abs(vx)*0.00003);sqyP=1+vst;sqxP=1/(1+vst);}   // stretch belongs to the FALL: sideways flight stays solid
   }
+  // --- the ball pit: heads know each other, collide, push, and bounce ---
+  if(me.kx||me.ky){if(!grabbed&&!perched){vx+=me.kx;vy+=me.ky;if(!air&&me.ky<-60){air=true;st="fall";surface=floorY;}}me.kx=0;me.ky=0;}
+  if(!grabbed&&!perched)for(var pi=0;pi<peers.length;pi++){var o2=peers[pi];if(o2===me||o2.perched)continue;
+   var dxp=(x+HW/2)-(o2.x+o2.HW/2),dyp=(y+HH*0.55)-(o2.y+o2.HH*0.55);
+   var rr2=(HW+o2.HW)*0.40,d2=Math.hypot(dxp,dyp);
+   if(d2>0.01&&d2<rr2){var nx2=dxp/d2,ny2=dyp/d2,ov=rr2-d2;
+    x+=nx2*ov*0.5;if(air)y+=ny2*ov*0.3;   // squeeze apart: half me, half them (via the mailbox)
+    var rvx=vx-o2.vx,rvy=vy-o2.vy,rel=rvx*nx2+rvy*ny2;
+    if(rel<0){var jI=-(1+0.72)*rel*0.5;
+     vx+=nx2*jI;vy+=ny2*jI*0.6;o2.kx-=nx2*jI;o2.ky-=ny2*jI*0.6;
+     var hit=Math.abs(rel);
+     if(hit>240){sqT=0.12;sqxP=0.9;sqyP=1.1;brf=6;if(hit>760&&dzf===0)dzf=8;}   // a proper bonk: brows up, maybe stars
+     else if(hit>90&&bf===0&&Math.random()<0.35)bf=5;   // a friendly bump earns a blink
+     if(hit>150&&Math.random()<0.5){gzx=Math.max(-1,Math.min(1,-nx2*0.75));gzy=-0.1;sacAt=now+900;}}   // and a look at WHO did that
+    else{o2.kx-=nx2*ov*26*DT;}}}   // standing squeeze: a slow, gentle push apart
   // brushing past the big head startles him — he is behind, not a wall
   if(bigR&&now>surpriseAt&&x+HW>bigR.l&&x<bigR.r&&y+HH>bigR.t&&y<bigR.b){surpriseAt=now+4500;
    try{if(typeof browFlash==="function")browFlash();if(typeof irisDilTarget!=="undefined")irisDilTarget=1.35;}catch(_){}}
@@ -2852,7 +2890,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
     var ccx=x+HW/2,ccy=y+HH/2;
     ovh=ccx>fr3.left-hb3.left+HW*0.05&&ccx<fr3.right-hb3.left-HW*0.05&&ccy>fr3.top-hb3.top-HH*0.15&&ccy<fr3.bottom-hb3.top-HH*0.2;}
    hmOverT=ovh?hmOverT+DT:0;   // intent is dwell: you have to HOLD it over the head, not brush past
-   hsT=ovh?1.12:1;window.__hmOver=ovh;
+   hsT=ovh?1.12:1;hmOverNow=ovh;
    if(x!==cx0||y!==cy0){if(sqT<=0){sqT=0.1;sqxP=(y!==cy0)?1.16:0.86;sqyP=(y!==cy0)?0.82:1.14;}cTop=(y!==cy0&&y===CEIL);}   // shoved into a wall while held: it squashes against it
    var dsp=Math.min(16,Math.abs(pvy)*1.1+Math.abs(pvx)*0.35);if(sqT<=0){sqyP=1+dsp*0.0038;sqxP=1/(1+dsp*0.0038);}   // dragging sideways should not stretch it TALL
    var hk=DT/0.04;heldV+=((-heldOff*0.16)-(pvy*0.14))*hk;heldV*=Math.pow(0.86,hk);heldOff=Math.max(-18,Math.min(18,heldOff+heldV*hk));}   // it bounces on the hand like a ball on a paddle
@@ -2884,6 +2922,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   var shScale=Math.max(0.32,depth*(1-airH/(heroR.h*0.6)));
   shadow.style.transform="translate("+(x+HW/2-HW/2*shScale+HW*0.06).toFixed(1)+"px,"+(surface+HH*FOOT-2).toFixed(1)+"px) scale("+shScale.toFixed(3)+",1)";
   shadow.style.opacity=(shown&&!perched)?String(airH<4?0.36:Math.max(0.1,0.3-airH/800)):"0";
+  me.x=x;me.y=y;me.vx=vx;me.vy=vy;me.HW=HW;me.HH=HH;me.ground=(!air&&!grabbed&&!perched&&st!=="grab");me.perched=perched;
   facc+=DT;var fstep=false;if(facc>=0.125){facc-=0.125;fstep=true;}
   if(fstep){ // --- face life: stop-motion beats stay on the 8fps grid ---
   var px=(typeof pointer!=="undefined"?pointer.px:innerWidth/2),py=(typeof pointer!=="undefined"?pointer.py:innerHeight*0.4);
@@ -2903,11 +2942,15 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    if(Math.abs(nx)<0.09&&Math.abs(ny)<0.09){nx=0.13*(dir||1);ny=0.05;}}   // same rule as mine: never a dead stare into the camera
   else if(air||Math.abs(vx)>0.5){nx=dir*0.7;ny=0.12;}   // busy going somewhere: it watches where it is going
   else{if(now>=sacAt){
-   if(typeof lastMove!=="undefined"&&now-lastMove<5000&&Math.random()<0.35){gzx=Math.max(-1,Math.min(1,(px-(rr.left+rr.width/2))/420));gzy=Math.max(-0.6,Math.min(0.6,(py-(rr.top+rr.height/2))/420));}   // joint attention: it checks what you are doing
+   var pgz=null;if(peers.length>1&&Math.random()<0.32){var pdz=1e9;
+    for(var gq=0;gq<peers.length;gq++){var o4=peers[gq];if(o4===me)continue;
+     var gdd=Math.abs((o4.x+o4.HW/2)-(x+HW/2));if(gdd<pdz){pdz=gdd;pgz=o4;}}}
+   if(pgz){gzx=Math.max(-1,Math.min(1,((pgz.x+pgz.HW/2)-(x+HW/2))/280));gzy=Math.max(-0.5,Math.min(0.5,((pgz.y+pgz.HH/2)-(y+HH/2))/280));}   // it checks on its friends
+   else if(typeof lastMove!=="undefined"&&now-lastMove<5000&&Math.random()<0.35){gzx=Math.max(-1,Math.min(1,(px-(rr.left+rr.width/2))/420));gzy=Math.max(-0.6,Math.min(0.6,(py-(rr.top+rr.height/2))/420));}   // joint attention: it checks what you are doing
    else{do{gzx=(Math.random()*1.4-0.7);}while(Math.abs(gzx)<0.12);gzy=(Math.random()*0.8-0.45);}
    sacAt=now+700+Math.random()*1600;}
    nx=gzx;ny=gzy;if(drowse2){nx*=0.3;ny=0.4;}}
-  if(!grabbed&&bigR&&window.__hmVisit&&now<window.__hmVisit&&Math.abs((x+HW/2)-(bigR.l+bigR.r)/2)<(bigR.r-bigR.l)){nx=((bigR.l+bigR.r)/2>(x+HW/2))?0.7:-0.7;ny=-0.55;}   // home beside the caregiver: it looks up at him
+  if(!grabbed&&bigR&&visitUntil&&now<visitUntil&&Math.abs((x+HW/2)-(bigR.l+bigR.r)/2)<(bigR.r-bigR.l)){nx=((bigR.l+bigR.r)/2>(x+HW/2))?0.7:-0.7;ny=-0.55;}   // home beside the caregiver: it looks up at him
   if(now>=bAt&&bf===0&&!grabbed&&dzf===0){bf=5;dblBlink=!drowse2&&Math.random()<0.22;bAt=now+(drowse2?5600:2700)+Math.random()*3800;}
   if(bf>0&&sqT<=0){sqyP=Math.min(sqyP,0.965);sqxP=Math.max(sqxP,1.018);}   // the blink leans on the spring TARGETS: the body joins in smoothly, never snaps
   if(bf===1&&dblBlink){dblBlink=false;bf=5;}
@@ -2931,7 +2974,9 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   }
  }
  requestAnimationFrame(_frame);
- window.__hmC={get:function(){return{x:x,y:y,st:st,gone:gone,depth:depth,grabbed:grabbed};}};
+ if(slot===0)window.__hmC={get:function(){return{x:x,y:y,st:st,gone:gone,depth:depth,grabbed:grabbed};}};
+ }
+ list.forEach(function(d,i){spawnCompanion(d,i);});
 })();
 </script>
 </body></html>

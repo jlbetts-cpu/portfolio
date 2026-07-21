@@ -120,13 +120,13 @@ a:focus-visible,button:focus-visible,.hmDot:focus-visible{outline:2px solid var(
    <p class="stepBody">Face the camera in even light, eyes open. A selfie works great.</p>
    <div class="hmStage" id="stage1">
     <div class="hmDrop" id="drop" role="button" tabindex="0" aria-label="Choose or drop a photo">
-     <span class="hmDropTxt">Drop a photo here, or</span>
+     <span class="hmDropTxt">Drop a photo (or a saved head file) here, or</span>
      <span class="hmBtn" aria-hidden="true">Choose a photo</span>
     </div>
    </div>
    <p class="cap">Your photo stays on your device. Close the tab and it is gone.</p>
    <p class="cap hmErr hidden" id="hmErr">That photo stumped this browser &mdash; a JPG, PNG, or screenshot works every time.</p>
-   <input type="file" id="file" accept="image/*,.heic,.heif" class="hidden" aria-hidden="true">
+   <input type="file" id="file" accept="image/*,.heic,.heif,.headjson,.json" class="hidden" aria-hidden="true">
   </section>
 
   <!-- STEP 2 · the crop -->
@@ -192,6 +192,7 @@ a:focus-visible,button:focus-visible,.hmDot:focus-visible{outline:2px solid var(
     <button class="hmBtn ghost" type="button" id="restart">Start over</button>
     
     <button class="hmBtn ghost" type="button" id="save"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><polyline points="6 11 12 17 18 11"/><line x1="4" y1="21" x2="20" y2="21"/></svg>Download</button>
+    <button class="hmBtn ghost" type="button" id="saveFile"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>Save head file</button>
     <a class="hmBtn" href="index.html">See it on my homepage</a>
    </div>
    <p class="cap">Downloads as a little keepsake card.</p>
@@ -253,6 +254,10 @@ function readAsImage(f,ok,fail){ // most photos decode natively (Safari even doe
  im.src=url;}
 function photoErr(on){var e=document.getElementById("hmErr");if(e)e.classList.toggle("hidden",!on);}
 function load(f){
+ if(/\.(headjson|json)$/i.test(f.name||"")||f.type==="application/json"){ // a saved head file: straight back to life
+  var rd=new FileReader();
+  rd.onload=function(){try{var sv=JSON.parse(String(rd.result));photoErr(!restoreHead(sv));}catch(_){photoErr(true);}};
+  rd.onerror=function(){photoErr(true);};rd.readAsText(f);return;}
  var looksImg=/^image\//.test(f.type)||/\.(hei[cf]|jpe?g|png|webp|gif|avif|bmp)$/i.test(f.name||"");   // HEIC often arrives with an empty type
  if(!looksImg)return;
  if(smileSlot){loadSmile(f);return;}
@@ -603,7 +608,16 @@ function buildLive(){
  blinkAt=performance.now()+2600+Math.random()*2800;smAt=performance.now()+7000;
  browAt=performance.now()+3200+Math.random()*5000;sniffAt=performance.now()+9000+Math.random()*14000;smileAt=performance.now()+8000;
  if(!reduce){tick=setInterval(liveTick,125);}
- try{if(!cutURL||cutURL.length<100){localStorage.removeItem("hmCompanion");throw 0;}var _des2=deriveEyes();localStorage.setItem("hmCompanion",JSON.stringify({cut:cutURL,eyes:eyeEls.map(function(e,i){var o=Object.assign({},_des2[i]);o.sc=e.sc;o.ic=irisColor(_des2[i]);return o;}),marks:marks,t:Date.now()}));}catch(_){}
+ try{if(!cutURL||cutURL.length<100)throw 0;
+  var _des2=deriveEyes();
+  var _nh={cut:cutURL,eyes:eyeEls.map(function(e,i){var o=Object.assign({},_des2[i]);o.sc=e.sc;o.ic=irisColor(_des2[i]);return o;}),marks:marks,t:Date.now()};
+  var _all=[];try{_all=JSON.parse(localStorage.getItem("hmCompanions")||"[]")||[];}catch(_){}
+  if(!(_all instanceof Array))_all=[];
+  if(!_all.length){try{var _lg=JSON.parse(localStorage.getItem("hmCompanion")||"null");if(_lg&&_lg.cut&&_lg.cut.length>100)_all=[_lg];}catch(_){}}
+  _all=_all.filter(function(h){return h&&h.cut&&h.cut.length>100&&h.cut!==_nh.cut;});   // same face re-saved just moves to newest: never a duplicate in the pit
+  _all.push(_nh);while(_all.length>3)_all.shift();   // the pit holds three: the oldest head retires
+  localStorage.setItem("hmCompanions",JSON.stringify(_all));
+  localStorage.setItem("hmCompanion",JSON.stringify(_nh));}catch(_){}
 }
 var mx=innerWidth/2,my=innerHeight*0.4,tk=0;
 addEventListener("pointermove",function(e){mx=e.clientX;my=e.clientY;},{passive:true});
@@ -662,7 +676,14 @@ function loadSmile(f){
   smileAt=performance.now()+1200;   // show it off right away
  },function(){smileSlot=false;});
 }
-document.getElementById("restart").addEventListener("click",function(){restoredEyes=null;try{localStorage.removeItem("hmCompanion");}catch(_){}
+document.getElementById("saveFile").addEventListener("click",function(){ // your head as a keepsake file: reupload it any time
+ try{if(!cutURL||cutURL.length<100)return;
+  var _d2=deriveEyes();
+  var payload={v:1,kind:"jaydenbetts-head",cut:cutURL,eyes:eyeEls.map(function(e,i){var o=Object.assign({},_d2[i]);o.sc=e.sc;o.ic=irisColor(_d2[i]);return o;}),marks:marks,t:Date.now()};
+  var a=document.createElement("a");a.download="my-floating-head.headjson";
+  a.href="data:application/json;charset=utf-8,"+encodeURIComponent(JSON.stringify(payload));a.click();
+ }catch(_){}});
+document.getElementById("restart").addEventListener("click",function(){restoredEyes=null;
  if(tick){clearInterval(tick);tick=null;}
  eyeEls.forEach(function(e){e.wrap.remove();});eyeEls=[];
  if(photoURL){URL.revokeObjectURL(photoURL);photoURL=null;}
@@ -671,7 +692,7 @@ document.getElementById("restart").addEventListener("click",function(){restoredE
  show(0);
 });
 document.getElementById("save").addEventListener("click",function(){
- if(!bakedCanvas)return;
+ if(!cutURL||cutURL.length<100)return;   // restored heads download too: the capture photographs the live rig
  var c=document.createElement("canvas");c.width=BAKE_W;c.height=BAKE_H;
  var x=c.getContext("2d");
  // the card: this is an artifact worth sharing, not a screenshot — paper, light, and a quiet signature
@@ -709,6 +730,7 @@ document.getElementById("save").addEventListener("click",function(){
   return;
  }catch(_e){legacy();}
  function legacy(){ // hand-painted fallback for engines that cannot rasterize the live DOM
+ if(!bakedCanvas)return;   // a restored session has no bake: the faithful path is its only path
  x.drawImage(bakedCanvas,0,0);
  var W=BAKE_W,H=BAKE_H;
  // a natural glance for the picture, never a dead stare; poses override
@@ -777,9 +799,11 @@ document.getElementById("save").addEventListener("click",function(){
 });
 /* returning visitors get their head back — this runs last, after all state exists
    (it used to run before the var declarations executed, which nulled the restored image: the glitch) */
-try{var _sv=JSON.parse(localStorage.getItem("hmCompanion")||"null");
- if(_sv&&_sv.cut&&_sv.cut.length>100){cutURL=_sv.cut;restoredEyes=_sv.eyes;if(_sv.marks)marks=_sv.marks;
-  setTimeout(function(){try{buildLive();show(3);}catch(_){}},60);}}catch(_){}
+function restoreHead(_sv){if(!(_sv&&_sv.cut&&_sv.cut.length>100))return false;
+ cutURL=_sv.cut;restoredEyes=_sv.eyes;if(_sv.marks)marks=_sv.marks;
+ setTimeout(function(){try{buildLive();show(3);}catch(_){}},60);return true;}
+window.__hmRestore=restoreHead;
+try{restoreHead(JSON.parse(localStorage.getItem("hmCompanion")||"null"));}catch(_){}
 })();
 </script>
 </body>
