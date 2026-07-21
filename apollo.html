@@ -219,20 +219,20 @@ nav{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;column-ga
 .seqTicks i.on{background:var(--c950)}
 /* step rows develop like the photo row: the screen lands, its reasoning follows one frame later */
 .step.dv,.step.dv.shown{opacity:1;transform:none;transition:none;filter:none}
-.step.dv .stepShot,.step.dv .stepText{transition:opacity .55s cubic-bezier(.2,.8,.2,1),transform .55s cubic-bezier(.2,.8,.2,1),filter .55s cubic-bezier(.2,.8,.2,1);will-change:transform,opacity,filter}
+.step.dv .stepShot,.step.dv .stepText{transition:opacity .5s cubic-bezier(.2,.8,.2,1),transform .5s cubic-bezier(.2,.8,.2,1),filter .5s cubic-bezier(.2,.8,.2,1);will-change:transform,opacity,filter}
 .step.dv:not(.shown) .stepShot,.step.dv:not(.shown) .stepText{opacity:0;transform:translateY(12px);filter:blur(6px)}
 .step.dv.shown .stepText{transition-delay:0s}
 .step.dv.shown .stepShot{transition-delay:.125s}
 
 /* ===== reveal system (word-by-word prose + block fade) — 8fps stepped ===== */
-.rv .abw{display:inline-block;opacity:0;filter:blur(6px);transform:translateY(.4em);transition:opacity .55s cubic-bezier(.2,.8,.2,1),filter .55s cubic-bezier(.2,.8,.2,1),transform .55s cubic-bezier(.2,.8,.2,1);will-change:transform,opacity,filter}
+.rv .abw{display:inline-block;opacity:0;filter:blur(6px);transform:translateY(.4em);transition:opacity .375s cubic-bezier(.2,.8,.2,1),filter .375s cubic-bezier(.2,.8,.2,1),transform .375s cubic-bezier(.2,.8,.2,1);will-change:transform,opacity,filter}
 .rv.shown .abw{opacity:1;filter:blur(0);transform:none}
 /* ===== chapter develop (block-level: rise for inked text, blur-develop for prose and imagery) — 8fps stepped, staggered on the 125ms grid ===== */
-.dv{opacity:0;transform:translateY(12px);transition:opacity .55s cubic-bezier(.2,.8,.2,1),transform .55s cubic-bezier(.2,.8,.2,1);will-change:transform,opacity}
-.dv.dvb{filter:blur(6px);transition:opacity .55s cubic-bezier(.2,.8,.2,1),transform .55s cubic-bezier(.2,.8,.2,1),filter .55s cubic-bezier(.2,.8,.2,1);will-change:transform,opacity,filter}
+.dv{opacity:0;transform:translateY(12px);transition:opacity .5s cubic-bezier(.2,.8,.2,1),transform .5s cubic-bezier(.2,.8,.2,1);will-change:transform,opacity}
+.dv.dvb{filter:blur(6px);transition:opacity .5s cubic-bezier(.2,.8,.2,1),transform .5s cubic-bezier(.2,.8,.2,1),filter .5s cubic-bezier(.2,.8,.2,1);will-change:transform,opacity,filter}
 .dv.shown{opacity:1;transform:none}
 .dv.dvb.shown{filter:blur(0)}
-.photoRow.dv>img{transition:opacity .55s cubic-bezier(.2,.8,.2,1),transform .55s cubic-bezier(.2,.8,.2,1),filter .55s cubic-bezier(.2,.8,.2,1)}
+.photoRow.dv>img{transition:opacity .5s cubic-bezier(.2,.8,.2,1),transform .5s cubic-bezier(.2,.8,.2,1),filter .5s cubic-bezier(.2,.8,.2,1)}
 .photoRow.dv:not(.shown)>img{opacity:0;transform:translateY(12px);filter:blur(6px)}
 .photoRow.dv.shown>img{opacity:1;transform:none;filter:blur(0)}
 .photoRow.dv.shown>img:nth-child(1){transition-delay:0s}
@@ -240,7 +240,7 @@ nav{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;column-ga
 .photoRow.dv.shown>img:nth-child(3){transition-delay:.25s}
 .photoRow.dv,.photoRow.dv.shown{opacity:1;transform:none;transition:none}
 .statNum{font-variant-numeric:tabular-nums}
-.facts{opacity:0;transform:translateY(12px);transition:opacity .55s cubic-bezier(.2,.8,.2,1),transform .55s cubic-bezier(.2,.8,.2,1)}
+.facts{opacity:0;transform:translateY(12px);transition:opacity .5s cubic-bezier(.2,.8,.2,1),transform .5s cubic-bezier(.2,.8,.2,1)}
 .facts.shown{opacity:1;transform:none}
 
 /* emerge: the page develops out of the portal's white */
@@ -454,7 +454,9 @@ nav{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;column-ga
  }
 
  var rvs=[].slice.call(document.querySelectorAll('.rv'));
- rvs.forEach(function(el){ splitWords(el, parseFloat(el.dataset.f)||0.014); });
+ rvs.forEach(function(el){ splitWords(el, parseFloat(el.dataset.f)||0.011); });
+ /* cap the stagger so any paragraph's wave completes within 500ms (research: >1s reads as delay) */
+ rvs.forEach(function(el){var ws=el.querySelectorAll('.abw');if(!ws.length)return;var f=parseFloat(el.dataset.f)||0.011;var eff=Math.min(f,0.5/ws.length);for(var k=0;k<ws.length;k++)ws[k].style.transitionDelay=(k*eff).toFixed(3)+'s';});
 
  function reveal(el){
   if(!el||el.classList.contains('shown'))return;
@@ -464,7 +466,7 @@ nav{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;column-ga
    setTimeout(function(){
     var ws=el.querySelectorAll('.abw');
     for(var i=0;i<ws.length;i++){ws[i].style.filter='none';ws[i].style.willChange='auto';}
-   },680);
+   },920);
   }
  }
 
@@ -482,9 +484,9 @@ nav{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;column-ga
   if(em){ requestAnimationFrame(function(){requestAnimationFrame(function(){em.classList.add('clear');});}); setTimeout(function(){em.style.display='none';},900); }
   /* orchestrated arrival out of the white: the title writes out, then the cover lands */
   setTimeout(function(){reveal(head);},280);
-  setTimeout(function(){if(cover)cover.classList.add('in');},900);
-  setTimeout(function(){if(glance)glance.classList.add('shown');},1300);
-  setTimeout(function(){role.forEach(function(el,i){setTimeout(function(){reveal(el);},i*170);});},1480);
+  setTimeout(function(){if(cover)cover.classList.add('in');},760);
+  setTimeout(function(){if(glance)glance.classList.add('shown');},1080);
+  setTimeout(function(){role.forEach(function(el,i){setTimeout(function(){reveal(el);},i*140);});},1240);
  }
 
  /* hand back to the work rail so it emerges from white on return */
