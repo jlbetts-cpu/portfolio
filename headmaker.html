@@ -55,8 +55,15 @@ nav{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;column-ga
 .hmDot{position:absolute;width:44px;height:44px;margin:-22px 0 0 -22px;cursor:grab;touch-action:none}
 .hmDot::before{content:"";position:absolute;left:50%;top:50%;width:18px;height:18px;margin:-9px 0 0 -9px;border-radius:50%;border:2px solid var(--c950);background:rgba(253,253,253,.55);box-shadow:0 0 0 1px rgba(253,253,253,.8)}
 .hmDot::after{content:"";position:absolute;left:50%;top:50%;width:4px;height:4px;margin:-2px 0 0 -2px;border-radius:50%;background:var(--c950)}
-.hmDot.grabbed{cursor:grabbing}
-.hmDot.sm::before{width:12px;height:12px;margin:-6px 0 0 -6px;border-width:1.5px;border-style:dashed}
+.hmDot.grabbed,.hmMark.grabbed{cursor:grabbing}
+.hmDot::before{width:12px;height:12px;margin:-6px 0 0 -6px;border-width:1.5px}
+.hmMark{position:absolute;width:52px;height:44px;margin:-22px 0 0 -26px;cursor:grab;touch-action:none}
+.hmMark.bar::before{content:"";position:absolute;left:50%;top:50%;width:34px;height:0;margin:-1px 0 0 -17px;border-top:2px solid var(--c950);border-radius:2px;box-shadow:0 0 0 1px rgba(253,253,253,.7)}
+.hmMark.bar.wide::before{width:46px;margin-left:-23px}
+.hmMark.ring::before{content:"";position:absolute;left:50%;top:50%;width:16px;height:14px;margin:-7px 0 0 -8px;border:1.5px dashed var(--c950);border-radius:50%;background:rgba(253,253,253,.4)}
+.hmZoom{-webkit-appearance:none;appearance:none;height:2px;background:rgba(8,8,8,.18);border-radius:2px;outline-offset:6px}
+.hmZoom::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--c950);border:0;cursor:pointer}
+.hmZoom::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:var(--c950);border:0;cursor:pointer}
 .hmBrow,.hmNose{position:absolute;background-repeat:no-repeat;pointer-events:none;-webkit-mask-image:radial-gradient(ellipse at center,#000 55%,transparent 82%);mask-image:radial-gradient(ellipse at center,#000 55%,transparent 82%)}
 /* step 4: alive */
 #hmHead{position:absolute;left:0;top:0;width:100%;height:100%;will-change:transform}
@@ -128,15 +135,17 @@ a:focus-visible,button:focus-visible,.hmDot:focus-visible{outline:2px solid var(
   <section class="hmStep hidden" id="step3">
    <p class="kicker">Step 3 of 4 &middot; The eyes</p>
    <h2 class="stepHead">Mark your face.</h2>
-   <p class="stepBody">Rings on your pupils. Small dots on your brows, your nose, and your mouth. This is what brings it to life.</p>
+   <p class="stepBody">A dot on each corner of each eye. The bars sit on your brows and your mouth, the ring on the tip of your nose. This is what brings it to life.</p>
    <div class="hmStage bare" id="stage3">
     <img id="hmCut" alt="Your cutout head">
-    <div class="hmDot" id="dotL" role="slider" tabindex="0" aria-label="Left eye position"></div>
-    <div class="hmDot" id="dotR" role="slider" tabindex="0" aria-label="Right eye position"></div>
-    <div class="hmDot sm" id="dotBL" role="slider" tabindex="0" aria-label="Left eyebrow"></div>
-    <div class="hmDot sm" id="dotBR" role="slider" tabindex="0" aria-label="Right eyebrow"></div>
-    <div class="hmDot sm" id="dotN" role="slider" tabindex="0" aria-label="Nose tip"></div>
-    <div class="hmDot sm" id="dotM" role="slider" tabindex="0" aria-label="Mouth"></div>
+    <div class="hmDot" id="dLi" role="slider" tabindex="0" aria-label="Left eye, inner corner"></div>
+    <div class="hmDot" id="dLo" role="slider" tabindex="0" aria-label="Left eye, outer corner"></div>
+    <div class="hmDot" id="dRi" role="slider" tabindex="0" aria-label="Right eye, inner corner"></div>
+    <div class="hmDot" id="dRo" role="slider" tabindex="0" aria-label="Right eye, outer corner"></div>
+    <div class="hmMark bar" id="dBL" role="slider" tabindex="0" aria-label="Left eyebrow"></div>
+    <div class="hmMark bar" id="dBR" role="slider" tabindex="0" aria-label="Right eyebrow"></div>
+    <div class="hmMark ring" id="dN" role="slider" tabindex="0" aria-label="Nose tip"></div>
+    <div class="hmMark bar wide" id="dM" role="slider" tabindex="0" aria-label="Mouth"></div>
    </div>
    <div class="hmRow">
     <button class="hmBtn ghost" type="button" id="back3">Re-crop</button>
@@ -179,8 +188,12 @@ steps[0].classList.add("shown");
 /* ---------- state ---------- */
 var photo=new Image(),photoURL=null,cutURL=null;      // the raw photo, the baked cutout
 var pz={s:1.2,x:0,y:0};                               // pan/zoom in stage-2 space
-var eyes={L:{x:0.40,y:0.42},R:{x:0.60,y:0.42}};        // fractions of the cutout
-var marks={BL:{x:0.385,y:0.345},BR:{x:0.615,y:0.345},N:{x:0.5,y:0.55},M:{x:0.5,y:0.68}};   // brows, nose, mouth
+var pts={Li:{x:0.335,y:0.42},Lo:{x:0.455,y:0.42},Ri:{x:0.545,y:0.42},Ro:{x:0.665,y:0.42}};   // eye corners
+var marks={BL:{x:0.395,y:0.345},BR:{x:0.605,y:0.345},N:{x:0.5,y:0.555},M:{x:0.5,y:0.685}};   // brows, nose, mouth
+function deriveEyes(){ // centre, width, and tilt straight from the corners the visitor marked
+ function one(a,b){var dx=b.x-a.x,dy=(b.y-a.y);var w=Math.hypot(dx,dy*(BAKE_H/BAKE_W))*1.12;
+  return{x:(a.x+b.x)/2,y:(a.y+b.y)/2,w:Math.max(0.04,Math.min(0.17,w)),h:Math.max(0.02,Math.min(0.10,w*0.52*(BAKE_W/BAKE_H))),ang:Math.atan2((b.y-a.y)*BAKE_H,(b.x-a.x)*BAKE_W)};}
+ return[one(pts.Li,pts.Lo),one(pts.Ri,pts.Ro)];}
 var smileURL=null,smileSlot=false;                     // optional second (smiling) photo
 var BAKE_W=840,BAKE_H=1008;                            // 5:6, matches the stage
 
@@ -240,39 +253,39 @@ document.getElementById("next2").addEventListener("click",function(){
 
 /* ---------- step 3: the eye dots ---------- */
 var stage3=document.getElementById("stage3"),dotL=document.getElementById("dotL"),dotR=document.getElementById("dotR");
-function placeDots(){posDot(dotL,eyes.L);posDot(dotR,eyes.R);posDot(document.getElementById("dotBL"),marks.BL);posDot(document.getElementById("dotBR"),marks.BR);posDot(document.getElementById("dotN"),marks.N);posDot(document.getElementById("dotM"),marks.M);}
+function placeDots(){["Li","Lo","Ri","Ro"].forEach(function(k){posDot(document.getElementById("d"+k),pts[k]);});["BL","BR","N","M"].forEach(function(k){posDot(document.getElementById("d"+k),marks[k]);});}
 function posDot(d,e){d.style.left=(e.x*100)+"%";d.style.top=(e.y*100)+"%";}
-function dragDot(d,key){
+function dragDot(d,key){var store=MK[key];
  d.addEventListener("pointerdown",function(e){e.preventDefault();d.classList.add("grabbed");try{d.setPointerCapture(e.pointerId);}catch(_){}
   function mv(ev){var r=stage3.getBoundingClientRect();
-   eyes[key]={x:Math.min(0.95,Math.max(0.05,(ev.clientX-r.left)/r.width)),y:Math.min(0.95,Math.max(0.05,(ev.clientY-r.top)/r.height))};posDot(d,eyes[key]);}
+   store[key]={x:Math.min(0.95,Math.max(0.05,(ev.clientX-r.left)/r.width)),y:Math.min(0.95,Math.max(0.05,(ev.clientY-r.top)/r.height))};posDot(d,store[key]);}
   function up(ev){d.classList.remove("grabbed");d.removeEventListener("pointermove",mv);d.removeEventListener("pointerup",up);d.removeEventListener("pointercancel",up);}
   d.addEventListener("pointermove",mv);d.addEventListener("pointerup",up);d.addEventListener("pointercancel",up);});
- d.addEventListener("keydown",function(e){var st=e.shiftKey?0.02:0.006,k=e.key,c=eyes[key];
+ d.addEventListener("keydown",function(e){var st=e.shiftKey?0.02:0.006,k=e.key,c=store[key];
   if(k==="ArrowLeft")c.x-=st;else if(k==="ArrowRight")c.x+=st;else if(k==="ArrowUp")c.y-=st;else if(k==="ArrowDown")c.y+=st;else return;
   e.preventDefault();c.x=Math.min(0.95,Math.max(0.05,c.x));c.y=Math.min(0.95,Math.max(0.05,c.y));posDot(d,c);});
 }
-dragDot(dotL,"L");dragDot(dotR,"R");
-var dotBL=document.getElementById("dotBL"),dotBR=document.getElementById("dotBR"),dotN=document.getElementById("dotN"),dotM=document.getElementById("dotM");
-[["BL",dotBL],["BR",dotBR],["N",dotN],["M",dotM]].forEach(function(p){eyes[p[0]]=marks[p[0]];dragDot(p[1],p[0]);});
+var eyes={};
+var MK={Li:pts,Lo:pts,Ri:pts,Ro:pts,BL:marks,BR:marks,N:marks,M:marks};
+["Li","Lo","Ri","Ro","BL","BR","N","M"].forEach(function(k){var el=document.getElementById("d"+k);eyes[k]=MK[k][k];dragDot(el,k);});
 document.getElementById("back3").addEventListener("click",function(){show(1);});
 document.getElementById("next3").addEventListener("click",function(){buildLive();show(3);});
 
 /* ---------- step 4: alive ---------- */
 var stage4=document.getElementById("stage4"),headEl=document.getElementById("hmHead"),liveImg=document.getElementById("hmLive");
 var eyeEls=[],tick=null,gx=0,gy=0,blinkAt=0,blinkFrames=0,browAt=0,browFrames=0,sniffAt=0,sniffFrames=0,smileAt=0,smiling=false;
-function eyeGeom(){
- var ipd=Math.hypot(eyes.R.x-eyes.L.x,(eyes.R.y-eyes.L.y)*(BAKE_H/BAKE_W));   // in width fractions
- var w=Math.max(0.05,Math.min(0.16,ipd*0.40)),h=w*0.52*(BAKE_W/BAKE_H);
- return{w:w,h:h};
-}
-function sclera(c){ // sample the user's own eye-white beside the pupil so the patch belongs to the face
- try{var x=bakedCanvas.getContext("2d"),g=eyeGeom(),r=0,gg=0,b=0,n=0;
-  [-0.30,0.30].forEach(function(off){var d=x.getImageData(Math.round((c.x+off*g.w)*BAKE_W),Math.round(c.y*BAKE_H),3,3).data;
-   for(var i=0;i<d.length;i+=4){if(d[i+3]>200){r+=d[i];gg+=d[i+1];b+=d[i+2];n++;}}});
-  if(!n)return"#f2efec";
-  var l=function(v){return Math.min(255,Math.round(v/n*1.12+14));};
-  return"rgb("+l(r)+","+l(gg)+","+l(b)+")";}catch(_){return"#f2efec";}
+function eyeGeom(){var d=deriveEyes();return{w:(d[0].w+d[1].w)/2,h:(d[0].h+d[1].h)/2};}
+function sclera(e){ // the white of THEIR eye: sample along the corner line, keep only the brightest pixels
+ try{var x=bakedCanvas.getContext("2d"),px=[];
+  [-0.36,-0.26,0.26,0.36].forEach(function(off){
+   var sx=Math.round((e.x+Math.cos(e.ang||0)*off*(e.w||0.08))*BAKE_W),sy=Math.round((e.y+Math.sin(e.ang||0)*off*(e.w||0.08))*BAKE_H);
+   var d=x.getImageData(sx,sy,3,3).data;
+   for(var i=0;i<d.length;i+=4)if(d[i+3]>200)px.push([d[i],d[i+1],d[i+2],d[i]+d[i+1]+d[i+2]]);});
+  if(!px.length)return"#f1eee9";
+  px.sort(function(a,b){return b[3]-a[3];});px=px.slice(0,Math.max(2,Math.round(px.length*0.4)));
+  var r=0,g=0,b=0;px.forEach(function(p){r+=p[0];g+=p[1];b+=p[2];});var n=px.length;
+  var l=function(v){return Math.min(255,Math.round(v/n*1.06+10));};
+  return"rgb("+l(r)+","+l(g)+","+l(b)+")";}catch(_){return"#f1eee9";}
 }
 var browEls=[],noseEl=null;
 function faceStrip(cx,cy,w,h,cls){ // a feathered strip of THEIR OWN photo that can move (brow raise, nose twitch)
@@ -290,11 +303,12 @@ function buildLive(){
  liveImg.src=cutURL;
  eyeEls.forEach(function(e){e.wrap.remove();});eyeEls=[];
  browEls.forEach(function(b){b.remove();});browEls=[];if(noseEl){noseEl.remove();noseEl=null;}
- var g=eyeGeom();
- [eyes.L,eyes.R].forEach(function(c){
+ var des=deriveEyes(),g={w:(des[0].w+des[1].w)/2,h:(des[0].h+des[1].h)/2};
+ des.forEach(function(c){
   var w=document.createElement("div");w.className="hmEye";
-  w.style.width=(g.w*100)+"%";w.style.height=(g.h*100)+"%";
-  w.style.left=((c.x-g.w/2)*100)+"%";w.style.top=((c.y-g.h/2)*100)+"%";
+  w.style.width=(c.w*100)+"%";w.style.height=(c.h*100)+"%";
+  w.style.left=((c.x-c.w/2)*100)+"%";w.style.top=((c.y-c.h/2)*100)+"%";
+  w.style.transform="rotate("+(c.ang||0)+"rad)";
   w.style.background=sclera(c);
   w.style.boxShadow="none";
   w.style.webkitMaskImage="radial-gradient(ellipse at center,#000 58%,transparent 80%)";
@@ -303,7 +317,7 @@ function buildLive(){
   var pu=document.createElement("div");pu.className="hmPupil";ir.appendChild(pu);
   var gl=document.createElement("div");gl.className="hmGlint";
   w.appendChild(ir);w.appendChild(gl);
-  headEl.appendChild(w);eyeEls.push({wrap:w,iris:ir,glint:gl,sc:w.style.background,lid:sclera({x:c.x,y:c.y-eyeGeom().h*1.25})});
+  headEl.appendChild(w);eyeEls.push({wrap:w,iris:ir,glint:gl,sc:w.style.background,lid:sclera({x:c.x,y:c.y-c.h*1.4,w:c.w,ang:0})});
  });
  browEls=[faceStrip(marks.BL.x,marks.BL.y,g.w*1.5,g.h*1.7,"hmBrow"),faceStrip(marks.BR.x,marks.BR.y,g.w*1.5,g.h*1.7,"hmBrow")];
  noseEl=faceStrip(marks.N.x,marks.N.y,g.w*1.1,g.h*2.1,"hmNose");
@@ -371,14 +385,16 @@ document.getElementById("save").addEventListener("click",function(){
  var c=document.createElement("canvas");c.width=BAKE_W;c.height=BAKE_H;
  var x=c.getContext("2d");
  x.drawImage(bakedCanvas,0,0);
- var g=eyeGeom(),W=BAKE_W,H=BAKE_H;
- [eyes.L,eyes.R].forEach(function(e){
-  var ew=g.w*W,eh=g.h*H,ex=e.x*W,ey=e.y*H;
+ var W=BAKE_W,H=BAKE_H;
+ deriveEyes().forEach(function(e){
+  var ew=e.w*W,eh=e.h*H,ex=e.x*W,ey=e.y*H;
+  x.save();x.translate(ex,ey);x.rotate(e.ang||0);x.translate(-ex,-ey);
   var sc=sclera(e);var grd=x.createRadialGradient(ex,ey,0,ex,ey,ew/2);
   grd.addColorStop(0,sc);grd.addColorStop(0.62,sc);grd.addColorStop(1,sc.replace("rgb","rgba").replace(")",",0)"));
   x.fillStyle=grd;x.beginPath();x.ellipse(ex,ey,ew/2,eh/2,0,0,Math.PI*2);x.fill();
   x.fillStyle="#141414";x.beginPath();x.ellipse(ex,ey,ew*0.3,eh*0.52,0,0,Math.PI*2);x.fill();
   x.fillStyle="rgba(255,255,255,.9)";x.beginPath();x.ellipse(ex-ew*0.07,ey-eh*0.14,ew*0.055,eh*0.095,0,0,Math.PI*2);x.fill();
+  x.restore();
  });
  var a=document.createElement("a");a.download="my-floating-head.png";a.href=c.toDataURL("image/png");a.click();
 });
