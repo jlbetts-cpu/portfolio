@@ -2537,7 +2537,9 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
  var hero=document.querySelector(".hero");if(!hero)return;
  if(getComputedStyle(hero).position==="static")hero.style.position="relative";
  var mob=innerWidth<=880;
- var HW=mob?58:Math.min(104,Math.max(72,innerWidth*0.072));var HH=HW*1.2;
+ var stEl0=document.getElementById("stage"),stR0=stEl0?stEl0.getBoundingClientRect():null;
+ var HW=stR0&&stR0.width?Math.round(Math.min(96,Math.max(60,stR0.width*0.24))):(mob?58:88);if(mob)HW=Math.min(HW,58);
+ var HH=HW*1.2;   // one size: about a quarter of the caregiver, the classic companion ratio
  // --- DOM ---
  var root=document.createElement("div");
  root.style.cssText="position:absolute;left:0;top:0;width:"+HW+"px;height:"+HH+"px;z-index:3;cursor:grab;touch-action:none;opacity:0;filter:blur(6px);transition:opacity .5s steps(4,end),filter .5s steps(4,end);will-change:transform;transform-origin:50% 94%";
@@ -2631,8 +2633,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    var side=Math.random()<0.5?-1:1;
    var tx2=side<0?Math.max(M,bigR.l-HW-14):Math.min(heroR.w-HW-M,bigR.r+14);
    dir=tx2>x?1:-1;surface=floorY;st="hop";hopsLeft=Math.min(9,Math.max(1,Math.round(Math.abs(tx2-x)/95)));hop(false);window.__hmVisit=performance.now()+9000;}
-  else if(r<0.94){depthT=0.82+Math.random()*0.36;} // drift nearer or farther
-  else {depthT=1;}
+  else {} // otherwise: a beat of rest
  }
  // --- grab like a Mii ---
  root.addEventListener("pointerdown",function(e){
