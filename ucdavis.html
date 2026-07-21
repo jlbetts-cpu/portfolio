@@ -913,5 +913,23 @@ addEventListener('scroll',function(){if(!tick){requestAnimationFrame(u);tick=tru
  });
 })();
 </script>
+<script>
+/* a tiny visitor: if you made your own head in Extras, it peeks in once while you read */
+(function(){try{
+ if(matchMedia("(prefers-reduced-motion:reduce)").matches)return;
+ var d=JSON.parse(localStorage.getItem("hmCompanion")||"null");if(!d||!d.cut||d.cut.length<100)return;
+ if(sessionStorage.getItem("hmPeek_"+location.pathname))return;
+ var el=document.createElement("img");el.src=d.cut;el.alt="";el.setAttribute("aria-hidden","true");
+ el.style.cssText="position:fixed;right:36px;bottom:0;width:64px;z-index:60;transform:translateY(105%) rotate(-7deg);transition:transform .7s cubic-bezier(.34,1.45,.4,1);pointer-events:none;filter:drop-shadow(0 4px 10px rgba(8,8,8,.18))";
+ document.body.appendChild(el);
+ setTimeout(function(){try{sessionStorage.setItem("hmPeek_"+location.pathname,"1");}catch(_){}
+  el.style.transform="translateY(32%) rotate(4deg)";
+  setTimeout(function(){el.style.transform="translateY(28%) rotate(-3deg)";},900);
+  setTimeout(function(){el.style.transform="translateY(30%) rotate(2deg)";},1700);
+  setTimeout(function(){el.style.transform="translateY(105%) rotate(-7deg)";},3100);
+  setTimeout(function(){el.remove();},4100);
+ },16000+Math.random()*18000);
+}catch(_){}})();
+</script>
 </body>
 </html>
