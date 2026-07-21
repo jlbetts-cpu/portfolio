@@ -2577,13 +2577,17 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   cov.style.backgroundImage="url("+data.cut+")";cov.style.backgroundSize=(100/cvW)+"% "+(100/cvH)+"%";
   cov.style.backgroundPosition=((c.x-cvW/2)/(1-cvW)*100)+"% "+(((c.y+c.h*1.55)-cvH/2)/(1-cvH)*100)+"%";
   root.appendChild(cov);
-  var e=document.createElement("div");e.className="eye";
+  var ALM="50% 50% 50% 50% / 66% 66% 34% 34%";   // upper-heavy almond: the top lid arcs, the bottom barely does
+  sc2.style.borderRadius=ALM;sc2.style.transform="rotate("+(c.ang||0)+"rad)";
+  var e=document.createElement("div");e.className="eye";e.style.borderRadius=ALM;
   e.style.left=((c.x-w2/2)*100)+"%";e.style.top=((c.y-h2/2/1.2)*100)+"%";e.style.width=(w2*100)+"%";e.style.height=(h2/1.2*100)+"%";   /* /1.2: the box is 1:1.2, heights need the aspect taken out */
   e.style.webkitMaskImage="radial-gradient(ellipse at center,#000 74%,rgba(0,0,0,.55) 88%,transparent 99%)";e.style.maskImage="radial-gradient(ellipse at center,#000 74%,rgba(0,0,0,.55) 88%,transparent 99%)";   /* no outline: the sclera recedes under the lids, so its edge is a fade, never a line */
   var irD=c.w*0.54;   // the INFANT ratio, not the adult 42%: a newborn iris is near adult size in a small aperture, and this head is the baby of the pair
   var ir=document.createElement("div");ir.className="iris";
   ir.style.width=(irD/w2*100)+"%";ir.style.height=(irD/h2*100)+"%";ir.style.left=((0.5-irD/w2/2)*100)+"%";ir.style.top=((0.5-irD/h2/2)*100)+"%";ir.style.borderRadius="50%";
-  ir.style.background="radial-gradient(circle at 39% 33%,#343434 0%,#1c1c1c 34%,#0c0c0c 66%,#030303 100%)";   // smooth and deep, lit from above
+  var icc=(c.ic&&c.ic.length===3)?c.ic:[38,29,23];   // THEIR iris colour; heads saved before simply stay dark
+  function ikk(k){return Math.round(icc[0]*k)+","+Math.round(icc[1]*k)+","+Math.round(icc[2]*k);}
+  ir.style.background="radial-gradient(circle at 39% 33%,rgb("+ikk(1.35)+") 0%,rgb("+ikk(1.02)+") 32%,rgb("+ikk(0.7)+") 62%,rgb("+ikk(0.42)+") 88%,rgb("+ikk(0.3)+") 100%)";
   var pu=document.createElement("div");pu.className="pupil";ir.appendChild(pu);
   var gl=document.createElement("div");gl.className="glint";
   gl.style.width=(0.19*irD/w2*100)+"%";gl.style.height=(0.19*irD/h2*100)+"%";gl.style.left="37%";gl.style.top=((0.5-irD/h2/2)*100+irD/h2*30)+"%";   // on the iris, never clipped by the lid
@@ -2595,14 +2599,14 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   gl2.style.width=(0.10*irD/w2*100)+"%";gl2.style.height=(0.10*irD/h2*100)+"%";gl2.style.left=(50+irD/w2*14)+"%";gl2.style.top=(50+irD/h2*15)+"%";gl2.style.opacity="0.45";
   e.appendChild(fill);e.appendChild(ir);e.appendChild(shd);e.appendChild(gl);e.appendChild(gl2);root.appendChild(e);
   var lidW=c.w*0.95,lidH=c.w*0.6;
-  var lw=document.createElement("div");lw.style.cssText="position:absolute;border-radius:50%;overflow:hidden;pointer-events:none";
+  var lw=document.createElement("div");lw.style.cssText="position:absolute;overflow:hidden;pointer-events:none";lw.style.borderRadius=ALM;lw.style.transform="rotate("+(c.ang||0)+"rad)";
   lw.style.width=(lidW*100)+"%";lw.style.height=(lidH*100)+"%";lw.style.left=((c.x-lidW/2)*100)+"%";lw.style.top=((c.y-lidH/2)*100)+"%";
   lw.style.zIndex="4";
   var ls=document.createElement("div");ls.style.cssText="position:absolute;inset:0;transform:translateY(-105%)";
   ls.style.backgroundImage="url("+data.cut+")";ls.style.backgroundSize=(100/lidW)+"% "+(100/lidH)+"%";
   ls.style.backgroundPosition=((c.x-lidW/2)/(1-lidW)*100)+"% "+(((c.y+c.h*1.55)-lidH/2)/(1-lidH)*100)+"%";
   lw.appendChild(ls);root.appendChild(lw);
-  eyeEls3.push({iris:ir,glint:gl,lid:ls,box:e});
+  eyeEls3.push({iris:ir,glint:gl,lid:ls,box:e,ang:(c.ang||0)*57.2958});
  });
  var brows=[],mouth=null,nose=null;
  if(mk){brows=[strip(mk.BL.x,mk.BL.y,ew0*1.5,ew0*0.9),strip(mk.BR.x,mk.BR.y,ew0*1.5,ew0*0.9)];
@@ -2916,7 +2920,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   if(mof>0&&mouth){mouth.style.transform=(mof%2)?"translateY(1.2px) scaleY(1.06)":"translateY(0.5px) scaleY(1.02)";mof--;}
   else if(mouth&&mof===0)mouth.style.transform="";
   eyeEls3.forEach(function(o,oi){
-   if(o.box)o.box.style.transform="rotate("+(Math.abs(rot)>20?0:-rot).toFixed(1)+"deg)";   // the glint's light source does not tilt with the head (but rides along mid-flip)
+   if(o.box)o.box.style.transform="rotate("+((o.ang||0)+(Math.abs(rot)>20?0:-rot)).toFixed(1)+"deg)";   // THEIR canthal tilt stays; the glint's light source does not tilt with the head
    if(bf>0){var lp=(bf===5||bf===1)?-44:(bf===4?-14:-4);o.lid.style.transform="translateY("+lp+"%)";}
    else o.lid.style.transform=drowse2?"translateY(-64%)":"translateY(-105%)";   // heavy lids when sleepy
    if(dzf>0){var ph=(12-dzf)*0.95+(oi?2.2:0);var ebw2=o.box?o.box.offsetWidth:34;o.iris.style.transform="translate("+Math.round(Math.cos(ph)*ebw2*0.22)+"px,"+Math.round(Math.sin(ph)*ebw2*0.14)+"px)";}
