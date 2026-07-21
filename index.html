@@ -2556,8 +2556,8 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   root.appendChild(d);return d;}
  eyesArr.forEach(function(c){
   var sc2=document.createElement("div");
-  sc2.style.cssText="position:absolute;border-radius:50%;pointer-events:none;background:"+(c.sc||"#f1eee9")+";-webkit-mask-image:radial-gradient(ellipse at center,#000 55%,transparent 78%);mask-image:radial-gradient(ellipse at center,#000 55%,transparent 78%)";
-  var bw=c.w*1.04,bh=c.w*0.58;   // the white sits just under the eye, never beyond it
+  sc2.style.cssText="position:absolute;border-radius:50%;pointer-events:none;background:"+(c.sc||"#f1eee9")+";-webkit-mask-image:radial-gradient(ellipse at center,#000 62%,transparent 92%);mask-image:radial-gradient(ellipse at center,#000 62%,transparent 92%)";
+  var bw=c.w*0.98,bh=c.w*0.54;   // the white sits just under the eye, never beyond it
   sc2.style.width=(bw*100)+"%";sc2.style.height=(bh*100)+"%";sc2.style.left=((c.x-bw/2)*100)+"%";sc2.style.top=((c.y-bh/2)*100)+"%";
   root.appendChild(sc2);
   var e=document.createElement("div");e.className="eye";
