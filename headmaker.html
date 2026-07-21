@@ -71,10 +71,6 @@ nav{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;column-ga
 .hmMark.bar.wide::before{width:46px;margin-left:-23px}
 
 .hmMark.eyeC::before{display:none}   /* invisible: dragging the middle of the eye just works, like dragging a shape body */
-.facts{width:100%;display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));column-gap:var(--sp-16-32);row-gap:var(--sp-16-32);margin:var(--sp-24-32) 0 0;border-top:1px solid rgba(8,8,8,.14);border-bottom:1px solid rgba(8,8,8,.14);padding:var(--sp-16-24) 0}
-.fact{min-width:0}
-.fk{display:block;font-family:var(--sans);font-weight:600;font-size:var(--fs-label);letter-spacing:.01em;color:var(--c500);filter:url(#inkSm);margin:0 0 var(--sp-8-16)}
-.fv{font-family:var(--sans);font-weight:500;font-size:var(--fs-body);line-height:1.35;color:var(--c950);margin:0;text-wrap:pretty}
 .hmZoom{-webkit-appearance:none;appearance:none;height:2px;background:rgba(8,8,8,.18);border-radius:2px;outline-offset:6px}
 .hmZoom::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--c950);border:0;cursor:pointer}
 .hmZoom::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:var(--c950);border:0;cursor:pointer}
@@ -113,14 +109,6 @@ a:focus-visible,button:focus-visible,.hmDot:focus-visible{outline:2px solid var(
  <div class="content">
   <h1 class="head">Make your own floating head.</h1>
   <p class="lede">The same cutout as the head on my homepage. Your photo, your color, and a pair of living eyes. <strong>Everything happens in your browser, nothing gets uploaded.</strong></p>
-
-  <dl class="facts">
-   <div class="fact"><dt class="fk">What it is</dt><dd class="fv">A living cutout of your face</dd></div>
-   <div class="fact"><dt class="fk">Role</dt><dd class="fv">Design &amp; code</dd></div>
-   <div class="fact"><dt class="fk">Built with</dt><dd class="fv">Vanilla HTML, CSS, JS</dd></div>
-   <div class="fact"><dt class="fk">Privacy</dt><dd class="fv">On-device, nothing uploads</dd></div>
-   <div class="fact"><dt class="fk">Year</dt><dd class="fv">2026</dd></div>
-  </dl>
 
   <!-- STEP 1 · the photo -->
   <section class="hmStep" id="step1">
