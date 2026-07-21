@@ -68,7 +68,7 @@ nav{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;column-ga
 /* step 4: alive */
 #hmHead{position:absolute;left:0;top:0;width:100%;height:100%;will-change:transform}
 #hmHead img{width:100%;height:100%}
-.hmScl{position:absolute;border-radius:50%;pointer-events:none}.hmEye{position:absolute;border-radius:50%;overflow:hidden;filter:url(#inkEye)}
+.hmScl{position:absolute;border-radius:50%;pointer-events:none}.hmLidW{position:absolute;border-radius:50%;overflow:hidden;pointer-events:none}.hmLidS{position:absolute;inset:0;transform:translateY(-105%)}.hmEye{position:absolute;border-radius:50%;overflow:hidden;filter:url(#inkEye)}
 .hmIris{position:absolute;left:20%;top:-2%;width:60%;height:104%;border-radius:46%;background:repeating-conic-gradient(from 4deg,rgba(255,255,255,.045) 0deg 2deg,rgba(0,0,0,.24) 2deg 4.3deg),radial-gradient(circle at 50% 50%,#050505 0%,#080808 25%,#191919 39%,#121212 57%,#181818 72%,#0a0a0a 88%,#030303 100%),radial-gradient(circle at 38% 32%,#1e1e1e 0%,#0d0d0d 52%,#050505 100%);background-blend-mode:multiply,normal,normal}.hmPupil{position:absolute;left:50%;top:50%;width:55%;height:55%;border-radius:50%;background:radial-gradient(circle at 50% 50%,#000 0%,#000 58%,#060606 80%,rgba(6,6,6,0) 100%);transform:translate(-50%,-50%)}
 .hmGlint{position:absolute;left:32%;top:26%;width:20%;height:20%;border-radius:50%;background:radial-gradient(circle at 50% 50%,rgba(255,255,255,.98) 0%,rgba(252,252,252,.72) 24%,rgba(250,250,250,0) 60%)}
 .hmShadow{position:absolute;left:50%;bottom:2%;width:52%;height:5%;transform:translateX(-50%);border-radius:50%;background:radial-gradient(ellipse at center,rgba(8,8,8,.28),rgba(8,8,8,0) 70%)}
@@ -303,7 +303,7 @@ function faceStrip(cx,cy,w,h,cls){ // a feathered strip of THEIR OWN photo that 
 }
 function buildLive(){
  liveImg.src=cutURL;
- eyeEls.forEach(function(e){e.wrap.remove();if(e.scl)e.scl.remove();});eyeEls=[];
+ eyeEls.forEach(function(e){e.wrap.remove();if(e.scl)e.scl.remove();if(e.lidW)e.lidW.remove();});eyeEls=[];
  browEls.forEach(function(b){b.remove();});browEls=[];if(noseEl){noseEl.remove();noseEl=null;}
  var des=deriveEyes(),g={w:(des[0].w+des[1].w)/2,h:(des[0].h+des[1].h)/2};
  des.forEach(function(c){
@@ -324,7 +324,19 @@ function buildLive(){
   var pu=document.createElement("div");pu.className="hmPupil";ir.appendChild(pu);
   var gl=document.createElement("div");gl.className="hmGlint";
   w.appendChild(ir);w.appendChild(gl);
-  headEl.appendChild(w);eyeEls.push({wrap:w,scl:scl,iris:ir,glint:gl,sc:sc,lid:sclera({x:c.x,y:c.y-c.h*1.4,w:c.w,ang:0})});
+  headEl.appendChild(w);
+  var lwW=c.w*1.12,lwH=c.h*1.42;
+  var lw=document.createElement("div");lw.className="hmLidW";
+  lw.style.width=(lwW*100)+"%";lw.style.height=(lwH*100)+"%";
+  lw.style.left=((c.x-lwW/2)*100)+"%";lw.style.top=((c.y-lwH/2)*100)+"%";
+  lw.style.transform="rotate("+(c.ang||0)+"rad)";
+  var ls=document.createElement("div");ls.className="hmLidS";
+  ls.style.backgroundImage="url("+cutURL+")";
+  ls.style.backgroundSize=(100/lwW)+"% "+(100/lwH)+"%";
+  var sxr=(c.x-lwW/2)/(1-lwW),syr=((c.y-c.h*1.30)-lwH/2)/(1-lwH);
+  ls.style.backgroundPosition=(sxr*100)+"% "+(syr*100)+"%";
+  lw.appendChild(ls);headEl.appendChild(lw);
+  eyeEls.push({wrap:w,scl:scl,iris:ir,glint:gl,sc:sc,lidEl:ls,lidW:lw});
  });
  browEls=[faceStrip(marks.BL.x,marks.BL.y,g.w*1.5,g.h*1.7,"hmBrow"),faceStrip(marks.BR.x,marks.BR.y,g.w*1.5,g.h*1.7,"hmBrow")];
  noseEl=faceStrip(marks.N.x,marks.N.y,g.w*1.1,g.h*2.1,"hmNose");
@@ -346,7 +358,7 @@ function liveTick(){
  /* smile beats: if they gave a smiling photo, swap the whole face like my smile frame (overlays hide) */
  if(smileURL&&!smiling&&now>=smileAt){smiling=true;liveImg.src=smileURL;setTimeout(function(){smiling=false;liveImg.src=cutURL;},1150);smileAt=now+9000+Math.random()*8000;}
  var hide=smiling?"0":"1";
- eyeEls.forEach(function(e){e.wrap.style.opacity=hide;if(e.scl)e.scl.style.opacity=hide;});
+ eyeEls.forEach(function(e){e.wrap.style.opacity=hide;if(e.scl)e.scl.style.opacity=hide;if(e.lidW)e.lidW.style.opacity=hide;});
  browEls.forEach(function(b){b.style.opacity=hide;});if(noseEl)noseEl.style.opacity=hide;
  if(smiling)return;
  /* the brows are their own: raise a strip of their photo, hold a beat, settle */
@@ -359,11 +371,11 @@ function liveTick(){
  else if(noseEl)noseEl.style.transform="";
  if(pose==="side"){nx=-0.78;ny=0.06;}
  if(pose==="brows"){browEls.forEach(function(b){b.style.transform="translateY(-3px)";});}
- if(now>=blinkAt&&blinkFrames===0&&pose!=="wink"){blinkFrames=2;blinkAt=now+2600+Math.random()*3400;}
+ if(now>=blinkAt&&blinkFrames===0&&pose!=="wink"){blinkFrames=4;blinkAt=now+2600+Math.random()*3400;}
  eyeEls.forEach(function(e,ei){
-  if(pose==="wink"&&ei===0){e.scl.style.background=e.lid;e.iris.style.opacity="0";e.glint.style.opacity="0";return;}
-  if(blinkFrames>0){e.scl.style.background=e.lid;e.iris.style.opacity="0";e.glint.style.opacity="0";}
-  else{e.scl.style.background=e.sc;e.iris.style.opacity="1";e.glint.style.opacity="1";
+  if(pose==="wink"&&ei===0){e.lidEl.style.transform="translateY(-6%)";return;}
+  if(blinkFrames>0){var lp=(blinkFrames===4||blinkFrames===1)?-56:-6;e.lidEl.style.transform="translateY("+lp+"%)";}
+  else{e.lidEl.style.transform="translateY(-105%)";
    var ew=e.wrap.offsetWidth,eh=e.wrap.offsetHeight;
    var gtx=Math.round(nx*ew*0.16),gty=Math.round(ny*eh*0.22);
    e.iris.style.transform="translate("+gtx+"px,"+gty+"px)";
