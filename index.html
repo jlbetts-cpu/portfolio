@@ -307,15 +307,15 @@ body.partyLock{overflow:hidden}
 .csTrack{height:auto}
 .csStage{position:relative;display:flex;flex-direction:column;overflow:visible}
 .csStageInner{max-width:1280px;width:100%;margin:0 auto;padding:0 40px;display:flex;flex-direction:column;gap:clamp(16px,1.7vw,24px)}
-.csFrame{position:relative;width:100%;aspect-ratio:2/1;overflow:hidden;border-radius:0;background:var(--c100);opacity:0;transform:translateY(26px);transition:opacity .55s cubic-bezier(.2,.8,.2,1),transform .55s cubic-bezier(.2,.8,.2,1);will-change:opacity,transform}
+.csFrame{position:relative;width:100%;aspect-ratio:2/1;overflow:hidden;border-radius:0;background:var(--c100);opacity:0;transform:translateY(26px);transition:opacity .55s cubic-bezier(.2,.8,.2,1) .09s,transform .55s cubic-bezier(.2,.8,.2,1) .09s;will-change:opacity,transform}
 .csItem.csIn .csFrame{opacity:1;transform:none}
 .csImg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
 .csItem:has(.soon) .csImg{filter:grayscale(1)}
-.csMeta{display:flex;align-items:baseline;justify-content:space-between;gap:24px;opacity:0;transform:translateY(14px);transition:opacity .5s cubic-bezier(.2,.8,.2,1) .08s,transform .5s cubic-bezier(.2,.8,.2,1) .08s;will-change:transform,opacity}
+.csMeta{display:flex;align-items:baseline;justify-content:space-between;gap:24px;margin:0 0 16px;padding-bottom:16px;border-bottom:1px solid rgba(8,8,8,.14);opacity:0;transform:translateY(14px);transition:opacity .5s cubic-bezier(.2,.8,.2,1),transform .5s cubic-bezier(.2,.8,.2,1);will-change:transform,opacity}.csMetaL{display:flex;flex-direction:column;gap:6px;min-width:0}.csDesc{font-family:var(--sans);font-weight:400;font-size:var(--fs-small);line-height:1.4;color:var(--c500);letter-spacing:0}
 .csItem.csIn .csMeta{opacity:1;transform:none}
 .csName{font-family:var(--sans);font-weight:700;font-size:var(--fs-h3);letter-spacing:-.02em;color:var(--c950);filter:url(#inkBig)}
 .csName .soon{font-weight:600;font-size:.62em;letter-spacing:0;color:var(--c500);margin-left:.5em;vertical-align:baseline}
-.csYear{font-family:var(--sans);font-weight:600;font-size:var(--fs-h4);letter-spacing:-.01em;color:var(--c500);font-variant-numeric:tabular-nums;filter:url(#inkBig)}
+.csYear{font-family:var(--sans);font-weight:600;font-size:var(--fs-small);letter-spacing:0;color:var(--c500);font-variant-numeric:tabular-nums;filter:url(#inkSm);white-space:nowrap}.csItem.wip .csYear{border:1px dashed rgba(8,8,8,.34);border-radius:999px;padding:6px 14px;font-size:var(--fs-label);color:var(--c700);line-height:1;filter:none}.reelMeta .csYear{font-size:var(--fs-h4);letter-spacing:-.01em;filter:url(#inkBig)}
 /* cursor-following case-study reader (desktop hover only) */
 .csCursor{position:fixed;top:0;left:0;width:0;height:0;z-index:131;pointer-events:none;opacity:0;transition:opacity .16s cubic-bezier(.2,.8,.2,1)}
 .csCursor.on{opacity:1}
@@ -340,9 +340,9 @@ body.partyLock{overflow:hidden}
  .csTabs{gap:10px 22px;flex-wrap:wrap}.csTabs .csTab{flex:0 0 auto;white-space:nowrap;font-size:var(--fs-tab)}
  .csTrack{height:auto}
  .csStage{position:relative;height:auto;padding:clamp(14px,2vh,28px) 0;justify-content:flex-start;overflow:visible}
- .csFrame{transform:translateY(26px);opacity:0;transition:opacity .55s cubic-bezier(.2,.8,.2,1),transform .55s cubic-bezier(.2,.8,.2,1)}
+ .csFrame{transform:translateY(26px);opacity:0;transition:opacity .55s cubic-bezier(.2,.8,.2,1) .09s,transform .55s cubic-bezier(.2,.8,.2,1) .09s}
  .csItem.csIn .csFrame{transform:none;opacity:1}
- .csMeta{opacity:0;transform:translateY(14px);transition:opacity .5s cubic-bezier(.2,.8,.2,1) .07s,transform .5s cubic-bezier(.2,.8,.2,1) .07s}
+ .csMeta{opacity:0;transform:translateY(14px);transition:opacity .5s cubic-bezier(.2,.8,.2,1),transform .5s cubic-bezier(.2,.8,.2,1)}
  .csItem.csIn .csMeta{opacity:1;transform:none}
  .csItem+.csItem{margin-top:6vh}
 }
@@ -688,8 +688,8 @@ body.about-open.headheal .abTear{animation:tearClose .5s steps(1,end) forwards}
    <div class="csTrack">
     <div class="csStage">
      <div class="csStageInner">
+      <div class="csMeta"><div class="csMetaL"><span class="csName">Bearings</span><span class="csDesc">Group road-trip planner · iOS</span></div><span class="csYear">2026</span></div>
       <a class="csGo" href="bearings.html" aria-label="View the Bearings case study"><figure class="csFrame"><img class="csImg" src="images/cs/bearings-cover.webp" alt="Bearings — a group road-trip planner shown across four iOS screens over a wildflower meadow" loading="eager" fetchpriority="high" decoding="async"></figure></a>
-      <div class="csMeta"><span class="csName">Bearings</span><span class="csYear">2026</span></div>
      </div>
     </div>
    </div>
@@ -699,8 +699,8 @@ body.about-open.headheal .abTear{animation:tearClose .5s steps(1,end) forwards}
    <div class="csTrack">
     <div class="csStage">
      <div class="csStageInner">
+      <div class="csMeta"><div class="csMetaL"><span class="csName">Apollo</span><span class="csDesc">Celebrating wins with friends · iOS</span></div><span class="csYear">2026</span></div>
       <a class="csGo" href="apollo.html" aria-label="View the Apollo case study"><figure class="csFrame"><img class="csImg" src="images/cs/apollo-cover.webp" alt="Apollo — a social app for celebrating wins, shown across four iOS screens over rolling hills" loading="lazy" decoding="async"></figure></a>
-      <div class="csMeta"><span class="csName">Apollo</span><span class="csYear">2026</span></div>
      </div>
     </div>
    </div>
@@ -712,8 +712,8 @@ body.about-open.headheal .abTear{animation:tearClose .5s steps(1,end) forwards}
    <div class="csTrack">
     <div class="csStage">
      <div class="csStageInner">
+      <div class="csMeta"><div class="csMetaL"><span class="csName">R3SHORE</span><span class="csDesc">AI-native staffing for U.S. manufacturing</span></div><span class="csYear">In progress</span></div>
       <figure class="csFrame"><img class="csImg" src="images/cs/r3shore.webp" alt="R3SHORE, an AI-native staffing platform for American hardware manufacturing" loading="lazy" decoding="async"></figure>
-      <div class="csMeta"><span class="csName">R3SHORE</span><span class="csYear">In progress</span></div>
      </div>
     </div>
    </div>
@@ -722,8 +722,8 @@ body.about-open.headheal .abTear{animation:tearClose .5s steps(1,end) forwards}
    <div class="csTrack">
     <div class="csStage">
      <div class="csStageInner">
+      <div class="csMeta"><div class="csMetaL"><span class="csName">Bearings</span><span class="csDesc">Group road-trip planner · iOS</span></div><span class="csYear">2026</span></div>
       <a class="csGo" href="bearings.html" aria-label="View the Bearings case study"><figure class="csFrame"><img class="csImg" src="images/cs/bearings-cover.webp" alt="Bearings — a group road-trip planner shown across four iOS screens over a wildflower meadow" loading="lazy" decoding="async"></figure></a>
-      <div class="csMeta"><span class="csName">Bearings</span><span class="csYear">2026</span></div>
      </div>
     </div>
    </div>
@@ -732,8 +732,8 @@ body.about-open.headheal .abTear{animation:tearClose .5s steps(1,end) forwards}
    <div class="csTrack">
     <div class="csStage">
      <div class="csStageInner">
+      <div class="csMeta"><div class="csMetaL"><span class="csName">Apollo</span><span class="csDesc">Celebrating wins with friends · iOS</span></div><span class="csYear">2026</span></div>
       <a class="csGo" href="apollo.html" aria-label="View the Apollo case study"><figure class="csFrame"><img class="csImg" src="images/cs/apollo-cover.webp" alt="Apollo — a social app for celebrating wins, shown across four iOS screens over rolling hills" loading="lazy" decoding="async"></figure></a>
-      <div class="csMeta"><span class="csName">Apollo</span><span class="csYear">2026</span></div>
      </div>
     </div>
    </div>
@@ -742,8 +742,8 @@ body.about-open.headheal .abTear{animation:tearClose .5s steps(1,end) forwards}
    <div class="csTrack">
     <div class="csStage">
      <div class="csStageInner">
+      <div class="csMeta"><div class="csMetaL"><span class="csName">UC Davis Rec Redesign</span><span class="csDesc">A hierarchy-first redesign, ID in Apple Wallet</span></div><span class="csYear">2026</span></div>
       <a class="csGo" href="ucdavis.html" aria-label="View the UC Davis Rec Redesign case study"><figure class="csFrame"><img class="csImg" src="images/cs/ucrec/cover.webp" alt="UC Davis Rec app redesign — the redesigned home screen with events, live hours, and a Member ID" loading="lazy" decoding="async"></figure></a>
-      <div class="csMeta"><span class="csName">UC Davis Rec Redesign</span><span class="csYear">2026</span></div>
      </div>
     </div>
    </div>
@@ -752,8 +752,8 @@ body.about-open.headheal .abTear{animation:tearClose .5s steps(1,end) forwards}
    <div class="csTrack">
     <div class="csStage">
      <div class="csStageInner">
+      <div class="csMeta"><div class="csMetaL"><span class="csName">Strata</span><span class="csDesc">Gamified habit builder · built with Lovable</span></div><span class="csYear">2025</span></div>
       <a class="csGo" href="strata.html" aria-label="View the Strata &middot; Lovable case study"><figure class="csFrame"><img class="csImg" src="images/cs/strata-cover.webp" alt="Strata — a gamified habit builder shown across three iOS screens over a green field" loading="lazy" decoding="async"></figure></a>
-      <div class="csMeta"><span class="csName">Strata</span><span class="csYear">2025</span></div>
      </div>
     </div>
    </div>
@@ -762,8 +762,8 @@ body.about-open.headheal .abTear{animation:tearClose .5s steps(1,end) forwards}
    <div class="csTrack">
     <div class="csStage">
      <div class="csStageInner">
+      <div class="csMeta"><div class="csMetaL"><span class="csName">Cluster</span><span class="csDesc">Club discovery for UC Davis · iOS</span></div><span class="csYear">2024</span></div>
       <a class="csGo" href="cluster.html" aria-label="View the Cluster case study"><figure class="csFrame"><img class="csImg" src="images/cs/cluster/cluster-cover.webp" alt="Cluster — a campus interest-and-clubs social app, shown across three iOS screens over a forest" loading="lazy" decoding="async"></figure></a>
-      <div class="csMeta"><span class="csName">Cluster</span><span class="csYear">2024</span></div>
      </div>
     </div>
    </div>
