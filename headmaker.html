@@ -56,6 +56,8 @@ nav{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;column-ga
 .hmDot::before{content:"";position:absolute;left:50%;top:50%;width:18px;height:18px;margin:-9px 0 0 -9px;border-radius:50%;border:2px solid var(--c950);background:rgba(253,253,253,.55);box-shadow:0 0 0 1px rgba(253,253,253,.8)}
 .hmDot::after{content:"";position:absolute;left:50%;top:50%;width:4px;height:4px;margin:-2px 0 0 -2px;border-radius:50%;background:var(--c950)}
 .hmDot.grabbed{cursor:grabbing}
+.hmDot.sm::before{width:12px;height:12px;margin:-6px 0 0 -6px;border-width:1.5px;border-style:dashed}
+.hmBrow,.hmNose{position:absolute;background-repeat:no-repeat;pointer-events:none;-webkit-mask-image:radial-gradient(ellipse at center,#000 55%,transparent 82%);mask-image:radial-gradient(ellipse at center,#000 55%,transparent 82%)}
 /* step 4: alive */
 #hmHead{position:absolute;left:0;top:0;width:100%;height:100%;will-change:transform}
 #hmHead img{width:100%;height:100%}
@@ -89,7 +91,7 @@ a:focus-visible,button:focus-visible,.hmDot:focus-visible{outline:2px solid var(
 
  <div class="content">
   <h1 class="head">Make your own floating head.</h1>
-  <p class="lede">The same treatment as the head on my homepage: an oval cutout, the ink-grey look, and a pair of living eyes that follow your cursor. Four small steps. <strong>Everything happens right here in your browser &mdash; your photo never leaves this page.</strong></p>
+  <p class="lede">The same treatment as the head on my homepage: an oval cutout, a floating pose, and living eyes that follow your cursor. Four small steps. <strong>Everything happens right here in your browser &mdash; your photo never leaves this page.</strong></p>
 
   <!-- STEP 1 · the photo -->
   <section class="hmStep" id="step1">
@@ -125,12 +127,16 @@ a:focus-visible,button:focus-visible,.hmDot:focus-visible{outline:2px solid var(
   <!-- STEP 3 · the eyes -->
   <section class="hmStep hidden" id="step3">
    <p class="kicker">Step 3 of 4 &middot; The eyes</p>
-   <h2 class="stepHead">Show me where your eyes are.</h2>
-   <p class="stepBody">Drag each ring onto the centre of a pupil. This is where your irises get swapped for the pair I drew.</p>
+   <h2 class="stepHead">Mark your face.</h2>
+   <p class="stepBody">Drag each ring onto a pupil, the small dots onto your eyebrows, and the last two onto your nose tip and mouth. These points are what bring the head to life.</p>
    <div class="hmStage bare" id="stage3">
     <img id="hmCut" alt="Your cutout head">
     <div class="hmDot" id="dotL" role="slider" tabindex="0" aria-label="Left eye position"></div>
     <div class="hmDot" id="dotR" role="slider" tabindex="0" aria-label="Right eye position"></div>
+    <div class="hmDot sm" id="dotBL" role="slider" tabindex="0" aria-label="Left eyebrow"></div>
+    <div class="hmDot sm" id="dotBR" role="slider" tabindex="0" aria-label="Right eyebrow"></div>
+    <div class="hmDot sm" id="dotN" role="slider" tabindex="0" aria-label="Nose tip"></div>
+    <div class="hmDot sm" id="dotM" role="slider" tabindex="0" aria-label="Mouth"></div>
    </div>
    <div class="hmRow">
     <button class="hmBtn ghost" type="button" id="back3">Re-crop</button>
@@ -142,13 +148,14 @@ a:focus-visible,button:focus-visible,.hmDot:focus-visible{outline:2px solid var(
   <section class="hmStep hidden" id="step4">
    <p class="kicker">Step 4 of 4 &middot; Alive</p>
    <h2 class="stepHead">There you are.</h2>
-   <p class="stepBody">Grey like mine, floating like mine, and watching your cursor with the eyes I drew. Save it, make it a profile picture, send it to someone who will get it.</p>
+   <p class="stepBody">Floating like mine, watching your cursor with living eyes, breathing, blinking, raising your own eyebrows. Save it, make it a profile picture, send it to someone who will get it.</p>
    <div class="hmStage bare" id="stage4">
     <div class="hmShadow" aria-hidden="true"></div>
     <div id="hmHead"><img id="hmLive" alt="Your floating cutout head, eyes following the cursor"></div>
    </div>
    <div class="hmRow">
     <button class="hmBtn ghost" type="button" id="restart">Start over</button>
+    <button class="hmBtn ghost" type="button" id="addSmile">Add a smiling photo</button>
     <button class="hmBtn" type="button" id="save">Download your head</button>
    </div>
    <p class="cap">The download is a transparent PNG, eyes looking straight at you.</p>
@@ -173,6 +180,8 @@ steps[0].classList.add("shown");
 var photo=new Image(),photoURL=null,cutURL=null;      // the raw photo, the baked cutout
 var pz={s:1.2,x:0,y:0};                               // pan/zoom in stage-2 space
 var eyes={L:{x:0.40,y:0.42},R:{x:0.60,y:0.42}};        // fractions of the cutout
+var marks={BL:{x:0.385,y:0.345},BR:{x:0.615,y:0.345},N:{x:0.5,y:0.55},M:{x:0.5,y:0.68}};   // brows, nose, mouth
+var smileURL=null,smileSlot=false;                     // optional second (smiling) photo
 var BAKE_W=840,BAKE_H=1008;                            // 5:6, matches the stage
 
 /* ---------- step 1: pick the photo ---------- */
@@ -185,6 +194,7 @@ drop.addEventListener("drop",function(e){var f=e.dataTransfer&&e.dataTransfer.fi
 file.addEventListener("change",function(){if(file.files&&file.files[0])load(file.files[0]);});
 function load(f){
  if(!/^image\//.test(f.type))return;
+ if(smileSlot){loadSmile(f);return;}
  if(photoURL)URL.revokeObjectURL(photoURL);
  photoURL=URL.createObjectURL(f);
  photo=new Image();
@@ -213,7 +223,7 @@ function bake(){
  var s=stageSize(),k=BAKE_W/s.w,base=coverScale();
  var c=document.createElement("canvas");c.width=BAKE_W;c.height=BAKE_H;
  var x=c.getContext("2d");
- x.filter="grayscale(1) contrast(1.07) brightness(1.03)";
+ x.filter="contrast(1.05) saturate(1.02)";
  x.setTransform(base*pz.s*k,0,0,base*pz.s*k,pz.x*k,pz.y*k);
  x.drawImage(photo,0,0);
  x.setTransform(1,0,0,1,0,0);x.filter="none";
@@ -230,7 +240,7 @@ document.getElementById("next2").addEventListener("click",function(){
 
 /* ---------- step 3: the eye dots ---------- */
 var stage3=document.getElementById("stage3"),dotL=document.getElementById("dotL"),dotR=document.getElementById("dotR");
-function placeDots(){posDot(dotL,eyes.L);posDot(dotR,eyes.R);}
+function placeDots(){posDot(dotL,eyes.L);posDot(dotR,eyes.R);posDot(document.getElementById("dotBL"),marks.BL);posDot(document.getElementById("dotBR"),marks.BR);posDot(document.getElementById("dotN"),marks.N);posDot(document.getElementById("dotM"),marks.M);}
 function posDot(d,e){d.style.left=(e.x*100)+"%";d.style.top=(e.y*100)+"%";}
 function dragDot(d,key){
  d.addEventListener("pointerdown",function(e){e.preventDefault();d.classList.add("grabbed");try{d.setPointerCapture(e.pointerId);}catch(_){}
@@ -243,32 +253,62 @@ function dragDot(d,key){
   e.preventDefault();c.x=Math.min(0.95,Math.max(0.05,c.x));c.y=Math.min(0.95,Math.max(0.05,c.y));posDot(d,c);});
 }
 dragDot(dotL,"L");dragDot(dotR,"R");
+var dotBL=document.getElementById("dotBL"),dotBR=document.getElementById("dotBR"),dotN=document.getElementById("dotN"),dotM=document.getElementById("dotM");
+[["BL",dotBL],["BR",dotBR],["N",dotN],["M",dotM]].forEach(function(p){eyes[p[0]]=marks[p[0]];dragDot(p[1],p[0]);});
 document.getElementById("back3").addEventListener("click",function(){show(1);});
 document.getElementById("next3").addEventListener("click",function(){buildLive();show(3);});
 
 /* ---------- step 4: alive ---------- */
 var stage4=document.getElementById("stage4"),headEl=document.getElementById("hmHead"),liveImg=document.getElementById("hmLive");
-var eyeEls=[],tick=null,gx=0,gy=0,blinkAt=0,blinkFrames=0;
+var eyeEls=[],tick=null,gx=0,gy=0,blinkAt=0,blinkFrames=0,browAt=0,browFrames=0,sniffAt=0,sniffFrames=0,smileAt=0,smiling=false;
 function eyeGeom(){
  var ipd=Math.hypot(eyes.R.x-eyes.L.x,(eyes.R.y-eyes.L.y)*(BAKE_H/BAKE_W));   // in width fractions
  var w=Math.max(0.05,Math.min(0.16,ipd*0.40)),h=w*0.52*(BAKE_W/BAKE_H);
  return{w:w,h:h};
 }
+function sclera(c){ // sample the user's own eye-white beside the pupil so the patch belongs to the face
+ try{var x=bakedCanvas.getContext("2d"),g=eyeGeom(),r=0,gg=0,b=0,n=0;
+  [-0.30,0.30].forEach(function(off){var d=x.getImageData(Math.round((c.x+off*g.w)*BAKE_W),Math.round(c.y*BAKE_H),3,3).data;
+   for(var i=0;i<d.length;i+=4){if(d[i+3]>200){r+=d[i];gg+=d[i+1];b+=d[i+2];n++;}}});
+  if(!n)return"#f2efec";
+  var l=function(v){return Math.min(255,Math.round(v/n*1.12+14));};
+  return"rgb("+l(r)+","+l(gg)+","+l(b)+")";}catch(_){return"#f2efec";}
+}
+var browEls=[],noseEl=null;
+function faceStrip(cx,cy,w,h,cls){ // a feathered strip of THEIR OWN photo that can move (brow raise, nose twitch)
+ var d=document.createElement("div");d.className=cls;
+ d.style.width=(w*100)+"%";d.style.height=(h*100)+"%";
+ d.style.left=((cx-w/2)*100)+"%";d.style.top=((cy-h/2)*100)+"%";
+ d.style.backgroundImage="url("+cutURL+")";
+ d.style.backgroundSize="100% 100%";
+ var s4=stage4.getBoundingClientRect();
+ d.style.backgroundSize=(100/w)+"% "+(100/h)+"%";
+ d.style.backgroundPosition=(cx-w/2)/(1-w)*100+"% "+((cy-h/2)/(1-h)*100)+"%";
+ headEl.appendChild(d);return d;
+}
 function buildLive(){
  liveImg.src=cutURL;
  eyeEls.forEach(function(e){e.wrap.remove();});eyeEls=[];
+ browEls.forEach(function(b){b.remove();});browEls=[];if(noseEl){noseEl.remove();noseEl=null;}
  var g=eyeGeom();
  [eyes.L,eyes.R].forEach(function(c){
   var w=document.createElement("div");w.className="hmEye";
   w.style.width=(g.w*100)+"%";w.style.height=(g.h*100)+"%";
   w.style.left=((c.x-g.w/2)*100)+"%";w.style.top=((c.y-g.h/2)*100)+"%";
+  w.style.background=sclera(c);
+  w.style.boxShadow="none";
+  w.style.webkitMaskImage="radial-gradient(ellipse at center,#000 58%,transparent 80%)";
+  w.style.maskImage="radial-gradient(ellipse at center,#000 58%,transparent 80%)";
   var ir=document.createElement("div");ir.className="hmIris";
   var gl=document.createElement("div");gl.className="hmGlint";
   ir.appendChild(gl);w.appendChild(ir);
   headEl.appendChild(w);eyeEls.push({wrap:w,iris:ir});
  });
+ browEls=[faceStrip(marks.BL.x,marks.BL.y,g.w*1.5,g.h*1.7,"hmBrow"),faceStrip(marks.BR.x,marks.BR.y,g.w*1.5,g.h*1.7,"hmBrow")];
+ noseEl=faceStrip(marks.N.x,marks.N.y,g.w*1.1,g.h*2.1,"hmNose");
  if(tick)clearInterval(tick);
  blinkAt=performance.now()+2600+Math.random()*2800;
+ browAt=performance.now()+3200+Math.random()*5000;sniffAt=performance.now()+9000+Math.random()*14000;smileAt=performance.now()+8000;
  if(!reduce){tick=setInterval(liveTick,125);}
 }
 var mx=innerWidth/2,my=innerHeight*0.4,tk=0;
@@ -279,7 +319,22 @@ function liveTick(){
  var cx=r.left+r.width/2,cy=r.top+r.height*0.45;
  var nx=Math.max(-1,Math.min(1,(mx-cx)/300)),ny=Math.max(-1,Math.min(1,(my-cy)/300));
  var fy=Math.sin(t*0.85)*4,fx=Math.sin(t*0.55)*2.5,rot=Math.sin(t*0.4)*0.7+nx*2.0;
+ headEl.style.transformOrigin=(marks.N.x*100)+"% "+(marks.N.y*100)+"%";   // rotate about the nose: anatomical, not cardboard
  headEl.style.transform="translate("+fx.toFixed(1)+"px,"+fy.toFixed(1)+"px) rotate("+rot.toFixed(2)+"deg)";
+ /* smile beats: if they gave a smiling photo, swap the whole face like my smile frame (overlays hide) */
+ if(smileURL&&!smiling&&now>=smileAt){smiling=true;liveImg.src=smileURL;setTimeout(function(){smiling=false;liveImg.src=cutURL;},1150);smileAt=now+9000+Math.random()*8000;}
+ var hide=smiling?"0":"1";
+ eyeEls.forEach(function(e){e.wrap.style.opacity=hide;});
+ browEls.forEach(function(b){b.style.opacity=hide;});if(noseEl)noseEl.style.opacity=hide;
+ if(smiling)return;
+ /* the brows are their own: raise a strip of their photo, hold a beat, settle */
+ if(now>=browAt&&browFrames===0){browFrames=6;browAt=now+6000+Math.random()*8000;}
+ if(browFrames>0){var lift=(browFrames>4||browFrames===1)?-1.5:-3;browEls.forEach(function(b){b.style.transform="translateY("+lift+"px)";});browFrames--;}
+ else browEls.forEach(function(b){b.style.transform="";});
+ /* a tiny sniff: the nose strip nudges sideways for two frames */
+ if(now>=sniffAt&&sniffFrames===0){sniffFrames=3;sniffAt=now+16000+Math.random()*20000;}
+ if(sniffFrames>0){noseEl.style.transform="translateX("+(sniffFrames===2?1.2:-0.8)+"px)";sniffFrames--;}
+ else if(noseEl)noseEl.style.transform="";
  if(now>=blinkAt&&blinkFrames===0){blinkFrames=2;blinkAt=now+2600+Math.random()*3400;}
  eyeEls.forEach(function(e){
   if(blinkFrames>0){e.wrap.style.transform="scaleY(0.08)";e.iris.style.opacity="0";}
@@ -289,11 +344,22 @@ function liveTick(){
  });
  if(blinkFrames>0)blinkFrames--;
 }
+document.getElementById("addSmile").addEventListener("click",function(){smileSlot=true;file.click();});
+function loadSmile(f){
+ var u=URL.createObjectURL(f),im=new Image();
+ im.onload=function(){
+  // bake the smile with the same crop the visitor set for the first photo
+  var keep=photo;photo=im;var c=bake();photo=keep;
+  smileURL=c.toDataURL("image/png");URL.revokeObjectURL(u);smileSlot=false;
+  smileAt=performance.now()+1200;   // show it off right away
+ };
+ im.src=u;
+}
 document.getElementById("restart").addEventListener("click",function(){
  if(tick){clearInterval(tick);tick=null;}
  eyeEls.forEach(function(e){e.wrap.remove();});eyeEls=[];
  if(photoURL){URL.revokeObjectURL(photoURL);photoURL=null;}
- file.value="";eyes={L:{x:0.40,y:0.42},R:{x:0.60,y:0.42}};
+ file.value="";eyes.L={x:0.40,y:0.42};eyes.R={x:0.60,y:0.42};smileURL=null;smileSlot=false;
  steps.forEach(function(s){s.classList.remove("shown");});steps[0].classList.add("shown");
  show(0);
 });
@@ -305,8 +371,9 @@ document.getElementById("save").addEventListener("click",function(){
  var g=eyeGeom(),W=BAKE_W,H=BAKE_H;
  [eyes.L,eyes.R].forEach(function(e){
   var ew=g.w*W,eh=g.h*H,ex=e.x*W,ey=e.y*H;
-  x.fillStyle="#fff";x.beginPath();x.ellipse(ex,ey,ew/2,eh/2,0,0,Math.PI*2);x.fill();
-  x.strokeStyle="rgba(8,8,8,.22)";x.lineWidth=2;x.stroke();
+  var sc=sclera(e);var grd=x.createRadialGradient(ex,ey,0,ex,ey,ew/2);
+  grd.addColorStop(0,sc);grd.addColorStop(0.62,sc);grd.addColorStop(1,sc.replace("rgb","rgba").replace(")",",0)"));
+  x.fillStyle=grd;x.beginPath();x.ellipse(ex,ey,ew/2,eh/2,0,0,Math.PI*2);x.fill();
   x.fillStyle="#141414";x.beginPath();x.ellipse(ex,ey,ew*0.3,eh*0.52,0,0,Math.PI*2);x.fill();
   x.fillStyle="rgba(255,255,255,.9)";x.beginPath();x.ellipse(ex-ew*0.07,ey-eh*0.14,ew*0.055,eh*0.095,0,0,Math.PI*2);x.fill();
  });
