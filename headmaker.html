@@ -60,13 +60,25 @@ nav{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;column-ga
 .hmLoupe{position:absolute;width:110px;height:110px;border-radius:50%;background-repeat:no-repeat;box-shadow:0 0 0 1.5px rgba(8,8,8,.4),0 10px 30px -12px rgba(8,8,8,.4);pointer-events:none;display:none;z-index:9;background-color:var(--c50)}
 .hmLoupe::after{content:"";position:absolute;left:50%;top:50%;width:10px;height:10px;margin:-5px 0 0 -5px;border:1.5px solid var(--c950);border-radius:50%;background:rgba(253,253,253,.35)}
 .hmWhich{text-align:center;font-family:var(--sans);font-size:var(--fs-label);font-weight:600;color:var(--c700);margin:14px 0 0;min-height:18px;filter:url(#inkSm)}
-.hmGuides{position:absolute;inset:0;pointer-events:none}.hmDot.lid::before{width:14px;height:0;border:0;border-top:2px solid var(--c950);border-radius:2px;margin:-1px 0 0 -7px;background:none;box-shadow:0 0 0 1px rgba(253,253,253,.8)}.hmDot.lid::after{display:none}
+.hmGuides{position:absolute;inset:0;pointer-events:none}
+/* every glyph is the anatomy it controls: chevron = corner wedge, arc = lid, dashed almond = the whole eye */
+.hmDot::before,.hmMark::before{filter:drop-shadow(0 0 1px rgba(253,253,253,.95)) drop-shadow(0 0 2px rgba(253,253,253,.6))}
+.hmDot.cl::before,.hmDot.cr::before{width:8px;height:8px;border:0;border-left:2px solid var(--c950);border-bottom:2px solid var(--c950);border-radius:1.5px;background:none;box-shadow:none;margin:-4px 0 0 -4px}
+.hmDot.cl::before{transform:rotate(45deg)}
+.hmDot.cr::before{transform:rotate(225deg)}
+.hmDot.cl::after,.hmDot.cr::after{display:none}
+.hmDot.lid::before{width:20px;height:8px;border:0;background:none;box-shadow:none;margin:-1px 0 0 -10px;border-top:2px solid var(--c950);border-radius:50% 50% 0 0/100% 100% 0 0;filter:drop-shadow(0 0 1px rgba(253,253,253,1)) drop-shadow(0 0 1px rgba(253,253,253,.9)) drop-shadow(0 0 3px rgba(253,253,253,.7))}
+.hmDot.lid.bot::before{margin-top:-7px;border-top:0;border-bottom:2px solid var(--c950);border-radius:0 0 50% 50%/0 0 100% 100%}
+.hmDot.lid::after{display:none}
+.hmMark.brow::before{content:"";position:absolute;left:50%;top:50%;width:30px;height:10px;margin:-5px 0 0 -15px;border-top:2.5px solid var(--c950);border-radius:50% 50% 0 0/100% 100% 0 0}
+.hmMark.mouth::before{content:"";position:absolute;left:50%;top:50%;width:44px;height:12px;margin:-6px 0 0 -22px;border-bottom:2px solid var(--c950);border-radius:0 0 50% 50%/0 0 100% 100%}
+.hmMark.hot::before{border-width:2.5px}
 .hmDot::before{width:9px;height:9px;margin:-4.5px 0 0 -4.5px;border-width:1.5px;background:var(--c50)}.hmDot::after{width:3px;height:3px;margin:-1.5px 0 0 -1.5px}
 .hmMark{position:absolute;width:52px;height:44px;margin:-22px 0 0 -26px;cursor:grab;touch-action:none}
 .hmMark.bar::before{content:"";position:absolute;left:50%;top:50%;width:30px;height:0;margin:-1px 0 0 -15px;border-top:1.5px solid var(--c950);border-radius:2px;box-shadow:0 0 0 1px rgba(253,253,253,.8)}
 .hmMark.bar.wide::before{width:46px;margin-left:-23px}
 .hmMark.ring::before{content:"";position:absolute;left:50%;top:50%;width:14px;height:12px;margin:-6px 0 0 -7px;border:1.5px solid var(--c950);border-radius:50%;background:rgba(253,253,253,.5)}
-.hmMark.eyeC::before{width:20px;height:16px;margin:-8px 0 0 -10px;border-style:dashed;background:rgba(253,253,253,.25)}
+.hmMark.eyeC::before{width:46px;height:30px;margin:-15px 0 0 -23px;border-style:dashed;border-radius:50%;background:rgba(253,253,253,.10)}
 .hmZoom{-webkit-appearance:none;appearance:none;height:2px;background:rgba(8,8,8,.18);border-radius:2px;outline-offset:6px}
 .hmZoom::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--c950);border:0;cursor:pointer}
 .hmZoom::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:var(--c950);border:0;cursor:pointer}
@@ -142,25 +154,25 @@ a:focus-visible,button:focus-visible,.hmDot:focus-visible{outline:2px solid var(
   <section class="hmStep hidden" id="step3">
    <p class="kicker">Step 3 of 4 &middot; The eyes</p>
    <h2 class="stepHead">Mark your face.</h2>
-   <p class="stepBody">We take a first guess at where everything sits &mdash; just nudge what's off. The dashed ring moves a whole eye at once; the dots fine-tune its corners and lids. Bars on your brows and mouth, the small ring on your nose.</p>
+   <p class="stepBody">We take a first guess at where everything sits &mdash; just nudge what's off. The dashed ring drags a whole eye at once, the chevrons pinch its corners, the little arcs rest on its lids. Arched bars on your brows, a smile line on your mouth, the small ring on your nose.</p>
    <div class="hmStage bare" id="stage3">
     <img id="hmCut" alt="Your cutout head">
     <svg class="hmGuides" id="hmGuides" aria-hidden="true"><line id="gL" stroke="rgba(8,8,8,.22)" stroke-width="1"/><line id="gR" stroke="rgba(8,8,8,.22)" stroke-width="1"/></svg>
     <div class="hmLoupe" id="hmLoupe" aria-hidden="true"></div>
-    <div class="hmDot" id="dLi" role="slider" tabindex="0" aria-label="Left eye, inner corner"></div>
-    <div class="hmDot" id="dLo" role="slider" tabindex="0" aria-label="Left eye, outer corner"></div>
-    <div class="hmDot" id="dRi" role="slider" tabindex="0" aria-label="Right eye, inner corner"></div>
-    <div class="hmDot" id="dRo" role="slider" tabindex="0" aria-label="Right eye, outer corner"></div>
+    <div class="hmDot cl" id="dLi" role="slider" tabindex="0" aria-label="Left eye, left corner"></div>
+    <div class="hmDot cr" id="dLo" role="slider" tabindex="0" aria-label="Left eye, right corner"></div>
+    <div class="hmDot cl" id="dRi" role="slider" tabindex="0" aria-label="Right eye, left corner"></div>
+    <div class="hmDot cr" id="dRo" role="slider" tabindex="0" aria-label="Right eye, right corner"></div>
     <div class="hmDot lid" id="dLt" role="slider" tabindex="0" aria-label="Left eye, top lid"></div>
-    <div class="hmDot lid" id="dLb" role="slider" tabindex="0" aria-label="Left eye, bottom lid"></div>
+    <div class="hmDot lid bot" id="dLb" role="slider" tabindex="0" aria-label="Left eye, bottom lid"></div>
     <div class="hmDot lid" id="dRt" role="slider" tabindex="0" aria-label="Right eye, top lid"></div>
-    <div class="hmDot lid" id="dRb" role="slider" tabindex="0" aria-label="Right eye, bottom lid"></div>
+    <div class="hmDot lid bot" id="dRb" role="slider" tabindex="0" aria-label="Right eye, bottom lid"></div>
     <div class="hmMark ring eyeC" id="dLC" role="slider" tabindex="0" aria-label="Left eye, whole eye"></div>
     <div class="hmMark ring eyeC" id="dRC" role="slider" tabindex="0" aria-label="Right eye, whole eye"></div>
-    <div class="hmMark bar" id="dBL" role="slider" tabindex="0" aria-label="Left eyebrow"></div>
-    <div class="hmMark bar" id="dBR" role="slider" tabindex="0" aria-label="Right eyebrow"></div>
+    <div class="hmMark brow" id="dBL" role="slider" tabindex="0" aria-label="Left eyebrow"></div>
+    <div class="hmMark brow" id="dBR" role="slider" tabindex="0" aria-label="Right eyebrow"></div>
     <div class="hmMark ring" id="dN" role="slider" tabindex="0" aria-label="Nose tip"></div>
-    <div class="hmMark bar wide" id="dM" role="slider" tabindex="0" aria-label="Mouth"></div>
+    <div class="hmMark mouth" id="dM" role="slider" tabindex="0" aria-label="Mouth"></div>
    </div>
    <p class="hmWhich" id="hmWhich" aria-live="polite">Drag near a marker to move it</p>
    <div class="hmRow">
@@ -299,7 +311,7 @@ function guessFace(){try{
  function pxL(x,y){x=Math.max(0,Math.min(GW-1,x));y=Math.max(0,Math.min(GH-1,y));var i=(y*GW+x)*4;if(d[i+3]<120)return 255;return 0.299*d[i]+0.587*d[i+1]+0.114*d[i+2];}
  function box(x,y){var t=0,n=0;for(var yy=y-2;yy<=y+2;yy++)for(var xx=x-2;xx<=x+2;xx++){t+=pxL(xx,yy);n++;}return t/n;}
  function findEye(x0,x1){var best=null,bs=-1e9;
-  for(var y=Math.round(GH*0.30);y<=Math.round(GH*0.52);y++)for(var x=Math.round(GW*x0);x<=Math.round(GW*x1);x++){
+  for(var y=Math.round(GH*0.28);y<=Math.round(GH*0.56);y++)for(var x=Math.round(GW*x0);x<=Math.round(GW*x1);x++){
    var sc=(box(x-7,y)+box(x+7,y))/2-box(x,y);
    if(sc>bs){bs=sc;best={x:x/GW,y:y/GH};}}
   return bs>18?best:null;}   // a real iris beats skin noise by a wide margin
@@ -345,7 +357,7 @@ function moveEye(side,dx,dy){var ks=["i","o","t","b"];   /* rigid: the whole eye
  ks.forEach(function(sk){var p=pts[side+sk];p.x+=dx;p.y+=dy;posDot(document.getElementById("d"+side+sk),p);});
  placeCentres();}
 function posDot(d,e){d.style.left=(e.x*100)+"%";d.style.top=(e.y*100)+"%";}
-var NAMES={Li:"Left eye · inner corner",Lo:"Left eye · outer corner",Ri:"Right eye · inner corner",Ro:"Right eye · outer corner",Lt:"Left eye · top lid",Lb:"Left eye · bottom lid",Rt:"Right eye · top lid",Rb:"Right eye · bottom lid",BL:"Left eyebrow",BR:"Right eyebrow",N:"Nose tip",M:"Mouth",LC:"Left eye \u00b7 whole eye",RC:"Right eye \u00b7 whole eye"};
+var NAMES={Li:"Left eye · left corner",Lo:"Left eye · right corner",Ri:"Right eye · left corner",Ro:"Right eye · right corner",Lt:"Left eye · top lid",Lb:"Left eye · bottom lid",Rt:"Right eye · top lid",Rb:"Right eye · bottom lid",BL:"Left eyebrow",BR:"Right eyebrow",N:"Nose tip",M:"Mouth",LC:"Left eye \u00b7 whole eye",RC:"Right eye \u00b7 whole eye"};
 var guideL=document.getElementById("gL"),guideR=document.getElementById("gR"),loupe=document.getElementById("hmLoupe"),which=document.getElementById("hmWhich");
 function drawGuides(){var r=stage3.getBoundingClientRect();if(!r.width)return;
  guideL.setAttribute("x1",pts.Li.x*r.width);guideL.setAttribute("y1",pts.Li.y*r.height);guideL.setAttribute("x2",pts.Lo.x*r.width);guideL.setAttribute("y2",pts.Lo.y*r.height);
