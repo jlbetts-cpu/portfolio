@@ -77,6 +77,9 @@ nav{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;column-ga
 .hmPit{display:flex;gap:14px;justify-content:center;margin:var(--sp-16-24) 0}
 .hmPit img{width:64px;height:76px;object-fit:contain;background:var(--c100);border-radius:4px;padding:4px}
 .hmPit .hmPitEmpty{width:64px;height:76px;border:1.5px dashed rgba(8,8,8,.25);border-radius:4px}
+.hmPitItem{position:relative;display:inline-block}
+.hmPitX{position:absolute;top:-7px;right:-7px;width:18px;height:18px;border-radius:50%;border:1px solid var(--c100);background:var(--c50);color:var(--c700);font-size:12px;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0}
+.hmPitX:hover{color:var(--c950);border-color:var(--c500)}
 .hmRoll{display:inline-flex;align-items:center;gap:8px}
 .hmDie{display:block;transition:transform .55s cubic-bezier(.34,1.35,.4,1)}
 .hmZoom{-webkit-appearance:none;appearance:none;height:2px;background:rgba(8,8,8,.18);border-radius:2px;outline-offset:6px}
@@ -626,7 +629,7 @@ function buildLive(){
   var _all=[],_rawS=null;try{var _r2=localStorage.getItem("hmCompanions");if(_r2!==null){_all=JSON.parse(_r2)||[];_rawS=1;}}catch(_){}
   if(!(_all instanceof Array))_all=[];
   if(_rawS===null){try{var _lg=JSON.parse(localStorage.getItem("hmCompanion")||"null");if(_lg&&_lg.cut&&_lg.cut.length>100)_all=[_lg];}catch(_){}}
-  _all=_all.filter(function(h){return h&&h.cut&&h.cut.length>100&&h.cut!==_nh.cut;});   // same face re-saved just moves to newest: never a duplicate in the pit
+  _all=_all.filter(function(h){return h&&h.cut&&h.cut.length>=15000&&h.cut!==_nh.cut;});   // real faces only; the same face re-saved just moves to newest
   _all.push(_nh);while(_all.length>3)_all.shift();   // the pit holds three: the oldest head retires
   localStorage.setItem("hmCompanions",JSON.stringify(_all));
   localStorage.setItem("hmCompanion",JSON.stringify(_nh));renderPit();}catch(_){}
@@ -688,14 +691,27 @@ function loadSmile(f){
   smileAt=performance.now()+1200;   // show it off right away
  },function(){smileSlot=false;});
 }
-function renderPit(){try{var row=document.getElementById("hmPitRow"),sec=document.getElementById("hmPitSec");if(!row)return;
- var all=[],rawN1=null;try{var raw1=localStorage.getItem("hmCompanions");if(raw1!==null){all=JSON.parse(raw1)||[];rawN1=all.length;}}catch(_){}
+function readPit(){var all=[],rawN1=null;
+ try{var raw1=localStorage.getItem("hmCompanions");if(raw1!==null){all=JSON.parse(raw1)||[];rawN1=all.length;}}catch(_){}
  if(rawN1===null){try{var lg1=JSON.parse(localStorage.getItem("hmCompanion")||"null");if(lg1&&lg1.cut)all=[lg1];}catch(_){}}
- var seenP={};all=all.filter(function(d){if(!d||!d.cut||d.cut.length<101||seenP[d.cut])return false;seenP[d.cut]=1;return true;}).slice(0,3);
+ var seenP={};all=all.filter(function(d){if(!d||!d.cut||d.cut.length<15000||seenP[d.cut])return false;seenP[d.cut]=1;return true;}).slice(0,3);
+ if(rawN1!==null&&rawN1!==all.length){try{localStorage.setItem("hmCompanions",JSON.stringify(all));}catch(_){}}   // heal: duplicates and debris leave the record for good
+ return all;}
+function renderPit(){try{var row=document.getElementById("hmPitRow"),sec=document.getElementById("hmPitSec");if(!row)return;
+ var all=readPit();
  if(sec)sec.classList.toggle("hidden",!all.length);   // present the moment you have a head, on every step
  row.innerHTML="";
- for(var i=0;i<3;i++){if(all[i]&&all[i].cut){var im1=document.createElement("img");im1.src=all[i].cut;im1.alt="A saved head";row.appendChild(im1);}
-  else{var d1=document.createElement("div");d1.className="hmPitEmpty";row.appendChild(d1);}}}catch(_){}}
+ for(var i=0;i<3;i++){(function(idx){
+  if(all[idx]&&all[idx].cut){var it=document.createElement("span");it.className="hmPitItem";
+   var im1=document.createElement("img");im1.src=all[idx].cut;im1.alt="A saved head";it.appendChild(im1);
+   var xb=document.createElement("button");xb.className="hmPitX";xb.type="button";xb.setAttribute("aria-label","Remove this head from the homepage");xb.textContent="\u00d7";
+   xb.addEventListener("click",function(){var cur=readPit();cur.splice(idx,1);
+    try{localStorage.setItem("hmCompanions",JSON.stringify(cur));
+     if(cur.length)localStorage.setItem("hmCompanion",JSON.stringify(cur[cur.length-1]));
+     else localStorage.removeItem("hmCompanion");}catch(_){}
+    renderPit();});
+   it.appendChild(xb);row.appendChild(it);}
+  else{var d1=document.createElement("div");d1.className="hmPitEmpty";row.appendChild(d1);}})(i);}}catch(_){}}
 renderPit();
 document.getElementById("addAnother").addEventListener("click",function(){document.getElementById("restart").click();renderPit();});
 document.getElementById("saveFile").addEventListener("click",function(){ // your head as a keepsake file: reupload it any time
