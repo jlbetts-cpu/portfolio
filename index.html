@@ -2531,7 +2531,9 @@ requestAnimationFrame(function(){requestAnimationFrame(startIntro);});
  function readAll(){var a=[],rawN=null;
   try{var raw=localStorage.getItem("hmCompanions");if(raw!==null){a=JSON.parse(raw)||[];rawN=a.length;}}catch(_){}
   if(rawN===null){try{var l=JSON.parse(localStorage.getItem("hmCompanion")||"null");if(l&&l.cut)a=[l];}catch(_){}}   // an emptied pit stays empty
-  var seen={};a=a.filter(function(d){if(!d||!d.cut||d.cut.length<15000||seen[d.cut])return false;seen[d.cut]=1;return true;}).slice(0,8);
+  var seen={};a=a.filter(function(d){if(!d||!d.cut||d.cut.length<15000)return false;
+  var k2=JSON.stringify(d.marks||"m")+JSON.stringify((d.eyes||[]).map(function(e){return[e.x,e.y,e.w,e.h];}));
+  if(seen[d.cut]||seen[k2])return false;seen[d.cut]=1;seen[k2]=1;return true;}).slice(0,8);
   if(rawN!==null&&rawN!==a.length){try{localStorage.setItem("hmCompanions",JSON.stringify(a));}catch(_){}}   // heal duplicates so one x is always one head
   return a;}
  function render(){var a=readAll();box.innerHTML="";
@@ -2574,7 +2576,9 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
  var list=[],_rawN=null;   // up to eight little heads: the ball pit
  try{var _raw=localStorage.getItem("hmCompanions");if(_raw!==null){var _m=JSON.parse(_raw)||[];_rawN=_m.length;list=_m;}}catch(_){}
  if(_rawN===null){try{var _one=JSON.parse(localStorage.getItem("hmCompanion")||"null");if(_one)list=[_one];}catch(_){}}   // legacy only when the new key has never existed: an emptied pit stays empty
- var seenC={};list=list.filter(function(d){if(!d||!d.cut||d.cut.length<15000||seenC[d.cut])return false;seenC[d.cut]=1;return true;}).slice(0,8);   // unique REAL faces only: baked heads are never tiny, debris is
+ var seenC={};list=list.filter(function(d){if(!d||!d.cut||d.cut.length<15000)return false;
+  var k2=JSON.stringify(d.marks||"m")+JSON.stringify((d.eyes||[]).map(function(e){return[e.x,e.y,e.w,e.h];}));
+  if(seenC[d.cut]||seenC[k2])return false;seenC[d.cut]=1;seenC[k2]=1;return true;}).slice(0,8);   // unique REAL faces only, by pixels AND by geometry
  if(_rawN!==null&&_rawN!==list.length){try{localStorage.setItem("hmCompanions",JSON.stringify(list));}catch(_){}}   // heal stale duplicates once, physically
  if(!list.length)return;
  var peers=[];   // every head knows where every other head is, every frame
