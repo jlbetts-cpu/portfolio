@@ -266,8 +266,7 @@ body.partyLock{overflow:hidden}
 .mhX{position:absolute;top:-6px;right:-6px;width:16px;height:16px;border-radius:50%;border:1px solid var(--c100);background:var(--c50);color:var(--c700);font-size:11px;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0}
 .mhX:hover{color:var(--c950);border-color:var(--c500)}
 .swordDot::before{content:"";position:absolute;left:2px;top:2px;right:2px;bottom:2px;border:1.5px solid var(--c950);border-radius:3.5px;background-color:var(--c50);background-image:linear-gradient(45deg,transparent 44%,var(--c950) 44%,var(--c950) 56%,transparent 56%),linear-gradient(-45deg,transparent 44%,var(--c950) 44%,var(--c950) 56%,transparent 56%);background-size:70% 70%;background-position:center;background-repeat:no-repeat}
-.ballDot::before{content:"";position:absolute;left:2px;top:2px;right:2px;bottom:2px;border-radius:50%;border:1.5px solid var(--c950);background:var(--c50)}
-.ballDot::after{content:"";position:absolute;left:50%;top:50%;width:6px;height:6px;transform:translate(-50%,-50%);background:var(--c950);clip-path:polygon(50% 0,100% 38%,82% 100%,18% 100%,0 38%)}
+.ballDot::before{content:"";position:absolute;inset:1px;background:url(images/soccerball.svg) center/contain no-repeat}
 .battleBadge{display:none;position:absolute;left:50%;top:14px;transform:translateX(-50%);z-index:47;align-items:center;gap:8px;padding:8px 14px;border:1px solid var(--c100);border-radius:999px;background:var(--c50);font-family:var(--sans);font-size:var(--fs-label);font-weight:600;color:var(--c700);filter:url(#inkSm);pointer-events:none}
 .battleBadge i{width:7px;height:7px;border-radius:50%;background:#b3402e;animation:bbPulse 1.1s steps(2,end) infinite}
 @keyframes bbPulse{0%,100%{opacity:1}50%{opacity:.35}}
@@ -279,6 +278,8 @@ body.hmSoccer .moodMenu .moodItem{opacity:.38;pointer-events:none}
 .hmGoalR{border:2px solid rgba(224,90,78,.65);border-left:0;border-radius:0 6px 6px 0}
 .hmGoalB{border:2px solid rgba(90,160,216,.65);border-right:0;border-radius:6px 0 0 6px}
 .hmGoal.hmGoalHit{box-shadow:0 0 0 3px rgba(232,181,74,.6)}
+.battleCount{position:absolute;left:50%;top:12px;transform:translateX(-50%);z-index:47;display:flex;align-items:center;gap:8px;padding:9px 16px;border:1px solid var(--c100);border-radius:999px;background:var(--c50);font-family:var(--sans);font-weight:600;font-size:var(--fs-body);color:var(--c950);opacity:0;pointer-events:none;transition:opacity .3s;filter:url(#inkSm)}
+.battleCount i{width:8px;height:8px;border-radius:50%;background:#b3402e;animation:bbPulse 1.1s steps(2,end) infinite}
 .hmScore{position:absolute;left:50%;top:12px;transform:translateX(-50%);z-index:47;display:flex;align-items:center;gap:12px;padding:9px 16px;border:1px solid var(--c100);border-radius:999px;background:var(--c50);font-family:var(--sans);font-weight:600;font-size:var(--fs-body);color:var(--c950);opacity:0;pointer-events:none;transition:opacity .3s;filter:url(#inkSm)}
 .hmScore .sTeam{display:flex;align-items:center;gap:7px}
 .hmScore .sTeam i{width:9px;height:9px;border-radius:50%}
@@ -2638,7 +2639,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
  hurtEl.style.cssText="position:absolute;inset:0;background:rgba(196,52,38,.85);opacity:0;pointer-events:none;-webkit-mask-image:url("+data.cut+");-webkit-mask-size:100% 100%;mask-image:url("+data.cut+");mask-size:100% 100%";
  root.appendChild(hurtEl);
  var ringEl=document.createElement("div");   // the team aura: a soft colored glow, one glance tells red from blue
- ringEl.style.cssText="position:absolute;inset:-14%;border-radius:46%/40%;filter:blur(7px);opacity:0;transition:opacity .3s;z-index:-1;pointer-events:none";
+ ringEl.style.cssText="position:absolute;inset:-8%;border-radius:46%/40%;filter:blur(4px);opacity:0;transition:opacity .3s;z-index:-1;pointer-events:none";
  root.appendChild(ringEl);
  var crownEl=document.createElement("div");   // the champion's crown
  crownEl.style.cssText="position:absolute;left:50%;top:-24%;width:46%;transform:translateX(-50%);opacity:0;transition:opacity .3s;pointer-events:none;z-index:5";
@@ -2983,9 +2984,11 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   try{var S9=window.__hmSoccer;
    if(S9&&S9.on&&!soccerOn&&!killed){soccerOn=true;soccerWon=false;team=(S9.teams&&S9.teams[slot])||1;
     perched=false;leapDelay=Infinity;bar.style.opacity="0";root.style.pointerEvents="";
-    ringEl.style.background=team===1?"radial-gradient(circle,rgba(224,90,78,.9),rgba(224,90,78,0) 70%)":"radial-gradient(circle,rgba(90,160,216,.9),rgba(90,160,216,0) 70%)";
-    ringEl.style.opacity="0.85";}
+    var tcol=team===1?"224,90,78":"90,160,216";
+    ringEl.style.background="radial-gradient(circle,rgba("+tcol+",.85),rgba("+tcol+",0) 58%)";ringEl.style.opacity="0.6";
+    shadow.style.background="radial-gradient(ellipse at center,rgba("+tcol+",.42),rgba("+tcol+",0) 70%)";}   // the shadow wears the team colour too
    if(S9&&!S9.on&&soccerOn){soccerOn=false;soccerWon=false;ringEl.style.opacity="0";crownEl.style.opacity="0";
+    shadow.style.background="radial-gradient(ellipse at center,rgba(8,8,8,.26),rgba(8,8,8,0) 70%)";
     if(!killed){shown=true;root.style.opacity="1";root.style.filter="blur(0)";shadow.style.opacity="1";root.style.display="";shadow.style.display="";
      var fs9=Math.random()<0.5;x=fs9?WL+2:WR-2;y=floorY-(140+Math.random()*240);dir=fs9?1:-1;air=true;st="fall";surface=floorY;
      vx=dir*(360+Math.random()*240);vy=-(120+Math.random()*260);if(Math.random()<0.35)startFlip();}}
@@ -3219,24 +3222,45 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   function board2(){if(sR)sR.textContent=S.red;if(sB)sB.textContent=S.blue;}
   function refFlash(){try{if(typeof busyNow==="function"&&!busyNow()&&typeof browFlash==="function")browFlash();}catch(_){}}
   function showCount(t){if(!countEl)return;countEl.textContent=t;countEl.classList.remove("hmCountPulse");void countEl.offsetWidth;countEl.classList.add("hmCountPulse");}
-  function kickoff(){S.kickSeed=(S.kickSeed||0)+1;   // everyone to their own half
+  var RED="224,90,78",BLUE="90,160,216";
+  function kickoffCountdown(){S.kickSeed=(S.kickSeed||0)+1;   // the match opener: everyone to their half, then 3-2-1
    bx=W/2;by=70;bvx=0;bvy=0;S.phase="count";
    var n=3;showCount(n);
    (function tick(){if(!S.on)return;
     if(n>1){n--;setTimeout(function(){showCount(n);tick();},800);}
     else{setTimeout(function(){if(!S.on)return;showCount("GO");
      setTimeout(function(){if(!S.on)return;if(countEl)countEl.textContent="";bvy=30;S.phase="play";},560);},800);}})();}
+  function dropIn(){S.kickSeed=(S.kickSeed||0)+1;   // after a goal: no countdown, the ball just drops back in as they return to their sides
+   bx=W/2;by=60;bvx=(Math.random()*80-40);bvy=20;S.phase="reset";
+   setTimeout(function(){if(S.on)S.phase="play";},650);}
+  function goalBurst(team,gx,gy){try{   // the ball bursts, and confetti erupts from the goal it went in
+   var cv=document.createElement("canvas"),hr=hero.getBoundingClientRect();cv.width=hr.width;cv.height=hr.height;
+   cv.style.cssText="position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:6";hero.appendChild(cv);
+   var g=cv.getContext("2d"),P=[];var rgb=team===1?RED:BLUE;
+   for(var i=0;i<22;i++){var a=Math.random()*6.28,sp=180+Math.random()*260;   // the explosion at the ball
+    P.push({x:gx,y:gy,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp-60,w:5+Math.random()*4,h:5+Math.random()*4,c:"255,255,255",rv:4+Math.random()*6,life:1});}
+   var goalX=team===1?(hr.width-14):14,dir=team===1?-1:1;   // confetti shoots OUT of the scored-on goal, into the field
+   for(var j=0;j<70;j++){P.push({x:goalX,y:hr.height-40-Math.random()*150,vx:dir*(220+Math.random()*360),vy:-(80+Math.random()*260),
+    w:6+Math.random()*4,h:3+Math.random()*3,c:rgb,rv:2+Math.random()*4,life:1});}
+   var t=0,l=performance.now();
+   (function fr(n){var d=Math.min(0.05,(n-l)/1000);l=n;t+=d;g.clearRect(0,0,cv.width,cv.height);
+    var al=t<1.6?1:Math.max(0,1-(t-1.6)/0.7);g.globalAlpha=al;
+    P.forEach(function(p){p.vy+=1500*d;p.x+=p.vx*d;p.y+=p.vy*d;p.vx*=0.98;
+     g.save();g.translate(p.x,p.y);g.rotate(t*p.rv);g.scale(1,Math.max(0.2,Math.abs(Math.cos(t*p.rv))));
+     g.fillStyle="rgba("+p.c+",1)";g.fillRect(-p.w/2,-p.h/2,p.w,p.h);g.restore();});
+    if(t<2.3)requestAnimationFrame(fr);else cv.remove();})(performance.now());}catch(_){}}
   function start(){if(S.on)return;geo();if(!ball)dom();layout();teams();
    S.on=true;S.red=0;S.blue=0;S.winner=0;S.seed=(S.seed||0)+1;board2();
    ball.style.opacity="1";goalL.style.opacity="1";goalR.style.opacity="1";board.style.opacity="1";
-   document.body.classList.add("hmSoccer");kickoff();
+   document.body.classList.add("hmSoccer");kickoffCountdown();
    if(!running){running=true;requestAnimationFrame(loop);}}
   window.__hmSoccerStart=start;
   function goalIn(team){if(team===1)S.red++;else S.blue++;board2();
    var g=team===1?goalR:goalL;g.classList.add("hmGoalHit");setTimeout(function(){g.classList.remove("hmGoalHit");},650);
-   try{if(typeof busyNow==="function"&&!busyNow()){setHold("smile",900);showFace("smile");}}catch(_){}
+   goalBurst(team,bx,by);   // BANG
+   try{if(typeof busyNow==="function"&&!busyNow()){setHold("smile",1100);showFace("smile");if(typeof browFlash==="function")browFlash();}}catch(_){}
    if((team===1&&S.red>=S.target)||(team===2&&S.blue>=S.target)){win(team);return;}
-   S.phase="reset";bvx=0;bvy=0;setTimeout(function(){if(S.on)kickoff();},900);}
+   S.phase="reset";bvx=0;bvy=0;ball.style.opacity="0";setTimeout(function(){if(S.on){ball.style.opacity="1";dropIn();}},700);}
   function win(team){S.winner=team;S.phase="win";board2();
    try{if(typeof busyNow==="function"&&!busyNow()){setHold("smile",2200);showFace("smile");refFlash();}}catch(_){}
    setTimeout(finish,4800);}
@@ -3268,6 +3292,18 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    }
    S.ball.x=bx;S.ball.y=by;
    if(ball)ball.style.transform="translate("+(bx-BR).toFixed(1)+"px,"+(by-BR).toFixed(1)+"px) rotate("+spin.toFixed(0)+"deg)";}
+ })();
+
+ (function battleUI(){   // a quiet count of who is still standing
+  var hero=document.querySelector(".hero");if(!hero)return;
+  var el=document.createElement("div");el.className="battleCount";el.innerHTML='<i></i><b>0</b>&nbsp;left';
+  hero.appendChild(el);var b=el.querySelector("b");var shownN=-1;
+  function tick(){requestAnimationFrame(tick);
+   var on=document.body.classList.contains("hmBattle");
+   if(!on){if(el.style.opacity!=="0")el.style.opacity="0";return;}
+   var n=0;for(var i=0;i<peers.length;i++){if(peers[i].inB&&!peers[i].elim)n++;}
+   if(n!==shownN){shownN=n;b.textContent=n;}el.style.opacity="1";}
+  requestAnimationFrame(tick);
  })();
 })();
 </script>
