@@ -2540,7 +2540,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
  var HW=mob?58:Math.min(104,Math.max(72,innerWidth*0.072));var HH=HW*1.2;
  // --- DOM ---
  var root=document.createElement("div");
- root.style.cssText="position:absolute;left:0;top:0;width:"+HW+"px;height:"+HH+"px;z-index:3;cursor:grab;touch-action:none;opacity:0;filter:blur(6px);transition:opacity .5s steps(4,end),filter .5s steps(4,end);will-change:transform";
+ root.style.cssText="position:absolute;left:0;top:0;width:"+HW+"px;height:"+HH+"px;z-index:3;cursor:grab;touch-action:none;opacity:0;filter:blur(6px);transition:opacity .5s steps(4,end),filter .5s steps(4,end);will-change:transform;transform-origin:50% 94%";
  var im=document.createElement("img");im.src=data.cut;im.alt="";im.draggable=false;
  im.style.cssText="width:100%;height:100%;pointer-events:none;-webkit-user-drag:none";
  root.appendChild(im);
@@ -2583,15 +2583,16 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   nose=strip(mk.N.x,mk.N.y,ew0*1.1,ew0*1.2);mouth=strip(mk.M.x,mk.M.y,ew0*1.8,ew0*0.95);mouth.style.transformOrigin="50% 18%";}
  hero.appendChild(shadow);hero.appendChild(root);
  // --- world geometry ---
- var heroR,floorY,plats,avoids,bigR,M=40;
+ var heroR,floorY,plats,avoids,bigR,M=40,WL=2,WR=9999,FOOT=0.945;
  function survey(){
   heroR={w:hero.clientWidth,h:hero.clientHeight};
   var hr=hero.getBoundingClientRect();
   function rel(el){if(!el)return null;var r=el.getBoundingClientRect();if(!r.width)return null;return{l:r.left-hr.left,t:r.top-hr.top,r:r.right-hr.left,b:r.bottom-hr.top};}
   bigR=rel(document.getElementById("stage"));                     // the big head is the one solid thing besides the walls
-  floorY=(bigR?bigR.b:heroR.h-4)-HH;                              // both heads live on the same ground line
+  floorY=(bigR?bigR.b:heroR.h-4)-HH*FOOT;                         // the visible chin (not the transparent padding) touches the shared ground
   floorY=Math.min(floorY,heroR.h-HH-2);
   M=mob?16:40;plats=[];avoids=[];
+  var hl=hero.getBoundingClientRect().left;WL=-hl+2;WR=innerWidth-hl-HW-2;   // the walls are the real screen edges, not the gutter
  }
  survey();addEventListener("resize",function(){mob=innerWidth<=880;survey();},{passive:true});
  function collides(nx,ny,pad){for(var i=0;i<avoids.length;i++){var a=avoids[i];
@@ -2604,25 +2605,21 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
      dzf=0,sqx=1,sqy=1,sqf=0,shown=false,first=true,tk3=0,gzx=0,gzy=0,sacAt=0;
  var G=4.6,HOPV=(mob?14:17),HOPX=(mob?6:9),surpriseAt=0;
  function hop(big){vy=-HOPV*(big?1.25:0.8+Math.random()*0.35);vx=dir*HOPX*(0.6+Math.random()*0.6);air=true;sqf=2;sqx=0.86;sqy=1.16;}
- function land(){var vx0=vx;air=false;vy=0;vx=0;y=surface;sqf=3;sqx=1.18;sqy=0.8;
-  if(st==="fall"&&Math.abs(vx0)>2.5){st="roll";rollT=Math.max(M,Math.min(heroR.w-HW-M,x+vx0*9));return;}   // a thrown ball rolls out its momentum
+ function land(){air=false;vy=0;vx=0;y=surface;sqf=3;sqx=1.18;sqy=0.8;
   if(hopsLeft>0){hopsLeft--;setTimeout(function(){if(!grabbed&&st==="hop")hop(false);},130);}else st="idle";}
  var rollT=0;
  function decide(now){
   decideAt=now+2600+Math.random()*4200;
   if(st!=="idle"||grabbed)return;
   var r=Math.random();
-  if(r<0.30){ // hop all the way there, however many hops it takes
+  if(r<0.58){ // hop all the way there, however many hops it takes
    var tx=M+Math.random()*(heroR.w-HW-M*2);
    dir=tx>x?1:-1;surface=floorY;st="hop";hopsLeft=Math.min(9,Math.max(1,Math.round(Math.abs(tx-x)/55)));hop(false);}
-  else if(r<0.62){ // long trip: roll there like the ball it is
-   rollT=M+Math.random()*(heroR.w-HW-M*2);
-   dir=rollT>x?1:-1;surface=floorY;st="roll";}
-  else if(r<0.78&&bigR){ // secure base: come home beside the big head, either side
+  else if(r<0.76&&bigR){ // secure base: come home beside the big head, either side
    var side=Math.random()<0.5?-1:1;
    var tx2=side<0?Math.max(M,bigR.l-HW-14):Math.min(heroR.w-HW-M,bigR.r+14);
    dir=tx2>x?1:-1;surface=floorY;st="hop";hopsLeft=Math.min(9,Math.max(1,Math.round(Math.abs(tx2-x)/55)));hop(false);window.__hmVisit=performance.now()+9000;}
-  else if(r<0.92){depthT=0.82+Math.random()*0.36;} // drift nearer or farther
+  else if(r<0.94){depthT=0.82+Math.random()*0.36;} // drift nearer or farther
   else {depthT=1;}
  }
  // --- grab like a Mii ---
@@ -2666,20 +2663,12 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   if(reduce){root.style.transform="translate("+(heroR.w*0.05)+"px,"+floorY+"px)";shadow.style.transform="translate("+(heroR.w*0.05)+"px,"+(floorY+HH-4)+"px)";return;}
   if(!shown)return;
   if(now>=decideAt)decide(now);
-  // rolling: ground travel with real rotation, decelerating into the target
-  if(st==="roll"&&!grabbed&&!air){
-   var d2=rollT-x,sp2=Math.max(2.4,Math.min(9,Math.abs(d2)*0.09));
-   vx=(d2>0?1:-1)*sp2;x+=vx;spin+=vx*360/(Math.PI*HW);
-   sqx=Math.max(sqx*0.9,1.05);sqy=Math.min(sqy*1.1,0.95);
-   if(x<2){x=2;rollT=M+40;} if(x>heroR.w-HW-2){x=heroR.w-HW-2;rollT=heroR.w-HW-M-40;}
-   if(Math.abs(d2)<10){st="idle";vx=0;}
-  }
-  if(!air&&st!=="roll"&&spin!==0){var tgt=Math.round(spin/360)*360;spin+=(tgt-spin)*0.35;if(Math.abs(spin-tgt)<2)spin=tgt%360===0?0:spin;}   // settle upright
+  if(!air&&spin!==0){var tgt=Math.round(spin/360)*360;spin+=(tgt-spin)*0.35;if(Math.abs(spin-tgt)<2)spin=tgt%360===0?0:spin;}   // settle upright once the motion is over
   // physics: walls, floor, ceiling, and the caregiver — nothing else is solid
   if(!grabbed&&air){
    vy+=G;x+=vx;y+=vy;
-   if(x<2){x=2;vx=Math.abs(vx)*0.62;dir=1;sqf=2;sqx=0.86;sqy=1.12;}
-   if(x>heroR.w-HW-2){x=heroR.w-HW-2;vx=-Math.abs(vx)*0.62;dir=-1;sqf=2;sqx=0.86;sqy=1.12;}
+   if(x<WL){x=WL;vx=Math.abs(vx)*0.62;dir=1;sqf=2;sqx=0.86;sqy=1.12;}
+   if(x>WR){x=WR;vx=-Math.abs(vx)*0.62;dir=-1;sqf=2;sqx=0.86;sqy=1.12;}
    if(y<2){y=2;vy=Math.abs(vy)*0.5;}
    if(vy>0&&y>=surface){ if(Math.abs(vy)>7){var k=Math.min(0.32,Math.abs(vy)*0.014);y=surface;vy=-vy*0.5;vx*=0.7;sqf=3;sqx=1+k;sqy=1-k;}  // impact squash scales with impact speed
     else land();}
@@ -2688,7 +2677,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   // brushing past the big head startles him — he is behind, not a wall
   if(bigR&&now>surpriseAt&&x+HW>bigR.l&&x<bigR.r&&y+HH>bigR.t&&y<bigR.b){surpriseAt=now+4500;
    try{if(typeof browFlash==="function")browFlash();if(typeof irisDilTarget!=="undefined")irisDilTarget=1.35;}catch(_){}}
-  if(grabbed){var cx0=x,cy0=y;x=Math.max(M,Math.min(heroR.w-HW-M,x));y=Math.max(2,Math.min(floorY,y));
+  if(grabbed){var cx0=x,cy0=y;x=Math.max(WL,Math.min(WR,x));y=Math.max(2,Math.min(floorY,y));
    if(x!==cx0||y!==cy0){if(sqf===0){sqf=2;sqx=(y!==cy0)?1.16:0.86;sqy=(y!==cy0)?0.82:1.14;}}   // shoved into a wall while held: it squashes
    var dsp=Math.min(16,Math.hypot(pvx,pvy));sqy=Math.max(sqy,1+dsp*0.006);sqx=Math.min(sqx,1-dsp*0.004);}   // and it leans/stretches with the drag
   depth+= (depthT-depth)*0.06;
@@ -2701,9 +2690,9 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   root.style.transform="translate("+x.toFixed(1)+"px,"+(y+breathe).toFixed(1)+"px) rotate("+rot.toFixed(1)+"deg) scale("+(depth*sqx).toFixed(3)+","+(depth*sqy).toFixed(3)+")";
   // the shadow stays on the ground it belongs to
   var airH=Math.max(0,surface-y);
-  var shScale=Math.max(0.35,depth*(1-airH/(heroR.h*0.6)));
-  shadow.style.transform="translate("+(x+HW/2-HW/2*shScale+HW*0.07).toFixed(1)+"px,"+(surface+HH-6).toFixed(1)+"px) scale("+shScale.toFixed(3)+",1)";
-  shadow.style.opacity=shown?String(Math.max(0.12,0.3-airH/900)):"0";
+  var shScale=Math.max(0.32,depth*(1-airH/(heroR.h*0.6)));
+  shadow.style.transform="translate("+(x+HW/2-HW/2*shScale+HW*0.06).toFixed(1)+"px,"+(surface+HH*FOOT-2).toFixed(1)+"px) scale("+shScale.toFixed(3)+",1)";
+  shadow.style.opacity=shown?String(airH<4?0.36:Math.max(0.1,0.3-airH/800)):"0";
   // --- face life ---
   var px=(typeof pointer!=="undefined"?pointer.px:innerWidth/2),py=(typeof pointer!=="undefined"?pointer.py:innerHeight*0.4);
   var rr=root.getBoundingClientRect();
@@ -2713,7 +2702,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   if(grabbed){nx=0.14;ny=0.1;}   // held: eyes quietly to one side, never panicked
   else if(act){nx=Math.max(-1,Math.min(1,(px-(rr.left+rr.width/2))/280));ny=Math.max(-1,Math.min(1,(py-(rr.top+rr.height/2))/280));
    if(Math.abs(nx)<0.09&&Math.abs(ny)<0.09){nx=0.13*(dir||1);ny=0.05;}}   // same rule as mine: never a dead stare into the camera
-  else if(air||st==="roll"||Math.abs(vx)>0.5){nx=dir*0.7;ny=0.12;}   // busy going somewhere: it watches where it is going
+  else if(air||Math.abs(vx)>0.5){nx=dir*0.7;ny=0.12;}   // busy going somewhere: it watches where it is going
   else{if(now>=sacAt){do{gzx=(Math.random()*1.4-0.7);}while(Math.abs(gzx)<0.12);gzy=(Math.random()*0.8-0.45);sacAt=now+700+Math.random()*1600;}nx=gzx;ny=gzy;}
   if(!grabbed&&bigR&&window.__hmVisit&&now<window.__hmVisit&&Math.abs((x+HW/2)-(bigR.l+bigR.r)/2)<(bigR.r-bigR.l)){nx=((bigR.l+bigR.r)/2>(x+HW/2))?0.7:-0.7;ny=-0.55;}   // home beside the caregiver: it looks up at him
   if(now>=bAt&&bf===0&&!grabbed&&dzf===0){bf=5;dblBlink=Math.random()<0.22;bAt=now+2700+Math.random()*3800;}
