@@ -179,7 +179,7 @@ a:focus-visible,button:focus-visible,.hmDot:focus-visible{outline:2px solid var(
    <p class="kicker">Step 4 of 4 &middot; Alive</p>
    <h2 class="stepHead">There you are.</h2>
    <p class="stepBody">Floating, blinking, watching your cursor. It now lives on my homepage, hopping around next to my head. Go say hi. Save it, or send it to someone who will get it.</p>
-   <div class="hmRow" role="group" aria-label="Pose presets"><button class="hmBtn ghost" type="button" data-pose="">Live</button><button class="hmBtn ghost" type="button" data-pose="brows">Surprised</button><button class="hmBtn ghost" type="button" data-pose="side">Side-eye</button></div>
+   <div class="hmRow" role="group" aria-label="Pose presets"><button class="hmBtn ghost" type="button" data-pose="">Live</button><button class="hmBtn ghost" type="button" id="poseRnd">Random face</button></div>
    <div class="hmStage bare" id="stage4">
     <div class="hmShadow" aria-hidden="true"></div>
     <div id="hmHead"><img id="hmLive" alt="Your floating cutout head, eyes following the cursor"></div>
@@ -190,7 +190,7 @@ a:focus-visible,button:focus-visible,.hmDot:focus-visible{outline:2px solid var(
     <button class="hmBtn ghost" type="button" id="save"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><polyline points="6 11 12 17 18 11"/><line x1="4" y1="21" x2="20" y2="21"/></svg>Download</button>
     <a class="hmBtn" href="index.html">See it on my homepage</a>
    </div>
-   <p class="cap">Downloads as a transparent PNG.</p>
+   <p class="cap">Downloads as a little keepsake card.</p>
   </section>
  </div>
 
@@ -415,7 +415,42 @@ document.getElementById("next3").addEventListener("click",function(){buildLive()
 var stage4=document.getElementById("stage4"),headEl=document.getElementById("hmHead"),liveImg=document.getElementById("hmLive");
 var boopF=0;stage4.style.cursor="pointer";stage4.addEventListener("pointerdown",function(){if(boopF===0)boopF=16;});
 var eyeEls=[],tick=null,gx=0,gy=0,blinkAt=0,blinkFrames=0,browAt=0,browFrames=0,sniffAt=0,sniffFrames=0,smileAt=0,smiling=false;
-var pose="";document.querySelectorAll("[data-pose]").forEach(function(b){b.addEventListener("click",function(){pose=b.getAttribute("data-pose");document.querySelectorAll("[data-pose]").forEach(function(o){o.style.borderColor=o===b?"var(--c950)":"";});});});
+var pose="",EXPR=null;
+document.querySelectorAll("[data-pose]").forEach(function(b){b.addEventListener("click",function(){pose=b.getAttribute("data-pose");EXPR=null;
+ var rb0=document.getElementById("poseRnd");if(rb0)rb0.style.borderColor="";
+ document.querySelectorAll("[data-pose]").forEach(function(o){o.style.borderColor=o===b?"var(--c950)":"";});});});
+/* the expression engine: every face is a chord of FACS action units — brows, lids, gaze, mouth, tilt —
+   16 archetypes x mirroring x continuous jitter = no two rolls alike */
+function _j(a){return (Math.random()*2-1)*a;}
+function rollExpr(){
+ var A=[
+  function(){return{n:"wink",ll:0.92,lr:0.04,bl:-3,br:-1.5,gx:0.2,gy:0.08,mty:0.4,msx:1.14,msy:0.88,tilt:-4.5};},
+  function(){return{n:"skeptical",ll:0.15,lr:0.38,bl:-5.5,br:0.5,gx:0.55,gy:-0.05,mty:0.5,msx:0.9,msy:0.96,tilt:-2};},
+  function(){return{n:"shocked",ll:0,lr:0,bl:-6.5,br:-6.5,gx:0,gy:-0.1,mty:2.2,msx:0.92,msy:1.85,tilt:0};},
+  function(){return{n:"sleepy",ll:0.68,lr:0.74,bl:0.8,br:0.8,gx:-0.1,gy:0.5,mty:0.8,msx:0.95,msy:1.02,tilt:3.5};},
+  function(){return{n:"smug",ll:0.42,lr:0.42,bl:-3.5,br:0,gx:0.6,gy:0.1,mty:0.2,msx:1.16,msy:0.85,tilt:2.5};},
+  function(){return{n:"giggle",ll:0.55,lr:0.55,bl:-2.5,br:-2.5,gx:0,gy:0.15,mty:0.6,msx:1.22,msy:0.82,tilt:3};},
+  function(){return{n:"side-eye",ll:0.3,lr:0.3,bl:-1,br:-1,gx:0.85,gy:0.05,mty:0.4,msx:0.88,msy:0.95,tilt:-1.5};},
+  function(){return{n:"curious",ll:0,lr:0,bl:-5,br:-3,gx:0.45,gy:-0.35,mty:0.5,msx:0.86,msy:1.15,tilt:6.5};},
+  function(){return{n:"grumpy",ll:0.4,lr:0.4,bl:1.6,br:1.6,gx:0.35,gy:0.25,mty:1.1,msx:0.92,msy:0.88,tilt:-1};},
+  function(){return{n:"delighted",ll:0.05,lr:0.05,bl:-5.5,br:-5.5,gx:0,gy:-0.2,mty:0.3,msx:1.24,msy:0.86,tilt:1.5};},
+  function(){return{n:"pout",ll:0.2,lr:0.2,bl:0.9,br:0.9,gx:-0.25,gy:-0.4,mty:0.9,msx:0.78,msy:1.12,tilt:4};},
+  function(){return{n:"deadpan",ll:0.5,lr:0.5,bl:0,br:0,gx:0,gy:0.02,mty:0.5,msx:0.95,msy:0.85,tilt:0};},
+  function(){return{n:"suspicious",ll:0.55,lr:0.55,bl:0.8,br:-3,gx:0.7,gy:0.1,mty:0.6,msx:0.9,msy:0.9,tilt:-2.5};},
+  function(){return{n:"whistle",ll:0.15,lr:0.15,bl:-3.5,br:-3.5,gx:-0.4,gy:-0.45,mty:0.7,msx:0.72,msy:1.18,tilt:2};},
+  function(){return{n:"yawn",ll:0.78,lr:0.78,bl:-2,br:-2,gx:0,gy:0.3,mty:2.4,msx:0.9,msy:1.9,tilt:1.5};},
+  function(){return{n:"starstruck",ll:0,lr:0,bl:-6,br:-6,gx:_j(0.15),gy:-0.3,mty:1.6,msx:1.05,msy:1.5,tilt:_j(2)};}
+ ];
+ var e=A[Math.floor(Math.random()*A.length)]();
+ if(Math.random()<0.5){var t2=e.ll;e.ll=e.lr;e.lr=t2;t2=e.bl;e.bl=e.br;e.br=t2;e.gx=-e.gx;e.tilt=-e.tilt;}   // mirror
+ e.ll=Math.max(0,Math.min(0.95,e.ll+_j(0.07)));e.lr=Math.max(0,Math.min(0.95,e.lr+_j(0.07)));
+ e.bl+=_j(0.8);e.br+=_j(0.8);e.gx=Math.max(-0.9,Math.min(0.9,e.gx+_j(0.12)));e.gy=Math.max(-0.6,Math.min(0.6,e.gy+_j(0.1)));
+ e.mty+=_j(0.25);e.msx=Math.max(0.65,e.msx+_j(0.05));e.msy=Math.max(0.7,e.msy+_j(0.06));e.tilt+=_j(1.4);
+ return e;}
+(function(){var rb=document.getElementById("poseRnd");if(!rb)return;
+ rb.addEventListener("click",function(){pose="";EXPR=rollExpr();
+  document.querySelectorAll("[data-pose]").forEach(function(o){o.style.borderColor="";});
+  rb.style.borderColor="var(--c950)";});})();
 function eyeGeom(){var d=deriveEyes();return{w:(d[0].w+d[1].w)/2,h:(d[0].h+d[1].h)/2};}
 function sclera(e){ // the white of THEIR eye: sample along the corner line, keep only the brightest pixels
  try{var x=bakedCanvas.getContext("2d"),px=[];
@@ -528,6 +563,7 @@ function liveTick(){
  var cx=r.left+r.width/2,cy=r.top+r.height*0.45;
  var nx=Math.max(-1,Math.min(1,(mx-cx)/300)),ny=Math.max(-1,Math.min(1,(my-cy)/300));
  var fy=Math.sin(t*0.85)*4,fx=Math.sin(t*0.55)*2.5,rot=Math.sin(t*0.4)*0.7+nx*2.0;
+ if(EXPR)rot=Math.sin(t*0.4)*0.4+EXPR.tilt;   // the expression owns the tilt
  headEl.style.transformOrigin=(marks.N.x*100)+"% "+(marks.N.y*100)+"%";   // rotate about the nose: anatomical, not cardboard
  var bq="";if(boopF>0){var bpv=boopF/16;bq=" scale("+(1+Math.sin(bpv*Math.PI)*0.07).toFixed(3)+","+(1-Math.sin(bpv*Math.PI)*0.09).toFixed(3)+") rotate("+(Math.sin((1-bpv)*Math.PI*5)*7*bpv).toFixed(1)+"deg)";boopF--;}
  headEl.style.transform="translate("+fx.toFixed(1)+"px,"+fy.toFixed(1)+"px) rotate("+rot.toFixed(2)+"deg)"+bq;
@@ -550,11 +586,16 @@ function liveTick(){
  if(sniffFrames>0){noseEl.style.transform="translateX("+(sniffFrames===2?1.2:-0.8)+"px)";sniffFrames--;}
  else if(noseEl)noseEl.style.transform="";
  if(pose==="side"){nx=-0.78;ny=0.06;}
+ if(EXPR){nx=EXPR.gx;ny=EXPR.gy;
+  if(browEls[0])browEls[0].style.transform="translateY("+EXPR.bl.toFixed(1)+"px)";
+  if(browEls[1])browEls[1].style.transform="translateY("+EXPR.br.toFixed(1)+"px)";
+  if(mouthEl)mouthEl.style.transform="translate(0,"+EXPR.mty.toFixed(1)+"px) scale("+EXPR.msx.toFixed(2)+","+EXPR.msy.toFixed(2)+")";}
  if(pose==="brows"){browEls.forEach(function(b){b.style.transform="translateY(-6px)";});if(mouthEl){mouthEl.style.transform="translateY(2px) scaleY(1.6)";}}
  if(now>=blinkAt&&blinkFrames===0&&pose!=="wink"){blinkFrames=5;blinkAt=now+2600+Math.random()*3400;}
  eyeEls.forEach(function(e,ei){
-  if(blinkFrames>0){var lp=(blinkFrames===5||blinkFrames===1)?-44:(blinkFrames===4?-14:-4);e.lidEl.style.transform="translateY("+lp+"%)";}
-  else{e.lidEl.style.transform="translateY(-105%)";
+  var _cl=EXPR?(ei===0?EXPR.ll:EXPR.lr):0;
+  if(blinkFrames>0&&_cl<0.25){var lp=(blinkFrames===5||blinkFrames===1)?-44:(blinkFrames===4?-14:-4);e.lidEl.style.transform="translateY("+lp+"%)";}
+  else{e.lidEl.style.transform="translateY("+(-105+_cl*97).toFixed(1)+"%)";
    var ew=e.wrap.offsetWidth,eh=e.wrap.offsetHeight;
    var gtx=Math.round(nx*ew*0.16),gty=Math.round(ny*eh*0.22);
    e.iris.style.transform="translate("+gtx+"px,"+gty+"px)";
@@ -600,11 +641,12 @@ document.getElementById("save").addEventListener("click",function(){
   var live=document.getElementById("hmHead");
   var cl=live.cloneNode(true);
   cl.style.transform="none";   // no mid-boop squish in the portrait
-  [].slice.call(cl.querySelectorAll(".hmLidS")).forEach(function(n){n.style.transform="translateY(-105%)";});   // never mid-blink
-  var pg=[[4,2],[-4,2],[3,-2],[-3,-2]][Math.floor(Math.random()*4)];   // a curated gentle glance, never a mid-saccade stare
-  if(pose==="side")pg=[-7,1];
-  [].slice.call(cl.querySelectorAll(".hmIris")).forEach(function(n){n.style.transform="translate("+pg[0]+"px,"+pg[1]+"px)";});
-  [].slice.call(cl.querySelectorAll(".hmGlint")).forEach(function(n){n.style.transform="translate("+(pg[0]*0.62).toFixed(1)+"px,"+(pg[1]*0.62).toFixed(1)+"px)";});
+  [].slice.call(cl.querySelectorAll(".hmLidS")).forEach(function(n,i){var lv=EXPR?(i===0?EXPR.ll:EXPR.lr):0;
+   n.style.transform="translateY("+(-105+lv*97).toFixed(1)+"%)";});   // never mid-blink; an expression keeps its lids
+  if(!EXPR){var pg=[[4,2],[-4,2],[3,-2],[-3,-2]][Math.floor(Math.random()*4)];   // a curated gentle glance, never a mid-saccade stare
+   if(pose==="side")pg=[-7,1];
+   [].slice.call(cl.querySelectorAll(".hmIris")).forEach(function(n){n.style.transform="translate("+pg[0]+"px,"+pg[1]+"px)";});
+   [].slice.call(cl.querySelectorAll(".hmGlint")).forEach(function(n){n.style.transform="translate("+(pg[0]*0.62).toFixed(1)+"px,"+(pg[1]*0.62).toFixed(1)+"px)";});}
   var css="";
   [].slice.call(document.styleSheets).forEach(function(shq){try{
    [].slice.call(shq.cssRules).forEach(function(rr){if(rr.selectorText&&/hm(Head|Scl|Eye|Iris|Pupil|Glint|LidW|LidS|Brow|Nose|Smize|Mouth)/.test(rr.selectorText))css+=rr.cssText+"\n";});}catch(_){}});
