@@ -2647,6 +2647,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   flipV=Math.max(-700,Math.min(700,(360/tt)*(dir||1)));flipA=flipV>0?0.01:-0.01;}
  function hop(big){ // anticipation: a real jump loads the spring first (countermovement crouch, ~100ms)
   sqT=0.12;sqyP=0.85;sqxP=1/0.85;
+  gzx=dir*0.7;gzy=0.1;sacAt=performance.now()+500;   // the eyes leave before the body does
   setTimeout(function(){if(grabbed||air||perched)return;
    vy=-(big?900:(470+Math.random()*170));vx=dir*(130+Math.random()*100)*(mob?0.75:1);air=true;sqT=0.13;sqyP=1.12;sqxP=1/1.12;
    if(!big&&Math.random()<0.09){vy=-(730+Math.random()*160);startFlip();}   // every so often a hop becomes a little somersault
@@ -2675,7 +2676,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   var r=Math.random();
   if(r<0.36){ // travel: look where you are going first (the orienting reflex), then go
    var tx=M+Math.random()*(heroR.w-HW-M*2);
-   dir=tx>x?1:-1;gzx=dir*0.75;gzy=0.05;sacAt=now+900;
+   dir=tx>x?1:-1;gzx=dir*0.75;gzy=0.05;sacAt=now+900;if(bf===0&&Math.random()<0.3)bf=5;   // big attention shifts often carry a blink
    surface=floorY;st="hop";hopsLeft=Math.min(11,Math.max(1,Math.round(Math.abs(tx-x)/70)));
    setTimeout(function(){if(!grabbed&&st==="hop"&&!air)hop(false);},240+Math.random()*160);}
   else if(r<0.52&&bigR){ // secure base: glance home, then come home beside him
@@ -2798,7 +2799,9 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    if(x<WL){x=WL;if(Math.abs(vx)>420)brf=6;vx=Math.abs(vx)*0.72;dir=1;sqT=0.13;sqxP=0.86;sqyP=1.163;}
    if(x>WR){x=WR;if(Math.abs(vx)>420)brf=6;vx=-Math.abs(vx)*0.72;dir=-1;sqT=0.13;sqxP=0.86;sqyP=1.163;}
    if(y<CEIL){y=CEIL;if(Math.abs(vy)>420&&bf===0)bf=5;vy=Math.abs(vy)*0.72;sqT=0.13;sqxP=1.163;sqyP=0.86;cTop=true;}   // bonk: a startle blink
-   if(vy>0&&y>=surface){ cTop=false; if(st==="fall"&&Math.abs(vy)>340){if(Math.abs(vy)>1050)shakeAfter=true;var k=Math.min(0.28,Math.abs(vy)*0.00055);y=surface;vy=-vy*0.72;vx*=0.85;sqT=0.16;sqyP=1-k;sqxP=1/(1-k);flipA=0;flipV=0;}  // e=0.72 (toy ball), tangential 0.85, volume-true squash
+   if(vy>0&&y>=surface){ cTop=false; if(st==="fall"&&Math.abs(vy)>340){if(Math.abs(vy)>1050)shakeAfter=true;
+    if(Math.abs(vx)>420&&!wig)wig={t:0.22,dur:0.22,type:"tilt",a:(vx>0?1:-1)*4};   // fast landings skid: it leans into the slide
+    var k=Math.min(0.28,Math.abs(vy)*0.00055);y=surface;vy=-vy*0.72;vx*=0.85;sqT=0.16;sqyP=1-k;sqxP=1/(1-k);flipA=0;flipV=0;}  // e=0.72 (toy ball), tangential 0.85, volume-true squash
     else land();}
    else if(air&&sqT<=0){var vst=Math.min(0.18,Math.hypot(vx,vy)*0.00016);sqyP=1+vst;sqxP=1/(1+vst);}   // stretch scales with speed, volume conserved
   }
@@ -2819,7 +2822,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   hs+=(hsT-hs)*Math.min(1,DT*10);
   depth+=(depthT-depth)*Math.min(1,DT*0.5);
   // squash recovery
-  if(sqT>0){sqT-=DT;}else if(!air&&!grabbed){sqxP=1;sqyP=1;}
+  if(sqT>0){sqT-=DT;}else if(!air&&!grabbed){var _br=1+(drowse2?0.02:0.012)*Math.sin(now*(drowse2?0.0026:0.0042));sqyP=_br;sqxP=1/_br;}   // it BREATHES: volume-true, slower and deeper in its sleep
   sqxv+=((sqxP-sqx)*900-sqxv*34)*DT;sqx+=sqxv*DT;   // damped spring: smooth into the pose, one soft jello overshoot out
   sqyv+=((sqyP-sqy)*900-sqyv*34)*DT;sqy+=sqyv*DT;
   var swing=grabbed?Math.max(-12,Math.min(12,pvx*0.9)):0;pvx*=Math.pow(0.8,DT/0.04);   // body leans with the drag; the face stays calm
