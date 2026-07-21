@@ -225,6 +225,7 @@ file.addEventListener("change",function(){if(file.files&&file.files[0])load(file
 function load(f){
  if(!/^image\//.test(f.type))return;
  if(smileSlot){loadSmile(f);return;}
+ restoredEyes=null;   /* a new photo is a new face: never reuse a restored head's geometry or colors */
  if(photoURL)URL.revokeObjectURL(photoURL);
  photoURL=URL.createObjectURL(f);
  photo=new Image();
@@ -344,8 +345,11 @@ function sclera(e){ // the white of THEIR eye: sample along the corner line, kee
   var lr=l(r),lg=l(g),lb=l(b);
   var L=lr*0.299+lg*0.587+lb*0.114;
   if(L<95)return"#efece7";   /* samples landed on lashes or shadow: never paint dark eye-whites */
-  var t=Math.max(0,Math.min(0.85,(185-L)/100));   /* dull or tinted whites lift toward paper so eyes never look murky */
-  lr=Math.round(lr+(244-lr)*t);lg=Math.round(lg+(242-lg)*t);lb=Math.round(lb+(238-lb)*t);
+  var mx=Math.max(lr,lg,lb);   /* whiteness is low saturation: pull the channels together first */
+  lr=Math.round(lr+(mx-lr)*0.68);lg=Math.round(lg+(mx-lg)*0.68);lb=Math.round(lb+(mx-lb)*0.68);
+  L=lr*0.299+lg*0.587+lb*0.114;
+  var t=Math.max(0,Math.min(0.85,(200-L)/100));   /* then lift dull whites toward paper */
+  lr=Math.round(lr+(246-lr)*t);lg=Math.round(lg+(244-lg)*t);lb=Math.round(lb+(241-lb)*t);
   return"rgb("+lr+","+lg+","+lb+")";}catch(_){return"#f1eee9";}
 }
 var browEls=[],noseEl=null,mouthEl=null,mouthAt=0,mouthFrames=0,smAt=0,smf=0;
