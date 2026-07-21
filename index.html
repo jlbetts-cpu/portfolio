@@ -261,6 +261,8 @@ body.partyLock{overflow:hidden}
 .camDot{display:inline-block;width:.92em;height:.66em;vertical-align:baseline;position:relative;color:transparent}
 .moodHeads{display:flex;flex-wrap:wrap;gap:10px;margin:10px 4px 2px}.moodHeads:empty{display:none}
 .mhItem{position:relative}.mhItem img{width:34px;height:40px;object-fit:contain;background:var(--c100);border-radius:4px;display:block}
+.mhPick{padding:0;border:0;background:none;cursor:pointer;display:block;border-radius:4px;transition:box-shadow .18s cubic-bezier(.2,.8,.2,1)}
+.mhPick:hover,.mhPick:focus-visible{box-shadow:0 0 0 1.5px var(--c500)}
 .mhX{position:absolute;top:-6px;right:-6px;width:16px;height:16px;border-radius:50%;border:1px solid var(--c100);background:var(--c50);color:var(--c700);font-size:11px;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0}
 .mhX:hover{color:var(--c950);border-color:var(--c500)}
 .dieDot::before{content:"";position:absolute;left:2px;top:2px;right:2px;bottom:2px;border:1.5px solid var(--c950);border-radius:3.5px;background-color:var(--c50);background-image:radial-gradient(circle at 31% 31%,var(--c950) 1.2px,transparent 1.45px),radial-gradient(circle at 69% 69%,var(--c950) 1.2px,transparent 1.45px),radial-gradient(circle at 50% 50%,var(--c950) 1.2px,transparent 1.45px)}
@@ -2534,7 +2536,12 @@ requestAnimationFrame(function(){requestAnimationFrame(startIntro);});
   return a;}
  function render(){var a=readAll();box.innerHTML="";
   a.forEach(function(h,idx){var it=document.createElement("span");it.className="mhItem";
-   var im=document.createElement("img");im.src=h.cut;im.alt="A saved head";it.appendChild(im);
+   var pk=document.createElement("button");pk.className="mhPick";pk.type="button";pk.setAttribute("aria-label","Open this head in the maker");
+   var im=document.createElement("img");im.src=h.cut;im.alt="";pk.appendChild(im);
+   pk.addEventListener("click",function(ev){ev.stopPropagation();   // straight to the maker with THIS head on stage
+    try{localStorage.setItem("hmCompanion",JSON.stringify(h));}catch(_){}
+    location.href="headmaker.html";});
+   it.appendChild(pk);
    var xb=document.createElement("button");xb.className="mhX";xb.type="button";xb.setAttribute("aria-label","Remove this head");xb.textContent="\u00d7";
    xb.addEventListener("click",function(ev){ev.stopPropagation();ev.preventDefault();
     var cur=readAll();cur.splice(idx,1);   // by position: exactly the head you pointed at
