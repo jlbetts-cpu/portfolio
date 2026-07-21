@@ -2606,7 +2606,10 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   floorY=(bigR?bigR.b:heroR.h-4)-HH*FOOT;                         // the visible chin (not the transparent padding) touches the shared ground
   floorY=Math.min(floorY,heroR.h-HH-2);
   M=mob?16:40;plats=[];avoids=[];
-  var hb=hero.getBoundingClientRect();WL=-hb.left+2;WR=innerWidth-hb.left-HW-2;CEIL=-(hb.top+window.scrollY)+2;   // walls are the screen edges; the roof is the top of the page
+  var hb=hero.getBoundingClientRect();WL=-hb.left-HW*0.35;WR=innerWidth-hb.left-HW*0.65;CEIL=-(hb.top+window.scrollY)+2;   // it presses a third of itself into the glass before bouncing
+  if(bigR){var nHW=Math.round(Math.min(96,Math.max(60,(bigR.r-bigR.l)*0.24)));if(mob)nHW=Math.min(nHW,58);
+   if(Math.abs(nHW-HW)>2){HW=nHW;HH=HW*1.2;root.style.width=HW+"px";root.style.height=HH+"px";shadow.style.width=HW+"px";shadow.style.height=(HW*0.22)+"px";}}
+  if(x>WR)x=WR;if(x<WL)x=WL;if(y>floorY)y=floorY;   // stay intact when the screen shrinks
  }
  survey();addEventListener("resize",function(){mob=innerWidth<=880;survey();},{passive:true});
  function collides(nx,ny,pad){for(var i=0;i<avoids.length;i++){var a=avoids[i];
@@ -2614,25 +2617,25 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
  // --- state ---
  var x=bigR?(bigR.l+(bigR.r-bigR.l)/2-HW/2):Math.max(8,heroR.w*0.06),y=bigR?(bigR.t-HH+6):floorY,vx=0,vy=0,dir=1,depth=1,depthT=1,air=false,surface=floorY,
      st="idle",stT=0,hopsLeft=0,grabbed=false,gpx=0,gpy=0,lastPX=0,lastPY=0,pvx=0,pvy=0,
-     offAt=0,gone=false,goneUntil=0,decideAt=performance.now()+3000,spin=0,heldOff=0,heldV=0,cTop=false,downT=0,downX=0,downY=0,shakeN=0,heartsF=0,danceHops=0,dblBlink=false,
+     offAt=0,gone=false,goneUntil=0,decideAt=performance.now()+4200,spin=0,heldOff=0,heldV=0,cTop=false,bornAt=performance.now()+1600,downT=0,downX=0,downY=0,shakeN=0,heartsF=0,danceHops=0,dblBlink=false,
      bAt=performance.now()+2800,bf=0,brAt=performance.now()+7000,brf=0,moAt=performance.now()+11000,mof=0,
      dzf=0,sqx=1,sqy=1,sqf=0,shown=false,first=true,tk3=0,gzx=0,gzy=0,sacAt=0;
  var G=2600,DT=0.04,facc=0,CEIL=2,surpriseAt=0;   // real units: px/s and px/s^2, integrated at 25fps
- function hop(big){vy=-(big?950:(540+Math.random()*220));vx=dir*(150+Math.random()*130)*(mob?0.75:1);air=true;sqf=4;sqx=0.86;sqy=1.16;}
- function land(){air=false;vy=0;vx=0;y=surface;sqf=3;sqx=1.18;sqy=0.8;
-  if(hopsLeft>0){hopsLeft--;setTimeout(function(){if(!grabbed&&st==="hop")hop(false);},130);}else st="idle";}
+ function hop(big){vy=-(big?900:(440+Math.random()*180));vx=dir*(125+Math.random()*100)*(mob?0.75:1);air=true;sqf=3;sqx=0.9;sqy=1.12;}
+ function land(){air=false;vy=0;vx=0;y=surface;sqf=3;sqx=1.12;sqy=0.87;
+  if(hopsLeft>0){hopsLeft--;setTimeout(function(){if(!grabbed&&st==="hop")hop(false);},240+Math.random()*160);}else st="idle";}
  var rollT=0;
  function decide(now){
-  decideAt=now+2600+Math.random()*4200;
+  decideAt=now+2100+Math.random()*3400;
   if(st!=="idle"||grabbed)return;
   var r=Math.random();
   if(r<0.58){ // hop all the way there, however many hops it takes
    var tx=M+Math.random()*(heroR.w-HW-M*2);
-   dir=tx>x?1:-1;surface=floorY;st="hop";hopsLeft=Math.min(9,Math.max(1,Math.round(Math.abs(tx-x)/95)));hop(false);}
-  else if(r<0.76&&bigR){ // secure base: come home beside the big head, either side
+   dir=tx>x?1:-1;surface=floorY;st="hop";hopsLeft=Math.min(11,Math.max(1,Math.round(Math.abs(tx-x)/70)));hop(false);}
+  else if(r<0.88&&bigR){ // secure base: come home beside the big head, either side
    var side=Math.random()<0.5?-1:1;
    var tx2=side<0?Math.max(M,bigR.l-HW-14):Math.min(heroR.w-HW-M,bigR.r+14);
-   dir=tx2>x?1:-1;surface=floorY;st="hop";hopsLeft=Math.min(9,Math.max(1,Math.round(Math.abs(tx2-x)/95)));hop(false);window.__hmVisit=performance.now()+9000;}
+   dir=tx2>x?1:-1;surface=floorY;st="hop";hopsLeft=Math.min(11,Math.max(1,Math.round(Math.abs(tx2-x)/70)));hop(false);window.__hmVisit=performance.now()+9000;}
   else {} // otherwise: a beat of rest
  }
  // --- grab like a Mii ---
@@ -2673,6 +2676,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   tk3++;var now=performance.now(),busy=false;
   try{busy=document.body.classList.contains("about-open")||(typeof busyNow==="function"&&busyNow());}catch(_){}
   var want=!busy&&!gone;
+  if(first&&now<bornAt)return;   // wait out the page intro so the perch measures a settled layout
   if(want!==shown||first){shown=want;root.style.opacity=want?"1":"0";root.style.filter=want?"blur(0)":"blur(6px)";shadow.style.opacity=want?"1":"0";
    if(first&&want){survey();var fEl=document.getElementById("face"),hr2=hero.getBoundingClientRect();
     var frc=fEl?fEl.getBoundingClientRect():null;
