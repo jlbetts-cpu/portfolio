@@ -2641,7 +2641,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
      st="idle",stT=0,hopsLeft=0,grabbed=false,gpx=0,gpy=0,lastPX=0,lastPY=0,pvx=0,pvy=0,
      offAt=0,gone=false,goneUntil=0,decideAt=performance.now()+4200,spin=0,heldOff=0,heldV=0,cTop=false,bornAt=performance.now()+1600,perched=false,hs=1,hsT=1,dockUntil=0,moodB=false,pbAt=0,mirrorAt=0,downT=0,downX=0,downY=0,shakeN=0,heartsF=0,danceHops=0,dblBlink=false,
      bAt=performance.now()+2800,bf=0,brAt=performance.now()+7000,brf=0,moAt=performance.now()+11000,mof=0,
-     dzf=0,sqx=1,sqy=1,sqxv=0,sqyv=0,sqxP=1,sqyP=1,sqT=0,shown=false,first=true,tk3=0,gzx=0,gzy=0,sacAt=0,flipA=0,flipV=0,wig=null,wigP=0,bounceN=0,perchT=0,leapDelay=Infinity,hmOverT=0,introSettled=false,bornWall=0,shakeAfter=false;
+     dzf=0,sqx=1,sqy=1,sqxv=0,sqyv=0,sqxP=1,sqyP=1,sqT=0,shown=false,first=true,tk3=0,gzx=0,gzy=0,sacAt=0,flipA=0,flipV=0,wig=null,wigP=0,bounceN=0,perchT=0,leapDelay=Infinity,hmOverT=0,introSettled=false,bornWall=0,shakeAfter=false,drowse2=false,lastNearT=performance.now(),perchWigAt=performance.now()+9000;
  var G=2600,DT=0.04,facc=0,CEIL=2,surpriseAt=0;   // real units: px/s and px/s^2, integrated at 25fps
  function startFlip(){var tt=Math.max(0.45,2*Math.abs(vy)/G);   // one full turn, timed to land on its feet
   flipV=Math.max(-700,Math.min(700,(360/tt)*(dir||1)));flipA=flipV>0?0.01:-0.01;}
@@ -2662,6 +2662,16 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
  function decide(now){
   decideAt=now+2100+Math.random()*3400;
   if(st!=="idle"||grabbed||perched)return;
+  try{ // yawn contagion: if he is drowsy, it catches the yawn (dogs catch ours)
+   if(typeof drowsy!=="undefined"&&drowsy&&Math.random()<0.4){wig={t:0.7,dur:0.7,type:"stretch"};sqT=0.6;sqyP=1.12;sqxP=1/1.12;mof=6;if(bf===0)bf=5;return;}}catch(_){}
+  try{ // curiosity: a hand resting nearby gets approached, the way a still hand does
+   if(typeof pointer!=="undefined"&&typeof lastMove!=="undefined"&&now-lastMove<4200){
+    var hcr=hero.getBoundingClientRect(),cxr=pointer.px-hcr.left-HW/2;
+    var dxc=Math.abs(cxr-x);
+    if(dxc>120&&dxc<430&&cxr>M&&cxr<heroR.w-HW-M&&Math.random()<0.3){
+     dir=cxr>x?1:-1;gzx=dir*0.8;gzy=0.15;sacAt=now+900;
+     surface=floorY;st="hop";hopsLeft=Math.min(3,Math.max(1,Math.round(dxc/85)));
+     setTimeout(function(){if(!grabbed&&st==="hop"&&!air)hop(false);},260+Math.random()*140);return;}}}catch(_){}
   var r=Math.random();
   if(r<0.36){ // travel: look where you are going first (the orienting reflex), then go
    var tx=M+Math.random()*(heroR.w-HW-M*2);
@@ -2774,6 +2784,8 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
     if(side<0&&lsp<HW*2)side=1;if(side>0&&rsp<HW*2)side=-1;
     dir=side;vx=side*(240+Math.random()*220);vy=-(820+Math.random()*280);sqT=0.16;sqxP=0.84;sqyP=1.19;
     if(Math.random()<0.4)startFlip();}}
+  if(perched&&!grabbed&&!air&&now>=perchWigAt){perchWigAt=now+9000+Math.random()*11000;
+   if(!moodB&&!wig)wig={t:0.7,dur:0.7,type:"tilt",a:(Math.random()<0.5?-1:1)*2.5};}   // postural sway: standing still is never perfectly still
   if(perched&&!grabbed&&!air){var fEl2=document.getElementById("face");
    if(fEl2){var fr2=fEl2.getBoundingClientRect(),hb2=hero.getBoundingClientRect();
     var txp=fr2.left-hb2.left+fr2.width/2-HW/2,typ=fr2.top-hb2.top+fr2.height*crownFrac-HH*FOOT+HH*0.07;
@@ -2820,7 +2832,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    else if(wig.type==="shake"){wigP+=DT*44;rotX=Math.sin(wigP)*7*env;}      // the whole-body shake-off
    else if(wig.type==="binky"){rotX=Math.sin(wp*6.283)*11*wig.a;}           // one full joyful twist and back
    if(wig.t<=0)wig=null;}
-  var rot=(flipA?flipA:lean+(grabbed?swing:0))+rotX;   // mid-somersault the flip owns the body
+  var rot=(flipA?flipA:lean+(grabbed?swing:0))+rotX+(drowse2?2.2:0);   // mid-somersault the flip owns the body; sleepiness droops it
   root.style.transformOrigin=flipA?"50% 50%":"50% "+(cTop?"4%":"94%");   // deform against whichever surface it touched
   root.style.transform="translate("+x.toFixed(1)+"px,"+(y+breathe+(grabbed?heldOff:0)).toFixed(1)+"px) rotate("+rot.toFixed(1)+"deg) scale("+(depth*hs*sqx).toFixed(3)+","+(depth*hs*sqy).toFixed(3)+")";
   // the shadow stays on the ground it belongs to
@@ -2834,15 +2846,23 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   var rr=root.getBoundingClientRect();
   var dcur=Math.hypot(px-(rr.left+rr.width/2),py-(rr.top+rr.height/2));
   var act=(typeof lastMove!=="undefined")&&(now-lastMove<2500)&&dcur<190;   // the cursor only matters up close
+  if(act)lastNearT=now;
+  if(!drowse2&&now-lastNearT>45000&&st==="idle"&&!perched&&!grabbed&&!air)drowse2=true;   // left alone long enough, it gets sleepy
+  if(drowse2&&act){drowse2=false;brf=6;   // and startles sweetly awake when you come back
+   if(!air&&!grabbed&&!perched){air=true;st="fall";surface=floorY;vy=-(240+Math.random()*70);vx=0;sqT=0.12;sqyP=1.1;sqxP=1/1.1;}}
   var nx,ny;
   if(grabbed){nx=0.14;ny=0.1;}   // held: eyes quietly to one side, never panicked
   else if(perched&&moodB){nx=0;ny=0.9;}   // front-row seat: watching the show below
   else if(act){nx=Math.max(-1,Math.min(1,(px-(rr.left+rr.width/2))/280));ny=Math.max(-1,Math.min(1,(py-(rr.top+rr.height/2))/280));
    if(Math.abs(nx)<0.09&&Math.abs(ny)<0.09){nx=0.13*(dir||1);ny=0.05;}}   // same rule as mine: never a dead stare into the camera
   else if(air||Math.abs(vx)>0.5){nx=dir*0.7;ny=0.12;}   // busy going somewhere: it watches where it is going
-  else{if(now>=sacAt){do{gzx=(Math.random()*1.4-0.7);}while(Math.abs(gzx)<0.12);gzy=(Math.random()*0.8-0.45);sacAt=now+700+Math.random()*1600;}nx=gzx;ny=gzy;}
+  else{if(now>=sacAt){
+   if(typeof lastMove!=="undefined"&&now-lastMove<5000&&Math.random()<0.35){gzx=Math.max(-1,Math.min(1,(px-(rr.left+rr.width/2))/420));gzy=Math.max(-0.6,Math.min(0.6,(py-(rr.top+rr.height/2))/420));}   // joint attention: it checks what you are doing
+   else{do{gzx=(Math.random()*1.4-0.7);}while(Math.abs(gzx)<0.12);gzy=(Math.random()*0.8-0.45);}
+   sacAt=now+700+Math.random()*1600;}
+   nx=gzx;ny=gzy;if(drowse2){nx*=0.3;ny=0.4;}}
   if(!grabbed&&bigR&&window.__hmVisit&&now<window.__hmVisit&&Math.abs((x+HW/2)-(bigR.l+bigR.r)/2)<(bigR.r-bigR.l)){nx=((bigR.l+bigR.r)/2>(x+HW/2))?0.7:-0.7;ny=-0.55;}   // home beside the caregiver: it looks up at him
-  if(now>=bAt&&bf===0&&!grabbed&&dzf===0){bf=5;dblBlink=Math.random()<0.22;bAt=now+2700+Math.random()*3800;}
+  if(now>=bAt&&bf===0&&!grabbed&&dzf===0){bf=5;dblBlink=!drowse2&&Math.random()<0.22;bAt=now+(drowse2?5600:2700)+Math.random()*3800;}
   if(bf>0){sqy=Math.min(sqy,0.955);sqx=Math.max(sqx,1.03);}   // the whole head takes part in a blink, like mine
   if(bf===1&&dblBlink){dblBlink=false;bf=5;}
   try{if(perched&&faceImg&&faceImg.src.indexOf("smile")>-1&&now>=mirrorAt){mirrorAt=now+3000;brf=6;mof=4;}}catch(_){}   // he smiles, it beams back
@@ -2856,7 +2876,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   eyeEls3.forEach(function(o,oi){
    if(o.box)o.box.style.transform="rotate("+(Math.abs(rot)>20?0:-rot).toFixed(1)+"deg)";   // the glint's light source does not tilt with the head (but rides along mid-flip)
    if(bf>0){var lp=(bf===5||bf===1)?-44:(bf===4?-14:-4);o.lid.style.transform="translateY("+lp+"%)";}
-   else o.lid.style.transform="translateY(-105%)";
+   else o.lid.style.transform=drowse2?"translateY(-64%)":"translateY(-105%)";   // heavy lids when sleepy
    if(dzf>0){var ph=(12-dzf)*0.95+(oi?2.2:0);var ebw2=o.box?o.box.offsetWidth:34;o.iris.style.transform="translate("+Math.round(Math.cos(ph)*ebw2*0.22)+"px,"+Math.round(Math.sin(ph)*ebw2*0.14)+"px)";}
    else{var ebw=o.box?o.box.offsetWidth:34;var gtx2=Math.round(nx*ebw*0.18),gty2=Math.round(ny*ebw*0.10);o.iris.style.transform="translate("+gtx2+"px,"+gty2+"px)";if(o.glint)o.glint.style.transform="translate("+Math.round(gtx2*0.62)+"px,"+Math.round(gty2*0.62)+"px)";}
   });
