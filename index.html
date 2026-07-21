@@ -2641,13 +2641,20 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
      st="idle",stT=0,hopsLeft=0,grabbed=false,gpx=0,gpy=0,lastPX=0,lastPY=0,pvx=0,pvy=0,
      offAt=0,gone=false,goneUntil=0,decideAt=performance.now()+4200,spin=0,heldOff=0,heldV=0,cTop=false,bornAt=performance.now()+1600,perched=false,hs=1,hsT=1,dockUntil=0,moodB=false,pbAt=0,mirrorAt=0,downT=0,downX=0,downY=0,shakeN=0,heartsF=0,danceHops=0,dblBlink=false,
      bAt=performance.now()+2800,bf=0,brAt=performance.now()+7000,brf=0,moAt=performance.now()+11000,mof=0,
-     dzf=0,sqx=1,sqy=1,sqxv=0,sqyv=0,sqxP=1,sqyP=1,sqT=0,shown=false,first=true,tk3=0,gzx=0,gzy=0,sacAt=0,flipA=0,flipV=0,wig=null,wigP=0,bounceN=0,perchT=0,leapDelay=Infinity,hmOverT=0,introSettled=false,bornWall=0;
+     dzf=0,sqx=1,sqy=1,sqxv=0,sqyv=0,sqxP=1,sqyP=1,sqT=0,shown=false,first=true,tk3=0,gzx=0,gzy=0,sacAt=0,flipA=0,flipV=0,wig=null,wigP=0,bounceN=0,perchT=0,leapDelay=Infinity,hmOverT=0,introSettled=false,bornWall=0,shakeAfter=false;
  var G=2600,DT=0.04,facc=0,CEIL=2,surpriseAt=0;   // real units: px/s and px/s^2, integrated at 25fps
  function startFlip(){var tt=Math.max(0.45,2*Math.abs(vy)/G);   // one full turn, timed to land on its feet
   flipV=Math.max(-700,Math.min(700,(360/tt)*(dir||1)));flipA=flipV>0?0.01:-0.01;}
- function hop(big){vy=-(big?900:(470+Math.random()*170));vx=dir*(130+Math.random()*100)*(mob?0.75:1);air=true;sqT=0.13;sqyP=1.12;sqxP=1/1.12;
-  if(!big&&Math.random()<0.09){vy=-(730+Math.random()*160);startFlip();}}   // every so often a hop becomes a little somersault
- function land(){air=false;vy=0;vx=0;y=surface;sqT=0.13;sqyP=0.87;sqxP=1/0.87;flipA=0;flipV=0;
+ function hop(big){ // anticipation: a real jump loads the spring first (countermovement crouch, ~100ms)
+  sqT=0.12;sqyP=0.85;sqxP=1/0.85;
+  setTimeout(function(){if(grabbed||air||perched)return;
+   vy=-(big?900:(470+Math.random()*170));vx=dir*(130+Math.random()*100)*(mob?0.75:1);air=true;sqT=0.13;sqyP=1.12;sqxP=1/1.12;
+   if(!big&&Math.random()<0.09){vy=-(730+Math.random()*160);startFlip();}   // every so often a hop becomes a little somersault
+  },90+Math.random()*45);}
+ function land(){air=false;vy=0;vx=0;y=surface;sqT=0.13;sqyP=0.87;sqxP=1/0.87;
+  if(flipV!==0){try{if(typeof browFlash==="function")browFlash();}catch(_){}}   // it stuck the somersault: he notices
+  flipA=0;flipV=0;
+  if(shakeAfter){shakeAfter=false;setTimeout(function(){if(!grabbed&&!perched&&!air&&st==="idle"){wig={t:0.45,dur:0.45,type:"shake"};wigP=0;}},260+Math.random()*160);}   // dog-style shake-off after a rough ride
   if(hopsLeft>0){hopsLeft--;setTimeout(function(){if(!grabbed&&st==="hop")hop(false);},240+Math.random()*160);}
   else if(bounceN>0){bounceN--;st="idle";setTimeout(function(){if(!grabbed&&!perched&&st==="idle"&&!air){air=true;st="fall";vy=-(370+Math.random()*130);vx=dir*(10+Math.random()*24);sqT=0.12;sqyP=1.1;sqxP=1/1.1;}},170+Math.random()*130);}
   else st="idle";}
@@ -2656,25 +2663,36 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   decideAt=now+2100+Math.random()*3400;
   if(st!=="idle"||grabbed||perched)return;
   var r=Math.random();
-  if(r<0.38){ // hop all the way there, however many hops it takes
+  if(r<0.36){ // travel: look where you are going first (the orienting reflex), then go
    var tx=M+Math.random()*(heroR.w-HW-M*2);
-   dir=tx>x?1:-1;surface=floorY;st="hop";hopsLeft=Math.min(11,Math.max(1,Math.round(Math.abs(tx-x)/70)));hop(false);}
-  else if(r<0.56&&bigR){ // secure base: come home beside the big head, either side
+   dir=tx>x?1:-1;gzx=dir*0.75;gzy=0.05;sacAt=now+900;
+   surface=floorY;st="hop";hopsLeft=Math.min(11,Math.max(1,Math.round(Math.abs(tx-x)/70)));
+   setTimeout(function(){if(!grabbed&&st==="hop"&&!air)hop(false);},240+Math.random()*160);}
+  else if(r<0.52&&bigR){ // secure base: glance home, then come home beside him
    var side=Math.random()<0.5?-1:1;
    var tx2=side<0?Math.max(M,bigR.l-HW-14):Math.min(heroR.w-HW-M,bigR.r+14);
-   dir=tx2>x?1:-1;surface=floorY;st="hop";hopsLeft=Math.min(11,Math.max(1,Math.round(Math.abs(tx2-x)/70)));hop(false);window.__hmVisit=performance.now()+9000;}
-  else if(r<0.66){ // happy little bounces on the spot
+   dir=tx2>x?1:-1;gzx=dir*0.75;gzy=-0.1;sacAt=now+900;
+   surface=floorY;st="hop";hopsLeft=Math.min(11,Math.max(1,Math.round(Math.abs(tx2-x)/70)));
+   setTimeout(function(){if(!grabbed&&st==="hop"&&!air)hop(false);},240+Math.random()*160);window.__hmVisit=performance.now()+9000;}
+  else if(r<0.62){ // happy little bounces on the spot
    bounceN=1+(Math.random()<0.5?1:0);surface=floorY;st="fall";air=true;
    vy=-(400+Math.random()*140);vx=dir*(12+Math.random()*26);sqT=0.13;sqyP=1.12;sqxP=1/1.12;}
-  else if(r<0.74){ // a show-off leap, often with a somersault
+  else if(r<0.70){ // the pounce: a cat wiggle to set the feet, then the show-off leap
    dir=Math.random()<0.5?-1:1;if(x<M+40)dir=1;if(x>heroR.w-HW-M-40)dir=-1;
-   surface=floorY;st="fall";air=true;hopsLeft=0;
-   vy=-(760+Math.random()*180);vx=dir*(170+Math.random()*160)*(mob?0.75:1);sqT=0.14;sqyP=1.16;sqxP=1/1.16;
-   if(Math.random()<0.7)startFlip();}
-  else if(r<0.81){wig={t:0.55,dur:0.55,type:"stretch"};sqT=0.5;sqyP=1.11;sqxP=1/1.11;}   // a tall luxurious stretch
+   wig={t:0.34,dur:0.34,type:"pounce"};wigP=0;sqT=0.32;sqyP=0.92;sqxP=1/0.92;
+   var _dr=dir;st="hop";hopsLeft=0;
+   setTimeout(function(){if(grabbed||perched||air||st!=="hop")return;dir=_dr;
+    surface=floorY;st="fall";air=true;
+    vy=-(760+Math.random()*180);vx=dir*(170+Math.random()*160)*(mob?0.75:1);sqT=0.14;sqyP=1.16;sqxP=1/1.16;
+    if(Math.random()<0.7)startFlip();},340);}
+  else if(r<0.76){ // a binky: the rabbit joy-jump, straight up with a twist of the body
+   surface=floorY;st="fall";air=true;
+   vy=-(640+Math.random()*160);vx=dir*(20+Math.random()*30);sqT=0.13;sqyP=1.15;sqxP=1/1.15;
+   wig={t:0.5,dur:0.5,type:"binky",a:(Math.random()<0.5?-1:1)};wigP=0;}
+  else if(r<0.82){wig={t:0.55,dur:0.55,type:"stretch"};sqT=0.5;sqyP=1.11;sqxP=1/1.11;}   // a tall luxurious stretch
   else if(r<0.87){wig={t:0.95,dur:0.95,type:"shimmy"};wigP=0;}   // a happy little shimmy
-  else if(r<0.93){wig={t:1.15,dur:1.15,type:"tilt",a:(Math.random()<0.5?-1:1)*7};}   // curious head-tilt
-  else if(r<0.965){ // a tiny sneeze: inhale tall, pop back, blink
+  else if(r<0.92){wig={t:1.15,dur:1.15,type:"tilt",a:(Math.random()<0.5?-1:1)*7};}   // curious head-tilt
+  else if(r<0.955){ // a tiny sneeze: inhale tall, pop back, blink
    sqT=0.14;sqyP=1.15;sqxP=1/1.15;
    setTimeout(function(){if(grabbed||perched||air)return;bf=5;air=true;st="fall";surface=floorY;
     vx=-dir*(70+Math.random()*50);vy=-(240+Math.random()*80);sqT=0.12;sqyP=0.82;sqxP=1/0.82;},170);}
@@ -2765,10 +2783,10 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   // physics: walls, floor, ceiling, and the caregiver — nothing else is solid
   if(!grabbed&&air){
    vy+=G*DT;if(vy>1800)vy=1800;x+=vx*DT;y+=vy*DT;if(flipA)flipA+=flipV*DT;   // terminal velocity keeps dt-stepping sound
-   if(x<WL){x=WL;vx=Math.abs(vx)*0.72;dir=1;sqT=0.13;sqxP=0.86;sqyP=1.163;}
-   if(x>WR){x=WR;vx=-Math.abs(vx)*0.72;dir=-1;sqT=0.13;sqxP=0.86;sqyP=1.163;}
-   if(y<CEIL){y=CEIL;vy=Math.abs(vy)*0.72;sqT=0.13;sqxP=1.163;sqyP=0.86;cTop=true;}
-   if(vy>0&&y>=surface){ cTop=false; if(st==="fall"&&Math.abs(vy)>340){var k=Math.min(0.28,Math.abs(vy)*0.00055);y=surface;vy=-vy*0.72;vx*=0.85;sqT=0.16;sqyP=1-k;sqxP=1/(1-k);flipA=0;flipV=0;}  // e=0.72 (toy ball), tangential 0.85, volume-true squash
+   if(x<WL){x=WL;if(Math.abs(vx)>420)brf=6;vx=Math.abs(vx)*0.72;dir=1;sqT=0.13;sqxP=0.86;sqyP=1.163;}
+   if(x>WR){x=WR;if(Math.abs(vx)>420)brf=6;vx=-Math.abs(vx)*0.72;dir=-1;sqT=0.13;sqxP=0.86;sqyP=1.163;}
+   if(y<CEIL){y=CEIL;if(Math.abs(vy)>420&&bf===0)bf=5;vy=Math.abs(vy)*0.72;sqT=0.13;sqxP=1.163;sqyP=0.86;cTop=true;}   // bonk: a startle blink
+   if(vy>0&&y>=surface){ cTop=false; if(st==="fall"&&Math.abs(vy)>340){if(Math.abs(vy)>1050)shakeAfter=true;var k=Math.min(0.28,Math.abs(vy)*0.00055);y=surface;vy=-vy*0.72;vx*=0.85;sqT=0.16;sqyP=1-k;sqxP=1/(1-k);flipA=0;flipV=0;}  // e=0.72 (toy ball), tangential 0.85, volume-true squash
     else land();}
    else if(air&&sqT<=0){var vst=Math.min(0.18,Math.hypot(vx,vy)*0.00016);sqyP=1+vst;sqxP=1/(1+vst);}   // stretch scales with speed, volume conserved
   }
@@ -2798,6 +2816,9 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   if(wig){wig.t-=DT;var wp=1-Math.max(0,wig.t)/wig.dur,env=Math.sin(Math.PI*Math.min(1,wp));
    if(wig.type==="shimmy"){wigP+=DT*24;rotX=Math.sin(wigP)*6*env;}
    else if(wig.type==="tilt")rotX=wig.a*env;
+   else if(wig.type==="pounce"){wigP+=DT*30;rotX=Math.sin(wigP)*3.5*env;}   // fast, tiny: feet finding their grip
+   else if(wig.type==="shake"){wigP+=DT*44;rotX=Math.sin(wigP)*7*env;}      // the whole-body shake-off
+   else if(wig.type==="binky"){rotX=Math.sin(wp*6.283)*11*wig.a;}           // one full joyful twist and back
    if(wig.t<=0)wig=null;}
   var rot=(flipA?flipA:lean+(grabbed?swing:0))+rotX;   // mid-somersault the flip owns the body
   root.style.transformOrigin=flipA?"50% 50%":"50% "+(cTop?"4%":"94%");   // deform against whichever surface it touched
