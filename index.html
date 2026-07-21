@@ -2668,10 +2668,10 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   // physics: walls, floor, ceiling, and the caregiver — nothing else is solid
   if(!grabbed&&air){
    vy+=G;x+=vx;y+=vy;
-   if(x<WL){x=WL;vx=Math.abs(vx)*0.62;dir=1;sqf=2;sqx=0.86;sqy=1.12;}
-   if(x>WR){x=WR;vx=-Math.abs(vx)*0.62;dir=-1;sqf=2;sqx=0.86;sqy=1.12;}
-   if(y<2){y=2;vy=Math.abs(vy)*0.5;}
-   if(vy>0&&y>=surface){ if(Math.abs(vy)>7){var k=Math.min(0.32,Math.abs(vy)*0.014);y=surface;vy=-vy*0.5;vx*=0.7;sqf=3;sqx=1+k;sqy=1-k;}  // impact squash scales with impact speed
+   if(x<WL){x=WL;vx=Math.abs(vx)*0.72;dir=1;sqf=2;sqx=0.86;sqy=1.12;}
+   if(x>WR){x=WR;vx=-Math.abs(vx)*0.72;dir=-1;sqf=2;sqx=0.86;sqy=1.12;}
+   if(y<2){y=2;vy=Math.abs(vy)*0.6;}
+   if(vy>0&&y>=surface){ if(Math.abs(vy)>5.5){var k=Math.min(0.32,Math.abs(vy)*0.014);y=surface;vy=-vy*0.62;vx*=0.82;sqf=3;sqx=1+k;sqy=1-k;}  // lively restitution: it really bounces
     else land();}
    else if(air){var vst=Math.min(0.2,Math.abs(vy)*0.009);sqy=Math.max(sqy,1+vst);sqx=Math.min(sqx,1-vst*0.8);}   // stretch along the motion in the air
   }

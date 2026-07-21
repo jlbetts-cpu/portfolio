@@ -474,19 +474,40 @@ document.getElementById("save").addEventListener("click",function(){
  x.fillStyle=sh;x.save();x.translate(0,BAKE_H*0.965);x.scale(1,0.09);x.translate(0,-BAKE_H*0.965);x.beginPath();x.arc(BAKE_W/2,BAKE_H*0.965,BAKE_W*0.30,0,Math.PI*2);x.fill();x.restore();
  x.drawImage(bakedCanvas,0,0);
  var W=BAKE_W,H=BAKE_H;
+ // a natural glance for the picture, never a dead stare; poses override
+ var LOOKS=[[0.5,0.12],[-0.5,0.1],[0.35,-0.28],[-0.38,-0.22],[0.55,0.3]];
+ var look=LOOKS[Math.floor(Math.random()*LOOKS.length)];
+ if(pose==="side")look=[-0.85,0.1];
+ function rgbOf(c2){var m=/rgb\((\d+),\s*(\d+),\s*(\d+)/.exec(c2);if(m)return[+m[1],+m[2],+m[3]];
+  var h=c2.replace("#","");return[parseInt(h.substr(0,2),16),parseInt(h.substr(2,2),16),parseInt(h.substr(4,2),16)];}
+ if(pose==="brows"&&bakedCanvas){ // raised brows drawn from their own photo, feather-edged
+  [marks.BL,marks.BR].forEach(function(b){
+   var bw2=Math.round(W*0.13),bh2=Math.round(W*0.075),bx=Math.round(b.x*W-bw2/2),by=Math.round(b.y*H-bh2/2);
+   var t=document.createElement("canvas");t.width=bw2;t.height=bh2;var tx=t.getContext("2d");
+   tx.drawImage(bakedCanvas,bx,by,bw2,bh2,0,0,bw2,bh2);
+   tx.globalCompositeOperation="destination-in";
+   var fg=tx.createRadialGradient(bw2/2,bh2/2,0,bw2/2,bh2/2,bw2/2);fg.addColorStop(0.55,"#000");fg.addColorStop(1,"rgba(0,0,0,0)");
+   tx.fillStyle=fg;tx.fillRect(0,0,bw2,bh2);
+   x.drawImage(t,bx,by-Math.round(H*0.008));});
+ }
  deriveEyes().forEach(function(e){
-  var ew=e.w*W,eh=e.h*H,ex=e.x*W,ey=e.y*H;
+  var ew=e.w*W,eh=Math.max(e.h*H,e.w*W*0.42),ex=e.x*W,ey=e.y*H;
   x.save();x.translate(ex,ey);x.rotate(e.ang||0);x.translate(-ex,-ey);
-  var sc=sclera(e);var grd=x.createRadialGradient(ex,ey,0,ex,ey,ew/2);
-  grd.addColorStop(0,sc);grd.addColorStop(0.62,sc);grd.addColorStop(1,sc.replace("rgb","rgba").replace(")",",0)"));
-  x.fillStyle=grd;x.beginPath();x.ellipse(ex,ey,ew/2,eh/2,0,0,Math.PI*2);x.fill();
-  x.fillStyle="#0d0d0d";x.beginPath();x.ellipse(ex,ey,ew*0.30,eh*0.52,0,0,Math.PI*2);x.fill();
-  x.save();x.beginPath();x.ellipse(ex,ey,ew*0.30,eh*0.52,0,0,Math.PI*2);x.clip();
-  for(var st=0;st<44;st++){var a2=st/44*Math.PI*2;x.strokeStyle=st%2?"rgba(255,255,255,.05)":"rgba(0,0,0,.25)";x.lineWidth=1.2;x.beginPath();x.moveTo(ex,ey);x.lineTo(ex+Math.cos(a2)*ew*0.30,ey+Math.sin(a2)*eh*0.52);x.stroke();}
-  var ig=x.createRadialGradient(ex,ey,1,ex,ey,ew*0.30);ig.addColorStop(0,"rgba(25,25,25,.9)");ig.addColorStop(0.55,"rgba(10,10,10,.4)");ig.addColorStop(1,"rgba(3,3,3,.95)");x.fillStyle=ig;x.beginPath();x.ellipse(ex,ey,ew*0.30,eh*0.52,0,0,Math.PI*2);x.fill();x.restore();
-  x.fillStyle="#000";x.beginPath();x.ellipse(ex,ey,ew*0.165,eh*0.29,0,0,Math.PI*2);x.fill();
-  x.fillStyle="rgba(255,255,255,.95)";x.beginPath();x.ellipse(ex-ew*0.07,ey-eh*0.14,ew*0.06,eh*0.10,0,0,Math.PI*2);x.fill();
-  x.fillStyle="rgba(255,255,255,.5)";x.beginPath();x.ellipse(ex+ew*0.09,ey+eh*0.16,ew*0.03,eh*0.05,0,0,Math.PI*2);x.fill();
+  var rgb=rgbOf(sclera(e));
+  var grd=x.createRadialGradient(ex,ey,0,ex,ey,ew*0.52);
+  grd.addColorStop(0,"rgba("+rgb[0]+","+rgb[1]+","+rgb[2]+",1)");
+  grd.addColorStop(0.66,"rgba("+rgb[0]+","+rgb[1]+","+rgb[2]+",1)");
+  grd.addColorStop(1,"rgba("+rgb[0]+","+rgb[1]+","+rgb[2]+",0)");
+  x.fillStyle=grd;x.beginPath();x.ellipse(ex,ey,ew*0.52,eh*0.55,0,0,Math.PI*2);x.fill();
+  var gx=look[0]*ew*0.15,gy=look[1]*eh*0.18,ix=ex+gx,iy=ey+gy;
+  var irx=ew*0.27,iry=Math.min(eh*0.46,ew*0.3);   // the iris always fits inside its white
+  x.fillStyle="#0d0d0d";x.beginPath();x.ellipse(ix,iy,irx,iry,0,0,Math.PI*2);x.fill();
+  x.save();x.beginPath();x.ellipse(ix,iy,irx,iry,0,0,Math.PI*2);x.clip();
+  for(var st=0;st<44;st++){var a2=st/44*Math.PI*2;x.strokeStyle=st%2?"rgba(255,255,255,.05)":"rgba(0,0,0,.25)";x.lineWidth=1.2;x.beginPath();x.moveTo(ix,iy);x.lineTo(ix+Math.cos(a2)*irx,iy+Math.sin(a2)*iry);x.stroke();}
+  var ig=x.createRadialGradient(ix,iy,1,ix,iy,irx);ig.addColorStop(0,"rgba(25,25,25,.9)");ig.addColorStop(0.55,"rgba(10,10,10,.4)");ig.addColorStop(1,"rgba(3,3,3,.95)");x.fillStyle=ig;x.beginPath();x.ellipse(ix,iy,irx,iry,0,0,Math.PI*2);x.fill();x.restore();
+  x.fillStyle="#000";x.beginPath();x.ellipse(ix,iy,irx*0.55,iry*0.55,0,0,Math.PI*2);x.fill();
+  x.fillStyle="rgba(255,255,255,.95)";x.beginPath();x.ellipse(ix-irx*0.25,iy-iry*0.3,irx*0.2,iry*0.2,0,0,Math.PI*2);x.fill();
+  x.fillStyle="rgba(255,255,255,.5)";x.beginPath();x.ellipse(ix+irx*0.3,iy+iry*0.32,irx*0.1,iry*0.1,0,0,Math.PI*2);x.fill();
   x.restore();
  });
  var a=document.createElement("a");a.download="my-floating-head.png";a.href=c.toDataURL("image/png");a.click();
