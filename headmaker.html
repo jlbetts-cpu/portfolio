@@ -372,32 +372,45 @@ function buildLive(){
  var oneWhite=(function(){var a=sclera(des[0]),b=sclera(des[1]);
   function px2(cc){var m=/rgb\((\d+), ?(\d+), ?(\d+)/.exec(cc);return m?[+m[1],+m[2],+m[3]]:[239,236,231];}
   var pa=px2(a),pb=px2(b);return"rgb("+Math.round((pa[0]+pb[0])/2)+","+Math.round((pa[1]+pb[1])/2)+","+Math.round((pa[2]+pb[2])/2)+")";})();
+ var owm=/rgb\((\d+),\s*(\d+),\s*(\d+)/.exec(oneWhite),owr=+owm[1],owg=+owm[2],owb=+owm[3];
+ var owB="rgb("+Math.min(255,owr+8)+","+Math.min(255,owg+8)+","+Math.min(255,owb+7)+")";   /* catches the light */
+ var owD="rgb("+Math.round(owr*0.84)+","+Math.round(owg*0.82)+","+Math.round(owb*0.80)+")"; /* turns away from it */
  des.forEach(function(c){
   var sc=oneWhite;   /* both eyes share one white: mismatched whites read uncanny */
   /* anatomy: the eye window is the aperture THEY marked; the iris is a circle 42% of eye width,
      taller than the window so the lids crop it top and bottom, the way every human eye works */
   var _ew=c.w*0.94, _eh=Math.max(c.w*0.26,Math.min(c.w*0.44,c.h*1.05));
+  var cvW=_ew*1.18,cvH=_eh*1.55/1.2;   /* their own skin hides the photo's eye: no white ever bleeds onto the face */
   var scl=document.createElement("div");scl.className="hmScl";
-  scl.style.width=(_ew*106)+"%";scl.style.height=(_eh/1.2*138)+"%";
-  scl.style.left=((c.x-_ew*0.53)*100)+"%";scl.style.top=((c.y-_eh*0.69/1.2)*100)+"%";
+  scl.style.width=(cvW*100)+"%";scl.style.height=(cvH*100)+"%";
+  scl.style.left=((c.x-cvW/2)*100)+"%";scl.style.top=((c.y-cvH/2)*100)+"%";
   scl.style.transform="rotate("+(c.ang||0)+"rad)";
-  scl.style.background=sc;
-  scl.style.webkitMaskImage="radial-gradient(ellipse at center,#000 62%,transparent 90%)";
-  scl.style.maskImage="radial-gradient(ellipse at center,#000 62%,transparent 90%)";
+  scl.style.backgroundImage="url("+cutURL+")";scl.style.backgroundRepeat="no-repeat";
+  scl.style.backgroundSize=(100/cvW)+"% "+(100/cvH)+"%";
+  scl.style.backgroundPosition=((c.x-cvW/2)/(1-cvW)*100)+"% "+(((c.y+c.h*1.55)-cvH/2)/(1-cvH)*100)+"%";
+  scl.style.webkitMaskImage="radial-gradient(ellipse at center,#000 48%,transparent 82%)";
+  scl.style.maskImage="radial-gradient(ellipse at center,#000 48%,transparent 82%)";
   headEl.appendChild(scl);
   var w=document.createElement("div");w.className="hmEye";
   w.style.width=(_ew*100)+"%";w.style.height=(_eh/1.2*100)+"%";   /* /1.2: the stage is 5/6, heights need the aspect taken out */
   w.style.left=((c.x-_ew/2)*100)+"%";w.style.top=((c.y-_eh/2/1.2)*100)+"%";
   w.style.transform="rotate("+(c.ang||0)+"rad)";
   var irD=c.w*0.42;   /* true circle: 11.5mm on a 28mm eye */
+  var fill=document.createElement("div");   /* the white is a lit sphere, not a flat paint chip */
+  fill.style.cssText="position:absolute;inset:0;background:radial-gradient(ellipse at 16% 50%,rgba(112,80,60,.18),rgba(112,80,60,0) 34%),radial-gradient(ellipse at 84% 50%,rgba(112,80,60,.18),rgba(112,80,60,0) 34%),radial-gradient(ellipse at 50% 38%,"+owB+" 0%,"+sc+" 52%,"+owD+" 100%)";
   var ir=document.createElement("div");ir.className="hmIris";
   ir.style.width=(irD/_ew*100)+"%";ir.style.height=(irD/_eh*100)+"%";
   ir.style.left=((0.5-irD/_ew/2)*100)+"%";ir.style.top=((0.5-irD/_eh/2)*100)+"%";
   ir.style.borderRadius="50%";
+  ir.style.background="radial-gradient(circle at 39% 33%,#343434 0%,#1c1c1c 34%,#0c0c0c 66%,#030303 100%)";   /* smooth and deep, lit from above */
   var pu=document.createElement("div");pu.className="hmPupil";ir.appendChild(pu);
+  var shd=document.createElement("div");    /* the upper lid throws a soft shadow across everything */
+  shd.style.cssText="position:absolute;inset:0;pointer-events:none;background:linear-gradient(to bottom,rgba(46,32,26,.40) 0%,rgba(46,32,26,.13) 22%,rgba(46,32,26,0) 46%),linear-gradient(to top,rgba(255,255,255,.09) 0%,rgba(255,255,255,0) 16%)";
   var gl=document.createElement("div");gl.className="hmGlint";
-  gl.style.width=(0.2*irD/_ew*100)+"%";gl.style.height=(0.2*irD/_eh*100)+"%";gl.style.left="37%";gl.style.top=((0.5-irD/_eh/2)*100+irD/_eh*14)+"%";
-  w.appendChild(ir);w.appendChild(gl);
+  gl.style.width=(0.2*irD/_ew*100)+"%";gl.style.height=(0.2*irD/_eh*100)+"%";gl.style.left="37%";gl.style.top=((0.5-irD/_eh/2)*100+irD/_eh*30)+"%";   /* on the iris, never clipped by the lid */
+  var gl2=document.createElement("div");gl2.className="hmGlint";
+  gl2.style.width=(0.10*irD/_ew*100)+"%";gl2.style.height=(0.10*irD/_eh*100)+"%";gl2.style.left=(50+irD/_ew*14)+"%";gl2.style.top=(50+irD/_eh*15)+"%";gl2.style.opacity="0.45";
+  w.appendChild(fill);w.appendChild(ir);w.appendChild(shd);w.appendChild(gl);w.appendChild(gl2);
   headEl.appendChild(w);
   var lwW=c.w*1.12,lwH=c.h*1.42;
   var lw=document.createElement("div");lw.className="hmLidW";
@@ -510,22 +523,35 @@ document.getElementById("save").addEventListener("click",function(){
  deriveEyes().forEach(function(e){
   var ew=e.w*W,eh=Math.max(e.h*H,e.w*W*0.42),ex=e.x*W,ey=e.y*H;
   x.save();x.translate(ex,ey);x.rotate(e.ang||0);x.translate(-ex,-ey);
+  // their own skin covers the photo's eye first, so nothing peeks past the new one
+  var cw2=Math.round(ew*1.2),ch2=Math.round(eh*1.15),sy2=Math.round(e.y*H+e.h*H*1.55-ch2/2);   // snug: never tall enough to drag cheek shade up to the brow
+  var t2=document.createElement("canvas");t2.width=cw2;t2.height=ch2;var tx2=t2.getContext("2d");
+  tx2.drawImage(bakedCanvas,Math.round(ex-cw2/2),sy2,cw2,ch2,0,0,cw2,ch2);
+  tx2.globalCompositeOperation="destination-in";
+  var fg2=tx2.createRadialGradient(cw2/2,ch2/2,0,cw2/2,ch2/2,cw2/2);fg2.addColorStop(0.48,"#000");fg2.addColorStop(1,"rgba(0,0,0,0)");
+  tx2.fillStyle=fg2;tx2.fillRect(0,0,cw2,ch2);
+  x.drawImage(t2,Math.round(ex-cw2/2),Math.round(ey-ch2/2));
   var rgb=rgbOf(sclera(e));
-  var grd=x.createRadialGradient(ex,ey,0,ex,ey,ew*0.52);
-  grd.addColorStop(0,"rgba("+rgb[0]+","+rgb[1]+","+rgb[2]+",1)");
-  grd.addColorStop(0.66,"rgba("+rgb[0]+","+rgb[1]+","+rgb[2]+",1)");
-  grd.addColorStop(1,"rgba("+rgb[0]+","+rgb[1]+","+rgb[2]+",0)");
-  x.fillStyle=grd;x.beginPath();x.ellipse(ex,ey,ew*0.52,eh*0.55,0,0,Math.PI*2);x.fill();
+  var wB="rgb("+Math.min(255,rgb[0]+8)+","+Math.min(255,rgb[1]+8)+","+Math.min(255,rgb[2]+7)+")";
+  var wD="rgb("+Math.round(rgb[0]*0.84)+","+Math.round(rgb[1]*0.82)+","+Math.round(rgb[2]*0.80)+")";
   var gx=look[0]*ew*0.15,gy=look[1]*eh*0.18,ix=ex+gx,iy=ey+gy;
   var irx=ew*0.21,iry=ew*0.21;   // a true circle, 42% of the eye width
-  x.save();x.beginPath();x.ellipse(ex,ey,ew*0.5,Math.max(eh*0.5,ew*0.14),0,0,Math.PI*2);x.clip();   // the lids crop it
-  x.fillStyle="#0d0d0d";x.beginPath();x.ellipse(ix,iy,irx,iry,0,0,Math.PI*2);x.fill();
-  x.save();x.beginPath();x.ellipse(ix,iy,irx,iry,0,0,Math.PI*2);x.clip();
-  for(var st=0;st<44;st++){var a2=st/44*Math.PI*2;x.strokeStyle=st%2?"rgba(255,255,255,.05)":"rgba(0,0,0,.25)";x.lineWidth=1.2;x.beginPath();x.moveTo(ix,iy);x.lineTo(ix+Math.cos(a2)*irx,iy+Math.sin(a2)*iry);x.stroke();}
-  var ig=x.createRadialGradient(ix,iy,1,ix,iy,irx);ig.addColorStop(0,"rgba(25,25,25,.9)");ig.addColorStop(0.55,"rgba(10,10,10,.4)");ig.addColorStop(1,"rgba(3,3,3,.95)");x.fillStyle=ig;x.beginPath();x.ellipse(ix,iy,irx,iry,0,0,Math.PI*2);x.fill();x.restore();
+  x.save();x.beginPath();x.ellipse(ex,ey,ew*0.5,Math.max(eh*0.5,ew*0.14),0,0,Math.PI*2);x.clip();   // everything lives inside the lids
+  var grd=x.createRadialGradient(ex,ey-eh*0.12,ew*0.04,ex,ey,ew*0.55);   // the white is a lit sphere
+  grd.addColorStop(0,wB);grd.addColorStop(0.55,"rgb("+rgb[0]+","+rgb[1]+","+rgb[2]+")");grd.addColorStop(1,wD);
+  x.fillStyle=grd;x.fillRect(ex-ew*0.55,ey-eh*0.65,ew*1.1,eh*1.3);
+  [-1,1].forEach(function(sgn){var cg=x.createRadialGradient(ex+sgn*ew*0.44,ey,0,ex+sgn*ew*0.44,ey,ew*0.20);
+   cg.addColorStop(0,"rgba(112,80,60,.16)");cg.addColorStop(1,"rgba(112,80,60,0)");
+   x.fillStyle=cg;x.fillRect(ex-ew*0.55,ey-eh*0.65,ew*1.1,eh*1.3);});
+  var ig=x.createRadialGradient(ix-irx*0.24,iy-iry*0.3,irx*0.05,ix,iy,irx);   // smooth and deep, lit from above
+  ig.addColorStop(0,"#343434");ig.addColorStop(0.35,"#1c1c1c");ig.addColorStop(0.7,"#0b0b0b");ig.addColorStop(1,"#020202");
+  x.fillStyle=ig;x.beginPath();x.ellipse(ix,iy,irx,iry,0,0,Math.PI*2);x.fill();
   x.fillStyle="#000";x.beginPath();x.ellipse(ix,iy,irx*0.55,iry*0.55,0,0,Math.PI*2);x.fill();
   x.fillStyle="rgba(255,255,255,.95)";x.beginPath();x.ellipse(ix-irx*0.25,iy-iry*0.3,irx*0.2,iry*0.2,0,0,Math.PI*2);x.fill();
-  x.fillStyle="rgba(255,255,255,.5)";x.beginPath();x.ellipse(ix+irx*0.3,iy+iry*0.32,irx*0.1,iry*0.1,0,0,Math.PI*2);x.fill();
+  x.fillStyle="rgba(255,255,255,.45)";x.beginPath();x.ellipse(ix+irx*0.3,iy+iry*0.32,irx*0.1,iry*0.1,0,0,Math.PI*2);x.fill();
+  var ls2=x.createLinearGradient(0,ey-eh*0.55,0,ey+eh*0.05);   // the upper lid throws a soft shadow
+  ls2.addColorStop(0,"rgba(46,32,26,.40)");ls2.addColorStop(0.55,"rgba(46,32,26,.12)");ls2.addColorStop(1,"rgba(46,32,26,0)");
+  x.fillStyle=ls2;x.fillRect(ex-ew*0.55,ey-eh*0.65,ew*1.1,eh*0.75);
   x.restore();
   x.restore();
  });
