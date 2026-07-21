@@ -2600,7 +2600,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
  // --- state ---
  var x=bigR?(bigR.l+(bigR.r-bigR.l)/2-HW/2):Math.max(8,heroR.w*0.06),y=bigR?(bigR.t-HH+6):floorY,vx=0,vy=0,dir=1,depth=1,depthT=1,air=false,surface=floorY,
      st="idle",stT=0,hopsLeft=0,grabbed=false,gpx=0,gpy=0,lastPX=0,lastPY=0,pvx=0,pvy=0,
-     offAt=0,gone=false,goneUntil=0,decideAt=performance.now()+3000,spin=0,downT=0,downX=0,downY=0,shakeN=0,heartsF=0,danceHops=0,dblBlink=false,
+     offAt=0,gone=false,goneUntil=0,decideAt=performance.now()+3000,spin=0,heldOff=0,heldV=0,downT=0,downX=0,downY=0,shakeN=0,heartsF=0,danceHops=0,dblBlink=false,
      bAt=performance.now()+2800,bf=0,brAt=performance.now()+7000,brf=0,moAt=performance.now()+11000,mof=0,
      dzf=0,sqx=1,sqy=1,sqf=0,shown=false,first=true,tk3=0,gzx=0,gzy=0,sacAt=0;
  var G=4.6,HOPV=(mob?14:17),HOPX=(mob?6:9),surpriseAt=0;
@@ -2659,11 +2659,12 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   try{busy=document.body.classList.contains("about-open")||(typeof busyNow==="function"&&busyNow());}catch(_){}
   var want=!busy&&!gone;
   if(want!==shown||first){shown=want;root.style.opacity=want?"1":"0";root.style.filter=want?"blur(0)":"blur(6px)";shadow.style.opacity=want?"1":"0";
-   if(first&&want){setTimeout(function(){st="fall";air=true;surface=floorY;vx=-(5+Math.random()*3);vy=-10;dir=-1;sqf=2;sqx=0.86;sqy=1.16;},1000);} first=false;}   // develops in standing on the crown, then leaps off
+   if(first&&want){survey();if(bigR){x=bigR.l+(bigR.r-bigR.l)/2-HW/2;y=bigR.t-HH*FOOT;surface=floorY;}   // re-measure after layout settles, stand exactly on the crown
+    setTimeout(function(){if(!grabbed){st="fall";air=true;surface=floorY;vx=-(5+Math.random()*3);vy=-13;dir=-1;sqf=2;sqx=0.84;sqy=1.18;}},1100);} first=false;}   // then a real leap off
   if(reduce){root.style.transform="translate("+(heroR.w*0.05)+"px,"+floorY+"px)";shadow.style.transform="translate("+(heroR.w*0.05)+"px,"+(floorY+HH-4)+"px)";return;}
   if(!shown)return;
   if(now>=decideAt)decide(now);
-  if(!air&&spin!==0){var tgt=Math.round(spin/360)*360;spin+=(tgt-spin)*0.35;if(Math.abs(spin-tgt)<2)spin=tgt%360===0?0:spin;}   // settle upright once the motion is over
+
   // physics: walls, floor, ceiling, and the caregiver — nothing else is solid
   if(!grabbed&&air){
    vy+=G;x+=vx;y+=vy;
@@ -2679,15 +2680,17 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    try{if(typeof browFlash==="function")browFlash();if(typeof irisDilTarget!=="undefined")irisDilTarget=1.35;}catch(_){}}
   if(grabbed){var cx0=x,cy0=y;x=Math.max(WL,Math.min(WR,x));y=Math.max(2,Math.min(floorY,y));
    if(x!==cx0||y!==cy0){if(sqf===0){sqf=2;sqx=(y!==cy0)?1.16:0.86;sqy=(y!==cy0)?0.82:1.14;}}   // shoved into a wall while held: it squashes
-   var dsp=Math.min(16,Math.hypot(pvx,pvy));sqy=Math.max(sqy,1+dsp*0.006);sqx=Math.min(sqx,1-dsp*0.004);}   // and it leans/stretches with the drag
+   var dsp=Math.min(16,Math.hypot(pvx,pvy));sqy=Math.max(sqy,1+dsp*0.006);sqx=Math.min(sqx,1-dsp*0.004);
+   heldV+=(-heldOff*0.42)-(pvy*0.32);heldV*=0.72;heldOff=Math.max(-18,Math.min(18,heldOff+heldV));}   // it bounces on the hand like a ball on a paddle
+  else{heldOff*=0.6;heldV=0;}
   depth+= (depthT-depth)*0.06;
   // squash recovery
   if(sqf>0){sqf--;}else{sqx+=(1-sqx)*0.5;sqy+=(1-sqy)*0.5;}
   var swing=grabbed?Math.max(-12,Math.min(12,pvx*0.9)):0;pvx*=0.8;   // body leans with the drag; the face stays calm
-  if(air&&!grabbed)spin+=vx*1.6;   // real spin in flight
+  var lean=air&&!grabbed?Math.max(-10,Math.min(10,vx*0.7)):0;   // it leans into the jump, in control, never tumbling
   var breathe=0;
-  var rot=spin+(grabbed?swing:0);
-  root.style.transform="translate("+x.toFixed(1)+"px,"+(y+breathe).toFixed(1)+"px) rotate("+rot.toFixed(1)+"deg) scale("+(depth*sqx).toFixed(3)+","+(depth*sqy).toFixed(3)+")";
+  var rot=lean+(grabbed?swing:0);
+  root.style.transform="translate("+x.toFixed(1)+"px,"+(y+breathe+(grabbed?heldOff:0)).toFixed(1)+"px) rotate("+rot.toFixed(1)+"deg) scale("+(depth*sqx).toFixed(3)+","+(depth*sqy).toFixed(3)+")";
   // the shadow stays on the ground it belongs to
   var airH=Math.max(0,surface-y);
   var shScale=Math.max(0.32,depth*(1-airH/(heroR.h*0.6)));
