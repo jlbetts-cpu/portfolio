@@ -914,10 +914,10 @@ function showFace(name){
 // spontaneous blinks only while calm (neutral/rest); varied interval (research: ~3-5s, highly variable)
 function idleBlink(){if(!reduce&&!eventLock&&!reactType&&!dizzy&&!CALIB&&!blinking&&(curFace==="neutral"||curFace==="rest")){if(curFace==="rest"&&!holdFace&&window.__pointerOverFace===false){setFace("neutral");}requestBlink(curFace,false,true);}setTimeout(idleBlink,2100+Math.random()*3200);}
 // ===== IDLE CYCLE-BREAKERS: subtle fidgets that keep him alive between actions (research: base loop + randomized secondary idles) =====
-var fidget=null,fidgetGX=0,fidgetGY=0,fidgetROT=0,fidgetBrow=false;
+var fidget=null,fidgetGX=0,fidgetGY=0,fidgetROT=0,fidgetBrow=false,cfR=0;
 function idleFidget(){
  var now=performance.now();
- if(!reduce&&!eventLock&&!reactType&&!dizzy&&!CALIB&&!eating&&!partyMode&&!loveMode&&!rainMode&&!bearMode&&!movieMode&&!aboutOpen&&!introMode&&!dragging&&!blinking&&!fidget&&(curFace==="neutral"||curFace==="rest")){
+ if(!reduce&&!eventLock&&!reactType&&!dizzy&&!CALIB&&!eating&&!partyMode&&!loveMode&&!rainMode&&!bearMode&&!movieMode&&!aboutOpen&&!introMode&&!dragging&&!blinking&&!fidget&&!activeHover&&(curFace==="neutral"||curFace==="rest")){
   var r=Math.random(),t=r<0.28?"glance":(r<0.50?"tilt":(r<0.68?"look":"brow"));
   fidget={type:t,start:now,dur:(t==="brow"?940:(t==="tilt"?1500:1150)),dir:(Math.random()<0.5?-1:1)};   // one beat at a time, never repeats back-to-back
  }
@@ -971,6 +971,20 @@ function idleDrowse(){
 }
 setTimeout(idleDrowse,20000);
 addEventListener("pointermove",function(){if(drowsy){drowsy=false;if(holdFace==="rest")holdFace=null;browFlash(function(){resolve();});}},{passive:true});
+/* cursor companions: deterministic reactions to how the cursor moves, so the tracking face is never blank.
+   These are tied to motion, never random, and stay clear of the hover expressions. */
+var _vLast=0,_vX=0,_vY=0,_vBlinkAt=0,_nearAt=0,_wasNear=false;
+addEventListener("pointermove",function(e){
+ var now=performance.now();
+ if(_vLast){var dt=now-_vLast;if(dt>0&&dt<120){var sp=Math.hypot(e.clientX-_vX,e.clientY-_vY)/dt;
+  if(sp>2.6&&now-_vBlinkAt>4200&&!blinking&&!eventLock&&!reactType&&!dizzy&&!dragging&&(curFace==="neutral"||curFace==="rest")){_vBlinkAt=now;requestBlink(curFace,false,false);}}}   /* re-fixation blink on a fast flick */
+ _vLast=now;_vX=e.clientX;_vY=e.clientY;
+ try{var r=stage.getBoundingClientRect();var d=Math.hypot(e.clientX-(r.left+r.width/2),e.clientY-(r.top+r.height/2));
+  var near=d<r.width*0.85;
+  if(near&&!_wasNear&&now-_nearAt>7000&&idleFree()&&!fidget&&!holdFace&&!activeHover){_nearAt=now;browFlash();irisDilTarget=1.3;}   /* he notices you approaching: brow flash + a spark of interest */
+  if(near)_wasNear=true;else if(d>r.width*1.1)_wasNear=false;
+ }catch(_){}
+},{passive:true});
 /* the disappointed slow blink: shut, a long beat, reopen (mirrors buildBlink's grid steps) */
 function slowBlink(){if(blinking||reduce)return;blinking=true;blinkQ=[{close:1,sq:0.9},{close:1,sq:0.93},{close:1,sq:0.94},{close:1,sq:0.94},{close:1,sq:0.94},{open:1,face:curFace,sq:1}];applyStep(blinkQ.shift());}
 /* rare quirks: pop-culture beats plus the wink and the blep — one roll, long gaps, never twice in a row */
@@ -2086,8 +2100,10 @@ setInterval(()=>{tk++;if(!reduce)boil();if(crumbEls.length)updateCrumbs();
   const _act=HOVER&&(performance.now()-lastMove<IDLE_MS);let tgX,tgY;if(_act){tgX=((pointer.px/innerWidth)-0.5)*16;tgY=((pointer.py/innerHeight)-0.5)*10;}else{tgX=gaze.x*9;tgY=gaze.y*6-1;}paraX+=(tgX-paraX)*0.2;paraY+=(tgY-paraY)*0.2;
   const P=poseFor(curFace);curRot+=(P.rot-curRot)*0.16;curSc+=(P.sc-curSc)*0.16;curTX+=(P.tx-curTX)*0.16;curTY+=(P.ty-curTY)*0.16;
   const g=gestureOffset();
+  var _cg=0;if(_act&&!eventLock&&!reactType&&!dizzy&&!dragging&&!eating&&!blinking){try{var _srC=stage.getBoundingClientRect();_cg=Math.max(-1,Math.min(1,(pointer.px-(_srC.left+_srC.width*0.5))/SENS));}catch(_){}}
+  cfR+=((_cg*2.3)-cfR)*0.18;   /* the head turns a few degrees after the eyes — attention, not surveillance */
   const pull=scrollPull, strainR=Math.sin(tk*0.85)*pull*1.4, strainX=Math.sin(tk*1.15)*pull*1.3;  // tethered: strains toward the scroll, trembling
-  const __sm=(activeHover==="smile"&&!reduce)?1:0,__by=__sm?Math.sin(tk*1.2)*3:0,__br=__sm?Math.sin(tk*1.2+0.6)*1.5:0;const TX=Math.round(fx+dftX+paraX+curTX+g.tx+strainX),TY=Math.round(fy+dftY+paraY+curTY+g.ty+__by),ROT=(paraX*0.1+curRot+g.rot+strainR+__br+fidgetROT),SC=(curSc*g.sc);
+  const __sm=(activeHover==="smile"&&!reduce)?1:0,__by=__sm?Math.sin(tk*1.2)*3:0,__br=__sm?Math.sin(tk*1.2+0.6)*1.5:0;const TX=Math.round(fx+dftX+paraX+curTX+g.tx+strainX),TY=Math.round(fy+dftY+paraY+curTY+g.ty+__by),ROT=(paraX*0.1+cfR+curRot+g.rot+strainR+__br+fidgetROT),SC=(curSc*g.sc);
   const _br=Math.sin(t*1.75)*0.0045;const sty=(1+pull*0.06+_br).toFixed(4),stx=(1-pull*0.03-_br*0.35).toFixed(4);  // taffy stretch downward as it pulls
   const sqX=(1+(1-blinkSquash)*0.6).toFixed(3);stage.style.transform="translate("+TX+"px,"+TY+"px) rotate("+ROT.toFixed(1)+"deg) scale("+SC.toFixed(3)+") scale("+stx+","+sty+") scale("+sqX+","+blinkSquash+")";updateShadow(TX,TY,ROT);}},125);
 
