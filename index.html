@@ -2641,7 +2641,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
      st="idle",stT=0,hopsLeft=0,grabbed=false,gpx=0,gpy=0,lastPX=0,lastPY=0,pvx=0,pvy=0,
      offAt=0,gone=false,goneUntil=0,decideAt=performance.now()+4200,spin=0,heldOff=0,heldV=0,cTop=false,bornAt=performance.now()+1600,perched=false,hs=1,hsT=1,dockUntil=0,moodB=false,pbAt=0,mirrorAt=0,downT=0,downX=0,downY=0,shakeN=0,heartsF=0,danceHops=0,dblBlink=false,
      bAt=performance.now()+2800,bf=0,brAt=performance.now()+7000,brf=0,moAt=performance.now()+11000,mof=0,
-     dzf=0,sqx=1,sqy=1,sqxv=0,sqyv=0,sqxP=1,sqyP=1,sqT=0,shown=false,first=true,tk3=0,gzx=0,gzy=0,sacAt=0,flipA=0,flipV=0,wig=null,wigP=0,bounceN=0;
+     dzf=0,sqx=1,sqy=1,sqxv=0,sqyv=0,sqxP=1,sqyP=1,sqT=0,shown=false,first=true,tk3=0,gzx=0,gzy=0,sacAt=0,flipA=0,flipV=0,wig=null,wigP=0,bounceN=0,perchT=0,leapDelay=Infinity;
  var G=2600,DT=0.04,facc=0,CEIL=2,surpriseAt=0;   // real units: px/s and px/s^2, integrated at 25fps
  function startFlip(){var tt=Math.max(0.45,2*Math.abs(vy)/G);   // one full turn, timed to land on its feet
   flipV=Math.max(-700,Math.min(700,(360/tt)*(dir||1)));flipA=flipV>0?0.01:-0.01;}
@@ -2702,7 +2702,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   var tap=(performance.now()-downT<230)&&e&&Math.hypot(e.clientX-downX,e.clientY-downY)<6;
   var relSp=0;(function(){var nw2=performance.now();for(var q2=0;q2<vSamp.length;q2++){if(nw2-vSamp[q2].t<=95){var dtq=nw2-vSamp[q2].t;if(dtq>8)relSp=Math.hypot(lastPX-vSamp[q2].x,lastPY-vSamp[q2].y)/dtq*1000;break;}}})();
   if(!tap&&window.__hmOver&&relSp<450){ // placed with intent: it docks and he notices
-   perched=true;dockUntil=performance.now()+650;st="idle";air=false;vx=0;vy=0;hsT=1;vSamp=[];shakeN=0;
+   perched=true;dockUntil=performance.now()+650;st="idle";air=false;vx=0;vy=0;hsT=1;vSamp=[];shakeN=0;leapDelay=Infinity;
    try{gaze={x:0.05,y:-0.95};nextSaccade=performance.now()+1500;lastMove=performance.now()-9000;
     setTimeout(function(){try{if(typeof busyNow==="function"&&!busyNow()){setHold("smile",1000);showFace("smile");}}catch(_){}},420);}catch(_){}
    return;}
@@ -2738,15 +2738,18 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
     if(frc&&frc.height){x=frc.left-hr2.left+frc.width/2-HW/2;y=frc.top-hr2.top+frc.height*crownFrac-HH*FOOT+HH*0.07;surface=floorY;}   // feet settle INTO the hair
     else if(bigR){x=bigR.l+(bigR.r-bigR.l)/2-HW/2;y=bigR.t-HH*FOOT;surface=floorY;}   // feet on the visible hair itself
     perched=true;
-    if(!/[?&]stand=1/.test(location.search))setTimeout(function(){if(!grabbed){perched=false;st="fall";air=true;surface=floorY;
-     var ls=Math.max(1,x-M),rs=Math.max(1,heroR.w-(x+HW)-M),side=Math.random()<ls/(ls+rs)?-1:1;   // it leaps toward open floor, never by rote
-     dir=side;vx=side*(240+Math.random()*220);vy=-(820+Math.random()*280);sqT=0.16;sqxP=0.84;sqyP=1.19;
-     if(Math.random()<0.4)startFlip();}},1200+Math.random()*900);}}   // then a real leap off (?stand=1 holds the pose for tuning)
+    if(!/[?&]stand=1/.test(location.search)){perchT=0;leapDelay=1.4+Math.random()*0.9;}}}   // the leap clock only ticks on rendered frames: every visitor SEES it perched first (?stand=1 holds the pose)
   if(reduce){root.style.transform="translate("+(heroR.w*0.05)+"px,"+floorY+"px)";shadow.style.transform="translate("+(heroR.w*0.05)+"px,"+(floorY+HH-4)+"px)";return;}
   if(!shown)return;
   if(now>=decideAt)decide(now);
   // while perched it RIDES the breathing head: the hair moves, so does it
   if(perched&&moodB&&now>=pbAt){pbAt=now+700+Math.random()*500;sqT=0.12;sqyP=1.12;sqxP=1/1.12;}   // docked at a show: it bounces along
+  if(perched&&!grabbed&&!air&&leapDelay<Infinity){perchT+=DT;
+   if(perchT>=leapDelay){leapDelay=Infinity;perched=false;st="fall";air=true;surface=floorY;
+    var lsp=Math.max(1,x-M),rsp=Math.max(1,heroR.w-(x+HW)-M),side=Math.random()<0.5?-1:1;   // a fair coin, with just enough sense to avoid a wall
+    if(side<0&&lsp<HW*2)side=1;if(side>0&&rsp<HW*2)side=-1;
+    dir=side;vx=side*(240+Math.random()*220);vy=-(820+Math.random()*280);sqT=0.16;sqxP=0.84;sqyP=1.19;
+    if(Math.random()<0.4)startFlip();}}
   if(perched&&!grabbed&&!air){var fEl2=document.getElementById("face");
    if(fEl2){var fr2=fEl2.getBoundingClientRect(),hb2=hero.getBoundingClientRect();
     var txp=fr2.left-hb2.left+fr2.width/2-HW/2,typ=fr2.top-hb2.top+fr2.height*crownFrac-HH*FOOT+HH*0.07;
