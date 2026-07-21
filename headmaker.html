@@ -60,28 +60,22 @@ nav{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;column-ga
 .hmLoupe{position:absolute;width:110px;height:110px;border-radius:50%;background-repeat:no-repeat;box-shadow:0 0 0 1.5px rgba(8,8,8,.4),0 10px 30px -12px rgba(8,8,8,.4);pointer-events:none;display:none;z-index:9;background-color:var(--c50)}
 .hmLoupe::after{content:"";position:absolute;left:50%;top:50%;width:10px;height:10px;margin:-5px 0 0 -5px;border:1.5px solid var(--c950);border-radius:50%;background:rgba(253,253,253,.35)}
 .hmWhich{text-align:center;font-family:var(--sans);font-size:var(--fs-label);font-weight:600;color:var(--c700);margin:14px 0 0;min-height:18px;filter:url(#inkSm)}
-.hmGuides{position:absolute;inset:0;pointer-events:none}
+.hmGuides{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}   /* svg is replaced: inset alone never stretches it */
 /* every glyph is the anatomy it controls: chevron = corner wedge, arc = lid, dashed almond = the whole eye */
-.hmDot::before,.hmMark::before{filter:drop-shadow(0 0 1px rgba(253,253,253,.95)) drop-shadow(0 0 2px rgba(253,253,253,.6))}
-.hmDot.cl::before,.hmDot.cr::before{width:8px;height:8px;border:0;border-left:2px solid var(--c950);border-bottom:2px solid var(--c950);border-radius:1.5px;background:none;box-shadow:none;margin:-4px 0 0 -4px}
-.hmDot.cl::before{transform:rotate(45deg)}
-.hmDot.cr::before{transform:rotate(225deg)}
-.hmDot.cl::after,.hmDot.cr::after{display:none}
-.hmDot.lid::before{width:20px;height:8px;border:0;background:none;box-shadow:none;margin:-1px 0 0 -10px;border-top:2px solid var(--c950);border-radius:50% 50% 0 0/100% 100% 0 0;filter:drop-shadow(0 0 1px rgba(253,253,253,1)) drop-shadow(0 0 1px rgba(253,253,253,.9)) drop-shadow(0 0 3px rgba(253,253,253,.7))}
-.hmDot.lid.bot::before{margin-top:-7px;border-top:0;border-bottom:2px solid var(--c950);border-radius:0 0 50% 50%/0 0 100% 100%}
-.hmDot.lid::after{display:none}
+.hmMark::before{filter:drop-shadow(0 0 1px rgba(253,253,253,.95)) drop-shadow(0 0 2px rgba(253,253,253,.6))}
+/* the eye is edited the way Apple edits a shape: plain round handles on a live outline */
 .hmMark.brow::before{content:"";position:absolute;left:50%;top:50%;width:28px;height:6px;margin:-3px 0 0 -14px;border:0;border-radius:50%;background:var(--c950)}
 #dBL::before{transform:rotate(-5deg)}#dBR::before{transform:rotate(5deg)}
 .hmMark.brow.hot::before{transform:scale(1.18)}
 .hmMark.mouth::before{content:"";position:absolute;left:50%;top:50%;width:44px;height:12px;margin:-8px 0 0 -22px;border-bottom:2px solid var(--c950);border-radius:0 0 50% 50%/0 0 100% 100%}
 .hmMark.mouth::after{content:"";position:absolute;left:50%;top:50%;width:24px;height:8px;margin:-1px 0 0 -12px;border-bottom:2px solid var(--c950);border-radius:0 0 50% 50%/0 0 100% 100%;filter:drop-shadow(0 0 1px rgba(253,253,253,.95)) drop-shadow(0 0 2px rgba(253,253,253,.6))}
 .hmMark.hot::before{border-width:2.5px}
-.hmDot::before{width:9px;height:9px;margin:-4.5px 0 0 -4.5px;border-width:1.5px;background:var(--c50)}.hmDot::after{width:3px;height:3px;margin:-1.5px 0 0 -1.5px}
+.hmDot::before{width:9px;height:9px;margin:-4.5px 0 0 -4.5px;border-width:2px;background:rgba(253,253,253,.96);box-shadow:0 0 0 1.5px rgba(253,253,253,.9),0 1px 3px rgba(8,8,8,.3)}.hmDot::after{display:none}
 .hmMark{position:absolute;width:52px;height:44px;margin:-22px 0 0 -26px;cursor:grab;touch-action:none}
 .hmMark.bar::before{content:"";position:absolute;left:50%;top:50%;width:30px;height:0;margin:-1px 0 0 -15px;border-top:1.5px solid var(--c950);border-radius:2px;box-shadow:0 0 0 1px rgba(253,253,253,.8)}
 .hmMark.bar.wide::before{width:46px;margin-left:-23px}
 .hmMark.ring::before{content:"";position:absolute;left:50%;top:50%;width:14px;height:12px;margin:-6px 0 0 -7px;border:1.5px solid var(--c950);border-radius:50%;background:rgba(253,253,253,.5)}
-.hmMark.eyeC::before{width:46px;height:30px;margin:-15px 0 0 -23px;border-style:dashed;border-radius:50%;background:rgba(253,253,253,.10)}
+.hmMark.eyeC::before{display:none}   /* invisible: dragging the middle of the eye just works, like dragging a shape body */
 .hmZoom{-webkit-appearance:none;appearance:none;height:2px;background:rgba(8,8,8,.18);border-radius:2px;outline-offset:6px}
 .hmZoom::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--c950);border:0;cursor:pointer}
 .hmZoom::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:var(--c950);border:0;cursor:pointer}
@@ -157,19 +151,19 @@ a:focus-visible,button:focus-visible,.hmDot:focus-visible{outline:2px solid var(
   <section class="hmStep hidden" id="step3">
    <p class="kicker">Step 3 of 4 &middot; The eyes</p>
    <h2 class="stepHead">Mark your face.</h2>
-   <p class="stepBody">We take a first guess at where everything sits &mdash; just nudge what's off. The dashed ring drags a whole eye at once, the chevrons pinch its corners, the little arcs rest on its lids. Arched bars on your brows, a smile line on your mouth, the small ring on your nose.</p>
+   <p class="stepBody">We take a first guess at where everything sits &mdash; just nudge what's off. Each eye is an outline with four dots on it: drag a dot and the shape follows, or grab the middle of the eye to move the whole thing. Solid marks on your brows, lips on your mouth, the ring on your nose.</p>
    <div class="hmStage bare" id="stage3">
     <img id="hmCut" alt="Your cutout head">
-    <svg class="hmGuides" id="hmGuides" aria-hidden="true"><line id="gL" stroke="rgba(8,8,8,.22)" stroke-width="1"/><line id="gR" stroke="rgba(8,8,8,.22)" stroke-width="1"/></svg>
+    <svg class="hmGuides" id="hmGuides" aria-hidden="true"><path id="gL" stroke="rgba(8,8,8,.6)" stroke-width="1.75" fill="none"/><path id="gR" stroke="rgba(8,8,8,.6)" stroke-width="1.75" fill="none"/></svg>
     <div class="hmLoupe" id="hmLoupe" aria-hidden="true"></div>
-    <div class="hmDot cl" id="dLi" role="slider" tabindex="0" aria-label="Left eye, left corner"></div>
-    <div class="hmDot cr" id="dLo" role="slider" tabindex="0" aria-label="Left eye, right corner"></div>
-    <div class="hmDot cl" id="dRi" role="slider" tabindex="0" aria-label="Right eye, left corner"></div>
-    <div class="hmDot cr" id="dRo" role="slider" tabindex="0" aria-label="Right eye, right corner"></div>
-    <div class="hmDot lid" id="dLt" role="slider" tabindex="0" aria-label="Left eye, top lid"></div>
-    <div class="hmDot lid bot" id="dLb" role="slider" tabindex="0" aria-label="Left eye, bottom lid"></div>
-    <div class="hmDot lid" id="dRt" role="slider" tabindex="0" aria-label="Right eye, top lid"></div>
-    <div class="hmDot lid bot" id="dRb" role="slider" tabindex="0" aria-label="Right eye, bottom lid"></div>
+    <div class="hmDot" id="dLi" role="slider" tabindex="0" aria-label="Left eye, left corner"></div>
+    <div class="hmDot" id="dLo" role="slider" tabindex="0" aria-label="Left eye, right corner"></div>
+    <div class="hmDot" id="dRi" role="slider" tabindex="0" aria-label="Right eye, left corner"></div>
+    <div class="hmDot" id="dRo" role="slider" tabindex="0" aria-label="Right eye, right corner"></div>
+    <div class="hmDot" id="dLt" role="slider" tabindex="0" aria-label="Left eye, top lid"></div>
+    <div class="hmDot" id="dLb" role="slider" tabindex="0" aria-label="Left eye, bottom lid"></div>
+    <div class="hmDot" id="dRt" role="slider" tabindex="0" aria-label="Right eye, top lid"></div>
+    <div class="hmDot" id="dRb" role="slider" tabindex="0" aria-label="Right eye, bottom lid"></div>
     <div class="hmMark ring eyeC" id="dLC" role="slider" tabindex="0" aria-label="Left eye, whole eye"></div>
     <div class="hmMark ring eyeC" id="dRC" role="slider" tabindex="0" aria-label="Right eye, whole eye"></div>
     <div class="hmMark brow" id="dBL" role="slider" tabindex="0" aria-label="Left eyebrow"></div>
@@ -363,8 +357,11 @@ function posDot(d,e){d.style.left=(e.x*100)+"%";d.style.top=(e.y*100)+"%";}
 var NAMES={Li:"Left eye · left corner",Lo:"Left eye · right corner",Ri:"Right eye · left corner",Ro:"Right eye · right corner",Lt:"Left eye · top lid",Lb:"Left eye · bottom lid",Rt:"Right eye · top lid",Rb:"Right eye · bottom lid",BL:"Left eyebrow",BR:"Right eyebrow",N:"Nose tip",M:"Mouth",LC:"Left eye \u00b7 whole eye",RC:"Right eye \u00b7 whole eye"};
 var guideL=document.getElementById("gL"),guideR=document.getElementById("gR"),loupe=document.getElementById("hmLoupe"),which=document.getElementById("hmWhich");
 function drawGuides(){var r=stage3.getBoundingClientRect();if(!r.width)return;
- guideL.setAttribute("x1",pts.Li.x*r.width);guideL.setAttribute("y1",pts.Li.y*r.height);guideL.setAttribute("x2",pts.Lo.x*r.width);guideL.setAttribute("y2",pts.Lo.y*r.height);
- guideR.setAttribute("x1",pts.Ri.x*r.width);guideR.setAttribute("y1",pts.Ri.y*r.height);guideR.setAttribute("x2",pts.Ro.x*r.width);guideR.setAttribute("y2",pts.Ro.y*r.height);}
+ function almond(el,a,b,t,bo){ // the outline IS the feedback: a quadratic through each lid point
+  var ax=a.x*r.width,ay=a.y*r.height,bx=b.x*r.width,by=b.y*r.height,mx=(ax+bx)/2,my=(ay+by)/2;
+  var tx=2*t.x*r.width-mx,ty=2*t.y*r.height-my,ox=2*bo.x*r.width-mx,oy=2*bo.y*r.height-my;
+  el.setAttribute("d","M"+ax.toFixed(1)+" "+ay.toFixed(1)+" Q"+tx.toFixed(1)+" "+ty.toFixed(1)+" "+bx.toFixed(1)+" "+by.toFixed(1)+" Q"+ox.toFixed(1)+" "+oy.toFixed(1)+" "+ax.toFixed(1)+" "+ay.toFixed(1)+"Z");}
+ almond(guideL,pts.Li,pts.Lo,pts.Lt,pts.Lb);almond(guideR,pts.Ri,pts.Ro,pts.Rt,pts.Rb);}
 function loupeShow(fx,fy){var r=stage3.getBoundingClientRect(),Z=2.4;
  loupe.style.display="block";
  loupe.style.left=(fx*r.width-55)+"px";loupe.style.top=(fy*r.height-55-86)+"px";
@@ -396,7 +393,7 @@ function loupeShow(fx,fy){var r=stage3.getBoundingClientRect(),Z=2.4;
 function dragDot(d,key){var store=MK[key];
  d.addEventListener("keydown",function(e){var st=e.shiftKey?0.02:0.006,k=e.key,c=store[key];
   if(k==="ArrowLeft")c.x-=st;else if(k==="ArrowRight")c.x+=st;else if(k==="ArrowUp")c.y-=st;else if(k==="ArrowDown")c.y+=st;else return;
-  e.preventDefault();c.x=Math.min(0.95,Math.max(0.05,c.x));c.y=Math.min(0.95,Math.max(0.05,c.y));posDot(d,c);placeCentres();});
+  e.preventDefault();c.x=Math.min(0.95,Math.max(0.05,c.x));c.y=Math.min(0.95,Math.max(0.05,c.y));posDot(d,c);placeCentres();drawGuides();});
 }
 ["LC","RC"].forEach(function(k){document.getElementById("d"+k).addEventListener("keydown",function(e){
  var st=e.shiftKey?0.02:0.006,dx=0,dy=0;
