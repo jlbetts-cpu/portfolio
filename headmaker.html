@@ -505,9 +505,9 @@ function sclera(e){ // the white of THEIR eye: sample along the corner line, kee
   lr=Math.round(lr+(mx-lr)*0.5);lg=Math.round(lg+(mx-lg)*0.5);lb=Math.round(lb+(mx-lb)*0.5);
   L=lr*0.299+lg*0.587+lb*0.114;
   var t=Math.max(0,Math.min(0.7,(178-L)/110));   /* lift only genuinely dull samples, toward warm ivory — never paper */
-  lr=Math.round(lr+(233-lr)*t);lg=Math.round(lg+(227-lg)*t);lb=Math.round(lb+(218-lb)*t);
+  lr=Math.round(lr+(224-lr)*t);lg=Math.round(lg+(216-lg)*t);lb=Math.round(lb+(205-lb)*t);
   var L2=lr*0.299+lg*0.587+lb*0.114;
-  if(L2>226){var kc=226/L2;lr=Math.round(lr*kc);lg=Math.round(lg*kc*0.997);lb=Math.round(lb*kc*0.98);}   /* the realism ceiling: real scleras photograph warm, never white */
+  if(L2>208){var kc=208/L2;lr=Math.round(lr*kc);lg=Math.round(lg*kc*0.997);lb=Math.round(lb*kc*0.975);}   /* the realism ceiling: real eye whites photograph around L200, never paper */
   return"rgb("+lr+","+lg+","+lb+")";}catch(_){return"#f1eee9";}
 }
 function irisColor(e){ // THEIR iris: average the mid-dark pixels at the eye centre (pupil and glint excluded)
@@ -549,7 +549,7 @@ function buildLive(){
   var pa=px2(a),pb=px2(b);return"rgb("+Math.round((pa[0]+pb[0])/2)+","+Math.round((pa[1]+pb[1])/2)+","+Math.round((pa[2]+pb[2])/2)+")";})();
  var owm=/rgb\((\d+),\s*(\d+),\s*(\d+)/.exec(oneWhite),owr=+owm[1],owg=+owm[2],owb=+owm[3];
  var owB="rgb("+Math.min(255,owr+4)+","+Math.min(255,owg+4)+","+Math.min(255,owb+3)+")";   /* catches the light, gently */
- var owD="rgb("+Math.round(owr*0.84)+","+Math.round(owg*0.82)+","+Math.round(owb*0.80)+")"; /* turns away from it */
+ var owD="rgb("+Math.round(owr*0.78)+","+Math.round(owg*0.76)+","+Math.round(owb*0.72)+")"; /* turns away from it, decisively */
  des.forEach(function(c){
   var sc=oneWhite;   /* both eyes share one white: mismatched whites read uncanny */
   /* anatomy: the eye window is the aperture THEY marked; the iris is a circle 42% of eye width,
@@ -581,7 +581,7 @@ function buildLive(){
   ir.style.background=irisCSS(irisColor(c));   /* THEIR iris colour, lit from above */
   var pu=document.createElement("div");pu.className="hmPupil";ir.appendChild(pu);
   var shd=document.createElement("div");    /* the upper lid throws a soft shadow across everything */
-  shd.style.cssText="position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,rgba(58,40,30,0) 68%,rgba(58,40,30,.15) 96%),linear-gradient(to bottom,rgba(46,32,26,.40) 0%,rgba(46,32,26,.13) 22%,rgba(46,32,26,0) 46%),linear-gradient(to top,rgba(255,255,255,.09) 0%,rgba(255,255,255,0) 16%)";
+  shd.style.cssText="position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,rgba(58,40,30,0) 68%,rgba(58,40,30,.15) 96%),linear-gradient(to bottom,rgba(46,32,26,.5) 0%,rgba(46,32,26,.18) 26%,rgba(46,32,26,0) 52%),linear-gradient(to top,rgba(255,255,255,.09) 0%,rgba(255,255,255,0) 16%)";
   var gl=document.createElement("div");gl.className="hmGlint";
   gl.style.width=(0.19*irD/_ew*100)+"%";gl.style.height=(0.19*irD/_eh*100)+"%";gl.style.left="37%";gl.style.top=((0.5-irD/_eh/2)*100+irD/_eh*30)+"%";   /* on the iris, never clipped by the lid */
   var gl2=document.createElement("div");gl2.className="hmGlint";
@@ -762,7 +762,7 @@ document.getElementById("save").addEventListener("click",function(){
   x.drawImage(t2,Math.round(ex-cw2/2),Math.round(ey-ch2/2));
   var rgb=rgbOf(sclera(e));
   var wB="rgb("+Math.min(255,rgb[0]+8)+","+Math.min(255,rgb[1]+8)+","+Math.min(255,rgb[2]+7)+")";
-  var wD="rgb("+Math.round(rgb[0]*0.84)+","+Math.round(rgb[1]*0.82)+","+Math.round(rgb[2]*0.80)+")";
+  var wD="rgb("+Math.round(rgb[0]*0.78)+","+Math.round(rgb[1]*0.76)+","+Math.round(rgb[2]*0.72)+")";
   var gx=look[0]*ew*0.15,gy=look[1]*eh*0.18,ix=ex+gx,iy=ey+gy;
   var irx=ew*0.27,iry=ew*0.27;   // a true circle, the same 54% the live heads wear
   x.save();x.beginPath();   // everything lives inside the lids: an upper-heavy almond, never a symmetric ellipse
@@ -783,7 +783,7 @@ document.getElementById("save").addEventListener("click",function(){
   x.fillStyle="rgba(255,255,255,.95)";x.beginPath();x.ellipse(ix-irx*0.25,iy-iry*0.3,irx*0.2,iry*0.2,0,0,Math.PI*2);x.fill();
   x.fillStyle="rgba(255,255,255,.45)";x.beginPath();x.ellipse(ix+irx*0.3,iy+iry*0.32,irx*0.1,iry*0.1,0,0,Math.PI*2);x.fill();
   var ls2=x.createLinearGradient(0,ey-eh*0.55,0,ey+eh*0.05);   // the upper lid throws a soft shadow
-  ls2.addColorStop(0,"rgba(46,32,26,.40)");ls2.addColorStop(0.55,"rgba(46,32,26,.12)");ls2.addColorStop(1,"rgba(46,32,26,0)");
+  ls2.addColorStop(0,"rgba(46,32,26,.5)");ls2.addColorStop(0.5,"rgba(46,32,26,.16)");ls2.addColorStop(1,"rgba(46,32,26,0)");
   x.fillStyle=ls2;x.fillRect(ex-ew*0.55,ey-eh*0.65,ew*1.1,eh*0.75);
   var ao=x.createRadialGradient(ex,ey,ew*0.30,ex,ey,ew*0.52);   // socket shadow: the rim darkens, it never draws a line
   ao.addColorStop(0,"rgba(58,40,30,0)");ao.addColorStop(0.82,"rgba(58,40,30,.05)");ao.addColorStop(1,"rgba(58,40,30,.15)");
