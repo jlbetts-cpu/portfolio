@@ -71,6 +71,7 @@ nav{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;column-ga
 .hmMark.bar.wide::before{width:46px;margin-left:-23px}
 
 .hmMark.eyeC::before{display:none}   /* invisible: dragging the middle of the eye just works, like dragging a shape body */
+.hmErr{color:rgba(146,62,42,.9)}
 .hmRoll{display:inline-flex;align-items:center;gap:8px}
 .hmDie{display:block;transition:transform .55s cubic-bezier(.34,1.35,.4,1)}
 .hmZoom{-webkit-appearance:none;appearance:none;height:2px;background:rgba(8,8,8,.18);border-radius:2px;outline-offset:6px}
@@ -124,7 +125,8 @@ a:focus-visible,button:focus-visible,.hmDot:focus-visible{outline:2px solid var(
     </div>
    </div>
    <p class="cap">Your photo stays on your device. Close the tab and it is gone.</p>
-   <input type="file" id="file" accept="image/*" class="hidden" aria-hidden="true">
+   <p class="cap hmErr hidden" id="hmErr">That photo stumped this browser &mdash; a JPG, PNG, or screenshot works every time.</p>
+   <input type="file" id="file" accept="image/*,.heic,.heif" class="hidden" aria-hidden="true">
   </section>
 
   <!-- STEP 2 · the crop -->
@@ -232,15 +234,35 @@ drop.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){e.p
 ["dragleave","drop"].forEach(function(ev){drop.addEventListener(ev,function(e){e.preventDefault();drop.classList.remove("over");});});
 drop.addEventListener("drop",function(e){var f=e.dataTransfer&&e.dataTransfer.files&&e.dataTransfer.files[0];if(f)load(f);});
 file.addEventListener("change",function(){if(file.files&&file.files[0])load(file.files[0]);});
+function heicLib(cb){ // the converter loads only the first time a HEIC actually arrives
+ if(window.heic2any)return cb(window.heic2any);
+ var sc=document.createElement("script");sc.src="vendor/heic2any.min.js";
+ sc.onload=function(){cb(window.heic2any||null);};sc.onerror=function(){cb(null);};
+ document.head.appendChild(sc);}
+function readAsImage(f,ok,fail){ // most photos decode natively (Safari even does HEIC); the rest get converted
+ var url=URL.createObjectURL(f),im=new Image();
+ im.onload=function(){ok(im,url);};
+ im.onerror=function(){URL.revokeObjectURL(url);
+  var isHeic=/hei[cf]/i.test(f.type||"")||/\.hei[cf]$/i.test(f.name||"");
+  if(!isHeic)return fail();
+  heicLib(function(fn){if(!fn)return fail();
+   fn({blob:f,toType:"image/jpeg",quality:0.92}).then(function(b){
+    var bb=(b instanceof Blob)?b:b[0],u2=URL.createObjectURL(bb),im2=new Image();
+    im2.onload=function(){ok(im2,u2);};im2.onerror=fail;im2.src=u2;
+   }).catch(fail);});};
+ im.src=url;}
+function photoErr(on){var e=document.getElementById("hmErr");if(e)e.classList.toggle("hidden",!on);}
 function load(f){
- if(!/^image\//.test(f.type))return;
+ var looksImg=/^image\//.test(f.type)||/\.(hei[cf]|jpe?g|png|webp|gif|avif|bmp)$/i.test(f.name||"");   // HEIC often arrives with an empty type
+ if(!looksImg)return;
  if(smileSlot){loadSmile(f);return;}
  restoredEyes=null;   /* a new photo is a new face: never reuse a restored head's geometry or colors */
- if(photoURL)URL.revokeObjectURL(photoURL);
- photoURL=URL.createObjectURL(f);
- photo=new Image();
- photo.onload=function(){show(1);requestAnimationFrame(function(){requestAnimationFrame(initFrame);});};
- photo.src=photoURL;
+ photoErr(false);
+ readAsImage(f,function(im,url){
+  if(photoURL)URL.revokeObjectURL(photoURL);
+  photoURL=url;photo=im;
+  show(1);requestAnimationFrame(function(){requestAnimationFrame(initFrame);});
+ },function(){photoErr(true);});
 }
 
 /* ---------- step 2: pan + zoom inside the oval ---------- */
@@ -614,14 +636,12 @@ function liveTick(){
 }
 
 function loadSmile(f){
- var u=URL.createObjectURL(f),im=new Image();
- im.onload=function(){
+ readAsImage(f,function(im,u){
   // bake the smile with the same crop the visitor set for the first photo
   var keep=photo;photo=im;var c=bake();photo=keep;
   smileURL=c.toDataURL("image/png");URL.revokeObjectURL(u);smileSlot=false;
   smileAt=performance.now()+1200;   // show it off right away
- };
- im.src=u;
+ },function(){smileSlot=false;});
 }
 document.getElementById("restart").addEventListener("click",function(){restoredEyes=null;try{localStorage.removeItem("hmCompanion");}catch(_){}
  if(tick){clearInterval(tick);tick=null;}
