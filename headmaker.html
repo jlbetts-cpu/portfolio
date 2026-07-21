@@ -346,7 +346,7 @@ function buildLive(){
  browEls=[faceStrip(marks.BL.x,marks.BL.y,g.w*1.5,g.h*1.7,"hmBrow"),faceStrip(marks.BR.x,marks.BR.y,g.w*1.5,g.h*1.7,"hmBrow")];
  noseEl=faceStrip(marks.N.x,marks.N.y,g.w*1.1,g.h*2.1,"hmNose");
  mouthEl=faceStrip(marks.M.x,marks.M.y,g.w*1.8,g.h*1.6,"hmNose");mouthAt=performance.now()+5000+Math.random()*6000;
- try{localStorage.setItem("hmCompanion",JSON.stringify({cut:cutURL,eyes:deriveEyes(),t:Date.now()}));}catch(_){}
+ try{localStorage.setItem("hmCompanion",JSON.stringify({cut:cutURL,eyes:deriveEyes(),marks:marks,t:Date.now()}));}catch(_){}
  if(tick)clearInterval(tick);
  blinkAt=performance.now()+2600+Math.random()*2800;
  browAt=performance.now()+3200+Math.random()*5000;sniffAt=performance.now()+9000+Math.random()*14000;smileAt=performance.now()+8000;
