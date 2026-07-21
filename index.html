@@ -2645,7 +2645,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
      st="idle",stT=0,hopsLeft=0,grabbed=false,gpx=0,gpy=0,lastPX=0,lastPY=0,pvx=0,pvy=0,
      offAt=0,gone=false,goneUntil=0,decideAt=performance.now()+4200,spin=0,heldOff=0,heldV=0,cTop=false,bornAt=performance.now()+1600,perched=false,hs=1,hsT=1,dockUntil=0,moodB=false,pbAt=0,mirrorAt=0,downT=0,downX=0,downY=0,shakeN=0,heartsF=0,danceHops=0,dblBlink=false,
      bAt=performance.now()+2800,bf=0,brAt=performance.now()+7000,brf=0,moAt=performance.now()+11000,mof=0,
-     dzf=0,sqx=1,sqy=1,sqxv=0,sqyv=0,sqxP=1,sqyP=1,sqT=0,shown=false,first=true,tk3=0,gzx=0,gzy=0,sacAt=0,oyC=94,flipA=0,flipV=0,wig=null,wigP=0,bounceN=0,perchT=0,leapDelay=Infinity,hmOverT=0,introSettled=false,bornWall=0,shakeAfter=false,drowse2=false,lastNearT=performance.now(),perchWigAt=performance.now()+9000,greetAt=performance.now()+6000,
+     dzf=0,sqx=1,sqy=1,sqxv=0,sqyv=0,sqxP=1,sqyP=1,sqT=0,shown=false,first=true,tk3=0,gzx=0,gzy=0,sacAt=0,flipA=0,flipV=0,wig=null,wigP=0,bounceN=0,perchT=0,leapDelay=Infinity,hmOverT=0,introSettled=false,bornWall=0,shakeAfter=false,drowse2=false,lastNearT=performance.now(),perchWigAt=performance.now()+9000,greetAt=performance.now()+6000,
      pendingHide=null,hideToken=0,lapBack=false,forceHide=/[?&]hide=1/.test(location.search);
  function plane(front){root.style.zIndex=front?"3":"1";shadow.style.zIndex=front?"2":"1";}   // two planes only: the front (where hands live) and behind the furniture
  var G=2600,DT=0.04,facc=0,CEIL=2,surpriseAt=0;   // real units: px/s and px/s^2, integrated at 25fps
@@ -2869,10 +2869,12 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    else if(wig.type==="shake"){wigP+=DT*44;rotX=Math.sin(wigP)*7*env;}      // the whole-body shake-off
    else if(wig.type==="binky"){rotX=Math.sin(wp*6.283)*11*wig.a;}           // one full joyful twist and back
    if(wig.t<=0)wig=null;}
-  var rot=(flipA?flipA:lean+(grabbed?swing:0))+rotX+(drowse2?2.2:0);   // mid-somersault the flip owns the body; sleepiness droops it
-  var oyT=flipA?50:(cTop?4:94);oyC+=(oyT-oyC)*Math.min(1,DT*16);   // the pivot GLIDES between surfaces: an origin jump mid-scale is a visible pop
-  root.style.transformOrigin="50% "+oyC.toFixed(1)+"%";
-  root.style.transform="translate("+x.toFixed(1)+"px,"+(y+breathe+(grabbed?heldOff:0)).toFixed(1)+"px) rotate("+rot.toFixed(1)+"deg) scale("+(depth*hs*sqx).toFixed(3)+","+(depth*hs*sqy).toFixed(3)+")";
+  var surfRot=(flipA?0:lean+(grabbed?swing:0))+rotX+(drowse2?2.2:0);   // leans and wiggles rock on the FEET
+  var rot=surfRot+flipA;   // total visible rotation (the eyes need it below)
+  var c2=HH*0.44;   // feet-origin to body-centre: flips spin about the centre via an explicit sandwich — two pivots, one transform, zero jumps
+  root.style.transform="translate("+x.toFixed(1)+"px,"+(y+breathe+(grabbed?heldOff:0)).toFixed(1)+"px)"
+   +(flipA?" translate(0px,"+(-c2).toFixed(1)+"px) rotate("+flipA.toFixed(1)+"deg) translate(0px,"+c2.toFixed(1)+"px)":"")
+   +" rotate("+surfRot.toFixed(1)+"deg) scale("+(depth*hs*sqx).toFixed(3)+","+(depth*hs*sqy).toFixed(3)+")";
   // the shadow stays on the ground it belongs to
   var airH=Math.max(0,surface-y);
   var shScale=Math.max(0.32,depth*(1-airH/(heroR.h*0.6)));
