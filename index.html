@@ -334,7 +334,7 @@ body.partyLock{overflow:hidden}
 @media(prefers-reduced-motion:reduce){.csCursor{display:none}}
 @media(hover:none),(pointer:coarse){.csCursor,.csInfoCard{display:none!important}}
 /* the head-maker teaser: an empty oval with living eyes, waiting for a face */
-.hmTease{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;background:var(--c100)}
+.csPanel[data-panel=goodness] [data-slug=headmaker]{margin-top:clamp(128px,18vh,240px)}.hmTease{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;background:var(--c100)}
 .hmOvalT{width:clamp(96px,12vw,150px);aspect-ratio:5/6;border-radius:50%;background:var(--c50);box-shadow:inset 0 0 0 1px rgba(8,8,8,.3);display:flex;align-items:center;justify-content:center;gap:14%;padding-top:4%}
 .hmEyeT{width:20%;aspect-ratio:2/1;border-radius:50%;background:#fff;box-shadow:inset 0 0 0 1px rgba(8,8,8,.22);position:relative;overflow:hidden}
 .hmEyeT i{position:absolute;left:22%;top:-4%;width:56%;height:108%;border-radius:50%;background:#141414;animation:hmLookT 7s steps(1,end) infinite}
@@ -775,6 +775,7 @@ body.about-open.headheal .abTear{animation:tearClose .5s steps(1,end) forwards}
  </div>
 
  <div class="csPanel" data-panel="goodness" role="tabpanel" aria-label="Extras" hidden>
+  <section class="reel" id="reel"><div class="reelTrack"><div class="reelStage" id="reelStage"><figure class="reelFrame" id="reelFrame"><video class="reelVid" id="reelVid" muted loop playsinline preload="none" poster="images/reel_poster.webp"><source src="videos/reel.mp4" type="video/mp4"></video><button class="reelTap" id="reelTap" type="button" aria-label="Play video"><span class="tri"></span>Play video</button><div class="playCursor" id="playCursor" aria-hidden="true"><span class="pcInner"><span class="tri"></span>Play video</span></div></figure><div class="reelMeta"><span class="csName">Wired to fail</span><span class="csYear">2026</span></div></div></div></section>
   <article class="csItem" data-slug="headmaker">
    <div class="csTrack">
     <div class="csStage">
@@ -790,7 +791,6 @@ body.about-open.headheal .abTear{animation:tearClose .5s steps(1,end) forwards}
     </div>
    </div>
   </article>
-  <section class="reel" id="reel"><div class="reelTrack"><div class="reelStage" id="reelStage"><figure class="reelFrame" id="reelFrame"><video class="reelVid" id="reelVid" muted loop playsinline preload="none" poster="images/reel_poster.webp"><source src="videos/reel.mp4" type="video/mp4"></video><button class="reelTap" id="reelTap" type="button" aria-label="Play video"><span class="tri"></span>Play video</button><div class="playCursor" id="playCursor" aria-hidden="true"><span class="pcInner"><span class="tri"></span>Play video</span></div></figure><div class="reelMeta"><span class="csName">Wired to fail</span><span class="csYear">2026</span></div></div></div></section>
  </div>
 </section>
  <footer class="siteFoot" id="contact" role="contentinfo">
