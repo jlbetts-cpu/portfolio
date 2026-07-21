@@ -66,6 +66,7 @@ nav{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;column-ga
 .hmMark.bar::before{content:"";position:absolute;left:50%;top:50%;width:30px;height:0;margin:-1px 0 0 -15px;border-top:1.5px solid var(--c950);border-radius:2px;box-shadow:0 0 0 1px rgba(253,253,253,.8)}
 .hmMark.bar.wide::before{width:46px;margin-left:-23px}
 .hmMark.ring::before{content:"";position:absolute;left:50%;top:50%;width:14px;height:12px;margin:-6px 0 0 -7px;border:1.5px solid var(--c950);border-radius:50%;background:rgba(253,253,253,.5)}
+.hmMark.eyeC::before{width:20px;height:16px;margin:-8px 0 0 -10px;border-style:dashed;background:rgba(253,253,253,.25)}
 .hmZoom{-webkit-appearance:none;appearance:none;height:2px;background:rgba(8,8,8,.18);border-radius:2px;outline-offset:6px}
 .hmZoom::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--c950);border:0;cursor:pointer}
 .hmZoom::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:var(--c950);border:0;cursor:pointer}
@@ -141,7 +142,7 @@ a:focus-visible,button:focus-visible,.hmDot:focus-visible{outline:2px solid var(
   <section class="hmStep hidden" id="step3">
    <p class="kicker">Step 3 of 4 &middot; The eyes</p>
    <h2 class="stepHead">Mark your face.</h2>
-   <p class="stepBody">Dots on the corners, top, and bottom of each eye. Bars on your brows and mouth, the ring on your nose. This is what brings it to life.</p>
+   <p class="stepBody">We take a first guess at where everything sits &mdash; just nudge what's off. The dashed ring moves a whole eye at once; the dots fine-tune its corners and lids. Bars on your brows and mouth, the small ring on your nose.</p>
    <div class="hmStage bare" id="stage3">
     <img id="hmCut" alt="Your cutout head">
     <svg class="hmGuides" id="hmGuides" aria-hidden="true"><line id="gL" stroke="rgba(8,8,8,.22)" stroke-width="1"/><line id="gR" stroke="rgba(8,8,8,.22)" stroke-width="1"/></svg>
@@ -154,6 +155,8 @@ a:focus-visible,button:focus-visible,.hmDot:focus-visible{outline:2px solid var(
     <div class="hmDot lid" id="dLb" role="slider" tabindex="0" aria-label="Left eye, bottom lid"></div>
     <div class="hmDot lid" id="dRt" role="slider" tabindex="0" aria-label="Right eye, top lid"></div>
     <div class="hmDot lid" id="dRb" role="slider" tabindex="0" aria-label="Right eye, bottom lid"></div>
+    <div class="hmMark ring eyeC" id="dLC" role="slider" tabindex="0" aria-label="Left eye, whole eye"></div>
+    <div class="hmMark ring eyeC" id="dRC" role="slider" tabindex="0" aria-label="Right eye, whole eye"></div>
     <div class="hmMark bar" id="dBL" role="slider" tabindex="0" aria-label="Left eyebrow"></div>
     <div class="hmMark bar" id="dBR" role="slider" tabindex="0" aria-label="Right eyebrow"></div>
     <div class="hmMark ring" id="dN" role="slider" tabindex="0" aria-label="Nose tip"></div>
@@ -275,16 +278,74 @@ function bake(){
  return c;
 }
 var bakedCanvas=null;
+/* a first guess at the face, so marking is nudging instead of hauling.
+   An eye is a dark spot flanked by bright sclera; a brow fails that test because
+   its neighbours are more brow. Lips are the reddest thing below the eyes. */
+function applyFaceGuess(le,re,mo){
+ var D=re.x-le.x;if(!(D>0.16&&D<0.6)||Math.abs(re.y-le.y)>0.09)return false;
+ var hw=0.2225*D,ap=0.0667*D;   // anatomy: eye width \u2248 0.445 of the pupil span, aperture \u2248 a third of that
+ pts.Li={x:le.x-hw,y:le.y};pts.Lo={x:le.x+hw,y:le.y};pts.Ri={x:re.x-hw,y:re.y};pts.Ro={x:re.x+hw,y:re.y};
+ pts.Lt={x:le.x,y:le.y-ap};pts.Lb={x:le.x,y:le.y+ap};pts.Rt={x:re.x,y:re.y-ap};pts.Rb={x:re.x,y:re.y+ap};
+ var ey=(le.y+re.y)/2;
+ marks.BL={x:le.x,y:(le.bw!=null?le.bw:le.y-0.357*D)};marks.BR={x:re.x,y:(re.bw!=null?re.bw:re.y-0.357*D)};
+ marks.M=mo||{x:(le.x+re.x)/2,y:ey+1.262*D};
+ marks.N={x:(le.x+re.x)/2,y:ey+(marks.M.y-ey)*0.51};
+ ["BL","BR","N","M"].forEach(function(k){marks[k].x=Math.min(0.95,Math.max(0.05,marks[k].x));marks[k].y=Math.min(0.95,Math.max(0.05,marks[k].y));});
+ return true;}
+function guessFace(){try{
+ var GW=120,GH=144,g=document.createElement("canvas");g.width=GW;g.height=GH;
+ var gc=g.getContext("2d");gc.drawImage(bakedCanvas,0,0,GW,GH);
+ var d=gc.getImageData(0,0,GW,GH).data;
+ function pxL(x,y){x=Math.max(0,Math.min(GW-1,x));y=Math.max(0,Math.min(GH-1,y));var i=(y*GW+x)*4;if(d[i+3]<120)return 255;return 0.299*d[i]+0.587*d[i+1]+0.114*d[i+2];}
+ function box(x,y){var t=0,n=0;for(var yy=y-2;yy<=y+2;yy++)for(var xx=x-2;xx<=x+2;xx++){t+=pxL(xx,yy);n++;}return t/n;}
+ function findEye(x0,x1){var best=null,bs=-1e9;
+  for(var y=Math.round(GH*0.30);y<=Math.round(GH*0.52);y++)for(var x=Math.round(GW*x0);x<=Math.round(GW*x1);x++){
+   var sc=(box(x-7,y)+box(x+7,y))/2-box(x,y);
+   if(sc>bs){bs=sc;best={x:x/GW,y:y/GH};}}
+  return bs>18?best:null;}   // a real iris beats skin noise by a wide margin
+ function findBrow(e){var best=null,bl=1e9;
+  for(var y=Math.round((e.y-0.16)*GH);y<=Math.round((e.y-0.045)*GH);y++){var l=box(Math.round(e.x*GW),y);if(l<bl){bl=l;best=y/GH;}}
+  return(bl<150)?best:null;}
+ function findMouth(cx){var sx=0,sy=0,sw=0;   // redness-weighted centroid: the middle of the lips, not their loudest edge
+  for(var y=Math.round((cx.y+0.16)*GH);y<=Math.round((cx.y+0.42)*GH);y++)for(var x=Math.round((cx.x-0.15)*GW);x<=Math.round((cx.x+0.15)*GW);x++){
+   var i2=(y*GW+x)*4;if(d[i2+3]<120)continue;
+   var rd=d[i2]-(d[i2+1]+d[i2+2])/2-14;   // lips must beat plain skin redness
+   if(rd>0){sx+=x*rd;sy+=y*rd;sw+=rd;}}
+  return sw>30?{x:sx/sw/GW,y:sy/sw/GH}:null;}
+ var le=findEye(0.16,0.46),re=findEye(0.54,0.84);
+ if(le&&re){
+  le.bw=findBrow(le);re.bw=findBrow(re);
+  var mid={x:(le.x+re.x)/2,y:(le.y+re.y)/2};
+  applyFaceGuess(le,re,findMouth(mid));
+ }
+ if(window.FaceDetector){   // when the browser can really see, let it override the heuristic
+  new FaceDetector({maxDetectedFaces:1,fastMode:false}).detect(bakedCanvas).then(function(fs){
+   if(!fs||!fs[0]||!fs[0].landmarks)return;
+   function ctr(t){var loc=[];fs[0].landmarks.forEach(function(m){if(m.type===t&&m.locations)loc=loc.concat(m.locations);});
+    if(!loc.length)return null;var sx=0,sy=0;loc.forEach(function(p){sx+=p.x;sy+=p.y;});
+    return{x:sx/loc.length/BAKE_W,y:sy/loc.length/BAKE_H};}
+   var es=[];fs[0].landmarks.forEach(function(m){if(m.type==="eye"&&m.locations&&m.locations.length){var sx=0,sy=0;m.locations.forEach(function(p){sx+=p.x;sy+=p.y;});es.push({x:sx/m.locations.length/BAKE_W,y:sy/m.locations.length/BAKE_H});}});
+   if(es.length===2){es.sort(function(a,b){return a.x-b.x;});
+    if(applyFaceGuess(es[0],es[1],ctr("mouth"))){var n2=ctr("nose");if(n2)marks.N=n2;placeDots();drawGuides();}}
+  }).catch(function(){});
+ }
+}catch(_){}}
 document.getElementById("next2").addEventListener("click",function(){
- bakedCanvas=bake();cutURL=bakedCanvas.toDataURL("image/png");
+ bakedCanvas=bake();cutURL=bakedCanvas.toDataURL("image/png");guessFace();
  document.getElementById("hmCut").src=cutURL;placeDots();show(2);setTimeout(drawGuides,80);
 });
 
 /* ---------- step 3: the eye dots ---------- */
 var stage3=document.getElementById("stage3"),dotL=document.getElementById("dotL"),dotR=document.getElementById("dotR");
-function placeDots(){["Li","Lo","Ri","Ro","Lt","Lb","Rt","Rb"].forEach(function(k){posDot(document.getElementById("d"+k),pts[k]);});["BL","BR","N","M"].forEach(function(k){posDot(document.getElementById("d"+k),marks[k]);});}
+function placeDots(){["Li","Lo","Ri","Ro","Lt","Lb","Rt","Rb"].forEach(function(k){posDot(document.getElementById("d"+k),pts[k]);});["BL","BR","N","M"].forEach(function(k){posDot(document.getElementById("d"+k),marks[k]);});placeCentres();}
+function eyeCentre(side){return{x:(pts[side+"i"].x+pts[side+"o"].x)/2,y:(pts[side+"t"].y+pts[side+"b"].y)/2};}
+function placeCentres(){posDot(document.getElementById("dLC"),eyeCentre("L"));posDot(document.getElementById("dRC"),eyeCentre("R"));}
+function moveEye(side,dx,dy){var ks=["i","o","t","b"];   /* rigid: the whole eye slides, nothing squashes against the edge */
+ ks.forEach(function(sk){var p=pts[side+sk];dx=Math.max(dx,0.05-p.x);dx=Math.min(dx,0.95-p.x);dy=Math.max(dy,0.05-p.y);dy=Math.min(dy,0.95-p.y);});
+ ks.forEach(function(sk){var p=pts[side+sk];p.x+=dx;p.y+=dy;posDot(document.getElementById("d"+side+sk),p);});
+ placeCentres();}
 function posDot(d,e){d.style.left=(e.x*100)+"%";d.style.top=(e.y*100)+"%";}
-var NAMES={Li:"Left eye · inner corner",Lo:"Left eye · outer corner",Ri:"Right eye · inner corner",Ro:"Right eye · outer corner",Lt:"Left eye · top lid",Lb:"Left eye · bottom lid",Rt:"Right eye · top lid",Rb:"Right eye · bottom lid",BL:"Left eyebrow",BR:"Right eyebrow",N:"Nose tip",M:"Mouth"};
+var NAMES={Li:"Left eye · inner corner",Lo:"Left eye · outer corner",Ri:"Right eye · inner corner",Ro:"Right eye · outer corner",Lt:"Left eye · top lid",Lb:"Left eye · bottom lid",Rt:"Right eye · top lid",Rb:"Right eye · bottom lid",BL:"Left eyebrow",BR:"Right eyebrow",N:"Nose tip",M:"Mouth",LC:"Left eye \u00b7 whole eye",RC:"Right eye \u00b7 whole eye"};
 var guideL=document.getElementById("gL"),guideR=document.getElementById("gR"),loupe=document.getElementById("hmLoupe"),which=document.getElementById("hmWhich");
 function drawGuides(){var r=stage3.getBoundingClientRect();if(!r.width)return;
  guideL.setAttribute("x1",pts.Li.x*r.width);guideL.setAttribute("y1",pts.Li.y*r.height);guideL.setAttribute("x2",pts.Lo.x*r.width);guideL.setAttribute("y2",pts.Lo.y*r.height);
@@ -300,6 +361,7 @@ function loupeShow(fx,fy){var r=stage3.getBoundingClientRect(),Z=2.4;
   var r=stage3.getBoundingClientRect(),fx=(e.clientX-r.left)/r.width,fy=(e.clientY-r.top)/r.height;
   var best=null,bd=1e9,all={Li:pts,Lo:pts,Ri:pts,Ro:pts,Lt:pts,Lb:pts,Rt:pts,Rb:pts,BL:marks,BR:marks,N:marks,M:marks};
   for(var k in all){var p=all[k][k];var d=Math.hypot((p.x-fx)*r.width,(p.y-fy)*r.height);if(d<bd){bd=d;best=k;}}
+  [["LC",eyeCentre("L")],["RC",eyeCentre("R")]].forEach(function(cc){var d=Math.hypot((cc[1].x-fx)*r.width,(cc[1].y-fy)*r.height);if(d<bd){bd=d;best=cc[0];}});
   if(bd>56)return;   // nothing near enough: it is just a tap on the photo
   e.preventDefault();activeK=best;try{stage3.setPointerCapture(e.pointerId);}catch(_){}
   document.getElementById("d"+best).classList.add("hot");
@@ -308,8 +370,9 @@ function loupeShow(fx,fy){var r=stage3.getBoundingClientRect(),Z=2.4;
  stage3.addEventListener("pointermove",function(e){
   if(!activeK)return;var r=stage3.getBoundingClientRect();
   var fx=Math.min(0.95,Math.max(0.05,(e.clientX-r.left)/r.width)),fy=Math.min(0.95,Math.max(0.05,(e.clientY-r.top)/r.height));
+  if(activeK==="LC"||activeK==="RC"){var cc=eyeCentre(activeK[0]);moveEye(activeK[0],fx-cc.x,fy-cc.y);drawGuides();loupeShow(fx,fy);return;}
   var store=(activeK.length===2&&"LR".indexOf(activeK[0])>-1&&"iotb".indexOf(activeK[1])>-1)?pts:marks;
-  store[activeK]={x:fx,y:fy};posDot(document.getElementById("d"+activeK),store[activeK]);
+  store[activeK]={x:fx,y:fy};posDot(document.getElementById("d"+activeK),store[activeK]);placeCentres();
   drawGuides();loupeShow(fx,fy);
  });
  ["pointerup","pointercancel"].forEach(function(evn){stage3.addEventListener(evn,function(){
@@ -318,8 +381,12 @@ function loupeShow(fx,fy){var r=stage3.getBoundingClientRect(),Z=2.4;
 function dragDot(d,key){var store=MK[key];
  d.addEventListener("keydown",function(e){var st=e.shiftKey?0.02:0.006,k=e.key,c=store[key];
   if(k==="ArrowLeft")c.x-=st;else if(k==="ArrowRight")c.x+=st;else if(k==="ArrowUp")c.y-=st;else if(k==="ArrowDown")c.y+=st;else return;
-  e.preventDefault();c.x=Math.min(0.95,Math.max(0.05,c.x));c.y=Math.min(0.95,Math.max(0.05,c.y));posDot(d,c);});
+  e.preventDefault();c.x=Math.min(0.95,Math.max(0.05,c.x));c.y=Math.min(0.95,Math.max(0.05,c.y));posDot(d,c);placeCentres();});
 }
+["LC","RC"].forEach(function(k){document.getElementById("d"+k).addEventListener("keydown",function(e){
+ var st=e.shiftKey?0.02:0.006,dx=0,dy=0;
+ if(e.key==="ArrowLeft")dx=-st;else if(e.key==="ArrowRight")dx=st;else if(e.key==="ArrowUp")dy=-st;else if(e.key==="ArrowDown")dy=st;else return;
+ e.preventDefault();moveEye(k[0],dx,dy);drawGuides();});});
 var eyes={};
 var MK={Li:pts,Lo:pts,Ri:pts,Ro:pts,Lt:pts,Lb:pts,Rt:pts,Rb:pts,BL:marks,BR:marks,N:marks,M:marks};
 ["Li","Lo","Ri","Ro","Lt","Lb","Rt","Rb","BL","BR","N","M"].forEach(function(k){var el=document.getElementById("d"+k);eyes[k]=MK[k][k];dragDot(el,k);});
