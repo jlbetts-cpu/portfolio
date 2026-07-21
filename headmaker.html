@@ -161,7 +161,7 @@ a:focus-visible,button:focus-visible,.hmDot:focus-visible{outline:2px solid var(
   <section class="hmStep hidden" id="step4">
    <p class="kicker">Step 4 of 4 &middot; Alive</p>
    <h2 class="stepHead">There you are.</h2>
-   <p class="stepBody">Floating, blinking, watching your cursor. Your own brows still work. Save it, or send it to someone who will get it.</p>
+   <p class="stepBody">Floating, blinking, watching your cursor. It will float next to my head on my homepage too. Save it, or send it to someone who will get it.</p>
    <div class="hmRow" role="group" aria-label="Pose presets"><button class="hmBtn ghost" type="button" data-pose="">Live</button><button class="hmBtn ghost" type="button" data-pose="wink">Wink</button><button class="hmBtn ghost" type="button" data-pose="brows">Surprised</button><button class="hmBtn ghost" type="button" data-pose="side">Side-eye</button></div>
    <div class="hmStage bare" id="stage4">
     <div class="hmShadow" aria-hidden="true"></div>
@@ -169,10 +169,10 @@ a:focus-visible,button:focus-visible,.hmDot:focus-visible{outline:2px solid var(
    </div>
    <div class="hmRow">
     <button class="hmBtn ghost" type="button" id="restart">Start over</button>
-    <button class="hmBtn ghost" type="button" id="addSmile">Add a smiling photo</button>
+    <button class="hmBtn ghost" type="button" data-pose="smile">Smile</button>
     <button class="hmBtn" type="button" id="save">Download your head</button>
    </div>
-   <p class="cap">Downloads as a transparent PNG. Your head now floats next to mine on the homepage.</p>
+   <p class="cap">Downloads as a transparent PNG.</p>
   </section>
  </div>
 
@@ -294,7 +294,7 @@ function sclera(e){ // the white of THEIR eye: sample along the corner line, kee
   var l=function(v){return Math.min(255,Math.round(v/n*1.06+10));};
   return"rgb("+l(r)+","+l(g)+","+l(b)+")";}catch(_){return"#f1eee9";}
 }
-var browEls=[],noseEl=null,mouthEl=null,mouthAt=0,mouthFrames=0;
+var browEls=[],noseEl=null,mouthEl=null,mouthAt=0,mouthFrames=0,smAt=0,smf=0;
 function faceStrip(cx,cy,w,h,cls){ // a feathered strip of THEIR OWN photo that can move (brow raise, nose twitch)
  var d=document.createElement("div");d.className=cls;
  d.style.width=(w*100)+"%";d.style.height=(h*100)+"%";
@@ -338,7 +338,7 @@ function buildLive(){
   var ls=document.createElement("div");ls.className="hmLidS";
   ls.style.backgroundImage="url("+cutURL+")";
   ls.style.backgroundSize=(100/lwW)+"% "+(100/lwH)+"%";
-  var sxr=(c.x-lwW/2)/(1-lwW),syr=((c.y-c.h*1.30)-lwH/2)/(1-lwH);
+  var sxr=(c.x-lwW/2)/(1-lwW),syr=((c.y+c.h*1.55)-lwH/2)/(1-lwH);   /* lower-lid skin: no eyebrow in the blink */
   ls.style.backgroundPosition=(sxr*100)+"% "+(syr*100)+"%";
   lw.appendChild(ls);headEl.appendChild(lw);
   eyeEls.push({wrap:w,scl:scl,iris:ir,glint:gl,sc:sc,lidEl:ls,lidW:lw});
@@ -348,7 +348,7 @@ function buildLive(){
  mouthEl=faceStrip(marks.M.x,marks.M.y,g.w*1.8,g.h*1.6,"hmNose");mouthAt=performance.now()+5000+Math.random()*6000;
  try{localStorage.setItem("hmCompanion",JSON.stringify({cut:cutURL,eyes:deriveEyes(),marks:marks,t:Date.now()}));}catch(_){}
  if(tick)clearInterval(tick);
- blinkAt=performance.now()+2600+Math.random()*2800;
+ blinkAt=performance.now()+2600+Math.random()*2800;smAt=performance.now()+7000;
  browAt=performance.now()+3200+Math.random()*5000;sniffAt=performance.now()+9000+Math.random()*14000;smileAt=performance.now()+8000;
  if(!reduce){tick=setInterval(liveTick,125);}
 }
@@ -373,9 +373,13 @@ function liveTick(){
  if(browFrames>0){var lift=(browFrames>4||browFrames===1)?-1.5:-3;browEls.forEach(function(b){b.style.transform="translateY("+lift+"px)";});browFrames--;}
  else browEls.forEach(function(b){b.style.transform="";});
  /* a tiny sniff: the nose strip nudges sideways for two frames */
+ var smiling2=(pose==="smile"||smf>0);
+ if(now>=smAt&&smf===0&&pose===""){smf=9;smAt=now+13000+Math.random()*11000;}
+ if(smf>0)smf--;
+ if(smiling2&&mouthEl){mouthEl.style.transform="translateY(-1.4px) scale(1.09,0.94)";}
  if(now>=mouthAt&&mouthFrames===0){mouthFrames=4;mouthAt=now+9000+Math.random()*9000;}
- if(mouthFrames>0&&mouthEl){mouthEl.style.transform=(mouthFrames%2)?"translateY(1.6px) scaleY(1.08)":"translateY(0.6px) scaleY(1.03)";mouthFrames--;}
- else if(mouthEl)mouthEl.style.transform="";
+ if(!smiling2&&mouthFrames>0&&mouthEl){mouthEl.style.transform=(mouthFrames%2)?"translateY(1.6px) scaleY(1.08)":"translateY(0.6px) scaleY(1.03)";mouthFrames--;}
+ else if(mouthEl&&!smiling2)mouthEl.style.transform="";
  if(now>=sniffAt&&sniffFrames===0){sniffFrames=3;sniffAt=now+16000+Math.random()*20000;}
  if(sniffFrames>0){noseEl.style.transform="translateX("+(sniffFrames===2?1.2:-0.8)+"px)";sniffFrames--;}
  else if(noseEl)noseEl.style.transform="";
@@ -385,7 +389,7 @@ function liveTick(){
  eyeEls.forEach(function(e,ei){
   if(pose==="wink"&&ei===0){e.lidEl.style.transform="translateY(-6%)";return;}
   if(blinkFrames>0){var lp=(blinkFrames===4||blinkFrames===1)?-56:-6;e.lidEl.style.transform="translateY("+lp+"%)";}
-  else{e.lidEl.style.transform="translateY(-105%)";
+  else{e.lidEl.style.transform=smiling2?"translateY(-68%)":"translateY(-105%)";
    var ew=e.wrap.offsetWidth,eh=e.wrap.offsetHeight;
    var gtx=Math.round(nx*ew*0.16),gty=Math.round(ny*eh*0.22);
    e.iris.style.transform="translate("+gtx+"px,"+gty+"px)";
@@ -393,7 +397,7 @@ function liveTick(){
  });
  if(blinkFrames>0)blinkFrames--;
 }
-document.getElementById("addSmile").addEventListener("click",function(){smileSlot=true;file.click();});
+
 function loadSmile(f){
  var u=URL.createObjectURL(f),im=new Image();
  im.onload=function(){
