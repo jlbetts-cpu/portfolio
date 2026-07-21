@@ -649,7 +649,7 @@ document.getElementById("save").addEventListener("click",function(){
  try{
   var live=document.getElementById("hmHead");
   var cl=live.cloneNode(true);
-  cl.style.transform="none";   // no mid-boop squish in the portrait
+  cl.style.transform=EXPR?("rotate("+EXPR.tilt.toFixed(1)+"deg)"):"none";   // the pose keeps its head-tilt; only the float and boop wobble come off
   [].slice.call(cl.querySelectorAll(".hmLidS")).forEach(function(n,i){var lv=EXPR?(i===0?EXPR.ll:EXPR.lr):0;
    n.style.transform="translateY("+(-105+lv*97).toFixed(1)+"%)";});   // never mid-blink; an expression keeps its lids
   if(!EXPR){var pg=[[4,2],[-4,2],[3,-2],[-3,-2]][Math.floor(Math.random()*4)];   // a curated gentle glance, never a mid-saccade stare
