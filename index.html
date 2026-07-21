@@ -2735,7 +2735,8 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    if(so1<0.95||!fEl1||!fEl1.complete||!fEl1.naturalWidth){bornAt=now+250;return;}
   }
   if(want!==shown||(first&&want)){shown=want;root.style.opacity=want?"1":"0";root.style.filter=want?"blur(0)":"blur(6px)";shadow.style.opacity=want?"1":"0";
-   if(first&&want){first=false;survey();   // consumed only at a REAL birth: a busy intro can no longer swallow itvar fEl=document.getElementById("face"),hr2=hero.getBoundingClientRect();
+   if(first&&want){first=false;survey();   // consumed only at a REAL birth: a busy intro can no longer swallow it
+    var fEl=document.getElementById("face"),hr2=hero.getBoundingClientRect();
     var frc=fEl?fEl.getBoundingClientRect():null;
     if(frc&&frc.height){x=frc.left-hr2.left+frc.width/2-HW/2;y=frc.top-hr2.top+frc.height*crownFrac-HH*FOOT+HH*0.07;surface=floorY;}   // feet settle INTO the hair
     else if(bigR){x=bigR.l+(bigR.r-bigR.l)/2-HW/2;y=bigR.t-HH*FOOT;surface=floorY;}   // feet on the visible hair itself
