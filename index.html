@@ -2563,11 +2563,11 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
  eyesArr.forEach(function(c){
   var sc2=document.createElement("div");
   sc2.style.cssText="position:absolute;border-radius:50%;pointer-events:none;background:"+(c.sc||"#f1eee9")+";-webkit-mask-image:radial-gradient(ellipse at center,#000 55%,transparent 78%);mask-image:radial-gradient(ellipse at center,#000 55%,transparent 78%)";
-  var bw=c.w*1.1,bh=c.w*0.62;   // the same 2:1 eye box proportion his eyes use
+  var bw=c.w*1.04,bh=c.w*0.58;   // the white sits just under the eye, never beyond it
   sc2.style.width=(bw*100)+"%";sc2.style.height=(bh*100)+"%";sc2.style.left=((c.x-bw/2)*100)+"%";sc2.style.top=((c.y-bh/2)*100)+"%";
   root.appendChild(sc2);
   var e=document.createElement("div");e.className="eye";
-  var w2=c.w,h2=c.w*0.5;
+  var w2=c.w*0.96,h2=c.w*0.5;   // clipped inside the white: the iris can never cross it
   e.style.left=((c.x-w2/2)*100)+"%";e.style.top=((c.y-h2/2)*100)+"%";e.style.width=(w2*100)+"%";e.style.height=(h2*100)+"%";
   var ir=document.createElement("div");ir.className="iris";
   ir.style.width="60%";ir.style.height="105%";ir.style.left="20%";ir.style.top="-2.5%";
@@ -2581,11 +2581,14 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   ls.style.backgroundImage="url("+data.cut+")";ls.style.backgroundSize=(100/lidW)+"% "+(100/lidH)+"%";
   ls.style.backgroundPosition=((c.x-lidW/2)/(1-lidW)*100)+"% "+(((c.y+c.h*1.55)-lidH/2)/(1-lidH)*100)+"%";
   lw.appendChild(ls);root.appendChild(lw);
-  eyeEls3.push({iris:ir,glint:gl,lid:ls});
+  eyeEls3.push({iris:ir,glint:gl,lid:ls,box:e});
  });
  var brows=[],mouth=null,nose=null;
  if(mk){brows=[strip(mk.BL.x,mk.BL.y,ew0*1.5,ew0*0.9),strip(mk.BR.x,mk.BR.y,ew0*1.5,ew0*0.9)];
   nose=strip(mk.N.x,mk.N.y,ew0*1.1,ew0*1.2);mouth=strip(mk.M.x,mk.M.y,ew0*1.8,ew0*0.95);mouth.style.transformOrigin="50% 18%";}
+ var heartEls=eyesArr.map(function(c){var h=document.createElement("img");h.src="images/heart_eye.webp";h.alt="";
+  h.style.cssText="position:absolute;pointer-events:none;opacity:0;width:"+(c.w*120)+"%;left:"+((c.x-c.w*0.6)*100)+"%;top:"+((c.y-c.w*0.34)*100)+"%;transition:opacity .25s cubic-bezier(.2,.8,.2,1)";
+  root.appendChild(h);return h;});
  hero.appendChild(shadow);hero.appendChild(root);
  // --- world geometry ---
  var heroR,floorY,plats,avoids;
@@ -2603,12 +2606,13 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
  // --- state ---
  var x=Math.max(8,heroR.w*0.06),y=floorY,vx=0,vy=0,dir=1,depth=1,depthT=1,air=false,surface=floorY,
      st="idle",stT=0,hopsLeft=0,grabbed=false,gpx=0,gpy=0,lastPX=0,lastPY=0,pvx=0,pvy=0,
-     offAt=0,gone=false,goneUntil=0,decideAt=performance.now()+3000,
+     offAt=0,gone=false,goneUntil=0,decideAt=performance.now()+3000,downT=0,downX=0,downY=0,shakeN=0,heartsF=0,danceHops=0,dblBlink=false,
      bAt=performance.now()+2800,bf=0,brAt=performance.now()+7000,brf=0,moAt=performance.now()+11000,mof=0,
      dzf=0,sqx=1,sqy=1,sqf=0,shown=false,first=true,tk3=0,gzx=0,gzy=0,sacAt=0;
  var G=3.6,HOPV=(mob?15:19),HOPX=(mob?7:10);
  function hop(big){vy=-HOPV*(big?1.25:0.8+Math.random()*0.35);vx=dir*HOPX*(0.6+Math.random()*0.6);air=true;sqf=2;sqx=0.86;sqy=1.16;}
  function land(){air=false;vy=0;vx=0;y=surface;sqf=3;sqx=1.18;sqy=0.8;
+  if(danceHops>0){danceHops--;dir=-dir;setTimeout(function(){if(!grabbed&&st==="hop"){vy=-11;vx=dir*5;air=true;sqf=2;sqx=0.88;sqy=1.14;}},130);return;}
   if(hopsLeft>0){hopsLeft--;setTimeout(function(){if(!grabbed&&st==="hop")hop(false);},130);}else st="idle";}
  function decide(now){
   decideAt=now+3800+Math.random()*5200;
@@ -2622,8 +2626,10 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    if(!collides(px2,p.t-HH,6)){dir=px2>x?1:-1;x=Math.max(6,Math.min(heroR.w-HW-6,px2));surface=p.t-HH;st="hop";hopsLeft=0;hop(true);}}
   else if(r<0.62&&surface!==floorY){surface=floorY;st="hop";hopsLeft=0;hop(false);} // hop back down
   else if(r<0.78){depthT=0.8+Math.random()*0.4;} // drift nearer or farther
-  else if(r<0.86&&!mob){ // little adventure off screen
+  else if(r<0.82&&!mob){ // little adventure off screen
    dir=x<heroR.w/2?-1:1;st="leave";hopsLeft=9;}
+  else if(r<0.90){heartsF=14;} // heart eyes, out of nowhere
+  else if(r<0.97&&!air){danceHops=4;dir=1;surface=surface;st="hop";hop(false);} // a happy little dance
   else {depthT=1;}
  }
  // --- grab like a Mii ---
@@ -2632,16 +2638,22 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   grabbed=true;st="grab";root.style.cursor="grabbing";
   try{root.setPointerCapture(e.pointerId);}catch(_){}
   var hr=hero.getBoundingClientRect();
+  downT=performance.now();downX=e.clientX;downY=e.clientY;shakeN=0;
   gpx=e.clientX-hr.left-x;gpy=e.clientY-hr.top-y;lastPX=e.clientX;lastPY=e.clientY;
-  try{if(typeof busyNow==="function"&&!busyNow()&&typeof showFace==="function"){setHold("smile",800);showFace("smile");}}catch(_){}
  });
  root.addEventListener("pointermove",function(e){
   if(!grabbed)return;var hr=hero.getBoundingClientRect();
-  pvx=(e.clientX-lastPX);pvy=(e.clientY-lastPY);lastPX=e.clientX;lastPY=e.clientY;
+  var npx=(e.clientX-lastPX);
+  if(npx*pvx<0&&Math.abs(npx)>6)shakeN++;   // direction flips at speed = getting shaken
+  pvx=npx;pvy=(e.clientY-lastPY);lastPX=e.clientX;lastPY=e.clientY;
   x=e.clientX-hr.left-gpx;y=e.clientY-hr.top-gpy;
  });
- function release(){if(!grabbed)return;grabbed=false;root.style.cursor="grab";
-  st="fall";vx=Math.max(-14,Math.min(14,pvx*0.9));vy=Math.max(-16,Math.min(10,pvy*0.9));air=true;surface=floorY;}
+ function release(e){if(!grabbed)return;grabbed=false;root.style.cursor="grab";
+  var tap=(performance.now()-downT<230)&&e&&Math.hypot(e.clientX-downX,e.clientY-downY)<6;
+  st="fall";air=true;surface=floorY;
+  if(tap){y-=4;vy=-13-Math.random()*4;vx=dir*(2+Math.random()*3);sqf=2;sqx=0.84;sqy=1.18;}   // bop! (lift off the ground so the pop always plays)
+  else{vx=Math.max(-16,Math.min(16,pvx*1.1));vy=Math.max(-18,Math.min(12,pvy*1.1));}
+  if(shakeN>4)dzf=16;shakeN=0;}
  root.addEventListener("pointerup",release);root.addEventListener("pointercancel",release);
  // --- tick ---
  setInterval(function(){
@@ -2660,10 +2672,16 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
     if(y>=floorY){y=floorY;hop(false);}}
    else{
     if(x<4){x=4;vx=Math.abs(vx)*0.6;dir=1;} if(x>heroR.w-HW-4){x=heroR.w-HW-4;vx=-Math.abs(vx)*0.6;dir=-1;}
-    for(var i=0;i<avoids.length;i++){var a=avoids[i];  // never barge into the head or the words
-     if(x+HW>a.l&&x<a.r&&y+HH>a.t&&y<a.b){if(vx>0)x=a.l-HW-2;else if(vx<0)x=a.r+2;vx=-vx*0.5;dir=-dir;break;}}
-    if(vy>0&&y>=surface){ if(st==="fall"&&Math.abs(vy)>7){y=surface;vy=-vy*0.45;vx*=0.6;sqf=3;sqx=1.2;sqy=0.78;}  // bouncy-ball landings
-     else if(st==="fall"){land();dzf=12;st="idle";}
+    if(y<2){y=2;vy=Math.abs(vy)*0.5;}   // the ceiling is real too
+    for(var i=0;i<avoids.length;i++){var a=avoids[i];  // bounce off the head and the words on whichever side was hit
+     if(x+HW>a.l&&x<a.r&&y+HH>a.t&&y<a.b){
+      var oL=x+HW-a.l,oR=a.r-x,oT=y+HH-a.t,oB=a.b-y,mn=Math.min(oL,oR,oT,oB);
+      if(mn===oT){y=a.t-HH-1;if(vy>0)vy=-vy*0.5;sqf=2;sqx=1.14;sqy=0.84;}
+      else if(mn===oB){y=a.b+1;vy=Math.abs(vy)*0.5;}
+      else if(mn===oL){x=a.l-HW-1;vx=-Math.abs(vx)*0.55;dir=-1;}
+      else{x=a.r+1;vx=Math.abs(vx)*0.55;dir=1;}
+      break;}}
+    if(vy>0&&y>=surface){ if(st==="fall"&&Math.abs(vy)>6){y=surface;vy=-vy*0.48;vx*=0.65;sqf=3;sqx=1.2;sqy=0.78;}  // bouncy-ball landings
      else land();}}
   }
   if(grabbed){x=Math.max(-HW,Math.min(heroR.w,x));y=Math.max(-HH,Math.min(heroR.h-HH,y));}
@@ -2677,17 +2695,20 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   // the shadow stays on the ground it belongs to
   var airH=Math.max(0,surface-y);
   var shScale=Math.max(0.35,depth*(1-airH/(heroR.h*0.6)));
-  shadow.style.transform="translate("+(x+HW/2-HW/2*shScale).toFixed(1)+"px,"+(surface+HH-6).toFixed(1)+"px) scale("+shScale.toFixed(3)+",1)";
+  shadow.style.transform="translate("+(x+HW/2-HW/2*shScale+HW*0.07).toFixed(1)+"px,"+(surface+HH-6).toFixed(1)+"px) scale("+shScale.toFixed(3)+",1)";
   shadow.style.opacity=shown?String(Math.max(0.12,0.3-airH/900)):"0";
   // --- face life ---
   var px=(typeof pointer!=="undefined"?pointer.px:innerWidth/2),py=(typeof pointer!=="undefined"?pointer.py:innerHeight*0.4);
   var rr=root.getBoundingClientRect();
   var act=(typeof lastMove!=="undefined")&&(now-lastMove<2500);
   var nx,ny;
-  if(grabbed){nx=0;ny=-0.4;}
-  else if(act){nx=Math.max(-1,Math.min(1,(px-(rr.left+rr.width/2))/280));ny=Math.max(-1,Math.min(1,(py-(rr.top+rr.height/2))/280));}
-  else{if(now>=sacAt){gzx=(Math.random()*1.4-0.7);gzy=(Math.random()*0.8-0.45);sacAt=now+700+Math.random()*1600;}nx=gzx;ny=gzy;}
-  if(now>=bAt&&bf===0&&!grabbed&&dzf===0){bf=4;bAt=now+2700+Math.random()*3800;}
+  if(grabbed){nx=0.1*dir;ny=-0.4;}
+  else if(act){nx=Math.max(-1,Math.min(1,(px-(rr.left+rr.width/2))/280));ny=Math.max(-1,Math.min(1,(py-(rr.top+rr.height/2))/280));
+   if(Math.abs(nx)<0.09&&Math.abs(ny)<0.09){nx=0.13*(dir||1);ny=0.05;}}   // same rule as mine: never a dead stare into the camera
+  else{if(now>=sacAt){do{gzx=(Math.random()*1.4-0.7);}while(Math.abs(gzx)<0.12);gzy=(Math.random()*0.8-0.45);sacAt=now+700+Math.random()*1600;}nx=gzx;ny=gzy;}
+  if(now>=bAt&&bf===0&&!grabbed&&dzf===0){bf=5;dblBlink=Math.random()<0.22;bAt=now+2700+Math.random()*3800;}
+  if(bf>0){sqy=Math.min(sqy,0.955);sqx=Math.max(sqx,1.03);}   // the whole head takes part in a blink, like mine
+  if(bf===1&&dblBlink){dblBlink=false;bf=5;}
   if(now>=brAt&&brf===0){brf=6;brAt=now+8000+Math.random()*9000;}
   if(brf>0){var lift=(brf>4||brf===1)?-1.5:-3;brows.forEach(function(b){b.style.transform="translateY("+lift+"px)";});brf--;}
   else if(grabbed){brows.forEach(function(b){b.style.transform="translateY(-3.5px)";});}
@@ -2696,8 +2717,11 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   else if(now>=moAt&&mof===0){mof=4;moAt=now+10000+Math.random()*10000;}
   if(!grabbed&&mof>0&&mouth){mouth.style.transform=(mof%2)?"translateY(1.2px) scaleY(1.06)":"translateY(0.5px) scaleY(1.02)";mof--;}
   else if(!grabbed&&mouth&&mof===0)mouth.style.transform="";
+  if(heartsF>0){heartsF--;heartEls.forEach(function(h,hi){h.style.opacity="1";h.style.transform="scale("+(1+Math.sin((14-heartsF)*0.8+hi)*0.12)+")";});}
+  else heartEls.forEach(function(h){h.style.opacity="0";h.style.transform="";});
   eyeEls3.forEach(function(o,oi){
-   if(bf>0){var lp=(bf===4||bf===1)?-56:-6;o.lid.style.transform="translateY("+lp+"%)";}
+   if(o.box)o.box.style.transform="rotate("+(-rot).toFixed(1)+"deg)";   // the glint's light source does not tilt with the head
+   if(bf>0){var lp=(bf===5||bf===1)?-44:(bf===4?-14:-4);o.lid.style.transform="translateY("+lp+"%)";}
    else o.lid.style.transform="translateY(-105%)";
    if(dzf>0){var ph=(12-dzf)*0.95+(oi?2.2:0);o.iris.style.transform="translate("+Math.round(Math.cos(ph)*8)+"px,"+Math.round(Math.sin(ph)*5)+"px)";}
    else{o.iris.style.transform="translate("+Math.round(nx*7)+"px,"+Math.round(ny*4)+"px)";if(o.glint)o.glint.style.transform="translate("+Math.round(nx*4)+"px,"+Math.round(ny*2.5)+"px)";}

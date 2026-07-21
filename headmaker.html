@@ -119,7 +119,7 @@ a:focus-visible,button:focus-visible,.hmDot:focus-visible{outline:2px solid var(
   <section class="hmStep hidden" id="step2">
    <p class="kicker">Step 2 of 4 &middot; The cutout</p>
    <h2 class="stepHead">Frame your face.</h2>
-   <p class="stepBody">Drag to move. Slide to zoom. Chin near the bottom, a little room above your hair.</p>
+   <p class="stepBody">Drag to move. Slide to zoom. Chin near the bottom, a little room above your hair. The cut follows a head shape, tapered at the chin.</p>
    <div class="hmStage" id="stage2">
     <img id="hmPhoto" alt="">
     <div class="hmOvalMask" aria-hidden="true"></div>
@@ -249,7 +249,15 @@ function bake(){
  x.drawImage(photo,0,0);
  x.setTransform(1,0,0,1,0,0);x.filter="none";
  x.globalCompositeOperation="destination-in";
- x.beginPath();x.ellipse(BAKE_W/2,BAKE_H/2,BAKE_W*0.40,BAKE_H*0.44,0,0,Math.PI*2);x.fill();
+ (function(){var cx=BAKE_W/2,cy=BAKE_H/2,rx=BAKE_W*0.40,ry=BAKE_H*0.44;
+  x.beginPath();
+  x.moveTo(cx-rx,cy-ry*0.12);                                            /* left temple */
+  x.bezierCurveTo(cx-rx*1.02,cy-ry*0.72,cx-rx*0.62,cy-ry*1.02,cx,cy-ry); /* crown */
+  x.bezierCurveTo(cx+rx*0.62,cy-ry*1.02,cx+rx*1.02,cy-ry*0.72,cx+rx,cy-ry*0.12); /* right temple */
+  x.bezierCurveTo(cx+rx*0.98,cy+ry*0.35,cx+rx*0.62,cy+ry*0.78,cx+rx*0.30,cy+ry*0.94); /* right jaw */
+  x.bezierCurveTo(cx+rx*0.14,cy+ry*1.01,cx-rx*0.14,cy+ry*1.01,cx-rx*0.30,cy+ry*0.94); /* chin */
+  x.bezierCurveTo(cx-rx*0.62,cy+ry*0.78,cx-rx*0.98,cy+ry*0.35,cx-rx,cy-ry*0.12);      /* left jaw */
+  x.closePath();x.fill();})();
  x.globalCompositeOperation="source-over";
  return c;
 }
@@ -319,16 +327,17 @@ function buildLive(){
  des.forEach(function(c){
   var sc=c.sc||sclera(c);
   var scl=document.createElement("div");scl.className="hmScl";
-  scl.style.width=(c.w*112)+"%";scl.style.height=(c.h*118)+"%";
-  scl.style.left=((c.x-c.w*0.56)*100)+"%";scl.style.top=((c.y-c.h*0.59)*100)+"%";
+  scl.style.width=(c.w*104)+"%";scl.style.height=(c.w*58)+"%";
+  scl.style.left=((c.x-c.w*0.52)*100)+"%";scl.style.top=((c.y-c.w*0.29)*100)+"%";
   scl.style.transform="rotate("+(c.ang||0)+"rad)";
   scl.style.background=sc;
   scl.style.webkitMaskImage="radial-gradient(ellipse at center,#000 55%,transparent 78%)";
   scl.style.maskImage="radial-gradient(ellipse at center,#000 55%,transparent 78%)";
   headEl.appendChild(scl);
   var w=document.createElement("div");w.className="hmEye";
-  w.style.width=(c.w*100)+"%";w.style.height=(c.h*100)+"%";
-  w.style.left=((c.x-c.w/2)*100)+"%";w.style.top=((c.y-c.h/2)*100)+"%";
+  var _ew=c.w*0.96,_eh=c.w*0.5;
+  w.style.width=(_ew*100)+"%";w.style.height=(_eh*100)+"%";
+  w.style.left=((c.x-_ew/2)*100)+"%";w.style.top=((c.y-_eh/2)*100)+"%";
   w.style.transform="rotate("+(c.ang||0)+"rad)";
   var ir=document.createElement("div");ir.className="hmIris";
   var pu=document.createElement("div");pu.className="hmPupil";ir.appendChild(pu);
@@ -393,7 +402,7 @@ function liveTick(){
   if(blinkFrames>0){var lp=(blinkFrames===4||blinkFrames===1)?-56:-6;e.lidEl.style.transform="translateY("+lp+"%)";}
   else{e.lidEl.style.transform="translateY(-105%)";
    var ew=e.wrap.offsetWidth,eh=e.wrap.offsetHeight;
-   var gtx,gty;if(boopF>0){var ph=(16-boopF)*0.9+(ei?2.2:0);gtx=Math.round(Math.cos(ph)*ew*0.22);gty=Math.round(Math.sin(ph)*eh*0.34);}else{gtx=Math.round(nx*ew*0.16);gty=Math.round(ny*eh*0.22);}
+   var gtx=Math.round(nx*ew*0.16),gty=Math.round(ny*eh*0.22);
    e.iris.style.transform="translate("+gtx+"px,"+gty+"px)";
    e.glint.style.transform="translate("+Math.round(gtx*0.62)+"px,"+Math.round(gty*0.62)+"px)";}
  });
