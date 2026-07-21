@@ -786,7 +786,7 @@ body.about-open.headheal .abTear{animation:tearClose .5s steps(1,end) forwards}
         <span class="hmTeaseLine" aria-hidden="true">Your face, cut out like mine.</span>
        </figure>
       </a>
-      <div class="csMeta"><span class="csName">Make your own head</span><span class="csYear">Interactive</span></div>
+      <div class="csMeta"><span class="csName">Make your own head</span><span class="csYear">2026</span></div>
      </div>
     </div>
    </div>
@@ -2574,6 +2574,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   root.appendChild(cov);
   var e=document.createElement("div");e.className="eye";
   e.style.left=((c.x-w2/2)*100)+"%";e.style.top=((c.y-h2/2/1.2)*100)+"%";e.style.width=(w2*100)+"%";e.style.height=(h2/1.2*100)+"%";   /* /1.2: the box is 1:1.2, heights need the aspect taken out */
+  e.style.webkitMaskImage="radial-gradient(ellipse at center,#000 74%,rgba(0,0,0,.55) 88%,transparent 99%)";e.style.maskImage="radial-gradient(ellipse at center,#000 74%,rgba(0,0,0,.55) 88%,transparent 99%)";   /* no outline: the sclera recedes under the lids, so its edge is a fade, never a line */
   var irD=c.w*0.54;   // the INFANT ratio, not the adult 42%: a newborn iris is near adult size in a small aperture, and this head is the baby of the pair
   var ir=document.createElement("div");ir.className="iris";
   ir.style.width=(irD/w2*100)+"%";ir.style.height=(irD/h2*100)+"%";ir.style.left=((0.5-irD/w2/2)*100)+"%";ir.style.top=((0.5-irD/h2/2)*100)+"%";ir.style.borderRadius="50%";
@@ -2584,7 +2585,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   var fill=document.createElement("div");   // the white is a lit sphere, not a flat paint chip
   fill.style.cssText="position:absolute;inset:0;background:radial-gradient(ellipse at 16% 50%,rgba(112,80,60,.18),rgba(112,80,60,0) 34%),radial-gradient(ellipse at 84% 50%,rgba(112,80,60,.18),rgba(112,80,60,0) 34%),radial-gradient(ellipse at 50% 38%,"+owB+" 0%,"+oneWhite2+" 52%,"+owD+" 100%)";
   var shd=document.createElement("div");    // the upper lid throws a soft shadow across everything
-  shd.style.cssText="position:absolute;inset:0;pointer-events:none;background:linear-gradient(to bottom,rgba(46,32,26,.40) 0%,rgba(46,32,26,.13) 22%,rgba(46,32,26,0) 46%),linear-gradient(to top,rgba(255,255,255,.09) 0%,rgba(255,255,255,0) 16%)";
+  shd.style.cssText="position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,rgba(58,40,30,0) 66%,rgba(58,40,30,.20) 96%),linear-gradient(to bottom,rgba(46,32,26,.40) 0%,rgba(46,32,26,.13) 22%,rgba(46,32,26,0) 46%),linear-gradient(to top,rgba(255,255,255,.09) 0%,rgba(255,255,255,0) 16%)";
   var gl2=document.createElement("div");gl2.className="glint";
   gl2.style.width=(0.10*irD/w2*100)+"%";gl2.style.height=(0.10*irD/h2*100)+"%";gl2.style.left=(50+irD/w2*14)+"%";gl2.style.top=(50+irD/h2*15)+"%";gl2.style.opacity="0.45";
   e.appendChild(fill);e.appendChild(ir);e.appendChild(shd);e.appendChild(gl);e.appendChild(gl2);root.appendChild(e);

@@ -71,6 +71,10 @@ nav{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;column-ga
 .hmMark.bar.wide::before{width:46px;margin-left:-23px}
 
 .hmMark.eyeC::before{display:none}   /* invisible: dragging the middle of the eye just works, like dragging a shape body */
+.facts{width:100%;display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));column-gap:var(--sp-16-32);row-gap:var(--sp-16-32);margin:var(--sp-24-32) 0 0;border-top:1px solid rgba(8,8,8,.14);border-bottom:1px solid rgba(8,8,8,.14);padding:var(--sp-16-24) 0}
+.fact{min-width:0}
+.fk{display:block;font-family:var(--sans);font-weight:600;font-size:var(--fs-label);letter-spacing:.01em;color:var(--c500);filter:url(#inkSm);margin:0 0 var(--sp-8-16)}
+.fv{font-family:var(--sans);font-weight:500;font-size:var(--fs-body);line-height:1.35;color:var(--c950);margin:0;text-wrap:pretty}
 .hmZoom{-webkit-appearance:none;appearance:none;height:2px;background:rgba(8,8,8,.18);border-radius:2px;outline-offset:6px}
 .hmZoom::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--c950);border:0;cursor:pointer}
 .hmZoom::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:var(--c950);border:0;cursor:pointer}
@@ -109,6 +113,14 @@ a:focus-visible,button:focus-visible,.hmDot:focus-visible{outline:2px solid var(
  <div class="content">
   <h1 class="head">Make your own floating head.</h1>
   <p class="lede">The same cutout as the head on my homepage. Your photo, your color, and a pair of living eyes. <strong>Everything happens in your browser, nothing gets uploaded.</strong></p>
+
+  <dl class="facts">
+   <div class="fact"><dt class="fk">What it is</dt><dd class="fv">A living cutout of your face</dd></div>
+   <div class="fact"><dt class="fk">Role</dt><dd class="fv">Design &amp; code</dd></div>
+   <div class="fact"><dt class="fk">Built with</dt><dd class="fv">Vanilla HTML, CSS, JS</dd></div>
+   <div class="fact"><dt class="fk">Privacy</dt><dd class="fv">On-device, nothing uploads</dd></div>
+   <div class="fact"><dt class="fk">Year</dt><dd class="fv">2026</dd></div>
+  </dl>
 
   <!-- STEP 1 · the photo -->
   <section class="hmStep" id="step1">
@@ -479,6 +491,7 @@ function buildLive(){
   var w=document.createElement("div");w.className="hmEye";
   w.style.width=(_ew*100)+"%";w.style.height=(_eh/1.2*100)+"%";   /* /1.2: the stage is 5/6, heights need the aspect taken out */
   w.style.left=((c.x-_ew/2)*100)+"%";w.style.top=((c.y-_eh/2/1.2)*100)+"%";
+  w.style.webkitMaskImage="radial-gradient(ellipse at center,#000 74%,rgba(0,0,0,.55) 88%,transparent 99%)";w.style.maskImage="radial-gradient(ellipse at center,#000 74%,rgba(0,0,0,.55) 88%,transparent 99%)";   /* no outline: the sclera recedes under the lids, so its edge is a fade, never a line */
   w.style.transform="rotate("+(c.ang||0)+"rad)";
   var irD=c.w*0.54;   /* identical to the homepage companion: the friendly 54% ratio */
   var fill=document.createElement("div");   /* the white is a lit sphere, not a flat paint chip */
@@ -490,7 +503,7 @@ function buildLive(){
   ir.style.background="radial-gradient(circle at 39% 33%,#343434 0%,#1c1c1c 34%,#0c0c0c 66%,#030303 100%)";   /* smooth and deep, lit from above */
   var pu=document.createElement("div");pu.className="hmPupil";ir.appendChild(pu);
   var shd=document.createElement("div");    /* the upper lid throws a soft shadow across everything */
-  shd.style.cssText="position:absolute;inset:0;pointer-events:none;background:linear-gradient(to bottom,rgba(46,32,26,.40) 0%,rgba(46,32,26,.13) 22%,rgba(46,32,26,0) 46%),linear-gradient(to top,rgba(255,255,255,.09) 0%,rgba(255,255,255,0) 16%)";
+  shd.style.cssText="position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,rgba(58,40,30,0) 66%,rgba(58,40,30,.20) 96%),linear-gradient(to bottom,rgba(46,32,26,.40) 0%,rgba(46,32,26,.13) 22%,rgba(46,32,26,0) 46%),linear-gradient(to top,rgba(255,255,255,.09) 0%,rgba(255,255,255,0) 16%)";
   var gl=document.createElement("div");gl.className="hmGlint";
   gl.style.width=(0.19*irD/_ew*100)+"%";gl.style.height=(0.19*irD/_eh*100)+"%";gl.style.left="37%";gl.style.top=((0.5-irD/_eh/2)*100+irD/_eh*30)+"%";   /* on the iris, never clipped by the lid */
   var gl2=document.createElement("div");gl2.className="hmGlint";
@@ -637,7 +650,13 @@ document.getElementById("save").addEventListener("click",function(){
   var ls2=x.createLinearGradient(0,ey-eh*0.55,0,ey+eh*0.05);   // the upper lid throws a soft shadow
   ls2.addColorStop(0,"rgba(46,32,26,.40)");ls2.addColorStop(0.55,"rgba(46,32,26,.12)");ls2.addColorStop(1,"rgba(46,32,26,0)");
   x.fillStyle=ls2;x.fillRect(ex-ew*0.55,ey-eh*0.65,ew*1.1,eh*0.75);
+  var ao=x.createRadialGradient(ex,ey,ew*0.30,ex,ey,ew*0.52);   // socket shadow: the rim darkens, it never draws a line
+  ao.addColorStop(0,"rgba(58,40,30,0)");ao.addColorStop(0.82,"rgba(58,40,30,.06)");ao.addColorStop(1,"rgba(58,40,30,.20)");
+  x.fillStyle=ao;x.fillRect(ex-ew*0.55,ey-eh*0.65,ew*1.1,eh*1.3);
   x.restore();
+  var fz=x.createRadialGradient(ex,ey,ew*0.44,ex,ey,ew*0.60);   // and the boundary itself feathers into the skin
+  fz.addColorStop(0,"rgba(58,40,30,0)");fz.addColorStop(0.5,"rgba(58,40,30,.10)");fz.addColorStop(1,"rgba(58,40,30,0)");
+  x.fillStyle=fz;x.fillRect(ex-ew*0.7,ey-eh*0.9,ew*1.4,eh*1.8);
   x.restore();
  });
  var a=document.createElement("a");a.download="my-floating-head.png";a.href=c.toDataURL("image/png");a.click();
