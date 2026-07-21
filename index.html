@@ -1056,8 +1056,9 @@ function updateIris(){
  var dil=irisDil+hip; if(dil<0.74)dil=0.74; if(dil>1.66)dil=1.66;
  if(now>=microSacNext){microSacTX=(Math.random()*2-1)*0.12;microSacTY=(Math.random()*2-1)*0.085;microSacNext=now+340+Math.random()*1200;}  // tiny dart, hold, re-dart
  microSacX+=(microSacTX-microSacX)*0.42;microSacY+=(microSacTY-microSacY)*0.42;
- const useCursor=HOVER&&(now-lastMove<IDLE_MS)&&!bearMode;
  var sr=stage.getBoundingClientRect(),scx=sr.left+sr.width*0.5,scy=sr.top+sr.height*0.42;
+ window.__curNear=Math.hypot(pointer.px-scx,pointer.py-scy)<sr.width*1.4;   // the cursor is company only up close
+ const useCursor=HOVER&&(now-lastMove<IDLE_MS)&&!bearMode&&window.__curNear;
  var gnx,gny;                                                            // ONE gaze direction, taken from between the eyes -> both eyes look parallel (no cross-eye)
  if(useCursor){gnx=(pointer.px-scx)/SENS;gny=(pointer.py-scy)/SENS;var gm=Math.hypot(gnx,gny);if(gm>1){gnx/=gm;gny/=gm;}}
  else{gnx=gaze.x;gny=gaze.y;}
@@ -2125,7 +2126,7 @@ setInterval(()=>{tk++;if(!reduce)boil();if(crumbEls.length)updateCrumbs();
  tickFidget();updateIris();
  if(aboutOpen&&window.abHeadFrame){window.abHeadFrame();return;}
  if(!reduce){const t=tk*0.125;const fy=Math.sin(t*0.85)*5,fx=Math.sin(t*0.55)*3;const dftX=Math.sin(t*0.19)*3.4+Math.sin(t*0.11+2.0)*1.9,dftY=Math.sin(t*0.15+1.0)*3.0+Math.sin(t*0.23+0.5)*1.5;  // slow wandering float (two periods = never an obvious metronome)
-  const _act=HOVER&&(performance.now()-lastMove<IDLE_MS);let tgX,tgY;if(_act){tgX=((pointer.px/innerWidth)-0.5)*16;tgY=((pointer.py/innerHeight)-0.5)*10;}else{tgX=gaze.x*9;tgY=gaze.y*6-1;}paraX+=(tgX-paraX)*0.2;paraY+=(tgY-paraY)*0.2;
+  const _act=HOVER&&(performance.now()-lastMove<IDLE_MS)&&window.__curNear!==false;let tgX,tgY;if(_act){tgX=((pointer.px/innerWidth)-0.5)*16;tgY=((pointer.py/innerHeight)-0.5)*10;}else{tgX=gaze.x*9;tgY=gaze.y*6-1;}paraX+=(tgX-paraX)*0.2;paraY+=(tgY-paraY)*0.2;
   const P=poseFor(curFace);curRot+=(P.rot-curRot)*0.16;curSc+=(P.sc-curSc)*0.16;curTX+=(P.tx-curTX)*0.16;curTY+=(P.ty-curTY)*0.16;
   const g=gestureOffset();
   var _cg=0;if(_act&&!eventLock&&!reactType&&!dizzy&&!dragging&&!eating&&!blinking){try{var _srC=stage.getBoundingClientRect();_cg=Math.max(-1,Math.min(1,(pointer.px-(_srC.left+_srC.width*0.5))/SENS));}catch(_){}}
