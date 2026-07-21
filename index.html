@@ -303,7 +303,7 @@ body.partyLock{overflow:hidden}
 @keyframes csPanelIn{from{opacity:0}to{opacity:1}}
 /* one project = a scroll runway + a sticky stage that scales/locks the banner, with name+year glued beneath */
 .csItem{position:relative}
-.csItem+.csItem{margin-top:clamp(80px,11vh,150px)}
+.csItem+.csItem{margin-top:clamp(128px,18vh,240px)}
 .csTrack{height:auto}
 .csStage{position:relative;display:flex;flex-direction:column;overflow:visible}
 .csStageInner{max-width:1280px;width:100%;margin:0 auto;padding:0 40px;display:flex;flex-direction:column;gap:clamp(16px,1.7vw,24px)}
@@ -344,7 +344,7 @@ body.partyLock{overflow:hidden}
  .csItem.csIn .csFrame{transform:none;opacity:1}
  .csMeta{opacity:0;transform:translateY(14px);transition:opacity .5s cubic-bezier(.2,.8,.2,1) .07s,transform .5s cubic-bezier(.2,.8,.2,1) .07s}
  .csItem.csIn .csMeta{opacity:1;transform:none}
- .csItem+.csItem{margin-top:9vh}
+ .csItem+.csItem{margin-top:14vh}
 }
 @media(prefers-reduced-motion:reduce){
  .csFrame{border-radius:4px!important;opacity:1!important;transform:none!important;transition:none!important}
