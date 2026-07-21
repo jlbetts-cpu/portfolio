@@ -623,9 +623,9 @@ function buildLive(){
  try{if(!cutURL||cutURL.length<100)throw 0;
   var _des2=deriveEyes();
   var _nh={cut:cutURL,eyes:eyeEls.map(function(e,i){var o=Object.assign({},_des2[i]);o.sc=e.sc;o.ic=irisColor(_des2[i]);return o;}),marks:marks,t:Date.now()};
-  var _all=[];try{_all=JSON.parse(localStorage.getItem("hmCompanions")||"[]")||[];}catch(_){}
+  var _all=[],_rawS=null;try{var _r2=localStorage.getItem("hmCompanions");if(_r2!==null){_all=JSON.parse(_r2)||[];_rawS=1;}}catch(_){}
   if(!(_all instanceof Array))_all=[];
-  if(!_all.length){try{var _lg=JSON.parse(localStorage.getItem("hmCompanion")||"null");if(_lg&&_lg.cut&&_lg.cut.length>100)_all=[_lg];}catch(_){}}
+  if(_rawS===null){try{var _lg=JSON.parse(localStorage.getItem("hmCompanion")||"null");if(_lg&&_lg.cut&&_lg.cut.length>100)_all=[_lg];}catch(_){}}
   _all=_all.filter(function(h){return h&&h.cut&&h.cut.length>100&&h.cut!==_nh.cut;});   // same face re-saved just moves to newest: never a duplicate in the pit
   _all.push(_nh);while(_all.length>3)_all.shift();   // the pit holds three: the oldest head retires
   localStorage.setItem("hmCompanions",JSON.stringify(_all));
@@ -689,8 +689,8 @@ function loadSmile(f){
  },function(){smileSlot=false;});
 }
 function renderPit(){try{var row=document.getElementById("hmPitRow"),sec=document.getElementById("hmPitSec");if(!row)return;
- var all=[];try{all=JSON.parse(localStorage.getItem("hmCompanions")||"[]")||[];}catch(_){}
- if(!all.length){try{var lg1=JSON.parse(localStorage.getItem("hmCompanion")||"null");if(lg1&&lg1.cut)all=[lg1];}catch(_){}}
+ var all=[],rawN1=null;try{var raw1=localStorage.getItem("hmCompanions");if(raw1!==null){all=JSON.parse(raw1)||[];rawN1=all.length;}}catch(_){}
+ if(rawN1===null){try{var lg1=JSON.parse(localStorage.getItem("hmCompanion")||"null");if(lg1&&lg1.cut)all=[lg1];}catch(_){}}
  var seenP={};all=all.filter(function(d){if(!d||!d.cut||d.cut.length<101||seenP[d.cut])return false;seenP[d.cut]=1;return true;}).slice(0,3);
  if(sec)sec.classList.toggle("hidden",!all.length);   // present the moment you have a head, on every step
  row.innerHTML="";
