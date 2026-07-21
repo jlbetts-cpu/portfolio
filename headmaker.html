@@ -135,13 +135,17 @@ a:focus-visible,button:focus-visible,.hmDot:focus-visible{outline:2px solid var(
   <section class="hmStep hidden" id="step3">
    <p class="kicker">Step 3 of 4 &middot; The eyes</p>
    <h2 class="stepHead">Mark your face.</h2>
-   <p class="stepBody">A dot on each corner of each eye. The bars sit on your brows and your mouth, the ring on the tip of your nose. This is what brings it to life.</p>
+   <p class="stepBody">Dots on the corners, top, and bottom of each eye. Bars on your brows and mouth, the ring on your nose. This is what brings it to life.</p>
    <div class="hmStage bare" id="stage3">
     <img id="hmCut" alt="Your cutout head">
     <div class="hmDot" id="dLi" role="slider" tabindex="0" aria-label="Left eye, inner corner"></div>
     <div class="hmDot" id="dLo" role="slider" tabindex="0" aria-label="Left eye, outer corner"></div>
     <div class="hmDot" id="dRi" role="slider" tabindex="0" aria-label="Right eye, inner corner"></div>
     <div class="hmDot" id="dRo" role="slider" tabindex="0" aria-label="Right eye, outer corner"></div>
+    <div class="hmDot" id="dLt" role="slider" tabindex="0" aria-label="Left eye, top lid"></div>
+    <div class="hmDot" id="dLb" role="slider" tabindex="0" aria-label="Left eye, bottom lid"></div>
+    <div class="hmDot" id="dRt" role="slider" tabindex="0" aria-label="Right eye, top lid"></div>
+    <div class="hmDot" id="dRb" role="slider" tabindex="0" aria-label="Right eye, bottom lid"></div>
     <div class="hmMark bar" id="dBL" role="slider" tabindex="0" aria-label="Left eyebrow"></div>
     <div class="hmMark bar" id="dBR" role="slider" tabindex="0" aria-label="Right eyebrow"></div>
     <div class="hmMark ring" id="dN" role="slider" tabindex="0" aria-label="Nose tip"></div>
@@ -168,7 +172,7 @@ a:focus-visible,button:focus-visible,.hmDot:focus-visible{outline:2px solid var(
     <button class="hmBtn ghost" type="button" id="addSmile">Add a smiling photo</button>
     <button class="hmBtn" type="button" id="save">Download your head</button>
    </div>
-   <p class="cap">Downloads as a transparent PNG.</p>
+   <p class="cap">Downloads as a transparent PNG. Your head now floats next to mine on the homepage.</p>
   </section>
  </div>
 
@@ -189,12 +193,13 @@ steps[0].classList.add("shown");
 /* ---------- state ---------- */
 var photo=new Image(),photoURL=null,cutURL=null;      // the raw photo, the baked cutout
 var pz={s:1.2,x:0,y:0};                               // pan/zoom in stage-2 space
-var pts={Li:{x:0.335,y:0.42},Lo:{x:0.455,y:0.42},Ri:{x:0.545,y:0.42},Ro:{x:0.665,y:0.42}};   // eye corners
+var pts={Li:{x:0.335,y:0.42},Lo:{x:0.455,y:0.42},Ri:{x:0.545,y:0.42},Ro:{x:0.665,y:0.42},Lt:{x:0.395,y:0.405},Lb:{x:0.395,y:0.437},Rt:{x:0.605,y:0.405},Rb:{x:0.605,y:0.437}};   // corners + lids
 var marks={BL:{x:0.395,y:0.345},BR:{x:0.605,y:0.345},N:{x:0.5,y:0.555},M:{x:0.5,y:0.685}};   // brows, nose, mouth
 function deriveEyes(){ // centre, width, and tilt straight from the corners the visitor marked
- function one(a,b){var dx=b.x-a.x,dy=(b.y-a.y);var w=Math.hypot(dx,dy*(BAKE_H/BAKE_W))*1.12;
-  return{x:(a.x+b.x)/2,y:(a.y+b.y)/2,w:Math.max(0.04,Math.min(0.17,w)),h:Math.max(0.02,Math.min(0.10,w*0.52*(BAKE_W/BAKE_H))),ang:Math.atan2((b.y-a.y)*BAKE_H,(b.x-a.x)*BAKE_W)};}
- return[one(pts.Li,pts.Lo),one(pts.Ri,pts.Ro)];}
+ function one(a,b,t,btm){var w=Math.hypot(b.x-a.x,(b.y-a.y)*(BAKE_H/BAKE_W))*1.02;
+  var ap=Math.abs(btm.y-t.y)*1.18;   // true lid aperture, marked by the visitor
+  return{x:(a.x+b.x)/2,y:(t.y+btm.y)/2,w:Math.max(0.035,Math.min(0.15,w)),h:Math.max(0.015,Math.min(0.09,ap)),ang:Math.atan2((b.y-a.y)*BAKE_H,(b.x-a.x)*BAKE_W)};}
+ return[one(pts.Li,pts.Lo,pts.Lt,pts.Lb),one(pts.Ri,pts.Ro,pts.Rt,pts.Rb)];}
 var smileURL=null,smileSlot=false;                     // optional second (smiling) photo
 var BAKE_W=840,BAKE_H=1008;                            // 5:6, matches the stage
 
@@ -254,7 +259,7 @@ document.getElementById("next2").addEventListener("click",function(){
 
 /* ---------- step 3: the eye dots ---------- */
 var stage3=document.getElementById("stage3"),dotL=document.getElementById("dotL"),dotR=document.getElementById("dotR");
-function placeDots(){["Li","Lo","Ri","Ro"].forEach(function(k){posDot(document.getElementById("d"+k),pts[k]);});["BL","BR","N","M"].forEach(function(k){posDot(document.getElementById("d"+k),marks[k]);});}
+function placeDots(){["Li","Lo","Ri","Ro","Lt","Lb","Rt","Rb"].forEach(function(k){posDot(document.getElementById("d"+k),pts[k]);});["BL","BR","N","M"].forEach(function(k){posDot(document.getElementById("d"+k),marks[k]);});}
 function posDot(d,e){d.style.left=(e.x*100)+"%";d.style.top=(e.y*100)+"%";}
 function dragDot(d,key){var store=MK[key];
  d.addEventListener("pointerdown",function(e){e.preventDefault();d.classList.add("grabbed");try{d.setPointerCapture(e.pointerId);}catch(_){}
@@ -267,8 +272,8 @@ function dragDot(d,key){var store=MK[key];
   e.preventDefault();c.x=Math.min(0.95,Math.max(0.05,c.x));c.y=Math.min(0.95,Math.max(0.05,c.y));posDot(d,c);});
 }
 var eyes={};
-var MK={Li:pts,Lo:pts,Ri:pts,Ro:pts,BL:marks,BR:marks,N:marks,M:marks};
-["Li","Lo","Ri","Ro","BL","BR","N","M"].forEach(function(k){var el=document.getElementById("d"+k);eyes[k]=MK[k][k];dragDot(el,k);});
+var MK={Li:pts,Lo:pts,Ri:pts,Ro:pts,Lt:pts,Lb:pts,Rt:pts,Rb:pts,BL:marks,BR:marks,N:marks,M:marks};
+["Li","Lo","Ri","Ro","Lt","Lb","Rt","Rb","BL","BR","N","M"].forEach(function(k){var el=document.getElementById("d"+k);eyes[k]=MK[k][k];dragDot(el,k);});
 document.getElementById("back3").addEventListener("click",function(){show(1);});
 document.getElementById("next3").addEventListener("click",function(){buildLive();show(3);});
 
@@ -340,6 +345,7 @@ function buildLive(){
  });
  browEls=[faceStrip(marks.BL.x,marks.BL.y,g.w*1.5,g.h*1.7,"hmBrow"),faceStrip(marks.BR.x,marks.BR.y,g.w*1.5,g.h*1.7,"hmBrow")];
  noseEl=faceStrip(marks.N.x,marks.N.y,g.w*1.1,g.h*2.1,"hmNose");
+ try{localStorage.setItem("hmCompanion",JSON.stringify({cut:cutURL,eyes:deriveEyes(),t:Date.now()}));}catch(_){}
  if(tick)clearInterval(tick);
  blinkAt=performance.now()+2600+Math.random()*2800;
  browAt=performance.now()+3200+Math.random()*5000;sniffAt=performance.now()+9000+Math.random()*14000;smileAt=performance.now()+8000;

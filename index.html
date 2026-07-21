@@ -2525,4 +2525,44 @@ function on(){setTimeout(function(){c.classList.add('csIn');},250);}
 document.addEventListener('click',function(e){var t=e.target&&e.target.closest&&e.target.closest('.csTab');if(t&&t.getAttribute('data-tab')==='goodness')on();},true);
 var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
 </script>
+<script>
+/* the visitor's own head (made in Extras) floats beside mine — a guest, not a rival:
+   it bows out whenever my head performs, and never appears on small screens or reduced motion */
+(function(){
+ var data=null;try{data=JSON.parse(localStorage.getItem("hmCompanion")||"null");}catch(_){}
+ if(!data||!data.cut||innerWidth<=880)return;
+ var reduce=matchMedia("(prefers-reduced-motion:reduce)").matches;
+ var sw=document.querySelector(".stagewrap");if(!sw)return;
+ var w=document.createElement("div");
+ w.style.cssText="position:absolute;right:-11%;bottom:2%;width:26%;aspect-ratio:5/6;z-index:1;pointer-events:none;opacity:0;transition:opacity .5s cubic-bezier(.2,.8,.2,1)";
+ var im=document.createElement("img");im.src=data.cut;im.alt="";im.style.cssText="width:100%;height:100%";
+ w.appendChild(im);
+ (data.eyes||[]).forEach(function(c){
+  var e=document.createElement("div");
+  e.style.cssText="position:absolute;border-radius:46%;background:#101010;width:"+(c.w*60)+"%;height:"+(c.h*100)+"%;left:"+((c.x-c.w*0.3)*100)+"%;top:"+((c.y-c.h/2)*100)+"%";
+  var g=document.createElement("div");
+  g.style.cssText="position:absolute;left:30%;top:22%;width:22%;height:22%;border-radius:50%;background:rgba(255,255,255,.92)";
+  e.appendChild(g);w.appendChild(e);e.__g=g;w.__eyes=(w.__eyes||[]).concat([e]);
+ });
+ sw.appendChild(w);
+ var shown=false,blinkAt=performance.now()+3000,bf=0,tk2=0;
+ setInterval(function(){
+  tk2++;var busy=false;
+  try{busy=document.body.classList.contains("about-open")||(typeof busyNow==="function"&&busyNow());}catch(_){}
+  var want=!busy;if(want!==shown){shown=want;w.style.opacity=want?"1":"0";}
+  if(!shown||reduce)return;
+  var t=tk2*0.125,fy=Math.sin(t*0.95+1.2)*4,fx=Math.sin(t*0.6+0.5)*2.5;
+  w.style.transform="translate("+fx.toFixed(1)+"px,"+fy.toFixed(1)+"px) rotate("+(Math.sin(t*0.42)*0.8).toFixed(2)+"deg)";
+  var now=performance.now();
+  if(now>=blinkAt&&bf===0){bf=2;blinkAt=now+3000+Math.random()*4200;}
+  var r=w.getBoundingClientRect(),px=(typeof pointer!=="undefined"?pointer.px:innerWidth/2),py=(typeof pointer!=="undefined"?pointer.py:innerHeight/2);
+  var nx=Math.max(-1,Math.min(1,(px-(r.left+r.width/2))/300)),ny=Math.max(-1,Math.min(1,(py-(r.top+r.height/2))/300));
+  (w.__eyes||[]).forEach(function(e){
+   if(bf>0){e.style.transform="scaleY(0.1)";}
+   else{e.style.transform="translate("+Math.round(nx*e.offsetWidth*0.3)+"px,"+Math.round(ny*e.offsetHeight*0.3)+"px)";}
+  });
+  if(bf>0)bf--;
+ },125);
+})();
+</script>
 </body></html>
