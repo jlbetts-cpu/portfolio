@@ -181,7 +181,7 @@ a:focus-visible,button:focus-visible,.hmDot:focus-visible{outline:2px solid var(
    <p class="kicker">Step 4 of 4 &middot; Alive</p>
    <h2 class="stepHead">There you are.</h2>
    <p class="stepBody">Floating, blinking, watching your cursor. It now lives on my homepage, hopping around next to my head. Go say hi. Save it, or send it to someone who will get it.</p>
-   <div class="hmRow" role="group" aria-label="Pose presets"><button class="hmBtn ghost" type="button" data-pose="">Live</button><button class="hmBtn ghost hmRoll" type="button" id="poseRnd" aria-label="Roll a random face"><svg class="hmDie" viewBox="0 0 20 20" width="15" height="15" aria-hidden="true"><rect x="1" y="1" width="18" height="18" rx="4.5" fill="none" stroke="currentColor" stroke-width="1.6"/><g fill="currentColor"><circle class="dp dpa" cx="6.2" cy="6.2" r="1.7"/><circle class="dp dpb" cx="13.8" cy="6.2" r="1.7"/><circle class="dp dpc" cx="6.2" cy="13.8" r="1.7"/><circle class="dp dpd" cx="13.8" cy="13.8" r="1.7"/><circle class="dp dpe" cx="10" cy="10" r="1.7"/><circle class="dp dpf" cx="6.2" cy="10" r="1.7"/><circle class="dp dpg" cx="13.8" cy="10" r="1.7"/></g></svg>Random face</button></div>
+   <div class="hmRow" role="group" aria-label="Pose presets"><button class="hmBtn ghost" type="button" data-pose="">Live</button><button class="hmBtn ghost hmRoll" type="button" id="poseRnd" aria-label="Roll a random pose"><svg class="hmDie" viewBox="0 0 20 20" width="15" height="15" aria-hidden="true"><rect x="1" y="1" width="18" height="18" rx="4.5" fill="none" stroke="currentColor" stroke-width="1.6"/><g fill="currentColor"><circle class="dp dpa" cx="6.2" cy="6.2" r="1.7"/><circle class="dp dpb" cx="13.8" cy="6.2" r="1.7"/><circle class="dp dpc" cx="6.2" cy="13.8" r="1.7"/><circle class="dp dpd" cx="13.8" cy="13.8" r="1.7"/><circle class="dp dpe" cx="10" cy="10" r="1.7"/><circle class="dp dpf" cx="6.2" cy="10" r="1.7"/><circle class="dp dpg" cx="13.8" cy="10" r="1.7"/></g></svg>Random pose</button></div>
    <div class="hmStage bare" id="stage4">
     <div class="hmShadow" aria-hidden="true"></div>
     <div id="hmHead"><img id="hmLive" alt="Your floating cutout head, eyes following the cursor"></div>
@@ -459,8 +459,7 @@ function rollExpr(){
   dieRot+=180+(Math.random()<0.5?90:0);   // the die tumbles and lands on a new face: roll me again
   if(die)die.style.transform="rotate("+dieRot+"deg)";
   setTimeout(function(){setDie(1+Math.floor(Math.random()*6));},220);
-  document.querySelectorAll("[data-pose]").forEach(function(o){o.style.borderColor="";});
-  rb.style.borderColor="var(--c950)";});})();
+  document.querySelectorAll("[data-pose]").forEach(function(o){o.style.borderColor="";});});})();
 function eyeGeom(){var d=deriveEyes();return{w:(d[0].w+d[1].w)/2,h:(d[0].h+d[1].h)/2};}
 function sclera(e){ // the white of THEIR eye: sample along the corner line, keep only the brightest pixels
  try{var x=bakedCanvas.getContext("2d"),px=[];
