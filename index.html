@@ -2592,7 +2592,8 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
  (function(){try{var fi=document.getElementById("face");function scan(){try{
   var cv=document.createElement("canvas");cv.width=36;cv.height=44;var cx2=cv.getContext("2d");
   cx2.drawImage(fi,0,0,36,44);var d=cx2.getImageData(0,0,36,44).data;
-  for(var row=0;row<44;row++){for(var col=0;col<36;col++){if(d[(row*36+col)*4+3]>40){crownFrac=row/44;return;}}}
+  for(var row=0;row<44;row++){var solid=0;for(var col=0;col<36;col++){if(d[(row*36+col)*4+3]>40)solid++;}
+   if(solid>=9){crownFrac=row/44;return;}}   // the hair mass, not a stray wisp
  }catch(_){}}
  if(fi&&fi.complete&&fi.naturalWidth)scan();else if(fi)fi.addEventListener("load",scan);}catch(_){}})();
  function survey(){
@@ -2611,7 +2612,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
  // --- state ---
  var x=bigR?(bigR.l+(bigR.r-bigR.l)/2-HW/2):Math.max(8,heroR.w*0.06),y=bigR?(bigR.t-HH+6):floorY,vx=0,vy=0,dir=1,depth=1,depthT=1,air=false,surface=floorY,
      st="idle",stT=0,hopsLeft=0,grabbed=false,gpx=0,gpy=0,lastPX=0,lastPY=0,pvx=0,pvy=0,
-     offAt=0,gone=false,goneUntil=0,decideAt=performance.now()+3000,spin=0,heldOff=0,heldV=0,downT=0,downX=0,downY=0,shakeN=0,heartsF=0,danceHops=0,dblBlink=false,
+     offAt=0,gone=false,goneUntil=0,decideAt=performance.now()+3000,spin=0,heldOff=0,heldV=0,cTop=false,downT=0,downX=0,downY=0,shakeN=0,heartsF=0,danceHops=0,dblBlink=false,
      bAt=performance.now()+2800,bf=0,brAt=performance.now()+7000,brf=0,moAt=performance.now()+11000,mof=0,
      dzf=0,sqx=1,sqy=1,sqf=0,shown=false,first=true,tk3=0,gzx=0,gzy=0,sacAt=0;
  var G=2600,DT=0.04,facc=0,CEIL=2,surpriseAt=0;   // real units: px/s and px/s^2, integrated at 25fps
@@ -2674,7 +2675,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   if(want!==shown||first){shown=want;root.style.opacity=want?"1":"0";root.style.filter=want?"blur(0)":"blur(6px)";shadow.style.opacity=want?"1":"0";
    if(first&&want){survey();var fEl=document.getElementById("face"),hr2=hero.getBoundingClientRect();
     var frc=fEl?fEl.getBoundingClientRect():null;
-    if(frc&&frc.height){x=frc.left-hr2.left+frc.width/2-HW/2;y=frc.top-hr2.top+frc.height*crownFrac-HH*FOOT+2;surface=floorY;}
+    if(frc&&frc.height){x=frc.left-hr2.left+frc.width/2-HW/2;y=frc.top-hr2.top+frc.height*crownFrac-HH*FOOT+HH*0.07;surface=floorY;}   // feet settle INTO the hair
     else if(bigR){x=bigR.l+(bigR.r-bigR.l)/2-HW/2;y=bigR.t-HH*FOOT;surface=floorY;}   // feet on the visible hair itself
     if(!/[?&]stand=1/.test(location.search))setTimeout(function(){if(!grabbed){st="fall";air=true;surface=floorY;vx=-(300+Math.random()*130);vy=-940;dir=-1;sqf=4;sqx=0.84;sqy=1.18;}},1100);} first=false;}   // then a real leap off (?stand=1 holds the pose for tuning)
   if(reduce){root.style.transform="translate("+(heroR.w*0.05)+"px,"+floorY+"px)";shadow.style.transform="translate("+(heroR.w*0.05)+"px,"+(floorY+HH-4)+"px)";return;}
@@ -2686,8 +2687,8 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    vy+=G*DT;x+=vx*DT;y+=vy*DT;
    if(x<WL){x=WL;vx=Math.abs(vx)*0.72;dir=1;sqf=3;sqx=0.86;sqy=1.12;}
    if(x>WR){x=WR;vx=-Math.abs(vx)*0.72;dir=-1;sqf=3;sqx=0.86;sqy=1.12;}
-   if(y<CEIL){y=CEIL;vy=Math.abs(vy)*0.6;sqf=3;sqx=1.12;sqy=0.86;}
-   if(vy>0&&y>=surface){ if(st==="fall"&&Math.abs(vy)>340){var k=Math.min(0.32,Math.abs(vy)*0.00055);y=surface;vy=-vy*0.62;vx*=0.82;sqf=4;sqx=1+k;sqy=1-k;}  // thrown = bouncy; its own hops land clean
+   if(y<CEIL){y=CEIL;vy=Math.abs(vy)*0.6;sqf=3;sqx=1.12;sqy=0.86;cTop=true;}
+   if(vy>0&&y>=surface){ cTop=false; if(st==="fall"&&Math.abs(vy)>340){var k=Math.min(0.32,Math.abs(vy)*0.00055);y=surface;vy=-vy*0.62;vx*=0.82;sqf=4;sqx=1+k;sqy=1-k;}  // thrown = bouncy; its own hops land clean
     else land();}
    else if(air){var vst=Math.min(0.2,Math.abs(vy)*0.00035);sqy=Math.max(sqy,1+vst);sqx=Math.min(sqx,1-vst*0.8);}   // stretch along the motion in the air
   }
@@ -2695,7 +2696,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   if(bigR&&now>surpriseAt&&x+HW>bigR.l&&x<bigR.r&&y+HH>bigR.t&&y<bigR.b){surpriseAt=now+4500;
    try{if(typeof browFlash==="function")browFlash();if(typeof irisDilTarget!=="undefined")irisDilTarget=1.35;}catch(_){}}
   if(grabbed){var cx0=x,cy0=y;x=Math.max(WL,Math.min(WR,x));y=Math.max(CEIL,Math.min(floorY,y));
-   if(x!==cx0||y!==cy0){if(sqf===0){sqf=2;sqx=(y!==cy0)?1.16:0.86;sqy=(y!==cy0)?0.82:1.14;}}   // shoved into a wall while held: it squashes
+   if(x!==cx0||y!==cy0){if(sqf===0){sqf=2;sqx=(y!==cy0)?1.16:0.86;sqy=(y!==cy0)?0.82:1.14;}cTop=(y!==cy0&&y===CEIL);}   // shoved into a wall while held: it squashes against it
    var dsp=Math.min(16,Math.hypot(pvx,pvy));sqy=Math.max(sqy,1+dsp*0.006);sqx=Math.min(sqx,1-dsp*0.004);
    heldV+=(-heldOff*0.16)-(pvy*0.14);heldV*=0.86;heldOff=Math.max(-18,Math.min(18,heldOff+heldV));}   // it bounces on the hand like a ball on a paddle
   else{heldOff*=0.85;heldV=0;}
@@ -2706,6 +2707,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   var lean=air&&!grabbed?Math.max(-10,Math.min(10,vx*0.028)):0;   // it leans into the jump, in control, never tumbling
   var breathe=0;
   var rot=lean+(grabbed?swing:0);
+  root.style.transformOrigin="50% "+(cTop?"4%":"94%");   // deform against whichever surface it touched
   root.style.transform="translate("+x.toFixed(1)+"px,"+(y+breathe+(grabbed?heldOff:0)).toFixed(1)+"px) rotate("+rot.toFixed(1)+"deg) scale("+(depth*sqx).toFixed(3)+","+(depth*sqy).toFixed(3)+")";
   // the shadow stays on the ground it belongs to
   var airH=Math.max(0,surface-y);
