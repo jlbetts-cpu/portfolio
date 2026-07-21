@@ -2627,7 +2627,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   floorY=Math.min(floorY,heroR.h-HH-2);
   M=mob?16:40;plats=[];avoids=[];
   var ow=heroR?heroR.w:0;
-  var hb=hero.getBoundingClientRect();WL=-hb.left-HW*0.35;WR=innerWidth-hb.left-HW*0.65;CEIL=-(hb.top+window.scrollY)+2;   // it presses a third of itself into the glass before bouncing
+  var hb=hero.getBoundingClientRect();WL=-hb.left-HW*0.35;WR=innerWidth-hb.left-HW*0.65;CEIL=-(hb.top+window.scrollY)-HH*0.12;   // it presses into the glass on every side; the VISIBLE crown reaches the top, not the box
   if(ow&&Math.abs(ow-hero.clientWidth)>2)x=x/ow*hero.clientWidth;   // resizing keeps its relative spot
   if(bigR){var nHW=Math.round(Math.min(108,Math.max(66,(bigR.r-bigR.l)*0.27)));if(mob)nHW=Math.min(nHW,64);
    if(Math.abs(nHW-HW)>2){HW=nHW;HH=HW*1.2;root.style.width=HW+"px";root.style.height=HH+"px";shadow.style.width=HW+"px";shadow.style.height=(HW*0.22)+"px";}}
@@ -2695,12 +2695,18 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   var npx=(e.clientX-lastPX);
   if(npx*pvx<0&&Math.abs(npx)>6)shakeN++;   // direction flips at speed = getting shaken
   pvx=npx;pvy=(e.clientY-lastPY);lastPX=e.clientX;lastPY=e.clientY;
-  vSamp.push({t:performance.now(),x:e.clientX,y:e.clientY});if(vSamp.length>8)vSamp.shift();
+  vSamp.push({t:performance.now(),x:e.clientX,y:e.clientY});if(vSamp.length>12)vSamp.shift();
   x=e.clientX-hr.left-gpx;y=e.clientY-hr.top-gpy;
  });
  function release(e){if(!grabbed)return;grabbed=false;root.style.cursor="grab";
   var tap=(performance.now()-downT<230)&&e&&Math.hypot(e.clientX-downX,e.clientY-downY)<6;
-  var relSp=0;(function(){var nw2=performance.now();for(var q2=0;q2<vSamp.length;q2++){if(nw2-vSamp[q2].t<=95){var dtq=nw2-vSamp[q2].t;if(dtq>8)relSp=Math.hypot(lastPX-vSamp[q2].x,lastPY-vSamp[q2].y)/dtq*1000;break;}}})();
+  var _fv=(function(){ // the flick is what happened LAST: recency-weighted velocity, the way platform velocity trackers do it
+   var nw2=performance.now(),sx=0,sy=0,sw=0;
+   for(var q2=vSamp.length-1;q2>0;q2--){var a2=vSamp[q2-1],b2=vSamp[q2],age=nw2-b2.t;
+    if(age>120)break;var dtq=b2.t-a2.t;if(dtq<4)continue;
+    var w2=Math.exp(-age/50);sx+=w2*(b2.x-a2.x)/dtq*1000;sy+=w2*(b2.y-a2.y)/dtq*1000;sw+=w2;}
+   return sw>0?{vx:sx/sw,vy:sy/sw,sp:Math.hypot(sx/sw,sy/sw)}:null;})();
+  var relSp=_fv?_fv.sp:0;
   if(!tap&&window.__hmOver&&hmOverT>0.35&&relSp<250){ // placed with intent: held over the head a beat, released gently
    perched=true;dockUntil=performance.now()+650;st="idle";air=false;vx=0;vy=0;hsT=1;vSamp=[];shakeN=0;leapDelay=Infinity;
    try{gaze={x:0.05,y:-0.95};nextSaccade=performance.now()+1500;lastMove=performance.now()-9000;
@@ -2709,11 +2715,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   st="fall";air=true;surface=floorY;
   y+=heldOff;heldOff=0;   // the spring's stretch becomes real position: momentum conserved
   if(tap){y-=4;vy=-(820+Math.random()*260);vx=dir*(140+Math.random()*180);sqT=0.16;sqyP=1.19;sqxP=1/1.19;}   // bop! (lift off the ground so the pop always plays)
-  else{var vpt=null,nw=performance.now();
-   for(var q=0;q<vSamp.length;q++){if(nw-vSamp[q].t<=95){vpt=vSamp[q];break;}}
-   if(vpt&&nw-vpt.t>8){var dt2=nw-vpt.t;   // true cursor velocity in px/s
-    vx=Math.max(-2300,Math.min(2300,(lastPX-vpt.x)/dt2*1000));
-    vy=Math.max(-2100,Math.min(1500,(lastPY-vpt.y)/dt2*1000));}
+  else{if(_fv){vx=Math.max(-2500,Math.min(2500,_fv.vx));vy=Math.max(-2300,Math.min(1600,_fv.vy));}   // it flies exactly where the hand was going
    else{vx=Math.max(-1100,Math.min(1100,pvx*60));vy=Math.max(-1200,Math.min(900,pvy*60));}
    vy+=heldV*12;   // the spring adds its stored energy to the throw
    dir=vx>=0?1:-1;if(Math.hypot(vx,vy)>650&&Math.random()<0.45)startFlip();}   // a real throw often sends it somersaulting
