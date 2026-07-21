@@ -2569,7 +2569,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
  if(mk){brows=[strip(mk.BL.x,mk.BL.y,ew0*1.5,eh0*1.7),strip(mk.BR.x,mk.BR.y,ew0*1.5,eh0*1.7)];
   nose=strip(mk.N.x,mk.N.y,ew0*1.1,eh0*2.1);mouth=strip(mk.M.x,mk.M.y,ew0*1.8,eh0*1.6);
   w.style.transformOrigin=(mk.N.x*100)+"% "+(mk.N.y*100)+"%";}
- w.addEventListener("pointerdown",function(){if(w.__boop===0){w.__boop=6;try{if(typeof busyNow==="function"&&!busyNow()){setHold("smile",900);showFace("smile");}}catch(_){}}});
+ w.addEventListener("pointerdown",function(){if(w.__boop===0){w.__boop=16;try{if(typeof busyNow==="function"&&!busyNow()){setHold("smile",900);showFace("smile");}}catch(_){}}});
  sw.appendChild(w);
  var shown=false,first=true,bAt=performance.now()+3000,bf=0,brAt=performance.now()+6000,brf=0,moAt=performance.now()+9000,mof=0,snAt=performance.now()+18000,snf=0,tk2=0,gx2=0,gy2=0,sacAt=0,smAt=performance.now()+12000,smf=0,glAt=performance.now()+16000,glf=0,bpAt=performance.now()+26000,bpf=0;
  setInterval(function(){
@@ -2587,28 +2587,26 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   else{if(now>=sacAt){gx2=(Math.random()*1.4-0.7);gy2=(Math.random()*0.8-0.45);sacAt=now+700+Math.random()*1600;}nx=gx2;ny=gy2;}
   if(now>=glAt&&glf===0){glf=9;glAt=now+17000+Math.random()*16000;}      /* glances up at my head */
   if(glf>0){nx=0.95;ny=-0.25;glf--;}
-  if(now>=smAt&&smf===0){smf=9;smAt=now+14000+Math.random()*12000;}      /* a small smile of its own */
-  if(smf>0)smf--;
-  if(mouth)mouth.style.transform=(smf>0)?"translateY(-1.2px) scale(1.08,0.94)":mouth.style.transform;
   if(now>=bpAt&&bpf===0){bpf=8;bpAt=now+30000+Math.random()*25000;       /* bounces over to say hi; mine smiles back */
    try{if(typeof busyNow==="function"&&!busyNow()&&typeof showFace==="function"&&typeof setHold==="function"){setTimeout(function(){try{if(!busyNow()){setHold("smile",900);showFace("smile");}}catch(_){}},500);}}catch(_){}}
   var bx=0,by=0;if(bpf>0){var bp=bpf/8;bx=Math.sin((1-bp)*Math.PI)*16;by=-Math.abs(Math.sin((1-bp)*Math.PI*2))*8;bpf--;}
-  var bq2="";if(w.__boop>0){var bv=w.__boop/6;bq2=" scale("+(1+Math.sin(bv*Math.PI)*0.09)+","+(1-Math.sin(bv*Math.PI)*0.11)+") rotate("+(Math.sin(bv*Math.PI*3)*5)+"deg)";w.__boop--;}
+  var bq2="";if(w.__boop>0){var bv=w.__boop/16;bq2=" scale("+(1+Math.sin(bv*Math.PI)*0.08).toFixed(3)+","+(1-Math.sin(bv*Math.PI)*0.10).toFixed(3)+") rotate("+(Math.sin((1-bv)*Math.PI*5)*8*bv).toFixed(1)+"deg)";w.__boop--;}
   w.style.transform="translate("+(fx+bx).toFixed(1)+"px,"+(fy+by).toFixed(1)+"px) rotate("+(rot+nx*1.6).toFixed(2)+"deg)"+bq2;
   if(now>=bAt&&bf===0){bf=4;bAt=now+2700+Math.random()*3800;}
   if(now>=brAt&&brf===0&&brows.length){brf=6;brAt=now+8000+Math.random()*9000;}
-  if(brf>0){var lift=(brf>4||brf===1)?-1:-2;brows.forEach(function(b){b.style.transform="translateY("+lift+"px)";});brf--;}
+  if(brf>0){var lift=(brf>4||brf===1)?-2:-4;brows.forEach(function(b){b.style.transform="translateY("+lift+"px)";});brf--;}
   else brows.forEach(function(b){b.style.transform="";});
   if(now>=moAt&&mof===0&&mouth){mof=4;moAt=now+10000+Math.random()*10000;}
   if(mof>0&&mouth){mouth.style.transform=(mof%2)?"translateY(1.2px) scaleY(1.07)":"translateY(0.5px) scaleY(1.02)";mof--;}
-  else if(mouth&&smf===0)mouth.style.transform="";
+  else if(mouth)mouth.style.transform="";
   if(now>=snAt&&snf===0&&nose){snf=3;snAt=now+20000+Math.random()*22000;}
   if(snf>0&&nose){nose.style.transform="translateX("+(snf===2?1:-0.7)+"px)";snf--;}
   else if(nose)nose.style.transform="";
   eyeEls2.forEach(function(o){
    if(bf>0){var lp=(bf===4||bf===1)?-56:-6;o.lid.style.transform="translateY("+lp+"%)";}
-   else{o.lid.style.transform=(smf>0)?"translateY(-70%)":"translateY(-105%)";
-    o.e.style.transform="translate("+Math.round(nx*o.e.offsetWidth*0.3)+"px,"+Math.round(ny*o.e.offsetHeight*0.3)+"px)";}
+   else{o.lid.style.transform="translateY(-105%)";
+    if(w.__boop>0){var ph2=(16-w.__boop)*0.9+(eyeEls2.indexOf(o)?2.2:0);o.e.style.transform="translate("+Math.round(Math.cos(ph2)*o.e.offsetWidth*0.35)+"px,"+Math.round(Math.sin(ph2)*o.e.offsetHeight*0.5)+"px)";}
+    else o.e.style.transform="translate("+Math.round(nx*o.e.offsetWidth*0.3)+"px,"+Math.round(ny*o.e.offsetHeight*0.3)+"px)";}
   });
   if(bf>0)bf--;
  },125);

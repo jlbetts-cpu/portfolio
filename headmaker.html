@@ -162,14 +162,14 @@ a:focus-visible,button:focus-visible,.hmDot:focus-visible{outline:2px solid var(
    <p class="kicker">Step 4 of 4 &middot; Alive</p>
    <h2 class="stepHead">There you are.</h2>
    <p class="stepBody">Floating, blinking, watching your cursor. It will float next to my head on my homepage too. Save it, or send it to someone who will get it.</p>
-   <div class="hmRow" role="group" aria-label="Pose presets"><button class="hmBtn ghost" type="button" data-pose="">Live</button><button class="hmBtn ghost" type="button" data-pose="wink">Wink</button><button class="hmBtn ghost" type="button" data-pose="brows">Surprised</button><button class="hmBtn ghost" type="button" data-pose="side">Side-eye</button></div>
+   <div class="hmRow" role="group" aria-label="Pose presets"><button class="hmBtn ghost" type="button" data-pose="">Live</button><button class="hmBtn ghost" type="button" data-pose="brows">Surprised</button><button class="hmBtn ghost" type="button" data-pose="side">Side-eye</button></div>
    <div class="hmStage bare" id="stage4">
     <div class="hmShadow" aria-hidden="true"></div>
     <div id="hmHead"><img id="hmLive" alt="Your floating cutout head, eyes following the cursor"></div>
    </div>
    <div class="hmRow">
     <button class="hmBtn ghost" type="button" id="restart">Start over</button>
-    <button class="hmBtn ghost" type="button" data-pose="smile">Smile</button>
+    
     <button class="hmBtn" type="button" id="save">Download your head</button>
    </div>
    <p class="cap">Downloads as a transparent PNG.</p>
@@ -191,7 +191,7 @@ function show(n){steps.forEach(function(s,i){s.classList.toggle("hidden",i!==n);
 steps[0].classList.add("shown");
 try{var _sv=JSON.parse(localStorage.getItem("hmCompanion")||"null");
  if(_sv&&_sv.cut){cutURL=_sv.cut;restoredEyes=_sv.eyes;if(_sv.marks)marks=_sv.marks;
-  setTimeout(function(){buildLive();show(3);},60);}}catch(_){}
+  setTimeout(function(){try{buildLive();show(3);}catch(_){}},60);}}catch(_){}
 
 /* ---------- state ---------- */
 var photo=new Image(),photoURL=null,cutURL=null;      // the raw photo, the baked cutout
@@ -283,7 +283,7 @@ document.getElementById("next3").addEventListener("click",function(){buildLive()
 
 /* ---------- step 4: alive ---------- */
 var stage4=document.getElementById("stage4"),headEl=document.getElementById("hmHead"),liveImg=document.getElementById("hmLive");
-var boopF=0;stage4.style.cursor="pointer";stage4.addEventListener("pointerdown",function(){if(boopF===0)boopF=6;});
+var boopF=0;stage4.style.cursor="pointer";stage4.addEventListener("pointerdown",function(){if(boopF===0)boopF=16;});
 var eyeEls=[],tick=null,gx=0,gy=0,blinkAt=0,blinkFrames=0,browAt=0,browFrames=0,sniffAt=0,sniffFrames=0,smileAt=0,smiling=false;
 var pose="";document.querySelectorAll("[data-pose]").forEach(function(b){b.addEventListener("click",function(){pose=b.getAttribute("data-pose");document.querySelectorAll("[data-pose]").forEach(function(o){o.style.borderColor=o===b?"var(--c950)":"";});});});
 function eyeGeom(){var d=deriveEyes();return{w:(d[0].w+d[1].w)/2,h:(d[0].h+d[1].h)/2};}
@@ -350,12 +350,12 @@ function buildLive(){
  });
  browEls=[faceStrip(marks.BL.x,marks.BL.y,g.w*1.5,g.h*1.7,"hmBrow"),faceStrip(marks.BR.x,marks.BR.y,g.w*1.5,g.h*1.7,"hmBrow")];
  noseEl=faceStrip(marks.N.x,marks.N.y,g.w*1.1,g.h*2.1,"hmNose");
- mouthEl=faceStrip(marks.M.x,marks.M.y,g.w*1.8,g.h*1.6,"hmNose");mouthAt=performance.now()+5000+Math.random()*6000;
+ mouthEl=faceStrip(marks.M.x,marks.M.y,g.w*1.8,g.h*1.6,"hmNose");mouthEl.style.transformOrigin="50% 18%";mouthAt=performance.now()+5000+Math.random()*6000;
  if(tick)clearInterval(tick);
  blinkAt=performance.now()+2600+Math.random()*2800;smAt=performance.now()+7000;
  browAt=performance.now()+3200+Math.random()*5000;sniffAt=performance.now()+9000+Math.random()*14000;smileAt=performance.now()+8000;
  if(!reduce){tick=setInterval(liveTick,125);}
- try{var _des2=deriveEyes();localStorage.setItem("hmCompanion",JSON.stringify({cut:cutURL,eyes:eyeEls.map(function(e,i){var o=Object.assign({},_des2[i]);o.sc=e.sc;return o;}),marks:marks,t:Date.now()}));}catch(_){}
+ try{if(!cutURL||cutURL.length<100){localStorage.removeItem("hmCompanion");throw 0;}var _des2=deriveEyes();localStorage.setItem("hmCompanion",JSON.stringify({cut:cutURL,eyes:eyeEls.map(function(e,i){var o=Object.assign({},_des2[i]);o.sc=e.sc;return o;}),marks:marks,t:Date.now()}));}catch(_){}
 }
 var mx=innerWidth/2,my=innerHeight*0.4,tk=0;
 addEventListener("pointermove",function(e){mx=e.clientX;my=e.clientY;},{passive:true});
@@ -366,7 +366,7 @@ function liveTick(){
  var nx=Math.max(-1,Math.min(1,(mx-cx)/300)),ny=Math.max(-1,Math.min(1,(my-cy)/300));
  var fy=Math.sin(t*0.85)*4,fx=Math.sin(t*0.55)*2.5,rot=Math.sin(t*0.4)*0.7+nx*2.0;
  headEl.style.transformOrigin=(marks.N.x*100)+"% "+(marks.N.y*100)+"%";   // rotate about the nose: anatomical, not cardboard
- var bq="";if(boopF>0){var bpv=boopF/6;bq=" scale("+(1+Math.sin(bpv*Math.PI)*0.08).toFixed(3)+","+(1-Math.sin(bpv*Math.PI)*0.10).toFixed(3)+") rotate("+(Math.sin(bpv*Math.PI*3)*4).toFixed(1)+"deg)";boopF--;}
+ var bq="";if(boopF>0){var bpv=boopF/16;bq=" scale("+(1+Math.sin(bpv*Math.PI)*0.07).toFixed(3)+","+(1-Math.sin(bpv*Math.PI)*0.09).toFixed(3)+") rotate("+(Math.sin((1-bpv)*Math.PI*5)*7*bpv).toFixed(1)+"deg)";boopF--;}
  headEl.style.transform="translate("+fx.toFixed(1)+"px,"+fy.toFixed(1)+"px) rotate("+rot.toFixed(2)+"deg)"+bq;
  /* smile beats: if they gave a smiling photo, swap the whole face like my smile frame (overlays hide) */
  if(smileURL&&!smiling&&now>=smileAt){smiling=true;liveImg.src=smileURL;setTimeout(function(){smiling=false;liveImg.src=cutURL;},1150);smileAt=now+9000+Math.random()*8000;}
@@ -376,28 +376,24 @@ function liveTick(){
  if(smiling)return;
  /* the brows are their own: raise a strip of their photo, hold a beat, settle */
  if(now>=browAt&&browFrames===0){browFrames=6;browAt=now+6000+Math.random()*8000;}
- if(browFrames>0){var lift=(browFrames>4||browFrames===1)?-1.5:-3;browEls.forEach(function(b){b.style.transform="translateY("+lift+"px)";});browFrames--;}
+ if(browFrames>0){var lift=(browFrames>4||browFrames===1)?-2.5:-5;browEls.forEach(function(b){b.style.transform="translateY("+lift+"px)";});browFrames--;}
  else browEls.forEach(function(b){b.style.transform="";});
  /* a tiny sniff: the nose strip nudges sideways for two frames */
- var smiling2=(pose==="smile"||smf>0);
- if(now>=smAt&&smf===0&&pose===""){smf=9;smAt=now+13000+Math.random()*11000;}
- if(smf>0)smf--;
- if(smiling2&&mouthEl){mouthEl.style.transform="translateY(-1.4px) scale(1.09,0.94)";}
+ var smiling2=false;
  if(now>=mouthAt&&mouthFrames===0){mouthFrames=4;mouthAt=now+9000+Math.random()*9000;}
- if(!smiling2&&mouthFrames>0&&mouthEl){mouthEl.style.transform=(mouthFrames%2)?"translateY(1.6px) scaleY(1.08)":"translateY(0.6px) scaleY(1.03)";mouthFrames--;}
- else if(mouthEl&&!smiling2)mouthEl.style.transform="";
+ if(pose!=="brows"&&mouthFrames>0&&mouthEl){mouthEl.style.transform=(mouthFrames%2)?"translateY(1.6px) scaleY(1.08)":"translateY(0.6px) scaleY(1.03)";mouthFrames--;}
+ else if(mouthEl&&pose!=="brows")mouthEl.style.transform="";
  if(now>=sniffAt&&sniffFrames===0){sniffFrames=3;sniffAt=now+16000+Math.random()*20000;}
  if(sniffFrames>0){noseEl.style.transform="translateX("+(sniffFrames===2?1.2:-0.8)+"px)";sniffFrames--;}
  else if(noseEl)noseEl.style.transform="";
  if(pose==="side"){nx=-0.78;ny=0.06;}
- if(pose==="brows"){browEls.forEach(function(b){b.style.transform="translateY(-3px)";});}
+ if(pose==="brows"){browEls.forEach(function(b){b.style.transform="translateY(-6px)";});if(mouthEl){mouthEl.style.transform="translateY(2px) scaleY(1.6)";}}
  if(now>=blinkAt&&blinkFrames===0&&pose!=="wink"){blinkFrames=4;blinkAt=now+2600+Math.random()*3400;}
  eyeEls.forEach(function(e,ei){
-  if(pose==="wink"&&ei===0){e.lidEl.style.transform="translateY(-6%)";return;}
   if(blinkFrames>0){var lp=(blinkFrames===4||blinkFrames===1)?-56:-6;e.lidEl.style.transform="translateY("+lp+"%)";}
-  else{e.lidEl.style.transform=smiling2?"translateY(-68%)":"translateY(-105%)";
+  else{e.lidEl.style.transform="translateY(-105%)";
    var ew=e.wrap.offsetWidth,eh=e.wrap.offsetHeight;
-   var gtx=Math.round(nx*ew*0.16),gty=Math.round(ny*eh*0.22);
+   var gtx,gty;if(boopF>0){var ph=(16-boopF)*0.9+(ei?2.2:0);gtx=Math.round(Math.cos(ph)*ew*0.22);gty=Math.round(Math.sin(ph)*eh*0.34);}else{gtx=Math.round(nx*ew*0.16);gty=Math.round(ny*eh*0.22);}
    e.iris.style.transform="translate("+gtx+"px,"+gty+"px)";
    e.glint.style.transform="translate("+Math.round(gtx*0.62)+"px,"+Math.round(gty*0.62)+"px)";}
  });
