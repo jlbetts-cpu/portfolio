@@ -588,6 +588,27 @@ document.getElementById("save").addEventListener("click",function(){
  var sh=x.createRadialGradient(BAKE_W/2,BAKE_H*0.965,10,BAKE_W/2,BAKE_H*0.965,BAKE_W*0.30);
  sh.addColorStop(0,"rgba(8,8,8,.20)");sh.addColorStop(1,"rgba(8,8,8,0)");
  x.fillStyle=sh;x.save();x.translate(0,BAKE_H*0.965);x.scale(1,0.09);x.translate(0,-BAKE_H*0.965);x.beginPath();x.arc(BAKE_W/2,BAKE_H*0.965,BAKE_W*0.30,0,Math.PI*2);x.fill();x.restore();
+ function finish(){var a=document.createElement("a");a.download="my-floating-head.png";a.href=c.toDataURL("image/png");a.click();}
+ // the faithful path: photograph the LIVING head itself — the PNG can never drift from the rig again
+ try{
+  var live=document.getElementById("hmHead");
+  var cl=live.cloneNode(true);
+  cl.style.transform="none";   // no mid-boop squish in the portrait
+  [].slice.call(cl.querySelectorAll(".hmLidS")).forEach(function(n){n.style.transform="translateY(-105%)";});   // never mid-blink
+  var css="";
+  [].slice.call(document.styleSheets).forEach(function(shq){try{
+   [].slice.call(shq.cssRules).forEach(function(rr){if(rr.selectorText&&/hm(Head|Scl|Eye|Iris|Pupil|Glint|LidW|LidS|Brow|Nose|Smize|Mouth)/.test(rr.selectorText))css+=rr.cssText+"\n";});}catch(_){}});
+  css+="#cap{position:relative;width:440px;height:528px;overflow:hidden}";
+  var defs="";["inkEye","inkSm","inkBig"].forEach(function(idf){var ff=document.getElementById(idf);if(ff)defs+=ff.outerHTML;});
+  var svg='<svg xmlns="http://www.w3.org/2000/svg" width="'+BAKE_W+'" height="'+BAKE_H+'" viewBox="0 0 440 528"><defs>'+defs+'</defs>'+
+   '<foreignObject width="440" height="528"><div xmlns="http://www.w3.org/1999/xhtml" id="cap"><style>'+css+'</style>'+cl.outerHTML+'</div></foreignObject></svg>';
+  var im=new Image();
+  im.onload=function(){try{x.drawImage(im,0,0,BAKE_W,BAKE_H);finish();}catch(_e2){legacy();}};
+  im.onerror=function(){legacy();};
+  im.src="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(svg);
+  return;
+ }catch(_e){legacy();}
+ function legacy(){ // hand-painted fallback for engines that cannot rasterize the live DOM
  x.drawImage(bakedCanvas,0,0);
  var W=BAKE_W,H=BAKE_H;
  // a natural glance for the picture, never a dead stare; poses override
@@ -647,7 +668,8 @@ document.getElementById("save").addEventListener("click",function(){
   x.fillStyle=fz;x.fillRect(ex-ew*0.7,ey-eh*0.9,ew*1.4,eh*1.8);
   x.restore();
  });
- var a=document.createElement("a");a.download="my-floating-head.png";a.href=c.toDataURL("image/png");a.click();
+ finish();
+ }
 });
 /* returning visitors get their head back — this runs last, after all state exists
    (it used to run before the var declarations executed, which nulled the restored image: the glitch) */
