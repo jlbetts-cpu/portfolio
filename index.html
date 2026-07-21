@@ -274,9 +274,7 @@ body.partyLock{overflow:hidden}
 body.hmBattle .moodMenu .moodItem{opacity:.38;pointer-events:none}
 @media(pointer:coarse){.mhX{width:26px;height:26px;font-size:15px;top:-9px;right:-9px}.mhItem img{width:44px;height:52px}.hmPitX{width:28px;height:28px;font-size:16px;top:-11px;right:-11px}}
 body.hmSoccer .moodMenu .moodItem{opacity:.38;pointer-events:none}
-.hmBall{position:absolute;left:0;top:0;width:44px;height:44px;z-index:5;opacity:0;pointer-events:none;transition:opacity .3s;background:radial-gradient(circle at 38% 32%,#fff 0%,#f2f2f2 62%,#dcdcdc 100%);border-radius:50%;box-shadow:inset -3px -4px 7px rgba(8,8,8,.22),0 3px 7px rgba(8,8,8,.22)}
-.hmBall::before{content:"";position:absolute;left:50%;top:50%;width:15px;height:15px;transform:translate(-50%,-50%);background:#181818;clip-path:polygon(50% 0,100% 38%,82% 100%,18% 100%,0 38%)}
-.hmBall::after{content:"";position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle at 76% 74%,#1c1c1c 0 5px,transparent 6px),radial-gradient(circle at 22% 72%,#1c1c1c 0 5px,transparent 6px),radial-gradient(circle at 74% 22%,#1c1c1c 0 4px,transparent 5px)}
+.hmBall{position:absolute;left:0;top:0;width:48px;height:48px;z-index:5;opacity:0;pointer-events:none;transition:opacity .3s;background:url(images/soccerball.svg) center/contain no-repeat;filter:drop-shadow(0 3px 6px rgba(8,8,8,.28))}
 .hmGoal{position:absolute;left:0;top:0;width:30px;height:150px;z-index:2;opacity:0;pointer-events:none;transition:opacity .3s,box-shadow .3s;border-radius:6px;background:repeating-linear-gradient(90deg,rgba(8,8,8,.05) 0 1px,transparent 1px 7px),repeating-linear-gradient(0deg,rgba(8,8,8,.05) 0 1px,transparent 1px 7px)}
 .hmGoalR{border:2px solid rgba(224,90,78,.65);border-left:0;border-radius:0 6px 6px 0}
 .hmGoalB{border:2px solid rgba(90,160,216,.65);border-right:0;border-radius:6px 0 0 6px}
@@ -287,6 +285,10 @@ body.hmSoccer .moodMenu .moodItem{opacity:.38;pointer-events:none}
 .hmScore .sTr i{background:#e05a4e}.hmScore .sTb i{background:#5aa0d8}
 .hmScore em{color:var(--c400);font-style:normal}
 .hmScore small{margin-left:6px;padding-left:11px;border-left:1px solid var(--c100);font-weight:500;font-size:var(--fs-label);color:var(--c500)}
+.hmCount{position:absolute;left:50%;top:38%;transform:translate(-50%,-50%);z-index:48;font-family:var(--sans);font-weight:600;font-size:clamp(64px,12vw,140px);line-height:1;color:var(--c950);opacity:0;pointer-events:none;filter:url(#inkBig)}
+.hmCount.hmCountPulse{animation:hmCountP .78s cubic-bezier(.2,.8,.2,1) forwards}
+@keyframes hmCountP{0%{opacity:0;transform:translate(-50%,-50%) scale(1.35)}18%{opacity:1}70%{opacity:1;transform:translate(-50%,-50%) scale(1)}100%{opacity:0;transform:translate(-50%,-50%) scale(.86)}}
+@media(prefers-reduced-motion:reduce){.hmCount.hmCountPulse{animation:none;opacity:1}}
 .hmHp{position:absolute;left:0;top:0;width:44px;height:4px;border-radius:2px;background:rgba(8,8,8,.13);z-index:4;pointer-events:none;opacity:0;transition:opacity .3s cubic-bezier(.2,.8,.2,1)}
 .hmHp i{display:block;height:100%;border-radius:2px;background:var(--c950);transition:width .18s cubic-bezier(.2,.8,.2,1),background-color .3s}
 .camDot::before{content:"";position:absolute;inset:0;background:center/contain no-repeat;background-image:url(images/cam.webp);filter:url(#inkSm);animation:camSnap 2.8s steps(1,end) infinite;transform-origin:50% 70%}
@@ -2972,7 +2974,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
     perched=false;leapDelay=Infinity;me.elim=false;me.inB=true;bar.style.opacity="1";root.style.pointerEvents="";
     try{document.body.classList.add("hmBattle");window.__hmBattleOn=true;}catch(_){}}}
    var rs9=window.__hmRespawn;   // the bell again: everyone back
-   if(rs9&&rs9!==respawnSeen){respawnSeen=rs9;battleOn=false;me.inB=false;bar.style.opacity="0";
+   if(rs9&&rs9!==respawnSeen){respawnSeen=rs9;battleOn=false;me.inB=false;bar.style.opacity="0";crownEl.style.opacity="0";
     try{document.body.classList.remove("hmBattle");window.__hmBattleOn=false;}catch(_){}
     if(elim){elim=false;elimP=0;hp=100;me.elim=false;root.style.pointerEvents="";
      shown=true;root.style.opacity="1";root.style.filter="blur(0)";shadow.style.opacity="1";root.style.display="";shadow.style.display="";
@@ -2995,16 +2997,17 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
     if(S9.winner&&S9.winner===team&&!soccerWon){soccerWon=true;crownEl.style.opacity="1";   // champions crowned, and they celebrate
      if(!grabbed){dir=((heroR.w/2)>(x+HW/2))?1:-1;surface=floorY;st="fall";air=true;vy=-(920+Math.random()*120);vx=dir*(110+Math.random()*110);sqT=0.13;sqyP=1.11;sqxP=1/1.11;startFlip();brf=6;mof=4;confettiBurst(x+HW/2);
       try{if(!busyNow()){setHold("smile",1600);showFace("smile");}}catch(_){}}}
-    if(S9.phase==="play"&&!grabbed&&!air&&st==="idle"&&S9.ball&&now>=decideAt){decideAt=now+460+Math.random()*420;   // chase the ball
-     var bxT=S9.ball.x-HW/2,ddb9=bxT-x;dir=ddb9>0?1:-1;gzx=dir*0.85;gzy=0.15;sacAt=now+600;
-     surface=floorY;st="fall";air=true;var vyb9=440+Math.random()*220,ttb9=2*vyb9/G;
-     vy=-vyb9;vx=dir*Math.min(680,Math.max(150,Math.abs(ddb9)/ttb9));sqT=0.12;sqyP=1.09;sqxP=1/1.09;}}}catch(_){}
+    if(S9.phase==="play"&&!grabbed&&!air&&st==="idle"&&S9.ball&&now>=decideAt){decideAt=now+300+Math.random()*300;   // chase the ball, and leap for the high ones
+     var bxT=S9.ball.x-HW/2,ddb9=bxT-x;dir=ddb9>0?1:-1;gzx=dir*0.85;gzy=(S9.ball.y<floorY-160?-0.5:0.15);sacAt=now+600;
+     surface=floorY;st="fall";air=true;
+     var ballUp=Math.max(0,floorY-S9.ball.y);var vyb9=430+Math.min(560,ballUp*0.7)+Math.random()*120,ttb9=2*vyb9/G;
+     vy=-vyb9;vx=dir*Math.min(760,Math.max(140,Math.abs(ddb9)/ttb9));sqT=0.12;sqyP=1.1;sqxP=1/1.1;}}}catch(_){}
   if(battleOn&&!elim&&!celebrated){var alive9=0,inb9=0;
    for(var a9=0;a9<peers.length;a9++){if(peers[a9].inB){inb9++;if(!peers[a9].elim)alive9++;}}
    if(inb9>=2&&alive9===1){celebrated=true;   // last head standing: the victory lap
     dir=((heroR.w/2)>(x+HW/2))?1:-1;surface=floorY;st="fall";air=true;
     vy=-(940+Math.random()*120);vx=dir*(120+Math.random()*120);sqT=0.13;sqyP=1.11;sqxP=1/1.11;startFlip();
-    brf=6;mof=4;confettiBurst(x+HW/2);
+    brf=6;mof=4;confettiBurst(x+HW/2);crownEl.style.opacity="1";
     try{if(typeof busyNow==="function"&&!busyNow()&&typeof setHold==="function"){setHold("smile",1600);showFace("smile");}}catch(_){}
     setTimeout(function(){window.__hmRespawn=performance.now();},4200);}}
   if(battleOn&&!elim&&bigR){try{   // the spectator: his gaze follows the centre of the fight
@@ -3196,7 +3199,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   if(matchMedia("(prefers-reduced-motion:reduce)").matches)return;
   var S={on:false,seed:0,kickSeed:0,teams:{},target:5,red:0,blue:0,ball:{x:0,y:0},phase:"idle",winner:0};
   window.__hmSoccer=S;
-  var ball,goalL,goalR,board,sR,sB,W=0,H=0,groundY=0,BR=22;
+  var ball,goalL,goalR,board,sR,sB,countEl,W=0,H=0,groundY=0,BR=24;
   var bx=0,by=0,bvx=0,bvy=0,kickCd={},running=false,last=performance.now();
   function geo(){var r=hero.getBoundingClientRect();W=r.width;H=r.height;
    var st=document.getElementById("stage");if(st){var sr=st.getBoundingClientRect();groundY=sr.bottom-r.top-8;}else groundY=H-40;
@@ -3207,15 +3210,22 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    goalR=document.createElement("div");goalR.className="hmGoal hmGoalB";hero.appendChild(goalR);
    board=document.createElement("div");board.className="hmScore";
    board.innerHTML='<span class="sTeam sTr"><i></i><b class="sR">0</b></span><em>&ndash;</em><span class="sTeam sTb"><b class="sB">0</b><i></i></span><small>First to '+S.target+'</small>';
-   hero.appendChild(board);sR=board.querySelector(".sR");sB=board.querySelector(".sB");}
+   hero.appendChild(board);sR=board.querySelector(".sR");sB=board.querySelector(".sB");
+   countEl=document.createElement("div");countEl.className="hmCount";hero.appendChild(countEl);}
   function layout(){geo();
    goalL.style.transform="translate(0px,"+(groundY-150)+"px)";
    goalR.style.transform="translate("+(W-30)+"px,"+(groundY-150)+"px)";}
   function teams(){var idx=0;S.teams={};peers.forEach(function(p){S.teams[p.slot]=(idx%2)?2:1;idx++;});}
   function board2(){if(sR)sR.textContent=S.red;if(sB)sB.textContent=S.blue;}
   function refFlash(){try{if(typeof busyNow==="function"&&!busyNow()&&typeof browFlash==="function")browFlash();}catch(_){}}
-  function kickoff(){bx=W/2;by=groundY-230;bvx=(Math.random()*120-60);bvy=0;S.kickSeed=(S.kickSeed||0)+1;S.phase="kickoff";
-   setTimeout(function(){if(S.on)S.phase="play";},1100);}
+  function showCount(t){if(!countEl)return;countEl.textContent=t;countEl.classList.remove("hmCountPulse");void countEl.offsetWidth;countEl.classList.add("hmCountPulse");}
+  function kickoff(){S.kickSeed=(S.kickSeed||0)+1;   // everyone to their own half
+   bx=W/2;by=70;bvx=0;bvy=0;S.phase="count";
+   var n=3;showCount(n);
+   (function tick(){if(!S.on)return;
+    if(n>1){n--;setTimeout(function(){showCount(n);tick();},800);}
+    else{setTimeout(function(){if(!S.on)return;showCount("GO");
+     setTimeout(function(){if(!S.on)return;if(countEl)countEl.textContent="";bvy=30;S.phase="play";},560);},800);}})();}
   function start(){if(S.on)return;geo();if(!ball)dom();layout();teams();
    S.on=true;S.red=0;S.blue=0;S.winner=0;S.seed=(S.seed||0)+1;board2();
    ball.style.opacity="1";goalL.style.opacity="1";goalR.style.opacity="1";board.style.opacity="1";
@@ -3226,31 +3236,36 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    var g=team===1?goalR:goalL;g.classList.add("hmGoalHit");setTimeout(function(){g.classList.remove("hmGoalHit");},650);
    try{if(typeof busyNow==="function"&&!busyNow()){setHold("smile",900);showFace("smile");}}catch(_){}
    if((team===1&&S.red>=S.target)||(team===2&&S.blue>=S.target)){win(team);return;}
-   S.phase="reset";setTimeout(function(){if(S.on)kickoff();},950);}
+   S.phase="reset";bvx=0;bvy=0;setTimeout(function(){if(S.on)kickoff();},900);}
   function win(team){S.winner=team;S.phase="win";board2();
    try{if(typeof busyNow==="function"&&!busyNow()){setHold("smile",2200);showFace("smile");refFlash();}}catch(_){}
    setTimeout(finish,4800);}
   function finish(){S.on=false;S.phase="idle";S.winner=0;
    if(ball){ball.style.opacity="0";goalL.style.opacity="0";goalR.style.opacity="0";board.style.opacity="0";}
-   document.body.classList.remove("hmSoccer");}
+   if(countEl)countEl.textContent="";document.body.classList.remove("hmSoccer");}
+  var spin=0;
   function loop(now){if(!S.on){running=false;return;}requestAnimationFrame(loop);
    var dt=Math.min(0.05,Math.max(0.006,(now-last)/1000));last=now;geo();
-   if(S.phase==="play"||S.phase==="kickoff"){
-    bvy+=2600*dt;bx+=bvx*dt;by+=bvy*dt;
-    if(by>groundY){by=groundY;if(Math.abs(bvy)>60)bvy=-bvy*0.55;else bvy=0;bvx*=0.9;}
-    if(by<8){by=8;bvy=Math.abs(bvy)*0.5;}
+   if(S.phase==="play"){
+    bvy+=2400*dt;bvx*=Math.pow(0.35,dt);   // gentle air drag, so a big hit still sails far
+    bx+=bvx*dt;by+=bvy*dt;
+    if(by>groundY){by=groundY;if(Math.abs(bvy)>40)bvy=-bvy*0.86;else bvy=0;bvx*=0.985;}   // e=0.86: a lively bounce that keeps its energy
+    if(by<8){by=8;bvy=Math.abs(bvy)*0.86;}   // it can ricochet off the ceiling, air-hockey style
     var inG=by>groundY-150;
-    if(bx<BR){if(inG&&S.phase==="play")return goalIn(2);bx=BR;bvx=Math.abs(bvx)*0.6;}
-    if(bx>W-BR){if(inG&&S.phase==="play")return goalIn(1);bx=W-BR;bvx=-Math.abs(bvx)*0.6;}
-    if(S.phase==="play")for(var pi=0;pi<peers.length;pi++){var p=peers[pi];if(p.elim)continue;
-     var hx=p.x+p.HW/2,hy=p.y+p.HH*0.62,dx=bx-hx,dy=by-hy,d=Math.hypot(dx,dy),rr=p.HW*0.5+BR;
-     if(d<rr&&d>0.1){var kc=kickCd[p.slot]||0;if(now>kc){kickCd[p.slot]=now+90;
+    if(bx<BR){if(inG&&S.phase==="play")return goalIn(2);bx=BR;bvx=Math.abs(bvx)*0.9;bvy-=40;}   // walls barely steal speed, and add a little lift
+    if(bx>W-BR){if(inG&&S.phase==="play")return goalIn(1);bx=W-BR;bvx=-Math.abs(bvx)*0.9;bvy-=40;}
+    for(var pi=0;pi<peers.length;pi++){var p=peers[pi];if(p.elim)continue;
+     var hx=p.x+p.HW/2,hy=p.y+p.HH*0.55,dx=bx-hx,dy=by-hy,d=Math.hypot(dx,dy),rr=p.HW*0.5+BR;
+     if(d<rr&&d>0.1){var kc=kickCd[p.slot]||0;if(now>kc){kickCd[p.slot]=now+80;
       var nx=dx/d,ny=dy/d,hv=Math.hypot(p.vx,p.vy);
-      bvx+=nx*(190+hv*0.4)+p.vx*0.5;bvy+=ny*(120+hv*0.3)-150;refFlash();}}}
-    bvx=Math.max(-1600,Math.min(1600,bvx));bvy=Math.max(-1300,Math.min(950,bvy));
+      bvx+=nx*(300+hv*0.55)+p.vx*0.8;   // a real strike: momentum transfers hard
+      bvy+=ny*(220+hv*0.4)-(p.vy<-40?260:180);   // headers pop it up; a rising head launches it higher
+      refFlash();}}}
+    bvx=Math.max(-2200,Math.min(2200,bvx));bvy=Math.max(-1900,Math.min(1200,bvy));
+    spin+=bvx*dt*1.6;
    }
    S.ball.x=bx;S.ball.y=by;
-   if(ball)ball.style.transform="translate("+(bx-BR).toFixed(1)+"px,"+(by-BR).toFixed(1)+"px) rotate("+(bx*1.1).toFixed(0)+"deg)";}
+   if(ball)ball.style.transform="translate("+(bx-BR).toFixed(1)+"px,"+(by-BR).toFixed(1)+"px) rotate("+spin.toFixed(0)+"deg)";}
  })();
 })();
 </script>
