@@ -2667,6 +2667,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
  function spawnCompanion(data,slot){
  var reduce=matchMedia("(prefers-reduced-motion:reduce)").matches;
  var filler=!!(data&&data.__filler);   // the mid-game stand-in (mini-Jayden): spawns already active, no intro
+ var smileT=0,smiling=false;   // only the mini-Jayden has a second face to switch to (his real smile)
  var hero=document.querySelector(".hero");if(!hero)return;
  if(getComputedStyle(hero).position==="static")hero.style.position="relative";
  var mob=innerWidth<=880;
@@ -2780,6 +2781,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   var hb=hero.getBoundingClientRect();WL=-hb.left-HW*0.35;WR=innerWidth-hb.left-HW*0.65;CEIL=-(hb.top+window.scrollY)-HH*0.12;   // it presses into the glass on every side; the VISIBLE crown reaches the top, not the box
   if(ow&&Math.abs(ow-hero.clientWidth)>2)x=x/ow*hero.clientWidth;   // resizing keeps its relative spot
   if(bigR){var nHW=Math.round(Math.min(108,Math.max(66,(bigR.r-bigR.l)*0.27)));if(mob)nHW=Math.min(nHW,64);
+   if(filler)nHW=Math.round(nHW*1.5);   // the mini-Jayden is the special one: noticeably bigger than the little heads
    if(Math.abs(nHW-HW)>2){HW=nHW;HH=HW*1.2;root.style.width=HW+"px";root.style.height=HH+"px";shadow.style.width=HW+"px";shadow.style.height=(HW*0.22)+"px";}}
   if(x>WR)x=WR;if(x<WL)x=WL;if(y>floorY)y=floorY;   // stay intact when the screen shrinks
  }
@@ -3050,9 +3052,9 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
      if(!grabbed){var dxk=tx9-x;dir=dxk>0?1:-1;surface=floorY;st="fall";air=true;
       var vyk=500+Math.random()*150,ttk=2*vyk/G;vy=-vyk;vx=dir*Math.max(-820,Math.min(820,dxk/ttk));sqT=0.12;sqyP=1.1;sqxP=1/1.1;gzx=dir*0.6;sacAt=now+500;}}
     if(S9.goalSeed&&S9.goalSeed!==goalSeen){goalSeen=S9.goalSeed;   // GOAL: just a natural little reaction, no scripted dance
-     if(S9.goalTeam===team&&!grabbed&&!perched){brf=6;mof=4;
+     if(S9.goalTeam===team&&!grabbed&&!perched){brf=6;mof=4;if(filler)smileT=1.7;   // the mini-Jayden grins at a goal
       try{if(typeof busyNow==="function"&&!busyNow()){setHold("smile",1200);showFace("smile");}}catch(_){}}}
-    if(S9.winner&&S9.winner===team&&!soccerWon){soccerWon=true;crownEl.style.opacity="1";   // champions crowned, and they leap (the ONE confetti canvas is the controller's)
+    if(S9.winner&&S9.winner===team&&!soccerWon){soccerWon=true;crownEl.style.opacity="1";if(filler)smileT=3.2;   // champions crowned, and they leap (the ONE confetti canvas is the controller's)
      if(!grabbed){dir=((heroR.w/2)>(x+HW/2))?1:-1;surface=floorY;st="fall";air=true;vy=-(920+Math.random()*120);vx=dir*(110+Math.random()*110);sqT=0.13;sqyP=1.11;sqxP=1/1.11;startFlip();brf=6;mof=4;
       try{if(!busyNow()){setHold("smile",1600);showFace("smile");}}catch(_){}}}
     if(S9.phase==="play"&&!grabbed&&!air&&st==="idle"&&S9.ball&&now>=decideAt){decideAt=now+240+Math.random()*220;
@@ -3077,7 +3079,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
      else{gzx=(ballX>myX)?0.6:-0.6;gzy=0.1;sacAt=now+700;}}}}catch(_){}
   if(battleOn&&!elim&&!celebrated){var alive9=0,inb9=0;
    for(var a9=0;a9<peers.length;a9++){if(peers[a9].inB){inb9++;if(!peers[a9].elim)alive9++;}}
-   if(inb9>=2&&alive9===1){celebrated=true;   // last head standing: raise the podium; everyone else gathers to watch
+   if(inb9>=2&&alive9===1){celebrated=true;if(filler)smileT=3.2;   // last head standing: raise the podium; everyone else gathers to watch
     var top9=[me];for(var z9=battleOut.length-1;z9>=0&&top9.length<3;z9--)top9.push(battleOut[z9]);   // 1st = me, then the last two knocked out
     var spots9=showPodium(top9.length,floorY+HH*FOOT);   // the real floor line (heads rest with feet at floorY+HH*FOOT)
     top9.forEach(function(pm,ri){pm.podiumRank=ri+1;pm.spectate=0;var sp=spots9[ri+1];if(sp){pm.podX=sp.cx;pm.podTop=sp.top;}});
@@ -3108,6 +3110,11 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   if(elim&&elimP<1){elimP=Math.min(1,elimP+DT*2.4);   // eliminated: a quick shrink into nothing
    if(elimP>=1){root.style.display="none";shadow.style.display="none";}}
   if(hurtT>0){hurtT-=DT;hurtEl.style.opacity=(Math.max(0,hurtT)/0.2*0.62).toFixed(2);}
+  if(filler&&me.__smileCut){var wantSmile=smileT>0;   // his grin: swap to his real SMILE face and hide every neutral overlay so his whole smiling face shows through
+   if(wantSmile!==smiling){smiling=wantSmile;im.src=wantSmile?me.__smileCut:data.cut;var ov=wantSmile?"0":"";
+    if(mouth)mouth.style.opacity=ov;if(nose)nose.style.opacity=ov;
+    brows.forEach(function(b){b.style.opacity=ov;});eyeEls3.forEach(function(e){if(e.box)e.box.style.opacity=ov;});}
+   if(smileT>0)smileT-=DT;}
   if(battleOn||bar.style.opacity==="1"){bar.style.transform="translate("+(x+HW/2-22).toFixed(0)+"px,"+(y-12).toFixed(0)+"px)";
    barFill.style.width=hp+"%";barFill.style.background=hp<35?"#b3402e":"";bar.style.display=(elim||me.podiumRank||me.spectate)?"none":"";}   // no health bars on the podium or in the crowd
   if(moodB&&!grabbed&&!perched&&shown&&now>=audAt){audAt=now+900+Math.random()*1400;   // showtime: gather in, watch, bounce along
@@ -3233,10 +3240,12 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    +(flipA?" translate(0px,"+(-c2).toFixed(1)+"px) rotate("+flipA.toFixed(1)+"deg) translate(0px,"+c2.toFixed(1)+"px)":"")
    +" rotate("+surfRot.toFixed(1)+"deg) scale("+(depth*hs*sqx*(1-0.6*elimP)).toFixed(3)+","+(depth*hs*sqy*(1-0.6*elimP)).toFixed(3)+")";
   if(elimP>0&&elimP<1){root.style.opacity=(1-elimP).toFixed(2);shadow.style.opacity=(0.4*(1-elimP)).toFixed(2);}
-  // the shadow stays on the ground it belongs to
-  var airH=Math.max(0,surface-y);
+  // the shadow falls on whatever is DIRECTLY below the head right now -- a platform if it's over one, else the floor -- so it never snaps when leaving a slab
+  var feetY=y+HH*FOOT,shG=floorY+HH*FOOT,cxs=x+HW/2;
+  if(battleOn&&battlePlats.length){for(var si=0;si<battlePlats.length;si++){var SP=battlePlats[si];if(cxs>SP.l&&cxs<SP.r&&SP.t>=feetY-3&&SP.t<shG)shG=SP.t;}}
+  var airH=Math.max(0,shG-feetY);
   var shScale=Math.max(0.32,depth*(1-airH/(heroR.h*0.6)));
-  shadow.style.transform="translate("+(x+HW/2-HW/2*shScale+HW*0.06).toFixed(1)+"px,"+(surface+HH*FOOT-2).toFixed(1)+"px) scale("+shScale.toFixed(3)+",1)";
+  shadow.style.transform="translate("+(x+HW/2-HW/2*shScale+HW*0.06).toFixed(1)+"px,"+(shG-2).toFixed(1)+"px) scale("+shScale.toFixed(3)+",1)";
   shadow.style.opacity=(shown&&!perched)?String(airH<4?0.36:Math.max(0.1,0.3-airH/800)):"0";
   if(crowdT>0.65&&!air&&!grabbed&&!perched){crowdT=0;   // squeezed too long: it hops out of the scrum
    air=true;st="fall";surface=floorY;dir=Math.random()<0.5?-1:1;
@@ -3540,7 +3549,9 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   var data={cut:fillerCut,__filler:true,
    eyes:[{x:0.400,y:0.431,w:0.100,h:0.040,ang:0,sc:"rgb(236,234,229)",ic:[46,35,28]},{x:0.603,y:0.439,w:0.100,h:0.040,ang:0,sc:"rgb(236,234,229)",ic:[46,35,28]}],
    marks:{BL:{x:0.375,y:0.392},BR:{x:0.625,y:0.398},M:{x:0.500,y:0.632},N:{x:0.500,y:0.520}}};   // brows just above the eyes, nose tip, mouth on the lips -- matched to his real face
-  spawnCompanion(data,FSLOT);var m=peers[peers.length-1];if(m)m.__filler=true;fillerActive=true;};
+  spawnCompanion(data,FSLOT);var m=peers[peers.length-1];if(m)m.__filler=true;fillerActive=true;
+  // he has more to work with than the little heads: bake his SMILE too, so the mini-Jayden grins when he scores or wins
+  try{var si=new Image();si.onload=function(){try{var sc=document.createElement("canvas");sc.width=W;sc.height=H;sc.getContext("2d").drawImage(si,0,0,W,W);var scut=sc.toDataURL("image/webp",0.92);if(scut.indexOf("data:image/webp")!==0)scut=sc.toDataURL("image/png");if(m)m.__smileCut=scut;}catch(_){}};si.src="images/smile.webp";}catch(_){}};
  window.__hmFillerRemove=function(){if(!fillerActive)return;try{if(window.__hmKill&&fillerCut){window.__hmKill(fillerCut);var L=window.__hmLive||[];for(var i=L.length-1;i>=0;i--){if(L[i].cut===fillerCut)L.splice(i,1);}}}catch(_){}fillerActive=false;fillerCut=null;};   // also drop the dead __hmLive entry so it can't pile up across games
  window.__hmRealHeads=function(){var n=0;for(var i=0;i<peers.length;i++){if(!peers[i].__filler)n++;}return n;};
  setInterval(function(){if(fillerActive&&!document.body.classList.contains("hmSoccer")&&!document.body.classList.contains("hmBattle"))window.__hmFillerRemove();},400);   // the stand-in leaves when the game does
