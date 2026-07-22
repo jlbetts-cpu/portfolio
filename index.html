@@ -269,7 +269,7 @@ body.partyLock{overflow:hidden}
 .moodMenu .moodItem[hidden]{display:none}
 .gIco{width:18px;height:18px;flex:0 0 18px;display:block;color:var(--c700);transition:color .1s ease-out}
 .moodItem:hover .gIco{color:var(--c950)}
-#endGame{color:var(--c700)}#endGame:hover{color:var(--c950)}
+#endGame{color:#b3402e}#endGame .gIco{color:#b3402e}#endGame:hover{color:#8f3323}#endGame:hover .gIco{color:#8f3323}
 .battleBadge{display:none;position:absolute;left:50%;top:14px;transform:translateX(-50%);z-index:47;align-items:center;gap:8px;padding:8px 14px;border:1px solid var(--c100);border-radius:999px;background:var(--c50);font-family:var(--sans);font-size:var(--fs-label);font-weight:600;color:var(--c700);filter:url(#inkSm);pointer-events:none}
 .battleBadge i{width:7px;height:7px;border-radius:50%;background:#b3402e;animation:bbPulse 1.1s steps(2,end) infinite}
 @keyframes bbPulse{0%,100%{opacity:1}50%{opacity:.35}}
@@ -2587,9 +2587,9 @@ requestAnimationFrame(function(){requestAnimationFrame(startIntro);});
  function gameOn(){return document.body.classList.contains("hmBattle")||document.body.classList.contains("hmSoccer");}
  function battleGate(){var n=gameCount(),on=gameOn();
   ["battleGo","soccerGo"].forEach(function(id){var bi=document.getElementById(id);if(!bi)return;
-   var dis=on||n<2;bi.style.opacity=dis?"0.38":"";bi.style.pointerEvents=dis?"none":"";bi.setAttribute("aria-disabled",dis?"true":"false");});
-  var eg=document.getElementById("endGame");if(eg)eg.style.display=on?"flex":"none";
-  var gs=document.querySelector(".gameSep");if(gs)gs.style.display="";}
+   if(on){bi.style.display="none";}   // a game is running: only End game belongs here
+   else{bi.style.display="flex";var few=n<2;bi.style.opacity=few?"0.38":"";bi.style.pointerEvents=few?"none":"";bi.setAttribute("aria-disabled",few?"true":"false");}});
+  var eg=document.getElementById("endGame");if(eg)eg.style.display=on?"flex":"none";}
  battleGate();setInterval(battleGate,400);
  function closeMenuBar(){var mb=document.getElementById("moodbar");if(mb)mb.classList.remove("open");var mbt=document.getElementById("moodBtn");if(mbt)mbt.setAttribute("aria-expanded","false");}
  var bg=document.getElementById("battleGo");
