@@ -3127,7 +3127,9 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    if(elimP>=1){root.style.display="none";shadow.style.display="none";}}
   if(hurtT>0){hurtT-=DT;hurtEl.style.opacity=(Math.max(0,hurtT)/0.2*0.62).toFixed(2);}
   if(mjClone&&mjBigFace){   // MIRROR the live big head onto the clone: same expression, same blink, same gaze, every frame -- for free
-   var _cff=mjClone.querySelector(".face");if(_cff&&_cff.getAttribute("src")!==mjBigFace.getAttribute("src"))_cff.setAttribute("src",mjBigFace.getAttribute("src"));
+   var _bsrc=mjBigFace.getAttribute("src")||"";
+   if(/rest/.test(_bsrc))_bsrc=_bsrc.replace("rest","neutral");   // a FIGHTER never looks sleepy: swap his idle 'rest' face (closed sleepy eyes) for the ALERT neutral one, keeping blinks (rest_closed -> neutral_closed)
+   var _cff=mjClone.querySelector(".face");if(_cff&&_cff.getAttribute("src")!==_bsrc)_cff.setAttribute("src",_bsrc);
    var _bE=document.querySelectorAll("#stage > .eye"),_cE=mjClone.querySelectorAll(".eye");
    for(var _mi=0;_mi<_cE.length&&_mi<_bE.length;_mi++){
     _cE[_mi].classList.toggle("eclosed",_bE[_mi].classList.contains("eclosed"));   // mirror the blink
