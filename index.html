@@ -3353,23 +3353,25 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    if(S.phase==="play"){
     bvy+=2400*dt;bvx*=Math.pow(0.35,dt);   // gentle air drag, so a big hit still sails far
     bx+=bvx*dt;by+=bvy*dt;
-    if(by>groundY){by=groundY;if(Math.abs(bvy)>40){var kg=Math.min(0.26,Math.abs(bvy)*0.00028);bsyP=1-kg;bsxP=1/(1-kg);bsT=0.14;bvy=-bvy*0.86;}else bvy=0;bvx*=0.985;}   // squash flat on the bounce, e=0.86
+    if(by>groundY){by=groundY;if(Math.abs(bvy)>40){var kg=Math.min(0.12,Math.abs(bvy)*0.00013);bsyP=1-kg;bsxP=1/(1-kg);bsT=0.12;bvy=-bvy*0.86;}else bvy=0;bvx*=0.985;}   // squash flat on the bounce, e=0.86
     if(by>=groundY-2&&Math.abs(bvy)<90)bvx*=Math.pow(0.5,dt);   // rolling resistance once it is down on the pitch
-    if(by<8){by=8;if(Math.abs(bvy)>120){var kc0=Math.min(0.22,Math.abs(bvy)*0.00024);bsyP=1-kc0;bsxP=1/(1-kc0);bsT=0.13;}bvy=Math.abs(bvy)*0.86;}   // ricochet off the ceiling
+    if(by<8){by=8;if(Math.abs(bvy)>120){var kc0=Math.min(0.1,Math.abs(bvy)*0.00012);bsyP=1-kc0;bsxP=1/(1-kc0);bsT=0.11;}bvy=Math.abs(bvy)*0.86;}   // ricochet off the ceiling
     var inG=by>groundY-150;
-    var gt=groundY-150;   // the crossbar height (top of the goal frame)
-    if((bx+BR>XL&&bx-BR<XL+42)||(bx+BR>XR-42&&bx-BR<XR)){   // over a goal's footprint
-     if(bvy>0&&by+BR>=gt-2&&by-BR<gt&&by<gt){by=gt-BR-1;bvy=-Math.abs(bvy)*0.68;bvx*=0.92;   // dropped onto the crossbar -> it bounces off the top
-      var kc1=Math.min(0.22,Math.abs(bvy)*0.0003);bsyP=1-kc1;bsxP=1/(1-kc1);bsT=0.13;}}
-    if(bx<XL+BR){if(inG)return netCatch(2);bx=XL+BR;if(Math.abs(bvx)>120){var kw=Math.min(0.24,Math.abs(bvx)*0.00026);bsxP=1-kw;bsyP=1/(1-kw);bsT=0.14;}bvx=Math.abs(bvx)*0.9;bvy-=40;}   // squash against the left wall
-    if(bx>XR-BR){if(inG)return netCatch(1);bx=XR-BR;if(Math.abs(bvx)>120){var kw2=Math.min(0.24,Math.abs(bvx)*0.00026);bsxP=1-kw2;bsyP=1/(1-kw2);bsT=0.14;}bvx=-Math.abs(bvx)*0.9;bvy-=40;}
+    var gt=groundY-150,overL=(bx+BR>XL&&bx-BR<XL+44),overR=(bx+BR>XR-44&&bx-BR<XR);   // the crossbar (top of the goal frame)
+    if((overL||overR)&&bvy>0&&by+BR>=gt-2&&by-BR<gt&&by<gt){by=gt-BR-2;bvy=-Math.max(180,Math.abs(bvy)*0.7);   // off the bar with a guaranteed hop, so it never perches
+     bvx+=(overL?1:-1)*(170+Math.random()*90);bvx=Math.max(-2200,Math.min(2200,bvx));   // and a shove back into the field
+     var kc1=Math.min(0.1,Math.abs(bvy)*0.00015);bsyP=1-kc1;bsxP=1/(1-kc1);bsT=0.11;}
+    if(bx<XL+BR){if(inG)return netCatch(2);bx=XL+BR;if(Math.abs(bvx)>120){var kw=Math.min(0.11,Math.abs(bvx)*0.00013);bsxP=1-kw;bsyP=1/(1-kw);bsT=0.12;}bvx=Math.abs(bvx)*0.9;bvy-=40;}   // squash against the left wall
+    if(bx>XR-BR){if(inG)return netCatch(1);bx=XR-BR;if(Math.abs(bvx)>120){var kw2=Math.min(0.11,Math.abs(bvx)*0.00013);bsxP=1-kw2;bsyP=1/(1-kw2);bsT=0.12;}bvx=-Math.abs(bvx)*0.9;bvy-=40;}
     for(var pi=0;pi<peers.length;pi++){var p=peers[pi];if(p.elim)continue;
      var hx=p.x+p.HW/2,hy=p.y+p.HH*0.55,dx=bx-hx,dy=by-hy,d=Math.hypot(dx,dy),rr=p.HW*0.5+BR;
      if(d<rr&&d>0.1){var kc=kickCd[p.slot]||0;if(now>kc){kickCd[p.slot]=now+80;
       var nx=dx/d,ny=dy/d,hv=Math.hypot(p.vx,p.vy);
-      bvx+=nx*(300+hv*0.55)+p.vx*0.8;   // a real strike: momentum transfers hard
+      var gdir=(S.teams&&S.teams[p.slot]===2)?-1:1;   // red attacks right, blue attacks left
+      var prole=S.roles&&S.roles[p.slot],clear=(prole==="keeper"||prole==="defender")?1:0;
+      bvx+=nx*(300+hv*0.55)+p.vx*0.8 + gdir*(70+hv*0.16+clear*90);   // they steer it toward the opponent goal; keepers and backs clear it hard
       bvy+=ny*(220+hv*0.4)-(p.vy<-40?260:180);
-      var kk=Math.min(0.28,(120+hv)*0.0009);if(Math.abs(nx)>Math.abs(ny)){bsxP=1-kk;bsyP=1/(1-kk);}else{bsyP=1-kk;bsxP=1/(1-kk);}bsT=0.15;}}}   // it squashes along the strike
+      var kk=Math.min(0.13,(120+hv)*0.00042);if(Math.abs(nx)>Math.abs(ny)){bsxP=1-kk;bsyP=1/(1-kk);}else{bsyP=1-kk;bsxP=1/(1-kk);}bsT=0.13;}}}   // it squashes along the strike
     bvx=Math.max(-2200,Math.min(2200,bvx));bvy=Math.max(-1900,Math.min(1200,bvy));
     spin+=bvx*dt*1.6;
     var nearGoal=(by>groundY-150)&&((bx<95&&bvx<-60)||(bx>W-95&&bvx>60));   // a real threat on goal, closing in
@@ -3378,8 +3380,8 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    }
    S.ball.x=bx;S.ball.y=by;
    if(bsT>0)bsT-=dt;else{bsxP=1;bsyP=1;}   // spring the squash back, one soft overshoot (near-critical, like the heads)
-   bsxv+=((bsxP-bsx)*1050-bsxv*52)*dt;bsx+=bsxv*dt;
-   bsyv+=((bsyP-bsy)*1050-bsyv*52)*dt;bsy+=bsyv*dt;
+   bsxv+=((bsxP-bsx)*1150-bsxv*62)*dt;bsx+=bsxv*dt;
+   bsyv+=((bsyP-bsy)*1150-bsyv*62)*dt;bsy+=bsyv*dt;
    if(ball)ball.style.transform="translate("+(bx-BR).toFixed(1)+"px,"+(by-BR).toFixed(1)+"px) scale("+bsx.toFixed(3)+","+bsy.toFixed(3)+") rotate("+spin.toFixed(0)+"deg)";
    if(ballShadow){var airH=Math.max(0,groundY-by),scv=Math.max(0.42,1-airH/520);
     ballShadow.style.transform="translate("+(bx-24*scv).toFixed(1)+"px,"+(groundY+BR-7).toFixed(1)+"px) scale("+scv.toFixed(3)+",1)";
