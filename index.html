@@ -1057,11 +1057,10 @@ function blep(){
 function idleQuirk(){
  if(idleFree()&&!fidget&&!drowsy&&!holdFace&&!activeHover&&(curFace==="neutral"||curFace==="rest")){
   var _d=(Math.random()<0.5?-1:1),_now=performance.now(),_r=Math.random(),_pick;
-  if(_r<0.20)_pick="wink";else if(_r<0.30)_pick="blep";else if(_r<0.50)_pick="rock";else if(_r<0.66)_pick="side";else if(_r<0.80)_pick="roll";else if(_r<0.91)_pick="dtake";else _pick="bruh";
+  if(_r<0.22)_pick="wink";else if(_r<0.44)_pick="rock";else if(_r<0.62)_pick="side";else if(_r<0.78)_pick="roll";else if(_r<0.90)_pick="dtake";else _pick="bruh";
   if(_pick===window.__lastQuirk)_pick=(_pick==="rock"?"side":"rock");   // never the same gag twice running
   window.__lastQuirk=_pick;
   if(_pick==="wink"){setHold("wink",680);showFace("wink");}
-  else if(_pick==="blep")blep();
   else if(_pick==="rock")fidget={type:"rock",start:_now,dur:1700,dir:_d};
   else if(_pick==="side")fidget={type:"side",start:_now,dur:1500,dir:_d};
   else if(_pick==="roll")fidget={type:"roll",start:_now,dur:1150,dir:_d,after:function(){if(Math.random()<0.4&&idleFree()&&!holdFace){setHold("smile",700);showFace("smile");}}};   // sometimes amused with himself after
@@ -2759,7 +2758,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
      st="idle",stT=0,hopsLeft=0,grabbed=false,gpx=0,gpy=0,lastPX=0,lastPY=0,pvx=0,pvy=0,
      offAt=0,gone=false,goneUntil=0,decideAt=performance.now()+4200,spin=0,heldOff=0,heldV=0,cTop=false,bornAt=performance.now()+1600,perched=false,hs=1,hsT=1,dockUntil=0,moodB=false,pbAt=0,mirrorAt=0,downT=0,downX=0,downY=0,shakeN=0,heartsF=0,danceHops=0,dblBlink=false,
      bAt=performance.now()+2800,bf=0,brAt=performance.now()+7000,brf=0,moAt=performance.now()+11000,mof=0,
-     dzf=0,sqx=1,sqy=1,sqxv=0,sqyv=0,sqxP=1,sqyP=1,sqT=0,shown=false,first=true,tk3=0,gzx=0,gzy=0,sacAt=0,flipA=0,flipV=0,wig=null,wigP=0,bounceN=0,perchT=0,leapDelay=Infinity,hmOverT=0,introSettled=false,bornWall=0,introFrames=0,shakeAfter=false,drowse2=false,lastNearT=performance.now(),perchWigAt=performance.now()+9000,greetAt=performance.now()+6000,visitUntil=0,hmOverNow=false,vaulting=false,audAt=0,killed=false,hp=100,crowdT=0,team=0,soccerOn=false,soccerKickSeen=0,soccerWon=false,battleOn=false,battleSeen=0,elim=false,elimP=0,celebrated=false,respawnSeen=0,hurtT=0,
+     dzf=0,sqx=1,sqy=1,sqxv=0,sqyv=0,sqxP=1,sqyP=1,sqT=0,shown=false,first=true,tk3=0,gzx=0,gzy=0,sacAt=0,flipA=0,flipV=0,wig=null,wigP=0,bounceN=0,perchT=0,leapDelay=Infinity,hmOverT=0,introSettled=false,bornWall=0,introFrames=0,shakeAfter=false,drowse2=false,lastNearT=performance.now(),perchWigAt=performance.now()+9000,greetAt=performance.now()+6000,visitUntil=0,hmOverNow=false,vaulting=false,audAt=0,killed=false,hp=100,crowdT=0,team=0,soccerOn=false,soccerKickSeen=0,soccerWon=false,goalSeen=0,battleOn=false,battleSeen=0,elim=false,elimP=0,celebrated=false,respawnSeen=0,hurtT=0,
      pendingHide=null,hideToken=0,lapBack=false,forceHide=/[?&]hide=1/.test(location.search);
  function plane(front){root.style.zIndex=front?"3":"1";shadow.style.zIndex=front?"2":"1";}   // two planes only: the front (where hands live) and behind the furniture
  var G=2600,DT=0.04,facc=0,CEIL=2,surpriseAt=0;   // real units: px/s and px/s^2, integrated at 25fps
@@ -3010,6 +3009,11 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
      var half9=heroR.w*0.5,tx9=team===1?(M+Math.random()*(half9-HW-M*2)):(half9+M+Math.random()*(half9-HW-M*2));
      if(!grabbed){dir=tx9>x?1:-1;surface=floorY;st="hop";hopsLeft=Math.min(6,Math.max(1,Math.round(Math.abs(tx9-x)/70)));
       setTimeout(function(){if(!grabbed&&st==="hop"&&!air)hop(false);},120);}}
+    if(S9.goalSeed&&S9.goalSeed!==goalSeen){goalSeen=S9.goalSeed;   // GOAL — my team scored: dance!
+     if(S9.goalTeam===team&&!grabbed&&!perched){brf=6;mof=4;
+      wig={t:1.15,dur:1.15,type:"shimmy"};wigP=0;
+      try{if(typeof busyNow==="function"&&!busyNow()){setHold("smile",1300);showFace("smile");}}catch(_){}
+      if(!air&&st==="idle"){air=true;st="fall";surface=floorY;vy=-(430+Math.random()*180);vx=dir*(18+Math.random()*30);sqT=0.12;sqyP=1.1;sqxP=1/1.1;if(Math.random()<0.45)startFlip();}}}
     if(S9.winner&&S9.winner===team&&!soccerWon){soccerWon=true;crownEl.style.opacity="1";   // champions crowned, and they leap (the ONE confetti canvas is the controller's)
      if(!grabbed){dir=((heroR.w/2)>(x+HW/2))?1:-1;surface=floorY;st="fall";air=true;vy=-(920+Math.random()*120);vx=dir*(110+Math.random()*110);sqT=0.13;sqyP=1.11;sqxP=1/1.11;startFlip();brf=6;mof=4;
       try{if(!busyNow()){setHold("smile",1600);showFace("smile");}}catch(_){}}}
@@ -3274,7 +3278,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    document.body.classList.add("hmSoccer");kickoffCountdown();
    if(!running){running=true;requestAnimationFrame(loop);}}
   window.__hmSoccerStart=start;window.__hmSoccerEnd=finish;
-  function goalIn(team){if(team===1)S.red++;else S.blue++;board2();
+  function goalIn(team){if(team===1)S.red++;else S.blue++;S.goalSeed=(S.goalSeed||0)+1;S.goalTeam=team;board2();
    var g=team===1?goalR:goalL;g.classList.add("hmGoalHit");setTimeout(function(){g.classList.remove("hmGoalHit");},650);
    goalBurst(team,bx,by);   // BANG
    try{if(typeof busyNow==="function"&&!busyNow()){setHold("smile",1100);showFace("smile");if(typeof browFlash==="function")browFlash();}}catch(_){}
