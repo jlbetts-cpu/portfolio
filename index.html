@@ -2959,8 +2959,8 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
  root.addEventListener("pointerup",release);root.addEventListener("pointercancel",release);
  // --- the loop: physics at display rate, face beats stay 8fps ---
  var _lastF=performance.now();
- function _frame(_nowF){requestAnimationFrame(_frame);
-  if(killed)return;
+ function _frame(_nowF){if(killed)return;   // a removed head stops its loop for good -- no idle rAF left spinning
+  requestAnimationFrame(_frame);
   var DT=Math.min(0.05,Math.max(0.006,(_nowF-_lastF)/1000));_lastF=_nowF;
   tk3++;var now=_nowF,aboutB=false;moodB=false;
   try{aboutB=document.body.classList.contains("about-open");moodB=(typeof busyNow==="function"&&busyNow());}catch(_){}
