@@ -2761,10 +2761,10 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   if(nose)nose.style.display="none";if(mouth)mouth.style.display="none";brows.forEach(function(b){b.style.display="none";});
   mjClone=bigStage.cloneNode(true);mjClone.removeAttribute("id");
   var _idd=mjClone.querySelectorAll("[id]");for(var _ii=0;_ii<_idd.length;_ii++)_idd[_ii].removeAttribute("id");
-  mjClone.style.cssText="position:absolute;left:0;top:0;width:100%;height:83.333%;pointer-events:none;z-index:0;filter:none";   // his square face fills the top square of the 5:6 body
-  var _cf=mjClone.querySelector(".face");if(_cf)_cf.style.filter="none";   // no ink filter on a moving clone: it would re-render the SVG filter every frame (the lag risk) and reads clean at this size
-  [].forEach.call(mjClone.querySelectorAll(".eye,.iris,.glint,.pupil,.tongue,.mouth,.introwake"),function(el){el.style.filter="none";});
-  [].slice.call(mjClone.children).forEach(function(el){var cn=(el.getAttribute("class")||"");if(!/(^|\s)(face|eye)(\s|$)/.test(cn))el.remove();});   // KEEP ONLY his face image + eyes -- strip the 3D-glasses SVG (it covered the eyes -> "closed", and its mask has a mouth shape -> "wide open"), the mouth, tongue, and every other stage overlay
+  mjClone.style.cssText="position:absolute;left:0;top:0;width:100%;height:83.333%;pointer-events:none;z-index:0";   // the WHOLE big head, shrunk -- keep the ink filters and every element, exactly as he is
+  // the overlays (glasses/mouth/tongue/etc.) are hidden on the big head via id-scoped CSS that breaks once the id is gone; freeze their current opacity so they stay hidden -- and DON'T remove them, so it stays an exact copy
+  var _bk=bigStage.children,_ck=mjClone.children;
+  for(var _ki=0;_ki<_ck.length&&_ki<_bk.length;_ki++){try{_ck[_ki].style.opacity=getComputedStyle(_bk[_ki]).opacity;}catch(_){}}
   if(im.nextSibling)root.insertBefore(mjClone,im.nextSibling);else root.appendChild(mjClone);
   mjBigFace=document.getElementById("face");
  }}catch(_){mjClone=null;}}
