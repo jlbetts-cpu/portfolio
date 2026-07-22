@@ -302,6 +302,9 @@ body.hmSoccer .moodMenu .moodItem:not(#endGame){opacity:.38;pointer-events:none}
 .hmCount{position:absolute;left:50%;top:38%;transform:translate(-50%,-50%);z-index:48;font-family:var(--sans);font-weight:600;font-size:clamp(64px,12vw,140px);line-height:1;color:var(--c950);opacity:0;pointer-events:none;filter:url(#inkBig)}
 .hmScoreEnd{margin-left:10px;padding:2px 2px 2px 11px;border:0;border-left:1px solid var(--c100);border-radius:0;background:none;display:inline-flex;align-items:center;gap:5px;cursor:pointer;pointer-events:auto;color:#b3402e;font-family:var(--sans);font-weight:600;font-size:var(--fs-label);line-height:1;transition:color .15s}
 .hmScoreEnd:hover{color:#8f3323}.hmScoreEnd svg{width:12px;height:12px;flex:0 0 auto}
+/* battle arena platforms: light Apple-clean slabs with a hair of 2.5D thickness -- the heads leap up for height and pounce down */
+.hmPlat{position:absolute;left:0;top:0;height:15px;border-radius:9px;background:linear-gradient(180deg,#fefeff 0%,#f3f3f6 52%,#e6e6ec 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,.92),0 7px 16px -7px rgba(22,22,28,.3),0 1.5px 3px rgba(22,22,28,.1);border:1px solid rgba(22,22,28,.06);opacity:0;pointer-events:none;transition:opacity .45s cubic-bezier(.2,.8,.2,1);z-index:2;will-change:transform}
+body.hmBattle .hmPlat{opacity:1}
 /* a game is on: the hero copy steps aside so the pitch is clear, then returns when it ends */
 .heroCopy>h1,.heroCopy>.sub,.heroCopy>.heroCtas{transition:opacity .45s cubic-bezier(.2,.8,.2,1)}
 body.hmSoccer .heroCopy>h1,body.hmSoccer .heroCopy>.sub,body.hmSoccer .heroCopy>.heroCtas,body.hmBattle .heroCopy>h1,body.hmBattle .heroCopy>.sub,body.hmBattle .heroCopy>.heroCtas{opacity:0!important;pointer-events:none!important}
@@ -2647,6 +2650,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
  if(_rawN!==null&&_rawN!==list.length){try{localStorage.setItem("hmCompanions",JSON.stringify(list));}catch(_){}}   // heal stale duplicates once, physically
  if(!list.length)return;
  var peers=[];   // every head knows where every other head is, every frame
+ var battlePlats=[];   // battle arena: floating platforms the heads land on and pounce from (populated by the platforms block, read every frame in the physics)
  function spawnCompanion(data,slot){
  var reduce=matchMedia("(prefers-reduced-motion:reduce)").matches;
  var hero=document.querySelector(".hero");if(!hero)return;
@@ -3058,6 +3062,16 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
     brf=6;mof=4;confettiBurst(x+HW/2);crownEl.style.opacity="1";
     try{if(typeof busyNow==="function"&&!busyNow()&&typeof setHold==="function"){setHold("smile",1600);showFace("smile");}}catch(_){}
     setTimeout(function(){window.__hmRespawn=performance.now();},4200);}}
+  if(battleOn&&!elim&&!grabbed&&!air&&st==="idle"&&now>=decideAt){decideAt=now+280+Math.random()*260;   // an active fighter: read the arena, grab height, then POUNCE
+   var tgt=null,td9=1e9,mcx=x+HW/2;
+   for(var b9=0;b9<peers.length;b9++){var pv=peers[b9];if(pv===me||!pv.inB||pv.elim)continue;var dd9=Math.abs((pv.x+pv.HW/2)-mcx);if(dd9<td9){td9=dd9;tgt=pv;}}
+   if(tgt){var toX=tgt.x+tgt.HW/2,feetY=y+HH*FOOT,onPlat=false;
+    for(var q9=0;q9<battlePlats.length;q9++){var PP=battlePlats[q9];if(Math.abs(feetY-PP.t)<9&&mcx>PP.l&&mcx<PP.r){onPlat=true;break;}}
+    dir=(toX>mcx)?1:-1;surface=floorY;st="fall";air=true;gzx=dir*0.9;sacAt=now+700;
+    if(onPlat){vy=-(130+Math.random()*90);vx=dir*Math.min(760,Math.max(200,td9*2.3));sqT=0.12;sqyP=1.13;sqxP=1/1.13;startFlip();brf=6;}   // pounce off the platform, diving down onto them
+    else if(battlePlats.length&&Math.random()<0.42){var pp=battlePlats[(Math.random()*battlePlats.length)|0],pcx=(pp.l+pp.r)/2;   // go get height on a slab
+     dir=(pcx>mcx)?1:-1;var vyp=Math.min(1050,Math.max(600,(floorY-(pp.t-HH*FOOT))*3.4+320));vy=-vyp;vx=dir*Math.min(440,Math.abs(pcx-mcx)/Math.max(0.2,2*vyp/G));sqT=0.12;sqyP=1.1;sqxP=1/1.1;}
+    else{vy=-(340+Math.random()*230);vx=dir*Math.min(700,Math.max(150,td9*2.0));sqT=0.12;sqyP=1.1;sqxP=1/1.1;if(Math.random()<0.28)startFlip();}}}   // otherwise charge them across the deck
   if(battleOn&&!elim&&bigR){try{   // the spectator: his gaze follows the centre of the fight
    if(!window.__hmWatchAt||now>window.__hmWatchAt){window.__hmWatchAt=now+520+Math.random()*260;
     var wx=0,wy=0,wn=0;
@@ -3077,7 +3091,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
      setTimeout(function(){if(!grabbed&&st==="hop"&&!air)hop(false);},100);}
     else if(Math.random()<0.7){air=true;st="fall";surface=floorY;vy=-(260+Math.random()*140);vx=dir*(8+Math.random()*20);sqT=0.11;sqyP=1.08;sqxP=1/1.08;}
     if(Math.random()<0.4)brf=6;}}
-  if(now>=decideAt&&!soccerOn)decide(now);
+  if(now>=decideAt&&!soccerOn&&!battleOn)decide(now);   // in a battle the fight AI drives them, not the idle wander
   // while perched it RIDES the breathing head: the hair moves, so does it
   if(perched&&moodB&&now>=pbAt){pbAt=now+700+Math.random()*500;sqT=0.11;sqyP=1.08;sqxP=1/1.08;}   // docked at a show: it bounces along
   if(perched&&!grabbed&&!air&&leapDelay<Infinity){
@@ -3110,6 +3124,9 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    if(x<WL){x=WL;if(Math.abs(vx)>420)brf=6;if(battleOn&&Math.abs(vx)>620)hurt(Math.min(12,(Math.abs(vx)-620)/45));vx=Math.abs(vx)*0.72;dir=1;sqT=0.13;sqxP=0.9;sqyP=1.11;}
    if(x>WR){x=WR;if(Math.abs(vx)>420)brf=6;if(battleOn&&Math.abs(vx)>620)hurt(Math.min(12,(Math.abs(vx)-620)/45));vx=-Math.abs(vx)*0.72;dir=-1;sqT=0.13;sqxP=0.9;sqyP=1.11;}
    if(y<CEIL){y=CEIL;if(Math.abs(vy)>420&&bf===0)bf=5;vy=Math.abs(vy)*0.72;sqT=0.13;sqxP=1.11;sqyP=0.9;cTop=true;}   // bonk: a startle blink
+   if(battleOn&&battlePlats.length&&vy>0){var cxp=x+HW/2,feet9=y+HH*FOOT,pfeet=feet9-vy*DT;   // one-way platforms: a DESCENDING head lands on top; a rising one passes clean through
+    for(var pl9=0;pl9<battlePlats.length;pl9++){var Pl=battlePlats[pl9];
+     if(cxp>Pl.l&&cxp<Pl.r&&pfeet<=Pl.t+3&&feet9>=Pl.t-1&&(Pl.t-HH*FOOT)<surface){surface=Pl.t-HH*FOOT;break;}}}
    if(vy>0&&y>=surface){ cTop=false; if(st==="fall"&&Math.abs(vy)>340){if(Math.abs(vy)>1050)shakeAfter=true;if(battleOn&&Math.abs(vy)>700)hurt(Math.min(12,(Math.abs(vy)-700)/50));
     if(Math.abs(vx)>420&&!wig)wig={t:0.22,dur:0.22,type:"tilt",a:(vx>0?1:-1)*4};   // fast landings skid: it leans into the slide
     var k=Math.min(0.2,Math.abs(vy)*0.0004);y=surface;vy=-vy*0.72;vx*=0.85;sqT=0.14;sqyP=1-k;sqxP=1/(1-k);flipA=0;flipV=0;}  // e=0.72 (toy ball), tangential 0.85, volume-true squash
@@ -3431,6 +3448,18 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    var n=0;for(var i=0;i<peers.length;i++){if(peers[i].inB&&!peers[i].elim)n++;}
    if(n!==shownN){shownN=n;b.textContent=n;}el.style.opacity="1";}
   requestAnimationFrame(tick);
+ })();
+
+ (function platforms(){   // the battle arena: three light slabs, laid out on the clear left of the pitch, kept in sync with the shared battlePlats rects
+  var hero=document.querySelector(".hero");if(!hero)return;
+  var DEFS=[[0.09,0.27,0.60],[0.30,0.48,0.385],[0.44,0.62,0.615]];   // [left%, right%, top%] -- two low flanks and one high in the middle, all clear of the big head on the right
+  var els=DEFS.map(function(){var d=document.createElement("div");d.className="hmPlat";hero.appendChild(d);return d;});
+  function layout(){var r=hero.getBoundingClientRect(),w=r.width,h=r.height;battlePlats.length=0;
+   DEFS.forEach(function(D,i){var l=Math.round(w*D[0]),rr=Math.round(w*D[1]),t=Math.round(h*D[2]);
+    battlePlats.push({l:l,r:rr,t:t});
+    els[i].style.width=(rr-l)+"px";els[i].style.transform="translate("+l+"px,"+t+"px)";});}
+  layout();addEventListener("resize",layout,{passive:true});
+  setInterval(function(){if(document.body.classList.contains("hmBattle"))layout();},1200);   // keep them honest as the hero breathes/resizes during a fight
  })();
 })();
 </script>
