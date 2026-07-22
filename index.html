@@ -2750,14 +2750,14 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   ls.style.backgroundImage="url("+data.cut+")";ls.style.backgroundSize=(100/lidW)+"% "+(100/lidH)+"%";
   ls.style.backgroundPosition=((c.x-lidW/2)/(1-lidW)*100)+"% "+(((c.y+c.h*1.55)-lidH/2)/(1-lidH)*100)+"%";
   lw.appendChild(ls);root.appendChild(lw);
-  eyeEls3.push({iris:ir,glint:gl,lid:ls,box:e,ang:(c.ang||0)*57.2958});
+  eyeEls3.push({iris:ir,glint:gl,lid:ls,box:e,cov:cov,lidWin:lw,ang:(c.ang||0)*57.2958});
  });
  var brows=[],mouth=null,nose=null;
  if(mk){brows=[strip(mk.BL.x,mk.BL.y,ew0*1.5,ew0*0.9),strip(mk.BR.x,mk.BR.y,ew0*1.5,ew0*0.9)];
   nose=strip(mk.N.x,mk.N.y,ew0*1.1,ew0*1.2);mouth=strip(mk.M.x,mk.M.y,ew0*1.8,ew0*0.95);mouth.style.transformOrigin="50% 18%";}
  var mjClone=null,mjBigFace=null,mjBigW=500;   // MINI-JAYDEN: it isn't a bake, it's the actual big head cloned + shrunk, mirrored live every frame (mjBigW = big head's px width, to scale his pixel-based gaze down to mini size)
  if(filler&&data.__mirror){try{var bigStage=document.getElementById("stage");if(bigStage){
-  im.style.display="none";eyeEls3.forEach(function(e){if(e.box)e.box.style.display="none";});   // drop the companion face rig -- the clone IS the face now
+  im.style.display="none";eyeEls3.forEach(function(e){if(e.box)e.box.style.display="none";if(e.cov)e.cov.style.display="none";if(e.lidWin)e.lidWin.style.display="none";});   // drop the ENTIRE companion eye rig -- not just the .eye box, but its skin cover (cov) and lid window (lw) too. Those sit at z>=0 in front of the clone (z0) and painted his real eyes over with skin patches + washed-white ovals. The clone IS the face now.
   if(nose)nose.style.display="none";if(mouth)mouth.style.display="none";brows.forEach(function(b){b.style.display="none";});
   mjClone=bigStage.cloneNode(true);mjClone.removeAttribute("id");
   var _idd=mjClone.querySelectorAll("[id]");for(var _ii=0;_ii<_idd.length;_ii++)_idd[_ii].removeAttribute("id");
