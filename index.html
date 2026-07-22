@@ -299,12 +299,16 @@ body.hmSoccer .moodMenu .moodItem:not(#endGame){opacity:.38;pointer-events:none}
 .hmScore .sTr i{background:#e05a4e}.hmScore .sTb i{background:#5aa0d8}
 .hmScore em{color:var(--c400);font-style:normal}
 .hmScore small{margin-left:6px;padding-left:11px;border-left:1px solid var(--c100);font-weight:500;font-size:var(--fs-label);color:var(--c500)}
-.hmCount{position:absolute;left:50%;top:38%;transform:translate(-50%,-50%);z-index:48;font-family:var(--sans);font-weight:600;font-size:clamp(64px,12vw,140px);line-height:1;color:var(--c950);opacity:0;pointer-events:none;filter:url(#inkBig)}
+.hmCount{position:absolute;left:50%;top:38%;transform:translate(-50%,-50%);z-index:48;font-family:var(--sans);font-weight:600;font-size:clamp(64px,12vw,140px);line-height:1;color:var(--c950);opacity:0;pointer-events:none;filter:url(#inkBig);white-space:nowrap}
+.hmCount.hmMsg{font-size:clamp(32px,6vw,72px);font-weight:700;letter-spacing:-.01em}   /* a word, not a digit: fits "Blue wins!" */
 .hmScoreEnd{margin-left:10px;padding:2px 2px 2px 11px;border:0;border-left:1px solid var(--c100);border-radius:0;background:none;display:inline-flex;align-items:center;gap:5px;cursor:pointer;pointer-events:auto;color:#b3402e;font-family:var(--sans);font-weight:600;font-size:var(--fs-label);line-height:1;transition:color .15s}
 .hmScoreEnd:hover{color:#8f3323}.hmScoreEnd svg{width:12px;height:12px;flex:0 0 auto}
 /* battle arena platforms: light Apple-clean slabs with a hair of 2.5D thickness -- the heads leap up for height and pounce down */
 .hmPlat{position:absolute;left:0;top:0;height:15px;border-radius:9px;background:linear-gradient(180deg,#fefeff 0%,#f3f3f6 52%,#e6e6ec 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,.92),0 7px 16px -7px rgba(22,22,28,.3),0 1.5px 3px rgba(22,22,28,.1);border:1px solid rgba(22,22,28,.06);opacity:0;pointer-events:none;transition:opacity .45s cubic-bezier(.2,.8,.2,1);z-index:2;will-change:transform}
 body.hmBattle .hmPlat{opacity:1}
+/* during a game the big head steps off so the players own the whole stage; it fades back when the game ends */
+.stagewrap{transition:opacity .5s cubic-bezier(.2,.8,.2,1)}
+body.hmSoccer .stagewrap,body.hmBattle .stagewrap{opacity:0;pointer-events:none}
 /* the winners' podium: three light blocks, 1st tallest in the middle, that rise at the end of a battle */
 .hmPodium{position:absolute;left:0;top:0;border-radius:10px 10px 3px 3px;background:linear-gradient(180deg,#fefeff 0%,#eeeef2 62%,#e1e1e8 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,.92),0 12px 24px -11px rgba(22,22,28,.34),0 2px 5px rgba(22,22,28,.12);border:1px solid rgba(22,22,28,.06);opacity:0;pointer-events:none;transition:opacity .5s cubic-bezier(.2,.8,.2,1),transform .5s cubic-bezier(.2,.8,.2,1);z-index:2;display:flex;align-items:flex-start;justify-content:center;overflow:hidden}
 .hmPodium b{margin-top:8px;font-family:var(--sans);font-weight:700;font-size:var(--fs-label);color:var(--c400);line-height:1}
@@ -3008,12 +3012,12 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   if(reduce){root.style.transform="translate("+(heroR.w*0.05)+"px,"+floorY+"px)";shadow.style.transform="translate("+(heroR.w*0.05)+"px,"+(floorY+HH-4)+"px)";return;}
   if(!shown)return;
   try{var br9=window.__hmBattleReq;   // the bell rings: everyone in
-   if(br9&&br9!==battleSeen){battleSeen=br9;if(!killed){battleOn=true;hp=100;elim=false;elimP=0;celebrated=false;me.podiumRank=0;
-    if(window.__hmBOSeed!==br9){window.__hmBOSeed=br9;battleOut.length=0;hidePodium();}   // once per fight: fresh knockout log, no leftover podium
+   if(br9&&br9!==battleSeen){battleSeen=br9;if(!killed){battleOn=true;hp=100;elim=false;elimP=0;celebrated=false;me.podiumRank=0;me.spectate=0;
+    if(window.__hmBOSeed!==br9){window.__hmBOSeed=br9;battleOut.length=0;hidePodium();window.__hmBattleGo=performance.now()+2900;}   // once per fight: fresh log, no leftover podium, and a 3-2-1-GO before anyone throws a punch
     perched=false;leapDelay=Infinity;me.elim=false;me.inB=true;bar.style.opacity="1";root.style.pointerEvents="";
     try{document.body.classList.add("hmBattle");window.__hmBattleOn=true;}catch(_){}}}
    var rs9=window.__hmRespawn;   // the bell again: everyone back
-   if(rs9&&rs9!==respawnSeen){respawnSeen=rs9;battleOn=false;me.inB=false;me.podiumRank=0;bar.style.opacity="0";crownEl.style.opacity="0";hidePodium();
+   if(rs9&&rs9!==respawnSeen){respawnSeen=rs9;battleOn=false;me.inB=false;me.podiumRank=0;me.spectate=0;bar.style.opacity="0";crownEl.style.opacity="0";hidePodium();
     try{document.body.classList.remove("hmBattle");window.__hmBattleOn=false;}catch(_){}
     if(elim){elim=false;elimP=0;hp=100;me.elim=false;root.style.pointerEvents="";
      shown=true;root.style.opacity="1";root.style.filter="blur(0)";shadow.style.opacity="1";root.style.display="";shadow.style.display="";
@@ -3031,10 +3035,10 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
      var fs9=Math.random()<0.5;x=fs9?WL+2:WR-2;y=floorY-(140+Math.random()*240);dir=fs9?1:-1;air=true;st="fall";surface=floorY;
      vx=dir*(360+Math.random()*240);vy=-(120+Math.random()*260);if(Math.random()<0.35)startFlip();}}
    if(S9&&S9.on&&soccerOn&&!killed){
-    if(S9.kickSeed&&S9.kickSeed!==soccerKickSeen){soccerKickSeen=S9.kickSeed;   // kickoff: to your own half
+    if(S9.kickSeed&&S9.kickSeed!==soccerKickSeen){soccerKickSeen=S9.kickSeed;   // every goal & kickoff: leap back to your OWN half, a real restart -- red to the left, blue to the right
      var half9=heroR.w*0.5,tx9=team===1?(M+Math.random()*(half9-HW-M*2)):(half9+M+Math.random()*(half9-HW-M*2));
-     if(!grabbed){dir=tx9>x?1:-1;surface=floorY;st="hop";hopsLeft=Math.min(6,Math.max(1,Math.round(Math.abs(tx9-x)/70)));
-      setTimeout(function(){if(!grabbed&&st==="hop"&&!air)hop(false);},120);}}
+     if(!grabbed){var dxk=tx9-x;dir=dxk>0?1:-1;surface=floorY;st="fall";air=true;
+      var vyk=500+Math.random()*150,ttk=2*vyk/G;vy=-vyk;vx=dir*Math.max(-820,Math.min(820,dxk/ttk));sqT=0.12;sqyP=1.1;sqxP=1/1.1;gzx=dir*0.6;sacAt=now+500;}}
     if(S9.goalSeed&&S9.goalSeed!==goalSeen){goalSeen=S9.goalSeed;   // GOAL: just a natural little reaction, no scripted dance
      if(S9.goalTeam===team&&!grabbed&&!perched){brf=6;mof=4;
       try{if(typeof busyNow==="function"&&!busyNow()){setHold("smile",1200);showFace("smile");}}catch(_){}}}
@@ -3063,14 +3067,17 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
      else{gzx=(ballX>myX)?0.6:-0.6;gzy=0.1;sacAt=now+700;}}}}catch(_){}
   if(battleOn&&!elim&&!celebrated){var alive9=0,inb9=0;
    for(var a9=0;a9<peers.length;a9++){if(peers[a9].inB){inb9++;if(!peers[a9].elim)alive9++;}}
-   if(inb9>=2&&alive9===1){celebrated=true;   // last head standing: raise the winners' podium
+   if(inb9>=2&&alive9===1){celebrated=true;   // last head standing: raise the podium; everyone else gathers to watch
     var top9=[me];for(var z9=battleOut.length-1;z9>=0&&top9.length<3;z9--)top9.push(battleOut[z9]);   // 1st = me, then the last two knocked out
     var spots9=showPodium(top9.length,floorY);
-    top9.forEach(function(pm,ri){pm.podiumRank=ri+1;var sp=spots9[ri+1];if(sp){pm.podX=sp.cx;pm.podTop=sp.top;}});
-    brf=6;mof=4;confettiBurst(heroR.w/2);
-    try{if(typeof busyNow==="function"&&!busyNow()&&typeof setHold==="function"){setHold("smile",1900);showFace("smile");}}catch(_){}
-    setTimeout(function(){window.__hmRespawn=performance.now();},5600);}}   // hold the podium, then everyone comes back
-  if(battleOn&&!elim&&!me.podiumRank&&!grabbed&&!air&&st==="idle"&&now>=decideAt){decideAt=now+280+Math.random()*260;   // an active fighter: read the arena, grab height, then POUNCE
+    top9.forEach(function(pm,ri){pm.podiumRank=ri+1;pm.spectate=0;var sp=spots9[ri+1];if(sp){pm.podX=sp.cx;pm.podTop=sp.top;}});
+    var oi9=0;for(var s9=0;s9<peers.length;s9++){var sp9=peers[s9];if(top9.indexOf(sp9)>=0)continue;   // the rest: resurrected, ringed around the podium, eyes on the ceremony
+     var side9=(oi9%2===0)?-1:1;sp9.spectate=1;sp9.podiumRank=0;sp9.specX=heroR.w/2+side9*(heroR.w*0.22+Math.floor(oi9/2)*HW*0.95);oi9++;}
+    brf=6;mof=4;confettiBurst(heroR.w*0.36);confettiBurst(heroR.w*0.64);   // a real burst across the podium
+    try{if(window.__hmBattleWin)window.__hmBattleWin("Champion!");}catch(_){}
+    try{if(typeof busyNow==="function"&&!busyNow()&&typeof setHold==="function"){setHold("smile",2200);showFace("smile");}}catch(_){}
+    setTimeout(function(){window.__hmRespawn=performance.now();},6200);}}   // hold the ceremony, then everyone streams back and the page returns   // hold the podium, then everyone comes back
+  if(battleOn&&!elim&&!me.podiumRank&&!me.spectate&&!grabbed&&!air&&st==="idle"&&now>=decideAt&&now>=(window.__hmBattleGo||0)){decideAt=now+280+Math.random()*260;   // an active fighter (only once the whistle goes): read the arena, grab height, then POUNCE
    var tgt=null,td9=1e9,mcx=x+HW/2;
    for(var b9=0;b9<peers.length;b9++){var pv=peers[b9];if(pv===me||!pv.inB||pv.elim)continue;var dd9=Math.abs((pv.x+pv.HW/2)-mcx);if(dd9<td9){td9=dd9;tgt=pv;}}
    if(tgt){var toX=tgt.x+tgt.HW/2,feetY=y+HH*FOOT,onPlat=false;
@@ -3129,13 +3136,13 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   // physics: walls, floor, ceiling, and the caregiver — nothing else is solid
   if(!grabbed&&air){
    vy+=G*DT;if(vy>1800)vy=1800;x+=vx*DT;y+=vy*DT;if(flipA)flipA+=flipV*DT;   // terminal velocity keeps dt-stepping sound
-   if(x<WL){x=WL;if(Math.abs(vx)>420)brf=6;if(battleOn&&Math.abs(vx)>620)hurt(Math.min(12,(Math.abs(vx)-620)/45));vx=Math.abs(vx)*0.72;dir=1;sqT=0.13;sqxP=0.9;sqyP=1.11;}
-   if(x>WR){x=WR;if(Math.abs(vx)>420)brf=6;if(battleOn&&Math.abs(vx)>620)hurt(Math.min(12,(Math.abs(vx)-620)/45));vx=-Math.abs(vx)*0.72;dir=-1;sqT=0.13;sqxP=0.9;sqyP=1.11;}
+   if(x<WL){x=WL;if(Math.abs(vx)>420)brf=6;vx=Math.abs(vx)*0.72;dir=1;sqT=0.13;sqxP=0.9;sqyP=1.11;}   // walls bounce but never wound: damage only comes from a rival's lunge
+   if(x>WR){x=WR;if(Math.abs(vx)>420)brf=6;vx=-Math.abs(vx)*0.72;dir=-1;sqT=0.13;sqxP=0.9;sqyP=1.11;}
    if(y<CEIL){y=CEIL;if(Math.abs(vy)>420&&bf===0)bf=5;vy=Math.abs(vy)*0.72;sqT=0.13;sqxP=1.11;sqyP=0.9;cTop=true;}   // bonk: a startle blink
    if(battleOn&&battlePlats.length&&vy>0){var cxp=x+HW/2,feet9=y+HH*FOOT,pfeet=feet9-vy*DT;   // one-way platforms: a DESCENDING head lands on top; a rising one passes clean through
     for(var pl9=0;pl9<battlePlats.length;pl9++){var Pl=battlePlats[pl9];
      if(cxp>Pl.l&&cxp<Pl.r&&pfeet<=Pl.t+3&&feet9>=Pl.t-1&&(Pl.t-HH*FOOT)<surface){surface=Pl.t-HH*FOOT;break;}}}
-   if(vy>0&&y>=surface){ cTop=false; if(st==="fall"&&Math.abs(vy)>340){if(Math.abs(vy)>1050)shakeAfter=true;if(battleOn&&Math.abs(vy)>700)hurt(Math.min(12,(Math.abs(vy)-700)/50));
+   if(vy>0&&y>=surface){ cTop=false; if(st==="fall"&&Math.abs(vy)>340){if(Math.abs(vy)>1050)shakeAfter=true;   // a hard landing skids, but the ground never wounds -- only a rival's lunge does
     if(Math.abs(vx)>420&&!wig)wig={t:0.22,dur:0.22,type:"tilt",a:(vx>0?1:-1)*4};   // fast landings skid: it leans into the slide
     var k=Math.min(0.2,Math.abs(vy)*0.0004);y=surface;vy=-vy*0.72;vx*=0.85;sqT=0.14;sqyP=1-k;sqxP=1/(1-k);flipA=0;flipV=0;}  // e=0.72 (toy ball), tangential 0.85, volume-true squash
     else land();}
@@ -3161,11 +3168,10 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
     if(rel<0){var jI=-(1+0.72)*rel*0.5;
      vx+=nx2*jI;vy+=ny2*jI*0.6;o2.kx-=nx2*jI;o2.ky-=ny2*jI*0.6;
      var hit=Math.abs(rel);
-     if(battleOn&&!elim&&o2.inB&&!o2.elim&&hit>260){   // battle: momentum is the only weapon
-      var base9=Math.min(30,(hit-260)/28);
-      var mine9=Math.abs(vx*nx2+vy*ny2),theirs9=Math.abs(o2.vx*nx2+o2.vy*ny2);
-      var atk=mine9>theirs9;   // the faster head is the attacker: it deals full, takes less
-      hurt(base9*(atk?0.45:1));o2.dmgIn+=base9*(atk?1:0.45);}
+     if(battleOn&&!elim&&o2.inB&&!o2.elim&&(slot||0)<(o2.slot||0)&&now>=(window.__hmBattleGo||0)){   // resolve each pair ONCE (lower slot) so nobody is hit twice, and only after the whistle
+      var meApp=-(vx*nx2+vy*ny2),o2App=(o2.vx*nx2+o2.vy*ny2),TH=200;   // each head's closing speed toward the other -- only a real lunge lands
+      if(meApp>TH)o2.dmgIn+=Math.min(16,(meApp-TH)/36);   // I lunged into them -> I deal the blow
+      if(o2App>TH)hurt(Math.min(16,(o2App-TH)/36));}   // they lunged into me -> they deal one; if we both lunged, both take damage by our own momentum
      if(hit>240){sqT=0.12;sqxP=0.9;sqyP=1.1;brf=6;if(hit>760&&dzf===0)dzf=8;}   // a proper bonk: brows up, maybe stars
      else if(hit>90&&bf===0&&Math.random()<0.35)bf=5;   // a friendly bump earns a blink
      if(hit>150&&Math.random()<0.5){gzx=Math.max(-1,Math.min(1,-nx2*0.75));gzy=-0.1;sacAt=now+900;}}   // and a look at WHO did that
@@ -3205,6 +3211,11 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    if(me.podX!=null){x+=((me.podX-HW/2)-x)*Math.min(1,DT*7);y+=((me.podTop-HH*FOOT)-y)*Math.min(1,DT*7);}
    air=false;vx=0;vy=0;grabbed=false;wig=null;flipA=0;flipV=0;
    if(me.podiumRank===1)crownEl.style.opacity="1";}
+  else if(me.spectate){   // ringed around the podium, watching the ceremony
+   if(elim){elim=false;me.elim=false;}elimP=0;root.style.display="";shadow.style.display="";root.style.opacity="1";
+   if(me.specX!=null){x+=((me.specX-HW/2)-x)*Math.min(1,DT*6);y+=(floorY-y)*Math.min(1,DT*6);}
+   air=false;vx=0;vy=0;grabbed=false;wig=null;flipA=0;flipV=0;crownEl.style.opacity="0";
+   gzx=((heroR.w/2)>(x+HW/2))?0.5:-0.5;gzy=-0.35;}   // eyes up at the winner
   var surfRot=(flipA?0:lean+(grabbed?swing:0))+rotX+(drowse2?2.2:0);   // leans and wiggles rock on the FEET
   var rot=surfRot+flipA;   // total visible rotation (the eyes need it below)
   var c2=HH*0.44;   // feet-origin to body-centre: flips spin about the centre via an explicit sandwich — two pivots, one transform, zero jumps
@@ -3372,7 +3383,9 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    S.phase="reset";bvx=0;bvy=0;setTimeout(function(){if(S.on){ball.style.opacity="1";if(ballShadow)ballShadow.style.opacity="0.28";dropIn();}},700);}   // otherwise it re-appears for the next kickoff
   function win(team){S.winner=team;S.phase="win";board2();
    try{winConfetti(team);}catch(_){}
+   if(countEl){countEl.classList.add("hmMsg");countEl.textContent=(team===1?"Red":"Blue")+" wins!";countEl.classList.remove("hmCountPulse");void countEl.offsetWidth;countEl.classList.add("hmCountPulse");}   // reuse the big 3-2-1 text to call the winner
    try{if(typeof busyNow==="function"&&!busyNow()){setHold("smile",2200);showFace("smile");refFlash();}}catch(_){}
+   setTimeout(function(){if(countEl){countEl.textContent="";countEl.classList.remove("hmMsg");}},3800);
    setTimeout(finish,4800);}
   function winConfetti(team){try{   // ONE full celebration canvas, capped like the rest
    if((window.__hmFx||0)>=1)return;window.__hmFx=(window.__hmFx||0)+1;
@@ -3453,9 +3466,17 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   var el=document.createElement("div");el.className="battleCount";el.innerHTML='<b>0</b>&nbsp;left<button class="hmScoreEnd" type="button" aria-label="End the battle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="12" height="12" rx="1.6"/></svg>End</button>';
   hero.appendChild(el);var b=el.querySelector("b");var shownN=-1;
   el.querySelector(".hmScoreEnd").addEventListener("click",function(e){e.stopPropagation();window.__hmRespawn=performance.now();});   // end the battle right from the counter
+  var cEl=document.createElement("div");cEl.className="hmCount";hero.appendChild(cEl);var cdN=0,wasOn=false;   // the big 3-2-1-GO before the brawl, and the winner call after
+  function bigText(t){cEl.textContent=t;cEl.classList.remove("hmCountPulse");void cEl.offsetWidth;cEl.classList.add("hmCountPulse");}
+  function countdown(){cdN++;var s=cdN,n=3;cEl.classList.remove("hmMsg");bigText(n);
+   (function step(){if(s!==cdN||!document.body.classList.contains("hmBattle"))return;
+    if(n>1){n--;setTimeout(function(){if(s!==cdN)return;bigText(n);step();},800);}
+    else setTimeout(function(){if(s!==cdN||!document.body.classList.contains("hmBattle"))return;bigText("GO");setTimeout(function(){if(s===cdN)cEl.textContent="";},650);},800);})();}
+  window.__hmBattleWin=function(txt){cdN++;cEl.classList.add("hmMsg");bigText(txt);setTimeout(function(){cEl.textContent="";cEl.classList.remove("hmMsg");},2800);};   // "Champion!" style call at the end
   var acc=0,lastT=performance.now();
   function tick(nowT){requestAnimationFrame(tick);
    var on=document.body.classList.contains("hmBattle");
+   if(on&&!wasOn)countdown();if(!on&&wasOn){cdN++;cEl.textContent="";}wasOn=on;
    if(!on){if(el.style.opacity!=="0"){el.style.opacity="0";shownN=-1;}return;}
    acc+=(nowT-lastT);lastT=nowT;if(acc<180)return;acc=0;   // ~5x/sec is plenty for a counter
    var n=0;for(var i=0;i<peers.length;i++){if(peers[i].inB&&!peers[i].elim)n++;}
@@ -3463,12 +3484,14 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   requestAnimationFrame(tick);
  })();
 
- (function platforms(){   // the battle arena: three light slabs, laid out on the clear left of the pitch, kept in sync with the shared battlePlats rects
+ (function platforms(){   // the battle arena: three light slabs across the now-clear stage, kept in sync with the shared battlePlats rects
   var hero=document.querySelector(".hero");if(!hero)return;
-  var DEFS=[[0.09,0.27,0.60],[0.30,0.48,0.385],[0.44,0.62,0.615]];   // [left%, right%, top%] -- two low flanks and one high in the middle, all clear of the big head on the right
+  var DEFS=[[0.12,0.31,88],[0.405,0.595,150],[0.69,0.88,88]];   // [left%, right%, HEIGHT ABOVE THE FLOOR px] -- full width now the big head is gone, and low enough for the heads to actually reach
   var els=DEFS.map(function(){var d=document.createElement("div");d.className="hmPlat";hero.appendChild(d);return d;});
-  function layout(){var r=hero.getBoundingClientRect(),w=r.width,h=r.height;battlePlats.length=0;
-   DEFS.forEach(function(D,i){var l=Math.round(w*D[0]),rr=Math.round(w*D[1]),t=Math.round(h*D[2]);
+  function layout(){var r=hero.getBoundingClientRect(),w=r.width;
+   var st=document.getElementById("stage"),sr=st?st.getBoundingClientRect():null,floorY=sr?(sr.bottom-r.top):(r.height*0.86);
+   battlePlats.length=0;
+   DEFS.forEach(function(D,i){var l=Math.round(w*D[0]),rr=Math.round(w*D[1]),t=Math.round(floorY-D[2]);   // measured UP from the real floor, so a normal jump clears them
     battlePlats.push({l:l,r:rr,t:t});
     els[i].style.width=(rr-l)+"px";els[i].style.transform="translate("+l+"px,"+t+"px)";});}
   layout();addEventListener("resize",layout,{passive:true});
