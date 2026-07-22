@@ -2614,17 +2614,19 @@ requestAnimationFrame(function(){requestAnimationFrame(startIntro);});
  function battleGate(){var n=gameCount(),on=gameOn();
   ["battleGo","soccerGo"].forEach(function(id){var bi=document.getElementById(id);if(!bi)return;
    if(on){bi.style.display="none";}   // a game is running: only End game belongs here
-   else{bi.style.display="flex";var few=n<2;bi.style.opacity=few?"0.38":"";bi.style.pointerEvents=few?"none":"";bi.setAttribute("aria-disabled",few?"true":"false");}});
+   else{bi.style.display="flex";var few=readAll().length<1;bi.style.opacity=few?"0.38":"";bi.style.pointerEvents=few?"none":"";bi.setAttribute("aria-disabled",few?"true":"false");}});   // even one head can play now -- mini-Jayden makes the second
   var eg=document.getElementById("endGame");if(eg)eg.style.display="none";}   // End now lives on the scoreboard, not the menu
  battleGate();setInterval(battleGate,400);
  function closeMenuBar(){var mb=document.getElementById("moodbar");if(mb)mb.classList.remove("open");var mbt=document.getElementById("moodBtn");if(mbt)mbt.setAttribute("aria-expanded","false");}
  var bg=document.getElementById("battleGo");
  if(bg)bg.addEventListener("click",function(){
-  if(gameCount()<2||document.body.classList.contains("hmBattle")||document.body.classList.contains("hmSoccer"))return;
+  var rc=readAll().length;if(rc<1||gameOn())return;
+  if(rc%2===1&&window.__hmFillerAdd)window.__hmFillerAdd();   // odd sides -> mini-Jayden steps in
   window.__hmBattleReq=performance.now();document.body.classList.add("hmBattle");closeMenuBar();battleGate();});
  var sg=document.getElementById("soccerGo");
  if(sg)sg.addEventListener("click",function(){
-  if(gameCount()<2||gameOn())return;
+  var rc=readAll().length;if(rc<1||gameOn())return;
+  if(rc%2===1&&window.__hmFillerAdd)window.__hmFillerAdd();   // add BEFORE kickoff so the teams count him
   try{if(window.__hmSoccerStart)window.__hmSoccerStart();}catch(_){}closeMenuBar();battleGate();});
  var eg=document.getElementById("endGame");
  if(eg)eg.addEventListener("click",function(){
@@ -2664,6 +2666,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
  var podiumEls=[];   // the three pedestals, created once, shown at the end of a fight
  function spawnCompanion(data,slot){
  var reduce=matchMedia("(prefers-reduced-motion:reduce)").matches;
+ var filler=!!(data&&data.__filler);   // the mid-game stand-in (mini-Jayden): spawns already active, no intro
  var hero=document.querySelector(".hero");if(!hero)return;
  if(getComputedStyle(hero).position==="static")hero.style.position="relative";
  var mob=innerWidth<=880;
@@ -2987,6 +2990,11 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   tk3++;var now=_nowF,aboutB=false;moodB=false;
   try{aboutB=document.body.classList.contains("about-open");moodB=(typeof busyNow==="function"&&busyNow());}catch(_){}
   var want=!aboutB&&!gone;   // moods never hide the pit: the little heads are the audience
+  if(first&&filler){ // the mid-game stand-in drops straight in -- no waiting on the (hidden) big head's intro
+   first=false;shown=true;survey();var flf=Math.random()<0.5;
+   x=flf?WL+2:WR-2;y=floorY-(150+Math.random()*160);surface=floorY;dir=flf?1:-1;air=true;st="fall";
+   vx=dir*(320+Math.random()*220);vy=-(140+Math.random()*220);
+   root.style.opacity="1";root.style.filter="blur(0)";shadow.style.opacity="1";}
   if(first){ // the pit opens after his intro: each head is TOSSED in from the edge, one at a time
    if(now<bornAt)return;
    var stEl1=document.getElementById("stage"),fEl1=document.getElementById("face");
@@ -3519,6 +3527,19 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    spots[o.rank]={cx:o.cx,top:pt};});
   return spots;}
  function hidePodium(){podiumEls.forEach(function(e){e.classList.remove("show");});document.body.classList.remove("hmPodium");}
+
+ // mini-Jayden: when a game has an ODD number of players, the big head shrinks in to even the sides (and makes a 1-head game playable)
+ var fillerActive=false,FSLOT=9001,fillerCut=null;
+ window.__hmFillerAdd=function(){if(fillerActive)return;
+  var face=document.getElementById("face");if(!face||!face.src||!face.complete||!face.naturalWidth)return;
+  fillerCut=face.src;   // remember EXACTLY this src -- the big head cycles expressions, so we can't re-read it later
+  var data={cut:fillerCut,__filler:true,
+   eyes:[{x:0.40,y:0.42,w:0.10,h:0.045,ang:0,sc:"rgb(238,236,232)",ic:[44,33,26]},{x:0.60,y:0.42,w:0.10,h:0.045,ang:0,sc:"rgb(238,236,232)",ic:[44,33,26]}],
+   marks:{BL:{x:0.35,y:0.35},BR:{x:0.65,y:0.35},M:{x:0.5,y:0.66},N:{x:0.5,y:0.52}}};
+  spawnCompanion(data,FSLOT);var m=peers[peers.length-1];if(m)m.__filler=true;fillerActive=true;};
+ window.__hmFillerRemove=function(){if(!fillerActive)return;try{if(window.__hmKill&&fillerCut){window.__hmKill(fillerCut);var L=window.__hmLive||[];for(var i=L.length-1;i>=0;i--){if(L[i].cut===fillerCut)L.splice(i,1);}}}catch(_){}fillerActive=false;fillerCut=null;};   // also drop the dead __hmLive entry so it can't pile up across games
+ window.__hmRealHeads=function(){var n=0;for(var i=0;i<peers.length;i++){if(!peers[i].__filler)n++;}return n;};
+ setInterval(function(){if(fillerActive&&!document.body.classList.contains("hmSoccer")&&!document.body.classList.contains("hmBattle"))window.__hmFillerRemove();},400);   // the stand-in leaves when the game does
 })();
 </script>
 </body></html>
