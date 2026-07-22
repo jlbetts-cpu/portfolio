@@ -2666,6 +2666,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
  var peers=[];   // every head knows where every other head is, every frame
  var battlePlats=[];   // battle arena: floating platforms the heads land on and pounce from (populated by the platforms block, read every frame in the physics)
  var sharedFeetY=null;   // the shared FLOOR line (screen-space feet row). Cached while the big head is VISIBLE so a head spawning mid-game (mini-Jayden -- the big head is hidden AND the hero box measures shorter then) lands on the SAME plane as everyone else instead of a mid-game fallback.
+ var sparkThrottle=0;   // shared rate-limit for impact sparks so a scrum can't flood the DOM
  var battleOut=[];   // knockouts in order -- last out ranks 2nd, the one before 3rd; the survivor is 1st
  var podiumEls=[];   // the three pedestals, created once, shown at the end of a fight
  function spawnCompanion(data,slot){
@@ -2817,7 +2818,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
      st="idle",stT=0,hopsLeft=0,grabbed=false,gpx=0,gpy=0,lastPX=0,lastPY=0,pvx=0,pvy=0,
      offAt=0,gone=false,goneUntil=0,decideAt=performance.now()+4200,spin=0,heldOff=0,heldV=0,cTop=false,bornAt=performance.now()+1600,perched=false,hs=1,hsT=1,dockUntil=0,moodB=false,pbAt=0,mirrorAt=0,downT=0,downX=0,downY=0,shakeN=0,heartsF=0,danceHops=0,dblBlink=false,
      bAt=performance.now()+2800,bf=0,brAt=performance.now()+7000,brf=0,moAt=performance.now()+11000,mof=0,
-     dzf=0,sqx=1,sqy=1,sqxv=0,sqyv=0,sqxP=1,sqyP=1,sqT=0,shown=false,first=true,tk3=0,gzx=0,gzy=0,sacAt=0,flipA=0,flipV=0,wig=null,wigP=0,bounceN=0,perchT=0,leapDelay=Infinity,hmOverT=0,introSettled=false,bornWall=0,introFrames=0,shakeAfter=false,drowse2=false,lastNearT=performance.now(),perchWigAt=performance.now()+9000,greetAt=performance.now()+6000,visitUntil=0,hmOverNow=false,vaulting=false,audAt=0,killed=false,hp=100,crowdT=0,team=0,soccerOn=false,soccerKickSeen=0,soccerWon=false,goalSeen=0,battleOn=false,battleSeen=0,elim=false,elimP=0,celebrated=false,respawnSeen=0,hurtT=0,danceUntil=0,danceHopAt=0,
+     dzf=0,sqx=1,sqy=1,sqxv=0,sqyv=0,sqxP=1,sqyP=1,sqT=0,shown=false,first=true,tk3=0,gzx=0,gzy=0,sacAt=0,flipA=0,flipV=0,wig=null,wigP=0,bounceN=0,perchT=0,leapDelay=Infinity,hmOverT=0,introSettled=false,bornWall=0,introFrames=0,shakeAfter=false,drowse2=false,lastNearT=performance.now(),perchWigAt=performance.now()+9000,greetAt=performance.now()+6000,visitUntil=0,hmOverNow=false,vaulting=false,audAt=0,killed=false,hp=100,crowdT=0,team=0,soccerOn=false,soccerKickSeen=0,soccerWon=false,goalSeen=0,battleOn=false,battleSeen=0,elim=false,elimP=0,celebrated=false,respawnSeen=0,hurtT=0,danceUntil=0,danceHopAt=0,mjHurtUntil=0,hitStop=0,
      pendingHide=null,hideToken=0,lapBack=false,forceHide=/[?&]hide=1/.test(location.search);
  function plane(front){root.style.zIndex=front?"3":"1";shadow.style.zIndex=front?"2":"1";}   // two planes only: the front (where hands live) and behind the furniture
  var G=2600,DT=0.04,facc=0,CEIL=2,surpriseAt=0;   // real units: px/s and px/s^2, integrated at 25fps
@@ -2827,6 +2828,9 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   try{root.remove();shadow.remove();var ix9=peers.indexOf(me);if(ix9>-1)peers.splice(ix9,1);}catch(_){}}});
  function hurt(d){if(!battleOn||elim)return;
   hp=Math.max(0,hp-d);hurtT=0.2;brf=6;   // the flush, the brows, and on big hits a blink or stars
+  if(filler)mjHurtUntil=performance.now()+620;   // the mini-Jayden winces: his REST face (scrunched eyes) IS his "ow" (see the mirror)
+  var _pun=Math.min(0.16,0.05+d*0.006);sqT=0.12;sqxP=1+_pun;sqyP=1/(1+_pun);   // IMPACT: a quick squash-punch scaled to the blow
+  hitStop=performance.now()+Math.min(70,34+d*2.2);   // ...and a hair of hit-stop (freeze frames) -- subtle, but it sells the contact
   if(d>8&&bf===0)bf=5;if(d>15)dzf=Math.max(dzf,7);
   if(d>=9&&Math.random()<0.4){try{if(typeof busyNow==="function"&&!busyNow()&&typeof eventLock!=="undefined"&&!eventLock){setHold("rest",700);showFace("rest");browFlash();}}catch(_){}}   // the referee gasps at a solid hit
   if(hp<=0){
@@ -2855,6 +2859,14 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
     g9.scale(1,Math.max(0.15,Math.abs(Math.cos(t9*p9.rv*1.3+p9.ph))));   // the tumble: paper catching the light
     g9.fillStyle=p9.c;g9.fillRect(-p9.w/2,-p9.h/2,p9.w,p9.h);g9.restore();});
    if(t9<3.8)requestAnimationFrame(fl9);else{cv9.remove();window.__hmFx=Math.max(0,(window.__hmFx||1)-1);}})(performance.now());}catch(_){window.__hmFx=Math.max(0,(window.__hmFx||1)-1);}}
+ function impactSpark(hx,hy,mag,col){try{   // a clean, quick shockwave RING at the contact point -- Apple-subtle, and it tells you exactly WHERE (and between whom) a hit landed
+  var nowS=performance.now();if(nowS-sparkThrottle<40)return;sparkThrottle=nowS;
+  var sz=Math.round(12+Math.min(34,mag*0.05));   // bigger blow, bigger ring
+  var d=document.createElement("div");
+  d.style.cssText="position:absolute;left:"+hx.toFixed(0)+"px;top:"+hy.toFixed(0)+"px;width:"+sz+"px;height:"+sz+"px;margin:"+(-sz/2)+"px 0 0 "+(-sz/2)+"px;border-radius:50%;border:2px solid "+(col||"rgba(24,24,26,.5)")+";pointer-events:none;z-index:9;opacity:.85;will-change:transform,opacity;transform:scale(.35)";
+  hero.appendChild(d);var t0=nowS;
+  (function anim(n){var p=(n-t0)/210;if(p>=1||killed){d.remove();return;}var e=1-Math.pow(1-p,3);d.style.transform="scale("+(0.35+e*1.55).toFixed(2)+")";d.style.opacity=(0.85*(1-p)).toFixed(2);requestAnimationFrame(anim);})(nowS);
+ }catch(_){}}
  function startFlip(){if(Math.abs(vy)<700)return;   // ONLY flip off a real high jump -- a low hop (an attack charge, a little pounce, standing still) can't finish the turn before landing, so it snaps mid-air ("flip cancel"). No height, no flip.
   var tt=Math.max(0.45,2*Math.abs(vy)/G);   // one full turn, timed to land on its feet
   flipV=Math.max(-700,Math.min(700,(360/tt)*(dir||1)));flipA=flipV>0?0.01:-0.01;}
@@ -3146,6 +3158,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    if(_grin){
     if(_dancing&&Math.floor(now/300)%3===2)_bsrc=_bClosed?"images/wink_closed.webp":"images/wink.webp";   // groove: flash a wink on the beat
     else _bsrc=_bClosed?"images/smile_closed.webp":"images/smile.webp";}   // his real smile FACE bakes his (smiling) eyes right in -> the iris overlays MUST come off or he wears two sets of eyes
+   else if(filler&&mjHurtUntil>now){_bsrc=_bClosed?"images/rest_closed.webp":"images/rest.webp";}   // his WINCE when a blow lands: the REST face (half-lidded, scrunched) IS his "ow" -- set for ~0.6s in hurt()
    else{_bsrc=mjBigFace.getAttribute("src")||"";
     if(/smile/.test(_bsrc))_bsrc=_bsrc.replace("smile","neutral");   // his grin is his OWN, team-gated (smileT) -- don't borrow the shared big head's smile when the OTHER team scored
     if(/rest/.test(_bsrc))_bsrc=_bsrc.replace("rest","neutral");   // a FIGHTER never drifts sleepy mid-game (rest_closed -> neutral_closed keeps the blink)
@@ -3153,6 +3166,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    var _cff=mjClone.querySelector(".face");
    if(_cff&&_cff.getAttribute("src")!==_bsrc){_cff.setAttribute("src",_bsrc);
     try{var _mu="url("+_bsrc+")";ringEl.style.webkitMaskImage=_mu;ringEl.style.maskImage=_mu;hurtEl.style.webkitMaskImage=_mu;hurtEl.style.maskImage=_mu;}catch(_){}}   // the OUTLINE + hurt-flash follow his current face, so the rim reshapes when he grins or raises his brows
+   var _faceDir=(dir<0?-1:1);if(mjClone.__fd!==_faceDir){mjClone.__fd=_faceDir;mjClone.style.transform="scaleX("+_faceDir+")";}   // FLIP to face where he's running (like the little heads never do) -- his face has a front, so mirror it left/right
    for(var _mi=0;_mi<_cE.length&&_mi<_bE.length;_mi++){
     var _wantHide=_grin?"none":"";if(_cE[_mi].style.display!==_wantHide)_cE[_mi].style.display=_wantHide;   // no floating irises over the baked-in smile
     _cE[_mi].classList.toggle("eclosed",_bE[_mi].classList.contains("eclosed"));   // mirror the blink
@@ -3207,7 +3221,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
 
   // physics: walls, floor, ceiling, and the caregiver — nothing else is solid
   if(!grabbed&&air){
-   vy+=G*DT;if(vy>1800)vy=1800;x+=vx*DT;y+=vy*DT;if(flipA)flipA+=flipV*DT;   // terminal velocity keeps dt-stepping sound
+   if(now>=hitStop){vy+=G*DT;if(vy>1800)vy=1800;x+=vx*DT;y+=vy*DT;if(flipA)flipA+=flipV*DT;}   // terminal velocity keeps dt-stepping sound; hit-stop freezes him for a few frames on impact so the blow READS (the squash keeps animating)
    if(x<WL){x=WL;if(Math.abs(vx)>420)brf=6;vx=Math.abs(vx)*0.72;dir=1;sqT=0.13;sqxP=0.9;sqyP=1.11;}   // walls bounce but never wound: damage only comes from a rival's lunge
    if(x>WR){x=WR;if(Math.abs(vx)>420)brf=6;vx=-Math.abs(vx)*0.72;dir=-1;sqT=0.13;sqxP=0.9;sqyP=1.11;}
    if(y<CEIL){y=CEIL;if(Math.abs(vy)>420&&bf===0)bf=5;vy=Math.abs(vy)*0.72;sqT=0.13;sqxP=1.11;sqyP=0.9;cTop=true;}   // bonk: a startle blink
@@ -3243,7 +3257,9 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
      if(battleOn&&!elim&&o2.inB&&!o2.elim&&(slot||0)<(o2.slot||0)&&now>=(window.__hmBattleGo||0)){   // resolve each pair ONCE (lower slot) so nobody is hit twice, and only after the whistle
       var meApp=-(vx*nx2+vy*ny2),o2App=(o2.vx*nx2+o2.vy*ny2),TH=200;   // each head's closing speed toward the other -- only a real lunge lands
       if(meApp>TH)o2.dmgIn+=Math.min(16,(meApp-TH)/36);   // I lunged into them -> I deal the blow
-      if(o2App>TH)hurt(Math.min(16,(o2App-TH)/36));}   // they lunged into me -> they deal one; if we both lunged, both take damage by our own momentum
+      if(o2App>TH)hurt(Math.min(16,(o2App-TH)/36));   // they lunged into me -> they deal one; if we both lunged, both take damage by our own momentum
+      var _land=Math.max(meApp>TH?meApp-TH:0,o2App>TH?o2App-TH:0);   // IMPACT SPARK at the contact point: a quick ring right where the blow lands -> you can finally SEE who bonked whom
+      if(_land>0)impactSpark((x+HW/2+o2.x+o2.HW/2)/2,(y+HH*0.45+o2.y+o2.HH*0.45)/2,_land);}
      if(hit>240){sqT=0.12;sqxP=0.9;sqyP=1.1;brf=6;if(hit>760&&dzf===0)dzf=8;}   // a proper bonk: brows up, maybe stars
      else if(hit>90&&bf===0&&Math.random()<0.35)bf=5;   // a friendly bump earns a blink
      if(hit>150&&Math.random()<0.5){gzx=Math.max(-1,Math.min(1,-nx2*0.75));gzy=-0.1;sacAt=now+900;}}   // and a look at WHO did that
@@ -3297,6 +3313,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    +(flipA?" translate(0px,"+(-c2).toFixed(1)+"px) rotate("+flipA.toFixed(1)+"deg) translate(0px,"+c2.toFixed(1)+"px)":"")
    +" rotate("+surfRot.toFixed(1)+"deg) scale("+(depth*hs*sqx*(1-0.6*elimP)).toFixed(3)+","+(depth*hs*sqy*(1-0.6*elimP)).toFixed(3)+")";
   if(elimP>0&&elimP<1){root.style.opacity=(1-elimP).toFixed(2);shadow.style.opacity=(0.4*(1-elimP)).toFixed(2);}
+  if(bigR&&root.style.zIndex==="1"){var _cxb=x+HW/2;if(_cxb>bigR.l-HW*0.35&&_cxb<bigR.r+HW*0.35&&(y+HH*0.55)<bigR.b)root.style.zIndex="3";}   // never let a hidden (back-plane) head slip BEHIND the big head -- if it drifts over his face, pop it back to the front plane
   // the shadow falls on whatever is DIRECTLY below the head right now -- a platform if it's over one, else the floor -- so it never snaps when leaving a slab
   var feetY=y+HH*FOOT,shG=floorY+HH*FOOT,cxs=x+HW/2;
   if(battleOn&&battlePlats.length){for(var si=0;si<battlePlats.length;si++){var SP=battlePlats[si];if(cxs>SP.l&&cxs<SP.r&&SP.t>=feetY-3&&SP.t<shG)shG=SP.t;}}
