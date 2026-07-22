@@ -3250,7 +3250,9 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   var bsx=1,bsy=1,bsxv=0,bsyv=0,bsxP=1,bsyP=1,bsT=0;
   function geo(){var r=hero.getBoundingClientRect();W=r.width;H=r.height;OFF=r.left;XL=-OFF;XR=innerWidth-OFF;   // the pitch spans the whole screen, wall to wall
    var st=document.getElementById("stage");if(st){var sr=st.getBoundingClientRect();groundY=sr.bottom-r.top;}else groundY=H-40;   // the pitch line == where the heads' feet rest (the stage bottom), so ball and players share one ground
-   if(groundY>H-16)groundY=H-16;}
+   if(groundY>H-16)groundY=H-16;
+   var nBR=innerWidth<=880?16:24;   // the heads shrink on mobile (96->64), so the ball shrinks with them (48->32) to keep the player:ball ratio honest
+   if(nBR!==BR){BR=nBR;if(ball){ball.style.width=ball.style.height=(2*BR)+"px";}if(ballShadow){ballShadow.style.width=(2*BR)+"px";ballShadow.style.height=(BR*0.55).toFixed(1)+"px";}}}
   function dom(){geo();
    ballShadow=document.createElement("div");ballShadow.className="hmBallShadow";hero.appendChild(ballShadow);
    ball=document.createElement("div");ball.className="hmBall";
@@ -3400,7 +3402,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    if(ball){ball.style.transform="translate("+(bx-BR).toFixed(1)+"px,"+(by-BR).toFixed(1)+"px) scale("+bsx.toFixed(3)+","+bsy.toFixed(3)+")";   // container: position + squash, it never rotates
     if(ballSkin)ballSkin.style.transform="rotate("+spin.toFixed(1)+"deg)";}   // only the printed pattern spins, dead-centre -- the lighting stays put
    if(ballShadow){var bBot=by+BR,airH=Math.max(0,groundY-bBot),scv=Math.max(0.4,1-airH/460);   // the shadow lives ON the pitch line, dead under the ball, shrinking as it rises
-    ballShadow.style.transform="translate("+(bx-24).toFixed(1)+"px,"+(groundY-6.5).toFixed(1)+"px) scale("+scv.toFixed(3)+","+scv.toFixed(3)+")";
+    ballShadow.style.transform="translate("+(bx-BR).toFixed(1)+"px,"+(groundY-BR*0.275).toFixed(1)+"px) scale("+scv.toFixed(3)+","+scv.toFixed(3)+")";
     ballShadow.style.opacity=(S.on&&S.phase!=="idle")?String(Math.max(0.05,0.3-airH/900)):"0";}}
  })();
 
