@@ -746,7 +746,8 @@ document.getElementById("addAnother").addEventListener("click",function(){docume
 document.getElementById("saveFile").addEventListener("click",function(){ // your head as a keepsake file: reupload it any time
  try{if(!cutURL||cutURL.length<100)return;
   var _d2=deriveEyes();
-  var payload={v:1,kind:"jaydenbetts-head",cut:cutURL,eyes:eyeEls.map(function(e,i){var o=Object.assign({},_d2[i]);o.sc=e.sc;o.ic=irisColor(_d2[i]);return o;}),marks:marks,t:Date.now()};
+  var _fileCut=(bakedCanvas?packCut(bakedCanvas):cutURL);   // ship a lean WebP, not a ~1MB PNG, so re-uploading it never floods the quota
+  var payload={v:1,kind:"jaydenbetts-head",cut:_fileCut,eyes:eyeEls.map(function(e,i){var o=Object.assign({},_d2[i]);o.sc=e.sc;o.ic=irisColor(_d2[i]);return o;}),marks:marks,t:Date.now()};
   var a=document.createElement("a");a.download="my-floating-head.headjson";
   a.href="data:application/json;charset=utf-8,"+encodeURIComponent(JSON.stringify(payload));a.click();
  }catch(_){}});
@@ -862,9 +863,7 @@ document.getElementById("save").addEventListener("click",function(){
 });
 /* returning visitors get their head back — this runs last, after all state exists
    (it used to run before the var declarations executed, which nulled the restored image: the glitch) */
-function registerHead(_sv){try{ // a saved head file re-uploaded joins the pit and the homepage, like a fresh make
-  var nh={cut:_sv.cut,eyes:_sv.eyes||[],marks:_sv.marks||null,t:_sv.t||Date.now()};
-  if(!nh.cut||nh.cut.length<15000)return;   // must be a real face to earn a slot
+function pitSave(nh){ // write one head into the eight-slot pit, quota-safe
   var all=[],rawS=null;try{var r2=localStorage.getItem("hmCompanions");if(r2!==null){all=JSON.parse(r2)||[];rawS=1;}}catch(_){}
   if(!(all instanceof Array))all=[];
   if(rawS===null){try{var lg=JSON.parse(localStorage.getItem("hmCompanion")||"null");if(lg&&lg.cut&&lg.cut.length>100)all=[lg];}catch(_){}}
@@ -874,6 +873,20 @@ function registerHead(_sv){try{ // a saved head file re-uploaded joins the pit a
    catch(_q){if(all.length<=1)break;all.shift();}}   // quota can never eat the save silently
   try{localStorage.setItem("hmCompanion",JSON.stringify(nh));}catch(_){}
   renderPit();
+}
+function registerHead(_sv){try{ // a saved head file re-uploaded joins the pit like a fresh make -- but COMPRESSED first
+  if(!_sv||!_sv.cut||_sv.cut.length<15000)return;   // must be a real face to earn a slot
+  var meta={eyes:_sv.eyes||[],marks:_sv.marks||null,t:_sv.t||Date.now()};
+  if(/^data:image\/webp/.test(_sv.cut)&&_sv.cut.length<200000){pitSave({cut:_sv.cut,eyes:meta.eyes,marks:meta.marks,t:meta.t});return;}   // already lean: keep as-is, no quality loss
+  var img=new Image();   // otherwise a full-res PNG (~1MB): re-encode to WebP so it can't hog the quota
+  img.onload=function(){var packed=_sv.cut;
+   try{var c=document.createElement("canvas");c.width=BAKE_W;c.height=BAKE_H;
+    c.getContext("2d").drawImage(img,0,0,BAKE_W,BAKE_H);var p=packCut(c);if(p&&p.length>=15000)packed=p;   // ~1MB upload becomes ~30KB
+   }catch(_){}
+   if(packed.length<15000)return;
+   pitSave({cut:packed,eyes:meta.eyes,marks:meta.marks,t:meta.t});};
+  img.onerror=function(){pitSave({cut:_sv.cut,eyes:meta.eyes,marks:meta.marks,t:meta.t});};   // can't decode to compress? store the original rather than lose it
+  img.src=_sv.cut;
  }catch(_){}}
 function restoreHead(_sv,save){if(!(_sv&&_sv.cut&&_sv.cut.length>100))return false;
  cutURL=_sv.cut;restoredEyes=_sv.eyes;if(_sv.marks)marks=_sv.marks;
