@@ -276,7 +276,9 @@ body.partyLock{overflow:hidden}
 body.hmBattle .moodMenu .moodItem:not(#endGame){opacity:.38;pointer-events:none}
 @media(pointer:coarse){.mhX{width:26px;height:26px;font-size:15px;top:-9px;right:-9px}.mhItem img{width:44px;height:52px}.hmPitX{width:28px;height:28px;font-size:16px;top:-11px;right:-11px}}
 body.hmSoccer .moodMenu .moodItem:not(#endGame){opacity:.38;pointer-events:none}
-.hmBall{position:absolute;left:0;top:0;width:48px;height:48px;z-index:5;opacity:0;pointer-events:none;transition:opacity .3s;background:url(images/soccerball.svg) center/contain no-repeat;transform-origin:50% 100%}
+.hmBall{position:absolute;left:0;top:0;width:48px;height:48px;z-index:5;opacity:0;pointer-events:none;transition:opacity .3s;transform-origin:50% 50%}
+.hmBallSkin{position:absolute;inset:0;background:url(images/soccerball-skin.svg) center/contain no-repeat;transform-origin:50% 50%;will-change:transform}
+.hmBallShade{position:absolute;inset:0;border-radius:50%;pointer-events:none;background:radial-gradient(circle at 31% 27%,rgba(255,255,255,.6) 0%,rgba(255,255,255,0) 32%),radial-gradient(circle at 50% 50%,rgba(0,0,0,0) 60%,rgba(0,0,0,.3) 100%),radial-gradient(circle at 33% 29%,rgba(255,255,255,.14) 0%,rgba(0,0,0,0) 42%,rgba(0,0,0,.26) 86%)}
 .hmBallShadow{position:absolute;left:0;top:0;width:48px;height:13px;border-radius:50%;background:radial-gradient(ellipse at center,rgba(8,8,8,.26),rgba(8,8,8,0) 70%);opacity:0;pointer-events:none;z-index:1;transition:opacity .3s}
 .hmGoal{position:absolute;left:0;top:0;width:42px;height:162px;z-index:2;opacity:0;pointer-events:none;transition:opacity .3s;border-radius:3px;background:repeating-linear-gradient(45deg,rgba(26,26,26,.16) 0 1px,transparent 1px 8px),repeating-linear-gradient(-45deg,rgba(26,26,26,.16) 0 1px,transparent 1px 8px)}
 .hmGoalShadow{position:absolute;left:0;top:0;width:60px;height:15px;border-radius:50%;background:radial-gradient(ellipse at center,rgba(8,8,8,.24),rgba(8,8,8,0) 72%);opacity:0;pointer-events:none;z-index:1;transition:opacity .3s}
@@ -3243,7 +3245,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   if(matchMedia("(prefers-reduced-motion:reduce)").matches)return;
   var S={on:false,seed:0,kickSeed:0,teams:{},target:5,red:0,blue:0,ball:{x:0,y:0},phase:"idle",winner:0};
   window.__hmSoccer=S;
-  var ball,goalL,goalR,goalShL,goalShR,board,sR,sB,countEl,W=0,H=0,groundY=0,BR=24,OFF=0,XL=0,XR=0;
+  var ball,ballSkin,goalL,goalR,goalShL,goalShR,board,sR,sB,countEl,W=0,H=0,groundY=0,BR=24,OFF=0,XL=0,XR=0;
   var bx=0,by=0,bvx=0,bvy=0,kickCd={},running=false,last=performance.now(),scoreTeam=0,ballShadow;
   var bsx=1,bsy=1,bsxv=0,bsyv=0,bsxP=1,bsyP=1,bsT=0;
   function geo(){var r=hero.getBoundingClientRect();W=r.width;H=r.height;OFF=r.left;XL=-OFF;XR=innerWidth-OFF;   // the pitch spans the whole screen, wall to wall
@@ -3251,7 +3253,10 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    if(groundY>H-16)groundY=H-16;}
   function dom(){geo();
    ballShadow=document.createElement("div");ballShadow.className="hmBallShadow";hero.appendChild(ballShadow);
-   ball=document.createElement("div");ball.className="hmBall";hero.appendChild(ball);
+   ball=document.createElement("div");ball.className="hmBall";
+   ballSkin=document.createElement("div");ballSkin.className="hmBallSkin";ball.appendChild(ballSkin);   // the pattern: this alone rotates
+   var ballShade=document.createElement("div");ballShade.className="hmBallShade";ball.appendChild(ballShade);   // the sphere lighting: fixed, so the ball reads as lit, not a spinning disc
+   hero.appendChild(ball);
    goalShL=document.createElement("div");goalShL.className="hmGoalShadow";hero.appendChild(goalShL);
    goalShR=document.createElement("div");goalShR.className="hmGoalShadow";hero.appendChild(goalShR);
    goalL=document.createElement("div");goalL.className="hmGoal hmGoalR";hero.appendChild(goalL);   // left goal is RED\u2019s to defend
@@ -3390,7 +3395,8 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    if(bsT>0)bsT-=dt;else{bsxP=1;bsyP=1;}
    bsxv+=((bsxP-bsx)*1150-bsxv*62)*dt;bsx+=bsxv*dt;
    bsyv+=((bsyP-bsy)*1150-bsyv*62)*dt;bsy+=bsyv*dt;
-   if(ball)ball.style.transform="translate("+(bx-BR).toFixed(1)+"px,"+(by-BR).toFixed(1)+"px) scale("+bsx.toFixed(3)+","+bsy.toFixed(3)+") rotate("+spin.toFixed(1)+"deg)";
+   if(ball){ball.style.transform="translate("+(bx-BR).toFixed(1)+"px,"+(by-BR).toFixed(1)+"px) scale("+bsx.toFixed(3)+","+bsy.toFixed(3)+")";   // container: position + squash, it never rotates
+    if(ballSkin)ballSkin.style.transform="rotate("+spin.toFixed(1)+"deg)";}   // only the printed pattern spins, dead-centre -- the lighting stays put
    if(ballShadow){var bBot=by+BR,airH=Math.max(0,groundY-bBot),scv=Math.max(0.4,1-airH/460);   // the shadow lives ON the pitch line, dead under the ball, shrinking as it rises
     ballShadow.style.transform="translate("+(bx-24).toFixed(1)+"px,"+(groundY-6.5).toFixed(1)+"px) scale("+scv.toFixed(3)+","+scv.toFixed(3)+")";
     ballShadow.style.opacity=(S.on&&S.phase!=="idle")?String(Math.max(0.05,0.3-airH/900)):"0";}}
