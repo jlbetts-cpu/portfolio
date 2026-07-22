@@ -2755,7 +2755,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
  var brows=[],mouth=null,nose=null;
  if(mk){brows=[strip(mk.BL.x,mk.BL.y,ew0*1.5,ew0*0.9),strip(mk.BR.x,mk.BR.y,ew0*1.5,ew0*0.9)];
   nose=strip(mk.N.x,mk.N.y,ew0*1.1,ew0*1.2);mouth=strip(mk.M.x,mk.M.y,ew0*1.8,ew0*0.95);mouth.style.transformOrigin="50% 18%";}
- var mjClone=null,mjBigFace=null;   // MINI-JAYDEN: it isn't a bake, it's the actual big head cloned + shrunk, mirrored live every frame
+ var mjClone=null,mjBigFace=null,mjBigW=500;   // MINI-JAYDEN: it isn't a bake, it's the actual big head cloned + shrunk, mirrored live every frame (mjBigW = big head's px width, to scale his pixel-based gaze down to mini size)
  if(filler&&data.__mirror){try{var bigStage=document.getElementById("stage");if(bigStage){
   im.style.display="none";eyeEls3.forEach(function(e){if(e.box)e.box.style.display="none";});   // drop the companion face rig -- the clone IS the face now
   if(nose)nose.style.display="none";if(mouth)mouth.style.display="none";brows.forEach(function(b){b.style.display="none";});
@@ -2766,7 +2766,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   var _bk=bigStage.children,_ck=mjClone.children;
   for(var _ki=0;_ki<_ck.length&&_ki<_bk.length;_ki++){try{_ck[_ki].style.opacity=getComputedStyle(_bk[_ki]).opacity;}catch(_){}}
   if(im.nextSibling)root.insertBefore(mjClone,im.nextSibling);else root.appendChild(mjClone);
-  mjBigFace=document.getElementById("face");
+  mjBigFace=document.getElementById("face");mjBigW=bigStage.getBoundingClientRect().width||500;   // his rendered width, so we can scale his gaze translate to the mini
  }}catch(_){mjClone=null;}}
  var bar=document.createElement("div");bar.className="hmHp";bar.setAttribute("aria-hidden","true");
  var barFill=document.createElement("i");bar.appendChild(barFill);
@@ -3130,11 +3130,11 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    var _bsrc=mjBigFace.getAttribute("src")||"";
    if(/rest/.test(_bsrc))_bsrc=_bsrc.replace("rest","neutral");   // a FIGHTER never looks sleepy: swap his idle 'rest' face (closed sleepy eyes) for the ALERT neutral one, keeping blinks (rest_closed -> neutral_closed)
    var _cff=mjClone.querySelector(".face");if(_cff&&_cff.getAttribute("src")!==_bsrc)_cff.setAttribute("src",_bsrc);
-   var _bE=document.querySelectorAll("#stage > .eye"),_cE=mjClone.querySelectorAll(".eye");
+   var _bE=document.querySelectorAll("#stage > .eye"),_cE=mjClone.querySelectorAll(".eye"),_rat=mjBigW?HW/mjBigW:0.25;   // his gaze is in HIS pixels; scale it to the mini so the iris moves the same FRACTION of the eye, not the same pixels (which flew the iris right out of the tiny eye)
    for(var _mi=0;_mi<_cE.length&&_mi<_bE.length;_mi++){
     _cE[_mi].classList.toggle("eclosed",_bE[_mi].classList.contains("eclosed"));   // mirror the blink
-    var _bi=_bE[_mi].querySelector(".iris"),_ci=_cE[_mi].querySelector(".iris");if(_bi&&_ci)_ci.style.transform=_bi.style.transform;   // mirror the gaze
-    var _bg=_bE[_mi].querySelector(".glint"),_cg=_cE[_mi].querySelector(".glint");if(_bg&&_cg)_cg.style.transform=_bg.style.transform;}}
+    var _bi=_bE[_mi].querySelector(".iris"),_ci=_cE[_mi].querySelector(".iris");if(_bi&&_ci){var _t=_bi.style.transform||"",_m=_t.match(/translate\(\s*(-?[\d.]+)px[ ,]+(-?[\d.]+)px/);_ci.style.transform=_m?("translate("+(parseFloat(_m[1])*_rat).toFixed(2)+"px,"+(parseFloat(_m[2])*_rat).toFixed(2)+"px)"):_t;}   // mirror the gaze, SCALED
+    var _bg=_bE[_mi].querySelector(".glint"),_cg=_cE[_mi].querySelector(".glint");if(_bg&&_cg){var _tg=_bg.style.transform||"",_mg=_tg.match(/translate\(\s*(-?[\d.]+)px[ ,]+(-?[\d.]+)px/);_cg.style.transform=_mg?("translate("+(parseFloat(_mg[1])*_rat).toFixed(2)+"px,"+(parseFloat(_mg[2])*_rat).toFixed(2)+"px)"):_tg;}}}
   else if(filler&&me.__smileCut){var wantSmile=smileT>0;   // (fallback for a non-mirror bake): swap to his smile face
    if(wantSmile!==smiling){smiling=wantSmile;im.src=wantSmile?me.__smileCut:data.cut;var ov=wantSmile?"0":"";
     if(mouth)mouth.style.opacity=ov;if(nose)nose.style.opacity=ov;
