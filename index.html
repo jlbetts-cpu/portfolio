@@ -91,6 +91,7 @@ h1{font-weight:600;font-size:var(--fs-hero);line-height:var(--lh-tight);letter-s
 .sub .l{display:inline-block;white-space:pre;opacity:0;filter:blur(5px);transform:translateY(.35em);transition:opacity .375s cubic-bezier(.2,.8,.2,1),filter .375s cubic-bezier(.2,.8,.2,1),transform .375s cubic-bezier(.2,.8,.2,1)}
 .sub.show{opacity:1}.sub.show .l{opacity:1;filter:blur(0);transform:none}
 .stagewrap{position:relative;top:clamp(-8px,0vh,8px);justify-self:center;width:clamp(380px,44vw,560px);max-width:100%;isolation:isolate;z-index:2}
+body:has(.faceMoodCorner .moodbar.open) .stagewrap{z-index:20}   /* the Play-a-mood menu lives inside stagewrap; lift it above the floating heads while it's open (esp. mobile) */
 .heroCtas .workCta,.heroCtas .aboutCta{position:relative;z-index:2}   /* occluders: the little head can pass behind these */
 #stageMorph{position:relative;width:100%;transform-origin:center center}
 body:not(.about-open) #stageMorph{transition:transform .16s cubic-bezier(.2,.8,.2,1)}
@@ -2752,6 +2753,19 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
  var brows=[],mouth=null,nose=null;
  if(mk){brows=[strip(mk.BL.x,mk.BL.y,ew0*1.5,ew0*0.9),strip(mk.BR.x,mk.BR.y,ew0*1.5,ew0*0.9)];
   nose=strip(mk.N.x,mk.N.y,ew0*1.1,ew0*1.2);mouth=strip(mk.M.x,mk.M.y,ew0*1.8,ew0*0.95);mouth.style.transformOrigin="50% 18%";}
+ var mjClone=null,mjBigFace=null;   // MINI-JAYDEN: it isn't a bake, it's the actual big head cloned + shrunk, mirrored live every frame
+ if(filler&&data.__mirror){try{var bigStage=document.getElementById("stage");if(bigStage){
+  im.style.display="none";eyeEls3.forEach(function(e){if(e.box)e.box.style.display="none";});   // drop the companion face rig -- the clone IS the face now
+  if(nose)nose.style.display="none";if(mouth)mouth.style.display="none";brows.forEach(function(b){b.style.display="none";});
+  mjClone=bigStage.cloneNode(true);mjClone.removeAttribute("id");
+  var _idd=mjClone.querySelectorAll("[id]");for(var _ii=0;_ii<_idd.length;_ii++)_idd[_ii].removeAttribute("id");
+  mjClone.style.cssText="position:absolute;left:0;top:0;width:100%;height:83.333%;pointer-events:none;z-index:0;filter:none";   // his square face fills the top square of the 5:6 body
+  var _cf=mjClone.querySelector(".face");if(_cf)_cf.style.filter="none";   // no ink filter on a moving clone: it would re-render the SVG filter every frame (the lag risk) and reads clean at this size
+  [].forEach.call(mjClone.querySelectorAll(".eye,.iris,.glint,.pupil,.tongue,.mouth,.introwake"),function(el){el.style.filter="none";});
+  [].forEach.call(mjClone.querySelectorAll(".tongue,.mouth,.introwake,.floorshadow"),function(el){el.remove();});   // strip the parts that don't belong on a mini player
+  if(im.nextSibling)root.insertBefore(mjClone,im.nextSibling);else root.appendChild(mjClone);
+  mjBigFace=document.getElementById("face");
+ }}catch(_){mjClone=null;}}
  var bar=document.createElement("div");bar.className="hmHp";bar.setAttribute("aria-hidden","true");
  var barFill=document.createElement("i");bar.appendChild(barFill);
  hero.appendChild(shadow);hero.appendChild(root);hero.appendChild(bar);
@@ -3110,7 +3124,14 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   if(elim&&elimP<1){elimP=Math.min(1,elimP+DT*2.4);   // eliminated: a quick shrink into nothing
    if(elimP>=1){root.style.display="none";shadow.style.display="none";}}
   if(hurtT>0){hurtT-=DT;hurtEl.style.opacity=(Math.max(0,hurtT)/0.2*0.62).toFixed(2);}
-  if(filler&&me.__smileCut){var wantSmile=smileT>0;   // his grin: swap to his real SMILE face and hide every neutral overlay so his whole smiling face shows through
+  if(mjClone&&mjBigFace){   // MIRROR the live big head onto the clone: same expression, same blink, same gaze, every frame -- for free
+   var _cff=mjClone.querySelector(".face");if(_cff&&_cff.getAttribute("src")!==mjBigFace.getAttribute("src"))_cff.setAttribute("src",mjBigFace.getAttribute("src"));
+   var _bE=document.querySelectorAll("#stage > .eye"),_cE=mjClone.querySelectorAll(".eye");
+   for(var _mi=0;_mi<_cE.length&&_mi<_bE.length;_mi++){
+    _cE[_mi].classList.toggle("eclosed",_bE[_mi].classList.contains("eclosed"));   // mirror the blink
+    var _bi=_bE[_mi].querySelector(".iris"),_ci=_cE[_mi].querySelector(".iris");if(_bi&&_ci)_ci.style.transform=_bi.style.transform;   // mirror the gaze
+    var _bg=_bE[_mi].querySelector(".glint"),_cg=_cE[_mi].querySelector(".glint");if(_bg&&_cg)_cg.style.transform=_bg.style.transform;}}
+  else if(filler&&me.__smileCut){var wantSmile=smileT>0;   // (fallback for a non-mirror bake): swap to his smile face
    if(wantSmile!==smiling){smiling=wantSmile;im.src=wantSmile?me.__smileCut:data.cut;var ov=wantSmile?"0":"";
     if(mouth)mouth.style.opacity=ov;if(nose)nose.style.opacity=ov;
     brows.forEach(function(b){b.style.opacity=ov;});eyeEls3.forEach(function(e){if(e.box)e.box.style.opacity=ov;});}
@@ -3549,9 +3570,9 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    fillerCut=c.toDataURL("image/webp",0.92);if(fillerCut.indexOf("data:image/webp")!==0)fillerCut=c.toDataURL("image/png");
   }catch(_){fillerCut=face.src;}
   // his REAL feature positions (from FACES.rest), mapped square->5:6 by dividing y by 1.2
-  var data={cut:fillerCut,__filler:true,
+  var data={cut:fillerCut,__filler:true,__mirror:true,   // __mirror: it IS the big head, cloned and shrunk -- same face, same eyes, same expressions
    eyes:[{x:0.400,y:0.431,w:0.100,h:0.040,ang:0,sc:"rgb(236,234,229)",ic:[46,35,28]},{x:0.603,y:0.439,w:0.100,h:0.040,ang:0,sc:"rgb(236,234,229)",ic:[46,35,28]}],
-   marks:{BL:{x:0.375,y:0.392},BR:{x:0.625,y:0.398},M:{x:0.500,y:0.632},N:{x:0.500,y:0.520}}};   // brows just above the eyes, nose tip, mouth on the lips -- matched to his real face
+   marks:{BL:{x:0.375,y:0.392},BR:{x:0.625,y:0.398},M:{x:0.500,y:0.632},N:{x:0.500,y:0.520}}};   // (eyes/marks kept as a fallback + for the cut-based masks)
   spawnCompanion(data,FSLOT);var m=peers[peers.length-1];if(m)m.__filler=true;fillerActive=true;
   // he has more to work with than the little heads: bake his SMILE too, so the mini-Jayden grins when he scores or wins
   try{var si=new Image();si.onload=function(){try{var sc=document.createElement("canvas");sc.width=W;sc.height=H;sc.getContext("2d").drawImage(si,0,0,W,W);var scut=sc.toDataURL("image/webp",0.92);if(scut.indexOf("data:image/webp")!==0)scut=sc.toDataURL("image/png");if(m)m.__smileCut=scut;}catch(_){}};si.src="images/smile.webp";}catch(_){}};
