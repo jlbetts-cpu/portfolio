@@ -3509,9 +3509,8 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   layout();addEventListener("resize",layout,{passive:true});
   var wasB=false;
   setInterval(function(){var on=document.body.classList.contains("hmBattle");
-   if(on&&!wasB){DEFS=genDefs();layout();}   // a brand-new random arena at the start of every fight
-   else if(on)layout();
-   wasB=on;},350);
+   if(on&&!wasB){DEFS=genDefs();layout();}   // a brand-new random arena at the start of every fight -- then it stays PUT (no per-tick relayout that made the slabs jump under the heads' feet)
+   wasB=on;},300);
  })();
 
  function showPodium(topN,groundY){   // raise the pedestals ONTO the ground (groundY = the real floor line, feet+shadows), return each rank's head target
