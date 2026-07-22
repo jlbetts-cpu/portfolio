@@ -2769,6 +2769,8 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   for(var _ki=0;_ki<_ck.length&&_ki<_bk.length;_ki++){try{_ck[_ki].style.opacity=getComputedStyle(_bk[_ki]).opacity;}catch(_){}}
   if(im.nextSibling)root.insertBefore(mjClone,im.nextSibling);else root.appendChild(mjClone);
   mjBigFace=document.getElementById("face");mjBigW=bigStage.getBoundingClientRect().width||500;   // his rendered width, so we can scale his gaze translate to the mini
+  // RE-AIM the team outline (soccer) + hurt flash: both are masked by data.cut stretched over the FULL root, which is calibrated for the little heads' `im`. The mini's visible face is the CLONE -- object-fit:contain of his SQUARE face in the top 83.333% of root -- so the stretched bake floated the ring off to the side. Replicate the clone's exact face box (top 83.3%, square source, contain) so the rim hugs him.
+  try{[ringEl,hurtEl].forEach(function(_el){_el.style.top="0";_el.style.bottom="auto";_el.style.height="83.333%";_el.style.webkitMaskImage="url(images/neutral.webp)";_el.style.maskImage="url(images/neutral.webp)";_el.style.webkitMaskSize="contain";_el.style.maskSize="contain";_el.style.webkitMaskRepeat="no-repeat";_el.style.maskRepeat="no-repeat";_el.style.webkitMaskPosition="center";_el.style.maskPosition="center";});ringEl.style.transform="scale(1.06)";}catch(_){}
  }}catch(_){mjClone=null;}}
  var bar=document.createElement("div");bar.className="hmHp";bar.setAttribute("aria-hidden","true");
  var barFill=document.createElement("i");bar.appendChild(barFill);
@@ -3129,14 +3131,21 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    if(elimP>=1){root.style.display="none";shadow.style.display="none";}}
   if(hurtT>0){hurtT-=DT;hurtEl.style.opacity=(Math.max(0,hurtT)/0.2*0.62).toFixed(2);}
   if(mjClone&&mjBigFace){   // MIRROR the live big head onto the clone: same expression, same blink, same gaze, every frame -- for free
-   var _bsrc=mjBigFace.getAttribute("src")||"";
-   if(/rest/.test(_bsrc))_bsrc=_bsrc.replace("rest","neutral");   // a FIGHTER never looks sleepy: swap his idle 'rest' face (closed sleepy eyes) for the ALERT neutral one, keeping blinks (rest_closed -> neutral_closed)
-   var _cff=mjClone.querySelector(".face");if(_cff&&_cff.getAttribute("src")!==_bsrc)_cff.setAttribute("src",_bsrc);
    var _bE=document.querySelectorAll("#stage > .eye"),_cE=mjClone.querySelectorAll(".eye"),_rat=mjBigW?HW/mjBigW:0.25;   // his gaze is in HIS pixels; scale it to the mini so the iris moves the same FRACTION of the eye, not the same pixels (which flew the iris right out of the tiny eye)
+   var _bClosed=_bE[0]&&_bE[0].classList.contains("eclosed");
+   // his OWN grin: the big head is hidden mid-game, so his personality has to be driven from game events. smileT is set when he scores, wins, or is last one standing (see the soccer/battle hooks above).
+   var _grin=filler&&smileT>0;
+   var _bsrc;
+   if(_grin){_bsrc=_bClosed?"images/smile_closed.webp":"images/smile.webp";}   // his real smile FACE bakes his (smiling) eyes right in -> the iris overlays MUST come off or he wears two sets of eyes
+   else{_bsrc=mjBigFace.getAttribute("src")||"";
+    if(/rest/.test(_bsrc))_bsrc=_bsrc.replace("rest","neutral");}   // a FIGHTER never looks sleepy: swap his idle 'rest' face (closed sleepy eyes) for the ALERT neutral one, keeping blinks (rest_closed -> neutral_closed)
+   var _cff=mjClone.querySelector(".face");if(_cff&&_cff.getAttribute("src")!==_bsrc)_cff.setAttribute("src",_bsrc);
    for(var _mi=0;_mi<_cE.length&&_mi<_bE.length;_mi++){
+    var _wantHide=_grin?"none":"";if(_cE[_mi].style.display!==_wantHide)_cE[_mi].style.display=_wantHide;   // no floating irises over the baked-in smile
     _cE[_mi].classList.toggle("eclosed",_bE[_mi].classList.contains("eclosed"));   // mirror the blink
     var _bi=_bE[_mi].querySelector(".iris"),_ci=_cE[_mi].querySelector(".iris");if(_bi&&_ci){var _t=_bi.style.transform||"",_m=_t.match(/translate\(\s*(-?[\d.]+)px[ ,]+(-?[\d.]+)px/);_ci.style.transform=_m?("translate("+(parseFloat(_m[1])*_rat).toFixed(2)+"px,"+(parseFloat(_m[2])*_rat).toFixed(2)+"px)"):_t;}   // mirror the gaze, SCALED
-    var _bg=_bE[_mi].querySelector(".glint"),_cg=_cE[_mi].querySelector(".glint");if(_bg&&_cg){var _tg=_bg.style.transform||"",_mg=_tg.match(/translate\(\s*(-?[\d.]+)px[ ,]+(-?[\d.]+)px/);_cg.style.transform=_mg?("translate("+(parseFloat(_mg[1])*_rat).toFixed(2)+"px,"+(parseFloat(_mg[2])*_rat).toFixed(2)+"px)"):_tg;}}}
+    var _bg=_bE[_mi].querySelector(".glint"),_cg=_cE[_mi].querySelector(".glint");if(_bg&&_cg){var _tg=_bg.style.transform||"",_mg=_tg.match(/translate\(\s*(-?[\d.]+)px[ ,]+(-?[\d.]+)px/);_cg.style.transform=_mg?("translate("+(parseFloat(_mg[1])*_rat).toFixed(2)+"px,"+(parseFloat(_mg[2])*_rat).toFixed(2)+"px)"):_tg;}}
+   if(smileT>0)smileT-=DT;}   // the mirror path owns the grin timer now (the bake fallback below never runs for him)
   else if(filler&&me.__smileCut){var wantSmile=smileT>0;   // (fallback for a non-mirror bake): swap to his smile face
    if(wantSmile!==smiling){smiling=wantSmile;im.src=wantSmile?me.__smileCut:data.cut;var ov=wantSmile?"0":"";
     if(mouth)mouth.style.opacity=ov;if(nose)nose.style.opacity=ov;
