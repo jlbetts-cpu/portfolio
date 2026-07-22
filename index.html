@@ -3211,8 +3211,10 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   depth+=(depthT-depth)*Math.min(1,DT*0.5);
   // squash recovery
   if(sqT>0){sqT-=DT;}else if(!air&&!grabbed){var _br=1+(drowse2?0.015:0.009)*Math.sin(now*(drowse2?0.0026:0.0042));sqyP=_br;sqxP=1/_br;}   // it BREATHES: volume-true, slower and deeper in its sleep
-  sqxv+=((sqxP-sqx)*1050-sqxv*52)*DT;sqx+=sqxv*DT;   // near-critical damping: a ball rings once, never wobbles like jelly
-  sqyv+=((sqyP-sqy)*1050-sqyv*52)*DT;sqy+=sqyv*DT;
+  // sub-step the squash springs so a slow/laggy frame (big DT) can't push explicit-Euler unstable -- that overshoot is what made heads stretch and balloon on the way in
+  var _ss=DT>0.02?Math.ceil(DT/0.02):1,_sd=DT/_ss;
+  for(var _si2=0;_si2<_ss;_si2++){sqxv+=((sqxP-sqx)*1050-sqxv*52)*_sd;sqx+=sqxv*_sd;sqyv+=((sqyP-sqy)*1050-sqyv*52)*_sd;sqy+=sqyv*_sd;}
+  sqx=Math.max(0.7,Math.min(1.32,sqx));sqy=Math.max(0.7,Math.min(1.32,sqy));   // and a hard cap, so even a wild overshoot can never read as a weird stretch/enlarge
   var swing=grabbed?Math.max(-12,Math.min(12,pvx*0.9)):0;pvx*=Math.pow(0.8,DT/0.04);   // body leans with the drag; the face stays calm
   var lean=air&&!grabbed?Math.max(-10,Math.min(10,vx*0.028)):0;   // it leans into the jump, in control, never tumbling
   var breathe=0,rotX=0;
@@ -3470,8 +3472,9 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    spin+=bw*dt;
    S.ball.x=bx;S.ball.y=by;
    if(bsT>0)bsT-=dt;else{bsxP=1;bsyP=1;}
-   bsxv+=((bsxP-bsx)*1150-bsxv*62)*dt;bsx+=bsxv*dt;
-   bsyv+=((bsyP-bsy)*1150-bsyv*62)*dt;bsy+=bsyv*dt;
+   var _bs=dt>0.02?Math.ceil(dt/0.02):1,_bd=dt/_bs;   // same sub-step guard for the ball, so a laggy frame can't balloon it either
+   for(var _bi=0;_bi<_bs;_bi++){bsxv+=((bsxP-bsx)*1150-bsxv*62)*_bd;bsx+=bsxv*_bd;bsyv+=((bsyP-bsy)*1150-bsyv*62)*_bd;bsy+=bsyv*_bd;}
+   bsx=Math.max(0.7,Math.min(1.32,bsx));bsy=Math.max(0.7,Math.min(1.32,bsy));
    if(ball){ball.style.transform="translate("+(bx-BR).toFixed(1)+"px,"+(by-BR).toFixed(1)+"px) scale("+bsx.toFixed(3)+","+bsy.toFixed(3)+")";   // container: position + squash, it never rotates
     if(ballSkin)ballSkin.style.transform="rotate("+spin.toFixed(1)+"deg)";}   // only the printed pattern spins, dead-centre -- the lighting stays put
    if(ballShadow){var bBot=by+BR,airH=Math.max(0,groundY-bBot),scv=Math.max(0.4,1-airH/460);   // the shadow lives on the pitch line, dead under the ball, shrinking as it rises
