@@ -3031,15 +3031,18 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
      var teamN=0;for(var tc=0;tc<peers.length;tc++){if(S9.teams&&S9.teams[peers[tc].slot]===team&&!peers[tc].elim)teamN++;}
      var ballDef=(atk>0)?(ballX<heroR.w*0.44):(ballX>heroR.w*0.56);   // the ball is on OUR half -- a real threat
      var defend=ballDef&&((role==="defender"&&teamN>=3)||(role==="keeper"&&teamN>=4));   // hang back only when the side can spare the body; otherwise EVERYONE goes to score
-     var bxT;
+     var bxT,overBall=false;
      if(defend){bxT=(ballX+ownGoalX)/2-HW/2;   // sit goal-side of the ball, ready to intercept and clear
       if(role==="keeper")bxT=team===1?Math.min(bxT,heroR.w*0.13):Math.max(bxT,heroR.w*0.87-HW);}
-     else bxT=ballX-HW/2;   // the default urge is to SCORE: go straight at the ball
+     else{   // attack -- but always strike from the OWN-goal side, so the ball goes toward THEIR net, never yours
+      var wrongSide=(atk>0)?(myX>ballX+8):(myX<ballX-8);   // I'm on the opponent-goal side of the ball: a hit from here would drive it into my OWN goal
+      if(wrongSide){bxT=(ballX-atk*(HW*0.5+34))-HW/2;overBall=Math.abs(ballX-myX)<HW+50;}   // so loop around to the goal side, HOPPING clean over the ball when it's in the way
+      else bxT=ballX-HW/2;}   // already goal-side: drive straight at it
      var ddb9=bxT-x;
      if(Math.abs(ddb9)>HW*0.4){dir=ddb9>0?1:-1;gzx=dir*0.85;gzy=(ballY<floorY-160?-0.55:0.15);sacAt=now+560;   // eyes lock onto the ball as it goes
       surface=floorY;st="fall";air=true;
       var ballUp=Math.max(0,floorY-ballY),ballClose=Math.abs(ballX-myX)<heroR.w*0.22;
-      var vyb9=(ballClose?440:360)+Math.min(580,ballUp*0.72)+Math.random()*100,ttb9=2*vyb9/G;
+      var vyb9=(overBall?720:(ballClose?440:360))+Math.min(580,ballUp*0.72)+Math.random()*100,ttb9=2*vyb9/G;   // a high, clean vault when it has to clear the ball to get behind it
       vy=-vyb9;vx=dir*Math.min(780,Math.max(120,Math.abs(ddb9)/ttb9));sqT=0.12;sqyP=1.1;sqxP=1/1.1;}
      else{gzx=(ballX>myX)?0.6:-0.6;gzy=0.1;sacAt=now+700;}}}}catch(_){}
   if(battleOn&&!elim&&!celebrated){var alive9=0,inb9=0;
@@ -3402,8 +3405,9 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    bsyv+=((bsyP-bsy)*1150-bsyv*62)*dt;bsy+=bsyv*dt;
    if(ball){ball.style.transform="translate("+(bx-BR).toFixed(1)+"px,"+(by-BR).toFixed(1)+"px) scale("+bsx.toFixed(3)+","+bsy.toFixed(3)+")";   // container: position + squash, it never rotates
     if(ballSkin)ballSkin.style.transform="rotate("+spin.toFixed(1)+"deg)";}   // only the printed pattern spins, dead-centre -- the lighting stays put
-   if(ballShadow){var bBot=by+BR,airH=Math.max(0,groundY-bBot),scv=Math.max(0.4,1-airH/460);   // the shadow lives ON the pitch line, dead under the ball, shrinking as it rises
-    ballShadow.style.transform="translate("+(bx-BR).toFixed(1)+"px,"+(groundY-BR*0.275).toFixed(1)+"px) scale("+scv.toFixed(3)+","+scv.toFixed(3)+")";
+   if(ballShadow){var bBot=by+BR,airH=Math.max(0,groundY-bBot),scv=Math.max(0.4,1-airH/460);   // the shadow lives on the pitch line, dead under the ball, shrinking as it rises
+    var hw9=(peers.length&&peers[0].HW)?peers[0].HW:(innerWidth<=880?64:96),shOff=hw9*0.11-2;   // sit it on the SAME line the heads' shadows use (they cast ~HW*0.11 forward of their feet), so ball and players read on one plane
+    ballShadow.style.transform="translate("+(bx-BR).toFixed(1)+"px,"+((groundY+shOff)-BR*0.275).toFixed(1)+"px) scale("+scv.toFixed(3)+","+scv.toFixed(3)+")";
     ballShadow.style.opacity=(S.on&&S.phase!=="idle")?String(Math.max(0.05,0.3-airH/900)):"0";}}
  })();
 
