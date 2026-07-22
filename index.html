@@ -3017,30 +3017,28 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
      var half9=heroR.w*0.5,tx9=team===1?(M+Math.random()*(half9-HW-M*2)):(half9+M+Math.random()*(half9-HW-M*2));
      if(!grabbed){dir=tx9>x?1:-1;surface=floorY;st="hop";hopsLeft=Math.min(6,Math.max(1,Math.round(Math.abs(tx9-x)/70)));
       setTimeout(function(){if(!grabbed&&st==="hop"&&!air)hop(false);},120);}}
-    if(S9.goalSeed&&S9.goalSeed!==goalSeen){goalSeen=S9.goalSeed;   // GOAL — my team scored: dance!
+    if(S9.goalSeed&&S9.goalSeed!==goalSeen){goalSeen=S9.goalSeed;   // GOAL: just a natural little reaction, no scripted dance
      if(S9.goalTeam===team&&!grabbed&&!perched){brf=6;mof=4;
-      wig={t:1.15,dur:1.15,type:"shimmy"};wigP=0;
-      try{if(typeof busyNow==="function"&&!busyNow()){setHold("smile",1300);showFace("smile");}}catch(_){}
-      if(!air&&st==="idle"){air=true;st="fall";surface=floorY;vy=-(430+Math.random()*180);vx=dir*(18+Math.random()*30);sqT=0.12;sqyP=1.1;sqxP=1/1.1;if(Math.random()<0.45)startFlip();}}}
+      try{if(typeof busyNow==="function"&&!busyNow()){setHold("smile",1200);showFace("smile");}}catch(_){}}}
     if(S9.winner&&S9.winner===team&&!soccerWon){soccerWon=true;crownEl.style.opacity="1";   // champions crowned, and they leap (the ONE confetti canvas is the controller's)
      if(!grabbed){dir=((heroR.w/2)>(x+HW/2))?1:-1;surface=floorY;st="fall";air=true;vy=-(920+Math.random()*120);vx=dir*(110+Math.random()*110);sqT=0.13;sqyP=1.11;sqxP=1/1.11;startFlip();brf=6;mof=4;
       try{if(!busyNow()){setHold("smile",1600);showFace("smile");}}catch(_){}}}
-    if(S9.phase==="play"&&!grabbed&&!air&&st==="idle"&&S9.ball&&now>=decideAt){decideAt=now+300+Math.random()*300;
-     var role=(S9.roles&&S9.roles[slot])||"attacker",ballX=S9.ball.x,midX=heroR.w/2;
-     var ownGoal=team===1?(M+6):(heroR.w-HW-M-6),homeLine=team===1?heroR.w*0.24:heroR.w*0.76;
-     var ownHalf=team===1?(ballX<midX+heroR.w*0.08):(ballX>midX-heroR.w*0.08);
-     var ballNear=Math.abs(ballX-(x+HW/2))<heroR.w*0.28;
-     var bxT;
-     if(role==="keeper"){bxT=(Math.abs(ballX-ownGoal)<heroR.w*0.3)?(ballX-HW/2):ownGoal;   // the keeper minds his line
-      bxT=team===1?Math.min(bxT,heroR.w*0.16):Math.max(bxT,heroR.w*0.84-HW);}
-     else if(role==="defender"){bxT=ownHalf?((ballX+ownGoal)/2-HW/2):homeLine-HW/2;}   // holds the back, steps up to intercept on his half
-     else{bxT=(ownHalf&&!ballNear)?homeLine-HW/2:(ballX-HW/2);}   // attacker presses the ball, but keeps some shape
-     var idle0=(role!=="attacker"&&Math.abs(bxT-x)<HW*0.5);
-     if(!idle0){var ddb9=bxT-x;dir=ddb9>0?1:-1;gzx=dir*0.85;gzy=(S9.ball.y<floorY-160?-0.5:0.15);sacAt=now+600;
+    if(S9.phase==="play"&&!grabbed&&!air&&st==="idle"&&S9.ball&&now>=decideAt){decideAt=now+250+Math.random()*240;
+     var role=(S9.roles&&S9.roles[slot])||"attacker",ballX=S9.ball.x,ballY=S9.ball.y,myX=x+HW/2;
+     var atk=team===1?1:-1;var ownGoalX=team===1?(M+6):(heroR.w-M-6);
+     var teamN=0;for(var tc=0;tc<peers.length;tc++){if(S9.teams&&S9.teams[peers[tc].slot]===team&&!peers[tc].elim)teamN++;}
+     var homeX=ownGoalX+atk*heroR.w*(role==="keeper"?0.05:role==="defender"?0.26:0.52);   // each role rests a little further up the pitch
+     var commit=role==="keeper"?0.16:role==="defender"?0.52:0.86;   // how hard it hunts the ball vs. holds its line
+     if(teamN<=2)commit=Math.min(1,commit+0.4);   // a short side can't afford fixed positions: everyone reads the ball and goes
+     var bxT=homeX+(ballX-homeX)*commit-HW/2;
+     if(role==="keeper")bxT=team===1?Math.min(bxT,heroR.w*0.15):Math.max(bxT,heroR.w*0.85-HW);   // the keeper stays near his line
+     var ddb9=bxT-x;
+     if(Math.abs(ddb9)>HW*0.45){dir=ddb9>0?1:-1;gzx=dir*0.85;gzy=(ballY<floorY-160?-0.55:0.15);sacAt=now+560;   // eyes lock onto the ball as it goes
       surface=floorY;st="fall";air=true;
-      var ballUp=Math.max(0,floorY-S9.ball.y);var vyb9=(ballNear?430:360)+Math.min(560,ballUp*0.7)+Math.random()*120,ttb9=2*vyb9/G;
-      vy=-vyb9;vx=dir*Math.min(760,Math.max(120,Math.abs(ddb9)/ttb9));sqT=0.12;sqyP=1.1;sqxP=1/1.1;}
-     else{gzx=(ballX>(x+HW/2))?0.6:-0.6;gzy=0.1;sacAt=now+700;}}}}catch(_){}
+      var ballUp=Math.max(0,floorY-ballY),ballClose=Math.abs(ballX-myX)<heroR.w*0.22;
+      var vyb9=(ballClose?440:360)+Math.min(580,ballUp*0.72)+Math.random()*100,ttb9=2*vyb9/G;
+      vy=-vyb9;vx=dir*Math.min(780,Math.max(120,Math.abs(ddb9)/ttb9));sqT=0.12;sqyP=1.1;sqxP=1/1.1;}
+     else{gzx=(ballX>myX)?0.6:-0.6;gzy=0.1;sacAt=now+700;}}}}catch(_){}
   if(battleOn&&!elim&&!celebrated){var alive9=0,inb9=0;
    for(var a9=0;a9<peers.length;a9++){if(peers[a9].inB){inb9++;if(!peers[a9].elim)alive9++;}}
    if(inb9>=2&&alive9===1){celebrated=true;   // last head standing: the victory lap
@@ -3249,7 +3247,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   var bx=0,by=0,bvx=0,bvy=0,kickCd={},running=false,last=performance.now(),scoreTeam=0,ballShadow;
   var bsx=1,bsy=1,bsxv=0,bsyv=0,bsxP=1,bsyP=1,bsT=0;
   function geo(){var r=hero.getBoundingClientRect();W=r.width;H=r.height;OFF=r.left;XL=-OFF;XR=innerWidth-OFF;   // the pitch spans the whole screen, wall to wall
-   var st=document.getElementById("stage");if(st){var sr=st.getBoundingClientRect();groundY=sr.bottom-r.top-8;}else groundY=H-40;
+   var st=document.getElementById("stage");if(st){var sr=st.getBoundingClientRect();groundY=sr.bottom-r.top;}else groundY=H-40;   // the pitch line == where the heads' feet rest (the stage bottom), so ball and players share one ground
    if(groundY>H-16)groundY=H-16;}
   function dom(){geo();
    ballShadow=document.createElement("div");ballShadow.className="hmBallShadow";hero.appendChild(ballShadow);
@@ -3271,10 +3269,12 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    var a=[];for(var i=0;i<n;i++)a.push(i<half?1:2);
    for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=a[i];a[i]=a[j];a[j]=t;}   // Fisher-Yates: fresh sides each game
    S.teams={};sl.forEach(function(s2,i){S.teams[s2]=a[i];});
-   S.roles={};[1,2].forEach(function(tm){   // every side fields a keeper, a defender or two, and the rest up front
+   S.roles={};[1,2].forEach(function(tm){   // roles scale with the squad: a lone player just plays; only a real team bothers with a keeper
     var mem=sl.filter(function(s2){return S.teams[s2]===tm;});
     for(var k=mem.length-1;k>0;k--){var j2=Math.floor(Math.random()*(k+1)),t2=mem[k];mem[k]=mem[j2];mem[j2]=t2;}
-    var nd=mem.length>=4?2:1;
+    if(mem.length<=1){if(mem[0]!=null)S.roles[mem[0]]="attacker";return;}
+    if(mem.length===2){S.roles[mem[0]]="defender";S.roles[mem[1]]="attacker";return;}
+    var nd=mem.length>=5?2:1;
     mem.forEach(function(s2,i){S.roles[s2]=(i===0)?"keeper":(i<=nd)?"defender":"attacker";});});}
   function board2(){if(sR)sR.textContent=S.red;if(sB)sB.textContent=S.blue;}
   function refFlash(){try{if(typeof busyNow==="function"&&!busyNow()&&typeof browFlash==="function")browFlash();}catch(_){}}
@@ -3342,50 +3342,58 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   function finish(){S.on=false;S.phase="idle";S.winner=0;
    if(ball){ball.style.opacity="0";goalL.style.opacity="0";goalR.style.opacity="0";board.style.opacity="0";if(ballShadow)ballShadow.style.opacity="0";if(goalShL){goalShL.style.opacity="0";goalShR.style.opacity="0";}}
    if(countEl)countEl.textContent="";document.body.classList.remove("hmSoccer");}
-  var spin=0,gaspAt=0;
+  var spin=0,bw=0,gaspAt=0;   // spin = rendered rotation, bw = angular velocity (deg/s)
   function loop(now){if(!S.on){running=false;return;}requestAnimationFrame(loop);
    var dt=Math.min(0.05,Math.max(0.006,(now-last)/1000));last=now;geo();
-   if(S.phase==="scoring"){   // the net has the ball: it decelerates and settles, the way a real net absorbs a shot
+   var REST=groundY-BR;   // the ball's CENTRE at rest: its underside sits exactly on the pitch line, never through it
+   if(S.phase==="scoring"){   // the net has the ball: it decelerates and settles
     bvy+=2400*dt;bvx*=Math.pow(0.006,dt);bvy*=Math.pow(0.03,dt);bx+=bvx*dt;by+=bvy*dt;
-    if(by>groundY){by=groundY;bvy=0;}
+    if(by>REST){by=REST;bvy=0;}
     if(bx<XL+BR-3)bx=XL+BR-3;if(bx>XR-BR+3)bx=XR-BR+3;
    }
    if(S.phase==="play"){
-    bvy+=2400*dt;bvx*=Math.pow(0.35,dt);   // gentle air drag, so a big hit still sails far
+    bvy+=2400*dt;bvx*=Math.pow(0.7,dt);   // light air drag: momentum carries a struck ball across the pitch
     bx+=bvx*dt;by+=bvy*dt;
-    if(by>groundY){by=groundY;if(Math.abs(bvy)>40){var kg=Math.min(0.12,Math.abs(bvy)*0.00013);bsyP=1-kg;bsxP=1/(1-kg);bsT=0.12;bvy=-bvy*0.86;}else bvy=0;bvx*=0.985;}   // squash flat on the bounce, e=0.86
-    if(by>=groundY-2&&Math.abs(bvy)<90)bvx*=Math.pow(0.5,dt);   // rolling resistance once it is down on the pitch
-    if(by<8){by=8;if(Math.abs(bvy)>120){var kc0=Math.min(0.1,Math.abs(bvy)*0.00012);bsyP=1-kc0;bsxP=1/(1-kc0);bsT=0.11;}bvy=Math.abs(bvy)*0.86;}   // ricochet off the ceiling
+    if(by>REST){   // meets the pitch
+     if(Math.abs(bvy)>50){var kg=Math.min(0.14,Math.abs(bvy)*0.00016);bsyP=1-kg;bsxP=1/(1-kg);bsT=0.12;bvy=-bvy*0.72;}else bvy=0;   // squash + bounce, e=0.72 (grass, not a superball)
+     by=REST;bvx*=0.9;}
+    var onGround=by>=REST-1;
+    if(onGround&&Math.abs(bvy)<70)bvx*=Math.pow(0.28,dt);   // rolling friction slows it on the turf
+    if(onGround&&Math.abs(bvx)<9&&Math.abs(bvy)<12){bvx=0;bvy=0;}   // and it settles honestly -- no hover, no jitter
+    if(by<BR+2){by=BR+2;if(Math.abs(bvy)>120){var kc0=Math.min(0.1,Math.abs(bvy)*0.00012);bsyP=1-kc0;bsxP=1/(1-kc0);bsT=0.11;}bvy=Math.abs(bvy)*0.72;}   // ceiling
     var inG=by>groundY-150;
-    var gt=groundY-150,overL=(bx+BR>XL&&bx-BR<XL+44),overR=(bx+BR>XR-44&&bx-BR<XR);   // the crossbar (top of the goal frame)
-    if((overL||overR)&&bvy>0&&by+BR>=gt-2&&by-BR<gt&&by<gt){by=gt-BR-2;bvy=-Math.max(180,Math.abs(bvy)*0.7);   // off the bar with a guaranteed hop, so it never perches
-     bvx+=(overL?1:-1)*(170+Math.random()*90);bvx=Math.max(-2200,Math.min(2200,bvx));   // and a shove back into the field
+    var gt=groundY-150,overL=(bx+BR>XL&&bx-BR<XL+44),overR=(bx+BR>XR-44&&bx-BR<XR);   // the crossbar
+    if((overL||overR)&&bvy>0&&by+BR>=gt-2&&by-BR<gt&&by<gt){by=gt-BR-2;bvy=-Math.max(160,Math.abs(bvy)*0.7);   // off the bar with a guaranteed hop, never perches
+     bvx+=(overL?1:-1)*(150+Math.random()*70);bvx=Math.max(-2200,Math.min(2200,bvx));
      var kc1=Math.min(0.1,Math.abs(bvy)*0.00015);bsyP=1-kc1;bsxP=1/(1-kc1);bsT=0.11;}
-    if(bx<XL+BR){if(inG)return netCatch(2);bx=XL+BR;if(Math.abs(bvx)>120){var kw=Math.min(0.11,Math.abs(bvx)*0.00013);bsxP=1-kw;bsyP=1/(1-kw);bsT=0.12;}bvx=Math.abs(bvx)*0.9;bvy-=40;}   // squash against the left wall
-    if(bx>XR-BR){if(inG)return netCatch(1);bx=XR-BR;if(Math.abs(bvx)>120){var kw2=Math.min(0.11,Math.abs(bvx)*0.00013);bsxP=1-kw2;bsyP=1/(1-kw2);bsT=0.12;}bvx=-Math.abs(bvx)*0.9;bvy-=40;}
-    for(var pi=0;pi<peers.length;pi++){var p=peers[pi];if(p.elim)continue;
+    if(bx<XL+BR){if(inG)return netCatch(2);bx=XL+BR;if(Math.abs(bvx)>120){var kw=Math.min(0.12,Math.abs(bvx)*0.00014);bsxP=1-kw;bsyP=1/(1-kw);bsT=0.12;}bvx=Math.abs(bvx)*0.82;bw=-bw*0.6;}   // wall reverses the spin too
+    if(bx>XR-BR){if(inG)return netCatch(1);bx=XR-BR;if(Math.abs(bvx)>120){var kw2=Math.min(0.12,Math.abs(bvx)*0.00014);bsxP=1-kw2;bsyP=1/(1-kw2);bsT=0.12;}bvx=-Math.abs(bvx)*0.82;bw=-bw*0.6;}
+    for(var pi=0;pi<peers.length;pi++){var p=peers[pi];if(p.elim)continue;   // heads bounce the ball with their BODY -- pure elastic momentum, the same collision they use on each other
      var hx=p.x+p.HW/2,hy=p.y+p.HH*0.55,dx=bx-hx,dy=by-hy,d=Math.hypot(dx,dy),rr=p.HW*0.5+BR;
-     if(d<rr&&d>0.1){var kc=kickCd[p.slot]||0;if(now>kc){kickCd[p.slot]=now+80;
-      var nx=dx/d,ny=dy/d,hv=Math.hypot(p.vx,p.vy);
-      var gdir=(S.teams&&S.teams[p.slot]===2)?-1:1;   // red attacks right, blue attacks left
-      var prole=S.roles&&S.roles[p.slot],clear=(prole==="keeper"||prole==="defender")?1:0;
-      bvx+=nx*(300+hv*0.55)+p.vx*0.8 + gdir*(70+hv*0.16+clear*90);   // they steer it toward the opponent goal; keepers and backs clear it hard
-      bvy+=ny*(220+hv*0.4)-(p.vy<-40?260:180);
-      var kk=Math.min(0.13,(120+hv)*0.00042);if(Math.abs(nx)>Math.abs(ny)){bsxP=1-kk;bsyP=1/(1-kk);}else{bsyP=1-kk;bsxP=1/(1-kk);}bsT=0.13;}}}   // it squashes along the strike
-    bvx=Math.max(-2200,Math.min(2200,bvx));bvy=Math.max(-1900,Math.min(1200,bvy));
-    spin+=bvx*dt*1.6;
-    var nearGoal=(by>groundY-150)&&((bx<95&&bvx<-60)||(bx>W-95&&bvx>60));   // a real threat on goal, closing in
-    if(nearGoal&&now>(gaspAt||0)){gaspAt=now+1600;   // only then does he catch his breath
+     if(d>0.1&&d<rr){var nx=dx/d,ny=dy/d,ov=rr-d;
+      bx+=nx*ov;by+=ny*ov;   // lift the ball clear of the body so it can never sink in and stutter
+      var rvx=bvx-p.vx,rvy=bvy-p.vy,rel=rvx*nx+rvy*ny;
+      if(rel<0){var jI=-(1.72)*rel;   // the ball is light: it takes the whole impulse (head velocity included), the head barely feels it
+       bvx+=nx*jI;bvy+=ny*jI;p.kx-=nx*jI*0.08;p.ky-=ny*jI*0.08;   // a small honest recoil into the head
+       bw+=(-rvx*ny+rvy*nx)*(180/Math.PI)/BR*0.5;   // an off-centre hit puts spin on it
+       var kk=Math.min(0.16,Math.abs(rel)*0.00022);if(Math.abs(nx)>Math.abs(ny)){bsxP=1-kk;bsyP=1/(1-kk);}else{bsyP=1-kk;bsxP=1/(1-kk);}bsT=0.13;}}}
+    bvx=Math.max(-2200,Math.min(2200,bvx));bvy=Math.max(-1900,Math.min(1400,bvy));
+    var nearGoal=(by>groundY-150)&&((bx<95&&bvx<-60)||(bx>W-95&&bvx>60));
+    if(nearGoal&&now>(gaspAt||0)){gaspAt=now+1600;
      try{if(typeof busyNow==="function"&&!busyNow()){setHold("rest",650);showFace("rest");if(typeof browFlash==="function")browFlash();}}catch(_){}}
    }
+   var grounded=by>=groundY-BR-1;   // rotation done right: on the pitch it rolls without slipping; in the air it keeps its spin
+   if(grounded){var rollW=bvx*(180/Math.PI)/BR;bw+=(rollW-bw)*Math.min(1,dt*14);}
+   else bw*=Math.pow(0.88,dt);
+   spin+=bw*dt;
    S.ball.x=bx;S.ball.y=by;
-   if(bsT>0)bsT-=dt;else{bsxP=1;bsyP=1;}   // spring the squash back, one soft overshoot (near-critical, like the heads)
+   if(bsT>0)bsT-=dt;else{bsxP=1;bsyP=1;}
    bsxv+=((bsxP-bsx)*1150-bsxv*62)*dt;bsx+=bsxv*dt;
    bsyv+=((bsyP-bsy)*1150-bsyv*62)*dt;bsy+=bsyv*dt;
-   if(ball)ball.style.transform="translate("+(bx-BR).toFixed(1)+"px,"+(by-BR).toFixed(1)+"px) scale("+bsx.toFixed(3)+","+bsy.toFixed(3)+") rotate("+spin.toFixed(0)+"deg)";
-   if(ballShadow){var airH=Math.max(0,groundY-by),scv=Math.max(0.42,1-airH/520);
-    ballShadow.style.transform="translate("+(bx-24*scv).toFixed(1)+"px,"+(groundY+BR-7).toFixed(1)+"px) scale("+scv.toFixed(3)+",1)";
-    ballShadow.style.opacity=(S.on&&S.phase!=="idle")?String(airH<4?0.3:Math.max(0.06,0.28-airH/1000)):"0";}}
+   if(ball)ball.style.transform="translate("+(bx-BR).toFixed(1)+"px,"+(by-BR).toFixed(1)+"px) scale("+bsx.toFixed(3)+","+bsy.toFixed(3)+") rotate("+spin.toFixed(1)+"deg)";
+   if(ballShadow){var bBot=by+BR,airH=Math.max(0,groundY-bBot),scv=Math.max(0.4,1-airH/460);   // the shadow lives ON the pitch line, dead under the ball, shrinking as it rises
+    ballShadow.style.transform="translate("+(bx-24).toFixed(1)+"px,"+(groundY-6.5).toFixed(1)+"px) scale("+scv.toFixed(3)+","+scv.toFixed(3)+")";
+    ballShadow.style.opacity=(S.on&&S.phase!=="idle")?String(Math.max(0.05,0.3-airH/900)):"0";}}
  })();
 
  (function battleUI(){   // a quiet count of who is still standing
