@@ -2623,7 +2623,9 @@ requestAnimationFrame(function(){requestAnimationFrame(startIntro);});
  if(bg)bg.addEventListener("click",function(){
   var rc=readAll().length;if(rc<1||gameOn())return;
   if(rc%2===1&&window.__hmFillerAdd)window.__hmFillerAdd();   // odd sides -> mini-Jayden steps in
-  window.__hmBattleReq=performance.now();document.body.classList.add("hmBattle");closeMenuBar();battleGate();});
+  window.__hmBattleReq=performance.now();document.body.classList.add("hmBattle");
+  if(window.__hmNewArena)window.__hmNewArena();   // lay the random arena BEFORE the heads scatter onto it
+  closeMenuBar();battleGate();});
  var sg=document.getElementById("soccerGo");
  if(sg)sg.addEventListener("click",function(){
   var rc=readAll().length;if(rc<1||gameOn())return;
@@ -3040,7 +3042,10 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   try{var _bReq=window.__hmBattleReq||0,_bResp=window.__hmRespawn||0,_wantB=_bReq>0&&_bReq>_bResp&&!killed;
    if(_wantB&&!battleOn){battleOn=true;battleSeen=_bReq;hp=100;elim=false;elimP=0;celebrated=false;me.podiumRank=0;me.spectate=0;   // ENTER
     if(window.__hmBOSeed!==_bReq){window.__hmBOSeed=_bReq;battleOut.length=0;hidePodium();window.__hmBattleGo=performance.now()+2900;}   // once per fight: fresh log, no leftover podium, a 3-2-1-GO first
-    perched=false;leapDelay=Infinity;me.elim=false;me.inB=true;bar.style.opacity="1";root.style.pointerEvents="";}
+    perched=false;leapDelay=Infinity;me.elim=false;me.inB=true;bar.style.opacity="1";root.style.pointerEvents="";
+    if(battlePlats.length&&Math.random()<0.5){var _sp=battlePlats[(Math.random()*battlePlats.length)|0];x=Math.max(_sp.l+2,Math.min(_sp.r-HW-2,(_sp.l+_sp.r)/2-HW/2+(Math.random()*80-40)));surface=_sp.t-HH*FOOT;}   // ~half start UP on a random slab
+    else{surface=floorY;x=Math.max(WL,Math.min(WR,WL+Math.random()*Math.max(1,WR-WL-HW)));}   // the rest on the floor at a random x
+    y=surface;air=false;st="idle";vx=0;vy=0;flipA=0;flipV=0;wig=null;}
    else if(!_wantB&&battleOn){battleOn=false;respawnSeen=_bResp;me.inB=false;me.podiumRank=0;me.spectate=0;bar.style.opacity="0";crownEl.style.opacity="0";hidePodium();   // LEAVE: back to normal life, drop to the floor
     elim=false;elimP=0;hp=100;me.elim=false;root.style.pointerEvents="";
     shown=true;root.style.opacity="1";root.style.filter="blur(0)";shadow.style.opacity="1";root.style.display="";shadow.style.display="";
@@ -3528,30 +3533,30 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   requestAnimationFrame(tick);
  })();
 
- (function platforms(){   // the battle arena: three light slabs, a fresh RANDOM layout every fight, full-width and reachable
+ (function platforms(){   // the battle arena: a fresh RANDOM layout every fight -- slabs of mixed lengths + thickness at mixed heights, filling the screen
   var hero=document.querySelector(".hero");if(!hero)return;
-  var els=[0,1,2].map(function(){var d=document.createElement("div");d.className="hmPlat";hero.appendChild(d);return d;});
-  var thirds=[0.05,0.37,0.69];   // one slab per third of the stage, so they never bunch up
-  function genDefs(){var defs=[];
-   if(innerWidth<=768){   // MOBILE: a tall narrow arena -> stack the slabs VERTICALLY (staggered heights, wider, alternating sides) so the fight climbs the screen
-    var hs=[62,128,192],sides=Math.random()<0.5?[0.06,0.40,0.10]:[0.44,0.08,0.40];   // three reachable tiers, left/right alternating
-    for(var i=0;i<3;i++){var wdt=0.44+Math.random()*0.12,l=Math.min(0.94-wdt,sides[i]+Math.random()*0.06),h=hs[i]+Math.random()*22;defs.push([l,l+wdt,h]);}
-   }else{
-    for(var i=0;i<3;i++){var wdt=0.16+Math.random()*0.08,l=thirds[i]+Math.random()*0.06,h=74+Math.random()*90;defs.push([l,l+wdt,h]);}
+  var MAXP=5,els=[];for(var e=0;e<MAXP;e++){var d=document.createElement("div");d.className="hmPlat";hero.appendChild(d);els.push(d);}
+  function genDefs(){var defs=[];   // [left%, right%, height-above-floor px, thin?]
+   if(innerWidth<=768){   // MOBILE: a tall narrow arena -> four tiers CLIMBING the screen, alternating sides
+    var tiers=[56,112,170,64],xs=Math.random()<0.5?[0.05,0.47,0.13,0.5]:[0.46,0.06,0.5,0.12];
+    for(var i=0;i<4;i++){var wdt=0.36+Math.random()*0.14,l=Math.min(0.95-wdt,xs[i]+Math.random()*0.05);defs.push([l,l+wdt,tiers[i]+Math.random()*16,i%2]);}
+   }else{   // DESKTOP: five slabs spread across the FULL width at mixed heights + varied lengths, so the arena fills the screen
+    var slots=[0.03,0.235,0.435,0.63,0.82],hh=[80,158,108,172,82];
+    for(var i=0;i<5;i++){var wdt=0.11+Math.random()*0.10,l=Math.min(0.965-wdt,slots[i]+Math.random()*0.035),h=hh[i]+Math.random()*24;defs.push([l,l+wdt,h,i%2]);}
    }
-   return defs;}   // [left%, right%, height ABOVE the floor px]
-  var DEFS=[[0.12,0.30,88],[0.41,0.59,150],[0.70,0.88,88]];
+   return defs;}
+  var DEFS=genDefs();
   function layout(){var r=hero.getBoundingClientRect(),w=r.width;
    var st=document.getElementById("stage"),sr=st?st.getBoundingClientRect():null,floorY=sr?(sr.bottom-r.top):(r.height*0.86);
    battlePlats.length=0;
-   DEFS.forEach(function(D,i){var l=Math.round(w*D[0]),rr=Math.round(w*D[1]),t=Math.round(floorY-D[2]);   // measured UP from the real floor, so a normal jump clears them
+   els.forEach(function(el,i){var D=DEFS[i];if(!D){el.style.display="none";return;}el.style.display="";
+    var l=Math.round(w*D[0]),rr=Math.round(w*D[1]),t=Math.round(floorY-D[2]);   // measured UP from the real floor so a normal jump clears them
     battlePlats.push({l:l,r:rr,t:t});
-    els[i].style.width=(rr-l)+"px";els[i].style.transform="translate("+l+"px,"+t+"px)";});}
+    el.style.width=(rr-l)+"px";el.style.height=(D[3]?10:15)+"px";el.style.transform="translate("+l+"px,"+t+"px)";});}   // thin/thick for shape variety
   layout();addEventListener("resize",layout,{passive:true});
-  var wasB=false;
-  setInterval(function(){var on=document.body.classList.contains("hmBattle");
-   if(on&&!wasB){DEFS=genDefs();layout();}   // a brand-new random arena at the start of every fight -- then it stays PUT (no per-tick relayout that made the slabs jump under the heads' feet)
-   wasB=on;},300);
+  var arenaReq=0;
+  window.__hmNewArena=function(){arenaReq=window.__hmBattleReq||0;DEFS=genDefs();layout();};   // fresh random arena; the button calls this synchronously so heads can be scattered onto it
+  setInterval(function(){if(document.body.classList.contains("hmBattle")&&(window.__hmBattleReq||0)!==arenaReq)window.__hmNewArena();},100);   // ONCE per fight (whoever gets here first), never a per-tick relayout that jumps the slabs
  })();
 
  function showPodium(topN,groundY){   // raise the pedestals ONTO the ground (groundY = the real floor line, feet+shadows), return each rank's head target
