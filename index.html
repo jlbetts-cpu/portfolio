@@ -3154,7 +3154,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
      if(cxp>Pl.l&&cxp<Pl.r&&pfeet<=Pl.t+3&&feet9>=Pl.t-1&&(Pl.t-HH*FOOT)<surface){surface=Pl.t-HH*FOOT;break;}}}
    if(vy>0&&y>=surface){ cTop=false; if(st==="fall"&&Math.abs(vy)>340){if(Math.abs(vy)>1050)shakeAfter=true;   // a hard landing skids, but the ground never wounds -- only a rival's lunge does
     if(Math.abs(vx)>420&&!wig)wig={t:0.22,dur:0.22,type:"tilt",a:(vx>0?1:-1)*4};   // fast landings skid: it leans into the slide
-    var k=Math.min(0.2,Math.abs(vy)*0.0004);y=surface;vy=-vy*0.72;vx*=0.85;sqT=0.14;sqyP=1-k;sqxP=1/(1-k);flipA=0;flipV=0;}  // e=0.72 (toy ball), tangential 0.85, volume-true squash
+    var k=Math.min(0.2,Math.abs(vy)*0.0004);y=surface;vy=-vy*(filler?0.42:0.72);vx*=0.85;sqT=0.14;sqyP=1-k;sqxP=1/(1-k);flipA=0;flipV=0;}  // e=0.72 (toy ball); the mini-Jayden is heavier -- much less bounce
     else land();}
    else if(air&&sqT<=0){var vst=Math.min(0.1,Math.abs(vy)*0.00012+Math.abs(vx)*0.00003);sqyP=1+vst;sqxP=1/(1+vst);}   // stretch belongs to the FALL: sideways flight stays solid
   }
@@ -3531,11 +3531,16 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
  // mini-Jayden: when a game has an ODD number of players, the big head shrinks in to even the sides (and makes a 1-head game playable)
  var fillerActive=false,FSLOT=9001,fillerCut=null;
  window.__hmFillerAdd=function(){if(fillerActive)return;
-  var face=document.getElementById("face");if(!face||!face.src||!face.complete||!face.naturalWidth)return;
-  fillerCut=face.src;   // remember EXACTLY this src -- the big head cycles expressions, so we can't re-read it later
+  var face=document.getElementById("face");if(!face||!face.complete||!face.naturalWidth)return;
+  // the big head is a SQUARE cutout; bake it into a 5:6 frame at its true aspect (never stretched) so the mini-Jayden reads exactly like him, just smaller
+  try{var W=500,H=600,c=document.createElement("canvas");c.width=W;c.height=H;var g=c.getContext("2d");
+   g.drawImage(face,0,0,W,W);   // his square face fills the width, head at the top of the frame (chin ~0.83, feet-space below)
+   fillerCut=c.toDataURL("image/webp",0.92);if(fillerCut.indexOf("data:image/webp")!==0)fillerCut=c.toDataURL("image/png");
+  }catch(_){fillerCut=face.src;}
+  // his REAL feature positions (from FACES.rest), mapped square->5:6 by dividing y by 1.2
   var data={cut:fillerCut,__filler:true,
-   eyes:[{x:0.40,y:0.42,w:0.10,h:0.045,ang:0,sc:"rgb(238,236,232)",ic:[44,33,26]},{x:0.60,y:0.42,w:0.10,h:0.045,ang:0,sc:"rgb(238,236,232)",ic:[44,33,26]}],
-   marks:{BL:{x:0.35,y:0.35},BR:{x:0.65,y:0.35},M:{x:0.5,y:0.66},N:{x:0.5,y:0.52}}};
+   eyes:[{x:0.400,y:0.431,w:0.100,h:0.040,ang:0,sc:"rgb(236,234,229)",ic:[46,35,28]},{x:0.603,y:0.439,w:0.100,h:0.040,ang:0,sc:"rgb(236,234,229)",ic:[46,35,28]}],
+   marks:{BL:{x:0.375,y:0.392},BR:{x:0.625,y:0.398},M:{x:0.500,y:0.632},N:{x:0.500,y:0.520}}};   // brows just above the eyes, nose tip, mouth on the lips -- matched to his real face
   spawnCompanion(data,FSLOT);var m=peers[peers.length-1];if(m)m.__filler=true;fillerActive=true;};
  window.__hmFillerRemove=function(){if(!fillerActive)return;try{if(window.__hmKill&&fillerCut){window.__hmKill(fillerCut);var L=window.__hmLive||[];for(var i=L.length-1;i>=0;i--){if(L[i].cut===fillerCut)L.splice(i,1);}}}catch(_){}fillerActive=false;fillerCut=null;};   // also drop the dead __hmLive entry so it can't pile up across games
  window.__hmRealHeads=function(){var n=0;for(var i=0;i<peers.length;i++){if(!peers[i].__filler)n++;}return n;};
