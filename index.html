@@ -3531,7 +3531,14 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   var hero=document.querySelector(".hero");if(!hero)return;
   var els=[0,1,2].map(function(){var d=document.createElement("div");d.className="hmPlat";hero.appendChild(d);return d;});
   var thirds=[0.05,0.37,0.69];   // one slab per third of the stage, so they never bunch up
-  function genDefs(){var defs=[];for(var i=0;i<3;i++){var wdt=0.16+Math.random()*0.08,l=thirds[i]+Math.random()*0.06,h=74+Math.random()*90;defs.push([l,l+wdt,h]);}return defs;}   // [left%, right%, height ABOVE the floor px]
+  function genDefs(){var defs=[];
+   if(innerWidth<=768){   // MOBILE: a tall narrow arena -> stack the slabs VERTICALLY (staggered heights, wider, alternating sides) so the fight climbs the screen
+    var hs=[62,128,192],sides=Math.random()<0.5?[0.06,0.40,0.10]:[0.44,0.08,0.40];   // three reachable tiers, left/right alternating
+    for(var i=0;i<3;i++){var wdt=0.44+Math.random()*0.12,l=Math.min(0.94-wdt,sides[i]+Math.random()*0.06),h=hs[i]+Math.random()*22;defs.push([l,l+wdt,h]);}
+   }else{
+    for(var i=0;i<3;i++){var wdt=0.16+Math.random()*0.08,l=thirds[i]+Math.random()*0.06,h=74+Math.random()*90;defs.push([l,l+wdt,h]);}
+   }
+   return defs;}   // [left%, right%, height ABOVE the floor px]
   var DEFS=[[0.12,0.30,88],[0.41,0.59,150],[0.70,0.88,88]];
   function layout(){var r=hero.getBoundingClientRect(),w=r.width;
    var st=document.getElementById("stage"),sr=st?st.getBoundingClientRect():null,floorY=sr?(sr.bottom-r.top):(r.height*0.86);
