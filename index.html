@@ -3036,15 +3036,12 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   if(!first&&want!==shown){shown=want;root.style.opacity=want?"1":"0";root.style.filter=want?"blur(0)":"blur(6px)";shadow.style.opacity=want?"1":"0";}
   if(reduce){root.style.transform="translate("+(heroR.w*0.05)+"px,"+floorY+"px)";shadow.style.transform="translate("+(heroR.w*0.05)+"px,"+(floorY+HH-4)+"px)";return;}
   if(!shown)return;
-  try{var br9=window.__hmBattleReq;   // the bell rings: everyone in
-   if(br9&&br9!==battleSeen){battleSeen=br9;if(!killed){battleOn=true;hp=100;elim=false;elimP=0;celebrated=false;me.podiumRank=0;me.spectate=0;
-    if(window.__hmBOSeed!==br9){window.__hmBOSeed=br9;battleOut.length=0;hidePodium();window.__hmBattleGo=performance.now()+2900;}   // once per fight: fresh log, no leftover podium, and a 3-2-1-GO before anyone throws a punch
-    perched=false;leapDelay=Infinity;me.elim=false;me.inB=true;bar.style.opacity="1";root.style.pointerEvents="";
-    try{document.body.classList.add("hmBattle");window.__hmBattleOn=true;}catch(_){}}}
-   var rs9=window.__hmRespawn;   // the bell again: everyone back
-   if(rs9&&rs9!==respawnSeen){respawnSeen=rs9;battleOn=false;me.inB=false;me.podiumRank=0;me.spectate=0;bar.style.opacity="0";crownEl.style.opacity="0";hidePodium();
-    try{document.body.classList.remove("hmBattle");window.__hmBattleOn=false;}catch(_){}
-    // EVERY head returns to normal life -- the podium winners were frozen mid-air, so give them gravity and let them drop back to the floor
+  // battleOn is DERIVED from the same two globals the class guardian uses -- every head reads it identically, so no head can be fighting after the whistle or stuck in the fight
+  try{var _bReq=window.__hmBattleReq||0,_bResp=window.__hmRespawn||0,_wantB=_bReq>0&&_bReq>_bResp&&!killed;
+   if(_wantB&&!battleOn){battleOn=true;battleSeen=_bReq;hp=100;elim=false;elimP=0;celebrated=false;me.podiumRank=0;me.spectate=0;   // ENTER
+    if(window.__hmBOSeed!==_bReq){window.__hmBOSeed=_bReq;battleOut.length=0;hidePodium();window.__hmBattleGo=performance.now()+2900;}   // once per fight: fresh log, no leftover podium, a 3-2-1-GO first
+    perched=false;leapDelay=Infinity;me.elim=false;me.inB=true;bar.style.opacity="1";root.style.pointerEvents="";}
+   else if(!_wantB&&battleOn){battleOn=false;respawnSeen=_bResp;me.inB=false;me.podiumRank=0;me.spectate=0;bar.style.opacity="0";crownEl.style.opacity="0";hidePodium();   // LEAVE: back to normal life, drop to the floor
     elim=false;elimP=0;hp=100;me.elim=false;root.style.pointerEvents="";
     shown=true;root.style.opacity="1";root.style.filter="blur(0)";shadow.style.opacity="1";root.style.display="";shadow.style.display="";
     air=true;st="fall";surface=floorY;if(vy<40)vy=40;perched=false;leapDelay=Infinity;
@@ -3518,6 +3515,10 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   window.__hmBattleWin=function(txt){cdN++;cEl.classList.add("hmMsg");bigText(txt);setTimeout(function(){cEl.textContent="";cEl.classList.remove("hmMsg");},2800);};   // "Champion!" style call at the end
   var acc=0,lastT=performance.now();
   function tick(nowT){requestAnimationFrame(tick);
+   // CENTRAL GUARDIAN: the hmBattle class is ON iff the latest battle request is newer than the latest respawn. One source of truth -> it can never desync or stick, no matter how frames are throttled.
+   var _req=window.__hmBattleReq||0,_resp=window.__hmRespawn||0,_bon=_req>0&&_req>_resp,_hasB=document.body.classList.contains("hmBattle");
+   if(_bon&&!_hasB&&!document.body.classList.contains("hmSoccer"))document.body.classList.add("hmBattle");
+   else if(!_bon&&_hasB)document.body.classList.remove("hmBattle");
    var on=document.body.classList.contains("hmBattle");
    if(on&&!wasOn)countdown();if(!on&&wasOn){cdN++;cEl.textContent="";}wasOn=on;
    if(!on){if(el.style.opacity!=="0"){el.style.opacity="0";shownN=-1;}return;}
