@@ -300,6 +300,11 @@ body.hmSoccer .moodMenu .moodItem:not(#endGame){opacity:.38;pointer-events:none}
 .hmScore em{color:var(--c400);font-style:normal}
 .hmScore small{margin-left:6px;padding-left:11px;border-left:1px solid var(--c100);font-weight:500;font-size:var(--fs-label);color:var(--c500)}
 .hmCount{position:absolute;left:50%;top:38%;transform:translate(-50%,-50%);z-index:48;font-family:var(--sans);font-weight:600;font-size:clamp(64px,12vw,140px);line-height:1;color:var(--c950);opacity:0;pointer-events:none;filter:url(#inkBig)}
+.hmScoreEnd{margin-left:10px;padding:2px 2px 2px 11px;border:0;border-left:1px solid var(--c100);border-radius:0;background:none;display:inline-flex;align-items:center;gap:5px;cursor:pointer;pointer-events:auto;color:#b3402e;font-family:var(--sans);font-weight:600;font-size:var(--fs-label);line-height:1;transition:color .15s}
+.hmScoreEnd:hover{color:#8f3323}.hmScoreEnd svg{width:12px;height:12px;flex:0 0 auto}
+/* a game is on: the hero copy steps aside so the pitch is clear, then returns when it ends */
+.heroCopy>h1,.heroCopy>.sub,.heroCopy>.heroCtas{transition:opacity .45s cubic-bezier(.2,.8,.2,1)}
+body.hmSoccer .heroCopy>h1,body.hmSoccer .heroCopy>.sub,body.hmSoccer .heroCopy>.heroCtas,body.hmBattle .heroCopy>h1,body.hmBattle .heroCopy>.sub,body.hmBattle .heroCopy>.heroCtas{opacity:0!important;pointer-events:none!important}
 .hmCount.hmCountPulse{animation:hmCountP .78s cubic-bezier(.2,.8,.2,1) forwards}
 @keyframes hmCountP{0%{opacity:0;transform:translate(-50%,-50%) scale(1.35)}18%{opacity:1}70%{opacity:1;transform:translate(-50%,-50%) scale(1)}100%{opacity:0;transform:translate(-50%,-50%) scale(.86)}}
 @media(prefers-reduced-motion:reduce){.hmCount.hmCountPulse{animation:none;opacity:1}}
@@ -2598,7 +2603,7 @@ requestAnimationFrame(function(){requestAnimationFrame(startIntro);});
   ["battleGo","soccerGo"].forEach(function(id){var bi=document.getElementById(id);if(!bi)return;
    if(on){bi.style.display="none";}   // a game is running: only End game belongs here
    else{bi.style.display="flex";var few=n<2;bi.style.opacity=few?"0.38":"";bi.style.pointerEvents=few?"none":"";bi.setAttribute("aria-disabled",few?"true":"false");}});
-  var eg=document.getElementById("endGame");if(eg)eg.style.display=on?"flex":"none";}
+  var eg=document.getElementById("endGame");if(eg)eg.style.display="none";}   // End now lives on the scoreboard, not the menu
  battleGate();setInterval(battleGate,400);
  function closeMenuBar(){var mb=document.getElementById("moodbar");if(mb)mb.classList.remove("open");var mbt=document.getElementById("moodBtn");if(mbt)mbt.setAttribute("aria-expanded","false");}
  var bg=document.getElementById("battleGo");
@@ -3268,8 +3273,9 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    goalL=document.createElement("div");goalL.className="hmGoal hmGoalR";hero.appendChild(goalL);   // left goal is RED\u2019s to defend
    goalR=document.createElement("div");goalR.className="hmGoal hmGoalB";hero.appendChild(goalR);
    board=document.createElement("div");board.className="hmScore";
-   board.innerHTML='<span class="sTeam sTr"><i></i><b class="sR">0</b></span><em>&ndash;</em><span class="sTeam sTb"><b class="sB">0</b><i></i></span><small>First to '+S.target+'</small>';
+   board.innerHTML='<span class="sTeam sTr"><i></i><b class="sR">0</b></span><em>&ndash;</em><span class="sTeam sTb"><b class="sB">0</b><i></i></span><small>First to '+S.target+'</small><button class="hmScoreEnd" type="button" aria-label="End the match"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="12" height="12" rx="1.6"/></svg>End</button>';
    hero.appendChild(board);sR=board.querySelector(".sR");sB=board.querySelector(".sB");
+   board.querySelector(".hmScoreEnd").addEventListener("click",function(e){e.stopPropagation();finish();});   // end the match right from the scoreboard
    countEl=document.createElement("div");countEl.className="hmCount";hero.appendChild(countEl);}
   function layout(){geo();
    goalL.style.transform="translate("+XL+"px,"+(groundY-150)+"px)";
@@ -3324,15 +3330,16 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    document.body.classList.add("hmSoccer");kickoffCountdown();
    if(!running){running=true;requestAnimationFrame(loop);}}
   window.__hmSoccerStart=start;window.__hmSoccerEnd=finish;
-  function netCatch(team){if(S.phase!=="play")return;S.phase="scoring";scoreTeam=team;   // the ball buries itself in the net first
+  function netCatch(team){if(S.phase!=="play")return;S.phase="scoring";scoreTeam=team;
+   goalBurst(team,bx,by);   // BANG -- it explodes the instant it crosses the line
+   ball.style.opacity="0";if(ballShadow)ballShadow.style.opacity="0";bvx=0;bvy=0;bw=0;   // and it's gone, never spinning around inside the net
    var g=team===1?goalR:goalL;g.classList.remove("hmGoalHit");void g.offsetWidth;g.classList.add("hmGoalHit");
-   setTimeout(function(){if(S.on&&S.phase==="scoring")goalIn(team);},320);}
+   setTimeout(function(){if(S.on&&S.phase==="scoring")goalIn(team);},240);}
   function goalIn(team){if(team===1)S.red++;else S.blue++;S.goalSeed=(S.goalSeed||0)+1;S.goalTeam=team;board2();
    var g=team===1?goalR:goalL;g.classList.add("hmGoalHit");setTimeout(function(){g.classList.remove("hmGoalHit");},650);
-   goalBurst(team,bx,by);   // BANG
    try{if(typeof busyNow==="function"&&!busyNow()){setHold("smile",1100);showFace("smile");if(typeof browFlash==="function")browFlash();}}catch(_){}
-   if((team===1&&S.red>=S.target)||(team===2&&S.blue>=S.target)){win(team);return;}
-   S.phase="reset";bvx=0;bvy=0;ball.style.opacity="0";setTimeout(function(){if(S.on){ball.style.opacity="1";dropIn();}},700);}
+   if((team===1&&S.red>=S.target)||(team===2&&S.blue>=S.target)){win(team);return;}   // the winning goal: the ball stays gone through the celebration
+   S.phase="reset";bvx=0;bvy=0;setTimeout(function(){if(S.on){ball.style.opacity="1";if(ballShadow)ballShadow.style.opacity="0.28";dropIn();}},700);}   // otherwise it re-appears for the next kickoff
   function win(team){S.winner=team;S.phase="win";board2();
    try{winConfetti(team);}catch(_){}
    try{if(typeof busyNow==="function"&&!busyNow()){setHold("smile",2200);showFace("smile");refFlash();}}catch(_){}
@@ -3413,8 +3420,9 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
 
  (function battleUI(){   // a quiet count of who is still standing
   var hero=document.querySelector(".hero");if(!hero)return;
-  var el=document.createElement("div");el.className="battleCount";el.innerHTML='<b>0</b>&nbsp;left';
+  var el=document.createElement("div");el.className="battleCount";el.innerHTML='<b>0</b>&nbsp;left<button class="hmScoreEnd" type="button" aria-label="End the battle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="12" height="12" rx="1.6"/></svg>End</button>';
   hero.appendChild(el);var b=el.querySelector("b");var shownN=-1;
+  el.querySelector(".hmScoreEnd").addEventListener("click",function(e){e.stopPropagation();window.__hmRespawn=performance.now();});   // end the battle right from the counter
   var acc=0,lastT=performance.now();
   function tick(nowT){requestAnimationFrame(tick);
    var on=document.body.classList.contains("hmBattle");
