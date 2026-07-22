@@ -2713,7 +2713,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   var gl2=document.createElement("div");gl2.className="glint";
   gl2.style.width=(0.10*irD/w2*100)+"%";gl2.style.height=(0.10*irD/h2*100)+"%";gl2.style.left=(50+irD/w2*14)+"%";gl2.style.top=(50+irD/h2*15)+"%";gl2.style.opacity="0.45";
   e.appendChild(fill);e.appendChild(ir);e.appendChild(shd);e.appendChild(gl);e.appendChild(gl2);root.appendChild(e);
-  var lidW=c.w*0.95,lidH=c.w*0.6;
+  var lidW=c.w*0.95,lidH=c.w*0.6/1.2;   // /1.2 aspect-corrects the lid height like the eye and cover, so a blink hugs the eye instead of riding onto the forehead
   var lw=document.createElement("div");lw.style.cssText="position:absolute;overflow:hidden;pointer-events:none";lw.style.borderRadius=ALM;lw.style.transform="rotate("+(c.ang||0)+"rad)";
   lw.style.width=(lidW*100)+"%";lw.style.height=(lidH*100)+"%";lw.style.left=((c.x-lidW/2)*100)+"%";lw.style.top=((c.y-lidH/2)*100)+"%";
   lw.style.zIndex="4";

@@ -612,7 +612,7 @@ function buildLive(){
   gl2.style.width=(0.10*irD/_ew*100)+"%";gl2.style.height=(0.10*irD/_eh*100)+"%";gl2.style.left=(50+irD/_ew*14)+"%";gl2.style.top=(50+irD/_eh*15)+"%";gl2.style.opacity="0.45";
   w.appendChild(fill);w.appendChild(ir);w.appendChild(shd);w.appendChild(gl);w.appendChild(gl2);
   headEl.appendChild(w);
-  var lwW=c.w*0.95,lwH=c.w*0.6;   /* the companion's lid window, verbatim */
+  var lwW=c.w*0.95,lwH=c.w*0.6/1.2;   /* lid window; /1.2 aspect-corrects its height like the eye and sclera, so it hugs the eye instead of riding up onto the forehead */
   var lw=document.createElement("div");lw.className="hmLidW";lw.style.borderRadius=ALMOND;
   lw.style.width=(lwW*100)+"%";lw.style.height=(lwH*100)+"%";
   lw.style.left=((c.x-lwW/2)*100)+"%";lw.style.top=((c.y-lwH/2)*100)+"%";
