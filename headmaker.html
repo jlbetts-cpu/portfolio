@@ -279,7 +279,7 @@ function photoErr(on){var e=document.getElementById("hmErr");if(e)e.classList.to
 function load(f){
  if(/\.(headjson|json)$/i.test(f.name||"")||f.type==="application/json"){ // a saved head file: straight back to life
   var rd=new FileReader();
-  rd.onload=function(){try{var sv=JSON.parse(String(rd.result));photoErr(!restoreHead(sv));}catch(_){photoErr(true);}};
+  rd.onload=function(){try{var sv=JSON.parse(String(rd.result));photoErr(!restoreHead(sv,true));}catch(_){photoErr(true);}};
   rd.onerror=function(){photoErr(true);};rd.readAsText(f);return;}
  var looksImg=/^image\//.test(f.type)||/\.(hei[cf]|jpe?g|png|webp|gif|avif|bmp)$/i.test(f.name||"");   // HEIC often arrives with an empty type
  if(!looksImg)return;
@@ -639,9 +639,7 @@ function buildLive(){
   var _all=[],_rawS=null;try{var _r2=localStorage.getItem("hmCompanions");if(_r2!==null){_all=JSON.parse(_r2)||[];_rawS=1;}}catch(_){}
   if(!(_all instanceof Array))_all=[];
   if(_rawS===null){try{var _lg=JSON.parse(localStorage.getItem("hmCompanion")||"null");if(_lg&&_lg.cut&&_lg.cut.length>100)_all=[_lg];}catch(_){}}
-  var _gk=JSON.stringify(_nh.marks||"m")+JSON.stringify((_nh.eyes||[]).map(function(e){return[e.x,e.y,e.w,e.h];}));
-  _all=_all.filter(function(h){if(!(h&&h.cut&&h.cut.length>=15000)||h.cut===_nh.cut)return false;
-   var hk=JSON.stringify(h.marks||"m")+JSON.stringify((h.eyes||[]).map(function(e){return[e.x,e.y,e.w,e.h];}));return hk!==_gk;});   // a re-made face REPLACES its older twin, so a new save always registers as new
+  _all=_all.filter(function(h){return h&&h.cut&&h.cut.length>=15000&&h.cut!==_nh.cut;});   // real faces only; the same face re-saved just moves to newest
   _all.push(_nh);while(_all.length>8)_all.shift();   // the pit holds eight: the oldest head retires
   for(var qa=0;qa<8;qa++){try{localStorage.setItem("hmCompanions",JSON.stringify(_all));break;}
    catch(_q){if(_all.length<=1)break;_all.shift();}}   // quota can never eat a save silently again
@@ -709,10 +707,10 @@ function loadSmile(f){
 function readPit(){var all=[],rawN1=null;
  try{var raw1=localStorage.getItem("hmCompanions");if(raw1!==null){all=JSON.parse(raw1)||[];rawN1=all.length;}}catch(_){}
  if(rawN1===null){try{var lg1=JSON.parse(localStorage.getItem("hmCompanion")||"null");if(lg1&&lg1.cut)all=[lg1];}catch(_){}}
- var seenP={},keptP=[];for(var _pi=all.length-1;_pi>=0;_pi--){var d=all[_pi];if(!d||!d.cut||d.cut.length<15000)continue;
+ var seenP={};all=all.filter(function(d){if(!d||!d.cut||d.cut.length<15000)return false;
+  var kk=d.cut.length+"|"+JSON.stringify(d.marks||"")+"|"+JSON.stringify(d.eyes&&d.eyes[0]&&d.eyes[0].x);
   var k2=JSON.stringify(d.marks||"m")+JSON.stringify((d.eyes||[]).map(function(e){return[e.x,e.y,e.w,e.h];}));
-  if(seenP[d.cut]||seenP[k2])continue;seenP[d.cut]=1;seenP[k2]=1;keptP.unshift(d);}   // newest twin wins, so the pit mirrors what you just made
- all=keptP.slice(-8);
+  if(seenP[d.cut]||seenP[k2])return false;seenP[d.cut]=1;seenP[k2]=1;return true;}).slice(0,8);
  if(rawN1!==null&&rawN1!==all.length){try{localStorage.setItem("hmCompanions",JSON.stringify(all));}catch(_){}}   // heal: duplicates and debris leave the record for good
  return all;}
 function renderPit(){try{var row=document.getElementById("hmPitRow"),sec=document.getElementById("hmPitSec");if(!row)return;
@@ -864,10 +862,24 @@ document.getElementById("save").addEventListener("click",function(){
 });
 /* returning visitors get their head back — this runs last, after all state exists
    (it used to run before the var declarations executed, which nulled the restored image: the glitch) */
-function restoreHead(_sv){if(!(_sv&&_sv.cut&&_sv.cut.length>100))return false;
+function registerHead(_sv){try{ // a saved head file re-uploaded joins the pit and the homepage, like a fresh make
+  var nh={cut:_sv.cut,eyes:_sv.eyes||[],marks:_sv.marks||null,t:_sv.t||Date.now()};
+  if(!nh.cut||nh.cut.length<15000)return;   // must be a real face to earn a slot
+  var all=[],rawS=null;try{var r2=localStorage.getItem("hmCompanions");if(r2!==null){all=JSON.parse(r2)||[];rawS=1;}}catch(_){}
+  if(!(all instanceof Array))all=[];
+  if(rawS===null){try{var lg=JSON.parse(localStorage.getItem("hmCompanion")||"null");if(lg&&lg.cut&&lg.cut.length>100)all=[lg];}catch(_){}}
+  all=all.filter(function(h){return h&&h.cut&&h.cut.length>=15000&&h.cut!==nh.cut;});   // the same file re-uploaded just moves to newest, never doubles
+  all.push(nh);while(all.length>8)all.shift();   // eight slots; the oldest retires
+  for(var qa=0;qa<8;qa++){try{localStorage.setItem("hmCompanions",JSON.stringify(all));break;}
+   catch(_q){if(all.length<=1)break;all.shift();}}   // quota can never eat the save silently
+  try{localStorage.setItem("hmCompanion",JSON.stringify(nh));}catch(_){}
+  renderPit();
+ }catch(_){}}
+function restoreHead(_sv,save){if(!(_sv&&_sv.cut&&_sv.cut.length>100))return false;
  cutURL=_sv.cut;restoredEyes=_sv.eyes;if(_sv.marks)marks=_sv.marks;
  try{var rim=new Image();rim.onload=function(){try{var rc=document.createElement("canvas");rc.width=BAKE_W;rc.height=BAKE_H;
   rc.getContext("2d").drawImage(rim,0,0,BAKE_W,BAKE_H);bakedCanvas=rc;}catch(_){}};rim.src=_sv.cut;}catch(_){}
+ if(save)registerHead(_sv);   // uploads register; auto-restore and pit-clicks only display
  setTimeout(function(){try{buildLive();show(3);}catch(_){}},60);return true;}
 window.__hmRestore=restoreHead;
 try{restoreHead(JSON.parse(localStorage.getItem("hmCompanion")||"null"));}catch(_){}
