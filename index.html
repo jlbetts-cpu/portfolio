@@ -3160,6 +3160,9 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   if(hurtT>0){hurtT-=DT;hurtEl.style.opacity=(Math.max(0,hurtT)/0.2*0.62).toFixed(2);}
   if(mjClone&&mjBigFace){   // MIRROR the live big head onto the clone: same expression, same blink, same gaze, every frame -- for free
    var _bE=document.querySelectorAll("#stage > .eye"),_cE=mjClone.querySelectorAll(".eye"),_rat=mjBigW?HW/mjBigW:0.25;   // his gaze is in HIS pixels; scale it to the mini so the iris moves the same FRACTION of the eye, not the same pixels (which flew the iris right out of the tiny eye)
+   if(_bE.length&&_cE.length<_bE.length){   // EYES-LOAD SAFETY: buildEyes() wipes + re-adds his eyes on every setFace, so a clone snapshotted in that gap comes up EYELESS. Graft the current pair in (ink filter stripped, like the rest of the clone) so his eyes always load -- self-heals the next frame his eyes exist.
+    for(var _gi=_cE.length;_gi<_bE.length;_gi++){var _ge=_bE[_gi].cloneNode(true);_ge.style.filter="none";var _gd=_ge.querySelectorAll("*");for(var _gj=0;_gj<_gd.length;_gj++){try{_gd[_gj].style.filter="none";}catch(_){}}mjClone.appendChild(_ge);}
+    _cE=mjClone.querySelectorAll(".eye");}
    var _bClosed=_bE[0]&&_bE[0].classList.contains("eclosed");
    // his OWN grin: the big head is hidden mid-game, so his personality has to be driven from game events. smileT is set when he scores, wins, or is last one standing (see the soccer/battle hooks above).
    var _grin=filler&&smileT>0;
