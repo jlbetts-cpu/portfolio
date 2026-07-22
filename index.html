@@ -3061,9 +3061,14 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    if(!moodB&&!wig)wig={t:0.7,dur:0.7,type:"tilt",a:(Math.random()<0.5?-1:1)*2.5};}   // postural sway: standing still is never perfectly still
   if(perched&&!grabbed&&!air){var fEl2=document.getElementById("face");
    if(fEl2){var fr2=fEl2.getBoundingClientRect(),hb2=hero.getBoundingClientRect();
-    var txp=fr2.left-hb2.left+fr2.width/2-HW/2,typ=fr2.top-hb2.top+fr2.height*crownFrac-HH*FOOT+HH*0.07;
-    if(now<dockUntil){var dk=Math.min(1,DT*9);x+=(txp-x)*dk;y+=(typ-y)*dk;}   // settles onto the crown
-    else if(Math.abs(txp-x)>0.4||Math.abs(typ-y)>0.4){x=txp;y=typ;}}}   // moves in the same steps as the hair: one creature, no tremble
+    var nP=0,rank=0;   // find my seat: which of the docked heads am I, left to right
+    for(var pk=0;pk<peers.length;pk++){var isP=(peers[pk]===me)?true:peers[pk].perched;if(isP){if(peers[pk]===me)rank=nP;nP++;}}
+    var sp=HW*0.72;var ox=(rank-(nP-1)/2)*sp;   // spread across the crown, ~30% overlap at most
+    var edge=fr2.width*0.42;if(ox>edge)ox=edge;if(ox<-edge)ox=-edge;   // never slide off the sides
+    var oy=Math.pow(Math.abs(ox)/Math.max(1,edge),2)*fr2.height*0.07;   // outer seats dip with the round of the head
+    var txp=fr2.left-hb2.left+fr2.width/2-HW/2+ox,typ=fr2.top-hb2.top+fr2.height*crownFrac-HH*FOOT+HH*0.07+oy;
+    if(now<dockUntil){var dk=Math.min(1,DT*9);x+=(txp-x)*dk;y+=(typ-y)*dk;}   // settles onto its seat
+    else if(Math.abs(txp-x)>0.4||Math.abs(typ-y)>0.4){x+=(txp-x)*Math.min(1,DT*12);y+=(typ-y)*Math.min(1,DT*12);}}}   // rides the hair, and slides over if a neighbour leaves
 
   // physics: walls, floor, ceiling, and the caregiver — nothing else is solid
   if(!grabbed&&air){
