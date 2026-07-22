@@ -3350,21 +3350,21 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   var spin=0,bw=0,gaspAt=0;   // spin = rendered rotation, bw = angular velocity (deg/s)
   function loop(now){if(!S.on){running=false;return;}requestAnimationFrame(loop);
    var dt=Math.min(0.05,Math.max(0.006,(now-last)/1000));last=now;geo();
-   var REST=groundY-BR;   // the ball's CENTRE at rest: its underside sits exactly on the pitch line, never through it
+   var REST=groundY-BR,GRAV=2600;   // gravity is uniform: the ball falls at exactly the heads' g (was a wrong 2400 vs their 2600). REST = ball CENTRE at rest, underside on the pitch
    if(S.phase==="scoring"){   // the net has the ball: it decelerates and settles
-    bvy+=2400*dt;bvx*=Math.pow(0.006,dt);bvy*=Math.pow(0.03,dt);bx+=bvx*dt;by+=bvy*dt;
+    bvy+=GRAV*dt;bvx*=Math.pow(0.006,dt);bvy*=Math.pow(0.03,dt);bx+=bvx*dt;by+=bvy*dt;
     if(by>REST){by=REST;bvy=0;}
     if(bx<XL+BR-3)bx=XL+BR-3;if(bx>XR-BR+3)bx=XR-BR+3;
    }
    if(S.phase==="play"){
-    bvy+=2400*dt;bvx*=Math.pow(0.7,dt);   // light air drag: momentum carries a struck ball across the pitch
+    bvy+=GRAV*dt;bvx*=Math.pow(0.78,dt);   // light aerodynamic drag: a struck ball keeps its momentum across the pitch
     bx+=bvx*dt;by+=bvy*dt;
     if(by>REST){   // meets the pitch
      if(Math.abs(bvy)>50){var kg=Math.min(0.14,Math.abs(bvy)*0.00016);bsyP=1-kg;bsxP=1/(1-kg);bsT=0.12;bvy=-bvy*0.72;}else bvy=0;   // squash + bounce, e=0.72 (grass, not a superball)
      by=REST;bvx*=0.9;}
     var onGround=by>=REST-1;
-    if(onGround&&Math.abs(bvy)<70)bvx*=Math.pow(0.28,dt);   // rolling friction slows it on the turf
-    if(onGround&&Math.abs(bvx)<9&&Math.abs(bvy)<12){bvx=0;bvy=0;}   // and it settles honestly -- no hover, no jitter
+    if(onGround&&Math.abs(bvy)<70){var rf=Math.min(Math.abs(bvx),0.075*GRAV*dt);bvx-=(bvx>0?1:-1)*rf;}   // rolling resistance as a CONSTANT deceleration (mu_r*g, mu_r~0.075 for grass), not a made-up exponential -- the ball rolls, then slows honestly
+    if(onGround&&Math.abs(bvx)<9&&Math.abs(bvy)<12){bvx=0;bvy=0;}   // and it settles fully -- no hover, no jitter
     if(by<BR+2){by=BR+2;if(Math.abs(bvy)>120){var kc0=Math.min(0.1,Math.abs(bvy)*0.00012);bsyP=1-kc0;bsxP=1/(1-kc0);bsT=0.11;}bvy=Math.abs(bvy)*0.72;}   // ceiling
     var inG=by>groundY-150;
     var gt=groundY-150,overL=(bx+BR>XL&&bx-BR<XL+44),overR=(bx+BR>XR-44&&bx-BR<XR);   // the crossbar
@@ -3382,6 +3382,8 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
        bvx+=nx*jI;bvy+=ny*jI;p.kx-=nx*jI*0.08;p.ky-=ny*jI*0.08;   // a small honest recoil into the head
        bw+=(-rvx*ny+rvy*nx)*(180/Math.PI)/BR*0.5;   // an off-centre hit puts spin on it
        var kk=Math.min(0.16,Math.abs(rel)*0.00022);if(Math.abs(nx)>Math.abs(ny)){bsxP=1-kk;bsyP=1/(1-kk);}else{bsyP=1-kk;bsxP=1/(1-kk);}bsT=0.13;}}}
+    if(by>REST){by=REST;if(bvy>0){bvx+=(bvx>=0?1:-1)*Math.abs(bvy)*0.5;bvy=-Math.abs(bvy)*0.4;}}   // the pitch is SOLID: a head jumping onto the ball can't drive it under -- it squeezes out (sideways + a small pop up), never through the plane
+    if(by<BR+2)by=BR+2;   // and never through the ceiling either
     bvx=Math.max(-2200,Math.min(2200,bvx));bvy=Math.max(-1900,Math.min(1400,bvy));
     var nearGoal=(by>groundY-150)&&((bx<95&&bvx<-60)||(bx>W-95&&bvx>60));
     if(nearGoal&&now>(gaspAt||0)){gaspAt=now+1600;
