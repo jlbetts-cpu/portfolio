@@ -2818,7 +2818,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
      st="idle",stT=0,hopsLeft=0,grabbed=false,gpx=0,gpy=0,lastPX=0,lastPY=0,pvx=0,pvy=0,
      offAt=0,gone=false,goneUntil=0,decideAt=performance.now()+4200,spin=0,heldOff=0,heldV=0,cTop=false,bornAt=performance.now()+1600,perched=false,hs=1,hsT=1,dockUntil=0,moodB=false,pbAt=0,mirrorAt=0,downT=0,downX=0,downY=0,shakeN=0,heartsF=0,danceHops=0,dblBlink=false,
      bAt=performance.now()+2800,bf=0,brAt=performance.now()+7000,brf=0,moAt=performance.now()+11000,mof=0,
-     dzf=0,sqx=1,sqy=1,sqxv=0,sqyv=0,sqxP=1,sqyP=1,sqT=0,shown=false,first=true,tk3=0,gzx=0,gzy=0,sacAt=0,flipA=0,flipV=0,wig=null,wigP=0,bounceN=0,perchT=0,leapDelay=Infinity,hmOverT=0,introSettled=false,bornWall=0,introFrames=0,shakeAfter=false,drowse2=false,lastNearT=performance.now(),perchWigAt=performance.now()+9000,greetAt=performance.now()+6000,visitUntil=0,hmOverNow=false,vaulting=false,audAt=0,killed=false,hp=100,crowdT=0,team=0,soccerOn=false,soccerKickSeen=0,soccerWon=false,goalSeen=0,battleOn=false,battleSeen=0,elim=false,elimP=0,celebrated=false,respawnSeen=0,hurtT=0,danceUntil=0,danceHopAt=0,mjHurtUntil=0,hitStop=0,
+     dzf=0,sqx=1,sqy=1,sqxv=0,sqyv=0,sqxP=1,sqyP=1,sqT=0,shown=false,first=true,tk3=0,gzx=0,gzy=0,sacAt=0,flipA=0,flipV=0,wig=null,wigP=0,bounceN=0,perchT=0,leapDelay=Infinity,hmOverT=0,introSettled=false,bornWall=0,introFrames=0,shakeAfter=false,drowse2=false,lastNearT=performance.now(),perchWigAt=performance.now()+9000,greetAt=performance.now()+6000,visitUntil=0,hmOverNow=false,vaulting=false,audAt=0,killed=false,hp=100,crowdT=0,team=0,soccerOn=false,soccerKickSeen=0,soccerWon=false,goalSeen=0,battleOn=false,battleSeen=0,elim=false,elimP=0,celebrated=false,respawnSeen=0,hurtT=0,danceUntil=0,danceHopAt=0,mjHurtUntil=0,hitStop=0,mjExprAt=0,mjExprUntil=0,mjExprKind="",
      pendingHide=null,hideToken=0,lapBack=false,forceHide=/[?&]hide=1/.test(location.search);
  function plane(front){root.style.zIndex=front?"3":"1";shadow.style.zIndex=front?"2":"1";}   // two planes only: the front (where hands live) and behind the furniture
  var G=2600,DT=0.04,facc=0,CEIL=2,surpriseAt=0;   // real units: px/s and px/s^2, integrated at 25fps
@@ -3096,37 +3096,47 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
      if(!grabbed){dir=((heroR.w/2)>(x+HW/2))?1:-1;surface=floorY;st="fall";air=true;vy=-(920+Math.random()*120);vx=dir*(110+Math.random()*110);sqT=0.13;sqyP=1.11;sqxP=1/1.11;startFlip();brf=6;mof=4;
       try{if(!busyNow()){setHold("smile",1600);showFace("smile");}}catch(_){}}}
     if(S9.phase==="play"&&!grabbed&&!air&&st==="idle"&&S9.ball&&now>=decideAt){decideAt=now+240+Math.random()*220;
-     var role=(S9.roles&&S9.roles[slot])||"attacker",ballX=S9.ball.x,ballY=S9.ball.y,myX=x+HW/2;
+     var role=(S9.roles&&S9.roles[slot])||"attacker",ballX=S9.ball.x,ballY=S9.ball.y,ballVX=(S9.ball.vx||0),myX=x+HW/2;
      var atk=team===1?1:-1,ownGoalX=team===1?(M+6):(heroR.w-M-6);
-     var teamN=0;for(var tc=0;tc<peers.length;tc++){if(S9.teams&&S9.teams[peers[tc].slot]===team&&!peers[tc].elim)teamN++;}
-     var ballDef=(atk>0)?(ballX<heroR.w*0.44):(ballX>heroR.w*0.56);   // the ball is on OUR half -- a real threat
-     var defend=ballDef&&((role==="defender"&&teamN>=3)||(role==="keeper"&&teamN>=4));   // hang back only when the side can spare the body; otherwise EVERYONE goes to score
-     var bxT,overBall=false;
-     if(defend){bxT=(ballX+ownGoalX)/2-HW/2;   // sit goal-side of the ball, ready to intercept and clear
-      if(role==="keeper")bxT=team===1?Math.min(bxT,heroR.w*0.13):Math.max(bxT,heroR.w*0.87-HW);}
-     else{   // attack -- but always strike from the OWN-goal side, so the ball goes toward THEIR net, never yours
-      var wrongSide=(atk>0)?(myX>ballX+8):(myX<ballX-8);   // I'm on the opponent-goal side of the ball: a hit from here would drive it into my OWN goal
-      if(wrongSide){bxT=(ballX-atk*(HW*0.5+34))-HW/2;overBall=Math.abs(ballX-myX)<HW+50;}   // so loop around to the goal side, HOPPING clean over the ball when it's in the way
-      else bxT=ballX-HW/2;}   // already goal-side: drive straight at it
+     var leadX=Math.max(M,Math.min(heroR.w-M,ballX+ballVX*0.18));   // LEAD the ball: aim where it's GOING, not where it was
+     var goalSideOf=function(px){return (atk>0)?(px<=ballX+6):(px>=ballX-6);};   // behind the ball (own-goal side) -> a hit from here drives it toward THEIR net
+     var myGS=goalSideOf(myX),myScore=Math.abs(myX-ballX)+(myGS?0:heroR.w*0.55);   // "cost to strike toward their goal": distance + a penalty if I'd have to loop around the ball first
+     // ROLE BY POSITIONING: I only chase if I'm my team's BEST-placed striker right now. Everyone else supports -> no clumping, and the head with the better shot takes it (the "pass").
+     var iAmChaser=true,teamAhead=0;
+     for(var tc=0;tc<peers.length;tc++){var pv=peers[tc];if(pv===me||pv.elim||!(S9.teams&&S9.teams[pv.slot]===team))continue;
+      var pvX=pv.x+pv.HW/2,pvScore=Math.abs(pvX-ballX)+(goalSideOf(pvX)?0:heroR.w*0.55);
+      if(pvScore<myScore-6||(Math.abs(pvScore-myScore)<=6&&(pv.slot||0)<(slot||0)))iAmChaser=false;
+      if((atk>0)?(pvX>ballX):(pvX<ballX))teamAhead++;}
+     var ballOnOurHalf=(atk>0)?(ballX<heroR.w*0.5):(ballX>heroR.w*0.5);
+     var ballHigh=(floorY-ballY)>150,nearOwnGoal=(atk>0)?(ballX<heroR.w*0.3):(ballX>heroR.w*0.7);
+     var bxT,overBall=false,wantHigh=false;
+     if(iAmChaser){   // GO FOR IT -- but ALWAYS from the own-goal side, so the ball can only go toward THEIR net
+      if(!myGS){bxT=(leadX-atk*(HW*0.5+34))-HW/2;overBall=Math.abs(ballX-myX)<HW+56;}   // loop behind the ball, vaulting clean over it
+      else bxT=leadX-HW/2;   // already behind it: drive straight through toward their goal
+      if(ballHigh&&nearOwnGoal){wantHigh=true;bxT=(ballX-atk*(HW*0.3))-HW/2;}}   // a high ball at my own net: LEAP to head it clear
+     else if(role==="keeper"||(role==="defender"&&ballOnOurHalf)){   // GUARD: hang between the ball and my net, clear only from the goal side (never poke it back toward my own net)
+      bxT=Math.max(M,Math.min(heroR.w-M-HW,(ballX+ownGoalX*2)/3))-HW/2;
+      if(role==="keeper")bxT=team===1?Math.min(bxT,heroR.w*0.11):Math.max(bxT,heroR.w*0.89-HW);
+      if(ballHigh&&nearOwnGoal&&ballOnOurHalf)wantHigh=true;}   // spring up to block the high shot
+     else{   // SUPPORT: push up toward their goal to receive the clear / pounce a rebound -- staying goal-side so a forward pass finds me
+      var aheadX=ballX+atk*(HW*1.5+heroR.w*0.1+teamAhead*HW*0.7)+(Math.random()*60-30);
+      bxT=Math.max(M+HW*0.2,Math.min(heroR.w-M-HW*1.2,aheadX))-HW/2;}
      var ddb9=bxT-x;
      if(Math.abs(ddb9)>HW*0.4){dir=ddb9>0?1:-1;gzx=dir*0.85;gzy=(ballY<floorY-160?-0.55:0.15);sacAt=now+560;   // eyes lock onto the ball as it goes
       surface=floorY;st="fall";air=true;
       var ballUp=Math.max(0,floorY-ballY),ballClose=Math.abs(ballX-myX)<heroR.w*0.22;
-      var vyb9=(overBall?720:(ballClose?440:360))+Math.min(580,ballUp*0.72)+Math.random()*100,ttb9=2*vyb9/G;   // a high, clean vault when it has to clear the ball to get behind it
-      vy=-vyb9;vx=dir*Math.min(780,Math.max(120,Math.abs(ddb9)/ttb9));sqT=0.12;sqyP=1.1;sqxP=1/1.1;}
+      var vyb9=(wantHigh?(940+Math.random()*80):(overBall?720:(ballClose?440:360)))+Math.min(560,ballUp*0.72)+Math.random()*90,ttb9=2*vyb9/G;   // wantHigh = a real leap to block / head a high ball
+      vy=-vyb9;vx=dir*Math.min(800,Math.max(120,Math.abs(ddb9)/ttb9));sqT=0.12;sqyP=1.1;sqxP=1/1.1;}
      else{gzx=(ballX>myX)?0.6:-0.6;gzy=0.1;sacAt=now+700;}}}}catch(_){}
   if(battleOn&&!elim&&!celebrated){var alive9=0,inb9=0;
    for(var a9=0;a9<peers.length;a9++){if(peers[a9].inB){inb9++;if(!peers[a9].elim)alive9++;}}
-   if(inb9>=2&&alive9===1){celebrated=true;if(filler){smileT=3.6;danceUntil=now+3400;}   // last head standing: raise the podium; everyone else gathers to watch (the mini-Jayden grins + grooves in his winner's seat)
-    var top9=[me];for(var z9=battleOut.length-1;z9>=0&&top9.length<3;z9--)top9.push(battleOut[z9]);   // 1st = me, then the last two knocked out
-    var spots9=showPodium(top9.length,floorY+HH*FOOT);   // the real floor line (heads rest with feet at floorY+HH*FOOT)
-    top9.forEach(function(pm,ri){pm.podiumRank=ri+1;pm.spectate=0;var sp=spots9[ri+1];if(sp){pm.podX=sp.cx;pm.podTop=sp.top;}});
-    var oi9=0;for(var s9=0;s9<peers.length;s9++){var sp9=peers[s9];if(top9.indexOf(sp9)>=0)continue;   // the rest: resurrected, ringed around the podium, eyes on the ceremony
-     var side9=(oi9%2===0)?-1:1;sp9.spectate=1;sp9.podiumRank=0;sp9.specX=heroR.w/2+side9*(heroR.w*0.22+Math.floor(oi9/2)*HW*0.95);oi9++;}
-    brf=6;mof=4;confettiBurst(heroR.w*0.36);confettiBurst(heroR.w*0.64);   // a real burst across the podium
+   if(inb9>=2&&alive9===1){celebrated=true;   // LAST HEAD STANDING: crown the winner right where he stands (soccer-style, no podium), a victory leap + confetti, then everyone streams back
+    crownEl.style.opacity="1";if(filler){smileT=3.8;danceUntil=now+3600;}
+    if(!grabbed){dir=((heroR.w/2)>(x+HW/2))?1:-1;surface=floorY;st="fall";air=true;vy=-(900+Math.random()*140);vx=dir*(90+Math.random()*120);sqT=0.13;sqyP=1.11;sqxP=1/1.11;startFlip();}   // he leaps for it
+    brf=6;mof=4;confettiBurst(heroR.w*0.5);
     try{if(window.__hmBattleWin)window.__hmBattleWin("Champion!");}catch(_){}
     try{if(typeof busyNow==="function"&&!busyNow()&&typeof setHold==="function"){setHold("smile",2200);showFace("smile");}}catch(_){}
-    setTimeout(function(){window.__hmRespawn=performance.now();},6200);}}   // hold the ceremony, then everyone streams back and the page returns   // hold the podium, then everyone comes back
+    setTimeout(function(){window.__hmRespawn=performance.now();},4200);}}   // hold the moment, then everyone comes back to normal life
   if(battleOn&&!elim&&!me.podiumRank&&!me.spectate&&!grabbed&&!air&&st==="idle"&&now>=decideAt&&now>=(window.__hmBattleGo||0)){decideAt=now+280+Math.random()*260;   // an active fighter (only once the whistle goes): read the arena, grab height, then POUNCE
    var tgt=null,td9=1e9,mcx=x+HW/2;
    for(var b9=0;b9<peers.length;b9++){var pv=peers[b9];if(pv===me||!pv.inB||pv.elim)continue;var dd9=Math.abs((pv.x+pv.HW/2)-mcx);if(dd9<td9){td9=dd9;tgt=pv;}}
@@ -3162,15 +3172,30 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    else{_bsrc=mjBigFace.getAttribute("src")||"";
     if(/smile/.test(_bsrc))_bsrc=_bsrc.replace("smile","neutral");   // his grin is his OWN, team-gated (smileT) -- don't borrow the shared big head's smile when the OTHER team scored
     if(/rest/.test(_bsrc))_bsrc=_bsrc.replace("rest","neutral");   // a FIGHTER never drifts sleepy mid-game (rest_closed -> neutral_closed keeps the blink)
-    if(brf>0&&!/closed/.test(_bsrc))_bsrc="images/neutral_browsup.webp";}   // his EXPRESSIVE EYEBROWS: raised on his own beats -- a goal, a hit, a startle, a pounce all set brf (surprise reads right here)
+    // --- his OWN expressiveness (he's ME -- the liveliest head): a rotating repertoire of idle beats between the action, plus brow raises on every game beat ---
+    if(filler){
+     var _calm=!air&&st==="idle"&&mjHurtUntil<now;
+     if(now>=mjExprAt){mjExprAt=now+1900+Math.random()*2400;   // pick a fresh little beat every couple seconds
+      if(_calm){var _r=Math.random();
+       if(_r<0.34){brf=Math.max(brf,6);}                       // a warm brow flash
+       else if(_r<0.58){mjExprKind="waggle";mjExprUntil=now+560;}   // an eyebrow WAGGLE (brows bounce)
+       else if(_r<0.80){mjExprKind="wink";mjExprUntil=now+480;}     // a cheeky wink
+       else if(_r<0.94){mjExprKind="smile";mjExprUntil=now+620;}    // a quick grin to himself
+       else {mjExprKind="brows";mjExprUntil=now+680;}}}             // a held raise
+     if(mjExprUntil>now){
+      if(mjExprKind==="wink")_bsrc=_bClosed?"images/wink_closed.webp":"images/wink.webp";
+      else if(mjExprKind==="smile")_bsrc=_bClosed?"images/smile_closed.webp":"images/smile.webp";
+      else if(mjExprKind==="waggle")_bsrc=(Math.floor(now/140)%2)?"images/neutral_browsup.webp":(_bClosed?"images/neutral_closed.webp":"images/neutral.webp");   // the bounce
+      else if(!/closed/.test(_bsrc))_bsrc="images/neutral_browsup.webp";}}
+    if(brf>0&&mjExprUntil<=now&&!/closed|smile|wink/.test(_bsrc))_bsrc="images/neutral_browsup.webp";}   // EXPRESSIVE EYEBROWS on every beat -- a goal, a hit, a startle, a pounce all set brf
    var _cff=mjClone.querySelector(".face");
-   if(_cff&&_cff.getAttribute("src")!==_bsrc){_cff.setAttribute("src",_bsrc);
-    try{var _mu="url("+_bsrc+")";ringEl.style.webkitMaskImage=_mu;ringEl.style.maskImage=_mu;hurtEl.style.webkitMaskImage=_mu;hurtEl.style.maskImage=_mu;}catch(_){}}   // the OUTLINE + hurt-flash follow his current face, so the rim reshapes when he grins or raises his brows
-   var _faceDir=(dir<0?-1:1);if(mjClone.__fd!==_faceDir){mjClone.__fd=_faceDir;mjClone.style.transform="scaleX("+_faceDir+")";}   // FLIP to face where he's running (like the little heads never do) -- his face has a front, so mirror it left/right
+   if(_cff&&_cff.getAttribute("src")!==_bsrc)_cff.setAttribute("src",_bsrc);   // the OUTLINE uses a STABLE neutral silhouette (his head shape barely changes between faces) -- re-masking it per expression flashed an unmasked rectangle for a frame; a fixed mask is rock-steady
+   var _faceDir=(dir<0?1:-1);if(mjClone.__fd!==_faceDir){mjClone.__fd=_faceDir;mjClone.style.transform="scaleX("+_faceDir+")";
+    try{ringEl.style.transform="scale("+(1.06*_faceDir).toFixed(3)+",1.06)";hurtEl.style.transform="scaleX("+_faceDir+")";}catch(_){}}   // the rim + red flash FLIP with him and (sharing his root) ride every squash & move -> consistent, glitch-free
    for(var _mi=0;_mi<_cE.length&&_mi<_bE.length;_mi++){
-    var _wantHide=_grin?"none":"";if(_cE[_mi].style.display!==_wantHide)_cE[_mi].style.display=_wantHide;   // no floating irises over the baked-in smile
+    var _wantHide=(_grin||/smile|wink/.test(_bsrc))?"none":"";if(_cE[_mi].style.display!==_wantHide)_cE[_mi].style.display=_wantHide;   // no floating irises over a baked-in smile OR wink
     _cE[_mi].classList.toggle("eclosed",_bE[_mi].classList.contains("eclosed"));   // mirror the blink
-    var _bi=_bE[_mi].querySelector(".iris"),_ci=_cE[_mi].querySelector(".iris");if(_bi&&_ci){var _t=_bi.style.transform||"",_m=_t.match(/translate\(\s*(-?[\d.]+)px[ ,]+(-?[\d.]+)px/);_ci.style.transform=_m?("translate("+(parseFloat(_m[1])*_rat).toFixed(2)+"px,"+(parseFloat(_m[2])*_rat).toFixed(2)+"px)"):_t;}   // mirror the gaze, SCALED
+    var _bi=_bE[_mi].querySelector(".iris"),_ci=_cE[_mi].querySelector(".iris");if(_bi&&_ci){var _t=_bi.style.transform||"",_m=_t.match(/translate\(\s*(-?[\d.]+)px[ ,]+(-?[\d.]+)px/);if(_m){var _gx=Math.max(-2.6,Math.min(2.6,parseFloat(_m[1])*_rat)),_gy=Math.max(-2.1,Math.min(2.1,parseFloat(_m[2])*_rat));_ci.style.transform="translate("+_gx.toFixed(2)+"px,"+_gy.toFixed(2)+"px)";}else _ci.style.transform=_t;}   // mirror the gaze, SCALED + CLAMPED so the iris never rides out of the socket
     var _bg=_bE[_mi].querySelector(".glint"),_cg=_cE[_mi].querySelector(".glint");if(_bg&&_cg){var _tg=_bg.style.transform||"",_mg=_tg.match(/translate\(\s*(-?[\d.]+)px[ ,]+(-?[\d.]+)px/);_cg.style.transform=_mg?("translate("+(parseFloat(_mg[1])*_rat).toFixed(2)+"px,"+(parseFloat(_mg[2])*_rat).toFixed(2)+"px)"):_tg;}}
    if(smileT>0)smileT-=DT;
    // his DELIGHT DANCE: keep the grin lit and, while he has the floor (not mid-air, not frozen on a podium), break into bouncy head-banging hops
