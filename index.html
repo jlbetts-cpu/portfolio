@@ -280,9 +280,9 @@ body.hmSoccer .moodMenu .moodItem{opacity:.38;pointer-events:none}
 .hmGoal{position:absolute;left:0;top:0;width:30px;height:150px;z-index:2;opacity:0;pointer-events:none;transition:opacity .3s,box-shadow .3s;border-radius:6px;background:repeating-linear-gradient(90deg,rgba(8,8,8,.05) 0 1px,transparent 1px 7px),repeating-linear-gradient(0deg,rgba(8,8,8,.05) 0 1px,transparent 1px 7px)}
 .hmGoalR{border:2px solid rgba(224,90,78,.65);border-left:0;border-radius:0 6px 6px 0}
 .hmGoalB{border:2px solid rgba(90,160,216,.65);border-right:0;border-radius:6px 0 0 6px}
-.hmGoal.hmGoalHit{box-shadow:0 0 0 3px rgba(232,181,74,.6)}
+.hmGoal.hmGoalHit{animation:hmNet .55s cubic-bezier(.2,.9,.3,1)}
+@keyframes hmNet{0%{box-shadow:inset 0 0 0 0 rgba(232,181,74,0)}28%{box-shadow:inset 0 0 24px 3px rgba(232,181,74,.55),0 0 0 3px rgba(232,181,74,.5)}100%{box-shadow:inset 0 0 0 0 rgba(232,181,74,0)}}
 .battleCount{position:absolute;left:50%;top:12px;transform:translateX(-50%);z-index:47;display:flex;align-items:center;gap:8px;padding:9px 16px;border:1px solid var(--c100);border-radius:999px;background:var(--c50);font-family:var(--sans);font-weight:600;font-size:var(--fs-body);color:var(--c950);opacity:0;pointer-events:none;transition:opacity .3s;filter:url(#inkSm)}
-.battleCount i{width:8px;height:8px;border-radius:50%;background:#b3402e;animation:bbPulse 1.1s steps(2,end) infinite}
 .hmScore{position:absolute;left:50%;top:12px;transform:translateX(-50%);z-index:47;display:flex;align-items:center;gap:12px;padding:9px 16px;border:1px solid var(--c100);border-radius:999px;background:var(--c50);font-family:var(--sans);font-weight:600;font-size:var(--fs-body);color:var(--c950);opacity:0;pointer-events:none;transition:opacity .3s;filter:url(#inkSm)}
 .hmScore .sTeam{display:flex;align-items:center;gap:7px}
 .hmScore .sTeam i{width:9px;height:9px;border-radius:50%}
@@ -2649,8 +2649,8 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
  var hurtEl=document.createElement("div");
  hurtEl.style.cssText="position:absolute;inset:0;background:rgba(196,52,38,.85);opacity:0;pointer-events:none;-webkit-mask-image:url("+data.cut+");-webkit-mask-size:100% 100%;mask-image:url("+data.cut+");mask-size:100% 100%";
  root.appendChild(hurtEl);
- var ringEl=document.createElement("div");   // the team aura: a soft colored glow, one glance tells red from blue
- ringEl.style.cssText="position:absolute;inset:-8%;border-radius:46%/40%;filter:blur(4px);opacity:0;transition:opacity .3s;z-index:-1;pointer-events:none";
+ var ringEl=document.createElement("div");   // the team OUTLINE: a crisp colored rim in the head's own shape
+ ringEl.style.cssText="position:absolute;inset:0;-webkit-mask:url("+data.cut+") center/100% 100% no-repeat;mask:url("+data.cut+") center/100% 100% no-repeat;transform:scale(1.075);opacity:0;transition:opacity .3s;z-index:-1;pointer-events:none";
  root.appendChild(ringEl);
  var crownEl=document.createElement("div");   // the champion's crown
  crownEl.style.cssText="position:absolute;left:50%;top:-24%;width:46%;transform:translateX(-50%);opacity:0;transition:opacity .3s;pointer-events:none;z-index:5";
@@ -2997,7 +2997,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    if(S9&&S9.on&&!soccerOn&&!killed){soccerOn=true;soccerWon=false;team=(S9.teams&&S9.teams[slot])||1;
     perched=false;leapDelay=Infinity;bar.style.opacity="0";root.style.pointerEvents="";
     var tcol=team===1?"224,90,78":"90,160,216";
-    ringEl.style.background="radial-gradient(circle,rgba("+tcol+",.85),rgba("+tcol+",0) 58%)";ringEl.style.opacity="0.6";
+    ringEl.style.background="rgb("+tcol+")";ringEl.style.opacity="1";   // a solid team-coloured outline
     shadow.style.background="radial-gradient(ellipse at center,rgba("+tcol+",.42),rgba("+tcol+",0) 70%)";}   // the shadow wears the team colour too
    if(S9&&!S9.on&&soccerOn){soccerOn=false;soccerWon=false;ringEl.style.opacity="0";crownEl.style.opacity="0";
     shadow.style.background="radial-gradient(ellipse at center,rgba(8,8,8,.26),rgba(8,8,8,0) 70%)";
@@ -3225,7 +3225,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   var S={on:false,seed:0,kickSeed:0,teams:{},target:5,red:0,blue:0,ball:{x:0,y:0},phase:"idle",winner:0};
   window.__hmSoccer=S;
   var ball,goalL,goalR,board,sR,sB,countEl,W=0,H=0,groundY=0,BR=24,OFF=0,XL=0,XR=0;
-  var bx=0,by=0,bvx=0,bvy=0,kickCd={},running=false,last=performance.now();
+  var bx=0,by=0,bvx=0,bvy=0,kickCd={},running=false,last=performance.now(),scoreTeam=0;
   function geo(){var r=hero.getBoundingClientRect();W=r.width;H=r.height;OFF=r.left;XL=-OFF;XR=innerWidth-OFF;   // the pitch spans the whole screen, wall to wall
    var st=document.getElementById("stage");if(st){var sr=st.getBoundingClientRect();groundY=sr.bottom-r.top-8;}else groundY=H-40;
    if(groundY>H-16)groundY=H-16;}
@@ -3278,6 +3278,9 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    document.body.classList.add("hmSoccer");kickoffCountdown();
    if(!running){running=true;requestAnimationFrame(loop);}}
   window.__hmSoccerStart=start;window.__hmSoccerEnd=finish;
+  function netCatch(team){if(S.phase!=="play")return;S.phase="scoring";scoreTeam=team;   // the ball buries itself in the net first
+   var g=team===1?goalR:goalL;g.classList.remove("hmGoalHit");void g.offsetWidth;g.classList.add("hmGoalHit");
+   setTimeout(function(){if(S.on&&S.phase==="scoring")goalIn(team);},320);}
   function goalIn(team){if(team===1)S.red++;else S.blue++;S.goalSeed=(S.goalSeed||0)+1;S.goalTeam=team;board2();
    var g=team===1?goalR:goalL;g.classList.add("hmGoalHit");setTimeout(function(){g.classList.remove("hmGoalHit");},650);
    goalBurst(team,bx,by);   // BANG
@@ -3307,14 +3310,20 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   var spin=0,gaspAt=0;
   function loop(now){if(!S.on){running=false;return;}requestAnimationFrame(loop);
    var dt=Math.min(0.05,Math.max(0.006,(now-last)/1000));last=now;geo();
+   if(S.phase==="scoring"){   // the net has the ball: it decelerates and settles, the way a real net absorbs a shot
+    bvy+=2400*dt;bvx*=Math.pow(0.006,dt);bvy*=Math.pow(0.03,dt);bx+=bvx*dt;by+=bvy*dt;
+    if(by>groundY){by=groundY;bvy=0;}
+    if(bx<XL+BR-3)bx=XL+BR-3;if(bx>XR-BR+3)bx=XR-BR+3;
+   }
    if(S.phase==="play"){
     bvy+=2400*dt;bvx*=Math.pow(0.35,dt);   // gentle air drag, so a big hit still sails far
     bx+=bvx*dt;by+=bvy*dt;
     if(by>groundY){by=groundY;if(Math.abs(bvy)>40)bvy=-bvy*0.86;else bvy=0;bvx*=0.985;}   // e=0.86: a lively bounce that keeps its energy
+    if(by>=groundY-2&&Math.abs(bvy)<90)bvx*=Math.pow(0.5,dt);   // rolling resistance once it is down on the pitch
     if(by<8){by=8;bvy=Math.abs(bvy)*0.86;}   // it can ricochet off the ceiling, air-hockey style
     var inG=by>groundY-150;
-    if(bx<XL+BR){if(inG&&S.phase==="play")return goalIn(2);bx=XL+BR;bvx=Math.abs(bvx)*0.9;bvy-=40;}   // walls barely steal speed, and add a little lift
-    if(bx>XR-BR){if(inG&&S.phase==="play")return goalIn(1);bx=XR-BR;bvx=-Math.abs(bvx)*0.9;bvy-=40;}
+    if(bx<XL+BR){if(inG)return netCatch(2);bx=XL+BR;bvx=Math.abs(bvx)*0.9;bvy-=40;}   // into the left net
+    if(bx>XR-BR){if(inG)return netCatch(1);bx=XR-BR;bvx=-Math.abs(bvx)*0.9;bvy-=40;}
     for(var pi=0;pi<peers.length;pi++){var p=peers[pi];if(p.elim)continue;
      var hx=p.x+p.HW/2,hy=p.y+p.HH*0.55,dx=bx-hx,dy=by-hy,d=Math.hypot(dx,dy),rr=p.HW*0.5+BR;
      if(d<rr&&d>0.1){var kc=kickCd[p.slot]||0;if(now>kc){kickCd[p.slot]=now+80;
@@ -3333,7 +3342,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
 
  (function battleUI(){   // a quiet count of who is still standing
   var hero=document.querySelector(".hero");if(!hero)return;
-  var el=document.createElement("div");el.className="battleCount";el.innerHTML='<i></i><b>0</b>&nbsp;left';
+  var el=document.createElement("div");el.className="battleCount";el.innerHTML='<b>0</b>&nbsp;left';
   hero.appendChild(el);var b=el.querySelector("b");var shownN=-1;
   var acc=0,lastT=performance.now();
   function tick(nowT){requestAnimationFrame(tick);
