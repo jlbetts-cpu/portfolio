@@ -3132,6 +3132,14 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    dir=-ph.side;air=true;st="fall";surface=floorY;vx=-ph.side*95;vy=-190;sqT=0.1;sqyP=1.08;sqxP=1/1.08;},2100+Math.random()*400);
   setTimeout(function(){if(tk!==hideToken||grabbed||perched)return;   // the reveal: out it bursts, terribly pleased
    plane(true);dir=ph.side;air=true;st="fall";surface=floorY;vx=ph.side*(250+Math.random()*120);vy=-(520+Math.random()*140);sqT=0.13;sqyP=1.14;sqxP=1/1.14;brf=6;},3500+Math.random()*700);}
+ function startSink(lavaY){if(me.__sinking||elim||me.podiumRank)return;   // touched the lava: SPLASH, then the slow dramatic sink
+  me.__sinking={t:0,x:x+HW/2};air=false;vx=0;vy=0;flipA=0;flipV=0;wig=null;grabbed=false;perched=false;
+  try{if(window.__hmFX){var sx=x+HW/2;
+   window.__hmFX.burst(sx,lavaY,{count:24,color:"255,150,50",speed:360,gravity:950,life:0.7,size:5});
+   window.__hmFX.burst(sx,lavaY,{count:11,color:"255,225,130",speed:230,gravity:750,life:0.5,size:4});
+   window.__hmFX.burst(sx,lavaY,{count:8,color:"120,60,20",speed:180,gravity:600,life:0.8,size:5});
+   window.__hmFX.ring(sx,lavaY,{r0:6,r1:78,color:"255,185,75",width:4,life:0.5});
+   window.__hmFX.flash("255,180,90",0.13);window.__hmFX.shake(6);}}catch(_){}}
  function land(){air=false;vy=0;vx=0;y=surface;sqT=0.12;sqyP=0.91;sqxP=1/0.91;vaulting=false;
   if(lapBack){lapBack=false;plane(true);}   // the lap ends where hands can reach again
   if(flipV!==0){try{if(typeof browFlash==="function")browFlash();}catch(_){}}   // it stuck the somersault: he notices
@@ -3277,7 +3285,15 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   if(window.__hmFreeze&&_nowF<window.__hmFreeze&&(battleOn||soccerOn)&&!grabbed)DT=0;   // IMPACT FRAME: a big blow briefly freezes the fighters so the hit reads (hitstop)
   var _frozen=(me.__frozen&&_nowF<me.__frozen&&!grabbed);if(_frozen)DT=0;   // FREEZE ability: this head is encased in ice, held solid until it thaws
   tk3++;var now=_nowF,aboutB=false;moodB=false;
-  if(filler&&sharedFeetY!=null){var _sfl=sharedFeetY-HH*FOOT;if(Math.abs(floorY-_sfl)>0.5){var _wasOnGround=(!air&&!grabbed&&!perched&&Math.abs(y-floorY)<1);floorY=_sfl;if(_wasOnGround)y=floorY;}}   // PLANE LOCK: the mini-Jayden spawns mid-game (his survey misses the stepped-off big head), so pin his floor to the shared, cached one every frame -> he stands on the exact plane as the little heads
+  // FLOOR IS LAVA -- the dramatic slow sink: once you touch the lava you're done; drift down, char, fade, then out
+  if(me.__sinking){var _sk=me.__sinking,_sdt=(DT>0?DT:0.016);_sk.t+=_sdt;var _kf=Math.min(1,_sk.t/1.9);
+   y+=(34+_sk.t*46)*_sdt;   // an accelerating, weighty sink
+   root.style.opacity=(1-_kf).toFixed(2);root.style.filter="brightness("+(1-0.72*_kf).toFixed(2)+") saturate("+(1-0.55*_kf).toFixed(2)+") sepia("+(0.5*_kf).toFixed(2)+")";
+   root.style.transform="translate("+x.toFixed(1)+"px,"+y.toFixed(1)+"px) scale("+(1-0.12*_kf).toFixed(3)+")";
+   if(shadow)shadow.style.opacity="0";
+   if(window.__hmFX&&window.__hmLavaOn&&Math.random()<0.32)window.__hmFX.burst(_sk.x+(Math.random()*HW-HW/2),window.__hmLavaY(_sk.x),{count:1,color:"255,150,55",speed:50,gravity:-40,life:0.6,size:3});
+   if(_kf>=1){elim=true;me.elim=true;me.inB=true;root.style.display="none";if(shadow)shadow.style.display="none";me.__sinking=null;}
+   return;}   // sinking owns the frame -- no AI, no physics
   try{aboutB=document.body.classList.contains("about-open");moodB=(typeof busyNow==="function"&&busyNow());}catch(_){}
   var want=!aboutB&&!gone;   // moods never hide the pit: the little heads are the audience
   if(first&&filler){ // the mid-game stand-in drops straight in -- no waiting on the (hidden) big head's intro
@@ -3315,8 +3331,9 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    if(_wantB&&!battleOn){battleOn=true;battleSeen=_bReq;hp=100;elim=false;elimP=0;celebrated=false;me.podiumRank=0;me.spectate=0;   // ENTER
     if(window.__hmBOSeed!==_bReq){window.__hmBOSeed=_bReq;battleOut.length=0;hidePodium();window.__hmBattleGo=performance.now()+2900;}   // once per fight: fresh log, no leftover podium, a 3-2-1-GO first
     perched=false;leapDelay=Infinity;me.elim=false;me.inB=true;bar.style.opacity="1";root.style.pointerEvents="";
-    if(battlePlats.length&&Math.random()<0.5){var _sp=battlePlats[(Math.random()*battlePlats.length)|0];x=Math.max(_sp.l+2,Math.min(_sp.r-HW-2,(_sp.l+_sp.r)/2-HW/2+(Math.random()*80-40)));surface=_sp.t-HH*FOOT;}   // ~half start UP on a random slab
-    else{surface=floorY;x=Math.max(WL,Math.min(WR,WL+Math.random()*Math.max(1,WR-WL-HW)));}   // the rest on the floor at a random x
+    me.__sinking=null;me.__sunk=0;root.style.filter="";   // fresh, un-charred, not sinking
+    if(battlePlats.length){var _sp=battlePlats[(slot||0)%battlePlats.length];x=Math.max(_sp.l+2,Math.min(_sp.r-HW-2,(_sp.l+_sp.r)/2-HW/2+(Math.random()*40-20)));surface=_sp.t-HH*FOOT;}   // FLOOR IS LAVA: everyone starts UP on a platform, spread out
+    else{surface=floorY;x=Math.max(WL,Math.min(WR,WL+Math.random()*Math.max(1,WR-WL-HW)));}
     y=surface;air=false;st="idle";vx=0;vy=0;flipA=0;flipV=0;wig=null;}
    else if(!_wantB&&battleOn){battleOn=false;respawnSeen=_bResp;me.inB=false;me.podiumRank=0;me.spectate=0;bar.style.opacity="0";crownEl.style.opacity="0";hidePodium();   // LEAVE: back to normal life, drop to the floor
     me.__rage=me.__speed=me.__feather=me.__bounce=me.__frozen=me.__spin=me.__disco=0;me.__aura=null;me.__buff=null;if(auraEl)auraEl.style.opacity="0";   // shed every ability effect when the fight ends
@@ -3384,7 +3401,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
       vy=-vyb9;vx=dir*Math.min(800,Math.max(120,Math.abs(ddb9)/ttb9));sqT=0.12;sqyP=1.1;sqxP=1/1.1;}
      else{gzx=(ballX>myX)?0.6:-0.6;gzy=0.1;sacAt=now+700;}}}}catch(_){}
   if(battleOn&&!elim&&!celebrated){var alive9=0,inb9=0;
-   for(var a9=0;a9<peers.length;a9++){if(peers[a9].inB){inb9++;if(!peers[a9].elim)alive9++;}}
+   for(var a9=0;a9<peers.length;a9++){if(peers[a9].inB){inb9++;if(!peers[a9].elim&&!peers[a9].__sinking)alive9++;}}   // a sinking head is already out -> the winner is crowned as the last rival melts
    if(inb9>=2&&alive9===1){celebrated=true;   // LAST HEAD STANDING: crown the winner right where he stands (soccer-style, no podium), a victory leap + confetti, then everyone streams back
     crownEl.style.opacity="1";if(filler){smileT=3.8;danceUntil=now+3600;}
     if(!grabbed){dir=((heroR.w/2)>(x+HW/2))?1:-1;surface=floorY;st="fall";air=true;vy=-(900+Math.random()*140);vx=dir*(90+Math.random()*120);sqT=0.13;sqyP=1.11;sqxP=1/1.11;startFlip();}   // he leaps for it
@@ -3472,7 +3489,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
     brows.forEach(function(b){b.style.opacity=ov;});eyeEls3.forEach(function(e){if(e.box)e.box.style.opacity=ov;});}
    if(smileT>0)smileT-=DT;}
   if(battleOn||bar.style.opacity==="1"){bar.style.transform="translate("+(x+HW/2-22).toFixed(0)+"px,"+(y-12).toFixed(0)+"px)";
-   barFill.style.width=hp+"%";barFill.style.background=hp<35?"#b3402e":"";bar.style.display=(elim||me.podiumRank||me.spectate)?"none":"";}   // no health bars on the podium or in the crowd
+   barFill.style.width=hp+"%";barFill.style.background=hp<35?"#b3402e":"";bar.style.display=(window.__hmLavaOn||elim||me.podiumRank||me.spectate)?"none":"";}   // no health bars in lava mode (no HP), on the podium, or in the crowd
   if(moodB&&!grabbed&&!perched&&shown&&now>=audAt){audAt=now+900+Math.random()*1400;   // showtime: gather in, watch, bounce along
    if(!air&&st==="idle"){var bcx2=bigR?(bigR.l+bigR.r)/2:heroR.w/2,dx4=bcx2-(x+HW/2);
     if(bigR&&Math.abs(dx4)>(bigR.r-bigR.l)*0.95){dir=dx4>0?1:-1;surface=floorY;st="hop";hopsLeft=1;
@@ -3533,7 +3550,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    else if(air&&sqT<=0){var vst=Math.min(0.1,Math.abs(vy)*0.00012+Math.abs(vx)*0.00003);sqyP=1+vst;sqxP=1/(1+vst);}   // stretch belongs to the FALL: sideways flight stays solid
   }
   // --- the ball pit: heads know each other, collide, push, and bounce ---
-  if(me.dmgIn){if(battleOn&&!elim)hurt(me.dmgIn);me.dmgIn=0;}
+  if(me.dmgIn){if(battleOn&&!elim&&!window.__hmLavaOn)hurt(me.dmgIn);me.dmgIn=0;}   // Floor is Lava: heads BUMP (elastic collisions still fire) but deal no HP damage -- only the lava kills
   if(me.kx||me.ky){if(!grabbed&&!perched){
    var kmag=Math.hypot(me.kx,me.ky);
    if(!air&&kmag>55){air=true;st="fall";surface=floorY;vy=Math.min(vy-120,-140-kmag*0.4);}   // a shove LIFTS it: the pushed head bounces back
@@ -3628,6 +3645,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    vy=-(340+Math.random()*140);vx=dir*(180+Math.random()*120);sqT=0.11;sqyP=1.09;sqxP=1/1.09;}
   else if(crowdT>0)crowdT=Math.max(0,crowdT-DT*0.6);
   if(x<WL)x=WL;if(x>WR)x=WR;if(!air&&!grabbed&&!perched&&y>floorY)y=floorY;   // the walls hold, ALWAYS: no head ever leaves the screen
+  if(battleOn&&window.__hmLavaOn&&!me.__sinking&&!elim&&!grabbed&&!me.podiumRank&&now>=(window.__hmBattleGo||0)){var _lavaY=window.__hmLavaY(x+HW/2);if(y+HH*FOOT>=_lavaY-1)startSink(_lavaY);}   // feet touched the lava -> in you go
   me.x=x;me.y=y;me.vx=vx;me.vy=vy;me.HW=HW;me.HH=HH;me.ground=(!air&&!grabbed&&!perched&&st!=="grab");me.perched=perched;me.vault=vaulting;me.inB=battleOn;me.elim=elim;
   if(battleOn&&!filler)window.__hmGroundY=floorY+HH*FOOT;   // share the ground row so bombs/props rest on the real floor
   if(me.__buff){if(now>=me.__buff.until){try{if(me.__buff.end)me.__buff.end(A);}catch(_){}me.__buff=null;}else{try{if(me.__buff.tick)me.__buff.tick(A,DT);}catch(_){}}}   // run any active self-buff ability (rocket, etc.)
@@ -3899,14 +3917,15 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
 
  (function platforms(){   // the battle arena: a fresh RANDOM layout every fight -- slabs of mixed lengths + thickness at mixed heights, filling the screen
   var hero=document.querySelector(".hero");if(!hero)return;
-  var MAXP=5,els=[];for(var e=0;e<MAXP;e++){var d=document.createElement("div");d.className="hmPlat";hero.appendChild(d);els.push(d);}
-  function genDefs(){var defs=[];   // [left%, right%, height-above-floor px, thin?]
-   if(innerWidth<=768){   // MOBILE: a tall narrow arena -> four tiers CLIMBING the screen, alternating sides
-    var tiers=[56,112,170,64],xs=Math.random()<0.5?[0.05,0.47,0.13,0.5]:[0.46,0.06,0.5,0.12];
-    for(var i=0;i<4;i++){var wdt=0.36+Math.random()*0.14,l=Math.min(0.95-wdt,xs[i]+Math.random()*0.05);defs.push([l,l+wdt,tiers[i]+Math.random()*16,i%2]);}
-   }else{   // DESKTOP: five slabs spread across the FULL width at mixed heights + varied lengths, so the arena fills the screen
-    var slots=[0.03,0.235,0.435,0.63,0.82],hh=[80,158,108,172,82];
-    for(var i=0;i<5;i++){var wdt=0.11+Math.random()*0.10,l=Math.min(0.965-wdt,slots[i]+Math.random()*0.035),h=hh[i]+Math.random()*24;defs.push([l,l+wdt,h,i%2]);}
+  var MAXP=10,els=[];for(var e=0;e<MAXP;e++){var d=document.createElement("div");d.className="hmPlat";hero.appendChild(d);els.push(d);}
+  function genDefs(){var defs=[],aH=hero.clientHeight||600;   // [left%, right%, height-above-floor px, thin?] -- a CLIMBING LADDER for Floor is Lava
+   if(innerWidth<=768){   // MOBILE: a tall narrow arena -> ~6 tiers alternating sides, climbing most of the screen
+    var top=Math.min(aH*0.76,aH-80),n=6,hstep=(top-38)/(n-1);
+    for(var i=0;i<n;i++){var side=(Math.random()<0.5?i:i+1)%2,wdt=0.34+Math.random()*0.12,l=side?(0.5+Math.random()*0.11):(0.04+Math.random()*0.11);l=Math.min(0.96-wdt,l);defs.push([l,l+wdt,38+hstep*i+Math.random()*12,i%2]);}
+   }else{   // DESKTOP: a staggered ladder -- 5 tiers, alternating 2 and 1 slabs, spread across the width up to ~72% high
+    var topD=Math.min(aH*0.72,aH-90),tiers=5,step=(topD-46)/(tiers-1),idx=0;
+    for(var r=0;r<tiers;r++){var h=46+step*r,cnt=(r%2===0)?2:1;
+     for(var c=0;c<cnt;c++){var wd=0.12+Math.random()*0.08,base=(cnt===2)?(c===0?0.05:0.57):0.35,l=Math.min(0.94-wd,base+Math.random()*0.13);defs.push([l,l+wd,h+Math.random()*18,idx%2]);idx++;}}
    }
    return defs;}
   var DEFS=genDefs();
