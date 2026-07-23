@@ -2737,6 +2737,56 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
  var sparkThrottle=0;   // shared rate-limit for impact sparks so a scrum can't flood the DOM
  var battleOut=[];   // knockouts in order -- last out ranks 2nd, the one before 3rd; the survivor is 1st
  var podiumEls=[];   // the three pedestals, created once, shown at the end of a fight
+ // ===== SHARED VFX TOOLKIT: one capped particle canvas + juice primitives (crates & abilities compose these) =====
+ // Coords are HERO-LOCAL (same space the heads live in). Dark cores + saturated accents so effects read on the white arena. Everything clears the instant no game is running.
+ var FX=(function(){
+  var cv=null,ctx=null,parts=[],running=false,heroLeft=0,vw=0,vh=0,flashA=0,flashCol="255,255,255",tintT=0,tintMax=1,tintCol="0,0,0",tintA=0,lastT=0;
+  var CAP=320;
+  function hero(){return document.querySelector(".hero");}
+  function active(){return document.body.classList.contains("hmBattle")||document.body.classList.contains("hmSoccer");}
+  function make(){if(cv)return;cv=document.createElement("canvas");cv.setAttribute("aria-hidden","true");document.body.appendChild(cv);ctx=cv.getContext("2d");size();}
+  function size(){var h=hero();if(!h||!cv)return;var r=h.getBoundingClientRect();heroLeft=r.left;vw=Math.round(innerWidth);vh=Math.max(1,Math.round(r.height));if(cv.width!==vw)cv.width=vw;if(cv.height!==vh)cv.height=vh;cv.style.cssText="position:fixed;left:0;top:"+r.top.toFixed(0)+"px;width:100vw;height:"+vh+"px;pointer-events:none;z-index:45";}
+  function run(){if(running)return;running=true;lastT=performance.now();requestAnimationFrame(loop);}
+  function push(p){if(!active())return;make();if(parts.length>=CAP)parts.shift();parts.push(p);run();}
+  function burst(hx,hy,o){o=o||{};var n=o.count||14,col=o.color||"24,24,26",sp=o.speed||220,g=(o.gravity==null?900:o.gravity),life=o.life||0.6,sz=o.size||4,shape=o.shape||"dot",spread=(o.spread==null?6.283:o.spread),dir=o.dir||0,drag=(o.drag==null?0.99:o.drag);
+   for(var i=0;i<n;i++){var a=dir+(Math.random()-0.5)*spread,v=sp*(0.35+Math.random()*0.85);
+    push({t:"p",x:hx,y:hy,vx:Math.cos(a)*v,vy:Math.sin(a)*v-(o.lift||0),g:g,life:life*(0.65+Math.random()*0.7),max:life,r:sz*(0.55+Math.random()*0.9),c:col,rot:Math.random()*6.28,rv:(Math.random()-0.5)*14,shape:shape,drag:drag,fade:(o.fade!==false)});}}
+  function ring(hx,hy,o){o=o||{};push({t:"ring",x:hx,y:hy,r:(o.r0||6),r1:(o.r1||80),life:(o.life||0.5),max:(o.life||0.5),c:(o.color||"24,24,26"),w:(o.width||3),fill:(o.fill||null)});}
+  function spark(hx,hy,dir,o){o=o||{};burst(hx,hy,{count:(o.count||7),color:(o.color||"255,255,255"),speed:(o.speed||320),gravity:180,life:0.32,size:(o.size||3),shape:"streak",dir:dir,spread:(o.spread||1.1),drag:0.9});}
+  function flash(col,alpha){flashCol=col||"255,255,255";flashA=Math.max(flashA,alpha==null?0.5:alpha);make();run();}
+  function tint(col,alpha,life){tintCol=col||"120,90,220";tintA=alpha==null?0.14:alpha;tintT=life||1;tintMax=tintT;make();run();}
+  function loop(n){var dt=Math.min(0.05,(n-lastT)/1000);lastT=n;
+   if(!active()){parts.length=0;flashA=0;tintT=0;tintA=0;if(cv&&ctx)ctx.clearRect(0,0,vw,vh);running=false;return;}
+   size();ctx.clearRect(0,0,vw,vh);
+   if(tintT>0){tintT-=dt;var ta=tintA*Math.min(1,tintT/(tintMax*0.5))*(tintT<tintMax*0.3?tintT/(tintMax*0.3):1);ctx.fillStyle="rgba("+tintCol+","+Math.max(0,ta).toFixed(3)+")";ctx.fillRect(0,0,vw,vh);}
+   for(var i=parts.length-1;i>=0;i--){var p=parts[i];
+    if(p.t==="ring"){p.life-=dt;if(p.life<=0){parts.splice(i,1);continue;}var pr=1-p.life/p.max,rr=p.r+(p.r1-p.r)*(1-Math.pow(1-pr,3)),a1=(1-pr);
+     if(p.fill){ctx.beginPath();ctx.arc(heroLeft+p.x,p.y,rr,0,6.283);ctx.fillStyle="rgba("+p.fill+","+(a1*0.5).toFixed(2)+")";ctx.fill();}
+     ctx.beginPath();ctx.arc(heroLeft+p.x,p.y,rr,0,6.283);ctx.strokeStyle="rgba("+p.c+","+a1.toFixed(2)+")";ctx.lineWidth=p.w*(1-pr*0.5);ctx.stroke();continue;}
+    p.life-=dt;if(p.life<=0){parts.splice(i,1);continue;}
+    p.vy+=p.g*dt;p.x+=p.vx*dt;p.y+=p.vy*dt;p.vx*=p.drag;p.vy*=p.drag;p.rot+=p.rv*dt;
+    var al=p.fade?Math.max(0,p.life/p.max):1;ctx.save();ctx.translate(heroLeft+p.x,p.y);ctx.rotate(p.rot);ctx.fillStyle="rgba("+p.c+","+al.toFixed(2)+")";
+    if(p.shape==="streak"){ctx.fillRect(-p.r*2.2,-p.r*0.35,p.r*4.4,p.r*0.7);}
+    else if(p.shape==="square"){ctx.fillRect(-p.r,-p.r,p.r*2,p.r*2);}
+    else if(p.shape==="shard"){ctx.beginPath();ctx.moveTo(0,-p.r*1.4);ctx.lineTo(p.r*0.8,p.r);ctx.lineTo(-p.r*0.8,p.r);ctx.closePath();ctx.fill();}
+    else{ctx.beginPath();ctx.arc(0,0,p.r,0,6.283);ctx.fill();}
+    ctx.restore();}
+   if(flashA>0.01){ctx.fillStyle="rgba("+flashCol+","+flashA.toFixed(2)+")";ctx.fillRect(0,0,vw,vh);flashA*=Math.pow(0.0009,dt);if(flashA<0.01)flashA=0;}
+   if(parts.length||flashA>0||tintT>0)requestAnimationFrame(loop);else running=false;}
+  // impact frames: a brief global hitstop that freezes head physics (DT->0 in the loop) so a big blow reads
+  function hitstop(ms){var until=performance.now()+(ms||70);if((window.__hmFreeze||0)<until)window.__hmFreeze=until;}
+  // screen shake: a decaying offset the heads + this canvas read each frame (never moves the page headline)
+  function shake(mag){var m=mag||8;var s=window.__hmShake||(window.__hmShake={x:0,y:0,mag:0});if(m>s.mag)s.mag=m;run();shakeRun();}
+  var shaking=false;
+  function shakeRun(){if(shaking)return;shaking=true;var lt=performance.now();
+   (function st(n){var dt=Math.min(0.05,(n-lt)/1000);lt=n;var s=window.__hmShake;if(!s||!active()){if(s){s.x=0;s.y=0;s.mag=0;}if(cv){cv.style.marginLeft="0px";cv.style.marginTop="0px";}shaking=false;return;}
+    if(s.mag>0.3){s.x=(Math.random()-0.5)*s.mag;s.y=(Math.random()-0.5)*s.mag;s.mag*=Math.pow(0.0016,dt);}else{s.x=0;s.y=0;s.mag=0;}
+    if(cv){cv.style.marginLeft=s.x.toFixed(1)+"px";cv.style.marginTop=s.y.toFixed(1)+"px";}
+    if(s.mag>0)requestAnimationFrame(st);else{if(cv){cv.style.marginLeft="0px";cv.style.marginTop="0px";}shaking=false;}})(lt);}
+  function clear(){parts.length=0;flashA=0;tintT=0;tintA=0;if(window.__hmShake){window.__hmShake.x=0;window.__hmShake.y=0;window.__hmShake.mag=0;}if(cv&&ctx){ctx.clearRect(0,0,vw,vh);cv.style.marginLeft="0px";cv.style.marginTop="0px";}}   // hard stop: wipe everything the instant a game ends, even if the loop was throttled
+  return {burst:burst,ring:ring,spark:spark,flash:flash,tint:tint,hitstop:hitstop,shake:shake,clear:clear};
+ })();
+ window.__hmFX=FX;
  function spawnCompanion(data,slot){
  var reduce=matchMedia("(prefers-reduced-motion:reduce)").matches;
  var filler=!!(data&&data.__filler);   // the mid-game stand-in (mini-Jayden): spawns already active, no intro
@@ -3094,6 +3144,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
  function _frame(_nowF){if(killed)return;   // a removed head stops its loop for good -- no idle rAF left spinning
   requestAnimationFrame(_frame);
   var DT=Math.min(0.05,Math.max(0.006,(_nowF-_lastF)/1000));_lastF=_nowF;
+  if(window.__hmFreeze&&_nowF<window.__hmFreeze&&(battleOn||soccerOn)&&!grabbed)DT=0;   // IMPACT FRAME: a big blow briefly freezes the fighters so the hit reads (hitstop)
   tk3++;var now=_nowF,aboutB=false;moodB=false;
   if(filler&&sharedFeetY!=null){var _sfl=sharedFeetY-HH*FOOT;if(Math.abs(floorY-_sfl)>0.5){var _wasOnGround=(!air&&!grabbed&&!perched&&Math.abs(y-floorY)<1);floorY=_sfl;if(_wasOnGround)y=floorY;}}   // PLANE LOCK: the mini-Jayden spawns mid-game (his survey misses the stepped-off big head), so pin his floor to the shared, cached one every frame -> he stands on the exact plane as the little heads
   try{aboutB=document.body.classList.contains("about-open");moodB=(typeof busyNow==="function"&&busyNow());}catch(_){}
@@ -3409,7 +3460,8 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   var surfRot=(flipA?0:lean+(grabbed?swing:0))+rotX+(drowse2?2.2:0);   // leans and wiggles rock on the FEET
   var rot=surfRot+flipA;   // total visible rotation (the eyes need it below)
   var c2=HH*0.44;   // feet-origin to body-centre: flips spin about the centre via an explicit sandwich — two pivots, one transform, zero jumps
-  root.style.transform="translate("+x.toFixed(1)+"px,"+(y+breathe+(grabbed?heldOff:0)).toFixed(1)+"px)"
+  var _shk=(battleOn||soccerOn)?window.__hmShake:null,_shx=_shk?_shk.x:0,_shy=_shk?_shk.y:0;   // screen shake: read the shared decaying offset (only during a game)
+  root.style.transform="translate("+(x+_shx).toFixed(1)+"px,"+(y+breathe+(grabbed?heldOff:0)+_shy).toFixed(1)+"px)"
    +(flipA?" translate(0px,"+(-c2).toFixed(1)+"px) rotate("+flipA.toFixed(1)+"deg) translate(0px,"+c2.toFixed(1)+"px)":"")
    +" rotate("+surfRot.toFixed(1)+"deg) scale("+(depth*hs*sqx*(1-0.6*elimP)).toFixed(3)+","+(depth*hs*sqy*(1-0.6*elimP)).toFixed(3)+")";
   if(elimP>0&&elimP<1){root.style.opacity=(1-elimP).toFixed(2);shadow.style.opacity=(0.4*(1-elimP)).toFixed(2);}
@@ -3603,7 +3655,8 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
     if(t<3.8)requestAnimationFrame(fr);else{cv.remove();window.__hmFx=Math.max(0,(window.__hmFx||1)-1);}})(performance.now());}catch(_){window.__hmFx=Math.max(0,(window.__hmFx||1)-1);}}
   function finish(){S.on=false;S.phase="idle";S.winner=0;
    if(ball){ball.style.opacity="0";goalL.style.opacity="0";goalR.style.opacity="0";board.style.opacity="0";if(ballShadow)ballShadow.style.opacity="0";if(goalShL){goalShL.style.opacity="0";goalShR.style.opacity="0";}}
-   if(countEl)countEl.textContent="";document.body.classList.remove("hmSoccer");}
+   if(countEl)countEl.textContent="";document.body.classList.remove("hmSoccer");
+   try{if(window.__hmFX)window.__hmFX.clear();}catch(_){}}
   var spin=0,bw=0,gaspAt=0;   // spin = rendered rotation, bw = angular velocity (deg/s)
   function loop(now){if(!S.on){running=false;return;}requestAnimationFrame(loop);
    var dt=Math.min(0.05,Math.max(0.006,(now-last)/1000));last=now;geo();
@@ -3680,7 +3733,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    // CENTRAL GUARDIAN: the hmBattle class is ON iff the latest battle request is newer than the latest respawn. One source of truth -> it can never desync or stick, no matter how frames are throttled.
    var _req=window.__hmBattleReq||0,_resp=window.__hmRespawn||0,_bon=_req>0&&_req>_resp,_hasB=document.body.classList.contains("hmBattle");
    if(_bon&&!_hasB&&!document.body.classList.contains("hmSoccer"))document.body.classList.add("hmBattle");
-   else if(!_bon&&_hasB)document.body.classList.remove("hmBattle");
+   else if(!_bon&&_hasB){document.body.classList.remove("hmBattle");try{if(window.__hmFX)window.__hmFX.clear();}catch(_){}}   // battle over -> wipe any lingering VFX even if the loop was throttled
    var on=document.body.classList.contains("hmBattle");
    if(on&&!wasOn)countdown();if(!on&&wasOn){cdN++;cEl.textContent="";}wasOn=on;
    if(!on){if(el.style.opacity!=="0"){el.style.opacity="0";shownN=-1;}return;}
