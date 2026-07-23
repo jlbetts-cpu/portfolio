@@ -2881,7 +2881,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
  function startAbilTick(){if(abilTicking)return;abilTicking=true;var lt=performance.now();
   (function bt(n){var dt=Math.min(0.05,(n-lt)/1000);lt=n;if(!battleActive()){clearAbilities();abilTicking=false;return;}
     var gy=(window.__hmGroundY!=null?window.__hmGroundY:(heroEl()?heroEl().clientHeight-24:400));
-    if(n>=crateAt&&CRATES.length<2&&battlePlats.length&&n>=(window.__hmBattleGo||0)){crateAt=n+3400+Math.random()*2800;spawnCrate();}
+    if(!window.__hmLavaOn&&n>=crateAt&&CRATES.length<2&&battlePlats.length&&n>=(window.__hmBattleGo||0)){crateAt=n+3400+Math.random()*2800;spawnCrate();}   // Floor-is-Lava is pure survival: no crates
     for(var i=0;i<CRATES.length;i++){var c=CRATES[i];c.bob+=dt;c.el.style.transform="translate("+(c.x-c.r).toFixed(1)+"px,"+(c.y-c.r+Math.sin(c.bob*2.6)*4).toFixed(1)+"px)";}
     for(var j=PROPS.length-1;j>=0;j--){var p=PROPS[j];
      if(p.t==="bomb"){p.vy+=2600*dt;p.x+=p.vx*dt;p.y+=p.vy*dt;if(p.y>gy){p.y=gy;p.vy*=-0.42;p.vx*=0.6;}p.el.style.transform="translate("+(p.x-14).toFixed(1)+"px,"+(p.y-24).toFixed(1)+"px)";
@@ -3921,6 +3921,98 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   var arenaReq=0;
   window.__hmNewArena=function(){arenaReq=window.__hmBattleReq||0;DEFS=genDefs();layout();};   // fresh random arena; the button calls this synchronously so heads can be scattered onto it
   setInterval(function(){if(document.body.classList.contains("hmBattle")&&(window.__hmBattleReq||0)!==arenaReq)window.__hmNewArena();},100);   // ONCE per fight (whoever gets here first), never a per-tick relayout that jumps the slabs
+ })();
+
+ // ===== FLOOR IS LAVA: a rising molten pool (WebGL shader), a wavy glowing crust, heat haze, embers =====
+ (function lava(){
+  var hero=document.querySelector(".hero");if(!hero)return;
+  (function(){var s=document.createElement("style");s.textContent="@keyframes hmHazeWob{from{transform:translateY(1.5px) scaleY(1.03)}to{transform:translateY(-1.5px) scaleY(0.98)}}";document.head.appendChild(s);})();
+  // ---- the rising surface wave (shared by the crust render AND game logic so death lines up with what you see) ----
+  var WAMP=7,WK1=0.021,WK2=0.052,WS1=1.1,WS2=1.7;
+  function waveAt(xpx,t){return Math.sin(xpx*WK1+t*WS1)*WAMP + Math.sin(xpx*WK2 - t*WS2)*WAMP*0.45;}
+  var level=0,surfaceY=1e9,arenaBottom=0,arenaW=0,arenaH=0,running=false,t0=performance.now(),RISE_DUR=52000,embers=[];   // seconds to fill
+  // ---- DOM: molten body (WebGL) + wavy crust (2D canvas) + heat haze band ----
+  var wrap=document.createElement("div");wrap.className="hmLavaWrap";wrap.setAttribute("aria-hidden","true");
+  wrap.style.cssText="position:absolute;left:0;right:0;bottom:0;top:0;pointer-events:none;z-index:0;opacity:0;transition:opacity .5s";
+  var gcv=document.createElement("canvas");gcv.className="hmLavaGL";gcv.style.cssText="position:absolute;left:0;bottom:0;width:100%;height:100%;display:block";
+  var crust=document.createElement("canvas");crust.className="hmLavaCrust";crust.style.cssText="position:absolute;left:0;top:0;width:100%;height:100%;display:block;pointer-events:none;z-index:6";
+  var haze=document.createElement("div");haze.className="hmLavaHaze";haze.style.cssText="position:absolute;left:0;right:0;height:56px;pointer-events:none;z-index:7;opacity:0;transition:opacity .4s;-webkit-backdrop-filter:blur(2.4px) brightness(1.05) saturate(1.15);backdrop-filter:blur(2.4px) brightness(1.05) saturate(1.15);-webkit-mask-image:linear-gradient(to top,#000,rgba(0,0,0,0));mask-image:linear-gradient(to top,#000,rgba(0,0,0,0));background:linear-gradient(to top,rgba(255,140,40,.10),rgba(255,140,40,0));animation:hmHazeWob 1.7s ease-in-out infinite alternate";
+  var glow=document.createElement("div");glow.className="hmLavaGlow";glow.style.cssText="position:absolute;left:0;right:0;bottom:0;top:0;pointer-events:none;z-index:5;opacity:0;transition:opacity .5s;background:radial-gradient(120% 60% at 50% 100%,rgba(255,120,30,.28),rgba(255,80,10,.06) 45%,transparent 70%)";
+  wrap.appendChild(gcv);hero.appendChild(wrap);hero.appendChild(glow);hero.appendChild(crust);hero.appendChild(haze);
+
+  // ---- WebGL molten shader (adapted from Jayden's lava gradient) ----
+  var POINTS=[
+   {bx:0.66,by:0.24,ax:0.20,ay:0.16,fx:1.6,fy:1.9,ph:0.0,p2:1.3,col:[0.890,0.310,0.016],heat:1.00},
+   {bx:0.90,by:0.40,ax:0.18,ay:0.16,fx:2.1,fy:1.5,ph:1.7,p2:0.4,col:[0.968,0.588,0.235],heat:0.74},
+   {bx:0.22,by:0.30,ax:0.20,ay:0.15,fx:1.4,fy:2.0,ph:2.6,p2:2.0,col:[0.980,0.720,0.360],heat:0.55},
+   {bx:0.58,by:0.66,ax:0.22,ay:0.16,fx:2.3,fy:1.7,ph:0.7,p2:2.6,col:[0.812,0.243,0.004],heat:1.00},
+   {bx:0.86,by:0.78,ax:0.18,ay:0.16,fx:2.0,fy:1.6,ph:3.1,p2:1.5,col:[0.968,0.560,0.250],heat:0.72},
+   {bx:0.30,by:0.80,ax:0.23,ay:0.17,fx:1.7,fy:2.1,ph:4.2,p2:0.8,col:[0.953,0.435,0.278],heat:0.70}];
+  var MESH_K=6.2,CREAM_W=0.045,g=function(n){return n.toFixed(4);};
+  var MESH_ACCUM=POINTS.map(function(p){return "{ vec2 d = w - vec2("+g(p.bx)+" + "+g(p.ax)+"*sin(t*"+g(p.fx)+"+"+g(p.ph)+"), "+g(p.by)+" + "+g(p.ay)+"*cos(t*"+g(p.fy)+"+"+g(p.p2)+")); wt = exp(-dot(d,d)*"+g(MESH_K)+"); num += wt*vec3("+g(p.col[0])+","+g(p.col[1])+","+g(p.col[2])+"); den += wt; }";}).join("\n  ");
+  var VERT="attribute vec2 a_pos; void main(){ gl_Position = vec4(a_pos,0.0,1.0); }";
+  var FRAG="precision highp float;\nuniform vec2 u_res; uniform float u_time;\n"
+   +"vec3 mod289(vec3 x){return x - floor(x*(1.0/289.0))*289.0;}\nvec2 mod289(vec2 x){return x - floor(x*(1.0/289.0))*289.0;}\nvec3 permute(vec3 x){return mod289(((x*34.0)+1.0)*x);}\n"
+   +"float snoise(vec2 v){const vec4 C = vec4(0.211324865405187,0.366025403784439,-0.577350269189626,0.024390243902439);vec2 i = floor(v + dot(v, C.yy));vec2 x0 = v - i + dot(i, C.xx);vec2 i1 = (x0.x > x0.y) ? vec2(1.0,0.0) : vec2(0.0,1.0);vec4 x12 = x0.xyxy + C.xxzz; x12.xy -= i1;i = mod289(i);vec3 p = permute( permute( i.y + vec3(0.0, i1.y, 1.0)) + i.x + vec3(0.0, i1.x, 1.0));vec3 m = max(0.5 - vec3(dot(x0,x0), dot(x12.xy,x12.xy), dot(x12.zw,x12.zw)), 0.0);m = m*m; m = m*m;vec3 x = 2.0*fract(p*C.www)-1.0; vec3 h = abs(x)-0.5; vec3 ox = floor(x+0.5); vec3 a0 = x-ox;m *= 1.79284291400159 - 0.85373472095314*(a0*a0 + h*h);vec3 gg; gg.x = a0.x*x0.x + h.x*x0.y; gg.yz = a0.yz*x12.xz + h.yz*x12.yw;return 130.0*dot(m, gg);}\n"
+   +"float fbm(vec2 p){ float v=0.0; float a=0.5; for(int i=0;i<4;i++){ v += a*snoise(p); p = p*2.0+17.3; a *= 0.5; } return v; }\n"
+   +"float hash21(vec2 p){ p = fract(p*vec2(123.34,456.21)); p += dot(p, p+45.32); return fract(p.x*p.y); }\n"
+   +"float ign(vec2 p){ return fract(52.9829189 * fract(0.06711056*p.x + 0.00583715*p.y)); }\n"
+   +"void main(){vec2 uv = vec2(gl_FragCoord.x, u_res.y - gl_FragCoord.y) / u_res.xy;float t = u_time * 0.10;float breath = 1.0 + 0.13*sin(u_time*0.45);vec2 uvb = (uv-0.5)*(1.0 + 0.05*sin(u_time*0.4)) + 0.5;vec2 q = vec2(fbm(uvb*2.3 + t), fbm(uvb*2.3 + vec2(5.2,1.3) - t));vec2 warp = vec2(fbm(uvb*2.3 + 1.7*q + t*0.6), fbm(uvb*2.3 + 1.7*q + vec2(3.7,1.9) - t)) * (0.26*breath);vec2 w = uvb + warp;vec3 num = vec3(0.987,0.963,0.933)*"+g(CREAM_W)+"; float den = "+g(CREAM_W)+"; float wt;\n  "+MESH_ACCUM+"\nvec3 col = num/den;float lum = dot(col, vec3(0.299,0.587,0.114));col = clamp(mix(vec3(lum), col, 1.34), 0.0, 1.0);col += (hash21(gl_FragCoord.xy + fract(u_time)) - 0.5) * 0.018;col += (ign(gl_FragCoord.xy + mod(u_time*57.0, 8.0)) - 0.5) * (2.5/255.0);gl_FragColor = vec4(clamp(col,0.0,1.0), 1.0);}";
+  var gl=null,uRes=null,uTime=null,glOK=false,GW=1,GH=1;
+  var SCALE=(innerWidth<=768?0.5:0.7);
+  function initGL(){try{gl=gcv.getContext("webgl",{antialias:false,alpha:false,preserveDrawingBuffer:false});if(!gl)return false;
+   function mk(type,src){var s=gl.createShader(type);gl.shaderSource(s,src);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS)){console.warn("lava shader:",gl.getShaderInfoLog(s));}return s;}
+   var prog=gl.createProgram();gl.attachShader(prog,mk(gl.VERTEX_SHADER,VERT));gl.attachShader(prog,mk(gl.FRAGMENT_SHADER,FRAG));gl.linkProgram(prog);gl.useProgram(prog);
+   var buf=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buf);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,3,-1,-1,3]),gl.STATIC_DRAW);
+   var loc=gl.getAttribLocation(prog,"a_pos");gl.enableVertexAttribArray(loc);gl.vertexAttribPointer(loc,2,gl.FLOAT,false,0,0);
+   uRes=gl.getUniformLocation(prog,"u_res");uTime=gl.getUniformLocation(prog,"u_time");glOK=true;return true;}catch(e){console.warn("lava GL init failed",e);return false;}}
+  function sizeGL(){var r=hero.getBoundingClientRect();arenaW=Math.round(r.width);arenaH=Math.round(r.height);arenaBottom=arenaH;
+   GW=Math.max(1,Math.floor(arenaW*SCALE));GH=Math.max(1,Math.floor(arenaH*SCALE));gcv.width=GW;gcv.height=GH;if(gl)gl.viewport(0,0,GW,GH);
+   crust.width=arenaW;crust.height=arenaH;}
+  var cctx=crust.getContext("2d");
+  function active(){return document.body.classList.contains("hmBattle");}
+  // ---- exposed hooks for game logic ----
+  window.__hmLavaOn=false;
+  window.__hmLavaY=function(xpx){return surfaceY+waveAt(xpx,(performance.now()-t0)/1000);};   // the death line at this x (hero-local)
+  function start(){t0=performance.now();level=0;if(!gl&&!initGL()){/* no webgl: crust-only fallback */}sizeGL();running=true;wrap.style.opacity="1";glow.style.opacity="1";window.__hmLavaOn=true;requestAnimationFrame(loop);}
+  window.__hmLavaJump=function(l){t0=performance.now()-2900-l*RISE_DUR;};   /*TESTHOOK: jump the fill level 0..1*/
+  function stop(){running=false;window.__hmLavaOn=false;wrap.style.opacity="0";glow.style.opacity="0";haze.style.opacity="0";surfaceY=1e9;level=0;if(cctx)cctx.clearRect(0,0,crust.width,crust.height);}
+  var wasOn=false,lastFrame=performance.now();
+  function loop(n){if(!active()){if(wasOn){stop();wasOn=false;}return;}
+   requestAnimationFrame(loop);var tsec=(n-t0)/1000;
+   // rise: hold during the 3-2-1 countdown, then climb from just under the floor to the top over RISE_DUR
+   level=Math.min(1,Math.max(0,(n-t0-2900)/RISE_DUR));
+   var startY=arenaH-6,topY=arenaH*0.12;surfaceY=startY-(startY-topY)*level;   // surface rises up the screen
+   // molten body: render + clip to below the surface
+   if(glOK){gl.uniform2f(uRes,GW,GH);gl.uniform1f(uTime,tsec);gl.drawArrays(gl.TRIANGLES,0,3);}
+   var clipTop=Math.max(0,Math.round(surfaceY-WAMP*1.6));gcv.style.clipPath="inset("+clipTop+"px 0 0 0)";gcv.style.webkitClipPath="inset("+clipTop+"px 0 0 0)";
+   // wavy glowing crust at the surface
+   drawCrust(tsec);
+   // embers: little glowing motes drifting up off the lava, then winking out
+   var dt=Math.min(0.05,(n-lastFrame)/1000);
+   if(surfaceY<arenaH-20&&Math.random()<dt*22){var ex=Math.random()*arenaW;embers.push({x:ex,y:surfaceY+waveAt(ex,tsec)-2,vx:(Math.random()*24-12),vy:-(24+Math.random()*46),life:1,max:1.1+Math.random()*1.4,r:1+Math.random()*2.2});}
+   if(cctx){for(var ei=embers.length-1;ei>=0;ei--){var em=embers[ei];em.life-=dt/em.max;if(em.life<=0){embers.splice(ei,1);continue;}
+    em.vy+=6*dt;em.x+=em.vx*dt;em.y+=em.vy*dt;var ea=em.life;
+    cctx.beginPath();cctx.arc(em.x,em.y,em.r,0,6.283);cctx.fillStyle="rgba(255,"+(150+ea*90|0)+","+(40+ea*90|0)+","+(ea*0.9).toFixed(2)+")";cctx.shadowColor="rgba(255,140,40,"+ea.toFixed(2)+")";cctx.shadowBlur=6;cctx.fill();}
+    cctx.shadowBlur=0;}
+   // heat haze band sits just above the surface
+   haze.style.top=Math.round(surfaceY-56)+"px";haze.style.opacity=(surfaceY<arenaH-20?"1":"0");
+   lastFrame=n;wasOn=true;}
+  function drawCrust(tsec){if(!cctx)return;cctx.clearRect(0,0,crust.width,crust.height);
+   var W=crust.width,sy=surfaceY;if(sy>arenaH-4)return;
+   // ONLY a thin hot glow band hugging the surface (fades out ~52px down) so the WebGL molten body shows through below
+   cctx.save();cctx.beginPath();cctx.moveTo(0,sy+waveAt(0,tsec));
+   for(var xx=0;xx<=W;xx+=5){cctx.lineTo(xx,sy+waveAt(xx,tsec));}
+   cctx.lineTo(W,sy+54);cctx.lineTo(0,sy+54);cctx.closePath();
+   var grd=cctx.createLinearGradient(0,sy-4,0,sy+54);grd.addColorStop(0,"rgba(255,228,150,0.9)");grd.addColorStop(0.32,"rgba(255,155,55,0.5)");grd.addColorStop(1,"rgba(255,110,20,0)");
+   cctx.fillStyle=grd;cctx.fill();
+   // bright wavy crest line + bloom
+   cctx.beginPath();cctx.moveTo(0,sy+waveAt(0,tsec));for(var x2=0;x2<=W;x2+=5){cctx.lineTo(x2,sy+waveAt(x2,tsec));}
+   cctx.lineWidth=2.5;cctx.strokeStyle="rgba(255,242,175,0.95)";cctx.shadowColor="rgba(255,150,40,0.95)";cctx.shadowBlur=16;cctx.stroke();
+   cctx.restore();}
+  // start/stop with the mode
+  setInterval(function(){var on=active();if(on&&!running)start();else if(!on&&running){stop();wasOn=false;}},120);
+  addEventListener("resize",function(){if(running)sizeGL();},{passive:true});
  })();
 
  function showPodium(topN,groundY){   // raise the pedestals ONTO the ground (groundY = the real floor line, feet+shadows), return each rank's head target
