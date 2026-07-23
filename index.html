@@ -2834,14 +2834,14 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
     if(FX){FX.tint("150,90,220",0.15,3);FX.flash("210,190,255",0.16);
      for(var k=0;k<peers.length;k++){var q=peers[k];FX.burst(q.x+q.HW/2,q.y+q.HH,{count:6,color:"150,90,220",speed:130,gravity:-160,life:0.8,size:3,shape:"streak",dir:-1.57,spread:0.5});}}}},
   {id:"freeze",name:"Freeze",glyph:"❄️",color:"120,200,235",weight:8,fire:function(A){var t=rivalNear(A.me,A.cx,A.cy);if(t)freezeHead(t,2200);A.pop(0.94);}},
-  {id:"rocket",name:"Rocket",glyph:"🚀",color:"255,140,40",weight:9,fire:function(A){A.pop(1.12);
+  {id:"rocket",name:"Rocket",glyph:"🚀",color:"255,140,40",weight:9,fire:function(A){A.pop(1.12);A.aura("255,140,40",3600);
     A.buff(3600,function(A2,dt){var t=rivalNear(A2.me,A2.cx,A2.cy);if(t){var dx=(t.x+t.HW/2)-A2.cx,dy=(t.y+t.HH/2)-A2.cy,d=Math.hypot(dx,dy)||1;A2.launch(dx/d*560,dy/d*560);}
      if(FX)FX.burst(A2.cx,A2.cy+A2.HH*0.32,{count:2,color:"255,150,50",speed:80,gravity:-30,life:0.34,size:4});},null);}},
   {id:"shockwave",name:"Shockwave",glyph:"💥",color:"255,190,60",weight:9,fire:function(A){knockRadial(A.cx,A.cy,220,480,7,"255,190,60");A.pop(0.82);if(FX)FX.burst(A.cx,A.cy+A.HH*0.4,{count:14,color:"200,190,170",speed:210,gravity:420,life:0.5,size:4});}},
   {id:"blink",name:"Blink",glyph:"✨",color:"170,110,240",weight:7,fire:function(A){var ox=A.cx,oy=A.cy,t=rivalNear(A.me,ox,oy);if(FX)FX.burst(ox,oy,{count:18,color:"170,110,240",speed:280,gravity:0,life:0.4,size:4});
     if(t){var side=(ox>(t.x+t.HW/2))?1:-1,bx=(t.x+t.HW/2)+side*(t.HW*0.7+A.HW);A.warp(bx-A.HW/2,t.y);if(FX)FX.burst(bx,t.y+A.HH/2,{count:18,color:"170,110,240",speed:280,gravity:0,life:0.4,size:4});}
     else A.warp(60+Math.random()*600,90);}},
-  {id:"magnet",name:"Magnet",glyph:"🧲",color:"225,70,180",weight:7,fire:function(A){A.pop(0.9);
+  {id:"magnet",name:"Magnet",glyph:"🧲",color:"225,70,180",weight:7,fire:function(A){A.pop(0.9);A.aura("225,70,180",1500);
     A.buff(1500,function(A2){for(var i=0;i<peers.length;i++){var p=peers[i];if(p===A2.me||p.elim||!p.inB)continue;var dx=A2.cx-(p.x+p.HW/2),dy=A2.cy-(p.y+p.HH/2),d=Math.hypot(dx,dy)||1;p.__launch={vx:dx/d*Math.min(560,d*3.2),vy:dy/d*Math.min(460,d*2.6)-30};}
      if(FX)FX.ring(A2.cx,A2.cy,{r0:12,r1:150,color:"225,70,180",width:3,life:0.4});},null);}},
   {id:"windgust",name:"Wind Gust",glyph:"🌬️",color:"90,190,200",weight:7,fire:function(A){var d=(Math.random()<0.5?-1:1);window.__hmWind={ax:d*950,until:performance.now()+1800};
@@ -2855,18 +2855,17 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   {id:"banana",name:"Banana",glyph:"🍌",color:"240,200,50",weight:8,fire:function(A){spawnBanana(A.cx,A.cy);A.pop(0.92);}},
   {id:"disco",name:"Disco Stun",glyph:"🕺",color:"230,80,200",weight:7,fire:function(A){var t=rivalNear(A.me,A.cx,A.cy);if(t){t.__disco=performance.now()+2600;if(FX){FX.burst(t.x+t.HW/2,t.y+t.HH/2,{count:16,color:"230,80,200",speed:220,gravity:100,life:0.7,size:4});FX.ring(t.x+t.HW/2,t.y+t.HH/2,{r0:8,r1:72,color:"230,80,200",width:3,life:0.5});}}A.pop(0.95);}},
   {id:"homing",name:"Missile",glyph:"🎯",color:"235,70,70",weight:8,fire:function(A){spawnMissile(A.cx,A.cy,A.me);}},
-  {id:"rage",name:"Rage",glyph:"😤",color:"235,60,50",weight:8,fire:function(A){A.me.__rage=performance.now()+5200;A.pop(1.14);
+  {id:"rage",name:"Rage",glyph:"😤",color:"235,60,50",weight:8,fire:function(A){A.me.__rage=performance.now()+5200;A.pop(1.14);A.aura("235,60,50",5200);
     A.buff(5200,function(A2){if(FX&&Math.random()<0.5)FX.burst(A2.cx,A2.cy,{count:2,color:"235,70,55",speed:60,gravity:-20,life:0.5,size:5});},null);}},
-  {id:"speedster",name:"Speedster",glyph:"⚡",color:"70,200,235",weight:8,fire:function(A){A.me.__speed=performance.now()+5000;A.me.__bounce=performance.now()+5000;A.pop(1.1);A.launch(A.dir*420,-360);
+  {id:"speedster",name:"Speedster",glyph:"⚡",color:"70,200,235",weight:8,fire:function(A){A.me.__speed=performance.now()+5000;A.me.__bounce=performance.now()+5000;A.pop(1.1);A.aura("70,200,235",5000);A.launch(A.dir*420,-360);
     A.buff(5000,function(A2){if(FX)FX.burst(A2.cx,A2.cy+A2.HH*0.2,{count:1,color:"70,200,235",speed:16,gravity:0,life:0.28,size:5});
      if(Math.random()<0.06){var t=rivalNear(A2.me,A2.cx,A2.cy);if(t){var dx=(t.x+t.HW/2)-A2.cx,dy=(t.y+t.HH/2)-A2.cy,d=Math.hypot(dx,dy)||1;A2.launch(dx/d*720,dy/d*720-60);}}},null);}},
-  {id:"feather",name:"Feather",glyph:"🪶",color:"200,205,215",weight:7,fire:function(A){A.me.__feather=performance.now()+5200;A.launch(A.dir*60,-120);A.pop(1.05);
+  {id:"feather",name:"Feather",glyph:"🪶",color:"200,205,215",weight:7,fire:function(A){A.me.__feather=performance.now()+5200;A.launch(A.dir*60,-120);A.pop(1.05);A.aura("175,185,205",5200);
     A.buff(5200,function(A2){if(FX&&Math.random()<0.4)FX.burst(A2.cx+(Math.random()*A2.HW-A2.HW/2),A2.cy,{count:1,color:"210,215,225",speed:16,gravity:-8,life:0.9,size:4});},null);}},
-  {id:"bounce",name:"Super Bounce",glyph:"🏀",color:"90,200,120",weight:8,fire:function(A){A.me.__bounce=performance.now()+5200;A.launch(A.dir*160,-620);A.pop(1.12);}}
+  {id:"bounce",name:"Super Bounce",glyph:"🏀",color:"90,200,120",weight:8,fire:function(A){A.me.__bounce=performance.now()+5200;A.launch(A.dir*160,-620);A.pop(1.12);A.aura("90,200,120",5200);}}
  ];
  var _wsum=0;ABIL.forEach(function(a){_wsum+=a.weight;});
- function pickAbil(){if(window.__hmForceAbil){for(var k=0;k<ABIL.length;k++)if(ABIL[k].id===window.__hmForceAbil){window.__hmForceAbil=null;return ABIL[k];}window.__hmForceAbil=null;}
-  var r=Math.random()*_wsum;for(var i=0;i<ABIL.length;i++){r-=ABIL[i].weight;if(r<=0)return ABIL[i];}return ABIL[0];}
+ function pickAbil(){var r=Math.random()*_wsum;for(var i=0;i<ABIL.length;i++){r-=ABIL[i].weight;if(r<=0)return ABIL[i];}return ABIL[0];}
  window.__hmAbilIds=function(){return ABIL.map(function(a){return a.id;});};
  function nameFlash(cx,cy,ab){var h=heroEl();if(!h)return;var d=mkEl("hmAbLabel",ab.glyph+" "+ab.name);d.style.color="rgb("+ab.color+")";d.style.left=cx+"px";d.style.top=(cy-14)+"px";h.appendChild(d);
   var t0=performance.now();(function an(n){var p=(n-t0)/1150;if(p>=1){try{d.remove();}catch(_){}return;}d.style.transform="translate(-50%,"+(-p*44).toFixed(0)+"px)";d.style.opacity=(p<0.14?p/0.14:1-(p-0.14)/0.86).toFixed(2);requestAnimationFrame(an);})(t0);}
@@ -2906,8 +2905,6 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
       else if(n>=p.until){if(FX)FX.burst(p.x,p.y,{count:12,color:"235,90,70",speed:240,gravity:300,life:0.5,size:4});try{p.el.remove();}catch(_){}PROPS.splice(j,1);}}}
     requestAnimationFrame(bt);})(lt);}
  setInterval(function(){if(battleActive())startAbilTick();},600);
- window.__hmTestSmash=function(id){if(!battleActive())return "not in battle";if(!CRATES.length)spawnCrate();window.__hmForceAbil=id||null;var a=window.__hmTestActor;if(a&&CRATES.length){smashCrate(CRATES[0],a);return "smashed -> "+(id||"random");}return "no actor/crate";};   /*TESTHOOK*/
- window.__hmCrateNow=function(){spawnCrate();return CRATES.length;};   /*TESTHOOK*/
  function spawnCompanion(data,slot){
  var reduce=matchMedia("(prefers-reduced-motion:reduce)").matches;
  var filler=!!(data&&data.__filler);   // the mid-game stand-in (mini-Jayden): spawns already active, no intro
@@ -2930,6 +2927,9 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
  var ringEl=document.createElement("div");   // the team OUTLINE: a crisp colored rim in the head's own shape
  ringEl.style.cssText="position:absolute;inset:0;-webkit-mask:url("+data.cut+") center/100% 100% no-repeat;mask:url("+data.cut+") center/100% 100% no-repeat;transform:scale(1.075);opacity:0;transition:opacity .3s;z-index:-1;pointer-events:none";
  root.appendChild(ringEl);
+ var auraEl=document.createElement("div");   // self-buff HALO: shows at a glance WHO is powered up, in the ability's signature colour
+ auraEl.style.cssText="position:absolute;left:50%;top:45%;width:165%;height:165%;transform:translate(-50%,-50%);border-radius:50%;opacity:0;transition:opacity .2s;z-index:-2;pointer-events:none;will-change:opacity";
+ root.appendChild(auraEl);
  var crownEl=document.createElement("div");   // the champion's crown
  crownEl.style.cssText="position:absolute;left:50%;top:-24%;width:46%;transform:translateX(-50%);opacity:0;transition:opacity .3s;pointer-events:none;z-index:5";
  crownEl.innerHTML='<svg viewBox="0 0 48 34" width="100%" aria-hidden="true"><path d="M4 30 L4 15 L13 22 L24 6 L35 22 L44 15 L44 30 Z" fill="#e8b53a" stroke="#c9962a" stroke-width="1.2" stroke-linejoin="round"/><circle cx="4" cy="13" r="3.4" fill="#f0c94e"/><circle cx="24" cy="4" r="3.8" fill="#f0c94e"/><circle cx="44" cy="13" r="3.4" fill="#f0c94e"/><rect x="4" y="30" width="40" height="3.4" rx="1.4" fill="#d7a531"/></svg>';
@@ -3069,8 +3069,8 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   add:function(dvx,dvy){vx+=dvx||0;vy+=dvy||0;air=true;if(st==="idle")st="fall";},
   buff:function(dur,tick,end){me.__buff={until:performance.now()+dur,tick:tick,end:end};},
   warp:function(nx,ny){x=Math.max(WL,Math.min(WR,nx));y=ny;air=true;st="fall";vy=Math.min(vy,80);},
+  aura:function(color,dur){me.__aura={color:color,until:performance.now()+dur};},
   pop:function(sy){sqT=0.14;sqyP=sy||1.14;sqxP=1/(sy||1.14);brf=6;}};
- if(slot===0)window.__hmTestActor=A;   /*TESTHOOK*/
  window.__hmKill=window.__hmKill||function(cut){(window.__hmLive||[]).forEach(function(k){if(k.cut===cut)k.kill();});};
  (window.__hmLive=window.__hmLive||[]).push({cut:data.cut,kill:function(){killed=true;
   try{root.remove();shadow.remove();var ix9=peers.indexOf(me);if(ix9>-1)peers.splice(ix9,1);}catch(_){}}});
@@ -3319,6 +3319,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
     else{surface=floorY;x=Math.max(WL,Math.min(WR,WL+Math.random()*Math.max(1,WR-WL-HW)));}   // the rest on the floor at a random x
     y=surface;air=false;st="idle";vx=0;vy=0;flipA=0;flipV=0;wig=null;}
    else if(!_wantB&&battleOn){battleOn=false;respawnSeen=_bResp;me.inB=false;me.podiumRank=0;me.spectate=0;bar.style.opacity="0";crownEl.style.opacity="0";hidePodium();   // LEAVE: back to normal life, drop to the floor
+    me.__rage=me.__speed=me.__feather=me.__bounce=me.__frozen=me.__spin=me.__disco=0;me.__aura=null;me.__buff=null;if(auraEl)auraEl.style.opacity="0";   // shed every ability effect when the fight ends
     elim=false;elimP=0;hp=100;me.elim=false;root.style.pointerEvents="";
     shown=true;root.style.opacity="1";root.style.filter="blur(0)";shadow.style.opacity="1";root.style.display="";shadow.style.display="";
     air=true;st="fall";surface=floorY;if(vy<40)vy=40;perched=false;leapDelay=Infinity;
@@ -3395,7 +3396,10 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   if(battleOn&&!elim&&!me.podiumRank&&!me.spectate&&!grabbed&&!air&&!_dazed&&st==="idle"&&now>=decideAt&&now>=(window.__hmBattleGo||0)){decideAt=now+280+Math.random()*260;   // an active fighter (only once the whistle goes): read the arena, grab height, then POUNCE
    var tgt=null,td9=1e9,mcx=x+HW/2;
    for(var b9=0;b9<peers.length;b9++){var pv=peers[b9];if(pv===me||!pv.inB||pv.elim)continue;var dd9=Math.abs((pv.x+pv.HW/2)-mcx);if(dd9<td9){td9=dd9;tgt=pv;}}
-   if(tgt){var toX=tgt.x+tgt.HW/2,feetY=y+HH*FOOT,onPlat=false;
+   var crateT=null;if(CRATES.length&&Math.random()<0.5){var cbd=1e9;for(var cc=0;cc<CRATES.length;cc++){var C9=CRATES[cc];var cdd=Math.abs(C9.x-mcx);if(cdd<cbd){cbd=cdd;crateT=C9;}}}   // often go for a mystery crate -> leap onto it to smash a power out
+   if(crateT){dir=(crateT.x>mcx)?1:-1;surface=floorY;st="fall";air=true;gzx=dir*0.9;sacAt=now+700;
+    var vyc=Math.min(1150,Math.max(560,(floorY-(crateT.y-HH*FOOT))*3.6+340));vy=-vyc;vx=dir*Math.min(560,Math.abs(crateT.x-mcx)/Math.max(0.2,2*vyc/G));sqT=0.12;sqyP=1.1;sqxP=1/1.1;}
+   else if(tgt){var toX=tgt.x+tgt.HW/2,feetY=y+HH*FOOT,onPlat=false;
     for(var q9=0;q9<battlePlats.length;q9++){var PP=battlePlats[q9];if(Math.abs(feetY-PP.t)<9&&mcx>PP.l&&mcx<PP.r){onPlat=true;break;}}
     dir=(toX>mcx)?1:-1;surface=floorY;st="fall";air=true;gzx=dir*0.9;sacAt=now+700;
     if(onPlat){vy=-(130+Math.random()*90);vx=dir*Math.min(760,Math.max(200,td9*2.3));sqT=0.12;sqyP=1.13;sqxP=1/1.13;startFlip();brf=6;}   // pounce off the platform, diving down onto them
@@ -3627,6 +3631,8 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   me.x=x;me.y=y;me.vx=vx;me.vy=vy;me.HW=HW;me.HH=HH;me.ground=(!air&&!grabbed&&!perched&&st!=="grab");me.perched=perched;me.vault=vaulting;me.inB=battleOn;me.elim=elim;
   if(battleOn&&!filler)window.__hmGroundY=floorY+HH*FOOT;   // share the ground row so bombs/props rest on the real floor
   if(me.__buff){if(now>=me.__buff.until){try{if(me.__buff.end)me.__buff.end(A);}catch(_){}me.__buff=null;}else{try{if(me.__buff.tick)me.__buff.tick(A,DT);}catch(_){}}}   // run any active self-buff ability (rocket, etc.)
+  if(me.__aura&&now<me.__aura.until){auraEl.style.background="radial-gradient(circle,rgba("+me.__aura.color+",.5) 0%,rgba("+me.__aura.color+",.22) 42%,rgba("+me.__aura.color+",0) 70%)";auraEl.style.opacity=(0.55+Math.sin(now*0.011)*0.28).toFixed(2);}   // the buff HALO pulses in the ability's colour -> you can see who's powered up
+  else if(auraEl.style.opacity!=="0"&&auraEl.style.opacity!==""){auraEl.style.opacity="0";}
   facc+=DT;var fstep=false;if(facc>=0.125){facc-=0.125;fstep=true;}
   if(fstep){ // --- face life: stop-motion beats stay on the 8fps grid ---
   var px=(typeof pointer!=="undefined"?pointer.px:innerWidth/2),py=(typeof pointer!=="undefined"?pointer.py:innerHeight*0.4);
