@@ -3148,7 +3148,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   var hb=hero.getBoundingClientRect();WL=-hb.left-HW*0.35;WR=innerWidth-hb.left-HW*0.65;CEIL=-(hb.top+window.scrollY)-HH*0.12;   // it presses into the glass on every side; the VISIBLE crown reaches the top, not the box
   if(ow&&Math.abs(ow-hero.clientWidth)>2)x=x/ow*hero.clientWidth;   // resizing keeps its relative spot
   if(bigR){var nHW=Math.round(Math.min(108,Math.max(66,(bigR.r-bigR.l)*0.27)));if(mob)nHW=Math.min(nHW,64);
-   // the mini-Jayden is the SAME size + plane as every other head now -- the game is flat 2D, so nobody reads as "closer/further"; he's special by being Jayden's face, not by scale
+   if(filler)nHW=Math.round(nHW*1.5);   // the mini-Jayden stays noticeably BIGGER (Jayden liked this) -- but he's on the SAME flat plane + ground line as everyone else; his size is his identity, not a depth cue
    if(Math.abs(nHW-HW)>2){HW=nHW;HH=HW*1.2;root.style.width=HW+"px";root.style.height=HH+"px";shadow.style.width=HW+"px";shadow.style.height=(HW*0.22)+"px";}}
   if(x>WR)x=WR;if(x<WL)x=WL;if(y>floorY)y=floorY;   // stay intact when the screen shrinks
  }
@@ -3750,6 +3750,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    var hk=DT/0.04;heldV+=((-heldOff*0.16)-(pvy*0.14))*hk;heldV*=Math.pow(0.86,hk);heldOff=Math.max(-18,Math.min(18,heldOff+heldV*hk));}   // it bounces on the hand like a ball on a paddle
   else{heldOff*=Math.pow(0.85,DT/0.04);heldV=0;hsT=1;}
   hs+=(hsT-hs)*Math.min(1,DT*10);
+  if(battleOn||soccerOn){depthT=1;depth=1;}   // FLAT during games: no 2.5D depth ever -- every head stays on one plane + one ground line (they bounce off each other, they never pass at different depths)
   depth+=(depthT-depth)*Math.min(1,DT*0.5);
   // squash recovery
   if(sqT>0){sqT-=DT;}else if(!air&&!grabbed){var _br=1+(drowse2?0.015:0.009)*Math.sin(now*(drowse2?0.0026:0.0042));sqyP=_br;sqxP=1/_br;}   // it BREATHES: volume-true, slower and deeper in its sleep
