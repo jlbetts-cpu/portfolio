@@ -305,7 +305,7 @@ body.hmSoccer .moodMenu .moodItem:not(#endGame){opacity:.38;pointer-events:none}
 .hmScoreEnd{margin-left:10px;padding:2px 2px 2px 11px;border:0;border-left:1px solid var(--c100);border-radius:0;background:none;display:inline-flex;align-items:center;gap:5px;cursor:pointer;pointer-events:auto;color:#b3402e;font-family:var(--sans);font-weight:600;font-size:var(--fs-label);line-height:1;transition:color .15s}
 .hmScoreEnd:hover{color:#8f3323}.hmScoreEnd svg{width:12px;height:12px;flex:0 0 auto}
 /* battle arena platforms: light Apple-clean slabs with a hair of 2.5D thickness -- the heads leap up for height and pounce down */
-.hmPlat{position:absolute;left:0;top:0;height:15px;border-radius:9px;background:linear-gradient(180deg,#fefeff 0%,#f3f3f6 52%,#e6e6ec 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,.92),0 7px 16px -7px rgba(22,22,28,.3),0 1.5px 3px rgba(22,22,28,.1);border:1px solid rgba(22,22,28,.06);opacity:0;pointer-events:none;transition:opacity .45s cubic-bezier(.2,.8,.2,1);z-index:2;will-change:transform}
+.hmPlat{position:absolute;left:0;top:0;height:15px;border-radius:9px;background:linear-gradient(180deg,#f3f4f7 0%,#e2e3ea 54%,#cdcfd9 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,.95),0 10px 20px -6px rgba(22,22,28,.4),0 3px 6px rgba(22,22,28,.2);border:1px solid rgba(22,22,28,.16);opacity:0;pointer-events:none;transition:opacity .45s cubic-bezier(.2,.8,.2,1);z-index:2;will-change:transform}
 body.hmBattle .hmPlat{opacity:1}
 body.hmPodium .hmPlat{opacity:0}   /* platforms clear off once the podium rises */
 /* during a game the big head steps off so the players own the whole stage; it fades back when the game ends */
@@ -3468,9 +3468,9 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
      if(_spareMate&&(_lt[rv.slot]||0)===_myTm)continue;   // don't body-check a teammate
      var rd=Math.hypot((rv.x+rv.HW/2)-mcx,(rv.y+rv.HH/2)-myFeet),_isFoe=(_lt&&_myTm&&(_lt[rv.slot]||0)!==_myTm),_w=(rv===_grT||_isFoe)?rd*0.35:rd,_reach=(rv===_grT||_isFoe)?HW*5.5:HW*2.7;   // a grudge -- or a rival team -- pulls you across the arena
      if(rd<_reach&&_w<rbd){rbd=_w;rvl=rv;}}
-    if(danger>120&&rvl&&Math.random()<0.3){   // jostle: charge a NEARBY neighbour and body-check them (a flat little ram, not a launch)
+    if(danger>120&&rvl&&Math.random()<0.25){   // jostle: a low, flat little body-check toward a neighbour -- a nudge, never a leap across the arena
      var scx=rvl.x+rvl.HW/2;dir=(scx>mcx)?1:-1;surface=floorY;st="fall";air=true;gzx=dir*1;sacAt=now+400;
-     vy=-(130+Math.random()*80);vx=dir*Math.min(440,Math.max(230,Math.abs(scx-mcx)*2.1));sqT=0.12;sqyP=1.12;sqxP=1/1.12;}
+     vy=-(85+Math.random()*45);vx=dir*Math.min(290,Math.max(140,Math.abs(scx-mcx)*1.5));sqT=0.12;sqyP=1.1;sqxP=1/1.1;}
     else if(tP&&danger<165){   // only climb when the lava is actually getting close -> heads hold + jostle on a platform until they HAVE to move up
      var tcx=(tP.l+tP.r)/2;dir=(tcx>mcx)?1:-1;surface=floorY;st="fall";air=true;gzx=dir*0.7;gzy=-0.45;sacAt=now+500;
      var climb=Math.max(70,myFeet-tP.t+80),vyj=Math.min(1200,Math.max(600,climb*3.4+300));vy=-vyj;
@@ -3618,7 +3618,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   if(me.dmgIn){if(battleOn&&!elim&&!window.__hmLavaOn)hurt(me.dmgIn);me.dmgIn=0;}   // Floor is Lava: heads BUMP (elastic collisions still fire) but deal no HP damage -- only the lava kills
   if(me.kx||me.ky){if(!grabbed&&!perched){
    var kmag=Math.hypot(me.kx,me.ky);
-   if(!air&&kmag>55){air=true;st="fall";surface=floorY;vy=Math.min(vy-120,-140-kmag*0.4);}   // a shove LIFTS it: the pushed head bounces back
+   if(!air&&kmag>(window.__hmLavaOn?150:55)){air=true;st="fall";surface=floorY;vy=Math.min(vy-(window.__hmLavaOn?40:120),-(window.__hmLavaOn?55:140)-kmag*(window.__hmLavaOn?0.1:0.4));}   // a shove lifts it -- but in lava the lift is tiny, so heads slide and jostle side-to-side on the slab instead of launching up and off into the lava
    if(!(me.__rage&&now<me.__rage)){vx+=me.kx;vy+=me.ky;}   // RAGE: shrugs off knockback
    if(kmag>55){sqT=0.11;sqxP=0.91;sqyP=1.09;brf=6;   // and it reacts: squashed, brows up, eyes on the pusher
     if(me.kx){gzx=-Math.sign(me.kx)*0.7;gzy=0;sacAt=now+900;}
@@ -3631,8 +3631,8 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    if(d2>0.01&&d2<rr2){var nx2=dxp/d2,ny2=dyp/d2,ov=rr2-d2;
     x+=nx2*ov*0.5;if(air)y+=ny2*ov*0.3;   // squeeze apart: half me, half them (via the mailbox)
     var rvx=vx-o2.vx,rvy=vy-o2.vy,rel=rvx*nx2+rvy*ny2;
-    if(rel<0){var _lm=window.__hmLavaOn,jI=-(1+(_lm?0.82:0.72))*rel*(_lm?0.5:0.5);   // FLOOR IS LAVA: bumps have weight (a good shove can edge a rival off) but they jostle back and forth -- not an instant launch
-     vx+=nx2*jI;vy+=ny2*jI*0.6;o2.kx-=nx2*jI*(_lm?1.04:1);o2.ky-=ny2*jI*0.6;
+    if(rel<0){var _lm=window.__hmLavaOn,jI=-(1+(_lm?0.4:0.72))*rel*(_lm?0.42:0.5);   // FLOOR IS LAVA: soft, springy bumps -> heads nudge and drift back and forth, not launch to their death
+     vx+=nx2*jI;vy+=ny2*jI*(_lm?0.22:0.6);o2.kx-=nx2*jI*(_lm?0.85:1);o2.ky-=ny2*jI*(_lm?0.22:0.6);
      var hit=Math.abs(rel);
      if(battleOn&&!elim&&o2.inB&&!o2.elim&&(slot||0)<(o2.slot||0)&&now>=(window.__hmBattleGo||0)){   // resolve each pair ONCE (lower slot) so nobody is hit twice, and only after the whistle
       var meApp=-(vx*nx2+vy*ny2),o2App=(o2.vx*nx2+o2.vy*ny2),TH=200;   // each head's closing speed toward the other -- only a real lunge lands
@@ -4028,7 +4028,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    els.forEach(function(el,i){var D=DEFS[i];if(!D){el.style.display="none";return;}el.style.display="";
     var l=Math.round(w*D[0]),rr=Math.round(w*D[1]),t=Math.round(floorY-D[2]);   // measured UP from the real floor so a normal jump clears them
     battlePlats.push({l:l,r:rr,t:t});
-    el.style.width=(rr-l)+"px";el.style.height=([15,9,5][D[3]||0])+"px";el.style.transform="translate("+l+"px,"+t+"px)";});}   // thinner and thinner toward the top -> extra intense
+    el.style.width=(rr-l)+"px";el.style.height=([16,12,9][D[3]||0])+"px";el.style.transform="translate("+l+"px,"+t+"px)";});}   // thinner toward the top for intensity, but never so thin it reads as "standing on nothing"
   layout();addEventListener("resize",layout,{passive:true});
   var arenaReq=0;
   window.__hmNewArena=function(){arenaReq=window.__hmBattleReq||0;DEFS=genDefs();layout();};   // fresh random arena; the button calls this synchronously so heads can be scattered onto it
