@@ -2625,6 +2625,7 @@ requestAnimationFrame(function(){requestAnimationFrame(startIntro);});
   var rc=readAll().length;if(rc<1||gameOn())return;
   window.__hmLavaTeams=false;   // the plain button is a solo free-for-all (teams are the opt-in via the teams icon)
   if(rc%2===1&&window.__hmFillerAdd)window.__hmFillerAdd();   // odd sides -> mini-Jayden steps in
+  window.__hmCrowd=rc+(rc%2===1?1:0);   // seed the crowd size NOW so the lava's first rise is tuned to the real player count (not a stale/default value)
   window.__hmBattleReq=performance.now();document.body.classList.add("hmBattle");
   if(window.__hmNewArena)window.__hmNewArena();   // lay the random arena BEFORE the heads scatter onto it
   closeMenuBar();battleGate();});
@@ -3408,7 +3409,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
     if(S9.winner&&S9.winner===team&&!soccerWon){soccerWon=true;crownEl.style.opacity="1";if(filler){smileT=3.6;danceUntil=now+3400;}   // champions crowned -- the mini-Jayden breaks into his DELIGHT DANCE (he's me, he gets the whole moment)
      if(!grabbed){dir=((heroR.w/2)>(x+HW/2))?1:-1;surface=floorY;st="fall";air=true;vy=-(920+Math.random()*120);vx=dir*(110+Math.random()*110);sqT=0.13;sqyP=1.11;sqxP=1/1.11;startFlip();brf=6;mof=4;
       try{if(!busyNow()){setHold("smile",1600);showFace("smile");}}catch(_){}}}
-    if(S9.phase==="play"&&!grabbed&&!air&&st==="idle"&&S9.ball&&now>=decideAt){decideAt=now+240+Math.random()*220;
+    if(S9.phase==="play"&&!grabbed&&!air&&!perched&&st==="idle"&&S9.ball&&now>=decideAt){decideAt=now+240+Math.random()*220;
      var role=(S9.roles&&S9.roles[slot])||"attacker",ballX=S9.ball.x,ballY=S9.ball.y,ballVX=(S9.ball.vx||0),myX=x+HW/2;
      var atk=team===1?1:-1,ownGoalX=team===1?(M+6):(heroR.w-M-6);
      var leadX=Math.max(M,Math.min(heroR.w-M,ballX+ballVX*0.18));   // LEAD the ball: aim where it's GOING, not where it was
@@ -3610,7 +3611,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
      var _ohT=_oh.y+_oh.HH*0.14;if(Math.abs(cxp-(_oh.x+_oh.HW/2))<(HW+_oh.HW)*0.34&&pfeet<=_ohT+4&&feet9>=_ohT+HH*0.35){y=_ohT-HH*FOOT;vy=-(430+Math.min(360,Math.abs(vy)*0.5));vx*=0.6;sqT=0.13;sqyP=1.15;sqxP=1/1.15;brf=6;_oh.ky=(_oh.ky||0)+150;break;}}}}
    if(battleOn&&window.__hmSmashCrates&&CRATES.length&&now>=(window.__hmBattleGo||0)){var _fx3=x+HW/2;   // descending onto a mystery crate SMASHES it -> a random physics-chaos power
     for(var _ci=0;_ci<CRATES.length;_ci++){var _cr=CRATES[_ci];if(_fx3>_cr.x-_cr.r-HW*0.35&&_fx3<_cr.x+_cr.r+HW*0.35&&feet9>=_cr.y-_cr.r-4&&feet9<=_cr.y+_cr.r+34){smashCrate(_cr,A);break;}}}
-   if(window.__hmLavaOn&&surface>=floorY-2)surface=1e5;   // in lava mode the FLOOR isn't solid -- only platforms + heads are. Fall through into the lava (the death check catches you at the surface)
+   if(battleOn&&window.__hmLavaOn&&surface>=floorY-2)surface=1e5;   // in lava mode the FLOOR isn't solid -- only platforms + heads are (gated on MY battleOn: the frame the game ends, surface stays solid so the winner never drops through)
    if(!window.__hmLavaOn&&surface>1e4)surface=floorY;   // the lava game is over -> restore a solid floor so no head keeps falling through forever (they land + resume life)
    if(vy>0&&y>=surface){ cTop=false; if(st==="fall"&&Math.abs(vy)>340){if(Math.abs(vy)>1050)shakeAfter=true;   // a hard landing skids, but the ground never wounds -- only a rival's lunge does
     if(Math.abs(vx)>420&&!wig)wig={t:0.22,dur:0.22,type:"tilt",a:(vx>0?1:-1)*4};   // fast landings skid: it leans into the slide
@@ -3753,7 +3754,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   var px=(typeof pointer!=="undefined"?pointer.px:innerWidth/2),py=(typeof pointer!=="undefined"?pointer.py:innerHeight*0.4);
   var rr=root.getBoundingClientRect();
   var dcur=Math.hypot(px-(rr.left+rr.width/2),py-(rr.top+rr.height/2));
-  var act=(typeof lastMove!=="undefined")&&(now-lastMove<2500)&&dcur<190;   // the cursor only matters up close
+  var act=(typeof lastMove!=="undefined")&&(now-lastMove<2500)&&dcur<190&&!soccerOn&&!battleOn;   // the cursor only matters up close -- and never during a game (no stray greeting/drowse hops fighting the game AI)
   if(!drowse2&&now-lastNearT>45000&&st==="idle"&&!perched&&!grabbed&&!air)drowse2=true;   // left alone long enough, it gets sleepy
   if(drowse2&&act){drowse2=false;brf=6;   // and startles sweetly awake when you come back
    if(!air&&!grabbed&&!perched){air=true;st="fall";surface=floorY;vy=-(240+Math.random()*70);vx=0;sqT=0.12;sqyP=1.1;sqxP=1/1.1;}}
