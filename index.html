@@ -53,7 +53,7 @@ body{background:var(--c50);color:var(--c950);font-family:var(--sans);-webkit-fon
 nav{display:flex;align-items:center;gap:26px;padding:34px 0 0}
 nav .logo{font-family:var(--serif);font-weight:700;font-size:21px;filter:url(#inkSm);cursor:pointer;user-select:none}
 nav a{font-size:var(--fs-small);color:var(--c900);text-decoration:none;opacity:.85;filter:url(#inkSm)}nav a:hover{opacity:1}
-nav .talk{background:var(--c50);border:1px solid var(--c100);color:var(--c900);font-family:var(--sans);font-weight:400;padding:9px 18px;border-radius:0;font-size:var(--fs-body);line-height:1;transition:border-color .2s cubic-bezier(.2,.8,.2,1),color .2s cubic-bezier(.2,.8,.2,1)}
+nav .talk{background:var(--c50);border:1px solid var(--c100);color:var(--c950);font-family:var(--sans);font-weight:500;padding:8px 16px;border-radius:0;font-size:var(--fs-small);line-height:1;transition:border-color .2s cubic-bezier(.2,.8,.2,1),color .2s cubic-bezier(.2,.8,.2,1)}
 .talkMag{display:inline-flex;will-change:transform}
 @media(max-width:520px){.talkMag{margin-left:auto}}   /* on mobile the nav links hide, so Let's talk still needs pushing to the right */
 .navLink{font-family:var(--sans);font-weight:500;font-size:var(--fs-small);color:var(--c700);opacity:1;text-decoration:none;filter:url(#inkSm);transition:color .2s cubic-bezier(.2,.8,.2,1);cursor:pointer;background:none;border:0;padding:0;line-height:1;white-space:nowrap}   /* opacity:1 so the Work <a> matches the About <button> exactly (nav a is faded to .85) */
@@ -94,7 +94,7 @@ h1{font-weight:600;font-size:var(--fs-hero);line-height:var(--lh-tight);letter-s
  transition:opacity .5s cubic-bezier(.2,.8,.2,1),filter .5s cubic-bezier(.2,.8,.2,1),transform .5s cubic-bezier(.2,.8,.2,1)}
 .ch.show{opacity:1;filter:blur(0);transform:none}
 .sub{display:none}
-.heroAvail{display:block;margin:0 0 18px;font-family:var(--sans);font-weight:500;font-size:var(--fs-small);letter-spacing:.01em;color:var(--c500);line-height:1;opacity:0;transform:translateY(-4px);transition:opacity .5s cubic-bezier(.2,.8,.2,1),transform .5s cubic-bezier(.2,.8,.2,1)}   /* an eyebrow ABOVE the headline: sets context (location + availability) before the big statement */
+.heroAvail{display:block;margin:0 0 14px;font-family:var(--sans);font-weight:600;font-size:var(--fs-label);letter-spacing:.01em;color:var(--c600);line-height:1;opacity:0;transform:translateY(-4px);transition:opacity .5s cubic-bezier(.2,.8,.2,1),transform .5s cubic-bezier(.2,.8,.2,1)}   /* eyebrow = the SAME label style the system uses in About (fs-label / 600 / .01em) so it feels native, not one-off; tight to the headline */
 .heroAvail.in{opacity:1;transform:none}
 .heroAvail .availOpen{color:inherit}   /* one uniform tone across the whole line -- no mixed weights/colours */
 .availDot{width:7px;height:7px;border-radius:50%;background:var(--c900);flex:0 0 7px}
@@ -337,7 +337,7 @@ body.hmSoccer .heroCopy>.heroAvail,body.hmBattle .heroCopy>.heroAvail{opacity:0!
 /* --- "Play a mood" relocated into the hero CTA row (moodInCta) --- */
 body.moodInCta .heroCtas{align-items:center}
 body.moodInCta .faceMoodCorner{position:relative;right:auto;left:auto;top:auto;bottom:auto;transform:none;z-index:auto;display:inline-flex}   /* z-index:auto (not a stacking context) so the little heads (z3) pass IN FRONT of the button, while the open menu can still float above them */
-body.moodInCta .faceMoodCorner .moodBtn{position:relative;border:1px solid var(--c100)!important;background:var(--c50)!important;color:var(--c900);padding:9px 18px;border-radius:4px;opacity:1!important}
+body.moodInCta .faceMoodCorner .moodBtn{position:relative;border:1px solid var(--c100)!important;background:var(--c50)!important;color:var(--c950);font-weight:500;font-size:var(--fs-body);padding:9px 16px;border-radius:0!important;opacity:1!important}
 body.moodInCta .faceMoodCorner .moodBtn:hover{border-color:var(--c500)!important;color:var(--c950)}
 body.moodInCta .faceMoodCorner .moodLbl,body.moodInCta .faceMoodCorner .moodCar{opacity:1!important;transform:none!important}
 body.moodInCta .faceMoodCorner .moodMenu{bottom:calc(100% + 12px)!important;top:auto!important;left:0!important;right:auto!important;z-index:60!important}
@@ -460,7 +460,7 @@ body.moodInCta .heroCtas:not(.in) .faceMoodCorner{opacity:0;pointer-events:none}
 @keyframes moodIn{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
 .moodBtn{display:inline-flex;align-items:center;gap:8px;background:var(--c50);border:1px solid var(--c100);border-radius:4px;padding:9px 16px;line-height:1;cursor:pointer;font-family:var(--sans);font-weight:400;font-size:var(--fs-body);color:var(--c950);transition:border-color .2s cubic-bezier(.2,.8,.2,1),color .2s cubic-bezier(.2,.8,.2,1)}.moodBtn:hover{border-color:var(--c500)}
 .moodBtn:hover{border-color:var(--c500)}
-.moodLbl{font-size:var(--fs-body);font-weight:400;letter-spacing:-.005em}
+.moodLbl{font-size:var(--fs-body);font-weight:500;letter-spacing:-.005em}
 .moodCar{width:12px;height:12px;display:inline-block;flex:0 0 auto;color:var(--c500);transition:transform .2s cubic-bezier(.2,.8,.2,1),color .2s cubic-bezier(.2,.8,.2,1)}
 .moodbar.open .moodCar{width:12px;height:12px;display:inline-block;flex:0 0 auto;color:var(--c500);transition:transform .2s cubic-bezier(.2,.8,.2,1),color .2s cubic-bezier(.2,.8,.2,1)}
 .moodMenu{position:absolute;min-width:196px;background:var(--c50);border:1px solid var(--c100);border-radius:4px;padding:6px;box-shadow:0 8px 28px -8px rgba(18,18,18,.12),0 2px 8px -2px rgba(18,18,18,.06);opacity:0;visibility:hidden;transition:opacity .16s cubic-bezier(.2,.8,.2,1),transform .18s cubic-bezier(.2,.8,.2,1),visibility 0s .18s}
@@ -479,7 +479,7 @@ body.moodInCta .heroCtas:not(.in) .faceMoodCorner{opacity:0;pointer-events:none}
 .heroCtas.in>*{opacity:1;transform:none;animation:ctaIn .5s cubic-bezier(.2,.8,.2,1) both}
 .heroCtas.in>*:nth-child(2){animation-delay:.125s}.heroCtas.in>*:nth-child(3){animation-delay:.25s}
 @keyframes ctaIn{0%{opacity:0;transform:translateY(12px) scale(.9)}25%{opacity:.6;transform:translateY(2px) scale(1.04)}50%{opacity:1;transform:translateY(-2px) scale(1.02)}75%{opacity:1;transform:translateY(1px) scale(.995)}100%{opacity:1;transform:translateY(0) scale(1)}}
-.workCta{display:inline-flex;align-items:center;gap:9px;padding:9px 16px;border:1px solid var(--c950);background:var(--c950);color:var(--c50);font-family:var(--sans);font-size:var(--fs-body);line-height:1;cursor:pointer;transition:background .2s cubic-bezier(.2,.8,.2,1),transform .2s cubic-bezier(.2,.8,.2,1)}.workCta svg{width:16px;height:16px;display:block;flex:0 0 auto}.workCta:hover{background:var(--c900);transform:translateY(-1px)}.aboutCta{display:inline-flex;align-items:center;gap:7px;padding:9px 4px;border:0;background:none;color:var(--c600);font-family:var(--sans);font-size:var(--fs-body);line-height:1;cursor:pointer;transition:color .2s cubic-bezier(.2,.8,.2,1)}.aboutCta svg{width:16px;height:16px;display:block;flex:0 0 auto}
+.workCta{display:inline-flex;align-items:center;gap:9px;padding:9px 16px;border:1px solid var(--c950);background:var(--c950);color:var(--c50);font-family:var(--sans);font-weight:500;font-size:var(--fs-body);line-height:1;cursor:pointer;transition:background .2s cubic-bezier(.2,.8,.2,1),transform .2s cubic-bezier(.2,.8,.2,1)}.workCta svg{width:16px;height:16px;display:block;flex:0 0 auto}.workCta:hover{background:var(--c900);transform:translateY(-1px)}.aboutCta{display:inline-flex;align-items:center;gap:7px;padding:9px 4px;border:0;background:none;color:var(--c600);font-family:var(--sans);font-size:var(--fs-body);line-height:1;cursor:pointer;transition:color .2s cubic-bezier(.2,.8,.2,1)}.aboutCta svg{width:16px;height:16px;display:block;flex:0 0 auto}
 
 /* ===== Identity -> About takeover ===== */
 .iddrag{position:fixed;pointer-events:none;font-family:var(--serif);font-weight:700;font-size:var(--fs-hero);transform:translate(-50%,-50%);transform-origin:50% 18%;z-index:70;will-change:transform,left,top;color:var(--c900);display:inline-flex;align-items:baseline;gap:.06em;white-space:nowrap}
