@@ -56,7 +56,7 @@ nav a{font-size:var(--fs-small);color:var(--c900);text-decoration:none;opacity:.
 nav .talk{background:var(--c50);border:1px solid var(--c100);color:var(--c900);font-family:var(--sans);font-weight:400;padding:9px 18px;border-radius:0;font-size:var(--fs-body);line-height:1;transition:border-color .2s cubic-bezier(.2,.8,.2,1),color .2s cubic-bezier(.2,.8,.2,1)}
 .talkMag{display:inline-flex;will-change:transform}
 @media(max-width:520px){.talkMag{margin-left:auto}}   /* on mobile the nav links hide, so Let's talk still needs pushing to the right */
-.navLink{font-family:var(--sans);font-weight:500;font-size:var(--fs-small);color:var(--c700);text-decoration:none;filter:url(#inkSm);transition:color .2s cubic-bezier(.2,.8,.2,1);cursor:pointer;background:none;border:0;padding:0;line-height:1;white-space:nowrap}
+.navLink{font-family:var(--sans);font-weight:500;font-size:var(--fs-small);color:var(--c700);opacity:1;text-decoration:none;filter:url(#inkSm);transition:color .2s cubic-bezier(.2,.8,.2,1);cursor:pointer;background:none;border:0;padding:0;line-height:1;white-space:nowrap}   /* opacity:1 so the Work <a> matches the About <button> exactly (nav a is faded to .85) */
 .navLink:hover,.navLink:focus-visible{color:var(--c950)}
 .navLink.navFirst{margin-left:auto}   /* Work + About me group on the RIGHT with Let's talk (logo leads in on the left, nav + primary action anchor the right) */
 body.about-open .navLink{display:none}
