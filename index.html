@@ -3935,10 +3935,10 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    if(innerWidth<=768){   // MOBILE: a tall narrow arena -> ~6 tiers alternating sides, climbing most of the screen
     var top=Math.min(aH*0.76,aH-80),n=6,hstep=(top-38)/(n-1);
     for(var i=0;i<n;i++){var side=(Math.random()<0.5?i:i+1)%2,wdt=0.34+Math.random()*0.12,l=side?(0.5+Math.random()*0.11):(0.04+Math.random()*0.11);l=Math.min(0.96-wdt,l);defs.push([l,l+wdt,38+hstep*i+Math.random()*12,i%2]);}
-   }else{   // DESKTOP: a staggered ladder -- 5 tiers, alternating 2 and 1 slabs, spread across the width up to ~72% high
-    var topD=Math.min(aH*0.72,aH-90),tiers=5,step=(topD-46)/(tiers-1),idx=0;
-    for(var r=0;r<tiers;r++){var h=46+step*r,cnt=(r%2===0)?2:1;
-     for(var c=0;c<cnt;c++){var wd=0.12+Math.random()*0.08,base=(cnt===2)?(c===0?0.05:0.57):0.35,l=Math.min(0.94-wd,base+Math.random()*0.13);defs.push([l,l+wd,h+Math.random()*18,idx%2]);idx++;}}
+   }else{   // DESKTOP: a FUNNEL ladder -- wide at the bottom, narrowing to a single peak, so the last survivors must fight for the top
+    var topD=Math.min(aH*0.72,aH-90),tiers=5,step=(topD-46)/(tiers-1),idx=0,counts=[2,2,2,1,1];
+    for(var r=0;r<tiers;r++){var h=46+step*r,cnt=counts[r];
+     for(var c=0;c<cnt;c++){var wd=0.12+Math.random()*0.08,base=(cnt===2)?(c===0?0.05:0.57):(0.5-wd/2-0.06+Math.random()*0.12),l=Math.min(0.94-wd,Math.max(0.02,base+(cnt===2?Math.random()*0.12:0)));defs.push([l,l+wd,h+Math.random()*16,idx%2]);idx++;}}
    }
    return defs;}
   var DEFS=genDefs();
@@ -3962,7 +3962,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   // ---- the rising surface wave (shared by the crust render AND game logic so death lines up with what you see) ----
   var WAMP=7,WK1=0.021,WK2=0.052,WS1=1.1,WS2=1.7;
   function waveAt(xpx,t){return Math.sin(xpx*WK1+t*WS1)*WAMP + Math.sin(xpx*WK2 - t*WS2)*WAMP*0.45;}
-  var level=0,surfaceY=1e9,arenaBottom=0,arenaW=0,arenaH=0,running=false,t0=performance.now(),RISE_DUR=52000,embers=[];   // seconds to fill
+  var level=0,surfaceY=1e9,arenaBottom=0,arenaW=0,arenaH=0,running=false,t0=performance.now(),RISE_DUR=31000,embers=[];   // ms to fill (slow, tense, but not tedious)
   // ---- DOM: molten body (WebGL) + wavy crust (2D canvas) + heat haze band ----
   var wrap=document.createElement("div");wrap.className="hmLavaWrap";wrap.setAttribute("aria-hidden","true");
   wrap.style.cssText="position:absolute;left:0;right:0;bottom:0;top:0;pointer-events:none;z-index:0;opacity:0;transition:opacity .5s";
@@ -4008,7 +4008,6 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   window.__hmLavaY=function(xpx){return surfaceY+waveAt(xpx,(performance.now()-t0)/1000);};   // the death line at this x (hero-local)
   var lastReq=0;
   function start(){t0=performance.now();level=0;embers.length=0;lastReq=window.__hmBattleReq||0;if(!gl&&!initGL()){/* no webgl: crust-only fallback */}sizeGL();running=true;wrap.style.opacity="1";glow.style.opacity="1";window.__hmLavaOn=true;requestAnimationFrame(loop);}
-  window.__hmLavaJump=function(l){t0=performance.now()-2900-l*RISE_DUR;};   /*TESTHOOK: jump the fill level 0..1*/
   function stop(){running=false;window.__hmLavaOn=false;wrap.style.opacity="0";glow.style.opacity="0";haze.style.opacity="0";surfaceY=1e9;level=0;embers.length=0;if(cctx)cctx.clearRect(0,0,crust.width,crust.height);}
   var wasOn=false,lastFrame=performance.now();
   function loop(n){if(!active()){if(wasOn){stop();wasOn=false;}return;}
