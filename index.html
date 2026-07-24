@@ -3365,9 +3365,9 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
     if(window.__hmBOSeed!==_bReq){window.__hmBOSeed=_bReq;battleOut.length=0;hidePodium();window.__hmBattleGo=performance.now()+2900;}   // once per fight: fresh log, no leftover podium, a 3-2-1-GO first
     perched=false;leapDelay=Infinity;me.elim=false;me.inB=true;bar.style.opacity="1";root.style.pointerEvents="";
     me.__sinking=null;me.__sunk=0;me.__grudge=null;me.__ally=null;me.__socialAt=0;me.__reactAt=0;root.style.filter="";root.style.opacity="1";root.style.zIndex="";if(shadow)shadow.style.zIndex="";   // fresh, un-charred, not sinking, no grudges, back in front
-    if(battlePlats.length){var _sp=battlePlats[0],_n=Math.max(1,peers.length),_i=(slot||0)%_n;   // FLOOR IS LAVA: everyone starts on the BIG BASE, evenly spread so all 8 fit -- no random jitter that could nudge one off the edge before GO
-     var _inner=Math.max(1,(_sp.r-_sp.l-HW-10));
-     x=Math.max(_sp.l+2,Math.min(_sp.r-HW-2,_sp.l+5+_inner*((_i+0.5)/_n)));surface=_sp.t-HH*FOOT;}
+    if(battlePlats.length){var _sp=battlePlats[0],_n=Math.max(1,peers.length),_i=(slot||0)%_n;   // FLOOR IS LAVA: everyone starts on the BIG BASE; a small crowd clusters near the centre so they mingle instead of standing far apart, a full crowd of 8 uses the whole width
+     var _bw=Math.max(1,(_sp.r-_sp.l-HW-10)),_use=Math.min(_bw,_n*HW*1.7),_off=(_sp.l+5)+(_bw-_use)/2;
+     x=Math.max(_sp.l+2,Math.min(_sp.r-HW-2,_off+_use*((_i+0.5)/_n)));surface=_sp.t-HH*FOOT;}
     else{surface=floorY;x=Math.max(WL,Math.min(WR,WL+Math.random()*Math.max(1,WR-WL-HW)));}
     y=surface;air=false;st="idle";vx=0;vy=0;flipA=0;flipV=0;wig=null;}
    else if(!_wantB&&battleOn){battleOn=false;respawnSeen=_bResp;me.inB=false;me.podiumRank=0;me.spectate=0;bar.style.opacity="0";crownEl.style.opacity="0";hidePodium();   // LEAVE: back to normal life, drop back into the scene
@@ -3432,7 +3432,8 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
       if(role==="keeper")bxT=team===1?Math.min(bxT,heroR.w*0.11):Math.max(bxT,heroR.w*0.89-HW);
       if(ballHigh&&nearOwnGoal&&ballOnOurHalf)wantHigh=true;}   // spring up to block the high shot
      else{   // SUPPORT: push up toward their goal to receive the clear / pounce a rebound -- staying goal-side so a forward pass finds me
-      var aheadX=ballX+atk*(HW*1.5+heroR.w*0.1+teamAhead*HW*0.7)+(Math.random()*60-30);
+      var _small9=(window.__hmCrowd||4)<=4;   // small game: press much closer to the ball so the second head is in the mix too (more bumping, less hanging back)
+      var aheadX=ballX+atk*((_small9?0.5:1.5)*HW+heroR.w*(_small9?0.03:0.1)+teamAhead*HW*0.7)+(Math.random()*60-30);
       bxT=Math.max(M+HW*0.2,Math.min(heroR.w-M-HW*1.2,aheadX))-HW/2;}
      var ddb9=bxT-x;
      if(Math.abs(ddb9)>HW*0.4){dir=ddb9>0?1:-1;gzx=dir*0.85;gzy=(ballY<floorY-160?-0.55:0.15);sacAt=now+560;   // eyes lock onto the ball as it goes
@@ -3477,6 +3478,12 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
      vx=dir*Math.min(560,Math.abs(tcx-mcx)/Math.max(0.2,2*vyj/G));sqT=0.12;sqyP=1.1;sqxP=1/1.1;}
     else if(danger<80){   // cornered, lava at my feet, nothing better -> a desperate scramble
      dir=(Math.random()<0.5?-1:1);vy=-(720+Math.random()*220);vx=dir*(120+Math.random()*170);air=true;st="fall";surface=floorY;sqT=0.12;sqyP=1.1;sqxP=1/1.1;gzy=-0.5;}
+    else{   // LAVA STILL LOW: keep the crowd LIVELY -- mill about, drift over to a neighbour and jostle, or hop around. Small crowds mingle more so it never looks static.
+     var _crowd=(window.__hmCrowd||4),_restless=(_crowd<=4?0.72:0.44);
+     if(!air&&Math.random()<_restless){
+      var _tgt=null,_td=1e9;for(var _rr=0;_rr<peers.length;_rr++){var _rp=peers[_rr];if(_rp===me||!_rp.inB||_rp.elim||_rp.__sinking)continue;var _dd=Math.abs((_rp.x+_rp.HW/2)-mcx);if(_dd<_td){_td=_dd;_tgt=_rp;}}
+      if(_tgt&&_td>HW*0.72){var _tx=_tgt.x+_tgt.HW/2;dir=(_tx>mcx)?1:-1;air=true;st="fall";surface=floorY;gzx=dir*0.6;sacAt=now+500;vy=-(150+Math.random()*120);vx=dir*Math.min(320,Math.max(120,_td*1.05));sqT=0.12;sqyP=1.1;sqxP=1/1.1;}   // saunter toward the nearest rival to bump
+      else{dir=(Math.random()<0.5?-1:1);air=true;st="fall";surface=floorY;vy=-(200+Math.random()*170);vx=dir*(60+Math.random()*150);sqT=0.12;sqyP=1.1;sqxP=1/1.1;}}}   // or a restless little hop
    } else {   // (legacy brawl AI -- unused now that Floor is Lava replaced it, kept as a fallback)
     decideAt=now+280+Math.random()*260;
     var tgt=null,td9=1e9;for(var b9=0;b9<peers.length;b9++){var pv=peers[b9];if(pv===me||!pv.inB||pv.elim)continue;var dd9=Math.abs((pv.x+pv.HW/2)-mcx);if(dd9<td9){td9=dd9;tgt=pv;}}
@@ -3735,6 +3742,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
     if(_alive<=1||now>=(window.__hmSinkBusy||0)){window.__hmSinkBusy=now+1500+Math.random()*700;startSink(_lavaY);}   // ONE AT A TIME: take the sink slot (suspense over who's next); the last survivor never needs it
     else{if(!air){vy=-(360+Math.random()*240);vx=(Math.random()*220-110);air=true;st="fall";surface=floorY;sqT=0.11;sqyP=1.13;sqxP=1/1.13;brf=6;gzy=-0.6;}}}}   // slot busy -> a desperate last scramble at the edge, clawing for one more second
   me.x=x;me.y=y;me.vx=vx;me.vy=vy;me.HW=HW;me.HH=HH;me.ground=(!air&&!grabbed&&!perched&&st!=="grab");me.perched=perched;me.vault=vaulting;me.inB=battleOn;me.elim=elim;
+  if(battleOn||soccerOn)window.__hmCrowd=peers.length;   // how big the crowd is -> small games mingle harder + the lava rises faster so it never looks static
   if(battleOn&&!filler)window.__hmGroundY=floorY+HH*FOOT;   // share the ground row so bombs/props rest on the real floor
   if(me.__buff){if(now>=me.__buff.until){try{if(me.__buff.end)me.__buff.end(A);}catch(_){}me.__buff=null;}else{try{if(me.__buff.tick)me.__buff.tick(A,DT);}catch(_){}}}   // run any active self-buff ability (rocket, etc.)
   if(me.__aura&&now<me.__aura.until){auraEl.style.background="radial-gradient(circle,rgba("+me.__aura.color+",.5) 0%,rgba("+me.__aura.color+",.22) 42%,rgba("+me.__aura.color+",0) 70%)";auraEl.style.opacity=(0.55+Math.sin(now*0.011)*0.28).toFixed(2);}   // the buff HALO pulses in the ability's colour -> you can see who's powered up
@@ -3843,8 +3851,8 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   function makeRoles(sl){S.roles={};[1,2].forEach(function(tm){   // roles scale with the squad: a lone player just plays; only a real team bothers with a keeper
     var mem=sl.filter(function(s2){return S.teams[s2]===tm;});
     for(var k=mem.length-1;k>0;k--){var j2=Math.floor(Math.random()*(k+1)),t2=mem[k];mem[k]=mem[j2];mem[j2]=t2;}
-    if(mem.length<=1){if(mem[0]!=null)S.roles[mem[0]]="attacker";return;}
-    if(mem.length===2){S.roles[mem[0]]="defender";S.roles[mem[1]]="attacker";return;}
+    if(mem.length<=2){mem.forEach(function(s2){S.roles[s2]="attacker";});return;}   // a small side: everyone chases, nobody hangs back by the net (that reads as "standing around")
+    if(mem.length===3){S.roles[mem[0]]="defender";S.roles[mem[1]]="attacker";S.roles[mem[2]]="attacker";return;}
     var nd=mem.length>=5?2:1;
     mem.forEach(function(s2,i){S.roles[s2]=(i===0)?"keeper":(i<=nd)?"defender":"attacker";});});}
   function board2(){if(sR)sR.textContent=S.red;if(sB)sB.textContent=S.blue;}
@@ -4093,7 +4101,9 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   window.__hmLavaOn=false;
   window.__hmLavaY=function(xpx){return surfaceY+waveAt(xpx,(performance.now()-t0)/1000);};   // the death line at this x (hero-local)
   var lastReq=0;
-  function start(){t0=performance.now();level=0;embers.length=0;bubbles.length=0;window.__hmSinkBusy=0;lastReq=window.__hmBattleReq||0;if(!gl&&!initGL()){/* no webgl: crust-only fallback */}sizeGL();running=true;wrap.style.opacity="1";glow.style.opacity="1";window.__hmLavaOn=true;requestAnimationFrame(loop);}
+  function start(){t0=performance.now();level=0;embers.length=0;bubbles.length=0;window.__hmSinkBusy=0;lastReq=window.__hmBattleReq||0;
+   RISE_DUR=Math.max(19000,Math.min(38000,12000+(window.__hmCrowd||6)*3400));   // fewer heads -> a faster climb so a small game gets tense quickly instead of everyone standing around
+   if(!gl&&!initGL()){/* no webgl: crust-only fallback */}sizeGL();running=true;wrap.style.opacity="1";glow.style.opacity="1";window.__hmLavaOn=true;requestAnimationFrame(loop);}
   function stop(){running=false;window.__hmLavaOn=false;wrap.style.opacity="0";glow.style.opacity="0";haze.style.opacity="0";surfaceY=1e9;level=0;embers.length=0;bubbles.length=0;if(cctx)cctx.clearRect(0,0,crust.width,crust.height);}
   var wasOn=false,lastFrame=performance.now();
   function loop(n){if(!active()){if(wasOn){stop();wasOn=false;}return;}
