@@ -3314,6 +3314,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   var _frozen=(me.__frozen&&_nowF<me.__frozen&&!grabbed);if(_frozen)DT=0;   // FREEZE ability: this head is encased in ice, held solid until it thaws
   tk3++;var now=_nowF,aboutB=false;moodB=false;
   // FLOOR IS LAVA -- the dramatic slow sink: once you touch the lava you're done; drift down, char, fade, then out
+  if(me.__sinking&&(window.__hmRespawn||0)>=(window.__hmBattleReq||0)){me.__sinking=null;me.__sunk=0;root.style.filter="";root.style.opacity="1";root.style.zIndex="";if(shadow){shadow.style.zIndex="";shadow.style.display="";}root.style.display="";}   // the round ended mid-sink: abandon the descent so the reset below brings this head back with everyone else
   if(me.__sinking){var _sk=me.__sinking,_sdt=(DT>0?DT:0.016);_sk.t+=_sdt;var _kf=Math.min(1,_sk.t/2.15);   // slower, weightier -- a Terminator descent
    y+=(30+_sk.t*66)*_sdt;
    var _tlt=Math.sin(Math.min(1,_kf*1.3)*3.14159)*13*(_sk.dir||1);   // tips over as it goes under
@@ -3364,8 +3365,9 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
     if(window.__hmBOSeed!==_bReq){window.__hmBOSeed=_bReq;battleOut.length=0;hidePodium();window.__hmBattleGo=performance.now()+2900;}   // once per fight: fresh log, no leftover podium, a 3-2-1-GO first
     perched=false;leapDelay=Infinity;me.elim=false;me.inB=true;bar.style.opacity="1";root.style.pointerEvents="";
     me.__sinking=null;me.__sunk=0;me.__grudge=null;me.__ally=null;me.__socialAt=0;me.__reactAt=0;root.style.filter="";root.style.opacity="1";root.style.zIndex="";if(shadow)shadow.style.zIndex="";   // fresh, un-charred, not sinking, no grudges, back in front
-    if(battlePlats.length){var _sp=battlePlats[0],_n=Math.max(1,peers.length),_i=(slot||0)%_n;   // FLOOR IS LAVA: everyone starts on the BIG BASE, spread across it, ready to jostle -- nobody dies at the whistle
-     x=Math.max(_sp.l+2,Math.min(_sp.r-HW-2,_sp.l+6+((_sp.r-_sp.l-HW-12)*(_i+0.5)/_n)+(Math.random()*14-7)));surface=_sp.t-HH*FOOT;}
+    if(battlePlats.length){var _sp=battlePlats[0],_n=Math.max(1,peers.length),_i=(slot||0)%_n;   // FLOOR IS LAVA: everyone starts on the BIG BASE, evenly spread so all 8 fit -- no random jitter that could nudge one off the edge before GO
+     var _inner=Math.max(1,(_sp.r-_sp.l-HW-10));
+     x=Math.max(_sp.l+2,Math.min(_sp.r-HW-2,_sp.l+5+_inner*((_i+0.5)/_n)));surface=_sp.t-HH*FOOT;}
     else{surface=floorY;x=Math.max(WL,Math.min(WR,WL+Math.random()*Math.max(1,WR-WL-HW)));}
     y=surface;air=false;st="idle";vx=0;vy=0;flipA=0;flipV=0;wig=null;}
    else if(!_wantB&&battleOn){battleOn=false;respawnSeen=_bResp;me.inB=false;me.podiumRank=0;me.spectate=0;bar.style.opacity="0";crownEl.style.opacity="0";hidePodium();   // LEAVE: back to normal life, drop back into the scene
@@ -3623,7 +3625,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
     if(kmag>170&&bf===0)bf=5;}
    else if(!air){x+=Math.max(-3,Math.min(3,me.kx*0.03));}   // tiny squeezes just scoot it over
   }me.kx=0;me.ky=0;}
-  if(!grabbed&&!perched&&!vaulting&&!elim)for(var pi=0;pi<peers.length;pi++){var o2=peers[pi];if(o2===me||o2.perched||o2.vault||o2.elim)continue;   // a vaulting head sails clean over; the fallen rest in peace
+  if(!grabbed&&!perched&&!vaulting&&!elim&&!(window.__hmLavaOn&&battleOn&&now<(window.__hmBattleGo||0)))for(var pi=0;pi<peers.length;pi++){var o2=peers[pi];if(o2===me||o2.perched||o2.vault||o2.elim)continue;   // a vaulting head sails clean over; the fallen rest in peace -- and pre-whistle in lava, heads hold still on the base (no shoving anyone off before GO)
    var dxp=(x+HW/2)-(o2.x+o2.HW/2),dyp=(y+HH*0.55)-(o2.y+o2.HH*0.55);
    var rr2=(HW+o2.HW)*0.40,d2=Math.hypot(dxp,dyp);
    if(d2>0.01&&d2<rr2){var nx2=dxp/d2,ny2=dyp/d2,ov=rr2-d2;
@@ -3707,7 +3709,12 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    air=true;st="fall";surface=floorY;dir=Math.random()<0.5?-1:1;
    vy=-(340+Math.random()*140);vx=dir*(180+Math.random()*120);sqT=0.11;sqyP=1.09;sqxP=1/1.09;}
   else if(crowdT>0)crowdT=Math.max(0,crowdT-DT*0.6);
-  if(x<WL)x=WL;if(x>WR)x=WR;if(!air&&!grabbed&&!perched&&y>floorY)y=floorY;   // the walls hold, ALWAYS: no head ever leaves the screen
+  if(battleOn&&window.__hmLavaOn&&!air&&!grabbed&&!perched&&!me.__sinking&&!me.podiumRank&&!me.spectate){   // no floor in lava -- a grounded head nudged off its slab must actually FALL, never hang floating in the air
+   var _fy2=y+HH*FOOT,_sup2=false;
+   for(var _su=0;_su<battlePlats.length;_su++){var _PS=battlePlats[_su];if(_PS.t>=window.__hmLavaY((_PS.l+_PS.r)/2)-2)continue;   // a submerged slab can't hold you
+    if((x+HW/2)>_PS.l-2&&(x+HW/2)<_PS.r+2&&Math.abs(_fy2-_PS.t)<7){_sup2=true;break;}}
+   if(!_sup2){air=true;st="fall";if(vy<0)vy=0;}}
+  if(x<WL)x=WL;if(x>WR)x=WR;if(!air&&!grabbed&&!perched&&!window.__hmLavaOn&&y>floorY)y=floorY;   // the walls hold, ALWAYS: no head ever leaves the screen (but in lava there's no floor to snap to)
   // REACTIVE FACES: the closer the lava, the more scared they look -- brows up, eyes down at the rising death, a nervous shrink
   if(battleOn&&window.__hmLavaOn&&!me.__sinking&&!elim&&!me.podiumRank){var _ld=window.__hmLavaY(x+HW/2)-(y+HH*FOOT);
    if(_ld<145){if(now>=(me.__reactAt||0)){me.__reactAt=now+460+Math.random()*380;if(brf===0)brf=6;gzy=0.42+Math.random()*0.28;gzx=(Math.random()*0.5-0.25);sacAt=now+560;if(!air&&Math.random()<0.35){sqT=0.1;sqyP=0.95;sqxP=1/0.95;}}}
@@ -4001,11 +4008,11 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   var MAXP=10,els=[];for(var e=0;e<MAXP;e++){var d=document.createElement("div");d.className="hmPlat";hero.appendChild(d);els.push(d);}
   function genDefs(){var defs=[],aH=hero.clientHeight||600;   // [left%, right%, height-above-floor px, thinLevel 0..2] -- index 0 is always the BIG safe base
    if(innerWidth<=768){   // MOBILE: a wide base up off the floor, then narrowing + thinning platforms alternating up
-    defs.push([0.09,0.91,Math.round(aH*0.24),0]);   // the big base -- raised so the lava takes a while to reach it
+    defs.push([0.04,0.96,Math.round(aH*0.24),0]);   // the wide base -- room for the crowd, raised so the lava takes a while to reach it
     var mt=[[0.42,0.52,1],[0.58,0.42,1],[0.72,0.33,2],[0.87,0.25,2]];   // [heightFrac, width, thin]
     mt.forEach(function(ts,i){var h=Math.round(aH*ts[0]),wd=ts[1],side=i%2,l=side?(0.94-wd):0.06;l=Math.min(0.95-wd,Math.max(0.04,l+(Math.random()*0.04-0.02)));defs.push([l,l+wd,h,ts[2]]);});
    }else{   // DESKTOP: a wide safe base, then a ZIG-ZAG funnel that narrows AND thins toward a single knife-edge peak -- climbing means crossing sides, so heads keep jostling
-    defs.push([0.15,0.85,Math.round(aH*0.20),0]);   // the wide base -- the whole crowd starts here above a pool that's already glowing
+    defs.push([0.05,0.95,Math.round(aH*0.20),0]);   // the WIDE base -- room for all 8 to line up without overlapping (and above a pool that's already glowing)
     var td=[   // [heightFrac, [[left%,width%],...], thinLevel] -- staggered left/right so the route up weaves back and forth
      [0.36,[[0.09,0.29],[0.62,0.29]],0],
      [0.51,[[0.28,0.26],[0.61,0.24]],1],
