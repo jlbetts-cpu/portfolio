@@ -3133,7 +3133,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   setTimeout(function(){if(tk!==hideToken||grabbed||perched)return;   // the reveal: out it bursts, terribly pleased
    plane(true);dir=ph.side;air=true;st="fall";surface=floorY;vx=ph.side*(250+Math.random()*120);vy=-(520+Math.random()*140);sqT=0.13;sqyP=1.14;sqxP=1/1.14;brf=6;},3500+Math.random()*700);}
  function startSink(lavaY){if(me.__sinking||elim||me.podiumRank)return;   // touched the lava: SPLASH, then the slow dramatic sink
-  me.__sinking={t:0,x:x+HW/2};air=false;vx=0;vy=0;flipA=0;flipV=0;wig=null;grabbed=false;perched=false;
+  me.__sinking={t:0,x:x+HW/2,dir:(Math.random()<0.5?-1:1)};air=false;vx=0;vy=0;flipA=0;flipV=0;wig=null;grabbed=false;perched=false;gzy=-0.7;   // one last look up
   root.style.zIndex="-1";if(shadow)shadow.style.zIndex="-1";   // drop BEHIND the molten body so the lava swallows him as he goes under (occluded, not floating on top)
   try{if(window.__hmFX){var sx=x+HW/2;
    window.__hmFX.burst(sx,lavaY,{count:24,color:"255,150,50",speed:360,gravity:950,life:0.7,size:5});
@@ -3287,13 +3287,17 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   var _frozen=(me.__frozen&&_nowF<me.__frozen&&!grabbed);if(_frozen)DT=0;   // FREEZE ability: this head is encased in ice, held solid until it thaws
   tk3++;var now=_nowF,aboutB=false;moodB=false;
   // FLOOR IS LAVA -- the dramatic slow sink: once you touch the lava you're done; drift down, char, fade, then out
-  if(me.__sinking){var _sk=me.__sinking,_sdt=(DT>0?DT:0.016);_sk.t+=_sdt;var _kf=Math.min(1,_sk.t/1.5);
-   y+=(64+_sk.t*74)*_sdt;   // sinks under a bit quicker -> gone, not lingering on top
-   root.style.opacity=(1-_kf*0.92).toFixed(2);root.style.filter="brightness("+(1-0.8*_kf).toFixed(2)+") saturate("+(1-0.62*_kf).toFixed(2)+") sepia("+(0.6*_kf).toFixed(2)+")";
-   root.style.transform="translate("+x.toFixed(1)+"px,"+y.toFixed(1)+"px) scale("+(1-0.15*_kf).toFixed(3)+")";
+  if(me.__sinking){var _sk=me.__sinking,_sdt=(DT>0?DT:0.016);_sk.t+=_sdt;var _kf=Math.min(1,_sk.t/2.15);   // slower, weightier -- a Terminator descent
+   y+=(30+_sk.t*66)*_sdt;
+   var _tlt=Math.sin(Math.min(1,_kf*1.3)*3.14159)*13*(_sk.dir||1);   // tips over as it goes under
+   root.style.opacity=(_kf<0.4?"1":(1-(_kf-0.4)/0.6).toFixed(2));   // holds visible, then fades as it submerges
+   root.style.filter="brightness("+(1-0.82*_kf).toFixed(2)+") saturate("+(1-0.6*_kf).toFixed(2)+") sepia("+(0.68*_kf).toFixed(2)+")";
+   root.style.transform="translate("+x.toFixed(1)+"px,"+y.toFixed(1)+"px) rotate("+_tlt.toFixed(1)+"deg) scale("+(1-0.1*_kf).toFixed(3)+")";
    if(shadow)shadow.style.opacity="0";
-   if(window.__hmFX&&window.__hmLavaOn&&Math.random()<0.4)window.__hmFX.burst(_sk.x+(Math.random()*HW-HW/2),window.__hmLavaY(_sk.x),{count:1,color:"255,150,55",speed:55,gravity:-45,life:0.6,size:3});
-   if(_kf>=1){elim=true;me.elim=true;me.inB=true;root.style.display="none";if(shadow)shadow.style.display="none";me.__sinking=null;}
+   var _bsy=window.__hmLavaY(_sk.x);
+   if(window.__hmFX&&window.__hmLavaOn&&Math.random()<0.55)window.__hmFX.burst(_sk.x+(Math.random()*HW-HW/2),_bsy,{count:1,color:"255,175,75",speed:35+Math.random()*45,gravity:-58,life:0.75,size:2+Math.random()*3});   // bubbles rise around him
+   if(_kf>=1){if(window.__hmFX){window.__hmFX.burst(_sk.x,_bsy,{count:13,color:"255,180,75",speed:150,gravity:420,life:0.6,size:4});window.__hmFX.burst(_sk.x,_bsy,{count:6,color:"255,235,150",speed:90,gravity:300,life:0.5,size:3});window.__hmFX.ring(_sk.x,_bsy,{r0:4,r1:44,color:"255,205,100",width:3,life:0.5});}   // GONE: a final bubble burst as the lava closes over him
+    elim=true;me.elim=true;me.inB=true;root.style.display="none";if(shadow)shadow.style.display="none";me.__sinking=null;}
    return;}   // sinking owns the frame -- no AI, no physics (the molten body occludes him below the surface -> "swallowed")
   try{aboutB=document.body.classList.contains("about-open");moodB=(typeof busyNow==="function"&&busyNow());}catch(_){}
   var want=!aboutB&&!gone;   // moods never hide the pit: the little heads are the audience
@@ -3661,7 +3665,10 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    vy=-(340+Math.random()*140);vx=dir*(180+Math.random()*120);sqT=0.11;sqyP=1.09;sqxP=1/1.09;}
   else if(crowdT>0)crowdT=Math.max(0,crowdT-DT*0.6);
   if(x<WL)x=WL;if(x>WR)x=WR;if(!air&&!grabbed&&!perched&&y>floorY)y=floorY;   // the walls hold, ALWAYS: no head ever leaves the screen
-  if(battleOn&&window.__hmLavaOn&&!me.__sinking&&!elim&&!grabbed&&!me.podiumRank&&now>=(window.__hmBattleGo||0)){var _lavaY=window.__hmLavaY(x+HW/2);if(y+HH*FOOT>=_lavaY-1)startSink(_lavaY);}   // feet touched the lava -> in you go
+  if(battleOn&&window.__hmLavaOn&&!me.__sinking&&!elim&&!grabbed&&!me.podiumRank&&now>=(window.__hmBattleGo||0)){var _lavaY=window.__hmLavaY(x+HW/2);
+   if(y+HH*FOOT>=_lavaY-1){var _alive=0;for(var _av=0;_av<peers.length;_av++){if(peers[_av].inB&&!peers[_av].elim&&!peers[_av].__sinking)_alive++;}
+    if(_alive<=1||now>=(window.__hmSinkBusy||0)){window.__hmSinkBusy=now+1500+Math.random()*700;startSink(_lavaY);}   // ONE AT A TIME: take the sink slot (suspense over who's next); the last survivor never needs it
+    else{if(!air){vy=-(360+Math.random()*240);vx=(Math.random()*220-110);air=true;st="fall";surface=floorY;sqT=0.11;sqyP=1.13;sqxP=1/1.13;brf=6;gzy=-0.6;}}}}   // slot busy -> a desperate last scramble at the edge, clawing for one more second
   me.x=x;me.y=y;me.vx=vx;me.vy=vy;me.HW=HW;me.HH=HH;me.ground=(!air&&!grabbed&&!perched&&st!=="grab");me.perched=perched;me.vault=vaulting;me.inB=battleOn;me.elim=elim;
   if(battleOn&&!filler)window.__hmGroundY=floorY+HH*FOOT;   // share the ground row so bombs/props rest on the real floor
   if(me.__buff){if(now>=me.__buff.until){try{if(me.__buff.end)me.__buff.end(A);}catch(_){}me.__buff=null;}else{try{if(me.__buff.tick)me.__buff.tick(A,DT);}catch(_){}}}   // run any active self-buff ability (rocket, etc.)
@@ -4018,7 +4025,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   window.__hmLavaY=function(xpx){return surfaceY+waveAt(xpx,(performance.now()-t0)/1000);};   // the death line at this x (hero-local)
   var lastReq=0;
   window.__hmLavaJump=function(l){t0=performance.now()-2900-l*RISE_DUR;};   /*TESTHOOK*/
-  function start(){t0=performance.now();level=0;embers.length=0;bubbles.length=0;lastReq=window.__hmBattleReq||0;if(!gl&&!initGL()){/* no webgl: crust-only fallback */}sizeGL();running=true;wrap.style.opacity="1";glow.style.opacity="1";window.__hmLavaOn=true;requestAnimationFrame(loop);}
+  function start(){t0=performance.now();level=0;embers.length=0;bubbles.length=0;window.__hmSinkBusy=0;lastReq=window.__hmBattleReq||0;if(!gl&&!initGL()){/* no webgl: crust-only fallback */}sizeGL();running=true;wrap.style.opacity="1";glow.style.opacity="1";window.__hmLavaOn=true;requestAnimationFrame(loop);}
   function stop(){running=false;window.__hmLavaOn=false;wrap.style.opacity="0";glow.style.opacity="0";haze.style.opacity="0";surfaceY=1e9;level=0;embers.length=0;bubbles.length=0;if(cctx)cctx.clearRect(0,0,crust.width,crust.height);}
   var wasOn=false,lastFrame=performance.now();
   function loop(n){if(!active()){if(wasOn){stop();wasOn=false;}return;}
