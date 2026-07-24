@@ -3971,7 +3971,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   // ---- the rising surface wave (shared by the crust render AND game logic so death lines up with what you see) ----
   var WAMP=7,WK1=0.021,WK2=0.052,WS1=1.1,WS2=1.7;
   function waveAt(xpx,t){return Math.sin(xpx*WK1+t*WS1)*WAMP + Math.sin(xpx*WK2 - t*WS2)*WAMP*0.45;}
-  var level=0,surfaceY=1e9,arenaBottom=0,arenaW=0,arenaH=0,heroLeft=0,running=false,t0=performance.now(),RISE_DUR=31000,embers=[];   // ms to fill (slow, tense, but not tedious)
+  var level=0,surfaceY=1e9,arenaBottom=0,arenaW=0,arenaH=0,heroLeft=0,running=false,t0=performance.now(),RISE_DUR=31000,embers=[],bubbles=[];   // ms to fill (slow, tense, but not tedious)
   // ---- DOM: molten body (WebGL) + wavy crust (2D canvas) + heat haze band ----
   var wrap=document.createElement("div");wrap.className="hmLavaWrap";wrap.setAttribute("aria-hidden","true");
   wrap.style.cssText="position:absolute;left:0;right:0;bottom:0;top:0;pointer-events:none;z-index:0;opacity:0;transition:opacity .5s";
@@ -3998,7 +3998,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    +"float fbm(vec2 p){ float v=0.0; float a=0.5; for(int i=0;i<4;i++){ v += a*snoise(p); p = p*2.0+17.3; a *= 0.5; } return v; }\n"
    +"float hash21(vec2 p){ p = fract(p*vec2(123.34,456.21)); p += dot(p, p+45.32); return fract(p.x*p.y); }\n"
    +"float ign(vec2 p){ return fract(52.9829189 * fract(0.06711056*p.x + 0.00583715*p.y)); }\n"
-   +"void main(){vec2 uv = vec2(gl_FragCoord.x, u_res.y - gl_FragCoord.y) / u_res.xy;float t = u_time * 0.10;float breath = 1.0 + 0.13*sin(u_time*0.45);vec2 uvb = (uv-0.5)*(1.0 + 0.05*sin(u_time*0.4)) + 0.5;vec2 q = vec2(fbm(uvb*2.3 + t), fbm(uvb*2.3 + vec2(5.2,1.3) - t));vec2 warp = vec2(fbm(uvb*2.3 + 1.7*q + t*0.6), fbm(uvb*2.3 + 1.7*q + vec2(3.7,1.9) - t)) * (0.26*breath);vec2 w = uvb + warp;vec3 num = vec3(0.987,0.963,0.933)*"+g(CREAM_W)+"; float den = "+g(CREAM_W)+"; float wt;\n  "+MESH_ACCUM+"\nvec3 col = num/den;float lum = dot(col, vec3(0.299,0.587,0.114));col = clamp(mix(vec3(lum), col, 1.34), 0.0, 1.0);col += (hash21(gl_FragCoord.xy + fract(u_time)) - 0.5) * 0.018;col += (ign(gl_FragCoord.xy + mod(u_time*57.0, 8.0)) - 0.5) * (2.5/255.0);gl_FragColor = vec4(clamp(col,0.0,1.0), 1.0);}";
+   +"void main(){vec2 uv = vec2(gl_FragCoord.x, u_res.y - gl_FragCoord.y) / u_res.xy;float t = u_time * 0.10;float breath = 1.0 + 0.13*sin(u_time*0.45);vec2 uvb = (uv-0.5)*(1.0 + 0.05*sin(u_time*0.4)) + 0.5;vec2 q = vec2(fbm(uvb*2.3 + t), fbm(uvb*2.3 + vec2(5.2,1.3) - t));vec2 warp = vec2(fbm(uvb*2.3 + 1.7*q + t*0.6), fbm(uvb*2.3 + 1.7*q + vec2(3.7,1.9) - t)) * (0.26*breath);vec2 w = uvb + warp;vec3 num = vec3(0.987,0.963,0.933)*"+g(CREAM_W)+"; float den = "+g(CREAM_W)+"; float wt;\n  "+MESH_ACCUM+"\nvec3 col = num/den;float lum = dot(col, vec3(0.299,0.587,0.114));col = clamp(mix(vec3(lum), col, 1.42), 0.0, 1.0);float cn=fbm(w*5.5 - t*0.3);float crust=smoothstep(0.12,0.5,cn);col=mix(col,col*vec3(0.22,0.11,0.09),crust*0.72);float crack=1.0-smoothstep(0.0,0.085,abs(cn-0.34));col+=crack*vec3(1.0,0.5,0.14)*(0.72+0.32*sin(u_time*2.0+w.x*20.0));float cn2=fbm(w*11.0+t*0.55);col=mix(col,col*0.5,smoothstep(0.35,0.62,cn2)*0.42);col+=pow(max(col-vec3(0.55),0.0),vec3(1.5))*1.05;col=clamp(col,0.0,1.0);col += (hash21(gl_FragCoord.xy + fract(u_time)) - 0.5) * 0.018;col += (ign(gl_FragCoord.xy + mod(u_time*57.0, 8.0)) - 0.5) * (2.5/255.0);gl_FragColor = vec4(clamp(col,0.0,1.0), 1.0);}";
   var gl=null,uRes=null,uTime=null,glOK=false,GW=1,GH=1;
   var SCALE=(innerWidth<=768?0.5:0.7);
   function initGL(){try{gl=gcv.getContext("webgl",{antialias:false,alpha:false,preserveDrawingBuffer:false});if(!gl)return false;
@@ -4018,8 +4018,8 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   window.__hmLavaY=function(xpx){return surfaceY+waveAt(xpx,(performance.now()-t0)/1000);};   // the death line at this x (hero-local)
   var lastReq=0;
   window.__hmLavaJump=function(l){t0=performance.now()-2900-l*RISE_DUR;};   /*TESTHOOK*/
-  function start(){t0=performance.now();level=0;embers.length=0;lastReq=window.__hmBattleReq||0;if(!gl&&!initGL()){/* no webgl: crust-only fallback */}sizeGL();running=true;wrap.style.opacity="1";glow.style.opacity="1";window.__hmLavaOn=true;requestAnimationFrame(loop);}
-  function stop(){running=false;window.__hmLavaOn=false;wrap.style.opacity="0";glow.style.opacity="0";haze.style.opacity="0";surfaceY=1e9;level=0;embers.length=0;if(cctx)cctx.clearRect(0,0,crust.width,crust.height);}
+  function start(){t0=performance.now();level=0;embers.length=0;bubbles.length=0;lastReq=window.__hmBattleReq||0;if(!gl&&!initGL()){/* no webgl: crust-only fallback */}sizeGL();running=true;wrap.style.opacity="1";glow.style.opacity="1";window.__hmLavaOn=true;requestAnimationFrame(loop);}
+  function stop(){running=false;window.__hmLavaOn=false;wrap.style.opacity="0";glow.style.opacity="0";haze.style.opacity="0";surfaceY=1e9;level=0;embers.length=0;bubbles.length=0;if(cctx)cctx.clearRect(0,0,crust.width,crust.height);}
   var wasOn=false,lastFrame=performance.now();
   function loop(n){if(!active()){if(wasOn){stop();wasOn=false;}return;}
    requestAnimationFrame(loop);var tsec=(n-t0)/1000;
@@ -4032,8 +4032,15 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    var clipTop=Math.max(0,Math.round(surfaceY-WAMP*1.6));gcv.style.clipPath="inset("+clipTop+"px 0 0 0)";gcv.style.webkitClipPath="inset("+clipTop+"px 0 0 0)";
    // wavy glowing crust at the surface
    drawCrust(tsec);
-   // embers: little glowing motes drifting up off the lava, then winking out
    var dt=Math.min(0.05,(n-lastFrame)/1000);
+   // BUBBLES: molten domes swell up from within and burst at the surface (the real "boiling lava" tell)
+   if(cctx&&surfaceY<arenaH-34&&Math.random()<dt*5){bubbles.push({x:Math.random()*arenaW,depth:24+Math.random()*46,mr:5+Math.random()*11,t:0});}
+   if(cctx)for(var bi=bubbles.length-1;bi>=0;bi--){var bu=bubbles[bi];bu.t+=dt;bu.depth-=(15+bu.mr)*dt;var br=bu.mr*Math.min(1,bu.t*1.3),bsurf=surfaceY+waveAt(bu.x-heroLeft,tsec);
+    if(bu.depth<=0){cctx.beginPath();cctx.arc(bu.x,bsurf,br*1.5,0,6.283);cctx.strokeStyle="rgba(255,222,130,0.7)";cctx.lineWidth=2;cctx.stroke();
+     if(window.__hmFX&&br>7)window.__hmFX.burst(bu.x,bsurf,{count:3,color:"255,185,75",speed:110,gravity:520,life:0.4,size:3});bubbles.splice(bi,1);continue;}
+    var by=bsurf+bu.depth;cctx.beginPath();cctx.arc(bu.x,by,br,0,6.283);cctx.fillStyle="rgba(255,205,95,0.26)";cctx.fill();
+    cctx.beginPath();cctx.arc(bu.x-br*0.3,by-br*0.34,br*0.42,0,6.283);cctx.fillStyle="rgba(255,242,185,0.42)";cctx.fill();}
+   // embers: little glowing motes drifting up off the lava, then winking out
    if(surfaceY<arenaH-20&&Math.random()<dt*34){var ex=Math.random()*arenaW;embers.push({x:ex,y:surfaceY+waveAt(ex-heroLeft,tsec)-2,vx:(Math.random()*26-13),vy:-(30+Math.random()*60),life:1,max:1.2+Math.random()*1.6,r:1+Math.random()*2.4});}
    if(cctx){for(var ei=embers.length-1;ei>=0;ei--){var em=embers[ei];em.life-=dt/em.max;if(em.life<=0){embers.splice(ei,1);continue;}
     em.vy+=6*dt;em.x+=em.vx*dt;em.y+=em.vy*dt;var ea=em.life;
