@@ -3086,7 +3086,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
      bAt=performance.now()+2800,bf=0,brAt=performance.now()+7000,brf=0,moAt=performance.now()+11000,mof=0,
      dzf=0,sqx=1,sqy=1,sqxv=0,sqyv=0,sqxP=1,sqyP=1,sqT=0,shown=false,first=true,tk3=0,gzx=0,gzy=0,sacAt=0,flipA=0,flipV=0,wig=null,wigP=0,bounceN=0,perchT=0,leapDelay=Infinity,hmOverT=0,introSettled=false,bornWall=0,introFrames=0,shakeAfter=false,drowse2=false,lastNearT=performance.now(),perchWigAt=performance.now()+9000,greetAt=performance.now()+6000,visitUntil=0,hmOverNow=false,vaulting=false,audAt=0,killed=false,hp=100,crowdT=0,team=0,soccerOn=false,soccerKickSeen=0,soccerWon=false,goalSeen=0,battleOn=false,battleSeen=0,elim=false,elimP=0,celebrated=false,respawnSeen=0,hurtT=0,danceUntil=0,danceHopAt=0,mjHurtUntil=0,hitStop=0,mjExprAt=0,mjExprUntil=0,mjExprKind="",
      pendingHide=null,hideToken=0,lapBack=false,forceHide=/[?&]hide=1/.test(location.search);
- function plane(front){root.style.zIndex=front?"3":"1";shadow.style.zIndex=front?"2":"1";}   // two planes only: the front (where hands live) and behind the furniture
+ function plane(front){root.style.zIndex="3";shadow.style.zIndex="2";}   // heads ALWAYS stay in front of the big head + the CTA buttons (the back plane is gone) -- cleaner, more premium, no ducking-behind glitches
  var G=2600,DT=0.04,facc=0,CEIL=2,surpriseAt=0;   // real units: px/s and px/s^2, integrated at 25fps
  var me={x:0,y:0,HW:HW,HH:HH,vx:0,vy:0,ground:false,perched:false,kx:0,ky:0,dmgIn:0,inB:false,elim:false,slot:slot};peers.push(me);
  // ability ACTOR: the smashing head's handle -- registry abilities drive the head through this (its physics locals live in this closure)
@@ -3185,7 +3185,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
  function decide(now){
   decideAt=now+(battleOn?700+Math.random()*900:2100+Math.random()*3400);
   if(st!=="idle"||grabbed||perched||moodB)return;   // during his show the audience does not wander off
-  function tryHide(){ // hide-and-seek: it slips behind a button and thinks nobody saw
+  function tryHide(){return false;   // DISABLED: heads no longer duck BEHIND the buttons/big head -- they always stay in front now (premium, no ducking-behind glitch)
    var bt=document.getElementById(Math.random()<0.7?"workBtn":"aboutBtn");if(!bt)return false;
    var br=bt.getBoundingClientRect(),hh0=hero.getBoundingClientRect();if(!br.width)return false;
    var bx=br.left-hh0.left+br.width/2-HW/2;if(bx<M||bx>heroR.w-HW-M)return false;
@@ -3291,8 +3291,8 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
     var w2=Math.exp(-age/50);sx+=w2*(b2.x-a2.x)/dtq*1000;sy+=w2*(b2.y-a2.y)/dtq*1000;sw+=w2;}
    return sw>0?{vx:sx/sw,vy:sy/sw,sp:Math.hypot(sx/sw,sy/sw)}:null;})();
   var relSp=_fv?_fv.sp:0;
-  if(!tap&&hmOverNow&&hmOverT>0.35&&relSp<250&&!battleOn){ // placed with intent: held over the head a beat, released gently
-   perched=true;dockUntil=performance.now()+650;st="idle";air=false;vx=0;vy=0;hsT=1;vSamp=[];shakeN=0;leapDelay=Infinity;
+  if(!tap&&hmOverNow&&hmOverT>0.35&&relSp<250&&!battleOn&&!soccerOn){ // placed with intent: held over the head a beat, released gently -- NEVER during a game (soccer/lava), or the head hangs glitching in mid-air while the game AI fights it
+   perched=true;dockUntil=performance.now()+650;st="idle";air=false;vx=0;vy=0;hsT=1;heldV=0;heldOff=0;vSamp=[];shakeN=0;leapDelay=Infinity;
    try{gaze={x:0.05,y:-0.95};nextSaccade=performance.now()+1500;lastMove=performance.now()-9000;
     setTimeout(function(){try{if(typeof busyNow==="function"&&!busyNow()){setHold("smile",1000);showFace("smile");}}catch(_){}},420);}catch(_){}
    return;}
@@ -3301,7 +3301,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   if(tap){y-=4;vy=-(820+Math.random()*260);vx=dir*(140+Math.random()*180);sqT=0.14;sqyP=1.13;sqxP=1/1.13;}   // bop! (lift off the ground so the pop always plays)
   else{if(_fv){vx=Math.max(-2500,Math.min(2500,_fv.vx));vy=Math.max(-2300,Math.min(1600,_fv.vy));}   // it flies exactly where the hand was going
    else{vx=Math.max(-1100,Math.min(1100,pvx*60));vy=Math.max(-1200,Math.min(900,pvy*60));}
-   vy+=heldV*12;   // the spring adds its stored energy to the throw
+   vy+=heldV*12;heldV=0;   // the spring adds its stored energy to the throw, then fully discharges (no leftover energy to re-inject and jitter the head mid-air)
    dir=vx>=0?1:-1;if(Math.hypot(vx,vy)>650&&Math.random()<0.45)startFlip();}   // a real throw often sends it somersaulting
   vSamp=[];if(shakeN>4)dzf=16;shakeN=0;}
  root.addEventListener("pointerup",release);root.addEventListener("pointercancel",release);
@@ -3611,6 +3611,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    if(battleOn&&window.__hmSmashCrates&&CRATES.length&&now>=(window.__hmBattleGo||0)){var _fx3=x+HW/2;   // descending onto a mystery crate SMASHES it -> a random physics-chaos power
     for(var _ci=0;_ci<CRATES.length;_ci++){var _cr=CRATES[_ci];if(_fx3>_cr.x-_cr.r-HW*0.35&&_fx3<_cr.x+_cr.r+HW*0.35&&feet9>=_cr.y-_cr.r-4&&feet9<=_cr.y+_cr.r+34){smashCrate(_cr,A);break;}}}
    if(window.__hmLavaOn&&surface>=floorY-2)surface=1e5;   // in lava mode the FLOOR isn't solid -- only platforms + heads are. Fall through into the lava (the death check catches you at the surface)
+   if(!window.__hmLavaOn&&surface>1e4)surface=floorY;   // the lava game is over -> restore a solid floor so no head keeps falling through forever (they land + resume life)
    if(vy>0&&y>=surface){ cTop=false; if(st==="fall"&&Math.abs(vy)>340){if(Math.abs(vy)>1050)shakeAfter=true;   // a hard landing skids, but the ground never wounds -- only a rival's lunge does
     if(Math.abs(vx)>420&&!wig)wig={t:0.22,dur:0.22,type:"tilt",a:(vx>0?1:-1)*4};   // fast landings skid: it leans into the slide
     var k=Math.min(0.2,Math.abs(vy)*0.0004);y=surface;
