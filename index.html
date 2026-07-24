@@ -2655,7 +2655,7 @@ requestAnimationFrame(function(){requestAnimationFrame(startIntro);});
    +".teamMini{width:28px;height:28px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--c100);border-radius:6px;background:var(--c50);color:var(--c700);cursor:pointer;font-size:15px;line-height:1;transition:border-color .15s,color .15s}.teamMini:hover{border-color:var(--c500);color:var(--c950)}"
    +".teamTrayCols{display:grid;grid-template-columns:1fr 1fr;gap:10px}.teamCol{border-radius:10px;padding:8px 8px 10px;min-height:118px;border:1.5px solid}.teamCol.red{border-color:rgba(224,90,78,.45);background:rgba(224,90,78,.055)}.teamCol.blue{border-color:rgba(90,160,216,.45);background:rgba(90,160,216,.055)}"
    +".teamColHdr{font-family:var(--sans);font-weight:700;font-size:11px;letter-spacing:.05em;text-transform:uppercase;margin-bottom:9px;text-align:center}.teamCol.red .teamColHdr{color:rgb(190,58,47)}.teamCol.blue .teamColHdr{color:rgb(52,116,176)}"
-   +".teamChips{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;align-content:flex-start}.teamChip{width:40px;height:48px;border-radius:8px;overflow:hidden;border:2px solid transparent;cursor:pointer;padding:0;background:var(--c100);transition:transform .12s cubic-bezier(.2,.8,.2,1)}.teamChip:hover{transform:translateY(-2px)}.teamChip img{width:100%;height:100%;object-fit:cover;display:block}.teamChip.red{border-color:rgb(224,90,78)}.teamChip.blue{border-color:rgb(90,160,216)}.teamChip.mj{box-shadow:0 0 0 2px #e8b53a,0 0 9px rgba(232,181,58,.55)}"
+   +".teamChips{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;align-content:flex-start}.teamChip{width:40px;height:48px;border-radius:8px;overflow:hidden;border:2px solid transparent;cursor:pointer;padding:0;background:var(--c100);transition:transform .12s cubic-bezier(.2,.8,.2,1)}.teamChip:hover{transform:translateY(-2px)}.teamChip img{width:100%;height:100%;object-fit:cover;display:block}.teamChip.red{border-color:rgb(224,90,78)}.teamChip.blue{border-color:rgb(90,160,216)}.teamChip{touch-action:none;-webkit-user-select:none;user-select:none}.teamCol.dragOver{outline:2px dashed rgba(8,8,8,.35);outline-offset:-3px}.teamCol.red.dragOver{background:rgba(224,90,78,.14)}.teamCol.blue.dragOver{background:rgba(90,160,216,.14)}"
    +".teamTrayFoot{margin-top:12px}.teamStart{width:100%;padding:11px;border:0;border-radius:8px;background:var(--c950);color:var(--c50);font-family:var(--sans);font-weight:600;font-size:14px;cursor:pointer;transition:opacity .15s}.teamStart:hover{opacity:.9}.teamHint{font-family:var(--sans);font-size:11px;color:var(--c500);text-align:center;margin-top:9px}";
   document.head.appendChild(st);
 
@@ -2675,24 +2675,41 @@ requestAnimationFrame(function(){requestAnimationFrame(startIntro);});
    return n;}
   function syncGlobal(){var o={};for(var k in sel)o[k]=sel[k];window.__hmTeamSel=o;}
   function applyPreview(){if(open){var o={};for(var k in sel)o[k]=sel[k];window.__hmTeamPreview=o;}else window.__hmTeamPreview=null;}
-  function mjChip(){var b=document.createElement("button");b.className="teamChip mj "+(sel[9001]===1?"red":"blue");b.type="button";b.title="Mini-Jayden — joins when the sides are uneven";b.setAttribute("aria-label","Mini-Jayden, switch his side");
-   var f=document.getElementById("face");var im=document.createElement("img");if(f&&f.src)im.src=f.src;im.alt="";b.appendChild(im);
-   b.addEventListener("click",function(ev){ev.stopPropagation();sel[9001]=(sel[9001]===1?2:1);syncGlobal();applyPreview();renderTray();});return b;}
+  var colEls={};   // team -> column element, for drag hit-testing
+  function hitCol(c,px,py){if(!c)return false;var r=c.getBoundingClientRect();return px>=r.left&&px<=r.right&&py>=r.top&&py<=r.bottom;}
+  function bindChip(b,key){   // TAP flips sides; DRAG the chip onto the other column to switch it there
+   b.addEventListener("pointerdown",function(ev){ev.preventDefault();ev.stopPropagation();
+    var sx=ev.clientX,sy=ev.clientY,moved=false,ghost=null;try{b.setPointerCapture(ev.pointerId);}catch(_){}
+    function paintOver(px,py){[1,2].forEach(function(t){var c=colEls[t];if(c)c.classList.toggle("dragOver",hitCol(c,px,py));});}
+    function mv(e){var dx=e.clientX-sx,dy=e.clientY-sy;
+     if(!moved&&Math.hypot(dx,dy)>6){moved=true;ghost=b.cloneNode(true);ghost.style.cssText="position:fixed;z-index:90;width:"+b.offsetWidth+"px;height:"+b.offsetHeight+"px;margin:0;pointer-events:none;opacity:.9;transform:translate(-50%,-50%);box-shadow:0 8px 20px -6px rgba(8,8,8,.5)";document.body.appendChild(ghost);b.style.opacity="0.28";}
+     if(moved&&ghost){ghost.style.left=e.clientX+"px";ghost.style.top=e.clientY+"px";paintOver(e.clientX,e.clientY);}}
+    function up(e){document.removeEventListener("pointermove",mv);document.removeEventListener("pointerup",up);
+     [1,2].forEach(function(t){var c=colEls[t];if(c)c.classList.remove("dragOver");});
+     if(ghost){ghost.parentNode&&ghost.parentNode.removeChild(ghost);b.style.opacity="";}
+     if(!moved){sel[key]=(sel[key]===1?2:1);}   // a plain tap = flip to the other side
+     else{var tgt=hitCol(colEls[1],e.clientX,e.clientY)?1:(hitCol(colEls[2],e.clientX,e.clientY)?2:null);if(tgt)sel[key]=tgt;}   // dropped over a column = that side
+     syncGlobal();applyPreview();renderTray();}
+    document.addEventListener("pointermove",mv);document.addEventListener("pointerup",up);});
+   return b;}
+  function mjChip(){var b=document.createElement("button");b.className="teamChip "+(sel[9001]===1?"red":"blue");b.type="button";b.title="Mini-Jayden — joins when the sides are uneven";b.setAttribute("aria-label","Mini-Jayden, switch his side");
+   var im=document.createElement("img");im.src="images/smile.webp";im.alt="";b.appendChild(im);   // the grinning mini-Jayden
+   return bindChip(b,9001);}
   function chip(h,slot){var b=document.createElement("button");b.className="teamChip "+(sel[slot]===1?"red":"blue");b.type="button";b.setAttribute("aria-label","Switch this head to the other team");
    var im=document.createElement("img");im.src=h.cut;im.alt="";b.appendChild(im);
-   b.addEventListener("click",function(ev){ev.stopPropagation();sel[slot]=(sel[slot]===1?2:1);syncGlobal();applyPreview();renderTray();});return b;}
+   return bindChip(b,slot);}
   function renderTray(){if(!tray){tray=document.createElement("div");tray.className="teamTray";tray.setAttribute("role","dialog");tray.setAttribute("aria-label","Choose soccer teams");tray.addEventListener("click",function(e){e.stopPropagation();});document.body.appendChild(tray);}
    var hs=heads(),n=hs.length;tray.innerHTML="";
    var hd=document.createElement("div");hd.className="teamTrayHead";
    var ti=document.createElement("span");ti.className="teamTrayTitle";ti.textContent=(mode==="lava"?"Lava teams":"Soccer teams");hd.appendChild(ti);
    var hb=document.createElement("div");hb.style.cssText="display:flex;gap:6px";
-   var shuf=document.createElement("button");shuf.className="teamMini";shuf.type="button";shuf.setAttribute("aria-label","Shuffle teams");shuf.innerHTML="&#8646;";
+   var shuf=document.createElement("button");shuf.className="teamMini";shuf.type="button";shuf.setAttribute("aria-label","Shuffle teams");shuf.title="Shuffle";shuf.innerHTML='<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 3h5v5"/><path d="M4 20 21 3"/><path d="M21 16v5h-5"/><path d="M15 15l6 6"/><path d="M4 4l5 5"/></svg>';
    shuf.addEventListener("click",function(ev){ev.stopPropagation();var a=shuffle(balanced(n));sel={};a.forEach(function(t,i){sel[i]=t;});sel[9001]=(Math.random()<0.5?1:2);syncGlobal();applyPreview();renderTray();});
    var cl=document.createElement("button");cl.className="teamMini";cl.type="button";cl.setAttribute("aria-label","Close");cl.innerHTML="&times;";
    cl.addEventListener("click",function(ev){ev.stopPropagation();closeTray();});
    hb.appendChild(shuf);hb.appendChild(cl);hd.appendChild(hb);tray.appendChild(hd);
-   var cols=document.createElement("div");cols.className="teamTrayCols";
-   [1,2].forEach(function(tm){var col=document.createElement("div");col.className="teamCol "+(tm===1?"red":"blue");
+   var cols=document.createElement("div");cols.className="teamTrayCols";colEls={};
+   [1,2].forEach(function(tm){var col=document.createElement("div");col.className="teamCol "+(tm===1?"red":"blue");colEls[tm]=col;
     var ch=document.createElement("div");ch.className="teamColHdr";ch.textContent=tm===1?"Red":"Blue";col.appendChild(ch);
     var cc=document.createElement("div");cc.className="teamChips";for(var i=0;i<n;i++){if(sel[i]===tm)cc.appendChild(chip(hs[i],i));}
     if(sel[9001]===tm)cc.appendChild(mjChip());col.appendChild(cc);cols.appendChild(col);});
@@ -3351,10 +3368,12 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
      x=Math.max(_sp.l+2,Math.min(_sp.r-HW-2,_sp.l+6+((_sp.r-_sp.l-HW-12)*(_i+0.5)/_n)+(Math.random()*14-7)));surface=_sp.t-HH*FOOT;}
     else{surface=floorY;x=Math.max(WL,Math.min(WR,WL+Math.random()*Math.max(1,WR-WL-HW)));}
     y=surface;air=false;st="idle";vx=0;vy=0;flipA=0;flipV=0;wig=null;}
-   else if(!_wantB&&battleOn){battleOn=false;respawnSeen=_bResp;me.inB=false;me.podiumRank=0;me.spectate=0;bar.style.opacity="0";crownEl.style.opacity="0";hidePodium();   // LEAVE: back to normal life, drop to the floor
-    me.__rage=me.__speed=me.__feather=me.__bounce=me.__frozen=me.__spin=me.__disco=0;me.__aura=null;me.__buff=null;me.__grudge=null;me.__ally=null;me.__sinking=null;if(auraEl)auraEl.style.opacity="0";   // shed every ability effect, grudge, and pact when the fight ends
+   else if(!_wantB&&battleOn){battleOn=false;respawnSeen=_bResp;me.inB=false;me.podiumRank=0;me.spectate=0;bar.style.opacity="0";crownEl.style.opacity="0";hidePodium();   // LEAVE: back to normal life, drop back into the scene
+    me.__rage=me.__speed=me.__feather=me.__bounce=me.__frozen=me.__spin=me.__disco=0;me.__aura=null;me.__buff=null;me.__grudge=null;me.__ally=null;me.__sinking=null;me.__sunk=0;if(auraEl)auraEl.style.opacity="0";   // shed every ability effect, grudge, and pact when the fight ends
     elim=false;elimP=0;hp=100;me.elim=false;root.style.pointerEvents="";
+    root.style.zIndex="";if(shadow)shadow.style.zIndex="";if(me.__ltR){ringEl.style.opacity="0";me.__ltR=0;}   // back IN FRONT of the big head (sinking sent it behind) and drop any lava-team rim
     shown=true;root.style.opacity="1";root.style.filter="blur(0)";shadow.style.opacity="1";root.style.display="";shadow.style.display="";
+    if(y>floorY+20||y<-HH*3||!isFinite(y)){y=-HH*1.4-Math.random()*90;x=Math.max(WL,Math.min(WR,isFinite(x)?x:WL+Math.random()*Math.max(1,WR-WL)));}   // a head that fell off-screen or sank into the lava drops fresh from the top instead of staying gone
     air=true;st="fall";surface=floorY;if(vy<40)vy=40;perched=false;leapDelay=Infinity;
     decideAt=performance.now()+300+Math.random()*700;}}catch(_){}
   // TEAM PREVIEW: while the soccer picker is open (no game yet), wear the chosen side's colour so you can see the teams before kickoff
@@ -3447,9 +3466,9 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
      if(_spareMate&&(_lt[rv.slot]||0)===_myTm)continue;   // don't body-check a teammate
      var rd=Math.hypot((rv.x+rv.HW/2)-mcx,(rv.y+rv.HH/2)-myFeet),_isFoe=(_lt&&_myTm&&(_lt[rv.slot]||0)!==_myTm),_w=(rv===_grT||_isFoe)?rd*0.35:rd,_reach=(rv===_grT||_isFoe)?HW*5.5:HW*2.7;   // a grudge -- or a rival team -- pulls you across the arena
      if(rd<_reach&&_w<rbd){rbd=_w;rvl=rv;}}
-    if(danger>120&&rvl&&Math.random()<0.4){   // jostle: charge a NEARBY neighbour and body-check them (a flat little ram, not a launch)
+    if(danger>120&&rvl&&Math.random()<0.3){   // jostle: charge a NEARBY neighbour and body-check them (a flat little ram, not a launch)
      var scx=rvl.x+rvl.HW/2;dir=(scx>mcx)?1:-1;surface=floorY;st="fall";air=true;gzx=dir*1;sacAt=now+400;
-     vy=-(150+Math.random()*90);vx=dir*Math.min(540,Math.max(260,Math.abs(scx-mcx)*2.4));sqT=0.12;sqyP=1.12;sqxP=1/1.12;}
+     vy=-(130+Math.random()*80);vx=dir*Math.min(440,Math.max(230,Math.abs(scx-mcx)*2.1));sqT=0.12;sqyP=1.12;sqxP=1/1.12;}
     else if(tP&&danger<165){   // only climb when the lava is actually getting close -> heads hold + jostle on a platform until they HAVE to move up
      var tcx=(tP.l+tP.r)/2;dir=(tcx>mcx)?1:-1;surface=floorY;st="fall";air=true;gzx=dir*0.7;gzy=-0.45;sacAt=now+500;
      var climb=Math.max(70,myFeet-tP.t+80),vyj=Math.min(1200,Math.max(600,climb*3.4+300));vy=-vyj;
@@ -3610,8 +3629,8 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    if(d2>0.01&&d2<rr2){var nx2=dxp/d2,ny2=dyp/d2,ov=rr2-d2;
     x+=nx2*ov*0.5;if(air)y+=ny2*ov*0.3;   // squeeze apart: half me, half them (via the mailbox)
     var rvx=vx-o2.vx,rvy=vy-o2.vy,rel=rvx*nx2+rvy*ny2;
-    if(rel<0){var _lm=window.__hmLavaOn,jI=-(1+(_lm?1.25:0.72))*rel*(_lm?0.6:0.5);   // FLOOR IS LAVA: bumps hit harder (a shove can knock a rival off), but not an explosion
-     vx+=nx2*jI;vy+=ny2*jI*0.6;o2.kx-=nx2*jI*(_lm?1.28:1);o2.ky-=ny2*jI*0.6;
+    if(rel<0){var _lm=window.__hmLavaOn,jI=-(1+(_lm?0.82:0.72))*rel*(_lm?0.5:0.5);   // FLOOR IS LAVA: bumps have weight (a good shove can edge a rival off) but they jostle back and forth -- not an instant launch
+     vx+=nx2*jI;vy+=ny2*jI*0.6;o2.kx-=nx2*jI*(_lm?1.04:1);o2.ky-=ny2*jI*0.6;
      var hit=Math.abs(rel);
      if(battleOn&&!elim&&o2.inB&&!o2.elim&&(slot||0)<(o2.slot||0)&&now>=(window.__hmBattleGo||0)){   // resolve each pair ONCE (lower slot) so nobody is hit twice, and only after the whistle
       var meApp=-(vx*nx2+vy*ny2),o2App=(o2.vx*nx2+o2.vy*ny2),TH=200;   // each head's closing speed toward the other -- only a real lunge lands
@@ -3985,11 +4004,14 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
     defs.push([0.09,0.91,Math.round(aH*0.24),0]);   // the big base -- raised so the lava takes a while to reach it
     var mt=[[0.42,0.52,1],[0.58,0.42,1],[0.72,0.33,2],[0.87,0.25,2]];   // [heightFrac, width, thin]
     mt.forEach(function(ts,i){var h=Math.round(aH*ts[0]),wd=ts[1],side=i%2,l=side?(0.94-wd):0.06;l=Math.min(0.95-wd,Math.max(0.04,l+(Math.random()*0.04-0.02)));defs.push([l,l+wd,h,ts[2]]);});
-   }else{   // DESKTOP: a big safe base raised off the floor, then a FUNNEL that narrows AND thins toward a single knife-edge peak
-    defs.push([0.18,0.82,Math.round(aH*0.22),0]);   // the big base -- room to jostle; the lava takes ~10s to climb up to it
-    var td=[[0.40,2,0.185,0],[0.55,2,0.14,1],[0.70,1,0.105,1],[0.85,1,0.075,2]];   // [heightFrac, count, width, thin]
-    td.forEach(function(ts){var h=Math.round(aH*ts[0]),cnt=ts[1],wd=ts[2];
-     for(var c=0;c<cnt;c++){var base=(cnt===2)?(c===0?0.07:0.93-wd):(0.5-wd/2),l=Math.min(0.95-wd,Math.max(0.03,base+(Math.random()*0.05-0.025)));defs.push([l,l+wd,h+Math.random()*8,ts[3]]);}});
+   }else{   // DESKTOP: a wide safe base, then a ZIG-ZAG funnel that narrows AND thins toward a single knife-edge peak -- climbing means crossing sides, so heads keep jostling
+    defs.push([0.15,0.85,Math.round(aH*0.20),0]);   // the wide base -- the whole crowd starts here above a pool that's already glowing
+    var td=[   // [heightFrac, [[left%,width%],...], thinLevel] -- staggered left/right so the route up weaves back and forth
+     [0.36,[[0.09,0.29],[0.62,0.29]],0],
+     [0.51,[[0.28,0.26],[0.61,0.24]],1],
+     [0.66,[[0.12,0.22],[0.66,0.21]],1],
+     [0.81,[[0.435,0.13]],2]];   // the peak, centered -- the last stand
+    td.forEach(function(ts){var h=Math.round(aH*ts[0]);ts[1].forEach(function(p){var wd=p[1],l=Math.min(0.95-wd,Math.max(0.03,p[0]+(Math.random()*0.045-0.0225)));defs.push([l,l+wd,h+Math.random()*7,ts[2]]);});});
    }
    return defs;}
   var DEFS=genDefs();
@@ -4017,14 +4039,14 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   // ---- the rising surface wave (shared by the crust render AND game logic so death lines up with what you see) ----
   var WAMP=7,WK1=0.021,WK2=0.052,WS1=1.1,WS2=1.7;
   function waveAt(xpx,t){return Math.sin(xpx*WK1+t*WS1)*WAMP + Math.sin(xpx*WK2 - t*WS2)*WAMP*0.45;}
-  var level=0,surfaceY=1e9,arenaBottom=0,arenaW=0,arenaH=0,heroLeft=0,running=false,t0=performance.now(),RISE_DUR=31000,embers=[],bubbles=[];   // ms to fill (slow, tense, but not tedious)
+  var level=0,surfaceY=1e9,arenaBottom=0,arenaW=0,arenaH=0,arenaFloor=0,heroLeft=0,running=false,t0=performance.now(),RISE_DUR=36000,embers=[],bubbles=[];   // ms to fill (slow + tense -- everyone starts on a platform above a pool that's ALREADY there)
   // ---- DOM: molten body (WebGL) + wavy crust (2D canvas) + heat haze band ----
   var wrap=document.createElement("div");wrap.className="hmLavaWrap";wrap.setAttribute("aria-hidden","true");
-  wrap.style.cssText="position:absolute;left:0;right:0;bottom:0;top:0;pointer-events:none;z-index:0;opacity:0;transition:opacity .5s";
+  wrap.style.cssText="position:absolute;left:0;right:0;bottom:0;top:0;pointer-events:none;z-index:8;opacity:0;transition:opacity .5s";   // molten body IN FRONT of the platforms + heads (clipped to below the surface) so anything the lava reaches vanishes under it
   var gcv=document.createElement("canvas");gcv.className="hmLavaGL";gcv.style.cssText="position:absolute;left:0;bottom:0;width:100%;height:100%;display:block";
-  var crust=document.createElement("canvas");crust.className="hmLavaCrust";crust.style.cssText="position:absolute;left:0;top:0;width:100%;height:100%;display:block;pointer-events:none;z-index:6";
-  var haze=document.createElement("div");haze.className="hmLavaHaze";haze.style.cssText="position:absolute;left:0;right:0;height:96px;pointer-events:none;z-index:7;opacity:0;transition:opacity .4s;-webkit-backdrop-filter:blur(1.4px) url(#hmHeatFilter) brightness(1.06) saturate(1.2);backdrop-filter:blur(1.4px) url(#hmHeatFilter) brightness(1.06) saturate(1.2);-webkit-mask-image:linear-gradient(to top,#000 30%,rgba(0,0,0,0));mask-image:linear-gradient(to top,#000 30%,rgba(0,0,0,0));background:linear-gradient(to top,rgba(255,130,35,.14),rgba(255,130,35,0));animation:hmHazeWob 2.1s ease-in-out infinite";
-  var glow=document.createElement("div");glow.className="hmLavaGlow";glow.style.cssText="position:absolute;left:0;right:0;bottom:0;top:0;pointer-events:none;z-index:5;opacity:0;transition:opacity .5s;background:radial-gradient(120% 60% at 50% 100%,rgba(255,120,30,.28),rgba(255,80,10,.06) 45%,transparent 70%)";
+  var crust=document.createElement("canvas");crust.className="hmLavaCrust";crust.style.cssText="position:absolute;left:0;top:0;width:100%;height:100%;display:block;pointer-events:none;z-index:9";
+  var haze=document.createElement("div");haze.className="hmLavaHaze";haze.style.cssText="position:absolute;left:0;right:0;height:96px;pointer-events:none;z-index:10;opacity:0;transition:opacity .4s;-webkit-backdrop-filter:blur(1.4px) url(#hmHeatFilter) brightness(1.06) saturate(1.2);backdrop-filter:blur(1.4px) url(#hmHeatFilter) brightness(1.06) saturate(1.2);-webkit-mask-image:linear-gradient(to top,#000 30%,rgba(0,0,0,0));mask-image:linear-gradient(to top,#000 30%,rgba(0,0,0,0));background:linear-gradient(to top,rgba(255,130,35,.14),rgba(255,130,35,0));animation:hmHazeWob 2.1s ease-in-out infinite";
+  var glow=document.createElement("div");glow.className="hmLavaGlow";glow.style.cssText="position:absolute;left:0;right:0;bottom:0;top:0;pointer-events:none;z-index:1;opacity:0;transition:opacity .5s;background:radial-gradient(120% 60% at 50% 100%,rgba(255,120,30,.28),rgba(255,80,10,.06) 45%,transparent 70%)";   // warm ambient glow stays BEHIND the heads as atmosphere
   wrap.appendChild(gcv);hero.appendChild(wrap);hero.appendChild(glow);hero.appendChild(crust);hero.appendChild(haze);
 
   // ---- WebGL molten shader (adapted from Jayden's lava gradient) ----
@@ -4054,6 +4076,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    var loc=gl.getAttribLocation(prog,"a_pos");gl.enableVertexAttribArray(loc);gl.vertexAttribPointer(loc,2,gl.FLOAT,false,0,0);
    uRes=gl.getUniformLocation(prog,"u_res");uTime=gl.getUniformLocation(prog,"u_time");glOK=true;return true;}catch(e){console.warn("lava GL init failed",e);return false;}}
   function sizeGL(){var r=hero.getBoundingClientRect();heroLeft=Math.round(r.left);arenaW=Math.round(innerWidth);arenaH=Math.round(r.height);arenaBottom=arenaH;
+   var _st=document.getElementById("stage"),_sr=_st&&_st.getBoundingClientRect();arenaFloor=_sr?Math.round(_sr.bottom-r.top):Math.round(arenaH*0.86);   // the ground line the platforms measure up from -- the lava pools here at the start
    GW=Math.max(1,Math.floor(arenaW*SCALE));GH=Math.max(1,Math.floor(arenaH*SCALE));gcv.width=GW;gcv.height=GH;if(gl)gl.viewport(0,0,GW,GH);
    crust.width=arenaW;crust.height=arenaH;
    [wrap,glow,crust,haze].forEach(function(el){el.style.left=(-heroLeft)+"px";el.style.right="auto";el.style.width=arenaW+"px";});}   // edge-to-edge: stretch past the hero's side margins to fill the whole viewport width
@@ -4070,8 +4093,8 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    requestAnimationFrame(loop);var tsec=(n-t0)/1000;
    if((window.__hmBattleReq||0)!==lastReq){lastReq=window.__hmBattleReq||0;t0=n;embers.length=0;}   // a NEW game -> restart the rise from the bottom (survives a throttled start/stop)
    // rise: hold during the 3-2-1 countdown, then climb from just under the floor to the top over RISE_DUR
-   var _lin=Math.min(1,Math.max(0,(n-t0-2900)/RISE_DUR));level=Math.pow(_lin,1.42);   // EASE-IN: creeps up slowly at first (long jostle on the base) then climbs faster for a tense finish
-   var startY=arenaH+34,topY=arenaH*0.05;surfaceY=startY-(startY-topY)*level;   // starts EMPTY (below the header) and fills it right up to the top
+   var _lin=Math.min(1,Math.max(0,(n-t0-2900)/RISE_DUR));level=Math.pow(_lin,1.34);   // EASE-IN: creeps up slowly at first (long jostle on the platforms) then climbs faster for a tense finish
+   var startY=(arenaFloor||arenaH*0.86)+10,topY=arenaH*0.05;surfaceY=startY-(startY-topY)*level;   // ALREADY a visible molten pool at the floor line when the whistle blows (everyone's on a platform above it), then it climbs to the top
    // molten body: render + clip to below the surface
    if(glOK){gl.uniform2f(uRes,GW,GH);gl.uniform1f(uTime,tsec);gl.drawArrays(gl.TRIANGLES,0,3);}
    var clipTop=Math.max(0,Math.round(surfaceY-WAMP*1.6));gcv.style.clipPath="inset("+clipTop+"px 0 0 0)";gcv.style.webkitClipPath="inset("+clipTop+"px 0 0 0)";
