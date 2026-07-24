@@ -3556,9 +3556,12 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    if(battleOn&&battlePlats.length&&vy>0){var cxp=x+HW/2,feet9=y+HH*FOOT,pfeet=feet9-vy*DT;   // one-way platforms: a DESCENDING head lands on top; a rising one passes clean through
     for(var pl9=0;pl9<battlePlats.length;pl9++){var Pl=battlePlats[pl9];
      if(window.__hmLavaOn&&Pl.t>=window.__hmLavaY((Pl.l+Pl.r)/2)-2)continue;   // a platform under the lava is gone -> you can't stand on it, you fall through into the lava
-     if(cxp>Pl.l&&cxp<Pl.r&&pfeet<=Pl.t+3&&feet9>=Pl.t-1&&(Pl.t-HH*FOOT)<surface){surface=Pl.t-HH*FOOT;break;}}}
+     if(cxp>Pl.l&&cxp<Pl.r&&pfeet<=Pl.t+3&&feet9>=Pl.t-1&&(Pl.t-HH*FOOT)<surface){surface=Pl.t-HH*FOOT;break;}}
+    if(window.__hmLavaOn&&vy>120){for(var _hk=0;_hk<peers.length;_hk++){var _oh=peers[_hk];if(_oh===me||_oh.elim||_oh.__sinking||!_oh.inB)continue;   // HEAD-STACKING: land on another head's crown -> SPRINGBOARD up off it to reach higher (and it shoves the head below down a touch)
+     var _ohT=_oh.y+_oh.HH*0.14;if(Math.abs(cxp-(_oh.x+_oh.HW/2))<(HW+_oh.HW)*0.34&&pfeet<=_ohT+4&&feet9>=_ohT+HH*0.35){y=_ohT-HH*FOOT;vy=-(430+Math.min(360,Math.abs(vy)*0.5));vx*=0.6;sqT=0.13;sqyP=1.15;sqxP=1/1.15;brf=6;_oh.ky=(_oh.ky||0)+150;break;}}}}
    if(battleOn&&window.__hmSmashCrates&&CRATES.length&&now>=(window.__hmBattleGo||0)){var _fx3=x+HW/2;   // descending onto a mystery crate SMASHES it -> a random physics-chaos power
     for(var _ci=0;_ci<CRATES.length;_ci++){var _cr=CRATES[_ci];if(_fx3>_cr.x-_cr.r-HW*0.35&&_fx3<_cr.x+_cr.r+HW*0.35&&feet9>=_cr.y-_cr.r-4&&feet9<=_cr.y+_cr.r+34){smashCrate(_cr,A);break;}}}
+   if(window.__hmLavaOn&&surface>=floorY-2)surface=1e5;   // in lava mode the FLOOR isn't solid -- only platforms + heads are. Fall through into the lava (the death check catches you at the surface)
    if(vy>0&&y>=surface){ cTop=false; if(st==="fall"&&Math.abs(vy)>340){if(Math.abs(vy)>1050)shakeAfter=true;   // a hard landing skids, but the ground never wounds -- only a rival's lunge does
     if(Math.abs(vx)>420&&!wig)wig={t:0.22,dur:0.22,type:"tilt",a:(vx>0?1:-1)*4};   // fast landings skid: it leans into the slide
     var k=Math.min(0.2,Math.abs(vy)*0.0004);y=surface;
@@ -3665,6 +3668,10 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    vy=-(340+Math.random()*140);vx=dir*(180+Math.random()*120);sqT=0.11;sqyP=1.09;sqxP=1/1.09;}
   else if(crowdT>0)crowdT=Math.max(0,crowdT-DT*0.6);
   if(x<WL)x=WL;if(x>WR)x=WR;if(!air&&!grabbed&&!perched&&y>floorY)y=floorY;   // the walls hold, ALWAYS: no head ever leaves the screen
+  // REACTIVE FACES: the closer the lava, the more scared they look -- brows up, eyes down at the rising death, a nervous shrink
+  if(battleOn&&window.__hmLavaOn&&!me.__sinking&&!elim&&!me.podiumRank){var _ld=window.__hmLavaY(x+HW/2)-(y+HH*FOOT);
+   if(_ld<145){if(now>=(me.__reactAt||0)){me.__reactAt=now+460+Math.random()*380;if(brf===0)brf=6;gzy=0.42+Math.random()*0.28;gzx=(Math.random()*0.5-0.25);sacAt=now+560;if(!air&&Math.random()<0.35){sqT=0.1;sqyP=0.95;sqxP=1/0.95;}}}
+   else if(_ld<300&&now>=(me.__reactAt||0)&&Math.random()<0.25){me.__reactAt=now+900;gzy=0.32;gzx=(Math.random()*0.4-0.2);sacAt=now+700;}}   // wary glances down at what's coming
   if(battleOn&&window.__hmLavaOn&&!me.__sinking&&!elim&&!grabbed&&!me.podiumRank&&now>=(window.__hmBattleGo||0)){var _lavaY=window.__hmLavaY(x+HW/2);
    if(y+HH*FOOT>=_lavaY-1){var _alive=0;for(var _av=0;_av<peers.length;_av++){if(peers[_av].inB&&!peers[_av].elim&&!peers[_av].__sinking)_alive++;}
     if(_alive<=1||now>=(window.__hmSinkBusy||0)){window.__hmSinkBusy=now+1500+Math.random()*700;startSink(_lavaY);}   // ONE AT A TIME: take the sink slot (suspense over who's next); the last survivor never needs it
