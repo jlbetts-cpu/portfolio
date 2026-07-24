@@ -93,9 +93,9 @@ h1{font-weight:600;font-size:var(--fs-hero);line-height:var(--lh-tight);letter-s
  transition:opacity .5s cubic-bezier(.2,.8,.2,1),filter .5s cubic-bezier(.2,.8,.2,1),transform .5s cubic-bezier(.2,.8,.2,1)}
 .ch.show{opacity:1;filter:blur(0);transform:none}
 .sub{display:block;margin-top:18px;font-size:var(--fs-lead);color:var(--c700);max-width:46ch;line-height:var(--lh-body);filter:url(#inkSm);text-wrap:balance;opacity:0;transition:opacity .5s cubic-bezier(.2,.8,.2,1) .5s}
-.heroAvail{display:flex;align-items:center;gap:9px;margin-top:20px;font-family:var(--sans);font-size:var(--fs-small);color:var(--c500);line-height:1;opacity:0;transform:translateY(4px);transition:opacity .5s cubic-bezier(.2,.8,.2,1),transform .5s cubic-bezier(.2,.8,.2,1)}
+.heroAvail{display:block;margin-top:18px;font-family:var(--sans);font-weight:400;font-size:var(--fs-small);color:var(--c500);line-height:1;opacity:0;transform:translateY(4px);transition:opacity .5s cubic-bezier(.2,.8,.2,1),transform .5s cubic-bezier(.2,.8,.2,1)}
 .heroAvail.in{opacity:1;transform:none}
-.heroAvail .availOpen{color:var(--c900)}
+.heroAvail .availOpen{color:inherit}   /* one uniform tone across the whole line -- no mixed weights/colours */
 .availDot{width:7px;height:7px;border-radius:50%;background:var(--c900);flex:0 0 7px}
 @media(prefers-reduced-motion:no-preference){.availDot{animation:availPulse 2.8s ease-out infinite}}
 @keyframes availPulse{0%{box-shadow:0 0 0 0 rgba(18,18,18,.32)}70%{box-shadow:0 0 0 6px rgba(18,18,18,0)}100%{box-shadow:0 0 0 0 rgba(18,18,18,0)}}
@@ -937,7 +937,7 @@ function buildHeadline(){h1.textContent="";STATIC.forEach(function(w,i){   // ba
  if(i===STATIC.length-1)h1.appendChild(document.createElement("br"));   // "with [mood]" always begins its own line so the height never jumps as the word cycles
  h1.appendChild(makeWord(w));h1.appendChild(document.createTextNode(i<STATIC.length-1?" ":" "));});
  wi=Math.floor(Math.random()*WORDS.length);cycWord=makeCycWord(wi,true);h1.appendChild(cycWord);   // the mood word + its drag mechanics return
- var _sub=document.getElementById("sub");if(_sub&&!_sub.textContent)_sub.textContent="Focused on interaction design and mobile interfaces — the small, in-between details that make an app feel considered.";}   // the specialty line, in the site's body-prose system
+ var _sub=document.getElementById("sub");if(_sub&&!_sub.textContent)_sub.textContent="Focused on interaction design and mobile interfaces.";}   // one tight specialty line -- keeps the hero balanced
 function revealAll(){const chs=[...h1.querySelectorAll(".ch")];chs.forEach((c,i)=>{c.style.transitionDelay=(i*0.03)+"s";c.classList.add("show");});
  if(!reduce)setTimeout(()=>{revealCycWord(cycWord);nextCycle();},(chs.length*0.03+0.12)*1000);   // cycling word lands right AFTER "...with", then the cycle begins
  var _hc=document.querySelector(".heroCtas"),_av=document.getElementById("heroAvail");                                          // CTAs + the availability line enter after the headline lands
@@ -3120,7 +3120,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
      st="idle",stT=0,hopsLeft=0,grabbed=false,gpx=0,gpy=0,lastPX=0,lastPY=0,pvx=0,pvy=0,
      offAt=0,gone=false,goneUntil=0,decideAt=performance.now()+4200,spin=0,heldOff=0,heldV=0,cTop=false,bornAt=performance.now()+1600,perched=false,hs=1,hsT=1,dockUntil=0,moodB=false,pbAt=0,mirrorAt=0,downT=0,downX=0,downY=0,shakeN=0,heartsF=0,danceHops=0,dblBlink=false,
      bAt=performance.now()+2800,bf=0,brAt=performance.now()+7000,brf=0,moAt=performance.now()+11000,mof=0,
-     dzf=0,sqx=1,sqy=1,sqxv=0,sqyv=0,sqxP=1,sqyP=1,sqT=0,shown=false,first=true,tk3=0,gzx=0,gzy=0,sacAt=0,flipA=0,flipV=0,wig=null,wigP=0,bounceN=0,perchT=0,leapDelay=Infinity,hmOverT=0,introSettled=false,bornWall=0,introFrames=0,shakeAfter=false,drowse2=false,lastNearT=performance.now(),perchWigAt=performance.now()+9000,greetAt=performance.now()+6000,visitUntil=0,hmOverNow=false,vaulting=false,audAt=0,killed=false,hp=100,crowdT=0,team=0,soccerOn=false,soccerKickSeen=0,soccerWon=false,goalSeen=0,battleOn=false,battleSeen=0,elim=false,elimP=0,celebrated=false,respawnSeen=0,hurtT=0,danceUntil=0,danceHopAt=0,mjHurtUntil=0,hitStop=0,mjExprAt=0,mjExprUntil=0,mjExprKind="",
+     dzf=0,sqx=1,sqy=1,sqxv=0,sqyv=0,sqxP=1,sqyP=1,sqT=0,shown=false,first=true,tk3=0,gzx=0,gzy=0,sacAt=0,flipA=0,flipV=0,wig=null,wigP=0,bounceN=0,perchT=0,leapDelay=Infinity,hmOverT=0,introSettled=false,bornWall=0,wasAboutB=false,introFrames=0,shakeAfter=false,drowse2=false,lastNearT=performance.now(),perchWigAt=performance.now()+9000,greetAt=performance.now()+6000,visitUntil=0,hmOverNow=false,vaulting=false,audAt=0,killed=false,hp=100,crowdT=0,team=0,soccerOn=false,soccerKickSeen=0,soccerWon=false,goalSeen=0,battleOn=false,battleSeen=0,elim=false,elimP=0,celebrated=false,respawnSeen=0,hurtT=0,danceUntil=0,danceHopAt=0,mjHurtUntil=0,hitStop=0,mjExprAt=0,mjExprUntil=0,mjExprKind="",
      pendingHide=null,hideToken=0,lapBack=false,forceHide=/[?&]hide=1/.test(location.search);
  function plane(front){root.style.zIndex="3";shadow.style.zIndex="2";}   // heads ALWAYS stay in front of the big head + the CTA buttons (the back plane is gone) -- cleaner, more premium, no ducking-behind glitches
  var G=2600,DT=0.04,facc=0,CEIL=2,surpriseAt=0;   // real units: px/s and px/s^2, integrated at 25fps
@@ -3364,6 +3364,8 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
     elim=true;me.elim=true;me.inB=true;root.style.display="none";if(shadow)shadow.style.display="none";me.__sinking=null;}
    return;}   // sinking owns the frame -- no AI, no physics (the molten body occludes him below the surface -> "swallowed")
   try{aboutB=document.body.classList.contains("about-open");moodB=(typeof busyNow==="function"&&busyNow());}catch(_){}
+  if(!aboutB&&wasAboutB&&!first&&!gone&&!battleOn&&!soccerOn&&!grabbed){first=true;introSettled=true;bornWall=0;bornAt=now;shown=false;root.style.opacity="0";if(shadow)shadow.style.opacity="0";}   // About just CLOSED -> reset + toss every head back in from the edge, one at a time, like the very first time (the lively re-entrance)
+  wasAboutB=aboutB;
   var want=!aboutB&&!gone;   // moods never hide the pit: the little heads are the audience
   if(first&&filler){ // the mid-game stand-in drops straight in -- no waiting on the (hidden) big head's intro
    first=false;shown=true;survey();var flf=Math.random()<0.5;
