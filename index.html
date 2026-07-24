@@ -3134,6 +3134,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    plane(true);dir=ph.side;air=true;st="fall";surface=floorY;vx=ph.side*(250+Math.random()*120);vy=-(520+Math.random()*140);sqT=0.13;sqyP=1.14;sqxP=1/1.14;brf=6;},3500+Math.random()*700);}
  function startSink(lavaY){if(me.__sinking||elim||me.podiumRank)return;   // touched the lava: SPLASH, then the slow dramatic sink
   me.__sinking={t:0,x:x+HW/2};air=false;vx=0;vy=0;flipA=0;flipV=0;wig=null;grabbed=false;perched=false;
+  root.style.zIndex="-1";if(shadow)shadow.style.zIndex="-1";   // drop BEHIND the molten body so the lava swallows him as he goes under (occluded, not floating on top)
   try{if(window.__hmFX){var sx=x+HW/2;
    window.__hmFX.burst(sx,lavaY,{count:24,color:"255,150,50",speed:360,gravity:950,life:0.7,size:5});
    window.__hmFX.burst(sx,lavaY,{count:11,color:"255,225,130",speed:230,gravity:750,life:0.5,size:4});
@@ -3286,14 +3287,14 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   var _frozen=(me.__frozen&&_nowF<me.__frozen&&!grabbed);if(_frozen)DT=0;   // FREEZE ability: this head is encased in ice, held solid until it thaws
   tk3++;var now=_nowF,aboutB=false;moodB=false;
   // FLOOR IS LAVA -- the dramatic slow sink: once you touch the lava you're done; drift down, char, fade, then out
-  if(me.__sinking){var _sk=me.__sinking,_sdt=(DT>0?DT:0.016);_sk.t+=_sdt;var _kf=Math.min(1,_sk.t/1.9);
-   y+=(34+_sk.t*46)*_sdt;   // an accelerating, weighty sink
-   root.style.opacity=(1-_kf).toFixed(2);root.style.filter="brightness("+(1-0.72*_kf).toFixed(2)+") saturate("+(1-0.55*_kf).toFixed(2)+") sepia("+(0.5*_kf).toFixed(2)+")";
-   root.style.transform="translate("+x.toFixed(1)+"px,"+y.toFixed(1)+"px) scale("+(1-0.12*_kf).toFixed(3)+")";
+  if(me.__sinking){var _sk=me.__sinking,_sdt=(DT>0?DT:0.016);_sk.t+=_sdt;var _kf=Math.min(1,_sk.t/1.5);
+   y+=(64+_sk.t*74)*_sdt;   // sinks under a bit quicker -> gone, not lingering on top
+   root.style.opacity=(1-_kf*0.92).toFixed(2);root.style.filter="brightness("+(1-0.8*_kf).toFixed(2)+") saturate("+(1-0.62*_kf).toFixed(2)+") sepia("+(0.6*_kf).toFixed(2)+")";
+   root.style.transform="translate("+x.toFixed(1)+"px,"+y.toFixed(1)+"px) scale("+(1-0.15*_kf).toFixed(3)+")";
    if(shadow)shadow.style.opacity="0";
-   if(window.__hmFX&&window.__hmLavaOn&&Math.random()<0.32)window.__hmFX.burst(_sk.x+(Math.random()*HW-HW/2),window.__hmLavaY(_sk.x),{count:1,color:"255,150,55",speed:50,gravity:-40,life:0.6,size:3});
+   if(window.__hmFX&&window.__hmLavaOn&&Math.random()<0.4)window.__hmFX.burst(_sk.x+(Math.random()*HW-HW/2),window.__hmLavaY(_sk.x),{count:1,color:"255,150,55",speed:55,gravity:-45,life:0.6,size:3});
    if(_kf>=1){elim=true;me.elim=true;me.inB=true;root.style.display="none";if(shadow)shadow.style.display="none";me.__sinking=null;}
-   return;}   // sinking owns the frame -- no AI, no physics
+   return;}   // sinking owns the frame -- no AI, no physics (the molten body occludes him below the surface -> "swallowed")
   try{aboutB=document.body.classList.contains("about-open");moodB=(typeof busyNow==="function"&&busyNow());}catch(_){}
   var want=!aboutB&&!gone;   // moods never hide the pit: the little heads are the audience
   if(first&&filler){ // the mid-game stand-in drops straight in -- no waiting on the (hidden) big head's intro
@@ -3331,8 +3332,9 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    if(_wantB&&!battleOn){battleOn=true;battleSeen=_bReq;hp=100;elim=false;elimP=0;celebrated=false;me.podiumRank=0;me.spectate=0;   // ENTER
     if(window.__hmBOSeed!==_bReq){window.__hmBOSeed=_bReq;battleOut.length=0;hidePodium();window.__hmBattleGo=performance.now()+2900;}   // once per fight: fresh log, no leftover podium, a 3-2-1-GO first
     perched=false;leapDelay=Infinity;me.elim=false;me.inB=true;bar.style.opacity="1";root.style.pointerEvents="";
-    me.__sinking=null;me.__sunk=0;root.style.filter="";   // fresh, un-charred, not sinking
-    if(battlePlats.length){var _sp=battlePlats[(slot||0)%battlePlats.length];x=Math.max(_sp.l+2,Math.min(_sp.r-HW-2,(_sp.l+_sp.r)/2-HW/2+(Math.random()*40-20)));surface=_sp.t-HH*FOOT;}   // FLOOR IS LAVA: everyone starts UP on a platform, spread out
+    me.__sinking=null;me.__sunk=0;root.style.filter="";root.style.opacity="1";root.style.zIndex="";if(shadow)shadow.style.zIndex="";   // fresh, un-charred, not sinking, back in front
+    if(battlePlats.length){var _sp=battlePlats[0],_n=Math.max(1,peers.length),_i=(slot||0)%_n;   // FLOOR IS LAVA: everyone starts on the BIG BASE, spread across it, ready to jostle -- nobody dies at the whistle
+     x=Math.max(_sp.l+2,Math.min(_sp.r-HW-2,_sp.l+6+((_sp.r-_sp.l-HW-12)*(_i+0.5)/_n)+(Math.random()*14-7)));surface=_sp.t-HH*FOOT;}
     else{surface=floorY;x=Math.max(WL,Math.min(WR,WL+Math.random()*Math.max(1,WR-WL-HW)));}
     y=surface;air=false;st="idle";vx=0;vy=0;flipA=0;flipV=0;wig=null;}
    else if(!_wantB&&battleOn){battleOn=false;respawnSeen=_bResp;me.inB=false;me.podiumRank=0;me.spectate=0;bar.style.opacity="0";crownEl.style.opacity="0";hidePodium();   // LEAVE: back to normal life, drop to the floor
@@ -3419,11 +3421,11 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
     var tP=null,tS=1e9;
     for(var pi=0;pi<battlePlats.length;pi++){var P=battlePlats[pi],pcx=(P.l+P.r)/2;if(P.t>=window.__hmLavaY(pcx)-8)continue;var up=myFeet-P.t;if(up<16)continue;var sc=Math.abs(up-135)*1.0+Math.abs(pcx-mcx)*0.62;if(sc<tS){tS=sc;tP=P;}}
     // a nearby rival I could body-check (toward the lava)
-    var rvl=null,rbd=1e9;for(var s9=0;s9<peers.length;s9++){var rv=peers[s9];if(rv===me||!rv.inB||rv.elim||rv.__sinking)continue;var rd=Math.hypot((rv.x+rv.HW/2)-mcx,(rv.y+rv.HH/2)-myFeet);if(rd<HW*2.6&&rd<rbd){rbd=rd;rvl=rv;}}
-    if(danger>150&&rvl&&Math.random()<0.5){   // safe enough -> go shove a neighbour
-     var scx=rvl.x+rvl.HW/2;dir=(scx>mcx)?1:-1;surface=floorY;st="fall";air=true;gzx=dir*0.95;sacAt=now+500;
-     vy=-(340+Math.random()*150);vx=dir*Math.min(660,Math.max(240,Math.abs(scx-mcx)*2.4));sqT=0.12;sqyP=1.11;sqxP=1/1.11;}
-    else if(tP&&(danger<175||Math.random()<0.38)){   // climb to the safe platform above
+    var rvl=null,rbd=1e9;for(var s9=0;s9<peers.length;s9++){var rv=peers[s9];if(rv===me||!rv.inB||rv.elim||rv.__sinking)continue;var rd=Math.hypot((rv.x+rv.HW/2)-mcx,(rv.y+rv.HH/2)-myFeet);if(rd<HW*2.7&&rd<rbd){rbd=rd;rvl=rv;}}
+    if(danger>120&&rvl&&Math.random()<0.4){   // jostle: charge a NEARBY neighbour and body-check them (a flat little ram, not a launch)
+     var scx=rvl.x+rvl.HW/2;dir=(scx>mcx)?1:-1;surface=floorY;st="fall";air=true;gzx=dir*1;sacAt=now+400;
+     vy=-(150+Math.random()*90);vx=dir*Math.min(540,Math.max(260,Math.abs(scx-mcx)*2.4));sqT=0.12;sqyP=1.12;sqxP=1/1.12;}
+    else if(tP&&danger<165){   // only climb when the lava is actually getting close -> heads hold + jostle on a platform until they HAVE to move up
      var tcx=(tP.l+tP.r)/2;dir=(tcx>mcx)?1:-1;surface=floorY;st="fall";air=true;gzx=dir*0.7;gzy=-0.45;sacAt=now+500;
      var climb=Math.max(70,myFeet-tP.t+80),vyj=Math.min(1200,Math.max(600,climb*3.4+300));vy=-vyj;
      vx=dir*Math.min(560,Math.abs(tcx-mcx)/Math.max(0.2,2*vyj/G));sqT=0.12;sqyP=1.1;sqxP=1/1.1;}
@@ -3549,6 +3551,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    if(y<CEIL){y=CEIL;if(Math.abs(vy)>420&&bf===0)bf=5;vy=Math.abs(vy)*0.72;sqT=0.13;sqxP=1.11;sqyP=0.9;cTop=true;}   // bonk: a startle blink
    if(battleOn&&battlePlats.length&&vy>0){var cxp=x+HW/2,feet9=y+HH*FOOT,pfeet=feet9-vy*DT;   // one-way platforms: a DESCENDING head lands on top; a rising one passes clean through
     for(var pl9=0;pl9<battlePlats.length;pl9++){var Pl=battlePlats[pl9];
+     if(window.__hmLavaOn&&Pl.t>=window.__hmLavaY((Pl.l+Pl.r)/2)-2)continue;   // a platform under the lava is gone -> you can't stand on it, you fall through into the lava
      if(cxp>Pl.l&&cxp<Pl.r&&pfeet<=Pl.t+3&&feet9>=Pl.t-1&&(Pl.t-HH*FOOT)<surface){surface=Pl.t-HH*FOOT;break;}}}
    if(battleOn&&window.__hmSmashCrates&&CRATES.length&&now>=(window.__hmBattleGo||0)){var _fx3=x+HW/2;   // descending onto a mystery crate SMASHES it -> a random physics-chaos power
     for(var _ci=0;_ci<CRATES.length;_ci++){var _cr=CRATES[_ci];if(_fx3>_cr.x-_cr.r-HW*0.35&&_fx3<_cr.x+_cr.r+HW*0.35&&feet9>=_cr.y-_cr.r-4&&feet9<=_cr.y+_cr.r+34){smashCrate(_cr,A);break;}}}
@@ -3579,8 +3582,8 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    if(d2>0.01&&d2<rr2){var nx2=dxp/d2,ny2=dyp/d2,ov=rr2-d2;
     x+=nx2*ov*0.5;if(air)y+=ny2*ov*0.3;   // squeeze apart: half me, half them (via the mailbox)
     var rvx=vx-o2.vx,rvy=vy-o2.vy,rel=rvx*nx2+rvy*ny2;
-    if(rel<0){var jI=-(1+0.72)*rel*0.5;
-     vx+=nx2*jI;vy+=ny2*jI*0.6;o2.kx-=nx2*jI;o2.ky-=ny2*jI*0.6;
+    if(rel<0){var _lm=window.__hmLavaOn,jI=-(1+(_lm?1.25:0.72))*rel*(_lm?0.6:0.5);   // FLOOR IS LAVA: bumps hit harder (a shove can knock a rival off), but not an explosion
+     vx+=nx2*jI;vy+=ny2*jI*0.6;o2.kx-=nx2*jI*(_lm?1.28:1);o2.ky-=ny2*jI*0.6;
      var hit=Math.abs(rel);
      if(battleOn&&!elim&&o2.inB&&!o2.elim&&(slot||0)<(o2.slot||0)&&now>=(window.__hmBattleGo||0)){   // resolve each pair ONCE (lower slot) so nobody is hit twice, and only after the whistle
       var meApp=-(vx*nx2+vy*ny2),o2App=(o2.vx*nx2+o2.vy*ny2),TH=200;   // each head's closing speed toward the other -- only a real lunge lands
@@ -3652,7 +3655,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   var airH=Math.max(0,shG-feetY);
   var shScale=Math.max(0.32,depth*(1-airH/(heroR.h*0.6)));
   shadow.style.transform="translate("+(x+HW/2-HW/2*shScale+HW*0.06).toFixed(1)+"px,"+(shG-2).toFixed(1)+"px) scale("+shScale.toFixed(3)+",1)";
-  shadow.style.opacity=(shown&&!perched)?String(airH<4?0.36:Math.max(0.1,0.3-airH/800)):"0";
+  shadow.style.opacity=(window.__hmLavaOn||me.__sinking)?"0":((shown&&!perched)?String(airH<4?0.36:Math.max(0.1,0.3-airH/800)):"0");   // no cast shadows in lava mode (a shadow on the lava reads as "standing on it")
   if(crowdT>0.65&&!air&&!grabbed&&!perched){crowdT=0;   // squeezed too long: it hops out of the scrum
    air=true;st="fall";surface=floorY;dir=Math.random()<0.5?-1:1;
    vy=-(340+Math.random()*140);vx=dir*(180+Math.random()*120);sqT=0.11;sqyP=1.09;sqxP=1/1.09;}
@@ -3931,14 +3934,16 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
  (function platforms(){   // the battle arena: a fresh RANDOM layout every fight -- slabs of mixed lengths + thickness at mixed heights, filling the screen
   var hero=document.querySelector(".hero");if(!hero)return;
   var MAXP=10,els=[];for(var e=0;e<MAXP;e++){var d=document.createElement("div");d.className="hmPlat";hero.appendChild(d);els.push(d);}
-  function genDefs(){var defs=[],aH=hero.clientHeight||600;   // [left%, right%, height-above-floor px, thin?] -- a CLIMBING LADDER for Floor is Lava
-   if(innerWidth<=768){   // MOBILE: a tall narrow arena -> ~6 tiers alternating sides, climbing most of the screen
-    var top=Math.min(aH*0.76,aH-80),n=6,hstep=(top-38)/(n-1);
-    for(var i=0;i<n;i++){var side=(Math.random()<0.5?i:i+1)%2,wdt=0.34+Math.random()*0.12,l=side?(0.5+Math.random()*0.11):(0.04+Math.random()*0.11);l=Math.min(0.96-wdt,l);defs.push([l,l+wdt,38+hstep*i+Math.random()*12,i%2]);}
-   }else{   // DESKTOP: a FUNNEL ladder -- wide at the bottom, narrowing to a single peak, so the last survivors must fight for the top
-    var topD=Math.min(aH*0.72,aH-90),tiers=5,step=(topD-46)/(tiers-1),idx=0,counts=[2,2,2,1,1];
-    for(var r=0;r<tiers;r++){var h=46+step*r,cnt=counts[r];
-     for(var c=0;c<cnt;c++){var wd=0.12+Math.random()*0.08,base=(cnt===2)?(c===0?0.05:0.57):(0.5-wd/2-0.06+Math.random()*0.12),l=Math.min(0.94-wd,Math.max(0.02,base+(cnt===2?Math.random()*0.12:0)));defs.push([l,l+wd,h+Math.random()*16,idx%2]);idx++;}}
+  function genDefs(){var defs=[],aH=hero.clientHeight||600;   // [left%, right%, height-above-floor px, thinLevel 0..2] -- index 0 is always the BIG safe base
+   if(innerWidth<=768){   // MOBILE: a wide base up off the floor, then narrowing + thinning platforms alternating up
+    defs.push([0.09,0.91,Math.round(aH*0.24),0]);   // the big base -- raised so the lava takes a while to reach it
+    var mt=[[0.42,0.52,1],[0.58,0.42,1],[0.72,0.33,2],[0.87,0.25,2]];   // [heightFrac, width, thin]
+    mt.forEach(function(ts,i){var h=Math.round(aH*ts[0]),wd=ts[1],side=i%2,l=side?(0.94-wd):0.06;l=Math.min(0.95-wd,Math.max(0.04,l+(Math.random()*0.04-0.02)));defs.push([l,l+wd,h,ts[2]]);});
+   }else{   // DESKTOP: a big safe base raised off the floor, then a FUNNEL that narrows AND thins toward a single knife-edge peak
+    defs.push([0.18,0.82,Math.round(aH*0.22),0]);   // the big base -- room to jostle; the lava takes ~10s to climb up to it
+    var td=[[0.40,2,0.185,0],[0.55,2,0.14,1],[0.70,1,0.105,1],[0.85,1,0.075,2]];   // [heightFrac, count, width, thin]
+    td.forEach(function(ts){var h=Math.round(aH*ts[0]),cnt=ts[1],wd=ts[2];
+     for(var c=0;c<cnt;c++){var base=(cnt===2)?(c===0?0.07:0.93-wd):(0.5-wd/2),l=Math.min(0.95-wd,Math.max(0.03,base+(Math.random()*0.05-0.025)));defs.push([l,l+wd,h+Math.random()*8,ts[3]]);}});
    }
    return defs;}
   var DEFS=genDefs();
@@ -3948,7 +3953,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    els.forEach(function(el,i){var D=DEFS[i];if(!D){el.style.display="none";return;}el.style.display="";
     var l=Math.round(w*D[0]),rr=Math.round(w*D[1]),t=Math.round(floorY-D[2]);   // measured UP from the real floor so a normal jump clears them
     battlePlats.push({l:l,r:rr,t:t});
-    el.style.width=(rr-l)+"px";el.style.height=(D[3]?10:15)+"px";el.style.transform="translate("+l+"px,"+t+"px)";});}   // thin/thick for shape variety
+    el.style.width=(rr-l)+"px";el.style.height=([15,9,5][D[3]||0])+"px";el.style.transform="translate("+l+"px,"+t+"px)";});}   // thinner and thinner toward the top -> extra intense
   layout();addEventListener("resize",layout,{passive:true});
   var arenaReq=0;
   window.__hmNewArena=function(){arenaReq=window.__hmBattleReq||0;DEFS=genDefs();layout();};   // fresh random arena; the button calls this synchronously so heads can be scattered onto it
@@ -3958,17 +3963,21 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
  // ===== FLOOR IS LAVA: a rising molten pool (WebGL shader), a wavy glowing crust, heat haze, embers =====
  (function lava(){
   var hero=document.querySelector(".hero");if(!hero)return;
-  (function(){var s=document.createElement("style");s.textContent="@keyframes hmHazeWob{from{transform:translateY(1.5px) scaleY(1.03)}to{transform:translateY(-1.5px) scaleY(0.98)}}";document.head.appendChild(s);})();
+  (function(){var s=document.createElement("style");s.textContent="@keyframes hmHazeWob{0%{transform:translateY(2px) scaleY(1.04)}50%{transform:translateY(-1px) scaleY(0.99)}100%{transform:translateY(2px) scaleY(1.04)}}";document.head.appendChild(s);
+   // real HEAT-SHIMMER refraction: animated turbulence displaces whatever is behind the haze band
+   var svg=document.createElementNS("http://www.w3.org/2000/svg","svg");svg.setAttribute("width","0");svg.setAttribute("height","0");svg.style.cssText="position:absolute;width:0;height:0";
+   svg.innerHTML='<filter id="hmHeatFilter" x="-20%" y="-20%" width="140%" height="140%"><feTurbulence type="fractalNoise" baseFrequency="0.011 0.05" numOctaves="2" seed="6" result="n"><animate attributeName="baseFrequency" dur="4.5s" values="0.011 0.05;0.014 0.062;0.010 0.044;0.011 0.05" repeatCount="indefinite"/></feTurbulence><feDisplacementMap in="SourceGraphic" in2="n" scale="11" xChannelSelector="R" yChannelSelector="G"/></filter>';
+   document.body.appendChild(svg);})();
   // ---- the rising surface wave (shared by the crust render AND game logic so death lines up with what you see) ----
   var WAMP=7,WK1=0.021,WK2=0.052,WS1=1.1,WS2=1.7;
   function waveAt(xpx,t){return Math.sin(xpx*WK1+t*WS1)*WAMP + Math.sin(xpx*WK2 - t*WS2)*WAMP*0.45;}
-  var level=0,surfaceY=1e9,arenaBottom=0,arenaW=0,arenaH=0,running=false,t0=performance.now(),RISE_DUR=31000,embers=[];   // ms to fill (slow, tense, but not tedious)
+  var level=0,surfaceY=1e9,arenaBottom=0,arenaW=0,arenaH=0,heroLeft=0,running=false,t0=performance.now(),RISE_DUR=31000,embers=[];   // ms to fill (slow, tense, but not tedious)
   // ---- DOM: molten body (WebGL) + wavy crust (2D canvas) + heat haze band ----
   var wrap=document.createElement("div");wrap.className="hmLavaWrap";wrap.setAttribute("aria-hidden","true");
   wrap.style.cssText="position:absolute;left:0;right:0;bottom:0;top:0;pointer-events:none;z-index:0;opacity:0;transition:opacity .5s";
   var gcv=document.createElement("canvas");gcv.className="hmLavaGL";gcv.style.cssText="position:absolute;left:0;bottom:0;width:100%;height:100%;display:block";
   var crust=document.createElement("canvas");crust.className="hmLavaCrust";crust.style.cssText="position:absolute;left:0;top:0;width:100%;height:100%;display:block;pointer-events:none;z-index:6";
-  var haze=document.createElement("div");haze.className="hmLavaHaze";haze.style.cssText="position:absolute;left:0;right:0;height:56px;pointer-events:none;z-index:7;opacity:0;transition:opacity .4s;-webkit-backdrop-filter:blur(2.4px) brightness(1.05) saturate(1.15);backdrop-filter:blur(2.4px) brightness(1.05) saturate(1.15);-webkit-mask-image:linear-gradient(to top,#000,rgba(0,0,0,0));mask-image:linear-gradient(to top,#000,rgba(0,0,0,0));background:linear-gradient(to top,rgba(255,140,40,.10),rgba(255,140,40,0));animation:hmHazeWob 1.7s ease-in-out infinite alternate";
+  var haze=document.createElement("div");haze.className="hmLavaHaze";haze.style.cssText="position:absolute;left:0;right:0;height:96px;pointer-events:none;z-index:7;opacity:0;transition:opacity .4s;-webkit-backdrop-filter:blur(1.4px) url(#hmHeatFilter) brightness(1.06) saturate(1.2);backdrop-filter:blur(1.4px) url(#hmHeatFilter) brightness(1.06) saturate(1.2);-webkit-mask-image:linear-gradient(to top,#000 30%,rgba(0,0,0,0));mask-image:linear-gradient(to top,#000 30%,rgba(0,0,0,0));background:linear-gradient(to top,rgba(255,130,35,.14),rgba(255,130,35,0));animation:hmHazeWob 2.1s ease-in-out infinite";
   var glow=document.createElement("div");glow.className="hmLavaGlow";glow.style.cssText="position:absolute;left:0;right:0;bottom:0;top:0;pointer-events:none;z-index:5;opacity:0;transition:opacity .5s;background:radial-gradient(120% 60% at 50% 100%,rgba(255,120,30,.28),rgba(255,80,10,.06) 45%,transparent 70%)";
   wrap.appendChild(gcv);hero.appendChild(wrap);hero.appendChild(glow);hero.appendChild(crust);hero.appendChild(haze);
 
@@ -3998,15 +4007,17 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    var buf=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buf);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,3,-1,-1,3]),gl.STATIC_DRAW);
    var loc=gl.getAttribLocation(prog,"a_pos");gl.enableVertexAttribArray(loc);gl.vertexAttribPointer(loc,2,gl.FLOAT,false,0,0);
    uRes=gl.getUniformLocation(prog,"u_res");uTime=gl.getUniformLocation(prog,"u_time");glOK=true;return true;}catch(e){console.warn("lava GL init failed",e);return false;}}
-  function sizeGL(){var r=hero.getBoundingClientRect();arenaW=Math.round(r.width);arenaH=Math.round(r.height);arenaBottom=arenaH;
+  function sizeGL(){var r=hero.getBoundingClientRect();heroLeft=Math.round(r.left);arenaW=Math.round(innerWidth);arenaH=Math.round(r.height);arenaBottom=arenaH;
    GW=Math.max(1,Math.floor(arenaW*SCALE));GH=Math.max(1,Math.floor(arenaH*SCALE));gcv.width=GW;gcv.height=GH;if(gl)gl.viewport(0,0,GW,GH);
-   crust.width=arenaW;crust.height=arenaH;}
+   crust.width=arenaW;crust.height=arenaH;
+   [wrap,glow,crust,haze].forEach(function(el){el.style.left=(-heroLeft)+"px";el.style.right="auto";el.style.width=arenaW+"px";});}   // edge-to-edge: stretch past the hero's side margins to fill the whole viewport width
   var cctx=crust.getContext("2d");
   function active(){return document.body.classList.contains("hmBattle");}
   // ---- exposed hooks for game logic ----
   window.__hmLavaOn=false;
   window.__hmLavaY=function(xpx){return surfaceY+waveAt(xpx,(performance.now()-t0)/1000);};   // the death line at this x (hero-local)
   var lastReq=0;
+  window.__hmLavaJump=function(l){t0=performance.now()-2900-l*RISE_DUR;};   /*TESTHOOK*/
   function start(){t0=performance.now();level=0;embers.length=0;lastReq=window.__hmBattleReq||0;if(!gl&&!initGL()){/* no webgl: crust-only fallback */}sizeGL();running=true;wrap.style.opacity="1";glow.style.opacity="1";window.__hmLavaOn=true;requestAnimationFrame(loop);}
   function stop(){running=false;window.__hmLavaOn=false;wrap.style.opacity="0";glow.style.opacity="0";haze.style.opacity="0";surfaceY=1e9;level=0;embers.length=0;if(cctx)cctx.clearRect(0,0,crust.width,crust.height);}
   var wasOn=false,lastFrame=performance.now();
@@ -4014,8 +4025,8 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    requestAnimationFrame(loop);var tsec=(n-t0)/1000;
    if((window.__hmBattleReq||0)!==lastReq){lastReq=window.__hmBattleReq||0;t0=n;embers.length=0;}   // a NEW game -> restart the rise from the bottom (survives a throttled start/stop)
    // rise: hold during the 3-2-1 countdown, then climb from just under the floor to the top over RISE_DUR
-   level=Math.min(1,Math.max(0,(n-t0-2900)/RISE_DUR));
-   var startY=arenaH-6,topY=arenaH*0.12;surfaceY=startY-(startY-topY)*level;   // surface rises up the screen
+   var _lin=Math.min(1,Math.max(0,(n-t0-2900)/RISE_DUR));level=Math.pow(_lin,1.42);   // EASE-IN: creeps up slowly at first (long jostle on the base) then climbs faster for a tense finish
+   var startY=arenaH+34,topY=arenaH*0.05;surfaceY=startY-(startY-topY)*level;   // starts EMPTY (below the header) and fills it right up to the top
    // molten body: render + clip to below the surface
    if(glOK){gl.uniform2f(uRes,GW,GH);gl.uniform1f(uTime,tsec);gl.drawArrays(gl.TRIANGLES,0,3);}
    var clipTop=Math.max(0,Math.round(surfaceY-WAMP*1.6));gcv.style.clipPath="inset("+clipTop+"px 0 0 0)";gcv.style.webkitClipPath="inset("+clipTop+"px 0 0 0)";
@@ -4023,24 +4034,24 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    drawCrust(tsec);
    // embers: little glowing motes drifting up off the lava, then winking out
    var dt=Math.min(0.05,(n-lastFrame)/1000);
-   if(surfaceY<arenaH-20&&Math.random()<dt*22){var ex=Math.random()*arenaW;embers.push({x:ex,y:surfaceY+waveAt(ex,tsec)-2,vx:(Math.random()*24-12),vy:-(24+Math.random()*46),life:1,max:1.1+Math.random()*1.4,r:1+Math.random()*2.2});}
+   if(surfaceY<arenaH-20&&Math.random()<dt*34){var ex=Math.random()*arenaW;embers.push({x:ex,y:surfaceY+waveAt(ex-heroLeft,tsec)-2,vx:(Math.random()*26-13),vy:-(30+Math.random()*60),life:1,max:1.2+Math.random()*1.6,r:1+Math.random()*2.4});}
    if(cctx){for(var ei=embers.length-1;ei>=0;ei--){var em=embers[ei];em.life-=dt/em.max;if(em.life<=0){embers.splice(ei,1);continue;}
     em.vy+=6*dt;em.x+=em.vx*dt;em.y+=em.vy*dt;var ea=em.life;
     cctx.beginPath();cctx.arc(em.x,em.y,em.r,0,6.283);cctx.fillStyle="rgba(255,"+(150+ea*90|0)+","+(40+ea*90|0)+","+(ea*0.9).toFixed(2)+")";cctx.shadowColor="rgba(255,140,40,"+ea.toFixed(2)+")";cctx.shadowBlur=6;cctx.fill();}
     cctx.shadowBlur=0;}
    // heat haze band sits just above the surface
-   haze.style.top=Math.round(surfaceY-56)+"px";haze.style.opacity=(surfaceY<arenaH-20?"1":"0");
+   haze.style.top=Math.round(surfaceY-90)+"px";haze.style.opacity=(surfaceY<arenaH-20?"1":"0");
    lastFrame=n;wasOn=true;}
   function drawCrust(tsec){if(!cctx)return;cctx.clearRect(0,0,crust.width,crust.height);
    var W=crust.width,sy=surfaceY;if(sy>arenaH-4)return;
    // ONLY a thin hot glow band hugging the surface (fades out ~52px down) so the WebGL molten body shows through below
-   cctx.save();cctx.beginPath();cctx.moveTo(0,sy+waveAt(0,tsec));
-   for(var xx=0;xx<=W;xx+=5){cctx.lineTo(xx,sy+waveAt(xx,tsec));}
+   cctx.save();cctx.beginPath();cctx.moveTo(0,sy+waveAt(-heroLeft,tsec));
+   for(var xx=0;xx<=W;xx+=5){cctx.lineTo(xx,sy+waveAt(xx-heroLeft,tsec));}
    cctx.lineTo(W,sy+54);cctx.lineTo(0,sy+54);cctx.closePath();
    var grd=cctx.createLinearGradient(0,sy-4,0,sy+54);grd.addColorStop(0,"rgba(255,228,150,0.9)");grd.addColorStop(0.32,"rgba(255,155,55,0.5)");grd.addColorStop(1,"rgba(255,110,20,0)");
    cctx.fillStyle=grd;cctx.fill();
    // bright wavy crest line + bloom
-   cctx.beginPath();cctx.moveTo(0,sy+waveAt(0,tsec));for(var x2=0;x2<=W;x2+=5){cctx.lineTo(x2,sy+waveAt(x2,tsec));}
+   cctx.beginPath();cctx.moveTo(0,sy+waveAt(-heroLeft,tsec));for(var x2=0;x2<=W;x2+=5){cctx.lineTo(x2,sy+waveAt(x2-heroLeft,tsec));}
    cctx.lineWidth=2.5;cctx.strokeStyle="rgba(255,242,175,0.95)";cctx.shadowColor="rgba(255,150,40,0.95)";cctx.shadowBlur=16;cctx.stroke();
    cctx.restore();}
   // start/stop with the mode
