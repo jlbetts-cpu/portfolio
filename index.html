@@ -35,7 +35,8 @@
 html{scroll-behavior:smooth}
 .siteFoot{scroll-margin-top:80px}
 
-:root{--c50:#FDFDFD;--c100:#E6E6E6;--c500:#838383;--c600:#6B6B6B;--c700:#525252;--c900:#212121;--c950:#121212;
+:root{--c50:#FDFDFD;--c100:#E6E6E6;--c500:#838383;--c600:#6B6B6B;--c700:#525252;--c900:#212121;--c950:#121212;--accent:#0E6B3B;--accent-live:#17A45A;
+ /* --accent: the one restrained highlight (deep emerald, 6.5:1 on white) -- hero keyword phrases + the active case-study tab; --accent-live: a brighter "available" status dot */
  --sans:"Instrument Sans",-apple-system,system-ui,sans-serif;--serif:"Fraunces","Fraunces Fallback",Georgia,serif;--fs-display:clamp(40px,12vw,168px);--fs-hero:clamp(38px,4.7vw,60px);--fs-h2:clamp(26px,2.5vw,36px);--fs-h3:clamp(21px,2.4vw,32px);--fs-h4:clamp(19px,2.1vw,28px);--fs-h5:clamp(20px,1.7vw,24px);--fs-lead:clamp(15px,1.4vw,18px);--fs-prose:clamp(17px,1.39vw,20px);--fs-body:16px;--fs-small:15px;--fs-tab:clamp(17px,1.5vw,20px);--fs-label:13px;--fs-caption:12px;--fs-micro:11px;--lh-display:1.0;--lh-tight:1.08;--lh-body:1.5;--lh-prose:1.6;--lh-flat:1;}
 *{box-sizing:border-box;margin:0;padding:0}
 @media(max-width:760px){
@@ -355,13 +356,13 @@ body.hmSoccer .heroCopy>h1,body.hmSoccer .heroCopy>.sub,body.hmSoccer .heroCopy>
 .cases{position:relative;z-index:61;margin:clamp(80px,12vh,144px) auto 0;background:var(--c50)}
 .caseInset{max-width:1280px;margin:0 auto;padding:0 40px}
 /* tab bar: Instrument Sans, active = ink + underline, others muted; stepped like the rest of the site */
-.csTabs{display:flex;flex-wrap:wrap;gap:38px;align-items:flex-end;margin:0 auto clamp(24px,3.2vh,40px);position:relative}.csTabs::before{content:"";position:absolute;left:40px;right:40px;bottom:0;height:1px;background:rgba(8,8,8,.14)}@media(max-width:760px){.csTabs::before{left:24px;right:24px}}
+.csTabs{display:flex;flex-wrap:wrap;gap:22px;align-items:flex-end;margin:0 auto clamp(24px,3.2vh,40px);position:relative}.csTabs::before{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;background:rgba(8,8,8,.12)}
 .csTab{position:relative;background:none;border:0;padding:0 0 13px;margin:0;font:inherit;font-family:var(--sans);font-weight:600;font-size:var(--fs-tab);letter-spacing:.01em;text-transform:none;color:var(--c500);cursor:pointer;transition:color .25s cubic-bezier(.2,.8,.2,1);filter:url(#inkSm)}
-.csTab:hover{color:var(--c700)}
-.csTab.on{color:var(--c950)}
+.csTab:hover{color:var(--accent)}
+.csTab.on{color:var(--accent)}
 .csTab::after{display:none}
 .csTab.on::after{transform:scaleX(1)}
-.csTabInk{position:absolute;bottom:0;left:0;height:2px;width:0;background:var(--c950);transform:translate(0,0);transition:transform .34s cubic-bezier(.2,.8,.2,1),width .34s cubic-bezier(.2,.8,.2,1);pointer-events:none}
+.csTabInk{position:absolute;bottom:0;left:0;height:2px;width:0;background:var(--accent);transform:translate(0,0);transition:transform .34s cubic-bezier(.2,.8,.2,1),width .34s cubic-bezier(.2,.8,.2,1);pointer-events:none}
 /* panels: only the active one occupies flow */
 .csPanel{display:none}
 .csPanel.on{display:block;animation:csPanelIn .42s cubic-bezier(.2,.8,.2,1)}
@@ -2499,13 +2500,13 @@ requestAnimationFrame(function(){requestAnimationFrame(startIntro);});
   var FINE=window.matchMedia&&window.matchMedia('(hover:hover) and (pointer:fine)').matches; if(!FINE)return;
   var RM=window.matchMedia&&window.matchMedia('(prefers-reduced-motion:reduce)').matches;
   /* EDIT THESE: per-project Role / Problem / Solution (placeholders drafted by Claude) */
-  var CSINFO={
-   r3shore:{role:"Head of UX",problem:"R3SHORE is AI-native staffing for American hardware manufacturing.",solution:"This case study is still in progress, check back soon."},
-   bearings:{role:"Product Designer",problem:"Planning a group road trip means juggling five apps and a group chat.",solution:"One canvas to map the route, split costs, and lock the plan together."},
-   apollo:{role:"Founder & product designer",problem:"The middle of building any habit goes unseen, and rarely feels rewarding.",solution:"A social app where you capture daily wins and close friends witness you show up."},
-   ucdavis:{role:"Solo product designer",problem:"The campus rec app made you log in every time and buried everything else.",solution:"A hierarchy-first redesign, with the gym ID moved into Apple Wallet."},strata:{role:"Designer & builder",problem:"Some habits stick, others never start, so I set out to make building them feel like a game.",solution:"A gamified habit builder where wins stack into a tower, with sound, photos, and XP."},
-   cluster:{role:"Lead designer",problem:"UC Davis has 800+ clubs, but the niche ones are nearly impossible to find.",solution:"A campus app to discover clubs, follow them, and find your people."},
-   headmaker:{role:"Design & code",problem:"The floating head is the soul of this site, but only I got to have one.",solution:"Turn a photo into your own living cutout that hops around my homepage beside mine."}
+  var CSINFO={   // recruiter-scan copy: one crisp Problem sentence + one crisp Solution sentence, every fact kept
+   r3shore:{role:"Head of UX",problem:"AI-native staffing for American hardware manufacturing.",solution:"In progress — case study coming soon."},
+   bearings:{role:"Product designer",problem:"Planning a group road trip means five apps and a group chat.",solution:"One shared canvas to route, split costs, and lock the plan."},
+   apollo:{role:"Founder & product designer",problem:"The middle of building a habit goes unseen and unrewarded.",solution:"A social app where close friends witness your daily wins."},
+   ucdavis:{role:"Solo product designer",problem:"The rec app forced a login every visit and buried the rest.",solution:"A hierarchy-first redesign, with the gym ID moved into Apple Wallet."},strata:{role:"Designer & builder",problem:"Some habits never start — so I made building them a game.",solution:"A habit builder where wins stack into a tower: sound, photos, XP."},
+   cluster:{role:"Lead designer",problem:"UC Davis has 800+ clubs, but the niche ones are impossible to find.",solution:"A campus app to discover clubs, follow them, and find your people."},
+   headmaker:{role:"Design & code",problem:"The floating head is the soul of this site — but only I had one.",solution:"Turn a photo into a living cutout that hops around beside mine."}
   };
   var card=document.getElementById('csInfoCard'),cur=document.getElementById('csCursor'),vc=document.getElementById('viewCursor'); if(!card||!cur)return;
   var vR=card.querySelector('[data-f=role]'),vP=card.querySelector('[data-f=problem]'),vS=card.querySelector('[data-f=solution]');
