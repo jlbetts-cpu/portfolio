@@ -3156,6 +3156,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
  function collides(nx,ny,pad){for(var i=0;i<avoids.length;i++){var a=avoids[i];
   if(nx+HW>a.l-pad&&nx<a.r+pad&&ny+HH>a.t-pad&&ny<a.b+pad)return true;}return false;}
  // --- state ---
+ var aimX=null,campT=0,recAt=0;   // FLOOR-IS-LAVA AI: aimX = the x this head is steering toward mid-flight (mid-air course-correction), campT = how long it's camped a slab (anti-camp), recAt = throttle for knocked-off recovery
  var x=bigR?(bigR.l+(bigR.r-bigR.l)/2-HW/2):Math.max(8,heroR.w*0.06),y=bigR?(bigR.t-HH+6):floorY,vx=0,vy=0,dir=1,depth=1,depthT=1,air=false,surface=floorY,
      st="idle",stT=0,hopsLeft=0,grabbed=false,gpx=0,gpy=0,lastPX=0,lastPY=0,pvx=0,pvy=0,
      offAt=0,gone=false,goneUntil=0,decideAt=performance.now()+4200,spin=0,heldOff=0,heldV=0,cTop=false,bornAt=performance.now()+1600,perched=false,hs=1,hsT=1,dockUntil=0,moodB=false,pbAt=0,mirrorAt=0,downT=0,downX=0,downY=0,shakeN=0,heartsF=0,danceHops=0,dblBlink=false,
@@ -3244,7 +3245,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    window.__hmFX.burst(sx,lavaY,{count:8,color:"120,60,20",speed:180,gravity:600,life:0.8,size:5});
    window.__hmFX.ring(sx,lavaY,{r0:6,r1:78,color:"255,185,75",width:4,life:0.5});
    window.__hmFX.flash("255,180,90",0.13);window.__hmFX.shake(6);}}catch(_){}}
- function land(){air=false;vy=0;vx=0;y=surface;sqT=0.12;sqyP=0.91;sqxP=1/0.91;vaulting=false;
+ function land(){air=false;vy=0;vx=0;y=surface;sqT=0.12;sqyP=0.91;sqxP=1/0.91;vaulting=false;aimX=null;
   if(lapBack){lapBack=false;plane(true);}   // the lap ends where hands can reach again
   if(flipV!==0){try{if(typeof browFlash==="function")browFlash();}catch(_){}}   // it stuck the somersault: he notices
   flipA=0;flipV=0;
@@ -3392,16 +3393,17 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   tk3++;var now=_nowF,aboutB=false;moodB=false;
   // FLOOR IS LAVA -- the dramatic slow sink: once you touch the lava you're done; drift down, char, fade, then out
   if(me.__sinking&&(window.__hmRespawn||0)>=(window.__hmBattleReq||0)){me.__sinking=null;me.__sunk=0;root.style.filter="";root.style.opacity="1";root.style.zIndex="3";if(shadow){shadow.style.zIndex="2";shadow.style.display="";}root.style.display="";}   // the round ended mid-sink: abandon the descent so the reset below brings this head back with everyone else
-  if(me.__sinking){var _sk=me.__sinking,_sdt=(DT>0?DT:0.016);_sk.t+=_sdt;var _kf=Math.min(1,_sk.t/2.15);   // slower, weightier -- a Terminator descent
-   y+=(30+_sk.t*66)*_sdt;
-   var _tlt=Math.sin(Math.min(1,_kf*1.3)*3.14159)*13*(_sk.dir||1);   // tips over as it goes under
-   root.style.opacity=(_kf<0.4?"1":(1-(_kf-0.4)/0.6).toFixed(2));   // holds visible, then fades as it submerges
-   root.style.filter="brightness("+(1-0.82*_kf).toFixed(2)+") saturate("+(1-0.6*_kf).toFixed(2)+") sepia("+(0.68*_kf).toFixed(2)+")";
-   root.style.transform="translate("+x.toFixed(1)+"px,"+y.toFixed(1)+"px) rotate("+_tlt.toFixed(1)+"deg) scale("+(1-0.1*_kf).toFixed(3)+")";
+  if(me.__sinking){var _sk=me.__sinking,_sdt=(DT>0?DT:0.016);_sk.t+=_sdt;var _kf=Math.min(1,_sk.t/1.35);   // a quick, decisive MELT into the lava -- he DISINTEGRATES at the surface, never drifts down and out the bottom of the pool
+   if(_sk.y0==null)_sk.y0=y;
+   y=_sk.y0+(22+_kf*40)*_kf;   // sinks only ~60px -- just under the molten crust -- then dissolves in place
+   var _tlt=Math.sin(Math.min(1,_kf*1.3)*3.14159)*15*(_sk.dir||1);   // tips over as he goes under
+   root.style.opacity=(_kf<0.26?"1":(1-(_kf-0.26)/0.74).toFixed(2));   // holds a beat, then dissolves
+   root.style.filter="brightness("+(1-0.9*_kf).toFixed(2)+") saturate("+(1-0.72*_kf).toFixed(2)+") sepia("+(0.85*_kf).toFixed(2)+") blur("+(_kf*_kf*3.2).toFixed(1)+"px)";   // chars black + softens as he breaks apart
+   root.style.transform="translate("+x.toFixed(1)+"px,"+y.toFixed(1)+"px) rotate("+_tlt.toFixed(1)+"deg) scale("+(1-0.24*_kf).toFixed(3)+")";   // shrivels as he melts
    if(shadow)shadow.style.opacity="0";
    var _bsy=window.__hmLavaY(_sk.x);
-   if(window.__hmFX&&window.__hmLavaOn&&Math.random()<0.55)window.__hmFX.burst(_sk.x+(Math.random()*HW-HW/2),_bsy,{count:1,color:"255,175,75",speed:35+Math.random()*45,gravity:-58,life:0.75,size:2+Math.random()*3});   // bubbles rise around him
-   if(_kf>=1){if(window.__hmFX){window.__hmFX.burst(_sk.x,_bsy,{count:13,color:"255,180,75",speed:150,gravity:420,life:0.6,size:4});window.__hmFX.burst(_sk.x,_bsy,{count:6,color:"255,235,150",speed:90,gravity:300,life:0.5,size:3});window.__hmFX.ring(_sk.x,_bsy,{r0:4,r1:44,color:"255,205,100",width:3,life:0.5});}   // GONE: a final bubble burst as the lava closes over him
+   if(window.__hmFX&&window.__hmLavaOn&&Math.random()<0.9)window.__hmFX.burst(_sk.x+(Math.random()*HW-HW/2),y+HH*0.35,{count:1,color:"255,175,75",speed:45+Math.random()*60,gravity:-72,life:0.7,size:2+Math.random()*3});   // bits of him peel off + rise as embers -> he disintegrates INTO the lava, not through it
+   if(_kf>=1){if(window.__hmFX){window.__hmFX.burst(_sk.x,_bsy,{count:16,color:"255,180,75",speed:170,gravity:420,life:0.6,size:4});window.__hmFX.burst(_sk.x,_bsy,{count:8,color:"255,235,150",speed:100,gravity:300,life:0.5,size:3});window.__hmFX.ring(_sk.x,_bsy,{r0:4,r1:48,color:"255,205,100",width:3,life:0.5});}   // GONE: a final flare as the lava closes over him
     elim=true;me.elim=true;me.inB=true;root.style.display="none";if(shadow)shadow.style.display="none";me.__sinking=null;}
    return;}   // sinking owns the frame -- no AI, no physics (the molten body occludes him below the surface -> "swallowed")
   try{aboutB=document.body.classList.contains("about-open");moodB=(typeof busyNow==="function"&&busyNow());}catch(_){}
@@ -3534,38 +3536,35 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   if(battleOn&&!elim&&!me.podiumRank&&!me.spectate&&!grabbed&&!air&&!_dazed&&st==="idle"&&now>=decideAt&&now>=(window.__hmBattleGo||0)){
    var mcx=x+HW/2,myFeet=y+HH*FOOT;
    if(window.__hmLavaOn){   // ===== FLOOR IS LAVA -- SURVIVAL AI: climb to stay above the rising lava, sometimes shove a neighbour in =====
-    decideAt=now+190+Math.random()*180;
+    decideAt=now+150+Math.random()*130;
     var lavaY=window.__hmLavaY(mcx),danger=lavaY-myFeet;   // px of lava below my feet (smaller = deadlier)
-    // the best HIGHER platform still clear of the lava -- ~one good jump up, not too far sideways
-    var tP=null,tS=1e9;
-    for(var pi=0;pi<battlePlats.length;pi++){var P=battlePlats[pi],pcx=(P.l+P.r)/2;if(P.t>=window.__hmLavaY(pcx)-8)continue;var up=myFeet-P.t;if(up<16)continue;var sc=Math.abs(up-135)*1.0+Math.abs(pcx-mcx)*0.62;if(sc<tS){tS=sc;tP=P;}}
-    // a nearby rival I could body-check (toward the lava)
-    var _grT=(me.__grudge&&now<me.__grudge.until)?me.__grudge.t:null,_alT=(me.__ally&&now<me.__ally.until)?me.__ally.t:null;   // a nemesis to chase, an ally to spare
-    var _lt=window.__hmLavaTeams?window.__hmTeamSel:null,_myTm=_lt?(_lt[me.slot]||0):0,_enemyAlive=0;   // FIXED TEAMS: read the side each head picked in the tray
+    var VMX=1180,VXMX=545,HMAX=(1180*1180)/(2*G)-18;   // the biggest rise a head can clear, and a horizontal speed cap
+    var onSafe=false,edgeIn=1e9,myPlatC=mcx;   // am I on a still-safe slab, how near its edge, where is its centre
+    for(var pj=0;pj<battlePlats.length;pj++){var _P0=battlePlats[pj];if(mcx>_P0.l&&mcx<_P0.r&&Math.abs(myFeet-_P0.t)<11&&_P0.t<lavaY-6){onSafe=true;edgeIn=Math.min(mcx-_P0.l,_P0.r-mcx);myPlatC=(_P0.l+_P0.r)/2;break;}}
+    function planJump(P){var up=myFeet-P.t;if(up>HMAX)return null;   // plan a leap that LANDS on top of P -> null if out of reach, so a head NEVER leaps short into the lava
+     var clear=Math.max(95,up+62),vj=Math.min(VMX,Math.sqrt(2*G*clear)),disc=vj*vj-2*G*up;if(disc<0)return null;
+     var tAir=(vj+Math.sqrt(disc))/G,half=(P.r-P.l)/2,aim=Math.max(P.l+half*0.32,Math.min(P.r-half*0.32,mcx));
+     var vx0=(aim-mcx)/Math.max(0.16,tAir);if(Math.abs(vx0)>VXMX)return null;return{vy:-vj,vx:vx0};}
+    var tP=null,tJ=null,tS=1e9;   // the best safe slab I can actually REACH (a modest step up, not too far across)
+    for(var pi=0;pi<battlePlats.length;pi++){var P1=battlePlats[pi];if(P1.t>=lavaY-6)continue;var up1=myFeet-P1.t;if(up1<-4)continue;if(onSafe&&up1<24)continue;var J=planJump(P1);if(!J)continue;var pcx1=(P1.l+P1.r)/2,sc=Math.abs(up1-105)*0.7+Math.abs(pcx1-mcx)*0.42;if(sc<tS){tS=sc;tP=P1;tJ=J;}}
+    var _grT=(me.__grudge&&now<me.__grudge.until)?me.__grudge.t:null,_alT=(me.__ally&&now<me.__ally.until)?me.__ally.t:null;
+    var _lt=window.__hmLavaTeams?window.__hmTeamSel:null,_myTm=_lt?(_lt[me.slot]||0):0,_enemyAlive=0;
     if(_lt&&_myTm){for(var _ec=0;_ec<peers.length;_ec++){var _ev=peers[_ec];if(_ev===me||!_ev.inB||_ev.elim||_ev.__sinking)continue;if((_lt[_ev.slot]||0)!==_myTm)_enemyAlive++;}}
-    var _spareMate=(_lt&&_myTm&&_enemyAlive>0);   // hold fire on your own team UNTIL you're the last team standing -> then gloves off
-    var rvl=null,rbd=1e9;for(var s9=0;s9<peers.length;s9++){var rv=peers[s9];if(rv===me||!rv.inB||rv.elim||rv.__sinking||rv===_alT)continue;   // never shove an ally (a temporary team)
-     if(_spareMate&&(_lt[rv.slot]||0)===_myTm)continue;   // don't body-check a teammate
-     var rd=Math.hypot((rv.x+rv.HW/2)-mcx,(rv.y+rv.HH/2)-myFeet),_isFoe=(_lt&&_myTm&&(_lt[rv.slot]||0)!==_myTm),_w=(rv===_grT||_isFoe)?rd*0.35:rd,_reach=(rv===_grT||_isFoe)?HW*5.5:HW*2.7;   // a grudge -- or a rival team -- pulls you across the arena
+    var _spareMate=(_lt&&_myTm&&_enemyAlive>0);
+    var rvl=null,rbd=1e9;for(var s9=0;s9<peers.length;s9++){var rv=peers[s9];if(rv===me||!rv.inB||rv.elim||rv.__sinking||rv===_alT)continue;if(_spareMate&&(_lt[rv.slot]||0)===_myTm)continue;
+     var rvdx=(rv.x+rv.HW/2)-mcx,rvdy=(rv.y+rv.HH/2)-myFeet;if(Math.abs(rvdy)>HH*0.8)continue;   // only shove someone on ~my level -- never dive off a ledge after them
+     var rd=Math.hypot(rvdx,rvdy),_isFoe=(_lt&&_myTm&&(_lt[rv.slot]||0)!==_myTm),_w=(rv===_grT||_isFoe)?rd*0.4:rd,_reach=(rv===_grT||_isFoe)?HW*4:HW*2.3;
      if(rd<_reach&&_w<rbd){rbd=_w;rvl=rv;}}
-    if(danger>120&&rvl&&Math.random()<0.45){   // jostle: charge a neighbour and body-check them -- frequent enough to keep the arena lively, and the springy walls recycle whoever gets knocked toward the edge
-     var scx=rvl.x+rvl.HW/2;dir=(scx>mcx)?1:-1;surface=floorY;st="fall";air=true;gzx=dir*1;sacAt=now+400;
-     vy=-(120+Math.random()*70);vx=dir*Math.min(430,Math.max(180,Math.abs(scx-mcx)*2.0));sqT=0.12;sqyP=1.12;sqxP=1/1.12;}
-    else if(tP&&danger<230){   // climb well BEFORE the lava is on them -> heads keep ascending instead of standing until they drown
-     var tcx=(tP.l+tP.r)/2;dir=(tcx>mcx)?1:-1;surface=floorY;st="fall";air=true;gzx=dir*0.7;gzy=-0.45;sacAt=now+500;
-     var climb=Math.max(70,myFeet-tP.t+80),vyj=Math.min(1200,Math.max(600,climb*3.4+300));vy=-vyj;
-     vx=dir*Math.min(560,Math.abs(tcx-mcx)/Math.max(0.2,2*vyj/G));sqT=0.12;sqyP=1.1;sqxP=1/1.1;}
-    else if(danger<80){   // cornered, lava at my feet, nothing better -> a desperate scramble
-     dir=(Math.random()<0.5?-1:1);vy=-(720+Math.random()*220);vx=dir*(120+Math.random()*170);air=true;st="fall";surface=floorY;sqT=0.12;sqyP=1.1;sqxP=1/1.1;gzy=-0.5;}
-    else{   // LAVA STILL LOW: nobody stands around. Heads either climb toward higher ground or charge a neighbour -- always doing SOMETHING.
-     var _crowd=(window.__hmCrowd||4),_restless=(_crowd<=4?0.9:0.72);
-     if(!air&&Math.random()<_restless){
-      var _tgt=null,_td=1e9;for(var _rr=0;_rr<peers.length;_rr++){var _rp=peers[_rr];if(_rp===me||!_rp.inB||_rp.elim||_rp.__sinking)continue;var _dd=Math.abs((_rp.x+_rp.HW/2)-mcx);if(_dd<_td){_td=_dd;_tgt=_rp;}}
-      var _up=null,_us=1e9;for(var _pu=0;_pu<battlePlats.length;_pu++){var _P=battlePlats[_pu];if(_P.t>=window.__hmLavaY((_P.l+_P.r)/2)-8)continue;var _upd=myFeet-_P.t;if(_upd<24||_upd>360)continue;var _sc=Math.abs(_upd-150)+Math.abs((_P.l+_P.r)/2-mcx)*0.5;if(_sc<_us){_us=_sc;_up=_P;}}   // the best HIGHER platform about one jump up
-      var _r=Math.random();
-      if(_tgt&&_td>HW*0.72&&_r<0.5){var _tx=_tgt.x+_tgt.HW/2;dir=(_tx>mcx)?1:-1;air=true;st="fall";surface=floorY;gzx=dir*0.7;sacAt=now+500;vy=-(170+Math.random()*120);vx=dir*Math.min(420,Math.max(160,_td*1.4));sqT=0.12;sqyP=1.12;sqxP=1/1.12;}   // charge the nearest rival and bump
-      else if(_up){var _ux=(_up.l+_up.r)/2;dir=(_ux>mcx)?1:-1;air=true;st="fall";surface=floorY;gzx=dir*0.6;gzy=-0.4;sacAt=now+500;var _cl=Math.max(70,myFeet-_up.t+80),_vj=Math.min(1200,Math.max(600,_cl*3.4+300));vy=-_vj;vx=dir*Math.min(560,Math.abs(_ux-mcx)/Math.max(0.2,2*_vj/G));sqT=0.12;sqyP=1.1;sqxP=1/1.1;}   // otherwise HOP UP to higher ground -> the whole pit keeps ascending, never idle at the bottom
-      else{dir=(Math.random()<0.5?-1:1);air=true;st="fall";surface=floorY;vy=-(220+Math.random()*180);vx=dir*(80+Math.random()*160);sqT=0.12;sqyP=1.1;sqxP=1/1.1;}}}   // no target, no ledge -> a lively hop
+    var urgent=(danger<175);   // the lava is getting close -> reach safety NOW
+    if(urgent||!onSafe){
+     if(tP){dir=((tP.l+tP.r)/2>mcx)?1:-1;surface=floorY;st="fall";air=true;gzx=dir*0.7;gzy=-0.45;sacAt=now+440;vy=tJ.vy;vx=tJ.vx;aimX=(tP.l+tP.r)/2;if(Math.random()<0.55)startFlip();sqT=0.12;sqyP=1.1;sqxP=1/1.1;}   // spring onto a reachable safe slab (lands ON it) -- a somersault off a big climb
+     else{dir=(mcx>heroR.w/2)?-1:1;surface=floorY;st="fall";air=true;vy=-VMX;vx=vx*0.2+dir*60;aimX=null;gzy=-0.65;sqT=0.12;sqyP=1.12;sqxP=1/1.12;}   // nothing in reach -> leap STRAIGHT UP to buy a moment (a higher tier may be dropping in); NEVER a sideways dive into the pit
+    }else{   // safe for the moment -> fight for position but keep my footing
+     if(edgeIn<HW*0.5){dir=(myPlatC>mcx)?1:-1;surface=floorY;st="fall";air=true;vy=-(115+Math.random()*60);vx=dir*(95+Math.random()*80);aimX=myPlatC;sqT=0.11;sqyP=1.09;sqxP=1/1.09;}   // hugging the edge -> step back toward centre so a bump can't tip me in
+     else if(rvl&&Math.random()<0.55){var scx=rvl.x+rvl.HW/2;dir=(scx>mcx)?1:-1;surface=floorY;st="fall";air=true;gzx=dir*1;sacAt=now+360;vy=-(90+Math.random()*55);vx=dir*Math.min(290,Math.max(150,Math.abs(scx-mcx)*1.6));aimX=scx;sqT=0.12;sqyP=1.12;sqxP=1/1.12;}   // a short, LOW lunge to body-check a rival toward the edge -- stays on the slab
+     else if(tP&&Math.random()<0.3){dir=((tP.l+tP.r)/2>mcx)?1:-1;surface=floorY;st="fall";air=true;gzx=dir*0.6;gzy=-0.4;sacAt=now+440;vy=tJ.vy;vx=tJ.vx;aimX=(tP.l+tP.r)/2;if(Math.random()<0.5)startFlip();sqT=0.12;sqyP=1.1;sqxP=1/1.1;}   // now and then grab higher ground early
+     else if(danger<340&&Math.random()<0.5){gzy=0.45;gzx=Math.random()*0.4-0.2;sacAt=now+520;}   // otherwise HOLD + eye the rising lava (standing still is correct when you are safe and centred)
+    }
    } else {   // (legacy brawl AI -- unused now that Floor is Lava replaced it, kept as a fallback)
     decideAt=now+280+Math.random()*260;
     var tgt=null,td9=1e9;for(var b9=0;b9<peers.length;b9++){var pv=peers[b9];if(pv===me||!pv.inB||pv.elim)continue;var dd9=Math.abs((pv.x+pv.HW/2)-mcx);if(dd9<td9){td9=dd9;tgt=pv;}}
@@ -3680,6 +3679,11 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   var _wind=window.__hmWind;if(_wind&&now<_wind.until&&air&&!grabbed)vx+=_wind.ax*DT;   // WIND GUST: a sideways gale sweeps the airborne
   // physics: walls, floor, ceiling, and the caregiver — nothing else is solid
   if(!grabbed&&air){
+   if(window.__hmLavaOn&&battleOn&&now>=hitStop&&!me.__sinking){   // MID-AIR STEERING (Reynolds seek/arrive): correct the horizontal trajectory toward the target every frame -> jumps look intentional + always land, heads change direction mid-flight, and a knocked-loose head scrambles for safety instead of sailing helplessly into the lava
+    if(aimX==null&&vy>0&&now>=recAt){recAt=now+150;var _mf=y+HH*FOOT,_ly=window.__hmLavaY(x+HW/2),_bd=1e9;   // knocked loose with no plan -> grab the nearest reachable safe slab and scramble for it
+     for(var _ri=0;_ri<battlePlats.length;_ri++){var _RP=battlePlats[_ri];if(_RP.t>=_ly-6)continue;var _rup=_mf-_RP.t;if(_rup>((1180*1180)/(2*G))-20)continue;var _rc=(_RP.l+_RP.r)/2,_rdd=Math.abs(_rc-(x+HW/2))+Math.abs(_rup)*0.5;if(_rdd<_bd){_bd=_rdd;aimX=_rc;}}}
+    if(aimX!=null){var _mcx2=x+HW/2,_des=Math.max(-600,Math.min(600,(aimX-_mcx2)*2.4));vx+=Math.max(-1050*DT,Math.min(1050*DT,_des-vx));}   // arrive: eases off as it nears the aim, so it lands ON the slab instead of sailing off the far edge
+   }
    if(now>=hitStop){vy+=G*_gf*DT;if(vy>1800)vy=1800;if(vy<-1800)vy=-1800;x+=vx*DT;y+=vy*DT;if(flipA)flipA+=flipV*DT;}   // terminal velocity keeps dt-stepping sound; hit-stop freezes him for a few frames on impact so the blow READS (the squash keeps animating)
    if(x<WL){x=WL;if(Math.abs(vx)>420)brf=6;var _wl=window.__hmLavaOn;vx=_wl?Math.max(Math.abs(vx)*0.9,200):Math.abs(vx)*0.72;if(_wl){air=true;st="fall";vy=Math.min(vy,-Math.max(150,Math.abs(vx)*0.4));brf=6;}dir=1;sqT=0.13;sqxP=0.9;sqyP=1.11;}   // FLOOR IS LAVA: springy walls fling a knocked head back IN toward the platforms (guaranteed inward speed so a head can never climb/hover up the wall edge), with just enough lift to clear a slab
    if(x>WR){x=WR;if(Math.abs(vx)>420)brf=6;var _wr=window.__hmLavaOn;vx=_wr?-Math.max(Math.abs(vx)*0.9,200):-Math.abs(vx)*0.72;if(_wr){air=true;st="fall";vy=Math.min(vy,-Math.max(150,Math.abs(vx)*0.4));brf=6;}dir=-1;sqT=0.13;sqxP=0.9;sqyP=1.11;}
@@ -3721,8 +3725,8 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    if(d2>0.01&&d2<rr2){var nx2=dxp/d2,ny2=dyp/d2,ov=rr2-d2;
     x+=nx2*ov*0.5;if(air)y+=ny2*ov*0.3;   // squeeze apart: half me, half them (via the mailbox)
     var rvx=vx-o2.vx,rvy=vy-o2.vy,rel=rvx*nx2+rvy*ny2;
-    if(rel<0){var _lm=window.__hmLavaOn,jI=-(1+(_lm?0.85:0.72))*rel*(_lm?0.52:0.5);   // FLOOR IS LAVA: bumps have real punch now -> heads knock each other around and ricochet off the walls (the springy walls keep it from being instant death)
-     vx+=nx2*jI;vy+=ny2*jI*(_lm?0.5:0.6);o2.kx-=nx2*jI*(_lm?1.25:1);o2.ky-=ny2*jI*(_lm?0.5:0.6);
+    if(rel<0){var _lm=window.__hmLavaOn,jI=-(1+(_lm?0.6:0.72))*rel*(_lm?0.46:0.5);   // FLOOR IS LAVA: bumps still jostle + contest the slab, but softened so a crowd doesn't just fling each other clean off to their deaths
+     vx+=nx2*jI;vy+=ny2*jI*(_lm?0.42:0.6);o2.kx-=nx2*jI*(_lm?1.05:1);o2.ky-=ny2*jI*(_lm?0.42:0.6);
      var hit=Math.abs(rel);
      if(battleOn&&!elim&&o2.inB&&!o2.elim&&(slot||0)<(o2.slot||0)&&now>=(window.__hmBattleGo||0)){   // resolve each pair ONCE (lower slot) so nobody is hit twice, and only after the whistle
       var meApp=-(vx*nx2+vy*ny2),o2App=(o2.vx*nx2+o2.vy*ny2),TH=200;   // each head's closing speed toward the other -- only a real lunge lands
@@ -4090,7 +4094,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    if(on&&!wasOn)countdown();if(!on&&wasOn){cdN++;cEl.textContent="";}wasOn=on;
    if(!on){if(el.style.opacity!=="0"){el.style.opacity="0";shownN=-1;}return;}
    acc+=(nowT-lastT);lastT=nowT;if(acc<180)return;acc=0;   // ~5x/sec is plenty for a counter
-   var n=0;for(var i=0;i<peers.length;i++){if(peers[i].inB&&!peers[i].elim)n++;}
+   var n=0;for(var i=0;i<peers.length;i++){if(peers[i].inB&&!peers[i].elim&&!peers[i].__sinking)n++;}   // a head melting into the lava is already OUT -> don't keep counting it as "left" (matches the winner check)
    if(n!==shownN){shownN=n;b.textContent=n;}el.style.opacity="1";}
   requestAnimationFrame(tick);
  })();
@@ -4101,7 +4105,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   // each slab: {l,r fractions, hFrac height-above-floor, thin 0..2, arrive lava-level 0..1 when it drops in}. Total seats per live tier < the crowd -> somebody always has to scrap for a spot or go in.
   function genDefs(){var defs=[],mob=innerWidth<=768;
    function P(l,w,hFrac,thin,arrive){var jl=Math.min(0.95-w,Math.max(0.04,l+(Math.random()*0.03-0.015)));defs.push({l:jl,r:jl+w,hFrac:hFrac,thin:thin,arrive:arrive});}
-   P(mob?0.08:0.09,mob?0.84:0.82,0.16,0,0);   // the BASE -- everyone starts here, then it drowns first and forces the scramble up
+   P(mob?0.05:0.05,mob?0.90:0.90,0.15,0,0);   // the BASE -- nice and WIDE so a full crowd fits shoulder-to-shoulder without shoving each other off at the whistle; it drowns first and forces the scramble up
    if(mob){
     P(0.08,0.32,0.36,1,0.12); P(0.60,0.32,0.36,1,0.12);   // tier A
     P(0.34,0.28,0.54,1,0.34);                             // tier B -- one slab, tighter
