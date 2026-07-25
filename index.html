@@ -4224,7 +4224,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    +".hmRaceWrap{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:2;opacity:0;transition:opacity .4s cubic-bezier(.2,.8,.2,1)}body.hmRace .hmRaceWrap{opacity:1}"
    +".hmRacePeg{position:absolute;border-radius:50%;background:var(--c50);border:1px solid rgba(8,8,8,.22);box-shadow:inset 0 1px 0 rgba(255,255,255,.9),0 2px 5px rgba(22,22,28,.18)}"
    +".hmRaceSeg{position:absolute;height:9px;border-radius:9px;background:url(images/plank-rung.jpg) center/cover;box-shadow:inset 0 1px 0 rgba(255,255,255,.95),0 6px 14px -4px rgba(22,22,28,.32);border:1px solid rgba(8,8,8,.16);transform-origin:0 50%}"
-   +".hmRaceSeg.spin{background:linear-gradient(180deg,#cfc0f4 0%,#a58ae4 54%,#7b5fd0 100%)}"
+   +".hmRaceSeg.spin{background:url(images/metal-rung.jpg) center/cover;border:2px solid #7b5fd0}.hmRaceSeg.gate{background:url(images/metal-rung.jpg) center/cover;border:2px solid var(--c950)}"
    +".hmRaceFin{position:absolute;height:16px;background:repeating-linear-gradient(90deg,#212121 0 14px,#FDFDFD 14px 28px);border-radius:3px;box-shadow:0 4px 12px -3px rgba(22,22,28,.4)}"
    +".hmRaceBoard{position:absolute;left:14px;top:50%;transform:translateY(-50%);z-index:49;display:none;flex-direction:column;gap:5px;opacity:.72}body.hmRace .hmRaceBoard{display:flex}"   /* the standings live in the GUTTER, vertically centred at the screen's edge -- out of the course's hot centre, one glance away */
    +".hmRaceRow{display:flex;align-items:center;gap:7px;background:rgba(253,253,253,.82);border:1px solid var(--c100);border-radius:99px;padding:3px 10px 3px 4px;font-family:var(--sans);font-weight:600;font-size:12px;color:var(--c700);backdrop-filter:blur(4px);will-change:transform}"
@@ -4526,13 +4526,13 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    for(var i=0;i<els.length;i++)SL.push({el:els[i],l:0,w:10,y:fl,kind:"",mv:0,crumbAt:0,dead:true});
    SL[0].dead=false;SL[0].l=lx();SL[0].w=Math.round(W-lx());SL[0].y=fl;SL[0].kind="";   // the OPENING GROUND: the entire floor, so the whole crowd starts spread out and nobody is crowded off at the whistle
    for(var j=1;j<SL.length;j++){SL[j].dead=false;respawn(SL[j]);}}
-  var SKIN={pad:"linear-gradient(180deg,#8fe3c2 0%,#4fc79b 54%,#2ea87c 100%)",move:"linear-gradient(180deg,#cfc0f4 0%,#a58ae4 54%,#7b5fd0 100%)",crumble:"linear-gradient(180deg,#f4dcab 0%,#e0b769 54%,#c2902f 100%)"};
+  var SKIN={pad:"url(images/cork-rung.jpg) center/cover",move:"url(images/metal-rung.jpg) center/cover",crumble:"url(images/stone-rung.jpg) center/cover"},BORD={pad:"#2ea87c",move:"#7b5fd0",crumble:"#c2902f"};   // COLLAGE rungs: real cork springs you, brushed metal patrols, cracked rock crumbles -- each still wears its gameplay colour on the edge so function reads at a glance
   function render(){var H=hh(),OX=ox(),inB=document.body.classList.contains("hmBattle");battlePlats.length=0;
    for(var i=0;i<SL.length;i++){var s=SL[i];if(!s.el)continue;
     var cx=s.l+s.w/2,lav=lavaAt(cx,OX),under=(s.y>lav-4);   // a rung level with the crust is already gone: it must never re-emerge below the lava
     var w9=s.w+"px";if(s.__w!==w9){s.__w=w9;s.el.style.width=w9;s.el.style.height=([15,11,9][s.kind==="crumble"?2:(s.kind?1:1)])+"px";}   // write-on-change only: 20 slabs x 5 style writes a frame was a steady style-recalc tax (the lag)
     var tf="translate("+(s.l+OX).toFixed(1)+"px,"+s.y.toFixed(1)+"px)";if(s.__tf!==tf){s.__tf=tf;s.el.style.transform=tf;}   // sub-pixel, shifted into hero space at the last moment: rounding every frame is what makes a scroll judder
-    var bg=SKIN[s.kind]||"";if(s.__bg!==bg){s.__bg=bg;s.el.style.background=bg;}
+    var bg=SKIN[s.kind]||"";if(s.__bg!==bg){s.__bg=bg;s.el.style.background=bg;s.el.style.borderColor=BORD[s.kind]||"";s.el.style.borderWidth=s.kind?"2px":"1px";}
     var vis=(inB&&!s.dead&&!under&&s.y>-30&&s.y<H+40);
     var op=vis?((s.crumbAt&&!s.dead)?"0.55":"1"):"0";if(s.__op!==op){s.__op=op;s.el.style.opacity=op;}
     if(vis)battlePlats.push({l:s.l+OX,r:s.l+s.w+OX,t:Math.round(s.y),pad:(s.kind==="pad"),id:i});}}
