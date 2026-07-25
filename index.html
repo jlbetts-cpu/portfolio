@@ -3270,6 +3270,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   me.__sinking={t:0,x:x+HW/2,dir:(Math.random()<0.5?-1:1)};air=false;vx=0;vy=0;flipA=0;flipV=0;wig=null;grabbed=false;perched=false;gzy=-0.7;   // one last look up
   root.style.zIndex="-1";if(shadow)shadow.style.zIndex="-1";   // drop BEHIND the molten body so the lava swallows him as he goes under (occluded, not floating on top)
   try{if(window.__hmFX){var sx=x+HW/2;
+   window.__hmFX.burst(sx,lavaY,{count:18,color:"255,170,60",speed:540,gravity:1080,life:0.85,size:6,dir:-1.57,spread:0.5});   // the PLUME: lava kicks up in a tall crown as he punches the surface, then rains back -> a real splash, not a fly-through
    window.__hmFX.burst(sx,lavaY,{count:24,color:"255,150,50",speed:360,gravity:950,life:0.7,size:5});
    window.__hmFX.burst(sx,lavaY,{count:11,color:"255,225,130",speed:230,gravity:750,life:0.5,size:4});
    window.__hmFX.burst(sx,lavaY,{count:8,color:"120,60,20",speed:180,gravity:600,life:0.8,size:5});
@@ -3857,9 +3858,9 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
     else{me.__grudge=null;me.__ally=null;}}}   // free agent
   if(battleOn&&window.__hmLavaOn&&!me.__sinking&&!elim&&!grabbed&&!me.podiumRank&&now>=(window.__hmBattleGo||0)){var _lavaY=window.__hmLavaY(x+HW/2);
    if(y+HH*FOOT>=_lavaY-1){var _alive=0;for(var _av=0;_av<peers.length;_av++){if(peers[_av].inB&&!peers[_av].elim&&!peers[_av].__sinking)_alive++;}
-    if(_alive<=1){if(!air){vy=-(880+Math.random()*180);vx=(Math.random()*160-80);air=true;st="fall";surface=floorY;sqT=0.12;sqyP=1.14;sqxP=1/1.14;brf=6;gzy=-0.6;}}   // the SOLE SURVIVOR never drowns -> a triumphant bounce clear of the lava; the crown + respawn take over from here (fixes rounds ending with 0 left instead of a winner)
+    if(_alive<=1){y=Math.min(y,_lavaY-HH*FOOT-2);vy=-(880+Math.random()*180);vx=(Math.random()*160-80);air=true;st="fall";surface=floorY;sqT=0.12;sqyP=1.14;sqxP=1/1.14;brf=6;gzy=-0.6;}   // the SOLE SURVIVOR never drowns -> clamped to the surface + bounced clear EVEN if it fell in airborne (the old !air gate let a falling survivor drop straight through -> 0-survivor rounds)
     else if(now>=(window.__hmSinkBusy||0)){window.__hmSinkBusy=now+1500+Math.random()*700;startSink(_lavaY);}   // others still up -> sink ONE AT A TIME (suspense over who is next)
-    else{if(!air){vy=-(360+Math.random()*240);vx=(Math.random()*220-110);air=true;st="fall";surface=floorY;sqT=0.11;sqyP=1.13;sqxP=1/1.13;brf=6;gzy=-0.6;}}}}   // slot busy -> a desperate last scramble at the edge, clawing for one more second
+    else{y=Math.min(y,_lavaY-HH*FOOT-2);vy=-(360+Math.random()*240);vx=(Math.random()*220-110);air=true;st="fall";surface=floorY;sqT=0.11;sqyP=1.13;sqxP=1/1.13;brf=6;gzy=-0.6;}}}   // waiting its turn -> a desperate scramble, CLAMPED at the surface so an airborne head can never fall straight through and out the bottom (this was the fall-through bug)
   me.x=x;me.y=y;me.vx=vx;me.vy=vy;me.HW=HW;me.HH=HH;me.ground=(!air&&!grabbed&&!perched&&st!=="grab");me.perched=perched;me.vault=vaulting;me.inB=battleOn;me.elim=elim;
   if(battleOn||soccerOn)window.__hmCrowd=peers.length;   // how big the crowd is -> small games mingle harder + the lava rises faster so it never looks static
   if(battleOn&&!filler)window.__hmGroundY=floorY+HH*FOOT;   // share the ground row so bombs/props rest on the real floor
