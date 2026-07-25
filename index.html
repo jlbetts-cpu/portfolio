@@ -66,10 +66,11 @@ body.about-open .navLink{display:none}
 body.navOpen .navBurger span:nth-child(1){transform:translateY(7px) rotate(45deg)}
 body.navOpen .navBurger span:nth-child(2){opacity:0}
 body.navOpen .navBurger span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
-.navScrim{position:fixed;inset:0;z-index:120;background:rgba(18,18,18,.34);opacity:0;visibility:hidden;transition:opacity .24s cubic-bezier(.2,.8,.2,1),visibility 0s .24s}
+.navScrim{position:fixed;inset:0;z-index:120;background:rgba(18,18,18,.34);opacity:0;visibility:hidden;display:none;transition:opacity .24s cubic-bezier(.2,.8,.2,1),visibility 0s .24s}
 body.navOpen .navScrim{opacity:1;visibility:visible;transition:opacity .24s cubic-bezier(.2,.8,.2,1)}
-.navDrawer{position:fixed;top:0;right:0;bottom:0;z-index:121;width:min(80vw,300px);background:var(--c50);border-left:1px solid var(--c100);box-shadow:-20px 0 54px -22px rgba(8,8,8,.4);transform:translateX(101%);transition:transform .26s cubic-bezier(.2,.85,.3,1);display:flex;flex-direction:column;padding:20px 22px 34px;will-change:transform}
-body.navOpen .navDrawer{transform:none}
+.navDrawer{position:fixed;top:0;right:0;bottom:0;z-index:121;width:min(80vw,300px);background:var(--c50);border-left:1px solid var(--c100);transform:translateX(102%);transition:transform .26s cubic-bezier(.2,.85,.3,1);display:none;flex-direction:column;padding:20px 22px 34px;will-change:transform}
+@media(max-width:640px){.navDrawer{display:flex}.navScrim{display:block}}   /* drawer + scrim exist ONLY on mobile -- on desktop display:none so the off-screen drawer's left shadow can't bleed a "side tab" onto the right edge */
+body.navOpen .navDrawer{transform:none;box-shadow:-20px 0 54px -22px rgba(8,8,8,.4)}
 .navDrawerX{align-self:flex-end;display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;background:none;border:0;color:var(--c700);cursor:pointer;margin:-4px -8px 6px}
 .navDrawerX:hover{color:var(--c950)}
 .navDrawerNav{display:flex;flex-direction:column;align-items:stretch;gap:2px;margin-top:6px}
