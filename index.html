@@ -3935,10 +3935,11 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    gzx=Math.max(-0.8,Math.min(0.8,(me.raceVX||0)/700));gzy=Math.max(-0.5,Math.min(0.6,(me.raceVY||0)/900));   // eyes track the ride: leaning into the turns, watching the drop
    if(me.raceHit&&now-me.raceHit<420){brf=Math.max(brf,5);if(now-me.raceHit<160){sqT=Math.max(sqT,0.1);sqyP=1.1;sqxP=1/1.1;}}   // a hard peg or paddle knock startles: brows pop + a little jolt-squash
    if(me.raceWin&&crownEl&&crownEl.style.opacity!=="1")crownEl.style.opacity="1";   // the WINNER is crowned the instant the line is crossed
-   if(me.raceHide&&!me.__rHid){me.__rHid=true;root.style.visibility="hidden";if(shadow)shadow.style.visibility="hidden";}
-   else if(!me.raceHide&&me.__rHid){me.__rHid=false;root.style.visibility="";if(shadow)shadow.style.visibility="";}}
+   if(me.raceHide&&!me.__rHid){me.__rHid=true;root.style.transition="opacity .3s cubic-bezier(.2,.8,.2,1)";root.style.opacity="0";if(shadow)shadow.style.opacity="0";}
+   else if(!me.raceHide&&me.__rHid){me.__rHid=false;root.style.opacity="1";if(shadow)shadow.style.opacity="1";}}
   else if(me.__inRace&&!window.__hmRaceOn){me.__inRace=false;me.raceX=null;surface=floorY;air=true;st="fall";vy=-(240+Math.random()*220);vx=(Math.random()*300-150);if(Math.random()<0.4)startFlip();
-   if(me.__rHid){me.__rHid=false;root.style.visibility="";if(shadow)shadow.style.visibility="";}
+   if(me.__rHid){me.__rHid=false;root.style.opacity="1";if(shadow)shadow.style.opacity="1";}
+   root.style.transition="";
    if(me.raceWin){me.raceWin=false;smileT=Math.max(smileT||0,2.6);(function(ce){setTimeout(function(){try{ce.style.opacity="0";}catch(_){}},4600);})(crownEl);}}   // the champion tumbles home grinning, wears the crown a few beats more, then it fades
   var _gWL=WL,_gWR=WR;if(battleOn){var _hbl=(heroBox&&heroBox.left)||0;_gWL=Math.max(WL,(innerWidth>640?104:6)+2-_hbl);_gWR=Math.min(WR,innerWidth-_hbl-HW-2);}   // in the LAVA CLIMB the walls are the VIEWPORT edges -- the whole screen is the arena, and climbers stay fully on it, never half-buried "in the glass" like the idle hero allows. Soccer keeps its own full-viewport pitch (goals live at the screen edges).
   if(x<_gWL){x=_gWL;if(battleOn&&Math.abs(vx)>60)vx=Math.abs(vx)*0.6;}if(x>_gWR){x=_gWR;if(battleOn&&Math.abs(vx)>60)vx=-Math.abs(vx)*0.6;}   // and in lava they BOUNCE off, so a wall shove reads as a save, not a pin
@@ -4225,7 +4226,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    +".hmRaceSeg{position:absolute;height:9px;border-radius:9px;background:linear-gradient(180deg,#f3f4f7 0%,#e2e3ea 54%,#cdcfd9 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,.95),0 6px 14px -4px rgba(22,22,28,.32);border:1px solid rgba(8,8,8,.16);transform-origin:0 50%}"
    +".hmRaceSeg.spin{background:linear-gradient(180deg,#cfc0f4 0%,#a58ae4 54%,#7b5fd0 100%)}"
    +".hmRaceFin{position:absolute;height:16px;background:repeating-linear-gradient(90deg,#212121 0 14px,#FDFDFD 14px 28px);border-radius:3px;box-shadow:0 4px 12px -3px rgba(22,22,28,.4)}"
-   +".hmRaceBoard{position:absolute;left:14px;top:50%;transform:translateY(-50%);z-index:49;display:none;flex-direction:column;gap:5px}body.hmRace .hmRaceBoard,body.hmBattle .hmRaceBoard{display:flex}"   /* the standings live in the GUTTER, vertically centred at the screen's edge -- out of the course's hot centre, one glance away */
+   +".hmRaceBoard{position:absolute;left:14px;top:50%;transform:translateY(-50%);z-index:49;display:none;flex-direction:column;gap:5px;opacity:.72}body.hmRace .hmRaceBoard{display:flex}"   /* the standings live in the GUTTER, vertically centred at the screen's edge -- out of the course's hot centre, one glance away */
    +".hmRaceRow{display:flex;align-items:center;gap:7px;background:rgba(253,253,253,.82);border:1px solid var(--c100);border-radius:99px;padding:3px 10px 3px 4px;font-family:var(--sans);font-weight:600;font-size:12px;color:var(--c700);backdrop-filter:blur(4px);will-change:transform}"
    +".hmRaceRow img{width:20px;height:24px;object-fit:contain;display:block}.hmRaceRow b{font-weight:700;color:var(--c950);width:11px;text-align:center}"
    +".hmRaceRow.fin{border-color:rgba(8,8,8,.55)}.hmRaceRow.fin::after{content:\"\\2713\";font-size:10px;line-height:1;color:var(--c700);margin-left:1px}.hmRaceRow.out{opacity:.45}.hmRaceRow.out img{filter:grayscale(1)}.hmRaceRow.out b{color:var(--c500)}.hmRaceRow.out::after{content:\"\\2715\";font-size:9px;line-height:1;color:var(--c500);margin-left:1px}"
@@ -4458,7 +4459,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    if(!on){if(el.style.opacity!=="0"){el.style.opacity="0";shownN=-1;}return;}
    acc+=(nowT-lastT);lastT=nowT;if(acc<180)return;acc=0;   // ~5x/sec is plenty for a counter
    var n=0;for(var i=0;i<peers.length;i++){if(peers[i].inB&&!peers[i].elim&&!peers[i].__sinking)n++;}   // a head melting into the lava is already OUT -> don't keep counting it as "left" (matches the winner check)
-   if(innerWidth>640&&window.__hmBoard){   // DESKTOP: the lava uses the same gutter standings as the race -- ranked by height on the tower, the fallen locked dark at the bottom in the order they went under
+   if(false){   // standings retired from lava -- watching who is left IS the drama there, and the ranking chips just pulled the eye away; the quiet pill carries the count on every viewport
     var inBN=0;for(var c4=0;c4<peers.length;c4++)if(peers[c4].inB)inBN++;
     if(window.__hmBoardSeed!==(window.__hmBattleReq||0)||window.__hmBoardN!==inBN){window.__hmBoardSeed=window.__hmBattleReq||0;window.__hmBoardN=inBN;window.__hmOutL=[];   // heads stream INTO the battle over the first beats -> rebuild until the whole field is on the board (a fixed early snapshot skipped the late arrivals and left rank numbers with holes)
      var L=[];for(var b4=0;b4<peers.length;b4++){if(peers[b4].inB)L.push({key:"s"+peers[b4].slot,slot:peers[b4].slot});}
@@ -4478,14 +4479,14 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
  (function platforms(){   // the arena is an ENDLESS RECYCLING LADDER: rungs scroll down as the crowd climbs, and any rung swallowed by the lava is rebuilt above the highest one -- an infinite tower that never runs out and never repeats
   var hero=document.querySelector(".hero");if(!hero)return;
   function mob(){return innerWidth<=768;}
-  var MAXP=20,els=[];for(var e=0;e<MAXP;e++){var d=document.createElement("div");d.className="hmPlat arrived";d.style.transition="opacity .28s cubic-bezier(.2,.8,.2,1)";hero.appendChild(d);els.push(d);}
+  var MAXP=20,els=[];for(var e=0;e<MAXP;e++){var d=document.createElement("div");d.className="hmPlat arrived";d.style.transition="opacity .5s cubic-bezier(.2,.8,.2,1)";hero.appendChild(d);els.push(d);}
   var SL=[],rowN=0;   // slabs live in SCREEN space: {el,l,w,y,kind,mv,crumbAt,dead}
   function hw(){return innerWidth;}   // the ladder spans the WHOLE viewport -- the entire screen is the arena, edge to edge, not just the hero box
   function ox(){return Math.round(-hero.getBoundingClientRect().left);}
   function lx(){return innerWidth>640?104:6;}   // the standings rail: rungs keep out of it on desktop so the chips always read   // viewport-space -> hero-space shift, applied only at the render boundary
   function hh(){return hero.clientHeight||600;}
   function floorLine(){var st=document.getElementById("stage"),r=hero.getBoundingClientRect(),sr=st?st.getBoundingClientRect():null;return sr?(sr.bottom-r.top):(r.height*0.86);}
-  function lavaAt(cx){try{return window.__hmLavaY?window.__hmLavaY(cx+ox()):hh()+400;}catch(_){return hh()+400;}}
+  function lavaAt(cx,OX){try{return window.__hmLavaY?window.__hmLavaY(cx+(OX==null?ox():OX)):hh()+400;}catch(_){return hh()+400;}}
   var GAPMIN=88,GAPMAX=126;   // ~6-7 rungs on screen, and only ~0.4 of a head's 250px leap: always clearable. Difficulty comes from NARROWER rungs, never a gap you can't clear.
   function rnd(a,b){return a+Math.random()*(b-a);}
   function kindOf(relief){if(relief)return "";var r=Math.random();
@@ -4528,7 +4529,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   var SKIN={pad:"linear-gradient(180deg,#8fe3c2 0%,#4fc79b 54%,#2ea87c 100%)",move:"linear-gradient(180deg,#cfc0f4 0%,#a58ae4 54%,#7b5fd0 100%)",crumble:"linear-gradient(180deg,#f4dcab 0%,#e0b769 54%,#c2902f 100%)"};
   function render(){var H=hh(),OX=ox(),inB=document.body.classList.contains("hmBattle");battlePlats.length=0;
    for(var i=0;i<SL.length;i++){var s=SL[i];if(!s.el)continue;
-    var cx=s.l+s.w/2,lav=lavaAt(cx),under=(s.y>lav-4);   // a rung level with the crust is already gone: it must never re-emerge below the lava
+    var cx=s.l+s.w/2,lav=lavaAt(cx,OX),under=(s.y>lav-4);   // a rung level with the crust is already gone: it must never re-emerge below the lava
     var w9=s.w+"px";if(s.__w!==w9){s.__w=w9;s.el.style.width=w9;s.el.style.height=([15,11,9][s.kind==="crumble"?2:(s.kind?1:1)])+"px";}   // write-on-change only: 20 slabs x 5 style writes a frame was a steady style-recalc tax (the lag)
     var tf="translate("+(s.l+OX).toFixed(1)+"px,"+s.y.toFixed(1)+"px)";if(s.__tf!==tf){s.__tf=tf;s.el.style.transform=tf;}   // sub-pixel, shifted into hero space at the last moment: rounding every frame is what makes a scroll judder
     var bg=SKIN[s.kind]||"";if(s.__bg!==bg){s.__bg=bg;s.el.style.background=bg;}
@@ -4536,14 +4537,14 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
     var op=vis?((s.crumbAt&&!s.dead)?"0.55":"1"):"0";if(s.__op!==op){s.__op=op;s.el.style.opacity=op;}
     if(vis)battlePlats.push({l:s.l+OX,r:s.l+s.w+OX,t:Math.round(s.y),pad:(s.kind==="pad"),id:i});}}
   window.__hmPlatTouch=function(id){var s=SL[id];if(s&&s.kind==="crumble"&&!s.crumbAt)s.crumbAt=performance.now();};   // a head put weight on a crumbling rung -> it starts to give way
-  window.__hmPlatScroll=function(d,dt){if(!SL.length)return;var H=hh(),W=hw(),now=performance.now();
+  window.__hmPlatScroll=function(d,dt){if(!SL.length)return;var H=hh(),W=hw(),OXs=ox(),now=performance.now();
    dt=dt||0.016;
    for(var i=0;i<SL.length;i++){var s=SL[i];
     if(d)s.y+=d;
     if(s.mv&&!s.dead){s.l+=s.mv*dt;if(s.l<lx()+4){s.l=lx()+4;s.mv=Math.abs(s.mv);}else if(s.l>W-s.w-4){s.l=W-s.w-4;s.mv=-Math.abs(s.mv);}}   // the violet rungs patrol, ferrying stranded heads back toward the middle
     if(s.crumbAt&&!s.dead&&now-s.crumbAt>950)s.dead=true;}
    for(var g=0;g<SL.length;g++){var q=SL[g],qcx=q.l+q.w/2;
-    if(q.dead||q.y>lavaAt(qcx)+30||q.y>H+120){q.dead=false;respawn(q);}}   // swallowed by the lava (or crumbled away) -> rebuilt above the top rung
+    if(q.dead||q.y>lavaAt(qcx,OXs)+30||q.y>H+120){q.dead=false;respawn(q);}}   // swallowed by the lava (or crumbled away) -> rebuilt above the top rung
    render();};
   build();render();
   addEventListener("resize",function(){build();render();},{passive:true});
