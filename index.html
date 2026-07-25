@@ -3526,7 +3526,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
     perched=false;leapDelay=Infinity;me.elim=false;me.inB=true;bar.style.opacity="1";root.style.pointerEvents="";
     me.__sinking=null;me.__sunk=0;me.__grudge=null;me.__ally=null;me.__socialAt=0;me.__reactAt=0;root.style.filter="";root.style.opacity="1";root.style.zIndex="3";if(shadow)shadow.style.zIndex="2";   // fresh, un-charred, not sinking, no grudges, back in front
     if(battlePlats.length){var _sp=battlePlats[0],_n=Math.max(1,peers.length),_i=(slot||0)%_n;   // FLOOR IS LAVA: everyone starts on the BIG BASE; a small crowd clusters near the centre so they mingle instead of standing far apart, a full crowd of 8 uses the whole width
-     var _bw=Math.max(1,(_sp.r-_sp.l-HW-10)),_use=Math.min(_bw,_n*HW*1.7),_off=(_sp.l+5)+(_bw-_use)/2;
+     var _bw=Math.max(1,(_sp.r-_sp.l-HW-10)),_use=Math.min(_bw,_n*HW*2.8),_off=(_sp.l+5)+(_bw-_use)/2;   // spread the crowd right across the opening ground: evenly spaced, nobody shoulder-to-shoulder getting nudged off at the whistle
      var _tx=Math.max(_sp.l+2,Math.min(_sp.r-HW-2,_off+_use*((_i+0.5)/_n)));surface=_sp.t-HH*FOOT;
      var _dxs=_tx-x;dir=_dxs>=0?1:-1;air=true;st="fall";aimX=_tx+HW/2;   // LEAP to your mark instead of teleporting there -- the old snap was the "everyone glitches at the start" jolt
      var _vys=560+Math.random()*170,_tts=2*_vys/G;vy=-_vys;vx=Math.max(-900,Math.min(900,_dxs/_tts));
@@ -3656,7 +3656,11 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
      var _heat=(window.__hmLavaLevel||0);
      if(edgeIn<HW*0.4&&danger<360&&!(rvl&&Math.random()<0.5)){dir=(myPlatC>mcx)?1:-1;surface=floorY;st="fall";air=true;vy=-(115+Math.random()*60);vx=dir*(95+Math.random()*80);aimX=myPlatC;sqT=0.11;sqyP=1.09;sqxP=1/1.09;}   // hugging the edge with the lava near -> usually step back, but sometimes stand ground and swing back
      else if(rvl&&_heat>0.16&&Math.random()<(me.__aggro*0.6+_heat*0.5)){var scx=rvl.x+rvl.HW/2;dir=(scx>mcx)?1:-1;surface=floorY;st="fall";air=true;gzx=dir*1;sacAt=now+320;vy=-(90+Math.random()*70);vx=dir*Math.min(470,Math.max(240,Math.abs(scx-mcx)*2.0));aimX=scx+rvlPush*HW*0.55;me.__charging=now+320;sqT=0.12;sqyP=1.13;sqxP=1/1.13;brf=6;}   // CHARGE a vulnerable rival and drive him OFF his fall side toward the lava -- aim PAST him, flag the charge so the collision lands hard. Aggression RAMPS with the heat: heads climb + jostle early (so the round still reaches the high tiers, varied every time), then brawl lethally for the scarce top slabs as the lava closes in (Fall Guys / King-of-the-Hill escalation)
-     else if(tP&&Math.random()<0.7){dir=((tP.l+tP.r)/2>mcx)?1:-1;surface=floorY;st="fall";air=true;gzx=dir*0.6;gzy=-0.4;sacAt=now+440;vy=tJ.vy;vx=tJ.vx;aimX=(tP.l+tP.r)/2;if(Math.random()<0.5)startFlip();sqT=0.12;sqyP=1.1;sqxP=1/1.1;}   // RACE for higher ground -- heads keep clawing upward toward the safe peak (fighting for their lives), never idly sitting
+     else if(tP&&Math.random()<0.82){dir=((tP.l+tP.r)/2>mcx)?1:-1;surface=floorY;st="fall";air=true;gzx=dir*0.6;gzy=-0.4;sacAt=now+440;vy=tJ.vy;vx=tJ.vx;aimX=(tP.l+tP.r)/2;if(Math.random()<0.5)startFlip();sqT=0.12;sqyP=1.1;sqxP=1/1.1;}   // RACE for higher ground -- heads keep clawing upward toward the safe peak (fighting for their lives), never idly sitting
+     else if(!tP){var _up=null,_ud=1e9;   // nothing lands in a single leap -> SHUFFLE UNDER the nearest higher rung so the next hop can reach it. Standing on the opening ground waiting for the lava is never an option.
+      for(var _uk=0;_uk<battlePlats.length;_uk++){var _UP=battlePlats[_uk];if(_UP.t>=lavaY-6||_UP.t>myFeet-18)continue;
+       var _uc=(_UP.l+_UP.r)/2,_udd=Math.abs(_uc-mcx);if(_udd<_ud){_ud=_udd;_up=_UP;}}
+      if(_up&&_ud>HW*0.45){var _uc2=(_up.l+_up.r)/2;dir=(_uc2>mcx)?1:-1;surface=floorY;st="fall";air=true;vy=-(300+Math.random()*150);vx=dir*Math.min(430,Math.max(180,_ud*1.6));aimX=_uc2;gzx=dir*0.7;gzy=-0.4;sqT=0.11;sqyP=1.09;sqxP=1/1.09;}}
      else if(danger<340&&Math.random()<0.5){gzy=0.45;gzx=Math.random()*0.4-0.2;sacAt=now+520;}   // no higher ground in reach -> at least eye the rising lava (a held beat, not a give-up)
     }
    } else {   // (legacy brawl AI -- unused now that Floor is Lava replaced it, kept as a fallback)
@@ -3799,13 +3803,17 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
     for(var _q8=0;_q8<battlePlats.length;_q8++){var _Q8=battlePlats[_q8];
      if(_cx8>_Q8.l-2&&_cx8<_Q8.r+2&&Math.abs((_Q8.t-HH*FOOT)-surface)<4){_ok8=true;break;}}
     if(!_ok8)surface=1e9;}
-   if(vy>0&&y>=surface&&window.__hmLavaOn&&battleOn){   // SPRINGBOARD: a mint rung fires you two tiers up, so falling behind is recoverable instead of a slow death sentence
-    var _pcx=x+HW/2;
+   if(vy>0&&y>=surface&&window.__hmLavaOn&&battleOn){var _pcx=x+HW/2;
     for(var _pd=0;_pd<battlePlats.length;_pd++){var _PD=battlePlats[_pd];
-     if(!_PD.pad||_pcx<=_PD.l-2||_pcx>=_PD.r+2||Math.abs((_PD.t-HH*FOOT)-surface)>4)continue;
-     y=surface;air=true;st="fall";vy=-1520;vx*=0.72;sqT=0.16;sqyP=1.3;sqxP=1/1.3;brf=6;gzy=-0.7;aimX=null;
+     if(_pcx<=_PD.l-2||_pcx>=_PD.r+2||Math.abs((_PD.t-HH*FOOT)-surface)>4)continue;
+     if(_PD.id!=null&&window.__hmPlatTouch)window.__hmPlatTouch(_PD.id);   // an amber rung starts giving way the moment you stand on it
+     if(!_PD.pad)break;
+     // SPRINGBOARD, sized to the room above: near the ceiling it gives a measured nudge, low down it fires you clear -- it should always be a rescue, never a head slamming the roof
+     var _room=Math.max(70,surface-Math.max(0,CEIL)-HH*0.35);
+     var _rise=Math.max(150,Math.min(290,_room*0.68));
+     y=surface;air=true;st="fall";vy=-Math.sqrt(2*G*_rise);vx*=0.74;sqT=0.16;sqyP=1.3;sqxP=1/1.3;brf=6;gzy=-0.7;aimX=null;
      if(FX)FX.ring(_pcx,surface+HH*FOOT,{r0:8,r1:70,color:"80,210,160",width:4,life:0.4});
-     startFlip();break;}}
+     if(_rise>230)startFlip();break;}}
    if(vy>0&&y>=surface){ cTop=false; if(st==="fall"&&Math.abs(vy)>340){if(Math.abs(vy)>1050)shakeAfter=true;   // a hard landing skids, but the ground never wounds -- only a rival's lunge does
     if(Math.abs(vx)>420&&!wig)wig={t:0.22,dur:0.22,type:"tilt",a:(vx>0?1:-1)*4};   // fast landings skid: it leans into the slide
     var k=Math.min(0.2,Math.abs(vy)*0.0004);y=surface;
@@ -3937,7 +3945,10 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    if(y+HH*FOOT>=_lavaY-1){var _alive=0;for(var _av=0;_av<peers.length;_av++){if(peers[_av].inB&&!peers[_av].elim&&!peers[_av].__sinking)_alive++;}
     if(_alive<=1){y=Math.min(y,_lavaY-HH*FOOT-2);vy=-(880+Math.random()*180);vx=(Math.random()*160-80);air=true;st="fall";surface=floorY;sqT=0.12;sqyP=1.14;sqxP=1/1.14;brf=6;gzy=-0.6;}   // the SOLE SURVIVOR never drowns -> clamped to the surface + bounced clear EVEN if it fell in airborne (the old !air gate let a falling survivor drop straight through -> 0-survivor rounds)
     else if((window.__hmLavaLevel||0)>0.22&&now>=(window.__hmSinkBusy||0)){window.__hmSinkBusy=now+3800+Math.random()*1500;startSink(_lavaY);}   // others still up -> sink ONE AT A TIME (suspense over who is next); but NOBODY goes under until the lava is a GENUINE threat (~22% risen) -- the opening is all jockeying + climbing, so the first elimination feels earned, never a cheap early loss (and it pushes the whole cull higher up the arena)
-    else{y=Math.min(y,_lavaY-HH*FOOT-2);vy=-(360+Math.random()*240);vx=(Math.random()*220-110);air=true;st="fall";surface=floorY;sqT=0.11;sqyP=1.13;sqxP=1/1.13;brf=6;gzy=-0.6;}}}   // waiting its turn -> a desperate scramble, CLAMPED at the surface so an airborne head can never fall straight through and out the bottom (this was the fall-through bug)
+    else{y=Math.min(y,_lavaY-HH*FOOT-2);vy=-(620+Math.random()*260);vx=(Math.random()*300-150);air=true;st="fall";surface=floorY;sqT=0.14;sqyP=1.2;sqxP=1/1.2;brf=6;gzy=-0.6;
+     mjHurtUntil=now+700;hurtT=Math.max(hurtT,0.45);   // SCALDED: it kicks off the crust yelping, briefly seared -- a real moment, not a soft repeated bob on the surface
+     try{if(FX){FX.burst(x+HW/2,_lavaY,{count:10,color:"255,150,50",speed:380,gravity:900,life:0.5,size:5,dir:-1.57,spread:0.7});FX.flash(0.16);}}catch(_){}
+     if(Math.random()<0.5)startFlip();}}}   // waiting its turn -> a desperate scramble, CLAMPED at the surface so an airborne head can never fall straight through and out the bottom (this was the fall-through bug)
   me.x=x;me.y=y;me.vx=vx;me.vy=vy;me.HW=HW;me.HH=HH;me.ground=(!air&&!grabbed&&!perched&&st!=="grab");me.perched=perched;me.vault=vaulting;me.inB=battleOn;me.elim=elim;
   if(battleOn||soccerOn)window.__hmCrowd=peers.length;   // how big the crowd is -> small games mingle harder + the lava rises faster so it never looks static
   if(battleOn&&!filler)window.__hmGroundY=floorY+HH*FOOT;   // share the ground row so bombs/props rest on the real floor
@@ -4208,43 +4219,74 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   requestAnimationFrame(tick);
  })();
 
- (function platforms(){   // the arena is an ENDLESS RECYCLING LADDER: slabs scroll down as the crowd climbs, and any slab that drops off the bottom is rebuilt above the highest one -- an infinite tower that never runs out and never repeats, instead of a fixed set of tiers the lava eventually swallows
+ (function platforms(){   // the arena is an ENDLESS RECYCLING LADDER: rungs scroll down as the crowd climbs, and any rung swallowed by the lava is rebuilt above the highest one -- an infinite tower that never runs out and never repeats
   var hero=document.querySelector(".hero");if(!hero)return;
-  var MAXP=11,els=[];for(var e=0;e<MAXP;e++){var d=document.createElement("div");d.className="hmPlat arrived";d.style.transition="opacity .3s cubic-bezier(.2,.8,.2,1)";hero.appendChild(d);els.push(d);}
-  var SL=[];   // the live slabs, in SCREEN space: {el,l,w,y,thin}
+  function mob(){return innerWidth<=768;}
+  var MAXP=20,els=[];for(var e=0;e<MAXP;e++){var d=document.createElement("div");d.className="hmPlat arrived";d.style.transition="opacity .28s cubic-bezier(.2,.8,.2,1)";hero.appendChild(d);els.push(d);}
+  var SL=[],rowN=0;   // slabs live in SCREEN space: {el,l,w,y,kind,mv,crumbAt,dead}
   function hw(){return hero.getBoundingClientRect().width;}
   function hh(){return hero.clientHeight||600;}
   function floorLine(){var st=document.getElementById("stage"),r=hero.getBoundingClientRect(),sr=st?st.getBoundingClientRect():null;return sr?(sr.bottom-r.top):(r.height*0.86);}
-  var GAPMIN=88,GAPMAX=126;   // ~6-7 rows on screen (the readable density every climb game lands on) and only ~0.4 of a head's 250px leap, so a rung is always reachable -- difficulty comes from NARROWER slabs, never from a bigger gap you can eventually not clear (Icy Tower keeps one pitch from floor 1 to floor 10,000)
-  var rowN=0;   // rows emitted this round -> drives the width ramp + the periodic full-width breather
+  function lavaAt(cx){try{return window.__hmLavaY?window.__hmLavaY(cx):hh()+400;}catch(_){return hh()+400;}}
+  var GAPMIN=88,GAPMAX=126;   // ~6-7 rungs on screen, and only ~0.4 of a head's 250px leap: always clearable. Difficulty comes from NARROWER rungs, never a gap you can't clear.
   function rnd(a,b){return a+Math.random()*(b-a);}
-  function mkAbove(topY,prevC){var W=hw(),mob=innerWidth<=768;
-   rowN++;
-   var relief=(rowN%10===0);   // RELIEF VALVE: a full-width ledge every ~10 rows -- a regroup beat that re-bunches the pack and stages the next scrap
-   var tight=Math.min(1,(window.__hmLavaLevel||0)*1.15);   // the ONE difficulty lever: slabs get meaner as the round matures
-   var wfr=relief?0.86:(mob?rnd(0.34,0.46)-tight*0.16:rnd(0.21,0.31)-tight*0.13);
-   var wpx=Math.round(W*Math.max(mob?0.16:0.09,wfr));
-   var y=Math.round(topY-rnd(GAPMIN,GAPMAX));
-   var span=Math.min(W*0.42,350);   // a head covers ~440px of ground in a leap; stay inside 0.8 of that so every rung is genuinely crossable, not a coin flip
-   var c=(prevC==null||relief)?W*0.5:Math.min(W*0.85,Math.max(W*0.15,prevC+rnd(-span,span)));
-   return {l:Math.round(Math.max(6,Math.min(W-wpx-6,c-wpx/2))),w:wpx,y:y,thin:relief?0:(Math.random()<0.5?1:2),pad:(!relief&&Math.random()<0.3)};}   // ~a third of the rungs are SPRINGBOARDS -- a head who has fallen behind can bounce two tiers in one go and rejoin the race instead of quietly drowning
+  function kindOf(relief){if(relief)return "";var r=Math.random();
+   if(r<0.24)return "pad";        // mint  -- springboard, the catch-up rung
+   if(r<0.38)return "move";       // violet-- drifts side to side, ferries a stranded head back over
+   if(r<0.50)return "crumble";    // amber -- gives way once stood on, so nobody camps
+   return "";}
+  function widthPx(W,relief){
+   if(relief)return Math.round(W*(mob()?0.96:0.94));
+   var tight=Math.min(1,(window.__hmLavaLevel||0)*1.1);   // the ONE difficulty lever: rungs narrow as the round matures
+   var f=(mob()?rnd(0.26,0.42):rnd(0.13,0.24))-tight*(mob()?0.08:0.05);
+   return Math.round(W*Math.max(mob()?0.17:0.085,f));}
+  function clampL(c,wpx,W){return Math.round(Math.max(4,Math.min(W-wpx-4,c-wpx/2)));}   // rungs may hug either edge -- the whole screen is playable, so a head drifting wide still has somewhere to land
+  function mkSlab(el,y,cx,relief){var W=hw(),wpx=widthPx(W,relief),k=kindOf(relief);
+   return {el:el,l:clampL(cx,wpx,W),w:wpx,y:y,kind:k,mv:(k==="move")?((Math.random()<0.5?-1:1)*rnd(26,52)):0,crumbAt:0,dead:false};}
+  function rowsAt(y){var o=[];for(var i=0;i<SL.length;i++){if(!SL[i].dead&&Math.abs(SL[i].y-y)<7)o.push(SL[i]);}return o;}
+  function topY(){var m=1e9;for(var i=0;i<SL.length;i++){if(!SL[i].dead&&SL[i].y<m)m=SL[i].y;}return m===1e9?floorLine():m;}
+  function siblingSpot(row,W,wpx){   // find the widest CLEAR span in this row (measured off the real slab edges, not their centres) so two rungs can never touch or overlap
+   var GAPX=30,sorted=row.slice().sort(function(a,b){return a.l-b.l;}),iv=[],cur=0,i;
+   for(i=0;i<sorted.length;i++){var s2=sorted[i];if(s2.l-GAPX-cur>=wpx)iv.push([cur,s2.l-GAPX]);cur=Math.max(cur,s2.l+s2.w+GAPX);}
+   if(W-cur>=wpx)iv.push([cur,W]);
+   if(!iv.length)return null;
+   var best=iv[0];for(i=1;i<iv.length;i++)if((iv[i][1]-iv[i][0])>(best[1]-best[0]))best=iv[i];
+   return best[0]+(best[1]-best[0])/2;}
+  function respawn(s){var W=hw(),hi=topY(),row=rowsAt(hi),cap=mob()?2:3;
+   var hasMover=false;for(var m=0;m<row.length;m++)if(row[m].mv)hasMover=true;   // never crowd a patrolling rung -- it would drift straight through its neighbour
+   if(row.length&&row.length<cap&&!hasMover&&Math.random()<(row.length===1?0.80:0.34)){   // widen the CURRENT top row -- more than one way up means a head who falls has a route back
+    var wtry=widthPx(W,false),spot=siblingSpot(row,W,wtry);
+    if(spot!=null){var kk=kindOf(false);if(kk==="move")kk="";
+     s.l=clampL(spot,wtry,W);s.w=wtry;s.y=hi;s.kind=kk;s.mv=0;s.crumbAt=0;s.dead=false;return;}}
+   rowN++;var relief=(rowN%10===0);   // RELIEF: a full-width ledge every ~10 rows, a regroup beat before the next scrap
+   var from=row.length?row[Math.floor(Math.random()*row.length)]:null;
+   var span=Math.min(W*0.44,360);   // a head covers ~440px in a leap: stay inside 0.8 of that so every rung is genuinely crossable
+   var cx=relief?W*0.5:(from?(from.l+from.w/2)+rnd(-span,span):rnd(W*0.15,W*0.85));
+   var ns2=mkSlab(s.el,hi-rnd(GAPMIN,GAPMAX),cx,relief);for(var k2 in ns2)s[k2]=ns2[k2];}
   function build(){var W=hw(),fl=Math.round(floorLine())-8;SL.length=0;rowN=0;
-   var bw=Math.round(W*0.90);SL.push({el:els[0],l:Math.round((W-bw)/2),w:bw,y:fl,thin:0});   // the wide opening base: the whole crowd fits shoulder to shoulder, then it drowns and the climb is on
-   var prev=SL[0];
-   for(var i=1;i<els.length;i++){var s=mkAbove(prev.y,prev.l+prev.w/2);s.el=els[i];SL.push(s);prev=s;}}
+   for(var i=0;i<els.length;i++)SL.push({el:els[i],l:0,w:10,y:fl,kind:"",mv:0,crumbAt:0,dead:true});
+   SL[0].dead=false;SL[0].l=0;SL[0].w=Math.round(W);SL[0].y=fl;SL[0].kind="";   // the OPENING GROUND: the entire floor, so the whole crowd starts spread out and nobody is crowded off at the whistle
+   for(var j=1;j<SL.length;j++){SL[j].dead=false;respawn(SL[j]);}}
+  var SKIN={pad:"linear-gradient(180deg,#8fe3c2 0%,#4fc79b 54%,#2ea87c 100%)",move:"linear-gradient(180deg,#cfc0f4 0%,#a58ae4 54%,#7b5fd0 100%)",crumble:"linear-gradient(180deg,#f4dcab 0%,#e0b769 54%,#c2902f 100%)"};
   function render(){var H=hh(),inB=document.body.classList.contains("hmBattle");battlePlats.length=0;
    for(var i=0;i<SL.length;i++){var s=SL[i];if(!s.el)continue;
-    s.el.style.width=s.w+"px";s.el.style.height=([15,11,9][s.thin||0])+"px";
-    s.el.style.transform="translate("+s.l+"px,"+s.y.toFixed(1)+"px)";   // sub-pixel: the scroll has to glide, and rounding every frame is what makes it judder
-    s.el.style.background=s.pad?"linear-gradient(180deg,#8fe3c2 0%,#4fc79b 54%,#2ea87c 100%)":"";   // a springboard reads instantly as the mint rung
-    var on=(s.y>-30&&s.y<H+70);
-    s.el.style.opacity=(inB&&on)?"1":"0";
-    if(inB&&on)battlePlats.push({l:s.l,r:s.l+s.w,t:Math.round(s.y),pad:s.pad});}}   // only an on-screen slab is real: nobody targets or stands on one you can't see
-  window.__hmPlatScroll=function(d){if(!SL.length)return;var H=hh();
-   if(d)for(var i=0;i<SL.length;i++)SL[i].y+=d;
-   for(var g=0;g<SL.length;g++){var s=SL[g];if(s.y<=H+110)continue;   // it fell out the bottom -> rebuild it above the highest slab, fresh width and offset
-    var hi=1e9,hc=null;for(var k=0;k<SL.length;k++){if(SL[k].y<hi){hi=SL[k].y;hc=SL[k];}}
-    var ns=mkAbove(hi,hc?hc.l+hc.w/2:null);s.l=ns.l;s.w=ns.w;s.y=ns.y;s.thin=ns.thin;}
+    var cx=s.l+s.w/2,lav=lavaAt(cx),under=(s.y>lav-4);   // a rung level with the crust is already gone: it must never re-emerge below the lava
+    s.el.style.width=s.w+"px";s.el.style.height=([15,11,9][s.kind==="crumble"?2:(s.kind?1:1)])+"px";
+    s.el.style.transform="translate("+s.l.toFixed(1)+"px,"+s.y.toFixed(1)+"px)";   // sub-pixel: rounding every frame is what makes a scroll judder
+    s.el.style.background=SKIN[s.kind]||"";
+    var vis=(inB&&!s.dead&&!under&&s.y>-30&&s.y<H+40);
+    var fading=(s.crumbAt&&!s.dead);
+    s.el.style.opacity=vis?(fading?"0.55":"1"):"0";
+    if(vis)battlePlats.push({l:s.l,r:s.l+s.w,t:Math.round(s.y),pad:(s.kind==="pad"),id:i});}}
+  window.__hmPlatTouch=function(id){var s=SL[id];if(s&&s.kind==="crumble"&&!s.crumbAt)s.crumbAt=performance.now();};   // a head put weight on a crumbling rung -> it starts to give way
+  window.__hmPlatScroll=function(d,dt){if(!SL.length)return;var H=hh(),W=hw(),now=performance.now();
+   dt=dt||0.016;
+   for(var i=0;i<SL.length;i++){var s=SL[i];
+    if(d)s.y+=d;
+    if(s.mv&&!s.dead){s.l+=s.mv*dt;if(s.l<4){s.l=4;s.mv=Math.abs(s.mv);}else if(s.l>W-s.w-4){s.l=W-s.w-4;s.mv=-Math.abs(s.mv);}}   // the violet rungs patrol, ferrying stranded heads back toward the middle
+    if(s.crumbAt&&!s.dead&&now-s.crumbAt>950)s.dead=true;}
+   for(var g=0;g<SL.length;g++){var q=SL[g],qcx=q.l+q.w/2;
+    if(q.dead||q.y>lavaAt(qcx)+30||q.y>H+120){q.dead=false;respawn(q);}}   // swallowed by the lava (or crumbled away) -> rebuilt above the top rung
    render();};
   build();render();
   addEventListener("resize",function(){build();render();},{passive:true});
@@ -4327,10 +4369,10 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    var dt=Math.min(0.05,Math.max(0.001,(n-lastFrame)/1000));
    // ===== THE CLIMB: the arena scrolls at a STEADY, telegraphed pace -- never chained to any one head, so it reads perfectly smooth and no single leap can ever yank the view =====
    var _el=(n-t0)/1000,_go=Math.max(0,_el-3.4);   // a grace beat at the whistle: everyone lands and settles on the base before the floor starts moving
-   var STEP=Math.min(5,Math.floor(_go/11));       // the scroll steps up a notch every ~11s instead of creeping continuously, so each escalation is an EVENT you can feel (Icy Tower's ladder)
-   var camD=(_go<=0)?0:(34+STEP*17)*dt;           // 34 px/s at the open, 119 px/s by the last step
+   var STEP=Math.min(5,Math.floor(_go/12));       // the scroll steps up a notch every ~12s instead of creeping continuously, so each escalation is an EVENT you can feel (Icy Tower's ladder)
+   var camD=(_go<=0)?0:(33+STEP*14)*dt;           // 33 px/s at the open, 103 px/s by the last step -- pitched just under a committed climber's pace, so keeping up is real work but never hopeless
    if(camD>0)window.__hmClimb=(window.__hmClimb||0)+camD;
-   if(window.__hmPlatScroll)window.__hmPlatScroll(camD);
+   if(window.__hmPlatScroll)window.__hmPlatScroll(camD,dt);
    // ===== the lava is PINNED near the bottom of the frame: it IS the screen's floor, always on camera, and the scroll is what drags a slow head down into it =====
    if(lavaY==null)lavaY=(arenaFloor||arenaH*0.86)+10;
    var _mark=arenaH*(0.93-Math.min(0.16,_go*0.0020));   // and it creeps up the frame as the round matures, narrowing the safe band
