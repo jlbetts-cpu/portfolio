@@ -3551,7 +3551,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
       surface=floorY;st="fall";air=true;
       var ballUp=Math.max(0,floorY-ballY),ballClose=Math.abs(ballX-myX)<heroR.w*0.22;
       var vyb9=(wantHigh?(940+Math.random()*80):(overBall?720:(ballClose?440:360)))+Math.min(560,ballUp*0.72)+Math.random()*90,ttb9=2*vyb9/G;   // wantHigh = a real leap to block / head a high ball
-      vy=-vyb9;vx=dir*Math.min(800,Math.max(120,Math.abs(ddb9)/ttb9));aimX=bxT+HW/2;sqT=0.12;sqyP=1.1;sqxP=1/1.1;}   // aimX -> the shared mid-air steering curves this leap toward the ball/spot, so soccer heads adjust in flight (same feel as lava) instead of committing to a blind arc
+      vy=-vyb9;vx=dir*Math.min(800,Math.max(120,Math.abs(ddb9)/ttb9));sqT=0.12;sqyP=1.1;sqxP=1/1.1;}   // RAW ballistic leap at the ball -- fast, committed, explosive contact (this is soccer's electric charm; no mid-air easing)
      else{gzx=(ballX>myX)?0.6:-0.6;gzy=0.1;sacAt=now+700;}}}}catch(_){}
   if(battleOn&&!elim&&!celebrated){var alive9=0,inb9=0;
    for(var a9=0;a9<peers.length;a9++){if(peers[a9].inB){inb9++;if(!peers[a9].elim&&!peers[a9].__sinking)alive9++;}}   // a sinking head is already out -> the winner is crowned as the last rival melts
@@ -3585,15 +3585,15 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
      var rvdx=(rv.x+rv.HW/2)-mcx,rvdy=(rv.y+rv.HH/2)-myFeet;if(Math.abs(rvdy)>HH*0.8)continue;   // only shove someone on ~my level -- never dive off a ledge after them
      var rd=Math.hypot(rvdx,rvdy),_isFoe=(_lt&&_myTm&&(_lt[rv.slot]||0)!==_myTm),_w=(rv===_grT||_isFoe)?rd*0.4:rd,_reach=(rv===_grT||_isFoe)?HW*4:HW*2.3;
      if(rd<_reach&&_w<rbd){rbd=_w;rvl=rv;}}
-    var urgent=(danger<175);   // the lava is getting close -> reach safety NOW
+    var urgent=(danger<235);   // react EARLY -- heads scramble for higher ground well before the lava is on them, instead of waiting around and looking like they gave up
     if(urgent||!onSafe){
      if(tP){dir=((tP.l+tP.r)/2>mcx)?1:-1;surface=floorY;st="fall";air=true;gzx=dir*0.7;gzy=-0.45;sacAt=now+440;vy=tJ.vy;vx=tJ.vx;aimX=(tP.l+tP.r)/2;if(Math.random()<0.55)startFlip();sqT=0.12;sqyP=1.1;sqxP=1/1.1;}   // spring onto a reachable safe slab (lands ON it) -- a somersault off a big climb
      else{dir=(mcx>heroR.w/2)?-1:1;surface=floorY;st="fall";air=true;vy=-VMX;vx=vx*0.2+dir*60;aimX=null;gzy=-0.65;sqT=0.12;sqyP=1.12;sqxP=1/1.12;}   // nothing in reach -> leap STRAIGHT UP to buy a moment (a higher tier may be dropping in); NEVER a sideways dive into the pit
     }else{   // safe for the moment -> fight for position but keep my footing
      if(edgeIn<HW*0.5){dir=(myPlatC>mcx)?1:-1;surface=floorY;st="fall";air=true;vy=-(115+Math.random()*60);vx=dir*(95+Math.random()*80);aimX=myPlatC;sqT=0.11;sqyP=1.09;sqxP=1/1.09;}   // hugging the edge -> step back toward centre so a bump can't tip me in
      else if(rvl&&danger<520&&Math.random()<0.55){var scx=rvl.x+rvl.HW/2;dir=(scx>mcx)?1:-1;surface=floorY;st="fall";air=true;gzx=dir*1;sacAt=now+360;vy=-(90+Math.random()*55);vx=dir*Math.min(270,Math.max(140,Math.abs(scx-mcx)*1.5));aimX=scx;sqT=0.12;sqyP=1.12;sqxP=1/1.12;}   // body-check a rival toward the edge -- but ONLY once the lava is a real threat (danger<520). Early on, with the lava far, nobody suicidally shoves neighbours off the safe base; they position + mill, and the fight escalates as space shrinks (Fall Guys pacing)
-     else if(tP&&Math.random()<0.3){dir=((tP.l+tP.r)/2>mcx)?1:-1;surface=floorY;st="fall";air=true;gzx=dir*0.6;gzy=-0.4;sacAt=now+440;vy=tJ.vy;vx=tJ.vx;aimX=(tP.l+tP.r)/2;if(Math.random()<0.5)startFlip();sqT=0.12;sqyP=1.1;sqxP=1/1.1;}   // now and then grab higher ground early
-     else if(danger<340&&Math.random()<0.5){gzy=0.45;gzx=Math.random()*0.4-0.2;sacAt=now+520;}   // otherwise HOLD + eye the rising lava (standing still is correct when you are safe and centred)
+     else if(tP&&Math.random()<0.66){dir=((tP.l+tP.r)/2>mcx)?1:-1;surface=floorY;st="fall";air=true;gzx=dir*0.6;gzy=-0.4;sacAt=now+440;vy=tJ.vy;vx=tJ.vx;aimX=(tP.l+tP.r)/2;if(Math.random()<0.5)startFlip();sqT=0.12;sqyP=1.1;sqxP=1/1.1;}   // RACE for higher ground -- heads keep clawing upward toward the safe peak (fighting for their lives), never idly sitting
+     else if(danger<340&&Math.random()<0.5){gzy=0.45;gzx=Math.random()*0.4-0.2;sacAt=now+520;}   // no higher ground in reach -> at least eye the rising lava (a held beat, not a give-up)
     }
    } else {   // (legacy brawl AI -- unused now that Floor is Lava replaced it, kept as a fallback)
     decideAt=now+280+Math.random()*260;
@@ -3709,7 +3709,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   var _wind=window.__hmWind;if(_wind&&now<_wind.until&&air&&!grabbed)vx+=_wind.ax*DT;   // WIND GUST: a sideways gale sweeps the airborne
   // physics: walls, floor, ceiling, and the caregiver — nothing else is solid
   if(!grabbed&&air){
-   if((battleOn||soccerOn)&&now>=hitStop&&!me.__sinking){   // MID-AIR STEERING (Reynolds seek/arrive) -- SHARED by every game mode so movement feels the same everywhere: heads correct their horizontal trajectory toward the target each frame, so jumps look intentional + always land, and they change direction mid-flight (chasing a moving ball / a shifting safe slab)
+   if(window.__hmLavaOn&&battleOn&&now>=hitStop&&!me.__sinking){   // MID-AIR STEERING (Reynolds seek/arrive) -- LAVA ONLY: heads correct their trajectory toward a reachable slab so they never leap short into the lava, and a knocked-loose head scrambles for safety. Soccer deliberately keeps its RAW ballistic leaps (the arrive-easing softened its ball-strikes and killed the electric feel), so its charm stays intact.
     if(window.__hmLavaOn&&aimX==null&&vy>0&&now>=recAt){recAt=now+150;var _mf=y+HH*FOOT,_ly=window.__hmLavaY(x+HW/2),_bd=1e9;   // lava only: knocked loose with no plan -> grab the nearest reachable safe slab and scramble for it
      for(var _ri=0;_ri<battlePlats.length;_ri++){var _RP=battlePlats[_ri];if(_RP.t>=_ly-6)continue;var _rup=_mf-_RP.t;if(_rup>((1180*1180)/(2*G))-20)continue;var _rc=(_RP.l+_RP.r)/2,_rdd=Math.abs(_rc-(x+HW/2))+Math.abs(_rup)*0.5;if(_rdd<_bd){_bd=_rdd;aimX=_rc;}}}
     if(aimX!=null){var _mcx2=x+HW/2,_des=Math.max(-620,Math.min(620,(aimX-_mcx2)*2.4));vx+=Math.max(-1050*DT,Math.min(1050*DT,_des-vx));}   // arrive: eases off as it nears the aim, so it lands ON the target (slab, or where the ball is going) instead of sailing past
