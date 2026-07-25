@@ -907,6 +907,14 @@ body.about-open.headheal .abTear{animation:tearClose .5s steps(1,end) forwards}
 <div class="reelOverlay" id="reelOverlay" aria-hidden="true"><button class="reelClose" id="reelClose" type="button" aria-label="Close trailer">Close</button><video class="reelOverlayVid" id="reelOverlayVid" controls playsinline preload="metadata" poster="images/reel_poster.webp"><source src="videos/reel.mp4" type="video/mp4"></video></div>
 <div class="viewCursor" id="viewCursor" aria-hidden="true"><span class="vcInner"><span class="vcArr"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="square" stroke-linejoin="miter"><path d="M12 20V5M5 12l7-7 7 7"/></svg></span>View case study</span></div>
 <script>
+/* DEV-ONLY, opt-in via ?wraf=1: drive requestAnimationFrame from a Web-Worker timer so the head engine keeps ticking at ~60fps even when this tab is backgrounded/hidden (Chrome pauses native rAF on hidden docs). Totally inert for real visitors -- it does nothing without the query flag. */
+(function(){try{if(!/[?&]wraf=1/.test(location.search))return;
+ var blob=new Blob(["var t=setInterval(function(){postMessage(0);},15);onmessage=function(){};"],{type:"application/javascript"});
+ var w=new Worker(URL.createObjectURL(blob)),q=[],nid=1;
+ w.onmessage=function(){var cbs=q;q=[];var now=performance.now();for(var i=0;i<cbs.length;i++){try{cbs[i].fn(now);}catch(e){}}};
+ window.requestAnimationFrame=function(fn){var h=nid++;q.push({h:h,fn:fn});return h;};
+ window.cancelAnimationFrame=function(h){for(var i=0;i<q.length;i++){if(q[i].h===h){q.splice(i,1);break;}}};
+}catch(e){}})();
 const FACES={
  neutral:{browsup:"images/neutral_browsup.webp",img:"images/neutral.webp",closed:"images/neutral_closed.webp",eyes:[{x:0.3999,y:0.5176},{x:0.6018,y:0.5265}]},
  rest:{img:"images/rest.webp",closed:"images/rest_closed.webp",eyes:[{x:0.4,y:0.5169},{x:0.6041,y:0.5269}]},
@@ -2896,10 +2904,12 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
  if(_rawN!==null&&_rawN!==list.length){try{localStorage.setItem("hmCompanions",JSON.stringify(list));}catch(_){}}   // heal stale duplicates once, physically
  if(!list.length)return;
  var peers=[];   // every head knows where every other head is, every frame
+ try{if(/[?&]wraf=1/.test(location.search))window.__peers=peers;}catch(_){}   // DEV-ONLY debug handle (opt-in), lets a headless run inspect head AI state
  var heroBox={left:0,top:0,width:0,height:0};   // ONE cached hero rect shared by every head, so N heads never each force a layout reflow per frame (older machines feel that). Refreshed only when the page actually moves.
  function refreshHeroBox(){var h=document.querySelector(".hero");if(!h)return;var r=h.getBoundingClientRect();heroBox.left=r.left;heroBox.top=r.top;heroBox.width=r.width;heroBox.height=r.height;}
  (function(){var raf=0;function mark(){if(raf)return;raf=requestAnimationFrame(function(){raf=0;refreshHeroBox();});}addEventListener("scroll",mark,{passive:true});addEventListener("resize",mark,{passive:true});refreshHeroBox();setInterval(function(){if(!document.hidden)refreshHeroBox();},500);})();   // scroll/resize (rAF-throttled) + a slow safety tick for any other layout shift
  var battlePlats=[];   // battle arena: floating platforms the heads land on and pounce from (populated by the platforms block, read every frame in the physics)
+ try{if(/[?&]wraf=1/.test(location.search))window.__plats=battlePlats;}catch(_){}   // DEV-ONLY debug handle (opt-in), so a headless run can inspect the live ladder
  var sharedFeetY=null;   // the shared FLOOR line (screen-space feet row). Cached while the big head is VISIBLE so a head spawning mid-game (mini-Jayden -- the big head is hidden AND the hero box measures shorter then) lands on the SAME plane as everyone else instead of a mid-game fallback.
  var sparkThrottle=0;   // shared rate-limit for impact sparks so a scrum can't flood the DOM
  var battleOut=[];   // knockouts in order -- last out ranks 2nd, the one before 3rd; the survivor is 1st
@@ -3221,6 +3231,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   if(nx+HW>a.l-pad&&nx<a.r+pad&&ny+HH>a.t-pad&&ny<a.b+pad)return true;}return false;}
  // --- state ---
  var aimX=null,campT=0,recAt=0;   // FLOOR-IS-LAVA AI: aimX = the x this head is steering toward mid-flight (mid-air course-correction), campT = how long it's camped a slab (anti-camp), recAt = throttle for knocked-off recovery
+ var _climbA=0;   // how much of the climb-camera's scroll this head has already absorbed (cumulative, so a throttled frame can never desync it from the world)
  var x=bigR?(bigR.l+(bigR.r-bigR.l)/2-HW/2):Math.max(8,heroR.w*0.06),y=bigR?(bigR.t-HH+6):floorY,vx=0,vy=0,dir=1,depth=1,depthT=1,air=false,surface=floorY,
      st="idle",stT=0,hopsLeft=0,grabbed=false,gpx=0,gpy=0,lastPX=0,lastPY=0,pvx=0,pvy=0,
      offAt=0,gone=false,goneUntil=0,decideAt=performance.now()+4200,spin=0,heldOff=0,heldV=0,cTop=false,bornAt=performance.now()+1600,perched=false,hs=1,hsT=1,dockUntil=0,moodB=false,pbAt=0,mirrorAt=0,downT=0,downX=0,downY=0,shakeN=0,heartsF=0,danceHops=0,dblBlink=false,
@@ -3249,7 +3260,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   hitStop=performance.now()+Math.min(70,34+d*2.2);   // ...and a hair of hit-stop (freeze frames) -- subtle, but it sells the contact
   if(d>8&&bf===0)bf=5;if(d>15)dzf=Math.max(dzf,7);
   if(d>=9&&Math.random()<0.4){try{if(typeof busyNow==="function"&&!busyNow()&&typeof eventLock!=="undefined"&&!eventLock){setHold("rest",700);showFace("rest");browFlash();}}catch(_){}}   // the referee gasps at a solid hit
-  if(hp<=0){
+  if(hp<=0&&!window.__hmLavaOn){   // FLOOR IS LAVA: nobody is ever knocked out by a bump -- the lava is the ONLY thing that eliminates, so a hard shove can never cause a premature death; it only ever tips a rival toward the pit
    var aliveN9=0;for(var e9=0;e9<peers.length;e9++){if(peers[e9].inB&&!peers[e9].elim)aliveN9++;}
    if(aliveN9<=1){hp=1;hurtT=0.2;return;}   // the last head alive cannot be knocked out: there is always a winner
    elim=true;elimP=0;me.elim=true;if(battleOut.indexOf(me)<0)battleOut.push(me);   // log the knockout order for the podium
@@ -3452,6 +3463,9 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
  var _lastF=performance.now();
  function _frame(_nowF){if(killed)return;   // a removed head stops its loop for good -- no idle rAF left spinning
   requestAnimationFrame(_frame);
+  var _cl=window.__hmClimb||0;   // CLIMB CAMERA: the world scrolled down, so ride it down with the platforms and the lava (screen space stays honest, no coordinate rewrite anywhere else)
+  if(_cl!==_climbA){var _cd=_cl-_climbA;_climbA=_cl;
+   if(battleOn&&window.__hmLavaOn){y+=_cd;if(surface<1e8)surface+=_cd;if(me.__sinking&&me.__sinking.y0!=null)me.__sinking.y0+=_cd;}}
   var DT=Math.min(0.05,Math.max(0.006,(_nowF-_lastF)/1000));_lastF=_nowF;
   if(window.__hmFreeze&&_nowF<window.__hmFreeze&&(battleOn||soccerOn)&&!grabbed)DT=0;   // IMPACT FRAME: a big blow briefly freezes the fighters so the hit reads (hitstop)
   var _frozen=(me.__frozen&&_nowF<me.__frozen&&!grabbed);if(_frozen)DT=0;   // FREEZE ability: this head is encased in ice, held solid until it thaws
@@ -3513,11 +3527,14 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
     me.__sinking=null;me.__sunk=0;me.__grudge=null;me.__ally=null;me.__socialAt=0;me.__reactAt=0;root.style.filter="";root.style.opacity="1";root.style.zIndex="3";if(shadow)shadow.style.zIndex="2";   // fresh, un-charred, not sinking, no grudges, back in front
     if(battlePlats.length){var _sp=battlePlats[0],_n=Math.max(1,peers.length),_i=(slot||0)%_n;   // FLOOR IS LAVA: everyone starts on the BIG BASE; a small crowd clusters near the centre so they mingle instead of standing far apart, a full crowd of 8 uses the whole width
      var _bw=Math.max(1,(_sp.r-_sp.l-HW-10)),_use=Math.min(_bw,_n*HW*1.7),_off=(_sp.l+5)+(_bw-_use)/2;
-     x=Math.max(_sp.l+2,Math.min(_sp.r-HW-2,_off+_use*((_i+0.5)/_n)));surface=_sp.t-HH*FOOT;}
-    else{surface=floorY;x=Math.max(WL,Math.min(WR,WL+Math.random()*Math.max(1,WR-WL-HW)));}
-    y=surface;air=false;st="idle";vx=0;vy=0;flipA=0;flipV=0;wig=null;}
+     var _tx=Math.max(_sp.l+2,Math.min(_sp.r-HW-2,_off+_use*((_i+0.5)/_n)));surface=_sp.t-HH*FOOT;
+     var _dxs=_tx-x;dir=_dxs>=0?1:-1;air=true;st="fall";aimX=_tx+HW/2;   // LEAP to your mark instead of teleporting there -- the old snap was the "everyone glitches at the start" jolt
+     var _vys=560+Math.random()*170,_tts=2*_vys/G;vy=-_vys;vx=Math.max(-900,Math.min(900,_dxs/_tts));
+     sqT=0.12;sqyP=1.1;sqxP=1/1.1;gzy=-0.4;if(Math.abs(_dxs)>240&&Math.random()<0.55)startFlip();}
+    else{surface=floorY;x=Math.max(WL,Math.min(WR,WL+Math.random()*Math.max(1,WR-WL-HW)));
+     y=surface;air=false;st="idle";vx=0;vy=0;flipA=0;flipV=0;wig=null;}}   // only the no-arena fallback drops you straight onto your mark; with a real ladder you LEAP in (zeroing the velocity here was what cancelled the entrance and made the whole crowd snap into place at the whistle)
    else if(!_wantB&&battleOn){battleOn=false;respawnSeen=_bResp;me.inB=false;me.podiumRank=0;me.spectate=0;bar.style.opacity="0";crownEl.style.opacity="0";hidePodium();   // LEAVE: back to normal life, drop back into the scene
-    me.__rage=me.__speed=me.__feather=me.__bounce=me.__frozen=me.__spin=me.__disco=0;me.__aura=null;me.__buff=null;me.__grudge=null;me.__ally=null;me.__sinking=null;me.__sunk=0;if(auraEl)auraEl.style.opacity="0";   // shed every ability effect, grudge, and pact when the fight ends
+    me.__rage=me.__speed=me.__feather=me.__bounce=me.__frozen=me.__spin=me.__disco=0;me.__aura=null;me.__buff=null;me.__grudge=null;me.__ally=null;me.__sinking=null;me.__sunk=0;me.__aggro=null;if(auraEl)auraEl.style.opacity="0";   // shed every ability effect, grudge, pact and nerve when the fight ends -- next round re-rolls who the bullies are
     elim=false;elimP=0;hp=100;me.elim=false;root.style.pointerEvents="";
     root.style.zIndex="3";if(shadow)shadow.style.zIndex="2";if(me.__ltR){ringEl.style.opacity="0";me.__ltR=0;}   // back IN FRONT of the big head (sinking sent it behind) and drop any lava-team rim
     shown=true;root.style.opacity="1";root.style.filter="blur(0)";shadow.style.opacity="1";root.style.display="";shadow.style.display="";
@@ -3572,7 +3589,8 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
      if(iAmChaser){   // GO FOR IT -- but ALWAYS from the own-goal side, so the ball can only go toward THEIR net
       if(!myGS){bxT=(leadX-atk*(HW*0.5+34))-HW/2;overBall=Math.abs(ballX-myX)<HW+56;}   // loop behind the ball, vaulting clean over it
       else bxT=leadX-HW/2;   // already behind it: drive straight through toward their goal
-      if(ballHigh&&nearOwnGoal){wantHigh=true;bxT=(ballX-atk*(HW*0.3))-HW/2;}}   // a high ball at my own net: LEAP to head it clear
+      if(ballHigh&&nearOwnGoal){wantHigh=true;bxT=(ballX-atk*(HW*0.3))-HW/2;}   // a high ball at my own net: LEAP to head it clear
+      else if(ballHigh&&myGS&&Math.abs(ballX-myX)<HW*2.4){wantHigh=true;bxT=leadX-HW/2;}}   // an airborne ball I'm already behind: VOLLEY it forward toward their net -- aerial shots + bank-offs, soccer's electric bit
      else if(role==="keeper"||(role==="defender"&&ballOnOurHalf)){   // GUARD: hang between the ball and my net, clear only from the goal side (never poke it back toward my own net)
       bxT=Math.max(M,Math.min(heroR.w-M-HW,(ballX+ownGoalX*2)/3))-HW/2;
       if(role==="keeper")bxT=team===1?Math.min(bxT,heroR.w*0.11):Math.max(bxT,heroR.w*0.89-HW);
@@ -3586,7 +3604,8 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
       surface=floorY;st="fall";air=true;
       var ballUp=Math.max(0,floorY-ballY),ballClose=Math.abs(ballX-myX)<heroR.w*0.22;
       var vyb9=(wantHigh?(940+Math.random()*80):(overBall?720:(ballClose?440:360)))+Math.min(560,ballUp*0.72)+Math.random()*90,ttb9=2*vyb9/G;   // wantHigh = a real leap to block / head a high ball
-      vy=-vyb9;vx=dir*Math.min(800,Math.max(120,Math.abs(ddb9)/ttb9));sqT=0.12;sqyP=1.1;sqxP=1/1.1;}   // RAW ballistic leap at the ball -- fast, committed, explosive contact (this is soccer's electric charm; no mid-air easing)
+      vy=-vyb9;vx=dir*Math.min(800,Math.max(120,Math.abs(ddb9)/ttb9));sqT=0.12;sqyP=1.1;sqxP=1/1.1;
+      if(vyb9>780&&Math.random()<0.5)startFlip();}   // RAW ballistic leap at the ball -- fast, committed, explosive contact (this is soccer's electric charm; no mid-air easing) + a somersault off the big challenges for extra air
      else{gzx=(ballX>myX)?0.6:-0.6;gzy=0.1;sacAt=now+700;}}}}catch(_){}
   if(battleOn&&!elim&&!celebrated){var alive9=0,inb9=0;
    for(var a9=0;a9<peers.length;a9++){if(peers[a9].inB){inb9++;if(!peers[a9].elim&&!peers[a9].__sinking)alive9++;}}   // a sinking head is already out -> the winner is crowned as the last rival melts
@@ -3601,7 +3620,8 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   if(battleOn&&!elim&&!me.podiumRank&&!me.spectate&&!grabbed&&!air&&!_dazed&&st==="idle"&&now>=decideAt&&now>=(window.__hmBattleGo||0)){
    var mcx=x+HW/2,myFeet=y+HH*FOOT;
    if(window.__hmLavaOn){   // ===== FLOOR IS LAVA -- SURVIVAL AI: climb to stay above the rising lava, sometimes shove a neighbour in =====
-    decideAt=now+150+Math.random()*130;
+    if(me.__aggro==null){me.__aggro=(Math.random()<0.35)?(0.70+Math.random()*0.25):(0.12+Math.random()*0.23);me.__skill=0.86+Math.random()*0.30;}   // PERSONALITY: only one or two of the crowd are real bullies and everyone climbs at their own pace -- a whole field with identical nerve is exactly what reads as scripted, and it bunches them up to die together
+    decideAt=now+(150+Math.random()*130)/(me.__skill||1);   // sharper heads react sooner, so the pack spreads out instead of moving as one block
     var lavaY=window.__hmLavaY(mcx),danger=lavaY-myFeet;   // px of lava below my feet (smaller = deadlier)
     var VMX=1180,VXMX=545,HMAX=(1180*1180)/(2*G)-18;   // the biggest rise a head can clear, and a horizontal speed cap
     var onSafe=false,edgeIn=1e9,myPlatC=mcx;   // am I on a still-safe slab, how near its edge, where is its centre
@@ -3616,18 +3636,27 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
     var _lt=window.__hmLavaTeams?window.__hmTeamSel:null,_myTm=_lt?(_lt[me.slot]||0):0,_enemyAlive=0;
     if(_lt&&_myTm){for(var _ec=0;_ec<peers.length;_ec++){var _ev=peers[_ec];if(_ev===me||!_ev.inB||_ev.elim||_ev.__sinking)continue;if((_lt[_ev.slot]||0)!==_myTm)_enemyAlive++;}}
     var _spareMate=(_lt&&_myTm&&_enemyAlive>0);
-    var rvl=null,rbd=1e9;for(var s9=0;s9<peers.length;s9++){var rv=peers[s9];if(rv===me||!rv.inB||rv.elim||rv.__sinking||rv===_alT)continue;if(_spareMate&&(_lt[rv.slot]||0)===_myTm)continue;
-     var rvdx=(rv.x+rv.HW/2)-mcx,rvdy=(rv.y+rv.HH/2)-myFeet;if(Math.abs(rvdy)>HH*0.8)continue;   // only shove someone on ~my level -- never dive off a ledge after them
-     var rd=Math.hypot(rvdx,rvdy),_isFoe=(_lt&&_myTm&&(_lt[rv.slot]||0)!==_myTm),_w=(rv===_grT||_isFoe)?rd*0.4:rd,_reach=(rv===_grT||_isFoe)?HW*4:HW*2.3;
-     if(rd<_reach&&_w<rbd){rbd=_w;rvl=rv;}}
+    var rvl=null,rbd=1e9,rvlPush=1;for(var s9=0;s9<peers.length;s9++){var rv=peers[s9];if(rv===me||!rv.inB||rv.elim||rv.__sinking||rv===_alT)continue;if(_spareMate&&(_lt[rv.slot]||0)===_myTm)continue;
+     var _rcx=rv.x+rv.HW/2,rvdx=_rcx-mcx,rvdy=(rv.y+rv.HH/2)-myFeet;if(Math.abs(rvdy)>HH*0.9)continue;   // go after someone on ~my level
+     var rd=Math.hypot(rvdx,rvdy),_isFoe=(_lt&&_myTm&&(_lt[rv.slot]||0)!==_myTm);
+     var _rP=null;for(var _rk=0;_rk<battlePlats.length;_rk++){var _RP=battlePlats[_rk];if(_rcx>_RP.l&&_rcx<_RP.r&&Math.abs((rv.y+rv.HH*FOOT)-_RP.t)<15&&_RP.t<lavaY-6){_rP=_RP;break;}}   // which slab is he on?
+     var _rEdge=_rP?Math.min(_rcx-_rP.l,_rP.r-_rcx):9999,_rDang=window.__hmLavaY(_rcx)-(rv.y+rv.HH*FOOT);   // how KILLABLE: near an edge? near the lava?
+     var _pushOff=_rP?(((_rcx-_rP.l)<(_rP.r-_rcx))?-1:1):((rvdx>=0)?1:-1);   // the direction that drives him OFF his nearer edge
+     var _vuln=(_rEdge<rv.HW?0.5:1)*(_rDang<300?0.5:1)*(((rvdx>=0?1:-1)===_pushOff)?0.6:1);   // prime target = on an edge / near the lava / one I can drive off from where I stand
+     var _w=rd*_vuln*((rv===_grT||_isFoe)?0.45:1),_reach=(rv===_grT||_isFoe)?HW*5:HW*3.4;
+     if(rd<_reach&&_w<rbd){rbd=_w;rvl=rv;rvlPush=_pushOff;}}
     var urgent=(danger<235);   // react EARLY -- heads scramble for higher ground well before the lava is on them, instead of waiting around and looking like they gave up
     if(urgent||!onSafe){
      if(tP){dir=((tP.l+tP.r)/2>mcx)?1:-1;surface=floorY;st="fall";air=true;gzx=dir*0.7;gzy=-0.45;sacAt=now+440;vy=tJ.vy;vx=tJ.vx;aimX=(tP.l+tP.r)/2;if(Math.random()<0.55)startFlip();sqT=0.12;sqyP=1.1;sqxP=1/1.1;}   // spring onto a reachable safe slab (lands ON it) -- a somersault off a big climb
-     else{dir=(mcx>heroR.w/2)?-1:1;surface=floorY;st="fall";air=true;vy=-VMX;vx=vx*0.2+dir*60;aimX=null;gzy=-0.65;sqT=0.12;sqyP=1.12;sqxP=1/1.12;}   // nothing in reach -> leap STRAIGHT UP to buy a moment (a higher tier may be dropping in); NEVER a sideways dive into the pit
-    }else{   // safe for the moment -> fight for position but keep my footing
-     if(edgeIn<HW*0.5){dir=(myPlatC>mcx)?1:-1;surface=floorY;st="fall";air=true;vy=-(115+Math.random()*60);vx=dir*(95+Math.random()*80);aimX=myPlatC;sqT=0.11;sqyP=1.09;sqxP=1/1.09;}   // hugging the edge -> step back toward centre so a bump can't tip me in
-     else if(rvl&&danger<520&&Math.random()<0.55){var scx=rvl.x+rvl.HW/2;dir=(scx>mcx)?1:-1;surface=floorY;st="fall";air=true;gzx=dir*1;sacAt=now+360;vy=-(90+Math.random()*55);vx=dir*Math.min(270,Math.max(140,Math.abs(scx-mcx)*1.5));aimX=scx;sqT=0.12;sqyP=1.12;sqxP=1/1.12;}   // body-check a rival toward the edge -- but ONLY once the lava is a real threat (danger<520). Early on, with the lava far, nobody suicidally shoves neighbours off the safe base; they position + mill, and the fight escalates as space shrinks (Fall Guys pacing)
-     else if(tP&&Math.random()<0.66){dir=((tP.l+tP.r)/2>mcx)?1:-1;surface=floorY;st="fall";air=true;gzx=dir*0.6;gzy=-0.4;sacAt=now+440;vy=tJ.vy;vx=tJ.vx;aimX=(tP.l+tP.r)/2;if(Math.random()<0.5)startFlip();sqT=0.12;sqyP=1.1;sqxP=1/1.1;}   // RACE for higher ground -- heads keep clawing upward toward the safe peak (fighting for their lives), never idly sitting
+     else{   // nothing lands in ONE jump -> don't hop hopelessly straight up; SCRAMBLE toward the nearest higher slab (build toward it, jump again) so it reads as fighting to survive
+      var _np=null,_nd=1e9;for(var _pk=0;_pk<battlePlats.length;_pk++){var _P=battlePlats[_pk];if(_P.t>=lavaY-6)continue;if(_P.t<myFeet-8){var _pc=(_P.l+_P.r)/2,_dd=Math.abs(_pc-mcx)+Math.max(0,myFeet-_P.t)*0.25;if(_dd<_nd){_nd=_dd;_np=_P;}}}
+      if(_np){var _tc=(_np.l+_np.r)/2;dir=(_tc>mcx)?1:-1;aimX=_tc;gzx=dir*0.75;}else{dir=(mcx>heroR.w/2)?-1:1;aimX=null;gzx=dir*0.4;}   // aimX feeds the mid-air steering so he arcs toward safety, never a dive into the pit
+      surface=floorY;st="fall";air=true;vy=-VMX;vx=vx*0.15+dir*(_np?Math.min(560,Math.max(200,Math.abs((_np.l+_np.r)/2-mcx)*1.5)):90);gzy=-0.6;sacAt=now+420;sqT=0.12;sqyP=1.12;sqxP=1/1.12;}
+    }else{   // safe for the moment -> HUNT: this is where heads knock each other into the lava, not idly wait
+     var _heat=(window.__hmLavaLevel||0);
+     if(edgeIn<HW*0.4&&danger<360&&!(rvl&&Math.random()<0.5)){dir=(myPlatC>mcx)?1:-1;surface=floorY;st="fall";air=true;vy=-(115+Math.random()*60);vx=dir*(95+Math.random()*80);aimX=myPlatC;sqT=0.11;sqyP=1.09;sqxP=1/1.09;}   // hugging the edge with the lava near -> usually step back, but sometimes stand ground and swing back
+     else if(rvl&&_heat>0.16&&Math.random()<(me.__aggro*0.6+_heat*0.5)){var scx=rvl.x+rvl.HW/2;dir=(scx>mcx)?1:-1;surface=floorY;st="fall";air=true;gzx=dir*1;sacAt=now+320;vy=-(90+Math.random()*70);vx=dir*Math.min(470,Math.max(240,Math.abs(scx-mcx)*2.0));aimX=scx+rvlPush*HW*0.55;me.__charging=now+320;sqT=0.12;sqyP=1.13;sqxP=1/1.13;brf=6;}   // CHARGE a vulnerable rival and drive him OFF his fall side toward the lava -- aim PAST him, flag the charge so the collision lands hard. Aggression RAMPS with the heat: heads climb + jostle early (so the round still reaches the high tiers, varied every time), then brawl lethally for the scarce top slabs as the lava closes in (Fall Guys / King-of-the-Hill escalation)
+     else if(tP&&Math.random()<0.7){dir=((tP.l+tP.r)/2>mcx)?1:-1;surface=floorY;st="fall";air=true;gzx=dir*0.6;gzy=-0.4;sacAt=now+440;vy=tJ.vy;vx=tJ.vx;aimX=(tP.l+tP.r)/2;if(Math.random()<0.5)startFlip();sqT=0.12;sqyP=1.1;sqxP=1/1.1;}   // RACE for higher ground -- heads keep clawing upward toward the safe peak (fighting for their lives), never idly sitting
      else if(danger<340&&Math.random()<0.5){gzy=0.45;gzx=Math.random()*0.4-0.2;sacAt=now+520;}   // no higher ground in reach -> at least eye the rising lava (a held beat, not a give-up)
     }
    } else {   // (legacy brawl AI -- unused now that Floor is Lava replaced it, kept as a fallback)
@@ -3759,10 +3788,24 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
      if(cxp>Pl.l&&cxp<Pl.r&&pfeet<=Pl.t+3&&feet9>=Pl.t-1&&(Pl.t-HH*FOOT)<surface){surface=Pl.t-HH*FOOT;break;}}
     if(window.__hmLavaOn&&vy>120){for(var _hk=0;_hk<peers.length;_hk++){var _oh=peers[_hk];if(_oh===me||_oh.elim||_oh.__sinking||!_oh.inB)continue;   // HEAD-STACKING: land on another head's crown -> SPRINGBOARD up off it to reach higher (and it shoves the head below down a touch)
      var _ohT=_oh.y+_oh.HH*0.14;if(_oh.ground&&(window.__hmLavaY(cxp)-feet9)<560&&Math.abs(cxp-(_oh.x+_oh.HW/2))<(HW+_oh.HW)*0.34&&pfeet<=_ohT+4&&feet9>=_ohT+HH*0.35){var _sx=(cxp>=(_oh.x+_oh.HW/2))?1:-1;y=_ohT-HH*FOOT;vy=-(360+Math.min(320,Math.abs(vy)*0.45));vx=vx*0.5+_sx*(150+Math.random()*120);dir=_sx;sqT=0.13;sqyP=1.15;sqxP=1/1.15;brf=6;_oh.ky=(_oh.ky||0)+150;break;}}}}   // SPRINGBOARD off a firmly-STANDING head, but ONLY once the lava is a real threat (within 560px) so early on nobody gets launched off the safe base or flung high into empty air; launch up + sideways so stacks scatter toward the slabs
+   if(soccerOn&&vy>120){var _cxs=x+HW/2,_feetS=y+HH*FOOT,_pfS=_feetS-vy*DT,_sb=window.__hmSoccer;   // SOCCER HEAD-STACKING: spring off a team-mate's crown to reach a high ball (headers, aerial duels) -- only when the ball is genuinely up, so nobody trampolines for no reason
+    if(_sb&&_sb.ball&&(floorY-_sb.ball.y)>150){for(var _hs=0;_hs<peers.length;_hs++){var _o2=peers[_hs];if(_o2===me||_o2.elim||_o2.__sinking)continue;
+     var _oT2=_o2.y+_o2.HH*0.14;if(_o2.ground&&Math.abs(_cxs-(_o2.x+_o2.HW/2))<(HW+_o2.HW)*0.34&&_pfS<=_oT2+4&&_feetS>=_oT2+HH*0.35){var _sx2=(_cxs>=(_o2.x+_o2.HW/2))?1:-1;y=_oT2-HH*FOOT;vy=-(520+Math.min(360,Math.abs(vy)*0.5));vx=vx*0.5+_sx2*(120+Math.random()*130);dir=_sx2;sqT=0.13;sqyP=1.16;sqxP=1/1.16;brf=6;_o2.ky=(_o2.ky||0)+140;if(vy<-780&&Math.random()<0.5)startFlip();break;}}}}
    if(battleOn&&window.__hmSmashCrates&&CRATES.length&&now>=(window.__hmBattleGo||0)){var _fx3=x+HW/2;   // descending onto a mystery crate SMASHES it -> a random physics-chaos power
     for(var _ci=0;_ci<CRATES.length;_ci++){var _cr=CRATES[_ci];if(_fx3>_cr.x-_cr.r-HW*0.35&&_fx3<_cr.x+_cr.r+HW*0.35&&feet9>=_cr.y-_cr.r-4&&feet9<=_cr.y+_cr.r+34){smashCrate(_cr,A);break;}}}
    if(battleOn&&window.__hmLavaOn&&surface>=floorY-2)surface=1e5;   // in lava mode the FLOOR isn't solid -- only platforms + heads are (gated on MY battleOn: the frame the game ends, surface stays solid so the winner never drops through)
    if(!window.__hmLavaOn&&surface>1e4)surface=floorY;   // the lava game is over -> restore a solid floor so no head keeps falling through forever (they land + resume life)
+   if(window.__hmLavaOn&&battleOn&&surface<1e8){var _cx8=x+HW/2,_ok8=false;   // in the climb there is NO ground: a landing only counts if a REAL slab is under my feet, so nobody can ever hover on the vanished floor line above the lava
+    for(var _q8=0;_q8<battlePlats.length;_q8++){var _Q8=battlePlats[_q8];
+     if(_cx8>_Q8.l-2&&_cx8<_Q8.r+2&&Math.abs((_Q8.t-HH*FOOT)-surface)<4){_ok8=true;break;}}
+    if(!_ok8)surface=1e9;}
+   if(vy>0&&y>=surface&&window.__hmLavaOn&&battleOn){   // SPRINGBOARD: a mint rung fires you two tiers up, so falling behind is recoverable instead of a slow death sentence
+    var _pcx=x+HW/2;
+    for(var _pd=0;_pd<battlePlats.length;_pd++){var _PD=battlePlats[_pd];
+     if(!_PD.pad||_pcx<=_PD.l-2||_pcx>=_PD.r+2||Math.abs((_PD.t-HH*FOOT)-surface)>4)continue;
+     y=surface;air=true;st="fall";vy=-1520;vx*=0.72;sqT=0.16;sqyP=1.3;sqxP=1/1.3;brf=6;gzy=-0.7;aimX=null;
+     if(FX)FX.ring(_pcx,surface+HH*FOOT,{r0:8,r1:70,color:"80,210,160",width:4,life:0.4});
+     startFlip();break;}}
    if(vy>0&&y>=surface){ cTop=false; if(st==="fall"&&Math.abs(vy)>340){if(Math.abs(vy)>1050)shakeAfter=true;   // a hard landing skids, but the ground never wounds -- only a rival's lunge does
     if(Math.abs(vx)>420&&!wig)wig={t:0.22,dur:0.22,type:"tilt",a:(vx>0?1:-1)*4};   // fast landings skid: it leans into the slide
     var k=Math.min(0.2,Math.abs(vy)*0.0004);y=surface;
@@ -3790,8 +3833,8 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    if(d2>0.01&&d2<rr2){var nx2=dxp/d2,ny2=dyp/d2,ov=rr2-d2;
     x+=nx2*ov*0.5;if(air)y+=ny2*ov*0.3;   // squeeze apart: half me, half them (via the mailbox)
     var rvx=vx-o2.vx,rvy=vy-o2.vy,rel=rvx*nx2+rvy*ny2;
-    if(rel<0){var _lm=window.__hmLavaOn,jI=-(1+(_lm?0.6:0.72))*rel*(_lm?0.46:0.5);   // FLOOR IS LAVA: bumps still jostle + contest the slab, but softened so a crowd doesn't just fling each other clean off to their deaths
-     vx+=nx2*jI;vy+=ny2*jI*(_lm?0.42:0.6);o2.kx-=nx2*jI*(_lm?1.05:1);o2.ky-=ny2*jI*(_lm?0.42:0.6);
+    if(rel<0){var _lm=window.__hmLavaOn,_chg=(_lm&&me.__charging&&now<me.__charging)?2.3:1,jI=-(1+(_lm?0.6:0.72))*rel*(_lm?0.46:0.5);   // FLOOR IS LAVA: idle bumps stay soft (no accidental mass wipeouts), but a deliberate CHARGE lands a real knock -> heads actually shove each other toward the pit
+     vx+=nx2*jI*(_chg>1?0.45:1);vy+=ny2*jI*(_lm?0.42:0.6);o2.kx-=nx2*jI*(_lm?1.05:1)*_chg;o2.ky-=ny2*jI*(_lm?0.42:0.6)*(_chg>1?1.5:1);
      var hit=Math.abs(rel);
      if(battleOn&&!elim&&o2.inB&&!o2.elim&&(slot||0)<(o2.slot||0)&&now>=(window.__hmBattleGo||0)){   // resolve each pair ONCE (lower slot) so nobody is hit twice, and only after the whistle
       var meApp=-(vx*nx2+vy*ny2),o2App=(o2.vx*nx2+o2.vy*ny2),TH=200;   // each head's closing speed toward the other -- only a real lunge lands
@@ -3893,7 +3936,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   if(battleOn&&window.__hmLavaOn&&!me.__sinking&&!elim&&!grabbed&&!me.podiumRank&&now>=(window.__hmBattleGo||0)){var _lavaY=window.__hmLavaY(x+HW/2);
    if(y+HH*FOOT>=_lavaY-1){var _alive=0;for(var _av=0;_av<peers.length;_av++){if(peers[_av].inB&&!peers[_av].elim&&!peers[_av].__sinking)_alive++;}
     if(_alive<=1){y=Math.min(y,_lavaY-HH*FOOT-2);vy=-(880+Math.random()*180);vx=(Math.random()*160-80);air=true;st="fall";surface=floorY;sqT=0.12;sqyP=1.14;sqxP=1/1.14;brf=6;gzy=-0.6;}   // the SOLE SURVIVOR never drowns -> clamped to the surface + bounced clear EVEN if it fell in airborne (the old !air gate let a falling survivor drop straight through -> 0-survivor rounds)
-    else if(now>=(window.__hmSinkBusy||0)){window.__hmSinkBusy=now+1500+Math.random()*700;startSink(_lavaY);}   // others still up -> sink ONE AT A TIME (suspense over who is next)
+    else if((window.__hmLavaLevel||0)>0.22&&now>=(window.__hmSinkBusy||0)){window.__hmSinkBusy=now+3800+Math.random()*1500;startSink(_lavaY);}   // others still up -> sink ONE AT A TIME (suspense over who is next); but NOBODY goes under until the lava is a GENUINE threat (~22% risen) -- the opening is all jockeying + climbing, so the first elimination feels earned, never a cheap early loss (and it pushes the whole cull higher up the arena)
     else{y=Math.min(y,_lavaY-HH*FOOT-2);vy=-(360+Math.random()*240);vx=(Math.random()*220-110);air=true;st="fall";surface=floorY;sqT=0.11;sqyP=1.13;sqxP=1/1.13;brf=6;gzy=-0.6;}}}   // waiting its turn -> a desperate scramble, CLAMPED at the surface so an airborne head can never fall straight through and out the bottom (this was the fall-through bug)
   me.x=x;me.y=y;me.vx=vx;me.vy=vy;me.HW=HW;me.HH=HH;me.ground=(!air&&!grabbed&&!perched&&st!=="grab");me.perched=perched;me.vault=vaulting;me.inB=battleOn;me.elim=elim;
   if(battleOn||soccerOn)window.__hmCrowd=peers.length;   // how big the crowd is -> small games mingle harder + the lava rises faster so it never looks static
@@ -4165,42 +4208,51 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   requestAnimationFrame(tick);
  })();
 
- (function platforms(){   // the battle arena: SCARCE, RISING TIERS -- fewer safe spots than heads, and higher slabs DROP IN as the lava climbs, so heads have to FIGHT for the platforms on screen instead of camping their own
+ (function platforms(){   // the arena is an ENDLESS RECYCLING LADDER: slabs scroll down as the crowd climbs, and any slab that drops off the bottom is rebuilt above the highest one -- an infinite tower that never runs out and never repeats, instead of a fixed set of tiers the lava eventually swallows
   var hero=document.querySelector(".hero");if(!hero)return;
-  var MAXP=9,els=[];for(var e=0;e<MAXP;e++){var d=document.createElement("div");d.className="hmPlat";d.style.transition="transform .55s cubic-bezier(.2,.9,.35,1),opacity .45s cubic-bezier(.2,.8,.2,1)";hero.appendChild(d);els.push(d);}
-  // each slab: {l,r fractions, hFrac height-above-floor, thin 0..2, arrive lava-level 0..1 when it drops in}. Total seats per live tier < the crowd -> somebody always has to scrap for a spot or go in.
-  function genDefs(){var defs=[],mob=innerWidth<=768;
-   function P(l,w,hFrac,thin,arrive){var jl=Math.min(0.95-w,Math.max(0.04,l+(Math.random()*0.03-0.015)));defs.push({l:jl,r:jl+w,hFrac:hFrac,thin:thin,arrive:arrive});}
-   P(mob?0.05:0.05,mob?0.90:0.90,0.15,0,0);   // the BASE -- nice and WIDE so a full crowd fits shoulder-to-shoulder without shoving each other off at the whistle; it drowns first and forces the scramble up
-   if(mob){
-    P(0.08,0.32,0.36,1,0.12); P(0.60,0.32,0.36,1,0.12);   // tier A
-    P(0.34,0.28,0.54,1,0.34);                             // tier B -- one slab, tighter
-    P(0.16,0.24,0.70,2,0.54); P(0.60,0.24,0.70,2,0.54);   // tier C
-    P(0.40,0.19,0.85,2,0.74);                             // the PEAK
-   }else{
-    P(0.12,0.23,0.37,1,0.12); P(0.65,0.23,0.37,1,0.12);   // tier A -- 2 narrow slabs (~4 seats for the crowd), first squeeze
-    P(0.31,0.20,0.53,1,0.33);                             // tier B -- a single centre slab: real competition to grab it
-    P(0.15,0.19,0.68,2,0.53); P(0.66,0.19,0.68,2,0.53);   // tier C -- split to the sides so climbers cross paths
-    P(0.44,0.14,0.84,2,0.73);                             // the PEAK -- one knife-edge, the last stand
-   }
-   return defs;}
-  var DEFS=genDefs();
-  function place(){var r=hero.getBoundingClientRect(),w=r.width,aH=hero.clientHeight||600;
-   var st=document.getElementById("stage"),sr=st?st.getBoundingClientRect():null,floorY=sr?(sr.bottom-r.top):(r.height*0.86);
-   var inB=document.body.classList.contains("hmBattle");
-   var lvl=(inB&&typeof window.__hmLavaLevel==="number")?window.__hmLavaLevel:0;   // no battle / no signal -> only the base (safe default)
-   battlePlats.length=0;
-   els.forEach(function(el,i){var D=DEFS[i];if(!D){el.style.display="none";el.classList.remove("arrived");return;}el.style.display="";
-    var l=Math.round(w*D.l),rr=Math.round(w*D.r),t=Math.round(floorY-aH*D.hFrac);
-    el.style.width=(rr-l)+"px";el.style.height=([15,11,9][D.thin||0])+"px";
-    var here=(D.arrive<=0)||(lvl>=D.arrive-0.02);   // it slides in a hair before its cue so heads see the new perch and race for it
-    if(here){el.classList.add("arrived");el.style.transform="translate("+l+"px,"+t+"px)";battlePlats.push({l:l,r:rr,t:t});}   // only a LIVE slab holds a head -- so nobody ever stands on a not-yet-arrived one
-    else{el.classList.remove("arrived");el.style.transform="translate("+l+"px,"+(t-Math.round(aH*0.32))+"px)";}   // parked up off-screen, ready to drop
-   });}
-  place();addEventListener("resize",place,{passive:true});
+  var MAXP=11,els=[];for(var e=0;e<MAXP;e++){var d=document.createElement("div");d.className="hmPlat arrived";d.style.transition="opacity .3s cubic-bezier(.2,.8,.2,1)";hero.appendChild(d);els.push(d);}
+  var SL=[];   // the live slabs, in SCREEN space: {el,l,w,y,thin}
+  function hw(){return hero.getBoundingClientRect().width;}
+  function hh(){return hero.clientHeight||600;}
+  function floorLine(){var st=document.getElementById("stage"),r=hero.getBoundingClientRect(),sr=st?st.getBoundingClientRect():null;return sr?(sr.bottom-r.top):(r.height*0.86);}
+  var GAPMIN=88,GAPMAX=126;   // ~6-7 rows on screen (the readable density every climb game lands on) and only ~0.4 of a head's 250px leap, so a rung is always reachable -- difficulty comes from NARROWER slabs, never from a bigger gap you can eventually not clear (Icy Tower keeps one pitch from floor 1 to floor 10,000)
+  var rowN=0;   // rows emitted this round -> drives the width ramp + the periodic full-width breather
+  function rnd(a,b){return a+Math.random()*(b-a);}
+  function mkAbove(topY,prevC){var W=hw(),mob=innerWidth<=768;
+   rowN++;
+   var relief=(rowN%10===0);   // RELIEF VALVE: a full-width ledge every ~10 rows -- a regroup beat that re-bunches the pack and stages the next scrap
+   var tight=Math.min(1,(window.__hmLavaLevel||0)*1.15);   // the ONE difficulty lever: slabs get meaner as the round matures
+   var wfr=relief?0.86:(mob?rnd(0.34,0.46)-tight*0.16:rnd(0.21,0.31)-tight*0.13);
+   var wpx=Math.round(W*Math.max(mob?0.16:0.09,wfr));
+   var y=Math.round(topY-rnd(GAPMIN,GAPMAX));
+   var span=Math.min(W*0.42,350);   // a head covers ~440px of ground in a leap; stay inside 0.8 of that so every rung is genuinely crossable, not a coin flip
+   var c=(prevC==null||relief)?W*0.5:Math.min(W*0.85,Math.max(W*0.15,prevC+rnd(-span,span)));
+   return {l:Math.round(Math.max(6,Math.min(W-wpx-6,c-wpx/2))),w:wpx,y:y,thin:relief?0:(Math.random()<0.5?1:2),pad:(!relief&&Math.random()<0.3)};}   // ~a third of the rungs are SPRINGBOARDS -- a head who has fallen behind can bounce two tiers in one go and rejoin the race instead of quietly drowning
+  function build(){var W=hw(),fl=Math.round(floorLine())-8;SL.length=0;rowN=0;
+   var bw=Math.round(W*0.90);SL.push({el:els[0],l:Math.round((W-bw)/2),w:bw,y:fl,thin:0});   // the wide opening base: the whole crowd fits shoulder to shoulder, then it drowns and the climb is on
+   var prev=SL[0];
+   for(var i=1;i<els.length;i++){var s=mkAbove(prev.y,prev.l+prev.w/2);s.el=els[i];SL.push(s);prev=s;}}
+  function render(){var H=hh(),inB=document.body.classList.contains("hmBattle");battlePlats.length=0;
+   for(var i=0;i<SL.length;i++){var s=SL[i];if(!s.el)continue;
+    s.el.style.width=s.w+"px";s.el.style.height=([15,11,9][s.thin||0])+"px";
+    s.el.style.transform="translate("+s.l+"px,"+s.y.toFixed(1)+"px)";   // sub-pixel: the scroll has to glide, and rounding every frame is what makes it judder
+    s.el.style.background=s.pad?"linear-gradient(180deg,#8fe3c2 0%,#4fc79b 54%,#2ea87c 100%)":"";   // a springboard reads instantly as the mint rung
+    var on=(s.y>-30&&s.y<H+70);
+    s.el.style.opacity=(inB&&on)?"1":"0";
+    if(inB&&on)battlePlats.push({l:s.l,r:s.l+s.w,t:Math.round(s.y),pad:s.pad});}}   // only an on-screen slab is real: nobody targets or stands on one you can't see
+  window.__hmPlatScroll=function(d){if(!SL.length)return;var H=hh();
+   if(d)for(var i=0;i<SL.length;i++)SL[i].y+=d;
+   for(var g=0;g<SL.length;g++){var s=SL[g];if(s.y<=H+110)continue;   // it fell out the bottom -> rebuild it above the highest slab, fresh width and offset
+    var hi=1e9,hc=null;for(var k=0;k<SL.length;k++){if(SL[k].y<hi){hi=SL[k].y;hc=SL[k];}}
+    var ns=mkAbove(hi,hc?hc.l+hc.w/2:null);s.l=ns.l;s.w=ns.w;s.y=ns.y;s.thin=ns.thin;}
+   render();};
+  build();render();
+  addEventListener("resize",function(){build();render();},{passive:true});
   var arenaReq=0;
-  window.__hmNewArena=function(){arenaReq=window.__hmBattleReq||0;window.__hmLavaLevel=0;DEFS=genDefs();place();};   // fresh scarce layout each fight; reset the rise to 0 so a new game opens with ONLY the base (not stale tiers from the last round), then the button calls it synchronously so heads scatter onto the base
-  setInterval(function(){if(document.body.classList.contains("hmBattle")){if((window.__hmBattleReq||0)!==arenaReq)window.__hmNewArena();else place();}},130);   // re-place each beat: higher tiers keep dropping in as the lava climbs
+  window.__hmNewArena=function(){arenaReq=window.__hmBattleReq||0;window.__hmLavaLevel=0;build();render();};   // a brand-new random tower every fight
+  setInterval(function(){var inB=document.body.classList.contains("hmBattle");
+   if(inB&&(window.__hmBattleReq||0)!==arenaReq){window.__hmNewArena();return;}
+   if(!inB){battlePlats.length=0;for(var i=0;i<els.length;i++)els[i].style.opacity="0";}},130);
  })();
 
  // ===== FLOOR IS LAVA: a rising molten pool (WebGL shader), a wavy glowing crust, heat haze, embers =====
@@ -4214,7 +4266,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   // ---- the rising surface wave (shared by the crust render AND game logic so death lines up with what you see) ----
   var WAMP=7,WK1=0.021,WK2=0.052,WS1=1.1,WS2=1.7;
   function waveAt(xpx,t){return Math.sin(xpx*WK1+t*WS1)*WAMP + Math.sin(xpx*WK2 - t*WS2)*WAMP*0.45;}
-  var level=0,surfaceY=1e9,arenaBottom=0,arenaW=0,arenaH=0,arenaFloor=0,heroLeft=0,running=false,t0=performance.now(),RISE_DUR=36000,embers=[],bubbles=[];   // ms to fill (slow + tense -- everyone starts on a platform above a pool that's ALREADY there)
+  var level=0,surfaceY=1e9,lavaY=null,RISE_PX=36,arenaBottom=0,arenaW=0,arenaH=0,arenaFloor=0,heroLeft=0,running=false,t0=performance.now(),RISE_DUR=36000,embers=[],bubbles=[];   // lavaY = the chasing surface in screen space; RISE_PX = its base climb in px/s (scaled up as the round matures)   // ms to fill (slow + tense -- everyone starts on a platform above a pool that's ALREADY there)
   // ---- DOM: molten body (WebGL) + wavy crust (2D canvas) + heat haze band ----
   var wrap=document.createElement("div");wrap.className="hmLavaWrap";wrap.setAttribute("aria-hidden","true");
   wrap.style.cssText="position:absolute;left:0;right:0;bottom:0;top:0;pointer-events:none;z-index:8;opacity:0;transition:opacity .5s";   // molten body IN FRONT of the platforms + heads (clipped to below the surface) so anything the lava reaches vanishes under it
@@ -4261,24 +4313,34 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   window.__hmLavaOn=false;
   window.__hmLavaY=function(xpx){return surfaceY+waveAt(xpx,(performance.now()-t0)/1000);};   // the death line at this x (hero-local)
   var lastReq=0;
-  function start(){t0=performance.now();level=0;embers.length=0;bubbles.length=0;window.__hmSinkBusy=0;lastReq=window.__hmBattleReq||0;
+  function start(){t0=performance.now();level=0;lavaY=null;embers.length=0;bubbles.length=0;window.__hmSinkBusy=0;lastReq=window.__hmBattleReq||0;
    RISE_DUR=Math.max(19000,Math.min(38000,12000+(window.__hmCrowd||6)*3400));   // fewer heads -> a faster climb so a small game gets tense quickly instead of everyone standing around
    if(!gl&&!initGL()){/* no webgl: crust-only fallback */}sizeGL();running=true;wrap.style.opacity="1";glow.style.opacity="1";window.__hmLavaOn=true;requestAnimationFrame(loop);}
   function stop(){running=false;window.__hmLavaOn=false;wrap.style.opacity="0";glow.style.opacity="0";haze.style.opacity="0";surfaceY=1e9;level=0;embers.length=0;bubbles.length=0;if(cctx)cctx.clearRect(0,0,crust.width,crust.height);}
   var wasOn=false,lastFrame=performance.now();
   function loop(n){if(!active()){if(wasOn){stop();wasOn=false;}return;}
    requestAnimationFrame(loop);var tsec=(n-t0)/1000;
-   if((window.__hmBattleReq||0)!==lastReq){lastReq=window.__hmBattleReq||0;t0=n;embers.length=0;}   // a NEW game -> restart the rise from the bottom (survives a throttled start/stop)
+   if((window.__hmBattleReq||0)!==lastReq){lastReq=window.__hmBattleReq||0;t0=n;lavaY=null;embers.length=0;}   // a NEW game -> restart the rise from the bottom (survives a throttled start/stop)
    // rise: hold during the 3-2-1 countdown, then climb from just under the floor to the top over RISE_DUR
    var _lin=Math.min(1,Math.max(0,(n-t0-2900)/RISE_DUR));level=Math.pow(_lin,1.34);   // EASE-IN: creeps up slowly at first (long jostle on the platforms) then climbs faster for a tense finish
    window.__hmLavaLevel=level;   // 0..1 rise progress -- the platforms read this to DROP IN higher tiers as the lava climbs
-   var startY=(arenaFloor||arenaH*0.86)+10,topY=arenaH*0.05;surfaceY=startY-(startY-topY)*level;   // ALREADY a visible molten pool at the floor line when the whistle blows (everyone's on a platform above it), then it climbs to the top
+   var dt=Math.min(0.05,Math.max(0.001,(n-lastFrame)/1000));
+   // ===== THE CLIMB: the arena scrolls at a STEADY, telegraphed pace -- never chained to any one head, so it reads perfectly smooth and no single leap can ever yank the view =====
+   var _el=(n-t0)/1000,_go=Math.max(0,_el-3.4);   // a grace beat at the whistle: everyone lands and settles on the base before the floor starts moving
+   var STEP=Math.min(5,Math.floor(_go/11));       // the scroll steps up a notch every ~11s instead of creeping continuously, so each escalation is an EVENT you can feel (Icy Tower's ladder)
+   var camD=(_go<=0)?0:(34+STEP*17)*dt;           // 34 px/s at the open, 119 px/s by the last step
+   if(camD>0)window.__hmClimb=(window.__hmClimb||0)+camD;
+   if(window.__hmPlatScroll)window.__hmPlatScroll(camD);
+   // ===== the lava is PINNED near the bottom of the frame: it IS the screen's floor, always on camera, and the scroll is what drags a slow head down into it =====
+   if(lavaY==null)lavaY=(arenaFloor||arenaH*0.86)+10;
+   var _mark=arenaH*(0.93-Math.min(0.16,_go*0.0020));   // and it creeps up the frame as the round matures, narrowing the safe band
+   lavaY+=(_mark-lavaY)*Math.min(1,dt*1.5);   // eased onto its mark: it never snaps, and it can never leave the screen
+   surfaceY=lavaY;
    // molten body: render + clip to below the surface
    if(glOK){gl.uniform2f(uRes,GW,GH);gl.uniform1f(uTime,tsec);gl.drawArrays(gl.TRIANGLES,0,3);}
    var clipTop=Math.max(0,Math.round(surfaceY-WAMP*1.6));gcv.style.clipPath="inset("+clipTop+"px 0 0 0)";gcv.style.webkitClipPath="inset("+clipTop+"px 0 0 0)";
    // wavy glowing crust at the surface
    drawCrust(tsec);
-   var dt=Math.min(0.05,(n-lastFrame)/1000);
    // BUBBLES: molten domes swell up from within and burst at the surface (the real "boiling lava" tell)
    if(cctx&&surfaceY<arenaH-34&&Math.random()<dt*5){bubbles.push({x:Math.random()*arenaW,depth:24+Math.random()*46,mr:5+Math.random()*11,t:0});}
    if(cctx)for(var bi=bubbles.length-1;bi>=0;bi--){var bu=bubbles[bi];bu.t+=dt;bu.depth-=(15+bu.mr)*dt;var br=bu.mr*Math.min(1,bu.t*1.3),bsurf=surfaceY+waveAt(bu.x-heroLeft,tsec);
