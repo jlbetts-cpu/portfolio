@@ -3521,7 +3521,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
       surface=floorY;st="fall";air=true;
       var ballUp=Math.max(0,floorY-ballY),ballClose=Math.abs(ballX-myX)<heroR.w*0.22;
       var vyb9=(wantHigh?(940+Math.random()*80):(overBall?720:(ballClose?440:360)))+Math.min(560,ballUp*0.72)+Math.random()*90,ttb9=2*vyb9/G;   // wantHigh = a real leap to block / head a high ball
-      vy=-vyb9;vx=dir*Math.min(800,Math.max(120,Math.abs(ddb9)/ttb9));sqT=0.12;sqyP=1.1;sqxP=1/1.1;}
+      vy=-vyb9;vx=dir*Math.min(800,Math.max(120,Math.abs(ddb9)/ttb9));aimX=bxT+HW/2;sqT=0.12;sqyP=1.1;sqxP=1/1.1;}   // aimX -> the shared mid-air steering curves this leap toward the ball/spot, so soccer heads adjust in flight (same feel as lava) instead of committing to a blind arc
      else{gzx=(ballX>myX)?0.6:-0.6;gzy=0.1;sacAt=now+700;}}}}catch(_){}
   if(battleOn&&!elim&&!celebrated){var alive9=0,inb9=0;
    for(var a9=0;a9<peers.length;a9++){if(peers[a9].inB){inb9++;if(!peers[a9].elim&&!peers[a9].__sinking)alive9++;}}   // a sinking head is already out -> the winner is crowned as the last rival melts
@@ -3679,10 +3679,10 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   var _wind=window.__hmWind;if(_wind&&now<_wind.until&&air&&!grabbed)vx+=_wind.ax*DT;   // WIND GUST: a sideways gale sweeps the airborne
   // physics: walls, floor, ceiling, and the caregiver — nothing else is solid
   if(!grabbed&&air){
-   if(window.__hmLavaOn&&battleOn&&now>=hitStop&&!me.__sinking){   // MID-AIR STEERING (Reynolds seek/arrive): correct the horizontal trajectory toward the target every frame -> jumps look intentional + always land, heads change direction mid-flight, and a knocked-loose head scrambles for safety instead of sailing helplessly into the lava
-    if(aimX==null&&vy>0&&now>=recAt){recAt=now+150;var _mf=y+HH*FOOT,_ly=window.__hmLavaY(x+HW/2),_bd=1e9;   // knocked loose with no plan -> grab the nearest reachable safe slab and scramble for it
+   if((battleOn||soccerOn)&&now>=hitStop&&!me.__sinking){   // MID-AIR STEERING (Reynolds seek/arrive) -- SHARED by every game mode so movement feels the same everywhere: heads correct their horizontal trajectory toward the target each frame, so jumps look intentional + always land, and they change direction mid-flight (chasing a moving ball / a shifting safe slab)
+    if(window.__hmLavaOn&&aimX==null&&vy>0&&now>=recAt){recAt=now+150;var _mf=y+HH*FOOT,_ly=window.__hmLavaY(x+HW/2),_bd=1e9;   // lava only: knocked loose with no plan -> grab the nearest reachable safe slab and scramble for it
      for(var _ri=0;_ri<battlePlats.length;_ri++){var _RP=battlePlats[_ri];if(_RP.t>=_ly-6)continue;var _rup=_mf-_RP.t;if(_rup>((1180*1180)/(2*G))-20)continue;var _rc=(_RP.l+_RP.r)/2,_rdd=Math.abs(_rc-(x+HW/2))+Math.abs(_rup)*0.5;if(_rdd<_bd){_bd=_rdd;aimX=_rc;}}}
-    if(aimX!=null){var _mcx2=x+HW/2,_des=Math.max(-600,Math.min(600,(aimX-_mcx2)*2.4));vx+=Math.max(-1050*DT,Math.min(1050*DT,_des-vx));}   // arrive: eases off as it nears the aim, so it lands ON the slab instead of sailing off the far edge
+    if(aimX!=null){var _mcx2=x+HW/2,_des=Math.max(-620,Math.min(620,(aimX-_mcx2)*2.4));vx+=Math.max(-1050*DT,Math.min(1050*DT,_des-vx));}   // arrive: eases off as it nears the aim, so it lands ON the target (slab, or where the ball is going) instead of sailing past
    }
    if(now>=hitStop){vy+=G*_gf*DT;if(vy>1800)vy=1800;if(vy<-1800)vy=-1800;x+=vx*DT;y+=vy*DT;if(flipA)flipA+=flipV*DT;}   // terminal velocity keeps dt-stepping sound; hit-stop freezes him for a few frames on impact so the blow READS (the squash keeps animating)
    if(x<WL){x=WL;if(Math.abs(vx)>420)brf=6;var _wl=window.__hmLavaOn;vx=_wl?Math.max(Math.abs(vx)*0.9,200):Math.abs(vx)*0.72;if(_wl){air=true;st="fall";vy=Math.min(vy,-Math.max(150,Math.abs(vx)*0.4));brf=6;}dir=1;sqT=0.13;sqxP=0.9;sqyP=1.11;}   // FLOOR IS LAVA: springy walls fling a knocked head back IN toward the platforms (guaranteed inward speed so a head can never climb/hover up the wall edge), with just enough lift to clear a slab
