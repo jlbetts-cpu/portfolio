@@ -3934,10 +3934,13 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   if(window.__hmRaceOn&&me.raceX!=null){x=me.raceX;y=me.raceY;if(Math.abs(me.raceVX||0)>40)dir=(me.raceVX>=0)?1:-1;air=true;st="fall";vx=me.raceVX||0;vy=0;me.__inRace=true;grabbed=false;perched=false;
    gzx=Math.max(-0.8,Math.min(0.8,(me.raceVX||0)/700));gzy=Math.max(-0.5,Math.min(0.6,(me.raceVY||0)/900));   // eyes track the ride: leaning into the turns, watching the drop
    if(me.raceHit&&now-me.raceHit<420){brf=Math.max(brf,5);if(now-me.raceHit<160){sqT=Math.max(sqT,0.1);sqyP=1.1;sqxP=1/1.1;}}   // a hard peg or paddle knock startles: brows pop + a little jolt-squash
-   if(me.raceWin&&crownEl&&crownEl.style.opacity!=="1")crownEl.style.opacity="1";}   // the WINNER is crowned the instant the line is crossed
+   if(me.raceWin&&crownEl&&crownEl.style.opacity!=="1")crownEl.style.opacity="1";   // the WINNER is crowned the instant the line is crossed
+   if(me.raceHide&&!me.__rHid){me.__rHid=true;root.style.visibility="hidden";if(shadow)shadow.style.visibility="hidden";}
+   else if(!me.raceHide&&me.__rHid){me.__rHid=false;root.style.visibility="";if(shadow)shadow.style.visibility="";}}
   else if(me.__inRace&&!window.__hmRaceOn){me.__inRace=false;me.raceX=null;surface=floorY;air=true;st="fall";vy=-(240+Math.random()*220);vx=(Math.random()*300-150);if(Math.random()<0.4)startFlip();
+   if(me.__rHid){me.__rHid=false;root.style.visibility="";if(shadow)shadow.style.visibility="";}
    if(me.raceWin){me.raceWin=false;smileT=Math.max(smileT||0,2.6);(function(ce){setTimeout(function(){try{ce.style.opacity="0";}catch(_){}},4600);})(crownEl);}}   // the champion tumbles home grinning, wears the crown a few beats more, then it fades
-  var _gWL=WL,_gWR=WR;if(battleOn){var _hbl=(heroBox&&heroBox.left)||0;_gWL=Math.max(WL,2-_hbl);_gWR=Math.min(WR,innerWidth-_hbl-HW-2);}   // in the LAVA CLIMB the walls are the VIEWPORT edges -- the whole screen is the arena, and climbers stay fully on it, never half-buried "in the glass" like the idle hero allows. Soccer keeps its own full-viewport pitch (goals live at the screen edges).
+  var _gWL=WL,_gWR=WR;if(battleOn){var _hbl=(heroBox&&heroBox.left)||0;_gWL=Math.max(WL,(innerWidth>640?104:6)+2-_hbl);_gWR=Math.min(WR,innerWidth-_hbl-HW-2);}   // in the LAVA CLIMB the walls are the VIEWPORT edges -- the whole screen is the arena, and climbers stay fully on it, never half-buried "in the glass" like the idle hero allows. Soccer keeps its own full-viewport pitch (goals live at the screen edges).
   if(x<_gWL){x=_gWL;if(battleOn&&Math.abs(vx)>60)vx=Math.abs(vx)*0.6;}if(x>_gWR){x=_gWR;if(battleOn&&Math.abs(vx)>60)vx=-Math.abs(vx)*0.6;}   // and in lava they BOUNCE off, so a wall shove reads as a save, not a pin
   if(!air&&!grabbed&&!perched&&!window.__hmLavaOn&&y>floorY)y=floorY;   // the walls hold, ALWAYS: no head ever leaves the screen (but in lava there's no floor to snap to)
   // REACTIVE FACES: the closer the lava, the more scared they look -- brows up, eyes down at the rising death, a nervous shrink
@@ -4225,7 +4228,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    +".hmRaceBoard{position:absolute;left:14px;top:50%;transform:translateY(-50%);z-index:49;display:none;flex-direction:column;gap:5px}body.hmRace .hmRaceBoard,body.hmBattle .hmRaceBoard{display:flex}"   /* the standings live in the GUTTER, vertically centred at the screen's edge -- out of the course's hot centre, one glance away */
    +".hmRaceRow{display:flex;align-items:center;gap:7px;background:rgba(253,253,253,.82);border:1px solid var(--c100);border-radius:99px;padding:3px 10px 3px 4px;font-family:var(--sans);font-weight:600;font-size:12px;color:var(--c700);backdrop-filter:blur(4px);will-change:transform}"
    +".hmRaceRow img{width:20px;height:24px;object-fit:contain;display:block}.hmRaceRow b{font-weight:700;color:var(--c950);width:11px;text-align:center}"
-   +".hmRaceRow.fin{background:var(--c950);border-color:var(--c950);color:var(--c50)}.hmRaceRow.fin b{color:var(--c50)}"
+   +".hmRaceRow.fin{border-color:rgba(8,8,8,.55)}.hmRaceRow.fin::after{content:\"\\2713\";font-size:10px;line-height:1;color:var(--c700);margin-left:1px}.hmRaceRow.out{opacity:.45}.hmRaceRow.out img{filter:grayscale(1)}.hmRaceRow.out b{color:var(--c500)}.hmRaceRow.out::after{content:\"\\2715\";font-size:9px;line-height:1;color:var(--c500);margin-left:1px}"
    +".hmRaceRow.top{background:var(--c950);border-color:var(--c950);color:var(--c50)}.hmRaceRow.top b{color:var(--c50)}.hmRaceRow.top::after{content:\"\\265B\";font-size:10px;line-height:1;color:var(--c50);margin-left:1px}"   /* the leader's chip flips to ink + a quiet crown -- being #1 should FEEL like something */
    +"@media(max-width:640px){.hmRaceBoard{display:none!important}}";   /* mobile: standings step aside entirely -- the race itself is the interface */
   document.head.appendChild(css);
@@ -4245,11 +4248,11 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
     for(k in this.rows){prev[k]=this.rows[k].getBoundingClientRect().top;}
     for(var i=0;i<orderKeys.length;i++){r=this.rows[orderKeys[i]];if(!r)continue;
      r.style.order=i;var b=r.querySelector("b");if(b)b.textContent=i+1;
-     r.classList.toggle("fin",!!(locked&&locked[orderKeys[i]]));r.classList.toggle("top",i===0);}
+     var st9=locked?locked[orderKeys[i]]:null;r.classList.toggle("fin",st9==="fin");r.classList.toggle("out",st9==="out");r.classList.toggle("top",i===0&&st9!=="out");}
     for(k in this.rows){r=this.rows[k];var nt=r.getBoundingClientRect().top,d=prev[k]-nt;
      if(Math.abs(d)>2){r.style.transition="none";r.style.transform="translateY("+d+"px)";void r.offsetWidth;r.style.transition="transform .38s cubic-bezier(.2,.8,.2,1)";r.style.transform="";}}}};
   window.__hmBoard=BOARD;
-  var ON=false,balls=[],pegs=[],segs=[],spins=[],gates=[],gateEls=[],finishY=0,camY=0,ts=1,winner=-1,order=[],raceT0=0,seed=0,lastN=performance.now(),running=false,endAt=0,goAt=0,W=0,H=0,D=64,statT=0;
+  var ON=false,balls=[],pegs=[],segs=[],spins=[],gates=[],gateEls=[],X0=8,CW=0,CC=0,finishY=0,camY=0,ts=1,winner=-1,order=[],raceT0=0,seed=0,lastN=performance.now(),running=false,endAt=0,goAt=0,W=0,H=0,D=64,statT=0;
   function heroW(){return innerWidth;}   // the COURSE spans the whole viewport, wall to wall -- the screen edges are the rails, so no head is ever pinned mid-air at an invisible wall with open space beyond it
   var HL=0;function refreshHL(){HL=Math.round(hero.getBoundingClientRect().left);}   // viewport-space -> hero-space shift (heads + FX live in hero coords)
   function heroH(){return hero.clientHeight||600;}
@@ -4257,32 +4260,33 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   function seg(x1,y1,x2,y2,cls){segs.push({x1:x1,y1:y1,x2:x2,y2:y2,e:0.28,cls:cls||""});}
   function buildCourse(){pegs.length=0;segs.length=0;spins.length=0;gates.length=0;
    refreshHL();W=heroW();H=heroH();var mob=W<=640;
+   X0=mob?8:104;CW=W-X0;CC=(X0+W)/2;   // the LEFT RAIL is reserved for the standings -- the whole course lives to the right of it, so the chips are always legible and never buried under a peg field
    var Ds=balls.length?balls.map(function(b){return b.r*2;}).sort(function(a,b){return a-b;}):[D];D=Ds[Math.floor(Ds.length/2)]||64;
    var DM=Ds[Ds.length-1]||D;   // the BIGGEST racer (the 1.5x mini-Jayden) sets every throat -- a funnel nobody can pass isn't a choke, it's a cork
    var y=H*0.55;   // the start grid sits just under the opening frame
    function pegField(rows,pitchF){var pr=Math.max(6,D*0.18),pitch=Math.max(D*pitchF,DM*1.28+pr*2,mob?56:70),vs=pitch*0.8;   // the gap between peg SURFACES always clears the biggest racer by ~28% -- pegs deflect, they never cage
     var edge=DM*1.28+pr;   // outer columns keep a full head's clearance from the walls -- a peg too close to a wall makes a dead pocket that cages whoever lands in it
-    for(var r=0;r<rows;r++){var off=(r%2)?pitch/2:0,n=Math.floor((W-pitch*0.6)/pitch);
-     for(var c=0;c<=n;c++){var px=pitch*0.55+off+c*pitch;if(px<edge||px>W-edge)continue;pegs.push({x:px+rnd(-3,3),y:y+rnd(-3,3),r:pr});}
+    for(var r=0;r<rows;r++){var off=(r%2)?pitch/2:0,n=Math.floor((CW-pitch*0.6)/pitch);
+     for(var c=0;c<=n;c++){var px=X0+pitch*0.55+off+c*pitch;if(px<X0+edge||px>W-edge)continue;pegs.push({x:px+rnd(-3,3),y:y+rnd(-3,3),r:pr});}
      y+=vs;}
     y+=D*0.8;}
-   function funnel(throatF,tube){var th=DM*throatF+11,cx=W/2+rnd(-W*0.08,W*0.08),drop=H*0.55,spread=(W-th)/2;   // +11 covers the walls' own collision padding, so even the big head slips the throat with room to spare
-    seg(2,y,cx-th/2,y+drop);seg(W-2,y,cx+th/2,y+drop);   // the CHOKE: everyone queues, the pack re-bunches, exit order shuffles -- this is why the race stays anyone's to win
+   function funnel(throatF,tube){var th=DM*throatF+11,cx=CC+rnd(-CW*0.08,CW*0.08),drop=H*0.55;   // +11 covers the walls' own collision padding, so even the big head slips the throat with room to spare
+    seg(X0+2,y,cx-th/2,y+drop);seg(W-2,y,cx+th/2,y+drop);   // the CHOKE: everyone queues, the pack re-bunches, exit order shuffles -- this is why the race stays anyone's to win
     y+=drop;
     if(tube){seg(cx-th/2,y,cx-th/2,y+tube);seg(cx+th/2,y,cx+th/2,y+tube);y+=tube;}
     y+=D*0.7;}
-   function zigzag(n){var ang=0.28,span=W*0.72;   // ~16deg ramps, each ending in a drop gap
+   function zigzag(n){var ang=0.28,span=CW*0.72;   // ~16deg ramps, each ending in a drop gap
     for(var i=0;i<n;i++){var ltr=(i%2===0);
-     var x1=ltr?2:W-2,x2=ltr?(2+span):(W-2-span),y2=y+span*ang;
+     var x1=ltr?X0+2:W-2,x2=ltr?(X0+2+span):(W-2-span),y2=y+span*ang;
      seg(x1,y,x2,y2);y=y2+D*1.1;}
     y+=D*0.4;}
-   function spinner(){var sr=D*1.7,cx=W/2+rnd(-W*0.06,W*0.06),cy=y+H*0.34;
+   function spinner(){var sr=D*1.7,cx=CC+rnd(-CW*0.06,CW*0.06),cy=y+H*0.34;
     spins.push({cx:cx,cy:cy,r:sr,a:rnd(0,3.14),w:(Math.random()<0.5?-1:1)*rnd(5,8)});   // ~0.9-1.3 rev/s -- the race's biggest single luck injector
     y=cy+H*0.34;}
    function gate(){var ow=DM*1.5,gy=y+H*0.22;   // the MOVING GATE: a wall sliding side to side with one head-and-a-half of daylight -- the "he got BLOCKED!!" beat, and the great equalizer right before the finish
-    var gl={x1:2,y1:gy,x2:W*0.3,y2:gy,e:0.28,cls:"gate"},gr={x1:W*0.7,y1:gy,x2:W-2,y2:gy,e:0.28,cls:"gate"};
+    var gl={x1:X0+2,y1:gy,x2:X0+CW*0.3,y2:gy,e:0.28,cls:"gate"},gr={x1:X0+CW*0.7,y1:gy,x2:W-2,y2:gy,e:0.28,cls:"gate"};
     segs.push(gl);segs.push(gr);
-    gates.push({l:gl,r:gr,y:gy,ow:ow,travel:(W-ow)*0.5-10,ph:rnd(0,6.28),spd:rnd(2.4,3.4)});
+    gates.push({l:gl,r:gr,y:gy,ow:ow,travel:(CW-ow)*0.5-12,ph:rnd(0,6.28),spd:rnd(2.4,3.4)});
     y=gy+H*0.34;}
    pegField(mob?7:8,1.9);       // CHAOS: the opening plinko -- the early leader rarely survives it
    funnel(1.25,H*0.4);          // CHOKE
@@ -4296,7 +4300,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    funnel(1.2,0);               // the LAST choke -- whoever exits first has the race to lose
    y+=H*0.5;finishY=y;          // open sprint, then the line
    y+=H*1.1;
-   seg(2,finishY+H*0.85,W-2,finishY+H*0.85);   // the finish pen floor: finishers pile up in view behind the line
+   seg(X0+2,finishY+H*0.85,W-2,finishY+H*0.85);   // the finish pen floor: finishers pile up in view behind the line
   }
   function buildDOM(){
    if(!wrap){wrap=document.createElement("div");wrap.className="hmRaceWrap";hero.appendChild(wrap);}
@@ -4316,7 +4320,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
      b.style.cssText+="left:"+(sp.cx-sp.r)+"px;top:"+(sp.cy-4.5)+"px;width:"+(sp.r*2)+"px;transform-origin:50% 50%";
      frag.appendChild(b);spinEls.push({el:b,sp:sp,k:k});}}
    finEl=document.createElement("div");finEl.className="hmRaceFin";
-   finEl.style.cssText+="left:2px;top:"+finishY+"px;width:"+(W-4)+"px";frag.appendChild(finEl);
+   finEl.style.cssText+="left:"+(X0+2)+"px;top:"+finishY+"px;width:"+(W-X0-4)+"px";frag.appendChild(finEl);
    world.appendChild(frag);
    BOARD.build(balls.map(function(bl,ix){return {key:String(ix),slot:(bl.peer?bl.peer.slot:null)};}),finish);
    for(i=0;i<balls.length;i++)balls[i].row=BOARD.rows[String(i)];}
@@ -4327,9 +4331,9 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    ON=true;window.__hmRaceOn=true;document.body.classList.add("hmRace");seed++;winner=-1;order.length=0;ts=1;camY=0;endAt=0;
    balls.length=0;
    var gridOrder=rc.slice();for(var g=gridOrder.length-1;g>0;g--){var j=Math.floor(Math.random()*(g+1)),tmp=gridOrder[g];gridOrder[g]=gridOrder[j];gridOrder[j]=tmp;}   // reshuffled grid every race: fair start, different neighbours
-   W=heroW();H=heroH();
+   W=heroW();H=heroH();X0=(W<=640)?8:104;CW=W-X0;CC=(X0+W)/2;   // the rail bounds are needed BEFORE the grid spawns (buildCourse re-derives them a beat later)
    for(var n=0;n<gridOrder.length;n++){var pr=gridOrder[n],r=pr.HW*0.5*0.92;
-    balls.push({peer:pr,r:r,x:(W/(gridOrder.length+1))*(n+1)+rnd(-2,2),y:H*0.42-rnd(0,3),vx:0,vy:0,slow:0,fin:false,row:null});}
+    balls.push({peer:pr,r:r,x:X0+(CW/(gridOrder.length+1))*(n+1)+rnd(-2,2),y:H*0.42-rnd(0,3),vx:0,vy:0,slow:0,fin:false,row:null});}
    buildCourse();buildDOM();
    goAt=performance.now()+3200;raceT0=goAt;
    var s=seed;bigText(3);
@@ -4350,7 +4354,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
     if(!a.fin&&winner>=0)a.vy+=1550*0.6*dt;   // the winner's crossed -> everyone still on course sprints it home, so the final leaderboard is complete before the wrap-up
     var sp=Math.hypot(a.vx,a.vy),cap=H*2.5;if(sp>cap){a.vx*=cap/sp;a.vy*=cap/sp;}
     a.x+=a.vx*dt;a.y+=a.vy*dt;
-    if(a.x<a.r){a.x=a.r;a.vx=Math.abs(a.vx)*0.3;}if(a.x>W-a.r){a.x=W-a.r;a.vx=-Math.abs(a.vx)*0.3;}
+    if(a.x<X0+a.r){a.x=X0+a.r;a.vx=Math.abs(a.vx)*0.3;}if(a.x>W-a.r){a.x=W-a.r;a.vx=-Math.abs(a.vx)*0.3;}
     // pegs: the clean left/right coin-flips
     for(j=0;j<pegs.length;j++){var p=pegs[j];if(Math.abs(p.y-a.y)>a.r+p.r+2)continue;var dx=a.x-p.x,dy=a.y-p.y,d=Math.hypot(dx,dy),rr=a.r+p.r;
      if(d>0.01&&d<rr){var nx=dx/d,ny=dy/d;a.x=p.x+nx*rr;a.y=p.y+ny*rr;
@@ -4378,7 +4382,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
     if(a.px==null){a.px=a.x;a.py=a.y;}
     if(!a.fin){if(Math.hypot(a.x-a.px,a.y-a.py)>12){a.px=a.x;a.py=a.y;a.slow=0;a.nud=0;}
      else{a.slow+=dt;if(a.slow>0.9){a.slow=0;a.px=a.x;a.py=a.y;a.nud=(a.nud||0)+1;
-      if(a.nud>=3){a.nud=0;a.vx=(W/2>a.x?1:-1)*rnd(520,680);a.vy=-rnd(160,260);}   // three nudges and still pinned -> a hard kick toward open course (out of any corner pocket), with a little pop up to clear the lip
+      if(a.nud>=3){a.nud=0;a.vx=(CC>a.x?1:-1)*rnd(520,680);a.vy=-rnd(160,260);}   // three nudges and still pinned -> a hard kick toward open course (out of any corner pocket), with a little pop up to clear the lip
       else{var m=rnd(300,460);a.vx+=(Math.random()<0.5?-1:1)*m*0.5;a.vy+=m;}}}}
     if(!a.fin&&a.y>finishY){a.fin=true;order.push(i);if(a.row){a.row.classList.add("fin");}
      if(winner<0){winner=i;a.peer.raceWin=true;ts=0.28;endAt=performance.now()+7600;
@@ -4406,7 +4410,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
     {var sub=dt>0.017?2:1,sdt=dt/sub;for(var s2=0;s2<sub;s2++)step(sdt);}
    for(var sI=0;sI<spins.length;sI++)spins[sI].a+=spins[sI].w*dt;
    for(var gI=0;gI<gates.length;gI++){var gt=gates[gI];gt.ph+=gt.spd*0.32*dt;   // the gate glides on its own clock (slow-mo slows it too, so a photo finish at the gate stays readable)
-    var ocx=W/2+Math.sin(gt.ph)*gt.travel;gt.l.x2=ocx-gt.ow/2;gt.r.x1=ocx+gt.ow/2;}
+    var ocx=CC+Math.sin(gt.ph)*gt.travel;gt.l.x2=ocx-gt.ow/2;gt.r.x1=ocx+gt.ow/2;}
    for(var gE=0;gE<gateEls.length;gE++){var ge2=gateEls[gE],sg=ge2.seg,ln=Math.max(0,sg.x2-sg.x1);
     ge2.el.style.left=sg.x1.toFixed(1)+"px";ge2.el.style.width=ln.toFixed(1)+"px";}
    // camera: ride the leader with a soft spring, never backward, and stop at the pen
@@ -4417,13 +4421,14 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    for(var sE=0;sE<spinEls.length;sE++){var se=spinEls[sE];se.el.style.transform="rotate("+((se.sp.a+se.k*Math.PI/2)*180/Math.PI).toFixed(1)+"deg)";}
    // hand every head its screen position (the mailbox its own frame loop follows)
    for(var m2=0;m2<balls.length;m2++){var bb=balls[m2],pr2=bb.peer;
-    pr2.raceX=bb.x-HL-pr2.HW/2;pr2.raceY=(bb.y-camY)-pr2.HH*0.55;pr2.raceVX=bb.vx;pr2.raceVY=bb.vy;}
+    pr2.raceX=bb.x-HL-pr2.HW/2;pr2.raceY=(bb.y-camY)-pr2.HH*0.55;pr2.raceVX=bb.vx;pr2.raceVY=bb.vy;
+    pr2.raceHide=((bb.y-camY)<-pr2.HH*0.6)||((bb.y-camY)>H+pr2.HH);}   // off the camera window = OFF THE SCREEN: a head that hasn't reached this stretch yet must not float over the header
    // leaderboard: re-rank every ~0.3s, finished heads keep their locked position
    statT+=raw;if(statT>0.3){statT=0;
     var un=[];for(var ri=0;ri<balls.length;ri++)if(!balls[ri].fin)un.push(ri);
     un.sort(function(a,b){return balls[b].y-balls[a].y;});   // the deepest still-running head ranks highest
     var keys=order.map(String).concat(un.map(String)),locked={};
-    for(var oi=0;oi<order.length;oi++)locked[String(order[oi])]=1;   // finishers hold their crossed-the-line positions, dark and settled
+    for(var oi=0;oi<order.length;oi++)locked[String(order[oi])]="fin";   // finishers hold their crossed-the-line positions, dark and settled
     BOARD.rank(keys,locked);}
    if(endAt&&n>=endAt)finish();
    if(winner>=0&&order.length>=balls.length)endAt=Math.min(endAt||1e18,n+1400);   // everyone's home -> wrap up quicker
@@ -4463,7 +4468,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
      if(P5.elim||P5.__sinking){if(out4.indexOf(k5)<0)out4.push(k5);}else alive4.push(P5);}
     alive4.sort(function(a,c){return a.y-c.y;});
     var keys4=alive4.map(function(p){return "s"+p.slot;}).concat(out4.slice().reverse());
-    var lock4={};for(var o4=0;o4<out4.length;o4++)lock4[out4[o4]]=1;
+    var lock4={};for(var o4=0;o4<out4.length;o4++)lock4[out4[o4]]="out";
     window.__hmBoard.rank(keys4,lock4);
     if(el.style.opacity!=="0"){el.style.opacity="0";}return;}   // the old counter pill retires where the standings run
    if(n!==shownN){shownN=n;b.textContent=n;}el.style.opacity="1";}
@@ -4476,7 +4481,8 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   var MAXP=20,els=[];for(var e=0;e<MAXP;e++){var d=document.createElement("div");d.className="hmPlat arrived";d.style.transition="opacity .28s cubic-bezier(.2,.8,.2,1)";hero.appendChild(d);els.push(d);}
   var SL=[],rowN=0;   // slabs live in SCREEN space: {el,l,w,y,kind,mv,crumbAt,dead}
   function hw(){return innerWidth;}   // the ladder spans the WHOLE viewport -- the entire screen is the arena, edge to edge, not just the hero box
-  function ox(){return Math.round(-hero.getBoundingClientRect().left);}   // viewport-space -> hero-space shift, applied only at the render boundary
+  function ox(){return Math.round(-hero.getBoundingClientRect().left);}
+  function lx(){return innerWidth>640?104:6;}   // the standings rail: rungs keep out of it on desktop so the chips always read   // viewport-space -> hero-space shift, applied only at the render boundary
   function hh(){return hero.clientHeight||600;}
   function floorLine(){var st=document.getElementById("stage"),r=hero.getBoundingClientRect(),sr=st?st.getBoundingClientRect():null;return sr?(sr.bottom-r.top):(r.height*0.86);}
   function lavaAt(cx){try{return window.__hmLavaY?window.__hmLavaY(cx+ox()):hh()+400;}catch(_){return hh()+400;}}
@@ -4492,13 +4498,13 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    var tight=Math.min(1,(window.__hmLavaLevel||0)*1.1);   // the ONE difficulty lever: rungs narrow as the round matures
    var f=(mob()?rnd(0.26,0.42):rnd(0.13,0.24))-tight*(mob()?0.08:0.05);
    return Math.round(W*Math.max(mob()?0.17:0.085,f));}
-  function clampL(c,wpx,W){return Math.round(Math.max(4,Math.min(W-wpx-4,c-wpx/2)));}   // rungs may hug either edge -- the whole screen is playable, so a head drifting wide still has somewhere to land
+  function clampL(c,wpx,W){return Math.round(Math.max(lx()+4,Math.min(W-wpx-4,c-wpx/2)));}   // rungs may hug either edge -- the whole screen is playable, so a head drifting wide still has somewhere to land
   function mkSlab(el,y,cx,relief){var W=hw(),wpx=widthPx(W,relief),k=kindOf(relief);
    return {el:el,l:clampL(cx,wpx,W),w:wpx,y:y,kind:k,mv:(k==="move")?((Math.random()<0.5?-1:1)*rnd(78,128)):0,crumbAt:0,dead:false};}   // a patrol rung has to visibly TRAVEL to read as one -- a slow creep just looks like drift
   function rowsAt(y){var o=[];for(var i=0;i<SL.length;i++){if(!SL[i].dead&&Math.abs(SL[i].y-y)<7)o.push(SL[i]);}return o;}
   function topY(){var m=1e9;for(var i=0;i<SL.length;i++){if(!SL[i].dead&&SL[i].y<m)m=SL[i].y;}return m===1e9?floorLine():m;}
   function siblingSpot(row,W,wpx){   // find the widest CLEAR span in this row (measured off the real slab edges, not their centres) so two rungs can never touch or overlap
-   var GAPX=30,sorted=row.slice().sort(function(a,b){return a.l-b.l;}),iv=[],cur=0,i;
+   var GAPX=30,sorted=row.slice().sort(function(a,b){return a.l-b.l;}),iv=[],cur=lx(),i;
    for(i=0;i<sorted.length;i++){var s2=sorted[i];if(s2.l-GAPX-cur>=wpx)iv.push([cur,s2.l-GAPX]);cur=Math.max(cur,s2.l+s2.w+GAPX);}
    if(W-cur>=wpx)iv.push([cur,W]);
    if(!iv.length)return null;
@@ -4513,11 +4519,11 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    rowN++;var relief=(rowN%10===0);   // RELIEF: a full-width ledge every ~10 rows, a regroup beat before the next scrap
    var from=row.length?row[Math.floor(Math.random()*row.length)]:null;
    var span=Math.min(W*0.44,360);   // a head covers ~440px in a leap: stay inside 0.8 of that so every rung is genuinely crossable
-   var cx=relief?W*0.5:(from?(from.l+from.w/2)+rnd(-span,span):rnd(W*0.15,W*0.85));
+   var cx=relief?(lx()+W)/2:(from?(from.l+from.w/2)+rnd(-span,span):lx()+rnd((W-lx())*0.12,(W-lx())*0.86));
    var ns2=mkSlab(s.el,hi-rnd(GAPMIN,GAPMAX),cx,relief);for(var k2 in ns2)s[k2]=ns2[k2];}
   function build(){var W=hw(),fl=Math.round(floorLine())-8;SL.length=0;rowN=0;
    for(var i=0;i<els.length;i++)SL.push({el:els[i],l:0,w:10,y:fl,kind:"",mv:0,crumbAt:0,dead:true});
-   SL[0].dead=false;SL[0].l=0;SL[0].w=Math.round(W);SL[0].y=fl;SL[0].kind="";   // the OPENING GROUND: the entire floor, so the whole crowd starts spread out and nobody is crowded off at the whistle
+   SL[0].dead=false;SL[0].l=lx();SL[0].w=Math.round(W-lx());SL[0].y=fl;SL[0].kind="";   // the OPENING GROUND: the entire floor, so the whole crowd starts spread out and nobody is crowded off at the whistle
    for(var j=1;j<SL.length;j++){SL[j].dead=false;respawn(SL[j]);}}
   var SKIN={pad:"linear-gradient(180deg,#8fe3c2 0%,#4fc79b 54%,#2ea87c 100%)",move:"linear-gradient(180deg,#cfc0f4 0%,#a58ae4 54%,#7b5fd0 100%)",crumble:"linear-gradient(180deg,#f4dcab 0%,#e0b769 54%,#c2902f 100%)"};
   function render(){var H=hh(),OX=ox(),inB=document.body.classList.contains("hmBattle");battlePlats.length=0;
@@ -4534,7 +4540,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    dt=dt||0.016;
    for(var i=0;i<SL.length;i++){var s=SL[i];
     if(d)s.y+=d;
-    if(s.mv&&!s.dead){s.l+=s.mv*dt;if(s.l<4){s.l=4;s.mv=Math.abs(s.mv);}else if(s.l>W-s.w-4){s.l=W-s.w-4;s.mv=-Math.abs(s.mv);}}   // the violet rungs patrol, ferrying stranded heads back toward the middle
+    if(s.mv&&!s.dead){s.l+=s.mv*dt;if(s.l<lx()+4){s.l=lx()+4;s.mv=Math.abs(s.mv);}else if(s.l>W-s.w-4){s.l=W-s.w-4;s.mv=-Math.abs(s.mv);}}   // the violet rungs patrol, ferrying stranded heads back toward the middle
     if(s.crumbAt&&!s.dead&&now-s.crumbAt>950)s.dead=true;}
    for(var g=0;g<SL.length;g++){var q=SL[g],qcx=q.l+q.w/2;
     if(q.dead||q.y>lavaAt(qcx)+30||q.y>H+120){q.dead=false;respawn(q);}}   // swallowed by the lava (or crumbled away) -> rebuilt above the top rung
