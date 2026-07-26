@@ -123,9 +123,18 @@ nav{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;column-ga
 a:focus-visible,button:focus-visible,.hmDot:focus-visible{outline:2px solid var(--c950);outline-offset:3px;border-radius:4px}
 @media(max-width:760px){.wrap{padding:0 24px}nav{padding:24px 0 0}.kicker{margin-top:clamp(56px,11vh,96px)}}
 @media(prefers-reduced-motion:reduce){.hmStep{opacity:1!important;transform:none!important;filter:none!important;transition:none}}
+/* ---- SKIP LINK: WCAG 2.4.1 Bypass Blocks (Level A). Technique G1 requires a link that is
+   the FIRST focusable element and moves focus to the main content -- so it sits before the
+   nav in DOM order. Parked off-screen by transform (not display:none, which would take it
+   out of the tab order entirely) and slid in on focus. ---- */
+.skipLink{position:fixed;top:10px;left:10px;z-index:200;display:inline-flex;align-items:center;min-height:44px;padding:12px 18px;background:var(--c50);color:var(--c950);border:1px solid var(--c100);border-radius:4px;font-family:var(--sans);font-weight:500;font-size:var(--fs-small);line-height:1;text-decoration:none;box-shadow:0 2px 10px rgba(22,22,28,.10);transform:translateY(calc(-100% - 16px));transition:transform .2s cubic-bezier(.2,.8,.2,1)}
+.skipLink:focus{transform:translateY(0);outline:2px solid var(--c950);outline-offset:3px}
+@media(prefers-reduced-motion:reduce){.skipLink{transition:none}}
+#main:focus{outline:none}
 </style>
 </head>
 <body>
+<a class="skipLink" href="#main">Skip to content</a>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><filter id="inkBig"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="7" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="1.1" xChannelSelector="R" yChannelSelector="G" result="d"/><feTurbulence type="fractalNoise" baseFrequency="0.5 0.42" numOctaves="2" seed="13" result="g"/><feColorMatrix in="g" type="matrix" values="0 0 0 0 0.055 0 0 0 0 0.055 0 0 0 0 0.055 0 0 0 0.42 0" result="grain"/><feComposite in="grain" in2="d" operator="atop"/></filter>
 <filter id="inkEye"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="9" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="1.05" xChannelSelector="R" yChannelSelector="G"/></filter><filter id="inkSm"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="1" seed="4" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="0.55" xChannelSelector="R" yChannelSelector="G"/></filter></svg>
 
@@ -136,7 +145,7 @@ a:focus-visible,button:focus-visible,.hmDot:focus-visible{outline:2px solid var(
   <a class="talk" href="#contact">Contact</a>
  </nav>
 
- <div class="content">
+ <div class="content" id="main" tabindex="-1">
   <h1 class="head">Make your own floating head.</h1>
   <p class="lede">Your photo never leaves your device.</p>
 
