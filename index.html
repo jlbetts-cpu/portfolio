@@ -147,7 +147,7 @@ body.catchReady:not(.about-open) #stageMorph{transform:scale(1.055)}
 .work{position:relative;z-index:61;margin:12vh auto 0;max-width:1280px;padding:0 40px}
 .workcard{background:var(--c600);border-radius:4px 4px 0 0;min-height:62vh;display:flex;align-items:flex-end;padding:32px}
 .worklabel{color:var(--c100);font-size:var(--fs-label);letter-spacing:.01em;text-transform:none;opacity:.8;filter:url(#inkSm)}
-.hint{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);font-size:var(--fs-caption);color:var(--c500);z-index:5;background:rgba(243,243,243,.7);padding:6px 12px;border-radius:999px;backdrop-filter:blur(4px)}
+.hint{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);font-size:var(--fs-caption);color:var(--c500);z-index:5;background:rgba(243,243,243,.7);padding:6px 12px;border-radius:4px;backdrop-filter:blur(4px)}
 .popcrumb{position:absolute;width:2.2%;height:2.2%;background:#e7ddc7;z-index:5;opacity:0;pointer-events:none;will-change:transform,opacity}
 .popbucket{position:absolute;left:50%;bottom:-24%;width:44%;height:auto;transform:translateX(-50%);transform-origin:50% 78%;z-index:8;opacity:0;pointer-events:none;will-change:transform,opacity;filter:url(#inkSm) drop-shadow(0 2px 2px rgba(0,0,0,.32))}.kernel{position:absolute;width:9%;height:auto;z-index:8;opacity:0;pointer-events:none;will-change:transform,opacity;filter:url(#inkSm)}.mouth{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;opacity:0;pointer-events:none;z-index:2;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat}
 .dlogo{border-radius:4px;position:absolute;width:21%;height:21%;opacity:0;backface-visibility:hidden;will-change:transform,left,top,opacity;filter:drop-shadow(0 3px 8px rgba(0,0,0,.22))}
@@ -213,17 +213,17 @@ body.catchReady:not(.about-open) #stageMorph{transform:scale(1.055)}
 .reelPh .s{font-size:var(--fs-caption);letter-spacing:.01em;text-transform:none;opacity:.66}
 .reelCap{position:absolute;left:16px;bottom:13px;color:var(--c50);font-size:var(--fs-micro);letter-spacing:.01em;text-transform:none;opacity:0;transition:opacity .5s cubic-bezier(.2,.8,.2,1);mix-blend-mode:difference}
 .reelFrame.big .reelCap{opacity:.9}
-.reelTap{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:3;display:none;align-items:center;gap:9px;padding:12px 19px 12px 17px;border:0;border-radius:999px;background:var(--c50);color:var(--c950);font-size:var(--fs-small);font-weight:500;white-space:nowrap;cursor:pointer;filter:url(#inkSm)}
+.reelTap{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:3;display:none;align-items:center;gap:9px;padding:12px 19px 12px 17px;border:0;border-radius:4px;background:var(--c50);color:var(--c950);font-size:var(--fs-small);font-weight:500;white-space:nowrap;cursor:pointer;filter:url(#inkSm)}
 .reel.coarse .reelTap{display:flex}
 .reelTap .tri,.playCursor .tri{width:0;height:0;border-style:solid;border-width:7px 0 7px 12px;border-color:transparent transparent transparent var(--c950);margin-left:1px}
 .playCursor{position:fixed;left:0;top:0;z-index:90;pointer-events:none;transform:translate(var(--px,-300px),var(--py,-300px))}
-.pcInner{display:flex;align-items:center;gap:9px;padding:12px 19px 12px 17px;border-radius:999px;background:var(--c50);color:var(--c950);font-size:var(--fs-small);font-weight:500;white-space:nowrap;filter:url(#inkSm);transform:translate(-50%,-50%) scale(0);transform-origin:center;opacity:0;transition:opacity .25s cubic-bezier(.2,.8,.2,1),transform .375s cubic-bezier(.2,.8,.2,1)}
+.pcInner{display:flex;align-items:center;gap:9px;padding:12px 19px 12px 17px;border-radius:4px;background:var(--c50);color:var(--c950);font-size:var(--fs-small);font-weight:500;white-space:nowrap;filter:url(#inkSm);transform:translate(-50%,-50%) scale(0);transform-origin:center;opacity:0;transition:opacity .25s cubic-bezier(.2,.8,.2,1),transform .375s cubic-bezier(.2,.8,.2,1)}
 .playCursor.on .pcInner{opacity:1;transform:translate(-50%,-50%) scale(1)}
 .reelOverlay{position:fixed;inset:0;z-index:90;display:flex;align-items:center;justify-content:center;background:rgba(15,15,15,.92);opacity:0;visibility:hidden;transition:opacity .26s cubic-bezier(.2,.8,.2,1),visibility 0s .26s;backdrop-filter:blur(6px)}
 .reelOverlay.on{opacity:1;visibility:visible;transition:opacity .26s cubic-bezier(.2,.8,.2,1)}
 .reelOverlayVid{width:min(92vw,calc(86vh * 16 / 9));aspect-ratio:16/9;background:#000;border-radius:4px;transform:scale(.82);transition:transform .26s cubic-bezier(.2,.8,.2,1)}
 .reelOverlay.on .reelOverlayVid{transform:scale(1)}
-.reelClose{position:fixed;top:24px;right:26px;z-index:91;background:transparent;border:1px solid var(--c500);color:var(--c50);padding:8px 16px;border-radius:999px;font-size:var(--fs-caption);letter-spacing:.06em;cursor:pointer;text-transform:none}
+.reelClose{position:fixed;top:24px;right:26px;z-index:91;background:transparent;border:1px solid var(--c500);color:var(--c50);padding:8px 16px;border-radius:4px;font-size:var(--fs-caption);letter-spacing:.06em;cursor:pointer;text-transform:none}
 .reelYtLink{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:91;color:var(--c100);font-size:var(--fs-caption);letter-spacing:.05em;text-decoration:none;opacity:.6}
 .reelYt{position:absolute;inset:0;width:100%;height:100%;border:0;z-index:1;pointer-events:none}
 .reelOverlayVid{width:min(94vw,calc(88vh * 16 / 9));aspect-ratio:16/9;max-height:88vh;background:#000;border:0;border-radius:4px;box-shadow:0 24px 90px rgba(0,0,0,.6);display:block;transform:scale(.82);transition:transform .26s cubic-bezier(.2,.8,.2,1)}
@@ -302,7 +302,7 @@ body.partyLock{overflow:hidden}
 .gIco{width:18px;height:18px;flex:0 0 18px;display:block;color:var(--c700);transition:color .1s ease-out}
 .moodItem:hover .gIco{color:var(--c950)}
 #endGame{color:#b3402e}#endGame .gIco{color:#b3402e}#endGame:hover{color:#8f3323}#endGame:hover .gIco{color:#8f3323}
-.battleBadge{display:none;position:absolute;left:50%;top:14px;transform:translateX(-50%);z-index:47;align-items:center;gap:8px;padding:8px 14px;border:1px solid var(--c100);border-radius:999px;background:var(--c50);font-family:var(--sans);font-size:var(--fs-label);font-weight:600;color:var(--c700);filter:url(#inkSm);pointer-events:none}
+.battleBadge{display:none;position:absolute;left:50%;top:14px;transform:translateX(-50%);z-index:47;align-items:center;gap:8px;padding:8px 14px;border:1px solid var(--c100);border-radius:4px;background:var(--c50);font-family:var(--sans);font-size:var(--fs-label);font-weight:600;color:var(--c700);filter:url(#inkSm);pointer-events:none}
 .battleBadge i{width:7px;height:7px;border-radius:50%;background:#b3402e;animation:bbPulse 1.1s steps(2,end) infinite}
 @keyframes bbPulse{0%,100%{opacity:1}50%{opacity:.35}}
 body.hmBattle .moodMenu .moodItem:not(#endGame){opacity:.38;pointer-events:none}
@@ -324,8 +324,8 @@ body.hmSoccer .moodMenu .moodItem:not(#endGame){opacity:.38;pointer-events:none}
 .hmGoalB::after{border-color:rgba(90,160,216,.72)}
 .hmGoal.hmGoalHit{animation:hmNet .55s cubic-bezier(.2,.9,.3,1)}
 @keyframes hmNet{0%{box-shadow:inset 0 0 0 0 rgba(232,181,74,0)}28%{box-shadow:inset 0 0 24px 3px rgba(232,181,74,.55),0 0 0 3px rgba(232,181,74,.5)}100%{box-shadow:inset 0 0 0 0 rgba(232,181,74,0)}}
-.battleCount{position:absolute;left:50%;top:12px;transform:translateX(-50%);z-index:47;display:flex;align-items:center;gap:8px;padding:9px 16px;border:1px solid var(--c100);border-radius:999px;background:var(--c50);font-family:var(--sans);font-weight:600;font-size:var(--fs-body);color:var(--c950);opacity:0;pointer-events:none;transition:opacity .3s;filter:url(#inkSm)}
-.hmScore{position:absolute;left:50%;top:12px;transform:translateX(-50%);z-index:47;display:flex;align-items:center;gap:12px;padding:9px 16px;border:1px solid var(--c100);border-radius:999px;background:var(--c50);font-family:var(--sans);font-weight:600;font-size:var(--fs-body);color:var(--c950);opacity:0;pointer-events:none;transition:opacity .3s;filter:url(#inkSm)}
+.battleCount{position:absolute;left:50%;top:12px;transform:translateX(-50%);z-index:47;display:flex;align-items:center;gap:8px;padding:9px 16px;border:1px solid var(--c100);border-radius:4px;background:var(--c50);font-family:var(--sans);font-weight:600;font-size:var(--fs-body);color:var(--c950);opacity:0;pointer-events:none;transition:opacity .3s;filter:url(#inkSm)}
+.hmScore{position:absolute;left:50%;top:12px;transform:translateX(-50%);z-index:47;display:flex;align-items:center;gap:12px;padding:9px 16px;border:1px solid var(--c100);border-radius:4px;background:var(--c50);font-family:var(--sans);font-weight:600;font-size:var(--fs-body);color:var(--c950);opacity:0;pointer-events:none;transition:opacity .3s;filter:url(#inkSm)}
 .hmScore .sTeam{display:flex;align-items:center;gap:7px}
 .hmScore .sTeam i{width:9px;height:9px;border-radius:50%}
 .hmScore .sTr i{background:#e05a4e}.hmScore .sTb i{background:#5aa0d8}
@@ -378,7 +378,7 @@ body.moodInCta .heroCtas:not(.in) .faceMoodCorner{opacity:0!important;visibility
 @media(prefers-reduced-motion:reduce){.camDot::before{animation:none}#photorain .pgrain{animation:none}}
 @keyframes csPhotoIn{from{opacity:0;transform:translateY(26px) scale(.96)}to{opacity:1;transform:translateY(0) scale(1)}}
 .viewCursor{position:fixed;left:0;top:0;z-index:90;pointer-events:none;transform:translate(var(--px,-300px),var(--py,-300px))}
-.vcInner{display:flex;align-items:center;gap:9px;padding:12px 19px 12px 17px;border-radius:999px;background:var(--c50);color:var(--c950);font-size:var(--fs-small);font-weight:500;white-space:nowrap;filter:url(#inkSm);transform:translate(-50%,-50%) scale(0);transform-origin:center;opacity:0;transition:opacity .25s cubic-bezier(.2,.8,.2,1),transform .375s cubic-bezier(.2,.8,.2,1)}
+.vcInner{display:flex;align-items:center;gap:9px;padding:12px 19px 12px 17px;border-radius:4px;background:var(--c50);color:var(--c950);font-size:var(--fs-small);font-weight:500;white-space:nowrap;filter:url(#inkSm);transform:translate(-50%,-50%) scale(0);transform-origin:center;opacity:0;transition:opacity .25s cubic-bezier(.2,.8,.2,1),transform .375s cubic-bezier(.2,.8,.2,1)}
 .viewCursor.on .vcInner{opacity:1;transform:translate(-50%,-50%) scale(1)}
 .vcArr{display:inline-flex;align-items:center;color:var(--c950)}
 .csHint{display:inline-flex;align-items:center;gap:8px;margin-top:10px;opacity:0;pointer-events:none;filter:url(#inkSm)}
@@ -423,7 +423,7 @@ body.moodInCta .heroCtas:not(.in) .faceMoodCorner{opacity:0!important;visibility
 .csItem.csIn .csMeta{opacity:1;transform:none}
 .csName{font-family:var(--sans);font-weight:700;font-size:var(--fs-h3);letter-spacing:-.02em;color:var(--c950);filter:url(#inkBig)}
 .csName .soon{font-weight:600;font-size:.62em;letter-spacing:0;color:var(--c500);margin-left:.5em;vertical-align:baseline}
-.csYear{font-family:var(--sans);font-weight:600;font-size:var(--fs-h4);letter-spacing:-.01em;color:var(--c500);font-variant-numeric:tabular-nums;filter:url(#inkBig)}.csItem.wip .csYear{border:1px dashed rgba(8,8,8,.34);border-radius:999px;padding:7px 16px;font-size:var(--fs-label);color:var(--c700);line-height:1;filter:none;align-self:center}
+.csYear{font-family:var(--sans);font-weight:600;font-size:var(--fs-h4);letter-spacing:-.01em;color:var(--c500);font-variant-numeric:tabular-nums;filter:url(#inkBig)}.csItem.wip .csYear{border:1px dashed rgba(8,8,8,.34);border-radius:4px;padding:7px 16px;font-size:var(--fs-label);color:var(--c700);line-height:1;filter:none;align-self:center}
 /* cursor-following case-study reader (desktop hover only) */
 .csCursor{position:fixed;top:0;left:0;width:0;height:0;z-index:131;pointer-events:none;opacity:0;transition:opacity .16s cubic-bezier(.2,.8,.2,1)}
 .csCursor.on{opacity:1}
@@ -3783,6 +3783,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   var _wind=window.__hmWind;if(_wind&&now<_wind.until&&air&&!grabbed)vx+=_wind.ax*DT;   // WIND GUST: a sideways gale sweeps the airborne
   // physics: walls, floor, ceiling, and the caregiver — nothing else is solid
   if(!grabbed&&air){
+   if(battleOn&&window.__hmLavaOn&&air&&window.__hmWind&&now<window.__hmWind.until){vx+=window.__hmWind.v*DT*3.2;gzx=window.__hmWind.v>0?0.7:-0.7;}   // WIND GUST: every airborne head leans and drifts with it
    if(window.__hmLavaOn&&battleOn&&now>=hitStop&&!me.__sinking){   // MID-AIR STEERING (Reynolds seek/arrive) -- LAVA ONLY: heads correct their trajectory toward a reachable slab so they never leap short into the lava, and a knocked-loose head scrambles for safety. Soccer deliberately keeps its RAW ballistic leaps (the arrive-easing softened its ball-strikes and killed the electric feel), so its charm stays intact.
     if(window.__hmLavaOn&&aimX==null&&now>=recAt){recAt=now+120;   // pick a target the moment you're airborne WITHOUT a plan -- waiting for the fall (the old vy>0 gate) is why a head would sail straight up and only start steering once it was already doomedvar _mf=y+HH*FOOT,_ly=window.__hmLavaY(x+HW/2),_bd=1e9;   // lava only: knocked loose with no plan -> grab the nearest reachable safe slab and scramble for it
      for(var _ri=0;_ri<battlePlats.length;_ri++){var _RP=battlePlats[_ri];if(_RP.t>=_ly-6)continue;var _rup=_mf-_RP.t;if(_rup>((1180*1180)/(2*G))-20)continue;var _rc=(_RP.l+_RP.r)/2,_rdd=Math.abs(_rc-(x+HW/2))+Math.abs(_rup)*0.5;if(_rdd<_bd){_bd=_rdd;aimX=_rc;}}}
@@ -4228,7 +4229,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    +".hmRaceSeg.spin{background:url(images/metal-rung.jpg) center/cover;border:2px solid #7b5fd0}.hmRaceSeg.gate{background:url(images/metal-rung.jpg) center/cover;border:2px solid var(--c950)}"
    +".hmRaceFin{position:absolute;height:16px;background:repeating-linear-gradient(90deg,#212121 0 14px,#FDFDFD 14px 28px);border-radius:3px;box-shadow:0 4px 12px -3px rgba(22,22,28,.4)}"
    +".hmRaceBoard{position:absolute;left:14px;top:50%;transform:translateY(-50%);z-index:49;display:none;flex-direction:column;gap:5px;opacity:.72}body.hmRace .hmRaceBoard{display:flex}"   /* the standings live in the GUTTER, vertically centred at the screen's edge -- out of the course's hot centre, one glance away */
-   +".hmRaceRow{display:flex;align-items:center;gap:7px;background:rgba(253,253,253,.82);border:1px solid var(--c100);border-radius:99px;padding:3px 10px 3px 4px;font-family:var(--sans);font-weight:600;font-size:12px;color:var(--c700);backdrop-filter:blur(4px);will-change:transform}"
+   +".hmRaceRow{display:flex;align-items:center;gap:7px;background:rgba(253,253,253,.82);border:1px solid var(--c100);border-radius:4px;padding:3px 10px 3px 4px;font-family:var(--sans);font-weight:600;font-size:12px;color:var(--c700);backdrop-filter:blur(4px);will-change:transform}"
    +".hmRaceRow img{width:20px;height:24px;object-fit:contain;display:block}.hmRaceRow b{font-weight:700;color:var(--c950);width:11px;text-align:center}"
    +".hmRaceRow.fin{border-color:rgba(8,8,8,.55)}.hmRaceRow.fin::after{content:\"\\2713\";font-size:10px;line-height:1;color:var(--c700);margin-left:1px}.hmRaceRow.out{opacity:.45}.hmRaceRow.out img{filter:grayscale(1)}.hmRaceRow.out b{color:var(--c500)}.hmRaceRow.out::after{content:\"\\2715\";font-size:9px;line-height:1;color:var(--c500);margin-left:1px}"
    +".hmRaceRow.top{background:var(--c950);border-color:var(--c950);color:var(--c50)}.hmRaceRow.top b{color:var(--c50)}.hmRaceRow.top::after{content:\"\\265B\";font-size:10px;line-height:1;color:var(--c50);margin-left:1px}"   /* the leader's chip flips to ink + a quiet crown -- being #1 should FEEL like something */
@@ -4462,7 +4463,8 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    if(on&&!wasOn)countdown();if(!on&&wasOn){cdN++;cEl.textContent="";}wasOn=on;
    if(!on){if(el.style.opacity!=="0"){el.style.opacity="0";shownN=-1;}return;}
    acc+=(nowT-lastT);lastT=nowT;if(acc<180)return;acc=0;   // ~5x/sec is plenty for a counter
-   var n=0;for(var i=0;i<peers.length;i++){if(peers[i].inB&&!peers[i].elim&&!peers[i].__sinking)n++;}   // a head melting into the lava is already OUT -> don't keep counting it as "left" (matches the winner check)
+   var n=0,inBT=0;for(var i=0;i<peers.length;i++){if(peers[i].inB){inBT++;if(!peers[i].elim&&!peers[i].__sinking)n++;}}   // a head melting into the lava is already OUT -> don't keep counting it as "left" (matches the winner check)
+   if(n===2&&inBT>2&&!window.__hmDuel&&window.__hmLavaOn){window.__hmDuel=1;try{window.__hmBattleWin("FINAL DUEL!");}catch(_){}}   // two left: the stage is theirs -- every rung decays, the scroll leans in
    if(false){   // standings retired from lava -- watching who is left IS the drama there, and the ranking chips just pulled the eye away; the quiet pill carries the count on every viewport
     var inBN=0;for(var c4=0;c4<peers.length;c4++)if(peers[c4].inB)inBN++;
     if(window.__hmBoardSeed!==(window.__hmBattleReq||0)||window.__hmBoardN!==inBN){window.__hmBoardSeed=window.__hmBattleReq||0;window.__hmBoardN=inBN;window.__hmOutL=[];   // heads stream INTO the battle over the first beats -> rebuild until the whole field is on the board (a fixed early snapshot skipped the late arrivals and left rank numbers with holes)
@@ -4540,13 +4542,19 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
     var vis=(inB&&!s.dead&&!under&&s.y>-30&&s.y<H+40);
     var op=vis?((s.crumbAt&&!s.dead)?"0.55":"1"):"0";if(s.__op!==op){s.__op=op;s.el.style.opacity=op;}
     if(vis)battlePlats.push({l:s.l+OX,r:s.l+s.w+OX,t:Math.round(s.y),pad:(s.kind==="pad"),id:i});}}
-  window.__hmPlatTouch=function(id){var s=SL[id];if(s&&s.kind==="crumble"&&!s.crumbAt)s.crumbAt=performance.now();};   // a head put weight on a crumbling rung -> it starts to give way
+  window.__hmPlatTouch=function(id){var s=SL[id];if(!s||s.crumbAt||s.dead)return;
+   var heat=window.__hmLavaLevel||0,duel=!!window.__hmDuel;
+   var p=(s.kind==="crumble")?1:(duel?1:Math.min(1,0.28+heat*1.1));   // SCORCH-DECAY: the longer the round runs, the more the floor itself is the countdown -- in the final duel EVERYTHING gives way
+   if(s.kind===""&&s.w>innerWidth*0.6&&heat<0.5)p*=0.25;   // early relief ledges stay breathers
+   if(Math.random()<p){s.crumbAt=performance.now();s.crumbDur=1000+Math.random()*400;
+    try{s.el.style.filter="brightness(.68) sepia(.55) hue-rotate(-18deg)";}catch(_){}}};   // it CHARS the moment it's doomed -- the tell reads before the fall
+  window.__hmPlatSmash=function(id){var s=SL[id];if(s&&!s.dead){s.dead=true;try{s.el.style.filter="";}catch(_){}}};
   window.__hmPlatScroll=function(d,dt){if(!SL.length)return;var H=hh(),W=hw(),OXs=ox(),now=performance.now();
    dt=dt||0.016;
    for(var i=0;i<SL.length;i++){var s=SL[i];
     if(d)s.y+=d;
     if(s.mv&&!s.dead){s.l+=s.mv*dt;if(s.l<lx()+4){s.l=lx()+4;s.mv=Math.abs(s.mv);}else if(s.l>W-s.w-4){s.l=W-s.w-4;s.mv=-Math.abs(s.mv);}}   // the violet rungs patrol, ferrying stranded heads back toward the middle
-    if(s.crumbAt&&!s.dead&&now-s.crumbAt>950)s.dead=true;}
+    if(s.crumbAt&&!s.dead&&now-s.crumbAt>(s.crumbDur||950)){s.dead=true;try{s.el.style.filter="";}catch(_){}}}
    for(var g=0;g<SL.length;g++){var q=SL[g],qcx=q.l+q.w/2;
     if(q.dead||q.y>lavaAt(qcx,OXs)+30||q.y>H+120){q.dead=false;respawn(q);}}   // swallowed by the lava (or crumbled away) -> rebuilt above the top rung
    render();};
@@ -4570,7 +4578,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   // ---- the rising surface wave (shared by the crust render AND game logic so death lines up with what you see) ----
   var WAMP=7,WK1=0.021,WK2=0.052,WS1=1.1,WS2=1.7;
   function waveAt(xpx,t){return Math.sin(xpx*WK1+t*WS1)*WAMP + Math.sin(xpx*WK2 - t*WS2)*WAMP*0.45;}
-  var level=0,surfaceY=1e9,lavaY=null,RISE_PX=36,LQ=0,frameC=0,fpsN=0,fpsT=0,lfC=0,arenaBottom=0,arenaW=0,arenaH=0,arenaFloor=0,heroLeft=0,running=false,t0=performance.now(),RISE_DUR=36000,embers=[],bubbles=[];   // lavaY = the chasing surface in screen space; RISE_PX = its base climb in px/s (scaled up as the round matures)   // ms to fill (slow + tense -- everyone starts on a platform above a pool that's ALREADY there)
+  var level=0,surfaceY=1e9,lavaY=null,RISE_PX=36,LQ=0,frameC=0,fpsN=0,fpsT=0,lfC=0,lastStep=0,mutNext=18,mutT0=0,mutKind="",mutSeq=0,debris=[],arenaBottom=0,arenaW=0,arenaH=0,arenaFloor=0,heroLeft=0,running=false,t0=performance.now(),RISE_DUR=36000,embers=[],bubbles=[];   // lavaY = the chasing surface in screen space; RISE_PX = its base climb in px/s (scaled up as the round matures)   // ms to fill (slow + tense -- everyone starts on a platform above a pool that's ALREADY there)
   // ---- DOM: molten body (WebGL) + wavy crust (2D canvas) + heat haze band ----
   var wrap=document.createElement("div");wrap.className="hmLavaWrap";wrap.setAttribute("aria-hidden","true");
   wrap.style.cssText="position:absolute;left:0;right:0;bottom:0;top:0;pointer-events:none;z-index:8;opacity:0;transition:opacity .5s";   // molten body IN FRONT of the platforms + heads (clipped to below the surface) so anything the lava reaches vanishes under it
@@ -4617,7 +4625,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   window.__hmLavaOn=false;
   window.__hmLavaY=function(xpx){return surfaceY+waveAt(xpx,(performance.now()-t0)/1000);};   // the death line at this x (hero-local)
   var lastReq=0;
-  function start(){t0=performance.now();level=0;lavaY=null;embers.length=0;bubbles.length=0;window.__hmSinkBusy=0;lastReq=window.__hmBattleReq||0;
+  function start(){t0=performance.now();level=0;lavaY=null;lastStep=0;mutNext=18;mutT0=0;mutKind="";mutSeq=Math.floor(Math.random()*3);debris.length=0;window.__hmWind=null;window.__hmDuel=0;embers.length=0;bubbles.length=0;window.__hmSinkBusy=0;lastReq=window.__hmBattleReq||0;
    RISE_DUR=Math.max(19000,Math.min(38000,12000+(window.__hmCrowd||6)*3400));   // fewer heads -> a faster climb so a small game gets tense quickly instead of everyone standing around
    if(!gl&&!initGL()){/* no webgl: crust-only fallback */}sizeGL();running=true;wrap.style.opacity="1";glow.style.opacity="1";window.__hmLavaOn=true;requestAnimationFrame(loop);}
   function stop(){running=false;window.__hmLavaOn=false;wrap.style.opacity="0";glow.style.opacity="0";haze.style.opacity="0";surfaceY=1e9;level=0;embers.length=0;bubbles.length=0;if(cctx)cctx.clearRect(0,0,crust.width,crust.height);}
@@ -4633,12 +4641,35 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    // ===== THE CLIMB: the arena scrolls at a STEADY, telegraphed pace -- never chained to any one head, so it reads perfectly smooth and no single leap can ever yank the view =====
    var _el=(n-t0)/1000,_go=Math.max(0,_el-3.4);   // a grace beat at the whistle: everyone lands and settles on the base before the floor starts moving
    var STEP=Math.min(5,Math.floor(_go/12));       // the scroll steps up a notch every ~12s instead of creeping continuously, so each escalation is an EVENT you can feel (Icy Tower's ladder)
-   var camD=(_go<=0)?0:(33+STEP*14)*dt;           // 33 px/s at the open, 103 px/s by the last step -- pitched just under a committed climber's pace, so keeping up is real work but never hopeless
+   if(STEP>lastStep){lastStep=STEP;if(STEP>=1)try{window.__hmBattleWin("HURRY UP!");}catch(_){}}   // ...and it's ANNOUNCED, Icy Tower style -- the whole room feels the gear change
+   var camD=(_go<=0)?0:(33+STEP*14)*(window.__hmDuel?1.5:1)*dt;           // 33 px/s at the open, 103 px/s by the last step -- pitched just under a committed climber's pace, so keeping up is real work but never hopeless
    if(camD>0)window.__hmClimb=(window.__hmClimb||0)+camD;
    if(window.__hmPlatScroll)window.__hmPlatScroll(camD,dt);
    // ===== the lava is PINNED near the bottom of the frame: it IS the screen's floor, always on camera, and the scroll is what drags a slow head down into it =====
    if(lavaY==null)lavaY=(arenaFloor||arenaH*0.86)+10;
-   var _mark=arenaH*(0.93-Math.min(0.16,_go*0.0020));   // and it creeps up the frame as the round matures, narrowing the safe band
+   // ===== ARENA MUTATIONS: wait -> telegraph -> execute, one beat at ~20s/40s/60s (the BR zone grammar) =====
+   var surgeOff=0;
+   if(_go>mutNext){mutNext+=20+Math.random()*6;mutT0=n;mutKind=["surge","debris","wind"][mutSeq++%3];
+    try{window.__hmBattleWin(mutKind==="surge"?"LAVA SURGE!":(mutKind==="debris"?"DEBRIS!":"WIND GUST!"));}catch(_){}
+    if(mutKind==="wind")window.__hmWind={v:(Math.random()<0.5?-1:1)*60,until:n+3000+2000};
+    if(mutKind==="debris"){for(var db=0;db<3;db++)debris.push({x:innerWidth*(0.15+Math.random()*0.7),y:-40-db*90,vy:0,arm:n+1200});}}
+   if(mutKind==="surge"&&mutT0){var mt=(n-mutT0)/1000;
+    if(mt<2.6)surgeOff=0;                                    // telegraph: the banner + boiling, nothing moves yet
+    else if(mt<4.1)surgeOff=120*((mt-2.6)/1.5);              // the SURGE: +120px in 1.5s
+    else if(mt<8.1)surgeOff=120*(1-(mt-4.1)/4);              // recede over 4s
+    else{mutKind="";}}
+   for(var dbi=debris.length-1;dbi>=0;dbi--){var rk=debris[dbi];
+    if(n<rk.arm)continue;   // its warning shadow is painted by the heads' FX ring below
+    rk.vy+=2400*dt;rk.y+=rk.vy*dt;
+    if(!rk.el){rk.el=document.createElement("div");rk.el.style.cssText="position:absolute;width:26px;height:26px;border-radius:50%;background:radial-gradient(circle at 34% 30%,#6b6560,#2e2a27);box-shadow:0 4px 10px rgba(20,18,16,.5);z-index:3;pointer-events:none";hero.appendChild(rk.el);
+     try{if(window.__hmFX)window.__hmFX.ring(rk.x-heroLeft,arenaH*0.5,{r0:8,r1:40,color:"120,110,100",width:2.5,life:0.9});}catch(_){}}
+    rk.el.style.transform="translate("+(rk.x-heroLeft-13)+"px,"+(rk.y-13)+"px)";
+    for(var rp=0;rp<battlePlats.length;rp++){var RP=battlePlats[rp];
+     if(rk.x>RP.l+heroLeft&&rk.x<RP.r+heroLeft&&rk.y>RP.t-8&&rk.y<RP.t+18){if(window.__hmPlatSmash)window.__hmPlatSmash(RP.id);
+      try{if(window.__hmFX){window.__hmFX.burst(rk.x-heroLeft,rk.y,{count:12,color:"120,110,100",speed:340,gravity:800,life:0.55,size:5});window.__hmFX.shake(5);}}catch(_){}
+      try{rk.el.remove();}catch(_){}debris.splice(dbi,1);rk=null;break;}}
+    if(rk&&rk.y>arenaH+60){try{rk.el.remove();}catch(_){}debris.splice(dbi,1);}}
+   var _mark=arenaH*(0.93-Math.min(0.16,_go*0.0020))-surgeOff;   // it creeps up as the round matures -- and JUMPS when a surge hits
    lavaY+=(_mark-lavaY)*Math.min(1,dt*1.5);   // eased onto its mark: it never snaps, and it can never leave the screen
    surfaceY=lavaY;
    // molten body: render + clip to below the surface
