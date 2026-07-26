@@ -3615,7 +3615,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
      else{gzx=(ballX>myX)?0.6:-0.6;gzy=0.1;sacAt=now+700;}}}}catch(_){}
   if(battleOn&&!elim&&!celebrated){var alive9=0,inb9=0;
    for(var a9=0;a9<peers.length;a9++){if(peers[a9].inB){inb9++;if(!peers[a9].elim&&!peers[a9].__sinking)alive9++;}}   // a sinking head is already out -> the winner is crowned as the last rival melts
-   if(inb9>=2&&alive9===1){celebrated=true;   // LAST HEAD STANDING: crown the winner right where he stands (soccer-style, no podium), a victory leap + confetti, then everyone streams back
+   if(inb9>=2&&alive9===1){celebrated=true;try{if(window.__hmLavaOn&&window.__hmCareer&&slot!=null)window.__hmCareer.rec("lavaWin",slot);}catch(_){}   // LAST HEAD STANDING: crown the winner right where he stands (soccer-style, no podium), a victory leap + confetti, then everyone streams back
     crownEl.style.opacity="1";if(filler){smileT=3.8;danceUntil=now+3600;}
     if(!grabbed){dir=((heroR.w/2)>(x+HW/2))?1:-1;surface=floorY;st="fall";air=true;vy=-(900+Math.random()*140);vx=dir*(90+Math.random()*120);sqT=0.13;sqyP=1.11;sqxP=1/1.11;startFlip();}   // he leaps for it
     brf=6;mof=4;confettiBurst(heroR.w*0.5);
@@ -4233,6 +4233,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    +".hmRaceRow img{width:20px;height:24px;object-fit:contain;display:block}.hmRaceRow b{font-weight:700;color:var(--c950);width:11px;text-align:center}"
    +".hmRaceRow.fin{border-color:rgba(8,8,8,.55)}.hmRaceRow.fin::after{content:\"\\2713\";font-size:10px;line-height:1;color:var(--c700);margin-left:1px}.hmRaceRow.out{opacity:.45}.hmRaceRow.out img{filter:grayscale(1)}.hmRaceRow.out b{color:var(--c500)}.hmRaceRow.out::after{content:\"\\2715\";font-size:9px;line-height:1;color:var(--c500);margin-left:1px}"
    +".hmRaceRow.top{background:var(--c950);border-color:var(--c950);color:var(--c50)}.hmRaceRow.top b{color:var(--c50)}.hmRaceRow.top::after{content:\"\\265B\";font-size:10px;line-height:1;color:var(--c50);margin-left:1px}"   /* the leader's chip flips to ink + a quiet crown -- being #1 should FEEL like something */
+   +".hmRaceRow.doom{animation:hmDoom .5s steps(2,end) infinite}@keyframes hmDoom{50%{background:rgba(224,90,78,.3);border-color:rgba(224,90,78,.8)}}"
    +"@media(max-width:640px){.hmRaceBoard{display:none!important}}";   /* mobile: standings step aside entirely -- the race itself is the interface */
   document.head.appendChild(css);
   var wrap=null,world=null,board=null,cEl=null,spinEls=[],finEl=null;
@@ -4244,7 +4245,8 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
     var cuts=[];try{cuts=JSON.parse(localStorage.getItem("hmCompanions")||"[]")||[];}catch(_){}
     for(var i=0;i<list.length;i++){var row=document.createElement("div");row.className="hmRaceRow";row.style.order=i;
      var img=(list[i].slot!=null&&cuts[list[i].slot]&&cuts[list[i].slot].cut)?cuts[list[i].slot].cut:"images/neutral.webp";
-     row.innerHTML="<b>"+(i+1)+"</b><img alt='' src='"+img+"'>";this.rows[list[i].key]=row;board.appendChild(row);}
+     var tt=(list[i].slot!=null&&window.__hmCareer)?window.__hmCareer.titles(list[i].slot):0;
+     row.innerHTML="<b>"+(i+1)+"</b><img alt='' src='"+img+"'>"+(tt>0?"<em style='font-size:9px;font-weight:700;font-style:normal;color:var(--c700)'>"+tt+"\u265B</em>":"");this.rows[list[i].key]=row;board.appendChild(row);}
     var endB=document.createElement("button");endB.className="hmRaceRow";endB.type="button";endB.style.cssText="cursor:pointer;order:99;justify-content:center;font-weight:600;color:#b3402e;border-color:var(--c100)";endB.textContent="End";
     var self=this;endB.addEventListener("click",function(e){e.stopPropagation();if(self.endFn)self.endFn();});board.appendChild(endB);},
    rank:function(orderKeys,locked){var prev={},k,r;   // FLIP: measure where every chip sits, reorder, then let each one GLIDE to its new rung -- overtakes read as real movement, never a teleport
@@ -4255,7 +4257,15 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
     for(k in this.rows){r=this.rows[k];var nt=r.getBoundingClientRect().top,d=prev[k]-nt;
      if(Math.abs(d)>2){r.style.transition="none";r.style.transform="translateY("+d+"px)";void r.offsetWidth;r.style.transition="transform .38s cubic-bezier(.2,.8,.2,1)";r.style.transform="";}}}};
   window.__hmBoard=BOARD;
-  var ON=false,balls=[],pegs=[],segs=[],spins=[],gates=[],gateEls=[],X0=8,CW=0,CC=0,finishY=0,camY=0,ts=1,winner=-1,order=[],raceT0=0,seed=0,lastN=performance.now(),running=false,endAt=0,goAt=0,W=0,H=0,D=64,statT=0;
+  // ===== CAREER: the tiniest season system that makes favorites real (Jelle's insight: records create rooting) =====
+  var CAREER={key:function(slot){try{var c=JSON.parse(localStorage.getItem("hmCompanions")||"[]")[slot];return c&&c.cut?("h"+c.cut.length+"_"+c.cut.slice(60,84).replace(/[^a-zA-Z0-9]/g,"")):null;}catch(_){return null;}},
+   load:function(){try{return JSON.parse(localStorage.getItem("hm_career_v1")||"{}")||{};}catch(_){return {};}},
+   rec:function(type,slot){var k=this.key(slot);if(!k)return;var d=this.load();var h=d[k]=d[k]||{raceWins:0,podiums:0,lavaWins:0,soccerWins:0};
+    if(type==="raceWin")h.raceWins++;else if(type==="podium")h.podiums++;else if(type==="lavaWin")h.lavaWins++;else if(type==="soccerWin")h.soccerWins++;
+    try{localStorage.setItem("hm_career_v1",JSON.stringify(d));}catch(_){}},
+   titles:function(slot){var k=this.key(slot);if(!k)return 0;var h=this.load()[k];return h?(h.raceWins+h.lavaWins+(h.soccerWins||0)):0;}};
+  window.__hmCareer=CAREER;
+  var ON=false,balls=[],pegs=[],segs=[],spins=[],gates=[],gateEls=[],X0=8,CW=0,CC=0,elimMode=false,nextCut=0,doomIx=-1,doomAt=0,outOrder=[],finishY=0,camY=0,ts=1,winner=-1,order=[],raceT0=0,seed=0,lastN=performance.now(),running=false,endAt=0,goAt=0,W=0,H=0,D=64,statT=0;
   function heroW(){return innerWidth;}   // the COURSE spans the whole viewport, wall to wall -- the screen edges are the rails, so no head is ever pinned mid-air at an invisible wall with open space beyond it
   var HL=0;function refreshHL(){HL=Math.round(hero.getBoundingClientRect().left);}   // viewport-space -> hero-space shift (heads + FX live in hero coords)
   function heroH(){return hero.clientHeight||600;}
@@ -4341,12 +4351,14 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    for(var n=0;n<gridOrder.length;n++){var pr=gridOrder[n],r=pr.HW*0.5*0.92;
     balls.push({peer:pr,r:r,x:X0+(CW/(gridOrder.length+1))*(n+1)+rnd(-2,2),y:H*0.42-rnd(0,3),vx:0,vy:0,slow:0,fin:false,row:null});}
    buildCourse();buildDOM();
-   goAt=performance.now()+3200;raceT0=goAt;
-   var s=seed;bigText(3);
+   elimMode=(window.__forceElim!=null)?!!window.__forceElim:Math.random()<0.45;nextCut=0;doomIx=-1;doomAt=0;outOrder.length=0;
+   goAt=performance.now()+3200;raceT0=goAt;if(elimMode)nextCut=goAt+8000;
+   var s=seed;bigText(3);if(elimMode)setTimeout(function(){if(s===seed&&ON&&cEl){cEl.classList.add("hmMsg");bigText("ELIMINATION!");setTimeout(function(){if(s===seed){cEl.textContent="";cEl.classList.remove("hmMsg");}},1600);}},3400);   // the format card: every 8s the last head is OUT
    setTimeout(function(){if(s===seed&&ON)bigText(2);},800);setTimeout(function(){if(s===seed&&ON)bigText(1);},1600);
    setTimeout(function(){if(s===seed&&ON){bigText("GO");setTimeout(function(){if(s===seed)cEl.textContent="";},600);}},2400);
    if(!running){running=true;lastN=performance.now();requestAnimationFrame(loop);}}
   function finish(){if(!ON)return;ON=false;window.__hmRaceOn=false;document.body.classList.remove("hmRace");
+   try{for(var pz=1;pz<=2&&pz<order.length;pz++){var pb=balls[order[pz]];if(pb&&pb.peer.slot!=null&&window.__hmCareer)window.__hmCareer.rec("podium",pb.peer.slot);}}catch(_){}
    if(cEl)cEl.textContent="";
    for(var i=0;i<balls.length;i++){var b=balls[i],pr=b.peer;pr.raceX=null;pr.raceY=null;}}   // heads snap back to their own physics and tumble home
   window.__hmRaceStart=start;window.__hmRaceEnd=finish;
@@ -4354,7 +4366,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   function step(dt){
    var i,j,leader=-1,lead=-1e9,second=-1,sec2=-1e9;
    for(i=0;i<balls.length;i++){var b=balls[i];if(b.fin)continue;if(b.y>lead){sec2=lead;second=leader;lead=b.y;leader=i;}else if(b.y>sec2){sec2=b.y;second=i;}}
-   for(i=0;i<balls.length;i++){var a=balls[i];
+   for(i=0;i<balls.length;i++){var a=balls[i];if(a.out)continue;
     a.vy+=1550*dt;
     if(!a.fin&&leader>=0&&(lead-a.y)>H*1.5)a.vy+=1550*0.12*dt;   // the quiet catch-up band: a straggler more than 1.5 screens back falls a touch faster -- a helping hand, never a rigged result
     if(!a.fin&&winner>=0)a.vy+=1550*0.6*dt;   // the winner's crossed -> everyone still on course sprints it home, so the final leaderboard is complete before the wrap-up
@@ -4391,7 +4403,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
       if(a.nud>=3){a.nud=0;a.vx=(CC>a.x?1:-1)*rnd(520,680);a.vy=-rnd(160,260);}   // three nudges and still pinned -> a hard kick toward open course (out of any corner pocket), with a little pop up to clear the lip
       else{var m=rnd(300,460);a.vx+=(Math.random()<0.5?-1:1)*m*0.5;a.vy+=m;}}}}
     if(!a.fin&&a.y>finishY){a.fin=true;order.push(i);if(a.row){a.row.classList.add("fin");}
-     if(winner<0){winner=i;a.peer.raceWin=true;ts=0.28;endAt=performance.now()+7600;
+     if(winner<0){winner=i;a.peer.raceWin=true;ts=0.28;endAt=performance.now()+7600;try{if(window.__hmCareer&&a.peer.slot!=null)window.__hmCareer.rec("raceWin",a.peer.slot);}catch(_){}
       try{bigText("🏁");if(window.__hmFX){window.__hmFX.burst(a.x-HL,finishY-camY,{count:26,color:"224,90,78",speed:520,gravity:900,life:0.9,size:5,dir:-1.57,spread:0.9});window.__hmFX.burst(a.x-HL,finishY-camY,{count:26,color:"90,160,216",speed:520,gravity:900,life:0.9,size:5,dir:-1.57,spread:0.9});}}catch(_){}
       setTimeout(function(){if(ON)bigText("Winner!");},900);setTimeout(function(){if(ON&&cEl)cEl.textContent="";},2600);}}}
    // ball-vs-ball: the jostle that makes the queue at every funnel a lottery
@@ -4408,7 +4420,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    var raw=Math.min(0.05,Math.max(0.001,(n-lastN)/1000));lastN=n;
    if(!ON)return;
    // photo-finish slow-mo: leaders neck-and-neck at the line -> the world holds its breath
-   if(winner<0){var lead2=-1e9,sec3=-1e9;for(var q=0;q<balls.length;q++){if(balls[q].fin)continue;if(balls[q].y>lead2){sec3=lead2;lead2=balls[q].y;}else if(balls[q].y>sec3)sec3=balls[q].y;}
+   if(winner<0){var lead2=-1e9,sec3=-1e9;for(var q=0;q<balls.length;q++){if(balls[q].fin||balls[q].out)continue;if(balls[q].y>lead2){sec3=lead2;lead2=balls[q].y;}else if(balls[q].y>sec3)sec3=balls[q].y;}
     var want=(lead2>finishY-H*0.9&&(lead2-sec3)<H*0.35)?0.3:1;ts+=(want-ts)*Math.min(1,raw*6);}
    else ts+=(1-ts)*Math.min(1,raw*2.2);
    var dt=raw*ts;
@@ -4419,22 +4431,37 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
     var ocx=CC+Math.sin(gt.ph)*gt.travel;gt.l.x2=ocx-gt.ow/2;gt.r.x1=ocx+gt.ow/2;}
    for(var gE=0;gE<gateEls.length;gE++){var ge2=gateEls[gE],sg=ge2.seg,ln=Math.max(0,sg.x2-sg.x1);
     ge2.el.style.left=sg.x1.toFixed(1)+"px";ge2.el.style.width=ln.toFixed(1)+"px";}
+   // ELIMINATION variant: every 8s the trailing head gets a 1s red-flash warning, then is vacuumed off the course
+   if(ON&&elimMode&&winner<0&&n>=goAt){
+    var liveN=0,lastIx=-1,lastY=1e18;
+    for(var eb=0;eb<balls.length;eb++){var EB=balls[eb];if(EB.fin||EB.out)continue;liveN++;if(EB.y<lastY){lastY=EB.y;lastIx=eb;}}
+    if(liveN>2){
+     if(doomIx<0&&n>=nextCut&&lastIx>=0){doomIx=lastIx;doomAt=n+1000;var dr=balls[doomIx].row;if(dr)dr.classList.add("doom");}
+     if(doomIx>=0&&n>=doomAt){var DB=balls[doomIx];
+      if(DB&&!DB.out&&!DB.fin){DB.out=true;outOrder.push(doomIx);
+       try{if(window.__hmFX)window.__hmFX.burst(DB.x-HL,DB.y-camY,{count:14,color:"224,90,78",speed:420,gravity:600,life:0.6,size:4});}catch(_){}
+       if(DB.row){DB.row.classList.remove("doom");}}
+      doomIx=-1;nextCut=n+8000;}}
+    else if(doomIx>=0){var dr2=balls[doomIx].row;if(dr2)dr2.classList.remove("doom");doomIx=-1;}}
    // camera: ride the leader with a soft spring, never backward, and stop at the pen
-   var leadY=-1e9;for(var c2=0;c2<balls.length;c2++)if(balls[c2].y>leadY)leadY=balls[c2].y;
+   var leadY=-1e9;for(var c2=0;c2<balls.length;c2++)if(!balls[c2].out&&balls[c2].y>leadY)leadY=balls[c2].y;
    var tgt=Math.max(camY,Math.min(leadY-H*0.42,finishY+H*0.9-H));
    camY+=(tgt-camY)*Math.min(1,raw*4);
    if(world)world.style.transform="translateY("+(-camY).toFixed(1)+"px)";
    for(var sE=0;sE<spinEls.length;sE++){var se=spinEls[sE];se.el.style.transform="rotate("+((se.sp.a+se.k*Math.PI/2)*180/Math.PI).toFixed(1)+"deg)";}
    // hand every head its screen position (the mailbox its own frame loop follows)
    for(var m2=0;m2<balls.length;m2++){var bb=balls[m2],pr2=bb.peer;
+    if(bb.out){pr2.raceHide=true;pr2.raceX=-9999;pr2.raceY=-9999;continue;}
     pr2.raceX=bb.x-HL-pr2.HW/2;pr2.raceY=(bb.y-camY)-pr2.HH*0.55;pr2.raceVX=bb.vx;pr2.raceVY=bb.vy;
     pr2.raceHide=((bb.y-camY)<-pr2.HH*0.6)||((bb.y-camY)>H+pr2.HH);}   // off the camera window = OFF THE SCREEN: a head that hasn't reached this stretch yet must not float over the header
    // leaderboard: re-rank every ~0.3s, finished heads keep their locked position
    statT+=raw;if(statT>0.3){statT=0;
-    var un=[];for(var ri=0;ri<balls.length;ri++)if(!balls[ri].fin)un.push(ri);
+    var un=[];for(var ri=0;ri<balls.length;ri++)if(!balls[ri].fin&&!balls[ri].out)un.push(ri);
     un.sort(function(a,b){return balls[b].y-balls[a].y;});   // the deepest still-running head ranks highest
-    var keys=order.map(String).concat(un.map(String)),locked={};
-    for(var oi=0;oi<order.length;oi++)locked[String(order[oi])]="fin";   // finishers hold their crossed-the-line positions, dark and settled
+    var outs=outOrder.slice().reverse().map(String);   // first vacuumed = last place
+    var keys=order.map(String).concat(un.map(String)).concat(outs),locked={};
+    for(var oi=0;oi<order.length;oi++)locked[String(order[oi])]="fin";
+    for(var ox2=0;ox2<outs.length;ox2++)locked[outs[ox2]]="out";
     BOARD.rank(keys,locked);}
    if(endAt&&n>=endAt)finish();
    if(winner>=0&&order.length>=balls.length)endAt=Math.min(endAt||1e18,n+1400);   // everyone's home -> wrap up quicker
