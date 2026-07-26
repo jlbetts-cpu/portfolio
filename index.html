@@ -2701,14 +2701,22 @@ requestAnimationFrame(function(){requestAnimationFrame(startIntro);});
 <script>
 (function(){ // the crowd in the menu: your saved heads, each removable with one quiet x
  var box=document.getElementById("moodHeads");if(!box)return;
- function readAll(){var a=[],rawN=null;
+ var _hcVer=0,_hcCache=null,_hcCacheVer=-1;   // readAll() re-parsed the whole ~300KB head blob
+ // 12.6x/second while idle (555 reads / 150MB in 44s, 11 long tasks). Cache the parsed list and
+ // bump a version on every write instead. Callers mutate what they get back (cur.splice), so the
+ // cache is handed out as a shallow copy -- same head objects, safe to splice.
+ function _hcBump(){_hcVer++;}
+ try{addEventListener("storage",function(e){if(!e||e.key===null||e.key==="hmCompanions")_hcBump();});}catch(_){}
+ function readAll(){if(_hcCache&&_hcCacheVer===_hcVer)return _hcCache.slice();
+  var a=[],rawN=null;
   try{var raw=localStorage.getItem("hmCompanions");if(raw!==null){a=JSON.parse(raw)||[];rawN=a.length;}}catch(_){}
   if(rawN===null){try{var l=JSON.parse(localStorage.getItem("hmCompanion")||"null");if(l&&l.cut)a=[l];}catch(_){}}   // an emptied pit stays empty
   var seen={};a=a.filter(function(d){if(!d||!d.cut||d.cut.length<15000)return false;
   var k2=JSON.stringify(d.marks||"m")+JSON.stringify((d.eyes||[]).map(function(e){return[e.x,e.y,e.w,e.h];}));
   if(seen[d.cut]||seen[k2])return false;seen[d.cut]=1;seen[k2]=1;return true;}).slice(0,8);
-  if(rawN!==null&&rawN!==a.length){try{localStorage.setItem("hmCompanions",JSON.stringify(a));}catch(_){}}   // heal duplicates so one x is always one head
-  return a;}
+  if(rawN!==null&&rawN!==a.length){try{localStorage.setItem("hmCompanions",JSON.stringify(a));_hcBump();}catch(_){}}   // heal duplicates so one x is always one head
+  _hcCache=a;_hcCacheVer=_hcVer;
+  return a.slice();}
  function render(){var a=readAll();box.innerHTML="";
   a.forEach(function(h,idx){var it=document.createElement("span");it.className="mhItem";
    var pk=document.createElement("button");pk.className="mhPick";pk.type="button";pk.setAttribute("aria-label","Open this head in the maker");
@@ -2720,7 +2728,7 @@ requestAnimationFrame(function(){requestAnimationFrame(startIntro);});
    var xb=document.createElement("button");xb.className="mhX";xb.type="button";xb.setAttribute("aria-label","Remove this head");xb.textContent="\u00d7";
    xb.addEventListener("click",function(ev){ev.stopPropagation();ev.preventDefault();
     var cur=readAll();cur.splice(idx,1);   // by position: exactly the head you pointed at
-    try{localStorage.setItem("hmCompanions",JSON.stringify(cur));
+    try{localStorage.setItem("hmCompanions",JSON.stringify(cur));_hcBump();
      if(cur.length)localStorage.setItem("hmCompanion",JSON.stringify(cur[cur.length-1]));
      else localStorage.removeItem("hmCompanion");}catch(_){}
     try{if(window.__hmKill)window.__hmKill(h.cut);}catch(_){}
@@ -2729,11 +2737,16 @@ requestAnimationFrame(function(){requestAnimationFrame(startIntro);});
  render();
  function gameCount(){return Math.max(readAll().length,(window.__hmLive||[]).length);}
  function gameOn(){return document.body.classList.contains("hmBattle")||document.body.classList.contains("hmSoccer")||document.body.classList.contains("hmRace");}
+ var _bgLast="";
  function battleGate(){var n=gameCount(),on=gameOn();
+  var few=n<1;                                  // ONE head count per tick -- this used to be six readAll() calls
+  var sig=(on?1:0)+"|"+(few?1:0);
+  if(sig===_bgLast)return;                      // nothing changed since last tick: no DOM writes at all
+  _bgLast=sig;
   ["battleGo","soccerGo","raceGo"].forEach(function(id){var bi=document.getElementById(id);if(!bi)return;
    if(on){bi.style.display="none";}   // a game is running: only End game belongs here
-   else{bi.style.display="flex";var few=readAll().length<1;bi.style.opacity=few?"0.38":"";bi.style.pointerEvents=few?"none":"";bi.setAttribute("aria-disabled",few?"true":"false");}});   // even one head can play now -- mini-Jayden makes the second
-  ["soccerTeams","lavaTeams"].forEach(function(tid){var tb=document.getElementById(tid);if(tb){if(on){tb.style.display="none";}else{tb.style.display="";var few2=readAll().length<1;tb.style.opacity=few2?"0.38":"";tb.style.pointerEvents=few2?"none":"";}}});   // the team-picker icons ride with the Soccer + Floor-is-Lava rows
+   else{bi.style.display="flex";bi.style.opacity=few?"0.38":"";bi.style.pointerEvents=few?"none":"";bi.setAttribute("aria-disabled",few?"true":"false");}});   // even one head can play now -- mini-Jayden makes the second
+  ["soccerTeams","lavaTeams"].forEach(function(tid){var tb=document.getElementById(tid);if(tb){if(on){tb.style.display="none";}else{tb.style.display="";tb.style.opacity=few?"0.38":"";tb.style.pointerEvents=few?"none":"";}}});   // the team-picker icons ride with the Soccer + Floor-is-Lava rows
   var offNow=on;[].forEach.call(document.querySelectorAll(".moodMenu .moodItem[data-mood], #addPlaceholder, .moodMenu .moodGo"),function(el){
    if(offNow)el.setAttribute("aria-disabled","true");else el.removeAttribute("aria-disabled");});   // the dim is CSS; this is what a screen reader hears
   var eg=document.getElementById("endGame");if(eg)eg.style.display="none";}   // End now lives on the scoreboard, not the menu
@@ -2792,7 +2805,7 @@ requestAnimationFrame(function(){requestAnimationFrame(startIntro);});
     var data={cut:cut,eyes:eyes,marks:EGG.marks};
     var arr=[];try{arr=JSON.parse(localStorage.getItem("hmCompanions")||"[]")||[];}catch(_){}
     if(!arr.length){try{var one=JSON.parse(localStorage.getItem("hmCompanion")||"null");if(one&&one.cut)arr=[one];}catch(_){}}
-    arr.push(data);try{localStorage.setItem("hmCompanions",JSON.stringify(arr));localStorage.setItem("hmCompanion",JSON.stringify(data));}catch(_){}
+    arr.push(data);try{localStorage.setItem("hmCompanions",JSON.stringify(arr));localStorage.setItem("hmCompanion",JSON.stringify(data));_hcBump();}catch(_){}
     // drop him into the live scene right now -- but if the pit was empty the head engine never booted (it bails with no heads), so reload once to bring it to life with this first egg
     if(window.__hmSpawnOne){try{window.__hmSpawnOne(data,arr.length-1);}catch(_){}render();battleGate();}
     else location.reload();
@@ -2916,7 +2929,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
  var seenC={};list=list.filter(function(d){if(!d||!d.cut||d.cut.length<15000)return false;
   var k2=JSON.stringify(d.marks||"m")+JSON.stringify((d.eyes||[]).map(function(e){return[e.x,e.y,e.w,e.h];}));
   if(seenC[d.cut]||seenC[k2])return false;seenC[d.cut]=1;seenC[k2]=1;return true;}).slice(0,8);   // unique REAL faces only, by pixels AND by geometry
- if(_rawN!==null&&_rawN!==list.length){try{localStorage.setItem("hmCompanions",JSON.stringify(list));}catch(_){}}   // heal stale duplicates once, physically
+ if(_rawN!==null&&_rawN!==list.length){try{localStorage.setItem("hmCompanions",JSON.stringify(list));if(typeof _hcBump==="function")_hcBump();}catch(_){}}   // heal stale duplicates once, physically
  if(!list.length)return;
  var peers=[];   // every head knows where every other head is, every frame
  try{if(/[?&]wraf=1/.test(location.search))window.__peers=peers;}catch(_){}   // DEV-ONLY debug handle (opt-in), lets a headless run inspect head AI state
