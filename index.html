@@ -2746,8 +2746,8 @@ requestAnimationFrame(function(){requestAnimationFrame(startIntro);});
  var rg=document.getElementById("raceGo");
  if(rg)rg.addEventListener("click",function(){
   var rc=readAll().length;if(rc<1||gameOn())return;
-  if(rc%2===1&&window.__hmFillerAdd)window.__hmFillerAdd();   // odd field -> the mini-Jayden lines up, same as every other mode
-  try{if(window.__hmRaceStart)window.__hmRaceStart();}catch(_){}closeMenuBar();battleGate();});
+  var _dly=0;if(rc%2===1&&window.__hmFillerAdd){window.__hmFillerAdd();_dly=500;}   // odd field -> the mini-Jayden lines up... and the grid WAITS the half-beat his spawn needs, or he'd race as a ghost
+  setTimeout(function(){try{if(window.__hmRaceStart)window.__hmRaceStart();}catch(_){}},_dly);closeMenuBar();battleGate();});
  var eg=document.getElementById("endGame");
  if(eg)eg.addEventListener("click",function(){
   try{if(document.body.classList.contains("hmSoccer")){if(window.__hmSoccerEnd)window.__hmSoccerEnd();}
@@ -3728,7 +3728,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
     if(brf>0&&mjExprUntil<=now&&!/closed|smile|wink/.test(_bsrc))_bsrc="images/neutral_browsup.webp";}   // EXPRESSIVE EYEBROWS on every beat -- a goal, a hit, a startle, a pounce all set brf
    var _cff=mjClone.querySelector(".face");
    if(_cff&&_cff.getAttribute("src")!==_bsrc)_cff.setAttribute("src",_bsrc);   // the OUTLINE uses a STABLE neutral silhouette (his head shape barely changes between faces) -- re-masking it per expression flashed an unmasked rectangle for a frame; a fixed mask is rock-steady
-   var _faceDir=(dir<0?1:-1);if(mjClone.__fd!==_faceDir){mjClone.__fd=_faceDir;mjClone.style.transform="translateY(27%) scaleX("+_faceDir+")";
+   var _faceDir=(dir<0?1:-1);if(mjClone.__fd!==_faceDir){mjClone.__fd=_faceDir;mjClone.style.transform="translateY(27%) scaleX("+_faceDir+")";ringEl.style.transform="scale(1.06) translateY(27%) scaleX("+_faceDir+")";hurtEl.style.transform="translateY(27%) scaleX("+_faceDir+")";
     try{ringEl.style.transform="scale("+(1.06*_faceDir).toFixed(3)+",1.06)";hurtEl.style.transform="scaleX("+_faceDir+")";}catch(_){}}   // the rim + red flash FLIP with him and (sharing his root) ride every squash & move -> consistent, glitch-free
    for(var _mi=0;_mi<_cE.length&&_mi<_bE.length;_mi++){
     var _wantHide=(_grin||/smile|wink/.test(_bsrc))?"none":"";if(_cE[_mi].style.display!==_wantHide)_cE[_mi].style.display=_wantHide;   // no floating irises over a baked-in smile OR wink
@@ -3938,17 +3938,25 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    for(var _su=0;_su<battlePlats.length;_su++){var _PS=battlePlats[_su];if(_PS.t>=window.__hmLavaY((_PS.l+_PS.r)/2)-2)continue;   // a submerged slab can't hold you
     if((x+HW/2)>_PS.l-2&&(x+HW/2)<_PS.r+2&&Math.abs(_fy2-_PS.t)<7){_sup2=true;break;}}
    if(!_sup2){air=true;st="fall";if(vy<0)vy=0;}}
-  if(window.__hmRaceOn&&me.raceX!=null){x=me.raceX;y=me.raceY;if(Math.abs(me.raceVX||0)>40)dir=(me.raceVX>=0)?1:-1;air=true;st="fall";vx=me.raceVX||0;vy=0;me.__inRace=true;grabbed=false;perched=false;
+  if(window.__hmRaceOn&&me.raceX!=null){x=me.raceX;y=me.raceY;if(!me.raceHide&&root.style.opacity==="0"){root.style.opacity="1";shown=true;}if(Math.abs(me.raceVX||0)>40)dir=(me.raceVX>=0)?1:-1;air=true;st="fall";vx=me.raceVX||0;vy=0;me.__inRace=true;grabbed=false;perched=false;
    gzx=Math.max(-0.8,Math.min(0.8,(me.raceVX||0)/700));gzy=Math.max(-0.5,Math.min(0.6,(me.raceVY||0)/900));   // eyes track the ride: leaning into the turns, watching the drop
    if(me.raceHit&&now-me.raceHit<420){brf=Math.max(brf,5);if(now-me.raceHit<160){sqT=Math.max(sqT,0.1);sqyP=1.1;sqxP=1/1.1;}}   // a hard peg or paddle knock startles: brows pop + a little jolt-squash
    if(me.raceWin&&crownEl&&crownEl.style.opacity!=="1")crownEl.style.opacity="1";   // the WINNER is crowned the instant the line is crossed
    if(me.raceHide&&!me.__rHid){me.__rHid=true;root.style.transition="opacity .3s cubic-bezier(.2,.8,.2,1)";root.style.opacity="0";if(shadow)shadow.style.opacity="0";}
    else if(!me.raceHide&&me.__rHid){me.__rHid=false;root.style.opacity="1";if(shadow)shadow.style.opacity="1";}}
   else if(me.__inRace&&!window.__hmRaceOn){me.__inRace=false;me.raceX=null;surface=floorY;air=true;st="fall";vy=-(240+Math.random()*220);vx=(Math.random()*300-150);if(Math.random()<0.4)startFlip();
+   y=Math.max(y,-HH);x=Math.max(WL,Math.min(WR,x));   // wherever the race left you, you re-enter from just above the frame -- never from deep space
    if(me.__rHid){me.__rHid=false;root.style.opacity="1";if(shadow)shadow.style.opacity="1";}
    root.style.transition="";
    if(me.raceWin){me.raceWin=false;smileT=Math.max(smileT||0,2.6);(function(ce){setTimeout(function(){try{ce.style.opacity="0";}catch(_){}},4600);})(crownEl);}}   // the champion tumbles home grinning, wears the crown a few beats more, then it fades
   if(battleOn&&!me.__sinking&&y<-HH*0.6){y=-HH*0.6;if(vy<0)vy=0;}   // the arena has a CEILING: no head ever sails off the top of the map in the scramble
+  if(battleOn&&window.__hmLavaOn&&!me.__sinking&&!elim){   // WEDGE WATCHDOG: the soak caught a head frozen 58s in a pocket -- 6s without moving forces a recovery leap, a second strike drops him clean out of the wedge
+   if(me.__swT==null||Math.hypot(x-(me.__swX||0),y-(me.__swY||0))>12){me.__swX=x;me.__swY=y;me.__swT=now;}
+   else if(now-me.__swT>6000){me.__swT=now;me.__swN=(me.__swN||0)+1;
+    dir=((x+HW/2)>heroR.w/2)?-1:1;surface=floorY;st="fall";air=true;grabbed=false;perched=false;
+    vy=-(820+Math.random()*160);vx=dir*(260+Math.random()*180);aimX=null;brf=6;sqT=0.13;sqyP=1.14;sqxP=1/1.14;
+    if(me.__swN>=2){me.__swN=0;y+=HH*0.45;}}}
+  else{me.__swT=null;me.__swN=0;}
   var _gWL=WL,_gWR=WR;if(battleOn){var _hbl=(heroBox&&heroBox.left)||0;_gWL=Math.max(WL,(innerWidth>640?104:6)+2-_hbl);_gWR=Math.min(WR,innerWidth-_hbl-HW-2);}   // in the LAVA CLIMB the walls are the VIEWPORT edges -- the whole screen is the arena, and climbers stay fully on it, never half-buried "in the glass" like the idle hero allows. Soccer keeps its own full-viewport pitch (goals live at the screen edges).
   if(x<_gWL){x=_gWL;if(battleOn&&Math.abs(vx)>60)vx=Math.abs(vx)*0.6;}if(x>_gWR){x=_gWR;if(battleOn&&Math.abs(vx)>60)vx=-Math.abs(vx)*0.6;}   // and in lava they BOUNCE off, so a wall shove reads as a save, not a pin
   if(!air&&!grabbed&&!perched&&!window.__hmLavaOn&&y>floorY)y=floorY;   // the walls hold, ALWAYS: no head ever leaves the screen (but in lava there's no floor to snap to)
@@ -4147,7 +4155,10 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    try{var _gp=(team===1?sR:sB);if(_gp){_gp.style.transition="none";_gp.style.transform="scale(1.55)";void _gp.offsetWidth;_gp.style.transition="transform .5s cubic-bezier(.2,1.4,.3,1)";_gp.style.transform="scale(1)";_gp.style.display="inline-block";}}catch(_){}   // the scoring number POPS -- a goal should feel like a goal on the board too
    var g=team===1?goalR:goalL;g.classList.add("hmGoalHit");setTimeout(function(){g.classList.remove("hmGoalHit");},650);
    try{if(typeof busyNow==="function"&&!busyNow()){setHold("smile",1100);showFace("smile");if(typeof browFlash==="function")browFlash();}}catch(_){}
-   if((team===1&&S.red>=S.target)||(team===2&&S.blue>=S.target)){win(team);return;}   // the winning goal: the ball stays gone through the celebration
+   var _mx=Math.max(S.red,S.blue),_df=Math.abs(S.red-S.blue);
+   if((_mx>=S.target&&_df>=2)||_mx>=7){win(team);return;}   // WIN BY TWO (hard cap 7): a 5-4 isn't over -- the great matches go to deuce
+   if(S.red===S.blue&&S.red>=4)setTimeout(function(){if(S.on)bigCall("DEUCE!",1600);},1300);
+   if(_mx===6&&_df===1)setTimeout(function(){if(S.on)bigCall("NEXT GOAL WINS!",1800);},1300);
    S.phase="reset";bvx=0;bvy=0;setTimeout(function(){if(S.on){ball.style.opacity="1";if(ballShadow)ballShadow.style.opacity="0.28";dropIn();}},700);}   // otherwise it re-appears for the next kickoff
   function win(team){S.winner=team;S.phase="win";board2();
    try{winConfetti(team);}catch(_){}
@@ -4322,8 +4333,8 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    // the MIDDLE is a SHUFFLED DECK: a different mix, order and count of sections every single race
    var deck=[function(){zigzag(3);},function(){pegField(mob?4:5,2.2);},function(){gate();},function(){bumps();},function(){zigzag(2);},function(){spinner();}];
    for(var dj=deck.length-1;dj>0;dj--){var dk=Math.floor(Math.random()*(dj+1)),dt2=deck[dj];deck[dj]=deck[dk];deck[dk]=dt2;}
-   var takeN=(mob?3:4)+(Math.random()<0.5?1:0);
-   for(var dq=0;dq<takeN;dq++){deck[dq]();if(dq===1)funnel(1.3,H*0.32);}   // one re-bunching choke mid-deck keeps every draw a race
+   var takeN=((mob?3:4)+(Math.random()<0.5?1:0))*(elimMode?2:1);   // elimination is ENDLESS-feeling: double the deck -- the cuts decide it long before any line could
+   for(var dq=0;dq<takeN;dq++){deck[dq%deck.length]();if(dq%deck.length===1)funnel(1.3,H*0.32);}   // one re-bunching choke per deck pass; a doubled (elimination) deck cycles the sections
    gate();                      // the sliding gate guards the run-in: even the leader can get walled while the pack closes
    funnel(1.2,0);               // the LAST choke -- whoever exits first has the race to lose
    y+=H*0.5;finishY=y;          // open sprint, then the line
@@ -4360,16 +4371,17 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    balls.length=0;
    var gridOrder=rc.slice();for(var g=gridOrder.length-1;g>0;g--){var j=Math.floor(Math.random()*(g+1)),tmp=gridOrder[g];gridOrder[g]=gridOrder[j];gridOrder[j]=tmp;}   // reshuffled grid every race: fair start, different neighbours
    W=heroW();H=heroH();X0=(W<=640)?8:104;CW=W-X0;CC=(X0+W)/2;   // the rail bounds are needed BEFORE the grid spawns (buildCourse re-derives them a beat later)
+   elimMode=(window.__forceElim!=null)?!!window.__forceElim:Math.random()<0.45;nextCut=0;doomIx=-1;doomAt=0;outOrder.length=0;   // the FORMAT is rolled before the course is built -- it was being read one round stale, and a doubled deck then indexed off the end
    for(var n=0;n<gridOrder.length;n++){var pr=gridOrder[n],r=pr.HW*0.5*0.92;
     balls.push({peer:pr,r:r,x:X0+(CW/(gridOrder.length+1))*(n+1)+rnd(-2,2),y:H*0.42-rnd(0,3),vx:0,vy:0,slow:0,fin:false,row:null});}
    buildCourse();buildDOM();
-   elimMode=(window.__forceElim!=null)?!!window.__forceElim:Math.random()<0.45;nextCut=0;doomIx=-1;doomAt=0;outOrder.length=0;
    goAt=performance.now()+3200;raceT0=goAt;if(elimMode)nextCut=goAt+8000;
    var s=seed;bigText(3);if(elimMode)setTimeout(function(){if(s===seed&&ON&&cEl){cEl.classList.add("hmMsg");bigText("ELIMINATION!");setTimeout(function(){if(s===seed){cEl.textContent="";cEl.classList.remove("hmMsg");}},1600);}},3400);   // the format card: every 8s the last head is OUT
    setTimeout(function(){if(s===seed&&ON)bigText(2);},800);setTimeout(function(){if(s===seed&&ON)bigText(1);},1600);
    setTimeout(function(){if(s===seed&&ON){bigText("GO");setTimeout(function(){if(s===seed)cEl.textContent="";},600);}},2400);
    if(!running){running=true;lastN=performance.now();requestAnimationFrame(loop);}}
   function finish(){if(!ON)return;ON=false;window.__hmRaceOn=false;document.body.classList.remove("hmRace");
+   try{for(var uz=0;uz<balls.length;uz++){var UB=balls[uz];if(!UB.fin&&!UB.out){UB.out=true;if(UB.row){UB.row.classList.remove("top");UB.row.classList.add("out");}}}}catch(_){}   // whoever was still mid-course when the wrap hit resolves as OUT -- the board never ends with limbo rows
    try{for(var pz=1;pz<=2&&pz<order.length;pz++){var pb=balls[order[pz]];if(pb&&pb.peer.slot!=null&&window.__hmCareer)window.__hmCareer.rec("podium",pb.peer.slot);}}catch(_){}
    if(cEl)cEl.textContent="";
    for(var i=0;i<balls.length;i++){var b=balls[i],pr=b.peer;pr.raceX=null;pr.raceY=null;}}   // heads snap back to their own physics and tumble home
@@ -4381,7 +4393,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    for(i=0;i<balls.length;i++){var a=balls[i];if(a.out)continue;
     a.vy+=1550*dt;
     if(!a.fin&&leader>=0&&(lead-a.y)>H*1.5)a.vy+=1550*0.12*dt;   // the quiet catch-up band: a straggler more than 1.5 screens back falls a touch faster -- a helping hand, never a rigged result
-    if(!a.fin&&winner>=0)a.vy+=1550*0.6*dt;   // the winner's crossed -> everyone still on course sprints it home, so the final leaderboard is complete before the wrap-up
+    if(!a.fin&&winner>=0)a.vy+=1550*0.9*dt;   // the winner's crossed -> everyone still on course sprints it home, so the final leaderboard is complete before the wrap-up
     var sp=Math.hypot(a.vx,a.vy),cap=H*2.5;if(sp>cap){a.vx*=cap/sp;a.vy*=cap/sp;}
     a.x+=a.vx*dt;a.y+=a.vy*dt;
     if(a.x<X0+a.r){a.x=X0+a.r;a.vx=Math.abs(a.vx)*0.3;}if(a.x>W-a.r){a.x=W-a.r;a.vx=-Math.abs(a.vx)*0.3;}
@@ -4454,7 +4466,10 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
        try{if(window.__hmFX)window.__hmFX.burst(DB.x-HL,DB.y-camY,{count:14,color:"224,90,78",speed:420,gravity:600,life:0.6,size:4});}catch(_){}
        if(DB.row){DB.row.classList.remove("doom");}}
       doomIx=-1;nextCut=n+8000;}}
-    else if(doomIx>=0){var dr2=balls[doomIx].row;if(dr2)dr2.classList.remove("doom");doomIx=-1;}}
+    else if(doomIx>=0){var dr2=balls[doomIx].row;if(dr2)dr2.classList.remove("doom");doomIx=-1;}
+    if(liveN===1&&winner<0){for(var wj=0;wj<balls.length;wj++){if(!balls[wj].fin&&!balls[wj].out){winner=wj;balls[wj].fin=true;order.push(wj);balls[wj].peer.raceWin=true;if(balls[wj].row)balls[wj].row.classList.add("fin");
+     try{if(window.__hmCareer&&balls[wj].peer.slot!=null)window.__hmCareer.rec("raceWin",balls[wj].peer.slot);}catch(_){}
+     ts=0.28;endAt=performance.now()+5200;try{bigText("Winner!");}catch(_){}break;}}}}
    // camera: ride the leader with a soft spring, never backward, and stop at the pen
    var leadY=-1e9;for(var c2=0;c2<balls.length;c2++)if(!balls[c2].out&&balls[c2].y>leadY)leadY=balls[c2].y;
    var tgt=Math.max(camY,Math.min(leadY-H*0.42,finishY+H*0.9-H));
@@ -4463,7 +4478,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    for(var sE=0;sE<spinEls.length;sE++){var se=spinEls[sE];se.el.style.transform="rotate("+((se.sp.a+se.k*Math.PI/2)*180/Math.PI).toFixed(1)+"deg)";}
    // hand every head its screen position (the mailbox its own frame loop follows)
    for(var m2=0;m2<balls.length;m2++){var bb=balls[m2],pr2=bb.peer;
-    if(bb.out){pr2.raceHide=true;pr2.raceX=-9999;pr2.raceY=-9999;continue;}
+    if(bb.out){pr2.raceHide=true;pr2.raceVX=0;pr2.raceVY=0;continue;}   // vacuumed heads HIDE IN PLACE -- parking them at -9999 stranded their restore and poisoned the next round with off-map ghosts
     pr2.raceX=bb.x-HL-pr2.HW/2;pr2.raceY=(bb.y-camY)-pr2.HH*0.55;pr2.raceVX=bb.vx;pr2.raceVY=bb.vy;
     pr2.raceHide=((bb.y-camY)<-pr2.HH*0.6)||((bb.y-camY)>H+pr2.HH);}   // off the camera window = OFF THE SCREEN: a head that hasn't reached this stretch yet must not float over the header
    // leaderboard: re-rank every ~0.3s, finished heads keep their locked position
