@@ -835,6 +835,10 @@ body.about-open .navBurger{grid-column:3;grid-row:1;justify-self:end;margin-left
    screen, still running, with no way back. ---- */
 @media(max-width:760px){body.hmFull .hero{min-height:calc(100dvh - 68px);height:calc(100dvh - 68px);padding-top:8px}}
 body.hmFull{overflow:hidden;overscroll-behavior:none}
+/* ---- 14. #soccerTeams measured 39x40 -- under the 44px minimum (WCAG 2.5.5 AAA, Apple HIG
+   "at least 44x44 pt"). It sits inside a flex row with align-self:stretch, so it inherited the
+   40px moodItem height. Floor both axes. ---- */
+.moodTeamsBtn{min-width:44px;min-height:44px}
 </style></head>
 <body>
 <a class="skipLink" href="#main">Skip to content</a>
@@ -3332,6 +3336,10 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   var FLOORCAP=heroR.h-(HW*0.34)-2;
   if(bigR&&!gameOn){fY=Math.min(bigR.b,FLOORCAP);sharedFeetY=fY;} // trust his chin as the floor only in his normal resting spot; remember it
   else fY=(sharedFeetY!=null?sharedFeetY:(bigR?Math.min(bigR.b,FLOORCAP):FLOORCAP));   // mid-game (mini-Jayden spawns here) reuse the CACHED resting floor -> every head shares one plane
+  if(document.body.classList.contains("hmFull"))fY=FLOORCAP;   // PHONE, GAME RUNNING: the arena is
+  // now the whole screen, so the floor is the bottom of THAT -- not the resting spot cached while the
+  // hero was still 491px. Without this the pitch sat mid-screen with ~290px of dead space under it.
+  try{window.__hmFeetY=fY;}catch(_){}   // publish the shared feet plane: soccer's geo() needs the SAME floor or the goals stand on a different ground than the players
   floorY=fY-HH*FOOT;                                               // feet (the visible chin, not the transparent padding) rest on that shared floor, whatever the head's size
   M=mob?16:40;plats=[];avoids=[];
   var ow=heroR?heroR.w:0;
@@ -4195,6 +4203,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   var bsx=1,bsy=1,bsxv=0,bsyv=0,bsxP=1,bsyP=1,bsT=0;
   function geo(){var r=hero.getBoundingClientRect();W=r.width;H=r.height;OFF=r.left;XL=-OFF;XR=innerWidth-OFF;   // the pitch spans the whole screen, wall to wall
    var st=document.getElementById("stage");if(st){var sr=st.getBoundingClientRect();groundY=sr.bottom-r.top;}else groundY=H-40;   // the pitch line == where the heads' feet rest (the stage bottom), so ball and players share one ground
+   if(document.body.classList.contains("hmFull")&&window.__hmFeetY!=null)groundY=window.__hmFeetY;   // full-screen phone arena: the heads dropped to the bottom of it, so the goalmouths must too -- the big head's stage is still up where the hero used to end
    if(groundY>H-16)groundY=H-16;
    var nBR=innerWidth<=880?16:24;   // the heads shrink on mobile (96->64), so the ball shrinks with them (48->32) to keep the player:ball ratio honest
    if(nBR!==BR){BR=nBR;if(ball){ball.style.width=ball.style.height=(2*BR)+"px";}if(ballShadow){ballShadow.style.width=(2*BR)+"px";ballShadow.style.height=(BR*0.55).toFixed(1)+"px";}}}
@@ -4213,6 +4222,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    hero.appendChild(board);sR=board.querySelector(".sR");sB=board.querySelector(".sB");
    board.querySelector(".hmScoreEnd").addEventListener("click",function(e){e.stopPropagation();finish();});   // end the match right from the scoreboard
    countEl=document.createElement("div");countEl.className="hmCount";hero.appendChild(countEl);}
+  var _lastGY=-1;
   function layout(){geo();
    goalL.style.transform="translate("+XL+"px,"+(groundY-150)+"px)";
    goalR.style.transform="translate("+(XR-42)+"px,"+(groundY-150)+"px)";
@@ -4317,7 +4327,8 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    try{if(window.__hmFX)window.__hmFX.clear();}catch(_){}}
   var spin=0,bw=0,gaspAt=0;   // spin = rendered rotation, bw = angular velocity (deg/s)
   function loop(now){if(!S.on){running=false;return;}requestAnimationFrame(loop);
-   var dt=Math.min(0.05,Math.max(0.006,(now-last)/1000));last=now;geo();
+   var dt=Math.min(0.05,Math.max(0.006,(now-last)/1000));last=now;geo();if(Math.abs(groundY-_lastGY)>1){_lastGY=groundY;layout();}   // the ground plane can MOVE mid-match now (entering/leaving the full-screen phone arena) -- goals are positioned in layout(), which only ran at start(), so they used to stay behind on the old pitch line
+    
    var REST=groundY-BR,GRAV=2600;   // gravity is uniform: the ball falls at exactly the heads' g (was a wrong 2400 vs their 2600). REST = ball CENTRE at rest, underside on the pitch
    if(S.phase==="scoring"){   // the net has the ball: it decelerates and settles
     bvy+=GRAV*dt;bvx*=Math.pow(0.006,dt);bvy*=Math.pow(0.03,dt);bx+=bvx*dt;by+=bvy*dt;
