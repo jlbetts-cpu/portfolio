@@ -3571,7 +3571,11 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
      var half9=heroR.w*0.5,tx9=team===1?(M+Math.random()*(half9-HW-M*2)):(half9+M+Math.random()*(half9-HW-M*2));
      if(!grabbed){var dxk=tx9-x;dir=dxk>0?1:-1;surface=floorY;st="fall";air=true;
       var vyk=500+Math.random()*150,ttk=2*vyk/G;vy=-vyk;vx=dir*Math.max(-820,Math.min(820,dxk/ttk));sqT=0.12;sqyP=1.1;sqxP=1/1.1;gzx=dir*0.6;sacAt=now+500;}}
+    if(S9.postSeed&&S9.postSeed!==me.__postSeen){me.__postSeen=S9.postSeed;   // OFF THE WOODWORK: everyone near the ball feels it -- the shooter clutches, brows pop
+     if(Math.abs((x+HW/2)-S9.ball.x)<220){brf=6;hurtT=Math.max(hurtT,0.4);gzy=-0.5;sacAt=now+900;}else{brf=4;}}
     if(S9.goalSeed&&S9.goalSeed!==goalSeen){goalSeen=S9.goalSeed;   // GOAL: just a natural little reaction, no scripted dance
+     var _role0=(S9.roles&&S9.roles[slot])||"";
+     if(_role0==="keeper"&&S9.goalTeam!==team){gzy=0.8;gzx=0;sacAt=now+1800;hurtT=Math.max(hurtT,0.5);}   // KEEPER DESPAIR: beaten, he stares at the turf -- the emotional protagonist of every goal
      if(S9.goalTeam===team&&!grabbed&&!perched){brf=6;mof=4;if(filler)smileT=1.7;   // the mini-Jayden grins at a goal
       try{if(typeof busyNow==="function"&&!busyNow()){setHold("smile",1200);showFace("smile");}}catch(_){}}}
     if(S9.winner&&S9.winner===team&&!soccerWon){soccerWon=true;crownEl.style.opacity="1";if(filler){smileT=3.6;danceUntil=now+3400;}   // champions crowned -- the mini-Jayden breaks into his DELIGHT DANCE (he's me, he gets the whole moment)
@@ -3592,6 +3596,8 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
      var ballOnOurHalf=(atk>0)?(ballX<heroR.w*0.5):(ballX>heroR.w*0.5);
      var ballHigh=(floorY-ballY)>150,nearOwnGoal=(atk>0)?(ballX<heroR.w*0.3):(ballX>heroR.w*0.7);
      var bxT,overBall=false,wantHigh=false;
+     var _lit=(S9.fire===team);
+     if(_lit&&iAmChaser&&Math.random()<0.5){try{if(window.__hmFX)window.__hmFX.burst(myX,y+HH*0.5,{count:3,color:"255,140,50",speed:120,gravity:-60,life:0.5,size:3});}catch(_){}}   // the ignited striker trails embers
      if(iAmChaser){   // GO FOR IT -- but ALWAYS from the own-goal side, so the ball can only go toward THEIR net
       if(!myGS){bxT=(leadX-atk*(HW*0.5+34))-HW/2;overBall=Math.abs(ballX-myX)<HW+56;}   // loop behind the ball, vaulting clean over it
       else bxT=leadX-HW/2;   // already behind it: drive straight through toward their goal
@@ -3610,7 +3616,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
       surface=floorY;st="fall";air=true;
       var ballUp=Math.max(0,floorY-ballY),ballClose=Math.abs(ballX-myX)<heroR.w*0.22;
       var vyb9=(wantHigh?(940+Math.random()*80):(overBall?720:(ballClose?440:360)))+Math.min(560,ballUp*0.72)+Math.random()*90,ttb9=2*vyb9/G;   // wantHigh = a real leap to block / head a high ball
-      vy=-vyb9;vx=dir*Math.min(800,Math.max(120,Math.abs(ddb9)/ttb9));sqT=0.12;sqyP=1.1;sqxP=1/1.1;
+      vy=-vyb9*(_lit?1.09:1);vx=dir*Math.min(_lit?900:800,Math.max(120,Math.abs(ddb9)/ttb9)*(_lit?1.12:1));sqT=0.12;sqyP=1.1;sqxP=1/1.1;   // on fire: a touch quicker, a touch springier -- visible in play, never a scripted rescue
       if(vyb9>780&&Math.random()<0.5)startFlip();}   // RAW ballistic leap at the ball -- fast, committed, explosive contact (this is soccer's electric charm; no mid-air easing) + a somersault off the big challenges for extra air
      else{gzx=(ballX>myX)?0.6:-0.6;gzy=0.1;sacAt=now+700;}}}}catch(_){}
   if(battleOn&&!elim&&!celebrated){var alive9=0,inb9=0;
@@ -4131,7 +4137,13 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    ball.style.opacity="0";if(ballShadow)ballShadow.style.opacity="0";bvx=0;bvy=0;bw=0;   // and it's gone, never spinning around inside the net
    var g=team===1?goalR:goalL;g.classList.remove("hmGoalHit");void g.offsetWidth;g.classList.add("hmGoalHit");
    setTimeout(function(){if(S.on&&S.phase==="scoring")goalIn(team);},240);}
+  function bigCall(txt,ms){try{if(!countEl)return;countEl.classList.add("hmMsg");countEl.textContent=txt;countEl.classList.remove("hmCountPulse");void countEl.offsetWidth;countEl.classList.add("hmCountPulse");setTimeout(function(){if(countEl.textContent===txt){countEl.textContent="";countEl.classList.remove("hmMsg");}},ms||1800);}catch(_){}}
   function goalIn(team){if(team===1)S.red++;else S.blue++;S.goalSeed=(S.goalSeed||0)+1;S.goalTeam=team;board2();
+   var lead=Math.abs(S.red-S.blue),trail=(S.red<S.blue)?1:((S.blue<S.red)?2:0);
+   S.fire=(lead>=2&&trail)?trail:0;   // COMEBACK FIRE: down two -> the trailing side's striker ignites (NBA Jam's law: loud state, modest stats)
+   if(S.fire&&lead===2)setTimeout(function(){if(S.on&&S.fire)bigCall((S.fire===1?"RED":"BLUE")+" HEATS UP!",1500);},1200);
+   if((S.red===4||S.blue===4)&&S.red!==S.blue)setTimeout(function(){if(S.on)bigCall("MATCH POINT",1500);},1300);
+   if(S.red===4&&S.blue===4)setTimeout(function(){if(S.on)bigCall("GOLDEN GOAL!",2200);},1300);   // 4-4: next goal takes it -- FIFA built this rule purely to manufacture a decisive thrill
    try{var _gp=(team===1?sR:sB);if(_gp){_gp.style.transition="none";_gp.style.transform="scale(1.55)";void _gp.offsetWidth;_gp.style.transition="transform .5s cubic-bezier(.2,1.4,.3,1)";_gp.style.transform="scale(1)";_gp.style.display="inline-block";}}catch(_){}   // the scoring number POPS -- a goal should feel like a goal on the board too
    var g=team===1?goalR:goalL;g.classList.add("hmGoalHit");setTimeout(function(){g.classList.remove("hmGoalHit");},650);
    try{if(typeof busyNow==="function"&&!busyNow()){setHold("smile",1100);showFace("smile");if(typeof browFlash==="function")browFlash();}}catch(_){}
@@ -4181,7 +4193,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
     if(by<BR+2){by=BR+2;if(Math.abs(bvy)>120){var kc0=Math.min(0.1,Math.abs(bvy)*0.00012);bsyP=1-kc0;bsxP=1/(1-kc0);bsT=0.11;}bvy=Math.abs(bvy)*0.72;}   // ceiling
     var inG=by>groundY-150;
     var gt=groundY-150,overL=(bx+BR>XL&&bx-BR<XL+44),overR=(bx+BR>XR-44&&bx-BR<XR);   // the crossbar
-    if((overL||overR)&&bvy>0&&by+BR>=gt-2&&by-BR<gt&&by<gt){by=gt-BR-2;bvy=-Math.max(160,Math.abs(bvy)*0.7);   // off the bar with a guaranteed hop, never perches
+    if((overL||overR)&&bvy>0&&by+BR>=gt-2&&by-BR<gt&&by<gt){by=gt-BR-2;bvy=-Math.max(160,Math.abs(bvy)*0.7);S.postSeed=(S.postSeed||0)+1;   // off the bar -- and the WOODWORK moment is broadcast so the heads can feel it
      bvx+=(overL?1:-1)*(150+Math.random()*70);bvx=Math.max(-2200,Math.min(2200,bvx));
      var kc1=Math.min(0.1,Math.abs(bvy)*0.00015);bsyP=1-kc1;bsxP=1/(1-kc1);bsT=0.11;}
     if(bx<XL+BR){if(inG)return netCatch(2);bx=XL+BR;if(Math.abs(bvx)>120){var kw=Math.min(0.12,Math.abs(bvx)*0.00014);bsxP=1-kw;bsyP=1/(1-kw);bsT=0.12;}bvx=Math.abs(bvx)*0.82;bw=-bw*0.6;}   // wall reverses the spin too
