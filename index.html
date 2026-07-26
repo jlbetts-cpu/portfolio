@@ -4020,7 +4020,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   if(grabbed){nx=0.14;ny=0.1;}   // held: eyes quietly to one side, never panicked
   else if(perched&&moodB){nx=0;ny=0.9;}   // front-row seat: watching the show below
   else if(moodB&&bigR){nx=((bigR.l+bigR.r)/2>(x+HW/2))?0.6:-0.6;ny=-0.6;}   // the audience watches HIM
-  else if(act){nx=Math.max(-1,Math.min(1,(px-(rr.left+rr.width/2))/280));ny=Math.max(-1,Math.min(1,(py-(rr.top+rr.height/2))/280));
+  else if(act){nx=Math.max(-1,Math.min(1,(px-(heroBox.left+x+HW/2))/280));ny=Math.max(-1,Math.min(1,(py-(heroBox.top+y+HH/2))/280));   // cursor gaze off the CACHED hero box -- the old per-head rect (rr) was removed in the reflow purge and these two survivors threw every mouse-move frame
    if(Math.abs(nx)<0.09&&Math.abs(ny)<0.09){nx=0.13*(dir||1);ny=0.05;}}   // same rule as mine: never a dead stare into the camera
   else if(air||Math.abs(vx)>0.5){nx=dir*0.7;ny=0.12;}   // busy going somewhere: it watches where it is going
   else{if(now>=sacAt){
@@ -4028,7 +4028,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
     for(var gq=0;gq<peers.length;gq++){var o4=peers[gq];if(o4===me)continue;
      var gdd=Math.abs((o4.x+o4.HW/2)-(x+HW/2));if(gdd<pdz){pdz=gdd;pgz=o4;}}}
    if(pgz){gzx=Math.max(-1,Math.min(1,((pgz.x+pgz.HW/2)-(x+HW/2))/280));gzy=Math.max(-0.5,Math.min(0.5,((pgz.y+pgz.HH/2)-(y+HH/2))/280));}   // it checks on its friends
-   else if(typeof lastMove!=="undefined"&&now-lastMove<5000&&Math.random()<0.35){gzx=Math.max(-1,Math.min(1,(px-(rr.left+rr.width/2))/420));gzy=Math.max(-0.6,Math.min(0.6,(py-(rr.top+rr.height/2))/420));}   // joint attention: it checks what you are doing
+   else if(typeof lastMove!=="undefined"&&now-lastMove<5000&&Math.random()<0.35){gzx=Math.max(-1,Math.min(1,(px-(heroBox.left+x+HW/2))/420));gzy=Math.max(-0.6,Math.min(0.6,(py-(heroBox.top+y+HH/2))/420));}   // joint attention: it checks what you are doing
    else{do{gzx=(Math.random()*1.4-0.7);}while(Math.abs(gzx)<0.12);gzy=(Math.random()*0.8-0.45);}
    sacAt=now+700+Math.random()*1600;}
    nx=gzx;ny=gzy;if(drowse2){nx*=0.3;ny=0.4;}}
