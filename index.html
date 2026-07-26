@@ -819,6 +819,22 @@ body.about-open .navBurger{grid-column:3;grid-row:1;justify-self:end;margin-left
 .mhTxt{line-height:1.2}
 @media(prefers-reduced-motion:reduce){.mhTrack,.mhKnob{transition:none}}
 @media(max-width:760px){.mhToggle{min-height:44px}}
+/* ---- 10. Scroll cue is desktop-only. On a phone it lands ON the head's floor shadow
+   (measured 390px: shadow y 500-541, cue y 505-549) and a touch device earns nothing from it.
+   display:none, not opacity:0, so it cannot take taps. ---- */
+@media(max-width:760px){.scrollCue{display:none}}
+/* ---- 5 + 6. MOBILE: a running game owns the screen.
+   All three games take their height from hero.clientHeight -- race heroH(), lava hh(), soccer
+   geo(). They take WIDTH from innerWidth, but height never got the same treatment, because on
+   desktop .hero{min-height:calc(100vh - 80px)} made the two nearly identical. On mobile .hero is
+   overridden to min-height:auto, so the arena measured 491px of an 844px viewport: every game
+   played in the top 58% of the screen, the lava plane clipped at a hard horizontal line, and
+   heads/rungs/health bars rendered over the nav. Hand the hero the rest of the screen while a
+   game runs and all three inherit a real arena -- both height fns are called live, not cached.
+   Scroll is locked for the duration: a single 500px flick used to push the whole match off
+   screen, still running, with no way back. ---- */
+@media(max-width:760px){body.hmFull .hero{min-height:calc(100dvh - 68px);height:calc(100dvh - 68px);padding-top:8px}}
+body.hmFull{overflow:hidden;overscroll-behavior:none}
 </style></head>
 <body>
 <a class="skipLink" href="#main">Skip to content</a>
@@ -3319,7 +3335,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   floorY=fY-HH*FOOT;                                               // feet (the visible chin, not the transparent padding) rest on that shared floor, whatever the head's size
   M=mob?16:40;plats=[];avoids=[];
   var ow=heroR?heroR.w:0;
-  var hb=hero.getBoundingClientRect();WL=-hb.left-HW*0.35;WR=innerWidth-hb.left-HW*0.65;CEIL=-(hb.top+window.scrollY)-HH*0.12;   // it presses into the glass on every side; the VISIBLE crown reaches the top, not the box
+  var hb=hero.getBoundingClientRect();WL=-hb.left-HW*0.35;WR=innerWidth-hb.left-HW*0.65;CEIL=-(hb.top+window.scrollY)-HH*0.12;if(document.body.classList.contains("hmFull")){CEIL=2;WL=-hb.left+2;WR=innerWidth-hb.left-HW-2;}   // PHONE, GAME RUNNING: the arena now fills the screen and the nav sits right on top of it, so the ceiling stops at the hero instead of letting heads (and their health bars) climb over the wordmark. Walls tuck in too -- the desktop overhang (WL=-HW*0.35) puts ~22px of a 64px head off-screen, which is a charming detail at 1440px and eats the goalkeeper at 390px.   // it presses into the glass on every side; the VISIBLE crown reaches the top, not the box
   if(ow&&Math.abs(ow-hero.clientWidth)>2)x=x/ow*hero.clientWidth;   // resizing keeps its relative spot
   if(bigR){var nHW=Math.round(Math.min(108,Math.max(66,(bigR.r-bigR.l)*0.27)));if(mob)nHW=Math.min(nHW,64);
    if(filler)nHW=Math.round(nHW*1.5);   // the mini-Jayden stays noticeably BIGGER (Jayden liked this) -- but he's on the SAME flat plane + ground line as everyone else; his size is his identity, not a depth cue
@@ -4923,6 +4939,27 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   if(scrollY>40)document.body.classList.add('scrolled');
   else document.body.classList.remove('scrolled');
  },{passive:true});
+})();
+</script>
+<script>
+(function(){ // MOBILE: a running game owns the screen -- full-height arena + locked page scroll
+ function MOBILE(){return innerWidth<=760;}
+ var on=false,savedY=0;
+ function playing(){var c=document.body.classList;return c.contains("hmBattle")||c.contains("hmSoccer")||c.contains("hmRace");}
+ function sync(){var want=playing()&&MOBILE();
+  if(want===on)return;   // body classes churn constantly (moods, hmHeadsOff) -- only act on a real edge
+  on=want;
+  if(want){savedY=window.scrollY||0;
+   document.documentElement.style.overflow="hidden";
+   document.body.classList.add("hmFull");
+   window.scrollTo(0,0);}                       // the arena starts at the top of the page
+  else{document.body.classList.remove("hmFull");
+   document.documentElement.style.overflow="";
+   window.scrollTo(0,savedY);}                  // put them back exactly where they were
+  try{dispatchEvent(new Event("resize"));}catch(_){}   // the arena just changed size: let every game re-survey
+ }
+ new MutationObserver(sync).observe(document.body,{attributes:true,attributeFilter:["class"]});
+ addEventListener("resize",function(){if(on&&!MOBILE())sync();},{passive:true});   // rotate to desktop width mid-match: hand the page back
 })();
 </script>
 </body></html>
