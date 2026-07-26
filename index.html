@@ -3950,6 +3950,10 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    if(me.__rHid){me.__rHid=false;root.style.opacity="1";if(shadow)shadow.style.opacity="1";}
    root.style.transition="";
    if(me.raceWin){me.raceWin=false;smileT=Math.max(smileT||0,2.6);(function(ce){setTimeout(function(){try{ce.style.opacity="0";}catch(_){}},4600);})(crownEl);}}   // the champion tumbles home grinning, wears the crown a few beats more, then it fades
+  if(!isFinite(x)||!isFinite(vx)||!isFinite(y)||!isFinite(vy)){   // NaN KILLSWITCH: one poisoned frame disabled every clamp and sent whole rounds into burning freefall -- self-heal on the spot and log the scene so the emitting path can be named
+   try{(window.__wdgN=window.__wdgN||[]).push({t:Math.round(now/1000),slot:slot,x:x,y:y,vx:vx,vy:vy,st:st,aimX:(typeof aimX!=="undefined"?aimX:"?"),batt:!!battleOn});}catch(_){}
+   var _hw9=(heroR&&heroR.w)||innerWidth||800;
+   x=isFinite(x)?x:_hw9*0.5-HW/2;y=(isFinite(y)&&y<floorY+200)?y:Math.min(floorY,140);vx=0;vy=0;aimX=null;air=true;st="fall";surface=floorY;}
   if(battleOn&&!me.__sinking&&y<-HH*0.6){y=-HH*0.6;if(vy<0)vy=0;}   // the arena has a CEILING: no head ever sails off the top of the map in the scramble
   if(battleOn&&window.__hmLavaOn&&!me.__sinking&&!elim){   // WEDGE WATCHDOG: the soak caught a head frozen 58s in a pocket -- 6s without moving forces a recovery leap, a second strike drops him clean out of the wedge
    if(me.__swT==null||Math.hypot(x-(me.__swX||0),y-(me.__swY||0))>12){me.__swX=x;me.__swY=y;me.__swT=now;}
