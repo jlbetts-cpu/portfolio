@@ -4443,12 +4443,14 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
     y+=drop;
     if(tube){seg(cx-th/2,y,cx-th/2,y+tube);seg(cx+th/2,y,cx+th/2,y+tube);y+=tube;}
     y+=D*0.7;}
-   function zigzag(n){var ang=0.28,span=CW*0.72;   // ~16deg ramps, each ending in a drop gap
+   function zigzag(n){var ang=0.28,span=Math.min(CW*0.72,CW-(DM+9));   // ~16deg ramps, each ending in a drop gap that clears the BIGGEST racer (CW*0.72 alone left 87px at 320px, under a 1.5x head)
     for(var i=0;i<n;i++){var ltr=(i%2===0);
      var x1=ltr?X0+2:W-2,x2=ltr?(X0+2+span):(W-2-span),y2=y+span*ang;
      seg(x1,y,x2,y2);y=y2+D*1.1;}
     y+=D*0.4;}
-   function spinner(){var sr=D*1.7,cx=(lastCx!=null?lastCx+rnd(-D*0.4,D*0.4):CC+rnd(-CW*0.06,CW*0.06)),cy=y+H*0.34;lastCx=null;
+   function spinner(){var sr=Math.max(12,Math.min(D*1.7,(CW-2*(DM+9))/2-2));   // paddle radius capped so a full head clears on BOTH sides whatever cx rolls
+    var cx=(lastCx!=null?lastCx+rnd(-D*0.4,D*0.4):CC+rnd(-CW*0.06,CW*0.06)),cy=y+H*0.34;lastCx=null;
+    var _lo=X0+sr+(DM+9),_hi=W-sr-(DM+9);cx=(_hi>_lo)?Math.min(Math.max(cx,_lo),_hi):CC;   // ...and clamped so neither wall gap closes
     spins.push({cx:cx,cy:cy,r:sr,a:rnd(0,3.14),w:(Math.random()<0.5?-1:1)*rnd(5,8)});   // ~0.9-1.3 rev/s -- the race's biggest single luck injector
     y=cy+H*0.34;}
    function gate(){var ow=DM*1.5,gy=y+H*0.22;   // the MOVING GATE: a wall sliding side to side with one head-and-a-half of daylight -- the "he got BLOCKED!!" beat, and the great equalizer right before the finish
@@ -4456,7 +4458,18 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
     segs.push(gl);segs.push(gr);
     gates.push({l:gl,r:gr,y:gy,ow:ow,travel:(CW-ow)*0.5-12,ph:rnd(0,6.28),spd:rnd(2.4,3.4)});
     y=gy+H*0.34;}
-   function bumps(){var br=D*0.55,nB=mob?3:4,sp=(CW-nB*br*2)/(nB+1),by=y+H*0.28;   // BUMPER ROW: big fat pegs that fling -- pure pinball
+   function bumps(){var need=DM+9,nB=mob?3:4;   // BUMPER ROW: big fat pegs that fling -- pure pinball
+    // The row is nB pegs with nB+1 EQUAL gaps (both wall gaps included), so every gap is sp.
+    // Sizing br off D (the MEDIAN racer) while spacing off raw course width let the row seal shut:
+    // measured at 390px with a full pit, br was 32.4 and the widest gap anywhere -- walls included
+    // -- was 46.9 against a 58.9px head. Nobody could pass. The pack piled up and only escaped via
+    // the anti-stuck kick, which is exactly the "heads do not fit, then they teleport" feel.
+    // Every other obstacle already clears DM (the BIGGEST racer); this was the outlier.
+    var fit=function(k){return (CW-(k+1)*need)/(2*k);};   // largest radius that still leaves EVERY gap >= need
+    while(nB>1&&fit(nB)<Math.max(9,D*0.26))nB--;          // thin the row out rather than let it close
+    var br=Math.min(D*0.55,fit(nB)),by=y+H*0.28;
+    if(br<9){y=by+H*0.3;return;}                          // even one peg cannot leave a passage: skip the row
+    var sp=(CW-nB*br*2)/(nB+1);
     for(var b2=0;b2<nB;b2++)pegs.push({x:X0+sp*(b2+1)+br*(2*b2+1),y:by+rnd(-14,14),r:br});
     y=by+H*0.3;}
    pegField(mob?7:8,1.9);       // fixed opener: the plinko field -- the early leader rarely survives it
