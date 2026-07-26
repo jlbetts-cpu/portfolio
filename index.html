@@ -2746,7 +2746,7 @@ requestAnimationFrame(function(){requestAnimationFrame(startIntro);});
  var rg=document.getElementById("raceGo");
  if(rg)rg.addEventListener("click",function(){
   var rc=readAll().length;if(rc<1||gameOn())return;
-  if(rc<2&&window.__hmFillerAdd)window.__hmFillerAdd();   // a lonely head still gets a race -- the mini-Jayden lines up too
+  if(rc%2===1&&window.__hmFillerAdd)window.__hmFillerAdd();   // odd field -> the mini-Jayden lines up, same as every other mode
   try{if(window.__hmRaceStart)window.__hmRaceStart();}catch(_){}closeMenuBar();battleGate();});
  var eg=document.getElementById("endGame");
  if(eg)eg.addEventListener("click",function(){
@@ -3941,6 +3941,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    if(me.__rHid){me.__rHid=false;root.style.opacity="1";if(shadow)shadow.style.opacity="1";}
    root.style.transition="";
    if(me.raceWin){me.raceWin=false;smileT=Math.max(smileT||0,2.6);(function(ce){setTimeout(function(){try{ce.style.opacity="0";}catch(_){}},4600);})(crownEl);}}   // the champion tumbles home grinning, wears the crown a few beats more, then it fades
+  if(battleOn&&!me.__sinking&&y<-HH*0.6){y=-HH*0.6;if(vy<0)vy=0;}   // the arena has a CEILING: no head ever sails off the top of the map in the scramble
   var _gWL=WL,_gWR=WR;if(battleOn){var _hbl=(heroBox&&heroBox.left)||0;_gWL=Math.max(WL,(innerWidth>640?104:6)+2-_hbl);_gWR=Math.min(WR,innerWidth-_hbl-HW-2);}   // in the LAVA CLIMB the walls are the VIEWPORT edges -- the whole screen is the arena, and climbers stay fully on it, never half-buried "in the glass" like the idle hero allows. Soccer keeps its own full-viewport pitch (goals live at the screen edges).
   if(x<_gWL){x=_gWL;if(battleOn&&Math.abs(vx)>60)vx=Math.abs(vx)*0.6;}if(x>_gWR){x=_gWR;if(battleOn&&Math.abs(vx)>60)vx=-Math.abs(vx)*0.6;}   // and in lava they BOUNCE off, so a wall shove reads as a save, not a pin
   if(!air&&!grabbed&&!perched&&!window.__hmLavaOn&&y>floorY)y=floorY;   // the walls hold, ALWAYS: no head ever leaves the screen (but in lava there's no floor to snap to)
@@ -4249,7 +4250,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
     for(k in this.rows){prev[k]=this.rows[k].getBoundingClientRect().top;}
     for(var i=0;i<orderKeys.length;i++){r=this.rows[orderKeys[i]];if(!r)continue;
      r.style.order=i;var b=r.querySelector("b");if(b)b.textContent=i+1;
-     var st9=locked?locked[orderKeys[i]]:null;r.classList.toggle("fin",st9==="fin");r.classList.toggle("out",st9==="out");r.classList.toggle("top",i===0&&st9!=="out");}
+     var st9=locked?locked[orderKeys[i]]:null;r.classList.toggle("fin",st9==="fin");r.classList.toggle("out",st9==="out");r.classList.toggle("top",i===0&&st9==="fin");}
     for(k in this.rows){r=this.rows[k];var nt=r.getBoundingClientRect().top,d=prev[k]-nt;
      if(Math.abs(d)>2){r.style.transition="none";r.style.transform="translateY("+d+"px)";void r.offsetWidth;r.style.transition="transform .38s cubic-bezier(.2,.8,.2,1)";r.style.transform="";}}}};
   window.__hmBoard=BOARD;
@@ -4260,7 +4261,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   function rnd(a,b){return a+Math.random()*(b-a);}
   function seg(x1,y1,x2,y2,cls){segs.push({x1:x1,y1:y1,x2:x2,y2:y2,e:0.28,cls:cls||""});}
   function buildCourse(){pegs.length=0;segs.length=0;spins.length=0;gates.length=0;
-   refreshHL();W=heroW();H=heroH();var mob=W<=640;
+   refreshHL();W=heroW();H=heroH();var mob=W<=640,lastCx=null;
    X0=mob?8:104;CW=W-X0;CC=(X0+W)/2;   // the LEFT RAIL is reserved for the standings -- the whole course lives to the right of it, so the chips are always legible and never buried under a peg field
    var Ds=balls.length?balls.map(function(b){return b.r*2;}).sort(function(a,b){return a-b;}):[D];D=Ds[Math.floor(Ds.length/2)]||64;
    var DM=Ds[Ds.length-1]||D;   // the BIGGEST racer (the 1.5x mini-Jayden) sets every throat -- a funnel nobody can pass isn't a choke, it's a cork
@@ -4271,7 +4272,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
      for(var c=0;c<=n;c++){var px=X0+pitch*0.55+off+c*pitch;if(px<X0+edge||px>W-edge)continue;pegs.push({x:px+rnd(-3,3),y:y+rnd(-3,3),r:pr});}
      y+=vs;}
     y+=D*0.8;}
-   function funnel(throatF,tube){var th=DM*throatF+11,cx=CC+rnd(-CW*0.08,CW*0.08),drop=H*0.55;   // +11 covers the walls' own collision padding, so even the big head slips the throat with room to spare
+   function funnel(throatF,tube){var th=DM*throatF+11,cx=CC+rnd(-CW*0.08,CW*0.08),drop=H*0.55;lastCx=cx;   // +11 covers the walls' own collision padding, so even the big head slips the throat with room to spare
     seg(X0+2,y,cx-th/2,y+drop);seg(W-2,y,cx+th/2,y+drop);   // the CHOKE: everyone queues, the pack re-bunches, exit order shuffles -- this is why the race stays anyone's to win
     y+=drop;
     if(tube){seg(cx-th/2,y,cx-th/2,y+tube);seg(cx+th/2,y,cx+th/2,y+tube);y+=tube;}
@@ -4281,7 +4282,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
      var x1=ltr?X0+2:W-2,x2=ltr?(X0+2+span):(W-2-span),y2=y+span*ang;
      seg(x1,y,x2,y2);y=y2+D*1.1;}
     y+=D*0.4;}
-   function spinner(){var sr=D*1.7,cx=CC+rnd(-CW*0.06,CW*0.06),cy=y+H*0.34;
+   function spinner(){var sr=D*1.7,cx=(lastCx!=null?lastCx+rnd(-D*0.4,D*0.4):CC+rnd(-CW*0.06,CW*0.06)),cy=y+H*0.34;lastCx=null;
     spins.push({cx:cx,cy:cy,r:sr,a:rnd(0,3.14),w:(Math.random()<0.5?-1:1)*rnd(5,8)});   // ~0.9-1.3 rev/s -- the race's biggest single luck injector
     y=cy+H*0.34;}
    function gate(){var ow=DM*1.5,gy=y+H*0.22;   // the MOVING GATE: a wall sliding side to side with one head-and-a-half of daylight -- the "he got BLOCKED!!" beat, and the great equalizer right before the finish
@@ -4289,15 +4290,18 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
     segs.push(gl);segs.push(gr);
     gates.push({l:gl,r:gr,y:gy,ow:ow,travel:(CW-ow)*0.5-12,ph:rnd(0,6.28),spd:rnd(2.4,3.4)});
     y=gy+H*0.34;}
-   pegField(mob?7:8,1.9);       // CHAOS: the opening plinko -- the early leader rarely survives it
+   function bumps(){var br=D*0.55,nB=mob?3:4,sp=(CW-nB*br*2)/(nB+1),by=y+H*0.28;   // BUMPER ROW: big fat pegs that fling -- pure pinball
+    for(var b2=0;b2<nB;b2++)pegs.push({x:X0+sp*(b2+1)+br*(2*b2+1),y:by+rnd(-14,14),r:br});
+    y=by+H*0.3;}
+   pegField(mob?7:8,1.9);       // fixed opener: the plinko field -- the early leader rarely survives it
    funnel(1.25,H*0.4);          // CHOKE
-   zigzag(3);                   // mild chaos
-   spinner();                   // CHAOS
-   funnel(1.3,H*0.32);          // CHOKE
-   pegField(mob?4:5,2.2);       // sparser pegs
-   zigzag(2);                   // a second ramp run -- keeps the middle churning
-   pegField(mob?3:4,2.0);       // one more scramble
-   gate();                      // the sliding gate: even the leader can get walled here while the pack closes
+   spinner();                   // planted right under the throat: the paddle wheel swats the queue as it drains -- it can't miss
+   // the MIDDLE is a SHUFFLED DECK: a different mix, order and count of sections every single race
+   var deck=[function(){zigzag(3);},function(){pegField(mob?4:5,2.2);},function(){gate();},function(){bumps();},function(){zigzag(2);},function(){spinner();}];
+   for(var dj=deck.length-1;dj>0;dj--){var dk=Math.floor(Math.random()*(dj+1)),dt2=deck[dj];deck[dj]=deck[dk];deck[dk]=dt2;}
+   var takeN=(mob?3:4)+(Math.random()<0.5?1:0);
+   for(var dq=0;dq<takeN;dq++){deck[dq]();if(dq===1)funnel(1.3,H*0.32);}   // one re-bunching choke mid-deck keeps every draw a race
+   gate();                      // the sliding gate guards the run-in: even the leader can get walled while the pack closes
    funnel(1.2,0);               // the LAST choke -- whoever exits first has the race to lose
    y+=H*0.5;finishY=y;          // open sprint, then the line
    y+=H*1.1;
@@ -4566,7 +4570,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   // ---- the rising surface wave (shared by the crust render AND game logic so death lines up with what you see) ----
   var WAMP=7,WK1=0.021,WK2=0.052,WS1=1.1,WS2=1.7;
   function waveAt(xpx,t){return Math.sin(xpx*WK1+t*WS1)*WAMP + Math.sin(xpx*WK2 - t*WS2)*WAMP*0.45;}
-  var level=0,surfaceY=1e9,lavaY=null,RISE_PX=36,arenaBottom=0,arenaW=0,arenaH=0,arenaFloor=0,heroLeft=0,running=false,t0=performance.now(),RISE_DUR=36000,embers=[],bubbles=[];   // lavaY = the chasing surface in screen space; RISE_PX = its base climb in px/s (scaled up as the round matures)   // ms to fill (slow + tense -- everyone starts on a platform above a pool that's ALREADY there)
+  var level=0,surfaceY=1e9,lavaY=null,RISE_PX=36,LQ=0,frameC=0,fpsN=0,fpsT=0,arenaBottom=0,arenaW=0,arenaH=0,arenaFloor=0,heroLeft=0,running=false,t0=performance.now(),RISE_DUR=36000,embers=[],bubbles=[];   // lavaY = the chasing surface in screen space; RISE_PX = its base climb in px/s (scaled up as the round matures)   // ms to fill (slow + tense -- everyone starts on a platform above a pool that's ALREADY there)
   // ---- DOM: molten body (WebGL) + wavy crust (2D canvas) + heat haze band ----
   var wrap=document.createElement("div");wrap.className="hmLavaWrap";wrap.setAttribute("aria-hidden","true");
   wrap.style.cssText="position:absolute;left:0;right:0;bottom:0;top:0;pointer-events:none;z-index:8;opacity:0;transition:opacity .5s";   // molten body IN FRONT of the platforms + heads (clipped to below the surface) so anything the lava reaches vanishes under it
@@ -4625,6 +4629,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    var _lin=Math.min(1,Math.max(0,(n-t0-2900)/RISE_DUR));level=Math.pow(_lin,1.34);   // EASE-IN: creeps up slowly at first (long jostle on the platforms) then climbs faster for a tense finish
    window.__hmLavaLevel=level;   // 0..1 rise progress -- the platforms read this to DROP IN higher tiers as the lava climbs
    var dt=Math.min(0.05,Math.max(0.001,(n-lastFrame)/1000));
+   frameC++;fpsN++;fpsT+=dt;if(fpsT>2){var _f=fpsN/fpsT;fpsN=0;fpsT=0;if(_f<44&&!LQ){LQ=1;try{haze.style.display="none";}catch(_){}}else if(_f>56&&LQ){LQ=0;try{haze.style.display="";}catch(_){}}}   // ADAPTIVE QUALITY: under ~45fps the lava sheds its priciest layers (heat haze, half-rate crust, fewer embers) before it ever stutters the game
    // ===== THE CLIMB: the arena scrolls at a STEADY, telegraphed pace -- never chained to any one head, so it reads perfectly smooth and no single leap can ever yank the view =====
    var _el=(n-t0)/1000,_go=Math.max(0,_el-3.4);   // a grace beat at the whistle: everyone lands and settles on the base before the floor starts moving
    var STEP=Math.min(5,Math.floor(_go/12));       // the scroll steps up a notch every ~12s instead of creeping continuously, so each escalation is an EVENT you can feel (Icy Tower's ladder)
@@ -4640,16 +4645,16 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    if(glOK){gl.uniform2f(uRes,GW,GH);gl.uniform1f(uTime,tsec);gl.drawArrays(gl.TRIANGLES,0,3);}
    var clipTop=Math.max(0,Math.round(surfaceY-WAMP*1.6));gcv.style.clipPath="inset("+clipTop+"px 0 0 0)";gcv.style.webkitClipPath="inset("+clipTop+"px 0 0 0)";
    // wavy glowing crust at the surface
-   drawCrust(tsec);
+   if(!LQ||frameC%2===0)drawCrust(tsec);
    // BUBBLES: molten domes swell up from within and burst at the surface (the real "boiling lava" tell)
-   if(cctx&&surfaceY<arenaH-34&&Math.random()<dt*5){bubbles.push({x:Math.random()*arenaW,depth:24+Math.random()*46,mr:5+Math.random()*11,t:0});}
+   if(cctx&&surfaceY<arenaH-34&&Math.random()<dt*(LQ?2:5)){bubbles.push({x:Math.random()*arenaW,depth:24+Math.random()*46,mr:5+Math.random()*11,t:0});}
    if(cctx)for(var bi=bubbles.length-1;bi>=0;bi--){var bu=bubbles[bi];bu.t+=dt;bu.depth-=(15+bu.mr)*dt;var br=bu.mr*Math.min(1,bu.t*1.3),bsurf=surfaceY+waveAt(bu.x-heroLeft,tsec);
     if(bu.depth<=0){cctx.beginPath();cctx.arc(bu.x,bsurf,br*1.5,0,6.283);cctx.strokeStyle="rgba(255,222,130,0.7)";cctx.lineWidth=2;cctx.stroke();
      if(window.__hmFX&&br>7)window.__hmFX.burst(bu.x,bsurf,{count:3,color:"255,185,75",speed:110,gravity:520,life:0.4,size:3});bubbles.splice(bi,1);continue;}
     var by=bsurf+bu.depth;cctx.beginPath();cctx.arc(bu.x,by,br,0,6.283);cctx.fillStyle="rgba(255,205,95,0.26)";cctx.fill();
     cctx.beginPath();cctx.arc(bu.x-br*0.3,by-br*0.34,br*0.42,0,6.283);cctx.fillStyle="rgba(255,242,185,0.42)";cctx.fill();}
    // embers: little glowing motes drifting up off the lava, then winking out
-   if(surfaceY<arenaH-20&&Math.random()<dt*34){var ex=Math.random()*arenaW;embers.push({x:ex,y:surfaceY+waveAt(ex-heroLeft,tsec)-2,vx:(Math.random()*26-13),vy:-(30+Math.random()*60),life:1,max:1.2+Math.random()*1.6,r:1+Math.random()*2.4});}
+   if(surfaceY<arenaH-20&&Math.random()<dt*(LQ?14:34)){var ex=Math.random()*arenaW;embers.push({x:ex,y:surfaceY+waveAt(ex-heroLeft,tsec)-2,vx:(Math.random()*26-13),vy:-(30+Math.random()*60),life:1,max:1.2+Math.random()*1.6,r:1+Math.random()*2.4});}
    if(cctx){for(var ei=embers.length-1;ei>=0;ei--){var em=embers[ei];em.life-=dt/em.max;if(em.life<=0){embers.splice(ei,1);continue;}
     em.vy+=6*dt;em.x+=em.vx*dt;em.y+=em.vy*dt;var ea=em.life;
     cctx.beginPath();cctx.arc(em.x,em.y,em.r,0,6.283);cctx.fillStyle="rgba(255,"+(150+ea*90|0)+","+(40+ea*90|0)+","+(ea*0.9).toFixed(2)+")";cctx.shadowColor="rgba(255,140,40,"+ea.toFixed(2)+")";cctx.shadowBlur=6;cctx.fill();}
