@@ -336,7 +336,7 @@ body.hmSoccer .moodMenu .moodItem:not(#endGame){opacity:.38;pointer-events:none}
 .hmScoreEnd{margin-left:10px;padding:2px 2px 2px 11px;border:0;border-left:1px solid var(--c100);border-radius:0;background:none;display:inline-flex;align-items:center;gap:5px;cursor:pointer;pointer-events:auto;color:#b3402e;font-family:var(--sans);font-weight:600;font-size:var(--fs-label);line-height:1;transition:color .15s}
 .hmScoreEnd:hover{color:#8f3323}.hmScoreEnd svg{width:12px;height:12px;flex:0 0 auto}
 /* battle arena platforms: light Apple-clean slabs with a hair of 2.5D thickness -- the heads leap up for height and pounce down */
-.hmPlat{position:absolute;left:0;top:0;height:15px;border-radius:9px;background:linear-gradient(rgba(253,253,253,.34),rgba(253,253,253,.34)),url(images/plank-rung.jpg) left center/220px 100% repeat-x;box-shadow:inset 0 1px 0 rgba(255,255,255,.95),0 10px 20px -6px rgba(22,22,28,.4),0 3px 6px rgba(22,22,28,.2);border:1px solid rgba(22,22,28,.16);opacity:0;pointer-events:none;transition:opacity .45s cubic-bezier(.2,.8,.2,1);z-index:2;will-change:transform}
+.hmPlat{position:absolute;left:0;top:0;height:15px;border-radius:9px;background:var(--c50) left top/auto;background-image:repeating-linear-gradient(45deg,rgba(8,8,8,.075) 0 1px,transparent 1px 6px),repeating-linear-gradient(-45deg,rgba(8,8,8,.075) 0 1px,transparent 1px 6px);border:1px solid rgba(8,8,8,.34);box-shadow:inset 0 1px 0 rgba(255,255,255,.95),0 10px 20px -6px rgba(22,22,28,.4),0 3px 6px rgba(22,22,28,.2);border:1px solid rgba(22,22,28,.16);opacity:0;pointer-events:none;transition:opacity .45s cubic-bezier(.2,.8,.2,1);z-index:2;will-change:transform}
 body.hmBattle .hmPlat.arrived{opacity:1}
 body.hmPodium .hmPlat{opacity:0}   /* platforms clear off once the podium rises */
 /* during a game the big head steps off so the players own the whole stage; it fades back when the game ends */
@@ -3194,7 +3194,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   if(im.nextSibling)root.insertBefore(mjClone,im.nextSibling);else root.appendChild(mjClone);
   mjBigFace=document.getElementById("face");mjBigW=bigStage.getBoundingClientRect().width||500;   // his rendered width, so we can scale his gaze translate to the mini
   // RE-AIM the team outline (soccer) + hurt flash: both are masked by data.cut stretched over the FULL root, which is calibrated for the little heads' `im`. The mini's visible face is the CLONE -- object-fit:contain of his SQUARE face in the top 83.333% of root -- so the stretched bake floated the ring off to the side. Replicate the clone's exact face box (top 83.3%, square source, contain) so the rim hugs him.
-  try{[ringEl,hurtEl].forEach(function(_el){_el.style.top="0";_el.style.bottom="auto";_el.style.height="83.333%";_el.style.webkitMaskImage="url(images/neutral.webp)";_el.style.maskImage="url(images/neutral.webp)";_el.style.webkitMaskSize="contain";_el.style.maskSize="contain";_el.style.webkitMaskRepeat="no-repeat";_el.style.maskRepeat="no-repeat";_el.style.webkitMaskPosition="center";_el.style.maskPosition="center";});ringEl.style.transform="scale(1.06) translateY(27%)";hurtEl.style.transform="translateY(27%)";mjClone.style.transform="translateY(27%)";}catch(_){}   // MINI-JAYDEN: a gentle DOWN-nudge so his (bigger) face reads more level with the row instead of floating higher, without dropping his chin below the slab -- render-only, feet/shadow/physics unchanged
+  try{ringEl.style.display="none";hurtEl.style.display="none";mjClone.style.transform="translateY(27%)";}catch(_){}   // the mask-based ring/hurt never tracked his mirrored face -- his team ring is now a drop-shadow ON the rendered face itself (pixel-perfect through every flip and expression)   // MINI-JAYDEN: a gentle DOWN-nudge so his (bigger) face reads more level with the row instead of floating higher, without dropping his chin below the slab -- render-only, feet/shadow/physics unchanged
  }}catch(_){mjClone=null;}}
  var bar=document.createElement("div");bar.className="hmHp";bar.setAttribute("aria-hidden","true");
  var barFill=document.createElement("i");bar.appendChild(barFill);
@@ -3560,9 +3560,10 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    if(S9&&S9.on&&!soccerOn&&!killed){soccerOn=true;soccerWon=false;team=(S9.teams&&S9.teams[slot])||1;
     perched=false;leapDelay=Infinity;bar.style.opacity="0";root.style.pointerEvents="";
     var tcol=team===1?"224,90,78":"90,160,216";
-    ringEl.style.background="rgb("+tcol+")";ringEl.style.opacity="1";   // a solid team-coloured outline
+    if(filler&&mjClone){var _dc="rgb("+tcol+")";mjClone.style.filter="drop-shadow(2.5px 0 0 "+_dc+") drop-shadow(-2.5px 0 0 "+_dc+") drop-shadow(0 2.5px 0 "+_dc+") drop-shadow(0 -2.5px 0 "+_dc+")";}   // the mini's ring hugs his REAL silhouette
+    else{ringEl.style.background="rgb("+tcol+")";ringEl.style.opacity="1";}   // a solid team-coloured outline
     shadow.style.background="radial-gradient(ellipse at center,rgba("+tcol+",.42),rgba("+tcol+",0) 70%)";}   // the shadow wears the team colour too
-   if(S9&&!S9.on&&soccerOn){soccerOn=false;soccerWon=false;ringEl.style.opacity="0";crownEl.style.opacity="0";
+   if(S9&&!S9.on&&soccerOn){soccerOn=false;soccerWon=false;ringEl.style.opacity="0";crownEl.style.opacity="0";if(filler&&mjClone)mjClone.style.filter="none";
     shadow.style.background="radial-gradient(ellipse at center,rgba(8,8,8,.26),rgba(8,8,8,0) 70%)";
     if(!killed){shown=true;root.style.opacity="1";root.style.filter="blur(0)";shadow.style.opacity="1";root.style.display="";shadow.style.display="";
      var fs9=Math.random()<0.5;x=fs9?WL+2:WR-2;y=floorY-(140+Math.random()*240);dir=fs9?1:-1;air=true;st="fall";surface=floorY;
@@ -3573,10 +3574,10 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
      if(!grabbed){var dxk=tx9-x;dir=dxk>0?1:-1;surface=floorY;st="fall";air=true;
       var vyk=500+Math.random()*150,ttk=2*vyk/G;vy=-vyk;vx=dir*Math.max(-820,Math.min(820,dxk/ttk));sqT=0.12;sqyP=1.1;sqxP=1/1.1;gzx=dir*0.6;sacAt=now+500;}}
     if(S9.postSeed&&S9.postSeed!==me.__postSeen){me.__postSeen=S9.postSeed;   // OFF THE WOODWORK: everyone near the ball feels it -- the shooter clutches, brows pop
-     if(Math.abs((x+HW/2)-S9.ball.x)<220){brf=6;hurtT=Math.max(hurtT,0.4);gzy=-0.5;sacAt=now+900;}else{brf=4;}}
+     if(Math.abs((x+HW/2)-S9.ball.x)<220){brf=6;gzy=-0.5;sacAt=now+900;}else{brf=4;}}   // agony reads in the brows and eyes; the red hurt flash is DAMAGE language and soccer has no damage}
     if(S9.goalSeed&&S9.goalSeed!==goalSeen){goalSeen=S9.goalSeed;   // GOAL: just a natural little reaction, no scripted dance
      var _role0=(S9.roles&&S9.roles[slot])||"";
-     if(_role0==="keeper"&&S9.goalTeam!==team){gzy=0.8;gzx=0;sacAt=now+1800;hurtT=Math.max(hurtT,0.5);}   // KEEPER DESPAIR: beaten, he stares at the turf -- the emotional protagonist of every goal
+     if(_role0==="keeper"&&S9.goalTeam!==team){gzy=0.8;gzx=0;sacAt=now+1800;}   // KEEPER DESPAIR: beaten, he stares at the turf -- the emotional protagonist of every goal
      if(S9.goalTeam===team&&!grabbed&&!perched){brf=6;mof=4;if(filler)smileT=1.7;   // the mini-Jayden grins at a goal
       try{if(typeof busyNow==="function"&&!busyNow()){setHold("smile",1200);showFace("smile");}}catch(_){}}}
     if(S9.winner&&S9.winner===team&&!soccerWon){soccerWon=true;crownEl.style.opacity="1";if(filler){smileT=3.6;danceUntil=now+3400;}   // champions crowned -- the mini-Jayden breaks into his DELIGHT DANCE (he's me, he gets the whole moment)
@@ -3597,8 +3598,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
      var ballOnOurHalf=(atk>0)?(ballX<heroR.w*0.5):(ballX>heroR.w*0.5);
      var ballHigh=(floorY-ballY)>150,nearOwnGoal=(atk>0)?(ballX<heroR.w*0.3):(ballX>heroR.w*0.7);
      var bxT,overBall=false,wantHigh=false;
-     var _lit=(S9.fire===team);
-     if(_lit&&iAmChaser&&Math.random()<0.5){try{if(window.__hmFX)window.__hmFX.burst(myX,y+HH*0.5,{count:3,color:"255,140,50",speed:120,gravity:-60,life:0.5,size:3});}catch(_){}}   // the ignited striker trails embers
+     var _lit=false;
      if(iAmChaser){   // GO FOR IT -- but ALWAYS from the own-goal side, so the ball can only go toward THEIR net
       if(!myGS){bxT=(leadX-atk*(HW*0.5+34))-HW/2;overBall=Math.abs(ballX-myX)<HW+56;}   // loop behind the ball, vaulting clean over it
       else bxT=leadX-HW/2;   // already behind it: drive straight through toward their goal
@@ -4152,9 +4152,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    setTimeout(function(){if(S.on&&S.phase==="scoring")goalIn(team);},240);}
   function bigCall(txt,ms){try{if(!countEl)return;countEl.classList.add("hmMsg");countEl.textContent=txt;countEl.classList.remove("hmCountPulse");void countEl.offsetWidth;countEl.classList.add("hmCountPulse");setTimeout(function(){if(countEl.textContent===txt){countEl.textContent="";countEl.classList.remove("hmMsg");}},ms||1800);}catch(_){}}
   function goalIn(team){if(team===1)S.red++;else S.blue++;S.goalSeed=(S.goalSeed||0)+1;S.goalTeam=team;board2();
-   var lead=Math.abs(S.red-S.blue),trail=(S.red<S.blue)?1:((S.blue<S.red)?2:0);
-   S.fire=(lead>=2&&trail)?trail:0;   // COMEBACK FIRE: down two -> the trailing side's striker ignites (NBA Jam's law: loud state, modest stats)
-   if(S.fire&&lead===2)setTimeout(function(){if(S.on&&S.fire)bigCall((S.fire===1?"red":"blue")+" heats up\u2026",1500);},1200);
+
    if((S.red===4||S.blue===4)&&S.red!==S.blue)setTimeout(function(){if(S.on)bigCall("match point\u2026",1500);},1300);
    if(S.red===4&&S.blue===4)setTimeout(function(){if(S.on)bigCall("next goal wins!",2200);},1300);   // 4-4: next goal takes it -- FIFA built this rule purely to manufacture a decisive thrill
    try{var _gp=(team===1?sR:sB);if(_gp){_gp.style.transition="none";_gp.style.transform="scale(1.55)";void _gp.offsetWidth;_gp.style.transition="transform .5s cubic-bezier(.2,1.4,.3,1)";_gp.style.transform="scale(1)";_gp.style.display="inline-block";}}catch(_){}   // the scoring number POPS -- a goal should feel like a goal on the board too
@@ -4253,8 +4251,8 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   css.textContent="body.hmRace .stagewrap{opacity:0;pointer-events:none}body.hmRace .heroCopy>h1,body.hmRace .heroCopy>.sub,body.hmRace .heroCopy>.heroCtas{opacity:0!important;pointer-events:none!important}body.hmRace .heroCopy>.heroAvail{opacity:0!important;pointer-events:none!important}body.hmRace .moodMenu .moodItem:not(#endGame){opacity:.38;pointer-events:none}"
    +".hmRaceWrap{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:2;opacity:0;transition:opacity .4s cubic-bezier(.2,.8,.2,1)}body.hmRace .hmRaceWrap{opacity:1}"
    +".hmRacePeg{position:absolute;border-radius:50%;background:var(--c50);border:1px solid rgba(8,8,8,.18);box-shadow:0 2px 4px rgba(22,22,28,.12)}"
-   +".hmRaceSeg{position:absolute;height:9px;border-radius:9px;background:linear-gradient(rgba(253,253,253,.34),rgba(253,253,253,.34)),url(images/plank-rung.jpg) left center/200px 100% repeat-x;box-shadow:inset 0 1px 0 rgba(255,255,255,.95),0 6px 14px -4px rgba(22,22,28,.32);border:1px solid rgba(8,8,8,.16);transform-origin:0 50%}"
-   +".hmRaceSeg.spin{background:url(images/metal-rung.jpg) left center/200px 100% repeat-x;border:2px solid #7b5fd0}.hmRaceSeg.gate{background:url(images/metal-rung.jpg) left center/200px 100% repeat-x;border:2px solid var(--c950)}"
+   +".hmRaceSeg{position:absolute;height:9px;border-radius:9px;background:var(--c50) left top/auto;background-image:repeating-linear-gradient(45deg,rgba(8,8,8,.075) 0 1px,transparent 1px 6px),repeating-linear-gradient(-45deg,rgba(8,8,8,.075) 0 1px,transparent 1px 6px);box-shadow:inset 0 1px 0 rgba(255,255,255,.95),0 6px 14px -4px rgba(22,22,28,.32);border:1px solid rgba(8,8,8,.16);transform-origin:0 50%}"
+   +".hmRaceSeg.spin{border:2px solid #7b5fd0}.hmRaceSeg.gate{border:2px solid var(--c950)}"
    +".hmRaceFin{position:absolute;height:16px;background:repeating-linear-gradient(90deg,#212121 0 14px,#FDFDFD 14px 28px);border-radius:3px;box-shadow:0 4px 12px -3px rgba(22,22,28,.4)}"
    +".hmRaceBoard{position:absolute;left:14px;top:50%;transform:translateY(-50%);z-index:49;display:none;flex-direction:column;gap:5px;opacity:.72}body.hmRace .hmRaceBoard{display:flex}"   /* the standings live in the GUTTER, vertically centred at the screen's edge -- out of the course's hot centre, one glance away */
    +".hmRaceRow{display:flex;align-items:center;gap:7px;background:rgba(253,253,253,.82);border:1px solid var(--c100);border-radius:4px;padding:3px 10px 3px 4px;font-family:var(--sans);font-weight:600;font-size:12px;color:var(--c700);backdrop-filter:blur(4px);will-change:transform}"
@@ -4593,7 +4591,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    for(var i=0;i<els.length;i++)SL.push({el:els[i],l:0,w:10,y:fl,kind:"",mv:0,crumbAt:0,dead:true});
    SL[0].dead=false;SL[0].l=lx();SL[0].w=Math.round(W-lx());SL[0].y=fl;SL[0].kind="";   // the OPENING GROUND: the entire floor, so the whole crowd starts spread out and nobody is crowded off at the whistle
    for(var j=1;j<SL.length;j++){SL[j].dead=false;respawn(SL[j]);}}
-  var SKIN={pad:"url(images/cork-rung.jpg) left center/180px 100% repeat-x",move:"url(images/metal-rung.jpg) left center/200px 100% repeat-x",crumble:"url(images/stone-rung.jpg) left center/190px 100% repeat-x"},BORD={pad:"#2ea87c",move:"#7b5fd0",crumble:"#c2902f"};   // COLLAGE rungs: real cork springs you, brushed metal patrols, cracked rock crumbles -- each still wears its gameplay colour on the edge so function reads at a glance
+  var SKIN={pad:"",move:"",crumble:""},BORD={pad:"#2ea87c",move:"#7b5fd0",crumble:"#c2902f"};   // the GOAL-NET family: every rung is the same clean mesh bar the goals wear -- function reads purely from the coloured frame edge (mint springs, violet patrols, amber crumbles), the one asset language the whole arena shares
   function render(){var H=hh(),OX=ox(),inB=document.body.classList.contains("hmBattle");battlePlats.length=0;
    for(var i=0;i<SL.length;i++){var s=SL[i];if(!s.el)continue;
     var cx=s.l+s.w/2,lav=lavaAt(cx,OX),under=(s.y>lav-4);   // a rung level with the crust is already gone: it must never re-emerge below the lava
