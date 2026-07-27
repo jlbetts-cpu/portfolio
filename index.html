@@ -952,13 +952,60 @@ body.navOpen .navDrawer{transform:translateY(0);opacity:1;visibility:visible;box
 /* Once the match is decided the rule line and End are moot -- the result is the only thing left
    to say, and it is announced in the middle of the screen. */
 .hmScore.won .sMeta{opacity:0;pointer-events:none;transition:opacity .28s cubic-bezier(.2,.8,.2,1)}
+/* ---- TOURNAMENT PANEL. A bracket TREE cannot collapse vertically in CSS -- that is a known,
+   documented dead end -- and at 8 teams this is only 3 rounds and 7 fixtures. So the bracket is a
+   round-grouped vertical LIST: no connector lines, no horizontal scroll, and it reads correctly to
+   a screen reader because it is genuinely just headings and rows. Type-led, same as the rest of
+   the site. Leaderboards carry a face, a team dot, the rating and one number -- at 390px there is
+   room for a name column plus about three numerics, and that is the whole budget. ---- */
+.tourPanel{position:absolute;left:50%;top:clamp(84px,13vh,150px);transform:translateX(-50%);z-index:47;
+ width:min(540px,calc(100vw - 44px));display:flex;flex-direction:column;align-items:center;
+ gap:clamp(16px,2.6vh,26px);font-family:var(--sans);color:var(--c950);text-align:center;
+ animation:tourIn .42s cubic-bezier(.2,.8,.2,1) both}
+@keyframes tourIn{from{opacity:0;transform:translateX(-50%) translateY(10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+@media(prefers-reduced-motion:reduce){.tourPanel{animation:none}}
+.tourPanel[hidden]{display:none}
+body.hmSoccer .tourPanel{display:none}   /* the pitch owns the screen during a fixture */
+.tDot{display:inline-block;width:.52em;height:.52em;border-radius:50%;margin-right:.42em;vertical-align:baseline;flex:0 0 auto}
+.tNext{display:flex;flex-direction:column;align-items:center;gap:clamp(6px,1vh,10px)}
+.tNextLbl{font-size:var(--fs-small);font-weight:500;color:var(--c500);letter-spacing:.02em}
+.tPair{font-size:var(--fs-heroline);font-weight:700;line-height:1.06;letter-spacing:-.015em;filter:url(#inkSm)}
+.tVs{color:var(--c400);font-weight:400;margin:0 .5em}
+.tGo{margin-top:clamp(4px,.8vh,10px);background:none;border:1px solid var(--c100);border-radius:4px;
+ padding:11px 22px;min-height:44px;font-family:var(--sans);font-weight:500;font-size:var(--fs-body);
+ color:var(--c950);cursor:pointer;transition:border-color .2s cubic-bezier(.2,.8,.2,1)}
+.tGo:hover,.tGo:focus-visible{border-color:var(--c500)}
+.tRounds{display:flex;flex-direction:column;gap:clamp(10px,1.8vh,18px);width:100%}
+.tRoundLbl{font-size:var(--fs-label);font-weight:600;color:var(--c500);letter-spacing:.04em;text-transform:uppercase;margin-bottom:5px}
+.tMatch{display:flex;align-items:center;justify-content:center;gap:.2em;font-size:var(--fs-body);line-height:1.5;white-space:nowrap}
+.tSide{display:inline-flex;align-items:baseline}
+.tSide.tLost{opacity:.38}
+.tSide.tWon{font-weight:600}
+.tBoard{width:100%;display:flex;flex-direction:column;gap:2px}
+.tBoardLbl{font-size:var(--fs-label);font-weight:600;color:var(--c500);letter-spacing:.04em;text-transform:uppercase;margin-bottom:4px}
+.tRow{display:flex;align-items:center;gap:9px;padding:5px 6px;border-radius:4px}
+.tRow:hover{background:#F1F1F1}
+.tFace{width:22px;height:26px;object-fit:contain;flex:0 0 auto}
+.tRt{margin-left:auto;font-size:var(--fs-small);color:var(--c500);font-variant-numeric:tabular-nums}
+.tNum{min-width:1.6em;text-align:right;font-weight:700;font-variant-numeric:tabular-nums}
+.tWin{display:flex;flex-direction:column;align-items:center;gap:6px}
+.tWinLbl{font-size:var(--fs-label);font-weight:600;color:var(--c500);letter-spacing:.04em;text-transform:uppercase}
+.tWinName{font-size:var(--fs-heroline);font-weight:700;letter-spacing:-.015em;filter:url(#inkSm)}
+/* The tournament screen owns the hero, the way a match does. The headline and the big head
+   step aside so the bracket is not competing with them for the same space -- and they are already
+   hidden once a fixture starts, so nothing pops back in mid-tournament. */
+body.hmTour .heroCopy h1,body.hmTour .hero .stagewrap{opacity:0;pointer-events:none;transition:opacity .35s cubic-bezier(.2,.8,.2,1)}
+body.hmTour .scrollCue{display:none}
+.tourPanel{top:50%;transform:translate(-50%,-50%)}
+@keyframes tourIn{from{opacity:0;transform:translate(-50%,-50%) translateY(10px)}to{opacity:1;transform:translate(-50%,-50%) translateY(0)}}
+@media(max-width:640px){.tourPanel{gap:14px;width:calc(100vw - 36px)}.tRounds{gap:10px}}
 </style></head>
 <body>
 <a class="skipLink" href="#main">Skip to content</a>
 <svg width="0" height="0" style="position:absolute"><filter id="inkBig"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="7" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="1.1" xChannelSelector="R" yChannelSelector="G" result="d"/><feTurbulence type="fractalNoise" baseFrequency="0.5 0.42" numOctaves="2" seed="13" result="g"/><feColorMatrix in="g" type="matrix" values="0 0 0 0 0.055 0 0 0 0 0.055 0 0 0 0 0.055 0 0 0 0.42 0" result="grain"/><feComposite in="grain" in2="d" operator="atop"/></filter>
 <filter id="inkSm"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="1" seed="4" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="0.55" xChannelSelector="R" yChannelSelector="G"/></filter><filter id="inkEye"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="9" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="1.05" xChannelSelector="R" yChannelSelector="G"/></filter></svg>
 <div class="wrap">
- <nav><button class="navBurger" id="navBurger" type="button" aria-label="Open menu" aria-haspopup="true" aria-expanded="false" aria-controls="navDrawer"><span></span><span></span><span></span></button><aside class="navDrawer" id="navDrawer" aria-hidden="true" aria-label="Menu"><button class="navDrawerX" id="navDrawerX" type="button" aria-label="Close menu"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button><nav class="navDrawerNav" aria-label="Site"><a class="ndLink" id="ndWork" href="#cases">Work</a><button class="ndLink" id="ndAbout" type="button">About me</button><a class="ndLink ndTalk" id="ndTalk" href="#contact">Contact</a></nav></aside><span class="navTitle" id="navTitle">About me</span><button class="heroBack" id="heroBack" type="button"><span aria-hidden="true">←</span> Back</button><div class="navGroup navL"><a class="navLink navFirst" id="navWork" href="#cases">Work</a><button class="navLink" id="navAbout" type="button">About me</button></div><span class="logo" id="logo" role="img" aria-label="Jayden Betts"><span class="logoLine logoL1">Jayden</span> <span class="logoLine logoL2">Betts</span></span><div class="navGroup navR"><div class="faceMoodCorner"><div class="moodbar" id="moodbar"><button class="moodBtn" id="moodBtn" type="button" aria-label="Play" aria-expanded="false" aria-controls="moodMenu"><span class="moodLbl">Play</span><svg class="moodCar" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M2.5 7.5L6 4l3.5 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button><div class="moodMenu" id="moodMenu"><button class="moodItem" type="button" data-mood="empathy"><span class="moodIco camDot" aria-hidden="true"></span>Empathy</button><button class="moodItem" type="button" data-mood="hunger"><span class="moodIco cookieDot" aria-hidden="true"></span>Hunger</button><button class="moodItem" type="button" data-mood="delight"><span class="moodIco discoDot" aria-hidden="true"></span>Delight</button><button class="moodItem" type="button" data-mood="love"><span class="moodIco heartDot" aria-hidden="true"></span>Love</button><div class="moodSep" aria-hidden="true"></div><div class="moodRow" id="lavaRow"><button class="moodItem" id="battleGo" type="button" aria-label="Start Floor is Lava — last head standing as the lava rises"><svg class="gIco" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>Floor is Lava</button></div><div class="moodRow" id="soccerRow"><button class="moodItem" id="soccerGo" type="button" aria-label="Start a soccer match between your heads"><svg class="gIco" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9.2"/><polygon points="12,8 15,10.2 13.9,13.9 10.1,13.9 9,10.2"/><path d="M12 8V4.2"/><path d="M15 10.2 18.6 9.1"/><path d="M13.9 13.9 16.2 17"/><path d="M10.1 13.9 7.8 17"/><path d="M9 10.2 5.4 9.1"/></svg>Soccer</button><button class="moodTeamsBtn" id="soccerTeams" type="button" aria-label="Choose soccer teams" title="Choose teams"><span class="tdotR" aria-hidden="true"></span><span class="tdotB" aria-hidden="true"></span></button></div><button class="moodItem" id="raceGo" type="button" aria-label="Start a marble race — heads tumble down a random obstacle course, first to the flag wins"><svg class="gIco" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 3v18"/><path d="M5 4h13l-2.5 3.5L18 11H5"/></svg>Marble Race</button><button class="moodItem" id="endGame" type="button" aria-label="End the current game" style="display:none"><svg class="gIco" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9.2"/><rect x="9" y="9" width="6" height="6" rx="1"/></svg>End game</button><div class="moodSep" aria-hidden="true"></div><a class="moodGo" href="headmaker.html"><svg viewBox="0 0 20 20" width="18" height="18" fill="none" aria-hidden="true"><path d="M10 2.6c3.6 0 6 3 6 7 0 4.4-2.7 7.8-6 7.8s-6-3.4-6-7.8c0-4 2.4-7 6-7Z" stroke="currentColor" stroke-width="1.4"/><circle cx="7.8" cy="9" r="1" fill="currentColor"/><circle cx="12.2" cy="9" r="1" fill="currentColor"/></svg>Add your head</a><button class="moodItem" id="addPlaceholder" type="button" aria-label="Add an egghead — a silly egg in a fresh colour"><svg class="gIco" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.5 4c2.4 0 4.3 3 4.3 6.2 0 3.2-1.9 5.5-4.3 5.5s-4.3-2.3-4.3-5.5C6.2 7 8.1 4 10.5 4Z"/><path d="M18 14.5v4.6M15.7 16.8h4.6"/></svg>Add an egghead</button><div class="moodHeads" id="moodHeads" role="group" aria-label="Your saved heads"></div><div class="mhBar" id="mhBar" hidden><button class="mhToggle" id="headsToggle" type="button" role="switch" aria-checked="true"><span class="mhTrack" aria-hidden="true"><span class="mhKnob"></span></span><span class="mhTxt">Show on home</span></button></div></div></div></div><span class="talkMag"><a class="talk" id="talk" href="#contact">Contact</a></span></div></nav><div class="navScrim" id="navScrim" hidden></div>
+ <nav><button class="navBurger" id="navBurger" type="button" aria-label="Open menu" aria-haspopup="true" aria-expanded="false" aria-controls="navDrawer"><span></span><span></span><span></span></button><aside class="navDrawer" id="navDrawer" aria-hidden="true" aria-label="Menu"><button class="navDrawerX" id="navDrawerX" type="button" aria-label="Close menu"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button><nav class="navDrawerNav" aria-label="Site"><a class="ndLink" id="ndWork" href="#cases">Work</a><button class="ndLink" id="ndAbout" type="button">About me</button><a class="ndLink ndTalk" id="ndTalk" href="#contact">Contact</a></nav></aside><span class="navTitle" id="navTitle">About me</span><button class="heroBack" id="heroBack" type="button"><span aria-hidden="true">←</span> Back</button><div class="navGroup navL"><a class="navLink navFirst" id="navWork" href="#cases">Work</a><button class="navLink" id="navAbout" type="button">About me</button></div><span class="logo" id="logo" role="img" aria-label="Jayden Betts"><span class="logoLine logoL1">Jayden</span> <span class="logoLine logoL2">Betts</span></span><div class="navGroup navR"><div class="faceMoodCorner"><div class="moodbar" id="moodbar"><button class="moodBtn" id="moodBtn" type="button" aria-label="Play" aria-expanded="false" aria-controls="moodMenu"><span class="moodLbl">Play</span><svg class="moodCar" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M2.5 7.5L6 4l3.5 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button><div class="moodMenu" id="moodMenu"><button class="moodItem" type="button" data-mood="empathy"><span class="moodIco camDot" aria-hidden="true"></span>Empathy</button><button class="moodItem" type="button" data-mood="hunger"><span class="moodIco cookieDot" aria-hidden="true"></span>Hunger</button><button class="moodItem" type="button" data-mood="delight"><span class="moodIco discoDot" aria-hidden="true"></span>Delight</button><button class="moodItem" type="button" data-mood="love"><span class="moodIco heartDot" aria-hidden="true"></span>Love</button><div class="moodSep" aria-hidden="true"></div><div class="moodRow" id="lavaRow"><button class="moodItem" id="battleGo" type="button" aria-label="Start Floor is Lava — last head standing as the lava rises"><svg class="gIco" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>Floor is Lava</button></div><div class="moodRow" id="soccerRow"><button class="moodItem" id="soccerGo" type="button" aria-label="Start a soccer match between your heads"><svg class="gIco" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9.2"/><polygon points="12,8 15,10.2 13.9,13.9 10.1,13.9 9,10.2"/><path d="M12 8V4.2"/><path d="M15 10.2 18.6 9.1"/><path d="M13.9 13.9 16.2 17"/><path d="M10.1 13.9 7.8 17"/><path d="M9 10.2 5.4 9.1"/></svg>Soccer</button><button class="moodTeamsBtn" id="soccerTeams" type="button" aria-label="Choose soccer teams" title="Choose teams"><span class="tdotR" aria-hidden="true"></span><span class="tdotB" aria-hidden="true"></span></button></div><button class="moodItem" id="tourGo" type="button" aria-label="Start a soccer tournament — single elimination, one match at a time, with goals, assists and ratings tracked"><svg class="gIco" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h4v5H5zM5 15h4v5H5zM15 9.5h4v5h-4z"/><path d="M9 6.5h3v11H9z" stroke-dasharray="0"/><path d="M12 12h3"/></svg>Tournament</button><button class="moodItem" id="raceGo" type="button" aria-label="Start a marble race — heads tumble down a random obstacle course, first to the flag wins"><svg class="gIco" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 3v18"/><path d="M5 4h13l-2.5 3.5L18 11H5"/></svg>Marble Race</button><button class="moodItem" id="endGame" type="button" aria-label="End the current game" style="display:none"><svg class="gIco" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9.2"/><rect x="9" y="9" width="6" height="6" rx="1"/></svg>End game</button><div class="moodSep" aria-hidden="true"></div><a class="moodGo" href="headmaker.html"><svg viewBox="0 0 20 20" width="18" height="18" fill="none" aria-hidden="true"><path d="M10 2.6c3.6 0 6 3 6 7 0 4.4-2.7 7.8-6 7.8s-6-3.4-6-7.8c0-4 2.4-7 6-7Z" stroke="currentColor" stroke-width="1.4"/><circle cx="7.8" cy="9" r="1" fill="currentColor"/><circle cx="12.2" cy="9" r="1" fill="currentColor"/></svg>Add your head</a><button class="moodItem" id="addPlaceholder" type="button" aria-label="Add an egghead — a silly egg in a fresh colour"><svg class="gIco" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.5 4c2.4 0 4.3 3 4.3 6.2 0 3.2-1.9 5.5-4.3 5.5s-4.3-2.3-4.3-5.5C6.2 7 8.1 4 10.5 4Z"/><path d="M18 14.5v4.6M15.7 16.8h4.6"/></svg>Add an egghead</button><div class="moodHeads" id="moodHeads" role="group" aria-label="Your saved heads"></div><div class="mhBar" id="mhBar" hidden><button class="mhToggle" id="headsToggle" type="button" role="switch" aria-checked="true"><span class="mhTrack" aria-hidden="true"><span class="mhKnob"></span></span><span class="mhTxt">Show on home</span></button></div></div></div></div><span class="talkMag"><a class="talk" id="talk" href="#contact">Contact</a></span></div></nav><div class="navScrim" id="navScrim" hidden></div>
  <section class="hero" id="main" tabindex="-1">
   <div class="heroCopy"><h1 id="h1"></h1><p class="sub" id="sub"></p><div class="heroCtas"><button class="workCta" id="workBtn" type="button">View my work</button></div><div class="heroAbout" id="heroAbout" aria-hidden="true"><div class="abMobShot" id="abMobShot" role="button" tabindex="0" aria-label="More photos of Jayden — tap to change"><img class="amsImg" src="images/about/jayden-betts-head-grid.webp" alt="A four-panel grid of Jayden&rsquo;s making, including a charcoal shark he drew"><img class="amsImg" src="images/about/jayden-betts-graduation.webp" alt="" aria-hidden="true" style="opacity:0"></div><div class="amsBar"><span class="amsDots" aria-hidden="true"><i class="on"></i><i></i><i></i><i></i><i></i></span><span class="amsHint" aria-hidden="true">Tap to change</span></div><div class="amsCap" id="amsCap">Making the floating head</div><section class="abSec abLede"><p class="abGreet">Hello, I’m Jayden Betts.</p><h3>I design products end to end (and I built a few of my own).</h3><p>I am a San Francisco-based product designer and recent UC Davis Design graduate with an entrepreneurial spirit. A maker at heart, I focus on iOS, B2B, and design systems, loving the challenge of creating playful, accessible experiences that tickle your brain.</p><p>I am currently designing AI manufacturing digital experiences at R3SHORE. Inspired by accessible design, I also founded Apollo, an iOS app helping neurodivergent students track and celebrate their wins.</p></section><section class="abSec abFactsSec"><p class="abLabel">At a glance</p><div class="abFacts" data-photo="1"><div class="abFact"><span class="abFactK">Status</span><span class="abFactV">Open to full-time opportunities</span></div><div class="abFact"><span class="abFactK">Based in</span><span class="abFactV">San Francisco, CA · open to relocating</span></div><div class="abFact"><span class="abFactK">Focus</span><span class="abFactV">iOS · B2B · design systems</span></div><div class="abFact"><span class="abFactK">Education</span><span class="abFactV">B.A. Design, UC Davis</span></div></div></section><section class="abSec"><h3 data-photo="2">Design has always been my playground.</h3><p>At the age of 10 I built my first company, a greeting card business where I sold my family cards I would design for fun. I built an entire website in Wix, creating “onboarding flows” to understand what they wanted me to design. I took months on it to use it by myself, but it was fun to me. Afterwards I liked it so much I immediately launched a second site so my three-year-old sister could sell her art, too. She could barely draw but I made an artsy website for her out of my selfish intuition.</p><p data-photo="3">I didn’t realize it was something I could do in the future, so I kept designing as a hobby. Whether it be making a hundred-page comic book about a talking pea that turned into a superhero, or learning 3D modeling in Blender five times just to forget it the next month (I will be back), I was always making.</p><p>Little did I know, that childhood obsession with building, scaling, and playing would entirely shape the product designer I am today.</p></section><section class="abSec"><h3 data-photo="4">My best ideas come from real life.</h3><p>Outside of work, I draw inspiration from connecting with friends over coffee, pushing my limits at the gym, hiking, and drawing animals. You can always catch my latest adventure on <a class="abIn" href="https://www.instagram.com/jaydenleebetts" target="_blank" rel="noopener noreferrer">Instagram</a> (or making dancing videos) and <a class="abIn" href="https://www.linkedin.com/in/jaydenbetts" target="_blank" rel="noopener noreferrer">LinkedIn</a>.</p></section><section class="abSec abConnect" id="getInTouch"><p class="abLabel">Get in touch</p><div class="abLinkRow"><a class="abLink abLinkPrimary" href="mailto:jaydenlbetts@gmail.com?subject=Let%27s%20work%20together" aria-label="Email Jayden Betts"><svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M3 4.5h18c.55 0 1 .45 1 1v13c0 .55-.45 1-1 1H3c-.55 0-1-.45-1-1v-13c0-.55.45-1 1-1Zm1.4 1.5L12 11.6 19.6 6H4.4ZM20 7.4l-7.4 5.5a1 1 0 0 1-1.2 0L4 7.4V18h16V7.4Z"/></svg>Email<span class="abLinkArrow" aria-hidden="true">↗</span></a><a class="abLink" href="https://www.linkedin.com/in/jaydenbetts" target="_blank" rel="noopener noreferrer" aria-label="Jayden Betts on LinkedIn — opens in a new tab"><svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.34V9h3.42v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29zM5.34 7.43a2.06 2.06 0 1 1 0-4.13 2.06 2.06 0 0 1 0 4.13zM7.12 20.45H3.55V9h3.57v11.45zM22.22 0H1.77C.8 0 0 .78 0 1.74v20.52C0 23.22.8 24 1.77 24h20.45c.98 0 1.78-.78 1.78-1.74V1.74C24 .78 23.2 0 22.22 0z"/></svg>LinkedIn<span class="abLinkArrow" aria-hidden="true">↗</span></a><a class="abLink" href="https://www.instagram.com/jaydenleebetts" target="_blank" rel="noopener noreferrer" aria-label="Jayden Betts on Instagram — opens in a new tab"><svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>Instagram<span class="abLinkArrow" aria-hidden="true">↗</span></a><a class="abLink" href="Jayden-Betts-Resume.pdf" target="_blank" rel="noopener noreferrer" aria-label="Jayden Betts résumé (PDF, opens in a new tab)"><svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M6 2h8l4 4v16H6V2Zm7.5 1.5V7H17l-3.5-3.5ZM8.5 11h7v1.5h-7V11Zm0 3.4h7v1.5h-7v-1.5Zm0 3.4h4.5v1.5H8.5v-1.5Z"/></svg>Résumé<span class="abLinkArrow" aria-hidden="true">↗</span></a></div></section></div></div>
   <a class="scrollCue" id="scrollCue" href="#cases" aria-label="Scroll to my work"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" aria-hidden="true"><path d="M6 9.5L12 15.5L18 9.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a><div class="stagewrap"><div class="queueDots" id="qdots" role="status" aria-live="polite"><span class="qsr"></span><i></i><i></i><i></i></div><div id="stageMorph"><div class="floorshadow" id="fsh"></div><div class="stage" id="stage"><img class="face" id="face" alt="Jayden" draggable="false"><img class="tongue" id="tongue" src="images/tongue.webp" alt="" aria-hidden="true">
@@ -2934,14 +2981,14 @@ requestAnimationFrame(function(){requestAnimationFrame(startIntro);});
   applyHeads(on);});
  render();
  function gameCount(){return Math.max(readAll().length,(window.__hmLive||[]).length);}
- function gameOn(){return document.body.classList.contains("hmBattle")||document.body.classList.contains("hmSoccer")||document.body.classList.contains("hmRace");}
+ function gameOn(){if(window.__hmTour&&window.__hmTour.live)return true;return document.body.classList.contains("hmBattle")||document.body.classList.contains("hmSoccer")||document.body.classList.contains("hmRace");}
  var _bgLast="";
  function battleGate(){var n=gameCount(),on=gameOn();
   var few=n<1;                                  // ONE head count per tick -- this used to be six readAll() calls
   var sig=(on?1:0)+"|"+(few?1:0);
   if(sig===_bgLast)return;                      // nothing changed since last tick: no DOM writes at all
   _bgLast=sig;
-  ["battleGo","soccerGo","raceGo"].forEach(function(id){var bi=document.getElementById(id);if(!bi)return;
+  ["battleGo","soccerGo","raceGo","tourGo"].forEach(function(id){var bi=document.getElementById(id);if(!bi)return;
    if(on){bi.style.display="none";}   // a game is running: only End game belongs here
    else{bi.style.display="flex";bi.style.opacity=few?"0.38":"";bi.style.pointerEvents=few?"none":"";bi.setAttribute("aria-disabled",few?"true":"false");}});   // even one head can play now -- mini-Jayden makes the second
   ["soccerTeams","lavaTeams"].forEach(function(tid){var tb=document.getElementById(tid);if(tb){if(on){tb.style.display="none";}else{tb.style.display="";tb.style.opacity=few?"0.38":"";tb.style.pointerEvents=few?"none":"";}}});   // the team-picker icons ride with the Soccer + Floor-is-Lava rows
@@ -2964,6 +3011,10 @@ requestAnimationFrame(function(){requestAnimationFrame(startIntro);});
   var rc=readAll().length;if(rc<1||gameOn())return;
   if(rc%2===1&&window.__hmFillerAdd)window.__hmFillerAdd();   // add BEFORE kickoff so the teams count him
   try{if(window.__hmSoccerStart)window.__hmSoccerStart();}catch(_){}closeMenuBar();battleGate();});
+ var tg=document.getElementById("tourGo");
+ if(tg)tg.addEventListener("click",function(){
+  if(gameOn())return;
+  try{if(window.__hmTourStart)window.__hmTourStart();}catch(_){}closeMenuBar();battleGate();});   // the tournament builds its own squads, so no mini-Jayden top-up here
  var rg=document.getElementById("raceGo");
  if(rg)rg.addEventListener("click",function(){
   var rc=readAll().length;if(rc<1||gameOn())return;
@@ -2991,6 +3042,9 @@ requestAnimationFrame(function(){requestAnimationFrame(startIntro);});
     cb(out);
    }catch(_){cb(cut);}};
    img.onerror=function(){cb(cut);};img.src=cut;}
+  window.__hmTint=tint;   // the tournament dyes whole squads with this. Registered HERE, at module
+  // scope -- assigning it inside tint() meant it only existed after an egghead had been added by
+  // hand, so on a fresh load the tournament silently fell back to captain-only squads.
   pb.addEventListener("click",function(ev){ev.stopPropagation();
    if(document.body.classList.contains("hmBattle")||document.body.classList.contains("hmSoccer")||document.body.classList.contains("hmRace"))return;   // no joining a match already in progress
 
@@ -3479,7 +3533,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
      pendingHide=null,hideToken=0,lapBack=false,forceHide=/[?&]hide=1/.test(location.search);
  function plane(front){root.style.zIndex="3";shadow.style.zIndex="2";}   // heads ALWAYS stay in front of the big head + the CTA buttons (the back plane is gone) -- cleaner, more premium, no ducking-behind glitches
  var G=2600,DT=0.04,facc=0,CEIL=2,surpriseAt=0;   // real units: px/s and px/s^2, integrated at 25fps
- var me={x:0,y:0,HW:HW,HH:HH,vx:0,vy:0,ground:false,perched:false,kx:0,ky:0,dmgIn:0,inB:false,elim:false,slot:slot};peers.push(me);
+ var me={x:0,y:0,HW:HW,HH:HH,vx:0,vy:0,ground:false,perched:false,kx:0,ky:0,dmgIn:0,inB:false,elim:false,slot:slot,cut:(data&&data.cut)||null};peers.push(me);   // cut travels with the peer so the tournament can find a head it has already spawned instead of duplicating it
  // ability ACTOR: the smashing head's handle -- registry abilities drive the head through this (its physics locals live in this closure)
  var A={me:me,peers:peers,FX:FX,slot:slot,
   get cx(){return x+HW/2;},get cy(){return y+HH/2;},get x(){return x;},get y(){return y;},get HW(){return HW;},get HH(){return HH;},get dir(){return dir;},
@@ -3741,7 +3795,11 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   // had started and could never un-hide. The classes are the same signal, available immediately.
   var hideB=false;
   try{var _bc=document.body.classList;
-   hideB=_bc.contains("hmHeadsOff")&&!_bc.contains("hmBattle")&&!_bc.contains("hmSoccer")&&!_bc.contains("hmRace");}catch(_){}
+   hideB=_bc.contains("hmHeadsOff")&&!_bc.contains("hmBattle")&&!_bc.contains("hmSoccer")&&!_bc.contains("hmRace");
+   // TOURNAMENT BENCH: only the two teams in the current fixture are on the pitch. Reusing the
+   // hide gate keeps the visitor's saved heads alive across the whole bracket -- despawning and
+   // respawning them every fixture would churn the crowd and lose their state.
+   if(window.__hmBench&&window.__hmBench[slot])hideB=true;}catch(_){}
   if(!hideB&&wasHideB&&!first&&!gone&&!battleOn&&!soccerOn&&!window.__hmRaceOn&&!grabbed){first=true;introSettled=true;bornWall=0;bornAt=now;shown=false;root.style.opacity="0";if(shadow)shadow.style.opacity="0";}   // UNHIDDEN -> the same one-at-a-time toss-in from the edge as the very first time
   wasHideB=hideB;
   var want=!aboutB&&!hideB&&!gone;   // moods never hide the pit: the little heads are the audience
@@ -4385,13 +4443,20 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    goalR.style.transform="translate("+(XR-42)+"px,"+(groundY-150)+"px)";
    if(goalShL)goalShL.style.transform="translate("+(XL-6)+"px,"+(groundY-4)+"px)";
    if(goalShR)goalShR.style.transform="translate("+(XR-52)+"px,"+(groundY-4)+"px)";}
-  function teams(){var sl=peers.map(function(p){return p.slot;}),n=sl.length,half=Math.ceil(n/2);
+  function teams(){
+   // BENCHED heads take no part. The tournament fields only the two teams in the fixture, and a
+   // benched head with no side used to fail the "does the pick cover every real head" test below,
+   // which silently dropped the whole selection and re-drew random sides -- so squads ended up
+   // scrambled across the two teams they were supposed to be playing for.
+   var _bn=window.__hmBench||null;
+   var _act=peers.filter(function(p){return !_bn||!_bn[p.slot];});
+   var sl=_act.map(function(p){return p.slot;}),n=sl.length,half=Math.ceil(n/2);
    // PLAYER'S PICK first: if the soccer team picker set sides that cover every real head, honour them (the mini-Jayden filler, slot>=9000, isn't picked -> it balances onto the smaller side)
    var sel=window.__hmTeamSel,realN=0,realOK=!!sel,ci=0;
-   if(sel){peers.forEach(function(p){if(p.slot<9000){realN++;if(sel[p.slot]!==1&&sel[p.slot]!==2)realOK=false;}});if(realN===0)realOK=false;}
+   if(sel){_act.forEach(function(p){if(p.slot<9000){realN++;if(sel[p.slot]!==1&&sel[p.slot]!==2)realOK=false;}});if(realN===0)realOK=false;}
    if(realOK){S.teams={};var c1=0,c2=0;
-    peers.forEach(function(p){if(p.slot<9000){S.teams[p.slot]=sel[p.slot];if(sel[p.slot]===1)c1++;else c2++;}});
-    peers.forEach(function(p){if(p.slot>=9000){var tm=(sel[p.slot]===1||sel[p.slot]===2)?sel[p.slot]:((c1<=c2)?1:2);S.teams[p.slot]=tm;if(tm===1)c1++;else c2++;}});   // the mini-Jayden takes the side you picked for him (else evens the sides)
+    _act.forEach(function(p){if(p.slot<9000){S.teams[p.slot]=sel[p.slot];if(sel[p.slot]===1)c1++;else c2++;}});
+    _act.forEach(function(p){if(p.slot>=9000){var tm=(sel[p.slot]===1||sel[p.slot]===2)?sel[p.slot]:((c1<=c2)?1:2);S.teams[p.slot]=tm;if(tm===1)c1++;else c2++;}});   // the mini-Jayden takes the side you picked for him (else evens the sides)
     makeRoles(sl);return;}
    var a=[];for(var i=0;i<n;i++)a.push(i<half?1:2);
    for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=a[i];a[i]=a[j];a[j]=t;}   // Fisher-Yates: fresh sides each game
@@ -4445,7 +4510,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
      g.fillStyle="rgba("+p.c+",1)";g.fillRect(-p.w/2,-p.h/2,p.w,p.h);g.restore();});
     if(t<2.3)requestAnimationFrame(fr);else{cv.remove();window.__hmFx=Math.max(0,(window.__hmFx||1)-1);}})(performance.now());}catch(_){window.__hmFx=Math.max(0,(window.__hmFx||1)-1);}}
   function start(){if(S.on)return;_gyLock=null;geo();if(!ball)dom();layout();teams();
-   S.on=true;S.red=0;S.blue=0;S.winner=0;if(board)board.classList.remove("won");S.seed=(S.seed||0)+1;board2();
+   S.on=true;S.red=0;S.blue=0;S.winner=0;S.touches=[];if(board)board.classList.remove("won");S.seed=(S.seed||0)+1;board2();
    ballInTitle(false);ball.style.opacity="1";goalL.style.opacity="1";goalR.style.opacity="1";board.style.opacity="1";if(ballShadow)ballShadow.style.opacity="0.28";if(goalShL){goalShL.style.opacity="1";goalShR.style.opacity="1";}
    document.body.classList.add("hmSoccer");kickoffCountdown();
    if(!running){running=true;requestAnimationFrame(loop);}}
@@ -4457,6 +4522,8 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    setTimeout(function(){if(S.on&&S.phase==="scoring")goalIn(team);},240);}
   function bigCall(txt,ms){try{if(!countEl)return;countEl.classList.add("hmMsg");countEl.textContent=txt;countEl.classList.remove("hmCountPulse");void countEl.offsetWidth;countEl.classList.add("hmCountPulse");setTimeout(function(){if(countEl.textContent===txt){countEl.textContent="";countEl.classList.remove("hmMsg");}},ms||1800);}catch(_){}}
   function goalIn(team){if(team===1)S.red++;else S.blue++;S.goalSeed=(S.goalSeed||0)+1;S.goalTeam=team;board2();
+   try{if(window.__hmTourGoal)window.__hmTourGoal(team,(S.touches||[]).slice());}catch(_){}   // hand the touch log to the tournament: last toucher scored, the one before assisted
+   S.touches=[];
 
    if((S.red===4||S.blue===4)&&S.red!==S.blue)setTimeout(function(){if(S.on)bigCall("match point\u2026",1500);},1300);
    if(S.red===4&&S.blue===4)setTimeout(function(){if(S.on)bigCall("next goal wins!",2200);},1300);   // 4-4: next goal takes it -- FIFA built this rule purely to manufacture a decisive thrill
@@ -4468,7 +4535,8 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    if(S.red===S.blue&&S.red>=4)setTimeout(function(){if(S.on)bigCall("deuce!",1600);},1300);
    if(_mx===6&&_df===1)setTimeout(function(){if(S.on)bigCall("next goal wins!",1800);},1300);
    S.phase="reset";bvx=0;bvy=0;setTimeout(function(){if(S.on){ballInTitle(false);ball.style.opacity="1";if(ballShadow)ballShadow.style.opacity="0.28";dropIn();}},700);}   // otherwise it re-appears for the next kickoff
-  function win(team){S.winner=team;S.phase="win";board2();if(board)board.classList.add("won");   // "First to 5" and End are moot once it is decided
+  function win(team){S.winner=team;S.phase="win";board2();if(board)board.classList.add("won");
+   try{if(window.__hmTourWin)window.__hmTourWin(team);}catch(_){}   // "First to 5" and End are moot once it is decided
    
    try{winConfetti(team);}catch(_){}
    try{if(typeof busyNow==="function"&&!busyNow()){setHold("smile",2600);showFace("smile");refFlash();}}catch(_){}
@@ -4542,10 +4610,19 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
       bx+=nx*ov;by+=ny*ov;   // lift the ball clear of the body so it can never sink in and stutter
       var rvx=bvx-p.vx,rvy=bvy-p.vy,rel=rvx*nx+rvy*ny;
       if(rel<0){var jI=-(1.72)*rel;   // the ball is light: it takes the whole impulse (head velocity included), the head barely feels it
-       bvx+=nx*jI;bvy+=ny*jI;p.kx-=nx*jI*0.08;p.ky-=ny*jI*0.08;   // a small honest recoil into the head
+       var lx=nx,ly=ny-0.26,ll=Math.hypot(lx,ly)||1;lx/=ll;ly/=ll;   // LOFT: a head meets the ball with a
+       // slightly upward contact normal, so a duel pops the ball UP instead of firing it flat. The
+       // overlap resolution above still uses the true normal -- only the impulse is lofted.
+       bvx+=lx*jI;bvy+=ly*jI;p.kx-=nx*jI*0.08;p.ky-=ny*jI*0.08;   // a small honest recoil into the head
+       try{var _tt=window.__hmTour;if(_tt&&_tt.live){var _tm=(S.teams&&S.teams[p.slot])||0;
+        S.touches=S.touches||[];
+        if(!S.touches.length||S.touches[0].slot!==p.slot)S.touches.unshift({slot:p.slot,team:_tm,t:now});
+        else S.touches[0].t=now;
+        if(S.touches.length>6)S.touches.length=6;}}catch(_){}   // touch log: who last played it, for assists
        bw+=(-rvx*ny+rvy*nx)*(180/Math.PI)/BR*0.5;   // an off-centre hit puts spin on it
        var kk=Math.min(0.16,Math.abs(rel)*0.00022);if(Math.abs(nx)>Math.abs(ny)){bsxP=1-kk;bsyP=1/(1-kk);}else{bsyP=1-kk;bsxP=1/(1-kk);}bsT=0.13;}}}
-    if(by>REST){by=REST;if(bvy>0){bvx+=(bvx>=0?1:-1)*Math.abs(bvy)*0.5;bvy=-Math.abs(bvy)*0.4;}}   // the pitch is SOLID: a head jumping onto the ball can't drive it under -- it squeezes out (sideways + a small pop up), never through the plane
+    if(by>REST){by=REST;if(bvy>0){bvx+=(bvx>=0?1:-1)*Math.abs(bvy)*0.3;bvy=-Math.abs(bvy)*0.62;}}   // restitution 0.4 -> 0.62 and less sideways squirt (0.5 -> 0.3): the ball keeps bouncing rather
+    // than skidding away flat, which is what made play read as a ground tug-of-war   // the pitch is SOLID: a head jumping onto the ball can't drive it under -- it squeezes out (sideways + a small pop up), never through the plane
     if(by<BR+2)by=BR+2;   // and never through the ceiling either
     bvx=Math.max(-2200,Math.min(2200,bvx));bvy=Math.max(-1900,Math.min(1400,bvy));
     var nearGoal=(by>groundY-150)&&((bx<95&&bvx<-60)||(bx>W-95&&bvx>60));
@@ -5142,7 +5219,9 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   try{var si=new Image();si.onload=function(){try{var sc=document.createElement("canvas");sc.width=W;sc.height=H;sc.getContext("2d").drawImage(si,0,0,W,W);var scut=sc.toDataURL("image/webp",0.92);if(scut.indexOf("data:image/webp")!==0)scut=sc.toDataURL("image/png");if(m)m.__smileCut=scut;}catch(_){}};si.src="images/smile.webp";}catch(_){}};
  window.__hmFillerRemove=function(){if(!fillerActive)return;try{if(window.__hmKill&&fillerCut){window.__hmKill(fillerCut);var L=window.__hmLive||[];for(var i=L.length-1;i>=0;i--){if(L[i].cut===fillerCut)L.splice(i,1);}}}catch(_){}fillerActive=false;fillerCut=null;};   // also drop the dead __hmLive entry so it can't pile up across games
  window.__hmRealHeads=function(){var n=0;for(var i=0;i<peers.length;i++){if(!peers[i].__filler)n++;}return n;};
- window.__hmSpawnOne=function(d,slot){try{if(!d||!d.cut)return;spawnCompanion(d,typeof slot==="number"?slot:peers.length);}catch(_){}};   // drop a fresh head into the live scene mid-session (the Play menu's "Add an egghead")
+ window.__hmSlotFor=function(cut){for(var i=0;i<peers.length;i++)if(peers[i].cut===cut)return peers[i].slot;return null;};   // already on the pitch? reuse it
+  window.__hmSlots=function(){return peers.map(function(p){return p.slot;});};
+  window.__hmSpawnOne=function(d,slot){try{if(!d||!d.cut)return;spawnCompanion(d,typeof slot==="number"?slot:peers.length);}catch(_){}};   // drop a fresh head into the live scene mid-session (the Play menu's "Add an egghead")
  setInterval(function(){if(fillerActive&&!document.body.classList.contains("hmSoccer")&&!document.body.classList.contains("hmBattle"))window.__hmFillerRemove();},400);   // the stand-in leaves when the game does
 })();
 
@@ -5306,6 +5385,314 @@ function checkNoDoubleAdvance(br) {
  window.__hmBracket={slotOrder:slotOrder,bracketSize:bracketSize,buildBracket:buildBracket,
   nextMatch:nextMatch,recordWinner:recordWinner,checkNoDoubleAdvance:checkNoDoubleAdvance,
   roundLabel:roundLabel,champion:champion};
+})();
+</script>
+<script>
+(function(){   // ===== TOURNAMENT: teams, squads, stats, bracket =====
+// Exhibition (the old Soccer) is untouched. This mode fields the same two-sided engine one
+// fixture at a time and keeps a record around it.
+//
+// NO BYES, by construction. The team count is padded to a power of two with egghead-captained
+// teams, so every slot is filled and the bracket never needs a walkover. The bracket core still
+// handles byes correctly if it is ever fed an odd field -- it is just never asked to.
+var BR = window.__hmBracket; if (!BR) return;
+
+// Eight team colours. Kept saturated enough to read against a near-monochrome pitch, and far
+// enough apart in hue that two teams on the same pitch are never ambiguous.
+var PAL = [
+  { n: 'Crimson', c: '224,90,78'  }, { n: 'Azure',  c: '90,160,216' },
+  { n: 'Teal',    c: '46,155,176' }, { n: 'Amber',  c: '224,163,46' },
+  { n: 'Violet',  c: '142,111,199'}, { n: 'Rose',   c: '212,93,134' },
+  { n: 'Moss',    c: '95,168,85'  }, { n: 'Slate',  c: '116,124,146'}
+];
+
+var T = { live: false, teams: [], br: null, stats: {}, cur: null, phase: 'idle', log: [] };
+window.__hmTour = T;
+
+function mob()   { return innerWidth <= 640; }
+function perTeam(){ return mob() ? 2 : 3; }        // 1 captain + 1 (mobile) or 2 (desktop) eggheads
+function rgb(c)  { return 'rgb(' + c + ')'; }
+// Squad-mates must not share a tint. Two eggheads dyed the identical colour produce the identical
+// data URL, and __hmSlotFor then hands back the FIRST one's slot for the second -- so the second
+// never spawned, and its touches were logged against team 0, which read as an own goal. Shading
+// each member apart fixes the identity AND makes team-mates tellable apart on the pitch.
+function shade(c, amt){ return c.split(',').map(function(v){
+  return Math.max(0, Math.min(255, Math.round(+v + amt))); }).join(','); }
+function nextPow2(n){ var b = 1; while (b < n) b *= 2; return b; }
+
+function readHeads(){ try { return JSON.parse(localStorage.getItem('hmCompanions') || '[]') || []; } catch (_) { return []; } }
+
+// ---------- build the field ----------
+// Saved heads captain first (they are the "main players"); any remaining slots needed to reach a
+// power of two are captained by an egghead so the bracket is always full.
+function buildTeams(cb){
+  var heads = readHeads().slice(0, 8);
+  var n = Math.min(8, Math.max(2, nextPow2(Math.max(2, heads.length))));
+  var EGG = window.__EGGHEAD;
+  var teams = [], pending = 0, done = false;
+
+  for (var i = 0; i < n; i++){
+    var pal = PAL[i % PAL.length];
+    teams.push({ id: 'tm' + i, name: pal.n, col: pal.c, seed: i + 1,
+                 captain: heads[i] || null, squad: [], out: false });
+  }
+
+  function finish(){ if (done) return; done = true; T.teams = teams; cb(teams); }
+
+  teams.forEach(function(tm){
+    var need = perTeam() - 1;                      // eggheads to dye for this team
+    var wantCaptainEgg = !tm.captain;
+    var total = need + (wantCaptainEgg ? 1 : 0);
+    if (!EGG || !EGG.cut || !window.__hmTint){     // no egg art: field the captain alone rather than
+      return;                                      // clone him, which put the same head on the pitch twice
+    }
+    pending += total;
+    for (var k = 0; k < total; k++){
+      (function(isCap, idx){
+        window.__hmTint(EGG.cut, rgb(shade(tm.col, isCap ? 0 : (idx % 2 ? 26 : -26))), function(cut){
+          var d = { cut: cut, eyes: EGG.eyes || [], marks: EGG.marks || null };
+          if (isCap && !tm.captain) tm.captain = d; else tm.squad.push(d);
+          if (--pending <= 0) finish();
+        });
+      })(wantCaptainEgg && k === 0, k);
+    }
+  });
+  if (pending === 0) finish();
+}
+
+// ---------- stats ----------
+function key(p){ return p && p.cut ? p.cut.slice(-48) : 'x'; }
+function statFor(p, teamId){
+  var k = key(p);
+  if (!T.stats[k]) T.stats[k] = { k: k, cut: p.cut, team: teamId, g: 0, a: 0, og: 0, r: [], mp: 0 };
+  return T.stats[k];
+}
+// Rating: no published formula exists anywhere -- every mainstream system is proprietary. The
+// SHAPE is documented though (SofaScore publish a 6.5 baseline clamped 3-10, offence-weighted,
+// own goals negative), so that is what this follows. The weights are mine, not a standard.
+function rate(s, won){
+  var v = 6.5 + 1.0 * s.mg + 0.7 * s.ma - 1.0 * s.mo + (won ? 0.3 : -0.2);
+  return Math.max(3, Math.min(10, v));
+}
+
+window.__hmTourGoal = function(scoringTeam, touches){
+  if (!T.live || !T.cur) return;
+  var t0 = touches && touches[0];
+  if (!t0) return;
+  if (!t0.team) return;                                    // unassigned touch: score it to nobody rather than
+                                                           // to an own goal, which is what 0 !== scoringTeam did
+  var own = (t0.team !== scoringTeam);
+  var side = T.cur.side;                                   // {1:teamId, 2:teamId}
+  var scorerTeamId = side[t0.team];
+  var st = T.bySlot[t0.slot];
+  if (!st) return;
+  if (own){ st.og++; st.mo++; T.log.push({ type: 'og', who: st.k }); return; }
+  st.g++; st.mg++;
+  // Assist = the last DIFFERENT team-mate to touch it, inside a short window. Opta counts the
+  // final touch from a team-mate and lets deflections stand; own goals never carry an assist.
+  for (var i = 1; i < touches.length; i++){
+    var tt = touches[i];
+    if (tt.slot === t0.slot) continue;
+    if (tt.team !== t0.team) break;                        // an opponent had it: no assist
+    if (t0.t - tt.t > 5000) break;                         // window is judgment; nothing published
+    var at = T.bySlot[tt.slot];
+    if (at){ at.a++; at.ma++; T.log.push({ type: 'a', who: at.k }); }
+    break;
+  }
+  T.log.push({ type: 'g', who: st.k });
+  paint();
+};
+
+window.__hmTourWin = function(winSide){
+  if (!T.live || !T.cur) return;
+  var c = T.cur, winnerId = c.side[winSide];
+  Object.keys(T.bySlot).forEach(function(sl){
+    var s = T.bySlot[sl]; s.mp++;
+    s.r.push(rate(s, s.team === winnerId));
+    s.mg = 0; s.ma = 0; s.mo = 0;
+  });
+  BR.recordWinner(T.br, c.round, c.index, winnerId);
+  var bad = BR.checkNoDoubleAdvance(T.br);
+  if (bad) { try { console.warn('[tour]', bad); } catch (_) {} }
+  T.cur = null;
+  setTimeout(function(){ if (T.live) between(); }, 5600);   // after the win call clears
+};
+
+// ---------- running a fixture ----------
+function teamById(id){ for (var i = 0; i < T.teams.length; i++) if (T.teams[i].id === id) return T.teams[i]; return null; }
+
+function playersOf(tm){ var out = []; if (tm.captain) out.push(tm.captain); return out.concat(tm.squad); }
+
+function startFixture(nm){
+  var A = teamById(nm.match.a), Bm = teamById(nm.match.b);
+  if (!A || !Bm) return;
+  var side = { 1: A.id, 2: Bm.id };
+  T.cur = { round: nm.round, index: nm.index, side: side, a: A, b: Bm };
+  T.bySlot = {};
+
+  // Bench every saved head; the captains that are playing get un-benched as they are assigned.
+  var bench = {}; (window.__hmSlots ? window.__hmSlots() : []).forEach(function(s){ bench[s] = 1; });
+  window.__hmBench = bench;
+
+  var sel = {}, col = { 1: A.col, 2: Bm.col };
+  window.__hmTeamCol = col;
+  try {
+    var sc = document.querySelector('.hmScore');
+    if (sc){ sc.style.setProperty('--tcol1', rgb(A.col)); sc.style.setProperty('--tcol2', rgb(Bm.col)); }
+  } catch (_) {}
+
+  var SLOT = 9200; T.spawnedCuts = T.spawnedCuts || [];
+  [[A, 1], [Bm, 2]].forEach(function(pair){
+    var tm = pair[0], sideNo = pair[1];
+    playersOf(tm).forEach(function(p){
+      var slot = window.__hmSlotFor ? window.__hmSlotFor(p.cut) : null;
+      if (slot == null){ slot = SLOT++; try { window.__hmSpawnOne(p, slot); T.spawnedCuts.push(p.cut); } catch (_) {} }
+      delete bench[slot];
+      sel[slot] = sideNo;
+      var st = statFor(p, tm.id); st.mg = 0; st.ma = 0; st.mo = 0; st.team = tm.id;
+      T.bySlot[slot] = st;
+      tm.slots = (tm.slots || []).concat([slot]);
+    });
+  });
+  window.__hmTeamSel = sel;
+
+  paint();
+  setTimeout(function(){ try { if (window.__hmSoccerStart) window.__hmSoccerStart(); } catch (_) {} }, 620);
+}
+
+function clearSpawned(){
+  // The eggheads this mode spawned are removed between fixtures; the visitor's own saved heads
+  // are only ever BENCHED, never killed, so the home-screen crowd survives the whole tournament.
+  (T.spawnedCuts || []).forEach(function(c){ try { window.__hmKill(c); } catch (_) {} });
+  T.spawnedCuts = [];
+  T.teams.forEach(function(tm){ tm.slots = []; });
+}
+
+function benchAll(){   // between fixtures nobody is on the pitch: the bracket screen is not a scene
+  var b = {}; (window.__hmSlots ? window.__hmSlots() : []).forEach(function(s){ b[s] = 1; });
+  window.__hmBench = b;
+}
+function between(){
+  clearSpawned(); benchAll();
+  var nm = BR.nextMatch(T.br);
+  if (!nm){ T.phase = 'done'; paint(); return; }
+  T.phase = 'bracket'; paint();
+}
+
+// ---------- UI ----------
+var host = null;
+function el(tag, cls, txt){ var e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; }
+function dot(c){ var s = el('span', 'tDot'); s.style.background = rgb(c); return s; }
+
+function ensureHost(){
+  if (host) return host;
+  host = el('div', 'tourPanel'); host.id = 'tourPanel';
+  (document.querySelector('.hero') || document.body).appendChild(host);
+  return host;
+}
+
+function leaderRows(field, n){
+  var arr = Object.keys(T.stats).map(function(k){ return T.stats[k]; })
+    .filter(function(s){ return s[field] > 0; })
+    .sort(function(x, y){ return y[field] - x[field] || y.g - x.g; }).slice(0, n || 5);
+  return arr;
+}
+function avg(s){ return s.r.length ? (s.r.reduce(function(a, b){ return a + b; }, 0) / s.r.length) : null; }
+
+function paint(){
+  var h = ensureHost();
+  if (!T.live){ h.innerHTML = ''; h.hidden = true; return; }
+  h.hidden = false;
+  h.innerHTML = '';
+
+  var nm = BR.nextMatch(T.br);
+  var champ = BR.champion(T.br);
+
+  if (T.phase === 'done' || champ !== undefined){
+    var w = teamById(champ);
+    var win = el('div', 'tWin');
+    win.appendChild(el('div', 'tWinLbl', 'Champion'));
+    var wn = el('div', 'tWinName'); wn.appendChild(dot(w ? w.col : '0,0,0'));
+    wn.appendChild(document.createTextNode(w ? w.name : '—'));
+    win.appendChild(wn);
+    h.appendChild(win);
+  } else if (nm && T.phase === 'bracket'){
+    var A = teamById(nm.match.a), Bm = teamById(nm.match.b);
+    var nx = el('div', 'tNext');
+    nx.appendChild(el('span', 'tNextLbl', T.br.rounds[nm.round].label));
+    var pair = el('span', 'tPair');
+    if (A){ pair.appendChild(dot(A.col)); pair.appendChild(document.createTextNode(A.name)); }
+    pair.appendChild(el('span', 'tVs', 'v'));
+    if (Bm){ pair.appendChild(dot(Bm.col)); pair.appendChild(document.createTextNode(Bm.name)); }
+    nx.appendChild(pair);
+    var go = el('button', 'tGo', 'Kick off'); go.type = 'button';
+    go.addEventListener('click', function(e){ e.stopPropagation(); T.phase = 'match'; startFixture(nm); });
+    nx.appendChild(go);
+    h.appendChild(nx);
+  }
+
+  // rounds, as a grouped vertical list -- a bracket TREE cannot collapse vertically in CSS, and
+  // at 8 teams this is only 3 rounds and 7 fixtures, so a list says the same thing with no
+  // connector lines, no horizontal scroll and no accessibility problem.
+  var br = el('div', 'tRounds');
+  T.br.rounds.forEach(function(rd, ri){
+    var g = el('div', 'tRound');
+    g.appendChild(el('div', 'tRoundLbl', rd.label));
+    rd.matches.forEach(function(m){
+      var row = el('div', 'tMatch');
+      [m.a, m.b].forEach(function(id, i){
+        var tm = teamById(id);
+        var s = el('span', 'tSide' + (m.winner !== undefined ? (m.winner === id ? ' tWon' : ' tLost') : ''));
+        if (tm){ s.appendChild(dot(tm.col)); s.appendChild(document.createTextNode(tm.name)); }
+        else s.appendChild(document.createTextNode('—'));
+        row.appendChild(s);
+        if (i === 0) row.appendChild(el('span', 'tVs', 'v'));
+      });
+      g.appendChild(row);
+    });
+    br.appendChild(g);
+  });
+  h.appendChild(br);
+
+  // leaderboards -- name plus one number, which is all 390px has room for
+  [['g', 'Goals'], ['a', 'Assists']].forEach(function(pair){
+    var rows = leaderRows(pair[0], 5);
+    if (!rows.length) return;
+    var lb = el('div', 'tBoard');
+    lb.appendChild(el('div', 'tBoardLbl', pair[1]));
+    rows.forEach(function(s){
+      var r = el('div', 'tRow');
+      var im = el('img', 'tFace'); im.src = s.cut; im.alt = '';
+      r.appendChild(im);
+      var tm = teamById(s.team); if (tm) r.appendChild(dot(tm.col));
+      var num = el('b', 'tNum', String(s[pair[0]]));
+      var rt = avg(s);
+      r.appendChild(el('span', 'tRt', rt == null ? '' : rt.toFixed(1)));
+      r.appendChild(num);
+      lb.appendChild(r);
+    });
+    h.appendChild(lb);
+  });
+}
+
+// ---------- entry ----------
+function start(){
+  if (T.live) return;
+  buildTeams(function(teams){
+    T.live = true; T.stats = {}; T.log = []; T.phase = 'bracket';
+    T.br = BR.buildBracket(teams.map(function(t){ return t.id; }));
+    document.body.classList.add('hmTour');
+    benchAll(); paint();
+  });
+}
+function stop(){
+  T.live = false; T.cur = null; T.phase = 'idle';
+  window.__hmBench = null; window.__hmTeamSel = null; window.__hmTeamCol = null;
+  document.body.classList.remove('hmTour');
+  clearSpawned(); paint();
+}
+window.__hmTourStart = start;
+window.__hmTourStop = stop;
 })();
 </script>
 </body></html>
