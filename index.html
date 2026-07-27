@@ -1009,34 +1009,51 @@ body.hmTour .hero{min-height:calc(100svh - 68px)}
   animation:tourInM .42s cubic-bezier(.2,.8,.2,1) both}
  @keyframes tourInM{from{opacity:0;transform:translateX(-50%) translateY(10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
 }
-/* ---- THE BRACKET ITSELF: columns per round, cards per fixture, pairs joined into the next
-   round. A tree is the wrong shape for a big bracket (vertical collapse is unsolved in CSS) but
-   this one is capped at 8 teams -- 3 columns, 7 cards -- so it fits, and a real bracket is what a
-   bracket should look like. ---- */
-.tBr{display:flex;align-items:stretch;gap:0;width:100%;justify-content:center}
-.tCol{display:flex;flex-direction:column;gap:8px;min-width:0;flex:1 1 0;max-width:176px}
-.tColLbl{margin-bottom:2px}
-.tColBody{display:flex;flex-direction:column;justify-content:space-around;flex:1;gap:16px}
-.tPr{position:relative;display:flex;flex-direction:column;justify-content:space-around;flex:1;gap:16px}
-.tPr:not(.tPrLast)::after{content:"";position:absolute;left:calc(100% + 13px);top:25%;bottom:25%;width:1px;background:var(--c100)}
+/* ---- THE BRACKET. Rounds are flex columns; matches distribute over full column height so a
+   pair sits either side of the match it feeds. Connectors are ELBOWS on pseudo-elements: one
+   leaves each match to the right (flipped up or down by :nth-child odd/even) and a matching pair
+   enters each card from the left. No SVG, no absolute maths, and it degrades to a plain stack on
+   a phone where connector lines would be noise. House tokens throughout. ---- */
+.tBr{display:flex;flex-direction:column;width:100%;gap:16px;align-items:stretch}
+.tCol{display:flex;flex-direction:column;gap:8px;min-width:0;flex:1 1 0}
+.tColLbl{text-align:center}
+.tColBody{display:flex;flex-direction:column;justify-content:center;gap:8px;flex:1 1 auto;min-height:0}   /* flex growth, NOT height:100% -- a percentage height inside an auto-height flex column fed back
+   on itself and blew the panel out to 10,410px */
+.tMi{position:relative;display:flex;flex-direction:column;justify-content:center;flex:0 1 auto;width:100%}
 .tM{position:relative;display:flex;flex-direction:column;border:1px solid var(--c100);border-radius:4px;
- background:var(--c50);overflow:hidden;transition:border-color .3s cubic-bezier(.2,.8,.2,1)}
+ background:var(--c50);transition:border-color .3s cubic-bezier(.2,.8,.2,1)}
 .tM.tLive{border-color:var(--c950)}
-.tPr:not(.tPrLast) .tM::after{content:"";position:absolute;left:100%;top:50%;width:13px;height:1px;background:var(--c100)}
 .tT{display:flex;align-items:center;gap:8px;padding:6px 10px 6px 8px;font-size:var(--fs-small);line-height:1.2;
- white-space:nowrap;overflow:hidden;text-align:left;min-height:40px;box-sizing:border-box}
-/* The heads are transparent CUT-OUTS. A circular crop fought their silhouette and clipped hair
-   and chins at every size, so they are shown whole and contained; the colour bar carries the team. */
+ white-space:nowrap;overflow:hidden;text-align:left;min-height:40px;box-sizing:border-box;
+ border-left:4px solid transparent}
+.tT+.tT{border-top:1px solid var(--c100)}
+.tT:first-child{border-radius:3px 3px 0 0}
+.tT:last-child{border-radius:0 0 3px 3px}
+.tT.tWon{font-weight:600}
+.tT.tLost{opacity:.38}
+.tNm{overflow:hidden;text-overflow:ellipsis}
+.tTbd{color:var(--c500)}
+/* The heads are transparent CUT-OUTS; a circular crop fought their silhouette and clipped hair
+   and chins, so they are shown whole and contained. The team colour is carried by the row bar. */
 .tFaceW{flex:0 0 auto;width:28px;height:28px;display:inline-flex;align-items:center;justify-content:center}
 .tFaceW img{max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;display:block}
 .tFaceEmpty{width:28px}
 .tFaceBig{width:44px;height:44px}
 .tTeamNm{line-height:1}
-.tT+.tT{border-top:1px solid var(--c100)}
-.tT.tWon{font-weight:600}
-.tT.tLost{opacity:.38}
-.tNm{overflow:hidden;text-overflow:ellipsis}
-.tTbd{color:var(--c500)}
+@media(min-width:641px){
+ .tBr{flex-direction:row;gap:0}
+ .tMi{padding:6px 15px}
+ .tCol:first-child .tMi{padding-left:0}
+ .tCol:last-child .tMi{padding-right:0}
+ .tMi::after{content:'';position:absolute;right:0;width:15px;height:46%;border-right:1px solid var(--c100)}
+ .tMi:nth-child(odd)::after{top:50%;border-top:1px solid var(--c100);border-top-right-radius:7px}
+ .tMi:nth-child(even)::after{bottom:50%;border-bottom:1px solid var(--c100);border-bottom-right-radius:7px}
+ .tCol:last-child .tMi::after{display:none}
+ .tM::before,.tM::after{content:'';position:absolute;left:-15px;width:15px;height:22%;border-left:1px solid var(--c100)}
+ .tM::before{bottom:50%;border-bottom:1px solid var(--c100);border-bottom-left-radius:7px}
+ .tM::after{top:50%;border-top:1px solid var(--c100);border-top-left-radius:7px}
+ .tCol:first-child .tM::before,.tCol:first-child .tM::after{display:none}
+}
 .tQuit{margin-top:8px;background:none;border:0;padding:10px 12px;min-height:44px;
  font-family:var(--sans);font-weight:500;font-size:var(--fs-small);color:var(--c500);cursor:pointer;
  transition:color .2s cubic-bezier(.2,.8,.2,1)}
@@ -5695,38 +5712,31 @@ function paint(){
     h.appendChild(nx);
   }
 
-  // A REAL BRACKET: one column per round, matches as cards, pairs joined by a connector into the
-  // next round. Max 8 teams means at most 3 columns and 7 cards, so it fits without scrolling --
-  // the reason to avoid a tree is that big brackets cannot collapse vertically in CSS, and this
-  // one never gets big.
+  // BRACKET. Rounds are flex columns; each round's matches distribute with justify-content:center
+  // over full height, so pairs line up with the match they feed. The connectors are drawn as elbows
+  // on pseudo-elements -- one leaving each match to the right, flipped up or down by :nth-child
+  // odd/even, and a matching pair entering each card from the left. That is the standard way to do
+  // this without SVG or absolute maths, and it collapses to a plain stack on a phone.
   var br = el('div', 'tBr');
   T.br.rounds.forEach(function(rd, ri){
     var col = el('div', 'tCol');
     col.appendChild(el('div', 'tLbl tColLbl', rd.label));
     var body = el('div', 'tColBody');
-    var last = (ri === T.br.rounds.length - 1);
-    var groups = [];
-    if (last) groups.push(rd.matches.slice());
-    else for (var i2 = 0; i2 < rd.matches.length; i2 += 2) groups.push(rd.matches.slice(i2, i2 + 2));
-    groups.forEach(function(pair){
-      var pr = el('div', 'tPr' + (last ? ' tPrLast' : ''));
-      pair.forEach(function(m){
-        var live = (T.cur && T.br.rounds[T.cur.round].matches[T.cur.index] === m);
-        var card = el('div', 'tM' + (m.winner !== undefined ? ' tDone' : '') + (live ? ' tLive' : ''));
-        [m.a, m.b].forEach(function(id){
-          var tm = teamById(id);
-          var row = el('div', 'tT' + (m.winner !== undefined ? (m.winner === id ? ' tWon' : ' tLost') : ''));
-          if (tm){ row.style.borderLeft = '4px solid ' + rgb(tm.col);   // a colour BAR, not just a ring:
-            // the captain can be any colour (a real photo head, or a saved egghead the visitor already
-            // dyed), so the team's own colour has to be carried by the row itself to be unambiguous.
-            row.appendChild(faceOf(tm)); row.appendChild(el('span', 'tNm', tm.name)); }
-          else { row.style.borderLeft = '4px solid transparent';
-            row.appendChild(el('span', 'tFaceW tFaceEmpty')); row.appendChild(el('span', 'tNm tTbd', '—')); }
-          card.appendChild(row);
-        });
-        pr.appendChild(card);
+    rd.matches.forEach(function(m){
+      var item = el('div', 'tMi');
+      var live = (T.cur && T.br.rounds[T.cur.round].matches[T.cur.index] === m);
+      var card = el('div', 'tM' + (m.winner !== undefined ? ' tDone' : '') + (live ? ' tLive' : ''));
+      [m.a, m.b].forEach(function(id){
+        var tm = teamById(id);
+        var row = el('div', 'tT' + (m.winner !== undefined ? (m.winner === id ? ' tWon' : ' tLost') : ''));
+        if (tm){ row.style.borderLeftColor = rgb(tm.col);
+          row.appendChild(faceOf(tm)); row.appendChild(el('span', 'tNm', tm.name)); }
+        else { row.classList.add('tEmpty');
+          row.appendChild(el('span', 'tFaceW tFaceEmpty')); row.appendChild(el('span', 'tNm tTbd', '—')); }
+        card.appendChild(row);
       });
-      body.appendChild(pr);
+      item.appendChild(card);
+      body.appendChild(item);
     });
     col.appendChild(body);
     br.appendChild(col);
