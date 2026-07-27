@@ -5504,8 +5504,13 @@ function buildTeams(cb){
 
   for (var i = 0; i < n; i++){
     var pal = PAL[i % PAL.length];
-    teams.push({ id: 'tm' + i, name: pal.n, col: pal.c, seed: i + 1,
-                 captain: caps[i] || null, squad: [], out: false });
+    // A named head names its team. Colour is the fallback, and stays the visual identity either
+    // way (the bar, the ring, the nets), so "Sam vs Grey" still reads unambiguously.
+    var cap = caps[i] || null;
+    var nm = (cap && cap.name && String(cap.name).trim()) ? String(cap.name).trim().slice(0, 14)
+           : ((cap && cap.__mirror) ? 'Jayden' : pal.n);
+    teams.push({ id: 'tm' + i, name: nm, col: pal.c, colName: pal.n, seed: i + 1,
+                 captain: cap, squad: [], out: false });
   }
 
   function finish(){ if (done) return; done = true; T.teams = teams; cb(teams); }

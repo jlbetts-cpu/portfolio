@@ -131,6 +131,16 @@ a:focus-visible,button:focus-visible,.hmDot:focus-visible{outline:2px solid var(
 .skipLink:focus{transform:translateY(0);outline:2px solid var(--c950);outline-offset:3px}
 @media(prefers-reduced-motion:reduce){.skipLink{transition:none}}
 #main:focus{outline:none}
+/* Naming a head: the crowd is made of real people, so let them be called by name. Kept on the
+   same quiet chrome as the buttons beside it -- 4px radius, --c100 hairline, 44px target. */
+.hmNameRow{gap:10px;align-items:center;flex-wrap:wrap}
+.hmNameLbl{font-family:var(--sans);font-size:var(--fs-small);color:var(--c600)}
+.hmName{font-family:var(--sans);font-size:var(--fs-body);color:var(--c950);background:var(--c50);
+ border:1px solid var(--c100);border-radius:4px;padding:11px 14px;min-height:44px;width:min(240px,60vw);
+ transition:border-color .2s cubic-bezier(.2,.8,.2,1)}
+.hmName:hover{border-color:var(--c500)}
+.hmName:focus{outline:none;border-color:var(--c950)}
+.hmName::placeholder{color:var(--c400)}
 </style>
 </head>
 <body>
@@ -248,6 +258,10 @@ a:focus-visible,button:focus-visible,.hmDot:focus-visible{outline:2px solid var(
    <div class="hmStage bare" id="stage4">
     <div class="hmShadow" aria-hidden="true"></div>
     <div id="hmHead"><img id="hmLive" alt="Your floating cutout head, eyes following the cursor"></div>
+   </div>
+   <div class="hmRow hmNameRow">
+    <label class="hmNameLbl" for="hmName">Name this head</label>
+    <input class="hmName" id="hmName" type="text" maxlength="14" placeholder="Who is this?" autocomplete="off" spellcheck="false">
    </div>
    <div class="hmRow">
     <button class="hmBtn ghost" type="button" id="restart">Start over</button>
@@ -685,7 +699,7 @@ function buildLive(){
  try{if(!freshMake)throw 0;freshMake=false;   // restores only DISPLAY: they never re-save (a re-encoded cut looks new to the dedupe)
   if(!cutURL||cutURL.length<100)throw 0;
   var _des2=deriveEyes();
-  var _nh={cut:(bakedCanvas?packCut(bakedCanvas):cutURL),eyes:eyeEls.map(function(e,i){var o=Object.assign({},_des2[i]);o.sc=e.sc;o.ic=irisColor(_des2[i]);return o;}),marks:marks,t:Date.now()};
+  var _nh={name:((document.getElementById("hmName")||{}).value||"").trim().slice(0,14),cut:(bakedCanvas?packCut(bakedCanvas):cutURL),eyes:eyeEls.map(function(e,i){var o=Object.assign({},_des2[i]);o.sc=e.sc;o.ic=irisColor(_des2[i]);return o;}),marks:marks,t:Date.now()};
   var _all=[],_rawS=null;try{var _r2=localStorage.getItem("hmCompanions");if(_r2!==null){_all=JSON.parse(_r2)||[];_rawS=1;}}catch(_){}
   if(!(_all instanceof Array))_all=[];
   if(_rawS===null){try{var _lg=JSON.parse(localStorage.getItem("hmCompanion")||"null");if(_lg&&_lg.cut&&_lg.cut.length>100)_all=[_lg];}catch(_){}}
@@ -946,6 +960,21 @@ function restoreHead(_sv,save){if(!(_sv&&_sv.cut&&_sv.cut.length>100))return fal
  setTimeout(function(){try{buildLive();show(3);}catch(_){}},60);return true;}
 window.__hmRestore=restoreHead;
 try{restoreHead(JSON.parse(localStorage.getItem("hmCompanion")||"null"));}catch(_){}
+})();
+</script>
+<script>
+(function(){   // name the head that is on stage; it is already saved by the time this field shows
+ var inp=document.getElementById("hmName");if(!inp)return;
+ function newest(a){return a&&a.length?a[a.length-1]:null;}
+ function apply(){var n=(inp.value||"").trim().slice(0,14);
+  try{var a=JSON.parse(localStorage.getItem("hmCompanions")||"[]")||[];var h=newest(a);
+   if(h){h.name=n;localStorage.setItem("hmCompanions",JSON.stringify(a));
+    var l=JSON.parse(localStorage.getItem("hmCompanion")||"null");
+    if(l&&l.cut===h.cut){l.name=n;localStorage.setItem("hmCompanion",JSON.stringify(l));}}
+  }catch(_){}}
+ inp.addEventListener("input",apply);
+ try{var a0=JSON.parse(localStorage.getItem("hmCompanions")||"[]")||[];var h0=newest(a0);
+  if(h0&&h0.name)inp.value=h0.name;}catch(_){}
 })();
 </script>
 </body>
