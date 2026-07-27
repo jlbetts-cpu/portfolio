@@ -1381,14 +1381,11 @@ body.about-open #navAbout{color:var(--c950);background:var(--c75)}
  animation:tCardRise .34s cubic-bezier(.2,.8,.2,1) both;animation-delay:var(--cd,0ms)}
 .tCardHead{position:absolute;top:50%;width:auto;height:112%;
  transform:translateY(-50%);pointer-events:none;opacity:.62;
- /* A clean outline instead of recolouring: stacked drop-shadows at 8 compass points trace
-    the PNG's alpha edge, which is the standard way to stroke an arbitrary cut-out in CSS.
-    Kept to 1px and one colour so it reads as a cut line, not a glow. */
- filter:
-  drop-shadow(1px 0 0 var(--tso,#FDFDFD))  drop-shadow(-1px 0 0 var(--tso,#FDFDFD))
-  drop-shadow(0 1px 0 var(--tso,#FDFDFD))  drop-shadow(0 -1px 0 var(--tso,#FDFDFD))
-  drop-shadow(.7px .7px 0 var(--tso,#FDFDFD)) drop-shadow(-.7px .7px 0 var(--tso,#FDFDFD))
-  drop-shadow(.7px -.7px 0 var(--tso,#FDFDFD)) drop-shadow(-.7px -.7px 0 var(--tso,#FDFDFD))}
+ /* The fade lives on the WRAPPER; the stroke filter runs on the img inside it. Putting
+    opacity on the filtered element makes the filter sample faded pixels, so the outline
+    faded with the head and came out a muddy grey instead of a cut line. */
+ }
+.tCardHead img{filter:url(#tHeadEdge)}
 .tCardL .tCardHead{left:-34%}
 .tCardR .tCardHead{right:-34%;scale:-1 1}   /* mirrored so both faces turn inward */
 /* A scrim, because the head is a portrait bleeding in -- not wallpaper. Without it the
@@ -1524,6 +1521,7 @@ body.about-open #navAbout{color:var(--c950);background:var(--c75)}
 </style></head>
 <body>
 <a class="skipLink" href="#main">Skip to content</a>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><!-- Cut-out edge stroke. NOT a drop-shadow stack: CSS filter functions CHAIN, each taking the previous one's output, so N shadows compound to about (N/pi)*r rather than r -- 8 at 1px measures ~2.5px, and 24 hangs the compositor outright. Worse, a stack outlines every hair strand separately and turns a photographic head into a spiky halo. Threshold the alpha FIRST so wispy strands collapse into one silhouette, dilate that, subtract to leave a ring, and flood it. One clean line, hair keeps its softness. Must be inline in this document: Safari does not support filters referenced from an external or data: URL. --><filter id="tHeadEdge" x="-25%" y="-25%" width="150%" height="150%" color-interpolation-filters="sRGB"><feGaussianBlur in="SourceAlpha" stdDeviation="1.6" result="b"/><feComponentTransfer in="b" result="sil"><feFuncA type="linear" slope="20" intercept="-13.5"/></feComponentTransfer><feMorphology in="sil" operator="dilate" radius="1" result="f"/><feComposite in="f" in2="sil" operator="out" result="r"/><feFlood flood-color="#FDFDFD" result="c"/><feComposite in="c" in2="r" operator="in" result="st"/><feMerge><feMergeNode in="st"/><feMergeNode in="SourceGraphic"/></feMerge></filter></svg>
 <svg width="0" height="0" style="position:absolute"><filter id="inkBig"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="7" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="1.1" xChannelSelector="R" yChannelSelector="G" result="d"/><feTurbulence type="fractalNoise" baseFrequency="0.5 0.42" numOctaves="2" seed="13" result="g"/><feColorMatrix in="g" type="matrix" values="0 0 0 0 0.055 0 0 0 0 0.055 0 0 0 0 0.055 0 0 0 0.42 0" result="grain"/><feComposite in="grain" in2="d" operator="atop"/></filter>
 <filter id="inkSm"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="1" seed="4" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="0.55" xChannelSelector="R" yChannelSelector="G"/></filter><filter id="inkEye"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="9" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="1.05" xChannelSelector="R" yChannelSelector="G"/></filter></svg>
 <div class="wrap">
