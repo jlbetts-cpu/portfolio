@@ -131,7 +131,7 @@ body.catchReady:not(.about-open) #stageMorph{transform:scale(1.055)}
 .face{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;-webkit-user-select:none;user-select:none;cursor:pointer}
 .stage img,.abPhotoFrame img,.abShot img,.face{-webkit-user-drag:none;-khtml-user-drag:none;user-select:none}
 .eye{position:absolute;border-radius:50%;overflow:hidden;z-index:3;pointer-events:none;transition:transform .08s steps(2);filter:url(#inkEye)}
-.eye.eclosed{transform:scaleY(0.08)}
+.eye.eclosed{transform:scaleY(0.08);visibility:hidden}   /* hidden, not squashed: a bare scaleY leaves the iris as a hard dark slit across the face, which is the one thing a blink must never look like. visibility (not display) so nothing reflows. */
 .introwake{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;z-index:1;pointer-events:none;-webkit-user-select:none;user-select:none;opacity:0;filter:url(#inkSm)}
 .glasses{position:absolute;inset:0;width:100%;height:100%;z-index:7;pointer-events:none;opacity:0;will-change:transform,opacity;filter:url(#inkSm) drop-shadow(0 3px 3px rgba(0,0,0,.45))}
 .glasses.on{opacity:1;animation:glassesOn .62s steps(5,end) forwards}
@@ -4149,7 +4149,8 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    var _faceDir=(dir<0?1:-1);if(mjClone.__fd!==_faceDir){mjClone.__fd=_faceDir;mjClone.style.transform="translateY(27%) scaleX("+_faceDir+")";ringEl.style.transform="scale(1.06) translateY(27%) scaleX("+_faceDir+")";hurtEl.style.transform="translateY(27%) scaleX("+_faceDir+")";
     try{ringEl.style.transform="scale("+(1.06*_faceDir).toFixed(3)+",1.06)";hurtEl.style.transform="scaleX("+_faceDir+")";}catch(_){}}   // the rim + red flash FLIP with him and (sharing his root) ride every squash & move -> consistent, glitch-free
    for(var _mi=0;_mi<_cE.length&&_mi<_bE.length;_mi++){
-    var _wantHide=(_grin||/smile|wink/.test(_bsrc))?"none":"";if(_cE[_mi].style.display!==_wantHide)_cE[_mi].style.display=_wantHide;   // no floating irises over a baked-in smile OR wink
+    var _bShut=_bE[_mi].style.display==="none"||_bE[_mi].style.visibility==="hidden"||_bE[_mi].classList.contains("eclosed");   // the big head closes three different ways; treat them as one
+    var _wantHide=(_grin||/smile|wink/.test(_bsrc)||_bShut)?"none":"";if(_cE[_mi].style.display!==_wantHide)_cE[_mi].style.display=_wantHide;   // no floating irises over a baked-in smile OR wink -- or over a blink
     _cE[_mi].classList.toggle("eclosed",_bE[_mi].classList.contains("eclosed"));   // mirror the blink
     var _bi=_bE[_mi].querySelector(".iris"),_ci=_cE[_mi].querySelector(".iris");if(_bi&&_ci){var _t=_bi.style.transform||"",_m=_t.match(/translate\(\s*(-?[\d.]+)px[ ,]+(-?[\d.]+)px/);if(_m){var _gx=Math.max(-2.6,Math.min(2.6,parseFloat(_m[1])*_rat)),_gy=Math.max(-2.1,Math.min(2.1,parseFloat(_m[2])*_rat));_ci.style.transform="translate("+_gx.toFixed(2)+"px,"+_gy.toFixed(2)+"px)";}else _ci.style.transform=_t;}   // mirror the gaze, SCALED + CLAMPED so the iris never rides out of the socket
     var _bg=_bE[_mi].querySelector(".glint"),_cg=_cE[_mi].querySelector(".glint");if(_bg&&_cg){var _tg=_bg.style.transform||"",_mg=_tg.match(/translate\(\s*(-?[\d.]+)px[ ,]+(-?[\d.]+)px/);_cg.style.transform=_mg?("translate("+(parseFloat(_mg[1])*_rat).toFixed(2)+"px,"+(parseFloat(_mg[2])*_rat).toFixed(2)+"px)"):_tg;}}
