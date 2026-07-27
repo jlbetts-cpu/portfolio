@@ -37,7 +37,7 @@ html{scroll-behavior:smooth}
 
 :root{--c50:#FDFDFD;--c100:#E6E6E6;--c500:#838383;--c600:#6B6B6B;--c700:#525252;--c900:#212121;--c950:#121212;--accent:#0E6B3B;--accent-live:#17A45A;
  /* --accent: the one restrained highlight (deep emerald, 6.5:1 on white) -- hero keyword phrases + the active case-study tab; --accent-live: a brighter "available" status dot */
- --sans:"Instrument Sans",-apple-system,system-ui,sans-serif;--fs-display:clamp(40px,12vw,168px);--fs-hero:clamp(38px,4.7vw,60px);--fs-heroline:clamp(28px,2.6vw,38px);--sp-8-16:16px;--sp-16-24:24px;--sp-16-32:32px;--sp-16-40:40px;--sp-24-48:48px;--sp-32-56:56px;--sp-32-64:64px;--sp-40-72:72px;--sp-48-80:80px;--sp-56-96:96px;--fs-h2:clamp(26px,2.5vw,36px);--fs-h3:clamp(21px,2.4vw,32px);--fs-h4:clamp(19px,2.1vw,28px);--fs-h5:clamp(20px,1.7vw,24px);--fs-lead:clamp(15px,1.4vw,18px);--fs-prose:clamp(17px,1.39vw,20px);--fs-body:16px;--fs-small:15px;--fs-tab:clamp(17px,1.5vw,20px);--fs-label:13px;--fs-caption:12px;--fs-micro:11px;--lh-display:1.0;--lh-tight:1.08;--lh-body:1.5;--lh-prose:1.6;--lh-flat:1;}
+ --sans:"Instrument Sans",-apple-system,system-ui,sans-serif;--fs-display:clamp(68px,12vw,168px);--fs-hero:clamp(38px,4.7vw,60px);--fs-heroline:clamp(28px,2.6vw,38px);--sp-8-16:16px;--sp-16-24:24px;--sp-16-32:32px;--sp-16-40:40px;--sp-24-48:48px;--sp-32-56:56px;--sp-32-64:64px;--sp-40-72:72px;--sp-48-80:80px;--sp-56-96:96px;--fs-h2:clamp(26px,2.5vw,36px);--fs-h3:clamp(21px,2.4vw,32px);--fs-h4:clamp(19px,2.1vw,28px);--fs-h5:clamp(20px,1.7vw,24px);--fs-lead:clamp(15px,1.4vw,18px);--fs-prose:clamp(17px,1.39vw,20px);--fs-body:16px;--fs-small:15px;--fs-tab:clamp(17px,1.5vw,20px);--fs-label:13px;--fs-caption:12px;--fs-micro:11px;--lh-display:1.0;--lh-tight:1.08;--lh-body:1.5;--lh-prose:1.6;--lh-flat:1;}
 *{box-sizing:border-box;margin:0;padding:0}
 @media(max-width:760px){
  .moodBtn{padding:13px 18px;font-size:var(--fs-body)}
@@ -545,7 +545,7 @@ body.about-open .abHero{display:block;animation:abFadeIn .45s cubic-bezier(.2,.8
 .abTalk{position:absolute;top:clamp(8px,2vh,18px);right:0;display:inline-flex;align-items:center;background:var(--c950);color:var(--c50);padding:10px 24px;border:0;border-radius:100px;font-family:var(--sans);font-weight:400;font-size:var(--fs-body);line-height:1;letter-spacing:-.01em;text-decoration:none;cursor:pointer;white-space:nowrap;transition:opacity .2s cubic-bezier(.2,.8,.2,1)}
 .abTalk:hover{opacity:.82}
 /* About cover: big textured name (left) sits beside the kept head (right) */
-.abName{font-family:var(--sans);font-weight:700;font-size:var(--fs-display);line-height:var(--lh-display);letter-spacing:-.02em;color:var(--c900);filter:url(#inkBig);margin:0;white-space:nowrap;transform-origin:left top;font-variation-settings:"opsz" 144,"SOFT" 0,"WONK" 1;will-change:transform}
+.abName{font-family:var(--sans);font-weight:700;font-size:var(--fs-display);line-height:var(--lh-display);letter-spacing:-.02em;color:var(--c900);filter:url(#inkBig);margin:0;white-space:nowrap;transform-origin:left top;will-change:transform}
 body.about-open .abName{animation:abNameGrow 1s cubic-bezier(.2,.8,.2,1) both}
 .abBack{display:inline-flex;align-items:center;gap:.4em;margin-top:clamp(16px,2vw,26px);background:var(--c50);border:1px solid var(--c100);padding:10px 24px;font-family:var(--sans);font-weight:500;font-size:clamp(13px,1.05vw,16px);line-height:1;color:var(--c700);cursor:pointer;transition:border-color .2s cubic-bezier(.2,.8,.2,1),color .2s cubic-bezier(.2,.8,.2,1)}
 .abBack:hover{border-color:var(--c500);color:var(--c950)}
@@ -564,7 +564,7 @@ body.about-open #aboutBody{display:block;animation:abFadeIn .45s cubic-bezier(.2
 .abPhotoFrame img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 @keyframes abNameGrow{0%{opacity:0;transform:scale(.30)}11%{opacity:1;transform:scale(.30)}24%{transform:scale(.45)}37%{transform:scale(.60)}50%{transform:scale(.74)}62%{transform:scale(.86)}75%{transform:scale(.96)}88%{transform:scale(1.035)}100%{transform:scale(1)}}
 @keyframes abFadeIn{from{opacity:0}to{opacity:1}}
-@media(max-width:1000px){.abName{font-size:clamp(38px,11vw,96px)}}
+@media(max-width:1000px){.abName{font-size:clamp(40px,11vw,96px)}}
 @media(max-width:760px){
  body.about-open .abHero{display:flex;flex-direction:column;align-items:flex-start}
  .abTalk{position:static;align-self:flex-end;margin:0 0 14px;top:auto;right:auto}
