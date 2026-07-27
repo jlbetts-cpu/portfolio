@@ -891,9 +891,7 @@ body.navOpen .navBurger span:nth-child(3){transform:translateY(-6px) rotate(-45d
    goal), handing blue the kickoff every time. --sShift is measured in JS because the offset is
    half the word width, which moves with the responsive type. Once the ball has fallen the shift
    is dropped and the word glides back to true centre. */
-.hmScore .sTitle{gap:0;transform:translateX(var(--sShift,0px));transition:transform .34s cubic-bezier(.2,.8,.2,1)}
-.hmScore.ballOut.ballFell .sTitle{transform:none}
-@media(prefers-reduced-motion:reduce){.hmScore .sTitle{transition:none}}
+.hmScore .sTitle{gap:0}
 .hmScore .sBall{width:.62em;height:.62em;margin-left:.2em;object-fit:contain;flex:0 0 auto;
  transition:opacity .16s cubic-bezier(.2,.8,.2,1),width .34s cubic-bezier(.2,.8,.2,1),margin-left .34s cubic-bezier(.2,.8,.2,1)}
 /* Two stages, deliberately. ballOut only hides the ball; the SLOT stays, so during the frozen
@@ -947,6 +945,9 @@ body.navOpen .navDrawer{transform:translateY(0);opacity:1;visibility:visible;box
    module, its CSS and the whole crate/ability system stay in the file untouched, so bringing it
    back is deleting this one rule. Nothing else references #lavaRow. ---- */
 #lavaRow{display:none}
+/* Once the match is decided the rule line and End are moot -- the result is the only thing left
+   to say, and it is announced in the middle of the screen. */
+.hmScore.won .sMeta{opacity:0;pointer-events:none;transition:opacity .28s cubic-bezier(.2,.8,.2,1)}
 </style></head>
 <body>
 <a class="skipLink" href="#main">Skip to content</a>
@@ -3470,7 +3471,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
      st="idle",stT=0,hopsLeft=0,grabbed=false,gpx=0,gpy=0,lastPX=0,lastPY=0,pvx=0,pvy=0,
      offAt=0,gone=false,goneUntil=0,decideAt=performance.now()+4200,spin=0,heldOff=0,heldV=0,cTop=false,bornAt=performance.now()+1600,perched=false,hs=1,hsT=1,dockUntil=0,moodB=false,pbAt=0,mirrorAt=0,downT=0,downX=0,downY=0,shakeN=0,heartsF=0,danceHops=0,dblBlink=false,
      bAt=performance.now()+2800,bf=0,brAt=performance.now()+7000,brf=0,moAt=performance.now()+11000,mof=0,
-     dzf=0,sqx=1,sqy=1,sqxv=0,sqyv=0,sqxP=1,sqyP=1,sqT=0,shown=false,first=true,tk3=0,gzx=0,gzy=0,sacAt=0,flipA=0,flipV=0,wig=null,wigP=0,bounceN=0,perchT=0,leapDelay=Infinity,hmOverT=0,introSettled=false,bornWall=0,wasAboutB=false,wasHideB=false,introFrames=0,shakeAfter=false,drowse2=false,lastNearT=performance.now(),perchWigAt=performance.now()+9000,greetAt=performance.now()+6000,visitUntil=0,hmOverNow=false,vaulting=false,audAt=0,killed=false,hp=100,crowdT=0,team=0,soccerOn=false,soccerKickSeen=0,soccerWon=false,goalSeen=0,battleOn=false,battleSeen=0,elim=false,elimP=0,celebrated=false,respawnSeen=0,hurtT=0,danceUntil=0,danceHopAt=0,mjHurtUntil=0,hitStop=0,mjExprAt=0,mjExprUntil=0,mjExprKind="",
+     dzf=0,sqx=1,sqy=1,sqxv=0,sqyv=0,sqxP=1,sqyP=1,sqT=0,shown=false,first=true,tk3=0,gzx=0,gzy=0,sacAt=0,flipA=0,flipV=0,wig=null,wigP=0,bounceN=0,perchT=0,leapDelay=Infinity,hmOverT=0,introSettled=false,bornWall=0,wasAboutB=false,wasHideB=false,introFrames=0,shakeAfter=false,drowse2=false,lastNearT=performance.now(),perchWigAt=performance.now()+9000,greetAt=performance.now()+6000,visitUntil=0,hmOverNow=false,vaulting=false,audAt=0,killed=false,hp=100,crowdT=0,team=0,soccerOn=false,soccerKickSeen=0,soccerWon=false,soccerSeedSeen=0,goalSeen=0,battleOn=false,battleSeen=0,elim=false,elimP=0,celebrated=false,respawnSeen=0,hurtT=0,danceUntil=0,danceHopAt=0,mjHurtUntil=0,hitStop=0,mjExprAt=0,mjExprUntil=0,mjExprKind="",
      pendingHide=null,hideToken=0,lapBack=false,forceHide=/[?&]hide=1/.test(location.search);
  function plane(front){root.style.zIndex="3";shadow.style.zIndex="2";}   // heads ALWAYS stay in front of the big head + the CTA buttons (the back plane is gone) -- cleaner, more premium, no ducking-behind glitches
  var G=2600,DT=0.04,facc=0,CEIL=2,surpriseAt=0;   // real units: px/s and px/s^2, integrated at 25fps
@@ -3802,7 +3803,16 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
     if(_lc){ringEl.style.background="rgb("+_lc+")";ringEl.style.opacity="0.82";me.__ltR=1;}else if(me.__ltR){ringEl.style.opacity="0";me.__ltR=0;}}
    else if(me.__ltR){ringEl.style.opacity="0";me.__ltR=0;}}catch(_){}
   try{var S9=window.__hmSoccer;
-   if(S9&&S9.on&&!soccerOn&&!killed){soccerOn=true;soccerWon=false;team=(S9.teams&&S9.teams[slot])||1;
+   // EVERY new match wipes the crown, keyed off S.seed rather than off joining/leaving. The exit
+   // cleanup (!S9.on && soccerOn) is a TRANSITION, and the mini-Jayden filler never sees it -- it
+   // is despawned at the whistle -- so its soccerOn stayed true, which ALSO skipped the join
+   // branch (S9.on && !soccerOn) next match. The crown rode along into the following game.
+   if(S9&&S9.on&&S9.seed&&S9.seed!==soccerSeedSeen){soccerSeedSeen=S9.seed;soccerWon=false;crownEl.style.opacity="0";}
+   if(S9&&S9.on&&!soccerOn&&!killed){soccerOn=true;soccerWon=false;crownEl.style.opacity="0";   // clear the CROWN on join too. soccerWon was already reset here, but the element kept last
+     // match's opacity, and the only place that cleared it was the exit transition
+     // (!S9.on && soccerOn) -- which the mini-Jayden filler never sees, because it is despawned
+     // at the whistle. Same element came back next match still wearing the crown.
+     team=(S9.teams&&S9.teams[slot])||1;
     perched=false;leapDelay=Infinity;bar.style.opacity="0";root.style.pointerEvents="";
     var tcol=team===1?"224,90,78":"90,160,216";
     if(filler&&mjClone){var _dc="rgb("+tcol+")";mjClone.style.filter="drop-shadow(2.5px 0 0 "+_dc+") drop-shadow(-2.5px 0 0 "+_dc+") drop-shadow(0 2.5px 0 "+_dc+") drop-shadow(0 -2.5px 0 "+_dc+")";}   // the mini's ring hugs his REAL silhouette
@@ -4354,26 +4364,12 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   // out of the word rather than appearing from nowhere. The title copy hides whenever the real
   // ball is on the pitch, so there is only ever one ball on screen.
   var _gyLock=null;
-  // Put the BALL on the pitch's centre line, not the lockup's.
-  function centreOnBall(){if(!board)return;var t=board.querySelector(".sTitle"),e=board.querySelector(".sBall");
-   if(!t||!e)return;
-   // The shift is transitioned (.34s), and getBoundingClientRect reports where the element IS,
-   // not where it is heading -- so ballHome() called straight after this read the PRE-shift spot
-   // and the ball spawned 64.6px right of the title copy. Suppress the transition, apply, measure,
-   // restore. The jump is invisible: the board is still fading in at kickoff.
-   var prev=t.style.transition;t.style.transition="none";
-   board.style.setProperty("--sShift","0px");void t.offsetWidth;
-   var tr=t.getBoundingClientRect(),er=e.getBoundingClientRect();
-   if(!er.width){t.style.transition=prev;return;}
-   var off=(er.left+er.width/2)-(tr.left+tr.width/2);
-   board.style.setProperty("--sShift",(-off).toFixed(1)+"px");void t.offsetWidth;
-   t.style.transition=prev;}
   function ballHome(){if(!board)return null;var e=board.querySelector(".sBall");if(!e)return null;
    var r=e.getBoundingClientRect(),hr=hero.getBoundingClientRect();if(!r.width)return null;
    return {x:r.left+r.width/2-hr.left,y:r.top+r.height/2-hr.top};}
   function ballInTitle(on){if(!board)return;board.classList.toggle("ballOut",!on);
    if(on)board.classList.remove("ballFell");}
-  var _spawnY=null;
+  var _spawnY=null,_curveTo=0,_curving=false;
   var bsp=1;   // ball spawn scale: starts at the title copy's size so the drop reads as the SAME ball growing
   function ballSpawnScale(){var e=board&&board.querySelector(".sBall");var w=e?e.getBoundingClientRect().width:0;
    return w?Math.max(0.18,Math.min(1,w/(2*BR))):0.5;}
@@ -4416,14 +4412,14 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   function showCount(t){if(!countEl)return;countEl.textContent=t;countEl.classList.remove("hmCountPulse");void countEl.offsetWidth;countEl.classList.add("hmCountPulse");}
   var RED="224,90,78",BLUE="90,160,216";
   function kickoffCountdown(){S.kickSeed=(S.kickSeed||0)+1;   // the match opener: everyone to their half, then 3-2-1
-   centreOnBall();var _bh=ballHome();bx=_bh?_bh.x:(XL+XR)/2;by=_bh?_bh.y:70;bsp=ballSpawnScale();_spawnY=by;bvx=0;bvy=0;S.phase="count";
+   var _bh=ballHome();bx=_bh?_bh.x:(XL+XR)/2;by=_bh?_bh.y:70;bsp=ballSpawnScale();_spawnY=by;_curveTo=(XL+XR)/2;_curving=true;bvx=0;bvy=0;S.phase="count";
    var n=3;showCount(n);
    (function tick(){if(!S.on)return;
     if(n>1){n--;setTimeout(function(){showCount(n);tick();},800);}
     else{setTimeout(function(){if(!S.on)return;showCount("GO");
      setTimeout(function(){if(!S.on)return;if(countEl)countEl.textContent="";bvy=30;S.phase="play";},560);},800);}})();}
   function dropIn(){S.kickSeed=(S.kickSeed||0)+1;   // after a goal: no countdown, the ball just drops back in as they return to their sides
-   centreOnBall();var _bh2=ballHome();bx=_bh2?_bh2.x:(XL+XR)/2;by=_bh2?_bh2.y:60;bsp=ballSpawnScale();_spawnY=by;bvx=(Math.random()*80-40);bvy=20;S.phase="reset";
+   var _bh2=ballHome();bx=_bh2?_bh2.x:(XL+XR)/2;by=_bh2?_bh2.y:60;bsp=ballSpawnScale();_spawnY=by;_curveTo=(XL+XR)/2;_curving=true;bvx=(Math.random()*80-40);bvy=20;S.phase="reset";
    setTimeout(function(){if(S.on)S.phase="play";},650);}
   function goalBurst(team,gx,gy){try{   // the ball bursts, and confetti erupts from the goal it went in
    if((window.__hmFx||0)>=2)return;window.__hmFx=(window.__hmFx||0)+1;
@@ -4443,7 +4439,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
      g.fillStyle="rgba("+p.c+",1)";g.fillRect(-p.w/2,-p.h/2,p.w,p.h);g.restore();});
     if(t<2.3)requestAnimationFrame(fr);else{cv.remove();window.__hmFx=Math.max(0,(window.__hmFx||1)-1);}})(performance.now());}catch(_){window.__hmFx=Math.max(0,(window.__hmFx||1)-1);}}
   function start(){if(S.on)return;_gyLock=null;geo();if(!ball)dom();layout();teams();
-   S.on=true;S.red=0;S.blue=0;S.winner=0;S.seed=(S.seed||0)+1;board2();
+   S.on=true;S.red=0;S.blue=0;S.winner=0;if(board)board.classList.remove("won");S.seed=(S.seed||0)+1;board2();
    ballInTitle(false);ball.style.opacity="1";goalL.style.opacity="1";goalR.style.opacity="1";board.style.opacity="1";if(ballShadow)ballShadow.style.opacity="0.28";if(goalShL){goalShL.style.opacity="1";goalShR.style.opacity="1";}
    document.body.classList.add("hmSoccer");kickoffCountdown();
    if(!running){running=true;requestAnimationFrame(loop);}}
@@ -4466,7 +4462,8 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    if(S.red===S.blue&&S.red>=4)setTimeout(function(){if(S.on)bigCall("deuce!",1600);},1300);
    if(_mx===6&&_df===1)setTimeout(function(){if(S.on)bigCall("next goal wins!",1800);},1300);
    S.phase="reset";bvx=0;bvy=0;setTimeout(function(){if(S.on){ballInTitle(false);ball.style.opacity="1";if(ballShadow)ballShadow.style.opacity="0.28";dropIn();}},700);}   // otherwise it re-appears for the next kickoff
-  function win(team){S.winner=team;S.phase="win";board2();
+  function win(team){S.winner=team;S.phase="win";board2();if(board)board.classList.add("won");   // "First to 5" and End are moot once it is decided
+   
    try{winConfetti(team);}catch(_){}
    try{if(typeof busyNow==="function"&&!busyNow()){setHold("smile",2600);showFace("smile");refFlash();}}catch(_){}
    setTimeout(function(){if(S.on&&S.phase==="win"&&countEl){countEl.classList.add("hmMsg");countEl.textContent=(team===1?"Red":"Blue")+" wins!";countEl.classList.remove("hmCountPulse");void countEl.offsetWidth;countEl.classList.add("hmCountPulse");}},850);   // let the final goal land first -- the call comes a beat later
@@ -4507,6 +4504,17 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    }
    if(S.phase==="play"){
     bvy+=GRAV*dt;bvx*=Math.pow(0.78,dt);   // light aerodynamic drag: a struck ball keeps its momentum across the pitch
+    if(_curving&&(_spawnY==null||by-_spawnY>BR*1.4)){_curving=false;   // THE CURVE, solved ballistically
+     // instead of steered, and held until the ball has DROPPED CLEAR of the headline -- bending it
+     // in on the very first frame of play started the leftward move while it was still level with
+     // the text, grazing it by 3.2px. Because the solve uses the CURRENT height, waiting costs
+     // nothing: it just gets a slightly faster lateral speed over the remaining fall. A
+     // proportional nudge was far too weak -- it closed 4px of a 64.6px gap before the first head
+     // reached the ball. Give it the horizontal speed that ARRIVES at the centre spot exactly as
+     // it lands, and gravity draws the arc for free. The ball still leaves the title where it
+     // sits, so the wordmark never has to move, and the kickoff is still fair.
+     var _tf=Math.sqrt(Math.max(0.04,2*Math.max(0,REST-by)/GRAV));
+     bvx=((_curveTo-bx)/_tf)*1.07;}   // *1.07 covers the drag it meets on the way down
     bx+=bvx*dt;by+=bvy*dt;
     if(by>REST){   // meets the pitch
      if(Math.abs(bvy)>50){var kg=Math.min(0.14,Math.abs(bvy)*0.00016);bsyP=1-kg;bsxP=1/(1-kg);bsT=0.12;bvy=-bvy*0.72;}else bvy=0;   // squash + bounce, e=0.72 (grass, not a superball)
