@@ -460,7 +460,12 @@ body.moodInCta .heroCtas:not(.in) .faceMoodCorner{opacity:0!important;visibility
 .csPanel[data-panel="goodness"] .reel{margin-top:0}
 @media(max-width:760px){
 
- .csTabs{gap:8px 24px;flex-wrap:wrap}.csTabs .csTab{flex:0 0 auto;white-space:nowrap;font-size:var(--fs-tab)}
+ /* Extras was wrapping onto a second line at 390 and landing at the inset edge while
+   Featured sat at the first-tab -16px compensation -- two tab rows at two different
+   left edges. The row now stays on one line (Material calls this a scrollable tab bar
+   when the labels exceed the width); padding-left absorbs the first tab's negative
+   margin so the scroll origin cannot clip it. */
+.csTabs{gap:16px;flex-wrap:nowrap}.csTabs .csTab{flex:0 0 auto;white-space:nowrap}
  .csTrack{height:auto}
  .csStage{position:relative;height:auto;padding:clamp(14px,2vh,28px) 0;justify-content:flex-start;overflow:visible}
  .csFrame{transform:translateY(26px);opacity:0;transition:opacity .55s cubic-bezier(.2,.8,.2,1),transform .55s cubic-bezier(.2,.8,.2,1)}
