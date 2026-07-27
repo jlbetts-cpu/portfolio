@@ -1053,7 +1053,7 @@ body.hmTour .hero{min-height:calc(100svh - 68px)}
 .tM{position:relative;display:flex;flex-direction:column;border:1px solid var(--c100);border-radius:4px;
  background:var(--c50);transition:border-color .3s cubic-bezier(.2,.8,.2,1)}
 .tM.tLive{border-color:var(--c950)}
-.tT{display:flex;align-items:center;gap:10px;padding:9px 14px;font-size:var(--fs-small);line-height:1.2;white-space:nowrap;overflow:hidden;text-align:left;min-height:38px;box-sizing:border-box;border-left:2px solid transparent}
+.tT{display:flex;align-items:center;gap:8px;padding:8px 12px;font-size:var(--fs-small);line-height:1.2;white-space:nowrap;overflow:hidden;text-align:left;min-height:38px;box-sizing:border-box;border-left:2px solid transparent}
 .tT+.tT{border-top:1px solid var(--c100)}
 .tT:first-child{border-radius:3px 3px 0 0}
 .tT:last-child{border-radius:0 0 3px 3px}
@@ -1238,6 +1238,30 @@ nav .talk,.talk{padding:12px 16px!important;min-height:44px}
    by exactly the padding it gained; the underline starts at the column, not at the negative
    margin. Measured: first tab text 136 -> 120, matching nav, hero and cards. */
 .csTabs .csTab:first-child{margin-left:-16px}
+
+/* ============================================================================
+   ICONS -- one pack. An audit found NINE authored stroke-widths (1.2 1.4 1.5
+   1.6 1.7 1.8 2 2.2 3) across the site's inline SVGs, and five rendered sizes.
+   CSS stroke-width beats the SVG presentation attribute, so this normalises
+   every icon without touching fifteen separate markup attributes.
+   1.5 is chosen to sit with the 1px hairlines and the 400-weight text -- a 2px
+   stroke next to a 1px rule is what made the set look like three packs.
+   ============================================================================ */
+.gIco,.moodCar,
+/* every icon that lives inside a control -- catches .baGo, .moodGo, .cmpKnob and anything
+   added later, instead of a hand-kept list that silently misses new ones */
+a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
+ stroke-width:1.5;
+ stroke-linecap:round;stroke-linejoin:round;
+ fill:none;
+ vector-effect:non-scaling-stroke;
+}
+/* one icon size for controls, one for the caret affordance */
+.gIco{width:18px;height:18px;flex:0 0 18px}
+.moodIco{width:18px;height:18px;flex:0 0 18px;font-size:18px}
+.moodCar{width:12px;height:12px;flex:0 0 12px}
+/* icons inherit the control's colour so they light up with the hover wash */
+.moodItem svg,.moodItem .gIco,.tGo svg,.hmBtn svg,.back svg,.talk svg{color:currentColor}
 </style></head>
 <body>
 <a class="skipLink" href="#main">Skip to content</a>
