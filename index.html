@@ -1368,18 +1368,33 @@ body.about-open #navAbout{color:var(--c950);background:var(--c75)}
    perspective grid" and moved the camera through it -- depth from a receding plane,
    not from shadows on cards. One pitch, drawn in the site's own hairline. */
 .tPitch{position:absolute;left:50%;bottom:0;width:150%;height:60%;
- transform:translateX(-50%) perspective(440px) rotateX(64deg);transform-origin:50% 100%;
- background:repeating-linear-gradient(to right,var(--c100) 0 1px,transparent 1px 72px),
-            repeating-linear-gradient(to bottom,var(--c100) 0 1px,transparent 1px 72px);
+ transform:translateX(-50%);transform-origin:50% 100%;
+ background:radial-gradient(120% 90% at 50% 108%,rgba(18,18,18,.055) 0%,rgba(18,18,18,.022) 46%,transparent 72%);
  -webkit-mask-image:linear-gradient(to top,#000 0%,transparent 76%);
  mask-image:linear-gradient(to top,#000 0%,transparent 76%);
  pointer-events:none;z-index:0}
 
 /* THE CROWD. Real heads, in the stand, on the 8fps clock -- the same cut-outs that
    are playing. Decorative, so aria-hidden and no names. */
-.tCrowd{position:absolute;left:0;right:0;bottom:0;height:74px;overflow:hidden;pointer-events:none;z-index:1}
-.tFan{position:absolute;bottom:-12px;background-repeat:no-repeat;background-size:contain;background-position:center bottom;
- filter:grayscale(1);animation:tCheer .5s steps(2,end) infinite}
+/* ---- THE STAND. Was a 74px box with overflow:hidden and fans at bottom:-12px, which
+   chopped every face in half -- they read as floating foreheads. A crowd is a BACKDROP,
+   so it is treated like one: no hard clip anywhere, and a mask-image gradient dissolves
+   the back of the stand instead of cutting it. -webkit- first: Safari only shipped
+   unprefixed mask-image in 15.4. ---- */
+.tCrowd{position:absolute;left:0;right:0;bottom:0;height:126px;pointer-events:none;z-index:1;
+ -webkit-mask-image:linear-gradient(to top,#000 0 30%,rgba(0,0,0,.5) 66%,transparent 100%);
+         mask-image:linear-gradient(to top,#000 0 30%,rgba(0,0,0,.5) 66%,transparent 100%)}
+/* Depth of field does the work: the front row is sharp, the back rows go soft -- exactly how
+   Madden's UI backgrounds were shot (close, shallow DOF, desaturated) so the backdrop SUPPORTS
+   the interface rather than competing with it. --fb is per-fan blur, set inline.
+   No infinite bob: an auto-starting >5s loop presented in parallel with other content is a
+   WCAG 2.2.2 Level A concern, and a stand should be atmosphere, not a fidget.
+   contrast/brightness: grayscale(1) ALONE made the photographic heads punch through the flat
+   eggheads -- a flat-coloured image has almost no mid-tone texture, so it collapses to one
+   solid value and reads HEAVIER than a photo at the same luminance. Contrast cannot fix that;
+   opacity has to, which is why the per-source weights are set inline. */
+.tFan{position:absolute;background-repeat:no-repeat;background-size:contain;background-position:center bottom;
+ filter:grayscale(1) contrast(.5) brightness(1.28) blur(var(--fb,0px))}
 @keyframes tCheer{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
 @media(prefers-reduced-motion:reduce){.tFan{animation:none}.tBrMir .tMi{animation:none}}
 
@@ -1402,7 +1417,7 @@ body.about-open #navAbout{color:var(--c950);background:var(--c75)}
  .tBrMir .tColLbl.tLblDup{display:none}
  .tFinalCrown{display:none}
  .tPitch{height:34%}
- .tCrowd{height:40px}
+ .tCrowd{height:72px}
 }
 </style></head>
 <body>
@@ -6229,20 +6244,37 @@ function paintStadium(h){
   // Three tiers, so it reads as a stand rather than a dotted line: the front row is
   // bigger, darker and cropped by the edge; the back rows sit higher, smaller and
   // fainter. Heads overlap horizontally on purpose -- a crowd is packed, not spaced.
-  var N = 30, TIER = [{w:44,b:-12,o:0.34},{w:35,b:2,o:0.25},{w:28,b:13,o:0.17}];
-  for (var i = 0; i < N; i++){
-    var t = TIER[i % 3], f = el('span', 'tFan');
-    var w = t.w + Math.round(rnd() * 9);
-    f.style.backgroundImage = 'url("' + faces[i % faces.length] + '")';
-    f.style.width  = w + 'px';
-    f.style.height = Math.round(w * 1.25) + 'px';
-    f.style.left   = (i / N * 106 - 3 + (rnd() - 0.5) * 5).toFixed(2) + '%';
-    f.style.bottom = (t.b + Math.round(rnd() * 5)) + 'px';
-    f.style.zIndex = String(3 - (i % 3));
-    f.style.animationDelay = (-rnd() * 0.5).toFixed(3) + 's';
-    f.style.opacity = (t.o + rnd() * 0.05).toFixed(2);
-    crowd.appendChild(f);
-  }
+  // Three REAL rows. The old code cycled tiers with i%3, so the rows interleaved
+  // left-to-right and the bottoms were only 25px apart inside a 74px box -- it measured
+  // as three tiers and read as one jittered line. Now each tier is laid out as its own
+  // row, back to front, with a genuine size/height/softness gradient between them.
+  var TIERS = [
+    { n:13, w:30, b:66, o:0.13, fb:3.2 },   // back  -- small, high, softest
+    { n:11, w:42, b:34, o:0.19, fb:1.9 },   // middle
+    { n: 9, w:58, b: 2, o:0.24, fb:0.9 }    // front -- big and low, but NEVER fully sharp:
+    // a photographic head keeps real mid-tone detail under grayscale, so at blur 0 it was the
+    // one recognisable face in the stand and read as a person standing in front of the bracket
+  ];
+  var fi = 0;
+  TIERS.forEach(function(t, ti){
+    for (var i = 0; i < t.n; i++){
+      var f = el('span', 'tFan');
+      var w = t.w + Math.round(rnd() * (t.w * 0.18));
+      f.style.backgroundImage = 'url("' + faces[fi % faces.length] + '")'; fi++;
+      f.style.width  = w + 'px';
+      f.style.height = Math.round(w * 1.25) + 'px';
+      // spread across the full width, then jitter, so a row never looks like a ruler
+      f.style.left   = ((i + 0.5) / t.n * 108 - 4 + (rnd() - 0.5) * 6).toFixed(2) + '%';
+      f.style.bottom = (t.b + Math.round(rnd() * 6)) + 'px';
+      f.style.zIndex = String(ti + 1);          // front row paints over the back
+      f.style.setProperty('--fb', t.fb.toFixed(1) + 'px');
+      // flat-coloured eggheads collapse to a solid shape under grayscale and read heavier
+      // than a photographic head at the same luminance, so they carry less opacity
+      var flat = /^data:/.test(faces[(fi - 1) % faces.length]) ? 0 : 0.04;
+      f.style.opacity = (t.o + rnd() * 0.04 - flat).toFixed(3);
+      crowd.appendChild(f);
+    }
+  });
   br.insertBefore(crowd, br.firstChild.nextSibling);
 }
 function ensureHost(){
