@@ -888,7 +888,13 @@ body.navOpen .navBurger span:nth-child(3){transform:translateY(-6px) rotate(-45d
 .hmScore .sTitle{gap:0}
 .hmScore .sBall{width:.62em;height:.62em;margin-left:.2em;object-fit:contain;flex:0 0 auto;
  transition:opacity .16s cubic-bezier(.2,.8,.2,1),width .34s cubic-bezier(.2,.8,.2,1),margin-left .34s cubic-bezier(.2,.8,.2,1)}
-.hmScore.ballOut .sBall{opacity:0;width:0;margin-left:0}
+/* Two stages, deliberately. ballOut only hides the ball; the SLOT stays, so during the frozen
+   countdown the title still reserves its space and the live ball sits exactly in it. Collapsing
+   the slot immediately re-centred "Soccer" while the ball was still parked there, sliding the word
+   under it -- measured 7.9px of overlap. ballFell lands once the ball has actually dropped clear,
+   so the word glides back into space the ball has already left. */
+.hmScore.ballOut .sBall{opacity:0}
+.hmScore.ballOut.ballFell .sBall{width:0;margin-left:0}
 @media(prefers-reduced-motion:reduce){.hmScore .sBall{transition:opacity .16s linear}}
 /* "First to N" and End still carried the border-left dividers from when this was a horizontal
    chip; stacked underneath the score they read as debris. Quiet row, no rules. */
@@ -4297,7 +4303,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
  (function soccer(){   // the pitch: one ball, two goals, a scoreboard, first to five
   var hero=document.querySelector(".hero");if(!hero)return;
   if(matchMedia("(prefers-reduced-motion:reduce)").matches)return;
-  var S={on:false,seed:0,kickSeed:0,teams:{},target:5,red:0,blue:0,ball:{x:0,y:0},phase:"idle",winner:0};
+  var S={on:false,seed:0,kickSeed:0,teams:{},target:5,cap:8,red:0,blue:0,ball:{x:0,y:0},phase:"idle",winner:0};
   window.__hmSoccer=S;
   var ball,ballSkin,goalL,goalR,goalShL,goalShR,board,sR,sB,countEl,W=0,H=0,groundY=0,BR=24,OFF=0,XL=0,XR=0;
   var bx=0,by=0,bvx=0,bvy=0,kickCd={},running=false,last=performance.now(),scoreTeam=0,ballShadow;
@@ -4343,7 +4349,9 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   function ballHome(){if(!board)return null;var e=board.querySelector(".sBall");if(!e)return null;
    var r=e.getBoundingClientRect(),hr=hero.getBoundingClientRect();if(!r.width)return null;
    return {x:r.left+r.width/2-hr.left,y:r.top+r.height/2-hr.top};}
-  function ballInTitle(on){if(board)board.classList.toggle("ballOut",!on);}
+  function ballInTitle(on){if(!board)return;board.classList.toggle("ballOut",!on);
+   if(on)board.classList.remove("ballFell");}
+  var _spawnY=null;
   var bsp=1;   // ball spawn scale: starts at the title copy's size so the drop reads as the SAME ball growing
   function ballSpawnScale(){var e=board&&board.querySelector(".sBall");var w=e?e.getBoundingClientRect().width:0;
    return w?Math.max(0.18,Math.min(1,w/(2*BR))):0.5;}
@@ -4372,19 +4380,28 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
     if(mem.length===3){S.roles[mem[0]]="defender";S.roles[mem[1]]="attacker";S.roles[mem[2]]="attacker";return;}
     var nd=mem.length>=5?2:1;
     mem.forEach(function(s2,i){S.roles[s2]=(i===0)?"keeper":(i<=nd)?"defender":"attacker";});});}
-  function board2(){if(sR)sR.textContent=S.red;if(sB)sB.textContent=S.blue;}
+  function board2(){if(sR)sR.textContent=S.red;if(sB)sB.textContent=S.blue;ruleLabel();}
+  // "First to 5" stopped being true the moment it went to deuce. Say what is actually on the
+  // line: at 5-4 the rule IS win-by-two, and once someone reaches cap-1 the next goal ends it
+  // outright, so the target really is the cap.
+  function ruleLabel(){if(!board)return;var el=board.querySelector("small");if(!el)return;
+   var mx=Math.max(S.red,S.blue),df=Math.abs(S.red-S.blue),t;
+   if(mx>=S.cap-1)t="First to "+S.cap;
+   else if(mx>=S.target&&df<2)t="Win by 2";
+   else t="First to "+S.target;
+   if(el.textContent!==t)el.textContent=t;}
   function refFlash(){try{if(typeof busyNow==="function"&&!busyNow()&&typeof browFlash==="function")browFlash();}catch(_){}}
   function showCount(t){if(!countEl)return;countEl.textContent=t;countEl.classList.remove("hmCountPulse");void countEl.offsetWidth;countEl.classList.add("hmCountPulse");}
   var RED="224,90,78",BLUE="90,160,216";
   function kickoffCountdown(){S.kickSeed=(S.kickSeed||0)+1;   // the match opener: everyone to their half, then 3-2-1
-   var _bh=ballHome();bx=_bh?_bh.x:(XL+XR)/2;by=_bh?_bh.y:70;bsp=ballSpawnScale();bvx=0;bvy=0;S.phase="count";
+   var _bh=ballHome();bx=_bh?_bh.x:(XL+XR)/2;by=_bh?_bh.y:70;bsp=ballSpawnScale();_spawnY=by;bvx=0;bvy=0;S.phase="count";
    var n=3;showCount(n);
    (function tick(){if(!S.on)return;
     if(n>1){n--;setTimeout(function(){showCount(n);tick();},800);}
     else{setTimeout(function(){if(!S.on)return;showCount("GO");
      setTimeout(function(){if(!S.on)return;if(countEl)countEl.textContent="";bvy=30;S.phase="play";},560);},800);}})();}
   function dropIn(){S.kickSeed=(S.kickSeed||0)+1;   // after a goal: no countdown, the ball just drops back in as they return to their sides
-   var _bh2=ballHome();bx=_bh2?_bh2.x:(XL+XR)/2;by=_bh2?_bh2.y:60;bsp=ballSpawnScale();bvx=(Math.random()*80-40);bvy=20;S.phase="reset";
+   var _bh2=ballHome();bx=_bh2?_bh2.x:(XL+XR)/2;by=_bh2?_bh2.y:60;bsp=ballSpawnScale();_spawnY=by;bvx=(Math.random()*80-40);bvy=20;S.phase="reset";
    setTimeout(function(){if(S.on)S.phase="play";},650);}
   function goalBurst(team,gx,gy){try{   // the ball bursts, and confetti erupts from the goal it went in
    if((window.__hmFx||0)>=2)return;window.__hmFx=(window.__hmFx||0)+1;
@@ -4423,7 +4440,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    var g=team===1?goalR:goalL;g.classList.add("hmGoalHit");setTimeout(function(){g.classList.remove("hmGoalHit");},650);
    try{if(typeof busyNow==="function"&&!busyNow()){setHold("smile",1100);showFace("smile");if(typeof browFlash==="function")browFlash();}}catch(_){}
    var _mx=Math.max(S.red,S.blue),_df=Math.abs(S.red-S.blue);
-   if((_mx>=S.target&&_df>=2)||_mx>=7){win(team);return;}   // WIN BY TWO (hard cap 7): a 5-4 isn't over -- the great matches go to deuce
+   if((_mx>=S.target&&_df>=2)||_mx>=S.cap){win(team);return;}   // WIN BY TWO (hard cap S.cap): a 5-4 isn't over -- the great matches go to deuce
    if(S.red===S.blue&&S.red>=4)setTimeout(function(){if(S.on)bigCall("deuce!",1600);},1300);
    if(_mx===6&&_df===1)setTimeout(function(){if(S.on)bigCall("next goal wins!",1800);},1300);
    S.phase="reset";bvx=0;bvy=0;setTimeout(function(){if(S.on){ballInTitle(false);ball.style.opacity="1";if(ballShadow)ballShadow.style.opacity="0.28";dropIn();}},700);}   // otherwise it re-appears for the next kickoff
@@ -4452,7 +4469,12 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    try{if(window.__hmFX)window.__hmFX.clear();}catch(_){}}
   var spin=0,bw=0,gaspAt=0;   // spin = rendered rotation, bw = angular velocity (deg/s)
   function loop(now){if(!S.on){running=false;return;}requestAnimationFrame(loop);
-   var dt=Math.min(0.05,Math.max(0.006,(now-last)/1000));last=now;if(S.phase!=="count")bsp+=(1-bsp)*Math.min(1,dt*7);geo();   // hold the ball at the TITLE size through the countdown -- the physics is frozen then, so a ball that grew immediately just sat at full size on top of the word. It resizes as it drops, not before.
+   var dt=Math.min(0.05,Math.max(0.006,(now-last)/1000));last=now;var _fell=(S.phase!=="count"&&(_spawnY==null||by-_spawnY>BR*1.1));
+    if(_fell)bsp+=(1-bsp)*Math.min(1,dt*7);
+    if(board&&_fell&&board.classList.contains("ballOut")&&!board.classList.contains("ballFell"))board.classList.add("ballFell");
+    geo();   // grow only once it has FALLEN clear of the headline. Gating on the countdown alone was not
+    // enough: the ball still scaled up in place the instant play began, straight through "Soccer".
+       // hold the ball at the TITLE size through the countdown -- the physics is frozen then, so a ball that grew immediately just sat at full size on top of the word. It resizes as it drops, not before.
     if(Math.abs(groundY-_lastGY)>1){_lastGY=groundY;layout();}   // the ground plane can MOVE mid-match now (entering/leaving the full-screen phone arena) -- goals are positioned in layout(), which only ran at start(), so they used to stay behind on the old pitch line
     
    var REST=groundY-BR,GRAV=2600;   // gravity is uniform: the ball falls at exactly the heads' g (was a wrong 2400 vs their 2600). REST = ball CENTRE at rest, underside on the pitch
