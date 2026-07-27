@@ -975,8 +975,10 @@ body.hmSoccer .tourPanel{display:none}   /* the pitch owns the screen during a f
  font-size:var(--fs-heroline);font-weight:700;line-height:1.06;letter-spacing:-.015em}
 .tVs{color:var(--c500);font-weight:500;font-size:.62em;margin:0 .42em;letter-spacing:0}
 .tGo{margin-top:8px;background:none;border:1px solid var(--c100);border-radius:4px;
- padding:11px 22px;min-height:44px;font-family:var(--sans);font-weight:500;font-size:var(--fs-small);
- color:var(--c950);cursor:pointer;transition:border-color .2s cubic-bezier(.2,.8,.2,1)}
+ padding:11px 20px;min-height:44px;font-family:var(--sans);font-weight:500;font-size:var(--fs-small);
+ color:var(--c950);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;
+ transition:border-color .2s cubic-bezier(.2,.8,.2,1),opacity .2s cubic-bezier(.2,.8,.2,1)}
+.tGoIco{width:16px;height:16px;flex:0 0 auto}
 .tGo:hover,.tGo:focus-visible{border-color:var(--c500)}
 .tRounds{display:flex;flex-direction:column;gap:clamp(10px,1.8vh,18px);width:100%}
 .tRoundLbl{font-size:var(--fs-label);font-weight:600;color:var(--c500);letter-spacing:.04em;text-transform:uppercase;margin-bottom:5px}
@@ -5490,7 +5492,10 @@ var PAL = [
   { n: 'Pink',   c: '222,92,151' }, { n: 'Grey',   c: '110,118,132'}
 ];
 
-var T = { live: false, teams: [], br: null, stats: {}, cur: null, phase: 'idle', log: [] };
+// The cup is named after one of the case studies, picked when the tournament is built. It is a
+// portfolio, so the trophy may as well point at the work.
+var CUPS = ['Apollo', 'Bearings', 'Cluster', 'Strata', 'UC Davis'];
+var T = { live: false, teams: [], br: null, stats: {}, cur: null, phase: 'idle', log: [], cup: '' };
 window.__hmTour = T;
 
 function mob()   { return innerWidth <= 640; }
@@ -5691,7 +5696,7 @@ function paint(){
   h.hidden = false;
   h.innerHTML = '';
 
-  h.appendChild(el('h1', 'tTitle', 'Tournament'));
+  h.appendChild(el('h1', 'tTitle', T.cup || 'Cup'));
   var nm = BR.nextMatch(T.br);
   var champ = BR.champion(T.br);
 
@@ -5714,7 +5719,13 @@ function paint(){
     pair.appendChild(el('span', 'tVs', 'vs'));
     if (Bm){ pair.appendChild(faceOf(Bm, 'tFaceBig')); pair.appendChild(el('span', 'tTeamNm', Bm.name)); }
     nx.appendChild(pair);
-    var go = el('button', 'tGo', 'Kick off'); go.type = 'button';
+    var go = el('button', 'tGo'); go.type = 'button';
+    go.innerHTML = '<svg class="tGoIco" viewBox="0 0 24 24" fill="none" stroke="currentColor" '
+      + 'stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+      + '<circle cx="12" cy="12" r="9.2"/><polygon points="12,8 15,10.2 13.9,13.9 10.1,13.9 9,10.2"/>'
+      + '<path d="M12 8V4.2"/><path d="M15 10.2 18.6 9.1"/><path d="M13.9 13.9 16.2 17"/>'
+      + '<path d="M10.1 13.9 7.8 17"/><path d="M9 10.2 5.4 9.1"/></svg>';
+    go.appendChild(document.createTextNode('Kick off'));
     go.addEventListener('click', function(e){ e.stopPropagation(); T.phase = 'match'; startFixture(nm); });
     nx.appendChild(go);
     h.appendChild(nx);
@@ -5775,6 +5786,7 @@ function start(){
   if (T.live) return;
   buildTeams(function(teams){
     T.live = true; T.phase = 'bracket';
+    T.cup = CUPS[Math.floor(Math.random() * CUPS.length)] + ' Cup';
     T.br = BR.buildBracket(teams.map(function(t){ return t.id; })); lastRound = -1;
     document.body.classList.add('hmTour');
     benchAll(); paint();
