@@ -1282,6 +1282,114 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
    selected while open. Esc and browser-back still work. */
 body.about-open .heroBack{display:none!important}
 body.about-open #navAbout{color:var(--c950);background:var(--c75)}
+
+/* ==========================================================================
+   TOURNAMENT: the mirrored draw
+   The two halves run inward and meet at the final in the centre column, so the
+   whole draw is 2 quarter-final cards tall instead of 4. Jayden's call, and the
+   geometry is right. Worth recording the tradeoff, because the research is not
+   on its side: mirrored brackets ship almost only where the draw is
+   INSTITUTIONALLY two-sided (ESPN's NFL bracket is AFC/NFC, its NCAA bracket is
+   four regions into a Final Four). Every single-ladder draw -- World Cup
+   knockout, UCL, esports, Wikipedia's whole bracket template family -- runs
+   left to right, and no bracket platform ships a mirrored mode at all. The cost
+   is that the right half is read against scan direction. Paid for below by
+   keeping rounds in DOM order and naming each column, so the reading order is
+   still round-by-round.
+   ========================================================================== */
+.tBr.tBrMir{
+ display:grid;
+ grid-template-columns:var(--tcols,1fr);
+ grid-template-rows:var(--trows,auto);
+ column-gap:34px;row-gap:10px;
+ width:min(1060px,calc(100vw - 48px));max-width:none;
+ align-items:center;position:relative;z-index:2;
+ padding-bottom:68px;                       /* the stand sits in here, under the draw */
+}
+.tBrMir .tColLbl{white-space:nowrap}
+.tBrMir .tMi{grid-column:var(--gc,auto);grid-row:var(--gr,auto);align-self:center;padding:0;flex:none;position:relative}
+.tBrMir .tColLbl{grid-column:var(--gc,auto);grid-row:2;align-self:end;text-align:center;padding-bottom:2px}
+
+/* Connectors are MEANINGFUL graphics -- they are the only thing stating which
+   match feeds which -- so WCAG 1.4.11 wants 3:1 against the paper. The site
+   hairline --c100 (#E6E6E6) is about 1.3:1 and fails; --c500 clears it at 4.6:1.
+   Same 1px thickness as every other rule on the site, just legible. */
+/* The legacy connectors were scoped by .tCol (`.tCol:first-child .tM::before{display:none}`)
+   and .tMi:nth-child parity. The mirrored draw has no .tCol wrappers and every match is a
+   sibling in one grid, so those selectors stopped matching their guards and drew a second,
+   wrong set of stubs -- the stray lines off the outer edge of the quarter-finals. Reset every
+   geometry property here so only the rules below draw anything. */
+.tBrMir .tM::before,.tBrMir .tM::after{display:none}
+.tBrMir .tMi::before,.tBrMir .tMi::after{content:'';position:absolute;pointer-events:none;
+ left:auto;right:auto;top:auto;bottom:auto;width:auto;height:auto;border:0;border-radius:0}
+/* outgoing: left half turns right toward the centre, right half mirrors it */
+.tBrMir .tMiL[data-bend]:not([data-bend=flat])::after{left:100%;width:17px;height:50%;border-right:1px solid var(--c500)}
+.tBrMir .tMiL[data-bend=down]::after{top:50%;border-top:1px solid var(--c500);border-top-right-radius:6px}
+.tBrMir .tMiL[data-bend=up]::after{bottom:50%;border-bottom:1px solid var(--c500);border-bottom-right-radius:6px}
+.tBrMir .tMiR[data-bend]:not([data-bend=flat])::after{right:100%;width:17px;height:50%;border-left:1px solid var(--c500)}
+.tBrMir .tMiR[data-bend=down]::after{top:50%;border-top:1px solid var(--c500);border-top-left-radius:6px}
+.tBrMir .tMiR[data-bend=up]::after{bottom:50%;border-bottom:1px solid var(--c500);border-bottom-left-radius:6px}
+/* a round that feeds straight through (semi -> final) is a plain rule */
+.tBrMir .tMiL[data-bend=flat]::after{left:100%;width:17px;top:50%;border-top:1px solid var(--c500)}
+.tBrMir .tMiR[data-bend=flat]::after{right:100%;width:17px;top:50%;border-top:1px solid var(--c500)}
+/* incoming stubs */
+.tBrMir .tMiL:not([data-first])::before{right:100%;width:17px;top:50%;border-top:1px solid var(--c500)}
+.tBrMir .tMiR:not([data-first])::before{left:100%;width:17px;top:50%;border-top:1px solid var(--c500)}
+.tBrMir .tMiC::before{right:100%;width:17px;top:50%;border-top:1px solid var(--c500)}
+.tBrMir .tMiC::after{left:100%;width:17px;top:50%;border-top:1px solid var(--c500)}
+
+/* the final is the focal point: the trophy anchors it and the tree hangs beneath,
+   which is what EA FC 26 does (its patch notes call out the completed tree
+   failing to render UNDER the trophy as the bug worth fixing) */
+.tBrMir .tMiC .tM{border-color:var(--c950)}
+.tFinalCrown{grid-column:var(--gc,auto);grid-row:1;justify-self:center;align-self:end;
+ width:40px;height:40px;margin-bottom:4px;object-fit:contain;pointer-events:none}
+
+/* Material's choreography: start each item's entrance no more than 20ms after the
+   last and never wait for one to finish before the next begins */
+@keyframes tCardIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.tBrMir .tMi{animation:tCardIn .34s cubic-bezier(.2,.8,.2,1) both;animation-delay:var(--tin,0ms)}
+
+/* DEPTH. BUCK built the VALORANT Champions package on "a flexible, three-dimensional
+   perspective grid" and moved the camera through it -- depth from a receding plane,
+   not from shadows on cards. One pitch, drawn in the site's own hairline. */
+.tPitch{position:absolute;left:50%;bottom:0;width:150%;height:60%;
+ transform:translateX(-50%) perspective(440px) rotateX(64deg);transform-origin:50% 100%;
+ background:repeating-linear-gradient(to right,var(--c100) 0 1px,transparent 1px 72px),
+            repeating-linear-gradient(to bottom,var(--c100) 0 1px,transparent 1px 72px);
+ -webkit-mask-image:linear-gradient(to top,#000 0%,transparent 76%);
+ mask-image:linear-gradient(to top,#000 0%,transparent 76%);
+ pointer-events:none;z-index:0}
+
+/* THE CROWD. Real heads, in the stand, on the 8fps clock -- the same cut-outs that
+   are playing. Decorative, so aria-hidden and no names. */
+.tCrowd{position:absolute;left:0;right:0;bottom:0;height:74px;overflow:hidden;pointer-events:none;z-index:1}
+.tFan{position:absolute;bottom:-12px;background-repeat:no-repeat;background-size:contain;background-position:center bottom;
+ filter:grayscale(1);animation:tCheer .5s steps(2,end) infinite}
+@keyframes tCheer{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+@media(prefers-reduced-motion:reduce){.tFan{animation:none}.tBrMir .tMi{animation:none}}
+
+/* the way out was --c700 text in a --c100 box: technically present, practically
+   invisible against a screen that has a filled-ink Kick off on it */
+.tourPanel .tGo.tGoQuiet{border:1px solid var(--c500)!important;color:var(--c950);position:relative;z-index:3}
+.tourPanel .tGo.tGoQuiet:hover,.tourPanel .tGo.tGoQuiet:focus-visible{background:var(--c75);border-color:var(--c950)}
+/* the !important above would otherwise swallow the armed confirm state */
+.tourPanel .tGo.tGoQuiet.tQuitArmed{border-color:#b3402e!important;color:#b3402e}
+/* and the panel was running its content flush to the bottom edge */
+.tourPanel{padding-bottom:clamp(20px,3vh,36px)}
+
+@media(max-width:760px){
+ /* a five-column draw cannot survive a phone: fall back to the round-by-round
+    stack, which is the DOM order anyway, so nothing is reordered for anyone */
+ .tBr.tBrMir{grid-template-columns:1fr;grid-template-rows:none;column-gap:0;row-gap:6px}
+ .tBrMir .tMi{grid-column:1;grid-row:auto}
+ .tBrMir .tColLbl{grid-column:1;grid-row:auto;text-align:left;padding-bottom:0}
+ .tBrMir .tMi::before,.tBrMir .tMi::after{display:none}
+ .tBrMir .tColLbl.tLblDup{display:none}
+ .tFinalCrown{display:none}
+ .tPitch{height:34%}
+ .tCrowd{height:40px}
+}
 </style></head>
 <body>
 <a class="skipLink" href="#main">Skip to content</a>
@@ -6082,6 +6190,47 @@ function faceOf(tm, cls){
   return w;
 }
 
+/* ---- THE STADIUM. Two decorative layers behind the draw, both built from things
+   the site already owns. The PITCH is one receding hairline plane: BUCK built the
+   VALORANT Champions package on "a flexible, three-dimensional perspective grid"
+   and moved a camera through it, and a perspective plane is where the depth comes
+   from -- not from shadows stacked on cards. The CROWD is the real head cut-outs,
+   the same ones playing the fixture, sat in the stand bobbing on the site's 8fps
+   clock. Both are aria-hidden: they carry no information, and the names are
+   already in the cards. Seeded off the cup name so a repaint does not reshuffle
+   the crowd mid-tournament. ---- */
+function paintStadium(h){
+  if (!h || h.querySelector('.tPitch')) return;
+  var br = h.querySelector('.tBrMir'); if (!br) return;
+  var pitch = el('div', 'tPitch'); pitch.setAttribute('aria-hidden', 'true');
+  br.insertBefore(pitch, br.firstChild);
+
+  var faces = (T.teams || []).map(function(t){ return t && t.captain && (t.captain.portrait || t.captain.cut); }).filter(Boolean);
+  if (!faces.length) return;
+  var crowd = el('div', 'tCrowd'); crowd.setAttribute('aria-hidden', 'true');
+  // a tiny deterministic PRNG: the same cup always seats the same crowd
+  var seed = 0, cup = String(T.cup || 'cup');
+  for (var c = 0; c < cup.length; c++) seed = (seed * 31 + cup.charCodeAt(c)) >>> 0;
+  function rnd(){ seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; }
+  // Three tiers, so it reads as a stand rather than a dotted line: the front row is
+  // bigger, darker and cropped by the edge; the back rows sit higher, smaller and
+  // fainter. Heads overlap horizontally on purpose -- a crowd is packed, not spaced.
+  var N = 30, TIER = [{w:44,b:-12,o:0.34},{w:35,b:2,o:0.25},{w:28,b:13,o:0.17}];
+  for (var i = 0; i < N; i++){
+    var t = TIER[i % 3], f = el('span', 'tFan');
+    var w = t.w + Math.round(rnd() * 9);
+    f.style.backgroundImage = 'url("' + faces[i % faces.length] + '")';
+    f.style.width  = w + 'px';
+    f.style.height = Math.round(w * 1.25) + 'px';
+    f.style.left   = (i / N * 106 - 3 + (rnd() - 0.5) * 5).toFixed(2) + '%';
+    f.style.bottom = (t.b + Math.round(rnd() * 5)) + 'px';
+    f.style.zIndex = String(3 - (i % 3));
+    f.style.animationDelay = (-rnd() * 0.5).toFixed(3) + 's';
+    f.style.opacity = (t.o + rnd() * 0.05).toFixed(2);
+    crowd.appendChild(f);
+  }
+  br.insertBefore(crowd, br.firstChild.nextSibling);
+}
 function ensureHost(){
   if (host) return host;
   host = el('div', 'tourPanel'); host.id = 'tourPanel';
@@ -6145,13 +6294,46 @@ function paint(){
   // on pseudo-elements -- one leaving each match to the right, flipped up or down by :nth-child
   // odd/even, and a matching pair entering each card from the left. That is the standard way to do
   // this without SVG or absolute maths, and it collapses to a plain stack on a phone.
-  var br = el('div', 'tBr');
-  T.br.rounds.forEach(function(rd, ri){
-    var col = el('div', 'tCol');
-    col.appendChild(el('div', 'tLbl tColLbl', rd.label));
-    var body = el('div', 'tColBody');
-    rd.matches.forEach(function(m){
-      var item = el('div', 'tMi');
+  var br = el('div', 'tBr tBrMir');
+  // THE DRAW, MIRRORED. Left half runs inward, right half runs inward, final in the
+  // centre -- 2 quarter-final cards tall instead of 4, which is the vertical saving.
+  // Rounds are emitted in DOM order (label, then that round's matches) so a screen
+  // reader still walks the draw round by round; only the COLUMN is mirrored.
+  var RS = T.br.rounds, nR = RS.length;
+  var rows = Math.max(1, Math.ceil(RS[0].matches.length / 2));   // rows = quarter-finals per side
+  var cols = [];
+  for (var ci = 0; ci < 2 * nR - 1; ci++) cols.push(ci === nR - 1 ? 'minmax(0,1.12fr)' : 'minmax(0,1fr)');
+  br.style.setProperty('--tcols', cols.join(' '));
+  br.style.setProperty('--trows', 'auto auto repeat(' + rows + ',minmax(0,auto))');
+
+  var seq = 0;
+  RS.forEach(function(rd, ri){
+    var isFinal = (ri === nR - 1);
+    var half    = rd.matches.length / 2;
+    var span    = Math.min(rows, Math.pow(2, ri));
+    var colL = ri + 1, colR = 2 * nR - 1 - ri, colC = nR;
+
+    function label(colN, dup){
+      var L = el('div', 'tLbl tColLbl' + (dup ? ' tLblDup' : ''), rd.label);
+      L.style.setProperty('--gc', colN); br.appendChild(L);
+    }
+    if (isFinal){
+      var crown = el('img', 'tFinalCrown'); crown.src = 'images/trophy.webp'; crown.alt = ''; crown.draggable = false;
+      crown.style.setProperty('--gc', colC); br.appendChild(crown);   // the trophy anchors the final
+      label(colC, false);
+    } else { label(colL, false); label(colR, true); }
+
+    rd.matches.forEach(function(m, mi){
+      var side = isFinal ? 'C' : (mi < half ? 'L' : 'R');
+      var k    = isFinal ? 0 : (side === 'L' ? mi : mi - Math.ceil(half));
+      var item = el('div', 'tMi tMi' + side);
+      item.style.setProperty('--gc', side === 'C' ? colC : (side === 'L' ? colL : colR));
+      item.style.setProperty('--gr', (isFinal ? 3 : k * span + 3) + ' / span ' + (isFinal ? rows : span));
+      // two matches per side elbow into their pair; one per side feeds straight through
+      item.setAttribute('data-bend', isFinal ? 'flat' : (half >= 2 ? (k % 2 === 0 ? 'down' : 'up') : 'flat'));
+      if (ri === 0) item.setAttribute('data-first', '1');
+      item.style.setProperty('--tin', (seq++ * 20) + 'ms');   // Material: 20ms apart, never wait for the last
+
       var live = (T.cur && T.br.rounds[T.cur.round].matches[T.cur.index] === m);
       var card = el('div', 'tM' + (m.winner !== undefined ? ' tDone' : '') + (live ? ' tLive' : ''));
       [m.a, m.b].forEach(function(id){
@@ -6160,16 +6342,15 @@ function paint(){
         if (tm){ row.style.borderLeftColor = rgb(tm.col);
           row.appendChild(faceOf(tm)); row.appendChild(el('span', 'tNm', tm.name)); }
         else { row.classList.add('tEmpty');
-          row.appendChild(el('span', 'tFaceW tFaceEmpty')); row.appendChild(el('span', 'tNm tTbd', '—')); }
+          row.appendChild(el('span', 'tFaceW tFaceEmpty')); row.appendChild(el('span', 'tNm tTbd', '\u2014')); }
         card.appendChild(row);
       });
       item.appendChild(card);
-      body.appendChild(item);
+      br.appendChild(item);
     });
-    col.appendChild(body);
-    br.appendChild(col);
   });
   h.appendChild(br);
+  paintStadium(h);
 
   // A way out. Without this the tournament was a trap: the hero is given over to it and there was
   // no control anywhere to hand the page back.
