@@ -945,6 +945,10 @@ body.navOpen .navDrawer{transform:translateY(0);opacity:1;visibility:visible;box
    module, its CSS and the whole crate/ability system stay in the file untouched, so bringing it
    back is deleting this one rule. Nothing else references #lavaRow. ---- */
 #lavaRow{display:none}
+#raceGo{display:none!important}   /* !important because battleGate() writes display:flex INLINE on
+   ["battleGo","soccerGo","raceGo"] every tick -- hiding #lavaRow works without it only because that
+   targets the ROW, which the gate never touches. Marble Race parked alongside Floor is Lava while
+   soccer gets fleshed out; both modules stay in the file, so bringing either back is these rules. */
 /* Once the match is decided the rule line and End are moot -- the result is the only thing left
    to say, and it is announced in the middle of the screen. */
 .hmScore.won .sMeta{opacity:0;pointer-events:none;transition:opacity .28s cubic-bezier(.2,.8,.2,1)}
