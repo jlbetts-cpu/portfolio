@@ -35,7 +35,7 @@
 html{scroll-behavior:smooth}
 .siteFoot{scroll-margin-top:80px}
 
-:root{--fs-reach:clamp(18px,1.9vw,22px);--c50:#FDFDFD;--c100:#E6E6E6;--c500:#838383;--c600:#6B6B6B;--c700:#525252;--c900:#212121;--c950:#121212;--accent:#0E6B3B;--accent-live:#17A45A;
+:root{--c50:#FDFDFD;--c100:#E6E6E6;--c500:#838383;--c600:#6B6B6B;--c700:#525252;--c900:#212121;--c950:#121212;--accent:#0E6B3B;--accent-live:#17A45A;
  /* --accent: the one restrained highlight (deep emerald, 6.5:1 on white) -- hero keyword phrases + the active case-study tab; --accent-live: a brighter "available" status dot */
  --sans:"Instrument Sans",-apple-system,system-ui,sans-serif;--fs-display:clamp(68px,12vw,168px);--fs-hero:clamp(38px,4.7vw,60px);--fs-heroline:clamp(28px,2.6vw,38px);--sp-8-16:16px;--sp-16-24:24px;--sp-16-32:32px;--sp-16-40:40px;--sp-24-48:48px;--sp-32-56:56px;--sp-32-64:64px;--sp-40-72:72px;--sp-48-80:80px;--sp-56-96:96px;--fs-h2:clamp(26px,2.5vw,36px);--fs-h3:clamp(21px,2.4vw,32px);--fs-h4:clamp(19px,2.1vw,28px);--fs-h5:clamp(20px,1.7vw,24px);--fs-lead:clamp(15px,1.4vw,18px);--fs-prose:clamp(17px,1.39vw,20px);--fs-body:16px;--fs-small:15px;--fs-tab:clamp(17px,1.5vw,20px);--fs-label:13px;--fs-caption:12px;--fs-micro:11px;--lh-display:1.0;--lh-tight:1.08;--lh-body:1.5;--lh-prose:1.6;--lh-flat:1;}@media(max-width:880px){:root{--sp-8-16:8px;--sp-16-24:16px;--sp-16-32:16px;--sp-16-40:16px;--sp-24-48:24px;--sp-32-56:32px;--sp-32-64:32px;--sp-40-72:40px;--sp-48-80:48px;--sp-56-96:56px}}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -752,7 +752,7 @@ body.about-open.headheal .abTear{animation:tearClose .5s steps(1,end) forwards}
 .wrap.developing.developed{filter:blur(0) brightness(1);opacity:1;transition:filter .95s cubic-bezier(.2,.8,.2,1),opacity .8s cubic-bezier(.2,.8,.2,1)}
 @media(prefers-reduced-motion:reduce){.wrap.developing{filter:none!important;opacity:1!important}}
 .siteFoot{margin-top:clamp(80px,12vh,150px);padding:0 clamp(24px,5vw,40px) clamp(32px,5vh,64px);text-align:center}
-.footReach{font-family:var(--sans);font-weight:400;font-size:var(--fs-reach);line-height:1.55;color:var(--c700);margin:0 auto;max-width:42ch;text-wrap:balance}
+.footReach{font-family:var(--sans);font-weight:400;font-size:var(--fs-prose);line-height:1.55;color:var(--c700);margin:0 auto;max-width:42ch;text-wrap:balance}
 .footIn{font-weight:600;color:var(--c950);text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:3px;text-decoration-color:var(--c600);transition:text-decoration-color .15s cubic-bezier(.2,.8,.2,1),color .15s cubic-bezier(.2,.8,.2,1)}
 .footIn:hover{text-decoration-color:var(--c950)}
 .csNote{margin-top:calc(-1 * clamp(14px,2vh,28px));margin-bottom:clamp(30px,4vh,48px)}
@@ -1108,7 +1108,7 @@ body.hmTour .hero{min-height:calc(100svh - 68px)}
 </div>
 <section class="cases" id="cases" aria-label="Selected work">
 <div class="csCursor" id="csCursor" aria-hidden="true"></div>
-<div class="csInfoCard" id="csInfoCard" aria-hidden="true"><div class="csInfoInner"><div class="csInfoRow"><p class="csInfoLabel">Role</p><p class="csInfoVal" data-f="role"></p></div><div class="csInfoRow"><p class="csInfoLabel">Problem</p><p class="csInfoVal" data-f="problem"></p></div><div class="csInfoRow"><p class="csInfoLabel">Solution</p><p class="csInfoVal" data-f="solution"></p></div></div></div>
+<div class="csInfoCard" id="csInfoCard" aria-hidden="true"><div class="csInfoInner"><div class="csInfoRow"><div class="csInfoLabel">Role</div><p class="csInfoVal" data-f="role"></p></div><div class="csInfoRow"><div class="csInfoLabel">Problem</div><p class="csInfoVal" data-f="problem"></p></div><div class="csInfoRow"><div class="csInfoLabel">Solution</div><p class="csInfoVal" data-f="solution"></p></div></div></div>
  <nav class="csTabs caseInset" role="tablist" aria-label="Work categories">
   <button class="csTab on" type="button" role="tab" data-tab="cs" aria-selected="true">Featured</button>
   <button class="csTab" type="button" role="tab" data-tab="fun" aria-selected="false">Case Studies</button>
