@@ -426,7 +426,7 @@ body.moodInCta .heroCtas:not(.in) .faceMoodCorner{opacity:0!important;visibility
 .csItem.csIn .csMeta{opacity:1;transform:none}
 .csName{font-family:var(--sans);font-weight:600;font-size:var(--fs-h3);letter-spacing:-.02em;color:var(--c950);filter:url(#inkBig)}
 .csName .soon{font-weight:600;font-size:.62em;letter-spacing:0;color:var(--c500);margin-left:.5em;vertical-align:baseline}
-.csYear{font-family:var(--sans);font-weight:600;font-size:var(--fs-h4);letter-spacing:-.01em;color:var(--c500);font-variant-numeric:tabular-nums;filter:url(#inkBig)}.csItem.wip .csYear{border:1px dashed rgba(8,8,8,.34);border-radius:4px;padding:8px 16px;font-size:var(--fs-label);color:var(--c700);line-height:1;filter:none;align-self:center}
+.csYear{font-family:var(--sans);font-weight:600;font-size:var(--fs-h4);letter-spacing:-.01em;color:var(--c500);font-variant-numeric:tabular-nums;filter:url(#inkBig)}.csItem.wip .csYear{border:1px dashed var(--c100);border-radius:4px;padding:8px 16px;font-size:var(--fs-label);color:var(--c700);line-height:1;filter:none;align-self:center}
 /* cursor-following case-study reader (desktop hover only) */
 .csCursor{position:fixed;top:0;left:0;width:0;height:0;z-index:131;pointer-events:none;opacity:0;transition:opacity .16s cubic-bezier(.2,.8,.2,1)}
 .csCursor.on{opacity:1}
@@ -1219,6 +1219,18 @@ nav .logo{padding:8px 12px;min-height:44px;height:44px;justify-content:center}
    left-aligned to the word can run past the margin -- this pins the RIGHT edge to the page
    column while leaving the left under Play whenever there is room (handled in JS below). */
 .moodMenu{max-width:min(196px,44vw)!important}
+
+/* ONE WORDMARK. index had it at 17px in a <span>; the sub-pages at 15px in an <a>, with 8x12
+   padding while every other nav item runs 12x16 -- so it sat on a different baseline rhythm
+   from its own neighbours. One size, one padding, one element behaviour, everywhere. */
+nav .logo{font-size:15px!important;letter-spacing:.08em!important;line-height:1!important;
+ padding:12px 16px!important;min-height:44px;height:44px;
+ display:flex!important;flex-direction:column;align-items:center;justify-content:center;
+ text-decoration:none;color:var(--c950)}
+nav .logo .logoLine{display:block}
+nav .logo .logoL1{font-stretch:85.8%}
+/* Contact was pad 0 on the home page and 12x16 everywhere else */
+nav .talk,.talk{padding:12px 16px!important;min-height:44px}
 </style></head>
 <body>
 <a class="skipLink" href="#main">Skip to content</a>
@@ -4944,7 +4956,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   var css=document.createElement("style");
   css.textContent="body.hmRace .stagewrap{opacity:0;pointer-events:none}body.hmRace .heroCopy>h1,body.hmRace .heroCopy>.sub,body.hmRace .heroCopy>.heroCtas{opacity:0!important;pointer-events:none!important}body.hmRace .heroCopy>.heroAvail{opacity:0!important;pointer-events:none!important}body.hmRace .moodMenu .moodItem:not(#endGame),body.hmRace .moodMenu .moodGo{opacity:.38;pointer-events:none}"
    +".hmRaceWrap{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:2;opacity:0;transition:opacity .4s cubic-bezier(.2,.8,.2,1)}body.hmRace .hmRaceWrap{opacity:1}"
-   +".hmRacePeg{position:absolute;border-radius:50%;background:var(--c50);border:1px solid rgba(8,8,8,.18);box-shadow:0 2px 4px rgba(22,22,28,.12)}"
+   +".hmRacePeg{position:absolute;border-radius:50%;background:var(--c50);border:1px solid var(--c100);box-shadow:0 2px 4px rgba(22,22,28,.12)}"
    +".hmRaceSeg{position:absolute;height:8px;border-radius:5px;background:var(--c50);box-shadow:0 1px 2px rgba(22,22,28,.08);border:1px solid rgba(22,22,28,.14);transform-origin:0 50%}"
    +".hmRaceSeg.spin{border:2px solid #7b5fd0}.hmRaceSeg.gate{border:2px solid var(--c950)}"
    +".hmRaceFin{position:absolute;height:16px;background:repeating-linear-gradient(90deg,#212121 0 14px,#FDFDFD 14px 28px);border-radius:3px;box-shadow:0 4px 12px -3px rgba(22,22,28,.4)}"
@@ -5757,8 +5769,16 @@ function buildTeams(cb){
     // A named head names its team. Colour is the fallback, and stays the visual identity either
     // way (the bar, the ring, the nets), so "Sam vs Grey" still reads unambiguously.
     var cap = caps[i] || null;
-    var nm = (cap && cap.name && String(cap.name).trim()) ? String(cap.name).trim().slice(0, 14)
-           : ((cap && cap.__mirror) ? 'Jayden' : pal.n);
+    // ONLY A HEAD THAT WEARS THE COLOUR MAY BE NAMED AFTER IT. A dyed egghead literally is that
+    // colour, so "Green" is true. One of the visitor's own saved heads keeps its own colours --
+    // calling its team "Yellow" while it renders blue is the confusing case Jayden flagged, and
+    // it was hitting 5 of 8 teams. Mini-Jayden is always himself. Unnamed saved heads get an
+    // ordinal instead of a colour they do not wear.
+    var nm;
+    if (cap && cap.name && String(cap.name).trim()) nm = String(cap.name).trim().slice(0, 14);
+    else if (cap && cap.__mirror)                   nm = 'Jayden';
+    else if (!cap || cap.__egg)                     nm = pal.n;      // a dyed egghead: the colour is true
+    else                                            nm = 'Player ' + (i + 1);
     teams.push({ id: 'tm' + i, name: nm, col: pal.c, colName: pal.n, seed: i + 1,
                  captain: cap, squad: [], out: false });
   }
@@ -5779,7 +5799,7 @@ function buildTeams(cb){
           // __filler is the mini-Jayden flag: "spawns already active, no intro". Without it a fresh
           // head waits on the big head's intro sequence before its toss-in -- and the big head is
           // hidden during a tournament, so squads spawned and then sat at opacity 0 forever.
-          var d = { cut: cut, eyes: EGG.eyes || [], marks: EGG.marks || null, __noIntro: true };
+          var d = { cut: cut, eyes: EGG.eyes || [], marks: EGG.marks || null, __noIntro: true, __egg: true };
           if (isCap && !tm.captain) tm.captain = d; else tm.squad.push(d);
           if (--pending <= 0) finish();
         });
