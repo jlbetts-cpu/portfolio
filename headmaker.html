@@ -149,6 +149,22 @@ a:focus-visible,button:focus-visible,.hmDot:focus-visible{outline:2px solid var(
 .hmNameSay{margin:4px 0 0;font-family:var(--sans);font-size:var(--fs-small);color:var(--c500);min-height:1.4em}
 .hmNameSay b{font-weight:600;color:var(--c950)}
 @media(prefers-reduced-motion:reduce){.hmNameOk{transition:none}}
+
+/* ONE HEADER HEIGHT SITE-WIDE. The home page's wordmark stacks over two lines (~44px) while a
+   sub-page title is one line (~33px), so the header jumped 11px every time you moved between
+   them. box-sizing is border-box here, so this has to cover the 32px padding too. */
+nav{min-height:76px}
+/* Controls that had no hover at all: the case-study card link, the chapter nav, the compare
+   handle and the skip link. Same wash as everything else -- one feedback, no exceptions. */
+.csGo,.chap,.cmpHandle,.skipLink,.abBack,.back,.talk,.footIn,.abLink,.hmPitX,.hmPitPick{
+ transition:background-color .16s cubic-bezier(.2,.8,.2,1),color .16s cubic-bezier(.2,.8,.2,1);
+}
+.csGo:hover,.chap:hover,.cmpHandle:hover,.skipLink:hover,.abBack:hover,.back:hover,.talk:hover,
+.footIn:hover,.abLink:hover,.hmPitX:hover,.hmPitPick:hover,
+.csGo:focus-visible,.chap:focus-visible,.abBack:focus-visible,.back:focus-visible,
+.talk:focus-visible,.footIn:focus-visible,.abLink:focus-visible{
+ background:var(--c75);color:var(--c950);
+}
 </style>
 </head>
 <body>
@@ -861,19 +877,7 @@ document.getElementById("save").addEventListener("click",function(){
   css+="#cap{position:relative;width:440px;height:528px;overflow:hidden}";
   var defs="";["inkEye","inkSm","inkBig"].forEach(function(idf){var ff=document.getElementById(idf);if(ff)defs+=ff.outerHTML;});
   var svg='<svg xmlns="http://www.w3.org/2000/svg" width="'+BAKE_W+'" height="'+BAKE_H+'" viewBox="0 0 440 528"><defs>'+defs+'</defs>'+
-   '<foreignObject width="440" height="528"><div xmlns="http://www.w3.org/1999/xhtml" id="cap"><style>'+css+'
-/* Controls that had no hover at all: the case-study card link, the chapter nav, the compare
-   handle and the skip link. Same wash as everything else -- one feedback, no exceptions. */
-.csGo,.chap,.cmpHandle,.skipLink,.abBack,.back,.talk,.footIn,.abLink,.hmPitX,.hmPitPick{
- transition:background-color .16s cubic-bezier(.2,.8,.2,1),color .16s cubic-bezier(.2,.8,.2,1);
-}
-.csGo:hover,.chap:hover,.cmpHandle:hover,.skipLink:hover,.abBack:hover,.back:hover,.talk:hover,
-.footIn:hover,.abLink:hover,.hmPitX:hover,.hmPitPick:hover,
-.csGo:focus-visible,.chap:focus-visible,.abBack:focus-visible,.back:focus-visible,
-.talk:focus-visible,.footIn:focus-visible,.abLink:focus-visible{
- background:var(--c75);color:var(--c950);
-}
-</style>'+cl.outerHTML+'</div></foreignObject></svg>';
+   '<foreignObject width="440" height="528"><div xmlns="http://www.w3.org/1999/xhtml" id="cap"><style>'+css+'</style>'+cl.outerHTML+'</div></foreignObject></svg>';
   var im=new Image();
   im.onload=function(){try{x.drawImage(im,0,0,BAKE_W,BAKE_H);finish();}catch(_e2){legacy();}};
   im.onerror=function(){legacy();};
