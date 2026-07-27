@@ -13,7 +13,7 @@
 <link rel="preload" as="font" type="font/woff2" href="fonts/instrument-sans-latin-400-normal.woff2" crossorigin><link rel="preload" as="font" type="font/woff2" href="fonts/instrument-sans-latin-500-normal.woff2" crossorigin><link rel="preload" as="font" type="font/woff2" href="fonts/instrument-sans-latin-600-normal.woff2" crossorigin><link rel="preload" as="font" type="font/woff2" href="fonts/instrument-sans-latin-700-normal.woff2" crossorigin>
 <style>
 :root{--sp-8-16:16px;--sp-16-24:24px;--sp-24-32:32px;--sp-32-48:48px;--sp-40-64:64px;--sp-48-80:80px;--sp-72-144:144px;--sp-80-152:152px;--c50:#FDFDFD;--c100:#E6E6E6;--c500:#838383;--c600:#6B6B6B;--c700:#525252;--c900:#212121;--c950:#121212;
- --sans:"Instrument Sans",-apple-system,system-ui,sans-serif;--fs-hero:clamp(33px,3.9vw,52px);--fs-h2:clamp(26px,2.5vw,36px);--fs-prose:clamp(17px,1.39vw,20px);--fs-body:16px;--fs-small:15px;--fs-label:13px;--lh-prose:1.6;}
+ --sans:"Instrument Sans",-apple-system,system-ui,sans-serif;--fs-pagehead:clamp(33px,3.9vw,52px);--fs-h2:clamp(26px,2.5vw,36px);--fs-prose:clamp(17px,1.39vw,20px);--fs-body:16px;--fs-small:15px;--fs-label:13px;--lh-prose:1.6;}
 @font-face{font-family:"Instrument Sans";font-style:normal;font-weight:400;font-display:swap;src:url(fonts/instrument-sans-latin-400-normal.woff2) format("woff2")}@font-face{font-family:"Instrument Sans";font-style:normal;font-weight:500;font-display:swap;src:url(fonts/instrument-sans-latin-500-normal.woff2) format("woff2")}@font-face{font-family:"Instrument Sans";font-style:normal;font-weight:600;font-display:swap;src:url(fonts/instrument-sans-latin-600-normal.woff2) format("woff2")}@font-face{font-family:"Instrument Sans";font-style:normal;font-weight:700;font-display:swap;src:url(fonts/instrument-sans-latin-700-normal.woff2) format("woff2")}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html{overflow-x:clip}
@@ -27,7 +27,7 @@ nav{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;column-ga
 .back:hover,.talk:hover,.back:focus-visible,.talk:focus-visible{border-color:var(--c500);color:var(--c950)}
 .navTitle{grid-column:2;justify-self:center;font-weight:600;font-size:var(--fs-small);color:var(--c700);filter:url(#inkSm);white-space:nowrap}
 .content{max-width:680px;margin:0 auto}
-.head{font-weight:600;font-size:var(--fs-hero);line-height:1.12;letter-spacing:-.016em;margin:28px 0 0;filter:url(#inkBig)}
+.head{font-weight:600;font-size:var(--fs-pagehead);line-height:1.12;letter-spacing:-.016em;margin:28px 0 0;filter:url(#inkBig)}
 .lede{font-weight:400;font-size:var(--fs-prose);line-height:var(--lh-prose);color:var(--c700);margin:var(--sp-16-24) 0 0;text-wrap:pretty}
 .lede strong{font-weight:600;color:var(--c950)}
 .kicker{font-weight:600;font-size:var(--fs-label);letter-spacing:.01em;color:var(--c500);filter:url(#inkSm);margin:var(--sp-72-144) 0 0}#step1 .kicker{margin-top:36px}
