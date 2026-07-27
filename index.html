@@ -3867,12 +3867,12 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
  var barFill=document.createElement("i");bar.appendChild(barFill);
  hero.appendChild(shadow);hero.appendChild(root);hero.appendChild(bar);
  // --- world geometry ---
- var heroR,floorY,plats,avoids,bigR,M=40,WL=2,WR=9999,FOOT=0.945,crownFrac=0.08;
+ var heroR,floorY,plats,avoids,bigR,M=40,WL=2,WR=9999,FOOT=0.945,crownFrac=0.08;window.__hmFOOT=FOOT;
  (function(){try{var ci=new Image();ci.onload=function(){try{
   var cv3=document.createElement("canvas");cv3.width=36;cv3.height=44;var cx3=cv3.getContext("2d");
   cx3.drawImage(ci,0,0,36,44);var d3=cx3.getImageData(0,0,36,44).data;
   for(var row=43;row>=0;row--){for(var col=0;col<36;col++){if(d3[(row*36+col)*4+3]>40){
-   FOOT=Math.min(0.99,(row+1)/44);
+   FOOT=Math.min(0.99,(row+1)/44);window.__hmFOOT=FOOT;
    try{survey();}catch(_){}   // RE-SURVEY. floorY is computed as fY-HH*FOOT inside survey(), which runs
    // SYNCHRONOUSLY at spawn -- but this scan is an image onload, so it always lands after it. Every
    // head therefore stood on the DEFAULT 0.945. For a normal cutout that is nearly right (their real
@@ -4844,7 +4844,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    return {x:r.left+r.width/2-hr.left,y:r.top+r.height/2-hr.top};}
   function ballInTitle(on){if(!board)return;board.classList.toggle("ballOut",!on);
    if(on)board.classList.remove("ballFell");}
-  var _spawnY=null,_curveTo=0,_curving=false;
+  var _spawnY=null,_curveTo=0,_curving=false,_cvOn=false,_cvA=0,_cvS=1;
   var _deckT=0,DECK_MAX=2.6;   // seconds the ball may spend CONTINUOUSLY on the deck before it gets
   // squirted back into the air. Measured first: over a 75s match the ball was on the ground 58.7s
   // of it (78%), in episodes of 17.7s, 6.9s, 6.2s, 5.9s, 5.8s, 5.1s, 4.2s... The longest one
@@ -4900,14 +4900,14 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   function showCount(t){if(!countEl)return;countEl.textContent=t;countEl.classList.remove("hmCountPulse");void countEl.offsetWidth;countEl.classList.add("hmCountPulse");}
   var RED="224,90,78",BLUE="90,160,216";
   function kickoffCountdown(){S.kickSeed=(S.kickSeed||0)+1;   // the match opener: everyone to their half, then 3-2-1
-   var _bh=ballHome();bx=_bh?_bh.x:(XL+XR)/2;by=_bh?_bh.y:70;bsp=ballSpawnScale();_spawnY=by;_curveTo=(XL+XR)/2;_curving=true;bvx=0;bvy=0;_deckT=0;S.phase="count";
+   var _bh=ballHome();bx=_bh?_bh.x:(XL+XR)/2;by=_bh?_bh.y:70;bsp=ballSpawnScale();_spawnY=by;_curveTo=(XL+XR)/2;_curving=true;_cvOn=false;bvx=0;bvy=0;_deckT=0;S.phase="count";
    var n=3;showCount(n);
    (function tick(){if(!S.on)return;
     if(n>1){n--;setTimeout(function(){showCount(n);tick();},800);}
     else{setTimeout(function(){if(!S.on)return;showCount("GO");
      setTimeout(function(){if(!S.on)return;if(countEl)countEl.textContent="";bvy=30;S.phase="play";},560);},800);}})();}
   function dropIn(){S.kickSeed=(S.kickSeed||0)+1;   // after a goal: no countdown, the ball just drops back in as they return to their sides
-   var _bh2=ballHome();bx=_bh2?_bh2.x:(XL+XR)/2;by=_bh2?_bh2.y:60;bsp=ballSpawnScale();_spawnY=by;_curveTo=(XL+XR)/2;_curving=true;bvx=(Math.random()*80-40);bvy=20;_deckT=0;S.phase="reset";
+   var _bh2=ballHome();bx=_bh2?_bh2.x:(XL+XR)/2;by=_bh2?_bh2.y:60;bsp=ballSpawnScale();_spawnY=by;_curveTo=(XL+XR)/2;_curving=true;_cvOn=false;bvx=(Math.random()*80-40);bvy=20;_deckT=0;S.phase="reset";
    setTimeout(function(){if(S.on)S.phase="play";},650);}
   function goalBurst(team,gx,gy){try{   // the ball bursts, and confetti erupts from the goal it went in
    if((window.__hmFx||0)>=2)return;window.__hmFx=(window.__hmFx||0)+1;
@@ -4998,7 +4998,14 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
     if(bx<XL+BR-3)bx=XL+BR-3;if(bx>XR-BR+3)bx=XR-BR+3;
    }
    if(S.phase==="play"){
-    bvy+=GRAV*dt;bvx*=Math.pow(0.78,dt);   // light aerodynamic drag: a struck ball keeps its momentum across the pitch
+    bvy+=GRAV*dt;
+    /* KICKOFF FAIRNESS. The curve used to be solved for the speed that ARRIVES at the centre
+       spot -- so the ball reached the middle still carrying it. The scoreboard ball sits 64px
+       RIGHT of the pitch centre, so every kickoff drifted LEFT at a measured 80-99px/s and
+       handed the right-hand side a free push at the left goal. Now it decelerates over the
+       fall and arrives at REST: constant a, v0=2dx/t, a=-v0/t covers dx in exactly t. */
+    if(_cvOn){bvx+=_cvA*dt;if(_cvS>0?(bvx<0):(bvx>0)){bvx=0;_cvOn=false;}}
+    else bvx*=Math.pow(0.78,dt);   // light aerodynamic drag: a struck ball keeps its momentum across the pitch
     if(_curving&&(_spawnY==null||by-_spawnY>BR*1.4)){_curving=false;   // THE CURVE, solved ballistically
      // instead of steered, and held until the ball has DROPPED CLEAR of the headline -- bending it
      // in on the very first frame of play started the leftward move while it was still level with
@@ -5008,12 +5015,14 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
      // reached the ball. Give it the horizontal speed that ARRIVES at the centre spot exactly as
      // it lands, and gravity draws the arc for free. The ball still leaves the title where it
      // sits, so the wordmark never has to move, and the kickoff is still fair.
-     var _tf=Math.sqrt(Math.max(0.04,2*Math.max(0,REST-by)/GRAV));
-     bvx=((_curveTo-bx)/_tf)*1.07;}   // *1.07 covers the drag it meets on the way down
+     var _dy=Math.max(0,REST-by),
+         _tf=Math.max(0.04,(-bvy+Math.sqrt(Math.max(0,bvy*bvy+2*GRAV*_dy)))/GRAV),
+         _dx=_curveTo-bx;
+     bvx=2*_dx/_tf;_cvA=-bvx/_tf;_cvS=bvx>=0?1:-1;_cvOn=Math.abs(_dx)>0.5;}   // no drag fudge needed: the solve is exact
     bx+=bvx*dt;by+=bvy*dt;
     if(by>REST){   // meets the pitch
      if(Math.abs(bvy)>50){var kg=Math.min(0.14,Math.abs(bvy)*0.00016);bsyP=1-kg;bsxP=1/(1-kg);bsT=0.12;bvy=-bvy*0.72;}else bvy=0;   // squash + bounce, e=0.72 (grass, not a superball)
-     by=REST;bvx*=0.9;}
+     by=REST;if(_cvOn){bvx=0;_cvOn=false;}else bvx*=0.9;}
     var onGround=by>=REST-1;
     if(onGround&&Math.abs(bvy)<70){var rf=Math.min(Math.abs(bvx),0.075*GRAV*dt);bvx-=(bvx>0?1:-1)*rf;}   // rolling resistance as a CONSTANT deceleration (mu_r*g, mu_r~0.075 for grass), not a made-up exponential -- the ball rolls, then slows honestly
     if(onGround&&Math.abs(bvx)<9&&Math.abs(bvy)<12){bvx=0;bvy=0;}   // and it settles fully -- no hover, no jitter
@@ -5637,13 +5646,28 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
 
  // mini-Jayden: when a game has an ODD number of players, the big head shrinks in to even the sides (and makes a 1-head game playable)
  var fillerActive=false,FSLOT=9001,fillerCut=null;
- function fillerData(){   // split out so the TOURNAMENT can field him as a captain, not just spawn him
+ /* ---- Mini-Jayden stands on his CHIN, not on his frame. The big head is a SQUARE cutout
+   with its own transparent margin below the chin, so drawing it at (0,0,500,500) into a
+   500x600 frame put his ink bottom at 0.748 of the box. Every other head is a headmaker
+   cut whose ink bottom sits at 0.9375. The engine has ONE global FOOT (0.945) used as
+   HH*FOOT in ~25 physics sites, so a single constant cannot serve both -- he floated by
+   ~19% of his own height, which is the gap you see at his chin. Rather than thread a
+   per-head foot through the whole solver, measure his real ink bottom and shift the draw
+   so it lands on the same plane. Self-correcting if the art or FOOT ever changes. ---- */
+function bakeMiniCut(img){
+ var W=500,H=600,c=document.createElement("canvas");c.width=W;c.height=H;
+ var g=c.getContext("2d");g.drawImage(img,0,0,W,W);
+ try{var d=g.getImageData(0,0,W,H).data,last=-1,y,x;
+  for(y=H-1;y>=0&&last<0;y--){for(x=0;x<W;x++){if(d[(y*W+x)*4+3]>24){last=y;break;}}}
+  var target=Math.round(H*(window.__hmFOOT||0.945));
+  if(last>0&&Math.abs(target-last)>1){g.clearRect(0,0,W,H);g.drawImage(img,0,target-last,W,W);}
+ }catch(_){}
+ var u=c.toDataURL("image/webp",0.92);
+ return u.indexOf("data:image/webp")===0?u:c.toDataURL("image/png");}
+function fillerData(){   // split out so the TOURNAMENT can field him as a captain, not just spawn him
   var face=document.getElementById("face");if(!face||!face.complete||!face.naturalWidth)return null;
   // the big head is a SQUARE cutout; bake it into a 5:6 frame at its true aspect (never stretched) so the mini-Jayden reads exactly like him, just smaller
-  try{var W=500,H=600,c=document.createElement("canvas");c.width=W;c.height=H;var g=c.getContext("2d");
-   g.drawImage(face,0,0,W,W);   // his square face fills the width, head at the top of the frame (chin ~0.83, feet-space below)
-   fillerCut=c.toDataURL("image/webp",0.92);if(fillerCut.indexOf("data:image/webp")!==0)fillerCut=c.toDataURL("image/png");
-  }catch(_){fillerCut=face.src;}
+  try{fillerCut=bakeMiniCut(face);}catch(_){fillerCut=face.src;}
   // his REAL feature positions (from FACES.rest), mapped square->5:6 by dividing y by 1.2
   var data={cut:fillerCut,__filler:true,__mirror:true,   // __mirror: it IS the big head, cloned and shrunk -- same face, same eyes, same expressions
    eyes:[{x:0.400,y:0.431,w:0.100,h:0.040,ang:0,sc:"rgb(236,234,229)",ic:[46,35,28]},{x:0.603,y:0.439,w:0.100,h:0.040,ang:0,sc:"rgb(236,234,229)",ic:[46,35,28]}],
@@ -5653,7 +5677,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
  window.__hmFillerAdd=function(){if(fillerActive)return;var data=fillerData();if(!data)return;
   spawnCompanion(data,FSLOT);var m=peers[peers.length-1];if(m)m.__filler=true;fillerActive=true;
   // he has more to work with than the little heads: bake his SMILE too, so the mini-Jayden grins when he scores or wins
-  try{var si=new Image();si.onload=function(){try{var sc=document.createElement("canvas");sc.width=500;sc.height=600;sc.getContext("2d").drawImage(si,0,0,500,500);var scut=sc.toDataURL("image/webp",0.92);if(scut.indexOf("data:image/webp")!==0)scut=sc.toDataURL("image/png");if(m)m.__smileCut=scut;}catch(_){}};si.src="images/smile.webp";}catch(_){}};
+  try{var si=new Image();si.onload=function(){try{var scut=bakeMiniCut(si);if(m)m.__smileCut=scut;}catch(_){}};si.src="images/smile.webp";}catch(_){}};
  window.__hmFillerRemove=function(){if(!fillerActive)return;try{if(window.__hmKill&&fillerCut){window.__hmKill(fillerCut);var L=window.__hmLive||[];for(var i=L.length-1;i>=0;i--){if(L[i].cut===fillerCut)L.splice(i,1);}}}catch(_){}fillerActive=false;fillerCut=null;};   // also drop the dead __hmLive entry so it can't pile up across games
  window.__hmRealHeads=function(){var n=0;for(var i=0;i<peers.length;i++){if(!peers[i].__filler)n++;}return n;};
  window.__hmSlotFor=function(cut){for(var i=0;i<peers.length;i++)if(peers[i].cut===cut)return peers[i].slot;return null;};   // already on the pitch? reuse it
