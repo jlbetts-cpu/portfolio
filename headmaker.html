@@ -141,6 +141,14 @@ a:focus-visible,button:focus-visible,.hmDot:focus-visible{outline:2px solid var(
 .hmName:hover{border-color:var(--c500)}
 .hmName:focus{outline:none;border-color:var(--c950)}
 .hmName::placeholder{color:var(--c400)}
+.hmNameOk{font-family:var(--sans);font-size:var(--fs-label);color:var(--c500);opacity:0;transform:translateY(2px);
+ transition:opacity .18s cubic-bezier(.2,.8,.2,1),transform .18s cubic-bezier(.2,.8,.2,1);pointer-events:none}
+.hmNameOk.on{opacity:1;transform:translateY(0)}
+/* The nameplate is the real confirmation: you watch the head take the name. "Saved" only
+   answers the second question -- did it stick. */
+.hmNameSay{margin:4px 0 0;font-family:var(--sans);font-size:var(--fs-small);color:var(--c600);min-height:1.4em}
+.hmNameSay b{font-weight:600;color:var(--c950)}
+@media(prefers-reduced-motion:reduce){.hmNameOk{transition:none}}
 </style>
 </head>
 <body>
@@ -262,7 +270,9 @@ a:focus-visible,button:focus-visible,.hmDot:focus-visible{outline:2px solid var(
    <div class="hmRow hmNameRow">
     <label class="hmNameLbl" for="hmName">Name this head</label>
     <input class="hmName" id="hmName" type="text" maxlength="14" placeholder="Who is this?" autocomplete="off" spellcheck="false">
+    <span class="hmNameOk" id="hmNameOk" aria-hidden="true">Saved</span>
    </div>
+   <p class="hmNameSay" id="hmNameSay" role="status" aria-live="polite"></p>
    <div class="hmRow">
     <button class="hmBtn ghost" type="button" id="restart">Start over</button>
     
@@ -965,16 +975,39 @@ try{restoreHead(JSON.parse(localStorage.getItem("hmCompanion")||"null"));}catch(
 <script>
 (function(){   // name the head that is on stage; it is already saved by the time this field shows
  var inp=document.getElementById("hmName");if(!inp)return;
- function newest(a){return a&&a.length?a[a.length-1]:null;}
+ var ok=document.getElementById("hmNameOk"), say=document.getElementById("hmNameSay"), okT=0;
+
+ // THE HEAD ON STAGE, not simply the last one saved. This used to take a[a.length-1]
+ // unconditionally, so returning to the page with an earlier head restored typed the name onto
+ // whichever head happened to be last in the array -- the name went somewhere you could not see.
+ // hmCompanion holds the head currently on stage; match it by cut and fall back to newest.
+ function target(a){
+  if(!a||!a.length)return null;
+  try{var cur=JSON.parse(localStorage.getItem("hmCompanion")||"null");
+   if(cur&&cur.cut)for(var i=a.length-1;i>=0;i--)if(a[i].cut===cur.cut)return a[i];}catch(_){}
+  return a[a.length-1];}
+
+ function tell(n){ if(!say)return;
+  say.innerHTML = n ? 'This head answers to <b></b>.' : '';
+  if(n)say.querySelector('b').textContent=n;}   // textContent, so a typed "<b>" stays literal
+
+ function flash(){ if(!ok)return; ok.classList.add("on"); clearTimeout(okT);
+  okT=setTimeout(function(){ok.classList.remove("on");},1400);}
+
  function apply(){var n=(inp.value||"").trim().slice(0,14);
-  try{var a=JSON.parse(localStorage.getItem("hmCompanions")||"[]")||[];var h=newest(a);
-   if(h){h.name=n;localStorage.setItem("hmCompanions",JSON.stringify(a));
+  var wrote=false;
+  try{var a=JSON.parse(localStorage.getItem("hmCompanions")||"[]")||[];var h=target(a);
+   if(h){h.name=n;localStorage.setItem("hmCompanions",JSON.stringify(a));wrote=true;
     var l=JSON.parse(localStorage.getItem("hmCompanion")||"null");
     if(l&&l.cut===h.cut){l.name=n;localStorage.setItem("hmCompanion",JSON.stringify(l));}}
-  }catch(_){}}
+  }catch(_){}
+  tell(n);
+  if(wrote&&n)flash();
+  else if(!wrote&&say)say.textContent="Could not save that name \u2014 your browser is blocking storage.";}
+
  inp.addEventListener("input",apply);
- try{var a0=JSON.parse(localStorage.getItem("hmCompanions")||"[]")||[];var h0=newest(a0);
-  if(h0&&h0.name)inp.value=h0.name;}catch(_){}
+ try{var a0=JSON.parse(localStorage.getItem("hmCompanions")||"[]")||[];var h0=target(a0);
+  if(h0&&h0.name){inp.value=h0.name;tell(h0.name);}}catch(_){}
 })();
 </script>
 </body>
