@@ -959,20 +959,20 @@ body.navOpen .navDrawer{transform:translateY(0);opacity:1;visibility:visible;box
    the site. Leaderboards carry a face, a team dot, the rating and one number -- at 390px there is
    room for a name column plus about three numerics, and that is the whole budget. ---- */
 .tourPanel{position:absolute;left:50%;top:clamp(84px,13vh,150px);transform:translateX(-50%);z-index:47;
- width:min(540px,calc(100vw - 44px));display:flex;flex-direction:column;align-items:center;
- gap:clamp(16px,2.6vh,26px);font-family:var(--sans);color:var(--c950);text-align:center;
+ width:min(540px,calc(100vw - var(--sp-16-24)*2));display:flex;flex-direction:column;align-items:center;
+ gap:var(--sp-16-24);font-family:var(--sans);color:var(--c950);text-align:center;
  animation:tourIn .42s cubic-bezier(.2,.8,.2,1) both}
 @keyframes tourIn{from{opacity:0;transform:translateX(-50%) translateY(10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
 @media(prefers-reduced-motion:reduce){.tourPanel{animation:none}}
 .tourPanel[hidden]{display:none}
 body.hmSoccer .tourPanel{display:none}   /* the pitch owns the screen during a fixture */
 .tDot{display:inline-block;width:.52em;height:.52em;border-radius:50%;margin-right:.42em;vertical-align:baseline;flex:0 0 auto}
-.tNext{display:flex;flex-direction:column;align-items:center;gap:clamp(6px,1vh,10px)}
+.tNext{display:flex;flex-direction:column;align-items:center;gap:8px}
 .tNextLbl{font-size:var(--fs-small);font-weight:500;color:var(--c500);letter-spacing:.02em}
 .tPair{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:.1em;
  font-size:var(--fs-heroline);font-weight:700;line-height:1.06;letter-spacing:-.015em}
 .tVs{color:var(--c400);font-weight:400;margin:0 .5em}
-.tGo{margin-top:clamp(4px,.8vh,10px);background:none;border:1px solid var(--c100);border-radius:4px;
+.tGo{margin-top:8px;background:none;border:1px solid var(--c100);border-radius:4px;
  padding:11px 22px;min-height:44px;font-family:var(--sans);font-weight:500;font-size:var(--fs-body);
  color:var(--c950);cursor:pointer;transition:border-color .2s cubic-bezier(.2,.8,.2,1)}
 .tGo:hover,.tGo:focus-visible{border-color:var(--c500)}
@@ -999,39 +999,50 @@ body.hmTour .heroCopy h1,body.hmTour .hero .stagewrap{opacity:0;pointer-events:n
 body.hmTour .scrollCue{display:none}
 .tourPanel{top:50%;transform:translate(-50%,-50%)}
 @keyframes tourIn{from{opacity:0;transform:translate(-50%,-50%) translateY(10px)}to{opacity:1;transform:translate(-50%,-50%) translateY(0)}}
-@media(max-width:640px){.tourPanel{gap:14px;width:calc(100vw - 36px)}.tRounds{gap:10px}}
+/* The mobile hero is min-height:auto, so centring inside it is meaningless -- an 8-team panel
+   overflowed upward and collided with the wordmark. Give the hero a screen while the tournament
+   owns it, and anchor the panel under the nav instead of centring it. */
+body.hmTour .hero{min-height:calc(100svh - 68px)}
+@media(max-width:640px){
+ .tourPanel{top:16px;transform:translateX(-50%);gap:14px;width:calc(100vw - 32px);
+  animation:tourInM .42s cubic-bezier(.2,.8,.2,1) both}
+ @keyframes tourInM{from{opacity:0;transform:translateX(-50%) translateY(10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+}
 /* ---- THE BRACKET ITSELF: columns per round, cards per fixture, pairs joined into the next
    round. A tree is the wrong shape for a big bracket (vertical collapse is unsolved in CSS) but
    this one is capped at 8 teams -- 3 columns, 7 cards -- so it fits, and a real bracket is what a
    bracket should look like. ---- */
 .tBr{display:flex;align-items:stretch;gap:0;width:100%;justify-content:center}
-.tCol{display:flex;flex-direction:column;gap:8px;min-width:0;flex:1 1 0;max-width:190px}
+.tCol{display:flex;flex-direction:column;gap:8px;min-width:0;flex:1 1 0;max-width:176px}
 .tColLbl{font-size:var(--fs-label);font-weight:600;color:var(--c500);letter-spacing:.045em;text-transform:uppercase}
-.tColBody{display:flex;flex-direction:column;justify-content:space-around;flex:1;gap:clamp(10px,2vh,20px)}
-.tPr{position:relative;display:flex;flex-direction:column;justify-content:space-around;flex:1;gap:clamp(10px,2vh,20px)}
+.tColBody{display:flex;flex-direction:column;justify-content:space-around;flex:1;gap:16px}
+.tPr{position:relative;display:flex;flex-direction:column;justify-content:space-around;flex:1;gap:16px}
 .tPr:not(.tPrLast)::after{content:"";position:absolute;left:calc(100% + 13px);top:25%;bottom:25%;width:1px;background:var(--c100)}
 .tM{position:relative;display:flex;flex-direction:column;border:1px solid var(--c100);border-radius:4px;
  background:var(--c50);overflow:hidden;transition:border-color .3s cubic-bezier(.2,.8,.2,1)}
 .tM.tLive{border-color:var(--c950)}
 .tPr:not(.tPrLast) .tM::after{content:"";position:absolute;left:100%;top:50%;width:13px;height:1px;background:var(--c100)}
-.tT{display:flex;align-items:center;gap:7px;padding:5px 9px 5px 6px;font-size:var(--fs-small);line-height:1.25;
- white-space:nowrap;overflow:hidden;text-align:left}
-/* The face IS the team badge -- a colour swatch alone never says whose side it is. Ringed in the
-   team colour so the identity is carried twice: by the head and by the ring around it. */
-.tFaceW{position:relative;flex:0 0 auto;width:26px;height:26px;border-radius:50%;overflow:hidden;
- background:var(--c50);display:inline-flex;align-items:flex-end;justify-content:center}
-.tFaceW img{width:150%;height:150%;object-fit:contain;object-position:center 22%}
-.tFaceEmpty{box-shadow:inset 0 0 0 1px var(--c100)!important}
-.tFaceBig{width:40px;height:40px;margin-right:.34em;vertical-align:middle}
-.tTeamNm{vertical-align:middle}
+.tT{display:flex;align-items:center;gap:8px;padding:6px 10px 6px 8px;font-size:var(--fs-small);line-height:1.2;
+ white-space:nowrap;overflow:hidden;text-align:left;min-height:40px;box-sizing:border-box}
+/* The heads are transparent CUT-OUTS. A circular crop fought their silhouette and clipped hair
+   and chins at every size, so they are shown whole and contained; the colour bar carries the team. */
+.tFaceW{flex:0 0 auto;width:28px;height:28px;display:inline-flex;align-items:center;justify-content:center}
+.tFaceW img{max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;display:block}
+.tFaceEmpty{width:28px}
+.tFaceBig{width:44px;height:44px}
+.tTeamNm{line-height:1}
 .tT+.tT{border-top:1px solid var(--c100)}
 .tT.tWon{font-weight:600}
 .tT.tLost{opacity:.38}
 .tNm{overflow:hidden;text-overflow:ellipsis}
 .tTbd{color:var(--c400)}
+.tQuit{margin-top:8px;background:none;border:0;padding:10px 12px;min-height:44px;
+ font-family:var(--sans);font-weight:500;font-size:var(--fs-small);color:var(--c500);cursor:pointer;
+ transition:color .2s cubic-bezier(.2,.8,.2,1)}
+.tQuit:hover,.tQuit:focus-visible{color:var(--c950)}
 @media(max-width:640px){.tCol{max-width:none}.tColLbl{font-size:10px}
- .tT{padding:4px 6px 4px 4px;font-size:11px;gap:5px}
- .tFaceW{width:20px;height:20px}.tFaceBig{width:30px;height:30px}
+ .tT{padding:5px 7px 5px 6px;font-size:12px;gap:6px;min-height:34px}
+ .tFaceW{width:22px;height:22px}.tFaceBig{width:34px;height:34px}
  .tPr:not(.tPrLast)::after{left:calc(100% + 8px)}.tPr:not(.tPrLast) .tM::after{width:8px}
  .tBr{gap:0}.tColBody{gap:8px}.tPr{gap:8px}}
 </style></head>
@@ -5594,13 +5605,14 @@ function dot(c){ var s = el('span', 'tDot'); s.style.background = rgb(c); return
 // A colour name alone does not say whose team it is -- the captain's face does. Every place a team
 // is named shows the head that leads it, ringed in the team colour.
 function faceOf(tm, cls){
-  var w = el('span', 'tFaceW' + (cls ? ' ' + cls : ''));   // ALWAYS keep the base class: the modifier
-  // alone dropped overflow:hidden and the 150%-scaled head escaped its circle at full size
+  // The heads on this site are transparent cut-outs, not avatars. Cropping them into a circle
+  // fought their own silhouette and clipped hair and chins at every size. Show the whole head,
+  // contained, and let the colour bar carry the team identity instead.
+  var w = el('span', 'tFaceW' + (cls ? ' ' + cls : ''));
   if (tm && tm.captain && tm.captain.cut){
     var im = el('img'); im.src = tm.captain.cut; im.alt = ''; im.draggable = false;
     w.appendChild(im);
   }
-  w.style.boxShadow = 'inset 0 0 0 3px ' + rgb(tm ? tm.col : '0,0,0');
   return w;
 }
 
@@ -5681,6 +5693,13 @@ function paint(){
     br.appendChild(col);
   });
   h.appendChild(br);
+
+  // A way out. Without this the tournament was a trap: the hero is given over to it and there was
+  // no control anywhere to hand the page back.
+  var out = el('button', 'tQuit', T.phase === 'done' ? 'Back to the hero' : 'End tournament');
+  out.type = 'button';
+  out.addEventListener('click', function(e){ e.stopPropagation(); stop(); });
+  h.appendChild(out);
 
 }
 
