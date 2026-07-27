@@ -4517,6 +4517,12 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   function ballInTitle(on){if(!board)return;board.classList.toggle("ballOut",!on);
    if(on)board.classList.remove("ballFell");}
   var _spawnY=null,_curveTo=0,_curving=false;
+  var _deckT=0,DECK_MAX=2.6;   // seconds the ball may spend CONTINUOUSLY on the deck before it gets
+  // squirted back into the air. Measured first: over a 75s match the ball was on the ground 58.7s
+  // of it (78%), in episodes of 17.7s, 6.9s, 6.2s, 5.9s, 5.8s, 5.1s, 4.2s... The longest one
+  // travelled 701px, so this is NOT a standoff in one spot -- the ball simply never gets airborne
+  // and the heads shuffle it along the floor. Hence the trigger is TIME ON THE GROUND, not lack of
+  // movement: a "stuck" test keyed on horizontal range caught 0.0s of that 58.7s.
   var bsp=1;   // ball spawn scale: starts at the title copy's size so the drop reads as the SAME ball growing
   function ballSpawnScale(){var e=board&&board.querySelector(".sBall");var w=e?e.getBoundingClientRect().width:0;
    return w?Math.max(0.18,Math.min(1,w/(2*BR))):0.5;}
@@ -4566,14 +4572,14 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   function showCount(t){if(!countEl)return;countEl.textContent=t;countEl.classList.remove("hmCountPulse");void countEl.offsetWidth;countEl.classList.add("hmCountPulse");}
   var RED="224,90,78",BLUE="90,160,216";
   function kickoffCountdown(){S.kickSeed=(S.kickSeed||0)+1;   // the match opener: everyone to their half, then 3-2-1
-   var _bh=ballHome();bx=_bh?_bh.x:(XL+XR)/2;by=_bh?_bh.y:70;bsp=ballSpawnScale();_spawnY=by;_curveTo=(XL+XR)/2;_curving=true;bvx=0;bvy=0;S.phase="count";
+   var _bh=ballHome();bx=_bh?_bh.x:(XL+XR)/2;by=_bh?_bh.y:70;bsp=ballSpawnScale();_spawnY=by;_curveTo=(XL+XR)/2;_curving=true;bvx=0;bvy=0;_deckT=0;S.phase="count";
    var n=3;showCount(n);
    (function tick(){if(!S.on)return;
     if(n>1){n--;setTimeout(function(){showCount(n);tick();},800);}
     else{setTimeout(function(){if(!S.on)return;showCount("GO");
      setTimeout(function(){if(!S.on)return;if(countEl)countEl.textContent="";bvy=30;S.phase="play";},560);},800);}})();}
   function dropIn(){S.kickSeed=(S.kickSeed||0)+1;   // after a goal: no countdown, the ball just drops back in as they return to their sides
-   var _bh2=ballHome();bx=_bh2?_bh2.x:(XL+XR)/2;by=_bh2?_bh2.y:60;bsp=ballSpawnScale();_spawnY=by;_curveTo=(XL+XR)/2;_curving=true;bvx=(Math.random()*80-40);bvy=20;S.phase="reset";
+   var _bh2=ballHome();bx=_bh2?_bh2.x:(XL+XR)/2;by=_bh2?_bh2.y:60;bsp=ballSpawnScale();_spawnY=by;_curveTo=(XL+XR)/2;_curving=true;bvx=(Math.random()*80-40);bvy=20;_deckT=0;S.phase="reset";
    setTimeout(function(){if(S.on)S.phase="play";},650);}
   function goalBurst(team,gx,gy){try{   // the ball bursts, and confetti erupts from the goal it went in
    if((window.__hmFx||0)>=2)return;window.__hmFx=(window.__hmFx||0)+1;
@@ -4683,6 +4689,19 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
     var onGround=by>=REST-1;
     if(onGround&&Math.abs(bvy)<70){var rf=Math.min(Math.abs(bvx),0.075*GRAV*dt);bvx-=(bvx>0?1:-1)*rf;}   // rolling resistance as a CONSTANT deceleration (mu_r*g, mu_r~0.075 for grass), not a made-up exponential -- the ball rolls, then slows honestly
     if(onGround&&Math.abs(bvx)<9&&Math.abs(bvy)<12){bvx=0;bvy=0;}   // and it settles fully -- no hover, no jitter
+    if(onGround)_deckT+=dt;else if(by<REST-BR*0.6)_deckT=0;   // airborne by more than a ball-radius clears it;
+    // a bobble of a few px on the bounce does NOT, or the timer would reset on every little hop and never fire
+    if(_deckT>DECK_MAX){   // SCRAMBLE POP: too long on the floor, put it back in the air
+     _deckT=0;
+     bvy=-(860+Math.random()*180);   // ~150-215px of clearance at GRAV 2600 (v^2/2g) -- over the heads, not silly
+     var _dir=bvx>=0?1:-1;if(Math.abs(bvx)<1)_dir=Math.random()<0.5?-1:1;
+     bvx=_dir*Math.max(150,Math.abs(bvx)*0.85);   // keeps whatever direction play was going, so it reads as
+     // the ball squirting out of a scramble rather than teleporting
+     bw+=(Math.random()*260-130);   // a little spin off the pile
+     var _kp=0.11;bsyP=1-_kp;bsxP=1/(1-_kp);bsT=0.13;   // the same squash a hard bounce uses. No
+     // particle here on purpose: the soccer module never draws FX (it only calls __hmFX.clear), and
+     // its ball coords are engine-space, not the viewport space burst() wants.
+    }
     if(by<BR+2){by=BR+2;if(Math.abs(bvy)>120){var kc0=Math.min(0.1,Math.abs(bvy)*0.00012);bsyP=1-kc0;bsxP=1/(1-kc0);bsT=0.11;}bvy=Math.abs(bvy)*0.72;}   // ceiling
     var inG=by>groundY-150;
     var gt=groundY-150,overL=(bx+BR>XL&&bx-BR<XL+44),overR=(bx+BR>XR-44&&bx-BR<XR);   // the crossbar
