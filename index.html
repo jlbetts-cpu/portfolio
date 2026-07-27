@@ -960,8 +960,8 @@ body.navOpen .navDrawer{transform:translateY(0);opacity:1;visibility:visible;box
    room for a name column plus about three numerics, and that is the whole budget. ---- */
 .tourPanel{position:absolute;left:50%;top:var(--heroTitleTop,40px);transform:translateX(-50%);z-index:47;
  width:min(540px,calc(100vw - var(--sp-16-24)*2));display:flex;flex-direction:column;align-items:center;
- gap:var(--sp-16-24);font-family:var(--sans);color:var(--c950);text-align:center;
- animation:tourIn .42s cubic-bezier(.2,.8,.2,1) both}
+ gap:var(--sp-8-16);font-family:var(--sans);color:var(--c950);text-align:center;
+ animation:tourIn .42s cubic-bezier(.2,.8,.2,1) both;max-height:calc(100% - var(--heroTitleTop,40px) - 24px)}
 @keyframes tourIn{from{opacity:0;transform:translateX(-50%) translateY(10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
 @media(prefers-reduced-motion:reduce){.tourPanel{animation:none}}
 .tourPanel[hidden]{display:none}
@@ -971,8 +971,18 @@ body.hmSoccer .tourPanel{display:none}   /* the pitch owns the screen during a f
 /* ONE eyebrow style for every small label in this panel -- 'Quarter-final' was rendering as 15px
    sentence case above the pairing and 13px uppercase as the column head, on the same screen. */
 .tLbl{font-size:var(--fs-label);font-weight:600;color:var(--c700);letter-spacing:.04em;text-transform:uppercase;line-height:1}
-.tPair{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:.1em;
- font-size:var(--fs-h1);font-weight:600;line-height:1.06;letter-spacing:-.015em}
+.tPair{display:flex;align-items:flex-end;justify-content:center;gap:clamp(8px,2vw,24px);font-size:var(--fs-h1);font-weight:600;line-height:1.06;letter-spacing:-.015em}
+.tSide{display:flex;flex-direction:column;align-items:center;gap:8px;min-width:0}
+/* THE STARE-DOWN. They face each other -- the cut-outs are shot head-on, so the right side is
+   mirrored. Offset breathing cycles: in sync they read as two stickers; out of sync they read
+   as alive, sizing each other up. */
+.tSideL .tFaceW{animation:tStareL 4.2s ease-in-out infinite}
+.tSideR .tFaceW{animation:tStareR 4.8s ease-in-out infinite}
+@keyframes tStareL{0%,100%{transform:translateY(0) rotate(0deg)}
+ 42%{transform:translateY(-5px) rotate(-1.6deg)}70%{transform:translateY(-1px) rotate(-.4deg)}}
+@keyframes tStareR{0%,100%{transform:scaleX(-1) translateY(0) rotate(0deg)}
+ 38%{transform:scaleX(-1) translateY(-4px) rotate(-1.9deg)}66%{transform:scaleX(-1) translateY(-1px) rotate(-.5deg)}}
+@media(prefers-reduced-motion:reduce){.tSideL .tFaceW,.tSideR .tFaceW{animation:none}}
 .tVs{color:var(--c500);font-weight:400;font-size:.62em;margin:0 .42em;letter-spacing:0}
 .tGo{margin-top:8px;background:none;border:1px solid var(--c100);border-radius:4px;
  padding:12px 20px;min-height:44px;font-family:var(--sans);font-weight:400;font-size:var(--fs-small);
@@ -981,7 +991,7 @@ body.hmSoccer .tourPanel{display:none}   /* the pitch owns the screen during a f
 
 .tGo:hover,.tGo:focus-visible{border-color:var(--c500)}
 .tRounds{display:flex;flex-direction:column;gap:clamp(10px,1.8vh,18px);width:100%}
-.tRoundLbl{font-size:var(--fs-label);font-weight:600;color:var(--c500);letter-spacing:.04em;text-transform:uppercase;margin-bottom:4px}
+.tRoundLbl{font-size:var(--fs-label);font-weight:400;color:var(--c500);letter-spacing:.04em;text-transform:uppercase;margin-bottom:8px}
 .tMatch{display:flex;align-items:center;justify-content:center;gap:.2em;font-size:var(--fs-body);line-height:1.5;white-space:nowrap}
 .tSide{display:inline-flex;align-items:baseline}
 .tSide.tLost{opacity:.38}
@@ -1016,7 +1026,7 @@ body.hmTour .hero{min-height:calc(100svh - 68px)}
  .tourPanel .tColBody{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;align-content:start}
  .tourPanel .tCol:last-child .tColBody{grid-template-columns:minmax(0,1fr)}   /* the final is one match: let it span */
  .tourPanel .tMi{flex:none;padding:0}
- .tourPanel .tBr{gap:8px}   /* the round labels sat flush against the cards above them */
+ .tourPanel .tBr{gap:8px;min-height:0;overflow-y:auto;overscroll-behavior:contain}   /* the round labels sat flush against the cards above them */
  /* scoped to .tourPanel deliberately: a bare .tColBody rule further down the file sets
     display:flex, and a media query adds no specificity, so the unscoped version lost. */
  @keyframes tourInM{from{opacity:0;transform:translateX(-50%) translateY(10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
@@ -1040,9 +1050,7 @@ body.hmTour .hero{min-height:calc(100svh - 68px)}
 .tM{position:relative;display:flex;flex-direction:column;border:1px solid var(--c100);border-radius:4px;
  background:var(--c50);transition:border-color .3s cubic-bezier(.2,.8,.2,1)}
 .tM.tLive{border-color:var(--c950)}
-.tT{display:flex;align-items:center;gap:8px;padding:8px 8px 8px 8px;font-size:var(--fs-small);line-height:1.2;
- white-space:nowrap;overflow:hidden;text-align:left;min-height:40px;box-sizing:border-box;
- border-left:4px solid transparent}
+.tT{display:flex;align-items:center;gap:10px;padding:9px 14px;font-size:var(--fs-small);line-height:1.2;white-space:nowrap;overflow:hidden;text-align:left;min-height:38px;box-sizing:border-box;border-left:2px solid transparent}
 .tT+.tT{border-top:1px solid var(--c100)}
 .tT:first-child{border-radius:3px 3px 0 0}
 .tT:last-child{border-radius:0 0 3px 3px}
@@ -1052,10 +1060,10 @@ body.hmTour .hero{min-height:calc(100svh - 68px)}
 .tTbd{color:var(--c500)}
 /* The heads are transparent CUT-OUTS; a circular crop fought their silhouette and clipped hair
    and chins, so they are shown whole and contained. The team colour is carried by the row bar. */
-.tFaceW{flex:0 0 auto;width:28px;height:28px;display:inline-flex;align-items:center;justify-content:center}
+.tFaceW{flex:0 0 auto;width:24px;height:24px;display:inline-flex;align-items:center;justify-content:center}
 .tFaceW img{max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;display:block}
 .tFaceEmpty{width:28px}
-.tFaceBig{width:44px;height:44px}
+.tFaceBig{width:clamp(92px,min(13vw,17vh),200px);height:clamp(92px,min(13vw,17vh),200px)}
 .tTeamNm{line-height:1}
 @media(min-width:641px){
  .tBr{flex-direction:row;gap:0}
@@ -1076,12 +1084,11 @@ body.hmTour .hero{min-height:calc(100svh - 68px)}
 .tQuit.tQuitArmed{color:#b3402e}
 @media(max-width:640px){.tCol{max-width:none}.tLbl{font-size:var(--fs-micro)}
  .tT{padding:4px 8px 4px 8px;font-size:var(--fs-caption);gap:8px;min-height:34px}
- .tFaceW{width:22px;height:22px}.tFaceBig{width:34px;height:34px}
+ .tFaceW{width:22px;height:22px}.tFaceBig{width:clamp(84px,26vw,120px);height:clamp(84px,26vw,120px)}
  .tPr:not(.tPrLast)::after{left:calc(100% + 8px)}.tPr:not(.tPrLast) .tM::after{width:8px}
  .tBr{gap:0}.tColBody{gap:8px}.tPr{gap:8px}}
 /* The tournament owns the hero while it runs, so it says what it is. */
-.tTitle{margin:0;font-family:var(--sans);font-weight:600;font-size:var(--fs-h1);line-height:1.06;
- letter-spacing:-.015em;color:var(--c950);display:inline-flex;align-items:baseline;gap:.14em}
+.tTitle{margin:0;font-family:var(--sans);font-weight:400;font-size:var(--fs-small);line-height:1.2;letter-spacing:.01em;color:var(--c500);display:inline-flex;align-items:baseline;gap:.14em}
 /* The trophy is a PORTRAIT cutout, unlike the square mood icons, so it is sized by HEIGHT and
    lets its width follow -- squeezing it into a .62em square would letterbox it. It stands at
    roughly the cap height of the name beside it. */
@@ -5775,10 +5782,21 @@ function paint(){
     var nx = el('div', 'tNext');
     nx.appendChild(el('span', 'tLbl', 'Up next'));   // the ROUND is already named by the column head
     // and by the outlined live card, so repeating it here was the same words set two different ways
+    // THE STARE-DOWN. The hero works because one object dominates and everything else is quiet
+    // (measured: one type treatment, head at 30% of the viewport). This screen had eight type
+    // treatments and its biggest face was 44px -- 0.15%. So the two contenders become the object:
+    // each side is a column (head over name), the heads are turned to FACE each other, and they
+    // breathe on offset cycles so it reads as sizing each other up rather than two stickers.
     var pair = el('span', 'tPair');
-    if (A){ pair.appendChild(faceOf(A, 'tFaceBig')); pair.appendChild(el('span', 'tTeamNm', A.name)); }
+    function side(tm, which){
+      var sd = el('span', 'tSide ' + which);
+      if (tm){ sd.appendChild(faceOf(tm, 'tFaceBig'));
+               sd.appendChild(el('span', 'tTeamNm', tm.name)); }
+      return sd;
+    }
+    if (A) pair.appendChild(side(A, 'tSideL'));
     pair.appendChild(el('span', 'tVs', 'vs'));
-    if (Bm){ pair.appendChild(faceOf(Bm, 'tFaceBig')); pair.appendChild(el('span', 'tTeamNm', Bm.name)); }
+    if (Bm) pair.appendChild(side(Bm, 'tSideR'));
     nx.appendChild(pair);
     var go = el('button', 'tGo'); go.type = 'button';
     go.appendChild(document.createTextNode('Kick off'));   // no icon: nothing else on the site
