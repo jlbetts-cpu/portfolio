@@ -999,6 +999,30 @@ body.hmTour .scrollCue{display:none}
 .tourPanel{top:50%;transform:translate(-50%,-50%)}
 @keyframes tourIn{from{opacity:0;transform:translate(-50%,-50%) translateY(10px)}to{opacity:1;transform:translate(-50%,-50%) translateY(0)}}
 @media(max-width:640px){.tourPanel{gap:14px;width:calc(100vw - 36px)}.tRounds{gap:10px}}
+/* ---- THE BRACKET ITSELF: columns per round, cards per fixture, pairs joined into the next
+   round. A tree is the wrong shape for a big bracket (vertical collapse is unsolved in CSS) but
+   this one is capped at 8 teams -- 3 columns, 7 cards -- so it fits, and a real bracket is what a
+   bracket should look like. ---- */
+.tBr{display:flex;align-items:stretch;gap:0;width:100%;justify-content:center}
+.tCol{display:flex;flex-direction:column;gap:8px;min-width:0;flex:1 1 0;max-width:190px}
+.tColLbl{font-size:var(--fs-label);font-weight:600;color:var(--c500);letter-spacing:.045em;text-transform:uppercase}
+.tColBody{display:flex;flex-direction:column;justify-content:space-around;flex:1;gap:clamp(10px,2vh,20px)}
+.tPr{position:relative;display:flex;flex-direction:column;justify-content:space-around;flex:1;gap:clamp(10px,2vh,20px)}
+.tPr:not(.tPrLast)::after{content:"";position:absolute;left:calc(100% + 13px);top:25%;bottom:25%;width:1px;background:var(--c100)}
+.tM{position:relative;display:flex;flex-direction:column;border:1px solid var(--c100);border-radius:4px;
+ background:var(--c50);overflow:hidden;transition:border-color .3s cubic-bezier(.2,.8,.2,1)}
+.tM.tLive{border-color:var(--c950)}
+.tPr:not(.tPrLast) .tM::after{content:"";position:absolute;left:100%;top:50%;width:13px;height:1px;background:var(--c100)}
+.tT{display:flex;align-items:center;gap:6px;padding:6px 9px;font-size:var(--fs-small);line-height:1.25;
+ white-space:nowrap;overflow:hidden;text-align:left}
+.tT+.tT{border-top:1px solid var(--c100)}
+.tT.tWon{font-weight:600}
+.tT.tLost{opacity:.38}
+.tNm{overflow:hidden;text-overflow:ellipsis}
+.tTbd{color:var(--c400)}
+@media(max-width:640px){.tCol{max-width:none}.tColLbl{font-size:10px}.tT{padding:5px 7px;font-size:11px;gap:5px}
+ .tPr:not(.tPrLast)::after{left:calc(100% + 8px)}.tPr:not(.tPrLast) .tM::after{width:8px}
+ .tBr{gap:0}.tColBody{gap:8px}.tPr{gap:8px}}
 </style></head>
 <body>
 <a class="skipLink" href="#main">Skip to content</a>
@@ -3365,6 +3389,8 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
  function spawnCompanion(data,slot){
  var reduce=matchMedia("(prefers-reduced-motion:reduce)").matches;
  var filler=!!(data&&data.__filler);   // the mid-game stand-in (mini-Jayden): spawns already active, no intro
+ var noIntro=filler||!!(data&&data.__noIntro);   // ...but __filler ALSO means 1.5x size. Tournament squads
+ // need the skip-the-intro half only, so they get their own flag and stay normal sized.
  var smileT=0,smiling=false;   // only the mini-Jayden has a second face to switch to (his real smile)
  var hero=document.querySelector(".hero");if(!hero)return;
  if(getComputedStyle(hero).position==="static")hero.style.position="relative";
@@ -3803,7 +3829,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   if(!hideB&&wasHideB&&!first&&!gone&&!battleOn&&!soccerOn&&!window.__hmRaceOn&&!grabbed){first=true;introSettled=true;bornWall=0;bornAt=now;shown=false;root.style.opacity="0";if(shadow)shadow.style.opacity="0";}   // UNHIDDEN -> the same one-at-a-time toss-in from the edge as the very first time
   wasHideB=hideB;
   var want=!aboutB&&!hideB&&!gone;   // moods never hide the pit: the little heads are the audience
-  if(first&&filler){ // the mid-game stand-in drops straight in -- no waiting on the (hidden) big head's intro
+  if(first&&noIntro){ // the mid-game stand-in drops straight in -- no waiting on the (hidden) big head's intro
    first=false;shown=true;survey();var flf=Math.random()<0.5;
    x=flf?WL+2:WR-2;y=floorY-(150+Math.random()*160);surface=floorY;dir=flf?1:-1;air=true;st="fall";
    vx=dir*(320+Math.random()*220);vy=-(140+Math.random()*220);
@@ -5457,7 +5483,7 @@ function buildTeams(cb){
           // __filler is the mini-Jayden flag: "spawns already active, no intro". Without it a fresh
           // head waits on the big head's intro sequence before its toss-in -- and the big head is
           // hidden during a tournament, so squads spawned and then sat at opacity 0 forever.
-          var d = { cut: cut, eyes: EGG.eyes || [], marks: EGG.marks || null, __filler: true };
+          var d = { cut: cut, eyes: EGG.eyes || [], marks: EGG.marks || null, __noIntro: true };
           if (isCap && !tm.captain) tm.captain = d; else tm.squad.push(d);
           if (--pending <= 0) finish();
         });
@@ -5467,57 +5493,9 @@ function buildTeams(cb){
   if (pending === 0) finish();
 }
 
-// ---------- stats ----------
-function key(p){ return p && p.cut ? p.cut.slice(-48) : 'x'; }
-function statFor(p, teamId){
-  var k = key(p);
-  if (!T.stats[k]) T.stats[k] = { k: k, cut: p.cut, team: teamId, g: 0, a: 0, og: 0, r: [], mp: 0 };
-  return T.stats[k];
-}
-// Rating: no published formula exists anywhere -- every mainstream system is proprietary. The
-// SHAPE is documented though (SofaScore publish a 6.5 baseline clamped 3-10, offence-weighted,
-// own goals negative), so that is what this follows. The weights are mine, not a standard.
-function rate(s, won){
-  var v = 6.5 + 1.0 * s.mg + 0.7 * s.ma - 1.0 * s.mo + (won ? 0.3 : -0.2);
-  return Math.max(3, Math.min(10, v));
-}
-
-window.__hmTourGoal = function(scoringTeam, touches){
-  if (!T.live || !T.cur) return;
-  var t0 = touches && touches[0];
-  if (!t0) return;
-  if (!t0.team) return;                                    // unassigned touch: score it to nobody rather than
-                                                           // to an own goal, which is what 0 !== scoringTeam did
-  var own = (t0.team !== scoringTeam);
-  var side = T.cur.side;                                   // {1:teamId, 2:teamId}
-  var scorerTeamId = side[t0.team];
-  var st = T.bySlot[t0.slot];
-  if (!st) return;
-  if (own){ st.og++; st.mo++; T.log.push({ type: 'og', who: st.k }); return; }
-  st.g++; st.mg++;
-  // Assist = the last DIFFERENT team-mate to touch it, inside a short window. Opta counts the
-  // final touch from a team-mate and lets deflections stand; own goals never carry an assist.
-  for (var i = 1; i < touches.length; i++){
-    var tt = touches[i];
-    if (tt.slot === t0.slot) continue;
-    if (tt.team !== t0.team) break;                        // an opponent had it: no assist
-    if (t0.t - tt.t > 5000) break;                         // window is judgment; nothing published
-    var at = T.bySlot[tt.slot];
-    if (at){ at.a++; at.ma++; T.log.push({ type: 'a', who: at.k }); }
-    break;
-  }
-  T.log.push({ type: 'g', who: st.k });
-  paint();
-};
-
 window.__hmTourWin = function(winSide){
   if (!T.live || !T.cur) return;
   var c = T.cur, winnerId = c.side[winSide];
-  Object.keys(T.bySlot).forEach(function(sl){
-    var s = T.bySlot[sl]; s.mp++;
-    s.r.push(rate(s, s.team === winnerId));
-    s.mg = 0; s.ma = 0; s.mo = 0;
-  });
   BR.recordWinner(T.br, c.round, c.index, winnerId);
   var bad = BR.checkNoDoubleAdvance(T.br);
   if (bad) { try { console.warn('[tour]', bad); } catch (_) {} }
@@ -5535,7 +5513,6 @@ function startFixture(nm){
   if (!A || !Bm) return;
   var side = { 1: A.id, 2: Bm.id };
   T.cur = { round: nm.round, index: nm.index, side: side, a: A, b: Bm };
-  T.bySlot = {};
 
   // Bench every saved head; the captains that are playing get un-benched as they are assigned.
   var bench = {}; (window.__hmSlots ? window.__hmSlots() : []).forEach(function(s){ bench[s] = 1; });
@@ -5554,12 +5531,10 @@ function startFixture(nm){
     playersOf(tm).forEach(function(p){
       var slot = window.__hmSlotFor ? window.__hmSlotFor(p.cut) : null;
       if (slot == null){ slot = SLOT++;
-        var sp = { cut: p.cut, eyes: p.eyes || [], marks: p.marks || null, __filler: true };   // same reason: no intro to wait for
+        var sp = { cut: p.cut, eyes: p.eyes || [], marks: p.marks || null, __noIntro: true };   // same reason: no intro to wait for
         try { window.__hmSpawnOne(sp, slot); T.spawnedCuts.push(p.cut); } catch (_) {} }
       delete bench[slot];
       sel[slot] = sideNo;
-      var st = statFor(p, tm.id); st.mg = 0; st.ma = 0; st.mo = 0; st.team = tm.id;
-      T.bySlot[slot] = st;
       tm.slots = (tm.slots || []).concat([slot]);
     });
   });
@@ -5611,14 +5586,6 @@ function ensureHost(){
   return host;
 }
 
-function leaderRows(field, n){
-  var arr = Object.keys(T.stats).map(function(k){ return T.stats[k]; })
-    .filter(function(s){ return s[field] > 0; })
-    .sort(function(x, y){ return y[field] - x[field] || y.g - x.g; }).slice(0, n || 5);
-  return arr;
-}
-function avg(s){ return s.r.length ? (s.r.reduce(function(a, b){ return a + b; }, 0) / s.r.length) : null; }
-
 function paint(){
   var h = ensureHost();
   if (!T.live){ h.innerHTML = ''; h.hidden = true; return; }
@@ -5651,55 +5618,47 @@ function paint(){
     h.appendChild(nx);
   }
 
-  // rounds, as a grouped vertical list -- a bracket TREE cannot collapse vertically in CSS, and
-  // at 8 teams this is only 3 rounds and 7 fixtures, so a list says the same thing with no
-  // connector lines, no horizontal scroll and no accessibility problem.
-  var br = el('div', 'tRounds');
+  // A REAL BRACKET: one column per round, matches as cards, pairs joined by a connector into the
+  // next round. Max 8 teams means at most 3 columns and 7 cards, so it fits without scrolling --
+  // the reason to avoid a tree is that big brackets cannot collapse vertically in CSS, and this
+  // one never gets big.
+  var br = el('div', 'tBr');
   T.br.rounds.forEach(function(rd, ri){
-    var g = el('div', 'tRound');
-    g.appendChild(el('div', 'tRoundLbl', rd.label));
-    rd.matches.forEach(function(m){
-      var row = el('div', 'tMatch');
-      [m.a, m.b].forEach(function(id, i){
-        var tm = teamById(id);
-        var s = el('span', 'tSide' + (m.winner !== undefined ? (m.winner === id ? ' tWon' : ' tLost') : ''));
-        if (tm){ s.appendChild(dot(tm.col)); s.appendChild(document.createTextNode(tm.name)); }
-        else s.appendChild(document.createTextNode('—'));
-        row.appendChild(s);
-        if (i === 0) row.appendChild(el('span', 'tVs', 'v'));
+    var col = el('div', 'tCol');
+    col.appendChild(el('div', 'tColLbl', rd.label));
+    var body = el('div', 'tColBody');
+    var last = (ri === T.br.rounds.length - 1);
+    var groups = [];
+    if (last) groups.push(rd.matches.slice());
+    else for (var i2 = 0; i2 < rd.matches.length; i2 += 2) groups.push(rd.matches.slice(i2, i2 + 2));
+    groups.forEach(function(pair){
+      var pr = el('div', 'tPr' + (last ? ' tPrLast' : ''));
+      pair.forEach(function(m){
+        var live = (T.cur && T.br.rounds[T.cur.round].matches[T.cur.index] === m);
+        var card = el('div', 'tM' + (m.winner !== undefined ? ' tDone' : '') + (live ? ' tLive' : ''));
+        [m.a, m.b].forEach(function(id){
+          var tm = teamById(id);
+          var row = el('div', 'tT' + (m.winner !== undefined ? (m.winner === id ? ' tWon' : ' tLost') : ''));
+          if (tm){ row.appendChild(dot(tm.col)); row.appendChild(el('span', 'tNm', tm.name)); }
+          else { row.appendChild(el('span', 'tNm tTbd', '—')); }
+          card.appendChild(row);
+        });
+        pr.appendChild(card);
       });
-      g.appendChild(row);
+      body.appendChild(pr);
     });
-    br.appendChild(g);
+    col.appendChild(body);
+    br.appendChild(col);
   });
   h.appendChild(br);
 
-  // leaderboards -- name plus one number, which is all 390px has room for
-  [['g', 'Goals'], ['a', 'Assists']].forEach(function(pair){
-    var rows = leaderRows(pair[0], 5);
-    if (!rows.length) return;
-    var lb = el('div', 'tBoard');
-    lb.appendChild(el('div', 'tBoardLbl', pair[1]));
-    rows.forEach(function(s){
-      var r = el('div', 'tRow');
-      var im = el('img', 'tFace'); im.src = s.cut; im.alt = '';
-      r.appendChild(im);
-      var tm = teamById(s.team); if (tm) r.appendChild(dot(tm.col));
-      var num = el('b', 'tNum', String(s[pair[0]]));
-      var rt = avg(s);
-      r.appendChild(el('span', 'tRt', rt == null ? '' : rt.toFixed(1)));
-      r.appendChild(num);
-      lb.appendChild(r);
-    });
-    h.appendChild(lb);
-  });
 }
 
 // ---------- entry ----------
 function start(){
   if (T.live) return;
   buildTeams(function(teams){
-    T.live = true; T.stats = {}; T.log = []; T.phase = 'bracket';
+    T.live = true; T.phase = 'bracket';
     T.br = BR.buildBracket(teams.map(function(t){ return t.id; })); lastRound = -1;
     document.body.classList.add('hmTour');
     benchAll(); paint();
