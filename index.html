@@ -909,8 +909,8 @@ body.navOpen .navBurger span:nth-child(3){transform:translateY(-6px) rotate(-45d
 .hmScore .sMeta .hmScoreEnd{margin:0;padding:0;border:0}
 .hmScore.ballOut .sBall{opacity:0}
 .hmScore .sNums{display:inline-flex;align-items:baseline;gap:.3em;font-variant-numeric:tabular-nums}
-.hmScore .sNums .sR{color:#e05a4e}
-.hmScore .sNums .sB{color:#5aa0d8}
+.hmScore .sNums .sR{color:var(--tcol1,#e05a4e)}
+.hmScore .sNums .sB{color:var(--tcol2,#5aa0d8)}
 .hmScore .sNums em{color:var(--c400);font-style:normal;font-weight:400}
 .hmScore small{font-family:var(--sans);font-weight:400;font-size:var(--fs-small);color:var(--c500);letter-spacing:0;align-self:center}
 .hmScore .hmScoreEnd{align-self:center}
@@ -3818,7 +3818,9 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
      // at the whistle. Same element came back next match still wearing the crown.
      team=(S9.teams&&S9.teams[slot])||1;
     perched=false;leapDelay=Infinity;bar.style.opacity="0";root.style.pointerEvents="";
-    var tcol=team===1?"224,90,78":"90,160,216";
+    var tcol=(window.__hmTeamCol&&window.__hmTeamCol[team])||(team===1?"224,90,78":"90,160,216");   // The engine only ever fields TWO sides, so the tournament does not need N-team plumbing: the
+   // bracket decides which two teams are playing and hands their colours down here for the match.
+   // Absent that (exhibition), this is the same red/blue it has always been.
     if(filler&&mjClone){var _dc="rgb("+tcol+")";mjClone.style.filter="drop-shadow(2.5px 0 0 "+_dc+") drop-shadow(-2.5px 0 0 "+_dc+") drop-shadow(0 2.5px 0 "+_dc+") drop-shadow(0 -2.5px 0 "+_dc+")";}   // the mini's ring hugs his REAL silhouette
     else{ringEl.style.background="rgb("+tcol+")";ringEl.style.opacity="1";}   // a solid team-coloured outline
     shadow.style.background="radial-gradient(ellipse at center,rgba("+tcol+",.42),rgba("+tcol+",0) 70%)";}   // the shadow wears the team colour too
