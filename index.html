@@ -968,12 +968,14 @@ body.navOpen .navDrawer{transform:translateY(0);opacity:1;visibility:visible;box
 body.hmSoccer .tourPanel{display:none}   /* the pitch owns the screen during a fixture */
 .tDot{display:inline-block;width:.52em;height:.52em;border-radius:50%;margin-right:.42em;vertical-align:baseline;flex:0 0 auto}
 .tNext{display:flex;flex-direction:column;align-items:center;gap:8px}
-.tNextLbl{font-size:var(--fs-small);font-weight:500;color:var(--c500);letter-spacing:.02em}
+/* ONE eyebrow style for every small label in this panel -- 'Quarter-final' was rendering as 15px
+   sentence case above the pairing and 13px uppercase as the column head, on the same screen. */
+.tLbl{font-size:var(--fs-label);font-weight:600;color:var(--c500);letter-spacing:.045em;text-transform:uppercase;line-height:1}
 .tPair{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:.1em;
  font-size:var(--fs-heroline);font-weight:700;line-height:1.06;letter-spacing:-.015em}
 .tVs{color:var(--c400);font-weight:400;margin:0 .5em}
 .tGo{margin-top:8px;background:none;border:1px solid var(--c100);border-radius:4px;
- padding:11px 22px;min-height:44px;font-family:var(--sans);font-weight:500;font-size:var(--fs-body);
+ padding:11px 22px;min-height:44px;font-family:var(--sans);font-weight:500;font-size:var(--fs-small);
  color:var(--c950);cursor:pointer;transition:border-color .2s cubic-bezier(.2,.8,.2,1)}
 .tGo:hover,.tGo:focus-visible{border-color:var(--c500)}
 .tRounds{display:flex;flex-direction:column;gap:clamp(10px,1.8vh,18px);width:100%}
@@ -983,7 +985,6 @@ body.hmSoccer .tourPanel{display:none}   /* the pitch owns the screen during a f
 .tSide.tLost{opacity:.38}
 .tSide.tWon{font-weight:600}
 .tBoard{width:100%;display:flex;flex-direction:column;gap:2px}
-.tBoardLbl{font-size:var(--fs-label);font-weight:600;color:var(--c500);letter-spacing:.04em;text-transform:uppercase;margin-bottom:4px}
 .tRow{display:flex;align-items:center;gap:9px;padding:5px 6px;border-radius:4px}
 .tRow:hover{background:#F1F1F1}
 .tFace{width:22px;height:26px;object-fit:contain;flex:0 0 auto}
@@ -1014,7 +1015,7 @@ body.hmTour .hero{min-height:calc(100svh - 68px)}
    bracket should look like. ---- */
 .tBr{display:flex;align-items:stretch;gap:0;width:100%;justify-content:center}
 .tCol{display:flex;flex-direction:column;gap:8px;min-width:0;flex:1 1 0;max-width:176px}
-.tColLbl{font-size:var(--fs-label);font-weight:600;color:var(--c500);letter-spacing:.045em;text-transform:uppercase}
+.tColLbl{margin-bottom:2px}
 .tColBody{display:flex;flex-direction:column;justify-content:space-around;flex:1;gap:16px}
 .tPr{position:relative;display:flex;flex-direction:column;justify-content:space-around;flex:1;gap:16px}
 .tPr:not(.tPrLast)::after{content:"";position:absolute;left:calc(100% + 13px);top:25%;bottom:25%;width:1px;background:var(--c100)}
@@ -1041,7 +1042,7 @@ body.hmTour .hero{min-height:calc(100svh - 68px)}
  transition:color .2s cubic-bezier(.2,.8,.2,1)}
 .tQuit:hover,.tQuit:focus-visible{color:var(--c950)}
 .tQuit.tQuitArmed{color:#b3402e}
-@media(max-width:640px){.tCol{max-width:none}.tColLbl{font-size:10px}
+@media(max-width:640px){.tCol{max-width:none}.tLbl{font-size:11px}
  .tT{padding:5px 7px 5px 6px;font-size:12px;gap:6px;min-height:34px}
  .tFaceW{width:22px;height:22px}.tFaceBig{width:34px;height:34px}
  .tPr:not(.tPrLast)::after{left:calc(100% + 8px)}.tPr:not(.tPrLast) .tM::after{width:8px}
@@ -5636,7 +5637,7 @@ function paint(){
   if (T.phase === 'done' || champ !== undefined){
     var w = teamById(champ);
     var win = el('div', 'tWin');
-    win.appendChild(el('div', 'tWinLbl', 'Champion'));
+    win.appendChild(el('div', 'tLbl', 'Champion'));
     var wn = el('div', 'tWinName');
     if (w) wn.appendChild(faceOf(w, 'tFaceBig'));
     wn.appendChild(el('span', 'tTeamNm', w ? w.name : '—'));
@@ -5645,7 +5646,8 @@ function paint(){
   } else if (nm && T.phase === 'bracket'){
     var A = teamById(nm.match.a), Bm = teamById(nm.match.b);
     var nx = el('div', 'tNext');
-    nx.appendChild(el('span', 'tNextLbl', T.br.rounds[nm.round].label));
+    nx.appendChild(el('span', 'tLbl', 'Up next'));   // the ROUND is already named by the column head
+    // and by the outlined live card, so repeating it here was the same words set two different ways
     var pair = el('span', 'tPair');
     if (A){ pair.appendChild(faceOf(A, 'tFaceBig')); pair.appendChild(el('span', 'tTeamNm', A.name)); }
     pair.appendChild(el('span', 'tVs', 'v'));
@@ -5664,7 +5666,7 @@ function paint(){
   var br = el('div', 'tBr');
   T.br.rounds.forEach(function(rd, ri){
     var col = el('div', 'tCol');
-    col.appendChild(el('div', 'tColLbl', rd.label));
+    col.appendChild(el('div', 'tLbl tColLbl', rd.label));
     var body = el('div', 'tColBody');
     var last = (ri === T.br.rounds.length - 1);
     var groups = [];
