@@ -401,7 +401,7 @@ body.moodInCta .heroCtas:not(.in) .faceMoodCorner{opacity:0!important;visibility
 .cases{position:relative;z-index:61;margin:clamp(80px,12vh,144px) auto 0;background:var(--c50)}
 .caseInset{max-width:1280px;margin:0 auto;padding:0 40px}
 /* tab bar: Instrument Sans, active = ink + underline, others muted; stepped like the rest of the site */
-.csTabs{display:flex;flex-wrap:wrap;gap:24px;align-items:flex-end;margin:0 auto clamp(24px,3.2vh,40px);position:relative}.csTabs::before{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;background:rgba(8,8,8,.12)}
+.csTabs{display:flex;flex-wrap:wrap;gap:24px;align-items:flex-end;margin:0 auto clamp(24px,3.2vh,40px);position:relative}.csTabs::before{content:"";position:absolute;left:16px;right:0;bottom:0;height:1px;background:var(--c100)}
 .csTab{position:relative;background:none;border:0;padding:0 0 12px;margin:0;font:inherit;font-family:var(--sans);font-weight:600;font-size:var(--fs-tab);letter-spacing:.01em;text-transform:none;color:var(--c500);cursor:pointer;transition:color .25s cubic-bezier(.2,.8,.2,1);filter:url(#inkSm)}
 .csTab:hover{color:var(--c950)}
 .csTab.on{color:var(--c950)}
@@ -1231,6 +1231,13 @@ nav .logo .logoLine{display:block}
 nav .logo .logoL1{font-stretch:85.8%}
 /* Contact was pad 0 on the home page and 12x16 everywhere else */
 nav .talk,.talk{padding:12px 16px!important;min-height:44px}
+
+/* THE TAB ROW LINES UP WITH THE CARDS BELOW IT. Giving every control 12x16 padding was right,
+   but it pushed the first tab's TEXT 16px past the content column while its box still sat on
+   it -- so the label no longer agreed with the case-study titles underneath. Pull the row back
+   by exactly the padding it gained; the underline starts at the column, not at the negative
+   margin. Measured: first tab text 136 -> 120, matching nav, hero and cards. */
+.csTabs .csTab:first-child{margin-left:-16px}
 </style></head>
 <body>
 <a class="skipLink" href="#main">Skip to content</a>
