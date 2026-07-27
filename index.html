@@ -1009,7 +1009,22 @@ body.hmTour .hero{min-height:calc(100svh - 68px)}
 @media(max-width:640px){
  .tourPanel{transform:translateX(-50%);gap:12px;width:calc(100vw - 32px);
   animation:tourInM .42s cubic-bezier(.2,.8,.2,1) both}
+ /* MOBILE DENSITY: the rounds stack on a phone -- the elbow connectors are min-width:641px
+    only -- so a 4-match round was 4 rows tall and the panel came out 869px in an 844px viewport.
+    Each round now wraps two-up. That costs nothing in clarity precisely BECAUSE there are no
+    connectors down here: the rounds are already separate labelled groups, not a connected tree. */
+ .tourPanel .tColBody{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;align-content:start}
+ .tourPanel .tCol:last-child .tColBody{grid-template-columns:minmax(0,1fr)}   /* the final is one match: let it span */
+ .tourPanel .tMi{flex:none;padding:0}
+ .tourPanel .tBr{gap:8px}   /* the round labels sat flush against the cards above them */
+ /* scoped to .tourPanel deliberately: a bare .tColBody rule further down the file sets
+    display:flex, and a media query adds no specificity, so the unscoped version lost. */
  @keyframes tourInM{from{opacity:0;transform:translateX(-50%) translateY(10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+}
+@media(max-width:640px) and (max-height:700px){
+ /* the small phones (SE at 667) were the last 4px over; tighten only there */
+ .tourPanel{gap:8px}
+ .tourPanel .tBr{gap:0}   /* ...and they cannot afford the round separation either */
 }
 /* ---- THE BRACKET. Rounds are flex columns; matches distribute over full column height so a
    pair sits either side of the match it feeds. Connectors are ELBOWS on pseudo-elements: one
