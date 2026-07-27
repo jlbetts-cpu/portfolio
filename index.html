@@ -5175,4 +5175,137 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
  addEventListener("resize",function(){if(on&&!MOBILE())sync();},{passive:true});   // rotate to desktop width mid-match: hand the page back
 })();
 </script>
+<script>
+(function(){   // ===== TOURNAMENT: bracket core =====
+// Unit-tested outside the browser before it landed here (58 assertions: slot order for 4/8/16,
+// bye COUNT and bye RECIPIENTS for N=3/5/6/7 against the ITTF rule, no BYE-vs-BYE for any N,
+// full play-throughs for every N=2..8 with a no-double-advance invariant checked after every
+// result, and the immutability guards).
+// Single-elimination bracket core. Pure functions, no DOM -- so it can be unit-tested
+// outside the browser before it goes anywhere near index.html.
+//
+// Rules implemented (sourced):
+//  * bracket size B = smallest power of two >= N; byes = B - N
+//  * seed slot order is the recursive rule: order(2n) = for each s in order(n): s, then (2n+1-s)
+//    -> order(4)=[1,4,2,3]  order(8)=[1,8,4,5,2,7,3,6]   (ITTF handbook; matches NCAA pairings)
+//  * byes are NOT placed by hand. Pair seed s with seed B+1-s and they land on seeds 1,2,3...
+//    in seeding order automatically, which is exactly the ITTF rule.
+//  * BYE-vs-BYE is impossible when B is the SMALLEST power of two >= N, because that forces
+//    N > B/2. Asserted, because over-padding (hard-coding B=8 for 3 teams) is the known bug.
+//
+// TWO DIFFERENT KINDS OF EMPTY, and conflating them was a real bug caught by the tests:
+//   BYE (null)      -- round 1 only. There is no opponent and never will be.
+//   TBD (undefined) -- rounds 2+. Nobody has qualified for this slot YET.
+// Two TBDs facing each other is the normal state of an unplayed semi-final. Two BYEs facing
+// each other is an over-padded bracket. Only the second is an error.
+
+const BYE = null;
+
+function slotOrder(B) {
+  if (B === 1) return [1];
+  if (B === 2) return [1, 2];
+  const half = slotOrder(B / 2), out = [];
+  for (const s of half) { out.push(s); out.push(B + 1 - s); }
+  return out;
+}
+
+function bracketSize(N) { let B = 1; while (B < N) B *= 2; return B; }
+
+function roundLabel(teamsLeft) {
+  if (teamsLeft === 2) return 'Final';
+  if (teamsLeft === 4) return 'Semi-final';
+  if (teamsLeft === 8) return 'Quarter-final';
+  return 'Round of ' + teamsLeft;
+}
+
+// Recompute every round after the first from the round before it. Byes auto-advance here,
+// recursively, which is why this runs at BUILD time and again after every recorded result --
+// "setting a BYE is not enough", the opponent has to be walked forward.
+function propagate(br) {
+  for (let r = 1; r < br.rounds.length; r++) {
+    const prev = br.rounds[r - 1].matches, ms = br.rounds[r].matches;
+    for (let i = 0; i < ms.length; i++) {
+      const a = prev[i * 2].winner, b = prev[i * 2 + 1].winner;   // undefined => still TBD
+      const m = ms[i];
+      const kept = m.winner;
+      m.a = (a === undefined || a === BYE) ? undefined : a;
+      m.b = (b === undefined || b === BYE) ? undefined : b;
+      // a slot can only be a walkover in round 1; later rounds just wait for qualifiers
+      m.bye = false;
+      m.winner = (kept !== undefined && kept !== null && (kept === m.a || kept === m.b)) ? kept : undefined;
+    }
+  }
+  return br;
+}
+
+// seeds: array of team ids in seed order (index 0 = seed 1).
+function buildBracket(seeds) {
+  const N = seeds.length;
+  if (N < 2) throw new Error('need at least 2 teams');
+  const B = bracketSize(N);
+  if (!(B / 2 < N && N <= B)) throw new Error('bracket padding invariant broken: ' + N + '/' + B);
+
+  const slots = slotOrder(B).map(seed => (seed <= N ? seeds[seed - 1] : BYE));
+
+  const rounds = [];
+  for (let count = B / 2; count >= 1; count /= 2) {
+    const matches = [];
+    for (let i = 0; i < count; i++) {
+      if (rounds.length === 0) {
+        const a = slots[i * 2], b = slots[i * 2 + 1];
+        if (a === BYE && b === BYE) throw new Error('BYE vs BYE — over-padded bracket');
+        const bye = (a === BYE || b === BYE);
+        matches.push({ a: a === BYE ? undefined : a, b: b === BYE ? undefined : b,
+                       bye, winner: bye ? (a === BYE ? b : a) : undefined });
+      } else {
+        matches.push({ a: undefined, b: undefined, bye: false, winner: undefined });
+      }
+    }
+    rounds.push({ label: roundLabel(count * 2), matches });
+  }
+  return propagate({ N, B, byes: B - N, rounds });
+}
+
+// The first match still needing to be played (both sides known), or null when done.
+function nextMatch(br) {
+  for (let r = 0; r < br.rounds.length; r++) {
+    const ms = br.rounds[r].matches;
+    for (let i = 0; i < ms.length; i++) {
+      const m = ms[i];
+      if (m.winner === undefined && m.a !== undefined && m.b !== undefined) return { round: r, index: i, match: m };
+    }
+  }
+  return null;
+}
+
+function champion(br) { return br.rounds[br.rounds.length - 1].matches[0].winner; }
+
+// Append-only: record a winner, then re-derive everything downstream. Never patch one node.
+function recordWinner(br, round, index, winnerId) {
+  const m = br.rounds[round].matches[index];
+  if (m.winner !== undefined) throw new Error('match already final');
+  if (winnerId !== m.a && winnerId !== m.b) throw new Error('winner not in this match');
+  m.winner = winnerId;
+  return propagate(br);
+}
+
+// INVARIANT: no team may sit in more than one un-eliminated slot within a round.
+function checkNoDoubleAdvance(br) {
+  for (const rd of br.rounds) {
+    const seen = new Set();
+    for (const m of rd.matches) {
+      for (const t of [m.a, m.b]) {
+        if (t === undefined) continue;
+        if (seen.has(t)) return 'team ' + t + ' appears twice in ' + rd.label;
+        seen.add(t);
+      }
+    }
+  }
+  return null;
+}
+ window.__hmBracket={slotOrder:slotOrder,bracketSize:bracketSize,buildBracket:buildBracket,
+  nextMatch:nextMatch,recordWinner:recordWinner,checkNoDoubleAdvance:checkNoDoubleAdvance,
+  roundLabel:roundLabel,champion:champion};
+})();
+</script>
 </body></html>
