@@ -35,7 +35,7 @@
 html{scroll-behavior:smooth}
 .siteFoot{scroll-margin-top:80px}
 
-:root{--c50:#FDFDFD;--c100:#E6E6E6;--c500:#757575;--c600:#6B6B6B;--c700:#525252;--c900:#212121;--c950:#121212;--accent:#0E6B3B;--accent-live:#17A45A;
+:root{--c50:#FDFDFD;--c100:#E6E6E6;--c75:#F1F1F1;--c500:#757575;--c600:#6B6B6B;--c700:#525252;--c900:#212121;--c950:#121212;--accent:#0E6B3B;--accent-live:#17A45A;
  /* --accent: the one restrained highlight (deep emerald, 6.5:1 on white) -- hero keyword phrases + the active case-study tab; --accent-live: a brighter "available" status dot */
  --sans:"Instrument Sans",-apple-system,system-ui,sans-serif;--fs-display:clamp(68px,12vw,168px);--fs-h1:clamp(28px,2.6vw,38px);--fs-hero:clamp(38px,4.7vw,60px);--fs-heroline:clamp(28px,2.6vw,38px);--sp-8-16:16px;--sp-16-24:24px;--sp-16-32:32px;--sp-16-40:40px;--sp-24-48:48px;--sp-32-56:56px;--sp-32-64:64px;--sp-40-72:72px;--sp-48-80:80px;--sp-56-96:96px;--fs-h2:clamp(26px,2.5vw,36px);--fs-h3:clamp(21px,2.4vw,32px);--fs-h4:clamp(19px,2.1vw,28px);--fs-h5:clamp(20px,1.7vw,24px);--fs-lead:clamp(15px,1.4vw,18px);--fs-prose:clamp(17px,1.39vw,20px);--fs-body:16px;--fs-small:15px;--fs-tab:clamp(17px,1.5vw,20px);--fs-label:13px;--fs-caption:12px;--fs-micro:11px;--lh-display:1.0;--lh-tight:1.08;--lh-body:1.5;--lh-prose:1.6;--lh-flat:1;}@media(max-width:880px){:root{--sp-8-16:8px;--sp-16-24:16px;--sp-16-32:16px;--sp-16-40:16px;--sp-24-48:24px;--sp-32-56:32px;--sp-32-64:32px;--sp-40-72:40px;--sp-48-80:48px;--sp-56-96:56px}}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -131,7 +131,10 @@ body.catchReady:not(.about-open) #stageMorph{transform:scale(1.055)}
 .face{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;-webkit-user-select:none;user-select:none;cursor:pointer}
 .stage img,.abPhotoFrame img,.abShot img,.face{-webkit-user-drag:none;-khtml-user-drag:none;user-select:none}
 .eye{position:absolute;border-radius:50%;overflow:hidden;z-index:3;pointer-events:none;transition:transform .08s steps(2);filter:url(#inkEye)}
-.eye.eclosed{transform:scaleY(0.08);visibility:hidden}   /* hidden, not squashed: a bare scaleY leaves the iris as a hard dark slit across the face, which is the one thing a blink must never look like. visibility (not display) so nothing reflows. */
+.eye.eclosed{transform:scaleY(0.08);visibility:hidden}
+.eye.eclosed .iris,.eye.eclosed .glint{opacity:0}
+/* belt and braces: a closed eye has no iris, whatever the lid is doing that frame */
+.eye[style*="display: none"] .iris,.eye[style*="display:none"] .iris{opacity:0}   /* hidden, not squashed: a bare scaleY leaves the iris as a hard dark slit across the face, which is the one thing a blink must never look like. visibility (not display) so nothing reflows. */
 .introwake{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;z-index:1;pointer-events:none;-webkit-user-select:none;user-select:none;opacity:0;filter:url(#inkSm)}
 .glasses{position:absolute;inset:0;width:100%;height:100%;z-index:7;pointer-events:none;opacity:0;will-change:transform,opacity;filter:url(#inkSm) drop-shadow(0 3px 3px rgba(0,0,0,.45))}
 .glasses.on{opacity:1;animation:glassesOn .62s steps(5,end) forwards}
@@ -970,7 +973,7 @@ body.hmSoccer .tourPanel{display:none}   /* the pitch owns the screen during a f
 .tNext{display:flex;flex-direction:column;align-items:center;gap:8px}
 /* ONE eyebrow style for every small label in this panel -- 'Quarter-final' was rendering as 15px
    sentence case above the pairing and 13px uppercase as the column head, on the same screen. */
-.tLbl{font-size:var(--fs-label);font-weight:600;color:var(--c700);letter-spacing:.04em;text-transform:uppercase;line-height:1}
+.tLbl{font-size:var(--fs-label);font-weight:400;color:var(--c500);letter-spacing:.04em;text-transform:uppercase;line-height:1}
 .tPair{display:flex;align-items:flex-end;justify-content:center;gap:clamp(8px,2vw,24px);font-size:var(--fs-h1);font-weight:600;line-height:1.06;letter-spacing:-.015em}
 .tSide{display:flex;flex-direction:column;align-items:center;gap:8px;min-width:0}
 /* THE STARE-DOWN. They face each other -- the cut-outs are shot head-on, so the right side is
@@ -983,7 +986,7 @@ body.hmSoccer .tourPanel{display:none}   /* the pitch owns the screen during a f
 @keyframes tStareR{0%,100%{transform:scaleX(-1) translateY(0) rotate(0deg)}
  38%{transform:scaleX(-1) translateY(-4px) rotate(-1.9deg)}66%{transform:scaleX(-1) translateY(-1px) rotate(-.5deg)}}
 @media(prefers-reduced-motion:reduce){.tSideL .tFaceW,.tSideR .tFaceW{animation:none}}
-.tVs{color:var(--c500);font-weight:400;font-size:.62em;margin:0 .42em;letter-spacing:0}
+.tVs{color:var(--c500);font-weight:400;font-size:var(--fs-small);margin:0 .42em;letter-spacing:0;align-self:center}
 .tGo{margin-top:8px;background:none;border:1px solid var(--c100);border-radius:4px;
  padding:12px 20px;min-height:44px;font-family:var(--sans);font-weight:400;font-size:var(--fs-small);
  color:var(--c950);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;
@@ -1099,6 +1102,74 @@ body.hmTour .hero{min-height:calc(100svh - 68px)}
 .tGo.tGoQuiet{background:none;border-color:var(--c100);color:var(--c700);opacity:1}
 .tGo.tGoQuiet:hover,.tGo.tGoQuiet:focus-visible{border-color:var(--c500);color:var(--c950)}
 .tGo.tQuitArmed{border-color:#b3402e;color:#b3402e}
+
+/* ============================================================================
+   CONTROLS -- one system. Two roles, one hover, one size.
+   Every clickable control on the site had grown its own size, padding, radius and
+   hover; the audit found FOURTEEN distinct button appearances, several sitting at
+   13.333px because they never set a font-size at all and inherited the UA default.
+   This is deliberately last in the sheet so it wins without needing !important.
+   Hover is the one Jayden picked out of the Play menu: a quiet wash, text to ink.
+   ============================================================================ */
+.moodItem,.moodBtn,.moodTeamsBtn,.hmGo,.tGo,.reelClose,.workCta,.ndLink,
+.heroBack,.navLink,.mhToggle,.hmScoreEnd{
+ font-family:var(--sans);font-weight:400;font-size:var(--fs-small);line-height:1;
+ color:var(--c700);background:none;border:1px solid transparent;border-radius:4px;
+ padding:12px 16px;min-height:44px;
+ align-items:center;justify-content:center;gap:8px;
+ cursor:pointer;
+ transition:background-color .16s cubic-bezier(.2,.8,.2,1),color .16s cubic-bezier(.2,.8,.2,1);
+}
+/* display is set at ZERO specificity via :where(), so any component that hides itself
+   conditionally still wins. Setting it in the base above turned .heroBack{display:none}
+   into a visible "Back" button sitting in the nav on every page. */
+:where(.moodItem,.moodBtn,.moodTeamsBtn,.hmGo,.tGo,.reelClose,.workCta,.ndLink,
+ .heroBack,.navLink,.mhToggle,.hmScoreEnd){display:inline-flex}
+.moodItem:hover,.moodBtn:hover,.moodTeamsBtn:hover,.hmGo:hover,.tGo:hover,.reelClose:hover,
+.workCta:hover,.ndLink:hover,.heroBack:hover,.navLink:hover,.mhToggle:hover,.hmScoreEnd:hover,
+.moodItem:focus-visible,.moodBtn:focus-visible,.moodTeamsBtn:focus-visible,.hmGo:focus-visible,
+.tGo:focus-visible,.reelClose:focus-visible,.workCta:focus-visible,.ndLink:focus-visible,
+.heroBack:focus-visible,.navLink:focus-visible,.mhToggle:focus-visible,.hmScoreEnd:focus-visible{
+ background:var(--c75);color:var(--c950);border-color:transparent;
+}
+/* the one filled control: the single primary action on a screen */
+.tGo:not(.tGoQuiet),.hmGoPrimary{background:var(--c950);color:var(--c50);border-color:var(--c950)}
+.tGo:not(.tGoQuiet):hover,.hmGoPrimary:hover{background:var(--c900);color:var(--c50);border-color:var(--c900)}
+
+/* THE PLAY MENU, Gentle-Monster style: no box, no panel, no chrome. The trigger is plain text
+   and the options simply come down under it as text. Jayden: "when you hover over sunglasses
+   there is no dropdown just text". So the panel loses its card entirely -- the only feedback
+   is the shared hover wash, which is what makes it feel like one system. */
+.moodMenu{background:none!important;border:0!important;box-shadow:none!important;padding:4px 0 0!important}
+/* A text-only menu only works if nothing is behind it. Dimming the hero was the obvious route
+   and it does NOT work here: the headline still paints at full strength under a 0.12 parent,
+   because its per-word ink filters escape the opacity group. Rather than ship an effect I
+   cannot explain, the menu is pulled out of the headline's column instead -- hard against the
+   right edge under its own trigger, where the page is empty. Same result, no magic. */
+.moodMenu{right:0!important;left:auto!important;width:max-content!important;min-width:0!important;
+ max-width:min(280px,42vw)!important;text-align:right}
+.moodItem,.moodBtn{white-space:nowrap}
+.moodItem{justify-content:flex-end;padding-right:0!important;padding-left:12px!important}
+.moodMenu .tLbl,.moodMenu hr{margin-left:auto}
+.moodbar{background:none!important;border:0!important;box-shadow:none!important}
+.moodBtn{padding:12px 0!important;border-color:transparent!important;min-height:44px!important}
+.moodTeamsBtn{background:none!important;border-color:transparent!important;padding:12px 16px!important}
+.moodTeamsBtn:hover{background:var(--c75)!important;color:var(--c950)}
+.moodBtn:hover{background:none!important;color:var(--c950)}
+.moodItem,.moodbar.open .moodItem{justify-content:flex-start;padding:10px 12px 10px 0;border-radius:0;
+ font-size:var(--fs-small);min-height:44px;width:auto}
+.moodItem:hover{background:none!important;color:var(--c950)}
+
+/* MOBILE KEEPS ITS SURFACE. Text-only works on desktop because the right margin is empty; at
+   390px the menu necessarily sits over the headline (measured: 164px of overlap) and two lots
+   of text on top of each other is unreadable. So the panel comes back below 640px -- same type,
+   same hover, same sizes, just a surface to sit on. */
+@media(max-width:640px){
+ .moodMenu{background:var(--c50)!important;border:1px solid var(--c100)!important;
+  border-radius:4px!important;padding:8px!important;text-align:left!important;
+  box-shadow:0 8px 28px -8px rgba(18,18,18,.12)!important}
+ .moodItem{justify-content:flex-start!important;padding:10px 12px!important}
+}
 </style></head>
 <body>
 <a class="skipLink" href="#main">Skip to content</a>
@@ -3344,6 +3415,15 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   return {burst:burst,ring:ring,spark:spark,flash:flash,tint:tint,hitstop:hitstop,shake:shake,clear:clear};
  })();
  window.__hmFX=FX;
+ // a team-coloured confetti palette: the winner's colour, lightened and darkened, so the
+ // shower still has depth without turning into a rainbow that belongs to nobody.
+ window.__hmTeamConfetti=function(rgbStr){ if(!rgbStr)return null;
+  var p=String(rgbStr).split(",").map(function(v){return parseInt(v,10);});
+  if(p.length<3||p.some(isNaN))return null;
+  function mix(f){ return "rgb("+p.map(function(v){
+    return Math.max(0,Math.min(255,Math.round(f>0? v+(255-v)*f : v*(1+f))));}).join(",")+")"; }
+  return [mix(.34),mix(.16),mix(0),mix(-.16),mix(-.3),mix(.5)];
+ };
  // ===== BATTLE ABILITIES: mystery crates -> physics-chaos powers, all juiced off FX =====
  (function injectAbilCSS(){var s=document.createElement("style");s.textContent=
    ".hmCrate{position:absolute;left:0;top:0;width:36px;height:36px;border-radius:9px;background:linear-gradient(155deg,#d0a86f,#a9793f);box-shadow:inset 0 2px 0 rgba(255,255,255,.4),inset 0 -3px 6px rgba(0,0,0,.25),0 6px 14px -6px rgba(40,26,10,.5);border:1.5px solid rgba(90,60,25,.5);display:flex;align-items:center;justify-content:center;font-family:var(--sans);font-weight:600;font-size:20px;color:#5a3c17;z-index:3;pointer-events:none;transition:opacity .3s;will-change:transform}"
@@ -3675,13 +3755,15 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    if(grabbed){grabbed=false;root.style.cursor="grab";}
    root.style.pointerEvents="none";
    try{if(typeof busyNow==="function"&&!busyNow()&&typeof eventLock!=="undefined"&&!eventLock){setHold("rest",1100);showFace("rest");browFlash();setTimeout(function(){try{browFlash();}catch(_){}},380);}}catch(_){}}}   // a knockout earns the double-flash
- function confettiBurst(cx0){try{ // realistic confetti: gravity, sway, tumble
+ function confettiBurst(cx0,colsIn){try{ // realistic confetti: gravity, sway, tumble.
+  // colsIn lets the winner throw THEIR colour -- a tournament final that showers a generic
+  // rainbow says nothing about who just won.
   if((window.__hmFx||0)>=1)return;window.__hmFx=(window.__hmFx||0)+1;   // one celebration canvas at a time: never flood the GPU
   var cv9=document.createElement("canvas");var hr9=hero.getBoundingClientRect();
   cv9.width=innerWidth;cv9.height=Math.round(hr9.height);
   cv9.style.cssText="position:fixed;left:0;top:"+hr9.top.toFixed(0)+"px;width:100vw;height:"+hr9.height.toFixed(0)+"px;pointer-events:none;z-index:62";
   document.body.appendChild(cv9);var g9=cv9.getContext("2d");
-  var cols=["#e05a4e","#e8b84b","#5aa0d8","#67b26f","#8a6fd8","#d87ea8"],pc=[];
+  var cols=(colsIn&&colsIn.length)?colsIn:["#e05a4e","#e8b84b","#5aa0d8","#67b26f","#8a6fd8","#d87ea8"],pc=[];
   for(var q9=0;q9<130;q9++)pc.push({x:Math.random()*innerWidth,y:-20-Math.random()*220,
    vy:105+Math.random()*120,ph:Math.random()*6.28,sw:22+Math.random()*34,fq:1.1+Math.random()*1.6,
    w:6+Math.random()*4,h:3+Math.random()*3,c:cols[q9%cols.length],rv:2+Math.random()*4});
@@ -4057,7 +4139,11 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    if(inb9>=2&&alive9===1){celebrated=true;try{if(window.__hmLavaOn&&window.__hmCareer&&slot!=null)window.__hmCareer.rec("lavaWin",slot);}catch(_){}   // LAST HEAD STANDING: crown the winner right where he stands (soccer-style, no podium), a victory leap + confetti, then everyone streams back
     crownEl.style.opacity="1";if(filler){smileT=3.8;danceUntil=now+3600;}
     if(!grabbed){dir=((heroR.w/2)>(x+HW/2))?1:-1;surface=floorY;st="fall";air=true;vy=-(900+Math.random()*140);vx=dir*(90+Math.random()*120);sqT=0.13;sqyP=1.11;sqxP=1/1.11;startFlip();}   // he leaps for it
-    brf=6;mof=4;confettiBurst(heroR.w*0.5);
+    brf=6;mof=4;
+    var _cc=null;try{var _t=window.__hmTour;
+     if(_t&&_t.live&&window.__hmTeamCol&&team&&window.__hmTeamConfetti)
+       _cc=window.__hmTeamConfetti(window.__hmTeamCol[team]);}catch(_){}
+    confettiBurst(heroR.w*0.5,_cc);
     try{if(window.__hmBattleWin)window.__hmBattleWin(window.__hmLavaOn?"Survivor!":"Champion!");}catch(_){}
     try{if(typeof busyNow==="function"&&!busyNow()&&typeof setHold==="function"){setHold("smile",2200);showFace("smile");}}catch(_){}
     setTimeout(function(){window.__hmRespawn=performance.now();},4200);}}   // hold the moment, then everyone comes back to normal life

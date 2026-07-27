@@ -797,7 +797,8 @@ function renderPit(){try{var row=document.getElementById("hmPitRow"),sec=documen
    var im1=document.createElement("img");im1.src=all[idx].cut;im1.alt="";pk.appendChild(im1);
    pk.addEventListener("click",function(){ // any head, any time: back on the stage it goes
     try{localStorage.setItem("hmCompanion",JSON.stringify(all[idx]));}catch(_){}
-    restoreHead(all[idx]);});
+    restoreHead(all[idx]);
+    try{window.__hmNameSync&&window.__hmNameSync();}catch(_){}});
    it.appendChild(pk);
    var xb=document.createElement("button");xb.className="hmPitX";xb.type="button";xb.setAttribute("aria-label","Remove this head from the homepage");xb.textContent="\u00d7";
    xb.addEventListener("click",function(ev){ev.stopPropagation();var cur=readPit();cur.splice(idx,1);
@@ -1006,8 +1007,18 @@ try{restoreHead(JSON.parse(localStorage.getItem("hmCompanion")||"null"));}catch(
   else if(!wrote&&say)say.textContent="Could not save that name \u2014 your browser is blocking storage.";}
 
  inp.addEventListener("input",apply);
- try{var a0=JSON.parse(localStorage.getItem("hmCompanions")||"[]")||[];var h0=target(a0);
-  if(h0&&h0.name){inp.value=h0.name;tell(h0.name);}}catch(_){}
+
+ // RESYNC. This used to run once at load, so picking a different head from the pit left the
+ // previous head's name sitting in the box -- edit it and you were typing over the wrong name,
+ // which is why names appeared to bleed from one head to another. The field must always show
+ // the head that is actually on stage.
+ function sync(){ try{
+   var a=JSON.parse(localStorage.getItem("hmCompanions")||"[]")||[], h=target(a);
+   inp.value = (h && h.name) ? h.name : "";
+   tell(inp.value);
+ }catch(_){} }
+ window.__hmNameSync = sync;
+ sync();
 })();
 </script>
 </body>
