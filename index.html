@@ -1010,7 +1010,8 @@ body.hmSoccer .tourPanel{display:none}   /* the pitch owns the screen during a f
 .tRoundLbl{font-size:var(--fs-label);font-weight:400;color:var(--c500);letter-spacing:.04em;text-transform:uppercase;margin-bottom:8px}
 .tMatch{display:flex;align-items:center;justify-content:center;gap:.2em;font-size:var(--fs-body);line-height:1.5;white-space:nowrap}
 .tSide{display:inline-flex;align-items:baseline}
-.tSide.tLost{opacity:.38}
+.tSide.tLost{color:var(--c500)}
+.tSide.tLost .tFaceW img{filter:grayscale(1);opacity:.55}
 .tSide.tWon{font-weight:600}
 .tBoard{width:100%;display:flex;flex-direction:column;gap:2px}
 .tRow{display:flex;align-items:center;gap:8px;padding:4px 8px;border-radius:4px}
@@ -1065,13 +1066,19 @@ body.hmTour .hero{min-height:calc(100svh - 68px)}
 .tMi{position:relative;display:flex;flex-direction:column;justify-content:center;flex:1 1 0;width:100%;padding:4px 0}
 .tM{position:relative;display:flex;flex-direction:column;border:1px solid var(--c100);border-radius:4px;
  background:var(--c50);transition:border-color .3s cubic-bezier(.2,.8,.2,1)}
-.tM.tLive{border-color:var(--c950)}
+.tM.tLive{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
 .tT{display:flex;align-items:center;gap:8px;padding:8px 12px;font-size:var(--fs-small);line-height:1.2;white-space:nowrap;overflow:hidden;text-align:left;min-height:38px;box-sizing:border-box;border-left:2px solid transparent}
 .tT+.tT{border-top:1px solid var(--c100)}
 .tT:first-child{border-radius:3px 3px 0 0}
 .tT:last-child{border-radius:0 0 3px 3px}
-.tT.tWon{font-weight:600}
-.tT.tLost{opacity:.38}
+.tT.tWon{font-weight:600;border-left-width:3px}
+/* Eliminated. NOT opacity -- opacity:.38 composited to #A4A4A4 = 2.45:1 and failed
+   WCAG 1.4.3. ESPN keeps the same font, size and weight and moves only the colour
+   (winner 18.7:1, loser 5.1:1). Same move here: 18.42:1 -> 4.53:1, both pass AA. It is
+   a LUMINANCE gap, not a hue one, so it also survives 1.4.1 Use of Color. The head
+   desaturates as the second, non-colour cue, and the identity stripe drops to hairline. */
+.tT.tLost{color:var(--c500);border-left-color:var(--c100)!important}
+.tT.tLost .tFaceW img{filter:grayscale(1);opacity:.55}
 .tNm{overflow:hidden;text-overflow:ellipsis}
 .tTbd{color:var(--c500)}
 /* The heads are transparent CUT-OUTS; a circular crop fought their silhouette and clipped hair
@@ -1337,11 +1344,18 @@ body.about-open #navAbout{color:var(--c950);background:var(--c75)}
 .tBrMir .tMiR:not([data-first])::before{left:100%;width:17px;top:50%;border-top:1px solid var(--c500)}
 .tBrMir .tMiC::before{right:100%;width:17px;top:50%;border-top:1px solid var(--c500)}
 .tBrMir .tMiC::after{left:100%;width:17px;top:50%;border-top:1px solid var(--c500)}
+/* THE PATH. Every connector was the same --c500, so the structure said nothing about
+   what had happened. A decided match's line steps up to ink; undecided lines recede to
+   the hairline. Mario Tennis does this by drawing resolved paths in red against white
+   ones -- the bracket narrates itself through the lines, not the labels. */
+.tBrMir .tMi::before,.tBrMir .tMi::after{border-color:var(--c100)!important;transition:border-color .3s cubic-bezier(.2,.8,.2,1)}
+.tBrMir .tMiDone::before,.tBrMir .tMiDone::after{border-color:var(--c950)!important}
 
 /* the final is the focal point: the trophy anchors it and the tree hangs beneath,
    which is what EA FC 26 does (its patch notes call out the completed tree
    failing to render UNDER the trophy as the bug worth fixing) */
 .tBrMir .tMiC .tM{border-color:var(--c950)}
+.tBrMir .tMiC .tT{min-height:43px}   /* +12%: the final is taller as well as wider */
 .tFinalCrown{grid-column:var(--gc,auto);grid-row:1;justify-self:center;align-self:end;
  width:40px;height:40px;margin-bottom:4px;object-fit:contain;pointer-events:none}
 
@@ -6302,7 +6316,11 @@ function paint(){
   var RS = T.br.rounds, nR = RS.length;
   var rows = Math.max(1, Math.ceil(RS[0].matches.length / 2));   // rows = quarter-finals per side
   var cols = [];
-  for (var ci = 0; ci < 2 * nR - 1; ci++) cols.push(ci === nR - 1 ? 'minmax(0,1.12fr)' : 'minmax(0,1fr)');
+  // The final is a physically DIFFERENT object, not just the last cell -- ESPN's
+  // championship card is 1.5x wider and 12% taller than every other round and uses a
+  // separate component. That is how the final becomes the focal point; 1.12fr was not
+  // enough of a step to read as anything.
+  for (var ci = 0; ci < 2 * nR - 1; ci++) cols.push(ci === nR - 1 ? 'minmax(0,1.5fr)' : 'minmax(0,1fr)');
   br.style.setProperty('--tcols', cols.join(' '));
   br.style.setProperty('--trows', 'auto auto repeat(' + rows + ',minmax(0,auto))');
 
@@ -6326,7 +6344,10 @@ function paint(){
     rd.matches.forEach(function(m, mi){
       var side = isFinal ? 'C' : (mi < half ? 'L' : 'R');
       var k    = isFinal ? 0 : (side === 'L' ? mi : mi - Math.ceil(half));
-      var item = el('div', 'tMi tMi' + side);
+      // the item (not just the card) carries the decided state, because the connectors
+      // are pseudo-elements on the ITEM -- Mario Tennis recolours the decided path rather
+      // than restyling name plates, which is louder and cheaper
+      var item = el('div', 'tMi tMi' + side + (m.winner !== undefined ? ' tMiDone' : ''));
       item.style.setProperty('--gc', side === 'C' ? colC : (side === 'L' ? colL : colR));
       item.style.setProperty('--gr', (isFinal ? 3 : k * span + 3) + ' / span ' + (isFinal ? rows : span));
       // two matches per side elbow into their pair; one per side feeds straight through
