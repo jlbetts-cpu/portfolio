@@ -880,13 +880,21 @@ body.navOpen .navBurger span:nth-child(3){transform:translateY(-6px) rotate(-45d
  top:clamp(14px,3vh,26px);gap:clamp(2px,.6vh,6px);
  font-family:var(--sans);font-weight:700;font-size:var(--fs-heroline);line-height:1.06;letter-spacing:-.015em;color:var(--c950)}
 .hmScore .sTitle{display:inline-flex;align-items:center;white-space:nowrap}
-.hmScore .sTitle{gap:.16em}
-/* The title ball is the SAME px as the match ball (2*BR), so nothing resizes mid-drop -- it was
-   jumping 23.2 -> 48px on desktop and 17.4 -> 32px on mobile, which is what read as "weird". */
-.hmScore .sBall{width:36px;height:36px;object-fit:contain;flex:0 0 auto;
- transition:opacity .18s cubic-bezier(.2,.8,.2,1)}
-@media(max-width:880px){.hmScore .sBall{width:28px;height:28px}}
-.hmScore .sMeta{display:inline-flex;align-items:center;gap:clamp(8px,1.6vw,14px)}
+/* The ball rests in the title at the size Jayden liked (.62em, the .discoDot metric), and the
+   drop is a SCALE TWEEN on the live ball rather than a swap between two images -- it used to read
+   as "one png goes in and then another". On the way out the ball collapses its WIDTH as well as
+   its opacity, so "Soccer" glides back to true centre using the same eased min-width move as the
+   hero cycling word, instead of sitting off-centre around an invisible gap. */
+.hmScore .sTitle{gap:0}
+.hmScore .sBall{width:.62em;height:.62em;margin-left:.2em;object-fit:contain;flex:0 0 auto;
+ transition:opacity .16s cubic-bezier(.2,.8,.2,1),width .34s cubic-bezier(.2,.8,.2,1),margin-left .34s cubic-bezier(.2,.8,.2,1)}
+.hmScore.ballOut .sBall{opacity:0;width:0;margin-left:0}
+@media(prefers-reduced-motion:reduce){.hmScore .sBall{transition:opacity .16s linear}}
+/* "First to N" and End still carried the border-left dividers from when this was a horizontal
+   chip; stacked underneath the score they read as debris. Quiet row, no rules. */
+.hmScore .sMeta{display:inline-flex;align-items:center;gap:clamp(14px,2.4vw,22px);margin-top:clamp(2px,.6vh,6px)}
+.hmScore .sMeta small{margin:0;padding:0;border:0}
+.hmScore .sMeta .hmScoreEnd{margin:0;padding:0;border:0}
 .hmScore.ballOut .sBall{opacity:0}
 .hmScore .sNums{display:inline-flex;align-items:baseline;gap:.3em;font-variant-numeric:tabular-nums}
 .hmScore .sNums .sR{color:#e05a4e}
@@ -2888,7 +2896,7 @@ requestAnimationFrame(function(){requestAnimationFrame(startIntro);});
      if(cur.length)localStorage.setItem("hmCompanion",JSON.stringify(cur[cur.length-1]));
      else localStorage.removeItem("hmCompanion");}catch(_){}
     try{if(window.__hmKill)window.__hmKill(h.cut);}catch(_){}
-    render();});
+    render();battleGate();});   // the gate otherwise waits for its 400ms interval, so the last head could vanish while Soccer still looked playable
    it.appendChild(xb);box.appendChild(it);});
   syncBar(a.length);}
  // --- "Show on home" -------------------------------------------------------------------
@@ -3462,7 +3470,12 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   warp:function(nx,ny){x=Math.max(WL,Math.min(WR,nx));y=ny;air=true;st="fall";vy=Math.min(vy,80);},
   aura:function(color,dur){me.__aura={color:color,until:performance.now()+dur};},
   pop:function(sy){sqT=0.14;sqyP=sy||1.14;sqxP=1/(sy||1.14);brf=6;}};
- window.__hmKill=window.__hmKill||function(cut){(window.__hmLive||[]).forEach(function(k){if(k.cut===cut)k.kill();});};
+ window.__hmKill=window.__hmKill||function(cut){var L=window.__hmLive||[];
+  for(var i=L.length-1;i>=0;i--){if(L[i].cut===cut){L[i].kill();L.splice(i,1);}}};   // SPLICE, not just kill(). Entries were only ever pushed -- kill() flipped a flag and left the
+  // record in place -- so window.__hmLive only ever grew. gameCount() is
+  // Math.max(readAll().length, __hmLive.length), which put a permanent floor under the count:
+  // delete every head and the roster emptied while Soccer and Marble Race stayed lit, because the
+  // gate still believed there were players on the field.
  (window.__hmLive=window.__hmLive||[]).push({cut:data.cut,kill:function(){killed=true;
   try{root.remove();shadow.remove();var ix9=peers.indexOf(me);if(ix9>-1)peers.splice(ix9,1);}catch(_){}}});
  function hurt(d){if(!battleOn||elim)return;
@@ -4292,9 +4305,14 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   function geo(){var r=hero.getBoundingClientRect();W=r.width;H=r.height;OFF=r.left;XL=-OFF;XR=innerWidth-OFF;   // the pitch spans the whole screen, wall to wall
    if(innerWidth<=640){XL+=12;XR-=12;}   // ...except on a phone. The goals are 42px wide and were drawn at exactly XL and XR-42, i.e. flush to both screen edges with zero inset, their shadows clipped at -6 and 398 -- it read as cut off rather than as a goalmouth. Inset the PITCH BOUNDS rather than the goal graphic: goals, goal shadows, the crossbar test, the kickoff centre, the ball wall clamps and the scoring plane (bx<XL+BR / bx>XR-BR) all derive from XL/XR, so they move together by construction. Nudging the graphic alone would have desynced the net from where goals actually count.
    var st=document.getElementById("stage");if(st){var sr=st.getBoundingClientRect();groundY=sr.bottom-r.top;}else groundY=H-40;   // the pitch line == where the heads' feet rest (the stage bottom), so ball and players share one ground
-   if(document.body.classList.contains("hmFull")&&window.__hmFeetY!=null)groundY=window.__hmFeetY;   // full-screen phone arena: the heads dropped to the bottom of it, so the goalmouths must too -- the big head's stage is still up where the hero used to end
+   if(document.body.classList.contains("hmFull")&&window.__hmFeetY!=null)groundY=window.__hmFeetY;
+   if(S.on&&_gyLock!=null)groundY=_gyLock;   // LATCH. The pitch line is fixed for the whole match:
+   // the head engine already refuses to trust the big head mid-game ("during a game the big head
+   // STEPS OFF ... so his position is NOT the floor then") and soccer has to do the same, or the
+   // goals chase him across the screen as he fades out.
+   else if(S.on&&_gyLock==null)_gyLock=groundY;   // full-screen phone arena: the heads dropped to the bottom of it, so the goalmouths must too -- the big head's stage is still up where the hero used to end
    if(groundY>H-16)groundY=H-16;
-   var nBR=innerWidth<=880?14:18;   // the ball now matches the headline it drops out of; the title copy is set to the same px, so nothing resizes mid-drop   // the heads shrink on mobile (96->64), so the ball shrinks with them (48->32) to keep the player:ball ratio honest
+   var nBR=innerWidth<=880?16:24;   // the heads shrink on mobile (96->64), so the ball shrinks with them (48->32) to keep the player:ball ratio honest
    BR=nBR;   // was gated on nBR!==BR, but dom() calls geo() BEFORE it creates the ball: BR flipped
    // 24->16 while `ball` was still null, and every later geo() then saw nBR===BR and skipped the
    // resize forever. So on a phone the ball was PAINTED at its 48px CSS default while its physics
@@ -4321,10 +4339,14 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   // "hunger" in the hero. Every kickoff and restart drops it from here, so it reads as falling
   // out of the word rather than appearing from nowhere. The title copy hides whenever the real
   // ball is on the pitch, so there is only ever one ball on screen.
+  var _gyLock=null;
   function ballHome(){if(!board)return null;var e=board.querySelector(".sBall");if(!e)return null;
    var r=e.getBoundingClientRect(),hr=hero.getBoundingClientRect();if(!r.width)return null;
    return {x:r.left+r.width/2-hr.left,y:r.top+r.height/2-hr.top};}
   function ballInTitle(on){if(board)board.classList.toggle("ballOut",!on);}
+  var bsp=1;   // ball spawn scale: starts at the title copy's size so the drop reads as the SAME ball growing
+  function ballSpawnScale(){var e=board&&board.querySelector(".sBall");var w=e?e.getBoundingClientRect().width:0;
+   return w?Math.max(0.18,Math.min(1,w/(2*BR))):0.5;}
   var _lastGY=-1;
   function layout(){geo();
    goalL.style.transform="translate("+XL+"px,"+(groundY-150)+"px)";
@@ -4355,14 +4377,14 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   function showCount(t){if(!countEl)return;countEl.textContent=t;countEl.classList.remove("hmCountPulse");void countEl.offsetWidth;countEl.classList.add("hmCountPulse");}
   var RED="224,90,78",BLUE="90,160,216";
   function kickoffCountdown(){S.kickSeed=(S.kickSeed||0)+1;   // the match opener: everyone to their half, then 3-2-1
-   var _bh=ballHome();bx=_bh?_bh.x:(XL+XR)/2;by=_bh?_bh.y:70;bvx=0;bvy=0;S.phase="count";
+   var _bh=ballHome();bx=_bh?_bh.x:(XL+XR)/2;by=_bh?_bh.y:70;bsp=ballSpawnScale();bvx=0;bvy=0;S.phase="count";
    var n=3;showCount(n);
    (function tick(){if(!S.on)return;
     if(n>1){n--;setTimeout(function(){showCount(n);tick();},800);}
     else{setTimeout(function(){if(!S.on)return;showCount("GO");
      setTimeout(function(){if(!S.on)return;if(countEl)countEl.textContent="";bvy=30;S.phase="play";},560);},800);}})();}
   function dropIn(){S.kickSeed=(S.kickSeed||0)+1;   // after a goal: no countdown, the ball just drops back in as they return to their sides
-   var _bh2=ballHome();bx=_bh2?_bh2.x:(XL+XR)/2;by=_bh2?_bh2.y:60;bvx=(Math.random()*80-40);bvy=20;S.phase="reset";
+   var _bh2=ballHome();bx=_bh2?_bh2.x:(XL+XR)/2;by=_bh2?_bh2.y:60;bsp=ballSpawnScale();bvx=(Math.random()*80-40);bvy=20;S.phase="reset";
    setTimeout(function(){if(S.on)S.phase="play";},650);}
   function goalBurst(team,gx,gy){try{   // the ball bursts, and confetti erupts from the goal it went in
    if((window.__hmFx||0)>=2)return;window.__hmFx=(window.__hmFx||0)+1;
@@ -4381,7 +4403,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
      g.save();g.translate(p.x,p.y);g.rotate(t*p.rv);g.scale(1,Math.max(0.2,Math.abs(Math.cos(t*p.rv))));
      g.fillStyle="rgba("+p.c+",1)";g.fillRect(-p.w/2,-p.h/2,p.w,p.h);g.restore();});
     if(t<2.3)requestAnimationFrame(fr);else{cv.remove();window.__hmFx=Math.max(0,(window.__hmFx||1)-1);}})(performance.now());}catch(_){window.__hmFx=Math.max(0,(window.__hmFx||1)-1);}}
-  function start(){if(S.on)return;geo();if(!ball)dom();layout();teams();
+  function start(){if(S.on)return;_gyLock=null;geo();if(!ball)dom();layout();teams();
    S.on=true;S.red=0;S.blue=0;S.winner=0;S.seed=(S.seed||0)+1;board2();
    ballInTitle(false);ball.style.opacity="1";goalL.style.opacity="1";goalR.style.opacity="1";board.style.opacity="1";if(ballShadow)ballShadow.style.opacity="0.28";if(goalShL){goalShL.style.opacity="1";goalShR.style.opacity="1";}
    document.body.classList.add("hmSoccer");kickoffCountdown();
@@ -4425,12 +4447,13 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
      g.fillStyle=p.c;g.fillRect(-p.w/2,-p.h/2,p.w,p.h);g.restore();});
     if(t<3.8)requestAnimationFrame(fr);else{cv.remove();window.__hmFx=Math.max(0,(window.__hmFx||1)-1);}})(performance.now());}catch(_){window.__hmFx=Math.max(0,(window.__hmFx||1)-1);}}
   function finish(){S.on=false;S.phase="idle";S.winner=0;
-   if(ball){ballInTitle(true);ball.style.opacity="0";goalL.style.opacity="0";goalR.style.opacity="0";board.style.opacity="0";if(ballShadow)ballShadow.style.opacity="0";if(goalShL){goalShL.style.opacity="0";goalShR.style.opacity="0";}}
+   if(ball){_gyLock=null;ballInTitle(true);ball.style.opacity="0";goalL.style.opacity="0";goalR.style.opacity="0";board.style.opacity="0";if(ballShadow)ballShadow.style.opacity="0";if(goalShL){goalShL.style.opacity="0";goalShR.style.opacity="0";}}
    if(countEl)countEl.textContent="";document.body.classList.remove("hmSoccer");
    try{if(window.__hmFX)window.__hmFX.clear();}catch(_){}}
   var spin=0,bw=0,gaspAt=0;   // spin = rendered rotation, bw = angular velocity (deg/s)
   function loop(now){if(!S.on){running=false;return;}requestAnimationFrame(loop);
-   var dt=Math.min(0.05,Math.max(0.006,(now-last)/1000));last=now;geo();if(Math.abs(groundY-_lastGY)>1){_lastGY=groundY;layout();}   // the ground plane can MOVE mid-match now (entering/leaving the full-screen phone arena) -- goals are positioned in layout(), which only ran at start(), so they used to stay behind on the old pitch line
+   var dt=Math.min(0.05,Math.max(0.006,(now-last)/1000));last=now;if(S.phase!=="count")bsp+=(1-bsp)*Math.min(1,dt*7);geo();   // hold the ball at the TITLE size through the countdown -- the physics is frozen then, so a ball that grew immediately just sat at full size on top of the word. It resizes as it drops, not before.
+    if(Math.abs(groundY-_lastGY)>1){_lastGY=groundY;layout();}   // the ground plane can MOVE mid-match now (entering/leaving the full-screen phone arena) -- goals are positioned in layout(), which only ran at start(), so they used to stay behind on the old pitch line
     
    var REST=groundY-BR,GRAV=2600;   // gravity is uniform: the ball falls at exactly the heads' g (was a wrong 2400 vs their 2600). REST = ball CENTRE at rest, underside on the pitch
    if(S.phase==="scoring"){   // the net has the ball: it decelerates and settles
@@ -4480,7 +4503,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    var _bs=dt>0.02?Math.ceil(dt/0.02):1,_bd=dt/_bs;   // same sub-step guard for the ball, so a laggy frame can't balloon it either
    for(var _bi=0;_bi<_bs;_bi++){bsxv+=((bsxP-bsx)*1150-bsxv*62)*_bd;bsx+=bsxv*_bd;bsyv+=((bsyP-bsy)*1150-bsyv*62)*_bd;bsy+=bsyv*_bd;}
    bsx=Math.max(0.7,Math.min(1.32,bsx));bsy=Math.max(0.7,Math.min(1.32,bsy));
-   if(ball){ball.style.transform="translate("+(bx-BR).toFixed(1)+"px,"+(by-BR).toFixed(1)+"px) scale("+bsx.toFixed(3)+","+bsy.toFixed(3)+")";   // container: position + squash, it never rotates
+   if(ball){ball.style.transform="translate("+(bx-BR).toFixed(1)+"px,"+(by-BR).toFixed(1)+"px) scale("+(bsx*bsp).toFixed(3)+","+(bsy*bsp).toFixed(3)+")";   // container: position + squash, it never rotates
     if(ballSkin)ballSkin.style.transform="rotate("+spin.toFixed(1)+"deg)";}   // only the printed pattern spins, dead-centre -- the lighting stays put
    if(ballShadow){var bBot=by+BR,airH=Math.max(0,groundY-bBot),scv=Math.max(0.4,1-airH/460);   // the shadow lives on the pitch line, dead under the ball, shrinking as it rises
     var hw9=(peers.length&&peers[0].HW)?peers[0].HW:(innerWidth<=880?64:96),shOff=hw9*0.11-2;   // sit it on the SAME line the heads' shadows use (they cast ~HW*0.11 forward of their feet), so ball and players read on one plane
