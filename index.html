@@ -6011,11 +6011,21 @@ var BR = window.__hmBracket; if (!BR) return;
 
 // Eight team colours. Kept saturated enough to read against a near-monochrome pitch, and far
 // enough apart in hue that two teams on the same pitch are never ambiguous.
-var PAL = [
-  { n: 'Red',    c: '224,72,60'  }, { n: 'Blue',   c: '59,130,214' },
-  { n: 'Green',  c: '63,168,71'  }, { n: 'Yellow', c: '232,179,30' },
-  { n: 'Purple', c: '138,92,209' }, { n: 'Orange', c: '232,117,42' },
-  { n: 'Pink',   c: '222,92,151' }, { n: 'Grey',   c: '110,118,132'}
+var /* ---- Every team colour sits at relative luminance 0.150, so WHITE TEXT CLEARS 4.5:1 ON
+   ALL EIGHT (measured 5.22-5.27:1). The old palette could not carry white anywhere -- best
+   was Purple at 4.63 and Yellow was 1.93 -- which is why the scoreboard could not just copy
+   the reference and use white numerals.
+   Normalising also fixes a second problem: the old set spanned 2.8x in perceived intensity
+   (Purple 0.177 -> Yellow 0.495), so a yellow team simply looked more important than a purple
+   one. Stephen Few's rule is that identity colours "should look different without varying in
+   perceived intensity". Spread is now 1.01x.
+   Scaled in LINEAR RGB, which preserves hue and saturation exactly -- no hue drift. Yellow and
+   Orange cannot survive that as yellow and orange, so they are named for what they now are. ---- */
+PAL = [
+  { n: 'Red',    c: '194,61,51'  }, { n: 'Blue',   c: '49,109,181' },
+  { n: 'Green',  c: '44,123,50'  }, { n: 'Bronze', c: '136,103,13' },
+  { n: 'Purple', c: '128,85,194' }, { n: 'Rust',   c: '170,84,28'  },
+  { n: 'Pink',   c: '175,71,118' }, { n: 'Slate',  c: '101,109,122'}
 ];
 
 // The cup is named after one of the case studies, picked when the tournament is built. It is a
