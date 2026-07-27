@@ -885,7 +885,15 @@ body.navOpen .navBurger span:nth-child(3){transform:translateY(-6px) rotate(-45d
    as "one png goes in and then another". On the way out the ball collapses its WIDTH as well as
    its opacity, so "Soccer" glides back to true centre using the same eased min-width move as the
    hero cycling word, instead of sitting off-centre around an invisible gap. */
-.hmScore .sTitle{gap:0}
+/* The ball, not the lockup, is centred while it is in the title -- it drops straight down, so
+   wherever it sits IS the kickoff spot. Centring "Soccer + ball" as a group put the ball 64.6px
+   right of the pitch centre on desktop and 48.4px on mobile (a quarter of the way to the right
+   goal), handing blue the kickoff every time. --sShift is measured in JS because the offset is
+   half the word width, which moves with the responsive type. Once the ball has fallen the shift
+   is dropped and the word glides back to true centre. */
+.hmScore .sTitle{gap:0;transform:translateX(var(--sShift,0px));transition:transform .34s cubic-bezier(.2,.8,.2,1)}
+.hmScore.ballOut.ballFell .sTitle{transform:none}
+@media(prefers-reduced-motion:reduce){.hmScore .sTitle{transition:none}}
 .hmScore .sBall{width:.62em;height:.62em;margin-left:.2em;object-fit:contain;flex:0 0 auto;
  transition:opacity .16s cubic-bezier(.2,.8,.2,1),width .34s cubic-bezier(.2,.8,.2,1),margin-left .34s cubic-bezier(.2,.8,.2,1)}
 /* Two stages, deliberately. ballOut only hides the ball; the SLOT stays, so during the frozen
@@ -4346,6 +4354,20 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   // out of the word rather than appearing from nowhere. The title copy hides whenever the real
   // ball is on the pitch, so there is only ever one ball on screen.
   var _gyLock=null;
+  // Put the BALL on the pitch's centre line, not the lockup's.
+  function centreOnBall(){if(!board)return;var t=board.querySelector(".sTitle"),e=board.querySelector(".sBall");
+   if(!t||!e)return;
+   // The shift is transitioned (.34s), and getBoundingClientRect reports where the element IS,
+   // not where it is heading -- so ballHome() called straight after this read the PRE-shift spot
+   // and the ball spawned 64.6px right of the title copy. Suppress the transition, apply, measure,
+   // restore. The jump is invisible: the board is still fading in at kickoff.
+   var prev=t.style.transition;t.style.transition="none";
+   board.style.setProperty("--sShift","0px");void t.offsetWidth;
+   var tr=t.getBoundingClientRect(),er=e.getBoundingClientRect();
+   if(!er.width){t.style.transition=prev;return;}
+   var off=(er.left+er.width/2)-(tr.left+tr.width/2);
+   board.style.setProperty("--sShift",(-off).toFixed(1)+"px");void t.offsetWidth;
+   t.style.transition=prev;}
   function ballHome(){if(!board)return null;var e=board.querySelector(".sBall");if(!e)return null;
    var r=e.getBoundingClientRect(),hr=hero.getBoundingClientRect();if(!r.width)return null;
    return {x:r.left+r.width/2-hr.left,y:r.top+r.height/2-hr.top};}
@@ -4394,14 +4416,14 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   function showCount(t){if(!countEl)return;countEl.textContent=t;countEl.classList.remove("hmCountPulse");void countEl.offsetWidth;countEl.classList.add("hmCountPulse");}
   var RED="224,90,78",BLUE="90,160,216";
   function kickoffCountdown(){S.kickSeed=(S.kickSeed||0)+1;   // the match opener: everyone to their half, then 3-2-1
-   var _bh=ballHome();bx=_bh?_bh.x:(XL+XR)/2;by=_bh?_bh.y:70;bsp=ballSpawnScale();_spawnY=by;bvx=0;bvy=0;S.phase="count";
+   centreOnBall();var _bh=ballHome();bx=_bh?_bh.x:(XL+XR)/2;by=_bh?_bh.y:70;bsp=ballSpawnScale();_spawnY=by;bvx=0;bvy=0;S.phase="count";
    var n=3;showCount(n);
    (function tick(){if(!S.on)return;
     if(n>1){n--;setTimeout(function(){showCount(n);tick();},800);}
     else{setTimeout(function(){if(!S.on)return;showCount("GO");
      setTimeout(function(){if(!S.on)return;if(countEl)countEl.textContent="";bvy=30;S.phase="play";},560);},800);}})();}
   function dropIn(){S.kickSeed=(S.kickSeed||0)+1;   // after a goal: no countdown, the ball just drops back in as they return to their sides
-   var _bh2=ballHome();bx=_bh2?_bh2.x:(XL+XR)/2;by=_bh2?_bh2.y:60;bsp=ballSpawnScale();_spawnY=by;bvx=(Math.random()*80-40);bvy=20;S.phase="reset";
+   centreOnBall();var _bh2=ballHome();bx=_bh2?_bh2.x:(XL+XR)/2;by=_bh2?_bh2.y:60;bsp=ballSpawnScale();_spawnY=by;bvx=(Math.random()*80-40);bvy=20;S.phase="reset";
    setTimeout(function(){if(S.on)S.phase="play";},650);}
   function goalBurst(team,gx,gy){try{   // the ball bursts, and confetti erupts from the goal it went in
    if((window.__hmFx||0)>=2)return;window.__hmFx=(window.__hmFx||0)+1;
