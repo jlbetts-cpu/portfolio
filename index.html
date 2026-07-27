@@ -1017,9 +1017,9 @@ body.hmTour .hero{min-height:calc(100svh - 68px)}
 .tBr{display:flex;flex-direction:column;width:100%;gap:16px;align-items:stretch}
 .tCol{display:flex;flex-direction:column;gap:8px;min-width:0;flex:1 1 0}
 .tColLbl{text-align:center}
-.tColBody{display:flex;flex-direction:column;justify-content:center;gap:8px;flex:1 1 auto;min-height:0}   /* flex growth, NOT height:100% -- a percentage height inside an auto-height flex column fed back
-   on itself and blew the panel out to 10,410px */
-.tMi{position:relative;display:flex;flex-direction:column;justify-content:center;flex:0 1 auto;width:100%}
+.tColBody{display:flex;flex-direction:column;flex:1 1 auto;min-height:0;gap:0}   /* no gap: equal
+   slots are what make the rounds line up, and a gap breaks the arithmetic */
+.tMi{position:relative;display:flex;flex-direction:column;justify-content:center;flex:1 1 0;width:100%;padding:4px 0}
 .tM{position:relative;display:flex;flex-direction:column;border:1px solid var(--c100);border-radius:4px;
  background:var(--c50);transition:border-color .3s cubic-bezier(.2,.8,.2,1)}
 .tM.tLive{border-color:var(--c950)}
@@ -1042,17 +1042,15 @@ body.hmTour .hero{min-height:calc(100svh - 68px)}
 .tTeamNm{line-height:1}
 @media(min-width:641px){
  .tBr{flex-direction:row;gap:0}
- .tMi{padding:6px 15px}
+ .tMi{padding:4px 15px}
  .tCol:first-child .tMi{padding-left:0}
  .tCol:last-child .tMi{padding-right:0}
- .tMi::after{content:'';position:absolute;right:0;width:15px;height:46%;border-right:1px solid var(--c100)}
+ .tMi::after{content:'';position:absolute;right:0;width:15px;height:50%;border-right:1px solid var(--c100)}
  .tMi:nth-child(odd)::after{top:50%;border-top:1px solid var(--c100);border-top-right-radius:7px}
  .tMi:nth-child(even)::after{bottom:50%;border-bottom:1px solid var(--c100);border-bottom-right-radius:7px}
  .tCol:last-child .tMi::after{display:none}
- .tM::before,.tM::after{content:'';position:absolute;left:-15px;width:15px;height:22%;border-left:1px solid var(--c100)}
- .tM::before{bottom:50%;border-bottom:1px solid var(--c100);border-bottom-left-radius:7px}
- .tM::after{top:50%;border-top:1px solid var(--c100);border-top-left-radius:7px}
- .tCol:first-child .tM::before,.tCol:first-child .tM::after{display:none}
+ .tM::before{content:'';position:absolute;left:-15px;top:50%;width:15px;border-top:1px solid var(--c100)}   /* one line in, at the card's own centre -- the pair's elbows already meet there */
+ .tCol:first-child .tM::before{display:none}
 }
 .tQuit{margin-top:8px;background:none;border:0;padding:10px 12px;min-height:44px;
  font-family:var(--sans);font-weight:500;font-size:var(--fs-small);color:var(--c500);cursor:pointer;
@@ -1064,6 +1062,15 @@ body.hmTour .hero{min-height:calc(100svh - 68px)}
  .tFaceW{width:22px;height:22px}.tFaceBig{width:34px;height:34px}
  .tPr:not(.tPrLast)::after{left:calc(100% + 8px)}.tPr:not(.tPrLast) .tM::after{width:8px}
  .tBr{gap:0}.tColBody{gap:8px}.tPr{gap:8px}}
+/* The tournament owns the hero while it runs, so it says what it is. */
+.tTitle{margin:0;font-family:var(--sans);font-weight:700;font-size:var(--fs-heroline);line-height:1.06;
+ letter-spacing:-.015em;color:var(--c950)}
+/* Kick off is the primary action, so it is filled ink. End tournament is the same button, quiet. */
+.tGo{background:var(--c950);border:1px solid var(--c950);color:var(--c50)}
+.tGo:hover,.tGo:focus-visible{border-color:var(--c950);opacity:.86}
+.tGo.tGoQuiet{background:none;border-color:var(--c100);color:var(--c700);opacity:1}
+.tGo.tGoQuiet:hover,.tGo.tGoQuiet:focus-visible{border-color:var(--c500);color:var(--c950)}
+.tGo.tQuitArmed{border-color:#b3402e;color:#b3402e}
 </style></head>
 <body>
 <a class="skipLink" href="#main">Skip to content</a>
@@ -5684,6 +5691,7 @@ function paint(){
   h.hidden = false;
   h.innerHTML = '';
 
+  h.appendChild(el('h1', 'tTitle', 'Tournament'));
   var nm = BR.nextMatch(T.br);
   var champ = BR.champion(T.br);
 
@@ -5746,7 +5754,7 @@ function paint(){
   // A way out. Without this the tournament was a trap: the hero is given over to it and there was
   // no control anywhere to hand the page back.
   var done = (T.phase === 'done');
-  var out = el('button', 'tQuit', done ? 'Back to the hero' : 'End tournament');
+  var out = el('button', 'tGo tGoQuiet', done ? 'Back to the hero' : 'End tournament');
   out.type = 'button';
   // Mid-bracket this throws away up to seven played fixtures, so it asks twice. Once there is a
   // champion there is nothing left to lose and it goes straight back.
