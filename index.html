@@ -1040,6 +1040,7 @@ body.hmTour .hero{min-height:calc(100svh - 68px)}
  font-family:var(--sans);font-weight:500;font-size:var(--fs-small);color:var(--c500);cursor:pointer;
  transition:color .2s cubic-bezier(.2,.8,.2,1)}
 .tQuit:hover,.tQuit:focus-visible{color:var(--c950)}
+.tQuit.tQuitArmed{color:#b3402e}
 @media(max-width:640px){.tCol{max-width:none}.tColLbl{font-size:10px}
  .tT{padding:5px 7px 5px 6px;font-size:12px;gap:6px;min-height:34px}
  .tFaceW{width:22px;height:22px}.tFaceBig{width:34px;height:34px}
@@ -5696,9 +5697,19 @@ function paint(){
 
   // A way out. Without this the tournament was a trap: the hero is given over to it and there was
   // no control anywhere to hand the page back.
-  var out = el('button', 'tQuit', T.phase === 'done' ? 'Back to the hero' : 'End tournament');
+  var done = (T.phase === 'done');
+  var out = el('button', 'tQuit', done ? 'Back to the hero' : 'End tournament');
   out.type = 'button';
-  out.addEventListener('click', function(e){ e.stopPropagation(); stop(); });
+  // Mid-bracket this throws away up to seven played fixtures, so it asks twice. Once there is a
+  // champion there is nothing left to lose and it goes straight back.
+  var armed = false, armT = 0;
+  out.addEventListener('click', function(e){
+    e.stopPropagation();
+    if (done || armed){ stop(); return; }
+    armed = true; out.textContent = 'Tap again to end'; out.classList.add('tQuitArmed');
+    clearTimeout(armT);
+    armT = setTimeout(function(){ armed = false; out.textContent = 'End tournament'; out.classList.remove('tQuitArmed'); }, 3200);
+  });
   h.appendChild(out);
 
 }
