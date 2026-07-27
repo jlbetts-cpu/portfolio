@@ -1066,7 +1066,11 @@ body.hmTour .hero{min-height:calc(100svh - 68px)}
  .tBr{gap:0}.tColBody{gap:8px}.tPr{gap:8px}}
 /* The tournament owns the hero while it runs, so it says what it is. */
 .tTitle{margin:0;font-family:var(--sans);font-weight:700;font-size:var(--fs-heroline);line-height:1.06;
- letter-spacing:-.015em;color:var(--c950)}
+ letter-spacing:-.015em;color:var(--c950);display:inline-flex;align-items:baseline;gap:.14em}
+/* The trophy is a PORTRAIT cutout, unlike the square mood icons, so it is sized by HEIGHT and
+   lets its width follow -- squeezing it into a .62em square would letterbox it. It stands at
+   roughly the cap height of the name beside it. */
+.tCupIco{height:1.12em;width:auto;flex:0 0 auto;align-self:center;object-fit:contain;display:block}
 /* Kick off is the primary action, so it is filled ink. End tournament is the same button, quiet. */
 .tGo{background:var(--c950);border:1px solid var(--c950);color:var(--c50)}
 .tGo:hover,.tGo:focus-visible{border-color:var(--c950);opacity:.86}
@@ -5696,7 +5700,10 @@ function paint(){
   h.hidden = false;
   h.innerHTML = '';
 
-  h.appendChild(el('h1', 'tTitle', T.cup || 'Cup'));
+  var ttl = el('h1', 'tTitle', T.cup || 'Cup');
+  var cupIco = el('img', 'tCupIco'); cupIco.src = 'images/trophy.webp'; cupIco.alt = ''; cupIco.draggable = false;
+  ttl.appendChild(cupIco);   // sits after the name the way the mood icons sit after the cycling word
+  h.appendChild(ttl);
   var nm = BR.nextMatch(T.br);
   var champ = BR.champion(T.br);
 
