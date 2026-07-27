@@ -1104,96 +1104,121 @@ body.hmTour .hero{min-height:calc(100svh - 68px)}
 .tGo.tQuitArmed{border-color:#b3402e;color:#b3402e}
 
 /* ============================================================================
-   CONTROLS -- one system. Two roles, one hover, one size.
-   Every clickable control on the site had grown its own size, padding, radius and
-   hover; the audit found FOURTEEN distinct button appearances, several sitting at
-   13.333px because they never set a font-size at all and inherited the UA default.
-   This is deliberately last in the sheet so it wins without needing !important.
-   Hover is the one Jayden picked out of the Play menu: a quiet wash, text to ink.
+   CONTROLS -- exactly THREE types. Nothing else is allowed.
+   An audit across four pages found NINETEEN distinct control appearances: eight
+   different paddings, nine visible borders, five font sizes, and heights from
+   14px to 46px. This block is last in the sheet so it wins without !important.
+
+     1. STANDARD  quiet text, 12/16 padding, 44px min, no border, wash on hover
+     2. PRIMARY   the one filled-ink action on a screen
+     3. ICON      square 44x44 for icon-only controls
+
+   Interactive REGIONS (a whole case-study card, the compare handle, the
+   headmaker dropzone) are deliberately not in here -- they are not buttons and
+   forcing button padding on them is wrong.
    ============================================================================ */
-.moodItem,.moodBtn,.moodTeamsBtn,.hmGo,.tGo,.reelClose,.workCta,.ndLink,
-.heroBack,.navLink,.mhToggle,.hmScoreEnd{
+.moodItem,.moodBtn,.moodGo,.hmGo,.tGo,.reelClose,.workCta,.ndLink,.heroBack,
+.navLink,.mhToggle,.hmScoreEnd,.back,.talk,.tvTab,.abBack,.abLink,.csTab,.hmBtn{
  font-family:var(--sans);font-weight:400;font-size:var(--fs-small);line-height:1;
- color:var(--c700);background:none;border:1px solid transparent;border-radius:4px;
- padding:12px 16px;min-height:44px;
+ color:var(--c700);background:none;
+ border:0;                      /* no borders. The wash is the affordance. */
+ border-radius:4px;
+ padding:12px 16px;min-height:44px;box-sizing:border-box;
  align-items:center;justify-content:center;gap:8px;
  cursor:pointer;
  transition:background-color .16s cubic-bezier(.2,.8,.2,1),color .16s cubic-bezier(.2,.8,.2,1);
 }
-/* display is set at ZERO specificity via :where(), so any component that hides itself
-   conditionally still wins. Setting it in the base above turned .heroBack{display:none}
-   into a visible "Back" button sitting in the nav on every page. */
-:where(.moodItem,.moodBtn,.moodTeamsBtn,.hmGo,.tGo,.reelClose,.workCta,.ndLink,
- .heroBack,.navLink,.mhToggle,.hmScoreEnd){display:inline-flex}
-.moodItem:hover,.moodBtn:hover,.moodTeamsBtn:hover,.hmGo:hover,.tGo:hover,.reelClose:hover,
-.workCta:hover,.ndLink:hover,.heroBack:hover,.navLink:hover,.mhToggle:hover,.hmScoreEnd:hover,
-.moodItem:focus-visible,.moodBtn:focus-visible,.moodTeamsBtn:focus-visible,.hmGo:focus-visible,
-.tGo:focus-visible,.reelClose:focus-visible,.workCta:focus-visible,.ndLink:focus-visible,
-.heroBack:focus-visible,.navLink:focus-visible,.mhToggle:focus-visible,.hmScoreEnd:focus-visible{
- background:var(--c75);color:var(--c950);border-color:transparent;
-}
-/* the one filled control: the single primary action on a screen */
-.tGo:not(.tGoQuiet),.hmGoPrimary{background:var(--c950);color:var(--c50);border-color:var(--c950)}
-.tGo:not(.tGoQuiet):hover,.hmGoPrimary:hover{background:var(--c900);color:var(--c50);border-color:var(--c900)}
-
-/* THE PLAY MENU, Gentle-Monster style: no box, no panel, no chrome. The trigger is plain text
-   and the options simply come down under it as text. Jayden: "when you hover over sunglasses
-   there is no dropdown just text". So the panel loses its card entirely -- the only feedback
-   is the shared hover wash, which is what makes it feel like one system. */
-.moodMenu{background:none!important;border:0!important;box-shadow:none!important;padding:4px 0 0!important}
-/* A text-only menu only works if nothing is behind it. Dimming the hero was the obvious route
-   and it does NOT work here: the headline still paints at full strength under a 0.12 parent,
-   because its per-word ink filters escape the opacity group. Rather than ship an effect I
-   cannot explain, the menu is pulled out of the headline's column instead -- hard against the
-   right edge under its own trigger, where the page is empty. Same result, no magic. */
-.moodMenu{left:0!important;right:auto!important;width:max-content!important;
- min-width:0!important;max-width:min(260px,44vw)!important;text-align:left!important;
- background:var(--c50)!important;border:1px solid var(--c100)!important;border-radius:4px!important;
- padding:8px!important;box-shadow:0 8px 28px -8px rgba(18,18,18,.12)!important}
-.moodItem,.moodBtn{white-space:nowrap}
-.moodItem{justify-content:flex-start;padding:10px 12px!important}
-.moodbar{background:none!important;border:0!important;box-shadow:none!important}
-.moodBtn{padding:12px 0!important;border-color:transparent!important;min-height:44px!important}
-.moodTeamsBtn{background:none!important;border-color:transparent!important;padding:12px 16px!important}
-.moodTeamsBtn:hover{background:var(--c75)!important;color:var(--c950)}
-.moodBtn:hover,.moodBtn:focus-visible{background:var(--c75)!important;color:var(--c950)}
-.moodItem,.moodbar.open .moodItem{justify-content:flex-start;padding:10px 12px 10px 0;border-radius:0;
- font-size:var(--fs-small);min-height:44px;width:auto}
-.moodItem:hover{background:none!important;color:var(--c950)}
-
-/* MOBILE KEEPS ITS SURFACE. Text-only works on desktop because the right margin is empty; at
-   390px the menu necessarily sits over the headline (measured: 164px of overlap) and two lots
-   of text on top of each other is unreadable. So the panel comes back below 640px -- same type,
-   same hover, same sizes, just a surface to sit on. */
-@media(max-width:640px){
- .moodMenu{background:var(--c50)!important;border:1px solid var(--c100)!important;
-  border-radius:4px!important;padding:8px!important;text-align:left!important;
-  box-shadow:0 8px 28px -8px rgba(18,18,18,.12)!important}
- .moodItem{justify-content:flex-start!important;padding:10px 12px!important}
-}
-
-/* Controls that had no hover at all: the case-study card link, the chapter nav, the compare
-   handle and the skip link. Same wash as everything else -- one feedback, no exceptions. */
-.csGo,.chap,.cmpHandle,.skipLink,.abBack,.back,.talk,.footIn,.abLink,.hmPitX,.hmPitPick{
+/* square icon-only controls: same height, no text padding */
+.toTop,.sbBtn,.hmPitX,.navDrawerX{
+ font-family:var(--sans);font-size:var(--fs-small);color:var(--c700);
+ background:none;border:0;border-radius:4px;
+ width:44px;height:44px;min-height:44px;padding:0;
+ display:inline-flex;align-items:center;justify-content:center;
+ cursor:pointer;
  transition:background-color .16s cubic-bezier(.2,.8,.2,1),color .16s cubic-bezier(.2,.8,.2,1);
 }
-.csGo:hover,.chap:hover,.cmpHandle:hover,.skipLink:hover,.abBack:hover,.back:hover,.talk:hover,
-.footIn:hover,.abLink:hover,.hmPitX:hover,.hmPitPick:hover,
-.csGo:focus-visible,.chap:focus-visible,.abBack:focus-visible,.back:focus-visible,
-.talk:focus-visible,.footIn:focus-visible,.abLink:focus-visible{
- background:var(--c75);color:var(--c950);
+/* display at ZERO specificity so anything that hides itself conditionally still wins */
+:where(.moodItem,.moodBtn,.moodGo,.hmGo,.tGo,.reelClose,.workCta,.ndLink,.heroBack,
+ .navLink,.mhToggle,.hmScoreEnd,.back,.talk,.tvTab,.abBack,.abLink,.csTab,.hmBtn){display:inline-flex}
+
+/* ONE hover, everywhere, no exceptions */
+.moodItem:hover,.moodBtn:hover,.moodGo:hover,.hmGo:hover,.tGo:hover,.reelClose:hover,
+.workCta:hover,.ndLink:hover,.heroBack:hover,.navLink:hover,.mhToggle:hover,.hmScoreEnd:hover,
+.back:hover,.talk:hover,.tvTab:hover,.abBack:hover,.abLink:hover,.csTab:hover,.hmBtn:hover,
+.toTop:hover,.sbBtn:hover,.hmPitX:hover,.navDrawerX:hover,.csGo:hover,.chap:hover,.footIn:hover,
+.hmPitPick:hover,
+.moodItem:focus-visible,.moodBtn:focus-visible,.moodGo:focus-visible,.hmGo:focus-visible,
+.tGo:focus-visible,.reelClose:focus-visible,.workCta:focus-visible,.ndLink:focus-visible,
+.heroBack:focus-visible,.navLink:focus-visible,.mhToggle:focus-visible,.hmScoreEnd:focus-visible,
+.back:focus-visible,.talk:focus-visible,.tvTab:focus-visible,.abBack:focus-visible,
+.abLink:focus-visible,.csTab:focus-visible,.hmBtn:focus-visible,.toTop:focus-visible,
+.sbBtn:focus-visible,.hmPitX:focus-visible,.navDrawerX:focus-visible,.csGo:focus-visible,
+.chap:focus-visible,.footIn:focus-visible{
+ background:var(--c75);color:var(--c950);border-color:transparent;
+}
+.csGo,.chap,.footIn,.hmPitPick{
+ transition:background-color .16s cubic-bezier(.2,.8,.2,1),color .16s cubic-bezier(.2,.8,.2,1);
 }
 
-/* the section tabs join the system too -- they keep their underline as the SELECTED state,
-   and gain the same wash as every other control for hover. */
-.csTab{transition:background-color .16s cubic-bezier(.2,.8,.2,1),color .16s cubic-bezier(.2,.8,.2,1)}
-.csTab:hover,.csTab:focus-visible{background:var(--c75);color:var(--c950)}
+/* PRIMARY: the single filled action on a screen */
+.tGo:not(.tGoQuiet),.hmGoPrimary,.hmBtn.hmBtnPrimary{
+ background:var(--c950);color:var(--c50);
+}
+.tGo:not(.tGoQuiet):hover,.hmGoPrimary:hover,.hmBtn.hmBtnPrimary:hover{
+ background:var(--c900);color:var(--c50);
+}
 
-/* The menu drops from Play's LEFT edge so it reads as coming straight down out of the word.
-   Play sits near the right edge, so on a narrow window that would run off screen -- there it
-   flips to align on Play's right edge instead. Measured rather than guessed: the switch is set
-   where the menu's natural width stops fitting. */
-@media(max-width:1380px){.moodMenu{left:auto!important;right:0!important}}
+/* THE PLAY MENU: plain text under the word, no card edge, no lift off the page.
+   Sits inside the page margin and is sized to its own content. */
+.moodMenu{
+ 
+ width:max-content!important;min-width:0!important;max-width:min(196px,44vw)!important;
+ text-align:left!important;
+ background:var(--c50)!important;
+ border:0!important;
+ box-shadow:none!important;          /* it must not pop off the page */
+ border-radius:4px!important;
+ padding:4px!important;
+}
+.moodItem,.moodBtn{white-space:nowrap}
+.moodItem{justify-content:flex-start!important;padding:12px 16px!important}
+.moodBtn{padding:12px 16px!important}
+/* Play sits near the right edge -- below this width a left-aligned menu would leave the margin */
+/* alignment is decided by clampMenu() at open time -- a media query cannot know the
+   menu's own width or where Play happens to sit in the row. */
+
+/* the head thumbnails ARE the control -- no grey plate behind them */
+.hmPit img{background:none!important;padding:0!important}
+.hmPitPick{padding:4px!important;border-radius:4px}
+.hmPitPick:hover{box-shadow:none!important;background:var(--c75)!important}
+
+/* mobile keeps a surface: at 390px the menu unavoidably sits over the headline */
+@media(max-width:640px){
+ .moodMenu{border:1px solid var(--c100)!important;padding:8px!important;
+  text-align:left!important;max-width:min(280px,72vw)!important}
+}
+
+/* the last stragglers, measured: .back/.talk were square, .moodBtn was 40px not 44,
+   .moodItem was inheriting 16px instead of the one control size, and the wordmark ran 2px
+   taller than the home page's. Inline links inside prose (.chap, .footIn, .csGo) are a
+   deliberate THIRD category -- text, not buttons -- so they keep their own size. */
+.back,.talk,.tvTab,.csTab{border-radius:4px}
+.moodBtn{min-height:44px!important;height:44px}
+.moodItem{font-size:var(--fs-small)!important}
+nav .logo{padding:8px 12px;min-height:44px;height:44px;justify-content:center}
+
+/* THE HEAD IS THE CONTROL. Each saved head sat on a grey --c100 plate, so the menu read as a
+   row of tiles rather than a row of heads -- the cut-outs already have their own silhouette
+   and do not need a card behind them. The plate goes; the hover wash on the button around it
+   is the affordance, same as every other control. */
+.mhItem img{background:none!important}
+.mhItem{border-radius:4px;transition:background-color .16s cubic-bezier(.2,.8,.2,1)}
+.mhItem:hover{background:var(--c75)}
+
+/* Keep the menu inside the content column. Play sits near the right edge, so a menu that is
+   left-aligned to the word can run past the margin -- this pins the RIGHT edge to the page
+   column while leaving the left under Play whenever there is room (handled in JS below). */
+.moodMenu{max-width:min(196px,44vw)!important}
 </style></head>
 <body>
 <a class="skipLink" href="#main">Skip to content</a>
@@ -2957,7 +2982,28 @@ requestAnimationFrame(function(){requestAnimationFrame(startIntro);});
    setTimeout(function(){var ref=(old&&old.parentNode)?old:((cycWord&&cycWord.parentNode)?cycWord:null);
     if(ref){var nw=makeCycWord(idx,false,true);nw.classList.add("mdshow");ref.replaceWith(nw);cycWord=nw;}},560);  // real word + its dot token, inert; end-fn resumes cycling
   }
+  function clampMenuX(){ try{
+    if(!menu)return;
+    var wrap=document.querySelector(".wrap"); if(!wrap)return;
+    menu.style.left=""; menu.style.right="";
+    var w=wrap.getBoundingClientRect(), b=(btn||menu).getBoundingClientRect();
+    var mw=menu.offsetWidth;
+    if(b.left+mw<=w.right){ menu.style.left="0px"; menu.style.right="auto"; }   // fits under the word
+    else { menu.style.left="auto"; menu.style.right="0px"; }                    // would leave the column
+   }catch(_){} }
   function closeM(){bar.classList.remove("open");if(btn)btn.setAttribute("aria-expanded","false");try{var c=bar.parentElement;if(c)c.style.zIndex="";}catch(_){}setChevron();}
+  // OPEN ON HOVER (pointer devices only). A menu that only opens on click makes you commit
+  // before you can see what is in it; hovering to reveal is the whole feel Jayden is after.
+  // Touch keeps click -- a hover that fires on tap would open and close in the same gesture.
+  // The close is delayed so crossing the gap between the word and the list does not dismiss it.
+  (function(){ if(!bar||!window.matchMedia||!matchMedia("(hover:hover) and (pointer:fine)").matches)return;
+   var hideT=0;
+   function over(){ clearTimeout(hideT); if(!bar.classList.contains("open")&&typeof openM==="function")openM(); }
+   function out(){ clearTimeout(hideT); hideT=setTimeout(function(){
+     if(!bar.matches(":hover"))closeM(); },260); }
+   bar.addEventListener("mouseenter",over);
+   bar.addEventListener("mouseleave",out);
+  })();
   function menuOpensDown(){ // purely geometric now: Play lives in the header, so on desktop the menu drops DOWN
    var b=(btn||menu).getBoundingClientRect();
    var below=window.innerHeight-b.bottom-14, above=b.top-14;
@@ -2985,7 +3031,7 @@ requestAnimationFrame(function(){requestAnimationFrame(startIntro);});
    }
    menu.style.overflowY="auto";
   }
-  function openM(){bar.classList.add("open");if(btn)btn.setAttribute("aria-expanded","true");try{var c=bar.parentElement;if(c)c.style.zIndex="70";}catch(_){}clampMenu();setChevron();}
+  function openM(){bar.classList.add("open");requestAnimationFrame(function(){try{clampMenuX();}catch(_){}});if(btn)btn.setAttribute("aria-expanded","true");try{var c=bar.parentElement;if(c)c.style.zIndex="70";}catch(_){}clampMenu();setChevron();}
   setChevron(); // point the caret correctly at rest (down on mobile where the menu drops, up on desktop where it lifts)
   window.addEventListener("resize",function(){if(!bar.classList.contains("open"))setChevron();},{passive:true});
   if(btn)btn.addEventListener("click",function(e){e.stopPropagation();bar.classList.contains("open")?closeM():openM();});
