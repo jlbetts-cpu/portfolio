@@ -1364,6 +1364,74 @@ body.about-open #navAbout{color:var(--c950);background:var(--c75)}
    which is what EA FC 26 does (its patch notes call out the completed tree
    failing to render UNDER the trophy as the bug worth fixing) */
 .tBrMir .tMiC .tM{border-color:var(--c950)}
+/* ================= PRE-MATCH CARDS + CHAMPION CARD =================
+   Replaces the stare-down. Each side is a card in its team's colour with the head
+   BLEEDING off the outer edge, mirrored so both faces turn inward toward the VS --
+   Smash does exactly this, portraits attached to the inner edge facing the trophy.
+   White text is safe because the palette is normalised to L 0.150 (5.2:1 minimum).
+   clip-path: inset(0 round R) rather than overflow:hidden -- it clips composited and
+   transformed children by construction, sidestepping the old WebKit border-radius
+   clipping bug class entirely instead of patching around it. */
+.tCards{display:flex;align-items:stretch;justify-content:center;gap:12px;margin-top:4px}
+.tCard{position:relative;flex:1 1 0;max-width:288px;min-height:172px;
+ border-radius:16px;background:rgb(var(--tc));color:#fff;
+ clip-path:inset(0 round 16px);isolation:isolate;
+ display:flex;flex-direction:column;justify-content:flex-end;padding:16px;
+ animation:tCardRise .34s cubic-bezier(.2,.8,.2,1) both;animation-delay:var(--cd,0ms)}
+.tCardHead{position:absolute;top:50%;width:auto;height:112%;
+ transform:translateY(-50%);pointer-events:none;opacity:.62;
+ /* DUOTONE. A captain's head is not always dyed its team's colour -- a real photographic
+    head never is -- so a green head could land on a purple card. mix-blend-mode:luminosity
+    keeps the head's SHADING and takes the card's HUE, so every portrait is automatically in
+    its own team colour and photographic and flat heads finally sit at the same weight.
+    The card's isolation:isolate is what keeps this blend inside the card. */
+ mix-blend-mode:luminosity}
+.tCardL .tCardHead{left:-34%}
+.tCardR .tCardHead{right:-34%;scale:-1 1}   /* mirrored so both faces turn inward */
+/* A scrim, because the head is a portrait bleeding in -- not wallpaper. Without it the
+   stat row sat directly on a face and neither could be read. Sits between head and body. */
+.tCard::after,.tChamp::after{content:'';position:absolute;inset:0;pointer-events:none;
+ background:linear-gradient(to top,rgba(18,18,18,.46) 0%,rgba(18,18,18,.16) 42%,transparent 72%)}
+.tCardBody{position:relative;z-index:2}
+.tCardNm{font-family:var(--sans);font-weight:600;font-size:var(--fs-h3,22px);line-height:1.05;
+ letter-spacing:-.015em;color:#fff;text-shadow:0 1px 10px rgba(18,18,18,.34)}
+.tCardTag{display:inline-block;margin-top:6px;padding:3px 10px;border-radius:999px;
+ background:rgba(255,255,255,.20);color:#fff;font-size:var(--fs-caption,12px);
+ font-weight:600;letter-spacing:.08em;text-transform:uppercase}
+.tCardStats{display:grid;grid-template-columns:repeat(3,1fr);margin-top:12px;
+ border-top:1px solid rgba(255,255,255,.26);padding-top:8px}
+.tCardStat{text-align:center}
+.tCardStat+.tCardStat{border-left:1px solid rgba(255,255,255,.26)}
+.tCardV{display:block;font-weight:600;font-size:16px;line-height:1.1;color:#fff;
+ font-variant-numeric:tabular-nums}   /* Instrument Sans defaults to PROPORTIONAL figures:
+ without this a 1 vs 8 shifts the column by 0.21em */
+.tCardK{display:block;font-size:11px;letter-spacing:.07em;text-transform:uppercase;
+ color:rgba(255,255,255,.78);margin-top:1px}
+.tVsBig{align-self:center;font-family:var(--sans);font-weight:600;font-size:var(--fs-small);
+ letter-spacing:.12em;text-transform:uppercase;color:var(--c500);padding:0 2px}
+@keyframes tCardRise{from{opacity:0;transform:translateY(14px) scale(.97)}to{opacity:1;transform:none}}
+
+/* The champion gets the same language at full width, with the trophy as the object. */
+.tChamp{position:relative;width:min(560px,100%);margin:6px auto 0;border-radius:18px;
+ background:rgb(var(--tc));color:#fff;clip-path:inset(0 round 18px);isolation:isolate;
+ min-height:184px;display:flex;flex-direction:column;justify-content:flex-end;padding:18px;
+ animation:tChampIn .46s cubic-bezier(.2,.8,.2,1) both}
+.tChamp .tCardHead{left:50%;transform:translate(-50%,-50%);height:124%;opacity:.7}
+.tChampCup{position:absolute;top:14px;left:50%;transform:translateX(-50%);width:52px;height:52px;
+ object-fit:contain;z-index:2;filter:drop-shadow(0 4px 14px rgba(18,18,18,.3));
+ animation:tCupIn .5s cubic-bezier(.2,1.5,.4,1) .18s both}
+@keyframes tChampIn{from{opacity:0;transform:translateY(18px) scale(.965)}to{opacity:1;transform:none}}
+@keyframes tCupIn{from{opacity:0;transform:translateX(-50%) translateY(-10px) scale(.7)}
+                  to{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}}
+@media(prefers-reduced-motion:reduce){
+ .tCard,.tChamp,.tChampCup{animation:none}
+}
+@media(max-width:560px){
+ .tCards{gap:8px}
+ .tCard{min-height:150px;padding:12px}
+ .tCardNm{font-size:18px}
+ .tCardStats{margin-top:8px}
+}
 .tBrMir .tMiC .tT{min-height:43px}   /* +12%: the final is taller as well as wider */
 .tFinalCrown{grid-column:var(--gc,auto);grid-row:1;justify-self:center;align-self:end;
  width:40px;height:40px;margin-bottom:4px;object-fit:contain;pointer-events:none}
@@ -6303,6 +6371,28 @@ function ensureHost(){
   return host;
 }
 
+/* Real numbers only. T.stats is never populated and there is no goal feed wired up, so
+   the card reports what the draw actually knows: matches played, matches won, and the
+   seed. Single elimination means losses are always played-minus-won, so showing losses
+   as a third stat would be restating the same fact. */
+function recordOf(id){
+  var p = 0, w = 0;
+  if (T.br) T.br.rounds.forEach(function(rd){ rd.matches.forEach(function(m){
+    if (m.winner === undefined) return;
+    if (m.a === id || m.b === id){ p++; if (m.winner === id) w++; }
+  }); });
+  return { played: p, won: w };
+}
+function statRow(tm){
+  var r = recordOf(tm.id), row = el('div', 'tCardStats');
+  [['Played', r.played], ['Won', r.won], ['Seed', tm.seed]].forEach(function(pair){
+    var cell = el('div', 'tCardStat');
+    cell.appendChild(el('span', 'tCardV', String(pair[1])));
+    cell.appendChild(el('span', 'tCardK', pair[0]));
+    row.appendChild(cell);
+  });
+  return row;
+}
 function paint(){
   var h = ensureHost();
   if (!T.live){ h.innerHTML = ''; h.hidden = true; return; }
@@ -6318,12 +6408,16 @@ function paint(){
 
   if (T.phase === 'done' || champ !== undefined){
     var w = teamById(champ);
-    var win = el('div', 'tWin');
-    win.appendChild(el('div', 'tLbl', 'Champion'));
-    var wn = el('div', 'tWinName');
-    if (w) wn.appendChild(faceOf(w, 'tFaceBig'));
-    wn.appendChild(el('span', 'tTeamNm', w ? w.name : '—'));
-    win.appendChild(wn);
+    var win = el('div', 'tChamp');
+    if (w) win.style.setProperty('--tc', w.col);
+    var cup = el('img', 'tChampCup'); cup.src = 'images/trophy.webp'; cup.alt = ''; cup.draggable = false;
+    win.appendChild(cup);
+    if (w) win.appendChild(faceOf(w, 'tCardHead'));
+    var cbody = el('div', 'tCardBody');
+    cbody.appendChild(el('div', 'tCardNm', w ? w.name : '—'));
+    cbody.appendChild(el('span', 'tCardTag', 'Champion'));
+    if (w) cbody.appendChild(statRow(w));
+    win.appendChild(cbody);
     h.appendChild(win);
   } else if (nm && T.phase === 'bracket'){
     var A = teamById(nm.match.a), Bm = teamById(nm.match.b);
@@ -6335,16 +6429,26 @@ function paint(){
     // treatments and its biggest face was 44px -- 0.15%. So the two contenders become the object:
     // each side is a column (head over name), the heads are turned to FACE each other, and they
     // breathe on offset cycles so it reads as sizing each other up rather than two stickers.
-    var pair = el('span', 'tPair');
+    // THE PRE-MATCH CARDS. The stare-down put two big heads and two big names on the
+    // screen with nothing else, which read as decoration. A card carries the same two
+    // faces AND says who they are: colour, seed, and the record they bring into the tie.
+    var pair = el('div', 'tCards');
     function side(tm, which){
-      var sd = el('span', 'tSide ' + which);
-      if (tm){ sd.appendChild(faceOf(tm, 'tFaceBig'));
-               sd.appendChild(el('span', 'tTeamNm', tm.name)); }
-      return sd;
+      var c = el('div', 'tCard tCard' + which);
+      c.style.setProperty('--tc', tm.col);
+      c.style.setProperty('--cd', (which === 'R' ? 70 : 0) + 'ms');   // 70ms apart, never a wait
+      c.appendChild(faceOf(tm, 'tCardHead'));
+      var body = el('div', 'tCardBody');
+      body.appendChild(el('div', 'tCardNm', tm.name));
+      // a dyed egghead is NAMED after its colour, so the tag would just repeat the name
+      if (tm.name !== tm.colName) body.appendChild(el('span', 'tCardTag', tm.colName));
+      body.appendChild(statRow(tm));
+      c.appendChild(body);
+      return c;
     }
-    if (A) pair.appendChild(side(A, 'tSideL'));
-    pair.appendChild(el('span', 'tVs', 'vs'));
-    if (Bm) pair.appendChild(side(Bm, 'tSideR'));
+    if (A)  pair.appendChild(side(A, 'L'));
+    pair.appendChild(el('span', 'tVsBig', 'vs'));
+    if (Bm) pair.appendChild(side(Bm, 'R'));
     nx.appendChild(pair);
     var go = el('button', 'tGo'); go.type = 'button';
     go.appendChild(document.createTextNode('Kick off'));   // no icon: nothing else on the site
