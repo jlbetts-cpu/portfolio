@@ -969,7 +969,8 @@ body.hmSoccer .tourPanel{display:none}   /* the pitch owns the screen during a f
 .tDot{display:inline-block;width:.52em;height:.52em;border-radius:50%;margin-right:.42em;vertical-align:baseline;flex:0 0 auto}
 .tNext{display:flex;flex-direction:column;align-items:center;gap:clamp(6px,1vh,10px)}
 .tNextLbl{font-size:var(--fs-small);font-weight:500;color:var(--c500);letter-spacing:.02em}
-.tPair{font-size:var(--fs-heroline);font-weight:700;line-height:1.06;letter-spacing:-.015em;filter:url(#inkSm)}
+.tPair{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:.1em;
+ font-size:var(--fs-heroline);font-weight:700;line-height:1.06;letter-spacing:-.015em}
 .tVs{color:var(--c400);font-weight:400;margin:0 .5em}
 .tGo{margin-top:clamp(4px,.8vh,10px);background:none;border:1px solid var(--c100);border-radius:4px;
  padding:11px 22px;min-height:44px;font-family:var(--sans);font-weight:500;font-size:var(--fs-body);
@@ -990,7 +991,7 @@ body.hmSoccer .tourPanel{display:none}   /* the pitch owns the screen during a f
 .tNum{min-width:1.6em;text-align:right;font-weight:700;font-variant-numeric:tabular-nums}
 .tWin{display:flex;flex-direction:column;align-items:center;gap:6px}
 .tWinLbl{font-size:var(--fs-label);font-weight:600;color:var(--c500);letter-spacing:.04em;text-transform:uppercase}
-.tWinName{font-size:var(--fs-heroline);font-weight:700;letter-spacing:-.015em;filter:url(#inkSm)}
+.tWinName{display:flex;align-items:center;justify-content:center;gap:.1em;font-size:var(--fs-heroline);font-weight:700;letter-spacing:-.015em}
 /* The tournament screen owns the hero, the way a match does. The headline and the big head
    step aside so the bracket is not competing with them for the same space -- and they are already
    hidden once a fixture starts, so nothing pops back in mid-tournament. */
@@ -1013,14 +1014,24 @@ body.hmTour .scrollCue{display:none}
  background:var(--c50);overflow:hidden;transition:border-color .3s cubic-bezier(.2,.8,.2,1)}
 .tM.tLive{border-color:var(--c950)}
 .tPr:not(.tPrLast) .tM::after{content:"";position:absolute;left:100%;top:50%;width:13px;height:1px;background:var(--c100)}
-.tT{display:flex;align-items:center;gap:6px;padding:6px 9px;font-size:var(--fs-small);line-height:1.25;
+.tT{display:flex;align-items:center;gap:7px;padding:5px 9px 5px 6px;font-size:var(--fs-small);line-height:1.25;
  white-space:nowrap;overflow:hidden;text-align:left}
+/* The face IS the team badge -- a colour swatch alone never says whose side it is. Ringed in the
+   team colour so the identity is carried twice: by the head and by the ring around it. */
+.tFaceW{position:relative;flex:0 0 auto;width:26px;height:26px;border-radius:50%;overflow:hidden;
+ background:var(--c50);display:inline-flex;align-items:flex-end;justify-content:center}
+.tFaceW img{width:150%;height:150%;object-fit:contain;object-position:center 22%}
+.tFaceEmpty{box-shadow:inset 0 0 0 1px var(--c100)!important}
+.tFaceBig{width:40px;height:40px;margin-right:.34em;vertical-align:middle}
+.tTeamNm{vertical-align:middle}
 .tT+.tT{border-top:1px solid var(--c100)}
 .tT.tWon{font-weight:600}
 .tT.tLost{opacity:.38}
 .tNm{overflow:hidden;text-overflow:ellipsis}
 .tTbd{color:var(--c400)}
-@media(max-width:640px){.tCol{max-width:none}.tColLbl{font-size:10px}.tT{padding:5px 7px;font-size:11px;gap:5px}
+@media(max-width:640px){.tCol{max-width:none}.tColLbl{font-size:10px}
+ .tT{padding:4px 6px 4px 4px;font-size:11px;gap:5px}
+ .tFaceW{width:20px;height:20px}.tFaceBig{width:30px;height:30px}
  .tPr:not(.tPrLast)::after{left:calc(100% + 8px)}.tPr:not(.tPrLast) .tM::after{width:8px}
  .tBr{gap:0}.tColBody{gap:8px}.tPr{gap:8px}}
 </style></head>
@@ -5430,10 +5441,10 @@ var BR = window.__hmBracket; if (!BR) return;
 // Eight team colours. Kept saturated enough to read against a near-monochrome pitch, and far
 // enough apart in hue that two teams on the same pitch are never ambiguous.
 var PAL = [
-  { n: 'Crimson', c: '224,90,78'  }, { n: 'Azure',  c: '90,160,216' },
-  { n: 'Teal',    c: '46,155,176' }, { n: 'Amber',  c: '224,163,46' },
-  { n: 'Violet',  c: '142,111,199'}, { n: 'Rose',   c: '212,93,134' },
-  { n: 'Moss',    c: '95,168,85'  }, { n: 'Slate',  c: '116,124,146'}
+  { n: 'Red',    c: '224,72,60'  }, { n: 'Blue',   c: '59,130,214' },
+  { n: 'Green',  c: '63,168,71'  }, { n: 'Yellow', c: '232,179,30' },
+  { n: 'Purple', c: '138,92,209' }, { n: 'Orange', c: '232,117,42' },
+  { n: 'Pink',   c: '222,92,151' }, { n: 'Grey',   c: '110,118,132'}
 ];
 
 var T = { live: false, teams: [], br: null, stats: {}, cur: null, phase: 'idle', log: [] };
@@ -5520,9 +5531,11 @@ function startFixture(nm){
 
   var sel = {}, col = { 1: A.col, 2: Bm.col };
   window.__hmTeamCol = col;
+  // On the ROOT, not on .hmScore: the scoreboard element is not built until the first match runs,
+  // so setting it there left the very first fixture showing the old red/blue numerals.
   try {
-    var sc = document.querySelector('.hmScore');
-    if (sc){ sc.style.setProperty('--tcol1', rgb(A.col)); sc.style.setProperty('--tcol2', rgb(Bm.col)); }
+    var rt = document.documentElement;
+    rt.style.setProperty('--tcol1', rgb(A.col)); rt.style.setProperty('--tcol2', rgb(Bm.col));
   } catch (_) {}
 
   var SLOT = 9200; T.spawnedCuts = T.spawnedCuts || [];
@@ -5578,6 +5591,18 @@ function between(){
 var host = null;
 function el(tag, cls, txt){ var e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; }
 function dot(c){ var s = el('span', 'tDot'); s.style.background = rgb(c); return s; }
+// A colour name alone does not say whose team it is -- the captain's face does. Every place a team
+// is named shows the head that leads it, ringed in the team colour.
+function faceOf(tm, cls){
+  var w = el('span', 'tFaceW' + (cls ? ' ' + cls : ''));   // ALWAYS keep the base class: the modifier
+  // alone dropped overflow:hidden and the 150%-scaled head escaped its circle at full size
+  if (tm && tm.captain && tm.captain.cut){
+    var im = el('img'); im.src = tm.captain.cut; im.alt = ''; im.draggable = false;
+    w.appendChild(im);
+  }
+  w.style.boxShadow = 'inset 0 0 0 3px ' + rgb(tm ? tm.col : '0,0,0');
+  return w;
+}
 
 function ensureHost(){
   if (host) return host;
@@ -5599,8 +5624,9 @@ function paint(){
     var w = teamById(champ);
     var win = el('div', 'tWin');
     win.appendChild(el('div', 'tWinLbl', 'Champion'));
-    var wn = el('div', 'tWinName'); wn.appendChild(dot(w ? w.col : '0,0,0'));
-    wn.appendChild(document.createTextNode(w ? w.name : '—'));
+    var wn = el('div', 'tWinName');
+    if (w) wn.appendChild(faceOf(w, 'tFaceBig'));
+    wn.appendChild(el('span', 'tTeamNm', w ? w.name : '—'));
     win.appendChild(wn);
     h.appendChild(win);
   } else if (nm && T.phase === 'bracket'){
@@ -5608,9 +5634,9 @@ function paint(){
     var nx = el('div', 'tNext');
     nx.appendChild(el('span', 'tNextLbl', T.br.rounds[nm.round].label));
     var pair = el('span', 'tPair');
-    if (A){ pair.appendChild(dot(A.col)); pair.appendChild(document.createTextNode(A.name)); }
+    if (A){ pair.appendChild(faceOf(A, 'tFaceBig')); pair.appendChild(el('span', 'tTeamNm', A.name)); }
     pair.appendChild(el('span', 'tVs', 'v'));
-    if (Bm){ pair.appendChild(dot(Bm.col)); pair.appendChild(document.createTextNode(Bm.name)); }
+    if (Bm){ pair.appendChild(faceOf(Bm, 'tFaceBig')); pair.appendChild(el('span', 'tTeamNm', Bm.name)); }
     nx.appendChild(pair);
     var go = el('button', 'tGo', 'Kick off'); go.type = 'button';
     go.addEventListener('click', function(e){ e.stopPropagation(); T.phase = 'match'; startFixture(nm); });
@@ -5639,8 +5665,12 @@ function paint(){
         [m.a, m.b].forEach(function(id){
           var tm = teamById(id);
           var row = el('div', 'tT' + (m.winner !== undefined ? (m.winner === id ? ' tWon' : ' tLost') : ''));
-          if (tm){ row.appendChild(dot(tm.col)); row.appendChild(el('span', 'tNm', tm.name)); }
-          else { row.appendChild(el('span', 'tNm tTbd', '—')); }
+          if (tm){ row.style.borderLeft = '4px solid ' + rgb(tm.col);   // a colour BAR, not just a ring:
+            // the captain can be any colour (a real photo head, or a saved egghead the visitor already
+            // dyed), so the team's own colour has to be carried by the row itself to be unambiguous.
+            row.appendChild(faceOf(tm)); row.appendChild(el('span', 'tNm', tm.name)); }
+          else { row.style.borderLeft = '4px solid transparent';
+            row.appendChild(el('span', 'tFaceW tFaceEmpty')); row.appendChild(el('span', 'tNm tTbd', '—')); }
           card.appendChild(row);
         });
         pr.appendChild(card);
@@ -5667,6 +5697,7 @@ function start(){
 function stop(){
   T.live = false; T.cur = null; T.phase = 'idle';
   window.__hmBench = null; window.__hmTeamSel = null; window.__hmTeamCol = null;
+  try { document.documentElement.style.removeProperty('--tcol1'); document.documentElement.style.removeProperty('--tcol2'); } catch (_) {}
   document.body.classList.remove('hmTour');
   clearSpawned(); paint();
 }
