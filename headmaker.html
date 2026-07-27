@@ -12,7 +12,7 @@
 <link rel="canonical" href="https://jaydenbetts.design/headmaker.html">
 <link rel="preload" as="font" type="font/woff2" href="fonts/instrument-sans-latin-400-normal.woff2" crossorigin><link rel="preload" as="font" type="font/woff2" href="fonts/instrument-sans-latin-600-normal.woff2" crossorigin>
 <style>
-:root{--fs-h1:clamp(28px,2.6vw,38px);--sp-8-16:16px;--sp-16-24:24px;--sp-24-32:32px;--sp-32-48:48px;--sp-40-64:64px;--sp-48-80:80px;--sp-72-144:144px;--sp-80-152:152px;--c50:#FDFDFD;--c100:#E6E6E6;--c500:#757575;--c600:#6B6B6B;--c700:#525252;--c900:#212121;--c950:#121212;
+:root{--fs-h1:clamp(28px,2.6vw,38px);--sp-8-16:16px;--sp-16-24:24px;--sp-24-32:32px;--sp-32-48:48px;--sp-40-64:64px;--sp-48-80:80px;--sp-72-144:144px;--sp-80-152:152px;--c50:#FDFDFD;--c100:#E6E6E6;--c75:#F1F1F1;--c500:#757575;--c600:#6B6B6B;--c700:#525252;--c900:#212121;--c950:#121212;
  --sans:"Instrument Sans",-apple-system,system-ui,sans-serif;--fs-pagehead:clamp(33px,3.9vw,52px);--fs-h2:clamp(26px,2.5vw,36px);--fs-prose:clamp(17px,1.39vw,20px);--fs-body:16px;--fs-small:15px;--fs-label:13px;--lh-prose:1.6;}
 @font-face{font-family:"Instrument Sans";font-style:normal;font-weight:400;font-display:swap;src:url(fonts/instrument-sans-latin-400-normal.woff2) format("woff2")}@font-face{font-family:"Instrument Sans";font-style:normal;font-weight:600;font-display:swap;src:url(fonts/instrument-sans-latin-600-normal.woff2) format("woff2")}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
@@ -861,7 +861,19 @@ document.getElementById("save").addEventListener("click",function(){
   css+="#cap{position:relative;width:440px;height:528px;overflow:hidden}";
   var defs="";["inkEye","inkSm","inkBig"].forEach(function(idf){var ff=document.getElementById(idf);if(ff)defs+=ff.outerHTML;});
   var svg='<svg xmlns="http://www.w3.org/2000/svg" width="'+BAKE_W+'" height="'+BAKE_H+'" viewBox="0 0 440 528"><defs>'+defs+'</defs>'+
-   '<foreignObject width="440" height="528"><div xmlns="http://www.w3.org/1999/xhtml" id="cap"><style>'+css+'</style>'+cl.outerHTML+'</div></foreignObject></svg>';
+   '<foreignObject width="440" height="528"><div xmlns="http://www.w3.org/1999/xhtml" id="cap"><style>'+css+'
+/* Controls that had no hover at all: the case-study card link, the chapter nav, the compare
+   handle and the skip link. Same wash as everything else -- one feedback, no exceptions. */
+.csGo,.chap,.cmpHandle,.skipLink,.abBack,.back,.talk,.footIn,.abLink,.hmPitX,.hmPitPick{
+ transition:background-color .16s cubic-bezier(.2,.8,.2,1),color .16s cubic-bezier(.2,.8,.2,1);
+}
+.csGo:hover,.chap:hover,.cmpHandle:hover,.skipLink:hover,.abBack:hover,.back:hover,.talk:hover,
+.footIn:hover,.abLink:hover,.hmPitX:hover,.hmPitPick:hover,
+.csGo:focus-visible,.chap:focus-visible,.abBack:focus-visible,.back:focus-visible,
+.talk:focus-visible,.footIn:focus-visible,.abLink:focus-visible{
+ background:var(--c75);color:var(--c950);
+}
+</style>'+cl.outerHTML+'</div></foreignObject></svg>';
   var im=new Image();
   im.onload=function(){try{x.drawImage(im,0,0,BAKE_W,BAKE_H);finish();}catch(_e2){legacy();}};
   im.onerror=function(){legacy();};
