@@ -1072,6 +1072,15 @@ body.hmTour .hero{min-height:calc(100svh - 68px)}
 .tT:first-child{border-radius:3px 3px 0 0}
 .tT:last-child{border-radius:0 0 3px 3px}
 .tT.tWon{font-weight:600;border-left-width:3px}
+/* COLOUR IN THE DRAW. Each row carries its team's colour as a wash, so a card reads as
+   two colour fields -- the same idea as the scoreboard, in miniature. Measured before
+   choosing the strength: at 14% toward paper every one of the eight palette colours still
+   gives ink 15:1 or better, so the wash costs nothing in legibility. (A SATURATED fill
+   could not carry white text -- white fails 4.5:1 on all eight, and on Yellow it is 1.93.)
+   rgba(var(--tc),a) works because --tc is the bare "r,g,b" triplet. */
+.tT{background:rgba(var(--tc,253,253,253),.11)}
+.tT.tWon{background:rgba(var(--tc,253,253,253),.20)}   /* the winner's colour holds */
+.tT.tLost{background:rgba(var(--tc,253,253,253),.04)}  /* the loser's drains away */
 /* Eliminated. NOT opacity -- opacity:.38 composited to #A4A4A4 = 2.45:1 and failed
    WCAG 1.4.3. ESPN keeps the same font, size and weight and moves only the colour
    (winner 18.7:1, loser 5.1:1). Same move here: 18.42:1 -> 4.53:1, both pass AA. It is
@@ -6393,6 +6402,7 @@ function paint(){
         var tm = teamById(id);
         var row = el('div', 'tT' + (m.winner !== undefined ? (m.winner === id ? ' tWon' : ' tLost') : ''));
         if (tm){ row.style.borderLeftColor = rgb(tm.col);
+          row.style.setProperty('--tc', tm.col);   // "r,g,b" -> the row can tint itself
           row.appendChild(faceOf(tm)); row.appendChild(el('span', 'tNm', tm.name)); }
         else { row.classList.add('tEmpty');
           row.appendChild(el('span', 'tFaceW tFaceEmpty')); row.appendChild(el('span', 'tNm tTbd', '\u2014')); }

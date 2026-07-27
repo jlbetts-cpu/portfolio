@@ -1,0 +1,109 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Split seam test</title>
+<style>
+  body{background:#FDFDFD;color:#121212;font:14px/1.4 -apple-system,system-ui,sans-serif;margin:0;padding:16px}
+  h2{font-size:12px;font-weight:600;margin:16px 0 4px;letter-spacing:.04em;text-transform:uppercase}
+  .row{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-start}
+  .card{width:301px;height:88px;border-radius:12px;overflow:hidden;position:relative}
+  /* deliberately ODD width 301px -> centre falls on a half pixel: the worst case */
+  .w2{width:300.5px}
+  .w3{width:299.33px}
+
+  /* A: gradient hard stop */
+  .g{background:linear-gradient(90deg,#E8622A 0 50%,#0E6B3B 50% 100%)}
+  /* A2: gradient with 0.5px overlap fix */
+  .g2{background:linear-gradient(90deg,#E8622A 0 calc(50% + 0.5px),#0E6B3B calc(50% + 0.5px) 100%)}
+  /* A3: gradient with 1px blend band */
+  .g3{background:linear-gradient(90deg,#E8622A 0 calc(50% - 0.5px),#0E6B3B calc(50% + 0.5px) 100%)}
+
+  /* B: two flex children */
+  .f{display:flex}
+  .f>div{flex:1 1 50%}
+  .f>div:first-child{background:#E8622A}
+  .f>div:last-child{background:#0E6B3B}
+
+  /* B2: two flex children with 1px overlap via negative margin */
+  .f2{display:flex}
+  .f2>div{flex:1 1 50%}
+  .f2>div:first-child{background:#E8622A;margin-right:-1px}
+  .f2>div:last-child{background:#0E6B3B}
+
+  /* C: grid 1fr 1fr */
+  .gr{display:grid;grid-template-columns:1fr 1fr}
+  .gr>div:first-child{background:#E8622A}
+  .gr>div:last-child{background:#0E6B3B}
+
+  /* D: base colour + clip-path half on top (no seam possible: overlap) */
+  .cp{background:#0E6B3B;position:relative}
+  .cp::before{content:"";position:absolute;inset:0;background:#E8622A;clip-path:polygon(0 0,50% 0,50% 100%,0 100%)}
+
+  /* E: chevron / notch split via clip-path on the overlay */
+  .ch{background:#0E6B3B;position:relative}
+  .ch::before{content:"";position:absolute;inset:0;background:#E8622A;
+    clip-path:polygon(0 0, calc(50% - 14px) 0, calc(50% + 14px) 50%, calc(50% - 14px) 100%, 0 100%)}
+
+  /* F: diagonal split, overlay approach */
+  .dg{background:#0E6B3B;position:relative}
+  .dg::before{content:"";position:absolute;inset:0;background:#E8622A;
+    clip-path:polygon(0 0, calc(50% + 20px) 0, calc(50% - 20px) 100%, 0 100%)}
+
+  /* G: diagonal via skewed pseudo-element */
+  .sk{background:#0E6B3B;position:relative;overflow:hidden}
+  .sk::before{content:"";position:absolute;top:-20%;bottom:-20%;left:-50%;right:50%;
+    background:#E8622A;transform:skewX(-12deg);transform-origin:center}
+
+  /* H: bleeding head test — oversized child, does border-radius clip it? */
+  .bleed{background:linear-gradient(90deg,#E8622A 0 50%,#0E6B3B 50% 100%)}
+  .bleed .blob{position:absolute;top:-30px;left:-60px;width:150px;height:150px;border-radius:50%;
+    background:#121212;opacity:.35}
+  .bleed .blob.r{left:auto;right:-60px}
+  /* H2: same but the child is TRANSFORMED + animated (the Safari bug trigger) */
+  .bleed2 .blob{animation:drift 3s ease-in-out infinite alternate;will-change:transform}
+  @keyframes drift{from{transform:translateZ(0) scale(1)}to{transform:translateZ(0) scale(1.25)}}
+  /* H3: same as H2 but with isolation:isolate on the card */
+  .iso{isolation:isolate}
+  /* H4: same as H2 but with -webkit-mask-image on the card */
+  .msk{-webkit-mask-image:-webkit-radial-gradient(white,black)}
+
+  .lab{font-size:11px;color:#666;margin:2px 0 0;width:301px}
+  @media (prefers-reduced-motion: reduce){ .bleed2 .blob{animation:none} }
+</style>
+
+<h2>1. straight centre split — card width 301px (odd, worst case)</h2>
+<div class="row">
+  <div><div class="card g"></div><p class="lab">A gradient 0 50% / 50% 100%</p></div>
+  <div><div class="card g2"></div><p class="lab">A2 gradient +0.5px shift</p></div>
+  <div><div class="card g3"></div><p class="lab">A3 gradient 1px blend band</p></div>
+  <div><div class="card f"><div></div><div></div></div><p class="lab">B two flex 50%</p></div>
+  <div><div class="card f2"><div></div><div></div></div><p class="lab">B2 flex + -1px margin</p></div>
+  <div><div class="card gr"><div></div><div></div></div><p class="lab">C grid 1fr 1fr</p></div>
+  <div><div class="card cp"></div><p class="lab">D base + clip-path overlay</p></div>
+</div>
+
+<h2>2. same, fractional widths 300.5px / 299.33px</h2>
+<div class="row">
+  <div><div class="card w2 g"></div><p class="lab">A @300.5</p></div>
+  <div><div class="card w2 f"><div></div><div></div></div><p class="lab">B @300.5</p></div>
+  <div><div class="card w2 gr"><div></div><div></div></div><p class="lab">C @300.5</p></div>
+  <div><div class="card w2 cp"></div><p class="lab">D @300.5</p></div>
+  <div><div class="card w3 g"></div><p class="lab">A @299.33</p></div>
+  <div><div class="card w3 f"><div></div><div></div></div><p class="lab">B @299.33</p></div>
+  <div><div class="card w3 gr"><div></div><div></div></div><p class="lab">C @299.33</p></div>
+  <div><div class="card w3 cp"></div><p class="lab">D @299.33</p></div>
+</div>
+
+<h2>3. notch / chevron / diagonal</h2>
+<div class="row">
+  <div><div class="card ch"></div><p class="lab">E chevron clip-path overlay</p></div>
+  <div><div class="card dg"></div><p class="lab">F diagonal clip-path overlay</p></div>
+  <div><div class="card sk"></div><p class="lab">G diagonal skewX pseudo</p></div>
+</div>
+
+<h2>4. bleeding oversized child + border-radius clipping</h2>
+<div class="row">
+  <div><div class="card bleed"><div class="blob"></div><div class="blob r"></div></div><p class="lab">H static child</p></div>
+  <div><div class="card bleed bleed2"><div class="blob"></div><div class="blob r"></div></div><p class="lab">H2 animated/transformed child (bug trigger)</p></div>
+  <div><div class="card bleed bleed2 iso"><div class="blob"></div><div class="blob r"></div></div><p class="lab">H3 + isolation:isolate</p></div>
+  <div><div class="card bleed bleed2 msk"><div class="blob"></div><div class="blob r"></div></div><p class="lab">H4 + -webkit-mask-image</p></div>
+</div>
