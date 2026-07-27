@@ -3573,7 +3573,15 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
  (function(){try{var ci=new Image();ci.onload=function(){try{
   var cv3=document.createElement("canvas");cv3.width=36;cv3.height=44;var cx3=cv3.getContext("2d");
   cx3.drawImage(ci,0,0,36,44);var d3=cx3.getImageData(0,0,36,44).data;
-  for(var row=43;row>=0;row--){for(var col=0;col<36;col++){if(d3[(row*36+col)*4+3]>40){FOOT=Math.min(0.99,(row+1)/44);return;}}}
+  for(var row=43;row>=0;row--){for(var col=0;col<36;col++){if(d3[(row*36+col)*4+3]>40){
+   FOOT=Math.min(0.99,(row+1)/44);
+   try{survey();}catch(_){}   // RE-SURVEY. floorY is computed as fY-HH*FOOT inside survey(), which runs
+   // SYNCHRONOUSLY at spawn -- but this scan is an image onload, so it always lands after it. Every
+   // head therefore stood on the DEFAULT 0.945. For a normal cutout that is nearly right (their real
+   // foot line is 0.932, a 1.7px error nobody sees). Mini-Jayden's cut is baked into a 5:6 frame with
+   // the face in the top square, so his true foot line is 0.75 -- and he hung 38px above the floor
+   // while every egghead stood on it. Recomputing here costs one extra survey per head, once.
+   return;}}}
  }catch(_){}};ci.src=data.cut;}catch(_){}})();   // its own true foot line, from its own pixels
  (function(){try{var fi=document.getElementById("face");function scan(){try{
   var cv=document.createElement("canvas");cv.width=36;cv.height=44;var cx2=cv.getContext("2d");
