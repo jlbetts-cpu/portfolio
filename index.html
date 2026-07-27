@@ -3583,7 +3583,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
      pendingHide=null,hideToken=0,lapBack=false,forceHide=/[?&]hide=1/.test(location.search);
  function plane(front){root.style.zIndex="3";shadow.style.zIndex="2";}   // heads ALWAYS stay in front of the big head + the CTA buttons (the back plane is gone) -- cleaner, more premium, no ducking-behind glitches
  var G=2600,DT=0.04,facc=0,CEIL=2,surpriseAt=0;   // real units: px/s and px/s^2, integrated at 25fps
- var me={x:0,y:0,HW:HW,HH:HH,vx:0,vy:0,ground:false,perched:false,kx:0,ky:0,dmgIn:0,inB:false,elim:false,slot:slot,cut:(data&&data.cut)||null};peers.push(me);   // cut travels with the peer so the tournament can find a head it has already spawned instead of duplicating it
+ var me={x:0,y:0,HW:HW,HH:HH,vx:0,vy:0,ground:false,perched:false,kx:0,ky:0,dmgIn:0,inB:false,elim:false,slot:slot,cut:(data&&data.cut)||null,__filler:filler};peers.push(me);   // set it HERE rather than patching the peer from outside, so anything spawning mini-Jayden gets it right   // cut travels with the peer so the tournament can find a head it has already spawned instead of duplicating it
  // ability ACTOR: the smashing head's handle -- registry abilities drive the head through this (its physics locals live in this closure)
  var A={me:me,peers:peers,FX:FX,slot:slot,
   get cx(){return x+HW/2;},get cy(){return y+HH/2;},get x(){return x;},get y(){return y;},get HW(){return HW;},get HH(){return HH;},get dir(){return dir;},
@@ -5257,8 +5257,8 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
 
  // mini-Jayden: when a game has an ODD number of players, the big head shrinks in to even the sides (and makes a 1-head game playable)
  var fillerActive=false,FSLOT=9001,fillerCut=null;
- window.__hmFillerAdd=function(){if(fillerActive)return;
-  var face=document.getElementById("face");if(!face||!face.complete||!face.naturalWidth)return;
+ function fillerData(){   // split out so the TOURNAMENT can field him as a captain, not just spawn him
+  var face=document.getElementById("face");if(!face||!face.complete||!face.naturalWidth)return null;
   // the big head is a SQUARE cutout; bake it into a 5:6 frame at its true aspect (never stretched) so the mini-Jayden reads exactly like him, just smaller
   try{var W=500,H=600,c=document.createElement("canvas");c.width=W;c.height=H;var g=c.getContext("2d");
    g.drawImage(face,0,0,W,W);   // his square face fills the width, head at the top of the frame (chin ~0.83, feet-space below)
@@ -5268,9 +5268,12 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   var data={cut:fillerCut,__filler:true,__mirror:true,   // __mirror: it IS the big head, cloned and shrunk -- same face, same eyes, same expressions
    eyes:[{x:0.400,y:0.431,w:0.100,h:0.040,ang:0,sc:"rgb(236,234,229)",ic:[46,35,28]},{x:0.603,y:0.439,w:0.100,h:0.040,ang:0,sc:"rgb(236,234,229)",ic:[46,35,28]}],
    marks:{BL:{x:0.375,y:0.392},BR:{x:0.625,y:0.398},M:{x:0.500,y:0.632},N:{x:0.500,y:0.520}}};   // (eyes/marks kept as a fallback + for the cut-based masks)
+  return data;}
+ window.__hmFillerData=fillerData;
+ window.__hmFillerAdd=function(){if(fillerActive)return;var data=fillerData();if(!data)return;
   spawnCompanion(data,FSLOT);var m=peers[peers.length-1];if(m)m.__filler=true;fillerActive=true;
   // he has more to work with than the little heads: bake his SMILE too, so the mini-Jayden grins when he scores or wins
-  try{var si=new Image();si.onload=function(){try{var sc=document.createElement("canvas");sc.width=W;sc.height=H;sc.getContext("2d").drawImage(si,0,0,W,W);var scut=sc.toDataURL("image/webp",0.92);if(scut.indexOf("data:image/webp")!==0)scut=sc.toDataURL("image/png");if(m)m.__smileCut=scut;}catch(_){}};si.src="images/smile.webp";}catch(_){}};
+  try{var si=new Image();si.onload=function(){try{var sc=document.createElement("canvas");sc.width=500;sc.height=600;sc.getContext("2d").drawImage(si,0,0,500,500);var scut=sc.toDataURL("image/webp",0.92);if(scut.indexOf("data:image/webp")!==0)scut=sc.toDataURL("image/png");if(m)m.__smileCut=scut;}catch(_){}};si.src="images/smile.webp";}catch(_){}};
  window.__hmFillerRemove=function(){if(!fillerActive)return;try{if(window.__hmKill&&fillerCut){window.__hmKill(fillerCut);var L=window.__hmLive||[];for(var i=L.length-1;i>=0;i--){if(L[i].cut===fillerCut)L.splice(i,1);}}}catch(_){}fillerActive=false;fillerCut=null;};   // also drop the dead __hmLive entry so it can't pile up across games
  window.__hmRealHeads=function(){var n=0;for(var i=0;i<peers.length;i++){if(!peers[i].__filler)n++;}return n;};
  window.__hmSlotFor=function(cut){for(var i=0;i<peers.length;i++)if(peers[i].cut===cut)return peers[i].slot;return null;};   // already on the pitch? reuse it
@@ -5485,10 +5488,17 @@ function buildTeams(cb){
   var EGG = window.__EGGHEAD;
   var teams = [], pending = 0, done = false;
 
+  // Captains, in order: the visitor's saved heads first, then MINI-JAYDEN, then eggheads. He is
+  // the house player -- if a side is short he takes the shirt before any anonymous egg does.
+  var caps = heads.slice();
+  if (caps.length < n){
+    try { var mj = window.__hmFillerData && window.__hmFillerData(); if (mj) caps.push(mj); } catch (_) {}
+  }
+
   for (var i = 0; i < n; i++){
     var pal = PAL[i % PAL.length];
     teams.push({ id: 'tm' + i, name: pal.n, col: pal.c, seed: i + 1,
-                 captain: heads[i] || null, squad: [], out: false });
+                 captain: caps[i] || null, squad: [], out: false });
   }
 
   function finish(){ if (done) return; done = true; T.teams = teams; cb(teams); }
@@ -5557,7 +5567,12 @@ function startFixture(nm){
     playersOf(tm).forEach(function(p){
       var slot = window.__hmSlotFor ? window.__hmSlotFor(p.cut) : null;
       if (slot == null){ slot = SLOT++;
-        var sp = { cut: p.cut, eyes: p.eyes || [], marks: p.marks || null, __noIntro: true };   // same reason: no intro to wait for
+        // Carry __filler/__mirror through: mini-Jayden IS the big head cloned, and rebuilding his
+        // data without them would spawn a generic head wearing his face -- no mirrored expressions,
+        // no smile bake, wrong scale.
+        var sp = { cut: p.cut, eyes: p.eyes || [], marks: p.marks || null, __noIntro: true };
+        if (p.__filler) sp.__filler = true;
+        if (p.__mirror) sp.__mirror = true;
         try { window.__hmSpawnOne(sp, slot); T.spawnedCuts.push(p.cut); } catch (_) {} }
       delete bench[slot];
       sel[slot] = sideNo;
