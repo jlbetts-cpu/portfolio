@@ -3850,6 +3850,9 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    // hide gate keeps the visitor's saved heads alive across the whole bracket -- despawning and
    // respawning them every fixture would churn the crowd and lose their state.
    if(window.__hmBench&&window.__hmBench[slot])hideB=true;}catch(_){}
+  me.__bench=hideB;   // A BENCHED HEAD IS NOT A BODY. It is invisible and frozen, but it stayed in
+  // peers, so the ball was bouncing off players nobody could see and live players were walking
+  // into them. Every physical loop has to know to skip it.
   if(!hideB&&wasHideB&&!first&&!gone&&!battleOn&&!soccerOn&&!window.__hmRaceOn&&!grabbed){first=true;introSettled=true;bornWall=0;bornAt=now;shown=false;root.style.opacity="0";if(shadow)shadow.style.opacity="0";}   // UNHIDDEN -> the same one-at-a-time toss-in from the edge as the very first time
   wasHideB=hideB;
   var want=!aboutB&&!hideB&&!gone;   // moods never hide the pit: the little heads are the audience
@@ -4219,7 +4222,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
     if(kmag>170&&bf===0)bf=5;}
    else if(!air){x+=Math.max(-3,Math.min(3,me.kx*0.03));}   // tiny squeezes just scoot it over
   }me.kx=0;me.ky=0;}
-  if(!grabbed&&!perched&&!vaulting&&!elim&&!(window.__hmLavaOn&&battleOn&&now<(window.__hmBattleGo||0)))for(var pi=0;pi<peers.length;pi++){var o2=peers[pi];if(o2===me||o2.perched||o2.vault||o2.elim)continue;   // a vaulting head sails clean over; the fallen rest in peace -- and pre-whistle in lava, heads hold still on the base (no shoving anyone off before GO)
+  if(!grabbed&&!perched&&!vaulting&&!elim&&!(window.__hmLavaOn&&battleOn&&now<(window.__hmBattleGo||0)))for(var pi=0;pi<peers.length;pi++){var o2=peers[pi];if(o2===me||o2.perched||o2.vault||o2.elim||o2.__bench)continue;   // a vaulting head sails clean over; the fallen rest in peace -- and pre-whistle in lava, heads hold still on the base (no shoving anyone off before GO)
    var dxp=(x+HW/2)-(o2.x+o2.HW/2),dyp=(y+HH*0.55)-(o2.y+o2.HH*0.55);
    var rr2=(HW+o2.HW)*0.40,d2=Math.hypot(dxp,dyp);
    if(d2>0.01&&d2<rr2){var nx2=dxp/d2,ny2=dyp/d2,ov=rr2-d2;
@@ -4658,7 +4661,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
      var kc1=Math.min(0.1,Math.abs(bvy)*0.00015);bsyP=1-kc1;bsxP=1/(1-kc1);bsT=0.11;}
     if(bx<XL+BR){if(inG)return netCatch(2);bx=XL+BR;if(Math.abs(bvx)>120){var kw=Math.min(0.12,Math.abs(bvx)*0.00014);bsxP=1-kw;bsyP=1/(1-kw);bsT=0.12;}bvx=Math.abs(bvx)*0.82;bw=-bw*0.6;}   // wall reverses the spin too
     if(bx>XR-BR){if(inG)return netCatch(1);bx=XR-BR;if(Math.abs(bvx)>120){var kw2=Math.min(0.12,Math.abs(bvx)*0.00014);bsxP=1-kw2;bsyP=1/(1-kw2);bsT=0.12;}bvx=-Math.abs(bvx)*0.82;bw=-bw*0.6;}
-    for(var pi=0;pi<peers.length;pi++){var p=peers[pi];if(p.elim)continue;   // heads bounce the ball with their BODY -- pure elastic momentum, the same collision they use on each other
+    for(var pi=0;pi<peers.length;pi++){var p=peers[pi];if(p.elim||p.__bench)continue;   // heads bounce the ball with their BODY -- pure elastic momentum, the same collision they use on each other
      var hx=p.x+p.HW/2,hy=p.y+p.HH*0.55,dx=bx-hx,dy=by-hy,d=Math.hypot(dx,dy),rr=p.HW*0.5+BR;
      if(d>0.1&&d<rr){var nx=dx/d,ny=dy/d,ov=rr-d;
       bx+=nx*ov;by+=ny*ov;   // lift the ball clear of the body so it can never sink in and stutter
