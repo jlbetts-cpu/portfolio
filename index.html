@@ -4536,11 +4536,15 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    if(_mx===6&&_df===1)setTimeout(function(){if(S.on)bigCall("next goal wins!",1800);},1300);
    S.phase="reset";bvx=0;bvy=0;setTimeout(function(){if(S.on){ballInTitle(false);ball.style.opacity="1";if(ballShadow)ballShadow.style.opacity="0.28";dropIn();}},700);}   // otherwise it re-appears for the next kickoff
   function win(team){S.winner=team;S.phase="win";board2();if(board)board.classList.add("won");
+   // Name the winner BEFORE the hook runs: __hmTourWin clears T.cur synchronously, and the call
+   // itself is announced 850ms later, by which point there is no fixture left to read from.
+   var _wname=(team===1?"Red":"Blue")+" wins!";
+   try{var _T=window.__hmTour;if(_T&&_T.live&&_T.cur){var _tm=(team===1?_T.cur.a:_T.cur.b);if(_tm)_wname=_tm.name+" win";}}catch(_){}
    try{if(window.__hmTourWin)window.__hmTourWin(team);}catch(_){}   // "First to 5" and End are moot once it is decided
    
    try{winConfetti(team);}catch(_){}
    try{if(typeof busyNow==="function"&&!busyNow()){setHold("smile",2600);showFace("smile");refFlash();}}catch(_){}
-   setTimeout(function(){if(S.on&&S.phase==="win"&&countEl){countEl.classList.add("hmMsg");countEl.textContent=(team===1?"Red":"Blue")+" wins!";countEl.classList.remove("hmCountPulse");void countEl.offsetWidth;countEl.classList.add("hmCountPulse");}},850);   // let the final goal land first -- the call comes a beat later
+   setTimeout(function(){if(S.on&&S.phase==="win"&&countEl){countEl.classList.add("hmMsg");countEl.textContent=_wname;countEl.classList.remove("hmCountPulse");void countEl.offsetWidth;countEl.classList.add("hmCountPulse");}},850);   // let the final goal land first -- the call comes a beat later
    setTimeout(function(){if(countEl){countEl.textContent="";countEl.classList.remove("hmMsg");}},4600);
    setTimeout(finish,5400);}
   function winConfetti(team){try{   // ONE full celebration canvas, capped like the rest
@@ -5450,7 +5454,10 @@ function buildTeams(cb){
     for (var k = 0; k < total; k++){
       (function(isCap, idx){
         window.__hmTint(EGG.cut, rgb(shade(tm.col, isCap ? 0 : (idx % 2 ? 26 : -26))), function(cut){
-          var d = { cut: cut, eyes: EGG.eyes || [], marks: EGG.marks || null };
+          // __filler is the mini-Jayden flag: "spawns already active, no intro". Without it a fresh
+          // head waits on the big head's intro sequence before its toss-in -- and the big head is
+          // hidden during a tournament, so squads spawned and then sat at opacity 0 forever.
+          var d = { cut: cut, eyes: EGG.eyes || [], marks: EGG.marks || null, __filler: true };
           if (isCap && !tm.captain) tm.captain = d; else tm.squad.push(d);
           if (--pending <= 0) finish();
         });
@@ -5546,7 +5553,9 @@ function startFixture(nm){
     var tm = pair[0], sideNo = pair[1];
     playersOf(tm).forEach(function(p){
       var slot = window.__hmSlotFor ? window.__hmSlotFor(p.cut) : null;
-      if (slot == null){ slot = SLOT++; try { window.__hmSpawnOne(p, slot); T.spawnedCuts.push(p.cut); } catch (_) {} }
+      if (slot == null){ slot = SLOT++;
+        var sp = { cut: p.cut, eyes: p.eyes || [], marks: p.marks || null, __filler: true };   // same reason: no intro to wait for
+        try { window.__hmSpawnOne(sp, slot); T.spawnedCuts.push(p.cut); } catch (_) {} }
       delete bench[slot];
       sel[slot] = sideNo;
       var st = statFor(p, tm.id); st.mg = 0; st.ma = 0; st.mo = 0; st.team = tm.id;
@@ -5572,8 +5581,19 @@ function benchAll(){   // between fixtures nobody is on the pitch: the bracket s
   var b = {}; (window.__hmSlots ? window.__hmSlots() : []).forEach(function(s){ b[s] = 1; });
   window.__hmBench = b;
 }
+var lastRound = -1;
 function between(){
   clearSpawned(); benchAll();
+  // ROUND BEAT: when the bracket moves up a round, announce it in the middle of the screen the
+  // same way the countdown and the win call do, so the tournament has a rhythm between fixtures
+  // rather than just swapping panels.
+  try{ var n0 = BR.nextMatch(T.br);
+    if (n0 && n0.round !== lastRound){ lastRound = n0.round;
+      var cE = document.querySelector('.hmCount');
+      if (cE){ cE.classList.add('hmMsg'); cE.textContent = T.br.rounds[n0.round].label;
+        cE.classList.remove('hmCountPulse'); void cE.offsetWidth; cE.classList.add('hmCountPulse');
+        setTimeout(function(){ if (cE.textContent === T.br.rounds[n0.round].label){ cE.textContent=''; cE.classList.remove('hmMsg'); } }, 1900); } }
+  }catch(_){}
   var nm = BR.nextMatch(T.br);
   if (!nm){ T.phase = 'done'; paint(); return; }
   T.phase = 'bracket'; paint();
@@ -5680,7 +5700,7 @@ function start(){
   if (T.live) return;
   buildTeams(function(teams){
     T.live = true; T.stats = {}; T.log = []; T.phase = 'bracket';
-    T.br = BR.buildBracket(teams.map(function(t){ return t.id; }));
+    T.br = BR.buildBracket(teams.map(function(t){ return t.id; })); lastRound = -1;
     document.body.classList.add('hmTour');
     benchAll(); paint();
   });
