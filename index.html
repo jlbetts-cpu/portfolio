@@ -1503,6 +1503,13 @@ body.about-open #navAbout{color:var(--c950);background:var(--c75)}
 /* Above .tourPanel's z-index:47, below the drawer and scrim at 120/121. At 5 the block sat
    over the burger, the logo and Play, and they stopped taking clicks entirely. */
 body.hmTour nav{position:relative;z-index:60}
+/* The work tabs stay in FRONT of the block, which runs down past them. The z-index that
+   decides this is NOT the tabs' own: .csTabs lives inside #cases (61) and the block inside
+   .wrap (62), which are separate stacking contexts, so .wrap won wholesale and any value on
+   .csTabs only ordered things within #cases. It is the two SECTIONS that have to be
+   compared. */
+body.hmTour #cases{z-index:63}
+body.hmTour .csTabs{position:relative;z-index:55}
 body.hmTour #tourPanel .tCup{padding-top:var(--tourShift,0px)}
 body.hmTour #tourPanel{left:50%!important;right:auto!important;
  top:calc(-1 * var(--tourShift,0px))!important;
@@ -1542,7 +1549,7 @@ body.hmTour #tourPanel .tCupRd{border-radius:0;box-shadow:none;
 body.hmTour #tourPanel .tCupHead,
 body.hmTour #tourPanel .tCupCard,
 body.hmTour #tourPanel .tCupActs,
-body.hmTour #tourPanel .tCupSched>summary,
+body.hmTour #tourPanel .tCupSched>.tCupSchedHd,
 body.hmTour #tourPanel .tCupSchedIn{padding-inline:20px}
 
 /* ---- The capsule runs the FULL HEIGHT of the hero while the schedule is open, and the
@@ -1645,13 +1652,10 @@ body.hmTour.tSchedOpen #tourPanel .tCupSchedIn{
 
 /* the schedule collapses -- a <details>, so it is keyboard and screen-reader native */
 .tCupSched{border-top:1px solid var(--c100);background:var(--c50)}
-.tCupSched>summary{list-style:none;cursor:pointer;padding:16px 24px;
+.tCupSched>.tCupSchedHd{padding:16px 24px;
  display:flex;align-items:center;justify-content:space-between;gap:8px;
  font-weight:600;font-size:var(--fs-caption,12px);letter-spacing:.08em;text-transform:uppercase;color:var(--c950)}
-.tCupSched>summary::-webkit-details-marker{display:none}
-.tCupSched>summary:focus-visible{outline:2px solid var(--c950);outline-offset:-3px;border-radius:4px}
-.tCupChev{width:16px;height:16px;flex:0 0 16px;transition:transform .22s cubic-bezier(.2,.8,.2,1)}
-.tCupSched[open] .tCupChev{transform:rotate(180deg)}
+
 .tCupSchedIn{padding:0 12px 12px;max-height:min(40vh,330px);overflow-y:auto;
  overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
 .tCupRd{border-radius:4px;background:#fff;box-shadow:inset 0 0 0 1px var(--c100);overflow:hidden}
@@ -1682,7 +1686,6 @@ body.hmTour.tSchedOpen #tourPanel .tCupSchedIn{
 .tCupArrow.tArrR{border-right-color:var(--c950);border-left-width:0}
 @media(prefers-reduced-motion:reduce){
  .tCupTrophy::after{animation:none;opacity:0}
- .tCupChev{transition:none}
 }
 
 /* ================= LIVE SCOREBOARD =================
@@ -6912,8 +6915,11 @@ function paint(){
 
   // ---- the schedule, collapsed by default. <details> so it is keyboard- and
   // screen-reader-native without a line of JS. Saved scores render here. ----
-  var sched = document.createElement('details'); sched.className = 'tCupSched';
-  sched.open = (T.schedOpen !== false);          // open by default; the choice persists a repaint
+  /* A plain section, not a <details>. The schedule does not collapse any more, so the
+     disclosure was an affordance for a state that no longer exists -- and dropping it also
+     drops the <details> flex trap that cost three wrong fixes. */
+  var sched = document.createElement('section'); sched.className = 'tCupSched';
+  sched.setAttribute('aria-label', 'Schedule');
   /* The hero has to be TOLD its height. .tourPanel is absolutely positioned, so it adds
      nothing to the hero's layout -- collapsing the schedule shrank the capsule and left the
      hero exactly as tall as before. Closed, the hero is measured to the capsule; open, it
@@ -6933,25 +6939,25 @@ function paint(){
          rect + scrollY is a document coordinate, so it is the same at any scroll position. */
       var shift = Math.max(0, Math.round(hero.getBoundingClientRect().top + window.scrollY));
       document.body.style.setProperty('--tourShift', shift + 'px');
-      /* Size the scroller explicitly rather than by flex. .tCupSched is a <details>, and
-         display:flex on <details> does NOT reliably make its light-DOM children flex items --
-         the inner list stayed at its full 467px inside a 163px parent, so overflow-y:auto
-         never engaged (its content fitted its own oversized box) and the parent just clipped
-         the rows away.
-         Anchored to the HERO's bottom, and always as the difference between two rects --
+      /* Size the scroller explicitly rather than by flex -- the parent used to be a
+         <details>, whose light-DOM children are not reliable flex items, and measuring is
+         deterministic regardless.
+         Always as the difference between two rects --
          that is scroll-invariant, because both shift by the same amount. The old
          `window.innerHeight - top` was not, which is exactly why the block stopped lining up
          the moment you scrolled. CSS bottom:0 only gets us to #main, and the hero actually
          overflows #main by a few px, so the anchor has to be measured. */
       var heroBottom = hero.getBoundingClientRect().bottom;
-      /* The block runs PAST the tab row below the hero, not down to the fold. Two different
-         anchors on purpose: the block reaches the tabs, but the schedule below is still sized
-         to the hero's bottom, so the list stays readable without scrolling the page. */
+      /* The block runs PAST the tab row; the schedule inside it stops just ABOVE that row.
+         The tabs now sit in front of the block, so a list that ran under them would have its
+         last rows hidden behind the labels. Two anchors, one element apart. */
       var tabs = document.querySelector('.csTabs');
-      var footAnchor = tabs ? tabs.getBoundingClientRect().bottom : heroBottom;
+      var tabsR = tabs ? tabs.getBoundingClientRect() : null;
+      var footAnchor = tabsR ? tabsR.bottom : heroBottom;
+      var listAnchor = tabsR ? tabsR.top    : heroBottom;
       cup.style.minHeight =
         Math.max(0, Math.round(footAnchor - cup.getBoundingClientRect().top)) + 'px';
-      if (sched.open){
+      {
         var inn = sched.querySelector('.tCupSchedIn');
         if (inn){
           /* The scroller absorbs the leftover room, which is what keeps the block ending
@@ -6960,7 +6966,7 @@ function paint(){
              name, which just reads as broken. Rows are snapped to rather than multiplied out
              because the round headings between them mean they are not on a fixed pitch. */
           var innTop = inn.getBoundingClientRect().top;
-          var avail  = heroBottom - innTop - 16;
+          var avail  = listAnchor - innTop - 16;
           var snap = 0, first = 0;
           [].forEach.call(inn.querySelectorAll('.tCupFx'), function(row){
             var edge = row.getBoundingClientRect().bottom - innTop + inn.scrollTop;
@@ -6974,20 +6980,11 @@ function paint(){
       }
     });
   }
-  sched.addEventListener('toggle', function(){
-    T.schedOpen = sched.open;
-    document.body.classList.toggle('tSchedOpen', sched.open);
-    requestAnimationFrame(syncHero);
-  });
-  document.body.classList.toggle('tSchedOpen', sched.open);
+  document.body.classList.add('tSchedOpen');
   requestAnimationFrame(syncHero);
   if (!T._schedResize){ T._schedResize = true;
     addEventListener('resize', function(){ try{ syncHero(); }catch(_){} }, {passive:true}); }
-  var sum = document.createElement('summary');
-  sum.appendChild(document.createTextNode('Schedule'));
-  sum.insertAdjacentHTML('beforeend',
-    '<svg class="tCupChev" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">'
-  + '<path d="M6 9l6 6l6 -6"/></svg>');
+  var sum = el('div', 'tCupSchedHd', 'Schedule');
   sched.appendChild(sum);
   var schedIn = el('div', 'tCupSchedIn');
   T.br.rounds.forEach(function(rd){
