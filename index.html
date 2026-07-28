@@ -337,7 +337,9 @@ body.hmSoccer .moodMenu .moodItem:not(#endGame),body.hmSoccer .moodMenu .moodGo{
 .hmScore .sTr i{background:#e05a4e}.hmScore .sTb i{background:#5aa0d8}
 .hmScore em{color:var(--c400);font-style:normal}
 .hmScore small{margin-left:8px;padding-left:12px;border-left:1px solid var(--c100);font-weight:400;font-size:var(--fs-label);color:var(--c500)}
-.hmCount{position:absolute;left:50%;top:38%;transform:translate(-50%,-50%);z-index:48;font-family:var(--sans);font-weight:600;font-size:clamp(64px,12vw,140px);line-height:1;color:var(--c950);opacity:0;pointer-events:none;filter:url(#inkBig);white-space:nowrap}
+/* Below the scoreboard (47), not above it. At 48 the shout landed on top of the board and
+   the two illegible-ed each other. Dropped down the pitch too, clear of the board's box. */
+.hmCount{position:absolute;left:50%;top:52%;transform:translate(-50%,-50%);z-index:44;font-family:var(--sans);font-weight:600;font-size:clamp(64px,12vw,140px);line-height:1;color:var(--c950);opacity:0;pointer-events:none;filter:url(#inkBig);white-space:nowrap}
 .hmCount.hmMsg{font-size:clamp(32px,6vw,72px);font-weight:600;letter-spacing:-.01em}   /* a word, not a digit: fits "Blue wins!" */
 .hmScoreEnd{margin-left:8px;padding:2px 2px 2px 12px;border:0;border-left:1px solid var(--c100);border-radius:0;background:none;display:inline-flex;align-items:center;gap:4px;cursor:pointer;pointer-events:auto;color:#b3402e;font-family:var(--sans);font-weight:600;font-size:var(--fs-label);line-height:1;transition:color .15s}
 .hmScoreEnd:hover{color:#8f3323}.hmScoreEnd svg{width:12px;height:12px;flex:0 0 auto}
@@ -1444,24 +1446,15 @@ body.about-open #navAbout{color:var(--c950);background:var(--c75)}
  letter-spacing:.12em;text-transform:uppercase;color:var(--c500);padding:0 2px}
 @keyframes tCardRise{from{opacity:0;transform:translateY(14px) scale(.97)}to{opacity:1;transform:none}}
 
-/* ---- PLAY, WHILE A TOURNAMENT IS LIVE ------------------------------------------------
-   Starting another game from this menu would abandon the draw, so the control is closed off
-   and says why on hover and on keyboard focus. Greyed rather than removed: a control that
-   vanishes reads as a bug, one that explains itself reads as a rule. */
-body.hmTour nav .faceMoodCorner{position:relative}
-body.hmTour nav .faceMoodCorner .moodBtn{color:var(--c500);cursor:not-allowed}
-body.hmTour nav .faceMoodCorner .moodBtn:hover{color:var(--c500)}
-body.hmTour nav .faceMoodCorner .moodBtn::after{
- content:"Finish the tournament first";position:absolute;top:calc(100% + 8px);right:0;
- padding:8px 10px;border-radius:4px;background:var(--c950);color:var(--c50);
- font-family:var(--sans);font-weight:400;font-size:var(--fs-caption,12px);line-height:1.2;
- white-space:nowrap;pointer-events:none;opacity:0;transform:translateY(-3px);
- transition:opacity .16s cubic-bezier(.2,.8,.2,1),transform .16s cubic-bezier(.2,.8,.2,1);
- z-index:80}
-body.hmTour nav .faceMoodCorner .moodBtn:hover::after,
-body.hmTour nav .faceMoodCorner .moodBtn:focus-visible::after{opacity:1;transform:translateY(0)}
-@media(prefers-reduced-motion:reduce){
- body.hmTour nav .faceMoodCorner .moodBtn::after{transition:none}}
+/* ---- PLAY AND ABOUT, WHILE A TOURNAMENT IS LIVE -------------------------------------
+   Both are hidden outright for the duration. Starting another game or opening About would
+   abandon the draw halfway through, and a greyed control with a tooltip still invites the
+   click -- taking them off the bar is quieter and leaves no dead affordance. The JS guard on
+   Play stays as a backstop for keyboard focus. Work, the wordmark and Contact are untouched,
+   so the bar does not restructure. */
+body.hmTour nav .faceMoodCorner,
+body.hmTour nav #navAbout,
+body.hmTour .navDrawer #ndAbout{display:none!important}
 
 /* ---- MOBILE MENU ------------------------------------------------------------------
    This is a dropdown anchored under the burger, not the full-height edge drawer it used to
@@ -5633,19 +5626,33 @@ function teams(){
    var g=team===1?goalR:goalL;g.classList.remove("hmGoalHit");void g.offsetWidth;g.classList.add("hmGoalHit");
    setTimeout(function(){if(S.on&&S.phase==="scoring")goalIn(team);},240);}
   function bigCall(txt,ms){try{if(!countEl)return;countEl.classList.add("hmMsg");countEl.textContent=txt;countEl.classList.remove("hmCountPulse");void countEl.offsetWidth;countEl.classList.add("hmCountPulse");setTimeout(function(){if(countEl.textContent===txt){countEl.textContent="";countEl.classList.remove("hmMsg");}},ms||1800);}catch(_){}}
+  /* What is actually true about the next goal, given win-by-two with a hard cap.
+     leaderWins: the team in front scoring ends it. eitherWins: BOTH are one goal from
+     ending it, which is the only honest "next goal wins". */
+  function goalCall(){
+    var mx=Math.max(S.red,S.blue), mn=Math.min(S.red,S.blue), df=mx-mn;
+    var ends=function(a,b){ return (a>=S.target && a-b>=2) || a>=S.cap; };
+    var leaderWins = ends(mx+1, mn), eitherWins = leaderWins && ends(mn+1, mx);
+    if (eitherWins)          return {t:"next goal wins!", ms:2200};
+    if (df===0 && mx>=S.target-1) return {t:"deuce!", ms:1600};
+    if (leaderWins && df>0)  return {t:"match point\u2026", ms:1500};
+    return null;
+  }
   function goalIn(team){if(team===1)S.red++;else S.blue++;S.goalSeed=(S.goalSeed||0)+1;S.goalTeam=team;board2();
    try{if(window.__hmTourGoal)window.__hmTourGoal(team,(S.touches||[]).slice());}catch(_){}   // hand the touch log to the tournament: last toucher scored, the one before assisted
    S.touches=[];
 
-   if((S.red===4||S.blue===4)&&S.red!==S.blue)setTimeout(function(){if(S.on)bigCall("match point\u2026",1500);},1300);
-   if(S.red===4&&S.blue===4)setTimeout(function(){if(S.on)bigCall("next goal wins!",2200);},1300);   // 4-4: next goal takes it -- FIFA built this rule purely to manufacture a decisive thrill
+   /* The shout is DERIVED from the win condition, not hardcoded to a scoreline. It used to
+      shout "next goal wins!" at 4-4, which is simply untrue under win-by-two: 5-4 wins
+      nothing. Now the only scoreline that gets that line is one where EITHER team scoring
+      ends it -- at target 5 / cap 8 that is 7-7 alone. */
+   (function(){var c=goalCall();if(c)setTimeout(function(){if(S.on)bigCall(c.t,c.ms);},1300);})();
    try{var _gp=(team===1?sR:sB);if(_gp){_gp.style.transition="none";_gp.style.transform="scale(1.55)";void _gp.offsetWidth;_gp.style.transition="transform .5s cubic-bezier(.2,1.4,.3,1)";_gp.style.transform="scale(1)";_gp.style.display="inline-block";}}catch(_){}   // the scoring number POPS -- a goal should feel like a goal on the board too
    var g=team===1?goalR:goalL;g.classList.add("hmGoalHit");setTimeout(function(){g.classList.remove("hmGoalHit");},650);
    try{if(typeof busyNow==="function"&&!busyNow()){setHold("smile",1100);showFace("smile");if(typeof browFlash==="function")browFlash();}}catch(_){}
    var _mx=Math.max(S.red,S.blue),_df=Math.abs(S.red-S.blue);
    if((_mx>=S.target&&_df>=2)||_mx>=S.cap){win(team);return;}   // WIN BY TWO (hard cap S.cap): a 5-4 isn't over -- the great matches go to deuce
-   if(S.red===S.blue&&S.red>=4)setTimeout(function(){if(S.on)bigCall("deuce!",1600);},1300);
-   if(_mx===6&&_df===1)setTimeout(function(){if(S.on)bigCall("next goal wins!",1800);},1300);
+
    S.phase="reset";bvx=0;bvy=0;setTimeout(function(){if(S.on){ballInTitle(false);ball.style.opacity="1";if(ballShadow)ballShadow.style.opacity="0.28";dropIn();}},700);}   // otherwise it re-appears for the next kickoff
   function win(team){S.winner=team;S.phase="win";board2();if(board)board.classList.add("won");
    // Name the winner BEFORE the hook runs: __hmTourWin clears T.cur synchronously, and the call
