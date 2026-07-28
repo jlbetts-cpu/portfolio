@@ -6933,8 +6933,13 @@ function paint(){
          the moment you scrolled. CSS bottom:0 only gets us to #main, and the hero actually
          overflows #main by a few px, so the anchor has to be measured. */
       var heroBottom = hero.getBoundingClientRect().bottom;
+      /* The block runs PAST the tab row below the hero, not down to the fold. Two different
+         anchors on purpose: the block reaches the tabs, but the schedule below is still sized
+         to the hero's bottom, so the list stays readable without scrolling the page. */
+      var tabs = document.querySelector('.csTabs');
+      var footAnchor = tabs ? tabs.getBoundingClientRect().bottom : heroBottom;
       cup.style.minHeight =
-        Math.max(0, Math.round(heroBottom - cup.getBoundingClientRect().top)) + 'px';
+        Math.max(0, Math.round(footAnchor - cup.getBoundingClientRect().top)) + 'px';
       if (sched.open){
         var inn = sched.querySelector('.tCupSchedIn');
         if (inn){
