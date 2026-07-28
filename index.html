@@ -5392,41 +5392,21 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    // an asymmetric VS divider and a second team row, sitting on a footer ledge. Their crest
    // becomes our head, their city line becomes the team's colour name. The .sR / .sB hooks are
    // kept exactly as they were, because board2() writes the live score straight into them.
-   (function(){
-     function side(which){
-       var nm = (which === 'R' ? 'Red' : 'Blue'), col = (which === 'R' ? '194,61,51' : '49,109,181'), cut = '', sub = '';
-       try{ var T = window.__hmTour;
-         if (T && T.live && T.cur){
-           var tm = (which === 'R' ? T.cur.a : T.cur.b);
-           if (tm){ nm = tm.name; col = tm.col; sub = tm.colName || '';
-                    cut = (tm.captain && (tm.captain.portrait || tm.captain.cut)) || ''; }
-         }
-       }catch(_){}
-       return '<div class="sbTeam" style="--tc:' + col + '">'
-            +   (cut ? '<span class="sbFace"><img src="' + cut + '" alt="" draggable="false"></span>'
-                        : '<span class="sbDot"></span>')
-            +   '<span class="sbWho"><b class="sbNm">' + nm + '</b>'
-            +     '<em class="sbSub" aria-hidden="true"></em></span>'
-            +   '<b class="s' + which + ' sbScore">0</b>'
-            + '</div>';
-     }
-     board.innerHTML =
-        '<div class="sbCard">'
-      +   '<div class="sbInner">'
-      +     side('R')
-      +     '<div class="sbVs"><i class="sbRuleA"></i><span>VS</span><i class="sbRuleB"></i></div>'
-      +     side('B')
-      +   '</div>'
-      +   '<div class="sbFoot">'
-      +     '<span class="sbMeta">First to ' + S.target
-      +       '<img class="sBall" src="images/soccerball.webp" alt="" draggable="false"></span>'
-      +     '<button class="hmScoreEnd" type="button" aria-label="End the match">'
-      +       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">'
-      +       '<path d="M5 7a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-10a2 2 0 0 1-2-2l0-10"/></svg>End</button>'
-      +   '</div>'
-      + '</div>';
-   })();
-   hero.appendChild(board);sR=board.querySelector(".sR");sB=board.querySelector(".sB");
+   // Only the SHELL is built here. The team rows are painted per match by paintBoard() --
+   // built once, they showed the first match's two players for the rest of the tournament,
+   // because dom() is itself guarded by if(!ball) and never runs a second time.
+   board.innerHTML =
+      '<div class="sbCard">'
+    +   '<div class="sbInner"></div>'
+    +   '<div class="sbFoot">'
+    +     '<span class="sbMeta">First to <b class="sbTarget">' + S.target + '</b>'
+    +       '<img class="sBall" src="images/soccerball.webp" alt="" draggable="false"></span>'
+    +     '<button class="hmScoreEnd" type="button" aria-label="End the match">'
+    +       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">'
+    +       '<path d="M5 7a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-10a2 2 0 0 1-2-2l0-10"/></svg>End</button>'
+    +   '</div>'
+    + '</div>';
+   hero.appendChild(board);paintBoard();
    board.querySelector(".hmScoreEnd").addEventListener("click",function(e){e.stopPropagation();finish();});   // end the match right from the scoreboard
    countEl=document.createElement("div");countEl.className="hmCount";hero.appendChild(countEl);}
   // Where the ball LIVES between points: inside the title, exactly where the cookie sits after
@@ -5485,6 +5465,36 @@ function teams(){
     if(mem.length===3){S.roles[mem[0]]="defender";S.roles[mem[1]]="attacker";S.roles[mem[2]]="attacker";return;}
     var nd=mem.length>=5?2:1;
     mem.forEach(function(s2,i){S.roles[s2]=(i===0)?"keeper":(i<=nd)?"defender":"attacker";});});}
+  /* Repaints the two team rows from the CURRENT fixture. Called on every kickoff, not just
+     when the board is created, so match two shows match two's players. Re-queries sR/sB
+     afterwards: rewriting the inner HTML replaces the very elements board2() writes into, so
+     holding the old references would silently stop the score updating. */
+  function paintBoard(){
+    if(!board)return;
+    var inner=board.querySelector(".sbInner"); if(!inner)return;
+    function side(which){
+      var nm=(which==="R"?"Red":"Blue"), col=(which==="R"?"194,61,51":"49,109,181"), cut="";
+      try{ var T=window.__hmTour;
+        if(T&&T.live&&T.cur){
+          var tm=(which==="R"?T.cur.a:T.cur.b);
+          if(tm){ nm=tm.name; col=tm.col;
+                  cut=(tm.captain&&(tm.captain.portrait||tm.captain.cut))||""; }
+        }
+      }catch(_){}
+      return '<div class="sbTeam" style="--tc:'+col+'">'
+           +   (cut?'<span class="sbFace"><img src="'+cut+'" alt="" draggable="false"></span>'
+                   :'<span class="sbDot"></span>')
+           +   '<span class="sbWho"><b class="sbNm">'+nm+'</b>'
+           +     '<em class="sbSub" aria-hidden="true"></em></span>'
+           +   '<b class="s'+which+' sbScore">0</b>'
+           + '</div>';
+    }
+    inner.innerHTML = side("R")
+      + '<div class="sbVs"><i class="sbRuleA"></i><span>VS</span><i class="sbRuleB"></i></div>'
+      + side("B");
+    sR=board.querySelector(".sR"); sB=board.querySelector(".sB");
+    var tg=board.querySelector(".sbTarget"); if(tg)tg.textContent=S.target;
+  }
   function board2(){if(sR)sR.textContent=S.red;if(sB)sB.textContent=S.blue;ruleLabel();}
   // "First to 5" stopped being true the moment it went to deuce. Say what is actually on the
   // line: at 5-4 the rule IS win-by-two, and once someone reaches cap-1 the next goal ends it
@@ -5541,7 +5551,8 @@ function teams(){
      g.fillStyle="rgba("+p.c+",1)";g.fillRect(-p.w/2,-p.h/2,p.w,p.h);g.restore();});
     if(t<2.3)requestAnimationFrame(fr);else{cv.remove();window.__hmFx=Math.max(0,(window.__hmFx||1)-1);}})(performance.now());}catch(_){window.__hmFx=Math.max(0,(window.__hmFx||1)-1);}}
   function start(){if(S.on)return;_gyLock=null;geo();if(!ball)dom();layout();teams();
-   S.on=true;S.red=0;S.blue=0;S.winner=0;S.touches=[];if(board)board.classList.remove("won");S.seed=(S.seed||0)+1;board2();
+   S.on=true;S.red=0;S.blue=0;S.winner=0;S.touches=[];if(board)board.classList.remove("won");S.seed=(S.seed||0)+1;
+   paintBoard();board2();   // repaint the teams BEFORE the score, or board2 writes into rows that are about to be replaced
    ballInTitle(false);ball.style.opacity="1";goalL.style.opacity="1";goalR.style.opacity="1";board.style.opacity="1";if(ballShadow)ballShadow.style.opacity="0.28";if(goalShL){goalShL.style.opacity="1";goalShR.style.opacity="1";}
    document.body.classList.add("hmSoccer");kickoffCountdown();
    if(!running){running=true;requestAnimationFrame(loop);}}
