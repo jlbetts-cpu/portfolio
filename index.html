@@ -2655,7 +2655,25 @@ window.__hmPartyAt=function(getRect,ms){try{
   /* The ball HANGS. It belongs at the top of the room, not level with whoever won -- that is
      what makes the beams read as coming down onto the floor. */
   var ballTop=Math.round(Math.min(120,Math.max(56,innerHeight*0.10)));
-  partyEl.style.setProperty("--hr",Math.max(150,Math.round(r0.width*2.4))+"px");
+  /* IRIS IN. The pool starts generous and closes onto the winner -- the theatrical move for
+     "this one, look here", and it reads as a push-in without touching the pitch. A real camera
+     zoom is not available cheaply: the physics loop writes each head's transform every frame,
+     so any scale set on a head or its container is overwritten on the next tick. Tightening
+     the light achieves the same focus and cannot fight the simulation. */
+  var hr0=Math.max(150,Math.round(r0.width*2.4)), hr1=Math.round(hr0*0.52);
+  partyEl.style.setProperty("--hr",hr0+"px");
+  var irisT0=null;
+  function iris(now){
+    if(!live||!partyEl)return;
+    if(irisT0===null)irisT0=now;
+    var t=Math.min(1,(now-irisT0-900)/2200);          // a beat wide, then close
+    if(t>0){
+      var e=t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;      // ease-in-out cubic
+      partyEl.style.setProperty("--hr",Math.round(hr0+(hr1-hr0)*e)+"px");
+    }
+    if(t<1)requestAnimationFrame(iris);
+  }
+  requestAnimationFrame(iris);
   /* The spotlight FOLLOWS. The winner is still being simulated -- it lands, bounces, drifts --
      so a spotlight fixed at the position it happened to hold on the winning frame slides off
      it within a second. Re-read every frame while the party is up. */
@@ -5801,7 +5819,9 @@ function teams(){
        if(!_bw)_bw=_p;
        if(_p.slot<9000&&!_p.__filler){_bw=_p;break;}}
      if(_bw&&_bw.root&&window.__hmPartyAt)
-       window.__hmPartyAt(function(){return _bw.root.getBoundingClientRect();},9500);
+       /* Ends well before the bracket moves on (10.5s for a final) so the light is fully out
+          before the champion screen arrives -- carrying it across the cut looked wrong. */
+       window.__hmPartyAt(function(){return _bw.root.getBoundingClientRect();},7600);
    } }catch(_){}
    // Name the winner BEFORE the hook runs: __hmTourWin clears T.cur synchronously, and the call
    // itself is announced 850ms later, by which point there is no fixture left to read from.
