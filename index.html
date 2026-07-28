@@ -1774,8 +1774,11 @@ body.hmTour.tSchedOpen #tourPanel .tCupSchedIn{
    of eyes and nothing else -- a cut-out has no body to crop into, so it is contained, not
    covered. 48px tile, head at 40px: both on the grid. */
 .tCupDot{flex:0 0 48px;width:48px;height:48px;position:relative;overflow:hidden;
- /* 4px, like every other corner on the site. These were the last square things in the list. */
- background:rgb(var(--tc,230,230,230));border-radius:4px;
+ /* 4px, like every other corner on the site. And an OUTLINE in the team's colour rather than
+    a filled tile -- same reasoning as the scoreboard thumbnails: the colour is already the
+    head's, so a solid block behind it says it twice and squares off a cut-out that is not a
+    square. */
+ background:none;box-shadow:inset 0 0 0 2px rgb(var(--tc,230,230,230));border-radius:4px;
  display:flex;align-items:center;justify-content:center}
 .tCupDot img{height:40px;width:auto;max-width:100%;object-fit:contain;display:block}
 .tCupFxNm{font-weight:600;font-size:var(--fs-small,15px);line-height:1.2;color:var(--c950);min-width:0;
