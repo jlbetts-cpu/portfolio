@@ -72,11 +72,10 @@ body.navOpen .navBurger span:nth-child(2){opacity:0}
 body.navOpen .navBurger span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
 .navScrim{position:fixed;inset:0;z-index:120;background:rgba(18,18,18,.34);opacity:0;visibility:hidden;display:none;transition:opacity .24s cubic-bezier(.2,.8,.2,1),visibility 0s .24s}
 body.navOpen .navScrim{opacity:1;visibility:visible;transition:opacity .24s cubic-bezier(.2,.8,.2,1)}
-.navDrawer{position:fixed;top:0;right:0;bottom:0;z-index:121;width:min(80vw,300px);background:var(--c50);border-left:1px solid var(--c100);transform:translateX(102%);transition:transform .26s cubic-bezier(.2,.85,.3,1);display:none;flex-direction:column;padding:20px 24px 32px;will-change:transform}
+.navDrawer{z-index:121;background:var(--c50);display:none;flex-direction:column}
 @media(max-width:640px){.navDrawer{display:flex}.navScrim{display:block}}   /* drawer + scrim exist ONLY on mobile -- on desktop display:none so the off-screen drawer's left shadow can't bleed a "side tab" onto the right edge */
-body.navOpen .navDrawer{transform:none;box-shadow:-20px 0 54px -22px rgba(8,8,8,.4)}
-.navDrawerX{align-self:flex-end;display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;background:none;border:0;color:var(--c700);cursor:pointer;margin:-4px -8px 8px}
-.navDrawerX:hover{color:var(--c950)}
+
+
 .navDrawerNav{display:flex;flex-direction:column;align-items:stretch;gap:2px;margin-top:8px}
 .ndLink{display:block;width:100%;box-sizing:border-box;font-family:var(--sans);font-weight:400;font-size:21px;color:var(--c950);text-decoration:none;background:none;border:0;text-align:left;padding:16px 4px;cursor:pointer;border-bottom:1px solid var(--c100);-webkit-tap-highlight-color:transparent;transition:color .15s}
 .ndLink:hover{color:var(--c500)}
@@ -1439,6 +1438,38 @@ body.about-open #navAbout{color:var(--c950);background:var(--c75)}
  letter-spacing:.12em;text-transform:uppercase;color:var(--c500);padding:0 2px}
 @keyframes tCardRise{from{opacity:0;transform:translateY(14px) scale(.97)}to{opacity:1;transform:none}}
 
+/* ---- PLAY, WHILE A TOURNAMENT IS LIVE ------------------------------------------------
+   Starting another game from this menu would abandon the draw, so the control is closed off
+   and says why on hover and on keyboard focus. Greyed rather than removed: a control that
+   vanishes reads as a bug, one that explains itself reads as a rule. */
+body.hmTour nav .faceMoodCorner{position:relative}
+body.hmTour nav .faceMoodCorner .moodBtn{color:var(--c500);cursor:not-allowed}
+body.hmTour nav .faceMoodCorner .moodBtn:hover{color:var(--c500)}
+body.hmTour nav .faceMoodCorner .moodBtn::after{
+ content:"Finish the tournament first";position:absolute;top:calc(100% + 8px);right:0;
+ padding:8px 10px;border-radius:4px;background:var(--c950);color:var(--c50);
+ font-family:var(--sans);font-weight:400;font-size:var(--fs-caption,12px);line-height:1.2;
+ white-space:nowrap;pointer-events:none;opacity:0;transform:translateY(-3px);
+ transition:opacity .16s cubic-bezier(.2,.8,.2,1),transform .16s cubic-bezier(.2,.8,.2,1);
+ z-index:80}
+body.hmTour nav .faceMoodCorner .moodBtn:hover::after,
+body.hmTour nav .faceMoodCorner .moodBtn:focus-visible::after{opacity:1;transform:translateY(0)}
+@media(prefers-reduced-motion:reduce){
+ body.hmTour nav .faceMoodCorner .moodBtn::after{transition:none}}
+
+/* ---- MOBILE MENU ------------------------------------------------------------------
+   This is a dropdown anchored under the burger, not the full-height edge drawer it used to
+   be. The old drawer rules were left behind when it was redesigned and the two fought: the
+   close button came back to life (the button-unification pass re-declared it
+   display:inline-flex, beating the display:none that the dropdown wanted) and sat
+   align-self:flex-end on a negative margin, which is the empty band across the top.
+   A dropdown closes by clicking the burger or outside it, so the X goes -- for good. */
+body .navDrawer .navDrawerX{display:none!important}
+/* One padding for every row. Work and About me were taking 12px 16px from the shared button
+   base while Contact took 8px 12px from .navDrawer .ndTalk, which outranks it -- so one row
+   sat 4px left of the other two. */
+body .navDrawer .ndLink{padding:8px 12px;text-align:left}
+
 /* ---- CHAMPION ----------------------------------------------------------------------
    The winner wears the same crown the heads already wear when they win a match (same SVG
    path, so the two never drift apart) and holds the cup. Both sit INSIDE .tCupPanel: the
@@ -1693,7 +1724,8 @@ body.hmTour.tSchedOpen #tourPanel .tCupSchedIn{
    of eyes and nothing else -- a cut-out has no body to crop into, so it is contained, not
    covered. 48px tile, head at 40px: both on the grid. */
 .tCupDot{flex:0 0 48px;width:48px;height:48px;position:relative;overflow:hidden;
- background:rgb(var(--tc,230,230,230));border-radius:0;
+ /* 4px, like every other corner on the site. These were the last square things in the list. */
+ background:rgb(var(--tc,230,230,230));border-radius:4px;
  display:flex;align-items:center;justify-content:center}
 .tCupDot img{height:40px;width:auto;max-width:100%;object-fit:contain;display:block}
 .tCupFxNm{font-weight:600;font-size:var(--fs-small,15px);line-height:1.2;color:var(--c950);min-width:0;
@@ -3738,7 +3770,11 @@ requestAnimationFrame(function(){requestAnimationFrame(startIntro);});
   function openM(){bar.classList.add("open");requestAnimationFrame(function(){try{clampMenuX();}catch(_){}try{window.__syncMoodSeps&&window.__syncMoodSeps();}catch(_){}});if(btn)btn.setAttribute("aria-expanded","true");try{var c=bar.parentElement;if(c)c.style.zIndex="70";}catch(_){}clampMenu();setChevron();}
   setChevron(); // point the caret correctly at rest (down on mobile where the menu drops, up on desktop where it lifts)
   window.addEventListener("resize",function(){if(!bar.classList.contains("open"))setChevron();},{passive:true});
-  if(btn)btn.addEventListener("click",function(e){e.stopPropagation();bar.classList.contains("open")?closeM():openM();});
+  if(btn)btn.addEventListener("click",function(e){e.stopPropagation();
+   // Play is closed off while a tournament is live -- starting a second game from in here
+   // would abandon the draw halfway through. The reason is on the button, not in an alert.
+   if(document.body.classList.contains("hmTour")){closeM();return;}
+   bar.classList.contains("open")?closeM():openM();});
   if(menu)menu.addEventListener("click",function(e){var it=e.target.closest(".moodItem");if(!it)return;var mood=it.getAttribute("data-mood");closeM();if(document.body.classList.contains("hmBattle")||document.body.classList.contains("hmSoccer")||document.body.classList.contains("hmRace"))return;if(mood==="identity"){openAbout();return;}var fn=MAP[mood];if(typeof fn!=="function")return;var now=!busyNow();runOrQueue(fn);if(now)moodHoldWord(IDX[mood]);});
   document.addEventListener("click",function(e){if(bar.classList.contains("open")&&!bar.contains(e.target))closeM();});
   document.addEventListener("keydown",function(e){if(e.key==="Escape")closeM();});
@@ -7167,6 +7203,9 @@ function start(){
   if (T.live) return;
   buildTeams(function(teams){
     T.live = true; T.phase = 'bracket';
+    try{ var _pb=document.getElementById('moodBtn');
+      if(_pb){_pb.setAttribute('aria-disabled','true');
+              _pb.setAttribute('title','Finish the tournament first');} }catch(_){}
     T.cup = CUPS[Math.floor(Math.random() * CUPS.length)] + ' Cup';
     T.br = BR.buildBracket(teams.map(function(t){ return t.id; })); lastRound = -1;
     document.body.classList.add('hmTour');
@@ -7175,6 +7214,8 @@ function start(){
 }
 function stop(){
   T.live = false; T.cur = null; T.phase = 'idle';
+  try{ var _pb2=document.getElementById('moodBtn');
+    if(_pb2){_pb2.removeAttribute('aria-disabled');_pb2.removeAttribute('title');} }catch(_){}
   try{ window.__hmChampFx(null); }catch(_){}   // the fall must not outlive the tournament
   window.__hmBench = null; window.__hmTeamSel = null; window.__hmTeamCol = null;
   try { var rt2 = document.documentElement; ['--tcol1','--tcol2','--tc1','--tc2'].forEach(function(v){ rt2.style.removeProperty(v); }); } catch (_) {}
