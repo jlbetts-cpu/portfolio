@@ -1495,7 +1495,17 @@ body.about-open #navAbout{color:var(--c950);background:var(--c75)}
 /* ---- FULL BLEED. The block is the width of the page and runs from directly under the site
    header down to the tab row, so it reads as a section of the page rather than a card sitting
    on it. Radius goes with it: an edge-to-edge block has no corners to round. ---- */
-body.hmTour #tourPanel{left:50%!important;right:auto!important;top:0!important;
+/* The block starts at the top of the SCREEN, not below the header. --tourShift is the
+   distance from the top of the page down to the hero, measured in JS because it differs per
+   breakpoint; the block is pulled up by it and pads its content back down by the same amount,
+   so the head still clears the nav. The nav is a static sibling, so it needs a stacking
+   context of its own or the positioned block paints straight over it. */
+/* Above .tourPanel's z-index:47, below the drawer and scrim at 120/121. At 5 the block sat
+   over the burger, the logo and Play, and they stopped taking clicks entirely. */
+body.hmTour nav{position:relative;z-index:60}
+body.hmTour #tourPanel .tCup{padding-top:var(--tourShift,0px)}
+body.hmTour #tourPanel{left:50%!important;right:auto!important;
+ top:calc(-1 * var(--tourShift,0px))!important;
  width:min(460px,calc(100vw - 40px))!important;max-width:none!important;
  /* The panel carried max-height:calc(100% - 64px) from when it was a floating card in the
     hero. As a full-bleed block that cap is just a smaller ceiling to be clipped against. */
@@ -1694,9 +1704,9 @@ body.hmTour.tSchedOpen #tourPanel .tCupSchedIn{
    faces are loaded on this site, so 700 would either synthesise or pull the variable face in
    at a weight the design system does not use. Everything else is theirs. */
 .hmScore .sbCard{box-sizing:border-box;width:340px;max-width:88vw;
- border:1px solid var(--c100);border-radius:28px 28px 4px 4px;background:var(--c75);padding:0;
+ border:1px solid var(--c100);border-radius:28px;background:var(--c75);padding:0;
  font-family:var(--sans);color:var(--c950)}
-.sbInner{border-radius:28px 28px 4px 4px;background:var(--c50);box-shadow:inset 0 0 0 1px var(--c100);padding:32px;
+.sbInner{border-radius:28px 28px 4px 4px;overflow:hidden;background:var(--c50);box-shadow:inset 0 0 0 1px var(--c100);padding:32px;
  display:flex;flex-direction:column;gap:20px}
 .sbTeam{display:flex;align-items:center;gap:8px;min-width:0}
 .sbFace{flex:0 0 32px;width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center}
@@ -6902,6 +6912,12 @@ function paint(){
          takes its height from the hero, so the reverse would be a circle -- block grows, hero
          grows to fit, block fills the new hero. */
       hero.style.minHeight = '';
+      /* How far the hero sits below the top of the page. Taken from the hero's own document
+         offset rather than the block's, so it does not depend on the shift already applied --
+         reading a value you are about to change is how the last three of these went wrong.
+         rect + scrollY is a document coordinate, so it is the same at any scroll position. */
+      var shift = Math.max(0, Math.round(hero.getBoundingClientRect().top + window.scrollY));
+      document.body.style.setProperty('--tourShift', shift + 'px');
       /* Size the scroller explicitly rather than by flex. .tCupSched is a <details>, and
          display:flex on <details> does NOT reliably make its light-DOM children flex items --
          the inner list stayed at its full 467px inside a 163px parent, so overflow-y:auto
