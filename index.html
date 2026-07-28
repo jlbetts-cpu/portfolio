@@ -251,7 +251,7 @@ body.catchReady:not(.about-open) #stageMorph{transform:scale(1.055)}
 .cycw.cwtug{animation:cwTug 1.5s steps(1,end) both}
 @keyframes cwTug{0%{transform:translateX(0)}6%{transform:translateX(3px)}12%{transform:translateX(6px)}18%{transform:translateX(9px)}24%{transform:translateX(6px)}30%{transform:translateX(3px)}36%{transform:translateX(0)}44%{transform:translateX(4px)}50%{transform:translateX(8px)}56%{transform:translateX(4px)}62%{transform:translateX(0)}100%{transform:translateX(0)}}
 @media(prefers-reduced-motion:reduce){.cycw.cwtug{animation:none}}
-#party{position:absolute;top:0;left:0;right:0;height:112vh;-webkit-mask-image:linear-gradient(#000 90%,transparent 100%);mask-image:linear-gradient(#000 90%,transparent 100%);z-index:63;pointer-events:none;opacity:0;transition:opacity .55s cubic-bezier(.2,.8,.2,1)}
+#party{position:absolute;top:0;left:0;right:0;height:112vh;-webkit-mask-image:linear-gradient(#000 90%,transparent 100%);mask-image:linear-gradient(#000 90%,transparent 100%);z-index:63;pointer-events:none;opacity:0;transition:opacity 1.15s cubic-bezier(.33,0,.2,1)}
 #party.on{opacity:1}
 .partyDark{position:absolute;inset:0;background:radial-gradient(circle var(--hr,180px) at var(--hx,50%) var(--hy,38%),rgba(6,5,16,0) 0%,rgba(6,5,16,.55) 44%,rgba(2,1,8,.96) 100%)}
 .partyHaze{position:absolute;left:var(--bx,50%);top:var(--by,30%);width:120vmax;height:120vmax;margin:-60vmax 0 0 -60vmax;background:radial-gradient(circle,rgba(120,150,255,.16),rgba(180,90,220,.06) 40%,transparent 66%);mix-blend-mode:screen;animation:hazePulse 1.5s steps(12,end) infinite,hueShift 5.6s steps(7,end) infinite}
@@ -267,7 +267,11 @@ body.catchReady:not(.about-open) #stageMorph{transform:scale(1.055)}
 @keyframes hazePulse{0%,100%{opacity:.55}50%{opacity:1}}
 @keyframes beat{0%,62%,100%{opacity:0}70%{opacity:.5}82%{opacity:.12}}
 @keyframes hueShift{to{filter:hue-rotate(360deg)}}
-#discoWrap{position:absolute;z-index:64;pointer-events:none;opacity:0;transform:translate(-50%,-50%);transition:opacity .45s cubic-bezier(.2,.8,.2,1)}
+/* The ball DROPS in rather than fading on the spot -- it is hanging from somewhere. */
+#discoWrap{position:absolute;z-index:64;pointer-events:none;opacity:0;
+ transform:translate(-50%,-140%) scale(.82);
+ transition:opacity .7s cubic-bezier(.2,.8,.2,1),transform .95s cubic-bezier(.22,1.15,.32,1)}
+#discoWrap.on{transform:translate(-50%,-50%) scale(1)}
 #discoWrap.on{opacity:1}
 .dbGlow{position:absolute;left:50%;top:50%;width:300%;height:300%;transform:translate(-50%,-50%);background:radial-gradient(circle,rgba(190,210,255,.45),rgba(150,120,220,.12) 30%,transparent 60%);mix-blend-mode:screen;animation:hazePulse 1.25s steps(10,end) infinite}
 #discoBall{position:relative;width:clamp(104px,12.5vw,156px);height:clamp(104px,12.5vw,156px);border-radius:50%;overflow:hidden;clip-path:circle(50%);filter:drop-shadow(0 7px 18px rgba(0,0,0,.55))}
@@ -2640,29 +2644,43 @@ function layoutParty(){
    spotlight -- but aimed at the head that just won instead of the big one.
    Deliberately does NOT set partyMode/eventLock or touch the face: that 6.6s sequence belongs
    to the big head's own celebration and running it here would freeze the pitch mid-match. */
-window.__hmPartyAt=function(rect,ms){try{
-  if(!rect||!rect.width)return;
+window.__hmPartyAt=function(getRect,ms){try{
+  var probe=(typeof getRect==="function")?getRect:function(){return getRect;};
+  var r0=probe(); if(!r0||!r0.width)return;
   buildPartyDOM();
-  var sy=window.scrollY||0;
-  var cx=rect.left+rect.width/2,
-      cy=rect.top+sy+rect.height*0.42,
-      by=Math.max(54,Math.round(rect.top+sy-rect.height*1.15));
-  partyEl.style.setProperty("--hx",cx+"px");
-  partyEl.style.setProperty("--hy",cy+"px");
-  /* The pool has to be generous relative to a HEAD. The original derives this from the big
-     stage, which is several times wider, so copying its 0.52 factor left the winner sitting
-     in near-darkness inside its own spotlight. */
-  partyEl.style.setProperty("--hr",Math.max(150,Math.round(rect.width*2.4))+"px");
-  partyEl.style.setProperty("--bx",cx+"px");
-  partyEl.style.setProperty("--by",by+"px");
-  discoWrap.style.left=cx+"px"; discoWrap.style.top=by+"px";
+  /* The ball HANGS. It belongs at the top of the room, not level with whoever won -- that is
+     what makes the beams read as coming down onto the floor. */
+  var ballTop=Math.round(Math.min(120,Math.max(56,innerHeight*0.10)));
+  partyEl.style.setProperty("--hr",Math.max(150,Math.round(r0.width*2.4))+"px");
+  /* The spotlight FOLLOWS. The winner is still being simulated -- it lands, bounces, drifts --
+     so a spotlight fixed at the position it happened to hold on the winning frame slides off
+     it within a second. Re-read every frame while the party is up. */
+  var live=true;
+  (function track(){
+    if(!live||!partyEl)return;
+    var r=probe();
+    if(r&&r.width){
+      var sy=window.scrollY||0, cx=r.left+r.width/2;
+      partyEl.style.setProperty("--hx",cx+"px");
+      partyEl.style.setProperty("--hy",(r.top+sy+r.height*0.42)+"px");
+      partyEl.style.setProperty("--bx",cx+"px");
+      partyEl.style.setProperty("--by",(ballTop+sy)+"px");
+      discoWrap.style.left=cx+"px"; discoWrap.style.top=(ballTop+sy)+"px";
+    }
+    requestAnimationFrame(track);
+  })();
+  /* Two frames apart, so the room dims BEFORE the ball arrives rather than everything
+     snapping on together. The ball's own drop-in is a transition on .on. */
   requestAnimationFrame(function(){
     if(partyEl)partyEl.classList.add("on");
-    if(discoWrap)discoWrap.classList.add("on");});
+    setTimeout(function(){ if(discoWrap)discoWrap.classList.add("on"); },420);
+  });
   clearTimeout(window.__hmPartyAtT);
   window.__hmPartyAtT=setTimeout(function(){try{
     if(partyEl)partyEl.classList.remove("on");
-    if(discoWrap)discoWrap.classList.remove("on");}catch(_){}},ms||6500);
+    if(discoWrap)discoWrap.classList.remove("on");
+    setTimeout(function(){live=false;},900);
+  }catch(_){live=false;}},ms||6500);
 }catch(_){}};
 function startParty(){try{document.body.classList.remove("catchReady");}catch(_){}
  if(partyMode||eating||dizzy||reactType||CALIB)return;
@@ -5779,7 +5797,7 @@ function teams(){
        if(!_bw)_bw=_p;
        if(_p.slot<9000&&!_p.__filler){_bw=_p;break;}}
      if(_bw&&_bw.root&&window.__hmPartyAt)
-       window.__hmPartyAt(_bw.root.getBoundingClientRect(),7000);
+       window.__hmPartyAt(function(){return _bw.root.getBoundingClientRect();},9500);
    } }catch(_){}
    // Name the winner BEFORE the hook runs: __hmTourWin clears T.cur synchronously, and the call
    // itself is announced 850ms later, by which point there is no fixture left to read from.
@@ -6934,7 +6952,10 @@ window.__hmTourWin = function(winSide, scoreR, scoreB){
   var bad = BR.checkNoDoubleAdvance(T.br);
   if (bad) { try { console.warn('[tour]', bad); } catch (_) {} }
   T.cur = null;
-  setTimeout(function(){ if (T.live) between(); }, 5600);   // after the win call clears
+  /* Longer for the final: the championship gets the dark, the ball and the spotlight, and
+     cutting to the next screen at 5.6s talked over its own celebration. */
+  setTimeout(function(){ if (T.live) between(); },
+    document.body.classList.contains('hmFinal') ? 10500 : 5600);
 };
 
 // ---------- running a fixture ----------
