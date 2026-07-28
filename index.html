@@ -252,6 +252,7 @@ body.catchReady:not(.about-open) #stageMorph{transform:scale(1.055)}
 @keyframes cwTug{0%{transform:translateX(0)}6%{transform:translateX(3px)}12%{transform:translateX(6px)}18%{transform:translateX(9px)}24%{transform:translateX(6px)}30%{transform:translateX(3px)}36%{transform:translateX(0)}44%{transform:translateX(4px)}50%{transform:translateX(8px)}56%{transform:translateX(4px)}62%{transform:translateX(0)}100%{transform:translateX(0)}}
 @media(prefers-reduced-motion:reduce){.cycw.cwtug{animation:none}}
 #party{position:absolute;top:0;left:0;right:0;height:112vh;-webkit-mask-image:linear-gradient(#000 90%,transparent 100%);mask-image:linear-gradient(#000 90%,transparent 100%);z-index:63;pointer-events:none;opacity:0;transition:opacity 1.15s cubic-bezier(.33,0,.2,1)}
+#party:not(.on){transition:opacity .42s cubic-bezier(.3,0,.8,.15)}
 #party.on{opacity:1}
 .partyDark{position:absolute;inset:0;background:radial-gradient(circle var(--hr,180px) at var(--hx,50%) var(--hy,38%),rgba(6,5,16,0) 0%,rgba(6,5,16,.55) 44%,rgba(2,1,8,.96) 100%)}
 .partyHaze{position:absolute;left:var(--bx,50%);top:var(--by,30%);width:120vmax;height:120vmax;margin:-60vmax 0 0 -60vmax;background:radial-gradient(circle,rgba(120,150,255,.16),rgba(180,90,220,.06) 40%,transparent 66%);mix-blend-mode:screen;animation:hazePulse 1.5s steps(12,end) infinite,hueShift 5.6s steps(7,end) infinite}
@@ -271,6 +272,7 @@ body.catchReady:not(.about-open) #stageMorph{transform:scale(1.055)}
 #discoWrap{position:absolute;z-index:64;pointer-events:none;opacity:0;
  transform:translate(-50%,-140%) scale(.82);
  transition:opacity .7s cubic-bezier(.2,.8,.2,1),transform .95s cubic-bezier(.22,1.15,.32,1)}
+#discoWrap:not(.on){transition:opacity .38s cubic-bezier(.3,0,.8,.15),transform .5s cubic-bezier(.3,0,.8,.15)}
 #discoWrap.on{transform:translate(-50%,-50%) scale(1)}
 #discoWrap.on{opacity:1}
 .dbGlow{position:absolute;left:50%;top:50%;width:300%;height:300%;transform:translate(-50%,-50%);background:radial-gradient(circle,rgba(190,210,255,.45),rgba(150,120,220,.12) 30%,transparent 60%);mix-blend-mode:screen;animation:hazePulse 1.25s steps(10,end) infinite}
@@ -5858,7 +5860,7 @@ function teams(){
      if(_bw&&_bw.root&&window.__hmPartyAt)
        /* Ends well before the bracket moves on (10.5s for a final) so the light is fully out
           before the champion screen arrives -- carrying it across the cut looked wrong. */
-       window.__hmPartyAt(function(){return _bw.root.getBoundingClientRect();},7600);
+       window.__hmPartyAt(function(){return _bw.root.getBoundingClientRect();},5200);
    } }catch(_){}
    // Name the winner BEFORE the hook runs: __hmTourWin clears T.cur synchronously, and the call
    // itself is announced 850ms later, by which point there is no fixture left to read from.
