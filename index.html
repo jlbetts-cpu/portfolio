@@ -1488,6 +1488,44 @@ body .navDrawer .navDrawerX{display:none!important}
    sat 4px left of the other two. */
 body .navDrawer .ndLink{padding:8px 12px;text-align:left}
 
+/* ---- THE FINAL'S POSTER -------------------------------------------------------------
+   Jayden's artwork, not a CSS imitation of one. This is the fix for the thing that made the
+   tournament screens feel like two projects: the heads are photographs and everything around
+   them was flat CSS. The frame is now photographic too, so both live in the same register.
+   The poster already carries two flame-outlined silhouettes; a real head sits inside each one
+   so the flame reads as outlining THAT player. 4px corners, like everything else.
+   Per-round posters are planned, hence the class rather than a hardcoded src. */
+body.tourFinal #tourPanel .tCupMatch{
+ position:relative;display:block;grid-template-columns:none;
+ margin:0 -16px;aspect-ratio:1545/2000;border-radius:4px;overflow:hidden;
+ background:#1a1a1a url(images/poster-final.webp) center/cover no-repeat}
+/* Both sides span the FULL poster, so every percentage below is measured against the
+   artwork itself. Half-width sides silently halved them -- the heads landed at 13%/87%
+   instead of 26%/74%. They do not collide because each one places its head absolutely. */
+body.tourFinal #tourPanel .tCupMatch .tCupSide{
+ position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:none}
+/* The panel is only a positioning frame here -- the poster is the artwork. */
+body.tourFinal #tourPanel .tCupPanel{
+ position:absolute;inset:0;height:auto;background:none;border-radius:0;overflow:visible;
+ display:block}
+/* Seated into the flame outlines. Measured off the artwork: the silhouettes centre at 26% /
+   74% across and 30% down, each about 40% of the poster's width. */
+body.tourFinal #tourPanel .tCupBigWrap{
+ position:absolute;left:26%;top:30%;transform:translate(-50%,-50%);
+ width:40%;margin:0}
+body.tourFinal #tourPanel .tCupSide:last-child .tCupBigWrap{left:74%}
+/* No team tint on the poster: the artwork does its own colour, and a flat hue over a
+   photographic composite is exactly the seam this whole change is meant to remove. */
+body.tourFinal #tourPanel .tCupTint{display:none}
+/* Names sit on the poster, so they need their own contrast rather than the page's. */
+body.tourFinal #tourPanel .tCupMeta{
+ position:absolute;left:0;right:0;bottom:3.5%;z-index:4;text-align:center}
+body.tourFinal #tourPanel .tCupSide:first-child .tCupMeta{right:50%;padding-right:4%}
+body.tourFinal #tourPanel .tCupSide:last-child .tCupMeta{left:50%;padding-left:4%}
+body.tourFinal #tourPanel .tCupNm{
+ color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.6),0 0 14px rgba(0,0,0,.45)}
+body.tourFinal #tourPanel .tCupVs{display:none}
+
 /* ---- CHAMPION ----------------------------------------------------------------------
    The winner wears the same crown the heads already wear when they win a match (same SVG
    path, so the two never drift apart) and holds the cup. Both sit INSIDE .tCupPanel: the
@@ -7528,6 +7566,10 @@ function paint(){
   var h1 = el('h1', 'tCupH1', T.cup || 'Cup');
   var roundName = champ2 !== undefined ? 'Champion'
                 : (nm2 ? T.br.rounds[nm2.round].label : 'Complete');
+  /* The capsule shows the final's matchup BEFORE kickoff, and body.hmFinal is only set once
+     the match starts -- so the poster needs its own flag for "this screen is the final". */
+  try{ document.body.classList.toggle('tourFinal',
+       !!(nm2 && champ2 === undefined && nm2.round === T.br.rounds.length - 1)); }catch(_){}
   h1.appendChild(el('span', 'tCupRound', roundName));
   head.appendChild(h1);
   cup.appendChild(head);
@@ -7783,6 +7825,7 @@ function stop(){
   window.__hmBench = null; window.__hmTeamSel = null; window.__hmTeamCol = null;
   try { var rt2 = document.documentElement; ['--tcol1','--tcol2','--tc1','--tc2'].forEach(function(v){ rt2.style.removeProperty(v); }); } catch (_) {}
   document.body.classList.remove('hmTour');
+  document.body.classList.remove('tourFinal');
   try { var tt2 = document.querySelector('.hmScore .sTitleTxt'); if (tt2) tt2.textContent = 'Soccer'; } catch (_) {}
   clearSpawned(); paint();
 }
