@@ -3038,7 +3038,11 @@ function abCopyUnfreeze(){var els=abCopyEls();
   st.position="";st.left="";st.top="";st.width="";st.margin="";}}
 function openAbout(push){
  if(aboutOpen)return;
- if(document.body.classList.contains("hmBattle")||document.body.classList.contains("hmSoccer")){   // opening About mid-game: END the game first, let it settle, THEN take over -> a clean transition instead of About sliding over a live match
+ if(document.body.classList.contains("hmBattle")||document.body.classList.contains("hmSoccer")||document.body.classList.contains("hmTour")){   // opening About mid-game: END the game first, let it settle, THEN take over -> a clean transition instead of About sliding over a live match
+  /* A tournament counts as a game. Without this, About opened UNDERNEATH the tournament block
+     -- which is absolutely positioned at z-index 47 and runs the height of the page -- so
+     Contact appeared to do nothing but scroll to the bottom. */
+  try{if(document.body.classList.contains("hmTour")&&window.__hmTourStop)window.__hmTourStop();}catch(_){}
   try{if(document.body.classList.contains("hmSoccer")&&window.__hmSoccerEnd)window.__hmSoccerEnd();}catch(_){}
   try{window.__hmRespawn=performance.now();}catch(_){}
   document.body.classList.remove("hmBattle");document.body.classList.remove("hmSoccer");
@@ -3561,7 +3565,17 @@ var _navA=document.getElementById("navAbout");if(_navA)_navA.addEventListener("c
    // Play now lives in the header nav directly in the markup -- the old runtime relocation into .heroCtas is retired
 talk.addEventListener("mouseenter",()=>{if(eventLock||CALIB)return;clearHold();activeHover="smile";showFace("smile");});
 talk.addEventListener("mouseleave",()=>{if(eventLock||CALIB)return;if(activeHover==="smile")activeHover=null;setHold("smile",SMILE_LINGER);resolve();});
-talk.addEventListener("click",function(e){e.preventDefault();var goTo=function(){var gt=document.getElementById("getInTouch");if(gt)gt.scrollIntoView({behavior:reduce?"auto":"smooth",block:"start"});};if(!aboutOpen){if(typeof openAbout==="function")openAbout();setTimeout(goTo,reduce?0:700);}else{goTo();}});
+talk.addEventListener("click",function(e){e.preventDefault();
+ var goTo=function(){var gt=document.getElementById("getInTouch");if(gt)gt.scrollIntoView({behavior:reduce?"auto":"smooth",block:"start"});};
+ if(!aboutOpen){
+  if(typeof openAbout==="function")openAbout();
+  /* Twice, deliberately. Opening About can also have to tear down a running game first, and
+     the page is still settling at 700ms -- the first scroll lands on a position that no longer
+     exists once the layout stops moving, which is why Contact appeared to just drop you at the
+     bottom of the page. The second call costs nothing when the first one worked. */
+  setTimeout(goTo,reduce?0:700);
+  if(!reduce)setTimeout(goTo,1600);
+ }else{goTo();}});
 (function(){return;/* magnetic retired: Let's talk is now a calm secondary button matching Back */var mag=document.querySelector(".talkMag");if(!mag||reduce)return;var PULL=0.22,REACH=70,MAXO=16,last=0,cx=0,cy=0;function apply(x,y){mag.style.transform=(x||y)?("translate("+x+"px,"+y+"px)"):"";}function cl(v){return v<-MAXO?-MAXO:(v>MAXO?MAXO:v);}window.addEventListener("mousemove",function(e){var now=performance.now();if(now-last<125)return;last=now;var b=mag.getBoundingClientRect();var bx=b.left+b.width/2-cx,by=b.top+b.height/2-cy;var dx=e.clientX-bx,dy=e.clientY-by;var reach=Math.max(b.width,b.height)/2+REACH;if(Math.hypot(dx,dy)<reach){cx=cl(Math.round(dx*PULL));cy=cl(Math.round(dy*PULL));apply(cx,cy);}else if(cx||cy){cx=0;cy=0;apply(0,0);}});window.addEventListener("mouseout",function(e){if(!e.relatedTarget&&(cx||cy)){cx=0;cy=0;apply(0,0);}});})();
 (function(){var HEAD={x0:0.22,x1:0.80,y0:0.12,y1:0.91};function overFace(e){var r=faceImg.getBoundingClientRect();if(!r.width||!r.height)return false;var fx=(e.clientX-r.left)/r.width,fy=(e.clientY-r.top)/r.height;return fx>=HEAD.x0&&fx<=HEAD.x1&&fy>=HEAD.y0&&fy<=HEAD.y1;}var onFace=false;window.__pointerOverFace=false;document.addEventListener("mousemove",function(e){var ov=(!aboutOpen)&&overFace(e);window.__pointerOverFace=ov;if(CALIB||aboutOpen)return;if(ov)enter();else leave();},{passive:true});document.addEventListener("mouseleave",function(){window.__pointerOverFace=false;leave();});window.addEventListener("blur",function(){window.__pointerOverFace=false;leave();});function enter(){if(eventLock||CALIB||aboutOpen)return;if(!onFace){onFace=true;clearHold();activeHover="rest";showFace("rest");}}function leave(){var was=onFace;onFace=false;if(activeHover==="rest")activeHover=null;if(!eventLock&&!CALIB){var target=activeHover||holdFace||baseFace;if(blinking){for(var i=0;i<blinkQ.length;i++){if(blinkQ[i]&&blinkQ[i].open)blinkQ[i].face=target;}}if(was)showFace(target);}if(window.__restWatch)clearInterval(window.__restWatch);var t0=Date.now();window.__restWatch=setInterval(function(){if(window.__pointerOverFace||CALIB||onFace||Date.now()-t0>1500){clearInterval(window.__restWatch);window.__restWatch=null;return;}if(eventLock)return;if(curFace==="rest"){if(blinking){for(var j=0;j<blinkQ.length;j++){if(blinkQ[j]&&blinkQ[j].open)blinkQ[j].face=baseFace;}}setFace(baseFace);}},60);}faceImg.addEventListener("mousemove",function(e){if(CALIB||aboutOpen)return;if(overFace(e))enter();else leave();});faceImg.addEventListener("mouseleave",function(){leave();});})();
 faceImg.addEventListener("click",()=>{if(CALIB||eventLock||aboutOpen)return;tapReact();});
