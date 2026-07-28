@@ -328,6 +328,8 @@ body.hmSoccer .moodMenu .moodItem:not(#endGame),body.hmSoccer .moodMenu .moodGo{
 .hmGoalLights{position:absolute;z-index:1;width:0;height:0;pointer-events:none;
  opacity:0;transition:opacity .34s cubic-bezier(.2,.8,.2,1)}
 .hmGoalLights.on{opacity:1}
+.hmGoalLights.glBig .glWash{left:-280px;top:-280px;width:560px;height:560px}
+.hmGoalLights.glBig .glSpin{animation-duration:2.2s}
 .hmGoalLights .glWash{position:absolute;left:-160px;top:-160px;width:320px;height:320px;
  border-radius:50%;
  background:radial-gradient(circle,rgba(var(--glc),.34),rgba(var(--glc),.12) 46%,transparent 72%)}
@@ -5683,7 +5685,7 @@ function teams(){
      ending it, which is the only honest "next goal wins". */
   /* A ring of the scorer's colour behind the goal that was just beaten. Torn down after the
      beat -- it must not survive into the next point, or they stack up. */
-  function goalLights(team){
+  function goalLights(team,big){
     var g=(team===1?goalR:goalL); if(!g||!hero)return;
     var el=document.createElement("div"); el.className="hmGoalLights";
     el.setAttribute("aria-hidden","true");
@@ -5691,10 +5693,12 @@ function teams(){
     var gr=g.getBoundingClientRect(), hr=hero.getBoundingClientRect();
     el.style.left=Math.round(gr.left-hr.left+gr.width/2)+"px";
     el.style.top =Math.round(gr.top -hr.top +gr.height/2)+"px";
+    if(big)el.classList.add("glBig");
+    var N=big?54:26;
     var html='<div class="glWash"></div><div class="glSpin">';
-    for(var i=0;i<26;i++){
-      var ang=(i*(360/26)+Math.random()*9).toFixed(1),
-          rad=(44+Math.random()*116).toFixed(0),
+    for(var i=0;i<N;i++){
+      var ang=(i*(360/N)+Math.random()*9).toFixed(1),
+          rad=((big?54:44)+Math.random()*(big?190:116)).toFixed(0),
           sz=(3+Math.random()*6).toFixed(1),
           dur=(0.8+Math.random()*0.9).toFixed(2),
           del=(Math.random()*0.7).toFixed(2);
@@ -5705,7 +5709,7 @@ function teams(){
     el.innerHTML=html+'</div>'; hero.appendChild(el);
     requestAnimationFrame(function(){el.classList.add("on");});
     setTimeout(function(){el.classList.remove("on");
-      setTimeout(function(){try{el.remove();}catch(_){}} ,420);},1500);
+      setTimeout(function(){try{el.remove();}catch(_){}} ,420);},big?3400:1500);
   }
   function goalCall(){
     var mx=Math.max(S.red,S.blue), mn=Math.min(S.red,S.blue), df=mx-mn;
@@ -5720,11 +5724,7 @@ function teams(){
    try{if(window.__hmTourGoal)window.__hmTourGoal(team,(S.touches||[]).slice());}catch(_){}   // hand the touch log to the tournament: last toucher scored, the one before assisted
    S.touches=[];
 
-   /* The shout is DERIVED from the win condition, not hardcoded to a scoreline. It used to
-      shout "next goal wins!" at 4-4, which is simply untrue under win-by-two: 5-4 wins
-      nothing. Now the only scoreline that gets that line is one where EITHER team scoring
-      ends it -- at target 5 / cap 8 that is 7-7 alone. */
-   (function(){var c=goalCall();if(c)setTimeout(function(){if(S.on)bigCall(c.t,c.ms);},1300);})();
+
    try{var _gp=(team===1?sR:sB);if(_gp){_gp.style.transition="none";_gp.style.transform="scale(1.55)";void _gp.offsetWidth;_gp.style.transition="transform .5s cubic-bezier(.2,1.4,.3,1)";_gp.style.transform="scale(1)";_gp.style.display="inline-block";}}catch(_){}   // the scoring number POPS -- a goal should feel like a goal on the board too
    var g=team===1?goalR:goalL;g.classList.add("hmGoalHit");setTimeout(function(){g.classList.remove("hmGoalHit");},650);
    /* The board lights up in the scorer's colour. Reads the same source the pitch does, so a
@@ -5736,9 +5736,16 @@ function teams(){
    try{if(typeof busyNow==="function"&&!busyNow()){setHold("smile",1100);showFace("smile");if(typeof browFlash==="function")browFlash();}}catch(_){}
    var _mx=Math.max(S.red,S.blue),_df=Math.abs(S.red-S.blue);
    if((_mx>=S.target&&_df>=2)||_mx>=S.cap){win(team);return;}   // WIN BY TWO (hard cap S.cap): a 5-4 isn't over -- the great matches go to deuce
+   /* AFTER the win check, never before. Scheduling this first meant the winning goal queued
+      "match point..." and then won the match, so the shout landed 1.3s into the celebration
+      announcing a point that had already been played. The shout is derived from the win
+      condition rather than hardcoded to a scoreline -- it used to claim "next goal wins!" at
+      4-4, which is untrue under win-by-two. */
+   (function(){var c=goalCall();if(c)setTimeout(function(){if(S.on&&!S.winner)bigCall(c.t,c.ms);},1300);})();
 
    S.phase="reset";bvx=0;bvy=0;setTimeout(function(){if(S.on){ballInTitle(false);ball.style.opacity="1";if(ballShadow)ballShadow.style.opacity="0.28";dropIn();}},700);}   // otherwise it re-appears for the next kickoff
   function win(team){S.winner=team;S.phase="win";board2();if(board)board.classList.add("won");
+   try{goalLights(team,true);}catch(_){}   // the winner's lights, wider and held longer
    // Name the winner BEFORE the hook runs: __hmTourWin clears T.cur synchronously, and the call
    // itself is announced 850ms later, by which point there is no fixture left to read from.
    var _wname=(team===1?"Red":"Blue")+" wins!";
@@ -5754,8 +5761,16 @@ function teams(){
    if((window.__hmFx||0)>=1)return;window.__hmFx=(window.__hmFx||0)+1;
    var cv=document.createElement("canvas"),hr=hero.getBoundingClientRect();cv.width=innerWidth;cv.height=Math.round(hr.height);
    cv.style.cssText="position:fixed;left:0;top:"+hr.top.toFixed(0)+"px;width:100vw;height:"+hr.height.toFixed(0)+"px;pointer-events:none;z-index:62";document.body.appendChild(cv);
-   var g=cv.getContext("2d"),cols=["#e05a4e","#e8b84b","#5aa0d8","#67b26f","#8a6fd8","#d87ea8"],P=[];
-   for(var i=0;i<130;i++)P.push({x:Math.random()*innerWidth,y:-20-Math.random()*220,vy:105+Math.random()*120,ph:Math.random()*6.28,sw:22+Math.random()*34,fq:1.1+Math.random()*1.6,w:6+Math.random()*4,h:3+Math.random()*3,c:cols[i%cols.length],rv:2+Math.random()*4});
+   /* The WINNER's colour, not a generic rainbow -- a Green vs Sky final showering red and
+      yellow said nothing about who had just won. Shaded lighter and darker around the base so
+      it still reads as confetti rather than one flat swatch. */
+   var g=cv.getContext("2d"),cols=(function(){
+     var base=String(teamRGB(team)).split(",").map(function(n){return parseInt(n,10)||0;});
+     return [-0.3,-0.14,0,0.18,0.36].map(function(k){
+       return "rgb("+base.map(function(c){
+         return Math.max(0,Math.min(255,Math.round(k<0?c*(1+k):c+(255-c)*k)));}).join(",")+")";});
+   })(),P=[];
+   for(var i=0;i<210;i++)P.push({x:Math.random()*innerWidth,y:-20-Math.random()*260,vy:190+Math.random()*210,ph:Math.random()*6.28,sw:22+Math.random()*34,fq:1.4+Math.random()*1.9,w:6+Math.random()*4,h:3+Math.random()*3,c:cols[(Math.random()*cols.length)|0],rv:3+Math.random()*5});
    var t=0,l=performance.now();
    (function fr(n){var d=Math.min(0.05,(n-l)/1000);l=n;t+=d;g.clearRect(0,0,cv.width,cv.height);
     var al=t<3?1:Math.max(0,1-(t-3)/0.7);g.globalAlpha=al;
