@@ -1390,7 +1390,7 @@ body.about-open #navAbout{color:var(--c950);background:var(--c75)}
 .tCardR .tCardHead{right:-34%;scale:-1 1}   /* mirrored so both faces turn inward */
 /* A scrim, because the head is a portrait bleeding in -- not wallpaper. Without it the
    stat row sat directly on a face and neither could be read. Sits between head and body. */
-.tCard::after,.tChamp::after{content:'';position:absolute;inset:0;pointer-events:none;
+.tCard::after,.tChampIn::after{content:'';position:absolute;inset:0;pointer-events:none;
  background:linear-gradient(to top,rgba(18,18,18,.46) 0%,rgba(18,18,18,.16) 42%,transparent 72%)}
 /* ---- THE LAVA MESH, in the team's hue. The six radial stops are the SAME six points as
    the Floor-is-Lava WebGL shader's POINTS array (0.66/0.24, 0.90/0.40, 0.22/0.30, 0.58/0.66,
@@ -1400,7 +1400,7 @@ body.about-open #navAbout{color:var(--c950);background:var(--c75)}
    It drifts by TRANSFORM on an oversized layer, never background-position: a transform stays
    on the compositor, whereas moving a gradient's position repaints the whole layer every
    frame. 22s and barely-there, because this is a field, not an effect. ---- */
-.tCard::before,.tChamp::before{content:'';position:absolute;inset:-32%;pointer-events:none;
+.tCard::before,.tChampIn::before{content:'';position:absolute;inset:-32%;pointer-events:none;
  background-image:
   radial-gradient(circle at 66% 24%, rgba(255,255,255,.46) 0%, rgba(255,255,255,0) 72%),
   radial-gradient(circle at 90% 40%, rgba(255,255,255,.38) 0%, rgba(255,255,255,0) 67%),
@@ -1433,20 +1433,40 @@ body.about-open #navAbout{color:var(--c950);background:var(--c75)}
 @keyframes tCardRise{from{opacity:0;transform:translateY(14px) scale(.97)}to{opacity:1;transform:none}}
 
 /* The champion gets the same language at full width, with the trophy as the object. */
-.tChamp{position:relative;width:min(560px,100%);margin:6px auto 0;border-radius:18px;
- background:rgb(var(--tc));color:#fff;clip-path:inset(0 round 18px);isolation:isolate;
- min-height:184px;display:flex;flex-direction:column;justify-content:flex-end;padding:18px;
+/* ---- CHAMPION CARD, in the SportyBlocks player-card language: an outer shell holding an
+   inner panel, the panel notched at its base by clip-path, the name ghosted huge BEHIND the
+   subject in overlay, and a badge hanging off the bottom edge where that kit puts the squad
+   number. Retuned to our radius and our two weights. ---- */
+.tChamp{position:relative;width:min(420px,92vw);margin:6px auto 0;padding:8px;
+ border:1px solid var(--c100);border-radius:4px;background:var(--c50);
  animation:tChampIn .46s cubic-bezier(.2,.8,.2,1) both}
-.tChamp .tCardHead{left:50%;transform:translate(-50%,-50%);height:124%;opacity:.7}
-.tChampCup{position:absolute;top:14px;left:50%;transform:translateX(-50%);width:52px;height:52px;
- object-fit:contain;z-index:2;filter:drop-shadow(0 4px 14px rgba(18,18,18,.3));
+.tChampIn{position:relative;min-height:244px;border-radius:4px;isolation:isolate;color:#fff;
+ background:rgb(var(--tc));
+ /* the notch: a shallow V taken out of the base, so the card reads as a crest not a rectangle */
+ clip-path:polygon(0 0,100% 0,100% 94%,50% 100%,0 94%);
+ display:flex;flex-direction:column;justify-content:flex-end;padding:16px 16px 26px}
+.tChampGhost{position:absolute;left:50%;top:10px;transform:translateX(-50%);
+ font-family:var(--sans);font-weight:600;font-size:76px;line-height:.82;letter-spacing:-.055em;
+ text-transform:uppercase;color:#fff;opacity:.4;mix-blend-mode:overlay;
+ pointer-events:none;white-space:nowrap;z-index:0}
+.tChamp .tCardHead{left:50%;top:44%;transform:translate(-50%,-50%);height:92%;opacity:.6;z-index:1}
+.tChampCup{position:absolute;left:50%;bottom:-14px;transform:translateX(-50%);
+ width:46px;height:46px;padding:6px;box-sizing:border-box;object-fit:contain;z-index:3;
+ border-radius:4px;background:var(--c50);border:1px solid var(--c100);
  animation:tCupIn .5s cubic-bezier(.2,1.5,.4,1) .18s both}
+.tChamp .tCardBody{align-self:flex-start;text-align:left}
+.tChamp .tCardNm{font-size:30px}
+.tChampFoot{display:flex;align-items:baseline;justify-content:space-between;gap:8px;
+ padding:16px 6px 4px;font-family:var(--sans);font-size:var(--fs-small);color:var(--c950)}
+.tChampFoot b{font-weight:600}
+.tChampFoot span{font-weight:400;color:var(--c500);letter-spacing:.08em;text-transform:uppercase;
+ font-size:var(--fs-caption,12px)}
 @keyframes tChampIn{from{opacity:0;transform:translateY(18px) scale(.965)}to{opacity:1;transform:none}}
-@keyframes tCupIn{from{opacity:0;transform:translateX(-50%) translateY(-10px) scale(.7)}
-                  to{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}}
+@keyframes tCupIn{from{opacity:0;transform:translateX(-50%) scale(.7)}
+                  to{opacity:1;transform:translateX(-50%) scale(1)}}
 @media(prefers-reduced-motion:reduce){
  .tCard,.tChamp,.tChampCup{animation:none}
- .tCard::before,.tChamp::before{animation:none}
+ .tCard::before,.tChampIn::before{animation:none}
 }
 @media(max-width:560px){
  .tCards{gap:8px}
@@ -6454,14 +6474,22 @@ function paint(){
   if (T.phase === 'done' || champ !== undefined){
     var w = teamById(champ);
     var win = el('div', 'tChamp');
-    if (w) win.style.setProperty('--tc', w.col);
-    var cup = el('img', 'tChampCup'); cup.src = 'images/trophy.webp'; cup.alt = ''; cup.draggable = false;
-    win.appendChild(cup);
-    if (w) win.appendChild(faceOf(w, 'tCardHead'));
+    var pan = el('div', 'tChampIn');
+    if (w) pan.style.setProperty('--tc', w.col);
+    // the name ghosted huge behind the head, the way that kit sets the player's name back
+    // into the panel -- it reads as texture until you look for it
+    if (w) pan.appendChild(el('div', 'tChampGhost', w.name));
+    if (w) pan.appendChild(faceOf(w, 'tCardHead'));
     var cbody = el('div', 'tCardBody');
-    cbody.appendChild(el('div', 'tCardNm', w ? w.name : '—'));
-    cbody.appendChild(el('span', 'tCardTag', 'Champion'));
-    win.appendChild(cbody);
+    cbody.appendChild(el('div', 'tCardNm', w ? w.name : '\u2014'));
+    pan.appendChild(cbody);
+    var cup = el('img', 'tChampCup'); cup.src = 'images/trophy.webp'; cup.alt = ''; cup.draggable = false;
+    pan.appendChild(cup);          // hangs off the notch, where the kit hangs the squad number
+    win.appendChild(pan);
+    var foot = el('div', 'tChampFoot');
+    foot.appendChild(el('b', '', 'Champion'));
+    foot.appendChild(el('span', '', T.cup || ''));
+    win.appendChild(foot);
     h.appendChild(win);
   } else if (nm && T.phase === 'bracket'){
     var A = teamById(nm.match.a), Bm = teamById(nm.match.b);
