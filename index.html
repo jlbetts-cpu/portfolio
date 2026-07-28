@@ -1518,13 +1518,13 @@ body.hmTour #tourPanel .tCupSchedIn{padding-inline:20px}
    hero collapses to the capsule when it is closed. min-height is the animated property so
    the page reflows in one movement rather than the panel jumping inside a fixed hero. ---- */
 body.hmTour .hero{transition:min-height .42s cubic-bezier(.2,.8,.2,1)}
-body.hmTour.tSchedOpen .tourPanel{bottom:24px}
-body.hmTour.tSchedOpen #tourPanel .tCup{display:flex;flex-direction:column;height:100%}
+body.hmTour.tSchedOpen #tourPanel .tCup{min-height:calc(100svh - 116px)}
+body.hmTour.tSchedOpen #tourPanel .tCup{display:flex;flex-direction:column}
 body.hmTour.tSchedOpen #tourPanel .tCupHead,
 body.hmTour.tSchedOpen #tourPanel .tCupCard,
 body.hmTour.tSchedOpen #tourPanel .tCupActs{flex:0 0 auto}
 body.hmTour.tSchedOpen #tourPanel .tCupSched{flex:1 1 auto;display:flex;flex-direction:column;min-height:0}
-body.hmTour.tSchedOpen #tourPanel .tCupSchedIn{flex:1 1 auto;max-height:none;min-height:0}
+body.hmTour.tSchedOpen #tourPanel .tCupSchedIn{flex:1 1 auto;max-height:none;min-height:168px}
 @media(prefers-reduced-motion:reduce){ body.hmTour .hero{transition:none} }
 
 /* ================= THE CUP CAPSULE =================
@@ -1568,8 +1568,10 @@ body.hmTour.tSchedOpen #tourPanel .tCupSchedIn{flex:1 1 auto;max-height:none;min
  margin:0 -16px}          /* full bleed to the card's edges */
 .tCupSide{position:relative;min-width:0}
 .tCupPanel{position:relative;height:clamp(152px,26vh,272px);overflow:hidden;
- background:rgb(var(--tc));display:flex;align-items:flex-end;justify-content:center}
-.tCupSide:first-child .tCupPanel{border-radius:0 0 0 0}
+ background:rgb(var(--tc));display:flex;align-items:flex-end;justify-content:center;
+ border-radius:4px 4px 0 0}
+.tCupSide:first-child .tCupPanel{border-radius:4px 0 0 0}
+.tCupSide:last-child  .tCupPanel{border-radius:0 4px 0 0}
 /* No watermark. A single initial at this size read as a smudge rather than a mark -- the
    reference carries a large high-contrast crest, and a letter is not that. */
 .tCupBig{position:relative;height:88%;width:auto;margin-bottom:8px;
@@ -1592,7 +1594,7 @@ body.hmTour.tSchedOpen #tourPanel .tCupSchedIn{flex:1 1 auto;max-height:none;min
  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tCupSc{display:block;margin-top:2px;font-weight:600;font-size:22px;line-height:1.1;
  color:var(--c950);font-variant-numeric:tabular-nums}
-.tCupVs{position:absolute;left:50%;bottom:24px;transform:translateX(-50%);z-index:3;
+.tCupVs{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);z-index:3;
  font-weight:600;font-size:var(--fs-small,15px);line-height:1.2;color:var(--c950)}
 
 .tCupActs{display:flex;flex-direction:column;gap:8px;padding:16px 12px 16px}
@@ -6871,8 +6873,9 @@ function paint(){
      transition either way, so it is one movement rather than a jump. */
   function syncHero(){
     var hero = document.querySelector('.hero'); if (!hero) return;
-    if (sched.open){ hero.style.minHeight = ''; return; }
     var cupEl = cup.getBoundingClientRect(), heroR = hero.getBoundingClientRect();
+    // measure in BOTH states: open, the block may be taller than the screen and the hero has
+    // to grow with it or the schedule gets crushed; closed, the hero shrinks onto the block.
     hero.style.minHeight = Math.round(cupEl.bottom - heroR.top + 24) + 'px';
   }
   sched.addEventListener('toggle', function(){
