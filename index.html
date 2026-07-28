@@ -1843,12 +1843,25 @@ body.hmFinal .sbTrophy{display:block;animation:sbTrophyIn .5s cubic-bezier(.2,.8
  background:linear-gradient(rgb(var(--tc)) 0 50%,var(--c950) 50% 100%)}
 .sbSideR .sbEdge{left:0;border-radius:28px 0 0 28px}
 .sbSideB .sbEdge{right:0;border-radius:0 28px 28px 0}
-.sbNm{font-family:var(--sans);font-weight:600;font-size:var(--fs-body);color:var(--c950);
- white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-.01em}
-.sbScore{flex:0 0 auto;display:flex;align-items:center;gap:14px;padding:0 24px;
- font-family:var(--sans);font-weight:600;font-size:36px;line-height:1;color:var(--c950);
- letter-spacing:-.02em}
-.sbScore i{font-style:normal;color:var(--c500)}
+/* A CODE, not a name -- uppercase and letterspaced so it reads as a label. Positive tracking
+   because uppercase at small sizes needs it; the score below takes negative tracking because
+   large numerals need the opposite. */
+.sbNm{font-family:var(--sans);font-weight:600;font-size:var(--fs-small);color:var(--c700);
+ white-space:nowrap;letter-spacing:.10em;text-transform:uppercase}
+/* The score is the loudest thing on the bug: header size, and each numeral in its own team's
+   colour so a glance tells you WHOSE the number is without reading the code beside it.
+   tabular-nums matters here specifically -- these digits change live, and proportional figures
+   make the whole group shift sideways when a 1 becomes a 2. */
+/* align-SELF centre: .sbInner stretches its children, so without this the score box filled
+   the strip and its baseline alignment pushed the numerals off the top edge. */
+.sbScore{flex:0 0 auto;align-self:center;display:flex;align-items:baseline;gap:12px;padding:0 20px;
+ font-family:var(--sans);font-weight:600;font-size:var(--fs-h1);line-height:1;
+ letter-spacing:-.03em;font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1}
+/* 600 stated, not inherited. <b> defaults to font-weight:bolder, which resolves RELATIVE to
+   its parent -- inheriting 600 it computed to 900, a weight the type system does not have. */
+.sbScore b{min-width:1ch;text-align:center;font-weight:600}
+.sbScore i{font-style:normal;color:var(--c500);font-size:.5em;font-weight:400;
+ position:relative;top:-.16em}
 
 .sbTeam{display:flex;align-items:center;gap:8px;min-width:0}
 /* No square at all. The outline traces the HEAD, the way it does on the pitch -- a box, even
@@ -1882,8 +1895,7 @@ body.hmFinal .sbTrophy{display:block;animation:sbTrophyIn .5s cubic-bezier(.2,.8
  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sbSub{display:block;width:34px;height:4px;border-radius:2px;margin-top:5px;
  background:rgb(var(--tc,230,230,230))}
-.sbScore{margin-left:auto;font-weight:600;font-size:14px;line-height:1.1;color:var(--c950);
- font-variant-numeric:tabular-nums;flex:0 0 auto;padding-left:8px}
+
 .sbVs{display:flex;align-items:center;gap:8px}
 .sbRuleA{flex:0 0 32px;height:1px;background:var(--c100)}
 .sbRuleB{flex:1 1 auto;height:1px;background:var(--c100)}
@@ -5829,16 +5841,29 @@ function teams(){
          edge, the head inboard of it as the crest, the name, and the score meeting in the
          middle. .sR / .sB stay exactly where they were -- board2() writes the live score
          straight into them and does not know the layout changed. */
+      /* A three-letter code, the way every scorebug does it -- the full name is the schedule's
+         job, the bug's job is to be readable at a glance. Letters only, so "Player 1" gives
+         PLA rather than "PL "; a name with nothing usable falls back to P1 / P2 rather than
+         printing an empty box. */
+      var code=String(nm||"").replace(/[^A-Za-z]/g,"").slice(0,3).toUpperCase();
+      if(code.length<2) code=(which==="R"?"P1":"P2");
+      colOf[which]=col;
       return '<div class="sbSide sbSide'+which+'" style="--tc:'+col+'">'
            +   '<i class="sbEdge" aria-hidden="true"></i>'
            +   (cut?'<span class="sbFace"><img src="'+cut+'" alt="" draggable="false"></span>'
                    :'<span class="sbDot"></span>')
-           +   '<b class="sbNm">'+nm+'</b>'
+           +   '<b class="sbNm" title="'+String(nm).replace(/"/g,"&quot;")+'">'+code+'</b>'
            + '</div>';
     }
-    inner.innerHTML = side("R")
-      + '<div class="sbScore"><b class="sR">0</b><i aria-hidden="true">-</i><b class="sB">0</b></div>'
-      + side("B");
+    var colOf={R:"194,61,51",B:"49,109,181"};
+    var htmlR=side("R"), htmlB=side("B");
+    inner.innerHTML = htmlR
+      + '<div class="sbScore">'
+      +   '<b class="sR" style="color:rgb('+colOf.R+')">0</b>'
+      +   '<i aria-hidden="true">-</i>'
+      +   '<b class="sB" style="color:rgb('+colOf.B+')">0</b>'
+      + '</div>'
+      + htmlB;
     sR=board.querySelector(".sR"); sB=board.querySelector(".sB");
     ruleLabel();   // one owner for that string, so a repaint cannot reset it to "First to N"
     /* The round, named on the bug. This is the one mechanism the research actually found in
@@ -5912,6 +5937,22 @@ function teams(){
      g.fillStyle="rgba("+p.c+",1)";g.fillRect(-p.w/2,-p.h/2,p.w,p.h);g.restore();});
     if(t<2.3)requestAnimationFrame(fr);else{cv.remove();window.__hmFx=Math.max(0,(window.__hmFx||1)-1);}})(performance.now());}catch(_){window.__hmFx=Math.max(0,(window.__hmFx||1)-1);}}
   function start(){if(S.on)return;_gyLock=null;geo();if(!ball)dom();layout();teams();
+   /* THE MATCH GETS LONGER AS THE CUP GETS SHORTER. Every fixture was first-to-5 with
+      win-by-two, so eight players meant seven matches of identical length and the whole thing
+      dragged -- and the final felt exactly like a quarter-final. Early rounds are first to 3
+      now, semis 4, the final 5. That is the sourced move twice over: it condenses the
+      tournament AND it is how a grand final is actually differentiated (CS Majors, VALORANT
+      Champions and TI all step the final up from Bo3 to Bo5). A standalone kickabout with no
+      tournament running keeps the old first-to-5. */
+   (function(){ var t=5,c=8;
+     try{ var T=window.__hmTour;
+       if(T&&T.live&&T.br&&T.cur){
+         var left=(T.br.rounds.length-1)-T.cur.round;   // 0 = the final
+         t=(left<=0)?5:(left===1?4:3);
+       }
+     }catch(_){}
+     S.target=t; S.cap=t+3;
+   })();
    S.on=true;S.red=0;S.blue=0;S.winner=0;S.touches=[];if(board)board.classList.remove("won");S.seed=(S.seed||0)+1;
    paintBoard();board2();   // repaint the teams BEFORE the score, or board2 writes into rows that are about to be replaced
    ballInTitle(false);ball.style.opacity="1";goalL.style.opacity="1";goalR.style.opacity="1";board.style.opacity="1";if(ballShadow)ballShadow.style.opacity="0.28";if(goalShL){goalShL.style.opacity="1";goalShR.style.opacity="1";}
