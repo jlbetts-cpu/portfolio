@@ -1829,7 +1829,7 @@ body.hmTour.tSchedOpen #tourPanel .tCupSchedIn{
 .hmScore.sbHit .sbCard{
  box-shadow:0 0 0 3px rgb(var(--sbFlash,148,163,184)),
             0 0 44px -4px rgba(var(--sbFlash,148,163,184),.72);
- animation:sbFlashPulse .9s cubic-bezier(.2,.8,.2,1) 1}
+ animation:sbFlashPulse .42s cubic-bezier(.2,.8,.2,1) 3}
 @keyframes sbFlashPulse{
  0%{box-shadow:0 0 0 0 rgb(var(--sbFlash,148,163,184)),0 0 0 0 rgba(var(--sbFlash,148,163,184),0)}
  22%{box-shadow:0 0 0 4px rgb(var(--sbFlash,148,163,184)),0 0 54px 2px rgba(var(--sbFlash,148,163,184),.85)}
@@ -4753,11 +4753,15 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
  var me={x:0,y:0,HW:HW,HH:HH,vx:0,vy:0,ground:false,perched:false,kx:0,ky:0,dmgIn:0,inB:false,elim:false,slot:slot,cut:(data&&data.cut)||null,__filler:filler};me.root=root;   // so the championship spotlight can measure this head
  /* The celebration hop. vx/vy/air/st/surface live in THIS closure, so an outside caller
     cannot set them -- the soccer module can only ask. Same idiom the peek uses. */
- me.cheer=function(side){ try{
+ /* power 0 = bounce on the spot, 1 = stride toward something. At one fixed speed the
+    heads could not actually close the gap to their team -- measured 498px apart at the
+    whistle and still 501px six hops later, so they were celebrating, just not together. */
+ me.cheer=function(side,power){ try{
    if(grabbed||perched)return;
    side=side||(Math.random()<0.5?-1:1);
+   power=(power==null)?0:power;
    dir=side; air=true; st="fall"; surface=floorY;
-   vx=side*(60+Math.random()*80); vy=-(230+Math.random()*110);
+   vx=side*(55+power*260+Math.random()*70); vy=-(230+Math.random()*110);
    sqT=0.1; sqyP=1.1; sqxP=1/1.1;
  }catch(_){} };
  peers.push(me);   // set it HERE rather than patching the peer from outside, so anything spawning mini-Jayden gets it right   // cut travels with the peer so the tournament can find a head it has already spawned instead of duplicating it
@@ -5906,15 +5910,31 @@ function teams(){
 
    S.phase="reset";bvx=0;bvy=0;setTimeout(function(){if(S.on){ballInTitle(false);ball.style.opacity="1";if(ballShadow)ballShadow.style.opacity="0.28";dropIn();}},700);}   // otherwise it re-appears for the next kickoff
   function win(team){S.winner=team;S.phase="win";board2();if(board)board.classList.add("won");
-   /* THE CELEBRATION RUN. Four staggered hops per winning head over ~2.5s, each head offset
-      so they do not bounce in lockstep -- a crowd celebrating, not a chorus line. Asking each
-      head to hop rather than setting a velocity on it, because the physics vars are private
-      to the companion and a write from here would be overwritten on the next tick anyway. */
-   try{ for(var _c=0;_c<peers.length;_c++){ (function(p,k){
-     if(!p||S.teams[p.slot]!==team||typeof p.cheer!=="function")return;
-     for(var h=0;h<4;h++) setTimeout(function(){ try{ if(S.on)p.cheer(); }catch(_){} },
-       300+k*110+h*600);
-   })(peers[_c],_c); } }catch(_){}
+   /* THE CELEBRATION. They do not just hop where they stand -- they RUN TO EACH OTHER first,
+      the way a team does after a goal, and only bounce together once they have gathered.
+      The centroid is recomputed every round rather than fixed at the whistle, because the
+      heads are still being simulated and a target set once would be stale by the second hop.
+      Within ~70px of the pack a head stops converging and bounces on the spot, so they
+      celebrate together instead of piling into one point and shoving each other out. */
+   try{
+     var _mates=[];
+     for(var _c=0;_c<peers.length;_c++){ var _p=peers[_c];
+       if(_p&&S.teams[_p.slot]===team&&typeof _p.cheer==="function") _mates.push(_p); }
+     if(_mates.length){
+       var _round=function(){
+         if(!S.on)return;
+         var cx=0; _mates.forEach(function(p){cx+=p.x+p.HW/2;}); cx/=_mates.length;
+         _mates.forEach(function(p,k){
+           setTimeout(function(){ try{
+             if(!S.on)return;
+             var d=cx-(p.x+p.HW/2), near=Math.abs(d)<90;
+             p.cheer(near ? (Math.random()<0.5?-1:1) : (d>0?1:-1), near?0:1);
+           }catch(_){} }, k*95);   // staggered, so they are a crowd and not a chorus line
+         });
+       };
+       for(var _r=0;_r<6;_r++) setTimeout(_round, 300+_r*620);
+     }
+   }catch(_){}
    /* The disco is saved for the CHAMPIONSHIP. An ordinary goal keeps the board flash; only
       winning the final earns the dark, the ball and the spotlight -- and the spotlight lands
       on the head that won it, not on the big head. */
@@ -7380,7 +7400,10 @@ function paint(){
     acts.appendChild(go2);
   }
   var done2 = (champ2 !== undefined);
-  var quit = el('button', 'tCupQuit hmBtn', done2 ? 'Back to the hero' : 'End tournament');
+  /* On the champion screen this is the ONLY action left, so it is the primary one. Mid-
+     tournament it sits under Kick off and stays quiet -- same button, different job. */
+  var quit = el('button', 'tCupQuit hmBtn' + (done2 ? ' hmBtnPrimary' : ''),
+                done2 ? 'Back to the hero' : 'End tournament');
   quit.type = 'button';
   var armed2 = false, armT2 = 0;
   quit.addEventListener('click', function(e){
