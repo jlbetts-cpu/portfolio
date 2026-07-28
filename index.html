@@ -1805,27 +1805,49 @@ body.hmTour.tSchedOpen #tourPanel .tCupSchedIn{
    One deliberate deviation: font-bold is rendered at 600, not 700. Only the 400 and 600 static
    faces are loaded on this site, so 700 would either synthesise or pull the variable face in
    at a weight the design system does not use. Everything else is theirs. */
-.hmScore .sbCard{box-sizing:border-box;width:min(560px,92vw);max-width:none;
+.hmScore .sbCard{box-sizing:border-box;width:min(520px,92vw);max-width:none;
  border:1px solid var(--c100);border-radius:28px;background:var(--c75);padding:0;
  font-family:var(--sans);color:var(--c950)}
-/* SCOREBOARD -- the kit's Scoreboard1 laid out on our elements. A colour block hard against
-   each outer edge (team colour over near-black, the kit's two-tone), the head inboard of it
-   as the crest, the name, and the score meeting in the middle. The card clips, so each block
-   takes the card's own corner radius on its outer side and squares off inboard. */
+/* THE TROPHY rides on top of the board for the FINAL only, then is handed over at the whistle.
+   Standing the prize on the scoreboard before it is won is the sourced move -- CS Majors put
+   the physical trophy on a pedestal in front of the players during playoffs, NBA Cup courts
+   put it huge at centre court. It is the cheapest possible anticipation beat: the thing being
+   played for is visible while it is still being contested. */
+.sbTrophy{position:absolute;left:50%;bottom:calc(100% - 10px);transform:translateX(-50%);
+ width:clamp(46px,7vw,66px);height:auto;pointer-events:none;z-index:2;display:none;
+ filter:drop-shadow(0 6px 14px rgba(15,23,42,.26))}
+body.hmFinal .sbTrophy{display:block;animation:sbTrophyIn .5s cubic-bezier(.2,.8,.2,1) both}
+@keyframes sbTrophyIn{from{opacity:0;transform:translateX(-50%) translateY(10px) scale(.9)}
+ to{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}}
+/* Handed over: lifted out of the board and flown to the winner, then it rides with them.
+   OFF TO THE SIDE, never centred on the face -- the head is the subject and the eyes and brow
+   are the part worth never covering. */
+.hmTrophyFly{position:fixed;z-index:66;width:clamp(46px,7vw,66px);height:auto;
+ pointer-events:none;filter:drop-shadow(0 8px 18px rgba(15,23,42,.32))}
+@media(prefers-reduced-motion:reduce){body.hmFinal .sbTrophy{animation:none}}
+
+/* SCOREBOARD -- the kit's Scoreboard1, matched to its PROPORTIONS rather than just its parts.
+   Measured off the reference at a 660px card: block 72px (0.109 of the width), white strip
+   135px (0.205), footer 95px (0.144), badge 46px (0.070), score 36px (0.055). Held to those
+   ratios at our 520px card, which is why it is shorter and taller than my first attempt --
+   that one was right about the elements and wrong about every measurement.
+   .sbInner deliberately does NOT clip. The blocks carry the card's 28px on their OUTER side,
+   top AND bottom; an overflow:hidden here squares the bottom corners off again, which is the
+   "roundness isn't on the bottom of the black" Jayden spotted. */
 .sbInner{position:relative;display:flex;align-items:stretch;justify-content:space-between;
- gap:0;padding:0;min-height:92px;background:var(--c50);overflow:hidden;
- border-radius:28px 28px 0 0}
+ gap:0;padding:0;height:106px;background:var(--c50);border-radius:28px 28px 0 0}
 .sbSide{position:relative;display:flex;align-items:center;gap:12px;flex:1 1 0;min-width:0;
- padding:0 0 0 68px}
-.sbSideB{flex-direction:row-reverse;padding:0 68px 0 0}
+ padding-left:80px}
+.sbSideB{flex-direction:row-reverse;padding-left:0;padding-right:80px}
 .sbEdge{position:absolute;top:0;bottom:0;width:56px;
  background:linear-gradient(rgb(var(--tc)) 0 50%,var(--c950) 50% 100%)}
-.sbSideR .sbEdge{left:0;border-radius:28px 0 0 0}
-.sbSideB .sbEdge{right:0;border-radius:0 28px 0 0}
+.sbSideR .sbEdge{left:0;border-radius:28px 0 0 28px}
+.sbSideB .sbEdge{right:0;border-radius:0 28px 28px 0}
 .sbNm{font-family:var(--sans);font-weight:600;font-size:var(--fs-body);color:var(--c950);
- white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.sbScore{flex:0 0 auto;display:flex;align-items:center;gap:10px;padding:0 16px;
- font-family:var(--sans);font-weight:600;font-size:32px;line-height:1;color:var(--c950)}
+ white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-.01em}
+.sbScore{flex:0 0 auto;display:flex;align-items:center;gap:14px;padding:0 24px;
+ font-family:var(--sans);font-weight:600;font-size:36px;line-height:1;color:var(--c950);
+ letter-spacing:-.02em}
 .sbScore i{font-style:normal;color:var(--c500)}
 
 .sbTeam{display:flex;align-items:center;gap:8px;min-width:0}
@@ -1833,7 +1855,7 @@ body.hmTour.tSchedOpen #tourPanel .tCupSchedIn{
    an empty one, draws a rectangle around a shape that is not a rectangle. Four offsets rather
    than a stack: CSS filters CHAIN, so a long stack compounds the thickness instead of adding
    to it, and at 32px one pixel is the whole line. */
-.sbFace{flex:0 0 32px;width:32px;height:32px;display:inline-flex;align-items:center;
+.sbFace{flex:0 0 40px;width:40px;height:40px;display:inline-flex;align-items:center;
  justify-content:center;overflow:visible;background:none}
 .sbFace img{filter:
   drop-shadow(1px 0 0 rgb(var(--tc,148,163,184)))
@@ -1878,7 +1900,7 @@ body.hmTour.tSchedOpen #tourPanel .tCupSchedIn{
 .sbFoot .sbMeta{white-space:nowrap;flex:0 0 auto}
 body.hmFinal .sbRound{color:#9E6C00}
 .sbFoot{display:flex;justify-content:space-between;align-items:center;gap:8px;
- padding:16px 32px;font-weight:600;font-size:12px;line-height:1.1;color:var(--c950);
+ padding:0 24px;height:72px;font-weight:600;font-size:var(--fs-small);line-height:1.1;color:var(--c950);
  /* The ledge is the card's last child, so the card's 28 is ITS to carry. The card does not
     clip, so square corners here painted straight over the rounding and the card read as
     square no matter what radius the card itself was given. */
@@ -4774,13 +4796,19 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
  /* power 0 = bounce on the spot, 1 = stride toward something. At one fixed speed the
     heads could not actually close the gap to their team -- measured 498px apart at the
     whistle and still 501px six hops later, so they were celebrating, just not together. */
- me.cheer=function(side,power){ try{
+ /* power 0 = bounce on the spot, 1 = stride toward something, big = a LEAP.
+    The leap clears 700px/s deliberately: startFlip() bails below that, because a low hop
+    cannot finish a 360 before it lands and snaps mid-air. So a flip has to be asked for with
+    enough height to actually land it, not just requested. */
+ me.cheer=function(side,power,big){ try{
    if(grabbed||perched)return;
    side=side||(Math.random()<0.5?-1:1);
    power=(power==null)?0:power;
    dir=side; air=true; st="fall"; surface=floorY;
-   vx=side*(55+power*260+Math.random()*70); vy=-(230+Math.random()*110);
-   sqT=0.1; sqyP=1.1; sqxP=1/1.1;
+   vx=side*(55+power*260+Math.random()*70);
+   vy=big?-(940+Math.random()*160):-(230+Math.random()*110);
+   sqT=0.1; sqyP=big?1.16:1.1; sqxP=1/(big?1.16:1.1);
+   if(big&&typeof startFlip==="function"){try{startFlip();}catch(_){}}
  }catch(_){} };
  peers.push(me);   // set it HERE rather than patching the peer from outside, so anything spawning mini-Jayden gets it right   // cut travels with the peer so the tournament can find a head it has already spawned instead of duplicating it
  // ability ACTOR: the smashing head's handle -- registry abilities drive the head through this (its physics locals live in this closure)
@@ -5699,6 +5727,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    // because dom() is itself guarded by if(!ball) and never runs a second time.
    board.innerHTML =
       '<div class="sbCard">'
+    +   '<img class="sbTrophy" src="images/trophy.webp" alt="" draggable="false">'
     +   '<div class="sbInner"></div>'
     +   '<div class="sbFoot">'
     +     '<span class="sbRound"></span>'
@@ -5898,6 +5927,45 @@ function teams(){
   /* What is actually true about the next goal, given win-by-two with a hard cap.
      leaderWins: the team in front scoring ends it. eitherWins: BOTH are one goal from
      ending it, which is the only honest "next goal wins". */
+  /* THE HAND-OVER. The trophy lifts off the scoreboard and flies to the winner, then rides
+     with them for the rest of the celebration. Offset to the SIDE of the head, never over it:
+     the face is the subject and the brow and eye region are the part worth never covering.
+     Tracked per frame like the spotlight, because the winner is still being simulated -- a
+     trophy parked where they stood at the whistle is left behind by the first hop. */
+  function handTrophy(p){
+    var src=board&&board.querySelector(".sbTrophy"); if(!src||!p||!p.root)return;
+    var from=src.getBoundingClientRect(); if(!from.width)return;
+    var fly=document.createElement("img");
+    fly.className="hmTrophyFly"; fly.src=src.getAttribute("src");
+    fly.alt=""; fly.draggable=false; fly.setAttribute("aria-hidden","true");
+    fly.style.width=Math.round(from.width)+"px";
+    document.body.appendChild(fly);
+    src.style.visibility="hidden";               // it has LEFT the board, not been duplicated
+    var x0=from.left, y0=from.top, t0=null, DUR=780, alive=true;
+    function target(){
+      var r=p.root.getBoundingClientRect();
+      return {x:r.left+r.width*0.78, y:r.top+r.height*0.30};   // beside the head, not over it
+    }
+    (function step(now){
+      if(!alive)return;
+      if(t0===null)t0=now;
+      var t=Math.min(1,(now-t0)/DUR), g=target();
+      if(t<1){
+        var e=t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2,
+            arc=Math.sin(t*Math.PI)*46;          // lobbed across, not slid
+        fly.style.left=Math.round(x0+(g.x-x0)*e)+"px";
+        fly.style.top =Math.round(y0+(g.y-y0)*e-arc)+"px";
+      }else{
+        fly.style.left=Math.round(g.x)+"px";
+        fly.style.top =Math.round(g.y)+"px";
+      }
+      requestAnimationFrame(step);
+    })(performance.now());
+    setTimeout(function(){ alive=false;
+      try{fly.remove();}catch(_){}
+      if(src)src.style.visibility="";
+    },7400);
+  }
   function goalCall(){
     var mx=Math.max(S.red,S.blue), mn=Math.min(S.red,S.blue), df=mx-mn;
     var ends=function(a,b){ return (a>=S.target && a-b>=2) || a>=S.cap; };
@@ -5949,7 +6017,21 @@ function teams(){
            setTimeout(function(){ try{
              if(!S.on)return;
              var d=cx-(p.x+p.HW/2), near=Math.abs(d)<90;
-             p.cheer(near ? (Math.random()<0.5?-1:1) : (d>0?1:-1), near?0:1);
+             if(near){
+               /* Gathered. Now they go UP -- roughly every third beat is a full flip, and
+                  otherwise they pick a team-mate and jump at them. Standing still and
+                  bouncing was not excitement, it was idling in place. */
+               if(Math.random()<0.34){ p.cheer(Math.random()<0.5?-1:1, 0.2, true); }
+               else{
+                 var mate=_mates.length>1
+                   ? _mates[(Math.random()*_mates.length)|0] : null;
+                 var md=(mate&&mate!==p) ? (mate.x+mate.HW/2)-(p.x+p.HW/2) : 0;
+                 p.cheer(md===0?(Math.random()<0.5?-1:1):(md>0?1:-1),
+                         md===0?0.15:0.55, Math.random()<0.25);
+               }
+             }else{
+               p.cheer(d>0?1:-1, 1);
+             }
            }catch(_){} }, k*95);   // staggered, so they are a crowd and not a chorus line
          });
        };
@@ -5965,6 +6047,7 @@ function teams(){
        if(!_p||S.teams[_p.slot]!==team)continue;
        if(!_bw)_bw=_p;
        if(_p.slot<9000&&!_p.__filler){_bw=_p;break;}}
+     if(_bw&&_bw.root) handTrophy(_bw);
      if(_bw&&_bw.root&&window.__hmPartyAt)
        /* Ends well before the bracket moves on (10.5s for a final) so the light is fully out
           before the champion screen arrives -- carrying it across the cut looked wrong. */
