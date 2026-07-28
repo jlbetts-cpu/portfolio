@@ -5038,7 +5038,19 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    // cleanup (!S9.on && soccerOn) is a TRANSITION, and the mini-Jayden filler never sees it -- it
    // is despawned at the whistle -- so its soccerOn stayed true, which ALSO skipped the join
    // branch (S9.on && !soccerOn) next match. The crown rode along into the following game.
-   if(S9&&S9.on&&S9.seed&&S9.seed!==soccerSeedSeen){soccerSeedSeen=S9.seed;soccerWon=false;crownEl.style.opacity="0";}
+   if(S9&&S9.on&&S9.seed&&S9.seed!==soccerSeedSeen){soccerSeedSeen=S9.seed;soccerWon=false;crownEl.style.opacity="0";
+    /* RE-TINT on every new match, not only when a head first joins. The ring was computed once,
+       in the !soccerOn -> soccerOn branch below, so a head that stayed on the pitch across
+       fixtures never recomputed it and kept the PREVIOUS tie's colours -- which is why one
+       match could show four different outlines that matched neither side. The seed changes
+       once per kickoff, so this is the honest place to re-read both the side and its colour. */
+    try{ team=(S9.teams&&S9.teams[slot])||team||1;
+      var _rc=(window.__hmTeamCol&&window.__hmTeamCol[team])||(team===1?"224,90,78":"90,160,216");
+      if(filler&&mjClone){var _rd="rgb("+_rc+")";
+        mjClone.style.filter="drop-shadow(2.5px 0 0 "+_rd+") drop-shadow(-2.5px 0 0 "+_rd+") drop-shadow(0 2.5px 0 "+_rd+") drop-shadow(0 -2.5px 0 "+_rd+")";}
+      else if(ringEl){ringEl.style.background="rgb("+_rc+")";}
+    }catch(_){}
+   }
    if(S9&&S9.on&&!soccerOn&&!killed){soccerOn=true;soccerWon=false;crownEl.style.opacity="0";   // clear the CROWN on join too. soccerWon was already reset here, but the element kept last
      // match's opacity, and the only place that cleared it was the exit transition
      // (!S9.on && soccerOn) -- which the mini-Jayden filler never sees, because it is despawned
