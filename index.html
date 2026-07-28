@@ -1488,17 +1488,6 @@ body .navDrawer .navDrawerX{display:none!important}
    sat 4px left of the other two. */
 body .navDrawer .ndLink{padding:8px 12px;text-align:left}
 
-/* The cup's name behind the champion, adapted from the kit's card: set huge, clipped by the
-   panel so it bleeds off both edges rather than being fitted into it, and blended into the
-   team colour instead of sitting on top of it. z-index 1 -- above the panel fill, below the
-   head at 2, so the head breaks out of the word rather than being written over. */
-.tCupGhost{position:absolute;left:50%;top:44%;transform:translate(-50%,-50%);
- z-index:1;pointer-events:none;-webkit-user-select:none;user-select:none;
- font-family:var(--sans);font-weight:600;font-size:clamp(54px,12.5vw,112px);line-height:.86;
- letter-spacing:-.045em;text-transform:uppercase;white-space:nowrap;
- color:#fff;opacity:.32;mix-blend-mode:overlay}
-@media(prefers-reduced-motion:reduce){.tCupGhost{opacity:.28}}
-
 /* ---- CHAMPION ----------------------------------------------------------------------
    The winner wears the same crown the heads already wear when they win a match (same SVG
    path, so the two never drift apart) and holds the cup. Both sit INSIDE .tCupPanel: the
@@ -1507,11 +1496,7 @@ body .navDrawer .ndLink{padding:8px 12px;text-align:left}
    not the panel's, and both live in a wrapper that carries the sway. Animating them
    separately would have needed two transforms kept in sync, and the crown already owns its
    transform for the tilt. */
-/* z-index HERE, not on the head inside. The sway animation makes this wrapper a stacking
-   context, so the head's own z-index:2 is trapped within it and the wrapper competed with the
-   ghosted word at auto -- the word painted straight across the face. Stacking contexts are
-   compared section to section: the child's number is irrelevant once its parent has lost. */
-.tCupCelebrate{position:relative;z-index:2;height:88%;margin-bottom:8px;
+.tCupCelebrate{position:relative;height:88%;margin-bottom:8px;
  display:flex;align-items:flex-end;justify-content:center;
  transform-origin:50% 100%;                      /* pivots at the neck, not the middle */
  animation:tSway 3.1s ease-in-out infinite}
@@ -7355,14 +7340,6 @@ function paint(){
       /* Head and crown into one wrapper, so the sway carries both and the crown is
          positioned against the HEAD's box rather than the panel's -- that is what makes it
          sit ON the head instead of floating at some fraction of the panel. */
-      /* The CUP's name, ghosted behind the champion. Not the winner's name: that is already
-         on the card at full contrast, so ghosting it would only duplicate what is there. The
-         cup name is what makes this particular trophy specific and it appears nowhere else on
-         the card -- and name is the highest identity-per-cost lever in the research. */
-      var ghost = el('div', 'tCupGhost');
-      ghost.textContent = String(T.cup || 'Cup');
-      ghost.setAttribute('aria-hidden', 'true');
-      cpan.appendChild(ghost);
       var cel = el('div', 'tCupCelebrate');
       var bigImg = cpan.querySelector('.tCupBig');
       if (bigImg) cel.appendChild(bigImg);
