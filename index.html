@@ -1500,18 +1500,29 @@ body.hmTour #tourPanel{left:50%!important;right:auto!important;top:0!important;
  /* The panel carried max-height:calc(100% - 64px) from when it was a floating card in the
     hero. As a full-bleed block that cap is just a smaller ceiling to be clipped against. */
  max-height:none!important;
+ /* top:0 AND bottom:0 -- the panel is stretched to the hero by the layout itself, so the
+    block reaches the bottom whatever the scroll position and whether or not JS has run.
+    Sizing this from the viewport in JS was wrong: once the block was taller than the screen
+    you scrolled, and its bottom no longer lined up with anything. */
+ bottom:0!important;
  transform:translateX(-50%)!important}
 body.hmTour #tourPanel .tCup{width:100%;max-width:none;margin:0;
- border-radius:28px 28px 4px 4px;
+ border-radius:28px;
  /* flex:0 0 auto, not the inherited 0 1 auto. #tourPanel is a flex COLUMN, so a shrinkable
     item gets squeezed below its own content -- the block measured 664px against 721px of
     content and the schedule spilled out of the bottom of its own frame. */
- flex:0 0 auto}
+ flex:0 0 auto;
+ /* Fills the stretched panel, so the block ends exactly at the bottom of the hero. MIN, so
+    content taller than the hero grows it rather than being cut. */
+ min-height:100%}
 
 body.hmTour:not(.tSchedOpen) #tourPanel .tCup{height:auto;overflow:visible}
 /* the head is the only child touching the top edge, so it carries the round when the cup does not */
 body.hmTour #tourPanel .tCupHead{border-radius:28px 28px 0 0}
-body.hmTour #tourPanel .tCupCard{margin:0;border-radius:28px 28px 4px 4px;box-shadow:none;border:0;overflow:hidden}
+body.hmTour #tourPanel .tCupCard{margin:0;border-radius:28px 28px 0 0;box-shadow:none;border:0;overflow:hidden}
+/* The schedule is the block's LAST child, so the bottom corners are its to round -- and it
+   has to clip, or the rows paint straight over the curve. */
+body.hmTour #tourPanel .tCupSched{border-radius:0 0 28px 28px;overflow:hidden}
 body.hmTour #tourPanel .tCupMatch{margin:0}
 body.hmTour #tourPanel .tCupActs{padding-left:0;padding-right:0}
 body.hmTour #tourPanel .tCupSchedIn{padding-left:0;padding-right:0}
@@ -1532,7 +1543,9 @@ body.hmTour .hero{transition:min-height .42s cubic-bezier(.2,.8,.2,1)}
 
 
 body.hmTour.tSchedOpen #tourPanel .tCupSched{display:block}
-body.hmTour.tSchedOpen #tourPanel .tCupSchedIn{min-height:132px;
+/* 96px matches the JS floor. At 132 it beat the measured max-height on a short screen and
+   pushed the block 31px past the bottom of the hero -- a min-height always wins a max-height. */
+body.hmTour.tSchedOpen #tourPanel .tCupSchedIn{min-height:96px;
  overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
 @media(prefers-reduced-motion:reduce){ body.hmTour .hero{transition:none} }
 
@@ -6883,29 +6896,31 @@ function paint(){
   function syncHero(){
     var hero = document.querySelector('.hero'); if (!hero) return;
     requestAnimationFrame(function(){
-      /* Full bleed top to bottom: the block runs from under the header to a 20px bottom
-         gutter, in both states. MIN-height, never height -- a fixed height plus
-         overflow:hidden is precisely what clipped the schedule away before. Taller-than-
-         viewport content grows the block instead of being cut. Measured rather than a magic
-         number because the top offset differs per breakpoint. */
-      var cupTop = cup.getBoundingClientRect().top;
-      cup.style.minHeight = Math.max(0, Math.round(window.innerHeight - cupTop - 20)) + 'px';
+      /* Cleared FIRST, so the hero is measured at its own CSS height rather than at whatever
+         a previous pass forced on it. The hero is never measured back to the block: the block
+         takes its height from the hero, so the reverse would be a circle -- block grows, hero
+         grows to fit, block fills the new hero. */
+      hero.style.minHeight = '';
       /* Size the scroller explicitly rather than by flex. .tCupSched is a <details>, and
          display:flex on <details> does NOT reliably make its light-DOM children flex items --
          the inner list stayed at its full 467px inside a 163px parent, so overflow-y:auto
          never engaged (its content fitted its own oversized box) and the parent just clipped
-         the rows away. Measuring against the viewport is deterministic and engine-proof. */
+         the rows away.
+         Anchored to the HERO's bottom, and always as the difference between two rects --
+         that is scroll-invariant, because both shift by the same amount. The old
+         `window.innerHeight - top` was not, which is exactly why the block stopped lining up
+         the moment you scrolled. CSS bottom:0 only gets us to #main, and the hero actually
+         overflows #main by a few px, so the anchor has to be measured. */
+      var heroBottom = hero.getBoundingClientRect().bottom;
+      cup.style.minHeight =
+        Math.max(0, Math.round(heroBottom - cup.getBoundingClientRect().top)) + 'px';
       if (sched.open){
         var inn = sched.querySelector('.tCupSchedIn');
+        /* The scroller absorbs exactly the leftover room, which is what keeps the block
+           ending flush with the hero rather than running past it. */
         if (inn) inn.style.maxHeight =
-          Math.max(132, Math.round(window.innerHeight - inn.getBoundingClientRect().top - 20)) + 'px';
+          Math.max(96, Math.round(heroBottom - inn.getBoundingClientRect().top - 16)) + 'px';
       }
-      /* The hero is measured to the block, not the other way round -- measuring both from
-         each other is the feedback loop that let the cup overflow, grow the hero, and gain
-         more room to overflow into. cupTop does not depend on the hero's height (the grid is
-         align-content:start), so this settles in one pass. */
-      hero.style.minHeight =
-        Math.round(cup.getBoundingClientRect().bottom - hero.getBoundingClientRect().top + 24) + 'px';
     });
   }
   sched.addEventListener('toggle', function(){
