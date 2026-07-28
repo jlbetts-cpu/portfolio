@@ -1850,9 +1850,14 @@ body.hmTour.tSchedOpen #tourPanel .tCupSchedIn{
 .sbVs span{font-weight:600;font-size:13px;line-height:1.1;color:var(--c950)}
 /* The round name, on the ledge. Sits left of the win condition and separated from it by the
    same hairline the VS divider uses, so it reads as a second field rather than a badge. */
-.sbRound{font-weight:600;font-size:12px;line-height:1;letter-spacing:.14em;
- text-transform:uppercase;color:var(--c500);
- padding-right:10px;margin-right:2px;border-right:1px solid var(--c100)}
+/* nowrap on BOTH fields. The ledge is a flex row on a 340px card, so a long round name
+   ("Quarter-final") wrapped to a second line and shoved the ledge taller, while a short one
+   ("Final") never did -- the row changed height depending on which round you were in.
+   Neither field may wrap; the label sheds its letter-spacing before it sheds a line. */
+.sbRound{font-weight:600;font-size:12px;line-height:1;letter-spacing:.09em;
+ text-transform:uppercase;color:var(--c500);white-space:nowrap;flex:0 0 auto;
+ padding-right:9px;margin-right:1px;border-right:1px solid var(--c100)}
+.sbFoot .sbMeta{white-space:nowrap;flex:0 0 auto}
 body.hmFinal .sbRound{color:#9E6C00}
 .sbFoot{display:flex;justify-content:space-between;align-items:center;gap:8px;
  padding:16px 32px;font-weight:600;font-size:12px;line-height:1.1;color:var(--c950);
