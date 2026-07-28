@@ -1501,7 +1501,10 @@ body.tourPoster #tourPanel .tCupMatch{
     the schedule clean off the bottom of the hero -- measured top:954 against a hero bottom of
     908. It takes the room that is actually available now and crops from the top, which is the
     edge that carries the least (the artwork puts its heads low). */
- margin:0 -16px;aspect-ratio:1545/2000;max-height:min(44vh,400px);
+ /* margin-inline:auto is load-bearing. Capping the height makes the element NARROWER to keep
+    its aspect ratio, and a block narrower than its container left-aligns -- so the poster sat
+    off to one side the moment the cap started biting. */
+ margin:0 auto!important;aspect-ratio:1545/2000;max-height:min(52vh,470px);
  border-radius:4px;overflow:hidden;
  background:#1a1a1a var(--poster) center bottom/cover no-repeat}
 /* Both sides span the FULL poster, so every percentage below is measured against the
