@@ -4738,6 +4738,15 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
  function plane(front){root.style.zIndex="3";shadow.style.zIndex="2";}   // heads ALWAYS stay in front of the big head + the CTA buttons (the back plane is gone) -- cleaner, more premium, no ducking-behind glitches
  var G=2600,DT=0.04,facc=0,CEIL=2,surpriseAt=0;   // real units: px/s and px/s^2, integrated at 25fps
  var me={x:0,y:0,HW:HW,HH:HH,vx:0,vy:0,ground:false,perched:false,kx:0,ky:0,dmgIn:0,inB:false,elim:false,slot:slot,cut:(data&&data.cut)||null,__filler:filler};me.root=root;   // so the championship spotlight can measure this head
+ /* The celebration hop. vx/vy/air/st/surface live in THIS closure, so an outside caller
+    cannot set them -- the soccer module can only ask. Same idiom the peek uses. */
+ me.cheer=function(side){ try{
+   if(grabbed||perched)return;
+   side=side||(Math.random()<0.5?-1:1);
+   dir=side; air=true; st="fall"; surface=floorY;
+   vx=side*(60+Math.random()*80); vy=-(230+Math.random()*110);
+   sqT=0.1; sqyP=1.1; sqxP=1/1.1;
+ }catch(_){} };
  peers.push(me);   // set it HERE rather than patching the peer from outside, so anything spawning mini-Jayden gets it right   // cut travels with the peer so the tournament can find a head it has already spawned instead of duplicating it
  // ability ACTOR: the smashing head's handle -- registry abilities drive the head through this (its physics locals live in this closure)
  var A={me:me,peers:peers,FX:FX,slot:slot,
@@ -5884,6 +5893,15 @@ function teams(){
 
    S.phase="reset";bvx=0;bvy=0;setTimeout(function(){if(S.on){ballInTitle(false);ball.style.opacity="1";if(ballShadow)ballShadow.style.opacity="0.28";dropIn();}},700);}   // otherwise it re-appears for the next kickoff
   function win(team){S.winner=team;S.phase="win";board2();if(board)board.classList.add("won");
+   /* THE CELEBRATION RUN. Four staggered hops per winning head over ~2.5s, each head offset
+      so they do not bounce in lockstep -- a crowd celebrating, not a chorus line. Asking each
+      head to hop rather than setting a velocity on it, because the physics vars are private
+      to the companion and a write from here would be overwritten on the next tick anyway. */
+   try{ for(var _c=0;_c<peers.length;_c++){ (function(p,k){
+     if(!p||S.teams[p.slot]!==team||typeof p.cheer!=="function")return;
+     for(var h=0;h<4;h++) setTimeout(function(){ try{ if(S.on)p.cheer(); }catch(_){} },
+       300+k*110+h*600);
+   })(peers[_c],_c); } }catch(_){}
    /* The disco is saved for the CHAMPIONSHIP. An ordinary goal keeps the board flash; only
       winning the final earns the dark, the ball and the spotlight -- and the spotlight lands
       on the head that won it, not on the big head. */
