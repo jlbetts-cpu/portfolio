@@ -1839,6 +1839,12 @@ body.hmTour.tSchedOpen #tourPanel .tCupSchedIn{
 .sbRuleA{flex:0 0 32px;height:1px;background:var(--c100)}
 .sbRuleB{flex:1 1 auto;height:1px;background:var(--c100)}
 .sbVs span{font-weight:600;font-size:13px;line-height:1.1;color:var(--c950)}
+/* The round name, on the ledge. Sits left of the win condition and separated from it by the
+   same hairline the VS divider uses, so it reads as a second field rather than a badge. */
+.sbRound{font-weight:600;font-size:12px;line-height:1;letter-spacing:.14em;
+ text-transform:uppercase;color:var(--c500);
+ padding-right:10px;margin-right:2px;border-right:1px solid var(--c100)}
+body.hmFinal .sbRound{color:#9E6C00}
 .sbFoot{display:flex;justify-content:space-between;align-items:center;gap:8px;
  padding:16px 32px;font-weight:600;font-size:12px;line-height:1.1;color:var(--c950);
  /* The ledge is the card's last child, so the card's 28 is ITS to carry. The card does not
@@ -2677,17 +2683,21 @@ window.__hmPartyAt=function(getRect,ms){try{
   /* The spotlight FOLLOWS. The winner is still being simulated -- it lands, bounces, drifts --
      so a spotlight fixed at the position it happened to hold on the winning frame slides off
      it within a second. Re-read every frame while the party is up. */
+  /* The ball is hung ONCE, in the middle of the room, and never moves again -- a mirrorball
+     is a fixture, and one that slides sideways to follow a player reads as a bug. Its beams
+     originate there for the same reason. Only the SPOTLIGHT tracks. */
+  var sy0=window.scrollY||0, ballX=Math.round(innerWidth/2);
+  partyEl.style.setProperty("--bx",ballX+"px");
+  partyEl.style.setProperty("--by",(ballTop+sy0)+"px");
+  discoWrap.style.left=ballX+"px"; discoWrap.style.top=(ballTop+sy0)+"px";
   var live=true;
   (function track(){
     if(!live||!partyEl)return;
     var r=probe();
     if(r&&r.width){
-      var sy=window.scrollY||0, cx=r.left+r.width/2;
-      partyEl.style.setProperty("--hx",cx+"px");
+      var sy=window.scrollY||0;
+      partyEl.style.setProperty("--hx",(r.left+r.width/2)+"px");
       partyEl.style.setProperty("--hy",(r.top+sy+r.height*0.42)+"px");
-      partyEl.style.setProperty("--bx",cx+"px");
-      partyEl.style.setProperty("--by",(ballTop+sy)+"px");
-      discoWrap.style.left=cx+"px"; discoWrap.style.top=(ballTop+sy)+"px";
     }
     requestAnimationFrame(track);
   })();
@@ -5594,6 +5604,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
       '<div class="sbCard">'
     +   '<div class="sbInner"></div>'
     +   '<div class="sbFoot">'
+    +     '<span class="sbRound"></span>'
     +     '<span class="sbMeta"><span class="sbRule">First to ' + S.target + '</span>'
     +       '<img class="sBall" src="images/soccerball.webp" alt="" draggable="false"></span>'
     +     '<button class="hmScoreEnd" type="button" aria-label="End the match">'
@@ -5701,6 +5712,17 @@ function teams(){
       + side("B");
     sR=board.querySelector(".sR"); sB=board.querySelector(".sB");
     ruleLabel();   // one owner for that string, so a repaint cannot reset it to "First to N"
+    /* The round, named on the bug. This is the one mechanism the research actually found in
+       shipping products -- US postseason bugs stamp the round on, and fighting games print
+       GRAND FINALS into a variable slot with nothing else changed. Gold, trophies and heavier
+       frames had no shipping precedent at all, so the gold stays on the ball where it earns
+       its keep. */
+    var rl=board.querySelector(".sbRound");
+    if(rl){ var txt="";
+      try{ var T2=window.__hmTour;
+        if(T2&&T2.live&&T2.cur&&T2.br) txt=(T2.br.rounds[T2.cur.round]||{}).label||"";
+      }catch(_){}
+      rl.textContent=txt; rl.style.display=txt?"":"none"; }
   }
   function board2(){if(sR)sR.textContent=S.red;if(sB)sB.textContent=S.blue;ruleLabel();}
   // "First to 5" stopped being true the moment it went to deuce. Say what is actually on the
