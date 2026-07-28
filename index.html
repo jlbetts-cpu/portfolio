@@ -405,7 +405,7 @@ body.moodInCta .heroCtas:not(.in) .faceMoodCorner{opacity:0!important;visibility
 .cases{position:relative;z-index:61;margin:clamp(80px,12vh,144px) auto 0;background:var(--c50)}
 .caseInset{max-width:1280px;margin:0 auto;padding:0 40px}
 /* tab bar: Instrument Sans, active = ink + underline, others muted; stepped like the rest of the site */
-.csTabs{display:flex;flex-wrap:wrap;gap:24px;align-items:flex-end;justify-content:center;
+.csTabs{display:flex;flex-wrap:wrap;gap:24px;align-items:flex-end;justify-content:flex-start;
  margin:0 auto clamp(24px,3.2vh,40px);position:relative}.csTabs::before{content:"";position:absolute;left:16px;right:0;bottom:0;height:1px;background:var(--c100)}
 .csTab{position:relative;background:none;border:0;padding:0 0 12px;margin:0;font:inherit;font-family:var(--sans);font-weight:600;font-size:var(--fs-tab);letter-spacing:.01em;text-transform:none;color:var(--c500);cursor:pointer;transition:color .25s cubic-bezier(.2,.8,.2,1);filter:url(#inkSm)}
 .csTab:hover{color:var(--c950)}
@@ -466,7 +466,7 @@ body.moodInCta .heroCtas:not(.in) .faceMoodCorner{opacity:0!important;visibility
    left edges. The row now stays on one line (Material calls this a scrollable tab bar
    when the labels exceed the width); padding-left absorbs the first tab's negative
    margin so the scroll origin cannot clip it. */
-.csTabs{gap:16px;flex-wrap:nowrap}.csTabs .csTab{flex:0 0 auto;white-space:nowrap}
+.csTabs{gap:16px;flex-wrap:nowrap;justify-content:center}.csTabs .csTab{flex:0 0 auto;white-space:nowrap}
  .csTrack{height:auto}
  .csStage{position:relative;height:auto;padding:clamp(14px,2vh,28px) 0;justify-content:flex-start;overflow:visible}
  .csFrame{transform:translateY(26px);opacity:0;transition:opacity .55s cubic-bezier(.2,.8,.2,1),transform .55s cubic-bezier(.2,.8,.2,1)}
@@ -1443,26 +1443,24 @@ body.about-open #navAbout{color:var(--c950);background:var(--c75)}
    The winner wears the same crown the heads already wear when they win a match (same SVG
    path, so the two never drift apart) and holds the cup. Both sit INSIDE .tCupPanel: the
    card clips to its 28px radius, so anything positioned above the panel would be cut off. */
-/* Sized by HEIGHT, not width. Both are tall images in a short wide panel, so a width
-   percentage blows their height out -- 34% width made the cup 320px tall in a 330px panel
-   and it swallowed the head whole. Height percentages are bounded by the thing that is
-   actually scarce here. The head is 88% of the panel and bottom-anchored, so its top edge is
-   at 12%: the crown sits just into that band so it rests ON the head rather than floating. */
-.tCupCrown{position:absolute;left:50%;top:3%;height:19%;width:auto;z-index:4;
- transform:translateX(-50%) rotate(-4deg);transform-origin:50% 100%;
- pointer-events:none;filter:drop-shadow(0 3px 6px rgba(15,23,42,.28));
+/* The head and its crown move as ONE thing: the crown is positioned against the HEAD's box,
+   not the panel's, and both live in a wrapper that carries the sway. Animating them
+   separately would have needed two transforms kept in sync, and the crown already owns its
+   transform for the tilt. */
+.tCupCelebrate{position:relative;height:88%;margin-bottom:8px;
+ display:flex;align-items:flex-end;justify-content:center;
+ transform-origin:50% 100%;                      /* pivots at the neck, not the middle */
+ animation:tSway 3.1s ease-in-out infinite}
+.tCupCelebrate .tCupBig{height:100%;margin-bottom:0}
+.tCupCrown{position:absolute;left:50%;top:-6%;height:24%;width:auto;z-index:4;
+ transform:translateX(-50%) rotate(-5deg);transform-origin:50% 100%;
+ pointer-events:none;filter:drop-shadow(0 3px 6px rgba(15,23,42,.3));
  animation:tCrownIn .52s cubic-bezier(.2,.8,.2,1) .12s both}
 .tCupCrown svg{display:block;height:100%;width:auto}
-.tCupHold{position:absolute;left:50%;bottom:0;height:52%;width:auto;z-index:5;
- transform:translateX(-50%);pointer-events:none;
- filter:drop-shadow(0 6px 16px rgba(15,23,42,.38));
- animation:tHoldIn .5s cubic-bezier(.2,.8,.2,1) .2s both}
-.tCupHold img{display:block;height:100%;width:auto}
+@keyframes tSway{0%,100%{transform:rotate(-3.4deg)}50%{transform:rotate(3.4deg)}}
 @keyframes tCrownIn{from{opacity:0;transform:translateX(-50%) rotate(-4deg) translateY(-18px) scale(.7)}
  to{opacity:1;transform:translateX(-50%) rotate(-4deg) translateY(0) scale(1)}}
-@keyframes tHoldIn{from{opacity:0;transform:translateX(-50%) translateY(22px) scale(.86)}
- to{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}}
-@media(prefers-reduced-motion:reduce){.tCupCrown,.tCupHold{animation:none}}
+@media(prefers-reduced-motion:reduce){.tCupCrown,.tCupCelebrate{animation:none}}
 
 /* The champion gets the same language at full width, with the trophy as the object. */
 /* ---- CHAMPION CARD, in the SportyBlocks player-card language: an outer shell holding an
@@ -1663,15 +1661,14 @@ body.hmTour.tSchedOpen #tourPanel .tCupSchedIn{
  font-weight:600;font-size:var(--fs-small,15px);line-height:1.2;color:var(--c950)}
 
 .tCupActs{display:flex;flex-direction:column;gap:8px;padding:16px 12px 16px}
-.tCupQuit{display:block;width:100%;box-sizing:border-box;padding:12px 20px;
- border:1px solid var(--c100);border-radius:4px;background:transparent;color:var(--c500);
- font-family:var(--sans);font-weight:600;font-size:var(--fs-small,15px);line-height:1;cursor:pointer;min-height:44px;
+/* Layout only. Colour, type, padding, radius and the hover wash come from the shared button
+   system (.hmBtn / .hmBtn.hmBtnPrimary) -- these two were bespoke and so drifted from every
+   other control on the site. */
+.tCupQuit{display:flex;width:100%;box-sizing:border-box;
  transition:color .16s cubic-bezier(.2,.8,.2,1),border-color .16s cubic-bezier(.2,.8,.2,1)}
 .tCupQuit:hover,.tCupQuit:focus-visible{color:var(--c950);border-color:var(--c500)}
 .tCupQuit.tQuitArmed{color:#b3402e;border-color:#b3402e}
-.tCupGo{display:block;width:100%;margin:0;box-sizing:border-box;
- padding:16px 20px;border:0;border-radius:4px;background:var(--c950);color:#fff;
- font-family:var(--sans);font-weight:600;font-size:var(--fs-small,15px);line-height:1;cursor:pointer;min-height:48px;
+.tCupGo{display:flex;width:100%;margin:0;box-sizing:border-box;min-height:48px;
  transition:opacity .16s cubic-bezier(.2,.8,.2,1)}
 .tCupGo:hover,.tCupGo:focus-visible{opacity:.88}
 
@@ -6508,7 +6505,7 @@ function champConfetti(rgb){
   cv.style.cssText = 'position:fixed;left:0;top:0;width:100vw;height:100vh;'
                    + 'pointer-events:none;z-index:64';
   document.body.appendChild(cv);
-  var g = cv.getContext('2d'), P = [], N = 90, dead = false, dpr = Math.min(2, devicePixelRatio || 1);
+  var g = cv.getContext('2d'), P = [], N = 190, dead = false, dpr = Math.min(2, devicePixelRatio || 1);
   function size(){ cv.width = Math.round(innerWidth * dpr); cv.height = Math.round(innerHeight * dpr);
                    g.setTransform(dpr, 0, 0, dpr, 0, 0); }
   size();
@@ -6994,6 +6991,13 @@ function paint(){
        positioned above the panel would simply be cut off. */
     var cpan = champSide.querySelector('.tCupPanel');
     if (cpan){
+      /* Head and crown into one wrapper, so the sway carries both and the crown is
+         positioned against the HEAD's box rather than the panel's -- that is what makes it
+         sit ON the head instead of floating at some fraction of the panel. */
+      var cel = el('div', 'tCupCelebrate');
+      var bigImg = cpan.querySelector('.tCupBig');
+      if (bigImg) cel.appendChild(bigImg);
+      cpan.appendChild(cel);
       var crown = el('div', 'tCupCrown');
       // the same path the heads already wear when they win, so the two cannot drift apart
       crown.innerHTML = '<svg viewBox="0 0 48 34" aria-hidden="true">'
@@ -7003,10 +7007,7 @@ function paint(){
         + '<circle cx="24" cy="4" r="3.8" fill="#f0c94e"/>'
         + '<circle cx="44" cy="13" r="3.4" fill="#f0c94e"/>'
         + '<rect x="4" y="30" width="40" height="3.4" rx="1.4" fill="#d7a531"/></svg>';
-      cpan.appendChild(crown);
-      var hold = el('div', 'tCupHold');
-      var himg = el('img'); himg.src = 'images/trophy.webp'; himg.alt = ''; himg.draggable = false;
-      hold.appendChild(himg); cpan.appendChild(hold);
+      cel.appendChild(crown);
     }
     solo.appendChild(champSide);
     card.appendChild(solo);
@@ -7028,12 +7029,12 @@ function paint(){
   // hunted for, and the quit was previously stranded at the very bottom of the panel.
   var acts = el('div', 'tCupActs');
   if (nm2 && champ2 === undefined && T.phase === 'bracket'){
-    var go2 = el('button', 'tCupGo', 'Kick off'); go2.type = 'button';
+    var go2 = el('button', 'tCupGo hmBtn hmBtnPrimary', 'Kick off'); go2.type = 'button';
     go2.addEventListener('click', function(e){ e.stopPropagation(); T.phase = 'match'; startFixture(nm2); });
     acts.appendChild(go2);
   }
   var done2 = (champ2 !== undefined);
-  var quit = el('button', 'tCupQuit', done2 ? 'Back to the hero' : 'End tournament');
+  var quit = el('button', 'tCupQuit hmBtn', done2 ? 'Back to the hero' : 'End tournament');
   quit.type = 'button';
   var armed2 = false, armT2 = 0;
   quit.addEventListener('click', function(e){
