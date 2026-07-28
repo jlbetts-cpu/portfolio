@@ -1805,11 +1805,29 @@ body.hmTour.tSchedOpen #tourPanel .tCupSchedIn{
    One deliberate deviation: font-bold is rendered at 600, not 700. Only the 400 and 600 static
    faces are loaded on this site, so 700 would either synthesise or pull the variable face in
    at a weight the design system does not use. Everything else is theirs. */
-.hmScore .sbCard{box-sizing:border-box;width:340px;max-width:88vw;
+.hmScore .sbCard{box-sizing:border-box;width:min(560px,92vw);max-width:none;
  border:1px solid var(--c100);border-radius:28px;background:var(--c75);padding:0;
  font-family:var(--sans);color:var(--c950)}
-.sbInner{border-radius:28px;overflow:hidden;background:var(--c50);box-shadow:inset 0 0 0 1px var(--c100);padding:32px;
- display:flex;flex-direction:column;gap:20px}
+/* SCOREBOARD -- the kit's Scoreboard1 laid out on our elements. A colour block hard against
+   each outer edge (team colour over near-black, the kit's two-tone), the head inboard of it
+   as the crest, the name, and the score meeting in the middle. The card clips, so each block
+   takes the card's own corner radius on its outer side and squares off inboard. */
+.sbInner{position:relative;display:flex;align-items:stretch;justify-content:space-between;
+ gap:0;padding:0;min-height:92px;background:var(--c50);overflow:hidden;
+ border-radius:28px 28px 0 0}
+.sbSide{position:relative;display:flex;align-items:center;gap:12px;flex:1 1 0;min-width:0;
+ padding:0 0 0 68px}
+.sbSideB{flex-direction:row-reverse;padding:0 68px 0 0}
+.sbEdge{position:absolute;top:0;bottom:0;width:56px;
+ background:linear-gradient(rgb(var(--tc)) 0 50%,var(--c950) 50% 100%)}
+.sbSideR .sbEdge{left:0;border-radius:28px 0 0 0}
+.sbSideB .sbEdge{right:0;border-radius:0 28px 0 0}
+.sbNm{font-family:var(--sans);font-weight:600;font-size:var(--fs-body);color:var(--c950);
+ white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sbScore{flex:0 0 auto;display:flex;align-items:center;gap:10px;padding:0 16px;
+ font-family:var(--sans);font-weight:600;font-size:32px;line-height:1;color:var(--c950)}
+.sbScore i{font-style:normal;color:var(--c500)}
+
 .sbTeam{display:flex;align-items:center;gap:8px;min-width:0}
 /* No square at all. The outline traces the HEAD, the way it does on the pitch -- a box, even
    an empty one, draws a rectangle around a shape that is not a rectangle. Four offsets rather
@@ -5778,16 +5796,19 @@ function teams(){
           if(p.slot<9000&&!p.__filler){best=p;break;}}
         if(best&&best.cut)cut=best.cut;
       }catch(_){}}
-      return '<div class="sbTeam" style="--tc:'+col+'">'
+      /* Horizontal now, after the kit's Scoreboard1: a colour block hard against the outer
+         edge, the head inboard of it as the crest, the name, and the score meeting in the
+         middle. .sR / .sB stay exactly where they were -- board2() writes the live score
+         straight into them and does not know the layout changed. */
+      return '<div class="sbSide sbSide'+which+'" style="--tc:'+col+'">'
+           +   '<i class="sbEdge" aria-hidden="true"></i>'
            +   (cut?'<span class="sbFace"><img src="'+cut+'" alt="" draggable="false"></span>'
                    :'<span class="sbDot"></span>')
-           +   '<span class="sbWho"><b class="sbNm">'+nm+'</b>'
-           +     '<em class="sbSub" aria-hidden="true"></em></span>'
-           +   '<b class="s'+which+' sbScore">0</b>'
+           +   '<b class="sbNm">'+nm+'</b>'
            + '</div>';
     }
     inner.innerHTML = side("R")
-      + '<div class="sbVs"><i class="sbRuleA"></i><span>VS</span><i class="sbRuleB"></i></div>'
+      + '<div class="sbScore"><b class="sR">0</b><i aria-hidden="true">-</i><b class="sB">0</b></div>'
       + side("B");
     sR=board.querySelector(".sR"); sB=board.querySelector(".sB");
     ruleLabel();   // one owner for that string, so a repaint cannot reset it to "First to N"
