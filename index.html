@@ -731,7 +731,10 @@ body.about-open .abShots{display:block;position:absolute;inset:0;z-index:3;point
 body.abclosing.abPhotoOut .abShots .abShot.cOn,body.abclosing.abPhotoOut .abShots .abShot.cUnder,body.abclosing.abPhotoOut .abShots .abShot.cOff,body.abclosing.abPhotoOut .abShots .abShot.cThrow{animation:photoThrow .75s steps(6,end) forwards;z-index:30}
 
 
-body.about-open.abReturning .heroBack{animation:none;opacity:0;position:absolute;transition:opacity .3s cubic-bezier(.2,.8,.2,1)}body.about-open.abReturning .navTitle{animation:none;opacity:0;position:absolute;right:0;transition:opacity .3s cubic-bezier(.2,.8,.2,1)}body.about-open.abReturning .logo{opacity:1;transition:opacity .34s cubic-bezier(.2,.8,.2,1) .06s}
+body.about-open.abReturning .heroBack{animation:none;opacity:0;position:absolute;transition:opacity .3s cubic-bezier(.2,.8,.2,1)}body.about-open.abReturning .navTitle{animation:none;opacity:0;position:absolute;right:0;transition:opacity .3s cubic-bezier(.2,.8,.2,1)}
+/* Leaving About via Work: the About-only chrome is cut instantly rather than fading out
+   underneath the transition that is taking you somewhere else. */
+body.abSnap .navTitle,body.abSnap .heroBack{transition:none!important;opacity:0!important}body.about-open.abReturning .logo{opacity:1;transition:opacity .34s cubic-bezier(.2,.8,.2,1) .06s}
 @keyframes headPeek{0%{transform:translate(0,0) rotate(0)}12%{transform:translate(calc(var(--pkx)*.45),-2%) rotate(calc(var(--pkr)*.5))}26%{transform:translate(var(--pkx),-5.4%) rotate(var(--pkr))}38%{transform:translate(calc(var(--pkx)*1.06),-6.2%) rotate(calc(var(--pkr)*1.12))}50%{transform:translate(var(--pkx),-5.4%) rotate(var(--pkr))}72%{transform:translate(var(--pkx),-5.4%) rotate(var(--pkr))}84%{transform:translate(calc(var(--pkx)*.5),-2.4%) rotate(calc(var(--pkr)*.5))}100%{transform:translate(0,0) rotate(0)}}
 body.about-open .stage.peeking{animation:headPeek 1.7s steps(1,end)}
 @keyframes dealOn{0%{opacity:1;transform:translate(118%,6%) rotate(11deg) scale(.95)}58%{opacity:1;transform:translate(-3.5%,-2.5%) rotate(-2.5deg) scale(1.03)}80%{opacity:1;transform:translate(1.4%,.7%) rotate(1.2deg) scale(.995)}100%{opacity:1;transform:translate(0,0) rotate(0) scale(1)}}@keyframes dealOff{0%{opacity:1;transform:translate(0,0) rotate(0) scale(1)}18%{opacity:1;transform:translate(-4%,-4%) rotate(-3.5deg) scale(1.04)}100%{opacity:1;transform:translate(120%,7%) rotate(12deg) scale(.95)}}@keyframes throwOn{0%{opacity:1;transform:translate(126%,16%) rotate(14deg) scale(.84)}60%{opacity:1;transform:translate(-4%,-3%) rotate(-3deg) scale(1.03)}100%{opacity:1;transform:translate(0,0) rotate(0) scale(1)}}
@@ -1718,15 +1721,16 @@ body.hmTour.tSchedOpen #tourPanel .tCupSchedIn{
 .tCupVs{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);z-index:3;
  font-weight:600;font-size:var(--fs-small,15px);line-height:1.2;color:var(--c950)}
 
-.tCupActs{display:flex;flex-direction:column;gap:8px;padding:12px 12px 14px}
+.tCupActs{display:flex;flex-direction:column;align-items:center;gap:8px;padding:12px 12px 14px}
 /* Layout only. Colour, type, padding, radius and the hover wash come from the shared button
-   system (.hmBtn / .hmBtn.hmBtnPrimary) -- these two were bespoke and so drifted from every
-   other control on the site. */
-.tCupQuit{display:flex;width:100%;box-sizing:border-box;
+   system (.hmBtn / .hmBtn.hmBtnPrimary). And they size to their CONTENT like every other
+   button -- stretched to the block's full width they were the only controls on the site whose
+   width came from their container rather than their padding. */
+.tCupQuit{display:inline-flex;width:auto;box-sizing:border-box;
  transition:color .16s cubic-bezier(.2,.8,.2,1),border-color .16s cubic-bezier(.2,.8,.2,1)}
 .tCupQuit:hover,.tCupQuit:focus-visible{color:var(--c950);border-color:var(--c500)}
 .tCupQuit.tQuitArmed{color:#b3402e;border-color:#b3402e}
-.tCupGo{display:flex;width:100%;margin:0;box-sizing:border-box;
+.tCupGo{display:inline-flex;width:auto;margin:0;box-sizing:border-box;
  transition:opacity .16s cubic-bezier(.2,.8,.2,1)}
 .tCupGo:hover,.tCupGo:focus-visible{opacity:.88}
 
@@ -3596,10 +3600,37 @@ logo.addEventListener("click",()=>{
  if(aboutOpen){if(typeof closeAbout==="function")closeAbout();return;}   // on About the wordmark is the way back home
  if(CALIB||eventLock||dizzy||reactType)return;clearHold();activeHover=null;startReact("talk");});  // on home, click the name -> he introduces himself
 var _abtn=document.getElementById("aboutBtn");if(_abtn)_abtn.addEventListener("click",function(){if(typeof openAbout==="function")openAbout();});
-var _wbtn=document.getElementById("workBtn");if(_wbtn)_wbtn.addEventListener("click",function(){var c=document.getElementById("cases");if(c)c.scrollIntoView({behavior:(typeof reduce!=="undefined"&&reduce)?"auto":"smooth",block:"start"});});
+var _wbtn=document.getElementById("workBtn");if(_wbtn)_wbtn.addEventListener("click",function(){if(window.__softScroll)window.__softScroll(document.getElementById("cases"));});
+/* The browser's behaviour:"smooth" is a fixed aggressive curve -- over a long page it reads
+   as a lurch. This eases in and out, and scales its duration with the distance travelled but
+   NOT proportionally (Carbon's rule): a short hop stays quick, a long one never drags. */
+function softScroll(el){
+  if(!el)return;
+  if(typeof reduce!=="undefined"&&reduce){el.scrollIntoView({block:"start"});return;}
+  var startY=window.scrollY||0,
+      endY=Math.max(0,Math.min(startY+el.getBoundingClientRect().top,
+                    document.documentElement.scrollHeight-innerHeight)),
+      dist=Math.abs(endY-startY);
+  if(dist<4)return;
+  var dur=Math.min(1150,Math.max(420,Math.round(320+Math.sqrt(dist)*26))), t0=null;
+  (function step(now){
+    if(t0===null)t0=now;
+    var t=Math.min(1,(now-t0)/dur),
+        e=t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;   // ease-in-out cubic
+    window.scrollTo(0,startY+(endY-startY)*e);
+    if(t<1)requestAnimationFrame(step);
+  })(performance.now());
+}
+window.__softScroll=softScroll;
 var _navW=document.getElementById("navWork");if(_navW)_navW.addEventListener("click",function(e){e.preventDefault();
- var _go=function(){var c=document.getElementById("cases");if(c)c.scrollIntoView({behavior:(typeof reduce!=="undefined"&&reduce)?"auto":"smooth",block:"start"});};
- if(typeof aboutOpen!=="undefined"&&aboutOpen){if(typeof closeAbout==="function")closeAbout();setTimeout(_go,1420);return;}   // from About, Work goes home first
+ var _go=function(){softScroll(document.getElementById("cases"));};
+ if(typeof aboutOpen!=="undefined"&&aboutOpen){
+  /* The About chrome goes the SECOND you click Work. It used to ride the full ~1.4s close,
+     so "About me" and Back were still sitting in the bar long after you had left. */
+  document.body.classList.add("abSnap");
+  if(typeof closeAbout==="function")closeAbout();
+  setTimeout(function(){document.body.classList.remove("abSnap");},1500);
+  setTimeout(_go,1420);return;}   // from About, Work goes home first
  _go();});
 var _navA=document.getElementById("navAbout");if(_navA)_navA.addEventListener("click",function(){try{if(aboutOpen){if(typeof closeAbout==="function")closeAbout();return;}}catch(_){}if(typeof openAbout==="function")openAbout();});
 (function(){ // MOBILE MENU: hamburger -> slide-in drawer (accessible: aria-expanded, Esc, focus return, backdrop tap)
@@ -3621,7 +3652,7 @@ var _navA=document.getElementById("navAbout");if(_navA)_navA.addEventListener("c
 talk.addEventListener("mouseenter",()=>{if(eventLock||CALIB)return;clearHold();activeHover="smile";showFace("smile");});
 talk.addEventListener("mouseleave",()=>{if(eventLock||CALIB)return;if(activeHover==="smile")activeHover=null;setHold("smile",SMILE_LINGER);resolve();});
 talk.addEventListener("click",function(e){e.preventDefault();
- var goTo=function(){var gt=document.getElementById("getInTouch");if(gt)gt.scrollIntoView({behavior:reduce?"auto":"smooth",block:"start"});};
+ var goTo=function(){if(window.__softScroll)window.__softScroll(document.getElementById("getInTouch"));};
  if(!aboutOpen){
   if(typeof openAbout==="function")openAbout();
   /* Twice, deliberately. Opening About can also have to tear down a running game first, and
