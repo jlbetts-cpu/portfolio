@@ -1903,6 +1903,10 @@ body.hmFinal .sbTrophy{display:block;animation:sbTrophyIn .5s cubic-bezier(.2,.8
  padding:0 8px;font-family:var(--sans);font-weight:600;font-size:var(--fs-h1);line-height:1;
  letter-spacing:-.02em;font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1}
 .sbScore b{min-width:1ch;text-align:center;font-weight:600}
+/* The trailing score recedes rather than the leader shouting. .58 is the middle of the range
+   the shipping products use (ESPN, FotMob, NBA.com and Sofascore all sit between .5 and .62). */
+.sbScore b{transition:opacity .22s cubic-bezier(.2,.8,.2,1)}
+.sbScore b.sbTrail{opacity:.58}
 .sbScore i{font-style:normal;color:var(--c500);font-size:1em;font-weight:400}
 
 
@@ -5918,7 +5922,19 @@ function teams(){
       }catch(_){}
       rl.textContent=txt; rl.style.display=txt?"":"none"; }
   }
-  function board2(){if(sR)sR.textContent=S.red;if(sB)sB.textContent=S.blue;ruleLabel();}
+  /* Leader full ink, trailer dimmed. Four products converged on this independently (ESPN,
+     FotMob, NBA.com, Sofascore) and it is the only hierarchy device that costs neither colour
+     nor size -- which matters here, because the numerals are the same size as the codes and
+     the type system has exactly one weight step. Level scores dim neither. */
+  function board2(){
+    if(sR)sR.textContent=S.red; if(sB)sB.textContent=S.blue;
+    if(sR&&sB){
+      var lead=(S.red===S.blue)?0:(S.red>S.blue?1:2);
+      sR.classList.toggle("sbTrail", lead===2);
+      sB.classList.toggle("sbTrail", lead===1);
+    }
+    ruleLabel();
+  }
   // "First to 5" stopped being true the moment it went to deuce. Say what is actually on the
   // line: at 5-4 the rule IS win-by-two, and once someone reaches cap-1 the next goal ends it
   // outright, so the target really is the cap.
