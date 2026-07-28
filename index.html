@@ -1698,7 +1698,25 @@ body.hmTour.tSchedOpen #tourPanel .tCupSchedIn{
 .tCupSide:only-child  .tCupPanel{border-radius:28px 28px 0 0}
 /* No watermark. A single initial at this size read as a smudge rather than a mark -- the
    reference carries a large high-contrast crest, and a letter is not that. */
-.tCupBig{position:relative;height:88%;width:auto;margin-bottom:8px;
+/* Sized by WIDTH, not height. The cuts are not a consistent shape -- a tall narrow crop and
+   a short wide one both set to 88% height render visibly different faces in identical panels,
+   which is the thing that read as assembled rather than composed. Width is the axis the
+   panels actually share. */
+/* Masked to the same cut as the head and sized identically, so it lands exactly on it.
+   mix-blend-mode:color takes the HUE and leaves the luminance, which is why the face keeps its
+   modelling instead of flattening into a silhouette. */
+.tCupTint{position:absolute;left:50%;bottom:8px;transform:translateX(-50%);
+ width:62%;height:auto;aspect-ratio:1/1.16;z-index:3;pointer-events:none;
+ background:rgb(var(--tc));mix-blend-mode:color;opacity:.82;
+ -webkit-mask-size:100% 100%;mask-size:100% 100%;
+ -webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;
+ -webkit-mask-position:center;mask-position:center}
+.tCupCelebrate .tCupTint{display:none}   /* the champion keeps his own colours */
+/* The live round, so the schedule reads as "you are here" rather than repeating the h1. */
+.tCupRdH.tRdNow{color:var(--c950)}
+.tCupRdH.tRdNow::after{content:"";display:inline-block;width:5px;height:5px;border-radius:50%;
+ background:var(--c950);margin-left:8px;vertical-align:middle}
+.tCupBig{position:relative;width:62%;height:auto;max-height:92%;margin-bottom:8px;
  z-index:2;pointer-events:none;display:block;
  /* A ring in the team's colour, so the head belongs to its panel without being recoloured.
     SEVEN offsets, not four: CSS filters chain, so N shadows compound to about (N/pi)*r --
@@ -1721,6 +1739,17 @@ body.hmTour.tSchedOpen #tourPanel .tCupSchedIn{
 .tCupVs{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);z-index:3;
  font-weight:600;font-size:var(--fs-small,15px);line-height:1.2;color:var(--c950)}
 
+/* The team ring comes OFF inside the matchup panel. It exists to separate a head from a
+   background that does not match it -- on the pitch, and in the schedule thumbnails, it earns
+   that. Here the panel IS the team colour, so it was a green ring on green: all it did was
+   soften the silhouette the panel was already defining. It stays everywhere else. */
+body.hmTour #tourPanel .tCupPanel .tCupBig{filter:drop-shadow(0 4px 10px rgba(15,23,42,.16))}
+/* Both actions on one width and one axis. Kick off was a filled content-width box and End
+   tournament was bare text at a different width -- the same decision point rendered in two
+   different systems, so the eye had to re-find the second one. */
+body.hmTour #tourPanel .tCupActs{gap:4px}
+body.hmTour #tourPanel .tCupGo,
+body.hmTour #tourPanel .tCupQuit{width:auto;min-width:196px;align-self:center}
 .tCupActs{display:flex;flex-direction:column;align-items:center;gap:8px;padding:12px 12px 14px}
 /* Layout only. Colour, type, padding, radius and the hover wash come from the shared button
    system (.hmBtn / .hmBtn.hmBtnPrimary). And they size to their CONTENT like every other
@@ -1805,7 +1834,7 @@ body.hmTour.tSchedOpen #tourPanel .tCupSchedIn{
    One deliberate deviation: font-bold is rendered at 600, not 700. Only the 400 and 600 static
    faces are loaded on this site, so 700 would either synthesise or pull the variable face in
    at a weight the design system does not use. Everything else is theirs. */
-.hmScore .sbCard{box-sizing:border-box;width:min(520px,92vw);max-width:none;
+.hmScore .sbCard{box-sizing:border-box;width:min(568px,94vw);max-width:none;
  border:1px solid var(--c100);border-radius:28px;background:var(--c75);padding:0;
  font-family:var(--sans);color:var(--c950)}
 /* THE TROPHY rides on top of the board for the FINAL only, then is handed over at the whistle.
@@ -1835,19 +1864,19 @@ body.hmFinal .sbTrophy{display:block;animation:sbTrophyIn .5s cubic-bezier(.2,.8
    top AND bottom; an overflow:hidden here squares the bottom corners off again, which is the
    "roundness isn't on the bottom of the black" Jayden spotted. */
 .sbInner{position:relative;display:flex;align-items:stretch;justify-content:space-between;
- gap:0;padding:0;height:106px;background:var(--c50);border-radius:28px 28px 0 0}
-.sbSide{position:relative;display:flex;align-items:center;gap:12px;flex:1 1 0;min-width:0;
- padding-left:80px}
-.sbSideB{flex-direction:row-reverse;padding-left:0;padding-right:80px}
+ gap:0;padding:0;height:92px;background:var(--c50);border-radius:28px 28px 0 0}
+.sbSide{position:relative;display:flex;align-items:center;gap:14px;flex:1 1 0;min-width:0;
+ padding-left:74px}
+.sbSideB{flex-direction:row-reverse;padding-left:0;padding-right:74px}
 .sbEdge{position:absolute;top:0;bottom:0;width:56px;
  background:linear-gradient(rgb(var(--tc)) 0 50%,var(--c950) 50% 100%)}
 .sbSideR .sbEdge{left:0;border-radius:28px 0 0 28px}
 .sbSideB .sbEdge{right:0;border-radius:0 28px 28px 0}
-/* A CODE, not a name -- uppercase and letterspaced so it reads as a label. Positive tracking
-   because uppercase at small sizes needs it; the score below takes negative tracking because
-   large numerals need the opposite. */
-.sbNm{font-family:var(--sans);font-weight:600;font-size:var(--fs-small);color:var(--c700);
- white-space:nowrap;letter-spacing:.10em;text-transform:uppercase}
+/* The codes read at the SAME size as the score -- one line of type across the bar rather than
+   a big number flanked by two small labels. Negative tracking, because that is what large type
+   wants; the positive tracking that suits a 14px label makes 37px uppercase look gappy. */
+.sbNm{font-family:var(--sans);font-weight:600;font-size:var(--fs-h1);color:var(--c950);
+ white-space:nowrap;letter-spacing:-.02em;text-transform:uppercase;line-height:1}
 /* The score is the loudest thing on the bug: header size, and each numeral in its own team's
    colour so a glance tells you WHOSE the number is without reading the code beside it.
    tabular-nums matters here specifically -- these digits change live, and proportional figures
@@ -1860,15 +1889,16 @@ body.hmFinal .sbTrophy{display:block;animation:sbTrophyIn .5s cubic-bezier(.2,.8
 /* 600 stated, not inherited. <b> defaults to font-weight:bolder, which resolves RELATIVE to
    its parent -- inheriting 600 it computed to 900, a weight the type system does not have. */
 .sbScore b{min-width:1ch;text-align:center;font-weight:600}
-.sbScore i{font-style:normal;color:var(--c500);font-size:.5em;font-weight:400;
- position:relative;top:-.16em}
+/* The dash matches the numerals rather than shrinking away between them. */
+.sbScore i{font-style:normal;color:var(--c500);font-size:1em;font-weight:400;
+ position:relative;top:-.04em}
 
-.sbTeam{display:flex;align-items:center;gap:8px;min-width:0}
+
 /* No square at all. The outline traces the HEAD, the way it does on the pitch -- a box, even
    an empty one, draws a rectangle around a shape that is not a rectangle. Four offsets rather
    than a stack: CSS filters CHAIN, so a long stack compounds the thickness instead of adding
    to it, and at 32px one pixel is the whole line. */
-.sbFace{flex:0 0 40px;width:40px;height:40px;display:inline-flex;align-items:center;
+.sbFace{flex:0 0 44px;width:44px;height:44px;display:inline-flex;align-items:center;
  justify-content:center;overflow:visible;background:none}
 .sbFace img{filter:
   drop-shadow(1px 0 0 rgb(var(--tc,148,163,184)))
@@ -1890,16 +1920,14 @@ body.hmFinal .sbTrophy{display:block;animation:sbTrophyIn .5s cubic-bezier(.2,.8
 @media(prefers-reduced-motion:reduce){.hmScore.sbHit .sbCard{animation:none}}
 .sbFace img{max-width:100%;max-height:100%;width:auto;height:auto;display:block}
 .sbDot{flex:0 0 32px;width:32px;height:32px;border-radius:50%;background:rgb(var(--tc,230,230,230))}
-.sbWho{display:flex;flex-direction:column;min-width:0}
-.sbNm{font-weight:600;font-size:14px;line-height:1.1;color:var(--c950);
- white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.sbSub{display:block;width:34px;height:4px;border-radius:2px;margin-top:5px;
- background:rgb(var(--tc,230,230,230))}
 
-.sbVs{display:flex;align-items:center;gap:8px}
-.sbRuleA{flex:0 0 32px;height:1px;background:var(--c100)}
-.sbRuleB{flex:1 1 auto;height:1px;background:var(--c100)}
-.sbVs span{font-weight:600;font-size:13px;line-height:1.1;color:var(--c950)}
+
+
+
+
+
+
+
 /* The round name, on the ledge. Sits left of the win condition and separated from it by the
    same hairline the VS divider uses, so it reads as a second field rather than a badge. */
 /* nowrap on BOTH fields. The ledge is a flex row on a 340px card, so a long round name
@@ -1912,7 +1940,7 @@ body.hmFinal .sbTrophy{display:block;animation:sbTrophyIn .5s cubic-bezier(.2,.8
 .sbFoot .sbMeta{white-space:nowrap;flex:0 0 auto}
 body.hmFinal .sbRound{color:#9E6C00}
 .sbFoot{display:flex;justify-content:space-between;align-items:center;gap:8px;
- padding:0 24px;height:72px;font-weight:600;font-size:var(--fs-small);line-height:1.1;color:var(--c950);
+ padding:0 24px;height:60px;font-weight:600;font-size:var(--fs-small);line-height:1.1;color:var(--c950);
  /* The ledge is the card's last child, so the card's 28 is ITS to carry. The card does not
     clip, so square corners here painted straight over the rounding and the card read as
     square no matter what radius the card itself was given. */
@@ -7484,7 +7512,19 @@ function paint(){
     var pan  = el('div', 'tCupPanel');
     var cut = tm && tm.captain && (tm.captain.portrait || tm.captain.cut);
     if (cut){ var bi = el('img'); bi.className = 'tCupBig'; bi.src = cut; bi.alt = '';
-              bi.draggable = false; pan.appendChild(bi); }   // INSIDE, so the panel crops it
+              bi.draggable = false; pan.appendChild(bi);     // INSIDE, so the panel crops it
+              /* The head is recoloured to its OWN team's hue. The captains are dyed
+                 independently of the palette, so a yellow panel was drawing a purple head and
+                 a blue panel an orange one -- two sources of truth for "what colour is this
+                 team". The ring used to hide that seam; with the ring gone the mismatch was
+                 the loudest thing on the screen. A colour-blended layer masked to the same cut
+                 takes the team's hue and keeps the head's own shading, so it reads as the same
+                 head, lit differently -- not as a flat swatch. */
+              var tint = el('div', 'tCupTint');
+              tint.setAttribute('aria-hidden','true');
+              tint.style.webkitMaskImage = 'url("' + cut + '")';
+              tint.style.maskImage = 'url("' + cut + '")';
+              pan.appendChild(tint); }
     side.appendChild(pan);
     var meta = el('div', 'tCupMeta');
     meta.appendChild(el('div', 'tCupNm', tm ? tm.name : '\u2014'));
@@ -7632,9 +7672,15 @@ function paint(){
   var sum = el('div', 'tCupSchedHd', 'Schedule');
   sched.appendChild(sum);
   var schedIn = el('div', 'tCupSchedIn');
-  T.br.rounds.forEach(function(rd){
+  /* The h1 names the round and the schedule names it again a few hundred pixels below. I
+     first tried dropping the heading, which was wrong twice over: T.br.rounds always holds
+     every round so the condition never fired, and the headings are what make the list
+     scannable. Marking WHICH round is live is the better answer -- it turns the repetition
+     into a position indicator instead of an echo. */
+  var _now = (T.cur && typeof T.cur.round === 'number') ? T.cur.round : -1;
+  T.br.rounds.forEach(function(rd, _ri){
     var rdBox = el('div', 'tCupRd');
-    rdBox.appendChild(el('div', 'tCupRdH', rd.label));
+    rdBox.appendChild(el('div', 'tCupRdH' + (_ri === _now ? ' tRdNow' : ''), rd.label));
     rd.matches.forEach(function(m){
       /* Neither side decided yet: no ring on the empty thumbnails. Filled, they read as
          "not played"; hollow, they read as a real fixture with the heads missing. */
