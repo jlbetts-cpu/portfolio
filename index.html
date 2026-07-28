@@ -1543,9 +1543,10 @@ body.hmTour .hero{transition:min-height .42s cubic-bezier(.2,.8,.2,1)}
 
 
 body.hmTour.tSchedOpen #tourPanel .tCupSched{display:block}
-/* 96px matches the JS floor. At 132 it beat the measured max-height on a short screen and
-   pushed the block 31px past the bottom of the hero -- a min-height always wins a max-height. */
-body.hmTour.tSchedOpen #tourPanel .tCupSchedIn{min-height:96px;
+/* No min-height. A min-height always beats a max-height, so any value here overrides the
+   measured, row-snapped height -- at 132 it shoved the block 31px past the hero, at 96 it
+   sliced a row. The JS floor is one whole row. */
+body.hmTour.tSchedOpen #tourPanel .tCupSchedIn{
  overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
 @media(prefers-reduced-motion:reduce){ body.hmTour .hero{transition:none} }
 
@@ -6916,10 +6917,24 @@ function paint(){
         Math.max(0, Math.round(heroBottom - cup.getBoundingClientRect().top)) + 'px';
       if (sched.open){
         var inn = sched.querySelector('.tCupSchedIn');
-        /* The scroller absorbs exactly the leftover room, which is what keeps the block
-           ending flush with the hero rather than running past it. */
-        if (inn) inn.style.maxHeight =
-          Math.max(96, Math.round(heroBottom - inn.getBoundingClientRect().top - 16)) + 'px';
+        if (inn){
+          /* The scroller absorbs the leftover room, which is what keeps the block ending
+             flush with the hero rather than running past it -- but snapped DOWN to a whole
+             row. Filling the space exactly sliced the last fixture through the middle of its
+             name, which just reads as broken. Rows are snapped to rather than multiplied out
+             because the round headings between them mean they are not on a fixed pitch. */
+          var innTop = inn.getBoundingClientRect().top;
+          var avail  = heroBottom - innTop - 16;
+          var snap = 0, first = 0;
+          [].forEach.call(inn.querySelectorAll('.tCupFx'), function(row){
+            var edge = row.getBoundingClientRect().bottom - innTop + inn.scrollTop;
+            if (!first || edge < first) first = edge;
+            if (edge <= avail && edge > snap) snap = edge;
+          });
+          /* The floor is one whole row, not a round number -- a fixed 96px was not on a row
+             boundary, so on a short screen it beat the snap and sliced the row anyway. */
+          inn.style.maxHeight = Math.round(snap || first || avail) + 'px';
+        }
       }
     });
   }
