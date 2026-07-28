@@ -1485,42 +1485,50 @@ body.about-open #navAbout{color:var(--c950);background:var(--c75)}
      3. a border-drawn triangle pointing at whoever won
      4. even:flex-row-reverse, so the two sides mirror and face each other
    Grouped by ROUND rather than by date, because that is what a draw actually has. */
-/* ================= LIVE SCOREBOARD (SportyBlocks Scoreboard1 structure) =================
-   Their crest becomes our head, their city line becomes the colour name, their 24px radius
-   becomes our 4px, their extrabold becomes our 600. The shell/inner-card/footer-ledge
-   arrangement and the asymmetric VS divider are theirs and are the reason it reads as a
-   scoreboard rather than a score. */
-.hmScore .sbCard{display:flex;flex-direction:column;gap:10px;padding:12px 14px;
- background:var(--c50);border:1px solid var(--c100);border-radius:4px}
+/* ================= LIVE SCOREBOARD =================
+   A FAITHFUL translation of SportyBlocks' Scoreboard1, not an adaptation -- their geometry,
+   their radii, their spacing, their type sizes. Their Tailwind classes map as:
+     w-[340px]                -> width 340
+     rounded-3xl              -> 24px (NOT our 4px)
+     border/ring-1 gray-200   -> 1px #E2E8F0
+     bg-custom-gray-100       -> #F1F5F9   (shell)
+     p-8 / px-8 py-4          -> 32px / 32px 16px
+     gap-5 / gap-2 / gap-x-2  -> 20 / 8 / 8
+     h-8 w-8                  -> 32px crest slot
+     text-sm/tight            -> 14px/1.1     text-xs/tight -> 12px/1.1
+     text-xs-md/tight         -> 13px/1.1
+     text-custom-gray-900     -> #0F172A
+   No config ships with the kit, so the custom-gray-* values are Tailwind's slate scale, which
+   is what the class names and the reference screenshots both indicate.
+   One deliberate deviation: font-bold is rendered at 600, not 700. Only the 400 and 600 static
+   faces are loaded on this site, so 700 would either synthesise or pull the variable face in
+   at a weight the design system does not use. Everything else is theirs. */
+.hmScore .sbCard{box-sizing:border-box;width:340px;max-width:88vw;
+ border:1px solid #E2E8F0;border-radius:24px;background:#F1F5F9;padding:0;
+ font-family:var(--sans);color:#0F172A}
+.sbInner{border-radius:24px;background:#fff;box-shadow:inset 0 0 0 1px #E2E8F0;padding:32px;
+ display:flex;flex-direction:column;gap:20px}
 .sbTeam{display:flex;align-items:center;gap:8px;min-width:0}
-.sbFace{flex:0 0 26px;width:26px;height:26px;display:inline-flex;align-items:center;justify-content:center;
- border-radius:3px;background:rgba(var(--tc,117,117,117),.14)}
+.sbFace{flex:0 0 32px;width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center}
 .sbFace img{max-width:100%;max-height:100%;width:auto;height:auto;display:block}
-.sbWho{display:flex;flex-direction:column;min-width:0;line-height:1.15}
-.sbNm{font-family:var(--sans);font-weight:600;font-size:var(--fs-small);color:var(--c950);
+.sbDot{flex:0 0 32px;width:32px;height:32px;border-radius:50%;background:rgb(var(--tc,148,163,184))}
+.sbWho{display:flex;flex-direction:column;min-width:0}
+.sbNm{font-weight:600;font-size:14px;line-height:1.1;color:#0F172A;
  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.sbSub{font-family:var(--sans);font-style:normal;font-weight:400;font-size:var(--fs-caption,12px);
- color:var(--c500)}
-.sbScore{margin-left:auto;font-family:var(--sans);font-weight:600;font-size:20px;color:var(--c950);
+.sbSub{font-style:normal;font-weight:400;font-size:12px;line-height:1.1;color:#0F172A;margin-top:2px}
+.sbScore{margin-left:auto;font-weight:600;font-size:14px;line-height:1.1;color:#0F172A;
  font-variant-numeric:tabular-nums;flex:0 0 auto;padding-left:8px}
-/* the asymmetric divider: short rule, VS, then the rule that takes the rest */
 .sbVs{display:flex;align-items:center;gap:8px}
-.sbRuleA{flex:0 0 26px;height:1px;background:var(--c100)}
-.sbRuleB{flex:1 1 auto;height:1px;background:var(--c100)}
-.sbVs span{font-family:var(--sans);font-weight:600;font-size:var(--fs-caption,12px);
- letter-spacing:.1em;color:var(--c500)}
-.sbFoot{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 4px 2px}
-.sbMeta{display:inline-flex;align-items:center;gap:6px;font-family:var(--sans);font-weight:400;
- font-size:var(--fs-caption,12px);color:var(--c700)}
+.sbRuleA{flex:0 0 32px;height:1px;background:#E2E8F0}
+.sbRuleB{flex:1 1 auto;height:1px;background:#E2E8F0}
+.sbVs span{font-weight:600;font-size:13px;line-height:1.1;color:#0F172A}
+.sbFoot{display:flex;justify-content:space-between;align-items:center;gap:8px;
+ padding:16px 32px;font-weight:600;font-size:12px;line-height:1.1;color:#0F172A}
+.sbMeta{display:inline-flex;align-items:center;gap:6px}
 .sbMeta .sBall{width:14px;height:14px;object-fit:contain}
-.hmScore .hmScoreEnd svg{width:14px;height:14px;stroke-width:1.5;fill:none}
-/* the later .hmScore rule puts the board in a shrink-to-fit column, which squeezed the
-   card to 154px and pushed the footer away on the column gap. Give it a measure and let
-   the footer sit tight under the card as a ledge. */
-.hmScore:has(.sbCard){width:min(300px,84vw);align-items:stretch;gap:0}
-.hmScore .sbCard{box-sizing:border-box}
-/* no head (a plain match, not a tournament fixture): a colour dot, not an empty box */
-.sbDot{flex:0 0 10px;width:10px;height:10px;border-radius:50%;background:rgb(var(--tc,117,117,117))}
+.hmScore .hmScoreEnd{color:#0F172A;font-weight:600;font-size:12px;padding:0;min-height:0}
+.hmScore .hmScoreEnd svg{width:13px;height:13px;stroke-width:1.6;fill:none}
+.hmScore:has(.sbCard){width:auto;align-items:center;gap:0;filter:none}
 
 .tRes{width:min(560px,92vw);margin:6px auto 0;display:flex;flex-direction:column;gap:10px}
 .tResGroup{border:1px solid var(--c100);border-radius:4px;background:var(--c75,#F4F4F4);overflow:hidden}
@@ -5197,16 +5205,18 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
      }
      board.innerHTML =
         '<div class="sbCard">'
-      +   side('R')
-      +   '<div class="sbVs"><i class="sbRuleA"></i><span>VS</span><i class="sbRuleB"></i></div>'
-      +   side('B')
-      + '</div>'
-      + '<div class="sbFoot">'
-      +   '<span class="sbMeta">First to ' + S.target
-      +     '<img class="sBall" src="images/soccerball.webp" alt="" draggable="false"></span>'
-      +   '<button class="hmScoreEnd" type="button" aria-label="End the match">'
-      +     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">'
-      +     '<path d="M5 7a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-10a2 2 0 0 1-2-2l0-10"/></svg>End</button>'
+      +   '<div class="sbInner">'
+      +     side('R')
+      +     '<div class="sbVs"><i class="sbRuleA"></i><span>VS</span><i class="sbRuleB"></i></div>'
+      +     side('B')
+      +   '</div>'
+      +   '<div class="sbFoot">'
+      +     '<span class="sbMeta">First to ' + S.target
+      +       '<img class="sBall" src="images/soccerball.webp" alt="" draggable="false"></span>'
+      +     '<button class="hmScoreEnd" type="button" aria-label="End the match">'
+      +       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">'
+      +       '<path d="M5 7a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-10a2 2 0 0 1-2-2l0-10"/></svg>End</button>'
+      +   '</div>'
       + '</div>';
    })();
    hero.appendChild(board);sR=board.querySelector(".sR");sB=board.querySelector(".sB");
@@ -5238,7 +5248,11 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    goalR.style.transform="translate("+(XR-42)+"px,"+(groundY-150)+"px)";
    if(goalShL)goalShL.style.transform="translate("+(XL-6)+"px,"+(groundY-4)+"px)";
    if(goalShR)goalShR.style.transform="translate("+(XR-52)+"px,"+(groundY-4)+"px)";}
-  function teams(){
+  /* The goals are positioned once, from start(). geo() reads innerWidth, so after a resize
+   XL/XR were stale and the goals sat where the old viewport put them -- and the pitch
+   bounds the physics uses went stale with them. Re-run the layout while a match is live. */
+addEventListener("resize",function(){if(S.on){try{layout();}catch(_){}}},{passive:true});
+function teams(){
    // BENCHED heads take no part. The tournament fields only the two teams in the fixture, and a
    // benched head with no side used to fail the "does the pick cover every real head" test below,
    // which silently dropped the whole selection and re-drew random sides -- so squads ended up
@@ -5291,7 +5305,16 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    if((window.__hmFx||0)>=2)return;window.__hmFx=(window.__hmFx||0)+1;
    var cv=document.createElement("canvas"),hr=hero.getBoundingClientRect();cv.width=innerWidth;cv.height=Math.round(hr.height);
    cv.style.cssText="position:fixed;left:0;top:"+hr.top.toFixed(0)+"px;width:100vw;height:"+hr.height.toFixed(0)+"px;pointer-events:none;z-index:62";document.body.appendChild(cv);
-   var g=cv.getContext("2d"),P=[];var rgb=team===1?RED:BLUE;var ex=gx+OFF;   // ball hero-x -> screen-x
+   var g=cv.getContext("2d"),P=[];
+   // The confetti is the SCORING TEAM'S colour, not a hardcoded red/blue. In a tournament
+   // fixture the sides are two arbitrary palette teams, so firing red or blue was showing a
+   // colour neither team was wearing.
+   var rgb=team===1?RED:BLUE;
+   try{var _T=window.__hmTour;
+     if(_T&&_T.live&&_T.cur){var _tm=(team===1?_T.cur.a:_T.cur.b);if(_tm&&_tm.col)rgb=_tm.col;}
+     else if(S.teams){var _s=S.teams[team===1?1:2];if(_s&&_s.col)rgb=_s.col;}
+   }catch(_){}
+   var ex=gx+OFF;   // ball hero-x -> screen-x
    for(var i=0;i<22;i++){var a=Math.random()*6.28,sp=180+Math.random()*260;   // the explosion at the ball
     P.push({x:ex,y:gy,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp-60,w:5+Math.random()*4,h:5+Math.random()*4,c:"255,255,255",rv:4+Math.random()*6,life:1});}
    var goalX=team===1?(innerWidth-14):14,dir=team===1?-1:1;   // confetti shoots OUT of the scored-on goal, into the field
