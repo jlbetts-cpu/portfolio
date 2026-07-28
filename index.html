@@ -1521,24 +1521,52 @@ body.about-open #navAbout{color:var(--c950);background:var(--c75)}
  animation:tGlint 4.6s cubic-bezier(.42,0,.3,1) infinite}
 @keyframes tGlint{0%{transform:translateX(-105%)}38%,100%{transform:translateX(175%)}}
 
+/* ---- THE MATCHUP. Two colour panels side by side, each head rising OUT of the top of its
+   panel rather than sitting inside it -- that overhang is what gives the block depth without
+   a shadow. The panel clips nothing; the head is positioned against the panel's baseline and
+   is simply taller than it. ---- */
 .tCupCard{margin:0 12px;border-radius:20px;background:#fff;box-shadow:inset 0 0 0 1px #E2E8F0;
- padding:24px;display:flex;flex-direction:column;gap:18px}
-.tCupTeam{display:flex;align-items:center;gap:10px;min-width:0}
-.tCupChip{flex:0 0 34px;width:34px;height:34px;border-radius:50%;overflow:hidden;
- background:rgb(var(--tc,148,163,184));display:inline-flex;align-items:center;justify-content:center;
- box-shadow:inset 0 0 0 1px rgb(var(--te,148,163,184))}   /* a pale chip still has an edge */
-.tCupChip img{width:118%;height:118%;object-fit:contain;display:block}
-.tCupNm{font-weight:600;font-size:15px;line-height:1.1;color:#0F172A;min-width:0;
+ padding:46px 14px 16px}
+.tCupMatch{display:grid;grid-template-columns:1fr auto 1fr;align-items:end;gap:10px}
+.tCupSide{position:relative;min-width:0}
+.tCupPanel{position:relative;height:96px;border-radius:12px;background:rgb(var(--tc));
+ box-shadow:inset 0 0 0 1px rgb(var(--te,var(--tc)))}
+/* the crest watermark the kit puts behind the player: ours is the team's own initial */
+.tCupPanel::after{content:attr(data-mark);position:absolute;inset:0;display:flex;
+ align-items:center;justify-content:center;pointer-events:none;
+ font-family:var(--sans);font-weight:600;font-size:58px;line-height:1;
+ color:rgb(var(--ti,255,255,255));opacity:.22;align-items:flex-start;padding-top:6px}
+.tCupBig{position:absolute;left:50%;bottom:52px;transform:translateX(-50%);
+ height:132px;width:auto;z-index:2;pointer-events:none;display:block;
+ /* A ring in the team's colour, so the head belongs to its panel without being recoloured.
+    SEVEN offsets, not four: CSS filters chain, so N shadows compound to about (N/pi)*r --
+    at N=7 the result is a 14-gon (2.6% thickness variation) where N=4 is a square (41%).
+    r = 3 / 2.228 = 1.35px for a 3px ring. */
+ filter:
+  drop-shadow(1.35px 0 0 rgb(var(--tc)))
+  drop-shadow(.84px 1.06px 0 rgb(var(--tc)))
+  drop-shadow(-.3px 1.32px 0 rgb(var(--tc)))
+  drop-shadow(-1.22px .59px 0 rgb(var(--tc)))
+  drop-shadow(-1.22px -.59px 0 rgb(var(--tc)))
+  drop-shadow(-.3px -1.32px 0 rgb(var(--tc)))
+  drop-shadow(.84px -1.06px 0 rgb(var(--tc)))
+  drop-shadow(0 4px 10px rgba(15,23,42,.16))}
+.tCupMeta{margin-top:12px;text-align:center;min-width:0}
+.tCupNm{font-weight:600;font-size:15px;line-height:1.15;color:#0F172A;
  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.tCupSc{margin-left:auto;font-weight:600;font-size:20px;line-height:1;color:#0F172A;
- font-variant-numeric:tabular-nums;flex:0 0 auto;padding-left:10px}
-.tCupVs{display:flex;align-items:center;gap:10px}
-.tCupVs i{height:1px;background:#E2E8F0}
-.tCupVs i:first-child{flex:0 0 32px}
-.tCupVs i:last-child{flex:1 1 auto}
-.tCupVs span{font-weight:600;font-size:13px;letter-spacing:.08em;color:#64748B}
+.tCupSc{display:block;margin-top:2px;font-weight:600;font-size:22px;line-height:1.1;
+ color:#0F172A;font-variant-numeric:tabular-nums}
+.tCupVs{align-self:center;padding-bottom:52px;font-weight:600;font-size:14px;
+ letter-spacing:.08em;color:#64748B}
 
-.tCupGo{display:block;width:calc(100% - 24px);margin:16px 12px;box-sizing:border-box;
+.tCupActs{display:flex;flex-direction:column;gap:8px;padding:14px 12px 16px}
+.tCupQuit{display:block;width:100%;box-sizing:border-box;padding:11px 20px;
+ border:1px solid #E2E8F0;border-radius:14px;background:transparent;color:#64748B;
+ font-family:var(--sans);font-weight:600;font-size:13px;line-height:1;cursor:pointer;min-height:44px;
+ transition:color .16s cubic-bezier(.2,.8,.2,1),border-color .16s cubic-bezier(.2,.8,.2,1)}
+.tCupQuit:hover,.tCupQuit:focus-visible{color:#0F172A;border-color:#94A3B8}
+.tCupQuit.tQuitArmed{color:#b3402e;border-color:#b3402e}
+.tCupGo{display:block;width:100%;margin:0;box-sizing:border-box;
  padding:14px 20px;border:0;border-radius:16px;background:#0F172A;color:#fff;
  font-family:var(--sans);font-weight:600;font-size:15px;line-height:1;cursor:pointer;min-height:48px;
  transition:opacity .16s cubic-bezier(.2,.8,.2,1)}
@@ -1558,21 +1586,29 @@ body.about-open #navAbout{color:var(--c950);background:var(--c75)}
 .tCupRd+.tCupRd{margin-top:8px}
 .tCupRdH{padding:8px 16px;font-weight:600;font-size:11px;letter-spacing:.1em;
  text-transform:uppercase;color:#64748B;background:#F8FAFC;border-bottom:1px solid #E2E8F0}
-.tCupFx{display:flex;align-items:center;gap:8px;padding:9px 16px;border-bottom:1px solid #E2E8F0}
+.tCupFx{display:flex;align-items:center;gap:6px;padding:0 4px;overflow:hidden;
+ border-bottom:1px solid #E2E8F0}
 .tCupFx:last-child{border-bottom:0}
-.tCupFxSide{display:flex;align-items:center;gap:7px;min-width:0;flex:1 1 0}
-.tCupFxSide:last-of-type{flex-direction:row-reverse;text-align:right}
-.tCupDot{flex:0 0 18px;width:18px;height:18px;border-radius:50%;overflow:hidden;
- background:rgb(var(--tc,203,213,225));display:inline-flex;align-items:center;justify-content:center;
- box-shadow:inset 0 0 0 1px rgb(var(--te,203,213,225))}
-.tCupDot img{width:118%;height:118%;object-fit:contain;display:block}
-.tCupFxNm{font-weight:400;font-size:13px;color:#0F172A;min-width:0;
+.tCupFxSide{display:flex;align-items:center;gap:8px;min-width:0;flex:1 1 0}
+.tCupFxSide:last-of-type{flex-direction:row-reverse}
+/* the head is oversized and hangs past the row -- the row crops it, which is what gives the
+   list its weight without adding another box */
+.tCupDot{flex:0 0 44px;width:44px;height:52px;position:relative;overflow:hidden;
+ background:rgb(var(--tc,203,213,225));border-radius:0}
+.tCupDot img{position:absolute;left:50%;top:50%;transform:translate(-50%,-46%);
+ height:150%;width:auto;max-width:none;display:block}
+.tCupFxSide:first-of-type .tCupDot{margin-left:-4px}
+.tCupFxSide:last-of-type  .tCupDot{margin-right:-4px}
+.tCupFxNm{font-weight:600;font-size:13px;letter-spacing:.04em;color:#0F172A;min-width:0;
  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.tCupFxSide.tCupWon .tCupFxNm{font-weight:600}
-.tCupFxSide:not(.tCupWon) .tCupFxNm{color:#64748B}
-.tCupFxSc{flex:0 0 auto;font-weight:600;font-size:13px;color:#0F172A;
- font-variant-numeric:tabular-nums;letter-spacing:.02em;padding:0 2px}
+.tCupFxSide:not(.tCupWon) .tCupFxNm{font-weight:400;color:#64748B}
+.tCupFxSc{flex:0 0 auto;display:inline-flex;align-items:center;gap:7px;
+ font-weight:600;font-size:14px;color:#0F172A;font-variant-numeric:tabular-nums;padding:0 4px}
 .tCupFxSc.tCupPend{font-weight:400;color:#94A3B8}
+/* the arrow points at the score from the winner's side, so the result reads at a glance */
+.tCupArrow{width:0;height:0;border:5px solid transparent;flex:0 0 auto}
+.tCupArrow.tArrL{border-left-color:#0F172A;border-right-width:0}
+.tCupArrow.tArrR{border-right-color:#0F172A;border-left-width:0}
 @media(prefers-reduced-motion:reduce){
  .tCupTrophy::after{animation:none;opacity:0}
  .tCupChev{transition:none}
@@ -6707,34 +6743,60 @@ function paint(){
   // matchup, or the champion once it is decided
   var card = el('div', 'tCupCard');
   function cupSide(tm, scoreTxt){
-    var row = el('div', 'tCupTeam');
-    tint(row, tm);
-    var chip = el('span', 'tCupChip');
+    var side = el('div', 'tCupSide');
+    if (tm){ side.style.setProperty('--tc', tm.col);
+             side.style.setProperty('--ti', tm.ink || '255,255,255');
+             side.style.setProperty('--te', tm.edge || tm.col); }
+    var pan  = el('div', 'tCupPanel');
+    // the watermark behind the head: the team's own initial, in its paired ink
+    pan.setAttribute('data-mark', tm ? String(tm.name).trim().charAt(0).toUpperCase() : '');
     var cut = tm && tm.captain && (tm.captain.portrait || tm.captain.cut);
-    if (cut){ var ci = el('img'); ci.src = cut; ci.alt = ''; ci.draggable = false; chip.appendChild(ci); }
-    row.appendChild(chip);
-    row.appendChild(el('span', 'tCupNm', tm ? tm.name : '\u2014'));
-    row.appendChild(el('span', 'tCupSc', scoreTxt));
-    return row;
+    if (cut){ var bi = el('img'); bi.className = 'tCupBig'; bi.src = cut; bi.alt = '';
+              bi.draggable = false; side.appendChild(bi); }
+    side.appendChild(pan);
+    var meta = el('div', 'tCupMeta');
+    meta.appendChild(el('div', 'tCupNm', tm ? tm.name : '\u2014'));
+    if (scoreTxt !== null) meta.appendChild(el('span', 'tCupSc', scoreTxt));
+    side.appendChild(meta);
+    return side;
   }
   if (champ2 !== undefined){
     var wt = teamById(champ2);
-    card.appendChild(cupSide(wt, '\u2605'));
+    var solo = el('div', 'tCupMatch'); solo.style.gridTemplateColumns = '1fr';
+    solo.appendChild(cupSide(wt, null));
+    card.appendChild(solo);
   } else if (nm2){
     var A2 = teamById(nm2.match.a), B2 = teamById(nm2.match.b);
-    card.appendChild(cupSide(A2, '0'));
-    var vs = el('div', 'tCupVs');
-    vs.appendChild(el('i')); vs.appendChild(el('span', '', 'VS')); vs.appendChild(el('i'));
-    card.appendChild(vs);
-    card.appendChild(cupSide(B2, '0'));
+    var mrow = el('div', 'tCupMatch');
+    mrow.appendChild(cupSide(A2, '0'));
+    mrow.appendChild(el('div', 'tCupVs', 'VS'));
+    mrow.appendChild(cupSide(B2, '0'));
+    card.appendChild(mrow);
   }
   cup.appendChild(card);
 
+  // Kick off AND the way out both sit in the matchup container -- neither should have to be
+  // hunted for, and the quit was previously stranded at the very bottom of the panel.
+  var acts = el('div', 'tCupActs');
   if (nm2 && champ2 === undefined && T.phase === 'bracket'){
     var go2 = el('button', 'tCupGo', 'Kick off'); go2.type = 'button';
     go2.addEventListener('click', function(e){ e.stopPropagation(); T.phase = 'match'; startFixture(nm2); });
-    cup.appendChild(go2);
+    acts.appendChild(go2);
   }
+  var done2 = (champ2 !== undefined);
+  var quit = el('button', 'tCupQuit', done2 ? 'Back to the hero' : 'End tournament');
+  quit.type = 'button';
+  var armed2 = false, armT2 = 0;
+  quit.addEventListener('click', function(e){
+    e.stopPropagation();
+    if (done2 || armed2){ stop(); return; }
+    armed2 = true; quit.textContent = 'Tap again to end'; quit.classList.add('tQuitArmed');
+    clearTimeout(armT2);
+    armT2 = setTimeout(function(){ armed2 = false; quit.textContent = 'End tournament';
+      quit.classList.remove('tQuitArmed'); }, 3200);
+  });
+  acts.appendChild(quit);
+  cup.appendChild(acts);
 
   // ---- the schedule, collapsed by default. <details> so it is keyboard- and
   // screen-reader-native without a line of JS. Saved scores render here. ----
@@ -6764,10 +6826,17 @@ function paint(){
         return sd;
       }
       fx.appendChild(fxSide(m.a));
-      // the saved scoreline, or a dash while the tie is still to come
+      // the saved scoreline, or a dash while the tie is still to come -- with an arrow
+      // pointing at it from whichever side won
       var played = (m.sa !== undefined && m.sb !== undefined);
-      fx.appendChild(el('span', 'tCupFxSc' + (played ? '' : ' tCupPend'),
+      var sc = el('span', 'tCupFxSc' + (played ? '' : ' tCupPend'));
+      var aWon = (m.winner !== undefined && m.winner === m.a);
+      var bWon = (m.winner !== undefined && m.winner === m.b);
+      if (aWon) sc.appendChild(el('i', 'tCupArrow tArrL'));
+      sc.appendChild(document.createTextNode(
         played ? (m.sa + ' \u2013 ' + m.sb) : '\u2013'));
+      if (bWon) sc.appendChild(el('i', 'tCupArrow tArrR'));
+      fx.appendChild(sc);
       fx.appendChild(fxSide(m.b));
       rdBox.appendChild(fx);
     });
