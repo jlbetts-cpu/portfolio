@@ -1495,8 +1495,9 @@ body.about-open #navAbout{color:var(--c950);background:var(--c75)}
 /* ---- FULL BLEED. The block is the width of the page and runs from directly under the site
    header down to the tab row, so it reads as a section of the page rather than a card sitting
    on it. Radius goes with it: an edge-to-edge block has no corners to round. ---- */
-body.hmTour #tourPanel{left:0!important;right:0!important;top:0!important;
- width:100%!important;max-width:none!important;transform:none!important}
+body.hmTour #tourPanel{left:50%!important;right:auto!important;top:0!important;
+ width:min(460px,calc(100vw - 40px))!important;max-width:none!important;
+ transform:translateX(-50%)!important}
 body.hmTour #tourPanel .tCup{width:100%;max-width:none;margin:0;border-radius:0;
  border-left:0;border-right:0;border-top:0}
 body.hmTour #tourPanel .tCupCard{margin:0;border-radius:0;box-shadow:none;
@@ -1506,12 +1507,12 @@ body.hmTour #tourPanel .tCupActs{padding-left:0;padding-right:0}
 body.hmTour #tourPanel .tCupSchedIn{padding-left:0;padding-right:0}
 body.hmTour #tourPanel .tCupRd{border-radius:0;box-shadow:none;
  border-top:1px solid var(--c100)}
-/* the content still sits on the page's own measure, even though the block is full width */
+/* Ordinary padding: the block is a centred column, so no measure compensation is needed. */
 body.hmTour #tourPanel .tCupHead,
 body.hmTour #tourPanel .tCupCard,
 body.hmTour #tourPanel .tCupActs,
 body.hmTour #tourPanel .tCupSched>summary,
-body.hmTour #tourPanel .tCupSchedIn{padding-inline:max(24px,calc((100% - 1060px)/2))}
+body.hmTour #tourPanel .tCupSchedIn{padding-inline:20px}
 
 /* ---- The capsule runs the FULL HEIGHT of the hero while the schedule is open, and the
    hero collapses to the capsule when it is closed. min-height is the animated property so
