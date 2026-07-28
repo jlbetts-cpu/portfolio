@@ -1026,6 +1026,7 @@ body.hmSoccer .tourPanel{display:none}   /* the pitch owns the screen during a f
    step aside so the bracket is not competing with them for the same space -- and they are already
    hidden once a fixture starts, so nothing pops back in mid-tournament. */
 body.hmTour .heroCopy h1,body.hmTour .hero .stagewrap{opacity:0;pointer-events:none;transition:opacity .35s cubic-bezier(.2,.8,.2,1)}
+body.hmTour .hero .stagewrap{height:0;min-height:0;overflow:hidden;margin:0;transition:opacity .35s cubic-bezier(.2,.8,.2,1),height .42s cubic-bezier(.2,.8,.2,1)}
 body.hmTour .scrollCue{display:none}
 .tourPanel{top:var(--heroTitleTop,40px);transform:translateX(-50%)}
 
@@ -1490,20 +1491,33 @@ body.about-open #navAbout{color:var(--c950);background:var(--c75)}
      3. a border-drawn triangle pointing at whoever won
      4. even:flex-row-reverse, so the two sides mirror and face each other
    Grouped by ROUND rather than by date, because that is what a draw actually has. */
+/* ---- The capsule runs the FULL HEIGHT of the hero while the schedule is open, and the
+   hero collapses to the capsule when it is closed. min-height is the animated property so
+   the page reflows in one movement rather than the panel jumping inside a fixed hero. ---- */
+body.hmTour .hero{transition:min-height .42s cubic-bezier(.2,.8,.2,1)}
+body.hmTour.tSchedOpen .tourPanel{bottom:24px}
+body.hmTour.tSchedOpen #tourPanel .tCup{display:flex;flex-direction:column;height:100%}
+body.hmTour.tSchedOpen #tourPanel .tCupHead,
+body.hmTour.tSchedOpen #tourPanel .tCupCard,
+body.hmTour.tSchedOpen #tourPanel .tCupActs{flex:0 0 auto}
+body.hmTour.tSchedOpen #tourPanel .tCupSched{flex:1 1 auto;display:flex;flex-direction:column;min-height:0}
+body.hmTour.tSchedOpen #tourPanel .tCupSchedIn{flex:1 1 auto;max-height:none;min-height:0}
+@media(prefers-reduced-motion:reduce){ body.hmTour .hero{transition:none} }
+
 /* ================= THE CUP CAPSULE =================
    One container: title, matchup, kick off, and a collapsible schedule. Geometry follows the
-   SportyBlocks kit -- 24px radius, #F1F5F9 shell, white inner card, 32px padding, 20px gap,
-   1px #E2E8F0 hairlines -- so the matchup and the schedule read as one object rather than two
+   SportyBlocks kit -- 24px radius, var(--c50) shell, white inner card, 32px padding, 20px gap,
+   1px var(--c100) hairlines -- so the matchup and the schedule read as one object rather than two
    components stacked. */
 .tCup{width:min(420px,92vw);margin:0 auto;box-sizing:border-box;
- border:1px solid #E2E8F0;border-radius:24px;background:#F1F5F9;
- font-family:var(--sans);color:#0F172A;overflow:hidden}
+ border:1px solid var(--c100);border-radius:24px;background:var(--c50);
+ font-family:var(--sans);color:var(--c950);overflow:hidden}
 .tCupHead{position:relative;padding:24px 24px 16px;text-align:center}
 /* both lines are ONE h1: the cup names itself, the round says where we are in it */
 .tCupH1{margin:0;width:100%;max-width:none;font-weight:600;font-size:28px;line-height:1.1;
- letter-spacing:-.02em;color:#0F172A;text-align:center;filter:none}
+ letter-spacing:-.02em;color:var(--c950);text-align:center;filter:none}
 .tCupH1 .tCupRound{display:block;margin-top:8px;font-weight:400;font-size:var(--fs-caption,12px);line-height:1.1;
- letter-spacing:.14em;text-transform:uppercase;color:#64748B}
+ letter-spacing:.14em;text-transform:uppercase;color:var(--c500)}
 /* the trophy, with a glisten that sweeps across it */
 .tCupTrophy{position:relative;width:56px;height:56px;margin:0 auto 12px;display:block}
 .tCupTrophy img{width:100%;height:100%;object-fit:contain;display:block}
@@ -1526,7 +1540,7 @@ body.about-open #navAbout{color:var(--c950);background:var(--c75)}
    a shadow. The panel clips nothing; the head is positioned against the panel's baseline and
    is simply taller than it. ---- */
 .tCupCard{position:relative;margin:0 12px;border-radius:20px;background:#fff;
- box-shadow:inset 0 0 0 1px #E2E8F0;padding:0 16px 16px;overflow:hidden}
+ box-shadow:inset 0 0 0 1px var(--c100);padding:0 16px 16px;overflow:hidden}
 .tCupMatch{display:grid;grid-template-columns:1fr 1fr;align-items:start;gap:4px;
  margin:0 -16px}          /* full bleed to the card's edges */
 .tCupSide{position:relative;min-width:0}
@@ -1551,43 +1565,43 @@ body.about-open #navAbout{color:var(--c950);background:var(--c75)}
   drop-shadow(.84px -1.06px 0 rgb(var(--tc)))
   drop-shadow(0 4px 10px rgba(15,23,42,.16))}
 .tCupMeta{margin-top:16px;padding:0 8px;text-align:center;min-width:0}
-.tCupNm{font-weight:600;font-size:var(--fs-small,15px);line-height:1.2;color:#0F172A;
+.tCupNm{font-weight:600;font-size:var(--fs-small,15px);line-height:1.2;color:var(--c950);
  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tCupSc{display:block;margin-top:2px;font-weight:600;font-size:22px;line-height:1.1;
- color:#0F172A;font-variant-numeric:tabular-nums}
+ color:var(--c950);font-variant-numeric:tabular-nums}
 .tCupVs{position:absolute;left:50%;bottom:24px;transform:translateX(-50%);z-index:3;
- font-weight:600;font-size:var(--fs-small,15px);line-height:1.2;color:#0F172A}
+ font-weight:600;font-size:var(--fs-small,15px);line-height:1.2;color:var(--c950)}
 
 .tCupActs{display:flex;flex-direction:column;gap:8px;padding:16px 12px 16px}
 .tCupQuit{display:block;width:100%;box-sizing:border-box;padding:12px 20px;
- border:1px solid #E2E8F0;border-radius:14px;background:transparent;color:#64748B;
+ border:1px solid var(--c100);border-radius:14px;background:transparent;color:var(--c500);
  font-family:var(--sans);font-weight:600;font-size:var(--fs-small,15px);line-height:1;cursor:pointer;min-height:44px;
  transition:color .16s cubic-bezier(.2,.8,.2,1),border-color .16s cubic-bezier(.2,.8,.2,1)}
-.tCupQuit:hover,.tCupQuit:focus-visible{color:#0F172A;border-color:#94A3B8}
+.tCupQuit:hover,.tCupQuit:focus-visible{color:var(--c950);border-color:var(--c500)}
 .tCupQuit.tQuitArmed{color:#b3402e;border-color:#b3402e}
 .tCupGo{display:block;width:100%;margin:0;box-sizing:border-box;
- padding:16px 20px;border:0;border-radius:16px;background:#0F172A;color:#fff;
+ padding:16px 20px;border:0;border-radius:16px;background:var(--c950);color:#fff;
  font-family:var(--sans);font-weight:600;font-size:var(--fs-small,15px);line-height:1;cursor:pointer;min-height:48px;
  transition:opacity .16s cubic-bezier(.2,.8,.2,1)}
 .tCupGo:hover,.tCupGo:focus-visible{opacity:.88}
 
 /* the schedule collapses -- a <details>, so it is keyboard and screen-reader native */
-.tCupSched{border-top:1px solid #E2E8F0;background:#F1F5F9}
+.tCupSched{border-top:1px solid var(--c100);background:var(--c50)}
 .tCupSched>summary{list-style:none;cursor:pointer;padding:16px 24px;
  display:flex;align-items:center;justify-content:space-between;gap:8px;
- font-weight:600;font-size:var(--fs-caption,12px);letter-spacing:.08em;text-transform:uppercase;color:#0F172A}
+ font-weight:600;font-size:var(--fs-caption,12px);letter-spacing:.08em;text-transform:uppercase;color:var(--c950)}
 .tCupSched>summary::-webkit-details-marker{display:none}
-.tCupSched>summary:focus-visible{outline:2px solid #0F172A;outline-offset:-3px;border-radius:6px}
+.tCupSched>summary:focus-visible{outline:2px solid var(--c950);outline-offset:-3px;border-radius:6px}
 .tCupChev{width:16px;height:16px;flex:0 0 16px;transition:transform .22s cubic-bezier(.2,.8,.2,1)}
 .tCupSched[open] .tCupChev{transform:rotate(180deg)}
 .tCupSchedIn{padding:0 12px 12px;max-height:min(40vh,330px);overflow-y:auto;
  overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
-.tCupRd{border-radius:14px;background:#fff;box-shadow:inset 0 0 0 1px #E2E8F0;overflow:hidden}
+.tCupRd{border-radius:14px;background:#fff;box-shadow:inset 0 0 0 1px var(--c100);overflow:hidden}
 .tCupRd+.tCupRd{margin-top:8px}
 .tCupRdH{padding:8px 16px;font-weight:600;font-size:var(--fs-caption,12px);letter-spacing:.1em;
- text-transform:uppercase;color:#64748B;background:#F8FAFC;border-bottom:1px solid #E2E8F0}
+ text-transform:uppercase;color:var(--c500);background:var(--c50);border-bottom:1px solid var(--c100)}
 .tCupFx{display:flex;align-items:center;gap:8px;padding:0;overflow:hidden;
- border-bottom:1px solid #E2E8F0}
+ border-bottom:1px solid var(--c100)}
 .tCupFx:last-child{border-bottom:0}
 .tCupFxSide{display:flex;align-items:center;gap:12px;min-width:0;flex:1 1 0}
 .tCupFxSide:last-of-type{flex-direction:row-reverse}
@@ -1595,19 +1609,19 @@ body.about-open #navAbout{color:var(--c950);background:var(--c75)}
    of eyes and nothing else -- a cut-out has no body to crop into, so it is contained, not
    covered. 48px tile, head at 40px: both on the grid. */
 .tCupDot{flex:0 0 48px;width:48px;height:48px;position:relative;overflow:hidden;
- background:rgb(var(--tc,203,213,225));border-radius:0;
+ background:rgb(var(--tc,230,230,230));border-radius:0;
  display:flex;align-items:center;justify-content:center}
 .tCupDot img{height:40px;width:auto;max-width:100%;object-fit:contain;display:block}
-.tCupFxNm{font-weight:600;font-size:var(--fs-small,15px);line-height:1.2;color:#0F172A;min-width:0;
+.tCupFxNm{font-weight:600;font-size:var(--fs-small,15px);line-height:1.2;color:var(--c950);min-width:0;
  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.tCupFxSide:not(.tCupWon) .tCupFxNm{font-weight:400;color:#64748B}
+.tCupFxSide:not(.tCupWon) .tCupFxNm{font-weight:400;color:var(--c500)}
 .tCupFxSc{flex:0 0 auto;display:inline-flex;align-items:center;gap:8px;
- font-weight:600;font-size:var(--fs-small,15px);color:#0F172A;font-variant-numeric:tabular-nums;padding:0 8px}
-.tCupFxSc.tCupPend{font-weight:400;color:#94A3B8}
+ font-weight:600;font-size:var(--fs-small,15px);color:var(--c950);font-variant-numeric:tabular-nums;padding:0 8px}
+.tCupFxSc.tCupPend{font-weight:400;color:var(--c500)}
 /* the arrow points at the score from the winner's side, so the result reads at a glance */
 .tCupArrow{width:0;height:0;border:5px solid transparent;flex:0 0 auto}
-.tCupArrow.tArrL{border-left-color:#0F172A;border-right-width:0}
-.tCupArrow.tArrR{border-right-color:#0F172A;border-left-width:0}
+.tCupArrow.tArrL{border-left-color:var(--c950);border-right-width:0}
+.tCupArrow.tArrR{border-right-color:var(--c950);border-left-width:0}
 @media(prefers-reduced-motion:reduce){
  .tCupTrophy::after{animation:none;opacity:0}
  .tCupChev{transition:none}
@@ -1618,46 +1632,46 @@ body.about-open #navAbout{color:var(--c950);background:var(--c75)}
    their radii, their spacing, their type sizes. Their Tailwind classes map as:
      w-[340px]                -> width 340
      rounded-3xl              -> 24px (NOT our 4px)
-     border/ring-1 gray-200   -> 1px #E2E8F0
-     bg-custom-gray-100       -> #F1F5F9   (shell)
+     border/ring-1 gray-200   -> 1px var(--c100)
+     bg-custom-gray-100       -> var(--c50)   (shell)
      p-8 / px-8 py-4          -> 32px / 32px 16px
      gap-5 / gap-2 / gap-x-2  -> 20 / 8 / 8
      h-8 w-8                  -> 32px crest slot
      text-sm/tight            -> 14px/1.1     text-xs/tight -> 12px/1.1
      text-xs-md/tight         -> 13px/1.1
-     text-custom-gray-900     -> #0F172A
+     text-custom-gray-900     -> var(--c950)
    No config ships with the kit, so the custom-gray-* values are Tailwind's slate scale, which
    is what the class names and the reference screenshots both indicate.
    One deliberate deviation: font-bold is rendered at 600, not 700. Only the 400 and 600 static
    faces are loaded on this site, so 700 would either synthesise or pull the variable face in
    at a weight the design system does not use. Everything else is theirs. */
 .hmScore .sbCard{box-sizing:border-box;width:340px;max-width:88vw;
- border:1px solid #E2E8F0;border-radius:24px;background:#F1F5F9;padding:0;
- font-family:var(--sans);color:#0F172A}
-.sbInner{border-radius:24px;background:#fff;box-shadow:inset 0 0 0 1px #E2E8F0;padding:32px;
+ border:1px solid var(--c100);border-radius:24px;background:var(--c50);padding:0;
+ font-family:var(--sans);color:var(--c950)}
+.sbInner{border-radius:24px;background:#fff;box-shadow:inset 0 0 0 1px var(--c100);padding:32px;
  display:flex;flex-direction:column;gap:20px}
 .sbTeam{display:flex;align-items:center;gap:8px;min-width:0}
 .sbFace{flex:0 0 32px;width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center}
 .sbFace img{max-width:100%;max-height:100%;width:auto;height:auto;display:block}
-.sbDot{flex:0 0 32px;width:32px;height:32px;border-radius:50%;background:rgb(var(--tc,148,163,184))}
+.sbDot{flex:0 0 32px;width:32px;height:32px;border-radius:50%;background:rgb(var(--tc,230,230,230))}
 .sbWho{display:flex;flex-direction:column;min-width:0}
-.sbNm{font-weight:600;font-size:14px;line-height:1.1;color:#0F172A;
+.sbNm{font-weight:600;font-size:14px;line-height:1.1;color:var(--c950);
  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sbSub{display:block;width:34px;height:4px;border-radius:2px;margin-top:5px;
- background:rgb(var(--tc,148,163,184))}
-.sbScore{margin-left:auto;font-weight:600;font-size:14px;line-height:1.1;color:#0F172A;
+ background:rgb(var(--tc,230,230,230))}
+.sbScore{margin-left:auto;font-weight:600;font-size:14px;line-height:1.1;color:var(--c950);
  font-variant-numeric:tabular-nums;flex:0 0 auto;padding-left:8px}
 .sbVs{display:flex;align-items:center;gap:8px}
-.sbRuleA{flex:0 0 32px;height:1px;background:#E2E8F0}
-.sbRuleB{flex:1 1 auto;height:1px;background:#E2E8F0}
-.sbVs span{font-weight:600;font-size:13px;line-height:1.1;color:#0F172A}
+.sbRuleA{flex:0 0 32px;height:1px;background:var(--c100)}
+.sbRuleB{flex:1 1 auto;height:1px;background:var(--c100)}
+.sbVs span{font-weight:600;font-size:13px;line-height:1.1;color:var(--c950)}
 .sbFoot{display:flex;justify-content:space-between;align-items:center;gap:8px;
- padding:16px 32px;font-weight:600;font-size:12px;line-height:1.1;color:#0F172A}
+ padding:16px 32px;font-weight:600;font-size:12px;line-height:1.1;color:var(--c950)}
 .sbMeta{display:inline-flex;align-items:center;gap:6px}
 .sbMeta .sBall{width:14px;height:14px;object-fit:contain}
-.hmScore .hmScoreEnd{color:#64748B;font-weight:600;font-size:12px;padding:6px 8px;min-height:0;
+.hmScore .hmScoreEnd{color:var(--c500);font-weight:600;font-size:12px;padding:6px 8px;min-height:0;
  border-radius:8px;transition:color .16s cubic-bezier(.2,.8,.2,1),background-color .16s cubic-bezier(.2,.8,.2,1)}
-.hmScore .hmScoreEnd:hover,.hmScore .hmScoreEnd:focus-visible{color:#0F172A;background:#E2E8F0}
+.hmScore .hmScoreEnd:hover,.hmScore .hmScoreEnd:focus-visible{color:var(--c950);background:var(--c100)}
 .hmScore .hmScoreEnd svg{width:13px;height:13px;stroke-width:1.6;fill:none}
 .hmScore:has(.sbCard){width:auto;align-items:center;gap:0;filter:none}
 
@@ -6088,7 +6102,9 @@ function teams(){
   function start(){t0=performance.now();level=0;lavaY=null;lastStep=0;mutNext=18;mutT0=0;mutKind="";mutSeq=Math.floor(Math.random()*3);debris.length=0;window.__hmWind=null;window.__hmDuel=0;embers.length=0;bubbles.length=0;window.__hmSinkBusy=0;lastReq=window.__hmBattleReq||0;
    RISE_DUR=Math.max(19000,Math.min(38000,12000+(window.__hmCrowd||6)*3400));   // fewer heads -> a faster climb so a small game gets tense quickly instead of everyone standing around
    if(!gl&&!initGL()){/* no webgl: crust-only fallback */}sizeGL();running=true;wrap.style.opacity="1";glow.style.opacity="1";window.__hmLavaOn=true;requestAnimationFrame(loop);}
-  function stop(){running=false;window.__hmLavaOn=false;wrap.style.opacity="0";glow.style.opacity="0";haze.style.opacity="0";surfaceY=1e9;level=0;embers.length=0;bubbles.length=0;if(cctx)cctx.clearRect(0,0,crust.width,crust.height);}
+  function stop(){
+  try{var _h=document.querySelector('.hero'); if(_h)_h.style.minHeight='';
+      document.body.classList.remove('tSchedOpen');}catch(_){}running=false;window.__hmLavaOn=false;wrap.style.opacity="0";glow.style.opacity="0";haze.style.opacity="0";surfaceY=1e9;level=0;embers.length=0;bubbles.length=0;if(cctx)cctx.clearRect(0,0,crust.width,crust.height);}
   var wasOn=false,lastFrame=performance.now();
   function loop(n){if(!active()){if(wasOn){stop();wasOn=false;}return;}
    requestAnimationFrame(loop);var tsec=(n-t0)/1000;
@@ -6733,7 +6749,12 @@ function tint(node, tm){
 }
 function paint(){
   var h = ensureHost();
-  if (!T.live){ h.innerHTML = ''; h.hidden = true; return; }
+  if (!T.live){
+    h.innerHTML = ''; h.hidden = true;
+    document.body.classList.remove('tSchedOpen');
+    try{ var _hero = document.querySelector('.hero'); if (_hero) _hero.style.minHeight = ''; }catch(_){}
+    return;
+  }
   h.hidden = false;
   h.innerHTML = '';
 
@@ -6819,6 +6840,25 @@ function paint(){
   // ---- the schedule, collapsed by default. <details> so it is keyboard- and
   // screen-reader-native without a line of JS. Saved scores render here. ----
   var sched = document.createElement('details'); sched.className = 'tCupSched';
+  sched.open = (T.schedOpen !== false);          // open by default; the choice persists a repaint
+  /* The hero has to be TOLD its height. .tourPanel is absolutely positioned, so it adds
+     nothing to the hero's layout -- collapsing the schedule shrank the capsule and left the
+     hero exactly as tall as before. Closed, the hero is measured to the capsule; open, it
+     goes back to full height and the capsule stretches into it. min-height carries the CSS
+     transition either way, so it is one movement rather than a jump. */
+  function syncHero(){
+    var hero = document.querySelector('.hero'); if (!hero) return;
+    if (sched.open){ hero.style.minHeight = ''; return; }
+    var cupEl = cup.getBoundingClientRect(), heroR = hero.getBoundingClientRect();
+    hero.style.minHeight = Math.round(cupEl.bottom - heroR.top + 24) + 'px';
+  }
+  sched.addEventListener('toggle', function(){
+    T.schedOpen = sched.open;
+    document.body.classList.toggle('tSchedOpen', sched.open);
+    requestAnimationFrame(syncHero);
+  });
+  document.body.classList.toggle('tSchedOpen', sched.open);
+  requestAnimationFrame(syncHero);
   var sum = document.createElement('summary');
   sum.appendChild(document.createTextNode('Schedule'));
   sum.insertAdjacentHTML('beforeend',
