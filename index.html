@@ -1765,7 +1765,21 @@ body.hmTour.tSchedOpen #tourPanel .tCupSchedIn{
 .sbInner{border-radius:28px 28px 4px 4px;overflow:hidden;background:var(--c50);box-shadow:inset 0 0 0 1px var(--c100);padding:32px;
  display:flex;flex-direction:column;gap:20px}
 .sbTeam{display:flex;align-items:center;gap:8px;min-width:0}
-.sbFace{flex:0 0 32px;width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center}
+.sbFace{flex:0 0 32px;width:32px;height:32px;display:inline-flex;align-items:center;
+ justify-content:center;overflow:hidden;border-radius:4px;background:rgb(var(--tc,230,230,230))}
+/* THE GOAL FLASH. The board lights up in the scorer's colour for a beat, then settles.
+   A ring plus a soft bloom rather than a fill, so the score stays readable through it --
+   the number is the thing you are looking at when a goal goes in. */
+.hmScore .sbCard{transition:box-shadow .5s cubic-bezier(.2,.8,.2,1)}
+.hmScore.sbHit .sbCard{
+ box-shadow:0 0 0 3px rgb(var(--sbFlash,148,163,184)),
+            0 0 44px -4px rgba(var(--sbFlash,148,163,184),.72);
+ animation:sbFlashPulse .9s cubic-bezier(.2,.8,.2,1) 1}
+@keyframes sbFlashPulse{
+ 0%{box-shadow:0 0 0 0 rgb(var(--sbFlash,148,163,184)),0 0 0 0 rgba(var(--sbFlash,148,163,184),0)}
+ 22%{box-shadow:0 0 0 4px rgb(var(--sbFlash,148,163,184)),0 0 54px 2px rgba(var(--sbFlash,148,163,184),.85)}
+ 100%{box-shadow:0 0 0 0 rgba(var(--sbFlash,148,163,184),0),0 0 0 0 rgba(var(--sbFlash,148,163,184),0)}}
+@media(prefers-reduced-motion:reduce){.hmScore.sbHit .sbCard{animation:none}}
 .sbFace img{max-width:100%;max-height:100%;width:auto;height:auto;display:block}
 .sbDot{flex:0 0 32px;width:32px;height:32px;border-radius:50%;background:rgb(var(--tc,230,230,230))}
 .sbWho{display:flex;flex-direction:column;min-width:0}
@@ -5541,6 +5555,18 @@ function teams(){
                   cut=(tm.captain&&(tm.captain.portrait||tm.captain.cut))||""; }
         }
       }catch(_){}
+      /* No tournament fixture? Appoint a captain from the heads actually on that side. A flat
+         colour circle said nothing; the head says who is playing. A real head outranks the
+         mini-Jayden filler, so the captaincy does not fall to a clone when someone real is
+         available. The NAME stays Red / Blue -- that is the team's identity here. */
+      if(!cut){try{
+        var want=(which==="R"?1:2), best=null;
+        for(var i=0;i<peers.length;i++){var p=peers[i];
+          if(!p||S.teams[p.slot]!==want)continue;
+          if(!best)best=p;
+          if(p.slot<9000&&!p.__filler){best=p;break;}}
+        if(best&&best.cut)cut=best.cut;
+      }catch(_){}}
       return '<div class="sbTeam" style="--tc:'+col+'">'
            +   (cut?'<span class="sbFace"><img src="'+cut+'" alt="" draggable="false"></span>'
                    :'<span class="sbDot"></span>')
@@ -5649,6 +5675,11 @@ function teams(){
    (function(){var c=goalCall();if(c)setTimeout(function(){if(S.on)bigCall(c.t,c.ms);},1300);})();
    try{var _gp=(team===1?sR:sB);if(_gp){_gp.style.transition="none";_gp.style.transform="scale(1.55)";void _gp.offsetWidth;_gp.style.transition="transform .5s cubic-bezier(.2,1.4,.3,1)";_gp.style.transform="scale(1)";_gp.style.display="inline-block";}}catch(_){}   // the scoring number POPS -- a goal should feel like a goal on the board too
    var g=team===1?goalR:goalL;g.classList.add("hmGoalHit");setTimeout(function(){g.classList.remove("hmGoalHit");},650);
+   /* The board lights up in the scorer's colour. Reads the same source the pitch does, so a
+      "Green vs Sky" tie flashes green, not a hardcoded red. */
+   try{if(board){board.style.setProperty("--sbFlash",teamRGB(team));board.classList.remove("sbHit");
+     void board.offsetWidth;board.classList.add("sbHit");
+     setTimeout(function(){if(board)board.classList.remove("sbHit");},900);}}catch(_){}
    try{if(typeof busyNow==="function"&&!busyNow()){setHold("smile",1100);showFace("smile");if(typeof browFlash==="function")browFlash();}}catch(_){}
    var _mx=Math.max(S.red,S.blue),_df=Math.abs(S.red-S.blue);
    if((_mx>=S.target&&_df>=2)||_mx>=S.cap){win(team);return;}   // WIN BY TWO (hard cap S.cap): a 5-4 isn't over -- the great matches go to deuce
