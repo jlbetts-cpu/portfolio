@@ -1515,7 +1515,7 @@ body.tourPoster #tourPanel .tCupPanel{
    the rule below is the same for all of them. --hx/--hy/--hw are set on the block. */
 body.tourPoster #tourPanel .tCupBigWrap{
  position:absolute;left:var(--hx,50%);top:var(--hy,50%);transform:translate(-50%,-50%);
- width:var(--hw,30%);margin:0;
+ width:var(--hw,30%);margin:0;z-index:5;
  /* Grounded in the cloud rather than pasted on it: a tight contact shadow plus a wider,
     softer cast shadow, both falling the same way as the light in the artwork. */
  filter:drop-shadow(0 2px 2px rgba(0,0,0,.55)) drop-shadow(0 10px 22px rgba(0,0,0,.4))}
@@ -7583,8 +7583,13 @@ function paint(){
      repaint. Head positions are measured off each poster and travel WITH it, because every
      artwork frames its heads differently. */
   var POSTERS = {
-    fin:   { src:'images/poster-final.webp',   hx:'21%', hx2:'79%', hy:'79%', hw:'30%' },
-    match:[{ src:'images/poster-match-1.webp', hx:'31%', hx2:'69%', hy:'54%', hw:'36%' }]
+    /* Sizes are deliberately large. A head cutout carries transparent margin, so the VISIBLE
+       face is a good deal smaller than the image box -- percentages that look right on paper
+       render small. And the heads go in each poster's EMPTY space, never over artwork that
+       already has heads in it. */
+    fin:   { src:'images/poster-final.webp',   hx:'23%', hx2:'77%', hy:'76%', hw:'46%' },
+    match:[{ src:'images/poster-match-1.webp', hx:'25%', hx2:'75%', hy:'79%', hw:'46%' },
+           { src:'images/poster-match-2.webp', hx:'24%', hx2:'76%', hy:'78%', hw:'46%' }]
   };
   try{
     var isFin = !!(nm2 && champ2 === undefined && nm2.round === T.br.rounds.length - 1);
