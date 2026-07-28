@@ -1816,8 +1816,12 @@ body.hmTour.tSchedOpen #tourPanel .tCupSchedIn{
 .sbInner{border-radius:28px 28px 4px 4px;overflow:hidden;background:var(--c50);box-shadow:inset 0 0 0 1px var(--c100);padding:32px;
  display:flex;flex-direction:column;gap:20px}
 .sbTeam{display:flex;align-items:center;gap:8px;min-width:0}
+/* An OUTLINE in the team's colour, not a filled box. The head already carries that colour as
+   a ring on the pitch, so a solid tile behind it stated the same thing twice and boxed in a
+   cut-out that is not rectangular. */
 .sbFace{flex:0 0 32px;width:32px;height:32px;display:inline-flex;align-items:center;
- justify-content:center;overflow:hidden;border-radius:4px;background:rgb(var(--tc,230,230,230))}
+ justify-content:center;overflow:hidden;border-radius:4px;background:none;
+ box-shadow:inset 0 0 0 2px rgb(var(--tc,230,230,230))}
 /* THE GOAL FLASH. The board lights up in the scorer's colour for a beat, then settles.
    A ring plus a soft bloom rather than a fill, so the score stays readable through it --
    the number is the thing you are looking at when a goal goes in. */
@@ -2649,6 +2653,34 @@ function layoutParty(){
  partyEl.style.setProperty("--by",pBALLY+"px");
  discoWrap.style.left=pCX+"px";discoWrap.style.top=pBALLY+"px";
 }
+/* THE CHAMPIONSHIP SPOTLIGHT. The delight party exactly as it is -- dark, disco ball, beams,
+   spotlight -- but aimed at the head that just won instead of the big one.
+   Deliberately does NOT set partyMode/eventLock or touch the face: that 6.6s sequence belongs
+   to the big head's own celebration and running it here would freeze the pitch mid-match. */
+window.__hmPartyAt=function(rect,ms){try{
+  if(!rect||!rect.width)return;
+  buildPartyDOM();
+  var sy=window.scrollY||0;
+  var cx=rect.left+rect.width/2,
+      cy=rect.top+sy+rect.height*0.42,
+      by=Math.max(54,Math.round(rect.top+sy-rect.height*1.15));
+  partyEl.style.setProperty("--hx",cx+"px");
+  partyEl.style.setProperty("--hy",cy+"px");
+  /* The pool has to be generous relative to a HEAD. The original derives this from the big
+     stage, which is several times wider, so copying its 0.52 factor left the winner sitting
+     in near-darkness inside its own spotlight. */
+  partyEl.style.setProperty("--hr",Math.max(150,Math.round(rect.width*2.4))+"px");
+  partyEl.style.setProperty("--bx",cx+"px");
+  partyEl.style.setProperty("--by",by+"px");
+  discoWrap.style.left=cx+"px"; discoWrap.style.top=by+"px";
+  requestAnimationFrame(function(){
+    if(partyEl)partyEl.classList.add("on");
+    if(discoWrap)discoWrap.classList.add("on");});
+  clearTimeout(window.__hmPartyAtT);
+  window.__hmPartyAtT=setTimeout(function(){try{
+    if(partyEl)partyEl.classList.remove("on");
+    if(discoWrap)discoWrap.classList.remove("on");}catch(_){}},ms||6500);
+}catch(_){}};
 function startParty(){try{document.body.classList.remove("catchReady");}catch(_){}
  if(partyMode||eating||dizzy||reactType||CALIB)return;
  partyMode=true;eventLock=true;cycHold=true;clearTimeout(cycTimer);
@@ -4617,7 +4649,8 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
      pendingHide=null,hideToken=0,lapBack=false,forceHide=/[?&]hide=1/.test(location.search);
  function plane(front){root.style.zIndex="3";shadow.style.zIndex="2";}   // heads ALWAYS stay in front of the big head + the CTA buttons (the back plane is gone) -- cleaner, more premium, no ducking-behind glitches
  var G=2600,DT=0.04,facc=0,CEIL=2,surpriseAt=0;   // real units: px/s and px/s^2, integrated at 25fps
- var me={x:0,y:0,HW:HW,HH:HH,vx:0,vy:0,ground:false,perched:false,kx:0,ky:0,dmgIn:0,inB:false,elim:false,slot:slot,cut:(data&&data.cut)||null,__filler:filler};peers.push(me);   // set it HERE rather than patching the peer from outside, so anything spawning mini-Jayden gets it right   // cut travels with the peer so the tournament can find a head it has already spawned instead of duplicating it
+ var me={x:0,y:0,HW:HW,HH:HH,vx:0,vy:0,ground:false,perched:false,kx:0,ky:0,dmgIn:0,inB:false,elim:false,slot:slot,cut:(data&&data.cut)||null,__filler:filler};me.root=root;   // so the championship spotlight can measure this head
+ peers.push(me);   // set it HERE rather than patching the peer from outside, so anything spawning mini-Jayden gets it right   // cut travels with the peer so the tournament can find a head it has already spawned instead of duplicating it
  // ability ACTOR: the smashing head's handle -- registry abilities drive the head through this (its physics locals live in this closure)
  var A={me:me,peers:peers,FX:FX,slot:slot,
   get cx(){return x+HW/2;},get cy(){return y+HH/2;},get x(){return x;},get y(){return y;},get HW(){return HW;},get HH(){return HH;},get dir(){return dir;},
@@ -5755,7 +5788,6 @@ function teams(){
    var g=team===1?goalR:goalL;g.classList.add("hmGoalHit");setTimeout(function(){g.classList.remove("hmGoalHit");},650);
    /* The board lights up in the scorer's colour. Reads the same source the pitch does, so a
       "Green vs Sky" tie flashes green, not a hardcoded red. */
-   try{goalLights(team);}catch(_){}
    try{if(board){board.style.setProperty("--sbFlash",teamRGB(team));board.classList.remove("sbHit");
      void board.offsetWidth;board.classList.add("sbHit");
      setTimeout(function(){if(board)board.classList.remove("sbHit");},900);}}catch(_){}
@@ -5771,7 +5803,18 @@ function teams(){
 
    S.phase="reset";bvx=0;bvy=0;setTimeout(function(){if(S.on){ballInTitle(false);ball.style.opacity="1";if(ballShadow)ballShadow.style.opacity="0.28";dropIn();}},700);}   // otherwise it re-appears for the next kickoff
   function win(team){S.winner=team;S.phase="win";board2();if(board)board.classList.add("won");
-   try{goalLights(team,true);}catch(_){}   // the winner's lights, wider and held longer
+   /* The disco is saved for the CHAMPIONSHIP. An ordinary goal keeps the board flash; only
+      winning the final earns the dark, the ball and the spotlight -- and the spotlight lands
+      on the head that won it, not on the big head. */
+   try{ if(document.body.classList.contains("hmFinal")){
+     var _bw=null;
+     for(var _i=0;_i<peers.length;_i++){var _p=peers[_i];
+       if(!_p||S.teams[_p.slot]!==team)continue;
+       if(!_bw)_bw=_p;
+       if(_p.slot<9000&&!_p.__filler){_bw=_p;break;}}
+     if(_bw&&_bw.root&&window.__hmPartyAt)
+       window.__hmPartyAt(_bw.root.getBoundingClientRect(),7000);
+   } }catch(_){}
    // Name the winner BEFORE the hook runs: __hmTourWin clears T.cur synchronously, and the call
    // itself is announced 850ms later, by which point there is no fixture left to read from.
    var _wname=(team===1?"Red":"Blue")+" wins!";
