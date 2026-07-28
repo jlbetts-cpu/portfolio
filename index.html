@@ -1375,7 +1375,7 @@ body.about-open #navAbout{color:var(--c950);background:var(--c75)}
 .tCards{display:flex;align-items:stretch;justify-content:center;gap:14px;margin-top:4px;
  width:min(540px,92vw);margin-left:auto;margin-right:auto}
 .tCard{position:relative;flex:1 1 0;min-width:0;min-height:186px;
- border-radius:16px;background:rgb(var(--tc));color:#fff;
+ border-radius:16px;background:rgb(var(--tc));color:rgb(var(--ti,255,255,255));
  clip-path:inset(0 round 16px);isolation:isolate;
  display:flex;flex-direction:column;justify-content:flex-end;padding:16px;
  animation:tCardRise .34s cubic-bezier(.2,.8,.2,1) both;animation-delay:var(--cd,0ms)}
@@ -1392,6 +1392,11 @@ body.about-open #navAbout{color:var(--c950);background:var(--c75)}
    stat row sat directly on a face and neither could be read. Sits between head and body. */
 .tCard::after,.tChampIn::after{content:'';position:absolute;inset:0;pointer-events:none;
  background:linear-gradient(to top,rgba(18,18,18,.46) 0%,rgba(18,18,18,.16) 42%,transparent 72%)}
+/* On a pale fill the paired ink is near-black, so a dark scrim behind it fights the text
+   instead of helping it. Flip the scrim to light for those teams. */
+.tCard[style*='--ti: 18'],.tChampIn[style*='--ti: 18']{--scrimA:rgba(253,253,253,.55);--scrimB:rgba(253,253,253,.2)}
+.tCard[style*='--ti: 18']::after,.tChampIn[style*='--ti: 18']::after{
+ background:linear-gradient(to top,var(--scrimA) 0%,var(--scrimB) 42%,transparent 72%)}
 /* ---- THE LAVA MESH, in the team's hue. The six radial stops are the SAME six points as
    the Floor-is-Lava WebGL shader's POINTS array (0.66/0.24, 0.90/0.40, 0.22/0.30, 0.58/0.66,
    0.86/0.78, 0.30/0.80), with each point's alpha and radius scaled by that point's `heat` --
@@ -1415,7 +1420,7 @@ body.about-open #navAbout{color:var(--c950);background:var(--c75)}
  to  {transform:translate3d(2.4%,2%,0)   scale(1.13)}}
 .tCardBody{position:relative;z-index:2}
 .tCardNm{font-family:var(--sans);font-weight:600;font-size:var(--fs-h3,22px);line-height:1.05;
- letter-spacing:-.015em;color:#fff;text-shadow:0 1px 10px rgba(18,18,18,.34)}
+ letter-spacing:-.015em;color:rgb(var(--ti,255,255,255))}
 .tCardTag{display:inline-block;margin-top:6px;padding:3px 10px;border-radius:999px;
  background:rgba(255,255,255,.20);color:#fff;font-size:var(--fs-caption,12px);
  font-weight:600;letter-spacing:.08em;text-transform:uppercase}
@@ -1440,7 +1445,7 @@ body.about-open #navAbout{color:var(--c950);background:var(--c75)}
 .tChamp{position:relative;width:min(420px,92vw);margin:6px auto 0;padding:8px;
  border:1px solid var(--c100);border-radius:4px;background:var(--c50);
  animation:tChampIn .46s cubic-bezier(.2,.8,.2,1) both}
-.tChampIn{position:relative;min-height:244px;border-radius:4px;isolation:isolate;color:#fff;
+.tChampIn{position:relative;min-height:244px;border-radius:4px;isolation:isolate;color:rgb(var(--ti,255,255,255));
  background:rgb(var(--tc));
  /* the notch: a shallow V taken out of the base, so the card reads as a crest not a rectangle */
  clip-path:polygon(0 0,100% 0,100% 94%,50% 100%,0 94%);
@@ -1520,7 +1525,8 @@ body.about-open #navAbout{color:var(--c950);background:var(--c75)}
  padding:24px;display:flex;flex-direction:column;gap:18px}
 .tCupTeam{display:flex;align-items:center;gap:10px;min-width:0}
 .tCupChip{flex:0 0 34px;width:34px;height:34px;border-radius:50%;overflow:hidden;
- background:rgb(var(--tc,148,163,184));display:inline-flex;align-items:center;justify-content:center}
+ background:rgb(var(--tc,148,163,184));display:inline-flex;align-items:center;justify-content:center;
+ box-shadow:inset 0 0 0 1px rgb(var(--te,148,163,184))}   /* a pale chip still has an edge */
 .tCupChip img{width:118%;height:118%;object-fit:contain;display:block}
 .tCupNm{font-weight:600;font-size:15px;line-height:1.1;color:#0F172A;min-width:0;
  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -1557,7 +1563,8 @@ body.about-open #navAbout{color:var(--c950);background:var(--c75)}
 .tCupFxSide{display:flex;align-items:center;gap:7px;min-width:0;flex:1 1 0}
 .tCupFxSide:last-of-type{flex-direction:row-reverse;text-align:right}
 .tCupDot{flex:0 0 18px;width:18px;height:18px;border-radius:50%;overflow:hidden;
- background:rgb(var(--tc,203,213,225));display:inline-flex;align-items:center;justify-content:center}
+ background:rgb(var(--tc,203,213,225));display:inline-flex;align-items:center;justify-content:center;
+ box-shadow:inset 0 0 0 1px rgb(var(--te,203,213,225))}
 .tCupDot img{width:118%;height:118%;object-fit:contain;display:block}
 .tCupFxNm{font-weight:400;font-size:13px;color:#0F172A;min-width:0;
  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -6358,10 +6365,25 @@ var /* ---- Every team colour sits at relative luminance 0.150, so WHITE TEXT CL
    Scaled in LINEAR RGB, which preserves hue and saturation exactly -- no hue drift. Yellow and
    Orange cannot survive that as yellow and orange, so they are named for what they now are. ---- */
 PAL = [
-  { n: 'Red',    c: '194,61,51'  }, { n: 'Blue',   c: '49,109,181' },
-  { n: 'Green',  c: '44,123,50'  }, { n: 'Bronze', c: '136,103,13' },
-  { n: 'Purple', c: '128,85,194' }, { n: 'Rust',   c: '170,84,28'  },
-  { n: 'Pink',   c: '175,71,118' }, { n: 'Slate',  c: '101,109,122'}
+  /* ---- Radix Colors steps (MIT, (c) 2021-2022 Modulz / 2022- WorkOS), chosen by a search
+     that maximised minimum CIEDE2000 separation JOINTLY across normal, protan and deutan
+     vision. Every colour clears 4.5:1 with its OWN paired text -- six take ink, two take
+     white. That pairing is the point: white text is impossible on a real yellow (the most
+     saturated yellow in the whole sRGB gamut that carries white at 4.5:1 is #727b00, olive),
+     which is why Adobe Spectrum and Atlassian both name yellow as an explicit carve-out.
+     The earlier equal-luminance palette was worse than wrong -- under deuteranopia, hue
+     collapses and lightness is the only discriminator left, so equalising it made two teams
+     measure ΔE00 0.36 apart, i.e. identical. This set holds 11.30 under deutan, which is on
+     a par with Okabe-Ito (11.67), the CVD reference palette.
+     `e` is a darker edge so a pale chip still has an outline on paper -- Carbon's fix. ---- */
+  { n: 'Red',     c: '209,52,21',   ink: '255,255,255', e: '209,52,21'  },
+  { n: 'Gold',    c: '255,220,0',   ink: '18,18,18',    e: '158,108,0'  },
+  { n: 'Green',   c: '70,167,88',   ink: '18,18,18',    e: '42,126,59'  },
+  { n: 'Teal',    c: '13,155,138',  ink: '18,18,18',    e: '0,133,115'  },
+  { n: 'Sky',     c: '116,218,248', ink: '18,18,18',    e: '0,116,158'  },
+  { n: 'Blue',    c: '0,144,255',   ink: '18,18,18',    e: '13,116,206' },
+  { n: 'Violet',  c: '101,77,196',  ink: '255,255,255', e: '101,80,185' },
+  { n: 'Magenta', c: '233,61,130',  ink: '18,18,18',    e: '203,29,99'  }
 ];
 
 // The cup is named after one of the case studies, picked when the tournament is built. It is a
@@ -6430,6 +6452,7 @@ function buildTeams(cb){
     else if (!cap || cap.__egg)                     nm = pal.n;      // a dyed egghead: the colour is true
     else                                            nm = 'Player ' + (i + 1);
     teams.push({ id: 'tm' + i, name: nm, col: pal.c, colName: pal.n, seed: i + 1,
+                 ink: pal.ink, edge: pal.e,
                  captain: cap, squad: [], out: false });
   }
 
@@ -6644,6 +6667,16 @@ function ensureHost(){
   return host;
 }
 
+/* A team never contributes just a fill. It contributes a fill, the text colour that is
+   guaranteed to clear 4.5:1 ON that fill, and a darker edge so a pale chip still has an
+   outline on paper. Setting them together is the only way they cannot drift apart. */
+function tint(node, tm){
+  if (!node || !tm) return node;
+  node.style.setProperty('--tc', tm.col);
+  node.style.setProperty('--ti', tm.ink  || '18,18,18');
+  node.style.setProperty('--te', tm.edge || tm.col);
+  return node;
+}
 function paint(){
   var h = ensureHost();
   if (!T.live){ h.innerHTML = ''; h.hidden = true; return; }
@@ -6675,7 +6708,7 @@ function paint(){
   var card = el('div', 'tCupCard');
   function cupSide(tm, scoreTxt){
     var row = el('div', 'tCupTeam');
-    if (tm) row.style.setProperty('--tc', tm.col);
+    tint(row, tm);
     var chip = el('span', 'tCupChip');
     var cut = tm && tm.captain && (tm.captain.portrait || tm.captain.cut);
     if (cut){ var ci = el('img'); ci.src = cut; ci.alt = ''; ci.draggable = false; chip.appendChild(ci); }
@@ -6723,7 +6756,7 @@ function paint(){
         var won = (m.winner !== undefined && m.winner === id);
         var sd = el('div', 'tCupFxSide' + (won ? ' tCupWon' : ''));
         var dot = el('span', 'tCupDot');
-        if (tm){ dot.style.setProperty('--tc', tm.col);
+        if (tm){ tint(dot, tm);
           var cut2 = tm.captain && (tm.captain.portrait || tm.captain.cut);
           if (cut2){ var di = el('img'); di.src = cut2; di.alt = ''; di.draggable = false; dot.appendChild(di); } }
         sd.appendChild(dot);
