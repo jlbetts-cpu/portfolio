@@ -5983,7 +5983,10 @@ function teams(){
          t=(left<=0)?5:(left===1?4:3);
        }
      }catch(_){}
-     S.target=t; S.cap=t+3;
+     /* cap = target+2, not +3. Win-by-two is what makes a close match worth watching, but at
+        +3 a first-to-3 could grind to 6-5 -- one measured fixture took 69s against a 16s
+        median. Two points of deuce keeps the drama and cuts the tail. */
+     S.target=t; S.cap=t+2;
    })();
    S.on=true;S.red=0;S.blue=0;S.winner=0;S.touches=[];if(board)board.classList.remove("won");S.seed=(S.seed||0)+1;
    paintBoard();board2();   // repaint the teams BEFORE the score, or board2 writes into rows that are about to be replaced
