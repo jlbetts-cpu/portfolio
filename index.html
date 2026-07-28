@@ -1596,8 +1596,7 @@ body.hmTour #tourPanel .tCupSched{border-radius:0 0 28px 28px;overflow:hidden}
 body.hmTour #tourPanel .tCupMatch{margin:0}
 body.hmTour #tourPanel .tCupActs{padding-left:0;padding-right:0}
 body.hmTour #tourPanel .tCupSchedIn{padding-left:0;padding-right:0}
-body.hmTour #tourPanel .tCupRd{border-radius:0;box-shadow:none;
- border-top:1px solid var(--c100)}
+body.hmTour #tourPanel .tCupRd{border-radius:0;box-shadow:none;border-top:0}
 /* Ordinary padding: the block is a centred column, so no measure compensation is needed. */
 body.hmTour #tourPanel .tCupHead,
 body.hmTour #tourPanel .tCupCard,
@@ -1690,7 +1689,7 @@ body.hmTour.tSchedOpen #tourPanel .tCupSchedIn{
 .tCupVs{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);z-index:3;
  font-weight:600;font-size:var(--fs-small,15px);line-height:1.2;color:var(--c950)}
 
-.tCupActs{display:flex;flex-direction:column;gap:8px;padding:16px 12px 16px}
+.tCupActs{display:flex;flex-direction:column;gap:8px;padding:12px 12px 14px}
 /* Layout only. Colour, type, padding, radius and the hover wash come from the shared button
    system (.hmBtn / .hmBtn.hmBtnPrimary) -- these two were bespoke and so drifted from every
    other control on the site. */
@@ -1703,8 +1702,14 @@ body.hmTour.tSchedOpen #tourPanel .tCupSchedIn{
 .tCupGo:hover,.tCupGo:focus-visible{opacity:.88}
 
 /* the schedule collapses -- a <details>, so it is keyboard and screen-reader native */
-.tCupSched{border-top:1px solid var(--c100);background:var(--c50)}
-.tCupSched>.tCupSchedHd{padding:16px 24px;
+/* One separator, and it is INSET to the content edge rather than running the full width of
+   the block. Three full-bleed rules within 60px of each other read as a table; an inset hair
+   reads as a boundary. The round label below is uppercase and spaced -- it already separates
+   itself and does not need a rule of its own. */
+.tCupSched{background:var(--c50);position:relative}
+.tCupSched::before{content:"";position:absolute;left:20px;right:20px;top:0;height:1px;
+ background:var(--c100)}
+.tCupSched>.tCupSchedHd{padding:14px 20px 10px;
  display:flex;align-items:center;justify-content:space-between;gap:8px;
  font-weight:600;font-size:var(--fs-caption,12px);letter-spacing:.08em;text-transform:uppercase;color:var(--c950)}
 
@@ -1712,8 +1717,8 @@ body.hmTour.tSchedOpen #tourPanel .tCupSchedIn{
  overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
 .tCupRd{border-radius:4px;background:#fff;box-shadow:inset 0 0 0 1px var(--c100);overflow:hidden}
 .tCupRd+.tCupRd{margin-top:8px}
-.tCupRdH{padding:8px 16px;font-weight:600;font-size:var(--fs-caption,12px);letter-spacing:.1em;
- text-transform:uppercase;color:var(--c500);background:var(--c50);border-bottom:1px solid var(--c100)}
+.tCupRdH{padding:14px 16px 8px;font-weight:600;font-size:var(--fs-caption,12px);letter-spacing:.1em;
+ text-transform:uppercase;color:var(--c500);background:var(--c50);border-bottom:0}
 .tCupFx{display:flex;align-items:center;gap:8px;padding:0;overflow:hidden;
  border-bottom:1px solid var(--c100)}
 .tCupFx:last-child{border-bottom:0}
