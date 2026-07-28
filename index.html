@@ -1500,7 +1500,8 @@ body .navDrawer .ndLink{padding:8px 12px;text-align:left}
  display:flex;align-items:flex-end;justify-content:center;
  transform-origin:50% 100%;                      /* pivots at the neck, not the middle */
  animation:tSway 3.1s ease-in-out infinite}
-.tCupCelebrate .tCupBig{height:100%;margin-bottom:0}
+.tCupCelebrate .tCupBigWrap{width:100%;margin-bottom:0}
+.tCupCelebrate .tCupBig{height:auto;width:100%;margin-bottom:0}
 .tCupCrown{position:absolute;left:50%;top:-6%;height:24%;width:auto;z-index:4;
  transform:translateX(-50%) rotate(-5deg);transform-origin:50% 100%;
  pointer-events:none;filter:drop-shadow(0 3px 6px rgba(15,23,42,.3));
@@ -1705,8 +1706,11 @@ body.hmTour.tSchedOpen #tourPanel .tCupSchedIn{
 /* Masked to the same cut as the head and sized identically, so it lands exactly on it.
    mix-blend-mode:color takes the HUE and leaves the luminance, which is why the face keeps its
    modelling instead of flattening into a silhouette. */
-.tCupTint{position:absolute;left:50%;bottom:8px;transform:translateX(-50%);
- width:62%;height:auto;aspect-ratio:1/1.16;z-index:3;pointer-events:none;
+.tCupBigWrap{position:relative;width:62%;margin-bottom:8px;z-index:2;display:block;
+ pointer-events:none}
+.tCupBigWrap .tCupBig{position:relative;width:100%;height:auto;max-height:none;margin:0;
+ display:block}
+.tCupTint{position:absolute;inset:0;z-index:3;pointer-events:none;
  background:rgb(var(--tc));mix-blend-mode:color;opacity:.82;
  -webkit-mask-size:100% 100%;mask-size:100% 100%;
  -webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;
@@ -7524,7 +7528,13 @@ function paint(){
               tint.setAttribute('aria-hidden','true');
               tint.style.webkitMaskImage = 'url("' + cut + '")';
               tint.style.maskImage = 'url("' + cut + '")';
-              pan.appendChild(tint); }
+              /* Wrapped WITH the image rather than positioned beside it. My first version gave
+                 the tint its own width and a guessed aspect-ratio, so it missed the head's box
+                 by a few pixels and left an untinted band along the top. inset:0 inside a
+                 wrapper the image itself sizes cannot drift. */
+              var wrap = el('div', 'tCupBigWrap');
+              pan.removeChild(bi); wrap.appendChild(bi); wrap.appendChild(tint);
+              pan.appendChild(wrap); }
     side.appendChild(pan);
     var meta = el('div', 'tCupMeta');
     meta.appendChild(el('div', 'tCupNm', tm ? tm.name : '\u2014'));
@@ -7546,7 +7556,7 @@ function paint(){
          positioned against the HEAD's box rather than the panel's -- that is what makes it
          sit ON the head instead of floating at some fraction of the panel. */
       var cel = el('div', 'tCupCelebrate');
-      var bigImg = cpan.querySelector('.tCupBig');
+      var bigImg = cpan.querySelector('.tCupBigWrap') || cpan.querySelector('.tCupBig');
       if (bigImg) cel.appendChild(bigImg);
       cpan.appendChild(cel);
       var crown = el('div', 'tCupCrown');
