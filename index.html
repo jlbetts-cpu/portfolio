@@ -1495,36 +1495,46 @@ body .navDrawer .ndLink{padding:8px 12px;text-align:left}
    The poster already carries two flame-outlined silhouettes; a real head sits inside each one
    so the flame reads as outlining THAT player. 4px corners, like everything else.
    Per-round posters are planned, hence the class rather than a hardcoded src. */
-body.tourFinal #tourPanel .tCupMatch{
+body.tourPoster #tourPanel .tCupMatch{
  position:relative;display:block;grid-template-columns:none;
  margin:0 -16px;aspect-ratio:1545/2000;border-radius:4px;overflow:hidden;
- background:#1a1a1a url(images/poster-final.webp) center/cover no-repeat}
+ background:#1a1a1a var(--poster) center/cover no-repeat}
 /* Both sides span the FULL poster, so every percentage below is measured against the
    artwork itself. Half-width sides silently halved them -- the heads landed at 13%/87%
    instead of 26%/74%. They do not collide because each one places its head absolutely. */
-body.tourFinal #tourPanel .tCupMatch .tCupSide{
+body.tourPoster #tourPanel .tCupMatch .tCupSide{
  position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:none}
 /* The panel is only a positioning frame here -- the poster is the artwork. */
-body.tourFinal #tourPanel .tCupPanel{
+body.tourPoster #tourPanel .tCupPanel{
  position:absolute;inset:0;height:auto;background:none;border-radius:0;overflow:visible;
  display:block}
-/* Seated into the flame outlines. Measured off the artwork: the silhouettes centre at 26% /
-   74% across and 30% down, each about 40% of the poster's width. */
-body.tourFinal #tourPanel .tCupBigWrap{
- position:absolute;left:26%;top:30%;transform:translate(-50%,-50%);
- width:40%;margin:0}
-body.tourFinal #tourPanel .tCupSide:last-child .tCupBigWrap{left:74%}
+/* Down in the CLOUDS -- the red and blue banks either side of the flame on the field, which
+   were sitting empty. I first read "on either side" as the flame silhouettes up top and put
+   the heads there; those are Jayden's artwork, not slots for players. */
+/* Each poster places its heads differently, so the position is a per-artwork set of vars and
+   the rule below is the same for all of them. --hx/--hy/--hw are set on the block. */
+body.tourPoster #tourPanel .tCupBigWrap{
+ position:absolute;left:var(--hx,50%);top:var(--hy,50%);transform:translate(-50%,-50%);
+ width:var(--hw,30%);margin:0;
+ /* Grounded in the cloud rather than pasted on it: a tight contact shadow plus a wider,
+    softer cast shadow, both falling the same way as the light in the artwork. */
+ filter:drop-shadow(0 2px 2px rgba(0,0,0,.55)) drop-shadow(0 10px 22px rgba(0,0,0,.4))}
+body.tourPoster #tourPanel .tCupSide:last-child .tCupBigWrap{left:var(--hx2,50%)}
 /* No team tint on the poster: the artwork does its own colour, and a flat hue over a
    photographic composite is exactly the seam this whole change is meant to remove. */
-body.tourFinal #tourPanel .tCupTint{display:none}
-/* Names sit on the poster, so they need their own contrast rather than the page's. */
-body.tourFinal #tourPanel .tCupMeta{
- position:absolute;left:0;right:0;bottom:3.5%;z-index:4;text-align:center}
-body.tourFinal #tourPanel .tCupSide:first-child .tCupMeta{right:50%;padding-right:4%}
-body.tourFinal #tourPanel .tCupSide:last-child .tCupMeta{left:50%;padding-left:4%}
-body.tourFinal #tourPanel .tCupNm{
- color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.6),0 0 14px rgba(0,0,0,.45)}
-body.tourFinal #tourPanel .tCupVs{display:none}
+body.tourPoster #tourPanel .tCupTint{display:none}
+/* The names come OFF the artwork and sit under it, on paper, in the page's own ink. Text
+   laid over a photograph needs a shadow to survive, and that shadow is the tell that it was
+   pasted on rather than composed in. Below the poster it needs nothing. */
+body.tourPoster #tourPanel .tCupMatch{margin-bottom:0}
+body.tourPoster #tourPanel .tCupNames{
+ display:flex;justify-content:space-between;gap:16px;margin:12px -16px 0}
+body.tourPoster #tourPanel .tCupNames span{
+ flex:1 1 0;text-align:center;font-family:var(--sans);font-weight:600;
+ font-size:var(--fs-body);color:var(--c950);
+ white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+body.tourPoster #tourPanel .tCupMeta{display:none}
+body.tourPoster #tourPanel .tCupVs{display:none}
 
 /* ---- CHAMPION ----------------------------------------------------------------------
    The winner wears the same crown the heads already wear when they win a match (same SVG
@@ -7568,8 +7578,34 @@ function paint(){
                 : (nm2 ? T.br.rounds[nm2.round].label : 'Complete');
   /* The capsule shows the final's matchup BEFORE kickoff, and body.hmFinal is only set once
      the match starts -- so the poster needs its own flag for "this screen is the final". */
-  try{ document.body.classList.toggle('tourFinal',
-       !!(nm2 && champ2 === undefined && nm2.round === T.br.rounds.length - 1)); }catch(_){}
+  /* Which poster this round gets, and where its heads sit. The FINAL has its own artwork;
+     ordinary matchups draw from a pool, picked per fixture so it does not reshuffle on every
+     repaint. Head positions are measured off each poster and travel WITH it, because every
+     artwork frames its heads differently. */
+  var POSTERS = {
+    fin:   { src:'images/poster-final.webp',   hx:'21%', hx2:'79%', hy:'79%', hw:'30%' },
+    match:[{ src:'images/poster-match-1.webp', hx:'31%', hx2:'69%', hy:'54%', hw:'36%' }]
+  };
+  try{
+    var isFin = !!(nm2 && champ2 === undefined && nm2.round === T.br.rounds.length - 1);
+    var isMatch = !!(nm2 && champ2 === undefined && !isFin);
+    document.body.classList.toggle('tourFinal', isFin);
+    document.body.classList.toggle('tourPoster', isFin || isMatch);
+    var P = null;
+    if (isFin) P = POSTERS.fin;
+    else if (isMatch){
+      var pool = POSTERS.match;
+      /* Keyed off the fixture, not Math.random, so a repaint keeps the same poster. */
+      var k = ((nm2.round||0)*7 + (nm2.i||0)) % pool.length;
+      P = pool[k];
+    }
+    if (P){
+      var st = document.body.style;
+      st.setProperty('--poster', 'url("'+P.src+'")');
+      st.setProperty('--hx', P.hx); st.setProperty('--hx2', P.hx2);
+      st.setProperty('--hy', P.hy); st.setProperty('--hw', P.hw);
+    }
+  }catch(_){}
   h1.appendChild(el('span', 'tCupRound', roundName));
   head.appendChild(h1);
   cup.appendChild(head);
@@ -7651,6 +7687,14 @@ function paint(){
     mrow.appendChild(el('div', 'tCupVs', 'VS'));
     mrow.appendChild(cupSide(B2, null));
     card.appendChild(mrow);
+    /* On the final, the names live UNDER the poster rather than on it. Built as their own row
+       instead of repositioning .tCupMeta, so the artwork carries no text layer at all. */
+    if (document.body.classList.contains('tourPoster')){
+      var names = el('div', 'tCupNames');
+      names.appendChild(el('span', null, (A2 && A2.name) || '\u2014'));
+      names.appendChild(el('span', null, (B2 && B2.name) || '\u2014'));
+      card.appendChild(names);
+    }
   }
   cup.appendChild(card);
 
@@ -7826,6 +7870,7 @@ function stop(){
   try { var rt2 = document.documentElement; ['--tcol1','--tcol2','--tc1','--tc2'].forEach(function(v){ rt2.style.removeProperty(v); }); } catch (_) {}
   document.body.classList.remove('hmTour');
   document.body.classList.remove('tourFinal');
+  document.body.classList.remove('tourPoster');
   try { var tt2 = document.querySelector('.hmScore .sTitleTxt'); if (tt2) tt2.textContent = 'Soccer'; } catch (_) {}
   clearSpawned(); paint();
 }
