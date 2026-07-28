@@ -1455,6 +1455,50 @@ body.about-open #navAbout{color:var(--c950);background:var(--c75)}
  .tCardStats{margin-top:8px}
 }
 .tBrMir .tMiC .tT{min-height:43px}   /* +12%: the final is taller as well as wider */
+
+/* ================= THE FIXTURE LIST =================
+   Structure adapted from the SportyBlocks kit (Standard licence: personal site + modification
+   both permitted; not redistributed as assets). Four ideas taken, retuned to our system --
+   4px radius not rounded-3xl, our two weights, our hairlines, our 4px grid:
+     1. the nested card, so the round label reads as a LEDGE the fixtures sit on, not a row
+     2. the asymmetric VS divider -- short rule, VS, then a flex-1 rule
+     3. a border-drawn triangle pointing at whoever won
+     4. even:flex-row-reverse, so the two sides mirror and face each other
+   Grouped by ROUND rather than by date, because that is what a draw actually has. */
+.tRes{width:min(560px,92vw);margin:6px auto 0;display:flex;flex-direction:column;gap:10px}
+.tResGroup{border:1px solid var(--c100);border-radius:4px;background:var(--c75,#F4F4F4);overflow:hidden}
+.tResHead{padding:8px 16px;text-align:center;font-family:var(--sans);font-weight:600;
+ font-size:var(--fs-caption,12px);letter-spacing:.08em;text-transform:uppercase;color:var(--c700)}
+.tResBody{background:var(--c50);border-top:1px solid var(--c100)}
+.tResRow{display:grid;grid-template-columns:1fr 1fr;gap:0 14px;padding:10px 16px;
+ border-bottom:1px solid var(--c100)}
+.tResRow:last-child{border-bottom:0}
+.tResSide{display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0}
+.tResSide:nth-child(2){flex-direction:row-reverse}          /* the two sides face each other */
+.tResWho{display:flex;align-items:center;gap:8px;min-width:0}
+.tResSide:nth-child(2) .tResWho{flex-direction:row-reverse}
+.tResFace{flex:0 0 22px;width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center}
+.tResFace img{max-width:100%;max-height:100%;width:auto;height:auto;display:block}
+.tResNm{font-family:var(--sans);font-weight:400;font-size:var(--fs-small);color:var(--c950);
+ white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.tResScore{display:inline-flex;align-items:center;gap:6px;font-family:var(--sans);font-weight:400;
+ font-size:var(--fs-small);color:var(--c950);font-variant-numeric:tabular-nums;flex:0 0 auto}
+/* the winner: weight, ink, and a triangle -- never colour alone (WCAG 1.4.1) */
+.tResSide.tResWon .tResNm,.tResSide.tResWon .tResScore{font-weight:600}
+.tResSide:not(.tResWon) .tResNm,.tResSide:not(.tResWon) .tResScore{color:var(--c500)}
+.tResSide:not(.tResWon) .tResFace img{filter:grayscale(1);opacity:.55}
+.tResTri{width:0;height:0;border:4px solid transparent;border-left-color:var(--c950);flex:0 0 auto}
+.tResSide:nth-child(2) .tResTri{border-left-color:transparent;border-right-color:var(--c950)}
+.tResSide:not(.tResWon) .tResTri{display:none}
+/* pending fixture: no score yet, so the row says who it is waiting on */
+.tResVs{align-self:center;font-family:var(--sans);font-weight:400;font-size:var(--fs-caption,12px);
+ letter-spacing:.1em;text-transform:uppercase;color:var(--c500)}
+.tResRow.tResLive{background:var(--c75,#F4F4F4);box-shadow:inset 2px 0 0 var(--accent)}
+@media(max-width:560px){
+ .tResRow{grid-template-columns:1fr;gap:6px}
+ .tResSide:nth-child(2),.tResSide:nth-child(2) .tResWho{flex-direction:row}
+ .tResSide:nth-child(2) .tResTri{border-right-color:transparent;border-left-color:var(--c950)}
+}
 .tFinalCrown{grid-column:var(--gc,auto);grid-row:1;justify-self:center;align-self:end;
  width:40px;height:40px;margin-bottom:4px;object-fit:contain;pointer-events:none}
 
@@ -6462,68 +6506,48 @@ function paint(){
   // on pseudo-elements -- one leaving each match to the right, flipped up or down by :nth-child
   // odd/even, and a matching pair entering each card from the left. That is the standard way to do
   // this without SVG or absolute maths, and it collapses to a plain stack on a phone.
-  var br = el('div', 'tBr tBrMir');
-  // THE DRAW, MIRRORED. Left half runs inward, right half runs inward, final in the
-  // centre -- 2 quarter-final cards tall instead of 4, which is the vertical saving.
-  // Rounds are emitted in DOM order (label, then that round's matches) so a screen
-  // reader still walks the draw round by round; only the COLUMN is mirrored.
-  var RS = T.br.rounds, nR = RS.length;
-  var rows = Math.max(1, Math.ceil(RS[0].matches.length / 2));   // rows = quarter-finals per side
-  var cols = [];
-  // The final is a physically DIFFERENT object, not just the last cell -- ESPN's
-  // championship card is 1.5x wider and 12% taller than every other round and uses a
-  // separate component. That is how the final becomes the focal point; 1.12fr was not
-  // enough of a step to read as anything.
-  for (var ci = 0; ci < 2 * nR - 1; ci++) cols.push(ci === nR - 1 ? 'minmax(0,1.5fr)' : 'minmax(0,1fr)');
-  br.style.setProperty('--tcols', cols.join(' '));
-  br.style.setProperty('--trows', 'auto auto repeat(' + rows + ',minmax(0,auto))');
-
-  var seq = 0;
-  RS.forEach(function(rd, ri){
-    var isFinal = (ri === nR - 1);
-    var half    = rd.matches.length / 2;
-    var span    = Math.min(rows, Math.pow(2, ri));
-    var colL = ri + 1, colR = 2 * nR - 1 - ri, colC = nR;
-
-    function label(colN, dup){
-      var L = el('div', 'tLbl tColLbl' + (dup ? ' tLblDup' : ''), rd.label);
-      L.style.setProperty('--gc', colN); br.appendChild(L);
-    }
-    if (isFinal){
-      var crown = el('img', 'tFinalCrown'); crown.src = 'images/trophy.webp'; crown.alt = ''; crown.draggable = false;
-      crown.style.setProperty('--gc', colC); br.appendChild(crown);   // the trophy anchors the final
-      label(colC, false);
-    } else { label(colL, false); label(colR, true); }
-
-    rd.matches.forEach(function(m, mi){
-      var side = isFinal ? 'C' : (mi < half ? 'L' : 'R');
-      var k    = isFinal ? 0 : (side === 'L' ? mi : mi - Math.ceil(half));
-      // the item (not just the card) carries the decided state, because the connectors
-      // are pseudo-elements on the ITEM -- Mario Tennis recolours the decided path rather
-      // than restyling name plates, which is louder and cheaper
-      var item = el('div', 'tMi tMi' + side + (m.winner !== undefined ? ' tMiDone' : ''));
-      item.style.setProperty('--gc', side === 'C' ? colC : (side === 'L' ? colL : colR));
-      item.style.setProperty('--gr', (isFinal ? 3 : k * span + 3) + ' / span ' + (isFinal ? rows : span));
-      // two matches per side elbow into their pair; one per side feeds straight through
-      item.setAttribute('data-bend', isFinal ? 'flat' : (half >= 2 ? (k % 2 === 0 ? 'down' : 'up') : 'flat'));
-      if (ri === 0) item.setAttribute('data-first', '1');
-      item.style.setProperty('--tin', (seq++ * 20) + 'ms');   // Material: 20ms apart, never wait for the last
-
+  // THE DRAW, AS A FIXTURE LIST. Grouped by round rather than drawn as a tree: Toornament's
+  // own developer guidance is to degrade a bracket to a simplified match list rather than
+  // fight the medium, and at 390px a list is the only thing that actually reads. Each row is
+  // two sides facing each other, exactly as the mirrored bracket had them.
+  var br = el('div', 'tRes');
+  T.br.rounds.forEach(function(rd){
+    var g    = el('div', 'tResGroup');
+    g.appendChild(el('div', 'tResHead', rd.label));
+    var body = el('div', 'tResBody');
+    rd.matches.forEach(function(m){
       var live = (T.cur && T.br.rounds[T.cur.round].matches[T.cur.index] === m);
-      var card = el('div', 'tM' + (m.winner !== undefined ? ' tDone' : '') + (live ? ' tLive' : ''));
+      var row  = el('div', 'tResRow' + (live ? ' tResLive' : ''));
       [m.a, m.b].forEach(function(id){
         var tm = teamById(id);
-        var row = el('div', 'tT' + (m.winner !== undefined ? (m.winner === id ? ' tWon' : ' tLost') : ''));
-        if (tm){ row.style.borderLeftColor = rgb(tm.col);
-          row.style.setProperty('--tc', tm.col);   // "r,g,b" -> the row can tint itself
-          row.appendChild(faceOf(tm)); row.appendChild(el('span', 'tNm', tm.name)); }
-        else { row.classList.add('tEmpty');
-          row.appendChild(el('span', 'tFaceW tFaceEmpty')); row.appendChild(el('span', 'tNm tTbd', '\u2014')); }
-        card.appendChild(row);
+        var won = (m.winner !== undefined && m.winner === id);
+        var sd  = el('div', 'tResSide' + (won ? ' tResWon' : ''));
+        var who = el('div', 'tResWho');
+        if (tm){
+          var f = el('span', 'tResFace');
+          var im = el('img'); im.src = tm.captain && (tm.captain.portrait || tm.captain.cut) || '';
+          im.alt = ''; im.draggable = false; f.appendChild(im);
+          who.appendChild(f);
+          who.appendChild(el('span', 'tResNm', tm.name));
+        } else {
+          who.appendChild(el('span', 'tResFace'));
+          who.appendChild(el('span', 'tResNm tTbd', '\u2014'));
+        }
+        sd.appendChild(who);
+        var sc = el('span', 'tResScore');
+        if (won) sc.appendChild(el('span', 'tResTri'));
+        // No goal feed is wired up, so there is no score to show and inventing one would be a
+        // lie. The result is already carried three ways -- triangle, weight and colour -- which
+        // is more than 1.4.1 needs, so a W/L letter added nothing except a stray pair of glyphs
+        // sitting where the original kit puts its scoreline.
+        if (m.winner === undefined && tm) sc.appendChild(document.createTextNode('\u2013'));
+        sd.appendChild(sc);
+        row.appendChild(sd);
       });
-      item.appendChild(card);
-      br.appendChild(item);
+      body.appendChild(row);
     });
+    g.appendChild(body);
+    br.appendChild(g);
   });
   h.appendChild(br);
   paintStadium(h);
