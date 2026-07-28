@@ -1498,14 +1498,14 @@ body.about-open #navAbout{color:var(--c950);background:var(--c75)}
 .tCup{width:min(420px,92vw);margin:0 auto;box-sizing:border-box;
  border:1px solid #E2E8F0;border-radius:24px;background:#F1F5F9;
  font-family:var(--sans);color:#0F172A;overflow:hidden}
-.tCupHead{position:relative;padding:22px 24px 16px;text-align:center}
+.tCupHead{position:relative;padding:24px 24px 16px;text-align:center}
 /* both lines are ONE h1: the cup names itself, the round says where we are in it */
-.tCupH1{margin:0;width:100%;max-width:none;font-weight:600;font-size:26px;line-height:1.1;
+.tCupH1{margin:0;width:100%;max-width:none;font-weight:600;font-size:28px;line-height:1.1;
  letter-spacing:-.02em;color:#0F172A;text-align:center;filter:none}
-.tCupH1 .tCupRound{display:block;margin-top:6px;font-weight:400;font-size:13px;line-height:1.1;
+.tCupH1 .tCupRound{display:block;margin-top:8px;font-weight:400;font-size:var(--fs-caption,12px);line-height:1.1;
  letter-spacing:.14em;text-transform:uppercase;color:#64748B}
 /* the trophy, with a glisten that sweeps across it */
-.tCupTrophy{position:relative;width:56px;height:56px;margin:0 auto 10px;display:block}
+.tCupTrophy{position:relative;width:56px;height:56px;margin:0 auto 12px;display:block}
 .tCupTrophy img{width:100%;height:100%;object-fit:contain;display:block}
 /* The glisten is a band that SLIDES across, clipped to the trophy's own alpha. Animating
    background-position was the wrong tool -- with a 280% background the highlight never
@@ -1526,16 +1526,17 @@ body.about-open #navAbout{color:var(--c950);background:var(--c75)}
    a shadow. The panel clips nothing; the head is positioned against the panel's baseline and
    is simply taller than it. ---- */
 .tCupCard{position:relative;margin:0 12px;border-radius:20px;background:#fff;
- box-shadow:inset 0 0 0 1px #E2E8F0;padding:0 14px 16px;overflow:hidden}
+ box-shadow:inset 0 0 0 1px #E2E8F0;padding:0 16px 16px;overflow:hidden}
 .tCupMatch{display:grid;grid-template-columns:1fr 1fr;align-items:start;gap:4px;
- margin:0 -14px}          /* full bleed to the card's edges */
+ margin:0 -16px}          /* full bleed to the card's edges */
 .tCupSide{position:relative;min-width:0}
-.tCupPanel{position:relative;height:150px;overflow:hidden;background:rgb(var(--tc))}
+.tCupPanel{position:relative;height:152px;overflow:hidden;background:rgb(var(--tc));
+ display:flex;align-items:flex-end;justify-content:center}
 .tCupSide:first-child .tCupPanel{border-radius:0 0 0 0}
 /* No watermark. A single initial at this size read as a smudge rather than a mark -- the
    reference carries a large high-contrast crest, and a letter is not that. */
-.tCupBig{position:absolute;left:50%;bottom:-34px;transform:translateX(-50%);
- height:186px;width:auto;z-index:2;pointer-events:none;display:block;
+.tCupBig{position:relative;height:136px;width:auto;margin-bottom:8px;
+ z-index:2;pointer-events:none;display:block;
  /* A ring in the team's colour, so the head belongs to its panel without being recoloured.
     SEVEN offsets, not four: CSS filters chain, so N shadows compound to about (N/pi)*r --
     at N=7 the result is a 14-gon (2.6% thickness variation) where N=4 is a square (41%).
@@ -1549,32 +1550,32 @@ body.about-open #navAbout{color:var(--c950);background:var(--c75)}
   drop-shadow(-.3px -1.32px 0 rgb(var(--tc)))
   drop-shadow(.84px -1.06px 0 rgb(var(--tc)))
   drop-shadow(0 4px 10px rgba(15,23,42,.16))}
-.tCupMeta{margin-top:12px;padding:0 8px;text-align:center;min-width:0}
-.tCupNm{font-weight:600;font-size:15px;line-height:1.15;color:#0F172A;
+.tCupMeta{margin-top:16px;padding:0 8px;text-align:center;min-width:0}
+.tCupNm{font-weight:600;font-size:var(--fs-small,15px);line-height:1.2;color:#0F172A;
  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tCupSc{display:block;margin-top:2px;font-weight:600;font-size:22px;line-height:1.1;
  color:#0F172A;font-variant-numeric:tabular-nums}
-.tCupVs{position:absolute;left:50%;bottom:22px;transform:translateX(-50%);z-index:3;
- font-weight:600;font-size:14px;letter-spacing:.02em;color:#0F172A}
+.tCupVs{position:absolute;left:50%;bottom:24px;transform:translateX(-50%);z-index:3;
+ font-weight:600;font-size:var(--fs-small,15px);line-height:1.2;color:#0F172A}
 
-.tCupActs{display:flex;flex-direction:column;gap:8px;padding:14px 12px 16px}
-.tCupQuit{display:block;width:100%;box-sizing:border-box;padding:11px 20px;
+.tCupActs{display:flex;flex-direction:column;gap:8px;padding:16px 12px 16px}
+.tCupQuit{display:block;width:100%;box-sizing:border-box;padding:12px 20px;
  border:1px solid #E2E8F0;border-radius:14px;background:transparent;color:#64748B;
- font-family:var(--sans);font-weight:600;font-size:13px;line-height:1;cursor:pointer;min-height:44px;
+ font-family:var(--sans);font-weight:600;font-size:var(--fs-small,15px);line-height:1;cursor:pointer;min-height:44px;
  transition:color .16s cubic-bezier(.2,.8,.2,1),border-color .16s cubic-bezier(.2,.8,.2,1)}
 .tCupQuit:hover,.tCupQuit:focus-visible{color:#0F172A;border-color:#94A3B8}
 .tCupQuit.tQuitArmed{color:#b3402e;border-color:#b3402e}
 .tCupGo{display:block;width:100%;margin:0;box-sizing:border-box;
- padding:14px 20px;border:0;border-radius:16px;background:#0F172A;color:#fff;
- font-family:var(--sans);font-weight:600;font-size:15px;line-height:1;cursor:pointer;min-height:48px;
+ padding:16px 20px;border:0;border-radius:16px;background:#0F172A;color:#fff;
+ font-family:var(--sans);font-weight:600;font-size:var(--fs-small,15px);line-height:1;cursor:pointer;min-height:48px;
  transition:opacity .16s cubic-bezier(.2,.8,.2,1)}
 .tCupGo:hover,.tCupGo:focus-visible{opacity:.88}
 
 /* the schedule collapses -- a <details>, so it is keyboard and screen-reader native */
 .tCupSched{border-top:1px solid #E2E8F0;background:#F1F5F9}
-.tCupSched>summary{list-style:none;cursor:pointer;padding:14px 24px;
+.tCupSched>summary{list-style:none;cursor:pointer;padding:16px 24px;
  display:flex;align-items:center;justify-content:space-between;gap:8px;
- font-weight:600;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:#0F172A}
+ font-weight:600;font-size:var(--fs-caption,12px);letter-spacing:.08em;text-transform:uppercase;color:#0F172A}
 .tCupSched>summary::-webkit-details-marker{display:none}
 .tCupSched>summary:focus-visible{outline:2px solid #0F172A;outline-offset:-3px;border-radius:6px}
 .tCupChev{width:16px;height:16px;flex:0 0 16px;transition:transform .22s cubic-bezier(.2,.8,.2,1)}
@@ -1583,26 +1584,25 @@ body.about-open #navAbout{color:var(--c950);background:var(--c75)}
  overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
 .tCupRd{border-radius:14px;background:#fff;box-shadow:inset 0 0 0 1px #E2E8F0;overflow:hidden}
 .tCupRd+.tCupRd{margin-top:8px}
-.tCupRdH{padding:8px 16px;font-weight:600;font-size:11px;letter-spacing:.1em;
+.tCupRdH{padding:8px 16px;font-weight:600;font-size:var(--fs-caption,12px);letter-spacing:.1em;
  text-transform:uppercase;color:#64748B;background:#F8FAFC;border-bottom:1px solid #E2E8F0}
-.tCupFx{display:flex;align-items:center;gap:6px;padding:0 4px;overflow:hidden;
+.tCupFx{display:flex;align-items:center;gap:8px;padding:0;overflow:hidden;
  border-bottom:1px solid #E2E8F0}
 .tCupFx:last-child{border-bottom:0}
-.tCupFxSide{display:flex;align-items:center;gap:8px;min-width:0;flex:1 1 0}
+.tCupFxSide{display:flex;align-items:center;gap:12px;min-width:0;flex:1 1 0}
 .tCupFxSide:last-of-type{flex-direction:row-reverse}
-/* the head is oversized and hangs past the row -- the row crops it, which is what gives the
-   list its weight without adding another box */
-.tCupDot{flex:0 0 44px;width:44px;height:52px;position:relative;overflow:hidden;
- background:rgb(var(--tc,203,213,225));border-radius:0}
-.tCupDot img{position:absolute;left:50%;top:50%;transform:translate(-50%,-46%);
- height:150%;width:auto;max-width:none;display:block}
-.tCupFxSide:first-of-type .tCupDot{margin-left:-4px}
-.tCupFxSide:last-of-type  .tCupDot{margin-right:-4px}
-.tCupFxNm{font-weight:600;font-size:13px;letter-spacing:.04em;color:#0F172A;min-width:0;
+/* The whole head, inside a colour tile. Cropping it to the middle of the face showed a pair
+   of eyes and nothing else -- a cut-out has no body to crop into, so it is contained, not
+   covered. 48px tile, head at 40px: both on the grid. */
+.tCupDot{flex:0 0 48px;width:48px;height:48px;position:relative;overflow:hidden;
+ background:rgb(var(--tc,203,213,225));border-radius:0;
+ display:flex;align-items:center;justify-content:center}
+.tCupDot img{height:40px;width:auto;max-width:100%;object-fit:contain;display:block}
+.tCupFxNm{font-weight:600;font-size:var(--fs-small,15px);line-height:1.2;color:#0F172A;min-width:0;
  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tCupFxSide:not(.tCupWon) .tCupFxNm{font-weight:400;color:#64748B}
-.tCupFxSc{flex:0 0 auto;display:inline-flex;align-items:center;gap:7px;
- font-weight:600;font-size:14px;color:#0F172A;font-variant-numeric:tabular-nums;padding:0 4px}
+.tCupFxSc{flex:0 0 auto;display:inline-flex;align-items:center;gap:8px;
+ font-weight:600;font-size:var(--fs-small,15px);color:#0F172A;font-variant-numeric:tabular-nums;padding:0 8px}
 .tCupFxSc.tCupPend{font-weight:400;color:#94A3B8}
 /* the arrow points at the score from the winner's side, so the result reads at a glance */
 .tCupArrow{width:0;height:0;border:5px solid transparent;flex:0 0 auto}
