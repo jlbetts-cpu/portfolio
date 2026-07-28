@@ -405,7 +405,8 @@ body.moodInCta .heroCtas:not(.in) .faceMoodCorner{opacity:0!important;visibility
 .cases{position:relative;z-index:61;margin:clamp(80px,12vh,144px) auto 0;background:var(--c50)}
 .caseInset{max-width:1280px;margin:0 auto;padding:0 40px}
 /* tab bar: Instrument Sans, active = ink + underline, others muted; stepped like the rest of the site */
-.csTabs{display:flex;flex-wrap:wrap;gap:24px;align-items:flex-end;margin:0 auto clamp(24px,3.2vh,40px);position:relative}.csTabs::before{content:"";position:absolute;left:16px;right:0;bottom:0;height:1px;background:var(--c100)}
+.csTabs{display:flex;flex-wrap:wrap;gap:24px;align-items:flex-end;justify-content:center;
+ margin:0 auto clamp(24px,3.2vh,40px);position:relative}.csTabs::before{content:"";position:absolute;left:16px;right:0;bottom:0;height:1px;background:var(--c100)}
 .csTab{position:relative;background:none;border:0;padding:0 0 12px;margin:0;font:inherit;font-family:var(--sans);font-weight:600;font-size:var(--fs-tab);letter-spacing:.01em;text-transform:none;color:var(--c500);cursor:pointer;transition:color .25s cubic-bezier(.2,.8,.2,1);filter:url(#inkSm)}
 .csTab:hover{color:var(--c950)}
 .csTab.on{color:var(--c950)}
@@ -1267,7 +1268,7 @@ nav .talk,.talk{padding:12px 16px!important;min-height:44px}
    it -- so the label no longer agreed with the case-study titles underneath. Pull the row back
    by exactly the padding it gained; the underline starts at the column, not at the negative
    margin. Measured: first tab text 136 -> 120, matching nav, hero and cards. */
-.csTabs .csTab:first-child{margin-left:-16px}
+/* the first-tab -16px pull was for a LEFT-aligned row; a centred row must not carry it */
 
 /* ============================================================================
    ICONS -- one pack. An audit found NINE authored stroke-widths (1.2 1.4 1.5
@@ -1491,6 +1492,27 @@ body.about-open #navAbout{color:var(--c950);background:var(--c75)}
      3. a border-drawn triangle pointing at whoever won
      4. even:flex-row-reverse, so the two sides mirror and face each other
    Grouped by ROUND rather than by date, because that is what a draw actually has. */
+/* ---- FULL BLEED. The block is the width of the page and runs from directly under the site
+   header down to the tab row, so it reads as a section of the page rather than a card sitting
+   on it. Radius goes with it: an edge-to-edge block has no corners to round. ---- */
+body.hmTour #tourPanel{left:0!important;right:0!important;top:0!important;
+ width:100%!important;max-width:none!important;transform:none!important}
+body.hmTour #tourPanel .tCup{width:100%;max-width:none;margin:0;border-radius:0;
+ border-left:0;border-right:0;border-top:0}
+body.hmTour #tourPanel .tCupCard{margin:0;border-radius:0;box-shadow:none;
+ border-top:1px solid var(--c100);border-bottom:1px solid var(--c100)}
+body.hmTour #tourPanel .tCupMatch{margin:0}
+body.hmTour #tourPanel .tCupActs{padding-left:0;padding-right:0}
+body.hmTour #tourPanel .tCupSchedIn{padding-left:0;padding-right:0}
+body.hmTour #tourPanel .tCupRd{border-radius:0;box-shadow:none;
+ border-top:1px solid var(--c100)}
+/* the content still sits on the page's own measure, even though the block is full width */
+body.hmTour #tourPanel .tCupHead,
+body.hmTour #tourPanel .tCupCard,
+body.hmTour #tourPanel .tCupActs,
+body.hmTour #tourPanel .tCupSched>summary,
+body.hmTour #tourPanel .tCupSchedIn{padding-inline:max(24px,calc((100% - 1060px)/2))}
+
 /* ---- The capsule runs the FULL HEIGHT of the hero while the schedule is open, and the
    hero collapses to the capsule when it is closed. min-height is the animated property so
    the page reflows in one movement rather than the panel jumping inside a fixed hero. ---- */
@@ -1510,11 +1532,11 @@ body.hmTour.tSchedOpen #tourPanel .tCupSchedIn{flex:1 1 auto;max-height:none;min
    1px var(--c100) hairlines -- so the matchup and the schedule read as one object rather than two
    components stacked. */
 .tCup{width:min(420px,92vw);margin:0 auto;box-sizing:border-box;
- border:1px solid var(--c100);border-radius:24px;background:var(--c50);
+ border:1px solid var(--c100);border-radius:4px;background:var(--c50);
  font-family:var(--sans);color:var(--c950);overflow:hidden}
 .tCupHead{position:relative;padding:24px 24px 16px;text-align:center}
 /* both lines are ONE h1: the cup names itself, the round says where we are in it */
-.tCupH1{margin:0;width:100%;max-width:none;font-weight:600;font-size:28px;line-height:1.1;
+.tCupH1{margin:0;width:100%;max-width:none;font-weight:600;font-size:var(--fs-h1);line-height:1.05;
  letter-spacing:-.02em;color:var(--c950);text-align:center;filter:none}
 .tCupH1 .tCupRound{display:block;margin-top:8px;font-weight:400;font-size:var(--fs-caption,12px);line-height:1.1;
  letter-spacing:.14em;text-transform:uppercase;color:var(--c500)}
@@ -1539,17 +1561,17 @@ body.hmTour.tSchedOpen #tourPanel .tCupSchedIn{flex:1 1 auto;max-height:none;min
    panel rather than sitting inside it -- that overhang is what gives the block depth without
    a shadow. The panel clips nothing; the head is positioned against the panel's baseline and
    is simply taller than it. ---- */
-.tCupCard{position:relative;margin:0 12px;border-radius:20px;background:#fff;
+.tCupCard{position:relative;margin:0 12px;border-radius:4px;background:#fff;
  box-shadow:inset 0 0 0 1px var(--c100);padding:0 16px 16px;overflow:hidden}
 .tCupMatch{display:grid;grid-template-columns:1fr 1fr;align-items:start;gap:4px;
  margin:0 -16px}          /* full bleed to the card's edges */
 .tCupSide{position:relative;min-width:0}
-.tCupPanel{position:relative;height:152px;overflow:hidden;background:rgb(var(--tc));
- display:flex;align-items:flex-end;justify-content:center}
+.tCupPanel{position:relative;height:clamp(152px,26vh,272px);overflow:hidden;
+ background:rgb(var(--tc));display:flex;align-items:flex-end;justify-content:center}
 .tCupSide:first-child .tCupPanel{border-radius:0 0 0 0}
 /* No watermark. A single initial at this size read as a smudge rather than a mark -- the
    reference carries a large high-contrast crest, and a letter is not that. */
-.tCupBig{position:relative;height:136px;width:auto;margin-bottom:8px;
+.tCupBig{position:relative;height:88%;width:auto;margin-bottom:8px;
  z-index:2;pointer-events:none;display:block;
  /* A ring in the team's colour, so the head belongs to its panel without being recoloured.
     SEVEN offsets, not four: CSS filters chain, so N shadows compound to about (N/pi)*r --
@@ -1574,13 +1596,13 @@ body.hmTour.tSchedOpen #tourPanel .tCupSchedIn{flex:1 1 auto;max-height:none;min
 
 .tCupActs{display:flex;flex-direction:column;gap:8px;padding:16px 12px 16px}
 .tCupQuit{display:block;width:100%;box-sizing:border-box;padding:12px 20px;
- border:1px solid var(--c100);border-radius:14px;background:transparent;color:var(--c500);
+ border:1px solid var(--c100);border-radius:4px;background:transparent;color:var(--c500);
  font-family:var(--sans);font-weight:600;font-size:var(--fs-small,15px);line-height:1;cursor:pointer;min-height:44px;
  transition:color .16s cubic-bezier(.2,.8,.2,1),border-color .16s cubic-bezier(.2,.8,.2,1)}
 .tCupQuit:hover,.tCupQuit:focus-visible{color:var(--c950);border-color:var(--c500)}
 .tCupQuit.tQuitArmed{color:#b3402e;border-color:#b3402e}
 .tCupGo{display:block;width:100%;margin:0;box-sizing:border-box;
- padding:16px 20px;border:0;border-radius:16px;background:var(--c950);color:#fff;
+ padding:16px 20px;border:0;border-radius:4px;background:var(--c950);color:#fff;
  font-family:var(--sans);font-weight:600;font-size:var(--fs-small,15px);line-height:1;cursor:pointer;min-height:48px;
  transition:opacity .16s cubic-bezier(.2,.8,.2,1)}
 .tCupGo:hover,.tCupGo:focus-visible{opacity:.88}
@@ -1591,12 +1613,12 @@ body.hmTour.tSchedOpen #tourPanel .tCupSchedIn{flex:1 1 auto;max-height:none;min
  display:flex;align-items:center;justify-content:space-between;gap:8px;
  font-weight:600;font-size:var(--fs-caption,12px);letter-spacing:.08em;text-transform:uppercase;color:var(--c950)}
 .tCupSched>summary::-webkit-details-marker{display:none}
-.tCupSched>summary:focus-visible{outline:2px solid var(--c950);outline-offset:-3px;border-radius:6px}
+.tCupSched>summary:focus-visible{outline:2px solid var(--c950);outline-offset:-3px;border-radius:4px}
 .tCupChev{width:16px;height:16px;flex:0 0 16px;transition:transform .22s cubic-bezier(.2,.8,.2,1)}
 .tCupSched[open] .tCupChev{transform:rotate(180deg)}
 .tCupSchedIn{padding:0 12px 12px;max-height:min(40vh,330px);overflow-y:auto;
  overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
-.tCupRd{border-radius:14px;background:#fff;box-shadow:inset 0 0 0 1px var(--c100);overflow:hidden}
+.tCupRd{border-radius:4px;background:#fff;box-shadow:inset 0 0 0 1px var(--c100);overflow:hidden}
 .tCupRd+.tCupRd{margin-top:8px}
 .tCupRdH{padding:8px 16px;font-weight:600;font-size:var(--fs-caption,12px);letter-spacing:.1em;
  text-transform:uppercase;color:var(--c500);background:var(--c50);border-bottom:1px solid var(--c100)}
