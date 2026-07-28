@@ -1688,6 +1688,9 @@ body.hmTour.tSchedOpen #tourPanel .tCupSchedIn{
  border-radius:4px 4px 0 0}
 .tCupSide:first-child .tCupPanel{border-radius:28px 0 0 0}
 .tCupSide:last-child  .tCupPanel{border-radius:0 28px 0 0}
+/* The champion is a lone panel, so it is BOTH :first-child and :last-child -- and :last-child
+   wins, which squared off its left corner. A solo side rounds both top corners. */
+.tCupSide:only-child  .tCupPanel{border-radius:28px 28px 0 0}
 /* No watermark. A single initial at this size read as a smudge rather than a mark -- the
    reference carries a large high-contrast crest, and a letter is not that. */
 .tCupBig{position:relative;height:88%;width:auto;margin-bottom:8px;
@@ -7007,6 +7010,11 @@ window.__hmTourWin = function(winSide, scoreR, scoreB){
     if (_m && scoreR !== undefined){ _m.sa = scoreR|0; _m.sb = scoreB|0; }
   }catch(_){}
   BR.recordWinner(T.br, c.round, c.index, winnerId);
+  /* Repaint NOW, not only when between() fires. The panel comes back at the final whistle and
+     was still showing the fixture that had just been decided -- a flash of the VS card after
+     someone had already won. Lengthening the final's celebration to 10.5s stretched that stale
+     window rather than causing it. */
+  try{ paint(); }catch(_){}
   var bad = BR.checkNoDoubleAdvance(T.br);
   if (bad) { try { console.warn('[tour]', bad); } catch (_) {} }
   T.cur = null;
