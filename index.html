@@ -1485,6 +1485,92 @@ body.about-open #navAbout{color:var(--c950);background:var(--c75)}
      3. a border-drawn triangle pointing at whoever won
      4. even:flex-row-reverse, so the two sides mirror and face each other
    Grouped by ROUND rather than by date, because that is what a draw actually has. */
+/* ================= THE CUP CAPSULE =================
+   One container: title, matchup, kick off, and a collapsible schedule. Geometry follows the
+   SportyBlocks kit -- 24px radius, #F1F5F9 shell, white inner card, 32px padding, 20px gap,
+   1px #E2E8F0 hairlines -- so the matchup and the schedule read as one object rather than two
+   components stacked. */
+.tCup{width:min(420px,92vw);margin:0 auto;box-sizing:border-box;
+ border:1px solid #E2E8F0;border-radius:24px;background:#F1F5F9;
+ font-family:var(--sans);color:#0F172A;overflow:hidden}
+.tCupHead{position:relative;padding:22px 24px 16px;text-align:center}
+/* both lines are ONE h1: the cup names itself, the round says where we are in it */
+.tCupH1{margin:0;width:100%;max-width:none;font-weight:600;font-size:26px;line-height:1.1;
+ letter-spacing:-.02em;color:#0F172A;text-align:center;filter:none}
+.tCupH1 .tCupRound{display:block;margin-top:6px;font-weight:400;font-size:13px;line-height:1.1;
+ letter-spacing:.14em;text-transform:uppercase;color:#64748B}
+/* the trophy, with a glisten that sweeps across it */
+.tCupTrophy{position:relative;width:56px;height:56px;margin:0 auto 10px;display:block}
+.tCupTrophy img{width:100%;height:100%;object-fit:contain;display:block}
+/* The glisten is a band that SLIDES across, clipped to the trophy's own alpha. Animating
+   background-position was the wrong tool -- with a 280% background the highlight never
+   actually crossed the element -- and a transform stays on the compositor anyway. The mask
+   sits on the wrapper so it clips both the cup and the sweep. */
+.tCupTrophy{-webkit-mask-image:var(--tropMask);mask-image:var(--tropMask);
+ -webkit-mask-size:contain;mask-size:contain;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;
+ -webkit-mask-position:center;mask-position:center}
+.tCupGlint{position:absolute;top:-15%;bottom:-15%;left:0;width:72%;pointer-events:none;
+ background:linear-gradient(100deg,transparent 0%,rgba(255,255,255,0) 34%,
+   rgba(255,255,255,.30) 45%,rgba(255,255,255,.72) 50%,rgba(255,255,255,.30) 55%,
+   rgba(255,255,255,0) 66%,transparent 100%);
+ animation:tGlint 4.6s cubic-bezier(.42,0,.3,1) infinite}
+@keyframes tGlint{0%{transform:translateX(-105%)}38%,100%{transform:translateX(175%)}}
+
+.tCupCard{margin:0 12px;border-radius:20px;background:#fff;box-shadow:inset 0 0 0 1px #E2E8F0;
+ padding:24px;display:flex;flex-direction:column;gap:18px}
+.tCupTeam{display:flex;align-items:center;gap:10px;min-width:0}
+.tCupChip{flex:0 0 34px;width:34px;height:34px;border-radius:50%;overflow:hidden;
+ background:rgb(var(--tc,148,163,184));display:inline-flex;align-items:center;justify-content:center}
+.tCupChip img{width:118%;height:118%;object-fit:contain;display:block}
+.tCupNm{font-weight:600;font-size:15px;line-height:1.1;color:#0F172A;min-width:0;
+ white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tCupSc{margin-left:auto;font-weight:600;font-size:20px;line-height:1;color:#0F172A;
+ font-variant-numeric:tabular-nums;flex:0 0 auto;padding-left:10px}
+.tCupVs{display:flex;align-items:center;gap:10px}
+.tCupVs i{height:1px;background:#E2E8F0}
+.tCupVs i:first-child{flex:0 0 32px}
+.tCupVs i:last-child{flex:1 1 auto}
+.tCupVs span{font-weight:600;font-size:13px;letter-spacing:.08em;color:#64748B}
+
+.tCupGo{display:block;width:calc(100% - 24px);margin:16px 12px;box-sizing:border-box;
+ padding:14px 20px;border:0;border-radius:16px;background:#0F172A;color:#fff;
+ font-family:var(--sans);font-weight:600;font-size:15px;line-height:1;cursor:pointer;min-height:48px;
+ transition:opacity .16s cubic-bezier(.2,.8,.2,1)}
+.tCupGo:hover,.tCupGo:focus-visible{opacity:.88}
+
+/* the schedule collapses -- a <details>, so it is keyboard and screen-reader native */
+.tCupSched{border-top:1px solid #E2E8F0;background:#F1F5F9}
+.tCupSched>summary{list-style:none;cursor:pointer;padding:14px 24px;
+ display:flex;align-items:center;justify-content:space-between;gap:8px;
+ font-weight:600;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:#0F172A}
+.tCupSched>summary::-webkit-details-marker{display:none}
+.tCupSched>summary:focus-visible{outline:2px solid #0F172A;outline-offset:-3px;border-radius:6px}
+.tCupChev{width:16px;height:16px;flex:0 0 16px;transition:transform .22s cubic-bezier(.2,.8,.2,1)}
+.tCupSched[open] .tCupChev{transform:rotate(180deg)}
+.tCupSchedIn{padding:0 12px 12px}
+.tCupRd{border-radius:14px;background:#fff;box-shadow:inset 0 0 0 1px #E2E8F0;overflow:hidden}
+.tCupRd+.tCupRd{margin-top:8px}
+.tCupRdH{padding:8px 16px;font-weight:600;font-size:11px;letter-spacing:.1em;
+ text-transform:uppercase;color:#64748B;background:#F8FAFC;border-bottom:1px solid #E2E8F0}
+.tCupFx{display:flex;align-items:center;gap:8px;padding:9px 16px;border-bottom:1px solid #E2E8F0}
+.tCupFx:last-child{border-bottom:0}
+.tCupFxSide{display:flex;align-items:center;gap:7px;min-width:0;flex:1 1 0}
+.tCupFxSide:last-of-type{flex-direction:row-reverse;text-align:right}
+.tCupDot{flex:0 0 18px;width:18px;height:18px;border-radius:50%;overflow:hidden;
+ background:rgb(var(--tc,203,213,225));display:inline-flex;align-items:center;justify-content:center}
+.tCupDot img{width:118%;height:118%;object-fit:contain;display:block}
+.tCupFxNm{font-weight:400;font-size:13px;color:#0F172A;min-width:0;
+ white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tCupFxSide.tCupWon .tCupFxNm{font-weight:600}
+.tCupFxSide:not(.tCupWon) .tCupFxNm{color:#64748B}
+.tCupFxSc{flex:0 0 auto;font-weight:600;font-size:13px;color:#0F172A;
+ font-variant-numeric:tabular-nums;letter-spacing:.02em;padding:0 2px}
+.tCupFxSc.tCupPend{font-weight:400;color:#94A3B8}
+@media(prefers-reduced-motion:reduce){
+ .tCupTrophy::after{animation:none;opacity:0}
+ .tCupChev{transition:none}
+}
+
 /* ================= LIVE SCOREBOARD =================
    A FAITHFUL translation of SportyBlocks' Scoreboard1, not an adaptation -- their geometry,
    their radii, their spacing, their type sizes. Their Tailwind classes map as:
@@ -5358,7 +5444,7 @@ function teams(){
    // itself is announced 850ms later, by which point there is no fixture left to read from.
    var _wname=(team===1?"Red":"Blue")+" wins!";
    try{var _T=window.__hmTour;if(_T&&_T.live&&_T.cur){var _tm=(team===1?_T.cur.a:_T.cur.b);if(_tm)_wname=_tm.name+" win";}}catch(_){}
-   try{if(window.__hmTourWin)window.__hmTourWin(team);}catch(_){}   // "First to 5" and End are moot once it is decided
+   try{if(window.__hmTourWin)window.__hmTourWin(team,S.red,S.blue);}catch(_){}   // the SCORE travels with the result, so the schedule can show it later   // "First to 5" and End are moot once it is decided
    
    try{winConfetti(team);}catch(_){}
    try{if(typeof busyNow==="function"&&!busyNow()){setHold("smile",2600);showFace("smile");refFlash();}}catch(_){}
@@ -6373,9 +6459,14 @@ function buildTeams(cb){
   if (pending === 0) finish();
 }
 
-window.__hmTourWin = function(winSide){
+window.__hmTourWin = function(winSide, scoreR, scoreB){
   if (!T.live || !T.cur) return;
   var c = T.cur, winnerId = c.side[winSide];
+  // Keep the scoreline on the fixture. Side 1 is always the match's `a`, side 2 its `b`,
+  // so the schedule can render a real result rather than just who advanced.
+  try{ var _m = T.br.rounds[c.round].matches[c.index];
+    if (_m && scoreR !== undefined){ _m.sa = scoreR|0; _m.sb = scoreB|0; }
+  }catch(_){}
   BR.recordWinner(T.br, c.round, c.index, winnerId);
   var bad = BR.checkNoDoubleAdvance(T.br);
   if (bad) { try { console.warn('[tour]', bad); } catch (_) {} }
@@ -6559,120 +6650,99 @@ function paint(){
   h.hidden = false;
   h.innerHTML = '';
 
-  var ttl = el('h1', 'tTitle', T.cup || 'Cup');
-  var cupIco = el('img', 'tCupIco'); cupIco.src = 'images/trophy.webp'; cupIco.alt = ''; cupIco.draggable = false;
-  ttl.appendChild(cupIco);   // sits after the name the way the mood icons sit after the cycling word
-  h.appendChild(ttl);
-  var nm = BR.nextMatch(T.br);
-  var champ = BR.champion(T.br);
+  // ---- ONE CAPSULE: title, matchup, kick off, collapsible schedule ----
+  var nm2 = BR.nextMatch(T.br);
+  var champ2 = BR.champion(T.br);
+  var cup = el('div', 'tCup');
 
-  if (T.phase === 'done' || champ !== undefined){
-    var w = teamById(champ);
-    var win = el('div', 'tChamp');
-    var pan = el('div', 'tChampIn');
-    if (w) pan.style.setProperty('--tc', w.col);
-    // the name ghosted huge behind the head, the way that kit sets the player's name back
-    // into the panel -- it reads as texture until you look for it
-    if (w) pan.appendChild(el('div', 'tChampGhost', w.name));
-    if (w) pan.appendChild(faceOf(w, 'tCardHead'));
-    var cbody = el('div', 'tCardBody');
-    cbody.appendChild(el('div', 'tCardNm', w ? w.name : '\u2014'));
-    pan.appendChild(cbody);
-    var cup = el('img', 'tChampCup'); cup.src = 'images/trophy.webp'; cup.alt = ''; cup.draggable = false;
-    pan.appendChild(cup);          // hangs off the notch, where the kit hangs the squad number
-    win.appendChild(pan);
-    var foot = el('div', 'tChampFoot');
-    foot.appendChild(el('b', '', 'Champion'));
-    foot.appendChild(el('span', '', T.cup || ''));
-    win.appendChild(foot);
-    h.appendChild(win);
-  } else if (nm && T.phase === 'bracket'){
-    var A = teamById(nm.match.a), Bm = teamById(nm.match.b);
-    var nx = el('div', 'tNext');
-    nx.appendChild(el('span', 'tLbl', 'Up next'));   // the ROUND is already named by the column head
-    // and by the outlined live card, so repeating it here was the same words set two different ways
-    // THE STARE-DOWN. The hero works because one object dominates and everything else is quiet
-    // (measured: one type treatment, head at 30% of the viewport). This screen had eight type
-    // treatments and its biggest face was 44px -- 0.15%. So the two contenders become the object:
-    // each side is a column (head over name), the heads are turned to FACE each other, and they
-    // breathe on offset cycles so it reads as sizing each other up rather than two stickers.
-    // THE PRE-MATCH CARDS. The stare-down put two big heads and two big names on the
-    // screen with nothing else, which read as decoration. A card carries the same two
-    // faces AND says who they are: colour, seed, and the record they bring into the tie.
-    var pair = el('div', 'tCards');
-    function side(tm, which){
-      var c = el('div', 'tCard tCard' + which);
-      c.style.setProperty('--tc', tm.col);
-      c.style.setProperty('--cd', (which === 'R' ? 70 : 0) + 'ms');   // 70ms apart, never a wait
-      c.appendChild(faceOf(tm, 'tCardHead'));
-      var body = el('div', 'tCardBody');
-      body.appendChild(el('div', 'tCardNm', tm.name));
-      // a dyed egghead is NAMED after its colour, so the tag would just repeat the name
-      if (tm.name !== tm.colName) body.appendChild(el('span', 'tCardTag', tm.colName));
-      c.appendChild(body);
-      return c;
-    }
-    if (A)  pair.appendChild(side(A, 'L'));
-    pair.appendChild(el('span', 'tVsBig', 'vs'));
-    if (Bm) pair.appendChild(side(Bm, 'R'));
-    nx.appendChild(pair);
-    var go = el('button', 'tGo'); go.type = 'button';
-    go.appendChild(document.createTextNode('Kick off'));   // no icon: nothing else on the site
-    // wears one, and the button is already the only filled-ink control on screen
-    go.addEventListener('click', function(e){ e.stopPropagation(); T.phase = 'match'; startFixture(nm); });
-    nx.appendChild(go);
-    h.appendChild(nx);
+  // header: the trophy, then a single h1 carrying BOTH the cup name and the round
+  var head = el('div', 'tCupHead');
+  var trophy = el('span', 'tCupTrophy');
+  var timg = el('img'); timg.src = 'images/trophy.webp'; timg.alt = ''; timg.draggable = false;
+  trophy.appendChild(timg);
+  trophy.appendChild(el('i', 'tCupGlint'));
+  // the glisten is masked by the trophy's own shape, so it sweeps the cup and not its box
+  trophy.style.setProperty('--tropMask', 'url("images/trophy.webp")');
+  head.appendChild(trophy);
+  var h1 = el('h1', 'tCupH1', T.cup || 'Cup');
+  var roundName = champ2 !== undefined ? 'Champion'
+                : (nm2 ? T.br.rounds[nm2.round].label : 'Complete');
+  h1.appendChild(el('span', 'tCupRound', roundName));
+  head.appendChild(h1);
+  cup.appendChild(head);
+
+  // matchup, or the champion once it is decided
+  var card = el('div', 'tCupCard');
+  function cupSide(tm, scoreTxt){
+    var row = el('div', 'tCupTeam');
+    if (tm) row.style.setProperty('--tc', tm.col);
+    var chip = el('span', 'tCupChip');
+    var cut = tm && tm.captain && (tm.captain.portrait || tm.captain.cut);
+    if (cut){ var ci = el('img'); ci.src = cut; ci.alt = ''; ci.draggable = false; chip.appendChild(ci); }
+    row.appendChild(chip);
+    row.appendChild(el('span', 'tCupNm', tm ? tm.name : '\u2014'));
+    row.appendChild(el('span', 'tCupSc', scoreTxt));
+    return row;
+  }
+  if (champ2 !== undefined){
+    var wt = teamById(champ2);
+    card.appendChild(cupSide(wt, '\u2605'));
+  } else if (nm2){
+    var A2 = teamById(nm2.match.a), B2 = teamById(nm2.match.b);
+    card.appendChild(cupSide(A2, '0'));
+    var vs = el('div', 'tCupVs');
+    vs.appendChild(el('i')); vs.appendChild(el('span', '', 'VS')); vs.appendChild(el('i'));
+    card.appendChild(vs);
+    card.appendChild(cupSide(B2, '0'));
+  }
+  cup.appendChild(card);
+
+  if (nm2 && champ2 === undefined && T.phase === 'bracket'){
+    var go2 = el('button', 'tCupGo', 'Kick off'); go2.type = 'button';
+    go2.addEventListener('click', function(e){ e.stopPropagation(); T.phase = 'match'; startFixture(nm2); });
+    cup.appendChild(go2);
   }
 
-  // BRACKET. Rounds are flex columns; each round's matches distribute with justify-content:center
-  // over full height, so pairs line up with the match they feed. The connectors are drawn as elbows
-  // on pseudo-elements -- one leaving each match to the right, flipped up or down by :nth-child
-  // odd/even, and a matching pair entering each card from the left. That is the standard way to do
-  // this without SVG or absolute maths, and it collapses to a plain stack on a phone.
-  // THE DRAW, AS A FIXTURE LIST. Grouped by round rather than drawn as a tree: Toornament's
-  // own developer guidance is to degrade a bracket to a simplified match list rather than
-  // fight the medium, and at 390px a list is the only thing that actually reads. Each row is
-  // two sides facing each other, exactly as the mirrored bracket had them.
-  var br = el('div', 'tRes');
+  // ---- the schedule, collapsed by default. <details> so it is keyboard- and
+  // screen-reader-native without a line of JS. Saved scores render here. ----
+  var sched = document.createElement('details'); sched.className = 'tCupSched';
+  var sum = document.createElement('summary');
+  sum.appendChild(document.createTextNode('Schedule'));
+  sum.insertAdjacentHTML('beforeend',
+    '<svg class="tCupChev" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">'
+  + '<path d="M6 9l6 6l6 -6"/></svg>');
+  sched.appendChild(sum);
+  var schedIn = el('div', 'tCupSchedIn');
   T.br.rounds.forEach(function(rd){
-    var g    = el('div', 'tResGroup');
-    g.appendChild(el('div', 'tResHead', rd.label));
-    var body = el('div', 'tResBody');
+    var rdBox = el('div', 'tCupRd');
+    rdBox.appendChild(el('div', 'tCupRdH', rd.label));
     rd.matches.forEach(function(m){
-      var live = (T.cur && T.br.rounds[T.cur.round].matches[T.cur.index] === m);
-      var row  = el('div', 'tResRow' + (live ? ' tResLive' : ''));
-      [m.a, m.b].forEach(function(id){
+      var fx = el('div', 'tCupFx');
+      function fxSide(id, mine, theirs){
         var tm = teamById(id);
         var won = (m.winner !== undefined && m.winner === id);
-        var sd  = el('div', 'tResSide' + (won ? ' tResWon' : ''));
-        var who = el('div', 'tResWho');
-        if (tm){
-          var f = el('span', 'tResFace');
-          var im = el('img'); im.src = tm.captain && (tm.captain.portrait || tm.captain.cut) || '';
-          im.alt = ''; im.draggable = false; f.appendChild(im);
-          who.appendChild(f);
-          who.appendChild(el('span', 'tResNm', tm.name));
-        } else {
-          who.appendChild(el('span', 'tResFace'));
-          who.appendChild(el('span', 'tResNm tTbd', '\u2014'));
-        }
-        sd.appendChild(who);
-        var sc = el('span', 'tResScore');
-        if (won) sc.appendChild(el('span', 'tResTri'));
-        // No goal feed is wired up, so there is no score to show and inventing one would be a
-        // lie. The result is already carried three ways -- triangle, weight and colour -- which
-        // is more than 1.4.1 needs, so a W/L letter added nothing except a stray pair of glyphs
-        // sitting where the original kit puts its scoreline.
-        if (m.winner === undefined && tm) sc.appendChild(document.createTextNode('\u2013'));
-        sd.appendChild(sc);
-        row.appendChild(sd);
-      });
-      body.appendChild(row);
+        var sd = el('div', 'tCupFxSide' + (won ? ' tCupWon' : ''));
+        var dot = el('span', 'tCupDot');
+        if (tm){ dot.style.setProperty('--tc', tm.col);
+          var cut2 = tm.captain && (tm.captain.portrait || tm.captain.cut);
+          if (cut2){ var di = el('img'); di.src = cut2; di.alt = ''; di.draggable = false; dot.appendChild(di); } }
+        sd.appendChild(dot);
+        sd.appendChild(el('span', 'tCupFxNm', tm ? tm.name : '\u2014'));
+        return sd;
+      }
+      fx.appendChild(fxSide(m.a));
+      // the saved scoreline, or a dash while the tie is still to come
+      var played = (m.sa !== undefined && m.sb !== undefined);
+      fx.appendChild(el('span', 'tCupFxSc' + (played ? '' : ' tCupPend'),
+        played ? (m.sa + ' \u2013 ' + m.sb) : '\u2013'));
+      fx.appendChild(fxSide(m.b));
+      rdBox.appendChild(fx);
     });
-    g.appendChild(body);
-    br.appendChild(g);
+    schedIn.appendChild(rdBox);
   });
-  h.appendChild(br);
+  sched.appendChild(schedIn);
+  cup.appendChild(sched);
+  h.appendChild(cup);
   paintStadium(h);
 
   // A way out. Without this the tournament was a trap: the hero is given over to it and there was
