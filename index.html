@@ -1526,18 +1526,18 @@ body.about-open #navAbout{color:var(--c950);background:var(--c75)}
    a shadow. The panel clips nothing; the head is positioned against the panel's baseline and
    is simply taller than it. ---- */
 .tCupCard{margin:0 12px;border-radius:20px;background:#fff;box-shadow:inset 0 0 0 1px #E2E8F0;
- padding:46px 14px 16px}
+ padding:52px 14px 16px}
 .tCupMatch{display:grid;grid-template-columns:1fr auto 1fr;align-items:end;gap:10px}
 .tCupSide{position:relative;min-width:0}
-.tCupPanel{position:relative;height:96px;border-radius:12px;background:rgb(var(--tc));
+.tCupPanel{position:relative;height:126px;border-radius:14px;background:rgb(var(--tc));
  box-shadow:inset 0 0 0 1px rgb(var(--te,var(--tc)))}
 /* the crest watermark the kit puts behind the player: ours is the team's own initial */
 .tCupPanel::after{content:attr(data-mark);position:absolute;inset:0;display:flex;
  align-items:center;justify-content:center;pointer-events:none;
  font-family:var(--sans);font-weight:600;font-size:58px;line-height:1;
  color:rgb(var(--ti,255,255,255));opacity:.22;align-items:flex-start;padding-top:6px}
-.tCupBig{position:absolute;left:50%;bottom:52px;transform:translateX(-50%);
- height:132px;width:auto;z-index:2;pointer-events:none;display:block;
+.tCupBig{position:absolute;left:50%;bottom:50px;transform:translateX(-50%);
+ height:158px;width:auto;z-index:2;pointer-events:none;display:block;
  /* A ring in the team's colour, so the head belongs to its panel without being recoloured.
     SEVEN offsets, not four: CSS filters chain, so N shadows compound to about (N/pi)*r --
     at N=7 the result is a 14-gon (2.6% thickness variation) where N=4 is a square (41%).
@@ -1556,7 +1556,7 @@ body.about-open #navAbout{color:var(--c950);background:var(--c75)}
  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tCupSc{display:block;margin-top:2px;font-weight:600;font-size:22px;line-height:1.1;
  color:#0F172A;font-variant-numeric:tabular-nums}
-.tCupVs{align-self:center;padding-bottom:52px;font-weight:600;font-size:14px;
+.tCupVs{align-self:center;padding-bottom:66px;font-weight:600;font-size:14px;
  letter-spacing:.08em;color:#64748B}
 
 .tCupActs{display:flex;flex-direction:column;gap:8px;padding:14px 12px 16px}
@@ -5419,7 +5419,13 @@ function teams(){
    if(el.textContent!==t)el.textContent=t;}
   function refFlash(){try{if(typeof busyNow==="function"&&!busyNow()&&typeof browFlash==="function")browFlash();}catch(_){}}
   function showCount(t){if(!countEl)return;countEl.textContent=t;countEl.classList.remove("hmCountPulse");void countEl.offsetWidth;countEl.classList.add("hmCountPulse");}
-  var RED="224,90,78",BLUE="90,160,216";
+  /* The pitch used to field hardcoded red and blue while the scoreboard showed the fixture's
+   real team colours -- a "Green vs Sky" tie ran out in yellow and blue. Both now read the
+   same source, so the ring on a head matches the row it came from. */
+   var RED="224,90,78",BLUE="90,160,216";
+   function teamRGB(side){ try{ var T=window.__hmTour;
+     if(T&&T.live&&T.cur){ var tm=(side===1?T.cur.a:T.cur.b); if(tm&&tm.col) return tm.col; }
+   }catch(_){} return side===1?RED:BLUE; }
   function kickoffCountdown(){S.kickSeed=(S.kickSeed||0)+1;   // the match opener: everyone to their half, then 3-2-1
    var _bh=ballHome();bx=_bh?_bh.x:(XL+XR)/2;by=_bh?_bh.y:70;bsp=ballSpawnScale();_spawnY=by;_curveTo=(XL+XR)/2;_curving=true;_cvOn=false;bvx=0;bvy=0;_deckT=0;S.phase="count";
    var n=3;showCount(n);
@@ -5438,7 +5444,7 @@ function teams(){
    // The confetti is the SCORING TEAM'S colour, not a hardcoded red/blue. In a tournament
    // fixture the sides are two arbitrary palette teams, so firing red or blue was showing a
    // colour neither team was wearing.
-   var rgb=team===1?RED:BLUE;
+   var rgb=teamRGB(team);   // confetti wears the scoring team's real colour
    try{var _T=window.__hmTour;
      if(_T&&_T.live&&_T.cur){var _tm=(team===1?_T.cur.a:_T.cur.b);if(_tm&&_tm.col)rgb=_tm.col;}
      else if(S.teams){var _s=S.teams[team===1?1:2];if(_s&&_s.col)rgb=_s.col;}
@@ -6847,22 +6853,8 @@ function paint(){
   h.appendChild(cup);
   paintStadium(h);
 
-  // A way out. Without this the tournament was a trap: the hero is given over to it and there was
-  // no control anywhere to hand the page back.
-  var done = (T.phase === 'done');
-  var out = el('button', 'tGo tGoQuiet', done ? 'Back to the hero' : 'End tournament');
-  out.type = 'button';
-  // Mid-bracket this throws away up to seven played fixtures, so it asks twice. Once there is a
-  // champion there is nothing left to lose and it goes straight back.
-  var armed = false, armT = 0;
-  out.addEventListener('click', function(e){
-    e.stopPropagation();
-    if (done || armed){ stop(); return; }
-    armed = true; out.textContent = 'Tap again to end'; out.classList.add('tQuitArmed');
-    clearTimeout(armT);
-    armT = setTimeout(function(){ armed = false; out.textContent = 'End tournament'; out.classList.remove('tQuitArmed'); }, 3200);
-  });
-  h.appendChild(out);
+  // (The way out lives in the matchup container now -- see .tCupQuit above.)
+
 
 }
 
