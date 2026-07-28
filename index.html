@@ -1598,7 +1598,7 @@ body.hmTour.tSchedOpen #tourPanel .tCupSchedIn{
    1px var(--c100) hairlines -- so the matchup and the schedule read as one object rather than two
    components stacked. */
 .tCup{width:min(420px,92vw);margin:0 auto;box-sizing:border-box;
- border:1px solid var(--c100);border-radius:4px;background:var(--c50);
+ border-radius:4px;background:var(--c50);
  font-family:var(--sans);color:var(--c950)}
 .tCupHead{position:relative;padding:24px 24px 16px;text-align:center}
 /* both lines are ONE h1: the cup names itself, the round says where we are in it */
@@ -5427,7 +5427,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
       '<div class="sbCard">'
     +   '<div class="sbInner"></div>'
     +   '<div class="sbFoot">'
-    +     '<span class="sbMeta">First to <b class="sbTarget">' + S.target + '</b>'
+    +     '<span class="sbMeta"><span class="sbRule">First to ' + S.target + '</span>'
     +       '<img class="sBall" src="images/soccerball.webp" alt="" draggable="false"></span>'
     +     '<button class="hmScoreEnd" type="button" aria-label="End the match">'
     +       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">'
@@ -5521,13 +5521,16 @@ function teams(){
       + '<div class="sbVs"><i class="sbRuleA"></i><span>VS</span><i class="sbRuleB"></i></div>'
       + side("B");
     sR=board.querySelector(".sR"); sB=board.querySelector(".sB");
-    var tg=board.querySelector(".sbTarget"); if(tg)tg.textContent=S.target;
+    ruleLabel();   // one owner for that string, so a repaint cannot reset it to "First to N"
   }
   function board2(){if(sR)sR.textContent=S.red;if(sB)sB.textContent=S.blue;ruleLabel();}
   // "First to 5" stopped being true the moment it went to deuce. Say what is actually on the
   // line: at 5-4 the rule IS win-by-two, and once someone reaches cap-1 the next goal ends it
   // outright, so the target really is the cap.
-  function ruleLabel(){if(!board)return;var el=board.querySelector("small");if(!el)return;
+  /* Targets .sbRule. This read board.querySelector("small") -- the element the SportyBlocks
+     rebuild replaced -- so it found nothing, returned early, and the label sat on "First to 5"
+     through deuce and past the cap for every match since. */
+  function ruleLabel(){if(!board)return;var el=board.querySelector(".sbRule")||board.querySelector("small");if(!el)return;
    var mx=Math.max(S.red,S.blue),df=Math.abs(S.red-S.blue),t;
    if(mx>=S.cap-1)t="First to "+S.cap;
    else if(mx>=S.target&&df<2)t="Win by 2";
