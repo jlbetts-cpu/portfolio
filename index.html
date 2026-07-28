@@ -1603,12 +1603,9 @@ body.hmTour #tourPanel .tCup{width:100%;max-width:none;margin:0;
 body.hmTour:not(.tSchedOpen) #tourPanel .tCup{height:auto;overflow:visible}
 /* the head is the only child touching the top edge, so it carries the round when the cup does not */
 body.hmTour #tourPanel .tCupHead{border-radius:28px 28px 0 0}
-/* No coloured box behind the head -- the head already carries its team's colour as the ring
-   around its own silhouette, exactly as it does on the pitch. The block was stating the same
-   thing twice, and a rectangle behind a cut-out fights the shape of the cut-out.
-   And they BREATHE: a slow bob, the two offset so they are never in lockstep, so the matchup
-   reads as two players waiting rather than two stickers. */
-body.hmTour #tourPanel .tCupPanel{background:none}
+/* The matchup panels keep their colour fill. The idle bob stays: the two heads offset so
+   they are never in lockstep, so the card reads as two players waiting rather than two
+   stickers. */
 body.hmTour #tourPanel .tCupBig{animation:tIdleBob 3.6s ease-in-out infinite}
 body.hmTour #tourPanel .tCupSide:last-child .tCupBig{animation-delay:-1.5s;animation-duration:4.1s}
 @keyframes tIdleBob{
@@ -1757,14 +1754,16 @@ body.hmTour.tSchedOpen #tourPanel .tCupSchedIn{
 /* An undecided fixture has no team, so --tc falls back to grey and the ring drew an empty
    outlined box that read as a real entry with a missing head. No team, no ring. */
 .tCupFx.tFxTbd .tCupDot{box-shadow:none}
-.tCupDot{flex:0 0 48px;width:48px;height:48px;position:relative;overflow:hidden;
- /* 4px, like every other corner on the site. And an OUTLINE in the team's colour rather than
-    a filled tile -- same reasoning as the scoreboard thumbnails: the colour is already the
-    head's, so a solid block behind it says it twice and squares off a cut-out that is not a
-    square. */
- background:none;box-shadow:inset 0 0 0 2px rgb(var(--tc,230,230,230));border-radius:4px;
+.tCupDot{flex:0 0 48px;width:48px;height:48px;position:relative;overflow:visible;
+ /* Same as the scoreboard: no square, the outline traces the head itself. */
+ background:none;border-radius:0;
  display:flex;align-items:center;justify-content:center}
-.tCupDot img{height:40px;width:auto;max-width:100%;object-fit:contain;display:block}
+.tCupDot img{height:40px;width:auto;max-width:100%;object-fit:contain;display:block;
+ filter:
+  drop-shadow(1.2px 0 0 rgb(var(--tc,148,163,184)))
+  drop-shadow(-1.2px 0 0 rgb(var(--tc,148,163,184)))
+  drop-shadow(0 1.2px 0 rgb(var(--tc,148,163,184)))
+  drop-shadow(0 -1.2px 0 rgb(var(--tc,148,163,184)))}
 .tCupFxNm{font-weight:600;font-size:var(--fs-small,15px);line-height:1.2;color:var(--c950);min-width:0;
  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tCupFxSide:not(.tCupWon) .tCupFxNm{font-weight:400;color:var(--c500)}
@@ -1803,12 +1802,17 @@ body.hmTour.tSchedOpen #tourPanel .tCupSchedIn{
 .sbInner{border-radius:28px 28px 4px 4px;overflow:hidden;background:var(--c50);box-shadow:inset 0 0 0 1px var(--c100);padding:32px;
  display:flex;flex-direction:column;gap:20px}
 .sbTeam{display:flex;align-items:center;gap:8px;min-width:0}
-/* An OUTLINE in the team's colour, not a filled box. The head already carries that colour as
-   a ring on the pitch, so a solid tile behind it stated the same thing twice and boxed in a
-   cut-out that is not rectangular. */
+/* No square at all. The outline traces the HEAD, the way it does on the pitch -- a box, even
+   an empty one, draws a rectangle around a shape that is not a rectangle. Four offsets rather
+   than a stack: CSS filters CHAIN, so a long stack compounds the thickness instead of adding
+   to it, and at 32px one pixel is the whole line. */
 .sbFace{flex:0 0 32px;width:32px;height:32px;display:inline-flex;align-items:center;
- justify-content:center;overflow:hidden;border-radius:4px;background:none;
- box-shadow:inset 0 0 0 2px rgb(var(--tc,230,230,230))}
+ justify-content:center;overflow:visible;background:none}
+.sbFace img{filter:
+  drop-shadow(1px 0 0 rgb(var(--tc,148,163,184)))
+  drop-shadow(-1px 0 0 rgb(var(--tc,148,163,184)))
+  drop-shadow(0 1px 0 rgb(var(--tc,148,163,184)))
+  drop-shadow(0 -1px 0 rgb(var(--tc,148,163,184)))}
 /* THE GOAL FLASH. The board lights up in the scorer's colour for a beat, then settles.
    A ring plus a soft bloom rather than a fill, so the score stays readable through it --
    the number is the thing you are looking at when a goal goes in. */
