@@ -1286,6 +1286,12 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
  fill:none;
  vector-effect:non-scaling-stroke;
 }
+/* Fill-based brand glyphs opt themselves out of the stroke-icon rule above. CSS beats an SVG
+   presentation attribute, so fill="currentColor" in the markup lost to fill:none and the
+   LinkedIn, Instagram, Email and Resume icons rendered as nothing at all. Keyed off the
+   markup's own attribute, so any future filled glyph is covered without another rule. */
+a svg[fill="currentColor"],button svg[fill="currentColor"],[role=button] svg[fill="currentColor"]{
+ fill:currentColor;stroke:none;stroke-width:0}
 /* one icon size for controls, one for the caret affordance */
 .gIco{width:18px;height:18px;flex:0 0 18px}
 .moodIco{width:18px;height:18px;flex:0 0 18px;font-size:18px}
