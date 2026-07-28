@@ -1724,7 +1724,11 @@ body.hmTour.tSchedOpen #tourPanel .tCupSchedIn{
 .sbRuleB{flex:1 1 auto;height:1px;background:var(--c100)}
 .sbVs span{font-weight:600;font-size:13px;line-height:1.1;color:var(--c950)}
 .sbFoot{display:flex;justify-content:space-between;align-items:center;gap:8px;
- padding:16px 32px;font-weight:600;font-size:12px;line-height:1.1;color:var(--c950)}
+ padding:16px 32px;font-weight:600;font-size:12px;line-height:1.1;color:var(--c950);
+ /* The ledge is the card's last child, so the card's 28 is ITS to carry. The card does not
+    clip, so square corners here painted straight over the rounding and the card read as
+    square no matter what radius the card itself was given. */
+ border-radius:0 0 28px 28px}
 .sbMeta{display:inline-flex;align-items:center;gap:6px}
 .sbMeta .sBall{width:14px;height:14px;object-fit:contain}
 .hmScore .hmScoreEnd{color:var(--c500);font-weight:600;font-size:12px;padding:6px 8px;min-height:0;
