@@ -1498,10 +1498,13 @@ body.about-open #navAbout{color:var(--c950);background:var(--c75)}
 body.hmTour #tourPanel{left:50%!important;right:auto!important;top:0!important;
  width:min(460px,calc(100vw - 40px))!important;max-width:none!important;
  transform:translateX(-50%)!important}
-body.hmTour #tourPanel .tCup{width:100%;max-width:none;margin:0;border-radius:0;
- border-left:0;border-right:0;border-top:0}
-body.hmTour #tourPanel .tCupCard{margin:0;border-radius:0;box-shadow:none;
- border-top:1px solid var(--c100);border-bottom:1px solid var(--c100)}
+body.hmTour #tourPanel .tCup{width:100%;max-width:none;margin:0;
+ border-radius:28px 28px 0 0}
+body.hmTour.tSchedOpen #tourPanel .tCup{overflow:hidden}
+body.hmTour:not(.tSchedOpen) #tourPanel .tCup{height:auto;overflow:visible}
+/* the head is the only child touching the top edge, so it carries the round when the cup does not */
+body.hmTour #tourPanel .tCupHead{border-radius:28px 28px 0 0}
+body.hmTour #tourPanel .tCupCard{margin:0;border-radius:0;box-shadow:none;border:0}
 body.hmTour #tourPanel .tCupMatch{margin:0}
 body.hmTour #tourPanel .tCupActs{padding-left:0;padding-right:0}
 body.hmTour #tourPanel .tCupSchedIn{padding-left:0;padding-right:0}
@@ -1518,13 +1521,14 @@ body.hmTour #tourPanel .tCupSchedIn{padding-inline:20px}
    hero collapses to the capsule when it is closed. min-height is the animated property so
    the page reflows in one movement rather than the panel jumping inside a fixed hero. ---- */
 body.hmTour .hero{transition:min-height .42s cubic-bezier(.2,.8,.2,1)}
-body.hmTour.tSchedOpen #tourPanel .tCup{min-height:calc(100svh - 116px)}
+body.hmTour.tSchedOpen #tourPanel .tCup{height:calc(100svh - 104px)}
 body.hmTour.tSchedOpen #tourPanel .tCup{display:flex;flex-direction:column}
 body.hmTour.tSchedOpen #tourPanel .tCupHead,
 body.hmTour.tSchedOpen #tourPanel .tCupCard,
 body.hmTour.tSchedOpen #tourPanel .tCupActs{flex:0 0 auto}
 body.hmTour.tSchedOpen #tourPanel .tCupSched{flex:1 1 auto;display:flex;flex-direction:column;min-height:0}
-body.hmTour.tSchedOpen #tourPanel .tCupSchedIn{flex:1 1 auto;max-height:none;min-height:168px}
+body.hmTour.tSchedOpen #tourPanel .tCupSchedIn{flex:1 1 auto;max-height:none;min-height:0;
+ overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
 @media(prefers-reduced-motion:reduce){ body.hmTour .hero{transition:none} }
 
 /* ================= THE CUP CAPSULE =================
