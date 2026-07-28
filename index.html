@@ -2675,46 +2675,59 @@ window.__hmPartyAt=function(getRect,ms){try{
   /* The ball HANGS. It belongs at the top of the room, not level with whoever won -- that is
      what makes the beams read as coming down onto the floor. */
   var ballTop=Math.round(Math.min(120,Math.max(56,innerHeight*0.10)));
-  /* IRIS IN. The pool starts generous and closes onto the winner -- the theatrical move for
-     "this one, look here", and it reads as a push-in without touching the pitch. A real camera
-     zoom is not available cheaply: the physics loop writes each head's transform every frame,
-     so any scale set on a head or its container is overwritten on the next tick. Tightening
-     the light achieves the same focus and cannot fight the simulation. */
-  var hr0=Math.max(150,Math.round(r0.width*2.4)), hr1=Math.round(hr0*0.52);
-  partyEl.style.setProperty("--hr",hr0+"px");
-  var irisT0=null;
-  function iris(now){
-    if(!live||!partyEl)return;
-    if(irisT0===null)irisT0=now;
-    var t=Math.min(1,(now-irisT0-900)/2200);          // a beat wide, then close
-    if(t>0){
-      var e=t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;      // ease-in-out cubic
-      partyEl.style.setProperty("--hr",Math.round(hr0+(hr1-hr0)*e)+"px");
-    }
-    if(t<1)requestAnimationFrame(iris);
-  }
-  requestAnimationFrame(iris);
-  /* The spotlight FOLLOWS. The winner is still being simulated -- it lands, bounces, drifts --
-     so a spotlight fixed at the position it happened to hold on the winning frame slides off
-     it within a second. Re-read every frame while the party is up. */
-  /* The ball is hung ONCE, in the middle of the room, and never moves again -- a mirrorball
-     is a fixture, and one that slides sideways to follow a player reads as a bug. Its beams
-     originate there for the same reason. Only the SPOTLIGHT tracks. */
+  /* THE CUE SHEET. One loop, four cues, in the order a real follow-spot operator would call
+     them -- ballyhoo, pickup, iris in, hold. Two separate rAF loops (one tracking, one
+     irising) could not express an order between them; a sequence needs a single clock.
+
+       0.00s  BALLYHOO   the light sweeps a figure-eight over the pitch, iris wide open.
+                         Sourced as an ENERGY effect, not a searching one -- the light is not
+                         hunting for the winner, it is celebrating and then arrives.
+       1.10s  PICKUP     a BUMP, not a slide: the light cuts to the winner. A "set" pickup,
+                         the type where the light takes its mark and the performer is in it.
+       1.40s  IRIS IN    full-body framing closes to head framing over 2.2s. The standard
+                         framings are named, and the operator's first rule is STAY ON THE
+                         FACE, so head framing is where this has to land.
+       3.60s  HOLD       tracking only. The winner is still being simulated -- it lands,
+                         bounces, drifts -- so a light parked where it was on the winning
+                         frame slides off within a second.
+
+     Timing follows Heer & Robertson: slow-in slow-out throughout, staged rather than one
+     move, and no single beat longer than it needs. */
+  var hrWide=Math.max(150,Math.round(r0.width*2.4)),      // full body
+      hrHead=Math.round(hrWide*0.42);                     // head framing
+  partyEl.style.setProperty("--hr",hrWide+"px");
+  var BALLY=1100, IRIS_S=1400, IRIS_D=2200;
   var sy0=window.scrollY||0, ballX=Math.round(innerWidth/2);
   partyEl.style.setProperty("--bx",ballX+"px");
   partyEl.style.setProperty("--by",(ballTop+sy0)+"px");
   discoWrap.style.left=ballX+"px"; discoWrap.style.top=(ballTop+sy0)+"px";
-  var live=true;
-  (function track(){
+  var live=true, T0=null;
+  function ease(t){return t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;}
+  (function cue(now){
     if(!live||!partyEl)return;
-    var r=probe();
-    if(r&&r.width){
-      var sy=window.scrollY||0;
-      partyEl.style.setProperty("--hx",(r.left+r.width/2)+"px");
-      partyEl.style.setProperty("--hy",(r.top+sy+r.height*0.42)+"px");
+    if(T0===null)T0=now;
+    var t=now-T0, sy=window.scrollY||0, hx, hy;
+    if(t<BALLY){
+      // BALLYHOO -- a figure-eight over the pitch, iris wide
+      /* Viewport maths, NOT hero.getBoundingClientRect(). `hero` is not in scope in this
+         module -- and because this loop's first call is synchronous, that threw straight into
+         __hmPartyAt's own try/catch, which swallowed it. The whole sequence silently did
+         nothing while the harness reported zero page errors. */
+      var a2=(t/BALLY)*Math.PI*4;
+      hx=innerWidth*(0.5+0.33*Math.sin(a2));
+      hy=(r0.top+sy+r0.height*0.42)+innerHeight*0.10*Math.sin(2*a2);
+    }else{
+      // PICKUP, then HOLD -- on the winner, re-read every frame
+      var r=probe(); if(!r||!r.width){requestAnimationFrame(cue);return;}
+      hx=r.left+r.width/2;
+      hy=r.top+sy+r.height*0.42;
+      var it=Math.min(1,Math.max(0,(t-IRIS_S)/IRIS_D));
+      partyEl.style.setProperty("--hr",Math.round(hrWide+(hrHead-hrWide)*ease(it))+"px");
     }
-    requestAnimationFrame(track);
-  })();
+    partyEl.style.setProperty("--hx",hx+"px");
+    partyEl.style.setProperty("--hy",hy+"px");
+    requestAnimationFrame(cue);
+  })(performance.now());
   /* Two frames apart, so the room dims BEFORE the ball arrives rather than everything
      snapping on together. The ball's own drop-in is a transition on .on. */
   requestAnimationFrame(function(){
