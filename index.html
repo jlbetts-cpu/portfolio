@@ -1859,43 +1859,51 @@ body.hmFinal .sbTrophy{display:block;animation:sbTrophyIn .5s cubic-bezier(.2,.8
  pointer-events:none;filter:drop-shadow(0 8px 18px rgba(15,23,42,.32))}
 @media(prefers-reduced-motion:reduce){body.hmFinal .sbTrophy{animation:none}}
 
-/* SCOREBOARD -- the kit's Scoreboard1, matched to its PROPORTIONS rather than just its parts.
-   Measured off the reference at a 660px card: block 72px (0.109 of the width), white strip
-   135px (0.205), footer 95px (0.144), badge 46px (0.070), score 36px (0.055). Held to those
-   ratios at our 520px card, which is why it is shorter and taller than my first attempt --
-   that one was right about the elements and wrong about every measurement.
-   .sbInner deliberately does NOT clip. The blocks carry the card's 28px on their OUTER side,
-   top AND bottom; an overflow:hidden here squares the bottom corners off again, which is the
-   "roundness isn't on the bottom of the black" Jayden spotted. */
+/* SCOREBOARD.
+   The idea: each team is ONE object, not three. Previously a colour block sat at the outer
+   edge, the head floated inboard of it, and the code floated inboard of that -- three shapes
+   with arbitrary gaps, sharing no edge and no axis. A kit of parts. And the team's colour was
+   stated twice, as a block AND as a ring on the head, with whitespace between the two
+   statements.
+   Now the head sits INSIDE its colour field. The field is the team's territory and the head
+   belongs to it, which is true of the game and makes the pair read as a single object. The
+   colour is stated once. The code sits just inboard as that object's label, and the score is
+   the line where the two territories meet.
+   The two-tone colour-over-black block is gone. It encoded nothing -- there is no black-half
+   convention anywhere else in this system, so it was borrowed decoration. */
 .sbInner{position:relative;display:flex;align-items:stretch;justify-content:space-between;
  gap:0;padding:0;height:92px;background:var(--c50);border-radius:28px 28px 0 0}
-.sbSide{position:relative;display:flex;align-items:center;gap:14px;flex:1 1 0;min-width:0;
- padding-left:74px}
-.sbSideB{flex-direction:row-reverse;padding-left:0;padding-right:74px}
-.sbEdge{position:absolute;top:0;bottom:0;width:56px;
- background:linear-gradient(rgb(var(--tc)) 0 50%,var(--c950) 50% 100%)}
+.sbSide{position:relative;display:flex;align-items:center;flex:1 1 0;min-width:0;
+ padding-left:112px}
+.sbSideB{flex-direction:row-reverse;padding-left:0;padding-right:112px}
+
+/* The team's field. Full height, so it reads as territory rather than as a chip sitting in
+   the bar, and it carries the card's own 28px on its outer edge. */
+.sbEdge{position:absolute;top:0;bottom:0;width:88px;background:rgb(var(--tc))}
 .sbSideR .sbEdge{left:0;border-radius:28px 0 0 28px}
 .sbSideB .sbEdge{right:0;border-radius:0 28px 28px 0}
-/* The codes read at the SAME size as the score -- one line of type across the bar rather than
-   a big number flanked by two small labels. Negative tracking, because that is what large type
-   wants; the positive tracking that suits a 14px label makes 37px uppercase look gappy. */
+
+/* The head sits ON its field. No ring: the field behind it is already the colour statement,
+   and a ring in the same colour on the same object says it twice. */
+/* Absolutely placed so it is centred IN its field (88 wide, 56 head, 16 each side) rather
+   than sitting in the text flow, where its width pushed the code around. */
+.sbFace{position:absolute;top:50%;left:16px;transform:translateY(-50%);z-index:1;
+ width:56px;height:56px;display:inline-flex;align-items:center;justify-content:center;
+ overflow:visible;background:none}
+.sbSideB .sbFace{left:auto;right:16px}
+.hmScore .sbFace img{filter:none}
+
+/* Cap-height, not bounding box. A 56px circle and 37px capitals centred by their boxes do not
+   look centred -- the type's box carries descender space it is not using, so it sits low. */
 .sbNm{font-family:var(--sans);font-weight:600;font-size:var(--fs-h1);color:var(--c950);
- white-space:nowrap;letter-spacing:-.02em;text-transform:uppercase;line-height:1}
-/* The score is the loudest thing on the bug: header size, and each numeral in its own team's
-   colour so a glance tells you WHOSE the number is without reading the code beside it.
-   tabular-nums matters here specifically -- these digits change live, and proportional figures
-   make the whole group shift sideways when a 1 becomes a 2. */
-/* align-SELF centre: .sbInner stretches its children, so without this the score box filled
-   the strip and its baseline alignment pushed the numerals off the top edge. */
-.sbScore{flex:0 0 auto;align-self:center;display:flex;align-items:baseline;gap:12px;padding:0 20px;
- font-family:var(--sans);font-weight:600;font-size:var(--fs-h1);line-height:1;
- letter-spacing:-.03em;font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1}
-/* 600 stated, not inherited. <b> defaults to font-weight:bolder, which resolves RELATIVE to
-   its parent -- inheriting 600 it computed to 900, a weight the type system does not have. */
-.sbScore b{min-width:1ch;text-align:center;font-weight:600}
-/* The dash matches the numerals rather than shrinking away between them. */
-.sbScore i{font-style:normal;color:var(--c500);font-size:1em;font-weight:400;
+ white-space:nowrap;letter-spacing:-.02em;text-transform:uppercase;line-height:1;
  position:relative;top:-.04em}
+
+.sbScore{flex:0 0 auto;align-self:center;display:flex;align-items:baseline;gap:16px;
+ padding:0 8px;font-family:var(--sans);font-weight:600;font-size:var(--fs-h1);line-height:1;
+ letter-spacing:-.02em;font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1}
+.sbScore b{min-width:1ch;text-align:center;font-weight:600}
+.sbScore i{font-style:normal;color:var(--c100);font-size:1em;font-weight:400}
 
 
 /* No square at all. The outline traces the HEAD, the way it does on the pitch -- a box, even
