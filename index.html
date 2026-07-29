@@ -7618,11 +7618,14 @@ function paint(){
     if (isFin) P = POSTERS.fin;
     else if (isMatch){
       var pool = POSTERS.match;
-      /* Keyed off the fixture, not Math.random, so a repaint keeps the same poster. */
-      /* nextMatch() returns {round, index, match} -- I keyed off .i, which is undefined, so
-         every fixture in a round resolved to the same poster and some never appeared. */
-      var k = ((nm2.round||0)*3 + (nm2.index||0)) % pool.length;
-      P = pool[k];
+      /* RANDOM per fixture, and remembered. Deriving it from the fixture index gave a fixed
+         rotation -- quarter-final 1 was always the same poster -- which is not what a pool of
+         artwork is for. The pick is cached on the match object so a repaint keeps the poster
+         it already showed rather than reshuffling under you mid-matchup. Only the final is
+         fixed, because the final has its own artwork. */
+      var mm = nm2.match || nm2;
+      if (mm.__poster === undefined) mm.__poster = Math.floor(Math.random() * pool.length);
+      P = pool[mm.__poster % pool.length];
     }
     if (P){
       var st = document.body.style;
