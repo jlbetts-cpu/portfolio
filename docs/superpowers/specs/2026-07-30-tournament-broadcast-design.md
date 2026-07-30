@@ -19,6 +19,12 @@ matchday print culture, per-match variety systems) and Jayden's requirement that
 4. **No instant-replay system.**
 5. **Sound: yes, high-end, done right.** Opt-in (muted by default).
 6. **Every cup is a distinct event** — a deterministic identity, not a random skin.
+7. **Pennant share/save: yes** (2026-07-30) — canvas render → downloadable image.
+8. **No drama bias** (2026-07-30): "I like when they are narrow but having it be
+   narrow every game feels a bit much and unrewarding to the games that are
+   actually close." Natural variance is the point — close games stay special
+   because they are earned. The variable-intensity presentation (big treatment
+   for late winners) already rewards the close ones without rigging the sim.
 
 ## The one governing principle: spend where memory is written
 
@@ -372,12 +378,10 @@ needs a fresh gesture each load — unlock silently on first click when pref=on)
 
 ## Open items (Jayden's call)
 
-1. **Typeface pick** — from the specimen page (Saira / Archivo / Khand /
-   Instrument-only baseline).
-2. **Pennant download/share button** on the champion screen — new feature surface.
-3. **Drama bias** — suspense research says narrow scorelines + late swings are
-   formally optimal for excitement; a gentle engine bias toward late equalizers
-   is possible but changes sim behaviour. Default: not doing it unless asked.
+1. **Typeface pick** — specimen page published (all axis/tnum claims verified
+   on-file: Saira wdth 50–125 + tnum; Archivo wdth 62–125 + tnum; Khand static,
+   no tnum, fixed cells compensate; Instrument Var wdth floor 75 / wght cap 700).
+   Awaiting Jayden's pick.
 
 ## Out of scope
 
