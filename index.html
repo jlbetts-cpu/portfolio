@@ -34,7 +34,11 @@
 <!-- Icons: Tabler Icons (MIT) - Copyright (c) 2020-2026 Pawel Kuna
      https://github.com/tabler/tabler-icons/blob/main/LICENSE
      Stroke weight is owned by the .gIco CSS rule, NOT by per-svg attributes,
-     which is how the source drifted to 1.2/1.5/1.6/1.7/1.8/2.0/2.2 before. -->
+     which is how the source drifted to 1.2/1.5/1.6/1.7/1.8/2.0/2.2 before.
+
+     Archivo (c) The Archivo Project Authors (https://github.com/Omnibus-Type/Archivo),
+     SIL Open Font License 1.1 (https://openfontlicense.org). Used for tournament
+     numerals and broadcast moments only. -->
 <style>
 html{scroll-behavior:smooth}
 .siteFoot{scroll-margin-top:80px}
@@ -561,6 +565,8 @@ body.about-open:not(.abclosing) .heroCopy>h1{animation:heroLeave .46s cubic-bezi
 /* ============ ABOUT (in-page, same document, window-scroll) ============ */
 
 @font-face{font-family:"Instrument Sans Var";src:url("fonts/instrument-sans-variable.woff2") format("woff2-variations");font-weight:400 700;font-stretch:75% 100%;font-display:swap}@font-face{font-family:"Instrument Sans";font-style:normal;font-weight:400;font-display:swap;src:url(fonts/instrument-sans-latin-400-normal.woff2) format("woff2")}@font-face{font-family:"Instrument Sans";font-style:normal;font-weight:600;font-display:swap;src:url(fonts/instrument-sans-latin-600-normal.woff2) format("woff2")}
+@font-face{font-family:'Archivo';src:url('fonts/archivo-variable.woff2') format('woff2');
+  font-weight:100 900;font-stretch:62% 125%;font-display:swap}
 
 /* when About is open: keep the real head, hide the rest, push the talk pill top-right */
 .abHero{position:relative;display:none;padding-top:clamp(14px,3vh,40px)}
@@ -985,6 +991,10 @@ body.navOpen .navDrawer{transform:translateY(0);opacity:1;visibility:visible;box
    a screen reader because it is genuinely just headings and rows. Type-led, same as the rest of
    the site. Leaderboards carry a face, a team dot, the rating and one number -- at 390px there is
    room for a name column plus about three numerics, and that is the whole budget. ---- */
+/* Broadcast digits: Archivo, tabular, condensed. The display face touches numerals
+   and moments ONLY -- names, labels and UI stay Instrument Sans 400/600. */
+.bcNum{font-family:'Archivo',var(--sans);font-variant-numeric:tabular-nums lining-nums;
+  font-variation-settings:'wdth' 68;font-weight:800;letter-spacing:.01em}
 .tourPanel{position:absolute;left:50%;top:var(--heroTitleTop,40px);transform:translateX(-50%);z-index:47;
  width:min(540px,calc(100vw - var(--sp-16-24)*2));display:flex;flex-direction:column;align-items:center;
  gap:var(--sp-8-16);font-family:var(--sans);color:var(--c950);text-align:center;
