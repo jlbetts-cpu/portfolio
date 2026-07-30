@@ -376,12 +376,17 @@ needs a fresh gesture each load — unlock silently on first click when pref=on)
   `__hmTourWin(1,5,1)` → `__hmSoccerEnd()` → wait ≥6s; feel checks in real Chrome
   (pane throttles rAF and white-screens on ink filters).
 
-## Open items (Jayden's call)
+## Open items
 
-1. **Typeface pick** — specimen page published (all axis/tnum claims verified
-   on-file: Saira wdth 50–125 + tnum; Archivo wdth 62–125 + tnum; Khand static,
-   no tnum, fixed cells compensate; Instrument Var wdth floor 75 / wght cap 700).
-   Awaiting Jayden's pick.
+None. Last call made 2026-07-30: **the display face is Archivo** (variable,
+wdth 62–125 / wght 100–900, tabular figures verified on-file, OFL, ~90KB
+latin-subset woff2 from Google Fonts/Omnibus GitHub). Chosen from the rendered
+specimen page over Saira (more engineered) and Khand (more character, static).
+Display settings from the specimen: digits/board at wdth ~68 wght 800, FT-card
+score at wdth ~70 wght 850, always `tabular-nums lining-nums`, one digit per
+fixed-width cell. Archivo touches numerals and moments only; Instrument Sans
+keeps names, labels, and UI at 400/600. OFL licence notice goes alongside the
+existing Tabler/Instrument notices at the top of index.html.
 
 ## Out of scope
 
