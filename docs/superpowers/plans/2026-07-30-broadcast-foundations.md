@@ -50,8 +50,12 @@ Always run this against `git show HEAD:index.html` first if a failure looks pre-
 ```js
 fetch('/egghead-seed.js').then(r=>r.text()).then(t=>{eval(t);
   const base=window.__EGGHEAD, cols=['#e93d3d','#e9b83d','#3de95c','#3dc9e9','#3d5ce9','#b83de9'];
-  Promise.all(cols.map((c,i)=>window.__hmTint(base.cut,c).then(cut=>(
-    {...base, cut, name:'Seed'+(i+1)})))).then(list=>{
+  Promise.all(cols.map((c,i)=>window.__hmTint(base.cut,c).then(cut=>({
+    ...base, cut, name:'Seed'+(i+1),
+    // Perturb eyes per head: the roster dedupe collapses heads whose metadata
+    // matches, so identical eyes/marks reduce 6 seeds to 1 on reload.
+    eyes: base.eyes.map(e=>({...e, x:e.x+i*0.001}))
+  })))).then(list=>{
       localStorage.setItem('hmCompanions', JSON.stringify(list));
       localStorage.setItem('hmCompanion', JSON.stringify(list[0]));
       console.log('seeded', list.length); });});
