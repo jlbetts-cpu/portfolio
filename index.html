@@ -1003,6 +1003,20 @@ body.navOpen .navDrawer{transform:translateY(0);opacity:1;visibility:visible;box
 .bcPlate{box-shadow:var(--bc-contact),var(--bc-cast)}
 .bcGrain{position:absolute;inset:0;z-index:9;pointer-events:none;opacity:.06;
   mix-blend-mode:soft-light;background-repeat:repeat}
+/* ---- THE MOTIF. One diagonal light sweep, reused everywhere (poster reveal,
+   stinger edge, trophy glint, champion foil). One axis: enters left, exits right. */
+.bcSheen{position:relative;overflow:hidden}
+.bcSheen::after{content:"";position:absolute;inset:-40%;pointer-events:none;
+  background:linear-gradient(115deg,transparent 42%,var(--cupSheen,rgba(255,253,240,.32)) 50%,transparent 58%);
+  transform:translateX(-130%)}
+.bcSheen.on::after{transition:transform .7s cubic-bezier(.4,0,.2,1);transform:translateX(130%)}
+.bcSting{position:fixed;inset:0;z-index:64;pointer-events:none;display:none}
+.bcSting.on{display:block}
+.bcSting b{position:absolute;top:-20%;bottom:-20%;left:0;width:170%;
+  background:var(--cupPaint,#252a24);transform:translateX(-115%) skewX(-14deg)}
+.bcSting.on b{transition:transform .7s cubic-bezier(.55,0,.35,1);transform:translateX(75%) skewX(-14deg)}
+@media (prefers-reduced-motion: reduce){
+  .bcSheen.on::after,.bcSting.on b{transition:none}}
 .tourPanel{position:absolute;left:50%;top:var(--heroTitleTop,40px);transform:translateX(-50%);z-index:47;
  width:min(540px,calc(100vw - var(--sp-16-24)*2));display:flex;flex-direction:column;align-items:center;
  gap:var(--sp-8-16);font-family:var(--sans);color:var(--c950);text-align:center;
@@ -7595,6 +7609,9 @@ function ensureHost(){
   if (host) return host;
   host = el('div', 'tourPanel'); host.id = 'tourPanel';
   (document.querySelector('.hero') || document.body).appendChild(host);
+  if(!document.getElementById('bcSting')){
+    var st=document.createElement('div');st.id='bcSting';st.className='bcSting';
+    st.innerHTML='<b></b>';document.body.appendChild(st);}
   return host;
 }
 
@@ -7603,6 +7620,18 @@ function cupRand(seed){var h=2166136261;
   for(var i=0;i<seed.length;i++){h^=seed.charCodeAt(i);h=Math.imul(h,16777619);}
   return function(){h=Math.imul(h^(h>>>15),2246822507);
     h=Math.imul(h^(h>>>13),3266489909);return((h^=h>>>16)>>>0)/4294967296;};}
+
+function bcSheenOnce(el){el.classList.add('bcSheen');
+  requestAnimationFrame(function(){el.classList.add('on');
+    setTimeout(function(){el.classList.remove('on');},800);});}
+
+function bcSting(onCovered){
+  var rm=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var el=document.getElementById('bcSting');
+  if(rm||!el){try{onCovered();}catch(_){ } return;}
+  el.classList.add('on');
+  setTimeout(function(){try{onCovered();}catch(_){}},350);
+  setTimeout(function(){el.classList.remove('on');},760);}
 
 function bcJitter(el,rnd,rot,off){
   el.style.transform='rotate('+(((rnd()*2-1)*rot).toFixed(2))+'deg) translate('
