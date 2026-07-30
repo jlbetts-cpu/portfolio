@@ -5794,6 +5794,19 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
      for(var i=0;i<l.length;i++){try{l[i](d,t);}catch(_){}}}
  };})();
  window.__hmBus=BUS;
+ /* ---- SESSION MEMORY. Real numbers only: everything here is derived from bus
+    events, never invented. Keyed by head slot; pairs keyed order-independently. */
+ window.__hmSess=window.__hmSess||{head:{},pair:{},cups:0};
+ function sessHead(sl){var h=window.__hmSess.head;
+   return h[sl]=h[sl]||{goals:0,played:0,titles:0};}
+ function sessPairKey(a,b){return a<b?a+'|'+b:b+'|'+a;}
+ BUS.on('goal',function(d){if(d.scorer!=null)sessHead(d.scorer).goals++;});
+ window.__hmSessFlags=function(a,b){
+   var p=window.__hmSess.pair[sessPairKey(a,b)];
+   var fgp={};fgp[a]=!sessHead(a).goals;fgp[b]=!sessHead(b).goals;
+   return{met:!!p,revenge:!!p&&p.lastWinner!=null,
+     lastWinner:p?p.lastWinner:null,
+     firstGoalPending:fgp};};
  (function soccer(){   // the pitch: one ball, two goals, a scoreboard, first to five
   var hero=document.querySelector(".hero");if(!hero)return;
   if(matchMedia("(prefers-reduced-motion:reduce)").matches)return;
@@ -7354,6 +7367,17 @@ window.__hmTourWin = function(winSide, scoreR, scoreB){
     if (_m && scoreR !== undefined){ _m.sa = scoreR|0; _m.sb = scoreB|0; }
   }catch(_){}
   BR.recordWinner(T.br, c.round, c.index, winnerId);
+  /* SESSION MEMORY: record the pair result by captain slot. The captain is the first entry in
+     tm.slots (startFixture builds slots in playersOf() order, captain first), so ka/kb are the
+     two captains' head slots and kw is whichever of them just won. */
+  try{
+    var ka=c.a.slots[0], kb=c.b.slots[0], kw=(winnerId===c.a.id?ka:kb);
+    var pk=(ka<kb?ka+'|'+kb:kb+'|'+ka), P=window.__hmSess.pair;
+    P[pk]=P[pk]||{count:0,lastWinner:null}; P[pk].count++; P[pk].lastWinner=kw;
+    window.__hmSess.head[ka]=window.__hmSess.head[ka]||{goals:0,played:0,titles:0};
+    window.__hmSess.head[kb]=window.__hmSess.head[kb]||{goals:0,played:0,titles:0};
+    window.__hmSess.head[ka].played++; window.__hmSess.head[kb].played++;
+  }catch(_){}
   /* Repaint NOW, not only when between() fires. The panel comes back at the final whistle and
      was still showing the fixture that had just been decided -- a flash of the VS card after
      someone had already won. Lengthening the final's celebration to 10.5s stretched that stale
