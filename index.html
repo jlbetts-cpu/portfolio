@@ -7305,6 +7305,21 @@ PAL = [
 // portfolio, so the trophy may as well point at the work.
 var CUPS = ['Apollo', 'Bearings', 'Cluster', 'Strata', 'UC Davis',
             'Reshore', 'B2B', 'Blender'];
+
+/* ---- CUP IDENTITY. Eight recurring events, deterministic by name: same cup ->
+   same board paint, ticket stock, serial prefix, label voice, forever. Identity
+   changes MATERIALS AND VOICE, never layout or information architecture. */
+var CUP_ID={
+  'Apollo': {paint:'#232c34',stock:'#f1ece0',sheen:'rgba(205,222,248,.30)',pfx:'APL',voice:['Quarter-final','Semi-final','The Final'],tex:0},
+  'Bearings':{paint:'#2e2b24',stock:'#f3eee2',sheen:'rgba(244,228,196,.30)',pfx:'BRG',voice:['Last Eight','Last Four','The Final'],tex:1},
+  'Cluster': {paint:'#2a2433',stock:'#f0ece4',sheen:'rgba(224,212,246,.30)',pfx:'CLU',voice:['Quarter-final','Semi-final','Grand Final'],tex:2},
+  'Strata':  {paint:'#243028',stock:'#efece0',sheen:'rgba(206,238,222,.30)',pfx:'STR',voice:['Round of Eight','Semi-final','The Final'],tex:0},
+  'UC Davis':{paint:'#20313c',stock:'#f2eddd',sheen:'rgba(255,240,204,.30)',pfx:'UCD',voice:['Quarter-final','Semi-final','Championship'],tex:1},
+  'Reshore': {paint:'#34302a',stock:'#f1ede3',sheen:'rgba(240,224,200,.30)',pfx:'RSH',voice:['Quarter-final','Semi-final','The Final'],tex:2},
+  'B2B':     {paint:'#2b2b31',stock:'#eeece6',sheen:'rgba(220,224,238,.30)',pfx:'B2B',voice:['Last Eight','Semi-final','The Final'],tex:0},
+  'Blender': {paint:'#31262b',stock:'#f3ece2',sheen:'rgba(246,214,222,.30)',pfx:'BLN',voice:['Quarter-final','Last Four','The Final'],tex:1}
+};
+
 var T = { live: false, teams: [], br: null, stats: {}, cur: null, phase: 'idle', log: [], cup: '' };
 window.__hmTour = T;
 
@@ -8011,6 +8026,12 @@ function start(){
       if(_pb){_pb.setAttribute('aria-disabled','true');
               _pb.setAttribute('title','Finish the tournament first');} }catch(_){}
     T.cup = CUPS[Math.floor(Math.random() * CUPS.length)] + ' Cup';
+    var idKey=T.cup.replace(/ Cup$/,'');
+    T.id=CUP_ID[idKey]||CUP_ID['Apollo'];
+    T.rnd=cupRand(T.cup);
+    document.body.style.setProperty('--cupPaint',T.id.paint);
+    document.body.style.setProperty('--cupStock',T.id.stock);
+    document.body.style.setProperty('--cupSheen',T.id.sheen);
     T.br = BR.buildBracket(teams.map(function(t){ return t.id; })); lastRound = -1;
     document.body.classList.add('hmTour');
     benchAll(); paint();
@@ -8022,6 +8043,9 @@ function stop(){
   try{ var _pb2=document.getElementById('moodBtn');
     if(_pb2){_pb2.removeAttribute('aria-disabled');_pb2.removeAttribute('title');} }catch(_){}
   try{ window.__hmChampFx(null); }catch(_){}   // the fall must not outlive the tournament
+  try{ document.body.style.removeProperty('--cupPaint');
+       document.body.style.removeProperty('--cupStock');
+       document.body.style.removeProperty('--cupSheen'); }catch(_){}
   window.__hmBench = null; window.__hmTeamSel = null; window.__hmTeamCol = null;
   try { var rt2 = document.documentElement; ['--tcol1','--tcol2','--tc1','--tc2'].forEach(function(v){ rt2.style.removeProperty(v); }); } catch (_) {}
   document.body.classList.remove('hmTour');
