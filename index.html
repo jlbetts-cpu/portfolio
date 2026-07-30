@@ -1003,6 +1003,37 @@ body.navOpen .navDrawer{transform:translateY(0);opacity:1;visibility:visible;box
 .bcPlate{box-shadow:var(--bc-contact),var(--bc-cast)}
 .bcGrain{position:absolute;inset:0;z-index:9;pointer-events:none;opacity:.06;
   mix-blend-mode:soft-light;background-repeat:repeat}
+/* ---- SPLIT-FLAP. The one mechanical component; score digits only. Four layers
+   per cell: static top (current char upper half), static bottom (NEXT char lower
+   half), flip-front (old char upper), flip-back (new char lower). Spin-through:
+   always forward through the drum, never backward, never a direct jump. NO
+   ancestor of a cell may carry filter (3D transform stacking trap). */
+.bcCell{position:relative;display:inline-block;width:.72em;height:1.16em;
+  border-radius:.06em;background:var(--cupStock,#f1ece0);color:#221f18;
+  box-shadow:var(--bc-contact),var(--bc-cast);perspective:5em;
+  text-align:center;vertical-align:baseline}
+.bcCell+.bcCell{margin-left:.06em}
+.bcCell i{position:absolute;left:0;right:0;overflow:hidden;font-style:normal;
+  line-height:1.16em;pointer-events:none}
+.bcCell .bcT{top:0;height:.58em}
+.bcCell .bcB{bottom:0;height:.58em}
+.bcCell .bcB span{position:relative;top:-.58em;display:block}
+/* seam: shadow above the split, highlight below, 1px misregistration */
+.bcCell::before{content:"";position:absolute;left:0;right:0;top:.57em;height:2px;
+  background:linear-gradient(rgba(24,20,12,.34),rgba(255,255,255,.28));z-index:4;
+  transform:translateY(.5px)}
+/* pin ticks */
+.bcCell::after{content:"";position:absolute;top:.5em;bottom:.5em;left:-.045em;right:-.045em;
+  background:linear-gradient(90deg,rgba(24,20,12,.5) .045em,transparent .045em,
+    transparent calc(100% - .045em),rgba(24,20,12,.5) calc(100% - .045em));
+  border-radius:.03em;z-index:0}
+.bcCell .bcFlip{position:absolute;left:0;right:0;top:0;height:.58em;z-index:3;
+  transform-origin:bottom center;backface-visibility:hidden;overflow:hidden;
+  background:var(--cupStock,#f1ece0);border-radius:.06em .06em 0 0;
+  line-height:1.16em;font-style:normal;display:none}
+.bcCell.bcGo .bcFlip{display:block;animation:bcFlipDown .15s ease-in forwards}
+@keyframes bcFlipDown{from{transform:rotateX(0)}to{transform:rotateX(-88deg)}}
+@media (prefers-reduced-motion: reduce){.bcCell.bcGo .bcFlip{animation:none;display:none}}
 /* ---- THE MOTIF. One diagonal light sweep, reused everywhere (poster reveal,
    stinger edge, trophy glint, champion foil). One axis: enters left, exits right. */
 .bcSheen{position:relative;overflow:hidden}
@@ -6413,6 +6444,56 @@ function teams(){
    else{window.__hmSlow=1;return;}
    requestAnimationFrame(step);}
   requestAnimationFrame(step);};
+
+ /* Split-flap cells. Drum is fixed; a change spins FORWARD through every
+    intermediate character (wrapping), fast then decelerating -- that spin-through
+    is what reads as mechanical. Cascade: cells start 50ms apart and settle
+    raggedly (different spin distances). Reduced-motion: instant swap. */
+ var BC_DRUM=' 0123456789';
+ function bcFlap(container,nCells){
+  var cells=[],reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var el=document.createElement('span');el.className='bcNum';
+  for(var i=0;i<nCells;i++){
+   var c=document.createElement('span');c.className='bcCell';
+   c.innerHTML='<i class="bcT"><span></span></i><i class="bcB"><span></span></i>'+
+               '<i class="bcFlip"><span></span></i>';
+   c.__ch=' ';el.appendChild(c);cells.push(c);
+   /* no per-cell lightness tint here -- the stock var + shadows already carry the
+      material read, and a background/backgroundColor no-op was dropped rather
+      than faked (see task-1 brief dead-code nit). */
+  }
+  container.appendChild(el);
+  function paintCell(c,ch){
+   c.querySelector('.bcT span').textContent=ch;
+   c.querySelector('.bcB span').textContent=ch;
+  }
+  function spinCell(c,target,startDelay){
+   var from=BC_DRUM.indexOf(c.__ch),to=BC_DRUM.indexOf(target);
+   if(from<0)from=0; if(to<0)to=0;
+   var steps=(to-from+BC_DRUM.length)%BC_DRUM.length;
+   if(steps===0)return;
+   var k=0,delay=70;
+   function one(){
+    k++;var ch=BC_DRUM[(from+k)%BC_DRUM.length];
+    var flip=c.querySelector('.bcFlip span');
+    flip.textContent=c.__ch;
+    c.classList.remove('bcGo');void c.offsetWidth;c.classList.add('bcGo');
+    paintCell(c,ch);c.__ch=ch;
+    if(k<steps){delay=Math.min(230,delay+ (k>steps-4?55:8));setTimeout(one,delay);}
+    else setTimeout(function(){c.classList.remove('bcGo');},160);
+   }
+   setTimeout(one,startDelay);
+  }
+  return{el:el,set:function(str,instant){
+   str=String(str);
+   for(var i=0;i<cells.length;i++){
+    var ch=str[str.length-cells.length+i]||' ';
+    if(BC_DRUM.indexOf(ch)<0)ch=' ';
+    if(instant||reduce){cells[i].__ch=ch;paintCell(cells[i],ch);}
+    else if(cells[i].__ch!==ch)spinCell(cells[i],ch,i*50);
+   }
+  }};
+ }
 
  (function race(){   // ===== MARBLE RACE: the TikTok format, faithfully -- heads drop through a chaos/choke gauntlet (pegs -> funnel -> zigzag -> spinner -> funnel -> pegs -> last funnel -> sprint), the camera rides the leader, a live leaderboard tracks every overtake, and a tight finish drops into slow motion =====
   var hero=document.querySelector(".hero");if(!hero)return;
