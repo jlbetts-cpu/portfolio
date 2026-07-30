@@ -375,6 +375,21 @@ needs a fresh gesture each load — unlock silently on first click when pref=on)
 - Testing: seeded roster via localStorage; drive fixtures with `.tCupGo` →
   `__hmTourWin(1,5,1)` → `__hmSoccerEnd()` → wait ≥6s; feel checks in real Chrome
   (pane throttles rAF and white-screens on ink filters).
+- **Foundations contracts (from Plan 1's final review — binding on Plans 2–6):**
+  - The companion-engine block bails when no heads are saved (`if(!list.length)return`),
+    so `__hmBus`, `__hmSess`, `__hmSessFlags`, `__hmSlow`, `__hmSlowRamp`, `__hmFxAt`
+    are **conditional globals**. Every consumer in another script block guards
+    existence (`window.__hmBus && __hmBus.on(...)`) — an unguarded module-scope
+    `.on()` would kill the whole tournament block for fresh visitors.
+  - The champion path never calls `stop()`, so Plan 5 (ceremonies) owns champion
+    teardown of `--cup*` vars, `T.id`, `T.rnd` (also: clear `T.id`/`T.rnd` in
+    `stop()` when first touching it).
+  - `bcSheenOnce` leaves `.bcSheen` (`position:relative; overflow:hidden`) on its
+    host permanently — never sheen the capsule/`#tourPanel` itself (the documented
+    clipping failure mode); sheen leaf cards only. `bcGrainOn` hosts must be
+    positioned.
+  - Deferred cosmetics: woodwork bus event carries one-frame-stale coords (fix
+    only if FX pins to it); B2B↔Cluster paint hue gap sits at the 24° floor.
 
 ## Open items
 
