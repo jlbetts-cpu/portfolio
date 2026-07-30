@@ -394,6 +394,38 @@ Instant replay · day→night arc (night = champion only) · Play-menu or bracke
 data-model restructuring · match rules/length changes · standings/player-stat
 tables beyond real tracked data.
 
+## Addendum (2026-07-30): The Globe Lobby & the random draw
+
+Jayden's addition, inspired by Mario Kart 8's online lobby (Miis standing on
+Earth): replace the known-in-advance schedule with a **random pool draw per
+round**, staged on a **Globe Lobby** where the photo heads stand on a planet.
+
+Mechanic (settled): the field is a pool; each round's pairings are drawn live,
+one fixture at a time, with a visible randomness ritual. Single-elimination
+structure, round count, and match rules are unchanged — what changes is *when a
+pairing becomes known*. Consequences folded into the existing design:
+- Tickets are **printed at the draw**, not pre-printed — the stub collection
+  builds as the cup unfolds (stronger print story, same component).
+- The goal-gradient distance readout survives ("2 wins from the final" —
+  rounds remaining is always known even when opponents aren't).
+- The draw reveal flows directly into the existing versus-poster ceremony.
+- Register resolution: the lobby is the *sky* register (space, night); the
+  matchday surfaces stay the *ground* register (daylight print). The beam-down
+  from lobby to stadium is the licensed transition between the two. The
+  champion's night remains the ending's contrast note.
+
+Visual concept: three candidates pitched (Kickoff Orbit / Draw Room globe /
+Orbit Ring) — **selection pending Jayden's pick**; the chosen one gets its own
+plan. Earth imagery: NASA Blue Marble (public domain) or an equivalent
+PD/CC0 source only. No WebGL/three.js — the globe is a masked 2D texture with
+circle math (position on arc + surface-normal rotation), consistent with the
+no-dependency site.
+
+Build-order impact: foundations (Plan 1) unchanged and still prerequisite.
+The lobby+draw becomes its own plan after the boards; roadmap is now:
+2 Boards → 3 Match presentation → 4 Globe Lobby & Draw (+ versus ceremony) →
+5 Ceremonies (FT/POTM/champion) → 6 Sound.
+
 ## Build order
 
 1. **Foundations:** event bus + session history, `fxAt`, `__hmSlow`, grain/jitter/
