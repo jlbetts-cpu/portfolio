@@ -1904,7 +1904,7 @@ body.hmTour #tourPanel .tCupQuit{width:auto;min-width:196px;align-self:center}
    One deliberate deviation: font-bold is rendered at 600, not 700. Only the 400 and 600 static
    faces are loaded on this site, so 700 would either synthesise or pull the variable face in
    at a weight the design system does not use. Everything else is theirs. */
-.hmScore .sbCard{box-sizing:border-box;width:min(568px,94vw);max-width:none;
+.hmScore .sbCard{box-sizing:border-box;width:340px;max-width:88vw;
  border:1px solid var(--c100);border-radius:28px;background:var(--c75);padding:0;
  font-family:var(--sans);color:var(--c950)}
 /* THE TROPHY rides on top of the board for the FINAL only, then is handed over at the whistle.
@@ -1925,54 +1925,26 @@ body.hmFinal .sbTrophy{display:block;animation:sbTrophyIn .5s cubic-bezier(.2,.8
  pointer-events:none;filter:drop-shadow(0 8px 18px rgba(15,23,42,.32))}
 @media(prefers-reduced-motion:reduce){body.hmFinal .sbTrophy{animation:none}}
 
-/* SCOREBOARD.
-   The idea: each team is ONE object, not three. Previously a colour block sat at the outer
-   edge, the head floated inboard of it, and the code floated inboard of that -- three shapes
-   with arbitrary gaps, sharing no edge and no axis. A kit of parts. And the team's colour was
-   stated twice, as a block AND as a ring on the head, with whitespace between the two
-   statements.
-   Now the head sits INSIDE its colour field. The field is the team's territory and the head
-   belongs to it, which is true of the game and makes the pair read as a single object. The
-   colour is stated once. The code sits just inboard as that object's label, and the score is
-   the line where the two territories meet.
-   The two-tone colour-over-black block is gone. It encoded nothing -- there is no black-half
-   convention anywhere else in this system, so it was borrowed decoration. */
-.sbInner{position:relative;display:flex;align-items:stretch;justify-content:space-between;
- gap:0;padding:0;height:92px;background:var(--c50);border-radius:28px 28px 0 0}
-.sbSide{position:relative;display:flex;align-items:center;flex:1 1 0;min-width:0;
- padding-left:112px}
-.sbSideB{flex-direction:row-reverse;padding-left:0;padding-right:112px}
-
-/* The team's field. Full height, so it reads as territory rather than as a chip sitting in
-   the bar, and it carries the card's own 28px on its outer edge. */
-.sbEdge{position:absolute;top:0;bottom:0;width:88px;background:rgb(var(--tc))}
-.sbSideR .sbEdge{left:0;border-radius:28px 0 0 28px}
-.sbSideB .sbEdge{right:0;border-radius:0 28px 28px 0}
-
-/* The head sits ON its field. No ring: the field behind it is already the colour statement,
-   and a ring in the same colour on the same object says it twice. */
-/* Absolutely placed so it is centred IN its field (88 wide, 56 head, 16 each side) rather
-   than sitting in the text flow, where its width pushed the code around. */
-.sbFace{position:absolute;top:50%;left:16px;transform:translateY(-50%);z-index:1;
- width:56px;height:56px;display:inline-flex;align-items:center;justify-content:center;
- overflow:visible;background:none}
-.sbSideB .sbFace{left:auto;right:16px}
-.hmScore .sbFace img{filter:none}
-
-/* Cap-height, not bounding box. A 56px circle and 37px capitals centred by their boxes do not
-   look centred -- the type's box carries descender space it is not using, so it sits low. */
-.sbNm{font-family:var(--sans);font-weight:600;font-size:var(--fs-h1);color:var(--c950);
- white-space:nowrap;letter-spacing:-.02em;text-transform:uppercase;line-height:1}
-
-.sbScore{flex:0 0 auto;align-self:center;display:flex;align-items:baseline;gap:16px;
- padding:0 8px;font-family:var(--sans);font-weight:600;font-size:var(--fs-h1);line-height:1;
- letter-spacing:-.02em;font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1}
-.sbScore b{min-width:1ch;text-align:center;font-weight:600}
-/* The trailing score recedes rather than the leader shouting. .58 is the middle of the range
-   the shipping products use (ESPN, FotMob, NBA.com and Sofascore all sit between .5 and .62). */
-.sbScore b{transition:opacity .22s cubic-bezier(.2,.8,.2,1)}
-.sbScore b.sbTrail{opacity:.58}
-.sbScore i{font-style:normal;color:var(--c500);font-size:1em;font-weight:400}
+/* SCOREBOARD -- the vertical stack. Two team rows with a VS divider between them, full names
+   rather than three-letter codes. Reverted from the horizontal bar at Jayden's request: this
+   one holds up on mobile, where a horizontal bar has to fit two names, two heads and a score
+   across a 390px screen and ends up shrinking all of them. Stacked, each row gets the full
+   width and the name can just be the name. */
+.sbInner{border-radius:28px;overflow:hidden;background:var(--c50);
+ box-shadow:inset 0 0 0 1px var(--c100);padding:32px;
+ display:flex;flex-direction:column;gap:20px}
+.sbTeam{display:flex;align-items:center;gap:8px;min-width:0}
+.sbWho{display:flex;flex-direction:column;min-width:0}
+.sbNm{font-weight:600;font-size:14px;line-height:1.1;color:var(--c950);
+ white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sbSub{display:block;width:34px;height:4px;border-radius:2px;margin-top:5px;
+ background:rgb(var(--tc,230,230,230))}
+.sbScore{margin-left:auto;font-weight:600;font-size:14px;line-height:1.1;color:var(--c950);
+ font-variant-numeric:tabular-nums;flex:0 0 auto;padding-left:8px}
+.sbVs{display:flex;align-items:center;gap:8px}
+.sbVs span{font-weight:600;font-size:13px;line-height:1.1;color:var(--c950)}
+.sbRuleA{flex:0 0 32px;height:1px;background:var(--c100)}
+.sbRuleB{flex:1 1 auto;height:1px;background:var(--c100)}
 
 
 /* No square at all. The outline traces the HEAD, the way it does on the pitch -- a box, even
@@ -2021,7 +1993,7 @@ body.hmFinal .sbTrophy{display:block;animation:sbTrophyIn .5s cubic-bezier(.2,.8
 .sbFoot .sbMeta{white-space:nowrap;flex:0 0 auto}
 body.hmFinal .sbRound{color:#9E6C00}
 .sbFoot{display:flex;justify-content:space-between;align-items:center;gap:8px;
- padding:0 24px;height:60px;font-weight:600;font-size:var(--fs-small);line-height:1.1;color:var(--c950);
+ padding:16px 32px;font-weight:600;font-size:12px;line-height:1.1;color:var(--c950);
  /* The ledge is the card's last child, so the card's 28 is ITS to carry. The card does not
     clip, so square corners here painted straight over the rounding and the card read as
     square no matter what radius the card itself was given. */
@@ -5950,29 +5922,17 @@ function teams(){
          edge, the head inboard of it as the crest, the name, and the score meeting in the
          middle. .sR / .sB stay exactly where they were -- board2() writes the live score
          straight into them and does not know the layout changed. */
-      /* A three-letter code, the way every scorebug does it -- the full name is the schedule's
-         job, the bug's job is to be readable at a glance. Letters only, so "Player 1" gives
-         PLA rather than "PL "; a name with nothing usable falls back to P1 / P2 rather than
-         printing an empty box. */
-      var code=String(nm||"").replace(/[^A-Za-z]/g,"").slice(0,3).toUpperCase();
-      if(code.length<2) code=(which==="R"?"P1":"P2");
-      colOf[which]=col;
-      return '<div class="sbSide sbSide'+which+'" style="--tc:'+col+'">'
-           +   '<i class="sbEdge" aria-hidden="true"></i>'
+      return '<div class="sbTeam" style="--tc:'+col+'">'
            +   (cut?'<span class="sbFace"><img src="'+cut+'" alt="" draggable="false"></span>'
                    :'<span class="sbDot"></span>')
-           +   '<b class="sbNm" title="'+String(nm).replace(/"/g,"&quot;")+'">'+code+'</b>'
+           +   '<span class="sbWho"><b class="sbNm">'+nm+'</b>'
+           +     '<em class="sbSub" aria-hidden="true"></em></span>'
+           +   '<b class="s'+which+' sbScore">0</b>'
            + '</div>';
     }
-    var colOf={R:"194,61,51",B:"49,109,181"};
-    var htmlR=side("R"), htmlB=side("B");
-    inner.innerHTML = htmlR
-      + '<div class="sbScore">'
-      +   '<b class="sR" style="color:rgb('+colOf.R+')">0</b>'
-      +   '<i aria-hidden="true">-</i>'
-      +   '<b class="sB" style="color:rgb('+colOf.B+')">0</b>'
-      + '</div>'
-      + htmlB;
+    inner.innerHTML = side("R")
+      + '<div class="sbVs"><i class="sbRuleA"></i><span>VS</span><i class="sbRuleB"></i></div>'
+      + side("B");
     sR=board.querySelector(".sR"); sB=board.querySelector(".sB");
     ruleLabel();   // one owner for that string, so a repaint cannot reset it to "First to N"
     /* The round, named on the bug. This is the one mechanism the research actually found in
