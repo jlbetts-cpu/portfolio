@@ -5784,13 +5784,23 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
  }
  list.forEach(function(d,i){spawnCompanion(d,i);});
 
+ /* ---- MATCH EVENT BUS. The engine only EMITS; every presentation system (ticker,
+    director, sound, stats) is a consumer. A throwing consumer must never break
+    the engine, hence the try/catch per listener. */
+ var BUS=(function(){var subs={};return{
+   on:function(t,f){(subs[t]=subs[t]||[]).push(f);return f;},
+   off:function(t,f){var l=subs[t]||[],i=l.indexOf(f);if(i>=0)l.splice(i,1);},
+   emit:function(t,d){var l=(subs[t]||[]).slice();
+     for(var i=0;i<l.length;i++){try{l[i](d,t);}catch(_){}}}
+ };})();
+ window.__hmBus=BUS;
  (function soccer(){   // the pitch: one ball, two goals, a scoreboard, first to five
   var hero=document.querySelector(".hero");if(!hero)return;
   if(matchMedia("(prefers-reduced-motion:reduce)").matches)return;
   var S={on:false,seed:0,kickSeed:0,teams:{},target:5,cap:8,red:0,blue:0,ball:{x:0,y:0},phase:"idle",winner:0};
   window.__hmSoccer=S;
   var ball,ballSkin,goalL,goalR,goalShL,goalShR,board,sR,sB,countEl,W=0,H=0,groundY=0,BR=24,OFF=0,XL=0,XR=0;
-  var bx=0,by=0,bvx=0,bvy=0,kickCd={},running=false,last=performance.now(),scoreTeam=0,ballShadow;
+  var bx=0,by=0,bvx=0,bvy=0,kickCd={},running=false,last=performance.now(),scoreTeam=0,ballShadow,lastShot=0;
   var bsx=1,bsy=1,bsxv=0,bsyv=0,bsxP=1,bsyP=1,bsT=0;
   function geo(){var r=hero.getBoundingClientRect();W=r.width;H=r.height;OFF=r.left;XL=-OFF;XR=innerWidth-OFF;   // the pitch spans the whole screen, wall to wall
    if(innerWidth<=640){XL+=12;XR-=12;}   // ...except on a phone. The goals are 42px wide and were drawn at exactly XL and XR-42, i.e. flush to both screen edges with zero inset, their shadows clipped at -6 and 398 -- it read as cut off rather than as a goalmouth. Inset the PITCH BOUNDS rather than the goal graphic: goals, goal shadows, the crossbar test, the kickoff centre, the ball wall clamps and the scoring plane (bx<XL+BR / bx>XR-BR) all derive from XL/XR, so they move together by construction. Nudging the graphic alone would have desynced the net from where goals actually count.
@@ -5991,7 +6001,7 @@ function teams(){
    function teamRGB(side){ try{ var T=window.__hmTour;
      if(T&&T.live&&T.cur){ var tm=(side===1?T.cur.a:T.cur.b); if(tm&&tm.col) return tm.col; }
    }catch(_){} return side===1?RED:BLUE; }
-  function kickoffCountdown(){S.kickSeed=(S.kickSeed||0)+1;   // the match opener: everyone to their half, then 3-2-1
+  function kickoffCountdown(){S.kickSeed=(S.kickSeed||0)+1;BUS.emit('kickoff',{seed:S.kickSeed});   // the match opener: everyone to their half, then 3-2-1
    var _bh=ballHome();bx=_bh?_bh.x:(XL+XR)/2;by=_bh?_bh.y:70;bsp=ballSpawnScale();_spawnY=by;_curveTo=(XL+XR)/2;_curving=true;_cvOn=false;bvx=0;bvy=0;_deckT=0;S.phase="count";
    var n=3;showCount(n);
    (function tick(){if(!S.on)return;
@@ -6111,6 +6121,7 @@ function teams(){
     return null;
   }
   function goalIn(team){if(team===1)S.red++;else S.blue++;S.goalSeed=(S.goalSeed||0)+1;S.goalTeam=team;board2();
+   BUS.emit('goal',{team:team,red:S.red,blue:S.blue,scorer:(S.touches&&S.touches.length?S.touches[0].slot:null)});
    try{if(window.__hmTourGoal)window.__hmTourGoal(team,(S.touches||[]).slice());}catch(_){}   // hand the touch log to the tournament: last toucher scored, the one before assisted
    S.touches=[];
 
@@ -6133,7 +6144,7 @@ function teams(){
    (function(){var c=goalCall();if(c)setTimeout(function(){if(S.on&&!S.winner)bigCall(c.t,c.ms);},1300);})();
 
    S.phase="reset";bvx=0;bvy=0;setTimeout(function(){if(S.on){ballInTitle(false);ball.style.opacity="1";if(ballShadow)ballShadow.style.opacity="0.28";dropIn();}},700);}   // otherwise it re-appears for the next kickoff
-  function win(team){S.winner=team;S.phase="win";board2();if(board)board.classList.add("won");
+  function win(team){BUS.emit('fulltime',{winner:team,red:S.red,blue:S.blue});S.winner=team;S.phase="win";board2();if(board)board.classList.add("won");
    /* THE CELEBRATION. They do not just hop where they stand -- they RUN TO EACH OTHER first,
       the way a team does after a goal, and only bounce together once they have gathered.
       The centroid is recomputed every round rather than fixed at the whistle, because the
@@ -6269,6 +6280,11 @@ function teams(){
          _dx=_curveTo-bx;
      bvx=2*_dx/_tf;_cvA=-bvx/_tf;_cvS=bvx>=0?1:-1;_cvOn=Math.abs(_dx)>0.5;}   // no drag fudge needed: the solve is exact
     bx+=bvx*dt;by+=bvy*dt;
+    var sp=Math.abs(bvx);
+    if(sp>900 && performance.now()-lastShot>1000){
+     var dir=bvx>0?1:-1, gx=dir>0?XR:XL;
+     if(Math.abs(gx-bx)<300){lastShot=performance.now();BUS.emit('shot',{dir:dir});}
+    }
     if(by>REST){   // meets the pitch
      if(Math.abs(bvy)>50){var kg=Math.min(0.14,Math.abs(bvy)*0.00016);bsyP=1-kg;bsxP=1/(1-kg);bsT=0.12;bvy=-bvy*0.72;}else bvy=0;   // squash + bounce, e=0.72 (grass, not a superball)
      by=REST;if(_cvOn){bvx=0;_cvOn=false;}else bvx*=0.9;}
@@ -6291,7 +6307,7 @@ function teams(){
     if(by<BR+2){by=BR+2;if(Math.abs(bvy)>120){var kc0=Math.min(0.1,Math.abs(bvy)*0.00012);bsyP=1-kc0;bsxP=1/(1-kc0);bsT=0.11;}bvy=Math.abs(bvy)*0.72;}   // ceiling
     var inG=by>groundY-150;
     var gt=groundY-150,overL=(bx+BR>XL&&bx-BR<XL+44),overR=(bx+BR>XR-44&&bx-BR<XR);   // the crossbar
-    if((overL||overR)&&bvy>0&&by+BR>=gt-2&&by-BR<gt&&by<gt){by=gt-BR-2;bvy=-Math.max(160,Math.abs(bvy)*0.7);S.postSeed=(S.postSeed||0)+1;   // off the bar -- and the WOODWORK moment is broadcast so the heads can feel it
+    if((overL||overR)&&bvy>0&&by+BR>=gt-2&&by-BR<gt&&by<gt){by=gt-BR-2;bvy=-Math.max(160,Math.abs(bvy)*0.7);S.postSeed=(S.postSeed||0)+1;BUS.emit('woodwork',{x:S.ball.x,y:S.ball.y});   // off the bar -- and the WOODWORK moment is broadcast so the heads can feel it
      bvx+=(overL?1:-1)*(150+Math.random()*70);bvx=Math.max(-2200,Math.min(2200,bvx));
      var kc1=Math.min(0.1,Math.abs(bvy)*0.00015);bsyP=1-kc1;bsxP=1/(1-kc1);bsT=0.11;}
     if(bx<XL+BR){if(inG)return netCatch(2);bx=XL+BR;if(Math.abs(bvx)>120){var kw=Math.min(0.12,Math.abs(bvx)*0.00014);bsxP=1-kw;bsyP=1/(1-kw);bsT=0.12;}bvx=Math.abs(bvx)*0.82;bw=-bw*0.6;}   // wall reverses the spin too
