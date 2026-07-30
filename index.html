@@ -5893,6 +5893,15 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    goalR.style.transform="translate("+(XR-42)+"px,"+(groundY-150)+"px)";
    if(goalShL)goalShL.style.transform="translate("+(XL-6)+"px,"+(groundY-4)+"px)";
    if(goalShR)goalShR.style.transform="translate("+(XR-52)+"px,"+(groundY-4)+"px)";}
+  /* FX bridge: __hmFX (the shared VFX canvas -- see its own comment, "coords are HERO-LOCAL, same
+     space the heads live in") expects x measured from the hero's left edge and y from its top edge,
+     both in unscaled screen pixels, and adds heroLeft itself. The ball (bx,by) is drawn via
+     translate(bx,by) on `.hmBall{position:absolute;left:0;top:0}` appended straight into `hero` --
+     the exact same DOM pattern the companion heads use (`root.style.cssText="position:absolute;
+     left:0;top:0..."`, also a direct child of `hero`), which __hmFX already tracks correctly for
+     battle VFX. So bx/by already live in that same space: no rescale, no axis flip, identity. */
+  function fxAt(ex,ey){return{x:ex,y:ey};}
+  window.__hmFxAt=fxAt;
   /* The goals are positioned once, from start(). geo() reads innerWidth, so after a resize
    XL/XR were stale and the goals sat where the old viewport put them -- and the pitch
    bounds the physics uses went stale with them. Re-run the layout while a match is live. */
@@ -6256,7 +6265,9 @@ function teams(){
    try{if(window.__hmFX)window.__hmFX.clear();}catch(_){}}
   var spin=0,bw=0,gaspAt=0;   // spin = rendered rotation, bw = angular velocity (deg/s)
   function loop(now){if(!S.on){running=false;return;}requestAnimationFrame(loop);
-   var dt=Math.min(0.05,Math.max(0.006,(now-last)/1000));last=now;var _fell=(S.phase!=="count"&&(_spawnY==null||by-_spawnY>BR*1.1));
+   var dt=Math.min(0.05,Math.max(0.006,(now-last)/1000));last=now;
+   dt*=(window.__hmSlow||1);   // broadcast slow-mo: the WORLD slows (ball physics), DOM/CSS animations elsewhere keep normal speed
+   var _fell=(S.phase!=="count"&&(_spawnY==null||by-_spawnY>BR*1.1));
     if(_fell)bsp+=(1-bsp)*Math.min(1,dt*7);
     if(board&&_fell&&board.classList.contains("ballOut")&&!board.classList.contains("ballFell"))board.classList.add("ballFell");
     geo();   // grow only once it has FALLEN clear of the headline. Gating on the countdown alone was not
@@ -6366,6 +6377,20 @@ function teams(){
     ballShadow.style.transform="translate("+(bx-BR).toFixed(1)+"px,"+((groundY+shOff)-BR*0.275).toFixed(1)+"px) scale("+scv.toFixed(3)+","+scv.toFixed(3)+")";
     ballShadow.style.opacity=(S.on&&S.phase!=="idle")?String(Math.max(0.05,0.3-airH/900)):"0";}}
  })();
+
+ /* Slow-mo for the broadcast layer: the WORLD slows, DOM animations keep normal
+    speed. Ramp in, hold, ramp back; reduced-motion collapses to no-op. */
+ window.__hmSlow=1;
+ window.__hmSlowRamp=function(target,ms,holdMs){
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  var t0=performance.now();
+  function step(){var t=performance.now()-t0;
+   if(t<ms){window.__hmSlow=1+(target-1)*(t/ms);}
+   else if(t<ms+holdMs){window.__hmSlow=target;}
+   else if(t<ms+holdMs+ms){window.__hmSlow=target+(1-target)*((t-ms-holdMs)/ms);}
+   else{window.__hmSlow=1;return;}
+   requestAnimationFrame(step);}
+  requestAnimationFrame(step);};
 
  (function race(){   // ===== MARBLE RACE: the TikTok format, faithfully -- heads drop through a chaos/choke gauntlet (pegs -> funnel -> zigzag -> spinner -> funnel -> pegs -> last funnel -> sprint), the camera rides the leader, a live leaderboard tracks every overtake, and a tight finish drops into slow motion =====
   var hero=document.querySelector(".hero");if(!hero)return;
