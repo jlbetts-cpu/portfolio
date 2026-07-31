@@ -137,8 +137,18 @@ ritual*, total ≤4s:
 
 ### 3. Scoreboard (in-match)
 
-The vertical stack keeps its skeleton and information; the rebuild is material,
-scale, and type:
+**Layout superseded 2026-07-30 (Jayden's call, after seeing the Plan-2 board):**
+the vertical stack is replaced by a **single horizontal bar** that works on
+mobile and desktop, radically simplified: per side exactly **head + name + one
+colour signal + flap digit** — nothing else. "It should just be the numbers on
+either side, the head and name and color… it doesn't need multiple color lines
+and all that." The one colour signal is the head's existing team-colour ring;
+the `.sbSub` underline bar and plate-edge chips are deleted. The split-flap
+digits are loved and untouchable. A slim quiet ledge keeps round · rule · End
+(function, not decoration). Painted-board material, grain, trailer-dim, clutch
+edge, goal flash, trophy, and ball docking all stay.
+
+The rest of the rebuild (material, scale, type):
 
 - Hanging-card board: dark matte plane (cup paint), light plates, grain, jitter,
   paired shadows.
