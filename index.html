@@ -1950,26 +1950,17 @@ body.hmTour #tourPanel .tCupQuit{width:auto;min-width:196px;align-self:center}
 }
 
 /* ================= LIVE SCOREBOARD =================
-   A FAITHFUL translation of SportyBlocks' Scoreboard1, not an adaptation -- their geometry,
-   their radii, their spacing, their type sizes. Their Tailwind classes map as:
-     w-[340px]                -> width 340
-     rounded-3xl              -> 24px (NOT our 4px)
-     border/ring-1 gray-200   -> 1px var(--c100)
-     bg-custom-gray-100       -> var(--c50)   (shell)
-     p-8 / px-8 py-4          -> 32px / 32px 16px
-     gap-5 / gap-2 / gap-x-2  -> 20 / 8 / 8
-     h-8 w-8                  -> 32px crest slot
-     text-sm/tight            -> 14px/1.1     text-xs/tight -> 12px/1.1
-     text-xs-md/tight         -> 13px/1.1
-     text-custom-gray-900     -> var(--c950)
-   No config ships with the kit, so the custom-gray-* values are Tailwind's slate scale, which
-   is what the class names and the reference screenshots both indicate.
-   One deliberate deviation: font-bold is rendered at 600, not 700. Only the 400 and 600 static
-   faces are loaded on this site, so 700 would either synthesise or pull the variable face in
-   at a weight the design system does not use. Everything else is theirs. */
+   Started as a faithful translation of SportyBlocks' Scoreboard1 -- their geometry, their
+   radii, their Tailwind gray scale. This is the MATERIALS REBUILD: the board is now a
+   PRINTED OBJECT rather than a UI card. Matte painted plate (the cup's identity during a
+   tournament, stock charcoal otherwise), split-flap Archivo digits off the same drum used
+   across the broadcast system, the shared --bc-contact/--bc-cast light + shadow, a grain
+   layer. The Scoreboard1 LAYOUT survives untouched (team row, VS divider, footer ledge) --
+   what changed is what it is made of, not how it is arranged. */
 .hmScore .sbCard{box-sizing:border-box;width:340px;max-width:88vw;
- border:1px solid var(--c100);border-radius:28px;background:var(--c75);padding:0;
- font-family:var(--sans);color:var(--c950)}
+ border-radius:10px;background:var(--cupPaint,#2b2f2a);padding:0;
+ box-shadow:var(--bc-contact),var(--bc-cast),inset 0 0 46px rgba(0,0,0,.30);
+ font-family:var(--sans);color:#ece9dd;position:relative}
 /* THE TROPHY rides on top of the board for the FINAL only, then is handed over at the whistle.
    Standing the prize on the scoreboard before it is won is the sourced move -- CS Majors put
    the physical trophy on a pedestal in front of the players during playoffs, NBA Cup courts
@@ -1993,21 +1984,28 @@ body.hmFinal .sbTrophy{display:block;animation:sbTrophyIn .5s cubic-bezier(.2,.8
    one holds up on mobile, where a horizontal bar has to fit two names, two heads and a score
    across a 390px screen and ends up shrinking all of them. Stacked, each row gets the full
    width and the name can just be the name. */
-.sbInner{border-radius:28px;overflow:hidden;background:var(--c50);
- box-shadow:inset 0 0 0 1px var(--c100);padding:32px;
- display:flex;flex-direction:column;gap:20px}
-.sbTeam{display:flex;align-items:center;gap:8px;min-width:0}
-.sbWho{display:flex;flex-direction:column;min-width:0}
-.sbNm{font-weight:600;font-size:14px;line-height:1.1;color:var(--c950);
- white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.sbSub{display:block;width:34px;height:4px;border-radius:2px;margin-top:5px;
+.sbInner{display:flex;flex-direction:column;gap:18px;padding:26px 24px 20px}
+.sbTeam{display:flex;align-items:center;gap:12px;min-width:0}
+/* flex-direction:column stays -- flex:1 alone (the brief's literal target) blockifies the
+   item but leaves ITS OWN children (name, colour bar) laid out inline, side by side rather
+   than stacked. */
+.sbWho{display:flex;flex-direction:column;flex:1;min-width:0}
+.sbNm{color:#ece9dd;font-weight:600;font-size:13px;letter-spacing:.09em;
+ text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sbSub{display:block;width:34px;height:3px;border-radius:2px;margin-top:5px;
  background:rgb(var(--tc,230,230,230))}
-.sbScore{margin-left:auto;font-weight:600;font-size:14px;line-height:1.1;color:var(--c950);
- font-variant-numeric:tabular-nums;flex:0 0 auto;padding-left:8px}
-.sbVs{display:flex;align-items:center;gap:8px}
-.sbVs span{font-weight:600;font-size:13px;line-height:1.1;color:var(--c950)}
-.sbRuleA{flex:0 0 32px;height:1px;background:var(--c100)}
-.sbRuleB{flex:1 1 auto;height:1px;background:var(--c100)}
+/* --tc is the bare "r,g,b" triplet (see the rgba(var(--tc),a) convention documented at the
+   top of the file) -- wrapping it in rgb() is required, var(--tc) alone is not a colour. */
+.sbScore{font-size:40px;position:relative;display:flex;align-items:center;
+ margin-left:auto;flex:0 0 auto;padding-left:8px}
+/* team chip on the plate edge: attribution lives on the PLATE, not the glyph */
+.sbScore::before{content:"";position:absolute;left:-.14em;top:.18em;bottom:.18em;
+ width:.06em;border-radius:.03em;background:rgb(var(--tc,230,230,230));z-index:5}
+.sbVs{display:flex;align-items:center;gap:10px;color:#8f8d80;font-size:11px;letter-spacing:.14em}
+.sbVs span{font-weight:600;color:#8f8d80}
+.sbRuleA,.sbRuleB{height:1px;background:rgba(236,233,221,.22)}
+.sbRuleA{flex:0 0 22px}
+.sbRuleB{flex:1 1 auto}
 
 
 /* No square at all. The outline traces the HEAD, the way it does on the pitch -- a box, even
@@ -2037,9 +2035,16 @@ body.hmFinal .sbTrophy{display:block;animation:sbTrophyIn .5s cubic-bezier(.2,.8
 .sbFace img{max-width:100%;max-height:100%;width:auto;height:auto;display:block}
 .sbDot{flex:0 0 32px;width:32px;height:32px;border-radius:50%;background:rgb(var(--tc,230,230,230))}
 
-
-
-
+/* Leader full ink, trailer dimmed -- the digit AND the name. board2() toggles .sbTrail on the
+   .sbScore element (unchanged from before the rebuild), which is a descendant of the digit
+   but a SIBLING of .sbNm, not its ancestor -- so the name needs the :has() route back up to
+   the shared .sbTeam row rather than a plain descendant selector. */
+.sbTrail .bcCell{opacity:.62}
+.sbTeam:has(.sbTrail) .sbNm{opacity:.62}
+/* clutch: the plate whose NEXT goal ends the match takes a thin emerald edge -- match point,
+   named on the plate itself rather than in a shout that scrolls past and is gone. */
+.sbClutch .bcCell{box-shadow:var(--bc-contact),var(--bc-cast),
+ 0 0 0 1.5px rgba(23,164,90,.85),0 0 12px rgba(23,164,90,.35)}
 
 
 
@@ -2050,23 +2055,29 @@ body.hmFinal .sbTrophy{display:block;animation:sbTrophyIn .5s cubic-bezier(.2,.8
    ("Quarter-final") wrapped to a second line and shoved the ledge taller, while a short one
    ("Final") never did -- the row changed height depending on which round you were in.
    Neither field may wrap; the label sheds its letter-spacing before it sheds a line. */
-.sbRound{font-weight:600;font-size:12px;line-height:1;letter-spacing:.09em;
- text-transform:uppercase;color:var(--c500);white-space:nowrap;flex:0 0 auto;
- padding-right:9px;margin-right:1px;border-right:1px solid var(--c100)}
+.sbRound{font-weight:600;font-size:11px;line-height:1;letter-spacing:.14em;
+ text-transform:uppercase;color:#b9b6a8;white-space:nowrap;flex:0 0 auto;
+ padding-right:9px;margin-right:1px;border-right:1px solid rgba(236,233,221,.14)}
 .sbFoot .sbMeta{white-space:nowrap;flex:0 0 auto}
-body.hmFinal .sbRound{color:#9E6C00}
+/* #9E6C00 read fine as ink-on-light-card gold; on the painted plate it is dark-on-dark and
+   fails contrast, so the final's label takes a brighter warm gold instead -- same idea
+   (the round that matters gets its own colour), tuned for the new material. */
+body.hmFinal .sbRound{color:#e8b347}
 .sbFoot{display:flex;justify-content:space-between;align-items:center;gap:8px;
- padding:16px 32px;font-weight:600;font-size:12px;line-height:1.1;color:var(--c950);
- /* The ledge is the card's last child, so the card's 28 is ITS to carry. The card does not
-    clip, so square corners here painted straight over the rounding and the card read as
-    square no matter what radius the card itself was given. */
- border-radius:0 0 28px 28px}
+ padding:12px 24px;font-weight:600;font-size:12px;line-height:1.1;color:#b9b6a8;
+ /* The card owns its own 10px radius and the ledge no longer paints its own background --
+    it sits directly on the plate now, so it has no corners of its own left to carry. */
+ border-top:1px solid rgba(236,233,221,.14)}
 .sbMeta{display:inline-flex;align-items:center;gap:6px}
 .sbMeta .sBall{width:14px;height:14px;object-fit:contain}
-.hmScore .hmScoreEnd{color:var(--c500);font-weight:600;font-size:12px;padding:6px 8px;min-height:0;
+.hmScore .hmScoreEnd{color:#b9b6a8;font-weight:600;font-size:12px;padding:6px 8px;min-height:0;
  border-radius:8px;transition:color .16s cubic-bezier(.2,.8,.2,1),background-color .16s cubic-bezier(.2,.8,.2,1)}
-.hmScore .hmScoreEnd:hover,.hmScore .hmScoreEnd:focus-visible{color:var(--c950);background:var(--c100)}
+.hmScore .hmScoreEnd:hover,.hmScore .hmScoreEnd:focus-visible{color:#ece9dd;background:rgba(236,233,221,.12)}
 .hmScore .hmScoreEnd svg{width:13px;height:13px;stroke-width:1.6;fill:none}
+/* THE BOARD IS A PRINTED OBJECT: matte painted plane, light plates, no ink filter -- an ink
+   filter here would ALSO break the 3D flap cells (filter on an ancestor creates a stacking
+   context that flattens their rotateX). Cup identity paints the plate during tournaments;
+   the defaults above are the plain-soccer board. */
 .hmScore:has(.sbCard){width:auto;align-items:center;gap:0;filter:none}
 
 .tRes{width:min(560px,92vw);margin:6px auto 0;display:flex;flex-direction:column;gap:10px}
@@ -5866,6 +5877,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   var S={on:false,seed:0,kickSeed:0,teams:{},target:5,cap:8,red:0,blue:0,ball:{x:0,y:0},phase:"idle",winner:0};
   window.__hmSoccer=S;
   var ball,ballSkin,goalL,goalR,goalShL,goalShR,board,sR,sB,countEl,W=0,H=0,groundY=0,BR=24,OFF=0,XL=0,XR=0;
+  var flapR=null,flapB=null;   // the split-flap instances mounted into .sR/.sB by paintBoard()
   var bx=0,by=0,bvx=0,bvy=0,kickCd={},running=false,last=performance.now(),scoreTeam=0,ballShadow,lastShot=0;
   var bsx=1,bsy=1,bsxv=0,bsyv=0,bsxP=1,bsyP=1,bsT=0;
   function geo(){var r=hero.getBoundingClientRect();W=r.width;H=r.height;OFF=r.left;XL=-OFF;XR=innerWidth-OFF;   // the pitch spans the whole screen, wall to wall
@@ -6022,13 +6034,28 @@ function teams(){
                    :'<span class="sbDot"></span>')
            +   '<span class="sbWho"><b class="sbNm">'+nm+'</b>'
            +     '<em class="sbSub" aria-hidden="true"></em></span>'
-           +   '<b class="s'+which+' sbScore">0</b>'
+           +   '<b class="s'+which+' sbScore"></b>'
            + '</div>';
     }
     inner.innerHTML = side("R")
       + '<div class="sbVs"><i class="sbRuleA"></i><span>VS</span><i class="sbRuleB"></i></div>'
       + side("B");
     sR=board.querySelector(".sR"); sB=board.querySelector(".sB");
+    /* Split-flap digits, mounted fresh every repaint -- the row itself was just rebuilt above,
+       so any flap instance left over from the previous fixture died with it. Instant set: a
+       board that has not played this match yet does not spin in from nothing. */
+    if(sR){flapR=bcFlap(sR,1);flapR.set(String(S.red),true);}
+    if(sB){flapB=bcFlap(sB,1);flapB.set(String(S.blue),true);}
+    /* Board materials: grain plus a slight per-match tilt, seeded on S.seed so a given match
+       always paints the same board (stable across a re-render of THAT match) while the next
+       match still gets its own roll. Guarded -- __bcMat is a conditional global (Foundations
+       contracts). */
+    if(window.__bcMat){
+      var cardEl=board.querySelector(".sbCard");
+      if(cardEl){window.__bcMat.grainOn(cardEl);
+        var _mr=window.__bcMat.rand('board'+(S.seed||''));
+        window.__bcMat.jitter(cardEl,_mr,0.4,1);}
+    }
     ruleLabel();   // one owner for that string, so a repaint cannot reset it to "First to N"
     /* The round, named on the bug. This is the one mechanism the research actually found in
        shipping products -- US postseason bugs stamp the round on, and fighting games print
@@ -6047,12 +6074,21 @@ function teams(){
      nor size -- which matters here, because the numerals are the same size as the codes and
      the type system has exactly one weight step. Level scores dim neither. */
   function board2(){
-    if(sR)sR.textContent=S.red; if(sB)sB.textContent=S.blue;
+    if(flapR)flapR.set(String(S.red)); if(flapB)flapB.set(String(S.blue));
     if(sR&&sB){
       var lead=(S.red===S.blue)?0:(S.red>S.blue?1:2);
       sR.classList.toggle("sbTrail", lead===2);
       sB.classList.toggle("sbTrail", lead===1);
     }
+    /* Clutch: whichever team's NEXT goal ends the match right now, win-by-two or the hard cap
+       -- the exact same formula goalIn() checks after a goal lands, evaluated one goal early
+       so the plate can call it before it happens rather than after. */
+    var _t=S.target,_c=S.cap;
+    var mpR=(S.red+1>=_t && S.red+1-S.blue>=2)||(S.red+1>=_c);
+    var mpB=(S.blue+1>=_t && S.blue+1-S.red>=2)||(S.blue+1>=_c);
+    var teamR=sR&&sR.closest(".sbTeam"), teamB=sB&&sB.closest(".sbTeam");
+    if(teamR)teamR.classList.toggle("sbClutch", !!mpR);
+    if(teamB)teamB.classList.toggle("sbClutch", !!mpB);
     ruleLabel();
   }
   // "First to 5" stopped being true the moment it went to deuce. Say what is actually on the
@@ -6201,7 +6237,7 @@ function teams(){
    S.touches=[];
 
 
-   try{var _gp=(team===1?sR:sB);if(_gp){_gp.style.transition="none";_gp.style.transform="scale(1.55)";void _gp.offsetWidth;_gp.style.transition="transform .5s cubic-bezier(.2,1.4,.3,1)";_gp.style.transform="scale(1)";_gp.style.display="inline-block";}}catch(_){}   // the scoring number POPS -- a goal should feel like a goal on the board too
+   try{var _gp=(team===1?(flapR&&flapR.el):(flapB&&flapB.el));if(_gp){_gp.style.transition="none";_gp.style.transform="scale(1.55)";void _gp.offsetWidth;_gp.style.transition="transform .5s cubic-bezier(.2,1.4,.3,1)";_gp.style.transform="scale(1)";_gp.style.display="inline-block";}}catch(_){}   // the scoring number POPS -- targets the flap's own element (transform-only), not the sbScore container that now just holds it
    var g=team===1?goalR:goalL;g.classList.add("hmGoalHit");setTimeout(function(){g.classList.remove("hmGoalHit");},650);
    /* The board lights up in the scorer's colour. Reads the same source the pitch does, so a
       "Green vs Sky" tie flashes green, not a hardcoded red. */
@@ -7744,6 +7780,10 @@ function bcGrainOn(host){
     _grainEl.style.backgroundImage='url('+c.toDataURL()+')';}
   host.appendChild(_grainEl);}
 function bcGrainOff(){if(_grainEl&&_grainEl.parentNode)_grainEl.parentNode.removeChild(_grainEl);}
+
+/* Materials, exported for the scoreboard (soccer block). CONDITIONAL global --
+   consumers must guard (see Foundations contracts). */
+window.__bcMat={grainOn:bcGrainOn,grainOff:bcGrainOff,jitter:bcJitter,rand:cupRand};
 
 /* A team never contributes just a fill. It contributes a fill, the text colour that is
    guaranteed to clear 4.5:1 ON that fill, and a darker edge so a pale chip still has an
