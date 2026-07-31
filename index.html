@@ -1845,10 +1845,14 @@ body.hmTour.tSchedOpen #tourPanel .tCupSchedIn{
  -webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;
  -webkit-mask-position:center;mask-position:center}
 .tCupCelebrate .tCupTint{display:none}   /* the champion keeps his own colours */
-/* The live round, so the schedule reads as "you are here" rather than repeating the h1. */
-.tCupRdH.tRdNow{color:var(--c950)}
+/* The live round, so the schedule reads as "you are here" rather than repeating the h1.
+   Recoloured for the painted plane (Step 2): .tCupRdH now sits on --cupPaint, so the near-
+   black --c950 it used on the old light card is gone -- the live accent (same green as
+   .tkDot) both reads on paint and ties the round marker to the live-fixture marker below it. */
+.tCupRdH.tRdNow{color:var(--accent-live,#17A45A)}
 .tCupRdH.tRdNow::after{content:"";display:inline-block;width:5px;height:5px;border-radius:50%;
- background:var(--c950);margin-left:8px;vertical-align:middle}
+ background:var(--accent-live,#17A45A);margin-left:8px;vertical-align:middle;
+ box-shadow:0 0 6px rgba(23,164,90,.55)}
 .tCupBig{position:relative;width:62%;height:auto;max-height:92%;margin-bottom:8px;
  z-index:2;pointer-events:none;display:block;
  /* A ring in the team's colour, so the head belongs to its panel without being recoloured.
@@ -1896,7 +1900,7 @@ body.hmTour #tourPanel .tCupQuit{width:auto;min-width:196px;align-self:center}
  transition:opacity .16s cubic-bezier(.2,.8,.2,1)}
 .tCupGo:hover,.tCupGo:focus-visible{opacity:.88}
 
-/* the schedule collapses -- a <details>, so it is keyboard and screen-reader native */
+/* the schedule is always open now -- no <details> any more (see .tCupSchedIn below) */
 /* One separator, and it is INSET to the content edge rather than running the full width of
    the block. Three full-bleed rules within 60px of each other read as a table; an inset hair
    reads as a boundary. The round label below is uppercase and spaced -- it already separates
@@ -1904,19 +1908,34 @@ body.hmTour #tourPanel .tCupQuit{width:auto;min-width:196px;align-self:center}
 .tCupSched{background:var(--c50);position:relative}
 .tCupSched::before{content:"";position:absolute;left:20px;right:20px;top:0;height:1px;
  background:var(--c100)}
+/* The header STAYS on the light card -- only .tCupSchedIn below becomes the painted plane --
+   so .tkDist (Step 1) takes --c500, the light-mode secondary, not the paint-mode one. */
 .tCupSched>.tCupSchedHd{padding:14px 20px 10px;
  display:flex;align-items:center;justify-content:space-between;gap:8px;
  font-weight:600;font-size:var(--fs-caption,12px);letter-spacing:.08em;text-transform:uppercase;color:var(--c950)}
+.tkDist{font-weight:400;font-size:var(--fs-caption,12px);letter-spacing:.06em;
+ text-transform:uppercase;color:var(--c500)}
 
-.tCupSchedIn{padding:0 12px 12px;max-height:min(40vh,330px);overflow-y:auto;
+/* ---- THE DRAW BOARD. The schedule is a painted plane of printed tickets.
+   A fixture is a ticket; a played fixture is a TORN ticket with the score
+   stamped on. Tickets are printed things: stock ground, perforation, serial. */
+.tCupSchedIn{background:var(--cupPaint,#2b2f2a);border-radius:10px;
+ padding:12px 12px 14px;position:relative;
+ box-shadow:var(--bc-contact),var(--bc-cast),inset 0 0 46px rgba(0,0,0,.30);
+ /* the scroller behaviour is unchanged -- syncHero() still snaps this to a whole ticket row */
+ max-height:min(40vh,330px);overflow-y:auto;
  overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
-.tCupRd{border-radius:4px;background:#fff;box-shadow:inset 0 0 0 1px var(--c100);overflow:hidden}
-.tCupRd+.tCupRd{margin-top:8px}
-.tCupRdH{padding:14px 16px 8px;font-weight:600;font-size:var(--fs-caption,12px);letter-spacing:.1em;
- text-transform:uppercase;color:var(--c500);background:var(--c50);border-bottom:0}
-.tCupFx{display:flex;align-items:center;gap:8px;padding:0;overflow:hidden;
- border-bottom:1px solid var(--c100)}
-.tCupFx:last-child{border-bottom:0}
+/* Pure grouping now -- the old white card-on-card (background:#fff) painted a bright box
+   behind every round once .tCupSchedIn went dark, which read as a leftover UI panel sitting
+   on top of the board rather than tickets laid on it. */
+.tCupRd{overflow:visible}
+.tCupRd+.tCupRd{margin-top:10px}
+.tCupRdH{padding:10px 6px 6px;color:#cfccbe;font-size:11px;letter-spacing:.16em;
+ text-transform:uppercase;font-weight:400}
+.tCupFx{position:relative;display:flex;align-items:center;gap:10px;
+ background:var(--cupStock,#f1ece0);border-radius:4px;padding:10px 84px 10px 12px;
+ margin:8px 2px;box-shadow:var(--bc-contact),var(--bc-cast);color:#242116}
+.tCupFx .tCupFxNm{font-weight:600;font-size:13px;color:#242116}
 .tCupFxSide{display:flex;align-items:center;gap:12px;min-width:0;flex:1 1 0}
 .tCupFxSide:last-of-type{flex-direction:row-reverse}
 /* The whole head, inside a colour tile. Cropping it to the middle of the face showed a pair
@@ -1938,13 +1957,39 @@ body.hmTour #tourPanel .tCupQuit{width:auto;min-width:196px;align-self:center}
 .tCupFxNm{font-weight:600;font-size:var(--fs-small,15px);line-height:1.2;color:var(--c950);min-width:0;
  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tCupFxSide:not(.tCupWon) .tCupFxNm{font-weight:400;color:var(--c500)}
-.tCupFxSc{flex:0 0 auto;display:inline-flex;align-items:center;gap:8px;
- font-weight:600;font-size:var(--fs-small,15px);color:var(--c950);font-variant-numeric:tabular-nums;padding:0 8px}
-.tCupFxSc.tCupPend{font-weight:400;color:var(--c500)}
+/* pending (both sides TBD): the whole ticket fades, echoing .tCupFxSc.tCupPend below */
+.tCupFx.tkPend{opacity:.5}
+.tCupFx.tkPend .tCupFxNm{color:#6d685a;font-weight:400}
+.tCupFxSc{flex:0 0 auto;display:inline-flex;align-items:center;gap:4px;
+ font-weight:600;font-size:13px;color:#242116;font-variant-numeric:tabular-nums;padding:0}
+.tCupFxSc.tCupPend{font-weight:400;color:#6d685a}
 /* the arrow points at the score from the winner's side, so the result reads at a glance */
-.tCupArrow{width:0;height:0;border:5px solid transparent;flex:0 0 auto}
-.tCupArrow.tArrL{border-left-color:var(--c950);border-right-width:0}
-.tCupArrow.tArrR{border-right-color:var(--c950);border-left-width:0}
+.tCupArrow{width:0;height:0;border:4px solid transparent;flex:0 0 auto}
+.tCupArrow.tArrL{border-left-color:#242116;border-right-width:0}
+.tCupArrow.tArrR{border-right-color:#242116;border-left-width:0}
+/* the stub: perforation + serial, ADMIT-ONE grammar */
+.tkStub{position:absolute;top:0;bottom:0;right:0;width:74px;
+ border-left:2px dashed rgba(24,20,12,.30);display:flex;flex-direction:column;
+ align-items:center;justify-content:center;gap:2px}
+.tkSerial{font-size:11px;letter-spacing:.05em;color:#4b463a}
+.tkDot{position:absolute;left:-3px;top:50%;width:6px;height:6px;border-radius:50%;
+ transform:translateY(-50%);background:var(--accent-live,#17A45A);
+ box-shadow:0 0 8px rgba(23,164,90,.55)}
+/* torn: the played ticket's stub edge goes ragged */
+.tkTorn .tkStub{border-left:0;
+ -webkit-clip-path:polygon(6% 0,100% 0,100% 100%,2% 100%,9% 88%,3% 76%,10% 63%,4% 50%,9% 38%,3% 26%,8% 13%);
+ clip-path:polygon(6% 0,100% 0,100% 100%,2% 100%,9% 88%,3% 76%,10% 63%,4% 50%,9% 38%,3% 26%,8% 13%);
+ background:rgba(24,20,12,.05)}
+.tkStamp{display:inline-block;transform:rotate(-4deg);font-size:15px;color:#37311f;
+ border:2px solid rgba(55,49,31,.55);border-radius:3px;padding:0 .3em;line-height:1.3}
+.tCupFx.tkTear .tkStub{animation:tkTearOff .4s cubic-bezier(.4,0,.2,1) both}
+@keyframes tkTearOff{0%{transform:translateX(0) rotate(0)}
+ 55%{transform:translateX(4px) rotate(1.6deg)}100%{transform:translateX(0) rotate(.6deg)}}
+.tCupFx.tkTear .tkStamp{animation:tkStampIn .3s .18s cubic-bezier(.2,.9,.3,1.4) both}
+@keyframes tkStampIn{0%{transform:rotate(-14deg) scale(1.7);opacity:0}
+ 100%{transform:rotate(-4deg) scale(1);opacity:1}}
+@media (prefers-reduced-motion: reduce){
+ .tCupFx.tkTear .tkStub,.tCupFx.tkTear .tkStamp{animation:none}}
 @media(prefers-reduced-motion:reduce){
  .tCupTrophy::after{animation:none;opacity:0}
 }
@@ -6065,7 +6110,13 @@ function teams(){
     var rl=board.querySelector(".sbRound");
     if(rl){ var txt="";
       try{ var T2=window.__hmTour;
-        if(T2&&T2.live&&T2.cur&&T2.br) txt=(T2.br.rounds[T2.cur.round]||{}).label||"";
+        if(T2&&T2.live&&T2.cur&&T2.br){
+          // Speak the cup's voice (roundName), not the generic bracket label -- a Bearings
+          // semi says "Last Four" here same as it does on the Draw Board.
+          txt=(typeof T2.roundName==="function")
+            ? T2.roundName(T2.cur.round, T2.br.rounds.length)
+            : (T2.br.rounds[T2.cur.round]||{}).label||"";
+        }
       }catch(_){}
       rl.textContent=txt; rl.style.display=txt?"":"none"; }
   }
@@ -7437,7 +7488,19 @@ var CUP_ID={
   'Blender': {paint:'#31262b',stock:'#f3ece2',sheen:'rgba(246,214,222,.30)',pfx:'BLN',voice:['Quarter-final','Last Four','The Final'],tex:1}
 };
 
+/* Round labels speak the CUP's voice. voice = [quarter, semi, final] naming the
+   LAST THREE rounds; earlier rounds fall back to 'Round of N'. */
+function roundName(r,total){
+  var fromEnd=total-1-r;
+  var v=(T.id&&T.id.voice)||['Quarter-final','Semi-final','The Final'];
+  if(fromEnd===0)return v[2];
+  if(fromEnd===1)return v[1];
+  if(fromEnd===2)return v[0];
+  return 'Round of '+Math.pow(2,total-r);
+}
+
 var T = { live: false, teams: [], br: null, stats: {}, cur: null, phase: 'idle', log: [], cup: '' };
+T.roundName = roundName;   // exposed so the scoreboard block (a different script) can speak the same voice
 window.__hmTour = T;
 
 function mob()   { return innerWidth <= 640; }
@@ -7822,8 +7885,10 @@ function paint(){
   trophy.style.setProperty('--tropMask', 'url("images/trophy.webp")');
   head.appendChild(trophy);
   var h1 = el('h1', 'tCupH1', T.cup || 'Cup');
-  var roundName = champ2 !== undefined ? 'Champion'
-                : (nm2 ? T.br.rounds[nm2.round].label : 'Complete');
+  // NOT named roundName -- that identifier is the module-level voice-aware helper (Step 1);
+  // shadowing it here with a plain string would have quietly broken every call below it.
+  var roundTxt = champ2 !== undefined ? 'Champion'
+               : (nm2 ? roundName(nm2.round, T.br.rounds.length) : 'Complete');
   /* The capsule shows the final's matchup BEFORE kickoff, and body.hmFinal is only set once
      the match starts -- so the poster needs its own flag for "this screen is the final". */
   /* Which poster this round gets, and where its heads sit. The FINAL has its own artwork;
@@ -7864,7 +7929,7 @@ function paint(){
       st.setProperty('--hy', P.hy); st.setProperty('--hw', P.hw);
     }
   }catch(_){}
-  h1.appendChild(el('span', 'tCupRound', roundName));
+  h1.appendChild(el('span', 'tCupRound', roundTxt));
   head.appendChild(h1);
   cup.appendChild(head);
 
@@ -8016,7 +8081,9 @@ function paint(){
   acts.appendChild(quit);
   cup.appendChild(acts);
 
-  // ---- the schedule. Always open. Saved scores render here. ----
+  // ---- the schedule. Always open. Saved scores render here. The champion screen shows no
+  // schedule at all -- the board's job (open fixtures, live state) is done, and the trophy
+  // card is the whole story. ----
   /* A plain section, not a <details>. The schedule does not collapse any more, so the
      disclosure was an affordance for a state that no longer exists -- and dropping it also
      drops the <details> flex trap that cost three wrong fixes. */
@@ -8057,6 +8124,10 @@ function paint(){
       cup.style.minHeight =
         Math.max(0, Math.round(footAnchor - cup.getBoundingClientRect().top)) + 'px';
       {
+        /* Read live off the DOM (querySelector) -- the row heights are whatever the ticket
+           CSS renders THIS repaint (padding/margin changed with the ticket restyle), never
+           assumed or cached. sched has no .tCupSchedIn on the champion screen, so inn is
+           simply null there and this whole block is skipped -- no special-casing needed. */
         var inn = sched.querySelector('.tCupSchedIn');
         if (inn){
           /* The scroller absorbs the leftover room, which is what keeps the block ending
@@ -8083,53 +8154,95 @@ function paint(){
   requestAnimationFrame(syncHero);
   if (!T._schedResize){ T._schedResize = true;
     addEventListener('resize', function(){ try{ syncHero(); }catch(_){} }, {passive:true}); }
-  var sum = el('div', 'tCupSchedHd', 'Schedule');
-  sched.appendChild(sum);
-  var schedIn = el('div', 'tCupSchedIn');
-  /* The h1 names the round and the schedule names it again a few hundred pixels below. I
-     first tried dropping the heading, which was wrong twice over: T.br.rounds always holds
-     every round so the condition never fired, and the headings are what make the list
-     scannable. Marking WHICH round is live is the better answer -- it turns the repetition
-     into a position indicator instead of an echo. */
-  var _now = (T.cur && typeof T.cur.round === 'number') ? T.cur.round : -1;
-  T.br.rounds.forEach(function(rd, _ri){
-    var rdBox = el('div', 'tCupRd');
-    rdBox.appendChild(el('div', 'tCupRdH' + (_ri === _now ? ' tRdNow' : ''), rd.label));
-    rd.matches.forEach(function(m){
-      /* Neither side decided yet: no ring on the empty thumbnails. Filled, they read as
-         "not played"; hollow, they read as a real fixture with the heads missing. */
-      var fx = el('div', 'tCupFx' + ((m.a === undefined && m.b === undefined) ? ' tFxTbd' : ''));
-      function fxSide(id, mine, theirs){
-        var tm = teamById(id);
-        var won = (m.winner !== undefined && m.winner === id);
-        var sd = el('div', 'tCupFxSide' + (won ? ' tCupWon' : ''));
-        var dot = el('span', 'tCupDot');
-        if (tm){ tint(dot, tm);
-          var cut2 = tm.captain && (tm.captain.portrait || tm.captain.cut);
-          if (cut2){ var di = el('img'); di.src = cut2; di.alt = ''; di.draggable = false; dot.appendChild(di); } }
-        sd.appendChild(dot);
-        sd.appendChild(el('span', 'tCupFxNm', tm ? tm.name : '\u2014'));
-        return sd;
-      }
-      fx.appendChild(fxSide(m.a));
-      // the saved scoreline, or a dash while the tie is still to come -- with an arrow
-      // pointing at it from whichever side won
-      var played = (m.sa !== undefined && m.sb !== undefined);
-      var sc = el('span', 'tCupFxSc' + (played ? '' : ' tCupPend'));
-      var aWon = (m.winner !== undefined && m.winner === m.a);
-      var bWon = (m.winner !== undefined && m.winner === m.b);
-      if (aWon) sc.appendChild(el('i', 'tCupArrow tArrL'));
-      sc.appendChild(document.createTextNode(
-        played ? (m.sa + ' \u2013 ' + m.sb) : '\u2013'));
-      if (bWon) sc.appendChild(el('i', 'tCupArrow tArrR'));
-      fx.appendChild(sc);
-      fx.appendChild(fxSide(m.b));
-      rdBox.appendChild(fx);
+
+  if (champ2 === undefined){
+    var totalRds = T.br.rounds.length;
+    /* The current/next round, for both the distance line and the tRdNow marker. nm2 (already
+       computed above for the VS card) IS the schedule's own "you are here" -- it stays correct
+       across the one frame where T.cur still lags it (the repaint fired mid-__hmTourWin, right
+       after a result lands but before T.cur is nulled), which is exactly when the dot should
+       already have moved to the NEXT fixture rather than lingering on the one just torn. */
+    var curRd = nm2 ? nm2.round : (totalRds - 1);
+    var sum = el('div', 'tCupSchedHd');
+    sum.appendChild(document.createTextNode('Schedule'));
+    sum.appendChild(el('span', 'tkDist',
+      roundName(curRd, totalRds) + ' \u00b7 ' +
+      ((totalRds - 1 - curRd === 0) ? 'winner takes the cup'
+                                     : (totalRds - curRd) + ' wins to the cup')));
+    sched.appendChild(sum);
+    var schedIn = el('div', 'tCupSchedIn');
+    /* T.__decided is the one-time tear/stamp ledger -- start() creates it fresh, stop() clears
+       it, and this is a defensive re-arm in case paint() is ever reached before start() runs. */
+    T.__decided = T.__decided || {};
+    /* The h1 names the round and the schedule names it again a few hundred pixels below. I
+       first tried dropping the heading, which was wrong twice over: T.br.rounds always holds
+       every round so the condition never fired, and the headings are what make the list
+       scannable. Marking WHICH round is live is the better answer -- it turns the repetition
+       into a position indicator instead of an echo. */
+    var _now = (T.cur && typeof T.cur.round === 'number') ? T.cur.round : -1;
+    T.br.rounds.forEach(function(rd, _ri){
+      var rdBox = el('div', 'tCupRd');
+      rdBox.appendChild(el('div', 'tCupRdH' + (_ri === _now ? ' tRdNow' : ''),
+        roundName(_ri, totalRds)));
+      rd.matches.forEach(function(m, _mi){
+        // round x fixture-index key: the one identity a ticket keeps across every repaint, so
+        // its serial, its tear-once state and its jitter all agree with each other and with
+        // themselves on the next paint.
+        var key = _ri + '-' + _mi;
+        var tbd = (m.a === undefined && m.b === undefined);
+        var decided = (m.sa !== undefined && m.sb !== undefined);
+        var isLive = !!(nm2 && nm2.round === _ri && nm2.index === _mi);
+        var freshTear = false;
+        if (decided && !T.__decided[key]){ T.__decided[key] = 1; freshTear = true; }
+        /* Neither side decided yet: no ring on the empty thumbnails. Filled, they read as
+           "not played"; hollow, they read as a real fixture with the heads missing. .tkPend
+           is the same TBD state wearing the ticket's faded-stock look. */
+        var fx = el('div', 'tCupFx'
+          + (tbd ? ' tFxTbd tkPend' : '')
+          + (decided ? ' tkTorn' : '')
+          + (freshTear ? ' tkTear' : ''));
+        if (isLive) fx.appendChild(el('span', 'tkDot'));
+        function fxSide(id){
+          var tm = teamById(id);
+          var won = (m.winner !== undefined && m.winner === id);
+          var sd = el('div', 'tCupFxSide' + (won ? ' tCupWon' : ''));
+          var dot = el('span', 'tCupDot');
+          if (tm){ tint(dot, tm);
+            var cut2 = tm.captain && (tm.captain.portrait || tm.captain.cut);
+            if (cut2){ var di = el('img'); di.src = cut2; di.alt = ''; di.draggable = false; dot.appendChild(di); } }
+          sd.appendChild(dot);
+          sd.appendChild(el('span', 'tCupFxNm', tm ? tm.name : '\u2014'));
+          return sd;
+        }
+        fx.appendChild(fxSide(m.a));
+        fx.appendChild(fxSide(m.b));
+        // the stub: ADMIT-ONE serial plus the score/arrow region, torn edge once decided
+        var stub = el('div', 'tkStub');
+        var pfx = (T.id && T.id.pfx) || 'CUP';
+        var serial = pfx + '-' + ('000' + (100 * (_ri + 1) + _mi)).slice(-4);
+        stub.appendChild(el('span', 'tkSerial', serial));
+        var aWon = (m.winner !== undefined && m.winner === m.a);
+        var bWon = (m.winner !== undefined && m.winner === m.b);
+        var sc = el('span', 'tCupFxSc' + (decided ? '' : ' tCupPend'));
+        if (aWon) sc.appendChild(el('i', 'tCupArrow tArrL'));
+        if (decided) sc.appendChild(el('span', 'tkStamp bcNum', m.sa + ' \u2013 ' + m.sb));
+        else sc.appendChild(document.createTextNode('\u2013'));
+        if (bWon) sc.appendChild(el('i', 'tCupArrow tArrR'));
+        stub.appendChild(sc);
+        fx.appendChild(stub);
+        // jitter, seeded per fixture so a repaint never reshuffles it (T.rnd is NEVER touched here)
+        var jr = cupRand(T.cup + key);
+        bcJitter(fx, jr, 0.5, 1);
+        rdBox.appendChild(fx);
+      });
+      schedIn.appendChild(rdBox);
     });
-    schedIn.appendChild(rdBox);
-  });
-  sched.appendChild(schedIn);
-  cup.appendChild(sched);
+    sched.appendChild(schedIn);
+    cup.appendChild(sched);
+    bcGrainOn(schedIn);
+  } else {
+    bcGrainOff();
+  }
   h.appendChild(cup);
   paintStadium(h);
 
@@ -8150,6 +8263,7 @@ function start(){
     var idKey=T.cup.replace(/ Cup$/,'');
     T.id=CUP_ID[idKey]||CUP_ID['Apollo'];
     T.rnd=cupRand(T.cup);
+    T.__decided = {};   // one-time tear/stamp ledger, fresh for this tournament
     document.body.style.setProperty('--cupPaint',T.id.paint);
     document.body.style.setProperty('--cupStock',T.id.stock);
     document.body.style.setProperty('--cupSheen',T.id.sheen);
@@ -8160,10 +8274,12 @@ function start(){
 }
 function stop(){
   T.live = false; T.cur = null; T.phase = 'idle';
+  T.__decided = {};   // next tournament's tickets tear fresh, not pre-marked from this one
   try{ document.body.classList.remove('hmFinal'); }catch(_){}
   try{ var _pb2=document.getElementById('moodBtn');
     if(_pb2){_pb2.removeAttribute('aria-disabled');_pb2.removeAttribute('title');} }catch(_){}
   try{ window.__hmChampFx(null); }catch(_){}   // the fall must not outlive the tournament
+  bcGrainOff();   // the grain must not outlive the board either
   try{ document.body.style.removeProperty('--cupPaint');
        document.body.style.removeProperty('--cupStock');
        document.body.style.removeProperty('--cupSheen'); }catch(_){}
