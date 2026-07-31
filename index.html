@@ -8081,9 +8081,8 @@ function paint(){
   acts.appendChild(quit);
   cup.appendChild(acts);
 
-  // ---- the schedule. Always open. Saved scores render here. The champion screen shows no
-  // schedule at all -- the board's job (open fixtures, live state) is done, and the trophy
-  // card is the whole story. ----
+  // ---- the schedule. Always open, ON THE CHAMPION SCREEN TOO -- the completed, all-torn
+  // record stays on screen behind the trophy card. Saved scores render here. ----
   /* A plain section, not a <details>. The schedule does not collapse any more, so the
      disclosure was an affordance for a state that no longer exists -- and dropping it also
      drops the <details> flex trap that cost three wrong fixes. */
@@ -8155,7 +8154,11 @@ function paint(){
   if (!T._schedResize){ T._schedResize = true;
     addEventListener('resize', function(){ try{ syncHero(); }catch(_){} }, {passive:true}); }
 
-  if (champ2 === undefined){
+  /* The champion screen keeps the Draw Board -- this was mis-scoped in the original brief
+     (which assumed a "no schedule on champion" state that never existed pre-Plan-2): the
+     completed, all-torn ticket record stays on screen behind the trophy card, same as the
+     pre-Plan-2 layout. Grain stays on with it; the only teardown is stop(). */
+  {
     var totalRds = T.br.rounds.length;
     /* The current/next round, for both the distance line and the tRdNow marker. nm2 (already
        computed above for the VS card) IS the schedule's own "you are here" -- it stays correct
@@ -8240,8 +8243,6 @@ function paint(){
     sched.appendChild(schedIn);
     cup.appendChild(sched);
     bcGrainOn(schedIn);
-  } else {
-    bcGrainOff();
   }
   h.appendChild(cup);
   paintStadium(h);
