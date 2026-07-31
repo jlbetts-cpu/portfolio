@@ -8160,18 +8160,24 @@ function paint(){
      pre-Plan-2 layout. Grain stays on with it; the only teardown is stop(). */
   {
     var totalRds = T.br.rounds.length;
-    /* The current/next round, for both the distance line and the tRdNow marker. nm2 (already
-       computed above for the VS card) IS the schedule's own "you are here" -- it stays correct
-       across the one frame where T.cur still lags it (the repaint fired mid-__hmTourWin, right
-       after a result lands but before T.cur is nulled), which is exactly when the dot should
-       already have moved to the NEXT fixture rather than lingering on the one just torn. */
-    var curRd = nm2 ? nm2.round : (totalRds - 1);
+    /* nm2 (already computed above for the VS card) IS the schedule's own "you are here" -- it
+       stays correct across the one frame where T.cur still lags it (the repaint fired mid-
+       __hmTourWin, right after a result lands but before T.cur is nulled), which is exactly
+       when the dot should already have moved to the NEXT fixture rather than lingering on the
+       one just torn. */
     var sum = el('div', 'tCupSchedHd');
     sum.appendChild(document.createTextNode('Schedule'));
-    sum.appendChild(el('span', 'tkDist',
-      roundName(curRd, totalRds) + ' \u00b7 ' +
-      ((totalRds - 1 - curRd === 0) ? 'winner takes the cup'
-                                     : (totalRds - curRd) + ' wins to the cup')));
+    /* The distance line only makes sense while there IS a distance -- once nm2 is gone (the
+       cup is won, or the no-next-match 'Complete' edge case) there is no next round to name and
+       no wins left to count, so the line goes quiet rather than freezing on stale text ("The
+       Final . winner takes the cup" printed under a champion who already has it). */
+    if (nm2){
+      var curRd = nm2.round;
+      sum.appendChild(el('span', 'tkDist',
+        roundName(curRd, totalRds) + ' \u00b7 ' +
+        ((totalRds - 1 - curRd === 0) ? 'winner takes the cup'
+                                       : (totalRds - curRd) + ' wins to the cup')));
+    }
     sched.appendChild(sum);
     var schedIn = el('div', 'tCupSchedIn');
     /* T.__decided is the one-time tear/stamp ledger -- start() creates it fresh, stop() clears
