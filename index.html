@@ -1995,14 +1995,14 @@ body.hmTour #tourPanel .tCupQuit{width:auto;min-width:196px;align-self:center}
 }
 
 /* ================= LIVE SCOREBOARD =================
-   Started as a faithful translation of SportyBlocks' Scoreboard1 -- their geometry, their
-   radii, their Tailwind gray scale. This is the MATERIALS REBUILD: the board is now a
-   PRINTED OBJECT rather than a UI card. Matte painted plate (the cup's identity during a
-   tournament, stock charcoal otherwise), split-flap Archivo digits off the same drum used
-   across the broadcast system, the shared --bc-contact/--bc-cast light + shadow, a grain
-   layer. The Scoreboard1 LAYOUT survives untouched (team row, VS divider, footer ledge) --
-   what changed is what it is made of, not how it is arranged. */
-.hmScore .sbCard{box-sizing:border-box;width:340px;max-width:88vw;
+   Started as a faithful translation of SportyBlocks' Scoreboard1, then a materials rebuild
+   (painted plate, split-flap Archivo digits, grain, --bc-contact/--bc-cast light + shadow)
+   that kept Scoreboard1's vertical-stack LAYOUT. Superseded again 2026-07-30 (Jayden's call --
+   see docs/superpowers/specs/2026-07-30-tournament-broadcast-design.md, Scoreboard section):
+   the layout is now a single horizontal bar, radically simplified -- per side exactly head,
+   name, one colour signal (the head's own team-colour ring), flap digit. Nothing else. The
+   MATERIAL -- paint, grain, jitter, shadows, radius -- is unchanged by this pass. */
+.hmScore .sbCard{box-sizing:border-box;width:min(560px,94vw);
  border-radius:10px;background:var(--cupPaint,#2b2f2a);padding:0;
  box-shadow:var(--bc-contact),var(--bc-cast),inset 0 0 46px rgba(0,0,0,.30);
  font-family:var(--sans);color:#ece9dd;position:relative}
@@ -2024,33 +2024,36 @@ body.hmFinal .sbTrophy{display:block;animation:sbTrophyIn .5s cubic-bezier(.2,.8
  pointer-events:none;filter:drop-shadow(0 8px 18px rgba(15,23,42,.32))}
 @media(prefers-reduced-motion:reduce){body.hmFinal .sbTrophy{animation:none}}
 
-/* SCOREBOARD -- the vertical stack. Two team rows with a VS divider between them, full names
-   rather than three-letter codes. Reverted from the horizontal bar at Jayden's request: this
-   one holds up on mobile, where a horizontal bar has to fit two names, two heads and a score
-   across a 390px screen and ends up shrinking all of them. Stacked, each row gets the full
-   width and the name can just be the name. */
-.sbInner{display:flex;flex-direction:column;gap:18px;padding:26px 24px 20px}
-.sbTeam{display:flex;align-items:center;gap:12px;min-width:0}
-/* flex-direction:column stays -- flex:1 alone (the brief's literal target) blockifies the
-   item but leaves ITS OWN children (name, colour bar) laid out inline, side by side rather
-   than stacked. */
-.sbWho{display:flex;flex-direction:column;flex:1;min-width:0}
-.sbNm{color:#ece9dd;font-weight:600;font-size:13px;letter-spacing:.09em;
- text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.sbSub{display:block;width:34px;height:3px;border-radius:2px;margin-top:5px;
- background:rgb(var(--tc,230,230,230))}
+/* SCOREBOARD -- single horizontal bar. Superseded 2026-07-30 (Jayden's call after seeing the
+   vertical stack): "too much going on... it should just be the numbers on either side, the
+   head and name and color... a horizontal layout that works well on mobile and desktop would
+   look and work better." Per side, exactly four things: head, name, the head's own
+   team-colour ring (the ONE colour signal -- no separate underline bar, no plate-edge chip),
+   flap digit. The right side mirrors the left (flap, name, head) so the two scores meet
+   toward the centre, the way a printed scoreline reads. */
+.sbInner{display:flex;align-items:center;justify-content:space-between;gap:14px;
+ padding:16px 20px}
+.sbTeam{display:flex;align-items:center;gap:10px;min-width:0;flex:1 1 0}
 /* --tc is the bare "r,g,b" triplet (see the rgba(var(--tc),a) convention documented at the
    top of the file) -- wrapping it in rgb() is required, var(--tc) alone is not a colour. */
-.sbScore{font-size:40px;position:relative;display:flex;align-items:center;
- margin-left:auto;flex:0 0 auto;padding-left:8px}
-/* team chip on the plate edge: attribution lives on the PLATE, not the glyph */
-.sbScore::before{content:"";position:absolute;left:-.14em;top:.18em;bottom:.18em;
- width:.06em;border-radius:.03em;background:rgb(var(--tc,230,230,230));z-index:5}
-.sbVs{display:flex;align-items:center;gap:10px;color:#8f8d80;font-size:11px;letter-spacing:.14em}
-.sbVs span{font-weight:600;color:#8f8d80}
-.sbRuleA,.sbRuleB{height:1px;background:rgba(236,233,221,.22)}
-.sbRuleA{flex:0 0 22px}
-.sbRuleB{flex:1 1 auto}
+.sbNm{color:#ece9dd;font-weight:600;font-size:13px;letter-spacing:.09em;
+ text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+ min-width:0;flex:1 1 auto}
+.sbScore{font-size:40px;display:flex;align-items:center;flex:0 0 auto}
+/* dim divider glyph only -- no rule lines, no "multiple colour lines and all that" */
+.sbVs{flex:0 0 auto;color:#77746a;font-size:20px;font-weight:600;line-height:1;padding:0 2px}
+/* Mobile is the acceptance bar for this layout -- it previously failed here at a bigger scale
+   (that's why it was a stack before); the simplification is what makes one row viable: faces
+   shrink, names ellipsize, nothing needs to wrap. Scoped, never bare. */
+@media(max-width:480px){
+ .hmScore:has(.sbCard) .sbInner{gap:8px;padding:12px 14px}
+ .hmScore:has(.sbCard) .sbTeam{gap:6px}
+ .hmScore:has(.sbCard) .sbFace{flex:0 0 24px;width:24px;height:24px}
+ .hmScore:has(.sbCard) .sbDot{flex:0 0 20px;width:20px;height:20px}
+ .hmScore:has(.sbCard) .sbNm{font-size:10.5px;letter-spacing:.05em}
+ .hmScore:has(.sbCard) .sbScore{font-size:28px}
+ .hmScore:has(.sbCard) .sbVs{font-size:15px}
+}
 
 
 /* No square at all. The outline traces the HEAD, the way it does on the pitch -- a box, even
@@ -2109,9 +2112,10 @@ body.hmFinal .sbTrophy{display:block;animation:sbTrophyIn .5s cubic-bezier(.2,.8
    (the round that matters gets its own colour), tuned for the new material. */
 body.hmFinal .sbRound{color:#e8b347}
 .sbFoot{display:flex;justify-content:space-between;align-items:center;gap:8px;
- padding:12px 24px;font-weight:600;font-size:12px;line-height:1.1;color:#b9b6a8;
+ padding:10px 20px;font-weight:600;font-size:11px;line-height:1.1;color:#b9b6a8;
  /* The card owns its own 10px radius and the ledge no longer paints its own background --
-    it sits directly on the plate now, so it has no corners of its own left to carry. */
+    it sits directly on the plate now, so it has no corners of its own left to carry. Slimmed
+    further in the horizontal-bar pass -- a quieter ledge under a quieter board. */
  border-top:1px solid rgba(236,233,221,.14)}
 .sbMeta{display:inline-flex;align-items:center;gap:6px}
 .sbMeta .sBall{width:14px;height:14px;object-fit:contain}
@@ -6070,20 +6074,20 @@ function teams(){
           if(p.slot<9000&&!p.__filler){best=p;break;}}
         if(best&&best.cut)cut=best.cut;
       }catch(_){}}
-      /* Horizontal now, after the kit's Scoreboard1: a colour block hard against the outer
-         edge, the head inboard of it as the crest, the name, and the score meeting in the
-         middle. .sR / .sB stay exactly where they were -- board2() writes the live score
-         straight into them and does not know the layout changed. */
-      return '<div class="sbTeam" style="--tc:'+col+'">'
-           +   (cut?'<span class="sbFace"><img src="'+cut+'" alt="" draggable="false"></span>'
-                   :'<span class="sbDot"></span>')
-           +   '<span class="sbWho"><b class="sbNm">'+nm+'</b>'
-           +     '<em class="sbSub" aria-hidden="true"></em></span>'
-           +   '<b class="s'+which+' sbScore"></b>'
-           + '</div>';
+      var face=cut?'<span class="sbFace"><img src="'+cut+'" alt="" draggable="false"></span>'
+                  :'<span class="sbDot"></span>';
+      var name='<b class="sbNm">'+nm+'</b>';
+      var score='<b class="s'+which+' sbScore"></b>';
+      /* Single horizontal bar (2026-07-30 rebuild): head, name, flap digit -- nothing else.
+         .sR / .sB stay exactly where they were -- board2() writes the live score straight
+         into them and does not know the layout changed. The B side mirrors the order (flap,
+         name, head) so the two scores meet toward the centre; DOM order alone carries the
+         mirror, no row-reverse needed. */
+      var kids=(which==="R")?(face+name+score):(score+name+face);
+      return '<div class="sbTeam" style="--tc:'+col+'">'+kids+'</div>';
     }
     inner.innerHTML = side("R")
-      + '<div class="sbVs"><i class="sbRuleA"></i><span>VS</span><i class="sbRuleB"></i></div>'
+      + '<span class="sbVs" aria-hidden="true">–</span>'
       + side("B");
     sR=board.querySelector(".sR"); sB=board.querySelector(".sB");
     /* Split-flap digits, mounted fresh every repaint -- the row itself was just rebuilt above,
