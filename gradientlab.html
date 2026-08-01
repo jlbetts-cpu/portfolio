@@ -25,32 +25,33 @@
   .lab{display:grid;grid-template-columns:1fr 320px;min-height:100vh}
   @media(max-width:880px){.lab{grid-template-columns:1fr}.panel{position:static;max-height:none;margin:0 16px 26px}}
 
-  /* ================= THE ORB =================
-     Anatomy (sourced from sphere-shading + mesh-gradient practice):
-     .glow   atmosphere + halation OUTSIDE a crisp silhouette
-     .body   the sphere: border-radius 50%, overflow hidden, deep base fill,
-             edge-softness mask (crisp is the premium default)
-     .mesh   3-4 off-centre blob divs sharing ONE wrapper blur, so their
-             edges bleed across each other (smoother than one background list)
-     .shade  the volume: dark terminator inset (hue-shifted deep, never black,
-             offset ~20% R, blur ~30% R) + warm specular inset opposite
-     .grain  banding killer */
+  /* ================= THE ORB — blurred mesh, "planet of light" =================
+     NO clipping container: the disc reads as a sphere because of how the colour
+     masses are ARRANGED, and the colour is free to bleed past the silhouette.
+     .mesh    one big wrapper blur (blur the wrapper, animate the children —
+              smoother melt, compositor-friendly)
+     .blob    3-5 colour masses: high-key base disc, hue mass, one deep mass on
+              multiply (the only "dark" — depth, not glow), bright core at the light
+     .fringe  the chromatic halo: hue-rotated echoes offset at the limb, low alpha
+     .grain   turbulence .65/3oct + contrast/brightness, multiply, masked to the disc */
   .stage{display:flex;align-items:center;justify-content:center;min-height:72vh;padding:80px 30px 40px}
   .orb{position:relative;width:min(430px,78vw);aspect-ratio:1;--R:215px}
-  .orb .glow{position:absolute;inset:-14%;border-radius:50%;filter:blur(26px);z-index:0}
-  .orb .body{position:absolute;inset:0;border-radius:50%;overflow:hidden;z-index:1;
-    transform:translateZ(0)}
-  .orb .mesh{position:absolute;inset:-22%;will-change:transform}
-  .orb .mesh .blob{position:absolute;border-radius:50%}
-  .orb.drift .mesh{animation:orbDrift 18s ease-in-out infinite alternate}
+  .orb .mesh{position:absolute;inset:-18%}
+  .orb .meshIn{position:absolute;inset:0}
+  .orb.drift .meshIn{animation:orbDrift 20s ease-in-out infinite alternate}
+  .orb .blob{position:absolute;border-radius:50%}
+  .orb .fringe{position:absolute;inset:-18%;filter:blur(calc(var(--R)*0.12))}
+  .orb .fringe .blob{opacity:.55}
+  .orb .grain{position:absolute;inset:-8%;pointer-events:none;
+    background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size:140px 140px;filter:contrast(170%) brightness(1000%);
+    mix-blend-mode:multiply;opacity:.12;
+    -webkit-mask-image:radial-gradient(closest-side,#000 55%,transparent 96%);
+    mask-image:radial-gradient(closest-side,#000 55%,transparent 96%)}
   @keyframes orbDrift{
     0%{transform:translate(-2.5%,-2%) rotate(0deg) scale(1)}
-    100%{transform:translate(2.5%,2.5%) rotate(6deg) scale(1.045)}}
-  .orb .shade{position:absolute;inset:0;border-radius:50%;pointer-events:none}
-  .orb .grain{position:absolute;inset:0;border-radius:50%;pointer-events:none;z-index:3;
-    background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-    background-size:110px 110px;mix-blend-mode:soft-light;opacity:.45}
-  @media(prefers-reduced-motion:reduce){.orb.drift .mesh{animation:none}}
+    100%{transform:translate(2.5%,2.5%) rotate(5deg) scale(1.04)}}
+  @media(prefers-reduced-motion:reduce){.orb.drift .meshIn{animation:none}}
 
   /* ---------------- panel ---------------- */
   .panel{position:sticky;top:0;align-self:start;max-height:100vh;overflow-y:auto;
@@ -107,16 +108,13 @@
 <div class="lab">
   <main class="stage">
     <div class="orb drift" id="orb">
-      <div class="glow" id="glow"></div>
-      <div class="body" id="body">
-        <div class="mesh" id="mesh">
-          <div class="blob" id="b1"></div>
-          <div class="blob" id="b2"></div>
-          <div class="blob" id="b3"></div>
-          <div class="blob" id="b4"></div>
-        </div>
-        <div class="shade" id="shade"></div>
-      </div>
+      <div class="fringe" id="fringe"><div class="blob" id="f1"></div><div class="blob" id="f2"></div></div>
+      <div class="mesh" id="mesh"><div class="meshIn" id="meshIn">
+        <div class="blob" id="bBase"></div>
+        <div class="blob" id="bA"></div>
+        <div class="blob" id="bDeep"></div>
+        <div class="blob" id="bCore"></div>
+      </div></div>
       <div class="grain" id="grain"></div>
     </div>
   </main>
@@ -125,31 +123,31 @@
     <div class="sec">
       <p class="secH">Colours</p>
       <div class="swRow">
-        <span class="sw"><input type="color" id="c1" value="#f2903a" aria-label="Colour one">One</span>
-        <span class="sw"><input type="color" id="c2" value="#e6472e" aria-label="Colour two">Two</span>
-        <span class="sw"><input type="color" id="c3" value="#7b3df0" aria-label="Colour three">Three</span>
+        <span class="sw"><input type="color" id="c1" value="#8fd0e8" aria-label="Colour one">One</span>
+        <span class="sw"><input type="color" id="c2" value="#4f7fd9" aria-label="Colour two">Two</span>
+        <span class="sw"><input type="color" id="c3" value="#e88bb4" aria-label="Colour three">Three</span>
       </div>
     </div>
 
     <div class="sec">
       <p class="secH">Light</p>
-      <div class="row"><label for="lx">Light X</label><input type="range" id="lx" min="10" max="90" value="34"><output id="lxo">34</output></div>
-      <div class="row"><label for="ly">Light Y</label><input type="range" id="ly" min="10" max="90" value="24"><output id="lyo">24</output></div>
-      <div class="row"><label for="depth">Depth</label><input type="range" id="depth" min="0" max="100" value="55"><output id="deptho">55</output></div>
-      <div class="row"><label for="glowA">Atmosphere</label><input type="range" id="glowA" min="0" max="60" value="28"><output id="glowAo">28</output></div>
+      <div class="row"><label for="lx">Light X</label><input type="range" id="lx" min="10" max="90" value="38"><output id="lxo">38</output></div>
+      <div class="row"><label for="ly">Light Y</label><input type="range" id="ly" min="10" max="90" value="26"><output id="lyo">26</output></div>
+      <div class="row"><label for="depth">Core</label><input type="range" id="depth" min="0" max="100" value="60"><output id="deptho">60</output></div>
+      <div class="row"><label for="glowA">Halo</label><input type="range" id="glowA" min="0" max="100" value="45"><output id="glowAo">45</output></div>
     </div>
 
     <div class="sec">
       <p class="secH">Surface</p>
-      <div class="row"><label for="blur">Mesh blur</label><input type="range" id="blur" min="6" max="70" value="34"><output id="blurO">34</output></div>
-      <div class="row"><label for="edge">Edge</label><input type="range" id="edge" min="0" max="100" value="88"><output id="edgeO">88</output></div>
+      <div class="row"><label for="blur">Melt</label><input type="range" id="blur" min="20" max="120" value="46"><output id="blurO">46</output></div>
+      <div class="row"><label for="edge">Disc</label><input type="range" id="edge" min="0" max="100" value="72"><output id="edgeO">72</output></div>
       <div class="row"><label for="blend">Blend mode</label>
         <select id="blend" aria-label="Blend mode">
-          <option value="screen" selected>screen</option>
-          <option value="normal">normal</option>
+          <option value="normal" selected>normal</option>
+          <option value="multiply">multiply</option>
           <option value="overlay">overlay</option>
           <option value="soft-light">soft-light</option>
-          <option value="hard-light">hard-light</option>
+          <option value="screen">screen</option>
         </select></div>
       <div class="row">
         <label class="check"><input type="checkbox" id="grainOn" checked>Grain</label>
@@ -196,73 +194,61 @@
       return Math.round(v*255).toString(16).padStart(2,"0");};
     return "#"+f(0)+f(8)+f(4);
   }
-  function midHue(a,b){var d=((b-a+540)%360)-180;return a+d/2;} /* shorter arc — the anti-mud bridge */
 
-  /* ---- blob scatter: reshaped only by Randomize, so sliders stay predictable ---- */
-  var scatter={b2x:72,b2y:38,b2w:64,b2h:58, b3x:76,b3y:78,b3w:76,b3h:68, b4x:36,b4y:70,b4w:52,b4h:46};
+  /* ---- composition scatter: reshaped only by Randomize ---- */
+  var scatter={aX:64,aY:56,aW:88,aH:52,aRot:-24, dX:38,dY:66,dW:80,dH:62,dRot:18,
+               f1X:78,f1Y:40, f2X:30,f2Y:74};
 
   function state(){
     return{c1:els.c1.value,c2:els.c2.value,c3:els.c3.value,
-      lx:+els.lx.value,ly:+els.ly.value,depth:+els.depth.value/100,
-      glowA:+els.glowA.value,blur:+els.blur.value,edge:+els.edge.value,
+      lx:+els.lx.value,ly:+els.ly.value,core:+els.depth.value/100,
+      halo:+els.glowA.value/100,blur:+els.blur.value,edge:+els.edge.value,
       blend:els.blend.value,grain:els.grainOn.checked,drift:els.driftOn.checked};
   }
 
-  /* ---- build: every string here is EXACTLY what the export prints ---- */
+  /* ---- build: every string is exactly what the export prints.
+     Genre rules (researched): pastel masses in plain alpha (screen dies on white
+     paper); ONE deep mass on multiply carries all the depth; the bright core sits
+     off-centre at the light; the halo is hue-rotated echoes at the limb. ---- */
   function build(v){
     var A=hexToHsl(v.c1),B=hexToHsl(v.c2),C=hexToHsl(v.c3);
-    var mh=midHue(B.h,C.h);
-    var ux=(v.lx-50)/50, uy=(v.ly-50)/50;              /* unit vector toward the light */
-    var d=v.depth;
-    var maskStop=(62+v.edge*0.375).toFixed(1);          /* edge 0..100 -> 62%..99.5% */
-    return {
-      base:"radial-gradient(140% 140% at "+v.lx+"% "+Math.min(92,v.ly+10)+"% in oklch, "
-        +hsl(A.h,A.s,Math.min(70,A.l+6))+", "+hsl(C.h,Math.min(95,C.s+8),Math.max(10,C.l-28))+" 97%)",
-      mask:"radial-gradient(closest-side,#000 "+maskStop+"%,transparent 100%)",
-      blobs:[
-        /* b1: the light's bloom — near-white of colour one, riding the light point */
-        {x:v.lx,y:v.ly,w:58,h:50,css:"radial-gradient(closest-side in oklch, "+hsl(A.h,Math.min(92,A.s),93)+", transparent 68%)",blend:"screen"},
-        /* b2: colour two, off-centre */
-        {x:scatter.b2x,y:scatter.b2y,w:scatter.b2w,h:scatter.b2h,
-         css:"radial-gradient(closest-side in oklch, "+hsl(B.h,B.s,B.l)+", transparent 72%)",blend:v.blend},
-        /* b3: colour three deep, pooling away from the light */
-        {x:scatter.b3x,y:scatter.b3y,w:scatter.b3w,h:scatter.b3h,
-         css:"radial-gradient(closest-side in oklch, "+hsl(C.h,C.s,Math.max(18,C.l-12))+", transparent 74%)",blend:"normal"},
-        /* b4: the bridge — midpoint hue so B and C never meet through grey */
-        {x:scatter.b4x,y:scatter.b4y,w:scatter.b4w,h:scatter.b4h,
-         css:"radial-gradient(closest-side in oklch, "+hsl(mh,(B.s+C.s)/2,(B.l+C.l)/2,0.85)+", transparent 70%)",blend:v.blend}
-      ],
-      meshFilter:"blur("+v.blur+"px) saturate(1.25)",
-      /* the volume, in calc(var(--R)) so it scales with any orb size:
-         dark terminator = hue-shifted deep (never black), offset ~20% R blur ~30% R,
-         on the side away from the light; warm specular hugs the light side;
-         quiet ambient falloff all round. */
-      shade:[
-        "inset calc(var(--R)*"+(ux*0.20).toFixed(3)+") calc(var(--R)*"+(uy*0.20).toFixed(3)
-          +") calc(var(--R)*0.30) 0 "+hsl(C.h,60,14,(0.62*d).toFixed(2)),
-        "inset calc(var(--R)*"+(-ux*0.13).toFixed(3)+") calc(var(--R)*"+(-uy*0.13).toFixed(3)
-          +") calc(var(--R)*0.22) 0 "+hsl(A.h,55,94,(0.50*d).toFixed(2)),
-        "inset 0 0 calc(var(--R)*0.32) 0 "+hsl(C.h,50,16,(0.22*d).toFixed(2))
-      ].join(",\n    "),
-      glow:"radial-gradient(46% 46% at 50% 44%, "+hsl(A.h,A.s,58,(v.glowA/100).toFixed(2))
-        +", transparent 70%),\n    radial-gradient(52% 52% at 50% 62%, "
-        +hsl(B.h,B.s,52,(v.glowA/140).toFixed(2))+", transparent 72%)"
-    };
+    var discStop=(60+v.edge*0.30).toFixed(0);          /* Disc 0..100 -> falloff 60..90% */
+    var blurRatio=(v.blur/430).toFixed(3);             /* export scales with orb size */
+    var blobs=[
+      {id:"bBase",x:50,y:48,w:94,h:94,rot:0,blend:"normal",
+       css:"radial-gradient(closest-side, "+hsl(A.h,Math.min(75,A.s),Math.min(88,A.l+14))
+         +", "+hsl(A.h,A.s,A.l,0.72)+" 55%, transparent "+discStop+"%)"},
+      {id:"bA",x:scatter.aX,y:scatter.aY,w:scatter.aW,h:scatter.aH,rot:scatter.aRot,blend:v.blend,
+       css:"radial-gradient(closest-side, "+hsl(B.h,B.s,B.l)+", transparent 74%)"},
+      {id:"bDeep",x:scatter.dX,y:scatter.dY,w:scatter.dW,h:scatter.dH,rot:scatter.dRot,blend:"multiply",
+       css:"radial-gradient(closest-side, "+hsl(C.h,Math.min(92,C.s+6),Math.max(30,C.l-8),0.85)
+         +", transparent 72%)"},
+      {id:"bCore",x:v.lx,y:v.ly,w:(26+v.core*22).toFixed(0),h:(24+v.core*20).toFixed(0),rot:0,blend:"normal",
+       css:"radial-gradient(closest-side, "+hsl(A.h,30,98,(0.55+v.core*0.4).toFixed(2))
+         +", "+hsl(A.h,60,88,0.35)+" 45%, transparent 75%)"}
+    ];
+    var fringes=[
+      {id:"f1",x:scatter.f1X,y:scatter.f1Y,w:46,h:40,
+       css:"radial-gradient(closest-side, "+hsl(C.h+30,90,72,(0.5*v.halo).toFixed(2))+", transparent 70%)"},
+      {id:"f2",x:scatter.f2X,y:scatter.f2Y,w:42,h:38,
+       css:"radial-gradient(closest-side, "+hsl(B.h-40,85,70,(0.4*v.halo).toFixed(2))+", transparent 70%)"}
+    ];
+    return{blobs:blobs,fringes:fringes,blurRatio:blurRatio,
+      meshFilter:"blur(calc(var(--R)*"+(v.blur/215).toFixed(3)+"))"};
   }
 
+  function place(el,b){
+    el.style.left=(b.x-b.w/2)+"%";el.style.top=(b.y-b.h/2)+"%";
+    el.style.width=b.w+"%";el.style.height=b.h+"%";
+    el.style.background=b.css;
+    el.style.transform=b.rot?("rotate("+b.rot+"deg)"):"";
+    if(b.blend)el.style.mixBlendMode=b.blend;
+  }
   function apply(){
-    var v=state(), o=build(v);
-    $("body").style.background=o.base;
-    $("body").style.webkitMaskImage=o.mask;
-    $("body").style.maskImage=o.mask;
-    var ids=["b1","b2","b3","b4"];
-    o.blobs.forEach(function(b,i){var el=$(ids[i]);
-      el.style.left=(b.x-b.w/2)+"%"; el.style.top=(b.y-b.h/2)+"%";
-      el.style.width=b.w+"%"; el.style.height=b.h+"%";
-      el.style.background=b.css; el.style.mixBlendMode=b.blend;});
+    var v=state(),o=build(v);
+    o.blobs.forEach(function(b){place($(b.id),b);});
+    o.fringes.forEach(function(b){place($(b.id),b);});
     $("mesh").style.filter=o.meshFilter;
-    $("shade").style.boxShadow=o.shade.replace(/\n\s*/g,"");
-    $("glow").style.background=o.glow.replace(/\n\s*/g,"");
     $("grain").style.display=v.grain?"":"none";
     $("orb").classList.toggle("drift",v.drift);
     writeCode(v,o);
@@ -274,62 +260,58 @@
 
   function writeCode(v,o){
     var lines=[
-"/* Gradient Lab — ambient orb (set --R to half your orb's width) */",
+"/* Gradient Lab — planet of light (set --R to half your orb's width) */",
+"/* markup: .orb > .fringe(.f1,.f2) + .mesh > .meshIn(.bBase,.bA,.bDeep,.bCore) + .grain */",
 ".orb{position:relative;aspect-ratio:1;--R:215px}",
-".orb .glow{",
-"  position:absolute;inset:-14%;border-radius:50%;filter:blur(26px);",
-"  background:",
-"    "+o.glow+";",
-"}",
-".orb .body{",
-"  position:absolute;inset:0;border-radius:50%;overflow:hidden;",
-"  background:"+o.base+";",
-"  -webkit-mask-image:"+o.mask+";",
-"  mask-image:"+o.mask+";",
-"}",
-".orb .mesh{position:absolute;inset:-22%;filter:"+o.meshFilter+"}",
-".orb .mesh .blob{position:absolute;border-radius:50%}"];
-    o.blobs.forEach(function(b,i){
-      lines.push(".orb .mesh .b"+(i+1)+"{",
+".orb .blob{position:absolute;border-radius:50%}",
+".orb .mesh{position:absolute;inset:-18%;filter:"+o.meshFilter+"}",
+".orb .meshIn{position:absolute;inset:0}",
+".orb .fringe{position:absolute;inset:-18%;filter:blur(calc(var(--R)*0.12))}",
+".orb .fringe .blob{opacity:.55}"];
+    o.blobs.concat(o.fringes).forEach(function(b){
+      lines.push(".orb ."+b.id+"{",
 "  left:"+(b.x-b.w/2)+"%;top:"+(b.y-b.h/2)+"%;width:"+b.w+"%;height:"+b.h+"%;",
-"  background:"+b.css+";",
-"  mix-blend-mode:"+b.blend+";","}");
+"  background:"+b.css+";"
+        +(b.rot?"\n  transform:rotate("+b.rot+"deg);":"")
+        +(b.blend&&b.blend!=="normal"?"\n  mix-blend-mode:"+b.blend+";":""),
+"}");
     });
-    lines.push(
-".orb .shade{",
-"  position:absolute;inset:0;border-radius:50%;pointer-events:none;",
-"  box-shadow:",
-"    "+o.shade+";",
-"}",
-"/* markup: .orb > .glow + .body(> .mesh(> .b1-.b4) + .shade) */");
+    if(v.grain)lines.push(
+".orb .grain{",
+"  position:absolute;inset:-8%;pointer-events:none;opacity:.12;",
+"  background:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\");",
+"  background-size:140px 140px;filter:contrast(170%) brightness(1000%);mix-blend-mode:multiply;",
+"  -webkit-mask-image:radial-gradient(closest-side,#000 55%,transparent 96%);",
+"  mask-image:radial-gradient(closest-side,#000 55%,transparent 96%);",
+"}");
     if(v.drift)lines.push(
 "@keyframes orbDrift{",
 "  0%{transform:translate(-2.5%,-2%) rotate(0deg) scale(1)}",
-"  100%{transform:translate(2.5%,2.5%) rotate(6deg) scale(1.045)}",
+"  100%{transform:translate(2.5%,2.5%) rotate(5deg) scale(1.04)}",
 "}",
-".orb .mesh{animation:orbDrift 18s ease-in-out infinite alternate}",
-"@media(prefers-reduced-motion:reduce){.orb .mesh{animation:none}}");
+".orb .meshIn{animation:orbDrift 20s ease-in-out infinite alternate}",
+"@media(prefers-reduced-motion:reduce){.orb .meshIn{animation:none}}");
     $("code").textContent=lines.join("\n");
   }
 
-  /* ---- randomize: palette AND mesh composition ---- */
+  /* ---- randomize: palette + composition ---- */
   function rnd(a,b){return a+Math.random()*(b-a);}
   var SCHEMES=[
-    function(h){return[h, h+rnd(18,40), h+rnd(150,210)];},
-    function(h){return[h, h+rnd(-30,-14), h+rnd(35,70)];},
-    function(h){return[h, h+rnd(120,140), h+rnd(-40,-20)];}
+    function(h){return[h, h+rnd(18,45), h+rnd(150,220)];},
+    function(h){return[h, h+rnd(-35,-15), h+rnd(35,75)];},
+    function(h){return[h, h+rnd(120,145), h+rnd(-45,-20)];}
   ];
   function randomize(){
-    var h=rnd(0,360), pick=SCHEMES[Math.floor(Math.random()*SCHEMES.length)](h);
-    els.c1.value=hslToHex(pick[0],rnd(72,95),rnd(52,64));
-    els.c2.value=hslToHex(pick[1],rnd(70,95),rnd(46,60));
-    els.c3.value=hslToHex(pick[2],rnd(60,90),rnd(30,48));
-    els.lx.value=Math.round(rnd(22,45)); els.ly.value=Math.round(rnd(16,38));
+    var h=rnd(0,360),pick=SCHEMES[Math.floor(Math.random()*SCHEMES.length)](h);
+    els.c1.value=hslToHex(pick[0],rnd(45,80),rnd(62,78));   /* high-key first colour */
+    els.c2.value=hslToHex(pick[1],rnd(60,90),rnd(48,62));
+    els.c3.value=hslToHex(pick[2],rnd(55,90),rnd(40,58));
+    els.lx.value=Math.round(rnd(24,48));els.ly.value=Math.round(rnd(18,38));
     scatter={
-      b2x:rnd(58,84),b2y:rnd(26,48),b2w:rnd(52,72),b2h:rnd(46,66),
-      b3x:rnd(64,86),b3y:rnd(64,86),b3w:rnd(62,86),b3h:rnd(56,76),
-      b4x:rnd(28,48),b4y:rnd(58,80),b4w:rnd(42,60),b4h:rnd(38,54)};
-    syncOutputs(); apply();
+      aX:rnd(54,74),aY:rnd(44,64),aW:rnd(70,96),aH:rnd(42,60),aRot:rnd(-40,40),
+      dX:rnd(28,50),dY:rnd(56,78),dW:rnd(64,90),dH:rnd(50,72),dRot:rnd(-30,30),
+      f1X:rnd(66,86),f1Y:rnd(28,52),f2X:rnd(18,40),f2Y:rnd(60,84)};
+    syncOutputs();apply();
   }
 
   /* ---- copy ---- */
@@ -351,12 +333,11 @@
   });
   $("rnd").addEventListener("click",randomize);
 
-  /* keep --R honest with the rendered size */
   function sizeR(){var w=$("orb").getBoundingClientRect().width;
     $("orb").style.setProperty("--R",(w/2).toFixed(0)+"px");}
   addEventListener("resize",sizeR);
 
-  sizeR(); syncOutputs(); apply();
+  sizeR();syncOutputs();apply();
 })();
 </script>
 </body>
