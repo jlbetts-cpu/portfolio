@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Gradient Lab — Jayden Betts</title>
+<style>
+  @font-face{font-family:"Instrument Sans";src:url("fonts/instrument-sans-latin-400-normal.woff2") format("woff2");font-weight:400;font-display:swap}
+  @font-face{font-family:"Instrument Sans";src:url("fonts/instrument-sans-latin-600-normal.woff2") format("woff2");font-weight:600;font-display:swap}
+
+  :root{
+    --paper:#f8f9fa; --ink:#232323; --sub:#75756e; --hair:#e7e6e1;
+    --panel:rgba(255,255,255,.72); --accent:#0E6B3B; --r:10px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);
+    font-family:"Instrument Sans",-apple-system,system-ui,sans-serif;font-size:14px;line-height:1.5}
+
+  header{position:absolute;top:0;left:0;right:0;z-index:5;display:flex;justify-content:space-between;
+    align-items:center;padding:18px 26px;pointer-events:none}
+  header b{font-weight:600;letter-spacing:.02em}
+  header span{color:var(--sub);font-size:12px;letter-spacing:.12em;text-transform:uppercase}
+
+  .lab{display:grid;grid-template-columns:1fr 320px;min-height:100vh}
+  @media(max-width:880px){.lab{grid-template-columns:1fr}.panel{position:static;max-height:none;margin:0 16px 26px}}
+
+  /* ---------------- stage ---------------- */
+  .stage{display:flex;align-items:center;justify-content:center;min-height:72vh;padding:80px 30px 40px}
+  .orb{position:relative;width:min(430px,78vw);aspect-ratio:1}
+  /* atmosphere: the colour breathing onto the page behind the sphere */
+  .orb .glow{position:absolute;inset:-10%;border-radius:50%;
+    background:radial-gradient(50% 50% at 50% 54%, var(--glow,rgba(120,120,220,.28)), transparent 70%);
+    filter:blur(24px)}
+  /* the sphere: soft-masked wrapper; ONE painter carries the whole field */
+  .orb .body{position:absolute;inset:0;border-radius:50%;overflow:hidden;
+    -webkit-mask-image:radial-gradient(closest-side,#000 84%,transparent 100%);
+    mask-image:radial-gradient(closest-side,#000 84%,transparent 100%)}
+  .orb .paint{position:absolute;inset:-30%;will-change:transform;transform:translateZ(0)}
+  .orb.drift .paint{animation:drift 18s ease-in-out infinite alternate}
+  @keyframes drift{
+    0%{transform:translate(-2.5%,-2%) rotate(0deg) scale(1)}
+    100%{transform:translate(2.5%,2.5%) rotate(6deg) scale(1.045)}}
+  .orb .grain{position:absolute;inset:0;border-radius:50%;pointer-events:none;
+    background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size:110px 110px;mix-blend-mode:soft-light;opacity:.45}
+  @media(prefers-reduced-motion:reduce){.orb.drift .paint{animation:none}}
+
+  /* ---------------- panel ---------------- */
+  .panel{position:sticky;top:0;align-self:start;max-height:100vh;overflow-y:auto;
+    margin:74px 22px 26px 0;padding:20px 20px 16px;border-radius:16px;
+    background:var(--panel);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+    border:1px solid var(--hair);box-shadow:0 1px 2px rgba(20,20,16,.04),0 18px 44px rgba(20,20,16,.07)}
+  .sec{padding:14px 0 16px;border-bottom:1px solid var(--hair)}
+  .sec:first-child{padding-top:2px}
+  .sec:last-of-type{border-bottom:0}
+  .secH{font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--sub);margin:0 0 12px}
+  .row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:10px 0}
+  .row label{color:var(--ink);font-size:13px}
+  .row output{color:var(--sub);font-size:12px;font-variant-numeric:tabular-nums;min-width:38px;text-align:right}
+
+  input[type=color]{appearance:none;-webkit-appearance:none;width:34px;height:34px;border:1px solid var(--hair);
+    border-radius:50%;padding:0;background:none;cursor:pointer;overflow:hidden}
+  input[type=color]::-webkit-color-swatch-wrapper{padding:0}
+  input[type=color]::-webkit-color-swatch{border:none;border-radius:50%}
+  .swRow{display:flex;gap:14px;align-items:center}
+  .swRow .sw{display:flex;flex-direction:column;align-items:center;gap:5px;font-size:10px;
+    letter-spacing:.08em;text-transform:uppercase;color:var(--sub)}
+
+  input[type=range]{appearance:none;-webkit-appearance:none;flex:1;height:2px;border-radius:1px;
+    background:var(--hair);cursor:pointer}
+  input[type=range]::-webkit-slider-thumb{appearance:none;-webkit-appearance:none;width:14px;height:14px;
+    border-radius:50%;background:#fff;border:1px solid #d5d4cd;
+    box-shadow:0 1px 3px rgba(20,20,16,.18)}
+  input[type=range]:focus-visible{outline:2px solid var(--accent);outline-offset:4px}
+
+  select{font-family:inherit;font-size:13px;color:var(--ink);border:1px solid var(--hair);
+    border-radius:6px;padding:6px 8px;background:#fff;cursor:pointer}
+  .check{display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;user-select:none}
+  .check input{accent-color:var(--accent);width:15px;height:15px;cursor:pointer}
+
+  button{font-family:inherit;cursor:pointer}
+  .btn{width:100%;border:0;border-radius:8px;padding:11px 14px;font-size:13px;font-weight:600;
+    background:var(--ink);color:#fbfbf8;letter-spacing:.02em}
+  .btn:active{transform:translateY(1px)}
+  .btn:focus-visible,.copy:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+  .codeBox{position:relative;margin-top:10px}
+  pre{margin:0;max-height:190px;overflow:auto;padding:12px 12px 12px;border-radius:8px;
+    background:#fff;border:1px solid var(--hair);font-size:10.5px;line-height:1.55;
+    font-family:ui-monospace,SFMono-Regular,Menlo,monospace;color:#3c3b36;white-space:pre;tab-size:2}
+  .copy{position:absolute;top:8px;right:8px;border:1px solid var(--hair);background:rgba(255,255,255,.92);
+    border-radius:6px;padding:5px 10px;font-size:11px;font-weight:600;color:var(--ink)}
+  .copy.ok{color:var(--accent);border-color:var(--accent)}
+</style>
+</head>
+<body>
+<header><b>Gradient Lab</b><span>ambient orb system</span></header>
+
+<div class="lab">
+  <main class="stage">
+    <div class="orb drift" id="orb">
+      <div class="glow" id="glow"></div>
+      <div class="body"><div class="paint" id="paint"></div></div>
+      <div class="grain" id="grain"></div>
+    </div>
+  </main>
+
+  <aside class="panel" aria-label="Controls">
+    <div class="sec">
+      <p class="secH">Colours</p>
+      <div class="swRow">
+        <span class="sw"><input type="color" id="c1" value="#f2903a" aria-label="Colour one">One</span>
+        <span class="sw"><input type="color" id="c2" value="#e6472e" aria-label="Colour two">Two</span>
+        <span class="sw"><input type="color" id="c3" value="#7b3df0" aria-label="Colour three">Three</span>
+      </div>
+    </div>
+
+    <div class="sec">
+      <p class="secH">Light</p>
+      <div class="row"><label for="lx">Light X</label><input type="range" id="lx" min="10" max="90" value="34"><output id="lxo">34</output></div>
+      <div class="row"><label for="ly">Light Y</label><input type="range" id="ly" min="10" max="90" value="24"><output id="lyo">24</output></div>
+      <div class="row"><label for="glowA">Atmosphere</label><input type="range" id="glowA" min="0" max="60" value="28"><output id="glowAo">28</output></div>
+    </div>
+
+    <div class="sec">
+      <p class="secH">Surface</p>
+      <div class="row"><label for="blur">Blur</label><input type="range" id="blur" min="0" max="44" value="18"><output id="blurO">18</output></div>
+      <div class="row"><label for="blend">Blend mode</label>
+        <select id="blend" aria-label="Blend mode">
+          <option value="normal" selected>normal</option>
+          <option value="screen">screen</option>
+          <option value="overlay">overlay</option>
+          <option value="soft-light">soft-light</option>
+          <option value="multiply">multiply</option>
+          <option value="hard-light">hard-light</option>
+        </select></div>
+      <div class="row">
+        <label class="check"><input type="checkbox" id="grainOn" checked>Grain</label>
+        <label class="check"><input type="checkbox" id="driftOn" checked>Drift</label>
+      </div>
+    </div>
+
+    <div class="sec">
+      <button class="btn" id="rnd" type="button">Randomize</button>
+    </div>
+
+    <div class="sec">
+      <p class="secH">CSS</p>
+      <div class="codeBox">
+        <pre id="code" tabindex="0"></pre>
+        <button class="copy" id="copyBtn" type="button">Copy</button>
+      </div>
+    </div>
+  </aside>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var $=function(id){return document.getElementById(id);};
+  var els={c1:$("c1"),c2:$("c2"),c3:$("c3"),lx:$("lx"),ly:$("ly"),glowA:$("glowA"),
+    blur:$("blur"),blend:$("blend"),grainOn:$("grainOn"),driftOn:$("driftOn")};
+
+  /* ---- colour helpers ---- */
+  function hexToHsl(hex){
+    var n=parseInt(hex.slice(1),16),r=((n>>16)&255)/255,g=((n>>8)&255)/255,b=(n&255)/255;
+    var mx=Math.max(r,g,b),mn=Math.min(r,g,b),h=0,s=0,l=(mx+mn)/2,d=mx-mn;
+    if(d){s=l>0.5?d/(2-mx-mn):d/(mx+mn);
+      h=mx===r?((g-b)/d+(g<b?6:0)):mx===g?((b-r)/d+2):((r-g)/d+4);h*=60;}
+    return{h:h,s:s*100,l:l*100};
+  }
+  function hsl(h,s,l,a){h=((h%360)+360)%360;
+    return a===undefined?"hsl("+h.toFixed(0)+" "+s.toFixed(0)+"% "+l.toFixed(0)+"%)"
+      :"hsl("+h.toFixed(0)+" "+s.toFixed(0)+"% "+l.toFixed(0)+"% / "+a+")";}
+  function hslToHex(h,s,l){h=((h%360)+360)%360;s/=100;l/=100;
+    var f=function(n){var k=(n+h/30)%12,c=s*Math.min(l,1-l);
+      var v=l-c*Math.max(-1,Math.min(k-3,Math.min(9-k,1)));
+      return Math.round(v*255).toString(16).padStart(2,"0");};
+    return "#"+f(0)+f(8)+f(4);
+  }
+
+  /* ---- the field: light lives IN the gradient (no rims, no strokes).
+     A near-white highlight sits at the light point; the deepest colour pools
+     opposite it; the two remaining hues sweep between. Everything is one
+     painter with stacked radial-gradients, blurred and soft-masked. ---- */
+  function buildLayers(v){
+    var A=hexToHsl(v.c1),B=hexToHsl(v.c2),C=hexToHsl(v.c3);
+    var ox=100-v.lx, oy=100-v.ly;                 // shade point: opposite the light
+    var mx=(v.lx+ox)/2, my=Math.min(92,(v.ly+oy)/2+14);
+    return [
+      "radial-gradient(46% 40% at "+v.lx+"% "+v.ly+"%, "+hsl(A.h,Math.min(95,A.s),94)+", transparent 58%)",
+      "radial-gradient(60% 55% at "+v.lx+"% "+Math.min(92,v.ly+14)+"%, "+hsl(A.h,A.s,Math.min(78,A.l+12))+", transparent 66%)",
+      "radial-gradient(70% 64% at "+mx+"% "+my+"%, "+hsl(B.h,B.s,B.l)+", transparent 72%)",
+      "radial-gradient(80% 74% at "+ox+"% "+oy+"%, "+hsl(C.h,C.s,Math.max(16,C.l-18))+", transparent 74%)",
+      "radial-gradient(130% 130% at 50% 46%, "+hsl(A.h,A.s,A.l)+", "+hsl(C.h,Math.min(92,C.s+6),Math.max(12,C.l-26))+" 96%)"
+    ];
+  }
+
+  function apply(){
+    var v={c1:els.c1.value,c2:els.c2.value,c3:els.c3.value,
+      lx:+els.lx.value,ly:+els.ly.value,glowA:+els.glowA.value,
+      blur:+els.blur.value,blend:els.blend.value};
+    var layers=buildLayers(v);
+    var paint=$("paint");
+    paint.style.background=layers.join(",");
+    paint.style.backgroundBlendMode=v.blend+","+v.blend+","+v.blend+","+v.blend+",normal";
+    paint.style.filter="blur("+v.blur+"px) saturate(1.1)";
+    var A=hexToHsl(v.c1);
+    $("glow").style.background=
+      "radial-gradient(50% 50% at 50% 54%, "+hsl(A.h,A.s,55,(v.glowA/100).toFixed(2))+", transparent 70%)";
+    $("grain").style.display=els.grainOn.checked?"":"none";
+    $("orb").classList.toggle("drift",els.driftOn.checked);
+    writeCode(v,layers);
+  }
+  function syncOutputs(){
+    $("lxo").textContent=els.lx.value; $("lyo").textContent=els.ly.value;
+    $("glowAo").textContent=els.glowA.value; $("blurO").textContent=els.blur.value;
+  }
+
+  function writeCode(v,layers){
+    var A=hexToHsl(v.c1);
+    var css=[
+"/* Gradient Lab — ambient orb */",
+"/* wrapper: any square element */",
+".orb{position:relative;aspect-ratio:1}",
+".orb::after{ /* atmosphere */",
+"  content:\"\";position:absolute;inset:-10%;border-radius:50%;z-index:-1;",
+"  background:radial-gradient(50% 50% at 50% 54%,",
+"    "+hsl(A.h,A.s,55,(v.glowA/100).toFixed(2))+", transparent 70%);",
+"  filter:blur(24px);",
+"}",
+".orb .body{",
+"  position:absolute;inset:0;border-radius:50%;overflow:hidden;",
+"  -webkit-mask-image:radial-gradient(closest-side,#000 84%,transparent 100%);",
+"  mask-image:radial-gradient(closest-side,#000 84%,transparent 100%);",
+"}",
+".orb .paint{",
+"  position:absolute;inset:-30%;",
+"  background:",
+"    "+layers.join(",\n    ")+";",
+"  background-blend-mode:"+v.blend+","+v.blend+","+v.blend+","+v.blend+",normal;",
+"  filter:blur("+v.blur+"px) saturate(1.1);",
+"}"];
+    if(els.driftOn.checked) css=css.concat([
+"@keyframes orbDrift{",
+"  0%{transform:translate(-2.5%,-2%) rotate(0deg) scale(1)}",
+"  100%{transform:translate(2.5%,2.5%) rotate(6deg) scale(1.045)}",
+"}",
+".orb .paint{animation:orbDrift 18s ease-in-out infinite alternate}",
+"@media(prefers-reduced-motion:reduce){.orb .paint{animation:none}}"]);
+    $("code").textContent=css.join("\n");
+  }
+
+  /* ---- randomize: harmonious ambient palettes ---- */
+  function rnd(a,b){return a+Math.random()*(b-a);}
+  var SCHEMES=[
+    function(h){return[h, h+rnd(18,40), h+rnd(150,210)];},          // analogous + counterpoint
+    function(h){return[h, h+rnd(-30,-14), h+rnd(35,70)];},          // warm sweep
+    function(h){return[h, h+rnd(120,140), h+rnd(-40,-20)];}         // triadic-ish
+  ];
+  function randomize(){
+    var h=rnd(0,360), pick=SCHEMES[Math.floor(Math.random()*SCHEMES.length)](h);
+    els.c1.value=hslToHex(pick[0],rnd(72,95),rnd(52,64));
+    els.c2.value=hslToHex(pick[1],rnd(70,95),rnd(46,60));
+    els.c3.value=hslToHex(pick[2],rnd(60,90),rnd(30,48));
+    els.lx.value=Math.round(rnd(22,45)); els.ly.value=Math.round(rnd(16,38));
+    syncOutputs(); apply();
+  }
+
+  /* ---- copy ---- */
+  $("copyBtn").addEventListener("click",function(){
+    var txt=$("code").textContent,btn=this;
+    function ok(){btn.textContent="Copied ✓";btn.classList.add("ok");
+      setTimeout(function(){btn.textContent="Copy";btn.classList.remove("ok");},1400);}
+    if(navigator.clipboard&&navigator.clipboard.writeText){
+      navigator.clipboard.writeText(txt).then(ok,fallback);
+    }else fallback();
+    function fallback(){var ta=document.createElement("textarea");ta.value=txt;
+      document.body.appendChild(ta);ta.select();
+      try{document.execCommand("copy");ok();}catch(e){}
+      document.body.removeChild(ta);}
+  });
+
+  Object.keys(els).forEach(function(k){
+    els[k].addEventListener("input",function(){syncOutputs();apply();});
+  });
+  $("rnd").addEventListener("click",randomize);
+  syncOutputs(); apply();
+})();
+</script>
+</body>
+</html>
