@@ -11,7 +11,7 @@
 
   :root{
     --paper:#f8f9fa; --ink:#232323; --sub:#75756e; --hair:#e7e6e1;
-    --panel:rgba(255,255,255,.72); --accent:#0E6B3B; --r:10px;
+    --panel:rgba(255,255,255,.72); --accent:#0E6B3B;
   }
   *{box-sizing:border-box}
   body{margin:0;background:var(--paper);color:var(--ink);
@@ -25,26 +25,32 @@
   .lab{display:grid;grid-template-columns:1fr 320px;min-height:100vh}
   @media(max-width:880px){.lab{grid-template-columns:1fr}.panel{position:static;max-height:none;margin:0 16px 26px}}
 
-  /* ---------------- stage ---------------- */
+  /* ================= THE ORB =================
+     Anatomy (sourced from sphere-shading + mesh-gradient practice):
+     .glow   atmosphere + halation OUTSIDE a crisp silhouette
+     .body   the sphere: border-radius 50%, overflow hidden, deep base fill,
+             edge-softness mask (crisp is the premium default)
+     .mesh   3-4 off-centre blob divs sharing ONE wrapper blur, so their
+             edges bleed across each other (smoother than one background list)
+     .shade  the volume: dark terminator inset (hue-shifted deep, never black,
+             offset ~20% R, blur ~30% R) + warm specular inset opposite
+     .grain  banding killer */
   .stage{display:flex;align-items:center;justify-content:center;min-height:72vh;padding:80px 30px 40px}
-  .orb{position:relative;width:min(430px,78vw);aspect-ratio:1}
-  /* atmosphere: the colour breathing onto the page behind the sphere */
-  .orb .glow{position:absolute;inset:-10%;border-radius:50%;
-    background:radial-gradient(50% 50% at 50% 54%, var(--glow,rgba(120,120,220,.28)), transparent 70%);
-    filter:blur(24px)}
-  /* the sphere: soft-masked wrapper; ONE painter carries the whole field */
-  .orb .body{position:absolute;inset:0;border-radius:50%;overflow:hidden;
-    -webkit-mask-image:radial-gradient(closest-side,#000 84%,transparent 100%);
-    mask-image:radial-gradient(closest-side,#000 84%,transparent 100%)}
-  .orb .paint{position:absolute;inset:-30%;will-change:transform;transform:translateZ(0)}
-  .orb.drift .paint{animation:drift 18s ease-in-out infinite alternate}
-  @keyframes drift{
+  .orb{position:relative;width:min(430px,78vw);aspect-ratio:1;--R:215px}
+  .orb .glow{position:absolute;inset:-14%;border-radius:50%;filter:blur(26px);z-index:0}
+  .orb .body{position:absolute;inset:0;border-radius:50%;overflow:hidden;z-index:1;
+    transform:translateZ(0)}
+  .orb .mesh{position:absolute;inset:-22%;will-change:transform}
+  .orb .mesh .blob{position:absolute;border-radius:50%}
+  .orb.drift .mesh{animation:orbDrift 18s ease-in-out infinite alternate}
+  @keyframes orbDrift{
     0%{transform:translate(-2.5%,-2%) rotate(0deg) scale(1)}
     100%{transform:translate(2.5%,2.5%) rotate(6deg) scale(1.045)}}
-  .orb .grain{position:absolute;inset:0;border-radius:50%;pointer-events:none;
+  .orb .shade{position:absolute;inset:0;border-radius:50%;pointer-events:none}
+  .orb .grain{position:absolute;inset:0;border-radius:50%;pointer-events:none;z-index:3;
     background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
     background-size:110px 110px;mix-blend-mode:soft-light;opacity:.45}
-  @media(prefers-reduced-motion:reduce){.orb.drift .paint{animation:none}}
+  @media(prefers-reduced-motion:reduce){.orb.drift .mesh{animation:none}}
 
   /* ---------------- panel ---------------- */
   .panel{position:sticky;top:0;align-self:start;max-height:100vh;overflow-y:auto;
@@ -57,8 +63,8 @@
   .secH{font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;
     color:var(--sub);margin:0 0 12px}
   .row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:10px 0}
-  .row label{color:var(--ink);font-size:13px}
-  .row output{color:var(--sub);font-size:12px;font-variant-numeric:tabular-nums;min-width:38px;text-align:right}
+  .row label{color:var(--ink);font-size:13px;white-space:nowrap}
+  .row output{color:var(--sub);font-size:12px;font-variant-numeric:tabular-nums;min-width:34px;text-align:right}
 
   input[type=color]{appearance:none;-webkit-appearance:none;width:34px;height:34px;border:1px solid var(--hair);
     border-radius:50%;padding:0;background:none;cursor:pointer;overflow:hidden}
@@ -87,7 +93,7 @@
   .btn:focus-visible,.copy:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 
   .codeBox{position:relative;margin-top:10px}
-  pre{margin:0;max-height:190px;overflow:auto;padding:12px 12px 12px;border-radius:8px;
+  pre{margin:0;max-height:190px;overflow:auto;padding:12px;border-radius:8px;
     background:#fff;border:1px solid var(--hair);font-size:10.5px;line-height:1.55;
     font-family:ui-monospace,SFMono-Regular,Menlo,monospace;color:#3c3b36;white-space:pre;tab-size:2}
   .copy{position:absolute;top:8px;right:8px;border:1px solid var(--hair);background:rgba(255,255,255,.92);
@@ -102,7 +108,15 @@
   <main class="stage">
     <div class="orb drift" id="orb">
       <div class="glow" id="glow"></div>
-      <div class="body"><div class="paint" id="paint"></div></div>
+      <div class="body" id="body">
+        <div class="mesh" id="mesh">
+          <div class="blob" id="b1"></div>
+          <div class="blob" id="b2"></div>
+          <div class="blob" id="b3"></div>
+          <div class="blob" id="b4"></div>
+        </div>
+        <div class="shade" id="shade"></div>
+      </div>
       <div class="grain" id="grain"></div>
     </div>
   </main>
@@ -121,19 +135,20 @@
       <p class="secH">Light</p>
       <div class="row"><label for="lx">Light X</label><input type="range" id="lx" min="10" max="90" value="34"><output id="lxo">34</output></div>
       <div class="row"><label for="ly">Light Y</label><input type="range" id="ly" min="10" max="90" value="24"><output id="lyo">24</output></div>
+      <div class="row"><label for="depth">Depth</label><input type="range" id="depth" min="0" max="100" value="55"><output id="deptho">55</output></div>
       <div class="row"><label for="glowA">Atmosphere</label><input type="range" id="glowA" min="0" max="60" value="28"><output id="glowAo">28</output></div>
     </div>
 
     <div class="sec">
       <p class="secH">Surface</p>
-      <div class="row"><label for="blur">Blur</label><input type="range" id="blur" min="0" max="44" value="18"><output id="blurO">18</output></div>
+      <div class="row"><label for="blur">Mesh blur</label><input type="range" id="blur" min="6" max="70" value="34"><output id="blurO">34</output></div>
+      <div class="row"><label for="edge">Edge</label><input type="range" id="edge" min="0" max="100" value="88"><output id="edgeO">88</output></div>
       <div class="row"><label for="blend">Blend mode</label>
         <select id="blend" aria-label="Blend mode">
-          <option value="normal" selected>normal</option>
-          <option value="screen">screen</option>
+          <option value="screen" selected>screen</option>
+          <option value="normal">normal</option>
           <option value="overlay">overlay</option>
           <option value="soft-light">soft-light</option>
-          <option value="multiply">multiply</option>
           <option value="hard-light">hard-light</option>
         </select></div>
       <div class="row">
@@ -160,8 +175,9 @@
 (function(){
   "use strict";
   var $=function(id){return document.getElementById(id);};
-  var els={c1:$("c1"),c2:$("c2"),c3:$("c3"),lx:$("lx"),ly:$("ly"),glowA:$("glowA"),
-    blur:$("blur"),blend:$("blend"),grainOn:$("grainOn"),driftOn:$("driftOn")};
+  var els={c1:$("c1"),c2:$("c2"),c3:$("c3"),lx:$("lx"),ly:$("ly"),depth:$("depth"),
+    glowA:$("glowA"),blur:$("blur"),edge:$("edge"),blend:$("blend"),
+    grainOn:$("grainOn"),driftOn:$("driftOn")};
 
   /* ---- colour helpers ---- */
   function hexToHsl(hex){
@@ -171,7 +187,7 @@
       h=mx===r?((g-b)/d+(g<b?6:0)):mx===g?((b-r)/d+2):((r-g)/d+4);h*=60;}
     return{h:h,s:s*100,l:l*100};
   }
-  function hsl(h,s,l,a){h=((h%360)+360)%360;
+  function hsl(h,s,l,a){h=((h%360)+360)%360;s=Math.max(0,Math.min(100,s));l=Math.max(0,Math.min(100,l));
     return a===undefined?"hsl("+h.toFixed(0)+" "+s.toFixed(0)+"% "+l.toFixed(0)+"%)"
       :"hsl("+h.toFixed(0)+" "+s.toFixed(0)+"% "+l.toFixed(0)+"% / "+a+")";}
   function hslToHex(h,s,l){h=((h%360)+360)%360;s/=100;l/=100;
@@ -180,85 +196,128 @@
       return Math.round(v*255).toString(16).padStart(2,"0");};
     return "#"+f(0)+f(8)+f(4);
   }
+  function midHue(a,b){var d=((b-a+540)%360)-180;return a+d/2;} /* shorter arc — the anti-mud bridge */
 
-  /* ---- the field: light lives IN the gradient (no rims, no strokes).
-     A near-white highlight sits at the light point; the deepest colour pools
-     opposite it; the two remaining hues sweep between. Everything is one
-     painter with stacked radial-gradients, blurred and soft-masked. ---- */
-  function buildLayers(v){
+  /* ---- blob scatter: reshaped only by Randomize, so sliders stay predictable ---- */
+  var scatter={b2x:72,b2y:38,b2w:64,b2h:58, b3x:76,b3y:78,b3w:76,b3h:68, b4x:36,b4y:70,b4w:52,b4h:46};
+
+  function state(){
+    return{c1:els.c1.value,c2:els.c2.value,c3:els.c3.value,
+      lx:+els.lx.value,ly:+els.ly.value,depth:+els.depth.value/100,
+      glowA:+els.glowA.value,blur:+els.blur.value,edge:+els.edge.value,
+      blend:els.blend.value,grain:els.grainOn.checked,drift:els.driftOn.checked};
+  }
+
+  /* ---- build: every string here is EXACTLY what the export prints ---- */
+  function build(v){
     var A=hexToHsl(v.c1),B=hexToHsl(v.c2),C=hexToHsl(v.c3);
-    var ox=100-v.lx, oy=100-v.ly;                 // shade point: opposite the light
-    var mx=(v.lx+ox)/2, my=Math.min(92,(v.ly+oy)/2+14);
-    return [
-      "radial-gradient(46% 40% at "+v.lx+"% "+v.ly+"%, "+hsl(A.h,Math.min(95,A.s),94)+", transparent 58%)",
-      "radial-gradient(60% 55% at "+v.lx+"% "+Math.min(92,v.ly+14)+"%, "+hsl(A.h,A.s,Math.min(78,A.l+12))+", transparent 66%)",
-      "radial-gradient(70% 64% at "+mx+"% "+my+"%, "+hsl(B.h,B.s,B.l)+", transparent 72%)",
-      "radial-gradient(80% 74% at "+ox+"% "+oy+"%, "+hsl(C.h,C.s,Math.max(16,C.l-18))+", transparent 74%)",
-      "radial-gradient(130% 130% at 50% 46%, "+hsl(A.h,A.s,A.l)+", "+hsl(C.h,Math.min(92,C.s+6),Math.max(12,C.l-26))+" 96%)"
-    ];
+    var mh=midHue(B.h,C.h);
+    var ux=(v.lx-50)/50, uy=(v.ly-50)/50;              /* unit vector toward the light */
+    var d=v.depth;
+    var maskStop=(62+v.edge*0.375).toFixed(1);          /* edge 0..100 -> 62%..99.5% */
+    return {
+      base:"radial-gradient(140% 140% at "+v.lx+"% "+Math.min(92,v.ly+10)+"% in oklch, "
+        +hsl(A.h,A.s,Math.min(70,A.l+6))+", "+hsl(C.h,Math.min(95,C.s+8),Math.max(10,C.l-28))+" 97%)",
+      mask:"radial-gradient(closest-side,#000 "+maskStop+"%,transparent 100%)",
+      blobs:[
+        /* b1: the light's bloom — near-white of colour one, riding the light point */
+        {x:v.lx,y:v.ly,w:58,h:50,css:"radial-gradient(closest-side in oklch, "+hsl(A.h,Math.min(92,A.s),93)+", transparent 68%)",blend:"screen"},
+        /* b2: colour two, off-centre */
+        {x:scatter.b2x,y:scatter.b2y,w:scatter.b2w,h:scatter.b2h,
+         css:"radial-gradient(closest-side in oklch, "+hsl(B.h,B.s,B.l)+", transparent 72%)",blend:v.blend},
+        /* b3: colour three deep, pooling away from the light */
+        {x:scatter.b3x,y:scatter.b3y,w:scatter.b3w,h:scatter.b3h,
+         css:"radial-gradient(closest-side in oklch, "+hsl(C.h,C.s,Math.max(18,C.l-12))+", transparent 74%)",blend:"normal"},
+        /* b4: the bridge — midpoint hue so B and C never meet through grey */
+        {x:scatter.b4x,y:scatter.b4y,w:scatter.b4w,h:scatter.b4h,
+         css:"radial-gradient(closest-side in oklch, "+hsl(mh,(B.s+C.s)/2,(B.l+C.l)/2,0.85)+", transparent 70%)",blend:v.blend}
+      ],
+      meshFilter:"blur("+v.blur+"px) saturate(1.25)",
+      /* the volume, in calc(var(--R)) so it scales with any orb size:
+         dark terminator = hue-shifted deep (never black), offset ~20% R blur ~30% R,
+         on the side away from the light; warm specular hugs the light side;
+         quiet ambient falloff all round. */
+      shade:[
+        "inset calc(var(--R)*"+(ux*0.20).toFixed(3)+") calc(var(--R)*"+(uy*0.20).toFixed(3)
+          +") calc(var(--R)*0.30) 0 "+hsl(C.h,60,14,(0.62*d).toFixed(2)),
+        "inset calc(var(--R)*"+(-ux*0.13).toFixed(3)+") calc(var(--R)*"+(-uy*0.13).toFixed(3)
+          +") calc(var(--R)*0.22) 0 "+hsl(A.h,55,94,(0.50*d).toFixed(2)),
+        "inset 0 0 calc(var(--R)*0.32) 0 "+hsl(C.h,50,16,(0.22*d).toFixed(2))
+      ].join(",\n    "),
+      glow:"radial-gradient(46% 46% at 50% 44%, "+hsl(A.h,A.s,58,(v.glowA/100).toFixed(2))
+        +", transparent 70%),\n    radial-gradient(52% 52% at 50% 62%, "
+        +hsl(B.h,B.s,52,(v.glowA/140).toFixed(2))+", transparent 72%)"
+    };
   }
 
   function apply(){
-    var v={c1:els.c1.value,c2:els.c2.value,c3:els.c3.value,
-      lx:+els.lx.value,ly:+els.ly.value,glowA:+els.glowA.value,
-      blur:+els.blur.value,blend:els.blend.value};
-    var layers=buildLayers(v);
-    var paint=$("paint");
-    paint.style.background=layers.join(",");
-    paint.style.backgroundBlendMode=v.blend+","+v.blend+","+v.blend+","+v.blend+",normal";
-    paint.style.filter="blur("+v.blur+"px) saturate(1.1)";
-    var A=hexToHsl(v.c1);
-    $("glow").style.background=
-      "radial-gradient(50% 50% at 50% 54%, "+hsl(A.h,A.s,55,(v.glowA/100).toFixed(2))+", transparent 70%)";
-    $("grain").style.display=els.grainOn.checked?"":"none";
-    $("orb").classList.toggle("drift",els.driftOn.checked);
-    writeCode(v,layers);
+    var v=state(), o=build(v);
+    $("body").style.background=o.base;
+    $("body").style.webkitMaskImage=o.mask;
+    $("body").style.maskImage=o.mask;
+    var ids=["b1","b2","b3","b4"];
+    o.blobs.forEach(function(b,i){var el=$(ids[i]);
+      el.style.left=(b.x-b.w/2)+"%"; el.style.top=(b.y-b.h/2)+"%";
+      el.style.width=b.w+"%"; el.style.height=b.h+"%";
+      el.style.background=b.css; el.style.mixBlendMode=b.blend;});
+    $("mesh").style.filter=o.meshFilter;
+    $("shade").style.boxShadow=o.shade.replace(/\n\s*/g,"");
+    $("glow").style.background=o.glow.replace(/\n\s*/g,"");
+    $("grain").style.display=v.grain?"":"none";
+    $("orb").classList.toggle("drift",v.drift);
+    writeCode(v,o);
   }
   function syncOutputs(){
-    $("lxo").textContent=els.lx.value; $("lyo").textContent=els.ly.value;
-    $("glowAo").textContent=els.glowA.value; $("blurO").textContent=els.blur.value;
+    ["lx","ly","depth","glowA","blur","edge"].forEach(function(k){
+      var o=$(k+"o")||$(k+"O");if(o)o.textContent=els[k].value;});
   }
 
-  function writeCode(v,layers){
-    var A=hexToHsl(v.c1);
-    var css=[
-"/* Gradient Lab — ambient orb */",
-"/* wrapper: any square element */",
-".orb{position:relative;aspect-ratio:1}",
-".orb::after{ /* atmosphere */",
-"  content:\"\";position:absolute;inset:-10%;border-radius:50%;z-index:-1;",
-"  background:radial-gradient(50% 50% at 50% 54%,",
-"    "+hsl(A.h,A.s,55,(v.glowA/100).toFixed(2))+", transparent 70%);",
-"  filter:blur(24px);",
+  function writeCode(v,o){
+    var lines=[
+"/* Gradient Lab — ambient orb (set --R to half your orb's width) */",
+".orb{position:relative;aspect-ratio:1;--R:215px}",
+".orb .glow{",
+"  position:absolute;inset:-14%;border-radius:50%;filter:blur(26px);",
+"  background:",
+"    "+o.glow+";",
 "}",
 ".orb .body{",
 "  position:absolute;inset:0;border-radius:50%;overflow:hidden;",
-"  -webkit-mask-image:radial-gradient(closest-side,#000 84%,transparent 100%);",
-"  mask-image:radial-gradient(closest-side,#000 84%,transparent 100%);",
+"  background:"+o.base+";",
+"  -webkit-mask-image:"+o.mask+";",
+"  mask-image:"+o.mask+";",
 "}",
-".orb .paint{",
-"  position:absolute;inset:-30%;",
-"  background:",
-"    "+layers.join(",\n    ")+";",
-"  background-blend-mode:"+v.blend+","+v.blend+","+v.blend+","+v.blend+",normal;",
-"  filter:blur("+v.blur+"px) saturate(1.1);",
-"}"];
-    if(els.driftOn.checked) css=css.concat([
+".orb .mesh{position:absolute;inset:-22%;filter:"+o.meshFilter+"}",
+".orb .mesh .blob{position:absolute;border-radius:50%}"];
+    o.blobs.forEach(function(b,i){
+      lines.push(".orb .mesh .b"+(i+1)+"{",
+"  left:"+(b.x-b.w/2)+"%;top:"+(b.y-b.h/2)+"%;width:"+b.w+"%;height:"+b.h+"%;",
+"  background:"+b.css+";",
+"  mix-blend-mode:"+b.blend+";","}");
+    });
+    lines.push(
+".orb .shade{",
+"  position:absolute;inset:0;border-radius:50%;pointer-events:none;",
+"  box-shadow:",
+"    "+o.shade+";",
+"}",
+"/* markup: .orb > .glow + .body(> .mesh(> .b1-.b4) + .shade) */");
+    if(v.drift)lines.push(
 "@keyframes orbDrift{",
 "  0%{transform:translate(-2.5%,-2%) rotate(0deg) scale(1)}",
 "  100%{transform:translate(2.5%,2.5%) rotate(6deg) scale(1.045)}",
 "}",
-".orb .paint{animation:orbDrift 18s ease-in-out infinite alternate}",
-"@media(prefers-reduced-motion:reduce){.orb .paint{animation:none}}"]);
-    $("code").textContent=css.join("\n");
+".orb .mesh{animation:orbDrift 18s ease-in-out infinite alternate}",
+"@media(prefers-reduced-motion:reduce){.orb .mesh{animation:none}}");
+    $("code").textContent=lines.join("\n");
   }
 
-  /* ---- randomize: harmonious ambient palettes ---- */
+  /* ---- randomize: palette AND mesh composition ---- */
   function rnd(a,b){return a+Math.random()*(b-a);}
   var SCHEMES=[
-    function(h){return[h, h+rnd(18,40), h+rnd(150,210)];},          // analogous + counterpoint
-    function(h){return[h, h+rnd(-30,-14), h+rnd(35,70)];},          // warm sweep
-    function(h){return[h, h+rnd(120,140), h+rnd(-40,-20)];}         // triadic-ish
+    function(h){return[h, h+rnd(18,40), h+rnd(150,210)];},
+    function(h){return[h, h+rnd(-30,-14), h+rnd(35,70)];},
+    function(h){return[h, h+rnd(120,140), h+rnd(-40,-20)];}
   ];
   function randomize(){
     var h=rnd(0,360), pick=SCHEMES[Math.floor(Math.random()*SCHEMES.length)](h);
@@ -266,6 +325,10 @@
     els.c2.value=hslToHex(pick[1],rnd(70,95),rnd(46,60));
     els.c3.value=hslToHex(pick[2],rnd(60,90),rnd(30,48));
     els.lx.value=Math.round(rnd(22,45)); els.ly.value=Math.round(rnd(16,38));
+    scatter={
+      b2x:rnd(58,84),b2y:rnd(26,48),b2w:rnd(52,72),b2h:rnd(46,66),
+      b3x:rnd(64,86),b3y:rnd(64,86),b3w:rnd(62,86),b3h:rnd(56,76),
+      b4x:rnd(28,48),b4y:rnd(58,80),b4w:rnd(42,60),b4h:rnd(38,54)};
     syncOutputs(); apply();
   }
 
@@ -274,20 +337,26 @@
     var txt=$("code").textContent,btn=this;
     function ok(){btn.textContent="Copied ✓";btn.classList.add("ok");
       setTimeout(function(){btn.textContent="Copy";btn.classList.remove("ok");},1400);}
-    if(navigator.clipboard&&navigator.clipboard.writeText){
-      navigator.clipboard.writeText(txt).then(ok,fallback);
-    }else fallback();
     function fallback(){var ta=document.createElement("textarea");ta.value=txt;
       document.body.appendChild(ta);ta.select();
       try{document.execCommand("copy");ok();}catch(e){}
       document.body.removeChild(ta);}
+    if(navigator.clipboard&&navigator.clipboard.writeText){
+      navigator.clipboard.writeText(txt).then(ok,fallback);
+    }else fallback();
   });
 
   Object.keys(els).forEach(function(k){
     els[k].addEventListener("input",function(){syncOutputs();apply();});
   });
   $("rnd").addEventListener("click",randomize);
-  syncOutputs(); apply();
+
+  /* keep --R honest with the rendered size */
+  function sizeR(){var w=$("orb").getBoundingClientRect().width;
+    $("orb").style.setProperty("--R",(w/2).toFixed(0)+"px");}
+  addEventListener("resize",sizeR);
+
+  sizeR(); syncOutputs(); apply();
 })();
 </script>
 </body>
