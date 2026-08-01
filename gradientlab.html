@@ -39,14 +39,23 @@
                mostly outside the clip shows only its inner arc. */
   .stage{display:flex;align-items:center;justify-content:center;min-height:72vh;padding:80px 30px 40px}
   .orb{position:relative;width:min(430px,78vw);aspect-ratio:1;--R:215px}
-  .orb .halo{position:absolute;inset:-26%;border-radius:50%;
-    filter:blur(calc(var(--R)*0.37));pointer-events:none}
+  /* halo splits into two nodes: blend on the wrapper, blur on the child —
+     Safari renders filter + mix-blend-mode on the SAME element unmixed. Multiply
+     on near-white paper: white x colour = colour, so the halo stays saturated
+     instead of going milky. */
+  .orb .haloWrap{position:absolute;inset:-26%;pointer-events:none;mix-blend-mode:multiply}
+  .orb .halo{position:absolute;inset:0;border-radius:50%;
+    filter:blur(calc(var(--R)*0.37))}
   .orb .disc{position:absolute;inset:0;border-radius:50%;overflow:hidden;
     isolation:isolate;transform:translateZ(0)}
+  /* the volume overlay: inset shadows on the CONTAINER paint under its children,
+     so the terminator + rim light live on an ::after above the mesh */
+  .orb .disc::after{content:"";position:absolute;inset:0;border-radius:50%;
+    pointer-events:none;z-index:2;box-shadow:var(--volSh,none)}
   .orb .meshIn{position:absolute;inset:-22%}
   .orb.drift .meshIn{animation:orbDrift 20s ease-in-out infinite alternate}
   .orb .blob{position:absolute;border-radius:50%}
-  .orb .grain{position:absolute;inset:0;pointer-events:none;opacity:.12;
+  .orb .grain{position:absolute;inset:0;pointer-events:none;opacity:.12;z-index:3;
     background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
     background-size:140px 140px;filter:contrast(170%) brightness(1000%);mix-blend-mode:multiply}
   @keyframes orbDrift{
@@ -109,7 +118,7 @@
 <div class="lab">
   <main class="stage">
     <div class="orb drift" id="orb">
-      <div class="halo" id="halo"></div>
+      <div class="haloWrap"><div class="halo" id="halo"></div></div>
       <div class="disc">
         <div class="meshIn" id="meshIn">
           <div class="blob" id="bBase"></div>
@@ -142,7 +151,8 @@
 
     <div class="sec">
       <p class="secH">Surface</p>
-      <div class="row"><label for="blur">Melt</label><input type="range" id="blur" min="8" max="60" value="26"><output id="blurO">26</output></div>
+      <div class="row"><label for="blur">Melt</label><input type="range" id="blur" min="8" max="60" value="20"><output id="blurO">20</output></div>
+      <div class="row"><label for="vol">Volume</label><input type="range" id="vol" min="0" max="100" value="55"><output id="volO">55</output></div>
       <div class="row"><label for="edge">Feather</label><input type="range" id="edge" min="0" max="100" value="22"><output id="edgeO">22</output></div>
       <div class="row"><label for="blend">Blend mode</label>
         <select id="blend" aria-label="Blend mode">
@@ -177,7 +187,7 @@
   "use strict";
   var $=function(id){return document.getElementById(id);};
   var els={c1:$("c1"),c2:$("c2"),c3:$("c3"),lx:$("lx"),ly:$("ly"),depth:$("depth"),
-    glowA:$("glowA"),blur:$("blur"),edge:$("edge"),blend:$("blend"),
+    glowA:$("glowA"),blur:$("blur"),vol:$("vol"),edge:$("edge"),blend:$("blend"),
     grainOn:$("grainOn"),driftOn:$("driftOn")};
 
   function hexToHsl(hex){
@@ -206,7 +216,8 @@
   function state(){
     return{c1:els.c1.value,c2:els.c2.value,c3:els.c3.value,
       lx:+els.lx.value,ly:+els.ly.value,core:+els.depth.value/100,
-      halo:+els.glowA.value/100,blur:+els.blur.value,feather:+els.edge.value,
+      halo:+els.glowA.value/100,blur:+els.blur.value,vol:+els.vol.value/100,
+      feather:+els.edge.value,
       blend:els.blend.value,grain:els.grainOn.checked,drift:els.driftOn.checked};
   }
 
@@ -216,23 +227,34 @@
        (in the meshIn's overscanned coordinate space, disc centre = 50/50) */
     var crX=50+Math.cos(scatter.crA*Math.PI/180)*40;
     var crY=50+Math.sin(scatter.crA*Math.PI/180)*40;
-    var blurCss="blur("+v.blur+"px)";
+    /* blur FIRST, saturate SECOND: filters compose in order, so saturate revives
+       the already-blurred (washed) pixels — the sourced aurora recipe. */
+    var blurCss="blur("+v.blur+"px) saturate(1.4)";
     var feather=(v.feather*0.06).toFixed(1);   /* 0..100 -> 0..6% mask feather */
+    var ux=(v.lx-50)/50, uy=(v.ly-50)/50;      /* unit vector toward the light */
+    /* the volume overlay: dark terminator opposite the light in a rich deep of
+       colour three (never black), warm rim light hugging the light side */
+    var volSh=[
+      "inset calc(var(--R)*"+(ux*0.12).toFixed(3)+") calc(var(--R)*"+(uy*0.12).toFixed(3)
+        +") calc(var(--R)*0.19) 0 "+hsl(C.h,75,14,(0.5*v.vol).toFixed(2)),
+      "inset calc(var(--R)*"+(-ux*0.08).toFixed(3)+") calc(var(--R)*"+(-uy*0.08).toFixed(3)
+        +") calc(var(--R)*0.13) 0 "+hsl(A.h,50,96,(0.55*v.vol).toFixed(2))
+    ].join(",\n    ");
     var blobs=[
       {id:"bBase",x:50,y:47,w:104,h:104,rot:0,blend:"normal",
        css:"radial-gradient(closest-side at "+v.lx+"% "+v.ly+"%, "
          +hsl(A.h,Math.min(70,A.s),Math.min(92,A.l+16))+", "
          +hsl(A.h,A.s,A.l)+" 55%, "+hsl(B.h,Math.max(30,B.s-14),Math.min(74,B.l+14))+" 100%)"},
       {id:"bSwoop",x:scatter.swX,y:scatter.swY,w:scatter.swW,h:scatter.swH,rot:scatter.swRot,blend:v.blend,
-       css:"radial-gradient(closest-side, "+hsl(B.h,Math.min(92,B.s+8),Math.max(26,B.l-14))
-         +", transparent 78%)"},
+       css:"radial-gradient(closest-side, "+hsl(B.h,Math.min(96,B.s+14),Math.max(26,B.l-14))
+         +", transparent 68%)"},
       {id:"bCrescent",x:crX,y:crY,w:scatter.crW,h:scatter.crH,rot:0,blend:v.blend,
-       css:"radial-gradient(closest-side, "+hsl(C.h,C.s,C.l)+", transparent 74%)"},
+       css:"radial-gradient(closest-side, "+hsl(C.h,Math.min(96,C.s+12),C.l)+", transparent 66%)"},
       {id:"bCore",x:v.lx,y:v.ly,w:(24+v.core*20).toFixed(0),h:(22+v.core*18).toFixed(0),rot:0,blend:"normal",
        css:"radial-gradient(closest-side, "+hsl(A.h,25,98,(0.6+v.core*0.35).toFixed(2))
          +", "+hsl(A.h,55,90,0.3)+" 48%, transparent 76%)"}
     ];
-    return{blobs:blobs,blurCss:blurCss,
+    return{blobs:blobs,blurCss:blurCss,volSh:volSh,
       discMask:v.feather>0
         ?"radial-gradient(closest-side,#000 "+(100-feather)+"%,transparent 100%)":"",
       halo:"radial-gradient(42% 42% at 32% 26%, "+hsl(A.h,A.s,70,(0.9*v.halo).toFixed(2))+", transparent 70%),\n"
@@ -254,23 +276,27 @@
     $("halo").style.background=o.halo.replace(/\n\s*/g,"");
     var disc=document.querySelector(".disc");
     disc.style.webkitMaskImage=o.discMask;disc.style.maskImage=o.discMask;
+    disc.style.setProperty("--volSh",o.volSh.replace(/\n\s*/g,""));
     $("grain").style.display=v.grain?"":"none";
     $("orb").classList.toggle("drift",v.drift);
     writeCode(v,o);
   }
   function syncOutputs(){
-    ["lx","ly","depth","glowA","blur","edge"].forEach(function(k){
+    ["lx","ly","depth","glowA","blur","vol","edge"].forEach(function(k){
       var o=$(k+"o")||$(k+"O");if(o)o.textContent=els[k].value;});
   }
 
   function writeCode(v,o){
     var lines=[
 "/* Gradient Lab — ethereal orb, 3-layer anatomy (set --R to half the orb width) */",
-"/* markup: .orb > .halo + .disc > .meshIn(.bBase,.bSwoop,.bCrescent,.bCore) + .grain */",
+"/* markup: .orb > .haloWrap(.halo) + .disc > .meshIn(.bBase,.bSwoop,.bCrescent,.bCore) + .grain */",
 ".orb{position:relative;aspect-ratio:1;--R:215px}",
-"/* L1 — atmosphere: the only layer that bleeds onto the page */",
+"/* L1 — atmosphere: the only layer that bleeds onto the page. Blend rides the",
+"   WRAPPER, blur rides the child — Safari renders them unmixed on one element.",
+"   Multiply keeps the halo saturated on light paper (white x colour = colour). */",
+".orb .haloWrap{position:absolute;inset:-26%;pointer-events:none;mix-blend-mode:multiply}",
 ".orb .halo{",
-"  position:absolute;inset:-26%;border-radius:50%;pointer-events:none;",
+"  position:absolute;inset:0;border-radius:50%;",
 "  filter:blur(calc(var(--R)*0.37));",
 "  background:",
 "    "+o.halo+";",
@@ -281,6 +307,13 @@
 "  position:absolute;inset:0;border-radius:50%;overflow:hidden;",
 "  isolation:isolate;transform:translateZ(0);"
   +(o.discMask?"\n  -webkit-mask-image:"+o.discMask+";\n  mask-image:"+o.discMask+";":""),
+"}",
+"/* the volume: dark terminator + warm rim light. Inset shadows on the container",
+"   paint UNDER children, so they ride an ::after above the mesh. */",
+".orb .disc::after{",
+"  content:\"\";position:absolute;inset:0;border-radius:50%;pointer-events:none;z-index:2;",
+"  box-shadow:",
+"    "+o.volSh+";",
 "}",
 "/* L3 — the mesh: overscanned so full colour density reaches the clip line */",
 ".orb .meshIn{position:absolute;inset:-22%}",
@@ -295,7 +328,7 @@
     });
     if(v.grain)lines.push(
 ".orb .grain{",
-"  position:absolute;inset:0;pointer-events:none;opacity:.12;",
+"  position:absolute;inset:0;pointer-events:none;opacity:.12;z-index:3;",
 "  background:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\");",
 "  background-size:140px 140px;filter:contrast(170%) brightness(1000%);mix-blend-mode:multiply;",
 "}");
