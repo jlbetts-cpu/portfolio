@@ -182,6 +182,7 @@
       <div class="row"><label for="contour">Contour</label><input type="range" id="contour" min="0" max="100" value="18"><output id="contourO">18</output></div>
       <div class="row"><label for="tension">Tension</label><input type="range" id="tension" min="0" max="100" value="40"><output id="tensionO">40</output></div>
       <div class="row"><label for="rim">Rim</label><input type="range" id="rim" min="0" max="100" value="35"><output id="rimO">35</output></div>
+      <div class="row"><label for="layer">Layer</label><input type="range" id="layer" min="0" max="100" value="55"><output id="layerO">55</output></div>
       <div class="row" id="bendRow" style="display:none"><label for="bend" id="bendLbl">Bend</label><input type="range" id="bend" min="0" max="100" value="40"><output id="bendO">40</output></div>
       <div class="row" id="foldRow" style="display:none"><label for="foldA">Fold</label><input type="range" id="foldA" min="0" max="100" value="55"><output id="foldAO">55</output></div>
       <div class="row" id="sheenRow" style="display:none"><label for="foldSh">Sheen</label><input type="range" id="foldSh" min="0" max="100" value="45"><output id="foldShO">45</output></div>
@@ -251,7 +252,7 @@ function FluidMesh(canvas,cfg){
 "precision highp float;\n"+
 "uniform vec2 uRes;uniform float uTime;\n"+
 "uniform float uMelt,uSweep,uGlow,uGrain,uFringe,uExpo,uOrb,uWob,uFeath,uGlass;\n"+
-"uniform float uForm,uBend,uFoldA,uFoldSh,uContour,uDpr,uTension,uRim;\n"+
+"uniform float uForm,uBend,uFoldA,uFoldSh,uContour,uDpr,uTension,uRim,uLayer;\n"+
 "uniform vec2 uLight;uniform vec3 uCol[5];\n"+
 "uniform vec2 uPos[5];uniform float uSize[5];uniform float uLen[5];uniform float uAng[5];\n"+
 "float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}\n"+
@@ -318,6 +319,10 @@ function FluidMesh(canvas,cfg){
 "    colours. Chord distance, never acos (derivative blows up at the limb). */\n"+
 " float soft=mix(.06,.24,uMelt);\n"+
 " vec3 acc=srgb2ok(uCol[0])*6e-4;float tot=6e-4;\n"+
+" /* LAYERED pass: the references are stacked airbrush passes with occlusion\n"+
+"    order — each mass keeps ITS OWN edge through an intersection instead of\n"+
+"    mutually averaging into smudge. Node 5 paints last, on top. */\n"+
+" vec3 colL=srgb2ok(uCol[0]);\n"+
 " float w1=0.,w2=0.;\n"+
 " bool sph=uOrb>.5;\n"+
 " vec3 P=sph?sphPt((p-vec2(.5))*2.):vec3(0.);\n"+
@@ -373,10 +378,12 @@ function FluidMesh(canvas,cfg){
 "     while mass cores stay clean, the riso construction */\n"+
 "  d+=gT*sg*uGrain*1.4;\n"+
 "  float wt=exp(-(d*d)/(2.*sg*sg));\n"+
-"  acc+=srgb2ok(uCol[i])*wt;tot+=wt;\n"+
+"  vec3 okC=srgb2ok(uCol[i]);\n"+
+"  acc+=okC*wt;tot+=wt;\n"+
+"  colL=mix(colL,okC,clamp(wt*1.15,0.,1.));\n"+
 "  if(wt>w1){w2=w1;w1=wt;}else if(wt>w2){w2=wt;}\n"+
 " }\n"+
-" vec3 col=acc/tot;\n"+
+" vec3 col=mix(acc/tot,colL,clamp(uLayer,0.,1.));\n"+
 " /* the glass seam: where two colours BALANCE, luminance lifts — boundaries\n"+
 "    glow faintly brighter than either side, like dye layers in backlit glass */\n"+
 " float g=4.*w1*w2/((w1+w2)*(w1+w2)+1e-6);\n"+
@@ -477,14 +484,16 @@ function FluidMesh(canvas,cfg){
 " /* THE SPECULAR RIM: a bright warm arc INSIDE the silhouette facing the\n"+
 "    light, limb shading opposite — in-shader, so it fades with the feathered\n"+
 "    edge instead of drawing a ring over it */\n"+
+" float specG=0.;\n"+
 " if(uOrb>.5&&uRim>0.){\n"+
 "  float rr2=length(uv-.5)*2.;\n"+
-"  float limb=smoothstep(.70,.94,rr2)*(1.-smoothstep(.94,1.,rr2));\n"+
+"  float limb=smoothstep(.70,.94,rr2)*(1.-smoothstep(.97,1.05,rr2));\n"+
 "  vec2 rd2=normalize(uvA-vec2(.5)+vec2(1e-5));\n"+
 "  vec2 ld2=normalize(lp-vec2(.5)+vec2(1e-5));\n"+
 "  float face=dot(rd2,ld2);\n"+
 "  float spec=limb*smoothstep(.1,.9,face)*uRim;\n"+
 "  float shad=limb*smoothstep(.1,.9,-face)*uRim;\n"+
+"  specG=spec;\n"+
 "  float dR=spec*.32-shad*.20;\n"+
 "  okR.x+=dR;okG.x+=dR;okB.x+=dR;\n"+
 "  float cc=1.-.28*spec;\n"+
@@ -508,6 +517,8 @@ function FluidMesh(canvas,cfg){
 "  float rE=length((uv-.5)*2.);\n"+
 "  aF=1.-smoothstep(.985-uFeath*.30,.99,rE);\n"+
 " }\n"+
+" /* the specular escapes the silhouette: rim light wraps past the edge */\n"+
+" aF=max(aF,specG*.55);\n"+
 " gl_FragColor=vec4(rgb*aF,aF);\n"+
 "}";
   function makeRenderer(cv,fixed,alphaOn){
@@ -565,6 +576,7 @@ function FluidMesh(canvas,cfg){
       gl.uniform1f(u("uContour"),derivOK?(c.contour||0):0);
       gl.uniform1f(u("uDpr"),Math.min(window.devicePixelRatio||1,2.25));
       gl.uniform1f(u("uTension"),c.tension||0);gl.uniform1f(u("uRim"),c.rim||0);
+      gl.uniform1f(u("uLayer"),c.layer||0);
       gl.uniform2f(u("uLight"),c.light[0],1.-c.light[1]);
       for(var i=0;i<5;i++){
         var col=hex2rgb(c.colors[i]);
@@ -628,7 +640,7 @@ function FluidMesh(canvas,cfg){
   "use strict";
   var $=function(id){return document.getElementById(id);};
   var colorIds=["c1","c2","c3","c4","c5"];
-  var rangeIds=["flow","melt","wob","contour","tension","rim","bend","foldA","foldSh","edgeF","glass","sweep","expo","fringe","lx","ly","glow","haloA","vol","grain"];
+  var rangeIds=["flow","melt","wob","contour","tension","rim","layer","bend","foldA","foldSh","edgeF","glass","sweep","expo","fringe","lx","ly","glow","haloA","vol","grain"];
   var nodeRangeIds=["nx","ny","nsize","nlen","nang"];
   var els={};colorIds.concat(rangeIds).concat(nodeRangeIds).forEach(function(k){els[k]=$(k);});
   els.form=$("form");els.nodeSel=$("nodeSel");els.preset=$("preset");
@@ -720,7 +732,8 @@ function FluidMesh(canvas,cfg){
       foldA:+els.foldA.value/100, foldSh:+els.foldSh.value/100,
       wob:+els.wob.value/100, edgeF:+els.edgeF.value/100,
       glass:+els.glass.value/100, contour:+els.contour.value/100,
-      tension:+els.tension.value/100, rim:+els.rim.value/100
+      tension:+els.tension.value/100, rim:+els.rim.value/100,
+      layer:+els.layer.value/100
     };
   }
 
@@ -843,6 +856,7 @@ function FluidMesh(canvas,cfg){
     els.contour.value=(p.contour!==undefined)?p.contour:18;
     els.tension.value=(p.tension!==undefined)?p.tension:40;
     els.rim.value=(p.rim!==undefined)?p.rim:((p.form||0)===0?35:0);
+    els.layer.value=(p.layer!==undefined)?p.layer:55;
     ["lx","ly","glow","flow","melt","wob","bend","foldA","foldSh","edgeF","glass","sweep","expo","fringe","haloA","vol","grain"]
       .forEach(function(k){if(p[k]!==undefined)els[k].value=p[k];});
     loadNodeSliders();syncOutputs();apply();
