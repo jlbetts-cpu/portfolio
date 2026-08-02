@@ -152,6 +152,7 @@
       <p class="secH">Field</p>
       <div class="row"><label for="flow">Speed</label><input type="range" id="flow" min="0" max="100" value="40"><output id="flowO">40</output></div>
       <div class="row"><label for="melt">Melt</label><input type="range" id="melt" min="0" max="100" value="55"><output id="meltO">55</output></div>
+      <div class="row"><label for="wob">Wobble</label><input type="range" id="wob" min="0" max="100" value="10"><output id="wobO">10</output></div>
       <div class="row"><label for="sweep">Sweep</label><input type="range" id="sweep" min="0" max="100" value="45"><output id="sweepO">45</output></div>
       <div class="row"><label for="expo">Exposure</label><input type="range" id="expo" min="40" max="115" value="100"><output id="expoO">100</output></div>
       <div class="row"><label for="fringe">Fringe</label><input type="range" id="fringe" min="0" max="100" value="20"><output id="fringeO">20</output></div>
@@ -209,7 +210,7 @@ function FluidMesh(canvas,cfg){
   var FS=""+
 "precision highp float;\n"+
 "uniform vec2 uRes;uniform float uTime;\n"+
-"uniform float uMelt,uSweep,uGlow,uGrain,uFringe,uExpo,uOrb;\n"+
+"uniform float uMelt,uSweep,uGlow,uGrain,uFringe,uExpo,uOrb,uWob;\n"+
 "uniform vec2 uLight;uniform vec3 uCol[5];\n"+
 "uniform vec2 uPos[5];uniform float uSize[5];uniform float uLen[5];uniform float uAng[5];\n"+
 "float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}\n"+
@@ -237,8 +238,10 @@ function FluidMesh(canvas,cfg){
 "float sdSeg(vec2 p,vec2 a,vec2 b){vec2 pa=p-a,ba=b-a;\n"+
 " float h=clamp(dot(pa,ba)/max(dot(ba,ba),1e-6),0.,1.);return length(pa-ba*h);}\n"+
 "vec3 field(vec2 p,float aspect){\n"+
-" float expo=mix(2.3,1.35,uMelt);\n"+
-" vec3 acc=vec3(0.);float tot=0.;\n"+
+" /* GAUSSIAN mixture, not inverse-distance: a node's influence actually ENDS,\n"+
+"    so regions keep pure colour and only neighbours blend — the anti-muddle. */\n"+
+" float soft=mix(.06,.24,uMelt);\n"+
+" vec3 acc=srgb2ok(uCol[0])*6e-4;float tot=6e-4;\n"+
 " for(int i=0;i<5;i++){\n"+
 "  float fi=float(i);\n"+
 "  float sp=.35+.11*fi;\n"+
@@ -249,8 +252,9 @@ function FluidMesh(canvas,cfg){
 "  vec2 dirv=vec2(cos(an),sin(an))*uLen[i];\n"+
 "  vec2 a=c-dirv,b=c+dirv;\n"+
 "  a.x=(a.x-.5)*aspect+.5;b.x=(b.x-.5)*aspect+.5;\n"+
-"  float d=sdSeg(p,a,b)/max(uSize[i],.05);\n"+
-"  float wt=1./pow(d*d+.006,expo);\n"+
+"  float d=sdSeg(p,a,b);\n"+
+"  float sg=max(uSize[i],.05)*soft;\n"+
+"  float wt=exp(-(d*d)/(2.*sg*sg));\n"+
 "  acc+=srgb2ok(uCol[i])*wt;tot+=wt;\n"+
 " }\n"+
 " return acc/tot;\n"+
@@ -261,7 +265,8 @@ function FluidMesh(canvas,cfg){
 " vec2 uvA=vec2((uv.x-.5)*aspect+.5,uv.y);\n"+
 " vec2 q=uvA*1.35;\n"+
 " vec2 w=vec2(fbm(q+uTime*.14),fbm(q+vec2(4.7,2.1)-uTime*.11));\n"+
-" vec2 p=uvA+(w-.5)*uMelt*.38;\n"+
+" /* wobble decoupled from softness: the references' boundaries are CALM */\n"+
+" vec2 p=uvA+(w-.5)*uWob*.38;\n"+
 " /* chromatic fringe: sample the field per-channel along the radial direction,\n"+
 "    zero at centre, max at the limb (planet mode only) */\n"+
 " float rr=length(uv-.5);\n"+
@@ -322,7 +327,7 @@ function FluidMesh(canvas,cfg){
       gl.uniform1f(u("uMelt"),c.melt);gl.uniform1f(u("uSweep"),c.sweep);
       gl.uniform1f(u("uGlow"),c.glow);gl.uniform1f(u("uGrain"),c.grain);
       gl.uniform1f(u("uFringe"),c.fringe);gl.uniform1f(u("uExpo"),c.expo);
-      gl.uniform1f(u("uOrb"),c.orb);
+      gl.uniform1f(u("uOrb"),c.orb);gl.uniform1f(u("uWob"),c.wob||0);
       gl.uniform2f(u("uLight"),c.light[0],1.-c.light[1]);
       for(var i=0;i<5;i++){
         var col=hex2rgb(c.colors[i]);
@@ -372,7 +377,7 @@ function FluidMesh(canvas,cfg){
   "use strict";
   var $=function(id){return document.getElementById(id);};
   var colorIds=["c1","c2","c3","c4","c5"];
-  var rangeIds=["flow","melt","sweep","expo","fringe","lx","ly","glow","haloA","vol","grain"];
+  var rangeIds=["flow","melt","wob","sweep","expo","fringe","lx","ly","glow","haloA","vol","grain"];
   var nodeRangeIds=["nx","ny","nsize","nlen","nang"];
   var els={};colorIds.concat(rangeIds).concat(nodeRangeIds).forEach(function(k){els[k]=$(k);});
   els.orbMode=$("orbMode");els.nodeSel=$("nodeSel");els.preset=$("preset");
@@ -387,27 +392,27 @@ function FluidMesh(canvas,cfg){
     {name:"ULR — Glacier",
      colors:["#eaf5f0","#93c7e8","#4a77d4","#2c4f9e","#f2c4d8"],
      nodes:[N(.52,.20,1.15,0,0),N(.30,.44,1,.10,-25),N(.38,.66,.85,.30,-33),N(.72,.60,.8,.14,-30),N(.84,.30,.45,0,0)],
-     lx:50,ly:16,glow:48, flow:38,melt:52,sweep:30,expo:102,fringe:46, haloA:52,vol:32,grain:14},
+     lx:50,ly:16,glow:48, flow:38,melt:52,wob:8,sweep:30,expo:102,fringe:46, haloA:52,vol:32,grain:14},
     {name:"Thoby — Deep Teal",
      colors:["#12333a","#0c2027","#1d4a42","#37826a","#e8994a"],
      nodes:[N(.44,.40,1.3,.1,20),N(.30,.72,1.1,.16,35),N(.62,.30,.9,.18,55),N(.78,.62,.55,.22,70),N(.86,.42,.30,.18,75)],
-     lx:32,ly:24,glow:22, flow:36,melt:44,sweep:26,expo:66,fringe:78, haloA:38,vol:52,grain:18},
+     lx:32,ly:24,glow:22, flow:36,melt:44,wob:12,sweep:26,expo:66,fringe:78, haloA:26,vol:52,grain:18},
     {name:"Ember",
      colors:["#f2a03d","#e2472e","#8a2d5f","#5f2dc2","#ffd9a0"],
      nodes:[N(.55,.34,1.2,0,0),N(.60,.66,1.1,.12,10),N(.74,.80,.8,.1,25),N(.16,.44,.42,0,0),N(.40,.20,.8,.1,-20)],
-     lx:44,ly:22,glow:58, flow:40,melt:55,sweep:34,expo:96,fringe:26, haloA:56,vol:44,grain:12},
+     lx:44,ly:22,glow:58, flow:40,melt:55,wob:10,sweep:34,expo:96,fringe:26, haloA:56,vol:44,grain:12},
     {name:"Verdant",
      colors:["#dcecdc","#f0a83c","#3f9a6e","#8fd4b4","#e8703a"],
      nodes:[N(.42,.26,1.1,.1,-15),N(.52,.52,.9,.28,-32),N(.70,.80,.9,.2,-25),N(.24,.72,.7,.14,-40),N(.80,.40,.5,.12,-30)],
-     lx:40,ly:20,glow:44, flow:38,melt:50,sweep:30,expo:100,fringe:56, haloA:50,vol:36,grain:14},
+     lx:40,ly:20,glow:44, flow:38,melt:50,wob:12,sweep:30,expo:100,fringe:56, haloA:50,vol:36,grain:14},
     {name:"Harshaf — Lilac",
      colors:["#e0e3f5","#a8b2ec","#6072d8","#3947a8","#cdd4f2"],
      nodes:[N(.52,.30,1.2,0,0),N(.68,.56,1,.12,20),N(.34,.68,.95,.16,30),N(.24,.84,.7,.1,15),N(.76,.22,.7,0,0)],
-     lx:52,ly:22,glow:40, flow:34,melt:62,sweep:28,expo:100,fringe:18, haloA:48,vol:34,grain:12},
+     lx:52,ly:22,glow:40, flow:34,melt:62,wob:6,sweep:28,expo:100,fringe:18, haloA:48,vol:34,grain:12},
     {name:"Good & Evil",
      colors:["#e8d9b0","#e84a6f","#c23d3d","#241a12","#8a9a3f"],
      nodes:[N(.66,.22,1.1,.12,-20),N(.40,.62,1.05,.16,-25),N(.66,.74,.9,.14,-20),N(.38,.32,.85,.30,-33),N(.82,.52,.4,.12,-30)],
-     lx:70,ly:18,glow:44, flow:38,melt:48,sweep:28,expo:92,fringe:52, haloA:50,vol:48,grain:16}
+     lx:70,ly:18,glow:44, flow:38,melt:48,wob:10,sweep:28,expo:92,fringe:52, haloA:50,vol:48,grain:16}
   ];
 
   function hexToHsl(hex){
@@ -434,7 +439,8 @@ function FluidMesh(canvas,cfg){
       glow:+els.glow.value/100, melt:+els.melt.value/100,
       sweep:+els.sweep.value/100, flow:+els.flow.value/100,
       grain:+els.grain.value/100, fringe:+els.fringe.value/100,
-      expo:+els.expo.value/100, orb:els.orbMode.checked?1:0
+      expo:+els.expo.value/100, orb:els.orbMode.checked?1:0,
+      wob:+els.wob.value/100
     };
   }
 
@@ -501,7 +507,7 @@ function FluidMesh(canvas,cfg){
     loadingPreset=true;
     colorIds.forEach(function(id,j){els[id].value=p.colors[j];});
     nodes=p.nodes.map(function(nd){return{x:nd.x,y:nd.y,size:nd.size,len:nd.len,ang:nd.ang};});
-    ["lx","ly","glow","flow","melt","sweep","expo","fringe","haloA","vol","grain"]
+    ["lx","ly","glow","flow","melt","wob","sweep","expo","fringe","haloA","vol","grain"]
       .forEach(function(k){if(p[k]!==undefined)els[k].value=p[k];});
     loadNodeSliders();syncOutputs();apply();
     loadingPreset=false;
@@ -555,31 +561,56 @@ fallback,
     $("code").textContent=lines.join("\n");
   }
 
+  /* Randomize draws from ARCHETYPES, not uniform ranges: each defines the five
+     nodes' ROLES (crown light, two mid masses, one deep, one small accent) with
+     locked lightness/saturation relationships — the reason random pulls stay
+     pretty. Composition rules: one diagonal band, one accent near a limb, light
+     in the upper third, coherent angles. */
   function rnd(a,b){return a+Math.random()*(b-a);}
+  var ARCH=[
+    {n:"glacier",h:function(h){return[h,h+18,h+34,h+46,h+rnd(150,190)];},
+     S:[30,62,78,82,55],L:[93,72,55,38,82],expo:[96,106]},
+    {n:"sunset",h:function(h){return[h+16,h,h-18,h+rnd(215,250),h+30];},
+     S:[55,88,90,80,60],L:[84,58,48,40,82],expo:[92,102]},
+    {n:"orchid",h:function(h){return[h+24,h,h-20,h-38,h+45];},
+     S:[35,72,85,85,50],L:[90,66,52,36,84],expo:[94,104]},
+    {n:"forest",h:function(h){return[h+30,h+rnd(60,90),h,h-16,h+rnd(140,170)];},
+     S:[28,80,68,72,75],L:[90,62,48,32,66],expo:[92,102]},
+    {n:"noir",h:function(h){return[h,h+16,h-14,h+8,h+rnd(120,160)];},
+     S:[45,55,60,50,85],L:[24,16,30,12,58],expo:[58,72]}
+  ];
+  var lastArch=-1;
+  function pickArch(){
+    var i;do{i=Math.floor(Math.random()*ARCH.length);}while(i===lastArch&&ARCH.length>1);
+    lastArch=i;return ARCH[i];
+  }
+  function applyArchColors(a){
+    var h=rnd(0,360),hues=a.h(h);
+    colorIds.forEach(function(id,j){
+      els[id].value=hslToHex(hues[j]+rnd(-6,6),a.S[j]+rnd(-8,8),a.L[j]+rnd(-4,4));});
+    return a;
+  }
   function randomColors(){
-    var h=rnd(0,360);
-    var hues=[h, h+rnd(14,34), h+rnd(-26,-12), h+rnd(140,220), h+rnd(30,60)];
-    els.c1.value=hslToHex(hues[0],rnd(70,92),rnd(52,62));
-    els.c2.value=hslToHex(hues[1],rnd(72,95),rnd(46,56));
-    els.c3.value=hslToHex(hues[2],rnd(65,90),rnd(44,56));
-    els.c4.value=hslToHex(hues[3],rnd(60,92),rnd(38,55));
-    els.c5.value=hslToHex(hues[4],rnd(45,70),rnd(76,88));
+    applyArchColors(pickArch());
     markCustom();apply();
   }
   function randomizeAll(){
-    randomColors();
+    var a=applyArchColors(pickArch());
+    var bandAng=rnd(-45,-22);            /* one coherent diagonal family */
+    var accSide=Math.random()<.5?rnd(.08,.2):rnd(.8,.92);
     nodes=[
-      N(rnd(.4,.6),rnd(.36,.56),rnd(.9,1.3),rnd(0,.12),rnd(-40,40)),
-      N(rnd(.14,.36),rnd(.18,.40),rnd(.7,1.1),rnd(0,.2),rnd(-50,50)),
-      N(rnd(.60,.84),rnd(.24,.48),rnd(.6,1.0),rnd(0,.28),rnd(-50,50)),
-      N(rnd(.58,.84),rnd(.62,.88),rnd(.5,1.0),rnd(0,.24),rnd(-50,50)),
-      N(rnd(.16,.40),rnd(.58,.84),rnd(.3,.8),rnd(0,.2),rnd(-50,50))];
-    els.lx.value=Math.round(rnd(22,60));els.ly.value=Math.round(rnd(14,40));
-    els.glow.value=Math.round(rnd(25,65));
-    els.melt.value=Math.round(rnd(38,68));
-    els.sweep.value=Math.round(rnd(20,50));
-    els.fringe.value=Math.round(rnd(0,60));
-    els.expo.value=Math.round(rnd(72,108));
+      N(rnd(.42,.58),rnd(.18,.32),rnd(1.0,1.4),rnd(0,.08),bandAng+rnd(-10,10)),
+      N(rnd(.24,.44),rnd(.40,.60),rnd(.8,1.15),rnd(.04,.14),bandAng+rnd(-8,8)),
+      N(rnd(.40,.62),rnd(.55,.72),rnd(.8,1.1),rnd(.18,.30),bandAng),
+      N(rnd(.56,.80),rnd(.66,.86),rnd(.7,1.05),rnd(.06,.18),bandAng+rnd(-8,8)),
+      N(accSide,rnd(.30,.62),rnd(.28,.5),rnd(0,.12),bandAng+rnd(-12,12))];
+    els.lx.value=Math.round(rnd(30,58));els.ly.value=Math.round(rnd(14,32));
+    els.glow.value=Math.round(rnd(35,58));
+    els.melt.value=Math.round(rnd(46,62));
+    els.wob.value=Math.round(rnd(4,16));
+    els.sweep.value=Math.round(rnd(22,42));
+    els.fringe.value=Math.round(rnd(12,50));
+    els.expo.value=Math.round(rnd(a.expo[0],a.expo[1]));
     loadNodeSliders();syncOutputs();markCustom();apply();
   }
 
