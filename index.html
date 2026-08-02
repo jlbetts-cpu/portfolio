@@ -487,6 +487,20 @@ body.moodInCta .heroCtas:not(.in) .faceMoodCorner{opacity:0!important;visibility
 @media(prefers-reduced-motion:reduce){.hmEyeT i{animation:none}}
 /* the video tab keeps the existing contained reel */
 .csPanel[data-panel="goodness"] .reel{margin-top:0}
+/* THE REEL IS A THUMBNAIL LIKE EVERY OTHER CARD. It used to run 16:9, keep
+   rounded corners, carry an 8vh stage pad and go edge-to-edge under 760px —
+   four reasons Extras read as a different tab. Same inset formula as
+   .csStageInner (1280 cap minus 40px sides; 24px sides on mobile), same 2:1
+   frame, same square corners. :not(.isFull) so the fullscreen player is
+   untouched. */
+.csPanel[data-panel="goodness"] .reelStage{padding:0}
+.csPanel[data-panel="goodness"] .reelFrame:not(.isFull){
+  width:min(1200px,calc(100vw - 80px))!important;aspect-ratio:2/1;border-radius:0!important}
+.csPanel[data-panel="goodness"] .reelMeta{width:min(1200px,calc(100vw - 80px))}
+@media(max-width:760px){
+ .csPanel[data-panel="goodness"] .reelFrame:not(.isFull){width:calc(100vw - 48px)!important}
+ .csPanel[data-panel="goodness"] .reelMeta{width:calc(100vw - 48px)}
+}
 @media(max-width:760px){
 
  /* Extras was wrapping onto a second line at 390 and landing at the inset edge while
