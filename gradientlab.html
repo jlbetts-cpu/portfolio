@@ -125,6 +125,7 @@
           <option value="8">Breeze Field</option>
           <option value="9">Curtain Rose</option>
           <option value="10">Mint Marble</option>
+          <option value="11">Night Bloom</option>
         </select>
         </span>
       </p>
@@ -603,7 +604,11 @@ function FluidMesh(canvas,cfg){
     {name:"Mint Marble",form:5,
      colors:["#e8f4ec","#9fd4c0","#5f9fd8","#2c4a7a","#f4f0e2"],
      nodes:[N(.36,.28,1.3,.14,-20),N(.66,.42,1.1,.18,-30),N(.52,.72,1.1,.16,-24),N(.20,.60,.9,.12,-16),N(.82,.20,.8,.1,-28)],
-     lx:40,ly:20,glow:18, flow:34,melt:40,wob:62,bend:6,sweep:20,expo:102,fringe:0, haloA:0,vol:0,grain:20,glass:30,edgeF:0}
+     lx:40,ly:20,glow:18, flow:34,melt:40,wob:62,bend:6,sweep:20,expo:102,fringe:0, haloA:0,vol:0,grain:20,glass:30,edgeF:0},
+    {name:"Night Bloom",form:1,
+     colors:["#101e26","#1c1230","#e8823f","#e04a86","#0c2a2c"],
+     nodes:[N(.45,.35,1.6,.20,-20),N(.75,.70,1.3,.22,-25),N(.40,.68,.75,.30,-24),N(.68,.30,.45,.18,-28),N(.15,.20,1.0,.16,-18)],
+     lx:40,ly:64,glow:18, flow:36,melt:52,wob:10,bend:58,sweep:24,expo:78,fringe:0, haloA:0,vol:0,grain:16,glass:38,edgeF:0}
   ];
 
   function hexToHsl(hex){
