@@ -110,6 +110,8 @@
   <aside class="panel" aria-label="Controls">
     <div class="sec">
       <p class="secH">Preset
+        <span style="display:flex;gap:6px;align-items:center">
+        <button class="miniBtn" id="saveBtn" type="button" title="Save current as preset">Save</button>
         <select id="preset" aria-label="Preset">
           <option value="-1" selected>Custom</option>
           <option value="0">ULR — Glacier</option>
@@ -122,6 +124,7 @@
           <option value="7">Silk Dusk</option>
           <option value="8">Breeze Field</option>
         </select>
+        </span>
       </p>
       <p class="secH" style="margin-top:12px">Form
         <select id="form" aria-label="Form">
@@ -805,8 +808,50 @@ fallback,
   });
   els.nodeSel.addEventListener("input",loadNodeSliders);
   els.form.addEventListener("input",function(){markCustom();apply();});
+
+  /* ---- saved presets: the full state, persisted, listed under the built-ins ---- */
+  var LS_KEY="glabPresets";
+  function savedList(){try{return JSON.parse(localStorage.getItem(LS_KEY)||"[]");}catch(e){return[];}}
+  function serialize(){
+    var s={colors:colorIds.map(function(id){return els[id].value;}),
+      nodes:nodes.map(function(nd){return{x:nd.x,y:nd.y,size:nd.size,len:nd.len,ang:nd.ang};}),
+      form:els.form.value,sliders:{}};
+    rangeIds.forEach(function(k){s.sliders[k]=els[k].value;});
+    return s;
+  }
+  function rebuildSavedOptions(){
+    [].slice.call(els.preset.querySelectorAll("option[data-saved]"))
+      .forEach(function(o){o.remove();});
+    savedList().forEach(function(p,i){
+      var o=document.createElement("option");
+      o.value="s"+i;o.textContent="★ "+p.name;o.setAttribute("data-saved","1");
+      els.preset.appendChild(o);
+    });
+  }
+  function loadSaved(i){
+    var p=savedList()[i];if(!p)return;
+    loadingPreset=true;
+    var s=p.s;
+    colorIds.forEach(function(id,j){els[id].value=s.colors[j];});
+    nodes=s.nodes.map(function(nd){return{x:nd.x,y:nd.y,size:nd.size,len:nd.len,ang:nd.ang};});
+    els.form.value=s.form;
+    rangeIds.forEach(function(k){if(s.sliders[k]!==undefined)els[k].value=s.sliders[k];});
+    loadNodeSliders();syncOutputs();apply();
+    loadingPreset=false;
+  }
+  $("saveBtn").addEventListener("click",function(){
+    var arr=savedList();
+    arr.push({name:"My preset "+(arr.length+1),s:serialize()});
+    try{localStorage.setItem(LS_KEY,JSON.stringify(arr));}catch(e){}
+    rebuildSavedOptions();
+    els.preset.value="s"+(arr.length-1);
+  });
+  rebuildSavedOptions();
+
   els.preset.addEventListener("input",function(){
-    var i=+els.preset.value;if(i>=0)loadPreset(i);
+    var v=els.preset.value;
+    if(v.charAt(0)==="s"){loadSaved(+v.slice(1));return;}
+    var i=+v;if(i>=0)loadPreset(i);
   });
   $("rnd").addEventListener("click",randomizeAll);
   $("rndColors").addEventListener("click",randomColors);
