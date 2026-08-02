@@ -25,12 +25,6 @@
   .lab{display:grid;grid-template-columns:1fr 320px;min-height:100vh}
   @media(max-width:880px){.lab{grid-template-columns:1fr}.panel{position:static;max-height:none;margin:0 16px 26px}}
 
-  /* ============ THE STAGE ============
-     Two synchronized renders of ONE shader: the main canvas (the field) and a
-     tiny 64px halo canvas — rendered GPU-side in the same animation frame, so
-     the aura outside the planet is a true live reflection of the colours
-     inside. No drawImage readbacks (2-8ms GPU->CPU stalls); heavy CSS blur on
-     the halo hides its every-3rd-frame refresh. */
   .stage{position:relative;display:flex;align-items:center;justify-content:center;
     min-height:72vh;padding:80px 30px 40px}
   .stage.bgMode{padding:0}
@@ -48,7 +42,6 @@
     pointer-events:none;z-index:2;box-shadow:var(--volSh,none)}
   .discClip canvas,.bgHost canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
 
-  /* ---------------- panel ---------------- */
   .panel{position:sticky;top:0;align-self:start;max-height:100vh;overflow-y:auto;
     margin:74px 22px 26px 0;padding:20px 20px 16px;border-radius:16px;
     background:var(--panel);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
@@ -57,7 +50,7 @@
   .sec:first-child{padding-top:2px}
   .sec:last-of-type{border-bottom:0}
   .secH{font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;
-    color:var(--sub);margin:0 0 12px}
+    color:var(--sub);margin:0 0 12px;display:flex;justify-content:space-between;align-items:center}
   .row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:10px 0}
   .row label{color:var(--ink);font-size:13px;white-space:nowrap}
   .row output{color:var(--sub);font-size:12px;font-variant-numeric:tabular-nums;min-width:34px;text-align:right}
@@ -69,6 +62,9 @@
   .swRow{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
   .swRow .sw{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:9px;
     letter-spacing:.06em;text-transform:uppercase;color:var(--sub)}
+  .miniBtn{border:1px solid var(--hair);background:#fff;border-radius:6px;padding:4px 9px;
+    font-size:11px;font-weight:600;color:var(--ink);letter-spacing:.02em}
+  .miniBtn:active{transform:translateY(1px)}
 
   input[type=range]{appearance:none;-webkit-appearance:none;flex:1;height:2px;border-radius:1px;
     background:var(--hair);cursor:pointer}
@@ -77,6 +73,8 @@
     box-shadow:0 1px 3px rgba(20,20,16,.18)}
   input[type=range]:focus-visible{outline:2px solid var(--accent);outline-offset:4px}
 
+  select{font-family:inherit;font-size:12px;color:var(--ink);border:1px solid var(--hair);
+    border-radius:6px;padding:5px 7px;background:#fff;cursor:pointer;max-width:170px}
   .check{display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;user-select:none}
   .check input{accent-color:var(--accent);width:15px;height:15px;cursor:pointer}
 
@@ -84,7 +82,8 @@
   .btn{width:100%;border:0;border-radius:8px;padding:11px 14px;font-size:13px;font-weight:600;
     background:var(--ink);color:#fbfbf8;letter-spacing:.02em}
   .btn:active{transform:translateY(1px)}
-  .btn:focus-visible,.copy:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  .btn:focus-visible,.copy:focus-visible,select:focus-visible,.miniBtn:focus-visible{
+    outline:2px solid var(--accent);outline-offset:2px}
 
   .codeBox{position:relative;margin-top:10px}
   pre{margin:0;max-height:190px;overflow:auto;padding:12px;border-radius:8px;
@@ -110,7 +109,21 @@
 
   <aside class="panel" aria-label="Controls">
     <div class="sec">
-      <p class="secH">Palette — five nodes</p>
+      <p class="secH">Preset
+        <select id="preset" aria-label="Preset">
+          <option value="-1" selected>Custom</option>
+          <option value="0">ULR — Glacier</option>
+          <option value="1">Thoby — Deep Teal</option>
+          <option value="2">Ember</option>
+          <option value="3">Verdant</option>
+          <option value="4">Harshaf — Lilac</option>
+          <option value="5">Good &amp; Evil</option>
+        </select>
+      </p>
+    </div>
+
+    <div class="sec">
+      <p class="secH">Palette <button class="miniBtn" id="rndColors" type="button">Random colours</button></p>
       <div class="swRow">
         <span class="sw"><input type="color" id="c1" value="#f2a03d" aria-label="Node one">1</span>
         <span class="sw"><input type="color" id="c2" value="#e2472e" aria-label="Node two">2</span>
@@ -121,10 +134,27 @@
     </div>
 
     <div class="sec">
+      <p class="secH">Node
+        <select id="nodeSel" aria-label="Edit node">
+          <option value="0" selected>Node 1</option><option value="1">Node 2</option>
+          <option value="2">Node 3</option><option value="3">Node 4</option>
+          <option value="4">Node 5</option>
+        </select>
+      </p>
+      <div class="row"><label for="nx">X</label><input type="range" id="nx" min="0" max="100" value="50"><output id="nxO">50</output></div>
+      <div class="row"><label for="ny">Y</label><input type="range" id="ny" min="0" max="100" value="50"><output id="nyO">50</output></div>
+      <div class="row"><label for="nsize">Size</label><input type="range" id="nsize" min="10" max="200" value="100"><output id="nsizeO">100</output></div>
+      <div class="row"><label for="nlen">Length</label><input type="range" id="nlen" min="0" max="100" value="0"><output id="nlenO">0</output></div>
+      <div class="row"><label for="nang">Angle</label><input type="range" id="nang" min="-90" max="90" value="0"><output id="nangO">0</output></div>
+    </div>
+
+    <div class="sec">
       <p class="secH">Field</p>
       <div class="row"><label for="flow">Speed</label><input type="range" id="flow" min="0" max="100" value="40"><output id="flowO">40</output></div>
       <div class="row"><label for="melt">Melt</label><input type="range" id="melt" min="0" max="100" value="55"><output id="meltO">55</output></div>
       <div class="row"><label for="sweep">Sweep</label><input type="range" id="sweep" min="0" max="100" value="45"><output id="sweepO">45</output></div>
+      <div class="row"><label for="expo">Exposure</label><input type="range" id="expo" min="40" max="115" value="100"><output id="expoO">100</output></div>
+      <div class="row"><label for="fringe">Fringe</label><input type="range" id="fringe" min="0" max="100" value="20"><output id="fringeO">20</output></div>
     </div>
 
     <div class="sec">
@@ -143,7 +173,7 @@
     </div>
 
     <div class="sec">
-      <button class="btn" id="rnd" type="button">Randomize</button>
+      <button class="btn" id="rnd" type="button">Randomize everything</button>
       <p class="glErr" id="glErr">WebGL unavailable — the export still includes a static CSS fallback.</p>
     </div>
 
@@ -159,29 +189,29 @@
 
 <script id="fluidEngine">
 /* FluidMesh — a no-dependency WebGL fluid gradient.
-   THE FIELD MODEL (the iOS-wallpaper physics, not plasma): five colour SOURCES
-   orbit slowly (circular paths, per-node phase/speed) and every pixel blends
-   them by inverse-distance weighting — exponent ~1.4-2.2, the range where
-   fields stay massive and sweeping instead of blobby. A gentle low-frequency
-   domain warp melts the boundaries organically. All blending happens in OKLAB
-   with a mild chroma lift, so intersecting hues create clean new colours, never
-   mud. A light point brightens and locally rotates hue (the volume spots).
-   THE HALO: pass a second small canvas and the SAME shader renders into it in
-   the same frame (every 3rd) — a true synchronized reflection, GPU-only, no
-   drawImage readbacks.
-   Ships with DPR capping, hidden-tab pause, reduced-motion still frame,
-   context-loss recovery, and 1/255 dither.
+   FIELD: five colour SOURCES blended per-pixel by inverse-distance weighting in
+   OKLAB. A source is a SEGMENT, not just a point (IQ sdSegment) — length+angle
+   turn a spot into a swooping band with metric-correct falloff. Per-source size
+   scales its reach (Shepard d/size). Sources orbit slowly (per-node phase);
+   a gentle low-frequency warp melts boundaries. Exposure multiplies OKLab L
+   (dark bodies stay clean). FRINGE: radial RGB-split — the field is sampled
+   three times along the radial direction, one per channel, ramping toward the
+   limb: real chromatic dispersion, not a painted ring. Light brightens + locally
+   rotates hue. Jimenez interleaved-gradient-noise dither kills banding.
+   HALO: pass a second small canvas; the same shader renders it every 3rd frame
+   — a live, GPU-only, synchronized reflection.
    new FluidMesh(canvas, cfg) -> {set(cfg), destroy()} | null if no WebGL
-   cfg: {colors:[5x'#hex'], nodes:[5x[x,y]], light:[x,y], glow, melt, sweep,
-         flow, grain, haloCanvas?} (all scalars 0..1) */
+   cfg:{colors:[5 hex], nodes:[5x{x,y,size,len,ang}], light:[x,y], glow, melt,
+       sweep, flow, grain, fringe, expo, orb(0|1), haloCanvas?} */
 function FluidMesh(canvas,cfg){
   "use strict";
   var VS="attribute vec2 aP;void main(){gl_Position=vec4(aP,0.,1.);}";
   var FS=""+
 "precision highp float;\n"+
 "uniform vec2 uRes;uniform float uTime;\n"+
-"uniform float uMelt,uSweep,uGlow,uGrain;\n"+
-"uniform vec2 uLight;uniform vec3 uCol[5];uniform vec2 uPos[5];\n"+
+"uniform float uMelt,uSweep,uGlow,uGrain,uFringe,uExpo,uOrb;\n"+
+"uniform vec2 uLight;uniform vec3 uCol[5];\n"+
+"uniform vec2 uPos[5];uniform float uSize[5];uniform float uLen[5];uniform float uAng[5];\n"+
 "float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}\n"+
 "float vnoise(vec2 p){vec2 i=floor(p),f=fract(p);vec2 u=f*f*(3.-2.*f);\n"+
 " float a=hash(i),b=hash(i+vec2(1.,0.)),c=hash(i+vec2(0.,1.)),d=hash(i+vec2(1.,1.));\n"+
@@ -204,41 +234,55 @@ function FluidMesh(canvas,cfg){
 "  -1.2684380046*l+2.6097574011*m-.3413193965*s,\n"+
 "  -.0041960863*l-.7034186147*m+1.7076147010*s);\n"+
 " return pow(max(r,0.),vec3(1./2.2));}\n"+
-"void main(){\n"+
-" float aspect=uRes.x/uRes.y;\n"+
-" vec2 uv=gl_FragCoord.xy/uRes;\n"+
-" vec2 uvA=vec2((uv.x-.5)*aspect+.5,uv.y);\n"+
-" /* gentle low-frequency warp: melts boundaries without turning to smoke */\n"+
-" vec2 q=uvA*1.35;\n"+
-" vec2 w=vec2(fbm(q+uTime*.14),fbm(q+vec2(4.7,2.1)-uTime*.11));\n"+
-" vec2 p=uvA+(w-.5)*uMelt*.38;\n"+
-" /* five orbiting sources, inverse-distance weighted in OKLab */\n"+
+"float sdSeg(vec2 p,vec2 a,vec2 b){vec2 pa=p-a,ba=b-a;\n"+
+" float h=clamp(dot(pa,ba)/max(dot(ba,ba),1e-6),0.,1.);return length(pa-ba*h);}\n"+
+"vec3 field(vec2 p,float aspect){\n"+
 " float expo=mix(2.3,1.35,uMelt);\n"+
 " vec3 acc=vec3(0.);float tot=0.;\n"+
 " for(int i=0;i<5;i++){\n"+
 "  float fi=float(i);\n"+
 "  float sp=.35+.11*fi;\n"+
 "  float ph=fi*2.39996;\n"+
-"  float orad=uSweep*(.10+.035*fi);\n"+
+"  float orad=uSweep*(.09+.03*fi);\n"+
 "  vec2 c=uPos[i]+orad*vec2(sin(uTime*sp+ph),cos(uTime*sp*.83+ph*1.7));\n"+
-"  vec2 cA=vec2((c.x-.5)*aspect+.5,c.y);\n"+
-"  float d=distance(p,cA);\n"+
+"  float an=uAng[i]+.10*sin(uTime*.23+ph);\n"+
+"  vec2 dirv=vec2(cos(an),sin(an))*uLen[i];\n"+
+"  vec2 a=c-dirv,b=c+dirv;\n"+
+"  a.x=(a.x-.5)*aspect+.5;b.x=(b.x-.5)*aspect+.5;\n"+
+"  float d=sdSeg(p,a,b)/max(uSize[i],.05);\n"+
 "  float wt=1./pow(d*d+.006,expo);\n"+
 "  acc+=srgb2ok(uCol[i])*wt;tot+=wt;\n"+
 " }\n"+
-" vec3 col=acc/tot;\n"+
-" col.yz*=1.08; /* chroma lift against blur-wash */\n"+
-" /* the light: brighten toward warm white AND rotate hue locally */\n"+
+" return acc/tot;\n"+
+"}\n"+
+"void main(){\n"+
+" float aspect=uRes.x/uRes.y;\n"+
+" vec2 uv=gl_FragCoord.xy/uRes;\n"+
+" vec2 uvA=vec2((uv.x-.5)*aspect+.5,uv.y);\n"+
+" vec2 q=uvA*1.35;\n"+
+" vec2 w=vec2(fbm(q+uTime*.14),fbm(q+vec2(4.7,2.1)-uTime*.11));\n"+
+" vec2 p=uvA+(w-.5)*uMelt*.38;\n"+
+" /* chromatic fringe: sample the field per-channel along the radial direction,\n"+
+"    zero at centre, max at the limb (planet mode only) */\n"+
+" float rr=length(uv-.5);\n"+
+" vec2 rdir=rr>1e-4?normalize(uvA-vec2(.5)):vec2(0.);\n"+
+" float off=uFringe*uOrb*.028*smoothstep(.28,.5,rr);\n"+
+" vec3 okR=field(p-rdir*off,aspect);\n"+
+" vec3 okG=off>0.?field(p,aspect):okR;\n"+
+" vec3 okB=off>0.?field(p+rdir*off,aspect):okR;\n"+
+" okG.x*=uExpo;okR.x*=uExpo;okB.x*=uExpo;\n"+
+" okG.yz*=1.08;okR.yz*=1.08;okB.yz*=1.08;\n"+
 " vec2 lp=vec2((uLight.x-.5)*aspect+.5,uLight.y);\n"+
 " float ld=distance(uvA,lp);\n"+
 " float lw=smoothstep(.62,.04,ld)*uGlow;\n"+
-" float ang=lw*1.25;\n"+
-" float ca=cos(ang),sa=sin(ang);\n"+
-" col.yz=mat2(ca,-sa,sa,ca)*col.yz;\n"+
-" col.x+=lw*.28;col.yz*=(1.-.33*lw);\n"+
-" vec3 rgb=ok2srgb(col);\n"+
-" float n2=hash(gl_FragCoord.xy+fract(uTime)*61.7);\n"+
-" rgb+=(n2-.5)*(1.5/255.)+(n2-.5)*uGrain*.09;\n"+
+" float ang=lw*1.25,ca=cos(ang),sa=sin(ang);\n"+
+" okG.yz=mat2(ca,-sa,sa,ca)*okG.yz;okG.x+=lw*.28;okG.yz*=(1.-.33*lw);\n"+
+" okR.yz=mat2(ca,-sa,sa,ca)*okR.yz;okR.x+=lw*.28;okR.yz*=(1.-.33*lw);\n"+
+" okB.yz=mat2(ca,-sa,sa,ca)*okB.yz;okB.x+=lw*.28;okB.yz*=(1.-.33*lw);\n"+
+" vec3 rgb=vec3(ok2srgb(okR).r,ok2srgb(okG).g,ok2srgb(okB).b);\n"+
+" /* Jimenez interleaved-gradient-noise dither + dialable film grain */\n"+
+" float ign=fract(52.9829189*fract(dot(gl_FragCoord.xy,vec2(.06711056,.00583715))));\n"+
+" rgb+=(ign-.5)*(2./255.)+(hash(gl_FragCoord.xy+fract(uTime)*61.7)-.5)*uGrain*.09;\n"+
 " gl_FragColor=vec4(rgb,1.);\n"+
 "}";
   function makeRenderer(cv,fixed){
@@ -277,12 +321,17 @@ function FluidMesh(canvas,cfg){
       gl.uniform1f(u("uTime"),t);
       gl.uniform1f(u("uMelt"),c.melt);gl.uniform1f(u("uSweep"),c.sweep);
       gl.uniform1f(u("uGlow"),c.glow);gl.uniform1f(u("uGrain"),c.grain);
+      gl.uniform1f(u("uFringe"),c.fringe);gl.uniform1f(u("uExpo"),c.expo);
+      gl.uniform1f(u("uOrb"),c.orb);
       gl.uniform2f(u("uLight"),c.light[0],1.-c.light[1]);
       for(var i=0;i<5;i++){
         var col=hex2rgb(c.colors[i]);
         gl.uniform3f(u("uCol["+i+"]"),col[0],col[1],col[2]);
-        var p=c.nodes[i]||[.5,.5];
-        gl.uniform2f(u("uPos["+i+"]"),p[0],1.-p[1]);
+        var nd=c.nodes[i];
+        gl.uniform2f(u("uPos["+i+"]"),nd.x,1.-nd.y);
+        gl.uniform1f(u("uSize["+i+"]"),nd.size);
+        gl.uniform1f(u("uLen["+i+"]"),nd.len);
+        gl.uniform1f(u("uAng["+i+"]"),-nd.ang);
       }
       gl.drawArrays(gl.TRIANGLES,0,3);
     }
@@ -323,11 +372,43 @@ function FluidMesh(canvas,cfg){
   "use strict";
   var $=function(id){return document.getElementById(id);};
   var colorIds=["c1","c2","c3","c4","c5"];
-  var rangeIds=["flow","melt","sweep","lx","ly","glow","haloA","vol","grain"];
-  var els={};colorIds.concat(rangeIds).forEach(function(k){els[k]=$(k);});
-  els.orbMode=$("orbMode");
+  var rangeIds=["flow","melt","sweep","expo","fringe","lx","ly","glow","haloA","vol","grain"];
+  var nodeRangeIds=["nx","ny","nsize","nlen","nang"];
+  var els={};colorIds.concat(rangeIds).concat(nodeRangeIds).forEach(function(k){els[k]=$(k);});
+  els.orbMode=$("orbMode");els.nodeSel=$("nodeSel");els.preset=$("preset");
 
-  var nodes=[[.5,.48],[.22,.28],[.74,.36],[.70,.78],[.28,.70]];
+  function N(x,y,size,len,angDeg){return{x:x,y:y,size:size,len:len,ang:angDeg*Math.PI/180};}
+  var nodes=[N(.5,.48,1,0,0),N(.22,.28,1,0,0),N(.74,.36,1,0,0),N(.70,.78,1,0,0),N(.28,.70,1,0,0)];
+
+  /* ---- THE TEST: the six reference posters as presets. Each exists to prove
+     the engine can hit that exact look; the holes they exposed (bands, per-node
+     size, fringe, exposure) are now first-class parameters. ---- */
+  var PRESETS=[
+    {name:"ULR — Glacier",
+     colors:["#eaf5f0","#93c7e8","#4a77d4","#2c4f9e","#f2c4d8"],
+     nodes:[N(.52,.20,1.15,0,0),N(.30,.44,1,.10,-25),N(.38,.66,.85,.30,-33),N(.72,.60,.8,.14,-30),N(.84,.30,.45,0,0)],
+     lx:50,ly:16,glow:48, flow:38,melt:52,sweep:30,expo:102,fringe:46, haloA:52,vol:32,grain:14},
+    {name:"Thoby — Deep Teal",
+     colors:["#12333a","#0c2027","#1d4a42","#37826a","#e8994a"],
+     nodes:[N(.44,.40,1.3,.1,20),N(.30,.72,1.1,.16,35),N(.62,.30,.9,.18,55),N(.78,.62,.55,.22,70),N(.86,.42,.30,.18,75)],
+     lx:32,ly:24,glow:22, flow:36,melt:44,sweep:26,expo:66,fringe:78, haloA:38,vol:52,grain:18},
+    {name:"Ember",
+     colors:["#f2a03d","#e2472e","#8a2d5f","#5f2dc2","#ffd9a0"],
+     nodes:[N(.55,.34,1.2,0,0),N(.60,.66,1.1,.12,10),N(.74,.80,.8,.1,25),N(.16,.44,.42,0,0),N(.40,.20,.8,.1,-20)],
+     lx:44,ly:22,glow:58, flow:40,melt:55,sweep:34,expo:96,fringe:26, haloA:56,vol:44,grain:12},
+    {name:"Verdant",
+     colors:["#dcecdc","#f0a83c","#3f9a6e","#8fd4b4","#e8703a"],
+     nodes:[N(.42,.26,1.1,.1,-15),N(.52,.52,.9,.28,-32),N(.70,.80,.9,.2,-25),N(.24,.72,.7,.14,-40),N(.80,.40,.5,.12,-30)],
+     lx:40,ly:20,glow:44, flow:38,melt:50,sweep:30,expo:100,fringe:56, haloA:50,vol:36,grain:14},
+    {name:"Harshaf — Lilac",
+     colors:["#e0e3f5","#a8b2ec","#6072d8","#3947a8","#cdd4f2"],
+     nodes:[N(.52,.30,1.2,0,0),N(.68,.56,1,.12,20),N(.34,.68,.95,.16,30),N(.24,.84,.7,.1,15),N(.76,.22,.7,0,0)],
+     lx:52,ly:22,glow:40, flow:34,melt:62,sweep:28,expo:100,fringe:18, haloA:48,vol:34,grain:12},
+    {name:"Good & Evil",
+     colors:["#e8d9b0","#e84a6f","#c23d3d","#241a12","#8a9a3f"],
+     nodes:[N(.66,.22,1.1,.12,-20),N(.40,.62,1.05,.16,-25),N(.66,.74,.9,.14,-20),N(.38,.32,.85,.30,-33),N(.82,.52,.4,.12,-30)],
+     lx:70,ly:18,glow:44, flow:38,melt:48,sweep:28,expo:92,fringe:52, haloA:50,vol:48,grain:16}
+  ];
 
   function hexToHsl(hex){
     var n=parseInt(hex.slice(1),16),r=((n>>16)&255)/255,g=((n>>8)&255)/255,b=(n&255)/255;
@@ -352,7 +433,8 @@ function FluidMesh(canvas,cfg){
       light:[+els.lx.value/100,+els.ly.value/100],
       glow:+els.glow.value/100, melt:+els.melt.value/100,
       sweep:+els.sweep.value/100, flow:+els.flow.value/100,
-      grain:+els.grain.value/100
+      grain:+els.grain.value/100, fringe:+els.fringe.value/100,
+      expo:+els.expo.value/100, orb:els.orbMode.checked?1:0
     };
   }
 
@@ -376,6 +458,25 @@ function FluidMesh(canvas,cfg){
       +"radial-gradient(60% 60% at 50% 55%, "+hsl(B.h,B.s,60,(0.5*alpha).toFixed(2))+", transparent 74%)";
   }
 
+  var loadingPreset=false;
+  function markCustom(){if(!loadingPreset)els.preset.value="-1";}
+
+  function loadNodeSliders(){
+    var nd=nodes[+els.nodeSel.value];
+    els.nx.value=Math.round(nd.x*100);els.ny.value=Math.round(nd.y*100);
+    els.nsize.value=Math.round(nd.size*100);
+    els.nlen.value=Math.round(nd.len/0.0035);
+    els.nang.value=Math.round(nd.ang*180/Math.PI);
+    syncOutputs();
+  }
+  function saveNodeSliders(){
+    var nd=nodes[+els.nodeSel.value];
+    nd.x=+els.nx.value/100;nd.y=+els.ny.value/100;
+    nd.size=Math.max(.1,+els.nsize.value/100);
+    nd.len=+els.nlen.value*0.0035;
+    nd.ang=+els.nang.value*Math.PI/180;
+  }
+
   function apply(){
     var v=cfg();
     if(mesh)mesh.set(v);
@@ -391,16 +492,30 @@ function FluidMesh(canvas,cfg){
     writeCode(v,orb,haloA);
   }
   function syncOutputs(){
-    rangeIds.forEach(function(k){var o=$(k+"O");if(o)o.textContent=els[k].value;});
+    rangeIds.concat(nodeRangeIds).forEach(function(k){
+      var o=$(k+"O");if(o)o.textContent=els[k].value;});
+  }
+
+  function loadPreset(i){
+    var p=PRESETS[i];if(!p)return;
+    loadingPreset=true;
+    colorIds.forEach(function(id,j){els[id].value=p.colors[j];});
+    nodes=p.nodes.map(function(nd){return{x:nd.x,y:nd.y,size:nd.size,len:nd.len,ang:nd.ang};});
+    ["lx","ly","glow","flow","melt","sweep","expo","fringe","haloA","vol","grain"]
+      .forEach(function(k){if(p[k]!==undefined)els[k].value=p[k];});
+    loadNodeSliders();syncOutputs();apply();
+    loadingPreset=false;
   }
 
   function writeCode(v,orb,haloA){
     var engine=document.getElementById("fluidEngine").textContent;
-    var conf={colors:v.colors,nodes:v.nodes,light:v.light,glow:v.glow,
-      melt:v.melt,sweep:v.sweep,flow:v.flow,grain:v.grain};
+    var conf={colors:v.colors,
+      nodes:nodes.map(function(nd){return{x:+nd.x.toFixed(3),y:+nd.y.toFixed(3),
+        size:+nd.size.toFixed(2),len:+nd.len.toFixed(3),ang:+nd.ang.toFixed(3)};}),
+      light:v.light,glow:v.glow,melt:v.melt,sweep:v.sweep,flow:v.flow,
+      grain:v.grain,fringe:v.fringe,expo:v.expo,orb:v.orb};
     var fallback=".fmFallback{background:"+fallbackHalo(v,0.9)+"}";
-    var lines=[];
-    lines.push("<!-- Fluid Mesh — generated by Gradient Lab -->");
+    var lines=["<!-- Fluid Mesh — generated by Gradient Lab -->"];
     if(orb){
       lines.push(
 '<div class="fmOrb">',
@@ -441,7 +556,7 @@ fallback,
   }
 
   function rnd(a,b){return a+Math.random()*(b-a);}
-  function randomize(){
+  function randomColors(){
     var h=rnd(0,360);
     var hues=[h, h+rnd(14,34), h+rnd(-26,-12), h+rnd(140,220), h+rnd(30,60)];
     els.c1.value=hslToHex(hues[0],rnd(70,92),rnd(52,62));
@@ -449,13 +564,23 @@ fallback,
     els.c3.value=hslToHex(hues[2],rnd(65,90),rnd(44,56));
     els.c4.value=hslToHex(hues[3],rnd(60,92),rnd(38,55));
     els.c5.value=hslToHex(hues[4],rnd(45,70),rnd(76,88));
-    els.lx.value=Math.round(rnd(22,48));els.ly.value=Math.round(rnd(18,40));
-    nodes=[[.5,rnd(.42,.56)],
-      [rnd(.14,.36),rnd(.18,.40)],
-      [rnd(.60,.84),rnd(.24,.48)],
-      [rnd(.58,.84),rnd(.62,.88)],
-      [rnd(.16,.40),rnd(.58,.84)]];
-    syncOutputs();apply();
+    markCustom();apply();
+  }
+  function randomizeAll(){
+    randomColors();
+    nodes=[
+      N(rnd(.4,.6),rnd(.36,.56),rnd(.9,1.3),rnd(0,.12),rnd(-40,40)),
+      N(rnd(.14,.36),rnd(.18,.40),rnd(.7,1.1),rnd(0,.2),rnd(-50,50)),
+      N(rnd(.60,.84),rnd(.24,.48),rnd(.6,1.0),rnd(0,.28),rnd(-50,50)),
+      N(rnd(.58,.84),rnd(.62,.88),rnd(.5,1.0),rnd(0,.24),rnd(-50,50)),
+      N(rnd(.16,.40),rnd(.58,.84),rnd(.3,.8),rnd(0,.2),rnd(-50,50))];
+    els.lx.value=Math.round(rnd(22,60));els.ly.value=Math.round(rnd(14,40));
+    els.glow.value=Math.round(rnd(25,65));
+    els.melt.value=Math.round(rnd(38,68));
+    els.sweep.value=Math.round(rnd(20,50));
+    els.fringe.value=Math.round(rnd(0,60));
+    els.expo.value=Math.round(rnd(72,108));
+    loadNodeSliders();syncOutputs();markCustom();apply();
   }
 
   $("copyBtn").addEventListener("click",function(){
@@ -472,16 +597,24 @@ fallback,
   });
 
   colorIds.concat(rangeIds).forEach(function(k){
-    els[k].addEventListener("input",function(){syncOutputs();apply();});
+    els[k].addEventListener("input",function(){syncOutputs();markCustom();apply();});
   });
-  els.orbMode.addEventListener("input",apply);
-  $("rnd").addEventListener("click",randomize);
+  nodeRangeIds.forEach(function(k){
+    els[k].addEventListener("input",function(){saveNodeSliders();syncOutputs();markCustom();apply();});
+  });
+  els.nodeSel.addEventListener("input",loadNodeSliders);
+  els.orbMode.addEventListener("input",function(){markCustom();apply();});
+  els.preset.addEventListener("input",function(){
+    var i=+els.preset.value;if(i>=0)loadPreset(i);
+  });
+  $("rnd").addEventListener("click",randomizeAll);
+  $("rndColors").addEventListener("click",randomColors);
 
   function sizeR(){var w=$("orbWrap").getBoundingClientRect().width;
     $("orbWrap").style.setProperty("--R",(w/2).toFixed(0)+"px");}
   addEventListener("resize",sizeR);
 
-  sizeR();syncOutputs();apply();
+  sizeR();loadNodeSliders();syncOutputs();apply();
 })();
 </script>
 </body>
