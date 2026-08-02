@@ -237,11 +237,22 @@ function FluidMesh(canvas,cfg){
 " return pow(max(r,0.),vec3(1./2.2));}\n"+
 "float sdSeg(vec2 p,vec2 a,vec2 b){vec2 pa=p-a,ba=b-a;\n"+
 " float h=clamp(dot(pa,ba)/max(dot(ba,ba),1e-6),0.,1.);return length(pa-ba*h);}\n"+
+"vec3 sphPt(vec2 q){\n"+
+" /* disc -> hemisphere. r2 clamped BEFORE the sqrt (limb stability); the .62\n"+
+"    exponent compresses features toward the limb — the planet-poster look. */\n"+
+" float r2=min(dot(q,q),.985);\n"+
+" return normalize(vec3(q,pow(1.-r2,.62)));\n"+
+"}\n"+
 "vec3 field(vec2 p,float aspect){\n"+
-" /* GAUSSIAN mixture, not inverse-distance: a node's influence actually ENDS,\n"+
-"    so regions keep pure colour and only neighbours blend — the anti-muddle. */\n"+
+" /* GAUSSIAN mixture (influence that ENDS — the anti-muddle), evaluated ON THE\n"+
+"    SPHERE in planet mode: sources become 3D directions, bands become planes\n"+
+"    whose great-circle intersections ARC across the disc and taper at the limb\n"+
+"    — the complexity of the reference forms is spherical geometry, not extra\n"+
+"    colours. Chord distance, never acos (derivative blows up at the limb). */\n"+
 " float soft=mix(.06,.24,uMelt);\n"+
 " vec3 acc=srgb2ok(uCol[0])*6e-4;float tot=6e-4;\n"+
+" bool sph=uOrb>.5;\n"+
+" vec3 P=sph?sphPt((p-vec2(.5))*2.):vec3(0.);\n"+
 " for(int i=0;i<5;i++){\n"+
 "  float fi=float(i);\n"+
 "  float sp=.35+.11*fi;\n"+
@@ -249,10 +260,25 @@ function FluidMesh(canvas,cfg){
 "  float orad=uSweep*(.09+.03*fi);\n"+
 "  vec2 c=uPos[i]+orad*vec2(sin(uTime*sp+ph),cos(uTime*sp*.83+ph*1.7));\n"+
 "  float an=uAng[i]+.10*sin(uTime*.23+ph);\n"+
-"  vec2 dirv=vec2(cos(an),sin(an))*uLen[i];\n"+
-"  vec2 a=c-dirv,b=c+dirv;\n"+
-"  a.x=(a.x-.5)*aspect+.5;b.x=(b.x-.5)*aspect+.5;\n"+
-"  float d=sdSeg(p,a,b);\n"+
+"  float d;\n"+
+"  if(sph){\n"+
+"   vec3 N=sphPt((c-vec2(.5))*1.84);\n"+
+"   float chN=length(P-N);\n"+
+"   if(uLen[i]<.01){d=chN;}\n"+
+"   else{\n"+
+"    vec3 t3=vec3(cos(an),sin(an),0.);\n"+
+"    t3=normalize(t3-N*dot(t3,N));\n"+
+"    float planeD=dot(P,normalize(cross(N,t3)));\n"+
+"    float capX=max(0.,chN-uLen[i]*2.4);\n"+
+"    d=sqrt(planeD*planeD*1.9+capX*capX);\n"+
+"   }\n"+
+"   d*=.62; /* chord units run 0..2; rescale toward disc units */\n"+
+"  }else{\n"+
+"   vec2 dirv=vec2(cos(an),sin(an))*uLen[i];\n"+
+"   vec2 a=c-dirv,b=c+dirv;\n"+
+"   a.x=(a.x-.5)*aspect+.5;b.x=(b.x-.5)*aspect+.5;\n"+
+"   d=sdSeg(p,a,b);\n"+
+"  }\n"+
 "  float sg=max(uSize[i],.05)*soft;\n"+
 "  float wt=exp(-(d*d)/(2.*sg*sg));\n"+
 "  acc+=srgb2ok(uCol[i])*wt;tot+=wt;\n"+
