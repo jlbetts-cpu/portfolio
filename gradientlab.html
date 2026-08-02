@@ -249,7 +249,7 @@ function FluidMesh(canvas,cfg){
 "precision highp float;\n"+
 "uniform vec2 uRes;uniform float uTime;\n"+
 "uniform float uMelt,uSweep,uGlow,uGrain,uFringe,uExpo,uOrb,uWob,uFeath,uGlass;\n"+
-"uniform float uForm,uBend,uFoldA,uFoldSh,uContour;\n"+
+"uniform float uForm,uBend,uFoldA,uFoldSh,uContour,uDpr;\n"+
 "uniform vec2 uLight;uniform vec3 uCol[5];\n"+
 "uniform vec2 uPos[5];uniform float uSize[5];uniform float uLen[5];uniform float uAng[5];\n"+
 "float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}\n"+
@@ -308,7 +308,7 @@ function FluidMesh(canvas,cfg){
 " float r2=min(dot(q,q),.985);\n"+
 " return normalize(vec3(q,pow(1.-r2,.62)));\n"+
 "}\n"+
-"vec3 field(vec2 p,float aspect){\n"+
+"vec3 field(vec2 p,float aspect,float gT){\n"+
 " /* GAUSSIAN mixture (influence that ENDS — the anti-muddle), evaluated ON THE\n"+
 "    SPHERE in planet mode: sources become 3D directions, bands become planes\n"+
 "    whose great-circle intersections ARC across the disc and taper at the limb\n"+
@@ -356,6 +356,10 @@ function FluidMesh(canvas,cfg){
 "   d=sqrt(pow(max(0.,abs(uu)-L*2.2),2.)+vv*vv);\n"+
 "  }\n"+
 "  float sg=max(uSize[i],.05)*soft*tapM;\n"+
+"  /* grain IN the colour: the static triangular noise perturbs the distance\n"+
+"     BEFORE the falloff — transitions dissolve into stochastic dot clouds\n"+
+"     while mass cores stay clean, the riso construction */\n"+
+"  d+=gT*sg*uGrain*1.4;\n"+
 "  float wt=exp(-(d*d)/(2.*sg*sg));\n"+
 "  acc+=srgb2ok(uCol[i])*wt;tot+=wt;\n"+
 "  if(wt>w1){w2=w1;w1=wt;}else if(wt>w2){w2=wt;}\n"+
@@ -400,12 +404,17 @@ function FluidMesh(canvas,cfg){
 " }\n"+
 " /* chromatic fringe: sample the field per-channel along the radial direction,\n"+
 "    zero at centre, max at the limb (planet mode only) */\n"+
+" /* STATIC print grain: triangular noise (two hashes subtracted — no clumping)\n"+
+"    on CSS-pixel cells (device-pixel hash is sub-pixel mush at high DPR), and\n"+
+"    NO time term — grain is frozen into the print, it never crawls */\n"+
+" vec2 gc=floor(gl_FragCoord.xy/max(uDpr,1.));\n"+
+" float gT=hash(gc)-hash(gc+vec2(7.31,3.17));\n"+
 " float rr=length(uv-.5);\n"+
 " vec2 rdir=rr>1e-4?normalize(uvA-vec2(.5)):vec2(0.);\n"+
 " float off=uFringe*uOrb*.028*smoothstep(.28,.5,rr);\n"+
-" vec3 okR=field(p-rdir*off,aspect);\n"+
-" vec3 okG=off>0.?field(p,aspect):okR;\n"+
-" vec3 okB=off>0.?field(p+rdir*off,aspect):okR;\n"+
+" vec3 okR=field(p-rdir*off,aspect,gT);\n"+
+" vec3 okG=off>0.?field(p,aspect,gT):okR;\n"+
+" vec3 okB=off>0.?field(p+rdir*off,aspect,gT):okR;\n"+
 " okG.x*=uExpo;okR.x*=uExpo;okB.x*=uExpo;\n"+
 " okG.yz*=1.08;okR.yz*=1.08;okB.yz*=1.08;\n"+
 " vec2 lp=vec2((uLight.x-.5)*aspect+.5,uLight.y);\n"+
@@ -458,9 +467,9 @@ function FluidMesh(canvas,cfg){
 " vec3 rgb=vec3(srgbEnc(linR).r,srgbEnc(linG).g,srgbEnc(linB).b);\n"+
 " /* Jimenez interleaved-gradient-noise dither + dialable film grain */\n"+
 " float ign=fract(52.9829189*fract(dot(gl_FragCoord.xy,vec2(.06711056,.00583715))));\n"+
-" /* grain with real range: dialled up it reaches risograph, not just anti-band */\n"+
-" float gn=hash(gl_FragCoord.xy+fract(uTime)*61.7)-.5;\n"+
-" rgb+=(ign-.5)*(2./255.)+gn*uGrain*.30;\n"+
+" /* residual paper tooth only — the real grain already happened inside the\n"+
+"    colour mixing; this stays STATIC and small */\n"+
+" rgb+=(ign-.5)*(2./255.)+gT*uGrain*.05;\n"+
 " /* the feathered limb: the sphere dissolves into its own halo — no line where\n"+
 "    the form ends and the glow begins. Premultiplied alpha over a transparent\n"+
 "    canvas; the live halo behind shows through the fade. */\n"+
@@ -524,6 +533,7 @@ function FluidMesh(canvas,cfg){
       gl.uniform1f(u("uForm"),c.form||0);gl.uniform1f(u("uBend"),c.bend||0);
       gl.uniform1f(u("uFoldA"),c.foldA||0);gl.uniform1f(u("uFoldSh"),c.foldSh||0);
       gl.uniform1f(u("uContour"),derivOK?(c.contour||0):0);
+      gl.uniform1f(u("uDpr"),Math.min(window.devicePixelRatio||1,2.25));
       gl.uniform2f(u("uLight"),c.light[0],1.-c.light[1]);
       for(var i=0;i<5;i++){
         var col=hex2rgb(c.colors[i]);
