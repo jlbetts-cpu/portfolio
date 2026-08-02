@@ -26,10 +26,11 @@
   @media(max-width:880px){.lab{grid-template-columns:1fr}.panel{position:static;max-height:none;margin:0 16px 26px}}
 
   /* ============ THE STAGE ============
-     One WebGL canvas is the fluid field. Orb mode clips it into the circle and
-     dresses it (halo behind, volume insets above). Canvas mode lets the same
-     field fill the stage as a background. The engine itself lives in the
-     #fluidEngine script tag so the export can emit it VERBATIM. */
+     Two synchronized renders of ONE shader: the main canvas (the field) and a
+     tiny 64px halo canvas — rendered GPU-side in the same animation frame, so
+     the aura outside the planet is a true live reflection of the colours
+     inside. No drawImage readbacks (2-8ms GPU->CPU stalls); heavy CSS blur on
+     the halo hides its every-3rd-frame refresh. */
   .stage{position:relative;display:flex;align-items:center;justify-content:center;
     min-height:72vh;padding:80px 30px 40px}
   .stage.bgMode{padding:0}
@@ -38,7 +39,9 @@
   .stage.bgMode .orbWrap{display:none}
   .orbWrap{position:relative;width:min(430px,78vw);aspect-ratio:1;--R:215px}
   .haloWrap{position:absolute;inset:-26%;pointer-events:none;mix-blend-mode:multiply}
-  .halo{position:absolute;inset:0;border-radius:50%;filter:blur(calc(var(--R)*0.37))}
+  .halo{position:absolute;inset:0;border-radius:50%;overflow:hidden;
+    filter:blur(calc(var(--R)*0.34));opacity:var(--haloA,.5)}
+  .halo canvas{position:absolute;inset:-8%;width:116%;height:116%;display:block}
   .discClip{position:absolute;inset:0;border-radius:50%;overflow:hidden;
     isolation:isolate;transform:translateZ(0)}
   .discClip::after{content:"";position:absolute;inset:0;border-radius:50%;
@@ -100,7 +103,7 @@
   <main class="stage" id="stage">
     <div class="bgHost" id="bgHost"></div>
     <div class="orbWrap" id="orbWrap">
-      <div class="haloWrap"><div class="halo" id="halo"></div></div>
+      <div class="haloWrap"><div class="halo" id="halo"><canvas id="haloCanvas"></canvas></div></div>
       <div class="discClip" id="discClip"><canvas id="fluid"></canvas></div>
     </div>
   </main>
@@ -119,29 +122,29 @@
 
     <div class="sec">
       <p class="secH">Field</p>
-      <div class="row"><label for="flow">Flow</label><input type="range" id="flow" min="0" max="100" value="42"><output id="flowO">42</output></div>
-      <div class="row"><label for="warp">Warp</label><input type="range" id="warp" min="0" max="100" value="48"><output id="warpO">48</output></div>
-      <div class="row"><label for="scale">Scale</label><input type="range" id="scale" min="0" max="100" value="26"><output id="scaleO">26</output></div>
+      <div class="row"><label for="flow">Speed</label><input type="range" id="flow" min="0" max="100" value="40"><output id="flowO">40</output></div>
+      <div class="row"><label for="melt">Melt</label><input type="range" id="melt" min="0" max="100" value="55"><output id="meltO">55</output></div>
+      <div class="row"><label for="sweep">Sweep</label><input type="range" id="sweep" min="0" max="100" value="45"><output id="sweepO">45</output></div>
     </div>
 
     <div class="sec">
       <p class="secH">Light</p>
       <div class="row"><label for="lx">Light X</label><input type="range" id="lx" min="0" max="100" value="36"><output id="lxO">36</output></div>
       <div class="row"><label for="ly">Light Y</label><input type="range" id="ly" min="0" max="100" value="30"><output id="lyO">30</output></div>
-      <div class="row"><label for="glow">Glow</label><input type="range" id="glow" min="0" max="100" value="55"><output id="glowO">55</output></div>
+      <div class="row"><label for="glow">Glow</label><input type="range" id="glow" min="0" max="100" value="50"><output id="glowO">50</output></div>
     </div>
 
     <div class="sec">
-      <p class="secH">Orb dressing</p>
-      <div class="row"><label class="check"><input type="checkbox" id="orbMode" checked>Orb mode (off = background)</label></div>
-      <div class="row"><label for="haloA">Halo</label><input type="range" id="haloA" min="0" max="70" value="36"><output id="haloAO">36</output></div>
-      <div class="row"><label for="vol">Volume</label><input type="range" id="vol" min="0" max="100" value="50"><output id="volO">50</output></div>
-      <div class="row"><label for="grain">Grain</label><input type="range" id="grain" min="0" max="100" value="16"><output id="grainO">16</output></div>
+      <p class="secH">Planet dressing</p>
+      <div class="row"><label class="check"><input type="checkbox" id="orbMode" checked>Planet mode (off = canvas)</label></div>
+      <div class="row"><label for="haloA">Halo</label><input type="range" id="haloA" min="0" max="100" value="50"><output id="haloAO">50</output></div>
+      <div class="row"><label for="vol">Volume</label><input type="range" id="vol" min="0" max="100" value="45"><output id="volO">45</output></div>
+      <div class="row"><label for="grain">Grain</label><input type="range" id="grain" min="0" max="100" value="12"><output id="grainO">12</output></div>
     </div>
 
     <div class="sec">
       <button class="btn" id="rnd" type="button">Randomize</button>
-      <p class="glErr" id="glErr">WebGL unavailable — showing nothing. The export still includes a static CSS fallback.</p>
+      <p class="glErr" id="glErr">WebGL unavailable — the export still includes a static CSS fallback.</p>
     </div>
 
     <div class="sec">
@@ -155,29 +158,35 @@
 </div>
 
 <script id="fluidEngine">
-/* FluidMesh — a no-dependency WebGL fluid mesh gradient.
-   Per-pixel value-noise layers sharpened with pow() (the Stripe-mesh move: the
-   exponent thresholds noise into distinct swooping bands), domain-warped
-   (Quilez f(p+f(p))), colours MIXED IN OKLAB so complementary hues never grey
-   out, plus a light point that brightens AND locally rotates hue — the volume
-   spots. Ships with DPR capping, hidden-tab pause, reduced-motion still frame,
-   context-loss recovery, and 1/255 dither against banding.
-   new FluidMesh(canvas, cfg) -> {set(cfg), destroy()}
-   cfg: {colors:[5x'#hex'], nodes:[5x[x,y]], light:[x,y], glow,warp,scale,flow,
-         grain, sharp} (all 0..1 except sharp ~4) */
+/* FluidMesh — a no-dependency WebGL fluid gradient.
+   THE FIELD MODEL (the iOS-wallpaper physics, not plasma): five colour SOURCES
+   orbit slowly (circular paths, per-node phase/speed) and every pixel blends
+   them by inverse-distance weighting — exponent ~1.4-2.2, the range where
+   fields stay massive and sweeping instead of blobby. A gentle low-frequency
+   domain warp melts the boundaries organically. All blending happens in OKLAB
+   with a mild chroma lift, so intersecting hues create clean new colours, never
+   mud. A light point brightens and locally rotates hue (the volume spots).
+   THE HALO: pass a second small canvas and the SAME shader renders into it in
+   the same frame (every 3rd) — a true synchronized reflection, GPU-only, no
+   drawImage readbacks.
+   Ships with DPR capping, hidden-tab pause, reduced-motion still frame,
+   context-loss recovery, and 1/255 dither.
+   new FluidMesh(canvas, cfg) -> {set(cfg), destroy()} | null if no WebGL
+   cfg: {colors:[5x'#hex'], nodes:[5x[x,y]], light:[x,y], glow, melt, sweep,
+         flow, grain, haloCanvas?} (all scalars 0..1) */
 function FluidMesh(canvas,cfg){
   "use strict";
   var VS="attribute vec2 aP;void main(){gl_Position=vec4(aP,0.,1.);}";
   var FS=""+
 "precision highp float;\n"+
 "uniform vec2 uRes;uniform float uTime;\n"+
-"uniform float uWarp,uScale,uGlow,uGrain,uSharp;\n"+
+"uniform float uMelt,uSweep,uGlow,uGrain;\n"+
 "uniform vec2 uLight;uniform vec3 uCol[5];uniform vec2 uPos[5];\n"+
 "float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}\n"+
 "float vnoise(vec2 p){vec2 i=floor(p),f=fract(p);vec2 u=f*f*(3.-2.*f);\n"+
 " float a=hash(i),b=hash(i+vec2(1.,0.)),c=hash(i+vec2(0.,1.)),d=hash(i+vec2(1.,1.));\n"+
 " return mix(mix(a,b,u.x),mix(c,d,u.x),u.y);}\n"+
-"float fbm(vec2 p){float v=0.,a=.5;for(int i=0;i<4;i++){v+=a*vnoise(p);p*=2.03;a*=.5;}return v;}\n"+
+"float fbm(vec2 p){float v=0.,a=.5;for(int i=0;i<3;i++){v+=a*vnoise(p);p*=2.03;a*=.5;}return v;}\n"+
 "vec3 srgb2ok(vec3 c){c=pow(max(c,0.),vec3(2.2));\n"+
 " float l=dot(c,vec3(.4122214708,.5363325363,.0514459929));\n"+
 " float m=dot(c,vec3(.2119034982,.6806995451,.1073969566));\n"+
@@ -199,92 +208,108 @@ function FluidMesh(canvas,cfg){
 " float aspect=uRes.x/uRes.y;\n"+
 " vec2 uv=gl_FragCoord.xy/uRes;\n"+
 " vec2 uvA=vec2((uv.x-.5)*aspect+.5,uv.y);\n"+
-" float sc=mix(.9,3.2,uScale);\n"+
-" vec2 q=uvA*sc;\n"+
-" /* domain warp: two fbm reads displace the sample point — the swoop */\n"+
-" vec2 w=vec2(fbm(q+uTime*.30),fbm(q+vec2(5.2,1.3)-uTime*.24));\n"+
-" vec2 p=q+(w-.5)*mix(0.,1.6,uWarp);\n"+
-" vec3 col=srgb2ok(uCol[0]);\n"+
-" for(int i=1;i<5;i++){\n"+
-"  vec2 anchor=vec2((uPos[i].x-.5)*aspect+.5,uPos[i].y);\n"+
-"  float n=fbm(p+uPos[i]*7.31+uTime*(.18+.07*float(i)));\n"+
-"  float m=pow(clamp(n*1.35-.12,0.,1.),uSharp);\n"+
-"  float g=exp(-1.7*distance(uvA,anchor));\n"+
-"  col=mix(col,srgb2ok(uCol[i]),clamp(m*g*2.7,0.,1.));\n"+
+" /* gentle low-frequency warp: melts boundaries without turning to smoke */\n"+
+" vec2 q=uvA*1.35;\n"+
+" vec2 w=vec2(fbm(q+uTime*.14),fbm(q+vec2(4.7,2.1)-uTime*.11));\n"+
+" vec2 p=uvA+(w-.5)*uMelt*.38;\n"+
+" /* five orbiting sources, inverse-distance weighted in OKLab */\n"+
+" float expo=mix(2.3,1.35,uMelt);\n"+
+" vec3 acc=vec3(0.);float tot=0.;\n"+
+" for(int i=0;i<5;i++){\n"+
+"  float fi=float(i);\n"+
+"  float sp=.35+.11*fi;\n"+
+"  float ph=fi*2.39996;\n"+
+"  float orad=uSweep*(.10+.035*fi);\n"+
+"  vec2 c=uPos[i]+orad*vec2(sin(uTime*sp+ph),cos(uTime*sp*.83+ph*1.7));\n"+
+"  vec2 cA=vec2((c.x-.5)*aspect+.5,c.y);\n"+
+"  float d=distance(p,cA);\n"+
+"  float wt=1./pow(d*d+.006,expo);\n"+
+"  acc+=srgb2ok(uCol[i])*wt;tot+=wt;\n"+
 " }\n"+
-" /* the light: brighten toward warm white AND rotate hue locally — the strange\n"+
-"    colour spots of a lit sphere, not a flat spotlight */\n"+
+" vec3 col=acc/tot;\n"+
+" col.yz*=1.08; /* chroma lift against blur-wash */\n"+
+" /* the light: brighten toward warm white AND rotate hue locally */\n"+
 " vec2 lp=vec2((uLight.x-.5)*aspect+.5,uLight.y);\n"+
 " float ld=distance(uvA,lp);\n"+
 " float lw=smoothstep(.62,.04,ld)*uGlow;\n"+
-" float ang=lw*1.35;\n"+
+" float ang=lw*1.25;\n"+
 " float ca=cos(ang),sa=sin(ang);\n"+
 " col.yz=mat2(ca,-sa,sa,ca)*col.yz;\n"+
-" col.x+=lw*.30;col.yz*=(1.-.35*lw);\n"+
+" col.x+=lw*.28;col.yz*=(1.-.33*lw);\n"+
 " vec3 rgb=ok2srgb(col);\n"+
-" /* dither (always) + film grain (dialable) */\n"+
 " float n2=hash(gl_FragCoord.xy+fract(uTime)*61.7);\n"+
-" rgb+=(n2-.5)*(1.5/255.)+(n2-.5)*uGrain*.10;\n"+
+" rgb+=(n2-.5)*(1.5/255.)+(n2-.5)*uGrain*.09;\n"+
 " gl_FragColor=vec4(rgb,1.);\n"+
 "}";
-  var gl=canvas.getContext("webgl",{antialias:true,alpha:false})||
-         canvas.getContext("experimental-webgl");
-  if(!gl)return null;
-  var prog,raf=0,t=0,last=0,dead=false,lost=false;
-  var reduce=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
-  function sh(type,src){var s=gl.createShader(type);gl.shaderSource(s,src);gl.compileShader(s);
-    if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw new Error(gl.getShaderInfoLog(s));return s;}
-  function setup(){
-    prog=gl.createProgram();
-    gl.attachShader(prog,sh(gl.VERTEX_SHADER,VS));
-    gl.attachShader(prog,sh(gl.FRAGMENT_SHADER,FS));
-    gl.linkProgram(prog);gl.useProgram(prog);
-    var buf=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buf);
-    gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,3,-1,-1,3]),gl.STATIC_DRAW);
-    var loc=gl.getAttribLocation(prog,"aP");
-    gl.enableVertexAttribArray(loc);gl.vertexAttribPointer(loc,2,gl.FLOAT,false,0,0);
-  }
-  function hex2rgb(h){var n=parseInt(h.slice(1),16);
-    return[((n>>16)&255)/255,((n>>8)&255)/255,(n&255)/255];}
-  function uniforms(){
-    var u=function(n){return gl.getUniformLocation(prog,n);};
-    gl.uniform2f(u("uRes"),canvas.width,canvas.height);
-    gl.uniform1f(u("uWarp"),cfg.warp);gl.uniform1f(u("uScale"),cfg.scale);
-    gl.uniform1f(u("uGlow"),cfg.glow);gl.uniform1f(u("uGrain"),cfg.grain);
-    gl.uniform1f(u("uSharp"),cfg.sharp||4.0);
-    gl.uniform2f(u("uLight"),cfg.light[0],1.-cfg.light[1]);
-    for(var i=0;i<5;i++){
-      var c=hex2rgb(cfg.colors[i]);
-      gl.uniform3f(u("uCol["+i+"]"),c[0],c[1],c[2]);
-      var p=cfg.nodes[i]||[.5,.5];
-      gl.uniform2f(u("uPos["+i+"]"),p[0],1.-p[1]);
+  function makeRenderer(cv,fixed){
+    var gl=cv.getContext("webgl",{antialias:true,alpha:false})||
+           cv.getContext("experimental-webgl");
+    if(!gl)return null;
+    var prog,lost=false;
+    function sh(type,src){var s=gl.createShader(type);gl.shaderSource(s,src);gl.compileShader(s);
+      if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw new Error(gl.getShaderInfoLog(s));return s;}
+    function setup(){
+      prog=gl.createProgram();
+      gl.attachShader(prog,sh(gl.VERTEX_SHADER,VS));
+      gl.attachShader(prog,sh(gl.FRAGMENT_SHADER,FS));
+      gl.linkProgram(prog);gl.useProgram(prog);
+      var buf=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buf);
+      gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,3,-1,-1,3]),gl.STATIC_DRAW);
+      var loc=gl.getAttribLocation(prog,"aP");
+      gl.enableVertexAttribArray(loc);gl.vertexAttribPointer(loc,2,gl.FLOAT,false,0,0);
     }
+    function size(){
+      if(fixed){if(cv.width!==fixed){cv.width=fixed;cv.height=fixed;gl.viewport(0,0,fixed,fixed);}return;}
+      var dpr=Math.min(window.devicePixelRatio||1,1.75);
+      var w=cv.clientWidth,h=cv.clientHeight;
+      if(!w||!h)return;
+      var W=Math.round(w*dpr),H=Math.round(h*dpr);
+      if(cv.width!==W||cv.height!==H){cv.width=W;cv.height=H;gl.viewport(0,0,W,H);}
+    }
+    function hex2rgb(h){var n=parseInt(h.slice(1),16);
+      return[((n>>16)&255)/255,((n>>8)&255)/255,(n&255)/255];}
+    function render(t,c){
+      if(lost)return;
+      size();
+      gl.useProgram(prog);
+      var u=function(n){return gl.getUniformLocation(prog,n);};
+      gl.uniform2f(u("uRes"),cv.width,cv.height);
+      gl.uniform1f(u("uTime"),t);
+      gl.uniform1f(u("uMelt"),c.melt);gl.uniform1f(u("uSweep"),c.sweep);
+      gl.uniform1f(u("uGlow"),c.glow);gl.uniform1f(u("uGrain"),c.grain);
+      gl.uniform2f(u("uLight"),c.light[0],1.-c.light[1]);
+      for(var i=0;i<5;i++){
+        var col=hex2rgb(c.colors[i]);
+        gl.uniform3f(u("uCol["+i+"]"),col[0],col[1],col[2]);
+        var p=c.nodes[i]||[.5,.5];
+        gl.uniform2f(u("uPos["+i+"]"),p[0],1.-p[1]);
+      }
+      gl.drawArrays(gl.TRIANGLES,0,3);
+    }
+    cv.addEventListener("webglcontextlost",function(e){e.preventDefault();lost=true;},false);
+    cv.addEventListener("webglcontextrestored",function(){lost=false;setup();},false);
+    setup();
+    return{render:render};
   }
-  function size(){
-    var dpr=Math.min(window.devicePixelRatio||1,1.75);
-    var w=canvas.clientWidth,h=canvas.clientHeight;
-    if(!w||!h)return;
-    var W=Math.round(w*dpr),H=Math.round(h*dpr);
-    if(canvas.width!==W||canvas.height!==H){canvas.width=W;canvas.height=H;
-      gl.viewport(0,0,W,H);}
-  }
+  var main=makeRenderer(canvas,0);
+  if(!main)return null;
+  var haloR=cfg.haloCanvas?makeRenderer(cfg.haloCanvas,64):null;
+  var raf=0,t=0,last=0,dead=false,fc=0;
+  var reduce=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
   function frame(now){
     raf=0;
-    if(dead||lost)return;
-    size();
+    if(dead)return;
     var dt=last?Math.min(.05,(now-last)/1000):0;last=now;
-    t+=dt*(0.05+cfg.flow*0.35);
-    gl.useProgram(prog);uniforms();
-    gl.uniform1f(gl.getUniformLocation(prog,"uTime"),t);
-    gl.drawArrays(gl.TRIANGLES,0,3);
+    t+=dt*(0.04+cfg.flow*0.30);
+    main.render(t,cfg);
+    if(haloR&&fc%3===0)haloR.render(t,cfg);
+    fc++;
     if(!reduce&&cfg.flow>0&&!document.hidden)raf=requestAnimationFrame(frame);
   }
-  function kick(){if(!raf&&!dead&&!lost){last=0;raf=requestAnimationFrame(frame);}}
-  canvas.addEventListener("webglcontextlost",function(e){e.preventDefault();lost=true;},false);
-  canvas.addEventListener("webglcontextrestored",function(){lost=false;setup();kick();},false);
+  function kick(){if(!raf&&!dead){last=0;raf=requestAnimationFrame(frame);}}
   document.addEventListener("visibilitychange",function(){if(!document.hidden)kick();});
   window.addEventListener("resize",kick);
-  setup();kick();
+  kick();
   return{
     set:function(next){for(var k in next)cfg[k]=next[k];kick();},
     destroy:function(){dead=true;if(raf)cancelAnimationFrame(raf);},
@@ -298,11 +323,11 @@ function FluidMesh(canvas,cfg){
   "use strict";
   var $=function(id){return document.getElementById(id);};
   var colorIds=["c1","c2","c3","c4","c5"];
-  var rangeIds=["flow","warp","scale","lx","ly","glow","haloA","vol","grain"];
+  var rangeIds=["flow","melt","sweep","lx","ly","glow","haloA","vol","grain"];
   var els={};colorIds.concat(rangeIds).forEach(function(k){els[k]=$(k);});
   els.orbMode=$("orbMode");
 
-  var nodes=[[.5,.5],[.24,.30],[.72,.42],[.70,.78],[.30,.68]];
+  var nodes=[[.5,.48],[.22,.28],[.74,.36],[.70,.78],[.28,.70]];
 
   function hexToHsl(hex){
     var n=parseInt(hex.slice(1),16),r=((n>>16)&255)/255,g=((n>>8)&255)/255,b=(n&255)/255;
@@ -325,71 +350,73 @@ function FluidMesh(canvas,cfg){
       colors:colorIds.map(function(id){return els[id].value;}),
       nodes:nodes,
       light:[+els.lx.value/100,+els.ly.value/100],
-      glow:+els.glow.value/100, warp:+els.warp.value/100,
-      scale:+els.scale.value/100, flow:+els.flow.value/100,
-      grain:+els.grain.value/100, sharp:4.0
+      glow:+els.glow.value/100, melt:+els.melt.value/100,
+      sweep:+els.sweep.value/100, flow:+els.flow.value/100,
+      grain:+els.grain.value/100
     };
   }
 
-  var mesh=FluidMesh($("fluid"),cfg());
+  var base=cfg();base.haloCanvas=$("haloCanvas");
+  var mesh=FluidMesh($("fluid"),base);
   if(!mesh)$("glErr").style.display="block";
 
-  function dressing(v){
+  function volShadow(v){
     var A=hexToHsl(v.colors[0]),C=hexToHsl(v.colors[3]);
-    var haloA=+els.haloA.value/100, vol=+els.vol.value/100;
+    var vol=+els.vol.value/100;
     var ux=(v.light[0]*100-50)/50, uy=(v.light[1]*100-50)/50;
-    var halo="radial-gradient(42% 42% at 32% 26%, "+hsl(A.h,A.s,70,(0.9*haloA).toFixed(2))+", transparent 70%),"
-      +"radial-gradient(46% 46% at 74% 58%, "+hsl(C.h,C.s,68,(0.8*haloA).toFixed(2))+", transparent 72%),"
-      +"radial-gradient(60% 60% at 50% 55%, "+hsl(hexToHsl(v.colors[1]).h,80,60,(0.5*haloA).toFixed(2))+", transparent 74%)";
-    var volSh="inset calc(var(--R)*"+(ux*0.12).toFixed(3)+") calc(var(--R)*"+(uy*0.12).toFixed(3)
+    return "inset calc(var(--R)*"+(ux*0.12).toFixed(3)+") calc(var(--R)*"+(uy*0.12).toFixed(3)
       +") calc(var(--R)*0.19) 0 "+hsl(C.h,75,14,(0.5*vol).toFixed(2))
       +",inset calc(var(--R)*"+(-ux*0.08).toFixed(3)+") calc(var(--R)*"+(-uy*0.08).toFixed(3)
       +") calc(var(--R)*0.13) 0 "+hsl(A.h,50,96,(0.55*vol).toFixed(2));
-    return{halo:halo,volSh:volSh};
+  }
+  function fallbackHalo(v,alpha){
+    var A=hexToHsl(v.colors[0]),B=hexToHsl(v.colors[1]),C=hexToHsl(v.colors[3]);
+    return "radial-gradient(42% 42% at 32% 26%, "+hsl(A.h,A.s,70,(0.9*alpha).toFixed(2))+", transparent 70%),"
+      +"radial-gradient(46% 46% at 74% 58%, "+hsl(C.h,C.s,68,(0.8*alpha).toFixed(2))+", transparent 72%),"
+      +"radial-gradient(60% 60% at 50% 55%, "+hsl(B.h,B.s,60,(0.5*alpha).toFixed(2))+", transparent 74%)";
   }
 
   function apply(){
     var v=cfg();
     if(mesh)mesh.set(v);
-    var d=dressing(v);
-    $("halo").style.background=d.halo;
-    $("discClip").style.setProperty("--volSh",d.volSh);
+    var haloA=+els.haloA.value/100;
+    $("halo").style.setProperty("--haloA",haloA.toFixed(2));
+    if(!mesh)$("halo").style.background=fallbackHalo(v,haloA);
+    $("discClip").style.setProperty("--volSh",volShadow(v));
     var orb=els.orbMode.checked;
     $("stage").classList.toggle("bgMode",!orb);
     var canvas=$("fluid");
     var host=orb?$("discClip"):$("bgHost");
     if(canvas.parentNode!==host)host.insertBefore(canvas,host.firstChild);
-    writeCode(v,d,orb);
+    writeCode(v,orb,haloA);
   }
   function syncOutputs(){
     rangeIds.forEach(function(k){var o=$(k+"O");if(o)o.textContent=els[k].value;});
   }
 
-  function writeCode(v,d,orb){
+  function writeCode(v,orb,haloA){
     var engine=document.getElementById("fluidEngine").textContent;
-    var conf=JSON.stringify({colors:v.colors,nodes:v.nodes,light:v.light,glow:v.glow,
-      warp:v.warp,scale:v.scale,flow:v.flow,grain:v.grain,sharp:4},null,1);
-    var fallback=".fluidFallback{background:"
-      +"radial-gradient(70% 70% at 32% 28%, "+v.colors[0]+", transparent 70%),"
-      +"radial-gradient(70% 70% at 72% 46%, "+v.colors[1]+", transparent 72%),"
-      +"radial-gradient(80% 80% at 60% 78%, "+v.colors[3]+", "+v.colors[2]+" 60%,transparent 85%)}";
+    var conf={colors:v.colors,nodes:v.nodes,light:v.light,glow:v.glow,
+      melt:v.melt,sweep:v.sweep,flow:v.flow,grain:v.grain};
+    var fallback=".fmFallback{background:"+fallbackHalo(v,0.9)+"}";
     var lines=[];
     lines.push("<!-- Fluid Mesh — generated by Gradient Lab -->");
     if(orb){
       lines.push(
 '<div class="fmOrb">',
-'  <div class="fmHaloWrap"><div class="fmHalo"></div></div>',
+'  <div class="fmHaloWrap"><div class="fmHalo"><canvas class="fmHaloCanvas"></canvas></div></div>',
 '  <div class="fmClip"><canvas class="fmCanvas"></canvas></div>',
 '</div>',
 "<style>",
 ".fmOrb{position:relative;aspect-ratio:1;--R:215px} /* set --R to half your orb width */",
 ".fmHaloWrap{position:absolute;inset:-26%;pointer-events:none;mix-blend-mode:multiply}",
-".fmHalo{position:absolute;inset:0;border-radius:50%;filter:blur(calc(var(--R)*0.37));",
-"  background:"+d.halo+"}",
+".fmHalo{position:absolute;inset:0;border-radius:50%;overflow:hidden;",
+"  filter:blur(calc(var(--R)*0.34));opacity:"+haloA.toFixed(2)+"}",
+".fmHalo canvas{position:absolute;inset:-8%;width:116%;height:116%;display:block}",
 ".fmClip{position:absolute;inset:0;border-radius:50%;overflow:hidden;",
 "  isolation:isolate;transform:translateZ(0)}",
 ".fmClip::after{content:\"\";position:absolute;inset:0;border-radius:50%;",
-"  pointer-events:none;z-index:2;box-shadow:"+d.volSh+"}",
+"  pointer-events:none;z-index:2;box-shadow:"+volShadow(v)+"}",
 ".fmCanvas{position:absolute;inset:0;width:100%;height:100%;display:block}",
 fallback,
 "</style>");
@@ -404,14 +431,15 @@ fallback,
     }
     lines.push("<script>");
     lines.push(engine.trim());
-    lines.push("var fm=FluidMesh(document.querySelector('.fmCanvas'),"+conf+");");
-    lines.push("if(!fm)document.querySelector('.fmCanvas').parentNode.classList.add('fluidFallback');");
+    var init="var fmCfg="+JSON.stringify(conf)+";";
+    if(orb)init+="fmCfg.haloCanvas=document.querySelector('.fmHaloCanvas');";
+    lines.push(init);
+    lines.push("var fm=FluidMesh(document.querySelector('.fmCanvas'),fmCfg);");
+    lines.push("if(!fm)document.querySelector('.fmCanvas').parentNode.classList.add('fmFallback');");
     lines.push("<\/script>");
     $("code").textContent=lines.join("\n");
   }
 
-  /* randomize: 5-node palettes — 3 analogous + 1 counter + 1 cream lift,
-     plus fresh node scatter and light */
   function rnd(a,b){return a+Math.random()*(b-a);}
   function randomize(){
     var h=rnd(0,360);
@@ -422,11 +450,11 @@ fallback,
     els.c4.value=hslToHex(hues[3],rnd(60,92),rnd(38,55));
     els.c5.value=hslToHex(hues[4],rnd(45,70),rnd(76,88));
     els.lx.value=Math.round(rnd(22,48));els.ly.value=Math.round(rnd(18,40));
-    nodes=[[.5,.5],
-      [rnd(.14,.38),rnd(.18,.42)],
-      [rnd(.58,.84),rnd(.28,.52)],
-      [rnd(.56,.84),rnd(.62,.88)],
-      [rnd(.16,.42),rnd(.56,.84)]];
+    nodes=[[.5,rnd(.42,.56)],
+      [rnd(.14,.36),rnd(.18,.40)],
+      [rnd(.60,.84),rnd(.24,.48)],
+      [rnd(.58,.84),rnd(.62,.88)],
+      [rnd(.16,.40),rnd(.58,.84)]];
     syncOutputs();apply();
   }
 
