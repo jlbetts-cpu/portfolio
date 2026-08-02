@@ -123,6 +123,7 @@
           <option value="6">Butter Stream</option>
           <option value="7">Silk Dusk</option>
           <option value="8">Breeze Field</option>
+          <option value="9">Curtain Rose</option>
         </select>
         </span>
       </p>
@@ -132,6 +133,7 @@
           <option value="1">Streams</option>
           <option value="2">Silk</option>
           <option value="3">Field</option>
+          <option value="4">Pleats</option>
         </select>
       </p>
     </div>
@@ -386,6 +388,21 @@ function FluidMesh(canvas,cfg){
 "  okR.x+=shade+hl*.20;okG.x+=shade+hl*.20;okB.x+=shade+hl*.20;\n"+
 "  okR.yz*=cd;okG.yz*=cd;okB.yz*=cd;\n"+
 " }\n"+
+" /* PLEATS: periodic parallel micro-folds — a triangle wave keeps the ridges\n"+
+"    straight and even (curtain pleats, not draped silk), with a narrow specular\n"+
+"    on each crest. Fold slider becomes the pleat COUNT. */\n"+
+" if(uForm>3.5&&uForm<4.5){\n"+
+"  float pAng=uBend*3.14159;\n"+
+"  vec2 dirP=vec2(cos(pAng),sin(pAng));\n"+
+"  float freq=mix(10.,44.,uFoldA);\n"+
+"  float thP=dot(uvA,dirP)*freq+.35*fbm(uvA*1.3+uTime*.03)+uTime*.05;\n"+
+"  float tri=abs(fract(thP/6.28318)*2.-1.);\n"+
+"  float shadeP=(tri-.5)*.15;\n"+
+"  float hlP=pow(1.-tri,8.)*uFoldSh;\n"+
+"  float cdP=1.-.18*hlP;\n"+
+"  okR.x+=shadeP+hlP*.16;okG.x+=shadeP+hlP*.16;okB.x+=shadeP+hlP*.16;\n"+
+"  okR.yz*=cdP;okG.yz*=cdP;okB.yz*=cdP;\n"+
+" }\n"+
 " vec3 linR=ok2srgb(okR),linG=ok2srgb(okG),linB=ok2srgb(okB);\n"+
 " /* wide gamut: on P3 buffers the saturated cores get the extra chroma the\n"+
 "    reference packs actually live in; sRGB displays fall back untouched */\n"+
@@ -565,7 +582,11 @@ function FluidMesh(canvas,cfg){
     {name:"Breeze Field",form:3,
      colors:["#f2ede0","#e8657a","#22334a","#f4e2c8","#8fb8a8"],
      nodes:[N(.44,.24,1.6,.18,-8),N(.60,.62,1.3,.22,-14),N(.30,.82,1.2,.16,-6),N(.82,.34,.9,.12,-10),N(.14,.48,.8,.1,-8)],
-     lx:44,ly:18,glow:20, flow:30,melt:24,wob:34,bend:8,sweep:18,expo:100,fringe:0, haloA:0,vol:0,grain:26,glass:62,edgeF:0}
+     lx:44,ly:18,glow:20, flow:30,melt:24,wob:34,bend:8,sweep:18,expo:100,fringe:0, haloA:0,vol:0,grain:26,glass:62,edgeF:0},
+    {name:"Curtain Rose",form:4,
+     colors:["#f6dfe4","#e88aa4","#c2456f","#7a2d4a","#f8ecd8"],
+     nodes:[N(.30,.24,1.5,.16,-80),N(.62,.40,1.2,.20,-84),N(.50,.74,1.2,.18,-78),N(.82,.60,.9,.14,-82),N(.12,.55,.8,.12,-80)],
+     lx:42,ly:18,glow:24, flow:26,melt:58,wob:6,bend:3,foldA:42,foldSh:48,sweep:16,expo:100,fringe:0, haloA:0,vol:0,grain:12,glass:22,edgeF:0}
   ];
 
   function hexToHsl(hex){
@@ -656,10 +677,11 @@ function FluidMesh(canvas,cfg){
     var host=orb?$("discClip"):$("bgHost");
     if(canvas.parentNode!==host)host.insertBefore(canvas,host.firstChild);
     /* contextual controls: each Form shows only the sliders that shape it */
-    $("bendRow").style.display=(v.form===1||v.form===2)?"":"none";
-    $("bendLbl").textContent=(v.form===2)?"Drape angle":"Bend";
-    $("foldRow").style.display=(v.form===2)?"":"none";
-    $("sheenRow").style.display=(v.form===2)?"":"none";
+    $("bendRow").style.display=(v.form===1||v.form===2||v.form===4)?"":"none";
+    $("bendLbl").textContent=(v.form===2)?"Drape angle":(v.form===4)?"Pleat angle":"Bend";
+    $("foldRow").style.display=(v.form===2||v.form===4)?"":"none";
+    $("foldRow").querySelector("label").textContent=(v.form===4)?"Pleats":"Fold";
+    $("sheenRow").style.display=(v.form===2||v.form===4)?"":"none";
     $("dressSec").style.display=orb?"":"none";
     els.edgeF.closest(".row").style.display=orb?"":"none";
     els.fringe.closest(".row").style.display=orb?"":"none";
