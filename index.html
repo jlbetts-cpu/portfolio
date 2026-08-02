@@ -461,7 +461,25 @@ body.moodInCta .heroCtas:not(.in) .faceMoodCorner{opacity:0!important;visibility
 @media(prefers-reduced-motion:reduce){.csCursor{display:none}}
 @media(hover:none),(pointer:coarse){.csCursor,.csInfoCard{display:none!important}}
 /* the head-maker teaser: an empty oval with living eyes, waiting for a face */
-.csPanel[data-panel=goodness] [data-slug=headmaker]{margin-top:clamp(128px,18vh,240px)}.hmTease{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;background:var(--c100)}
+.csPanel[data-panel=goodness] [data-slug=headmaker]{margin-top:clamp(128px,18vh,240px)}
+/* GRADIENT LAB tease. A CSS-only orb stands in for the WebGL engine so the home
+   page carries no shader cost; the live thing is one click away. Same anatomy the
+   engine renders: atmosphere behind, crisp disc, light off-centre. */
+.csPanel[data-panel=goodness] [data-slug=gradientlab]{margin-top:clamp(96px,14vh,180px)}
+.glTease{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;background:var(--c100);position:relative}
+.glOrb{position:relative;height:min(58%,220px);aspect-ratio:1;flex:none}
+.glOrb::before{content:"";position:absolute;inset:-26%;border-radius:50%;
+  background:radial-gradient(46% 46% at 34% 28%,rgba(242,160,61,.42),transparent 70%),
+             radial-gradient(48% 48% at 72% 62%,rgba(109,52,232,.34),transparent 72%);
+  filter:blur(26px)}
+.glOrb i{position:absolute;inset:0;border-radius:50%;display:block;
+  background:radial-gradient(58% 54% at 34% 26% in oklab,#ffe6bd,rgba(242,160,61,.9) 46%,transparent 76%),
+             radial-gradient(66% 62% at 68% 44% in oklab,#e2472e,transparent 74%),
+             radial-gradient(74% 70% at 62% 80% in oklab,#6d34e8,transparent 76%),
+             radial-gradient(130% 130% at 50% 46% in oklab,#f2a03d,#4a1f6e 96%);
+  box-shadow:inset -14px -16px 34px rgba(24,10,40,.42),inset 10px 10px 24px rgba(255,240,214,.34)}
+.glTeaseLine{font-size:var(--fs-caption);color:var(--c500);letter-spacing:.08em;text-transform:uppercase}
+@media(max-width:640px){.glTease{gap:12px}.glOrb{height:min(54%,150px)}}.hmTease{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;background:var(--c100)}
 .hmOvalT{width:clamp(96px,12vw,150px);aspect-ratio:5/6;border-radius:50%;background:var(--c50);box-shadow:inset 0 0 0 1px rgba(8,8,8,.3);display:flex;align-items:center;justify-content:center;gap:14%;padding-top:4%}
 .hmEyeT{width:20%;aspect-ratio:2/1;border-radius:50%;background:#fff;box-shadow:inset 0 0 0 1px rgba(8,8,8,.22);position:relative;overflow:hidden}
 .hmEyeT i{position:absolute;left:22%;top:-4%;width:56%;height:108%;border-radius:50%;background:#141414;animation:hmLookT 7s steps(1,end) infinite}
@@ -2363,7 +2381,22 @@ body.hmFinal .sbRound{color:#e8b347}
        </figure>
       </a>
       <div class="csMeta"><span class="csName">Make your own head</span><span class="csYear">2026</span></div>
+      <article class="csItem" data-slug="gradientlab">
+   <div class="csTrack">
+    <div class="csStage">
+     <div class="csStageInner">
+      <a class="csGo" href="gradientlab.html" aria-label="Gradient Lab — a WebGL fluid gradient builder">
+       <figure class="csFrame glTease">
+        <span class="glOrb" aria-hidden="true"><i></i></span>
+        <span class="glTeaseLine" aria-hidden="true">Light, built in a shader.</span>
+       </figure>
+      </a>
+      <div class="csMeta"><span class="csName">Gradient Lab</span><span class="csYear">2026</span></div>
      </div>
+    </div>
+   </div>
+  </article>
+ </div>
     </div>
    </div>
   </article>
