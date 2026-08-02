@@ -23,7 +23,28 @@
   header span{color:var(--sub);font-size:12px;letter-spacing:.12em;text-transform:uppercase}
 
   .lab{display:grid;grid-template-columns:1fr 320px;min-height:100vh}
-  @media(max-width:880px){.lab{grid-template-columns:1fr}.panel{position:static;max-height:none;margin:0 16px 26px}}
+  @media(max-width:880px){
+    .lab{grid-template-columns:1fr}
+    .panel{position:static;max-height:none;margin:0 12px 24px;padding:16px 16px 10px}
+    .stage{min-height:56vh;padding:58px 14px 16px}
+    .orbWrap{width:min(430px,86vw)}
+    .orbWrap.orb2{width:min(300px,46vw)}
+    .orbWrap.orb3{width:min(215px,33vw)}
+    header{padding:14px 16px 0}
+    .row{margin:14px 0}
+    /* touch targets: the 2px track keeps the look, the thumb carries the finger */
+    input[type=range]::-webkit-slider-thumb{width:20px;height:20px}
+    input[type=range]{touch-action:pan-y}
+    input[type=color]{width:34px;height:34px}
+    select{max-width:150px;font-size:13px;padding:7px 8px}
+    .miniBtn{padding:7px 11px}
+    pre{max-height:150px;font-size:10px}
+  }
+  @media(max-width:420px){
+    .swRow{gap:8px}
+    .secH{font-size:10px;letter-spacing:.12em}
+    .row label{font-size:12.5px}
+  }
 
   .stage{position:relative;display:flex;align-items:center;justify-content:center;
     min-height:72vh;padding:80px 30px 40px}
@@ -146,6 +167,12 @@
           <option value="5">Marble</option>
         </select>
       </p>
+      <p class="secH" style="margin-top:12px">Shape
+        <select id="shape" aria-label="Shape">
+          <option value="orb" selected>Orb</option>
+          <option value="bleed">Full-bleed</option>
+        </select>
+      </p>
     </div>
 
     <div class="sec">
@@ -251,7 +278,7 @@ function FluidMesh(canvas,cfg){
 "#extension GL_OES_standard_derivatives : enable\n"+
 "precision highp float;\n"+
 "uniform vec2 uRes;uniform float uTime;\n"+
-"uniform float uMelt,uSweep,uGlow,uGrain,uFringe,uExpo,uOrb,uWob,uFeath,uGlass;\n"+
+"uniform float uMelt,uSweep,uGlow,uGrain,uFringe,uExpo,uOrb,uWob,uFeath,uGlass,uSph;\n"+
 "uniform float uForm,uBend,uFoldA,uFoldSh,uContour,uDpr,uTension,uRim,uLayer;\n"+
 "uniform vec2 uLight;uniform vec3 uCol[5];\n"+
 "uniform vec2 uPos[5];uniform float uSize[5];uniform float uLen[5];uniform float uAng[5];\n"+
@@ -278,7 +305,7 @@ function FluidMesh(canvas,cfg){
 " g.yz=a0.yz*x12.xz+h.yz*x12.yw;\n"+
 " return 130.*dot(m,g);\n"+
 "}\n"+
-"float fbm(vec2 p){float v=0.,a=.5;for(int i=0;i<3;i++){v+=a*(snoise(p)*.5+.5);p*=2.03;a*=.5;}return v;}\n"+
+"float fbm(vec2 p){float v=0.,a=.5;for(int i=0;i<4;i++){v+=a*(snoise(p)*.5+.5);p*=2.03;a*=.5;}return v;}\n"+
 "/* true piecewise sRGB EOTF/OETF — pow(2.2) drifts hue in the darks, and this\n"+
 "   pipeline is colour-critical now that it feeds Display-P3 */\n"+
 "vec3 srgbDec(vec3 c){return mix(c/12.92,pow((c+.055)/1.055,vec3(2.4)),step(.04045,c));}\n"+
@@ -324,7 +351,7 @@ function FluidMesh(canvas,cfg){
 "    mutually averaging into smudge. Node 5 paints last, on top. */\n"+
 " vec3 colL=srgb2ok(uCol[0]);\n"+
 " float w1=0.,w2=0.;\n"+
-" bool sph=uOrb>.5;\n"+
+" bool sph=uSph>.5;\n"+
 " vec3 P=sph?sphPt((p-vec2(.5))*2.):vec3(0.);\n"+
 " for(int i=0;i<5;i++){\n"+
 "  float fi=float(i);\n"+
@@ -406,10 +433,13 @@ function FluidMesh(canvas,cfg){
 "               fbm(qm*1.7+(w1-.5)*2.4+vec2(2.3,5.1)));\n"+
 "  p=uvA+(w2-.5)*uWob*.55;\n"+
 " }else{\n"+
+"  /* Quilez three-level domain warp f(p+f(p+f(p))): organic without turbulence\n"+
+"     because the amplitude stays small relative to feature size */\n"+
 "  vec2 q=uvA*1.35;\n"+
-"  vec2 w=vec2(fbm(q+uTime*.14),fbm(q+vec2(4.7,2.1)-uTime*.11));\n"+
+"  vec2 w0=vec2(fbm(q+vec2(1.7,9.2)),fbm(q+vec2(8.3,2.8)));\n"+
+"  vec2 w1=vec2(fbm(q+w0*.42+uTime*.14),fbm(q+w0*.42+vec2(4.7,2.1)-uTime*.11));\n"+
 "  /* wobble decoupled from softness: the references' boundaries are CALM */\n"+
-"  p=uvA+(w-.5)*uWob*.38;\n"+
+"  p=uvA+(w1-.5)*uWob*.38;\n"+
 " }\n"+
 " /* PLEATS AS GLASS: each strip is a rib of glass over the gradient — it\n"+
 "    REFRACTS the field beneath (displaced sampling), it doesn't paint stripes */\n"+
@@ -558,7 +588,7 @@ function FluidMesh(canvas,cfg){
     }
     function hex2rgb(h){var n=parseInt(h.slice(1),16);
       return[((n>>16)&255)/255,((n>>8)&255)/255,(n&255)/255];}
-    function render(t,c,feath,orbOv){
+    function render(t,c,feath,orbOv,sphOv){
       if(lost)return;
       size();
       gl.useProgram(prog);
@@ -570,6 +600,7 @@ function FluidMesh(canvas,cfg){
       gl.uniform1f(u("uGlow"),c.glow);gl.uniform1f(u("uGrain"),c.grain);
       gl.uniform1f(u("uFringe"),c.fringe);gl.uniform1f(u("uExpo"),c.expo);
       gl.uniform1f(u("uOrb"),orbOv!==undefined?orbOv:c.orb);gl.uniform1f(u("uWob"),c.wob||0);
+      gl.uniform1f(u("uSph"),sphOv!==undefined?sphOv:(c.sph||0));
       gl.uniform1f(u("uFeath"),feath||0);gl.uniform1f(u("uGlass"),c.glass||0);
       gl.uniform1f(u("uForm"),c.form||0);gl.uniform1f(u("uBend"),c.bend||0);
       gl.uniform1f(u("uFoldA"),c.foldA||0);gl.uniform1f(u("uFoldSh"),c.foldSh||0);
@@ -625,9 +656,9 @@ function FluidMesh(canvas,cfg){
        preserveDrawingBuffer cost) */
     snapshot:function(w,h){
       var cv2=document.createElement("canvas");cv2.width=w;cv2.height=h;
-      var r2=makeRenderer(cv2,[w,h],cfg.form===0||cfg.orb===1);
+      var r2=makeRenderer(cv2,[w,h],cfg.orb===1);
       if(!r2)return null;
-      r2.render(t,cfg,(cfg.form===0)?(cfg.edgeF||0):0);
+      r2.render(t,cfg,(cfg.orb===1)?(cfg.edgeF||0):0);
       return cv2;
     },
     canvas:canvas
@@ -643,7 +674,7 @@ function FluidMesh(canvas,cfg){
   var rangeIds=["flow","melt","wob","contour","tension","rim","layer","bend","foldA","foldSh","edgeF","glass","sweep","expo","fringe","lx","ly","glow","haloA","vol","grain"];
   var nodeRangeIds=["nx","ny","nsize","nlen","nang"];
   var els={};colorIds.concat(rangeIds).concat(nodeRangeIds).forEach(function(k){els[k]=$(k);});
-  els.form=$("form");els.nodeSel=$("nodeSel");els.preset=$("preset");
+  els.form=$("form");els.nodeSel=$("nodeSel");els.preset=$("preset");els.shape=$("shape");
 
   function N(x,y,size,len,angDeg){return{x:x,y:y,size:size,len:len,ang:angDeg*Math.PI/180};}
   var nodes=[N(.5,.48,1,0,0),N(.22,.28,1,0,0),N(.74,.36,1,0,0),N(.70,.78,1,0,0),N(.28,.70,1,0,0)];
@@ -818,7 +849,7 @@ function FluidMesh(canvas,cfg){
     $("halo").style.setProperty("--haloA",haloA.toFixed(2));
     if(!mesh)$("halo").style.background=fallbackHalo(v,haloA);
     $("discClip").style.setProperty("--volSh",volShadow(v));
-    var orb=(v.form===0);
+    var orb=(els.shape.value==="orb");
     $("stage").classList.toggle("bgMode",!orb);
     var canvas=$("fluid");
     var host=orb?$("discClip"):$("bgHost");
@@ -857,6 +888,7 @@ function FluidMesh(canvas,cfg){
     els.tension.value=(p.tension!==undefined)?p.tension:40;
     els.rim.value=(p.rim!==undefined)?p.rim:((p.form||0)===0?35:0);
     els.layer.value=(p.layer!==undefined)?p.layer:55;
+    els.shape.value=p.shape?p.shape:(((p.form||0)===0)?"orb":"bleed");
     ["lx","ly","glow","flow","melt","wob","bend","foldA","foldSh","edgeF","glass","sweep","expo","fringe","haloA","vol","grain"]
       .forEach(function(k){if(p[k]!==undefined)els[k].value=p[k];});
     loadNodeSliders();syncOutputs();apply();
@@ -871,7 +903,7 @@ function FluidMesh(canvas,cfg){
       light:v.light,glow:v.glow,melt:v.melt,sweep:v.sweep,flow:v.flow,
       grain:v.grain,fringe:v.fringe,expo:v.expo,orb:v.orb,
       wob:v.wob,edgeF:v.edgeF,glass:v.glass,
-      form:v.form,bend:v.bend,foldA:v.foldA,foldSh:v.foldSh,contour:v.contour};
+      form:v.form,sph:v.sph,orb:v.orb,bend:v.bend,foldA:v.foldA,foldSh:v.foldSh,contour:v.contour};
     var fallback=".fmFallback{background:"+fallbackHalo(v,0.9)+"}";
     var lines=["<!-- Fluid Mesh — generated by Gradient Lab -->"];
     if(orb){
@@ -990,6 +1022,14 @@ fallback,
   });
   els.nodeSel.addEventListener("input",loadNodeSliders);
   els.form.addEventListener("input",function(){markCustom();apply();});
+  els.shape.addEventListener("input",function(){
+    /* Orb brings its dressing: a field authored full-bleed carries no halo,
+       rim or feather, so becoming a planet would render a flat disc */
+    if(els.shape.value==="orb"&&(+els.edgeF.value+ +els.haloA.value+ +els.rim.value)===0){
+      els.edgeF.value=34;els.haloA.value=50;els.rim.value=35;els.vol.value=45;
+      syncOutputs();
+    }
+    markCustom();apply();});
   $("scene").addEventListener("input",apply);
 
   /* ---- saved presets: the full state, persisted, listed under the built-ins ---- */
