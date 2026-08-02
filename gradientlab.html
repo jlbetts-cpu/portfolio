@@ -51,6 +51,14 @@
   .sec:last-of-type{border-bottom:0}
   .secH{font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;
     color:var(--sub);margin:0 0 12px;display:flex;justify-content:space-between;align-items:center}
+  /* progressive disclosure: the deep controls fold away — the panel greets you
+     with Preset, Palette, Randomize, Export only */
+  details.sec>summary.secH{cursor:pointer;list-style:none;margin:0;user-select:none}
+  details.sec>summary.secH::-webkit-details-marker{display:none}
+  details.sec>summary.secH::after{content:"+";font-size:13px;color:var(--sub)}
+  details.sec[open]>summary.secH::after{content:"–"}
+  details.sec[open]>summary.secH{margin-bottom:12px}
+  details.sec>summary.secH:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
   .row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:10px 0}
   .row label{color:var(--ink);font-size:13px;white-space:nowrap}
   .row output{color:var(--sub);font-size:12px;font-variant-numeric:tabular-nums;min-width:34px;text-align:right}
@@ -133,47 +141,48 @@
       </div>
     </div>
 
-    <div class="sec">
-      <p class="secH">Node
+    <details class="sec">
+      <summary class="secH">Node editor</summary>
+      <div class="row"><label for="nodeSel">Editing</label>
         <select id="nodeSel" aria-label="Edit node">
           <option value="0" selected>Node 1</option><option value="1">Node 2</option>
           <option value="2">Node 3</option><option value="3">Node 4</option>
           <option value="4">Node 5</option>
         </select>
-      </p>
+      </div>
       <div class="row"><label for="nx">X</label><input type="range" id="nx" min="0" max="100" value="50"><output id="nxO">50</output></div>
       <div class="row"><label for="ny">Y</label><input type="range" id="ny" min="0" max="100" value="50"><output id="nyO">50</output></div>
       <div class="row"><label for="nsize">Size</label><input type="range" id="nsize" min="10" max="200" value="100"><output id="nsizeO">100</output></div>
       <div class="row"><label for="nlen">Length</label><input type="range" id="nlen" min="0" max="100" value="0"><output id="nlenO">0</output></div>
       <div class="row"><label for="nang">Angle</label><input type="range" id="nang" min="-90" max="90" value="0"><output id="nangO">0</output></div>
-    </div>
+    </details>
 
-    <div class="sec">
-      <p class="secH">Field</p>
+    <details class="sec">
+      <summary class="secH">Field</summary>
       <div class="row"><label for="flow">Speed</label><input type="range" id="flow" min="0" max="100" value="40"><output id="flowO">40</output></div>
       <div class="row"><label for="melt">Melt</label><input type="range" id="melt" min="0" max="100" value="55"><output id="meltO">55</output></div>
-      <div class="row"><label for="wob">Wobble</label><input type="range" id="wob" min="0" max="100" value="10"><output id="wobO">10</output></div>
+      <div class="row"><label for="wob">Wobble</label><input type="range" id="wob" min="0" max="100" value="6"><output id="wobO">6</output></div>
       <div class="row"><label for="edgeF">Edge</label><input type="range" id="edgeF" min="0" max="100" value="34"><output id="edgeFO">34</output></div>
       <div class="row"><label for="glass">Glass</label><input type="range" id="glass" min="0" max="100" value="42"><output id="glassO">42</output></div>
       <div class="row"><label for="sweep">Sweep</label><input type="range" id="sweep" min="0" max="100" value="45"><output id="sweepO">45</output></div>
       <div class="row"><label for="expo">Exposure</label><input type="range" id="expo" min="40" max="115" value="100"><output id="expoO">100</output></div>
       <div class="row"><label for="fringe">Fringe</label><input type="range" id="fringe" min="0" max="100" value="20"><output id="fringeO">20</output></div>
-    </div>
+    </details>
 
-    <div class="sec">
-      <p class="secH">Light</p>
+    <details class="sec">
+      <summary class="secH">Light</summary>
       <div class="row"><label for="lx">Light X</label><input type="range" id="lx" min="0" max="100" value="36"><output id="lxO">36</output></div>
       <div class="row"><label for="ly">Light Y</label><input type="range" id="ly" min="0" max="100" value="30"><output id="lyO">30</output></div>
       <div class="row"><label for="glow">Glow</label><input type="range" id="glow" min="0" max="100" value="50"><output id="glowO">50</output></div>
-    </div>
+    </details>
 
-    <div class="sec">
-      <p class="secH">Planet dressing</p>
+    <details class="sec">
+      <summary class="secH">Planet dressing</summary>
       <div class="row"><label class="check"><input type="checkbox" id="orbMode" checked>Planet mode (off = canvas)</label></div>
       <div class="row"><label for="haloA">Halo</label><input type="range" id="haloA" min="0" max="100" value="50"><output id="haloAO">50</output></div>
       <div class="row"><label for="vol">Volume</label><input type="range" id="vol" min="0" max="100" value="45"><output id="volO">45</output></div>
-      <div class="row"><label for="grain">Grain</label><input type="range" id="grain" min="0" max="100" value="12"><output id="grainO">12</output></div>
-    </div>
+      <div class="row"><label for="grain">Grain</label><input type="range" id="grain" min="0" max="100" value="8"><output id="grainO">8</output></div>
+    </details>
 
     <div class="sec">
       <button class="btn" id="rnd" type="button">Randomize everything</button>
@@ -258,12 +267,17 @@ function FluidMesh(canvas,cfg){
 " vec3 P=sph?sphPt((p-vec2(.5))*2.):vec3(0.);\n"+
 " for(int i=0;i<5;i++){\n"+
 "  float fi=float(i);\n"+
-"  float sp=.35+.11*fi;\n"+
 "  float ph=fi*2.39996;\n"+
-"  float orad=uSweep*(.09+.03*fi);\n"+
-"  vec2 c=uPos[i]+orad*vec2(sin(uTime*sp+ph),cos(uTime*sp*.83+ph*1.7));\n"+
-"  float an=uAng[i]+.10*sin(uTime*.23+ph);\n"+
-"  float d;\n"+
+"  /* COHERENT motion: the whole field turns and breathes as ONE — a slow\n"+
+"     shared rotation with a gentle per-node radial breath, replacing the\n"+
+"     independent orbits whose wandering read as splotch drift */\n"+
+"  float gA=uTime*.085*(.3+uSweep);\n"+
+"  float br=1.+.05*uSweep*sin(uTime*.45+ph);\n"+
+"  vec2 rp=(uPos[i]-.5)*br;\n"+
+"  float cg=cos(gA),sgn=sin(gA);\n"+
+"  vec2 c=vec2(.5)+mat2(cg,-sgn,sgn,cg)*rp;\n"+
+"  float an=uAng[i]+gA+.06*sin(uTime*.23+ph);\n"+
+"  float d;float tapM=1.;\n"+
 "  if(sph){\n"+
 "   vec3 N=sphPt((c-vec2(.5))*1.84);\n"+
 "   float chN=length(P-N);\n"+
@@ -274,6 +288,10 @@ function FluidMesh(canvas,cfg){
 "    float planeD=dot(P,normalize(cross(N,t3)));\n"+
 "    float capX=max(0.,chN-uLen[i]*2.4);\n"+
 "    d=sqrt(planeD*planeD*1.9+capX*capX);\n"+
+"    /* the brush-stroke taper: width dies toward the band's ends — a capsule's\n"+
+"       constant width with round caps is the 'awkward splotch' signature */\n"+
+"    float uA=clamp(chN/(uLen[i]*2.4+1e-5),0.,1.);\n"+
+"    tapM=1.-.45*uA*uA;\n"+
 "   }\n"+
 "   d*=.62; /* chord units run 0..2; rescale toward disc units */\n"+
 "  }else{\n"+
@@ -282,16 +300,16 @@ function FluidMesh(canvas,cfg){
 "   a.x=(a.x-.5)*aspect+.5;b.x=(b.x-.5)*aspect+.5;\n"+
 "   d=sdSeg(p,a,b);\n"+
 "  }\n"+
-"  float sg=max(uSize[i],.05)*soft;\n"+
+"  float sg=max(uSize[i],.05)*soft*tapM;\n"+
 "  float wt=exp(-(d*d)/(2.*sg*sg));\n"+
 "  acc+=srgb2ok(uCol[i])*wt;tot+=wt;\n"+
 "  if(wt>w1){w2=w1;w1=wt;}else if(wt>w2){w2=wt;}\n"+
 " }\n"+
 " vec3 col=acc/tot;\n"+
-" /* the glass seam: where two colours BALANCE, luminance lifts — boundaries\n"+
-"    glow faintly brighter than either side, like dye layers in backlit glass */\n"+
+" /* the glass seam: where two colours BALANCE, luminance lifts AND the hue\n"+
+"    shifts WARM — the references' seams glow yellow-warm, never white */\n"+
 " float g=4.*w1*w2/((w1+w2)*(w1+w2)+1e-6);\n"+
-" col.x+=g*uGlass*.085;col.yz*=(1.+g*uGlass*.14);\n"+
+" col.x+=g*uGlass*.055;col.y+=g*uGlass*.035;col.yz*=(1.+g*uGlass*.09);\n"+
 " return col;\n"+
 "}\n"+
 "void main(){\n"+
@@ -437,28 +455,28 @@ function FluidMesh(canvas,cfg){
   var PRESETS=[
     {name:"ULR — Glacier",
      colors:["#eaf5f0","#93c7e8","#4a77d4","#2c4f9e","#f2c4d8"],
-     nodes:[N(.52,.20,1.15,0,0),N(.30,.44,1,.10,-25),N(.38,.66,.85,.30,-33),N(.72,.60,.8,.14,-30),N(.84,.30,.45,0,0)],
-     lx:50,ly:16,glow:48, flow:38,melt:52,wob:8,sweep:30,expo:102,fringe:46, haloA:52,vol:32,grain:14},
+     nodes:[N(.50,.24,1.9,.10,-28),N(.32,.56,1.3,.14,-30),N(.50,.62,.95,.34,-32),N(.74,.76,1.15,.16,-30),N(.86,.34,.36,.08,-30)],
+     lx:50,ly:16,glow:48, flow:38,melt:64,wob:8,sweep:30,expo:102,fringe:46, haloA:52,vol:32,grain:14},
     {name:"Thoby — Deep Teal",
      colors:["#12333a","#0c2027","#1d4a42","#37826a","#e8994a"],
-     nodes:[N(.44,.40,1.3,.1,20),N(.30,.72,1.1,.16,35),N(.62,.30,.9,.18,55),N(.78,.62,.55,.22,70),N(.86,.42,.30,.18,75)],
-     lx:32,ly:24,glow:22, flow:36,melt:44,wob:12,sweep:26,expo:66,fringe:78, haloA:26,vol:52,grain:18},
+     nodes:[N(.42,.38,1.8,.14,25),N(.30,.72,1.4,.18,35),N(.68,.44,.9,.30,60),N(.60,.20,1.3,.16,40),N(.87,.50,.30,.16,72)],
+     lx:32,ly:24,glow:22, flow:36,melt:56,wob:12,sweep:26,expo:66,fringe:78, haloA:26,vol:52,grain:18},
     {name:"Ember",
      colors:["#f2a03d","#e2472e","#8a2d5f","#5f2dc2","#ffd9a0"],
-     nodes:[N(.55,.34,1.2,0,0),N(.60,.66,1.1,.12,10),N(.74,.80,.8,.1,25),N(.16,.44,.42,0,0),N(.40,.20,.8,.1,-20)],
-     lx:44,ly:22,glow:58, flow:40,melt:55,wob:10,sweep:34,expo:96,fringe:26, haloA:56,vol:44,grain:12},
+     nodes:[N(.40,.55,1.6,.16,-20),N(.62,.68,1.25,.18,-15),N(.78,.84,1.0,.16,-15),N(.15,.44,.36,.06,-20),N(.55,.24,1.9,.12,-15)],
+     lx:44,ly:22,glow:58, flow:40,melt:67,wob:10,sweep:34,expo:96,fringe:26, haloA:56,vol:44,grain:12},
     {name:"Verdant",
      colors:["#dcecdc","#f0a83c","#3f9a6e","#8fd4b4","#e8703a"],
-     nodes:[N(.42,.26,1.1,.1,-15),N(.52,.52,.9,.28,-32),N(.70,.80,.9,.2,-25),N(.24,.72,.7,.14,-40),N(.80,.40,.5,.12,-30)],
-     lx:40,ly:20,glow:44, flow:38,melt:50,wob:12,sweep:30,expo:100,fringe:56, haloA:50,vol:36,grain:14},
+     nodes:[N(.44,.24,1.8,.10,-25),N(.52,.52,.9,.32,-32),N(.62,.78,1.3,.18,-28),N(.24,.62,1.0,.14,-35),N(.84,.42,.34,.08,-30)],
+     lx:40,ly:20,glow:44, flow:38,melt:62,wob:12,sweep:30,expo:100,fringe:56, haloA:50,vol:36,grain:14},
     {name:"Harshaf — Lilac",
      colors:["#e0e3f5","#a8b2ec","#6072d8","#3947a8","#cdd4f2"],
-     nodes:[N(.52,.30,1.2,0,0),N(.68,.56,1,.12,20),N(.34,.68,.95,.16,30),N(.24,.84,.7,.1,15),N(.76,.22,.7,0,0)],
-     lx:52,ly:22,glow:40, flow:34,melt:62,wob:6,sweep:28,expo:100,fringe:18, haloA:48,vol:34,grain:12},
+     nodes:[N(.50,.26,1.9,.08,15),N(.66,.54,1.25,.12,20),N(.34,.66,1.2,.16,25),N(.26,.86,.95,.12,15),N(.78,.22,.8,0,0)],
+     lx:52,ly:22,glow:40, flow:34,melt:74,wob:6,sweep:28,expo:100,fringe:18, haloA:48,vol:34,grain:12},
     {name:"Good & Evil",
      colors:["#e8d9b0","#e84a6f","#c23d3d","#241a12","#8a9a3f"],
-     nodes:[N(.66,.22,1.1,.12,-20),N(.40,.62,1.05,.16,-25),N(.66,.74,.9,.14,-20),N(.38,.32,.85,.30,-33),N(.82,.52,.4,.12,-30)],
-     lx:70,ly:18,glow:44, flow:38,melt:48,wob:10,sweep:28,expo:92,fringe:52, haloA:50,vol:48,grain:16}
+     nodes:[N(.68,.24,1.6,.14,-22),N(.42,.60,1.3,.16,-24),N(.64,.78,1.15,.16,-20),N(.34,.30,.95,.34,-32),N(.84,.50,.34,.10,-28)],
+     lx:70,ly:18,glow:44, flow:38,melt:60,wob:10,sweep:28,expo:92,fringe:52, haloA:50,vol:48,grain:16}
   ];
 
   function hexToHsl(hex){
