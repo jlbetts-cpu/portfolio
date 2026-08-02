@@ -71,7 +71,7 @@ function FluidMesh(canvas,cfg){
 "precision highp float;\n"+
 "uniform vec2 uRes;uniform float uTime;\n"+
 "uniform float uMelt,uSweep,uGlow,uGrain,uFringe,uExpo,uOrb,uWob,uFeath,uGlass;\n"+
-"uniform float uForm,uBend,uFoldA,uFoldSh,uContour,uDpr;\n"+
+"uniform float uForm,uBend,uFoldA,uFoldSh,uContour,uDpr,uTension,uRim;\n"+
 "uniform vec2 uLight;uniform vec3 uCol[5];\n"+
 "uniform vec2 uPos[5];uniform float uSize[5];uniform float uLen[5];uniform float uAng[5];\n"+
 "float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}\n"+
@@ -178,6 +178,16 @@ function FluidMesh(canvas,cfg){
 "   d=sqrt(pow(max(0.,abs(uu)-L*2.2),2.)+vv*vv);\n"+
 "  }\n"+
 "  float sg=max(uSize[i],.05)*soft*tapM;\n"+
+"  /* TENSION: the reference crescents have a TAUT edge facing the light and a\n"+
+"     feathered dissolve behind — asymmetric falloff per mass, sharp flank\n"+
+"     toward the light, broad flank away */\n"+
+"  if(uTension>0.){\n"+
+"   vec2 cA2=vec2((c.x-.5)*aspect+.5,c.y);\n"+
+"   vec2 lpF=vec2((uLight.x-.5)*aspect+.5,1.-uLight.y);\n"+
+"   vec2 toL=lpF-cA2;vec2 toP=p-cA2;\n"+
+"   float fl=dot(normalize(toP+vec2(1e-5)),normalize(toL+vec2(1e-5)));\n"+
+"   sg*=mix(1.+uTension*.55,1.-uTension*.45,smoothstep(-.6,.6,fl));\n"+
+"  }\n"+
 "  /* grain IN the colour: the static triangular noise perturbs the distance\n"+
 "     BEFORE the falloff — transitions dissolve into stochastic dot clouds\n"+
 "     while mass cores stay clean, the riso construction */\n"+
@@ -190,7 +200,9 @@ function FluidMesh(canvas,cfg){
 " /* the glass seam: where two colours BALANCE, luminance lifts — boundaries\n"+
 "    glow faintly brighter than either side, like dye layers in backlit glass */\n"+
 " float g=4.*w1*w2/((w1+w2)*(w1+w2)+1e-6);\n"+
-" col.x+=g*uGlass*.085;col.yz*=(1.+g*uGlass*.14);\n"+
+" /* where colours balance, chroma RISES — reference intersections glow with\n"+
+"    saturated new hues instead of washing toward grey */\n"+
+" col.x+=g*uGlass*.085;col.yz*=(1.+g*uGlass*.34);\n"+
 " return col;\n"+
 "}\n"+
 "void main(){\n"+
@@ -282,6 +294,22 @@ function FluidMesh(canvas,cfg){
 "  float addC=uContour*(.11*lineB-.055*shade);\n"+
 "  okR.x+=addC;okG.x+=addC;okB.x+=addC;\n"+
 " }\n"+
+" /* THE SPECULAR RIM: a bright warm arc INSIDE the silhouette facing the\n"+
+"    light, limb shading opposite — in-shader, so it fades with the feathered\n"+
+"    edge instead of drawing a ring over it */\n"+
+" if(uOrb>.5&&uRim>0.){\n"+
+"  float rr2=length(uv-.5)*2.;\n"+
+"  float limb=smoothstep(.70,.94,rr2)*(1.-smoothstep(.94,1.,rr2));\n"+
+"  vec2 rd2=normalize(uvA-vec2(.5)+vec2(1e-5));\n"+
+"  vec2 ld2=normalize(lp-vec2(.5)+vec2(1e-5));\n"+
+"  float face=dot(rd2,ld2);\n"+
+"  float spec=limb*smoothstep(.1,.9,face)*uRim;\n"+
+"  float shad=limb*smoothstep(.1,.9,-face)*uRim;\n"+
+"  float dR=spec*.32-shad*.20;\n"+
+"  okR.x+=dR;okG.x+=dR;okB.x+=dR;\n"+
+"  float cc=1.-.28*spec;\n"+
+"  okR.yz*=cc;okG.yz*=cc;okB.yz*=cc;\n"+
+" }\n"+
 " vec3 linR=ok2srgb(okR),linG=ok2srgb(okG),linB=ok2srgb(okB);\n"+
 " /* wide gamut: on P3 buffers the saturated cores get the extra chroma the\n"+
 "    reference packs actually live in; sRGB displays fall back untouched */\n"+
@@ -356,6 +384,7 @@ function FluidMesh(canvas,cfg){
       gl.uniform1f(u("uFoldA"),c.foldA||0);gl.uniform1f(u("uFoldSh"),c.foldSh||0);
       gl.uniform1f(u("uContour"),derivOK?(c.contour||0):0);
       gl.uniform1f(u("uDpr"),Math.min(window.devicePixelRatio||1,2.25));
+      gl.uniform1f(u("uTension"),c.tension||0);gl.uniform1f(u("uRim"),c.rim||0);
       gl.uniform2f(u("uLight"),c.light[0],1.-c.light[1]);
       for(var i=0;i<5;i++){
         var col=hex2rgb(c.colors[i]);
@@ -425,17 +454,17 @@ function FluidMesh(canvas,cfg){
      colors:["#f2a03d","#e2472e","#8a2d5f","#5f2dc2","#ffd9a0"],
      nodes:[N(.55,.34,1.2,0,0),N(.60,.66,1.1,.12,10),N(.74,.80,.8,.1,25),N(.16,.44,.42,0,0),N(.40,.20,.8,.1,-20)],
      light:[.44,.22],glow:.58,melt:.55,wob:.10,sweep:.34,expo:.96,fringe:.26,
-     haloA:.56,grain:.12,glass:.42,edgeF:.34,contour:.18,flow:.40},
+     haloA:.56,grain:.12,glass:.42,edgeF:.34,contour:.18,flow:.40,tension:.40,rim:.35},
     {name:"Glacier",serial:"GL — 002",
      colors:["#eaf5f0","#93c7e8","#4a77d4","#2c4f9e","#f2c4d8"],
      nodes:[N(.52,.20,1.15,0,0),N(.30,.44,1,.10,-25),N(.38,.66,.85,.30,-33),N(.72,.60,.8,.14,-30),N(.84,.30,.45,0,0)],
      light:[.50,.16],glow:.48,melt:.52,wob:.08,sweep:.30,expo:1.02,fringe:.46,
-     haloA:.52,grain:.14,glass:.42,edgeF:.34,contour:.18,flow:.38},
+     haloA:.52,grain:.14,glass:.42,edgeF:.34,contour:.18,flow:.38,tension:.45,rim:.40},
     {name:"Lilac",serial:"GL — 003",
      colors:["#e0e3f5","#a8b2ec","#6072d8","#3947a8","#cdd4f2"],
      nodes:[N(.52,.30,1.2,0,0),N(.68,.56,1,.12,20),N(.34,.68,.95,.16,30),N(.24,.84,.7,.1,15),N(.76,.22,.7,0,0)],
      light:[.52,.22],glow:.40,melt:.62,wob:.06,sweep:.28,expo:1.00,fringe:.18,
-     haloA:.48,grain:.12,glass:.42,edgeF:.34,contour:.18,flow:.34}
+     haloA:.48,grain:.12,glass:.42,edgeF:.34,contour:.18,flow:.34,tension:.35,rim:.38}
   ];
 
   function hexToHsl(hex){
@@ -464,7 +493,7 @@ function FluidMesh(canvas,cfg){
     var wrap=cell.querySelector(".orbWrap");
     var cfg={colors:o.colors.slice(),nodes:o.nodes,light:o.light,glow:o.glow,
       melt:o.melt,wob:o.wob,sweep:o.sweep,expo:o.expo,fringe:o.fringe,
-      grain:o.grain,glass:o.glass,contour:o.contour,flow:o.flow,
+      grain:o.grain,glass:o.glass,contour:o.contour,flow:o.flow,tension:o.tension,rim:o.rim,
       form:0,orb:1,edgeF:o.edgeF,
       haloCanvas:cell.querySelector(".halo canvas")};
     wrap.style.setProperty("--haloA",o.haloA);

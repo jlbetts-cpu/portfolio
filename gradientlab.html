@@ -180,6 +180,8 @@
       <div class="row"><label for="melt">Melt</label><input type="range" id="melt" min="0" max="100" value="55"><output id="meltO">55</output></div>
       <div class="row"><label for="wob">Wobble</label><input type="range" id="wob" min="0" max="100" value="10"><output id="wobO">10</output></div>
       <div class="row"><label for="contour">Contour</label><input type="range" id="contour" min="0" max="100" value="18"><output id="contourO">18</output></div>
+      <div class="row"><label for="tension">Tension</label><input type="range" id="tension" min="0" max="100" value="40"><output id="tensionO">40</output></div>
+      <div class="row"><label for="rim">Rim</label><input type="range" id="rim" min="0" max="100" value="35"><output id="rimO">35</output></div>
       <div class="row" id="bendRow" style="display:none"><label for="bend" id="bendLbl">Bend</label><input type="range" id="bend" min="0" max="100" value="40"><output id="bendO">40</output></div>
       <div class="row" id="foldRow" style="display:none"><label for="foldA">Fold</label><input type="range" id="foldA" min="0" max="100" value="55"><output id="foldAO">55</output></div>
       <div class="row" id="sheenRow" style="display:none"><label for="foldSh">Sheen</label><input type="range" id="foldSh" min="0" max="100" value="45"><output id="foldShO">45</output></div>
@@ -249,7 +251,7 @@ function FluidMesh(canvas,cfg){
 "precision highp float;\n"+
 "uniform vec2 uRes;uniform float uTime;\n"+
 "uniform float uMelt,uSweep,uGlow,uGrain,uFringe,uExpo,uOrb,uWob,uFeath,uGlass;\n"+
-"uniform float uForm,uBend,uFoldA,uFoldSh,uContour,uDpr;\n"+
+"uniform float uForm,uBend,uFoldA,uFoldSh,uContour,uDpr,uTension,uRim;\n"+
 "uniform vec2 uLight;uniform vec3 uCol[5];\n"+
 "uniform vec2 uPos[5];uniform float uSize[5];uniform float uLen[5];uniform float uAng[5];\n"+
 "float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}\n"+
@@ -356,6 +358,16 @@ function FluidMesh(canvas,cfg){
 "   d=sqrt(pow(max(0.,abs(uu)-L*2.2),2.)+vv*vv);\n"+
 "  }\n"+
 "  float sg=max(uSize[i],.05)*soft*tapM;\n"+
+"  /* TENSION: the reference crescents have a TAUT edge facing the light and a\n"+
+"     feathered dissolve behind — asymmetric falloff per mass, sharp flank\n"+
+"     toward the light, broad flank away */\n"+
+"  if(uTension>0.){\n"+
+"   vec2 cA2=vec2((c.x-.5)*aspect+.5,c.y);\n"+
+"   vec2 lpF=vec2((uLight.x-.5)*aspect+.5,1.-uLight.y);\n"+
+"   vec2 toL=lpF-cA2;vec2 toP=p-cA2;\n"+
+"   float fl=dot(normalize(toP+vec2(1e-5)),normalize(toL+vec2(1e-5)));\n"+
+"   sg*=mix(1.+uTension*.55,1.-uTension*.45,smoothstep(-.6,.6,fl));\n"+
+"  }\n"+
 "  /* grain IN the colour: the static triangular noise perturbs the distance\n"+
 "     BEFORE the falloff — transitions dissolve into stochastic dot clouds\n"+
 "     while mass cores stay clean, the riso construction */\n"+
@@ -368,7 +380,9 @@ function FluidMesh(canvas,cfg){
 " /* the glass seam: where two colours BALANCE, luminance lifts — boundaries\n"+
 "    glow faintly brighter than either side, like dye layers in backlit glass */\n"+
 " float g=4.*w1*w2/((w1+w2)*(w1+w2)+1e-6);\n"+
-" col.x+=g*uGlass*.085;col.yz*=(1.+g*uGlass*.14);\n"+
+" /* where colours balance, chroma RISES — reference intersections glow with\n"+
+"    saturated new hues instead of washing toward grey */\n"+
+" col.x+=g*uGlass*.085;col.yz*=(1.+g*uGlass*.34);\n"+
 " return col;\n"+
 "}\n"+
 "void main(){\n"+
@@ -460,6 +474,22 @@ function FluidMesh(canvas,cfg){
 "  float addC=uContour*(.11*lineB-.055*shade);\n"+
 "  okR.x+=addC;okG.x+=addC;okB.x+=addC;\n"+
 " }\n"+
+" /* THE SPECULAR RIM: a bright warm arc INSIDE the silhouette facing the\n"+
+"    light, limb shading opposite — in-shader, so it fades with the feathered\n"+
+"    edge instead of drawing a ring over it */\n"+
+" if(uOrb>.5&&uRim>0.){\n"+
+"  float rr2=length(uv-.5)*2.;\n"+
+"  float limb=smoothstep(.70,.94,rr2)*(1.-smoothstep(.94,1.,rr2));\n"+
+"  vec2 rd2=normalize(uvA-vec2(.5)+vec2(1e-5));\n"+
+"  vec2 ld2=normalize(lp-vec2(.5)+vec2(1e-5));\n"+
+"  float face=dot(rd2,ld2);\n"+
+"  float spec=limb*smoothstep(.1,.9,face)*uRim;\n"+
+"  float shad=limb*smoothstep(.1,.9,-face)*uRim;\n"+
+"  float dR=spec*.32-shad*.20;\n"+
+"  okR.x+=dR;okG.x+=dR;okB.x+=dR;\n"+
+"  float cc=1.-.28*spec;\n"+
+"  okR.yz*=cc;okG.yz*=cc;okB.yz*=cc;\n"+
+" }\n"+
 " vec3 linR=ok2srgb(okR),linG=ok2srgb(okG),linB=ok2srgb(okB);\n"+
 " /* wide gamut: on P3 buffers the saturated cores get the extra chroma the\n"+
 "    reference packs actually live in; sRGB displays fall back untouched */\n"+
@@ -534,6 +564,7 @@ function FluidMesh(canvas,cfg){
       gl.uniform1f(u("uFoldA"),c.foldA||0);gl.uniform1f(u("uFoldSh"),c.foldSh||0);
       gl.uniform1f(u("uContour"),derivOK?(c.contour||0):0);
       gl.uniform1f(u("uDpr"),Math.min(window.devicePixelRatio||1,2.25));
+      gl.uniform1f(u("uTension"),c.tension||0);gl.uniform1f(u("uRim"),c.rim||0);
       gl.uniform2f(u("uLight"),c.light[0],1.-c.light[1]);
       for(var i=0;i<5;i++){
         var col=hex2rgb(c.colors[i]);
@@ -597,7 +628,7 @@ function FluidMesh(canvas,cfg){
   "use strict";
   var $=function(id){return document.getElementById(id);};
   var colorIds=["c1","c2","c3","c4","c5"];
-  var rangeIds=["flow","melt","wob","contour","bend","foldA","foldSh","edgeF","glass","sweep","expo","fringe","lx","ly","glow","haloA","vol","grain"];
+  var rangeIds=["flow","melt","wob","contour","tension","rim","bend","foldA","foldSh","edgeF","glass","sweep","expo","fringe","lx","ly","glow","haloA","vol","grain"];
   var nodeRangeIds=["nx","ny","nsize","nlen","nang"];
   var els={};colorIds.concat(rangeIds).concat(nodeRangeIds).forEach(function(k){els[k]=$(k);});
   els.form=$("form");els.nodeSel=$("nodeSel");els.preset=$("preset");
@@ -688,7 +719,8 @@ function FluidMesh(canvas,cfg){
       bend:(+els.form.value===2)?(+els.bend.value/100):(+els.bend.value/100*.9),
       foldA:+els.foldA.value/100, foldSh:+els.foldSh.value/100,
       wob:+els.wob.value/100, edgeF:+els.edgeF.value/100,
-      glass:+els.glass.value/100, contour:+els.contour.value/100
+      glass:+els.glass.value/100, contour:+els.contour.value/100,
+      tension:+els.tension.value/100, rim:+els.rim.value/100
     };
   }
 
@@ -809,6 +841,8 @@ function FluidMesh(canvas,cfg){
     nodes=p.nodes.map(function(nd){return{x:nd.x,y:nd.y,size:nd.size,len:nd.len,ang:nd.ang};});
     els.form.value=String(p.form||0);
     els.contour.value=(p.contour!==undefined)?p.contour:18;
+    els.tension.value=(p.tension!==undefined)?p.tension:40;
+    els.rim.value=(p.rim!==undefined)?p.rim:((p.form||0)===0?35:0);
     ["lx","ly","glow","flow","melt","wob","bend","foldA","foldSh","edgeF","glass","sweep","expo","fringe","haloA","vol","grain"]
       .forEach(function(k){if(p[k]!==undefined)els[k].value=p[k];});
     loadNodeSliders();syncOutputs();apply();
