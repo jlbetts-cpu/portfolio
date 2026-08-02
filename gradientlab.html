@@ -35,7 +35,11 @@
   .haloWrap{position:absolute;inset:-26%;pointer-events:none;mix-blend-mode:multiply}
   .halo{position:absolute;inset:0;border-radius:50%;overflow:hidden;
     filter:blur(calc(var(--R)*0.34));opacity:var(--haloA,.5)}
-  .halo canvas{position:absolute;inset:-8%;width:116%;height:116%;display:block}
+  /* the halo may only ever FADE — the radial mask kills the pale ring where the
+     glow canvas used to terminate at its circle's rim */
+  .halo canvas{position:absolute;inset:-8%;width:116%;height:116%;display:block;
+    -webkit-mask-image:radial-gradient(closest-side,#000 28%,transparent 76%);
+    mask-image:radial-gradient(closest-side,#000 28%,transparent 76%)}
   .discClip{position:absolute;inset:0;border-radius:50%;overflow:hidden;
     isolation:isolate;transform:translateZ(0)}
   .discClip::after{content:"";position:absolute;inset:0;border-radius:50%;
@@ -175,6 +179,7 @@
       <div class="row"><label for="flow">Speed</label><input type="range" id="flow" min="0" max="100" value="40"><output id="flowO">40</output></div>
       <div class="row"><label for="melt">Melt</label><input type="range" id="melt" min="0" max="100" value="55"><output id="meltO">55</output></div>
       <div class="row"><label for="wob">Wobble</label><input type="range" id="wob" min="0" max="100" value="10"><output id="wobO">10</output></div>
+      <div class="row"><label for="contour">Contour</label><input type="range" id="contour" min="0" max="100" value="18"><output id="contourO">18</output></div>
       <div class="row" id="bendRow" style="display:none"><label for="bend" id="bendLbl">Bend</label><input type="range" id="bend" min="0" max="100" value="40"><output id="bendO">40</output></div>
       <div class="row" id="foldRow" style="display:none"><label for="foldA">Fold</label><input type="range" id="foldA" min="0" max="100" value="55"><output id="foldAO">55</output></div>
       <div class="row" id="sheenRow" style="display:none"><label for="foldSh">Sheen</label><input type="range" id="foldSh" min="0" max="100" value="45"><output id="foldShO">45</output></div>
@@ -240,10 +245,11 @@ function FluidMesh(canvas,cfg){
   "use strict";
   var VS="attribute vec2 aP;void main(){gl_Position=vec4(aP,0.,1.);}";
   var FS=""+
+"#extension GL_OES_standard_derivatives : enable\n"+
 "precision highp float;\n"+
 "uniform vec2 uRes;uniform float uTime;\n"+
 "uniform float uMelt,uSweep,uGlow,uGrain,uFringe,uExpo,uOrb,uWob,uFeath,uGlass;\n"+
-"uniform float uForm,uBend,uFoldA,uFoldSh;\n"+
+"uniform float uForm,uBend,uFoldA,uFoldSh,uContour;\n"+
 "uniform vec2 uLight;uniform vec3 uCol[5];\n"+
 "uniform vec2 uPos[5];uniform float uSize[5];uniform float uLen[5];uniform float uAng[5];\n"+
 "float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}\n"+
@@ -380,6 +386,18 @@ function FluidMesh(canvas,cfg){
 "  /* wobble decoupled from softness: the references' boundaries are CALM */\n"+
 "  p=uvA+(w-.5)*uWob*.38;\n"+
 " }\n"+
+" /* PLEATS AS GLASS: each strip is a rib of glass over the gradient — it\n"+
+"    REFRACTS the field beneath (displaced sampling), it doesn't paint stripes */\n"+
+" float stripEdge=0.;\n"+
+" if(uForm>3.5&&uForm<4.5){\n"+
+"  float pAng=uBend*3.14159;\n"+
+"  vec2 dirP=vec2(cos(pAng),sin(pAng));\n"+
+"  float freq=mix(8.,36.,uFoldA);\n"+
+"  float thP=dot(uvA,dirP)*freq+uTime*.05;\n"+
+"  float ph01=fract(thP/6.28318);\n"+
+"  p+=dirP*(ph01-.5)*.05;\n"+
+"  stripEdge=smoothstep(.93,1.,ph01)+smoothstep(.07,0.,ph01);\n"+
+" }\n"+
 " /* chromatic fringe: sample the field per-channel along the radial direction,\n"+
 "    zero at centre, max at the limb (planet mode only) */\n"+
 " float rr=length(uv-.5);\n"+
@@ -411,20 +429,27 @@ function FluidMesh(canvas,cfg){
 "  okR.x+=shade+hl*.20;okG.x+=shade+hl*.20;okB.x+=shade+hl*.20;\n"+
 "  okR.yz*=cd;okG.yz*=cd;okB.yz*=cd;\n"+
 " }\n"+
-" /* PLEATS: periodic parallel micro-folds — a triangle wave keeps the ridges\n"+
-"    straight and even (curtain pleats, not draped silk), with a narrow specular\n"+
-"    on each crest. Fold slider becomes the pleat COUNT. */\n"+
+" /* glass rib edges: thin bright lines where the strips meet, chroma thinning\n"+
+"    under the highlight — the refraction itself happened before sampling */\n"+
 " if(uForm>3.5&&uForm<4.5){\n"+
-"  float pAng=uBend*3.14159;\n"+
-"  vec2 dirP=vec2(cos(pAng),sin(pAng));\n"+
-"  float freq=mix(10.,44.,uFoldA);\n"+
-"  float thP=dot(uvA,dirP)*freq+.35*fbm(uvA*1.3+uTime*.03)+uTime*.05;\n"+
-"  float tri=abs(fract(thP/6.28318)*2.-1.);\n"+
-"  float shadeP=(tri-.5)*.15;\n"+
-"  float hlP=pow(1.-tri,8.)*uFoldSh;\n"+
-"  float cdP=1.-.18*hlP;\n"+
-"  okR.x+=shadeP+hlP*.16;okG.x+=shadeP+hlP*.16;okB.x+=shadeP+hlP*.16;\n"+
+"  float hlE=stripEdge*uFoldSh;\n"+
+"  float cdP=1.-.16*hlE;\n"+
+"  okR.x+=hlE*.14;okG.x+=hlE*.14;okB.x+=hlE*.14;\n"+
 "  okR.yz*=cdP;okG.yz*=cdP;okB.yz*=cdP;\n"+
+" }\n"+
+" /* CONTOUR LIGHTING — the statement lines. The field is shaded by its own\n"+
+"    screen-space derivatives: tight curves catch light like real folds, and\n"+
+"    fast colour boundaries sharpen into deliberate drawn lines that belong to\n"+
+"    the gradient because they ARE the gradient. */\n"+
+" if(uContour>0.){\n"+
+"  float Lc=okG.x;\n"+
+"  vec2 gv=vec2(dFdx(Lc),dFdy(Lc));\n"+
+"  float mag=length(gv)*min(uRes.x,uRes.y)*.5;\n"+
+"  vec2 li=normalize(uvA-lp+vec2(1e-4));\n"+
+"  float shade=clamp(dot(gv,li)*min(uRes.x,uRes.y)*.5,-1.,1.);\n"+
+"  float lineB=smoothstep(.4,1.8,mag);\n"+
+"  float addC=uContour*(.11*lineB-.055*shade);\n"+
+"  okR.x+=addC;okG.x+=addC;okB.x+=addC;\n"+
 " }\n"+
 " vec3 linR=ok2srgb(okR),linG=ok2srgb(okG),linB=ok2srgb(okB);\n"+
 " /* wide gamut: on P3 buffers the saturated cores get the extra chroma the\n"+
@@ -433,7 +458,9 @@ function FluidMesh(canvas,cfg){
 " vec3 rgb=vec3(srgbEnc(linR).r,srgbEnc(linG).g,srgbEnc(linB).b);\n"+
 " /* Jimenez interleaved-gradient-noise dither + dialable film grain */\n"+
 " float ign=fract(52.9829189*fract(dot(gl_FragCoord.xy,vec2(.06711056,.00583715))));\n"+
-" rgb+=(ign-.5)*(2./255.)+(hash(gl_FragCoord.xy+fract(uTime)*61.7)-.5)*uGrain*.09;\n"+
+" /* grain with real range: dialled up it reaches risograph, not just anti-band */\n"+
+" float gn=hash(gl_FragCoord.xy+fract(uTime)*61.7)-.5;\n"+
+" rgb+=(ign-.5)*(2./255.)+gn*uGrain*.30;\n"+
 " /* the feathered limb: the sphere dissolves into its own halo — no line where\n"+
 "    the form ends and the glow begins. Premultiplied alpha over a transparent\n"+
 "    canvas; the live halo behind shows through the fade. */\n"+
@@ -455,6 +482,7 @@ function FluidMesh(canvas,cfg){
         p3On=(gl.drawingBufferColorSpace==="display-p3");}catch(e){}
     }
     var prog,lost=false,U={};
+    var derivOK=!!gl.getExtension("OES_standard_derivatives");
     function loc(n){if(!(n in U))U[n]=gl.getUniformLocation(prog,n);return U[n];}
     function sh(type,src){var s=gl.createShader(type);gl.shaderSource(s,src);gl.compileShader(s);
       if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw new Error(gl.getShaderInfoLog(s));return s;}
@@ -472,7 +500,7 @@ function FluidMesh(canvas,cfg){
     function size(){
       if(fixed){var FW=fixed.length?fixed[0]:fixed,FH=fixed.length?fixed[1]:fixed;
         if(cv.width!==FW||cv.height!==FH){cv.width=FW;cv.height=FH;gl.viewport(0,0,FW,FH);}return;}
-      var dpr=Math.min(window.devicePixelRatio||1,1.75);
+      var dpr=Math.min(window.devicePixelRatio||1,2.25);
       var w=cv.clientWidth,h=cv.clientHeight;
       if(!w||!h)return;
       var W=Math.round(w*dpr),H=Math.round(h*dpr);
@@ -495,6 +523,7 @@ function FluidMesh(canvas,cfg){
       gl.uniform1f(u("uFeath"),feath||0);gl.uniform1f(u("uGlass"),c.glass||0);
       gl.uniform1f(u("uForm"),c.form||0);gl.uniform1f(u("uBend"),c.bend||0);
       gl.uniform1f(u("uFoldA"),c.foldA||0);gl.uniform1f(u("uFoldSh"),c.foldSh||0);
+      gl.uniform1f(u("uContour"),derivOK?(c.contour||0):0);
       gl.uniform2f(u("uLight"),c.light[0],1.-c.light[1]);
       for(var i=0;i<5;i++){
         var col=hex2rgb(c.colors[i]);
@@ -558,7 +587,7 @@ function FluidMesh(canvas,cfg){
   "use strict";
   var $=function(id){return document.getElementById(id);};
   var colorIds=["c1","c2","c3","c4","c5"];
-  var rangeIds=["flow","melt","wob","bend","foldA","foldSh","edgeF","glass","sweep","expo","fringe","lx","ly","glow","haloA","vol","grain"];
+  var rangeIds=["flow","melt","wob","contour","bend","foldA","foldSh","edgeF","glass","sweep","expo","fringe","lx","ly","glow","haloA","vol","grain"];
   var nodeRangeIds=["nx","ny","nsize","nlen","nang"];
   var els={};colorIds.concat(rangeIds).concat(nodeRangeIds).forEach(function(k){els[k]=$(k);});
   els.form=$("form");els.nodeSel=$("nodeSel");els.preset=$("preset");
@@ -594,27 +623,27 @@ function FluidMesh(canvas,cfg){
      colors:["#e8d9b0","#e84a6f","#c23d3d","#241a12","#8a9a3f"],
      nodes:[N(.66,.22,1.1,.12,-20),N(.40,.62,1.05,.16,-25),N(.66,.74,.9,.14,-20),N(.38,.32,.85,.30,-33),N(.82,.52,.4,.12,-30)],
      lx:70,ly:18,glow:44, flow:38,melt:48,wob:10,sweep:28,expo:92,fringe:52, haloA:50,vol:48,grain:16},
-    {name:"Butter Stream",form:1,
+    {name:"Butter Stream",form:1,contour:35,
      colors:["#f6e8c8","#f2b04a","#e87a5a","#8fb8d8","#f8d9e8"],
      nodes:[N(.30,.30,1.4,.30,-18),N(.62,.44,1.1,.34,-24),N(.78,.72,1.0,.30,-20),N(.16,.66,1.0,.28,-16),N(.50,.12,.9,.26,-22)],
      lx:38,ly:22,glow:30, flow:42,melt:60,wob:8,bend:55,sweep:26,expo:102,fringe:0, haloA:0,vol:0,grain:10,glass:30,edgeF:0},
-    {name:"Silk Dusk",form:2,
+    {name:"Silk Dusk",form:2,contour:42,
      colors:["#f4ede2","#e88a3f","#4a7ac8","#2c4a8a","#f8d9c8"],
      nodes:[N(.34,.28,1.5,.24,-20),N(.66,.46,1.2,.30,-26),N(.74,.78,1.1,.26,-22),N(.20,.70,1.0,.22,-18),N(.52,.10,.9,.2,-24)],
      lx:40,ly:20,glow:26, flow:36,melt:64,wob:6,bend:62,foldA:58,foldSh:52,sweep:22,expo:100,fringe:0, haloA:0,vol:0,grain:8,glass:26,edgeF:0},
-    {name:"Breeze Field",form:3,
+    {name:"Breeze Field",form:3,contour:16,
      colors:["#f2ede0","#e8657a","#22334a","#f4e2c8","#8fb8a8"],
      nodes:[N(.44,.24,1.6,.18,-8),N(.60,.62,1.3,.22,-14),N(.30,.82,1.2,.16,-6),N(.82,.34,.9,.12,-10),N(.14,.48,.8,.1,-8)],
      lx:44,ly:18,glow:20, flow:30,melt:24,wob:34,bend:8,sweep:18,expo:100,fringe:0, haloA:0,vol:0,grain:26,glass:62,edgeF:0},
-    {name:"Curtain Rose",form:4,
+    {name:"Curtain Rose",form:4,contour:30,
      colors:["#f6dfe4","#e88aa4","#c2456f","#7a2d4a","#f8ecd8"],
      nodes:[N(.30,.24,1.5,.16,-80),N(.62,.40,1.2,.20,-84),N(.50,.74,1.2,.18,-78),N(.82,.60,.9,.14,-82),N(.12,.55,.8,.12,-80)],
      lx:42,ly:18,glow:24, flow:26,melt:58,wob:6,bend:3,foldA:42,foldSh:48,sweep:16,expo:100,fringe:0, haloA:0,vol:0,grain:12,glass:22,edgeF:0},
-    {name:"Mint Marble",form:5,
+    {name:"Mint Marble",form:5,contour:24,
      colors:["#e8f4ec","#9fd4c0","#5f9fd8","#2c4a7a","#f4f0e2"],
      nodes:[N(.36,.28,1.3,.14,-20),N(.66,.42,1.1,.18,-30),N(.52,.72,1.1,.16,-24),N(.20,.60,.9,.12,-16),N(.82,.20,.8,.1,-28)],
      lx:40,ly:20,glow:18, flow:34,melt:40,wob:62,bend:6,sweep:20,expo:102,fringe:0, haloA:0,vol:0,grain:20,glass:30,edgeF:0},
-    {name:"Night Bloom",form:1,
+    {name:"Night Bloom",form:1,contour:32,
      colors:["#101e26","#1c1230","#e8823f","#e04a86","#0c2a2c"],
      nodes:[N(.45,.35,1.6,.20,-20),N(.75,.70,1.3,.22,-25),N(.40,.68,.75,.30,-24),N(.68,.30,.45,.18,-28),N(.15,.20,1.0,.16,-18)],
      lx:40,ly:64,glow:18, flow:36,melt:52,wob:10,bend:58,sweep:24,expo:78,fringe:0, haloA:0,vol:0,grain:16,glass:38,edgeF:0}
@@ -649,7 +678,7 @@ function FluidMesh(canvas,cfg){
       bend:(+els.form.value===2)?(+els.bend.value/100):(+els.bend.value/100*.9),
       foldA:+els.foldA.value/100, foldSh:+els.foldSh.value/100,
       wob:+els.wob.value/100, edgeF:+els.edgeF.value/100,
-      glass:+els.glass.value/100
+      glass:+els.glass.value/100, contour:+els.contour.value/100
     };
   }
 
@@ -769,6 +798,7 @@ function FluidMesh(canvas,cfg){
     colorIds.forEach(function(id,j){els[id].value=p.colors[j];});
     nodes=p.nodes.map(function(nd){return{x:nd.x,y:nd.y,size:nd.size,len:nd.len,ang:nd.ang};});
     els.form.value=String(p.form||0);
+    els.contour.value=(p.contour!==undefined)?p.contour:18;
     ["lx","ly","glow","flow","melt","wob","bend","foldA","foldSh","edgeF","glass","sweep","expo","fringe","haloA","vol","grain"]
       .forEach(function(k){if(p[k]!==undefined)els[k].value=p[k];});
     loadNodeSliders();syncOutputs();apply();
@@ -783,7 +813,7 @@ function FluidMesh(canvas,cfg){
       light:v.light,glow:v.glow,melt:v.melt,sweep:v.sweep,flow:v.flow,
       grain:v.grain,fringe:v.fringe,expo:v.expo,orb:v.orb,
       wob:v.wob,edgeF:v.edgeF,glass:v.glass,
-      form:v.form,bend:v.bend,foldA:v.foldA,foldSh:v.foldSh};
+      form:v.form,bend:v.bend,foldA:v.foldA,foldSh:v.foldSh,contour:v.contour};
     var fallback=".fmFallback{background:"+fallbackHalo(v,0.9)+"}";
     var lines=["<!-- Fluid Mesh — generated by Gradient Lab -->"];
     if(orb){
