@@ -118,6 +118,17 @@
           <option value="3">Verdant</option>
           <option value="4">Harshaf — Lilac</option>
           <option value="5">Good &amp; Evil</option>
+          <option value="6">Butter Stream</option>
+          <option value="7">Silk Dusk</option>
+          <option value="8">Breeze Field</option>
+        </select>
+      </p>
+      <p class="secH" style="margin-top:12px">Form
+        <select id="form" aria-label="Form">
+          <option value="0" selected>Planet</option>
+          <option value="1">Streams</option>
+          <option value="2">Silk</option>
+          <option value="3">Field</option>
         </select>
       </p>
     </div>
@@ -153,6 +164,9 @@
       <div class="row"><label for="flow">Speed</label><input type="range" id="flow" min="0" max="100" value="40"><output id="flowO">40</output></div>
       <div class="row"><label for="melt">Melt</label><input type="range" id="melt" min="0" max="100" value="55"><output id="meltO">55</output></div>
       <div class="row"><label for="wob">Wobble</label><input type="range" id="wob" min="0" max="100" value="10"><output id="wobO">10</output></div>
+      <div class="row" id="bendRow" style="display:none"><label for="bend" id="bendLbl">Bend</label><input type="range" id="bend" min="0" max="100" value="40"><output id="bendO">40</output></div>
+      <div class="row" id="foldRow" style="display:none"><label for="foldA">Fold</label><input type="range" id="foldA" min="0" max="100" value="55"><output id="foldAO">55</output></div>
+      <div class="row" id="sheenRow" style="display:none"><label for="foldSh">Sheen</label><input type="range" id="foldSh" min="0" max="100" value="45"><output id="foldShO">45</output></div>
       <div class="row"><label for="edgeF">Edge</label><input type="range" id="edgeF" min="0" max="100" value="34"><output id="edgeFO">34</output></div>
       <div class="row"><label for="glass">Glass</label><input type="range" id="glass" min="0" max="100" value="42"><output id="glassO">42</output></div>
       <div class="row"><label for="sweep">Sweep</label><input type="range" id="sweep" min="0" max="100" value="45"><output id="sweepO">45</output></div>
@@ -167,9 +181,8 @@
       <div class="row"><label for="glow">Glow</label><input type="range" id="glow" min="0" max="100" value="50"><output id="glowO">50</output></div>
     </div>
 
-    <div class="sec">
+    <div class="sec" id="dressSec">
       <p class="secH">Planet dressing</p>
-      <div class="row"><label class="check"><input type="checkbox" id="orbMode" checked>Planet mode (off = canvas)</label></div>
       <div class="row"><label for="haloA">Halo</label><input type="range" id="haloA" min="0" max="100" value="50"><output id="haloAO">50</output></div>
       <div class="row"><label for="vol">Volume</label><input type="range" id="vol" min="0" max="100" value="45"><output id="volO">45</output></div>
       <div class="row"><label for="grain">Grain</label><input type="range" id="grain" min="0" max="100" value="12"><output id="grainO">12</output></div>
@@ -213,6 +226,7 @@ function FluidMesh(canvas,cfg){
 "precision highp float;\n"+
 "uniform vec2 uRes;uniform float uTime;\n"+
 "uniform float uMelt,uSweep,uGlow,uGrain,uFringe,uExpo,uOrb,uWob,uFeath,uGlass;\n"+
+"uniform float uForm,uBend,uFoldA,uFoldSh;\n"+
 "uniform vec2 uLight;uniform vec3 uCol[5];\n"+
 "uniform vec2 uPos[5];uniform float uSize[5];uniform float uLen[5];uniform float uAng[5];\n"+
 "float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}\n"+
@@ -263,7 +277,7 @@ function FluidMesh(canvas,cfg){
 "  float orad=uSweep*(.09+.03*fi);\n"+
 "  vec2 c=uPos[i]+orad*vec2(sin(uTime*sp+ph),cos(uTime*sp*.83+ph*1.7));\n"+
 "  float an=uAng[i]+.10*sin(uTime*.23+ph);\n"+
-"  float d;\n"+
+"  float d;float tapM=1.;\n"+
 "  if(sph){\n"+
 "   vec3 N=sphPt((c-vec2(.5))*1.84);\n"+
 "   float chN=length(P-N);\n"+
@@ -277,12 +291,22 @@ function FluidMesh(canvas,cfg){
 "   }\n"+
 "   d*=.62; /* chord units run 0..2; rescale toward disc units */\n"+
 "  }else{\n"+
-"   vec2 dirv=vec2(cos(an),sin(an))*uLen[i];\n"+
-"   vec2 a=c-dirv,b=c+dirv;\n"+
-"   a.x=(a.x-.5)*aspect+.5;b.x=(b.x-.5)*aspect+.5;\n"+
-"   d=sdSeg(p,a,b);\n"+
+"   /* STREAMS: the flat capsule gains CURVATURE — colour rivers bend in gentle\n"+
+"      S-arcs (per-node alternating sign) and taper like brush strokes. The\n"+
+"      Planet path above is untouched. */\n"+
+"   vec2 cA=vec2((c.x-.5)*aspect+.5,c.y);\n"+
+"   vec2 t=vec2(cos(an),sin(an));\n"+
+"   vec2 rel=p-cA;\n"+
+"   float uu=dot(rel,t),vv=dot(rel,vec2(-t.y,t.x));\n"+
+"   float L=max(uLen[i],1e-4);\n"+
+"   if(uForm>.5){\n"+
+"    float bnd=uBend*(mod(fi,2.)<1.?1.:-1.)*(.5+.18*fi);\n"+
+"    vv-=bnd*(uu*uu)/max(L,.10);\n"+
+"    tapM=1.-.5*clamp(abs(uu)/(L*2.4+1e-4),0.,1.);\n"+
+"   }\n"+
+"   d=sqrt(pow(max(0.,abs(uu)-L*2.2),2.)+vv*vv);\n"+
 "  }\n"+
-"  float sg=max(uSize[i],.05)*soft;\n"+
+"  float sg=max(uSize[i],.05)*soft*tapM;\n"+
 "  float wt=exp(-(d*d)/(2.*sg*sg));\n"+
 "  acc+=srgb2ok(uCol[i])*wt;tot+=wt;\n"+
 "  if(wt>w1){w2=w1;w1=wt;}else if(wt>w2){w2=wt;}\n"+
@@ -319,6 +343,20 @@ function FluidMesh(canvas,cfg){
 " okG.yz=mat2(ca,-sa,sa,ca)*okG.yz;okG.x+=lw*.28;okG.yz*=(1.-.33*lw);\n"+
 " okR.yz=mat2(ca,-sa,sa,ca)*okR.yz;okR.x+=lw*.28;okR.yz*=(1.-.33*lw);\n"+
 " okB.yz=mat2(ca,-sa,sa,ca)*okB.yz;okB.x+=lw*.28;okB.yz*=(1.-.33*lw);\n"+
+" /* SILK: satin fold shading — ridge luminance follows a drape direction with\n"+
+"    organic phase, plus a narrow specular sheen riding the fold crests; chroma\n"+
+"    thins slightly under the sheen the way lit satin washes out. */\n"+
+" if(uForm>1.5&&uForm<2.5){\n"+
+"  float fAng=uBend*3.14159;\n"+
+"  vec2 dirF=vec2(cos(fAng),sin(fAng));\n"+
+"  float th=dot(uvA,dirF)*4.6+1.5*fbm(uvA*1.15+uTime*.05)+uTime*.07;\n"+
+"  float sn=sin(th);\n"+
+"  float shade=uFoldA*.15*sn*abs(sn);\n"+
+"  float hl=pow(max(cos(th),0.),22.)*uFoldSh;\n"+
+"  float cd=1.-.22*hl;\n"+
+"  okR.x+=shade+hl*.20;okG.x+=shade+hl*.20;okB.x+=shade+hl*.20;\n"+
+"  okR.yz*=cd;okG.yz*=cd;okB.yz*=cd;\n"+
+" }\n"+
 " vec3 rgb=vec3(ok2srgb(okR).r,ok2srgb(okG).g,ok2srgb(okB).b);\n"+
 " /* Jimenez interleaved-gradient-noise dither + dialable film grain */\n"+
 " float ign=fract(52.9829189*fract(dot(gl_FragCoord.xy,vec2(.06711056,.00583715))));\n"+
@@ -372,6 +410,8 @@ function FluidMesh(canvas,cfg){
       gl.uniform1f(u("uFringe"),c.fringe);gl.uniform1f(u("uExpo"),c.expo);
       gl.uniform1f(u("uOrb"),orbOv!==undefined?orbOv:c.orb);gl.uniform1f(u("uWob"),c.wob||0);
       gl.uniform1f(u("uFeath"),feath||0);gl.uniform1f(u("uGlass"),c.glass||0);
+      gl.uniform1f(u("uForm"),c.form||0);gl.uniform1f(u("uBend"),c.bend||0);
+      gl.uniform1f(u("uFoldA"),c.foldA||0);gl.uniform1f(u("uFoldSh"),c.foldSh||0);
       gl.uniform2f(u("uLight"),c.light[0],1.-c.light[1]);
       for(var i=0;i<5;i++){
         var col=hex2rgb(c.colors[i]);
@@ -401,8 +441,9 @@ function FluidMesh(canvas,cfg){
     t+=dt*(0.04+cfg.flow*0.30);
     main.render(t,cfg,cfg.edgeF||0);
     /* the halo evaluates the FLAT field: a glow continues outward — spherical
-       maths beyond the disc clamps to one pale limb colour and rings */
-    if(haloR&&fc%3===0)haloR.render(t,cfg,0,0);
+       maths beyond the disc clamps to one pale limb colour and rings.
+       Only the Planet form wears a halo. */
+    if(haloR&&fc%3===0&&(cfg.form||0)===0)haloR.render(t,cfg,0,0);
     fc++;
     if(!reduce&&cfg.flow>0&&!document.hidden)raf=requestAnimationFrame(frame);
   }
@@ -423,10 +464,10 @@ function FluidMesh(canvas,cfg){
   "use strict";
   var $=function(id){return document.getElementById(id);};
   var colorIds=["c1","c2","c3","c4","c5"];
-  var rangeIds=["flow","melt","wob","edgeF","glass","sweep","expo","fringe","lx","ly","glow","haloA","vol","grain"];
+  var rangeIds=["flow","melt","wob","bend","foldA","foldSh","edgeF","glass","sweep","expo","fringe","lx","ly","glow","haloA","vol","grain"];
   var nodeRangeIds=["nx","ny","nsize","nlen","nang"];
   var els={};colorIds.concat(rangeIds).concat(nodeRangeIds).forEach(function(k){els[k]=$(k);});
-  els.orbMode=$("orbMode");els.nodeSel=$("nodeSel");els.preset=$("preset");
+  els.form=$("form");els.nodeSel=$("nodeSel");els.preset=$("preset");
 
   function N(x,y,size,len,angDeg){return{x:x,y:y,size:size,len:len,ang:angDeg*Math.PI/180};}
   var nodes=[N(.5,.48,1,0,0),N(.22,.28,1,0,0),N(.74,.36,1,0,0),N(.70,.78,1,0,0),N(.28,.70,1,0,0)];
@@ -458,7 +499,19 @@ function FluidMesh(canvas,cfg){
     {name:"Good & Evil",
      colors:["#e8d9b0","#e84a6f","#c23d3d","#241a12","#8a9a3f"],
      nodes:[N(.66,.22,1.1,.12,-20),N(.40,.62,1.05,.16,-25),N(.66,.74,.9,.14,-20),N(.38,.32,.85,.30,-33),N(.82,.52,.4,.12,-30)],
-     lx:70,ly:18,glow:44, flow:38,melt:48,wob:10,sweep:28,expo:92,fringe:52, haloA:50,vol:48,grain:16}
+     lx:70,ly:18,glow:44, flow:38,melt:48,wob:10,sweep:28,expo:92,fringe:52, haloA:50,vol:48,grain:16},
+    {name:"Butter Stream",form:1,
+     colors:["#f6e8c8","#f2b04a","#e87a5a","#8fb8d8","#f8d9e8"],
+     nodes:[N(.30,.30,1.4,.30,-18),N(.62,.44,1.1,.34,-24),N(.78,.72,1.0,.30,-20),N(.16,.66,1.0,.28,-16),N(.50,.12,.9,.26,-22)],
+     lx:38,ly:22,glow:30, flow:42,melt:60,wob:8,bend:55,sweep:26,expo:102,fringe:0, haloA:0,vol:0,grain:10,glass:30,edgeF:0},
+    {name:"Silk Dusk",form:2,
+     colors:["#f4ede2","#e88a3f","#4a7ac8","#2c4a8a","#f8d9c8"],
+     nodes:[N(.34,.28,1.5,.24,-20),N(.66,.46,1.2,.30,-26),N(.74,.78,1.1,.26,-22),N(.20,.70,1.0,.22,-18),N(.52,.10,.9,.2,-24)],
+     lx:40,ly:20,glow:26, flow:36,melt:64,wob:6,bend:62,foldA:58,foldSh:52,sweep:22,expo:100,fringe:0, haloA:0,vol:0,grain:8,glass:26,edgeF:0},
+    {name:"Breeze Field",form:3,
+     colors:["#f2ede0","#e8657a","#22334a","#f4e2c8","#8fb8a8"],
+     nodes:[N(.44,.24,1.6,.18,-8),N(.60,.62,1.3,.22,-14),N(.30,.82,1.2,.16,-6),N(.82,.34,.9,.12,-10),N(.14,.48,.8,.1,-8)],
+     lx:44,ly:18,glow:20, flow:30,melt:24,wob:34,bend:8,sweep:18,expo:100,fringe:0, haloA:0,vol:0,grain:26,glass:62,edgeF:0}
   ];
 
   function hexToHsl(hex){
@@ -485,7 +538,10 @@ function FluidMesh(canvas,cfg){
       glow:+els.glow.value/100, melt:+els.melt.value/100,
       sweep:+els.sweep.value/100, flow:+els.flow.value/100,
       grain:+els.grain.value/100, fringe:+els.fringe.value/100,
-      expo:+els.expo.value/100, orb:els.orbMode.checked?1:0,
+      expo:+els.expo.value/100, form:+els.form.value,
+      orb:(+els.form.value===0)?1:0,
+      bend:(+els.form.value===2)?(+els.bend.value/100):(+els.bend.value/100*.9),
+      foldA:+els.foldA.value/100, foldSh:+els.foldSh.value/100,
       wob:+els.wob.value/100, edgeF:+els.edgeF.value/100,
       glass:+els.glass.value/100
     };
@@ -540,11 +596,19 @@ function FluidMesh(canvas,cfg){
     $("halo").style.setProperty("--haloA",haloA.toFixed(2));
     if(!mesh)$("halo").style.background=fallbackHalo(v,haloA);
     $("discClip").style.setProperty("--volSh",volShadow(v));
-    var orb=els.orbMode.checked;
+    var orb=(v.form===0);
     $("stage").classList.toggle("bgMode",!orb);
     var canvas=$("fluid");
     var host=orb?$("discClip"):$("bgHost");
     if(canvas.parentNode!==host)host.insertBefore(canvas,host.firstChild);
+    /* contextual controls: each Form shows only the sliders that shape it */
+    $("bendRow").style.display=(v.form===1||v.form===2)?"":"none";
+    $("bendLbl").textContent=(v.form===2)?"Drape angle":"Bend";
+    $("foldRow").style.display=(v.form===2)?"":"none";
+    $("sheenRow").style.display=(v.form===2)?"":"none";
+    $("dressSec").style.display=orb?"":"none";
+    els.edgeF.closest(".row").style.display=orb?"":"none";
+    els.fringe.closest(".row").style.display=orb?"":"none";
     writeCode(v,orb,haloA);
   }
   function syncOutputs(){
@@ -557,7 +621,8 @@ function FluidMesh(canvas,cfg){
     loadingPreset=true;
     colorIds.forEach(function(id,j){els[id].value=p.colors[j];});
     nodes=p.nodes.map(function(nd){return{x:nd.x,y:nd.y,size:nd.size,len:nd.len,ang:nd.ang};});
-    ["lx","ly","glow","flow","melt","wob","edgeF","glass","sweep","expo","fringe","haloA","vol","grain"]
+    els.form.value=String(p.form||0);
+    ["lx","ly","glow","flow","melt","wob","bend","foldA","foldSh","edgeF","glass","sweep","expo","fringe","haloA","vol","grain"]
       .forEach(function(k){if(p[k]!==undefined)els[k].value=p[k];});
     loadNodeSliders();syncOutputs();apply();
     loadingPreset=false;
@@ -570,7 +635,8 @@ function FluidMesh(canvas,cfg){
         size:+nd.size.toFixed(2),len:+nd.len.toFixed(3),ang:+nd.ang.toFixed(3)};}),
       light:v.light,glow:v.glow,melt:v.melt,sweep:v.sweep,flow:v.flow,
       grain:v.grain,fringe:v.fringe,expo:v.expo,orb:v.orb,
-      wob:v.wob,edgeF:v.edgeF,glass:v.glass};
+      wob:v.wob,edgeF:v.edgeF,glass:v.glass,
+      form:v.form,bend:v.bend,foldA:v.foldA,foldSh:v.foldSh};
     var fallback=".fmFallback{background:"+fallbackHalo(v,0.9)+"}";
     var lines=["<!-- Fluid Mesh — generated by Gradient Lab -->"];
     if(orb){
@@ -687,7 +753,7 @@ fallback,
     els[k].addEventListener("input",function(){saveNodeSliders();syncOutputs();markCustom();apply();});
   });
   els.nodeSel.addEventListener("input",loadNodeSliders);
-  els.orbMode.addEventListener("input",function(){markCustom();apply();});
+  els.form.addEventListener("input",function(){markCustom();apply();});
   els.preset.addEventListener("input",function(){
     var i=+els.preset.value;if(i>=0)loadPreset(i);
   });
