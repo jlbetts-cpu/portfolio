@@ -124,6 +124,7 @@
           <option value="7">Silk Dusk</option>
           <option value="8">Breeze Field</option>
           <option value="9">Curtain Rose</option>
+          <option value="10">Mint Marble</option>
         </select>
         </span>
       </p>
@@ -134,6 +135,7 @@
           <option value="2">Silk</option>
           <option value="3">Field</option>
           <option value="4">Pleats</option>
+          <option value="5">Marble</option>
         </select>
       </p>
     </div>
@@ -353,10 +355,21 @@ function FluidMesh(canvas,cfg){
 " float aspect=uRes.x/uRes.y;\n"+
 " vec2 uv=gl_FragCoord.xy/uRes;\n"+
 " vec2 uvA=vec2((uv.x-.5)*aspect+.5,uv.y);\n"+
-" vec2 q=uvA*1.35;\n"+
-" vec2 w=vec2(fbm(q+uTime*.14),fbm(q+vec2(4.7,2.1)-uTime*.11));\n"+
-" /* wobble decoupled from softness: the references' boundaries are CALM */\n"+
-" vec2 p=uvA+(w-.5)*uWob*.38;\n"+
+" vec2 p;\n"+
+" if(uForm>4.5&&uForm<5.5){\n"+
+"  /* MARBLE: Quilez double-warp f(p+f(p)) at high frequency — the fine liquid\n"+
+"     swirl of marbled paper; Wobble drives the swirl amplitude */\n"+
+"  vec2 qm=uvA*3.2;\n"+
+"  vec2 w1=vec2(fbm(qm+uTime*.10),fbm(qm+vec2(4.7,2.1)-uTime*.08));\n"+
+"  vec2 w2=vec2(fbm(qm*1.7+(w1-.5)*2.4+uTime*.06),\n"+
+"               fbm(qm*1.7+(w1-.5)*2.4+vec2(2.3,5.1)));\n"+
+"  p=uvA+(w2-.5)*uWob*.55;\n"+
+" }else{\n"+
+"  vec2 q=uvA*1.35;\n"+
+"  vec2 w=vec2(fbm(q+uTime*.14),fbm(q+vec2(4.7,2.1)-uTime*.11));\n"+
+"  /* wobble decoupled from softness: the references' boundaries are CALM */\n"+
+"  p=uvA+(w-.5)*uWob*.38;\n"+
+" }\n"+
 " /* chromatic fringe: sample the field per-channel along the radial direction,\n"+
 "    zero at centre, max at the limb (planet mode only) */\n"+
 " float rr=length(uv-.5);\n"+
@@ -586,7 +599,11 @@ function FluidMesh(canvas,cfg){
     {name:"Curtain Rose",form:4,
      colors:["#f6dfe4","#e88aa4","#c2456f","#7a2d4a","#f8ecd8"],
      nodes:[N(.30,.24,1.5,.16,-80),N(.62,.40,1.2,.20,-84),N(.50,.74,1.2,.18,-78),N(.82,.60,.9,.14,-82),N(.12,.55,.8,.12,-80)],
-     lx:42,ly:18,glow:24, flow:26,melt:58,wob:6,bend:3,foldA:42,foldSh:48,sweep:16,expo:100,fringe:0, haloA:0,vol:0,grain:12,glass:22,edgeF:0}
+     lx:42,ly:18,glow:24, flow:26,melt:58,wob:6,bend:3,foldA:42,foldSh:48,sweep:16,expo:100,fringe:0, haloA:0,vol:0,grain:12,glass:22,edgeF:0},
+    {name:"Mint Marble",form:5,
+     colors:["#e8f4ec","#9fd4c0","#5f9fd8","#2c4a7a","#f4f0e2"],
+     nodes:[N(.36,.28,1.3,.14,-20),N(.66,.42,1.1,.18,-30),N(.52,.72,1.1,.16,-24),N(.20,.60,.9,.12,-16),N(.82,.20,.8,.1,-28)],
+     lx:40,ly:20,glow:18, flow:34,melt:40,wob:62,bend:6,sweep:20,expo:102,fringe:0, haloA:0,vol:0,grain:20,glass:30,edgeF:0}
   ];
 
   function hexToHsl(hex){
