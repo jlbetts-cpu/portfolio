@@ -153,6 +153,8 @@
       <div class="row"><label for="flow">Speed</label><input type="range" id="flow" min="0" max="100" value="40"><output id="flowO">40</output></div>
       <div class="row"><label for="melt">Melt</label><input type="range" id="melt" min="0" max="100" value="55"><output id="meltO">55</output></div>
       <div class="row"><label for="wob">Wobble</label><input type="range" id="wob" min="0" max="100" value="10"><output id="wobO">10</output></div>
+      <div class="row"><label for="edgeF">Edge</label><input type="range" id="edgeF" min="0" max="100" value="34"><output id="edgeFO">34</output></div>
+      <div class="row"><label for="glass">Glass</label><input type="range" id="glass" min="0" max="100" value="42"><output id="glassO">42</output></div>
       <div class="row"><label for="sweep">Sweep</label><input type="range" id="sweep" min="0" max="100" value="45"><output id="sweepO">45</output></div>
       <div class="row"><label for="expo">Exposure</label><input type="range" id="expo" min="40" max="115" value="100"><output id="expoO">100</output></div>
       <div class="row"><label for="fringe">Fringe</label><input type="range" id="fringe" min="0" max="100" value="20"><output id="fringeO">20</output></div>
@@ -210,7 +212,7 @@ function FluidMesh(canvas,cfg){
   var FS=""+
 "precision highp float;\n"+
 "uniform vec2 uRes;uniform float uTime;\n"+
-"uniform float uMelt,uSweep,uGlow,uGrain,uFringe,uExpo,uOrb,uWob;\n"+
+"uniform float uMelt,uSweep,uGlow,uGrain,uFringe,uExpo,uOrb,uWob,uFeath,uGlass;\n"+
 "uniform vec2 uLight;uniform vec3 uCol[5];\n"+
 "uniform vec2 uPos[5];uniform float uSize[5];uniform float uLen[5];uniform float uAng[5];\n"+
 "float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}\n"+
@@ -251,6 +253,7 @@ function FluidMesh(canvas,cfg){
 "    colours. Chord distance, never acos (derivative blows up at the limb). */\n"+
 " float soft=mix(.06,.24,uMelt);\n"+
 " vec3 acc=srgb2ok(uCol[0])*6e-4;float tot=6e-4;\n"+
+" float w1=0.,w2=0.;\n"+
 " bool sph=uOrb>.5;\n"+
 " vec3 P=sph?sphPt((p-vec2(.5))*2.):vec3(0.);\n"+
 " for(int i=0;i<5;i++){\n"+
@@ -282,8 +285,14 @@ function FluidMesh(canvas,cfg){
 "  float sg=max(uSize[i],.05)*soft;\n"+
 "  float wt=exp(-(d*d)/(2.*sg*sg));\n"+
 "  acc+=srgb2ok(uCol[i])*wt;tot+=wt;\n"+
+"  if(wt>w1){w2=w1;w1=wt;}else if(wt>w2){w2=wt;}\n"+
 " }\n"+
-" return acc/tot;\n"+
+" vec3 col=acc/tot;\n"+
+" /* the glass seam: where two colours BALANCE, luminance lifts — boundaries\n"+
+"    glow faintly brighter than either side, like dye layers in backlit glass */\n"+
+" float g=4.*w1*w2/((w1+w2)*(w1+w2)+1e-6);\n"+
+" col.x+=g*uGlass*.085;col.yz*=(1.+g*uGlass*.14);\n"+
+" return col;\n"+
 "}\n"+
 "void main(){\n"+
 " float aspect=uRes.x/uRes.y;\n"+
@@ -314,10 +323,18 @@ function FluidMesh(canvas,cfg){
 " /* Jimenez interleaved-gradient-noise dither + dialable film grain */\n"+
 " float ign=fract(52.9829189*fract(dot(gl_FragCoord.xy,vec2(.06711056,.00583715))));\n"+
 " rgb+=(ign-.5)*(2./255.)+(hash(gl_FragCoord.xy+fract(uTime)*61.7)-.5)*uGrain*.09;\n"+
-" gl_FragColor=vec4(rgb,1.);\n"+
+" /* the feathered limb: the sphere dissolves into its own halo — no line where\n"+
+"    the form ends and the glow begins. Premultiplied alpha over a transparent\n"+
+"    canvas; the live halo behind shows through the fade. */\n"+
+" float aF=1.;\n"+
+" if(uOrb>.5&&uFeath>0.){\n"+
+"  float rE=length((uv-.5)*2.);\n"+
+"  aF=1.-smoothstep(.985-uFeath*.30,.99,rE);\n"+
+" }\n"+
+" gl_FragColor=vec4(rgb*aF,aF);\n"+
 "}";
-  function makeRenderer(cv,fixed){
-    var gl=cv.getContext("webgl",{antialias:true,alpha:false})||
+  function makeRenderer(cv,fixed,alphaOn){
+    var gl=cv.getContext("webgl",{antialias:true,alpha:!!alphaOn,premultipliedAlpha:true})||
            cv.getContext("experimental-webgl");
     if(!gl)return null;
     var prog,lost=false;
@@ -343,7 +360,7 @@ function FluidMesh(canvas,cfg){
     }
     function hex2rgb(h){var n=parseInt(h.slice(1),16);
       return[((n>>16)&255)/255,((n>>8)&255)/255,(n&255)/255];}
-    function render(t,c){
+    function render(t,c,feath,orbOv){
       if(lost)return;
       size();
       gl.useProgram(prog);
@@ -353,7 +370,8 @@ function FluidMesh(canvas,cfg){
       gl.uniform1f(u("uMelt"),c.melt);gl.uniform1f(u("uSweep"),c.sweep);
       gl.uniform1f(u("uGlow"),c.glow);gl.uniform1f(u("uGrain"),c.grain);
       gl.uniform1f(u("uFringe"),c.fringe);gl.uniform1f(u("uExpo"),c.expo);
-      gl.uniform1f(u("uOrb"),c.orb);gl.uniform1f(u("uWob"),c.wob||0);
+      gl.uniform1f(u("uOrb"),orbOv!==undefined?orbOv:c.orb);gl.uniform1f(u("uWob"),c.wob||0);
+      gl.uniform1f(u("uFeath"),feath||0);gl.uniform1f(u("uGlass"),c.glass||0);
       gl.uniform2f(u("uLight"),c.light[0],1.-c.light[1]);
       for(var i=0;i<5;i++){
         var col=hex2rgb(c.colors[i]);
@@ -371,9 +389,9 @@ function FluidMesh(canvas,cfg){
     setup();
     return{render:render};
   }
-  var main=makeRenderer(canvas,0);
+  var main=makeRenderer(canvas,0,true);
   if(!main)return null;
-  var haloR=cfg.haloCanvas?makeRenderer(cfg.haloCanvas,64):null;
+  var haloR=cfg.haloCanvas?makeRenderer(cfg.haloCanvas,64,false):null;
   var raf=0,t=0,last=0,dead=false,fc=0;
   var reduce=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
   function frame(now){
@@ -381,8 +399,10 @@ function FluidMesh(canvas,cfg){
     if(dead)return;
     var dt=last?Math.min(.05,(now-last)/1000):0;last=now;
     t+=dt*(0.04+cfg.flow*0.30);
-    main.render(t,cfg);
-    if(haloR&&fc%3===0)haloR.render(t,cfg);
+    main.render(t,cfg,cfg.edgeF||0);
+    /* the halo evaluates the FLAT field: a glow continues outward — spherical
+       maths beyond the disc clamps to one pale limb colour and rings */
+    if(haloR&&fc%3===0)haloR.render(t,cfg,0,0);
     fc++;
     if(!reduce&&cfg.flow>0&&!document.hidden)raf=requestAnimationFrame(frame);
   }
@@ -403,7 +423,7 @@ function FluidMesh(canvas,cfg){
   "use strict";
   var $=function(id){return document.getElementById(id);};
   var colorIds=["c1","c2","c3","c4","c5"];
-  var rangeIds=["flow","melt","wob","sweep","expo","fringe","lx","ly","glow","haloA","vol","grain"];
+  var rangeIds=["flow","melt","wob","edgeF","glass","sweep","expo","fringe","lx","ly","glow","haloA","vol","grain"];
   var nodeRangeIds=["nx","ny","nsize","nlen","nang"];
   var els={};colorIds.concat(rangeIds).concat(nodeRangeIds).forEach(function(k){els[k]=$(k);});
   els.orbMode=$("orbMode");els.nodeSel=$("nodeSel");els.preset=$("preset");
@@ -466,7 +486,8 @@ function FluidMesh(canvas,cfg){
       sweep:+els.sweep.value/100, flow:+els.flow.value/100,
       grain:+els.grain.value/100, fringe:+els.fringe.value/100,
       expo:+els.expo.value/100, orb:els.orbMode.checked?1:0,
-      wob:+els.wob.value/100
+      wob:+els.wob.value/100, edgeF:+els.edgeF.value/100,
+      glass:+els.glass.value/100
     };
   }
 
@@ -476,7 +497,10 @@ function FluidMesh(canvas,cfg){
 
   function volShadow(v){
     var A=hexToHsl(v.colors[0]),C=hexToHsl(v.colors[3]);
-    var vol=+els.vol.value/100;
+    /* a feathered limb and a crisp inset ring cannot coexist — any meaningful
+       Edge feather retires the insets entirely; the field's own wrapped masses
+       carry the shading (which is how the reference posters do it) */
+    var vol=(+els.vol.value/100)*Math.max(0,1-(+els.edgeF.value/100)*2.9);
     var ux=(v.light[0]*100-50)/50, uy=(v.light[1]*100-50)/50;
     return "inset calc(var(--R)*"+(ux*0.12).toFixed(3)+") calc(var(--R)*"+(uy*0.12).toFixed(3)
       +") calc(var(--R)*0.19) 0 "+hsl(C.h,75,14,(0.5*vol).toFixed(2))
@@ -533,7 +557,7 @@ function FluidMesh(canvas,cfg){
     loadingPreset=true;
     colorIds.forEach(function(id,j){els[id].value=p.colors[j];});
     nodes=p.nodes.map(function(nd){return{x:nd.x,y:nd.y,size:nd.size,len:nd.len,ang:nd.ang};});
-    ["lx","ly","glow","flow","melt","wob","sweep","expo","fringe","haloA","vol","grain"]
+    ["lx","ly","glow","flow","melt","wob","edgeF","glass","sweep","expo","fringe","haloA","vol","grain"]
       .forEach(function(k){if(p[k]!==undefined)els[k].value=p[k];});
     loadNodeSliders();syncOutputs();apply();
     loadingPreset=false;
@@ -545,7 +569,8 @@ function FluidMesh(canvas,cfg){
       nodes:nodes.map(function(nd){return{x:+nd.x.toFixed(3),y:+nd.y.toFixed(3),
         size:+nd.size.toFixed(2),len:+nd.len.toFixed(3),ang:+nd.ang.toFixed(3)};}),
       light:v.light,glow:v.glow,melt:v.melt,sweep:v.sweep,flow:v.flow,
-      grain:v.grain,fringe:v.fringe,expo:v.expo,orb:v.orb};
+      grain:v.grain,fringe:v.fringe,expo:v.expo,orb:v.orb,
+      wob:v.wob,edgeF:v.edgeF,glass:v.glass};
     var fallback=".fmFallback{background:"+fallbackHalo(v,0.9)+"}";
     var lines=["<!-- Fluid Mesh — generated by Gradient Lab -->"];
     if(orb){
@@ -634,6 +659,8 @@ fallback,
     els.glow.value=Math.round(rnd(35,58));
     els.melt.value=Math.round(rnd(46,62));
     els.wob.value=Math.round(rnd(4,16));
+    els.edgeF.value=Math.round(rnd(24,48));
+    els.glass.value=Math.round(rnd(28,55));
     els.sweep.value=Math.round(rnd(22,42));
     els.fringe.value=Math.round(rnd(12,50));
     els.expo.value=Math.round(rnd(a.expo[0],a.expo[1]));
