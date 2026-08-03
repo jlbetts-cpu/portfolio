@@ -213,6 +213,11 @@
  var HW=stR0&&stR0.width?Math.round(Math.min(108,Math.max(66,stR0.width*0.27)))
        :Math.round(Math.min(140,Math.max(66,_arenaW*0.075)));
  if(mob)HW=Math.min(HW,64);
+ if(filler)HW=Math.round(HW*1.5);   // mini-Jayden stays noticeably BIGGER than the little heads -- his
+ // size is his identity, not a depth cue (same rule as survey()'s bigR-gated *1.5 below, which never
+ // fires on THIS page since there's no #stage to measure. On index.html this value is transient: bigR
+ // always exists there at spawn, so survey() -- called synchronously a few lines down -- immediately
+ // recomputes HW from bigR and reapplies its own *1.5, overwriting this. Net effect on index.html: none.
  var HH=HW*1.2;   // one size: about a quarter of the caregiver, the classic companion ratio
  // --- DOM ---
  var root=document.createElement("div");
