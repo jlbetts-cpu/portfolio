@@ -7716,14 +7716,14 @@ PAL = [
      measure ΔE00 0.36 apart, i.e. identical. This set holds 11.30 under deutan, which is on
      a par with Okabe-Ito (11.67), the CVD reference palette.
      `e` is a darker edge so a pale chip still has an outline on paper -- Carbon's fix. ---- */
-  { n: 'Red',     c: '209,52,21',   ink: '255,255,255', e: '209,52,21'  },
-  { n: 'Gold',    c: '255,220,0',   ink: '18,18,18',    e: '158,108,0'  },
-  { n: 'Green',   c: '70,167,88',   ink: '18,18,18',    e: '42,126,59'  },
-  { n: 'Teal',    c: '13,155,138',  ink: '18,18,18',    e: '0,133,115'  },
-  { n: 'Sky',     c: '116,218,248', ink: '18,18,18',    e: '0,116,158'  },
-  { n: 'Blue',    c: '0,144,255',   ink: '18,18,18',    e: '13,116,206' },
-  { n: 'Violet',  c: '101,77,196',  ink: '255,255,255', e: '101,80,185' },
-  { n: 'Magenta', c: '233,61,130',  ink: '18,18,18',    e: '203,29,99'  }
+  { n: 'Red',     c: '209,52,21',   ink: '255,255,255', e: '209,52,21'  , who: 'Gus' },
+  { n: 'Gold',    c: '255,220,0',   ink: '18,18,18',    e: '158,108,0'  , who: 'Milo' },
+  { n: 'Green',   c: '70,167,88',   ink: '18,18,18',    e: '42,126,59'  , who: 'Ozzy' },
+  { n: 'Teal',    c: '13,155,138',  ink: '18,18,18',    e: '0,133,115'  , who: 'Dot' },
+  { n: 'Sky',     c: '116,218,248', ink: '18,18,18',    e: '0,116,158'  , who: 'Baz' },
+  { n: 'Blue',    c: '0,144,255',   ink: '18,18,18',    e: '13,116,206' , who: 'Kip' },
+  { n: 'Violet',  c: '101,77,196',  ink: '255,255,255', e: '101,80,185' , who: 'Fitz' },
+  { n: 'Magenta', c: '233,61,130',  ink: '18,18,18',    e: '203,29,99'  , who: 'Chip' }
 ];
 
 // The cup is named after one of the case studies, picked when the tournament is built. It is a
@@ -7816,7 +7816,12 @@ function buildTeams(cb){
     var nm;
     if (cap && cap.name && String(cap.name).trim()) nm = String(cap.name).trim().slice(0, 14);
     else if (cap && cap.__mirror)                   nm = 'Jayden';
-    else if (!cap || cap.__egg)                     nm = pal.n;      // a dyed egghead: the colour is true
+    // A dyed egghead is a CHARACTER, not a swatch. Naming it after its own colour is the
+    // M&M's trap (their spokescandies are literally called Red and Blue); Power Rangers never
+    // do it. The name is a pure function of the palette slot, so the red egghead is ALWAYS
+    // Gus -- recognisable across every session -- while `colName` keeps carrying the colour
+    // for the bar, the ring and the nets.
+    else if (!cap || cap.__egg)                     nm = pal.who || pal.n;
     else                                            nm = 'Player ' + (i + 1);
     teams.push({ id: 'tm' + i, name: nm, col: pal.c, colName: pal.n, seed: i + 1,
                  ink: pal.ink, edge: pal.e,
