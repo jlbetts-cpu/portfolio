@@ -340,13 +340,17 @@ body.hmSoccer .moodMenu .moodItem:not(#endGame),body.hmSoccer .moodMenu .moodGo{
 .hmGoalB::after{border-color:rgba(var(--tc2,90,160,216),.72)}
 .hmGoal.hmGoalHit{animation:hmNet .55s cubic-bezier(.2,.9,.3,1)}
 @keyframes hmNet{0%{box-shadow:inset 0 0 0 0 rgba(232,181,74,0)}28%{box-shadow:inset 0 0 24px 3px rgba(232,181,74,.55),0 0 0 3px rgba(232,181,74,.5)}100%{box-shadow:inset 0 0 0 0 rgba(232,181,74,0)}}
-/* THE GOAL GRAMMAR camera: two plain wrappers around ball+shadow / goals+shadows. Idle they
-   carry no z-index or transform of their own, which per spec makes them invisible to normal
-   stacking (a position:absolute box with z-index:auto and transform:none never opens a new
-   stacking context, so its children keep competing directly against the heads exactly as
-   before). Only .hmCamPunch -- applied for one animation's length -- claims the z-index the
-   contents already had, so the ball/goals never z-fight the heads mid-punch. .hmScore is
-   never a descendant of either wrapper, so the board cannot be moved by this. */
+/* THE GOAL GRAMMAR camera: two plain wrappers. .hmCamBack holds the ball's shadow, both
+   goals and both goal shadows (z:1-2, belongs BELOW the heads); .hmCamFront holds ONLY the
+   ball (z:48, belongs ABOVE the heads) -- the ball's shadow does not ride along with it,
+   or giving the wrapper the ball's z-index during a punch would drag the shadow above the
+   heads too. Idle, both wrappers carry no z-index or transform of their own, which per spec
+   makes them invisible to normal stacking (a position:absolute box with z-index:auto and
+   transform:none never opens a new stacking context, so its children keep competing
+   directly against the heads exactly as before). Only .hmCamPunch -- applied for one
+   animation's length -- claims the z-index the contents already had, so nothing z-fights
+   the heads mid-punch. .hmScore is never a descendant of either wrapper, so the board
+   cannot be moved by this. */
 .hmCam{position:absolute;inset:0;pointer-events:none}
 .hmCamBack.hmCamPunch{z-index:2;animation:hmCamPunch .5s cubic-bezier(.22,.7,.24,1) both}
 .hmCamFront.hmCamPunch{z-index:48;animation:hmCamPunch .5s cubic-bezier(.22,.7,.24,1) both}
@@ -6012,7 +6016,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   var S={on:false,seed:0,kickSeed:0,teams:{},target:5,cap:8,red:0,blue:0,ball:{x:0,y:0},phase:"idle",winner:0};
   window.__hmSoccer=S;
   var ball,ballSkin,goalL,goalR,goalShL,goalShR,board,sR,sB,countEl,W=0,H=0,groundY=0,BR=24,OFF=0,XL=0,XR=0;
-  var camBack,camFront,_camT=0;   // THE GOAL GRAMMAR camera: two transform-only wrappers (ball+shadow / goals+shadows) so a punch never touches .hmScore -- see stagePunch() below
+  var camBack,camFront,_camT=0;   // THE GOAL GRAMMAR camera: two transform-only wrappers (ball-shadow+goals+goal-shadows / ball only) so a punch never touches .hmScore -- see stagePunch() below
   var flapR=null,flapB=null;   // the split-flap instances mounted into .sR/.sB by paintBoard()
   var bx=0,by=0,bvx=0,bvy=0,kickCd={},running=false,last=performance.now(),scoreTeam=0,ballShadow,lastShot=0;
   var bsx=1,bsy=1,bsxv=0,bsyv=0,bsxP=1,bsyP=1,bsT=0;
@@ -6039,10 +6043,16 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
       plain wrapper (position:absolute;inset:0, no z-index/transform while idle -- CSS makes
       that combination stacking-context-transparent, so it changes nothing about today's
       render). Only stagePunch() ever gives them a transform, and only the pitch moves --
-      .hmScore below is appended straight to `hero`, never into either wrapper. */
+      .hmScore below is appended straight to `hero`, never into either wrapper.
+      camFront carries ONLY the ball (z:48, belongs above the heads' z:3). The ball's
+      shadow (z:1, belongs BELOW the heads, same as the goal shadows) goes in camBack
+      instead -- review caught that shadow riding along in camFront, because giving that
+      wrapper z-index:48 during a punch would have dragged the whole unit, shadow
+      included, in front of the heads. camBack's own punch z-index (2) is still above
+      the shadow's native 1 and below the heads' 3, so nothing changes there either. */
    camBack=document.createElement("div");camBack.className="hmCam hmCamBack";hero.appendChild(camBack);
    camFront=document.createElement("div");camFront.className="hmCam hmCamFront";hero.appendChild(camFront);
-   ballShadow=document.createElement("div");ballShadow.className="hmBallShadow";camFront.appendChild(ballShadow);
+   ballShadow=document.createElement("div");ballShadow.className="hmBallShadow";camBack.appendChild(ballShadow);
    ball=document.createElement("div");ball.className="hmBall";
    ballSkin=document.createElement("div");ballSkin.className="hmBallSkin";ball.appendChild(ballSkin);   // the pattern: this alone rotates
    var ballShade=document.createElement("div");ballShade.className="hmBallShade";ball.appendChild(ballShade);   // the sphere lighting: fixed, so the ball reads as lit, not a spinning disc
@@ -6283,6 +6293,7 @@ function teams(){
    function teamRGB(side){ try{ var T=window.__hmTour;
      if(T&&T.live&&T.cur){ var tm=(side===1?T.cur.a:T.cur.b); if(tm&&tm.col) return tm.col; }
    }catch(_){} return side===1?RED:BLUE; }
+   window.__hmTeamRGB=teamRGB;   // THE GOAL GRAMMAR's particle burst reuses this exact source instead of its own copy, so team colours can never drift apart between the pitch and the goal-mouth particles
   function kickoffCountdown(){S.kickSeed=(S.kickSeed||0)+1;BUS.emit('kickoff',{seed:S.kickSeed});   // the match opener: everyone to their half, then 3-2-1
    var _bh=ballHome();bx=_bh?_bh.x:(XL+XR)/2;by=_bh?_bh.y:70;bsp=ballSpawnScale();_spawnY=by;_curveTo=(XL+XR)/2;_curving=true;_cvOn=false;bvx=0;bvy=0;_deckT=0;S.phase="count";
    var n=3;showCount(n);
@@ -6522,7 +6533,8 @@ function teams(){
       the bracket out to a champion never calls stop(), so the class stuck and the next casual
       kickabout got the final's ball. Every match ends here, so this is the one honest place. */
    document.body.classList.remove("hmFinal");
-   try{if(window.__hmFX)window.__hmFX.clear();}catch(_){}}
+   try{if(window.__hmFX)window.__hmFX.clear();}catch(_){}
+   try{if(window.__hmGoalL3Teardown)window.__hmGoalL3Teardown();}catch(_){}}   // THE GOAL GRAMMAR: a goal scored just before the match ended must not leave its lower-third floating over the emptied stage
   var spin=0,bw=0,gaspAt=0;   // spin = rendered rotation, bw = angular velocity (deg/s)
   function loop(now){if(!S.on){running=false;return;}requestAnimationFrame(loop);
    var dt=Math.min(0.05,Math.max(0.006,(now-last)/1000));last=now;
@@ -6710,9 +6722,15 @@ function teams(){
    try{var T=window.__hmTour;if(T&&T.live&&T.cur){var tm=(team===1?T.cur.a:T.cur.b);if(tm&&tm.name)return tm.name;}}catch(_){}
    return team===1?"Red":"Blue";
   }
+  // Reuses soccer()'s own teamRGB (exposed as window.__hmTeamRGB, right by its definition
+  // near goalBurst) instead of a second private copy -- review flagged the duplicate as a
+  // drift risk: the pitch and the goal-mouth particles must always read the exact same
+  // colour. The literal fallback here only covers window.__hmTeamRGB being unavailable
+  // (e.g. soccer() bailed under reduced motion, in which case this code never runs anyway),
+  // and is kept identical to soccer()'s own RED/BLUE constants on purpose.
   function teamRGB(team){
-   try{var T=window.__hmTour;if(T&&T.live&&T.cur){var tm=(team===1?T.cur.a:T.cur.b);if(tm&&tm.col)return tm.col;}}catch(_){}
-   return team===1?"224,90,78":"90,160,216";   // the soccer module's own RED/BLUE defaults (teamRGB() near goalBurst)
+   try{if(window.__hmTeamRGB)return window.__hmTeamRGB(team);}catch(_){}
+   return team===1?"224,90,78":"90,160,216";
   }
   function goalParticles(team){try{
    if(!window.__hmFX||!window.__hmFxAt)return;
@@ -6742,6 +6760,19 @@ function teams(){
    el.classList.remove("in");void el.offsetWidth;el.classList.add("in");
    l3Timer=setTimeout(function(){if(el)el.classList.remove("in");},1600);
   }catch(_){}}
+  /* Match-end teardown: a goal inside the last ~1.6s of a match otherwise leaves the
+     lower-third floating over an emptied stage after finish() hides everything else.
+     finish() lives in soccer()'s own closure and can't reach this module's private
+     l3/l3Timer directly, so it's exposed here the same guarded way every other
+     cross-block call in this file works -- finish() calls window.__hmGoalL3Teardown()
+     alongside its existing __hmFX.clear(). Hidden instantly (transition suspended,
+     not just the "in" class removed) so it disappears with the rest of the pitch
+     rather than sliding out after everything else has already vanished. */
+  function teardownL3(){try{
+   if(l3Timer){clearTimeout(l3Timer);l3Timer=null;}
+   if(l3){var t=l3.style.transition;l3.style.transition="none";l3.classList.remove("in");void l3.offsetWidth;l3.style.transition=t;}
+  }catch(_){}}
+  window.__hmGoalL3Teardown=teardownL3;
   var reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
   window.__hmBus.on('goal',function(d){
    if(reduce)return;   // the whole sequence is skipped -- no camera, no slow-mo -- the score itself already updated in goalIn()
