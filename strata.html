@@ -93,7 +93,7 @@ nav{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;column-ga
 .hero{padding:0;scroll-margin-top:var(--sp-16-40)}
 .eyebrow{font-family:var(--sans);font-weight:600;font-size:var(--fs-label);letter-spacing:var(--tr-flat);text-transform:none;color:var(--c500);filter:url(#inkSm)}
 .head .eyebrow{display:block;margin:0 0 var(--sp-8-16)}
-.head{font-family:var(--sans);font-weight:600;font-size:var(--fs-h1);line-height:1.12;letter-spacing:-.02em;color:var(--c950);margin:16px 0 0;filter:url(#inkBig)}
+.head{font-family:var(--sans);font-weight:600;font-size:var(--fs-h1);line-height:1.12;letter-spacing:-.02em;color:var(--c950);margin:16px 0 0;filter:url(#inkBig);text-wrap:balance}
 .head .hl{display:block}
 .lede{font-family:var(--sans);font-weight:400;font-size:var(--fs-prose);line-height:var(--lh-prose);color:var(--c700);margin:var(--sp-24-32) 0 0;text-wrap:pretty}
 
@@ -118,13 +118,13 @@ nav{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;column-ga
 /* my role */
 .role{margin:var(--sp-40-64) 0 0}
 .rlabel{display:block;font-family:var(--sans);font-weight:600;font-size:var(--fs-label);letter-spacing:var(--tr-flat);text-transform:none;color:var(--c500);margin:0 0 var(--sp-16-24);filter:url(#inkSm)}
-.roleHead{font-family:var(--sans);font-weight:600;font-size:var(--fs-h2);line-height:1.1;letter-spacing:-.015em;color:var(--c950);margin:0 0 var(--sp-16-24);text-wrap:pretty}
+.roleHead{font-family:var(--sans);font-weight:600;font-size:var(--fs-h2);line-height:1.1;letter-spacing:-.015em;color:var(--c950);margin:0 0 var(--sp-16-24);text-wrap:balance}
 .role p{font-family:var(--sans);font-weight:400;font-size:var(--fs-prose);line-height:var(--lh-prose);color:var(--c950);text-wrap:pretty}
 
 /* scaffolded chapters — structure so the rail works end to end; copy drafted next */
 .sec{padding-top:var(--sp-72-144);scroll-margin-top:var(--sp-16-40)}
 .kicker{font-family:var(--sans);font-weight:600;font-size:var(--fs-label);letter-spacing:var(--tr-flat);text-transform:none;color:var(--c500);filter:url(#inkSm)}
-.secHead{font-family:var(--sans);font-weight:600;font-size:var(--fs-h2);line-height:1.1;letter-spacing:-.015em;color:var(--c950);margin:var(--gap-head-top) 0 var(--gap-head-bot);text-wrap:pretty}
+.secHead{font-family:var(--sans);font-weight:600;font-size:var(--fs-h2);line-height:1.1;letter-spacing:-.015em;color:var(--c950);margin:var(--gap-head-top) 0 var(--gap-head-bot);text-wrap:balance}
 .secBody{font-family:var(--sans);font-weight:400;font-size:var(--fs-prose);line-height:var(--lh-prose);color:var(--c700);margin:16px 0 0;text-wrap:pretty}
 /* pulled stat — clean editorial callout (no ink; texture stays on the hero title only) */
 .stat{margin:var(--sp-32-48) 0;max-width:540px}
@@ -150,7 +150,7 @@ nav{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;column-ga
 .shotCap{margin:var(--sp-8-16) 0 0;font-family:var(--sans);font-weight:600;font-size:var(--fs-label);letter-spacing:var(--tr-flat);text-transform:none;color:var(--c500);filter:url(#inkSm)}
 .hmw{margin:var(--sp-40-64) 0 0}
 .hmwLabel{font-family:var(--sans);font-weight:600;font-size:var(--fs-label);letter-spacing:var(--tr-flat);text-transform:none;color:var(--c500);filter:url(#inkSm);margin:0 0 var(--sp-16-24)}
-.hmwQ{font-family:var(--sans);font-weight:400;font-size:var(--fs-h2);line-height:1.2;letter-spacing:-.015em;color:var(--c950);margin:0;max-width:860px;text-wrap:pretty}
+.hmwQ{font-family:var(--sans);font-weight:400;font-size:var(--fs-h2);line-height:1.2;letter-spacing:-.015em;color:var(--c950);margin:0;max-width:860px;text-wrap:balance}
 .scaffold{color:var(--c500)}
 /* site footer: reach-me line over a full-width ghost wordmark */
 .siteFoot{margin-top:var(--sp-80-152);padding-bottom:var(--sp-32-64);text-align:center}
@@ -194,7 +194,7 @@ nav{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;column-ga
 /* ===== the system: onboarding gallery + the five-step build — one hero screen per step, the reasoning beside it ===== */
 .subBlock{margin:clamp(64px,8.5vh,96px) 0 0}
 .subKick{font-family:var(--sans);font-weight:600;font-size:var(--fs-label);letter-spacing:var(--tr-flat);text-transform:none;color:var(--c500);filter:url(#inkSm);margin:0}
-.subHead{font-family:var(--sans);font-weight:600;font-size:var(--fs-h3);line-height:1.1;letter-spacing:-.015em;color:var(--c950);margin:var(--sp-16-24) 0 var(--sp-16-24);text-wrap:pretty}
+.subHead{font-family:var(--sans);font-weight:600;font-size:var(--fs-h3);line-height:1.1;letter-spacing:-.015em;color:var(--c950);margin:var(--sp-16-24) 0 var(--sp-16-24);text-wrap:balance}
 /* onboarding shots are portrait phones: sized so the gallery browses, the steps read */
 .shot.phone{width:calc((100% - 72px)/3)}
 .shot.phone img{width:100%;height:auto;aspect-ratio:804/1748;object-fit:contain;background:#fff;border-radius:clamp(20px,2.6vw,32px);box-shadow:var(--rim-1)}
