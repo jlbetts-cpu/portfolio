@@ -138,6 +138,27 @@ in the same block that mutates `HW/HH`, rather than only on resize. Do NOT
 ground line, whatever its size (documented intent: the filler's size is its
 identity, not a depth cue).
 
+### 3.9 The Globe Lobby & the roulette draw — SPECCED, ASSETS IN REPO, NOT BUILT
+Jayden's call (2026-07-30): **Concept 1 with Concept 3's roulette physics** — the
+photo heads stand on a planet in a lobby, and the bracket draw is revealed with
+slot-machine/roulette motion rather than appearing fully formed. Full addendum
+lives in `docs/superpowers/specs/2026-07-30-tournament-broadcast-design.md`
+(§ "Addendum (2026-07-30): The Globe Lobby & the random draw").
+
+**Status:** never implemented — `grep "Globe\|earth-" index.html` → 0.
+**Assets already downloaded and committed** (NASA Blue Marble, public domain):
+`images/earth-disc-src.jpg` (579 KB, 2048² full disc) and
+`images/earth-map-src.jpg` (2.5 MB, 5400×2700 equirectangular). The `-src`
+suffix means they are **source masters, not web-ready** — they must be resized,
+cropped and converted to `.webp` before shipping, and the 2.5 MB map must never
+be served raw.
+
+**Where it belongs:** it was Plan 4 in the original roadmap (2 Boards → 3 Match
+presentation → **4 Globe Lobby & Draw** → …). It is the natural pre-match
+ceremony layer and pairs with the 12-team draw (§3.7): the roulette reveal is
+exactly how a 12-competitor bracket with byes should be unveiled, which solves
+the bye dead-space problem at the same time.
+
 ### 3.5 iOS corner smoothing + premium iOS feel
 **Research:** `border-radius` is a circular arc (G1, curvature jumps at the
 junction); Apple's corner is a curvature-continuous hybrid of a Bézier ramp
@@ -205,7 +226,8 @@ honest on its own terms and happens to be exactly what a draft order needs.
 4. **iOS radius + smoothing system** (§3.5) — tokens first, then apply site-wide.
 5. **Gradient design-system adoption** (§3.1) — tokenise the engine.
 6. **The soccer gradient banner** (§3.6) — first consumer of the token layer.
-7. **12-team bracket + final standings** (§3.7, §3.8).
+7. **12-team bracket + final standings** (§3.7, §3.8) — build the **Globe Lobby
+   roulette draw** (§3.9) with it; the reveal and the bracket are one moment.
 8. **Finish Plan 3** (director, ticker, personas) — already specced.
 
 Rationale: perf and correctness before polish; the design system before its

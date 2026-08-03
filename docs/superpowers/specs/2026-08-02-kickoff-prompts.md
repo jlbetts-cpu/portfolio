@@ -173,3 +173,26 @@ residual verifications live in `.superpowers/sdd/2026-08-02-broadcast-match/prog
 >
 > Measure before and after under 4–6× CPU throttling, report long tasks (>50 ms)
 > and INP from the Interactions lane, and show me the numbers side by side.
+
+---
+
+## Prompt 9 — the Globe Lobby and the roulette draw
+
+> Build §3.9 of the brief — specced on 2026-07-30, assets already in the repo,
+> never implemented. Read the full addendum first: the "Globe Lobby & the random
+> draw" section of
+> `docs/superpowers/specs/2026-07-30-tournament-broadcast-design.md`.
+>
+> Jayden's call was **Concept 1 with Concept 3's roulette physics**: the photo
+> heads stand on a planet in a lobby, and the draw is *revealed* with
+> slot-machine/roulette motion instead of appearing pre-formed.
+>
+> The NASA Blue Marble masters are committed at `images/earth-disc-src.jpg`
+> (2048² disc) and `images/earth-map-src.jpg` (5400×2700 equirectangular) — both
+> are **source files**, so resize/crop to `.webp` at the sizes you actually need
+> and never serve the 2.5 MB map raw. Public domain, no attribution required.
+>
+> Best built together with Prompt 6 (the 12-team bracket): the roulette reveal is
+> how a 12-slot bracket with byes should be unveiled, and it turns the bye
+> dead-space problem into a feature.
+
