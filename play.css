@@ -28,6 +28,40 @@ body{background:var(--c50);color:var(--c950);font-family:var(--sans);-webkit-fon
 .pupil{position:absolute;left:50%;top:50%;width:55%;height:55%;border-radius:50%;background:radial-gradient(circle at 50% 50%,#000 0%,#000 58%,#060606 80%,rgba(6,6,6,0) 100%);transform:translate(-50%,-50%) scale(1);transform-origin:50% 50%;pointer-events:none;will-change:transform}
 .glint{position:absolute;left:32%;top:26%;width:20%;height:20%;border-radius:50%;z-index:4;pointer-events:none;background:radial-gradient(circle at 50% 50%,rgba(255,255,255,.98) 0%,rgba(252,252,252,.72) 24%,rgba(250,250,250,0) 60%)}
 .glint::after{content:"";position:absolute;left:128%;top:165%;width:46%;height:46%;border-radius:50%;background:radial-gradient(circle,rgba(250,250,250,.55) 0%,rgba(250,250,250,0) 68%)}
+
+/* ---- THE BIG HEAD'S OWN CHROME. SHARED with index.html, copied verbatim, index.html keeps
+   every rule below untouched. The comment at the top of this file recorded that .face, .glasses
+   and .introwake were "correctly left out" because spawnCompanion never sets them -- true then,
+   wrong now. play.html loads hero-engine.js and carries a real (hidden) #stage, and mini-Jayden
+   renders by CLONING that stage's whole subtree, so every class INSIDE #stage has to be styled
+   here or the clone renders wrong: an unstyled .face is a natural-size image instead of an
+   inset:0 object-fit:contain one, and an unstyled .tongue/.glasses/.mouth loses its opacity:0
+   and paints a tongue and 3D glasses across his face.
+   The completeness rule that produced this block: style (a) everything the engine appends to
+   #stage, because that is exactly what gets cloned, and (b) everything it appends to
+   #stageMorph, because those default to in-flow and would otherwise stretch the host box.
+   (a) at boot = .eye/.iris/.pupil/.glint (above), .face, .mouth + markup's .tongue/.glasses.
+   (b) at boot = .speech, .dlogo, .dshadow, plus markup's .queueDots and .floorshadow.
+   DELIBERATELY OMITTED, with the reason: .introwake (the wake-up cinematic is index.html's page
+   intro and is gated off by HEADONLY), and .crumb/.crumbshadow/.stachecrumb/.popbucket/.kernel/
+   .popcrumb/.blush/.heartEye (created only by the eat / party / love / rain / movie easter eggs,
+   which on play.html are unreachable -- they fire from dragging a headline word there is no
+   headline for, or from the Play menu block that HEADONLY turns off).
+   Sources, index.html: 134, 137, 138, 139, 145-147, 162, 163, 164, 166, 168, 308. ---- */
+#stageMorph{position:relative;width:100%;transform-origin:center center}
+.stage{position:relative;width:100%;aspect-ratio:1;will-change:transform;z-index:5}
+.face{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;-webkit-user-select:none;user-select:none;cursor:pointer}
+.stage img,.face{-webkit-user-drag:none;-khtml-user-drag:none;user-select:none}
+.mouth{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;opacity:0;pointer-events:none;z-index:2;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat}
+.tongue{position:absolute;left:41%;top:56%;width:12%;height:auto;transform-origin:50% 100%;transform:scaleY(0);opacity:0;z-index:4;pointer-events:none;filter:url(#inkSm) drop-shadow(0 1px 1px rgba(0,0,0,.3));will-change:transform,opacity}
+.glasses{position:absolute;inset:0;width:100%;height:100%;z-index:7;pointer-events:none;opacity:0;will-change:transform,opacity;filter:url(#inkSm) drop-shadow(0 3px 3px rgba(0,0,0,.45))}
+.gl-red{fill:rgba(200,45,45,.5)}.gl-cyan{fill:rgba(35,150,165,.46)}.gl-plast{opacity:.5;pointer-events:none}
+.floorshadow{position:absolute;left:50%;bottom:3%;width:60%;height:12%;transform:translateX(-50%);background:radial-gradient(ellipse 50% 50% at 50% 50%,rgba(8,8,8,.42),rgba(8,8,8,.28) 30%,rgba(8,8,8,.10) 58%,transparent 78%);filter:blur(7px);z-index:-1;pointer-events:none;opacity:.5}
+.speech{position:absolute;inset:0;z-index:9;pointer-events:none;font-family:var(--sans);font-weight:600}
+.dlogo{border-radius:4px;position:absolute;width:21%;height:21%;opacity:0;backface-visibility:hidden;will-change:transform,left,top,opacity;filter:drop-shadow(0 3px 8px rgba(0,0,0,.22))}
+.dshadow{position:absolute;border-radius:50%;background:radial-gradient(ellipse 50% 50% at 50% 50%,rgba(8,8,8,.5),rgba(8,8,8,.3) 40%,rgba(8,8,8,.12) 62%,transparent 76%);transform:translate(-50%,-50%);z-index:-1;pointer-events:none;opacity:0;will-change:transform,left,top,width,height,opacity}
+.queueDots{position:absolute;left:50%;top:-7%;transform:translateX(-50%);display:flex;gap:.42rem;z-index:8;opacity:0;pointer-events:none;transition:opacity .16s cubic-bezier(.2,.8,.2,1)}
+
 .moodHeads{display:flex;flex-wrap:wrap;gap:8px;margin:8px 4px 2px}.moodHeads:empty{display:none}
 .mhItem{position:relative}.mhItem img{width:34px;height:40px;object-fit:contain;background:var(--c100);border-radius:4px;display:block}
 .mhPick{padding:0;border:0;background:none;cursor:pointer;display:block;border-radius:4px;transition:box-shadow .18s cubic-bezier(.2,.8,.2,1)}

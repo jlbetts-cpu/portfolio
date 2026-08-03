@@ -27,7 +27,11 @@
     before/after and the mobile decision (play.css:146). */
  body{display:flex}
  .hero{position:relative;width:100vw;height:60vh;margin:auto}
- #face{display:none}
+ /* The head host: real geometry (the clone copies it), zero ink (nobody is meant to see it).
+    Sized off the viewport height so it never fights the arena band, and pinned dead centre so
+    updateIris() derives the same cursor-relative gaze it does on the home page. */
+ .heroHeadHost{position:fixed;left:50%;top:50%;width:min(420px,46vw);transform:translate(-50%,-50%);opacity:0;pointer-events:none;z-index:0}
+ .heroHeadHost .stagewrap{position:relative;width:100%}
  .playBack{position:fixed;left:16px;top:16px;z-index:60}
  /* Task 3: #moodMenu's own base rule (play.css:152) sets neither left nor right, so its
     static position defaults to moodBtn's LEFT edge and grows rightward by its own width.
@@ -47,8 +51,26 @@
 <svg width="0" height="0" style="position:absolute"><filter id="inkBig"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="7" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="1.1" xChannelSelector="R" yChannelSelector="G" result="d"/><feTurbulence type="fractalNoise" baseFrequency="0.5 0.42" numOctaves="2" seed="13" result="g"/><feColorMatrix in="g" type="matrix" values="0 0 0 0 0.055 0 0 0 0 0.055 0 0 0 0 0.055 0 0 0 0.42 0" result="grain"/><feComposite in="grain" in2="d" operator="atop"/></filter>
 <filter id="inkSm"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="1" seed="4" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="0.55" xChannelSelector="R" yChannelSelector="G"/></filter><filter id="inkEye"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="9" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="1.05" xChannelSelector="R" yChannelSelector="G"/></filter></svg>
 <a class="playBack" href="index.html">&larr; Portfolio</a>
-<!-- fillerData() bails without this: it bakes mini-Jayden from #face. See spec 5.6. -->
-<img id="face" src="images/neutral.webp" alt="" aria-hidden="true">
+<!-- ===== THE BIG HEAD. Not decoration and not a copy: this is index.html's hero stage, the
+     same markup, driven by the same hero-engine.js. mini-Jayden (the odd-count filler) renders
+     by CLONING #stage every time he spawns and then mirroring its face src, its .eye.eclosed
+     state and its iris/glint transforms every frame (play-engine.js:307 and :928), so his eyes
+     ARE these eyes. Before this existed, play.html had no #stage, that whole branch was skipped
+     and a synthetic eye rig drew a lookalike instead -- which is exactly the drift Jayden saw.
+     HIDDEN BUT LAID OUT, and that distinction is load-bearing. display:none or a zero box would
+     give the clone no geometry to copy and mjBigW (the gaze scale divisor, play-engine.js:319)
+     no width to divide by. opacity:0 is index.html's own answer to the same problem -- it is how
+     the home page hides this head during a match (index.html: body.hmSoccer .stagewrap{opacity:0}).
+     It stays centred rather than parked off-screen so his gaze maths reads the cursor the same
+     way it does at home. #face keeps a src in markup purely so it has decoded by the time
+     fillerData() asks for face.complete; setFace("neutral") sets the identical value at boot. ==== -->
+<div class="heroHeadHost" aria-hidden="true">
+ <div class="stagewrap">
+  <div class="queueDots" id="qdots" role="status" aria-live="polite"><span class="qsr"></span><i></i><i></i><i></i></div>
+  <div id="stageMorph"><div class="floorshadow" id="fsh"></div><div class="stage" id="stage"><img class="face" id="face" src="images/neutral.webp" alt="" draggable="false"><img class="tongue" id="tongue" src="images/tongue.webp" alt="" aria-hidden="true">
+<svg class="glasses" id="glasses" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><defs><pattern id="glCard" patternUnits="userSpaceOnUse" width="100" height="100"><image href="images/glass_frame_tex.webp" x="0" y="0" width="100" height="100" preserveAspectRatio="xMidYMid slice"/></pattern><linearGradient id="glSheen" x1="0" y1="0" x2="0.62" y2="1"><stop offset="0" stop-color="#fff" stop-opacity="0.5"/><stop offset="0.4" stop-color="#fff" stop-opacity="0.06"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient><mask id="glMask" maskUnits="userSpaceOnUse" x="0" y="0" width="100" height="100"><rect x="28" y="45.3" width="44" height="13.2" rx="2.4" fill="#fff"/><polygon points="28,47.2 26,48 26,50.4 28,51.2" fill="#fff"/><polygon points="72,47.2 74,48 74,50.4 72,51.2" fill="#fff"/><rect x="32.5" y="47.3" width="13" height="9.2" rx="1.8" fill="#000"/><rect x="54.5" y="47.3" width="13" height="9.2" rx="1.8" fill="#000"/><path d="M46.7 58.6 Q50 54.3 53.3 58.6 Z" fill="#000"/></mask></defs><rect class="gl-red" x="32.5" y="47.3" width="13" height="9.2" rx="1.8"/><rect class="gl-cyan" x="54.5" y="47.3" width="13" height="9.2" rx="1.8"/><rect class="gl-plast" x="32.5" y="47.3" width="13" height="9.2" rx="1.8" fill="url(#glSheen)"/><rect class="gl-plast" x="54.5" y="47.3" width="13" height="9.2" rx="1.8" fill="url(#glSheen)"/><rect x="0" y="0" width="100" height="100" fill="url(#glCard)" mask="url(#glMask)"/></svg></div></div>
+ </div>
+</div>
 <main class="hero" id="playArena"></main>
 <!-- Task 3: the real game menu -- soccer + tournament only (Jayden cut Floor is Lava and
      Marble Race, "not quite yet"). Mirrors index.html:2320's #moodbar/#moodBtn/#moodMenu
@@ -66,18 +88,17 @@
   <button class="moodItem" id="endGame" type="button" aria-label="End the current game" style="display:none"><svg class="gIco" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M5 7a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2l0 -10"/></svg>End game</button>
  </div>
 </div>
-<script>
-/* DEV-ONLY, opt-in via ?wraf=1 — copied from index.html:2468-2475 verbatim.
-   Without this, every ?wraf=1 verification step in this plan silently runs on
-   native rAF and freezes the moment the tab loses focus. */
-(function(){try{if(!/[?&]wraf=1/.test(location.search))return;
- var blob=new Blob(["var t=setInterval(function(){postMessage(0);},15);onmessage=function(){};"],{type:"application/javascript"});
- var w=new Worker(URL.createObjectURL(blob)),q=[],nid=1;
- w.onmessage=function(){var cbs=q;q=[];var now=performance.now();for(var i=0;i<cbs.length;i++){try{cbs[i].fn(now);}catch(e){}}};
- window.requestAnimationFrame=function(fn){var h=nid++;q.push({h:h,fn:fn});return h;};
- window.cancelAnimationFrame=function(h){for(var i=0;i<q.length;i++){if(q[i].h===h){q.splice(i,1);break;}}};
-}catch(e){}})();
-</script>
+<!-- The ?wraf=1 dev shim that used to be copied in here now arrives inside hero-engine.js,
+     which is the file it was copied out of -- and it loads below, ahead of play-engine.js, so
+     it still installs before anything schedules a frame. Keeping the copy would have started a
+     second Web-Worker ticker whose queue nothing ever drains. -->
+<!-- HEAD-ONLY MODE, set before the engine loads: give me the head, not the portfolio page.
+     hero-engine.js reads this to skip index.html's wake-up cinematic and its Play-menu wiring
+     (play-games.js already owns #moodBtn here; two toggles on one button cancel out). Nothing
+     about the head itself changes -- that is the point. -->
+<script>window.__hmHeroHeadOnly=true;</script>
+<!-- The SAME engine index.html loads, from the same file. -->
+<script src="hero-engine.js"></script>
 <script src="party.js"></script>
 <script src="egghead-seed.js"></script>
 <script src="play-engine.js"></script>
