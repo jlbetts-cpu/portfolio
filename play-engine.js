@@ -408,6 +408,27 @@
    var fHW=Math.round(Math.min(108,Math.max(66,(heroR.w||innerWidth)*0.075)));if(mob)fHW=Math.min(fHW,64);
    if(filler)fHW=Math.round(fHW*1.5);
    if(Math.abs(fHW-HW)>2){HW=fHW;HH=HW*1.2;root.style.width=HW+"px";root.style.height=HH+"px";shadow.style.width=HW+"px";shadow.style.height=(HW*0.22)+"px";}}
+  // ---- RE-DERIVE THE FLOOR. floorY was computed above as fY-HH*FOOT, but BOTH size branches
+  // just ran and either of them may have rewritten HH -- so a head whose box changed size was
+  // left seating against the floor of its OLD height and hovered (or sank) by exactly
+  // (HH_new-HH_old)*FOOT until the next resize happened to leave its size alone. Measured on
+  // play.html, 1280->700 mid-fixture: every egghead rested 49.2px above the shared feet plane
+  // (HH 129.6->76.8) while mini-Jayden, whose box is 1.5x, rested 73.8px above it -- a 24.6px
+  // step between a captain and his own squad-mates, which is the reported "captains float".
+  // The rule is that every head's FEET share the ground line whatever its size, so the answer is
+  // to re-seat the floor under the new height, never to nudge y. Costs one subtraction per
+  // survey(), and is a no-op on the (common) frames where neither branch changed HH.
+  // The shadow needs nothing further: its box was resized in the branch above, and its placement
+  // is derived per-frame from floorY+HH*FOOT (see shG in the render block), so it follows.
+  var floorWas=floorY;floorY=fY-HH*FOOT;
+  // ...and whoever was STANDING ON THE OLD FLOOR has to come with it. `surface` is the plane this
+  // head is currently resting on, so `surface>=floorWas-2` means "on the ground", not "on a
+  // platform" -- a head perched on a slab keeps its slab. Re-pointing surface at the new floor
+  // matters as much as y does: surface is what the lander snaps to, so leaving it stale just
+  // moves the hover one hop into the future. This is the same "stay intact when the screen
+  // shrinks" clamp as the line below, made symmetric; it re-seats feet on the ground line rather
+  // than offsetting anyone off it.
+  if(floorY!==floorWas&&!air&&!grabbed&&!perched&&!window.__hmLavaOn&&surface>=floorWas-2){surface=floorY;if(y<floorY)y=floorY;}
   if(x>WR)x=WR;if(x<WL)x=WL;if(y>floorY)y=floorY;   // stay intact when the screen shrinks
  }
  survey();addEventListener("resize",function(){mob=innerWidth<=880;survey();},{passive:true});
