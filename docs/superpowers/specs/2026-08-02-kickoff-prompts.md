@@ -6,7 +6,8 @@ and assumes only that the repo and the brief exist.
 Reading order for the assistant: this file →
 `docs/superpowers/specs/2026-08-02-next-chapter-brief.md` →
 `docs/superpowers/specs/gradient-reference-notes.md` →
-`docs/superpowers/plans/2026-08-02-broadcast-match.md`.
+`docs/superpowers/plans/2026-08-02-broadcast-match.md`. The per-task history and
+residual verifications live in `.superpowers/sdd/2026-08-02-broadcast-match/progress.md`.
 
 ---
 
@@ -19,9 +20,16 @@ Reading order for the assistant: this file →
 > (`orbs.html`). `main` is live and deployed. Branch `broadcast-match` has Plan 3
 > Task 1 (the goal grammar) done and Tasks 2–4 pending.
 >
+> Shipped in the final session (all on `broadcast-match`, pushed): the goal
+> grammar plus its three review fixes (`557a037`), colour-locked egghead names —
+> Red is always Gus (`036dd55`), and a side-aware goal card that now appears at
+> the end where the goal happened (`5be5665`). Two known bugs are logged with
+> leads: §3.4 the scorer misattribution ("Jayden scored" when he wasn't playing)
+> and §3.4b captains floating above the other heads.
+>
 > Confirm you've read them by telling me, in your own words: what's live, what's
-> in flight, what the measured performance verdict was, and what the build order
-> is. Then stop and wait — don't start building yet.
+> in flight, what the measured performance verdict was, what the two open bugs
+> are, and what the build order is. Then stop and wait — don't start building yet.
 
 ---
 
@@ -62,19 +70,24 @@ Reading order for the assistant: this file →
 
 ---
 
-## Prompt 3 — egghead names
+## Prompt 3 — the floating-captain bug
 
-> Implement the deterministic colour-locked naming from §3.3: Red→Gus,
-> Gold→Milo, Green→Ozzy, Teal→Dot, Sky→Baz, Blue→Kip, Violet→Fitz,
-> Magenta→Chip, with the reserve tier for palette wrap. The name must be a pure
-> function of the colour, so the red egghead is always Gus in every session.
+> ~~Egghead names~~ shipped 2026-08-02 (commit `036dd55`) — skip; this slot is
+> now the floating-captain bug.
 >
-> Apply it everywhere a generic name currently shows: the scoreboard, the Draw
-> Board tickets, the goal lower-third, the team picker, and the tournament team
-> names. Check the existing rule in the code that a team may only be named after
-> a head that actually wears that colour — keep it true.
-
----
+> In a tournament match some heads (typically the captains) sit visibly higher
+> than their squad-mates instead of sharing one ground line. §3.4b of the brief
+> has the lead: head size is per-head, and around `index.html:5089–5091` `HH`
+> is recomputed (`HH = HW*1.2`, with a `*1.5` branch for the filler) **without
+> `floorY` being recomputed in the same pass**, so a head whose box changed size
+> seats against a stale floor.
+>
+> First verify: log `HW/HH/floorY/y` per head one frame after a fixture starts
+> and find the heads whose `floorY` disagrees with `groundY − HH`. Then fix by
+> recomputing `floorY` (and the shadow placement) in the same block that mutates
+> `HW/HH`. Do **not** nudge `y` to hide it — the rule is that every head's FEET
+> share the ground line whatever its size; the filler's size is its identity,
+> not a depth cue.
 
 ## Prompt 4 — the iOS system (corners, motion, materials)
 
