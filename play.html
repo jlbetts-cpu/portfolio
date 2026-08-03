@@ -1,0 +1,163 @@
+<!doctype html><html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Play — Jayden Betts</title>
+<meta name="robots" content="noindex">
+<!-- The two text faces, ahead of the stylesheet that declares them: a preload must be in the
+     document head, and these are the only fonts a visible word on this page ever uses. Same
+     three attributes index.html uses (as=font, type, crossorigin -- fonts are always fetched
+     in CORS mode, so without crossorigin the preload is fetched twice and used once).
+     Archivo is not preloaded, matching index.html: it is 90 KB and only the scoreboard
+     numerals use it, which do not exist until a match is running. -->
+<link rel="preload" as="font" type="font/woff2" href="fonts/instrument-sans-latin-400-normal.woff2" crossorigin>
+<link rel="preload" as="font" type="font/woff2" href="fonts/instrument-sans-latin-600-normal.woff2" crossorigin>
+<!-- THE SHARED DESIGN TOKENS. Linked ahead of play.css so play.css's own :root can still
+     override the two tokens this page legitimately binds differently (--accent is the
+     live-match green here, not the site's interactive blue). Before this, play.css carried
+     a hand-copied subset of the token block plus a second flagged "top-up" block at its
+     foot; both are gone -- tokens.css is the one source now. See
+     .superpowers/sdd/2026-08-02-play-page/play-tokens-report.md §1. -->
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="play.css">
+<style>
+ /* The arena carries class="hero" deliberately: the engine measures ".hero" in
+    16 places. Renaming those is a later pass; see spec 5.1. */
+ html,body{margin:0;height:100%;background:var(--c50);overflow:hidden}
+ /* Was background:var(--paper,#f7f6f3) -- --paper isn't a token this site defines, so it
+    silently fell through to the hard-coded fallback hex, a shade off index.html's real body
+    background (--c50, #FDFDFD; the fallback was #f7f6f3, a visibly warmer/grayer off-white).
+    play.css already carries the correct body{background:var(--c50)} base rule (copied from
+    index.html:58), but this inline block is a later same-specificity rule (a plain `body`
+    selector either way), so it won the cascade by source order and silently shadowed it. */
+ /* COMPOSITION (fix round 2): the engine derives its entire floor plane from
+    hero.clientHeight (FLOORCAP, play-engine.js survey()) and every game element --
+    ball, goals, heads, and the scoreboard itself (a .hero child; .hmScore's
+    top:40px is relative to the band, not the viewport) -- is a flat .hero
+    descendant. So a shorter, vertically-centred .hero pulls the whole scene up
+    into a broadcast-style band with the scoreboard sitting just above it, with NO
+    play-engine.js change: this is CSS-only. body becomes the centring flex
+    container; .hero, as body's one in-flow child (the back link and the game menu
+    are both position:fixed, out of flow), gets margin:auto to centre on both axes --
+    though only the vertical axis has free space to give, since .hero still spans
+    the full 100vw. See task-2-report.md's fix-round-2 addendum for the measured
+    before/after and the mobile decision (play.css:146). */
+ body{display:flex}
+ .hero{position:relative;width:100vw;height:60vh;margin:auto}
+ /* The head host: real geometry (the clone copies it), zero ink (nobody is meant to see it).
+    Sized off the viewport height so it never fights the arena band, and pinned dead centre so
+    updateIris() derives the same cursor-relative gaze it does on the home page. */
+ .heroHeadHost{position:fixed;left:50%;top:50%;width:min(420px,46vw);transform:translate(-50%,-50%);opacity:0;pointer-events:none;z-index:0}
+ .heroHeadHost .stagewrap{position:relative;width:100%}
+ /* Task 3: #moodMenu's own base rule (play.css:152) sets neither left nor right, so its
+    static position defaults to moodBtn's LEFT edge and grows rightward by its own width.
+    Home gets away with that because a JS module (index.html:4273 clampMenuX, deliberately not
+    ported here -- see play-games.js's menu-open-glue comment) measures at open-time and flips
+    to right:0 when the menu "would leave the column". play.html's menu bar is pinned to the
+    right edge (right:16px, below), so left-aligned growth runs the menu off the viewport's
+    right edge every time -- measured 70px of overflow at 1280px wide, worse on anything
+    narrower, and body's overflow:hidden (line 9) makes the overflow unreachable, not just
+    ugly. Anchoring the menu to the SAME edge as the button it drops from is also just the
+    correct static answer for a corner-pinned bar, not a workaround. */
+ #moodMenu{left:auto;right:0}
+</style>
+<link rel="stylesheet" href="header.css">
+<script src="header.js" defer></script>
+</head><body class="hmFull" data-nav="games">
+<!-- FIX ROUND 2 (Task 2): filter defs SHARED with index.html:2316-2318, copied verbatim, not moved -- index.html keeps its own copies. Must be inlined here, not linked: Safari does not support filters referenced from an external or data: URL (see index.html's own comment on tHeadEdge). #tHeadEdge is unused on play.html today but Task 4's tournament head edges need it. -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><!-- Cut-out edge stroke. NOT a drop-shadow stack: CSS filter functions CHAIN, each taking the previous one's output, so N shadows compound to about (N/pi)*r rather than r -- 8 at 1px measures ~2.5px, and 24 hangs the compositor outright. Worse, a stack outlines every hair strand separately and turns a photographic head into a spiky halo. Threshold the alpha FIRST so wispy strands collapse into one silhouette, dilate that, subtract to leave a ring, and flood it. One clean line, hair keeps its softness. Must be inline in this document: Safari does not support filters referenced from an external or data: URL. --><filter id="tHeadEdge" x="-25%" y="-25%" width="150%" height="150%" color-interpolation-filters="sRGB"><feGaussianBlur in="SourceAlpha" stdDeviation="1.6" result="b"/><feComponentTransfer in="b" result="sil"><feFuncA type="linear" slope="20" intercept="-13.5"/></feComponentTransfer><feMorphology in="sil" operator="dilate" radius="1" result="f"/><feComposite in="f" in2="sil" operator="out" result="r"/><feFlood flood-color="#FDFDFD" result="c"/><feComposite in="c" in2="r" operator="in" result="st"/><feMerge><feMergeNode in="st"/><feMergeNode in="SourceGraphic"/></feMerge></filter></svg>
+<svg width="0" height="0" style="position:absolute"><filter id="inkBig"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="7" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="1.1" xChannelSelector="R" yChannelSelector="G" result="d"/><feTurbulence type="fractalNoise" baseFrequency="0.5 0.42" numOctaves="2" seed="13" result="g"/><feColorMatrix in="g" type="matrix" values="0 0 0 0 0.055 0 0 0 0 0.055 0 0 0 0 0.055 0 0 0 0.42 0" result="grain"/><feComposite in="grain" in2="d" operator="atop"/></filter>
+<filter id="inkSm"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="1" seed="4" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="0.55" xChannelSelector="R" yChannelSelector="G"/></filter><filter id="inkEye"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="9" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="1.05" xChannelSelector="R" yChannelSelector="G"/></filter></svg>
+<!-- THE SITE HEADER. One component, every page: header.css + header.js, adopted
+     2026-08-03 from header-prototype.html. Replaces the unstyled `<- Portfolio` link this page shipped with. The lockup IS the back
+     affordance now -- Back and the wordmark went to the same URL, so two of the
+     four old slots were doing one job. Design + the measured lockup:
+     .superpowers/sdd/2026-08-02-play-page/header-report.md
+     The lockup, Home and About all go to index.html; Games names this page's
+     own URL, so it is the site's only aria-current="page". -->
+<div class="jbStick isFixed">
+ <nav class="jbNav hasSoc" aria-label="Primary" data-surface="paper" data-back="1">
+  <a class="jbHome" href="index.html" aria-label="Back — Jayden Betts, home"><svg class="jbArrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6l6 6"/></svg><span class="jbMark" aria-hidden="true"><span class="jbL1">Jayden</span><span class="jbL2">Betts</span></span></a>
+  <span class="jbSep" aria-hidden="true"></span>
+  <a data-nav-item="home" href="index.html">Home</a>
+  <a data-nav-item="about" href="index.html#about">About</a>
+  <a data-nav-item="games" href="play.html" aria-current="page">Games</a>
+  <span class="jbBarSep" aria-hidden="true"></span>
+  <span class="jbBarSoc"><a data-soc="mail" href="mailto:jaydenlbetts@gmail.com" aria-label="Email Jayden Betts"><svg class="jbGlyph" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4.5h18c.55 0 1 .45 1 1v13c0 .55-.45 1-1 1H3c-.55 0-1-.45-1-1v-13c0-.55.45-1 1-1Zm1.4 1.5L12 11.6 19.6 6H4.4ZM20 7.4l-7.4 5.5a1 1 0 0 1-1.2 0L4 7.4V18h16V7.4Z"/></svg></a><a data-soc="li" href="https://www.linkedin.com/in/jaydenbetts" target="_blank" rel="noopener noreferrer" aria-label="Jayden Betts on LinkedIn — opens in a new tab"><svg class="jbGlyph" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.34V9h3.42v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29zM5.34 7.43a2.06 2.06 0 1 1 0-4.13 2.06 2.06 0 0 1 0 4.13zM7.12 20.45H3.55V9h3.57v11.45zM22.22 0H1.77C.8 0 0 .78 0 1.74v20.52C0 23.22.8 24 1.77 24h20.45c.98 0 1.78-.78 1.78-1.74V1.74C24 .78 23.2 0 22.22 0z"/></svg></a><a data-soc="ig" href="https://www.instagram.com/jaydenleebetts" target="_blank" rel="noopener noreferrer" aria-label="Jayden Betts on Instagram — opens in a new tab"><svg class="jbGlyph" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg></a></span>
+ </nav>
+</div>
+<!-- ===== THE BIG HEAD. Not decoration and not a copy: this is index.html's hero stage, the
+     same markup, driven by the same hero-engine.js. mini-Jayden (the odd-count filler) renders
+     by CLONING #stage every time he spawns and then mirroring its face src, its .eye.eclosed
+     state and its iris/glint transforms every frame (play-engine.js:307 and :928), so his eyes
+     ARE these eyes. Before this existed, play.html had no #stage, that whole branch was skipped
+     and a synthetic eye rig drew a lookalike instead -- which is exactly the drift Jayden saw.
+     HIDDEN BUT LAID OUT, and that distinction is load-bearing. display:none or a zero box would
+     give the clone no geometry to copy and mjBigW (the gaze scale divisor, play-engine.js:319)
+     no width to divide by. opacity:0 is index.html's own answer to the same problem -- it is how
+     the home page hides this head during a match (index.html: body.hmSoccer .stagewrap{opacity:0}).
+     It stays centred rather than parked off-screen so his gaze maths reads the cursor the same
+     way it does at home. #face keeps a src in markup purely so it has decoded by the time
+     fillerData() asks for face.complete; setFace("neutral") sets the identical value at boot. ==== -->
+<div class="heroHeadHost" aria-hidden="true">
+ <div class="stagewrap">
+  <div class="queueDots" id="qdots" role="status" aria-live="polite"><span class="qsr"></span><i></i><i></i><i></i></div>
+  <div id="stageMorph"><div class="floorshadow" id="fsh"></div><div class="stage" id="stage"><img class="face" id="face" src="images/neutral.webp" alt="" draggable="false"><img class="tongue" id="tongue" src="images/tongue.webp" alt="" aria-hidden="true">
+<svg class="glasses" id="glasses" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><defs><pattern id="glCard" patternUnits="userSpaceOnUse" width="100" height="100"><image href="images/glass_frame_tex.webp" x="0" y="0" width="100" height="100" preserveAspectRatio="xMidYMid slice"/></pattern><linearGradient id="glSheen" x1="0" y1="0" x2="0.62" y2="1"><stop offset="0" stop-color="#fff" stop-opacity="0.5"/><stop offset="0.4" stop-color="#fff" stop-opacity="0.06"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient><mask id="glMask" maskUnits="userSpaceOnUse" x="0" y="0" width="100" height="100"><rect x="28" y="45.3" width="44" height="13.2" rx="2.4" fill="#fff"/><polygon points="28,47.2 26,48 26,50.4 28,51.2" fill="#fff"/><polygon points="72,47.2 74,48 74,50.4 72,51.2" fill="#fff"/><rect x="32.5" y="47.3" width="13" height="9.2" rx="1.8" fill="#000"/><rect x="54.5" y="47.3" width="13" height="9.2" rx="1.8" fill="#000"/><path d="M46.7 58.6 Q50 54.3 53.3 58.6 Z" fill="#000"/></mask></defs><rect class="gl-red" x="32.5" y="47.3" width="13" height="9.2" rx="1.8"/><rect class="gl-cyan" x="54.5" y="47.3" width="13" height="9.2" rx="1.8"/><rect class="gl-plast" x="32.5" y="47.3" width="13" height="9.2" rx="1.8" fill="url(#glSheen)"/><rect class="gl-plast" x="54.5" y="47.3" width="13" height="9.2" rx="1.8" fill="url(#glSheen)"/><rect x="0" y="0" width="100" height="100" fill="url(#glCard)" mask="url(#glMask)"/></svg></div></div>
+ </div>
+</div>
+<main class="hero" id="playArena"></main>
+<!-- Task 3: the real game menu -- soccer + tournament only (Jayden cut Floor is Lava and
+     Marble Race, "not quite yet"). Mirrors index.html:2320's #moodbar/#moodBtn/#moodMenu
+     structure but WITHOUT the four mood dots, "Add your head", "Add an egghead", #moodHeads
+     or the "Show on home" toggle -- those are home-owned (spec §3.2). #moodBtn and #moodbar
+     must keep those exact ids: the tournament disables/restores #moodBtn by id
+     (index.html:8545,8565). Positioned fixed top-right, replacing the Task 2 #playGo
+     scaffolding; behavior (open/close, launchers, gating, team tray) lives in
+     play-games.js. -->
+<!-- The inset is --play-gutter / --play-top, both defined in play.css next to the note
+     that explains them: the gutter IS the site header's gutter at every width, and
+     below 760px --play-top drops this control onto its own row because the header bar
+     and this button physically overlap under ~699px (the header wins on z-index, so
+     "Play" was invisible on a phone). Kept as a style attribute rather than moved into
+     play.css because play-games.js identifies this element by id and toggles only its
+     class list -- nothing reads these values, but leaving the element's position where
+     it has always been declared keeps that obvious. -->
+<div class="moodbar" id="moodbar" style="position:fixed;right:var(--play-gutter);top:var(--play-top);z-index:60">
+ <button class="moodBtn" id="moodBtn" type="button" aria-label="Play" aria-expanded="false" aria-controls="moodMenu"><span class="moodLbl">Play</span><svg class="moodCar" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M6 9l6 6l6 -6"/></svg></button>
+ <div class="moodMenu" id="moodMenu">
+  <div class="moodRow" id="soccerRow"><button class="moodItem" id="soccerGo" type="button" aria-label="Start a soccer match between your heads"><svg class="gIco" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"/> <path d="M12 7l4.76 3.45l-1.76 5.55h-6l-1.76 -5.55l4.76 -3.45"/> <path d="M12 7v-4m3 13l2.5 3m-.74 -8.55l3.74 -1.45m-11.44 7.05l-2.56 2.95m.74 -8.55l-3.74 -1.45"/></svg>Soccer</button><button class="moodTeamsBtn" id="soccerTeams" type="button" aria-haspopup="dialog" aria-expanded="false" aria-label="Choose soccer teams"><span class="tdotR" aria-hidden="true"></span><span class="tdotB" aria-hidden="true"></span></button></div>
+  <button class="moodItem" id="tourGo" type="button" aria-label="Start a soccer tournament — single elimination, one match at a time, with goals, assists and ratings tracked"><svg class="gIco" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M2 4a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/> <path d="M18 10a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/> <path d="M2 12a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/> <path d="M2 20a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/> <path d="M6 12h3a1 1 0 0 1 1 1v6a1 1 0 0 1 -1 1h-3"/> <path d="M6 4h7a1 1 0 0 1 1 1v10a1 1 0 0 1 -1 1h-2"/> <path d="M14 10h4"/></svg>Tournament</button>
+  <button class="moodItem" id="endGame" type="button" aria-label="End the current game" style="display:none"><svg class="gIco" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M5 7a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2l0 -10"/></svg>End game</button>
+  <!-- Task 5: the makers move here. index.html's Extras panel used to be the only route to
+       headmaker.html and gradientlab.html; with the games gone from home, Play is where making
+       lives. Linked BEFORE the Extras cards came out, so neither maker was ever unreachable.
+       This is the staged "link first, rebuild later" step -- a proper maker section on this page
+       is a later pass. The .moodSep only earns its pixel when both sides have something visible;
+       play-games.js:91 syncMoodSeps() measures that every tick. -->
+  <div class="moodSep" aria-hidden="true"></div>
+  <a class="moodGo" href="headmaker.html"><svg class="gIco" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0"/> <path d="M16 19h6"/> <path d="M19 16v6"/> <path d="M6 21v-2a4 4 0 0 1 4 -4h4"/></svg>Create head</a>
+  <a class="moodGo" href="gradientlab.html"><svg class="gIco" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M3 3m0 2a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v14a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2z"/> <path d="M3 15l6 -6l4 4l3 -3l5 5"/> <path d="M8.5 8.5m-1.5 0a1.5 1.5 0 1 0 3 0a1.5 1.5 0 1 0 -3 0"/></svg>Gradient maker</a>
+ </div>
+</div>
+<!-- The ?wraf=1 dev shim that used to be copied in here now arrives inside hero-engine.js,
+     which is the file it was copied out of -- and it loads below, ahead of play-engine.js, so
+     it still installs before anything schedules a frame. Keeping the copy would have started a
+     second Web-Worker ticker whose queue nothing ever drains. -->
+<!-- HEAD-ONLY MODE, set before the engine loads: give me the head, not the portfolio page.
+     hero-engine.js reads this to skip index.html's wake-up cinematic and its Play-menu wiring
+     (play-games.js already owns #moodBtn here; two toggles on one button cancel out). Nothing
+     about the head itself changes -- that is the point. -->
+<script>window.__hmHeroHeadOnly=true;
+/* THIS is the page where games run. play-engine.js builds its game furniture (the lava
+   layers, the 20 battle rungs, the countdown, the battle counter, the race board, the
+   per-head HP bars) at init rather than on game start, and only play.css styles it. The
+   home page loads the same engine for the ambient heads alone, so the engine now attaches
+   that furniture only where this flag (or #playArena) says a game can actually start. */
+window.__hmGames=true;</script>
+<!-- The SAME engine index.html loads, from the same file. -->
+<script src="hero-engine.js"></script>
+<script src="party.js"></script>
+<script src="egghead-seed.js"></script>
+<script src="play-engine.js"></script>
+<script src="play-games.js"></script>
+<script src="play-tournament.js"></script>
+</body></html>
