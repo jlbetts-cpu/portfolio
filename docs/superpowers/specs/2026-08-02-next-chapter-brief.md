@@ -78,7 +78,10 @@ Move soccer / tournament / lava / marble race off `index.html` onto a dedicated
 route (`play.html`), with a back affordance to the portfolio. Benefits: the home
 page sheds the companion engine, its rAF loops and canvases; the game gets full
 viewport and a real URL. Keep the Play menu on the home page as the entry point
-(it links rather than launches). Carry the `?stand=1` test hooks across.
+(it links rather than launches). Carry the dev test hooks across — the flag is
+**`?wraf=1`** (Worker-driven rAF so the engine ticks in a backgrounded tab, plus
+the `__peers`/`__plats`/`__race` debug handles) and `?hide=1`. Earlier drafts of
+this brief said `?stand=1`; no such flag exists in the repo.
 
 ### 3.3 Egghead names — deterministic and colour-locked  ✅ SHIPPED 2026-08-02
 **Research:** Minions land because ordinary human names sit on absurd bodies —

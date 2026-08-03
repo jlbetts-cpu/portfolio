@@ -43,7 +43,7 @@ residual verifications live in `.superpowers/sdd/2026-08-02-broadcast-match/prog
 > game canvases (measure before/after and show me the numbers). The Play menu
 > stays on the home page but becomes navigation into `play.html`. `play.html`
 > gets a persistent top-left back affordance to the portfolio, full-viewport
-> stage, and carries over the `?stand=1` test hooks and the seeded-roster
+> stage, and carries over the `?wraf=1` dev hooks and the seeded-roster
 > harness. Saved heads (localStorage) must work identically on both pages.
 >
 > Use superpowers:brainstorming first to settle the extraction boundary with me
