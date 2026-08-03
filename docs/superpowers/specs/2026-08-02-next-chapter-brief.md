@@ -16,8 +16,12 @@ Gradient Lab (`gradientlab.html`) + the Ambient Orbs study set (`orbs.html`) +
 the Extras card.
 
 **In flight on branch `broadcast-match`:** Plan 3 Task 1 — the goal grammar
-(hit-stop → punch-in → slow-mo → particles → scorer lower-third), reviewed, with
-a fix round applied. Tasks 2–4 (director layer, suspense ticker, personas +
+(hit-stop → punch-in → slow-mo → particles → scorer lower-third), reviewed, fix
+round applied AND closed: the ball shadow's stacking group was confirmed holding
+z:2 (below the heads' z:3) across the punch window, the lower-third teardown
+fires from `finish()`, and the particles read the pitch's own `__hmTeamRGB`.
+Only residual is a visual screenshot mid-goal with the browser foregrounded.
+Egghead names also shipped here (§3.3). Tasks 2–4 (director layer, suspense ticker, personas +
 crowd) are specced in `docs/superpowers/plans/2026-08-02-broadcast-match.md` and
 NOT started.
 
