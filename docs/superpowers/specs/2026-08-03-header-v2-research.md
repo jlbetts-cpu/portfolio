@@ -477,9 +477,10 @@ worth being precise about what falls away:
 | Thing | Rev 1 | Now |
 |---|---|---|
 | `header.js:40` — `window.addEventListener("scroll", …)` calling `getBoundingClientRect()` on **every scroll event, unthrottled** (the site's only unthrottled scroll handler; every other one, on `index.html`, the five case studies and `play-engine.js`, is rAF-gated) | deleted, replaced by an observer | **deleted, replaced by nothing** |
-| `.jbSentinel` + `IntersectionObserver` | required | **not needed.** An observer with no consumer is not a cheap mechanism, it is a pointless one |
-| `html.jbShrunk` class, `--bar-shut`, `--close` | required | **not needed** |
-| `<html class="jbShrunk">` on the two fixed pages | required | **not needed** — §3.8 |
+| `.jbSentinel` + `IntersectionObserver` | required | **still needed** — one sentinel, one class toggle, consumed by §6.2's inset. It is the only scroll machinery that survives, and it replaces `header.js`'s unthrottled listener rather than adding to it |
+| `--bar-shut`, `--close` (the capsule's width morph) | required | **not needed** |
+| `html.jbShrunk` + its sentinel | required | **still needed** — now drives §6.2's inset only |
+| `<html class="jbShrunk">` on the two fixed pages | required | **still needed** — static, not toggled; §3.8 |
 | `.jbNav.isLifted` + the `--sh-2 → --sh-3` shadow deepening + its `transition: box-shadow` | deleted | deleted |
 
 **Net effect on `header.js`: its entire scroll section (lines 26–42) is removed and nothing
@@ -551,13 +552,22 @@ Likewise **scroll-state container queries** (`@container scroll-state(stuck: top
 `scrollHeight === innerHeight === 800` (verified). Under Rev 1 they needed a static `jbShrunk`
 class to pin them into the correct state.
 
-**They now need nothing.** There is only one state, so they get it by default. The only
-page-specific markup that remains is what was already there and already correct:
-`.jbStick.isFixed` (because a sticky element on a non-scrolling page is pointless) and
-`data-surface="ink"` on the Lab. `headmaker.html` scrolls and also needs nothing.
+**They still need `jbShrunk`, but set once rather than toggled.** Rev 2 kept two states after all —
+not the capsule's width morph, but §6.2's inset, where the bar drops 6px clear of the viewport edge.
+A page that cannot scroll can never trip the sentinel, so it would otherwise sit forever in the
+flush-to-edge state that exists only for the top of a scrollable page. Both fixed pages therefore
+ship `<html class="jbShrunk">` as static markup: one attribute, no observer, no listener.
 
-That is the clearest single argument for this recommendation: **the two hardest pages in the set
-stopped being special cases.**
+That is a real reduction from Rev 1 even so — the class survives, but the machinery around it does
+not: no sentinel bound, no scroll handler, no measurement, and nothing to keep in sync. The other
+page-specific markup is unchanged and was already correct: `.jbStick.isFixed` (a sticky element on
+a non-scrolling page is pointless) and `data-surface="ink"` on the Lab. `headmaker.html` scrolls
+normally and needs nothing.
+
+**Caveat worth stating plainly:** an earlier draft of this section claimed these pages "need
+nothing", written in the window after the capsule was cut but before §6.2's inset was settled as
+the surviving scroll behaviour. That was wrong, and §3.6's table carried the same error. Both are
+corrected; if you find a copy still saying "need nothing", this paragraph supersedes it.
 
 ## 4 · The icon system
 
@@ -912,8 +922,8 @@ one and this is a second — but recommend it.
 | **Back survives on mobile** | Yes, as its own 44×44 item. Measured sub-page bar **327.8 of 366px** at 390. |
 | **44×44 targets** | Preserved by the existing `::after` trick. Back and every icon-only item at ≤640 are explicit 44px squares. |
 | **A real active state** | Stronger: `--nav-accent` ink + weight 600 + `--nav-accent-wash` pill + `aria-current`, and at ≤640 the active item is the only labelled word in the row. |
-| **`gradientlab.html` dark full-bleed** | `data-surface="ink"` unchanged; `--mat-i3-solid` instead of `--mat-i3` + blur. Ships permanently capsuled. |
-| **`play.html` is fixed and must not scroll** | Untouched. No sentinel, no observer, no scroll listener bound. `<html class="jbShrunk">` static. |
+| **`gradientlab.html` dark full-bleed** | `data-surface="ink"` unchanged; `--mat-i3-solid` instead of `--mat-i3` + blur. Ships permanently in the shrunk state. |
+| **`play.html` is fixed and must not scroll** | Untouched. No observer bound and no scroll listener: the page cannot scroll, so it ships with `jbShrunk` set statically rather than toggled. |
 | **`--nav-h: 52px`** | Constant in both states, by design. Five case-study rails and every `scroll-margin-top` keep resolving. |
 | **`.jbStick` height 72px** | Constant in both states — the padding redistributes, the total does not change. |
 | **The chapter rail** | Its sticky `top` computes to **0px** today, so it slides under the 52px bar — the adoption list called for `calc(var(--nav-h) + var(--sp-16-24))` and it was not applied. **Pre-existing bug; fix it in this pass.** |
@@ -1050,10 +1060,16 @@ right. Fix: `max-width: min(13.2em, 100%)`.
    five shadow deletions, the blur deletion, the `≤640` label drop, the `max-height: 420px`
    un-stick, and **deleting `header.js`'s unthrottled scroll listener** (it forces a layout per
    event and nothing replaces it — the bar's resting state is static).
-   **Not built:** `--bar-open` / `--bar-shut` / `--close`, the `jbShrunk` class and the sentinel
-   observer. Those belong to the scroll-to-capsule, which is rejected — see §3.7 for the analysis
-   and §3.6 for the table marking them not needed. An earlier draft of this build order listed
-   them; if you are reading that version, this line supersedes it.
+   **Built:** `html.jbShrunk` and the `IntersectionObserver` sentinel that toggles it. They survive
+   the capsule's rejection because Rev 2 still has two states — they now drive only §6.2's inset
+   (`.jbStick` redistributes its padding, 8/52/12 → 14/52/6, so the bar drops 6px clear of the
+   viewport edge at a constant 72px height). That is the Clerk move, and it is the whole of what
+   this header does on scroll.
+   **Not built:** `--bar-open` / `--bar-shut` / `--close`. Those are the capsule's width morph
+   specifically, and only that is rejected — see §3.7 for the analysis and §3.6's table.
+   An earlier draft of this build order listed the morph variables as things to build, and a
+   correction to it briefly over-swung and listed `jbShrunk` and the sentinel as *not* built. Both
+   were wrong. This line supersedes both.
 3. **The five case studies** — two custom properties each, the `Work` active state, and the rail's
    sticky `top` fix. Cheapest files, and where the original complaint started.
 4. **`index.html`** — delete `.jbTop`; the hero rhythm (§8); `Play` → `Mood`; strip the menu to the
