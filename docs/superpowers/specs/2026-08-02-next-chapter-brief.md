@@ -114,6 +114,30 @@ own head (Jayden) when the fallback path picks the saved companion.
 scorer names from `tm.slots` → `playersOf(tm)` index. Never fall back to the
 visitor's head — fall back to the team name.
 
+### 3.4b BUG — captains float above the other heads on the pitch
+Reported with a screenshot 2026-08-02: in a tournament match some heads (the
+captains) sit visibly higher than their squad-mates instead of sharing one
+ground line.
+
+**Lead (index.html ~5089–5091, the per-head resize path):** head size is
+per-head, not global — `nHW` is derived from the hero rect, then
+`if(filler) nHW = round(nHW*1.5)` (mini-Jayden is deliberately bigger), and
+`HH = HW*1.2` with `root.style.height` rewritten. The floor clamp on the next
+line is `if(y>floorY) y=floorY`. So **`HH` can change without `floorY` being
+recomputed in the same pass** — a head whose box grew/shrank keeps seating
+against a stale floor and hovers (or sinks) until something else recomputes it.
+Captains are the heads most likely to differ in size (saved heads and the
+filler take the `*1.5` branch and different source art), which matches the
+symptom exactly.
+
+**Verify before fixing:** log `HW/HH/floorY/y` per head one frame after a
+fixture starts and look for heads whose `floorY` disagrees with
+`groundY − HH`. Fix direction: recompute `floorY` (and the shadow's placement)
+in the same block that mutates `HW/HH`, rather than only on resize. Do NOT
+"fix" it by nudging y — the seating rule is that every head's FEET share the
+ground line, whatever its size (documented intent: the filler's size is its
+identity, not a depth cue).
+
 ### 3.5 iOS corner smoothing + premium iOS feel
 **Research:** `border-radius` is a circular arc (G1, curvature jumps at the
 junction); Apple's corner is a curvature-continuous hybrid of a Bézier ramp
