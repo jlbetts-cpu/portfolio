@@ -73,7 +73,18 @@ palette), and a static CSS fallback for no-WebGL. Consumers, in order: the
 soccer banner (§3.6), cup identities, the champion moment, case-study
 infographics. Source of truth for the look: `gradient-reference-notes.md`.
 
-### 3.2 Play gets its own page  ← **biggest perf + UX win**
+### 3.2 Play gets its own page  ✅ SHIPPED 2026-08-03
+**Measured result:** `index.html` **830,783 → 188,017 bytes (−77.4%)**. rAF call
+sites in that file **63 → 6**. Home page in the no-heads state: **zero canvases,
+zero game DOM, and `play-engine.js` is never fetched** — the conditional
+bootstrap only loads it for a visitor with saved heads and "Show on home" on.
+Extracted into shared files: `hero-engine.js` (the big-head engine, loaded by
+both pages), `play-engine.js`, `play-games.js`, `play-tournament.js`, `party.js`,
+`play.css`, `tokens.css`, `header.css`, plus the new `play.html`.
+Note the 71 `filter: blur()` declarations remain in `index.html` — the blur audit
+(§6) was NOT part of this work and is still open. `play.css` declares only 2.
+
+*Original brief, retained for the record:*
 Move soccer / tournament / lava / marble race off `index.html` onto a dedicated
 route (`play.html`), with a back affordance to the portfolio. Benefits: the home
 page sheds the companion engine, its rAF loops and canvases; the game gets full
