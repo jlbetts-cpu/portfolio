@@ -113,7 +113,15 @@
      (index.html:8545,8565). Positioned fixed top-right, replacing the Task 2 #playGo
      scaffolding; behavior (open/close, launchers, gating, team tray) lives in
      play-games.js. -->
-<div class="moodbar" id="moodbar" style="position:fixed;right:16px;top:16px;z-index:60">
+<!-- The inset is --play-gutter / --play-top, both defined in play.css next to the note
+     that explains them: the gutter IS the site header's gutter at every width, and
+     below 760px --play-top drops this control onto its own row because the header bar
+     and this button physically overlap under ~699px (the header wins on z-index, so
+     "Play" was invisible on a phone). Kept as a style attribute rather than moved into
+     play.css because play-games.js identifies this element by id and toggles only its
+     class list -- nothing reads these values, but leaving the element's position where
+     it has always been declared keeps that obvious. -->
+<div class="moodbar" id="moodbar" style="position:fixed;right:var(--play-gutter);top:var(--play-top);z-index:60">
  <button class="moodBtn" id="moodBtn" type="button" aria-label="Play" aria-expanded="false" aria-controls="moodMenu"><span class="moodLbl">Play</span><svg class="moodCar" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M6 9l6 6l6 -6"/></svg></button>
  <div class="moodMenu" id="moodMenu">
   <div class="moodRow" id="soccerRow"><button class="moodItem" id="soccerGo" type="button" aria-label="Start a soccer match between your heads"><svg class="gIco" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"/> <path d="M12 7l4.76 3.45l-1.76 5.55h-6l-1.76 -5.55l4.76 -3.45"/> <path d="M12 7v-4m3 13l2.5 3m-.74 -8.55l3.74 -1.45m-11.44 7.05l-2.56 2.95m.74 -8.55l-3.74 -1.45"/></svg>Soccer</button><button class="moodTeamsBtn" id="soccerTeams" type="button" aria-haspopup="dialog" aria-expanded="false" aria-label="Choose soccer teams"><span class="tdotR" aria-hidden="true"></span><span class="tdotB" aria-hidden="true"></span></button></div>

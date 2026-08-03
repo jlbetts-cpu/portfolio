@@ -52,16 +52,42 @@
    computed-value diff stays empty. --lh-prose: this page carries 1.6, tokens.css 1.5. ---- */
 :root{--accent:#0E6B3B;--accent-live:#17A45A;
  --fs-hero:clamp(38px,4.7vw,60px);--fs-heroline:clamp(28px,2.6vw,38px);--lh-prose:1.6;}
+
+/* ---- THE PAGE GUTTER. Jayden: "nothing is really in the correct margins ... for that
+   whole screen". The Play bar was the case in point: it was pinned with a hard-coded
+   right:16px/top:16px in play.html's markup, while the site header sits on
+   .jbStick's padding of var(--sp-8) var(--sp-16-24) var(--sp-12) -- a 24px gutter at
+   1280px. So the page's only two pieces of chrome hung off two different margins,
+   8px apart, for no reason. --play-gutter IS the header's gutter, tracked at every
+   width, so the Play control and the bar share one edge.
+
+   --play-top is the other half, and it fixes a real bug rather than a misalignment.
+   MEASURED at 390px before this change: .jbNav ran 22->368 and the Play button ran
+   289->374, so they overlapped by 79px, and since header.css sits at z-index 100 and
+   .moodbar at 60, the bar painted straight over it -- the word "Play" was invisible
+   and most of its 44px target was unclickable. On the page whose entire purpose is
+   starting a game, on a phone. The collision is geometric, not a 640px-phone
+   special case: the bar is centred and ~481px wide, the button is ~85px plus its
+   gutter, so they meet as soon as the viewport drops under ~699px. Below 760px --
+   an existing site breakpoint, with room to spare over that 699 -- Play stops trying
+   to share the header's row and takes its own, right-aligned to the same gutter and
+   clearing --nav-h plus a step. Above it, nothing moves vertically: top:var(--sp-16)
+   is the 16px the bar already had, which bottom-aligns the 44px button with the 52px
+   nav (8+52 = 16+44 = 60). That alignment was right and is kept. ---- */
+:root{--play-gutter:var(--sp-16-24);--play-top:var(--sp-16)}
+@media(max-width:760px){:root{--play-top:calc(var(--nav-h) + var(--sp-20))}}
+@media(max-width:640px){:root{--play-gutter:var(--sp-12)}}
+
 body{background:var(--c50);color:var(--c950);font-family:var(--sans);-webkit-font-smoothing:antialiased;overflow-x:clip}
-.eye{position:absolute;border-radius:50%;overflow:hidden;z-index:3;pointer-events:none;transition:transform .08s steps(2);filter:url(#inkEye)}
+.eye{position:absolute;border-radius:var(--r-full);overflow:hidden;z-index:3;pointer-events:none;transition:transform .08s steps(2);filter:url(#inkEye)}
 .eye.eclosed{transform:scaleY(0.08);visibility:hidden}
 .eye.eclosed .iris,.eye.eclosed .glint{opacity:0}
 /* belt and braces: a closed eye has no iris, whatever the lid is doing that frame */
 .eye[style*="display: none"] .iris,.eye[style*="display:none"] .iris{opacity:0}   /* hidden, not squashed: a bare scaleY leaves the iris as a hard dark slit across the face, which is the one thing a blink must never look like. visibility (not display) so nothing reflows. */
 .iris{position:absolute;border-radius:46%;background:repeating-conic-gradient(from 4deg,rgba(255,255,255,.045) 0deg 2deg,rgba(0,0,0,.24) 2deg 4.3deg),radial-gradient(circle at 50% 50%,#050505 0%,#080808 25%,#191919 39%,#121212 57%,#181818 72%,#0a0a0a 88%,#030303 100%),radial-gradient(circle at 38% 32%,#1e1e1e 0%,#0d0d0d 52%,#050505 100%);background-blend-mode:multiply,normal,normal}.iris::before{content:"";position:absolute;inset:0;border-radius:46%;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='44'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");background-size:20px 20px;-webkit-mask:radial-gradient(circle,#000 58%,transparent 90%);mask:radial-gradient(circle,#000 58%,transparent 90%);mix-blend-mode:soft-light;opacity:.45;pointer-events:none}.iris::after{content:"";position:absolute;inset:0;border-radius:46%;background:radial-gradient(circle at 68% 74%,rgba(244,244,244,.38) 0%,rgba(244,244,244,0) 14%);filter:blur(.4px);pointer-events:none}
-.pupil{position:absolute;left:50%;top:50%;width:55%;height:55%;border-radius:50%;background:radial-gradient(circle at 50% 50%,#000 0%,#000 58%,#060606 80%,rgba(6,6,6,0) 100%);transform:translate(-50%,-50%) scale(1);transform-origin:50% 50%;pointer-events:none;will-change:transform}
-.glint{position:absolute;left:32%;top:26%;width:20%;height:20%;border-radius:50%;z-index:4;pointer-events:none;background:radial-gradient(circle at 50% 50%,rgba(255,255,255,.98) 0%,rgba(252,252,252,.72) 24%,rgba(250,250,250,0) 60%)}
-.glint::after{content:"";position:absolute;left:128%;top:165%;width:46%;height:46%;border-radius:50%;background:radial-gradient(circle,rgba(250,250,250,.55) 0%,rgba(250,250,250,0) 68%)}
+.pupil{position:absolute;left:50%;top:50%;width:55%;height:55%;border-radius:var(--r-full);background:radial-gradient(circle at 50% 50%,#000 0%,#000 58%,#060606 80%,rgba(6,6,6,0) 100%);transform:translate(-50%,-50%) scale(1);transform-origin:50% 50%;pointer-events:none;will-change:transform}
+.glint{position:absolute;left:32%;top:26%;width:20%;height:20%;border-radius:var(--r-full);z-index:4;pointer-events:none;background:radial-gradient(circle at 50% 50%,rgba(255,255,255,.98) 0%,rgba(252,252,252,.72) 24%,rgba(250,250,250,0) 60%)}
+.glint::after{content:"";position:absolute;left:128%;top:165%;width:46%;height:46%;border-radius:var(--r-full);background:radial-gradient(circle,rgba(250,250,250,.55) 0%,rgba(250,250,250,0) 68%)}
 
 /* ---- THE BIG HEAD'S OWN CHROME. SHARED with index.html, copied verbatim, index.html keeps
    every rule below untouched. The comment at the top of this file recorded that .face, .glasses
@@ -92,16 +118,16 @@ body{background:var(--c50);color:var(--c950);font-family:var(--sans);-webkit-fon
 .gl-red{fill:rgba(200,45,45,.5)}.gl-cyan{fill:rgba(35,150,165,.46)}.gl-plast{opacity:.5;pointer-events:none}
 .floorshadow{position:absolute;left:50%;bottom:3%;width:60%;height:12%;transform:translateX(-50%);background:radial-gradient(ellipse 50% 50% at 50% 50%,rgba(8,8,8,.42),rgba(8,8,8,.28) 30%,rgba(8,8,8,.10) 58%,transparent 78%);filter:blur(7px);z-index:-1;pointer-events:none;opacity:.5}
 .speech{position:absolute;inset:0;z-index:9;pointer-events:none;font-family:var(--sans);font-weight:600}
-.dlogo{border-radius:4px;position:absolute;width:21%;height:21%;opacity:0;backface-visibility:hidden;will-change:transform,left,top,opacity;filter:drop-shadow(0 3px 8px rgba(0,0,0,.22))}
-.dshadow{position:absolute;border-radius:50%;background:radial-gradient(ellipse 50% 50% at 50% 50%,rgba(8,8,8,.5),rgba(8,8,8,.3) 40%,rgba(8,8,8,.12) 62%,transparent 76%);transform:translate(-50%,-50%);z-index:-1;pointer-events:none;opacity:0;will-change:transform,left,top,width,height,opacity}
-.queueDots{position:absolute;left:50%;top:-7%;transform:translateX(-50%);display:flex;gap:.42rem;z-index:8;opacity:0;pointer-events:none;transition:opacity .16s cubic-bezier(.2,.8,.2,1)}
+.dlogo{border-radius:var(--r-2xs);position:absolute;width:21%;height:21%;opacity:0;backface-visibility:hidden;will-change:transform,left,top,opacity;filter:drop-shadow(0 3px 8px rgba(0,0,0,.22))}
+.dshadow{position:absolute;border-radius:var(--r-full);background:radial-gradient(ellipse 50% 50% at 50% 50%,rgba(8,8,8,.5),rgba(8,8,8,.3) 40%,rgba(8,8,8,.12) 62%,transparent 76%);transform:translate(-50%,-50%);z-index:-1;pointer-events:none;opacity:0;will-change:transform,left,top,width,height,opacity}
+.queueDots{position:absolute;left:50%;top:-7%;transform:translateX(-50%);display:flex;gap:.42rem;z-index:8;opacity:0;pointer-events:none;transition:opacity var(--ease-out-dur) var(--ease-out)}
 
-.moodHeads{display:flex;flex-wrap:wrap;gap:8px;margin:8px 4px 2px}.moodHeads:empty{display:none}
-.mhItem{position:relative}.mhItem img{width:34px;height:40px;object-fit:contain;background:var(--c100);border-radius:4px;display:block}
-.mhPick{padding:0;border:0;background:none;cursor:pointer;display:block;border-radius:4px;transition:box-shadow .18s cubic-bezier(.2,.8,.2,1)}
+.moodHeads{display:flex;flex-wrap:wrap;gap:var(--sp-8);margin:var(--sp-8) var(--sp-4) var(--sp-2)}.moodHeads:empty{display:none}
+.mhItem{position:relative}.mhItem img{width:34px;height:40px;object-fit:contain;background:var(--c100);border-radius:var(--r-2xs);display:block}
+.mhPick{padding:0;border:0;background:none;cursor:pointer;display:block;border-radius:var(--r-2xs);transition:box-shadow .18s var(--ease-out)}
 .mhPick:hover,.mhPick:focus-visible{box-shadow:0 0 0 1.5px var(--c500)}
-.mhX{position:absolute;top:-6px;right:-6px;width:16px;height:16px;border-radius:50%;border:1px solid var(--c100);background:var(--c50);color:var(--c700);font-size:var(--fs-micro);line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0}
-.mhX::before{content:"";position:absolute;inset:-4px;border-radius:50%}.mhX:hover{color:var(--c950);border-color:var(--c500)}
+.mhX{position:absolute;top:-6px;right:-6px;width:16px;height:16px;border-radius:var(--r-full);border:1px solid var(--c100);background:var(--c50);color:var(--c700);font-size:var(--fs-micro);line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0}
+.mhX::before{content:"";position:absolute;inset:-4px;border-radius:var(--r-full)}.mhX:hover{color:var(--c950);border-color:var(--c500)}
 
 .moodMenu .moodItem[hidden]{display:none}
 .gIco{width:18px;height:18px;flex:0 0 18px;display:block;color:var(--c700);transition:color .1s ease-out}
@@ -112,26 +138,26 @@ body{background:var(--c50);color:var(--c950);font-family:var(--sans);-webkit-fon
    game-gating rules (above) but never carried its base rule, because until now play.html had no
    link in the menu. Copied verbatim from index.html's own .moodGo/.moodSep declarations so the
    two menus stay one design. */
-.moodGo{display:flex;align-items:center;gap:12px;width:100%;padding:12px 16px;border:0;border-radius:4px;background:none;color:var(--c950);font-family:var(--sans);font-weight:400;font-size:var(--fs-small);line-height:1.2;text-decoration:none;transition:background-color .16s cubic-bezier(.2,.8,.2,1)}
+.moodGo{display:flex;align-items:center;gap:var(--sp-12);width:100%;padding:var(--sp-12) var(--sp-16);border:0;border-radius:var(--r-2xs);background:none;color:var(--c950);font-family:var(--sans);font-weight:400;font-size:var(--fs-small);line-height:1.2;text-decoration:none;transition:background-color var(--ease-out-dur) var(--ease-out)}
 .moodMenu .moodGo{color:var(--c950)}
 .moodGo:hover,.moodGo:focus-visible{background:#F1F1F1}
 .moodGo svg{flex:0 0 18px;width:18px;height:18px;color:currentColor}
-.moodSep{height:1px;background:var(--c100);margin:8px 4px 8px}
-.battleBadge{display:none;position:absolute;left:50%;top:14px;transform:translateX(-50%);z-index:47;align-items:center;gap:8px;padding:8px 12px;border:1px solid var(--c100);border-radius:4px;background:var(--c50);font-family:var(--sans);font-size:var(--fs-label);font-weight:600;color:var(--c700);filter:url(#inkSm);pointer-events:none}
-.battleBadge i{width:7px;height:7px;border-radius:50%;background:#b3402e;animation:bbPulse 1.1s steps(2,end) infinite}
+.moodSep{height:1px;background:var(--c100);margin:var(--sp-8) var(--sp-4) var(--sp-8)}
+.battleBadge{display:none;position:absolute;left:50%;top:14px;transform:translateX(-50%);z-index:47;align-items:center;gap:var(--sp-8);padding:var(--sp-8) var(--sp-12);border:1px solid var(--c100);border-radius:var(--r-2xs);background:var(--c50);font-family:var(--sans);font-size:var(--fs-label);font-weight:600;color:var(--c700);filter:url(#inkSm);pointer-events:none}
+.battleBadge i{width:7px;height:7px;border-radius:var(--r-full);background:#b3402e;animation:bbPulse 1.1s steps(2,end) infinite}
 @keyframes bbPulse{0%,100%{opacity:1}50%{opacity:.35}}
 body.hmBattle .moodMenu .moodItem:not(#endGame),body.hmBattle .moodMenu .moodGo{opacity:.38;pointer-events:none}
 @media(pointer:coarse){.mhX{width:26px;height:26px;font-size:var(--fs-small);top:-9px;right:-9px}.mhItem img{width:44px;height:52px}}
 body.hmSoccer .moodMenu .moodItem:not(#endGame),body.hmSoccer .moodMenu .moodGo{opacity:.38;pointer-events:none}
 .hmBall{position:absolute;left:0;top:0;width:48px;height:48px;z-index:48;opacity:0;pointer-events:none;transition:opacity .3s;transform-origin:50% 50%}
 .hmBallSkin{position:absolute;inset:0;background:var(--ballSkin,url(images/soccerball.webp)) center/contain no-repeat;transform-origin:50% 50%;will-change:transform}
-.hmBallShade{position:absolute;inset:0;border-radius:50%;pointer-events:none;background:radial-gradient(circle at 35% 29%,rgba(255,255,255,.92) 0%,rgba(255,255,255,.32) 7%,rgba(255,255,255,0) 20%),radial-gradient(circle at 38% 32%,rgba(255,255,255,.3) 0%,rgba(255,255,255,0) 46%),radial-gradient(circle at 35% 32%,rgba(0,0,0,0) 28%,rgba(0,0,0,.2) 70%,rgba(0,0,0,.46) 100%),radial-gradient(circle at 50% 50%,rgba(0,0,0,0) 78%,rgba(0,0,0,.46) 100%);mix-blend-mode:normal}
-.hmBallShadow{position:absolute;left:0;top:0;width:48px;height:13px;border-radius:50%;background:radial-gradient(ellipse at center,rgba(8,8,8,.26),rgba(8,8,8,0) 70%);opacity:0;pointer-events:none;z-index:1;transition:opacity .3s}
+.hmBallShade{position:absolute;inset:0;border-radius:var(--r-full);pointer-events:none;background:radial-gradient(circle at 35% 29%,rgba(255,255,255,.92) 0%,rgba(255,255,255,.32) 7%,rgba(255,255,255,0) 20%),radial-gradient(circle at 38% 32%,rgba(255,255,255,.3) 0%,rgba(255,255,255,0) 46%),radial-gradient(circle at 35% 32%,rgba(0,0,0,0) 28%,rgba(0,0,0,.2) 70%,rgba(0,0,0,.46) 100%),radial-gradient(circle at 50% 50%,rgba(0,0,0,0) 78%,rgba(0,0,0,.46) 100%);mix-blend-mode:normal}
+.hmBallShadow{position:absolute;left:0;top:0;width:48px;height:13px;border-radius:var(--r-full);background:radial-gradient(ellipse at center,rgba(8,8,8,.26),rgba(8,8,8,0) 70%);opacity:0;pointer-events:none;z-index:1;transition:opacity .3s}
 .hmGoal{position:absolute;left:0;top:0;width:42px;height:162px;z-index:2;opacity:0;pointer-events:none;transition:opacity .3s;border-radius:3px;background:repeating-linear-gradient(45deg,rgba(26,26,26,.16) 0 1px,transparent 1px 8px),repeating-linear-gradient(-45deg,rgba(26,26,26,.16) 0 1px,transparent 1px 8px)}
-.hmGoalShadow{position:absolute;left:0;top:0;width:60px;height:15px;border-radius:50%;background:radial-gradient(ellipse at center,rgba(8,8,8,.24),rgba(8,8,8,0) 72%);opacity:0;pointer-events:none;z-index:1;transition:opacity .3s}
+.hmGoalShadow{position:absolute;left:0;top:0;width:60px;height:15px;border-radius:var(--r-full);background:radial-gradient(ellipse at center,rgba(8,8,8,.24),rgba(8,8,8,0) 72%);opacity:0;pointer-events:none;z-index:1;transition:opacity .3s}
 .hmGoalR{box-shadow:inset 20px 0 26px -14px rgba(16,16,16,.5),inset 0 12px 16px -12px rgba(16,16,16,.35)}
 .hmGoalB{box-shadow:inset -20px 0 26px -14px rgba(16,16,16,.5),inset 0 12px 16px -12px rgba(16,16,16,.35)}
-.hmGoal::before{content:"";position:absolute;top:-3px;bottom:-3px;width:6px;border-radius:4px}
+.hmGoal::before{content:"";position:absolute;top:-3px;bottom:-3px;width:6px;border-radius:var(--r-2xs)}
 .hmGoalR::before{right:-1px;background:linear-gradient(90deg,rgba(var(--tc1,224,90,78),.5),rgba(var(--tc1,224,90,78),1) 60%);box-shadow:0 0 7px rgba(var(--tc1,224,90,78),.4),inset -1.5px 0 1px rgba(255,255,255,.55)}
 .hmGoalB::before{left:-1px;background:linear-gradient(270deg,rgba(var(--tc2,90,160,216),.5),rgba(var(--tc2,90,160,216),1) 60%);box-shadow:0 0 7px rgba(var(--tc2,90,160,216),.4),inset 1.5px 0 1px rgba(255,255,255,.55)}
 .hmGoal::after{content:"";position:absolute;inset:0;border-radius:3px;border-top:2.5px solid;border-bottom:2.5px solid;pointer-events:none}
@@ -164,7 +190,7 @@ body.hmSoccer .moodMenu .moodItem:not(#endGame),body.hmSoccer .moodMenu .moodGo{
 /* Scorer lower-third: reads only from the goal event + head roster, never an invented name.
    Enters from the left (the punch's own motion axis), holds, leaves. Positioned low on the
    pitch so it never overlaps .hmScore, which stays put at the top throughout. */
-.hmLowerThird{position:absolute;left:16px;bottom:13%;z-index:49;display:flex;align-items:center;gap:10px;max-width:min(74vw,360px);padding:8px 14px 8px 8px;border-radius:6px;background:rgba(22,22,24,.88);color:#f4f2ec;font-family:var(--sans);box-shadow:0 14px 32px -12px rgba(0,0,0,.5);transform:translateX(-130%);opacity:0;transition:transform .4s cubic-bezier(.2,.85,.25,1),opacity .3s linear;pointer-events:none}
+.hmLowerThird{position:absolute;left:16px;bottom:13%;z-index:49;display:flex;align-items:center;gap:var(--sp-10);max-width:min(74vw,360px);padding:var(--sp-8) var(--sp-14) var(--sp-8) var(--sp-8);border-radius:var(--r-xs);background:rgba(22,22,24,.88);color:#f4f2ec;font-family:var(--sans);box-shadow:0 14px 32px -12px rgba(0,0,0,.5);transform:translateX(-130%);opacity:0;transition:transform .4s cubic-bezier(.2,.85,.25,1),opacity .3s linear;pointer-events:none}
 .hmLowerThird.in{transform:translateX(0);opacity:1}
 /* THE GOAL BELONGS TO A SIDE. The card used to be pinned bottom-left and always
    slid in from the left, whichever end the ball went in -- Jayden flagged it as
@@ -175,14 +201,14 @@ body.hmSoccer .moodMenu .moodItem:not(#endGame),body.hmSoccer .moodMenu .moodGo{
    spec asked for still holds per side -- it just mirrors. */
 .hmLowerThird.right{left:auto;right:16px;transform:translateX(130%)}
 .hmLowerThird.right.in{transform:translateX(0)}
-.hmLowerThird .hmL3Face{width:34px;height:34px;border-radius:50%;overflow:hidden;flex:0 0 auto;background:#333}
+.hmLowerThird .hmL3Face{width:34px;height:34px;border-radius:var(--r-full);overflow:hidden;flex:0 0 auto;background:#333}
 .hmLowerThird .hmL3Face img{width:100%;height:100%;object-fit:cover;display:block}
 .hmLowerThird .hmL3Txt{display:flex;flex-direction:column;line-height:1.22;min-width:0}
 .hmLowerThird .hmL3Tag{font-size:10px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:rgb(var(--l3c,255,206,74))}
-.hmLowerThird .hmL3Nm{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-@media(max-width:640px){.hmLowerThird{left:10px;bottom:9%;max-width:min(82vw,300px);padding:7px 12px 7px 7px}}
+.hmLowerThird .hmL3Nm{font-size:var(--fs-nav);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media(max-width:640px){.hmLowerThird{left:10px;bottom:9%;max-width:min(82vw,300px);padding:7px var(--sp-12) 7px 7px}}
 @media(prefers-reduced-motion:reduce){.hmLowerThird{transition:none}}
-.battleCount{position:absolute;left:50%;top:12px;transform:translateX(-50%);z-index:47;display:flex;align-items:center;gap:8px;padding:8px 16px;border:1px solid var(--c100);border-radius:4px;background:var(--c50);font-family:var(--sans);font-weight:600;font-size:var(--fs-body);color:var(--c950);opacity:0;pointer-events:none;transition:opacity .3s;filter:url(#inkSm)}
+.battleCount{position:absolute;left:50%;top:12px;transform:translateX(-50%);z-index:47;display:flex;align-items:center;gap:var(--sp-8);padding:var(--sp-8) var(--sp-16);border:1px solid var(--c100);border-radius:var(--r-2xs);background:var(--c50);font-family:var(--sans);font-weight:600;font-size:var(--fs-body);color:var(--c950);opacity:0;pointer-events:none;transition:opacity .3s;filter:url(#inkSm)}
 /* Was z-index:47 -- above the heads (root, z:3), the goals (.hmGoal, z:2) and their shadows
    (z:1), so the board painted OVER the pitch instead of sitting on it. Jayden: "score board
    should be behind everything." 0 puts it below every pitch element (heads, ball z:48, goals,
@@ -190,54 +216,54 @@ body.hmSoccer .moodMenu .moodItem:not(#endGame),body.hmSoccer .moodMenu .moodGo{
    crosses it -- it just no longer wins against a head or the ball passing through. Position is
    untouched (left/top/transform, all unrelated to z-index) and it stays a direct child of
    `hero`, never a .hmCamBack/.hmCamFront descendant, so stagePunch() still can't move it. */
-.hmScore{position:absolute;left:50%;top:var(--heroTitleTop,40px);transform:translateX(-50%);z-index:0;display:flex;align-items:center;gap:12px;padding:8px 16px;border:1px solid var(--c100);border-radius:4px;background:var(--c50);font-family:var(--sans);font-weight:600;font-size:var(--fs-body);color:var(--c950);opacity:0;pointer-events:none;transition:opacity .3s;filter:url(#inkSm)}
-.hmScore .sTeam{display:flex;align-items:center;gap:8px}
-.hmScore .sTeam i{width:9px;height:9px;border-radius:50%}
+.hmScore{position:absolute;left:50%;top:var(--heroTitleTop,40px);transform:translateX(-50%);z-index:0;display:flex;align-items:center;gap:var(--sp-12);padding:var(--sp-8) var(--sp-16);border:1px solid var(--c100);border-radius:var(--r-2xs);background:var(--c50);font-family:var(--sans);font-weight:600;font-size:var(--fs-body);color:var(--c950);opacity:0;pointer-events:none;transition:opacity .3s;filter:url(#inkSm)}
+.hmScore .sTeam{display:flex;align-items:center;gap:var(--sp-8)}
+.hmScore .sTeam i{width:9px;height:9px;border-radius:var(--r-full)}
 .hmScore .sTr i{background:#e05a4e}.hmScore .sTb i{background:#5aa0d8}
 .hmScore em{color:var(--c400);font-style:normal}
-.hmScore small{margin-left:8px;padding-left:12px;border-left:1px solid var(--c100);font-weight:400;font-size:var(--fs-label);color:var(--c500)}
+.hmScore small{margin-left:var(--sp-8);padding-left:var(--sp-12);border-left:1px solid var(--c100);font-weight:400;font-size:var(--fs-label);color:var(--c500)}
 /* Below the scoreboard (47), not above it. At 48 the shout landed on top of the board and
    the two illegible-ed each other. Dropped down the pitch too, clear of the board's box. */
 .hmCount{position:absolute;left:50%;top:52%;transform:translate(-50%,-50%);z-index:44;font-family:var(--sans);font-weight:600;font-size:clamp(64px,12vw,140px);line-height:1;color:var(--c950);opacity:0;pointer-events:none;filter:url(#inkBig);white-space:nowrap}
 .hmCount.hmMsg{font-size:clamp(32px,6vw,72px);font-weight:600;letter-spacing:-.01em}   /* a word, not a digit: fits "Blue wins!" */
-.hmScoreEnd{margin-left:8px;padding:2px 2px 2px 12px;border:0;border-left:1px solid var(--c100);border-radius:0;background:none;display:inline-flex;align-items:center;gap:4px;cursor:pointer;pointer-events:auto;color:#b3402e;font-family:var(--sans);font-weight:600;font-size:var(--fs-label);line-height:1;transition:color .15s}
+.hmScoreEnd{margin-left:var(--sp-8);padding:var(--sp-2) var(--sp-2) var(--sp-2) var(--sp-12);border:0;border-left:1px solid var(--c100);border-radius:0;background:none;display:inline-flex;align-items:center;gap:var(--sp-4);cursor:pointer;pointer-events:auto;color:#b3402e;font-family:var(--sans);font-weight:600;font-size:var(--fs-label);line-height:1;transition:color .15s}
 .hmScoreEnd:hover{color:#8f3323}.hmScoreEnd svg{width:12px;height:12px;flex:0 0 auto}
 /* battle arena platforms: light Apple-clean slabs with a hair of 2.5D thickness -- the heads leap up for height and pounce down */
-.hmPlat{position:absolute;left:0;top:0;height:12px;border-radius:6px;background:var(--c50);border:1px solid rgba(22,22,28,.14);box-shadow:0 1px 2px rgba(22,22,28,.08);border:1px solid rgba(22,22,28,.16);opacity:0;pointer-events:none;transition:opacity .45s cubic-bezier(.2,.8,.2,1);z-index:2;will-change:transform}
+.hmPlat{position:absolute;left:0;top:0;height:12px;border-radius:var(--r-xs);background:var(--c50);border:1px solid rgba(22,22,28,.14);box-shadow:0 1px 2px rgba(22,22,28,.08);border:1px solid rgba(22,22,28,.16);opacity:0;pointer-events:none;transition:opacity .45s var(--ease-out);z-index:2;will-change:transform}
 body.hmBattle .hmPlat.arrived{opacity:1}
 body.hmPodium .hmPlat{opacity:0}   /* platforms clear off once the podium rises */
 /* the winners' podium: three light blocks, 1st tallest in the middle, that rise at the end of a battle */
-.hmPodium{position:absolute;left:0;top:0;border-radius:10px 10px 3px 3px;background:linear-gradient(180deg,#fefeff 0%,#eeeef2 62%,#e1e1e8 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,.92),0 12px 24px -11px rgba(22,22,28,.34),0 2px 5px rgba(22,22,28,.12);border:1px solid rgba(22,22,28,.06);opacity:0;pointer-events:none;transition:opacity .5s cubic-bezier(.2,.8,.2,1),transform .5s cubic-bezier(.2,.8,.2,1);z-index:2;display:flex;align-items:flex-start;justify-content:center;overflow:hidden}
-.hmPodium b{margin-top:8px;font-family:var(--sans);font-weight:600;font-size:var(--fs-label);color:var(--c400);line-height:1}
+.hmPodium{position:absolute;left:0;top:0;border-radius:var(--r-sm) var(--r-sm) 3px 3px;background:linear-gradient(180deg,#fefeff 0%,#eeeef2 62%,#e1e1e8 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,.92),0 12px 24px -11px rgba(22,22,28,.34),0 2px 5px rgba(22,22,28,.12);border:1px solid rgba(22,22,28,.06);opacity:0;pointer-events:none;transition:opacity .5s var(--ease-out),transform .5s var(--ease-out);z-index:2;display:flex;align-items:flex-start;justify-content:center;overflow:hidden}
+.hmPodium b{margin-top:var(--sp-8);font-family:var(--sans);font-weight:600;font-size:var(--fs-label);color:var(--c400);line-height:1}
 .hmPodium.show{opacity:1}
 /* --- "Play a mood" relocated into the hero CTA row (moodInCta) --- */
 body.moodInCta .heroCtas{align-items:center}
 body.moodInCta .faceMoodCorner{position:relative;right:auto;left:auto;top:auto;bottom:auto;transform:none;z-index:auto;display:inline-flex}   /* z-index:auto (not a stacking context) so the little heads (z3) pass IN FRONT of the button, while the open menu can still float above them */
-body.moodInCta .faceMoodCorner .moodBtn{position:relative;border:1px solid var(--c100)!important;background:var(--c50)!important;color:var(--c950);font-weight:400;font-size:var(--fs-body);padding:8px 16px;border-radius:4px!important;opacity:1!important}
+body.moodInCta .faceMoodCorner .moodBtn{position:relative;border:1px solid var(--c100)!important;background:var(--c50)!important;color:var(--c950);font-weight:400;font-size:var(--fs-body);padding:var(--sp-8) var(--sp-16);border-radius:var(--r-2xs)!important;opacity:1!important}
 body.moodInCta .faceMoodCorner .moodBtn:hover{border-color:var(--c500)!important;color:var(--c950)}
 body.moodInCta .faceMoodCorner .moodLbl{opacity:1!important;transform:none!important}
-body.moodInCta .faceMoodCorner .moodCar{opacity:1!important;transform:rotate(0deg)!important;transition:transform .32s cubic-bezier(.34,1.4,.5,1),color .2s cubic-bezier(.2,.8,.2,1)}   /* menu opens UP in the CTA -> caret points up when closed */
+body.moodInCta .faceMoodCorner .moodCar{opacity:1!important;transform:rotate(0deg)!important;transition:transform .32s cubic-bezier(.34,1.4,.5,1),color .2s var(--ease-out)}   /* menu opens UP in the CTA -> caret points up when closed */
 body.moodInCta .faceMoodCorner .moodbar.open .moodCar{transform:rotate(180deg)!important}   /* ...and flips to point down when the menu is open */
 body.moodInCta .faceMoodCorner .moodMenu{bottom:calc(100% + 12px)!important;top:auto!important;left:0!important;right:auto!important;z-index:60!important}
 body.moodInCta .heroCtas:not(.in) .faceMoodCorner{opacity:0!important;visibility:hidden!important;pointer-events:none!important}   /* stay hidden through the intro until the CTA row reveals -- !important so it wins over the mobile force-visible rule too, keeping Play in lockstep with "View my work" on every viewport */
 @media(max-width:760px){body.moodInCta .faceMoodCorner{position:relative!important;right:auto!important;left:auto!important;top:auto!important;bottom:auto!important;transform:none!important}}   /* keep it inline in the CTA row on mobile (override the corner media query) */
-.hmCount.hmCountPulse{animation:hmCountP .78s cubic-bezier(.2,.8,.2,1) forwards}
+.hmCount.hmCountPulse{animation:hmCountP .78s var(--ease-out) forwards}
 @keyframes hmCountP{0%{opacity:0;transform:translate(-50%,-50%) scale(1.35)}18%{opacity:1}70%{opacity:1;transform:translate(-50%,-50%) scale(1)}100%{opacity:0;transform:translate(-50%,-50%) scale(.86)}}
 @media(prefers-reduced-motion:reduce){.hmCount.hmCountPulse{animation:none;opacity:1}}
-.hmHp{position:absolute;left:0;top:0;width:44px;height:4px;border-radius:2px;background:rgba(8,8,8,.13);z-index:4;pointer-events:none;opacity:0;transition:opacity .3s cubic-bezier(.2,.8,.2,1)}
-.hmHp i{display:block;height:100%;border-radius:2px;background:var(--c950);transition:width .18s cubic-bezier(.2,.8,.2,1),background-color .3s}
+.hmHp{position:absolute;left:0;top:0;width:44px;height:4px;border-radius:var(--r-hair);background:rgba(8,8,8,.13);z-index:4;pointer-events:none;opacity:0;transition:opacity .3s var(--ease-out)}
+.hmHp i{display:block;height:100%;border-radius:var(--r-hair);background:var(--c950);transition:width .18s var(--ease-out),background-color .3s}
 /* ===== mood shortcut menu — triggers the head animations; sharp, Instrument Sans, 8fps stepped ===== */
 .moodbar{position:relative;display:inline-block;z-index:45}
 @keyframes moodIn{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
-.moodBtn{display:inline-flex;align-items:center;gap:8px;background:var(--c50);border:1px solid var(--c100);border-radius:4px;padding:8px 16px;line-height:1;cursor:pointer;font-family:var(--sans);font-weight:400;font-size:var(--fs-body);color:var(--c950);transition:border-color .2s cubic-bezier(.2,.8,.2,1),color .2s cubic-bezier(.2,.8,.2,1)}.moodBtn:hover{border-color:var(--c500)}
+.moodBtn{display:inline-flex;align-items:center;gap:var(--sp-8);background:var(--c50);border:1px solid var(--c100);border-radius:var(--r-2xs);padding:var(--sp-8) var(--sp-16);line-height:1;cursor:pointer;font-family:var(--sans);font-weight:400;font-size:var(--fs-body);color:var(--c950);transition:border-color .2s var(--ease-out),color .2s var(--ease-out)}.moodBtn:hover{border-color:var(--c500)}
 .moodBtn:hover{border-color:var(--c500)}
 .moodLbl{font-size:var(--fs-body);font-weight:400;letter-spacing:0}
-.moodCar{width:12px;height:12px;display:inline-block;flex:0 0 auto;color:var(--c500);transition:transform .2s cubic-bezier(.2,.8,.2,1),color .2s cubic-bezier(.2,.8,.2,1)}
-.moodbar.open .moodCar{width:12px;height:12px;display:inline-block;flex:0 0 auto;color:var(--c500);transition:transform .2s cubic-bezier(.2,.8,.2,1),color .2s cubic-bezier(.2,.8,.2,1)}
-.moodMenu{position:absolute;min-width:196px;background:var(--c50);border:1px solid var(--c100);border-radius:4px;padding:8px;box-shadow:0 8px 28px -8px rgba(18,18,18,.12),0 2px 8px -2px rgba(18,18,18,.06);opacity:0;visibility:hidden;transition:opacity .16s cubic-bezier(.2,.8,.2,1),transform .18s cubic-bezier(.2,.8,.2,1),visibility 0s .18s}
-.moodbar.open .moodMenu{opacity:1;visibility:visible;transition:opacity .16s cubic-bezier(.2,.8,.2,1),transform .18s cubic-bezier(.2,.8,.2,1)}
-.moodItem{display:flex;align-items:center;gap:12px;width:100%;padding:8px 12px;border-radius:4px;font-family:var(--sans);font-weight:400;font-size:var(--fs-body);color:var(--c950);background:none;border:0;cursor:pointer;text-align:left;transition:background-color .1s ease-out,color .1s ease-out}
-.moodbar.open .moodItem{display:flex;align-items:center;gap:12px;width:100%;padding:8px 12px;border-radius:4px;font-family:var(--sans);font-weight:400;font-size:var(--fs-body);color:var(--c950);background:none;border:0;cursor:pointer;text-align:left;transition:background-color .1s ease-out,color .1s ease-out}
+.moodCar{width:12px;height:12px;display:inline-block;flex:0 0 auto;color:var(--c500);transition:transform .2s var(--ease-out),color .2s var(--ease-out)}
+.moodbar.open .moodCar{width:12px;height:12px;display:inline-block;flex:0 0 auto;color:var(--c500);transition:transform .2s var(--ease-out),color .2s var(--ease-out)}
+.moodMenu{position:absolute;min-width:196px;background:var(--c50);border:1px solid var(--c100);border-radius:var(--r-2xs);padding:var(--sp-8);box-shadow:0 8px 28px -8px rgba(18,18,18,.12),0 2px 8px -2px rgba(18,18,18,.06);opacity:0;visibility:hidden;transition:opacity var(--ease-out-dur) var(--ease-out),transform .18s var(--ease-out),visibility 0s .18s}
+.moodbar.open .moodMenu{opacity:1;visibility:visible;transition:opacity var(--ease-out-dur) var(--ease-out),transform .18s var(--ease-out)}
+.moodItem{display:flex;align-items:center;gap:var(--sp-12);width:100%;padding:var(--sp-8) var(--sp-12);border-radius:var(--r-2xs);font-family:var(--sans);font-weight:400;font-size:var(--fs-body);color:var(--c950);background:none;border:0;cursor:pointer;text-align:left;transition:background-color .1s ease-out,color .1s ease-out}
+.moodbar.open .moodItem{display:flex;align-items:center;gap:var(--sp-12);width:100%;padding:var(--sp-8) var(--sp-12);border-radius:var(--r-2xs);font-family:var(--sans);font-weight:400;font-size:var(--fs-body);color:var(--c950);background:none;border:0;cursor:pointer;text-align:left;transition:background-color .1s ease-out,color .1s ease-out}
 /* 8fps staggered reveal — mirrors the site's 0.05s per-character cascade */
 .moodbar.open .moodItem:nth-child(1){transition-delay:.03s,.03s,0s}
 .moodbar.open .moodItem:nth-child(2){transition-delay:.08s,.08s,0s}
@@ -286,7 +312,7 @@ body.hmFull{overflow:hidden;overscroll-behavior:none}
    one less object, and it matches the red/blue rings already on the players' heads. ---- */
 .hmScore{border:0;background:none;padding:0;filter:url(#inkSm);
  flex-direction:column;align-items:center;text-align:center;
- top:var(--heroTitleTop,40px);gap:clamp(2px,.6vh,6px);
+ top:var(--heroTitleTop,40px);gap:clamp(var(--sp-2),.6vh,var(--sp-6));
  font-family:var(--sans);font-weight:600;font-size:var(--fs-h1);line-height:1.06;letter-spacing:-.015em;color:var(--c950)}
 .hmScore .sTitle{display:inline-flex;align-items:center;white-space:nowrap}
 /* The ball rests in the title at the size Jayden liked (.62em, the .discoDot metric), and the
@@ -302,7 +328,7 @@ body.hmFull{overflow:hidden;overscroll-behavior:none}
    is dropped and the word glides back to true centre. */
 .hmScore .sTitle{gap:0}
 .hmScore .sBall{width:.62em;height:.62em;margin-left:.2em;object-fit:contain;flex:0 0 auto;
- transition:opacity .16s cubic-bezier(.2,.8,.2,1),width .34s cubic-bezier(.2,.8,.2,1),margin-left .34s cubic-bezier(.2,.8,.2,1)}
+ transition:opacity var(--ease-out-dur) var(--ease-out),width .34s var(--ease-out),margin-left .34s var(--ease-out)}
 /* Two stages, deliberately. ballOut only hides the ball; the SLOT stays, so during the frozen
    countdown the title still reserves its space and the live ball sits exactly in it. Collapsing
    the slot immediately re-centred "Soccer" while the ball was still parked there, sliding the word
@@ -310,10 +336,10 @@ body.hmFull{overflow:hidden;overscroll-behavior:none}
    so the word glides back into space the ball has already left. */
 .hmScore.ballOut .sBall{opacity:0}
 .hmScore.ballOut.ballFell .sBall{width:0;margin-left:0}
-@media(prefers-reduced-motion:reduce){.hmScore .sBall{transition:opacity .16s linear}}
+@media(prefers-reduced-motion:reduce){.hmScore .sBall{transition:opacity var(--ease-out-dur) linear}}
 /* "First to N" and End still carried the border-left dividers from when this was a horizontal
    chip; stacked underneath the score they read as debris. Quiet row, no rules. */
-.hmScore .sMeta{display:inline-flex;align-items:center;gap:clamp(14px,2.4vw,22px);margin-top:clamp(2px,.6vh,6px)}
+.hmScore .sMeta{display:inline-flex;align-items:center;gap:clamp(var(--sp-14),2.4vw,22px);margin-top:clamp(var(--sp-2),.6vh,var(--sp-6))}
 .hmScore .sMeta small{margin:0;padding:0;border:0}
 .hmScore .sMeta .hmScoreEnd{margin:0;padding:0;border:0}
 .hmScore.ballOut .sBall{opacity:0}
@@ -337,7 +363,7 @@ body.hmFull{overflow:hidden;overscroll-behavior:none}
    soccer gets fleshed out; both modules stay in the file, so bringing either back is these rules. */
 /* Once the match is decided the rule line and End are moot -- the result is the only thing left
    to say, and it is announced in the middle of the screen. */
-.hmScore.won .sMeta{opacity:0;pointer-events:none;transition:opacity .28s cubic-bezier(.2,.8,.2,1)}
+.hmScore.won .sMeta{opacity:0;pointer-events:none;transition:opacity .28s var(--ease-out)}
 /* ---- TOURNAMENT PANEL. A bracket TREE cannot collapse vertically in CSS -- that is a known,
    documented dead end -- and at 8 teams this is only 3 rounds and 7 fixtures. So the bracket is a
    round-grouped vertical LIST: no connector lines, no horizontal scroll, and it reads correctly to
@@ -421,19 +447,19 @@ body.hmFull{overflow:hidden;overscroll-behavior:none}
 .tourPanel{position:absolute;left:50%;top:var(--heroTitleTop,40px);transform:translateX(-50%);z-index:47;
  width:min(540px,calc(100vw - var(--sp-16-24)*2));display:flex;flex-direction:column;align-items:center;
  gap:var(--sp-8-16);font-family:var(--sans);color:var(--c950);text-align:center;
- animation:tourIn .42s cubic-bezier(.2,.8,.2,1) both;max-height:calc(100% - var(--heroTitleTop,40px) - 24px);
+ animation:tourIn .42s var(--ease-out) both;max-height:calc(100% - var(--heroTitleTop,40px) - 24px);
  overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
 @keyframes tourIn{from{opacity:0;transform:translateX(-50%) translateY(10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
 @media(prefers-reduced-motion:reduce){.tourPanel{animation:none}}
 .tourPanel[hidden]{display:none}
 body.hmSoccer .tourPanel{display:none}   /* the pitch owns the screen during a fixture */
-.tDot{display:inline-block;width:.52em;height:.52em;border-radius:50%;margin-right:.42em;vertical-align:baseline;flex:0 0 auto}
-.tNext{display:flex;flex-direction:column;align-items:center;gap:8px}
+.tDot{display:inline-block;width:.52em;height:.52em;border-radius:var(--r-full);margin-right:.42em;vertical-align:baseline;flex:0 0 auto}
+.tNext{display:flex;flex-direction:column;align-items:center;gap:var(--sp-8)}
 /* ONE eyebrow style for every small label in this panel -- 'Quarter-final' was rendering as 15px
    sentence case above the pairing and 13px uppercase as the column head, on the same screen. */
 .tLbl{font-size:var(--fs-label);font-weight:400;color:var(--c500);letter-spacing:.04em;text-transform:uppercase;line-height:1}
-.tPair{display:flex;align-items:flex-end;justify-content:center;gap:clamp(8px,2vw,24px);font-size:var(--fs-h1);font-weight:600;line-height:1.06;letter-spacing:-.015em}
-.tSide{display:flex;flex-direction:column;align-items:center;gap:8px;min-width:0}
+.tPair{display:flex;align-items:flex-end;justify-content:center;gap:clamp(var(--sp-8),2vw,var(--sp-24));font-size:var(--fs-h1);font-weight:600;line-height:1.06;letter-spacing:-.015em}
+.tSide{display:flex;flex-direction:column;align-items:center;gap:var(--sp-8);min-width:0}
 /* THE STARE-DOWN. They face each other -- the cut-outs are shot head-on, so the right side is
    mirrored. Offset breathing cycles: in sync they read as two stickers; out of sync they read
    as alive, sizing each other up. */
@@ -445,33 +471,33 @@ body.hmSoccer .tourPanel{display:none}   /* the pitch owns the screen during a f
  38%{transform:scaleX(-1) translateY(-4px) rotate(-1.9deg)}66%{transform:scaleX(-1) translateY(-1px) rotate(-.5deg)}}
 @media(prefers-reduced-motion:reduce){.tSideL .tFaceW,.tSideR .tFaceW{animation:none}}
 .tVs{color:var(--c500);font-weight:400;font-size:var(--fs-small);margin:0 .42em;letter-spacing:0;align-self:center}
-.tGo{margin-top:8px;background:none;border:1px solid var(--c100);border-radius:4px;
- padding:12px 20px;min-height:44px;font-family:var(--sans);font-weight:400;font-size:var(--fs-small);
- color:var(--c950);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;
- transition:border-color .2s cubic-bezier(.2,.8,.2,1),opacity .2s cubic-bezier(.2,.8,.2,1)}
+.tGo{margin-top:var(--sp-8);background:none;border:1px solid var(--c100);border-radius:var(--r-2xs);
+ padding:var(--sp-12) var(--sp-20);min-height:44px;font-family:var(--sans);font-weight:400;font-size:var(--fs-small);
+ color:var(--c950);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:var(--sp-8);
+ transition:border-color .2s var(--ease-out),opacity .2s var(--ease-out)}
 
 .tGo:hover,.tGo:focus-visible{border-color:var(--c500)}
-.tRounds{display:flex;flex-direction:column;gap:clamp(10px,1.8vh,18px);width:100%}
-.tRoundLbl{font-size:var(--fs-label);font-weight:400;color:var(--c500);letter-spacing:.04em;text-transform:uppercase;margin-bottom:8px}
+.tRounds{display:flex;flex-direction:column;gap:clamp(var(--sp-10),1.8vh,18px);width:100%}
+.tRoundLbl{font-size:var(--fs-label);font-weight:400;color:var(--c500);letter-spacing:.04em;text-transform:uppercase;margin-bottom:var(--sp-8)}
 .tMatch{display:flex;align-items:center;justify-content:center;gap:.2em;font-size:var(--fs-body);line-height:1.5;white-space:nowrap}
 .tSide{display:inline-flex;align-items:baseline}
 .tSide.tLost{color:var(--c500)}
 .tSide.tLost .tFaceW img{filter:grayscale(1);opacity:.55}
 .tSide.tWon{font-weight:600}
-.tBoard{width:100%;display:flex;flex-direction:column;gap:2px}
-.tRow{display:flex;align-items:center;gap:8px;padding:4px 8px;border-radius:4px}
+.tBoard{width:100%;display:flex;flex-direction:column;gap:var(--sp-2)}
+.tRow{display:flex;align-items:center;gap:var(--sp-8);padding:var(--sp-4) var(--sp-8);border-radius:var(--r-2xs)}
 .tRow:hover{background:#F1F1F1}
 .tFace{width:22px;height:26px;object-fit:contain;flex:0 0 auto}
 .tRt{margin-left:auto;font-size:var(--fs-small);color:var(--c500);font-variant-numeric:tabular-nums}
 .tNum{min-width:1.6em;text-align:right;font-weight:600;font-variant-numeric:tabular-nums}
-.tWin{display:flex;flex-direction:column;align-items:center;gap:8px}
+.tWin{display:flex;flex-direction:column;align-items:center;gap:var(--sp-8)}
 .tWinLbl{font-size:var(--fs-label);font-weight:600;color:var(--c500);letter-spacing:.04em;text-transform:uppercase}
 .tWinName{display:flex;align-items:center;justify-content:center;gap:.1em;font-size:var(--fs-h1);font-weight:600;letter-spacing:-.015em}
 /* The tournament screen owns the hero, the way a match does. The headline and the big head
    step aside so the bracket is not competing with them for the same space -- and they are already
    hidden once a fixture starts, so nothing pops back in mid-tournament. */
-body.hmTour .heroCopy h1,body.hmTour .hero .stagewrap{opacity:0;pointer-events:none;transition:opacity .35s cubic-bezier(.2,.8,.2,1)}
-body.hmTour .hero .stagewrap{height:0;min-height:0;overflow:hidden;margin:0;transition:opacity .35s cubic-bezier(.2,.8,.2,1),height .42s cubic-bezier(.2,.8,.2,1)}
+body.hmTour .heroCopy h1,body.hmTour .hero .stagewrap{opacity:0;pointer-events:none;transition:opacity .35s var(--ease-out)}
+body.hmTour .hero .stagewrap{height:0;min-height:0;overflow:hidden;margin:0;transition:opacity .35s var(--ease-out),height .42s var(--ease-out)}
 body.hmTour .scrollCue{display:none}
 .tourPanel{top:var(--heroTitleTop,40px);transform:translateX(-50%)}
 
@@ -496,23 +522,23 @@ body.hmTour .scrollCue{display:none}
    growing to fit it. If an 8-team bracket still reads cramped once Task 4 renders it for real,
    that task should add a new, deliberately-scoped rule -- not resurrect this one. */
 @media(max-width:640px){
- .tourPanel{transform:translateX(-50%);gap:12px;width:calc(100vw - 32px);
-  animation:tourInM .42s cubic-bezier(.2,.8,.2,1) both}
+ .tourPanel{transform:translateX(-50%);gap:var(--sp-12);width:calc(100vw - 32px);
+  animation:tourInM .42s var(--ease-out) both}
  /* MOBILE DENSITY: the rounds stack on a phone -- the elbow connectors are min-width:641px
     only -- so a 4-match round was 4 rows tall and the panel came out 869px in an 844px viewport.
     Each round now wraps two-up. That costs nothing in clarity precisely BECAUSE there are no
     connectors down here: the rounds are already separate labelled groups, not a connected tree. */
- .tourPanel .tColBody{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;align-content:start}
+ .tourPanel .tColBody{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--sp-8);align-content:start}
  .tourPanel .tCol:last-child .tColBody{grid-template-columns:minmax(0,1fr)}   /* the final is one match: let it span */
  .tourPanel .tMi{flex:none;padding:0}
- .tourPanel .tBr{gap:8px;min-height:0;overflow-y:auto;overscroll-behavior:contain}   /* the round labels sat flush against the cards above them */
+ .tourPanel .tBr{gap:var(--sp-8);min-height:0;overflow-y:auto;overscroll-behavior:contain}   /* the round labels sat flush against the cards above them */
  /* scoped to .tourPanel deliberately: a bare .tColBody rule further down the file sets
     display:flex, and a media query adds no specificity, so the unscoped version lost. */
  @keyframes tourInM{from{opacity:0;transform:translateX(-50%) translateY(10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
 }
 @media(max-width:640px) and (max-height:700px){
  /* the small phones (SE at 667) were the last 4px over; tighten only there */
- .tourPanel{gap:8px}
+ .tourPanel{gap:var(--sp-8)}
  .tourPanel .tBr{gap:0}   /* ...and they cannot afford the round separation either */
 }
 /* ---- THE BRACKET. Rounds are flex columns; matches distribute over full column height so a
@@ -520,16 +546,16 @@ body.hmTour .scrollCue{display:none}
    leaves each match to the right (flipped up or down by :nth-child odd/even) and a matching pair
    enters each card from the left. No SVG, no absolute maths, and it degrades to a plain stack on
    a phone where connector lines would be noise. House tokens throughout. ---- */
-.tBr{display:flex;flex-direction:column;width:100%;gap:16px;align-items:stretch}
-.tCol{display:flex;flex-direction:column;gap:8px;min-width:0;flex:1 1 0}
+.tBr{display:flex;flex-direction:column;width:100%;gap:var(--sp-16);align-items:stretch}
+.tCol{display:flex;flex-direction:column;gap:var(--sp-8);min-width:0;flex:1 1 0}
 .tColLbl{text-align:center}
 .tColBody{display:flex;flex-direction:column;flex:1 1 auto;min-height:0;gap:0}   /* no gap: equal
    slots are what make the rounds line up, and a gap breaks the arithmetic */
-.tMi{position:relative;display:flex;flex-direction:column;justify-content:center;flex:1 1 0;width:100%;padding:4px 0}
-.tM{position:relative;display:flex;flex-direction:column;border:1px solid var(--c100);border-radius:4px;
- background:var(--c50);transition:border-color .3s cubic-bezier(.2,.8,.2,1)}
+.tMi{position:relative;display:flex;flex-direction:column;justify-content:center;flex:1 1 0;width:100%;padding:var(--sp-4) 0}
+.tM{position:relative;display:flex;flex-direction:column;border:1px solid var(--c100);border-radius:var(--r-2xs);
+ background:var(--c50);transition:border-color .3s var(--ease-out)}
 .tM.tLive{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
-.tT{display:flex;align-items:center;gap:8px;padding:8px 12px;font-size:var(--fs-small);line-height:1.2;white-space:nowrap;overflow:hidden;text-align:left;min-height:38px;box-sizing:border-box;border-left:2px solid transparent}
+.tT{display:flex;align-items:center;gap:var(--sp-8);padding:var(--sp-8) var(--sp-12);font-size:var(--fs-small);line-height:1.2;white-space:nowrap;overflow:hidden;text-align:left;min-height:38px;box-sizing:border-box;border-left:2px solid transparent}
 .tT+.tT{border-top:1px solid var(--c100)}
 .tT:first-child{border-radius:3px 3px 0 0}
 .tT:last-child{border-radius:0 0 3px 3px}
@@ -561,7 +587,7 @@ body.hmTour .scrollCue{display:none}
 .tTeamNm{line-height:1}
 @media(min-width:641px){
  .tBr{flex-direction:row;gap:0}
- .tMi{padding:4px 16px}
+ .tMi{padding:var(--sp-4) var(--sp-16)}
  .tCol:first-child .tMi{padding-left:0}
  .tCol:last-child .tMi{padding-right:0}
  .tMi::after{content:'';position:absolute;right:0;width:15px;height:50%;border-right:1px solid var(--c100)}
@@ -571,16 +597,16 @@ body.hmTour .scrollCue{display:none}
  .tM::before{content:'';position:absolute;left:-15px;top:50%;width:15px;border-top:1px solid var(--c100)}   /* one line in, at the card's own centre -- the pair's elbows already meet there */
  .tCol:first-child .tM::before{display:none}
 }
-.tQuit{margin-top:8px;background:none;border:0;padding:8px 12px;min-height:44px;
+.tQuit{margin-top:var(--sp-8);background:none;border:0;padding:var(--sp-8) var(--sp-12);min-height:44px;
  font-family:var(--sans);font-weight:400;font-size:var(--fs-small);color:var(--c500);cursor:pointer;
- transition:color .2s cubic-bezier(.2,.8,.2,1)}
+ transition:color .2s var(--ease-out)}
 .tQuit:hover,.tQuit:focus-visible{color:var(--c950)}
 .tQuit.tQuitArmed{color:#b3402e}
 @media(max-width:640px){.tCol{max-width:none}.tLbl{font-size:var(--fs-micro)}
- .tT{padding:4px 8px 4px 8px;font-size:var(--fs-caption);gap:8px;min-height:34px}
+ .tT{padding:var(--sp-4) var(--sp-8) var(--sp-4) var(--sp-8);font-size:var(--fs-caption);gap:var(--sp-8);min-height:34px}
  .tFaceW{width:22px;height:22px}.tFaceBig{width:clamp(84px,26vw,120px);height:clamp(84px,26vw,120px)}
  .tPr:not(.tPrLast)::after{left:calc(100% + 8px)}.tPr:not(.tPrLast) .tM::after{width:8px}
- .tBr{gap:0}.tColBody{gap:8px}.tPr{gap:8px}}
+ .tBr{gap:0}.tColBody{gap:var(--sp-8)}.tPr{gap:var(--sp-8)}}
 /* The tournament owns the hero while it runs, so it says what it is. */
 .tTitle{margin:0;font-family:var(--sans);font-weight:400;font-size:var(--fs-small);line-height:1.2;letter-spacing:.01em;color:var(--c500);display:inline-flex;align-items:baseline;gap:.14em}
 /* The trophy is a PORTRAIT cutout, unlike the square mood icons, so it is sized by HEIGHT and
@@ -603,12 +629,21 @@ body.hmTour .scrollCue{display:none}
  background:var(--c50)!important;
  border:0!important;
  box-shadow:none!important;          /* it must not pop off the page */
- border-radius:4px!important;
- padding:4px!important;
+ border-radius:var(--r-2xs)!important;
+ padding:var(--sp-4)!important;
 }
 .moodItem,.moodBtn{white-space:nowrap}
-.moodItem,.moodGo{justify-content:flex-start!important;padding:12px 16px!important}
-.moodBtn{padding:12px 16px!important}
+/* MEASURED BUG, not a tidy-up. Both rules below set width:100% and then add
+   var(--sp-16) of padding on each side, and nothing on this page sets box-sizing,
+   so the browser's content-box default made the row 32px WIDER than the panel it
+   sits in: .moodGo measured 201px inside a 177px .moodMenu at 1280px and hung 24px
+   out past the panel's right edge, which is why "Create head" and "Gradient maker"
+   started further left and ran further right than "Soccer" and "Tournament" above
+   them. It reads as exactly the ragged margin Jayden pointed at. border-box makes
+   width:100% mean what both rules already assume it means. */
+.moodItem,.moodGo{box-sizing:border-box}
+.moodItem,.moodGo{justify-content:flex-start!important;padding:var(--sp-12) var(--sp-16)!important}
+.moodBtn{padding:var(--sp-12) var(--sp-16)!important}
 /* Play sits near the right edge -- below this width a left-aligned menu would leave the margin */
 /* alignment is decided by clampMenu() at open time -- a media query cannot know the
    menu's own width or where Play happens to sit in the row. */
@@ -618,7 +653,7 @@ body.hmTour .scrollCue{display:none}
 
 /* mobile keeps a surface: at 390px the menu unavoidably sits over the headline */
 @media(max-width:640px){
- .moodMenu{border:1px solid var(--c100)!important;padding:8px!important;
+ .moodMenu{border:1px solid var(--c100)!important;padding:var(--sp-8)!important;
   text-align:left!important;max-width:min(280px,72vw)!important}
 }
 
@@ -626,17 +661,17 @@ body.hmTour .scrollCue{display:none}
    .moodItem was inheriting 16px instead of the one control size, and the wordmark ran 2px
    taller than the home page's. Inline links inside prose (.chap, .footIn, .csGo) are a
    deliberate THIRD category -- text, not buttons -- so they keep their own size. */
-.back,.talk,.tvTab,.csTab{border-radius:4px}
+.back,.talk,.tvTab,.csTab{border-radius:var(--r-2xs)}
 .moodBtn{min-height:44px!important;height:44px}
 .moodItem,.moodGo{font-size:var(--fs-small)!important}
-nav .logo{padding:8px 12px;min-height:44px;height:44px;justify-content:center}
+nav .logo{padding:var(--sp-8) var(--sp-12);min-height:44px;height:44px;justify-content:center}
 
 /* THE HEAD IS THE CONTROL. Each saved head sat on a grey --c100 plate, so the menu read as a
    row of tiles rather than a row of heads -- the cut-outs already have their own silhouette
    and do not need a card behind them. The plate goes; the hover wash on the button around it
    is the affordance, same as every other control. */
 .mhItem img{background:none!important}
-.mhItem{border-radius:4px;transition:background-color .16s cubic-bezier(.2,.8,.2,1)}
+.mhItem{border-radius:var(--r-2xs);transition:background-color var(--ease-out-dur) var(--ease-out)}
 .mhItem:hover{background:var(--c75)}
 
 /* Keep the menu inside the content column. Play sits near the right edge, so a menu that is
@@ -661,14 +696,14 @@ nav .logo{padding:8px 12px;min-height:44px;height:44px;justify-content:center}
  display:grid;
  grid-template-columns:var(--tcols,1fr);
  grid-template-rows:var(--trows,auto);
- column-gap:34px;row-gap:10px;
+ column-gap:34px;row-gap:var(--sp-10);
  width:min(1060px,calc(100vw - 48px));max-width:none;
  align-items:center;position:relative;z-index:2;
  padding-bottom:68px;                       /* the stand sits in here, under the draw */
 }
 .tBrMir .tColLbl{white-space:nowrap}
 .tBrMir .tMi{grid-column:var(--gc,auto);grid-row:var(--gr,auto);align-self:center;padding:0;flex:none;position:relative}
-.tBrMir .tColLbl{grid-column:var(--gc,auto);grid-row:2;align-self:end;text-align:center;padding-bottom:2px}
+.tBrMir .tColLbl{grid-column:var(--gc,auto);grid-row:2;align-self:end;text-align:center;padding-bottom:var(--sp-2)}
 
 /* Connectors are MEANINGFUL graphics -- they are the only thing stating which
    match feeds which -- so WCAG 1.4.11 wants 3:1 against the paper. The site
@@ -701,7 +736,7 @@ nav .logo{padding:8px 12px;min-height:44px;height:44px;justify-content:center}
    what had happened. A decided match's line steps up to ink; undecided lines recede to
    the hairline. Mario Tennis does this by drawing resolved paths in red against white
    ones -- the bracket narrates itself through the lines, not the labels. */
-.tBrMir .tMi::before,.tBrMir .tMi::after{border-color:var(--c100)!important;transition:border-color .3s cubic-bezier(.2,.8,.2,1)}
+.tBrMir .tMi::before,.tBrMir .tMi::after{border-color:var(--c100)!important;transition:border-color .3s var(--ease-out)}
 .tBrMir .tMiDone::before,.tBrMir .tMiDone::after{border-color:var(--c950)!important}
 
 /* the final is the focal point: the trophy anchors it and the tree hangs beneath,
@@ -716,13 +751,13 @@ nav .logo{padding:8px 12px;min-height:44px;height:44px;justify-content:center}
    clip-path: inset(0 round R) rather than overflow:hidden -- it clips composited and
    transformed children by construction, sidestepping the old WebKit border-radius
    clipping bug class entirely instead of patching around it. */
-.tCards{display:flex;align-items:stretch;justify-content:center;gap:14px;margin-top:4px;
+.tCards{display:flex;align-items:stretch;justify-content:center;gap:var(--sp-14);margin-top:var(--sp-4);
  width:min(540px,92vw);margin-left:auto;margin-right:auto}
 .tCard{position:relative;flex:1 1 0;min-width:0;min-height:186px;
  border-radius:16px;background:rgb(var(--tc));color:rgb(var(--ti,255,255,255));
  clip-path:inset(0 round 16px);isolation:isolate;
- display:flex;flex-direction:column;justify-content:flex-end;padding:16px;
- animation:tCardRise .34s cubic-bezier(.2,.8,.2,1) both;animation-delay:var(--cd,0ms)}
+ display:flex;flex-direction:column;justify-content:flex-end;padding:var(--sp-16);
+ animation:tCardRise .34s var(--ease-out) both;animation-delay:var(--cd,0ms)}
 .tCardHead{position:absolute;top:50%;width:auto;height:112%;
  transform:translateY(-50%);pointer-events:none;opacity:.62;
  /* The fade lives on the WRAPPER; the stroke filter runs on the img inside it. Putting
@@ -765,20 +800,20 @@ nav .logo{padding:8px 12px;min-height:44px;height:44px;justify-content:center}
 .tCardBody{position:relative;z-index:2}
 .tCardNm{font-family:var(--sans);font-weight:600;font-size:var(--fs-h3,22px);line-height:1.05;
  letter-spacing:-.015em;color:rgb(var(--ti,255,255,255))}
-.tCardTag{display:inline-block;margin-top:6px;padding:3px 10px;border-radius:999px;
+.tCardTag{display:inline-block;margin-top:var(--sp-6);padding:3px var(--sp-10);border-radius:var(--r-pill);
  background:rgba(255,255,255,.20);color:#fff;font-size:var(--fs-caption,12px);
  font-weight:600;letter-spacing:.08em;text-transform:uppercase}
-.tCardStats{display:grid;grid-template-columns:repeat(3,1fr);margin-top:12px;
- border-top:1px solid rgba(255,255,255,.26);padding-top:8px}
+.tCardStats{display:grid;grid-template-columns:repeat(3,1fr);margin-top:var(--sp-12);
+ border-top:1px solid rgba(255,255,255,.26);padding-top:var(--sp-8)}
 .tCardStat{text-align:center}
 .tCardStat+.tCardStat{border-left:1px solid rgba(255,255,255,.26)}
-.tCardV{display:block;font-weight:600;font-size:16px;line-height:1.1;color:#fff;
+.tCardV{display:block;font-weight:600;font-size:var(--fs-body);line-height:1.1;color:#fff;
  font-variant-numeric:tabular-nums}   /* Instrument Sans defaults to PROPORTIONAL figures:
  without this a 1 vs 8 shifts the column by 0.21em */
-.tCardK{display:block;font-size:11px;letter-spacing:.07em;text-transform:uppercase;
+.tCardK{display:block;font-size:var(--fs-micro);letter-spacing:.07em;text-transform:uppercase;
  color:rgba(255,255,255,.78);margin-top:1px}
 .tVsBig{align-self:center;font-family:var(--sans);font-weight:600;font-size:var(--fs-small);
- letter-spacing:.12em;text-transform:uppercase;color:var(--c500);padding:0 2px}
+ letter-spacing:.12em;text-transform:uppercase;color:var(--c500);padding:0 var(--sp-2)}
 @keyframes tCardRise{from{opacity:0;transform:translateY(14px) scale(.97)}to{opacity:1;transform:none}}
 
 /* ---- THE FINAL ----------------------------------------------------------------------
@@ -812,7 +847,7 @@ body .navDrawer .navDrawerX{display:none!important}
 /* One padding for every row. Work and About me were taking 12px 16px from the shared button
    base while Contact took 8px 12px from .navDrawer .ndTalk, which outranks it -- so one row
    sat 4px left of the other two. */
-body .navDrawer .ndLink{padding:8px 12px;text-align:left}
+body .navDrawer .ndLink{padding:var(--sp-8) var(--sp-12);text-align:left}
 
 /* ---- THE FINAL'S POSTER -------------------------------------------------------------
    Jayden's artwork, not a CSS imitation of one. This is the fix for the thing that made the
@@ -831,7 +866,7 @@ body.tourPoster #tourPanel .tCupMatch{
     its aspect ratio, and a block narrower than its container left-aligns -- so the poster sat
     off to one side the moment the cap started biting. */
  margin:0 auto!important;aspect-ratio:1545/2000;max-height:min(52vh,470px);
- border-radius:4px;overflow:hidden;
+ border-radius:var(--r-2xs);overflow:hidden;
  background:#1a1a1a var(--poster) center bottom/cover no-repeat}
 /* Both sides span the FULL poster, so every percentage below is measured against the
    artwork itself. Half-width sides silently halved them -- the heads landed at 13%/87%
@@ -872,7 +907,7 @@ body.tourPoster #tourPanel .tCupCelebrate{animation:none!important}
    pasted on rather than composed in. Below the poster it needs nothing. */
 body.tourPoster #tourPanel .tCupMatch{margin-bottom:0}
 body.tourPoster #tourPanel .tCupNames{
- display:flex;justify-content:space-between;gap:16px;margin:12px -16px 0}
+ display:flex;justify-content:space-between;gap:var(--sp-16);margin:var(--sp-12) -16px 0}
 body.tourPoster #tourPanel .tCupNames span{
  flex:1 1 0;text-align:center;font-family:var(--sans);font-weight:600;
  font-size:var(--fs-body);color:var(--c950);
@@ -888,7 +923,7 @@ body.tourPoster #tourPanel .tCupVs{display:none}
    not the panel's, and both live in a wrapper that carries the sway. Animating them
    separately would have needed two transforms kept in sync, and the crown already owns its
    transform for the tilt. */
-.tCupCelebrate{position:relative;height:88%;margin-bottom:8px;
+.tCupCelebrate{position:relative;height:88%;margin-bottom:var(--sp-8);
  display:flex;align-items:flex-end;justify-content:center;
  transform-origin:50% 100%;                      /* pivots at the neck, not the middle */
  animation:tSway 3.1s ease-in-out infinite}
@@ -897,7 +932,7 @@ body.tourPoster #tourPanel .tCupVs{display:none}
 .tCupCrown{position:absolute;left:50%;top:-6%;height:24%;width:auto;z-index:4;
  transform:translateX(-50%) rotate(-5deg);transform-origin:50% 100%;
  pointer-events:none;filter:drop-shadow(0 3px 6px rgba(15,23,42,.3));
- animation:tCrownIn .52s cubic-bezier(.2,.8,.2,1) .12s both}
+ animation:tCrownIn .52s var(--ease-out) .12s both}
 .tCupCrown svg{display:block;height:100%;width:auto}
 @keyframes tSway{0%,100%{transform:rotate(-3.4deg)}50%{transform:rotate(3.4deg)}}
 @keyframes tCrownIn{from{opacity:0;transform:translateX(-50%) rotate(-4deg) translateY(-18px) scale(.7)}
@@ -909,27 +944,27 @@ body.tourPoster #tourPanel .tCupVs{display:none}
    inner panel, the panel notched at its base by clip-path, the name ghosted huge BEHIND the
    subject in overlay, and a badge hanging off the bottom edge where that kit puts the squad
    number. Retuned to our radius and our two weights. ---- */
-.tChamp{position:relative;width:min(420px,92vw);margin:6px auto 0;padding:8px;
- border:1px solid var(--c100);border-radius:4px;background:var(--c50);
- animation:tChampIn .46s cubic-bezier(.2,.8,.2,1) both}
-.tChampIn{position:relative;min-height:244px;border-radius:4px;isolation:isolate;color:rgb(var(--ti,255,255,255));
+.tChamp{position:relative;width:min(420px,92vw);margin:var(--sp-6) auto 0;padding:var(--sp-8);
+ border:1px solid var(--c100);border-radius:var(--r-2xs);background:var(--c50);
+ animation:tChampIn .46s var(--ease-out) both}
+.tChampIn{position:relative;min-height:244px;border-radius:var(--r-2xs);isolation:isolate;color:rgb(var(--ti,255,255,255));
  background:rgb(var(--tc));
  /* the notch: a shallow V taken out of the base, so the card reads as a crest not a rectangle */
  clip-path:polygon(0 0,100% 0,100% 94%,50% 100%,0 94%);
- display:flex;flex-direction:column;justify-content:flex-end;padding:16px 16px 26px}
+ display:flex;flex-direction:column;justify-content:flex-end;padding:var(--sp-16) var(--sp-16) 26px}
 .tChampGhost{position:absolute;left:50%;top:10px;transform:translateX(-50%);
  font-family:var(--sans);font-weight:600;font-size:76px;line-height:.82;letter-spacing:-.055em;
  text-transform:uppercase;color:#fff;opacity:.4;mix-blend-mode:overlay;
  pointer-events:none;white-space:nowrap;z-index:0}
 .tChamp .tCardHead{left:50%;top:44%;transform:translate(-50%,-50%);height:92%;opacity:.6;z-index:1}
 .tChampCup{position:absolute;left:50%;bottom:-14px;transform:translateX(-50%);
- width:46px;height:46px;padding:6px;box-sizing:border-box;object-fit:contain;z-index:3;
- border-radius:4px;background:var(--c50);border:1px solid var(--c100);
+ width:46px;height:46px;padding:var(--sp-6);box-sizing:border-box;object-fit:contain;z-index:3;
+ border-radius:var(--r-2xs);background:var(--c50);border:1px solid var(--c100);
  animation:tCupIn .5s cubic-bezier(.2,1.5,.4,1) .18s both}
 .tChamp .tCardBody{align-self:flex-start;text-align:left}
 .tChamp .tCardNm{font-size:30px}
-.tChampFoot{display:flex;align-items:baseline;justify-content:space-between;gap:8px;
- padding:16px 6px 4px;font-family:var(--sans);font-size:var(--fs-small);color:var(--c950)}
+.tChampFoot{display:flex;align-items:baseline;justify-content:space-between;gap:var(--sp-8);
+ padding:var(--sp-16) var(--sp-6) var(--sp-4);font-family:var(--sans);font-size:var(--fs-small);color:var(--c950)}
 .tChampFoot b{font-weight:600}
 .tChampFoot span{font-weight:400;color:var(--c500);letter-spacing:.08em;text-transform:uppercase;
  font-size:var(--fs-caption,12px)}
@@ -941,10 +976,10 @@ body.tourPoster #tourPanel .tCupVs{display:none}
  .tCard::before,.tChampIn::before{animation:none}
 }
 @media(max-width:560px){
- .tCards{gap:8px}
- .tCard{min-height:150px;padding:12px}
+ .tCards{gap:var(--sp-8)}
+ .tCard{min-height:150px;padding:var(--sp-12)}
  .tCardNm{font-size:18px}
- .tCardStats{margin-top:8px}
+ .tCardStats{margin-top:var(--sp-8)}
 }
 .tBrMir .tMiC .tT{min-height:43px}   /* +12%: the final is taller as well as wider */
 
@@ -989,7 +1024,7 @@ body.hmTour #tourPanel{left:50%!important;right:auto!important;
  bottom:0!important;
  transform:translateX(-50%)!important}
 body.hmTour #tourPanel .tCup{width:100%;max-width:none;margin:0;
- border-radius:28px;
+ border-radius:var(--r-xl);
  /* flex:0 0 auto, not the inherited 0 1 auto. #tourPanel is a flex COLUMN, so a shrinkable
     item gets squeezed below its own content -- the block measured 664px against 721px of
     content and the schedule spilled out of the bottom of its own frame. */
@@ -1000,7 +1035,7 @@ body.hmTour #tourPanel .tCup{width:100%;max-width:none;margin:0;
 
 body.hmTour:not(.tSchedOpen) #tourPanel .tCup{height:auto;overflow:visible}
 /* the head is the only child touching the top edge, so it carries the round when the cup does not */
-body.hmTour #tourPanel .tCupHead{border-radius:28px 28px 0 0}
+body.hmTour #tourPanel .tCupHead{border-radius:var(--r-xl) var(--r-xl) 0 0}
 /* The matchup panels keep their colour fill. The idle bob stays: the two heads offset so
    they are never in lockstep, so the card reads as two players waiting rather than two
    stickers. */
@@ -1011,10 +1046,10 @@ body.hmTour #tourPanel .tCupSide:last-child .tCupBig{animation-delay:-1.5s;anima
  50%    {transform:translateY(-7px) rotate(1.1deg)}}
 @media(prefers-reduced-motion:reduce){
  body.hmTour #tourPanel .tCupBig{animation:none}}
-body.hmTour #tourPanel .tCupCard{margin:0;border-radius:28px 28px 0 0;box-shadow:none;border:0;overflow:hidden}
+body.hmTour #tourPanel .tCupCard{margin:0;border-radius:var(--r-xl) var(--r-xl) 0 0;box-shadow:none;border:0;overflow:hidden}
 /* The schedule is the block's LAST child, so the bottom corners are its to round -- and it
    has to clip, or the rows paint straight over the curve. */
-body.hmTour #tourPanel .tCupSched{border-radius:0 0 28px 28px;overflow:hidden}
+body.hmTour #tourPanel .tCupSched{border-radius:0 0 var(--r-xl) var(--r-xl);overflow:hidden}
 body.hmTour #tourPanel .tCupMatch{margin:0}
 body.hmTour #tourPanel .tCupActs{padding-left:0;padding-right:0}
 body.hmTour #tourPanel .tCupSchedIn{padding-left:0;padding-right:0}
@@ -1029,7 +1064,7 @@ body.hmTour #tourPanel .tCupSchedIn{padding-inline:20px}
 /* ---- The capsule runs the FULL HEIGHT of the hero while the schedule is open, and the
    hero collapses to the capsule when it is closed. min-height is the animated property so
    the page reflows in one movement rather than the panel jumping inside a fixed hero. ---- */
-body.hmTour .hero{transition:min-height .42s cubic-bezier(.2,.8,.2,1)}
+body.hmTour .hero{transition:min-height .42s var(--ease-out)}
 
 
 
@@ -1047,16 +1082,16 @@ body.hmTour.tSchedOpen #tourPanel .tCupSchedIn{
    1px var(--c100) hairlines -- so the matchup and the schedule read as one object rather than two
    components stacked. */
 .tCup{width:min(420px,92vw);margin:0 auto;box-sizing:border-box;
- border-radius:4px;background:var(--c50);
+ border-radius:var(--r-2xs);background:var(--c50);
  font-family:var(--sans);color:var(--c950)}
-.tCupHead{position:relative;padding:24px 24px 16px;text-align:center}
+.tCupHead{position:relative;padding:var(--sp-24) var(--sp-24) var(--sp-16);text-align:center}
 /* both lines are ONE h1: the cup names itself, the round says where we are in it */
 .tCupH1{margin:0;width:100%;max-width:none;font-weight:600;font-size:var(--fs-h1);line-height:1.05;
  letter-spacing:-.02em;color:var(--c950);text-align:center;filter:none}
-.tCupH1 .tCupRound{display:block;margin-top:8px;font-weight:400;font-size:var(--fs-caption,12px);line-height:1.1;
+.tCupH1 .tCupRound{display:block;margin-top:var(--sp-8);font-weight:400;font-size:var(--fs-caption,12px);line-height:1.1;
  letter-spacing:.14em;text-transform:uppercase;color:var(--c500)}
 /* the trophy, with a glisten that sweeps across it */
-.tCupTrophy{position:relative;width:56px;height:56px;margin:0 auto 12px;display:block}
+.tCupTrophy{position:relative;width:56px;height:56px;margin:0 auto var(--sp-12);display:block}
 .tCupTrophy img{width:100%;height:100%;object-fit:contain;display:block}
 /* The glisten is a band that SLIDES across, clipped to the trophy's own alpha. Animating
    background-position was the wrong tool -- with a 280% background the highlight never
@@ -1076,19 +1111,19 @@ body.hmTour.tSchedOpen #tourPanel .tCupSchedIn{
    panel rather than sitting inside it -- that overhang is what gives the block depth without
    a shadow. The panel clips nothing; the head is positioned against the panel's baseline and
    is simply taller than it. ---- */
-.tCupCard{position:relative;margin:0 12px;border-radius:28px 28px 4px 4px;background:var(--c50);
- box-shadow:inset 0 0 0 1px var(--c100);padding:0 16px 16px;overflow:hidden}
-.tCupMatch{display:grid;grid-template-columns:1fr 1fr;align-items:start;gap:4px;
+.tCupCard{position:relative;margin:0 var(--sp-12);border-radius:var(--r-xl) var(--r-xl) var(--r-2xs) var(--r-2xs);background:var(--c50);
+ box-shadow:inset 0 0 0 1px var(--c100);padding:0 var(--sp-16) var(--sp-16);overflow:hidden}
+.tCupMatch{display:grid;grid-template-columns:1fr 1fr;align-items:start;gap:var(--sp-4);
  margin:0 -16px}          /* full bleed to the card's edges */
 .tCupSide{position:relative;min-width:0}
 .tCupPanel{position:relative;height:clamp(152px,26vh,272px);overflow:hidden;
  background:rgb(var(--tc));display:flex;align-items:flex-end;justify-content:center;
- border-radius:4px 4px 0 0}
-.tCupSide:first-child .tCupPanel{border-radius:28px 0 0 0}
-.tCupSide:last-child  .tCupPanel{border-radius:0 28px 0 0}
+ border-radius:var(--r-2xs) var(--r-2xs) 0 0}
+.tCupSide:first-child .tCupPanel{border-radius:var(--r-xl) 0 0 0}
+.tCupSide:last-child  .tCupPanel{border-radius:0 var(--r-xl) 0 0}
 /* The champion is a lone panel, so it is BOTH :first-child and :last-child -- and :last-child
    wins, which squared off its left corner. A solo side rounds both top corners. */
-.tCupSide:only-child  .tCupPanel{border-radius:28px 28px 0 0}
+.tCupSide:only-child  .tCupPanel{border-radius:var(--r-xl) var(--r-xl) 0 0}
 /* No watermark. A single initial at this size read as a smudge rather than a mark -- the
    reference carries a large high-contrast crest, and a letter is not that. */
 /* Sized by WIDTH, not height. The cuts are not a consistent shape -- a tall narrow crop and
@@ -1098,7 +1133,7 @@ body.hmTour.tSchedOpen #tourPanel .tCupSchedIn{
 /* Masked to the same cut as the head and sized identically, so it lands exactly on it.
    mix-blend-mode:color takes the HUE and leaves the luminance, which is why the face keeps its
    modelling instead of flattening into a silhouette. */
-.tCupBigWrap{position:relative;width:62%;margin-bottom:8px;z-index:2;display:block;
+.tCupBigWrap{position:relative;width:62%;margin-bottom:var(--sp-8);z-index:2;display:block;
  pointer-events:none}
 .tCupBigWrap .tCupBig{position:relative;width:100%;height:auto;max-height:none;margin:0;
  display:block}
@@ -1113,10 +1148,10 @@ body.hmTour.tSchedOpen #tourPanel .tCupSchedIn{
    black --c950 it used on the old light card is gone -- the live accent (same green as
    .tkDot) both reads on paint and ties the round marker to the live-fixture marker below it. */
 .tCupRdH.tRdNow{color:var(--accent-live,#17A45A)}
-.tCupRdH.tRdNow::after{content:"";display:inline-block;width:5px;height:5px;border-radius:50%;
- background:var(--accent-live,#17A45A);margin-left:8px;vertical-align:middle;
+.tCupRdH.tRdNow::after{content:"";display:inline-block;width:5px;height:5px;border-radius:var(--r-full);
+ background:var(--accent-live,#17A45A);margin-left:var(--sp-8);vertical-align:middle;
  box-shadow:0 0 6px rgba(23,164,90,.55)}
-.tCupBig{position:relative;width:62%;height:auto;max-height:92%;margin-bottom:8px;
+.tCupBig{position:relative;width:62%;height:auto;max-height:92%;margin-bottom:var(--sp-8);
  z-index:2;pointer-events:none;display:block;
  /* A ring in the team's colour, so the head belongs to its panel without being recoloured.
     SEVEN offsets, not four: CSS filters chain, so N shadows compound to about (N/pi)*r --
@@ -1131,10 +1166,10 @@ body.hmTour.tSchedOpen #tourPanel .tCupSchedIn{
   drop-shadow(-.3px -1.32px 0 rgb(var(--tc)))
   drop-shadow(.84px -1.06px 0 rgb(var(--tc)))
   drop-shadow(0 4px 10px rgba(15,23,42,.16))}
-.tCupMeta{margin-top:16px;padding:0 8px;text-align:center;min-width:0}
+.tCupMeta{margin-top:var(--sp-16);padding:0 var(--sp-8);text-align:center;min-width:0}
 .tCupNm{font-weight:600;font-size:var(--fs-small,15px);line-height:1.2;color:var(--c950);
  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.tCupSc{display:block;margin-top:2px;font-weight:600;font-size:22px;line-height:1.1;
+.tCupSc{display:block;margin-top:var(--sp-2);font-weight:600;font-size:22px;line-height:1.1;
  color:var(--c950);font-variant-numeric:tabular-nums}
 .tCupVs{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);z-index:3;
  font-weight:600;font-size:var(--fs-small,15px);line-height:1.2;color:var(--c950)}
@@ -1147,20 +1182,20 @@ body.hmTour #tourPanel .tCupPanel .tCupBig{filter:drop-shadow(0 4px 10px rgba(15
 /* Both actions on one width and one axis. Kick off was a filled content-width box and End
    tournament was bare text at a different width -- the same decision point rendered in two
    different systems, so the eye had to re-find the second one. */
-body.hmTour #tourPanel .tCupActs{gap:4px}
+body.hmTour #tourPanel .tCupActs{gap:var(--sp-4)}
 body.hmTour #tourPanel .tCupGo,
 body.hmTour #tourPanel .tCupQuit{width:auto;min-width:196px;align-self:center}
-.tCupActs{display:flex;flex-direction:column;align-items:center;gap:8px;padding:12px 12px 14px}
+.tCupActs{display:flex;flex-direction:column;align-items:center;gap:var(--sp-8);padding:var(--sp-12) var(--sp-12) var(--sp-14)}
 /* Layout only. Colour, type, padding, radius and the hover wash come from the shared button
    system (.hmBtn / .hmBtn.hmBtnPrimary). And they size to their CONTENT like every other
    button -- stretched to the block's full width they were the only controls on the site whose
    width came from their container rather than their padding. */
 .tCupQuit{display:inline-flex;width:auto;box-sizing:border-box;
- transition:color .16s cubic-bezier(.2,.8,.2,1),border-color .16s cubic-bezier(.2,.8,.2,1)}
+ transition:color var(--ease-out-dur) var(--ease-out),border-color var(--ease-out-dur) var(--ease-out)}
 .tCupQuit:hover,.tCupQuit:focus-visible{color:var(--c950);border-color:var(--c500)}
 .tCupQuit.tQuitArmed{color:#b3402e;border-color:#b3402e}
 .tCupGo{display:inline-flex;width:auto;margin:0;box-sizing:border-box;
- transition:opacity .16s cubic-bezier(.2,.8,.2,1)}
+ transition:opacity var(--ease-out-dur) var(--ease-out)}
 .tCupGo:hover,.tCupGo:focus-visible{opacity:.88}
 
 /* the schedule is always open now -- no <details> any more (see .tCupSchedIn below) */
@@ -1173,8 +1208,8 @@ body.hmTour #tourPanel .tCupQuit{width:auto;min-width:196px;align-self:center}
  background:var(--c100)}
 /* The header STAYS on the light card -- only .tCupSchedIn below becomes the painted plane --
    so .tkDist (Step 1) takes --c500, the light-mode secondary, not the paint-mode one. */
-.tCupSched>.tCupSchedHd{padding:14px 20px 10px;
- display:flex;align-items:center;justify-content:space-between;gap:8px;
+.tCupSched>.tCupSchedHd{padding:var(--sp-14) var(--sp-20) var(--sp-10);
+ display:flex;align-items:center;justify-content:space-between;gap:var(--sp-8);
  font-weight:600;font-size:var(--fs-caption,12px);letter-spacing:.08em;text-transform:uppercase;color:var(--c950)}
 .tkDist{font-weight:400;font-size:var(--fs-caption,12px);letter-spacing:.06em;
  text-transform:uppercase;color:var(--c500)}
@@ -1182,8 +1217,8 @@ body.hmTour #tourPanel .tCupQuit{width:auto;min-width:196px;align-self:center}
 /* ---- THE DRAW BOARD. The schedule is a painted plane of printed tickets.
    A fixture is a ticket; a played fixture is a TORN ticket with the score
    stamped on. Tickets are printed things: stock ground, perforation, serial. */
-.tCupSchedIn{background:var(--cupPaint,#2b2f2a);border-radius:10px;
- padding:12px 12px 14px;position:relative;
+.tCupSchedIn{background:var(--cupPaint,#2b2f2a);border-radius:var(--r-sm);
+ padding:var(--sp-12) var(--sp-12) var(--sp-14);position:relative;
  box-shadow:var(--bc-contact),var(--bc-cast),inset 0 0 46px rgba(0,0,0,.30);
  /* the scroller behaviour is unchanged -- syncHero() still snaps this to a whole ticket row */
  max-height:min(40vh,330px);overflow-y:auto;
@@ -1192,14 +1227,14 @@ body.hmTour #tourPanel .tCupQuit{width:auto;min-width:196px;align-self:center}
    behind every round once .tCupSchedIn went dark, which read as a leftover UI panel sitting
    on top of the board rather than tickets laid on it. */
 .tCupRd{overflow:visible}
-.tCupRd+.tCupRd{margin-top:10px}
-.tCupRdH{padding:10px 6px 6px;color:#cfccbe;font-size:11px;letter-spacing:.16em;
+.tCupRd+.tCupRd{margin-top:var(--sp-10)}
+.tCupRdH{padding:var(--sp-10) var(--sp-6) var(--sp-6);color:#cfccbe;font-size:var(--fs-micro);letter-spacing:.16em;
  text-transform:uppercase;font-weight:400}
-.tCupFx{position:relative;display:flex;align-items:center;gap:10px;
- background:var(--cupStock,#f1ece0);border-radius:4px;padding:10px 84px 10px 12px;
- margin:8px 2px;box-shadow:var(--bc-contact),var(--bc-cast);color:#242116}
-.tCupFx .tCupFxNm{font-weight:600;font-size:13px;color:#242116}
-.tCupFxSide{display:flex;align-items:center;gap:12px;min-width:0;flex:1 1 0}
+.tCupFx{position:relative;display:flex;align-items:center;gap:var(--sp-10);
+ background:var(--cupStock,#f1ece0);border-radius:var(--r-2xs);padding:var(--sp-10) 84px var(--sp-10) var(--sp-12);
+ margin:var(--sp-8) var(--sp-2);box-shadow:var(--bc-contact),var(--bc-cast);color:#242116}
+.tCupFx .tCupFxNm{font-weight:600;font-size:var(--fs-label);color:#242116}
+.tCupFxSide{display:flex;align-items:center;gap:var(--sp-12);min-width:0;flex:1 1 0}
 .tCupFxSide:last-of-type{flex-direction:row-reverse}
 /* The whole head, inside a colour tile. Cropping it to the middle of the face showed a pair
    of eyes and nothing else -- a cut-out has no body to crop into, so it is contained, not
@@ -1223,8 +1258,8 @@ body.hmTour #tourPanel .tCupQuit{width:auto;min-width:196px;align-self:center}
 /* pending (both sides TBD): the whole ticket fades, echoing .tCupFxSc.tCupPend below */
 .tCupFx.tkPend{opacity:.5}
 .tCupFx.tkPend .tCupFxNm{color:#6d685a;font-weight:400}
-.tCupFxSc{flex:0 0 auto;display:inline-flex;align-items:center;gap:4px;
- font-weight:600;font-size:13px;color:#242116;font-variant-numeric:tabular-nums;padding:0}
+.tCupFxSc{flex:0 0 auto;display:inline-flex;align-items:center;gap:var(--sp-4);
+ font-weight:600;font-size:var(--fs-label);color:#242116;font-variant-numeric:tabular-nums;padding:0}
 .tCupFxSc.tCupPend{font-weight:400;color:#6d685a}
 /* the arrow points at the score from the winner's side, so the result reads at a glance */
 .tCupArrow{width:0;height:0;border:4px solid transparent;flex:0 0 auto}
@@ -1233,9 +1268,9 @@ body.hmTour #tourPanel .tCupQuit{width:auto;min-width:196px;align-self:center}
 /* the stub: perforation + serial, ADMIT-ONE grammar */
 .tkStub{position:absolute;top:0;bottom:0;right:0;width:74px;
  border-left:2px dashed rgba(24,20,12,.30);display:flex;flex-direction:column;
- align-items:center;justify-content:center;gap:2px}
-.tkSerial{font-size:11px;letter-spacing:.05em;color:#4b463a}
-.tkDot{position:absolute;left:-3px;top:50%;width:6px;height:6px;border-radius:50%;
+ align-items:center;justify-content:center;gap:var(--sp-2)}
+.tkSerial{font-size:var(--fs-micro);letter-spacing:.05em;color:#4b463a}
+.tkDot{position:absolute;left:-3px;top:50%;width:6px;height:6px;border-radius:var(--r-full);
  transform:translateY(-50%);background:var(--accent-live,#17A45A);
  box-shadow:0 0 8px rgba(23,164,90,.55)}
 /* torn: the played ticket's stub edge goes ragged */
@@ -1243,7 +1278,7 @@ body.hmTour #tourPanel .tCupQuit{width:auto;min-width:196px;align-self:center}
  -webkit-clip-path:polygon(6% 0,100% 0,100% 100%,2% 100%,9% 88%,3% 76%,10% 63%,4% 50%,9% 38%,3% 26%,8% 13%);
  clip-path:polygon(6% 0,100% 0,100% 100%,2% 100%,9% 88%,3% 76%,10% 63%,4% 50%,9% 38%,3% 26%,8% 13%);
  background:rgba(24,20,12,.05)}
-.tkStamp{display:inline-block;transform:rotate(-4deg);font-size:15px;color:#37311f;
+.tkStamp{display:inline-block;transform:rotate(-4deg);font-size:var(--fs-small);color:#37311f;
  border:2px solid rgba(55,49,31,.55);border-radius:3px;padding:0 .3em;line-height:1.3}
 .tCupFx.tkTear .tkStub{animation:tkTearOff .4s cubic-bezier(.4,0,.2,1) both}
 @keyframes tkTearOff{0%{transform:translateX(0) rotate(0)}
@@ -1266,7 +1301,7 @@ body.hmTour #tourPanel .tCupQuit{width:auto;min-width:196px;align-self:center}
    name, one colour signal (the head's own team-colour ring), flap digit. Nothing else. The
    MATERIAL -- paint, grain, jitter, shadows, radius -- is unchanged by this pass. */
 .hmScore .sbCard{box-sizing:border-box;width:max-content;max-width:94vw;
- border-radius:10px;background:var(--cupPaint,#2b2f2a);padding:0;
+ border-radius:var(--r-sm);background:var(--cupPaint,#2b2f2a);padding:0;
  box-shadow:var(--bc-contact),var(--bc-cast),inset 0 0 46px rgba(0,0,0,.30);
  font-family:var(--sans);color:#ece9dd;position:relative}
 /* THE TROPHY rides on top of the board for the FINAL only, then is handed over at the whistle.
@@ -1277,7 +1312,7 @@ body.hmTour #tourPanel .tCupQuit{width:auto;min-width:196px;align-self:center}
 .sbTrophy{position:absolute;left:50%;bottom:calc(100% - 10px);transform:translateX(-50%);
  width:clamp(46px,7vw,66px);height:auto;pointer-events:none;z-index:2;display:none;
  filter:drop-shadow(0 6px 14px rgba(15,23,42,.26))}
-body.hmFinal .sbTrophy{display:block;animation:sbTrophyIn .5s cubic-bezier(.2,.8,.2,1) both}
+body.hmFinal .sbTrophy{display:block;animation:sbTrophyIn .5s var(--ease-out) both}
 @keyframes sbTrophyIn{from{opacity:0;transform:translateX(-50%) translateY(10px) scale(.9)}
  to{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}}
 /* Handed over: lifted out of the board and flown to the winner, then it rides with them.
@@ -1299,30 +1334,30 @@ body.hmFinal .sbTrophy{display:block;animation:sbTrophyIn .5s cubic-bezier(.2,.8
    left, flex-start on the right) so the shorter name's slack collapses toward the middle
    instead of toward the outer edge. .sbCard itself is width:max-content -- the bar hugs its
    content instead of claiming a fixed panel width. */
-.sbInner{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:12px;
- padding:12px 14px}
-.sbTeam{display:flex;align-items:center;gap:12px;min-width:0}
+.sbInner{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:var(--sp-12);
+ padding:var(--sp-12) var(--sp-14)}
+.sbTeam{display:flex;align-items:center;gap:var(--sp-12);min-width:0}
 .sbInner>.sbTeam:first-child{justify-content:flex-end}
 .sbInner>.sbTeam:last-child{justify-content:flex-start}
 /* --tc is the bare "r,g,b" triplet (see the rgba(var(--tc),a) convention documented at the
    top of the file) -- wrapping it in rgb() is required, var(--tc) alone is not a colour. */
-.sbNm{color:#ece9dd;font-weight:600;font-size:13px;letter-spacing:.09em;
+.sbNm{color:#ece9dd;font-weight:600;font-size:var(--fs-label);letter-spacing:.09em;
  text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
  min-width:0;flex:1 1 auto}
 .sbScore{font-size:40px;display:flex;align-items:center;flex:0 0 auto}
 /* dim divider glyph only -- no rule lines, no "multiple colour lines and all that" */
-.sbVs{flex:0 0 auto;color:#77746a;font-size:20px;font-weight:600;line-height:1;padding:0 2px}
+.sbVs{flex:0 0 auto;color:#77746a;font-size:20px;font-weight:600;line-height:1;padding:0 var(--sp-2)}
 /* Mobile is the acceptance bar for this layout -- it previously failed here at a bigger scale
    (that's why it was a stack before); the simplification is what makes one row viable: faces
    shrink, names ellipsize, nothing needs to wrap. Scoped, never bare. */
 @media(max-width:480px){
- .hmScore:has(.sbCard) .sbInner{gap:8px;padding:10px 12px}
- .hmScore:has(.sbCard) .sbTeam{gap:8px}
+ .hmScore:has(.sbCard) .sbInner{gap:var(--sp-8);padding:var(--sp-10) var(--sp-12)}
+ .hmScore:has(.sbCard) .sbTeam{gap:var(--sp-8)}
  .hmScore:has(.sbCard) .sbFace{flex:0 0 24px;width:24px;height:24px}
  .hmScore:has(.sbCard) .sbDot{flex:0 0 20px;width:20px;height:20px}
  .hmScore:has(.sbCard) .sbNm{font-size:10.5px;letter-spacing:.05em}
  .hmScore:has(.sbCard) .sbScore{font-size:28px}
- .hmScore:has(.sbCard) .sbVs{font-size:15px}
+ .hmScore:has(.sbCard) .sbVs{font-size:var(--fs-small)}
 }
 
 
@@ -1340,18 +1375,18 @@ body.hmFinal .sbTrophy{display:block;animation:sbTrophyIn .5s cubic-bezier(.2,.8
 /* THE GOAL FLASH. The board lights up in the scorer's colour for a beat, then settles.
    A ring plus a soft bloom rather than a fill, so the score stays readable through it --
    the number is the thing you are looking at when a goal goes in. */
-.hmScore .sbCard{transition:box-shadow .5s cubic-bezier(.2,.8,.2,1)}
+.hmScore .sbCard{transition:box-shadow .5s var(--ease-out)}
 .hmScore.sbHit .sbCard{
  box-shadow:0 0 0 3px rgb(var(--sbFlash,148,163,184)),
             0 0 44px -4px rgba(var(--sbFlash,148,163,184),.72);
- animation:sbFlashPulse .42s cubic-bezier(.2,.8,.2,1) 3}
+ animation:sbFlashPulse .42s var(--ease-out) 3}
 @keyframes sbFlashPulse{
  0%{box-shadow:0 0 0 0 rgb(var(--sbFlash,148,163,184)),0 0 0 0 rgba(var(--sbFlash,148,163,184),0)}
  22%{box-shadow:0 0 0 4px rgb(var(--sbFlash,148,163,184)),0 0 54px 2px rgba(var(--sbFlash,148,163,184),.85)}
  100%{box-shadow:0 0 0 0 rgba(var(--sbFlash,148,163,184),0),0 0 0 0 rgba(var(--sbFlash,148,163,184),0)}}
 @media(prefers-reduced-motion:reduce){.hmScore.sbHit .sbCard{animation:none}}
 .sbFace img{max-width:100%;max-height:100%;width:auto;height:auto;display:block}
-.sbDot{flex:0 0 22px;width:22px;height:22px;border-radius:50%;background:rgb(var(--tc,230,230,230))}
+.sbDot{flex:0 0 22px;width:22px;height:22px;border-radius:var(--r-full);background:rgb(var(--tc,230,230,230))}
 
 /* Leader full ink, trailer dimmed -- the digit AND the name. board2() toggles .sbTrail on the
    .sbScore element (unchanged from before the rebuild), which is a descendant of the digit
@@ -1373,7 +1408,7 @@ body.hmFinal .sbTrophy{display:block;animation:sbTrophyIn .5s cubic-bezier(.2,.8
    ("Quarter-final") wrapped to a second line and shoved the ledge taller, while a short one
    ("Final") never did -- the row changed height depending on which round you were in.
    Neither field may wrap; the label sheds its letter-spacing before it sheds a line. */
-.sbRound{font-weight:600;font-size:11px;line-height:1;letter-spacing:.14em;
+.sbRound{font-weight:600;font-size:var(--fs-micro);line-height:1;letter-spacing:.14em;
  text-transform:uppercase;color:#b9b6a8;white-space:nowrap;flex:0 0 auto;
  padding-right:9px;margin-right:1px;border-right:1px solid rgba(236,233,221,.14)}
 .sbFoot .sbMeta{white-space:nowrap;flex:0 0 auto}
@@ -1381,8 +1416,8 @@ body.hmFinal .sbTrophy{display:block;animation:sbTrophyIn .5s cubic-bezier(.2,.8
    fails contrast, so the final's label takes a brighter warm gold instead -- same idea
    (the round that matters gets its own colour), tuned for the new material. */
 body.hmFinal .sbRound{color:#e8b347}
-.sbFoot{display:flex;justify-content:space-between;align-items:center;gap:8px;
- padding:7px 14px;font-weight:600;font-size:10px;line-height:1.1;color:#b9b6a8;
+.sbFoot{display:flex;justify-content:space-between;align-items:center;gap:var(--sp-8);
+ padding:7px var(--sp-14);font-weight:600;font-size:10px;line-height:1.1;color:#b9b6a8;
  /* The card owns its own 10px radius and the ledge no longer paints its own background --
     it sits directly on the plate now, so it has no corners of its own left to carry. The
     ledge's own horizontal padding matches .sbInner's (14px) -- round·rule sits at the same
@@ -1390,10 +1425,10 @@ body.hmFinal .sbRound{color:#e8b347}
     one balanced object rather than two independently-margined bars. Width follows the card's
     hugged width automatically; nothing here sets it explicitly. */
  border-top:1px solid rgba(236,233,221,.14)}
-.sbMeta{display:inline-flex;align-items:center;gap:6px}
+.sbMeta{display:inline-flex;align-items:center;gap:var(--sp-6)}
 .sbMeta .sBall{width:14px;height:14px;object-fit:contain}
-.hmScore .hmScoreEnd{color:#b9b6a8;font-weight:600;font-size:11px;padding:6px 8px;min-height:0;
- border-radius:8px;transition:color .16s cubic-bezier(.2,.8,.2,1),background-color .16s cubic-bezier(.2,.8,.2,1)}
+.hmScore .hmScoreEnd{color:#b9b6a8;font-weight:600;font-size:var(--fs-micro);padding:var(--sp-6) var(--sp-8);min-height:0;
+ border-radius:8px;transition:color var(--ease-out-dur) var(--ease-out),background-color var(--ease-out-dur) var(--ease-out)}
 .hmScore .hmScoreEnd:hover,.hmScore .hmScoreEnd:focus-visible{color:#ece9dd;background:rgba(236,233,221,.12)}
 .hmScore .hmScoreEnd svg{width:13px;height:13px;stroke-width:1.6;fill:none}
 /* THE BOARD IS A PRINTED OBJECT: matte painted plane, light plates, no ink filter -- an ink
@@ -1402,23 +1437,23 @@ body.hmFinal .sbRound{color:#e8b347}
    the defaults above are the plain-soccer board. */
 .hmScore:has(.sbCard){width:auto;align-items:center;gap:0;filter:none}
 
-.tRes{width:min(560px,92vw);margin:6px auto 0;display:flex;flex-direction:column;gap:10px}
-.tResGroup{border:1px solid var(--c100);border-radius:4px;background:var(--c75,#F4F4F4);overflow:hidden}
-.tResHead{padding:8px 16px;text-align:center;font-family:var(--sans);font-weight:600;
+.tRes{width:min(560px,92vw);margin:var(--sp-6) auto 0;display:flex;flex-direction:column;gap:var(--sp-10)}
+.tResGroup{border:1px solid var(--c100);border-radius:var(--r-2xs);background:var(--c75,#F4F4F4);overflow:hidden}
+.tResHead{padding:var(--sp-8) var(--sp-16);text-align:center;font-family:var(--sans);font-weight:600;
  font-size:var(--fs-caption,12px);letter-spacing:.08em;text-transform:uppercase;color:var(--c700)}
 .tResBody{background:var(--c50);border-top:1px solid var(--c100)}
-.tResRow{display:grid;grid-template-columns:1fr 1fr;gap:0 14px;padding:10px 16px;
+.tResRow{display:grid;grid-template-columns:1fr 1fr;gap:0 var(--sp-14);padding:var(--sp-10) var(--sp-16);
  border-bottom:1px solid var(--c100)}
 .tResRow:last-child{border-bottom:0}
-.tResSide{display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0}
+.tResSide{display:flex;align-items:center;justify-content:space-between;gap:var(--sp-8);min-width:0}
 .tResSide:nth-child(2){flex-direction:row-reverse}          /* the two sides face each other */
-.tResWho{display:flex;align-items:center;gap:8px;min-width:0}
+.tResWho{display:flex;align-items:center;gap:var(--sp-8);min-width:0}
 .tResSide:nth-child(2) .tResWho{flex-direction:row-reverse}
 .tResFace{flex:0 0 22px;width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center}
 .tResFace img{max-width:100%;max-height:100%;width:auto;height:auto;display:block}
 .tResNm{font-family:var(--sans);font-weight:400;font-size:var(--fs-small);color:var(--c950);
  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
-.tResScore{display:inline-flex;align-items:center;gap:6px;font-family:var(--sans);font-weight:400;
+.tResScore{display:inline-flex;align-items:center;gap:var(--sp-6);font-family:var(--sans);font-weight:400;
  font-size:var(--fs-small);color:var(--c950);font-variant-numeric:tabular-nums;flex:0 0 auto}
 /* the winner: weight, ink, and a triangle -- never colour alone (WCAG 1.4.1) */
 .tResSide.tResWon .tResNm,.tResSide.tResWon .tResScore{font-weight:600}
@@ -1432,17 +1467,17 @@ body.hmFinal .sbRound{color:#e8b347}
  letter-spacing:.1em;text-transform:uppercase;color:var(--c500)}
 .tResRow.tResLive{background:var(--c75,#F4F4F4);box-shadow:inset 2px 0 0 var(--accent)}
 @media(max-width:560px){
- .tResRow{grid-template-columns:1fr;gap:6px}
+ .tResRow{grid-template-columns:1fr;gap:var(--sp-6)}
  .tResSide:nth-child(2),.tResSide:nth-child(2) .tResWho{flex-direction:row}
  .tResSide:nth-child(2) .tResTri{border-right-color:transparent;border-left-color:var(--c950)}
 }
 .tFinalCrown{grid-column:var(--gc,auto);grid-row:1;justify-self:center;align-self:end;
- width:40px;height:40px;margin-bottom:4px;object-fit:contain;pointer-events:none}
+ width:40px;height:40px;margin-bottom:var(--sp-4);object-fit:contain;pointer-events:none}
 
 /* Material's choreography: start each item's entrance no more than 20ms after the
    last and never wait for one to finish before the next begins */
 @keyframes tCardIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
-.tBrMir .tMi{animation:tCardIn .34s cubic-bezier(.2,.8,.2,1) both;animation-delay:var(--tin,0ms)}
+.tBrMir .tMi{animation:tCardIn .34s var(--ease-out) both;animation-delay:var(--tin,0ms)}
 
 /* DEPTH. BUCK built the VALORANT Champions package on "a flexible, three-dimensional
    perspective grid" and moved the camera through it -- depth from a receding plane,
@@ -1485,12 +1520,12 @@ body.hmFinal .sbRound{color:#e8b347}
 /* the !important above would otherwise swallow the armed confirm state */
 .tourPanel .tGo.tGoQuiet.tQuitArmed{border-color:#b3402e!important;color:#b3402e}
 /* and the panel was running its content flush to the bottom edge */
-.tourPanel{padding-bottom:clamp(20px,3vh,36px)}
+.tourPanel{padding-bottom:clamp(var(--sp-20),3vh,36px)}
 
 @media(max-width:760px){
  /* a five-column draw cannot survive a phone: fall back to the round-by-round
     stack, which is the DOM order anyway, so nothing is reordered for anyone */
- .tBr.tBrMir{grid-template-columns:1fr;grid-template-rows:none;column-gap:0;row-gap:6px}
+ .tBr.tBrMir{grid-template-columns:1fr;grid-template-rows:none;column-gap:0;row-gap:var(--sp-6)}
  .tBrMir .tMi{grid-column:1;grid-row:auto}
  .tBrMir .tColLbl{grid-column:1;grid-row:auto;text-align:left;padding-bottom:0}
  .tBrMir .tMi::before,.tBrMir .tMi::after{display:none}
@@ -1507,19 +1542,19 @@ body.hmFinal .sbRound{color:#e8b347}
  font-family:var(--sans);font-weight:400;font-size:var(--fs-small);line-height:1;
  color:var(--c700);background:none;
  border:0;
- border-radius:4px;
- padding:12px 16px;min-height:44px;box-sizing:border-box;
- align-items:center;justify-content:center;gap:8px;
+ border-radius:var(--r-2xs);
+ padding:var(--sp-12) var(--sp-16);min-height:44px;box-sizing:border-box;
+ align-items:center;justify-content:center;gap:var(--sp-8);
  cursor:pointer;
- transition:background-color .16s cubic-bezier(.2,.8,.2,1),color .16s cubic-bezier(.2,.8,.2,1);
+ transition:background-color var(--ease-out-dur) var(--ease-out),color var(--ease-out-dur) var(--ease-out);
 }
 .sbBtn{
  font-family:var(--sans);font-size:var(--fs-small);color:var(--c700);
- background:none;border:0;border-radius:4px;
+ background:none;border:0;border-radius:var(--r-2xs);
  width:44px;height:44px;min-height:44px;padding:0;
  display:inline-flex;align-items:center;justify-content:center;
  cursor:pointer;
- transition:background-color .16s cubic-bezier(.2,.8,.2,1),color .16s cubic-bezier(.2,.8,.2,1);
+ transition:background-color var(--ease-out-dur) var(--ease-out),color var(--ease-out-dur) var(--ease-out);
 }
 :where(.tGo,.hmScoreEnd,.hmBtn){display:inline-flex}
 .tGo:hover,.hmScoreEnd:hover,.hmBtn:hover,.sbBtn:hover,
