@@ -211,7 +211,10 @@
  var stEl0=document.getElementById("stage"),stR0=stEl0?stEl0.getBoundingClientRect():null;
  var _arenaW=hero.clientWidth||innerWidth;
  var HW=stR0&&stR0.width?Math.round(Math.min(108,Math.max(66,stR0.width*0.27)))
-       :Math.round(Math.min(140,Math.max(66,_arenaW*0.075)));
+       :Math.round(Math.min(108,Math.max(66,_arenaW*0.075)));   // ceiling matched to the #stage
+       // path's own 108 (fix round 2) -- a play.html head should never render bigger than the
+       // biggest a companion has ever been drawn on index.html. Consistency call, not a taste
+       // call; the 0.075 coefficient itself is untouched and still provisional pending Jayden.
  if(mob)HW=Math.min(HW,64);
  if(filler)HW=Math.round(HW*1.5);   // mini-Jayden stays noticeably BIGGER than the little heads -- his
  // size is his identity, not a depth cue (same rule as survey()'s bigR-gated *1.5 below, which never

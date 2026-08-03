@@ -7,11 +7,28 @@
  /* The arena carries class="hero" deliberately: the engine measures ".hero" in
     16 places. Renaming those is a later pass; see spec 5.1. */
  html,body{margin:0;height:100%;background:var(--paper,#f7f6f3);overflow:hidden}
- .hero{position:relative;width:100vw;height:100vh}
+ /* COMPOSITION (fix round 2): the engine derives its entire floor plane from
+    hero.clientHeight (FLOORCAP, play-engine.js survey()) and every game element --
+    ball, goals, heads, and the scoreboard itself (a .hero child; .hmScore's
+    top:40px is relative to the band, not the viewport) -- is a flat .hero
+    descendant. So a shorter, vertically-centred .hero pulls the whole scene up
+    into a broadcast-style band with the scoreboard sitting just above it, with NO
+    play-engine.js change: this is CSS-only. body becomes the centring flex
+    container; .hero, as body's one in-flow child (the back link and #playGo are
+    both position:fixed, out of flow), gets margin:auto to centre on both axes --
+    though only the vertical axis has free space to give, since .hero still spans
+    the full 100vw. See task-2-report.md's fix-round-2 addendum for the measured
+    before/after and the mobile decision (play.css:146). */
+ body{display:flex}
+ .hero{position:relative;width:100vw;height:60vh;margin:auto}
  #face{display:none}
  .playBack{position:fixed;left:16px;top:16px;z-index:60}
 </style>
 </head><body class="hmFull">
+<!-- FIX ROUND 2 (Task 2): filter defs SHARED with index.html:2316-2318, copied verbatim, not moved -- index.html keeps its own copies. Must be inlined here, not linked: Safari does not support filters referenced from an external or data: URL (see index.html's own comment on tHeadEdge). #tHeadEdge is unused on play.html today but Task 4's tournament head edges need it. -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><!-- Cut-out edge stroke. NOT a drop-shadow stack: CSS filter functions CHAIN, each taking the previous one's output, so N shadows compound to about (N/pi)*r rather than r -- 8 at 1px measures ~2.5px, and 24 hangs the compositor outright. Worse, a stack outlines every hair strand separately and turns a photographic head into a spiky halo. Threshold the alpha FIRST so wispy strands collapse into one silhouette, dilate that, subtract to leave a ring, and flood it. One clean line, hair keeps its softness. Must be inline in this document: Safari does not support filters referenced from an external or data: URL. --><filter id="tHeadEdge" x="-25%" y="-25%" width="150%" height="150%" color-interpolation-filters="sRGB"><feGaussianBlur in="SourceAlpha" stdDeviation="1.6" result="b"/><feComponentTransfer in="b" result="sil"><feFuncA type="linear" slope="20" intercept="-13.5"/></feComponentTransfer><feMorphology in="sil" operator="dilate" radius="1" result="f"/><feComposite in="f" in2="sil" operator="out" result="r"/><feFlood flood-color="#FDFDFD" result="c"/><feComposite in="c" in2="r" operator="in" result="st"/><feMerge><feMergeNode in="st"/><feMergeNode in="SourceGraphic"/></feMerge></filter></svg>
+<svg width="0" height="0" style="position:absolute"><filter id="inkBig"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="7" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="1.1" xChannelSelector="R" yChannelSelector="G" result="d"/><feTurbulence type="fractalNoise" baseFrequency="0.5 0.42" numOctaves="2" seed="13" result="g"/><feColorMatrix in="g" type="matrix" values="0 0 0 0 0.055 0 0 0 0 0.055 0 0 0 0 0.055 0 0 0 0.42 0" result="grain"/><feComposite in="grain" in2="d" operator="atop"/></filter>
+<filter id="inkSm"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="1" seed="4" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="0.55" xChannelSelector="R" yChannelSelector="G"/></filter><filter id="inkEye"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="9" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="1.05" xChannelSelector="R" yChannelSelector="G"/></filter></svg>
 <a class="playBack" href="index.html">&larr; Portfolio</a>
 <!-- fillerData() bails without this: it bakes mini-Jayden from #face. See spec 5.6. -->
 <img id="face" src="images/neutral.webp" alt="" aria-hidden="true">

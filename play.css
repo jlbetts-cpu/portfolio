@@ -2,6 +2,32 @@
    Source ranges (index.html, commit 6567adc): 310-320, 321-402, 406-409, 414-424,
    425-429, 574-591, 920-935, 974-1027, 1051-1061, 1062-1283, 1349-1399, 1457-2312,
    plus the four live shared control selectors rewritten from 1284-1456. */
+/* ---- FIX ROUND 2 (Task 2): SHARED with index.html, not moved -- index.html keeps every
+   rule below untouched, the home page still needs them for its own head. Placed first, ahead
+   of every component rule above and below, so the cascade order matches index.html's: design
+   tokens and base rules before components. Without these, play.html's 91 font-family:var(--sans)
+   declarations resolved to nothing (serif fallback -- the "random different fonts" Jayden saw)
+   and the companion eye rig had no CSS at all (no .eye/.iris/.pupil/.glint geometry -- the
+   "eyes don't work"). Verified against actual play-engine.js usage, not just the cited source
+   range: index.html:138-153 (the range given for the eye rig) also contains .face, .introwake
+   and .glasses, three classes grep confirms play-engine.js's spawnCompanion never sets -- those
+   style the BIG head's own overlays on index.html and are correctly left out here. Only the
+   classes spawnCompanion actually creates (.eye, .iris, .pupil, .glint) are copied, from
+   index.html:140-144 and 153-156. Design tokens + media override: index.html:46,48. Body base
+   rule: index.html:58 (overflow-x:clip kept -- harmless alongside play.html's own
+   html,body{overflow:hidden}, which already wins the cascade for both axes regardless). ---- */
+:root{--c50:#FDFDFD;--c100:#E6E6E6;--c75:#F1F1F1;--c500:#757575;--c600:#6B6B6B;--c700:#525252;--c900:#212121;--c950:#121212;--accent:#0E6B3B;--accent-live:#17A45A;
+ --sans:"Instrument Sans",-apple-system,system-ui,sans-serif;--fs-display:clamp(68px,12vw,168px);--fs-h1:clamp(28px,2.6vw,38px);--fs-hero:clamp(38px,4.7vw,60px);--fs-heroline:clamp(28px,2.6vw,38px);--sp-8-16:16px;--sp-16-24:24px;--sp-16-32:32px;--sp-16-40:40px;--sp-24-48:48px;--sp-32-56:56px;--sp-32-64:64px;--sp-40-72:72px;--sp-48-80:80px;--sp-56-96:96px;--fs-h2:clamp(26px,2.5vw,36px);--fs-h3:clamp(21px,2.4vw,32px);--fs-h4:clamp(19px,2.1vw,28px);--fs-h5:clamp(20px,1.7vw,24px);--fs-lead:clamp(15px,1.4vw,18px);--fs-prose:clamp(17px,1.39vw,20px);--fs-body:16px;--fs-small:15px;--fs-tab:clamp(17px,1.5vw,20px);--fs-label:13px;--fs-caption:12px;--fs-micro:11px;--lh-display:1.0;--lh-tight:1.08;--lh-body:1.5;--lh-prose:1.6;--lh-flat:1;}@media(max-width:880px){:root{--sp-8-16:8px;--sp-16-24:16px;--sp-16-32:16px;--sp-16-40:16px;--sp-24-48:24px;--sp-32-56:32px;--sp-32-64:32px;--sp-40-72:40px;--sp-48-80:48px;--sp-56-96:56px}}
+body{background:var(--c50);color:var(--c950);font-family:var(--sans);-webkit-font-smoothing:antialiased;overflow-x:clip}
+.eye{position:absolute;border-radius:50%;overflow:hidden;z-index:3;pointer-events:none;transition:transform .08s steps(2);filter:url(#inkEye)}
+.eye.eclosed{transform:scaleY(0.08);visibility:hidden}
+.eye.eclosed .iris,.eye.eclosed .glint{opacity:0}
+/* belt and braces: a closed eye has no iris, whatever the lid is doing that frame */
+.eye[style*="display: none"] .iris,.eye[style*="display:none"] .iris{opacity:0}   /* hidden, not squashed: a bare scaleY leaves the iris as a hard dark slit across the face, which is the one thing a blink must never look like. visibility (not display) so nothing reflows. */
+.iris{position:absolute;border-radius:46%;background:repeating-conic-gradient(from 4deg,rgba(255,255,255,.045) 0deg 2deg,rgba(0,0,0,.24) 2deg 4.3deg),radial-gradient(circle at 50% 50%,#050505 0%,#080808 25%,#191919 39%,#121212 57%,#181818 72%,#0a0a0a 88%,#030303 100%),radial-gradient(circle at 38% 32%,#1e1e1e 0%,#0d0d0d 52%,#050505 100%);background-blend-mode:multiply,normal,normal}.iris::before{content:"";position:absolute;inset:0;border-radius:46%;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='44'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");background-size:20px 20px;-webkit-mask:radial-gradient(circle,#000 58%,transparent 90%);mask:radial-gradient(circle,#000 58%,transparent 90%);mix-blend-mode:soft-light;opacity:.45;pointer-events:none}.iris::after{content:"";position:absolute;inset:0;border-radius:46%;background:radial-gradient(circle at 68% 74%,rgba(244,244,244,.38) 0%,rgba(244,244,244,0) 14%);filter:blur(.4px);pointer-events:none}
+.pupil{position:absolute;left:50%;top:50%;width:55%;height:55%;border-radius:50%;background:radial-gradient(circle at 50% 50%,#000 0%,#000 58%,#060606 80%,rgba(6,6,6,0) 100%);transform:translate(-50%,-50%) scale(1);transform-origin:50% 50%;pointer-events:none;will-change:transform}
+.glint{position:absolute;left:32%;top:26%;width:20%;height:20%;border-radius:50%;z-index:4;pointer-events:none;background:radial-gradient(circle at 50% 50%,rgba(255,255,255,.98) 0%,rgba(252,252,252,.72) 24%,rgba(250,250,250,0) 60%)}
+.glint::after{content:"";position:absolute;left:128%;top:165%;width:46%;height:46%;border-radius:50%;background:radial-gradient(circle,rgba(250,250,250,.55) 0%,rgba(250,250,250,0) 68%)}
 .moodHeads{display:flex;flex-wrap:wrap;gap:8px;margin:8px 4px 2px}.moodHeads:empty{display:none}
 .mhItem{position:relative}.mhItem img{width:34px;height:40px;object-fit:contain;background:var(--c100);border-radius:4px;display:block}
 .mhPick{padding:0;border:0;background:none;cursor:pointer;display:block;border-radius:4px;transition:box-shadow .18s cubic-bezier(.2,.8,.2,1)}
@@ -142,8 +168,21 @@ body.moodInCta .heroCtas:not(.in) .faceMoodCorner{opacity:0!important;visibility
    heads/rungs/health bars rendered over the nav. Hand the hero the rest of the screen while a
    game runs and all three inherit a real arena -- both height fns are called live, not cached.
    Scroll is locked for the duration: a single 500px flick used to push the whole match off
-   screen, still running, with no way back. ---- */
-@media(max-width:760px){body.hmFull .hero{min-height:calc(100dvh - 68px);height:calc(100dvh - 68px);padding-top:8px}}
+   screen, still running, with no way back.
+
+   PLAY.HTML DIVERGES HERE (fix round 2, Task 2): the paragraph above describes index.html,
+   where body.hmFull only applies WHILE a game runs and .hero is otherwise a short, scrolling
+   hero -- so this rule's job was rescuing the arena from that short default. On play.html,
+   body.hmFull is PERMANENT and .hero is ALWAYS the arena (never the short portfolio hero), so
+   "hand hero the rest of the screen" no longer describes what's needed: inherited verbatim,
+   this 2-class selector silently outranked play.html's own plain-.hero centred-band rule
+   (index.html:930's copy carried the collision forward unnoticed -- flagged in Task 1's report
+   and again in this fix round). Decided deliberately instead: mobile gets its own explicit band,
+   not the desktop 60vh number, because a portrait screen has less absolute vertical room to
+   spare for margin and benefits from more usable pitch -- so it sits at 65vh, the top of
+   Jayden's approved 55-65vh range rather than the middle. Centring is inherited from the shared
+   body{display:flex}/.hero{margin:auto} rule in play.html; only the height differs by breakpoint. */
+@media(max-width:760px){body.hmFull .hero{height:65vh;min-height:0}}
 body.hmFull{overflow:hidden;overscroll-behavior:none}
 /* ---- 14. #soccerTeams measured 39x40 -- under the 44px minimum (WCAG 2.5.5 AAA, Apple HIG
    "at least 44x44 pt"). It sits inside a flex row with align-self:stretch, so it inherited the
