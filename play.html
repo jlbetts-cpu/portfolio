@@ -6,7 +6,13 @@
 <style>
  /* The arena carries class="hero" deliberately: the engine measures ".hero" in
     16 places. Renaming those is a later pass; see spec 5.1. */
- html,body{margin:0;height:100%;background:var(--paper,#f7f6f3);overflow:hidden}
+ html,body{margin:0;height:100%;background:var(--c50);overflow:hidden}
+ /* Was background:var(--paper,#f7f6f3) -- --paper isn't a token this site defines, so it
+    silently fell through to the hard-coded fallback hex, a shade off index.html's real body
+    background (--c50, #FDFDFD; the fallback was #f7f6f3, a visibly warmer/grayer off-white).
+    play.css already carries the correct body{background:var(--c50)} base rule (copied from
+    index.html:58), but this inline block is a later same-specificity rule (a plain `body`
+    selector either way), so it won the cascade by source order and silently shadowed it. */
  /* COMPOSITION (fix round 2): the engine derives its entire floor plane from
     hero.clientHeight (FLOORCAP, play-engine.js survey()) and every game element --
     ball, goals, heads, and the scoreboard itself (a .hero child; .hmScore's

@@ -105,7 +105,14 @@ body.hmSoccer .moodMenu .moodItem:not(#endGame),body.hmSoccer .moodMenu .moodGo{
 @media(max-width:640px){.hmLowerThird{left:10px;bottom:9%;max-width:min(82vw,300px);padding:7px 12px 7px 7px}}
 @media(prefers-reduced-motion:reduce){.hmLowerThird{transition:none}}
 .battleCount{position:absolute;left:50%;top:12px;transform:translateX(-50%);z-index:47;display:flex;align-items:center;gap:8px;padding:8px 16px;border:1px solid var(--c100);border-radius:4px;background:var(--c50);font-family:var(--sans);font-weight:600;font-size:var(--fs-body);color:var(--c950);opacity:0;pointer-events:none;transition:opacity .3s;filter:url(#inkSm)}
-.hmScore{position:absolute;left:50%;top:var(--heroTitleTop,40px);transform:translateX(-50%);z-index:47;display:flex;align-items:center;gap:12px;padding:8px 16px;border:1px solid var(--c100);border-radius:4px;background:var(--c50);font-family:var(--sans);font-weight:600;font-size:var(--fs-body);color:var(--c950);opacity:0;pointer-events:none;transition:opacity .3s;filter:url(#inkSm)}
+/* Was z-index:47 -- above the heads (root, z:3), the goals (.hmGoal, z:2) and their shadows
+   (z:1), so the board painted OVER the pitch instead of sitting on it. Jayden: "score board
+   should be behind everything." 0 puts it below every pitch element (heads, ball z:48, goals,
+   shadows) while staying above the plain .hero background, so it's still legible where nothing
+   crosses it -- it just no longer wins against a head or the ball passing through. Position is
+   untouched (left/top/transform, all unrelated to z-index) and it stays a direct child of
+   `hero`, never a .hmCamBack/.hmCamFront descendant, so stagePunch() still can't move it. */
+.hmScore{position:absolute;left:50%;top:var(--heroTitleTop,40px);transform:translateX(-50%);z-index:0;display:flex;align-items:center;gap:12px;padding:8px 16px;border:1px solid var(--c100);border-radius:4px;background:var(--c50);font-family:var(--sans);font-weight:600;font-size:var(--fs-body);color:var(--c950);opacity:0;pointer-events:none;transition:opacity .3s;filter:url(#inkSm)}
 .hmScore .sTeam{display:flex;align-items:center;gap:8px}
 .hmScore .sTeam i{width:9px;height:9px;border-radius:50%}
 .hmScore .sTr i{background:#e05a4e}.hmScore .sTb i{background:#5aa0d8}

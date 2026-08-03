@@ -200,7 +200,18 @@
    [1,2].forEach(function(tm){var col=document.createElement("div");col.className="teamCol "+(tm===1?"red":"blue");colEls[tm]=col;
     var ch=document.createElement("div");ch.className="teamColHdr";ch.textContent=tm===1?"Red":"Blue";col.appendChild(ch);
     var cc=document.createElement("div");cc.className="teamChips";for(var i=0;i<n;i++){if(sel[i]===tm)cc.appendChild(chip(hs[i],i));}
-    if(sel[9001]===tm)cc.appendChild(mjChip());col.appendChild(cc);cols.appendChild(col);});
+    // Mini-Jayden's chip used to render whenever sel[9001] pointed at this column, regardless of
+    // roster size -- but he only actually joins the match when the real roster is ODD (see
+    // startWithTeams() below: `if(rc%2===1&&window.__hmFillerAdd)window.__hmFillerAdd()`, using
+    // this SAME n = heads().length). So an even roster showed his chip sitting on a team that
+    // then took the pitch without him. Gate the chip on the identical parity check the launcher
+    // uses -- one source of truth, not a second invented count -- so the tray never promises a
+    // player who won't show up. sel[9001] itself is neither set nor cleared here: the value
+    // (and ensureSel()'s mjKeep preservation of it across rebuilds) still tracks his side even
+    // while hidden, so he returns to the same side, not a random one, the moment the roster goes
+    // odd again.
+    if(n%2===1&&sel[9001]===tm)cc.appendChild(mjChip());
+    col.appendChild(cc);cols.appendChild(col);});
    tray.appendChild(cols);
    var ft=document.createElement("div");ft.className="teamTrayFoot";
    var start=document.createElement("button");start.className="teamStart";start.type="button";start.textContent=(mode==="lava"?"Start Floor is Lava":"Start match");

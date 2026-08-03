@@ -375,6 +375,17 @@
   if(bigR){var nHW=Math.round(Math.min(108,Math.max(66,(bigR.r-bigR.l)*0.27)));if(mob)nHW=Math.min(nHW,64);
    if(filler)nHW=Math.round(nHW*1.5);   // the mini-Jayden stays noticeably BIGGER (Jayden liked this) -- but he's on the SAME flat plane + ground line as everyone else; his size is his identity, not a depth cue
    if(Math.abs(nHW-HW)>2){HW=nHW;HH=HW*1.2;root.style.width=HW+"px";root.style.height=HH+"px";shadow.style.width=HW+"px";shadow.style.height=(HW*0.22)+"px";}}
+  else{   // FALLBACK PATH (play.html: no #stage). This mirrors spawnCompanion's own initial
+   // HW formula (arenaW*0.075, clamped [66,108], then the mobile 64 cap and the filler 1.5x)
+   // instead of the #stage-relative one above, because there is no big head to measure here --
+   // but it was only ever APPLIED at spawn. Resizing the window left every head at its spawn
+   // size (measured: heads spawned at 1280px stayed 96px wide after resizing down to 390px,
+   // where a fresh spawn there would have clamped to 64px) because this whole recompute lived
+   // inside `if(bigR)`, which is always false on this page. Give the fallback its own recompute
+   // so it actually responds to resize() the same way the #stage path always did.
+   var fHW=Math.round(Math.min(108,Math.max(66,(heroR.w||innerWidth)*0.075)));if(mob)fHW=Math.min(fHW,64);
+   if(filler)fHW=Math.round(fHW*1.5);
+   if(Math.abs(fHW-HW)>2){HW=fHW;HH=HW*1.2;root.style.width=HW+"px";root.style.height=HH+"px";shadow.style.width=HW+"px";shadow.style.height=(HW*0.22)+"px";}}
   if(x>WR)x=WR;if(x<WL)x=WL;if(y>floorY)y=floorY;   // stay intact when the screen shrinks
  }
  survey();addEventListener("resize",function(){mob=innerWidth<=880;survey();},{passive:true});
