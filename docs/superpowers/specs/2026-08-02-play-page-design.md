@@ -82,8 +82,29 @@ real match before the task is called done.
 | `play.css` | The four game CSS blocks, plus the four live shared control rules (§5.5). |
 | `party.js` | `buildPartyDOM` + `__hmPartyAt` only. |
 
-**No `heads.css`.** Every element in `spawnCompanion` is inline-styled via
-`cssText` (`index.html:4941`), so the ambient head needs no stylesheet.
+**Correction (2026-08-02, after Task 1 shipped): the "no `heads.css`" claim below
+was wrong, and it broke `play.html`.** It is true that the head *root*, image,
+shadow, ring, aura and crown are inline-styled via `cssText`
+(`index.html:4941`) — but the **eye rig is not**. It builds elements carrying
+`.eye`, `.iris` and `.face` classes whose rules live at `index.html:138–153`,
+and `.eye` references `filter:url(#inkEye)`, defined in an inline `<svg>` at
+`index.html:2316–2318`. Neither was carried over, and neither was the `:root`
+token block at `index.html:46–48`.
+
+Result on `play.html`: every `var(--sans)` fell back to the browser's default
+serif, and because an unresolvable `filter:url()` makes Chrome drop the element
+outright, the eyes disappeared entirely. Jayden caught it by looking at the
+page; the task review did not, because it verified that what was copied was
+copied correctly rather than that what was needed was present.
+
+**The shared foundation — `:root` tokens, the `body` base rule, the head rig CSS
+and the three inline SVG filter defs — must be present on BOTH pages.** It is
+shared, not moved: `index.html` keeps all of it, because the home page still has
+companion heads. The filter defs must be inlined in each document; Safari does
+not support filters referenced from an external or `data:` URL.
+
+Original claim, retained for the record: ~~Every element in `spawnCompanion` is
+inline-styled via `cssText`, so the ambient head needs no stylesheet.~~
 
 ### 4.2 Why the engine moves whole
 
