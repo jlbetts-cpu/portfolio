@@ -76,7 +76,7 @@ page sheds the companion engine, its rAF loops and canvases; the game gets full
 viewport and a real URL. Keep the Play menu on the home page as the entry point
 (it links rather than launches). Carry the `?stand=1` test hooks across.
 
-### 3.3 Egghead names — deterministic and colour-locked
+### 3.3 Egghead names — deterministic and colour-locked  ✅ SHIPPED 2026-08-02
 **Research:** Minions land because ordinary human names sit on absurd bodies —
 the incongruity is the joke; short, plosive-led, 1–2 syllables. The trap is
 M&M's, whose spokescandies are literally named Red/Yellow/Blue. Power Rangers
@@ -86,6 +86,11 @@ egghead):** Red→**Gus** · Gold→**Milo** · Green→**Ozzy** · Teal→**Dot
 Sky→**Baz** · Blue→**Kip** · Violet→**Fitz** · Magenta→**Chip**.
 Reserve tier for palette wrap: Stan, Wally, Pip, Rex, Moe, Dex, Bram, Nubs.
 Deliberately *not* matched to colour temperament (no fiery Red, no calm Blue).
+**Shipped** (commit `036dd55`): each `PAL` entry gained a `who` field and the
+team-naming rule uses `pal.who`. `colName` still carries the colour for the bar,
+ring and nets. Remaining: the reserve tier is not wired (only matters past 8
+teams — do it with the 12-team work in §3.7), and the "Add an egghead" chip in
+the Play menu may still show a generic label — check when the Play page moves.
 
 ### 3.4 BUG — "Jayden scored" when he wasn't playing
 Real bug, partially traced. Facts established:
@@ -168,7 +173,7 @@ honest on its own terms and happens to be exactly what a draft order needs.
 
 1. **Play page extraction** (§3.2) — biggest perf win, unblocks everything else.
 2. **Scorer identity fix** (§3.4) — correctness bug, cheap once the page moves.
-3. **Egghead naming** (§3.3) — small, high-charm, deterministic.
+3. ~~Egghead naming (§3.3)~~ — ✅ done.
 4. **iOS radius + smoothing system** (§3.5) — tokens first, then apply site-wide.
 5. **Gradient design-system adoption** (§3.1) — tokenise the engine.
 6. **The soccer gradient banner** (§3.6) — first consumer of the token layer.
