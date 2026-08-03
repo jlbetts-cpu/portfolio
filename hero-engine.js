@@ -1558,21 +1558,11 @@ var _navW=document.getElementById("navWork");if(_navW)_navW.addEventListener("cl
   setTimeout(_go,1420);return;}   // from About, Work goes home first
  _go();});
 var _navA=document.getElementById("navAbout");if(_navA)_navA.addEventListener("click",function(){try{if(aboutOpen){if(typeof closeAbout==="function")closeAbout();return;}}catch(_){}if(typeof openAbout==="function")openAbout();});
-(function(){ // MOBILE MENU: hamburger -> slide-in drawer (accessible: aria-expanded, Esc, focus return, backdrop tap)
- var burger=document.getElementById("navBurger"),drawer=document.getElementById("navDrawer"),scrim=document.getElementById("navScrim"),closeB=document.getElementById("navDrawerX");
- if(!burger||!drawer)return;
- if(scrim)scrim.removeAttribute("hidden");
- function openM(){document.body.classList.add("navOpen");burger.setAttribute("aria-expanded","true");drawer.setAttribute("aria-hidden","false");if(closeB)setTimeout(function(){try{closeB.focus();}catch(_){}},80);}
- function closeM(){if(!document.body.classList.contains("navOpen"))return;document.body.classList.remove("navOpen");burger.setAttribute("aria-expanded","false");drawer.setAttribute("aria-hidden","true");try{burger.focus();}catch(_){}}
- burger.addEventListener("click",function(){document.body.classList.contains("navOpen")?closeM():openM();});
- if(closeB)closeB.addEventListener("click",closeM);
- if(scrim)scrim.addEventListener("click",closeM);
- document.addEventListener("keydown",function(e){if(e.key==="Escape")closeM();});
- var ndW=document.getElementById("ndWork"),ndA=document.getElementById("ndAbout"),ndT=document.getElementById("ndTalk");
- if(ndW)ndW.addEventListener("click",closeM);   // anchor scrolls to #cases, just close the drawer
- if(ndT)ndT.addEventListener("click",closeM);   // anchor scrolls to #contact
- if(ndA)ndA.addEventListener("click",function(e){e.preventDefault();closeM();setTimeout(function(){if(typeof openAbout==="function")openAbout();},240);});   // let the drawer slide out, then open About
-})();
+/* The mobile menu -- burger, drawer, scrim, close button and the three .ndLinks --
+   was deleted with the header on 2026-08-03. It is not restyled anywhere: measured
+   at a real 390px viewport the lockup and Home / About / Games fit inline in 279px
+   of a 358px budget, every target at 44x44, so a parallel navigation had nothing
+   left to do. header.js owns the bar now. */
    // Play now lives in the header nav directly in the markup -- the old runtime relocation into .heroCtas is retired
 if(talk){   // same presence guard as #logo above -- play.html has no Contact link, and an unguarded throw here kills the rest of the file
 talk.addEventListener("mouseenter",()=>{if(eventLock||CALIB)return;clearHold();activeHover="smile";showFace("smile");});

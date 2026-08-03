@@ -35,13 +35,11 @@ img{display:block;max-width:100%}
 *{-webkit-tap-highlight-color:transparent}
 .wrap{position:relative;z-index:2;max-width:1200px;margin:0 auto;padding:0 40px}
 
-/* top nav: mirrors the About header — Back · title · Contact */
-nav{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;column-gap:16px;padding:32px 0 0}
-.back,.talk{background:var(--c50);border:1px solid var(--c100);color:var(--c950);font-family:var(--sans);font-weight:400;font-size:var(--fs-small);line-height:1;padding:8px 16px;border-radius:0!important;text-decoration:none;filter:url(#inkSm);transition:border-color .2s cubic-bezier(.2,.8,.2,1),color .2s cubic-bezier(.2,.8,.2,1)}
-.back{grid-column:1;justify-self:start;display:inline-flex;align-items:center;gap:.45em}
-.talk{grid-column:3;justify-self:end}
-.back:hover,.back:focus-visible,.talk:hover,.talk:focus-visible{border-color:var(--c500);color:var(--c950)}
-.navTitle{grid-column:2;justify-self:center;font-family:var(--sans);font-weight:600;font-size:var(--fs-small);letter-spacing:var(--tr-body);color:var(--c700);filter:url(#inkSm);white-space:nowrap}
+/* The top nav lives in header.css now -- one .jbNav on all nine pages. What stood
+   here was `nav{display:grid;grid-template-columns:1fr auto 1fr}` with Back, the
+   wordmark and Contact one per cell: three things at three unrelated x-positions
+   with nothing binding them, which is why it never read as a bar. Gone with it:
+   .back, .talk and .navTitle (the page names itself in its own h1). */
 
 /* left-aligned content on the page margin; a slim section indicator floats in the right margin */
 .layout{display:block;margin-top:var(--sp-48-64);position:relative}
@@ -90,7 +88,7 @@ nav{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;column-ga
 .cmpYellow .cmpKnob{background:var(--yellow);color:var(--c950)}
 .cap{margin:16px 0 0;font-family:var(--sans);font-weight:400;font-size:var(--fs-small);line-height:var(--lh-body);color:var(--c500);max-width:680px;text-wrap:pretty;filter:url(#inkSm)}
 
-.hero{padding:0;scroll-margin-top:var(--sp-16-40)}
+.hero{padding:0;scroll-margin-top:calc(var(--nav-h) + var(--sp-16-24))}
 .eyebrow{font-family:var(--sans);font-weight:600;font-size:var(--fs-label);letter-spacing:var(--tr-flat);text-transform:none;color:var(--c500);filter:url(#inkSm)}
 .head .eyebrow{display:block;margin:0 0 var(--sp-8-16)}
 .head{font-family:var(--sans);font-weight:600;font-size:var(--fs-h1);line-height:1.12;letter-spacing:-.02em;color:var(--c950);margin:16px 0 0;filter:url(#inkBig);text-wrap:balance}
@@ -122,7 +120,7 @@ nav{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;column-ga
 .role p{font-family:var(--sans);font-weight:400;font-size:var(--fs-prose);line-height:var(--lh-prose);color:var(--c950);text-wrap:pretty}
 
 /* scaffolded chapters — structure so the rail works end to end; copy drafted next */
-.sec{padding-top:var(--sp-72-144);scroll-margin-top:var(--sp-16-40)}
+.sec{padding-top:var(--sp-72-144);scroll-margin-top:calc(var(--nav-h) + var(--sp-16-24))}
 .kicker{font-family:var(--sans);font-weight:600;font-size:var(--fs-label);letter-spacing:var(--tr-flat);text-transform:none;color:var(--c500);filter:url(#inkSm)}
 .secHead{font-family:var(--sans);font-weight:600;font-size:var(--fs-h2);line-height:1.1;letter-spacing:-.015em;color:var(--c950);margin:var(--gap-head-top) 0 var(--gap-head-bot);text-wrap:balance}
 .secBody{font-family:var(--sans);font-weight:400;font-size:var(--fs-prose);line-height:var(--lh-prose);color:var(--c700);margin:16px 0 0;text-wrap:pretty}
@@ -271,8 +269,6 @@ nav{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;column-ga
 }
 @media(max-width:760px){
  .wrap{padding:0 24px}
- nav{column-gap:8px;padding:24px 0 0}
- .back,.talk{min-height:44px;display:inline-flex;align-items:center}
  .cover{aspect-ratio:4/3}
  .head{font-size:var(--fs-pagehead-sm);line-height:1.14}
  .shot img{width:clamp(220px,70vw,300px);height:clamp(220px,70vw,300px)}
@@ -310,7 +306,7 @@ nav{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;column-ga
 .csImg,.cover,.cover img,.shot img,.photoFig img,.photoPair figure,.photoPair img,.stat,.reelOverlayVid,.reelOverlayYt{border-radius:var(--r-lg);corner-shape:var(--corner)}
 .talk{border-radius:var(--r-md)!important;corner-shape:var(--corner)}
 .workcard{border-radius:var(--r-xl) var(--r-xl) 0 0!important}
-/* horizontal-scroll affordance */.sbWrap{position:relative}.sbWrap::after{content:none}.sbMore{position:absolute;right:14px;top:-30px;display:inline-flex;align-items:center;gap:4px;font-family:var(--sans);font-size:var(--fs-caption);font-weight:600;color:var(--c500);letter-spacing:var(--tr-flat);opacity:0;transform:translateY(4px);transition:opacity .3s cubic-bezier(.2,.8,.2,1),transform .3s cubic-bezier(.2,.8,.2,1);pointer-events:none;z-index:3}.sbWrap.canScroll .sbMore{opacity:1;transform:none}.sbWrap.atEnd .sbMore{opacity:0}.sbMore svg{width:14px;height:14px}@media(prefers-reduced-motion:reduce){.sbWrap::after,.sbMore{transition:none}}.csReach{font-family:var(--sans);font-weight:400;font-size:var(--fs-small);color:var(--c500);margin:var(--sp-32-56) auto var(--sp-8-16);max-width:64ch;text-align:center;filter:url(#inkSm)}.shot.phone img{border-radius:clamp(20px,2.6vw,32px);background:#000;object-fit:cover;aspect-ratio:720/1565}@media(max-width:768px){.footIn{display:inline-block;padding-top:8px;padding-bottom:8px;margin-top:-8px;margin-bottom:-8px}}/* --- case-study 4px corner pass (carousels, frames, boards) --- */.scrollbox,.videoFrame,.cmpBoard,.cmp,.shot,.cover,.photoFig,.photoPair figure,.sbItem,.sbCard{border-radius:var(--r-lg);corner-shape:var(--corner)}.shot img,.cover img,.photoFig img,.photoPair img,.videoFrame iframe,.cmpBoard img,.cmp img{border-radius:var(--r-lg);corner-shape:var(--corner)}.shot.phone img{border-radius:clamp(20px,2.6vw,32px)}.videoFrame,.cmpBoard{overflow:hidden}.scrollbox{overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain}/* refined thin carousel scrollbar (palette-matched) */.scrollbox{scrollbar-width:thin;scrollbar-color:var(--c100) transparent}.scrollbox::-webkit-scrollbar{height:8px}.scrollbox::-webkit-scrollbar-track{background:transparent;margin:0 4px}.scrollbox::-webkit-scrollbar-thumb{background:var(--c100);border-radius:99px;border:2px solid transparent;background-clip:padding-box}.scrollbox::-webkit-scrollbar-thumb:hover{background:var(--c500);background-clip:padding-box}.secBody strong,.ovBody strong,.ov strong,.rv strong,.role strong,.lede strong{font-weight:600;color:var(--c950)}@media(max-width:899px){.rail{display:none}}@media(min-width:900px) and (max-width:1360px){.layout{display:grid;grid-template-columns:var(--rail-w) minmax(0,1fr);column-gap:var(--rail-gutter)}.rail{position:static;margin-right:0}}.content :is(.cap,.csReach){margin-inline:auto}.scrollbox:focus-visible{outline:2px solid var(--c950);outline-offset:3px}.scrollbox{scrollbar-width:none}.scrollbox::-webkit-scrollbar{display:none}.sbNav{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}.sbBtn{width:42px;height:42px;border-radius:50%;background:var(--c50);border:1px solid rgba(8,8,8,.16);color:var(--c700);display:grid;place-items:center;cursor:pointer;transition:border-color .2s cubic-bezier(.2,.8,.2,1),color .2s cubic-bezier(.2,.8,.2,1),opacity .2s cubic-bezier(.2,.8,.2,1)}.sbBtn:hover,.sbBtn:focus-visible{border-color:var(--accent);color:var(--accent)}.sbBtn:focus-visible{outline:2px solid var(--c950);outline-offset:3px}.sbBtn[disabled]{opacity:.28;pointer-events:none}.sbBtn svg{width:16px;height:16px}@media(max-width:880px){.sbNav{display:none}}@media(prefers-reduced-motion:reduce){.sbBtn{transition:none}}.cap{text-align:center}.back:focus-visible,.talk:focus-visible,.footIn:focus-visible,.chap:focus-visible{outline:2px solid var(--c950);outline-offset:3px;border-radius:var(--r-xs)}@media(max-width:880px){.subBlock{margin-top:56px}}.sec>.stat:last-child{margin-bottom:0}/* ===== single-phone flow player: the whole flow in one device, like a demo video ===== */.player{margin:var(--sp-40-64) auto 0;max-width:680px;text-align:center}.playerStage{width:min(320px,62vw);margin:0 auto}.playerStage img{width:100%;aspect-ratio:720/1565;object-fit:cover;display:block;background:#000;border-radius:clamp(20px,2.6vw,32px);box-shadow:var(--rim-1);transition:filter .25s steps(2,end),opacity .25s steps(2,end)}.player.dev .playerStage img{filter:blur(4px);opacity:.7}.playerCap{margin:var(--sp-16-24) auto 0;max-width:420px;font-size:var(--fs-small)}.playerStep{display:block;font-family:var(--sans);font-weight:600;font-size:var(--fs-label);letter-spacing:var(--tr-flat);color:var(--c950);filter:url(#inkSm)}.playerNote{display:block;margin-top:8px;font-family:var(--sans);font-weight:400;font-size:var(--fs-small);line-height:1.45;color:var(--c500);text-wrap:pretty}.playerBar{display:flex;align-items:center;justify-content:center;gap:16px;margin-top:var(--sp-16-24)}.playerTicks{display:flex;gap:8px}.playerTicks i{width:14px;height:2px;background:var(--c100);cursor:pointer;transition:background .25s cubic-bezier(.2,.8,.2,1)}.playerTicks i.on{background:var(--c950)}.playerBar .sbBtn{width:42px;height:42px}/* ===== tabbed viewer: every artifact one tap away, nothing hidden behind a drag ===== */.tv{margin:var(--sp-40-64) auto 0;text-align:center}.tvTabs{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}.tvTab{font-family:var(--sans);font-size:var(--fs-label);font-weight:600;letter-spacing:var(--tr-flat);color:var(--c700);background:var(--c50);border:1px solid rgba(8,8,8,.16);border-radius:var(--r-md);corner-shape:var(--corner);padding:8px 16px;cursor:pointer;transition:border-color .2s cubic-bezier(.2,.8,.2,1),color .2s cubic-bezier(.2,.8,.2,1),background .2s cubic-bezier(.2,.8,.2,1)}.tvTab:hover,.tvTab:focus-visible{border-color:var(--accent);color:var(--accent)}.tvTab.on{color:var(--c950);border-bottom:2px solid var(--accent)}.tvTab:focus-visible{outline:2px solid var(--c950);outline-offset:3px}.tvFrame{margin:var(--sp-16-24) auto 0}.tv.tvBoard .tvFrame{max-width:980px}.tv.tvBoard .tvFrame img{width:100%;max-height:64vh;object-fit:contain;display:block;background:var(--c50);border-radius:var(--r-lg);corner-shape:var(--corner);box-shadow:var(--rim-1);transition:filter .25s steps(2,end),opacity .25s steps(2,end)}.tv.tvPhone .tvFrame{width:min(320px,62vw)}.tv.tvPhone .tvFrame img{width:100%;aspect-ratio:720/1565;object-fit:cover;display:block;background:#fff;border-radius:clamp(20px,2.6vw,32px);box-shadow:var(--rim-1);transition:filter .25s steps(2,end),opacity .25s steps(2,end)}.tv.dev .tvFrame img{filter:blur(4px);opacity:.7}@media(prefers-reduced-motion:reduce){.playerStage img,.tv .tvFrame img{transition:none}}.darlings img{filter:grayscale(.35);opacity:.94}.scrapTag{display:table;margin:0 auto var(--sp-16-24);padding:8px 16px;border-radius:var(--r-xs);border:1px dashed var(--c100);color:var(--c700);font-family:var(--sans);font-size:var(--fs-label);font-weight:600;letter-spacing:var(--tr-flat);background:var(--c50)}.playerTicks i{position:relative}.playerTicks i::after{content:"";position:absolute;left:-5px;right:-5px;top:-21px;bottom:-21px}.tvTab{min-height:36px}@media(max-width:880px){.playerBar .sbBtn{width:44px;height:44px}.tvTab{min-height:44px;padding:8px 16px}.playerTicks i::after{top:-24px;bottom:-24px}}/* ---- SKIP LINK: WCAG 2.4.1 Bypass Blocks (Level A). Technique G1 requires a link that is
+/* horizontal-scroll affordance */.sbWrap{position:relative}.sbWrap::after{content:none}.sbMore{position:absolute;right:14px;top:-30px;display:inline-flex;align-items:center;gap:4px;font-family:var(--sans);font-size:var(--fs-caption);font-weight:600;color:var(--c500);letter-spacing:var(--tr-flat);opacity:0;transform:translateY(4px);transition:opacity .3s cubic-bezier(.2,.8,.2,1),transform .3s cubic-bezier(.2,.8,.2,1);pointer-events:none;z-index:3}.sbWrap.canScroll .sbMore{opacity:1;transform:none}.sbWrap.atEnd .sbMore{opacity:0}.sbMore svg{width:14px;height:14px}@media(prefers-reduced-motion:reduce){.sbWrap::after,.sbMore{transition:none}}.csReach{font-family:var(--sans);font-weight:400;font-size:var(--fs-small);color:var(--c500);margin:var(--sp-32-56) auto var(--sp-8-16);max-width:64ch;text-align:center;filter:url(#inkSm)}.shot.phone img{border-radius:clamp(20px,2.6vw,32px);background:#000;object-fit:cover;aspect-ratio:720/1565}@media(max-width:768px){.footIn{display:inline-block;padding-top:8px;padding-bottom:8px;margin-top:-8px;margin-bottom:-8px}}/* --- case-study 4px corner pass (carousels, frames, boards) --- */.scrollbox,.videoFrame,.cmpBoard,.cmp,.shot,.cover,.photoFig,.photoPair figure,.sbItem,.sbCard{border-radius:var(--r-lg);corner-shape:var(--corner)}.shot img,.cover img,.photoFig img,.photoPair img,.videoFrame iframe,.cmpBoard img,.cmp img{border-radius:var(--r-lg);corner-shape:var(--corner)}.shot.phone img{border-radius:clamp(20px,2.6vw,32px)}.videoFrame,.cmpBoard{overflow:hidden}.scrollbox{overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain}/* refined thin carousel scrollbar (palette-matched) */.scrollbox{scrollbar-width:thin;scrollbar-color:var(--c100) transparent}.scrollbox::-webkit-scrollbar{height:8px}.scrollbox::-webkit-scrollbar-track{background:transparent;margin:0 4px}.scrollbox::-webkit-scrollbar-thumb{background:var(--c100);border-radius:99px;border:2px solid transparent;background-clip:padding-box}.scrollbox::-webkit-scrollbar-thumb:hover{background:var(--c500);background-clip:padding-box}.secBody strong,.ovBody strong,.ov strong,.rv strong,.role strong,.lede strong{font-weight:600;color:var(--c950)}@media(max-width:899px){.rail{display:none}}@media(min-width:900px) and (max-width:1360px){.layout{display:grid;grid-template-columns:var(--rail-w) minmax(0,1fr);column-gap:var(--rail-gutter)}.rail{position:static;margin-right:0}}.content :is(.cap,.csReach){margin-inline:auto}.scrollbox:focus-visible{outline:2px solid var(--c950);outline-offset:3px}.scrollbox{scrollbar-width:none}.scrollbox::-webkit-scrollbar{display:none}.sbNav{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}.sbBtn{width:42px;height:42px;border-radius:50%;background:var(--c50);border:1px solid rgba(8,8,8,.16);color:var(--c700);display:grid;place-items:center;cursor:pointer;transition:border-color .2s cubic-bezier(.2,.8,.2,1),color .2s cubic-bezier(.2,.8,.2,1),opacity .2s cubic-bezier(.2,.8,.2,1)}.sbBtn:hover,.sbBtn:focus-visible{border-color:var(--accent);color:var(--accent)}.sbBtn:focus-visible{outline:2px solid var(--c950);outline-offset:3px}.sbBtn[disabled]{opacity:.28;pointer-events:none}.sbBtn svg{width:16px;height:16px}@media(max-width:880px){.sbNav{display:none}}@media(prefers-reduced-motion:reduce){.sbBtn{transition:none}}.cap{text-align:center}.footIn:focus-visible,.chap:focus-visible{outline:2px solid var(--c950);outline-offset:3px;border-radius:var(--r-xs)}@media(max-width:880px){.subBlock{margin-top:56px}}.sec>.stat:last-child{margin-bottom:0}/* ===== single-phone flow player: the whole flow in one device, like a demo video ===== */.player{margin:var(--sp-40-64) auto 0;max-width:680px;text-align:center}.playerStage{width:min(320px,62vw);margin:0 auto}.playerStage img{width:100%;aspect-ratio:720/1565;object-fit:cover;display:block;background:#000;border-radius:clamp(20px,2.6vw,32px);box-shadow:var(--rim-1);transition:filter .25s steps(2,end),opacity .25s steps(2,end)}.player.dev .playerStage img{filter:blur(4px);opacity:.7}.playerCap{margin:var(--sp-16-24) auto 0;max-width:420px;font-size:var(--fs-small)}.playerStep{display:block;font-family:var(--sans);font-weight:600;font-size:var(--fs-label);letter-spacing:var(--tr-flat);color:var(--c950);filter:url(#inkSm)}.playerNote{display:block;margin-top:8px;font-family:var(--sans);font-weight:400;font-size:var(--fs-small);line-height:1.45;color:var(--c500);text-wrap:pretty}.playerBar{display:flex;align-items:center;justify-content:center;gap:16px;margin-top:var(--sp-16-24)}.playerTicks{display:flex;gap:8px}.playerTicks i{width:14px;height:2px;background:var(--c100);cursor:pointer;transition:background .25s cubic-bezier(.2,.8,.2,1)}.playerTicks i.on{background:var(--c950)}.playerBar .sbBtn{width:42px;height:42px}/* ===== tabbed viewer: every artifact one tap away, nothing hidden behind a drag ===== */.tv{margin:var(--sp-40-64) auto 0;text-align:center}.tvTabs{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}.tvTab{font-family:var(--sans);font-size:var(--fs-label);font-weight:600;letter-spacing:var(--tr-flat);color:var(--c700);background:var(--c50);border:1px solid rgba(8,8,8,.16);border-radius:var(--r-md);corner-shape:var(--corner);padding:8px 16px;cursor:pointer;transition:border-color .2s cubic-bezier(.2,.8,.2,1),color .2s cubic-bezier(.2,.8,.2,1),background .2s cubic-bezier(.2,.8,.2,1)}.tvTab:hover,.tvTab:focus-visible{border-color:var(--accent);color:var(--accent)}.tvTab.on{color:var(--c950);border-bottom:2px solid var(--accent)}.tvTab:focus-visible{outline:2px solid var(--c950);outline-offset:3px}.tvFrame{margin:var(--sp-16-24) auto 0}.tv.tvBoard .tvFrame{max-width:980px}.tv.tvBoard .tvFrame img{width:100%;max-height:64vh;object-fit:contain;display:block;background:var(--c50);border-radius:var(--r-lg);corner-shape:var(--corner);box-shadow:var(--rim-1);transition:filter .25s steps(2,end),opacity .25s steps(2,end)}.tv.tvPhone .tvFrame{width:min(320px,62vw)}.tv.tvPhone .tvFrame img{width:100%;aspect-ratio:720/1565;object-fit:cover;display:block;background:#fff;border-radius:clamp(20px,2.6vw,32px);box-shadow:var(--rim-1);transition:filter .25s steps(2,end),opacity .25s steps(2,end)}.tv.dev .tvFrame img{filter:blur(4px);opacity:.7}@media(prefers-reduced-motion:reduce){.playerStage img,.tv .tvFrame img{transition:none}}.darlings img{filter:grayscale(.35);opacity:.94}.scrapTag{display:table;margin:0 auto var(--sp-16-24);padding:8px 16px;border-radius:var(--r-xs);border:1px dashed var(--c100);color:var(--c700);font-family:var(--sans);font-size:var(--fs-label);font-weight:600;letter-spacing:var(--tr-flat);background:var(--c50)}.playerTicks i{position:relative}.playerTicks i::after{content:"";position:absolute;left:-5px;right:-5px;top:-21px;bottom:-21px}.tvTab{min-height:36px}@media(max-width:880px){.playerBar .sbBtn{width:44px;height:44px}.tvTab{min-height:44px;padding:8px 16px}.playerTicks i::after{top:-24px;bottom:-24px}}/* ---- SKIP LINK: WCAG 2.4.1 Bypass Blocks (Level A). Technique G1 requires a link that is
    the FIRST focusable element and moves focus to the main content -- so it sits before the
    nav in DOM order. Parked off-screen by transform (not display:none, which would take it
    out of the tab order entirely) and slid in on focus. ---- */
@@ -332,23 +328,9 @@ nav{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;column-ga
 }
 .csGo:hover,.csGo:focus-visible{background:none;color:var(--accent)}
 
-/* ONE HEADER HEIGHT SITE-WIDE. The home page's wordmark stacks over two lines (~44px) while a
-   sub-page title is one line (~33px), so the header jumped 11px every time you moved between
-   them and the whole page appeared to shift. Floor the nav's content box to the taller of the
-   two so the header is a fixed object you navigate underneath. */
-nav{min-height:76px}
-
-/* UNIFIED HEADER: the wordmark is centred on every page and links home. The page title used to
-   live here, but a case study already names itself in its h1 -- and losing the brand mark on
-   every sub-page was the real inconsistency. Back stays on the left, Contact on the right. */
-nav .logo{grid-column:2;justify-self:center;display:flex;flex-direction:column;align-items:center;
- text-align:center;font-family:"Instrument Sans Var",var(--sans);font-weight:600;font-size:15px;
- line-height:1;letter-spacing:.08em;text-transform:uppercase;color:var(--c950);
- text-decoration:none;filter:url(#inkSm);white-space:nowrap;padding:8px 12px;border-radius:var(--r-md);
- transition:background-color .16s cubic-bezier(.2,.8,.2,1)}
-nav .logo:hover,nav .logo:focus-visible{background:var(--c75)}
-nav .logo .logoLine{display:block}
-nav .logo .logoL1{font-stretch:85.8%}
+/* ONE HEADER HEIGHT SITE-WIDE -- now --nav-h (52px) in tokens.css, consumed by
+   header.css. The bar is a fixed object you navigate underneath on every page,
+   which is what this rule was reaching for with a min-height floor. */
 /* ============================================================================
    CONTROLS -- exactly THREE types. Nothing else is allowed.
    An audit across four pages found NINETEEN distinct control appearances: eight
@@ -363,8 +345,8 @@ nav .logo .logoL1{font-stretch:85.8%}
    headmaker dropzone) are deliberately not in here -- they are not buttons and
    forcing button padding on them is wrong.
    ============================================================================ */
-.moodItem,.moodBtn,.moodGo,.hmGo,.tGo,.reelClose,.workCta,.ndLink,.heroBack,
-.navLink,.mhToggle,.hmScoreEnd,.back,.talk,.tvTab,.abBack,.abLink,.csTab,.hmBtn{
+.moodItem,.moodBtn,.moodGo,.hmGo,.tGo,.reelClose,.workCta,
+.mhToggle,.hmScoreEnd,.tvTab,.abBack,.abLink,.csTab,.hmBtn{
  font-family:var(--sans);font-weight:400;font-size:var(--fs-small);line-height:1;
  color:var(--c700);background:none;
  border:0;                      /* no borders. The wash is the affordance. */
@@ -375,7 +357,7 @@ nav .logo .logoL1{font-stretch:85.8%}
  transition:background-color .16s cubic-bezier(.2,.8,.2,1),color .16s cubic-bezier(.2,.8,.2,1);
 }
 /* square icon-only controls: same height, no text padding */
-.toTop,.sbBtn,.hmPitX,.navDrawerX{
+.toTop,.sbBtn,.hmPitX{
  font-family:var(--sans);font-size:var(--fs-small);color:var(--c700);
  background:none;border:0;border-radius:var(--r-md);corner-shape:var(--corner);
  width:44px;height:44px;min-height:44px;padding:0;
@@ -384,21 +366,21 @@ nav .logo .logoL1{font-stretch:85.8%}
  transition:background-color .16s cubic-bezier(.2,.8,.2,1),color .16s cubic-bezier(.2,.8,.2,1);
 }
 /* display at ZERO specificity so anything that hides itself conditionally still wins */
-:where(.moodItem,.moodBtn,.moodGo,.hmGo,.tGo,.reelClose,.workCta,.ndLink,.heroBack,
- .navLink,.mhToggle,.hmScoreEnd,.back,.talk,.tvTab,.abBack,.abLink,.csTab,.hmBtn){display:inline-flex}
+:where(.moodItem,.moodBtn,.moodGo,.hmGo,.tGo,.reelClose,.workCta,
+ .mhToggle,.hmScoreEnd,.tvTab,.abBack,.abLink,.csTab,.hmBtn){display:inline-flex}
 
 /* ONE hover, everywhere, no exceptions */
 .moodItem:hover,.moodBtn:hover,.moodGo:hover,.hmGo:hover,.tGo:hover,.reelClose:hover,
-.workCta:hover,.ndLink:hover,.heroBack:hover,.navLink:hover,.mhToggle:hover,.hmScoreEnd:hover,
-.back:hover,.talk:hover,.abBack:hover,.abLink:hover,.csTab:hover,.hmBtn:hover,
-.toTop:hover,.hmPitX:hover,.navDrawerX:hover,
+.workCta:hover,.mhToggle:hover,.hmScoreEnd:hover,
+.abBack:hover,.abLink:hover,.csTab:hover,.hmBtn:hover,
+.toTop:hover,.hmPitX:hover,
 .hmPitPick:hover,
 .moodItem:focus-visible,.moodBtn:focus-visible,.moodGo:focus-visible,.hmGo:focus-visible,
-.tGo:focus-visible,.reelClose:focus-visible,.workCta:focus-visible,.ndLink:focus-visible,
-.heroBack:focus-visible,.navLink:focus-visible,.mhToggle:focus-visible,.hmScoreEnd:focus-visible,
-.back:focus-visible,.talk:focus-visible,.abBack:focus-visible,
+.tGo:focus-visible,.reelClose:focus-visible,.workCta:focus-visible,
+.mhToggle:focus-visible,.hmScoreEnd:focus-visible,
+.abBack:focus-visible,
 .abLink:focus-visible,.csTab:focus-visible,.hmBtn:focus-visible,.toTop:focus-visible,
-.hmPitX:focus-visible,.navDrawerX:focus-visible{
+.hmPitX:focus-visible{
  background:var(--c75);color:var(--c950);border-color:transparent;
 }
 .csGo,.chap,.footIn,.hmPitPick{
@@ -436,30 +418,14 @@ nav .logo .logoL1{font-stretch:85.8%}
    .moodItem was inheriting 16px instead of the one control size, and the wordmark ran 2px
    taller than the home page's. Inline links inside prose (.chap, .footIn, .csGo) are a
    deliberate THIRD category -- text, not buttons -- so they keep their own size. */
-.back,.talk,.tvTab,.csTab{border-radius:var(--r-md);corner-shape:var(--corner)}
-/* Back link: quiet text, not a control -- the visible chrome (wash on hover) goes away.
-   Rest state was already border/background/radius-free from the CONTROLS pass above;
-   this removes the last piece, the hover wash, and replaces it with a colour shift to
-   the accent instead. Premium = subtract. 44px touch target is unaffected (min-height
-   above still applies). */
-.back{padding:0}
-.back:hover,.back:focus-visible{background:none;color:var(--accent)}
+.tvTab,.csTab{border-radius:var(--r-md);corner-shape:var(--corner)}
 .moodBtn{min-height:44px!important;height:44px}
 .moodItem{font-size:var(--fs-small)!important}
-nav .logo{padding:8px 12px;min-height:44px;height:44px;justify-content:center}
-
-/* ONE WORDMARK. index had it at 17px in a <span>; the sub-pages at 15px in an <a>, with 8x12
-   padding while every other nav item runs 12x16 -- so it sat on a different baseline rhythm
-   from its own neighbours. One size, one padding, one element behaviour, everywhere. */
-nav .logo{font-size:15px!important;letter-spacing:.08em!important;line-height:1!important;
- padding:12px 16px!important;min-height:44px;height:44px;
- display:flex!important;flex-direction:column;align-items:center;justify-content:center;
- text-decoration:none;color:var(--c950)}
-nav .logo .logoLine{display:block}
-nav .logo .logoL1{font-stretch:85.8%}
-/* Contact was pad 0 on the home page and 12x16 everywhere else */
-nav .talk,.talk{padding:12px 16px!important;min-height:44px}
-nav .logo{text-transform:uppercase}
+/* ONE WORDMARK, and it is header.css's now. The block that stood here forced the
+   sub-page mark to 15px capitals at letter-spacing .08em with font-stretch 85.8%
+   on line 1. All three are void in sentence case: the mark is two stacked lines at
+   one size and one tracking, and 85.8% was only ever survivable because capitals
+   are geometric -- lowercase bowls and stems are not. Measured: report §3. */
 @font-face{font-family:"Instrument Sans Var";src:url("fonts/instrument-sans-variable.woff2") format("woff2-variations");font-weight:400 700;font-stretch:75% 100%;font-display:swap}
 
 /* ============================================================================
@@ -484,21 +450,38 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
 .moodIco{width:18px;height:18px;flex:0 0 18px;font-size:18px}
 .moodCar{width:12px;height:12px;flex:0 0 12px}
 /* icons inherit the control's colour so they light up with the hover wash */
-.moodItem svg,.moodItem .gIco,.tGo svg,.hmBtn svg,.back svg,.talk svg{color:currentColor}
+.moodItem svg,.moodItem .gIco,.tGo svg,.hmBtn svg{color:currentColor}
 </style>
 <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Jayden Betts","item":"https://jaydenbetts.design/"},{"@type":"ListItem","position":2,"name":"Bearings Case Study","item":"https://jaydenbetts.design/bearings.html"}]},{"@type":"CreativeWork","@id":"https://jaydenbetts.design/bearings.html#work","url":"https://jaydenbetts.design/bearings.html","name":"Bearings: A Product Design Case Study by Jayden Betts","description":"Bearings is a group road-trip planner concept for iOS that unifies route planning, stop discovery, and group collaboration. A product design case study by Jayden Betts.","image":"https://jaydenbetts.design/images/cs/bearings.webp","author":{"@type":"Person","@id":"https://jaydenbetts.design/#person","name":"Jayden Betts","alternateName":"Jayden Lee Betts","url":"https://jaydenbetts.design/","sameAs":["https://www.linkedin.com/in/jaydenbetts","https://www.instagram.com/jaydenleebetts"]},"genre":"Product Design","inLanguage":"en"}]}</script>
+<link rel="stylesheet" href="header.css">
+<script src="header.js" defer></script>
 </head>
-<body>
+<body data-nav="home">
 <a class="skipLink" href="#main">Skip to content</a>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><filter id="inkBig"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="7" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="1.1" xChannelSelector="R" yChannelSelector="G" result="d"/><feTurbulence type="fractalNoise" baseFrequency="0.5 0.42" numOctaves="2" seed="13" result="g"/><feColorMatrix in="g" type="matrix" values="0 0 0 0 0.055 0 0 0 0 0.055 0 0 0 0 0.055 0 0 0 0.42 0" result="grain"/><feComposite in="grain" in2="d" operator="atop"/></filter>
 <filter id="inkSm"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="1" seed="4" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="0.55" xChannelSelector="R" yChannelSelector="G"/></filter></svg>
 
 <div class="wrap">
- <nav>
-  <a class="back backlink" id="back" href="index.html"><span aria-hidden="true">&larr;</span> Back</a>
-  <a class="logo" id="logo" href="index.html" aria-label="Jayden Betts, home"><span class="logoLine logoL1">Jayden</span> <span class="logoLine logoL2">Betts</span></a>
-  <a class="talk" href="#contact">Contact</a>
- </nav>
+<!-- THE SITE HEADER. One component, every page: header.css + header.js, adopted
+     2026-08-03 from header-prototype.html. Replaces this page's `1fr auto 1fr`
+     grid (Back / wordmark / Contact), which could not read as a bar because its
+     three children sat at three unrelated x-positions. The lockup IS the back
+     affordance now -- Back and the wordmark went to the same URL, so two of the
+     four old slots were doing one job. Design + the measured lockup:
+     .superpowers/sdd/2026-08-02-play-page/header-report.md
+     .backlink is load-bearing: it sets sessionStorage csReturn so index.html's
+     work rail emerges from white on return (see this page's script). -->
+ <div class="jbStick">
+  <nav class="jbNav hasSoc" aria-label="Primary" data-surface="paper" data-back="1">
+   <a class="jbHome backlink" href="index.html" aria-label="Back — Jayden Betts, home"><svg class="jbArrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6l6 6"/></svg><span class="jbMark" aria-hidden="true"><span class="jbL1">Jayden</span><span class="jbL2">Betts</span></span></a>
+   <span class="jbSep" aria-hidden="true"></span>
+   <a data-nav-item="home" class="backlink" href="index.html" aria-current="true">Home</a>
+   <a data-nav-item="about" class="backlink" href="index.html#about">About</a>
+   <a data-nav-item="games" href="play.html">Games</a>
+   <span class="jbBarSep" aria-hidden="true"></span>
+   <span class="jbBarSoc"><a data-soc="mail" href="mailto:jaydenlbetts@gmail.com" aria-label="Email Jayden Betts"><svg class="jbGlyph" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4.5h18c.55 0 1 .45 1 1v13c0 .55-.45 1-1 1H3c-.55 0-1-.45-1-1v-13c0-.55.45-1 1-1Zm1.4 1.5L12 11.6 19.6 6H4.4ZM20 7.4l-7.4 5.5a1 1 0 0 1-1.2 0L4 7.4V18h16V7.4Z"/></svg></a><a data-soc="li" href="https://www.linkedin.com/in/jaydenbetts" target="_blank" rel="noopener noreferrer" aria-label="Jayden Betts on LinkedIn — opens in a new tab"><svg class="jbGlyph" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.34V9h3.42v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29zM5.34 7.43a2.06 2.06 0 1 1 0-4.13 2.06 2.06 0 0 1 0 4.13zM7.12 20.45H3.55V9h3.57v11.45zM22.22 0H1.77C.8 0 0 .78 0 1.74v20.52C0 23.22.8 24 1.77 24h20.45c.98 0 1.78-.78 1.78-1.74V1.74C24 .78 23.2 0 22.22 0z"/></svg></a><a data-soc="ig" href="https://www.instagram.com/jaydenleebetts" target="_blank" rel="noopener noreferrer" aria-label="Jayden Betts on Instagram — opens in a new tab"><svg class="jbGlyph" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg></a></span>
+  </nav>
+ </div>
 
  <div class="layout" id="main" tabindex="-1">
   <aside class="rail" aria-label="Sections">

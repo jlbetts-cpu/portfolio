@@ -25,3 +25,67 @@
 /* hex fallback for the interactive accent on browsers without oklch() support --
    docs/superpowers/specs/2026-08-03-interactive-accent.md §1 */
 @supports not (color:oklch(50% .1 200)){:root{--accent:#2961CE;--accent-press:#1B4BA9;--accent-wash:#E7EEFA;--accent-dark:#7BA4F0}}
+
+/* ===========================================================================
+   THE TWELVE GAPS, closed. Landed 2026-08-03 with the site header (header.css).
+   Each one is a rung the scale above does not have -- see
+   .superpowers/sdd/2026-08-02-play-page/header-report.md §10 for the measured
+   case behind every number. Nothing here overrides anything above it.
+   =========================================================================== */
+:root{
+ /* 1 - FIXED micro-spacing. The --sp-*-* ladder above is RESPONSIVE and floors
+    at 16px, so there is no deterministic sub-16px inset for a bar. This sits
+    below that ladder on the same 2px grid --gap-bar (2px) and --pad-bar (5px)
+    already imply. Largest single source of raw pixels in the header. */
+ --sp-2:2px;--sp-4:4px;--sp-6:6px;--sp-8:8px;--sp-10:10px;--sp-12:12px;
+ --sp-14:14px;--sp-28:28px;--sp-30:30px;--sp-32:32px;
+
+ /* 2 - line weights. --r-hair is a RADIUS; neither a hairline's width nor a
+    focus ring's had a name, and both ship site-wide today as bare 1px / 2px. */
+ --hair-w:1px;--focus-w:2px;
+
+ /* 3 - icon sizes, plus 4 - the one stroke weight (was 1.7 / 1.8 / 2 across
+    three icons for no reason; CSS owns the stroke, per the icons spec). */
+ --ico-xs:11px;--ico-sm:15px;--ico-md:18px;--ico-stroke:1.8;
+
+ /* 5 - type. 14px was missing between --fs-small (15) and --fs-label (13);
+    the wordmark's size is a brand constant and deserves a name. */
+ --fs-nav:14px;--fs-mark:17px;
+
+ /* 6 - motion. --ease-out-dur (160ms) was the fastest rung and
+    --sp-settle-dur (360ms) the slowest short one. A press needs faster; the
+    hero availability capsule's shipped entrance needs slower. */
+ --press-dur:100ms;--enter-dur:500ms;
+ /* 7 - a press reads as the same nudge at every size only if the bigger
+    object scales less. Two rungs cover the whole header. */
+ --press-scale:.97;--press-scale-lg:.985;
+
+ /* 8 - interaction washes. The materials ladder covers surfaces, not the
+    hover/press tint that sits on top of one. */
+ --wash-1:rgba(18,18,18,.055);--wash-i1:rgba(253,253,253,.10);
+
+ /* 9 - the ink ramp, mirroring --c700 / --c100 on a dark ground.
+    (--c50 #FDFDFD already serves as the strong ink, so it is reused.) */
+ --i700:rgba(253,253,253,.78);--i100:rgba(253,253,253,.16);
+
+ /* 10 - the ink materials ladder. There was none: --mat-1/2/3 are all
+    rgba(253,253,253,.) and --mat-scrim (.34) is a scrim, not a material --
+    white 14px text on it fails contrast. Tuned so white ink clears 4.5:1 over
+    ANY ground including white, because gradientlab's stage colour is user-set;
+    NOT mirrored arithmetically from the light rungs. */
+ --mat-i1:rgba(18,18,18,.58);--mat-i2:rgba(18,18,18,.70);--mat-i3:rgba(18,18,18,.82);
+ --mat-i3-solid:rgba(18,18,18,.92);
+ --rim-i1:inset 0 0 0 1px rgba(253,253,253,.14);
+ --rim-i2:inset 0 0 0 1px rgba(253,253,253,.22);
+ --sh-i2:0 8px 28px rgba(0,0,0,.28);--sh-i3:0 12px 36px rgba(0,0,0,.36);
+
+ /* 11 - the top rung of the materials ladder assumes a blur behind it, but
+    --blur-1/2 are zeroed below 760px (line 23). --mat-3 with no blur is a flat
+    96% tint and a headline scrolling under it ghosts through visibly. Either
+    the ladder carries the fallback or every consumer re-solves it. */
+ --mat-3-solid:var(--c50);
+
+ /* 12 - the bar's own height. The chapter rail's sticky offset, every
+    scroll-margin-top and the bar itself all need the same number. */
+ --nav-h:52px;
+}
