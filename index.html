@@ -340,6 +340,36 @@ body.hmSoccer .moodMenu .moodItem:not(#endGame),body.hmSoccer .moodMenu .moodGo{
 .hmGoalB::after{border-color:rgba(var(--tc2,90,160,216),.72)}
 .hmGoal.hmGoalHit{animation:hmNet .55s cubic-bezier(.2,.9,.3,1)}
 @keyframes hmNet{0%{box-shadow:inset 0 0 0 0 rgba(232,181,74,0)}28%{box-shadow:inset 0 0 24px 3px rgba(232,181,74,.55),0 0 0 3px rgba(232,181,74,.5)}100%{box-shadow:inset 0 0 0 0 rgba(232,181,74,0)}}
+/* THE GOAL GRAMMAR camera: two plain wrappers around ball+shadow / goals+shadows. Idle they
+   carry no z-index or transform of their own, which per spec makes them invisible to normal
+   stacking (a position:absolute box with z-index:auto and transform:none never opens a new
+   stacking context, so its children keep competing directly against the heads exactly as
+   before). Only .hmCamPunch -- applied for one animation's length -- claims the z-index the
+   contents already had, so the ball/goals never z-fight the heads mid-punch. .hmScore is
+   never a descendant of either wrapper, so the board cannot be moved by this. */
+.hmCam{position:absolute;inset:0;pointer-events:none}
+.hmCamBack.hmCamPunch{z-index:2;animation:hmCamPunch .5s cubic-bezier(.22,.7,.24,1) both}
+.hmCamFront.hmCamPunch{z-index:48;animation:hmCamPunch .5s cubic-bezier(.22,.7,.24,1) both}
+@keyframes hmCamPunch{
+ 0%{transform:scale(1) translate(0,0)}
+ 16%{transform:scale(1.05) translate(var(--camDX,0px),var(--camDY,0px))}
+ 42%{transform:scale(1.03) translate(calc(var(--camDX,0px) * -0.42),calc(var(--camDY,0px) * -0.32))}
+ 68%{transform:scale(1.012) translate(calc(var(--camDX,0px) * 0.16),calc(var(--camDY,0px) * 0.12))}
+ 100%{transform:scale(1) translate(0,0)}
+}
+@media(prefers-reduced-motion:reduce){.hmCamBack.hmCamPunch,.hmCamFront.hmCamPunch{animation:none}}
+/* Scorer lower-third: reads only from the goal event + head roster, never an invented name.
+   Enters from the left (the punch's own motion axis), holds, leaves. Positioned low on the
+   pitch so it never overlaps .hmScore, which stays put at the top throughout. */
+.hmLowerThird{position:absolute;left:16px;bottom:13%;z-index:49;display:flex;align-items:center;gap:10px;max-width:min(74vw,360px);padding:8px 14px 8px 8px;border-radius:6px;background:rgba(22,22,24,.88);color:#f4f2ec;font-family:var(--sans);box-shadow:0 14px 32px -12px rgba(0,0,0,.5);transform:translateX(-130%);opacity:0;transition:transform .4s cubic-bezier(.2,.85,.25,1),opacity .3s linear;pointer-events:none}
+.hmLowerThird.in{transform:translateX(0);opacity:1}
+.hmLowerThird .hmL3Face{width:34px;height:34px;border-radius:50%;overflow:hidden;flex:0 0 auto;background:#333}
+.hmLowerThird .hmL3Face img{width:100%;height:100%;object-fit:cover;display:block}
+.hmLowerThird .hmL3Txt{display:flex;flex-direction:column;line-height:1.22;min-width:0}
+.hmLowerThird .hmL3Tag{font-size:10px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:#ffce4a}
+.hmLowerThird .hmL3Nm{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media(max-width:640px){.hmLowerThird{left:10px;bottom:9%;max-width:min(82vw,300px);padding:7px 12px 7px 7px}}
+@media(prefers-reduced-motion:reduce){.hmLowerThird{transition:none}}
 .battleCount{position:absolute;left:50%;top:12px;transform:translateX(-50%);z-index:47;display:flex;align-items:center;gap:8px;padding:8px 16px;border:1px solid var(--c100);border-radius:4px;background:var(--c50);font-family:var(--sans);font-weight:600;font-size:var(--fs-body);color:var(--c950);opacity:0;pointer-events:none;transition:opacity .3s;filter:url(#inkSm)}
 .hmScore{position:absolute;left:50%;top:var(--heroTitleTop,40px);transform:translateX(-50%);z-index:47;display:flex;align-items:center;gap:12px;padding:8px 16px;border:1px solid var(--c100);border-radius:4px;background:var(--c50);font-family:var(--sans);font-weight:600;font-size:var(--fs-body);color:var(--c950);opacity:0;pointer-events:none;transition:opacity .3s;filter:url(#inkSm)}
 .hmScore .sTeam{display:flex;align-items:center;gap:8px}
@@ -5982,6 +6012,7 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
   var S={on:false,seed:0,kickSeed:0,teams:{},target:5,cap:8,red:0,blue:0,ball:{x:0,y:0},phase:"idle",winner:0};
   window.__hmSoccer=S;
   var ball,ballSkin,goalL,goalR,goalShL,goalShR,board,sR,sB,countEl,W=0,H=0,groundY=0,BR=24,OFF=0,XL=0,XR=0;
+  var camBack,camFront,_camT=0;   // THE GOAL GRAMMAR camera: two transform-only wrappers (ball+shadow / goals+shadows) so a punch never touches .hmScore -- see stagePunch() below
   var flapR=null,flapB=null;   // the split-flap instances mounted into .sR/.sB by paintBoard()
   var bx=0,by=0,bvx=0,bvy=0,kickCd={},running=false,last=performance.now(),scoreTeam=0,ballShadow,lastShot=0;
   var bsx=1,bsy=1,bsxv=0,bsyv=0,bsxP=1,bsyP=1,bsT=0;
@@ -6004,15 +6035,22 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    if(ball&&ball.style.width!==(2*BR)+"px"){ball.style.width=ball.style.height=(2*BR)+"px";}
    if(ballShadow&&ballShadow.style.width!==(2*BR)+"px"){ballShadow.style.width=(2*BR)+"px";ballShadow.style.height=(BR*0.55).toFixed(1)+"px";}}
   function dom(){geo();
-   ballShadow=document.createElement("div");ballShadow.className="hmBallShadow";hero.appendChild(ballShadow);
+   /* THE GOAL GRAMMAR camera: ball+shadow and the goals+shadows each live inside their own
+      plain wrapper (position:absolute;inset:0, no z-index/transform while idle -- CSS makes
+      that combination stacking-context-transparent, so it changes nothing about today's
+      render). Only stagePunch() ever gives them a transform, and only the pitch moves --
+      .hmScore below is appended straight to `hero`, never into either wrapper. */
+   camBack=document.createElement("div");camBack.className="hmCam hmCamBack";hero.appendChild(camBack);
+   camFront=document.createElement("div");camFront.className="hmCam hmCamFront";hero.appendChild(camFront);
+   ballShadow=document.createElement("div");ballShadow.className="hmBallShadow";camFront.appendChild(ballShadow);
    ball=document.createElement("div");ball.className="hmBall";
    ballSkin=document.createElement("div");ballSkin.className="hmBallSkin";ball.appendChild(ballSkin);   // the pattern: this alone rotates
    var ballShade=document.createElement("div");ballShade.className="hmBallShade";ball.appendChild(ballShade);   // the sphere lighting: fixed, so the ball reads as lit, not a spinning disc
-   hero.appendChild(ball);
-   goalShL=document.createElement("div");goalShL.className="hmGoalShadow";hero.appendChild(goalShL);
-   goalShR=document.createElement("div");goalShR.className="hmGoalShadow";hero.appendChild(goalShR);
-   goalL=document.createElement("div");goalL.className="hmGoal hmGoalR";hero.appendChild(goalL);   // left goal is RED\u2019s to defend
-   goalR=document.createElement("div");goalR.className="hmGoal hmGoalB";hero.appendChild(goalR);
+   camFront.appendChild(ball);
+   goalShL=document.createElement("div");goalShL.className="hmGoalShadow";camBack.appendChild(goalShL);
+   goalShR=document.createElement("div");goalShR.className="hmGoalShadow";camBack.appendChild(goalShR);
+   goalL=document.createElement("div");goalL.className="hmGoal hmGoalR";camBack.appendChild(goalL);   // left goal is RED\u2019s to defend
+   goalR=document.createElement("div");goalR.className="hmGoal hmGoalB";camBack.appendChild(goalR);
    board=document.createElement("div");board.className="hmScore";
    // Scoreboard structure taken from the SportyBlocks kit: an inner card holding a team row,
    // an asymmetric VS divider and a second team row, sitting on a footer ledge. Their crest
@@ -6037,6 +6075,28 @@ var p=c.closest('.csPanel');if(p&&!p.hidden)on();})();
    hero.appendChild(board);paintBoard();
    board.querySelector(".hmScoreEnd").addEventListener("click",function(e){e.stopPropagation();finish();});   // end the match right from the scoreboard
    countEl=document.createElement("div");countEl.className="hmCount";hero.appendChild(countEl);}
+  /* THE GOAL GRAMMAR camera punch: a brief scale + directional shake on the pitch wrappers
+     only, transform-origin set toward wherever the ball actually is (the goal it just went
+     in). .hmCamPunch supplies the z-index (matching what ball/goal already had) only for its
+     own duration, so nothing z-fights the heads once it's gone. Exposed on window so the
+     goal-grammar bus subscriber -- a separate module, guarded like every other cross-block
+     consumer -- can call it without reaching into this closure. */
+  function stagePunch(){try{
+   if(!camBack||!camFront)return;
+   var hr=hero.getBoundingClientRect();
+   var gx=(S.ball&&S.ball.x!=null)?S.ball.x:hr.width/2, gy=(S.ball&&S.ball.y!=null)?S.ball.y:hr.height*0.6;
+   var pctX=Math.max(4,Math.min(96,(gx/Math.max(1,hr.width))*100));
+   var pctY=Math.max(18,Math.min(88,(gy/Math.max(1,hr.height))*100));
+   var dir=gx<hr.width/2?-1:1, dx=(14*dir)+"px", dy="-3px";
+   var wraps=[camBack,camFront];
+   for(var i=0;i<wraps.length;i++){var el=wraps[i];
+    el.style.transformOrigin=pctX.toFixed(1)+"% "+pctY.toFixed(1)+"%";
+    el.style.setProperty("--camDX",dx);el.style.setProperty("--camDY",dy);
+    el.classList.remove("hmCamPunch");void el.offsetWidth;el.classList.add("hmCamPunch");}
+   clearTimeout(_camT);
+   _camT=setTimeout(function(){for(var j=0;j<wraps.length;j++){wraps[j].classList.remove("hmCamPunch");wraps[j].style.zIndex="";}},560);
+  }catch(_){}}
+  window.__hmStagePunch=stagePunch;
   // Where the ball LIVES between points: inside the title, exactly where the cookie sits after
   // "hunger" in the hero. Every kickoff and restart drops it from here, so it reads as falling
   // out of the word rather than appearing from nowhere. The title copy hides whenever the real
@@ -6467,6 +6527,7 @@ function teams(){
   function loop(now){if(!S.on){running=false;return;}requestAnimationFrame(loop);
    var dt=Math.min(0.05,Math.max(0.006,(now-last)/1000));last=now;
    dt*=(window.__hmSlow||1);   // broadcast slow-mo: the WORLD slows (ball physics), DOM/CSS animations elsewhere keep normal speed
+   if(window.__hmFreeze&&now<window.__hmFreeze)dt=0;   // IMPACT FRAME (hitstop): the ball freezes exactly like the heads already do at line ~5320 -- same global, same convention
    var _fell=(S.phase!=="count"&&(_spawnY==null||by-_spawnY>BR*1.1));
     if(_fell)bsp+=(1-bsp)*Math.min(1,dt*7);
     if(board&&_fell&&board.classList.contains("ballOut")&&!board.classList.contains("ballFell"))board.classList.add("ballFell");
@@ -6591,6 +6652,111 @@ function teams(){
    else{window.__hmSlow=1;return;}
    requestAnimationFrame(step);}
   requestAnimationFrame(step);};
+
+ /* THE GOAL GRAMMAR -- fixed order, ~3s, then play resumes:
+    hit-stop 70ms -> punch-in + directional shake -> slow-mo 0.25x ~600ms
+    with particles from the goal mouth -> scorer lower-third -> release.
+    Routine goals in a blowout get only the hit-stop (variable intensity:
+    peak-end research says spend on the peaks, not every goal equally).
+    A bus subscriber, not an engine change -- goalIn() only ever emits.
+    `list`/`peers` are this outer closure's own roster + companion arrays
+    (declared at the top of this script, still in scope here); everything
+    else crosses from the soccer sub-module or another block through the
+    guarded window.__hm* globals the rest of the file already uses. */
+ (function goalGrammar(){
+  if(!window.__hmBus)return;
+  var l3=null,l3Timer=null;
+  // Slot -> {name,cut}. NOT a direct list[slot] index -- confirmed live that a
+  // tournament fixture respawns every player at a fresh high slot (buildTeams,
+  // `var SLOT=9200; ...slot=SLOT++`), so a scoring peer's own .slot is essentially
+  // never its index in the saved roster (list[9200] is nothing). Also confirmed
+  // live that >=9000 does not mean "mini-Jayden": the tournament's anonymous
+  // egghead fill-ins land in that same 9200+ range, right alongside him.
+  // So: find the live peer at this slot, use its own __filler flag (only
+  // mini-Jayden's data ever carries it, from __mirror in fillerData()) to catch
+  // him specifically, otherwise match its .cut -- the same identity key
+  // __hmSlotFor already uses -- back into `list` to recover the saved name.
+  // No match anywhere (an anonymous egghead) returns null -- callers fall back
+  // to the team name. Never a made-up person.
+  // KNOWN LIMIT (confirmed live, see task-1-report.md): buildTeams re-encodes the
+  // cut it hands to a tournament respawn (measured ~33KB vs. the saved ~38-43KB
+  // original), so this cut match currently never fires *inside a tournament fixture*
+  // -- every tournament goal falls back to the team name, which is itself the real
+  // captain's name for most teams (buildTeams names a team after a named captain),
+  // so captains still read correctly in practice; non-captain squad-mates read as
+  // their team name instead of their own. It fires correctly today in plain
+  // (non-tournament) soccer, where a scoring peer's .cut is the same in-memory
+  // roster entry, never re-encoded. Giving spawnCompanion's peers a stable id that
+  // survives respawn would fix this properly but touches shared engine code well
+  // outside this task's scope.
+  function scorerInfo(slot){
+   if(slot==null)return null;
+   try{
+    var peer=null;
+    for(var i=0;i<peers.length;i++){if(peers[i].slot===slot){peer=peers[i];break;}}
+    if(!peer)return null;
+    if(peer.__filler){var mj=window.__hmFillerData&&window.__hmFillerData();return{name:"Jayden",cut:(mj&&mj.cut)||peer.cut||null};}
+    var h=null,idx=-1;
+    if(list)for(var j=0;j<list.length;j++){if(list[j]&&list[j].cut&&peer.cut&&list[j].cut===peer.cut){h=list[j];idx=j;break;}}
+    if(!h)return null;
+    var nm=(h.name&&String(h.name).trim())?String(h.name).trim().slice(0,14):("Player "+(idx+1));
+    return{name:nm,cut:h.cut||null};
+   }catch(_){return null;}
+  }
+  // Same fallback the scoreboard itself paints (paintBoard()'s side()): a real
+  // tournament team name if one is live, otherwise the plain Red/Blue the board
+  // already shows -- so the lower-third never disagrees with the board above it.
+  function teamName(team){
+   try{var T=window.__hmTour;if(T&&T.live&&T.cur){var tm=(team===1?T.cur.a:T.cur.b);if(tm&&tm.name)return tm.name;}}catch(_){}
+   return team===1?"Red":"Blue";
+  }
+  function teamRGB(team){
+   try{var T=window.__hmTour;if(T&&T.live&&T.cur){var tm=(team===1?T.cur.a:T.cur.b);if(tm&&tm.col)return tm.col;}}catch(_){}
+   return team===1?"224,90,78":"90,160,216";   // the soccer module's own RED/BLUE defaults (teamRGB() near goalBurst)
+  }
+  function goalParticles(team){try{
+   if(!window.__hmFX||!window.__hmFxAt)return;
+   var S=window.__hmSoccer;if(!S||!S.ball)return;
+   var p=window.__hmFxAt(S.ball.x,S.ball.y);   // hero-local -> the FX canvas' own space (currently identity; see fxAt's comment)
+   var hEl=document.querySelector(".hero"),hw=hEl?hEl.getBoundingClientRect().width:0;
+   var dir=(hw&&p.x<hw/2)?Math.PI:0;   // spray away from the goal that was scored in, back onto the pitch
+   window.__hmFX.burst(p.x,p.y,{count:12,color:teamRGB(team),speed:260,gravity:520,life:0.4,size:4,dir:dir,spread:1.9,shape:"dot"});
+   window.__hmFX.burst(p.x,p.y,{count:5,color:"255,255,255",speed:220,gravity:520,life:0.36,size:3,dir:dir,spread:1.4,shape:"dot"});
+  }catch(_){}}
+  function ensureL3(){
+   if(l3)return l3;
+   var hEl=document.querySelector(".hero");if(!hEl)return null;
+   l3=document.createElement("div");l3.className="hmLowerThird";l3.setAttribute("aria-hidden","true");
+   l3.innerHTML='<span class="hmL3Face"><img alt="" draggable="false"></span><span class="hmL3Txt"><b class="hmL3Tag">Goal</b><b class="hmL3Nm"></b></span>';
+   hEl.appendChild(l3);   // a direct child of .hero, same as .hmScore -- never inside a camera wrapper, so it holds still like the board does
+   return l3;
+  }
+  function lowerThird(d){try{
+   var el=ensureL3();if(!el)return;
+   var info=scorerInfo(d.scorer);
+   var nm=info?info.name:teamName(d.team);
+   var faceEl=el.querySelector(".hmL3Face"),img=faceEl.querySelector("img"),nmEl=el.querySelector(".hmL3Nm");
+   if(info&&info.cut){img.src=info.cut;faceEl.style.display="";}else{faceEl.style.display="none";}
+   nmEl.textContent=nm;
+   if(l3Timer){clearTimeout(l3Timer);l3Timer=null;}
+   el.classList.remove("in");void el.offsetWidth;el.classList.add("in");
+   l3Timer=setTimeout(function(){if(el)el.classList.remove("in");},1600);
+  }catch(_){}}
+  var reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  window.__hmBus.on('goal',function(d){
+   if(reduce)return;   // the whole sequence is skipped -- no camera, no slow-mo -- the score itself already updated in goalIn()
+   var S=window.__hmSoccer;if(!S)return;
+   var margin=Math.abs((d.red||0)-(d.blue||0));
+   var big=margin<=1||((d.red+d.blue)>=(S.target||5)-1);   /* close or late */
+   if(window.__hmFX)try{window.__hmFX.hitstop(70);}catch(_){}
+   if(!big)return;   /* routine goal in a blowout: hit-stop only -- peak-end budget spent on the peaks */
+   if(window.__hmStagePunch)try{window.__hmStagePunch();}catch(_){}
+   if(window.__hmFX)try{window.__hmFX.shake(10);}catch(_){}
+   if(window.__hmSlowRamp)window.__hmSlowRamp(0.25,150,600);
+   goalParticles(d.team);
+   lowerThird(d);
+  });
+ })();
 
  /* Split-flap cells. Drum is fixed; a change spins FORWARD through every
     intermediate character (wrapping), fast then decelerating -- that spin-through
