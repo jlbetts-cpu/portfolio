@@ -16,6 +16,15 @@
 <!-- fillerData() bails without this: it bakes mini-Jayden from #face. See spec 5.6. -->
 <img id="face" src="images/neutral.webp" alt="" aria-hidden="true">
 <main class="hero" id="playArena"></main>
+<!-- TEMPORARY scaffolding for Task 2 verification — Task 3 replaces this with the real menu. -->
+<button id="playGo" type="button" style="position:fixed;right:16px;top:16px;z-index:60">Soccer</button>
+<script>
+document.getElementById("playGo").addEventListener("click",function(){
+  var n=(window.__hmLive||[]).length;
+  if(n%2===1&&window.__hmFillerAdd)window.__hmFillerAdd();
+  if(window.__hmSoccerStart)window.__hmSoccerStart();
+});
+</script>
 <script>
 /* DEV-ONLY, opt-in via ?wraf=1 — copied from index.html:2468-2475 verbatim.
    Without this, every ?wraf=1 verification step in this plan silently runs on

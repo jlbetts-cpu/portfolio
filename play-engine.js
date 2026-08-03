@@ -209,7 +209,10 @@
  if(getComputedStyle(hero).position==="static")hero.style.position="relative";
  var mob=innerWidth<=880;
  var stEl0=document.getElementById("stage"),stR0=stEl0?stEl0.getBoundingClientRect():null;
- var HW=stR0&&stR0.width?Math.round(Math.min(108,Math.max(66,stR0.width*0.27))):(mob?64:96);if(mob)HW=Math.min(HW,64);
+ var _arenaW=hero.clientWidth||innerWidth;
+ var HW=stR0&&stR0.width?Math.round(Math.min(108,Math.max(66,stR0.width*0.27)))
+       :Math.round(Math.min(140,Math.max(66,_arenaW*0.075)));
+ if(mob)HW=Math.min(HW,64);
  var HH=HW*1.2;   // one size: about a quarter of the caregiver, the classic companion ratio
  // --- DOM ---
  var root=document.createElement("div");
