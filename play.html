@@ -14,8 +14,8 @@
     descendant. So a shorter, vertically-centred .hero pulls the whole scene up
     into a broadcast-style band with the scoreboard sitting just above it, with NO
     play-engine.js change: this is CSS-only. body becomes the centring flex
-    container; .hero, as body's one in-flow child (the back link and #playGo are
-    both position:fixed, out of flow), gets margin:auto to centre on both axes --
+    container; .hero, as body's one in-flow child (the back link and the game menu
+    are both position:fixed, out of flow), gets margin:auto to centre on both axes --
     though only the vertical axis has free space to give, since .hero still spans
     the full 100vw. See task-2-report.md's fix-round-2 addendum for the measured
     before/after and the mobile decision (play.css:146). */
@@ -23,6 +23,17 @@
  .hero{position:relative;width:100vw;height:60vh;margin:auto}
  #face{display:none}
  .playBack{position:fixed;left:16px;top:16px;z-index:60}
+ /* Task 3: #moodMenu's own base rule (play.css:152) sets neither left nor right, so its
+    static position defaults to moodBtn's LEFT edge and grows rightward by its own width.
+    Home gets away with that because a JS module (index.html:4273 clampMenuX, deliberately not
+    ported here -- see play-games.js's menu-open-glue comment) measures at open-time and flips
+    to right:0 when the menu "would leave the column". play.html's menu bar is pinned to the
+    right edge (right:16px, below), so left-aligned growth runs the menu off the viewport's
+    right edge every time -- measured 70px of overflow at 1280px wide, worse on anything
+    narrower, and body's overflow:hidden (line 9) makes the overflow unreachable, not just
+    ugly. Anchoring the menu to the SAME edge as the button it drops from is also just the
+    correct static answer for a corner-pinned bar, not a workaround. */
+ #moodMenu{left:auto;right:0}
 </style>
 </head><body class="hmFull">
 <!-- FIX ROUND 2 (Task 2): filter defs SHARED with index.html:2316-2318, copied verbatim, not moved -- index.html keeps its own copies. Must be inlined here, not linked: Safari does not support filters referenced from an external or data: URL (see index.html's own comment on tHeadEdge). #tHeadEdge is unused on play.html today but Task 4's tournament head edges need it. -->
@@ -33,15 +44,22 @@
 <!-- fillerData() bails without this: it bakes mini-Jayden from #face. See spec 5.6. -->
 <img id="face" src="images/neutral.webp" alt="" aria-hidden="true">
 <main class="hero" id="playArena"></main>
-<!-- TEMPORARY scaffolding for Task 2 verification — Task 3 replaces this with the real menu. -->
-<button id="playGo" type="button" style="position:fixed;right:16px;top:16px;z-index:60">Soccer</button>
-<script>
-document.getElementById("playGo").addEventListener("click",function(){
-  var n=(window.__hmLive||[]).length;
-  if(n%2===1&&window.__hmFillerAdd)window.__hmFillerAdd();
-  if(window.__hmSoccerStart)window.__hmSoccerStart();
-});
-</script>
+<!-- Task 3: the real game menu -- soccer + tournament only (Jayden cut Floor is Lava and
+     Marble Race, "not quite yet"). Mirrors index.html:2320's #moodbar/#moodBtn/#moodMenu
+     structure but WITHOUT the four mood dots, "Add your head", "Add an egghead", #moodHeads
+     or the "Show on home" toggle -- those are home-owned (spec §3.2). #moodBtn and #moodbar
+     must keep those exact ids: the tournament disables/restores #moodBtn by id
+     (index.html:8545,8565). Positioned fixed top-right, replacing the Task 2 #playGo
+     scaffolding; behavior (open/close, launchers, gating, team tray) lives in
+     play-games.js. -->
+<div class="moodbar" id="moodbar" style="position:fixed;right:16px;top:16px;z-index:60">
+ <button class="moodBtn" id="moodBtn" type="button" aria-label="Play" aria-expanded="false" aria-controls="moodMenu"><span class="moodLbl">Play</span><svg class="moodCar" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M6 9l6 6l6 -6"/></svg></button>
+ <div class="moodMenu" id="moodMenu">
+  <div class="moodRow" id="soccerRow"><button class="moodItem" id="soccerGo" type="button" aria-label="Start a soccer match between your heads"><svg class="gIco" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"/> <path d="M12 7l4.76 3.45l-1.76 5.55h-6l-1.76 -5.55l4.76 -3.45"/> <path d="M12 7v-4m3 13l2.5 3m-.74 -8.55l3.74 -1.45m-11.44 7.05l-2.56 2.95m.74 -8.55l-3.74 -1.45"/></svg>Soccer</button><button class="moodTeamsBtn" id="soccerTeams" type="button" aria-haspopup="dialog" aria-expanded="false" aria-label="Choose soccer teams"><span class="tdotR" aria-hidden="true"></span><span class="tdotB" aria-hidden="true"></span></button></div>
+  <button class="moodItem" id="tourGo" type="button" aria-label="Start a soccer tournament — single elimination, one match at a time, with goals, assists and ratings tracked"><svg class="gIco" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M2 4a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/> <path d="M18 10a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/> <path d="M2 12a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/> <path d="M2 20a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/> <path d="M6 12h3a1 1 0 0 1 1 1v6a1 1 0 0 1 -1 1h-3"/> <path d="M6 4h7a1 1 0 0 1 1 1v10a1 1 0 0 1 -1 1h-2"/> <path d="M14 10h4"/></svg>Tournament</button>
+  <button class="moodItem" id="endGame" type="button" aria-label="End the current game" style="display:none"><svg class="gIco" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M5 7a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2l0 -10"/></svg>End game</button>
+ </div>
+</div>
 <script>
 /* DEV-ONLY, opt-in via ?wraf=1 — copied from index.html:2468-2475 verbatim.
    Without this, every ?wraf=1 verification step in this plan silently runs on
@@ -57,4 +75,5 @@ document.getElementById("playGo").addEventListener("click",function(){
 <script src="party.js"></script>
 <script src="egghead-seed.js"></script>
 <script src="play-engine.js"></script>
+<script src="play-games.js"></script>
 </body></html>

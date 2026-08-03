@@ -372,10 +372,26 @@ body.hmTour .hero .stagewrap{height:0;min-height:0;overflow:hidden;margin:0;tran
 body.hmTour .scrollCue{display:none}
 .tourPanel{top:var(--heroTitleTop,40px);transform:translateX(-50%)}
 
-/* The mobile hero is min-height:auto, so centring inside it is meaningless -- an 8-team panel
-   overflowed upward and collided with the wordmark. Give the hero a screen while the tournament
-   owns it, and anchor the panel under the nav instead of centring it. */
-body.hmTour .hero{min-height:calc(100svh - 68px)}
+/* The paragraph above describes index.html, where the home hero is short and content-driven
+   (mobile min-height:auto, desktop min-height only via a >760px media guard) and an 8-team
+   panel could overflow it -- so home expands .hero with this UNGUARDED 2-class rule the moment
+   hmTour lands, on every viewport.
+
+   TASK 3 FIX (dormant bug, found by review): ported verbatim, that 2-class selector
+   (body.hmTour .hero) always outranks play.html's plain 1-class .hero{height:60vh} band rule
+   by specificity alone, same collision already fixed once for body.hmFull just above (play.css
+   ~185, properly scoped behind a mobile media query). It sat dormant only because nothing on
+   this page ever added hmTour to <body> -- Task 4 will, the moment the tournament wires up, and
+   this rule would silently blow the 60vh/65vh band out to near-fullscreen underneath it.
+
+   DECIDED: the tournament gets NO special-cased height. It plays in the same 60vh (desktop) /
+   65vh (mobile, body.hmFull) arena band as every other game -- one uniform band, no layout jump
+   when hmTour toggles on. Unlike index.html's normally-short hero, play.html's arena is already
+   a permanent, full-attention band; the height-starvation problem this rule solved there doesn't
+   exist here. And .tourPanel already self-constrains (max-height:calc(100% - heroTitleTop - 24px)
+   above, plus its own mobile-only internal scroll at ~389) rather than depending on the hero
+   growing to fit it. If an 8-team bracket still reads cramped once Task 4 renders it for real,
+   that task should add a new, deliberately-scoped rule -- not resurrect this one. */
 @media(max-width:640px){
  .tourPanel{transform:translateX(-50%);gap:12px;width:calc(100vw - 32px);
   animation:tourInM .42s cubic-bezier(.2,.8,.2,1) both}
@@ -1414,3 +1430,22 @@ body.hmFinal .sbRound{color:#e8b347}
  background:var(--c900);color:var(--c50);
 }
 .tGo svg,.hmBtn svg{color:currentColor}
+
+/* ---- TASK 3 FIX: .playBack ("<- Portfolio", top-left) rendered as a raw blue underlined
+   browser link -- play.css carried no rule for it at all. Reference is the site's standing
+   back-link chrome (bearings.html/apollo.html/headmaker.html etc.'s .back, plus .talk's shared
+   declaration): paper chip, hairline border, ink-filter text, 44px minimum target (WCAG 2.5.5
+   AAA / Apple HIG). One deliberate deviation from that reference: those pages compute a FINAL
+   border-radius of 0 by CSS accident (an early !important:0 beats a later plain 4px in the
+   cascade) -- square corners nobody chose on purpose. play.css's own control set already
+   standardizes every chip at 4px (.moodBtn, .moodItem, .tGo, .hmBtn above), so .playBack takes
+   4px too rather than replicating a historical accident onto a brand-new page. Position stays
+   in play.html's inline style (position:fixed;left:16px;top:16px) -- page layout, not chrome. */
+.playBack{display:inline-flex;align-items:center;gap:.45em;min-height:44px;
+ padding:8px 16px;box-sizing:border-box;
+ background:var(--c50);border:1px solid var(--c100);border-radius:4px;color:var(--c950);
+ font-family:var(--sans);font-weight:400;font-size:var(--fs-small);line-height:1;
+ text-decoration:none;filter:url(#inkSm);
+ transition:border-color .2s cubic-bezier(.2,.8,.2,1),color .2s cubic-bezier(.2,.8,.2,1)}
+.playBack:hover,.playBack:focus-visible{border-color:var(--c500);color:var(--c950)}
+.playBack:focus-visible{outline:2px solid var(--c950);outline-offset:3px}
