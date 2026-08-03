@@ -357,10 +357,28 @@ body.hmFull{overflow:hidden;overscroll-behavior:none}
 .bcSting.on b{transition:transform .7s cubic-bezier(.55,0,.35,1);transform:translateX(75%) skewX(-14deg)}
 @media (prefers-reduced-motion: reduce){
   .bcSheen.on::after,.bcSting.on b{transition:none}}
+/* TASK 4 FIX (Jayden, live): "can't scroll to the play button or schedule." The max-height
+   below already capped the panel to the 60/65vh band (Task 3's decision, comment above at
+   ~416), but nothing ever gave it overflow -- so a full draw board + schedule + Kick off
+   button just overflowed the box in normal flow (visible), ran past .hero's edge, past
+   body's own box, and hit play.html's html,body{overflow:hidden} (line 9 of the inline
+   <style>) with no scroll mechanism anywhere to reach the clipped part. That overflow:hidden
+   is deliberate and stays: the live-match band must never scroll. Scoping the fix to the
+   panel itself, not the page, is why: .tourPanel only exists in the DOM while a cup is up,
+   is already hidden outright during a live fixture (body.hmSoccer .tourPanel{display:none}
+   just below), and Task 3 already decided against growing .hero for the tournament -- one
+   uniform band, no layout jump when hmTour toggles. Making body scroll instead would have
+   needed a hmTour-but-not-hmSoccer gate on the SAME body{display:flex}/.hero{margin:auto}
+   pair that already carries two prior specificity bugs (this file's own comments record
+   both), for no benefit .tourPanel can't provide on its own. So: the panel becomes its own
+   scroll container within its existing max-height, exactly like .tCupSchedIn and mobile
+   .tBr already do a few hundred lines down -- consistent with, not a new pattern for, this
+   file. */
 .tourPanel{position:absolute;left:50%;top:var(--heroTitleTop,40px);transform:translateX(-50%);z-index:47;
  width:min(540px,calc(100vw - var(--sp-16-24)*2));display:flex;flex-direction:column;align-items:center;
  gap:var(--sp-8-16);font-family:var(--sans);color:var(--c950);text-align:center;
- animation:tourIn .42s cubic-bezier(.2,.8,.2,1) both;max-height:calc(100% - var(--heroTitleTop,40px) - 24px)}
+ animation:tourIn .42s cubic-bezier(.2,.8,.2,1) both;max-height:calc(100% - var(--heroTitleTop,40px) - 24px);
+ overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
 @keyframes tourIn{from{opacity:0;transform:translateX(-50%) translateY(10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
 @media(prefers-reduced-motion:reduce){.tourPanel{animation:none}}
 .tourPanel[hidden]{display:none}
