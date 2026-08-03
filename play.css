@@ -1,0 +1,1377 @@
+/* play.css -- extracted verbatim from index.html's game CSS + play-menu CSS blocks.
+   Source ranges (index.html, commit 6567adc): 310-320, 321-402, 406-409, 414-424,
+   425-429, 574-591, 920-935, 974-1027, 1051-1061, 1062-1283, 1349-1399, 1457-2312,
+   plus the four live shared control selectors rewritten from 1284-1456. */
+.moodHeads{display:flex;flex-wrap:wrap;gap:8px;margin:8px 4px 2px}.moodHeads:empty{display:none}
+.mhItem{position:relative}.mhItem img{width:34px;height:40px;object-fit:contain;background:var(--c100);border-radius:4px;display:block}
+.mhPick{padding:0;border:0;background:none;cursor:pointer;display:block;border-radius:4px;transition:box-shadow .18s cubic-bezier(.2,.8,.2,1)}
+.mhPick:hover,.mhPick:focus-visible{box-shadow:0 0 0 1.5px var(--c500)}
+.mhX{position:absolute;top:-6px;right:-6px;width:16px;height:16px;border-radius:50%;border:1px solid var(--c100);background:var(--c50);color:var(--c700);font-size:var(--fs-micro);line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0}
+.mhX::before{content:"";position:absolute;inset:-4px;border-radius:50%}.mhX:hover{color:var(--c950);border-color:var(--c500)}
+
+.moodMenu .moodItem[hidden]{display:none}
+.gIco{width:18px;height:18px;flex:0 0 18px;display:block;color:var(--c700);transition:color .1s ease-out}
+.moodItem:hover .gIco{color:var(--c950)}
+#endGame{color:#b3402e}#endGame .gIco{color:#b3402e}#endGame:hover{color:#8f3323}#endGame:hover .gIco{color:#8f3323}
+.battleBadge{display:none;position:absolute;left:50%;top:14px;transform:translateX(-50%);z-index:47;align-items:center;gap:8px;padding:8px 12px;border:1px solid var(--c100);border-radius:4px;background:var(--c50);font-family:var(--sans);font-size:var(--fs-label);font-weight:600;color:var(--c700);filter:url(#inkSm);pointer-events:none}
+.battleBadge i{width:7px;height:7px;border-radius:50%;background:#b3402e;animation:bbPulse 1.1s steps(2,end) infinite}
+@keyframes bbPulse{0%,100%{opacity:1}50%{opacity:.35}}
+body.hmBattle .moodMenu .moodItem:not(#endGame),body.hmBattle .moodMenu .moodGo{opacity:.38;pointer-events:none}
+@media(pointer:coarse){.mhX{width:26px;height:26px;font-size:var(--fs-small);top:-9px;right:-9px}.mhItem img{width:44px;height:52px}}
+body.hmSoccer .moodMenu .moodItem:not(#endGame),body.hmSoccer .moodMenu .moodGo{opacity:.38;pointer-events:none}
+.hmBall{position:absolute;left:0;top:0;width:48px;height:48px;z-index:48;opacity:0;pointer-events:none;transition:opacity .3s;transform-origin:50% 50%}
+.hmBallSkin{position:absolute;inset:0;background:var(--ballSkin,url(images/soccerball.webp)) center/contain no-repeat;transform-origin:50% 50%;will-change:transform}
+.hmBallShade{position:absolute;inset:0;border-radius:50%;pointer-events:none;background:radial-gradient(circle at 35% 29%,rgba(255,255,255,.92) 0%,rgba(255,255,255,.32) 7%,rgba(255,255,255,0) 20%),radial-gradient(circle at 38% 32%,rgba(255,255,255,.3) 0%,rgba(255,255,255,0) 46%),radial-gradient(circle at 35% 32%,rgba(0,0,0,0) 28%,rgba(0,0,0,.2) 70%,rgba(0,0,0,.46) 100%),radial-gradient(circle at 50% 50%,rgba(0,0,0,0) 78%,rgba(0,0,0,.46) 100%);mix-blend-mode:normal}
+.hmBallShadow{position:absolute;left:0;top:0;width:48px;height:13px;border-radius:50%;background:radial-gradient(ellipse at center,rgba(8,8,8,.26),rgba(8,8,8,0) 70%);opacity:0;pointer-events:none;z-index:1;transition:opacity .3s}
+.hmGoal{position:absolute;left:0;top:0;width:42px;height:162px;z-index:2;opacity:0;pointer-events:none;transition:opacity .3s;border-radius:3px;background:repeating-linear-gradient(45deg,rgba(26,26,26,.16) 0 1px,transparent 1px 8px),repeating-linear-gradient(-45deg,rgba(26,26,26,.16) 0 1px,transparent 1px 8px)}
+.hmGoalShadow{position:absolute;left:0;top:0;width:60px;height:15px;border-radius:50%;background:radial-gradient(ellipse at center,rgba(8,8,8,.24),rgba(8,8,8,0) 72%);opacity:0;pointer-events:none;z-index:1;transition:opacity .3s}
+.hmGoalR{box-shadow:inset 20px 0 26px -14px rgba(16,16,16,.5),inset 0 12px 16px -12px rgba(16,16,16,.35)}
+.hmGoalB{box-shadow:inset -20px 0 26px -14px rgba(16,16,16,.5),inset 0 12px 16px -12px rgba(16,16,16,.35)}
+.hmGoal::before{content:"";position:absolute;top:-3px;bottom:-3px;width:6px;border-radius:4px}
+.hmGoalR::before{right:-1px;background:linear-gradient(90deg,rgba(var(--tc1,224,90,78),.5),rgba(var(--tc1,224,90,78),1) 60%);box-shadow:0 0 7px rgba(var(--tc1,224,90,78),.4),inset -1.5px 0 1px rgba(255,255,255,.55)}
+.hmGoalB::before{left:-1px;background:linear-gradient(270deg,rgba(var(--tc2,90,160,216),.5),rgba(var(--tc2,90,160,216),1) 60%);box-shadow:0 0 7px rgba(var(--tc2,90,160,216),.4),inset 1.5px 0 1px rgba(255,255,255,.55)}
+.hmGoal::after{content:"";position:absolute;inset:0;border-radius:3px;border-top:2.5px solid;border-bottom:2.5px solid;pointer-events:none}
+.hmGoalR::after{border-color:rgba(var(--tc1,224,90,78),.72)}
+.hmGoalB::after{border-color:rgba(var(--tc2,90,160,216),.72)}
+.hmGoal.hmGoalHit{animation:hmNet .55s cubic-bezier(.2,.9,.3,1)}
+@keyframes hmNet{0%{box-shadow:inset 0 0 0 0 rgba(232,181,74,0)}28%{box-shadow:inset 0 0 24px 3px rgba(232,181,74,.55),0 0 0 3px rgba(232,181,74,.5)}100%{box-shadow:inset 0 0 0 0 rgba(232,181,74,0)}}
+/* THE GOAL GRAMMAR camera: two plain wrappers. .hmCamBack holds the ball's shadow, both
+   goals and both goal shadows (z:1-2, belongs BELOW the heads); .hmCamFront holds ONLY the
+   ball (z:48, belongs ABOVE the heads) -- the ball's shadow does not ride along with it,
+   or giving the wrapper the ball's z-index during a punch would drag the shadow above the
+   heads too. Idle, both wrappers carry no z-index or transform of their own, which per spec
+   makes them invisible to normal stacking (a position:absolute box with z-index:auto and
+   transform:none never opens a new stacking context, so its children keep competing
+   directly against the heads exactly as before). Only .hmCamPunch -- applied for one
+   animation's length -- claims the z-index the contents already had, so nothing z-fights
+   the heads mid-punch. .hmScore is never a descendant of either wrapper, so the board
+   cannot be moved by this. */
+.hmCam{position:absolute;inset:0;pointer-events:none}
+.hmCamBack.hmCamPunch{z-index:2;animation:hmCamPunch .5s cubic-bezier(.22,.7,.24,1) both}
+.hmCamFront.hmCamPunch{z-index:48;animation:hmCamPunch .5s cubic-bezier(.22,.7,.24,1) both}
+@keyframes hmCamPunch{
+ 0%{transform:scale(1) translate(0,0)}
+ 16%{transform:scale(1.05) translate(var(--camDX,0px),var(--camDY,0px))}
+ 42%{transform:scale(1.03) translate(calc(var(--camDX,0px) * -0.42),calc(var(--camDY,0px) * -0.32))}
+ 68%{transform:scale(1.012) translate(calc(var(--camDX,0px) * 0.16),calc(var(--camDY,0px) * 0.12))}
+ 100%{transform:scale(1) translate(0,0)}
+}
+@media(prefers-reduced-motion:reduce){.hmCamBack.hmCamPunch,.hmCamFront.hmCamPunch{animation:none}}
+/* Scorer lower-third: reads only from the goal event + head roster, never an invented name.
+   Enters from the left (the punch's own motion axis), holds, leaves. Positioned low on the
+   pitch so it never overlaps .hmScore, which stays put at the top throughout. */
+.hmLowerThird{position:absolute;left:16px;bottom:13%;z-index:49;display:flex;align-items:center;gap:10px;max-width:min(74vw,360px);padding:8px 14px 8px 8px;border-radius:6px;background:rgba(22,22,24,.88);color:#f4f2ec;font-family:var(--sans);box-shadow:0 14px 32px -12px rgba(0,0,0,.5);transform:translateX(-130%);opacity:0;transition:transform .4s cubic-bezier(.2,.85,.25,1),opacity .3s linear;pointer-events:none}
+.hmLowerThird.in{transform:translateX(0);opacity:1}
+/* THE GOAL BELONGS TO A SIDE. The card used to be pinned bottom-left and always
+   slid in from the left, whichever end the ball went in -- Jayden flagged it as
+   not making sense, and he's right: with two nets on screen a fixed corner reads
+   as disconnected from the action. Red attacks the RIGHT net (netCatch maps
+   team 1 -> goalR), Blue the LEFT, so the card now appears on the end where the
+   goal actually happened and slides in from that edge. The one motion axis the
+   spec asked for still holds per side -- it just mirrors. */
+.hmLowerThird.right{left:auto;right:16px;transform:translateX(130%)}
+.hmLowerThird.right.in{transform:translateX(0)}
+.hmLowerThird .hmL3Face{width:34px;height:34px;border-radius:50%;overflow:hidden;flex:0 0 auto;background:#333}
+.hmLowerThird .hmL3Face img{width:100%;height:100%;object-fit:cover;display:block}
+.hmLowerThird .hmL3Txt{display:flex;flex-direction:column;line-height:1.22;min-width:0}
+.hmLowerThird .hmL3Tag{font-size:10px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:rgb(var(--l3c,255,206,74))}
+.hmLowerThird .hmL3Nm{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media(max-width:640px){.hmLowerThird{left:10px;bottom:9%;max-width:min(82vw,300px);padding:7px 12px 7px 7px}}
+@media(prefers-reduced-motion:reduce){.hmLowerThird{transition:none}}
+.battleCount{position:absolute;left:50%;top:12px;transform:translateX(-50%);z-index:47;display:flex;align-items:center;gap:8px;padding:8px 16px;border:1px solid var(--c100);border-radius:4px;background:var(--c50);font-family:var(--sans);font-weight:600;font-size:var(--fs-body);color:var(--c950);opacity:0;pointer-events:none;transition:opacity .3s;filter:url(#inkSm)}
+.hmScore{position:absolute;left:50%;top:var(--heroTitleTop,40px);transform:translateX(-50%);z-index:47;display:flex;align-items:center;gap:12px;padding:8px 16px;border:1px solid var(--c100);border-radius:4px;background:var(--c50);font-family:var(--sans);font-weight:600;font-size:var(--fs-body);color:var(--c950);opacity:0;pointer-events:none;transition:opacity .3s;filter:url(#inkSm)}
+.hmScore .sTeam{display:flex;align-items:center;gap:8px}
+.hmScore .sTeam i{width:9px;height:9px;border-radius:50%}
+.hmScore .sTr i{background:#e05a4e}.hmScore .sTb i{background:#5aa0d8}
+.hmScore em{color:var(--c400);font-style:normal}
+.hmScore small{margin-left:8px;padding-left:12px;border-left:1px solid var(--c100);font-weight:400;font-size:var(--fs-label);color:var(--c500)}
+/* Below the scoreboard (47), not above it. At 48 the shout landed on top of the board and
+   the two illegible-ed each other. Dropped down the pitch too, clear of the board's box. */
+.hmCount{position:absolute;left:50%;top:52%;transform:translate(-50%,-50%);z-index:44;font-family:var(--sans);font-weight:600;font-size:clamp(64px,12vw,140px);line-height:1;color:var(--c950);opacity:0;pointer-events:none;filter:url(#inkBig);white-space:nowrap}
+.hmCount.hmMsg{font-size:clamp(32px,6vw,72px);font-weight:600;letter-spacing:-.01em}   /* a word, not a digit: fits "Blue wins!" */
+.hmScoreEnd{margin-left:8px;padding:2px 2px 2px 12px;border:0;border-left:1px solid var(--c100);border-radius:0;background:none;display:inline-flex;align-items:center;gap:4px;cursor:pointer;pointer-events:auto;color:#b3402e;font-family:var(--sans);font-weight:600;font-size:var(--fs-label);line-height:1;transition:color .15s}
+.hmScoreEnd:hover{color:#8f3323}.hmScoreEnd svg{width:12px;height:12px;flex:0 0 auto}
+/* battle arena platforms: light Apple-clean slabs with a hair of 2.5D thickness -- the heads leap up for height and pounce down */
+.hmPlat{position:absolute;left:0;top:0;height:12px;border-radius:6px;background:var(--c50);border:1px solid rgba(22,22,28,.14);box-shadow:0 1px 2px rgba(22,22,28,.08);border:1px solid rgba(22,22,28,.16);opacity:0;pointer-events:none;transition:opacity .45s cubic-bezier(.2,.8,.2,1);z-index:2;will-change:transform}
+body.hmBattle .hmPlat.arrived{opacity:1}
+body.hmPodium .hmPlat{opacity:0}   /* platforms clear off once the podium rises */
+/* the winners' podium: three light blocks, 1st tallest in the middle, that rise at the end of a battle */
+.hmPodium{position:absolute;left:0;top:0;border-radius:10px 10px 3px 3px;background:linear-gradient(180deg,#fefeff 0%,#eeeef2 62%,#e1e1e8 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,.92),0 12px 24px -11px rgba(22,22,28,.34),0 2px 5px rgba(22,22,28,.12);border:1px solid rgba(22,22,28,.06);opacity:0;pointer-events:none;transition:opacity .5s cubic-bezier(.2,.8,.2,1),transform .5s cubic-bezier(.2,.8,.2,1);z-index:2;display:flex;align-items:flex-start;justify-content:center;overflow:hidden}
+.hmPodium b{margin-top:8px;font-family:var(--sans);font-weight:600;font-size:var(--fs-label);color:var(--c400);line-height:1}
+.hmPodium.show{opacity:1}
+/* --- "Play a mood" relocated into the hero CTA row (moodInCta) --- */
+body.moodInCta .heroCtas{align-items:center}
+body.moodInCta .faceMoodCorner{position:relative;right:auto;left:auto;top:auto;bottom:auto;transform:none;z-index:auto;display:inline-flex}   /* z-index:auto (not a stacking context) so the little heads (z3) pass IN FRONT of the button, while the open menu can still float above them */
+body.moodInCta .faceMoodCorner .moodBtn{position:relative;border:1px solid var(--c100)!important;background:var(--c50)!important;color:var(--c950);font-weight:400;font-size:var(--fs-body);padding:8px 16px;border-radius:4px!important;opacity:1!important}
+body.moodInCta .faceMoodCorner .moodBtn:hover{border-color:var(--c500)!important;color:var(--c950)}
+body.moodInCta .faceMoodCorner .moodLbl{opacity:1!important;transform:none!important}
+body.moodInCta .faceMoodCorner .moodCar{opacity:1!important;transform:rotate(0deg)!important;transition:transform .32s cubic-bezier(.34,1.4,.5,1),color .2s cubic-bezier(.2,.8,.2,1)}   /* menu opens UP in the CTA -> caret points up when closed */
+body.moodInCta .faceMoodCorner .moodbar.open .moodCar{transform:rotate(180deg)!important}   /* ...and flips to point down when the menu is open */
+body.moodInCta .faceMoodCorner .moodMenu{bottom:calc(100% + 12px)!important;top:auto!important;left:0!important;right:auto!important;z-index:60!important}
+body.moodInCta .heroCtas:not(.in) .faceMoodCorner{opacity:0!important;visibility:hidden!important;pointer-events:none!important}   /* stay hidden through the intro until the CTA row reveals -- !important so it wins over the mobile force-visible rule too, keeping Play in lockstep with "View my work" on every viewport */
+@media(max-width:760px){body.moodInCta .faceMoodCorner{position:relative!important;right:auto!important;left:auto!important;top:auto!important;bottom:auto!important;transform:none!important}}   /* keep it inline in the CTA row on mobile (override the corner media query) */
+.hmCount.hmCountPulse{animation:hmCountP .78s cubic-bezier(.2,.8,.2,1) forwards}
+@keyframes hmCountP{0%{opacity:0;transform:translate(-50%,-50%) scale(1.35)}18%{opacity:1}70%{opacity:1;transform:translate(-50%,-50%) scale(1)}100%{opacity:0;transform:translate(-50%,-50%) scale(.86)}}
+@media(prefers-reduced-motion:reduce){.hmCount.hmCountPulse{animation:none;opacity:1}}
+.hmHp{position:absolute;left:0;top:0;width:44px;height:4px;border-radius:2px;background:rgba(8,8,8,.13);z-index:4;pointer-events:none;opacity:0;transition:opacity .3s cubic-bezier(.2,.8,.2,1)}
+.hmHp i{display:block;height:100%;border-radius:2px;background:var(--c950);transition:width .18s cubic-bezier(.2,.8,.2,1),background-color .3s}
+/* ===== mood shortcut menu — triggers the head animations; sharp, Instrument Sans, 8fps stepped ===== */
+.moodbar{position:relative;display:inline-block;z-index:45}
+@keyframes moodIn{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
+.moodBtn{display:inline-flex;align-items:center;gap:8px;background:var(--c50);border:1px solid var(--c100);border-radius:4px;padding:8px 16px;line-height:1;cursor:pointer;font-family:var(--sans);font-weight:400;font-size:var(--fs-body);color:var(--c950);transition:border-color .2s cubic-bezier(.2,.8,.2,1),color .2s cubic-bezier(.2,.8,.2,1)}.moodBtn:hover{border-color:var(--c500)}
+.moodBtn:hover{border-color:var(--c500)}
+.moodLbl{font-size:var(--fs-body);font-weight:400;letter-spacing:0}
+.moodCar{width:12px;height:12px;display:inline-block;flex:0 0 auto;color:var(--c500);transition:transform .2s cubic-bezier(.2,.8,.2,1),color .2s cubic-bezier(.2,.8,.2,1)}
+.moodbar.open .moodCar{width:12px;height:12px;display:inline-block;flex:0 0 auto;color:var(--c500);transition:transform .2s cubic-bezier(.2,.8,.2,1),color .2s cubic-bezier(.2,.8,.2,1)}
+.moodMenu{position:absolute;min-width:196px;background:var(--c50);border:1px solid var(--c100);border-radius:4px;padding:8px;box-shadow:0 8px 28px -8px rgba(18,18,18,.12),0 2px 8px -2px rgba(18,18,18,.06);opacity:0;visibility:hidden;transition:opacity .16s cubic-bezier(.2,.8,.2,1),transform .18s cubic-bezier(.2,.8,.2,1),visibility 0s .18s}
+.moodbar.open .moodMenu{opacity:1;visibility:visible;transition:opacity .16s cubic-bezier(.2,.8,.2,1),transform .18s cubic-bezier(.2,.8,.2,1)}
+.moodItem{display:flex;align-items:center;gap:12px;width:100%;padding:8px 12px;border-radius:4px;font-family:var(--sans);font-weight:400;font-size:var(--fs-body);color:var(--c950);background:none;border:0;cursor:pointer;text-align:left;transition:background-color .1s ease-out,color .1s ease-out}
+.moodbar.open .moodItem{display:flex;align-items:center;gap:12px;width:100%;padding:8px 12px;border-radius:4px;font-family:var(--sans);font-weight:400;font-size:var(--fs-body);color:var(--c950);background:none;border:0;cursor:pointer;text-align:left;transition:background-color .1s ease-out,color .1s ease-out}
+/* 8fps staggered reveal — mirrors the site's 0.05s per-character cascade */
+.moodbar.open .moodItem:nth-child(1){transition-delay:.03s,.03s,0s}
+.moodbar.open .moodItem:nth-child(2){transition-delay:.08s,.08s,0s}
+.moodbar.open .moodItem:nth-child(3){transition-delay:.13s,.13s,0s}
+.moodbar.open .moodItem:nth-child(4){transition-delay:.18s,.18s,0s}
+
+/* ---- 5 + 6. MOBILE: a running game owns the screen.
+   All three games take their height from hero.clientHeight -- race heroH(), lava hh(), soccer
+   geo(). They take WIDTH from innerWidth, but height never got the same treatment, because on
+   desktop .hero{min-height:calc(100vh - 80px)} made the two nearly identical. On mobile .hero is
+   overridden to min-height:auto, so the arena measured 491px of an 844px viewport: every game
+   played in the top 58% of the screen, the lava plane clipped at a hard horizontal line, and
+   heads/rungs/health bars rendered over the nav. Hand the hero the rest of the screen while a
+   game runs and all three inherit a real arena -- both height fns are called live, not cached.
+   Scroll is locked for the duration: a single 500px flick used to push the whole match off
+   screen, still running, with no way back. ---- */
+@media(max-width:760px){body.hmFull .hero{min-height:calc(100dvh - 68px);height:calc(100dvh - 68px);padding-top:8px}}
+body.hmFull{overflow:hidden;overscroll-behavior:none}
+/* ---- 14. #soccerTeams measured 39x40 -- under the 44px minimum (WCAG 2.5.5 AAA, Apple HIG
+   "at least 44x44 pt"). It sits inside a flex row with align-self:stretch, so it inherited the
+   40px moodItem height. Floor both axes. ---- */
+.moodTeamsBtn{min-width:44px;min-height:44px}
+/* ---- THE GAMES SPEAK IN THE HERO'S VOICE ----------------------------------------------
+   The scoreboard was a bordered chip set in --fs-body, and the countdown/messages ran up to
+   140px. Jayden wants the games to read like the rest of the site, and the site's voice is the
+   h1. So the scoreboard becomes a HEADLINE: the word "Soccer" set exactly like the hero line,
+   with the ball sitting after it the way the cookie sits after "hunger" -- same .62em, same
+   baseline as .camDot/.heartDot/.discoDot. No card, no border, no fill.
+   The ball in the title is the REAL ball: it drops from here at every kickoff and after every
+   goal (ballHome()), and the title copy hides while it is on the pitch so there is only ever
+   one ball on screen.
+   Team identity moves from two coloured dots onto the numerals themselves -- same information,
+   one less object, and it matches the red/blue rings already on the players' heads. ---- */
+.hmScore{border:0;background:none;padding:0;filter:url(#inkSm);
+ flex-direction:column;align-items:center;text-align:center;
+ top:var(--heroTitleTop,40px);gap:clamp(2px,.6vh,6px);
+ font-family:var(--sans);font-weight:600;font-size:var(--fs-h1);line-height:1.06;letter-spacing:-.015em;color:var(--c950)}
+.hmScore .sTitle{display:inline-flex;align-items:center;white-space:nowrap}
+/* The ball rests in the title at the size Jayden liked (.62em, the .discoDot metric), and the
+   drop is a SCALE TWEEN on the live ball rather than a swap between two images -- it used to read
+   as "one png goes in and then another". On the way out the ball collapses its WIDTH as well as
+   its opacity, so "Soccer" glides back to true centre using the same eased min-width move as the
+   hero cycling word, instead of sitting off-centre around an invisible gap. */
+/* The ball, not the lockup, is centred while it is in the title -- it drops straight down, so
+   wherever it sits IS the kickoff spot. Centring "Soccer + ball" as a group put the ball 64.6px
+   right of the pitch centre on desktop and 48.4px on mobile (a quarter of the way to the right
+   goal), handing blue the kickoff every time. --sShift is measured in JS because the offset is
+   half the word width, which moves with the responsive type. Once the ball has fallen the shift
+   is dropped and the word glides back to true centre. */
+.hmScore .sTitle{gap:0}
+.hmScore .sBall{width:.62em;height:.62em;margin-left:.2em;object-fit:contain;flex:0 0 auto;
+ transition:opacity .16s cubic-bezier(.2,.8,.2,1),width .34s cubic-bezier(.2,.8,.2,1),margin-left .34s cubic-bezier(.2,.8,.2,1)}
+/* Two stages, deliberately. ballOut only hides the ball; the SLOT stays, so during the frozen
+   countdown the title still reserves its space and the live ball sits exactly in it. Collapsing
+   the slot immediately re-centred "Soccer" while the ball was still parked there, sliding the word
+   under it -- measured 7.9px of overlap. ballFell lands once the ball has actually dropped clear,
+   so the word glides back into space the ball has already left. */
+.hmScore.ballOut .sBall{opacity:0}
+.hmScore.ballOut.ballFell .sBall{width:0;margin-left:0}
+@media(prefers-reduced-motion:reduce){.hmScore .sBall{transition:opacity .16s linear}}
+/* "First to N" and End still carried the border-left dividers from when this was a horizontal
+   chip; stacked underneath the score they read as debris. Quiet row, no rules. */
+.hmScore .sMeta{display:inline-flex;align-items:center;gap:clamp(14px,2.4vw,22px);margin-top:clamp(2px,.6vh,6px)}
+.hmScore .sMeta small{margin:0;padding:0;border:0}
+.hmScore .sMeta .hmScoreEnd{margin:0;padding:0;border:0}
+.hmScore.ballOut .sBall{opacity:0}
+.hmScore .sNums{display:inline-flex;align-items:baseline;gap:.3em;font-variant-numeric:tabular-nums}
+.hmScore .sNums .sR{color:var(--tcol1,#e05a4e)}
+.hmScore .sNums .sB{color:var(--tcol2,#5aa0d8)}
+.hmScore .sNums em{color:var(--c400);font-style:normal;font-weight:400}
+.hmScore small{font-family:var(--sans);font-weight:400;font-size:var(--fs-small);color:var(--c500);letter-spacing:0;align-self:center}
+.hmScore .hmScoreEnd{align-self:center}
+
+/* Countdown + messages: the 140px shout becomes hero-scale type. */
+.hmCount{font-size:clamp(40px,6vw,64px);font-weight:600;letter-spacing:-.02em}
+.hmCount.hmMsg{font-size:var(--fs-h1);font-weight:600;letter-spacing:-.015em}
+/* ---- Floor is Lava is PARKED, not deleted. Jayden wants attention on soccer and marble; the
+   module, its CSS and the whole crate/ability system stay in the file untouched, so bringing it
+   back is deleting this one rule. Nothing else references #lavaRow. ---- */
+#lavaRow{display:none}
+#raceGo{display:none!important}   /* !important because battleGate() writes display:flex INLINE on
+   ["battleGo","soccerGo","raceGo"] every tick -- hiding #lavaRow works without it only because that
+   targets the ROW, which the gate never touches. Marble Race parked alongside Floor is Lava while
+   soccer gets fleshed out; both modules stay in the file, so bringing either back is these rules. */
+/* Once the match is decided the rule line and End are moot -- the result is the only thing left
+   to say, and it is announced in the middle of the screen. */
+.hmScore.won .sMeta{opacity:0;pointer-events:none;transition:opacity .28s cubic-bezier(.2,.8,.2,1)}
+/* ---- TOURNAMENT PANEL. A bracket TREE cannot collapse vertically in CSS -- that is a known,
+   documented dead end -- and at 8 teams this is only 3 rounds and 7 fixtures. So the bracket is a
+   round-grouped vertical LIST: no connector lines, no horizontal scroll, and it reads correctly to
+   a screen reader because it is genuinely just headings and rows. Type-led, same as the rest of
+   the site. Leaderboards carry a face, a team dot, the rating and one number -- at 390px there is
+   room for a name column plus about three numerics, and that is the whole budget. ---- */
+/* Broadcast digits: Archivo, tabular, condensed. The display face touches numerals
+   and moments ONLY -- names, labels and UI stay Instrument Sans 400/600. */
+.bcNum{font-family:'Archivo',var(--sans);font-variant-numeric:tabular-nums lining-nums;
+  font-variation-settings:'wdth' 68;font-weight:800;letter-spacing:.01em}
+/* ---- MATERIALS. Two shadows one light (down-right, matching the head photos --
+   verify direction against a head cutout before changing), one grain layer per
+   composite, jitter breaks symmetry. Jitter is transform-only: filter on a
+   container would create a stacking context and break future 3D flap cells. */
+:root{--bc-contact:0 1px 0 rgba(24,20,12,.5);--bc-cast:6px 10px 22px rgba(24,20,12,.26)}
+.bcPlate{box-shadow:var(--bc-contact),var(--bc-cast)}
+.bcGrain{position:absolute;inset:0;z-index:9;pointer-events:none;opacity:.06;
+  mix-blend-mode:soft-light;background-repeat:repeat}
+/* ---- SPLIT-FLAP. The one mechanical component; score digits only. Four layers
+   per cell: static top (current char upper half), static bottom (NEXT char lower
+   half), flip-front (old char upper), flip-back (new char lower). Spin-through:
+   always forward through the drum, never backward, never a direct jump. NO
+   ancestor of a cell may carry filter (3D transform stacking trap). */
+.bcCell{position:relative;display:inline-block;width:.72em;height:1.16em;
+  border-radius:.06em;background:var(--cupStock,#f1ece0);color:#221f18;
+  box-shadow:var(--bc-contact),var(--bc-cast);perspective:5em;
+  text-align:center;vertical-align:baseline}
+.bcCell+.bcCell{margin-left:.06em}
+.bcCell i{position:absolute;left:0;right:0;overflow:hidden;font-style:normal;
+  line-height:1.16em;pointer-events:none}
+.bcCell .bcT{top:0;height:.58em}
+.bcCell .bcB{bottom:0;height:.58em}
+.bcCell .bcB span{position:relative;top:-.58em;display:block}
+/* seam: shadow above the split, highlight below, 1px misregistration */
+.bcCell::before{content:"";position:absolute;left:0;right:0;top:.57em;height:2px;
+  background:linear-gradient(rgba(24,20,12,.34),rgba(255,255,255,.28));z-index:4;
+  transform:translateY(.5px)}
+/* pin ticks */
+.bcCell::after{content:"";position:absolute;top:.5em;bottom:.5em;left:-.045em;right:-.045em;
+  background:linear-gradient(90deg,rgba(24,20,12,.5) .045em,transparent .045em,
+    transparent calc(100% - .045em),rgba(24,20,12,.5) calc(100% - .045em));
+  border-radius:.03em;z-index:0}
+.bcCell .bcFlip{position:absolute;left:0;right:0;top:0;height:.58em;z-index:3;
+  transform-origin:bottom center;backface-visibility:hidden;overflow:hidden;
+  background:var(--cupStock,#f1ece0);border-radius:.06em .06em 0 0;
+  line-height:1.16em;font-style:normal;display:none}
+.bcCell.bcGo .bcFlip{display:block;animation:bcFlipDown .15s ease-in forwards}
+@keyframes bcFlipDown{from{transform:rotateX(0)}to{transform:rotateX(-88deg)}}
+@media (prefers-reduced-motion: reduce){.bcCell.bcGo .bcFlip{animation:none;display:none}}
+/* ---- THE MOTIF. One diagonal light sweep, reused everywhere (poster reveal,
+   stinger edge, trophy glint, champion foil). One axis: enters left, exits right. */
+.bcSheen{position:relative;overflow:hidden}
+.bcSheen::after{content:"";position:absolute;inset:-40%;pointer-events:none;
+  background:linear-gradient(115deg,transparent 42%,var(--cupSheen,rgba(255,253,240,.32)) 50%,transparent 58%);
+  transform:translateX(-130%)}
+.bcSheen.on::after{transition:transform .7s cubic-bezier(.4,0,.2,1);transform:translateX(130%)}
+.bcSting{position:fixed;inset:0;z-index:64;pointer-events:none;display:none}
+.bcSting.on{display:block}
+.bcSting b{position:absolute;top:-20%;bottom:-20%;left:0;width:170%;
+  background:var(--cupPaint,#252a24);transform:translateX(-115%) skewX(-14deg)}
+.bcSting.on b{transition:transform .7s cubic-bezier(.55,0,.35,1);transform:translateX(75%) skewX(-14deg)}
+@media (prefers-reduced-motion: reduce){
+  .bcSheen.on::after,.bcSting.on b{transition:none}}
+.tourPanel{position:absolute;left:50%;top:var(--heroTitleTop,40px);transform:translateX(-50%);z-index:47;
+ width:min(540px,calc(100vw - var(--sp-16-24)*2));display:flex;flex-direction:column;align-items:center;
+ gap:var(--sp-8-16);font-family:var(--sans);color:var(--c950);text-align:center;
+ animation:tourIn .42s cubic-bezier(.2,.8,.2,1) both;max-height:calc(100% - var(--heroTitleTop,40px) - 24px)}
+@keyframes tourIn{from{opacity:0;transform:translateX(-50%) translateY(10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+@media(prefers-reduced-motion:reduce){.tourPanel{animation:none}}
+.tourPanel[hidden]{display:none}
+body.hmSoccer .tourPanel{display:none}   /* the pitch owns the screen during a fixture */
+.tDot{display:inline-block;width:.52em;height:.52em;border-radius:50%;margin-right:.42em;vertical-align:baseline;flex:0 0 auto}
+.tNext{display:flex;flex-direction:column;align-items:center;gap:8px}
+/* ONE eyebrow style for every small label in this panel -- 'Quarter-final' was rendering as 15px
+   sentence case above the pairing and 13px uppercase as the column head, on the same screen. */
+.tLbl{font-size:var(--fs-label);font-weight:400;color:var(--c500);letter-spacing:.04em;text-transform:uppercase;line-height:1}
+.tPair{display:flex;align-items:flex-end;justify-content:center;gap:clamp(8px,2vw,24px);font-size:var(--fs-h1);font-weight:600;line-height:1.06;letter-spacing:-.015em}
+.tSide{display:flex;flex-direction:column;align-items:center;gap:8px;min-width:0}
+/* THE STARE-DOWN. They face each other -- the cut-outs are shot head-on, so the right side is
+   mirrored. Offset breathing cycles: in sync they read as two stickers; out of sync they read
+   as alive, sizing each other up. */
+.tSideL .tFaceW{animation:tStareL 4.2s ease-in-out infinite}
+.tSideR .tFaceW{animation:tStareR 4.8s ease-in-out infinite}
+@keyframes tStareL{0%,100%{transform:translateY(0) rotate(0deg)}
+ 42%{transform:translateY(-5px) rotate(-1.6deg)}70%{transform:translateY(-1px) rotate(-.4deg)}}
+@keyframes tStareR{0%,100%{transform:scaleX(-1) translateY(0) rotate(0deg)}
+ 38%{transform:scaleX(-1) translateY(-4px) rotate(-1.9deg)}66%{transform:scaleX(-1) translateY(-1px) rotate(-.5deg)}}
+@media(prefers-reduced-motion:reduce){.tSideL .tFaceW,.tSideR .tFaceW{animation:none}}
+.tVs{color:var(--c500);font-weight:400;font-size:var(--fs-small);margin:0 .42em;letter-spacing:0;align-self:center}
+.tGo{margin-top:8px;background:none;border:1px solid var(--c100);border-radius:4px;
+ padding:12px 20px;min-height:44px;font-family:var(--sans);font-weight:400;font-size:var(--fs-small);
+ color:var(--c950);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;
+ transition:border-color .2s cubic-bezier(.2,.8,.2,1),opacity .2s cubic-bezier(.2,.8,.2,1)}
+
+.tGo:hover,.tGo:focus-visible{border-color:var(--c500)}
+.tRounds{display:flex;flex-direction:column;gap:clamp(10px,1.8vh,18px);width:100%}
+.tRoundLbl{font-size:var(--fs-label);font-weight:400;color:var(--c500);letter-spacing:.04em;text-transform:uppercase;margin-bottom:8px}
+.tMatch{display:flex;align-items:center;justify-content:center;gap:.2em;font-size:var(--fs-body);line-height:1.5;white-space:nowrap}
+.tSide{display:inline-flex;align-items:baseline}
+.tSide.tLost{color:var(--c500)}
+.tSide.tLost .tFaceW img{filter:grayscale(1);opacity:.55}
+.tSide.tWon{font-weight:600}
+.tBoard{width:100%;display:flex;flex-direction:column;gap:2px}
+.tRow{display:flex;align-items:center;gap:8px;padding:4px 8px;border-radius:4px}
+.tRow:hover{background:#F1F1F1}
+.tFace{width:22px;height:26px;object-fit:contain;flex:0 0 auto}
+.tRt{margin-left:auto;font-size:var(--fs-small);color:var(--c500);font-variant-numeric:tabular-nums}
+.tNum{min-width:1.6em;text-align:right;font-weight:600;font-variant-numeric:tabular-nums}
+.tWin{display:flex;flex-direction:column;align-items:center;gap:8px}
+.tWinLbl{font-size:var(--fs-label);font-weight:600;color:var(--c500);letter-spacing:.04em;text-transform:uppercase}
+.tWinName{display:flex;align-items:center;justify-content:center;gap:.1em;font-size:var(--fs-h1);font-weight:600;letter-spacing:-.015em}
+/* The tournament screen owns the hero, the way a match does. The headline and the big head
+   step aside so the bracket is not competing with them for the same space -- and they are already
+   hidden once a fixture starts, so nothing pops back in mid-tournament. */
+body.hmTour .heroCopy h1,body.hmTour .hero .stagewrap{opacity:0;pointer-events:none;transition:opacity .35s cubic-bezier(.2,.8,.2,1)}
+body.hmTour .hero .stagewrap{height:0;min-height:0;overflow:hidden;margin:0;transition:opacity .35s cubic-bezier(.2,.8,.2,1),height .42s cubic-bezier(.2,.8,.2,1)}
+body.hmTour .scrollCue{display:none}
+.tourPanel{top:var(--heroTitleTop,40px);transform:translateX(-50%)}
+
+/* The mobile hero is min-height:auto, so centring inside it is meaningless -- an 8-team panel
+   overflowed upward and collided with the wordmark. Give the hero a screen while the tournament
+   owns it, and anchor the panel under the nav instead of centring it. */
+body.hmTour .hero{min-height:calc(100svh - 68px)}
+@media(max-width:640px){
+ .tourPanel{transform:translateX(-50%);gap:12px;width:calc(100vw - 32px);
+  animation:tourInM .42s cubic-bezier(.2,.8,.2,1) both}
+ /* MOBILE DENSITY: the rounds stack on a phone -- the elbow connectors are min-width:641px
+    only -- so a 4-match round was 4 rows tall and the panel came out 869px in an 844px viewport.
+    Each round now wraps two-up. That costs nothing in clarity precisely BECAUSE there are no
+    connectors down here: the rounds are already separate labelled groups, not a connected tree. */
+ .tourPanel .tColBody{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;align-content:start}
+ .tourPanel .tCol:last-child .tColBody{grid-template-columns:minmax(0,1fr)}   /* the final is one match: let it span */
+ .tourPanel .tMi{flex:none;padding:0}
+ .tourPanel .tBr{gap:8px;min-height:0;overflow-y:auto;overscroll-behavior:contain}   /* the round labels sat flush against the cards above them */
+ /* scoped to .tourPanel deliberately: a bare .tColBody rule further down the file sets
+    display:flex, and a media query adds no specificity, so the unscoped version lost. */
+ @keyframes tourInM{from{opacity:0;transform:translateX(-50%) translateY(10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+}
+@media(max-width:640px) and (max-height:700px){
+ /* the small phones (SE at 667) were the last 4px over; tighten only there */
+ .tourPanel{gap:8px}
+ .tourPanel .tBr{gap:0}   /* ...and they cannot afford the round separation either */
+}
+/* ---- THE BRACKET. Rounds are flex columns; matches distribute over full column height so a
+   pair sits either side of the match it feeds. Connectors are ELBOWS on pseudo-elements: one
+   leaves each match to the right (flipped up or down by :nth-child odd/even) and a matching pair
+   enters each card from the left. No SVG, no absolute maths, and it degrades to a plain stack on
+   a phone where connector lines would be noise. House tokens throughout. ---- */
+.tBr{display:flex;flex-direction:column;width:100%;gap:16px;align-items:stretch}
+.tCol{display:flex;flex-direction:column;gap:8px;min-width:0;flex:1 1 0}
+.tColLbl{text-align:center}
+.tColBody{display:flex;flex-direction:column;flex:1 1 auto;min-height:0;gap:0}   /* no gap: equal
+   slots are what make the rounds line up, and a gap breaks the arithmetic */
+.tMi{position:relative;display:flex;flex-direction:column;justify-content:center;flex:1 1 0;width:100%;padding:4px 0}
+.tM{position:relative;display:flex;flex-direction:column;border:1px solid var(--c100);border-radius:4px;
+ background:var(--c50);transition:border-color .3s cubic-bezier(.2,.8,.2,1)}
+.tM.tLive{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.tT{display:flex;align-items:center;gap:8px;padding:8px 12px;font-size:var(--fs-small);line-height:1.2;white-space:nowrap;overflow:hidden;text-align:left;min-height:38px;box-sizing:border-box;border-left:2px solid transparent}
+.tT+.tT{border-top:1px solid var(--c100)}
+.tT:first-child{border-radius:3px 3px 0 0}
+.tT:last-child{border-radius:0 0 3px 3px}
+.tT.tWon{font-weight:600;border-left-width:3px}
+/* COLOUR IN THE DRAW. Each row carries its team's colour as a wash, so a card reads as
+   two colour fields -- the same idea as the scoreboard, in miniature. Measured before
+   choosing the strength: at 14% toward paper every one of the eight palette colours still
+   gives ink 15:1 or better, so the wash costs nothing in legibility. (A SATURATED fill
+   could not carry white text -- white fails 4.5:1 on all eight, and on Yellow it is 1.93.)
+   rgba(var(--tc),a) works because --tc is the bare "r,g,b" triplet. */
+.tT{background:rgba(var(--tc,253,253,253),.11)}
+.tT.tWon{background:rgba(var(--tc,253,253,253),.20)}   /* the winner's colour holds */
+.tT.tLost{background:rgba(var(--tc,253,253,253),.04)}  /* the loser's drains away */
+/* Eliminated. NOT opacity -- opacity:.38 composited to #A4A4A4 = 2.45:1 and failed
+   WCAG 1.4.3. ESPN keeps the same font, size and weight and moves only the colour
+   (winner 18.7:1, loser 5.1:1). Same move here: 18.42:1 -> 4.53:1, both pass AA. It is
+   a LUMINANCE gap, not a hue one, so it also survives 1.4.1 Use of Color. The head
+   desaturates as the second, non-colour cue, and the identity stripe drops to hairline. */
+.tT.tLost{color:var(--c500);border-left-color:var(--c100)!important}
+.tT.tLost .tFaceW img{filter:grayscale(1);opacity:.55}
+.tNm{overflow:hidden;text-overflow:ellipsis}
+.tTbd{color:var(--c500)}
+/* The heads are transparent CUT-OUTS; a circular crop fought their silhouette and clipped hair
+   and chins, so they are shown whole and contained. The team colour is carried by the row bar. */
+.tFaceW{flex:0 0 auto;width:24px;height:24px;display:inline-flex;align-items:center;justify-content:center}
+.tFaceW img{max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;display:block}
+.tFaceEmpty{width:28px}
+.tFaceBig{width:clamp(92px,min(13vw,17vh),200px);height:clamp(92px,min(13vw,17vh),200px)}
+.tTeamNm{line-height:1}
+@media(min-width:641px){
+ .tBr{flex-direction:row;gap:0}
+ .tMi{padding:4px 16px}
+ .tCol:first-child .tMi{padding-left:0}
+ .tCol:last-child .tMi{padding-right:0}
+ .tMi::after{content:'';position:absolute;right:0;width:15px;height:50%;border-right:1px solid var(--c100)}
+ .tMi:nth-child(odd)::after{top:50%;border-top:1px solid var(--c100);border-top-right-radius:7px}
+ .tMi:nth-child(even)::after{bottom:50%;border-bottom:1px solid var(--c100);border-bottom-right-radius:7px}
+ .tCol:last-child .tMi::after{display:none}
+ .tM::before{content:'';position:absolute;left:-15px;top:50%;width:15px;border-top:1px solid var(--c100)}   /* one line in, at the card's own centre -- the pair's elbows already meet there */
+ .tCol:first-child .tM::before{display:none}
+}
+.tQuit{margin-top:8px;background:none;border:0;padding:8px 12px;min-height:44px;
+ font-family:var(--sans);font-weight:400;font-size:var(--fs-small);color:var(--c500);cursor:pointer;
+ transition:color .2s cubic-bezier(.2,.8,.2,1)}
+.tQuit:hover,.tQuit:focus-visible{color:var(--c950)}
+.tQuit.tQuitArmed{color:#b3402e}
+@media(max-width:640px){.tCol{max-width:none}.tLbl{font-size:var(--fs-micro)}
+ .tT{padding:4px 8px 4px 8px;font-size:var(--fs-caption);gap:8px;min-height:34px}
+ .tFaceW{width:22px;height:22px}.tFaceBig{width:clamp(84px,26vw,120px);height:clamp(84px,26vw,120px)}
+ .tPr:not(.tPrLast)::after{left:calc(100% + 8px)}.tPr:not(.tPrLast) .tM::after{width:8px}
+ .tBr{gap:0}.tColBody{gap:8px}.tPr{gap:8px}}
+/* The tournament owns the hero while it runs, so it says what it is. */
+.tTitle{margin:0;font-family:var(--sans);font-weight:400;font-size:var(--fs-small);line-height:1.2;letter-spacing:.01em;color:var(--c500);display:inline-flex;align-items:baseline;gap:.14em}
+/* The trophy is a PORTRAIT cutout, unlike the square mood icons, so it is sized by HEIGHT and
+   lets its width follow -- squeezing it into a .62em square would letterbox it. It stands at
+   roughly the cap height of the name beside it. */
+.tCupIco{height:1.12em;width:auto;flex:0 0 auto;align-self:center;object-fit:contain;display:block}
+/* Kick off is the primary action, so it is filled ink. End tournament is the same button, quiet. */
+.tGo{background:var(--c950);border:1px solid var(--c950);color:var(--c50)}
+.tGo:hover,.tGo:focus-visible{border-color:var(--c950);opacity:.86}
+.tGo.tGoQuiet{background:none;border-color:var(--c100);color:var(--c700);opacity:1}
+.tGo.tGoQuiet:hover,.tGo.tGoQuiet:focus-visible{border-color:var(--c500);color:var(--c950)}
+.tGo.tQuitArmed{border-color:#b3402e;color:#b3402e}
+
+/* THE PLAY MENU: plain text under the word, no card edge, no lift off the page.
+   Sits inside the page margin and is sized to its own content. */
+.moodMenu{
+ 
+ width:max-content!important;min-width:0!important;max-width:min(196px,44vw)!important;
+ text-align:left!important;
+ background:var(--c50)!important;
+ border:0!important;
+ box-shadow:none!important;          /* it must not pop off the page */
+ border-radius:4px!important;
+ padding:4px!important;
+}
+.moodItem,.moodBtn{white-space:nowrap}
+.moodItem,.moodGo{justify-content:flex-start!important;padding:12px 16px!important}
+.moodBtn{padding:12px 16px!important}
+/* Play sits near the right edge -- below this width a left-aligned menu would leave the margin */
+/* alignment is decided by clampMenu() at open time -- a media query cannot know the
+   menu's own width or where Play happens to sit in the row. */
+
+/* the head thumbnails ARE the control -- no grey plate behind them */
+.hmPit img{background:none!important;padding:0!important}
+
+/* mobile keeps a surface: at 390px the menu unavoidably sits over the headline */
+@media(max-width:640px){
+ .moodMenu{border:1px solid var(--c100)!important;padding:8px!important;
+  text-align:left!important;max-width:min(280px,72vw)!important}
+}
+
+/* the last stragglers, measured: .back/.talk were square, .moodBtn was 40px not 44,
+   .moodItem was inheriting 16px instead of the one control size, and the wordmark ran 2px
+   taller than the home page's. Inline links inside prose (.chap, .footIn, .csGo) are a
+   deliberate THIRD category -- text, not buttons -- so they keep their own size. */
+.back,.talk,.tvTab,.csTab{border-radius:4px}
+.moodBtn{min-height:44px!important;height:44px}
+.moodItem,.moodGo{font-size:var(--fs-small)!important}
+nav .logo{padding:8px 12px;min-height:44px;height:44px;justify-content:center}
+
+/* THE HEAD IS THE CONTROL. Each saved head sat on a grey --c100 plate, so the menu read as a
+   row of tiles rather than a row of heads -- the cut-outs already have their own silhouette
+   and do not need a card behind them. The plate goes; the hover wash on the button around it
+   is the affordance, same as every other control. */
+.mhItem img{background:none!important}
+.mhItem{border-radius:4px;transition:background-color .16s cubic-bezier(.2,.8,.2,1)}
+.mhItem:hover{background:var(--c75)}
+
+/* Keep the menu inside the content column. Play sits near the right edge, so a menu that is
+   left-aligned to the word can run past the margin -- this pins the RIGHT edge to the page
+   column while leaving the left under Play whenever there is room (handled in JS below). */
+.moodMenu{max-width:min(196px,44vw)!important}
+/* ==========================================================================
+   TOURNAMENT: the mirrored draw
+   The two halves run inward and meet at the final in the centre column, so the
+   whole draw is 2 quarter-final cards tall instead of 4. Jayden's call, and the
+   geometry is right. Worth recording the tradeoff, because the research is not
+   on its side: mirrored brackets ship almost only where the draw is
+   INSTITUTIONALLY two-sided (ESPN's NFL bracket is AFC/NFC, its NCAA bracket is
+   four regions into a Final Four). Every single-ladder draw -- World Cup
+   knockout, UCL, esports, Wikipedia's whole bracket template family -- runs
+   left to right, and no bracket platform ships a mirrored mode at all. The cost
+   is that the right half is read against scan direction. Paid for below by
+   keeping rounds in DOM order and naming each column, so the reading order is
+   still round-by-round.
+   ========================================================================== */
+.tBr.tBrMir{
+ display:grid;
+ grid-template-columns:var(--tcols,1fr);
+ grid-template-rows:var(--trows,auto);
+ column-gap:34px;row-gap:10px;
+ width:min(1060px,calc(100vw - 48px));max-width:none;
+ align-items:center;position:relative;z-index:2;
+ padding-bottom:68px;                       /* the stand sits in here, under the draw */
+}
+.tBrMir .tColLbl{white-space:nowrap}
+.tBrMir .tMi{grid-column:var(--gc,auto);grid-row:var(--gr,auto);align-self:center;padding:0;flex:none;position:relative}
+.tBrMir .tColLbl{grid-column:var(--gc,auto);grid-row:2;align-self:end;text-align:center;padding-bottom:2px}
+
+/* Connectors are MEANINGFUL graphics -- they are the only thing stating which
+   match feeds which -- so WCAG 1.4.11 wants 3:1 against the paper. The site
+   hairline --c100 (#E6E6E6) is about 1.3:1 and fails; --c500 clears it at 4.6:1.
+   Same 1px thickness as every other rule on the site, just legible. */
+/* The legacy connectors were scoped by .tCol (`.tCol:first-child .tM::before{display:none}`)
+   and .tMi:nth-child parity. The mirrored draw has no .tCol wrappers and every match is a
+   sibling in one grid, so those selectors stopped matching their guards and drew a second,
+   wrong set of stubs -- the stray lines off the outer edge of the quarter-finals. Reset every
+   geometry property here so only the rules below draw anything. */
+.tBrMir .tM::before,.tBrMir .tM::after{display:none}
+.tBrMir .tMi::before,.tBrMir .tMi::after{content:'';position:absolute;pointer-events:none;
+ left:auto;right:auto;top:auto;bottom:auto;width:auto;height:auto;border:0;border-radius:0}
+/* outgoing: left half turns right toward the centre, right half mirrors it */
+.tBrMir .tMiL[data-bend]:not([data-bend=flat])::after{left:100%;width:17px;height:50%;border-right:1px solid var(--c500)}
+.tBrMir .tMiL[data-bend=down]::after{top:50%;border-top:1px solid var(--c500);border-top-right-radius:6px}
+.tBrMir .tMiL[data-bend=up]::after{bottom:50%;border-bottom:1px solid var(--c500);border-bottom-right-radius:6px}
+.tBrMir .tMiR[data-bend]:not([data-bend=flat])::after{right:100%;width:17px;height:50%;border-left:1px solid var(--c500)}
+.tBrMir .tMiR[data-bend=down]::after{top:50%;border-top:1px solid var(--c500);border-top-left-radius:6px}
+.tBrMir .tMiR[data-bend=up]::after{bottom:50%;border-bottom:1px solid var(--c500);border-bottom-left-radius:6px}
+/* a round that feeds straight through (semi -> final) is a plain rule */
+.tBrMir .tMiL[data-bend=flat]::after{left:100%;width:17px;top:50%;border-top:1px solid var(--c500)}
+.tBrMir .tMiR[data-bend=flat]::after{right:100%;width:17px;top:50%;border-top:1px solid var(--c500)}
+/* incoming stubs */
+.tBrMir .tMiL:not([data-first])::before{right:100%;width:17px;top:50%;border-top:1px solid var(--c500)}
+.tBrMir .tMiR:not([data-first])::before{left:100%;width:17px;top:50%;border-top:1px solid var(--c500)}
+.tBrMir .tMiC::before{right:100%;width:17px;top:50%;border-top:1px solid var(--c500)}
+.tBrMir .tMiC::after{left:100%;width:17px;top:50%;border-top:1px solid var(--c500)}
+/* THE PATH. Every connector was the same --c500, so the structure said nothing about
+   what had happened. A decided match's line steps up to ink; undecided lines recede to
+   the hairline. Mario Tennis does this by drawing resolved paths in red against white
+   ones -- the bracket narrates itself through the lines, not the labels. */
+.tBrMir .tMi::before,.tBrMir .tMi::after{border-color:var(--c100)!important;transition:border-color .3s cubic-bezier(.2,.8,.2,1)}
+.tBrMir .tMiDone::before,.tBrMir .tMiDone::after{border-color:var(--c950)!important}
+
+/* the final is the focal point: the trophy anchors it and the tree hangs beneath,
+   which is what EA FC 26 does (its patch notes call out the completed tree
+   failing to render UNDER the trophy as the bug worth fixing) */
+.tBrMir .tMiC .tM{border-color:var(--c950)}
+/* ================= PRE-MATCH CARDS + CHAMPION CARD =================
+   Replaces the stare-down. Each side is a card in its team's colour with the head
+   BLEEDING off the outer edge, mirrored so both faces turn inward toward the VS --
+   Smash does exactly this, portraits attached to the inner edge facing the trophy.
+   White text is safe because the palette is normalised to L 0.150 (5.2:1 minimum).
+   clip-path: inset(0 round R) rather than overflow:hidden -- it clips composited and
+   transformed children by construction, sidestepping the old WebKit border-radius
+   clipping bug class entirely instead of patching around it. */
+.tCards{display:flex;align-items:stretch;justify-content:center;gap:14px;margin-top:4px;
+ width:min(540px,92vw);margin-left:auto;margin-right:auto}
+.tCard{position:relative;flex:1 1 0;min-width:0;min-height:186px;
+ border-radius:16px;background:rgb(var(--tc));color:rgb(var(--ti,255,255,255));
+ clip-path:inset(0 round 16px);isolation:isolate;
+ display:flex;flex-direction:column;justify-content:flex-end;padding:16px;
+ animation:tCardRise .34s cubic-bezier(.2,.8,.2,1) both;animation-delay:var(--cd,0ms)}
+.tCardHead{position:absolute;top:50%;width:auto;height:112%;
+ transform:translateY(-50%);pointer-events:none;opacity:.62;
+ /* The fade lives on the WRAPPER; the stroke filter runs on the img inside it. Putting
+    opacity on the filtered element makes the filter sample faded pixels, so the outline
+    faded with the head and came out a muddy grey instead of a cut line. */
+ }
+.tCardHead img{filter:url(#tHeadEdge)}
+.tCardL .tCardHead{left:-34%}
+.tCardR .tCardHead{right:-34%;scale:-1 1}   /* mirrored so both faces turn inward */
+/* A scrim, because the head is a portrait bleeding in -- not wallpaper. Without it the
+   stat row sat directly on a face and neither could be read. Sits between head and body. */
+.tCard::after,.tChampIn::after{content:'';position:absolute;inset:0;pointer-events:none;
+ background:linear-gradient(to top,rgba(18,18,18,.46) 0%,rgba(18,18,18,.16) 42%,transparent 72%)}
+/* On a pale fill the paired ink is near-black, so a dark scrim behind it fights the text
+   instead of helping it. Flip the scrim to light for those teams. */
+.tCard[style*='--ti: 18'],.tChampIn[style*='--ti: 18']{--scrimA:rgba(253,253,253,.55);--scrimB:rgba(253,253,253,.2)}
+.tCard[style*='--ti: 18']::after,.tChampIn[style*='--ti: 18']::after{
+ background:linear-gradient(to top,var(--scrimA) 0%,var(--scrimB) 42%,transparent 72%)}
+/* ---- THE LAVA MESH, in the team's hue. The six radial stops are the SAME six points as
+   the Floor-is-Lava WebGL shader's POINTS array (0.66/0.24, 0.90/0.40, 0.22/0.30, 0.58/0.66,
+   0.86/0.78, 0.30/0.80), with each point's alpha and radius scaled by that point's `heat` --
+   so the cards inherit the lava's composition and ramp without a WebGL context each. Three
+   cards would mean three contexts, and browsers cap those.
+   It drifts by TRANSFORM on an oversized layer, never background-position: a transform stays
+   on the compositor, whereas moving a gradient's position repaints the whole layer every
+   frame. 22s and barely-there, because this is a field, not an effect. ---- */
+.tCard::before,.tChampIn::before{content:'';position:absolute;inset:-32%;pointer-events:none;
+ background-image:
+  radial-gradient(circle at 66% 24%, rgba(255,255,255,.46) 0%, rgba(255,255,255,0) 72%),
+  radial-gradient(circle at 90% 40%, rgba(255,255,255,.38) 0%, rgba(255,255,255,0) 67%),
+  radial-gradient(circle at 22% 30%, rgba(255,255,255,.33) 0%, rgba(255,255,255,0) 63%),
+  radial-gradient(circle at 58% 66%, rgba(255,255,255,.46) 0%, rgba(255,255,255,0) 72%),
+  radial-gradient(circle at 86% 78%, rgba(255,255,255,.38) 0%, rgba(255,255,255,0) 66%),
+  radial-gradient(circle at 30% 80%, rgba(255,255,255,.37) 0%, rgba(255,255,255,0) 66%);
+ mix-blend-mode:soft-light;
+ animation:tMesh 22s ease-in-out infinite alternate;will-change:transform}
+@keyframes tMesh{
+ from{transform:translate3d(-2%,-1.6%,0) scale(1.05)}
+ to  {transform:translate3d(2.4%,2%,0)   scale(1.13)}}
+.tCardBody{position:relative;z-index:2}
+.tCardNm{font-family:var(--sans);font-weight:600;font-size:var(--fs-h3,22px);line-height:1.05;
+ letter-spacing:-.015em;color:rgb(var(--ti,255,255,255))}
+.tCardTag{display:inline-block;margin-top:6px;padding:3px 10px;border-radius:999px;
+ background:rgba(255,255,255,.20);color:#fff;font-size:var(--fs-caption,12px);
+ font-weight:600;letter-spacing:.08em;text-transform:uppercase}
+.tCardStats{display:grid;grid-template-columns:repeat(3,1fr);margin-top:12px;
+ border-top:1px solid rgba(255,255,255,.26);padding-top:8px}
+.tCardStat{text-align:center}
+.tCardStat+.tCardStat{border-left:1px solid rgba(255,255,255,.26)}
+.tCardV{display:block;font-weight:600;font-size:16px;line-height:1.1;color:#fff;
+ font-variant-numeric:tabular-nums}   /* Instrument Sans defaults to PROPORTIONAL figures:
+ without this a 1 vs 8 shifts the column by 0.21em */
+.tCardK{display:block;font-size:11px;letter-spacing:.07em;text-transform:uppercase;
+ color:rgba(255,255,255,.78);margin-top:1px}
+.tVsBig{align-self:center;font-family:var(--sans);font-weight:600;font-size:var(--fs-small);
+ letter-spacing:.12em;text-transform:uppercase;color:var(--c500);padding:0 2px}
+@keyframes tCardRise{from{opacity:0;transform:translateY(14px) scale(.97)}to{opacity:1;transform:none}}
+
+/* ---- THE FINAL ----------------------------------------------------------------------
+   Gold is reserved for the final and belongs to no team, which is the whole reason it works
+   as a signal: every side already owns an accent, so the one colour nobody owns reads as
+   "this match is different". The precedent is the 2022 World Cup's Al Hilm, used for the
+   semi-finals and final only and keyed explicitly to the trophy's colour.
+   The earlier rounds are NOT dimmed down to make room -- the final simply goes bigger. */
+body.hmFinal{--ballSkin:url(images/soccerball-gold.webp)}
+body.hmFinal .sBall{content:url(images/soccerball-gold.webp)}
+body.hmFinal .tCupRound{color:#9E6C00;letter-spacing:.22em}
+
+/* ---- PLAY AND ABOUT, WHILE A TOURNAMENT IS LIVE -------------------------------------
+   Both are hidden outright for the duration. Starting another game or opening About would
+   abandon the draw halfway through, and a greyed control with a tooltip still invites the
+   click -- taking them off the bar is quieter and leaves no dead affordance. The JS guard on
+   Play stays as a backstop for keyboard focus. Work, the wordmark and Contact are untouched,
+   so the bar does not restructure. */
+body.hmTour nav .faceMoodCorner,
+body.hmTour nav #navAbout,
+body.hmTour .navDrawer #ndAbout{display:none!important}
+
+/* ---- MOBILE MENU ------------------------------------------------------------------
+   This is a dropdown anchored under the burger, not the full-height edge drawer it used to
+   be. The old drawer rules were left behind when it was redesigned and the two fought: the
+   close button came back to life (the button-unification pass re-declared it
+   display:inline-flex, beating the display:none that the dropdown wanted) and sat
+   align-self:flex-end on a negative margin, which is the empty band across the top.
+   A dropdown closes by clicking the burger or outside it, so the X goes -- for good. */
+body .navDrawer .navDrawerX{display:none!important}
+/* One padding for every row. Work and About me were taking 12px 16px from the shared button
+   base while Contact took 8px 12px from .navDrawer .ndTalk, which outranks it -- so one row
+   sat 4px left of the other two. */
+body .navDrawer .ndLink{padding:8px 12px;text-align:left}
+
+/* ---- THE FINAL'S POSTER -------------------------------------------------------------
+   Jayden's artwork, not a CSS imitation of one. This is the fix for the thing that made the
+   tournament screens feel like two projects: the heads are photographs and everything around
+   them was flat CSS. The frame is now photographic too, so both live in the same register.
+   The poster already carries two flame-outlined silhouettes; a real head sits inside each one
+   so the flame reads as outlining THAT player. 4px corners, like everything else.
+   Per-round posters are planned, hence the class rather than a hardcoded src. */
+body.tourPoster #tourPanel .tCupMatch{
+ position:relative;display:block;grid-template-columns:none;
+ /* Capped, not free-running. At its full 1545x2000 the poster stood 595px tall and pushed
+    the schedule clean off the bottom of the hero -- measured top:954 against a hero bottom of
+    908. It takes the room that is actually available now and crops from the top, which is the
+    edge that carries the least (the artwork puts its heads low). */
+ /* margin-inline:auto is load-bearing. Capping the height makes the element NARROWER to keep
+    its aspect ratio, and a block narrower than its container left-aligns -- so the poster sat
+    off to one side the moment the cap started biting. */
+ margin:0 auto!important;aspect-ratio:1545/2000;max-height:min(52vh,470px);
+ border-radius:4px;overflow:hidden;
+ background:#1a1a1a var(--poster) center bottom/cover no-repeat}
+/* Both sides span the FULL poster, so every percentage below is measured against the
+   artwork itself. Half-width sides silently halved them -- the heads landed at 13%/87%
+   instead of 26%/74%. They do not collide because each one places its head absolutely. */
+body.tourPoster #tourPanel .tCupMatch .tCupSide{
+ position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:none}
+/* The panel is only a positioning frame here -- the poster is the artwork. */
+body.tourPoster #tourPanel .tCupPanel{
+ position:absolute;inset:0;height:auto;background:none;border-radius:0;overflow:visible;
+ display:block}
+/* Down in the CLOUDS -- the red and blue banks either side of the flame on the field, which
+   were sitting empty. I first read "on either side" as the flame silhouettes up top and put
+   the heads there; those are Jayden's artwork, not slots for players. */
+/* Each poster places its heads differently, so the position is a per-artwork set of vars and
+   the rule below is the same for all of them. --hx/--hy/--hw are set on the block. */
+/* --fit compensates for how much transparent margin a given cut carries. Mini-Jayden's baked
+   5:6 frame leaves his face filling ~75% of its box where a mask cut fills ~95%, so at an
+   identical width his face rendered visibly smaller than his opponent's. Measured per cut and
+   applied here, so both faces land the same size whatever they were cut from. */
+body.tourPoster #tourPanel .tCupBigWrap{
+ position:absolute;left:var(--hx,50%);top:var(--hy,50%);transform:translate(-50%,-50%);
+ width:calc(var(--hw,30%) * var(--fit,1));margin:0;z-index:5;
+ /* Grounded in the cloud rather than pasted on it: a tight contact shadow plus a wider,
+    softer cast shadow, both falling the same way as the light in the artwork. */
+ filter:drop-shadow(0 2px 2px rgba(0,0,0,.55)) drop-shadow(0 10px 22px rgba(0,0,0,.4))}
+body.tourPoster #tourPanel .tCupSide:last-child .tCupBigWrap{left:var(--hx2,50%)}
+/* No team tint on the poster: the artwork does its own colour, and a flat hue over a
+   photographic composite is exactly the seam this whole change is meant to remove. */
+body.tourPoster #tourPanel .tCupTint{display:none}
+/* A poster is a printed thing. The idle bob reads as a sticker floating on artwork.
+   !important because body.hmTour #tourPanel .tCupBig sets the bob at EQUAL specificity and
+   sits later in the sheet, so it wins on order -- the same collision that hid three scoreboard
+   rules earlier today. */
+body.tourPoster #tourPanel .tCupBig,
+body.tourPoster #tourPanel .tCupCelebrate{animation:none!important}
+/* The names come OFF the artwork and sit under it, on paper, in the page's own ink. Text
+   laid over a photograph needs a shadow to survive, and that shadow is the tell that it was
+   pasted on rather than composed in. Below the poster it needs nothing. */
+body.tourPoster #tourPanel .tCupMatch{margin-bottom:0}
+body.tourPoster #tourPanel .tCupNames{
+ display:flex;justify-content:space-between;gap:16px;margin:12px -16px 0}
+body.tourPoster #tourPanel .tCupNames span{
+ flex:1 1 0;text-align:center;font-family:var(--sans);font-weight:600;
+ font-size:var(--fs-body);color:var(--c950);
+ white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+body.tourPoster #tourPanel .tCupMeta{display:none}
+body.tourPoster #tourPanel .tCupVs{display:none}
+
+/* ---- CHAMPION ----------------------------------------------------------------------
+   The winner wears the same crown the heads already wear when they win a match (same SVG
+   path, so the two never drift apart) and holds the cup. Both sit INSIDE .tCupPanel: the
+   card clips to its 28px radius, so anything positioned above the panel would be cut off. */
+/* The head and its crown move as ONE thing: the crown is positioned against the HEAD's box,
+   not the panel's, and both live in a wrapper that carries the sway. Animating them
+   separately would have needed two transforms kept in sync, and the crown already owns its
+   transform for the tilt. */
+.tCupCelebrate{position:relative;height:88%;margin-bottom:8px;
+ display:flex;align-items:flex-end;justify-content:center;
+ transform-origin:50% 100%;                      /* pivots at the neck, not the middle */
+ animation:tSway 3.1s ease-in-out infinite}
+.tCupCelebrate .tCupBigWrap{width:100%;margin-bottom:0}
+.tCupCelebrate .tCupBig{height:auto;width:100%;margin-bottom:0}
+.tCupCrown{position:absolute;left:50%;top:-6%;height:24%;width:auto;z-index:4;
+ transform:translateX(-50%) rotate(-5deg);transform-origin:50% 100%;
+ pointer-events:none;filter:drop-shadow(0 3px 6px rgba(15,23,42,.3));
+ animation:tCrownIn .52s cubic-bezier(.2,.8,.2,1) .12s both}
+.tCupCrown svg{display:block;height:100%;width:auto}
+@keyframes tSway{0%,100%{transform:rotate(-3.4deg)}50%{transform:rotate(3.4deg)}}
+@keyframes tCrownIn{from{opacity:0;transform:translateX(-50%) rotate(-4deg) translateY(-18px) scale(.7)}
+ to{opacity:1;transform:translateX(-50%) rotate(-4deg) translateY(0) scale(1)}}
+@media(prefers-reduced-motion:reduce){.tCupCrown,.tCupCelebrate{animation:none}}
+
+/* The champion gets the same language at full width, with the trophy as the object. */
+/* ---- CHAMPION CARD, in the SportyBlocks player-card language: an outer shell holding an
+   inner panel, the panel notched at its base by clip-path, the name ghosted huge BEHIND the
+   subject in overlay, and a badge hanging off the bottom edge where that kit puts the squad
+   number. Retuned to our radius and our two weights. ---- */
+.tChamp{position:relative;width:min(420px,92vw);margin:6px auto 0;padding:8px;
+ border:1px solid var(--c100);border-radius:4px;background:var(--c50);
+ animation:tChampIn .46s cubic-bezier(.2,.8,.2,1) both}
+.tChampIn{position:relative;min-height:244px;border-radius:4px;isolation:isolate;color:rgb(var(--ti,255,255,255));
+ background:rgb(var(--tc));
+ /* the notch: a shallow V taken out of the base, so the card reads as a crest not a rectangle */
+ clip-path:polygon(0 0,100% 0,100% 94%,50% 100%,0 94%);
+ display:flex;flex-direction:column;justify-content:flex-end;padding:16px 16px 26px}
+.tChampGhost{position:absolute;left:50%;top:10px;transform:translateX(-50%);
+ font-family:var(--sans);font-weight:600;font-size:76px;line-height:.82;letter-spacing:-.055em;
+ text-transform:uppercase;color:#fff;opacity:.4;mix-blend-mode:overlay;
+ pointer-events:none;white-space:nowrap;z-index:0}
+.tChamp .tCardHead{left:50%;top:44%;transform:translate(-50%,-50%);height:92%;opacity:.6;z-index:1}
+.tChampCup{position:absolute;left:50%;bottom:-14px;transform:translateX(-50%);
+ width:46px;height:46px;padding:6px;box-sizing:border-box;object-fit:contain;z-index:3;
+ border-radius:4px;background:var(--c50);border:1px solid var(--c100);
+ animation:tCupIn .5s cubic-bezier(.2,1.5,.4,1) .18s both}
+.tChamp .tCardBody{align-self:flex-start;text-align:left}
+.tChamp .tCardNm{font-size:30px}
+.tChampFoot{display:flex;align-items:baseline;justify-content:space-between;gap:8px;
+ padding:16px 6px 4px;font-family:var(--sans);font-size:var(--fs-small);color:var(--c950)}
+.tChampFoot b{font-weight:600}
+.tChampFoot span{font-weight:400;color:var(--c500);letter-spacing:.08em;text-transform:uppercase;
+ font-size:var(--fs-caption,12px)}
+@keyframes tChampIn{from{opacity:0;transform:translateY(18px) scale(.965)}to{opacity:1;transform:none}}
+@keyframes tCupIn{from{opacity:0;transform:translateX(-50%) scale(.7)}
+                  to{opacity:1;transform:translateX(-50%) scale(1)}}
+@media(prefers-reduced-motion:reduce){
+ .tCard,.tChamp,.tChampCup{animation:none}
+ .tCard::before,.tChampIn::before{animation:none}
+}
+@media(max-width:560px){
+ .tCards{gap:8px}
+ .tCard{min-height:150px;padding:12px}
+ .tCardNm{font-size:18px}
+ .tCardStats{margin-top:8px}
+}
+.tBrMir .tMiC .tT{min-height:43px}   /* +12%: the final is taller as well as wider */
+
+/* ================= THE FIXTURE LIST =================
+   Structure adapted from the SportyBlocks kit (Standard licence: personal site + modification
+   both permitted; not redistributed as assets). Four ideas taken, retuned to our system --
+   4px radius not rounded-3xl, our two weights, our hairlines, our 4px grid:
+     1. the nested card, so the round label reads as a LEDGE the fixtures sit on, not a row
+     2. the asymmetric VS divider -- short rule, VS, then a flex-1 rule
+     3. a border-drawn triangle pointing at whoever won
+     4. even:flex-row-reverse, so the two sides mirror and face each other
+   Grouped by ROUND rather than by date, because that is what a draw actually has. */
+/* ---- FULL BLEED. The block is the width of the page and runs from directly under the site
+   header down to the tab row, so it reads as a section of the page rather than a card sitting
+   on it. Radius goes with it: an edge-to-edge block has no corners to round. ---- */
+/* The block starts at the top of the SCREEN, not below the header. --tourShift is the
+   distance from the top of the page down to the hero, measured in JS because it differs per
+   breakpoint; the block is pulled up by it and pads its content back down by the same amount,
+   so the head still clears the nav. The nav is a static sibling, so it needs a stacking
+   context of its own or the positioned block paints straight over it. */
+/* Above .tourPanel's z-index:47, below the drawer and scrim at 120/121. At 5 the block sat
+   over the burger, the logo and Play, and they stopped taking clicks entirely. */
+body.hmTour nav{position:relative;z-index:60}
+/* The work tabs stay in FRONT of the block, which runs down past them. The z-index that
+   decides this is NOT the tabs' own: .csTabs lives inside #cases (61) and the block inside
+   .wrap (62), which are separate stacking contexts, so .wrap won wholesale and any value on
+   .csTabs only ordered things within #cases. It is the two SECTIONS that have to be
+   compared. */
+body.hmTour #cases{z-index:63}
+body.hmTour .csTabs{position:relative;z-index:55}
+body.hmTour #tourPanel .tCup{padding-top:var(--tourShift,0px)}
+body.hmTour #tourPanel{left:50%!important;right:auto!important;
+ top:calc(-1 * var(--tourShift,0px))!important;
+ width:min(460px,calc(100vw - 40px))!important;max-width:none!important;
+ /* The panel carried max-height:calc(100% - 64px) from when it was a floating card in the
+    hero. As a full-bleed block that cap is just a smaller ceiling to be clipped against. */
+ max-height:none!important;
+ /* top:0 AND bottom:0 -- the panel is stretched to the hero by the layout itself, so the
+    block reaches the bottom whatever the scroll position and whether or not JS has run.
+    Sizing this from the viewport in JS was wrong: once the block was taller than the screen
+    you scrolled, and its bottom no longer lined up with anything. */
+ bottom:0!important;
+ transform:translateX(-50%)!important}
+body.hmTour #tourPanel .tCup{width:100%;max-width:none;margin:0;
+ border-radius:28px;
+ /* flex:0 0 auto, not the inherited 0 1 auto. #tourPanel is a flex COLUMN, so a shrinkable
+    item gets squeezed below its own content -- the block measured 664px against 721px of
+    content and the schedule spilled out of the bottom of its own frame. */
+ flex:0 0 auto;
+ /* Fills the stretched panel, so the block ends exactly at the bottom of the hero. MIN, so
+    content taller than the hero grows it rather than being cut. */
+ min-height:100%}
+
+body.hmTour:not(.tSchedOpen) #tourPanel .tCup{height:auto;overflow:visible}
+/* the head is the only child touching the top edge, so it carries the round when the cup does not */
+body.hmTour #tourPanel .tCupHead{border-radius:28px 28px 0 0}
+/* The matchup panels keep their colour fill. The idle bob stays: the two heads offset so
+   they are never in lockstep, so the card reads as two players waiting rather than two
+   stickers. */
+body.hmTour #tourPanel .tCupBig{animation:tIdleBob 3.6s ease-in-out infinite}
+body.hmTour #tourPanel .tCupSide:last-child .tCupBig{animation-delay:-1.5s;animation-duration:4.1s}
+@keyframes tIdleBob{
+ 0%,100%{transform:translateY(0) rotate(-1.1deg)}
+ 50%    {transform:translateY(-7px) rotate(1.1deg)}}
+@media(prefers-reduced-motion:reduce){
+ body.hmTour #tourPanel .tCupBig{animation:none}}
+body.hmTour #tourPanel .tCupCard{margin:0;border-radius:28px 28px 0 0;box-shadow:none;border:0;overflow:hidden}
+/* The schedule is the block's LAST child, so the bottom corners are its to round -- and it
+   has to clip, or the rows paint straight over the curve. */
+body.hmTour #tourPanel .tCupSched{border-radius:0 0 28px 28px;overflow:hidden}
+body.hmTour #tourPanel .tCupMatch{margin:0}
+body.hmTour #tourPanel .tCupActs{padding-left:0;padding-right:0}
+body.hmTour #tourPanel .tCupSchedIn{padding-left:0;padding-right:0}
+body.hmTour #tourPanel .tCupRd{border-radius:0;box-shadow:none;border-top:0}
+/* Ordinary padding: the block is a centred column, so no measure compensation is needed. */
+body.hmTour #tourPanel .tCupHead,
+body.hmTour #tourPanel .tCupCard,
+body.hmTour #tourPanel .tCupActs,
+body.hmTour #tourPanel .tCupSched>.tCupSchedHd,
+body.hmTour #tourPanel .tCupSchedIn{padding-inline:20px}
+
+/* ---- The capsule runs the FULL HEIGHT of the hero while the schedule is open, and the
+   hero collapses to the capsule when it is closed. min-height is the animated property so
+   the page reflows in one movement rather than the panel jumping inside a fixed hero. ---- */
+body.hmTour .hero{transition:min-height .42s cubic-bezier(.2,.8,.2,1)}
+
+
+
+body.hmTour.tSchedOpen #tourPanel .tCupSched{display:block}
+/* No min-height. A min-height always beats a max-height, so any value here overrides the
+   measured, row-snapped height -- at 132 it shoved the block 31px past the hero, at 96 it
+   sliced a row. The JS floor is one whole row. */
+body.hmTour.tSchedOpen #tourPanel .tCupSchedIn{
+ overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+@media(prefers-reduced-motion:reduce){ body.hmTour .hero{transition:none} }
+
+/* ================= THE CUP CAPSULE =================
+   One container: title, matchup, kick off, and a collapsible schedule. Geometry follows the
+   SportyBlocks kit -- 24px radius, var(--c50) shell, white inner card, 32px padding, 20px gap,
+   1px var(--c100) hairlines -- so the matchup and the schedule read as one object rather than two
+   components stacked. */
+.tCup{width:min(420px,92vw);margin:0 auto;box-sizing:border-box;
+ border-radius:4px;background:var(--c50);
+ font-family:var(--sans);color:var(--c950)}
+.tCupHead{position:relative;padding:24px 24px 16px;text-align:center}
+/* both lines are ONE h1: the cup names itself, the round says where we are in it */
+.tCupH1{margin:0;width:100%;max-width:none;font-weight:600;font-size:var(--fs-h1);line-height:1.05;
+ letter-spacing:-.02em;color:var(--c950);text-align:center;filter:none}
+.tCupH1 .tCupRound{display:block;margin-top:8px;font-weight:400;font-size:var(--fs-caption,12px);line-height:1.1;
+ letter-spacing:.14em;text-transform:uppercase;color:var(--c500)}
+/* the trophy, with a glisten that sweeps across it */
+.tCupTrophy{position:relative;width:56px;height:56px;margin:0 auto 12px;display:block}
+.tCupTrophy img{width:100%;height:100%;object-fit:contain;display:block}
+/* The glisten is a band that SLIDES across, clipped to the trophy's own alpha. Animating
+   background-position was the wrong tool -- with a 280% background the highlight never
+   actually crossed the element -- and a transform stays on the compositor anyway. The mask
+   sits on the wrapper so it clips both the cup and the sweep. */
+.tCupTrophy{-webkit-mask-image:var(--tropMask);mask-image:var(--tropMask);
+ -webkit-mask-size:contain;mask-size:contain;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;
+ -webkit-mask-position:center;mask-position:center}
+.tCupGlint{position:absolute;top:-15%;bottom:-15%;left:0;width:72%;pointer-events:none;
+ background:linear-gradient(100deg,transparent 0%,rgba(255,255,255,0) 34%,
+   rgba(255,255,255,.30) 45%,rgba(255,255,255,.72) 50%,rgba(255,255,255,.30) 55%,
+   rgba(255,255,255,0) 66%,transparent 100%);
+ animation:tGlint 4.6s cubic-bezier(.42,0,.3,1) infinite}
+@keyframes tGlint{0%{transform:translateX(-105%)}38%,100%{transform:translateX(175%)}}
+
+/* ---- THE MATCHUP. Two colour panels side by side, each head rising OUT of the top of its
+   panel rather than sitting inside it -- that overhang is what gives the block depth without
+   a shadow. The panel clips nothing; the head is positioned against the panel's baseline and
+   is simply taller than it. ---- */
+.tCupCard{position:relative;margin:0 12px;border-radius:28px 28px 4px 4px;background:var(--c50);
+ box-shadow:inset 0 0 0 1px var(--c100);padding:0 16px 16px;overflow:hidden}
+.tCupMatch{display:grid;grid-template-columns:1fr 1fr;align-items:start;gap:4px;
+ margin:0 -16px}          /* full bleed to the card's edges */
+.tCupSide{position:relative;min-width:0}
+.tCupPanel{position:relative;height:clamp(152px,26vh,272px);overflow:hidden;
+ background:rgb(var(--tc));display:flex;align-items:flex-end;justify-content:center;
+ border-radius:4px 4px 0 0}
+.tCupSide:first-child .tCupPanel{border-radius:28px 0 0 0}
+.tCupSide:last-child  .tCupPanel{border-radius:0 28px 0 0}
+/* The champion is a lone panel, so it is BOTH :first-child and :last-child -- and :last-child
+   wins, which squared off its left corner. A solo side rounds both top corners. */
+.tCupSide:only-child  .tCupPanel{border-radius:28px 28px 0 0}
+/* No watermark. A single initial at this size read as a smudge rather than a mark -- the
+   reference carries a large high-contrast crest, and a letter is not that. */
+/* Sized by WIDTH, not height. The cuts are not a consistent shape -- a tall narrow crop and
+   a short wide one both set to 88% height render visibly different faces in identical panels,
+   which is the thing that read as assembled rather than composed. Width is the axis the
+   panels actually share. */
+/* Masked to the same cut as the head and sized identically, so it lands exactly on it.
+   mix-blend-mode:color takes the HUE and leaves the luminance, which is why the face keeps its
+   modelling instead of flattening into a silhouette. */
+.tCupBigWrap{position:relative;width:62%;margin-bottom:8px;z-index:2;display:block;
+ pointer-events:none}
+.tCupBigWrap .tCupBig{position:relative;width:100%;height:auto;max-height:none;margin:0;
+ display:block}
+.tCupTint{position:absolute;inset:0;z-index:3;pointer-events:none;
+ background:rgb(var(--tc));mix-blend-mode:color;opacity:.82;
+ -webkit-mask-size:100% 100%;mask-size:100% 100%;
+ -webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;
+ -webkit-mask-position:center;mask-position:center}
+.tCupCelebrate .tCupTint{display:none}   /* the champion keeps his own colours */
+/* The live round, so the schedule reads as "you are here" rather than repeating the h1.
+   Recoloured for the painted plane (Step 2): .tCupRdH now sits on --cupPaint, so the near-
+   black --c950 it used on the old light card is gone -- the live accent (same green as
+   .tkDot) both reads on paint and ties the round marker to the live-fixture marker below it. */
+.tCupRdH.tRdNow{color:var(--accent-live,#17A45A)}
+.tCupRdH.tRdNow::after{content:"";display:inline-block;width:5px;height:5px;border-radius:50%;
+ background:var(--accent-live,#17A45A);margin-left:8px;vertical-align:middle;
+ box-shadow:0 0 6px rgba(23,164,90,.55)}
+.tCupBig{position:relative;width:62%;height:auto;max-height:92%;margin-bottom:8px;
+ z-index:2;pointer-events:none;display:block;
+ /* A ring in the team's colour, so the head belongs to its panel without being recoloured.
+    SEVEN offsets, not four: CSS filters chain, so N shadows compound to about (N/pi)*r --
+    at N=7 the result is a 14-gon (2.6% thickness variation) where N=4 is a square (41%).
+    r = 3 / 2.228 = 1.35px for a 3px ring. */
+ filter:
+  drop-shadow(1.35px 0 0 rgb(var(--tc)))
+  drop-shadow(.84px 1.06px 0 rgb(var(--tc)))
+  drop-shadow(-.3px 1.32px 0 rgb(var(--tc)))
+  drop-shadow(-1.22px .59px 0 rgb(var(--tc)))
+  drop-shadow(-1.22px -.59px 0 rgb(var(--tc)))
+  drop-shadow(-.3px -1.32px 0 rgb(var(--tc)))
+  drop-shadow(.84px -1.06px 0 rgb(var(--tc)))
+  drop-shadow(0 4px 10px rgba(15,23,42,.16))}
+.tCupMeta{margin-top:16px;padding:0 8px;text-align:center;min-width:0}
+.tCupNm{font-weight:600;font-size:var(--fs-small,15px);line-height:1.2;color:var(--c950);
+ white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tCupSc{display:block;margin-top:2px;font-weight:600;font-size:22px;line-height:1.1;
+ color:var(--c950);font-variant-numeric:tabular-nums}
+.tCupVs{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);z-index:3;
+ font-weight:600;font-size:var(--fs-small,15px);line-height:1.2;color:var(--c950)}
+
+/* The team ring comes OFF inside the matchup panel. It exists to separate a head from a
+   background that does not match it -- on the pitch, and in the schedule thumbnails, it earns
+   that. Here the panel IS the team colour, so it was a green ring on green: all it did was
+   soften the silhouette the panel was already defining. It stays everywhere else. */
+body.hmTour #tourPanel .tCupPanel .tCupBig{filter:drop-shadow(0 4px 10px rgba(15,23,42,.16))}
+/* Both actions on one width and one axis. Kick off was a filled content-width box and End
+   tournament was bare text at a different width -- the same decision point rendered in two
+   different systems, so the eye had to re-find the second one. */
+body.hmTour #tourPanel .tCupActs{gap:4px}
+body.hmTour #tourPanel .tCupGo,
+body.hmTour #tourPanel .tCupQuit{width:auto;min-width:196px;align-self:center}
+.tCupActs{display:flex;flex-direction:column;align-items:center;gap:8px;padding:12px 12px 14px}
+/* Layout only. Colour, type, padding, radius and the hover wash come from the shared button
+   system (.hmBtn / .hmBtn.hmBtnPrimary). And they size to their CONTENT like every other
+   button -- stretched to the block's full width they were the only controls on the site whose
+   width came from their container rather than their padding. */
+.tCupQuit{display:inline-flex;width:auto;box-sizing:border-box;
+ transition:color .16s cubic-bezier(.2,.8,.2,1),border-color .16s cubic-bezier(.2,.8,.2,1)}
+.tCupQuit:hover,.tCupQuit:focus-visible{color:var(--c950);border-color:var(--c500)}
+.tCupQuit.tQuitArmed{color:#b3402e;border-color:#b3402e}
+.tCupGo{display:inline-flex;width:auto;margin:0;box-sizing:border-box;
+ transition:opacity .16s cubic-bezier(.2,.8,.2,1)}
+.tCupGo:hover,.tCupGo:focus-visible{opacity:.88}
+
+/* the schedule is always open now -- no <details> any more (see .tCupSchedIn below) */
+/* One separator, and it is INSET to the content edge rather than running the full width of
+   the block. Three full-bleed rules within 60px of each other read as a table; an inset hair
+   reads as a boundary. The round label below is uppercase and spaced -- it already separates
+   itself and does not need a rule of its own. */
+.tCupSched{background:var(--c50);position:relative}
+.tCupSched::before{content:"";position:absolute;left:20px;right:20px;top:0;height:1px;
+ background:var(--c100)}
+/* The header STAYS on the light card -- only .tCupSchedIn below becomes the painted plane --
+   so .tkDist (Step 1) takes --c500, the light-mode secondary, not the paint-mode one. */
+.tCupSched>.tCupSchedHd{padding:14px 20px 10px;
+ display:flex;align-items:center;justify-content:space-between;gap:8px;
+ font-weight:600;font-size:var(--fs-caption,12px);letter-spacing:.08em;text-transform:uppercase;color:var(--c950)}
+.tkDist{font-weight:400;font-size:var(--fs-caption,12px);letter-spacing:.06em;
+ text-transform:uppercase;color:var(--c500)}
+
+/* ---- THE DRAW BOARD. The schedule is a painted plane of printed tickets.
+   A fixture is a ticket; a played fixture is a TORN ticket with the score
+   stamped on. Tickets are printed things: stock ground, perforation, serial. */
+.tCupSchedIn{background:var(--cupPaint,#2b2f2a);border-radius:10px;
+ padding:12px 12px 14px;position:relative;
+ box-shadow:var(--bc-contact),var(--bc-cast),inset 0 0 46px rgba(0,0,0,.30);
+ /* the scroller behaviour is unchanged -- syncHero() still snaps this to a whole ticket row */
+ max-height:min(40vh,330px);overflow-y:auto;
+ overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+/* Pure grouping now -- the old white card-on-card (background:#fff) painted a bright box
+   behind every round once .tCupSchedIn went dark, which read as a leftover UI panel sitting
+   on top of the board rather than tickets laid on it. */
+.tCupRd{overflow:visible}
+.tCupRd+.tCupRd{margin-top:10px}
+.tCupRdH{padding:10px 6px 6px;color:#cfccbe;font-size:11px;letter-spacing:.16em;
+ text-transform:uppercase;font-weight:400}
+.tCupFx{position:relative;display:flex;align-items:center;gap:10px;
+ background:var(--cupStock,#f1ece0);border-radius:4px;padding:10px 84px 10px 12px;
+ margin:8px 2px;box-shadow:var(--bc-contact),var(--bc-cast);color:#242116}
+.tCupFx .tCupFxNm{font-weight:600;font-size:13px;color:#242116}
+.tCupFxSide{display:flex;align-items:center;gap:12px;min-width:0;flex:1 1 0}
+.tCupFxSide:last-of-type{flex-direction:row-reverse}
+/* The whole head, inside a colour tile. Cropping it to the middle of the face showed a pair
+   of eyes and nothing else -- a cut-out has no body to crop into, so it is contained, not
+   covered. 48px tile, head at 40px: both on the grid. */
+/* An undecided fixture has no team, so --tc falls back to grey and the ring drew an empty
+   outlined box that read as a real entry with a missing head. No team, no ring. */
+.tCupFx.tFxTbd .tCupDot{box-shadow:none}
+.tCupDot{flex:0 0 48px;width:48px;height:48px;position:relative;overflow:visible;
+ /* Same as the scoreboard: no square, the outline traces the head itself. */
+ background:none;border-radius:0;
+ display:flex;align-items:center;justify-content:center}
+.tCupDot img{height:40px;width:auto;max-width:100%;object-fit:contain;display:block;
+ filter:
+  drop-shadow(1.2px 0 0 rgb(var(--tc,148,163,184)))
+  drop-shadow(-1.2px 0 0 rgb(var(--tc,148,163,184)))
+  drop-shadow(0 1.2px 0 rgb(var(--tc,148,163,184)))
+  drop-shadow(0 -1.2px 0 rgb(var(--tc,148,163,184)))}
+.tCupFxNm{font-weight:600;font-size:var(--fs-small,15px);line-height:1.2;color:var(--c950);min-width:0;
+ white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tCupFxSide:not(.tCupWon) .tCupFxNm{font-weight:400;color:var(--c500)}
+/* pending (both sides TBD): the whole ticket fades, echoing .tCupFxSc.tCupPend below */
+.tCupFx.tkPend{opacity:.5}
+.tCupFx.tkPend .tCupFxNm{color:#6d685a;font-weight:400}
+.tCupFxSc{flex:0 0 auto;display:inline-flex;align-items:center;gap:4px;
+ font-weight:600;font-size:13px;color:#242116;font-variant-numeric:tabular-nums;padding:0}
+.tCupFxSc.tCupPend{font-weight:400;color:#6d685a}
+/* the arrow points at the score from the winner's side, so the result reads at a glance */
+.tCupArrow{width:0;height:0;border:4px solid transparent;flex:0 0 auto}
+.tCupArrow.tArrL{border-left-color:#242116;border-right-width:0}
+.tCupArrow.tArrR{border-right-color:#242116;border-left-width:0}
+/* the stub: perforation + serial, ADMIT-ONE grammar */
+.tkStub{position:absolute;top:0;bottom:0;right:0;width:74px;
+ border-left:2px dashed rgba(24,20,12,.30);display:flex;flex-direction:column;
+ align-items:center;justify-content:center;gap:2px}
+.tkSerial{font-size:11px;letter-spacing:.05em;color:#4b463a}
+.tkDot{position:absolute;left:-3px;top:50%;width:6px;height:6px;border-radius:50%;
+ transform:translateY(-50%);background:var(--accent-live,#17A45A);
+ box-shadow:0 0 8px rgba(23,164,90,.55)}
+/* torn: the played ticket's stub edge goes ragged */
+.tkTorn .tkStub{border-left:0;
+ -webkit-clip-path:polygon(6% 0,100% 0,100% 100%,2% 100%,9% 88%,3% 76%,10% 63%,4% 50%,9% 38%,3% 26%,8% 13%);
+ clip-path:polygon(6% 0,100% 0,100% 100%,2% 100%,9% 88%,3% 76%,10% 63%,4% 50%,9% 38%,3% 26%,8% 13%);
+ background:rgba(24,20,12,.05)}
+.tkStamp{display:inline-block;transform:rotate(-4deg);font-size:15px;color:#37311f;
+ border:2px solid rgba(55,49,31,.55);border-radius:3px;padding:0 .3em;line-height:1.3}
+.tCupFx.tkTear .tkStub{animation:tkTearOff .4s cubic-bezier(.4,0,.2,1) both}
+@keyframes tkTearOff{0%{transform:translateX(0) rotate(0)}
+ 55%{transform:translateX(4px) rotate(1.6deg)}100%{transform:translateX(0) rotate(.6deg)}}
+.tCupFx.tkTear .tkStamp{animation:tkStampIn .3s .18s cubic-bezier(.2,.9,.3,1.4) both}
+@keyframes tkStampIn{0%{transform:rotate(-14deg) scale(1.7);opacity:0}
+ 100%{transform:rotate(-4deg) scale(1);opacity:1}}
+@media (prefers-reduced-motion: reduce){
+ .tCupFx.tkTear .tkStub,.tCupFx.tkTear .tkStamp{animation:none}}
+@media(prefers-reduced-motion:reduce){
+ .tCupTrophy::after{animation:none;opacity:0}
+}
+
+/* ================= LIVE SCOREBOARD =================
+   Started as a faithful translation of SportyBlocks' Scoreboard1, then a materials rebuild
+   (painted plate, split-flap Archivo digits, grain, --bc-contact/--bc-cast light + shadow)
+   that kept Scoreboard1's vertical-stack LAYOUT. Superseded again 2026-07-30 (Jayden's call --
+   see docs/superpowers/specs/2026-07-30-tournament-broadcast-design.md, Scoreboard section):
+   the layout is now a single horizontal bar, radically simplified -- per side exactly head,
+   name, one colour signal (the head's own team-colour ring), flap digit. Nothing else. The
+   MATERIAL -- paint, grain, jitter, shadows, radius -- is unchanged by this pass. */
+.hmScore .sbCard{box-sizing:border-box;width:max-content;max-width:94vw;
+ border-radius:10px;background:var(--cupPaint,#2b2f2a);padding:0;
+ box-shadow:var(--bc-contact),var(--bc-cast),inset 0 0 46px rgba(0,0,0,.30);
+ font-family:var(--sans);color:#ece9dd;position:relative}
+/* THE TROPHY rides on top of the board for the FINAL only, then is handed over at the whistle.
+   Standing the prize on the scoreboard before it is won is the sourced move -- CS Majors put
+   the physical trophy on a pedestal in front of the players during playoffs, NBA Cup courts
+   put it huge at centre court. It is the cheapest possible anticipation beat: the thing being
+   played for is visible while it is still being contested. */
+.sbTrophy{position:absolute;left:50%;bottom:calc(100% - 10px);transform:translateX(-50%);
+ width:clamp(46px,7vw,66px);height:auto;pointer-events:none;z-index:2;display:none;
+ filter:drop-shadow(0 6px 14px rgba(15,23,42,.26))}
+body.hmFinal .sbTrophy{display:block;animation:sbTrophyIn .5s cubic-bezier(.2,.8,.2,1) both}
+@keyframes sbTrophyIn{from{opacity:0;transform:translateX(-50%) translateY(10px) scale(.9)}
+ to{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}}
+/* Handed over: lifted out of the board and flown to the winner, then it rides with them.
+   OFF TO THE SIDE, never centred on the face -- the head is the subject and the eyes and brow
+   are the part worth never covering. */
+.hmTrophyFly{position:fixed;z-index:66;width:clamp(46px,7vw,66px);height:auto;
+ pointer-events:none;filter:drop-shadow(0 8px 18px rgba(15,23,42,.32))}
+@media(prefers-reduced-motion:reduce){body.hmFinal .sbTrophy{animation:none}}
+
+/* SCOREBOARD -- single horizontal bar, content-hugging pill. Refined 2026-07-30 (Jayden,
+   second pass): "more compact and minimal and balanced... it doesn't look like it's in the
+   middle and there is a lot of unnecessary spacing." Root cause of the off-centre read: the
+   old flex row used justify-content:space-between with unequal name widths, so the digit
+   group drifted wherever the names happened to push it. Fixed with a symmetric 3-column grid
+   -- 1fr auto 1fr -- rather than flex: two EQUAL-fr side columns each size to the WIDER
+   side's content (the grid "find the size of an fr" algorithm), so the dash in the auto
+   centre column always sits at true bar-centre no matter how the two names differ in length.
+   Each side is its own flex row, pulled TOWARD the dash with justify-content (flex-end on the
+   left, flex-start on the right) so the shorter name's slack collapses toward the middle
+   instead of toward the outer edge. .sbCard itself is width:max-content -- the bar hugs its
+   content instead of claiming a fixed panel width. */
+.sbInner{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:12px;
+ padding:12px 14px}
+.sbTeam{display:flex;align-items:center;gap:12px;min-width:0}
+.sbInner>.sbTeam:first-child{justify-content:flex-end}
+.sbInner>.sbTeam:last-child{justify-content:flex-start}
+/* --tc is the bare "r,g,b" triplet (see the rgba(var(--tc),a) convention documented at the
+   top of the file) -- wrapping it in rgb() is required, var(--tc) alone is not a colour. */
+.sbNm{color:#ece9dd;font-weight:600;font-size:13px;letter-spacing:.09em;
+ text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+ min-width:0;flex:1 1 auto}
+.sbScore{font-size:40px;display:flex;align-items:center;flex:0 0 auto}
+/* dim divider glyph only -- no rule lines, no "multiple colour lines and all that" */
+.sbVs{flex:0 0 auto;color:#77746a;font-size:20px;font-weight:600;line-height:1;padding:0 2px}
+/* Mobile is the acceptance bar for this layout -- it previously failed here at a bigger scale
+   (that's why it was a stack before); the simplification is what makes one row viable: faces
+   shrink, names ellipsize, nothing needs to wrap. Scoped, never bare. */
+@media(max-width:480px){
+ .hmScore:has(.sbCard) .sbInner{gap:8px;padding:10px 12px}
+ .hmScore:has(.sbCard) .sbTeam{gap:8px}
+ .hmScore:has(.sbCard) .sbFace{flex:0 0 24px;width:24px;height:24px}
+ .hmScore:has(.sbCard) .sbDot{flex:0 0 20px;width:20px;height:20px}
+ .hmScore:has(.sbCard) .sbNm{font-size:10.5px;letter-spacing:.05em}
+ .hmScore:has(.sbCard) .sbScore{font-size:28px}
+ .hmScore:has(.sbCard) .sbVs{font-size:15px}
+}
+
+
+/* No square at all. The outline traces the HEAD, the way it does on the pitch -- a box, even
+   an empty one, draws a rectangle around a shape that is not a rectangle. Four offsets rather
+   than a stack: CSS filters CHAIN, so a long stack compounds the thickness instead of adding
+   to it, and at 32px one pixel is the whole line. */
+.sbFace{flex:0 0 30px;width:30px;height:30px;display:inline-flex;align-items:center;
+ justify-content:center;overflow:visible;background:none}
+.sbFace img{filter:
+  drop-shadow(1px 0 0 rgb(var(--tc,148,163,184)))
+  drop-shadow(-1px 0 0 rgb(var(--tc,148,163,184)))
+  drop-shadow(0 1px 0 rgb(var(--tc,148,163,184)))
+  drop-shadow(0 -1px 0 rgb(var(--tc,148,163,184)))}
+/* THE GOAL FLASH. The board lights up in the scorer's colour for a beat, then settles.
+   A ring plus a soft bloom rather than a fill, so the score stays readable through it --
+   the number is the thing you are looking at when a goal goes in. */
+.hmScore .sbCard{transition:box-shadow .5s cubic-bezier(.2,.8,.2,1)}
+.hmScore.sbHit .sbCard{
+ box-shadow:0 0 0 3px rgb(var(--sbFlash,148,163,184)),
+            0 0 44px -4px rgba(var(--sbFlash,148,163,184),.72);
+ animation:sbFlashPulse .42s cubic-bezier(.2,.8,.2,1) 3}
+@keyframes sbFlashPulse{
+ 0%{box-shadow:0 0 0 0 rgb(var(--sbFlash,148,163,184)),0 0 0 0 rgba(var(--sbFlash,148,163,184),0)}
+ 22%{box-shadow:0 0 0 4px rgb(var(--sbFlash,148,163,184)),0 0 54px 2px rgba(var(--sbFlash,148,163,184),.85)}
+ 100%{box-shadow:0 0 0 0 rgba(var(--sbFlash,148,163,184),0),0 0 0 0 rgba(var(--sbFlash,148,163,184),0)}}
+@media(prefers-reduced-motion:reduce){.hmScore.sbHit .sbCard{animation:none}}
+.sbFace img{max-width:100%;max-height:100%;width:auto;height:auto;display:block}
+.sbDot{flex:0 0 22px;width:22px;height:22px;border-radius:50%;background:rgb(var(--tc,230,230,230))}
+
+/* Leader full ink, trailer dimmed -- the digit AND the name. board2() toggles .sbTrail on the
+   .sbScore element (unchanged from before the rebuild), which is a descendant of the digit
+   but a SIBLING of .sbNm, not its ancestor -- so the name needs the :has() route back up to
+   the shared .sbTeam row rather than a plain descendant selector. */
+.sbTrail .bcCell{opacity:.62}
+.sbTeam:has(.sbTrail) .sbNm{opacity:.62}
+/* clutch: the plate whose NEXT goal ends the match takes a thin emerald edge -- match point,
+   named on the plate itself rather than in a shout that scrolls past and is gone. */
+.sbClutch .bcCell{box-shadow:var(--bc-contact),var(--bc-cast),
+ 0 0 0 1.5px rgba(23,164,90,.85),0 0 12px rgba(23,164,90,.35)}
+
+
+
+
+/* The round name, on the ledge. Sits left of the win condition and separated from it by the
+   same hairline the VS divider uses, so it reads as a second field rather than a badge. */
+/* nowrap on BOTH fields. The ledge is a flex row on a 340px card, so a long round name
+   ("Quarter-final") wrapped to a second line and shoved the ledge taller, while a short one
+   ("Final") never did -- the row changed height depending on which round you were in.
+   Neither field may wrap; the label sheds its letter-spacing before it sheds a line. */
+.sbRound{font-weight:600;font-size:11px;line-height:1;letter-spacing:.14em;
+ text-transform:uppercase;color:#b9b6a8;white-space:nowrap;flex:0 0 auto;
+ padding-right:9px;margin-right:1px;border-right:1px solid rgba(236,233,221,.14)}
+.sbFoot .sbMeta{white-space:nowrap;flex:0 0 auto}
+/* #9E6C00 read fine as ink-on-light-card gold; on the painted plate it is dark-on-dark and
+   fails contrast, so the final's label takes a brighter warm gold instead -- same idea
+   (the round that matters gets its own colour), tuned for the new material. */
+body.hmFinal .sbRound{color:#e8b347}
+.sbFoot{display:flex;justify-content:space-between;align-items:center;gap:8px;
+ padding:7px 14px;font-weight:600;font-size:10px;line-height:1.1;color:#b9b6a8;
+ /* The card owns its own 10px radius and the ledge no longer paints its own background --
+    it sits directly on the plate now, so it has no corners of its own left to carry. The
+    ledge's own horizontal padding matches .sbInner's (14px) -- round·rule sits at the same
+    inset as the head above it, End at the same inset as the far head, so the two rows read as
+    one balanced object rather than two independently-margined bars. Width follows the card's
+    hugged width automatically; nothing here sets it explicitly. */
+ border-top:1px solid rgba(236,233,221,.14)}
+.sbMeta{display:inline-flex;align-items:center;gap:6px}
+.sbMeta .sBall{width:14px;height:14px;object-fit:contain}
+.hmScore .hmScoreEnd{color:#b9b6a8;font-weight:600;font-size:11px;padding:6px 8px;min-height:0;
+ border-radius:8px;transition:color .16s cubic-bezier(.2,.8,.2,1),background-color .16s cubic-bezier(.2,.8,.2,1)}
+.hmScore .hmScoreEnd:hover,.hmScore .hmScoreEnd:focus-visible{color:#ece9dd;background:rgba(236,233,221,.12)}
+.hmScore .hmScoreEnd svg{width:13px;height:13px;stroke-width:1.6;fill:none}
+/* THE BOARD IS A PRINTED OBJECT: matte painted plane, light plates, no ink filter -- an ink
+   filter here would ALSO break the 3D flap cells (filter on an ancestor creates a stacking
+   context that flattens their rotateX). Cup identity paints the plate during tournaments;
+   the defaults above are the plain-soccer board. */
+.hmScore:has(.sbCard){width:auto;align-items:center;gap:0;filter:none}
+
+.tRes{width:min(560px,92vw);margin:6px auto 0;display:flex;flex-direction:column;gap:10px}
+.tResGroup{border:1px solid var(--c100);border-radius:4px;background:var(--c75,#F4F4F4);overflow:hidden}
+.tResHead{padding:8px 16px;text-align:center;font-family:var(--sans);font-weight:600;
+ font-size:var(--fs-caption,12px);letter-spacing:.08em;text-transform:uppercase;color:var(--c700)}
+.tResBody{background:var(--c50);border-top:1px solid var(--c100)}
+.tResRow{display:grid;grid-template-columns:1fr 1fr;gap:0 14px;padding:10px 16px;
+ border-bottom:1px solid var(--c100)}
+.tResRow:last-child{border-bottom:0}
+.tResSide{display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0}
+.tResSide:nth-child(2){flex-direction:row-reverse}          /* the two sides face each other */
+.tResWho{display:flex;align-items:center;gap:8px;min-width:0}
+.tResSide:nth-child(2) .tResWho{flex-direction:row-reverse}
+.tResFace{flex:0 0 22px;width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center}
+.tResFace img{max-width:100%;max-height:100%;width:auto;height:auto;display:block}
+.tResNm{font-family:var(--sans);font-weight:400;font-size:var(--fs-small);color:var(--c950);
+ white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.tResScore{display:inline-flex;align-items:center;gap:6px;font-family:var(--sans);font-weight:400;
+ font-size:var(--fs-small);color:var(--c950);font-variant-numeric:tabular-nums;flex:0 0 auto}
+/* the winner: weight, ink, and a triangle -- never colour alone (WCAG 1.4.1) */
+.tResSide.tResWon .tResNm,.tResSide.tResWon .tResScore{font-weight:600}
+.tResSide:not(.tResWon) .tResNm,.tResSide:not(.tResWon) .tResScore{color:var(--c500)}
+.tResSide:not(.tResWon) .tResFace img{filter:grayscale(1);opacity:.55}
+.tResTri{width:0;height:0;border:4px solid transparent;border-left-color:var(--c950);flex:0 0 auto}
+.tResSide:nth-child(2) .tResTri{border-left-color:transparent;border-right-color:var(--c950)}
+.tResSide:not(.tResWon) .tResTri{display:none}
+/* pending fixture: no score yet, so the row says who it is waiting on */
+.tResVs{align-self:center;font-family:var(--sans);font-weight:400;font-size:var(--fs-caption,12px);
+ letter-spacing:.1em;text-transform:uppercase;color:var(--c500)}
+.tResRow.tResLive{background:var(--c75,#F4F4F4);box-shadow:inset 2px 0 0 var(--accent)}
+@media(max-width:560px){
+ .tResRow{grid-template-columns:1fr;gap:6px}
+ .tResSide:nth-child(2),.tResSide:nth-child(2) .tResWho{flex-direction:row}
+ .tResSide:nth-child(2) .tResTri{border-right-color:transparent;border-left-color:var(--c950)}
+}
+.tFinalCrown{grid-column:var(--gc,auto);grid-row:1;justify-self:center;align-self:end;
+ width:40px;height:40px;margin-bottom:4px;object-fit:contain;pointer-events:none}
+
+/* Material's choreography: start each item's entrance no more than 20ms after the
+   last and never wait for one to finish before the next begins */
+@keyframes tCardIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.tBrMir .tMi{animation:tCardIn .34s cubic-bezier(.2,.8,.2,1) both;animation-delay:var(--tin,0ms)}
+
+/* DEPTH. BUCK built the VALORANT Champions package on "a flexible, three-dimensional
+   perspective grid" and moved the camera through it -- depth from a receding plane,
+   not from shadows on cards. One pitch, drawn in the site's own hairline. */
+.tPitch{position:absolute;left:50%;bottom:0;width:150%;height:60%;
+ transform:translateX(-50%);transform-origin:50% 100%;
+ background:radial-gradient(120% 90% at 50% 108%,rgba(18,18,18,.055) 0%,rgba(18,18,18,.022) 46%,transparent 72%);
+ -webkit-mask-image:linear-gradient(to top,#000 0%,transparent 76%);
+ mask-image:linear-gradient(to top,#000 0%,transparent 76%);
+ pointer-events:none;z-index:0}
+
+/* THE CROWD. Real heads, in the stand, on the 8fps clock -- the same cut-outs that
+   are playing. Decorative, so aria-hidden and no names. */
+/* ---- THE STAND. Was a 74px box with overflow:hidden and fans at bottom:-12px, which
+   chopped every face in half -- they read as floating foreheads. A crowd is a BACKDROP,
+   so it is treated like one: no hard clip anywhere, and a mask-image gradient dissolves
+   the back of the stand instead of cutting it. -webkit- first: Safari only shipped
+   unprefixed mask-image in 15.4. ---- */
+.tCrowd{position:absolute;left:0;right:0;bottom:0;height:126px;pointer-events:none;z-index:1;
+ -webkit-mask-image:linear-gradient(to top,#000 0 30%,rgba(0,0,0,.5) 66%,transparent 100%);
+         mask-image:linear-gradient(to top,#000 0 30%,rgba(0,0,0,.5) 66%,transparent 100%)}
+/* Depth of field does the work: the front row is sharp, the back rows go soft -- exactly how
+   Madden's UI backgrounds were shot (close, shallow DOF, desaturated) so the backdrop SUPPORTS
+   the interface rather than competing with it. --fb is per-fan blur, set inline.
+   No infinite bob: an auto-starting >5s loop presented in parallel with other content is a
+   WCAG 2.2.2 Level A concern, and a stand should be atmosphere, not a fidget.
+   contrast/brightness: grayscale(1) ALONE made the photographic heads punch through the flat
+   eggheads -- a flat-coloured image has almost no mid-tone texture, so it collapses to one
+   solid value and reads HEAVIER than a photo at the same luminance. Contrast cannot fix that;
+   opacity has to, which is why the per-source weights are set inline. */
+.tFan{position:absolute;background-repeat:no-repeat;background-size:contain;background-position:center bottom;
+ filter:grayscale(1) contrast(.5) brightness(1.28) blur(var(--fb,0px))}
+@keyframes tCheer{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+@media(prefers-reduced-motion:reduce){.tFan{animation:none}.tBrMir .tMi{animation:none}}
+
+/* the way out was --c700 text in a --c100 box: technically present, practically
+   invisible against a screen that has a filled-ink Kick off on it */
+.tourPanel .tGo.tGoQuiet{border:1px solid var(--c500)!important;color:var(--c950);position:relative;z-index:3}
+.tourPanel .tGo.tGoQuiet:hover,.tourPanel .tGo.tGoQuiet:focus-visible{background:var(--c75);border-color:var(--c950)}
+/* the !important above would otherwise swallow the armed confirm state */
+.tourPanel .tGo.tGoQuiet.tQuitArmed{border-color:#b3402e!important;color:#b3402e}
+/* and the panel was running its content flush to the bottom edge */
+.tourPanel{padding-bottom:clamp(20px,3vh,36px)}
+
+@media(max-width:760px){
+ /* a five-column draw cannot survive a phone: fall back to the round-by-round
+    stack, which is the DOM order anyway, so nothing is reordered for anyone */
+ .tBr.tBrMir{grid-template-columns:1fr;grid-template-rows:none;column-gap:0;row-gap:6px}
+ .tBrMir .tMi{grid-column:1;grid-row:auto}
+ .tBrMir .tColLbl{grid-column:1;grid-row:auto;text-align:left;padding-bottom:0}
+ .tBrMir .tMi::before,.tBrMir .tMi::after{display:none}
+ .tBrMir .tColLbl.tLblDup{display:none}
+ .tFinalCrown{display:none}
+ .tPitch{height:34%}
+ .tCrowd{height:72px}
+}
+
+/* Live shared control selectors, rewritten from the portfolio's long selector
+   lists (index.html 1284-1456) down to the four that are actually reachable
+   on play.html: .tGo, .hmBtn, .hmScoreEnd, .sbBtn. */
+.tGo,.hmScoreEnd,.hmBtn{
+ font-family:var(--sans);font-weight:400;font-size:var(--fs-small);line-height:1;
+ color:var(--c700);background:none;
+ border:0;
+ border-radius:4px;
+ padding:12px 16px;min-height:44px;box-sizing:border-box;
+ align-items:center;justify-content:center;gap:8px;
+ cursor:pointer;
+ transition:background-color .16s cubic-bezier(.2,.8,.2,1),color .16s cubic-bezier(.2,.8,.2,1);
+}
+.sbBtn{
+ font-family:var(--sans);font-size:var(--fs-small);color:var(--c700);
+ background:none;border:0;border-radius:4px;
+ width:44px;height:44px;min-height:44px;padding:0;
+ display:inline-flex;align-items:center;justify-content:center;
+ cursor:pointer;
+ transition:background-color .16s cubic-bezier(.2,.8,.2,1),color .16s cubic-bezier(.2,.8,.2,1);
+}
+:where(.tGo,.hmScoreEnd,.hmBtn){display:inline-flex}
+.tGo:hover,.hmScoreEnd:hover,.hmBtn:hover,.sbBtn:hover,
+.tGo:focus-visible,.hmScoreEnd:focus-visible,.hmBtn:focus-visible,.sbBtn:focus-visible{
+ background:var(--c75);color:var(--c950);border-color:transparent;
+}
+.tGo:not(.tGoQuiet),.hmBtn.hmBtnPrimary{
+ background:var(--c950);color:var(--c50);
+}
+.tGo:not(.tGoQuiet):hover,.hmBtn.hmBtnPrimary:hover{
+ background:var(--c900);color:var(--c50);
+}
+.tGo svg,.hmBtn svg{color:currentColor}
