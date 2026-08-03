@@ -2,6 +2,14 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Play — Jayden Betts</title>
 <meta name="robots" content="noindex">
+<!-- The two text faces, ahead of the stylesheet that declares them: a preload must be in the
+     document head, and these are the only fonts a visible word on this page ever uses. Same
+     three attributes index.html uses (as=font, type, crossorigin -- fonts are always fetched
+     in CORS mode, so without crossorigin the preload is fetched twice and used once).
+     Archivo is not preloaded, matching index.html: it is 90 KB and only the scoreboard
+     numerals use it, which do not exist until a match is running. -->
+<link rel="preload" as="font" type="font/woff2" href="fonts/instrument-sans-latin-400-normal.woff2" crossorigin>
+<link rel="preload" as="font" type="font/woff2" href="fonts/instrument-sans-latin-600-normal.woff2" crossorigin>
 <link rel="stylesheet" href="play.css">
 <style>
  /* The arena carries class="hero" deliberately: the engine measures ".hero" in
@@ -86,6 +94,15 @@
   <div class="moodRow" id="soccerRow"><button class="moodItem" id="soccerGo" type="button" aria-label="Start a soccer match between your heads"><svg class="gIco" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"/> <path d="M12 7l4.76 3.45l-1.76 5.55h-6l-1.76 -5.55l4.76 -3.45"/> <path d="M12 7v-4m3 13l2.5 3m-.74 -8.55l3.74 -1.45m-11.44 7.05l-2.56 2.95m.74 -8.55l-3.74 -1.45"/></svg>Soccer</button><button class="moodTeamsBtn" id="soccerTeams" type="button" aria-haspopup="dialog" aria-expanded="false" aria-label="Choose soccer teams"><span class="tdotR" aria-hidden="true"></span><span class="tdotB" aria-hidden="true"></span></button></div>
   <button class="moodItem" id="tourGo" type="button" aria-label="Start a soccer tournament — single elimination, one match at a time, with goals, assists and ratings tracked"><svg class="gIco" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M2 4a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/> <path d="M18 10a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/> <path d="M2 12a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/> <path d="M2 20a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/> <path d="M6 12h3a1 1 0 0 1 1 1v6a1 1 0 0 1 -1 1h-3"/> <path d="M6 4h7a1 1 0 0 1 1 1v10a1 1 0 0 1 -1 1h-2"/> <path d="M14 10h4"/></svg>Tournament</button>
   <button class="moodItem" id="endGame" type="button" aria-label="End the current game" style="display:none"><svg class="gIco" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M5 7a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2l0 -10"/></svg>End game</button>
+  <!-- Task 5: the makers move here. index.html's Extras panel used to be the only route to
+       headmaker.html and gradientlab.html; with the games gone from home, Play is where making
+       lives. Linked BEFORE the Extras cards came out, so neither maker was ever unreachable.
+       This is the staged "link first, rebuild later" step -- a proper maker section on this page
+       is a later pass. The .moodSep only earns its pixel when both sides have something visible;
+       play-games.js:91 syncMoodSeps() measures that every tick. -->
+  <div class="moodSep" aria-hidden="true"></div>
+  <a class="moodGo" href="headmaker.html"><svg class="gIco" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0"/> <path d="M16 19h6"/> <path d="M19 16v6"/> <path d="M6 21v-2a4 4 0 0 1 4 -4h4"/></svg>Create head</a>
+  <a class="moodGo" href="gradientlab.html"><svg class="gIco" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M3 3m0 2a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v14a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2z"/> <path d="M3 15l6 -6l4 4l3 -3l5 5"/> <path d="M8.5 8.5m-1.5 0a1.5 1.5 0 1 0 3 0a1.5 1.5 0 1 0 -3 0"/></svg>Gradient maker</a>
  </div>
 </div>
 <!-- The ?wraf=1 dev shim that used to be copied in here now arrives inside hero-engine.js,
@@ -96,7 +113,13 @@
      hero-engine.js reads this to skip index.html's wake-up cinematic and its Play-menu wiring
      (play-games.js already owns #moodBtn here; two toggles on one button cancel out). Nothing
      about the head itself changes -- that is the point. -->
-<script>window.__hmHeroHeadOnly=true;</script>
+<script>window.__hmHeroHeadOnly=true;
+/* THIS is the page where games run. play-engine.js builds its game furniture (the lava
+   layers, the 20 battle rungs, the countdown, the battle counter, the race board, the
+   per-head HP bars) at init rather than on game start, and only play.css styles it. The
+   home page loads the same engine for the ambient heads alone, so the engine now attaches
+   that furniture only where this flag (or #playArena) says a game can actually start. */
+window.__hmGames=true;</script>
 <!-- The SAME engine index.html loads, from the same file. -->
 <script src="hero-engine.js"></script>
 <script src="party.js"></script>

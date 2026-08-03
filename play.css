@@ -16,6 +16,24 @@
    index.html:140-144 and 153-156. Design tokens + media override: index.html:46,48. Body base
    rule: index.html:58 (overflow-x:clip kept -- harmless alongside play.html's own
    html,body{overflow:hidden}, which already wins the cascade for both axes regardless). ---- */
+/* ---- THE WEBFONTS. This file carried 91 font-family:var(--sans) declarations and three
+   font-family:'Archivo' declarations, and NOT ONE @font-face to load either family -- neither
+   here nor in play.html. --sans is "Instrument Sans",-apple-system,system-ui,sans-serif, so
+   the named family never arrived and every word on the page silently fell through to
+   -apple-system: SF Pro on a Mac, close enough to Instrument Sans to have been reported as
+   fixed twice when it was not. .bcNum (the split-flap scoreboard numerals) was rendering in
+   SF Pro too, and the Archivo/Instrument register split -- display face on numerals and
+   moments only, everything else Instrument 400/600 -- is a settled part of the broadcast
+   identity, not decoration.
+   Copied verbatim from index.html:608-609. Instrument Sans Var is deliberately NOT copied:
+   it exists on index.html for the two-line wordmark's font-stretch trick, and play.html has
+   no wordmark. Preloads for the two Instrument faces live in play.html's own <head>, where a
+   preload has to be; Archivo is not preloaded, matching index.html, because it is 90 KB and
+   nothing shows a numeral until a match has started. ---- */
+@font-face{font-family:"Instrument Sans";font-style:normal;font-weight:400;font-display:swap;src:url(fonts/instrument-sans-latin-400-normal.woff2) format("woff2")}
+@font-face{font-family:"Instrument Sans";font-style:normal;font-weight:600;font-display:swap;src:url(fonts/instrument-sans-latin-600-normal.woff2) format("woff2")}
+@font-face{font-family:'Archivo';src:url('fonts/archivo-variable.woff2') format('woff2');
+  font-weight:100 900;font-stretch:62% 125%;font-display:swap}
 :root{--c50:#FDFDFD;--c100:#E6E6E6;--c75:#F1F1F1;--c500:#757575;--c600:#6B6B6B;--c700:#525252;--c900:#212121;--c950:#121212;--accent:#0E6B3B;--accent-live:#17A45A;
  --sans:"Instrument Sans",-apple-system,system-ui,sans-serif;--fs-display:clamp(68px,12vw,168px);--fs-h1:clamp(28px,2.6vw,38px);--fs-hero:clamp(38px,4.7vw,60px);--fs-heroline:clamp(28px,2.6vw,38px);--sp-8-16:16px;--sp-16-24:24px;--sp-16-32:32px;--sp-16-40:40px;--sp-24-48:48px;--sp-32-56:56px;--sp-32-64:64px;--sp-40-72:72px;--sp-48-80:80px;--sp-56-96:96px;--fs-h2:clamp(26px,2.5vw,36px);--fs-h3:clamp(21px,2.4vw,32px);--fs-h4:clamp(19px,2.1vw,28px);--fs-h5:clamp(20px,1.7vw,24px);--fs-lead:clamp(15px,1.4vw,18px);--fs-prose:clamp(17px,1.39vw,20px);--fs-body:16px;--fs-small:15px;--fs-tab:clamp(17px,1.5vw,20px);--fs-label:13px;--fs-caption:12px;--fs-micro:11px;--lh-display:1.0;--lh-tight:1.08;--lh-body:1.5;--lh-prose:1.6;--lh-flat:1;}@media(max-width:880px){:root{--sp-8-16:8px;--sp-16-24:16px;--sp-16-32:16px;--sp-16-40:16px;--sp-24-48:24px;--sp-32-56:32px;--sp-32-64:32px;--sp-40-72:40px;--sp-48-80:48px;--sp-56-96:56px}}
 body{background:var(--c50);color:var(--c950);font-family:var(--sans);-webkit-font-smoothing:antialiased;overflow-x:clip}
@@ -73,6 +91,16 @@ body{background:var(--c50);color:var(--c950);font-family:var(--sans);-webkit-fon
 .gIco{width:18px;height:18px;flex:0 0 18px;display:block;color:var(--c700);transition:color .1s ease-out}
 .moodItem:hover .gIco{color:var(--c950)}
 #endGame{color:#b3402e}#endGame .gIco{color:#b3402e}#endGame:hover{color:#8f3323}#endGame:hover .gIco{color:#8f3323}
+/* The maker links (Create head, Gradient maker) are <a>, not <button>, so they take .moodGo --
+   the same class index.html's "Add your head" link uses. play.css referenced .moodGo in two
+   game-gating rules (above) but never carried its base rule, because until now play.html had no
+   link in the menu. Copied verbatim from index.html's own .moodGo/.moodSep declarations so the
+   two menus stay one design. */
+.moodGo{display:flex;align-items:center;gap:12px;width:100%;padding:12px 16px;border:0;border-radius:4px;background:none;color:var(--c950);font-family:var(--sans);font-weight:400;font-size:var(--fs-small);line-height:1.2;text-decoration:none;transition:background-color .16s cubic-bezier(.2,.8,.2,1)}
+.moodMenu .moodGo{color:var(--c950)}
+.moodGo:hover,.moodGo:focus-visible{background:#F1F1F1}
+.moodGo svg{flex:0 0 18px;width:18px;height:18px;color:currentColor}
+.moodSep{height:1px;background:var(--c100);margin:8px 4px 8px}
 .battleBadge{display:none;position:absolute;left:50%;top:14px;transform:translateX(-50%);z-index:47;align-items:center;gap:8px;padding:8px 12px;border:1px solid var(--c100);border-radius:4px;background:var(--c50);font-family:var(--sans);font-size:var(--fs-label);font-weight:600;color:var(--c700);filter:url(#inkSm);pointer-events:none}
 .battleBadge i{width:7px;height:7px;border-radius:50%;background:#b3402e;animation:bbPulse 1.1s steps(2,end) infinite}
 @keyframes bbPulse{0%,100%{opacity:1}50%{opacity:.35}}

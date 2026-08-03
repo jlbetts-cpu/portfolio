@@ -81,8 +81,30 @@
     return Math.max(0,Math.min(255,Math.round(f>0? v+(255-v)*f : v*(1+f))));}).join(",")+")"; }
   return [mix(.34),mix(.16),mix(0),mix(-.16),mix(-.3),mix(.5)];
  };
+ /* ===== GAMES ARE A PLAY-PAGE THING NOW =====
+    Declared HERE, above the first module, not below it: injectAbilCSS() and the two other
+    style injections run at parse time, so a `var GAMES` further down would still be
+    undefined when they test it and play.html would silently lose its ability CSS.
+    This file is one closure: the ambient heads AND soccer AND the battle AND Floor is Lava
+    AND the marble race. index.html loads it for the ambient heads only -- every launcher and
+    every line of game CSS left the home page in Task 5, so no game can be started there.
+    But four of the game modules BUILD THEIR DOM AT INIT rather than on game start: 20
+    .hmPlat slabs, .battleCount, two .hmCount shouts, the four .hmLava* layers, .hmRaceBoard,
+    and one .hmHp bar per head. The now-deleted CSS is what used to hold those out of flow,
+    so without it they landed in .hero as ordinary blocks and added ~860px to it -- the
+    headline measured at top:1025 and the big head at top:1148, both well below an 800px
+    fold, on a page that opened on empty space.
+    The fix is to keep them out of the document where no game can run, rather than to hide
+    them with rules index.html is not meant to carry any more. gAdd() is the whole change:
+    the elements are still built and every module keeps every reference, export and code
+    path it had, so play.html -- where GAMES is true -- behaves exactly as before.
+    GAMES is true when a page opts in via window.__hmGames, or when #playArena exists, which
+    is play.html's arena and nothing else. Both, so neither is a single point of failure. */
+ var GAMES=!!(window.__hmGames||document.getElementById("playArena"));
+ function gAdd(host,el){if(GAMES&&host&&el)host.appendChild(el);return el;}
  // ===== BATTLE ABILITIES: mystery crates -> physics-chaos powers, all juiced off FX =====
- (function injectAbilCSS(){var s=document.createElement("style");s.textContent=
+ (function injectAbilCSS(){if(!GAMES)return;   // crate/ability rules: nothing on the home page can ever spawn a crate
+  var s=document.createElement("style");s.textContent=
    ".hmCrate{position:absolute;left:0;top:0;width:36px;height:36px;border-radius:9px;background:linear-gradient(155deg,#d0a86f,#a9793f);box-shadow:inset 0 2px 0 rgba(255,255,255,.4),inset 0 -3px 6px rgba(0,0,0,.25),0 6px 14px -6px rgba(40,26,10,.5);border:1.5px solid rgba(90,60,25,.5);display:flex;align-items:center;justify-content:center;font-family:var(--sans);font-weight:600;font-size:20px;color:#5a3c17;z-index:3;pointer-events:none;transition:opacity .3s;will-change:transform}"
   +".hmAbLabel{position:absolute;transform:translate(-50%,0);font-family:var(--sans);font-weight:600;font-size:var(--fs-small);white-space:nowrap;pointer-events:none;z-index:47;text-shadow:0 1px 3px rgba(255,255,255,.95),0 0 8px rgba(255,255,255,.85),0 0 3px #fff}"
   +".hmBomb{position:absolute;left:0;top:0;width:28px;height:28px;font-size:24px;line-height:28px;text-align:center;z-index:4;pointer-events:none;will-change:transform;filter:drop-shadow(0 3px 4px rgba(0,0,0,.35))}"
@@ -322,7 +344,7 @@
  }}catch(_){mjClone=null;}}
  var bar=document.createElement("div");bar.className="hmHp";bar.setAttribute("aria-hidden","true");
  var barFill=document.createElement("i");bar.appendChild(barFill);
- hero.appendChild(shadow);hero.appendChild(root);hero.appendChild(bar);
+ hero.appendChild(shadow);hero.appendChild(root);gAdd(hero,bar);   // the .hmHp bar is game furniture: only a match ever fills it
  // --- world geometry ---
  var heroR,floorY,plats,avoids,bigR,M=40,WL=2,WR=9999,FOOT=0.945,crownFrac=0.08;window.__hmFOOT=FOOT;
  (function(){try{var ci=new Image();ci.onload=function(){try{
@@ -2174,10 +2196,10 @@ function teams(){
       at x 116/226/171, i.e. DOM order 1,3,2. So no hiding: the whole field shows, the rank NUMBER is
       dropped (left-to-right already is the rank), and the chip shrinks to a bare face so eight racers
       plus the End button still fit inside 342px. The leader keeps the ink fill and crown. */
-  document.head.appendChild(css);
+  gAdd(document.head,css);   // the race board / gutter rules ride with the board itself
   var wrap=null,world=null,board=null,cEl=null,spinEls=[],finEl=null;
-  board=document.createElement("div");board.className="hmRaceBoard";hero.appendChild(board);
-  cEl=document.createElement("div");cEl.className="hmCount";hero.appendChild(cEl);
+  board=document.createElement("div");board.className="hmRaceBoard";gAdd(hero,board);
+  cEl=document.createElement("div");cEl.className="hmCount";gAdd(hero,cEl);
   // ===== the SHARED STANDINGS: one gutter leaderboard for every ranked mode (race + lava) -- face chips, live FLIP shuffles on overtakes, ink chip + crown for #1, locked dark rows for the finished/fallen =====
   var BOARD={rows:{},endFn:null,
    build:function(list,endFn){this.rows={};this.endFn=endFn||null;board.innerHTML="";
@@ -2429,9 +2451,9 @@ function teams(){
  (function battleUI(){   // a quiet count of who is still standing
   var hero=document.querySelector(".hero");if(!hero)return;
   var el=document.createElement("div");el.className="battleCount";el.innerHTML='<b>0</b>&nbsp;left<button class="hmScoreEnd" type="button" aria-label="End the battle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="12" height="12" rx="1.6"/></svg>End</button>';
-  hero.appendChild(el);var b=el.querySelector("b");var shownN=-1;
+  gAdd(hero,el);var b=el.querySelector("b");var shownN=-1;
   el.querySelector(".hmScoreEnd").addEventListener("click",function(e){e.stopPropagation();window.__hmRespawn=performance.now();});   // end the battle right from the counter
-  var cEl=document.createElement("div");cEl.className="hmCount";hero.appendChild(cEl);var cdN=0,wasOn=false;   // the big 3-2-1-GO before the brawl, and the winner call after
+  var cEl=document.createElement("div");cEl.className="hmCount";gAdd(hero,cEl);var cdN=0,wasOn=false;   // the big 3-2-1-GO before the brawl, and the winner call after
   function bigText(t){cEl.textContent=t;cEl.classList.remove("hmCountPulse");void cEl.offsetWidth;cEl.classList.add("hmCountPulse");}
   function countdown(){cdN++;var s=cdN,n=3;cEl.classList.remove("hmMsg");bigText(n);
    (function step(){if(s!==cdN||!document.body.classList.contains("hmBattle"))return;
@@ -2470,7 +2492,7 @@ function teams(){
  (function platforms(){   // the arena is an ENDLESS RECYCLING LADDER: rungs scroll down as the crowd climbs, and any rung swallowed by the lava is rebuilt above the highest one -- an infinite tower that never runs out and never repeats
   var hero=document.querySelector(".hero");if(!hero)return;
   function mob(){return innerWidth<=768;}
-  var MAXP=20,els=[];for(var e=0;e<MAXP;e++){var d=document.createElement("div");d.className="hmPlat arrived";d.style.transition="opacity .5s cubic-bezier(.2,.8,.2,1)";hero.appendChild(d);els.push(d);}
+  var MAXP=20,els=[];for(var e=0;e<MAXP;e++){var d=document.createElement("div");d.className="hmPlat arrived";d.style.transition="opacity .5s cubic-bezier(.2,.8,.2,1)";gAdd(hero,d);els.push(d);}
   var SL=[],rowN=0;   // slabs live in SCREEN space: {el,l,w,y,kind,mv,crumbAt,dead}
   function hw(){return innerWidth;}   // the ladder spans the WHOLE viewport -- the entire screen is the arena, edge to edge, not just the hero box
   function ox(){return Math.round(-hero.getBoundingClientRect().left);}
@@ -2554,11 +2576,11 @@ function teams(){
  // ===== FLOOR IS LAVA: a rising molten pool (WebGL shader), a wavy glowing crust, heat haze, embers =====
  (function lava(){
   var hero=document.querySelector(".hero");if(!hero)return;
-  (function(){var s=document.createElement("style");s.textContent="@keyframes hmHazeWob{0%{transform:translateY(2px) scaleY(1.04)}50%{transform:translateY(-1px) scaleY(0.99)}100%{transform:translateY(2px) scaleY(1.04)}}";document.head.appendChild(s);
+  (function(){if(!GAMES)return;var s=document.createElement("style");s.textContent="@keyframes hmHazeWob{0%{transform:translateY(2px) scaleY(1.04)}50%{transform:translateY(-1px) scaleY(0.99)}100%{transform:translateY(2px) scaleY(1.04)}}";document.head.appendChild(s);
    // real HEAT-SHIMMER refraction: animated turbulence displaces whatever is behind the haze band
    var svg=document.createElementNS("http://www.w3.org/2000/svg","svg");svg.setAttribute("width","0");svg.setAttribute("height","0");svg.style.cssText="position:absolute;width:0;height:0";
    svg.innerHTML='<filter id="hmHeatFilter" x="-20%" y="-20%" width="140%" height="140%"><feTurbulence type="fractalNoise" baseFrequency="0.011 0.05" numOctaves="2" seed="6" result="n"><animate attributeName="baseFrequency" dur="4.5s" values="0.011 0.05;0.014 0.062;0.010 0.044;0.011 0.05" repeatCount="indefinite"/></feTurbulence><feDisplacementMap in="SourceGraphic" in2="n" scale="11" xChannelSelector="R" yChannelSelector="G"/></filter>';
-   document.body.appendChild(svg);})();
+   gAdd(document.body,svg);})();
   // ---- the rising surface wave (shared by the crust render AND game logic so death lines up with what you see) ----
   var WAMP=7,WK1=0.021,WK2=0.052,WS1=1.1,WS2=1.7;
   function waveAt(xpx,t){return Math.sin(xpx*WK1+t*WS1)*WAMP + Math.sin(xpx*WK2 - t*WS2)*WAMP*0.45;}
@@ -2570,7 +2592,7 @@ function teams(){
   var crust=document.createElement("canvas");crust.className="hmLavaCrust";crust.style.cssText="position:absolute;left:0;top:0;width:100%;height:100%;display:block;pointer-events:none;z-index:9";
   var haze=document.createElement("div");haze.className="hmLavaHaze";haze.style.cssText="position:absolute;left:0;right:0;height:96px;pointer-events:none;z-index:10;opacity:0;transition:opacity .4s;-webkit-backdrop-filter:blur(1.4px) url(#hmHeatFilter) brightness(1.06) saturate(1.2);backdrop-filter:blur(1.4px) url(#hmHeatFilter) brightness(1.06) saturate(1.2);-webkit-mask-image:linear-gradient(to top,#000 30%,rgba(0,0,0,0));mask-image:linear-gradient(to top,#000 30%,rgba(0,0,0,0));background:linear-gradient(to top,rgba(255,130,35,.14),rgba(255,130,35,0));animation:hmHazeWob 2.1s ease-in-out infinite";
   var glow=document.createElement("div");glow.className="hmLavaGlow";glow.style.cssText="position:absolute;left:0;right:0;bottom:0;top:0;pointer-events:none;z-index:1;opacity:0;transition:opacity .5s;background:radial-gradient(120% 60% at 50% 100%,rgba(255,120,30,.28),rgba(255,80,10,.06) 45%,transparent 70%)";   // warm ambient glow stays BEHIND the heads as atmosphere
-  wrap.appendChild(gcv);hero.appendChild(wrap);hero.appendChild(glow);hero.appendChild(crust);hero.appendChild(haze);
+  wrap.appendChild(gcv);gAdd(hero,wrap);gAdd(hero,glow);gAdd(hero,crust);gAdd(hero,haze);
 
   // ---- WebGL molten shader (adapted from Jayden's lava gradient) ----
   var POINTS=[
