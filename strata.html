@@ -92,6 +92,7 @@ nav{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;column-ga
 
 .hero{padding:0;scroll-margin-top:var(--sp-16-40)}
 .eyebrow{font-family:var(--sans);font-weight:600;font-size:var(--fs-label);letter-spacing:var(--tr-flat);text-transform:none;color:var(--c500);filter:url(#inkSm)}
+.head .eyebrow{display:block;margin:0 0 var(--sp-8-16)}
 .head{font-family:var(--sans);font-weight:600;font-size:var(--fs-h1);line-height:1.12;letter-spacing:-.02em;color:var(--c950);margin:16px 0 0;filter:url(#inkBig)}
 .head .hl{display:block}
 .lede{font-family:var(--sans);font-weight:400;font-size:var(--fs-prose);line-height:var(--lh-prose);color:var(--c700);margin:var(--sp-24-32) 0 0;text-wrap:pretty}
@@ -529,7 +530,7 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
 
   <div class="content">
    <section id="overview" class="hero">
-    <h1 class="head rv" data-f="0.05">Stack your wins.</h1>
+    <h1 class="head rv" data-f="0.05" aria-label="Strata — Stack your wins."><span class="eyebrow">Strata</span>Stack your wins.</h1>
 
     <figure class="cover" id="cover"><img src="images/cs/strata-cover.webp" alt="Strata across four iOS screens on a pastoral hillside: the block tower, the day timeline, the plan grid, and the insights dashboard." loading="eager" decoding="async"></figure>
 
