@@ -10,6 +10,13 @@
      numerals use it, which do not exist until a match is running. -->
 <link rel="preload" as="font" type="font/woff2" href="fonts/instrument-sans-latin-400-normal.woff2" crossorigin>
 <link rel="preload" as="font" type="font/woff2" href="fonts/instrument-sans-latin-600-normal.woff2" crossorigin>
+<!-- THE SHARED DESIGN TOKENS. Linked ahead of play.css so play.css's own :root can still
+     override the two tokens this page legitimately binds differently (--accent is the
+     live-match green here, not the site's interactive blue). Before this, play.css carried
+     a hand-copied subset of the token block plus a second flagged "top-up" block at its
+     foot; both are gone -- tokens.css is the one source now. See
+     .superpowers/sdd/2026-08-02-play-page/play-tokens-report.md §1. -->
+<link rel="stylesheet" href="tokens.css">
 <link rel="stylesheet" href="play.css">
 <style>
  /* The arena carries class="hero" deliberately: the engine measures ".hero" in

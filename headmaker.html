@@ -11,9 +11,37 @@
 <meta name="robots" content="index,follow">
 <link rel="canonical" href="https://jaydenbetts.design/headmaker.html">
 <link rel="preload" as="font" type="font/woff2" href="fonts/instrument-sans-variable.woff2" crossorigin><link rel="preload" as="font" type="font/woff2" href="fonts/instrument-sans-latin-400-normal.woff2" crossorigin><link rel="preload" as="font" type="font/woff2" href="fonts/instrument-sans-latin-600-normal.woff2" crossorigin>
+<!-- THE SHARED DESIGN TOKENS, linked ahead of this page's own <style> so the few values
+     this page binds differently can still override. Replaces both the hand-copied :root
+     subset that used to open this block and the flagged header "top-up" block that sat at
+     its foot. See .superpowers/sdd/2026-08-02-play-page/play-tokens-report.md §1. -->
+<link rel="stylesheet" href="tokens.css">
 <style>
-:root{--fs-h1:clamp(28px,2.6vw,38px);--sp-8-16:16px;--sp-16-24:24px;--sp-24-32:32px;--sp-32-48:48px;--sp-40-64:64px;--sp-48-80:80px;--sp-72-144:144px;--sp-80-152:152px;--c50:#FDFDFD;--c100:#E6E6E6;--c75:#F1F1F1;--c500:#757575;--c600:#6B6B6B;--c700:#525252;--c900:#212121;--c950:#121212;
- --sans:"Instrument Sans",-apple-system,system-ui,sans-serif;--fs-pagehead:clamp(33px,3.9vw,52px);--fs-h2:clamp(26px,2.5vw,36px);--fs-prose:clamp(17px,1.39vw,20px);--fs-body:16px;--fs-small:15px;--fs-label:13px;--lh-prose:1.6;}
+/* ONLY WHAT DIFFERS FROM tokens.css. The rest of what used to be declared here --
+   --fs-h1/h2/pagehead/prose/body/small/label, --sans, the whole --c* ramp and eight
+   --sp-*-* rungs -- was byte-identical to the shared file and is now inherited from it.
+   Two things are NOT:
+   1. --lh-prose. This page has always used 1.6 (tokens.css says 1.5) and two rules
+      consume it. Kept at 1.6: changing prose leading here is a design call, not a
+      refactor.
+   2. The four --sp-*-* rungs below. This page pinned eight rungs at their DESKTOP value
+      with no mobile step-down, so tokens.css's @media(max-width:880px) rung would have
+      shrunk them on mobile (--sp-80-152 alone drops 152px->80px). That is very likely
+      the right behaviour and is what every other page already does, but it is a visible
+      mobile layout change on a page this pass was only asked to WIRE, so the four that
+      this page's own content consumes stay pinned and are written up as a recommended
+      follow-up (play-tokens-report.md §1.3) rather than shipped unasked. Delete this
+      @media block to adopt the ladder.
+      --sp-16-24 is DELIBERATELY NOT in that list even though six rules here consume it:
+      header.css:48 uses it for .jbStick's horizontal inset, so pinning it gave this page
+      a 24px header inset at 390px while play.html and all five case studies rendered the
+      same bar at 16px. The site header is one component on every page; an inset that
+      depends on which page it is sitting on is the bug, not the fix. Unpinning costs six
+      of this page's own vertical margins 8px at <=880px, which is what the ladder is for.
+      The other three unpinned rungs (--sp-8-16, --sp-40-64, --sp-48-80) have zero
+      consumers here at all. */
+:root{--lh-prose:1.6;}
+@media(max-width:880px){:root{--sp-24-32:32px;--sp-32-48:48px;--sp-72-144:144px;--sp-80-152:152px}}
 @font-face{font-family:"Instrument Sans";font-style:normal;font-weight:400;font-display:swap;src:url(fonts/instrument-sans-latin-400-normal.woff2) format("woff2")}@font-face{font-family:"Instrument Sans";font-style:normal;font-weight:600;font-display:swap;src:url(fonts/instrument-sans-latin-600-normal.woff2) format("woff2")}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html{overflow-x:clip}
@@ -306,18 +334,8 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
 /* icons inherit the control's colour so they light up with the hover wash */
 .moodItem svg,.moodItem .gIco,.tGo svg,.hmBtn svg,.back svg,.talk svg{color:currentColor}
 
-/* ---- TOKENS THE HEADER NEEDS, AND THIS FILE DID NOT HAVE ---------------------
-   DUPLICATION, DELIBERATE AND FLAGGED. tokens.css is the source of truth for
-   every value below, but this page is not wired to it yet (queued pass -- see
-   tokens.css's own header comment). Without this block the header renders here
-   with no material, no radius, no shadow and no motion: four of the nine pages
-   were missing most of the materials/radius/motion ladder entirely. Copy, do not
-   edit -- when this page links tokens.css, delete the whole block.
-   NOTE --accent is NOT re-declared: this page binds it to the live-match green,
-   and header.css uses its own --nav-accent for exactly that reason. */
-:root{--r-hair:2px;--r-xs:6px;--r-sm:10px;--r-md:14px;--r-lg:20px;--r-xl:28px;--r-pill:999px;--r-full:50%;--corner:squircle;--ease-out:cubic-bezier(.2,.8,.2,1);--ease-out-dur:160ms;--sp-quick:linear(0, 0.0757, 0.2282, 0.3918, 0.5383, 0.6586, 0.7524, 0.8231, 0.8751, 0.9126, 0.9394, 0.9582, 0.9714, 0.9805, 0.9867, 0.991, 0.994, 0.9959, 0.9973, 1);--sp-quick-dur:300ms;--sp-settle:linear(0, 0.024, 0.0833, 0.1633, 0.2531, 0.3454, 0.4352, 0.5193, 0.5959, 0.6642, 0.724, 0.7755, 0.8194, 0.8562, 0.8867, 0.9118, 0.9322, 0.9486, 0.9616, 0.9719, 0.9799, 0.986, 0.9907, 0.9941, 0.9967, 1);--sp-settle-dur:360ms;--rim-1:inset 0 0 0 1px rgba(18,18,18,.08);--rim-2:inset 0 0 0 1px rgba(18,18,18,.14);--mat-1:rgba(253,253,253,.72);--mat-2:rgba(253,253,253,.86);--mat-3:rgba(253,253,253,.96);--blur-1:8px;--blur-2:14px;--blur-3:20px;--sh-1:0 1px 2px rgba(18,18,18,.05);--sh-2:0 2px 8px rgba(18,18,18,.06),0 1px 2px rgba(18,18,18,.04);--sh-3:0 8px 28px rgba(18,18,18,.10),0 2px 6px rgba(18,18,18,.05);--tr-flat:0;--tr-mark:-.008em;--pad-bar:5px;--gap-bar:2px;--tap-min:44px;--lh-flat:1;--fs-caption:12px;--sp-2:2px;--sp-4:4px;--sp-6:6px;--sp-8:8px;--sp-10:10px;--sp-12:12px;--sp-14:14px;--sp-28:28px;--sp-30:30px;--sp-32:32px;--hair-w:1px;--focus-w:2px;--ico-xs:11px;--ico-sm:15px;--ico-md:18px;--ico-stroke:1.8;--fs-nav:14px;--fs-mark:17px;--press-dur:100ms;--enter-dur:500ms;--press-scale:.97;--press-scale-lg:.985;--wash-1:rgba(18,18,18,.055);--wash-i1:rgba(253,253,253,.10);--i700:rgba(253,253,253,.78);--i100:rgba(253,253,253,.16);--mat-i1:rgba(18,18,18,.58);--mat-i2:rgba(18,18,18,.70);--mat-i3:rgba(18,18,18,.82);--mat-i3-solid:rgba(18,18,18,.92);--rim-i1:inset 0 0 0 1px rgba(253,253,253,.14);--rim-i2:inset 0 0 0 1px rgba(253,253,253,.22);--sh-i2:0 8px 28px rgba(0,0,0,.28);--sh-i3:0 12px 36px rgba(0,0,0,.36);--mat-3-solid:var(--c50);--nav-h:52px;}
-/* the responsive rungs the ladder above is missing on this page */
-@media(max-width:760px){:root{--blur-1:0px;--blur-2:0px}}
+/* The flagged header token top-up that used to sit here is gone: this page links
+   tokens.css now, which carries every one of those values and its own 760px rule. */
 </style>
 <link rel="stylesheet" href="header.css">
 <script src="header.js" defer></script>

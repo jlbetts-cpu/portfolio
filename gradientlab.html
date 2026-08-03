@@ -5,6 +5,11 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex">
 <title>Gradient Lab — Jayden Betts</title>
+<!-- THE SHARED DESIGN TOKENS, linked ahead of this page's own <style> so the page-local
+     stage palette (--paper/--ink/--sub/--hair/--panel) and its green --accent still win.
+     Replaces the flagged header "top-up" block that used to sit at the foot of that style
+     block. See .superpowers/sdd/2026-08-02-play-page/play-tokens-report.md §1. -->
+<link rel="stylesheet" href="tokens.css">
 <style>
   @font-face{font-family:"Instrument Sans";src:url("fonts/instrument-sans-latin-400-normal.woff2") format("woff2");font-weight:400;font-display:swap}
   @font-face{font-family:"Instrument Sans";src:url("fonts/instrument-sans-latin-600-normal.woff2") format("woff2");font-weight:600;font-display:swap}
@@ -127,18 +132,11 @@
   .copy.ok{color:var(--accent);border-color:var(--accent)}
   .glErr{display:none;color:#8a3030;font-size:12px;margin-top:8px}
 
-/* ---- TOKENS THE HEADER NEEDS, AND THIS FILE DID NOT HAVE ---------------------
-   DUPLICATION, DELIBERATE AND FLAGGED. tokens.css is the source of truth for
-   every value below, but this page is not wired to it yet (queued pass -- see
-   tokens.css's own header comment). Without this block the header renders here
-   with no material, no radius, no shadow and no motion: four of the nine pages
-   were missing most of the materials/radius/motion ladder entirely. Copy, do not
-   edit -- when this page links tokens.css, delete the whole block.
-   NOTE --accent is NOT re-declared: this page binds it to the live-match green,
-   and header.css uses its own --nav-accent for exactly that reason. */
-:root{--r-hair:2px;--r-xs:6px;--r-sm:10px;--r-md:14px;--r-lg:20px;--r-xl:28px;--r-pill:999px;--r-full:50%;--corner:squircle;--ease-out:cubic-bezier(.2,.8,.2,1);--ease-out-dur:160ms;--sp-quick:linear(0, 0.0757, 0.2282, 0.3918, 0.5383, 0.6586, 0.7524, 0.8231, 0.8751, 0.9126, 0.9394, 0.9582, 0.9714, 0.9805, 0.9867, 0.991, 0.994, 0.9959, 0.9973, 1);--sp-quick-dur:300ms;--sp-settle:linear(0, 0.024, 0.0833, 0.1633, 0.2531, 0.3454, 0.4352, 0.5193, 0.5959, 0.6642, 0.724, 0.7755, 0.8194, 0.8562, 0.8867, 0.9118, 0.9322, 0.9486, 0.9616, 0.9719, 0.9799, 0.986, 0.9907, 0.9941, 0.9967, 1);--sp-settle-dur:360ms;--rim-1:inset 0 0 0 1px rgba(18,18,18,.08);--rim-2:inset 0 0 0 1px rgba(18,18,18,.14);--mat-1:rgba(253,253,253,.72);--mat-2:rgba(253,253,253,.86);--mat-3:rgba(253,253,253,.96);--blur-1:8px;--blur-2:14px;--blur-3:20px;--sh-1:0 1px 2px rgba(18,18,18,.05);--sh-2:0 2px 8px rgba(18,18,18,.06),0 1px 2px rgba(18,18,18,.04);--sh-3:0 8px 28px rgba(18,18,18,.10),0 2px 6px rgba(18,18,18,.05);--tr-flat:0;--tr-mark:-.008em;--pad-bar:5px;--gap-bar:2px;--tap-min:44px;--c50:#FDFDFD;--c75:#F1F1F1;--c100:#E6E6E6;--c500:#757575;--c700:#525252;--c950:#121212;--sans:"Instrument Sans",-apple-system,system-ui,sans-serif;--fs-small:15px;--fs-label:13px;--fs-caption:12px;--lh-flat:1;--sp-16-24:24px;--sp-2:2px;--sp-4:4px;--sp-6:6px;--sp-8:8px;--sp-10:10px;--sp-12:12px;--sp-14:14px;--sp-28:28px;--sp-30:30px;--sp-32:32px;--hair-w:1px;--focus-w:2px;--ico-xs:11px;--ico-sm:15px;--ico-md:18px;--ico-stroke:1.8;--fs-nav:14px;--fs-mark:17px;--press-dur:100ms;--enter-dur:500ms;--press-scale:.97;--press-scale-lg:.985;--wash-1:rgba(18,18,18,.055);--wash-i1:rgba(253,253,253,.10);--i700:rgba(253,253,253,.78);--i100:rgba(253,253,253,.16);--mat-i1:rgba(18,18,18,.58);--mat-i2:rgba(18,18,18,.70);--mat-i3:rgba(18,18,18,.82);--mat-i3-solid:rgba(18,18,18,.92);--rim-i1:inset 0 0 0 1px rgba(253,253,253,.14);--rim-i2:inset 0 0 0 1px rgba(253,253,253,.22);--sh-i2:0 8px 28px rgba(0,0,0,.28);--sh-i3:0 12px 36px rgba(0,0,0,.36);--mat-3-solid:var(--c50);--nav-h:52px;}
-/* the responsive rungs the ladder above is missing on this page */
-@media(max-width:760px){:root{--blur-1:0px;--blur-2:0px}}
+/* The flagged header token top-up that used to sit here is gone: this page links
+   tokens.css now, which carries every one of those values and its own 760px rule.
+   Nothing is re-pinned. The one token the top-up set that tokens.css treats
+   differently is --sp-16-24 (pinned 24px here, 24px->16px under 880px in the shared
+   ladder) and this page has zero var(--sp-16-24) consumers, so no rule moves. */
 </style>
 <link rel="stylesheet" href="header.css">
 <script src="header.js" defer></script>
