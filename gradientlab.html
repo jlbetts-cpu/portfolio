@@ -19,6 +19,13 @@
 
   header{position:absolute;top:0;left:0;right:0;z-index:5;display:flex;justify-content:space-between;
     align-items:center;padding:18px 26px;pointer-events:none}
+  /* The header is pointer-events:none so it never eats clicks on the stage --
+     so the one thing that IS interactive has to opt back in. Without this the
+     Lab had no way back to the site at all: zero <a> elements on the page. */
+  .labBack{pointer-events:auto;color:var(--sub);text-decoration:none;font-size:12px;
+    letter-spacing:.02em;min-height:44px;display:inline-flex;align-items:center;
+    transition:color .2s cubic-bezier(.2,.8,.2,1)}
+  .labBack:hover,.labBack:focus-visible{color:var(--fg,#fff)}
   header b{font-weight:600;letter-spacing:.02em}
   header span{color:var(--sub);font-size:12px;letter-spacing:.12em;text-transform:uppercase}
 
@@ -124,7 +131,7 @@
 </style>
 </head>
 <body>
-<header><b>Gradient Lab</b><span>fluid mesh system</span></header>
+<header><a class="labBack" href="index.html">&larr; Portfolio</a><b>Gradient Lab</b><span>fluid mesh system</span></header>
 
 <div class="lab">
   <main class="stage" id="stage">
