@@ -445,7 +445,11 @@
      pendingHide=null,hideToken=0,lapBack=false,forceHide=/[?&]hide=1/.test(location.search);
  function plane(front){root.style.zIndex="3";shadow.style.zIndex="2";}   // heads ALWAYS stay in front of the big head + the CTA buttons (the back plane is gone) -- cleaner, more premium, no ducking-behind glitches
  var G=2600,DT=0.04,facc=0,CEIL=2,surpriseAt=0;   // real units: px/s and px/s^2, integrated at 25fps
- var me={x:0,y:0,HW:HW,HH:HH,vx:0,vy:0,ground:false,perched:false,kx:0,ky:0,dmgIn:0,inB:false,elim:false,slot:slot,cut:(data&&data.cut)||null,__filler:filler};me.root=root;   // so the championship spotlight can measure this head
+ var me={x:0,y:0,HW:HW,HH:HH,vx:0,vy:0,ground:false,perched:false,kx:0,ky:0,dmgIn:0,inB:false,elim:false,slot:slot,cut:(data&&data.cut)||null,pid:(data&&data.__pid)||null,__filler:filler};me.root=root;   // so the championship spotlight can measure this head
+ // `pid` is a STABLE identity handed in by whoever spawned this head (the tournament mints one per
+ // player and keeps it for the whole cup). `cut` cannot serve as identity: a respawn re-encodes the
+ // art, and two heads dyed the same colour are byte-identical. It stays on the peer for the
+ // already-on-the-pitch lookup below, which is the one job it is still honest for.
  /* The celebration hop. vx/vy/air/st/surface live in THIS closure, so an outside caller
     cannot set them -- the soccer module can only ask. Same idiom the peek uses. */
  /* power 0 = bounce on the spot, 1 = stride toward something. At one fixed speed the
@@ -2027,36 +2031,36 @@ function teams(){
  (function goalGrammar(){
   if(!window.__hmBus)return;
   var l3=null,l3Timer=null;
-  // Slot -> {name,cut}. NOT a direct list[slot] index -- confirmed live that a
-  // tournament fixture respawns every player at a fresh high slot (buildTeams,
-  // `var SLOT=9200; ...slot=SLOT++`), so a scoring peer's own .slot is essentially
-  // never its index in the saved roster (list[9200] is nothing). Also confirmed
-  // live that >=9000 does not mean "mini-Jayden": the tournament's anonymous
-  // egghead fill-ins land in that same 9200+ range, right alongside him.
-  // So: find the live peer at this slot, use its own __filler flag (only
-  // mini-Jayden's data ever carries it, from __mirror in fillerData()) to catch
-  // him specifically, otherwise match its .cut -- the same identity key
-  // __hmSlotFor already uses -- back into `list` to recover the saved name.
-  // No match anywhere (an anonymous egghead) returns null -- callers fall back
-  // to the team name. Never a made-up person.
-  // KNOWN LIMIT (confirmed live, see task-1-report.md): buildTeams re-encodes the
-  // cut it hands to a tournament respawn (measured ~33KB vs. the saved ~38-43KB
-  // original), so this cut match currently never fires *inside a tournament fixture*
-  // -- every tournament goal falls back to the team name, which is itself the real
-  // captain's name for most teams (buildTeams names a team after a named captain),
-  // so captains still read correctly in practice; non-captain squad-mates read as
-  // their team name instead of their own. It fires correctly today in plain
-  // (non-tournament) soccer, where a scoring peer's .cut is the same in-memory
-  // roster entry, never re-encoded. Giving spawnCompanion's peers a stable id that
-  // survives respawn would fix this properly but touches shared engine code well
-  // outside this task's scope.
+  // Slot -> {name,cut}, or null meaning "nobody nameable" -- callers then paint the TEAM name.
+  // It must never invent a person, and in particular it must never answer with the visitor's own
+  // head for a goal the visitor's head did not score. That is what used to happen: identity was
+  // recovered by comparing the scoring peer's .cut data-URL against the saved roster, and cut
+  // strings are not identities. A tournament re-encodes the art it hands to a respawn (measured
+  // ~33KB against the saved 35-42KB original), and two eggheads dyed the same colour are
+  // byte-identical, so the comparison either missed or matched the wrong head -- and a miss that
+  // then fell through to the saved companion put "Jayden" on the card while he sat on the bench.
+  //
+  // The fix is to stop asking the picture. Inside a tournament the fixture itself knows who it
+  // spawned into which slot (tm.slots, built in playersOf() order and keyed by a stable pid that
+  // survives a respawn), so ask it, via __hmTourPlayerAt, and take no other answer. Outside a
+  // tournament S.touches is never populated, so d.scorer is null and none of this runs -- the
+  // peer/roster path below is kept for the one honest case it covers: a live peer whose .cut is
+  // still the very same in-memory roster entry, never re-encoded.
   function scorerInfo(slot){
    if(slot==null)return null;
    try{
+    // TOURNAMENT: one source of truth, and it is not the image bytes.
+    var T=window.__hmTour;
+    if(T&&T.live){
+     var tp=window.__hmTourPlayerAt?window.__hmTourPlayerAt(slot):null;
+     if(tp&&tp.name)return{name:String(tp.name).slice(0,14),cut:tp.cut||null};
+     return null;   // a slot this fixture never filled, or an anonymous squad egghead that HAS no
+     // name of its own: fall back to the team name, never to whoever the picture looks like.
+    }
     var peer=null;
     for(var i=0;i<peers.length;i++){if(peers[i].slot===slot){peer=peers[i];break;}}
     if(!peer)return null;
-    if(peer.__filler){var mj=window.__hmFillerData&&window.__hmFillerData();return{name:"Jayden",cut:(mj&&mj.cut)||peer.cut||null};}
+    if(peer.__filler){var mj=window.__hmFillerData&&window.__hmFillerData();return{name:"Jayden",cut:(mj&&mj.cut)||peer.cut||null};}   // he is genuinely the head standing in this slot, so this is identity, not a guess
     var h=null,idx=-1;
     if(list)for(var j=0;j<list.length;j++){if(list[j]&&list[j].cut&&peer.cut&&list[j].cut===peer.cut){h=list[j];idx=j;break;}}
     if(!h)return null;
@@ -2789,7 +2793,9 @@ function fillerData(){   // split out so the TOURNAMENT can field him as a capta
   try{var si=new Image();si.onload=function(){try{var scut=bakeMiniCut(si);if(m)m.__smileCut=scut;}catch(_){}};si.src="images/smile.webp";}catch(_){}};
  window.__hmFillerRemove=function(){if(!fillerActive)return;try{if(window.__hmKill&&fillerCut){window.__hmKill(fillerCut);var L=window.__hmLive||[];for(var i=L.length-1;i>=0;i--){if(L[i].cut===fillerCut)L.splice(i,1);}}}catch(_){}fillerActive=false;fillerCut=null;};   // also drop the dead __hmLive entry so it can't pile up across games
  window.__hmRealHeads=function(){var n=0;for(var i=0;i<peers.length;i++){if(!peers[i].__filler)n++;}return n;};
- window.__hmSlotFor=function(cut){for(var i=0;i<peers.length;i++)if(peers[i].cut===cut)return peers[i].slot;return null;};   // already on the pitch? reuse it
+ window.__hmSlotFor=function(cut){for(var i=0;i<peers.length;i++)if(peers[i].cut===cut)return peers[i].slot;return null;};   // already on the pitch? reuse it -- BY PICTURE, which is only sound for a head the caller has never been given a pid for (the visitor's own saved companions). Anything with a pid must use __hmSlotForPid: cuts are re-encoded on respawn and two identically dyed eggheads share one.
+ window.__hmSlotForPid=function(pid){if(pid==null)return null;for(var i=0;i<peers.length;i++)if(peers[i].pid===pid)return peers[i].slot;return null;};   // the same question asked of a stable id instead of image bytes
+ window.__hmTagSlot=function(slot,pid){if(pid==null)return;for(var i=0;i<peers.length;i++)if(peers[i].slot===slot){peers[i].pid=pid;return;}};   // adopt a head that was already standing here (spawned from the saved roster, so it has no pid of its own yet)
   window.__hmSlots=function(){return peers.map(function(p){return p.slot;});};
   window.__hmSpawnOne=function(d,slot){try{if(!d||!d.cut)return;spawnCompanion(d,typeof slot==="number"?slot:peers.length);}catch(_){}};   // drop a fresh head into the live scene mid-session (the Play menu's "Add an egghead")
  setInterval(function(){if(fillerActive&&!document.body.classList.contains("hmSoccer")&&!document.body.classList.contains("hmBattle"))window.__hmFillerRemove();},400);   // the stand-in leaves when the game does

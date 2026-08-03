@@ -349,6 +349,7 @@ function shuffled(a){ var r = a.slice(); for (var i = r.length - 1; i > 0; i--){
 // ---------- build the field ----------
 // Saved heads captain first (they are the "main players"); any remaining slots needed to reach a
 // power of two are captained by an egghead so the bracket is always full.
+var PIDN = 0;   // player-id counter: monotonic for the life of the page, so no two players ever share one
 function buildTeams(cb){
   var heads = readHeads().slice(0, 8);
   var n = Math.min(8, Math.max(2, nextPow2(Math.max(2, heads.length))));
@@ -394,7 +395,31 @@ function buildTeams(cb){
                  captain: cap, squad: [], out: false });
   }
 
-  function finish(){ if (done) return; done = true; T.teams = teams; cb(teams); }
+  /* WHO THIS PLAYER IS, decided once, here, where the roster is still in hand -- not later by
+     comparing pictures. `i` is the index within playersOf(tm), so 0 is always the captain. */
+  function playerName(tm, p, i){
+    if (p && p.name && String(p.name).trim()) return String(p.name).trim().slice(0, 14);   // one of the visitor's own, named
+    if (p && p.__mirror)                      return 'Jayden';                             // the house player, always himself
+    if (i === 0)                              return tm.name;   // the captain IS the team's namesake -- a dyed egg captain is Gus,
+    // an unnamed saved head is "Player 3" -- which is exactly what the board above the pitch says
+    return null;   // an anonymous squad egghead has no name of its own; callers paint the team name
+  }
+  function finish(){ if (done) return; done = true;
+    /* STABLE IDENTITY, minted once per cup and carried on the player object itself. Everything
+       downstream (which slot a player was spawned into, and therefore who a goal belongs to)
+       keys off __pid from here on. It used to key off the cut data-URL, which cannot work:
+       a tournament re-encodes the art it hands to a respawn, so the same player's bytes differ
+       across fixtures, and two eggheads dyed the same colour produce byte-identical cuts, so
+       one player would answer to the other's identity. A goal could land on the wrong head --
+       including the visitor's own, which was never even on the pitch. */
+    teams.forEach(function(tm){
+      playersOf(tm).forEach(function(p, i){
+        if (!p) return;
+        if (!p.__pid) p.__pid = 'p' + (++PIDN);
+        if (p.__name === undefined) p.__name = playerName(tm, p, i);
+      });
+    });
+    T.teams = teams; cb(teams); }
 
   teams.forEach(function(tm){
     var need = perTeam() - 1;                      // eggheads to dye for this team
@@ -467,6 +492,26 @@ function teamById(id){ for (var i = 0; i < T.teams.length; i++) if (T.teams[i].i
 
 function playersOf(tm){ var out = []; if (tm.captain) out.push(tm.captain); return out.concat(tm.squad); }
 
+/* WHO IS IN THIS SLOT, answered by the only thing that actually knows: the fixture that put
+   them there. startFixture builds tm.slots in playersOf() order, so slots[i] is player i --
+   no picture comparison, no guessing. Returns null for a slot this fixture never filled and
+   for an anonymous squad egghead (which HAS no name); both cases mean "say the team name".
+   It deliberately cannot return the visitor's saved companion unless that companion is
+   genuinely one of the two teams on the pitch right now. */
+window.__hmTourPlayerAt = function(slot){
+  try{
+    if (slot == null || !T.live || !T.cur) return null;
+    var c = T.cur;
+    for (var s = 0; s < 2; s++){
+      var tm = s ? c.b : c.a; if (!tm || !tm.slots) continue;
+      var i = tm.slots.indexOf(slot); if (i < 0) continue;
+      var p = playersOf(tm)[i]; if (!p) return null;
+      return { name: p.__name || null, cut: p.cut || null, team: tm.name, pid: p.__pid || null };
+    }
+  }catch(_){}
+  return null;
+};
+
 function startFixture(nm){
   var A = teamById(nm.match.a), Bm = teamById(nm.match.b);
   if (!A || !Bm) return;
@@ -492,21 +537,45 @@ function startFixture(nm){
   } catch (_) {}
 
   var SLOT = 9200; T.spawnedCuts = T.spawnedCuts || [];
+  /* tm.slots is the fixture's ONLY record of who is standing where, and it is read back by
+     index -- slots[i] is playersOf(tm)[i] -- so it has to be rebuilt from scratch each fixture
+     and must never contain the same slot twice. `taken` enforces the second half: without it a
+     cut collision (two eggheads dyed alike) handed the same slot to two players, and from then
+     on the index lookup named the wrong one. */
+  var taken = {};
   [[A, 1], [Bm, 2]].forEach(function(pair){
     var tm = pair[0], sideNo = pair[1];
+    tm.slots = [];
     playersOf(tm).forEach(function(p){
-      var slot = window.__hmSlotFor ? window.__hmSlotFor(p.cut) : null;
+      // IDENTITY IS THE pid, NOT THE IMAGE BYTES. A pid survives a respawn's re-encode and is
+      // unique even between two identically dyed eggheads, which is exactly what the cut string
+      // was not.
+      var slot = (window.__hmSlotForPid && p.__pid) ? window.__hmSlotForPid(p.__pid) : null;
+      if (slot != null && taken[slot]) slot = null;
+      if (slot == null && window.__hmSlotFor){
+        // A head the visitor already has on the pitch (their own saved companions, spawned at
+        // page load) carries no pid, and reusing it rather than cloning it is deliberate: the
+        // crowd survives the whole bracket and clearSpawned() must never kill it. The cut is the
+        // only handle those heads have, so this lookup stays -- but only as the second question,
+        // and only if nobody in this fixture has claimed that slot already.
+        var s2 = window.__hmSlotFor(p.cut);
+        if (s2 != null && !taken[s2]) slot = s2;
+      }
       if (slot == null){ slot = SLOT++;
         // Carry __filler/__mirror through: mini-Jayden IS the big head cloned, and rebuilding his
         // data without them would spawn a generic head wearing his face -- no mirrored expressions,
         // no smile bake, wrong scale.
-        var sp = { cut: p.cut, eyes: p.eyes || [], marks: p.marks || null, __noIntro: true };
+        var sp = { cut: p.cut, eyes: p.eyes || [], marks: p.marks || null, __noIntro: true, __pid: p.__pid };
         if (p.__filler) sp.__filler = true;
         if (p.__mirror) sp.__mirror = true;
         try { window.__hmSpawnOne(sp, slot); T.spawnedCuts.push(p.cut); } catch (_) {} }
+      // Stamp the pid on whichever head ended up in the slot -- including a reused saved head, so
+      // that next fixture it answers to its pid and never has to be matched by picture again.
+      try { if (window.__hmTagSlot && p.__pid) window.__hmTagSlot(slot, p.__pid); } catch (_) {}
+      taken[slot] = 1;
       delete bench[slot];
       sel[slot] = sideNo;
-      tm.slots = (tm.slots || []).concat([slot]);
+      tm.slots = tm.slots.concat([slot]);
     });
   });
   window.__hmTeamSel = sel;
