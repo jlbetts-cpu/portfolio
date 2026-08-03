@@ -159,7 +159,29 @@ than it appears: `.hmGo`, `.hmPitX` and `.hmPitPick` are dead (no markup, no
 JS). Only `.tGo`, `.hmBtn`, `.hmScoreEnd` and `.sbBtn` are live; duplicate those
 four into `play.css` and delete the dead selectors from home.
 
-**5.6 Dead-on-home cleanup.** The `.stagewrap` opacity and hero-copy fade on
+**5.6 Mini-Jayden needs a hidden `#face` on `play.html`.** `fillerData()` bails
+immediately without one (`index.html:7437`), so with no big head there is no
+filler at all: odd rosters cannot be evened, a 1-head game is unplayable, and
+the tournament loses him as a captain (the function was split out expressly so
+the tournament could field him). Fix: a hidden `<img id="face">` on `play.html`
+so `bakeMiniCut` has a source. He then renders from the baked cut through the
+companion's own eye/brow/mouth rig rather than live-mirroring `#stage` — the
+`eyes`/`marks` already in `fillerData` exist for exactly this fallback. If the
+result reads wrong on screen, drop him from `play.html` and accept uneven sides.
+
+**5.7 Everything else degrades on its own.** The engine makes ~40 unqualified
+calls into the portfolio's big-head API (`showFace`, `setHold`, `browFlash`,
+`busyNow`, `drowsy`, `introMode`, `eventLock`). Every one is guarded by
+`typeof X === "function"` / `!== "undefined"` inside a try/catch, so they no-op
+on `play.html`. No shim is needed. What is lost there is the companion's
+courtesies *toward the big head* — yawn contagion, the brow flash when it
+notices a somersault — which are home behaviours by nature.
+
+Verified false positives, requiring no action: `FACES`, `buildEyes`, `setFace`
+and `gaze` appear in the engine only inside comments or as unrelated local
+names; `reduce` is redeclared locally at `index.html:4928`.
+
+**5.8 Dead-on-home cleanup.** The `.stagewrap` opacity and hero-copy fade on
 `body.hmSoccer` (403–405, 410–413); the `openAbout` mid-game teardown
 (`index.html:3473` — already guarded, so harmless but unreachable); and
 `#scrollCue`, portfolio code stranded at the tail of the game script
