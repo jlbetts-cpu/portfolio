@@ -60,8 +60,13 @@
      clip rather than hidden so this never becomes a scroll container, and
      x-only so the halo keeps its vertical bleed (visible/clip is the one
      mixed pair CSS permits). */
+  /* GROUND MODE. What the orb is judged against — not the orb itself and not
+     the panel. Default is --c50, the site's actual paper token (the page's own
+     --paper above is a Lab-local tint, #f8f9fa, and was never meant to stand in
+     for the ground an exported orb lands on). JS drives the live value inline;
+     this rule is only the first paint before the script runs. */
   .stage{position:relative;display:flex;align-items:center;justify-content:center;
-    overflow-x:clip;min-height:72vh;padding:80px 30px 40px}
+    overflow-x:clip;min-height:72vh;padding:80px 30px 40px;background:var(--c50)}
   .stage.bgMode{padding:0}
   .bgHost{position:absolute;inset:0;display:none;overflow:hidden}
   .stage.bgMode .bgHost{display:block}
@@ -294,6 +299,28 @@
           <option value="bleed">Full-bleed</option>
         </select>
       </p>
+    </div>
+
+    <!-- STAGE GROUND. Judges the orb against the surface it will actually sit
+         on, not the orb itself: this changes what is BEHIND the canvas, never
+         a shader uniform, a preset, or the export. Paper/White/Grey/Ink are the
+         grounds that matter (site paper, edge+halo check, the Play page's dark
+         mode); Custom covers anything else. See lab-backgrounds-report.md for
+         what multiply and the feathered limb do on the Ink ground. -->
+    <div class="sec">
+      <p class="secH">Stage
+        <select id="stageGround" aria-label="Stage background">
+          <option value="paper" selected>Paper</option>
+          <option value="white">White</option>
+          <option value="grey">Grey</option>
+          <option value="ink">Ink</option>
+          <option value="custom">Custom</option>
+        </select>
+      </p>
+      <div class="row" id="stageGroundCustomRow" style="display:none">
+        <label for="stageGroundColor">Colour</label>
+        <input type="color" id="stageGroundColor" value="#fdfdfd" aria-label="Custom stage background colour">
+      </div>
     </div>
 
     <div class="sec">
@@ -796,6 +823,7 @@ function FluidMesh(canvas,cfg){
   var nodeRangeIds=["nx","ny","nsize","nlen","nang"];
   var els={};colorIds.concat(rangeIds).concat(nodeRangeIds).forEach(function(k){els[k]=$(k);});
   els.form=$("form");els.nodeSel=$("nodeSel");els.preset=$("preset");els.shape=$("shape");
+  els.stageGround=$("stageGround");els.stageGroundColor=$("stageGroundColor");
 
   function N(x,y,size,len,angDeg){return{x:x,y:y,size:size,len:len,ang:angDeg*Math.PI/180};}
   var nodes=[N(.5,.48,1,0,0),N(.22,.28,1,0,0),N(.74,.36,1,0,0),N(.70,.78,1,0,0),N(.28,.70,1,0,0)];
@@ -1018,6 +1046,21 @@ function FluidMesh(canvas,cfg){
     });
     writeCode(v,orb,haloA);
   }
+  /* ---- stage ground: what the orb is judged against, not what it renders as.
+     Paper/Grey/Ink map to tokens.css (--c50/--c500/--c950); White is the one
+     literal because tokens.css names no plain-white token, matching how this
+     sheet already writes #fff for chrome (e.g. .miniBtn). Purely a stage-level
+     background-color swap — never touches cfg(), the shader, a preset, or
+     writeCode()'s export. */
+  var STAGE_GROUNDS={paper:"var(--c50)",white:"#fff",grey:"var(--c500)",ink:"var(--c950)"};
+  function applyStageBg(){
+    var v=els.stageGround.value;
+    $("stageGroundCustomRow").style.display=(v==="custom")?"":"none";
+    $("stage").style.background=(v==="custom")?els.stageGroundColor.value:STAGE_GROUNDS[v];
+  }
+  els.stageGround.addEventListener("input",applyStageBg);
+  els.stageGroundColor.addEventListener("input",applyStageBg);
+
   function syncOutputs(){
     rangeIds.concat(nodeRangeIds).forEach(function(k){
       var o=$(k+"O");if(o)o.textContent=els[k].value;});
@@ -1249,7 +1292,7 @@ fallback,
     $("orbWrap").style.setProperty("--R",(w/2).toFixed(0)+"px");}
   addEventListener("resize",sizeR);
 
-  sizeR();loadNodeSliders();syncOutputs();apply();
+  sizeR();loadNodeSliders();syncOutputs();apply();applyStageBg();
 })();
 </script>
 </body>
