@@ -188,7 +188,7 @@ function tickFidget(){
  else if(fidget.type==="roll"){var fade=Math.min(1,Math.min(p,1-p)*7);var ang=p*Math.PI;tgx=Math.cos(ang)*-0.75*fade*fidget.dir;tgy=-Math.sin(ang)*0.95*fade;trot=Math.sin(p*Math.PI)*2.2*fidget.dir;}   /* the eye roll: a full arc over the top */
  else if(fidget.type==="dtake"){if(p<0.42){var q=p/0.42;tgx=fidget.dir*0.8*q;trot=fidget.dir*1.6*q;}else{var q2=Math.max(0,1-(p-0.42)/0.12);tgx=fidget.dir*0.8*q2;trot=fidget.dir*1.6*q2;brow=(p>0.5&&p<0.92);}}   /* double-take: drift away, SNAP back, brows up */
  else if(fidget.type==="bruh"){tgx=0;tgy=0.04;trot=0;if(!fidget.blinked&&p>0.28){fidget.blinked=true;slowBlink();}}   /* the unimpressed slow blink */
- else if(fidget.type==="word"||fidget.type==="corner"){try{var _tel=fidget.type==="word"?cycWord:document.querySelector(".faceMoodCorner");if(_tel){var _er=_tel.getBoundingClientRect(),_sr2=stage.getBoundingClientRect();tgx=Math.max(-1,Math.min(1,((_er.left+_er.width/2)-(_sr2.left+_sr2.width*0.5))/(_sr2.width*0.8)))*0.85*env;tgy=Math.max(-1,Math.min(1,((_er.top+_er.height/2)-(_sr2.top+_sr2.height*0.42))/(_sr2.height*0.8)))*0.7*env;trot=tgx*2.2;}}catch(_){}}                                           // eyebrow raise
+ else if(fidget.type==="word"||fidget.type==="corner"){try{var _tel=fidget.type==="word"?cycWord:document.querySelector(".jbPlay,.faceMoodCorner");if(_tel){var _er=_tel.getBoundingClientRect(),_sr2=stage.getBoundingClientRect();tgx=Math.max(-1,Math.min(1,((_er.left+_er.width/2)-(_sr2.left+_sr2.width*0.5))/(_sr2.width*0.8)))*0.85*env;tgy=Math.max(-1,Math.min(1,((_er.top+_er.height/2)-(_sr2.top+_sr2.height*0.42))/(_sr2.height*0.8)))*0.7*env;trot=tgx*2.2;}}catch(_){}}                                           // eyebrow raise
  fidgetGX+=(tgx-fidgetGX)*0.22;fidgetGY+=(tgy-fidgetGY)*0.22;fidgetROT+=(trot-fidgetROT)*0.22;
  var _browType=(fidget.type==="brow"||fidget.type==="rock"||fidget.type==="dtake");
  if(_browType&&!blinking&&(curFace==="neutral"||curFace==="rest")){if(brow&&!fidgetBrow){faceImg.src=PFX+FACES.neutral.browsup;fidgetBrow=true;}else if(!brow&&fidgetBrow){faceImg.src=PFX+FACES[curFace].img;fidgetBrow=false;}}
@@ -1856,8 +1856,14 @@ if(!HEADONLY){stage.style.opacity="0";requestAnimationFrame(function(){requestAn
   }
   function setChevron(){ // caret points toward where the menu will open when closed, and flips to point back when open
    var car=btn&&btn.querySelector(".moodCar");if(!car)return;
-   var open=bar.classList.contains("open"), down=menuOpensDown();
-   var deg=down?(open?0:180):(open?180:0);
+   var open=bar.classList.contains("open");
+   /* HEADER V2: Play is a split control in the top bar and its menu always drops
+      DOWN, so the caret is the chevron as drawn when closed and flipped when
+      open -- the same convention .jbDiscCar uses for Contact at the other end of
+      the bar. The old rule pointed it toward where the menu WOULD open, which
+      was right for a dock under the head opening upward and is backwards here:
+      it rendered a down-chevron rotated 180 while the menu was shut. */
+   var deg=open?180:0;
    car.style.setProperty("transition","transform .32s cubic-bezier(.34,1.4,.5,1), color .2s cubic-bezier(.2,.8,.2,1)","important");
    car.style.setProperty("transform","rotate("+deg+"deg)","important");
   }

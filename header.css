@@ -182,7 +182,19 @@
      enough on its own once the shadow is gone. */
   --nav-rim:var(--rim-2);
 
-  --nav-ink:var(--c700);
+  /* THE HOVER DELTA, and it is set by the REST colour rather than the hover one.
+     Jayden asked for two things that look contradictory and are not: take the
+     grey background off hover, and "actually adding a hover effect that you can
+     see." With no fill, the only thing left to carry hover is ink -- so the ink
+     has to travel far enough to read. --c700 -> --c950 was a 7.0:1 -> 16.1:1
+     jump and he still could not see it, because both ends are dark.
+     Dropping rest to --c500 makes it --c500 -> --c950: 4.63:1 -> 16.1:1, a 3.5x
+     contrast change instead of 2.3x, and the icon travels with it via
+     currentColor so the whole control answers as one object. --c500 at 14px on
+     #FDFDFD is 4.63:1, which clears WCAG 1.4.3 AA for body text with margin.
+     This is the one hover rule, and it is the same one on every interactive
+     element in the bar -- tabs, Back, both split controls, both menus. */
+  --nav-ink:var(--c500);
   --nav-ink-strong:var(--c950);
   --nav-active-ink:var(--nav-accent);
   --nav-active-bg:var(--nav-accent-wash);
@@ -231,8 +243,11 @@
   /* the case studies put filter:url(#inkSm) on chrome text; a displacement map
      on a 14px label beside a 1.35px stroke reads as a smear. */
   filter:none;
-  transition:background-color var(--ease-out-dur) var(--ease-out),
-             color var(--ease-out-dur) var(--ease-out),
+  /* hover-OUT at --hover-out-dur, hover-IN at --ease-out-dur: the rule is that
+     a control answers immediately and lets go gently. Equal timings read
+     mechanical. Stated once here and inherited by every item in the bar. */
+  transition:color var(--hover-out-dur) var(--ease-out),
+             background-color var(--hover-out-dur) var(--ease-out),
              transform var(--press-dur) var(--ease-out);
 }
 /* 44 × 44 with no visible padding -- the ink box stays --bar-item-h, the target
@@ -256,7 +271,8 @@
    Only ONE item in the bar ever carries a fill, and it is the one you are on.
    The focus ring never depended on the wash: it is a 2px --nav-accent outline
    at --sp-2 offset, drawn outside the box. */
-.jbNav a:hover,.jbNav button:hover{color:var(--nav-ink-strong)}
+.jbNav a:hover,.jbNav button:hover{color:var(--nav-ink-strong);
+  transition:color var(--ease-out-dur) var(--ease-out)}
 .jbNav a:active,.jbNav button:active{transform:scale(var(--press-scale))}
 .jbNav .jbHome:active{transform:scale(var(--press-scale-lg))}   /* larger object, less scale */
 .jbNav :focus-visible{outline:var(--focus-w) solid var(--nav-accent);outline-offset:var(--sp-2);
