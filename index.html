@@ -52,7 +52,7 @@
 html{scroll-behavior:smooth}
 .siteFoot{scroll-margin-top:80px}
 
-:root{--c50:#FDFDFD;--c100:#E6E6E6;--c75:#F1F1F1;--c500:#757575;--c600:#6B6B6B;--c700:#525252;--c900:#212121;--c950:#121212;--accent:#2961CE;--accent-live:#17A45A;
+:root{--c50:#FDFDFD;--c100:#E6E6E6;--c75:#F1F1F1;--c500:#757575;--c600:#6B6B6B;--c700:#525252;--c900:#212121;--c950:#121212;--accent-live:#17A45A;
  /* --accent: the one restrained highlight (deep emerald, 6.5:1 on white) -- hero keyword phrases + the active case-study tab; --accent-live: a brighter "available" status dot */
  --sans:"Instrument Sans",-apple-system,system-ui,sans-serif;--fs-display:clamp(68px,12vw,168px);--fs-h1:clamp(28px,2.6vw,38px);--fs-hero:clamp(38px,4.7vw,60px);--fs-heroline:clamp(28px,2.6vw,38px);--sp-8-16:16px;--sp-16-24:24px;--sp-16-32:32px;--sp-16-40:40px;--sp-24-48:48px;--sp-32-56:56px;--sp-32-64:64px;--sp-40-72:72px;--sp-48-80:80px;--sp-56-96:96px;--fs-h2:clamp(26px,2.5vw,36px);--fs-h3:clamp(21px,2.4vw,32px);--fs-h4:clamp(19px,2.1vw,28px);--fs-h5:clamp(20px,1.7vw,24px);--fs-lead:clamp(15px,1.4vw,18px);--fs-prose:clamp(17px,1.39vw,20px);--fs-body:16px;--fs-small:15px;--fs-tab:clamp(17px,1.5vw,20px);--fs-label:13px;--fs-caption:12px;--fs-micro:11px;--lh-display:1.0;--lh-tight:1.08;--lh-body:1.5;--lh-prose:1.5;--lh-flat:1;}@media(max-width:880px){:root{--sp-8-16:8px;--sp-16-24:16px;--sp-16-32:16px;--sp-16-40:16px;--sp-24-48:24px;--sp-32-56:32px;--sp-32-64:32px;--sp-40-72:40px;--sp-48-80:48px;--sp-56-96:56px}}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -144,8 +144,8 @@ body.catchReady:not(.about-open) #stageMorph{transform:scale(1.055)}
 .pupil{position:absolute;left:50%;top:50%;width:55%;height:55%;border-radius:50%;background:radial-gradient(circle at 50% 50%,#000 0%,#000 58%,#060606 80%,rgba(6,6,6,0) 100%);transform:translate(-50%,-50%) scale(1);transform-origin:50% 50%;pointer-events:none;will-change:transform}
 .glint{position:absolute;left:32%;top:26%;width:20%;height:20%;border-radius:50%;z-index:4;pointer-events:none;background:radial-gradient(circle at 50% 50%,rgba(255,255,255,.98) 0%,rgba(252,252,252,.72) 24%,rgba(250,250,250,0) 60%)}
 .glint::after{content:"";position:absolute;left:128%;top:165%;width:46%;height:46%;border-radius:50%;background:radial-gradient(circle,rgba(250,250,250,.55) 0%,rgba(250,250,250,0) 68%)}
-.work{position:relative;z-index:61;margin:12vh auto 0;max-width:1280px;padding:0 40px}
-.workcard{background:var(--c600);border-radius:4px 4px 0 0;min-height:62vh;display:flex;align-items:flex-end;padding:32px}
+.work{position:relative;z-index:61;margin:12vh auto 0;max-width:var(--page-max);padding:0 var(--sp-40)}
+.workcard{background:var(--c600);border-radius:var(--r-2xs) var(--r-2xs) 0 0;min-height:62vh;display:flex;align-items:flex-end;padding:var(--sp-32)}
 .worklabel{color:var(--c100);font-size:var(--fs-label);letter-spacing:.01em;text-transform:none;opacity:.8;filter:url(#inkSm)}
 .hint{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);font-size:var(--fs-caption);color:var(--c500);z-index:5;background:rgba(243,243,243,.7);padding:8px 12px;border-radius:4px;backdrop-filter:blur(4px)}
 .popcrumb{position:absolute;width:2.2%;height:2.2%;background:#e7ddc7;z-index:5;opacity:0;pointer-events:none;will-change:transform,opacity}
@@ -182,7 +182,7 @@ body.catchReady:not(.about-open) #stageMorph{transform:scale(1.055)}
 @media(prefers-reduced-motion:reduce){.speech .tw{animation:none!important;opacity:1}}
 @media(max-width:1000px){.hero{gap:16px}.stagewrap{width:clamp(340px,46vw,520px)}}
 @media(max-width:760px){
- .wrap{padding:0 24px}.work{padding:0 24px}.cases .caseInset{padding:0 24px}.cases .csStageInner{padding:0 24px}nav{gap:16px;padding:24px 0 0}nav a{font-size:var(--fs-tab)}
+ .wrap{padding:0 24px}.work{padding:0 var(--sp-24)}.cases .caseInset{padding:0 var(--sp-24)}.cases .csStageInner{padding:0 var(--sp-24)}nav{gap:16px;padding:24px 0 0}nav a{font-size:var(--fs-tab)}
  .hero{grid-template-columns:1fr;min-height:auto;padding:32px 0 8px;gap:16px;text-align:left}
  h1{font-size:clamp(34px,9.2vw,46px);max-width:16ch}.sub{font-size:var(--fs-body);max-width:90%}
  .stagewrap{justify-self:center;width:clamp(280px,82vw,400px);margin-top:8px}
@@ -348,14 +348,14 @@ body.moodInCta .heroCtas:not(.in) .faceMoodCorner{opacity:0!important;visibility
 .flash{position:fixed;inset:0;z-index:9001;background:#fff;opacity:0;pointer-events:none}
 .flash.go{opacity:1;transition:opacity .34s cubic-bezier(.2,.8,.2,1)}
 .csGo{display:block;width:100%;text-decoration:none;color:inherit}
-.csGo:focus-visible{outline:2px solid var(--c950);outline-offset:6px}
+.csGo:focus-visible{outline:var(--focus-w) solid var(--c950);outline-offset:var(--sp-6)}
 /* returning from the case study: the cover emerges back out of the white */
 .csBackveil{position:fixed;inset:0;z-index:9002;background:#fff;opacity:1;pointer-events:none;display:none}
 .csBackveil.clear{opacity:0;transition:opacity .6s cubic-bezier(.2,.8,.2,1)}
 
 /* ===== Work — tabbed, full-width case-study thumbnails with scroll-lock (8fps house motion) ===== */
 .cases{position:relative;z-index:61;margin:clamp(80px,12vh,144px) auto 0;background:var(--c50)}
-.caseInset{max-width:1280px;margin:0 auto;padding:0 40px}
+.caseInset{max-width:var(--page-max);margin:0 auto;padding:0 var(--sp-40)}
 /* tab bar: Instrument Sans, active = ink + underline, others muted; stepped like the rest of the site */
 .csTabs{display:flex;flex-wrap:wrap;gap:24px;align-items:flex-end;justify-content:flex-start;
  margin:0 auto clamp(24px,3.2vh,40px);position:relative}.csTabs::before{content:"";position:absolute;left:16px;right:0;bottom:0;height:1px;background:var(--c100)}
@@ -374,16 +374,16 @@ body.moodInCta .heroCtas:not(.in) .faceMoodCorner{opacity:0!important;visibility
 .csItem+.csItem{margin-top:clamp(128px,18vh,240px)}
 .csTrack{height:auto}
 .csStage{position:relative;display:flex;flex-direction:column;overflow:visible}
-.csStageInner{max-width:1280px;width:100%;margin:0 auto;padding:0 40px;display:flex;flex-direction:column;gap:clamp(16px,1.7vw,24px)}
-.csFrame{position:relative;width:100%;aspect-ratio:2/1;overflow:hidden;border-radius:0;background:var(--c100);opacity:0;transform:translateY(26px);transition:opacity .55s cubic-bezier(.2,.8,.2,1),transform .55s cubic-bezier(.2,.8,.2,1);will-change:opacity,transform}
+.csStageInner{max-width:var(--page-max);width:100%;margin:0 auto;padding:0 var(--sp-40);display:flex;flex-direction:column;gap:clamp(var(--sp-16),1.7vw,var(--sp-24))}
+.csFrame{position:relative;width:100%;aspect-ratio:2/1;overflow:hidden;border-radius:0;background:var(--c100);opacity:0;transform:translateY(var(--enter-rise));transition:opacity var(--enter-dur) var(--ease-out),transform var(--enter-dur) var(--ease-out);will-change:opacity,transform}
 .csItem.csIn .csFrame{opacity:1;transform:none}
 .csImg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
 .csItem:has(.soon) .csImg{filter:grayscale(1)}
-.csMeta{display:flex;align-items:baseline;justify-content:space-between;gap:24px;margin:12px 0 0;opacity:0;transform:translateY(14px);transition:opacity .5s cubic-bezier(.2,.8,.2,1) .08s,transform .5s cubic-bezier(.2,.8,.2,1) .08s;will-change:transform,opacity}
+.csMeta{display:flex;align-items:baseline;justify-content:space-between;gap:var(--sp-24);margin:var(--sp-12) 0 0;opacity:0;transform:translateY(var(--sp-14));transition:opacity var(--enter-dur) var(--ease-out) var(--enter-stagger),transform var(--enter-dur) var(--ease-out) var(--enter-stagger);will-change:transform,opacity}
 .csItem.csIn .csMeta{opacity:1;transform:none}
-.csName{font-family:var(--sans);font-weight:600;font-size:var(--fs-h3);letter-spacing:-.02em;color:var(--c950);filter:url(#inkBig)}
-.csName .soon{font-weight:600;font-size:.62em;letter-spacing:0;color:var(--c500);margin-left:.5em;vertical-align:baseline}
-.csYear{font-family:var(--sans);font-weight:600;font-size:var(--fs-h4);letter-spacing:-.01em;color:var(--c500);font-variant-numeric:tabular-nums;filter:url(#inkBig)}.csItem.wip .csYear{border:1px dashed var(--c100);border-radius:4px;padding:8px 16px;font-size:var(--fs-label);color:var(--c700);line-height:1;filter:none;align-self:center}
+.csName{font-family:var(--sans);font-weight:600;font-size:var(--fs-h3);letter-spacing:var(--tr-head);color:var(--c950);filter:url(#inkBig)}
+.csName .soon{font-weight:600;font-size:.62em;letter-spacing:var(--tr-flat);color:var(--c500);margin-left:.5em;vertical-align:baseline}
+.csYear{font-family:var(--sans);font-weight:600;font-size:var(--fs-h4);letter-spacing:var(--tr-title);color:var(--c500);font-variant-numeric:tabular-nums;filter:url(#inkBig)}.csItem.wip .csYear{border:var(--hair-w) dashed var(--c100);border-radius:var(--r-2xs);padding:var(--sp-8) var(--sp-16);font-size:var(--fs-label);color:var(--c700);line-height:var(--lh-flat);filter:none;align-self:center}
 /* cursor-following case-study reader (desktop hover only) */
 .csCursor{position:fixed;top:0;left:0;width:0;height:0;z-index:131;pointer-events:none;opacity:0;transition:opacity .16s cubic-bezier(.2,.8,.2,1)}
 .csCursor.on{opacity:1}
@@ -450,15 +450,15 @@ body.moodInCta .heroCtas:not(.in) .faceMoodCorner{opacity:0!important;visibility
    margin so the scroll origin cannot clip it. */
 .csTabs{gap:16px;flex-wrap:nowrap;justify-content:center}.csTabs .csTab{flex:0 0 auto;white-space:nowrap}
  .csTrack{height:auto}
- .csStage{position:relative;height:auto;padding:clamp(14px,2vh,28px) 0;justify-content:flex-start;overflow:visible}
- .csFrame{transform:translateY(26px);opacity:0;transition:opacity .55s cubic-bezier(.2,.8,.2,1),transform .55s cubic-bezier(.2,.8,.2,1)}
+ .csStage{position:relative;height:auto;padding:clamp(var(--sp-14),2vh,var(--sp-28)) 0;justify-content:flex-start;overflow:visible}
+ .csFrame{transform:translateY(var(--enter-rise));opacity:0;transition:opacity var(--enter-dur) var(--ease-out),transform var(--enter-dur) var(--ease-out)}
  .csItem.csIn .csFrame{transform:none;opacity:1}
- .csMeta{opacity:0;transform:translateY(14px);transition:opacity .5s cubic-bezier(.2,.8,.2,1) .07s,transform .5s cubic-bezier(.2,.8,.2,1) .07s}
+ .csMeta{opacity:0;transform:translateY(var(--sp-14));transition:opacity var(--enter-dur) var(--ease-out) var(--enter-stagger),transform var(--enter-dur) var(--ease-out) var(--enter-stagger)}
  .csItem.csIn .csMeta{opacity:1;transform:none}
  .csItem+.csItem{margin-top:14vh}
 }
 @media(prefers-reduced-motion:reduce){
- .csFrame{border-radius:4px!important;opacity:1!important;transform:none!important;transition:none!important}
+ .csFrame{border-radius:var(--r-2xs)!important;opacity:1!important;transform:none!important;transition:none!important}
  .csMeta{opacity:1!important;transform:none!important;transition:none!important}
  .csPanel.on{animation:none}
  .csTab::after{transition:none}
@@ -708,8 +708,13 @@ body.abclosing.abPhotoOut .abShots .abShot.cOn,body.abclosing.abPhotoOut .abShot
 
 /* the return animations that only existed to move .navTitle and .heroBack off
    screen went with them */
-@keyframes headPeek{0%{transform:translate(0,0) rotate(0)}12%{transform:translate(calc(var(--pkx)*.45),-2%) rotate(calc(var(--pkr)*.5))}26%{transform:translate(var(--pkx),-5.4%) rotate(var(--pkr))}38%{transform:translate(calc(var(--pkx)*1.06),-6.2%) rotate(calc(var(--pkr)*1.12))}50%{transform:translate(var(--pkx),-5.4%) rotate(var(--pkr))}72%{transform:translate(var(--pkx),-5.4%) rotate(var(--pkr))}84%{transform:translate(calc(var(--pkx)*.5),-2.4%) rotate(calc(var(--pkr)*.5))}100%{transform:translate(0,0) rotate(0)}}
-body.about-open .stage.peeking{animation:headPeek 1.7s steps(1,end)}
+/* @keyframes headPeek and body.about-open .stage.peeking are DELETED. The
+   keyframes drove every step off --pkx and --pkr, which nothing in this repo
+   sets -- no stylesheet, no script -- so every transform in them was invalid at
+   computed-value time and the animation did nothing. Nothing adds the .peeking
+   class either. 12 of the audit's 18 undefined-token errors were these two
+   names. Deleting the rules is the honest fix; inventing values for a peek
+   nobody can trigger would have been the dishonest one. */
 @keyframes dealOn{0%{opacity:1;transform:translate(118%,6%) rotate(11deg) scale(.95)}58%{opacity:1;transform:translate(-3.5%,-2.5%) rotate(-2.5deg) scale(1.03)}80%{opacity:1;transform:translate(1.4%,.7%) rotate(1.2deg) scale(.995)}100%{opacity:1;transform:translate(0,0) rotate(0) scale(1)}}@keyframes dealOff{0%{opacity:1;transform:translate(0,0) rotate(0) scale(1)}18%{opacity:1;transform:translate(-4%,-4%) rotate(-3.5deg) scale(1.04)}100%{opacity:1;transform:translate(120%,7%) rotate(12deg) scale(.95)}}@keyframes throwOn{0%{opacity:1;transform:translate(126%,16%) rotate(14deg) scale(.84)}60%{opacity:1;transform:translate(-4%,-3%) rotate(-3deg) scale(1.03)}100%{opacity:1;transform:translate(0,0) rotate(0) scale(1)}}
 .abShots .abPhotoFrame{position:relative;width:100%;aspect-ratio:491/501;overflow:hidden;background:var(--c100)}
 .abShots .abPhotoFrame img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
@@ -728,7 +733,7 @@ body.about-open.headheal .abTear{animation:tearClose .5s steps(1,end) forwards}
 @media(hover:none){.abTear{display:none}body.about-open .abShot.abBurstHost .abPhotoFrame{-webkit-mask:none!important;mask:none!important;animation:none!important}}
 /* touch: burst-reveal is disabled, so hide the head that would otherwise peek out behind the photo */
 @media(hover:none){body.about-open .stage,body.about-open .floorshadow{visibility:hidden}}
-@media(prefers-reduced-motion:reduce){body.about-open .logo{animation:none;transform:none;font-size:var(--fs-display)}body.about-open .heroAbout{animation:none}.abShots .abShot.on,.abShots .abShot.cThrow,.abShots .abShot.cOn,.abShots .abShot.cUnder{opacity:1;animation:none!important}.heroAbout .abw{opacity:1;animation:none}body.about-open .stage.peeking{animation:none}body.abclosing .abShots .abShot.on,body.abclosing .heroAbout .abw,body.abclosing .logo{animation:none!important}}
+@media(prefers-reduced-motion:reduce){body.about-open .logo{animation:none;transform:none;font-size:var(--fs-display)}body.about-open .heroAbout{animation:none}.abShots .abShot.on,.abShots .abShot.cThrow,.abShots .abShot.cOn,.abShots .abShot.cUnder{opacity:1;animation:none!important}.heroAbout .abw{opacity:1;animation:none}body.abclosing .abShots .abShot.on,body.abclosing .heroAbout .abw,body.abclosing .logo{animation:none!important}}
 @keyframes abHeadReturn{0%{opacity:0;transform:translateY(16px)}100%{opacity:1;transform:translateY(0)}}
 @media(max-width:760px){
  body.about-open .hero{grid-template-columns:1fr}
@@ -759,9 +764,9 @@ body.about-open.headheal .abTear{animation:tearClose .5s steps(1,end) forwards}
 @media(max-width:760px){.hero{grid-template-columns:1fr!important}}
 /* --- 4px corner softening pass --- */
 .workCta,.abLink,.abLinkPrimary,.abTalk,.abBack,.moodMenu,.moodMenu button,.moodMenu a,.csInfoCard,.amsImg,.abShot img,.abShot,.reelClose{border-radius:4px!important}
-.csFrame,.csImg,.cover,.cover img,.shot img,.photoFig img,.photoPair figure,.photoPair img,.stat,.reelOverlayVid,.reelOverlayYt{border-radius:4px}
+.csFrame,.csImg,.cover,.cover img,.shot img,.photoFig img,.photoPair figure,.photoPair img,.stat,.reelOverlayVid,.reelOverlayYt{border-radius:var(--r-2xs)}
 .talk{border-radius:4px!important}
-.workcard{border-radius:4px 4px 0 0 !important}
+.workcard{border-radius:var(--r-2xs) var(--r-2xs) 0 0 !important}
 .csItem.wip{cursor:default}
 .csItem.wip .csImg{filter:none}
 
@@ -882,11 +887,11 @@ body.about-open.headheal .abTear{animation:tearClose .5s steps(1,end) forwards}
 }
 
 /* ONE hover, everywhere, no exceptions */
-.moodItem:hover,.moodBtn:hover,.moodGo:hover,.reelClose:hover,.workCta:hover,.mhToggle:hover,.abBack:hover,.abLink:hover,.csTab:hover,.toTop:hover,.csGo:hover,.chap:hover,.footIn:hover,.moodItem:focus-visible,.moodBtn:focus-visible,.moodGo:focus-visible,.reelClose:focus-visible,.workCta:focus-visible,.mhToggle:focus-visible,.abBack:focus-visible,.abLink:focus-visible,.csTab:focus-visible,.toTop:focus-visible,.csGo:focus-visible,.chap:focus-visible,.footIn:focus-visible{
+.moodItem:hover,.moodBtn:hover,.moodGo:hover,.reelClose:hover,.workCta:hover,.mhToggle:hover,.abBack:hover,.abLink:hover,.csTab:hover,.toTop:hover,.chap:hover,.footIn:hover,.moodItem:focus-visible,.moodBtn:focus-visible,.moodGo:focus-visible,.reelClose:focus-visible,.workCta:focus-visible,.mhToggle:focus-visible,.abBack:focus-visible,.abLink:focus-visible,.csTab:focus-visible,.toTop:focus-visible,.chap:focus-visible,.footIn:focus-visible{
  background:var(--c75);color:var(--c950);border-color:transparent;
 }
-.csGo,.chap,.footIn{
- transition:background-color .16s cubic-bezier(.2,.8,.2,1),color .16s cubic-bezier(.2,.8,.2,1);
+.chap,.footIn{
+ transition:background-color var(--ease-out-dur) var(--ease-out),color var(--ease-out-dur) var(--ease-out);
 }
 
 /* The Play-menu-in-the-header overrides stood here: no card edge, no shadow, a
@@ -1005,8 +1010,6 @@ body.about-open #navAbout{color:var(--c950);background:var(--c75)}
    every computed custom property on :root and on .jbNav before and after the
    swap and diffing them -- the acceptance criterion was zero changes, and the
    only differences are ADDITIONS: the tokens this page never had. */
-/* the responsive rungs the ladder above is missing on this page */
-@media(max-width:760px){:root{--blur-1:0px;--blur-2:0px}}
 /* --- and the SITE-WIDE rule that landed in tokens.css with header v2, copied here
    for the same reason as the block above: this page is not wired to that file.
    Verbatim from tokens.css; delete with the block when this page links it.
