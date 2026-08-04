@@ -1085,13 +1085,39 @@
       if(ballHigh&&nearOwnGoal){wantHigh=true;bxT=(ballX-atk*(HW*0.3))-HW/2;}   // a high ball at my own net: LEAP to head it clear
       else if(ballHigh&&myGS&&Math.abs(ballX-myX)<HW*2.4){wantHigh=true;bxT=leadX-HW/2;}}   // an airborne ball I'm already behind: VOLLEY it forward toward their net -- aerial shots + bank-offs, soccer's electric bit
      else if(role==="keeper"||(role==="defender"&&ballOnOurHalf)){   // GUARD: hang between the ball and my net, clear only from the goal side (never poke it back toward my own net)
-      bxT=Math.max(M,Math.min(heroR.w-M-HW,(ballX+ownGoalX*2)/3))-HW/2;
+      // MIRRORED. See the note on the SUPPORT clamp below -- same bug, same cause, same one-term fix.
+      bxT=Math.max(M,Math.min(heroR.w-M,(ballX+ownGoalX*2)/3))-HW/2;
       if(role==="keeper")bxT=team===1?Math.min(bxT,heroR.w*0.11):Math.max(bxT,heroR.w*0.89-HW);
       if(ballHigh&&nearOwnGoal&&ballOnOurHalf)wantHigh=true;}   // spring up to block the high shot
      else{   // SUPPORT: push up toward their goal to receive the clear / pounce a rebound -- staying goal-side so a forward pass finds me
       var _small9=(window.__hmCrowd||4)<=4;   // small game: press much closer to the ball so the second head is in the mix too (more bumping, less hanging back)
       var aheadX=ballX+atk*((_small9?0.5:1.5)*HW+heroR.w*(_small9?0.03:0.1)+teamAhead*HW*0.7)+(Math.random()*60-30);
-      bxT=Math.max(M+HW*0.2,Math.min(heroR.w-M-HW*1.2,aheadX))-HW/2;}
+      // THE PITCH WAS SHORTER ON THE RIGHT, AND THAT IS THE WHOLE BUG. Jayden: "some players cover
+      // their own goal, blocking the ball. And the left goal gets scored on every time ... they all
+      // run to the right." Three symptoms, one cause, and it is this clamp and its twin above.
+      //
+      // aheadX is a CENTRE (it is built from ballX, which is a ball centre). bxT is a LEFT EDGE --
+      // it is compared against x. The -HW/2 at the end is the conversion between the two, and it is
+      // correct. What was wrong is that the clamp ran BEFORE the conversion while its two bounds
+      // were written in different spaces: the low bound M+HW*0.2 is a distance from the left wall,
+      // but the high bound heroR.w-M-HW*1.2 already had a head-width subtracted, as if it were
+      // bounding the left edge. So the head-width was paid twice on the right and never on the left.
+      // Measured at 1280 with HW=108, M=40, the reachable CENTRE band was [61.6, 1110.4]: 61.6 from
+      // the left wall and 169.6 from the right. A full head-width of pitch that only one side had.
+      //
+      // That is why they all run right and then stop dead in a line. 1110 is not where the ball is,
+      // it is where the clamp is -- and a soak confirmed it: the two team-1 attackers averaged 1092
+      // and 1126 against a bound of 1110.4, i.e. parked ON it. Because the bound sits just short of
+      // the right goal, the crowd forms a WALL across its mouth -- "players cover their own goal,
+      // blocking the ball" -- so the right net is screened and cannot be scored on, while the left
+      // has no such bound, nobody queues there, and it "gets scored on every time".
+      //
+      // The fix is to mirror the bound, and only the bound. The LEFT value is untouched, so the
+      // press is exactly as close and exactly as aggressive as it already was; the right simply
+      // gets the same licence. Nothing here spaces the heads out, assigns anyone a station, or
+      // damps the scrum -- the pile-up disappears because the wall it was queueing against is gone,
+      // not because anyone was told to stand apart.
+      bxT=Math.max(M+HW*0.2,Math.min(heroR.w-M-HW*0.2,aheadX))-HW/2;}
      var ddb9=bxT-x;
      if(Math.abs(ddb9)>HW*0.4){dir=ddb9>0?1:-1;gzx=dir*0.85;gzy=(ballY<floorY-160?-0.55:0.15);sacAt=now+560;   // eyes lock onto the ball as it goes
       surface=floorY;st="fall";air=true;
