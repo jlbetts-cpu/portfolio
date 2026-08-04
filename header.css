@@ -241,24 +241,21 @@
 .jbGrp{position:relative;z-index:1;                /* over the travelling indicator */
   display:flex;align-items:center;gap:var(--sp-8);flex:0 1 auto;min-width:0}
 
-/* ── THE BACK SLOT — why the bar is the same shape on nine pages that do not
-   carry the same items.  Jayden asked for two things that collide: "Back on the
-   case studies only" and "mathematically balanced and consistent on every page".
-   Content-driven geometry cannot do both -- five pages would start with a 44px
-   arrow and four would not, so the wordmark would sit 52px further left on the
-   four.  The slot is therefore RESERVED rather than content-driven: every page
-   pays for it, and the page that has a Back puts it there.  One declaration, no
-   :has(), no per-page value -- the leading group is indented by the slot and the
-   Back item is pulled back out of the indent by exactly the same number, so the
-   lockup's offset from the bar's leading edge is IDENTICAL on all nine pages
-   whether or not a Back exists.
-   It is a desktop alignment device and it retires at <=640, where the budget is
-   26px over already and dead space is the first thing that should go. */
-.jbNav{--back-slot:calc(var(--tap-min) + var(--sp-8))}
-.jbGrpL{padding-left:var(--back-slot)}
-.jbNav .jbBack{margin-left:calc(var(--back-slot) * -1)}
-@media(max-width:640px){.jbNav{--back-slot:0px}}
-.jbGrpR{justify-content:flex-end;flex:0 0 auto}
+/* ── THREE ZONES, AND WHY THE BAR IS BALANCED BY CONSTRUCTION ──────────────
+   Jayden asked for two things that content-driven geometry cannot both satisfy:
+   "Back on the case studies only" and "mathematically balanced and consistent on
+   every page".  With two zones the tab cluster started 52px further right on the
+   five pages that carry a Back, so the bar's shape was a function of its
+   contents.  With THREE zones and flex:1 1 0 on the outer two, the centre zone
+   is centred on the bar's own axis regardless of what either side holds -- the
+   research measured this exact mechanism holding the centre at 640.0px against a
+   viewport centre of 640.0px at bar widths of 1200, 620 and 600.
+   So: the mark sits at the leading edge on all nine pages, Back appears after it
+   on five, Contact sits on the trailing edge on nine, and Work/About/Play stay
+   put.  Nothing has to be reserved and nothing has to be tuned per page. */
+.jbGrpL{flex:1 1 0;justify-content:flex-start}
+.jbGrpC{flex:0 0 auto;justify-content:center}
+.jbGrpR{flex:1 1 0;justify-content:flex-end}
 .jbNav .jbHome{flex:0 0 auto}
 
 .jbNav a,.jbNav button{
@@ -493,71 +490,36 @@
    ORDER IS HIS: LinkedIn, Instagram, email -- which is NOT the order the old
    markup shipped (mail first). Left as he gave it. */
 
-/* ── THE LOCKUP — sentence case, TWO STACKED LINES, ragged right ────────────
-   UNCHANGED FROM V1 AND DELIBERATELY SO: Jayden called it perfect, and all six
-   constants below are measured optical corrections (header-report §3). The
-   three rejected alternatives (font-stretch to 76.81% against an axis floor of
-   75, per-line tracking at ±0.085em, two optical sizes 30% apart) are argued
-   there. Its only change in v2 is that Back is no longer injected inside it.
+/* ── THE MARK — images/logo.svg, and the wordmark is retired ────────────────
+   Jayden: "use the logo.svg as the logo -- we can put it where the back button
+   is so it's not just empty space", and, asked, it REPLACES the wordmark rather
+   than joining it.  That retires the whole single-line-lockup problem: a 100px
+   text object in a row of 18px items was a placement problem no amount of
+   tracking was going to solve, and a square mark simply does not have it.
 
-   NB the .jbNav prefix is load-bearing -- .jbHome alone (0,1,0) loses to
-   .jbNav a (0,1,1) and the lockup silently renders at --fs-nav/400. */
-.jbNav .jbHome{
-  --mark-inset:11px;   /* MEASURED optical flush against the pill's leading
-                          edge: "J" sidebearing −0.22px vs "Home" −1.20px, so
-                          a metric --sp-12 reads ~1px wider on the mark. */
-  font-weight:600;font-size:var(--fs-mark);line-height:var(--lh-flat);
-  letter-spacing:var(--tr-mark);color:var(--nav-ink-strong);
-  padding:0 var(--sp-12) 0 var(--mark-inset);gap:var(--sp-6);
-  min-height:var(--bar-item-h);
-  /* sentence case, explicitly: five pages shipped text-transform:uppercase on
-     the old mark and one of them will out-specify a bare inherit. */
-  text-transform:none;
-}
-/* NO baseline correction here, and that is a measured result, not an omission:
-   the single line needed −1.06px because a 17px line and a 14px line centre on
-   different baselines. Stacked, "Jayden"'s ascender above line 1 and "Betts"'s
-   near-zero descender below line 2 balance the block to within 0.03px. */
-/* SINGLE LINE, and this is the one thing in the lockup block that changed.
-   Jayden, seeing it in the finished bar: "the Jayden Betts looks a bit bad right
-   now" -- then, given the options, "try one line first, or just update it to be
-   better." It is a PLACEMENT problem, not a design problem: measured, the
-   stacked mark is 61 x 34px in a row where every other item is a single line
-   about 18px tall, so a two-line block reads as foreign however good the mark
-   is. Single-line measures 100 x 17.8px -- within 0.2px of the tab labels'
-   optical height -- at the cost of 39px more width, which is charged to the
-   390px budget and reported there rather than waved through.
+   HIS FILE, INLINED, SO IT OBEYS THE ICON SYSTEM.  The drawing is his 30-unit
+   viewBox and his path, unchanged.  What changes is in CSS: the file's own
+   stroke="black" and width/height="30" are overridden here rather than edited
+   out of his art, because a mark that is coloured a second way is exactly the
+   "icons need to be the same color" defect this pass just fixed on two menu
+   items.  stroke:currentColor means the mark darkens with its control on hover
+   like every other glyph in the bar, and inverts on the ink surface for free.
 
-   WHAT IS KEPT, because it is what he actually approved ("I love the Betts with
-   the capital B and then the rest lowercase... that is perfect"): sentence case,
-   weight 600, --fs-mark 17px, and --tr-mark -.008em (the old .08em was a
-   CAPITALS tracking value and opens sentence case up far too far). font-stretch
-   stays normal -- lowercase stops width-matching 2.75pp below the axis floor,
-   so compressing it is a rounding error that costs legibility.
-   --mark-flush and --mark-lh are retired with the stack: both were corrections
-   for line 2 sitting under line 1, and there is no line 2. */
-.jbMark{display:flex;flex-direction:row;align-items:baseline;gap:.28em;text-align:left}
-.jbL1,.jbL2{display:block;font-stretch:normal}   /* 85.8% was the capitals mark's */
-/* the lockup never wears the active pill: on home it is aria-current="page"
-   because it is where you are, and a pill on the wordmark would make the
-   brand the loudest object in the bar. */
+   THE SIZE IS THE STROKE MATCH, and it is measured rather than picked.  The path
+   is stroke-width 2 in a 30-unit box, so its effective weight is 2 * (size/30):
+   1.20px at 18, 1.47px at 22, 1.60px at 24.  The nav icons render 1.5px.  22px
+   therefore matches by GEOMETRY, with no stroke override at all -- and a brand
+   mark being four pixels larger than a nav icon is right anyway.
+   NB non-scaling-stroke is deliberately NOT set here: it would pin the stroke to
+   a device pixel value and throw away the size/weight relationship above. */
+.jbNav .jbHome{padding:0 var(--sp-8);min-width:var(--tap-min);justify-content:center}
+.jbLogo{width:var(--ico-mark);height:var(--ico-mark);flex:0 0 var(--ico-mark);
+  display:block;fill:none;stroke:currentColor;stroke-width:2;
+  stroke-linecap:round;stroke-linejoin:round}
+/* the mark never wears the active pill: on home it is aria-current="page"
+   because it is where you are, and a lit brand would be the loudest object in
+   the bar. */
 .jbNav .jbHome[aria-current]{background:none;color:var(--nav-ink-strong)}
-
-/* ── 3 · THE ACTIVE STATE ───────────────────────────────────────────────────
-   Driven by aria-current, which body[data-nav] derives (header.js mirrors the
-   About overlay into both). One rule, no per-state icon variant, no
-   outline→filled swap: a filled icon would make the active item the heaviest
-   object in the bar. The icon follows the ink via currentColor.
-   Placed AFTER the hover rules on purpose -- both are (0,2,1), so source order
-   decides, and an item you are on should not un-light when you point at it. */
-.jbNav [aria-current]:not(.jbHome){
-  color:var(--nav-active-ink);font-weight:600;
-}
-.jbNav [aria-current]:not(.jbHome):hover{
-  color:var(--nav-active-ink);
-}
-/* ...and the lockup, which carries aria-current on home without the pill, still
-   darkens on hover like everything else. (0,3,0) over the rule above. */
 .jbNav .jbHome[aria-current]:hover{color:var(--nav-ink-strong)}
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -632,12 +594,7 @@
   /* (0,3,1) beats the (0,1,1) rule above -- the lit item keeps its word. */
   .jbNav [aria-current]:not(.jbHome) .jbLbl{display:inline}
   .jbNav [aria-current]:not(.jbHome){min-width:0;padding:0 var(--sp-10)}
-  /* the lockup is not an icon slot and must not be forced to 44px wide */
-  .jbNav .jbHome{min-width:0;
-    --mark-inset:7px;                                   /* the optical inset scales with the
-                                                           mark: ~1px at --fs-mark, ~0.9px at
-                                                           --fs-small */
-    font-size:var(--fs-small);padding:0 var(--sp-8) 0 var(--mark-inset)}
+  .jbNav .jbHome{padding:0 var(--sp-6)}
   .jbBack{padding:0 var(--sp-8)}
   .heroAvail{font-size:var(--fs-caption)}
 }

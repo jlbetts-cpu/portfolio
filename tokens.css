@@ -150,6 +150,12 @@
     --menu-gap is the distance from the bar's underside to the panel. It was
     --sp-10 written inline in two files. */
  --sp-36:36px;--menu-w:216px;--menu-gap:10px;
+    /* --ico-mark is the brand mark's box, and it is a STROKE-MATCH value, not a
+       size preference: images/logo.svg is stroke-width 2 in a 30-unit viewBox,
+       so it renders 2*(size/30) -- 1.20px at 18, 1.47px at 22, 1.60px at 24.
+       The icon system renders 1.5px. 22 is where the mark matches its
+       neighbours without overriding anything. */
+ --ico-mark:22px;
     /* --menu-max-h is where a panel stops growing and starts scrolling inside
        itself. Play's carries a saved-heads roster that has no fixed length, and
        a panel that runs past the fold cannot be closed by scrolling to it. */
