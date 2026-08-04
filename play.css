@@ -60,7 +60,7 @@
    times. Nothing here wants the blue rebound; --accent now resolves to
    tokens.css's blue on this page as on every other. ---- */
 :root{--accent-live:#17A45A;
- --fs-hero:clamp(38px,4.7vw,60px);--fs-heroline:clamp(28px,2.6vw,38px);--lh-prose:1.6;}
+ --fs-hero:clamp(38px,4.7vw,60px);--fs-heroline:clamp(28px,2.6vw,38px);--lh-prose:1.5;}
 
 /* ---- THE PAGE GUTTER. Jayden: "nothing is really in the correct margins ... for that
    whole screen". The Play bar was the case in point: it was pinned with a hard-coded

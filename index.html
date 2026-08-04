@@ -39,13 +39,22 @@
      Archivo (c) The Archivo Project Authors (https://github.com/Omnibus-Type/Archivo),
      SIL Open Font License 1.1 (https://openfontlicense.org). Used for tournament
      numerals and broadcast moments only. -->
+<!-- TOKENS. index.html was the last of the nine pages still carrying its own
+     copy of the scale. It links the real file now, which is what makes --rim-top
+     (and --mat-0, --mat-scrim, --accent-press/-wash/-dark, --sh-hero, --lh-auto,
+     the --tr-* and --gap-* families and eleven --sp-*-* rungs) defined here for
+     the first time -- header.css:222 was reading an undefined --rim-top on this
+     page alone, so the ink-surface nav lost its top highlight here and nowhere
+     else. Linked BEFORE this page's <style>, so anything the page still declares
+     for itself continues to win. -->
+<link rel="stylesheet" href="tokens.css">
 <style>
 html{scroll-behavior:smooth}
 .siteFoot{scroll-margin-top:80px}
 
 :root{--c50:#FDFDFD;--c100:#E6E6E6;--c75:#F1F1F1;--c500:#757575;--c600:#6B6B6B;--c700:#525252;--c900:#212121;--c950:#121212;--accent:#2961CE;--accent-live:#17A45A;
  /* --accent: the one restrained highlight (deep emerald, 6.5:1 on white) -- hero keyword phrases + the active case-study tab; --accent-live: a brighter "available" status dot */
- --sans:"Instrument Sans",-apple-system,system-ui,sans-serif;--fs-display:clamp(68px,12vw,168px);--fs-h1:clamp(28px,2.6vw,38px);--fs-hero:clamp(38px,4.7vw,60px);--fs-heroline:clamp(28px,2.6vw,38px);--sp-8-16:16px;--sp-16-24:24px;--sp-16-32:32px;--sp-16-40:40px;--sp-24-48:48px;--sp-32-56:56px;--sp-32-64:64px;--sp-40-72:72px;--sp-48-80:80px;--sp-56-96:96px;--fs-h2:clamp(26px,2.5vw,36px);--fs-h3:clamp(21px,2.4vw,32px);--fs-h4:clamp(19px,2.1vw,28px);--fs-h5:clamp(20px,1.7vw,24px);--fs-lead:clamp(15px,1.4vw,18px);--fs-prose:clamp(17px,1.39vw,20px);--fs-body:16px;--fs-small:15px;--fs-tab:clamp(17px,1.5vw,20px);--fs-label:13px;--fs-caption:12px;--fs-micro:11px;--lh-display:1.0;--lh-tight:1.08;--lh-body:1.5;--lh-prose:1.6;--lh-flat:1;}@media(max-width:880px){:root{--sp-8-16:8px;--sp-16-24:16px;--sp-16-32:16px;--sp-16-40:16px;--sp-24-48:24px;--sp-32-56:32px;--sp-32-64:32px;--sp-40-72:40px;--sp-48-80:48px;--sp-56-96:56px}}
+ --sans:"Instrument Sans",-apple-system,system-ui,sans-serif;--fs-display:clamp(68px,12vw,168px);--fs-h1:clamp(28px,2.6vw,38px);--fs-hero:clamp(38px,4.7vw,60px);--fs-heroline:clamp(28px,2.6vw,38px);--sp-8-16:16px;--sp-16-24:24px;--sp-16-32:32px;--sp-16-40:40px;--sp-24-48:48px;--sp-32-56:56px;--sp-32-64:64px;--sp-40-72:72px;--sp-48-80:80px;--sp-56-96:96px;--fs-h2:clamp(26px,2.5vw,36px);--fs-h3:clamp(21px,2.4vw,32px);--fs-h4:clamp(19px,2.1vw,28px);--fs-h5:clamp(20px,1.7vw,24px);--fs-lead:clamp(15px,1.4vw,18px);--fs-prose:clamp(17px,1.39vw,20px);--fs-body:16px;--fs-small:15px;--fs-tab:clamp(17px,1.5vw,20px);--fs-label:13px;--fs-caption:12px;--fs-micro:11px;--lh-display:1.0;--lh-tight:1.08;--lh-body:1.5;--lh-prose:1.5;--lh-flat:1;}@media(max-width:880px){:root{--sp-8-16:8px;--sp-16-24:16px;--sp-16-32:16px;--sp-16-40:16px;--sp-24-48:24px;--sp-32-56:32px;--sp-32-64:32px;--sp-40-72:40px;--sp-48-80:48px;--sp-56-96:56px}}
 *{box-sizing:border-box;margin:0;padding:0}
 @media(max-width:760px){
  .moodBtn{padding:12px 16px;font-size:var(--fs-body)}
@@ -990,20 +999,12 @@ body.about-open #navAbout{color:var(--c950);background:var(--c75)}
 
 
 
-/* ---- TOKENS THE HEADER NEEDS, AND THIS FILE DID NOT HAVE ---------------------
-   DUPLICATION, DELIBERATE AND FLAGGED. tokens.css is the source of truth for
-   every value below, but this page is not wired to it yet (queued pass -- see
-   tokens.css's own header comment). Without this block the header renders here
-   with no material, no radius, no shadow and no motion: four of the nine pages
-   were missing most of the materials/radius/motion ladder entirely. Copy, do not
-   edit -- when this page links tokens.css, delete the whole block.
-   NOTE --accent is NOT re-declared: this page binds it to the live-match green,
-   and header.css uses its own --nav-accent for exactly that reason. */
-:root{--r-hair:2px;--r-xs:6px;--r-sm:10px;--r-md:14px;--r-lg:20px;--r-xl:28px;--r-pill:999px;--r-full:50%;--corner:squircle;--ease-out:cubic-bezier(.2,.8,.2,1);--ease-out-dur:160ms;--sp-quick:linear(0, 0.0757, 0.2282, 0.3918, 0.5383, 0.6586, 0.7524, 0.8231, 0.8751, 0.9126, 0.9394, 0.9582, 0.9714, 0.9805, 0.9867, 0.991, 0.994, 0.9959, 0.9973, 1);--sp-quick-dur:300ms;--sp-settle:linear(0, 0.024, 0.0833, 0.1633, 0.2531, 0.3454, 0.4352, 0.5193, 0.5959, 0.6642, 0.724, 0.7755, 0.8194, 0.8562, 0.8867, 0.9118, 0.9322, 0.9486, 0.9616, 0.9719, 0.9799, 0.986, 0.9907, 0.9941, 0.9967, 1);--sp-settle-dur:360ms;--rim-1:inset 0 0 0 1px rgba(18,18,18,.08);--rim-2:inset 0 0 0 1px rgba(18,18,18,.14);--mat-1:rgba(253,253,253,.72);--mat-2:rgba(253,253,253,.86);--mat-3:rgba(253,253,253,.96);--blur-1:8px;--blur-2:14px;--blur-3:20px;--sh-1:0 1px 2px rgba(18,18,18,.05);--sh-2:0 2px 8px rgba(18,18,18,.06),0 1px 2px rgba(18,18,18,.04);--sh-3:0 8px 28px rgba(18,18,18,.10),0 2px 6px rgba(18,18,18,.05);--tr-flat:0;--tr-mark:-.008em;--pad-bar:5px;--gap-bar:2px;--tap-min:44px;--sp-2:2px;--sp-4:4px;--sp-6:6px;--sp-8:8px;--sp-10:10px;--sp-12:12px;--sp-14:14px;--sp-28:28px;--sp-30:30px;--sp-32:32px;--hair-w:1px;--focus-w:2px;--ico-xs:11px;--ico-sm:15px;--ico-md:18px;--ico-stroke:1.8;--fs-nav:14px;--fs-mark:17px;--press-dur:100ms;--enter-dur:500ms;--press-scale:.97;--press-scale-lg:.985;--wash-1:rgba(18,18,18,.055);--wash-i1:rgba(253,253,253,.10);--i700:rgba(253,253,253,.78);--i100:rgba(253,253,253,.16);--mat-i1:rgba(18,18,18,.58);--mat-i2:rgba(18,18,18,.70);--mat-i3:rgba(18,18,18,.82);--mat-i3-solid:rgba(18,18,18,.92);--rim-i1:inset 0 0 0 1px rgba(253,253,253,.14);--rim-i2:inset 0 0 0 1px rgba(253,253,253,.22);--sh-i2:0 8px 28px rgba(0,0,0,.28);--sh-i3:0 12px 36px rgba(0,0,0,.36);--mat-3-solid:var(--c50);--nav-h:52px;--hover-out-dur:240ms;--nav-slide-dur:280ms;--sp-16:16px;--sp-20:20px;--sp-24:24px;--r-2xs:4px;--sp-36:36px;--menu-w:216px;--menu-gap:10px;--menu-max-h:min(70svh,440px);--sp-32-48:48px;--sp-48-64:64px;--gap-eyebrow:.55em;}
-/* the two --sp-*-* rungs this page's own ladder above is missing, and the
-   fixed 4px-grid names round 10 added. Same copy-do-not-edit rule as the
-   block they sit in: they are verbatim tokens.css and go with it. */
-@media(max-width:880px){:root{--sp-32-48:32px;--sp-48-64:48px}}
+/* The mirrored token block that stood here is DELETED. It existed only because
+   this page did not link tokens.css; it does now (see the <head>), and a second
+   copy of a scale is the thing that lets two pages drift. Verified by capturing
+   every computed custom property on :root and on .jbNav before and after the
+   swap and diffing them -- the acceptance criterion was zero changes, and the
+   only differences are ADDITIONS: the tokens this page never had. */
 /* the responsive rungs the ladder above is missing on this page */
 @media(max-width:760px){:root{--blur-1:0px;--blur-2:0px}}
 /* --- and the SITE-WIDE rule that landed in tokens.css with header v2, copied here
@@ -1109,8 +1110,15 @@ html{scroll-padding-top:calc(var(--nav-h) + var(--sp-16-24))}
 /* no hover to reveal it on a phone, so it is always there and a rung larger */
 @media(hover:none){.jbPlayMenu .mhX{opacity:1;transform:none;
  width:var(--sp-24);height:var(--sp-24);font-size:var(--fs-label)}}
-.jbPlayMenu .mhBar{margin:var(--sp-2) var(--sp-4);padding-top:var(--sp-8);
- border-top:var(--hair-w) solid var(--c100)}
+/* NO RULE UNDER THE ROSTER.  Jayden: "random line under heads that shouldn't be
+   there."  Diagnosed rather than masked: it is #mhBar's own border-top, a 1px
+   --c100 hairline that paints across the full width of the panel immediately
+   under the saved-heads grid (measured at y419.9 with the roster ending at
+   413.9).  It was written when the roster and the toggle shared a 212px popup
+   with no other separation; the panel now has --gap-bar between every row and a
+   real .jbDiscSep where a group boundary actually is, so the border was a third
+   separator doing a job already done twice.  Space, not a container. */
+.jbPlayMenu .mhBar{margin:var(--sp-6) var(--sp-4) 0;padding-top:0;border-top:0}
 .jbPlayMenu .mhBar[hidden]{display:none}
 
 </style>
