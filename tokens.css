@@ -149,6 +149,23 @@
     (the roster grid at two thumbnails per row) rounded to the grid.
     --menu-gap is the distance from the bar's underside to the panel. It was
     --sp-10 written inline in two files. */
+ /* 17 - THE TWO RAMP RUNGS THAT WERE BEING USED WITHOUT EXISTING.
+    --c400 (headmaker.html:169, play.css x3) and --c800 (index.html x2, the
+    speech bubble's text) resolve to nothing with no fallback, so those elements
+    silently inherit whatever colour their parent happens to have. Both predate
+    this branch. Defined rather than deleted because five live declarations want
+    them, and defining is strictly better than a silent inherit.
+    --c400 is #8F8F8F, one step lighter than --c500 (#757575), as proposed in
+    the audit.
+    --c800 is #383838, and it is a PERCEPTUAL midpoint, not an sRGB one: the
+    ramp jumps --c700 (#525252, L* 35) straight to --c900 (#212121, L* 12.6),
+    and the L* midpoint 23.8 is #383838. The naive sRGB average (#3A3A3A) sits
+    visibly closer to --c700 because the transfer curve is not linear.
+    FLAGGED FOR JAYDEN: these are the first two new rungs in his colour ramp
+    and they are my values, not his. Nothing outside those five declarations
+    consumes them, so changing them is one line each. */
+ --c400:#8F8F8F;--c800:#383838;
+
  --sp-36:36px;--menu-w:216px;--menu-gap:10px;
     /* --ico-mark is the brand mark's box, and it is a STROKE-MATCH value, not a
        size preference: images/logo.svg is stroke-width 2 in a 30-unit viewBox,
