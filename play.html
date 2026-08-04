@@ -139,8 +139,11 @@
 
  .pHubHead{max-width:46ch;margin:0 auto;text-align:center;font-family:var(--sans)}
  .pEyebrow{margin:0;font-weight:600;font-size:var(--fs-micro);line-height:var(--lh-flat);letter-spacing:var(--tr-caps);text-transform:uppercase;color:var(--i700)}
- .pTitle{margin:var(--gap-eyebrow) 0 0;font-weight:600;font-size:var(--fs-h1);line-height:var(--lh-tight);letter-spacing:var(--tr-head);color:var(--c50)}
- .pSub{margin:var(--gap-head-bot) 0 0;font-weight:400;font-size:var(--fs-lead);line-height:var(--lh-body);letter-spacing:var(--tr-body);color:var(--i700)}
+ /* --fs-h1, not --fs-hero: the hero size is index.html's one loud voice and a sub-page
+    that borrows it steals it (tokens §5.4). text-wrap:balance because both of these are
+    two-line blocks over an image, where a one-word last line is the failure you see. */
+ .pTitle{margin:var(--gap-eyebrow) 0 0;font-weight:600;font-size:var(--fs-h1);line-height:var(--lh-tight);letter-spacing:var(--tr-head);color:var(--c50);text-wrap:balance}
+ .pSub{margin:var(--gap-head-bot) 0 0;font-weight:400;font-size:var(--fs-lead);line-height:var(--lh-body);letter-spacing:var(--tr-body);color:var(--i700);text-wrap:balance}
 
  .pCards{pointer-events:auto;width:100%;max-width:var(--page-max);margin:0 auto;
   display:grid;grid-template-columns:repeat(4,1fr);gap:var(--sp-12)}
@@ -185,7 +188,10 @@
   transition:opacity var(--sp-settle-dur) var(--sp-settle),transform var(--sp-settle-dur) var(--sp-settle),visibility 0s linear var(--sp-settle-dur)}
  body.pTeamOn .pTeam{opacity:1;visibility:visible;transform:none;transition-delay:0s,0s,0s}
  @media(prefers-reduced-motion:reduce){.pTeam{transition:none}}
- .pTeamIn{pointer-events:auto;width:100%;max-width:var(--page-max);margin:0 auto;
+ /* 920px, not --page-max: two columns holding at most four chips each have a natural
+    width, and stretched to 1280 the sides read as two empty fields with a few stickers in
+    them. The panel is as wide as its content wants to be and no wider. */
+ .pTeamIn{pointer-events:auto;width:100%;max-width:920px;margin:0 auto;
   padding:var(--sp-16);border-radius:var(--r-lg);background:var(--c0);box-shadow:var(--rim-1)}
  .pTeamBar{display:flex;align-items:center;justify-content:space-between;gap:var(--sp-12);margin-bottom:var(--sp-12)}
  .pTeamTitle{font-family:var(--sans);font-weight:600;font-size:var(--fs-h5);line-height:var(--lh-tight);letter-spacing:var(--tr-sub);color:var(--c950);margin:0}
@@ -213,7 +219,10 @@
  .pTeamCol.blue .pTeamColHdr{color:rgb(52,116,176)}
  .pTeamColN{font-weight:400;color:var(--c500);letter-spacing:var(--tr-flat)}
  .pTeamChips{display:flex;flex-wrap:wrap;gap:var(--sp-8);justify-content:center;align-content:flex-start}
- .teamChip{width:64px;height:76px;border-radius:var(--r-sm);overflow:hidden;border:2px solid transparent;cursor:pointer;padding:0;background:var(--c100);
+ /* 88x104: the chip was 40x48 in the popover, which is a thumbnail. At this size it is a
+    head -- you can tell whose face is on which side across the room, which is the only
+    thing the screen is for. */
+ .teamChip{width:88px;height:104px;border-radius:var(--r-sm);overflow:hidden;border:2px solid transparent;cursor:pointer;padding:0;background:var(--c100);
   touch-action:none;-webkit-user-select:none;user-select:none;
   transition:transform var(--ease-out-dur) var(--ease-out)}
  .teamChip:hover{transform:translateY(-2px)}
@@ -242,7 +251,7 @@
   .pTeamIn{padding:var(--sp-12)}
   .pTeamCols{gap:var(--sp-8)}
   .pTeamCol{padding:var(--sp-8);min-height:96px}
-  .teamChip{width:52px;height:62px}
+  .teamChip{width:56px;height:66px}
   .pTeamFoot{flex-direction:column;align-items:stretch}
   .pTeamHint{text-align:center;order:2}
   .pBtnGo{width:100%}

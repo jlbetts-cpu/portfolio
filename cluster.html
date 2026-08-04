@@ -461,6 +461,26 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
 .moodCar{width:12px;height:12px;flex:0 0 12px}
 /* icons inherit the control's colour so they light up with the hover wash */
 .moodItem svg,.moodItem .gIco,.tGo svg,.hmBtn svg{color:currentColor}
+
+/* ═══ THE TAB'S ACTIVE MARK GOES INK, AND STOPS BEING A SWOOSH (round 11) ═════
+   Jayden: "I think making the blue line the black ink would be better."
+   TWO THINGS WERE WRONG WITH .tvTab.on AND ONLY ONE OF THEM WAS THE COLOUR.
+   It drew its underline as `border-bottom:2px solid var(--accent)` on a box
+   whose computed border-radius is --r-md 14px, so the radius bent the line into
+   a tapering curve -- the swoosh the control-system spec already documents. A
+   bottom border cannot be a rule under a word on a radiused box. It is a
+   positioned ::after now, which has no radius to inherit and lands straight.
+   Ink rather than accent, matching index.html's .csTabInk, so the tab family has
+   one active treatment across the site.
+   HOVER GOES INK TOO, for the same reason: --accent on both the border and the
+   label made hover and active the same hue, which is two states competing for
+   one signal. */
+.tvTab.on{color:var(--c950);border-bottom:0;position:relative}
+.tvTab.on::after{content:"";position:absolute;left:var(--sp-16);right:var(--sp-16);
+ bottom:calc(var(--focus-w) * -1);height:var(--focus-w);border-radius:var(--r-hair);
+ background:var(--c950)}
+.tvTab:hover,.tvTab:focus-visible{border-color:var(--c500);color:var(--c950)}
+.tvTab{min-height:var(--tap-min)}
 </style>
 <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Jayden Betts","item":"https://jaydenbetts.design/"},{"@type":"ListItem","position":2,"name":"Cluster Case Study","item":"https://jaydenbetts.design/cluster.html"}]},{"@type":"CreativeWork","@id":"https://jaydenbetts.design/cluster.html#work","url":"https://jaydenbetts.design/cluster.html","name":"Cluster: A Product Design Case Study by Jayden Betts","description":"Cluster is a campus app that helps students discover the clubs they would never stumble on, among 800+ at UC Davis. A product design case study by Jayden Betts.","image":"https://jaydenbetts.design/images/cs/cluster.webp","author":{"@type":"Person","@id":"https://jaydenbetts.design/#person","name":"Jayden Betts","alternateName":"Jayden Lee Betts","url":"https://jaydenbetts.design/","sameAs":["https://www.linkedin.com/in/jaydenbetts","https://www.instagram.com/jaydenleebetts"]},"genre":"Product Design","inLanguage":"en"}]}</script>
 <link rel="stylesheet" href="header.css">

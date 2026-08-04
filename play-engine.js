@@ -270,13 +270,13 @@
  }
  function planetGeo(groundY){
   var h=document.querySelector(".hero");if(!h)return;
+  refreshHeroBox();   // ARC reads the SHARED hero box, which is rAF-throttled: a resize reaches soccer's geo() (a direct getBoundingClientRect) a frame before it reaches the cache, so baking the planet here without this measured the OLD width and then never ran again. geo() has just flushed layout anyway, so this rect is free.
   var half=ARC.half(),S=ARC.sag(),A=half*3;   // the limb sits at +/-3x the pitch half-width, i.e. a full pitch width off-screen on each side. Gradient contract B1: a cropped orb is UI, a centered orb is a poster -- and an on-screen limb is exactly what makes it read as "a ball they are standing on".
   var B=S/(1-Math.sqrt(Math.max(1e-9,1-(half/A)*(half/A))));   // solve for the ellipse whose top edge passes through arcY EXACTLY at the wings; across the span it tracks the parabola to well under a pixel
   h.style.setProperty("--pl-a",A.toFixed(1)+"px");
   h.style.setProperty("--pl-b",B.toFixed(1)+"px");
   h.style.setProperty("--pl-cy",(B+PL_UP).toFixed(1)+"px");
-  h.style.setProperty("--pl-top",(groundY-PL_UP).toFixed(1)+"px");
-  h.style.setProperty("--pl-water",(groundY).toFixed(1)+"px");
+  h.style.setProperty("--pl-top",(groundY-PL_UP).toFixed(1)+"px");   // all three elements share ONE box, so the horizon they draw and the arc the heads walk cannot drift apart
  }
  function spawnCompanion(data,slot){
  var reduce=matchMedia("(prefers-reduced-motion:reduce)").matches;
