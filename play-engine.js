@@ -258,6 +258,9 @@
  // Live tuning knob, per the research's pass-0 recommendation: type __hmSag(0) in the console and the
  // render is the old build exactly; __hmSag() reads the current value back.
  try{window.__hmSag=function(v){if(v===undefined)return ARC.sag();ARC.set(v);return ARC.sag();};}catch(_){}
+ var REFL_K=0.9;   // the reflection reads at 90% of the contact shadow's strength. The ONLY number that
+ // separates the two, on purpose: everything else about how they answer "how far off the ground is
+ // this head" is the same two values, so they cannot drift apart as either is tuned.
  // The drawn surface. Two elements, no canvas, no WebGL, no rAF: .hmPlanet carries the ground passes
  // and is masked to an ellipse whose top edge IS arcY (so the horizon and the feet cannot disagree),
  // .hmSky carries the rim that escapes the silhouette upward plus the band of not-page-background above
@@ -1305,41 +1308,57 @@
   var feetY=y+HH*FOOT,shG=floorY+HH*FOOT,cxs=x+HW/2;
   if(battleOn&&battlePlats.length){for(var si=0;si<battlePlats.length;si++){var SP=battlePlats[si];if(cxs>SP.l&&cxs<SP.r&&SP.t>=feetY-3&&SP.t<shG)shG=SP.t;}}
   var airH=Math.max(0,shG-feetY);
-  var shScale=Math.max(0.32,depth*(1-airH/(heroR.h*0.6)));
+  // HOW FAR OFF THE GROUND THIS HEAD IS -- computed ONCE. The contact shadow and the reflection are
+  // two readings of this one fact, so they are driven by these two numbers and never by two curves
+  // of their own. If the shadow says 40% and the reflection says 80%, one of them is lying.
+  var shScale=Math.max(0.32,depth*(1-airH/(heroR.h*0.6)));   // the size reading
+  var shOp=(window.__hmLavaOn||me.__sinking)?0:((shown&&!perched)?(airH<4?0.36:Math.max(0.1,0.3-airH/800)):0);   // the strength reading. Lifted out of the string it used to live in, VALUE FOR VALUE -- the shadow's own law is unchanged, it is just readable now. No cast shadows in lava mode (a shadow on the lava reads as "standing on it").
   shadow.style.transform="translate("+(x+HW/2-HW/2*shScale+HW*0.06).toFixed(1)+"px,"+(shG-2+_ay).toFixed(1)+"px) scale("+shScale.toFixed(3)+",1)";
-  shadow.style.opacity=(window.__hmLavaOn||me.__sinking)?"0":((shown&&!perched)?String(airH<4?0.36:Math.max(0.1,0.3-airH/800)):"0");   // no cast shadows in lava mode (a shadow on the lava reads as "standing on it")
-  // THE REFLECTION. Three separate claims, each of which has to hold on its own:
+  shadow.style.opacity=String(shOp);
+  // THE REFLECTION. A jump is the test case that exposes all of it, because it is the one moment the
+  // head stops touching the ground. Six claims, each of which has to hold on its own:
   //
   // 1. IT MEETS THE WATERLINE AT THE FEET, NOT AT THE BOX. The pivot is written to this head's OWN
   //    scanned foot line (FOOT, from its own pixels -- 0.945 for an egghead, 0.75 for mini-Jayden,
-  //    whose cut is baked into a 5:6 frame). With transform-origin sitting exactly on that line, the
-  //    y term is _wY - HH*FOOT and the anchor is exact whatever the rotation or the squash, because
-  //    both act about that same point. Anchoring on the BOX instead would have hung mini-Jayden's
-  //    reflection ~24px below everyone else's on the same water.
-  // 2. IT LEANS THE OTHER WAY. scale(1,-1) BEFORE rotate() is the mirror, because
-  //    S(1,-1) o R(theta) == R(-theta) o S(1,-1) -- reusing the head's own theta in this order
-  //    already tilts the reflection opposite. That is the whole reason this is a transform and not
-  //    -webkit-box-reflect, which mirrors about the element's local bottom edge and so leans a
-  //    +8deg head +8deg instead of -8.
-  // 3. A JUMPING HEAD LEAVES ITS REFLECTION ON THE WATER. This is the one place the true mirror is
-  //    deliberately not used. A real mirror image of a head h px above the surface sits h px BELOW
-  //    the waterline, detached, and at a 340px water band a 200px hop would drop it clean out of the
-  //    water and leave it floating on the page -- the "un-attaching" failure the 2D-water literature
-  //    names. So the reflection stays anchored and instead foreshortens and fades with air height,
-  //    on the same falloff curve the contact shadow already uses. Reflection and shadow are then one
-  //    system on one line, which is what welds the head to the surface.
+  //    whose cut is baked into a 5:6 frame). With transform-origin sitting exactly on that line the
+  //    y term is _wY - HH*FOOT, and the anchor is exact whatever the rotation or the squash, because
+  //    every one of them acts about that same point. Anchoring on the BOX instead hung mini-Jayden's
+  //    reflection 4.4px below everyone else's on the same water; on the CENTRE, 32.4px.
+  // 2. WHEN THE HEAD JUMPS, THE REFLECTION STAYS ON THE WATER AND THE GAP OPENS. It is anchored to
+  //    the waterline, so as the feet climb, the distance between head and reflection is exactly the
+  //    head's height off the ground -- which is what a gap between an object and a surface looks
+  //    like. A reflection that rose with the head would read as a sticker.
+  // 3. IT SHRINKS AND WEAKENS WITH HEIGHT, OFF THE SHADOW'S OWN NUMBERS. Not a second curve: the
+  //    literal shScale and shOp computed above for the contact shadow. The shadow flattens in x, the
+  //    reflection foreshortens in y, and both fade -- one fact, two readings, incapable of
+  //    disagreeing. REFL_K is the only thing that separates them, and it is a constant.
+  // 4. THE CONTACT SHADOW IS NOT TOUCHED. It is the one shadow this site keeps, because the heads
+  //    stand on something. The reflection is added underneath it, never in place of it, and the
+  //    shadow's law above is the same law it always had -- only lifted out of a string.
+  // 5. THE SQUASH RIDES ALONG, ROTATION OR NOT. The transform list below is literally
+  //    S(1,-1) o R(rot) o Sc(sx,sy) -- the mirror operator applied to the head's own rotate-then-
+  //    scale. It is not an approximation that happens to work at small angles; it is the same two
+  //    factors the head uses with a flip in front, so it holds at any angle and any squash.
+  // 6. IT LEANS THE OTHER WAY, INCLUDING MID-FLIP. scale(1,-1) BEFORE rotate() is what does it:
+  //    S(1,-1) o R(a) == R(-a) o S(1,-1), so reusing the head's own angle in this order already
+  //    tilts the reflection opposite, with no sign juggling. `rot` is used, not `surfRot`, so a head
+  //    mid-flip -- where the angle is large enough for an error to be obvious -- reflects its WHOLE
+  //    visible rotation. This is the reason this is a transform and not -webkit-box-reflect, which
+  //    mirrors about the element's local bottom edge and so leans a +8deg head +8deg instead of -8.
   //
-  // The waterline is shG (the SAME line the contact shadows sit on) plus the arc offset, and since
-  // every head shares one floorY, every reflection lands on ONE waterline for free -- which is what
-  // keeping the physics flat bought. The head's live squash rides along at the end: diagonal scales
-  // commute with the flip so it needs no reordering, and a reflection that does not squash when the
-  // head squashes reads as pasted on.
+  // The one deliberate departure from a true mirror is claim 2's anchor. A real mirror image of a
+  // head h px above the surface sits h px BELOW the waterline and detaches downward; measured, that
+  // is 59px on a routine hop and ~200px on a scramble pop, which walks it straight out of a 340px
+  // water band and onto the page -- the "un-attaching" failure the 2D-water literature names. So the
+  // gap opens above the water rather than below it, and the shadow's falloff carries the height cue.
+  //
+  // The waterline is the feet plane every head shares, so every reflection lands on ONE line for
+  // free, whatever the head's size -- which is what keeping the physics flat bought.
   if(soccerOn&&!elim&&!window.__hmLavaOn){
    if(_reflFoot!==FOOT){_reflFoot=FOOT;refl.style.transformOrigin="50% "+(FOOT*100).toFixed(2)+"%";}   // FOOT arrives from an image onload, so it can change once after spawn
    var _wY=floorY+HH*FOOT+_ay;   // the FEET plane itself, not the shadow's drawn top edge -- the shadow is nudged 2px up so its ellipse sits under the chin, and inheriting that nudge would have floated every reflection 2px off the water
-   var _rsh=Math.max(0.35,1-airH/(heroR.h*0.55));   // foreshorten with height, the way the shadow shrinks
-   refl.style.transform="translate("+_rx.toFixed(1)+"px,"+(_wY-HH*FOOT).toFixed(1)+"px) scale(1,-1) rotate("+surfRot.toFixed(1)+"deg) scale("+_rsx.toFixed(3)+","+(_rsy*_rsh).toFixed(3)+")";
-   refl.style.opacity=(shown&&!perched)?String(Math.max(0,0.32-airH/700).toFixed(3)):"0";
+   refl.style.transform="translate("+_rx.toFixed(1)+"px,"+(_wY-HH*FOOT).toFixed(1)+"px) scale(1,-1) rotate("+rot.toFixed(1)+"deg) scale("+_rsx.toFixed(3)+","+(_rsy*shScale).toFixed(3)+")";
+   refl.style.opacity=(shOp*REFL_K).toFixed(3);
   }else if(refl.style.opacity!=="0")refl.style.opacity="0";   // off the pitch this is one string compare per head per frame and nothing else
   if(crowdT>0.65&&!air&&!grabbed&&!perched){crowdT=0;   // squeezed too long: it hops out of the scrum
    air=true;st="fall";surface=floorY;dir=Math.random()<0.5?-1:1;
