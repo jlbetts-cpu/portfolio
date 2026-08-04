@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head>
+<!doctype html><html lang="en" class="jbShrunk"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Play — Jayden Betts</title>
 <meta name="robots" content="noindex">
@@ -18,10 +18,25 @@
      .superpowers/sdd/2026-08-02-play-page/play-tokens-report.md §1. -->
 <link rel="stylesheet" href="tokens.css">
 <link rel="stylesheet" href="play.css">
+<!-- THE TOURNAMENT SCREEN. Its own sheet, after play.css so that where the two touch the
+     same element source order settles it without an !important. The tournament styles that
+     remain in play.css (.tourPanel, .tCup*, the #tourPanel capsule and the tourPoster block)
+     are now DEAD -- nothing builds #tourPanel any more -- with one deliberate exception: the
+     ticket classes (.tCupFx, .tCupDot, .tk*), which are shared on purpose, because a ticket
+     is a printed artifact whose materials were settled in the broadcast spec and must not be
+     re-invented here. See tournament.css's header, and the note left for play.css's owner. -->
+<link rel="stylesheet" href="tournament.css">
 <style>
  /* The arena carries class="hero" deliberately: the engine measures ".hero" in
     16 places. Renaming those is a later pass; see spec 5.1. */
+ /* PAPER, like every other page. The dark lobby is gone: Jayden asked for it, saw it, and
+    reversed it -- "shouldn't be dark mode. Should be minimal with a NASA planet and the heads
+    jumping on it." That deleted a whole colour system from this file rather than adding one,
+    and it took the ink chrome, the terminator and the sky grain with it. */
  html,body{margin:0;height:100%;background:var(--c50);overflow:hidden}
+ /* play.css:58 also declares body{background:var(--c50)}; this block is a later
+    same-specificity rule, so it wins by source order -- the same mechanism the note
+    below already documents for the paper value it replaces. */
  /* Was background:var(--paper,#f7f6f3) -- --paper isn't a token this site defines, so it
     silently fell through to the hard-coded fallback hex, a shade off index.html's real body
     background (--c50, #FDFDFD; the fallback was #f7f6f3, a visibly warmer/grayer off-white).
@@ -49,15 +64,485 @@
  .heroHeadHost .stagewrap{position:relative;width:100%}
  /* Task 3: #moodMenu's own base rule (play.css:152) sets neither left nor right, so its
     static position defaults to moodBtn's LEFT edge and grows rightward by its own width.
-    Home gets away with that because a JS module (index.html:4273 clampMenuX, deliberately not
-    ported here -- see play-games.js's menu-open-glue comment) measures at open-time and flips
-    to right:0 when the menu "would leave the column". play.html's menu bar is pinned to the
+    Home used to get away with that because of a JS module (clampMenuX) that measured at
+    open-time and flipped to right:0 when the menu "would leave the column"; it was never
+    ported here, and as of the mobile audit it is deleted there too -- the v2 header outgrew
+    it and home now does the same static thing this rule does (header.css:414). play.html's menu bar is pinned to the
     right edge (right:16px, below), so left-aligned growth runs the menu off the viewport's
     right edge every time -- measured 70px of overflow at 1280px wide, worse on anything
     narrower, and body's overflow:hidden (line 9) makes the overflow unreachable, not just
     ugly. Anchoring the menu to the SAME edge as the button it drops from is also just the
     correct static answer for a corner-pinned bar, not a workaround. */
  #moodMenu{left:auto;right:0}
+
+ /* ==========================================================================
+    THE PLAY HUB. Everything below is new for the games-menu pass and lives in
+    THIS file on purpose, not in play.css: play.css belongs to a concurrent
+    agent this pass, and a page-scoped block here is the only place these rules
+    could land without two agents writing one file. They are token-only and
+    self-contained, so lifting the whole block into play.css later is a cut and
+    a paste. See .superpowers/sdd/2026-08-02-play-page/play-hub-report.md.
+    Design: docs/superpowers/specs/2026-08-02-play-hub-research.md.
+    ========================================================================== */
+
+ /* ==========================================================================
+    THE NASA PLANET IS POSTPONED. Jayden, 2026-08-04: "If the planet is giving so much
+    trouble keep the research somewhere but we can put it on the back burner for now.
+    There are more important things right now."
+
+    So NOTHING here renders it, and that is a deliberate state rather than a half-finished
+    one. Read this before rebuilding it, because most of the work is already done:
+
+    WHAT SURVIVES AND MUST NOT BE DELETED. play-engine.js's ORB block (the spherical
+    placement from a2e8f6d) is still in the engine and still correct. It is inert purely
+    because it reads `.hero [data-hm-orb]` and no element carries that attribute any more --
+    ORB.sync() finds nothing, live() stays false, and every head falls back to the flat feet
+    line it always used. Re-adding ONE element turns the whole sphere back on. That is the
+    entire contract: the engine owns the physics, this file owns the size and the position,
+    and nothing here hard-codes an angle or a head position.
+
+    WHAT WAS RESOLVED. The old blocker was a radius dilemma -- a flat floor needed R >= 6vw
+    while a legible Earth needed R <= 1vw, six times apart. Heads-on-theta removes the flat
+    floor entirely, so R is now free to be chosen for how Earth LOOKS. That dilemma is dead
+    and should not be re-litigated.
+
+    THE ASSET IS BUILT AND COMMITTED. images/earth-disc.webp -- 1024x1024, 102,510 bytes
+    (100 KB), from earth-disc-src.jpg (2048x2048, 593 KB) via `sips -Z 1024` +
+    `cwebp -q 72 -m 6 -sharp_yuv`. NASA Blue Marble, public domain. The 2.51 MB
+    equirectangular master (images/earth-map-src.jpg) is NEVER served -- it is the standing
+    example on this page of an asset that must not reach a browser raw.
+
+    THE GEOMETRY, derived rather than dialled, ready to paste back:
+      width:96%  -> R = 0.48 x hero width: 614px at 1280, 187px at 390 (the engine's own
+                    verified figures). At 1228px across, a 1024px source is a 1.2x upscale.
+      top        -> the visible cap is the arc inside the engine's +/-38deg bound, i.e.
+                    R(1 - cos 38deg) = 10.18vw deep. Putting the cap's BOTTOM a --sp-24
+                    margin above .hero's bottom keeps the crowd where it already stands and
+                    preserves the clearance to the cards (42px at 1280, 30px at 390).
+      background-size:100% 100%, NOT cover -- the source is a disc in a square frame and the
+                    element is that same square. `cover` re-crops it to black corners.
+      a radial mask eating the last 1% of the radius -- the master's disc has a faintly
+                    ragged cut against its black square and a hairline of it survives a resize.
+      the halo must be mix-blend-mode:SCREEN, never Gradient Lab's multiply: on this paper
+                    ground multiply darkens the page around the planet, which is a cast
+                    shadow, and chrome here never casts. An atmosphere is light LEAVING the
+                    planet, so the blend can only ever add.
+
+    Full working: docs/superpowers/specs/2026-08-02-planet-pitch-research.md and the geometry
+    audit in docs/superpowers/specs/2026-08-03-geometry-audit.md.
+    ========================================================================== */
+ :root{--head-edge:var(--c50)}
+
+ /* ---- THE HUB. Two blocks pinned to the two ends of the viewport with the
+    stage running between them, which is what makes this fit without scrolling:
+    the heads live in a band roughly 62vh-75vh, the title block ends near 24vh
+    and the cards begin near 80vh, so nothing overlaps and nothing had to move.
+    pointer-events are OFF on the frame and on the title block -- the heads are
+    draggable and a full-viewport overlay would eat every grab. ---- */
+ .pHub{position:fixed;inset:0;z-index:40;pointer-events:none;
+  display:flex;flex-direction:column;justify-content:flex-end;
+  /* --sp-48 off --nav-h, not --sp-40. Measured at 390: .jbStick is 72px tall (a 52px nav
+     plus its own padding-block), so a 92px top inset left the h1 FOUR pixels under the bar --
+     which is most of what "crammed up there" was. 100px gives 28px of real air. */
+  padding:calc(var(--nav-h) + var(--sp-40) + var(--sp-8)) var(--play-gutter) var(--sp-24-32);
+  opacity:0;visibility:hidden;
+  transition:opacity var(--sp-settle-dur) var(--sp-settle),visibility 0s linear var(--sp-settle-dur)}
+ body.pHubOn .pHub{opacity:1;visibility:visible;transition-delay:0s,0s}
+ @media(prefers-reduced-motion:reduce){.pHub{transition:none}}
+
+ /* ---- THE CORNER MENU IS OFF, and the element stays. #moodbar/#moodBtn/#moodMenu are kept
+    in the DOM because the tournament disables and restores #moodBtn BY ID
+    (play-tournament.js:1163,1183) and play-games.js binds every launcher through them -- the
+    hub's cards fire the same handlers. What is gone is the second visible surface. ---- */
+ #moodbar{display:none}
+
+ /* ---- THE LINE AT THE TOP. Jayden: "I would like if on top it was honest, had the same look
+    as the h1 on the home ... I just want it to say something on the top that's honest."
+
+    THE TREATMENT IS BORROWED, NOT FORKED. index.html:110 is `h1{font-weight:600;
+    font-size:var(--fs-hero);line-height:var(--lh-tight);letter-spacing:-.02em;...}` and its
+    hero override steps the size down to --fs-heroline. Those four properties are what is
+    reproduced here, by token and not by value: 600, --fs-heroline, --lh-tight, --tr-head
+    (which IS -.020em, so the home page's literal and this token are the same number -- naming
+    it is the only difference). The home h1 is not touched; this borrows its look.
+
+    WHAT IS DELIBERATELY NOT BORROWED is filter:url(#inkBig). The ink texture is not one of the
+    four type properties, the filter is defined on this page but used nowhere else on it, and a
+    live SVG displacement filter over a headline that sits on top of a rAF crowd is a per-frame
+    raster on the one screen that can least afford one. Skipped on purpose, not overlooked.
+
+    ONE SIZE. This element introduces exactly one new type size to the top of the screen, which
+    is the whole constraint -- the block that was removed had three, and that is what "too many
+    sizes" meant. No eyebrow, no subtitle, no second line.
+
+    IT PUSHES NOTHING DOWN. margin-bottom:auto is doing all the layout work: .pHub is a flex
+    column that is already justify-content:flex-end, so the cards stay pinned to the bottom
+    gutter and this takes the slack at the top. The heads and the cards keep the exact positions
+    they had before this line existed -- it occupies the band that was empty, which is what it
+    was asked to do. pointer-events stay off (inherited) so the draggable heads pass under it.
+
+    CENTRED, AND CENTRED ON THE SAME THING THE HOME CENTRES ON. Jayden: "needs to be centered
+    and aligned pretty -- look at the home for guidance." So this is measured off index.html
+    rather than guessed, and the line it is copying is literally the one he already settled --
+    "SF product designer. iOS, B2C and design systems." is index.html's own hero h1, the line he
+    reversed himself about ("actually the centered ... looked way better"). Measured live at
+    1440 it computes to: 40px / 600 / 42.4px leading / -0.8px tracking, text-align:center,
+    max-width min(528px,100%), text-wrap:balance, and its box lands at left 456 of 1440 --
+    i.e. (1440-528)/2, dead centre of the VIEWPORT, not of a narrower column.
+      max-width  min(13.2em,100%) IS that 528px, expressed the way the home expresses it so it
+                 tracks the font size instead of freezing at one viewport. It is also the answer
+                 to the measure problem: 528px at 40px is ~26 characters a line, well inside the
+                 finding that this site's 760px measure was already too wide.
+      centring   margin-inline:auto inside .pHub, whose left and right padding are both
+                 --play-gutter -- so the centre of this block IS the centre of the viewport, and
+                 it agrees with .pCards below it (also centred, just on a wider max-width).
+                 Centring a line on the viewport while the thing under it centres on a column is
+                 exactly the mismatch that reads as "not aligned pretty".
+      the break  ONE SENTENCE PER LINE, and it needs the two spans to be reliable. Measured: as
+                 a single text run at 528px, text-wrap:balance breaks it "I made a few games for
+                 / fun. Still building them." -- 410px and 413px, beautifully even and splitting
+                 mid-sentence, because balance optimises for equal line WIDTHS and knows nothing
+                 about where a sentence ends. Dropping balance is not the fix either: greedy
+                 wrapping happens to land on the full stop at 1440 and breaks mid-sentence again
+                 at 390. So the two sentences are two display:block spans and the break is
+                 structural at every width -- 505px over 370px at 1440, which is a deliberate
+                 ragged-centre shape rather than an accident. balance stays on and now does the
+                 job it is good at: if a sentence is too long to fit (the first one wraps at
+                 390) it is that SENTENCE's own two lines that get evened out.
+      leading    --lh-tight (1.08) where the home carries a literal 1.06. That is 0.8px per line
+                 at 40px, invisible, and it keeps this file's token discipline and the audit's
+                 untokenised-literal count where they are. The one deliberate deviation.
+    margin-bottom stays auto: .pHub is a flex column justified to flex-end, so the auto takes all
+    the slack and the cards and the crowd do not move by a pixel. ---- */
+ .pLede{max-width:min(13.2em,100%);margin:0 auto auto;text-align:center;
+  font-family:var(--sans);font-weight:600;font-size:var(--fs-heroline);
+  line-height:var(--lh-tight);letter-spacing:var(--tr-head);color:var(--c950);
+  text-wrap:balance}
+ .pLede span{display:block}
+
+ /* ---- THE FOUR DOORS. The page's only chrome now: the planet, the heads on it, and these.
+    Paper, like the rest of the site -- --c0 on a --c50 ground with a rim, the same "separates
+    upward" argument header.css makes for the nav bar. ---- */
+ /* grid-auto-rows:1fr so every card is the same height whatever its label does. Measured at
+    390: "Add your head" and "Make a gradient" wrap to two lines at 179px wide while the first
+    two do not, so the rows came out 66px and 86px -- four doors that are not the same object.
+    Equal rows cost nothing and the requirement is that the four behave identically. */
+ .pCards{pointer-events:auto;width:100%;max-width:var(--page-max);margin:0 auto;
+  display:grid;grid-template-columns:repeat(4,1fr);grid-auto-rows:1fr;gap:var(--sp-12)}
+ .pCard{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:var(--sp-6);
+  min-height:var(--tap-min);padding:var(--sp-14) var(--sp-16) var(--sp-16);
+  border:0;border-radius:var(--r-md);background:var(--c0);box-shadow:var(--rim-1);
+  font-family:var(--sans);color:var(--c950);text-align:left;text-decoration:none;cursor:pointer;
+  /* one closed transition set, hover-OUT here and the shorter hover-IN on :hover -- the
+     control system's rule, so these breathe at the same rate as the nav */
+  transition-property:color,background-color,box-shadow,transform;
+  transition-timing-function:var(--ease-out);transition-duration:var(--hover-out-dur)}
+ /* HOVER MOVES INK, RIM AND HEIGHT -- NEVER A FILL. The fill ban stands; what changed is
+    that the answer now actually carries. Jayden: "the different modes need more of a hover
+    effect, right now it's too subtle", and he was right -- measured, the old response was a
+    rim going .08 -> .14 alpha and a description going #757575 -> #525252. Both are
+    half-steps you have to look for. Four things move now, and every one is composite-only
+    or a colour, so nothing reflows:
+      rim          --rim-1 .08  ->  --rim-3 .20   (2.5x the alpha, the ladder's own top rung)
+      description  --c500 #757575 -> --c950 #121212  (4.6:1 -> 17.4:1 on white)
+      icon         --c700 #525252 -> --c950 #121212, stroke 1.8 -> 2
+      the card     0 -> translateY(-2px)
+    The lift is the piece that makes it read as a card rather than as text changing colour,
+    and with the rim stepping up at the same time it reads as the card coming forward rather
+    than as a nudge. It is a transform, not a shadow -- chrome here still never casts.
+    NO WEIGHT CHANGE, deliberately: the title is already 600, and moving a weight re-measures
+    the text and reflows the card under the cursor.
+    ONE DURATION, 240ms, IN AND OUT. The hover-in used to snap at 160ms while the exit took
+    240ms; Jayden has called an animation abrupt twice, so the asymmetry is gone and both
+    directions take the slower rung on --ease-out. */
+ .pCard:hover{box-shadow:var(--rim-3);transform:translateY(-2px)}
+ .pCard:hover .pCardD{color:var(--c950)}
+ .pCard:hover .gIco{color:var(--c950);stroke-width:var(--ico-stroke-strong)}
+ /* --press-scale-lg, not --press-scale: the ladder's rule is that boxes over ~200px take the
+    gentler rung. Press is scale, never translateY. */
+ /* declared after :hover so a press beats the lift: the card drops back to the page and
+    scales, which is the whole point of a press. --press-scale-lg because the ladder's rule
+    is that boxes over ~200px take the gentler rung. */
+ .pCard:active{transform:scale(var(--press-scale-lg));transition-duration:var(--press-dur)}
+ .pCard:focus-visible{outline:var(--focus-w) solid var(--c950);outline-offset:var(--sp-2)}
+ .pCard:focus:not(:focus-visible){outline:none}
+ .pCard[aria-disabled="true"]{opacity:.38;cursor:default;pointer-events:none}
+ .pCard .gIco{width:var(--ico-md);height:var(--ico-md);flex:0 0 var(--ico-md);color:var(--c700);stroke-width:var(--ico-stroke)}
+ .pCardT{font-weight:600;font-size:var(--fs-body);line-height:var(--lh-tight);letter-spacing:var(--tr-title)}
+ .pCardD{font-weight:400;font-size:var(--fs-caption);line-height:var(--lh-body);letter-spacing:var(--tr-body);color:var(--c500)}
+
+ /* ---- WHAT IS INSIDE EACH DOOR. Jayden: "I think a better use of the space would be to show
+    screenshots of inside the pages so the users can understand what's inside on hover."
+    Four cards, four labels, and until now the only way to find out what any of them actually
+    looked like was to commit to it and go full screen. The band above the cards was the empty
+    space that was going to hold a planet; this is a better tenant for it.
+
+    IT COMPOSES WITH THE HOVER, IT DOES NOT REPLACE IT. The rim, the description ink, the icon
+    stroke and the -2px lift all still fire on the same 240ms in both directions -- the preview
+    is a fifth thing that moves on that same beat, not a substitute for the four. Nothing here
+    touches .pCard's own transition set.
+
+    IT CANNOT REFLOW THE CARD. position:absolute out of the card's flow and bottom:100%, so the
+    panel grows UPWARD into the empty band and the card under the cursor never changes size --
+    the same reason the hover pass refused a font-weight change. It also never intercepts the
+    pointer (pointer-events:none), so moving onto the preview cannot make the card think you
+    left it, which is the classic way a hover panel starts flickering.
+
+    NO SHADOW. It is chrome, so it separates with a hairline and its own paper, like every other
+    surface on this page. A floating panel is exactly where a drop shadow feels most justified
+    and it is still not allowed: the heads cast, chrome does not.
+
+    TOUCH GETS NOTHING, DELIBERATELY. Not "not yet" -- nothing, and the gate is
+    (hover:hover) and (pointer:fine) rather than a width query, because the question is the
+    input device and not the screen size. Three reasons, in order:
+      1. The card's action IS the thing being previewed. On a phone a tap is already inside the
+         screen in under a second, so a preview is a slower path to the same information. On a
+         pointer the preview is faster than the click; on touch it is strictly slower.
+      2. Press is taken. The card is a button and press-to-launch is bound; a long-press would be
+         a second, undiscoverable gesture on the same target, and an inline preview would push
+         the four cards taller on the one viewport that has no room -- Jayden has objected to
+         this page scrolling four times.
+      3. It would cost every phone visitor four images to show a thing they cannot trigger.
+    This is Apple's own split: previews are a pointer affordance and touch gets directness.
+
+    WEIGHT. The <img> ships with NO src -- play-games.js copies data-prev into src on the first
+    hover or focus of that card, so a visitor who never hovers downloads nothing at all, and each
+    card costs exactly one image the first time it is asked for and never again. width/height are
+    declared so the panel reserves its box before the bytes land and nothing jumps. The budget is
+    640x400 WebP, ~2x the 311px the panel occupies at 1440, which lands around 25-40 KB each.
+    The cautionary tale is in this same repo: images/earth-map-src.jpg is 2.51 MB and must never
+    be served raw -- a preview that shipped at that size would cost more than the whole page.
+
+    IF THE IMAGE IS NOT THERE, NOTHING HAPPENS. .pCardPrev only becomes visible once
+    play-games.js has added .ready, which it does on the image's own load event. So a missing or
+    broken file leaves the card behaving exactly as it does today rather than flashing an empty
+    white rectangle over the crowd. That is what makes it safe to ship this mechanism before all
+    four screenshots exist -- see the note in play-games.js for which ones are outstanding. ---- */
+ .pCardPrev{position:absolute;left:0;right:0;bottom:calc(100% + var(--sp-10));
+  aspect-ratio:16 / 10;max-height:min(24vh,220px);
+  border-radius:var(--r-md);background:var(--c0);box-shadow:var(--rim-1);
+  overflow:hidden;pointer-events:none;
+  opacity:0;visibility:hidden;transform:translateY(var(--sp-4));
+  transition:opacity var(--hover-out-dur) var(--ease-out),
+             transform var(--hover-out-dur) var(--ease-out),
+             visibility 0s linear var(--hover-out-dur)}
+ .pCardPrev img{width:100%;height:100%;object-fit:cover;object-position:50% 0;display:block}
+ /* visibility rides along so a panel that is not showing is not a hit-test or paint candidate at
+    all; the 0s delay is what lets it turn on instantly and off only after the fade. */
+ @media(hover:hover) and (pointer:fine){
+  .pCard:hover .pCardPrev.ready,.pCard:focus-visible .pCardPrev.ready{
+   opacity:1;visibility:visible;transform:none;transition-delay:0s,0s,0s}}
+ @media(prefers-reduced-motion:reduce){.pCardPrev{transform:none;transition-property:opacity,visibility}}
+
+
+ /* ---- THE TEAM SCREEN. Not a modal over black: the whole reason the tray was
+    promoted out of its 300px corner box is that this is the moment before a
+    match, so the planet and the heads have to stay on screen and keep changing
+    colour as you flip a chip (__hmTeamPreview, already wired). .hero shrinks
+    and the heads rise; play-games.js dispatches a resize so the engine
+    re-surveys the floor through its own tested path
+    (play-engine.js:434). ---- */
+ body.pTeamOn .hero{height:52vh;margin:6vh auto auto}
+ .pTeam{position:fixed;left:0;right:0;bottom:0;z-index:45;pointer-events:none;
+  padding:0 var(--play-gutter) var(--sp-24-32);
+  opacity:0;visibility:hidden;transform:translateY(var(--sp-12));
+  transition:opacity var(--sp-settle-dur) var(--sp-settle),transform var(--sp-settle-dur) var(--sp-settle),visibility 0s linear var(--sp-settle-dur)}
+ body.pTeamOn .pTeam{opacity:1;visibility:visible;transform:none;transition-delay:0s,0s,0s}
+ @media(prefers-reduced-motion:reduce){.pTeam{transition:none}}
+ /* 920px, not --page-max: two columns holding at most four chips each have a natural
+    width, and stretched to 1280 the sides read as two empty fields with a few stickers in
+    them. The panel is as wide as its content wants to be and no wider. */
+ .pTeamIn{pointer-events:auto;box-sizing:border-box;width:100%;max-width:920px;margin:0 auto;
+  padding:var(--sp-16);border-radius:var(--r-lg);background:var(--c0);box-shadow:var(--rim-1)}
+ .pTeamBar{display:flex;align-items:center;justify-content:space-between;gap:var(--sp-12);margin-bottom:var(--sp-12)}
+ /* margin-right:auto rather than space-between doing the work: the bar is Back, then the
+    title, then Shuffle pushed to the far end. Back and the title are one leading group --
+    a title floated to the centre between two buttons reads as a dialog caption, and this
+    is a screen. */
+ .pTeamTitle{font-family:var(--sans);font-weight:600;font-size:var(--fs-h5);line-height:var(--lh-tight);letter-spacing:var(--tr-sub);color:var(--c950);margin:0 auto 0 0}
+ .pBtnBack{padding-left:var(--sp-12)}
+ .pTeamActs{display:flex;align-items:center;gap:var(--sp-8)}
+ .pBtn{display:inline-flex;align-items:center;justify-content:center;gap:var(--sp-8);
+  min-height:var(--tap-min);padding:0 var(--sp-16);border:0;border-radius:var(--r-sm);
+  background:var(--c0);box-shadow:var(--rim-2);color:var(--c950);
+  font-family:var(--sans);font-weight:600;font-size:var(--fs-small);line-height:var(--lh-flat);cursor:pointer;
+  transition:background-color var(--hover-out-dur) var(--ease-out),transform var(--ease-out-dur) var(--ease-out)}
+ /* The rest-state fill stays (this is the secondary kind and it has a ground); what may not
+    move on hover is that fill. Ink to full white and the icon's stroke up with it. */
+ .pBtn:hover{color:var(--c950);box-shadow:var(--rim-3)}
+ .pBtn:hover svg{stroke-width:var(--ico-stroke-strong)}
+ .pBtn:active{transform:scale(var(--press-scale))}
+ .pBtn:focus-visible{outline:var(--focus-w) solid var(--c950);outline-offset:var(--sp-2)}
+ .pBtn svg{width:var(--ico-sm);height:var(--ico-sm);flex:0 0 auto}
+ /* --accent-dark, not --accent: tokens.css defines --accent-dark as the accent's
+    dark-ground rung (oklch 72%), and the mid-tone blue that carries white text on paper
+    does not carry it on near-black. Same colour, the rung the ground asks for. */
+ .pBtnGo{background:var(--accent);color:var(--c0);box-shadow:none;padding:0 var(--sp-32)}
+ /* The primary cannot answer with ink -- it is already full-contrast on its own fill -- so it
+    takes the one affordance the rule permits a large target instead: a hairline. No fill move. */
+ .pBtnGo:hover{box-shadow:inset 0 0 0 var(--hair-w) var(--c0)}
+/* ---- REMOVING A HEAD: THE INDEX/ABOUT PATTERN, ADOPTED WHOLE (commit f897489).
+    Two delete gestures across two pages would be worse than either one, so nothing here is
+    redesigned -- only rehoused. The model is unchanged: a mode, not a smaller target.
+      no delete at rest        display:none, so there is nothing invisible to hit. The old
+                               control was opacity:0 but STILL hit-testable, which is how it
+                               managed to be both impossible to find and easy to hit.
+      in edit mode             the delete is inset:0 over its OWN chip -- the whole tile is
+                               the target, 88x104 here, well past 44x44.
+      no hover anywhere        the toggle is a visible 44px control, so touch and pointer
+                               get exactly the same affordance.
+      immediate + undo         the head leaves storage on the press; undo restores it. A
+                               pending delete on a timer loses work if the tab closes.
+    WHERE IT LIVES, since this page has no roster list. The heads are on the planet and that
+    DOM belongs to the engine, so the toggle would have nowhere honest to sit above it -- and
+    Jayden already removed the thumbnail strip that used to be there. The team screen is the
+    one surface on this page that already lists every head as a tile: the tiles are already
+    88x104, it already has a bar to put a toggle in, and it is where you are looking at who
+    is on the planet anyway. So Edit lives beside Shuffle.
+    PLACEHOLDERS ARE NOT DELETABLE, and the toggle is hidden entirely when they are what the
+    picker is showing. They are scenery the visitor never created and never saved: there is
+    nothing in storage to remove, so "delete" would mean something different here than it
+    does on a real head, and an undo slot for something that was never saved is meaningless.
+    Edit mode applies to real saved heads only. ---- */
+ .pTeamEdit{min-width:var(--tap-min)}
+ .pTeamEdit[aria-pressed="true"]{box-shadow:var(--rim-3);color:var(--c950)}
+ .teamDel{display:none}
+ .teamTile{position:relative;display:block}
+ /* pointer-events INHERITS, so the none below would have reached the delete too and the
+    whole mode would have been dead on arrival. It is re-enabled explicitly here. */
+ .pTeamCols[data-editing="true"] .teamDel{
+  pointer-events:auto;
+  position:absolute;inset:0;z-index:2;
+  display:flex;align-items:center;justify-content:center;
+  min-width:var(--tap-min);min-height:var(--tap-min);padding:0;border:0;cursor:pointer;
+  border-radius:var(--r-sm);corner-shape:var(--corner);
+  background:var(--mat-scrim);color:var(--c50);box-shadow:var(--rim-2);
+  transition:background-color var(--ease-out-dur) var(--ease-out)}
+ .pTeamCols[data-editing="true"] .teamDel svg{width:var(--ico-md);height:var(--ico-md);flex:none}
+ /* The one hover on this page that legitimately moves a fill, and it is deliberate rather
+    than an exception I granted myself: this control IS a scrim over a photograph -- its whole
+    job is to darken the head it will delete -- so deepening that scrim is the state change,
+    not decoration. It is also carried verbatim from the shipped index/About pattern, where
+    two different delete gestures would be worse than either. --mat-i1 is exactly the
+    rgba(18,18,18,.58) that pattern uses, so this is the same value named. */
+ .pTeamCols[data-editing="true"] .teamDel:hover,
+ .pTeamCols[data-editing="true"] .teamDel:focus-visible{background:var(--mat-i1)}
+ /* while editing the chip underneath stops being a button -- one tile, one meaning. The
+    aria-disabled and tabindex that go with it are set in renderTray(), so this is not a
+    visual-only lie to a screen reader or a keyboard. */
+ .pTeamCols[data-editing="true"] .teamChip{pointer-events:none}
+ .pTeamCols[data-editing="true"] .teamChip:hover{transform:none}
+ /* THE UNDO takes the chip's own slot, so the row you are working along does not reflow
+    under the pointer while you are still deleting. */
+ .teamUndo{display:flex;align-items:center;justify-content:center;
+  width:calc(var(--tap-min) * 2);height:calc(var(--tap-min) * 2 + var(--sp-16));
+  padding:0;border:0;cursor:pointer;
+  border-radius:var(--r-sm);corner-shape:var(--corner);
+  background:none;box-shadow:var(--rim-2);
+  font-family:var(--sans);font-weight:600;font-size:var(--fs-micro);letter-spacing:var(--tr-body);color:var(--c700);
+  transition:color var(--ease-out-dur) var(--ease-out),box-shadow var(--ease-out-dur) var(--ease-out)}
+ .teamUndo:hover,.teamUndo:focus-visible{color:var(--c950);box-shadow:var(--rim-3)}
+ .pTeamCols{display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-12)}
+ /* rgb(var(--tc1)) / rgb(var(--tc2)) are the match's own team channels -- the
+    same custom properties play.css:170-174 paints the goals with, so the picker
+    and the pitch cannot drift apart. The fallbacks are play-engine's defaults. */
+ /* THE RIM IS A box-shadow, NEVER A border (control system §2.2). The border added 3px to
+    each column's box, which is exactly why these paddings never lined up with anything else
+    on the page; an inset shadow renders identically and sits outside layout. */
+ .pTeamCol{border-radius:var(--r-md);padding:var(--sp-12);min-height:calc(var(--tap-min) * 2 + var(--sp-30));border:0}
+ /* On black the two sides read the other way round from the paper version: the tint goes UP
+    in alpha and the header takes the team colour at full strength rather than a darkened
+    print variant, because a 190,58,47 red on near-black is mud. */
+ .pTeamCol.red{box-shadow:inset 0 0 0 var(--hair-w) rgba(var(--tc1,224,90,78),.45);background:rgba(var(--tc1,224,90,78),.055)}
+ .pTeamCol.blue{box-shadow:inset 0 0 0 var(--hair-w) rgba(var(--tc2,90,160,216),.45);background:rgba(var(--tc2,90,160,216),.055)}
+ .pTeamColHdr{display:flex;align-items:baseline;justify-content:space-between;gap:var(--sp-8);margin-bottom:var(--sp-12);font-family:var(--sans);font-weight:600;font-size:var(--fs-micro);letter-spacing:var(--tr-caps);text-transform:uppercase}
+ .pTeamCol.red .pTeamColHdr{color:rgb(var(--tc1,224,90,78))}
+ .pTeamCol.blue .pTeamColHdr{color:rgb(var(--tc2,90,160,216))}
+ .pTeamColN{font-weight:400;color:var(--c500);letter-spacing:var(--tr-flat)}
+ .pTeamChips{display:flex;flex-wrap:wrap;gap:var(--sp-8);justify-content:center;align-content:flex-start}
+ /* 88x104: the chip was 40x48 in the popover, which is a thumbnail. At this size it is a
+    head -- you can tell whose face is on which side across the room, which is the only
+    thing the screen is for. */
+ .teamChip{width:calc(var(--tap-min) * 2);height:calc(var(--tap-min) * 2 + var(--sp-16));border-radius:var(--r-sm);overflow:hidden;border:0;cursor:pointer;padding:0;background:var(--c100);
+  touch-action:none;-webkit-user-select:none;user-select:none;
+  transition:transform var(--ease-out-dur) var(--ease-out)}
+ .teamChip:hover{transform:translateY(-2px)}
+ .teamChip:focus-visible{outline:var(--focus-w) solid var(--accent);outline-offset:2px}
+ .teamChip img{width:100%;height:100%;object-fit:cover;display:block}
+ /* The team ring comes off the border too, so a chip is exactly 88x104 whichever side it is
+    on -- as a 2px border it was 88x104 PLUS 4px and the two columns' grids disagreed by a
+    chip's worth across a full row. It rides an ::after rather than the chip's own inset
+    shadow because the <img> is a 100%-size child: an inset shadow paints under content, so
+    the photo covered the ring. The overlay paints over it and is pointer-events:none, so the
+    drag handler still sees the button. */
+ .teamChip{position:relative}
+ .teamChip::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none}
+ .teamChip.red::after{box-shadow:inset 0 0 0 var(--focus-w) rgb(var(--tc1,224,90,78))}
+ .teamChip.blue::after{box-shadow:inset 0 0 0 var(--focus-w) rgb(var(--tc2,90,160,216))}
+ .teamChip:focus-visible{outline:var(--focus-w) solid var(--c950);outline-offset:var(--sp-2)}
+ .pTeamCol.dragOver{outline:var(--focus-w) dashed var(--c500);outline-offset:-3px}
+ .pTeamCol.red.dragOver{background:rgba(var(--tc1,224,90,78),.14)}
+ .pTeamCol.blue.dragOver{background:rgba(var(--tc2,90,160,216),.14)}
+ .pTeamFoot{display:flex;align-items:center;justify-content:space-between;gap:var(--sp-12);margin-top:var(--sp-12)}
+ .pTeamHint{font-family:var(--sans);font-size:var(--fs-caption);letter-spacing:var(--tr-body);color:var(--c500)}
+
+ /* ---- PHONE. The mobile audit calls this the site's best mobile page and the
+    budget that makes it so is vertical: .hero is 65vh here (play.css:305) and
+    the feet land near 80vh, leaving ~170px under them. So the cards drop their
+    description and go 2x2 -- icon and title only, still a 66px target, still
+    four doors. --blur-1/2 are already 0 below 760px, and nothing here asks for
+    a backdrop-filter at any width. ---- */
+ @media(max-width:760px){
+  /* env(safe-area-inset-bottom): a phone's home indicator / browser chrome sits over the
+     bottom of a position:fixed layer, and the cards are the bottom of this one. The fallback
+     keeps it exactly --sp-16 everywhere that has no inset. */
+  .pHub{padding-top:calc(var(--nav-h) + var(--sp-40) + var(--sp-8));
+   padding-bottom:calc(var(--sp-16) + env(safe-area-inset-bottom,0px))}
+  .pTeam{padding-bottom:calc(var(--sp-24-32) + env(safe-area-inset-bottom,0px))}
+  .pCards{grid-template-columns:1fr 1fr;gap:var(--sp-8)}
+  .pCard{padding:var(--sp-10) var(--sp-12);gap:var(--sp-4);min-height:calc(var(--tap-min) * 1.5)}
+  .pCardD{display:none}
+  /* THE ONE PLACE THE PHONE RUNS OUT OF ROOM. Measured at 390x844: .hero is 65vh here
+     (play.css:305), so the shared feet line lands at 673 and the two rows of cards begin at
+     668 -- the heads' lower 65px were behind the menu. The title block and the crowd strip
+     are already as tight as they read, and the cards cannot go lower (they are on the
+     bottom gutter), so the stage is what gives: 57vh puts the feet at 638 with 30px of
+     clear ground under them. Only while the hub is up -- the match gets the full band back,
+     because .pHubOn comes off before kickoff. syncHub() dispatches a resize when this class
+     changes so the engine re-surveys the floor through its own tested path. */
+  body.pHubOn .hero{height:57vh}
+  .pTeamIn{padding:var(--sp-12)}
+  .pTeamCols{gap:var(--sp-8)}
+  .pTeamCol{padding:var(--sp-8);min-height:calc(var(--tap-min) * 2 + var(--sp-8))}
+  .teamChip{width:calc(var(--tap-min) + var(--sp-12));height:calc(var(--tap-min) * 1.5)}
+  /* the undo takes the chip's slot, so it has to BE a chip's size at every width -- it kept
+     the desktop 88x104 here and broke the row it was standing in. */
+  .teamUndo{width:calc(var(--tap-min) + var(--sp-12));height:calc(var(--tap-min) * 1.5)}
+  /* Four controls and a title do not fit on one 390px row: Back + Edit + Shuffle measure 238px
+     of the 366px available, and "Pick sides" was wrapping to two lines and pushing the panel
+     taller. The title goes -- it is the one thing on this bar that is not a control, and a
+     screen full of Red/Blue columns with heads in them does not need to announce itself. The
+     accessible name stays on the dialog, so nothing is lost to a screen reader. */
+  .pTeamTitle{display:none}
+  .pTeamFoot{flex-direction:column;align-items:stretch}
+  .pTeamHint{text-align:center;order:2}
+  .pBtnGo{width:100%}
+ }
+ /* NOTE FOR WHOEVER LANDS THE HEAD-LEVEL DELETE: --tap-min is already the floor everywhere
+    on this page, and the X-on-a-head pattern being designed for the home dropdown and the
+    maker should arrive here unchanged rather than as a fourth variant. */
+
+ /* ---- #tHeadEdge's flood, made REACHABLE rather than changed.
+    The filter floods the cut-out's edge ring with #FDFDFD -- an invisible cut-line on
+    paper, a bright white keyline on black. Checked before assuming: on this page the only
+    consumer is `.tCardHead img` (play.css:958), the tournament's card portraits, and those
+    cards are still paper, so #FDFDFD is still the right answer THERE and nothing about
+    today's rendering changes. What was wrong is that the value was welded into a
+    presentation attribute in the markup. flood-color is a real CSS property on feFlood, so
+    one rule turns it into a token with the old value as its default: whoever takes the
+    tournament dark sets --head-edge next to the ground they set, in the same pass, instead
+    of discovering it in a screenshot. ---- */
+ #tHeadEdge feFlood{flood-color:var(--head-edge)}
 </style>
 <link rel="stylesheet" href="header.css">
 <script src="header.js" defer></script>
@@ -74,14 +559,32 @@
      The lockup, Home and About all go to index.html; Games names this page's
      own URL, so it is the site's only aria-current="page". -->
 <div class="jbStick isFixed">
- <nav class="jbNav hasSoc" aria-label="Primary" data-surface="paper" data-back="1">
-  <a class="jbHome" href="index.html" aria-label="Back — Jayden Betts, home"><svg class="jbArrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6l6 6"/></svg><span class="jbMark" aria-hidden="true"><span class="jbL1">Jayden</span><span class="jbL2">Betts</span></span></a>
-  <span class="jbSep" aria-hidden="true"></span>
-  <a data-nav-item="home" href="index.html">Home</a>
-  <a data-nav-item="about" href="index.html#about">About</a>
-  <a data-nav-item="games" href="play.html" aria-current="page">Games</a>
-  <span class="jbBarSep" aria-hidden="true"></span>
-  <span class="jbBarSoc"><a data-soc="mail" href="mailto:jaydenlbetts@gmail.com" aria-label="Email Jayden Betts"><svg class="jbGlyph" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4.5h18c.55 0 1 .45 1 1v13c0 .55-.45 1-1 1H3c-.55 0-1-.45-1-1v-13c0-.55.45-1 1-1Zm1.4 1.5L12 11.6 19.6 6H4.4ZM20 7.4l-7.4 5.5a1 1 0 0 1-1.2 0L4 7.4V18h16V7.4Z"/></svg></a><a data-soc="li" href="https://www.linkedin.com/in/jaydenbetts" target="_blank" rel="noopener noreferrer" aria-label="Jayden Betts on LinkedIn — opens in a new tab"><svg class="jbGlyph" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.34V9h3.42v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29zM5.34 7.43a2.06 2.06 0 1 1 0-4.13 2.06 2.06 0 0 1 0 4.13zM7.12 20.45H3.55V9h3.57v11.45zM22.22 0H1.77C.8 0 0 .78 0 1.74v20.52C0 23.22.8 24 1.77 24h20.45c.98 0 1.78-.78 1.78-1.74V1.74C24 .78 23.2 0 22.22 0z"/></svg></a><a data-soc="ig" href="https://www.instagram.com/jaydenleebetts" target="_blank" rel="noopener noreferrer" aria-label="Jayden Betts on Instagram — opens in a new tab"><svg class="jbGlyph" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg></a></span>
+ <!-- data-surface="paper", same as every other page. This page ran data-surface="ink" for one
+      round while the lobby was dark; Jayden saw it and reversed it ("shouldn't be dark mode").
+      The ink surface is untouched in header.css and gradientlab.html still uses it -- what
+      changed is only that this page stopped asking for it. -->
+ <nav class="jbNav" aria-label="Primary" data-surface="paper">
+  <span class="jbGrp jbGrpL">
+   <a class="jbHome" href="index.html" aria-label="Jayden Betts, home"><svg class="jbLogo" viewBox="0 0 30 30" aria-hidden="true"><path d="M1 26.3842C3.07605 22.5364 9.00761 17.1494 16.1255 26.3842C23.2434 35.619 14.1981 18.1678 16.1255 8.65665C18.0529 -0.854479 32.3186 -2.22723 28.2852 8.65665C24.2517 19.5405 18.6968 18.261 20.8493 13.2232C23.0018 8.1853 35.3661 26.1679 23.0066 27.4872"/></svg></a>
+  </span>
+  <span class="jbGrp jbGrpC">
+   <a data-nav-item="work" href="index.html#cases" aria-label="Work"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7m0 2a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v9a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2z"/><path d="M8 7v-2a2 2 0 0 1 2 -2h4a2 2 0 0 1 2 2v2"/><path d="M12 12l0 .01"/><path d="M3 13a20 20 0 0 0 18 0"/></svg><span class="jbLbl">Work</span></a>
+   <a data-nav-item="about" href="index.html#about" aria-label="About"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0"/><path d="M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2"/></svg><span class="jbLbl">About</span></a>
+   <a data-nav-item="games" href="play.html" aria-label="Play" aria-current="page"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 6m0 2a2 2 0 0 1 2 -2h16a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-16a2 2 0 0 1 -2 -2z"/><path d="M6 12h4m-2 -2v4"/><path d="M15 11l0 .01"/><path d="M18 13l0 .01"/></svg><span class="jbLbl">Play</span></a>
+  </span>
+  <span class="jbGrp jbGrpR">
+   <!-- CONTACT -- the same split control as Play, at the other end of the bar
+        (Jayden: "Contact should go to the right, and then it should act like the Play
+        button where it shows other options on hover -- like the various socials").
+        The label navigates, the caret discloses, and the caret is a real button with
+        aria-expanded and its own 44x44 -- because touch has no hover and a tap must
+        never mean two things. header.js owns it on all nine pages.
+        Socials in HIS order: LinkedIn, Instagram, email. -->
+   <span class="jbDisc jbContact">
+    <a class="jbDiscGo" data-nav-item="contact" aria-haspopup="true" aria-expanded="false" aria-controls="jbContactMenu" href="index.html#contact" aria-label="Contact"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10z"/><path d="M3 7l9 6l9 -6"/></svg><span class="jbLbl">Contact</span></a>
+    <div class="jbDiscMenu" id="jbContactMenu"><a class="jbDiscTouch" href="index.html#contact"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10z"/><path d="M3 7l9 6l9 -6"/></svg>Contact</a><div class="jbDiscSep jbDiscTouch" aria-hidden="true"></div><a href="https://www.linkedin.com/in/jaydenbetts" target="_blank" rel="noopener noreferrer"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 11l0 5"/><path d="M8 8l0 .01"/><path d="M12 16l0 -5"/><path d="M16 16v-3a2 2 0 0 0 -4 0"/><path d="M3 7a4 4 0 0 1 4 -4h10a4 4 0 0 1 4 4v10a4 4 0 0 1 -4 4h-10a4 4 0 0 1 -4 -4z"/></svg>LinkedIn</a><a href="https://www.instagram.com/jaydenleebetts" target="_blank" rel="noopener noreferrer"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4m0 4a4 4 0 0 1 4 -4h8a4 4 0 0 1 4 4v8a4 4 0 0 1 -4 4h-8a4 4 0 0 1 -4 -4z"/><path d="M12 12m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"/><path d="M16.5 7.5l0 .01"/></svg>Instagram</a><a href="mailto:jaydenlbetts@gmail.com"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10z"/><path d="M3 7l9 6l9 -6"/></svg>Email</a></div>
+   </span>
+  </span>
  </nav>
 </div>
 <!-- ===== THE BIG HEAD. Not decoration and not a copy: this is index.html's hero stage, the
@@ -104,7 +607,91 @@
 <svg class="glasses" id="glasses" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><defs><pattern id="glCard" patternUnits="userSpaceOnUse" width="100" height="100"><image href="images/glass_frame_tex.webp" x="0" y="0" width="100" height="100" preserveAspectRatio="xMidYMid slice"/></pattern><linearGradient id="glSheen" x1="0" y1="0" x2="0.62" y2="1"><stop offset="0" stop-color="#fff" stop-opacity="0.5"/><stop offset="0.4" stop-color="#fff" stop-opacity="0.06"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient><mask id="glMask" maskUnits="userSpaceOnUse" x="0" y="0" width="100" height="100"><rect x="28" y="45.3" width="44" height="13.2" rx="2.4" fill="#fff"/><polygon points="28,47.2 26,48 26,50.4 28,51.2" fill="#fff"/><polygon points="72,47.2 74,48 74,50.4 72,51.2" fill="#fff"/><rect x="32.5" y="47.3" width="13" height="9.2" rx="1.8" fill="#000"/><rect x="54.5" y="47.3" width="13" height="9.2" rx="1.8" fill="#000"/><path d="M46.7 58.6 Q50 54.3 53.3 58.6 Z" fill="#000"/></mask></defs><rect class="gl-red" x="32.5" y="47.3" width="13" height="9.2" rx="1.8"/><rect class="gl-cyan" x="54.5" y="47.3" width="13" height="9.2" rx="1.8"/><rect class="gl-plast" x="32.5" y="47.3" width="13" height="9.2" rx="1.8" fill="url(#glSheen)"/><rect class="gl-plast" x="54.5" y="47.3" width="13" height="9.2" rx="1.8" fill="url(#glSheen)"/><rect x="0" y="0" width="100" height="100" fill="url(#glCard)" mask="url(#glMask)"/></svg></div></div>
  </div>
 </div>
+<!-- NO [data-hm-orb] CHILD, ON PURPOSE. That one attribute is the entire on/off switch for the
+     engine's spherical placement (see THE NASA PLANET IS POSTPONED above): with no element
+     carrying it, ORB.sync() finds nothing, the crowd stands on the flat feet line, and the
+     lobby floor below is a plane -- which is what makes a reflection in it honest. -->
 <main class="hero" id="playArena"></main>
+<!-- ===== THE HUB. The page's resting state: a title block on the sky, four doors on the
+     paper, and the stage running live between them. play-games.js shows and hides it off
+     the same gameOn() the launchers already gate on, so it is on screen exactly when no
+     game is. The two makers are ORDINARY LINKS with identical card treatment -- staged
+     absorption, research §5: headmaker.html stays an indexed, self-canonical URL and
+     gradientlab.html is not rebuilt this pass. ?from=play is the handshake that lets each
+     destination point its back affordance at Play instead of the portfolio; neither
+     destination reads it yet (both are other passes' files), so it is inert and harmless
+     until they do. ===== -->
+<div class="pHub" id="pHub">
+ <!-- NO HERO BLOCK, NO CROWD STRIP. Both were built and both came out on Jayden's call:
+      "no stupid hero header that looks bad with random head PNGs floating -- the heads are
+      clearly visible below." He is right on the second point in particular; a row of head
+      thumbnails above the fold was a weaker second statement of the thing the planet and the
+      crowd already say. What went: the eyebrow/title/sub block (three type sizes), the
+      thumbnail strip, its per-head remove control and the "Add an egghead" button.
+      THE CAPABILITY DID NOT GO WITH IT. addEgghead() and the remove path still exist in
+      play-games.js and are exposed as window.__hmAddEgghead / __hmRemoveHead, so the pattern
+      the head-level delete lands as (coordinated, not a fourth variant) can drive them
+      without rebuilding anything. See the report for where I think they belong. -->
+ <!-- ===== THE FOUR DOORS.
+      THE COPY IS RESEARCHED, and the constraint that decided it is in this same file:
+      under 760px, `.pCardD,.pCardOut{display:none}` (see the phone block above). On a
+      phone a card is an icon and a LABEL, nothing else -- so the label alone has to answer
+      "what is this and what happens when I click it". That single fact is what broke the
+      three names this menu shipped with:
+        "Expedition"     -- no meaning in football or in English; promises going somewhere
+        "Create head"    -- names the machine's noun, not the visitor's verb, and it is the
+                            SAME destination the menu calls "Add your head" (NN/g: one
+                            command in two menus must use identical text -- both surfaces
+                            are fixed in this commit)
+        "Gradient maker" -- reads as a tool's name rather than an action
+      Verb-first, plain, and identical across surfaces:
+        Play a match / Tournament / Add your head / Make a gradient
+      "Exhibition vs Expedition" is not settled here and is not silently renamed either --
+      the study's answer is that both words fail a first-time reader and the honest label is
+      what the click actually does. Jayden decides; see the report.
+      The micro-line is the NAVIGATIONAL fact, not the visual one: all four go full screen,
+      but only two leave the page, and that is the thing worth warning about. ===== -->
+ <!-- ONE HONEST LINE, and the count is the point. Jayden killed the old hero block for stacking
+      three type sizes over the crowd ("no stupid hero header"); this is not that block coming
+      back. It is a single h1 and there is deliberately no eyebrow, no subtitle and no second
+      line under it -- adding one is the exact regression he objected to.
+      The WIP signal is carried by "Still building them" rather than by the word WIP or an
+      apology: he is job-hunting, and a disclaimer reads to a recruiter as an excuse where
+      "still building" reads as momentum. The full stop in the middle is load-bearing too -- at
+      display size the two clauses run together into one breathless sentence without it. -->
+ <h1 class="pLede"><span>I made a few games for fun.</span> <span>Still building them.</span></h1>
+ <nav class="pCards" aria-label="Games">
+  <button class="pCard" id="pcExped" type="button">
+   <svg class="gIco" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"/><path d="M12 7l4.76 3.45l-1.76 5.55h-6l-1.76 -5.55l4.76 -3.45"/><path d="M12 7v-4m3 13l2.5 3m-.74 -8.55l3.74 -1.45m-11.44 7.05l-2.56 2.95m.74 -8.55l-3.74 -1.45"/></svg>
+   <span class="pCardT">Play a match</span>
+   <span class="pCardD">Split the heads into two teams and watch them play soccer. You pick the teams first.</span>
+   <span class="pCardPrev" aria-hidden="true"><img alt="" width="640" height="400" decoding="async" data-prev="images/preview/match.webp"></span>
+  </button>
+  <button class="pCard" id="pcTour" type="button">
+   <svg class="gIco" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 4a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/><path d="M18 10a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/><path d="M2 12a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/><path d="M2 20a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/><path d="M6 12h3a1 1 0 0 1 1 1v6a1 1 0 0 1 -1 1h-3"/><path d="M6 4h7a1 1 0 0 1 1 1v10a1 1 0 0 1 -1 1h-2"/><path d="M14 10h4"/></svg>
+   <span class="pCardT">Tournament</span>
+   <span class="pCardD">A whole cup of matches, one at a time, with a bracket, goals and a winner.</span>
+   <span class="pCardPrev" aria-hidden="true"><img alt="" width="640" height="400" decoding="async" data-prev="images/preview/tournament.webp"></span>
+  </button>
+  <a class="pCard" id="pcHead" href="headmaker.html?from=play">
+   <svg class="gIco" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0"/><path d="M16 19h6"/><path d="M19 16v6"/><path d="M6 21v-2a4 4 0 0 1 4 -4h4"/></svg>
+   <span class="pCardT">Add your head</span>
+   <span class="pCardD">Upload a photo of your face and cut it out on a new page. It comes back and joins the crowd.</span>
+   <span class="pCardPrev" aria-hidden="true"><img alt="" width="640" height="400" decoding="async" data-prev="images/preview/headmaker.webp"></span>
+  </a>
+  <a class="pCard" id="pcGrad" href="gradientlab.html?from=play">
+   <svg class="gIco" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3m0 2a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v14a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2z"/><path d="M3 15l6 -6l4 4l3 -3l5 5"/><path d="M8.5 8.5m-1.5 0a1.5 1.5 0 1 0 3 0a1.5 1.5 0 1 0 -3 0"/></svg>
+   <span class="pCardT">Make a gradient</span>
+   <span class="pCardD">Dial a planet of coloured light on a new page, and leave with the image and the code.</span>
+   <span class="pCardPrev" aria-hidden="true"><img alt="" width="640" height="400" decoding="async" data-prev="images/preview/gradientlab.webp"></span>
+  </a>
+ </nav>
+</div>
+<!-- The team screen's shell is built by play-games.js (it owns the chips, the drag, the
+     shuffle and the live __hmTeamPreview channel); this is only the mount point, so the
+     panel's place in the stacking order is declared in markup rather than invented at
+     runtime. -->
+<div class="pTeam" id="pTeam" role="dialog" aria-modal="false" aria-label="Choose sides" hidden></div>
 <!-- Task 3: the real game menu -- soccer + tournament only (Jayden cut Floor is Lava and
      Marble Race, "not quite yet"). Mirrors index.html:2320's #moodbar/#moodBtn/#moodMenu
      structure but WITHOUT the four mood dots, "Add your head", "Add an egghead", #moodHeads
@@ -124,18 +711,22 @@
 <div class="moodbar" id="moodbar" style="position:fixed;right:var(--play-gutter);top:var(--play-top);z-index:60">
  <button class="moodBtn" id="moodBtn" type="button" aria-label="Play" aria-expanded="false" aria-controls="moodMenu"><span class="moodLbl">Play</span><svg class="moodCar" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M6 9l6 6l6 -6"/></svg></button>
  <div class="moodMenu" id="moodMenu">
-  <div class="moodRow" id="soccerRow"><button class="moodItem" id="soccerGo" type="button" aria-label="Start a soccer match between your heads"><svg class="gIco" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"/> <path d="M12 7l4.76 3.45l-1.76 5.55h-6l-1.76 -5.55l4.76 -3.45"/> <path d="M12 7v-4m3 13l2.5 3m-.74 -8.55l3.74 -1.45m-11.44 7.05l-2.56 2.95m.74 -8.55l-3.74 -1.45"/></svg>Soccer</button><button class="moodTeamsBtn" id="soccerTeams" type="button" aria-haspopup="dialog" aria-expanded="false" aria-label="Choose soccer teams"><span class="tdotR" aria-hidden="true"></span><span class="tdotB" aria-hidden="true"></span></button></div>
+  <div class="moodRow" id="soccerRow"><button class="moodItem" id="soccerGo" type="button" aria-label="Play a match — a soccer match between your heads"><svg class="gIco" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"/> <path d="M12 7l4.76 3.45l-1.76 5.55h-6l-1.76 -5.55l4.76 -3.45"/> <path d="M12 7v-4m3 13l2.5 3m-.74 -8.55l3.74 -1.45m-11.44 7.05l-2.56 2.95m.74 -8.55l-3.74 -1.45"/></svg>Play a match</button><button class="moodTeamsBtn" id="soccerTeams" type="button" aria-haspopup="dialog" aria-expanded="false" aria-label="Choose soccer teams"><span class="tdotR" aria-hidden="true"></span><span class="tdotB" aria-hidden="true"></span></button></div>
   <button class="moodItem" id="tourGo" type="button" aria-label="Start a soccer tournament — single elimination, one match at a time, with goals, assists and ratings tracked"><svg class="gIco" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M2 4a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/> <path d="M18 10a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/> <path d="M2 12a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/> <path d="M2 20a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/> <path d="M6 12h3a1 1 0 0 1 1 1v6a1 1 0 0 1 -1 1h-3"/> <path d="M6 4h7a1 1 0 0 1 1 1v10a1 1 0 0 1 -1 1h-2"/> <path d="M14 10h4"/></svg>Tournament</button>
   <button class="moodItem" id="endGame" type="button" aria-label="End the current game" style="display:none"><svg class="gIco" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M5 7a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2l0 -10"/></svg>End game</button>
-  <!-- Task 5: the makers move here. index.html's Extras panel used to be the only route to
+  <!-- The two maker rows carry the SAME text as the two maker cards in the hub -- "Add your
+       head" and "Make a gradient". They are the same command to the same destination, and
+       one command that appears in two menus must use identical wording or a visitor reads
+       it as two different things (NN/g). "Gradient maker" was the odd one out and is gone.
+       Task 5: the makers move here. index.html's Extras panel used to be the only route to
        headmaker.html and gradientlab.html; with the games gone from home, Play is where making
        lives. Linked BEFORE the Extras cards came out, so neither maker was ever unreachable.
        This is the staged "link first, rebuild later" step -- a proper maker section on this page
        is a later pass. The .moodSep only earns its pixel when both sides have something visible;
        play-games.js:91 syncMoodSeps() measures that every tick. -->
   <div class="moodSep" aria-hidden="true"></div>
-  <a class="moodGo" href="headmaker.html"><svg class="gIco" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0"/> <path d="M16 19h6"/> <path d="M19 16v6"/> <path d="M6 21v-2a4 4 0 0 1 4 -4h4"/></svg>Create head</a>
-  <a class="moodGo" href="gradientlab.html"><svg class="gIco" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M3 3m0 2a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v14a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2z"/> <path d="M3 15l6 -6l4 4l3 -3l5 5"/> <path d="M8.5 8.5m-1.5 0a1.5 1.5 0 1 0 3 0a1.5 1.5 0 1 0 -3 0"/></svg>Gradient maker</a>
+  <a class="moodGo" href="headmaker.html"><svg class="gIco" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0"/> <path d="M16 19h6"/> <path d="M19 16v6"/> <path d="M6 21v-2a4 4 0 0 1 4 -4h4"/></svg>Add your head</a><!-- label matches #pcHead -->
+  <a class="moodGo" href="gradientlab.html"><svg class="gIco" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M3 3m0 2a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v14a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2z"/> <path d="M3 15l6 -6l4 4l3 -3l5 5"/> <path d="M8.5 8.5m-1.5 0a1.5 1.5 0 1 0 3 0a1.5 1.5 0 1 0 -3 0"/></svg>Make a gradient</a><!-- label matches #pcGrad -->
  </div>
 </div>
 <!-- The ?wraf=1 dev shim that used to be copied in here now arrives inside hero-engine.js,

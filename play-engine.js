@@ -10,12 +10,22 @@
   var k2=JSON.stringify(d.marks||"m")+JSON.stringify((d.eyes||[]).map(function(e){return[e.x,e.y,e.w,e.h];}));
   if(seenC[d.cut]||seenC[k2])return false;seenC[d.cut]=1;seenC[k2]=1;return true;}).slice(0,8);   // unique REAL faces only, by pixels AND by geometry
  if(_rawN!==null&&_rawN!==list.length){try{localStorage.setItem("hmCompanions",JSON.stringify(list));if(typeof _hcBump==="function")_hcBump();}catch(_){}}   // heal stale duplicates once, physically
- if(!list.length)return;
+ // NO EARLY RETURN HERE. This used to read `if(!list.length)return;`, which bailed out of the whole
+ // IIFE on an empty roster -- and every one of this engine's ~67 window.__hm* exports is declared
+ // BELOW this line. So on a genuine first visit, with nothing in localStorage, __hmSpawnOne,
+ // __hmLive, __hmSoccerStart and __hmFillerAdd did not exist, and "Play a match" had never worked
+ // for anyone who had not already made a head. It failed silently rather than loudly because the
+ // ~40 call sites into this engine from other files are all `typeof`-guarded, which is exactly the
+ // shape of guard that hides a missing export forever.
+ // The intent of the old line -- do no work when there is nothing to render -- is right and is kept:
+ // it just moves to the two places that actually do work. The spawn loop iterates an empty list and
+ // no-ops (see `list.forEach` below), and the shared hero-box poll skips while nobody is on stage.
+ // Registering the API is not work; it is the door.
  var peers=[];   // every head knows where every other head is, every frame
  try{if(/[?&]wraf=1/.test(location.search))window.__peers=peers;}catch(_){}   // DEV-ONLY debug handle (opt-in), lets a headless run inspect head AI state
  var heroBox={left:0,top:0,width:0,height:0};   // ONE cached hero rect shared by every head, so N heads never each force a layout reflow per frame (older machines feel that). Refreshed only when the page actually moves.
  function refreshHeroBox(){var h=document.querySelector(".hero");if(!h)return;var r=h.getBoundingClientRect();heroBox.left=r.left;heroBox.top=r.top;heroBox.width=r.width;heroBox.height=r.height;}
- (function(){var raf=0;function mark(){if(raf)return;raf=requestAnimationFrame(function(){raf=0;refreshHeroBox();});}addEventListener("scroll",mark,{passive:true});addEventListener("resize",mark,{passive:true});refreshHeroBox();setInterval(function(){if(!document.hidden)refreshHeroBox();},500);})();   // scroll/resize (rAF-throttled) + a slow safety tick for any other layout shift
+ (function(){var raf=0;function mark(){if(raf)return;raf=requestAnimationFrame(function(){raf=0;refreshHeroBox();});}addEventListener("scroll",mark,{passive:true});addEventListener("resize",mark,{passive:true});refreshHeroBox();setInterval(function(){if(!document.hidden&&peers.length)refreshHeroBox();},500);})();   // scroll/resize (rAF-throttled) + a slow safety tick for any other layout shift
  var battlePlats=[];   // battle arena: floating platforms the heads land on and pounce from (populated by the platforms block, read every frame in the physics)
  try{if(/[?&]wraf=1/.test(location.search))window.__plats=battlePlats;}catch(_){}   // DEV-ONLY debug handle (opt-in), so a headless run can inspect the live ladder
  var sharedFeetY=null;   // the shared FLOOR line (screen-space feet row). Cached while the big head is VISIBLE so a head spawning mid-game (mini-Jayden -- the big head is hidden AND the hero box measures shorter then) lands on the SAME plane as everyone else instead of a mid-game fallback.
@@ -221,6 +231,145 @@
       else if(n>=p.until){if(FX)FX.burst(p.x,p.y,{count:12,color:"235,90,70",speed:240,gravity:300,life:0.5,size:4});try{p.el.remove();}catch(_){}PROPS.splice(j,1);}}}
     requestAnimationFrame(bt);})(lt);}
  setInterval(function(){if(battleActive())startAbilTick();},600);
+ // ===== THE PITCH PLANET: render-curved, physics-flat =====
+ // Jayden: "in play.html they should be sitting on that gradient planet and jumping around on it --
+ // so just on the pitch." The measured verdict is in
+ // docs/superpowers/specs/2026-08-02-planet-pitch-research.md §2.3-§2.5 and it is settled:
+ //   * to hide a drawn globe's curvature UNDER a flat walk line you need R > 102,400px -- 160x the
+ //     pitch half-width. That is not a globe, it is a flat floor with a rounding error.
+ //   * at a radius that actually READS as a globe (R ~ 8,000px) the surface sags 25.6px over +/-640,
+ //     so heads at the wings would float a quarter of a head above it. "Planet as backdrop" is out.
+ // So the ground is curved at RENDER time only -- the same trick Animal Crossing plays, bending the
+ // world in the vertex shader while the collision world stays flat. survey(), floorY, __hmFeetY,
+ // __hmGroundY, geo() and all 49 `surface=floorY` assignments never learn about it. That is what keeps
+ // the load-bearing seating rule ("every head's FEET share the line, whatever its size") true, and it
+ // is what makes SAG=0 a byte-for-byte revert of this entire idea rather than a tuning value.
+ // Never extended past .hmSoccer: lava already owns an x-varying surface (__hmLavaY) and the two
+ // would fight. Every call site below is gated on soccerOn, so off the pitch this costs literally nothing.
+ var ARC=(function(){
+  var w=-1,half=1,cx=0,sag=0,over=null;
+  // JAYDEN, 2026-08-03: "For the planet, I wanted the planet to be in the lobby, not the match."
+  // So the curve is OFF on the pitch. The research's own escape hatch is what makes that a one-flag
+  // decision rather than a revert: every term below is ADDITIVE, so at sag=0 every call site emits
+  // character-for-character the string this engine emitted before any of this existed. The mechanism
+  // stays, inert, because the lobby globe is the same maths at a radius ~25x smaller and this is
+  // where it was proved out -- type __hmSag(25.6) in the console to switch the pitch curve on and look.
+  var CURVE=false;
+  function sync(){var nw=heroBox.width||innerWidth;if(nw===w)return;w=nw;half=Math.max(1,w/2);cx=w/2;
+   sag=(over!=null)?over:(CURVE?Math.max(12,Math.min(30,w*0.020)):0);}   // the live formula, when it is on: clamp(0.020*pitchWidth,12,30) -- 25.6px at 1280, 28.8 at 1440, 12 (clamped) at 390. Real radius ~8,000px, max surface tilt 4.6deg: enough to feel in the head rotation, small enough that nobody expects Mario-Galaxy radial gravity out of it.
+  return{
+   // The drop below the apex. A PARABOLA, not a circle: at R=5,000 / d=640 the two differ by 0.14px,
+   // and the parabola's derivative -- the surface normal -- is exact and free.
+   y:function(x){sync();var u=(x-cx)/half;return sag*u*u;},
+   deg:function(x){sync();return Math.atan2(2*sag*(x-cx)/(half*half),1)*57.2958;},   // the surface normal, in degrees. Characters obeying the curve is the #1 "this is a planet" cue (Mario Kart's ring of Miis, Galaxy's normal-aligned Mario) -- and here it costs one addend to surfRot, which is already a sum of six terms.
+   sag:function(){sync();return sag;},half:function(){sync();return half;},cx:function(){sync();return cx;},
+   set:function(v){over=(v==null?null:+v);w=-1;}
+  };})();
+ // Live tuning knob, per the research's pass-0 recommendation: type __hmSag(0) in the console and the
+ // render is the old build exactly; __hmSag() reads the current value back.
+ try{window.__hmSag=function(v){if(v===undefined)return ARC.sag();ARC.set(v);return ARC.sag();};}catch(_){}
+ // THE REFLECTION'S STRENGTH, relative to the contact shadow. This is the ONLY number separating the
+ // two -- everything else about how they answer "how far off the ground is this head" is the same
+ // two values, so they cannot drift apart as either is tuned. It is read from --head-refl-gain once
+ // per layout rather than per frame (a custom-property read is a style lookup; 15 heads x 60fps is
+ // not the place for one), which keeps the per-frame cost at transform + opacity and nothing else.
+ // A dark surface sets --head-refl-gain on body the same way it sets --head-shadow.
+ // ===== THE LOBBY PLANET: heads bouncing in 3D on a sphere =====
+ // Jayden: "make sure the heads are bouncing in 3D space on the planet -- not on the flat plane
+ // they are in in the soccer and home page. They should freely bounce around on the planet surface,
+ // just like in Mario Kart online."
+ //
+ // This is a SECOND MODE, not a change to the first. The soccer pitch and the home hero keep one
+ // flat shared floorY and one __hmFeetY, untouched and unread by any line below -- that relationship
+ // is what the goals, the ball, the tournament and the whole seating rule are built on. A head in
+ // the lobby stops being an (x,y) on a line and becomes an ANGLE on a sphere: theta around the disc
+ // plus a height above its surface. Gravity stops pointing down the screen and points at the
+ // planet's centre. Nothing here runs unless the lobby is up.
+ //
+ // The planet's size and position belong to the hub, not to the engine: this reads whatever element
+ // in .hero carries [data-hm-orb] and derives the centre and the radius from its box. The hub can
+ // move it, resize it, or take it away, and the physics follows without an edit here.
+ var ORB=(function(){
+  var live=false,cx=0,cy=0,R=1,t=-1e9;
+  function sync(now){
+   if(now-t<250)return live;   // one getBoundingClientRect per 250ms for the WHOLE crowd, not one per head per frame
+   t=now;
+   var b=document.body.classList;
+   if(!b.contains("pHubOn")||b.contains("hmSoccer")||b.contains("hmBattle")){live=false;return false;}
+   var h=document.querySelector(".hero"),el=h&&h.querySelector("[data-hm-orb]");
+   if(!h||!el){live=false;return false;}
+   var r=el.getBoundingClientRect(),hr=h.getBoundingClientRect();
+   if(!r.width){live=false;return false;}
+   R=r.width/2;cx=r.left-hr.left+R;cy=r.top-hr.top+r.height/2;   // hero-local, the same space the heads live in
+   live=true;return true;}
+  // How far round the head may walk. Bounded to the front-facing arc rather than wrapping round the
+  // back: a head at the limb is edge-on to the camera and reads as a sliver, and one that walked
+  // behind the planet would have to be occluded by it, which is a z-order problem this page does not
+  // need. So they walk to the edge of the lit face and turn round. 38deg is the cap -- at that lean
+  // the curve is unmistakable and the head is still comfortably upright -- and it tightens further
+  // if the disc is wide enough that 38deg would push a head off the side of the screen.
+  function arcMax(HW,heroW){return Math.min(0.663,Math.asin(Math.max(0.08,Math.min(1,(heroW/2-HW*0.75)/R))));}
+  return{sync:sync,live:function(){return live;},R:function(){return R;},cx:function(){return cx;},cy:function(){return cy;},arcMax:arcMax};
+ })();
+ // IS THE LOBBY UP? Jayden: "I do want the room to be reflective like the soccer." The pitch has had
+ // honest per-head reflections since the water landed; the lobby -- the room he actually meant -- had
+ // none, because the one gate below read `soccerOn` and nothing else.
+ // This is one shared, throttled read of body.classList for the WHOLE crowd, deliberately the same
+ // shape as ORB.sync above and for the same reason: a per-head classList test every frame is N reads
+ // per frame for a fact that changes a handful of times in a session. 250ms of lag on a surface
+ // appearing is invisible; N DOM reads per frame are not.
+ // pHubOn is set by play-games.js and exists ONLY on play.html. index.html loads this engine and does
+ // NOT load play.css, so a lobby reflection there would be an unmasked, unfiltered flipped copy of
+ // every head -- gating on the hub's own class is what keeps this on the one page that dresses it.
+ var LOBBY=(function(){var on=false,t=-1e9;
+  return function(now){if(now-t<250)return on;t=now;var b=document.body.classList;
+   on=b.contains("pHubOn")&&!b.contains("hmSoccer")&&!b.contains("hmBattle")&&!b.contains("hmTour")&&!window.__hmRaceOn;
+   return on;};})();
+ var REFL_K=0.9;
+ // PERSPECTIVE COMPRESSION -- the reason a straight scale(1,-1) reads as a pasted, flipped copy.
+ // A mirror is not what a viewer standing above a reflective surface sees: the reflection recedes
+ // away from the eye while the object rises toward it, so the reflected image is vertically
+ // FORESHORTENED. Derived, not picked. Assumed camera: the low side-on broadcast view this stage
+ // already implies -- eye 2.2 head-heights above the pitch and 5.5 back, i.e. the waterline sitting
+ // 21.8deg below the horizon. For an object of height h at horizontal distance D with the eye at e:
+ //     object angular height     = atan((h-e)/D) + atan(e/D)   = 0.1657 rad
+ //     reflection angular height = atan((h+e)/D) - atan(e/D)   = 0.1460 rad
+ //     ratio                                                   = 0.881
+ // Worth being honest about the size of this: perspective compression is real but it is NOT the
+ // biggest tell -- at any plausible camera it lands between 0.88 and 0.93, and only a very high
+ // viewpoint (which this flat side-on stage does not have) compresses harder. The falloff shape,
+ // the surface breaking the image up and the contrast loss (all in play.css) are each worth more.
+ var REFL_PERSP=0.88;
+ // The drawn surface. Two elements, no canvas, no WebGL, no rAF: .hmPlanet carries the ground passes
+ // and is masked to an ellipse whose top edge IS arcY (so the horizon and the feet cannot disagree),
+ // .hmSky carries the rim that escapes the silhouette upward plus the band of not-page-background above
+ // the line. Both are positioned entirely by four custom properties, written once per layout.
+ var PL_UP=120;   // how far ABOVE the horizon .hmPlanet/.hmSky start, so the rim has room to bleed
+ function planetDOM(){
+  var h=document.querySelector(".hero");if(!h)return;
+  if(!h.querySelector(".hmPlanet")){
+   var sky=document.createElement("div");sky.className="hmSky";sky.setAttribute("aria-hidden","true");
+   var pl=document.createElement("div");pl.className="hmPlanet";pl.setAttribute("aria-hidden","true");
+   h.insertBefore(sky,h.firstChild);h.insertBefore(pl,h.firstChild);}   // FIRST children: both sit at z-index 0, so within that layer DOM order decides, and the ground has to paint before .tPitch and the scoreboard
+  if(!h.querySelector(".hmWater")){var wt=document.createElement("div");wt.className="hmWater";wt.setAttribute("aria-hidden","true");h.appendChild(wt);}
+  // .hmWater is appended HERE on purpose: after every head reflection (created at spawn) and before
+  // camBack (created on the next line of soccer's dom()). z-index 1 throughout, so paint order is DOM
+  // order and the whole stack resolves itself -- ripple over reflections, ball/goal shadows over ripple
+  // -- without touching a single z-index.
+ }
+ function planetGeo(groundY){
+  var h=document.querySelector(".hero");if(!h)return;
+  refreshHeroBox();   // ARC reads the SHARED hero box, which is rAF-throttled: a resize reaches soccer's geo() (a direct getBoundingClientRect) a frame before it reaches the cache, so baking the planet here without this measured the OLD width and then never ran again. geo() has just flushed layout anyway, so this rect is free.
+  var half=ARC.half(),S=ARC.sag(),A=half*3;   // the limb sits at +/-3x the pitch half-width, i.e. a full pitch width off-screen on each side. Gradient contract B1: a cropped orb is UI, a centered orb is a poster -- and an on-screen limb is exactly what makes it read as "a ball they are standing on".
+  var B=S/(1-Math.sqrt(Math.max(1e-9,1-(half/A)*(half/A))));   // solve for the ellipse whose top edge passes through arcY EXACTLY at the wings; across the span it tracks the parabola to well under a pixel
+  h.style.setProperty("--pl-a",A.toFixed(1)+"px");
+  h.style.setProperty("--pl-b",B.toFixed(1)+"px");
+  h.style.setProperty("--pl-cy",(B+PL_UP).toFixed(1)+"px");
+  h.style.setProperty("--pl-top",(groundY-PL_UP).toFixed(1)+"px");   // all three elements share ONE box, so the horizon they draw and the arc the heads walk cannot drift apart
+  var _rk=parseFloat(getComputedStyle(h).getPropertyValue("--head-refl-gain"));
+  if(_rk===_rk&&_rk>=0)REFL_K=_rk;   // NaN-safe: an unset property parses to NaN and leaves the 0.9 default standing
+  h.classList.toggle("hmFlatPitch",!(S>0));   // SAG=0 is the revert switch, so it has to take the DRAWN planet with it: a zero-height mask ellipse is degenerate, and "no curve" should mean the pitch exactly as it was.
+ }
  function spawnCompanion(data,slot){
  var reduce=matchMedia("(prefers-reduced-motion:reduce)").matches;
  var filler=!!(data&&data.__filler);   // the mid-game stand-in (mini-Jayden): spawns already active, no intro
@@ -264,7 +413,36 @@
  crownEl.innerHTML='<svg viewBox="0 0 48 34" width="100%" aria-hidden="true"><path d="M4 30 L4 15 L13 22 L24 6 L35 22 L44 15 L44 30 Z" fill="#e8b53a" stroke="#c9962a" stroke-width="1.2" stroke-linejoin="round"/><circle cx="4" cy="13" r="3.4" fill="#f0c94e"/><circle cx="24" cy="4" r="3.8" fill="#f0c94e"/><circle cx="44" cy="13" r="3.4" fill="#f0c94e"/><rect x="4" y="30" width="40" height="3.4" rx="1.4" fill="#d7a531"/></svg>';
  root.appendChild(crownEl);
  var shadow=document.createElement("div");
- shadow.style.cssText="position:absolute;left:0;top:0;width:"+HW+"px;height:"+(HW*0.22)+"px;border-radius:50%;background:radial-gradient(ellipse at center,rgba(8,8,8,.26),rgba(8,8,8,0) 70%);pointer-events:none;z-index:2;opacity:0;transition:opacity .5s cubic-bezier(.2,.8,.2,1);will-change:transform";
+ shadow.className="hmShadow";
+ // THE ONE SHADOW THIS SITE KEEPS -- the heads cast it because they stand on something -- and until
+ // now its ink was a literal inside a cssText string. No stylesheet and no media query can reach an
+ // inline style attribute written by JS, so a dark ground would have left every head with a black
+ // smudge under it and nothing to stand on. Routing the ink through two custom properties fixes that
+ // without moving the declaration: an inline var() still resolves against the element's own INHERITED
+ // custom properties, so play.css (or a dark block on body, or index.html) can rebind --head-shadow
+ // and this picks it up. With neither property defined the fallbacks are the old 8,8,8 / .26 exactly,
+ // so index.html -- which loads this same file -- renders byte-for-byte what it rendered before.
+ shadow.style.cssText="position:absolute;left:0;top:0;width:"+HW+"px;height:"+(HW*0.22)+"px;border-radius:50%;background:radial-gradient(ellipse at center,rgba(var(--head-shadow,8,8,8),var(--head-shadow-a,.26)),rgba(var(--head-shadow,8,8,8),0) 70%);pointer-events:none;z-index:2;opacity:0;transition:opacity .5s cubic-bezier(.2,.8,.2,1);will-change:transform";
+ // THE REFLECTION. One silhouette div per head, on the SAME source the face rig already uses
+ // (data.cut) -- not a clone of the head. The head is a rig (cut-out layers, two eyes with their
+ // ::before/::after iris stacks, brows, mouth, crown, HP bar); cloning it would double the DOM and
+ // double the per-frame style writes for something drawn at =<34% opacity behind a ripple. And not
+ // -webkit-box-reflect either, which mirrors about the element's LOCAL bottom edge and so gives a
+ // head leaning +8deg a reflection leaning +8deg -- a real mirror leans -8. On a site where heads
+ // lean, wobble, flip and now tilt to a surface normal, that is wrong in every frame that matters.
+ // Falloff is a mask-image, never a blur: play.css declares exactly TWO filter:blur() rules today
+ // and this adds none. transform-origin matches the head's own 50%/94% so the mirror maths below is
+ // one scale(1,-1) in front of the head's own rotation, with no sign juggling.
+ var refl=document.createElement("div");refl.className="hmRefl";refl.setAttribute("aria-hidden","true");
+ refl.style.cssText="position:absolute;left:0;top:0;pointer-events:none;width:"+HW+"px;height:"+HH+"px;background-image:url("+data.cut+")";
+ var _reflFoot=-1;   // the foot line the reflection is currently pivoting on; re-written when the pixel scan changes FOOT
+ var orbOn=false,orbA=0,orbAV=0,orbH=0,orbVH=0,orbGoal=0,orbNext=0;   // THE LOBBY PLANET: this head's angle round the disc, its angular speed, its height above the surface and the radial speed of the hop. Entirely separate from x/y/vx/vy/floorY, which keep meaning exactly what they meant.
+ // position is set INLINE, not left to play.css: index.html does not link play.css,
+ // so on the home page this div arrived unstyled -- a static, display:block box HH tall per head,
+ // sitting in normal flow and shoving the hero (and the head) down once per companion. That is
+ // the "adding eggheads pushes everything down" bug. Only POSITION is forced inline -- play.css
+ // still owns visibility via opacity, so play.html is untouched and an inline display would have
+ // silently killed the reflections there (inline beats a stylesheet).
  // --- the face rig: HIS iris classes, their skin ---
  var eyesArr=data.eyes||[],mk=data.marks||null,eyeEls3=[],ew0=eyesArr[0]?eyesArr[0].w:0.08;
  function strip(cx,cy,ww,hh){var d=document.createElement("div");
@@ -344,7 +522,20 @@
  }}catch(_){mjClone=null;}}
  var bar=document.createElement("div");bar.className="hmHp";bar.setAttribute("aria-hidden","true");
  var barFill=document.createElement("i");bar.appendChild(barFill);
- hero.appendChild(shadow);hero.appendChild(root);gAdd(hero,bar);   // the .hmHp bar is game furniture: only a match ever fills it
+ // THE REFLECTION GOES IN UNDER THE WATER, NOT MERELY EARLY. .hmRefl and .hmWater are both
+ // z-index 1, so DOM order alone decides which paints on top, and the argument that used to live
+ // here -- "the reflection goes in first, .hmWater and camBack are created later" -- is only true
+ // for heads that exist BEFORE kickoff. It silently stops being true for every head that spawns
+ // once a pitch is already on screen, and there are three such paths in normal use: the mini-Jayden
+ // filler that tops up an odd roster, every tournament squad, and "Add your head" during a match.
+ // Measured: with five heads seeded and one filler added mid-game, the five pre-match reflections
+ // land at DOM indices 30-46 (before .hmWater at 50) and the filler's lands at 55 -- ABOVE the
+ // ripple AND above camBack. That head's reflection then sits ON the water instead of in it, which
+ // is precisely the "fake reflection" reading Jayden rejected, appearing only for some heads in
+ // some matches. Hence: anchor to .hmWater when there is one, append when there is not.
+ var _wt=hero.querySelector(".hmWater");
+ if(_wt)hero.insertBefore(refl,_wt);else hero.appendChild(refl);
+ hero.appendChild(shadow);hero.appendChild(root);gAdd(hero,bar);   // the .hmHp bar is game furniture: only a match ever fills it.
  // --- world geometry ---
  var heroR,floorY,plats,avoids,bigR,M=40,WL=2,WR=9999,FOOT=0.945,crownFrac=0.08;window.__hmFOOT=FOOT;
  (function(){try{var ci=new Image();ci.onload=function(){try{
@@ -396,7 +587,7 @@
   if(ow&&Math.abs(ow-hero.clientWidth)>2)x=x/ow*hero.clientWidth;   // resizing keeps its relative spot
   if(bigR){var nHW=Math.round(Math.min(108,Math.max(66,(bigR.r-bigR.l)*0.27)));if(mob)nHW=Math.min(nHW,64);
    if(filler)nHW=Math.round(nHW*1.5);   // the mini-Jayden stays noticeably BIGGER (Jayden liked this) -- but he's on the SAME flat plane + ground line as everyone else; his size is his identity, not a depth cue
-   if(Math.abs(nHW-HW)>2){HW=nHW;HH=HW*1.2;root.style.width=HW+"px";root.style.height=HH+"px";shadow.style.width=HW+"px";shadow.style.height=(HW*0.22)+"px";}}
+   if(Math.abs(nHW-HW)>2){HW=nHW;HH=HW*1.2;root.style.width=HW+"px";root.style.height=HH+"px";shadow.style.width=HW+"px";shadow.style.height=(HW*0.22)+"px";refl.style.width=HW+"px";refl.style.height=HH+"px";}}
   else{   // FALLBACK PATH (play.html: no #stage). This mirrors spawnCompanion's own initial
    // HW formula (arenaW*0.075, clamped [66,108], then the mobile 64 cap and the filler 1.5x)
    // instead of the #stage-relative one above, because there is no big head to measure here --
@@ -407,7 +598,7 @@
    // so it actually responds to resize() the same way the #stage path always did.
    var fHW=Math.round(Math.min(108,Math.max(66,(heroR.w||innerWidth)*0.075)));if(mob)fHW=Math.min(fHW,64);
    if(filler)fHW=Math.round(fHW*1.5);
-   if(Math.abs(fHW-HW)>2){HW=fHW;HH=HW*1.2;root.style.width=HW+"px";root.style.height=HH+"px";shadow.style.width=HW+"px";shadow.style.height=(HW*0.22)+"px";}}
+   if(Math.abs(fHW-HW)>2){HW=fHW;HH=HW*1.2;root.style.width=HW+"px";root.style.height=HH+"px";shadow.style.width=HW+"px";shadow.style.height=(HW*0.22)+"px";refl.style.width=HW+"px";refl.style.height=HH+"px";}}
   // ---- RE-DERIVE THE FLOOR. floorY was computed above as fY-HH*FOOT, but BOTH size branches
   // just ran and either of them may have rewritten HH -- so a head whose box changed size was
   // left seating against the floor of its OLD height and hovered (or sank) by exactly
@@ -486,7 +677,7 @@
   // delete every head and the roster emptied while Soccer and Marble Race stayed lit, because the
   // gate still believed there were players on the field.
  (window.__hmLive=window.__hmLive||[]).push({cut:data.cut,kill:function(){killed=true;
-  try{root.remove();shadow.remove();var ix9=peers.indexOf(me);if(ix9>-1)peers.splice(ix9,1);}catch(_){}}});
+  try{root.remove();shadow.remove();refl.remove();var ix9=peers.indexOf(me);if(ix9>-1)peers.splice(ix9,1);}catch(_){}}});
  function hurt(d){if(!battleOn||elim)return;
   hp=Math.max(0,hp-d);hurtT=0.2;brf=6;   // the flush, the brows, and on big hits a blink or stars
   if(filler)mjHurtUntil=performance.now()+620;   // the mini-Jayden winces: his REST face (scrunched eyes) IS his "ow" (see the mirror)
@@ -836,7 +1027,7 @@
     else{ringEl.style.background="rgb("+tcol+")";ringEl.style.opacity="1";}   // a solid team-coloured outline
     shadow.style.background="radial-gradient(ellipse at center,rgba("+tcol+",.42),rgba("+tcol+",0) 70%)";}   // the shadow wears the team colour too
    if(S9&&!S9.on&&soccerOn){soccerOn=false;soccerWon=false;ringEl.style.opacity="0";crownEl.style.opacity="0";if(filler&&mjClone)mjClone.style.filter="none";
-    shadow.style.background="radial-gradient(ellipse at center,rgba(8,8,8,.26),rgba(8,8,8,0) 70%)";
+    shadow.style.background="radial-gradient(ellipse at center,rgba(var(--head-shadow,8,8,8),var(--head-shadow-a,.26)),rgba(var(--head-shadow,8,8,8),0) 70%)";   // back to the ground's own ink, through the same two properties spawn uses -- a hard literal here would have quietly re-blacked every shadow the moment a match ended, whatever surface it ended on
     if(!killed){shown=true;root.style.opacity="1";root.style.filter="blur(0)";shadow.style.opacity="1";root.style.display="";shadow.style.display="";
      var fs9=Math.random()<0.5;x=fs9?WL+2:WR-2;y=floorY-(140+Math.random()*240);dir=fs9?1:-1;air=true;st="fall";surface=floorY;
      vx=dir*(360+Math.random()*240);vy=-(120+Math.random()*260);if(Math.random()<0.35)startFlip();}}
@@ -1180,6 +1371,10 @@
    else if(wig.type==="shake"){wigP+=DT*44;rotX=Math.sin(wigP)*7*env;}      // the whole-body shake-off
    else if(wig.type==="binky"){rotX=Math.sin(wp*6.283)*11*wig.a;}           // one full joyful twist and back
    if(wig.t<=0)wig=null;}
+  // ===== THE LOBBY PLANET, integrated inside the frame this head already runs. No new rAF loop:
+  // this is a different integration in the same loop, taking the same slot podium/spectate take.
+  var _orbLive=ORB.sync(now),_od=0,_ofx=0,_ofy=0;
+  if(orbOn&&!_orbLive){orbOn=false;me.orbA=null;root.style.transformOrigin="50% 94%";}   // left the lobby: hand the head straight back to the flat floor, pivot and all
   if(me.podiumRank){   // on the podium: resurrected, frozen, gliding smoothly onto its pedestal
    if(elim){elim=false;me.elim=false;}elimP=0;root.style.display="";shadow.style.display="";root.style.opacity="1";
    if(me.podX!=null){var pk=Math.min(0.14,DT*3.2);x+=((me.podX-HW/2)-x)*pk;y+=((me.podTop-HH*FOOT)-y)*pk;}   // a soft ease, never a zoom
@@ -1190,24 +1385,155 @@
    if(me.specX!=null){var sk=Math.min(0.14,DT*3.2);x+=((me.specX-HW/2)-x)*sk;y+=(floorY-y)*sk;}
    air=false;vx=0;vy=0;grabbed=false;wig=null;flipA=0;flipV=0;crownEl.style.opacity="0";
    gzx=((heroR.w/2)>(x+HW/2))?0.5:-0.5;gzy=-0.35;}   // eyes up at the winner
+  else if(_orbLive){
+   var _oR=ORB.R(),_ocx=ORB.cx(),_ocy=ORB.cy(),_oMax=ORB.arcMax(HW,heroR.w);
+   if(!orbOn){orbOn=true;   // ARRIVING. Read the angle AND the height straight off where the head already
+    // stands, rather than forcing it onto the surface. The crowd keeps the spread it already had
+    // instead of teleporting into a pile, and because the height is real, gravity does the rest --
+    // they FALL onto the planet and land with the same squash as any other landing. Snapping here was
+    // one frame of a head at the wrong radius and the wrong tilt, which is exactly the frame a viewer
+    // notices, and it is also what left a head that entered late sitting 300px off the surface.
+    var _ax=x+HW/2-_ocx,_ay2=y+HH*FOOT-_ocy,_ah=Math.hypot(_ax,_ay2)||1;
+    orbA=Math.atan2(_ax,-_ay2);
+    orbH=Math.max(0,_ah-_oR);orbVH=0;orbAV=0;orbGoal=Math.max(-0.6,Math.min(0.6,orbA));orbNext=now+300+Math.random()*1400;
+    root.style.transformOrigin="50% "+(FOOT*100).toFixed(2)+"%";}   // pivot on THIS head's own scanned foot line, so the feet stay planted through any lean -- the same trick the reflection uses, and the reason mini-Jayden does not sink into the planet
+   var _odt=Math.min(0.05,DT);   // clamp the step the way the ball loop does: a single long frame (a
+   // backgrounded tab, a GC pause) integrated raw would throw a mid-hop head hundreds of px off the
+   // surface before gravity could answer, and it only takes one to break the illusion for everyone.
+   if(grabbed){   // picked up OFF the planet: read the angle and the height back off the drag, so letting go drops it along the normal from wherever it is
+    var _gx=x+HW/2-_ocx,_gy=y+HH*FOOT-_ocy,_gd=Math.hypot(_gx,_gy)||1;
+    orbA=Math.atan2(_gx,-_gy);orbH=Math.max(0,_gd-_oR);orbVH=0;orbAV=0;}
+   else{
+    // GRAVITY POINTS AT THE PLANET'S CENTRE. The hop is one integration along the surface normal --
+    // rise, fall back to it -- and it does not touch the angular speed, which is what makes a hop
+    // arc ALONG the surface instead of stopping dead above it.
+    orbVH-=2600*_odt;orbH+=orbVH*_odt;   // orbVH is the RADIAL speed, positive outward, so gravity subtracts: it pulls toward the planet's centre, which is the whole point. Same g the flat floor uses, so a hop feels like the hops everywhere else.
+    if(orbH<=0){if(orbVH<-140&&sqT<=0){sqT=0.12;sqyP=0.88;sqxP=1/0.88;}orbH=0;orbVH=0;}   // and it lands with the same squash
+    if(now>=orbNext){   // the decide() rhythm the flat floor already has, on a curved one: mostly wander, sometimes hop
+     orbNext=now+900+Math.random()*2600;
+     if(Math.random()<0.34&&orbH<=0){orbVH=300+Math.random()*220;if(sqT<=0){sqT=0.1;sqyP=1.1;sqxP=1/1.1;}}   // a hop is a push OUTWARD along the normal; the windup crouch is kept
+     else orbGoal=(Math.random()*2-1)*_oMax;}
+    var _dA=orbGoal-orbA,_want=(Math.abs(_dA)<0.02)?0:Math.max(-1,Math.min(1,_dA*3.4))*(150/_oR);   // 150px/s ALONG THE SURFACE, converted to an angular rate -- so a small planet is not walked across in a stride
+    orbAV+=(_want-orbAV)*Math.min(1,_odt*(orbH>0?1.2:7));   // mid-hop it barely steers: momentum carries it
+    orbA+=orbAV*_odt;
+    if(orbA>_oMax){orbA=_oMax;orbAV=0;orbGoal=-Math.random()*_oMax;}   // bounded arc: it reaches the edge of the lit face and turns round
+    if(orbA<-_oMax){orbA=-_oMax;orbAV=0;orbGoal=Math.random()*_oMax;}
+    // Shoulder room measured along the ARC, not in x. Two heads at the same angle are touching
+    // whatever their screen distance is, and near the limb the screen distance lies.
+    var _sep=(HW*0.82)/_oR;
+    for(var _pi=0;_pi<peers.length;_pi++){var _o=peers[_pi];
+     if(_o===me||_o.orbA==null)continue;
+     var _d2=orbA-_o.orbA;
+     if(Math.abs(_d2)<_sep&&Math.abs(orbH-(_o.orbH||0))<HH*0.7){orbA+=(_sep-Math.abs(_d2))*0.25*(_d2<0?-1:1);
+      if(orbA>_oMax)orbA=_oMax;else if(orbA<-_oMax)orbA=-_oMax;}}}
+   me.orbA=orbA;me.orbH=orbH;
+   var _rr=_oR+orbH;_ofx=_ocx+_rr*Math.sin(orbA);_ofy=_ocy-_rr*Math.cos(orbA);
+   x=_ofx-HW/2;y=_ofy-HH*FOOT;   // it is the head's FOOT POINT that sits on the sphere, never the box
+   _od=orbA*57.2958;   // ORIENTATION FOLLOWS THE NORMAL: feet toward the centre, all the way round
+   air=orbH>2;vx=0;vy=0;flipA=0;flipV=0;
+   if(orbAV>0.02)dir=1;else if(orbAV<-0.02)dir=-1;}
   var _spinR=(me.__spin&&now<me.__spin)?((now*0.75)%360):0;   // BANANA: slips into a dizzy spin
   var _discoR=(me.__disco&&now<me.__disco)?Math.sin(now*0.018)*16:0;   // DISCO STUN: forced to bust a move
-  var surfRot=(flipA?0:lean+(grabbed?swing:0))+rotX+(drowse2?2.2:0)+_spinR+_discoR;   // leans and wiggles rock on the FEET
+  // THE PLANET, at render time only. arcY is the drop below the apex under THIS head's centre and
+  // arcDeg is the surface normal there; surfRot was already a sum of six terms, so the tilt is
+  // literally one more addend, and because rot=surfRot+flipA the eye rig keeps counter-rotating so
+  // the glint's light source stays level. soccerOn gates it -- "so just on the pitch" -- and with
+  // SAG=0 both terms are 0.0 and every string below is character-for-character the old one.
+  var _acx=x+HW/2,_ay=soccerOn?ARC.y(_acx):0,_ad=soccerOn?ARC.deg(_acx):0;
+  var surfRot=(flipA?0:lean+(grabbed?swing:0))+rotX+(drowse2?2.2:0)+_spinR+_discoR+_ad+_od;   // leans and wiggles rock on the FEET -- and on the lobby planet _od is the surface normal, which is the same sum taking one more addend
   var rot=surfRot+flipA;   // total visible rotation (the eyes need it below)
   var c2=HH*0.44;   // feet-origin to body-centre: flips spin about the centre via an explicit sandwich — two pivots, one transform, zero jumps
   var _shk=(battleOn||soccerOn)?window.__hmShake:null,_shx=_shk?_shk.x:0,_shy=_shk?_shk.y:0;   // screen shake: read the shared decaying offset (only during a game)
-  root.style.transform="translate("+(x+_shx).toFixed(1)+"px,"+(y+breathe+(grabbed?heldOff:0)+_shy).toFixed(1)+"px)"
+  var _rx=x+_shx,_ry=y+breathe+(grabbed?heldOff:0)+_shy+_ay,_rsx=depth*hs*sqx*(1-0.6*elimP),_rsy=depth*hs*sqy*(1-0.6*elimP);   // the exact numbers written to root, held so the reflection can mirror THEM and not a recomputed guess
+  root.style.transform="translate("+_rx.toFixed(1)+"px,"+_ry.toFixed(1)+"px)"
    +(flipA?" translate(0px,"+(-c2).toFixed(1)+"px) rotate("+flipA.toFixed(1)+"deg) translate(0px,"+c2.toFixed(1)+"px)":"")
-   +" rotate("+surfRot.toFixed(1)+"deg) scale("+(depth*hs*sqx*(1-0.6*elimP)).toFixed(3)+","+(depth*hs*sqy*(1-0.6*elimP)).toFixed(3)+")";
+   +" rotate("+surfRot.toFixed(1)+"deg) scale("+_rsx.toFixed(3)+","+_rsy.toFixed(3)+")";
   if(elimP>0&&elimP<1){root.style.opacity=(1-elimP).toFixed(2);shadow.style.opacity=(0.4*(1-elimP)).toFixed(2);}
   if(bigR&&root.style.zIndex==="1"){var _cxb=x+HW/2;if(_cxb>bigR.l-HW*0.35&&_cxb<bigR.r+HW*0.35&&(y+HH*0.55)<bigR.b)root.style.zIndex="3";}   // never let a hidden (back-plane) head slip BEHIND the big head -- if it drifts over his face, pop it back to the front plane
   // the shadow falls on whatever is DIRECTLY below the head right now -- a platform if it's over one, else the floor -- so it never snaps when leaving a slab
   var feetY=y+HH*FOOT,shG=floorY+HH*FOOT,cxs=x+HW/2;
   if(battleOn&&battlePlats.length){for(var si=0;si<battlePlats.length;si++){var SP=battlePlats[si];if(cxs>SP.l&&cxs<SP.r&&SP.t>=feetY-3&&SP.t<shG)shG=SP.t;}}
   var airH=Math.max(0,shG-feetY);
-  var shScale=Math.max(0.32,depth*(1-airH/(heroR.h*0.6)));
-  shadow.style.transform="translate("+(x+HW/2-HW/2*shScale+HW*0.06).toFixed(1)+"px,"+(shG-2).toFixed(1)+"px) scale("+shScale.toFixed(3)+",1)";
-  shadow.style.opacity=(window.__hmLavaOn||me.__sinking)?"0":((shown&&!perched)?String(airH<4?0.36:Math.max(0.1,0.3-airH/800)):"0");   // no cast shadows in lava mode (a shadow on the lava reads as "standing on it")
+  // HOW FAR OFF THE GROUND THIS HEAD IS -- computed ONCE. The contact shadow and the reflection are
+  // two readings of this one fact, so they are driven by these two numbers and never by two curves
+  // of their own. If the shadow says 40% and the reflection says 80%, one of them is lying.
+  var shScale=Math.max(0.32,depth*(1-airH/(heroR.h*0.6)));   // the size reading
+  var shOp=(window.__hmLavaOn||me.__sinking)?0:((shown&&!perched)?(airH<4?0.36:Math.max(0.1,0.3-airH/800)):0);   // the strength reading. Lifted out of the string it used to live in, VALUE FOR VALUE -- the shadow's own law is unchanged, it is just readable now. No cast shadows in lava mode (a shadow on the lava reads as "standing on it").
+  if(_orbLive){   // ON THE PLANET the contact shadow is not on a floor line at all: it is the patch of
+   // ground the head is standing on, so it sits at the contact point and tilts with the surface. Same
+   // ellipse, same ink, same "it shrinks as you rise" law -- just measured along the normal (orbH)
+   // instead of down the screen, because down the screen is not where this planet's gravity points.
+   shScale=Math.max(0.34,1-orbH/240);
+   shOp=(shown&&!perched)?(orbH<4?0.36:Math.max(0.1,0.3-orbH/800)):0;
+   shadow.style.transform="translate("+(_ofx-HW/2).toFixed(1)+"px,"+(_ofy-HW*0.11).toFixed(1)+"px) rotate("+_od.toFixed(1)+"deg) scale("+shScale.toFixed(3)+",1)";
+  }else shadow.style.transform="translate("+(x+HW/2-HW/2*shScale+HW*0.06).toFixed(1)+"px,"+(shG-2+_ay).toFixed(1)+"px) scale("+shScale.toFixed(3)+",1)";
+  shadow.style.opacity=String(shOp);
+  // THE REFLECTION. A jump is the test case that exposes all of it, because it is the one moment the
+  // head stops touching the ground. Six claims, each of which has to hold on its own:
+  //
+  // 1. IT MEETS THE WATERLINE AT THE FEET, NOT AT THE BOX. The pivot is written to this head's OWN
+  //    scanned foot line (FOOT, from its own pixels -- 0.945 for an egghead, 0.75 for mini-Jayden,
+  //    whose cut is baked into a 5:6 frame). With transform-origin sitting exactly on that line the
+  //    y term is _wY - HH*FOOT, and the anchor is exact whatever the rotation or the squash, because
+  //    every one of them acts about that same point. Anchoring on the BOX instead hung mini-Jayden's
+  //    reflection 4.4px below everyone else's on the same water; on the CENTRE, 32.4px.
+  // 2. WHEN THE HEAD JUMPS, THE REFLECTION STAYS ON THE WATER AND THE GAP OPENS. It is anchored to
+  //    the waterline, so as the feet climb, the distance between head and reflection is exactly the
+  //    head's height off the ground -- which is what a gap between an object and a surface looks
+  //    like. A reflection that rose with the head would read as a sticker.
+  // 3. IT SHRINKS AND WEAKENS WITH HEIGHT, OFF THE SHADOW'S OWN NUMBERS. Not a second curve: the
+  //    literal shScale and shOp computed above for the contact shadow. The shadow flattens in x, the
+  //    reflection foreshortens in y, and both fade -- one fact, two readings, incapable of
+  //    disagreeing. Only two constants separate them, REFL_K and REFL_PERSP, and neither varies.
+  // 4. THE CONTACT SHADOW IS NOT TOUCHED. It is the one shadow this site keeps, because the heads
+  //    stand on something. The reflection is added underneath it, never in place of it, and the
+  //    shadow's law above is the same law it always had -- only lifted out of a string.
+  // 5. THE SQUASH RIDES ALONG, ROTATION OR NOT. The transform list below is literally
+  //    S(1,-1) o R(rot) o Sc(sx,sy) -- the mirror operator applied to the head's own rotate-then-
+  //    scale. It is not an approximation that happens to work at small angles; it is the same two
+  //    factors the head uses with a flip in front, so it holds at any angle and any squash.
+  // 6. IT LEANS THE OTHER WAY, INCLUDING MID-FLIP. scale(1,-1) BEFORE rotate() is what does it:
+  //    S(1,-1) o R(a) == R(-a) o S(1,-1), so reusing the head's own angle in this order already
+  //    tilts the reflection opposite, with no sign juggling. `rot` is used, not `surfRot`, so a head
+  //    mid-flip -- where the angle is large enough for an error to be obvious -- reflects its WHOLE
+  //    visible rotation. This is the reason this is a transform and not -webkit-box-reflect, which
+  //    mirrors about the element's local bottom edge and so leans a +8deg head +8deg instead of -8.
+  //
+  // The one deliberate departure from a true mirror is claim 2's anchor. A real mirror image of a
+  // head h px above the surface sits h px BELOW the waterline and detaches downward; measured, that
+  // is 59px on a routine hop and ~200px on a scramble pop, which walks it straight out of a 340px
+  // water band and onto the page -- the "un-attaching" failure the 2D-water literature names. So the
+  // gap opens above the water rather than below it, and the shadow's falloff carries the height cue.
+  //
+  // The waterline is the feet plane every head shares, so every reflection lands on ONE line for
+  // free, whatever the head's size -- which is what keeping the physics flat bought.
+  // THE SAME SIX CLAIMS NOW HOLD IN THE LOBBY, which is the whole reason this is a gate change and
+  // not a second implementation. Everything above -- the waterline anchor, the gap that opens when a
+  // head jumps, the shrink-and-weaken off the contact shadow's own shScale/shOp, the mirror operator
+  // applied to the head's own rotate-then-scale -- is surface-agnostic. It was only ever describing
+  // "a head standing on a reflective plane", and the lobby floor is one. So a jumping head in the
+  // lobby detaches from its reflection by exactly its height off the ground, and a head lying at rest
+  // meets its own image at its feet: the two failures Jayden named when he said the reflections
+  // "aren't real" cannot occur here either, because the numbers are literally the same numbers.
+  // What DOES change is the material, and that is play.css's business, not this file's: water ripples
+  // and breaks the image up, a polished floor does not. See `body.pHubOn .hmRefl` there.
+  // ...WITH ONE EXPLICIT EXCLUSION: !_orbLive. The contact shadow above has a spherical branch --
+  // on the planet it sits at the contact point and tilts with the surface normal, measured along
+  // orbH -- and the reflection below has NO such branch: _wY is floorY+HH*FOOT, a FLAT feet line.
+  // The two would therefore disagree the moment the planet is switched on, and disagree in the
+  // worst possible way: right at rest and wrong for every head with any height, which is an
+  // intermittent fault that looks like a rendering glitch rather than a missing case.
+  // A sphere has no single waterline, so this is a real piece of design (where does a reflection
+  // live on a curved surface?) and not a line of arithmetic. Until it is done, a head standing on
+  // the planet gets NO reflection rather than a wrong one -- the planet is postponed anyway
+  // (play.html ships no [data-hm-orb], so _orbLive is false and this costs nothing today), and
+  // this guard is what stops the two features silently breaking each other when it comes back.
+  if((soccerOn||LOBBY(now))&&!elim&&!_orbLive&&!window.__hmLavaOn){
+   if(_reflFoot!==FOOT){_reflFoot=FOOT;refl.style.transformOrigin="50% "+(FOOT*100).toFixed(2)+"%";}   // FOOT arrives from an image onload, so it can change once after spawn
+   var _wY=floorY+HH*FOOT+_ay;   // the FEET plane itself, not the shadow's drawn top edge -- the shadow is nudged 2px up so its ellipse sits under the chin, and inheriting that nudge would have floated every reflection 2px off the water
+   refl.style.transform="translate("+_rx.toFixed(1)+"px,"+(_wY-HH*FOOT).toFixed(1)+"px) scale(1,-1) rotate("+rot.toFixed(1)+"deg) scale("+_rsx.toFixed(3)+","+(_rsy*shScale*REFL_PERSP).toFixed(3)+")";
+   refl.style.opacity=(shOp*REFL_K).toFixed(3);
+  }else if(refl.style.opacity!=="0")refl.style.opacity="0";   // off the pitch this is one string compare per head per frame and nothing else
   if(crowdT>0.65&&!air&&!grabbed&&!perched){crowdT=0;   // squeezed too long: it hops out of the scrum
    air=true;st="fall";surface=floorY;dir=Math.random()<0.5?-1:1;
    vy=-(340+Math.random()*140);vx=dir*(180+Math.random()*120);sqT=0.11;sqyP=1.09;sqxP=1/1.09;}
@@ -1374,7 +1700,18 @@
   var bx=0,by=0,bvx=0,bvy=0,kickCd={},running=false,last=performance.now(),scoreTeam=0,ballShadow,lastShot=0;
   var bsx=1,bsy=1,bsxv=0,bsyv=0,bsxP=1,bsyP=1,bsT=0;
   function geo(){var r=hero.getBoundingClientRect();W=r.width;H=r.height;OFF=r.left;XL=-OFF;XR=innerWidth-OFF;   // the pitch spans the whole screen, wall to wall
-   if(innerWidth<=640){XL+=12;XR-=12;}   // ...except on a phone. The goals are 42px wide and were drawn at exactly XL and XR-42, i.e. flush to both screen edges with zero inset, their shadows clipped at -6 and 398 -- it read as cut off rather than as a goalmouth. Inset the PITCH BOUNDS rather than the goal graphic: goals, goal shadows, the crossbar test, the kickoff centre, the ball wall clamps and the scoring plane (bx<XL+BR / bx>XR-BR) all derive from XL/XR, so they move together by construction. Nudging the graphic alone would have desynced the net from where goals actually count.
+   // THE PITCH IS FLUSH TO THE GLASS, phone included. This used to read `if(innerWidth<=640){XL+=12;XR-=12;}`
+   // -- a 12px inset added because at zero inset the goal SHADOWS clipped (they are 60px wide and
+   // drawn 6px outside the 42px goal, so they ran to -6 and 398) and the whole goalmouth read as cut
+   // off. Jayden, looking at it on a phone: "Goals still look like they aren\'t flush against the
+   // wall on mobile." He is right, and 24px of a 390px screen is 6% of the pitch spent on a margin a
+   // phone can least afford. The shadow was the actual problem, so the shadow is what is fixed --
+   // see layout(), where it is clamped into the arena instead of hanging outside it.
+   // XL/XR are the PITCH BOUNDS, not a goal graphic: the goals, the goal shadows, the crossbar test,
+   // the kickoff centre, the ball\'s wall clamps and the scoring plane (bx<XL+BR / bx>XR-BR) every
+   // one of them derives from these two numbers, so the net and the place a goal actually counts
+   // move together by construction and cannot desync. That is why this is the right line to change
+   // and why nudging the goal graphic alone would have been the wrong one.
    var st=document.getElementById("stage");if(st){var sr=st.getBoundingClientRect();groundY=sr.bottom-r.top;}else groundY=H-40;   // the pitch line == where the heads' feet rest (the stage bottom), so ball and players share one ground
    if(document.body.classList.contains("hmFull")&&window.__hmFeetY!=null)groundY=window.__hmFeetY;
    if(S.on&&_gyLock!=null)groundY=_gyLock;   // LATCH. The pitch line is fixed for the whole match:
@@ -1403,6 +1740,7 @@
       wrapper z-index:48 during a punch would have dragged the whole unit, shadow
       included, in front of the heads. camBack's own punch z-index (2) is still above
       the shadow's native 1 and below the heads' 3, so nothing changes there either. */
+   planetDOM();   // the ground, the sky and the water go in FIRST: .hmWater has to land after every head reflection and before camBack, and camBack is the very next line
    camBack=document.createElement("div");camBack.className="hmCam hmCamBack";hero.appendChild(camBack);
    camFront=document.createElement("div");camFront.className="hmCam hmCamFront";hero.appendChild(camFront);
    ballShadow=document.createElement("div");ballShadow.className="hmBallShadow";camBack.appendChild(ballShadow);
@@ -1464,7 +1802,7 @@
   // "hunger" in the hero. Every kickoff and restart drops it from here, so it reads as falling
   // out of the word rather than appearing from nowhere. The title copy hides whenever the real
   // ball is on the pitch, so there is only ever one ball on screen.
-  var _gyLock=null;
+  var _gyLock=null,_lastGW=-1;
   function ballHome(){if(!board)return null;var e=board.querySelector(".sBall");if(!e)return null;
    var r=e.getBoundingClientRect(),hr=hero.getBoundingClientRect();if(!r.width)return null;
    return {x:r.left+r.width/2-hr.left,y:r.top+r.height/2-hr.top};}
@@ -1481,11 +1819,24 @@
   function ballSpawnScale(){var e=board&&board.querySelector(".sBall");var w=e?e.getBoundingClientRect().width:0;
    return w?Math.max(0.18,Math.min(1,w/(2*BR))):0.5;}
   var _lastGY=-1;
-  function layout(){geo();
-   goalL.style.transform="translate("+XL+"px,"+(groundY-150)+"px)";
-   goalR.style.transform="translate("+(XR-42)+"px,"+(groundY-150)+"px)";
-   if(goalShL)goalShL.style.transform="translate("+(XL-6)+"px,"+(groundY-4)+"px)";
-   if(goalShR)goalShR.style.transform="translate("+(XR-52)+"px,"+(groundY-4)+"px)";}
+  function layout(){geo();planetGeo(groundY);
+   // The goals stand ON the curve too, or the pitch line and the goalmouths visibly disagree at the
+   // wings -- which is exactly where the goals are. arcY is measured at each goal's own centre, and
+   // groundY itself is untouched: geo() and its _gyLock still know one flat number for the whole match.
+   var _gl=ARC.y(XL+21),_gr=ARC.y(XR-21);
+   // No .toFixed() anywhere here, deliberately: these four lines never formatted their y before, and
+   // `v + 0` is the identity on a float, so at SAG=0 they emit the same characters they always did.
+   goalL.style.transform="translate("+XL+"px,"+(groundY-150+_gl)+"px)";
+   goalR.style.transform="translate("+(XR-42)+"px,"+(groundY-150+_gr)+"px)";
+   // The goal shadow is 60px under a 42px goal, so it wants to sit 6px outside it on each side --
+   // which is exactly what clipped once the pitch went flush to the viewport edge. Clamp it into the
+   // arena rather than insetting the whole pitch to accommodate it: at the edge it slides 6px inboard
+   // of where it would like to be, which at its alpha is invisible, and nothing else in the
+   // simulation has to move. GW/GSW are read from the elements so a CSS width change cannot desync it.
+   var _gw=goalL.offsetWidth||42,_gsw=(goalShL&&goalShL.offsetWidth)||60;
+   var _gsx=function(gx){return Math.max(XL,Math.min(XR-_gsw,gx+(_gw-_gsw)/2));};   // centre it under its goal, then clamp into the arena
+   if(goalShL)goalShL.style.transform="translate("+_gsx(XL).toFixed(1)+"px,"+(groundY-4+_gl)+"px)";
+   if(goalShR)goalShR.style.transform="translate("+_gsx(XR-_gw).toFixed(1)+"px,"+(groundY-4+_gr)+"px)";}
   /* FX bridge: __hmFX (the shared VFX canvas -- see its own comment, "coords are HERO-LOCAL, same
      space the heads live in") expects x measured from the hero's left edge and y from its top edge,
      both in unscaled screen pixels, and adds heroLeft itself. The ball (bx,by) is drawn via
@@ -1899,7 +2250,7 @@ function teams(){
     geo();   // grow only once it has FALLEN clear of the headline. Gating on the countdown alone was not
     // enough: the ball still scaled up in place the instant play began, straight through "Soccer".
        // hold the ball at the TITLE size through the countdown -- the physics is frozen then, so a ball that grew immediately just sat at full size on top of the word. It resizes as it drops, not before.
-    if(Math.abs(groundY-_lastGY)>1){_lastGY=groundY;layout();}   // the ground plane can MOVE mid-match now (entering/leaving the full-screen phone arena) -- goals are positioned in layout(), which only ran at start(), so they used to stay behind on the old pitch line
+    if(Math.abs(groundY-_lastGY)>1||W!==_lastGW){_lastGY=groundY;_lastGW=W;layout();}   // ...and so can the pitch WIDTH (a window resize), which moves XL/XR and re-derives the planet's arc -- geo() already recomputes W every frame, layout() just never watched it   // the ground plane can MOVE mid-match now (entering/leaving the full-screen phone arena) -- goals are positioned in layout(), which only ran at start(), so they used to stay behind on the old pitch line
     
    var REST=groundY-BR,GRAV=2600;   // gravity is uniform: the ball falls at exactly the heads' g (was a wrong 2400 vs their 2600). REST = ball CENTRE at rest, underside on the pitch
    if(S.phase==="scoring"){   // the net has the ball: it decelerates and settles
@@ -1996,11 +2347,12 @@ function teams(){
    var _bs=dt>0.02?Math.ceil(dt/0.02):1,_bd=dt/_bs;   // same sub-step guard for the ball, so a laggy frame can't balloon it either
    for(var _bi=0;_bi<_bs;_bi++){bsxv+=((bsxP-bsx)*1150-bsxv*62)*_bd;bsx+=bsxv*_bd;bsyv+=((bsyP-bsy)*1150-bsyv*62)*_bd;bsy+=bsyv*_bd;}
    bsx=Math.max(0.7,Math.min(1.32,bsx));bsy=Math.max(0.7,Math.min(1.32,bsy));
-   if(ball){ball.style.transform="translate("+(bx-BR).toFixed(1)+"px,"+(by-BR).toFixed(1)+"px) scale("+(bsx*bsp).toFixed(3)+","+(bsy*bsp).toFixed(3)+")";   // container: position + squash, it never rotates
+   var _by=ARC.y(bx);   // the ball rides the same swell as the feet. Render only: REST, `grounded`, the roll model and every kick still work on the one flat groundY.
+   if(ball){ball.style.transform="translate("+(bx-BR).toFixed(1)+"px,"+(by-BR+_by).toFixed(1)+"px) scale("+(bsx*bsp).toFixed(3)+","+(bsy*bsp).toFixed(3)+")";   // container: position + squash, it never rotates
     if(ballSkin)ballSkin.style.transform="rotate("+spin.toFixed(1)+"deg)";}   // only the printed pattern spins, dead-centre -- the lighting stays put
    if(ballShadow){var bBot=by+BR,airH=Math.max(0,groundY-bBot),scv=Math.max(0.4,1-airH/460);   // the shadow lives on the pitch line, dead under the ball, shrinking as it rises
     var hw9=(peers.length&&peers[0].HW)?peers[0].HW:(innerWidth<=880?64:96),shOff=hw9*0.11-2;   // sit it on the SAME line the heads' shadows use (they cast ~HW*0.11 forward of their feet), so ball and players read on one plane
-    ballShadow.style.transform="translate("+(bx-BR).toFixed(1)+"px,"+((groundY+shOff)-BR*0.275).toFixed(1)+"px) scale("+scv.toFixed(3)+","+scv.toFixed(3)+")";
+    ballShadow.style.transform="translate("+(bx-BR).toFixed(1)+"px,"+((groundY+shOff)-BR*0.275+_by).toFixed(1)+"px) scale("+scv.toFixed(3)+","+scv.toFixed(3)+")";
     ballShadow.style.opacity=(S.on&&S.phase!=="idle")?String(Math.max(0.05,0.3-airH/900)):"0";}}
  })();
 

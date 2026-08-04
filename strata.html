@@ -23,11 +23,15 @@
 <meta property="og:image" content="https://jaydenbetts.design/images/cs/strata-cover.webp">
 <meta property="og:image:alt" content="Strata, a gamified habit builder designed by Jayden Betts">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="preload" as="font" type="font/woff2" href="fonts/instrument-sans-variable.woff2" crossorigin><link rel="preload" as="font" type="font/woff2" href="fonts/instrument-sans-latin-400-normal.woff2" crossorigin><link rel="preload" as="font" type="font/woff2" href="fonts/instrument-sans-latin-600-normal.woff2" crossorigin>
+<link rel="preload" as="font" type="font/woff2" href="fonts/instrument-sans-latin-400-normal.woff2" crossorigin><link rel="preload" as="font" type="font/woff2" href="fonts/instrument-sans-latin-600-normal.woff2" crossorigin>
 <link rel="preload" as="image" href="images/cs/strata-cover.webp" fetchpriority="high">
 <link rel="stylesheet" href="tokens.css">
 <style>
-@font-face{font-family:"Instrument Sans";font-style:normal;font-weight:400;font-display:swap;src:url(fonts/instrument-sans-latin-400-normal.woff2) format("woff2")}@font-face{font-family:"Instrument Sans";font-style:normal;font-weight:600;font-display:swap;src:url(fonts/instrument-sans-latin-600-normal.woff2) format("woff2")}
+/* THE FACES MOVED TO tokens.css (2026-08-04) -- declared once for all ten pages
+   instead of copied into nine of them and missed on two (about.html and
+   play.html were rendering in SF Pro because of exactly this pattern).
+   tokens.css is linked immediately above this <style>, so nothing about the
+   cascade or the load order changes. */
 *{box-sizing:border-box;margin:0;padding:0}
 html{overflow-x:clip;scroll-behavior:smooth}
 body{background:var(--c50);color:var(--c950);font-family:var(--sans);-webkit-font-smoothing:antialiased;overflow-x:clip}
@@ -48,8 +52,41 @@ img{display:block;max-width:100%}
 .rail.railGone .chapters{opacity:0;pointer-events:none}
 
 /* section indicator: subtle uniform chapter ticks, the current one emphasized; hovering the rail reveals the labels */
-.chapters{display:flex;flex-direction:column;align-items:flex-start;gap:16px;padding:0;pointer-events:auto;position:sticky;top:50vh;transform:translateY(-50%);transition:opacity .4s ease}
-.chap{display:grid;grid-template-columns:28px minmax(0,1fr);align-items:center;column-gap:16px;height:14px;text-decoration:none;outline-offset:4px}
+.chapters{display:flex;flex-direction:column;align-items:flex-start;gap:var(--sp-30);padding:0;pointer-events:auto;position:sticky;top:50vh;transform:translateY(-50%);transition:opacity .4s ease}
+/* HEADER V2 (2026-08-03): the rail's sticky offset now knows the bar is there.
+   MEASURED FIRST, because the adoption list's claim did not reproduce: at
+   1280x800 the computed top is 400px (50vh) and the rail rests at y=333 against
+   the bar's bottom edge at y=60 -- 273px of clearance at every scroll position,
+   not the 0px the list reported. The collision is real but conditional: the
+   centred rest position is `50vh - half the list`, so it slides under the 52px
+   bar once half the viewport is shorter than half the chapter list. Below 640px
+   of height the rail stops centring and pins to the offset the adoption list
+   called for instead. Same token as every scroll-margin-top on this page. */
+@media(max-height:640px){.chapters{top:calc(var(--nav-h) + var(--sp-16-24));transform:none}}
+/* THE RAIL'S LINKS WERE 89.6 x 14 AND ARE NOW 89.6 x 44 OF TARGET.
+   Geometry audit 3.2, class BROKEN: this is the section jump-list on the left of
+   every case study and it asked for a 14px-tall landing on five to six links --
+   under Jayden's 44px bar, and under WCAG 2.5.8's 24x24 as well. Desktop only,
+   which is the one width where it is visible.
+   THE INK BOX STAYS 14px. Growing the visible row to 44 would make the rail
+   220px of chrome beside the prose; the fix is the site's own pattern -- the one
+   header.css uses on a 38px nav item and index.html on a 30px tab -- a
+   transparent ::after grown to --tap-min and centred on the box.
+   THE GAP HAD TO MOVE WITH IT, and that is the part an expander alone does not
+   solve. At gap:16 the pitch is 30px, so two 44px hit areas would overlap by
+   14px and each link would swallow part of the one below it. --sp-30 makes the
+   pitch exactly 14 + 30 = 44, so the targets TILE: every pixel of the rail
+   belongs to exactly one link and none belongs to two. The rail grows from 134px
+   to 190px at five links, which the sticky column has room for. */
+/* color IS LOAD-BEARING HERE even though nothing in this rule paints text.
+   Measured on the rendered page: .chap and its .tick computed rgb(0,0,238) --
+   the UA's default -webkit-link blue, inherited because the anchor never set a
+   colour of its own. It is invisible today only because .tick paints a
+   background and .clabel sets its own ink; the first currentColor anyone puts
+   inside a rail link would come out browser-blue. With the accent gone to ink
+   this was the only blue value left computing anywhere on the site. */
+.chap{display:grid;grid-template-columns:28px minmax(0,1fr);align-items:center;column-gap:16px;height:14px;text-decoration:none;outline-offset:4px;position:relative;color:var(--c500)}
+.chap::after{content:"";position:absolute;top:50%;left:0;right:0;height:var(--tap-min);transform:translateY(-50%)}
 .tick{grid-column:1;grid-row:1;justify-self:start;width:28px;height:2px;transform-origin:left center;transform:scaleX(.5714);background:var(--c500);opacity:.4;transition:opacity var(--ease-out-dur) var(--ease-out),background var(--ease-out-dur) var(--ease-out),transform var(--sp-quick-dur) var(--sp-quick);filter:url(#inkSm)}
 .chap[aria-current="true"] .tick{background:var(--c950);opacity:1;transform:scaleX(1)}
 .clabel{grid-column:2;grid-row:1;justify-self:start;text-align:left;font-family:var(--sans);font-weight:400;font-size:var(--fs-small);letter-spacing:var(--tr-body);color:var(--c500);white-space:nowrap;opacity:0;transform:translateX(-4px);transition:opacity var(--ease-out-dur) var(--ease-out),transform var(--ease-out-dur) var(--ease-out),color var(--ease-out-dur) var(--ease-out);filter:url(#inkSm)}
@@ -89,7 +126,10 @@ img{display:block;max-width:100%}
 .cap{margin:16px 0 0;font-family:var(--sans);font-weight:400;font-size:var(--fs-small);line-height:var(--lh-body);color:var(--c500);max-width:680px;text-wrap:pretty;filter:url(#inkSm)}
 
 .hero{padding:0;scroll-margin-top:calc(var(--nav-h) + var(--sp-16-24))}
-.eyebrow{font-family:var(--sans);font-weight:600;font-size:var(--fs-label);letter-spacing:var(--tr-flat);text-transform:none;color:var(--c500);filter:url(#inkSm)}
+/* --lh-body, so this label resolves to the same 13/19.5 as about.html's
+   .abLabel. It was inheriting whatever its parent happened to set (14.56px
+   measured) -- one role, two leadings, on pages that sit next to each other. */
+.eyebrow{font-family:var(--sans);font-weight:600;font-size:var(--fs-label);line-height:var(--lh-body);letter-spacing:var(--tr-flat);text-transform:none;color:var(--c500);filter:url(#inkSm)}
 .head .eyebrow{display:block;margin:0 0 var(--sp-8-16)}
 .head{font-family:var(--sans);font-weight:600;font-size:var(--fs-h1);line-height:1.12;letter-spacing:-.02em;color:var(--c950);margin:16px 0 0;filter:url(#inkBig);text-wrap:balance}
 .head .hl{display:block}
@@ -116,13 +156,13 @@ img{display:block;max-width:100%}
 /* my role */
 .role{margin:var(--sp-40-64) 0 0}
 .rlabel{display:block;font-family:var(--sans);font-weight:600;font-size:var(--fs-label);letter-spacing:var(--tr-flat);text-transform:none;color:var(--c500);margin:0 0 var(--sp-16-24);filter:url(#inkSm)}
-.roleHead{font-family:var(--sans);font-weight:600;font-size:var(--fs-h2);line-height:1.1;letter-spacing:-.015em;color:var(--c950);margin:0 0 var(--sp-16-24);text-wrap:balance}
+.roleHead{font-family:var(--sans);font-weight:600;font-size:var(--fs-h2);line-height:var(--lh-tight);letter-spacing:var(--tr-sub);color:var(--c950);margin:0 0 var(--sp-16-24);text-wrap:balance}
 .role p{font-family:var(--sans);font-weight:400;font-size:var(--fs-prose);line-height:var(--lh-prose);color:var(--c950);text-wrap:pretty}
 
 /* scaffolded chapters — structure so the rail works end to end; copy drafted next */
 .sec{padding-top:var(--sp-72-144);scroll-margin-top:calc(var(--nav-h) + var(--sp-16-24))}
 .kicker{font-family:var(--sans);font-weight:600;font-size:var(--fs-label);letter-spacing:var(--tr-flat);text-transform:none;color:var(--c500);filter:url(#inkSm)}
-.secHead{font-family:var(--sans);font-weight:600;font-size:var(--fs-h2);line-height:1.1;letter-spacing:-.015em;color:var(--c950);margin:var(--gap-head-top) 0 var(--gap-head-bot);text-wrap:balance}
+.secHead{font-family:var(--sans);font-weight:600;font-size:var(--fs-h2);line-height:var(--lh-tight);letter-spacing:var(--tr-sub);color:var(--c950);margin:var(--gap-head-top) 0 var(--gap-head-bot);text-wrap:balance}
 .secBody{font-family:var(--sans);font-weight:400;font-size:var(--fs-prose);line-height:var(--lh-prose);color:var(--c700);margin:16px 0 0;text-wrap:pretty}
 /* pulled stat — clean editorial callout (no ink; texture stays on the hero title only) */
 .stat{margin:var(--sp-32-48) 0;max-width:540px}
@@ -153,9 +193,34 @@ img{display:block;max-width:100%}
 /* site footer: reach-me line over a full-width ghost wordmark */
 .siteFoot{margin-top:var(--sp-80-152);padding-bottom:var(--sp-32-64);text-align:center}
 .footReach{font-family:var(--sans);font-weight:400;font-size:var(--fs-prose);line-height:var(--lh-prose);color:var(--c700);margin:0 auto;max-width:42ch;text-wrap:balance}
+/* THE SIGN-OFF, IDENTICAL ON ALL EIGHT PAGES THAT HAVE A FOOTER: status, thanks,
+   wordmark. The thanks sits --sp-8-16 from the mark because they are one sign-off; the
+   status keeps the wider gap because it is a different statement.
+   --fs-display is the right rung for the mark but its clamp floor of 68px overflows a
+   390px column, so min() holds it to the measure without leaving the scale.
+   Decorative and marked so: an <h2> reading "Jayden Betts" would invent a section and
+   land in every screen-reader heading list; the name is already in <title>.
+   play.html and gradientlab.html are the two pages WITHOUT this, deliberately -- both
+   compute overflow:hidden and cannot scroll, so a footer there is unreachable
+   furniture. Their header Contact control points at index.html#contact instead. */
+.footAvail{font-family:var(--sans);font-weight:600;font-size:var(--fs-label);line-height:var(--lh-body);letter-spacing:var(--tr-flat);color:var(--c500);margin:0 0 var(--sp-8)}
+.footMark{font-family:var(--sans);font-weight:600;font-size:min(var(--fs-display),13vw);line-height:.9;letter-spacing:var(--tr-display);color:var(--c100);margin:var(--sp-8-16) 0 0;white-space:nowrap;-webkit-user-select:none;user-select:none}
+
 .footIn{font-weight:600;color:var(--c950);text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:3px;text-decoration-color:var(--c500);transition:text-decoration-color .15s cubic-bezier(.2,.8,.2,1),color .15s cubic-bezier(.2,.8,.2,1)}
 .footIn:hover,.footIn:focus-visible{color:var(--accent);text-decoration-color:var(--accent)}
 .footIn:active{color:var(--accent-press);text-decoration-color:var(--accent-press)}
+/* A 24.5px INLINE LINK IS A 40.5px TARGET, at every width.
+   The control system 3.3 (.ctl--quiet.is-inline): pad the BLOCK axis by --sp-8
+   and pull the margin back by the same amount. The hit area grows, the line box
+   does not move, and the paragraph does not reflow -- which is why this and not
+   a min-height. It is the one place a negative margin is the correct tool.
+   These are text inside prose, so they get no wash, no rim and no radius; ink
+   and their own underline carry every state (see the accent note in tokens.css).
+   index.html shipped this at <=768px only -- on a phone, where a fingertip is
+   already forgiving -- and not at the widths where a pointer has to find it. */
+.footIn,.abIn{display:inline-block;
+ padding-block:var(--sp-10);margin-block:calc(var(--sp-10) * -1)}
+
 .hq{position:absolute;left:var(--x);top:var(--qt);width:var(--w,20%);margin:0;font-family:var(--sans);font-weight:400;font-size:var(--fs-body);line-height:1.3;color:var(--c950);text-wrap:pretty}
 .hval{position:absolute;left:var(--x);top:var(--nt);width:var(--w,20%)}
 .hlabel{margin:.45em 0 0;font-family:var(--sans);font-weight:600;font-size:var(--fs-body);line-height:1.25;color:var(--c950);text-wrap:pretty}
@@ -192,7 +257,7 @@ img{display:block;max-width:100%}
 /* ===== the system: onboarding gallery + the five-step build — one hero screen per step, the reasoning beside it ===== */
 .subBlock{margin:clamp(64px,8.5vh,96px) 0 0}
 .subKick{font-family:var(--sans);font-weight:600;font-size:var(--fs-label);letter-spacing:var(--tr-flat);text-transform:none;color:var(--c500);filter:url(#inkSm);margin:0}
-.subHead{font-family:var(--sans);font-weight:600;font-size:var(--fs-h3);line-height:1.1;letter-spacing:-.015em;color:var(--c950);margin:var(--sp-16-24) 0 var(--sp-16-24);text-wrap:balance}
+.subHead{font-family:var(--sans);font-weight:600;font-size:var(--fs-h3);line-height:var(--lh-tight);letter-spacing:var(--tr-sub);color:var(--c950);margin:var(--sp-16-24) 0 var(--sp-16-24);text-wrap:balance}
 /* onboarding shots are portrait phones: sized so the gallery browses, the steps read */
 .shot.phone{width:calc((100% - 72px)/3)}
 .shot.phone img{width:100%;height:auto;aspect-ratio:804/1748;object-fit:contain;background:#fff;border-radius:clamp(20px,2.6vw,32px);box-shadow:var(--rim-1)}
@@ -327,7 +392,7 @@ img{display:block;max-width:100%}
    the FIRST focusable element and moves focus to the main content -- so it sits before the
    nav in DOM order. Parked off-screen by transform (not display:none, which would take it
    out of the tab order entirely) and slid in on focus. ---- */
-.skipLink{position:fixed;top:10px;left:10px;z-index:200;display:inline-flex;align-items:center;min-height:44px;padding:12px 16px;background:var(--c50);color:var(--c950);border:1px solid var(--c100);border-radius:var(--r-xs);font-family:var(--sans);font-weight:400;font-size:var(--fs-small);line-height:1;text-decoration:none;box-shadow:var(--sh-2);transform:translateY(calc(-100% - 16px));transition:transform .2s cubic-bezier(.2,.8,.2,1)}
+.skipLink{position:fixed;top:10px;left:10px;z-index:200;display:inline-flex;align-items:center;min-height:44px;padding:12px 16px;background:var(--c50);color:var(--c950);border:1px solid var(--c100);border-radius:var(--r-xs);font-family:var(--sans);font-weight:400;font-size:var(--fs-small);line-height:1;text-decoration:none;box-shadow:none;transform:translateY(calc(-100% - 16px));transition:transform .2s cubic-bezier(.2,.8,.2,1)}
 .skipLink:focus{transform:translateY(0);outline:2px solid var(--c950);outline-offset:3px}
 @media(prefers-reduced-motion:reduce){.skipLink{transition:none}}
 #main:focus{outline:none}
@@ -443,7 +508,6 @@ img{display:block;max-width:100%}
    on line 1. All three are void in sentence case: the mark is two stacked lines at
    one size and one tracking, and 85.8% was only ever survivable because capitals
    are geometric -- lowercase bowls and stems are not. Measured: report §3. */
-@font-face{font-family:"Instrument Sans Var";src:url("fonts/instrument-sans-variable.woff2") format("woff2-variations");font-weight:400 700;font-stretch:75% 100%;font-display:swap}
 
 /* ============================================================================
    ICONS -- one pack. An audit found NINE authored stroke-widths (1.2 1.4 1.5
@@ -468,37 +532,74 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
 .moodCar{width:12px;height:12px;flex:0 0 12px}
 /* icons inherit the control's colour so they light up with the hover wash */
 .moodItem svg,.moodItem .gIco,.tGo svg,.hmBtn svg{color:currentColor}
+
+/* ═══ THE TAB'S ACTIVE MARK GOES INK, AND STOPS BEING A SWOOSH (round 11) ═════
+   Jayden: "I think making the blue line the black ink would be better."
+   TWO THINGS WERE WRONG WITH .tvTab.on AND ONLY ONE OF THEM WAS THE COLOUR.
+   It drew its underline as `border-bottom:2px solid var(--accent)` on a box
+   whose computed border-radius is --r-md 14px, so the radius bent the line into
+   a tapering curve -- the swoosh the control-system spec already documents. A
+   bottom border cannot be a rule under a word on a radiused box. It is a
+   positioned ::after now, which has no radius to inherit and lands straight.
+   Ink rather than accent, matching index.html's .csTabInk, so the tab family has
+   one active treatment across the site.
+   HOVER GOES INK TOO, for the same reason: --accent on both the border and the
+   label made hover and active the same hue, which is two states competing for
+   one signal. */
+.tvTab.on{color:var(--c950);border-bottom:0;position:relative}
+.tvTab.on::after{content:"";position:absolute;left:var(--sp-16);right:var(--sp-16);
+ bottom:calc(var(--focus-w) * -1);height:var(--focus-w);border-radius:var(--r-hair);
+ background:var(--c950)}
+.tvTab:hover,.tvTab:focus-visible{border-color:var(--c500);color:var(--c950)}
+.tvTab{min-height:var(--tap-min)}
 </style>
 <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Jayden Betts","item":"https://jaydenbetts.design/"},{"@type":"ListItem","position":2,"name":"Strata Case Study","item":"https://jaydenbetts.design/strata.html"}]},{"@type":"CreativeWork","@id":"https://jaydenbetts.design/strata.html#work","url":"https://jaydenbetts.design/strata.html","name":"Strata: A Product Design Case Study by Jayden Betts","description":"Strata is a gamified habit builder where your wins stack up into a tower of colourful blocks, playable right on the page. A product design case study by Jayden Betts.","image":"https://jaydenbetts.design/images/cs/strata-cover.webp","author":{"@type":"Person","@id":"https://jaydenbetts.design/#person","name":"Jayden Betts","alternateName":"Jayden Lee Betts","url":"https://jaydenbetts.design/","sameAs":["https://www.linkedin.com/in/jaydenbetts","https://www.instagram.com/jaydenleebetts"]},"genre":"Product Design","inLanguage":"en"}]}</script>
 <link rel="stylesheet" href="header.css">
 <script src="header.js" defer></script>
 </head>
-<body data-nav="home">
+<body data-nav="work">
 <a class="skipLink" href="#main">Skip to content</a>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><filter id="inkBig"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="7" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="1.1" xChannelSelector="R" yChannelSelector="G" result="d"/><feTurbulence type="fractalNoise" baseFrequency="0.5 0.42" numOctaves="2" seed="13" result="g"/><feColorMatrix in="g" type="matrix" values="0 0 0 0 0.055 0 0 0 0 0.055 0 0 0 0 0.055 0 0 0 0.42 0" result="grain"/><feComposite in="grain" in2="d" operator="atop"/></filter>
 <filter id="inkSm"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="1" seed="4" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="0.55" xChannelSelector="R" yChannelSelector="G"/></filter></svg>
 
-<div class="wrap">
-<!-- THE SITE HEADER. One component, every page: header.css + header.js, adopted
-     2026-08-03 from header-prototype.html. Replaces this page's `1fr auto 1fr`
-     grid (Back / wordmark / Contact), which could not read as a bar because its
-     three children sat at three unrelated x-positions. The lockup IS the back
-     affordance now -- Back and the wordmark went to the same URL, so two of the
-     four old slots were doing one job. Design + the measured lockup:
-     .superpowers/sdd/2026-08-02-play-page/header-report.md
-     .backlink is load-bearing: it sets sessionStorage csReturn so index.html's
-     work rail emerges from white on return (see this page's script). -->
+<!-- THE SITE HEADER. One component, all nine pages: header.css + header.js.
+     HEADER V2, 2026-08-03 -- spec docs/superpowers/specs/2026-08-03-header-v2-research.md.
+     Restores Jayden's original silhouette (Work / About me / lockup / Games / Contact)
+     at ONE FIXED INSET, identical on all nine pages (header.css SS0). Jayden chose an
+     x=80, which is exactly the chapter rail's left edge -- an alignment the page has
+     always had and the v1 header ignored. Back is its own item at the leading edge now,
+     full opacity and its own 44x44, instead of a .55-opacity chevron injected inside the
+     lockup: two controls, two stable accessible names.
+     `Work` is lit here because a case study IS the work.
+     .backlink is load-bearing: it sets sessionStorage csReturn so index.html's work rail
+     emerges from white on return (see this page's script). Every link that goes home
+     carries it, including the new Back item. -->
  <div class="jbStick">
-  <nav class="jbNav hasSoc" aria-label="Primary" data-surface="paper" data-back="1">
-   <a class="jbHome backlink" href="index.html" aria-label="Back — Jayden Betts, home"><svg class="jbArrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6l6 6"/></svg><span class="jbMark" aria-hidden="true"><span class="jbL1">Jayden</span><span class="jbL2">Betts</span></span></a>
-   <span class="jbSep" aria-hidden="true"></span>
-   <a data-nav-item="home" class="backlink" href="index.html" aria-current="true">Home</a>
-   <a data-nav-item="about" class="backlink" href="index.html#about">About</a>
-   <a data-nav-item="games" href="play.html">Games</a>
-   <span class="jbBarSep" aria-hidden="true"></span>
-   <span class="jbBarSoc"><a data-soc="mail" href="mailto:jaydenlbetts@gmail.com" aria-label="Email Jayden Betts"><svg class="jbGlyph" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4.5h18c.55 0 1 .45 1 1v13c0 .55-.45 1-1 1H3c-.55 0-1-.45-1-1v-13c0-.55.45-1 1-1Zm1.4 1.5L12 11.6 19.6 6H4.4ZM20 7.4l-7.4 5.5a1 1 0 0 1-1.2 0L4 7.4V18h16V7.4Z"/></svg></a><a data-soc="li" href="https://www.linkedin.com/in/jaydenbetts" target="_blank" rel="noopener noreferrer" aria-label="Jayden Betts on LinkedIn — opens in a new tab"><svg class="jbGlyph" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.34V9h3.42v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29zM5.34 7.43a2.06 2.06 0 1 1 0-4.13 2.06 2.06 0 0 1 0 4.13zM7.12 20.45H3.55V9h3.57v11.45zM22.22 0H1.77C.8 0 0 .78 0 1.74v20.52C0 23.22.8 24 1.77 24h20.45c.98 0 1.78-.78 1.78-1.74V1.74C24 .78 23.2 0 22.22 0z"/></svg></a><a data-soc="ig" href="https://www.instagram.com/jaydenleebetts" target="_blank" rel="noopener noreferrer" aria-label="Jayden Betts on Instagram — opens in a new tab"><svg class="jbGlyph" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg></a></span>
+  <nav class="jbNav" aria-label="Primary" data-surface="paper">
+   <span class="jbGrp jbGrpL">
+    <a class="jbBack backlink" href="index.html" aria-label="Back to work"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l14 0"/><path d="M5 12l6 6"/><path d="M5 12l6 -6"/></svg></a>
+   </span>
+   <span class="jbGrp jbGrpC">
+    <a class="backlink" data-nav-item="work" href="index.html#cases" aria-label="Work" aria-current="true"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7m0 2a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v9a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2z"/><path d="M8 7v-2a2 2 0 0 1 2 -2h4a2 2 0 0 1 2 2v2"/><path d="M12 12l0 .01"/><path d="M3 13a20 20 0 0 0 18 0"/></svg><span class="jbLbl">Work</span></a>
+    <a class="backlink" data-nav-item="about" href="index.html#about" aria-label="About"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0"/><path d="M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2"/></svg><span class="jbLbl">About</span></a>
+    <a data-nav-item="games" href="play.html" aria-label="Play"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 6m0 2a2 2 0 0 1 2 -2h16a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-16a2 2 0 0 1 -2 -2z"/><path d="M6 12h4m-2 -2v4"/><path d="M15 11l0 .01"/><path d="M18 13l0 .01"/></svg><span class="jbLbl">Play</span></a>
+   </span>
+   <span class="jbGrp jbGrpR">
+    <!-- CONTACT -- the same split control as Play, at the other end of the bar
+         (Jayden: "Contact should go to the right, and then it should act like the Play
+         button where it shows other options on hover -- like the various socials").
+         The label navigates, the caret discloses, and the caret is a real button with
+         aria-expanded and its own 44x44 -- because touch has no hover and a tap must
+         never mean two things. header.js owns it on all nine pages.
+         Socials in HIS order: LinkedIn, Instagram, email. -->
+    <span class="jbDisc jbContact">
+     <a class="jbDiscGo" data-nav-item="contact" aria-haspopup="true" aria-expanded="false" aria-controls="jbContactMenu" href="#contact" aria-label="Contact"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10z"/><path d="M3 7l9 6l9 -6"/></svg><span class="jbLbl">Contact</span></a>
+     <div class="jbDiscMenu" id="jbContactMenu"><a class="jbDiscTouch" href="#contact"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10z"/><path d="M3 7l9 6l9 -6"/></svg>Contact</a><div class="jbDiscSep jbDiscTouch" aria-hidden="true"></div><a href="https://www.linkedin.com/in/jaydenbetts" target="_blank" rel="noopener noreferrer"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 11l0 5"/><path d="M8 8l0 .01"/><path d="M12 16l0 -5"/><path d="M16 16v-3a2 2 0 0 0 -4 0"/><path d="M3 7a4 4 0 0 1 4 -4h10a4 4 0 0 1 4 4v10a4 4 0 0 1 -4 4h-10a4 4 0 0 1 -4 -4z"/></svg>LinkedIn</a><a href="https://www.instagram.com/jaydenleebetts" target="_blank" rel="noopener noreferrer"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4m0 4a4 4 0 0 1 4 -4h8a4 4 0 0 1 4 4v8a4 4 0 0 1 -4 4h-8a4 4 0 0 1 -4 -4z"/><path d="M12 12m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"/><path d="M16.5 7.5l0 .01"/></svg>Instagram</a><a href="mailto:jaydenlbetts@gmail.com"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10z"/><path d="M3 7l9 6l9 -6"/></svg>Email</a></div>
+    </span>
+   </span>
   </nav>
  </div>
+<div class="wrap">
 
  <div class="layout" id="main" tabindex="-1">
   <aside class="rail" aria-label="Sections">
@@ -598,7 +699,8 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
 
  <p class="csReach caseInset">Reach out to learn more about full products, files, and slides.</p>
    <footer class="siteFoot" id="contact" role="contentinfo">
-  <p class="footReach">Thanks for checking out my website. I&rsquo;d love to chat, you can find me on <a class="footIn" href="https://www.linkedin.com/in/jaydenbetts" target="_blank" rel="noopener noreferrer">LinkedIn</a>, <a class="footIn" href="https://www.instagram.com/jaydenleebetts" target="_blank" rel="noopener noreferrer">Instagram</a>, or through <a class="footIn" href="mailto:jaydenlbetts@gmail.com">email</a>.</p>
+  <p class="footReach">Thanks for checking out my website &mdash; I&rsquo;m open to full-time roles and would love to chat. Find me on <a class="footIn" href="https://www.linkedin.com/in/jaydenbetts" target="_blank" rel="noopener noreferrer">LinkedIn</a>, <a class="footIn" href="https://www.instagram.com/jaydenleebetts" target="_blank" rel="noopener noreferrer">Instagram</a>, or <a class="footIn" href="mailto:jaydenlbetts@gmail.com">email</a>.</p>
+  <div class="footMark" aria-hidden="true">Jayden Betts</div>
  </footer>
 
  <div class="heroFoot" aria-hidden="true"></div>

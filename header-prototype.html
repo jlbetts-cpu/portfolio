@@ -1,0 +1,1152 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Header — prototype</title>
+<link rel="stylesheet" href="tokens.css">
+<style>
+/* ═══════════════════════════════════════════════════════════════════════════
+   HEADER PROTOTYPE — standalone, vanilla, no dependencies.
+   Reads the real tokens.css. Nothing here is wired into any shipping file.
+
+   ?frame=home|case|play|lab|headmaker   renders ONE bare page-sim, full bleed.
+   ?scrolled=1                           starts it past the fold.
+   ?open=mood                            opens the mood dock (screenshot helper).
+
+   Every 390px view on this page is an iframe of this file in frame mode.
+   Headless Chrome clamps a top-level window to 500px, so a resize to 390 lies;
+   an iframe does not.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@font-face{font-family:"Instrument Sans";src:url("fonts/instrument-sans-latin-400-normal.woff2") format("woff2");font-weight:400;font-display:swap}
+@font-face{font-family:"Instrument Sans";src:url("fonts/instrument-sans-latin-600-normal.woff2") format("woff2");font-weight:600;font-display:swap}
+
+/* ── PROPOSED ADDITIONS TO tokens.css ───────────────────────────────────────
+   Every one of these is a GAP, not an invention: a rung the existing scale
+   does not have. Literals appear here and nowhere else in the component.
+   Written up in header-report.md §"Token gaps".                             */
+:root{
+  /* 1 · fixed micro-spacing. The --sp-* ladder is RESPONSIVE and floors at
+     16px; a bar needs fixed sub-16px insets. This sits below that ladder, on
+     the same 2px grid --gap-bar (2px) and --pad-bar (5px) already imply. */
+  --sp-2:2px; --sp-4:4px; --sp-6:6px; --sp-8:8px; --sp-10:10px; --sp-12:12px;
+  --sp-14:14px; --sp-28:28px; --sp-30:30px; --sp-32:32px;
+
+  /* 1b · the two line weights the system draws with. --r-hair (2px) is a
+     RADIUS; there is no token for a hairline's width or a focus ring's. */
+  --hair-w:1px; --focus-w:2px;
+
+  /* 2 · icon sizes. index.html's .gIco is a hard-coded 18px in 40+ places. */
+  --ico-xs:11px; --ico-sm:15px; --ico-md:18px;
+  /* one stroke weight for the whole icon set, per the CSS-owned-stroke rule.
+     Was 1.7 / 1.8 / 2 across three icons for no reason. */
+  --ico-stroke:1.8;
+
+  /* 3 · type. 14px is missing between --fs-small (15) and --fs-label (13);
+     the wordmark's size is a brand constant and deserves a name. */
+  --fs-nav:14px; --fs-mark:17px;
+
+  /* 4 · motion. --ease-out-dur (160ms) is the fastest rung; a press needs
+     faster, an entrance needs slower than --sp-settle-dur (360ms). */
+  --press-dur:100ms; --enter-dur:500ms;
+  /* a press reads as the same nudge on every size only if the bigger object
+     scales less; two rungs cover everything in this component. */
+  --press-scale:.97; --press-scale-lg:.985;
+
+  /* 5 · interaction washes. The materials ladder covers surfaces, not the
+     hover/press tint that sits on top of them. */
+  --wash-1:rgba(18,18,18,.055); --wash-i1:rgba(253,253,253,.10);
+
+  /* 6 · the ink ramp, mirroring --c700/--c100 on a dark ground.
+     (--c50 #FDFDFD already serves as the strong ink, so it is reused.) */
+  --i700:rgba(253,253,253,.78); --i100:rgba(253,253,253,.16);
+
+  /* 7 · the ink materials ladder. tokens.css has none: --mat-1/2/3 are all
+     rgba(253,253,253,·) and --mat-scrim (.34) is a scrim, not a material —
+     white 14px text on it fails contrast. Tuned so white ink clears 4.5:1
+     over ANY ground including white, because the Lab's stage is user-set. */
+  --mat-i1:rgba(18,18,18,.58); --mat-i2:rgba(18,18,18,.70); --mat-i3:rgba(18,18,18,.82);
+  --mat-i3-solid:rgba(18,18,18,.92);
+  --rim-i1:inset 0 0 0 1px rgba(253,253,253,.14);
+  --rim-i2:inset 0 0 0 1px rgba(253,253,253,.22);
+  --sh-i2:0 8px 28px rgba(0,0,0,.28); --sh-i3:0 12px 36px rgba(0,0,0,.36);
+
+  /* 8 · the top rung of the materials ladder assumes a blur behind it, but
+     tokens.css zeroes --blur-1/2 below 760px. --mat-3 with no blur is a flat
+     96% tint and a headline scrolling under it ghosts through. */
+  --mat-3-solid:var(--c50);
+
+  /* 9 · the bar's own height. The chapter rail's sticky offset, every
+     scroll-margin-top and the bar all need the same number. */
+  --nav-h:52px;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   1 · THE BAR.  One .jbNav, every page. Lockup + Home · About · Games.
+   Per-page differences: a back arrow, which item is lit, data-surface, and
+   whether the socials are riding inside the bar.
+
+   COMPONENT GEOMETRY, declared once, below. These are deliberately NOT
+   tokens: a toggle's track size and a wordmark's optical correction do not
+   generalise to anything else on the site. They are named constants so the
+   component has no scattered literals, which is a different problem from
+   pretending they belong in the design system.
+   ═══════════════════════════════════════════════════════════════════════════ */
+.jbNav{
+  --bar-item-h:38px;        /* the nav label's ink box */
+  --bar-mark-h:42px;        /* the stacked lockup's box — this drives --nav-h */
+  --bar-rule-h:18px;        /* the hairline separator */
+  --bar-soc-max:190px;      /* three 44px glyphs + their gaps, collapsed to 0 */
+
+  --nav-mat:var(--mat-3);
+  --nav-rim:var(--rim-1);
+  --nav-sh:var(--sh-2);
+  --nav-ink:var(--c700);
+  --nav-ink-strong:var(--c950);
+  --nav-hair:var(--c100);
+  --nav-hover:var(--wash-1);
+  --nav-active-ink:var(--accent);
+  --nav-active-bg:var(--accent-wash);
+
+  display:inline-flex;align-items:center;
+  gap:var(--gap-bar);padding:var(--pad-bar);
+  font-family:var(--sans);
+  background:var(--nav-mat);
+  box-shadow:var(--nav-rim),var(--nav-sh);
+  border-radius:var(--r-pill);
+  -webkit-backdrop-filter:blur(var(--blur-2));backdrop-filter:blur(var(--blur-2));
+  transition:box-shadow var(--sp-quick-dur) var(--sp-quick);
+  max-width:100%;
+}
+/* THE DARK GROUND — six custom properties, no second component, no second
+   layout. Dark glass rather than a white pill: white ink on --mat-i3 clears
+   4.5:1 over a white ground AND over near-black. A white pill only holds
+   over dark, and the Lab's stage is whatever colour the user dials in. */
+.jbNav[data-surface="ink"]{
+  --nav-mat:var(--mat-i3);
+  --nav-rim:var(--rim-i1);
+  --nav-sh:var(--sh-i2);
+  --nav-ink:var(--i700);
+  --nav-ink-strong:var(--c50);
+  --nav-hair:var(--i100);
+  --nav-hover:var(--wash-i1);
+  --nav-active-ink:var(--accent-dark);
+  --nav-active-bg:var(--wash-i1);
+  -webkit-backdrop-filter:blur(var(--blur-3));backdrop-filter:blur(var(--blur-3));
+}
+.jbNav.isLifted{--nav-sh:var(--sh-3)}
+.jbNav[data-surface="ink"].isLifted{--nav-sh:var(--sh-i3)}
+
+.jbNav a,.jbNav button{
+  font-family:inherit;font-size:var(--fs-nav);font-weight:400;line-height:var(--lh-flat);
+  color:var(--nav-ink);text-decoration:none;background:none;border:0;cursor:pointer;
+  padding:0 var(--sp-12);min-height:var(--bar-item-h);
+  display:inline-flex;align-items:center;gap:var(--sp-6);
+  border-radius:var(--r-pill);position:relative;white-space:nowrap;
+  -webkit-tap-highlight-color:transparent;
+  transition:background-color var(--ease-out-dur) var(--ease-out),
+             color var(--ease-out-dur) var(--ease-out),
+             transform var(--press-dur) var(--ease-out);
+}
+/* 44 × 44 with no visible padding — the ink box stays --bar-item-h, the
+   target grows to --tap-min underneath it. */
+.jbNav a::after,.jbNav button::after{
+  content:"";position:absolute;top:50%;left:0;right:0;
+  height:var(--tap-min);transform:translateY(-50%);
+}
+/* the full state set: rest · hover · focus-visible · active */
+.jbNav a:hover,.jbNav button:hover{background:var(--nav-hover);color:var(--nav-ink-strong)}
+.jbNav a:active,.jbNav button:active{transform:scale(var(--press-scale))}
+.jbNav .jbHome:active{transform:scale(var(--press-scale-lg))}   /* larger object, less scale */
+.jbNav :focus-visible{outline:var(--focus-w) solid var(--accent);outline-offset:var(--sp-2);
+  border-radius:var(--r-pill)}
+.jbNav :focus:not(:focus-visible){outline:none}
+
+/* ── THE LOCKUP — sentence case, TWO STACKED LINES, ragged right ───────────
+   Both lines at one size and one tracking, flush left, genuinely ragged.
+
+   WHY NOT font-stretch. Measured live: Betts/Jayden = 0.7681 at every size,
+   so width-matching sentence case needs wdth 76.81% against an axis floor of
+   75 — 1.8pp of headroom, tighter even than the specimen's 77.75% estimate.
+   At that depth lowercase bowls and stems visibly stop matching. The caps
+   mark got away with 85.8% because capitals are geometric; lowercase is not.
+
+   WHY NOT per-line tracking. Widening "Betts" to meet "Jayden" needs
+   +12.90px over 4 gaps = +0.19em. Meeting in the middle still puts line 1 at
+   −0.086em against line 2 at +0.084em — two different textures in one mark.
+
+   WHY NOT two optical sizes. Matching widths needs line 2 at 22.1px against
+   line 1 at 17px: a 30% jump that reads as surname emphasis, which is a
+   statement, not a neutral solve.
+
+   SO: ragged, and made deliberate by two measured corrections and a measured
+   leading. Raggedness with the texture held constant reads as confidence;
+   compression to 76.8% would read as distortion.
+
+   NB the .jbNav prefix is load-bearing — .jbHome alone (0,1,0) loses to
+   .jbNav a (0,1,1) and the lockup silently renders at --fs-nav/400.        */
+.jbNav .jbHome{
+  --mark-inset:11px;   /* MEASURED optical flush against the pill's leading
+                          edge: "J" sidebearing −0.22px vs "Home" −1.20px, so
+                          a metric --sp-12 reads ~1px wider on the mark. */
+  --mark-flush:-.049em;/* MEASURED optical flush-left BETWEEN the two lines:
+                          "B" −1.05px vs "J" −0.22px at --fs-mark = 0.83px,
+                          i.e. line 2's ink starts further right than line 1's
+                          at identical metric alignment. */
+  --mark-lh:1.075;     /* MEASURED leading: ink gap = lh − desc("y" 3.49px)
+                          − asc("Betts" 12.24px). 1.075 puts it at 0.15em,
+                          tight enough that the two lines read as one block.
+                          The shipped 1.04 collapsed it to 0.033em — the "y"
+                          all but touching the "B". */
+  font-weight:600;font-size:var(--fs-mark);line-height:var(--mark-lh);
+  letter-spacing:var(--tr-mark);color:var(--nav-ink-strong);
+  padding:0 var(--sp-12) 0 var(--mark-inset);gap:var(--sp-6);
+  min-height:var(--bar-mark-h);
+}
+/* NO baseline correction here, and that is a measured result, not an
+   omission: the single line needed −1.06px because a 17px line and a 14px
+   line centre on different baselines. Stacked, "Jayden"'s ascender above
+   line 1 and "Betts"'s near-zero descender below line 2 balance the block to
+   within 0.03px of its own centre. Stacking removes the correction. */
+.jbMark{display:flex;flex-direction:column;align-items:flex-start;text-align:left}
+.jbL2{margin-left:var(--mark-flush)}
+.jbArrow{width:var(--ico-sm);height:var(--ico-sm);flex:0 0 var(--ico-sm);
+  stroke:currentColor;fill:none;stroke-width:var(--ico-stroke);
+  stroke-linecap:round;stroke-linejoin:round;opacity:.55;
+  transition:transform var(--sp-quick-dur) var(--sp-quick),
+             opacity var(--ease-out-dur) var(--ease-out)}
+.jbNav .jbHome:hover .jbArrow{transform:translateX(calc(var(--sp-2) * -1));opacity:1}
+.jbNav .jbSep{width:var(--hair-w);height:var(--bar-rule-h);flex:0 0 var(--hair-w);
+  background:var(--nav-hair);margin:0 var(--sp-6)}
+
+/* ── the explicit active state ─────────────────────────────────────────────
+   One attribute, data-nav, on <body>. aria-current comes from the same value:
+   "page" for an exact URL match, "true" for a section you are inside or an
+   overlay that is currently open — About is a state of the home page.       */
+[data-nav="home"]  .jbNav [data-nav-item="home"],
+[data-nav="about"] .jbNav [data-nav-item="about"],
+[data-nav="games"] .jbNav [data-nav-item="games"]{
+  background:var(--nav-active-bg);color:var(--nav-active-ink);font-weight:600;
+}
+
+/* ── the socials, condensed into the bar ─────────────────────────────────── */
+.jbBarSoc{display:inline-flex;align-items:center;gap:var(--gap-bar);
+  max-width:0;opacity:0;visibility:hidden;overflow:hidden;
+  transition:max-width var(--sp-quick-dur) var(--sp-quick),
+             opacity var(--sp-quick-dur) var(--sp-quick),
+             visibility 0s var(--sp-quick-dur)}
+.jbNav.hasSoc .jbBarSoc{max-width:var(--bar-soc-max);opacity:1;visibility:visible;
+  transition-delay:0s}
+.jbBarSep{width:var(--hair-w);height:var(--bar-rule-h);flex:0 0 var(--hair-w);background:var(--nav-hair);
+  margin:0 var(--sp-4);max-width:0;opacity:0;
+  transition:max-width var(--sp-quick-dur) var(--sp-quick),
+             opacity var(--sp-quick-dur) var(--sp-quick),
+             margin var(--sp-quick-dur) var(--sp-quick)}
+.jbNav.hasSoc .jbBarSep{max-width:var(--hair-w);opacity:1;margin:0 var(--sp-6)}
+.jbNav .jbBarSoc a{padding:0;min-width:var(--tap-min);justify-content:center}
+.jbGlyph{width:var(--ico-md);height:var(--ico-md);flex:0 0 var(--ico-md);
+  fill:currentColor;display:block}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   2 · THE SOCIAL ROW — above the bar, home page only, in flow.
+   NOT inside the sticky wrapper. If the row and the bar share one sticky box
+   the row pins too and simply overlaps the content it was meant to leave.
+   ═══════════════════════════════════════════════════════════════════════════ */
+.jbTop{display:flex;justify-content:center;
+  padding:var(--sp-12) var(--sp-16-24) var(--sp-2);font-family:var(--sans)}
+.jbSocials{display:flex;align-items:center;gap:var(--sp-2)}
+.jbSocials a{display:inline-flex;align-items:center;justify-content:center;
+  width:var(--tap-min);height:var(--tap-min);color:var(--c500);
+  border-radius:var(--r-pill);-webkit-tap-highlight-color:transparent;
+  transition:color var(--ease-out-dur) var(--ease-out),
+             background-color var(--ease-out-dur) var(--ease-out),
+             transform var(--press-dur) var(--ease-out)}
+.jbSocials a:hover{color:var(--c950);background:var(--wash-1)}
+.jbSocials a:active{transform:scale(calc(var(--press-scale) - .03))}
+.jbSocials a:focus-visible{outline:var(--focus-w) solid var(--accent);outline-offset:var(--sp-2)}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   3 · THE HERO AVAILABILITY CAPSULE — a HERO element, above the <h1>.
+   Built on index.html's existing .heroAvail: same position, same entrance
+   (opacity 0 → 1, translateY(−4px) → none). Only the skin changes.
+   The dot is --accent, not a green: --live-deep / --live-bright are reserved
+   for "this match is happening" on the tournament boards.
+   ═══════════════════════════════════════════════════════════════════════════ */
+.heroAvail{
+  --avail-dot:7px; --avail-ring:3px;
+  display:inline-flex;align-items:center;gap:var(--sp-8);
+  margin:0 0 var(--sp-12);padding:0 var(--sp-14);min-height:var(--sp-30);
+  border-radius:var(--r-pill);
+  background:var(--mat-2);box-shadow:var(--rim-1);
+  -webkit-backdrop-filter:blur(var(--blur-1));backdrop-filter:blur(var(--blur-1));
+  font-family:var(--sans);font-weight:600;font-size:var(--fs-label);
+  line-height:var(--lh-flat);
+  /* the shipped .01em is an untokenised one-off; at 13px sentence case the
+     ladder's honest rung is --tr-flat — nothing to open, nothing to close. */
+  letter-spacing:var(--tr-flat);color:var(--c700);white-space:nowrap;
+  opacity:0;transform:translateY(calc(var(--sp-4) * -1));
+  transition:opacity var(--enter-dur) var(--ease-out),
+             transform var(--enter-dur) var(--ease-out)}
+.heroAvail.in{opacity:1;transform:none}
+.heroAvail i{width:var(--avail-dot);height:var(--avail-dot);flex:0 0 var(--avail-dot);
+  border-radius:var(--r-full);background:var(--accent);
+  box-shadow:0 0 0 var(--avail-ring) var(--accent-wash)}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   4 · THE MOOD DOCK — the four moods and the head roster, out of the site
+   header and parked under the thing they act on. A grid child of the hero's
+   centre column, not an absolutely-positioned corner element.
+   ═══════════════════════════════════════════════════════════════════════════ */
+.jbDock{position:relative;display:inline-flex;justify-self:center;font-family:var(--sans)}
+.jbDockBtn{
+  --dock-h:36px;
+  display:inline-flex;align-items:center;gap:var(--sp-8);position:relative;
+  padding:0 var(--sp-12) 0 var(--sp-10);min-height:var(--dock-h);border:0;cursor:pointer;
+  background:var(--mat-3);box-shadow:var(--rim-1),var(--sh-1);
+  border-radius:var(--r-pill);-webkit-tap-highlight-color:transparent;
+  -webkit-backdrop-filter:blur(var(--blur-1));backdrop-filter:blur(var(--blur-1));
+  font-family:inherit;font-size:var(--fs-nav);line-height:var(--lh-flat);color:var(--c700);
+  transition:box-shadow var(--ease-out-dur) var(--ease-out),
+             color var(--ease-out-dur) var(--ease-out),
+             transform var(--press-dur) var(--ease-out)}
+.jbDockBtn::after{content:"";position:absolute;left:0;right:0;top:50%;
+  height:var(--tap-min);transform:translateY(-50%)}
+.jbDockBtn:hover{color:var(--c950);box-shadow:var(--rim-2),var(--sh-2)}
+.jbDockBtn:active{transform:scale(var(--press-scale))}
+.jbDockBtn:focus-visible{outline:var(--focus-w) solid var(--accent);outline-offset:var(--sp-2)}
+.jbDockBtn[aria-expanded="true"] .jbCaret{transform:rotate(180deg)}
+.jbCaret{width:var(--ico-xs);height:var(--ico-xs);flex:0 0 var(--ico-xs);
+  stroke:currentColor;fill:none;stroke-width:var(--ico-stroke);
+  stroke-linecap:round;stroke-linejoin:round;opacity:.7;transition:transform var(--sp-quick-dur) var(--sp-quick)}
+
+.jbPanel{
+  --panel-w:236px; --panel-max-h:380px; --panel-rise:6px;
+  position:absolute;top:calc(100% + var(--sp-10));left:50%;transform:translateX(-50%);
+  width:var(--panel-w);padding:var(--sp-6);
+  background:var(--mat-3);box-shadow:var(--rim-1),var(--sh-3);
+  border-radius:var(--r-lg);corner-shape:var(--corner);
+  -webkit-backdrop-filter:blur(var(--blur-3));backdrop-filter:blur(var(--blur-3));
+  z-index:40;display:none;flex-direction:column;text-align:left}
+.jbPanel.isOpen{display:flex;animation:jbPanelIn var(--sp-settle-dur) var(--sp-settle) both}
+@keyframes jbPanelIn{
+  from{opacity:0;transform:translateX(-50%) translateY(calc(var(--panel-rise) * -1)) scale(var(--press-scale-lg))}
+  to{opacity:1;transform:translateX(-50%)}}
+.jbPanel a,.jbPanel button{
+  width:100%;display:flex;align-items:center;justify-content:flex-start;
+  padding:0 var(--sp-10);min-height:var(--tap-min);gap:var(--sp-10);
+  border:0;background:none;cursor:pointer;text-decoration:none;
+  border-radius:var(--r-sm);corner-shape:var(--corner);
+  font-family:inherit;font-size:var(--fs-small);line-height:var(--lh-flat);color:var(--c950);
+  -webkit-tap-highlight-color:transparent;
+  transition:background-color var(--ease-out-dur) var(--ease-out),
+             transform var(--press-dur) var(--ease-out)}
+.jbPanel a:hover,.jbPanel button:hover{background:var(--c75)}
+.jbPanel a:active,.jbPanel button:active{transform:scale(var(--press-scale-lg))}
+.jbPanel :focus-visible{outline:var(--focus-w) solid var(--accent);
+  outline-offset:calc(var(--sp-2) * -1)}
+.jbSepH{height:var(--hair-w);background:var(--c100);margin:var(--sp-6) var(--sp-8)}
+.jbIco{width:var(--ico-md);height:var(--ico-md);flex:0 0 var(--ico-md);
+  stroke:currentColor;fill:none;stroke-width:var(--ico-stroke);
+  stroke-linecap:round;stroke-linejoin:round}
+.jbDot{width:var(--sp-14);height:var(--sp-14);flex:0 0 var(--sp-14);
+  border-radius:var(--r-full);margin:0 var(--sp-2)}
+.jbPanel .jbMood[aria-checked="true"]{background:var(--accent-wash);color:var(--accent);
+  font-weight:600}
+.jbHeads{display:flex;gap:var(--sp-6);padding:var(--sp-8) var(--sp-10) var(--sp-6)}
+.jbHeads b{width:var(--sp-28);height:var(--sp-28);flex:0 0 var(--sp-28);
+  border-radius:var(--r-full);display:block}
+.jbTog{display:flex;align-items:center;gap:var(--sp-10);width:100%;
+  min-height:var(--tap-min);padding:0 var(--sp-10);border-radius:var(--r-sm);
+  font-size:var(--fs-small);color:var(--c950)}
+.jbTrack{--tog-w:30px;--tog-h:18px;
+  position:relative;flex:0 0 auto;width:var(--tog-w);height:var(--tog-h);
+  border-radius:var(--r-pill);background:var(--c100);
+  transition:background-color var(--ease-out-dur) var(--ease-out)}
+.jbKnob{--knob:12px;
+  position:absolute;top:var(--sp-2);left:var(--sp-2);
+  width:var(--knob);height:var(--knob);border-radius:var(--r-full);
+  background:var(--c50);box-shadow:var(--sh-1);
+  transition:transform var(--sp-quick-dur) var(--sp-quick)}
+.jbTog[aria-checked="true"] .jbTrack{background:var(--accent)}
+.jbTog[aria-checked="true"] .jbKnob{transform:translateX(var(--knob))}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   5 · ≤640px — a design case, not a fallback.
+   Breakpoints are raw by necessity: a media query cannot read a custom
+   property. 760 and 880 already exist in tokens.css; 640 is this component's
+   and is documented here rather than repeated as a bare number.
+   ═══════════════════════════════════════════════════════════════════════════ */
+@media(max-width:640px){
+  .jbNav{gap:var(--sp-4)}                    /* thumb spacing between targets */
+  .jbNav a,.jbNav button{font-size:var(--fs-label);padding:0 var(--sp-8)}
+  /* the optical inset scales with the mark: ~1px at --fs-mark, ~0.9px at
+     --fs-small, so the left stays one step tighter than the right. */
+  .jbNav .jbHome{--mark-inset:7px;
+    font-size:var(--fs-small);padding:0 var(--sp-8) 0 var(--mark-inset)}
+  .jbNav .jbSep{margin:0 var(--sp-4)}
+  .jbNav .jbBarSep,.jbNav.hasSoc .jbBarSep{margin:0 var(--sp-4)}
+  /* THE STACKED LOCKUP PAID FOR THIS. The single line spent 127px of the
+     358px budget on the leading slot; the block spends 91. Measured, one
+     44px glyph plus its rule now fits with room to spare where none fit
+     before — so email survives on a phone, on every page. Two do not:
+     a second glyph is +48 and there are ~64 free. */
+  .jbNav{--bar-soc-max:var(--tap-min)}
+  .jbBarSoc a[data-soc="li"],.jbBarSoc a[data-soc="ig"]{display:none}
+  .jbTop{padding:var(--sp-8) var(--sp-12) 0}
+  .heroAvail{font-size:var(--fs-caption);padding:0 var(--sp-10);min-height:var(--sp-28)}
+  .jbPanel{width:min(var(--panel-w),calc(100vw - var(--sp-32)));
+    max-height:min(64vh,var(--panel-max-h));overflow-y:auto}
+  .jbDockBtn{--dock-h:38px}
+}
+/* TOKEN GAP, closed with --mat-3-solid / --mat-i3-solid: the materials ladder
+   assumes a blur behind it, but tokens.css zeroes --blur-1/2 below 760px.
+   --mat-3 with no blur is a flat 96% tint and a headline scrolling under it
+   ghosts through visibly. */
+@media(max-width:760px){
+  .jbNav{--nav-mat:var(--mat-3-solid)}
+  .jbNav[data-surface="ink"]{--nav-mat:var(--mat-i3-solid)}
+  .jbPanel{background:var(--mat-3-solid)}
+}
+@media(prefers-reduced-motion:reduce){
+  .jbNav .jbHome:hover .jbArrow{transform:none}
+  .jbPanel.isOpen{animation:none}
+  .heroAvail{transition:none}
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   PAGE SIMULATIONS — scaffolding below this line, not the component.
+   ═══════════════════════════════════════════════════════════════════════════ */
+*{box-sizing:border-box}
+body{margin:0;background:#EDEDEA;color:var(--c950);
+  font-family:var(--sans);font-size:15px;line-height:var(--lh-body);
+  -webkit-font-smoothing:antialiased}
+.doc{max-width:1240px;margin:0 auto;padding:40px 24px 120px}
+.masthead h1{font-size:var(--fs-h2);letter-spacing:var(--tr-head);line-height:1.1;margin:0 0 10px}
+.masthead p{max-width:76ch;color:var(--c700);margin:0 0 8px}
+code{font-family:ui-monospace,Menlo,monospace;font-size:.88em;background:rgba(18,18,18,.06);
+  padding:1px 5px;border-radius:var(--r-xs)}
+.rule{height:1px;background:rgba(18,18,18,.12);margin:34px 0 26px}
+h2.sec{font-size:19px;letter-spacing:var(--tr-sub);margin:0 0 6px}
+p.dek{max-width:80ch;color:var(--c700);margin:0 0 18px;font-size:14.5px}
+.note{font-size:13px;line-height:1.6;color:var(--c700);margin:10px 2px 0;max-width:66ch}
+.note b{color:var(--c950)}
+.tag{display:inline-block;font-size:10.5px;font-weight:600;text-transform:uppercase;
+  letter-spacing:var(--tr-caps);padding:3px 7px;border-radius:var(--r-xs);
+  background:var(--c950);color:#fff;margin-right:7px;vertical-align:2px}
+.tag.no{background:#8A6A16}
+.tag.ok{background:var(--accent)}
+.tag.q{background:var(--nav-accent)}
+
+.frame{position:relative;height:460px;overflow:auto;border-radius:var(--r-lg);
+  corner-shape:var(--corner);box-shadow:var(--rim-2),var(--sh-2);background:var(--c50)}
+.frame.tall{height:600px}
+.frameLbl{display:flex;align-items:baseline;gap:8px;margin:0 0 10px;font-size:13px;
+  color:var(--c700);flex-wrap:wrap}
+.frameLbl b{font-size:15px;color:var(--c950)}
+.stick{position:sticky;top:0;z-index:30;display:flex;justify-content:center;
+  padding:8px 16px 12px;pointer-events:none}
+.stick>*{pointer-events:auto}
+
+/* home sim */
+.simHome{display:grid;grid-template-columns:1fr;justify-items:center;padding:0 20px 40px}
+.simHome .heroAvail{order:1}
+.simHome h3{order:2;font-size:clamp(20px,2.2vw,30px);letter-spacing:var(--tr-head);
+  line-height:1.08;max-width:13ch;margin:0 0 12px;text-align:center}
+.simHead{order:3;width:min(190px,46%);aspect-ratio:1/.97;border-radius:var(--r-full);
+  background:radial-gradient(120% 110% at 32% 26%,#B9B0A4,#6E675E);box-shadow:var(--sh-3);
+  transition:box-shadow var(--sp-settle-dur) var(--sp-settle)}
+.simHome .jbDock{order:4;margin-top:var(--sp-16-24)}
+.simGrid{order:5;display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:34px;width:100%}
+.simCard{aspect-ratio:16/10;border-radius:var(--r-md);corner-shape:var(--corner);
+  background:linear-gradient(160deg,#DEDCD6,#C9C6BE);box-shadow:var(--rim-1)}
+
+/* case sim */
+.simCase{display:grid;grid-template-columns:78px 1fr;gap:24px;padding:0 24px 40px}
+.simRail{position:sticky;top:calc(var(--nav-h) + 26px);align-self:start;
+  display:flex;flex-direction:column;gap:11px;padding-top:4px}
+.simRail i{display:block;height:1px;background:#C4C4C4;width:20px}
+.simRail i.on{background:var(--c950);width:35px}
+.simEyebrow{font-size:12px;font-weight:600;text-transform:uppercase;
+  letter-spacing:var(--tr-caps);color:var(--c500)}
+.simCase h3{font-size:clamp(22px,2.4vw,34px);letter-spacing:var(--tr-head);line-height:1.06;
+  margin:6px 0 16px;max-width:15ch}
+.simShot{aspect-ratio:16/9;border-radius:var(--r-md);corner-shape:var(--corner);
+  background:linear-gradient(150deg,#3B5C86,#7EA0C4);box-shadow:var(--sh-2)}
+.simP{color:var(--c700);font-size:15px;max-width:56ch;margin:16px 0 0}
+@media(max-width:640px){.simCase{grid-template-columns:1fr;padding:0 16px 40px}
+  .simRail{display:none}
+  .stick{padding:6px 12px 10px}}
+
+/* play + lab sims */
+.simArena{position:relative;height:100%;min-height:100%;background:var(--c50);overflow:hidden}
+.simArena .ball{position:absolute;border-radius:var(--r-full)}
+.simTurf{position:absolute;left:0;right:0;bottom:0;height:36%;
+  background:linear-gradient(180deg,rgba(18,18,18,.035),transparent)}
+.simLab{position:relative;height:100%;min-height:100%;overflow:hidden;
+  background:
+    radial-gradient(60% 70% at 22% 28%,#2E5BD0 0%,transparent 62%),
+    radial-gradient(55% 60% at 78% 34%,#C1417A 0%,transparent 60%),
+    radial-gradient(70% 80% at 55% 88%,#12A08A 0%,transparent 66%),
+    #101216}
+.simLabPanel{position:absolute;right:14px;top:80px;width:min(148px,38%);padding:12px;
+  border-radius:var(--r-md);corner-shape:var(--corner);
+  background:rgba(255,255,255,.10);box-shadow:var(--rim-i1);
+  -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
+.simLabPanel i{display:block;height:7px;border-radius:var(--r-pill);
+  background:rgba(255,255,255,.28);margin-bottom:9px}
+.simLabPanel i:nth-child(2){width:70%}.simLabPanel i:nth-child(3){width:52%}
+
+/* rigs */
+.mobRow{display:grid;grid-template-columns:repeat(auto-fit,minmax(390px,1fr));gap:22px}
+.mob{width:390px;justify-self:center}
+.mob iframe{width:390px;height:620px;border:0;display:block;border-radius:var(--r-lg);
+  box-shadow:var(--rim-2),var(--sh-3);background:var(--c50)}
+.mob p{font-size:12.5px;color:var(--c700);margin:9px 2px 0;line-height:1.55}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+@media(max-width:1000px){.pair{grid-template-columns:1fr}}
+.measure{margin-top:14px;padding:12px 14px;border-radius:var(--r-md);corner-shape:var(--corner);
+  background:var(--c50);box-shadow:var(--rim-1);font-size:12.5px;line-height:1.75;
+  font-variant-numeric:tabular-nums;color:var(--c700)}
+.measure b{color:var(--c950)}
+
+body.frameMode{background:var(--c50);margin:0}
+body.frameMode .doc{display:none}
+body.frameMode .fmHost{display:block;height:100vh;overflow:auto;position:relative}
+.fmHost{display:none}
+</style>
+</head>
+<body>
+
+<div class="fmHost" id="fmHost"></div>
+
+<div class="doc">
+
+<div class="masthead">
+  <h1>The site header — one component, five page types, two widths</h1>
+  <p><b>The bar is the lockup plus three items: Home · About · Games.</b> Contact has left it.
+  The lockup is back to <b>two stacked lines, still sentence case</b> — see §5 for the four ways
+  to solve the width mismatch and why three of them distort the type.
+  The socials sit in a row above the bar on the home page and slide <i>into</i> the bar as that
+  row scrolls away. The availability line is a <b>hero</b> element above the <code>&lt;h1&gt;</code>,
+  not header furniture. The four moods have left the header entirely for a dock under the head
+  they act on.</p>
+  <p><b>One component, every page.</b> The specimen recommended a pill on home and a ledge on
+  case studies; that is the current bug wearing better paint — <code>index.html</code> and the
+  five case studies already run two different headers. The only per-page differences here are a
+  back arrow, which item is lit, and one attribute for a dark ground.</p>
+  <p>Everything is live. Click <b>the dock</b>, click <b>About</b>, scroll the frames, tab
+  through them. <b>Every 390px view is a real 390px viewport</b>, not a resized window.</p>
+</div>
+
+<div class="rule"></div>
+
+<h2 class="sec">1 · Home — at rest, and after one scroll</h2>
+<p class="dek"><b>Scroll the left frame.</b> The social row leaves and does not come back; the
+bar sticks; the glyphs slide into the bar's trailing slot on <code>--sp-quick</code>. Contact is
+never off screen and never costs a second row.</p>
+
+<div class="pair">
+  <div>
+    <div class="frameLbl"><b>Home</b><span>· <code>data-nav="home"</code> · social row + sticky bar</span></div>
+    <div class="frame tall" data-sim="home" data-nav="home"></div>
+    <p class="note"><b>Home stays lit at the top and scrolled down among the case studies</b> —
+    the work lives on Home, so there is nothing else for the scroll position to mean. That is why
+    there is no fourth "Work" slot. The capsule above the headline is the hero's, not the
+    header's: it is <code>.heroAvail</code> restyled, in its existing position, keeping its
+    existing entrance.</p>
+  </div>
+  <div>
+    <div class="frameLbl"><b>Home, About open</b><span>· <code>data-nav="about"</code> · an overlay, not a route</span></div>
+    <div class="frame tall" data-sim="about" data-nav="about"></div>
+    <p class="note"><b>About is a state, not a destination.</b> It is a <code>&lt;button
+    aria-expanded&gt;</code> that toggles the existing takeover, so it takes
+    <code>aria-current="true"</code> (this is the current thing) rather than
+    <code>aria-current="page"</code> (this URL). The lockup grows its back arrow while the overlay
+    is open — which is what retires <code>.heroBack</code> and <code>.navTitle</code>.
+    <b>Known cost:</b> About still has no shareable URL.</p>
+  </div>
+</div>
+
+<div class="rule"></div>
+
+<h2 class="sec">2 · The mood dock — under the head, on the grid</h2>
+<p class="dek">The four moods were sitting in the site header, acting on something 400px below
+it. They are now a child of the hero grid's centre column, directly under the head — not an
+absolutely-positioned corner element, which is what <code>.faceMoodCorner</code>
+(<code>right:-14px</code>) is today. <b>Click it, then pick a mood.</b> Nothing was collapsed and
+nothing was reordered: the four moods, the separator, Add your head, Add an egghead, the
+saved-heads grid and Show on home are in the order they ship in.</p>
+<div class="pair">
+  <div>
+    <div class="frameLbl"><b>Dock open</b><span>· moods first, roster below the separator</span></div>
+    <div class="frame tall" data-sim="home" data-nav="home" data-open="mood"></div>
+  </div>
+  <div>
+    <p class="note" style="max-width:none">
+    <b>Where the roster went.</b> Games is a page now, so the Play menu no longer exists to hold
+    anything. The moods went where Jayden asked. <b>Add your head, Add an egghead, the saved-heads
+    grid and Show on home came with them</b>, below a separator, because they act on the same
+    object: the heads on this screen. They are head controls, not site navigation — the header was
+    the wrong owner for both halves.<br><br>
+    <b>The trigger states the current mood</b> rather than saying "Play": a control and a readout
+    in one slot, so you can see the mood without opening anything.<br><br>
+    <b>One collision to resolve on adoption.</b> <code>.scrollCue</code> sits at
+    <code>bottom:18px</code> in the hero and the dock takes that space. The cue moves below the
+    dock or goes — listed in the report.</p>
+  </div>
+</div>
+
+<div class="rule"></div>
+
+<h2 class="sec">3 · The other three page types</h2>
+<p class="dek">No social row on a sub-page — one bar, 48px, glyphs already inside it. The row is
+a home-page letterhead; on a case study it would be a second layer between a visitor and the
+work.</p>
+
+<div class="pair">
+  <div>
+    <div class="frameLbl"><b>Case study</b><span>· <code>data-nav="home"</code> · chapter rail at left</span></div>
+    <div class="frame" data-sim="case" data-nav="home"></div>
+    <p class="note">The rail is sticky under the bar (<code>top: calc(var(--nav-h) + 26px)</code>).
+    Scroll the frame: nothing collides, and the bar's shadow deepens once content passes beneath
+    it — the one and only thing that changes on scroll.</p>
+  </div>
+  <div>
+    <div class="frameLbl"><b>play.html</b><span>· <code>data-nav="games"</code> · paper, fixed bar</span></div>
+    <div class="frame" data-sim="play" data-nav="games"></div>
+    <p class="note">Games is a real destination now, so it lights like one
+    (<code>aria-current="page"</code>). The arena is full-viewport and must not scroll during a
+    match, so the bar is <code>fixed</code>, not <code>sticky</code> — same object, same geometry.
+    Its wrapper is <code>pointer-events:none</code> with the bar opting back in, so it never eats
+    a tap meant for the pitch.</p>
+  </div>
+</div>
+
+<div style="height:26px"></div>
+
+<div class="pair">
+  <div>
+    <div class="frameLbl"><b>gradientlab.html</b><span>· <code>data-surface="ink"</code> · <code>data-nav</code> unset</span></div>
+    <div class="frame" data-sim="lab" data-nav="none"></div>
+    <p class="note"><b>Nothing is lit, and that is the answer.</b> The Lab is
+    <code>noindex</code> and is not in the nav, so forcing an active item would be a lie. Dark
+    glass rather than a white pill because the stage colour is whatever the user dials in — white
+    ink on <code>--mat-i3</code> clears 4.5:1 over a white ground <i>and</i> over near-black. The
+    existing <code>pointer-events:none</code> header contract is preserved exactly.</p>
+  </div>
+  <div>
+    <div class="frameLbl"><b>What the bar carries, per page</b><span>· generated from the same table the component reads</span></div>
+    <div class="measure" id="matrix"></div>
+  </div>
+</div>
+
+<div class="rule"></div>
+
+<h2 class="sec">4 · 390px — the design case, not the check</h2>
+<p class="dek">Real 390px viewports. <b>Three items and the lockup fit inline</b>, which means
+<code>.navBurger</code>, <code>aside.navDrawer</code>, <code>.ndLink</code> and
+<code>.navScrim</code> can be deleted outright — a whole mobile component retired, not
+restyled. Numbers below are read live off these frames.</p>
+
+<div class="mobRow">
+  <div class="mob">
+    <iframe title="Home at 390" src="header-prototype.html?frame=home&cb=30" loading="eager"></iframe>
+    <p><b>Home, at rest.</b> Social row, bar, capsule, headline, head, dock. One layer of header
+    furniture, not three.</p>
+  </div>
+  <div class="mob">
+    <iframe title="Home scrolled at 390" src="header-prototype.html?frame=home&scrolled=1&cb=30" loading="eager"></iframe>
+    <p><b>Home, scrolled.</b> Row gone, bar alone. <b>The glyphs do not slide in here</b> — see
+    the measurement below.</p>
+  </div>
+  <div class="mob">
+    <iframe title="Case study at 390" src="header-prototype.html?frame=case&cb=30" loading="eager"></iframe>
+    <p><b>Case study.</b> Back arrow + full lockup + Home (lit) + About + Games, inline. The
+    reference portfolio has no back affordance at all at this width.</p>
+  </div>
+  <div class="mob">
+    <iframe title="Mood dock at 390" src="header-prototype.html?frame=home&open=mood&cb=30" loading="eager"></iframe>
+    <p><b>The dock at 390.</b> The head is proportionally much bigger here, so the dock sits
+    directly under it and the panel opens downward, centred, clamped to
+    <code>100vw − 32px</code>.</p>
+  </div>
+  <div class="mob">
+    <iframe title="play.html at 390" src="header-prototype.html?frame=play&cb=30" loading="eager"></iframe>
+    <p><b>play.html.</b> Fixed, centred, one row. The pitch keeps the whole screen below it and
+    the page never scrolls.</p>
+  </div>
+  <div class="mob">
+    <iframe title="gradientlab at 390" src="header-prototype.html?frame=lab&cb=30" loading="eager"></iframe>
+    <p><b>Gradient Lab.</b> <code>--blur-1/2</code> are already <code>0px</code> below 760px, so
+    the paper bar costs one tint and no blur; the ink variant keeps <code>--blur-3</code>, which
+    that query does not zero.</p>
+  </div>
+</div>
+
+<div class="measure" id="heights">measuring…</div>
+
+<div class="rule"></div>
+
+<h2 class="sec">5 · The lockup — what was measured</h2>
+<div class="pair">
+  <div>
+    <div class="measure" id="lockup">measuring…</div>
+  </div>
+  <div>
+    <p class="note" style="max-width:none">
+    <b>Two stacked lines, sentence case, ragged right, flush left.</b> Instrument Sans 600,
+    both lines at one size and one tracking, <code>--tr-mark</code>. No monogram, no glyph, no
+    drawn mark, present at 390px on every page.<br><br>
+    <b>The rag is the design, not a compromise.</b> Width-matching sentence case needs
+    <code>wdth 76.81%</code> against an axis floor of 75 — 1.8pp of headroom, and lowercase bowls
+    and stems distort long before that. Per-line tracking needs +0.19em on "Betts", two textures
+    in one mark. Two optical sizes needs line 2 at 22.1px, which reads as surname emphasis.
+    <b>Holding the texture constant and letting the width fall where it falls is the only one of
+    the four that does not distort something.</b><br><br>
+    <b>It is 45% narrower and 95% taller than the single line</b> — 54.9 × 30.7px against
+    100.1 × 15.7px. That is the presence, and the narrowing is what paid for the mail glyph in
+    the 390px bar.<br><br>
+    <b>Where it sits: leading the bar, and the bar centred on the page.</b> It is the back
+    affordance on every sub-page, and a back control belongs at the leading edge. The five case
+    studies centre it today in a <code>1fr auto 1fr</code> grid — that is exactly what leaves
+    three children stranded at three unrelated x-positions with nothing binding them.<br><br>
+    <b>Optical, not metric.</b> Two corrections, both derived rather than nudged: a baseline
+    correction for mixing 17px and 14px in one row, and a 1px tighter leading inset measured off
+    the sidebearings. Both are in the numbers on the left.<br><br>
+    <b>Four states, not two.</b> Rest, hover, <code>:focus-visible</code> (2px accent ring,
+    2px offset), and <code>:active</code> — <code>scale(.97)</code> on items,
+    <code>scale(.985)</code> on the lockup, because a bigger object needs less scale to read as
+    the same press.</p>
+  </div>
+</div>
+
+<div class="rule"></div>
+
+<h2 class="sec">6 · What earned a slot, and what did not</h2>
+<div class="pair">
+  <div>
+    <p class="note" style="max-width:none;font-size:13.5px">
+    <span class="tag ok">Kept</span><br>
+    <b>The lockup</b>, stacked, at every width, doubling as Back on sub-pages and while the
+    About overlay is open — one slot, two jobs, a real 44 × 44 target.<br>
+    <b>Home · About · Games</b>, the three named.<br>
+    <b>The socials</b>, in the row on home and inside the bar once that row has gone — contact
+    on <b>every</b> page at zero vertical cost, phones included, which the single-line lockup
+    could not afford.</p>
+  </div>
+  <div>
+    <p class="note" style="max-width:none;font-size:13.5px">
+    <span class="tag no">Cut</span><br>
+    <b>1. The second component.</b> The case-study <code>1fr auto 1fr</code> grid and the home
+    <code>flex</code> bar collapse into one.<br>
+    <b>2. Contact.</b> Out of the bar — the socials say it better and say it three ways.<br>
+    <b>3. A separate Back slot.</b> Merged into the lockup.<br>
+    <b>4. Icons on the nav items.</b> The arrow, the caret and the panel icons stay: they state
+    behaviour. Decoration does not.<br>
+    <b>5. The Play disclosure.</b> Games is a page; no menu is left in the header.<br>
+    <b>6. The burger, the drawer, the scrim, <code>.navTitle</code>, <code>.heroBack</code>.</b>
+    Measured to fit inline at 390.<br>
+    <b>7. The footer availability line.</b> It moves into the hero capsule.<br>
+    <b>8. No search.</b> Five case studies is not a corpus.</p>
+  </div>
+</div>
+
+<div class="rule"></div>
+
+<h2 class="sec">7 · Two things to decide</h2>
+<p class="note" style="max-width:82ch">
+<span class="tag q">1</span><b>Home and the lockup go to the same place.</b> Two leading slots,
+one destination. It is defensible — the lockup is brand-and-back, Home is the you-are-here
+indicator, and something has to light up. If you want the bar tighter, the lockup can absorb Home
+and the bar drops to two items. Five-minute change either way.<br><br>
+<span class="tag q">2</span><b>Availability now exists in exactly one place.</b> It comes out of
+the footer and lives in the home hero, so a recruiter who lands straight on a case study never
+sees it. Cheapest fix if you want one: the same capsule above each case-study
+<code>&lt;h1&gt;</code>. It is the same component and costs one line of markup per page.</p>
+
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* ── glyphs: the exact paths already in index.html's About section ────────── */
+var G={
+  mail:'<svg class="jbGlyph" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4.5h18c.55 0 1 .45 1 1v13c0 .55-.45 1-1 1H3c-.55 0-1-.45-1-1v-13c0-.55.45-1 1-1Zm1.4 1.5L12 11.6 19.6 6H4.4ZM20 7.4l-7.4 5.5a1 1 0 0 1-1.2 0L4 7.4V18h16V7.4Z"/></svg>',
+  li:'<svg class="jbGlyph" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.34V9h3.42v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29zM5.34 7.43a2.06 2.06 0 1 1 0-4.13 2.06 2.06 0 0 1 0 4.13zM7.12 20.45H3.55V9h3.57v11.45zM22.22 0H1.77C.8 0 0 .78 0 1.74v20.52C0 23.22.8 24 1.77 24h20.45c.98 0 1.78-.78 1.78-1.74V1.74C24 .78 23.2 0 22.22 0z"/></svg>',
+  ig:'<svg class="jbGlyph" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>',
+  arrow:'<svg class="jbArrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6l6 6"/></svg>',
+  caret:'<svg class="jbCaret" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6l6 -6"/></svg>',
+  head:'<svg class="jbIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0"/><path d="M16 19h6"/><path d="M19 16v6"/><path d="M6 21v-2a4 4 0 0 1 4 -4h4"/></svg>',
+  egg:'<svg class="jbIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 14.083c0 4.154 -2.966 6.74 -7 6.917c-4.2 0 -7 -2.763 -7 -6.917c0 -5.538 3.5 -11.09 7 -11.083c3.5 .007 7 5.545 7 11.083"/></svg>'
+};
+var SOCIALS=[
+  ['mail','mailto:jaydenlbetts@gmail.com','Email Jayden Betts'],
+  ['li','https://www.linkedin.com/in/jaydenbetts','Jayden Betts on LinkedIn — opens in a new tab'],
+  ['ig','https://www.instagram.com/jaydenleebetts','Jayden Betts on Instagram — opens in a new tab']
+];
+var MOODS=[['Empathy','#5E7FB5'],['Hunger','#C08A3E'],['Delight','#8E6FC4'],['Love','#C05A6E']];
+var AVAIL='Based in San Francisco · Open to full-time roles';
+
+/* ── the page-type table. This IS the whole configuration surface. ───────── */
+var CTX={
+  home:      {back:false, surface:'paper', row:true,  dock:true , hero:true },
+  about:     {back:true,  surface:'paper', row:true,  dock:true , hero:true },
+  "case":    {back:true,  surface:'paper', row:false, dock:false, hero:false},
+  play:      {back:true,  surface:'paper', row:false, dock:false, hero:false},
+  headmaker: {back:true,  surface:'paper', row:false, dock:false, hero:false},
+  lab:       {back:true,  surface:'ink',   row:false, dock:false, hero:false}
+};
+/* aria-current: "page" where the URL matches exactly, "true" where the item
+   names a section you are inside, or an overlay that is currently open. */
+var CURRENT={home:{home:'true'},about:{about:'true'},"case":{home:'true'},
+  play:{games:'page'},headmaker:{games:'true'},lab:{}};
+
+var uid=0;
+
+function socialsHTML(cls){
+  return '<span class="'+cls+'">'+SOCIALS.map(function(s){
+    return '<a data-soc="'+s[0]+'" href="'+s[1]+'"'
+      +(s[0]==='mail'?'':' target="_blank" rel="noopener noreferrer"')
+      +' aria-label="'+s[2]+'">'+G[s[0]]+'</a>';
+  }).join('')+'</span>';
+}
+
+function navHTML(ctxName){
+  var c=CTX[ctxName]||CTX.home, cur=CURRENT[ctxName]||{};
+  function mark(k){return cur[k]?' aria-current="'+cur[k]+'"':''}
+  var h='<nav class="jbNav'+(c.row?'':' hasSoc')+'" aria-label="Primary" data-surface="'
+    +c.surface+'"'+(c.back?' data-back="1"':'')+'>';
+  h+='<a class="jbHome" href="index.html" aria-label="'
+    +(c.back?'Back — Jayden Betts, home':'Jayden Betts, home')+'">'
+    /* two spans, mirroring index.html's existing .logoLine/.logoL1/.logoL2 so
+       adoption is a class rename rather than a restructure */
+    +(c.back?G.arrow:'')
+    +'<span class="jbMark" aria-hidden="true"><span class="jbL1">Jayden</span>'
+    +'<span class="jbL2">Betts</span></span></a>';
+  h+='<span class="jbSep" aria-hidden="true"></span>';
+  h+='<a data-nav-item="home" href="index.html"'+mark('home')+'>Home</a>';
+  /* About is a BUTTON: it toggles the existing in-page overlay, not a route. */
+  h+='<button data-nav-item="about" type="button" aria-expanded="'+(ctxName==='about')+'"'
+    +mark('about')+'>About</button>';
+  h+='<a data-nav-item="games" href="play.html"'+mark('games')+'>Games</a>';
+  h+='<span class="jbBarSep" aria-hidden="true"></span>';
+  h+=socialsHTML('jbBarSoc');
+  return h+'</nav>';
+}
+
+function dockHTML(){
+  var id='jbDock'+(++uid);
+  var h='<div class="jbDock"><button class="jbDockBtn" type="button" aria-expanded="false" '
+    +'aria-controls="'+id+'" aria-label="Mood and heads">'
+    +'<span class="jbDot" style="background:'+MOODS[0][1]+'"></span>'
+    +'<span class="jbDockLbl">'+MOODS[0][0]+'</span>'+G.caret+'</button>';
+  h+='<div class="jbPanel" id="'+id+'" role="group" aria-label="Mood and heads">';
+  MOODS.forEach(function(m,i){
+    h+='<button class="jbMood" type="button" role="switch" aria-checked="'+(i===0)+'" data-mood="'+m[0]+'">'
+      +'<span class="jbDot" style="background:'+m[1]+'"></span>'+m[0]+'</button>';
+  });
+  h+='<div class="jbSepH" aria-hidden="true"></div>';
+  h+='<a href="headmaker.html">'+G.head+'Add your head</a>';
+  h+='<button type="button">'+G.egg+'Add an egghead</button>';
+  h+='<div class="jbHeads" role="group" aria-label="Your saved heads">'
+    +'<b style="background:linear-gradient(140deg,#5D7A6B,#95B0A2)"></b>'
+    +'<b style="background:linear-gradient(140deg,#8A6A4B,#C0A184)"></b>'
+    +'<b style="background:linear-gradient(140deg,#5B6480,#98A0B8)"></b></div>';
+  h+='<button class="jbTog" type="button" role="switch" aria-checked="true">'
+    +'<span class="jbTrack" aria-hidden="true"><span class="jbKnob"></span></span>Show on home</button>';
+  return h+'</div></div>';
+}
+
+function simHTML(kind){
+  if(kind==='home'||kind==='about'){
+    var head=(kind==='about')
+      ? '<div class="simHead" style="background:radial-gradient(120% 110% at 32% 26%,#A9A398,#5F5A52)"></div>'
+      : '<div class="simHead"></div>';
+    var copy=(kind==='about')
+      ? '<h3>Hi — I’m Jayden. I design products people actually finish using.</h3>'
+      : '<h3>I design products that feel like someone was thinking about you.</h3>';
+    return '<div class="simHome">'
+      +'<p class="heroAvail"><i aria-hidden="true"></i>'+AVAIL+'</p>'
+      +copy+head+dockHTML()
+      +'<div class="simGrid"><div class="simCard"></div><div class="simCard"></div>'
+      +'<div class="simCard"></div><div class="simCard"></div>'
+      +'<div class="simCard"></div><div class="simCard"></div></div>'
+      +'<div style="order:6;height:200px"></div></div>';
+  }
+  if(kind==='case'){
+    return '<div class="simCase"><div class="simRail" aria-hidden="true">'
+      +'<i class="on"></i><i></i><i></i><i></i><i></i></div><div>'
+      +'<div class="simEyebrow">Apollo</div><h3>Make the invisible visible.</h3>'
+      +'<div class="simShot"></div>'
+      +'<p class="simP">Apollo is a social app that makes the invisible visible. You capture your '
+      +'daily wins, big or small, and they become a gorgeous post your close friends witness.</p>'
+      +'<p class="simP">Designed from the ground up for the way ADHD brains actually work: no '
+      +'streaks, no shame, no doomscroll.</p>'
+      +'<div class="simShot" style="margin-top:22px;background:linear-gradient(150deg,#7A5C86,#C1A2CC)"></div>'
+      +'<p class="simP">Scroll — the rail stays clear of the bar and the bar lifts off the page.</p>'
+      +'<div style="height:120px"></div></div></div>';
+  }
+  if(kind==='play'){
+    return '<div class="simArena"><div class="simTurf"></div>'
+      +'<span class="ball" style="left:16%;top:44%;width:52px;height:52px;background:radial-gradient(120% 110% at 32% 26%,#B9B0A4,#6E675E);box-shadow:var(--sh-2)"></span>'
+      +'<span class="ball" style="left:44%;top:58%;width:42px;height:42px;background:radial-gradient(120% 110% at 32% 26%,#A9B4A0,#5F6A58);box-shadow:var(--sh-2)"></span>'
+      +'<span class="ball" style="left:70%;top:38%;width:58px;height:58px;background:radial-gradient(120% 110% at 32% 26%,#C4A98F,#7A6350);box-shadow:var(--sh-2)"></span>'
+      +'<span class="ball" style="left:55%;top:74%;width:19px;height:19px;background:#FDFDFD;box-shadow:var(--rim-2),var(--sh-1)"></span></div>';
+  }
+  if(kind==='lab'){
+    return '<div class="simLab"><div class="simLabPanel"><i></i><i></i><i></i><i></i></div></div>';
+  }
+  return '';
+}
+
+function build(host,kind){
+  var c=CTX[kind]||CTX.home;
+  var fixed=(kind==='play'||kind==='lab');
+  var chrome;
+  chrome=(c.row?'<div class="jbTop">'+socialsHTML('jbSocials')+'</div>':'')
+    +'<div class="stick"'+(fixed?' style="position:absolute;top:0;left:0;right:0"':'')
+    +'>'+navHTML(kind)+'</div>';
+  host.innerHTML=chrome+simHTML(kind);
+
+  var nav=host.querySelector('.jbNav');
+  wireAbout(nav);
+  var dock=host.querySelector('.jbDock');
+  if(dock)wireDock(dock,host);
+  /* setTimeout, not requestAnimationFrame: rAF does not fire in a hidden or
+     throttled tab, which is exactly how these frames get screenshotted. */
+  var av=host.querySelector('.heroAvail');
+  if(av)setTimeout(function(){
+    /* a hidden or throttled tab freezes the transition timeline at t=0, which
+       is how a screenshot ends up with an invisible capsule. Skip the entrance
+       when nobody is watching it. */
+    if(document.visibilityState!=='visible')av.style.transition='none';
+    av.classList.add('in');
+  },40);
+
+  if(!fixed){
+    /* THE SCROLL RULE, in full: the social row scrolls away (it is in flow and
+       nothing pins it), the bar sticks, the bar's shadow deepens once content
+       passes under it, and above 640px the glyphs condense into the bar as the
+       row leaves. Nothing hides. Nothing re-appears. */
+    var row=host.querySelector('.jbTop .jbSocials');
+    host.addEventListener('scroll',function(){
+      var y=host.scrollTop;
+      nav.classList.toggle('isLifted',y>8);
+      /* no width guard any more: the stacked lockup freed enough of the 390px
+         budget that the condense works at every width (one glyph below 640,
+         three above) — see the ≤640 block in the component CSS. */
+      if(row)nav.classList.toggle('hasSoc',y>row.getBoundingClientRect().height+14);
+    },{passive:true});
+  }
+  return nav;
+}
+
+/* ── About: a disclosure over the existing overlay, full keyboard path ────── */
+function wireAbout(nav){
+  var btn=nav.querySelector('[data-nav-item="about"]'); if(!btn)return;
+  btn.addEventListener('click',function(){
+    var open=btn.getAttribute('aria-expanded')==='true';
+    btn.setAttribute('aria-expanded',String(!open));
+    /* production: this toggles body.about-open and flips body[data-nav].
+       here the host attribute flips so the active state is visibly live. */
+    var host=nav.closest('[data-nav]')||document.body;
+    host.setAttribute('data-nav',open?(host.getAttribute('data-nav-rest')||'home'):'about');
+    if(open)btn.removeAttribute('aria-current');else btn.setAttribute('aria-current','true');
+    var home=nav.querySelector('.jbHome');
+    if(home){
+      if(!open&&!nav.hasAttribute('data-back')){
+        nav.setAttribute('data-back','tmp');
+        home.insertAdjacentHTML('afterbegin',G.arrow);
+        home.setAttribute('aria-label','Back — Jayden Betts, home');
+      }else if(open&&nav.getAttribute('data-back')==='tmp'){
+        nav.removeAttribute('data-back');
+        var a=home.querySelector('.jbArrow'); if(a)a.remove();
+        home.setAttribute('aria-label','Jayden Betts, home');
+      }
+    }
+  });
+  document.addEventListener('keydown',function(e){
+    if(e.key==='Escape'&&btn.getAttribute('aria-expanded')==='true')btn.click();
+  });
+}
+
+/* ── the mood dock ────────────────────────────────────────────────────────── */
+function wireDock(dock,host){
+  var btn=dock.querySelector('.jbDockBtn'),panel=dock.querySelector('.jbPanel');
+  function items(){return [].slice.call(panel.querySelectorAll('a,button'))}
+  function isOpen(){return btn.getAttribute('aria-expanded')==='true'}
+  /* At 390 the head is proportionally much bigger, so the dock sits low and a
+     380px panel would run off the bottom. Clamp to the space that is actually
+     there and let the panel scroll inside itself — measured at open time,
+     because the dock's y depends on the head's fluid size. */
+  function clamp(){
+    panel.style.maxHeight='';
+    var top=btn.getBoundingClientRect().bottom+10;
+    var room=Math.round((window.innerHeight||600)-top-12);
+    if(room<panel.scrollHeight)panel.style.maxHeight=Math.max(200,room)+'px';
+    panel.style.overflowY=panel.style.maxHeight?'auto':'';
+  }
+  function open(f){panel.classList.add('isOpen');btn.setAttribute('aria-expanded','true');
+    clamp();if(f)items()[0].focus()}
+  function close(r){panel.classList.remove('isOpen');btn.setAttribute('aria-expanded','false');if(r)btn.focus()}
+  btn.addEventListener('click',function(e){e.stopPropagation();isOpen()?close(false):open(false)});
+  btn.addEventListener('keydown',function(e){
+    if(e.key==='ArrowDown'){e.preventDefault();isOpen()?items()[0].focus():open(true)}
+  });
+  panel.addEventListener('keydown',function(e){
+    var list=items(),i=list.indexOf(document.activeElement);
+    if(e.key==='Escape'){e.preventDefault();close(true)}
+    else if(e.key==='ArrowDown'){e.preventDefault();list[(i+1)%list.length].focus()}
+    else if(e.key==='ArrowUp'){e.preventDefault();list[(i-1+list.length)%list.length].focus()}
+  });
+  panel.addEventListener('click',function(e){
+    e.stopPropagation();
+    var mood=e.target.closest('.jbMood');
+    if(mood){
+      panel.querySelectorAll('.jbMood').forEach(function(m){m.setAttribute('aria-checked','false')});
+      mood.setAttribute('aria-checked','true');
+      var col=mood.querySelector('.jbDot').style.background;
+      btn.querySelector('.jbDot').style.background=col;
+      btn.querySelector('.jbDockLbl').textContent=mood.dataset.mood;
+      var h=host.querySelector('.simHead');
+      if(h)h.style.boxShadow='0 0 0 7px '+col+'2E, var(--sh-3)';
+      return;
+    }
+    var t=e.target.closest('.jbTog');
+    if(t)t.setAttribute('aria-checked',t.getAttribute('aria-checked')==='true'?'false':'true');
+  });
+  dock.addEventListener('focusout',function(e){
+    if(isOpen()&&!dock.contains(e.relatedTarget))close(false);
+  });
+  document.addEventListener('click',function(){if(isOpen())close(false)});
+}
+
+/* ── boot ─────────────────────────────────────────────────────────────────── */
+var q=new URLSearchParams(location.search), frame=q.get('frame');
+
+if(frame&&CTX[frame]){
+  document.body.classList.add('frameMode');
+  document.body.setAttribute('data-nav',(CURRENT[frame]&&Object.keys(CURRENT[frame])[0])||'none');
+  var fh=document.getElementById('fmHost');
+  build(fh,frame);
+  document.title='Header — '+frame;
+  if(q.get('scrolled')){
+    var n=0,to=setInterval(function(){
+      fh.scrollTop=Math.max(190,fh.scrollTop);
+      fh.dispatchEvent(new Event('scroll'));
+      if(++n>12||fh.scrollTop>=190)clearInterval(to);
+    },80);
+  }
+  if(q.get('open')==='mood'){
+    var db=fh.querySelector('.jbDockBtn');
+    if(db)setTimeout(function(){db.click()},80);
+  }
+}else{
+  [].slice.call(document.querySelectorAll('[data-sim]')).forEach(function(f){
+    f.setAttribute('data-nav-rest',f.getAttribute('data-nav'));
+    build(f,f.getAttribute('data-sim'));
+    if(f.getAttribute('data-open')==='mood'){
+      var db=f.querySelector('.jbDockBtn'); if(db)setTimeout(function(){db.click()},100);
+    }
+  });
+
+  var rows=[['home','Home'],['about','Home · About open'],['case','Case study'],
+            ['play','play.html'],['headmaker','headmaker.html'],['lab','gradientlab.html']];
+  document.getElementById('matrix').innerHTML=rows.map(function(r){
+    var c=CTX[r[0]],cur=CURRENT[r[0]],k=Object.keys(cur)[0];
+    return '<b>'+r[1]+'</b> — '+(c.row?'social row + bar':'bar only')
+      +' · '+(c.back?'back arrow':'no arrow')
+      +' · lit: '+(k?k+' <code>aria-current="'+cur[k]+'"</code>':'nothing')
+      +(c.surface==='ink'?' · <b>ink</b>':'')
+      +(c.hero?' · hero capsule':'')+(c.dock?' · mood dock':'');
+  }).join('<br>');
+
+  /* live lockup measurement */
+  (function(){
+    var ctx=document.createElement('canvas').getContext('2d');
+    function M(s,px,w){ctx.font=(w||600)+' '+px+'px "Instrument Sans"';var t=ctx.measureText(s);
+      return{adv:+t.width.toFixed(2),left:+t.actualBoundingBoxLeft.toFixed(2),
+             asc:+t.actualBoundingBoxAscent.toFixed(2),desc:+t.actualBoundingBoxDescent.toFixed(2)}}
+    setTimeout(function(){
+      var el=document.querySelector('.jbNav .jbHome'),cs=getComputedStyle(el);
+      var px=parseFloat(cs.fontSize),lh=parseFloat(cs.lineHeight),ls=parseFloat(cs.letterSpacing);
+      var J=M('Jayden',px),B=M('Betts',px),one=M('Jayden Betts',px),h=M('Home',14,400);
+      var Jt=J.adv+ls*5, Bt=B.adv+ls*4, oneT=one.adv+ls*11;
+      var gap=lh-J.desc-B.asc;                       /* interline INK gap    */
+      var inkH=J.asc+lh+B.desc;                      /* block ink height     */
+      var box=lh*2, inkTop=(16/17*px)+(lh-(20/17*px))/2-J.asc;
+      var drift=((inkTop+inkH/2)-box/2).toFixed(2);  /* optical centring     */
+      var l1=document.querySelector('.jbL1'),l2=document.querySelector('.jbL2');
+      document.getElementById('lockup').innerHTML=
+        '<b>set</b> — 600 · '+px+'px · both lines · <code>--tr-mark</code> '+cs.letterSpacing
+        +' · line-height <code>--mark-lh</code> '+(lh/px).toFixed(3)+'<br>'
+        +'<b>line widths</b> — Jayden <b>'+Jt.toFixed(2)+'px</b> · Betts <b>'+Bt.toFixed(2)
+        +'px</b> · rag '+(Jt-Bt).toFixed(2)+'px<br>'
+        +'<b>block</b> — <b>'+Jt.toFixed(1)+' × '+inkH.toFixed(1)+'px</b>, against the single '
+        +'line’s '+oneT.toFixed(1)+' × '+(one.asc+one.desc).toFixed(1)+'px. '
+        +'<b>'+Math.round((1-Jt/oneT)*100)+'% narrower, '
+        +Math.round((inkH/(one.asc+one.desc)-1)*100)+'% taller.</b><br>'
+        +'<b>why not font-stretch</b> — Betts ÷ Jayden = <b>'+(B.adv/J.adv).toFixed(4)
+        +'</b> at every size, so width-matching needs wdth <b>76.81%</b> against an axis floor of '
+        +'75. 1.8pp of headroom, and lowercase distorts long before that.<br>'
+        +'<b>interline ink gap</b> — line-height '+lh.toFixed(2)+' − “y” descender '+J.desc
+        +' − “Betts” ascent '+B.asc+' = <b>'+gap.toFixed(2)+'px</b> ('+(gap/px).toFixed(3)
+        +'em). The shipped 1.04 gave 0.03em — the y touching the B.<br>'
+        +'<b>optical flush-left</b> — “B” sidebearing '+B.left+'px vs “J” '+J.left
+        +'px, so metric alignment sets line 2 <b>'+(J.left-B.left).toFixed(2)
+        +'px</b> too far right. Corrected by <code>--mark-flush</code>; measured live at '
+        +(l1&&l2?(l2.getBoundingClientRect().left-l1.getBoundingClientRect().left).toFixed(2):'—')
+        +'px between the two rendered lines.<br>'
+        +'<b>leading inset</b> — “J” '+J.left+'px vs “Home” '+h.left+'px, so a metric 12px reads '
+        +'~1px wider on the mark. <code>--mark-inset</code> = <b>11px</b>.<br>'
+        +'<b>baseline correction</b> — <b>none needed</b>: the stacked block is centred to within '
+        +'<b>'+drift+'px</b> of its own box, because Jayden’s ascender above line 1 balances '
+        +'Betts’s near-zero descender below line 2. Stacking retired the −1.06px single-line fix.<br>'
+        +'<b>target</b> — '+Math.round(el.getBoundingClientRect().width)+' × '
+        +Math.round(el.getBoundingClientRect().height)+', bar '
+        +Math.round(document.querySelector('.jbNav').getBoundingClientRect().height)+'px.';
+    },600);
+  })();
+
+  /* live 390 measurement — retries until every frame has painted */
+  var tries=0;
+  (function measure(){
+    var out=[],fr=[].slice.call(document.querySelectorAll('.mob iframe')),ready=true;
+    fr.forEach(function(f){
+      try{
+        if(!f.contentDocument||!f.contentDocument.querySelector('.jbNav'))ready=false;
+      }catch(e){ready=false}
+    });
+    if(!ready&&tries++<30){setTimeout(measure,400);return}
+    fr.forEach(function(f){
+      try{
+        var d=f.contentDocument,n=d.querySelector('.jbNav');
+        var chromeBottom=Math.round(n.getBoundingClientRect().bottom+12);
+        var tg=[].slice.call(n.querySelectorAll('a,button')).filter(function(e){return e.offsetParent});
+        var min=Math.min.apply(null,tg.map(function(e){return Math.round(e.getBoundingClientRect().width)}));
+        out.push('<b>'+f.title.replace(' at 390','')+'</b> — bar '
+          +Math.round(n.getBoundingClientRect().width)+'px of '+(d.documentElement.clientWidth-32)
+          +'px available · chrome above content <b>'+chromeBottom+'px</b> ('
+          +(chromeBottom/812*100).toFixed(1)+'% of a 390 × 812 screen) · smallest target '
+          +min+' × 44 · overflow: '+(d.documentElement.scrollWidth>390?'<b>YES</b>':'none'));
+      }catch(e){out.push('measure failed: '+e)}
+    });
+    out.push('<br><b>The read.</b> One row of header furniture, about 60px, on every page at every '
+      +'scroll position — the home page adds a 42px social row that one scroll gesture retires. '
+      +'That is affordable. Three stacked layers would not have been, which is why the availability '
+      +'capsule belongs to the hero and not to the header. <b>The glyphs deliberately do not '
+      +'condense into the bar at 390 — and now they do</b>. The single-line lockup spent 127 of '
+      +'the 358px budget on the leading slot and left no room; the stacked block spends 91, and '
+      +'one 44px glyph plus its rule fits with ~12px still spare. <b>Email is now reachable from '
+      +'the header on every page at every width.</b> A second glyph is +48 and does not fit, so '
+      +'LinkedIn and Instagram stay in the home row above the bar.');
+    document.getElementById('heights').innerHTML=out.join('<br>');
+  })();
+}
+})();
+</script>
+</body>
+</html>

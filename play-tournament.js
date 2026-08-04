@@ -77,6 +77,23 @@ function roundLabel(teamsLeft) {
   return 'Round of ' + teamsLeft;
 }
 
+/* THE THIRD-PLACE PLAYOFF lives OUTSIDE br.rounds, addressed by the round id '3p'.
+   It is OPT-IN as of 2026-08-04 (`buildBracket(seeds, {third:true})`) and the cup does not
+   ask for it. Jayden, looking at the shipped board: "Too much random unnecessary elements."
+   A bronze match is a fourth labelled group wedged between the semi-finals and the final, and
+   it is the one group on the board whose winner does not go on to anything -- so the schedule
+   read as four rounds when the cup has three. The core still builds and propagates it
+   correctly for any caller that wants it; nothing here does.
+   It is not a round: it has one match, it is not fed by the round before it, and nothing
+   is fed by it. Putting it in the array would have made br.rounds.length lie -- and
+   `nm.round === br.rounds.length - 1` is what the whole UI uses to mean "this is the
+   final" (gold ball, poster, 10.5s celebration). A string round id can never equal a
+   number, so every one of those tests answers "no" for the playoff without being touched.
+   Read any match through matchAt() rather than indexing br.rounds directly. */
+function matchAt(br, round, index) {
+  return round === '3p' ? br.third : br.rounds[round].matches[index];
+}
+
 // Recompute every round after the first from the round before it. Byes auto-advance here,
 // recursively, which is why this runs at BUILD time and again after every recorded result --
 // "setting a BYE is not enough", the opponent has to be walked forward.
@@ -94,11 +111,25 @@ function propagate(br) {
       m.winner = (kept !== undefined && kept !== null && (kept === m.a || kept === m.b)) ? kept : undefined;
     }
   }
+  /* The playoff is re-derived the same way every other downstream node is: from the two
+     semi-final results, never patched in place. A semi that is still open, or one decided
+     by a walkover, yields no loser -- so the playoff simply stays unplayable rather than
+     inventing a competitor. */
+  if (br.third) {
+    const sf = br.rounds[br.rounds.length - 2].matches, kept = br.third.winner;
+    const lose = function (m) {
+      return (m.winner === undefined || m.winner === BYE || m.a === undefined || m.b === undefined)
+        ? undefined : (m.winner === m.a ? m.b : m.a);
+    };
+    br.third.a = lose(sf[0]); br.third.b = lose(sf[1]);
+    br.third.winner = (kept !== undefined && kept !== null
+      && (kept === br.third.a || kept === br.third.b)) ? kept : undefined;
+  }
   return br;
 }
 
 // seeds: array of team ids in seed order (index 0 = seed 1).
-function buildBracket(seeds) {
+function buildBracket(seeds, opts) {
   const N = seeds.length;
   if (N < 2) throw new Error('need at least 2 teams');
   const B = bracketSize(N);
@@ -122,22 +153,83 @@ function buildBracket(seeds) {
     }
     rounds.push({ label: roundLabel(count * 2), matches });
   }
-  return propagate({ N, B, byes: B - N, rounds });
+  /* seeds are kept so the finishing table can tiebreak by seed without being handed the
+     roster a second time -- the bracket already knows the draw order. */
+  const br = { N, B, byes: B - N, seeds: seeds.slice(), rounds };
+  /* A playoff needs two REAL semi-final losers. Skipped when the semi-final IS round one
+     and round one carries byes (N=3), because a walkover has no loser to field. Off unless
+     the caller asks -- see the note on '3p' above. */
+  if (opts && opts.third && rounds.length >= 2 && !(rounds.length === 2 && B - N > 0))
+    br.third = { a: undefined, b: undefined, bye: false, winner: undefined, third: true };
+  return propagate(br);
 }
 
 // The first match still needing to be played (both sides known), or null when done.
+// THE PLAYOFF JUMPS THE FINAL. Both become playable on the same whistle (the second semi),
+// and a cup that crowns its champion and then goes back to decide third place has thrown
+// away its own ending. So the final is held back until the playoff has been played --
+// which is also the order every real tournament uses.
 function nextMatch(br) {
-  for (let r = 0; r < br.rounds.length; r++) {
+  const last = br.rounds.length - 1;
+  let fin = null;
+  for (let r = 0; r <= last && !fin; r++) {
     const ms = br.rounds[r].matches;
     for (let i = 0; i < ms.length; i++) {
       const m = ms[i];
-      if (m.winner === undefined && m.a !== undefined && m.b !== undefined) return { round: r, index: i, match: m };
+      if (m.winner === undefined && m.a !== undefined && m.b !== undefined) {
+        if (r === last) { fin = { round: r, index: i, match: m }; break; }
+        return { round: r, index: i, match: m };
+      }
     }
   }
-  return null;
+  const t = br.third;
+  if (t && t.winner === undefined && t.a !== undefined && t.b !== undefined)
+    return { round: '3p', index: 0, match: t };
+  return fin;
 }
 
 function champion(br) { return br.rounds[br.rounds.length - 1].matches[0].winner; }
+
+/* ---- FINAL STANDINGS: every competitor, 1..N, no gaps and no ties.
+   Ranks 1-4 are decided by matches that were actually played -- the final settles 1 and 2,
+   the playoff settles 3 and 4. Below that nobody played each other, so the only honest
+   ordering left is HOW FAR THEY GOT, tiebroken by the seed they were drawn at (§3.7:
+   "order by round eliminated, tiebroken by seed"). A bye is not progress that anyone
+   earned, but it IS a round survived, and the seeds that received the byes are the top
+   seeds, so seed order breaks that tie the same way it was made.
+   Safe to call mid-tournament: with no results in, it degrades to pure seed order. ---- */
+function standings(br) {
+  const deepest = new Map();
+  br.seeds.forEach(function (id) { deepest.set(id, -1); });
+  br.rounds.forEach(function (rd, r) {
+    rd.matches.forEach(function (m) {
+      [m.a, m.b].forEach(function (t) {
+        if (t === undefined || t === BYE || !deepest.has(t)) return;
+        if (r > deepest.get(t)) deepest.set(t, r);
+      });
+    });
+  });
+  const seedOf = function (id) { return br.seeds.indexOf(id); };
+  const order = br.seeds.slice().sort(function (x, y) {
+    const d = deepest.get(y) - deepest.get(x);
+    return d || (seedOf(x) - seedOf(y));
+  });
+  const fin = br.rounds[br.rounds.length - 1].matches[0];
+  const ch = fin.winner;
+  const head = [];
+  if (ch !== undefined && ch !== BYE) {
+    head.push(ch);
+    const ru = (ch === fin.a) ? fin.b : fin.a;
+    if (ru !== undefined && ru !== BYE) head.push(ru);
+  }
+  const t = br.third;
+  if (t && t.winner !== undefined && t.winner !== BYE) {
+    head.push(t.winner);
+    const t4 = (t.winner === t.a) ? t.b : t.a;
+    if (t4 !== undefined && t4 !== BYE) head.push(t4);
+  }
+  return head.concat(order.filter(function (id) { return head.indexOf(id) < 0; }));
+}
 
 /* ---- CHAMPION CONFETTI ----------------------------------------------------------------
    Not the one-shot burst the match win uses: this keeps falling for as long as the champion
@@ -223,7 +315,7 @@ window.__hmChampFx = champConfetti;
 
 // Append-only: record a winner, then re-derive everything downstream. Never patch one node.
 function recordWinner(br, round, index, winnerId) {
-  const m = br.rounds[round].matches[index];
+  const m = matchAt(br, round, index);
   if (m.winner !== undefined) throw new Error('match already final');
   if (winnerId !== m.a && winnerId !== m.b) throw new Error('winner not in this match');
   m.winner = winnerId;
@@ -246,7 +338,7 @@ function checkNoDoubleAdvance(br) {
 }
  window.__hmBracket={slotOrder:slotOrder,bracketSize:bracketSize,buildBracket:buildBracket,
   nextMatch:nextMatch,recordWinner:recordWinner,checkNoDoubleAdvance:checkNoDoubleAdvance,
-  roundLabel:roundLabel,champion:champion};
+  roundLabel:roundLabel,champion:champion,matchAt:matchAt,standings:standings};
 })();
 
 (function(){   // ===== TOURNAMENT: teams, squads, stats, bracket =====
@@ -282,15 +374,44 @@ PAL = [
      measure ΔE00 0.36 apart, i.e. identical. This set holds 11.30 under deutan, which is on
      a par with Okabe-Ito (11.67), the CVD reference palette.
      `e` is a darker edge so a pale chip still has an outline on paper -- Carbon's fix. ---- */
-  { n: 'Red',     c: '209,52,21',   ink: '255,255,255', e: '209,52,21'  , who: 'Gus' },
-  { n: 'Gold',    c: '255,220,0',   ink: '18,18,18',    e: '158,108,0'  , who: 'Milo' },
-  { n: 'Green',   c: '70,167,88',   ink: '18,18,18',    e: '42,126,59'  , who: 'Ozzy' },
-  { n: 'Teal',    c: '13,155,138',  ink: '18,18,18',    e: '0,133,115'  , who: 'Dot' },
-  { n: 'Sky',     c: '116,218,248', ink: '18,18,18',    e: '0,116,158'  , who: 'Baz' },
-  { n: 'Blue',    c: '0,144,255',   ink: '18,18,18',    e: '13,116,206' , who: 'Kip' },
-  { n: 'Violet',  c: '101,77,196',  ink: '255,255,255', e: '101,80,185' , who: 'Fitz' },
-  { n: 'Magenta', c: '233,61,130',  ink: '18,18,18',    e: '203,29,99'  , who: 'Chip' }
+  { n: 'Red',     c: '209,52,21',   ink: '255,255,255', e: '209,52,21'  , who: 'Gus' , who2: 'Stan'  },
+  { n: 'Gold',    c: '255,220,0',   ink: '18,18,18',    e: '158,108,0'  , who: 'Milo', who2: 'Wally' },
+  { n: 'Green',   c: '70,167,88',   ink: '18,18,18',    e: '42,126,59'  , who: 'Ozzy', who2: 'Pip'   },
+  { n: 'Teal',    c: '13,155,138',  ink: '18,18,18',    e: '0,133,115'  , who: 'Dot' , who2: 'Rex'   },
+  { n: 'Sky',     c: '116,218,248', ink: '18,18,18',    e: '0,116,158'  , who: 'Baz' , who2: 'Moe'   },
+  { n: 'Blue',    c: '0,144,255',   ink: '18,18,18',    e: '13,116,206' , who: 'Kip' , who2: 'Dex'   },
+  { n: 'Violet',  c: '101,77,196',  ink: '255,255,255', e: '101,80,185' , who: 'Fitz', who2: 'Bram'  },
+  { n: 'Magenta', c: '233,61,130',  ink: '18,18,18',    e: '203,29,99'  , who: 'Chip', who2: 'Nubs'  }
 ];
+
+/* ---- THE SECOND LAP. Twelve teams, eight colours. The brief (§3.3) already accepted that
+   the palette wraps and asked only that the NAMES not wrap with it -- but a wrapped colour
+   is worse than a repeated name: two teams drawn against each other with the identical fill
+   set --tcol1 and --tcol2 to the same value, and the fixture became unreadable.
+   So the second lap is the SAME HUE, DARKENED IN LINEAR LIGHT (x0.22). Linear-light scaling
+   is what the original palette note describes and it moves lightness without touching hue or
+   saturation, so a Deep Red is unmistakably still the red team's shirt. Measured on the
+   resulting set: white text clears 4.5:1 on all eight deep fills (min 4.99, Deep Gold), the
+   deep variant sits dE76 32.7 from its own parent at the closest, and the minimum separation
+   across all sixteen colours is dE76 20.7. Darkening is also the one axis that SURVIVES
+   deuteranopia -- under CVD hue collapses and lightness is the only discriminator left, so
+   the pair a colour-blind viewer can least afford to confuse is the pair this splits widest.
+   Derived, never hand-authored, so the two laps cannot drift apart. */
+function s2l(v){ v /= 255; return v <= 0.04045 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); }
+function l2s(v){ return Math.max(0, Math.min(255, Math.round(255 *
+  (v <= 0.0031308 ? 12.92 * v : 1.055 * Math.pow(v, 1 / 2.4) - 0.055)))); }
+function deepen(c){ return c.split(',').map(function(v){ return l2s(s2l(+v) * 0.22); }).join(','); }
+function palAt(pal8, i){
+  var base = pal8[i % pal8.length];
+  if (i < pal8.length) return base;
+  if (!base.__deep){
+    var d = deepen(base.c);
+    // white ink on every deep fill -- measured above, and the edge IS the fill because a
+    // colour this dark already has all the outline a pale chip needed the edge for
+    base.__deep = { n: 'Deep ' + base.n, c: d, ink: '255,255,255', e: d, who: base.who2 || base.who };
+  }
+  return base.__deep;
+}
 
 // The cup is named after one of the case studies, picked when the tournament is built. It is a
 // portfolio, so the trophy may as well point at the work.
@@ -314,6 +435,7 @@ var CUP_ID={
 /* Round labels speak the CUP's voice. voice = [quarter, semi, final] naming the
    LAST THREE rounds; earlier rounds fall back to 'Round of N'. */
 function roundName(r,total){
+  if(r==='3p')return 'Third place';   // the playoff has no round of its own -- see matchAt()
   var fromEnd=total-1-r;
   var v=(T.id&&T.id.voice)||['Quarter-final','Semi-final','The Final'];
   if(fromEnd===0)return v[2];
@@ -335,7 +457,20 @@ function rgb(c)  { return 'rgb(' + c + ')'; }
 // each member apart fixes the identity AND makes team-mates tellable apart on the pitch.
 function shade(c, amt){ return c.split(',').map(function(v){
   return Math.max(0, Math.min(255, Math.round(+v + amt))); }).join(','); }
-function nextPow2(n){ var b = 1; while (b < n) b *= 2; return b; }
+
+/* THE FIELD IS EIGHT, and the round names follow from it rather than the other way round.
+   It was twelve, which needs a sixteen-slot bracket, which opens the cup with a round called
+   "Round of 16" containing four walkovers. Jayden, looking at it: "What's the round of 16?
+   There are only 8 players -- just have them all play each other in quarter finals, no point
+   of round of 16." He is right, and the fault was the field size, not the label: a bracket
+   whose first round is named for teams that do not exist is the muddle, and no amount of
+   renaming fixes it while four of the sixteen slots are empty.
+
+   Eight is the smallest field that is also a power of two, so B=8, byes=0, and the cup is
+   exactly quarter-final -> semi-final -> final. Seven fixtures, three rounds, no ghost cards.
+   roundName() already derives every label from T.br.rounds.length, so this number is the ONLY
+   place the shape of the cup is decided -- set it to 16 and the board says Round of 16 truly. */
+var FIELD = 8;
 
 function readHeads(){ try { return JSON.parse(localStorage.getItem('hmCompanions') || '[]') || []; } catch (_) { return []; } }
 
@@ -351,9 +486,13 @@ function shuffled(a){ var r = a.slice(); for (var i = r.length - 1; i > 0; i--){
 // power of two are captained by an egghead so the bracket is always full.
 var PIDN = 0;   // player-id counter: monotonic for the life of the page, so no two players ever share one
 function buildTeams(cb){
-  var heads = readHeads().slice(0, 8);
-  var n = Math.min(8, Math.max(2, nextPow2(Math.max(2, heads.length))));
+  var heads = readHeads().slice(0, FIELD);
   var EGG = window.__EGGHEAD;
+  /* Without egg art nobody can be dyed a captain, so the field is only as big as the real
+     heads on hand -- fielding twelve teams eleven of which have no captain would print a
+     draw board of blanks. */
+  var canEgg = !!(EGG && EGG.cut && window.__hmTint);
+  var n = canEgg ? FIELD : Math.max(2, Math.min(FIELD, heads.length + 1));
   var teams = [], pending = 0, done = false;
   var pal8 = shuffled(PAL);   // fresh colour draw per cup
 
@@ -369,9 +508,11 @@ function buildTeams(cb){
   }
 
   caps = shuffled(caps);   // ...and a fresh draw for who starts where in the bracket
+  if (!canEgg) n = Math.max(2, Math.min(n, caps.length));   // only as many teams as there are real captains
 
   for (var i = 0; i < n; i++){
-    var pal = pal8[i % pal8.length];
+    // Past the eighth team the palette wraps onto its own darkened second lap -- see palAt().
+    var pal = palAt(pal8, i);
     // A named head names its team. Colour is the fallback, and stays the visual identity either
     // way (the bar, the ring, the nets), so "Sam vs Grey" still reads unambiguously.
     var cap = caps[i] || null;
@@ -458,7 +599,7 @@ window.__hmTourWin = function(winSide, scoreR, scoreB){
   var c = T.cur, winnerId = c.side[winSide];
   // Keep the scoreline on the fixture. Side 1 is always the match's `a`, side 2 its `b`,
   // so the schedule can render a real result rather than just who advanced.
-  try{ var _m = T.br.rounds[c.round].matches[c.index];
+  try{ var _m = BR.matchAt(T.br, c.round, c.index);
     if (_m && scoreR !== undefined){ _m.sa = scoreR|0; _m.sb = scoreB|0; }
   }catch(_){}
   BR.recordWinner(T.br, c.round, c.index, winnerId);
@@ -512,7 +653,33 @@ window.__hmTourPlayerAt = function(slot){
   return null;
 };
 
-function startFixture(nm){
+/* ---- CASTING A FIXTURE. This block used to run at KICK OFF; it now runs the
+   moment the fixture becomes KNOWN, which is the whole of Jayden's third ask:
+
+     "the mini heads should be there -- like the team that's about to play should
+      be in that screen hanging out around the bottom like it would be on the
+      home screen."
+
+   The comment this replaces read "between fixtures nobody is on the pitch: the
+   bracket screen is not a scene". That assumption is what is being overturned,
+   and three things fall out of overturning it. The squads are already standing
+   when play starts, so the 620ms pop-in wait that used to sit in front of
+   __hmSoccerStart() is gone -- it existed only because they were not there a
+   moment earlier. The versus ritual is performed by the real objects instead of
+   depicted by a card. And the bottom 42svh of the screen, which is otherwise
+   the empty space a full viewport hands you, becomes the stage.
+
+   It is a MOVE, not a rewrite: every line below is the code that was already
+   here. What changed is who calls it -- between() and start(), rather than
+   startFixture() -- and therefore when. The three things that had to move with
+   it and are easy to get wrong: clearSpawned() must fire at the START of the
+   next between(), not before the next cast, or the squads are killed the moment
+   they arrive; the __hmSlotForPid dedupe stays exactly as it is (the `taken`
+   map is the fix for a real own-goal bug and must not be simplified); and
+   hmFinal now lands before the final's match-up screen rather than after it,
+   which is correct -- the gold ball should already be on when you are looking
+   at the fixture that will use it. ---- */
+function cast(nm){
   var A = teamById(nm.match.a), Bm = teamById(nm.match.b);
   if (!A || !Bm) return;
   /* The final gets the gold ball. One class on <body>, so the pitch texture and the ball in
@@ -579,16 +746,23 @@ function startFixture(nm){
     });
   });
   window.__hmTeamSel = sel;
+}
 
-
+/* Kick off. Everything this used to do before blowing the whistle now happened
+   two beats ago in cast(), so all that is left is the whistle -- and the 620ms
+   wait goes with it, because there is no longer a pop-in to hide. The cast()
+   call is a guard, not a second path: it only fires if something started a
+   fixture the screen was not already showing. */
+function startFixture(nm){
+  if (!T.cur || T.cur.round !== nm.round || T.cur.index !== nm.index) cast(nm);
+  if (!T.cur) return;
+  var A = T.cur.a, Bm = T.cur.b;
   paint();
-  setTimeout(function(){
-    try { if (window.__hmSoccerStart) window.__hmSoccerStart(); } catch (_) {}
-    // Name the fixture AFTER kickoff: the scoreboard element does not exist until dom() builds it
-    // on the first start(), so setting it beforehand silently did nothing on fixture one.
-    setTimeout(function(){ try { var tt = document.querySelector('.hmScore .sTitleTxt');
-      if (tt) tt.textContent = A.name + ' vs ' + Bm.name; } catch (_) {} }, 60);
-  }, 620);
+  try { if (window.__hmSoccerStart) window.__hmSoccerStart(); } catch (_) {}
+  // Name the fixture AFTER kickoff: the scoreboard element does not exist until dom() builds it
+  // on the first start(), so setting it beforehand silently did nothing on fixture one.
+  setTimeout(function(){ try { var tt = document.querySelector('.hmScore .sTitleTxt');
+    if (tt) tt.textContent = A.name + ' vs ' + Bm.name; } catch (_) {} }, 60);
 }
 
 function clearSpawned(){
@@ -599,11 +773,17 @@ function clearSpawned(){
   T.teams.forEach(function(tm){ tm.slots = []; });
 }
 
-function benchAll(){   // between fixtures nobody is on the pitch: the bracket screen is not a scene
+/* Everyone off, then cast() calls the two squads that are about to play back on.
+   The old comment here said the bracket screen is not a scene; it is one now, so
+   this is the clean slate the cast is laid on rather than the resting state. */
+function benchAll(){
   var b = {}; (window.__hmSlots ? window.__hmSlots() : []).forEach(function(s){ b[s] = 1; });
   window.__hmBench = b;
 }
 var lastRound = -1;
+/* The bracket's own plain label for a round id, playoff included. Anything reading
+   T.br.rounds[r].label directly breaks on '3p', which has no entry in that array. */
+function rdLabel(r){ return r === '3p' ? 'Third place' : T.br.rounds[r].label; }
 function between(){
   clearSpawned(); benchAll();
   // ROUND BEAT: when the bracket moves up a round, announce it in the middle of the screen the
@@ -611,119 +791,63 @@ function between(){
   // rather than just swapping panels.
   try{ var n0 = BR.nextMatch(T.br);
     if (n0 && n0.round !== lastRound){ lastRound = n0.round;
-      var cE = document.querySelector('.hmCount');
-      if (cE){ cE.classList.add('hmMsg'); cE.textContent = T.br.rounds[n0.round].label;
+      var cE = document.querySelector('.hmCount'), _lbl = rdLabel(n0.round);
+      if (cE){ cE.classList.add('hmMsg'); cE.textContent = _lbl;
         cE.classList.remove('hmCountPulse'); void cE.offsetWidth; cE.classList.add('hmCountPulse');
-        setTimeout(function(){ if (cE.textContent === T.br.rounds[n0.round].label){ cE.textContent=''; cE.classList.remove('hmMsg'); } }, 1900); } }
+        setTimeout(function(){ if (cE.textContent === _lbl){ cE.textContent=''; cE.classList.remove('hmMsg'); } }, 1900); } }
   }catch(_){}
   var nm = BR.nextMatch(T.br);
   if (!nm){ T.phase = 'done'; paint(); return; }
-  T.phase = 'bracket'; paint();
+  T.phase = 'bracket';
+  /* The squads walk on BEFORE the screen that is about to talk about them, so
+     they are already standing there when it settles in. */
+  cast(nm);
+  paint();
 }
 
 // ---------- UI ----------
 var host = null;
 function el(tag, cls, txt){ var e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; }
-function dot(c){ var s = el('span', 'tDot'); s.style.background = rgb(c); return s; }
-// A colour name alone does not say whose team it is -- the captain's face does. Every place a team
-// is named shows the head that leads it, ringed in the team colour.
-function faceOf(tm, cls){
-  // The heads on this site are transparent cut-outs, not avatars. Cropping them into a circle
-  // fought their own silhouette and clipped hair and chins at every size. Show the whole head,
-  // contained, and let the colour bar carry the team identity instead.
-  var w = el('span', 'tFaceW' + (cls ? ' ' + cls : ''));
-  if (tm && tm.captain && tm.captain.cut){
-    var im = el('img'); im.src = tm.captain.portrait || tm.captain.cut; im.alt = ''; im.draggable = false;
-    w.appendChild(im);
-  }
-  return w;
-}
 
-/* ---- THE STADIUM. Two decorative layers behind the draw, both built from things
-   the site already owns. The PITCH is one receding hairline plane: BUCK built the
-   VALORANT Champions package on "a flexible, three-dimensional perspective grid"
-   and moved a camera through it, and a perspective plane is where the depth comes
-   from -- not from shadows stacked on cards. The CROWD is the real head cut-outs,
-   the same ones playing the fixture, sat in the stand bobbing on the site's 8fps
-   clock. Both are aria-hidden: they carry no information, and the names are
-   already in the cards. Seeded off the cup name so a repaint does not reshuffle
-   the crowd mid-tournament. ---- */
-function paintStadium(h){
-  if (!h || h.querySelector('.tPitch')) return;
-  var br = h.querySelector('.tBrMir'); if (!br) return;
-  var pitch = el('div', 'tPitch'); pitch.setAttribute('aria-hidden', 'true');
-  br.insertBefore(pitch, br.firstChild);
+/* ---- THE SCREEN. One fixed element, banded off svh.
 
-  var faces = (T.teams || []).map(function(t){ return t && t.captain && (t.captain.portrait || t.captain.cut); }).filter(Boolean);
-  if (!faces.length) return;
-  var crowd = el('div', 'tCrowd'); crowd.setAttribute('aria-hidden', 'true');
-  // a tiny deterministic PRNG: the same cup always seats the same crowd
-  var seed = 0, cup = String(T.cup || 'cup');
-  for (var c = 0; c < cup.length; c++) seed = (seed * 31 + cup.charCodeAt(c)) >>> 0;
-  function rnd(){ seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; }
-  // Three tiers, so it reads as a stand rather than a dotted line: the front row is
-  // bigger, darker and cropped by the edge; the back rows sit higher, smaller and
-  // fainter. Heads overlap horizontally on purpose -- a crowd is packed, not spaced.
-  // Three REAL rows. The old code cycled tiers with i%3, so the rows interleaved
-  // left-to-right and the bottoms were only 25px apart inside a 74px box -- it measured
-  // as three tiers and read as one jittered line. Now each tier is laid out as its own
-  // row, back to front, with a genuine size/height/softness gradient between them.
-  var TIERS = [
-    { n:13, w:30, b:66, o:0.13, fb:3.2 },   // back  -- small, high, softest
-    { n:11, w:42, b:34, o:0.19, fb:1.9 },   // middle
-    { n: 9, w:58, b: 2, o:0.24, fb:0.9 }    // front -- big and low, but NEVER fully sharp:
-    // a photographic head keeps real mid-tone detail under grayscale, so at blur 0 it was the
-    // one recognisable face in the stand and read as a person standing in front of the bracket
-  ];
-  var fi = 0;
-  TIERS.forEach(function(t, ti){
-    for (var i = 0; i < t.n; i++){
-      var f = el('span', 'tFan');
-      var w = t.w + Math.round(rnd() * (t.w * 0.18));
-      f.style.backgroundImage = 'url("' + faces[fi % faces.length] + '")'; fi++;
-      f.style.width  = w + 'px';
-      f.style.height = Math.round(w * 1.25) + 'px';
-      // spread across the full width, then jitter, so a row never looks like a ruler
-      f.style.left   = ((i + 0.5) / t.n * 108 - 4 + (rnd() - 0.5) * 6).toFixed(2) + '%';
-      f.style.bottom = (t.b + Math.round(rnd() * 6)) + 'px';
-      f.style.zIndex = String(ti + 1);          // front row paints over the back
-      f.style.setProperty('--fb', t.fb.toFixed(1) + 'px');
-      // flat-coloured eggheads collapse to a solid shape under grayscale and read heavier
-      // than a photographic head at the same luminance, so they carry less opacity
-      var flat = /^data:/.test(faces[(fi - 1) % faces.length]) ? 0 : 0.04;
-      f.style.opacity = (t.o + rnd() * 0.04 - flat).toFixed(3);
-      crowd.appendChild(f);
-    }
-  });
-  br.insertBefore(crowd, br.firstChild.nextSibling);
-}
+   It is a child of <body>, not of .hero, and that is the whole fix for the
+   scroll: the old capsule lived inside the 60vh arena and had to be dragged up
+   to the top of the window by --tourShift, a number measured with
+   `hero.getBoundingClientRect().top + window.scrollY` so that it would clear
+   index.html's nav. play.html has no nav in the flow and cannot scroll, so that
+   expression returned half the leftover viewport (180px at 1440x900) and was
+   then spent twice -- once as a negative `top`, once as padding inside the
+   capsule -- producing a 460 x 1243 card in a 900px window whose Kick off
+   button was not merely below the fold but unreachable, because the body has
+   overflow:hidden. There is nothing left to measure now: tournament.css bands
+   the screen off the site header's own height and svh, so syncHero() and
+   --tourShift are both gone. ---- */
 function ensureHost(){
   if (host) return host;
-  host = el('div', 'tourPanel'); host.id = 'tourPanel';
-  (document.querySelector('.hero') || document.body).appendChild(host);
-  if(!document.getElementById('bcSting')){
-    var st=document.createElement('div');st.id='bcSting';st.className='bcSting';
-    st.innerHTML='<b></b>';document.body.appendChild(st);}
+  host = el('div', 'tvScreen'); host.id = 'tvScreen';
+  document.body.appendChild(host);
   return host;
 }
 
-/* Deterministic per-cup randomness: same cup name -> same board every repaint. */
+/* Deterministic per-cup randomness: same cup name -> same board every repaint.
+   Still exported on __bcMat for the SCOREBOARD, which jitters its own card
+   (play-engine.js:1884). Nothing on the match-up screen is randomised any more. */
 function cupRand(seed){var h=2166136261;
   for(var i=0;i<seed.length;i++){h^=seed.charCodeAt(i);h=Math.imul(h,16777619);}
   return function(){h=Math.imul(h^(h>>>15),2246822507);
     h=Math.imul(h^(h>>>13),3266489909);return((h^=h>>>16)>>>0)/4294967296;};}
 
-function bcSheenOnce(el){el.classList.add('bcSheen');
-  requestAnimationFrame(function(){el.classList.add('on');
-    setTimeout(function(){el.classList.remove('on');},800);});}
-
-function bcSting(onCovered){
-  var rm=matchMedia('(prefers-reduced-motion: reduce)').matches;
-  var el=document.getElementById('bcSting');
-  if(rm||!el){try{onCovered();}catch(_){ } return;}
-  el.classList.add('on');
-  setTimeout(function(){try{onCovered();}catch(_){}},350);
-  setTimeout(function(){el.classList.remove('on');},760);}
+/* THE POSTER WIPE IS CANCELLED (2026-08-04). bcSting drove a full-viewport skewed
+   sweep in the cup's paint, and under it the artwork went full-bleed for 700ms with
+   one sheen pass, on every fixture. Jayden, having watched it: "The poster coming
+   over the screen looks like a glitch more than something we should be using."
+   A screen-covering flash that arrives unbidden between two still layouts reads as
+   a repaint fault, not as a transition, and it was doing that seven times a cup.
+   The wipe, the flash element, the sheen, the three poster assets, the per-asset
+   head-placement table and the --fit alpha probe that sized heads into them are all
+   gone with it. The columns still arrive on --sp-settle; that is the whole ceremony
+   now, and it is the one nobody has to forgive. */
 
 function bcJitter(el,rnd,rot,off){
   el.style.transform='rotate('+(((rnd()*2-1)*rot).toFixed(2))+'deg) translate('
@@ -745,414 +869,359 @@ function bcGrainOff(){if(_grainEl&&_grainEl.parentNode)_grainEl.parentNode.remov
    consumers must guard (see Foundations contracts). */
 window.__bcMat={grainOn:bcGrainOn,grainOff:bcGrainOff,jitter:bcJitter,rand:cupRand};
 
-/* A team never contributes just a fill. It contributes a fill, the text colour that is
-   guaranteed to clear 4.5:1 ON that fill, and a darker edge so a pale chip still has an
-   outline on paper. Setting them together is the only way they cannot drift apart. */
-function tint(node, tm){
-  if (!node || !tm) return node;
-  node.style.setProperty('--tc', tm.col);
-  node.style.setProperty('--ti', tm.ink  || '18,18,18');
-  node.style.setProperty('--te', tm.edge || tm.col);
-  return node;
+/* HOW EACH TEAM'S CUP ENDED, in the cup's own voice. The top four are named by the result
+   that settled them (the final and the playoff are real matches, so they get real words);
+   everyone else is named by the round they went out of, which is the only thing the bracket
+   actually knows about them. Returns a lookup rather than a table so paint() stays a
+   renderer. */
+function standingsElim(){
+  var out = {}, total = T.br.rounds.length;
+  T.br.rounds.forEach(function(rd, r){
+    rd.matches.forEach(function(m){
+      if (m.winner === undefined || m.a === undefined || m.b === undefined) return;
+      out[m.winner === m.a ? m.b : m.a] = r;
+    });
+  });
+  return function(id, rank){
+    if (rank === 0) return 'Champion';
+    if (rank === 1) return 'Runner-up';
+    if (T.br.third && T.br.third.winner !== undefined){
+      if (rank === 2) return 'Third place';
+      if (rank === 3) return 'Fourth place';
+    }
+    var r = out[id];
+    return (r === undefined) ? '—' : ('Out · ' + roundName(r, total));
+  };
 }
+
+/* ---- THE CUP'S RUNNING ORDER, in one place. With the bronze match gone this is
+   just the rounds, in order -- but it stays a function rather than an inlined
+   `T.br.rounds.map`, because it is the one place that decides what a "section" of
+   the board is, and the core can still be handed {third:true} by a future caller. */
+function sections(){
+  var total = T.br.rounds.length;
+  var secs = T.br.rounds.map(function(rd, i){
+    return { r:i, label:roundName(i, total), ms:rd.matches }; });
+  if (T.br.third)
+    secs.splice(secs.length - 1, 0, { r:'3p', label:roundName('3p', total), ms:[T.br.third] });
+  return secs;
+}
+/* How far there is left to go, in the cup's own arithmetic. One short line, and it
+   is the only number on the screen that is not a score. */
+function distText(nm, total){
+  if (!nm) return '';
+  if (nm.round === '3p') return 'the bronze, then the cup';
+  var left = total - 1 - nm.round;
+  return left === 0 ? 'winner takes the cup' : (total - nm.round) + ' wins to the cup';
+}
+
+/* ---- THE TALE OF THE TAPE. §4.1's "see more that costs nothing": __hmSess has
+   been recording every captain pairing and every head's matches since the page
+   loaded, and nothing has ever read it back. Real data only -- no win
+   probability, no form guide, no power ranking, because those are borrowed
+   numeric economies implying a ladder that does not exist. Zero extra lines is
+   a legitimate state, and the sheet does not shift, because it is centred rather
+   than stacked. ---- */
+function buildTape(A, B){
+  var p = el('p', 'tvTape');
+  if (A && B && A.seed && B.seed)
+    p.appendChild(document.createTextNode('Seeds ' + A.seed + ' and ' + B.seed + '.'));
+  try{
+    var ka = A && A.slots && A.slots[0], kb = B && B.slots && B.slots[0];
+    if (ka != null && kb != null && window.__hmSessFlags){
+      var f = window.__hmSessFlags(ka, kb);
+      if (f && f.met){
+        p.appendChild(el('br'));
+        var w = (f.lastWinner === ka) ? A : (f.lastWinner === kb) ? B : null;
+        if (w){ p.appendChild(document.createTextNode('They have met. '));
+                p.appendChild(el('em', null, w.name));
+                p.appendChild(document.createTextNode(' won.')); }
+        else p.appendChild(document.createTextNode('They have met before.'));
+      }
+    }
+  }catch(_){}
+  return p;
+}
+
+/* ---- THE DRAW. Jayden on the board this replaces: "Schedule looks out of place
+   and confusing to navigate. Too much random unnecessary elements. Looks like a
+   muddled mess that doesn't do the design system."
+
+   All three complaints were the same object. The old rail was a dark painted
+   plane carrying printed TICKETS -- each one jittered half a degree off true,
+   grained, on stock, with a perforated stub, a four-character serial and a
+   rubber-stamped score that tore into place. Nine materials to say "Gus beat
+   Kip 2-1". Against a page whose every other surface is a hairline on white it
+   read as a different application, and the jitter in particular is why it read
+   as broken rather than as printed: nothing else on the site is off-axis, so a
+   row at 0.5deg looks like a rendering fault.
+
+   What a visitor actually asks a schedule is "who am I playing, and what happens
+   next". So the rail answers exactly that and nothing else. A round is a heading
+   and a list. A fixture is two rows. A row is the team's colour, the captain's
+   face, the name, and the score once there is one. No serial, no stub, no stock,
+   no grain, no tear, no jitter. The broadcast register stays where it earns its
+   keep -- the scoreboard, which Jayden likes, and which still gets its paint,
+   its grain and its split-flap digits from __bcMat.
+
+   The only ink that is not a hairline is the team colour, which is the one thing
+   here that is genuinely information. ---- */
+function buildDraw(into, nm2){
+  var _now = (nm2 && nm2.round !== undefined) ? nm2.round : -1;
+  var _nowIx = nm2 ? nm2.index : -1;
+  sections().forEach(function(sec){
+    var _ri = sec.r;
+    var rd = el('section', 'tvRd');
+    rd.appendChild(el('h3', 'tvRdH' + (_ri === _now ? ' tvRdNow' : ''), sec.label));
+    var list = el('ol', 'tvRdL');
+    sec.ms.forEach(function(m, _mi){
+      var decided = (m.sa !== undefined && m.sb !== undefined);
+      var isNext  = (_ri === _now && _mi === _nowIx);
+      var fx = el('li', 'tvFx' + (isNext ? ' tvFxNext' : '') + (decided ? ' tvFxDone' : ''));
+      /* One row per side, and the two rows are the same object -- which is what
+         makes a column of them scannable. The old ticket put the two teams
+         side by side with the score wedged between, so no two fixtures lined
+         their names up and the eye had to re-find the column on every row. */
+      [[m.a, m.sa], [m.b, m.sb]].forEach(function(pr){
+        var tm = teamById(pr[0]);
+        var won = (m.winner !== undefined && tm && m.winner === tm.id);
+        var lost = decided && tm && !won;
+        var row = el('div', 'tvFxT' + (tm ? '' : ' tvFxTbd')
+                                    + (won ? ' tvFxWon' : '') + (lost ? ' tvFxLost' : ''));
+        /* A slot nobody has qualified for yet gets no colour stripe: a grey bar
+           is a team wearing grey, and the semi-finals were showing four of them. */
+        var c = el('i', 'tvFxC');
+        if (tm) c.style.setProperty('--tcx', tm.col);
+        row.appendChild(c);
+        var fc = el('span', 'tvFxF');
+        var cut = tm && tm.captain && (tm.captain.portrait || tm.captain.cut);
+        if (cut){ var im = el('img'); im.src = cut; im.alt = ''; im.draggable = false; fc.appendChild(im); }
+        row.appendChild(fc);
+        row.appendChild(el('span', 'tvFxN', tm ? tm.name : '—'));
+        /* Archivo, tabular, on the numeral only -- the one place the broadcast
+           face is allowed outside the scoreboard, and the reason a column of
+           scores lines up. An unplayed fixture prints nothing rather than a
+           placeholder dash: an empty score column IS "not yet". */
+        row.appendChild(el('span', 'tvFxS bcNum', decided ? String(pr[1] | 0) : ''));
+        fx.appendChild(row);
+      });
+      list.appendChild(fx);
+    });
+    rd.appendChild(list);
+    into.appendChild(rd);
+  });
+}
+
+/* ---- THE FULL-DRAW SHEET. It exists for the phone and only for the phone.
+   Desktop shows all three rounds in the rail, so a button that opens a copy of
+   what is already on screen is one of the "random unnecessary elements" -- its
+   chip is display:none above 760px. Below it the rail is reduced to the round
+   being played, and this is where the other two live. ---- */
+function ensureSheet(){
+  var s = document.getElementById('tvSheet');
+  if (s) return s;
+  var scrim = el('div','tvSheetScrim'); scrim.id = 'tvSheetScrim';
+  scrim.addEventListener('click', closeSheet);
+  document.body.appendChild(scrim);
+  s = el('div','tvSheetPanel'); s.id = 'tvSheet';
+  s.setAttribute('role','dialog'); s.setAttribute('aria-modal','true');
+  s.setAttribute('aria-label','The full draw');
+  document.body.appendChild(s);
+  addEventListener('keydown', function(e){
+    if (e.key === 'Escape' && document.body.classList.contains('tvBoardOpen')) closeSheet(); });
+  return s;
+}
+function openSheet(){
+  var s = ensureSheet(); s.innerHTML = '';
+  var hd = el('div','tvSheetHd');
+  /* The sheet is where the cup's name lives on a phone: the strip drops it under
+     560px because it cannot carry the name, the round and two controls at once. */
+  hd.appendChild(el('h2','tvSheetTitle', (T.cup || 'Cup') + ' · the draw'));
+  var x = el('button','tvChip','Close'); x.type = 'button';
+  x.addEventListener('click', closeSheet); hd.appendChild(x);
+  s.appendChild(hd);
+  var board = el('div','tvSheetBoard');
+  buildDraw(board, BR.nextMatch(T.br));
+  s.appendChild(board);
+  document.body.classList.add('tvBoardOpen');
+  try{ x.focus(); }catch(_){}
+}
+function closeSheet(){
+  document.body.classList.remove('tvBoardOpen');
+}
+
 function paint(){
   var h = ensureHost();
   if (!T.live){
     h.innerHTML = ''; h.hidden = true;
-    document.body.classList.remove('tSchedOpen');
-    try{ var _hero = document.querySelector('.hero'); if (_hero) _hero.style.minHeight = ''; }catch(_){}
+    document.body.classList.remove('tvBoardOpen');
     return;
   }
-  h.hidden = false;
-  h.innerHTML = '';
+  h.hidden = false; h.innerHTML = '';
 
-  // ---- ONE CAPSULE: title, matchup, kick off, collapsible schedule ----
-  var nm2 = BR.nextMatch(T.br);
+  var nm2    = BR.nextMatch(T.br);
   var champ2 = BR.champion(T.br);
-  var cup = el('div', 'tCup');
+  var done2  = (champ2 !== undefined);
+  var total  = T.br.rounds.length;
+  var A2 = (nm2 && !done2) ? teamById(nm2.match.a) : null;
+  var B2 = (nm2 && !done2) ? teamById(nm2.match.b) : null;
 
+  try{ if (done2) window.__hmChampFx(teamById(champ2) && teamById(champ2).col);
+       else       window.__hmChampFx(null); }catch(_){}
 
-  // header: the trophy, then a single h1 carrying BOTH the cup name and the round
-  var head = el('div', 'tCupHead');
-  var trophy = el('span', 'tCupTrophy');
-  var timg = el('img'); timg.src = 'images/trophy.webp'; timg.alt = ''; timg.draggable = false;
-  trophy.appendChild(timg);
-  trophy.appendChild(el('i', 'tCupGlint'));
-  // the glisten is masked by the trophy's own shape, so it sweeps the cup and not its box
-  trophy.style.setProperty('--tropMask', 'url("images/trophy.webp")');
-  head.appendChild(trophy);
-  var h1 = el('h1', 'tCupH1', T.cup || 'Cup');
-  // NOT named roundName -- that identifier is the module-level voice-aware helper (Step 1);
-  // shadowing it here with a plain string would have quietly broken every call below it.
-  var roundTxt = champ2 !== undefined ? 'Champion'
-               : (nm2 ? roundName(nm2.round, T.br.rounds.length) : 'Complete');
-  /* The capsule shows the final's matchup BEFORE kickoff, and body.hmFinal is only set once
-     the match starts -- so the poster needs its own flag for "this screen is the final". */
-  /* Which poster this round gets, and where its heads sit. The FINAL has its own artwork;
-     ordinary matchups draw from a pool, picked per fixture so it does not reshuffle on every
-     repaint. Head positions are measured off each poster and travel WITH it, because every
-     artwork frames its heads differently. */
-  var POSTERS = {
-    /* Sizes are deliberately large. A head cutout carries transparent margin, so the VISIBLE
-       face is a good deal smaller than the image box -- percentages that look right on paper
-       render small. And the heads go in each poster's EMPTY space, never over artwork that
-       already has heads in it. */
-    fin:   { src:'images/poster-final.webp',   hx:'23%', hx2:'77%', hy:'76%', hw:'46%' },
-    match:[{ src:'images/poster-match-1.webp', hx:'25%', hx2:'75%', hy:'79%', hw:'46%' },
-           { src:'images/poster-match-2.webp', hx:'24%', hx2:'76%', hy:'78%', hw:'46%' }]
-  };
-  try{
-    var isFin = !!(nm2 && champ2 === undefined && nm2.round === T.br.rounds.length - 1);
-    var isMatch = !!(nm2 && champ2 === undefined && !isFin);
-    document.body.classList.toggle('tourFinal', isFin);
-    document.body.classList.toggle('tourPoster', isFin || isMatch);
-    var P = null;
-    if (isFin) P = POSTERS.fin;
-    else if (isMatch){
-      var pool = POSTERS.match;
-      /* RANDOM per fixture, and remembered. Deriving it from the fixture index gave a fixed
-         rotation -- quarter-final 1 was always the same poster -- which is not what a pool of
-         artwork is for. The pick is cached on the match object so a repaint keeps the poster
-         it already showed rather than reshuffling under you mid-matchup. Only the final is
-         fixed, because the final has its own artwork. */
-      var mm = nm2.match || nm2;
-      if (mm.__poster === undefined) mm.__poster = Math.floor(Math.random() * pool.length);
-      P = pool[mm.__poster % pool.length];
-    }
-    if (P){
-      var st = document.body.style;
-      st.setProperty('--poster', 'url("'+P.src+'")');
-      st.setProperty('--hx', P.hx); st.setProperty('--hx2', P.hx2);
-      st.setProperty('--hy', P.hy); st.setProperty('--hw', P.hw);
-    }
-  }catch(_){}
-  h1.appendChild(el('span', 'tCupRound', roundTxt));
-  head.appendChild(h1);
-  cup.appendChild(head);
+  /* ---------- BAND A: the identity strip ----------
+     Cup, round, how far there is to go, and the way out. It used to also carry a
+     photographic trophy at 1.5em and a four-character fixture serial in Archivo.
+     Neither told anyone anything: the trophy is a 119x192 photograph shrunk into
+     a line of 12px text, and "APL-0102" is a prop. Both gone. */
+  var strip = el('header', 'tvStrip');
+  var sl = el('div', 'tvStripL');
+  sl.appendChild(el('span', 'tvCup', T.cup || 'Cup'));
+  sl.appendChild(el('span', 'tvSep', '·'));
+  sl.appendChild(el('span', 'tvRound',
+    done2 ? 'Champion' : (nm2 ? roundName(nm2.round, total) : 'Complete')));
+  strip.appendChild(sl);
 
-  // matchup, or the champion once it is decided
-  var card = el('div', 'tCupCard');
-  function cupSide(tm, scoreTxt){
-    var side = el('div', 'tCupSide');
-    if (tm){ side.style.setProperty('--tc', tm.col);
-             side.style.setProperty('--ti', tm.ink || '255,255,255');
-             side.style.setProperty('--te', tm.edge || tm.col); }
-    var pan  = el('div', 'tCupPanel');
-    var cut = tm && tm.captain && (tm.captain.portrait || tm.captain.cut);
-    if (cut){ var bi = el('img'); bi.className = 'tCupBig'; bi.src = cut; bi.alt = '';
-              bi.draggable = false; pan.appendChild(bi);     // INSIDE, so the panel crops it
-              /* The head is recoloured to its OWN team's hue. The captains are dyed
-                 independently of the palette, so a yellow panel was drawing a purple head and
-                 a blue panel an orange one -- two sources of truth for "what colour is this
-                 team". The ring used to hide that seam; with the ring gone the mismatch was
-                 the loudest thing on the screen. A colour-blended layer masked to the same cut
-                 takes the team's hue and keeps the head's own shading, so it reads as the same
-                 head, lit differently -- not as a flat swatch. */
-              var tint = el('div', 'tCupTint');
-              tint.setAttribute('aria-hidden','true');
-              tint.style.webkitMaskImage = 'url("' + cut + '")';
-              tint.style.maskImage = 'url("' + cut + '")';
-              /* Wrapped WITH the image rather than positioned beside it. My first version gave
-                 the tint its own width and a guessed aspect-ratio, so it missed the head's box
-                 by a few pixels and left an untinted band along the top. inset:0 inside a
-                 wrapper the image itself sizes cannot drift. */
-              var wrap = el('div', 'tCupBigWrap');
-              /* Measure how much of this cut is actually face. Cached by src -- the alpha scan
-                 is one 64px canvas read, and only once per distinct head. */
-              (function(w, src){
-                try{
-                  window.__hmFit = window.__hmFit || {};
-                  var apply = function(f){ w.style.setProperty('--fit', f.toFixed(3)); };
-                  if (window.__hmFit[src] !== undefined){ apply(window.__hmFit[src]); return; }
-                  var probe = new Image();
-                  probe.onload = function(){
-                    try{
-                      var N = 64, c = document.createElement('canvas');
-                      c.width = c.height = N;
-                      var g = c.getContext('2d', {willReadFrequently:true});
-                      g.drawImage(probe, 0, 0, N, N);
-                      var d = g.getImageData(0, 0, N, N).data;
-                      /* HORIZONTAL extent -- the wrap is sized by width, so width is the axis
-                         that has to match. I measured the vertical fraction first, which is not
-                         comparable between cuts of different aspect ratios and left mini-Jayden
-                         still visibly small. Measured: his face fills 0.547 of its width, an
-                         ordinary cut 0.813. */
-                      var minX = N, maxX = -1;
-                      for (var x = 0; x < N; x++){
-                        for (var y = 0; y < N; y++){
-                          if (d[(y*N + x)*4 + 3] > 24){ if (x < minX) minX = x; if (x > maxX) maxX = x; break; }
-                        }
-                      }
-                      var frac = (maxX >= minX) ? (maxX - minX + 1) / N : 1;
-                      var fit = Math.max(1, Math.min(1.9, 0.81 / Math.max(0.3, frac)));
-                      window.__hmFit[src] = fit; apply(fit);
-                    }catch(_){}
-                  };
-                  probe.src = src;
-                }catch(_){}
-              })(wrap, cut);
-              pan.removeChild(bi); wrap.appendChild(bi); wrap.appendChild(tint);
-              pan.appendChild(wrap); }
-    side.appendChild(pan);
-    var meta = el('div', 'tCupMeta');
-    meta.appendChild(el('div', 'tCupNm', tm ? tm.name : '\u2014'));
-    // no score here: it is 0-0 until the whistle, which says nothing. The live score lives on
-    // the scoreboard during the match, and the result lives in the schedule afterwards.
-    if (scoreTxt) meta.appendChild(el('span', 'tCupSc', scoreTxt));
-    side.appendChild(meta);
-    return side;
-  }
-  if (champ2 !== undefined){
-    var wt = teamById(champ2);
-    var solo = el('div', 'tCupMatch'); solo.style.gridTemplateColumns = '1fr';
-    var champSide = cupSide(wt, null);
-    /* Crown and cup go INSIDE the panel. The card clips to its 28px radius, so anything
-       positioned above the panel would simply be cut off. */
-    var cpan = champSide.querySelector('.tCupPanel');
-    if (cpan){
-      /* Head and crown into one wrapper, so the sway carries both and the crown is
-         positioned against the HEAD's box rather than the panel's -- that is what makes it
-         sit ON the head instead of floating at some fraction of the panel. */
-      var cel = el('div', 'tCupCelebrate');
-      var bigImg = cpan.querySelector('.tCupBigWrap') || cpan.querySelector('.tCupBig');
-      if (bigImg) cel.appendChild(bigImg);
-      cpan.appendChild(cel);
-      var crown = el('div', 'tCupCrown');
-      // the same path the heads already wear when they win, so the two cannot drift apart
-      crown.innerHTML = '<svg viewBox="0 0 48 34" aria-hidden="true">'
-        + '<path d="M4 30 L4 15 L13 22 L24 6 L35 22 L44 15 L44 30 Z" fill="#e8b53a" '
-        +   'stroke="#c9962a" stroke-width="1.2" stroke-linejoin="round"/>'
-        + '<circle cx="4" cy="13" r="3.4" fill="#f0c94e"/>'
-        + '<circle cx="24" cy="4" r="3.8" fill="#f0c94e"/>'
-        + '<circle cx="44" cy="13" r="3.4" fill="#f0c94e"/>'
-        + '<rect x="4" y="30" width="40" height="3.4" rx="1.4" fill="#d7a531"/></svg>';
-      cel.appendChild(crown);
-    }
-    solo.appendChild(champSide);
-    card.appendChild(solo);
-    try{ window.__hmChampFx(wt && wt.col); }catch(_){}
-  } else {
-    try{ window.__hmChampFx(null); }catch(_){}   // any non-champion repaint stops the fall
-  }
-  if (nm2 && champ2 === undefined){
-    var A2 = teamById(nm2.match.a), B2 = teamById(nm2.match.b);
-    var mrow = el('div', 'tCupMatch');
-    mrow.appendChild(cupSide(A2, null));
-    mrow.appendChild(el('div', 'tCupVs', 'VS'));
-    mrow.appendChild(cupSide(B2, null));
-    card.appendChild(mrow);
-    /* On the final, the names live UNDER the poster rather than on it. Built as their own row
-       instead of repositioning .tCupMeta, so the artwork carries no text layer at all. */
-    if (document.body.classList.contains('tourPoster')){
-      var names = el('div', 'tCupNames');
-      names.appendChild(el('span', null, (A2 && A2.name) || '\u2014'));
-      names.appendChild(el('span', null, (B2 && B2.name) || '\u2014'));
-      card.appendChild(names);
-    }
-  }
-  cup.appendChild(card);
+  var sr = el('div', 'tvStripR');
+  if (nm2 && !done2) sr.appendChild(el('span', 'tvDist', distText(nm2, total)));
+  /* Phone only -- above 760px the rail already shows all three rounds, so this
+     opens a copy of what is on screen. tournament.css hides it there. */
+  var boardBtn = el('button', 'tvChip tvChipDraw'); boardBtn.type = 'button';
+  boardBtn.appendChild(el('span', 'tvChipLbl', 'The draw'));
+  boardBtn.addEventListener('click', function(e){ e.stopPropagation(); openSheet(); });
+  sr.appendChild(boardBtn);
 
-  // Kick off AND the way out both sit in the matchup container -- neither should have to be
-  // hunted for, and the quit was previously stranded at the very bottom of the panel.
-  var acts = el('div', 'tCupActs');
-  if (nm2 && champ2 === undefined && T.phase === 'bracket'){
-    var go2 = el('button', 'tCupGo hmBtn hmBtnPrimary', 'Kick off'); go2.type = 'button';
-    go2.addEventListener('click', function(e){ e.stopPropagation(); T.phase = 'match'; startFixture(nm2); });
-    acts.appendChild(go2);
-  }
-  var done2 = (champ2 !== undefined);
-  /* On the champion screen this is the ONLY action left, so it is the primary one. Mid-
-     tournament it sits under Kick off and stays quiet -- same button, different job. */
-  var quit = el('button', 'tCupQuit hmBtn' + (done2 ? ' hmBtnPrimary' : ''),
-                done2 ? 'Back to the hero' : 'End tournament');
-  quit.type = 'button';
-  var armed2 = false, armT2 = 0;
+  /* §1.8: opening the Play menu is a hard no-op for the whole duration of a cup.
+     On index.html that was a guard -- the rest of the portfolio was one section
+     down. Here the tournament IS the page, so the guard had become a trap. This
+     is the scoped replacement: it belongs to the tournament, so it can end the
+     cup without ending the visit. Two-tap arm, because it is destructive and
+     it now sits next to a button people will actually press. */
+  var quit = el('button', 'tvChip'); quit.type = 'button';
+  var qLbl = el('span', 'tvChipLbl', done2 ? 'Leave the cup' : 'Leave the cup');
+  quit.appendChild(qLbl);
+  var armed = false, armT = 0;
   quit.addEventListener('click', function(e){
     e.stopPropagation();
-    if (done2 || armed2){ stop(); return; }
-    armed2 = true; quit.textContent = 'Tap again to end'; quit.classList.add('tQuitArmed');
-    clearTimeout(armT2);
-    armT2 = setTimeout(function(){ armed2 = false; quit.textContent = 'End tournament';
-      quit.classList.remove('tQuitArmed'); }, 3200);
+    if (done2 || armed){ stop(); return; }
+    armed = true; qLbl.textContent = 'Tap again to end'; quit.classList.add('tvArmed');
+    clearTimeout(armT);
+    armT = setTimeout(function(){ armed = false; qLbl.textContent = 'Leave the cup';
+      quit.classList.remove('tvArmed'); }, 3200);
   });
-  acts.appendChild(quit);
-  cup.appendChild(acts);
+  sr.appendChild(quit);
+  strip.appendChild(sr);
+  h.appendChild(strip);
 
-  // ---- the schedule. Always open, ON THE CHAMPION SCREEN TOO -- the completed, all-torn
-  // record stays on screen behind the trophy card. Saved scores render here. ----
-  /* A plain section, not a <details>. The schedule does not collapse any more, so the
-     disclosure was an affordance for a state that no longer exists -- and dropping it also
-     drops the <details> flex trap that cost three wrong fixes. */
-  var sched = document.createElement('section'); sched.className = 'tCupSched';
-  sched.setAttribute('aria-label', 'Schedule');
-  /* Sizes the block and the schedule scroller against the page. .tourPanel is absolutely
-     positioned, so it contributes nothing to the hero's layout and has to be told. */
-  function syncHero(){
-    var hero = document.querySelector('.hero'); if (!hero) return;
-    requestAnimationFrame(function(){
-      /* Cleared FIRST, so the hero is measured at its own CSS height rather than at whatever
-         a previous pass forced on it. The hero is never measured back to the block: the block
-         takes its height from the hero, so the reverse would be a circle -- block grows, hero
-         grows to fit, block fills the new hero. */
-      hero.style.minHeight = '';
-      /* How far the hero sits below the top of the page. Taken from the hero's own document
-         offset rather than the block's, so it does not depend on the shift already applied --
-         reading a value you are about to change is how the last three of these went wrong.
-         rect + scrollY is a document coordinate, so it is the same at any scroll position. */
-      var shift = Math.max(0, Math.round(hero.getBoundingClientRect().top + window.scrollY));
-      document.body.style.setProperty('--tourShift', shift + 'px');
-      /* Size the scroller explicitly rather than by flex -- the parent used to be a
-         <details>, whose light-DOM children are not reliable flex items, and measuring is
-         deterministic regardless.
-         Always as the difference between two rects --
-         that is scroll-invariant, because both shift by the same amount. The old
-         `window.innerHeight - top` was not, which is exactly why the block stopped lining up
-         the moment you scrolled. CSS bottom:0 only gets us to #main, and the hero actually
-         overflows #main by a few px, so the anchor has to be measured. */
-      var heroBottom = hero.getBoundingClientRect().bottom;
-      /* The block runs PAST the tab row; the schedule inside it stops just ABOVE that row.
-         The tabs now sit in front of the block, so a list that ran under them would have its
-         last rows hidden behind the labels. Two anchors, one element apart. */
-      var tabs = document.querySelector('.csTabs');
-      var tabsR = tabs ? tabs.getBoundingClientRect() : null;
-      var footAnchor = tabsR ? tabsR.bottom : heroBottom;
-      var listAnchor = tabsR ? tabsR.top    : heroBottom;
-      cup.style.minHeight =
-        Math.max(0, Math.round(footAnchor - cup.getBoundingClientRect().top)) + 'px';
-      {
-        /* Read live off the DOM (querySelector) -- the row heights are whatever the ticket
-           CSS renders THIS repaint (padding/margin changed with the ticket restyle), never
-           assumed or cached. sched has no .tCupSchedIn on the champion screen, so inn is
-           simply null there and this whole block is skipped -- no special-casing needed. */
-        var inn = sched.querySelector('.tCupSchedIn');
-        if (inn){
-          /* The scroller absorbs the leftover room, which is what keeps the block ending
-             flush with the hero rather than running past it -- but snapped DOWN to a whole
-             row. Filling the space exactly sliced the last fixture through the middle of its
-             name, which just reads as broken. Rows are snapped to rather than multiplied out
-             because the round headings between them mean they are not on a fixed pitch. */
-          var innTop = inn.getBoundingClientRect().top;
-          var avail  = listAnchor - innTop - 16;
-          var snap = 0, first = 0;
-          [].forEach.call(inn.querySelectorAll('.tCupFx'), function(row){
-            var edge = row.getBoundingClientRect().bottom - innTop + inn.scrollTop;
-            if (!first || edge < first) first = edge;
-            if (edge <= avail && edge > snap) snap = edge;
-          });
-          /* The floor is one whole row, not a round number -- a fixed 96px was not on a row
-             boundary, so on a short screen it beat the snap and sliced the row anyway. */
-          inn.style.maxHeight = Math.round(snap || first || avail) + 'px';
-        }
-      }
+  /* ---------- BAND B: the two columns ---------- */
+  var body = el('div', 'tvBody' + (done2 ? ' tvDone' : ''));
+
+  var fix = el('section', 'tvFixture');
+  fix.setAttribute('aria-label', done2 ? 'Champion' : 'The next fixture');
+
+  if (done2){
+    /* The champion takes the left column and the standings the right. */
+    var wt = teamById(champ2);
+    var wrap = el('div', 'tvChampWrap');
+    var hh = el('div', 'tvChampHead');
+    var wcut = wt && wt.captain && (wt.captain.portrait || wt.captain.cut);
+    if (wcut){ var wi = el('img'); wi.src = wcut; wi.alt = ''; wi.draggable = false; hh.appendChild(wi); }
+    var crown = el('div', 'tvCrown');
+    crown.innerHTML = '<svg viewBox="0 0 48 34" aria-hidden="true">'
+      + '<path d="M4 30 L4 15 L13 22 L24 6 L35 22 L44 15 L44 30 Z" fill="#e8b53a" '
+      +   'stroke="#c9962a" stroke-width="1.2" stroke-linejoin="round"/>'
+      + '<circle cx="4" cy="13" r="3.4" fill="#f0c94e"/>'
+      + '<circle cx="24" cy="4" r="3.8" fill="#f0c94e"/>'
+      + '<circle cx="44" cy="13" r="3.4" fill="#f0c94e"/>'
+      + '<rect x="4" y="30" width="40" height="3.4" rx="1.4" fill="#d7a531"/></svg>';
+    hh.appendChild(crown); wrap.appendChild(hh);
+    var sheetC = el('div', 'tvSheet');
+    sheetC.appendChild(el('h2', 'tvChampNm', (wt ? wt.name : '—') + ' wins the cup'));
+    fix.appendChild(wrap); fix.appendChild(sheetC);
+  } else {
+    /* ---- THE MATCH-UP. Two captains, one under the other, with the lowercase
+       `v.` between them -- the 1950s programme team-sheet grammar rather than a
+       giant angled VS, which is the one piece of cosplay this screen is most
+       likely to reach for.
+
+       The round is NOT repeated here. It is already the second thing band A
+       says, four lines above, and the duplicate was one of the elements that
+       made the column read as busier than it is. What is left is the two things
+       a visitor is here for -- who, and against whom -- plus the one true line
+       of history this cup can produce, and one button. ---- */
+    var sheet = el('div', 'tvSheet');
+    [A2, B2].forEach(function(tm, i){
+      if (i === 1) sheet.appendChild(el('div', 'tvV', 'v.'));
+      var side = el('div', 'tvSide');
+      var fw = el('span', 'tvFace');
+      var cut = tm && tm.captain && (tm.captain.portrait || tm.captain.cut);
+      if (cut){ var fi = el('img'); fi.src = cut; fi.alt = ''; fi.draggable = false; fw.appendChild(fi); }
+      side.appendChild(fw);
+      var txt = el('span', 'tvSideT');
+      txt.appendChild(el('span', 'tvName', tm ? tm.name : '—'));
+      /* Colour as a flat bar under the name, never as a field behind the head:
+         a blend implies a winner, and a saturated panel behind a photographic
+         cut-out is the esports roster card this site is not. */
+      var bar = el('i', 'tvBar');
+      if (tm) bar.style.setProperty('--tcx', tm.col);
+      txt.appendChild(bar);
+      side.appendChild(txt);
+      sheet.appendChild(side);
     });
-  }
-  document.body.classList.add('tSchedOpen');
-  requestAnimationFrame(syncHero);
-  if (!T._schedResize){ T._schedResize = true;
-    addEventListener('resize', function(){ try{ syncHero(); }catch(_){} }, {passive:true}); }
+    sheet.appendChild(buildTape(A2, B2));
+    fix.appendChild(sheet);
 
-  /* The champion screen keeps the Draw Board -- this was mis-scoped in the original brief
-     (which assumed a "no schedule on champion" state that never existed pre-Plan-2): the
-     completed, all-torn ticket record stays on screen behind the trophy card, same as the
-     pre-Plan-2 layout. Grain stays on with it; the only teardown is stop(). */
-  {
-    var totalRds = T.br.rounds.length;
-    /* nm2 (already computed above for the VS card) IS the schedule's own "you are here" -- it
-       stays correct across the one frame where T.cur still lags it (the repaint fired mid-
-       __hmTourWin, right after a result lands but before T.cur is nulled), which is exactly
-       when the dot should already have moved to the NEXT fixture rather than lingering on the
-       one just torn. */
-    var sum = el('div', 'tCupSchedHd');
-    sum.appendChild(document.createTextNode('Schedule'));
-    /* The distance line only makes sense while there IS a distance -- once nm2 is gone (the
-       cup is won, or the no-next-match 'Complete' edge case) there is no next round to name and
-       no wins left to count, so the line goes quiet rather than freezing on stale text ("The
-       Final . winner takes the cup" printed under a champion who already has it). */
+    /* THE MATCH-UP SCREEN ALWAYS HAS ITS ONE ACTION. This used to be gated on
+       `T.phase === 'bracket'`, and phase is a variable that can be left behind:
+       any path that ends a fixture WITHOUT running through __hmTourWin -- the
+       engine stopping, a match abandoned, a result recorded twice -- leaves
+       phase at 'match', and the screen then shows the next fixture with NOTHING
+       TO PRESS and no way to continue the cup. Reproduced on the final while
+       driving a full bracket.
+
+       There is no condition worth testing here. The whole screen is
+       `display:none` under body.hmSoccer, so this code cannot run during a live
+       match; if the match-up screen is visible at all, the one thing it is for
+       is starting the match. An ungated button cannot get stuck. */
     if (nm2){
-      var curRd = nm2.round;
-      sum.appendChild(el('span', 'tkDist',
-        roundName(curRd, totalRds) + ' \u00b7 ' +
-        ((totalRds - 1 - curRd === 0) ? 'winner takes the cup'
-                                       : (totalRds - curRd) + ' wins to the cup')));
+      var go = el('button', 'tvGo', 'Kick off'); go.type = 'button';
+      go.addEventListener('click', function(e){
+        e.stopPropagation(); T.phase = 'match'; startFixture(nm2); });
+      fix.appendChild(go);
     }
-    sched.appendChild(sum);
-    var schedIn = el('div', 'tCupSchedIn');
-    /* T.__decided is the one-time tear/stamp ledger -- start() creates it fresh, stop() clears
-       it, and this is a defensive re-arm in case paint() is ever reached before start() runs. */
-    T.__decided = T.__decided || {};
-    /* The h1 names the round and the schedule names it again a few hundred pixels below. I
-       first tried dropping the heading, which was wrong twice over: T.br.rounds always holds
-       every round so the condition never fired, and the headings are what make the list
-       scannable. Marking WHICH round is live is the better answer -- it turns the repetition
-       into a position indicator instead of an echo. */
-    var _now = (T.cur && typeof T.cur.round === 'number') ? T.cur.round : -1;
-    T.br.rounds.forEach(function(rd, _ri){
-      var rdBox = el('div', 'tCupRd');
-      rdBox.appendChild(el('div', 'tCupRdH' + (_ri === _now ? ' tRdNow' : ''),
-        roundName(_ri, totalRds)));
-      rd.matches.forEach(function(m, _mi){
-        // round x fixture-index key: the one identity a ticket keeps across every repaint, so
-        // its serial, its tear-once state and its jitter all agree with each other and with
-        // themselves on the next paint.
-        var key = _ri + '-' + _mi;
-        var tbd = (m.a === undefined && m.b === undefined);
-        var decided = (m.sa !== undefined && m.sb !== undefined);
-        var isLive = !!(nm2 && nm2.round === _ri && nm2.index === _mi);
-        var freshTear = false;
-        if (decided && !T.__decided[key]){ T.__decided[key] = 1; freshTear = true; }
-        /* Neither side decided yet: no ring on the empty thumbnails. Filled, they read as
-           "not played"; hollow, they read as a real fixture with the heads missing. .tkPend
-           is the same TBD state wearing the ticket's faded-stock look. */
-        var fx = el('div', 'tCupFx'
-          + (tbd ? ' tFxTbd tkPend' : '')
-          + (decided ? ' tkTorn' : '')
-          + (freshTear ? ' tkTear' : ''));
-        if (isLive) fx.appendChild(el('span', 'tkDot'));
-        function fxSide(id){
-          var tm = teamById(id);
-          var won = (m.winner !== undefined && m.winner === id);
-          var sd = el('div', 'tCupFxSide' + (won ? ' tCupWon' : ''));
-          var dot = el('span', 'tCupDot');
-          if (tm){ tint(dot, tm);
-            var cut2 = tm.captain && (tm.captain.portrait || tm.captain.cut);
-            if (cut2){ var di = el('img'); di.src = cut2; di.alt = ''; di.draggable = false; dot.appendChild(di); } }
-          sd.appendChild(dot);
-          sd.appendChild(el('span', 'tCupFxNm', tm ? tm.name : '\u2014'));
-          return sd;
-        }
-        fx.appendChild(fxSide(m.a));
-        fx.appendChild(fxSide(m.b));
-        // the stub: ADMIT-ONE serial plus the score/arrow region, torn edge once decided
-        var stub = el('div', 'tkStub');
-        var pfx = (T.id && T.id.pfx) || 'CUP';
-        var serial = pfx + '-' + ('000' + (100 * (_ri + 1) + _mi)).slice(-4);
-        stub.appendChild(el('span', 'tkSerial', serial));
-        var aWon = (m.winner !== undefined && m.winner === m.a);
-        var bWon = (m.winner !== undefined && m.winner === m.b);
-        var sc = el('span', 'tCupFxSc' + (decided ? '' : ' tCupPend'));
-        if (aWon) sc.appendChild(el('i', 'tCupArrow tArrL'));
-        if (decided) sc.appendChild(el('span', 'tkStamp bcNum', m.sa + ' \u2013 ' + m.sb));
-        else sc.appendChild(document.createTextNode('\u2013'));
-        if (bWon) sc.appendChild(el('i', 'tCupArrow tArrR'));
-        stub.appendChild(sc);
-        fx.appendChild(stub);
-        // jitter, seeded per fixture so a repaint never reshuffles it (T.rnd is NEVER touched here)
-        var jr = cupRand(T.cup + key);
-        bcJitter(fx, jr, 0.5, 1);
-        rdBox.appendChild(fx);
-      });
-      schedIn.appendChild(rdBox);
-    });
-    sched.appendChild(schedIn);
-    cup.appendChild(sched);
-    bcGrainOn(schedIn);
   }
-  h.appendChild(cup);
-  paintStadium(h);
+  body.appendChild(fix);
 
-  // (The way out lives in the matchup container now -- see .tCupQuit above.)
-
-
+  /* ---------- BAND B, right: the cup ledger ---------- */
+  var rail = el('aside', 'tvRail');
+  rail.setAttribute('aria-label', done2 ? 'Final standings' : 'The draw');
+  if (done2){
+    rail.appendChild(el('div', 'tvBoardHd', 'Final standings'));
+    var grid = el('div', 'tvStandGrid');
+    var elimAt = standingsElim();
+    BR.standings(T.br).forEach(function(id, i){
+      var tm = teamById(id);
+      var row = el('div', 'tvStandRow');
+      row.appendChild(el('span', 'tvStandRk', String(i + 1)));
+      var c3 = el('i', 'tvFxC'); if (tm) c3.style.setProperty('--tcx', tm.col);
+      row.appendChild(c3);
+      var dt = el('span', 'tvFxF');
+      var cu = tm && tm.captain && (tm.captain.portrait || tm.captain.cut);
+      if (cu){ var im2 = el('img'); im2.src = cu; im2.alt = ''; im2.draggable = false; dt.appendChild(im2); }
+      row.appendChild(dt);
+      row.appendChild(el('span', 'tvStandNm', tm ? tm.name : '—'));
+      row.appendChild(el('span', 'tvStandOut', elimAt(id, i)));
+      grid.appendChild(row);
+    });
+    rail.appendChild(grid);
+  } else {
+    rail.appendChild(el('div', 'tvBoardHd', 'The draw'));
+    var board = el('div', 'tvDraw');
+    buildDraw(board, nm2);
+    rail.appendChild(board);
+  }
+  body.appendChild(rail);
+  h.appendChild(body);
 }
 
 // ---------- entry ----------
@@ -1166,19 +1235,22 @@ function start(){
     T.cup = CUPS[Math.floor(Math.random() * CUPS.length)] + ' Cup';
     var idKey=T.cup.replace(/ Cup$/,'');
     T.id=CUP_ID[idKey]||CUP_ID['Apollo'];
-    T.rnd=cupRand(T.cup);
-    T.__decided = {};   // one-time tear/stamp ledger, fresh for this tournament
     document.body.style.setProperty('--cupPaint',T.id.paint);
     document.body.style.setProperty('--cupStock',T.id.stock);
     document.body.style.setProperty('--cupSheen',T.id.sheen);
     T.br = BR.buildBracket(teams.map(function(t){ return t.id; })); lastRound = -1;
     document.body.classList.add('hmTour');
-    benchAll(); paint();
+    benchAll();
+    /* Fixture one is cast the same way every other fixture is -- the first
+       match-up screen must not be the one screen with nobody standing on it. */
+    var nm0 = BR.nextMatch(T.br);
+    if (nm0) cast(nm0);
+    paint();
   });
 }
 function stop(){
   T.live = false; T.cur = null; T.phase = 'idle';
-  T.__decided = {};   // next tournament's tickets tear fresh, not pre-marked from this one
+  document.body.classList.remove('tvBoardOpen');
   try{ document.body.classList.remove('hmFinal'); }catch(_){}
   try{ var _pb2=document.getElementById('moodBtn');
     if(_pb2){_pb2.removeAttribute('aria-disabled');_pb2.removeAttribute('title');} }catch(_){}
@@ -1190,11 +1262,20 @@ function stop(){
   window.__hmBench = null; window.__hmTeamSel = null; window.__hmTeamCol = null;
   try { var rt2 = document.documentElement; ['--tcol1','--tcol2','--tc1','--tc2'].forEach(function(v){ rt2.style.removeProperty(v); }); } catch (_) {}
   document.body.classList.remove('hmTour');
-  document.body.classList.remove('tourFinal');
-  document.body.classList.remove('tourPoster');
   try { var tt2 = document.querySelector('.hmScore .sTitleTxt'); if (tt2) tt2.textContent = 'Soccer'; } catch (_) {}
   clearSpawned(); paint();
 }
 window.__hmTourStart = start;
 window.__hmTourStop = stop;
+/* The finishing table as data, for anyone who wants it without scraping the DOM (and for
+   the test harness, which has to assert the order rather than read it off a screen).
+   Returns [] when no cup is running -- a conditional global with nothing to say. */
+window.__hmTourStandings = function(){
+  if (!T.live || !T.br) return [];
+  return BR.standings(T.br).map(function(id, i){
+    var tm = teamById(id);
+    return { rank: i + 1, id: id, name: tm ? tm.name : null, seed: tm ? tm.seed : null,
+             colour: tm ? tm.colName : null };
+  });
+};
 })();

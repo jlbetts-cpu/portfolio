@@ -1,0 +1,499 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>About &middot; Jayden Betts</title>
+<link rel="icon" type="image/png" sizes="192x192" href="favicon-192.png">
+<link rel="icon" type="image/png" sizes="96x96" href="favicon-96.png">
+<link rel="icon" type="image/png" sizes="48x48" href="favicon-48.png">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="favicon-180.png">
+<link rel="icon" href="favicon.ico" sizes="any">
+<meta name="description" content="Jayden Betts is a San Francisco-based product designer and UC Davis Design graduate focused on iOS, B2C and design systems, and the founder of Apollo. His background, what he is looking for, and how to reach him.">
+<meta name="author" content="Jayden Betts">
+<meta name="robots" content="index,follow,max-image-preview:large">
+<link rel="canonical" href="https://jaydenbetts.design/about.html">
+<meta property="og:type" content="profile">
+<meta property="og:site_name" content="Jayden Betts">
+<meta property="og:title" content="About Jayden Betts">
+<meta property="og:description" content="San Francisco product designer focused on iOS, B2C and design systems. Founder of Apollo. Open to full-time opportunities.">
+<meta property="og:url" content="https://jaydenbetts.design/about.html">
+<meta property="og:image" content="https://jaydenbetts.design/images/og/jayden-betts-portfolio.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:type" content="image/jpeg">
+<meta property="og:image:alt" content="Jayden Betts as a child with his sister">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="About Jayden Betts">
+<meta name="twitter:description" content="San Francisco product designer focused on iOS, B2C and design systems. Founder of Apollo.">
+<meta name="twitter:image" content="https://jaydenbetts.design/images/og/jayden-betts-portfolio.jpg">
+<meta name="twitter:image:alt" content="Jayden Betts as a child with his sister">
+
+<!-- Icons: Tabler Icons (MIT) - Copyright (c) 2020-2026 Pawel Kuna
+     https://github.com/tabler/tabler-icons/blob/main/LICENSE
+     Stroke weight is owned by CSS (header.css / tokens.css), never by per-svg attributes. -->
+<!-- THE WEBFONT. This page declared no @font-face and preloaded no font, so
+     --sans's first name never resolved and every word on About rendered in
+     -apple-system -- SF Pro on a Mac, a different typeface from the rest of the
+     site. The faces now live in tokens.css (linked below) for all ten pages;
+     these two preloads are the same pair the other pages carry, so the font is
+     in flight with the stylesheet rather than one round trip behind it. -->
+<link rel="preload" as="font" type="font/woff2" href="fonts/instrument-sans-latin-400-normal.woff2" crossorigin>
+<link rel="preload" as="font" type="font/woff2" href="fonts/instrument-sans-latin-600-normal.woff2" crossorigin>
+<link rel="stylesheet" href="tokens.css">
+<style>
+/* ===========================================================================
+   ABOUT -- a real page, not an overlay.
+   Extracted from index.html's #heroAbout on 2026-08-03. Jayden: "I think we make
+   the About page its own page as well because I don't like the transition."
+   The overlay cost four separate defects -- the head landing wrong on the way
+   back, Work and About both lit at once, it reading as a subpage anyway, and no
+   shareable URL for a hiring manager. A page removes all four at once.
+
+   WHAT CAME ACROSS UNCHANGED: every word of the copy, the "At a glance" facts,
+   the five photographs and their captions, and the control-system styling the
+   previous pass gave .abLink/.abLinkPrimary (--accent fill, --r-md, --tap-min).
+   WHAT DID NOT: the deal-out photo choreography, the word-by-word blur reveal,
+   the burst/heal mask and the head morph. Every one of those animated AGAINST
+   the floating head, and there is no head on this page. Porting the machinery
+   without its subject would have been carrying a shadow with nothing casting it.
+   =========================================================================== */
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;overflow-x:clip}
+body{background:var(--c50);color:var(--c950);font-family:var(--sans);-webkit-font-smoothing:antialiased;overflow-x:clip}
+.wrap{position:relative;z-index:62;max-width:1280px;margin:0 auto;padding:0 40px}
+@media(max-width:760px){.wrap{padding:0 24px}}
+.siteFoot{scroll-margin-top:80px}
+
+/* THE PAGE HEAD. "Hello, I'm Jayden Betts." was a <p class="abGreet"> inside the
+   overlay because the overlay had no heading of its own -- the page title lived
+   in the browser chrome. A page needs an h1, and that sentence already was one
+   in everything but markup, so it is promoted rather than invented. Same rung as
+   the home hero's headline (--fs-pagehead-sm, 40px capped) so the two pages open
+   at the same pitch. */
+/* TWO HEADINGS WERE FIGHTING. The h1 first took --fs-pagehead-sm (40px), the rung
+   the HOME HERO uses -- correct for a hero, wrong here, because on this page a
+   section h2 at --fs-h2 (36px) follows four lines later and 40 against 36 reads as
+   two titles rather than a title and a section head.
+   Re-derived for a DOCUMENT: the page title takes --fs-pagehead (52px at 1280) and
+   section heads drop to --fs-h3 (32px). 52/32 is a 1.63 step -- unambiguous at a
+   glance and still both on the scale. Nothing new was invented for either. */
+.abTitle{font-family:var(--sans);font-weight:600;font-size:var(--fs-pagehead);
+ line-height:var(--lh-tight);letter-spacing:var(--tr-head);color:var(--c950);
+ margin:0 0 var(--sp-24-40);max-width:16ch;text-wrap:balance;filter:url(#inkBig)}
+
+/* THE TWO COLUMNS are the overlay's own -- minmax(0,1fr) beside
+   clamp(340px,40vw,520px) at a clamp(32px,5vw,80px) gap. Those numbers held the
+   prose against the head; here they hold it against the photographs, which is
+   the same measure problem with a different object on the right. */
+.abGrid{display:grid;grid-template-columns:minmax(0,1fr) clamp(340px,40vw,520px);
+ gap:var(--sp-48-80);align-items:start;padding-top:var(--sp-16-24)}
+.abBody{padding-bottom:clamp(46px,8vw,130px)}
+.abBody .abSec{margin-bottom:var(--sp-48-72)}
+.abBody .abSec:last-child{margin-bottom:0}
+.abBody h2{font-family:var(--sans);font-weight:600;font-size:var(--fs-h3);line-height:var(--lh-tight);letter-spacing:var(--tr-sub);color:var(--c950);margin:0 0 var(--sp-16);filter:url(#inkBig)}
+.abBody p{font-family:var(--sans);font-weight:400;font-size:var(--fs-prose);line-height:var(--lh-prose);color:var(--c950);margin:0;max-width:44ch;text-wrap:pretty}
+.abBody p+p{margin-top:var(--sp-32-48)}
+.abBody .abSec.abConnect{max-width:520px}
+/* .abBody p IS (0,1,1) AND THIS WAS (0,1,0), so every rule they share was decided
+   by the prose rule and not this one: "At a glance" and "Get in touch" measured
+   17.79px/400/1.5 -- body prose -- instead of the 13px/600 label they are declared
+   as. Nothing in the source looked wrong; only the computed value showed it. Scoped
+   to .abBody so it outranks the prose rule it sits inside. */
+.abBody .abLabel{font-family:var(--sans);font-weight:600;font-size:var(--fs-label);
+ line-height:var(--lh-body);letter-spacing:var(--tr-flat);text-transform:none;
+ color:var(--c500);max-width:none;margin:0 0 var(--sp-16-24);filter:url(#inkSm)}
+.abFacts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--sp-24) var(--sp-32-48);   /* the fixed ladder stops at --sp-40; --sp-32-48 is the rung that resolves to 48 */margin-top:0;max-width:520px}
+.abFact{display:flex;flex-direction:column;gap:var(--sp-8)}
+.abFactK{font-family:var(--sans);font-weight:600;font-size:var(--fs-label);line-height:var(--lh-body);letter-spacing:var(--tr-flat);text-transform:none;color:var(--c500);filter:url(#inkSm)}
+.abFactV{font-family:var(--sans);font-weight:400;font-size:var(--fs-body);color:var(--c950);line-height:var(--lh-body)}
+.abIn{font-weight:600;color:var(--c950);text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:3px;text-decoration-color:var(--c500);transition:text-decoration-color var(--ease-out-dur) var(--ease-out),color var(--ease-out-dur) var(--ease-out)}
+.abIn:hover{text-decoration-color:var(--c950)}
+
+/* THE CONTROL-SYSTEM STYLING THE OVERLAY WAS GIVEN, CARRIED FORWARD VERBATIM.
+   docs/superpowers/specs/2026-08-03-control-system.md governs these: .abLinkPrimary
+   is a PRIMARY control and takes --accent (it was --c900 #212121, a fill used
+   nowhere else on the site); .abLink is SECONDARY and takes no fill at all, a
+   --rim-1 hairline, and an ink hover with no ground. Radii are on the scale
+   (--r-md) and the target is --tap-min. Reverting any of this to the old 4px
+   near-black pill would undo a decision, not a style. */
+.abLink{display:inline-flex;align-items:center;gap:var(--sp-8);padding:0 var(--sp-16);
+ min-height:var(--tap-min);background:none;border:0;box-shadow:var(--rim-1);
+ border-radius:var(--r-md);corner-shape:var(--corner);
+ font-family:var(--sans);font-weight:400;font-size:var(--fs-body);line-height:var(--lh-flat);
+ color:var(--c950);text-decoration:none;cursor:pointer;
+ transition:box-shadow var(--ease-out-dur) var(--ease-out),
+            color var(--ease-out-dur) var(--ease-out),
+            background-color var(--ease-out-dur) var(--ease-out)}
+.abLink:hover{box-shadow:var(--rim-2);color:var(--c950)}
+.abLinkPrimary{background:var(--accent);color:var(--c50);box-shadow:none}
+.abLinkPrimary:hover{background:var(--accent-press);color:var(--c50);box-shadow:none}
+.abLinkPrimary .abLinkArrow{color:var(--c50)}
+.abLink svg{width:18px;height:18px;flex:none}   /* icon box, not spacing: the icon ramp owns 18px */
+.abLinkArrow{margin-left:1px;   /* optical nudge, below the 4px grid on purpose: it is kerning, not spacing */font-size:var(--fs-tab);color:var(--c500);transition:transform .2s var(--ease-out)}
+.abLink:hover .abLinkArrow{transform:translate(2px,-2px)}
+.abLinkRow{display:flex;flex-wrap:wrap;gap:var(--sp-12)}
+.abLink:focus-visible,.abIn:focus-visible,.footIn:focus-visible{outline:2px solid var(--c950);outline-offset:3px;border-radius:var(--r-md)}
+
+/* THE PHOTOGRAPHS, AND THE INTERACTION THEY LOST.
+   In the overlay these were FIVE cards dealt in and out over the floating head, one
+   at a time -- and there was a SECOND, separate implementation for phones
+   (.abMobShot) with its own dots and its own tap-to-change. Two code paths for one
+   idea, and the reason it was reported broken: the desktop one was driven by scroll
+   position against the head's stage, and the phone one was gated on
+   `window.innerWidth > 760 return` AND on `aboutOpen`. Off the overlay, both gates
+   are unreachable, so neither ran.
+   ONE IMPLEMENTATION NOW, at every width. The stack shows one photograph, the dots
+   say how many there are and which you are on, the caption follows it, and it
+   advances on tap/click/Enter or on its own every 4.8s until you touch it. That is
+   the phone behaviour promoted to the whole page rather than the desktop one
+   rebuilt, because the phone one is the one that works without a head to animate
+   against. */
+/* ── THE CROSS-DISSOLVE ──────────────────────────────────────────────────────
+   Jayden: "the animation ... looks choppy. Just make a premium scroll photo
+   animation." Diagnosed before restyling, and it was choppy for two concrete
+   reasons rather than one vague one:
+     1. .abShot had NO opacity transition at all. The swap was a hard cut; only
+        the incoming photo's transform was animated, so the image changed in one
+        frame and then slid.
+     2. that transform ran on `steps(5,end)` -- a deliberately STEPPED five-frame
+        card-throw. It is the site's 8fps stop-motion language, which is right for
+        the floating head and wrong for a photograph: on a real image the steps
+        read as dropped frames.
+   Both are gone. Only opacity and transform move -- nothing here touches layout
+   or paint.
+   THE OUTGOING PHOTO LINGERS UNDER THE INCOMING ONE, which is what stops a
+   cross-fade looking like a mistake. The incoming shot fades in ON TOP (z-index)
+   over 680ms while the outgoing takes 1000ms to leave underneath, so the two are
+   never a 50/50 blend of equals -- you see one arriving over another. The scale
+   and drift settle over 1200ms, longer than either fade, so the image is still
+   quietly moving after it has finished appearing. That is the "inevitable and
+   unhurried" part; erring slower is deliberate, since he has twice called an
+   animation abrupt and never once called one too gentle. */
+.abShots{position:sticky;top:calc(var(--nav-h) + var(--sp-16-24))}
+/* NO BACKGROUND ON THE FRAME. It was --c100, the same grey the letterboxing showed.
+   Every shot is object-fit:cover so the frame is always filled and nothing can show
+   through -- and with no background behind them, if that ever stops being true it will
+   be visible immediately instead of being masked by a colour that matches. */
+.abStack{position:relative;width:100%;aspect-ratio:491/501;overflow:hidden;
+ border-radius:var(--r-sm);corner-shape:var(--corner);cursor:pointer;
+ -webkit-user-select:none;user-select:none}
+.abStack:focus-visible{outline:2px solid var(--c950);outline-offset:3px}
+.abShot{position:absolute;inset:0;z-index:0;opacity:0;
+ transform:scale(1.045) translateY(10px);
+ transition:opacity 1000ms var(--ease-out),transform 1200ms var(--ease-out)}
+.abShot.on{opacity:1;z-index:1;transform:none;
+ transition:opacity 680ms var(--ease-out),transform 1200ms var(--ease-out)}
+/* object-fit:COVER, restored. I changed this to `contain` after measuring that
+   jayden-betts-blender-clay is 1.776 against a 0.98 frame and concluding a 45% crop
+   was a defect. It was not: Jayden -- "the blender photo isn't zoomed in anymore,
+   has weird cropping I don't like, as much as the zoomed-in version where it
+   doesn't show the grey." The crop was the composition he chose. `contain` solved a
+   problem he did not have and introduced one he did: letterboxed --c100 inside the
+   frame. THE RULE THIS COST US: a measurement can tell you a value is unusual, it
+   cannot tell you it is wrong. Check whether a surprising number is load-bearing
+   before correcting it.
+   THE FRAME IS ALWAYS FILLED. No background can show through on any of the four.
+   WHERE THE CROP LANDS IS NOW CHOSEN RATHER THAN DEFAULTED. At a 0.98 frame a 1.776
+   image scales to fill the HEIGHT (501/563 = 0.89, giving 890px of width against the
+   frame's 491) so the crop is HORIZONTAL ONLY -- the full height of the photograph is
+   always visible and the vertical half of object-position does nothing here. Read off
+   the image itself, the clay head spans x=277..716 of 1000, centred on 49.65%. So
+   centre is the deliberate answer, not merely the default one -- it keeps the whole
+   head with even green either side, which is the zoomed framing he is describing. It
+   is written out so the next person knows it was chosen and does not "fix" it.
+   The other three are 0.98 against a 0.98 frame: no crop in either axis, so
+   object-position cannot move them. Verified rather than assumed. */
+.abShot img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
+ object-position:50% 50%;-webkit-user-drag:none}
+/* the caption travels WITH its photograph rather than on its own clock: the same
+   curve, started in the same frame, so the pair reads as one object changing. */
+.abCap{font-family:var(--sans);font-weight:400;font-size:var(--fs-small);letter-spacing:.01em;
+ line-height:var(--lh-body);color:var(--c500);margin:var(--sp-10) 0 0;filter:url(#inkSm);
+ transition:opacity 520ms var(--ease-out),transform 680ms var(--ease-out)}
+.abCap.swapping{opacity:0;transform:translateY(6px)}
+.amsBar{display:flex;align-items:center;justify-content:space-between;gap:var(--sp-12);margin:clamp(11px,2.6vw,15px) 0 0}
+.amsDots{display:inline-flex;align-items:center;gap:var(--sp-8)}
+.amsDots i{width:7px;height:7px;border-radius:var(--r-full);background:var(--c100);
+ transition:background 520ms var(--ease-out),transform 520ms var(--ease-out)}
+.amsDots i.on{background:var(--c900);transform:scale(1.2)}
+.amsHint{display:inline-flex;align-items:center;font-family:var(--sans);font-weight:600;
+ font-size:var(--fs-label);line-height:var(--lh-flat);letter-spacing:var(--tr-flat);color:var(--c500);filter:url(#inkSm);
+ transition:opacity var(--sp-settle-dur) var(--ease-out)}
+.abShots.touched .amsHint{opacity:0;pointer-events:none}
+
+/* ── MOBILE: THE PHOTOGRAPHS STACK, AND EACH ONE ARRIVES ─────────────────────
+   Decided with the measurement rather than by defaulting to the desktop
+   behaviour. A sticky frame at 390 costs a 342px photo plus its dots and caption
+   -- about 400px of an 812px viewport, HALF THE SCREEN, permanently, for
+   furniture the reader did not ask for. And the mechanic that justifies it on
+   desktop does not exist here: scroll-driven swapping means something because
+   the photograph sits BESIDE the paragraph that names it, and on a phone it is
+   never beside anything.
+   So below 881 the four photographs stack in the flow and each animates in as it
+   arrives -- the same slow dissolve and drift, applied per-photo instead of as a
+   swap between them. All four are seen, in order, at full width.
+   THE DOTS AND THE TAP HINT GO WITH THE STACK, deliberately: they exist to say
+   "there are more of these behind this one", which is false once all four are on
+   the page. Scrolling is the affordance.
+   ASPECT: the desktop stack must share one frame, so it crops to 491/501 with
+   object-fit:cover -- unavoidable when four images occupy one box, and the crop on
+   the one landscape shot is the framing Jayden chose. In flow there is no shared
+   frame, so each photograph keeps its OWN aspect and nothing is cropped at all.
+   (This note previously said "the two landscape four-panel grids"; there is one
+   landscape shot, jayden-betts-blender-clay, and it is not a grid.) */
+@media(max-width:880px){
+ .abShots{position:static}
+ .abStack{aspect-ratio:auto;overflow:visible;background:none;cursor:default;
+  display:flex;flex-direction:column;gap:var(--sp-16-32)}
+ .abShot{position:relative;inset:auto;opacity:0;z-index:auto;
+  transform:translateY(18px) scale(1.015);
+  transition:opacity 760ms var(--ease-out),transform 900ms var(--ease-out)}
+ .abShot.inview{opacity:1;transform:none}
+ /* width/height are on every <img>, so the browser reserves each photograph's box
+    before it loads. Without them a lazy image is 0px tall until it arrives, the four
+    figures collapse onto one another, the arrival observer fires for all of them at
+    once, and the page jumps as each one lands -- measured at 390 as heights
+    [349,0,0,0]. Intrinsic sizing is the fix; a fixed aspect-ratio would have been
+    the same crop this layout exists to avoid. */
+ /* in flow the box takes each photograph's own aspect (height:auto + the intrinsic
+    width/height attributes), so nothing is cropped and object-fit has nothing to do.
+    That is why the landscape shot reads full-width here and cropped on desktop: on a
+    phone it is not competing for a shared frame. No background can show either way. */
+ .abShot img{position:relative;inset:auto;width:100%;height:auto;max-width:100%;
+  object-fit:cover;border-radius:var(--r-sm);corner-shape:var(--corner)}
+ /* in flow every photograph carries its own caption, so the single shared one goes */
+ .amsBar,.abCap{display:none}
+
+}
+/* the figcaption's TYPE is declared at every width and only its DISPLAY is
+   width-dependent. Written inside the media query it left four elements computing
+   line-height:normal on desktop -- invisible because they are hidden there, but a
+   rule that is only correct at one width is how the leading drifted in the first
+   place. */
+.abShot figcaption{font-family:var(--sans);font-weight:400;font-size:var(--fs-small);
+ line-height:var(--lh-body);letter-spacing:var(--tr-flat);color:var(--c500);margin:var(--sp-10) 0 0}
+@media(min-width:881px){.abShot figcaption{display:none}}
+/* reduced motion: the photograph still CHANGES -- only the movement is dropped. */
+@media(prefers-reduced-motion:reduce){
+ .abShot,.abShot.on,.abCap,.amsDots i{transition:none;transform:none}
+ .abShot{transform:none}
+}
+
+@media(max-width:880px){
+ /* One column below the two-column breakpoint, and the photographs pair up
+    rather than running full-bleed one under another -- five 100%-wide frames in
+    a phone column is 5 x 100vw of scrolling for five pictures. */
+ .abGrid{grid-template-columns:1fr;gap:var(--sp-32-56)}
+ .abBody .abSec.abConnect{max-width:none}
+ .abShots{position:static}
+ .abBody p{max-width:none}
+ .abFacts{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:600px){.abFacts{grid-template-columns:1fr;gap:16px}}
+
+.siteFoot{margin-top:clamp(80px,12vh,150px);padding:0 clamp(24px,5vw,40px) clamp(32px,5vh,64px);text-align:center}
+/* 1.55 was a literal and the case studies resolve the same role to var(--lh-prose)
+   = 1.5. Same element, same role, two numbers -- exactly the --lh-prose 1.6 -> 1.5
+   drift this system has been bitten by before. The token arbitrates. */
+.footReach{font-family:var(--sans);font-weight:400;font-size:var(--fs-prose);line-height:var(--lh-prose);color:var(--c700);margin:0 auto;max-width:42ch;text-wrap:balance}
+.footIn{font-weight:600;color:var(--c950);text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:3px;text-decoration-color:var(--c500);transition:text-decoration-color var(--ease-out-dur) var(--ease-out),color var(--ease-out-dur) var(--ease-out)}
+/* one shape for this role on all seven pages -- see the case studies. */
+.footIn:hover,.footIn:focus-visible{color:var(--accent);text-decoration-color:var(--accent)}
+.footIn:active{color:var(--accent-press);text-decoration-color:var(--accent-press)}
+/* A 24.5px INLINE LINK IS A 40.5px TARGET, at every width.
+   The control system 3.3 (.ctl--quiet.is-inline): pad the BLOCK axis by --sp-8
+   and pull the margin back by the same amount. The hit area grows, the line box
+   does not move, and the paragraph does not reflow -- which is why this and not
+   a min-height. It is the one place a negative margin is the correct tool.
+   These are text inside prose, so they get no wash, no rim and no radius; ink
+   and their own underline carry every state (see the accent note in tokens.css).
+   index.html shipped this at <=768px only -- on a phone, where a fingertip is
+   already forgiving -- and not at the widths where a pointer has to find it. */
+.footIn,.abIn{display:inline-block;
+ padding-block:var(--sp-10);margin-block:calc(var(--sp-10) * -1)}
+
+/* The closing mark, same as index.html: --fs-display is the right register but its clamp
+   floor of 68px overflows a 390px column, so min() holds it to the measure. Decorative --
+   see the aria-hidden div in the footer. */
+/* THE SIGN-OFF IS ONE BLOCK, top to bottom: status, thanks, wordmark.
+   Jayden: "Make this closer to the Jayden Betts. Put Open to work on top of that,
+   and remove SF from that sentence."
+   THE GAP CARRIES THE MEANING. The thanks and the wordmark are one sign-off, so they
+   sit at --sp-8-16; the status line above is a different statement and keeps the
+   larger --sp-24-40. More related, closer together -- his own rule, applied with the
+   ladder rather than with new numbers.
+   NO STATUS DOT, deliberately, though --accent-live exists and is unused. The hero's
+   availability line had a dot and a ring and both were deleted on his word -- "no
+   background, no radius, no padding, no dot" -- and --avail-dot/--avail-ring were
+   retired with them. Re-introducing the same ornament three rounds later in a new
+   place would reverse that decision by the back door. It is --c500 text: subordinate
+   to the sentence under it, and unmistakably a status rather than a heading.
+   "San Francisco" came out: the hero already says "SF product designer" and About's
+   at-a-glance says it again, so the footer was the third telling. */
+.footAvail{font-family:var(--sans);font-weight:600;font-size:var(--fs-label);line-height:var(--lh-body);letter-spacing:var(--tr-flat);color:var(--c500);margin:0 0 var(--sp-8)}
+.footMark{font-family:var(--sans);font-weight:600;font-size:min(var(--fs-display),13vw);line-height:.9;letter-spacing:var(--tr-display);color:var(--c100);margin:var(--sp-8-16) 0 0;white-space:nowrap;-webkit-user-select:none;user-select:none}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+</style>
+<link rel="stylesheet" href="header.css">
+<script src="header.js" defer></script>
+</head>
+<body data-nav="about">
+<svg width="0" height="0" style="position:absolute"><filter id="inkBig"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="7" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="1.1" xChannelSelector="R" yChannelSelector="G" result="d"/><feTurbulence type="fractalNoise" baseFrequency="0.5 0.42" numOctaves="2" seed="13" result="g"/><feColorMatrix in="g" type="matrix" values="0 0 0 0 0.055 0 0 0 0 0.055 0 0 0 0 0.055 0 0 0 0.42 0" result="grain"/><feComposite in="grain" in2="d" operator="atop"/></filter>
+<filter id="inkSm"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="1" seed="4" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="0.55" xChannelSelector="R" yChannelSelector="G"/></filter><filter id="inkEye"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="9" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="1.05" xChannelSelector="R" yChannelSelector="G"/></filter></svg>
+
+<!-- THE HEADER, IDENTICAL TO THE OTHER NINE PAGES.
+     The leading slot holds exactly one control and never both: the MARK on every
+     page that is not a case study, a Back arrow on the five that are. about.html
+     is not a case study, so it gets the mark. About is the lit item and carries
+     aria-current="page" -- this page IS About's own URL, which is the condition
+     header.css's active state is written against, and it is the thing the
+     overlay could never say (it lit About while the URL still read "/"). -->
+<div class="jbStick">
+ <nav class="jbNav" aria-label="Primary" data-surface="paper">
+  <span class="jbGrp jbGrpL">
+   <a class="jbHome" href="index.html" aria-label="Jayden Betts, home"><svg class="jbLogo" viewBox="0 0 30 30" aria-hidden="true"><path d="M1 26.3842C3.07605 22.5364 9.00761 17.1494 16.1255 26.3842C23.2434 35.619 14.1981 18.1678 16.1255 8.65665C18.0529 -0.854479 32.3186 -2.22723 28.2852 8.65665C24.2517 19.5405 18.6968 18.261 20.8493 13.2232C23.0018 8.1853 35.3661 26.1679 23.0066 27.4872"/></svg></a>
+  </span>
+  <span class="jbGrp jbGrpC">
+   <a data-nav-item="work" href="index.html#cases" aria-label="Work"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7m0 2a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v9a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2z"/><path d="M8 7v-2a2 2 0 0 1 2 -2h4a2 2 0 0 1 2 2v2"/><path d="M12 12l0 .01"/><path d="M3 13a20 20 0 0 0 18 0"/></svg><span class="jbLbl">Work</span></a>
+   <a data-nav-item="about" href="about.html" aria-label="About" aria-current="page"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0"/><path d="M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2"/></svg><span class="jbLbl">About</span></a>
+   <a data-nav-item="games" href="play.html" aria-label="Play"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 6m0 2a2 2 0 0 1 2 -2h16a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-16a2 2 0 0 1 -2 -2z"/><path d="M6 12h4m-2 -2v4"/><path d="M15 11l0 .01"/><path d="M18 13l0 .01"/></svg><span class="jbLbl">Play</span></a>
+  </span>
+  <span class="jbGrp jbGrpR">
+   <span class="jbDisc jbContact">
+    <a class="jbDiscGo" data-nav-item="contact" aria-haspopup="true" aria-expanded="false" aria-controls="jbContactMenu" href="#contact" aria-label="Contact"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10z"/><path d="M3 7l9 6l9 -6"/></svg><span class="jbLbl">Contact</span></a>
+    <div class="jbDiscMenu" id="jbContactMenu"><a class="jbDiscTouch" href="#contact"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10z"/><path d="M3 7l9 6l9 -6"/></svg>Contact</a><div class="jbDiscSep jbDiscTouch" aria-hidden="true"></div><a href="https://www.linkedin.com/in/jaydenbetts" target="_blank" rel="noopener noreferrer"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 11l0 5"/><path d="M8 8l0 .01"/><path d="M12 16l0 -5"/><path d="M16 16v-3a2 2 0 0 0 -4 0"/><path d="M3 7a4 4 0 0 1 4 -4h10a4 4 0 0 1 4 4v10a4 4 0 0 1 -4 4h-10a4 4 0 0 1 -4 -4z"/></svg>LinkedIn</a><a href="https://www.instagram.com/jaydenleebetts" target="_blank" rel="noopener noreferrer"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4m0 4a4 4 0 0 1 4 -4h8a4 4 0 0 1 4 4v8a4 4 0 0 1 -4 4h-8a4 4 0 0 1 -4 -4z"/><path d="M12 12m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"/><path d="M16.5 7.5l0 .01"/></svg>Instagram</a><a href="mailto:jaydenlbetts@gmail.com"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10z"/><path d="M3 7l9 6l9 -6"/></svg>Email</a></div>
+   </span>
+  </span>
+ </nav>
+</div>
+
+<div class="wrap">
+ <main class="abGrid" id="main" tabindex="-1">
+  <div class="abBody">
+   <h1 class="abTitle">Hello, I&rsquo;m Jayden Betts.</h1>
+   <section class="abSec abLede"><h2>I design products end to end (and I built a few of my own).</h2><p>I am a San Francisco-based product designer and recent UC Davis Design graduate with an entrepreneurial spirit. A maker at heart, I focus on iOS, B2C, and design systems, loving the challenge of creating playful, accessible experiences that tickle your brain.</p><p>Inspired by accessible design, I founded Apollo, an iOS app helping neurodivergent students track and celebrate their wins.</p></section><section class="abSec abFactsSec"><p class="abLabel">At a glance</p><div class="abFacts" data-photo="0"><div class="abFact"><span class="abFactK">Status</span><span class="abFactV">Open to full-time opportunities</span></div><div class="abFact"><span class="abFactK">Based in</span><span class="abFactV">San Francisco, CA · open to relocating</span></div><div class="abFact"><span class="abFactK">Focus</span><span class="abFactV">iOS · B2C · design systems</span></div><div class="abFact"><span class="abFactK">Education</span><span class="abFactV">B.A. Design, UC Davis</span></div></div></section><section class="abSec"><h2 data-photo="1">Design has always been my playground.</h2><p>At the age of 10 I built my first company, a greeting card business where I sold my family cards I would design for fun. I built an entire website in Wix, creating “onboarding flows” to understand what they wanted me to design. I took months on it to use it by myself, but it was fun to me. Afterwards I liked it so much I immediately launched a second site so my three-year-old sister could sell her art, too. She could barely draw but I made an artsy website for her out of my selfish intuition.</p><p data-photo="2">I didn’t realize it was something I could do in the future, so I kept designing as a hobby. Whether it be making a hundred-page comic book about a talking pea that turned into a superhero, or learning 3D modeling in Blender five times just to forget it the next month (I will be back), I was always making.</p><p>Little did I know, that childhood obsession with building, scaling, and playing would entirely shape the product designer I am today.</p></section><section class="abSec"><h2 data-photo="3">My best ideas come from real life.</h2><p>Outside of work, I draw inspiration from connecting with friends over coffee, pushing my limits at the gym, hiking, and drawing animals. You can always catch my latest adventure on <a class="abIn" href="https://www.instagram.com/jaydenleebetts" target="_blank" rel="noopener noreferrer">Instagram</a> (or making dancing videos) and <a class="abIn" href="https://www.linkedin.com/in/jaydenbetts" target="_blank" rel="noopener noreferrer">LinkedIn</a>.</p></section><section class="abSec abConnect" id="getInTouch"><p class="abLabel">Get in touch</p><div class="abLinkRow"><a class="abLink abLinkPrimary" href="mailto:jaydenlbetts@gmail.com?subject=Let%27s%20work%20together" aria-label="Email Jayden Betts"><svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M3 4.5h18c.55 0 1 .45 1 1v13c0 .55-.45 1-1 1H3c-.55 0-1-.45-1-1v-13c0-.55.45-1 1-1Zm1.4 1.5L12 11.6 19.6 6H4.4ZM20 7.4l-7.4 5.5a1 1 0 0 1-1.2 0L4 7.4V18h16V7.4Z"/></svg>Email<span class="abLinkArrow" aria-hidden="true">↗</span></a><a class="abLink" href="https://www.linkedin.com/in/jaydenbetts" target="_blank" rel="noopener noreferrer" aria-label="Jayden Betts on LinkedIn — opens in a new tab"><svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.34V9h3.42v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29zM5.34 7.43a2.06 2.06 0 1 1 0-4.13 2.06 2.06 0 0 1 0 4.13zM7.12 20.45H3.55V9h3.57v11.45zM22.22 0H1.77C.8 0 0 .78 0 1.74v20.52C0 23.22.8 24 1.77 24h20.45c.98 0 1.78-.78 1.78-1.74V1.74C24 .78 23.2 0 22.22 0z"/></svg>LinkedIn<span class="abLinkArrow" aria-hidden="true">↗</span></a><a class="abLink" href="https://www.instagram.com/jaydenleebetts" target="_blank" rel="noopener noreferrer" aria-label="Jayden Betts on Instagram — opens in a new tab"><svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>Instagram<span class="abLinkArrow" aria-hidden="true">↗</span></a><a class="abLink" href="Jayden-Betts-Resume.pdf" target="_blank" rel="noopener noreferrer" aria-label="Jayden Betts résumé (PDF, opens in a new tab)"><svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M6 2h8l4 4v16H6V2Zm7.5 1.5V7H17l-3.5-3.5ZM8.5 11h7v1.5h-7V11Zm0 3.4h7v1.5h-7v-1.5Zm0 3.4h4.5v1.5H8.5v-1.5Z"/></svg>Résumé<span class="abLinkArrow" aria-hidden="true">↗</span></a></div></section>
+  </div>
+  <div class="abShots" id="abShots">
+   <div class="abStack" id="abStack" role="button" tabindex="0"
+        aria-label="Photographs of Jayden. Activate to see the next one." aria-live="polite">
+    <figure class="abShot on"><img src="images/about/jayden-betts-graduation.webp" alt="Jayden Betts at his UC Davis graduation in a gold honor stole" width="982" height="1002"><figcaption>Graduating from UC Davis</figcaption></figure>
+    <figure class="abShot"><img src="images/about/jayden-betts-and-sister.webp" alt="Jayden Betts as a kid with his younger sister Jolee" loading="lazy" width="980" height="1000"><figcaption>Me and my sister Jolee</figcaption></figure>
+    <figure class="abShot"><img src="images/about/jayden-betts-blender-clay.webp" alt="A clay-style 3D self-portrait Jayden modeled in Blender" loading="lazy" width="1000" height="563"><figcaption>Clay Self Portrait in Blender</figcaption></figure>
+    <figure class="abShot"><img src="images/about/jayden-betts-life-grid.webp" alt="A four-panel grid of Jayden Betts off the clock: iced matcha, hiking a trail, a charcoal otter drawing, and a selfie" loading="lazy" width="984" height="1004"><figcaption>Life outside work</figcaption></figure>
+   </div>
+   <div class="amsBar">
+    <span class="amsDots" id="amsDots" aria-hidden="true"><i class="on"></i><i></i><i></i><i></i></span>
+    <span class="amsHint" aria-hidden="true">Tap to change</span>
+   </div>
+   <p class="abCap" id="abCap">Graduating from UC Davis</p>
+  </div>
+ </main>
+
+ <footer class="siteFoot" id="contact" role="contentinfo">
+  <p class="footReach">Thanks for checking out my website &mdash; I&rsquo;m open to full-time roles and would love to chat. Find me on <a class="footIn" href="https://www.linkedin.com/in/jaydenbetts" target="_blank" rel="noopener noreferrer">LinkedIn</a>, <a class="footIn" href="https://www.instagram.com/jaydenleebetts" target="_blank" rel="noopener noreferrer">Instagram</a>, or <a class="footIn" href="mailto:jaydenlbetts@gmail.com">email</a>.</p>
+  <div class="footMark" aria-hidden="true">Jayden Betts</div>
+ </footer>
+</div>
+<script>
+/* THE PHOTO SCROLLER. One implementation at every width -- see the CSS note for why
+   there used to be two and why neither survived the overlay.
+   Advances on click, tap, Enter or Space, and on its own every 4.8s until the visitor
+   touches it, at which point it stops and the hint fades: an auto-advance that keeps
+   overriding a deliberate choice is the thing carousels are disliked for.
+   Under prefers-reduced-motion there is no deal-in animation and no auto-advance --
+   only the tap -- because an unrequested 4.8s change of a large image is exactly the
+   motion that rule exists to stop. */
+(function(){
+ var CAPS=["Graduating from UC Davis", "Me and my sister Jolee", "Clay Self Portrait in Blender", "Life outside work"];
+ var ALTS=["Jayden Betts at his UC Davis graduation in a gold honor stole", "Jayden Betts as a kid with his younger sister Jolee", "A clay-style 3D self-portrait Jayden modeled in Blender", "A four-panel grid of Jayden Betts off the clock: iced matcha, hiking a trail, a charcoal otter drawing, and a selfie"];
+ var wrap=document.getElementById("abShots"),stack=document.getElementById("abStack"),
+     cap=document.getElementById("abCap"),dots=document.getElementById("amsDots");
+ if(!wrap||!stack)return;
+ var shots=[].slice.call(stack.querySelectorAll(".abShot"));
+ if(shots.length<2)return;
+ var reduce=matchMedia("(prefers-reduced-motion:reduce)").matches;
+ var i=0,paused=false,timer=0,capT=0;
+ /* The caption is put into its swap in the SAME frame the photograph starts its
+    own, so the two travel together instead of the text snapping while the image
+    dissolves. It is re-shown at 260ms -- half its own 520ms fade -- which is when
+    the outgoing photo has lost enough opacity for the new words to be true. */
+ function go(n){
+  if(n===i)return;
+  var prev=shots[i];i=(n+shots.length)%shots.length;var cur=shots[i];
+  prev.classList.remove("on");
+  cur.classList.add("on");
+  if(cap){cap.classList.add("swapping");
+   clearTimeout(capT);capT=setTimeout(function(){cap.textContent=CAPS[i];cap.classList.remove("swapping");},reduce?0:260);}
+  stack.setAttribute("aria-label",ALTS[i]+". Activate to see the next photograph.");
+  if(dots)[].forEach.call(dots.children,function(d,k){d.className=(k===i?"on":"");});
+ }
+ function next(){go(i+1);}
+ function touched(){paused=true;wrap.classList.add("touched");clearInterval(timer);}
+ stack.addEventListener("click",function(){touched();next();});
+ stack.addEventListener("keydown",function(e){
+  if(e.key==="Enter"||e.key===" "){e.preventDefault();touched();next();}
+  else if(e.key==="ArrowRight"){e.preventDefault();touched();next();}
+  else if(e.key==="ArrowLeft"){e.preventDefault();touched();go(i-1);}
+ });
+ /* ── THE SCROLL DRIVER ──────────────────────────────────────────────────────
+    Jayden: "The images used to auto go through on scroll for desktop at certain
+    points -- can we get that back." The [data-photo] anchors survived the move
+    intact on the prose they were attached to; only the driver was deleted.
+    IntersectionObserver, NOT the original rAF scroll loop. The original computed
+    positions against the overlay's own scroll container and re-measured every
+    frame; About is the page now, so the same job is one observer with no
+    per-frame work at all -- which is also the standing rule here about not adding
+    always-on rAF loops. Nothing polls.
+    The trigger band is a 45%/45% rootMargin: a 10% strip across the middle of the
+    viewport, so a section claims the photograph when the reader is READING it,
+    not when its top edge first appears. Scrolling back up reverses cleanly for
+    free -- go() always moves to whichever anchor is in the band, so there is no
+    forward-only path and no leaving/cOn/cOff bookkeeping to get wrong. That whole
+    class of "two photos visible at once" bug is designed out rather than handled.
+    DESKTOP ONLY, as before -- below 881 the column sits under the prose and the
+    reader is not beside it. Tap-to-change stays live at every width, and the
+    4.8s auto-advance stands down where scroll is driving, so the two never fight
+    over the same photograph. */
+ var desktop=matchMedia("(min-width:881px)");
+ var io=null;
+ function bindScroll(){
+  if(io||!desktop.matches||!("IntersectionObserver" in window))return;
+  var ancs=document.querySelectorAll(".abBody [data-photo]");
+  if(!ancs.length)return;
+  io=new IntersectionObserver(function(es){
+   for(var k=0;k<es.length;k++){
+    if(!es[k].isIntersecting)continue;
+    var n=parseInt(es[k].target.getAttribute("data-photo"),10);
+    if(!isNaN(n)&&n>=0&&n<shots.length)go(n);
+   }
+  },{rootMargin:"-45% 0px -45% 0px",threshold:0});
+  [].forEach.call(ancs,function(a){io.observe(a);});
+  clearInterval(timer);   /* scroll is the driver now */
+ }
+ function unbindScroll(){if(io){io.disconnect();io=null;}}
+ if(!reduce&&!desktop.matches)timer=setInterval(function(){if(!paused&&!document.hidden)next();},4800);
+ bindScroll();
+ /* MOBILE: the photographs are in the flow, so nothing swaps -- each one just
+    arrives. One observer, unobserving as it goes, so a photo that has arrived is
+    never re-animated on the way back up. */
+ var flow=matchMedia("(max-width:880px)");
+ var fio=null;
+ function bindFlow(){
+  if(fio||!flow.matches||!("IntersectionObserver" in window))return;
+  fio=new IntersectionObserver(function(es){
+   for(var k=0;k<es.length;k++)if(es[k].isIntersecting){
+    es[k].target.classList.add("inview");fio.unobserve(es[k].target);}
+  },{rootMargin:"0px 0px -12% 0px",threshold:0.08});
+  shots.forEach(function(sh){fio.observe(sh);});
+  clearInterval(timer);
+ }
+ function unbindFlow(){if(fio){fio.disconnect();fio=null;}shots.forEach(function(sh){sh.classList.remove("inview");});}
+ if(flow.matches)bindFlow();
+ flow.addEventListener("change",function(e){if(e.matches){bindFlow();}else{unbindFlow();}});
+ desktop.addEventListener("change",function(e){
+  if(e.matches){clearInterval(timer);bindScroll();}
+  else{unbindScroll();if(!reduce&&!paused)timer=setInterval(function(){if(!paused&&!document.hidden)next();},4800);}
+ });
+})();
+</script>
+</body></html>

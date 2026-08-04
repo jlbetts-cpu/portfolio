@@ -1,0 +1,1329 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Token specimen — Jayden Betts</title>
+<meta name="robots" content="noindex,nofollow">
+<style>
+/* ═══════════════════════════════════════════════════════════════════
+   SPECIMEN — standalone, no dependencies, no build step.
+   Left column  = OLD (what the site does today)
+   Right column = NEW (what the token spec proposes)
+   Typeface is Instrument Sans on BOTH sides. It is not changing.
+   ═══════════════════════════════════════════════════════════════════ */
+
+@font-face{font-family:"Instrument Sans Var";src:url("fonts/instrument-sans-variable.woff2") format("woff2-variations");font-weight:400 700;font-stretch:75% 100%;font-display:block}
+@font-face{font-family:"Instrument Sans";font-style:normal;font-weight:400;font-display:block;src:url(fonts/instrument-sans-latin-400-normal.woff2) format("woff2")}
+@font-face{font-family:"Instrument Sans";font-style:normal;font-weight:600;font-display:block;src:url(fonts/instrument-sans-latin-600-normal.woff2) format("woff2")}
+
+:root{
+  /* site palette */
+  --c50:#FDFDFD;--c75:#F1F1F1;--c100:#E6E6E6;--c500:#757575;--c600:#6B6B6B;
+  --c700:#525252;--c900:#212121;--c950:#121212;--accent:#121212;--accent-live:#17A45A;   /* --accent is INK site-wide since 2026-08-04; see tokens.css */
+  --sans:"Instrument Sans",-apple-system,system-ui,sans-serif;
+  --old:#B4462A;                       /* specimen-only: marks the OLD column */
+
+  /* ── PROPOSED: radius ── */
+  --r-hair:2px;--r-xs:6px;--r-sm:10px;--r-md:14px;--r-lg:20px;--r-xl:28px;
+  --r-pill:999px;--r-full:50%;--corner:squircle;
+
+  /* ── PROPOSED: motion ── */
+  --ease-out:cubic-bezier(.2,.8,.2,1);
+  --sp-quick:linear(0, 0.0757, 0.2282, 0.3918, 0.5383, 0.6586, 0.7524, 0.8231, 0.8751, 0.9126, 0.9394, 0.9582, 0.9714, 0.9805, 0.9867, 0.991, 0.994, 0.9959, 0.9973, 1);
+  --sp-settle:linear(0, 0.024, 0.0833, 0.1633, 0.2531, 0.3454, 0.4352, 0.5193, 0.5959, 0.6642, 0.724, 0.7755, 0.8194, 0.8562, 0.8867, 0.9118, 0.9322, 0.9486, 0.9616, 0.9719, 0.9799, 0.986, 0.9907, 0.9941, 0.9967, 1);
+  --sp-pop:linear(0, 0.0435, 0.1463, 0.2761, 0.4118, 0.5401, 0.6536, 0.7493, 0.8265, 0.8866, 0.9316, 0.964, 0.9863, 1.0007, 1.0092, 1.0136, 1.0151, 1.0148, 1.0134, 1.0115, 1.0095, 1.0075, 1.0057, 1.0042, 1.0029, 1);
+  --sp-bounce:linear(0, 0.0659, 0.222, 0.4163, 0.6109, 0.7819, 0.917, 1.0128, 1.072, 1.1007, 1.1065, 1.0972, 1.0794, 1.0584, 1.0379, 1.0203, 1.0066, 0.9972, 0.9915, 0.989, 0.9887, 0.9899, 0.9919, 0.9942, 0.9963, 1);
+  --sp-bounce-approx:cubic-bezier(.34,1.56,.64,1);
+
+  /* ── PROPOSED: material ── */
+  --rim-1:inset 0 0 0 1px rgba(18,18,18,.08);
+  --rim-2:inset 0 0 0 1px rgba(18,18,18,.14);
+  --rim-top:inset 0 1px 0 rgba(255,255,255,.55);
+  --mat-1:rgba(253,253,253,.72);--mat-2:rgba(253,253,253,.86);--mat-3:rgba(253,253,253,.96);
+  --mat-scrim:rgba(18,18,18,.34);
+  --blur-1:8px;--blur-2:14px;--blur-3:20px;
+  --sh-1:0 1px 2px rgba(18,18,18,.05);
+  --sh-2:0 2px 8px rgba(18,18,18,.06),0 1px 2px rgba(18,18,18,.04);
+  --sh-3:0 8px 28px rgba(18,18,18,.10),0 2px 6px rgba(18,18,18,.05);
+  --sh-hero:-12px 12px 48px rgba(18,18,18,.22);
+
+  /* ── PROPOSED: type ── */
+  --lh-auto:clamp(0.95em, 0.91em + 10.25px, 1.6em);
+  --lh-prose-new:1.55;--lh-prose-old:1.6;
+  --tr-display:-.042em;--tr-hero:-.028em;--tr-head:-.020em;--tr-sub:-.015em;
+  --tr-title:-.010em;--tr-body:-.004em;--tr-flat:0;--tr-caps:.045em;
+  --tr-mark:-.008em;   /* sentence case. was +.100em when the mark was capitals */
+  --gap-head-top:1.6em;--gap-head-bot:.42em;
+  /* added while building §9 — the bar's own inset and item gap */
+  --pad-bar:5px;--gap-bar:2px;
+
+  /* the real site's type scale, unchanged */
+  --fs-display:clamp(68px,12vw,168px);--fs-hero:clamp(38px,4.7vw,60px);
+  --fs-h1:clamp(28px,2.6vw,38px);--fs-h2:clamp(26px,2.5vw,36px);
+  --fs-h3:clamp(21px,2.4vw,32px);--fs-h4:clamp(19px,2.1vw,28px);
+  --fs-lead:clamp(15px,1.4vw,18px);--fs-prose:clamp(17px,1.39vw,20px);
+  --fs-body:16px;--fs-small:15px;--fs-label:13px;--fs-caption:12px;
+  --tap-min:44px;
+}
+@media(max-width:760px){ :root{ --blur-1:0px;--blur-2:0px; } }
+
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{background:var(--c50);color:var(--c950);font-family:var(--sans);font-weight:400;
+     -webkit-font-smoothing:antialiased;line-height:1.55;padding-bottom:80px}
+
+/* ── page chrome ─────────────────────────────────────────────── */
+.top{position:sticky;top:0;z-index:50;background:var(--mat-3);
+     -webkit-backdrop-filter:blur(var(--blur-2));backdrop-filter:blur(var(--blur-2));
+     box-shadow:0 1px 0 rgba(18,18,18,.08);padding:14px 24px;
+     display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+.top b{font-weight:600;font-size:15px;letter-spacing:-.01em}
+.top span{font-size:13px;color:var(--c600)}
+.top .w{margin-left:auto;font-size:12px;color:var(--c500);font-variant-numeric:tabular-nums}
+
+.page{max-width:1180px;margin:0 auto;padding:0 24px}
+section{padding-top:64px}
+h2.sec{font-weight:600;font-size:clamp(22px,2.4vw,30px);letter-spacing:-.018em;
+       line-height:1.2;margin-bottom:6px}
+h2.sec em{font-style:normal;color:var(--c500);font-weight:400}
+.dek{font-size:15px;color:var(--c600);line-height:1.55;max-width:70ch;margin-bottom:22px}
+.dek code,.n code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.88em;
+     background:var(--c75);padding:1px 5px;border-radius:4px}
+.rule{height:1px;background:var(--c100);margin-top:64px}
+
+/* ── the comparison primitive ────────────────────────────────── */
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+@media(max-width:820px){ .pair{grid-template-columns:1fr} }
+.col{border:1px solid var(--c100);border-radius:4px;background:#fff;overflow:hidden;
+     display:flex;flex-direction:column}
+.col.new{border-color:rgba(14,107,59,.28)}
+.hdr{display:flex;align-items:center;gap:8px;padding:9px 14px;
+     border-bottom:1px solid var(--c100);background:var(--c75);
+     font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.045em}
+.col.new .hdr{background:rgba(14,107,59,.06);border-bottom-color:rgba(14,107,59,.18)}
+.tag{display:inline-flex;align-items:center;justify-content:center;min-width:38px;height:18px;
+     border-radius:999px;padding:0 8px;font-size:10px;font-weight:600;letter-spacing:.06em;
+     color:#fff;background:var(--old)}
+.col.new .tag{background:var(--accent)}
+.hdr .sub{margin-left:auto;font-weight:400;text-transform:none;letter-spacing:0;
+     font-size:11px;color:var(--c500);font-variant-numeric:tabular-nums}
+.body{padding:22px 18px;flex:1;display:flex;flex-direction:column;gap:16px;
+      background:#fff}
+.body.pad0{padding:0}
+.body.tint{background:
+  linear-gradient(135deg,#EDEDED 0 25%,#F7F7F7 25% 50%,#EDEDED 50% 75%,#F7F7F7 75%);
+  background-size:22px 22px}
+
+.n{font-size:12px;color:var(--c500);line-height:1.5}
+.n b{color:var(--c700);font-weight:600}
+.warn{font-size:12.5px;line-height:1.55;color:var(--c700);background:#FFF8E8;
+      border:1px solid #F0E0BC;border-radius:6px;padding:10px 12px;margin-bottom:20px}
+.ok{background:#EEF7F1;border-color:#CBE6D6}
+
+/* ── 1. radius ladder ────────────────────────────────────────── */
+.ladder{display:flex;flex-wrap:wrap;align-items:flex-end;gap:14px}
+.rbox{background:var(--c900);color:#fff;display:flex;align-items:flex-end;
+      justify-content:center;padding-bottom:5px;font-size:10px;font-weight:600;
+      letter-spacing:.03em;font-variant-numeric:tabular-nums}
+.rbox.s1{width:34px;height:22px}
+.rbox.s2{width:56px;height:34px}
+.rbox.s3{width:86px;height:44px}
+.rbox.s4{width:120px;height:76px}
+.rbox.s5{width:150px;height:110px}
+/* OLD: one radius for every box size */
+.old .rbox{border-radius:4px}
+/* NEW: radius scales with the box */
+.new .rbox.s1{border-radius:var(--r-xs)}
+.new .rbox.s2{border-radius:var(--r-sm)}
+.new .rbox.s3{border-radius:var(--r-md)}
+.new .rbox.s4{border-radius:var(--r-lg)}
+.new .rbox.s5{border-radius:var(--r-xl)}
+.new .rbox{corner-shape:var(--corner)}
+
+/* ── 2. concentric ───────────────────────────────────────────── */
+.conc{display:flex;gap:18px;flex-wrap:wrap}
+.outer{width:150px;height:112px;background:var(--c100);padding:10px;
+       display:flex;align-items:center;justify-content:center}
+.inner{width:100%;height:100%;background:var(--c900)}
+.old .outer,.old .inner{border-radius:4px}
+.new .outer{border-radius:var(--r-lg);corner-shape:var(--corner)}
+.new .inner{border-radius:var(--r-sm);corner-shape:var(--corner)}
+.bad .outer{border-radius:var(--r-lg)}
+.bad .inner{border-radius:var(--r-lg)}
+.cap{font-size:11px;color:var(--c500);margin-top:6px;text-align:center}
+
+/* ── 3. corner smoothing ─────────────────────────────────────── */
+.cs{display:flex;gap:20px;flex-wrap:wrap;align-items:flex-end}
+.csq{width:132px;height:132px;background:var(--c950);border-radius:28px}
+.csq.on{corner-shape:squircle}
+.csq.big{width:170px;height:170px;border-radius:38px}
+.ov{position:relative;width:170px;height:170px}
+.ov i{position:absolute;inset:0;border-radius:38px;border:2px solid var(--c950)}
+.ov i.b{border-color:var(--accent);corner-shape:squircle}
+
+/* ── 4. buttons ──────────────────────────────────────────────── */
+.btnrow{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.btn{font-family:var(--sans);font-weight:600;font-size:15px;line-height:1;
+     padding:12px 18px;border:0;cursor:pointer;background:var(--c950);color:#fff;
+     min-height:44px;display:inline-flex;align-items:center;justify-content:center}
+.btn.ghost{background:transparent;color:var(--c950);box-shadow:inset 0 0 0 1px var(--c100)}
+.btn.acc{background:var(--accent)}
+.old .btn{border-radius:4px;transition:transform .16s cubic-bezier(.2,.8,.2,1)}
+.old .btn.ghost{box-shadow:inset 0 0 0 1px var(--c100)}
+.new .btn{border-radius:var(--r-md);corner-shape:var(--corner);
+          transition:transform var(--sp-quick) 300ms}
+.new .btn.ghost{box-shadow:var(--rim-1)}
+.btn:active{transform:scale(.96)}
+.btn.pill{border-radius:var(--r-pill)!important;corner-shape:normal}
+
+/* ── 5. cards ────────────────────────────────────────────────── */
+.card{background:#fff;overflow:hidden}
+.old .card{border-radius:4px;box-shadow:inset 0 0 0 1px rgba(8,8,8,.30);padding:0}
+.new .card{border-radius:var(--r-lg);corner-shape:var(--corner);
+           box-shadow:var(--rim-1);padding:10px}
+.card .shot{display:block;width:100%;height:132px;
+     background:linear-gradient(150deg,#2C3A34,#5D7A6B 55%,#95B0A2);}
+.old .card .shot{border-radius:0}
+.new .card .shot{border-radius:var(--r-sm);corner-shape:var(--corner)}
+.card .meta{padding:12px 14px 14px}
+.new .card .meta{padding:12px 6px 4px}
+.card .meta b{display:block;font-weight:600;font-size:16px;letter-spacing:-.01em;margin-bottom:3px}
+.card .meta span{font-size:13px;color:var(--c600)}
+
+/* ── 6. chips ────────────────────────────────────────────────── */
+.chiprow{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.chip{font-size:13px;line-height:1;padding:8px 11px;background:var(--c75);color:var(--c700)}
+.chip.on{background:var(--c950);color:#fff}
+.old .chip{border-radius:4px}
+.new .chip{border-radius:var(--r-xs);corner-shape:var(--corner)}
+.inp{font-family:var(--sans);font-size:15px;padding:11px 13px;min-height:44px;width:100%;
+     max-width:300px;border:0;background:#fff;color:var(--c950)}
+.old .inp{border-radius:4px;box-shadow:inset 0 0 0 1px rgba(8,8,8,.30)}
+.new .inp{border-radius:var(--r-sm);corner-shape:var(--corner);box-shadow:var(--rim-1)}
+.inp:focus{outline:2px solid var(--accent);outline-offset:2px}
+.pillrow .p{font-size:11px;font-weight:600;letter-spacing:.045em;text-transform:uppercase;
+     padding:5px 11px;background:rgba(255,255,255,.88);color:#111;
+     box-shadow:0 1px 6px rgba(0,0,0,.08)}
+.old .pillrow .p{border-radius:100px}
+.new .pillrow .p{border-radius:var(--r-pill)}
+
+/* ── 7. materials ────────────────────────────────────────────── */
+.matstage{position:relative;min-height:236px;padding:20px;display:flex;gap:14px;
+     flex-wrap:wrap;align-items:flex-start;
+     background:linear-gradient(120deg,#1F2A24,#4A6357 45%,#8FA99B 100%)}
+.matstage.light{background:
+  repeating-linear-gradient(45deg,#EDEDED 0 12px,#F6F6F6 12px 24px)}
+.surf{width:150px;padding:14px;font-size:12.5px;line-height:1.45;color:var(--c950)}
+.surf b{display:block;font-weight:600;font-size:11px;letter-spacing:.045em;
+        text-transform:uppercase;margin-bottom:5px}
+.m1{background:var(--mat-1);box-shadow:var(--rim-1);border-radius:var(--r-md);
+    -webkit-backdrop-filter:blur(var(--blur-1));backdrop-filter:blur(var(--blur-1))}
+.m2{background:var(--mat-2);box-shadow:var(--rim-1),var(--sh-2);border-radius:var(--r-md);
+    -webkit-backdrop-filter:blur(var(--blur-2));backdrop-filter:blur(var(--blur-2))}
+.m3{background:var(--mat-3);box-shadow:var(--rim-2),var(--sh-3),var(--rim-top);
+    border-radius:var(--r-lg);
+    -webkit-backdrop-filter:blur(var(--blur-3));backdrop-filter:blur(var(--blur-3))}
+.surf{corner-shape:var(--corner)}
+/* the OLD equivalents: opaque + hard shadows */
+.o1{background:#fff;border-radius:4px;box-shadow:0 2px 4px rgba(0,0,0,.18)}
+.o2{background:#fff;border-radius:4px;box-shadow:0 4px 10px rgba(0,0,0,.25)}
+.o3{background:#fff;border-radius:4px;box-shadow:0 8px 20px rgba(0,0,0,.32)}
+.rimrow{display:flex;gap:12px;flex-wrap:wrap}
+.rimbox{width:118px;height:70px;background:#fff;border-radius:var(--r-md);
+        corner-shape:var(--corner);display:flex;align-items:center;justify-content:center;
+        font-size:11px;color:var(--c500)}
+.rb1{box-shadow:var(--rim-1)}.rb2{box-shadow:var(--rim-2)}
+.rb3{box-shadow:var(--rim-1),var(--rim-top);background:var(--mat-2)}
+.heroshot{width:100%;max-width:330px;height:150px;border-radius:var(--r-lg);
+   corner-shape:var(--corner);
+   background:linear-gradient(150deg,#213028,#4E6B5C);box-shadow:var(--sh-hero)}
+.oldshot{width:100%;max-width:330px;height:150px;border-radius:4px;
+   background:linear-gradient(150deg,#213028,#4E6B5C);
+   box-shadow:0 4px 10px rgba(0,0,0,.25)}
+
+/* ── 8. motion ───────────────────────────────────────────────── */
+.track{position:relative;height:44px;background:var(--c75);border-radius:var(--r-sm);
+       overflow:hidden;margin-bottom:5px}
+.track i{position:absolute;top:8px;left:6px;width:28px;height:28px;border-radius:var(--r-full);
+     background:var(--c950);display:block}
+.track.run i{animation:slide var(--md,600ms) var(--mc,linear) forwards}
+@keyframes slide{from{transform:translateX(0)}to{transform:translateX(var(--dx,220px))}}
+.mrow{margin-bottom:16px}
+.mlab{display:flex;align-items:baseline;gap:8px;font-size:12px;margin-bottom:5px}
+.mlab b{font-weight:600;font-size:12.5px}
+.mlab span{color:var(--c500);font-variant-numeric:tabular-nums}
+.scalebox{width:96px;height:96px;background:var(--c950);border-radius:var(--r-md);
+    corner-shape:var(--corner);display:flex;align-items:center;justify-content:center;
+    color:#fff;font-size:11px;font-weight:600;letter-spacing:.04em}
+.scalebox.run{animation:popin var(--md,600ms) var(--mc,linear) both}
+@keyframes popin{from{transform:scale(.6);opacity:0}to{transform:scale(1);opacity:1}}
+.play{font-family:var(--sans);font-weight:600;font-size:13px;padding:0 16px;height:36px;
+      min-height:36px;border:0;border-radius:var(--r-pill);background:var(--c950);color:#fff;
+      cursor:pointer;margin-bottom:16px}
+
+/* ── 9. header treatment ─────────────────────────────────────── */
+.navdemo{padding:0}
+.nav{display:flex;align-items:center;gap:18px;padding:18px 20px}
+.nav .lk{font-size:15px;color:var(--c700);text-decoration:none;line-height:1}
+.nav .lk.first{margin-left:auto}
+.nav .cta{font-size:15px;line-height:1;padding:10px 16px;min-height:44px;
+   display:inline-flex;align-items:center;font-weight:600;color:#fff;background:var(--c950)}
+.old .nav .cta{border-radius:4px}
+.new .nav .cta{border-radius:var(--r-md);corner-shape:var(--corner)}
+.old .navdemo .strip{border-top:1px solid var(--c100)}
+.new .navdemo .strip{box-shadow:0 -1px 0 rgba(18,18,18,.08)}
+.strip{height:74px;background:
+  repeating-linear-gradient(45deg,#EDEDED 0 12px,#F6F6F6 12px 24px)}
+.new .nav{background:var(--mat-2);-webkit-backdrop-filter:blur(var(--blur-2));
+   backdrop-filter:blur(var(--blur-2))}
+
+/* ── 10. the lockup ──────────────────────────────────────────── */
+.logo{font-family:"Instrument Sans Var",var(--sans);font-weight:600;
+      display:flex;flex-direction:column;align-items:center;
+      text-align:center;width:fit-content}
+.logo.caps{text-transform:uppercase}
+.logo .l1,.logo .l2{display:block}
+.logo.one{flex-direction:row;white-space:nowrap;text-align:left}
+
+/* A — caps, stacked, exactly as shipped */
+.set-a{line-height:1;letter-spacing:.08em}
+.set-a .l1{font-stretch:85.8%}
+/* B — caps, stacked, retuned */
+.set-b{line-height:1.04;letter-spacing:.100em}
+.set-b .l1{font-stretch:85.0%}
+/* C1 — sentence case, stacked, width-matched (measured in-browser: needs 77.75%) */
+.set-c1{line-height:1.235;letter-spacing:-.008em}
+.set-c1 .l1{font-stretch:77.75%}
+/* C2 — sentence case, ONE line, no width axis at all */
+.set-c2{line-height:1.05;letter-spacing:var(--tr-mark)}
+
+.logo.big{font-size:42px}
+.logo.ship{font-size:17px}
+@media(max-width:1000px){ .logo.big{font-size:36px} }
+.meas{font-size:10.5px;font-weight:600;color:var(--old);line-height:1.45;
+      font-variant-numeric:tabular-nums;margin-top:3px}
+.col.new .meas{color:var(--accent)}
+.col.alt .meas{color:#8A6A16}
+.lkstage{display:flex;flex-direction:column;gap:20px;align-items:flex-start;
+   padding:16px;background:var(--c75);border-radius:var(--r-md);overflow-x:auto}
+.guide{position:relative;display:inline-block}
+.guide::before,.guide::after{content:"";position:absolute;left:-8px;right:-8px;
+   height:1px;background:rgba(180,70,42,.5)}
+.guide::before{top:0}.guide::after{bottom:0}
+
+/* three-way column grid */
+.trio{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;align-items:start}
+@media(max-width:1000px){ .trio{grid-template-columns:1fr} }
+.col.alt{border-color:rgba(138,106,22,.30)}
+.col.alt .hdr{background:rgba(200,150,20,.08);border-bottom-color:rgba(138,106,22,.20)}
+.col.alt .tag{background:#8A6A16}
+.pick{display:inline-block;font-size:10px;font-weight:600;letter-spacing:.05em;
+      text-transform:uppercase;color:#fff;background:var(--accent);
+      padding:3px 9px;border-radius:999px;margin-bottom:4px}
+
+/* ── 15. header treatments ───────────────────────────────────── */
+.hdemo{padding:18px 16px;background:
+  repeating-linear-gradient(45deg,#EAEAEA 0 12px,#F4F4F4 12px 24px);
+  overflow-x:auto}   /* a desktop bar shown at 390px scrolls inside its card,
+                        it never widens the page — see the dedicated 390px block below */
+.hdemo + .hdemo{border-top:1px solid var(--c100)}
+.hbar{display:flex;align-items:center;gap:10px}
+
+/* T1 — today, home page (flex, everything inline) */
+.t1{gap:16px}
+.t1 .lk{font-size:15px;color:var(--c700);text-decoration:none;line-height:1;white-space:nowrap}
+.t1 .lk.first{margin-left:auto}
+.t1 .cta{font-size:15px;font-weight:600;line-height:1;padding:11px 15px;min-height:44px;
+   display:inline-flex;align-items:center;background:var(--c950);color:#fff;border-radius:4px}
+/* T1b — today, case study (grid, three children) */
+.t1b{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;column-gap:16px}
+.t1b .back{justify-self:start;font-size:15px;color:var(--c700);text-decoration:none;
+   background:var(--c50);border:1px solid var(--c100);border-radius:4px;padding:8px 16px;
+   min-height:44px;display:inline-flex;align-items:center;gap:7px}
+.t1b .talk{justify-self:end;font-size:15px;color:var(--c700);text-decoration:none}
+
+/* T2 — the floating pill */
+.pillnav{display:inline-flex;align-items:center;gap:var(--gap-bar);padding:var(--pad-bar);
+   background:var(--mat-3);box-shadow:var(--rim-1),var(--sh-2);
+   border-radius:var(--r-pill);
+   -webkit-backdrop-filter:blur(var(--blur-2));backdrop-filter:blur(var(--blur-2))}
+.pillnav a,.pillnav button{font-family:var(--sans);font-size:14px;font-weight:400;
+   line-height:1;color:var(--c700);text-decoration:none;background:none;border:0;
+   cursor:pointer;padding:0 13px;height:36px;min-width:44px;
+   display:inline-flex;align-items:center;gap:7px;border-radius:var(--r-pill);
+   transition:background var(--ease-out) 160ms,color var(--ease-out) 160ms;position:relative}
+.pillnav a::after,.pillnav button::after{content:"";position:absolute;top:50%;left:50%;
+   width:100%;height:var(--tap-min);transform:translate(-50%,-50%)}
+.pillnav a:hover,.pillnav button:hover{background:rgba(18,18,18,.05);color:var(--c950)}
+.pillnav .on{background:rgba(14,107,59,.10);color:var(--accent);font-weight:600}
+.pillnav .sep{width:1px;height:20px;background:var(--c100);margin:0 4px;flex:0 0 1px}
+.ic{width:15px;height:15px;flex:0 0 15px;stroke:currentColor;fill:none;
+    stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.t2{justify-content:space-between;flex-wrap:wrap;gap:14px}
+
+/* T3 — the ledge: full-width bar, hairline underline, no pill */
+.t3{justify-content:space-between;gap:14px;padding:10px 14px;
+   background:var(--mat-2);box-shadow:0 1px 0 rgba(18,18,18,.08);
+   border-radius:var(--r-lg);
+   -webkit-backdrop-filter:blur(var(--blur-2));backdrop-filter:blur(var(--blur-2))}
+.t3 .grp{display:flex;align-items:center;gap:2px}
+.t3 a,.t3 button{font-family:var(--sans);font-size:14px;line-height:1;color:var(--c700);
+   text-decoration:none;background:none;border:0;cursor:pointer;padding:0 12px;height:44px;
+   display:inline-flex;align-items:center;gap:7px;border-radius:var(--r-md);
+   corner-shape:var(--corner);transition:background var(--ease-out) 160ms}
+.t3 a:hover,.t3 button:hover{background:rgba(18,18,18,.05);color:var(--c950)}
+.t3 .on{color:var(--accent);font-weight:600}
+.t3 .on::after{content:"";position:absolute;left:12px;right:12px;bottom:6px;height:2px;
+   background:var(--accent);border-radius:var(--r-hair)}
+.t3 .on{position:relative}
+
+/* the disclosure panel the Play menu needs */
+.discl{position:relative;display:inline-flex}
+.panel{position:absolute;top:calc(100% + 8px);right:0;width:250px;padding:10px;
+   background:var(--mat-3);box-shadow:var(--rim-1),var(--sh-3);border-radius:var(--r-lg);
+   corner-shape:var(--corner);z-index:5;
+   display:none;flex-direction:column;gap:8px;text-align:left}
+.panel.open{display:flex;animation:panelIn 360ms var(--sp-settle) both}
+@keyframes panelIn{from{opacity:0;transform:translateY(-6px) scale(.985)}to{opacity:1;transform:none}}
+.panel h5{font-size:10.5px;font-weight:600;text-transform:uppercase;
+   letter-spacing:var(--tr-caps);color:var(--c500);line-height:1}
+.panel .rowi{display:flex;gap:6px;flex-wrap:wrap}
+.panel .rowi i{font-style:normal;font-size:12px;padding:7px 10px;background:var(--c75);
+   border-radius:var(--r-xs);corner-shape:var(--corner);color:var(--c700);cursor:pointer}
+.panel .rowi i.sel{background:var(--c950);color:#fff}
+.panel .heads{display:flex;gap:6px}
+.panel .heads b{width:28px;height:28px;border-radius:var(--r-full);display:block;
+   background:linear-gradient(140deg,#5D7A6B,#95B0A2)}
+.mobbar{display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--mat-3);
+   box-shadow:var(--rim-1),var(--sh-2);border-radius:var(--r-pill)}
+.burger{width:44px;height:44px;display:inline-flex;flex-direction:column;
+   align-items:center;justify-content:center;gap:4px;background:none;border:0;cursor:pointer}
+.burger span{display:block;width:20px;height:2px;background:var(--c950);border-radius:var(--r-hair)}
+.slot{font-size:11px;color:var(--c500);margin-top:8px;line-height:1.5}
+
+/* ── 11. leading ─────────────────────────────────────────────── */
+.spec-d{font-weight:600;font-size:var(--fs-display);letter-spacing:-.02em;line-height:1}
+.spec-d.newset{letter-spacing:var(--tr-display);line-height:var(--lh-auto)}
+.spec-h1{font-weight:600;font-size:var(--fs-hero);letter-spacing:-.02em;line-height:1.08;
+     max-width:15ch;text-wrap:balance}
+.spec-h1.newset{line-height:var(--lh-auto)}
+.spec-h2{font-weight:600;font-size:var(--fs-h2);letter-spacing:-.02em;line-height:1.08}
+.spec-h2.newset{letter-spacing:var(--tr-sub);line-height:var(--lh-auto)}
+.spec-h3{font-weight:600;font-size:var(--fs-h3);letter-spacing:-.015em;line-height:1.2}
+.spec-h3.newset{letter-spacing:var(--tr-sub);line-height:var(--lh-auto)}
+.spec-p{font-size:var(--fs-prose);line-height:var(--lh-prose-old);letter-spacing:0;max-width:38ch}
+.spec-p.newset{line-height:var(--lh-prose-new);letter-spacing:var(--tr-body)}
+.lbl{font-size:var(--fs-label);text-transform:uppercase;color:var(--c500);font-weight:600;
+     letter-spacing:.01em;line-height:1}
+.lbl.newset{letter-spacing:var(--tr-caps)}
+.mini{font-size:11px;color:var(--c500);font-variant-numeric:tabular-nums;margin-top:4px}
+
+/* ── 13. heading rhythm ──────────────────────────────────────── */
+.rhy p{font-size:15px;line-height:1.55;color:var(--c700)}
+.rhy h4{font-weight:600;font-size:var(--fs-h4);letter-spacing:-.015em;line-height:1.2}
+.rhy.oldset h4{margin:24px 0 24px}
+.rhy.newset h4{margin:var(--gap-head-top) 0 var(--gap-head-bot);
+   letter-spacing:var(--tr-sub);line-height:var(--lh-auto)}
+
+/* ── 14. targets ─────────────────────────────────────────────── */
+.tg{display:flex;gap:18px;flex-wrap:wrap;align-items:center}
+.tgt{position:relative;display:inline-flex;align-items:center;justify-content:center;
+     background:var(--c75);border-radius:var(--r-sm);font-size:12px;color:var(--c700)}
+.tgt.small{width:24px;height:24px}
+.tgt.big{width:44px;height:44px}
+.tgt.grown{width:24px;height:24px}
+.tgt.grown::after{content:"";position:absolute;top:50%;left:50%;
+   width:var(--tap-min);height:var(--tap-min);transform:translate(-50%,-50%);
+   outline:1px dashed rgba(14,107,59,.55);border-radius:var(--r-sm)}
+
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<div class="top">
+  <b>Token specimen</b>
+  <span>old&nbsp;<i style="display:inline-block;width:9px;height:9px;border-radius:9px;background:var(--old);vertical-align:baseline"></i>&nbsp;&nbsp;vs&nbsp;&nbsp;new&nbsp;<i style="display:inline-block;width:9px;height:9px;border-radius:9px;background:var(--accent);vertical-align:baseline"></i></span>
+  <span class="w" id="wlab">—</span>
+</div>
+
+<div class="page">
+
+<section style="padding-top:34px">
+  <h2 class="sec">How to read this page</h2>
+  <p class="dek">
+    Every block below is a pair. <b>Left is what the site does today.</b>
+    <b>Right is what the token spec proposes.</b> The red/green tag in each header
+    tells you which is which; on a narrow screen they stack, old on top.
+    <br><br>
+    <b>The typeface is Instrument Sans on both sides.</b> It is not changing —
+    §5 of the spec is a leading, tracking and spacing pass on the face already in use.
+    Nothing needs downloading.
+  </p>
+  <div class="warn ok" id="csnote">Checking <code>corner-shape</code> support…</div>
+</section>
+
+<div class="rule"></div>
+
+<!-- ══ 1. RADIUS LADDER ══ -->
+<section>
+  <h2 class="sec">1. Radius <em>— the headline change</em></h2>
+  <p class="dek">
+    <code>index.html</code> uses <b>border-radius:4px 60 times</b>, on boxes from an
+    11px focus ring to a full-height drawer. It is consistent — but it does not
+    <i>scale</i>. On the right, radius is a function of the box:
+    <code>6 / 10 / 14 / 20 / 28</code>. Same five boxes, same sizes, both sides.
+  </p>
+  <div class="pair">
+    <div class="col old"><div class="hdr"><i class="tag">OLD</i> one radius, every size <span class="sub">4px × 5</span></div>
+      <div class="body old"><div class="ladder">
+        <div><div class="rbox s1">4</div></div><div><div class="rbox s2">4</div></div>
+        <div><div class="rbox s3">4</div></div><div><div class="rbox s4">4</div></div>
+        <div><div class="rbox s5">4</div></div>
+      </div>
+      <p class="n">The 150×110 card and the 34×22 badge have the identical corner. At the
+      large end the corner all but disappears; the box reads as a rectangle with a chamfer.</p>
+      </div></div>
+    <div class="col new"><div class="hdr"><i class="tag">NEW</i> radius scales with the box <span class="sub">6 · 10 · 14 · 20 · 28</span></div>
+      <div class="body new"><div class="ladder">
+        <div><div class="rbox s1">6</div></div><div><div class="rbox s2">10</div></div>
+        <div><div class="rbox s3">14</div></div><div><div class="rbox s4">20</div></div>
+        <div><div class="rbox s5">28</div></div>
+      </div>
+      <p class="n"><b>--r-xs · --r-sm · --r-md · --r-lg · --r-xl.</b> Plus
+      <code>--r-hair 2px</code> for bars, <code>--r-pill 999px</code> (replaces the lone
+      <code>999px</code> and <code>100px</code>) and <code>--r-full 50%</code> (the 34 circles, unchanged).</p>
+      </div></div>
+  </div>
+</section>
+
+<div class="rule"></div>
+
+<!-- ══ 2. CONCENTRIC ══ -->
+<section>
+  <h2 class="sec">2. The concentric rule <em>— inner = outer − padding</em></h2>
+  <p class="dek">
+    A 10px mat inside a 20px card gives a 10px inner radius. Equal radii pinch at
+    the corner; a larger inner radius looks broken. The third example is the
+    mistake, shown deliberately.
+  </p>
+  <div class="pair">
+    <div class="col old"><div class="hdr"><i class="tag">OLD</i> 4px inside 4px <span class="sub">no relationship</span></div>
+      <div class="body old"><div class="conc">
+        <div><div class="outer"><div class="inner"></div></div><div class="cap">4 in 4</div></div>
+      </div><p class="n">No rule to break, because there is no rule.</p></div></div>
+    <div class="col new"><div class="hdr"><i class="tag">NEW</i> 10 inside 20, 10px mat <span class="sub">20 − 10 = 10</span></div>
+      <div class="body new"><div class="conc">
+        <div><div class="outer"><div class="inner"></div></div><div class="cap" style="color:var(--accent)">✓ 10 in 20</div></div>
+        <div class="bad"><div class="outer"><div class="inner"></div></div><div class="cap" style="color:var(--old)">✗ 20 in 20</div></div>
+      </div><p class="n"><b>Right:</b> the inner corner is parallel to the outer.
+      <b>Wrong:</b> equal radii, and the 10px mat pinches to nothing at the corners.</p></div></div>
+  </div>
+</section>
+
+<div class="rule"></div>
+
+<!-- ══ 3. CORNER SMOOTHING ══ -->
+<section>
+  <h2 class="sec">3. Corner smoothing <em>— <code>corner-shape: squircle</code></em></h2>
+  <p class="dek">
+    <code>border-radius</code> is a circular arc: curvature jumps where the arc meets the
+    straight edge. Apple's corner is curvature-continuous. Chrome/Edge 139+ ship
+    <code>corner-shape</code>; everywhere else the declaration is dropped and the
+    <code>border-radius</code> already there is used. <b>Nothing to guard, nothing to
+    polyfill.</b> The third pane overlays the two outlines so the difference is
+    unmissable.
+  </p>
+  <div class="pair">
+    <div class="col old"><div class="hdr"><i class="tag">OLD</i> circular arc <span class="sub">border-radius only</span></div>
+      <div class="body old"><div class="cs">
+        <div><div class="csq"></div><div class="cap">28px arc</div></div>
+        <div><div class="csq big"></div><div class="cap">38px arc</div></div>
+      </div></div></div>
+    <div class="col new"><div class="hdr"><i class="tag">NEW</i> squircle <span class="sub">+ corner-shape</span></div>
+      <div class="body new"><div class="cs">
+        <div><div class="csq on"></div><div class="cap">28px squircle</div></div>
+        <div><div class="ov"><i></i><i class="b"></i></div><div class="cap">
+          <span style="color:var(--c950)">▬ arc</span> vs
+          <span style="color:var(--accent)">▬ squircle</span></div></div>
+      </div>
+      <p class="n"><b>Accessibility trap, for the record:</b> the cross-browser fallback is
+      <code>clip-path</code>, and <code>clip-path</code> clips <b>box-shadow and the focus ring</b>
+      as well as the content. If it is ever used, the shadow and the
+      <code>:focus-visible</code> outline must live on an <b>unclipped wrapper</b>.
+      Recommendation: don't build it. Ship <code>corner-shape</code> alone.</p>
+      </div></div>
+  </div>
+</section>
+
+<div class="rule"></div>
+
+<!-- ══ 4. BUTTONS ══ -->
+<section>
+  <h2 class="sec">4. Buttons <em>— 4px → 14px, and a spring on press</em></h2>
+  <p class="dek">
+    Twenty-one selectors currently sit at <code>4px</code>: <code>.talk .back .csTab .hmBtn
+    .moodBtn .aboutCta .ndLink</code> and the rest. All become <code>--r-md 14px</code>.
+    Press one — the old side eases, the new side is critically damped so a fast
+    double-tap can't stack a wobble.
+  </p>
+  <div class="pair">
+    <div class="col old"><div class="hdr"><i class="tag">OLD</i> 4px · ease-out 160ms <span class="sub">1px hard rim</span></div>
+      <div class="body old"><div class="btnrow">
+        <button class="btn">Let's talk</button>
+        <button class="btn ghost">About me</button>
+        <button class="btn acc">See the work</button>
+      </div><p class="n">Height 44px, radius 4px — a ratio of 0.09. Reads as a form control.</p></div></div>
+    <div class="col new"><div class="hdr"><i class="tag">NEW</i> 14px · --sp-quick 300ms <span class="sub">--rim-1 hairline</span></div>
+      <div class="body new"><div class="btnrow">
+        <button class="btn">Let's talk</button>
+        <button class="btn ghost">About me</button>
+        <button class="btn acc">See the work</button>
+        <button class="btn ghost pill">Available</button>
+      </div><p class="n">Radius 14 on a 44px button = <b>0.32</b>. Apple's nonscrolling button is
+      22pt on ~50pt = 0.44, so this sits just inside it — correct for an editorial site.
+      The last one is <code>--r-pill</code>, for when the shape <i>is</i> the affordance.</p></div></div>
+  </div>
+</section>
+
+<div class="rule"></div>
+
+<!-- ══ 5. CARDS ══ -->
+<section>
+  <h2 class="sec">5. Cards <em>— a frame with a mat, not a box with a picture in it</em></h2>
+  <p class="dek">
+    The site mixes four materials for one conceptual edge:
+    <code>inset 0 0 0 1px rgba(8,8,8,.3)</code>, <code>…1.5px rgba(8,8,8,.42)</code>,
+    <code>…1px rgba(8,8,8,.22)</code> and <code>1px solid var(--c100)</code>. All four
+    become <code>--rim-1</code>. Add a 10px mat and the card stops being a container.
+  </p>
+  <div class="pair">
+    <div class="col old"><div class="hdr"><i class="tag">OLD</i> 4px · inset 1px @30% · no mat</div>
+      <div class="body old"><div class="card"><div class="shot"></div>
+        <div class="meta"><b>Apollo</b><span>Founding design · iOS · 2024–25</span></div></div>
+      </div></div>
+    <div class="col new"><div class="hdr"><i class="tag">NEW</i> 20px · --rim-1 @8% · 10px mat</div>
+      <div class="body new"><div class="card"><div class="shot"></div>
+        <div class="meta"><b>Apollo</b><span>Founding design · iOS · 2024–25</span></div></div>
+      <p class="n">Media at <code>--r-sm 10px</code> inside a <code>--r-lg 20px</code> frame with a
+      10px mat — the concentric rule doing real work. The rim drops from 30% to 8% alpha:
+      a hairline should whisper.</p></div></div>
+  </div>
+</section>
+
+<div class="rule"></div>
+
+<!-- ══ 6. CHIPS & INPUTS ══ -->
+<section>
+  <h2 class="sec">6. Chips, inputs, caption pills</h2>
+  <div class="pair">
+    <div class="col old"><div class="hdr"><i class="tag">OLD</i> 4px everything <span class="sub">+ one 100px, one 999px</span></div>
+      <div class="body old">
+        <div class="chiprow"><i class="chip on">All</i><i class="chip">iOS</i><i class="chip">Brand</i><i class="chip">Research</i></div>
+        <input class="inp" placeholder="Search the work" aria-label="Search (old)">
+        <div class="chiprow pillrow"><i class="p">Prototype</i><i class="p">Field study</i></div>
+        <p class="n">Chip, input and pill all read at the same weight. Only the pill is
+        differentiated, and it is written two different ways in the codebase
+        (<code>100px</code> and <code>999px</code>).</p>
+      </div></div>
+    <div class="col new"><div class="hdr"><i class="tag">NEW</i> 6 · 10 · pill <span class="sub">three rungs, one pill token</span></div>
+      <div class="body new">
+        <div class="chiprow"><i class="chip on">All</i><i class="chip">iOS</i><i class="chip">Brand</i><i class="chip">Research</i></div>
+        <input class="inp" placeholder="Search the work" aria-label="Search (new)">
+        <div class="chiprow pillrow"><i class="p">Prototype</i><i class="p">Field study</i></div>
+        <p class="n"><code>--r-xs 6</code> chip · <code>--r-sm 10</code> input ·
+        <code>--r-pill 999</code> caption. <code>999px</code> beats <code>100px</code> because
+        it cannot fail on a tall box. Click the input — the focus ring is
+        <code>outline</code>, never <code>clip-path</code>.</p>
+      </div></div>
+  </div>
+</section>
+
+<div class="rule"></div>
+
+<!-- ══ 7. MATERIALS ══ -->
+<section>
+  <h2 class="sec">7. Materials <em>— translucency and hairlines instead of shadows</em></h2>
+  <p class="dek">
+    The home page already declares <b>71</b> <code>filter: blur()</code> rules and mobile
+    handles 3–5 simultaneous blurs. So the ladder rations blur rather than adding it:
+    <b>no full-viewport blur ever</b>, max two blurred surfaces on screen, and below
+    760px <code>--blur-1/2</code> drop to <code>0px</code> with the tint carrying the material.
+    Resize this window past 760px to see that happen live.
+  </p>
+  <div class="pair">
+    <div class="col old"><div class="hdr"><i class="tag">OLD</i> opaque + hard drop shadows</div>
+      <div class="body pad0"><div class="matstage">
+        <div class="surf o1"><b>Level 1</b>0 2px 4px @18%</div>
+        <div class="surf o2"><b>Level 2</b>0 4px 10px @25%</div>
+        <div class="surf o3"><b>Level 3</b>0 8px 20px @32%</div>
+      </div></div></div>
+    <div class="col new"><div class="hdr"><i class="tag">NEW</i> --mat-1/2/3 + --rim-1/2 <span class="sub">blur 8 · 14 · 20</span></div>
+      <div class="body pad0"><div class="matstage">
+        <div class="surf m1"><b>--mat-1</b>72% · rim-1 · blur-1</div>
+        <div class="surf m2"><b>--mat-2</b>86% · +sh-2 · blur-2</div>
+        <div class="surf m3"><b>--mat-3</b>96% · +sh-3 · rim-top</div>
+      </div></div></div>
+  </div>
+
+  <div class="pair" style="margin-top:20px">
+    <div class="col old"><div class="hdr"><i class="tag">OLD</i> four rims doing one job</div>
+      <div class="body tint"><div class="rimrow">
+        <div class="rimbox" style="box-shadow:inset 0 0 0 1px rgba(8,8,8,.30);border-radius:4px">30%</div>
+        <div class="rimbox" style="box-shadow:inset 0 0 0 1.5px rgba(8,8,8,.42);border-radius:4px">1.5px 42%</div>
+        <div class="rimbox" style="box-shadow:inset 0 0 0 1px rgba(8,8,8,.22);border-radius:4px">22%</div>
+        <div class="rimbox" style="box-shadow:inset 0 0 0 1px var(--c100);border-radius:4px">--c100</div>
+      </div>
+      <div style="margin-top:6px"><div class="oldshot"></div>
+      <p class="n" style="margin-top:8px">Media shadow: <code>0 4px 10px @25%</code> — straight
+      down, no light direction, so the object reads as stuck to the page.</p></div>
+      </div></div>
+    <div class="col new"><div class="hdr"><i class="tag">NEW</i> one rim + one directional shadow</div>
+      <div class="body tint"><div class="rimrow">
+        <div class="rimbox rb1">--rim-1</div>
+        <div class="rimbox rb2">--rim-2</div>
+        <div class="rimbox rb3">+ --rim-top</div>
+      </div>
+      <div style="margin-top:6px"><div class="heroshot"></div>
+      <p class="n" style="margin-top:8px"><code>--sh-hero: -12px 12px 48px @22%</code> — offset
+      left and down, i.e. lit from the upper right. Large blur, low alpha, a real light
+      direction. <b>One per page, maximum.</b> Its value is that it is the only one.</p></div>
+      </div></div>
+  </div>
+</section>
+
+<div class="rule"></div>
+
+<!-- ══ 8. MOTION ══ -->
+<section>
+  <h2 class="sec">8. Motion <em>— sampled springs, and the one bezier that works</em></h2>
+  <p class="dek">
+    Each curve is a real damped-oscillator response sampled into CSS <code>linear()</code>.
+    <code>linear()</code> is shape only, so each is paired with the duration at which its
+    physics is real. The existing house curve <code>cubic-bezier(.2,.8,.2,1)</code> stays for
+    anything under 200ms.
+  </p>
+  <button class="play" id="playAll">▶ Play all curves</button>
+  <div class="pair">
+    <div class="col old"><div class="hdr"><i class="tag">OLD</i> one ease-out for everything</div>
+      <div class="body old">
+        <div class="mrow"><div class="mlab"><b>cubic-bezier(.2,.8,.2,1)</b><span>160ms</span></div>
+          <div class="track" data-mc="cubic-bezier(.2,.8,.2,1)" data-md="160ms"><i></i></div>
+          <p class="n">Correct for colour and opacity. <b>Keep it</b> — it is not the problem.</p></div>
+        <div class="mrow"><div class="mlab"><b>the same curve, on a scale</b><span>160ms</span></div>
+          <div class="scalebox" data-mc="cubic-bezier(.2,.8,.2,1)" data-md="160ms">enter</div>
+          <p class="n">Nothing arrives; it just stops. There is no mass in it.</p></div>
+      </div></div>
+    <div class="col new"><div class="hdr"><i class="tag">NEW</i> four springs, by job</div>
+      <div class="body new">
+        <div class="mrow"><div class="mlab"><b>--sp-quick</b><span>300ms · ζ 1.00 · no overshoot</span></div>
+          <div class="track" data-mc="var(--sp-quick)" data-md="300ms"><i></i></div>
+          <p class="n">Press states, toggles, chip selection. Critically damped on purpose.</p></div>
+        <div class="mrow"><div class="mlab"><b>--sp-settle</b><span>360ms · ζ 0.90</span></div>
+          <div class="track" data-mc="var(--sp-settle)" data-md="360ms"><i></i></div>
+          <p class="n">Drawers, menus, panels. Arrives without announcing it.</p></div>
+        <div class="mrow"><div class="mlab"><b>--sp-pop</b><span>640ms · ζ 0.80 · +1.5%</span></div>
+          <div class="track" data-mc="var(--sp-pop)" data-md="640ms"><i></i></div>
+          <p class="n">Cards entering, the stage settling. The 1.5% overshoot is the
+          "expensive" cue — small enough that you feel it rather than see it.</p></div>
+        <div class="mrow"><div class="mlab"><b>--sp-bounce</b><span>860ms · ζ 0.58 · +10.7%</span></div>
+          <div class="track" data-mc="var(--sp-bounce)" data-md="860ms"><i></i></div>
+          <p class="n"><b>Celebration only</b> — goal, champion, the draw stamp. Never navigation.</p></div>
+        <div class="mrow"><div class="mlab"><b>cubic-bezier(.34,1.56,.64,1)</b><span>860ms · peak +9.8%</span></div>
+          <div class="track" data-mc="var(--sp-bounce-approx)" data-md="860ms"><i></i></div>
+          <p class="n">The approximation. Measured peaks: sampled <b>1.1065</b> vs bezier
+          <b>1.0978</b> — within 0.9%, so they are interchangeable <i>for this one curve</i>.
+          What a bezier <b>cannot</b> do is the second oscillation: watch the sampled curve
+          above dip back to 0.989 after its crest. That undershoot is the part that reads as
+          physical, and it is unavailable to any cubic-bezier.</p></div>
+        <div class="mrow"><div class="mlab"><b>--sp-pop on a scale</b><span>640ms</span></div>
+          <div class="scalebox" data-mc="var(--sp-pop)" data-md="640ms">enter</div></div>
+      </div></div>
+  </div>
+</section>
+
+<div class="rule"></div>
+
+<!-- ══ 9. HEADER ══ -->
+<section>
+  <h2 class="sec">9. The header <em>— why it falls flat on sub-pages</em></h2>
+  <p class="dek">
+    <b>Verified in the source, not assumed.</b> The home page and the case studies do not
+    share a header component — they share a <i>stylesheet</i>.
+    <br><br>
+    <code>index.html</code>: <code>nav{display:flex;align-items:center;gap:var(--sp-16-24)}</code>
+    carrying burger, drawer, <code>.navTitle</code>, <code>.heroBack</code>,
+    <code>.navGroup.navL</code> (Work / About me), the logo, <code>.navGroup.navR</code>
+    (the whole Play menu) and <code>#talk</code>.
+    <br>
+    All five case studies: <code>nav{display:grid;grid-template-columns:1fr auto 1fr}</code>
+    with exactly <b>three</b> children — <code>.back.backlink</code>, <code>.logo</code>,
+    <code>.talk</code>. I confirmed each of the five carries the full
+    <code>.navLink</code> and <code>.moodBtn</code> CSS (4 and 8 occurrences per file)
+    and <b>zero</b> matching markup. Styles travelled; structure didn't.
+    <br><br>
+    So it is not a reduced header, it is a <b>different, sparser component</b> — and a
+    1fr/auto/1fr grid with one item per cell has no way to look like a bar. That is the
+    thing to fix, and it is a structural fix, not a styling one.
+  </p>
+
+  <div class="warn ok" style="max-width:none">
+    <b>Token-layer gap this exposed, and how I closed it.</b> Every treatment below needed a
+    <i>horizontal</i> inset for a control inside a bar — the distance from the pill's edge to
+    the first item's text. Nothing in the spec covered it, and inventing it per-treatment is
+    exactly how 60 one-off radii happen. Added to §7 of the spec:
+    <code>--pad-bar:5px</code> (the pill's own padding, which sets the concentric inner radius)
+    and <code>--gap-bar:2px</code> (between items in a group).
+    With <code>--r-pill</code> outside and 5px of padding, items take
+    <code>--r-pill</code> too — a pill inside a pill is the one case where the concentric rule
+    says <i>equal</i>, because both ends are already fully round.
+  </div>
+
+  <h2 class="sec" style="font-size:19px;margin-top:8px">Today</h2>
+  <div class="pair">
+    <div class="col old"><div class="hdr"><i class="tag">OLD</i> home page <span class="sub">flex · 7 slots</span></div>
+      <div class="body pad0"><div class="hdemo">
+        <div class="hbar t1">
+          <span class="logo one ship set-c2">Jayden Betts</span>
+          <a class="lk first" href="#0">Work</a><a class="lk" href="#0">About me</a>
+          <a class="lk" href="#0">Play</a><span class="cta">Let's talk</span>
+        </div>
+      </div></div></div>
+    <div class="col old"><div class="hdr"><i class="tag">OLD</i> case study <span class="sub">grid · 3 slots</span></div>
+      <div class="body pad0"><div class="hdemo">
+        <div class="hbar t1b">
+          <a class="back" href="#0">← Back</a>
+          <span class="logo one ship set-c2">Jayden Betts</span>
+          <a class="talk" href="#0">Let's talk</a>
+        </div>
+      </div>
+      <p class="n" style="padding:14px 16px 16px">Three items floating in a 1280px row. Nothing
+      binds them, so there is no bar — just a back button, a name and a link at three
+      unrelated x-positions. <b>This is the "falls flat".</b></p>
+      </div></div>
+  </div>
+
+  <h2 class="sec" style="font-size:19px;margin-top:34px">Treatment 1 — the floating pill</h2>
+  <p class="dek">
+    The reference pattern: one rounded container, hairline rim, translucent white on the page
+    ground, icon + label per item, the active item wearing a filled tinted pill.
+    <b>Identical on every page</b> — only the active item and the leading slot change.
+  </p>
+  <div class="pair">
+    <div class="col new"><div class="hdr"><i class="tag">NEW</i> home <span class="sub">--r-pill · --mat-3 · --blur-2</span></div>
+      <div class="body pad0"><div class="hdemo">
+        <div class="hbar t2">
+          <span class="logo one ship set-c2">Jayden Betts</span>
+          <nav class="pillnav" aria-label="Primary (home)">
+            <a href="#0" class="on"><svg class="ic" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg>Work</a>
+            <a href="#0"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.4"/><path d="M5 20a7 7 0 0 1 14 0"/></svg>About</a>
+            <span class="discl"><button type="button" data-panel aria-expanded="false">
+              <svg class="ic" viewBox="0 0 24 24"><path d="M5 8h14v9H5z"/><path d="M9 12h2M15 12h.01M12.5 12h.01"/></svg>Play
+              <svg class="ic" style="width:11px;flex-basis:11px" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button>
+              <div class="panel">
+                <h5>Mood</h5>
+                <div class="rowi"><i class="sel">Hungry</i><i>Party</i><i>Love</i><i>Identity</i></div>
+                <h5>Games</h5>
+                <div class="rowi"><i>Soccer</i><i>Lava</i><i>Marbles</i><i>Cup</i></div>
+                <h5>Your eggheads</h5>
+                <div class="heads"><b></b><b></b><b></b></div>
+              </div>
+            </span>
+            <span class="sep"></span>
+            <a href="#0" style="font-weight:600;color:var(--c950)">Let's talk</a>
+          </nav>
+        </div>
+      </div></div>
+      <p class="n" style="padding:14px 16px 16px">Click <b>Play</b>. The disclosure opens a
+      panel <i>below</i> the pill on <code>--sp-settle 360ms</code> — the pill never becomes a
+      container for a second UI, which was the constraint.</p>
+      </div>
+    <div class="col new"><div class="hdr"><i class="tag">NEW</i> case study <span class="sub">same component, Back leads</span></div>
+      <div class="body pad0"><div class="hdemo">
+        <div class="hbar t2">
+          <span class="logo one ship set-c2">Jayden Betts</span>
+          <nav class="pillnav" aria-label="Primary (case study)">
+            <a href="#0"><svg class="ic" viewBox="0 0 24 24"><path d="M14 6l-6 6 6 6"/></svg>Back</a>
+            <span class="sep"></span>
+            <a href="#0" class="on"><svg class="ic" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg>Work</a>
+            <a href="#0"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.4"/><path d="M5 20a7 7 0 0 1 14 0"/></svg>About</a>
+            <span class="sep"></span>
+            <a href="#0" style="font-weight:600;color:var(--c950)">Let's talk</a>
+          </nav>
+        </div>
+      </div>
+      <p class="n" style="padding:14px 16px 16px">Same pill, same rim, same heights. Back takes
+      the first slot and <b>Work</b> is active, because a case study <i>is</i> a piece of work.
+      That is what the active state keys off: <code>data-nav="work|about|play"</code> on
+      <code>&lt;body&gt;</code>, set once per page — on the home page a scroll-spy flips the same
+      attribute.</p>
+      </div></div>
+  </div>
+
+  <h2 class="sec" style="font-size:19px;margin-top:34px">Treatment 2 — the ledge</h2>
+  <p class="dek">
+    Same idea, less jewellery: a full-width translucent bar with an <code>--r-lg</code> corner
+    and a 1px bottom rim, active state as a 2px underline instead of a filled pill. Sits
+    better under an editorial hero, and it is the one that survives a long "Let's talk"
+    label without the pill starting to look like a toolbar.
+  </p>
+  <div class="pair">
+    <div class="col new"><div class="hdr"><i class="tag">NEW</i> home</div>
+      <div class="body pad0"><div class="hdemo">
+        <div class="hbar t3">
+          <span class="logo one ship set-c2" style="padding-left:6px">Jayden Betts</span>
+          <div class="grp">
+            <a href="#0" class="on">Work</a><a href="#0">About</a>
+            <span class="discl"><button type="button" data-panel aria-expanded="false">Play
+              <svg class="ic" style="width:11px;flex-basis:11px" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button>
+              <div class="panel">
+                <h5>Mood</h5><div class="rowi"><i class="sel">Hungry</i><i>Party</i><i>Love</i></div>
+                <h5>Games</h5><div class="rowi"><i>Soccer</i><i>Lava</i><i>Marbles</i><i>Cup</i></div>
+                <h5>Your eggheads</h5><div class="heads"><b></b><b></b><b></b></div>
+              </div></span>
+            <a href="#0" style="font-weight:600;color:var(--c950)">Let's talk</a>
+          </div>
+        </div>
+      </div></div></div>
+    <div class="col new"><div class="hdr"><i class="tag">NEW</i> case study</div>
+      <div class="body pad0"><div class="hdemo">
+        <div class="hbar t3">
+          <a href="#0"><svg class="ic" viewBox="0 0 24 24"><path d="M14 6l-6 6 6 6"/></svg>Back</a>
+          <span class="logo one ship set-c2">Jayden Betts</span>
+          <div class="grp">
+            <a href="#0" class="on">Work</a><a href="#0">About</a>
+            <a href="#0" style="font-weight:600;color:var(--c950)">Let's talk</a>
+          </div>
+        </div>
+      </div>
+      <p class="n" style="padding:14px 16px 16px">The 1fr/auto/1fr grid the case studies already
+      use, but now the three cells sit <i>inside a bar</i> — so the geometry that made them look
+      stranded is the geometry that now reads as a header.</p>
+      </div></div>
+  </div>
+
+  <h2 class="sec" style="font-size:19px;margin-top:34px">At 390px — and what I cut</h2>
+  <p class="dek">
+    <b>Slot pressure is the actual design problem.</b> Six things want the bar — logo, Work,
+    About, Play, Contact, Back — and the reference carries three plus a search. Being
+    opinionated, as asked:
+  </p>
+  <div class="pair">
+    <div class="col old"><div class="hdr"><i class="tag">CUT</i> what leaves the bar</div>
+      <div class="body old">
+        <p class="n" style="font-size:13px;line-height:1.6">
+        <b>1. "About me" → "About".</b> Two words for one idea. Free.<br><br>
+        <b>2. Contact loses its button.</b> It is a link, not a primary action — the hero and the
+        footer both already carry a real CTA. Demoting it to a weighted link (600, ink) removes
+        the only filled control in the bar and buys ~30px. The teardown's own finding was
+        "strip the chrome off the back button"; the same argument applies here.<br><br>
+        <b>3. Play stays, because it is the site's whole personality</b> — but it is a
+        <i>disclosure</i>, so it earns one slot, not four. Moods, games, roster and toggle all
+        live in the panel.<br><br>
+        <b>4. Back and Play are never both present.</b> Sub-pages have no Play; the home page has
+        no Back. That is what makes six things fit in four slots — <b>the bar is never asked to
+        hold all of them at once.</b><br><br>
+        <b>5. No search.</b> The reference needs one because it has a corpus. Five case studies
+        do not. Copying it would be copying a symptom.</p>
+      </div></div>
+    <div class="col new"><div class="hdr"><i class="tag">NEW</i> 390px behaviour</div>
+      <div class="body">
+        <div class="mobbar" style="max-width:330px">
+          <a href="#0" style="display:inline-flex;align-items:center;gap:6px;font-size:14px;
+             color:var(--c700);text-decoration:none;height:44px;padding:0 8px">
+            <svg class="ic" viewBox="0 0 24 24"><path d="M14 6l-6 6 6 6"/></svg>Back</a>
+          <span class="logo one set-c2" style="font-size:15px;margin:0 auto">Jayden Betts</span>
+          <button class="burger" aria-label="Menu"><span></span><span></span><span></span></button>
+        </div>
+        <p class="n"><b>Back never leaves.</b> It keeps a real 44×44 target in the leading slot on
+        every sub-page at every width. The teardown records that the reference drops both its
+        back affordance <i>and</i> its chapter rail below 900px, leaving no way back — that is
+        their bug, and the existing header-based Back already beats it. Nothing here regresses
+        it.<br><br>
+        Work / About / Play / Contact collapse into the burger → the existing
+        <code>.navDrawer</code>, which gets <code>--r-xl</code> and <code>--sp-settle</code>.
+        The pill keeps its rim and tint but <code>--blur-1/2</code> are already <code>0px</code>
+        below 760px, so the mobile bar costs one tint and no blur.</p>
+      </div></div>
+  </div>
+
+  <div class="warn" style="max-width:none;margin-top:20px">
+    <b>Shipping order.</b> Treatment 2 (the ledge) can go to
+    <code>apollo/bearings/cluster/strata/ucdavis.html</code> <b>immediately</b> — they are not
+    locked, they already have the 1fr/auto/1fr grid, and the change is a wrapper plus
+    <code>--r-lg</code>/<code>--mat-2</code>/<code>--rim-1</code> on it. The Play disclosure and
+    the scroll-spy active state need <code>index.html</code>, which is locked until the
+    concurrent rewrite lands. <b>Do the case studies first</b> — they are where the complaint is.
+  </div>
+</section>
+
+<div class="rule"></div>
+
+<!-- ══ 10. LOCKUP ══ -->
+<section>
+  <h2 class="sec">10. The "Jayden Betts" lockup <em>— caps, retuned caps, or sentence case</em></h2>
+  <p class="dek">
+    Every number in the current mark is <b>derived from the caps setting</b>, so dropping
+    <code>text-transform:uppercase</code> invalidates all three of them at once. I measured
+    each against the actual <code>instrument-sans-variable.woff2</code> rather than guessing.
+    Weight stays <b>600</b> in all three — the two-weight rule allows nothing between, and
+    400 goes weedy at 17px.
+  </p>
+  <div class="warn ok" style="max-width:none">
+    <b>What I measured.</b> Glyph metrics from <code>instrument-sans-variable.woff2</code>
+    (fontTools): cap height <b>0.720&nbsp;em</b>, x-height <b>0.510</b>, <code>y</code> descender
+    <b>−0.205</b>, <code>n</code> advance <b>1.175×</b> its own x-height.
+    <br><br>
+    Width matching was <b>re-solved in the browser</b>, not from the font tables — the face
+    carries an <code>avar</code> table that remaps the <code>wdth</code> axis non-linearly
+    (<code>−0.48 → −0.50</code>), so advance sums taken from an instanced font disagree with
+    what Chrome actually renders by up to 2%. Binary search on live
+    <code>getBoundingClientRect()</code> is the only trustworthy number here:
+    <br>→ Caps @ <code>.08em</code> width-match at <b>85.5%</b>.
+    <b>The shipped 85.8% is 0.4% out — effectively correct.</b> Credit where due; that value
+    was well chosen.
+    <br>→ Caps @ <code>.10em</code> want <b>85.0%</b>.
+    <br>→ <b>Sentence case stacked wants 77.75%</b> — <b>7.75pp deeper</b> than caps, and only
+    <b>2.75pp above the axis floor of 75%</b>. That is the finding that decides this.
+  </div>
+  <div class="trio">
+
+    <div class="col old"><div class="hdr"><i class="tag">A</i> caps, as shipped
+      <span class="sub">lh 1 · .08em · 85.8%</span></div>
+      <div class="body old">
+        <div class="lkstage">
+          <div><div class="guide"><span class="logo caps big set-a" data-meas data-ink=".730"><span class="l1">Jayden</span><span class="l2">Betts</span></span></div>
+            <div class="meas"></div></div>
+          <div><div class="guide"><span class="logo caps ship set-a" data-meas data-ink=".730"><span class="l1">Jayden</span><span class="l2">Betts</span></span></div>
+            <div class="mini">17px, as shipped</div><div class="meas"></div></div>
+        </div>
+        <p class="n">The two cap-lines almost touch. And at <code>.08em</code> the letters inside
+        each line are more crowded than the lines themselves, so it reads as <i>two words
+        stacked</i> rather than one mark. The width match itself is fine — 85.8% is 0.4% off
+        a perfect fit, which is not a defect worth touching.</p>
+      </div></div>
+
+    <div class="col alt"><div class="hdr"><i class="tag">B</i> caps, retuned
+      <span class="sub">lh 1.04 · .10em · 85.0%</span></div>
+      <div class="body">
+        <div class="lkstage">
+          <div><div class="guide"><span class="logo caps big set-b" data-meas data-ink=".730"><span class="l1">Jayden</span><span class="l2">Betts</span></span></div>
+            <div class="meas"></div></div>
+          <div><div class="guide"><span class="logo caps ship set-b" data-meas data-ink=".730"><span class="l1">Jayden</span><span class="l2">Betts</span></span></div>
+            <div class="mini">17px</div><div class="meas"></div></div>
+        </div>
+        <p class="n">The caps mark done properly: 1.04 buys 0.68px of air per line,
+        <code>.10em</code> makes the letter rhythm inside a line match the rhythm between lines,
+        and <b>85.0%</b> re-matches the widths at that looser tracking. This is the answer
+        <i>if the mark stays uppercase</i> — two values change, and neither is dramatic.</p>
+      </div></div>
+
+    <div class="col new"><div class="hdr"><i class="tag">C</i> sentence case
+      <span class="sub">one line · no width axis</span></div>
+      <div class="body new">
+        <div class="lkstage">
+          <div><span class="pick">recommended</span>
+            <div class="guide"><span class="logo one big set-c2" data-meas>Jayden Betts</span></div>
+            <div class="meas"></div></div>
+          <div><div class="guide"><span class="logo one ship set-c2" data-meas>Jayden Betts</span></div>
+            <div class="mini">17px · <code>--tr-mark −.008em</code></div><div class="meas"></div></div>
+          <div style="opacity:.62;border-top:1px solid var(--c100);padding-top:14px;width:100%">
+            <div class="mini" style="margin-bottom:6px"><b>C2 — sentence case, still stacked</b> (for comparison)</div>
+            <div class="guide"><span class="logo big set-c1" data-meas data-ink=".925"><span class="l1">Jayden</span><span class="l2">Betts</span></span></div>
+            <div class="meas"></div>
+            <div class="mini">font-stretch <b>77.75%</b> · line-height <b>1.235</b></div>
+          </div>
+        </div>
+        <p class="n"><b>Tracking:</b> <code>.08em</code> was a <i>capitals</i> value — tall narrow
+        caps need opening. Lowercase does not, and Instrument Sans is already loosely spaced
+        for its x-height (<code>n</code> advance = 1.175× x-height, vs ~1.08 for a face like
+        Inter). So the sign flips: <b>−.008em</b>, not +.10em.
+        <br><br><b>font-stretch:</b> gone entirely. One line means there is nothing to
+        width-match, so the mark stops depending on a variable width axis — which §8 of the
+        spec flags as its most fragile dependency.
+        <br><br><b>Leading:</b> the stacked version can't keep 1.04. Sentence case puts a
+        <code>y</code> descender on line 1, so the ink extent goes 0.730&nbsp;em → 0.925&nbsp;em and
+        the visible gap collapses from 0.310&nbsp;em to 0.115&nbsp;em. Holding the old gap needs
+        <b>line-height 1.235</b> — at which point the stack is taller than it is compact, and
+        the reason for stacking is gone.</p>
+      </div></div>
+  </div>
+
+  <p class="dek" style="margin-top:20px">
+    <b>Why one line wins, in one sentence:</b> the stack existed to make a <i>caps</i> mark feel
+    compact, and sentence case removes both the need and the means — the width-match it depends
+    on would take "Jayden" to 77.75% against "Betts" at 100% — 2.75pp off the axis floor — and at
+    that depth the lowercase bowls and stems visibly stop matching, which caps at 85.5% got away
+    with. One line at 17px measures <b>100.0px × 17.8px</b> against the stacked mark's
+    <b>61.4px × 34.0px</b>: wider, half the height,
+    and three declarations lighter (<code>text-transform</code>, <code>font-stretch</code>, and
+    the stacked spans all go). <i>Premium = subtract.</i>
+  </p>
+</section>
+
+<div class="rule"></div>
+
+<!-- ══ 11. LEADING ══ -->
+<section>
+  <h2 class="sec">11. Leading <em>— one law, anchored on the hero</em></h2>
+  <p class="dek">
+    Five <code>--lh-*</code> tokens exist and are used <b>five times in total</b>
+    (<code>--lh-body</code> and <code>--lh-flat</code>: zero). Meanwhile 22 distinct raw
+    line-height values are set inline. Leading is less tokenised than radius.
+    <br><br>
+    The fix is a curve, not a constant: <code>lh(s) = 0.909 + 10.25/s</code>, fitted through
+    the hero's existing <b>1.08 at 60px</b> and body at <b>1.55 at 16px</b>. Because
+    <code>em</code> in <code>line-height</code> resolves against the element's own font-size,
+    it is one declaration that tracks every <code>clamp()</code> automatically:
+    <code>--lh-auto: clamp(0.95em, 0.91em + 10.25px, 1.6em)</code>.
+    <b>The hero is not exempt from the ladder — it defines it.</b>
+  </p>
+  <div class="pair">
+    <div class="col old"><div class="hdr"><i class="tag">OLD</i> flat ratios, mostly untokenised</div>
+      <div class="body old">
+        <div><div class="spec-d" style="line-height:1;letter-spacing:-.02em">Betts</div>
+          <div class="mini">--fs-display · lh 1.0 · ls −.02em</div></div>
+        <div><div class="spec-h1">Design that earns attention, then keeps it.</div>
+          <div class="mini">--fs-hero · lh 1.08 flat at both clamp ends</div></div>
+        <div><div class="spec-h2">A heading at h2</div><div class="mini">lh 1.08</div></div>
+        <div><div class="spec-h3">And one at h3</div><div class="mini">lh 1.2</div></div>
+        <div><div class="spec-p">Research-driven product design. The measure is capped at
+          680px, the leading is 1.6, and the tracking is zero — which is one notch looser
+          than this face wants at its 0.51&nbsp;em x-height.</div>
+          <div class="mini">--fs-prose · lh 1.6 · ls 0</div></div>
+      </div></div>
+    <div class="col new"><div class="hdr"><i class="tag">NEW</i> --lh-auto everywhere it clamps</div>
+      <div class="body new">
+        <div><div class="spec-d newset">Betts</div>
+          <div class="mini"><b>--lh-auto</b> → 0.97 @168 · <b>--tr-display −.042em</b></div></div>
+        <div><div class="spec-h1 newset">Design that earns attention, then keeps it.</div>
+          <div class="mini"><b>--lh-auto</b> → 1.08 @60 (identical) · 1.18 @38 (the proposal)</div></div>
+        <div><div class="spec-h2 newset">A heading at h2</div><div class="mini">→ 1.19 @36 · 1.30 @26</div></div>
+        <div><div class="spec-h3 newset">And one at h3</div><div class="mini">→ 1.23 @32 · 1.40 @21</div></div>
+        <div><div class="spec-p newset">Research-driven product design. The measure is capped
+          at 680px, the leading is 1.55, and the tracking is −.004em — which is what this
+          face wants at its 0.51&nbsp;em x-height.</div>
+          <div class="mini"><b>--lh-prose 1.55</b> · <b>--tr-body</b> · a 3% tightening</div></div>
+        <p class="n"><b>The one hero proposal:</b> at the 38px mobile floor the hero currently
+        still runs 1.08 — 4.1px of air between a descender and the cap below it, on a
+        headline that wraps to three lines. The law wants 1.18 (7.9px). <b>Judge it at 390px,
+        not here.</b> If it isn't visibly better there, it shouldn't ship.</p>
+      </div></div>
+  </div>
+</section>
+
+<div class="rule"></div>
+
+<!-- ══ 12. TRACKING ══ -->
+<section>
+  <h2 class="sec">12. Tracking <em>— everything closes up, small caps open up</em></h2>
+  <p class="dek">
+    Measured off the woff2: Instrument Sans has an <b>0.72&nbsp;em cap height</b> (tall), an
+    <b>0.51&nbsp;em x-height</b> (low), and an <code>n</code> advance of 1.175× its x-height
+    — versus ~1.08 for a face like Inter. It is <b>spaced for UI</b>. That means it runs
+    slack at display sizes and its tall caps run cramped at label sizes, so the ladder is
+    steeper at <i>both</i> ends than generic advice.
+  </p>
+  <div class="pair">
+    <div class="col old"><div class="hdr"><i class="tag">OLD</i> 19 values, zero tokens</div>
+      <div class="body old">
+        <div><div class="spec-d" style="line-height:1;letter-spacing:-.02em">Betts</div>
+          <div class="mini"><code>.abName</code> at up to 168px, tracked <b>−.02em</b></div></div>
+        <p class="n">This is the biggest single typographic miss on the site: the largest
+        piece of type there is, set with the tracking of a 36px heading. At 168px that is
+        3.4px of space per pair where the face wants 7.1px of <i>negative</i> tracking.</p>
+        <div style="margin-top:4px">
+          <div class="lbl">Available for work</div>
+          <div class="mini">13px caps at <b>+.01em</b> = +0.13px</div>
+        </div>
+        <div class="n">Nine more values sit at <code>−.015em</code>, five at <code>−.01em</code>,
+        fifteen at <code>+.01em</code>, seven at <code>+.08em</code>, and singletons at
+        <code>−.055 .07 .1 .12 .16 .22em</code>.</div>
+      </div></div>
+    <div class="col new"><div class="hdr"><i class="tag">NEW</i> nine tokens, by size band</div>
+      <div class="body new">
+        <div><div class="spec-d newset">Betts</div>
+          <div class="mini"><b>--tr-display −.042em</b> — one declaration, biggest visible win</div></div>
+        <div style="margin-top:4px">
+          <div class="lbl newset">Available for work</div>
+          <div class="mini">13px caps at <b>--tr-caps +.045em</b> = +0.59px — <b>4.5× more</b></div>
+        </div>
+        <p class="n">
+          <b>--tr-display</b> −.042 ≥88px ·
+          <b>--tr-hero</b> −.028 48–88 ·
+          <b>--tr-head</b> −.020 32–48 <i>(what h1 already uses — validated, no edit)</i> ·
+          <b>--tr-sub</b> −.015 24–32 ·
+          <b>--tr-title</b> −.010 18–24 ·
+          <b>--tr-body</b> −.004 14–18 ·
+          <b>--tr-flat</b> 0 small lowercase ·
+          <b>--tr-caps</b> +.045 ≤13px UPPERCASE ·
+          <b>--tr-mark</b> +.100 the wordmark only.
+        </p>
+      </div></div>
+  </div>
+</section>
+
+<div class="rule"></div>
+
+<!-- ══ 13. HEADING RHYTHM ══ -->
+<section>
+  <h2 class="sec">13. Space around headings <em>— where premium typography actually lives</em></h2>
+  <p class="dek">
+    Page gaps stay on the <code>--sp-*</code> ladder; they are about the page. <b>Heading gaps
+    go em-relative to the heading</b>, because a heading's correct margins are a function of
+    its own size — and every heading here is a <code>clamp()</code>, so a fixed px margin is
+    wrong at one end of every one. <code>--gap-head-top 1.6em</code> over
+    <code>--gap-head-bot .42em</code> is a <b>3.8:1</b> ratio, and the ratio is the whole point.
+  </p>
+  <div class="pair">
+    <div class="col old"><div class="hdr"><i class="tag">OLD</i> symmetric 24px, both sides</div>
+      <div class="body old"><div class="rhy oldset">
+        <p>The tournament produces a ranked finishing table at the end of a cup, which is
+        honest on its own terms.</p>
+        <h4>What we didn't ship</h4>
+        <p>A WebGL banner over the pitch. Three reasons it wasn't feasible, then the cheaper
+        thing that got built instead.</p>
+      </div>
+      <p class="n">Equal space above and below: the heading floats between two blocks and the
+      reader has to work out which one it belongs to.</p></div></div>
+    <div class="col new"><div class="hdr"><i class="tag">NEW</i> 1.6em above · .42em below</div>
+      <div class="body new"><div class="rhy newset">
+        <p>The tournament produces a ranked finishing table at the end of a cup, which is
+        honest on its own terms.</p>
+        <h4>What we didn't ship</h4>
+        <p>A WebGL banner over the pitch. Three reasons it wasn't feasible, then the cheaper
+        thing that got built instead.</p>
+      </div>
+      <p class="n">The heading is unambiguously attached to what follows. It scales for free:
+      an h4 at 28px gets 44.8 above / 11.8 below; at 19px, 30.4 / 8.0. No media query.
+      <b>The checkable rule: space above ≥ 3× space below.</b></p></div></div>
+  </div>
+</section>
+
+<div class="rule"></div>
+
+<!-- ══ 14. TARGETS ══ -->
+<section>
+  <h2 class="sec">14. Targets <em>— 44 × 44, ink stays small</em></h2>
+  <p class="dek">
+    The <i>target</i> is 44px, not the <i>ink</i>. Grow the hit area with a pseudo-element so
+    the visible control keeps its size. <code>.navBurger</code> already gets this right —
+    44×44 around 22px bars. <code>.reelClose .hmPitX .navDrawerX .moodGo .tDot .sbDot</code>
+    and every rail tick do not.
+  </p>
+  <div class="pair">
+    <div class="col old"><div class="hdr"><i class="tag">OLD</i> target = ink</div>
+      <div class="body old"><div class="tg">
+        <span class="tgt small">×</span><span class="tgt small">×</span><span class="tgt small">×</span>
+      </div><p class="n">24×24 targets, 18px apart. Reachable with a mouse, ambiguous with a thumb.</p></div></div>
+    <div class="col new"><div class="hdr"><i class="tag">NEW</i> --tap-min 44px, ink unchanged</div>
+      <div class="body new"><div class="tg" style="gap:26px">
+        <span class="tgt grown">×</span><span class="tgt grown">×</span><span class="tgt grown">×</span>
+        <span class="tgt big">44</span>
+      </div><p class="n">Same 24px ink, 44×44 hit area (dashed). 8px minimum between adjacent
+      targets so two cannot be hit ambiguously.</p></div></div>
+  </div>
+</section>
+
+</div>
+
+<script>
+(function(){
+  // live viewport readout — makes the 390px screenshot self-labelling
+  var w=document.getElementById('wlab');
+  function upd(){ w.textContent=window.innerWidth+' × '+window.innerHeight+' px'; }
+  upd(); addEventListener('resize',upd);
+
+  // honest corner-shape support note
+  var note=document.getElementById('csnote');
+  var ok = window.CSS && CSS.supports && CSS.supports('corner-shape','squircle');
+  if(ok){
+    note.innerHTML='<b>corner-shape: squircle is supported in this browser</b> — the right-hand'
+      +' columns are rendering true squircles. In Safari and Firefox the declaration is dropped'
+      +' and the border-radius already there is used instead. Nothing breaks, nothing shifts.';
+  }else{
+    note.className='warn';
+    note.innerHTML='<b>corner-shape: squircle is NOT supported in this browser</b> — the right-hand'
+      +' columns are falling back to plain border-radius, which is exactly the intended'
+      +' degraded state (~1/3 of traffic). Open this page in Chrome or Edge 139+ to see the'
+      +' squircles. Every other comparison on this page is unaffected.';
+  }
+
+  // ?from=N&to=M shows only those sections (1-based). Used for capturing tall
+  // pages in slices; also handy for reviewing one comparison at a time.
+  var q=new URLSearchParams(location.search);
+  if(q.has('from')||q.has('to')){
+    // numbering matches the headings: 0 = "How to read this page", 1 = Radius, …
+    var from=parseInt(q.get('from')||'0',10), to=parseInt(q.get('to')||'99',10);
+    var secs=[].slice.call(document.querySelectorAll('.page > section'));
+    var rules=[].slice.call(document.querySelectorAll('.page > .rule'));
+    secs.forEach(function(s,i){ if(i<from||i>to) s.style.display='none'; });
+    rules.forEach(function(r,i){ if(i<from||i+1>to) r.style.display='none'; });
+  }
+
+  // live measurement of the lockup, so the leading/tracking delta is a number, not a vibe
+  function meas(){
+    [].slice.call(document.querySelectorAll('[data-meas]')).forEach(function(el){
+      var r=el.getBoundingClientRect();
+      var cs=getComputedStyle(el);
+      var fs=parseFloat(cs.fontSize), lh=parseFloat(cs.lineHeight);
+      var host=el.closest('div'); var out=host&&host.parentNode.querySelector('.meas');
+      if(!out) return;
+      var txt=fs.toFixed(0)+'px  ·  box '+r.width.toFixed(1)+' × '+r.height.toFixed(1)+' px';
+      if(el.dataset.ink){
+        // visible air between line 1's lowest ink and line 2's highest ink
+        txt+='  ·  interline air '+(lh-fs*parseFloat(el.dataset.ink)).toFixed(2)+' px';
+      }else{
+        txt+='  ·  single line';
+      }
+      // width match between the two stacked words, where there are two
+      var a=el.querySelector('.l1'), b=el.querySelector('.l2');
+      if(a&&b){
+        var wa=a.getBoundingClientRect().width, wb=b.getBoundingClientRect().width;
+        txt+='  ·  width match '+(100*wa/wb).toFixed(1)+'%';
+      }
+      out.textContent=txt;
+    });
+  }
+  meas(); addEventListener('resize',meas);
+  if(document.fonts&&document.fonts.ready) document.fonts.ready.then(meas);
+
+  // §9: the Play disclosure — a panel below the bar, never inside it
+  [].slice.call(document.querySelectorAll('[data-panel]')).forEach(function(btn){
+    var panel=btn.parentNode.querySelector('.panel');
+    btn.addEventListener('click',function(e){
+      e.stopPropagation();
+      var open=panel.classList.contains('open');
+      document.querySelectorAll('.panel.open').forEach(function(p){ p.classList.remove('open'); });
+      document.querySelectorAll('[data-panel]').forEach(function(b){ b.setAttribute('aria-expanded','false'); });
+      if(!open){ panel.classList.add('open'); btn.setAttribute('aria-expanded','true'); }
+    });
+  });
+  document.addEventListener('click',function(){
+    document.querySelectorAll('.panel.open').forEach(function(p){ p.classList.remove('open'); });
+    document.querySelectorAll('[data-panel]').forEach(function(b){ b.setAttribute('aria-expanded','false'); });
+  });
+  document.addEventListener('keydown',function(e){
+    if(e.key==='Escape') document.querySelectorAll('.panel.open').forEach(function(p){ p.classList.remove('open'); });
+  });
+
+  // motion: replay by toggling the .run class
+  function run(el){
+    el.classList.remove('run'); void el.offsetWidth;
+    el.style.setProperty('--mc', el.dataset.mc);
+    el.style.setProperty('--md', el.dataset.md);
+    if(el.classList.contains('track')){
+      el.style.setProperty('--dx', Math.max(60, el.clientWidth-40)+'px');
+    }
+    el.classList.add('run');
+  }
+  var all=[].slice.call(document.querySelectorAll('[data-mc]'));
+  all.forEach(function(el){
+    el.style.cursor='pointer';
+    el.title='click to replay';
+    el.addEventListener('click',function(){ run(el); });
+  });
+  document.getElementById('playAll').addEventListener('click',function(){
+    all.forEach(run);
+  });
+})();
+</script>
+</body></html>

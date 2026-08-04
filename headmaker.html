@@ -11,331 +11,477 @@
 <meta name="robots" content="index,follow">
 <link rel="canonical" href="https://jaydenbetts.design/headmaker.html">
 <link rel="preload" as="font" type="font/woff2" href="fonts/instrument-sans-variable.woff2" crossorigin><link rel="preload" as="font" type="font/woff2" href="fonts/instrument-sans-latin-400-normal.woff2" crossorigin><link rel="preload" as="font" type="font/woff2" href="fonts/instrument-sans-latin-600-normal.woff2" crossorigin>
-<!-- THE SHARED DESIGN TOKENS, linked ahead of this page's own <style> so the few values
-     this page binds differently can still override. Replaces both the hand-copied :root
-     subset that used to open this block and the flagged header "top-up" block that sat at
-     its foot. See .superpowers/sdd/2026-08-02-play-page/play-tokens-report.md §1. -->
+<!-- THE SHARED DESIGN TOKENS. Everything geometric on this page resolves through
+     them; this file's own <style> declares no colour ramp, no type scale and no
+     spacing rung of its own. -->
 <link rel="stylesheet" href="tokens.css">
 <style>
-/* ONLY WHAT DIFFERS FROM tokens.css. The rest of what used to be declared here --
-   --fs-h1/h2/pagehead/prose/body/small/label, --sans, the whole --c* ramp and eight
-   --sp-*-* rungs -- was byte-identical to the shared file and is now inherited from it.
-   Two things are NOT:
-   1. --lh-prose. This page has always used 1.6 (tokens.css says 1.5) and two rules
-      consume it. Kept at 1.6: changing prose leading here is a design call, not a
-      refactor.
-   2. The four --sp-*-* rungs below. This page pinned eight rungs at their DESKTOP value
-      with no mobile step-down, so tokens.css's @media(max-width:880px) rung would have
-      shrunk them on mobile (--sp-80-152 alone drops 152px->80px). That is very likely
-      the right behaviour and is what every other page already does, but it is a visible
-      mobile layout change on a page this pass was only asked to WIRE, so the four that
-      this page's own content consumes stay pinned and are written up as a recommended
-      follow-up (play-tokens-report.md §1.3) rather than shipped unasked. Delete this
-      @media block to adopt the ladder.
-      --sp-16-24 is DELIBERATELY NOT in that list even though six rules here consume it:
-      header.css:48 uses it for .jbStick's horizontal inset, so pinning it gave this page
-      a 24px header inset at 390px while play.html and all five case studies rendered the
-      same bar at 16px. The site header is one component on every page; an inset that
-      depends on which page it is sitting on is the bug, not the fix. Unpinning costs six
-      of this page's own vertical margins 8px at <=880px, which is what the ladder is for.
-      The other three unpinned rungs (--sp-8-16, --sp-40-64, --sp-48-80) have zero
-      consumers here at all. */
-:root{--lh-prose:1.6;}
-@media(max-width:880px){:root{--sp-24-32:32px;--sp-32-48:48px;--sp-72-144:144px;--sp-80-152:152px}}
-@font-face{font-family:"Instrument Sans";font-style:normal;font-weight:400;font-display:swap;src:url(fonts/instrument-sans-latin-400-normal.woff2) format("woff2")}@font-face{font-family:"Instrument Sans";font-style:normal;font-weight:600;font-display:swap;src:url(fonts/instrument-sans-latin-600-normal.woff2) format("woff2")}
+/* ═══════════════════════════════════════════════════════════════════════════
+   HEAD MAKER — A BUILDER, NOT A CASE STUDY.
+
+   What this page was: an article. A hero headline, a lede, four numbered
+   "Step N of 4" kickers each with a heading and a paragraph of prose, a stage
+   dropped into the middle of the reading column, and 2317px of scroll at a
+   900px viewport. It explained a tool instead of being one.
+
+   What it is now: one screen. The head holds the centre and never leaves it;
+   the controls sit beside it on desktop and under it on a phone; the group
+   label does the explaining that four paragraphs used to. Nothing scrolls —
+   `.mkApp` is fixed to the viewport and where content did not fit at 390 the
+   answer was to remove content, never to add a scrollport.
+
+   THE ARCHETYPE IS SHARED with gradientlab.html (Gradient Maker): full
+   viewport, artifact centre, controls in a panel beside it, one primary
+   action, hairlines instead of shadows. Its stage/panel logic is the
+   reference; NONE of its numbers are — the geometry audit put 59 of the
+   site's 70 off-system values on that one file.
+
+   THREE THINGS IN HERE ARE LOAD-BEARING AND MUST NOT BE TIDIED:
+
+   1. The `.hm*` rules under "THE LIVING HEAD" are byte-identical to what they
+      were. save() (in the script below) walks document.styleSheets and copies
+      every rule whose selector matches
+      /hm(Head|Scl|Eye|Iris|Pupil|Glint|LidW|LidS|Brow|Nose|Smize|Mouth)/
+      into the SVG it rasterises for the downloaded PNG. Change one of those
+      declarations and you have changed what people download. This is also why
+      every NEW class on this page is prefixed `mk`, not `hm`: a class called
+      `.hmHeader` would match that regex and leak page chrome into the export.
+   2. `.hmStage` keeps aspect-ratio 5/6. bake() maps the stage's own
+      getBoundingClientRect() onto an 840x1008 canvas; any other ratio distorts
+      every head made after the change.
+   3. `.hidden{display:none!important}` is the only thing show() uses to switch
+      steps, on both the panel groups and the stage layers.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* The only page-local declarations, and both are LAYOUT MEASURES rather than
+   scale values — the same category as --page-max in tokens.css, which is why
+   neither belongs on the --sp-* ladder.
+   --mk-bar is the header's total height and is DERIVED, not typed: header.css
+   builds the bar from --sp-8 + --nav-h + --sp-12 and guarantees that total
+   never changes between its rest and shrunk states.
+   --mk-panel is the control column. 360 is the width at which the widest row
+   in the panel (two 44px controls with a --sp-8 gap, inside --sp-24 gutters)
+   fits without wrapping. */
+:root{--mk-bar:calc(var(--nav-h) + var(--sp-8) + var(--sp-12));--mk-panel:360px}
+
+@font-face{font-family:"Instrument Sans";font-style:normal;font-weight:400;font-display:swap;src:url(fonts/instrument-sans-latin-400-normal.woff2) format("woff2")}
+@font-face{font-family:"Instrument Sans";font-style:normal;font-weight:600;font-display:swap;src:url(fonts/instrument-sans-latin-600-normal.woff2) format("woff2")}
+/* Two weights, and the variable face is deliberately NOT declared here any
+   more: the only rule that consumed it was `nav .logo`, which is markup this
+   page stopped having when the site header was adopted. */
+
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html{overflow-x:clip}
-body{background:var(--c50);color:var(--c950);font-family:var(--sans);-webkit-font-smoothing:antialiased;overflow-x:clip}
+html,body{height:100%;overflow:clip}
+body{background:var(--c50);color:var(--c950);font-family:var(--sans);-webkit-font-smoothing:antialiased}
 img{display:block;max-width:100%}
-.wrap{position:relative;max-width:1200px;margin:0 auto;padding:0 40px}
-/* .back / .talk / the `1fr auto 1fr` nav grid all left with the header --
-   one .jbNav on every page now, in header.css. */
-.back:hover,.talk:hover,.back:focus-visible,.talk:focus-visible{border-color:var(--c500);color:var(--c950)}
-.navTitle{grid-column:2;justify-self:center;font-weight:600;font-size:var(--fs-small);color:var(--c700);filter:url(#inkSm);white-space:nowrap}
-.content{max-width:680px;margin:0 auto}
-.head{font-weight:600;font-size:var(--fs-h1);line-height:1.12;letter-spacing:-.02em;margin:16px 0 0;filter:url(#inkBig)}
-.lede{font-weight:400;font-size:var(--fs-prose);line-height:var(--lh-prose);color:var(--c700);margin:var(--sp-16-24) 0 0;text-wrap:pretty}
-.lede strong{font-weight:600;color:var(--c950)}
-.kicker{font-weight:600;font-size:var(--fs-label);letter-spacing:.01em;color:var(--c500);filter:url(#inkSm);margin:var(--sp-72-144) 0 0}#step1 .kicker{margin-top:36px}
-.stepHead{font-weight:600;font-size:var(--fs-h2);line-height:1.1;letter-spacing:-.015em;margin:var(--sp-16-24) 0 0;text-wrap:pretty}
-.stepBody{font-weight:400;font-size:var(--fs-prose);line-height:var(--lh-prose);color:var(--c700);margin:16px 0 0;text-wrap:pretty}
-.cap{margin:16px 0 0;font-size:var(--fs-small);line-height:1.5;color:var(--c500);filter:url(#inkSm);text-align:center}
-/* the workspace: one stage, restyled per step */
-.hmStage{position:relative;width:min(440px,100%);aspect-ratio:5/6;margin:var(--sp-32-48) auto 0;background:var(--c50);border-radius:4px;box-shadow:inset 0 0 0 1px rgba(8,8,8,.16);overflow:hidden;touch-action:none}#hmRot{position:absolute;inset:0;transform-origin:50% 50%}.hmCtl{display:flex;align-items:center;gap:16px;width:min(340px,86%);margin:var(--sp-16-24) auto 0}.hmCtlL{font-family:var(--sans);font-size:var(--fs-label);font-weight:600;color:var(--c500);width:76px;flex:0 0 auto;filter:url(#inkSm)}.hmCtl .hmZoom{flex:1;margin:0;width:auto}
-.hmStage.bare{background:var(--c50)}
-/* step 1: the drop zone */
-.hmDrop{position:absolute;inset:16px;border:1px dashed var(--c100);border-radius:4px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;cursor:pointer;transition:border-color .2s cubic-bezier(.2,.8,.2,1)}
-.hmDrop:hover,.hmDrop.over{border-color:var(--c500)}
-.hmDropTxt{font-size:var(--fs-body);color:var(--c500)}
-.hmBtn{display:inline-flex;align-items:center;gap:.45em;background:var(--c950);border:1px solid var(--c950);border-radius:4px;color:var(--c50);font-family:var(--sans);font-weight:400;font-size:var(--fs-body);line-height:1;padding:12px 24px;cursor:pointer;text-decoration:none;transition:opacity .2s cubic-bezier(.2,.8,.2,1)}
-.hmBtn:hover{opacity:.86}
-.hmBtn.ghost{background:var(--c50);border-color:var(--c100);color:var(--c950)}
-.hmBtn.ghost:hover{opacity:1;border-color:var(--c500);color:var(--c950)}
-.hmRow{display:flex;align-items:center;justify-content:center;gap:16px;margin:var(--sp-24-32) 0 0;flex-wrap:wrap}
-/* step 2: frame the face */
-#hmPhoto{position:absolute;left:0;top:0;transform-origin:0 0;will-change:transform;pointer-events:none;user-select:none;-webkit-user-drag:none;max-width:none}
+.hidden{display:none!important}
+
+/* ───────────────────────────────────────────────────────────────────────────
+   1 · THE SHELL. Fixed to the viewport, under a fixed bar. 100dvh rather than
+   100vh because on iOS Safari vh resolves against the LARGE viewport, so a
+   100vh app with the browser chrome showing runs its last control under the
+   toolbar with no way to reach it — and this page cannot scroll to it.
+   ─────────────────────────────────────────────────────────────────────────── */
+.mkApp{
+ position:fixed;left:0;right:0;top:var(--mk-bar);bottom:0;
+ height:calc(100dvh - var(--mk-bar));
+ padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right);
+ display:grid;grid-template-columns:minmax(0,1fr) var(--mk-panel);
+ overflow:clip;
+}
+.mkApp:focus{outline:none}
+
+/* THE STAGE COLUMN. A shade off the paper, so the artifact reads as sitting on
+   a work surface rather than floating in the page — separation by ground and a
+   hairline, never by elevation. */
+.mkStageCol{
+ position:relative;min-width:0;min-height:0;
+ display:grid;grid-template-rows:minmax(0,1fr) auto;gap:var(--sp-12);
+ padding:var(--sp-24);
+ background:var(--c75);
+ border-right:var(--hair-w) solid var(--c100);
+}
+/* container-type:size is what lets the stage take the SMALLER of the two
+   constraints. `width:min(100cqw, 100cqh*5/6)` is exact where a flex/max-width
+   pair only approximates it, and the plain min() above is the fallback for
+   engines without size containers. */
+.mkStageBox{min-width:0;min-height:0;container-type:size;display:grid;place-items:center}
+.mkStage{
+ position:relative;aspect-ratio:5/6;
+ width:min(100%,440px);
+ width:min(100cqw,calc(100cqh * 5 / 6));
+ border-radius:var(--r-lg);corner-shape:var(--corner);
+ background:var(--c50);box-shadow:var(--rim-1);
+ overflow:hidden;
+}
+/* the four stage layers stack; show() reveals exactly one */
+.hmStage{position:absolute;inset:0;overflow:hidden;touch-action:none;border-radius:inherit}
+#hmRot{position:absolute;inset:0;transform-origin:50% 50%}
+
+/* the one status line under the stage: the marker being dragged, or a photo
+   that this browser could not decode. One row, reserved, so nothing reflows. */
+.mkNote{min-height:var(--sp-20);text-align:center;font-size:var(--fs-label);
+ font-weight:400;line-height:var(--lh-body);color:var(--c500);
+ text-wrap:balance;overflow:clip}
+.mkNote b{font-weight:600;color:var(--c950)}
+/* exactly one span is live at a time, chosen by the step. The default and the
+   decode error are both step-1 statements, so photoErr() swaps them. */
+.mkNote>span{display:none}
+.mkApp[data-step="1"] #mkNoteDefault,
+.mkApp[data-step="2"] #mkNoteDefault{display:inline}
+.mkApp[data-step="3"] #hmWhich{display:inline}
+.mkApp[data-step="4"] #hmNameSay{display:inline}
+#hmErr{display:inline}                 /* id beats .mkNote>span; .hidden still beats this */
+.mkErr{color:var(--c950);font-weight:600}
+
+/* ───────────────────────────────────────────────────────────────────────────
+   2 · THE PANEL. Groups, each with a label that does the explaining, and one
+   action row pinned to the foot. It does not scroll and it must not: where the
+   phone ran out of room the content was cut, not made scrollable.
+   ─────────────────────────────────────────────────────────────────────────── */
+.mkPanel{
+ min-width:0;min-height:0;
+ display:flex;flex-direction:column;gap:var(--sp-20);
+ padding:var(--sp-24) var(--sp-24) calc(var(--sp-20) + env(safe-area-inset-bottom));
+ background:var(--c50);
+ overflow:clip;
+}
+.mkFlow{flex:1 1 auto;min-height:0;display:flex;flex-direction:column}
+.mkStep{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;gap:var(--sp-20)}
+
+/* the progress rail — four segments, a label each. Not a target: it reports
+   where you are, it does not navigate. */
+.mkSteps{display:flex;gap:var(--sp-8);list-style:none}
+.mkSteps li{flex:1 1 0;display:flex;flex-direction:column;gap:var(--sp-6);
+ font-size:var(--fs-label);font-weight:600;letter-spacing:var(--tr-flat);
+ color:var(--c500);white-space:nowrap;
+ transition:color var(--ease-out-dur) var(--ease-out)}
+.mkSteps li::before{content:"";display:block;height:var(--focus-w);
+ border-radius:var(--r-hair);background:var(--c100);
+ transition:background-color var(--ease-out-dur) var(--ease-out)}
+.mkSteps li.isDone::before{background:var(--c500)}
+.mkSteps li[aria-current]{color:var(--c950)}
+.mkSteps li[aria-current]::before{background:var(--accent)}
+
+.mkGroup{display:flex;flex-direction:column;gap:var(--sp-8)}
+.mkGroupHead{display:flex;align-items:center;justify-content:space-between;gap:var(--sp-8);min-height:var(--sp-24)}
+.mkGroupH{font-size:var(--fs-label);font-weight:600;line-height:var(--lh-body);
+ letter-spacing:var(--tr-caps);text-transform:uppercase;color:var(--c500)}
+.mkHint{font-size:var(--fs-label);font-weight:400;line-height:var(--lh-body);
+ color:var(--c500);text-wrap:pretty}
+.mkHint b{font-weight:600;color:var(--c950)}
+.mkRow{display:flex;align-items:center;gap:var(--sp-12);min-height:var(--tap-min)}
+.mkRow--wrap{flex-wrap:wrap;gap:var(--sp-8)}
+/* the slider block is a GRID, not two flex rows, so both labels resolve to one
+   column width and the two tracks start on the same x with no fixed width
+   invented for the label. (The fixed --sp-* ladder stops at 40 and the
+   responsive rungs change value below 880px, so there is no rung that could
+   have held a constant 72 here — see the note at the foot of tokens.css.) */
+.mkGrid{display:grid;grid-template-columns:max-content minmax(0,1fr) max-content;
+ column-gap:var(--sp-12);align-items:center}
+.mkLbl{font-size:var(--fs-label);font-weight:400;color:var(--c700);white-space:nowrap}
+.mkVal{min-width:var(--sp-40);text-align:right;
+ font-size:var(--fs-label);font-variant-numeric:tabular-nums;color:var(--c500)}
+.mkActs{margin-top:auto;display:flex;gap:var(--sp-8)}
+.mkActs>*{flex:1 1 auto}
+
+/* ───────────────────────────────────────────────────────────────────────────
+   3 · THE CONTROLS — docs/superpowers/specs/2026-08-03-control-system.md.
+   One base, four permitted per-kind properties (background, box-shadow, color,
+   font-weight), two height rungs, one curve, one focus treatment.
+   No --ctl-* tokens are declared here: that block belongs in tokens.css, which
+   is the design-system agent's file, so every value below resolves through a
+   token that already exists. The mapping is 1:1 with §10 of the spec —
+   --ctl-h is --tap-min, --ctl-pad is --sp-16, --ctl-r is --r-md,
+   --dur-state-out is --hover-out-dur, --ctl-accent is --accent.
+   --accent is CONSUMED, never rebound: rebinding it locally is exactly how one
+   token came to mean two colours elsewhere in this codebase.
+   ─────────────────────────────────────────────────────────────────────────── */
+.ctl{
+ position:relative;display:inline-flex;align-items:center;justify-content:center;
+ min-height:var(--tap-min);padding-block:0;padding-inline:var(--sp-16);gap:var(--sp-8);
+ border:0;                      /* the rim is a box-shadow: a border joins layout, a rim does not */
+ border-radius:var(--r-md);corner-shape:var(--corner);
+ background:none;box-shadow:none;
+ font-family:var(--sans);font-weight:400;font-size:var(--fs-small);
+ line-height:var(--lh-flat);letter-spacing:var(--tr-body);color:var(--c700);
+ white-space:nowrap;text-decoration:none;cursor:pointer;
+ transition-property:color,background-color,box-shadow,transform;
+ transition-timing-function:var(--ease-out);
+ transition-duration:var(--hover-out-dur);   /* the hover-OUT, deliberately slower */
+}
+.ctl:hover,.ctl:focus-visible,.ctl[aria-pressed="true"]{transition-duration:var(--ease-out-dur)}
+.ctl:active{transition-duration:var(--press-dur)}
+.ctl:hover{color:var(--c950)}
+/* press is SCALE, never translateY: a downward nudge on a control with no
+   shadow reads as a rendering glitch. This is also the whole of the touch
+   press state — there is no hover on a phone. */
+.ctl:active{transform:scale(var(--press-scale))}
+.ctl:focus-visible{outline:var(--focus-w) solid var(--c950);outline-offset:var(--sp-2)}
+.ctl:focus:not(:focus-visible){outline:none}
+.ctl[disabled],.ctl[aria-disabled="true"]{opacity:.38;cursor:default}
+.ctl[disabled]:active{transform:none}
+.ctl svg{flex:0 0 var(--ico-md);width:var(--ico-md);height:var(--ico-md);color:currentColor}
+
+.ctl--primary{background:var(--accent);color:var(--c50)}
+.ctl--primary:hover,.ctl--primary:focus-visible{background:var(--accent-press);color:var(--c50)}
+.ctl--secondary{box-shadow:var(--rim-1)}
+.ctl--secondary:hover,.ctl--secondary:focus-visible{box-shadow:var(--rim-2)}
+/* selection is ink + rim, on two axes, and neither moves a pixel */
+.ctl[aria-pressed="true"],.ctl.isOn{color:var(--c950);box-shadow:var(--rim-3)}
+
+/* the compact rung. Legal here because all three conditions in §4.2 hold: each
+   one sits inside a panel group that is itself taller than 44, each carries the
+   ::after expansion below, and every gap around one is --sp-8 or more. */
+.ctl.is-sm{min-height:var(--sp-36);padding-inline:var(--sp-12);gap:var(--sp-6);font-size:var(--fs-nav)}
+.ctl.is-sm svg{flex:0 0 var(--ico-sm);width:var(--ico-sm);height:var(--ico-sm)}
+.ctl.is-sm::after{content:"";position:absolute;top:50%;left:0;right:0;
+ height:var(--tap-min);transform:translateY(-50%)}
+.ctl.is-block{display:flex;width:100%}
+
+/* the field. The one kind that carries a ground at rest, because its job is to
+   look like where content goes. */
+.mkField{display:flex;width:100%;min-height:var(--tap-min);
+ padding:0 var(--sp-16);border:0;
+ border-radius:var(--r-md);corner-shape:var(--corner);
+ background:var(--mat-3-solid);box-shadow:var(--rim-1);
+ font-family:var(--sans);font-weight:400;font-size:var(--fs-small);
+ letter-spacing:var(--tr-body);color:var(--c950);
+ transition:box-shadow var(--hover-out-dur) var(--ease-out)}
+.mkField:hover{box-shadow:var(--rim-2)}
+.mkField:focus{box-shadow:var(--rim-2);outline:var(--focus-w) solid var(--c950);outline-offset:var(--sp-2)}
+.mkField::placeholder{color:var(--c500)}
+
+/* the sliders. The input's own box IS the hit area — a ::-webkit-slider-thumb
+   paints outside a 2px input and catches nothing, which is how this page
+   shipped two 2px-tall targets. The track moves to ::-slider-runnable-track so
+   the line stays a hairline while the control is a full 44. */
+.mkSlider{-webkit-appearance:none;appearance:none;flex:1 1 auto;min-width:0;
+ height:var(--tap-min);background:none;cursor:pointer;touch-action:pan-y;
+ font-family:var(--sans)}   /* a range carries no text, but a UA-default Arial on it is a third family in the computed styles */
+.mkSlider::-webkit-slider-runnable-track{height:var(--focus-w);border-radius:var(--r-hair);background:var(--c100)}
+.mkSlider::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;
+ width:var(--ico-md);height:var(--ico-md);border-radius:var(--r-full);
+ background:var(--accent);border:0;
+ margin-top:calc((var(--focus-w) - var(--ico-md)) / 2)}
+.mkSlider::-moz-range-track{height:var(--focus-w);border-radius:var(--r-hair);background:var(--c100)}
+.mkSlider::-moz-range-thumb{width:var(--ico-md);height:var(--ico-md);border:0;
+ border-radius:var(--r-full);background:var(--accent)}
+.mkSlider:focus-visible{outline:var(--focus-w) solid var(--c950);outline-offset:var(--sp-2)}
+
+@media(prefers-reduced-motion:reduce){
+ .ctl,.ctl::after,.mkField,.mkSlider,.mkSteps li,.mkSteps li::before,.hmDie{
+  transition-duration:1ms!important;animation-duration:1ms!important}
+ .ctl:active{transform:none}
+}
+
+/* ───────────────────────────────────────────────────────────────────────────
+   4 · STEP 1 — the drop zone. An interactive REGION, not a button: the control
+   system's padding and height rules are for controls, and forcing them on a
+   whole stage is the mistake that block explicitly carves out.
+   ─────────────────────────────────────────────────────────────────────────── */
+.hmDrop{position:absolute;inset:var(--sp-16);
+ border:var(--hair-w) dashed var(--c100);
+ border-radius:var(--r-md);corner-shape:var(--corner);
+ display:flex;flex-direction:column;align-items:center;justify-content:center;
+ gap:var(--sp-8);padding:var(--sp-16);text-align:center;cursor:pointer;
+ font-size:var(--fs-label);line-height:var(--lh-body);color:var(--c500);
+ transition:border-color var(--hover-out-dur) var(--ease-out),color var(--hover-out-dur) var(--ease-out)}
+.hmDrop:hover,.hmDrop.over,.hmDrop:focus-visible{border-color:var(--c500);color:var(--c950)}
+.hmDrop:focus-visible{outline:var(--focus-w) solid var(--c950);outline-offset:var(--sp-2)}
+.hmDropIco{width:var(--sp-28);height:var(--sp-28);color:var(--c500);
+ stroke:currentColor;fill:none;stroke-linecap:round;stroke-linejoin:round;
+ vector-effect:non-scaling-stroke}
+
+/* ───────────────────────────────────────────────────────────────────────────
+   5 · STEP 2 — pan and zoom inside the head shape
+   ─────────────────────────────────────────────────────────────────────────── */
+#hmPhoto{position:absolute;left:0;top:0;transform-origin:0 0;will-change:transform;
+ pointer-events:none;user-select:none;-webkit-user-drag:none;max-width:none}
 .hmOvalMask{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
-.hmZoom{display:block;accent-color:var(--c950)}
-/* step 3: eyes */
-.hmDot{position:absolute;width:44px;height:44px;margin:-24px 0 0 -24px;cursor:grab;touch-action:none}
-.hmDot::before{content:"";position:absolute;left:50%;top:50%;width:18px;height:18px;margin:-8px 0 0 -8px;border-radius:50%;border:2px solid var(--c950);background:rgba(253,253,253,.55);box-shadow:0 0 0 1px rgba(253,253,253,.8)}
-.hmDot::after{content:"";position:absolute;left:50%;top:50%;width:4px;height:4px;margin:-2px 0 0 -2px;border-radius:50%;background:var(--c950)}
+
+/* ───────────────────────────────────────────────────────────────────────────
+   6 · STEP 3 — the landmarks.
+   The four-paragraph anatomy lesson that used to sit beside these ("the inner
+   and outer canthus where the lids meet") is gone with the rest of the prose.
+   The colour key stays because it is the legend for something on screen; the
+   readout under the stage names whatever you are actually touching, which is
+   the same information delivered by using the tool instead of by reading it.
+   ─────────────────────────────────────────────────────────────────────────── */
+:root{--kEye:#2E7D7A;--kBrow:#B4762B;--kNose:#6C5CA6;--kMouth:#A94E67}
+.hmDot{position:absolute;width:var(--tap-min);height:var(--tap-min);
+ margin:-24px 0 0 -24px;cursor:grab;touch-action:none}
+.hmMark{position:absolute;width:52px;height:var(--tap-min);
+ margin:-24px 0 0 -24px;cursor:grab;touch-action:none}
 .hmDot,.hmMark{pointer-events:none}   /* the stage does the grabbing: nearest marker wins, no mis-grabs */
 .hmDot.grabbed,.hmMark.grabbed{cursor:grabbing}
-.hmDot.hot::before{transform:scale(1.45);background:rgba(253,253,253,.92);box-shadow:0 0 0 1px rgba(253,253,253,.9),0 3px 10px -2px rgba(8,8,8,.35)}
-.hmLoupe{position:absolute;width:110px;height:110px;border-radius:50%;background-repeat:no-repeat;box-shadow:0 0 0 1.5px rgba(8,8,8,.4),0 10px 30px -12px rgba(8,8,8,.4);pointer-events:none;display:none;z-index:9;background-color:var(--c50)}
-.hmLoupe::after{content:"";position:absolute;left:50%;top:50%;width:10px;height:10px;margin:-4px 0 0 -4px;border:1.5px solid var(--c950);border-radius:50%;background:rgba(253,253,253,.35)}
-.hmWhich{text-align:center;font-family:var(--sans);font-size:var(--fs-label);font-weight:600;color:var(--c700);margin:16px 0 0;min-height:18px;filter:url(#inkSm)}
-.hmResetB{display:block;margin:8px auto 0;background:none;border:0;padding:4px 8px;font-family:var(--sans);font-size:var(--fs-label);font-weight:600;color:var(--c500);text-decoration:underline;text-underline-offset:3px;cursor:pointer}.hmResetB:hover{color:var(--c950)}
-.hmGuides{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}   /* svg is replaced: inset alone never stretches it */
-/* every glyph is the anatomy it controls: chevron = corner wedge, arc = lid, dashed almond = the whole eye */
-
+/* THE FOUR LITERALS BELOW ARE DRAWING, NOT SPACING, and they are left as
+   literals on purpose. The 10px glyph, its 1.5/2/2.5px rings and the loupe's
+   110px are the marker's anatomy: the box around each one is already
+   --tap-min, the ring weights sit under the 1px hairline rung deliberately so
+   a marker never out-draws the face behind it, and the loupe's diameter is
+   read back by loupeShow() as `-55` and `-86` offsets in the script. Rounding
+   any of them to a spacing rung would change the drawing and, for the loupe,
+   desynchronise it from the JS. */
+.hmDot::before{content:"";position:absolute;left:50%;top:50%;width:10px;height:10px;
+ margin:-4px 0 0 -4px;border-radius:var(--r-full);
+ border:1.5px solid var(--c950);background:rgba(253,253,253,.55);
+ box-shadow:0 0 0 1px rgba(253,253,253,.7);
+ transition:transform .14s var(--ease-out),box-shadow .14s var(--ease-out),background-color .14s var(--ease-out)}
+.hmDot.hot::before{transform:scale(1.45);background:rgba(253,253,253,.92);
+ box-shadow:0 0 0 1px rgba(253,253,253,.9),0 3px 10px -2px rgba(8,8,8,.35)}
 .hmMark.hot::before{border-width:2.5px}
-.hmDot::before{width:10px;height:10px;margin:-4px 0 0 -4px;border-width:1.5px;background:rgba(253,253,253,.55);box-shadow:0 0 0 1px rgba(253,253,253,.7);transition:transform .14s cubic-bezier(.2,.8,.2,1),box-shadow .14s ease,background-color .14s ease}.hmDot::after{display:none}
-.hmMark{position:absolute;width:52px;height:44px;margin:-24px 0 0 -24px;cursor:grab;touch-action:none}
-.hmMark.bar::before{content:"";position:absolute;left:50%;top:50%;width:30px;height:0;margin:-1px 0 0 -16px;border-top:1.5px solid var(--c950);border-radius:2px;box-shadow:0 0 0 1px rgba(253,253,253,.8)}
-.hmMark.bar.wide::before{width:46px;margin-left:-24px}
-
-.hmMark.eyeC::before{display:none}   /* invisible: dragging the middle of the eye just works, like dragging a shape body */
-/* feature colour-key: muted jewel tones so each landmark group reads at a glance on a light cutout */
-:root{--kEye:#2E7D7A;--kBrow:#B4762B;--kNose:#6C5CA6;--kMouth:#A94E67}
+.hmMark.eyeC::before{display:none}   /* invisible: dragging the middle of an eye just works, like dragging a shape body */
 .hmDot.cEye::before{border-color:var(--kEye);border-width:2px}
 .hmDot.cBrow::before{border-color:var(--kBrow);border-width:2px}
 .hmDot.cNose::before{border-color:var(--kNose);border-width:2px}
 .hmDot.cMouth::before{border-color:var(--kMouth);border-width:2px}
-.hmKey{display:flex;gap:var(--sp-16-24);align-items:center;flex-wrap:wrap;justify-content:center;width:min(440px,100%);margin:var(--sp-16-24) auto 0;padding:16px 16px;border:1px solid var(--c100);border-radius:4px;background:var(--c50)}
-.hmKeyHd{flex:1 0 100%;margin:0 0 4px;font-weight:600;font-size:var(--fs-label);letter-spacing:.01em;color:var(--c500);filter:url(#inkSm)}
-.hmKeyFace{flex:0 0 auto;width:118px;height:auto}
-.hmKeyList{list-style:none;margin:0;padding:0;flex:1 1 210px;min-width:200px}
-.hmKeyList li{display:flex;gap:8px;align-items:flex-start;font-size:var(--fs-label);line-height:1.45;color:var(--c700);margin:0}
-.hmKeyList li+li{margin-top:8px}
-.hmKeyList b{color:var(--c950);font-weight:600}
-.hmKeySw{flex:0 0 auto;width:11px;height:11px;box-sizing:border-box;border-radius:50%;margin-top:2px;border:2px solid currentColor;background:rgba(253,253,253,.6)}
+.hmGuides{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+/* the loupe is the one thing here permitted a cast shadow, and it is not
+   chrome: it is a magnifier the visitor is holding over the artifact, so it
+   has to read as being above it. */
+.hmLoupe{position:absolute;width:110px;height:110px;border-radius:var(--r-full);
+ background-repeat:no-repeat;background-color:var(--c50);
+ box-shadow:0 0 0 1.5px rgba(8,8,8,.4),0 10px 30px -12px rgba(8,8,8,.4);
+ pointer-events:none;display:none;z-index:9}
+.hmLoupe::after{content:"";position:absolute;left:50%;top:50%;width:10px;height:10px;
+ margin:-4px 0 0 -4px;border:1.5px solid var(--c950);border-radius:var(--r-full);
+ background:rgba(253,253,253,.35)}
+.mkKey{list-style:none;display:grid;grid-template-columns:1fr 1fr;
+ gap:var(--sp-6) var(--sp-12)}
+.mkKey li{display:flex;align-items:center;gap:var(--sp-8);
+ font-size:var(--fs-label);line-height:var(--lh-body);color:var(--c700)}
+.mkSw{flex:0 0 auto;width:11px;height:11px;border-radius:var(--r-full);
+ border:2px solid currentColor;background:rgba(253,253,253,.6)}
 .sw-eyes{color:var(--kEye)}.sw-brow{color:var(--kBrow)}.sw-nose{color:var(--kNose)}.sw-mouth{color:var(--kMouth)}
-@media(max-width:760px){.hmKey{flex-direction:column}.hmKeyList{flex-basis:auto}}
-.hmErr{color:rgba(146,62,42,.9)}
-.hmPitSec{margin-top:var(--sp-32-48);padding-top:var(--sp-24-32);border-top:1px solid var(--c100)}
-.hmPitSec .hmRow{margin-top:var(--sp-16-24)}
-.hmPit{display:flex;flex-wrap:wrap;gap:16px;justify-content:center;margin:var(--sp-16-24) 0}
-.hmPit img{width:64px;height:76px;object-fit:contain;background:var(--c100);border-radius:4px;padding:4px}
-.hmPit .hmPitEmpty{width:64px;height:76px;border:1.5px dashed var(--c100);border-radius:4px}
-.hmPitItem{position:relative;display:inline-block}
-.hmPitPick{padding:0;border:0;background:none;cursor:pointer;display:block;border-radius:4px;transition:box-shadow .18s cubic-bezier(.2,.8,.2,1)}
-.hmPitPick:hover,.hmPitPick:focus-visible{box-shadow:0 0 0 1.5px var(--c500)}
-.hmPitPick img{display:block}
-.hmPitX{position:absolute;top:-7px;right:-7px;width:18px;height:18px;border-radius:50%;border:1px solid var(--c100);background:var(--c50);color:var(--c700);font-size:var(--fs-caption);line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0}
-.hmPitX:hover{color:var(--c950);border-color:var(--c500)}
-.hmRoll{display:inline-flex;align-items:center;gap:8px}
-.hmDie{display:block;transition:transform .55s cubic-bezier(.34,1.35,.4,1)}
-.hmZoom{-webkit-appearance:none;appearance:none;height:2px;background:rgba(8,8,8,.18);border-radius:2px;outline-offset:6px}
-.hmZoom::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--c950);border:0;cursor:pointer}
-.hmZoom::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:var(--c950);border:0;cursor:pointer}
-.hmBrow,.hmNose{position:absolute;background-repeat:no-repeat;pointer-events:none;-webkit-mask-image:radial-gradient(ellipse at center,#000 55%,transparent 82%);mask-image:radial-gradient(ellipse at center,#000 55%,transparent 82%)}
-/* step 4: alive */
+
+/* ───────────────────────────────────────────────────────────────────────────
+   7 · THE LIVING HEAD — DO NOT EDIT WITHOUT READING save().
+   Every rule from here to the end of this block is copied verbatim into the
+   SVG that the Download control rasterises. What renders here is what people
+   get. The `.hmShadow` contact shadow is deliberate and is not a chrome
+   shadow: the head casts it because it is standing on something.
+   ─────────────────────────────────────────────────────────────────────────── */
 #hmHead{position:absolute;left:0;top:0;width:100%;height:100%;will-change:transform}
 #hmHead img{width:100%;height:100%}
-.hmScl{position:absolute;border-radius:50%;pointer-events:none}.hmLidW{position:absolute;border-radius:50%;overflow:hidden;pointer-events:none}.hmLidS{position:absolute;inset:0;transform:translateY(-105%)}.hmEye{position:absolute;border-radius:50%;overflow:hidden;filter:url(#inkEye)}
-.hmIris{position:absolute;left:20%;top:-2%;width:60%;height:104%;border-radius:46%;background:repeating-conic-gradient(from 4deg,rgba(255,255,255,.025) 0deg 2deg,rgba(0,0,0,.09) 2deg 4.3deg),radial-gradient(circle at 50% 50%,#050505 0%,#080808 25%,#191919 39%,#121212 57%,#181818 72%,#0a0a0a 88%,#030303 100%),radial-gradient(circle at 38% 32%,#1e1e1e 0%,#0d0d0d 52%,#050505 100%);background-blend-mode:multiply,normal,normal}.hmPupil{position:absolute;left:50%;top:50%;width:55%;height:55%;border-radius:50%;background:radial-gradient(circle at 50% 50%,#000 0%,#000 58%,#060606 80%,rgba(6,6,6,0) 100%);transform:translate(-50%,-50%)}
+.hmScl{position:absolute;border-radius:50%;pointer-events:none}
+.hmLidW{position:absolute;border-radius:50%;overflow:hidden;pointer-events:none}
+.hmLidS{position:absolute;inset:0;transform:translateY(-105%)}
+.hmEye{position:absolute;border-radius:50%;overflow:hidden;filter:url(#inkEye)}
+.hmIris{position:absolute;left:20%;top:-2%;width:60%;height:104%;border-radius:46%;background:repeating-conic-gradient(from 4deg,rgba(255,255,255,.025) 0deg 2deg,rgba(0,0,0,.09) 2deg 4.3deg),radial-gradient(circle at 50% 50%,#050505 0%,#080808 25%,#191919 39%,#121212 57%,#181818 72%,#0a0a0a 88%,#030303 100%),radial-gradient(circle at 38% 32%,#1e1e1e 0%,#0d0d0d 52%,#050505 100%);background-blend-mode:multiply,normal,normal}
+.hmPupil{position:absolute;left:50%;top:50%;width:55%;height:55%;border-radius:50%;background:radial-gradient(circle at 50% 50%,#000 0%,#000 58%,#060606 80%,rgba(6,6,6,0) 100%);transform:translate(-50%,-50%)}
 .hmGlint{position:absolute;left:32%;top:26%;width:20%;height:20%;border-radius:50%;background:radial-gradient(circle at 50% 50%,rgba(255,255,255,.98) 0%,rgba(252,252,252,.72) 24%,rgba(250,250,250,0) 60%)}
+.hmBrow,.hmNose{position:absolute;background-repeat:no-repeat;pointer-events:none;-webkit-mask-image:radial-gradient(ellipse at center,#000 55%,transparent 82%);mask-image:radial-gradient(ellipse at center,#000 55%,transparent 82%)}
 .hmShadow{position:absolute;left:50%;bottom:2%;width:52%;height:5%;transform:translateX(-50%);border-radius:50%;background:radial-gradient(ellipse at center,rgba(8,8,8,.28),rgba(8,8,8,0) 70%)}
-.hidden{display:none!important}
-/* step blocks develop in like the case pages */
-.hmStep{opacity:0;transform:translateY(12px);filter:blur(6px);transition:opacity .5s cubic-bezier(.2,.8,.2,1),transform .5s cubic-bezier(.2,.8,.2,1),filter .5s cubic-bezier(.2,.8,.2,1)}
-.hmStep.shown{opacity:1;transform:none;filter:blur(0)}
-.siteFoot{margin-top:var(--sp-80-152);padding-bottom:var(--sp-32-48);text-align:center}
-.footReach{font-weight:400;font-size:var(--fs-prose);line-height:1.55;color:var(--c700);margin:0 auto;max-width:42ch;text-wrap:balance}
-.footIn{font-weight:600;color:var(--c950);text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:3px;text-decoration-color:var(--c500)}
-.footIn:hover{text-decoration-color:var(--c950)}
-a:focus-visible,button:focus-visible,.hmDot:focus-visible{outline:2px solid var(--c950);outline-offset:3px;border-radius:4px}
-@media(max-width:760px){.wrap{padding:0 24px}nav{padding:24px 0 0}.kicker{margin-top:clamp(56px,11vh,96px)}}
-@media(prefers-reduced-motion:reduce){.hmStep{opacity:1!important;transform:none!important;filter:none!important;transition:none}}
-/* ---- SKIP LINK: WCAG 2.4.1 Bypass Blocks (Level A). Technique G1 requires a link that is
-   the FIRST focusable element and moves focus to the main content -- so it sits before the
-   nav in DOM order. Parked off-screen by transform (not display:none, which would take it
-   out of the tab order entirely) and slid in on focus. ---- */
-.skipLink{position:fixed;top:10px;left:10px;z-index:200;display:inline-flex;align-items:center;min-height:44px;padding:12px 16px;background:var(--c50);color:var(--c950);border:1px solid var(--c100);border-radius:4px;font-family:var(--sans);font-weight:400;font-size:var(--fs-small);line-height:1;text-decoration:none;box-shadow:0 2px 10px rgba(22,22,28,.10);transform:translateY(calc(-100% - 16px));transition:transform .2s cubic-bezier(.2,.8,.2,1)}
-.skipLink:focus{transform:translateY(0);outline:2px solid var(--c950);outline-offset:3px}
+.hmDie{display:block;transition:transform .55s cubic-bezier(.34,1.35,.4,1)}
+
+/* ───────────────────────────────────────────────────────────────────────────
+   8 · THE SAVED HEADS. A shelf at the foot of the panel.
+   The eight empty placeholder tiles are gone: a builder shows the material you
+   have, not eight boxes reminding you what you have not made. That removal is
+   also most of what bought the phone layout its room back.
+   REMOVING A HEAD is the canonical site pattern (index.html carries the full
+   reasoning): no delete control at rest at all, and in Edit mode the delete IS
+   the tile — inset:0, past --tap-min in both axes, identical on touch and
+   pointer because no hover is involved.
+   ─────────────────────────────────────────────────────────────────────────── */
+.hmPitSec{display:flex;flex-direction:column;gap:var(--sp-8);
+ padding-top:var(--sp-16);border-top:var(--hair-w) solid var(--c100)}
+.hmPit{display:flex;flex-wrap:wrap;gap:var(--sp-8)}
+.hmPitItem{position:relative;display:block}
+.hmPitPick{display:block;padding:0;border:0;background:none;cursor:pointer;overflow:hidden;
+ border-radius:var(--r-xs);corner-shape:var(--corner);box-shadow:var(--rim-1);
+ transition:box-shadow var(--hover-out-dur) var(--ease-out)}
+.hmPitPick:hover,.hmPitPick:focus-visible{box-shadow:var(--rim-3)}
+.hmPitPick:focus-visible{outline:var(--focus-w) solid var(--c950);outline-offset:var(--sp-2)}
+.hmPitPick:active{transform:scale(var(--press-scale))}
+.hmPitPick img{display:block;width:var(--tap-min);aspect-ratio:5/6;
+ object-fit:contain;background:var(--c75)}
+.hmPitX{display:none}
+.hmPit[data-editing="true"] .hmPitX{
+ display:flex;align-items:center;justify-content:center;
+ position:absolute;inset:0;z-index:2;
+ min-width:var(--tap-min);min-height:var(--tap-min);padding:0;border:0;cursor:pointer;
+ border-radius:var(--r-xs);corner-shape:var(--corner);
+ background:var(--mat-i1);color:var(--c50);box-shadow:var(--rim-i1);
+ transition:box-shadow var(--hover-out-dur) var(--ease-out)}
+.hmPit[data-editing="true"] .hmPitX svg{width:var(--ico-md);height:var(--ico-md);flex:none}
+.hmPit[data-editing="true"] .hmPitX:hover,
+.hmPit[data-editing="true"] .hmPitX:focus-visible{box-shadow:var(--rim-i2)}
+.hmPit[data-editing="true"] .hmPitX:focus-visible{outline:var(--focus-w) solid var(--c50);outline-offset:calc(var(--sp-2) * -1)}
+.hmPit[data-editing="true"] .hmPitPick{pointer-events:none}
+
+/* ───────────────────────────────────────────────────────────────────────────
+   9 · THE PHONE. Decided rather than reflowed: the stage moves ABOVE the
+   controls and the panel becomes the bottom of the screen, because a control
+   column beside a 5:6 artifact at 390px would leave both too small to use.
+   Nothing here leans on --blur-1/2, which tokens.css zeroes below 760 — every
+   surface on this page is a solid ground with a hairline.
+   ─────────────────────────────────────────────────────────────────────────── */
+@media(max-width:880px){
+ .mkApp{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr) auto}
+ .mkStageCol{border-right:0;border-bottom:var(--hair-w) solid var(--c100);
+  padding:var(--sp-12);gap:var(--sp-8)}
+ .mkPanel{gap:var(--sp-12);
+  padding:var(--sp-16) var(--sp-16) calc(var(--sp-12) + env(safe-area-inset-bottom))}
+ .mkStep{gap:var(--sp-12)}
+ .hmPitSec{padding-top:var(--sp-12)}
+ /* THE GROUP TURNS ON ITS SIDE. On desktop the label sits above its controls;
+    at 390 it sits beside them, because a stacked label costs a whole row and
+    the row it costs comes straight out of the head. Measured: the four groups
+    stacked took 576px of a 772px screen and left the artifact 119px wide. The
+    label is the same label — only its axis changes, so nothing is lost. */
+ .mkGroup{display:grid;grid-template-columns:max-content minmax(0,1fr);
+  align-items:center;column-gap:var(--sp-12);row-gap:var(--sp-6)}
+ .mkGroup>.mkGroupH{grid-column:1}
+ .mkGroup>*:not(.mkGroupH){grid-column:2}
+}
+/* THE SHORT VIEWPORT — an SE at 667, or any phone once the browser chrome eats
+   its share of dvh. Two things give, in this order, and neither is a control:
+   1 · the hints. Text is the only thing on this screen that can go without
+       taking a capability with it.
+   2 · the saved-heads shelf, on every step EXCEPT the first. Measured at
+       390x667 with a full eight heads it costs 171px, which had squeezed the
+       artifact to 70x83 — the one outcome this whole pass exists to prevent.
+       Nothing becomes unreachable: Start over returns to step 1, where the
+       shelf is, and picking a head there puts it straight back on the stage.
+       Step 1 is also the step where "carry on with an old head" is the actual
+       question, so this is where it belongs on a small screen anyway. */
+@media(max-height:720px){
+ .mkHint{display:none}
+ .mkApp:not([data-step="1"]) .hmPitSec{display:none}
+}
+
+/* ───────────────────────────────────────────────────────────────────────────
+   10 · SKIP LINK — WCAG 2.4.1 Bypass Blocks (Level A). First focusable element
+   in the document, parked off-screen by transform rather than display:none so
+   it keeps its place in the tab order. Its cast shadow is gone: chrome
+   separates with a rim.
+   ─────────────────────────────────────────────────────────────────────────── */
+.skipLink{position:fixed;top:var(--sp-10);left:var(--sp-10);z-index:200;
+ display:inline-flex;align-items:center;min-height:var(--tap-min);
+ padding:0 var(--sp-16);background:var(--mat-3-solid);color:var(--c950);
+ box-shadow:var(--rim-2);border-radius:var(--r-md);corner-shape:var(--corner);
+ font-family:var(--sans);font-weight:400;font-size:var(--fs-small);
+ line-height:var(--lh-flat);text-decoration:none;
+ transform:translateY(calc(-100% - var(--sp-16)));
+ transition:transform var(--ease-out-dur) var(--ease-out)}
+.skipLink:focus{transform:translateY(0);outline:var(--focus-w) solid var(--c950);outline-offset:var(--sp-2)}
 @media(prefers-reduced-motion:reduce){.skipLink{transition:none}}
-#main:focus{outline:none}
-/* Naming a head: the crowd is made of real people, so let them be called by name. Kept on the
-   same quiet chrome as the buttons beside it -- 4px radius, --c100 hairline, 44px target. */
-.hmNameRow{gap:8px;align-items:center;flex-wrap:wrap}
-.hmNameLbl{font-family:var(--sans);font-size:var(--fs-small);color:var(--c500)}
-.hmName{font-family:var(--sans);font-size:var(--fs-body);color:var(--c950);background:var(--c50);
- border:1px solid var(--c100);border-radius:4px;padding:12px 16px;min-height:44px;width:min(240px,60vw);
- transition:border-color .2s cubic-bezier(.2,.8,.2,1)}
-.hmName:hover{border-color:var(--c500)}
-.hmName:focus{outline:none;border-color:var(--c950)}
-.hmName::placeholder{color:var(--c400)}
-.hmNameOk{font-family:var(--sans);font-size:var(--fs-label);color:var(--c500);opacity:0;transform:translateY(2px);
- transition:opacity .18s cubic-bezier(.2,.8,.2,1),transform .18s cubic-bezier(.2,.8,.2,1);pointer-events:none}
-.hmNameOk.on{opacity:1;transform:translateY(0)}
-/* The nameplate is the real confirmation: you watch the head take the name. "Saved" only
-   answers the second question -- did it stick. */
-.hmNameSay{margin:4px 0 0;font-family:var(--sans);font-size:var(--fs-small);color:var(--c500);min-height:1.4em}
-.hmNameSay b{font-weight:600;color:var(--c950)}
-@media(prefers-reduced-motion:reduce){.hmNameOk{transition:none}}
 
-/* ONE HEADER HEIGHT SITE-WIDE. The home page's wordmark stacks over two lines (~44px) while a
-   sub-page title is one line (~33px), so the header jumped 11px every time you moved between
-   them. box-sizing is border-box here, so this has to cover the 32px padding too. */
-/* ONE HEADER HEIGHT SITE-WIDE is --nav-h (52px) now, in tokens.css. */
-/* Controls that had no hover at all: the case-study card link, the chapter nav, the compare
-   handle and the skip link. Same wash as everything else -- one feedback, no exceptions. */
-.csGo,.chap,.cmpHandle,.skipLink,.abBack,.back,.talk,.footIn,.abLink,.hmPitX,.hmPitPick{
- transition:background-color .16s cubic-bezier(.2,.8,.2,1),color .16s cubic-bezier(.2,.8,.2,1);
-}
-.csGo:hover,.chap:hover,.cmpHandle:hover,.skipLink:hover,.abBack:hover,.back:hover,.talk:hover,
-.footIn:hover,.abLink:hover,.hmPitX:hover,.hmPitPick:hover,
-.csGo:focus-visible,.chap:focus-visible,.abBack:focus-visible,.back:focus-visible,
-.talk:focus-visible,.footIn:focus-visible,.abLink:focus-visible{
- background:var(--c75);color:var(--c950);
-}
-
-/* UNIFIED HEADER: the wordmark is centred on every page and links home. The page title used to
-   live here, but a case study already names itself in its h1 -- and losing the brand mark on
-   every sub-page was the real inconsistency. Back stays on the left, Contact on the right. */
-nav .logo{grid-column:2;justify-self:center;display:flex;flex-direction:column;align-items:center;
- text-align:center;font-family:"Instrument Sans Var",var(--sans);font-weight:600;font-size:15px;
- line-height:1;letter-spacing:.08em;text-transform:uppercase;color:var(--c950);
- text-decoration:none;filter:url(#inkSm);white-space:nowrap;padding:8px 12px;border-radius:4px;
- transition:background-color .16s cubic-bezier(.2,.8,.2,1)}
-nav .logo:hover,nav .logo:focus-visible{background:var(--c75)}
-nav .logo .logoLine{display:block}
-nav .logo .logoL1{font-stretch:85.8%}
-/* ============================================================================
-   CONTROLS -- exactly THREE types. Nothing else is allowed.
-   An audit across four pages found NINETEEN distinct control appearances: eight
-   different paddings, nine visible borders, five font sizes, and heights from
-   14px to 46px. This block is last in the sheet so it wins without !important.
-
-     1. STANDARD  quiet text, 12/16 padding, 44px min, no border, wash on hover
-     2. PRIMARY   the one filled-ink action on a screen
-     3. ICON      square 44x44 for icon-only controls
-
-   Interactive REGIONS (a whole case-study card, the compare handle, the
-   headmaker dropzone) are deliberately not in here -- they are not buttons and
-   forcing button padding on them is wrong.
-   ============================================================================ */
-.moodItem,.moodBtn,.moodGo,.hmGo,.tGo,.reelClose,.workCta,.ndLink,.heroBack,
-.navLink,.mhToggle,.hmScoreEnd,.back,.talk,.tvTab,.abBack,.abLink,.csTab,.hmBtn{
- font-family:var(--sans);font-weight:400;font-size:var(--fs-small);line-height:1;
- color:var(--c700);background:none;
- border:0;                      /* no borders. The wash is the affordance. */
- border-radius:4px;
- padding:12px 16px;min-height:44px;box-sizing:border-box;
- align-items:center;justify-content:center;gap:8px;
- cursor:pointer;
- transition:background-color .16s cubic-bezier(.2,.8,.2,1),color .16s cubic-bezier(.2,.8,.2,1);
-}
-/* square icon-only controls: same height, no text padding */
-.toTop,.sbBtn,.hmPitX,.navDrawerX{
- font-family:var(--sans);font-size:var(--fs-small);color:var(--c700);
- background:none;border:0;border-radius:4px;
- width:44px;height:44px;min-height:44px;padding:0;
- display:inline-flex;align-items:center;justify-content:center;
- cursor:pointer;
- transition:background-color .16s cubic-bezier(.2,.8,.2,1),color .16s cubic-bezier(.2,.8,.2,1);
-}
-/* display at ZERO specificity so anything that hides itself conditionally still wins */
-:where(.moodItem,.moodBtn,.moodGo,.hmGo,.tGo,.reelClose,.workCta,.ndLink,.heroBack,
- .navLink,.mhToggle,.hmScoreEnd,.back,.talk,.tvTab,.abBack,.abLink,.csTab,.hmBtn){display:inline-flex}
-
-/* ONE hover, everywhere, no exceptions */
-.moodItem:hover,.moodBtn:hover,.moodGo:hover,.hmGo:hover,.tGo:hover,.reelClose:hover,
-.workCta:hover,.ndLink:hover,.heroBack:hover,.navLink:hover,.mhToggle:hover,.hmScoreEnd:hover,
-.back:hover,.talk:hover,.tvTab:hover,.abBack:hover,.abLink:hover,.csTab:hover,.hmBtn:hover,
-.toTop:hover,.sbBtn:hover,.hmPitX:hover,.navDrawerX:hover,.csGo:hover,.chap:hover,.footIn:hover,
-.hmPitPick:hover,
-.moodItem:focus-visible,.moodBtn:focus-visible,.moodGo:focus-visible,.hmGo:focus-visible,
-.tGo:focus-visible,.reelClose:focus-visible,.workCta:focus-visible,.ndLink:focus-visible,
-.heroBack:focus-visible,.navLink:focus-visible,.mhToggle:focus-visible,.hmScoreEnd:focus-visible,
-.back:focus-visible,.talk:focus-visible,.tvTab:focus-visible,.abBack:focus-visible,
-.abLink:focus-visible,.csTab:focus-visible,.hmBtn:focus-visible,.toTop:focus-visible,
-.sbBtn:focus-visible,.hmPitX:focus-visible,.navDrawerX:focus-visible,.csGo:focus-visible,
-.chap:focus-visible,.footIn:focus-visible{
- background:var(--c75);color:var(--c950);border-color:transparent;
-}
-.csGo,.chap,.footIn,.hmPitPick{
- transition:background-color .16s cubic-bezier(.2,.8,.2,1),color .16s cubic-bezier(.2,.8,.2,1);
-}
-
-/* PRIMARY: the single filled action on a screen */
-.tGo:not(.tGoQuiet),.hmGoPrimary,.hmBtn.hmBtnPrimary{
- background:var(--c950);color:var(--c50);
-}
-.tGo:not(.tGoQuiet):hover,.hmGoPrimary:hover,.hmBtn.hmBtnPrimary:hover{
- background:var(--c900);color:var(--c50);
-}
-
-/* THE PLAY MENU: plain text under the word, no card edge, no lift off the page.
-   Sits inside the page margin and is sized to its own content. */
-.moodMenu{
- left:0!important;right:auto!important;
- width:max-content!important;min-width:0!important;max-width:min(220px,40vw)!important;
- text-align:left!important;
- background:var(--c50)!important;
- border:0!important;
- box-shadow:none!important;          /* it must not pop off the page */
- border-radius:4px!important;
- padding:4px!important;
-}
-.moodItem,.moodBtn{white-space:nowrap}
-.moodItem{justify-content:flex-start!important;padding:12px 16px!important}
-.moodBtn{padding:12px 16px!important}
-/* Play sits near the right edge -- below this width a left-aligned menu would leave the margin */
-@media(max-width:1380px){.moodMenu{left:auto!important;right:0!important}}
-
-
-/* the last stragglers, measured: .back/.talk were square, .moodBtn was 40px not 44,
-   .moodItem was inheriting 16px instead of the one control size, and the wordmark ran 2px
-   taller than the home page's. Inline links inside prose (.chap, .footIn, .csGo) are a
-   deliberate THIRD category -- text, not buttons -- so they keep their own size. */
-.back,.talk,.tvTab,.csTab{border-radius:4px}
-.moodBtn{min-height:44px!important;height:44px}
-.moodItem{font-size:var(--fs-small)!important}
-nav .logo{padding:8px 12px;min-height:44px;height:44px;justify-content:center}
-
-/* ONE WORDMARK. index had it at 17px in a <span>; the sub-pages at 15px in an <a>, with 8x12
-   padding while every other nav item runs 12x16 -- so it sat on a different baseline rhythm
-   from its own neighbours. One size, one padding, one element behaviour, everywhere. */
-nav .logo{font-size:15px!important;letter-spacing:.08em!important;line-height:1!important;
- padding:12px 16px!important;min-height:44px;height:44px;
- display:flex!important;flex-direction:column;align-items:center;justify-content:center;
- text-decoration:none;color:var(--c950)}
-nav .logo .logoLine{display:block}
-nav .logo .logoL1{font-stretch:85.8%}
-/* Contact was pad 0 on the home page and 12x16 everywhere else */
-
-nav .logo{text-transform:uppercase}
-@font-face{font-family:"Instrument Sans Var";src:url("fonts/instrument-sans-variable.woff2") format("woff2-variations");font-weight:400 700;font-stretch:75% 100%;font-display:swap}
-
-/* ============================================================================
-   ICONS -- one pack. An audit found NINE authored stroke-widths (1.2 1.4 1.5
-   1.6 1.7 1.8 2 2.2 3) across the site's inline SVGs, and five rendered sizes.
-   CSS stroke-width beats the SVG presentation attribute, so this normalises
-   every icon without touching fifteen separate markup attributes.
-   1.5 is chosen to sit with the 1px hairlines and the 400-weight text -- a 2px
-   stroke next to a 1px rule is what made the set look like three packs.
-   ============================================================================ */
-.gIco,.moodCar,
-/* every icon that lives inside a control -- catches .baGo, .moodGo, .cmpKnob and anything
-   added later, instead of a hand-kept list that silently misses new ones */
-a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
- stroke-width:1.5;
- stroke-linecap:round;stroke-linejoin:round;
- fill:none;
- vector-effect:non-scaling-stroke;
-}
-/* one icon size for controls, one for the caret affordance */
-.gIco{width:18px;height:18px;flex:0 0 18px}
-.moodIco{width:18px;height:18px;flex:0 0 18px;font-size:18px}
-.moodCar{width:12px;height:12px;flex:0 0 12px}
-/* icons inherit the control's colour so they light up with the hover wash */
-.moodItem svg,.moodItem .gIco,.tGo svg,.hmBtn svg,.back svg,.talk svg{color:currentColor}
-
-/* The flagged header token top-up that used to sit here is gone: this page links
-   tokens.css now, which carries every one of those values and its own 760px rule. */
+/* ───────────────────────────────────────────────────────────────────────────
+   11 · ICONS — one pack, one stroke. CSS beats the SVG presentation attribute,
+   so this normalises every glyph without touching the markup.
+   1.5 rather than --ico-stroke's 1.8, and that is deliberate: with
+   vector-effect:non-scaling-stroke in force these render in DEVICE pixels, and
+   1.5 is what index.html, the five case studies and tokens.css:328 all already
+   ship. Adopting 1.8 here would make this page the only one with heavier
+   icons. See the note above the .gIco rule in tokens.css.
+   ─────────────────────────────────────────────────────────────────────────── */
+.gIco,a svg,button svg,[role=button] svg{
+ stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;
+ fill:none;vector-effect:non-scaling-stroke}
+.gIco{width:var(--ico-md);height:var(--ico-md);flex:0 0 var(--ico-md)}
 </style>
 <link rel="stylesheet" href="header.css">
 <script src="header.js" defer></script>
@@ -345,7 +491,6 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><filter id="inkBig"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="7" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="1.1" xChannelSelector="R" yChannelSelector="G" result="d"/><feTurbulence type="fractalNoise" baseFrequency="0.5 0.42" numOctaves="2" seed="13" result="g"/><feColorMatrix in="g" type="matrix" values="0 0 0 0 0.055 0 0 0 0 0.055 0 0 0 0 0.055 0 0 0 0.42 0" result="grain"/><feComposite in="grain" in2="d" operator="atop"/></filter>
 <filter id="inkEye"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="9" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="1.05" xChannelSelector="R" yChannelSelector="G"/></filter><filter id="inkSm"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="1" seed="4" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="0.55" xChannelSelector="R" yChannelSelector="G"/></filter></svg>
 
-<div class="wrap">
 <!-- THE SITE HEADER. One component, every page: header.css + header.js, adopted
      2026-08-03 from header-prototype.html. Replaces this page's `1fr auto 1fr`
      grid (Back / wordmark / Contact), which could not read as a bar because its
@@ -355,159 +500,236 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
      .superpowers/sdd/2026-08-02-play-page/header-report.md
      The lockup, Home and About all go to index.html; Games names this page's
      own URL, so it is the site's only aria-current="page". -->
- <div class="jbStick">
-  <nav class="jbNav hasSoc" aria-label="Primary" data-surface="paper" data-back="1">
-   <a class="jbHome" href="index.html" aria-label="Back — Jayden Betts, home"><svg class="jbArrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6l6 6"/></svg><span class="jbMark" aria-hidden="true"><span class="jbL1">Jayden</span><span class="jbL2">Betts</span></span></a>
-   <span class="jbSep" aria-hidden="true"></span>
-   <a data-nav-item="home" href="index.html">Home</a>
-   <a data-nav-item="about" href="index.html#about">About</a>
-   <a data-nav-item="games" href="play.html" aria-current="true">Games</a>
-   <span class="jbBarSep" aria-hidden="true"></span>
-   <span class="jbBarSoc"><a data-soc="mail" href="mailto:jaydenlbetts@gmail.com" aria-label="Email Jayden Betts"><svg class="jbGlyph" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4.5h18c.55 0 1 .45 1 1v13c0 .55-.45 1-1 1H3c-.55 0-1-.45-1-1v-13c0-.55.45-1 1-1Zm1.4 1.5L12 11.6 19.6 6H4.4ZM20 7.4l-7.4 5.5a1 1 0 0 1-1.2 0L4 7.4V18h16V7.4Z"/></svg></a><a data-soc="li" href="https://www.linkedin.com/in/jaydenbetts" target="_blank" rel="noopener noreferrer" aria-label="Jayden Betts on LinkedIn — opens in a new tab"><svg class="jbGlyph" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.34V9h3.42v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29zM5.34 7.43a2.06 2.06 0 1 1 0-4.13 2.06 2.06 0 0 1 0 4.13zM7.12 20.45H3.55V9h3.57v11.45zM22.22 0H1.77C.8 0 0 .78 0 1.74v20.52C0 23.22.8 24 1.77 24h20.45c.98 0 1.78-.78 1.78-1.74V1.74C24 .78 23.2 0 22.22 0z"/></svg></a><a data-soc="ig" href="https://www.instagram.com/jaydenleebetts" target="_blank" rel="noopener noreferrer" aria-label="Jayden Betts on Instagram — opens in a new tab"><svg class="jbGlyph" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg></a></span>
+ <div class="jbStick isFixed">
+  <nav class="jbNav" aria-label="Primary" data-surface="paper">
+   <span class="jbGrp jbGrpL">
+    <a class="jbHome" href="index.html" aria-label="Jayden Betts, home"><svg class="jbLogo" viewBox="0 0 30 30" aria-hidden="true"><path d="M1 26.3842C3.07605 22.5364 9.00761 17.1494 16.1255 26.3842C23.2434 35.619 14.1981 18.1678 16.1255 8.65665C18.0529 -0.854479 32.3186 -2.22723 28.2852 8.65665C24.2517 19.5405 18.6968 18.261 20.8493 13.2232C23.0018 8.1853 35.3661 26.1679 23.0066 27.4872"/></svg></a>
+   </span>
+   <span class="jbGrp jbGrpC">
+    <a data-nav-item="work" href="index.html#cases" aria-label="Work"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7m0 2a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v9a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2z"/><path d="M8 7v-2a2 2 0 0 1 2 -2h4a2 2 0 0 1 2 2v2"/><path d="M12 12l0 .01"/><path d="M3 13a20 20 0 0 0 18 0"/></svg><span class="jbLbl">Work</span></a>
+    <a data-nav-item="about" href="index.html#about" aria-label="About"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0"/><path d="M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2"/></svg><span class="jbLbl">About</span></a>
+    <a data-nav-item="games" href="play.html" aria-label="Play" aria-current="true"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 6m0 2a2 2 0 0 1 2 -2h16a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-16a2 2 0 0 1 -2 -2z"/><path d="M6 12h4m-2 -2v4"/><path d="M15 11l0 .01"/><path d="M18 13l0 .01"/></svg><span class="jbLbl">Play</span></a>
+   </span>
+   <span class="jbGrp jbGrpR">
+    <!-- CONTACT -- the same split control as Play, at the other end of the bar
+         (Jayden: "Contact should go to the right, and then it should act like the Play
+         button where it shows other options on hover -- like the various socials").
+         The label navigates, the caret discloses, and the caret is a real button with
+         aria-expanded and its own 44x44 -- because touch has no hover and a tap must
+         never mean two things. header.js owns it on all nine pages.
+         Socials in HIS order: LinkedIn, Instagram, email. -->
+    <span class="jbDisc jbContact">
+     <a class="jbDiscGo" data-nav-item="contact" aria-haspopup="true" aria-expanded="false" aria-controls="jbContactMenu" href="index.html#contact" aria-label="Contact"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10z"/><path d="M3 7l9 6l9 -6"/></svg><span class="jbLbl">Contact</span></a>
+     <div class="jbDiscMenu" id="jbContactMenu"><a class="jbDiscTouch" href="index.html#contact"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10z"/><path d="M3 7l9 6l9 -6"/></svg>Contact</a><div class="jbDiscSep jbDiscTouch" aria-hidden="true"></div><a href="https://www.linkedin.com/in/jaydenbetts" target="_blank" rel="noopener noreferrer"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 11l0 5"/><path d="M8 8l0 .01"/><path d="M12 16l0 -5"/><path d="M16 16v-3a2 2 0 0 0 -4 0"/><path d="M3 7a4 4 0 0 1 4 -4h10a4 4 0 0 1 4 4v10a4 4 0 0 1 -4 4h-10a4 4 0 0 1 -4 -4z"/></svg>LinkedIn</a><a href="https://www.instagram.com/jaydenleebetts" target="_blank" rel="noopener noreferrer"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4m0 4a4 4 0 0 1 4 -4h8a4 4 0 0 1 4 4v8a4 4 0 0 1 -4 4h-8a4 4 0 0 1 -4 -4z"/><path d="M12 12m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"/><path d="M16.5 7.5l0 .01"/></svg>Instagram</a><a href="mailto:jaydenlbetts@gmail.com"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10z"/><path d="M3 7l9 6l9 -6"/></svg>Email</a></div>
+    </span>
+   </span>
   </nav>
  </div>
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     THE WORKSPACE. Two columns on a desktop, two rows on a phone, and the head
+     holds the visual centre of both. Every step changes what the panel offers
+     and what the stage shows; the stage box itself never moves, which is the
+     one property that separates a builder from a page about a builder.
+     There is no footer, and that is the site's own documented rule rather than
+     an omission: play.html and gradientlab.html are also full-viewport stages
+     that cannot scroll, so a footer on them is unreachable furniture. Like
+     those two, the header's Contact control points at index.html#contact.
+     ═══════════════════════════════════════════════════════════════════════════ -->
+<main class="mkApp" id="main" tabindex="-1">
 
- <div class="content" id="main" tabindex="-1">
-  <h1 class="head">Make your own floating head.</h1>
-  <p class="lede">Your photo never leaves your device.</p>
+ <div class="mkStageCol">
+  <div class="mkStageBox">
+   <div class="mkStage">
 
-  <!-- STEP 1 · the photo -->
-  <section class="hmStep" id="step1">
-   <div class="kicker">Step 1 of 4 &middot; The photo</div>
-   <h2 class="stepHead">Start with your face.</h2>
-   <p class="stepBody">Face the camera in even light, eyes open. A selfie works great.</p>
-   <div class="hmStage" id="stage1">
-    <div class="hmDrop" id="drop" role="button" tabindex="0" aria-label="Choose or drop a photo">
-     <span class="hmDropTxt">Drop a photo (or a saved head file) here, or</span>
-     <span class="hmBtn hmBtnPrimary" aria-hidden="true">Choose a photo</span>
+    <!-- 1 · the photo -->
+    <div class="hmStage" id="stage1">
+     <div class="hmDrop" id="drop" role="button" tabindex="0" aria-label="Choose or drop a photo">
+      <svg class="hmDropIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 8h.01"/><path d="M3 6a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v12a3 3 0 0 1 -3 3h-12a3 3 0 0 1 -3 -3z"/><path d="M3 16l5 -5c.928 -.893 2.072 -.893 3 0l5 5"/><path d="M14 14l1 -1c.928 -.893 2.072 -.893 3 0l3 3"/></svg>
+      <span>Drop a photo here, or tap to choose one.<br>A saved head file works too.</span>
+     </div>
     </div>
-   </div>
-   <p class="cap">Your photo stays on your device. Close the tab and it is gone.</p>
-   <p class="cap hmErr hidden" id="hmErr">That photo stumped this browser &mdash; a JPG, PNG, or screenshot works every time.</p>
-   <input type="file" id="file" accept="image/*,.heic,.heif,.headjson,.json" class="hidden" aria-hidden="true">
-  </section>
 
-  <!-- STEP 2 · the crop -->
-  <section class="hmStep hidden" id="step2">
-   <div class="kicker">Step 2 of 4 &middot; The cutout</div>
-   <h2 class="stepHead">Frame your face.</h2>
-   <p class="stepBody">Drag to move. Slide to zoom. Chin near the bottom, a little room above your hair. The cut follows a head shape, tapered at the chin.</p>
-   <div class="hmStage" id="stage2">
-    <div id="hmRot"><img id="hmPhoto" alt=""></div>
-    <svg class="hmOvalMask" viewBox="0 0 500 600" preserveAspectRatio="none" aria-hidden="true"><path fill-rule="evenodd" fill="rgba(253,253,253,.92)" d="M0,0 H500 V600 H0 Z M50,268.3 C46,109.9 126,30.7 250,36 C374,30.7 454,109.9 450,268.3 C446,392.4 374,505.9 310,548.2 C278,566.6 222,566.6 190,548.2 C126,505.9 54,392.4 50,268.3 Z"/><path fill="none" stroke="rgba(8,8,8,.3)" stroke-width="1" vector-effect="non-scaling-stroke" d="M50,268.3 C46,109.9 126,30.7 250,36 C374,30.7 454,109.9 450,268.3 C446,392.4 374,505.9 310,548.2 C278,566.6 222,566.6 190,548.2 C126,505.9 54,392.4 50,268.3 Z"/></svg>
-   </div>
-   <div class="hmCtl"><label class="hmCtlL" for="zoom">Zoom</label><input type="range" class="hmZoom" id="zoom" min="1" max="4" step="0.01" value="1.2" aria-label="Zoom"></div>
-   <div class="hmCtl"><label class="hmCtlL" for="rota">Straighten</label><input type="range" class="hmZoom" id="rota" min="-30" max="30" step="0.5" value="0" aria-label="Rotate photo"></div>
-   <div class="hmRow">
-    <button class="hmBtn ghost" type="button" id="back2">Different photo</button>
-    <button class="hmBtn" type="button" id="next2">Cut it out</button>
-   </div>
-  </section>
+    <!-- 2 · the cutout -->
+    <div class="hmStage hidden" id="stage2">
+     <div id="hmRot"><img id="hmPhoto" alt=""></div>
+     <svg class="hmOvalMask" viewBox="0 0 500 600" preserveAspectRatio="none" aria-hidden="true"><path fill-rule="evenodd" fill="rgba(253,253,253,.92)" d="M0,0 H500 V600 H0 Z M50,268.3 C46,109.9 126,30.7 250,36 C374,30.7 454,109.9 450,268.3 C446,392.4 374,505.9 310,548.2 C278,566.6 222,566.6 190,548.2 C126,505.9 54,392.4 50,268.3 Z"/><path fill="none" stroke="rgba(8,8,8,.3)" stroke-width="1" vector-effect="non-scaling-stroke" d="M50,268.3 C46,109.9 126,30.7 250,36 C374,30.7 454,109.9 450,268.3 C446,392.4 374,505.9 310,548.2 C278,566.6 222,566.6 190,548.2 C126,505.9 54,392.4 50,268.3 Z"/></svg>
+    </div>
 
-  <!-- STEP 3 · the eyes -->
-  <section class="hmStep hidden" id="step3">
-   <div class="kicker">Step 3 of 4 &middot; The eyes</div>
-   <h2 class="stepHead">Mark your face.</h2>
-   <p class="stepBody">We've placed the landmarks for you &mdash; nudge what's off. Each dot is colour-keyed by feature (see the key below); drag any dot, or grab an eye's center to move it whole.</p>
-   <div class="hmStage bare" id="stage3">
-    <img id="hmCut" alt="Your cutout head">
-    <svg class="hmGuides" id="hmGuides" aria-hidden="true"><line id="gL" stroke="rgba(8,8,8,.25)" stroke-width="1"/><line id="gR" stroke="rgba(8,8,8,.25)" stroke-width="1"/></svg>
-    <div class="hmLoupe" id="hmLoupe" aria-hidden="true"></div>
-    <div class="hmDot cEye" id="dLi" role="slider" tabindex="0" aria-label="Left eye, left corner"></div>
-    <div class="hmDot cEye" id="dLo" role="slider" tabindex="0" aria-label="Left eye, right corner"></div>
-    <div class="hmDot cEye" id="dRi" role="slider" tabindex="0" aria-label="Right eye, left corner"></div>
-    <div class="hmDot cEye" id="dRo" role="slider" tabindex="0" aria-label="Right eye, right corner"></div>
-    <div class="hmDot cEye" id="dLt" role="slider" tabindex="0" aria-label="Left eye, top lid"></div>
-    <div class="hmDot cEye" id="dLb" role="slider" tabindex="0" aria-label="Left eye, bottom lid"></div>
-    <div class="hmDot cEye" id="dRt" role="slider" tabindex="0" aria-label="Right eye, top lid"></div>
-    <div class="hmDot cEye" id="dRb" role="slider" tabindex="0" aria-label="Right eye, bottom lid"></div>
-    <div class="hmMark ring eyeC cEye" id="dLC" role="slider" tabindex="0" aria-label="Left eye, whole eye"></div>
-    <div class="hmMark ring eyeC cEye" id="dRC" role="slider" tabindex="0" aria-label="Right eye, whole eye"></div>
-    <div class="hmDot cBrow" id="dBL" role="slider" tabindex="0" aria-label="Left eyebrow"></div>
-    <div class="hmDot cBrow" id="dBR" role="slider" tabindex="0" aria-label="Right eyebrow"></div>
-    <div class="hmDot cNose" id="dN" role="slider" tabindex="0" aria-label="Nose tip"></div>
-    <div class="hmDot cMouth" id="dM" role="slider" tabindex="0" aria-label="Mouth"></div>
-   </div>
-   <div class="hmKey">
-    <p class="hmKeyHd">What each dot means &middot; where it belongs</p>
-    <svg class="hmKeyFace" viewBox="0 0 160 200" role="img" aria-label="Face diagram showing where each colour-keyed landmark sits">
-     <g fill="none" stroke="rgba(8,8,8,.38)" stroke-width="1.4" stroke-linecap="round">
-      <ellipse cx="80" cy="98" rx="56" ry="86"/>
-      <path d="M46 73 Q58 67 71 72"/><path d="M89 72 Q102 67 114 73"/>
-      <path d="M46 89 Q58 80 71 89 Q58 97 46 89 Z"/><path d="M89 89 Q102 80 114 89 Q102 97 89 89 Z"/>
-      <path d="M80 97 L80 118 M73 119 Q80 124 87 119"/>
-      <path d="M66 145 Q80 153 94 145"/>
-     </g>
-     <g stroke="rgba(253,253,253,.85)" stroke-width="1">
-      <circle cx="46" cy="89" r="3.4" fill="var(--kEye)"/><circle cx="71" cy="89" r="3.4" fill="var(--kEye)"/>
-      <circle cx="89" cy="89" r="3.4" fill="var(--kEye)"/><circle cx="114" cy="89" r="3.4" fill="var(--kEye)"/>
-      <circle cx="58" cy="69" r="3.4" fill="var(--kBrow)"/><circle cx="102" cy="69" r="3.4" fill="var(--kBrow)"/>
-      <circle cx="80" cy="119" r="3.4" fill="var(--kNose)"/>
-      <circle cx="80" cy="148" r="3.4" fill="var(--kMouth)"/>
-     </g>
-    </svg>
-    <ul class="hmKeyList">
-     <li><span class="hmKeySw sw-eyes"></span><div><b>Eyes</b> &mdash; corners at the inner &amp; outer canthus where the lids meet; top and bottom at each lid's widest-open point. Grab an eye's centre to slide it whole.</div></li>
-     <li><span class="hmKeySw sw-brow"></span><div><b>Eyebrows</b> &mdash; one dot on the peak of the arch, above the outer third of the eye.</div></li>
-     <li><span class="hmKeySw sw-nose"></span><div><b>Nose</b> &mdash; on the tip, the frontmost point at the base of the nose.</div></li>
-     <li><span class="hmKeySw sw-mouth"></span><div><b>Mouth</b> &mdash; centre of the lip line, where the lips meet at mid-width.</div></li>
-    </ul>
-   </div>
-   <p class="hmWhich" id="hmWhich" aria-live="polite">Drag near a marker to move it</p>
-   <button class="hmResetB hidden" id="resetDots" type="button">Reset the dots</button>
-   <div class="hmRow">
-    <button class="hmBtn ghost" type="button" id="back3">Re-crop</button>
-    <button class="hmBtn" type="button" id="next3">Bring it to life</button>
-   </div>
-  </section>
+    <!-- 3 · the landmarks -->
+    <div class="hmStage hidden" id="stage3">
+     <img id="hmCut" alt="Your cutout head">
+     <svg class="hmGuides" id="hmGuides" aria-hidden="true"><line id="gL" stroke="rgba(8,8,8,.25)" stroke-width="1"/><line id="gR" stroke="rgba(8,8,8,.25)" stroke-width="1"/></svg>
+     <div class="hmLoupe" id="hmLoupe" aria-hidden="true"></div>
+     <div class="hmDot cEye" id="dLi" role="slider" tabindex="0" aria-label="Left eye, left corner"></div>
+     <div class="hmDot cEye" id="dLo" role="slider" tabindex="0" aria-label="Left eye, right corner"></div>
+     <div class="hmDot cEye" id="dRi" role="slider" tabindex="0" aria-label="Right eye, left corner"></div>
+     <div class="hmDot cEye" id="dRo" role="slider" tabindex="0" aria-label="Right eye, right corner"></div>
+     <div class="hmDot cEye" id="dLt" role="slider" tabindex="0" aria-label="Left eye, top lid"></div>
+     <div class="hmDot cEye" id="dLb" role="slider" tabindex="0" aria-label="Left eye, bottom lid"></div>
+     <div class="hmDot cEye" id="dRt" role="slider" tabindex="0" aria-label="Right eye, top lid"></div>
+     <div class="hmDot cEye" id="dRb" role="slider" tabindex="0" aria-label="Right eye, bottom lid"></div>
+     <div class="hmMark ring eyeC cEye" id="dLC" role="slider" tabindex="0" aria-label="Left eye, whole eye"></div>
+     <div class="hmMark ring eyeC cEye" id="dRC" role="slider" tabindex="0" aria-label="Right eye, whole eye"></div>
+     <div class="hmDot cBrow" id="dBL" role="slider" tabindex="0" aria-label="Left eyebrow"></div>
+     <div class="hmDot cBrow" id="dBR" role="slider" tabindex="0" aria-label="Right eyebrow"></div>
+     <div class="hmDot cNose" id="dN" role="slider" tabindex="0" aria-label="Nose tip"></div>
+     <div class="hmDot cMouth" id="dM" role="slider" tabindex="0" aria-label="Mouth"></div>
+    </div>
 
-  <!-- STEP 4 · alive -->
-  <section class="hmStep hidden" id="step4">
-   <div class="kicker">Step 4 of 4 &middot; Alive</div>
-   <h2 class="stepHead">There you are.</h2>
-   <p class="stepBody">It's live on my homepage now, hopping around next to my head. Go say hi.</p>
-   <div class="hmRow" role="group" aria-label="Pose presets"><button class="hmBtn ghost" type="button" data-pose="">Live</button><button class="hmBtn ghost hmRoll" type="button" id="poseRnd" aria-label="Roll a random pose"><svg class="hmDie" viewBox="0 0 20 20" width="15" height="15" aria-hidden="true"><rect x="1" y="1" width="18" height="18" rx="4.5" fill="none" stroke="currentColor" stroke-width="1.6"/><g fill="currentColor"><circle class="dp dpa" cx="6.2" cy="6.2" r="1.7"/><circle class="dp dpb" cx="13.8" cy="6.2" r="1.7"/><circle class="dp dpc" cx="6.2" cy="13.8" r="1.7"/><circle class="dp dpd" cx="13.8" cy="13.8" r="1.7"/><circle class="dp dpe" cx="10" cy="10" r="1.7"/><circle class="dp dpf" cx="6.2" cy="10" r="1.7"/><circle class="dp dpg" cx="13.8" cy="10" r="1.7"/></g></svg>Random pose</button></div>
-   <div class="hmStage bare" id="stage4">
-    <div class="hmShadow" aria-hidden="true"></div>
-    <div id="hmHead"><img id="hmLive" alt="Your floating cutout head, eyes following the cursor"></div>
-   </div>
-   <div class="hmRow hmNameRow">
-    <label class="hmNameLbl" for="hmName">Name this head</label>
-    <input class="hmName" id="hmName" type="text" maxlength="14" placeholder="Who is this?" autocomplete="off" spellcheck="false">
-    <span class="hmNameOk" id="hmNameOk" aria-hidden="true">Saved</span>
-   </div>
-   <p class="hmNameSay" id="hmNameSay" role="status" aria-live="polite"></p>
-   <div class="hmRow">
-    <button class="hmBtn ghost" type="button" id="restart">Start over</button>
-    
-    <button class="hmBtn ghost" type="button" id="save"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><polyline points="6 11 12 17 18 11"/><line x1="4" y1="21" x2="20" y2="21"/></svg>Download</button>
-    <button class="hmBtn ghost" type="button" id="saveFile"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>Save head file</button>
-    <a class="hmBtn" href="index.html">See it on my homepage</a>
-   </div>
-   <p class="cap">Downloads as a transparent PNG &mdash; drop it anywhere.</p>
-  </section>
+    <!-- 4 · alive -->
+    <div class="hmStage hidden" id="stage4">
+     <div class="hmShadow" aria-hidden="true"></div>
+     <div id="hmHead"><img id="hmLive" alt="Your floating cutout head, eyes following the cursor"></div>
+    </div>
 
-  <section class="hmPitSec hidden" id="hmPitSec" aria-label="Your saved heads">
-   <div class="kicker">Your little crowd &middot; up to eight</div>
-   <div class="hmPit" id="hmPitRow"></div>
-   <div class="hmRow"><button class="hmBtn" type="button" id="addAnother">Add another head</button></div>
-   <p class="cap">Click a head to bring it back on stage &mdash; download it or save its file any time. Every head joins the crowd on my homepage; eight at most, the oldest hops out.</p>
-  </section>
+   </div>
+  </div>
+
+  <!-- ONE reserved status line, and only one of its four spans is ever shown:
+       which is which is decided by data-step on .mkApp, in CSS, so the row
+       cannot grow a second line and push the stage around. The row keeps its
+       height when every span is empty, so nothing reflows on a step change. -->
+  <p class="mkNote">
+   <span id="hmErr" class="mkErr hidden" role="status">That photo stumped this browser &mdash; a JPG, PNG or screenshot works every time.</span>
+   <span id="mkNoteDefault">Your photo never leaves this device.</span>
+   <span id="hmWhich" aria-live="polite">Drag near a marker to move it</span>
+   <span id="hmNameSay" role="status" aria-live="polite"></span>
+  </p>
  </div>
 
- <footer class="siteFoot" id="contact" role="contentinfo">
-  <p class="footReach">Thanks for checking out my website. I&rsquo;d love to chat, you can find me on <a class="footIn" href="https://www.linkedin.com/in/jaydenbetts" target="_blank" rel="noopener noreferrer">LinkedIn</a>, <a class="footIn" href="https://www.instagram.com/jaydenleebetts" target="_blank" rel="noopener noreferrer">Instagram</a>, or through <a class="footIn" href="mailto:jaydenlbetts@gmail.com">email</a>.</p>
- </footer>
-</div>
+ <div class="mkPanel">
+
+  <ol class="mkSteps" id="mkSteps" aria-label="Progress">
+   <li>Photo</li><li>Cutout</li><li>Face</li><li>Alive</li>
+  </ol>
+
+  <div class="mkFlow">
+
+   <!-- STEP 1 · the photo -->
+   <!-- no group label on this step, and that is on purpose: the rail above
+        already says Photo, and a group heading that repeats the tab it sits
+        under is the case-study reflex this pass exists to remove. -->
+   <section class="mkStep" id="step1">
+    <div class="mkGroup">
+     <p class="mkHint">Face the camera in even light, eyes open. A selfie works great. Nothing is uploaded &mdash; the whole thing happens in this tab.</p>
+    </div>
+    <div class="mkActs">
+     <button class="ctl ctl--primary is-block" type="button" id="pickPhoto">Choose a photo</button>
+    </div>
+    <input type="file" id="file" accept="image/*,.heic,.heif,.headjson,.json" class="hidden" aria-hidden="true">
+   </section>
+
+   <!-- STEP 2 · the cutout -->
+   <section class="mkStep hidden" id="step2">
+    <div class="mkGroup">
+     <h2 class="mkGroupH">Frame</h2>
+     <div class="mkGrid">
+      <label class="mkLbl" for="zoom">Zoom</label>
+      <input type="range" class="mkSlider" id="zoom" min="1" max="4" step="0.01" value="1.2">
+      <output class="mkVal" id="zoomVal" for="zoom">1.20&times;</output>
+      <label class="mkLbl" for="rota">Straighten</label>
+      <input type="range" class="mkSlider" id="rota" min="-30" max="30" step="0.5" value="0">
+      <output class="mkVal" id="rotaVal" for="rota">0&deg;</output>
+     </div>
+     <p class="mkHint">Drag the photo to move it. Chin near the bottom, a little room above the hair.</p>
+    </div>
+    <div class="mkActs">
+     <button class="ctl" type="button" id="back2">Different photo</button>
+     <button class="ctl ctl--primary" type="button" id="next2">Cut it out</button>
+    </div>
+   </section>
+
+   <!-- STEP 3 · the landmarks -->
+   <section class="mkStep hidden" id="step3">
+    <div class="mkGroup">
+     <h2 class="mkGroupH">Landmarks</h2>
+     <ul class="mkKey">
+      <li><span class="mkSw sw-eyes"></span>Eyes</li>
+      <li><span class="mkSw sw-brow"></span>Brows</li>
+      <li><span class="mkSw sw-nose"></span>Nose</li>
+      <li><span class="mkSw sw-mouth"></span>Mouth</li>
+     </ul>
+     <p class="mkHint">These are placed for you. Drag a dot to nudge it, or grab an eye&rsquo;s centre to move the whole eye.</p>
+     <div><button class="ctl is-sm hidden" id="resetDots" type="button">Reset the dots</button></div>
+    </div>
+    <div class="mkActs">
+     <button class="ctl" type="button" id="back3">Re-crop</button>
+     <button class="ctl ctl--primary" type="button" id="next3">Bring it to life</button>
+    </div>
+   </section>
+
+   <!-- STEP 4 · alive -->
+   <section class="mkStep hidden" id="step4">
+    <div class="mkGroup">
+     <h2 class="mkGroupH">Pose</h2>
+     <div class="mkRow mkRow--wrap" role="group" aria-label="Pose">
+      <button class="ctl is-sm ctl--secondary isOn" type="button" data-pose="">Live</button>
+      <button class="ctl is-sm ctl--secondary" type="button" id="poseRnd" aria-label="Roll a random pose"><svg class="hmDie" viewBox="0 0 20 20" aria-hidden="true"><rect x="1" y="1" width="18" height="18" rx="4.5" fill="none" stroke="currentColor"/><g fill="currentColor" stroke="none"><circle class="dp dpa" cx="6.2" cy="6.2" r="1.7"/><circle class="dp dpb" cx="13.8" cy="6.2" r="1.7"/><circle class="dp dpc" cx="6.2" cy="13.8" r="1.7"/><circle class="dp dpd" cx="13.8" cy="13.8" r="1.7"/><circle class="dp dpe" cx="10" cy="10" r="1.7"/><circle class="dp dpf" cx="6.2" cy="10" r="1.7"/><circle class="dp dpg" cx="13.8" cy="10" r="1.7"/></g></svg>Random</button>
+     </div>
+    </div>
+    <!-- no "Saved" pill beside this label. The nameplate under the stage IS the
+         confirmation — you watch the head take the name — and a second badge
+         saying the same thing was one of the rows the phone could not afford. -->
+    <div class="mkGroup">
+     <h2 class="mkGroupH"><label for="hmName">Name</label></h2>
+     <input class="mkField" id="hmName" type="text" maxlength="14" placeholder="Who is this?" autocomplete="off" spellcheck="false">
+    </div>
+    <div class="mkGroup">
+     <h2 class="mkGroupH">Keep it</h2>
+     <div class="mkRow mkRow--wrap">
+      <button class="ctl is-sm ctl--secondary" type="button" id="saveFile"><svg viewBox="0 0 24 24" aria-hidden="true" stroke="currentColor"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>Head file</button>
+      <a class="ctl is-sm" href="index.html">On my homepage</a>
+     </div>
+     <p class="mkHint">The download is a transparent PNG. A head file re-opens here later.</p>
+    </div>
+    <div class="mkActs">
+     <button class="ctl" type="button" id="restart">Start over</button>
+     <button class="ctl ctl--primary" type="button" id="save"><svg viewBox="0 0 24 24" aria-hidden="true" stroke="currentColor"><path d="M12 3v12"/><polyline points="6 11 12 17 18 11"/><line x1="4" y1="21" x2="20" y2="21"/></svg>Download</button>
+    </div>
+   </section>
+
+  </div>
+
+  <!-- THE SHELF. Persistent state, at the foot of the panel, on every step —
+       so the heads you already made are visible while you make the next one. -->
+  <section class="hmPitSec hidden" id="hmPitSec" aria-label="Your saved heads">
+   <div class="mkGroupHead">
+    <h2 class="mkGroupH" id="hmPitTitle">Your heads</h2>
+    <button class="ctl is-sm" id="hmPitEdit" type="button" aria-pressed="false" aria-controls="hmPitRow" hidden>Edit</button>
+   </div>
+   <!-- "Add another head" used to sit here and it did exactly what Start over
+        does — restart(), same handler, same result. Two controls for one action
+        is worse than one anywhere, and on a phone it was 44px of the room the
+        head needed. -->
+   <div class="hmPit" id="hmPitRow" data-editing="false"></div>
+  </section>
+
+ </div>
+</main>
 
 <script>
 (function(){
 "use strict";
 var reduce=window.matchMedia&&window.matchMedia("(prefers-reduced-motion:reduce)").matches;
+/* ---------- the step switch ----------
+   THREE THINGS MOVE TOGETHER AND NOTHING SCROLLS. The panel group, the stage
+   layer and the progress rail are all keyed off one index; the stage BOX never
+   moves, which is the point of the layout. The scrollIntoView that used to
+   live here is gone with the scroll: the page is one fixed screen now, so
+   there is nowhere to scroll to and the smooth-scroll call was the last thing
+   still treating this like an article. */
 var steps=["step1","step2","step3","step4"].map(function(id){return document.getElementById(id);});
-function show(n){steps.forEach(function(s,i){s.classList.toggle("hidden",i!==n);});requestAnimationFrame(function(){requestAnimationFrame(function(){steps[n].classList.add("shown");});});
- var k=steps[n].querySelector(".kicker");if(k)k.scrollIntoView({behavior:reduce?"auto":"smooth",block:"start"});}
-steps[0].classList.add("shown");
+var stages=["stage1","stage2","stage3","stage4"].map(function(id){return document.getElementById(id);});
+var app=document.getElementById("main"),rail=document.getElementById("mkSteps");
+function show(n){
+ steps.forEach(function(s,i){if(s)s.classList.toggle("hidden",i!==n);});
+ stages.forEach(function(s,i){if(s)s.classList.toggle("hidden",i!==n);});
+ if(app)app.setAttribute("data-step",String(n+1));
+ if(rail)[].slice.call(rail.children).forEach(function(li,i){
+  li.classList.toggle("isDone",i<n);
+  if(i===n)li.setAttribute("aria-current","step");else li.removeAttribute("aria-current");});
+}
+show(0);
 
 /* ---------- state ---------- */
 var photo=new Image(),photoURL=null,cutURL=null;      // the raw photo, the baked cutout
@@ -531,6 +753,11 @@ drop.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){e.p
 ["dragleave","drop"].forEach(function(ev){drop.addEventListener(ev,function(e){e.preventDefault();drop.classList.remove("over");});});
 drop.addEventListener("drop",function(e){var f=e.dataTransfer&&e.dataTransfer.files&&e.dataTransfer.files[0];if(f)load(f);});
 file.addEventListener("change",function(){if(file.files&&file.files[0])load(file.files[0]);});
+/* the panel's primary action opens the same picker as the stage's drop zone.
+   Two ways in, one action -- the drop zone is a REGION and the button is the
+   step's one primary, and a builder should not make you aim at the artifact to
+   start. */
+(function(){var pb=document.getElementById("pickPhoto");if(pb)pb.addEventListener("click",function(){file.click();});})();
 function packCut(cv2){ // storage diet: WebP keeps alpha at ~1/6 the bytes; Safari gets a downscaled PNG
  try{var u=cv2.toDataURL("image/webp",0.82);if(u.indexOf("data:image/webp")===0)return u;}catch(_){}
  try{var k=480/cv2.width,c3=document.createElement("canvas");c3.width=480;c3.height=Math.round(cv2.height*k);
@@ -553,7 +780,10 @@ function readAsImage(f,ok,fail){ // most photos decode natively (Safari even doe
     im2.onload=function(){ok(im2,u2);};im2.onerror=fail;im2.src=u2;
    }).catch(fail);});};
  im.src=url;}
-function photoErr(on){var e=document.getElementById("hmErr");if(e)e.classList.toggle("hidden",!on);}
+/* the status line holds one statement at a time: the decode error REPLACES the
+   privacy note rather than stacking under it, so the row can never grow. */
+function photoErr(on){var e=document.getElementById("hmErr"),d=document.getElementById("mkNoteDefault");
+ if(e)e.classList.toggle("hidden",!on);if(d)d.classList.toggle("hidden",!!on);}
 function load(f){
  if(/\.(headjson|json)$/i.test(f.name||"")||f.type==="application/json"){ // a saved head file: straight back to life
   var rd=new FileReader();
@@ -575,7 +805,8 @@ function load(f){
 var stage2=document.getElementById("stage2"),photoEl=document.getElementById("hmPhoto"),zoom=document.getElementById("zoom"),rota=document.getElementById("rota"),rotEl=document.getElementById("hmRot");
 function stageSize(){var r=stage2.getBoundingClientRect();return{w:r.width,h:r.height};}
 function coverScale(){var s=stageSize();return Math.max(s.w/photo.naturalWidth,s.h/photo.naturalHeight);}
-function initFrame(){pz.s=1.2;pz.r=0;rota.value="0";rotEl.style.transform="rotate(0deg)";var s=stageSize(),base=coverScale();pz.x=(s.w-photo.naturalWidth*base*pz.s)/2;pz.y=(s.h-photo.naturalHeight*base*pz.s)/2;zoom.value="1.2";photoEl.src=photoURL;apply();}
+function initFrame(){pz.s=1.2;pz.r=0;rota.value="0";rotEl.style.transform="rotate(0deg)";var s=stageSize(),base=coverScale();pz.x=(s.w-photo.naturalWidth*base*pz.s)/2;pz.y=(s.h-photo.naturalHeight*base*pz.s)/2;zoom.value="1.2";photoEl.src=photoURL;apply();
+ try{window.__hmSyncCrop&&window.__hmSyncCrop();}catch(_){}}   /* the readouts follow the reset */
 function clampPan(){var s=stageSize(),base=coverScale(),w=photo.naturalWidth*base*pz.s,h=photo.naturalHeight*base*pz.s;
  pz.x=Math.min(0,Math.max(s.w-w,pz.x));pz.y=Math.min(0,Math.max(s.h-h,pz.y));}
 function apply(){var base=coverScale();clampPan();photoEl.style.transform="translate("+pz.x.toFixed(1)+"px,"+pz.y.toFixed(1)+"px) scale("+(base*pz.s).toFixed(4)+")";rotEl.style.transform="rotate("+pz.r+"deg)";}
@@ -586,6 +817,14 @@ stage2.addEventListener("pointermove",function(e){if(!panOn)return;pz.x=e.client
 zoom.addEventListener("input",function(){var s=stageSize(),base=coverScale(),ns=parseFloat(zoom.value);
  var cx=s.w/2,cy=s.h/2;pz.x=cx-((cx-pz.x)/(base*pz.s))*(base*ns);pz.y=cy-((cy-pz.y)/(base*pz.s))*(base*ns);pz.s=ns;apply();});
 rota.addEventListener("input",function(){pz.r=parseFloat(rota.value)||0;apply();});
+/* the numeric readouts. A slider with no number is a guess, and these are the
+   only two controls on the page whose value is not visible in the artifact
+   itself the instant you let go. */
+(function(){var zv=document.getElementById("zoomVal"),rv=document.getElementById("rotaVal");
+ function sync(){if(zv)zv.textContent=parseFloat(zoom.value).toFixed(2)+"×";
+  if(rv)rv.textContent=(parseFloat(rota.value)||0).toFixed(1).replace(/\.0$/,"")+"°";}
+ zoom.addEventListener("input",sync);rota.addEventListener("input",sync);
+ window.__hmSyncCrop=sync;sync();})();
 document.getElementById("back2").addEventListener("click",function(){show(0);});
 
 /* bake: grayscale, oval mask, done on a canvas that mirrors the stage exactly */
@@ -747,9 +986,15 @@ var stage4=document.getElementById("stage4"),headEl=document.getElementById("hmH
 var boopF=0;stage4.style.cursor="pointer";stage4.addEventListener("pointerdown",function(){if(boopF===0)boopF=16;});
 var eyeEls=[],tick=null,gx=0,gy=0,blinkAt=0,blinkFrames=0,browAt=0,browFrames=0,sniffAt=0,sniffFrames=0,smileAt=0,smiling=false;
 var pose="",EXPR=null;
-document.querySelectorAll("[data-pose]").forEach(function(b){b.addEventListener("click",function(){pose=b.getAttribute("data-pose");EXPR=null;
- var rb0=document.getElementById("poseRnd");if(rb0)rb0.style.borderColor="";
- document.querySelectorAll("[data-pose]").forEach(function(o){o.style.borderColor=o===b?"var(--c950)":"";});});});
+/* SELECTION IS A CLASS, NOT AN INLINE BORDER. These three lines used to write
+   `style.borderColor` on the pose buttons, which is the only channel the
+   control system does not permit a kind to vary -- and on a control with no
+   border at rest it painted a 0px edge, so the selected pose never showed at
+   all. `.isOn` carries it on ink plus rim, neither of which moves a pixel. */
+function poseSel(el){[].slice.call(document.querySelectorAll("[data-pose],#poseRnd"))
+ .forEach(function(o){o.classList.toggle("isOn",o===el);});}
+document.querySelectorAll("[data-pose]").forEach(function(b){b.addEventListener("click",function(){
+ pose=b.getAttribute("data-pose");EXPR=null;poseSel(b);});});
 /* the expression engine: every face is a chord of FACS action units — brows, lids, gaze, mouth, tilt —
    16 archetypes x mirroring x continuous jitter = no two rolls alike */
 function _j(a){return (Math.random()*2-1)*a;}
@@ -788,7 +1033,7 @@ function rollExpr(){
   dieRot+=180+(Math.random()<0.5?90:0);   // the die tumbles and lands on a new face: roll me again
   if(die)die.style.transform="rotate("+dieRot+"deg)";
   setTimeout(function(){setDie(1+Math.floor(Math.random()*6));},220);
-  document.querySelectorAll("[data-pose]").forEach(function(o){o.style.borderColor="";});});})();
+  poseSel(rb);});})();
 function eyeGeom(){var d=deriveEyes();return{w:(d[0].w+d[1].w)/2,h:(d[0].h+d[1].h)/2};}
 function sclera(e){ // the white of THEIR eye: sample along the corner line, keep only the brightest pixels
  try{var x=bakedCanvas.getContext("2d"),px=[];
@@ -991,27 +1236,63 @@ function readPit(){var all=[],rawN1=null;
   if(seenP[d.cut]||seenP[k2])return false;seenP[d.cut]=1;seenP[k2]=1;return true;}).slice(0,8);
  if(rawN1!==null&&rawN1!==all.length){try{localStorage.setItem("hmCompanions",JSON.stringify(all));}catch(_){}}   // heal: duplicates and debris leave the record for good
  return all;}
+/* THE CANONICAL REMOVE PATTERN -- see index.html for the full reasoning. Shape:
+     .mkGroupHead > .mkGroupH#hmPitTitle + .hmPitEdit[aria-pressed]  -- the mode toggle
+     .hmPit[data-editing] > .hmPitItem                     -- the grid
+     .hmPitItem > .hmPitPick (open) + .hmPitX (delete, editing only)
+     .hmPitUndo                                            -- replaces a tile in place */
+var _pitEdit=false,_pitUndo=null,_pitUndoT=0;
+var PIT_TRASH='<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12"/><path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"/></svg>';
+function pitCommit(list){try{localStorage.setItem("hmCompanions",JSON.stringify(list));
+ if(list.length)localStorage.setItem("hmCompanion",JSON.stringify(list[list.length-1]));
+ else localStorage.removeItem("hmCompanion");}catch(_){}}
+/* removed from storage immediately; undo puts it back. A pending delete waiting on a
+   timer is the version that loses the head if the tab closes mid-countdown. */
+function pitRemove(idx){var cur=readPit(),gone=cur.splice(idx,1)[0];if(!gone)return;
+ pitCommit(cur);clearTimeout(_pitUndoT);_pitUndo={head:gone,idx:idx};
+ _pitUndoT=setTimeout(function(){_pitUndo=null;renderPit();},8000);renderPit();}
+function pitUndoRemove(){if(!_pitUndo)return;var cur=readPit();
+ cur.splice(Math.min(_pitUndo.idx,cur.length),0,_pitUndo.head);
+ pitCommit(cur);clearTimeout(_pitUndoT);_pitUndo=null;renderPit();}
 function renderPit(){try{var row=document.getElementById("hmPitRow"),sec=document.getElementById("hmPitSec");if(!row)return;
  var all=readPit();
- if(sec)sec.classList.toggle("hidden",!all.length);   // present the moment you have a head, on every step
+ if(sec)sec.classList.toggle("hidden",!all.length&&!_pitUndo);
+ row.setAttribute("data-editing",_pitEdit?"true":"false");
+ var eb=document.getElementById("hmPitEdit");
+ if(eb){eb.hidden=!all.length&&!_pitUndo;eb.setAttribute("aria-pressed",_pitEdit?"true":"false");
+  eb.textContent=_pitEdit?"Done":"Edit";
+  eb.setAttribute("aria-label",_pitEdit?"Finish removing heads":"Remove heads");}
  row.innerHTML="";
- for(var i=0;i<8;i++){(function(idx){
+ /* ONLY THE HEADS THAT EXIST. This loop used to run to 8 unconditionally and
+    push a `.hmPitEmpty` dashed tile into every unused slot -- eight boxes
+    reminding you what you have not made, on a shelf whose whole job is to show
+    you what you have. Dropping them is also what bought the phone layout its
+    room back: with one head the shelf is now one tile tall, not two rows. */
+ for(var i=0;i<all.length;i++){(function(idx){
   if(all[idx]&&all[idx].cut){var it=document.createElement("span");it.className="hmPitItem";
-   var pk=document.createElement("button");pk.className="hmPitPick";pk.type="button";pk.setAttribute("aria-label","Open this head: see it live, download it, save its file");
+   var pk=document.createElement("button");pk.className="hmPitPick";pk.type="button";
+   pk.setAttribute("aria-label","Open head "+(idx+1)+" of "+all.length+": see it live, download it, save its file");
    var im1=document.createElement("img");im1.src=all[idx].cut;im1.alt="";pk.appendChild(im1);
-   pk.addEventListener("click",function(){ // any head, any time: back on the stage it goes
+   if(_pitEdit){pk.setAttribute("aria-disabled","true");pk.tabIndex=-1;}
+   pk.addEventListener("click",function(){
+    if(_pitEdit)return;
     try{localStorage.setItem("hmCompanion",JSON.stringify(all[idx]));}catch(_){}
     restoreHead(all[idx]);
     try{window.__hmNameSync&&window.__hmNameSync();}catch(_){}});
    it.appendChild(pk);
-   var xb=document.createElement("button");xb.className="hmPitX";xb.type="button";xb.setAttribute("aria-label","Remove this head from the homepage");xb.textContent="\u00d7";
-   xb.addEventListener("click",function(ev){ev.stopPropagation();var cur=readPit();cur.splice(idx,1);
-    try{localStorage.setItem("hmCompanions",JSON.stringify(cur));
-     if(cur.length)localStorage.setItem("hmCompanion",JSON.stringify(cur[cur.length-1]));
-     else localStorage.removeItem("hmCompanion");}catch(_){}
-    renderPit();});
-   it.appendChild(xb);row.appendChild(it);}
-  else{var d1=document.createElement("div");d1.className="hmPitEmpty";row.appendChild(d1);}})(i);}}catch(_){}}
+   var xb=document.createElement("button");xb.className="hmPitX";xb.type="button";
+   xb.innerHTML=PIT_TRASH;
+   xb.setAttribute("aria-label","Remove head "+(idx+1)+" of "+all.length);
+   xb.addEventListener("click",function(ev){ev.stopPropagation();ev.preventDefault();pitRemove(idx);});
+   it.appendChild(xb);row.appendChild(it);}})(i);}
+ if(_pitUndo){var u=document.createElement("button");u.className="ctl is-sm ctl--secondary hmPitUndo";u.type="button";
+  u.textContent="Undo";u.setAttribute("aria-label","Undo removing that head");
+  u.addEventListener("click",function(ev){ev.stopPropagation();ev.preventDefault();pitUndoRemove();});
+  row.insertBefore(u,row.children[Math.min(_pitUndo.idx,row.children.length)]||null);}
+ if(!all.length&&!_pitUndo)_pitEdit=false;
+}catch(_){}}
+(function(){var eb=document.getElementById("hmPitEdit");
+ if(eb)eb.addEventListener("click",function(ev){ev.preventDefault();_pitEdit=!_pitEdit;renderPit();});})();
 renderPit();
 (function slimDown(){try{ // old 900k PNG heads repack themselves to travel light
  var all=readPit(),need=all.some(function(h){return h.cut.length>500000;});if(!need)return;
@@ -1021,7 +1302,6 @@ renderPit();
    if(++done===all.length){try{localStorage.setItem("hmCompanions",JSON.stringify(all));
     localStorage.setItem("hmCompanion",JSON.stringify(all[all.length-1]));renderPit();}catch(_){}}};
   im2.onerror=function(){if(++done===all.length){}};im2.src=h.cut;});}catch(_){}})();
-document.getElementById("addAnother").addEventListener("click",function(){document.getElementById("restart").click();renderPit();});
 document.getElementById("saveFile").addEventListener("click",function(){ // your head as a keepsake file: reupload it any time
  try{if(!cutURL||cutURL.length<100)return;
   var _d2=deriveEyes();
@@ -1035,7 +1315,7 @@ document.getElementById("restart").addEventListener("click",function(){restoredE
  eyeEls.forEach(function(e){e.wrap.remove();});eyeEls=[];
  if(photoURL){URL.revokeObjectURL(photoURL);photoURL=null;}
  file.value="";eyes.L={x:0.40,y:0.42};eyes.R={x:0.60,y:0.42};smileURL=null;smileSlot=false;
- steps.forEach(function(s){s.classList.remove("shown");});steps[0].classList.add("shown");
+ photoErr(false);
  show(0);
 });
 document.getElementById("save").addEventListener("click",function(){
@@ -1180,7 +1460,7 @@ try{restoreHead(JSON.parse(localStorage.getItem("hmCompanion")||"null"));}catch(
 <script>
 (function(){   // name the head that is on stage; it is already saved by the time this field shows
  var inp=document.getElementById("hmName");if(!inp)return;
- var ok=document.getElementById("hmNameOk"), say=document.getElementById("hmNameSay"), okT=0;
+ var say=document.getElementById("hmNameSay");
 
  // THE HEAD ON STAGE, not simply the last one saved. This used to take a[a.length-1]
  // unconditionally, so returning to the page with an earlier head restored typed the name onto
@@ -1196,9 +1476,6 @@ try{restoreHead(JSON.parse(localStorage.getItem("hmCompanion")||"null"));}catch(
   say.innerHTML = n ? 'This head answers to <b></b>.' : '';
   if(n)say.querySelector('b').textContent=n;}   // textContent, so a typed "<b>" stays literal
 
- function flash(){ if(!ok)return; ok.classList.add("on"); clearTimeout(okT);
-  okT=setTimeout(function(){ok.classList.remove("on");},1400);}
-
  function apply(){var n=(inp.value||"").trim().slice(0,14);
   var wrote=false;
   try{var a=JSON.parse(localStorage.getItem("hmCompanions")||"[]")||[];var h=target(a);
@@ -1206,9 +1483,11 @@ try{restoreHead(JSON.parse(localStorage.getItem("hmCompanion")||"null"));}catch(
     var l=JSON.parse(localStorage.getItem("hmCompanion")||"null");
     if(l&&l.cut===h.cut){l.name=n;localStorage.setItem("hmCompanion",JSON.stringify(l));}}
   }catch(_){}
+  // NO SEPARATE "SAVED" BADGE. The nameplate under the stage is the confirmation --
+  // you watch the head take the name -- and a badge repeating it was a row the phone
+  // could not afford. Only the failure case has anything extra to say.
   tell(n);
-  if(wrote&&n)flash();
-  else if(!wrote&&say)say.textContent="Could not save that name \u2014 your browser is blocking storage.";}
+  if(!wrote&&say)say.textContent="Could not save that name \u2014 your browser is blocking storage.";}
 
  inp.addEventListener("input",apply);
 
