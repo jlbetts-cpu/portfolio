@@ -186,6 +186,21 @@
     which is the safety valve doing its real job rather than a fixed number doing it
     everywhere. Raising this REMOVES a scrollport, it does not add one. */
  --menu-max-h:calc(100svh - var(--nav-h) - var(--sp-16-24) - var(--sp-16-24));
+
+    /* ── A KNOWN GAP IN THIS LADDER, recorded 2026-08-03 so the next person does not
+       rediscover it by shipping an invalid declaration.
+       The FIXED rungs stop at --sp-40. The RESPONSIVE rungs run to --sp-80-152.
+       So anything that needs a FIXED 48, 56, 64, 72 or 80 has no rung to use, and the
+       only thing that resolves to those values is a responsive rung -- which SILENTLY
+       CHANGES BELOW 880px. var(--sp-32-48) is 48 on desktop and 32 on a phone; if you
+       wanted a constant 48 you have quietly shipped two different layouts.
+       This bit twice in one pass: gap:var(--sp-48) was written, --sp-48 does not
+       exist, the declaration was invalid, and the gap fell back to its initial value
+       with nothing reporting it -- token-audit.py does not flag an undefined token
+       used without a fallback inside a shorthand. The workaround in use today is
+       --sp-32-48 for a nominal 48, documented at each call site.
+       THE FIX, when someone has room: extend the fixed ladder to --sp-48/56/64/72/80.
+       They are all on the 4px grid and none of them conflict with an existing name. */
 }
 
 /* ===========================================================================

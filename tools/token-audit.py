@@ -1,4 +1,26 @@
 #!/usr/bin/env python3
+# ─────────────────────────────────────────────────────────────────────────────
+# WHAT A PASS FROM THIS TOOL MEANS, AND WHAT IT DOES NOT.
+#
+# It finds tokens that are USED but never DEFINED, and tokens DEFINED twice with
+# different values. Both are real and both are worth blocking on.
+#
+# It does NOT find the most common form of token drift: a hardcoded literal
+# sitting exactly where a token should be, holding a value that was right in its
+# old context and is wrong in its new one. Nothing is undefined, nothing
+# conflicts, and the audit is silent.
+#
+# Worked example, 2026-08-03: about.html reported ZERO findings both before and
+# after a conformance pass that changed eleven type and spacing roles -- among
+# them .footReach carrying line-height:1.55 while the five case studies resolved
+# the same role through var(--lh-prose) = 1.5, and .abLabel losing a specificity
+# fight to .abBody p so that "At a glance" rendered as 17.79px/400 body text
+# instead of the 13px/600 label it was declared as.
+#
+# The only thing that finds that class of bug is measuring COMPUTED values in a
+# browser and diffing the same role across pages. A green run here is necessary,
+# not sufficient. Do not cite STATUS=PASS as proof of token conformance.
+# ─────────────────────────────────────────────────────────────────────────────
 """
 token-audit.py -- design-token conformance gate for jaydenbetts.com.
 

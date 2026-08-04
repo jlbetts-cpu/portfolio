@@ -162,8 +162,12 @@ body{background:var(--c50);color:var(--c950);font-family:var(--sans);-webkit-fon
    unhurried" part; erring slower is deliberate, since he has twice called an
    animation abrupt and never once called one too gentle. */
 .abShots{position:sticky;top:calc(var(--nav-h) + var(--sp-16-24))}
+/* NO BACKGROUND ON THE FRAME. It was --c100, the same grey the letterboxing showed.
+   Every shot is object-fit:cover so the frame is always filled and nothing can show
+   through -- and with no background behind them, if that ever stops being true it will
+   be visible immediately instead of being masked by a colour that matches. */
 .abStack{position:relative;width:100%;aspect-ratio:491/501;overflow:hidden;
- background:var(--c100);border-radius:var(--r-sm);corner-shape:var(--corner);cursor:pointer;
+ border-radius:var(--r-sm);corner-shape:var(--corner);cursor:pointer;
  -webkit-user-select:none;user-select:none}
 .abStack:focus-visible{outline:2px solid var(--c950);outline-offset:3px}
 .abShot{position:absolute;inset:0;z-index:0;opacity:0;
@@ -171,16 +175,28 @@ body{background:var(--c50);color:var(--c950);font-family:var(--sans);-webkit-fon
  transition:opacity 1000ms var(--ease-out),transform 1200ms var(--ease-out)}
 .abShot.on{opacity:1;z-index:1;transform:none;
  transition:opacity 680ms var(--ease-out),transform 1200ms var(--ease-out)}
-/* object-fit:CONTAIN, and the numbers are why. The four photographs are not one
-   shape: three are 0.98 (near-square portrait) and jayden-betts-blender-clay is
-   1.776 (16:9 landscape). The shared frame is 491/501 = 0.98, so under `cover`
-   the three portraits fitted exactly and the landscape one lost roughly 45% of
-   its width to the crop -- the mixed-orientation trap, measured rather than
-   assumed. Under `contain` the three still fill the frame edge to edge (their
-   ratio IS the frame's) and only the landscape shot sits inside it with a band
-   above and below, against the frame's own --c100. Nothing is cropped and the
-   frame keeps one size, which the stack needs. */
-.abShot img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;-webkit-user-drag:none}
+/* object-fit:COVER, restored. I changed this to `contain` after measuring that
+   jayden-betts-blender-clay is 1.776 against a 0.98 frame and concluding a 45% crop
+   was a defect. It was not: Jayden -- "the blender photo isn't zoomed in anymore,
+   has weird cropping I don't like, as much as the zoomed-in version where it
+   doesn't show the grey." The crop was the composition he chose. `contain` solved a
+   problem he did not have and introduced one he did: letterboxed --c100 inside the
+   frame. THE RULE THIS COST US: a measurement can tell you a value is unusual, it
+   cannot tell you it is wrong. Check whether a surprising number is load-bearing
+   before correcting it.
+   THE FRAME IS ALWAYS FILLED. No background can show through on any of the four.
+   WHERE THE CROP LANDS IS NOW CHOSEN RATHER THAN DEFAULTED. At a 0.98 frame a 1.776
+   image scales to fill the HEIGHT (501/563 = 0.89, giving 890px of width against the
+   frame's 491) so the crop is HORIZONTAL ONLY -- the full height of the photograph is
+   always visible and the vertical half of object-position does nothing here. Read off
+   the image itself, the clay head spans x=277..716 of 1000, centred on 49.65%. So
+   centre is the deliberate answer, not merely the default one -- it keeps the whole
+   head with even green either side, which is the zoomed framing he is describing. It
+   is written out so the next person knows it was chosen and does not "fix" it.
+   The other three are 0.98 against a 0.98 frame: no crop in either axis, so
+   object-position cannot move them. Verified rather than assumed. */
+.abShot img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
+ object-position:50% 50%;-webkit-user-drag:none}
 /* the caption travels WITH its photograph rather than on its own clock: the same
    curve, started in the same frame, so the pair reads as one object changing. */
 .abCap{font-family:var(--sans);font-weight:400;font-size:var(--fs-small);letter-spacing:.01em;
@@ -212,10 +228,11 @@ body{background:var(--c50);color:var(--c950);font-family:var(--sans);-webkit-fon
    "there are more of these behind this one", which is false once all four are on
    the page. Scrolling is the affordance.
    ASPECT: the desktop stack must share one frame, so it crops to 491/501 with
-   object-fit:cover -- unavoidable when four images occupy one box. In flow there
-   is no such constraint, so each photograph keeps its OWN aspect ratio and the
-   two landscape four-panel grids are not cropped square. That is the reason to
-   check mixed orientations rather than assume one rule covers them. */
+   object-fit:cover -- unavoidable when four images occupy one box, and the crop on
+   the one landscape shot is the framing Jayden chose. In flow there is no shared
+   frame, so each photograph keeps its OWN aspect and nothing is cropped at all.
+   (This note previously said "the two landscape four-panel grids"; there is one
+   landscape shot, jayden-betts-blender-clay, and it is not a grid.) */
 @media(max-width:880px){
  .abShots{position:static}
  .abStack{aspect-ratio:auto;overflow:visible;background:none;cursor:default;
@@ -230,8 +247,12 @@ body{background:var(--c50);color:var(--c950);font-family:var(--sans);-webkit-fon
     once, and the page jumps as each one lands -- measured at 390 as heights
     [349,0,0,0]. Intrinsic sizing is the fix; a fixed aspect-ratio would have been
     the same crop this layout exists to avoid. */
+ /* in flow the box takes each photograph's own aspect (height:auto + the intrinsic
+    width/height attributes), so nothing is cropped and object-fit has nothing to do.
+    That is why the landscape shot reads full-width here and cropped on desktop: on a
+    phone it is not competing for a shared frame. No background can show either way. */
  .abShot img{position:relative;inset:auto;width:100%;height:auto;max-width:100%;
-  object-fit:contain;border-radius:var(--r-sm);corner-shape:var(--corner);background:var(--c100)}
+  object-fit:cover;border-radius:var(--r-sm);corner-shape:var(--corner)}
  /* in flow every photograph carries its own caption, so the single shared one goes */
  .amsBar,.abCap{display:none}
 
