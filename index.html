@@ -36,9 +36,9 @@
      Stroke weight is owned by the .gIco CSS rule, NOT by per-svg attributes,
      which is how the source drifted to 1.2/1.5/1.6/1.7/1.8/2.0/2.2 before.
 
-     Archivo (c) The Archivo Project Authors (https://github.com/Omnibus-Type/Archivo),
-     SIL Open Font License 1.1 (https://openfontlicense.org). Used for tournament
-     numerals and broadcast moments only. -->
+     The Archivo attribution that stood here went with the face it attributed: the
+     tournament and its numerals live on play.html now, and play.css carries both
+     the face and the licence note. -->
 <!-- TOKENS. index.html was the last of the nine pages still carrying its own
      copy of the scale. It links the real file now, which is what makes --rim-top
      (and --mat-0, --mat-scrim, --accent-press/-wash/-dark, --sh-hero, --lh-auto,
@@ -420,7 +420,7 @@ body.moodInCta .heroCtas:not(.in) .faceMoodCorner{opacity:0!important;visibility
 .csInfoRow{padding:12px 20px 12px}
 .csInfoRow+.csInfoRow{border-top:1px solid var(--c100)}
 .csInfoLabel{font-family:var(--sans);font-size:var(--fs-micro);letter-spacing:.01em;text-transform:none;font-weight:600;color:var(--c500);margin:0 0 4px}
-.csInfoVal{font-family:var(--sans);font-weight:400;font-size:var(--fs-body);line-height:1.4;color:var(--c950);margin:0;letter-spacing:0}
+.csInfoVal{font-family:var(--sans);font-weight:400;font-size:var(--fs-body);line-height:var(--lh-note);color:var(--c950);margin:0;letter-spacing:0}
 @media(prefers-reduced-motion:reduce){.csCursor{display:none}}
 @media(hover:none),(pointer:coarse){.csCursor,.csInfoCard{display:none!important}}
 /* the head-maker teaser: an empty oval with living eyes, waiting for a face */
@@ -478,7 +478,7 @@ body.moodInCta .heroCtas:not(.in) .faceMoodCorner{opacity:0!important;visibility
 .csPanel[data-panel="goodness"] .reelStage{padding:0}
 .csPanel[data-panel="goodness"] .reelFrame:not(.isFull){
   width:min(1200px,calc(100vw - 80px))!important;aspect-ratio:2/1;
-  border-radius:var(--r-lg)!important;corner-shape:var(--corner)}
+  border-radius:var(--r-xl)!important;corner-shape:var(--corner)}
 .csPanel[data-panel="goodness"] .reelMeta{width:min(1200px,calc(100vw - 80px))}
 @media(max-width:760px){
  .csPanel[data-panel="goodness"] .reelFrame:not(.isFull){width:calc(100vw - 48px)!important}
@@ -583,10 +583,14 @@ body.moodInCta .heroCtas:not(.in) .faceMoodCorner{opacity:0!important;visibility
    pages and linked before this block, so the faces are declared once. The
    "Instrument Sans Var" face that also stood here is deleted rather than moved:
    nothing on this page ever asked for that family.
-   Archivo stays -- it is the tournament's numeral face, wanted by this page and
-   play.css only, so it is declared where it is used. */
-@font-face{font-family:'Archivo';src:url('fonts/archivo-variable.woff2') format('woff2');
-  font-weight:100 900;font-stretch:62% 125%;font-display:swap}
+   Nothing else is declared here. */
+/* THE ARCHIVO FACE IS GONE FROM THIS PAGE (2026-08-04) and the comment above
+   it was wrong: it said Archivo was "wanted by this page and play.css only".
+   Measured -- document.fonts reported it `unloaded` on index.html because
+   NOTHING HERE ASKS FOR IT. Archivo is the tournament's numeral face and the
+   tournament moved to play.html; play.css declares its own copy at :35. A
+   declared face with no consumer is a 90 KB promise the browser keeps ready
+   and never uses. */
 
 /* 92 LINES OF A SECOND, OLDER ABOUT OVERLAY STOOD HERE AND WERE ALREADY DEAD.
    .abHero, .abName, #aboutBody, .abText, .abTalk, .abBack, .abBurst, .abBurstHead,
@@ -644,6 +648,19 @@ body.moodInCta .heroCtas:not(.in) .faceMoodCorner{opacity:0!important;visibility
    and their own underline carry every state (see the accent note in tokens.css).
    index.html shipped this at <=768px only -- on a phone, where a fingertip is
    already forgiving -- and not at the widths where a pointer has to find it. */
+
+/* WHY THIS IS --sp-10 AND NOT A CHASE TO 44. Measured at 390: the prose these
+   links sit in has a LINE PITCH OF 25.5px (17px at --lh-prose). A vertical hit
+   expansion bigger than the pitch does not create a bigger target, it creates an
+   AMBIGUOUS one -- it reaches into the line above and the line below, so a tap
+   between two lines belongs to two links. --sp-10 already puts these at 41.5-46.7
+   depending on the page's prose size, which is past the pitch; --sp-12 would make
+   the overlap worse for 2.5px of nominal height.
+   WCAG 2.5.8 has an explicit INLINE EXCEPTION for exactly this -- "the target is
+   in a sentence or its size is otherwise constrained by the line-height of
+   non-target text" -- and it exists because the alternative is worse. This is the
+   one place on the site where 44 is the wrong answer, and it is recorded here so
+   the next audit reads it as a decision rather than a miss. */
 .footIn,.abIn{display:inline-block;
  padding-block:var(--sp-10);margin-block:calc(var(--sp-10) * -1)}
 
@@ -662,7 +679,9 @@ body.moodInCta .heroCtas:not(.in) .faceMoodCorner{opacity:0!important;visibility
    to the sentence under it, and unmistakably a status rather than a heading.
    "San Francisco" came out: the hero already says "SF product designer" and About's
    at-a-glance says it again, so the footer was the third telling. */
-.footAvail{font-family:var(--sans);font-weight:600;font-size:var(--fs-label);line-height:var(--lh-body);letter-spacing:var(--tr-flat);color:var(--c500);margin:0 0 var(--sp-8)}
+/* .footAvail is gone: the <p class="footAvail">Open to work</p> it styled was
+   removed when the footer sentence absorbed the availability line. The rule had
+   no consumer on any of the seven pages that carried it. */
 /* --fs-display is the scale's top rung and the right register for a closing mark, but its
    clamp FLOOR is 68px: at 390 that sets ~400px of "Jayden Betts" into 342px of column and
    overflows the page. min() clamps it down to the measure without leaving the scale --
@@ -706,9 +725,27 @@ body.moodInCta .heroCtas:not(.in) .faceMoodCorner{opacity:0!important;visibility
 .aboutCta,.moodBtn,.moodGo,.mhToggle,.moodItem,.back,.talk,.csTab,.toTop{
   border-radius:var(--r-md);corner-shape:var(--corner)}
 .abTalk{border-radius:var(--r-pill);corner-shape:var(--corner)}
-.moodMenu,.csInfoCard,
-.csFrame,.csImg,.cover,.cover img,.shot img,.photoFig img,.photoPair figure,
-.photoPair img,.stat,.reelOverlayVid,.reelOverlayYt{
+/* ── RADIUS BY SIZE CLASS.  Jayden, 2026-08-04: "I thought we were doing 28
+   squircle for everything -- when did we decide on 20?"  The rule and the
+   measured 900px boundary are written down once, in tokens.css, beside the
+   ladder. Short form: BIGGEST SURFACES 28 · CARDS AND IMAGES 20 · CONTROLS 14.
+   The split below is that rule applied, with each element's measured width at
+   1440 so the class is a number rather than a judgement. ── */
+/* >= 900px -- as wide as the page's measure. Same class as .workcard, which has
+   always been --r-xl, and that consistency is the point of the change. */
+.csFrame,          /* 1200 x 600  case-study cover frame */
+.csImg,            /* 1200 x 600  its image */
+.cover,.cover img, /* 1103 x 460 */
+.reelOverlayVid,   /* 1110 x 624  the full-screen player */
+.reelOverlayYt{
+  border-radius:var(--r-xl);corner-shape:var(--corner)}
+/* 200-899px -- sits INSIDE the column rather than filling it. */
+.moodMenu,         /*  196 wide   menu surface */
+.csInfoCard,       /*  286 x 127  pointer tooltip */
+.shot img,         /*  300-420    a screenshot */
+.photoFig img,     /*  552        column-half photo */
+.photoPair figure,.photoPair img,  /* 552 each, a 2-up */
+.stat{             /*  540 x 189 */
   border-radius:var(--r-lg);corner-shape:var(--corner)}
 .workcard{border-radius:var(--r-xl) var(--r-xl) 0 0;corner-shape:var(--corner)}
 /* the four the sweep above does not name, each mapped by role rather than left
@@ -726,7 +763,7 @@ body.moodInCta .heroCtas:not(.in) .faceMoodCorner{opacity:0!important;visibility
 .aboutCta{border:1px solid var(--c100);border-radius:4px;background:var(--c50);color:var(--c950);padding:8px 16px;font-family:var(--sans);font-weight:400;font-size:var(--fs-body);line-height:1;transition:border-color .2s cubic-bezier(.2,.8,.2,1),color .2s cubic-bezier(.2,.8,.2,1)}.moodItem{display:flex;align-items:center;gap:12px;width:100%;padding:8px 12px;border-radius:4px;font-family:var(--sans);font-weight:400;font-size:var(--fs-body);color:var(--c950);background:none;border:0;cursor:pointer;text-align:left;transition:background-color .1s ease-out,color .1s ease-out}.moodIco{position:relative;display:inline-block;width:18px;height:18px;flex:0 0 18px;font-size:18px}.moodMenu .moodIco{width:18px!important;height:18px!important;flex:0 0 18px!important;margin:0!important;transform:none!important;vertical-align:middle!important}
 .moodMenu .moodIco::before,.moodMenu .moodIco::after{background-size:contain!important;background-position:center!important}
 /* heads and the "Show on home" switch are ONE group, not two -- no rule between them */
-.moodMenu .mhBar{border-top:0;padding-top:0}.faceMoodCorner{position:absolute;right:-14px;bottom:clamp(40px,10vw,108px);z-index:46}.faceMoodCorner .moodBtn{padding:8px 12px 8px 16px;border-radius:4px;background:var(--c50);border:1px solid var(--c100);display:inline-flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;font-family:var(--sans);font-weight:400;font-size:var(--fs-body);color:var(--c950);line-height:1;white-space:nowrap;opacity:1;transition:border-color .2s cubic-bezier(.2,.8,.2,1),color .2s cubic-bezier(.2,.8,.2,1)}.faceMoodCorner .moodBtn:hover{border-color:var(--c500);color:var(--c950)}.faceMoodCorner .moodLbl{position:static;width:auto;height:auto;overflow:visible;clip:auto;white-space:nowrap}.faceMoodIco{width:20px;height:20px;display:block;color:var(--c700);transition:color .2s}.faceMoodCorner .moodBtn:hover .faceMoodIco{color:var(--c950)}.faceMoodCorner .moodMenu{position:absolute;width:212px;min-width:0;background:var(--c50);border:1px solid var(--c100);border-radius:4px;padding:8px;top:auto;bottom:calc(100% + 12px);left:auto;right:0;transform:translateY(6px);opacity:0;visibility:hidden;transition:opacity .16s cubic-bezier(.2,.8,.2,1),transform .18s cubic-bezier(.2,.8,.2,1),visibility 0s .18s}.faceMoodCorner .moodbar.open .moodMenu{opacity:1;visibility:visible;transition:opacity .16s cubic-bezier(.2,.8,.2,1),transform .18s cubic-bezier(.2,.8,.2,1)}.faceMoodCorner .moodbar.open .moodMenu{transform:translateY(0)!important}@media(max-width:768px){.csTab{padding-top:8px;padding-bottom:16px}}/* the <=768 copy of the inline-link target stood here; it is unconditional now */.reelMeta{width:min(1200px,calc(100vw - 80px));display:flex;align-items:baseline;justify-content:space-between;gap:24px;margin-top:12px;opacity:var(--reelMetaOp,1);transition:opacity .2s cubic-bezier(.2,.8,.2,1);will-change:opacity}.reelMeta .csName{filter:url(#inkBig)}.reelMeta .csYear{filter:url(#inkBig)}.reelFrame.isFull{position:fixed;inset:0;width:100vw;height:100vh;max-width:none;aspect-ratio:auto;transform:none!important;border-radius:0;margin:0;z-index:40;transition:width .18s cubic-bezier(.2,.8,.2,1),height .18s cubic-bezier(.2,.8,.2,1)}@media(max-width:760px){.faceMoodCorner{right:-11px!important;left:auto;bottom:auto;top:100%;transform:translateY(16px)}body.moodInCta .faceMoodCorner .moodMenu,.faceMoodCorner .moodMenu{top:calc(100% + 10px)!important;bottom:auto!important;left:auto!important;right:0!important;width:min(220px,calc(100vw - 28px))!important;max-height:min(370px,68vh)!important;overflow-y:auto;-webkit-overflow-scrolling:touch;margin-left:0}.faceMoodCorner .moodLbl{opacity:1!important;transform:none!important}body.moodInCta .faceMoodCorner .moodCar{opacity:1!important;transform:rotate(180deg)!important;transition:transform .32s cubic-bezier(.34,1.4,.5,1),color .2s cubic-bezier(.2,.8,.2,1)}.faceMoodCorner .moodBtn{border-color:var(--c100)!important;background:var(--c50)!important}}.faceMoodCorner .moodBtn:hover .moodCar,.faceMoodCorner .moodbar.open .moodCar{color:var(--c700)}@media(min-width:761px){.faceMoodCorner .moodBtn{position:relative;border-color:transparent;background:transparent;transition:border-color .5s cubic-bezier(.22,.61,.36,1),background-color .5s cubic-bezier(.22,.61,.36,1)}.faceMoodCorner .moodLbl,.faceMoodCorner .moodCar{opacity:0;transform:translateY(4px) scale(.985);transition:opacity .28s cubic-bezier(.22,.61,.36,1),transform .28s cubic-bezier(.22,.61,.36,1)}body.moodNear .faceMoodCorner .moodBtn,.faceMoodCorner:hover .moodBtn,.moodbar.open .moodBtn{border-color:var(--c100);background:var(--c50)}body.moodNear .faceMoodCorner .moodLbl,.faceMoodCorner:hover .moodLbl,.moodbar.open .moodLbl,body.moodNear .faceMoodCorner .moodCar,.faceMoodCorner:hover .moodCar,.moodbar.open .moodCar{opacity:1;transform:translateY(0) scale(1);transition:opacity .5s cubic-bezier(.22,.61,.36,1) .12s,transform .55s cubic-bezier(.22,.61,.36,1) .12s}}@media(max-width:760px){.faceMoodCorner{opacity:1!important;visibility:visible!important}}.moodMenu .moodItem:hover{color:var(--c950)}.moodSep{height:1px;background:var(--c100);margin:8px 4px 8px}.moodGo{display:flex;align-items:center;gap:12px;width:100%;padding:12px 16px;border:0;border-radius:4px;background:none;color:var(--c950);font-family:var(--sans);font-weight:400;font-size:var(--fs-small);line-height:1.2;text-decoration:none;transition:background-color .16s cubic-bezier(.2,.8,.2,1)}.moodMenu .moodGo{color:var(--c950)}
+.moodMenu .mhBar{border-top:0;padding-top:0}.faceMoodCorner{position:absolute;right:-14px;bottom:clamp(40px,10vw,108px);z-index:46}.faceMoodCorner .moodBtn{padding:8px 12px 8px 16px;border-radius:4px;background:var(--c50);border:1px solid var(--c100);display:inline-flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;font-family:var(--sans);font-weight:400;font-size:var(--fs-body);color:var(--c950);line-height:1;white-space:nowrap;opacity:1;transition:border-color .2s cubic-bezier(.2,.8,.2,1),color .2s cubic-bezier(.2,.8,.2,1)}.faceMoodCorner .moodBtn:hover{border-color:var(--c500);color:var(--c950)}.faceMoodCorner .moodLbl{position:static;width:auto;height:auto;overflow:visible;clip:auto;white-space:nowrap}.faceMoodIco{width:20px;height:20px;display:block;color:var(--c700);transition:color .2s}.faceMoodCorner .moodBtn:hover .faceMoodIco{color:var(--c950)}.faceMoodCorner .moodMenu{position:absolute;width:212px;min-width:0;background:var(--c50);border:1px solid var(--c100);border-radius:4px;padding:8px;top:auto;bottom:calc(100% + 12px);left:auto;right:0;transform:translateY(6px);opacity:0;visibility:hidden;transition:opacity .16s cubic-bezier(.2,.8,.2,1),transform .18s cubic-bezier(.2,.8,.2,1),visibility 0s .18s}.faceMoodCorner .moodbar.open .moodMenu{opacity:1;visibility:visible;transition:opacity .16s cubic-bezier(.2,.8,.2,1),transform .18s cubic-bezier(.2,.8,.2,1)}.faceMoodCorner .moodbar.open .moodMenu{transform:translateY(0)!important}@media(max-width:768px){.csTab{padding-top:8px;padding-bottom:16px}}/* the <=768 copy of the inline-link target stood here; it is unconditional now */.reelMeta{width:min(1200px,calc(100vw - 80px));display:flex;align-items:baseline;justify-content:space-between;gap:24px;margin-top:12px;opacity:var(--reelMetaOp,1);transition:opacity .2s cubic-bezier(.2,.8,.2,1);will-change:opacity}.reelMeta .csName{filter:url(#inkBig)}.reelMeta .csYear{filter:url(#inkBig)}.reelFrame.isFull{position:fixed;inset:0;width:100vw;height:100vh;max-width:none;aspect-ratio:auto;transform:none!important;border-radius:0;margin:0;z-index:40;transition:width .18s cubic-bezier(.2,.8,.2,1),height .18s cubic-bezier(.2,.8,.2,1)}@media(max-width:760px){.faceMoodCorner{right:-11px!important;left:auto;bottom:auto;top:100%;transform:translateY(16px)}body.moodInCta .faceMoodCorner .moodMenu,.faceMoodCorner .moodMenu{top:calc(100% + 10px)!important;bottom:auto!important;left:auto!important;right:0!important;width:min(220px,calc(100vw - 28px))!important;max-height:min(370px,68vh)!important;overflow-y:auto;-webkit-overflow-scrolling:touch;margin-left:0}.faceMoodCorner .moodLbl{opacity:1!important;transform:none!important}body.moodInCta .faceMoodCorner .moodCar{opacity:1!important;transform:rotate(180deg)!important;transition:transform .32s cubic-bezier(.34,1.4,.5,1),color .2s cubic-bezier(.2,.8,.2,1)}.faceMoodCorner .moodBtn{border-color:var(--c100)!important;background:var(--c50)!important}}.faceMoodCorner .moodBtn:hover .moodCar,.faceMoodCorner .moodbar.open .moodCar{color:var(--c700)}@media(min-width:761px){.faceMoodCorner .moodBtn{position:relative;border-color:transparent;background:transparent;transition:border-color .5s cubic-bezier(.22,.61,.36,1),background-color .5s cubic-bezier(.22,.61,.36,1)}.faceMoodCorner .moodLbl,.faceMoodCorner .moodCar{opacity:0;transform:translateY(4px) scale(.985);transition:opacity .28s cubic-bezier(.22,.61,.36,1),transform .28s cubic-bezier(.22,.61,.36,1)}body.moodNear .faceMoodCorner .moodBtn,.faceMoodCorner:hover .moodBtn,.moodbar.open .moodBtn{border-color:var(--c100);background:var(--c50)}body.moodNear .faceMoodCorner .moodLbl,.faceMoodCorner:hover .moodLbl,.moodbar.open .moodLbl,body.moodNear .faceMoodCorner .moodCar,.faceMoodCorner:hover .moodCar,.moodbar.open .moodCar{opacity:1;transform:translateY(0) scale(1);transition:opacity .5s cubic-bezier(.22,.61,.36,1) .12s,transform .55s cubic-bezier(.22,.61,.36,1) .12s}}@media(max-width:760px){.faceMoodCorner{opacity:1!important;visibility:visible!important}}.moodMenu .moodItem:hover{color:var(--c950)}.moodSep{height:1px;background:var(--c100);margin:8px 4px 8px}.moodGo{display:flex;align-items:center;gap:12px;width:100%;padding:12px 16px;border:0;border-radius:4px;background:none;color:var(--c950);font-family:var(--sans);font-weight:400;font-size:var(--fs-small);line-height:var(--lh-head);text-decoration:none;transition:background-color .16s cubic-bezier(.2,.8,.2,1)}.moodMenu .moodGo{color:var(--c950)}
 .moodGo:hover,.moodGo:focus-visible{color:var(--c950)}.moodGo svg{flex:0 0 18px;width:18px;height:18px;color:currentColor}.aboutCta:hover{border-color:var(--c500);color:var(--c950)}body.moodNear .faceMoodCorner .moodBtn:hover,.faceMoodCorner .moodBtn:hover,.moodbar.open .moodBtn{border-color:var(--c500)!important;color:var(--c950)}@media(min-width:761px){body.moodTeach .faceMoodCorner{opacity:1;visibility:visible;transition:opacity .5s cubic-bezier(.2,.8,.2,1)}body.moodTeach .faceMoodCorner .moodBtn{border-color:var(--c100);background:var(--c50)}body.moodTeach .faceMoodCorner .moodLbl,body.moodTeach .faceMoodCorner .moodCar{opacity:1;transform:translateX(0)}}.cycw{position:relative}@media(hover:none),(pointer:coarse){}@media(max-width:760px){.faceMoodCorner .moodBtn{min-height:44px}}.csTab{-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}.moodBtn,.aboutCta,.talk,.workCta,.heroBack,.back{-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}/* keyboard-only focus ring (never triggers on mouse click) */.talk:focus-visible,.workCta:focus-visible,.aboutCta:focus-visible,.moodBtn:focus-visible,.faceMoodCorner .moodBtn:focus-visible,.moodMenu .moodItem:focus-visible,.csTab:focus-visible,.footIn:focus-visible,.back:focus-visible,.heroBack:focus-visible{outline:2px solid var(--c950);outline-offset:3px;border-radius:var(--r-md)}.talk:focus:not(:focus-visible),.workCta:focus:not(:focus-visible),.aboutCta:focus:not(:focus-visible),.moodBtn:focus:not(:focus-visible),.faceMoodCorner .moodBtn:focus:not(:focus-visible),.moodMenu .moodItem:focus:not(:focus-visible),.csTab:focus:not(:focus-visible){outline:none}.talk{opacity:1}.reelTrack{height:auto!important}.reelStage{position:static!important}.reelFrame{transform:none!important;border-radius:4px!important;overflow:hidden}/* ---- CENTERED HERO: the type sits over the head on one axis ---- */.hero{grid-template-columns:1fr;justify-items:center;align-content:start;--heroTitleTop:var(--sp-16-40);padding-top:var(--heroTitleTop);min-height:calc(100vh - 68px)}.heroCopy{display:contents}/* CENTRED, after a round trip. He asked for left-aligned text in a centred block --
    built, measured (both lines shared a left edge at 376, the box centred at 640, the
    same centre as the head) -- and then looked at it: "Actually the centred version
@@ -771,7 +808,7 @@ body.moodInCta .heroCtas:not(.in) .faceMoodCorner{opacity:0!important;visibility
 .mhKnob{position:absolute;top:3px;left:3px;width:12px;height:12px;border-radius:50%;background:var(--c50);box-shadow:0 1px 2px rgba(22,22,28,.28);transition:transform .2s cubic-bezier(.2,.8,.2,1)}
 .mhToggle[aria-checked="true"] .mhTrack{background:var(--accent)}
 .mhToggle[aria-checked="true"] .mhKnob{transform:translateX(12px)}
-.mhTxt{line-height:1.2}
+.mhTxt{line-height:var(--lh-head)}
 @media(prefers-reduced-motion:reduce){.mhTrack,.mhKnob{transition:none}}
 @media(max-width:760px){.mhToggle{min-height:44px}}
 /* ---- 10. Scroll cue is desktop-only. On a phone it lands ON the head's floor shadow

@@ -1029,6 +1029,38 @@ class Audit:
             return False          # spread-only ring
         return True
 
+    # THE THREE HOVER FILLS THE SPECS ACTUALLY SANCTION.  Added 2026-08-04
+    # because the heuristic and the specs had started disagreeing, and a gate
+    # that fires on a rule the design system mandates is worse than no gate: the
+    # next person "fixes" the sanctioned rule to get the number down.
+    #
+    # Keyed off the VALUE rather than the selector, deliberately. The specs
+    # sanction particular TOKENS for particular roles, and a token is a durable
+    # thing to test; a selector list is renamed every other round. Anything
+    # reaching for a raw hex or a general grey still warns, which is the case
+    # the check was written for.
+    #
+    #   --accent-press / --ctl-accent-press
+    #       PRIMARY, and only Primary. 2026-08-03-control-system.md §5.3 lists
+    #       the five properties that may animate on hover and gives
+    #       `background-color` to "Primary only (accent -> accent-press)". A
+    #       filled control is the one kind whose hover has nowhere else to go:
+    #       its ink is already white on a solid ground.
+    #   --nav-hover-bg / --nav-active-bg
+    #       THE NAV PILL. header.css's Round 11/12 note records this as a
+    #       deliberate reversal in Jayden's own words -- "hover should just be
+    #       the light grey pill" -- explicitly scoped to nav items and nothing
+    #       else. It is the one place the no-fill rule was overruled by the
+    #       person the rule is for.
+    #   --mat-* / --mat-i*
+    #       A MATERIAL, NOT A FILL. §3.2's one permitted addition: a control
+    #       floating over arbitrary content (a photograph, a video, the pitch)
+    #       takes a material so its label stays legible. That is what it needs
+    #       to be readable, not decoration on hover.
+    SANCTIONED_HOVER_FILL = re.compile(
+        r'var\(\s*--(?:ctl-)?accent-press|var\(\s*--nav-(?:hover|active)-bg|'
+        r'var\(\s*--mat-', re.I)
+
     def check_hover_fill(self):
         for fname, decls in self.decls.items():
             if fname == TOKENS_FILE:
@@ -1043,6 +1075,16 @@ class Audit:
                 if v.startswith(('none', 'transparent', 'unset', 'inherit', 'initial')):
                     continue
                 if self.NOT_CHROME_SEL.search(sel or '') or 'scrollbar' in sel.lower():
+                    continue
+                if self.SANCTIONED_HOVER_FILL.search(v):
+                    # Recorded, not suppressed. It stays visible in --list so the
+                    # exception is auditable and nobody has to rediscover why the
+                    # number moved; it just does not count as a warning.
+                    self.add('hover_fill_sanctioned', 'INFO', src.where(pos),
+                             '%s -- background:%s (sanctioned: Primary / nav pill '
+                             '/ material -- see SANCTIONED_HOVER_FILL)'
+                             % (sel[:70], value[:60]),
+                             selector=sel[:120], value=value[:120])
                     continue
                 self.add('hover_background_fill', 'WARNING', src.where(pos),
                          '%s -- background:%s (hover moves ink and weight, '
@@ -1113,6 +1155,7 @@ ORDER = [
     ('tap_target_under_44', 'Tap targets under 44px'),
     ('chrome_cast_shadow', 'Cast shadows on chrome'),
     ('hover_background_fill', 'Hover states that fill a background'),
+    ('hover_fill_sanctioned', 'Hover fills the specs sanction (not a finding)'),
     ('third_font_family', 'Font families outside the system'),
 ]
 

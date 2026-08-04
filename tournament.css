@@ -86,11 +86,19 @@
    ========================================================================== */
 
 :root{
-  /* The site header's real occupied height. --nav-h (52) is the bar's own
-     min-height; the wrapper adds --sp-20 of margin above it. Measured 72px at
-     1440x900 and 390x844 both. Written as the sum rather than as 72 so it
-     tracks the header if the header changes. */
-  --tvTop:calc(var(--nav-h) + var(--sp-20));
+  /* WHERE THE SCREEN STARTS, and it is 22px below the bar rather than 6px.
+     Measured, on this page and on the one Jayden praised:
+
+       .jbNav bottom            66   (both pages, 1440 and 390)
+       gradientlab .stage top   88   -> 22px of clearance
+       tvScreen top             72   -> 6px
+
+     Six pixels is not a gap, it is a collision that has not happened yet, and it
+     is why this screen read as sitting UNDER the header instead of below it.
+     --nav-h + --sp-36 is 88 exactly -- the bar's own height plus one secondary
+     control -- so it lands on the Lab's number out of tokens rather than by
+     copying an 88 across. */
+  --tvTop:calc(var(--nav-h) + var(--sp-36));
   /* Band A. Floored at the tap minimum because it carries real buttons. */
   --tvStripH:clamp(var(--tap-min), 6svh, 56px);
   /* Where the columns stop and the world starts. 58svh is derived, not chosen:
@@ -100,8 +108,22 @@
   /* One fixture row in the draw. Flexes with viewport HEIGHT because the thing
      that runs out on this screen is height, not width. 20.7px at 900. */
   --tvRow:clamp(19px, 2.3svh, 24px);
-  /* The measure. Past 1180 the extra width goes to the world, not the columns. */
-  --tvMeasure:1180px;
+  /* THE MEASURE IS THE SITE'S MEASURE, and this is the single change that stops
+     the screen reading as a different application. It was `1180px` centred
+     inside a --sp-24 gutter, which resolves to a 130px inset at 1440 -- on-token,
+     off-grid, and ten pixels adrift of everything else on the site:
+
+       index.html   .wrap  max-width 1280 + 40 padding -> content at 120 @1440
+       header       .jbNav                             -> 120 @1440
+       gradientlab  .lab   box 80 + 40 padding         -> 120 @1440
+       tvBody       1180 centred in 1440-48            -> 130   MISALIGNED
+
+     Ten pixels is exactly the amount that reads as "not quite right" without
+     being nameable. The mechanism below is .wrap's own -- --page-max plus a
+     --sp-40 gutter -- so the two cannot drift apart again: 120 at 1440, 40 at
+     1280, 24 on a phone, all three verified against .jbNav from computed
+     values. */
+  --tvMeasure:var(--page-max);
   /* The captain's face on the match-up. One number, so the two sides cannot
      drift apart and mobile is one override rather than four. */
   --tvFace:clamp(56px, 7.2svh, 72px);
@@ -120,10 +142,27 @@
   z-index:47;                       /* over the heads (z:3), under the menus */
   pointer-events:none;
   display:flex;flex-direction:column;
-  padding-inline:var(--sp-24);
   font-family:var(--sans);
   contain:layout;
 }
+/* THE GUTTER IS INSIDE THE MEASURE, and that is the whole trick -- getting it
+   wrong put the first attempt at 80 instead of 120. .wrap is
+   `max-width:1280; margin:0 auto; padding:0 40px`, so at 1440 the BOX centres at
+   80 and the 40px padding pushes content to 120. Putting the padding on the
+   full-bleed parent instead centres a 1280 box inside 1360 and lands on 80.
+   Same two numbers, opposite nesting, 40px apart. */
+.tvStrip,.tvBody{
+  box-sizing:border-box;            /* see below -- this is the load-bearing line */
+  width:100%;max-width:var(--tvMeasure);margin-inline:auto;
+  padding-inline:var(--sp-40);
+}
+/* WHY box-sizing IS STATED HERE. Without it these two resolve to content-box,
+   so `max-width:1280` caps the CONTENT at 1280 and the 40px gutters push the
+   border box to 1360 -- auto margins then split the remaining 80 into 40 a side
+   and the content lands at 80. Measured exactly that on the way to this fix:
+   1280 wide, 40px margin, 40px padding, content at 80. index.html never sees it
+   because it sets a global `*{box-sizing:border-box}`; play.html's cascade does
+   not reach these. The declaration is the difference between 80 and 120. */
 .tvScreen[hidden]{display:none}
 /* The pitch owns the screen during a fixture. */
 body.hmSoccer .tvScreen{display:none}
@@ -168,7 +207,6 @@ body.hmFinal .sBall{content:url(images/soccerball-gold.webp)}
 .tvStrip{
   flex:0 0 var(--tvStripH);
   pointer-events:auto;
-  width:100%;max-width:var(--tvMeasure);margin-inline:auto;
   display:flex;align-items:center;gap:var(--sp-10);
   min-width:0;
 }
@@ -232,7 +270,6 @@ body.hmFinal .sBall{content:url(images/soccerball-gold.webp)}
    --------------------------------------------------------------------------- */
 .tvBody{
   flex:1 1 auto;min-height:0;
-  width:100%;max-width:var(--tvMeasure);margin-inline:auto;
   display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);
   gap:var(--sp-32);
   padding-block:var(--sp-8) var(--sp-16);
@@ -258,18 +295,39 @@ body.hmFinal .sBall{content:url(images/soccerball-gold.webp)}
    duplicate, the poster print and the serial caption were three of the elements
    that made this column read as busier than the information in it.
    --------------------------------------------------------------------------- */
+/* TWO TRACKS, AND EVERY LINE STARTS ON ONE OF THEM. Measured before this change,
+   at 1440: the faces began at x=130, the names and the `v.` at x=211, and the
+   tale of the tape and the Kick off button jumped back to x=130. Three starts
+   for five elements, which is what makes a stack read as a pile of separate
+   widgets rather than one object -- and "muddled mess" is exactly what a ragged
+   left edge produces.
+
+   The Gradient Maker's answer is a fixed label column, so this is that: the
+   captains' faces are the label track, and the name, the colour bar, the `v.`,
+   the tape and the button ALL sit on the content track. One x for everything
+   that is words or action. `subgrid` is not used because the sides are separate
+   rows; the two wrapper divs that used to sit between .tvFixture and its content
+   are gone instead, which is both simpler and one fewer thing than making them
+   `display:contents` (a trick this codebase already has one bug from). */
 .tvFixture{
-  display:flex;flex-direction:column;justify-content:center;
-  gap:var(--sp-20);
+  display:grid;align-content:center;
+  grid-template-columns:var(--tvFace) minmax(0,1fr);
+  gap:var(--sp-20) var(--sp-16);
 }
-.tvSheet{display:flex;flex-direction:column;min-width:0;min-height:0}
-.tvSide{display:flex;align-items:center;gap:var(--sp-16);min-width:0}
+/* The label track: faces only. The content track: everything that is words or
+   action. Auto-placement does the rows; only the column is ever stated. */
+.tvFace{grid-column:1}
+.tvSideT,.tvV,.tvTape,.tvGo{grid-column:2}
+/* The champion is a different composition -- one portrait over one line -- and
+   must not inherit the two-track grid. */
+.tvFixture.tvFixtureDone{display:flex;flex-direction:column;justify-content:center;gap:var(--sp-16)}
 /* The head is shown whole and contained. These are transparent cut-outs, not
    avatars: cropping them to a circle fights their own silhouette and clips hair
    and chins at every size. */
 .tvFace{
-  flex:0 0 var(--tvFace);width:var(--tvFace);height:var(--tvFace);
+  width:var(--tvFace);height:var(--tvFace);
   display:inline-flex;align-items:flex-end;justify-content:center;
+  align-self:center;
 }
 .tvFace img{max-width:100%;max-height:100%;width:auto;height:auto;
   object-fit:contain;display:block}
@@ -284,17 +342,18 @@ body.hmFinal .sBall{content:url(images/soccerball-gold.webp)}
    site is not. Same object as the draw's row stripe -- one mark, seen twice. */
 .tvBar{height:4px;border-radius:var(--r-hair);background:rgb(var(--tcx,117,117,117));
   width:100%;max-width:180px}
+/* No left margin any more: the content track puts it on the names' own x, which
+   is what the hand-rolled `calc(--tvFace + --sp-16)` was imitating. */
 .tvV{
   font-size:var(--fs-lead);line-height:var(--lh-flat);color:var(--c500);
-  margin:var(--sp-12) 0 var(--sp-12) calc(var(--tvFace) + var(--sp-16));
-  letter-spacing:var(--tr-body);
+  margin:0;letter-spacing:var(--tr-body);
 }
 /* The tale of the tape. Real data only: __hmSess.pair has recorded every captain
    pairing since the page loaded and nothing had ever read it back. Zero lines is
    a legitimate state and nothing moves, because the column is centred rather
    than stacked from the top. */
 .tvTape{
-  margin:var(--sp-20) 0 0;
+  margin:0;
   font-size:var(--fs-small);line-height:var(--lh-body);letter-spacing:var(--tr-body);
   color:var(--c500);
 }
@@ -305,7 +364,7 @@ body.hmFinal .sBall{content:url(images/soccerball-gold.webp)}
    at the bottom of the screen, which is the ground now. A button floating over
    the heads is the crammed-at-the-bottom failure with extra steps. */
 .tvGo{
-  align-self:flex-start;
+  justify-self:start;
   -webkit-appearance:none;appearance:none;
   min-height:var(--tap-min);padding:0 var(--sp-24);
   border:0;border-radius:var(--r-md);
@@ -355,7 +414,10 @@ body.hmFinal .sBall{content:url(images/soccerball-gold.webp)}
 .tvRdL{list-style:none;margin:0;padding:0}
 .tvFx{
   padding:var(--sp-4) 0;
-  border-radius:var(--r-xs);
+  /* --r-sm, off the settled ladder: 28 is large media, 20 is cards and images,
+     14 is controls, and a two-line row wash is a small container under all
+     three. Picked from the rung list rather than by eye. */
+  border-radius:var(--r-sm);
 }
 .tvFx+.tvFx{margin-top:var(--sp-2)}
 /* The next fixture -- the one the left column is about -- is marked so the two
@@ -456,6 +518,11 @@ body.hmFinal .sBall{content:url(images/soccerball-gold.webp)}
 }
 body.tvBoardOpen .tvSheetScrim{opacity:1;pointer-events:auto}
 .tvSheetPanel{
+  /* THE SAME content-box TRAP AS THE MEASURE, and it had shipped: `width:min(560,
+     100vw - 32)` sized the CONTENT, then --sp-24 of padding pushed the border box
+     to 406 in a 390 viewport -- the sheet hung 8px off each edge of the phone it
+     exists for. Found by measuring the panel rect, not by looking at it. */
+  box-sizing:border-box;
   position:fixed;z-index:71;left:50%;top:50%;transform:translate(-50%,-50%) scale(.985);
   width:min(560px, calc(100vw - var(--sp-32)));max-height:min(84svh, 760px);
   overflow:auto;overscroll-behavior:contain;
@@ -495,7 +562,10 @@ body.tvBoardOpen .tvSheetPanel{opacity:1;pointer-events:auto;transform:translate
     --tvGround:62svh;
     --tvFace:clamp(48px, 6.6svh, 60px);
   }
-  .tvScreen{padding-inline:var(--sp-16)}
+  /* .wrap's phone gutter, not --sp-16: index.html drops to `padding:0 24px`
+     under 760, so the strip and the fixture now start on the same x as every
+     other page's content instead of 8px inside it. */
+  .tvStrip,.tvBody{padding-inline:var(--sp-24)}
   .tvBody{
     grid-template-columns:minmax(0,1fr);
     gap:var(--sp-12);padding-block:var(--sp-4) var(--sp-8);
@@ -508,13 +578,43 @@ body.tvBoardOpen .tvSheetPanel{opacity:1;pointer-events:auto;transform:translate
   .tvBody.tvDone .tvRail{display:flex}
   .tvStandGrid{column-count:2;column-gap:var(--sp-16)}
   .tvStandOut{display:none}
+  .tvFixture{gap:var(--sp-16) var(--sp-12)}
   .tvName{font-size:var(--fs-h3)}
-  .tvTape{margin-top:var(--sp-12);font-size:var(--fs-caption)}
+  .tvTape{font-size:var(--fs-caption)}
   .tvBar{max-width:140px}
-  .tvGo{align-self:stretch}
+  /* Stretched, but still starting on the content track: the button lines up
+     with the two names rather than reaching back under the faces. */
+  .tvGo{justify-self:stretch}
   .tvChipDraw{display:inline-flex}
   .tvDist{display:none}
 }
+/* ---------------------------------------------------------------------------
+   SHORT VIEWPORTS -- the axis this screen actually runs out on
+   Band B is `58svh - tvTop - strip`, so it shrinks twice as fast as the viewport
+   does, while --fs-h2 is driven by WIDTH and does not shrink at all. A 1440 x 620
+   window is a wide, short box carrying two 36px names: measured, the fixture
+   column wanted 240px in 204px and pushed Kick off 28px into the ground band.
+
+   Moving the ground line would be the wrong fix -- 58svh is derived from where
+   the heads' crowns actually are, and that ratio holds at every height. So the
+   COLUMN gives, on the one axis that is short, and it gives in the order the
+   information deserves: the type steps down a rung first, then the tale of the
+   tape leaves. The two names and the button never do.
+   --------------------------------------------------------------------------- */
+@media(max-height:760px){
+  :root{ --tvFace:clamp(40px, 6svh, 56px) }
+  .tvFixture{gap:var(--sp-10) var(--sp-12)}
+  .tvName{font-size:var(--fs-h4)}
+  .tvV{font-size:var(--fs-body)}
+  .tvTape{font-size:var(--fs-caption)}
+}
+/* Below 700 the tape is the thing that goes. It is the screen's "see more that
+   costs nothing" -- at this height it costs, and it is the only element here a
+   visitor did not come for. */
+@media(max-height:700px){
+  .tvTape{display:none}
+}
+
 /* Under 560px the strip cannot carry the cup's name AND the round AND two
    controls: measured at 390, "UC Davis Cup · QUARTER-FINAL" plus both chips is
    ~470px of content in 358px of strip. The round is the information and the cup

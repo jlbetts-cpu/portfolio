@@ -85,7 +85,14 @@
    nav (8+52 = 16+44 = 60). That alignment was right and is kept. ---- */
 :root{--play-gutter:var(--sp-16-24);--play-top:var(--sp-16)}
 @media(max-width:760px){:root{--play-top:calc(var(--nav-h) + var(--sp-20))}}
-@media(max-width:640px){:root{--play-gutter:var(--sp-12)}}
+/* 24, not 12. THE PHONE HALF OF THE MARGIN FIX (the other half is .pCards' max-width in
+   play.html). Above ~1280 the mode row's inset is set by centring and this value never bites;
+   below it the gutter IS the margin, and at 390 this was putting the four doors 12px from the
+   glass while index.html's nav sits at 16 and gradientlab.html's main -- the page that settled
+   the site standard -- sits at 24. 12 was the odd one out on the one width where the margin is
+   most visible, because there is nothing else on the row to compare it against.
+   This also moves .pTeam, which takes the same token and was 12 for the same wrong reason. */
+@media(max-width:640px){:root{--play-gutter:var(--sp-24)}}
 
 body{background:var(--c50);color:var(--c950);font-family:var(--sans);-webkit-font-smoothing:antialiased;overflow-x:clip}
 .eye{position:absolute;border-radius:var(--r-full);overflow:hidden;z-index:3;pointer-events:none;transition:transform .08s steps(2);filter:url(#inkEye)}
@@ -668,7 +675,17 @@ body.hmFull{overflow:hidden;overscroll-behavior:none}
    per cell: static top (current char upper half), static bottom (NEXT char lower
    half), flip-front (old char upper), flip-back (new char lower). Spin-through:
    always forward through the drum, never backward, never a direct jump. NO
-   ancestor of a cell may carry filter (3D transform stacking trap). */
+   ancestor of a cell may carry filter (3D transform stacking trap).
+
+   THE em RADII BELOW ARE A SANCTIONED EXEMPTION, NOT AN OVERSIGHT. Design-tokens
+   sec 1.4 exempts split-flap cells from the radius ladder because they scale with
+   the flap's own type size: a cell is .72em x 1.16em, so a fixed px radius would
+   be a different proportion at every score size. Measured at 1440 the cell is
+   29 x 46 and .06em resolves to 2.4px -- one rung below --r-hair, and correct.
+   No corner-shape either: at 2.4px a superellipse is sub-pixel, and this is the
+   one component where an extra paint property on a rotateX'd layer is not worth
+   a change nobody can see. If a later sweep "tokenises" these, it will make the
+   digits wrong at every size but the default one. */
 .bcCell{position:relative;display:inline-block;width:.72em;height:1.16em;
   border-radius:.06em;background:var(--cupStock,#f1ece0);color:#221f18;
   box-shadow:var(--bc-contact),var(--bc-cast);perspective:5em;
@@ -716,8 +733,25 @@ body .navDrawer .ndLink{padding:var(--sp-8) var(--sp-12);text-align:left}
    the layout is now a single horizontal bar, radically simplified -- per side exactly head,
    name, one colour signal (the head's own team-colour ring), flap digit. Nothing else. The
    MATERIAL -- paint, grain, jitter, shadows, radius -- is unchanged by this pass. */
+/* ---- THE PLATE'S CORNER. Jayden: "can you make sure the corner roundness and
+   squircle for the scoreboard is tokened."
+
+   Measured live, at 1440x900, during a real fixture: the plate is 367 x 119 and
+   its radius was ALREADY --r-sm (10) -- on the ladder, just missing the other
+   half of the site's corner language. corner-shape is what every other rounded
+   surface on the site carries (header.css:303/387/692/728, about.html:121/180/265)
+   and the plate did not, so it was the one object still drawing a plain circular
+   arc while the chrome around it drew a superellipse. That is the whole change
+   here: no radius moves, nothing else is touched.
+
+   WHY NOT --r-lg (20), which is the rung for "cards and images": the plate is
+   119px tall, so 20 is a third of its height and reads as a lozenge rather than
+   a bar -- and Jayden has twice said the scoreboard is the thing he likes. 10 is
+   a real rung, it is the right size class for a dense horizontal bar, and moving
+   it would be a redesign. Flagged rather than taken. ---- */
 .hmScore .sbCard{box-sizing:border-box;width:max-content;max-width:94vw;
- border-radius:var(--r-sm);background:var(--cupPaint,#2b2f2a);padding:0;
+ border-radius:var(--r-sm);corner-shape:var(--corner);
+ background:var(--cupPaint,#2b2f2a);padding:0;
  box-shadow:var(--bc-contact),var(--bc-cast),inset 0 0 46px rgba(0,0,0,.30);
  font-family:var(--sans);color:#ece9dd;position:relative}
 /* THE TROPHY rides on top of the board for the FINAL only, then is handed over at the whistle.
@@ -851,8 +885,22 @@ body.hmFinal .sbRound{color:#e8b347}
  border-top:1px solid rgba(236,233,221,.14)}
 .sbMeta{display:inline-flex;align-items:center;gap:var(--sp-6)}
 .sbMeta .sBall{width:14px;height:14px;object-fit:contain}
+/* THE ONE OFF-LADDER VALUE ON THE BOARD, and it was a raw 8px. Measured: the
+   control is 61 x 25, and its hover wash is the only thing that ever paints the
+   corner. --r-xs (6) is the nearest rung -- a 2px change on a hover-only fill.
+
+   NOT --r-md (14), which is the rung for controls: on a 25px-tall box that is
+   56% of the height and turns the chip into a pill, which is a visible change to
+   a board Jayden likes. The size class that governs here is "small part", not
+   "control", because the box is a third of a normal control's height.
+
+   Concentric also points down rather than up: the chip sits inside a plate whose
+   corner is 10, inset 14px horizontally and 7px vertically by .sbFoot's padding,
+   so an inner corner must be SMALLER than 10 -- 6 is, 8 was closer to the
+   parent's own radius than the nesting allows. */
 .hmScore .hmScoreEnd{color:#b9b6a8;font-weight:600;font-size:var(--fs-label);padding:var(--sp-6) var(--sp-8);min-height:0;
- border-radius:8px;transition:color var(--ease-out-dur) var(--ease-out),background-color var(--ease-out-dur) var(--ease-out)}
+ border-radius:var(--r-xs);corner-shape:var(--corner);
+ transition:color var(--ease-out-dur) var(--ease-out),background-color var(--ease-out-dur) var(--ease-out)}
 .hmScore .hmScoreEnd:hover,.hmScore .hmScoreEnd:focus-visible{color:#ece9dd;background:rgba(236,233,221,.12)}
 .hmScore .hmScoreEnd svg{width:13px;height:13px;stroke-width:1.6;fill:none}
 /* THE BOARD IS A PRINTED OBJECT: matte painted plane, light plates, no ink filter -- an ink

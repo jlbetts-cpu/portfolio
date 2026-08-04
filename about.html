@@ -175,7 +175,9 @@ body{background:var(--c50);color:var(--c950);font-family:var(--sans);-webkit-fon
    through -- and with no background behind them, if that ever stops being true it will
    be visible immediately instead of being masked by a colour that matches. */
 .abStack{position:relative;width:100%;aspect-ratio:491/501;overflow:hidden;
- border-radius:var(--r-sm);corner-shape:var(--corner);cursor:pointer;
+ /* 520 x 531 measured at 1440 -- cards and images, --r-lg. Was --r-sm 10, the
+    menu-row rung. See the size-class rule in tokens.css. */
+ border-radius:var(--r-lg);corner-shape:var(--corner);cursor:pointer;
  -webkit-user-select:none;user-select:none}
 .abStack:focus-visible{outline:2px solid var(--c950);outline-offset:3px}
 .abShot{position:absolute;inset:0;z-index:0;opacity:0;
@@ -291,6 +293,82 @@ body{background:var(--c50);color:var(--c950);font-family:var(--sans);-webkit-fon
 }
 @media(max-width:600px){.abFacts{grid-template-columns:1fr;gap:16px}}
 
+/* ═══ THE PHOTOGRAPHS SIT WITH THEIR OWN SECTIONS, NOT IN A PILE AT THE END ═══
+   Jayden: "For the About, can we make the photos not be pushed to the bottom but
+   be under where they should be, like as individual photos."
+
+   MEASURED FIRST, because the same words could describe two different bugs. At
+   390 the four figures began at y=2095 -- after EVERY section including "Get in
+   touch", the page's sign-off -- and ran to y=3549 in a 3827px document. So the
+   last 38% of About was photographs, and the sign-off was not the last thing on
+   the page. At 1440 the behaviour is completely different and correct: the
+   column is sticky beside the prose and swaps as you read. This is a
+   PHONE-ONLY layout bug, and it is fixed phone-only.
+
+   WHY THEY WERE AT THE END. The page is
+     main.abGrid (grid)
+       div.abBody   -- all five sections
+       div.abShots  -- div.abStack (the four figures) + the shared caption
+   Two grid items. At one column that is necessarily all the prose, then all the
+   pictures. Nothing was misplaced; the structure only has two slots.
+
+   THE FIX IS `display:contents` ON THE THREE WRAPPERS, so every section and
+   every figure becomes a grid item in its own right and `order` can interleave
+   them. NOT A DOM MOVE, and that is the load-bearing part: the desktop
+   scroll-driven swap needs all four .abShot inside #abStack (about.html's script
+   reads stack.querySelectorAll(".abShot") and drives them from [data-photo]
+   anchors). Reordering in CSS leaves that mechanism byte-identical -- it is
+   still awaiting Jayden's verdict in real Chrome and this pass must not disturb
+   it. Desktop never enters this block.
+
+   THE PAIRING IS THE PAGE'S OWN, not a guess. The [data-photo] anchors that
+   already drive the desktop swap record which photograph belongs to which
+   passage, and three of the four are placed exactly where their anchor sits:
+     photo 0  Graduating from UC Davis  -> the "At a glance" facts block, whose
+              Education row reads "B.A. Design, UC Davis"
+     photo 1  Me and my sister Jolee    -> "Design has always been my playground",
+              the section about building his three-year-old sister an art website
+     photo 3  Life outside work         -> "My best ideas come from real life"
+   THE ONE PROPOSAL, flagged rather than slipped in: photo 2, the Blender clay
+   self-portrait, is anchored to a PARAGRAPH INSIDE the playground section ("I
+   kept designing as a hobby"). Honouring that literally would need the section
+   itself to be display:contents so a figure could sit between its paragraphs --
+   which would put its paragraphs on the grid's section-sized row-gap and destroy
+   the prose rhythm. It sits after the lede instead: "A maker at heart... creating
+   playful, accessible experiences" is the same claim, one section earlier, and it
+   is the only photograph not on its authored anchor. Easy to move if he disagrees;
+   it is one `order` value.
+
+   INDIVIDUAL PHOTOGRAPHS, NOT A GALLERY. No two figures are ever adjacent -- a
+   section always separates them -- which is what "as individual photos" asks for
+   and why the four-panel-grid framing he already rejected does not come back.
+
+   ROW-GAP IS RESTATED because display:contents deletes .abSec's own
+   margin-bottom rhythm along with .abBody's box. --sp-48-72 is the value those
+   margins were carrying, so the spacing a reader sees between two sections is
+   unchanged; the photographs simply take the same rung, which is what makes them
+   read as page furniture rather than as an attachment to the paragraph above.
+   The <img> keep their width/height attributes, so every box is still reserved
+   before the lazy image lands -- the [349,0,0,0] collapse this layout was built
+   to avoid cannot come back through a reorder. ══════════════════════════════ */
+@media(max-width:880px){
+ .abBody,.abShots,.abStack{display:contents}
+ .abGrid{row-gap:var(--sp-48-72)}
+ .abBody .abSec{margin-bottom:0}
+ .abBody .abSec:last-child{margin-bottom:0}
+ .abTitle                    {order:1}
+ .abBody .abSec.abLede       {order:2}
+ .abShot:nth-child(3)        {order:3}   /* Clay Self Portrait in Blender */
+ .abBody .abSec.abFactsSec   {order:4}
+ .abShot:nth-child(1)        {order:5}   /* Graduating from UC Davis */
+ .abBody .abSec:nth-of-type(3){order:6}  /* Design has always been my playground */
+ .abShot:nth-child(2)        {order:7}   /* Me and my sister Jolee */
+ .abBody .abSec:nth-of-type(4){order:8}  /* My best ideas come from real life */
+ .abShot:nth-child(4)        {order:9}   /* Life outside work */
+ .abBody .abSec.abConnect    {order:10}
+}
+
+
 .siteFoot{margin-top:clamp(80px,12vh,150px);padding:0 clamp(24px,5vw,40px) clamp(32px,5vh,64px);text-align:center}
 /* 1.55 was a literal and the case studies resolve the same role to var(--lh-prose)
    = 1.5. Same element, same role, two numbers -- exactly the --lh-prose 1.6 -> 1.5
@@ -309,6 +387,19 @@ body{background:var(--c50);color:var(--c950);font-family:var(--sans);-webkit-fon
    and their own underline carry every state (see the accent note in tokens.css).
    index.html shipped this at <=768px only -- on a phone, where a fingertip is
    already forgiving -- and not at the widths where a pointer has to find it. */
+
+/* WHY THIS IS --sp-10 AND NOT A CHASE TO 44. Measured at 390: the prose these
+   links sit in has a LINE PITCH OF 25.5px (17px at --lh-prose). A vertical hit
+   expansion bigger than the pitch does not create a bigger target, it creates an
+   AMBIGUOUS one -- it reaches into the line above and the line below, so a tap
+   between two lines belongs to two links. --sp-10 already puts these at 41.5-46.7
+   depending on the page's prose size, which is past the pitch; --sp-12 would make
+   the overlap worse for 2.5px of nominal height.
+   WCAG 2.5.8 has an explicit INLINE EXCEPTION for exactly this -- "the target is
+   in a sentence or its size is otherwise constrained by the line-height of
+   non-target text" -- and it exists because the alternative is worse. This is the
+   one place on the site where 44 is the wrong answer, and it is recorded here so
+   the next audit reads it as a decision rather than a miss. */
 .footIn,.abIn{display:inline-block;
  padding-block:var(--sp-10);margin-block:calc(var(--sp-10) * -1)}
 
@@ -330,7 +421,9 @@ body{background:var(--c50);color:var(--c950);font-family:var(--sans);-webkit-fon
    to the sentence under it, and unmistakably a status rather than a heading.
    "San Francisco" came out: the hero already says "SF product designer" and About's
    at-a-glance says it again, so the footer was the third telling. */
-.footAvail{font-family:var(--sans);font-weight:600;font-size:var(--fs-label);line-height:var(--lh-body);letter-spacing:var(--tr-flat);color:var(--c500);margin:0 0 var(--sp-8)}
+/* .footAvail is gone: the <p class="footAvail">Open to work</p> it styled was
+   removed when the footer sentence absorbed the availability line. The rule had
+   no consumer on any of the seven pages that carried it. */
 .footMark{font-family:var(--sans);font-weight:600;font-size:min(var(--fs-display),13vw);line-height:.9;letter-spacing:var(--tr-display);color:var(--c100);margin:var(--sp-8-16) 0 0;white-space:nowrap;-webkit-user-select:none;user-select:none}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 </style>
@@ -488,6 +581,22 @@ body{background:var(--c50);color:var(--c950);font-family:var(--sans);-webkit-fon
   clearInterval(timer);
  }
  function unbindFlow(){if(fio){fio.disconnect();fio=null;}shots.forEach(function(sh){sh.classList.remove("inview");});}
+ /* THE STACK IS NOT A BUTTON ON A PHONE. In flow all four photographs are
+    visible at once, so "Activate to see the next one" is untrue, and with
+    display:contents the element has no box to be a button with -- it would be a
+    focus stop that looks like nothing and does nothing. The role, the tab stop
+    and the label are removed below 881 and restored above it, in the same place
+    the flow/desktop swap is already handled. The click and keydown listeners are
+    left bound: they are harmless when every photograph is already on screen, and
+    unbinding them would mean re-binding them on every resize. */
+ function stackRole(isFlow){
+  if(isFlow){stack.removeAttribute("role");stack.removeAttribute("tabindex");
+             stack.removeAttribute("aria-label");stack.removeAttribute("aria-live");}
+  else{stack.setAttribute("role","button");stack.setAttribute("tabindex","0");
+       stack.setAttribute("aria-live","polite");
+       stack.setAttribute("aria-label",ALTS[i]+". Activate to see the next photograph.");}
+ }
+ stackRole(flow.matches);
  if(flow.matches)bindFlow();
  flow.addEventListener("change",function(e){if(e.matches){bindFlow();}else{unbindFlow();}});
  desktop.addEventListener("change",function(e){

@@ -53,16 +53,18 @@
       steps, on both the panel groups and the stage layers.
    ═══════════════════════════════════════════════════════════════════════════ */
 
-/* The only page-local declarations, and both are LAYOUT MEASURES rather than
-   scale values — the same category as --page-max in tokens.css, which is why
-   neither belongs on the --sp-* ladder.
-   --mk-bar is the header's total height and is DERIVED, not typed: header.css
-   builds the bar from --sp-8 + --nav-h + --sp-12 and guarantees that total
-   never changes between its rest and shrunk states.
-   --mk-panel is the control column. 360 is the width at which the widest row
-   in the panel (two 44px controls with a --sp-8 gap, inside --sp-24 gutters)
-   fits without wrapping. */
-:root{--mk-bar:calc(var(--nav-h) + var(--sp-8) + var(--sp-12));--mk-panel:360px}
+/* NO PAGE-LOCAL LAYOUT TOKENS AT ALL, WHICH IS THE POINT.
+   This page and gradientlab.html are the site's two builders, and every measure
+   the archetype owns now lives in tokens.css and is consumed here:
+     --panel-w  360  the inspector column
+     --bar-h     72  the chrome the tool's bar reserves above the workspace,
+                     derived as --sp-14 + --nav-h + --sp-6 so it cannot drift
+     --lbl-w     84  the label column every control in a builder panel aligns
+                     to, forking to 72 below 420 where the column has to give
+                     way before the track does
+   All three were declared identically in both builders before promotion. That
+   is exactly how one name comes to mean two geometries, so none of them is
+   re-declared here — not even at the same value. */
 
 @font-face{font-family:"Instrument Sans";font-style:normal;font-weight:400;font-display:swap;src:url(fonts/instrument-sans-latin-400-normal.woff2) format("woff2")}
 @font-face{font-family:"Instrument Sans";font-style:normal;font-weight:600;font-display:swap;src:url(fonts/instrument-sans-latin-600-normal.woff2) format("woff2")}
@@ -71,36 +73,60 @@
    page stopped having when the site header was adopted. */
 
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html,body{height:100%;overflow:clip}
+/* overflow-x:clip, never hidden, so this can never become a scroll container.
+   Vertical is left alone deliberately: the frame is exactly one viewport tall,
+   so there is nothing to scroll — until the short-viewport release at the foot
+   of this sheet lets go on purpose, which clip would have blocked. */
+html,body{height:100%;overflow-x:clip}
 body{background:var(--c50);color:var(--c950);font-family:var(--sans);-webkit-font-smoothing:antialiased}
 img{display:block;max-width:100%}
 .hidden{display:none!important}
 
 /* ───────────────────────────────────────────────────────────────────────────
-   1 · THE SHELL. Fixed to the viewport, under a fixed bar. 100dvh rather than
-   100vh because on iOS Safari vh resolves against the LARGE viewport, so a
-   100vh app with the browser chrome showing runs its last control under the
-   toolbar with no way to reach it — and this page cannot scroll to it.
+   1 · THE FRAME. One viewport, no page scroll. 100svh rather than 100vh
+   because on iOS Safari vh resolves against the LARGE viewport, so a 100vh
+   frame runs its last control under the browser toolbar with no way to reach
+   it — and this page cannot scroll to it.
+
+   THE GUTTER IS THE SITE'S GUTTER, AND THE MEASURE IS THE SITE'S MEASURE, and
+   the second half of that is not optional. Before this pass the app was fixed
+   edge-to-edge, so its content sat at 0 while index.html's .wrap and the bar
+   itself — capped at --bar-open 1200 and centred — both resolve to 120 on a
+   1440 screen. --sp-40 alone would have put it at 40: on the token, and still
+   visibly out of line with everything around it. --page-max + margin-inline
+   auto is what closes the other 80. Measured after: 120 / 40 / 24 at
+   1440 / 1280 / 390, matching index.html and gradientlab.html at all three.
+
+   The top inset derives from --bar-h so it cannot drift if the bar's own
+   padding changes, and it is what makes the artifact a CARD INSET BELOW the
+   bar rather than a surface running under it.
    ─────────────────────────────────────────────────────────────────────────── */
 .mkApp{
- position:fixed;left:0;right:0;top:var(--mk-bar);bottom:0;
- height:calc(100dvh - var(--mk-bar));
- padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right);
- display:grid;grid-template-columns:minmax(0,1fr) var(--mk-panel);
- overflow:clip;
+ display:grid;grid-template-columns:minmax(0,1fr) var(--panel-w);
+ gap:var(--sp-24);height:100svh;
+ max-width:var(--page-max);margin-inline:auto;
+ padding:calc(var(--bar-h) + var(--sp-16)) var(--sp-40) var(--sp-24);
+ padding-inline:max(var(--sp-40),env(safe-area-inset-left)) max(var(--sp-40),env(safe-area-inset-right));
+ padding-bottom:calc(var(--sp-24) + env(safe-area-inset-bottom));
 }
 .mkApp:focus{outline:none}
 
-/* THE STAGE COLUMN. A shade off the paper, so the artifact reads as sitting on
-   a work surface rather than floating in the page — separation by ground and a
-   hairline, never by elevation. */
+/* THE STAGE CARD. A shade off the paper, so the artifact reads as sitting on a
+   work surface rather than floating in the page — separation by ground and an
+   edge, never by elevation. The edge is an ::after ring rather than an inset
+   box-shadow so it always paints over whatever the stage is showing.
+   It is a CARD, not a full-bleed column, and that is structural: nothing this
+   page draws ever reaches the bar, so the chrome above it and the workspace
+   below it can never interact. */
 .mkStageCol{
- position:relative;min-width:0;min-height:0;
+ position:relative;min-width:0;min-height:0;overflow:hidden;
  display:grid;grid-template-rows:minmax(0,1fr) auto;gap:var(--sp-12);
  padding:var(--sp-24);
+ border-radius:var(--r-lg);corner-shape:var(--corner);
  background:var(--c75);
- border-right:var(--hair-w) solid var(--c100);
 }
+.mkStageCol::after{content:"";position:absolute;inset:0;z-index:3;pointer-events:none;
+ border-radius:inherit;corner-shape:var(--corner);box-shadow:var(--rim-2)}
 /* container-type:size is what lets the stage take the SMALLER of the two
    constraints. `width:min(100cqw, 100cqh*5/6)` is exact where a flex/max-width
    pair only approximates it, and the plain min() above is the fallback for
@@ -110,7 +136,7 @@ img{display:block;max-width:100%}
  position:relative;aspect-ratio:5/6;
  width:min(100%,440px);
  width:min(100cqw,calc(100cqh * 5 / 6));
- border-radius:var(--r-lg);corner-shape:var(--corner);
+ border-radius:var(--r-md);corner-shape:var(--corner);   /* --r-lg 20 inside a --sp-24 inset: the concentric rule lands on --r-md */
  background:var(--c50);box-shadow:var(--rim-1);
  overflow:hidden;
 }
@@ -140,14 +166,14 @@ img{display:block;max-width:100%}
    phone ran out of room the content was cut, not made scrollable.
    ─────────────────────────────────────────────────────────────────────────── */
 .mkPanel{
- min-width:0;min-height:0;
- display:flex;flex-direction:column;gap:var(--sp-20);
- padding:var(--sp-24) var(--sp-24) calc(var(--sp-20) + env(safe-area-inset-bottom));
- background:var(--c50);
- overflow:clip;
+ min-width:0;min-height:0;overflow:clip;
+ display:flex;flex-direction:column;gap:var(--sp-16);
+ padding:var(--sp-16);
+ border-radius:var(--r-lg);corner-shape:var(--corner);
+ background:var(--c0);box-shadow:var(--rim-2);
 }
 .mkFlow{flex:1 1 auto;min-height:0;display:flex;flex-direction:column}
-.mkStep{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;gap:var(--sp-20)}
+.mkStep{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;gap:var(--sp-16)}
 
 /* the progress rail — four segments, a label each. Not a target: it reports
    where you are, it does not navigate. */
@@ -170,18 +196,17 @@ img{display:block;max-width:100%}
 .mkHint{font-size:var(--fs-label);font-weight:400;line-height:var(--lh-body);
  color:var(--c500);text-wrap:pretty}
 .mkHint b{font-weight:600;color:var(--c950)}
+/* THE FLUSH ROW. A 44px row whose label sits in a FIXED --lbl-w column, so
+   every control track in the panel starts on one x. max-content would have
+   sized each row's column to its own word and put three tracks at three
+   different x positions — which is what a list of separate widgets looks like,
+   and is the difference the archetype is actually about. */
 .mkRow{display:flex;align-items:center;gap:var(--sp-12);min-height:var(--tap-min)}
 .mkRow--wrap{flex-wrap:wrap;gap:var(--sp-8)}
-/* the slider block is a GRID, not two flex rows, so both labels resolve to one
-   column width and the two tracks start on the same x with no fixed width
-   invented for the label. (The fixed --sp-* ladder stops at 40 and the
-   responsive rungs change value below 880px, so there is no rung that could
-   have held a constant 72 here — see the note at the foot of tokens.css.) */
-.mkGrid{display:grid;grid-template-columns:max-content minmax(0,1fr) max-content;
- column-gap:var(--sp-12);align-items:center}
-.mkLbl{font-size:var(--fs-label);font-weight:400;color:var(--c700);white-space:nowrap}
-.mkVal{min-width:var(--sp-40);text-align:right;
- font-size:var(--fs-label);font-variant-numeric:tabular-nums;color:var(--c500)}
+.mkLbl{flex:0 0 var(--lbl-w);min-width:0;font-size:var(--fs-label);font-weight:400;
+ color:var(--c700)}
+.mkVal{flex:0 0 var(--sp-40);text-align:right;
+ font-size:var(--fs-caption);font-variant-numeric:tabular-nums;color:var(--c500)}
 .mkActs{margin-top:auto;display:flex;gap:var(--sp-8)}
 .mkActs>*{flex:1 1 auto}
 
@@ -419,37 +444,71 @@ img{display:block;max-width:100%}
    surface on this page is a solid ground with a hairline.
    ─────────────────────────────────────────────────────────────────────────── */
 @media(max-width:880px){
- .mkApp{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr) auto}
- .mkStageCol{border-right:0;border-bottom:var(--hair-w) solid var(--c100);
-  padding:var(--sp-12);gap:var(--sp-8)}
- .mkPanel{gap:var(--sp-12);
-  padding:var(--sp-16) var(--sp-16) calc(var(--sp-12) + env(safe-area-inset-bottom))}
+ .mkApp{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr) auto;
+  gap:var(--sp-16);padding-top:calc(var(--bar-h) + var(--sp-12));
+  padding-bottom:calc(var(--sp-16) + env(safe-area-inset-bottom))}
+ .mkStageCol{padding:var(--sp-16);gap:var(--sp-8)}
+ .mkPanel{gap:var(--sp-12);padding:var(--sp-12)}
  .mkStep{gap:var(--sp-12)}
  .hmPitSec{padding-top:var(--sp-12)}
- /* THE GROUP TURNS ON ITS SIDE. On desktop the label sits above its controls;
-    at 390 it sits beside them, because a stacked label costs a whole row and
-    the row it costs comes straight out of the head. Measured: the four groups
-    stacked took 576px of a 772px screen and left the artifact 119px wide. The
-    label is the same label — only its axis changes, so nothing is lost. */
- .mkGroup{display:grid;grid-template-columns:max-content minmax(0,1fr);
+ /* THE GROUP TURNS ON ITS SIDE, and this is the one place this page diverges
+    from the Gradient Maker's inspector — with numbers rather than by taste.
+    That page's groups are rows of labelled controls, so its --lbl-w column is
+    already doing this work per row. Mine are four groups whose HEADING is the
+    only label the controls have, so a stacked heading costs a whole 20px row
+    per group and buys nothing. Measured at 390x844 with the headings stacked:
+    the panel took 576 of 772px and left the artifact 119x143 — the exact
+    outcome the archetype exists to prevent. Beside them: 230x276.
+    The label column is still --lbl-w, so it is the SAME column the flush rows
+    use and every control in the panel still starts on one x. */
+ .mkGroup{display:grid;grid-template-columns:var(--lbl-w) minmax(0,1fr);
   align-items:center;column-gap:var(--sp-12);row-gap:var(--sp-6)}
  .mkGroup>.mkGroupH{grid-column:1}
  .mkGroup>*:not(.mkGroupH){grid-column:2}
+ /* THE ONE GROUP THAT STAYS STACKED. Its rows carry their own labels, so
+    turning it sideways would nest a label column inside a label column and put
+    the two slider tracks at two different x — measured 167 and 195 at 390,
+    which is precisely the misalignment --lbl-w exists to prevent. Stacked, both
+    tracks sit at one x and the heading keeps its line. It is also the step with
+    the most room to spend: panel 377 of 748 at 390x844. */
+ .mkGroup--rows{display:flex;flex-direction:column;gap:var(--sp-6)}
+
+ /* THE SHELF LEAVES EVERY STEP BUT THE FIRST. Measured at 390x844 with the site
+    gutters in place, step 4's panel ran 475 of 744px and left the head 161x193
+    — the artifact stops being the artifact at that size. The shelf is 122 of
+    those pixels and it is the only thing on the step that is not a control.
+    Nothing becomes unreachable: Start over returns to step 1, where the shelf
+    is, and picking a head there puts it straight back on the stage. Step 1 is
+    where "carry on with an old head" is the actual question anyway, and on
+    steps 2 and 3 you are mid-edit — swapping heads there would discard work.
+    After: panel 353, head 250x300. */
+ .mkApp:not([data-step="1"]) .hmPitSec{display:none}
 }
+/* the gutter forks to --sp-24 at 760, which is where the rest of the site's does */
+@media(max-width:760px){
+ .mkApp{padding-inline:max(var(--sp-24),env(safe-area-inset-left)) max(var(--sp-24),env(safe-area-inset-right))}
+}
+/* the <=420 fork of --lbl-w that used to sit here is in tokens.css:521 now,
+   with the token itself */
 /* THE SHORT VIEWPORT — an SE at 667, or any phone once the browser chrome eats
-   its share of dvh. Two things give, in this order, and neither is a control:
-   1 · the hints. Text is the only thing on this screen that can go without
-       taking a capability with it.
-   2 · the saved-heads shelf, on every step EXCEPT the first. Measured at
-       390x667 with a full eight heads it costs 171px, which had squeezed the
-       artifact to 70x83 — the one outcome this whole pass exists to prevent.
-       Nothing becomes unreachable: Start over returns to step 1, where the
-       shelf is, and picking a head there puts it straight back on the stage.
-       Step 1 is also the step where "carry on with an old head" is the actual
-       question, so this is where it belongs on a small screen anyway. */
+   its share of dvh. The hints go, and they are the only thing on this screen
+   that can go without taking a capability with it. (The shelf has already left
+   steps 2-4 at 880; measured at 390x667 with a full eight heads it costs 171px
+   and had squeezed the artifact to 70x83.) */
 @media(max-height:720px){
  .mkHint{display:none}
- .mkApp:not([data-step="1"]) .hmPitSec{display:none}
+}
+/* ── THE SHORT-VIEWPORT RELEASE, and it is the opposite of a scrollport.
+   A one-viewport frame only holds while the viewport can hold it. At 320 x 256
+   — 1280 at 400% zoom, WCAG 1.4.10 Reflow — 100svh leaves the panel a 0px body,
+   which is worse than a scroll: the controls exist and cannot be reached. So
+   below 560px tall the frame lets go and the PAGE scrolls, vertically only,
+   which is exactly what reflow asks for. Nothing between 560 and any real
+   laptop or phone height is touched. Same rule, same threshold, same reasoning
+   as gradientlab.html. */
+@media(max-height:560px){
+ .mkApp{height:auto;min-height:100svh;grid-template-rows:auto auto}
+ .mkStageCol{min-height:40svh}
 }
 
 /* ───────────────────────────────────────────────────────────────────────────
@@ -502,8 +561,27 @@ img{display:block;max-width:100%}
      own URL, so it is the site's only aria-current="page". -->
  <div class="jbStick isFixed">
   <nav class="jbNav" aria-label="Primary" data-surface="paper">
+   <!-- BACK *REPLACES* THE MARK, ON THE LEFT, AND GOES TO play.html. Jayden,
+        twice: "the back button should just replace the logo" and "why is the
+        back button on games on the right side? that's a bit confusing" — so the
+        leading slot holds exactly one control and never both. header.css §
+        already ships this exact control for the five case studies; nothing in
+        header.css changes to get it here. Byte-identical to the one
+        gradientlab.html carries, deliberately: two builders, one control.
+        NO .backlink CLASS. That is not decoration — each case study's own
+        script binds it to set sessionStorage csReturn, which is what makes
+        index.html's work rail emerge from white on return. This page does not
+        go to index.html and carries no such script, so the class would be both
+        inert and untrue.
+        UNCONDITIONAL, NOT GATED ON ?from=play. play.html links here as
+        headmaker.html?from=play from its card, but the Play menu's other route
+        to this page carries no query at all — so a gated Back would appear from
+        one entrance and vanish from the other, and a reload, a bookmark or a
+        shared URL would lose it. One control, one destination, always present,
+        is also what keeps the leading slot's geometry identical on all nine
+        pages. The query is left alone: not read, not stripped, still harmless. -->
    <span class="jbGrp jbGrpL">
-    <a class="jbHome" href="index.html" aria-label="Jayden Betts, home"><svg class="jbLogo" viewBox="0 0 30 30" aria-hidden="true"><path d="M1 26.3842C3.07605 22.5364 9.00761 17.1494 16.1255 26.3842C23.2434 35.619 14.1981 18.1678 16.1255 8.65665C18.0529 -0.854479 32.3186 -2.22723 28.2852 8.65665C24.2517 19.5405 18.6968 18.261 20.8493 13.2232C23.0018 8.1853 35.3661 26.1679 23.0066 27.4872"/></svg></a>
+    <a class="jbBack" href="play.html" aria-label="Back to Play"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l14 0"/><path d="M5 12l6 6"/><path d="M5 12l6 -6"/></svg></a>
    </span>
    <span class="jbGrp jbGrpC">
     <a data-nav-item="work" href="index.html#cases" aria-label="Work"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7m0 2a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v9a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2z"/><path d="M8 7v-2a2 2 0 0 1 2 -2h4a2 2 0 0 1 2 2v2"/><path d="M12 12l0 .01"/><path d="M3 13a20 20 0 0 0 18 0"/></svg><span class="jbLbl">Work</span></a>
@@ -621,16 +699,10 @@ img{display:block;max-width:100%}
 
    <!-- STEP 2 · the cutout -->
    <section class="mkStep hidden" id="step2">
-    <div class="mkGroup">
+    <div class="mkGroup mkGroup--rows">
      <h2 class="mkGroupH">Frame</h2>
-     <div class="mkGrid">
-      <label class="mkLbl" for="zoom">Zoom</label>
-      <input type="range" class="mkSlider" id="zoom" min="1" max="4" step="0.01" value="1.2">
-      <output class="mkVal" id="zoomVal" for="zoom">1.20&times;</output>
-      <label class="mkLbl" for="rota">Straighten</label>
-      <input type="range" class="mkSlider" id="rota" min="-30" max="30" step="0.5" value="0">
-      <output class="mkVal" id="rotaVal" for="rota">0&deg;</output>
-     </div>
+     <div class="mkRow"><label class="mkLbl" for="zoom">Zoom</label><input type="range" class="mkSlider" id="zoom" min="1" max="4" step="0.01" value="1.2"><output class="mkVal" id="zoomVal" for="zoom">1.20&times;</output></div>
+     <div class="mkRow"><label class="mkLbl" for="rota">Straighten</label><input type="range" class="mkSlider" id="rota" min="-30" max="30" step="0.5" value="0"><output class="mkVal" id="rotaVal" for="rota">0&deg;</output></div>
      <p class="mkHint">Drag the photo to move it. Chin near the bottom, a little room above the hair.</p>
     </div>
     <div class="mkActs">
@@ -678,7 +750,7 @@ img{display:block;max-width:100%}
      <h2 class="mkGroupH">Keep it</h2>
      <div class="mkRow mkRow--wrap">
       <button class="ctl is-sm ctl--secondary" type="button" id="saveFile"><svg viewBox="0 0 24 24" aria-hidden="true" stroke="currentColor"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>Head file</button>
-      <a class="ctl is-sm" href="index.html">On my homepage</a>
+      <a class="ctl is-sm" href="index.html">My homepage</a>
      </div>
      <p class="mkHint">The download is a transparent PNG. A head file re-opens here later.</p>
     </div>

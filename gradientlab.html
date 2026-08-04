@@ -20,24 +20,22 @@
      at the same time. Verified after removal with document.fonts.check() and by
      measuring a 600/40px string against a forced system fallback: 626.77 vs
      595.46, so the webfont is what is actually rendering, not just declared. */
-  /* ══ PAGE-LOCAL CONSTANTS ════════════════════════════════════════════════
-     THREE NEW NAMES, NOT ONE REBINDING. The block that used to sit here bound
-     --paper/--ink/--sub/--hair/--panel to Lab-only near-misses of tokens that
-     already existed (#f8f9fa vs --c50, #232323 vs --c900, #75756e vs --c500,
-     #e7e6e1 vs --c100) -- five names for values the system had already named,
-     which is precisely the drift the token layer exists to stop. They are gone;
-     every rule below reads the shared token.
+  /* ══ ONE PAGE-LOCAL NAME, AND IT IS THE LAST ONE ═════════════════════════
+     The block that used to sit here bound --paper/--ink/--sub/--hair/--panel to
+     Lab-only near-misses of tokens that already existed (#f8f9fa vs --c50,
+     #232323 vs --c900, #75756e vs --c500, #e7e6e1 vs --c100) -- five names for
+     values the system had already named, which is precisely the drift the token
+     layer exists to stop.
 
-     --bar-h is the site header's own chrome, DERIVED rather than retyped:
-     :root.jbShrunk .jbStick sets padding-block --sp-14 / --sp-6 around a --nav-h
-     bar, so it is 14 + 52 + 6 = 72 at every width. Everything on this page hangs
-     off that number and none of it should have to know it is 72.
-     --ok is SUCCESS -- a different idea from --accent that happens to be a
-     colour, so it gets its own name rather than a rebinding. */
+     THE THREE BUILDER CONSTANTS THAT REPLACED THEM ARE ALSO GONE, and that is
+     the better outcome: --panel-w, --bar-h and --lbl-w are all in tokens.css now
+     (494, 518, 519), including --lbl-w's 420px fork to 72px at :521. This page
+     and headmaker.html are one archetype, so a geometry both of them use belongs
+     to neither of them. Nothing is declared locally to shadow them.
+
+     --ok is what is left: SUCCESS, a different idea from --accent that happens
+     to be a colour, so it gets its own name rather than a rebinding. */
   :root{
-    --bar-h:calc(var(--sp-14) + var(--nav-h) + var(--sp-6));
-    --panel-w:360px;      /* the inspector column. 4px grid; a page constant, like --rail-w */
-    --lbl-w:84px;         /* every control's label column, so every track starts on one x */
     --ok:#0E6B3B;
   }
   *{box-sizing:border-box}
@@ -155,14 +153,19 @@
      page used to carry `7px 11px` and `9px 12px`, someone padding TO a height
      they never named (geometry audit §4.1, 58 occurrences). The rim is a
      box-shadow, never a border. The press is scale, never translateY.
-     The spec's --ctl-* names are NOT declared here: tokens.css does not carry
-     them yet and inventing a local copy is exactly the shadowing this pass is
-     removing, so every rule reads the underlying token directly. */
+
+     THE TYPE IS --fs-small (15px), NOT --fs-label (13). This shipped at 13 for
+     density and that was the wrong lever: 15 is --ctl-fs, it is what the header
+     and the case studies already render, and it is what headmaker.html -- the
+     same archetype -- has. A 13px control label beside a 15px one is the
+     pick-and-choose conformance Jayden is objecting to. The spec already ships a
+     mechanism for density, and it is .is-sm's 36px box with a 44px ::after, not
+     a second type scale. Measured after the change, no group needs it. */
   .ctl{display:inline-flex;align-items:center;justify-content:center;gap:var(--sp-8);
     min-height:var(--tap-min);padding:0 var(--sp-16);
     border:0;border-radius:var(--r-md);corner-shape:var(--corner);
     background:none;box-shadow:none;
-    font-family:var(--sans);font-size:var(--fs-label);font-weight:400;
+    font-family:var(--sans);font-size:var(--fs-small);font-weight:400;
     line-height:var(--lh-flat);letter-spacing:var(--tr-body);color:var(--c700);
     position:relative;cursor:pointer;white-space:nowrap;text-decoration:none;
     -webkit-tap-highlight-color:transparent;
@@ -181,11 +184,17 @@
      the edge via currentColor and the whole control reads as one object. */
   .ctl--secondary{background:none;box-shadow:var(--rim-1)}
   .ctl--secondary:hover{box-shadow:var(--rim-2);color:var(--c950)}
-  /* THE ONE PRIMARY ACTION. Ink, not the accent -- the accent is becoming ink
-     site-wide and a filled near-black button is the only control on this page
-     that carries a solid ground. --press-scale-lg because it is a wide box. */
-  .ctl--primary{background:var(--c950);color:var(--c50);font-weight:600;flex:1 1 auto}
-  .ctl--primary:hover{background:var(--c800);color:var(--c50)}
+  /* THE ONE PRIMARY ACTION. §3.1 is 400 in every state, and the 600 that shipped
+     here was the same mistake as the 13px type -- reaching for a channel the kind
+     is not allowed to vary. It does not need one: it is the only control on the
+     page carrying a solid ground, which is emphasis enough.
+     AND IT READS --accent RATHER THAN --c950. They resolve to the same #121212
+     today, but the primary's fill IS the accent -- that is what the token means
+     now that blue is dead -- and headmaker.html writes it that way. Two names for
+     one fill is the state immediately before they disagree.
+     --press-scale-lg because it is a wide box. */
+  .ctl--primary{background:var(--accent);color:var(--c50);flex:1 1 auto}
+  .ctl--primary:hover,.ctl--primary:focus-visible{background:var(--accent-press);color:var(--c50)}
   .ctl--primary:active{transform:scale(var(--press-scale-lg))}
   .ctl--primary:focus-visible{outline-color:var(--c950)}
   .ctl.is-ok{color:var(--ok)}
@@ -257,7 +266,7 @@
      half-step down, and it is why the rim can stay at --rim-1. */
   select{appearance:none;-webkit-appearance:none;flex:1 1 auto;min-width:0;
     min-height:var(--tap-min);padding:0 var(--sp-36) 0 var(--sp-12);
-    font-family:var(--sans);font-size:var(--fs-label);letter-spacing:var(--tr-body);
+    font-family:var(--sans);font-size:var(--fs-small);letter-spacing:var(--tr-body);
     color:var(--c950);border:0;border-radius:var(--r-md);corner-shape:var(--corner);
     background-color:var(--mat-3-solid);box-shadow:var(--rim-1);cursor:default;
     background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="rgb(117,117,117)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6l6 -6"/></svg>');
@@ -319,11 +328,16 @@
   @media(max-width:760px){
     .lab{padding-left:var(--sp-24);padding-right:var(--sp-24)}
   }
-  /* below ~420 the label column has to give way before the track does */
-  @media(max-width:420px){
-    :root{--lbl-w:72px}
-    .tab{font-size:var(--fs-caption)}
-  }
+  /* THE 420 BLOCK IS GONE, both halves of it.
+     --lbl-w's fork to 72px moved to tokens.css:521 with the token itself, so the
+     rule that used to live here would now be a second copy of a shared decision.
+     .tab{font-size:--fs-caption} was the other half and it was a TYPE-SCALE FORK,
+     which is the thing that is not allowed: a control does not get smaller type
+     on a phone, it gets .is-sm's geometry. It also turned out to be unnecessary.
+     Measured at 390, where the strip is tightest: each tab's box is 60.4px with
+     8px of inset, so 52.4px is available, and the longest label renders 44.8px at
+     15/400 and 46.3px at 15/600. Both clear it. The tabs are --fs-small at every
+     width now, like every other control on the page. */
 
   /* ── THE SHORT-VIEWPORT RELEASE, and it is the opposite of a scrollport.
      A one-viewport frame only holds while the viewport can hold it. At 320 x 256
@@ -344,13 +358,9 @@
 </head>
 <body>
 <!-- THE SITE HEADER. One component, every page: header.css + header.js, adopted
-     2026-08-03 from header-prototype.html. Replaces this page's `1fr auto 1fr`
-     grid (Back / wordmark / Contact), which could not read as a bar because its
-     three children sat at three unrelated x-positions. The lockup IS the back
-     affordance now -- Back and the wordmark went to the same URL, so two of the
-     four old slots were doing one job. Design + the measured lockup:
+     2026-08-03 from header-prototype.html. Design + the measured lockup:
      .superpowers/sdd/2026-08-02-play-page/header-report.md
-     Nothing lights up here: the Lab is noindex and is not in the nav, so
+     Nothing lights up here: the Maker is noindex and is not in the nav, so
      forcing an active item would be a lie. -->
 <div class="jbStick isFixed">
  <!-- LIGHT SURFACE, and the reason is structural rather than a preference.
@@ -363,9 +373,40 @@
       takes the same surface: opaque --c0 with --rim-3, which measures 1.56:1
       against the paper on its own. --rim-top goes with the ink ground, as
       specified -- it is an inset highlight that only reads on dark. -->
- <nav class="jbNav" aria-label="Primary">
+ <nav class="jbNav" aria-label="Primary" data-surface="paper">
+  <!-- BACK *REPLACES* THE MARK, exactly as it does on the five case studies.
+       Jayden: "I think the back button should just replace the logo on case
+       study pages", "Why is the back button on games on the right side? That's
+       a bit confusing", and "make sure they go back to the Play home page".
+       So: the leading slot, one control, and it goes to play.html.
+
+       THIS IS THE CASE STUDIES' CONTROL, COPIED, NOT A SECOND ONE. Same
+       .jbBack class, same 24-grid Tabler arrow-left, same structure as
+       apollo.html:587 -- so header.css:604/626/636 size it, --ico-mark gives it
+       the mark's 22px box rather than a nav icon's 18, and :557's
+       `.jbNav a:active{transform:scale(var(--press-scale))}` gives it the press
+       state touch needs. Nothing new is authored here and nothing is overridden.
+
+       TWO DELIBERATE DIFFERENCES FROM apollo.html:587, both about destination:
+       · href is play.html, not index.html, and the name is "Back to Play".
+       · NO .backlink. That class is not decoration -- each case study's own
+         script (apollo.html:781) binds it to set sessionStorage csReturn, which
+         is what makes index.html's work rail emerge from white on return
+         (index.html:1678). This page does not go to index.html and carries no
+         such script, so the class would be both inert and untrue.
+
+       UNCONDITIONAL, NOT GATED ON ?from=play. play.html offers the handshake
+       (play.html:674 links gradientlab.html?from=play) and says it is inert
+       until a destination reads it. Reading it would mean this page has two
+       different bars depending on how you arrived -- and play.html's OTHER
+       route here, the Play menu's "Make a gradient" at play.html:721, carries no
+       query at all, so Back would appear from the card and vanish from the menu.
+       A reload, a bookmark or a shared URL would lose it too. One control, one
+       destination, always present, is also what keeps the leading slot's
+       geometry identical on all nine pages. The query is left alone: not read,
+       not stripped, still harmless. -->
   <span class="jbGrp jbGrpL">
-   <a class="jbHome" href="index.html" aria-label="Jayden Betts, home"><svg class="jbLogo" viewBox="0 0 30 30" aria-hidden="true"><path d="M1 26.3842C3.07605 22.5364 9.00761 17.1494 16.1255 26.3842C23.2434 35.619 14.1981 18.1678 16.1255 8.65665C18.0529 -0.854479 32.3186 -2.22723 28.2852 8.65665C24.2517 19.5405 18.6968 18.261 20.8493 13.2232C23.0018 8.1853 35.3661 26.1679 23.0066 27.4872"/></svg></a>
+   <a class="jbBack" href="play.html" aria-label="Back to Play"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l14 0"/><path d="M5 12l6 6"/><path d="M5 12l6 -6"/></svg></a>
   </span>
   <span class="jbGrp jbGrpC">
    <a data-nav-item="work" href="index.html#cases" aria-label="Work"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7m0 2a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v9a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2z"/><path d="M8 7v-2a2 2 0 0 1 2 -2h4a2 2 0 0 1 2 2v2"/><path d="M12 12l0 .01"/><path d="M3 13a20 20 0 0 0 18 0"/></svg><span class="jbLbl">Work</span></a>
