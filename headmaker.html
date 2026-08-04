@@ -1174,14 +1174,31 @@ function buildLive(){
   /* anatomy: the eye window is the aperture THEY marked; the iris is a circle 42% of eye width,
      taller than the window so the lids crop it top and bottom, the way every human eye works */
   var _ew=c.w*0.94, _eh=Math.max(c.w*0.26,Math.min(c.w*0.44,c.h*1.05));
-  var cvW=_ew*1.18,cvH=_eh*1.55/1.2;   /* their own skin hides the photo's eye: no white ever bleeds onto the face */
+  /* THE COVER IS SIZED FROM THE PAIR, NOT FROM ONE EYE — the same rule as
+     oneWhite above, and for the same reason. This patch is a lift of THEIR OWN
+     SKIN, sampled 1.55 eye-heights below the eye and painted back over the
+     photo's real eye so no drawn white ever bleeds onto the face. Sized per eye
+     it inherits that eye's marked geometry, so one bad landmark makes one giant
+     patch: measured on a real saved head, the two covers came out 25.7x15.8 and
+     51.6x31.7 — a 2x disagreement between two eyes on one face — and the big
+     one reached far enough down and out to sample rgb(209,202,213) off the
+     background instead of skin. That is what the soft blue-grey splotches
+     around the eyes were: not an accent, not editor UI in the bake, but a
+     mis-scaled skin patch lifting the wall behind the head and feathering it
+     onto the cheek. Both covers now take the mean geometry, so neither can be
+     larger than the face's own average eye and neither can reach off it.
+     _ew / _eh keep their per-eye values: the eye WINDOW should still fit the
+     eye that was actually marked. Only the patch that hides the old one is
+     shared. */
+  var _cw=g.w,_ch=Math.max(g.w*0.26,Math.min(g.w*0.44,g.h*1.05));
+  var cvW=(_cw*0.94)*1.18,cvH=_ch*1.55/1.2;
   var scl=document.createElement("div");scl.className="hmScl";scl.style.borderRadius=ALMOND;
   scl.style.width=(cvW*100)+"%";scl.style.height=(cvH*100)+"%";
   scl.style.left=((c.x-cvW/2)*100)+"%";scl.style.top=((c.y-cvH/2)*100)+"%";
   scl.style.transform="rotate("+(c.ang||0)+"rad)";
   scl.style.backgroundImage="url("+cutURL+")";scl.style.backgroundRepeat="no-repeat";
   scl.style.backgroundSize=(100/cvW)+"% "+(100/cvH)+"%";
-  scl.style.backgroundPosition=((c.x-cvW/2)/(1-cvW)*100)+"% "+(((c.y+c.h*1.55)-cvH/2)/(1-cvH)*100)+"%";
+  scl.style.backgroundPosition=((c.x-cvW/2)/(1-cvW)*100)+"% "+(((c.y+g.h*1.55)-cvH/2)/(1-cvH)*100)+"%";   /* g.h, not c.h: the sample origin travels with the shared cover, or the patch still reaches past the cheek */
   scl.style.webkitMaskImage="radial-gradient(ellipse at center,#000 48%,transparent 82%)";
   scl.style.maskImage="radial-gradient(ellipse at center,#000 48%,transparent 82%)";
   headEl.appendChild(scl);

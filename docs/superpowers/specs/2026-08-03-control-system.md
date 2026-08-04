@@ -334,50 +334,154 @@ indistinguishable without colour, and colour alone fails 1.4.1.
 
 ### 3.4 Tab — `.ctl--tab`
 
-One of a set; exactly one is selected; selection is a **blue underline, never a
-blue fill** (Jayden's explicit correction).
+> **AMENDED 2026-08-04.** Two of this section's four stated reasons were wrong by
+> the time anyone built against them, and one of them was wrong in a way that
+> would have shipped a real defect. Both are corrected in place below rather than
+> footnoted, because **a spec whose stated reason is obsolete is worse than no
+> spec** — the next reader re-litigates it from scratch, which is exactly what
+> happened. What changed, in one place, is recorded in *Why this section changed*
+> at the end.
 
-| State | background | box-shadow | color | font-weight |
-|---|---|---|---|---|
-| rest | none | none | `var(--ctl-ink-mute)` | 600 |
-| hover | none | none | `var(--ctl-ink-strong)` | 600 |
-| `[aria-selected="true"]` | none | none | `var(--ctl-ink-strong)` | 600 |
-| focus-visible | none | none | rest/selected | 600 |
-| disabled | none | none | `var(--ctl-ink-mute)` | 600 |
+One of a set; exactly one is selected. **Selection is an underline, never a
+fill** — and the reason is no longer the one this section used to give.
+
+| State | background | box-shadow | color | font-weight | underline |
+|---|---|---|---|---|---|
+| rest | none | none | `var(--ctl-ink-mute)` | 400 | — |
+| hover | `var(--accent-wash)` | none | `var(--ctl-ink-strong)` | 400 | — |
+| `[aria-selected="true"]` | none | none | `var(--ctl-ink-strong)` | 600 | ✓ |
+| selected + hover | none | none | `var(--ctl-ink-strong)` | 600 | ✓ |
+| focus-visible | rest/selected | none | rest/selected | rest/selected | rest/selected |
+| disabled | none | none | `var(--ctl-ink-mute)` | 400 | — |
+
+**Three states, three channels, and no channel used twice.** The underline means
+*you are here*. The grey pill means *your cursor is here*. Weight reinforces
+selection.
 
 ```css
-.ctl--tab{ border-radius:0; font-size:inherit; font-weight:600; color:var(--ctl-ink-mute) }
-.ctl--tab::before{                       /* the underline. NOT a border-bottom. */
-  content:""; position:absolute; left:var(--ctl-pad); right:var(--ctl-pad); bottom:0;
+.ctl--tab{ border-radius:var(--r-md); font-size:inherit; font-weight:400;
+           color:var(--ctl-ink-mute) }
+
+/* HOVER IS THE SITE'S ONE INTERACTION GROUND, and never on the selected tab --
+   the same :not() protection header.css gives its lit nav item. The ink comes
+   free from .ctl:hover. */
+.ctl--tab:hover:not([aria-selected="true"]){ background:var(--accent-wash) }
+
+.ctl--tab[aria-selected="true"]{ color:var(--ctl-ink-strong); font-weight:600 }
+
+/* THE UNDERLINE GOES ON THE LABEL, NOT THE BOX. A tab in an equal-flex strip is
+   much wider than its word, so a rule spanning its padding box is a segmented
+   control's bottom border rather than an underline. On a span it is exactly as
+   wide as the word and grows with the 600 weight, because it is the same box. */
+.ctl--tab > .ctlLbl{ position:relative; display:block }
+.ctl--tab > .ctlLbl::after{
+  content:""; position:absolute; left:0; right:0; bottom:calc(var(--sp-6) * -1);
   height:var(--focus-w); border-radius:var(--r-hair);
-  background:var(--ctl-accent); opacity:0;
+  background:var(--accent); opacity:0;
   transition:opacity var(--dur-state) var(--ease-out);
 }
-.ctl--tab[aria-selected="true"]{ color:var(--ctl-ink-strong) }
-.ctl--tab[aria-selected="true"]::before{ opacity:1 }
-.ctl--tab:focus-visible{ border-radius:var(--r-xs) }   /* the ring needs a shape; the tab does not */
+.ctl--tab[aria-selected="true"] > .ctlLbl::after{ opacity:1 }
+@media(prefers-reduced-motion:reduce){ .ctl--tab > .ctlLbl::after{ transition:none } }
 ```
 
 Four load-bearing decisions:
 
-1. **`::before`, not `border-bottom`.** Measured: the shipped `.tvTab.on` draws a
-   2px accent bottom border on a `border-radius:14px` box, so the "underline" is a
-   swoosh that tapers out 14px before each end. The pseudo-element is inset to
-   `--ctl-pad`, so the rule sits under the *word*, not under the padding.
-2. **`border-radius:0` at rest.** A tab has no ground, so it has no corners. The
-   `4px` on `.csTab` and the `14px` on `.tvTab` are both invisible CSS.
-3. **600 at rest, not 400.** Weight is normally the *selected* channel — but a
-   weight change reflows the row, and a tab row that resizes when you select a tab
-   is worse than one that never changes weight. So the tab is 600 throughout and
-   selection is carried by **ink (4.53:1 → 18.42:1) plus the underline**, on two
-   axes, neither of which moves a pixel. Matches what `.csTab` already ships.
+1. **A pseudo-element, not `border-bottom`.** Measured: the shipped `.tvTab.on`
+   draws a 2px accent bottom border on a `border-radius:14px` box, so the
+   "underline" is a swoosh that tapers out 14px before each end. It also has to
+   sit under the **word**, not under the padding — which is why it hangs off the
+   label rather than off the button. Insetting a rule on the button to `--ctl-pad`
+   was the original answer and it only works when the tab is shrink-to-fit; in an
+   equal-flex strip (`flex:1 1 0`, the common case for a segmented inspector) the
+   box is 60px and the word is 33–45px, so the inset rule is 15–27px too wide.
+2. **The selected tab has no ground — but the hovered one does.** See §3.4.1.
+   This also retires the old *"`border-radius:0` at rest — a tab has no ground, so
+   it has no corners"*. It has one on hover now, so it needs a shape: `--r-md`,
+   the same radius as every other free-standing control, applied at rest so the
+   pill does not appear to change form as it fades in.
+3. **400 at rest, 600 when selected.** See §3.4.2. This reverses the previous
+   "600 throughout", on a measurement.
 4. **`font-size: inherit`.** `.csTab` is 19.2px and `.tvTab` is 15px because one is
    a section switcher and the other an in-content toggle. That is a decision about
    the **row**: `.csTabs{ font-size: var(--fs-tab) }`, and the tab inherits. One
    escape hatch, owned by the container; the control rules stay byte-identical.
+   Unchanged, and still right.
 
 **Target:** the tab is a `.ctl`, so it is 44px tall. `.csTab` at 35.5px today is
-fixed by joining the base, not by a special case.
+fixed by joining the base, not by a special case. Unchanged.
+
+#### 3.4.1 Why selection cannot be a fill — the operative reason, replacing the old one
+
+**The reason this section used to give is obsolete.** It said *"a blue underline,
+never a blue fill (Jayden's explicit correction)"*. Blue is dead — `--accent` is
+`#121212` — so an argument about blue fills no longer decides anything, and a
+reader who noticed that would reasonably conclude the rule had lapsed.
+
+**The reason it still holds is a collision.** With the nav hover state Jayden
+asked for now landed, hover is, measured:
+
+| | rest | hover |
+|---|---|---|
+| ground | none | **`#F1F1F1`** |
+| ink | `#525252` | **`#121212`** |
+| weight | 400 | **600** |
+| icon stroke | 1.5px | 2px |
+
+`--accent-wash` was repointed to `#F1F1F1` so the site has **one interaction
+ground**, identical to `--nav-hover-bg` (`header.css:249`, `var(--c75)`).
+
+So **grey fill + ink + 600 is the site's signature for *hover*.** A selected tab
+wearing a grey fill with 600 ink uses the same three signals, which means
+**hovering an unselected tab makes it look selected**, and a selected tab is
+indistinguishable from a hovered one. That is a usability defect, not a
+stylistic preference.
+
+**`header.css`'s lit nav pill is a real precedent and it is not this case.** It
+is legitimate there because the lit item's hover is a deliberate no-op
+(`:not([aria-current])`), so nothing in that bar can be hovered into the selected
+appearance. A tab strip has no such protection unless it is written in — which is
+what `:hover:not([aria-selected="true"])` above is for. **Any control that shows
+selection AND accepts hover needs that guard or a channel hover does not use.**
+
+#### 3.4.2 Why 600-at-rest is retired — measured, on the case it was written for
+
+The old rule was *"600 at rest, not 400 — a weight change reflows the row, and a
+tab row that resizes when you select a tab is worse than one that never changes
+weight."* The premise is false for the layout tab strips actually use.
+
+Measured on `gradientlab.html`'s five-tab inspector strip at 1440 — tab
+`getBoundingClientRect().x`, first with the leftmost tab selected, then with the
+rightmost:
+
+| | Look | Nodes | Flow | Optics | Stage |
+|---|---|---|---|---|---|
+| Look selected | 976 | 1042.4 | 1108.8 | 1175.2 | 1241.6 |
+| Stage selected | 976 | 1042.4 | 1108.8 | 1175.2 | 1241.6 |
+
+**Zero movement**, because `flex:1 1 0` gives every tab an equal share of the row
+regardless of what it contains. The word inside changes width (`Optics` renders
+44.8px at 15/400 and 46.3px at 15/600) and the box does not.
+
+So the weight channel is free, and it is worth spending: 400 against 600 is a
+contrast a visitor reads instantly, and §2.2 lists `font-weight` as one of the
+four properties a kind may vary.
+
+**The condition, stated so it is not over-generalised:** 600-at-rest is still the
+right answer for a **shrink-to-fit** tab row, where each tab is as wide as its
+own label and a weight change really does move its neighbours. Use 400/600 when
+the row distributes its width (`flex:1 1 0`, a grid with equal tracks, or fixed
+widths); use 600 throughout when it does not. Either way the row must not reflow
+on selection — that is the rule, and the weight was only ever a proxy for it.
+
+#### Why this section changed
+
+Written 2026-08-03 against `.csTab` and `.tvTab`, both shrink-to-fit rows on a
+site whose accent was blue. Both premises expired within a day: the accent became
+ink, and the first control actually built to this section was an equal-flex
+segmented strip in a builder inspector. The `.ctl--tab` rules above are now what
+`gradientlab.html` ships. `headmaker.html` has no tab strip today — when a second
+builder grows one, this is the section it takes, and neither builder should be
+carrying its own answer.
 
 ### 3.5 Chip / marker — `.ctl--chip`
 
