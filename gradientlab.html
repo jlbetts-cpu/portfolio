@@ -12,9 +12,14 @@
      See .superpowers/sdd/2026-08-02-play-page/play-tokens-report.md §1. -->
 <link rel="stylesheet" href="tokens.css">
 <style>
-  @font-face{font-family:"Instrument Sans";src:url("fonts/instrument-sans-latin-400-normal.woff2") format("woff2");font-weight:400;font-display:swap}
-  @font-face{font-family:"Instrument Sans";src:url("fonts/instrument-sans-latin-600-normal.woff2") format("woff2");font-weight:600;font-display:swap}
-
+  /* THE @font-face PAIR THAT USED TO SIT HERE IS GONE, and deleting it is the
+     point rather than a tidy-up. tokens.css:62 now declares both weights for the
+     whole site precisely because six per-page copies existed and two pages never
+     got one -- about.html and play.html rendered SF Pro. This was the seventh
+     copy, and it survived that pass only because this file was being rewritten
+     at the same time. Verified after removal with document.fonts.check() and by
+     measuring a 600/40px string against a forced system fallback: 626.77 vs
+     595.46, so the webfont is what is actually rendering, not just declared. */
   /* ══ PAGE-LOCAL CONSTANTS ════════════════════════════════════════════════
      THREE NEW NAMES, NOT ONE REBINDING. The block that used to sit here bound
      --paper/--ink/--sub/--hair/--panel to Lab-only near-misses of tokens that
