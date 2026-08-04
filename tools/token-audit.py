@@ -1059,7 +1059,13 @@ class Audit:
     #       to be readable, not decoration on hover.
     SANCTIONED_HOVER_FILL = re.compile(
         r'var\(\s*--(?:ctl-)?accent-press|var\(\s*--nav-(?:hover|active)-bg|'
+        r'var\(\s*--accent-wash|'
         r'var\(\s*--mat-', re.I)
+    # --accent-wash is the SAME sanctioned case as --nav-hover-bg: both resolve to
+    # #F1F1F1, the site's one interaction ground. --nav-hover-bg is declared inside
+    # .jbNav and does not resolve outside the bar, so any control outside the header
+    # that wants the hover pill must reach for --accent-wash. Omitting it here made
+    # the Gradient Maker's tab hover report as an unsanctioned fill.
 
     def check_hover_fill(self):
         for fname, decls in self.decls.items():
