@@ -122,9 +122,23 @@
     The gate is the SAME gate: `on` and `few` come straight out of battleGate, so a card
     can never offer a game the menu would have refused, and there is no second definition
     of "can you play yet" to drift. ---- */
+ var _hubWas=null;
  function syncHub(on,few){
   var hub=document.getElementById("pHub");if(!hub)return;
-  document.body.classList.toggle("pHubOn",!on&&!teamOpen);
+  // A game starting is the one thing that can outrank the team screen: the tournament and
+  // the corner launchers can both begin a match without going through startWithTeams(), and
+  // a picker left floating over a live pitch is a stuck screen with no way out (its Back
+  // returns to a hub that is itself hidden). Whoever starts a game wins the stage.
+  if(on&&teamOpen&&window.__hmTeamScreen){try{window.__hmTeamScreen.close();}catch(_){}}
+  var want=!on&&!teamOpen;
+  document.body.classList.toggle("pHubOn",want);
+  /* .pHubOn changes .hero's height on phones (play.html's style block), and the engine
+     derives its whole floor plane from hero.clientHeight -- it re-runs survey() on `resize`
+     and on nothing else (play-engine.js:434). So a class that moves the stage has to say
+     so, or the heads keep standing on the old floor line until the next real resize. Only
+     on an actual change, and only after layout has settled. */
+  if(_hubWas!==want){_hubWas=want;
+   requestAnimationFrame(function(){try{dispatchEvent(new Event("resize"));}catch(_){}});}
   // aria-hidden as well as the CSS fade: a visibility:hidden subtree is already out of the
   // a11y tree, but the fade holds visibility for 360ms and a screen reader must not read a
   // menu that is on its way out.
@@ -133,19 +147,86 @@
    var el=document.getElementById(p[0]);if(!el)return;
    el.setAttribute("aria-disabled",p[1]?"true":"false");});
   renderCrowd();}
- /* The Create-head card's face is the crowd itself (research §5.2.5) -- four thumbnails
-    and a count, not an icon. This is also the round trip that argues for putting the maker
-    in Play at all: make a head, come back, and it is already standing on the planet. */
+ /* ---- THE CROWD STRIP. Jayden: "it should be easy to add placeholder heads and remove
+    heads and that nature." Three jobs in one row: show who is on the planet, remove one,
+    add a free one.
+
+    THE TILE IS TWO ROWS, and that is carried from index.html:1606 rather than reinvented,
+    because the shape of it is the fix from the mobile audit: the remove button used to sit
+    ON the thumbnail it deletes, so a thumb aimed at a head could destroy it. Here the head
+    and its x are separate grid rows and the x's 44px target grows downward (play.html's
+    style block). Its accessible name says WHICH head it removes.
+
+    Every mutation goes through the same three steps the home page uses, in the same order:
+    write hmCompanions, keep hmCompanion pointing at something real, and tell the LIVE
+    engine -- __hmKill(cut) to take a head off the planet, __hmSpawnOne(data,slot) to put
+    one on. Without that third step the storage and the scene disagree until a reload,
+    which is exactly the bug that makes a roster control feel broken. ---- */
  var _crowdSig="";
+ function writeRoster(arr){
+  try{localStorage.setItem("hmCompanions",JSON.stringify(arr));_hcVer++;
+   if(arr.length)localStorage.setItem("hmCompanion",JSON.stringify(arr[arr.length-1]));
+   else localStorage.removeItem("hmCompanion");}catch(_){}
+  _bgLast="";battleGate();}   // clear the gate's signature so the very next tick repaints, rather than 400ms later
  function renderCrowd(){
   var box=document.getElementById("pCrowd");if(!box)return;
   var hs=readAll(),i,sig=hs.length+"|"+hs.map(function(h){return h.cut.length;}).join(",");
   if(sig===_crowdSig)return;_crowdSig=sig;
   box.innerHTML="";
-  for(i=0;i<hs.length&&i<4;i++){var im=document.createElement("img");im.src=hs[i].cut;im.alt="";box.appendChild(im);}
+  hs.forEach(function(h,idx){
+   var it=document.createElement("span");it.className="mhItem";
+   var im=document.createElement("img");im.src=h.cut;im.alt="";it.appendChild(im);
+   var xb=document.createElement("button");xb.className="mhX";xb.type="button";
+   xb.setAttribute("aria-label","Remove head "+(idx+1)+" from the planet");xb.textContent="Remove";
+   xb.addEventListener("click",function(ev){ev.stopPropagation();ev.preventDefault();
+    var cur=readAll();cur.splice(idx,1);   // by position: exactly the head you pointed at
+    writeRoster(cur);
+    try{if(window.__hmKill)window.__hmKill(h.cut);}catch(_){}
+    _crowdSig="";renderCrowd();});
+   it.appendChild(xb);box.appendChild(it);});
+  // ADD AN EGGHEAD -- the zero-effort way to fill an empty planet, and the only control
+  // here: adding YOUR head is the "Add your head" card, and one command gets one label in
+  // one place. Disabled rather than hidden at the cap, so the cap is visible before it bites.
+  var add=document.createElement("button");add.className="pAdd";add.type="button";
+  add.setAttribute("aria-label","Add an egghead — a placeholder head in a fresh colour");
+  add.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 14.083c0 4.154 -2.966 6.74 -7 6.917c-4.2 0 -7 -2.763 -7 -6.917c0 -5.538 3.5 -11.09 7 -11.083c3.5 .007 7 5.545 7 11.083"/></svg>Add an egghead';
+  if(hs.length>=8)add.setAttribute("aria-disabled","true");
+  add.addEventListener("click",function(ev){ev.stopPropagation();addEgghead();});
+  box.appendChild(add);
   var n=document.createElement("span");n.className="pCrowdN";
-  n.textContent=hs.length?(hs.length+" of 8"):"No heads yet";
+  n.textContent=hs.length?(hs.length+" of 8 on the planet"):"Nobody here yet";
   box.appendChild(n);}
+
+ /* The egg, dyed a fresh colour each time. Ported from index.html:1654 with one
+    simplification: play.html already loads egghead-seed.js as a <script src>, so
+    window.__EGGHEAD is there synchronously and the lazy-fetch dance home needs is gone.
+    multiply keeps every fold of the egg's own shading; destination-in clips the flat dye
+    back to its silhouette. The imperceptible eye nudge is load-bearing -- readAll()
+    de-dupes on marks+eyes as well as on the image, so two eggs with identical geometry
+    would collapse into one head. */
+ var _eggBag=[];
+ var EGG_COLORS=["#E8734A","#E0A32E","#3FA99A","#4E86C7","#8E6FC7","#D45D86","#5FA855","#C9552F","#2E9BB0","#B07CC6"];
+ function nextEggColor(){if(!_eggBag.length){_eggBag=EGG_COLORS.slice();for(var i=_eggBag.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=_eggBag[i];_eggBag[i]=_eggBag[j];_eggBag[j]=t;}}return _eggBag.pop();}
+ function tintEgg(cut,color,cb){var img=new Image();
+  img.onload=function(){try{
+   var w=img.naturalWidth||500,h=img.naturalHeight||600,c=document.createElement("canvas");c.width=w;c.height=h;var g=c.getContext("2d");
+   g.drawImage(img,0,0,w,h);
+   g.globalCompositeOperation="multiply";g.fillStyle=color;g.fillRect(0,0,w,h);
+   g.globalCompositeOperation="destination-in";g.drawImage(img,0,0,w,h);
+   g.globalCompositeOperation="source-over";
+   var out=c.toDataURL("image/webp",0.9);if(out.indexOf("data:image/webp")!==0)out=c.toDataURL("image/png");
+   cb(out);}catch(_){cb(cut);}};
+  img.onerror=function(){cb(cut);};img.src=cut;}
+ function addEgghead(){
+  var EGG=window.__EGGHEAD;if(!EGG||!EGG.cut)return;
+  if(readAll().length>=8)return;                      // the planet caps at eight, like the saved heads
+  tintEgg(EGG.cut,nextEggColor(),function(cut){
+   var eyes=(EGG.eyes||[]).map(function(e){var o={};for(var k in e)o[k]=e[k];return o;});
+   if(eyes[0])eyes[0].x+=(Math.random()-0.5)*0.0007;
+   var data={cut:cut,eyes:eyes,marks:EGG.marks};
+   var arr=readAll();arr.push(data);writeRoster(arr);
+   try{if(window.__hmSpawnOne)window.__hmSpawnOne(data,arr.length-1);}catch(_){}   // onto the planet now, not on the next reload
+   _crowdSig="";renderCrowd();});}
 
  battleGate();setInterval(battleGate,400);
  function closeMenuBar(){var mb=document.getElementById("moodbar");if(mb)mb.classList.remove("open");var mbt=document.getElementById("moodBtn");if(mbt)mbt.setAttribute("aria-expanded","false");}
@@ -249,6 +330,19 @@
    var hs=heads(),n=hs.length;tray.innerHTML="";
    var wrap=document.createElement("div");wrap.className="pTeamIn";tray.appendChild(wrap);
    var hd=document.createElement("div");hd.className="pTeamBar";
+   /* BACK LEADS. Jayden: "why is the back button on games on the right side? that's a bit
+      confusing." He is right and the rule is already the site's own -- on the case studies
+      the escape takes the LEADING slot, where the logo otherwise sits. It had been parked
+      beside Shuffle purely because both are secondary buttons, which is a grouping argument,
+      not a meaning one: leaving and shuffling are opposite kinds of act and the leading slot
+      is where a visitor looks to get out. (Checked the header while I was here: play.html's
+      bar is logo / Work / About / Play / Contact, with no Back control at all, and the
+      envelope on the right is Contact's own icon with its label hidden at narrow widths.
+      This button was the only back-looking thing on the page.) */
+   var cl=document.createElement("button");cl.className="pBtn pBtnBack";cl.type="button";cl.setAttribute("aria-label","Back to the games menu");
+   cl.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="M5 12l6 6"/><path d="M5 12l6 -6"/></svg>Back';
+   cl.addEventListener("click",function(ev){ev.stopPropagation();closeTray();});
+   hd.appendChild(cl);
    var ti=document.createElement("h2");ti.className="pTeamTitle";ti.textContent=(mode==="lava"?"Lava teams":"Pick sides");hd.appendChild(ti);
    var hb=document.createElement("div");hb.className="pTeamActs";
    /* Shuffle earns a verb at this size. Randomising the sides is half the fun of the
@@ -256,10 +350,7 @@
    var shuf=document.createElement("button");shuf.className="pBtn";shuf.type="button";shuf.setAttribute("aria-label","Shuffle the sides");
    shuf.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 3h5v5"/><path d="M4 20 21 3"/><path d="M21 16v5h-5"/><path d="M15 15l6 6"/><path d="M4 4l5 5"/></svg>Shuffle';
    shuf.addEventListener("click",function(ev){ev.stopPropagation();var a=shuffle(balanced(n));sel={};a.forEach(function(t,i){sel[i]=t;});sel[9001]=(Math.random()<0.5?1:2);syncGlobal();applyPreview();renderTray();});
-   var cl=document.createElement("button");cl.className="pBtn";cl.type="button";cl.setAttribute("aria-label","Back to the games menu");
-   cl.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="M5 12l6 6"/><path d="M5 12l6 -6"/></svg>Back';
-   cl.addEventListener("click",function(ev){ev.stopPropagation();closeTray();});
-   hb.appendChild(shuf);hb.appendChild(cl);hd.appendChild(hb);wrap.appendChild(hd);
+   hb.appendChild(shuf);hd.appendChild(hb);wrap.appendChild(hd);
    var cols=document.createElement("div");cols.className="pTeamCols";colEls={};
    [1,2].forEach(function(tm){var col=document.createElement("div");col.className="pTeamCol "+(tm===1?"red":"blue");colEls[tm]=col;
     var ch=document.createElement("div");ch.className="pTeamColHdr";
