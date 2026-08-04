@@ -136,6 +136,20 @@
     a hover because it crosses real distance, and erring soft after "the
     animation opening social media is too abrupt". */
  --hover-out-dur:240ms;--nav-slide-dur:280ms;
+
+ /* 16 - HEADER V2 ROUND 10. Three names for geometry the round needed and the
+    ladder did not have. All three are 4px-grid values that were already being
+    written as literals somewhere.
+    --sp-36 is the ink box of a secondary control -- one rung under the bar's
+    own 38px nav item, which is the header's declared one-off. The mood dock's
+    buttons use it; nothing in the round writes a raw height.
+    --menu-w is the width a disclosure panel opens to. Contact's socials and
+    Play's head roster are the same panel and must be the same width or the two
+    ends of the bar disagree; 216px is the widest of the two measured contents
+    (the roster grid at two thumbnails per row) rounded to the grid.
+    --menu-gap is the distance from the bar's underside to the panel. It was
+    --sp-10 written inline in two files. */
+ --sp-36:36px;--menu-w:216px;--menu-gap:10px;
 }
 
 /* ===========================================================================

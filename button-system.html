@@ -1,0 +1,973 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Control system — Jayden Betts</title>
+<meta name="robots" content="noindex">
+<link rel="stylesheet" href="tokens.css">
+<style>
+/* ═══════════════════════════════════════════════════════════════════════════
+   THE CONTROL SYSTEM — the whole proposal, in one file, with nothing else in it.
+   Spec: docs/superpowers/specs/2026-08-03-control-system.md
+   Everything above the "PAGE CHROME" divider is the system as it would ship.
+   Everything below it is this page's own furniture and ships nowhere.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── §10 THE TOKEN BLOCK ──────────────────────────────────────────────────── */
+:root{
+  --ctl-accent      : oklch(52% 0.18 262);
+  --ctl-accent-press: oklch(44% 0.16 262);
+  --ctl-accent-wash : oklch(94.7% 0.018 262);
+
+  --ctl-h     : var(--tap-min);
+  --ctl-h-sm  : 36px;
+  --ctl-pad   : var(--sp-16);
+  --ctl-pad-sm: var(--sp-12);
+  --ctl-gap   : var(--sp-8);
+  --ctl-gap-sm: var(--sp-6);
+  --ctl-r     : var(--r-md);
+
+  --ctl-fs        : var(--fs-small);
+  --ctl-fs-sm     : var(--fs-nav);
+  --ctl-ink       : var(--c700);
+  --ctl-ink-strong: var(--c950);
+  --ctl-ink-mute  : var(--c500);
+  --ctl-disabled-o: .38;
+
+  --dur-press    : var(--press-dur);
+  --dur-state    : var(--ease-out-dur);
+  --dur-state-out: 240ms;
+  --dur-intent   : 120ms;
+
+  --gap-item : var(--sp-8);
+  --gap-group: var(--sp-16);
+  --gap-band : var(--sp-24);
+}
+@supports not (color:oklch(50% .1 200)){
+  :root{--ctl-accent:#2961CE;--ctl-accent-press:#1B4BA9;--ctl-accent-wash:#E7EEFA}
+}
+
+/* ── §2.1 THE BASE ────────────────────────────────────────────────────────── */
+.ctl{
+  display:inline-flex; align-items:center; justify-content:center;
+  box-sizing:border-box;
+  min-height:var(--ctl-h);
+  padding-block:0;
+  padding-inline:var(--ctl-pad);
+  gap:var(--ctl-gap);
+  border:0;
+  border-radius:var(--ctl-r); corner-shape:var(--corner);
+  background:none; box-shadow:none;
+
+  font-family:var(--sans); font-weight:400; font-size:var(--ctl-fs);
+  line-height:var(--lh-flat); letter-spacing:var(--tr-body);
+  color:var(--ctl-ink);
+  white-space:nowrap; text-decoration:none;
+
+  position:relative; cursor:pointer; -webkit-tap-highlight-color:transparent;
+  filter:none;
+
+  transition-property:color, background-color, box-shadow, text-decoration-color, transform;
+  transition-timing-function:var(--ease-out);
+  transition-duration:var(--dur-state-out);      /* the hover-OUT */
+}
+.ctl .gIco{width:var(--ico-md);height:var(--ico-md);flex:0 0 var(--ico-md)}
+
+.ctl:hover, .ctl:focus-visible,
+.ctl[aria-selected="true"], .ctl[aria-current],
+.ctl[aria-expanded="true"]      { transition-duration:var(--dur-state) }   /* the IN */
+.ctl:active                     { transition-duration:var(--dur-press) }
+
+.ctl:hover                      { color:var(--ctl-ink-strong) }
+.ctl:active                     { transform:scale(var(--press-scale)) }
+.ctl:focus-visible              { outline:var(--focus-w) solid var(--ctl-ink-strong);
+                                  outline-offset:var(--sp-2) }
+.ctl:focus:not(:focus-visible)  { outline:none }
+.ctl[disabled],
+.ctl[aria-disabled="true"]      { opacity:var(--ctl-disabled-o); cursor:default }
+.ctl[disabled]:hover            { color:var(--ctl-ink) }
+.ctl[disabled]:active           { transform:none }
+
+/* ── §4 MODIFIERS — geometry only ─────────────────────────────────────────── */
+.ctl.is-sm   { min-height:var(--ctl-h-sm); padding-inline:var(--ctl-pad-sm);
+               gap:var(--ctl-gap-sm); font-size:var(--ctl-fs-sm); --ico-md:var(--ico-sm) }
+.ctl.is-icon { padding-inline:0; width:var(--ctl-h); min-width:var(--ctl-h) }
+.ctl.is-sm.is-icon{ width:var(--ctl-h-sm); min-width:var(--ctl-h-sm) }
+.ctl.is-block{ display:flex; width:100% }
+.ctl.is-row  { display:flex; width:100%; justify-content:flex-start; text-align:left }
+
+.ctl.is-sm::after{
+  content:""; position:absolute; top:50%; left:0; right:0;
+  height:var(--tap-min); transform:translateY(-50%);
+}
+.ctl.is-sm.is-icon::after{
+  left:50%; right:auto; width:var(--tap-min); transform:translate(-50%,-50%);
+}
+
+/* ── §3.1 PRIMARY ─────────────────────────────────────────────────────────── */
+.ctl--primary                       { background:var(--ctl-accent); color:var(--c50) }
+.ctl--primary:hover,
+.ctl--primary:active,
+.ctl--primary.fx-hover              { background:var(--ctl-accent-press); color:var(--c50) }
+.ctl--primary[disabled]:hover       { background:var(--ctl-accent) }
+
+/* ── §3.2 SECONDARY ───────────────────────────────────────────────────────── */
+.ctl--secondary                     { box-shadow:var(--rim-1) }
+.ctl--secondary:hover,
+.ctl--secondary:active,
+.ctl--secondary.fx-hover            { box-shadow:var(--rim-2); color:var(--ctl-ink-strong) }
+.ctl--secondary[disabled]:hover     { box-shadow:var(--rim-1); color:var(--ctl-ink) }
+.ctl--secondary.is-float            { background:var(--mat-3-solid) }
+
+/* the ink ground — five custom properties, no second component */
+.ctl[data-surface="ink"]            { --ctl-ink:var(--i700); --ctl-ink-strong:var(--c50);
+                                      --ctl-ink-mute:var(--i700) }
+.ctl--secondary[data-surface="ink"] { box-shadow:var(--rim-i1) }
+.ctl--secondary[data-surface="ink"]:hover,
+.ctl--secondary[data-surface="ink"].fx-hover { box-shadow:var(--rim-i2) }
+.ctl[data-surface="ink"]:focus-visible,
+.ctl[data-surface="ink"].fx-focus   { outline-color:var(--c50) }
+
+/* ── §3.3 QUIET ───────────────────────────────────────────────────────────── */
+/* nothing to declare — Quiet IS the base. That is the point. */
+.ctl--quiet.is-inline{
+  display:inline; min-height:0; padding-inline:0; white-space:normal;
+  font-weight:600; font-size:inherit; color:var(--ctl-ink-strong);
+  text-decoration:underline; text-decoration-thickness:2px;
+  text-underline-offset:3px; text-decoration-color:var(--ctl-ink-mute);
+  padding-block:var(--sp-8); margin-block:calc(var(--sp-8) * -1);
+}
+.ctl--quiet.is-inline:hover, .ctl--quiet.is-inline:focus-visible,
+.ctl--quiet.is-inline.fx-hover { color:var(--ctl-accent); text-decoration-color:currentColor }
+.ctl--quiet.is-inline:active   { color:var(--ctl-accent-press); text-decoration-color:currentColor }
+
+/* ── §3.4 TAB ─────────────────────────────────────────────────────────────── */
+.ctl--tab{ border-radius:0; font-size:inherit; font-weight:600; color:var(--ctl-ink-mute) }
+.ctl--tab::before{
+  content:""; position:absolute; left:var(--ctl-pad); right:var(--ctl-pad); bottom:0;
+  height:var(--focus-w); border-radius:var(--r-hair);
+  background:var(--ctl-accent); opacity:0;
+  transition:opacity var(--dur-state) var(--ease-out);
+}
+.ctl--tab:hover,
+.ctl--tab.fx-hover                          { color:var(--ctl-ink-strong) }
+.ctl--tab[aria-selected="true"]             { color:var(--ctl-ink-strong) }
+.ctl--tab[aria-selected="true"]::before     { opacity:1 }
+.ctl--tab:focus-visible, .ctl--tab.fx-focus { border-radius:var(--r-xs) }
+
+/* ── §3.5 CHIP / MARKER ───────────────────────────────────────────────────── */
+.ctl--chip{
+  min-height:var(--sp-24); padding-inline:0; border-radius:0;
+  background:none; box-shadow:none;
+  font-size:var(--fs-label); font-weight:600; color:var(--ctl-ink);
+  letter-spacing:var(--tr-flat); cursor:default;
+}
+.ctl--chip:hover                { color:var(--ctl-ink) }
+.ctl--chip[data-state="on"]     { color:var(--ctl-ink-strong) }
+.ctl--chip.is-onmedia{
+  background:var(--wash-i1); border-radius:var(--r-pill);
+  padding-inline:var(--sp-10); color:var(--c50);
+  text-transform:uppercase; letter-spacing:var(--tr-caps); font-size:var(--fs-caption);
+}
+.ctl--chip.is-toggle{
+  min-height:var(--ctl-h); padding-inline:var(--ctl-pad);
+  border-radius:var(--ctl-r); box-shadow:var(--rim-1); cursor:pointer;
+}
+.ctl--chip.is-toggle:hover,
+.ctl--chip.is-toggle.fx-hover   { box-shadow:var(--rim-2); color:var(--ctl-ink-strong) }
+.ctl--chip.is-toggle[aria-pressed="true"]{ color:var(--ctl-ink-strong) }
+
+/* ── §3.6 FIELD ───────────────────────────────────────────────────────────── */
+.ctl--field{
+  background:var(--mat-3-solid); box-shadow:var(--rim-1);
+  color:var(--ctl-ink-strong); justify-content:flex-start; text-align:left;
+  cursor:text; appearance:none;
+}
+select.ctl--field{ cursor:default; padding-inline-end:var(--sp-10) }
+.ctl--field:hover, .ctl--field:focus-visible,
+.ctl--field.fx-hover            { box-shadow:var(--rim-2); color:var(--ctl-ink-strong) }
+.ctl--field::placeholder        { color:var(--ctl-ink-mute) }
+
+/* ── §6.1 SPLIT CONTROL ───────────────────────────────────────────────────── */
+.ctl.has-menu{ padding-inline-end:var(--sp-10) }
+.ctl.has-menu > .gIco-caret{
+  width:var(--ico-xs); height:var(--ico-xs); flex:0 0 var(--ico-xs);
+  margin-inline-start:calc(var(--ctl-gap-sm) - var(--ctl-gap));
+  color:var(--ctl-ink-mute);
+  transition:transform var(--dur-state) var(--ease-out),
+             color     var(--dur-state) var(--ease-out);
+}
+.ctl.has-menu:hover > .gIco-caret,
+.ctl.has-menu.fx-hover > .gIco-caret,
+.ctl.has-menu[aria-expanded="true"] > .gIco-caret   { color:inherit }
+.ctl.has-menu[aria-expanded="true"] > .gIco-caret   { transform:rotate(180deg) }
+
+/* ── §6.2 TRAVELLING INDICATOR ────────────────────────────────────────────── */
+.ctl-tabrow{
+  position:relative; display:flex; gap:var(--gap-item);
+  /* a tab row scrolls; it never wraps. A travelling indicator cannot cross a
+     line break, and a wrapped tab row has no baseline for the rule to sit on. */
+  overflow-x:auto; overflow-y:hidden; scrollbar-width:none;
+}
+.ctl-tabrow::-webkit-scrollbar{ display:none }
+.ctl-tabrow > .ctl{ flex:0 0 auto }
+.ctl-tabrow__ind{
+  position:absolute; bottom:0; left:0;
+  width:100px; height:var(--focus-w); border-radius:var(--r-hair);
+  background:var(--ctl-accent);
+  transform-origin:left center;
+  transform:translateX(var(--ind-x,0)) scaleX(var(--ind-s,0));
+  transition:transform var(--sp-settle-dur) var(--sp-settle);
+  pointer-events:none;
+}
+.ctl-tabrow:not(.ready) .ctl-tabrow__ind      { transition:none }
+.ctl-tabrow.has-indicator .ctl--tab::before   { display:none }
+
+/* ── §6.3 MENU ────────────────────────────────────────────────────────────── */
+.ctl-menu{
+  background:var(--mat-3-solid); box-shadow:var(--rim-2), var(--sh-2);
+  border-radius:var(--r-lg); corner-shape:var(--corner);
+  padding:var(--sp-8); min-width:196px;
+  display:flex; flex-direction:column; gap:0;
+}
+.ctl-menu .ctl{ border-radius:var(--r-md) }
+
+/* ── §5.6 REDUCED MOTION — one rule ───────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce){
+  .ctl, .ctl::before, .ctl::after,
+  .ctl-menu, .ctl-tabrow__ind{
+    transition-duration:1ms !important;
+    animation-duration:1ms !important;
+    animation-iteration-count:1 !important;
+  }
+  .ctl:active{ transform:none }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   PAGE CHROME — this demo's own furniture. Ships nowhere.
+   ═══════════════════════════════════════════════════════════════════════════ */
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--c50); color:var(--c950);
+  font-family:var(--sans); font-size:var(--fs-body); line-height:var(--lh-body);
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1120px;margin:0 auto;padding:var(--sp-32-64) var(--sp-16-40) 120px}
+h1{font-size:var(--fs-pagehead);line-height:var(--lh-tight);letter-spacing:var(--tr-head);
+   font-weight:600;margin:0 0 var(--sp-8)}
+.sub{margin:0 0 var(--sp-8);color:var(--c700);font-size:var(--fs-lead);max-width:70ch}
+.subq{margin:0 0 var(--sp-32);color:var(--c500);font-size:var(--fs-small);max-width:70ch;
+      border-left:2px solid var(--c100);padding-left:var(--sp-12)}
+h2{font-size:var(--fs-h3);line-height:1.2;letter-spacing:var(--tr-sub);font-weight:600;
+   margin:var(--sp-56) 0 var(--sp-6);padding-top:var(--sp-24);border-top:1px solid var(--c100)}
+h2 .num{color:var(--c500);font-weight:400;margin-right:.5em}
+h3{font-size:var(--fs-h5);font-weight:600;letter-spacing:var(--tr-title);margin:var(--sp-32) 0 var(--sp-6)}
+.note{margin:0 0 var(--sp-16);color:var(--c700);font-size:var(--fs-small);max-width:76ch}
+.note code,.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.92em}
+.note code{background:var(--c75);padding:1px 5px;border-radius:var(--r-hair)}
+
+/* the state grid */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));
+      gap:var(--sp-24) var(--sp-16);margin:var(--sp-16) 0 0}
+.cell{display:flex;flex-direction:column;gap:var(--sp-8);min-width:0}
+.cellHd{font-size:var(--fs-micro);font-weight:600;letter-spacing:var(--tr-caps);
+        text-transform:uppercase;color:var(--c500)}
+.stage{display:flex;align-items:center;justify-content:flex-start;min-height:60px;
+       padding:var(--sp-8);border-radius:var(--r-sm);background:var(--c75)}
+.stage.ink{background:#1c1c1c}
+.stage.media{background:linear-gradient(120deg,#3b5f8a,#8a5f3b)}
+.vals{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:10px;line-height:1.65;
+      color:var(--c700);white-space:pre-wrap;word-break:break-word;margin:0}
+.vals b{color:var(--c950);font-weight:600}
+
+/* toolbar */
+.bar{position:sticky;top:0;z-index:50;display:flex;flex-wrap:wrap;align-items:center;
+     gap:var(--gap-item);padding:var(--sp-8) var(--sp-16-40);margin:0 calc(var(--sp-16-40) * -1) var(--sp-24);
+     background:var(--c50);box-shadow:0 1px 0 var(--c100)}
+.barLbl{font-size:var(--fs-micro);font-weight:600;letter-spacing:var(--tr-caps);
+        text-transform:uppercase;color:var(--c500);margin-right:var(--sp-8)}
+body.showHit .ctl::after{background:rgba(41,97,206,.16);outline:1px dashed rgba(41,97,206,.55)}
+body.showHit .ctl:not(.is-sm)::after{content:"";position:absolute;inset:0}
+body.slowmo{--dur-press:800ms;--dur-state:1280ms;--dur-state-out:1920ms;--sp-settle-dur:2880ms}
+
+/* tables */
+table{border-collapse:collapse;width:100%;margin:var(--sp-16) 0 0;font-size:var(--fs-small)}
+th,td{text-align:left;padding:var(--sp-8) var(--sp-12);border-bottom:1px solid var(--c100);
+      vertical-align:top}
+th{font-size:var(--fs-micro);letter-spacing:var(--tr-caps);text-transform:uppercase;color:var(--c500);font-weight:600}
+td.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px}
+.was{color:var(--c500);text-decoration:line-through}
+.now{color:var(--ctl-accent);font-weight:600}
+
+/* rhythm demo */
+.rhythm{display:flex;align-items:center;padding:var(--sp-8);background:var(--c75);
+        border-radius:var(--r-pill);width:max-content;max-width:100%;overflow-x:auto}
+.rgrp{display:flex;gap:var(--gap-item)}
+.rgap{width:var(--gap-group);flex:0 0 var(--gap-group);align-self:stretch;position:relative}
+.rgap::after{content:"";position:absolute;left:50%;top:8px;bottom:8px;width:1px;
+             background:repeating-linear-gradient(to bottom,var(--c100) 0 3px,transparent 3px 6px)}
+
+/* mobile frame */
+.frameWrap{display:flex;gap:var(--sp-24);flex-wrap:wrap;align-items:flex-start}
+iframe.phone{width:390px;height:760px;border:0;border-radius:var(--r-lg);
+             box-shadow:var(--rim-2);background:var(--c50);max-width:100%}
+.frameCap{font-size:var(--fs-small);color:var(--c700);max-width:34ch}
+
+.hint{font-size:var(--fs-micro);color:var(--c500);margin-top:var(--sp-4)}
+[hidden]{display:none!important}
+
+/* nothing on this page may scroll the body sideways */
+h1,h2,h3,.sub,.note{overflow-wrap:break-word;text-wrap:pretty}
+.vals{overflow-wrap:anywhere}
+table{display:block;overflow-x:auto}
+
+@media(max-width:560px){
+  .wrap{padding-left:var(--sp-16);padding-right:var(--sp-16)}
+  .grid{grid-template-columns:1fr;gap:var(--sp-16)}
+  .bar{margin-inline:calc(var(--sp-16) * -1);padding-inline:var(--sp-16)}
+  .stage{padding:var(--sp-8);overflow-x:auto}
+  .rhythm{width:100%}
+  iframe.phone{width:100%;height:560px}
+}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+<h1>The control system</h1>
+<p class="sub">Six kinds, five modifiers, three compositions. Two heights, two paddings,
+one radius, one curve, three durations. Every number below is resolved live from
+<span class="mono">tokens.css</span> and printed beside the control it applies to.</p>
+<p class="subq">“Buttons and such need a consistent design. Tab buttons, regular buttons,
+markers — they all look different.” · “Spacing has to be premium, and the hover animation
+has to feel premium and consistent site-wide.”</p>
+
+<div class="bar">
+  <span class="barLbl">View</span>
+  <button class="ctl ctl--secondary is-sm" id="tHit" aria-pressed="false" type="button">Show hit areas</button>
+  <button class="ctl ctl--secondary is-sm" id="tSlow" aria-pressed="false" type="button">Slow motion 8×</button>
+  <button class="ctl ctl--secondary is-sm" id="tState" aria-pressed="false" type="button">Force hover / focus</button>
+  <span class="hint" id="barHint">Hover anything to feel 160 ms in / 240 ms out.</span>
+</div>
+
+<!-- ═══ 1 · THE BASE ═══════════════════════════════════════════════════════ -->
+<h2><span class="num">1</span>The shared base</h2>
+<p class="note">Every control inherits all of this. A <b>kind</b> may vary exactly four
+properties — <code>background</code>, <code>box-shadow</code>, <code>color</code>,
+<code>font-weight</code> — and nothing else. Not height, not padding, not radius, not the
+transition, not the focus ring, not the press. <b>Height is <code>min-height</code>, never
+vertical padding</b>: that one rule collapses eight shipped paddings to two, and it is the
+direct cause of <code>7px 11px</code> in Gradient Lab.</p>
+<table id="baseTbl"><thead><tr><th>Property</th><th>Token</th><th>Resolved</th><th>Was, across the site</th></tr></thead><tbody></tbody></table>
+
+<!-- ═══ 2 · THE SIX KINDS ══════════════════════════════════════════════════ -->
+<h2><span class="num">2</span>The six kinds, in every state</h2>
+
+<h3>1 · Primary — the one action a view exists for</h3>
+<p class="note">Filled with <code>--ctl-accent</code>. <b>One per view.</b> Hover deepens the
+ground to <code>--ctl-accent-press</code> (5.59:1 → 7.86:1 white-on-blue). No border: the shipped
+<code>.workCta</code> carries a border the same colour as its own fill.</p>
+<div class="grid" data-kind="ctl--primary" data-label="Get in touch"></div>
+
+<h3>2 · Secondary — a boundary, not a fill</h3>
+<p class="note">A <code>--rim-1</code> inset hairline that becomes <code>--rim-2</code> on hover
+while the ink goes <code>--c700</code> → <code>--c950</code>. Two channels move and neither is a
+background. The rim is a <code>box-shadow</code>, so it is outside layout — which is why every
+Secondary can share one padding.</p>
+<div class="grid" data-kind="ctl--secondary" data-label="See the work"></div>
+
+<h3>3 · Quiet — no ground, no rim, no radius anyone will see</h3>
+<p class="note">The default and the largest population: 18 of the 40 classes, plus every nav
+item and menu row. There is nothing to declare — <b>Quiet is the base</b>. Hover is ink only.
+This is <span class="mono">header.css:247</span> generalised to the whole site.</p>
+<div class="grid" data-kind="ctl--quiet" data-label="Read the case"></div>
+
+<h3>4 · Tab — a blue underline, never a blue fill</h3>
+<p class="note">The underline is a <code>::before</code> bar inset to <code>--ctl-pad</code>, not a
+<code>border-bottom</code>. Measured on <span class="mono">apollo.html</span>: the shipped
+<code>.tvTab.on</code> draws a 2px bottom border on a <code>border-radius:14px</code> box, so the
+"underline" is a swoosh that tapers out 14px before each end. 600 at rest so selection never
+reflows the row; selection is carried by ink (4.53:1 → 18.42:1) plus the rule.</p>
+<div class="grid" data-kind="ctl--tab" data-label="Overview"></div>
+
+<h3>5 · Chip / marker — usually not a target at all</h3>
+<p class="note">The purest subtraction in the set. <code>.baLabel</code> today is
+<code>1px solid #E6E6E6</code> over <code>background:#FDFDFD</code> on a <code>#FDFDFD</code> page —
+an invisible box inside an invisible border — and its "after" state is a filled black pill. Ink
+and weight say it just as clearly.</p>
+<div class="grid" data-kind="ctl--chip" data-label="After"></div>
+
+<h3>6 · Field — the one kind that should look recessed</h3>
+<p class="note">In scope because a <code>select</code> at 28.5px next to a button at 44px is the
+loudest inconsistency in Gradient Lab, and a form row cannot read as one object if its halves
+sit on different ladders.</p>
+<div class="grid" data-kind="ctl--field" data-label="Sunset"></div>
+
+<!-- ═══ 3 · MODIFIERS ══════════════════════════════════════════════════════ -->
+<h2><span class="num">3</span>Modifiers — geometry only, never colour</h2>
+<p class="note">Five, and they compose. A modifier may never touch the four properties a kind
+owns. <b>Turn on “Show hit areas”</b> to see the 36px rung’s <code>::after</code> expansion.</p>
+<div class="grid" id="modGrid"></div>
+
+<h3>The compact rung: three conditions, all of them</h3>
+<p class="note"><b>1 · Container</b> — it sits inside a chrome object that is itself ≥44px.
+<b>2 · Hit area</b> — it carries the <code>::after</code> expansion to 44, applied by the modifier
+so it cannot be forgotten. <b>3 · Spacing</b> — ≥8px between adjacent expanded targets.
+Any one failing means 44px. A <code>pointer:coarse</code> query is <i>not</i> the answer: coarse
+pointers need a bigger target, not a bigger ink box, and the <code>::after</code> already gives
+44×44 on every pointer type.</p>
+<table><thead><tr><th>Evidence</th><th>Measured</th><th>Verdict</th></tr></thead><tbody>
+<tr><td class="mono">#moodBtn (index.html)</td><td>36px box, <span class="mono">::after{height:44px}</span></td><td><b>Legitimate.</b> Already the pattern. All three conditions hold.</td></tr>
+<tr><td class="mono">.mhToggle</td><td><span class="mono">min-height:36px</span>, free-standing in a menu</td><td>Condition 1 fails → <b>44px</b>.</td></tr>
+<tr><td class="mono">.miniBtn — 7px 11px</td><td>23.5px tall, neighbours 4–6px away, no expansion</td><td><b>It must grow.</b> 36px + 44 hit area + 8px gaps. <code>7px 11px</code> is the fingerprint of padding to an unnamed height.</td></tr>
+</tbody></table>
+
+<!-- ═══ 4 · MOTION ═════════════════════════════════════════════════════════ -->
+<h2><span class="num">4</span>Motion — three tiers, one curve</h2>
+<p class="note">Measured across the whole site: <b>511 transition declarations, 30 distinct
+durations, 15 distinct easings</b>. On controls specifically: 171 declarations, 10 durations,
+4 easings. Only two motion tokens are consumed today.</p>
+
+<table><thead><tr><th>Tier</th><th>Token</th><th>Duration</th><th>Curve</th><th>Chosen when what changes is…</th></tr></thead><tbody>
+<tr><td><b>Feedback</b></td><td class="mono">--dur-press</td><td class="mono">100ms</td><td class="mono">--ease-out</td><td>a <code>transform</code> the user is causing right now. The press. Only.</td></tr>
+<tr><td><b>State</b></td><td class="mono">--dur-state</td><td class="mono">160ms</td><td class="mono">--ease-out</td><td>a colour, an ink, a rim, an underline. <b>Every hover, focus and select on the site.</b></td></tr>
+<tr><td><b>State out</b></td><td class="mono">--dur-state-out</td><td class="mono">240ms</td><td class="mono">--ease-out</td><td>the same, leaving. 1.5×. The only new token in the system.</td></tr>
+<tr><td><b>Reveal</b></td><td class="mono">--sp-settle-dur</td><td class="mono">360ms</td><td class="mono">--sp-settle</td><td>a position or a size. Menus, the travelling indicator.</td></tr>
+</tbody></table>
+
+<h3>The two curves that are used side by side and are not the same curve</h3>
+<p class="note"><code>ease-out</code> is <code>cubic-bezier(0,0,.58,1)</code>. The house curve is
+<code>cubic-bezier(.2,.8,.2,1)</code>. At a quarter of the way through, the house curve has
+covered <b>77%</b> of the distance and <code>ease-out</code> has covered <b>38%</b>. In the mood
+menu today, <code>.moodItem</code> runs <code>.1s ease-out</code> and <code>.moodGo</code> — the row
+immediately below it — runs <code>160ms cubic-bezier(.2,.8,.2,1)</code>. Two adjacent rows of one
+menu, two curves, two durations.</p>
+<div id="curveWrap"></div>
+
+<h3>What a premium hover is, as rules</h3>
+<p class="note">The property set is <b>closed</b>. Five may animate on hover:
+<code>color</code> (all kinds), <code>box-shadow</code> (Secondary, Field),
+<code>background-color</code> (Primary only), <code>text-decoration-color</code>
+(<code>.is-inline</code> only), and <code>transform</code> — <b><code>:active</code> only, never
+<code>:hover</code></b>.</p>
+<table><thead><tr><th>Never on hover</th><th>Why</th><th>Where it ships today</th></tr></thead><tbody>
+<tr><td class="mono">transform</td><td>A lift implies elevation, which breaks the no-shadow rule, and it makes a row jitter as the pointer crosses it.</td><td class="mono">.btn, .miniBtn (translateY)</td></tr>
+<tr><td class="mono">opacity</td><td>Fades the whole object <i>including its label</i>, so the ink gets <b>weaker</b> on hover. Backwards.</td><td class="mono">.abTalk .82 · .hmBtn .86 · .teamStart .9</td></tr>
+<tr><td class="mono">font-weight</td><td>Reflows the label under the pointer. Weight belongs to <b>selection</b>, which does not flicker.</td><td>—</td></tr>
+<tr><td class="mono">background-color</td><td>The grey wash. Ink and rim do the work instead.</td><td class="mono">.moodItem #F1F1F1 · .tGo --c75</td></tr>
+</tbody></table>
+<p class="note"><b>The asymmetry.</b> In 160ms, out 240ms. Arriving is user-initiated and should
+feel instant; leaving is often incidental — crossing a row on the way somewhere else — and a
+slower release stops a row flickering as the cursor sweeps it. 1.5× is the smallest perceptible
+ratio that does not read as lag. <b>Turn on “Slow motion 8×”</b> and sweep across the row below.</p>
+<div class="stage" style="gap:var(--gap-item)" id="asymRow"></div>
+<p class="hint">Three Quiet controls at <code>--gap-item</code> 8px. In: 160 ms. Out: 240 ms.</p>
+
+<h3>Carve-outs — explicitly not UI motion</h3>
+<p class="note"><code>steps(2,end)</code> ×24 and <code>steps(2)</code> ×2 <b>stay verbatim</b>.
+They are the case studies’ two-frame ink cut on the artefact swap (the same language as
+<code>filter:url(#inkSm)</code>) and the companion head’s eye. Character and craft, not chrome.
+All <b>126 <code>animation:</code> declarations across 51 durations</b> — the goal sequence at
+5600ms, the champion reveal, the 22 000ms ambient loop — belong to the game and the hero, and
+forcing them onto a 3-tier UI scale would be a category error. The 500ms content entrances
+(<code>.ch</code>, <code>.csMeta</code>, <code>.reelCap</code>) keep <code>--enter-dur</code>.</p>
+
+<!-- ═══ 5 · SPACING ════════════════════════════════════════════════════════ -->
+<h2><span class="num">5</span>Spacing — the between-control rhythm</h2>
+<p class="note">One ladder, three rungs that matter, and <b>the gap between groups is exactly
+2× the gap between items, with no third value</b>. That 2:1 is what lets a bar read as groups
+without a divider — the same argument as the type spec’s 3.8:1 heading ratio, turned sideways.
+8px is a <b>floor</b>, not a preference: it is the separation two 44px targets need.</p>
+<div class="rhythm" id="rhythmRow"></div>
+<p class="hint">Left group and right group at <code>--gap-item</code> 8px within, <code>--gap-group</code> 16px between.</p>
+<table><thead><tr><th>Rung</th><th>Token</th><th>Value</th><th>Between</th></tr></thead><tbody>
+<tr><td>tight</td><td class="mono">--sp-4</td><td class="mono">4px</td><td><b>Never between two targets.</b> Glyph to glyph inside one control only.</td></tr>
+<tr><td><b>item</b></td><td class="mono">--gap-item</td><td class="mono">8px</td><td>Two adjacent controls in a group. Also the 44px-target minimum.</td></tr>
+<tr><td><b>group</b></td><td class="mono">--gap-group</td><td class="mono">16px</td><td>Two groups in one row. Exactly 2 × item.</td></tr>
+<tr><td><b>band</b></td><td class="mono">--gap-band</td><td class="mono">24px</td><td>A control row and the content above or below it.</td></tr>
+<tr><td>menu rows</td><td>—</td><td class="mono">0</td><td>Their 44px height is the separation. A gap makes a menu read as a list of buttons.</td></tr>
+</tbody></table>
+<p class="note"><b>Measured violations to fix in the same pass:</b>
+<span class="mono">header.css:396–397</span> drops the nav gap to <code>--sp-4</code> at ≤640px —
+two 44px targets 4px apart. <span class="mono">.playerBar{gap:16px}</span> uses group spacing
+between items. Gradient Lab’s panel rows sit 4–6px apart.</p>
+
+<!-- ═══ 6 · COMPOSITIONS ═══════════════════════════════════════════════════ -->
+<h2><span class="num">6</span>Compositions — built from the kinds, not new kinds</h2>
+
+<h3>The split control — a destination that also discloses</h3>
+<p class="note"><b>One element, not two.</b> A link plus a caret button is two hit areas, two
+focus stops and two hover states, and it reads as glued rather than made. The caret is an
+11px <code>--ico-xs</code> glyph inside the same anchor — one rung below the leading icon’s 18px,
+because a control with an 18px head and an 18px tail has no direction. Gap to the caret is 6px,
+not 8: the caret belongs to the <i>label</i>. Rotation is 160ms <code>--ease-out</code>,
+deliberately <b>not</b> a spring — an overshoot on an 11px glyph is a twitch, not weight.
+Open state takes the hover ink and <b>no fill</b>: open ≠ selected, and the menu is its own
+indicator.</p>
+<div class="stage" style="gap:var(--gap-item);align-items:flex-start;flex-direction:column" id="splitStage"></div>
+<p class="hint">Click to toggle. Hover-intent in <code>--dur-intent</code> 120 ms; close after <code>--dur-state-out</code> 240 ms.</p>
+
+<h3>The travelling active indicator</h3>
+<p class="note">One shared element per row. <b><code>transform</code> only</b> — never
+<code>left</code>/<code>width</code>, which re-solve layout on every frame of a 360ms move. Curve
+is <code>--sp-settle</code>, the one place a spring belongs on chrome: the indicator is an object
+with position and it should arrive rather than stop. It is <b>never the only signal</b> — the ink
+still goes <code>--c500</code> → <code>--c950</code> instantly, because mid-flight the bar marks
+neither tab.</p>
+<div class="ctl-tabrow has-indicator" id="indRow" role="tablist">
+  <span class="ctl-tabrow__ind" aria-hidden="true"></span>
+</div>
+<p class="hint" id="indHint">Click a tab. Transform-only, 360 ms <code>--sp-settle</code>; jumps under reduced motion.</p>
+
+<h3>Menu rows and nav items are the same control</h3>
+<p class="note">Same kind, same ink ramp, same 44px target, same focus ring, same 160/240ms
+hover — which is what <i>“in the same style and design system”</i> means, and it costs nothing
+because they were already the same control. <b>Exactly three permitted differences:</b>
+alignment (a menu is a vertical list; a bar is a horizontal row), width (100%), and icon size
+below 640px — the bar drops to 15px because it runs out of horizontal room, and <b>a menu does
+not</b>, because shrinking a menu’s icons makes it look like a different component from the bar
+that opened it. Desktop icon size is <code>--ico-md</code> 18px in both, which is already true
+today. Rows stack at <code>gap:0</code>.</p>
+<div class="frameWrap" style="align-items:flex-start">
+  <div class="ctl-menu" id="menuDemo"></div>
+  <p class="frameCap">The menu surface is the <b>one</b> place a shadow is permitted:
+  <code>--rim-2</code> + <code>--sh-2</code>. The no-shadow rule governs <i>resting</i> chrome;
+  the tokens spec §4.2 sanctions <code>--sh-2</code> for “a surface genuinely floating over
+  content — an open menu, a tooltip.” Rows take <code>--r-md</code> 14px:
+  <code>--r-lg</code> 20 minus the <code>--sp-8</code> inset, per the concentric rule.</p>
+</div>
+
+<!-- ═══ 7 · SURFACES ═══════════════════════════════════════════════════════ -->
+<h2><span class="num">7</span>The dark ground and the floating control</h2>
+<p class="note">Five custom properties, no second component, no second layout —
+<code>[data-surface="ink"]</code> swaps the ink ramp, the rim and the focus ring. A Secondary
+that floats over arbitrary content adds <code>background:--mat-3-solid</code>, which is a
+<i>material</i>, not a fill: the one permitted addition in the system.</p>
+<div class="grid">
+  <div class="cell"><span class="cellHd">Secondary on ink</span>
+    <div class="stage ink" id="inkStage"></div>
+    <p class="vals" id="inkVals"></p></div>
+  <div class="cell"><span class="cellHd">Secondary floating over media</span>
+    <div class="stage media" id="medStage"></div>
+    <p class="vals" id="medVals"></p></div>
+  <div class="cell"><span class="cellHd">Marker on media</span>
+    <div class="stage media" id="chipStage"></div>
+    <p class="vals" id="chipVals"></p></div>
+</div>
+
+<!-- ═══ 8 · WHAT THIS DELETES ══════════════════════════════════════════════ -->
+<h2><span class="num">8</span>What this deletes</h2>
+<table><thead><tr><th>&nbsp;</th><th>Before</th><th>After</th></tr></thead><tbody>
+<tr><td>computed paddings on one page</td><td class="was">7</td><td class="now">2</td></tr>
+<tr><td>computed heights on one page</td><td class="was">8</td><td class="now">2</td></tr>
+<tr><td>radius values across controls</td><td class="was">8</td><td class="now">1</td></tr>
+<tr><td><b>transition durations, all selectors</b></td><td class="was">30</td><td class="now">4</td></tr>
+<tr><td><b>transition durations, controls only</b></td><td class="was">10</td><td class="now">3</td></tr>
+<tr><td><b>easings, all selectors</b></td><td class="was">15</td><td class="now">2 + 2 carve-outs</td></tr>
+<tr><td><b>easings, controls only</b></td><td class="was">4</td><td class="now">1</td></tr>
+<tr><td>border treatments</td><td class="was">5</td><td class="now">1 rim, outside layout</td></tr>
+<tr><td>icon ⇄ label gaps</td><td class="was">6</td><td class="now">2</td></tr>
+<tr><td>icon sizes</td><td class="was">5</td><td class="now">2</td></tr>
+<tr><td>press idioms</td><td class="was">2</td><td class="now">1</td></tr>
+<tr><td>focus-ring colours</td><td class="was">3</td><td class="now">1</td></tr>
+<tr><td>disabled opacities</td><td class="was">2</td><td class="now">1</td></tr>
+</tbody></table>
+
+<!-- ═══ 9 · MOBILE ═════════════════════════════════════════════════════════ -->
+<h2><span class="num">9</span>390px</h2>
+<p class="note">A real 390px viewport in an iframe — headless Chrome clamps the window to 500px
+minimum, so this is the only honest way to see it. Nothing about the system changes at this
+width except that a control row wraps and the compact rung’s hit area starts doing visible work.</p>
+<div class="frameWrap">
+  <iframe class="phone" src="button-system.html?embed=1" title="Control system at 390px"></iframe>
+  <p class="frameCap">Every control keeps its 44px target. The 36px rung keeps its ink box and
+  its 44px <code>::after</code>. Between-control spacing stays at the 8px floor — it is the one
+  number that must not shrink with the viewport.</p>
+</div>
+
+</div><!-- /wrap -->
+
+<script>
+(function(){
+"use strict";
+var CS = getComputedStyle(document.documentElement);
+function tok(n){ return CS.getPropertyValue(n).trim(); }
+var EMBED = /[?&]embed=1/.test(location.search);
+if (EMBED) document.documentElement.classList.add('embed');
+/* ?hit=1 / ?slow=1 — so a static capture can show what the toggles show */
+if (/[?&]hit=1/.test(location.search))  document.body.classList.add('showHit');
+if (/[?&]slow=1/.test(location.search)) document.body.classList.add('slowmo');
+
+/* ── icons (Tabler outline, class/viewBox/path only — CSS owns the rest) ── */
+var ICO = {
+  arrow : '<svg class="gIco" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M13 18l6-6-6-6"/></svg>',
+  back  : '<svg class="gIco" viewBox="0 0 24 24"><path d="M19 12H5"/><path d="M11 6l-6 6 6 6"/></svg>',
+  play  : '<svg class="gIco" viewBox="0 0 24 24"><path d="M7 4v16l13-8z"/></svg>',
+  mail  : '<svg class="gIco" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M3 7l9 6 9-6"/></svg>',
+  user  : '<svg class="gIco" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20a8 8 0 0 1 16 0"/></svg>',
+  grid  : '<svg class="gIco" viewBox="0 0 24 24"><rect x="4" y="4" width="7" height="7"/><rect x="13" y="4" width="7" height="7"/><rect x="4" y="13" width="7" height="7"/><rect x="13" y="13" width="7" height="7"/></svg>',
+  caret : '<svg class="gIco gIco-caret" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>',
+  close : '<svg class="gIco" viewBox="0 0 24 24"><path d="M6 6l12 12"/><path d="M18 6L6 18"/></svg>',
+  up    : '<svg class="gIco" viewBox="0 0 24 24"><path d="M12 19V5"/><path d="M6 11l6-6 6 6"/></svg>',
+  gh    : '<svg class="gIco" viewBox="0 0 24 24"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.9a3.4 3.4 0 0 0-.9-2.6c3-.3 6.2-1.5 6.2-6.7A5.2 5.2 0 0 0 19.9 5a4.9 4.9 0 0 0-.1-3.6s-1.1-.4-3.7 1.4a12.6 12.6 0 0 0-6.6 0C6.9 1 5.8 1.4 5.8 1.4A4.9 4.9 0 0 0 5.7 5a5.2 5.2 0 0 0-1.4 3.6c0 5.2 3.2 6.4 6.2 6.7a3.4 3.4 0 0 0-.9 2.6V22"/></svg>',
+  li    : '<svg class="gIco" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 11v5"/><path d="M8 8v.01"/><path d="M12 16v-5"/><path d="M16 16v-3a2 2 0 0 0-4 0"/></svg>',
+  rd    : '<svg class="gIco" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 12h8"/><path d="M12 8v8"/></svg>'
+};
+/* the site-wide stroke, since this page does not load index.html's rules */
+var st = document.createElement('style');
+st.textContent = '.gIco{stroke:currentColor;fill:none;stroke-width:' + (tok('--ico-stroke')||1.8) +
+                 ';stroke-linecap:round;stroke-linejoin:round}' +
+                 '.gIco path[d^="M7 4v16"]{fill:currentColor;stroke:none}';
+document.head.appendChild(st);
+
+/* ── read the four properties a kind owns, live, off a real element ────────── */
+function readCtl(el){
+  var c = getComputedStyle(el), r = el.getBoundingClientRect();
+  return {
+    box   : Math.round(r.height) + ' × ' + Math.round(r.width) + 'px',
+    minH  : c.minHeight,
+    pad   : c.paddingTop + ' ' + c.paddingRight + ' ' + c.paddingBottom + ' ' + c.paddingLeft,
+    rad   : c.borderRadius,
+    bg    : c.backgroundColor === 'rgba(0, 0, 0, 0)' ? 'none' : c.backgroundColor,
+    rim   : c.boxShadow === 'none' ? 'none' : c.boxShadow.replace(/rgba?\([^)]*\)/g, function(m){return m.replace(/\s/g,'')}),
+    ink   : c.color,
+    fw    : c.fontWeight,
+    fs    : c.fontSize,
+    gap   : c.gap === 'normal' ? '—' : c.gap,
+    ico   : c.getPropertyValue('--ico-md').trim() || tok('--ico-md'),
+    dur   : c.transitionDuration,
+    ease  : c.transitionTimingFunction
+  };
+}
+function fmt(v){
+  return '<b>box</b>    ' + v.box +
+       '\n<b>min-h</b>  ' + v.minH +
+       '\n<b>pad</b>    ' + v.pad +
+       '\n<b>radius</b> ' + v.rad +
+       '\n<b>bg</b>     ' + v.bg +
+       '\n<b>rim</b>    ' + (v.rim.length > 46 ? v.rim.slice(0,46) + '…' : v.rim) +
+       '\n<b>ink</b>    ' + v.ink +
+       '\n<b>type</b>   ' + v.fs + ' / ' + v.fw +
+       '\n<b>gap</b>    ' + v.gap + '   <b>icon</b> ' + v.ico +
+       '\n<b>trans</b>  ' + v.dur;
+}
+
+/* ── build one control ────────────────────────────────────────────────────── */
+function mk(kind, label, opt){
+  opt = opt || {};
+  var tag = opt.tag || 'button';
+  var el = document.createElement(tag);
+  el.className = 'ctl ' + kind + (opt.mods ? ' ' + opt.mods : '');
+  if (tag === 'button') el.type = 'button';
+  if (tag === 'a') el.href = '#';
+  var inner = '';
+  if (opt.lead) inner += ICO[opt.lead];
+  if (!opt.iconOnly) inner += '<span>' + label + '</span>';
+  if (opt.iconOnly) { inner = ICO[opt.lead || 'close']; el.setAttribute('aria-label', label); }
+  if (opt.caret) inner += ICO.caret;
+  el.innerHTML = inner;
+  if (opt.attrs) for (var k in opt.attrs) el.setAttribute(k, opt.attrs[k]);
+  return el;
+}
+
+/* ── §2 the state grids ───────────────────────────────────────────────────── */
+var STATES = [
+  { key:'rest',     hd:'Rest' },
+  { key:'hover',    hd:'Hover — 160 ms in' },
+  { key:'selected', hd:'Active / selected' },
+  { key:'focus',    hd:'Focus-visible' },
+  { key:'disabled', hd:'Disabled' }
+];
+function stateAttrs(kind, key){
+  var a = {};
+  if (key === 'selected') {
+    if (kind === 'ctl--tab')  a['aria-selected'] = 'true';
+    else if (kind === 'ctl--chip') a['data-state'] = 'on';
+    else a['aria-current'] = 'true';
+  }
+  if (key === 'disabled') { a.disabled = ''; }
+  return a;
+}
+/* the forced hover/focus classes mirror the real pseudo-class declarations.
+   Injected BEFORE the grids are built, so the synchronous read below sees them. */
+var fx = document.createElement('style');
+fx.textContent =
+  '.fx-hover{color:var(--ctl-ink-strong)}' +
+  '.ctl--primary.fx-hover{background:var(--ctl-accent-press);color:var(--c50)}' +
+  '.ctl--secondary.fx-hover,.ctl--field.fx-hover,.ctl--chip.is-toggle.fx-hover{box-shadow:var(--rim-2)}' +
+  '.fx-focus{outline:var(--focus-w) solid var(--ctl-ink-strong);outline-offset:var(--sp-2)}' +
+  '.ctl--tab.fx-focus{border-radius:var(--r-xs)}' +
+  '.ctl--chip.fx-hover{color:var(--ctl-ink)}' +
+  '.ctl--secondary[data-surface="ink"].fx-hover{box-shadow:var(--rim-i2)}';
+document.head.appendChild(fx);
+
+document.querySelectorAll('.grid[data-kind]').forEach(function(g){
+  var kind = g.dataset.kind, label = g.dataset.label;
+  STATES.forEach(function(s){
+    var cell = document.createElement('div'); cell.className = 'cell';
+    var hd = document.createElement('span'); hd.className = 'cellHd'; hd.textContent = s.hd;
+    var st = document.createElement('div'); st.className = 'stage';
+    var opt = { attrs: stateAttrs(kind, s.key) };
+    if (kind === 'ctl--primary')   opt.lead = 'mail';
+    if (kind === 'ctl--secondary') opt.lead = 'arrow';
+    if (kind === 'ctl--quiet')     opt.lead = 'grid';
+    if (kind === 'ctl--field')     { opt.tag = 'select'; }
+    var el;
+    if (kind === 'ctl--field') {
+      el = document.createElement('select');
+      el.className = 'ctl ctl--field';
+      el.innerHTML = '<option>Sunset</option><option>Ember</option><option>Tide</option>';
+      if (s.key === 'disabled') el.disabled = true;
+    } else {
+      el = mk(kind, label, opt);
+    }
+    if (s.key === 'hover') el.classList.add('fx-hover');
+    if (s.key === 'focus') el.classList.add('fx-focus');
+    st.appendChild(el);
+    var v = document.createElement('p'); v.className = 'vals';
+    cell.appendChild(hd); cell.appendChild(st); cell.appendChild(v);
+    g.appendChild(cell);
+    /* synchronous, deliberately: getBoundingClientRect forces the layout we need,
+       and rAF is throttled to a crawl inside an embedded preview pane. */
+    v.innerHTML = fmt(readCtl(el));
+  });
+});
+/* ── §1 the base table ────────────────────────────────────────────────────── */
+var BASE = [
+  ['min-height',          '--ctl-h',        tok('--ctl-h'),        '20 · 22 · 32 · 36 · 38 · 40 · 44 · 46 — 8 heights on one page'],
+  ['min-height, compact', '--ctl-h-sm',     tok('--ctl-h-sm'),     'unset, or 36, or 42, or 23.5'],
+  ['padding-inline',      '--ctl-pad',      tok('--ctl-pad'),      '8 16 · 8 24 · 16 20 · 8 12 · 12 16 · 8 8 · 7 11 · 0'],
+  ['padding-block',       '—',              '0',                   'the height was made of padding — that is the whole bug'],
+  ['border-radius',       '--ctl-r',        tok('--ctl-r'),        '100px · 4px · 50% · --r-md · --r-xs · --r-2xs · 0 · unset'],
+  ['border',              '—',              '0 (rim is a box-shadow)', '1px --accent · 1px rgba(8,8,8,.16) · 1px --c100 · 0 · unset'],
+  ['icon ⇄ label',        '--ctl-gap',      tok('--ctl-gap'),      '4 · 6 · 8 · 10 · 12 · .45em'],
+  ['icon size',           '--ico-md',       tok('--ico-md'),       '11 · 12 · 13 · 15 · 16 · 18'],
+  ['font-size',           '--ctl-fs',       tok('--ctl-fs'),       '11 · 12 · 13 · 14 · 15 · 16 · 17 · 19.2'],
+  ['ink, rest',           '--ctl-ink',      tok('--ctl-ink'),      '--c500 · --c700 · --c950 · inherit'],
+  ['ink, hover',          '--ctl-ink-strong', tok('--ctl-ink-strong'), '--c950, or --accent, or a grey wash'],
+  ['focus ring',          '--focus-w' + ' / --ctl-ink-strong', tok('--focus-w') + ' solid ' + tok('--ctl-ink-strong'), '2px --c950 · 2px --accent · 2px --nav-accent — 3 colours'],
+  ['press',               '--press-scale',  'scale(' + tok('--press-scale') + ')', 'scale(.97) · translateY(1px) · nothing'],
+  ['duration, in',        '--dur-state',    tok('--dur-state'),    '.1 · .12 · .14 · .15 · .16 · .18 · .2 · .25 · .3 · .5s'],
+  ['duration, out',       '--dur-state-out', tok('--dur-state-out'), 'always identical to the in-duration'],
+  ['duration, press',     '--dur-press',    tok('--dur-press'),    'not separated from the state duration anywhere'],
+  ['easing',              '--ease-out',     tok('--ease-out'),     'cubic-bezier(.2,.8,.2,1) · ease-out · ease · linear · 11 more'],
+  ['disabled',            '--ctl-disabled-o', tok('--ctl-disabled-o'), '.28 · .38']
+];
+var tb = document.querySelector('#baseTbl tbody');
+BASE.forEach(function(r){
+  var tr = document.createElement('tr');
+  tr.innerHTML = '<td>' + r[0] + '</td><td class="mono">' + r[1] + '</td>' +
+                 '<td class="mono now">' + r[2] + '</td><td class="was">' + r[3] + '</td>';
+  tb.appendChild(tr);
+});
+
+/* ── §3 modifiers ─────────────────────────────────────────────────────────── */
+var MODS = [
+  ['Default — 44px', 'ctl--secondary', {}, 'the base. Free-standing in content is never compact.'],
+  ['.is-sm — 36px',  'ctl--secondary', {mods:'is-sm'}, '36px ink box, 44px ::after. All three conditions must hold.'],
+  ['.is-icon',       'ctl--secondary', {mods:'is-icon', iconOnly:true, lead:'up'}, '44 × 44 square. No circles: radius is a function of the box.'],
+  ['.is-sm.is-icon', 'ctl--secondary', {mods:'is-sm is-icon', iconOnly:true, lead:'close'}, '36 × 36 ink, 44 × 44 target on both axes.'],
+  ['.is-block',      'ctl--primary',   {mods:'is-block', lead:'play'}, 'full width. .teamStart is 41px today.'],
+  ['.is-row',        'ctl--quiet',     {mods:'is-row', lead:'user'}, 'a menu row. Looked like a seventh kind; it is a modifier.']
+];
+var mg = document.getElementById('modGrid');
+MODS.forEach(function(m){
+  var cell = document.createElement('div'); cell.className = 'cell';
+  var hd = document.createElement('span'); hd.className = 'cellHd'; hd.textContent = m[0];
+  var st = document.createElement('div'); st.className = 'stage';
+  var el = mk(m[1], 'Label', m[2]);
+  st.appendChild(el);
+  var v = document.createElement('p'); v.className = 'vals';
+  cell.appendChild(hd); cell.appendChild(st); cell.appendChild(v); mg.appendChild(cell);
+  var d = readCtl(el);
+  var hit = getComputedStyle(el, '::after');
+  v.innerHTML = '<b>box</b>    ' + d.box + '\n<b>pad</b>    ' + d.pad +
+                '\n<b>type</b>   ' + d.fs + ' / ' + d.fw + '   <b>icon</b> ' + d.ico +
+                '\n<b>target</b> ' + (m[2].mods && m[2].mods.indexOf('is-sm') > -1
+                    ? '::after ' + hit.height + (m[2].iconOnly ? ' × ' + hit.width : ' (full width)')
+                    : 'the box itself') +
+                '\n' + m[3];
+});
+
+/* ── §4 the curve comparison ──────────────────────────────────────────────── */
+(function(){
+  function bez(p1,p2,p3,p4,t){
+    var lo=0, hi=1, u, x;
+    for (var i=0;i<40;i++){ u=(lo+hi)/2;
+      x = 3*Math.pow(1-u,2)*u*p1 + 3*(1-u)*u*u*p3 + u*u*u;
+      if (x < t) lo = u; else hi = u; }
+    u = (lo+hi)/2;
+    return 3*Math.pow(1-u,2)*u*p2 + 3*(1-u)*u*u*p4 + u*u*u;
+  }
+  var W=560, H=170, P=26;
+  function path(c){
+    var d='';
+    for (var i=0;i<=60;i++){ var t=i/60, y=bez(c[0],c[1],c[2],c[3],t);
+      d += (i?'L':'M') + (P + t*(W-2*P)).toFixed(1) + ' ' + (H-P - y*(H-2*P)).toFixed(1); }
+    return d;
+  }
+  var house=[.2,.8,.2,1], eo=[0,0,.58,1];
+  var svg = '<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;max-width:'+W+'px;height:auto;display:block;margin:8px 0 0" aria-label="House curve versus ease-out">' +
+    '<rect x="'+P+'" y="'+P+'" width="'+(W-2*P)+'" height="'+(H-2*P)+'" fill="none" stroke="var(--c100)"/>' +
+    '<line x1="'+(P+(W-2*P)*0.25)+'" y1="'+P+'" x2="'+(P+(W-2*P)*0.25)+'" y2="'+(H-P)+'" stroke="var(--c100)" stroke-dasharray="3 3"/>' +
+    '<path d="'+path(eo)+'" fill="none" stroke="var(--c500)" stroke-width="2"/>' +
+    '<path d="'+path(house)+'" fill="none" stroke="var(--ctl-accent)" stroke-width="2"/>' +
+    '<circle cx="'+(P+(W-2*P)*0.25)+'" cy="'+(H-P-bez(.2,.8,.2,1,.25)*(H-2*P))+'" r="3.5" fill="var(--ctl-accent)"/>' +
+    '<circle cx="'+(P+(W-2*P)*0.25)+'" cy="'+(H-P-bez(0,0,.58,1,.25)*(H-2*P))+'" r="3.5" fill="var(--c500)"/>' +
+    '<text x="'+(P+(W-2*P)*0.25+8)+'" y="'+(H-P-bez(.2,.8,.2,1,.25)*(H-2*P)-8)+'" font-size="11" font-family="ui-monospace,monospace" fill="var(--ctl-accent)">.2,.8,.2,1 → 0.767</text>' +
+    '<text x="'+(P+(W-2*P)*0.25+8)+'" y="'+(H-P-bez(0,0,.58,1,.25)*(H-2*P)+14)+'" font-size="11" font-family="ui-monospace,monospace" fill="var(--c500)">ease-out → 0.378</text>' +
+    '<text x="'+P+'" y="'+(H-6)+'" font-size="10" font-family="ui-monospace,monospace" fill="var(--c500)">0</text>' +
+    '<text x="'+(P+(W-2*P)*0.25-8)+'" y="'+(H-6)+'" font-size="10" font-family="ui-monospace,monospace" fill="var(--c500)">25% of duration</text>' +
+    '<text x="'+(W-P-8)+'" y="'+(H-6)+'" font-size="10" font-family="ui-monospace,monospace" fill="var(--c500)">1</text>' +
+    '</svg>';
+  document.getElementById('curveWrap').innerHTML = svg;
+})();
+
+/* ── §4 asymmetry row ─────────────────────────────────────────────────────── */
+var ar = document.getElementById('asymRow');
+['Overview','Process','Outcome'].forEach(function(t){ ar.appendChild(mk('ctl--quiet', t, {})); });
+
+/* ── §5 rhythm ────────────────────────────────────────────────────────────── */
+var rr = document.getElementById('rhythmRow');
+var g1 = document.createElement('div'); g1.className = 'rgrp';
+g1.appendChild(mk('ctl--quiet','Back',{mods:'is-sm is-icon', iconOnly:true, lead:'back'}));
+var sp = document.createElement('div'); sp.className = 'rgap';
+var g2 = document.createElement('div'); g2.className = 'rgrp';
+['Work','About'].forEach(function(t){ g2.appendChild(mk('ctl--quiet', t, {mods:'is-sm'})); });
+g2.appendChild(mk('ctl--quiet','Play',{mods:'is-sm has-menu', lead:'play', caret:true, tag:'a'}));
+var sp2 = document.createElement('div'); sp2.className = 'rgap';
+var g3 = document.createElement('div'); g3.className = 'rgrp';
+g3.appendChild(mk('ctl--quiet','Contact',{mods:'is-sm has-menu', lead:'mail', caret:true, tag:'a'}));
+rr.appendChild(g1); rr.appendChild(sp); rr.appendChild(g2); rr.appendChild(sp2); rr.appendChild(g3);
+
+/* ── §6.1 split control ───────────────────────────────────────────────────── */
+(function(){
+  var stage = document.getElementById('splitStage');
+  var wrap = document.createElement('div');
+  wrap.style.cssText = 'position:relative;display:inline-block';
+  var btn = mk('ctl--quiet', 'Play', {mods:'has-menu', lead:'play', caret:true, tag:'a',
+                attrs:{'aria-expanded':'false','aria-haspopup':'true'}});
+  var menu = document.createElement('div');
+  menu.className = 'ctl-menu';
+  menu.style.cssText = 'position:absolute;top:calc(100% + 8px);left:0;z-index:20;display:none';
+  [['Head Maker','user'],['Marble Race','grid'],['Gradient Lab','grid']].forEach(function(r){
+    menu.appendChild(mk('ctl--quiet', r[0], {mods:'is-row', lead:r[1]}));
+  });
+  wrap.appendChild(btn); wrap.appendChild(menu); stage.appendChild(wrap);
+
+  var openT = null, closeT = null;
+  function open(){ menu.style.display='flex'; btn.setAttribute('aria-expanded','true'); }
+  function close(){ menu.style.display='none'; btn.setAttribute('aria-expanded','false'); }
+  function schedOpen(){ clearTimeout(closeT); if (btn.getAttribute('aria-expanded')==='true') return;
+    openT = setTimeout(open, parseFloat(tok('--dur-intent')) || 120); }
+  function schedClose(){ clearTimeout(openT);
+    closeT = setTimeout(close, parseFloat(tok('--dur-state-out')) || 240); }
+  wrap.addEventListener('pointerenter', schedOpen);
+  wrap.addEventListener('pointerleave', schedClose);
+  btn.addEventListener('click', function(e){ e.preventDefault();
+    btn.getAttribute('aria-expanded')==='true' ? close() : open(); });
+  btn.addEventListener('keydown', function(e){
+    if (e.key === 'ArrowDown'){ e.preventDefault(); open(); menu.querySelector('.ctl').focus(); }
+    if (e.key === 'Escape'){ close(); btn.focus(); } });
+  menu.addEventListener('keydown', function(e){ if (e.key === 'Escape'){ close(); btn.focus(); } });
+
+  var v = document.createElement('p'); v.className = 'vals'; stage.appendChild(v);
+  var c = getComputedStyle(btn), cr = btn.querySelector('.gIco-caret');
+  var cc = cr ? getComputedStyle(cr) : null;
+  v.innerHTML = '<b>control</b>   ' + c.minHeight + ' · pad ' + c.paddingLeft + ' / ' + c.paddingRight +
+    '\n<b>lead icon</b> ' + getComputedStyle(btn.querySelector('.gIco')).width +
+    '   <b>caret</b> ' + (cc ? cc.width : '—') + '  (one rung down)' +
+    '\n<b>caret gap</b> ' + tok('--ctl-gap-sm') + '   (label gap ' + tok('--ctl-gap') + ')' +
+    '\n<b>rotate</b>    180° · ' + tok('--dur-state') + ' ease-out — not a spring' +
+    '\n<b>intent</b>    open ' + tok('--dur-intent') + ' · close ' + tok('--dur-state-out') +
+    '\n<b>open ink</b>  ' + tok('--ctl-ink-strong') + ' — no fill. open ≠ selected.';
+})();
+
+/* ── §6.2 travelling indicator ────────────────────────────────────────────── */
+(function(){
+  var row = document.getElementById('indRow'), ind = row.querySelector('.ctl-tabrow__ind');
+  var tabs = ['Overview','Process','Craft','Outcome'].map(function(t,i){
+    var el = mk('ctl--tab', t, {attrs:{role:'tab','aria-selected': i===0 ? 'true':'false'}});
+    row.appendChild(el); return el;
+  });
+  function move(){
+    var sel = row.querySelector('[aria-selected="true"]'); if (!sel) return;
+    var r = sel.getBoundingClientRect(), b = row.getBoundingClientRect();
+    var pad = parseFloat(getComputedStyle(sel).paddingLeft) || 16;
+    ind.style.setProperty('--ind-x', (r.left - b.left + pad) + 'px');
+    ind.style.setProperty('--ind-s', ((r.width - pad*2) / 100).toFixed(4));
+  }
+  row.addEventListener('click', function(e){
+    var t = e.target.closest('[role="tab"]'); if (!t) return;
+    tabs.forEach(function(x){ x.setAttribute('aria-selected', x===t ? 'true':'false'); });
+    move();
+  });
+  /* setTimeout, not rAF: an embedded preview pane throttles rAF, and the whole
+     point of .ready is that it must arrive AFTER the first paint, reliably. */
+  move(); setTimeout(function(){ row.classList.add('ready'); }, 0);
+  if (window.ResizeObserver) new ResizeObserver(function(){
+    row.classList.remove('ready'); move();
+    setTimeout(function(){ row.classList.add('ready'); }, 0);
+  }).observe(row);
+  document.getElementById('indHint').innerHTML +=
+    '  <span class="mono">transform: translateX() scaleX() · ' + tok('--sp-settle-dur') + '</span>';
+})();
+
+/* ── §6.3 menu ────────────────────────────────────────────────────────────── */
+(function(){
+  var m = document.getElementById('menuDemo');
+  [['GitHub','gh'],['LinkedIn','li'],['Read.cv','rd'],['Email','mail']].forEach(function(r){
+    m.appendChild(mk('ctl--quiet', r[0], {mods:'is-row', lead:r[1], tag:'a'}));
+  });
+})();
+
+/* ── §7 surfaces ──────────────────────────────────────────────────────────── */
+(function(){
+  var a = mk('ctl--secondary','Close reel',{mods:'', lead:'close', attrs:{'data-surface':'ink'}});
+  document.getElementById('inkStage').appendChild(a);
+  var b = mk('ctl--secondary','Back to top',{mods:'is-float', lead:'up'});
+  document.getElementById('medStage').appendChild(b);
+  var c = mk('ctl--chip','Live',{mods:'is-onmedia'}); c.disabled = false; c.setAttribute('aria-disabled','false');
+  document.getElementById('chipStage').appendChild(c);
+  document.getElementById('inkVals').innerHTML  = fmt(readCtl(a)) + '\n<b>rim</b>    --rim-i1 → --rim-i2\n<b>ring</b>   --c50';
+  document.getElementById('medVals').innerHTML  = fmt(readCtl(b)) + '\n<b>ground</b> --mat-3-solid — a MATERIAL, not a fill';
+  document.getElementById('chipVals').innerHTML = fmt(readCtl(c)) + '\n<b>track</b>  --tr-caps .045em on 12px uppercase';
+})();
+
+/* ── toolbar ──────────────────────────────────────────────────────────────── */
+function toggle(id, cls, onTxt, offTxt){
+  var b = document.getElementById(id); if (!b) return;
+  b.addEventListener('click', function(){
+    var on = document.body.classList.toggle(cls);
+    b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    b.textContent = on ? onTxt : offTxt;
+  });
+}
+toggle('tHit','showHit','Hide hit areas','Show hit areas');
+toggle('tSlow','slowmo','Normal speed','Slow motion 8×');
+(function(){
+  var b = document.getElementById('tState'); if (!b) return;
+  b.addEventListener('click', function(){
+    var on = b.getAttribute('aria-pressed') !== 'true';
+    b.setAttribute('aria-pressed', on ? 'true':'false');
+    b.textContent = on ? 'Release hover / focus' : 'Force hover / focus';
+    document.querySelectorAll('.grid .stage .ctl').forEach(function(el){
+      if (el.closest('.bar')) return;
+      el.classList.toggle('fx-hover', on && !el.classList.contains('fx-focus') && !el.disabled);
+    });
+  });
+})();
+
+/* the embedded 390px copy keeps the demo but drops the prose and the nested iframe */
+if (EMBED){
+  document.querySelectorAll('h1,.sub,.subq,.note,.hint,table,.frameWrap,#curveWrap').forEach(function(n){
+    if (!n.closest('.ctl-menu')) n.remove();
+  });
+  document.querySelector('.bar').style.position = 'static';
+}
+})();
+</script>
+</body>
+</html>

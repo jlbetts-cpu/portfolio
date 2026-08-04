@@ -7,7 +7,7 @@ so far only correct implementation of what is written below).
 **Status: ship gate.** Jayden, 2026-08-03: *"The button spacing and padding needs to
 look good and be consistent. These are all things that are important to fix before
 shipping."* Nothing merges until this exists and is applied. Every value below is
-exact and every decision is made — §12 is the token table an implementer copies, and
+exact and every decision is made — §10 is the token table an implementer copies, and
 there is no row in it that says "pick one".
 
 **The three quotes this document answers:**
@@ -876,7 +876,7 @@ Jayden has already approved — needs his eye, not silent adoption.
 | `.chap` | case studies | already ink-only and correct. Joins the base for focus and transition only | **R** |
 | `.footIn` ×28 | all pages | `.is-inline`. Already correct; only its `transition` collapses | **R** |
 | `.back`/`.backlink`, `.talk`, `.abBack` | index, case studies | drop `border-radius` (invisible on a control with no ground) · padding → `0 16px` | **R** |
-| `.jbNav a`, `.jbBack`, `.jbHome` | header.css | **already correct.** Two changes: focus ring `--nav-accent` → `--ctl-ink-strong` (§11.2), and the ≤640px gap `--sp-4` → `--sp-8` (§7) | **J** |
+| `.jbNav a`, `.jbBack`, `.jbHome` | header.css | **already correct.** Two changes: focus ring `--nav-accent` → `--ctl-ink-strong` (§11 item 2), and the ≤640px gap `--sp-4` → `--sp-8` (§7) | **J** |
 
 ### Tab
 
@@ -911,7 +911,7 @@ Jayden has already approved — needs his eye, not silent adoption.
 
 | | before | after |
 |---|---|---|
-| computed paddings on one page | 7 | **2** (`0 16px`, `0 12px`) + `0` for icon-only |
+| computed paddings on one page | 7 | **2** (`0 16px`, `0 12px`), + `0` for icon-only and `--sp-10` on a caret's trailing side |
 | computed heights on one page | 8 | **2** (44, 36) |
 | radius values across controls | 8 | **1** (`--r-md`) + "inherit the container's shape" |
 | **transition durations (all)** | **30** | **4** (100 · 160 · 240 · 360) + `--enter-dur` for content |
@@ -1001,7 +1001,7 @@ For the header rebuild to consume directly.
 | `--fs-nav` | 14px | Control label at the 36 rung. |
 | `--ctl-fs` | 15px | Control label at the 44 rung. |
 | `--focus-w` | 2px | Focus ring width **and** the tab underline height. One value, two uses, on purpose. |
-| `--ctl-ink-strong` | `--c950` | Hover ink, selected ink, **and the focus ring**. Not the accent — §11.2. |
+| `--ctl-ink-strong` | `--c950` | Hover ink, selected ink, **and the focus ring**. Not the accent — §11 item 2. |
 | `--dur-state` / `--dur-state-out` | 160 / 240ms | Hover in / out, everywhere. |
 | `--dur-intent` | 120ms | Delay before a hover opens a split control's menu. |
 | `--sp-settle-dur` | 360ms | Menu reveal, travelling indicator. Paired with `--sp-settle`. |
@@ -1047,9 +1047,37 @@ For the header rebuild to consume directly.
 
 ## 12. Demo
 
-`button-system.html` — vanilla, no dependencies, reads `tokens.css` from the same
-directory. Every kind in every state, at desktop and inside a 390px iframe, with the
-resolved value of every property printed beside the control. Toggles for the hit-area
-overlay (so the 36px rung can be checked against the 44px rule by eye) and for a
-slow-motion mode at 8× so the 160/240ms asymmetry is visible rather than asserted.
-Screenshots: `.superpowers/sdd/2026-08-02-play-page/btn-*.png`.
+`button-system.html` — vanilla, no dependencies, no build, reads `tokens.css` from the
+same directory. Every kind in every state, at desktop and inside a real 390px iframe,
+with **the resolved value of every property read live off each control and printed
+beside it** — so the numbers in this document cannot drift from the ones that render.
+
+Three toggles, each also available as a URL parameter so a static capture can show
+what the toggle shows:
+
+| Toggle | Param | What it is for |
+|---|---|---|
+| Show hit areas | `?hit=1` | Paints every control's target. The 36px rung's `::after` expansion to 44 becomes visible, which is the only way to check §4.2 condition 2 by eye. |
+| Slow motion 8× | `?slow=1` | 160ms → 1280ms, 240ms → 1920ms. The hover asymmetry is otherwise asserted rather than seen. Sweep the pointer across the three-control row under §4. |
+| Force hover / focus | — | Freezes every grid cell in its state, for side-by-side comparison. |
+| 390px | `?embed=1` | The prose-free copy the desktop page embeds in an iframe. Headless Chrome clamps a window to 500px minimum, so an iframe is the only honest 390px. |
+
+**Verified in the running page at 1280px**, across 56 rendered controls:
+3 heights (24 chip · 36 compact · 44 default), **1 easing**, 2 durations
+(0.16s in / 0.24s out), `--rim-1` `.08` → `--rim-2` `.14` on Secondary hover with ink
+to `#121212`, tab `::before` opacity 0 → 1 at 2px accent, `.is-sm::after` height 44px,
+and no horizontal overflow at 390px.
+
+Screenshots, `.superpowers/sdd/2026-08-02-play-page/`:
+
+| File | Shows |
+|---|---|
+| `btn-desktop-full.png` | the whole page, 1280 × 11000 |
+| `btn-desktop-base.png` | §1 — the shared base table, every property old vs new |
+| `btn-desktop-kinds.png` | §2 — the six kinds × five states |
+| `btn-desktop-modifiers.png` | §3 — the five modifiers and the compact-rung evidence table |
+| `btn-hit-areas.png` | the same, with every target painted |
+| `btn-desktop-motion.png` | §4 — the three tiers, the two-curve chart, the closed hover property set |
+| `btn-desktop-spacing.png` | §5 — the 2:1 rhythm bar and the ladder |
+| `btn-desktop-compositions.png` | §6 — split control, travelling indicator, menu rows |
+| `btn-390.png` | the full system at 390px |

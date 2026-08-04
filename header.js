@@ -107,10 +107,9 @@ if(aboutBtn && aboutBtn.tagName === "BUTTON"){
   if(back) back.addEventListener("click", closeIfOpen);
 }
 
-/* ── 3 · THE SPLIT CONTROLS ────────────────────────────────────────────────
-   A destination and a disclosure in one slot, at both ends of the bar: Play on
-   the left, Contact on the right. Jayden asked for hover, and hover alone is
-   not shippable, so each control has three independent routes in:
+/* ── 3 · THE DISCLOSURES ───────────────────────────────────────────────────
+   ROUND 10.  Both carets are deleted, so a .jbDisc is a plain nav item with a
+   panel attached.  Three routes in, and only two of them exist:
 
      MOUSE     hovering the wrapper opens it after OPEN_DELAY and closes it
                after CLOSE_DELAY. Both delays matter. The open delay is what
@@ -120,55 +119,70 @@ if(aboutBtn && aboutBtn.tagName === "BUTTON"){
                the gap between the label and the panel without it vanishing.
                Gated on (hover:hover) and (pointer:fine): on touch, mouseenter
                fires on tap and would open and close in one gesture.
-     TOUCH     the label is a real <a href> and navigates. The caret beside it
-               is a real <button aria-expanded aria-controls> with its own
-               44x44. One target each, so a tap never means two things.
-     KEYBOARD  Tab reaches the link, Tab again the caret, Enter/Space opens,
-               the panel's links follow in DOM order because the panel is the
-               caret's next sibling. Escape closes and returns focus to the
-               caret. Moving focus out of the wrapper closes it.
+     KEYBOARD  focus entering the wrapper opens it, focus leaving closes it, so
+               Tab still walks label -> panel links in DOM order and Escape
+               still closes and returns focus to the label. This survives the
+               caret's deletion only because the wrapper, not the button, was
+               always what was being watched.
+     TOUCH     GONE.  There is no hover and no focus-before-activate on a phone,
+               so tapping the label navigates and the panel never opens. That is
+               the deliberate cost of removing the carets; what it strands is in
+               the round-10 report, not papered over here.
 
-   #moodbar is deliberately EXCLUDED: hero-engine.js:1812-1901 already owns that
-   one on index.html -- its open, its close, its clampMenuX, its chevron, its
-   hover, its outside-click and its Escape. Two controllers on one button
-   toggle each other and the menu silently stops working, which is the exact
-   bug play-games.js documents at its own line 51. */
+   aria-expanded moved from the caret to the .jbDiscGo link. It is valid there --
+   role=link supports it -- and it is the only element left that owns the panel.
+
+   The MOOD DOCK (#moodbar) is deliberately excluded: it is not a disclosure any
+   more, it is four always-visible buttons under the head, and hero-engine.js
+   still owns its dispatch. It carries no .jbDisc class, so it is not in this
+   list at all -- the id check is kept as a belt-and-braces guard because that
+   file also toggles a class named "open" on it. */
 var DISC_OPEN_DELAY  = 120;   /* pointer must dwell before the panel commits */
 var DISC_CLOSE_DELAY = 260;   /* forgiving enough to cross the gap to the panel */
 
 [].forEach.call(nav.querySelectorAll(".jbDisc"), function(wrap){
   if(wrap.id === "moodbar") return;                 /* hero-engine's, not ours */
-  var car  = wrap.querySelector(".jbDiscCar");
+  var go   = wrap.querySelector(".jbDiscGo");
   var menu = wrap.querySelector(".jbDiscMenu");
-  if(!car || !menu) return;
+  if(!go || !menu) return;
   var openT = 0, closeT = 0;
 
   function open(){
     clearTimeout(openT); clearTimeout(closeT);
-    wrap.classList.add("open"); car.setAttribute("aria-expanded","true");
+    wrap.classList.add("open"); go.setAttribute("aria-expanded","true");
   }
   function close(){
     clearTimeout(openT); clearTimeout(closeT);
-    wrap.classList.remove("open"); car.setAttribute("aria-expanded","false");
+    wrap.classList.remove("open"); go.setAttribute("aria-expanded","false");
   }
   function isOpen(){ return wrap.classList.contains("open"); }
 
-  car.addEventListener("click", function(e){
-    e.preventDefault(); e.stopPropagation();
-    isOpen() ? close() : open();
-  });
-
   /* keyboard: reaching any part of the control opens it, leaving closes it.
      focusout fires before focusin on the new target, so the check is deferred
-     one tick -- otherwise tabbing from the caret INTO the panel closes it. */
+     one tick -- otherwise tabbing from the label INTO the panel closes it. */
   wrap.addEventListener("focusin", open);
   wrap.addEventListener("focusout", function(){
     setTimeout(function(){ if(!wrap.contains(document.activeElement)) close(); }, 0);
   });
   wrap.addEventListener("keydown", function(e){
     if(e.key !== "Escape" || !isOpen()) return;
-    e.stopPropagation(); close(); car.focus();
+    e.stopPropagation(); close(); go.focus();
   });
+
+  /* TOUCH: the first tap OPENS, it does not navigate. There is no hover on a
+     phone and there is no caret any more, so a trigger that navigated on tap
+     would make its own panel unreachable. The destination is not lost -- the
+     panel's first row (.jbDiscTouch, display:none anywhere hover exists) is a
+     real <a href> to the same URL. Standard for a nav item that is both a place
+     and a group, and it adds no glyph to the bar.
+     Bound on (hover:none) rather than on a width, because the thing that
+     decides this is the input device and not the viewport. */
+  if(window.matchMedia && matchMedia("(hover:none)").matches){
+    go.addEventListener("click", function(e){
+      if(isOpen()) return;             /* open already: let the row you tapped act */
+      e.preventDefault(); open();
+    });
+  }
 
   if(window.matchMedia && matchMedia("(hover:hover) and (pointer:fine)").matches){
     wrap.addEventListener("mouseenter", function(){
@@ -187,6 +201,48 @@ var DISC_CLOSE_DELAY = 260;   /* forgiving enough to cross the gap to the panel 
     if(isOpen() && !wrap.contains(e.target)) close();
   });
 });
+
+/* ── 3b · THE TRAVELLING ACTIVE INDICATOR ──────────────────────────────────
+   ONE element moved by transform, not a background on each item -- which is the
+   whole reason it can travel at all, and also why it costs no layout: width and
+   translate are both composited, and it is the only animated thing in the bar.
+
+   ITS HONEST LIMIT, stated rather than discovered later: it can only slide
+   between two states that exist in the SAME document. Work <-> About on
+   index.html is a real transition (the About overlay is an in-page takeover, so
+   nothing unloads). Every other move in this bar is a navigation: the new page
+   paints with the indicator already parked under its own item. So the rule is
+   "measure on load, park silently; move with motion only when the lit item
+   changes while the page is alive", and that is what the `armed` flag below is.
+
+   It is scoped to .jbNav and never spans pages -- there is no view transition
+   and no cross-document state. Reduced motion gets the same element with no
+   travel, because parking it instantly is exactly the reduced-motion answer. */
+var ink = document.createElement("span");
+ink.className = "jbInk"; ink.setAttribute("aria-hidden","true");
+nav.appendChild(ink);
+var armed = false;
+
+function placeInk(){
+  var lit = nav.querySelector('[aria-current]:not(.jbHome)');
+  if(!lit){ ink.style.opacity = "0"; return; }
+  var n = nav.getBoundingClientRect(), b = lit.getBoundingClientRect();
+  if(!b.width){ ink.style.opacity = "0"; return; }
+  ink.style.width  = b.width + "px";
+  ink.style.height = b.height + "px";
+  ink.style.transform = "translate(" + (b.left - n.left) + "px," + (b.top - n.top) + "px)";
+  ink.style.opacity = "1";
+  /* the first placement is a measurement, not a move: arm travel only after it */
+  if(!armed){ armed = true; requestAnimationFrame(function(){ nav.classList.add("jbInkOn"); }); }
+}
+placeInk();
+/* fonts land after first paint and the lit item changes width when they do */
+if(document.fonts && document.fonts.ready) document.fonts.ready.then(placeInk);
+new MutationObserver(placeInk).observe(nav,{subtree:true,attributes:true,
+  attributeFilter:["aria-current","hidden"]});
+addEventListener("resize", function(){
+  nav.classList.remove("jbInkOn"); armed = false; placeInk();
+}, {passive:true});
 
 /* ── 4 · THE MOOD DOCK is not wired here, and that is deliberate. It moved out
    of the header as the same element it always was (#moodbar / #moodBtn /

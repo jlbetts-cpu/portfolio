@@ -196,9 +196,17 @@
      element in the bar -- tabs, Back, both split controls, both menus. */
   --nav-ink:var(--c500);
   --nav-ink-strong:var(--c950);
+  /* THE FOCUS RING IS INK, not the accent, and the header was the site's only
+     outlier. --nav-accent on --c50 is 5.59:1; --c950 is 18.42:1, and every other
+     focus ring on the site (index.html, the five case studies, play.css) already
+     ships --c950. A focus ring's job is to be unmissable, not on-brand, and a
+     ring that changes hue between the bar and the page under it reads as two
+     systems. On the dark surface it flips to --c50 for the same reason. */
+  --nav-focus:var(--c950);
   --nav-active-ink:var(--nav-accent);
   --nav-active-bg:var(--nav-accent-wash);
 
+  position:relative;                       /* the travelling indicator's containing block */
   width:100%;max-width:var(--bar-open);
   min-height:var(--nav-h);
   display:flex;align-items:center;justify-content:space-between;gap:var(--sp-8);
@@ -224,12 +232,14 @@
   --nav-ink-strong:var(--c50);
   --nav-active-ink:var(--nav-accent-dark);
   --nav-active-bg:var(--wash-i1);
+  --nav-focus:var(--c50);
 }
 
 /* the two zones. Auto width, pushed apart by the bar's space-between: the
    leading group sits on the page's left gutter and the socials on the right
    one, which is the whole of "use the margins". */
-.jbGrp{display:flex;align-items:center;gap:var(--sp-8);flex:0 1 auto;min-width:0}
+.jbGrp{position:relative;z-index:1;                /* over the travelling indicator */
+  display:flex;align-items:center;gap:var(--sp-8);flex:0 1 auto;min-width:0}
 .jbGrpR{justify-content:flex-end;flex:0 0 auto}
 .jbNav .jbHome{flex:0 0 auto}
 
@@ -275,7 +285,7 @@
   transition:color var(--ease-out-dur) var(--ease-out)}
 .jbNav a:active,.jbNav button:active{transform:scale(var(--press-scale))}
 .jbNav .jbHome:active{transform:scale(var(--press-scale-lg))}   /* larger object, less scale */
-.jbNav :focus-visible{outline:var(--focus-w) solid var(--nav-accent);outline-offset:var(--sp-2);
+.jbNav :focus-visible{outline:var(--focus-w) solid var(--nav-focus);outline-offset:var(--sp-2);
   border-radius:var(--r-pill)}
 .jbNav :focus:not(:focus-visible){outline:none}
 
@@ -317,77 +327,116 @@
 .jbBack,.jbSoc{padding:0 var(--sp-12);min-width:var(--tap-min);justify-content:center}
 .jbBack[hidden]{display:none}
 
-/* ── PLAY — A DESTINATION AND A DISCLOSURE IN ONE SLOT ─────────────────────
-   "Games should be on the left after About Me. Games should just change back to
-   Play, but if you click it it navigates; if you hover it shows the other
-   options with the mood and head. I like the games icon though — keep it."
+/* ── PLAY AND CONTACT — TWO NAV ITEMS THAT REVEAL EXTRAS ON HOVER ──────────
+   ROUND 10.  Jayden: delete both carets.  "Play drop down is not same styling."
 
-   THE PATTERN IS A SPLIT BUTTON, and it is not a style choice -- it is the only
-   shape that survives all three input methods:
-     · MOUSE   hover anywhere on .jbPlay opens the menu (his ask), with an open
-               delay and a forgiving close delay so crossing the gap from the
-               label to the list does not dismiss it. hero-engine.js:1845 already
-               owns both, gated on (hover:hover) and (pointer:fine).
-     · TOUCH   there is no hover. Tapping the label NAVIGATES -- it is a real <a>
-               with a real href -- and the caret beside it is a real <button
-               aria-expanded aria-controls> that owns the disclosure. One target
-               each, so a tap can never mean two things.
-     · KEYBOARD Tab reaches the link, Tab again reaches the caret, Enter/Space
-               opens it, the menu items follow in DOM order, Escape closes.
-               hero-engine.js binds the Escape and the outside-click.
-   Hover is therefore never the ONLY route in, which is the failure this pattern
-   exists to avoid.
+   WHAT CHANGED, AND WHAT IT COST.  Play and Contact were split buttons: a link
+   plus a real <button aria-expanded> that owned the disclosure.  The caret was
+   what gave touch a second target and the keyboard a second stop.  Both carets
+   are gone, so each control is now ONE tab stop and one tap target, and the
+   panel is revealed by pointer hover or by keyboard focus entering the wrapper
+   (header.js binds focusin/focusout, so Tab still walks label -> panel links).
+   THE HONEST COST IS TOUCH: a phone has neither hover nor focus-before-activate,
+   so tapping either item NAVIGATES and the panel never opens.  That is fine for
+   Contact -- the footer carries the same three links in the same order -- and it
+   is the reason the four moods left this menu for a dock under the head, where
+   they are four always-visible 44x44 targets.  What it still strands is written
+   up in the round-10 report rather than patched over here.
 
-   THE CARET'S TARGET. Its ink box is 28px so the split does not eat the bar's
-   width budget, and its ::after is pulled 8px past each edge to make a true 44px
-   square -- the same trick the labels use vertically, applied horizontally. */
-/* ONE PATTERN, BOTH ENDS OF THE BAR. Play (left) and Contact (right) are the
-   same object with different payloads, and that is deliberate: two split
-   controls that behaved differently would be worse than none. .jbDisc is the
-   wrapper, .jbDiscGo the destination, .jbDiscCar the disclosure trigger,
-   .jbDiscMenu the panel -- Play's panel happens to be #moodMenu, which
-   hero-engine.js already owns on index.html, and Contact's is a plain list of
-   socials owned by header.js. Same markup shape, same CSS, same timings. */
+   The two carets also had a measured defect that leaves with them: each one's
+   44px ::after target overlapped its own label's ::after by 8px on each side, so
+   two targets shared an 8px strip where a tap meant either thing.
+
+   .jbDiscGo declares NOTHING about padding, size, height or hit area -- it
+   inherits the .jbNav a/button rule verbatim.  Play, Contact, Work and About are
+   the same object; carrying a panel is not a visual difference any more. */
 .jbDisc{position:relative;display:inline-flex;align-items:center}
-/* THE TABS LOOK THE SAME, and that is the rule: Work, About me, Play and
-   Contact share icon box, stroke, label size, weight, padding, height and hit
-   area. Carrying a disclosure earns exactly one visual difference -- the caret.
-   So .jbDiscGo declares NOTHING about padding or size; it inherits the .jbNav
-   a/button rule verbatim, and only its trailing radius is squared so the caret
-   reads as attached rather than as a sixth tab. */
-.jbNav .jbDiscCar{padding:0;min-width:var(--sp-28);justify-content:center;
-  margin-left:calc(var(--sp-4) * -1)}
-/* a 28px ink box pulled out to a true 44px target, the same ::after trick the
-   labels use vertically, applied horizontally */
-.jbNav .jbDiscCar::after{left:calc(var(--sp-8) * -1);right:calc(var(--sp-8) * -1)}
-.jbDiscCar svg{width:var(--ico-xs);height:var(--ico-xs);flex:0 0 var(--ico-xs);
-  stroke:currentColor;fill:none;stroke-width:1.5;vector-effect:non-scaling-stroke;
-  stroke-linecap:round;stroke-linejoin:round;opacity:.7;
-  transition:transform var(--ease-out-dur) var(--ease-out)}
-.jbDisc.open .jbDiscCar svg{transform:rotate(180deg)}
-/* the two halves light together, so the split reads as one object */
-.jbDisc:hover .jbDiscGo,.jbDisc:hover .jbDiscCar,
-.jbDisc:focus-within .jbDiscGo,.jbDisc:focus-within .jbDiscCar{color:var(--nav-ink-strong)}
+/* the whole control lights as one object, panel included */
+.jbDisc:hover>.jbDiscGo,.jbDisc:focus-within>.jbDiscGo{color:var(--nav-ink-strong)}
 
-/* THE CONTACT PANEL. Play's panel is index.html's #moodMenu and keeps its own
-   skin; this is the one header.css owns, built from the same tokens so the two
-   read as one system. Opens below, right-aligned to the bar's trailing edge. */
-.jbDiscMenu{position:absolute;top:calc(100% + var(--sp-10));right:0;z-index:40;
-  display:flex;flex-direction:column;min-width:var(--sp-32);
-  padding:var(--sp-6);
+/* ── THE PANEL, ONE RULE FOR BOTH ENDS OF THE BAR ──────────────────────────
+   Play's and Contact's panels are the same element with different payloads.
+   Before this round Play's was index.html's #moodMenu -- a different radius, a
+   different padding, a different item height and its own colour ramp -- which is
+   exactly the "not same styling" he objected to.  #moodMenu is now the mood dock
+   under the head and owns none of this.
+
+   MATERIALS LADDER, and no cast shadow: the same --mat-3-solid the bar is built
+   from, separated by the same --rim-2 hairline, at --r-lg on the radius scale.
+   Elevation is for objects that stand on something; chrome separates with a
+   hairline and an opaque ground (§6).
+   HOVER IS THE NAV ITEM'S HOVER: ink and nothing else.  No background fill, in
+   the panel or out of it -- the one rule the whole component obeys. */
+.jbDiscMenu{position:absolute;top:calc(100% + var(--menu-gap));right:0;z-index:40;
+  display:flex;flex-direction:column;gap:var(--gap-bar);
+  width:max-content;min-width:var(--menu-w);
+  max-width:min(var(--menu-w),calc(100vw - var(--sp-32)));
+  padding:var(--pad-bar);
   background:var(--nav-mat);box-shadow:var(--nav-rim);
   border-radius:var(--r-lg);corner-shape:var(--corner);
   opacity:0;visibility:hidden;transform:translateY(calc(var(--sp-4) * -1));
   transition:opacity var(--ease-out-dur) var(--ease-out),
              transform var(--ease-out-dur) var(--ease-out),
              visibility 0s var(--ease-out-dur)}
+/* Play sits in the leading group, so its panel hangs from the LEFT edge of the
+   item rather than the right one.  Nothing else about it differs. */
+.jbPlay .jbDiscMenu{left:0;right:auto}
 .jbDisc.open .jbDiscMenu{opacity:1;visibility:visible;transform:none;
   transition:opacity var(--ease-out-dur) var(--ease-out),
              transform var(--ease-out-dur) var(--ease-out)}
-.jbNav .jbDiscMenu a{justify-content:flex-start;min-width:0;
+/* the panel's items are nav items in a column: same type scale, same weight,
+   same ink, same 44px minimum, --sp-* padding, one rung down on the radius. */
+.jbNav .jbDiscMenu a,.jbNav .jbDiscMenu button{
+  width:100%;justify-content:flex-start;min-width:0;text-align:left;
   padding:0 var(--sp-10);min-height:var(--tap-min);gap:var(--sp-10);
   border-radius:var(--r-sm);corner-shape:var(--corner);white-space:nowrap;
-  color:var(--nav-ink-strong)}
+  font-size:var(--fs-nav);font-weight:400;color:var(--nav-ink)}
+.jbNav .jbDiscMenu a:hover,.jbNav .jbDiscMenu button:hover{color:var(--nav-ink-strong)}
+/* the panel's items are full-width, so their 44px target is the box itself --
+   the bar's ::after expander would only overlap the item above and below. */
+.jbNav .jbDiscMenu a::after,.jbNav .jbDiscMenu button::after{content:none}
+.jbDiscMenu .jbDiscGrp{display:flex;flex-direction:column;gap:var(--gap-bar)}
+/* a rule BETWEEN groups, at the site's own hairline weight */
+.jbDiscMenu .jbDiscSep{height:var(--hair-w);background:var(--c100);
+  margin:var(--sp-6) var(--sp-8);flex:0 0 auto}
+.jbNav[data-surface="ink"] .jbDiscMenu .jbDiscSep{background:var(--i100)}
+/* Play's panel carries the saved-heads grid and can outgrow a short viewport.
+   It scrolls inside itself rather than off the screen; the bar never moves. */
+.jbDiscMenu{max-height:min(70svh,var(--sp-64-168) * 3);overflow-y:auto;
+  overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+
+/* ── THE TOUCH DESTINATION ROW ──────────────────────────────────────────────
+   The carets are gone, so on a phone the trigger cannot both navigate and
+   disclose. The resolution is input-appropriate rather than another glyph:
+   where there is no hover, the FIRST TAP OPENS THE PANEL (header.js) and the
+   panel's own first row is the destination -- a real <a href> to the same URL
+   the label points at. Nothing is stranded, and the desktop bar stays clean.
+   It is display:none by default and only exists under (hover:none), so a mouse
+   user never sees a row that repeats the item they just pointed at. */
+.jbNav .jbDiscMenu .jbDiscTouch{display:none}
+@media(hover:none){
+  .jbNav .jbDiscMenu .jbDiscTouch{display:flex}
+  .jbNav .jbDiscMenu div.jbDiscTouch{display:block}
+  .jbNav .jbDiscMenu .jbDiscTouch[href]{color:var(--nav-ink-strong);font-weight:600}
+}
+
+/* ── THE TRAVELLING ACTIVE INDICATOR ────────────────────────────────────────
+   ONE element, moved by transform. Not a background-color on each item: a
+   background cannot travel, and per-item fills are what made "which one is lit"
+   a paint in five places instead of one object in one.
+   It sits UNDER the labels (z-index 0 against their position:relative), carries
+   the active wash and nothing else, and its ink/weight half stays on the item --
+   so the three axes that separate active from hover (hue, weight, ground) are
+   unchanged. header.js measures it; the only thing declared here is how it moves.
+   No travel until .jbInkOn is set on the second frame, so the first paint parks
+   it silently rather than sliding it in from the origin. */
+.jbInk{position:absolute;left:0;top:0;z-index:0;pointer-events:none;opacity:0;
+  border-radius:var(--r-pill);corner-shape:var(--corner);
+  background:var(--nav-active-bg)}
+.jbNav.jbInkOn .jbInk{transition:transform var(--nav-slide-dur) var(--ease-out),
+  width var(--nav-slide-dur) var(--ease-out),
+  opacity var(--ease-out-dur) var(--ease-out)}
+@media(prefers-reduced-motion:reduce){.jbNav.jbInkOn .jbInk{transition:none}}
 
 /* ── THE SOCIALS, BACK IN THE BAR AND ON THE RIGHT (Jayden's order) ─────────
    "and then on the right side would be the social icons: LinkedIn, Instagram
@@ -479,10 +528,10 @@
    Placed AFTER the hover rules on purpose -- both are (0,2,1), so source order
    decides, and an item you are on should not un-light when you point at it. */
 .jbNav [aria-current]:not(.jbHome){
-  background:var(--nav-active-bg);color:var(--nav-active-ink);font-weight:600;
+  color:var(--nav-active-ink);font-weight:600;
 }
 .jbNav [aria-current]:not(.jbHome):hover{
-  background:var(--nav-active-bg);color:var(--nav-active-ink);
+  color:var(--nav-active-ink);
 }
 /* ...and the lockup, which carries aria-current on home without the pill, still
    darkens on hover like everything else. (0,3,0) over the rule above. */
