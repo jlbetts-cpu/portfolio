@@ -46,31 +46,22 @@
   .labId span{color:var(--sub);font-size:12px;letter-spacing:.12em;text-transform:uppercase}
 
   .lab{display:grid;grid-template-columns:1fr 320px;min-height:100vh}
-  @media(max-width:880px){
-    .lab{grid-template-columns:1fr}
-    .panel{position:static;max-height:none;margin:0 12px 24px;padding:16px 16px 10px}
-    .stage{min-height:56vh;padding:58px 14px 16px}
-    .orbWrap{width:min(430px,86vw)}
-    .orbWrap.orb2{width:min(300px,46vw)}
-    .orbWrap.orb3{width:min(215px,33vw)}
-    header{padding:14px 16px 0}
-    .row{margin:14px 0}
-    /* touch targets: the 2px track keeps the look, the thumb carries the finger */
-    input[type=range]::-webkit-slider-thumb{width:20px;height:20px}
-    input[type=range]{touch-action:pan-y}
-    input[type=color]{width:34px;height:34px}
-    select{max-width:150px;font-size:13px;padding:7px 8px}
-    .miniBtn{padding:7px 11px}
-    pre{max-height:150px;font-size:10px}
-  }
-  @media(max-width:420px){
-    .swRow{gap:8px}
-    .secH{font-size:10px;letter-spacing:.12em}
-    .row label{font-size:12.5px}
-  }
+  /* THE MOBILE PASS USED TO SIT HERE, and that is exactly why none of it ever
+     ran. It is now at the FOOT of this block, below every rule it overrides. */
 
+  /* overflow-x:clip, not hidden and not left alone: .haloWrap is inset:-26%
+     around .orbWrap, so at 390px it is 462px wide sitting at x -36 -> 426 and
+     hung 36px off the right edge of the only page on the site that does not
+     carry a clip. That was a real two-dimensional scroll -- the page drifted
+     under the thumb while you dragged a slider -- and the single WCAG 1.4.10
+     reflow failure across the nine pages (349px of content in 320). What
+     overflows is a blurred decorative glow that is already off-screen, so
+     clipping removes the scroll without removing anything anyone can see.
+     clip rather than hidden so this never becomes a scroll container, and
+     x-only so the halo keeps its vertical bleed (visible/clip is the one
+     mixed pair CSS permits). */
   .stage{position:relative;display:flex;align-items:center;justify-content:center;
-    min-height:72vh;padding:80px 30px 40px}
+    overflow-x:clip;min-height:72vh;padding:80px 30px 40px}
   .stage.bgMode{padding:0}
   .bgHost{position:absolute;inset:0;display:none;overflow:hidden}
   .stage.bgMode .bgHost{display:block}
@@ -93,7 +84,12 @@
   .orbWrap.orb2{position:absolute;width:min(300px,54vw);right:6%;top:7%;--R:150px}
   .orbWrap.orb3{position:absolute;width:min(215px,40vw);left:7%;bottom:6%;--R:107px}
 
-  .panel{position:sticky;top:0;align-self:start;max-height:100vh;overflow-y:auto;
+  /* max-height in DYNAMIC viewport units. The site had zero 100dvh anywhere; this
+     is the one declaration that needed it, because on iOS Safari vh resolves
+     against the LARGE viewport, so a 100vh scroller with the browser chrome
+     showing runs its last controls under the toolbar with no way to reach them.
+     The vh line stays first as the fallback for anything without dvh. */
+  .panel{position:sticky;top:0;align-self:start;max-height:100vh;max-height:100dvh;overflow-y:auto;
     margin:74px 22px 26px 0;padding:20px 20px 16px;border-radius:16px;
     background:var(--panel);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
     border:1px solid var(--hair);box-shadow:0 1px 2px rgba(20,20,16,.04),0 18px 44px rgba(20,20,16,.07);z-index:6}
@@ -144,6 +140,64 @@
     border-radius:6px;padding:5px 10px;font-size:11px;font-weight:600;color:var(--ink)}
   .copy.ok{color:var(--ok);border-color:var(--ok)}
   .glErr{display:none;color:#8a3030;font-size:12px;margin-top:8px}
+
+  /* ══ THE MOBILE PASS ═══════════════════════════════════════════════════════
+     IT MUST STAY BELOW EVERY RULE IT OVERRIDES, AND NOTHING MAY BE ADDED AFTER
+     IT. Until the mobile audit this block sat near the top of the sheet, above
+     the base rules -- and at equal specificity later source wins, so thirteen
+     of its fourteen declarations were silently discarded and the Lab shipped
+     its desktop density to every phone: a sticky 100vh panel, 30px colour
+     swatches, and 22 sliders that were 2px tall. A media query adds no
+     specificity. Only position does.
+
+     Two rules that came down with it were written against a block that never
+     applied, so they were never true and are corrected here rather than
+     revived: `header{padding:...}` targeted an element this page stopped having
+     when the site header was adopted, and the slider rule fixed the thumb while
+     leaving the hit area at 2px. */
+  @media(max-width:880px){
+    .lab{grid-template-columns:1fr}
+    /* the panel stops being a viewport-tall sticky scroller and just becomes the
+       bottom of the page, which is the whole reason it can be read on a phone */
+    .panel{position:static;max-height:none;margin:0 12px 24px;padding:16px 16px 10px}
+    /* clears the 72px bar and the .labId plate beneath it before centring */
+    .stage{min-height:56vh;padding:132px 14px 16px}
+    .orbWrap{width:min(430px,86vw)}
+    .orbWrap.orb2{width:min(300px,46vw)}
+    .orbWrap.orb3{width:min(215px,33vw)}
+    /* 8px between 44px targets: the row's height is now the control's */
+    .row{margin:8px 0}
+
+    /* TOUCH TARGETS. The border box IS the hit area -- a ::-webkit-slider-thumb
+       is a pseudo element that paints outside a 2px input and catches nothing,
+       which is why the old 20px-thumb rule would not have fixed this even if it
+       had run. The track moves to ::-webkit-slider-runnable-track so the input
+       itself can be a full 44px target while the line stays the same 2px hair.
+       touch-action:pan-y so a successful drag does not also scroll the page. */
+    input[type=range]{height:44px;background:none;touch-action:pan-y}
+    input[type=range]::-webkit-slider-runnable-track{height:2px;border-radius:1px;
+      background:var(--hair)}
+    input[type=range]::-webkit-slider-thumb{width:20px;height:20px;margin-top:-9px}
+    /* the Gecko half is the track only: the hit area is the input's 44px box,
+       which is the actual fix, and Firefox draws its own thumb. Restyling that
+       would mean re-stating the thumb's two literal colours, which this sheet
+       already carries once and should not carry twice. */
+    input[type=range]::-moz-range-track{height:2px;border-radius:1px;background:var(--hair)}
+
+    input[type=color]{width:44px;height:44px}
+    select{max-width:150px;font-size:13px;padding:7px 8px;min-height:44px}
+    .miniBtn{padding:7px 11px;min-height:44px}
+    .btn{min-height:44px}
+    .copy{padding:9px 12px;min-height:44px}
+    .check{min-height:44px}
+    .check input{width:22px;height:22px}
+    pre{max-height:150px;font-size:10px}
+  }
+  @media(max-width:420px){
+    .swRow{gap:8px}
+    .secH{font-size:10px;letter-spacing:.12em}
+    .row label{font-size:12.5px}
+  }
 
 /* The flagged header token top-up that used to sit here is gone: this page links
    tokens.css now, which carries every one of those values and its own 760px rule.
