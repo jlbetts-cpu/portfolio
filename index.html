@@ -1005,40 +1005,93 @@ html{scroll-padding-top:calc(var(--nav-h) + var(--sp-16-24))}
  object-fit:contain;background:none;border-radius:var(--r-2xs)}
 .jbPlayMenu .mhPick:hover,.jbPlayMenu .mhPick:focus-visible{
  box-shadow:0 0 0 var(--focus-w) var(--c500)}
-/* THE x COMES OFF THE HEAD IT DELETES.  Mobile audit B6 / P7: the delete button
-   was pinned to the thumbnail's own corner and overlapped it by 15px in this
-   panel and by 37x37 on the maker's copy -- a DESTRUCTIVE control sitting inside
-   the hit area of a benign one, so a thumb aimed at a head could remove it. The
-   ::before that gave it a target made this worse, not better: it expanded the
-   target FURTHER INTO the thumbnail.
-   There is no version of "smaller and more careful" that fixes overlap; the two
-   controls have to stop sharing pixels. So the tile is two rows -- the head, and
-   the delete under it -- and .mhX is position:static. Zero intersection, by
-   construction rather than by tuning, which is the only way this stays fixed.
-   It is column-wide and 24px tall with a --tap-min target grown downward by its
-   ::before, so the target sits in the panel's own padding rather than back over
-   the head. Its accessible name says WHICH head it removes (render() writes it).
-   Still revealed on hover where hover exists, always visible where it does not:
-   a permanent row of x's under a roster of heads is a lot of destructive chrome
-   for a menu you open to pick a head. */
-.jbPlayMenu .mhItem{display:grid;grid-template-rows:auto auto;gap:var(--sp-2);
- justify-items:stretch}
-.jbPlayMenu .mhX{position:relative;z-index:1;
- width:100%;height:var(--sp-24);min-width:0;min-height:0;padding:0;
+/* ══ REMOVING A HEAD: AN EXPLICIT EDIT MODE ═══════════════════════════════════
+   Jayden has raised this FOUR times -- the control overlapping its thumbnail, the
+   x "not working", "removing heads is bad UI and UX on both desktop and mobile",
+   and now "needs to be more accessible and easy to click on both desktop and
+   mobile". Every previous fix moved or resized the x. This changes the shape of
+   the interaction, because the requirement is self-contradictory as stated:
+   easy to hit deliberately AND hard to hit accidentally, on a 45px thumbnail.
+
+   THE MEASURED STATE OF THE OLD ONE, which is why none of the tuning worked:
+     - it was opacity:0 but STILL HIT-TESTABLE. elementFromPoint at its centre
+       returned the button while it was invisible, so every tile carried an
+       unseeable destructive control. That is the "it deleted my head" half AND
+       the "it doesn't work" half of the same report.
+     - the comment above it claimed "zero intersection, by construction". Measured
+       in the open panel, the thumbnail's own bottom edge hit-tested as .mhX --
+       a 4px overlap. The claim was false in the rendered page.
+     - its ::before grew the target 44px DOWNWARD from a 24px box, a 20px
+       overhang that reaches toward the next row of thumbnails.
+     - hover-gated on a pointer, always-on under (hover:none): two different
+       controls, and the touch one is a permanent row of destructive chrome.
+
+   THE RESOLUTION IS TO SEPARATE THE TWO REQUIREMENTS IN TIME RATHER THAN IN
+   SPACE. They only fight while a single tap has to mean both "open" and
+   "delete". Behind an Edit toggle they stop competing:
+     REST     -- no delete controls exist at all. display:none, so there is
+                 nothing invisible to hit. A tap opens the head. Zero accidental
+                 deletes, and no destructive chrome in a menu you opened to pick
+                 a head.
+     EDITING  -- the delete becomes the WHOLE TILE: an overlay covering the
+                 thumbnail, 45x53 here, comfortably past --tap-min in both axes.
+                 It is the largest the target can possibly be, and it cannot be
+                 hit by accident because you had to press Edit first.
+   So the target is not made small to be safe; it is made as large as the tile
+   and gated instead. IDENTICAL ON TOUCH AND POINTER -- there is no hover
+   anywhere in the path, which is the part the old design could never satisfy:
+   a hover-revealed delete is unreachable on a phone, and an always-visible one
+   on a 45px tile invites the mis-taps he reported.
+   The mode is one shared step for all eight heads, not per-delete friction like
+   a confirm dialog -- deleting three heads is Edit, tap, tap, tap, Done.
+   Undo is what makes a single tap safe enough to keep (see render()). */
+.jbPlayMenu .mhItem{position:relative;display:block}
+.jbPlayMenu .mhX{display:none}
+/* EDITING. The delete covers its own thumbnail exactly -- inset:0 on the tile --
+   so what you press is the head you are removing. Nothing to aim at. */
+.jbPlayMenu .moodHeads[data-editing="true"] .mhX{
  display:flex;align-items:center;justify-content:center;
- border-radius:var(--r-2xs);corner-shape:var(--corner);border:0;
- background:none;color:var(--c500);
- font-family:var(--sans);font-size:var(--fs-micro);line-height:1;cursor:pointer;
- opacity:0;
- transition:opacity var(--ease-out-dur) var(--ease-out),
-            color var(--ease-out-dur) var(--ease-out)}
-/* the 44px target grows DOWNWARD, into the panel's padding, never back up over
-   the thumbnail -- which is the whole point of the change. */
-.jbPlayMenu .mhX::before{content:"";position:absolute;left:0;right:0;top:0;
- height:var(--tap-min)}
-.jbPlayMenu .mhItem:hover .mhX,.jbPlayMenu .mhItem:focus-within .mhX{opacity:1}
-.jbPlayMenu .mhX:hover,.jbPlayMenu .mhX:focus-visible{color:var(--c950)}
-@media(hover:none){.jbPlayMenu .mhX{opacity:1;font-size:var(--fs-label)}}
+ position:absolute;inset:0;z-index:2;
+ min-width:var(--tap-min);min-height:var(--tap-min);padding:0;border:0;cursor:pointer;
+ border-radius:var(--r-2xs);corner-shape:var(--corner);
+ background:var(--mat-scrim);color:var(--c50);
+ box-shadow:var(--rim-2);
+ transition:background-color var(--ease-out-dur) var(--ease-out)}
+.jbPlayMenu .moodHeads[data-editing="true"] .mhX svg{width:18px;height:18px;flex:none}
+.jbPlayMenu .moodHeads[data-editing="true"] .mhX:hover,
+.jbPlayMenu .moodHeads[data-editing="true"] .mhX:focus-visible{background:rgba(18,18,18,.58)}
+/* while editing, the thumbnail underneath stops being a button -- one tile, one
+   meaning. aria-disabled and tabindex are set in render() so this is not a
+   visual-only lie to a screen reader or a keyboard. */
+.jbPlayMenu .moodHeads[data-editing="true"] .mhPick{pointer-events:none}
+/* THE UNDO. It replaces the tile IN PLACE, so the grid does not reflow under the
+   pointer while you are still deleting -- the row you are working along keeps its
+   positions. Quiet, inline, no dialog: a head is real work from the maker, so the
+   delete has to be reversible, but a modal to confirm every removal is heavier
+   than the action deserves. */
+.jbPlayMenu .mhUndo{display:flex;align-items:center;justify-content:center;
+ width:100%;min-height:var(--tap-min);padding:0;border:0;cursor:pointer;
+ border-radius:var(--r-2xs);corner-shape:var(--corner);
+ background:none;box-shadow:var(--rim-2);
+ font-family:var(--sans);font-weight:600;font-size:var(--fs-micro);
+ letter-spacing:.01em;color:var(--c700);
+ transition:color var(--ease-out-dur) var(--ease-out),box-shadow var(--ease-out-dur) var(--ease-out)}
+.jbPlayMenu .mhUndo:hover,.jbPlayMenu .mhUndo:focus-visible{color:var(--c950);box-shadow:var(--rim-3)}
+/* THE EDIT TOGGLE. A real 44px control on the roster's own label row, visible at
+   rest on every input -- which is what makes the whole pattern discoverable
+   without hover. It reads Edit / Done and carries aria-pressed. */
+.jbPlayMenu .mhHead{display:flex;align-items:center;justify-content:space-between;
+ gap:var(--sp-8);margin:var(--sp-6) var(--sp-4) 0;min-height:var(--tap-min)}
+.jbPlayMenu .mhTitle{font-family:var(--sans);font-weight:600;font-size:var(--fs-label);
+ letter-spacing:.01em;color:var(--c500)}
+.jbPlayMenu .mhEdit{display:inline-flex;align-items:center;justify-content:center;
+ min-height:var(--tap-min);padding:0 var(--sp-10);border:0;background:none;cursor:pointer;
+ border-radius:var(--r-sm);corner-shape:var(--corner);
+ font-family:var(--sans);font-weight:600;font-size:var(--fs-label);letter-spacing:.01em;
+ color:var(--c700);transition:color var(--ease-out-dur) var(--ease-out)}
+.jbPlayMenu .mhEdit:hover,.jbPlayMenu .mhEdit:focus-visible{color:var(--c950)}
+.jbPlayMenu .mhEdit[aria-pressed="true"]{color:var(--c950)}
+.jbPlayMenu .mhHead:has(+ .moodHeads:empty){display:none}
 /* NO RULE UNDER THE ROSTER.  Jayden: "random line under heads that shouldn't be
    there."  Diagnosed rather than masked: it is #mhBar's own border-top, a 1px
    --c100 hairline that paints across the full width of the panel immediately
@@ -1145,7 +1198,7 @@ if(location.hash==="#about")location.replace("about.html");</script>
         bar, so the two read as one system rather than as two different popups. -->
    <span class="jbDisc jbPlay" id="jbPlay">
     <a class="jbDiscGo" data-nav-item="games" href="play.html" aria-label="Play" aria-haspopup="true" aria-expanded="false" aria-controls="moodbar"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 6m0 2a2 2 0 0 1 2 -2h16a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-16a2 2 0 0 1 -2 -2z"/><path d="M6 12h4m-2 -2v4"/><path d="M15 11l0 .01"/><path d="M18 13l0 .01"/></svg><span class="jbLbl">Play</span></a>
-    <div class="jbDiscMenu jbPlayMenu" id="moodbar"><a class="jbDiscTouch" href="play.html"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 6m0 2a2 2 0 0 1 2 -2h16a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-16a2 2 0 0 1 -2 -2z"/><path d="M6 12h4m-2 -2v4"/><path d="M15 11l0 .01"/><path d="M18 13l0 .01"/></svg>Play</a><div class="jbDiscSep jbDiscTouch" aria-hidden="true"></div><div class="jbDiscGrp" id="moodMenu"><button class="moodItem" type="button" data-mood="empathy"><span class="moodIco camDot" aria-hidden="true"></span>Empathy</button><button class="moodItem" type="button" data-mood="hunger"><span class="moodIco cookieDot" aria-hidden="true"></span>Hunger</button><button class="moodItem" type="button" data-mood="delight"><span class="moodIco discoDot" aria-hidden="true"></span>Delight</button><button class="moodItem" type="button" data-mood="love"><span class="moodIco heartDot" aria-hidden="true"></span>Love</button></div><div class="jbDiscSep" aria-hidden="true"></div><a href="headmaker.html"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0"/> <path d="M16 19h6"/> <path d="M19 16v6"/> <path d="M6 21v-2a4 4 0 0 1 4 -4h4"/></svg>Add your head</a><button id="addPlaceholder" type="button" aria-label="Add an egghead — a silly egg in a fresh colour"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 14.083c0 4.154 -2.966 6.74 -7 6.917c-4.2 0 -7 -2.763 -7 -6.917c0 -5.538 3.5 -11.09 7 -11.083c3.5 .007 7 5.545 7 11.083"/></svg>Add an egghead</button><div class="moodHeads" id="moodHeads" role="group" aria-label="Your saved heads"></div><div class="mhBar" id="mhBar" hidden><button class="mhToggle" id="headsToggle" type="button" role="switch" aria-checked="true"><span class="mhTrack" aria-hidden="true"><span class="mhKnob"></span></span><span class="mhTxt">Show on home</span></button></div></div>
+    <div class="jbDiscMenu jbPlayMenu" id="moodbar"><a class="jbDiscTouch" href="play.html"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 6m0 2a2 2 0 0 1 2 -2h16a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-16a2 2 0 0 1 -2 -2z"/><path d="M6 12h4m-2 -2v4"/><path d="M15 11l0 .01"/><path d="M18 13l0 .01"/></svg>Play</a><div class="jbDiscSep jbDiscTouch" aria-hidden="true"></div><div class="jbDiscGrp" id="moodMenu"><button class="moodItem" type="button" data-mood="empathy"><span class="moodIco camDot" aria-hidden="true"></span>Empathy</button><button class="moodItem" type="button" data-mood="hunger"><span class="moodIco cookieDot" aria-hidden="true"></span>Hunger</button><button class="moodItem" type="button" data-mood="delight"><span class="moodIco discoDot" aria-hidden="true"></span>Delight</button><button class="moodItem" type="button" data-mood="love"><span class="moodIco heartDot" aria-hidden="true"></span>Love</button></div><div class="jbDiscSep" aria-hidden="true"></div><a href="headmaker.html"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0"/> <path d="M16 19h6"/> <path d="M19 16v6"/> <path d="M6 21v-2a4 4 0 0 1 4 -4h4"/></svg>Add your head</a><button id="addPlaceholder" type="button" aria-label="Add an egghead — a silly egg in a fresh colour"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 14.083c0 4.154 -2.966 6.74 -7 6.917c-4.2 0 -7 -2.763 -7 -6.917c0 -5.538 3.5 -11.09 7 -11.083c3.5 .007 7 5.545 7 11.083"/></svg>Add an egghead</button><div class="mhHead"><span class="mhTitle" id="mhTitle">Your heads</span><button class="mhEdit" id="mhEdit" type="button" aria-pressed="false" aria-controls="moodHeads" hidden>Edit</button></div><div class="moodHeads" id="moodHeads" role="group" aria-labelledby="mhTitle" data-editing="false"></div><div class="mhBar" id="mhBar" hidden><button class="mhToggle" id="headsToggle" type="button" role="switch" aria-checked="true"><span class="mhTrack" aria-hidden="true"><span class="mhKnob"></span></span><span class="mhTxt">Show on home</span></button></div></div>
    </span>
   </span>
   <span class="jbGrp jbGrpR">
@@ -1446,24 +1499,80 @@ if(location.hash==="#about")location.replace("about.html");</script>
   if(rawN!==null&&rawN!==a.length){try{localStorage.setItem("hmCompanions",JSON.stringify(a));_hcBump();}catch(_){}}   // heal duplicates so one x is always one head
   _hcCache=a;_hcCacheVer=_hcVer;
   return a.slice();}
+ /* ── REMOVING A HEAD. The pattern is documented in full beside its CSS above;
+       this is the behaviour half. Three things it has to get right that the old
+       one did not: the delete must not exist as an invisible hit target at rest,
+       it must behave identically on touch and pointer, and it must be undoable.
+       THE CANONICAL SHAPE, which headmaker.html also uses:
+         .mhHead  > .mhTitle + .mhEdit[aria-pressed]      -- the mode toggle
+         .moodHeads[data-editing] > .mhItem               -- the grid
+         .mhItem  > .mhPick (open) + .mhX (delete, editing only)
+         .mhUndo                                          -- replaces a tile in place
+    */
+ var editEl=document.getElementById("mhEdit");
+ var editing=false, undo=null, undoT=0;
+ var TRASH='<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12"/><path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"/></svg>';
+
+ function commit(list){
+  try{localStorage.setItem("hmCompanions",JSON.stringify(list));_hcBump();
+   if(list.length)localStorage.setItem("hmCompanion",JSON.stringify(list[list.length-1]));
+   else localStorage.removeItem("hmCompanion");}catch(_){}
+ }
+ /* The head is removed from storage IMMEDIATELY -- undo restores it rather than
+    the delete waiting on a timer. A pending delete that has not happened yet is
+    the version that loses work when the tab closes mid-countdown. */
+ function removeAt(idx){
+  var cur=readAll(); var gone=cur.splice(idx,1)[0]; if(!gone)return;
+  commit(cur);
+  try{if(window.__hmKill)window.__hmKill(gone.cut);}catch(_){}   // only exists once play-engine.js has loaded
+  clearTimeout(undoT); undo={head:gone,idx:idx};
+  undoT=setTimeout(function(){undo=null;render();},8000);
+  render();
+ }
+ function undoRemove(){
+  if(!undo)return; var cur=readAll();
+  cur.splice(Math.min(undo.idx,cur.length),0,undo.head);   // back where it was
+  commit(cur); clearTimeout(undoT); undo=null; render();
+ }
+
  function render(){var a=readAll();box.innerHTML="";
+  box.setAttribute("data-editing",editing?"true":"false");
+  if(editEl){editEl.hidden=!a.length&&!undo;
+   editEl.setAttribute("aria-pressed",editing?"true":"false");
+   editEl.textContent=editing?"Done":"Edit";
+   editEl.setAttribute("aria-label",editing?"Finish removing heads":"Remove heads");}
   a.forEach(function(h,idx){var it=document.createElement("span");it.className="mhItem";
-   var pk=document.createElement("button");pk.className="mhPick";pk.type="button";pk.setAttribute("aria-label","Open this head in the maker");
+   var pk=document.createElement("button");pk.className="mhPick";pk.type="button";
+   pk.setAttribute("aria-label","Open head "+(idx+1)+" of "+a.length+" in the head maker");
    var im=document.createElement("img");im.src=h.cut;im.alt="";pk.appendChild(im);
-   pk.addEventListener("click",function(ev){ev.stopPropagation();   // straight to the maker with THIS head on stage
+   if(editing){pk.setAttribute("aria-disabled","true");pk.tabIndex=-1;}   // not a visual-only lie
+   pk.addEventListener("click",function(ev){ev.stopPropagation();
+    if(editing)return;
     try{localStorage.setItem("hmCompanion",JSON.stringify(h));}catch(_){}
     location.href="headmaker.html";});
    it.appendChild(pk);
-   var xb=document.createElement("button");xb.className="mhX";xb.type="button";xb.setAttribute("aria-label","Remove saved head "+(idx+1));xb.textContent="×";
-   xb.addEventListener("click",function(ev){ev.stopPropagation();ev.preventDefault();
-    var cur=readAll();cur.splice(idx,1);   // by position: exactly the head you pointed at
-    try{localStorage.setItem("hmCompanions",JSON.stringify(cur));_hcBump();
-     if(cur.length)localStorage.setItem("hmCompanion",JSON.stringify(cur[cur.length-1]));
-     else localStorage.removeItem("hmCompanion");}catch(_){}
-    try{if(window.__hmKill)window.__hmKill(h.cut);}catch(_){}   // __hmKill only exists once play-engine.js has loaded; with no heads on home it never does, and there is nothing to kill
-    render();});
+   var xb=document.createElement("button");xb.className="mhX";xb.type="button";
+   xb.innerHTML=TRASH;
+   /* names WHICH head, and says what will happen -- "Remove saved head 1" did
+      not survive being read out of context in a list of eight. */
+   xb.setAttribute("aria-label","Remove head "+(idx+1)+" of "+a.length);
+   xb.addEventListener("click",function(ev){ev.stopPropagation();ev.preventDefault();removeAt(idx);});
    it.appendChild(xb);box.appendChild(it);});
+  /* the undo takes the removed head's own slot, so nothing shifts under the pointer */
+  if(undo){var u=document.createElement("button");u.className="mhUndo";u.type="button";
+   u.textContent="Undo";u.setAttribute("aria-label","Undo removing that head");
+   u.addEventListener("click",function(ev){ev.stopPropagation();ev.preventDefault();undoRemove();});
+   var at=box.children[Math.min(undo.idx,box.children.length)];
+   box.insertBefore(u,at||null);}
+  if(!a.length&&!undo)editing=false;
   syncBar(a.length);}
+
+ if(editEl)editEl.addEventListener("click",function(ev){
+  ev.stopPropagation();ev.preventDefault();editing=!editing;render();});
+ /* leaving the panel drops edit mode: coming back to an armed grid you do not
+    remember arming is how an accidental delete happens on the SECOND visit. */
+ var _pw=document.querySelector(".jbDisc.jbPlay");
+ if(_pw)_pw.addEventListener("mouseleave",function(){if(editing){editing=false;render();}});
  // --- "Show on home" -------------------------------------------------------------------
  // The crowd is the point of this site, but it is also motion right beside the headline. One
  // switch parks them. Persisted, because a preference that resets on reload is not a preference.

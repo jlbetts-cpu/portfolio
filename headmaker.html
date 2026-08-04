@@ -123,8 +123,46 @@ img{display:block;max-width:100%}
 .hmPitPick{padding:0;border:0;background:none;cursor:pointer;display:block;border-radius:4px;transition:box-shadow .18s cubic-bezier(.2,.8,.2,1)}
 .hmPitPick:hover,.hmPitPick:focus-visible{box-shadow:0 0 0 1.5px var(--c500)}
 .hmPitPick img{display:block}
-.hmPitX{position:absolute;top:-7px;right:-7px;width:18px;height:18px;border-radius:50%;border:1px solid var(--c100);background:var(--c50);color:var(--c700);font-size:var(--fs-caption);line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0}
-.hmPitX:hover{color:var(--c950);border-color:var(--c500)}
+/* REMOVING A HEAD -- THE SAME PATTERN AS THE HOME PLAY PANEL, and deliberately the
+   same so there are not two answers to one question. The full reasoning lives beside
+   the CSS in index.html; the short version is that "easy to hit deliberately" and
+   "hard to hit accidentally" only fight while one tap means both, so they are
+   separated in TIME by an Edit mode rather than in space by a smaller target.
+   THIS COPY WAS THE WORST OF THE FOUR: the x was pinned at top:-7px right:-7px on
+   an 18px circle, so it sat almost entirely OUTSIDE its own thumbnail's corner and
+   overlapped the tile it deletes -- a destructive control inside a benign one's hit
+   area, on the page where the heads are actually made.
+   At rest there is now no delete control at all (display:none, so nothing invisible
+   is clickable). In edit mode the delete IS the tile: inset:0, past --tap-min in
+   both axes, identical on touch and pointer because no hover is involved. */
+.hmPitItem{position:relative;display:inline-block}
+.hmPitX{display:none}
+.hmPit[data-editing="true"] .hmPitX{
+ display:flex;align-items:center;justify-content:center;
+ position:absolute;inset:0;z-index:2;
+ min-width:var(--tap-min);min-height:var(--tap-min);padding:0;border:0;cursor:pointer;
+ border-radius:var(--r-xs);corner-shape:var(--corner);
+ background:var(--mat-scrim);color:var(--c50);box-shadow:var(--rim-2);
+ transition:background-color var(--ease-out-dur) var(--ease-out)}
+.hmPit[data-editing="true"] .hmPitX svg{width:20px;height:20px;flex:none}
+.hmPit[data-editing="true"] .hmPitX:hover,
+.hmPit[data-editing="true"] .hmPitX:focus-visible{background:rgba(18,18,18,.58)}
+.hmPit[data-editing="true"] .hmPitPick{pointer-events:none}
+.hmPitUndo{display:inline-flex;align-items:center;justify-content:center;
+ min-width:var(--tap-min);min-height:var(--tap-min);padding:0 var(--sp-10);border:0;cursor:pointer;
+ border-radius:var(--r-xs);corner-shape:var(--corner);background:none;box-shadow:var(--rim-2);
+ font-family:var(--sans);font-weight:600;font-size:var(--fs-label);color:var(--c700);
+ transition:color var(--ease-out-dur) var(--ease-out),box-shadow var(--ease-out-dur) var(--ease-out)}
+.hmPitUndo:hover,.hmPitUndo:focus-visible{color:var(--c950);box-shadow:var(--rim-3)}
+.hmPitHead{display:flex;align-items:center;justify-content:space-between;gap:var(--sp-8);
+ min-height:var(--tap-min);margin-top:var(--sp-16-24)}
+.hmPitTitle{font-family:var(--sans);font-weight:600;font-size:var(--fs-label);letter-spacing:.01em;color:var(--c500)}
+.hmPitEdit{display:inline-flex;align-items:center;justify-content:center;min-height:var(--tap-min);
+ padding:0 var(--sp-10);border:0;background:none;cursor:pointer;
+ border-radius:var(--r-sm);corner-shape:var(--corner);
+ font-family:var(--sans);font-weight:600;font-size:var(--fs-label);letter-spacing:.01em;color:var(--c700);
+ transition:color var(--ease-out-dur) var(--ease-out)}
+.hmPitEdit:hover,.hmPitEdit:focus-visible,.hmPitEdit[aria-pressed="true"]{color:var(--c950)}
 .hmRoll{display:inline-flex;align-items:center;gap:8px}
 .hmDie{display:block;transition:transform .55s cubic-bezier(.34,1.35,.4,1)}
 .hmZoom{-webkit-appearance:none;appearance:none;height:2px;background:rgba(8,8,8,.18);border-radius:2px;outline-offset:6px}
@@ -251,7 +289,11 @@ nav .logo .logoL1{font-stretch:85.8%}
  transition:background-color .16s cubic-bezier(.2,.8,.2,1),color .16s cubic-bezier(.2,.8,.2,1);
 }
 /* square icon-only controls: same height, no text padding */
-.toTop,.sbBtn,.hmPitX,.navDrawerX{
+/* .hmPitX left this list when it stopped being a square icon-only control: at rest
+   it does not render at all, and in edit mode it is a full-tile overlay. This rule is
+   LATER in the file at the same (0,1,0) specificity, so it was silently re-showing the
+   delete on every thumbnail -- measured display:inline-flex at rest. */
+.toTop,.sbBtn,.navDrawerX{
  font-family:var(--sans);font-size:var(--fs-small);color:var(--c700);
  background:none;border:0;border-radius:4px;
  width:44px;height:44px;min-height:44px;padding:0;
@@ -525,7 +567,8 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
 
   <section class="hmPitSec hidden" id="hmPitSec" aria-label="Your saved heads">
    <div class="kicker">Your little crowd &middot; up to eight</div>
-   <div class="hmPit" id="hmPitRow"></div>
+   <div class="hmPitHead"><span class="hmPitTitle" id="hmPitTitle">Your heads</span><button class="hmPitEdit" id="hmPitEdit" type="button" aria-pressed="false" aria-controls="hmPitRow" hidden>Edit</button></div>
+   <div class="hmPit" id="hmPitRow" data-editing="false"></div>
    <div class="hmRow"><button class="hmBtn" type="button" id="addAnother">Add another head</button></div>
    <p class="cap">Click a head to bring it back on stage &mdash; download it or save its file any time. Every head joins the crowd on my homepage; eight at most, the oldest hops out.</p>
   </section>
@@ -1029,27 +1072,60 @@ function readPit(){var all=[],rawN1=null;
   if(seenP[d.cut]||seenP[k2])return false;seenP[d.cut]=1;seenP[k2]=1;return true;}).slice(0,8);
  if(rawN1!==null&&rawN1!==all.length){try{localStorage.setItem("hmCompanions",JSON.stringify(all));}catch(_){}}   // heal: duplicates and debris leave the record for good
  return all;}
+/* THE CANONICAL REMOVE PATTERN -- see index.html for the full reasoning. Shape:
+     .hmPitHead > .hmPitTitle + .hmPitEdit[aria-pressed]   -- the mode toggle
+     .hmPit[data-editing] > .hmPitItem                     -- the grid
+     .hmPitItem > .hmPitPick (open) + .hmPitX (delete, editing only)
+     .hmPitUndo                                            -- replaces a tile in place */
+var _pitEdit=false,_pitUndo=null,_pitUndoT=0;
+var PIT_TRASH='<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12"/><path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"/></svg>';
+function pitCommit(list){try{localStorage.setItem("hmCompanions",JSON.stringify(list));
+ if(list.length)localStorage.setItem("hmCompanion",JSON.stringify(list[list.length-1]));
+ else localStorage.removeItem("hmCompanion");}catch(_){}}
+/* removed from storage immediately; undo puts it back. A pending delete waiting on a
+   timer is the version that loses the head if the tab closes mid-countdown. */
+function pitRemove(idx){var cur=readPit(),gone=cur.splice(idx,1)[0];if(!gone)return;
+ pitCommit(cur);clearTimeout(_pitUndoT);_pitUndo={head:gone,idx:idx};
+ _pitUndoT=setTimeout(function(){_pitUndo=null;renderPit();},8000);renderPit();}
+function pitUndoRemove(){if(!_pitUndo)return;var cur=readPit();
+ cur.splice(Math.min(_pitUndo.idx,cur.length),0,_pitUndo.head);
+ pitCommit(cur);clearTimeout(_pitUndoT);_pitUndo=null;renderPit();}
 function renderPit(){try{var row=document.getElementById("hmPitRow"),sec=document.getElementById("hmPitSec");if(!row)return;
  var all=readPit();
- if(sec)sec.classList.toggle("hidden",!all.length);   // present the moment you have a head, on every step
+ if(sec)sec.classList.toggle("hidden",!all.length&&!_pitUndo);
+ row.setAttribute("data-editing",_pitEdit?"true":"false");
+ var eb=document.getElementById("hmPitEdit");
+ if(eb){eb.hidden=!all.length&&!_pitUndo;eb.setAttribute("aria-pressed",_pitEdit?"true":"false");
+  eb.textContent=_pitEdit?"Done":"Edit";
+  eb.setAttribute("aria-label",_pitEdit?"Finish removing heads":"Remove heads");}
  row.innerHTML="";
  for(var i=0;i<8;i++){(function(idx){
   if(all[idx]&&all[idx].cut){var it=document.createElement("span");it.className="hmPitItem";
-   var pk=document.createElement("button");pk.className="hmPitPick";pk.type="button";pk.setAttribute("aria-label","Open this head: see it live, download it, save its file");
+   var pk=document.createElement("button");pk.className="hmPitPick";pk.type="button";
+   pk.setAttribute("aria-label","Open head "+(idx+1)+" of "+all.length+": see it live, download it, save its file");
    var im1=document.createElement("img");im1.src=all[idx].cut;im1.alt="";pk.appendChild(im1);
-   pk.addEventListener("click",function(){ // any head, any time: back on the stage it goes
+   if(_pitEdit){pk.setAttribute("aria-disabled","true");pk.tabIndex=-1;}
+   pk.addEventListener("click",function(){
+    if(_pitEdit)return;
     try{localStorage.setItem("hmCompanion",JSON.stringify(all[idx]));}catch(_){}
     restoreHead(all[idx]);
     try{window.__hmNameSync&&window.__hmNameSync();}catch(_){}});
    it.appendChild(pk);
-   var xb=document.createElement("button");xb.className="hmPitX";xb.type="button";xb.setAttribute("aria-label","Remove this head from the homepage");xb.textContent="\u00d7";
-   xb.addEventListener("click",function(ev){ev.stopPropagation();var cur=readPit();cur.splice(idx,1);
-    try{localStorage.setItem("hmCompanions",JSON.stringify(cur));
-     if(cur.length)localStorage.setItem("hmCompanion",JSON.stringify(cur[cur.length-1]));
-     else localStorage.removeItem("hmCompanion");}catch(_){}
-    renderPit();});
+   var xb=document.createElement("button");xb.className="hmPitX";xb.type="button";
+   xb.innerHTML=PIT_TRASH;
+   xb.setAttribute("aria-label","Remove head "+(idx+1)+" of "+all.length);
+   xb.addEventListener("click",function(ev){ev.stopPropagation();ev.preventDefault();pitRemove(idx);});
    it.appendChild(xb);row.appendChild(it);}
-  else{var d1=document.createElement("div");d1.className="hmPitEmpty";row.appendChild(d1);}})(i);}}catch(_){}}
+  else if(!(_pitUndo&&idx===Math.min(_pitUndo.idx,all.length))){
+   var d1=document.createElement("div");d1.className="hmPitEmpty";row.appendChild(d1);}})(i);}
+ if(_pitUndo){var u=document.createElement("button");u.className="hmPitUndo";u.type="button";
+  u.textContent="Undo";u.setAttribute("aria-label","Undo removing that head");
+  u.addEventListener("click",function(ev){ev.stopPropagation();ev.preventDefault();pitUndoRemove();});
+  row.insertBefore(u,row.children[Math.min(_pitUndo.idx,row.children.length)]||null);}
+ if(!all.length&&!_pitUndo)_pitEdit=false;
+}catch(_){}}
+(function(){var eb=document.getElementById("hmPitEdit");
+ if(eb)eb.addEventListener("click",function(ev){ev.preventDefault();_pitEdit=!_pitEdit;renderPit();});})();
 renderPit();
 (function slimDown(){try{ // old 900k PNG heads repack themselves to travel light
  var all=readPit(),need=all.some(function(h){return h.cut.length>500000;});if(!need)return;
