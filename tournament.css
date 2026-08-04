@@ -1,0 +1,526 @@
+/* ============================================================================
+   tournament.css -- the match-up screen, and everything the cup shows between
+   fixtures.
+
+   WHY THIS FILE EXISTS. The tournament grew up as a 460px capsule inside a
+   scrolling portfolio page. Its styles lived in play.css shaped like that: a
+   `.tourPanel` absolutely positioned into the hero and dragged to y=0 by a
+   `--tourShift` that measured the distance from the top of INDEX.HTML's document
+   to the arena so the capsule could clear a nav bar. play.html has no such nav
+   in the flow and cannot scroll, so that measurement degenerated into "half the
+   leftover viewport" -- 180px at 1440x900 -- and was then spent twice: once
+   pulling the panel off the top edge and once as blank padding inside it. The
+   result was a 460 x 1243 card inside a 900px window with `overflow:hidden`
+   underneath it. The Kick off button was not below the fold; it was
+   unreachable. See 2026-08-03-matchup-screen-research.md sec 1.3.
+
+   The fix is not a smaller number. It is a layout that never asks where the top
+   of the document is. Everything here is banded off `svh` and the site header's
+   own height, so it is correct at any viewport and needs no JavaScript to
+   measure it -- syncHero() and --tourShift are both gone from
+   play-tournament.js, and the ~890 lines of capsule CSS they served are gone
+   from play.css.
+
+   2026-08-04 -- WHAT JAYDEN SAID, AND WHAT IT COST. He looked at the first build
+   of this screen and was blunt:
+
+     "The tournament mode needs the most work because it doesn't look
+      professional right now -- something I'd be embarrassed to show. As of right
+      now the UI looks bad other than the scoreboard. The actual match menu
+      should be clean UI. The poster coming over the screen looks like a glitch
+      more than something we should be using. Schedule looks out of place and
+      confusing to navigate. Too much random unnecessary elements. Looks like a
+      muddled mess that doesn't do the design system."
+
+   Four things left, and every one of them was an ADDITION defending itself:
+
+     - THE POSTER WIPE. A full-viewport skewed sweep in the cup's paint, under
+       which the artwork went full-bleed for 700ms with a sheen pass, once per
+       fixture. A screen-covering flash between two still layouts reads as a
+       repaint fault. Gone, along with the poster print in the column: a picture
+       of the two captains is a duplicate of the two captains, who are standing
+       on the ground twelve inches below it.
+     - THE PRINTED TICKETS. The rail was a dark painted plane of jittered,
+       grained, perforated, serialled, rubber-stamped tickets. Nine materials to
+       say "Gus beat Kip 2-1", on a page whose every other surface is a hairline
+       on white. The jitter is why it read as broken: nothing else on this site
+       is off-axis, so a row at 0.5deg looks like a rendering fault.
+     - THE PROPS. A photographic trophy shrunk into a 12px text line, and a
+       four-character fixture serial. Neither carries information.
+     - ROUND OF 16. The field was twelve, which needs a sixteen-slot bracket,
+       which opens the cup with a round named for eight teams that do not exist.
+       The field is eight now (play-tournament.js, FIELD) and the cup is
+       quarter-final -> semi-final -> final. Three rounds, seven fixtures.
+
+   What survives is what a visitor came for: who is playing, who they beat to get
+   here, what happens next, and one button. The broadcast register keeps the one
+   place it earns its keep -- the SCOREBOARD, which Jayden likes and which is not
+   touched by this file: it still gets --cupPaint, --cupStock, --cupSheen and the
+   grain/jitter helpers through window.__bcMat.
+
+   OWNERSHIP. The `.tv*` namespace is this file's, and nothing outside it styles
+   this screen any more -- the `.tCup*` / `.tk*` / `.tourPanel` / `.tBrMir`
+   families were deleted from play.css in the same pass, dead markup and all.
+   `.bcNum` (Archivo numerals) and `.bcGrain` stay in play.css because the
+   scoreboard consumes them.
+
+   No `!important` in this file, and no cast shadow on any chrome: the heads cast
+   contact shadows because they stand on something. Panels separate with a
+   hairline and translucency.
+
+   THE THREE BANDS (sec 3 of the research):
+
+     0            site header (jbStick, 72px, not ours)
+     --tvTop      A: identity strip -- cup, round, distance, the way out
+                  B: two columns -- the fixture left, the draw right
+     58svh        C: THE GROUND. No UI at all. The two squads about to play stand
+                  here, at the same 75.7svh feet plane the home page uses, and
+     100svh       wander. The empty space became the stage.
+
+   The one composition rule that keeps it honest: nothing in this file may
+   intersect 58svh -> 100svh. `.tvScreen` is `height:calc(58svh - var(--tvTop))`
+   and every child is inside it, so that is structural rather than a promise.
+   Nothing scrolls at any size -- where content does not fit, the content is
+   reduced. The only scrollable surface is the phone's draw sheet, which is the
+   only thing on screen when it is open.
+   ========================================================================== */
+
+:root{
+  /* The site header's real occupied height. --nav-h (52) is the bar's own
+     min-height; the wrapper adds --sp-20 of margin above it. Measured 72px at
+     1440x900 and 390x844 both. Written as the sum rather than as 72 so it
+     tracks the header if the header changes. */
+  --tvTop:calc(var(--nav-h) + var(--sp-20));
+  /* Band A. Floored at the tap minimum because it carries real buttons. */
+  --tvStripH:clamp(var(--tap-min), 6svh, 56px);
+  /* Where the columns stop and the world starts. 58svh is derived, not chosen:
+     the heads' crowns are at 61.2svh and they need ~8svh of jump clearance
+     above that on the home-screen wander. */
+  --tvGround:58svh;
+  /* One fixture row in the draw. Flexes with viewport HEIGHT because the thing
+     that runs out on this screen is height, not width. 20.7px at 900. */
+  --tvRow:clamp(19px, 2.3svh, 24px);
+  /* The measure. Past 1180 the extra width goes to the world, not the columns. */
+  --tvMeasure:1180px;
+  /* The captain's face on the match-up. One number, so the two sides cannot
+     drift apart and mobile is one override rather than four. */
+  --tvFace:clamp(56px, 7.2svh, 72px);
+}
+
+/* ---------------------------------------------------------------------------
+   THE SCREEN
+   Fixed, so it is a child of the window rather than of the 60vh arena, which is
+   what lets it band against svh at all. pointer-events are re-enabled on the
+   things you can actually press: the strip and the two columns sit over the
+   arena, and the heads underneath must stay hoverable through the gaps.
+   --------------------------------------------------------------------------- */
+.tvScreen{
+  position:fixed;left:0;right:0;top:var(--tvTop);
+  height:calc(var(--tvGround) - var(--tvTop));
+  z-index:47;                       /* over the heads (z:3), under the menus */
+  pointer-events:none;
+  display:flex;flex-direction:column;
+  padding-inline:var(--sp-24);
+  font-family:var(--sans);
+  contain:layout;
+}
+.tvScreen[hidden]{display:none}
+/* The pitch owns the screen during a fixture. */
+body.hmSoccer .tvScreen{display:none}
+
+/* ---------------------------------------------------------------------------
+   THE ARENA, WHILE A CUP IS UP  (moved out of play.css, which had it keyed on
+   markup index.html owns)
+   The headline and the big head step aside so the tournament is not competing
+   with them for the same space, and they are already hidden once a fixture
+   starts, so nothing pops back in mid-cup.
+   --------------------------------------------------------------------------- */
+body.hmTour .heroCopy h1,
+body.hmTour .hero .stagewrap{opacity:0;pointer-events:none;transition:opacity .35s var(--ease-out)}
+body.hmTour .hero .stagewrap{height:0;min-height:0;overflow:hidden;margin:0;
+  transition:opacity .35s var(--ease-out),height .42s var(--ease-out)}
+body.hmTour .scrollCue{display:none}
+@media(prefers-reduced-motion:reduce){
+  body.hmTour .heroCopy h1,body.hmTour .hero .stagewrap{transition:none}
+}
+/* Play and About are hidden outright for the duration: starting another game or
+   opening About would abandon the draw halfway through, and a greyed control
+   with a tooltip still invites the click. Work, the wordmark and Contact are
+   untouched, so the bar does not restructure. The JS guard on Play stays as a
+   backstop for keyboard focus. */
+body.hmTour nav .faceMoodCorner,
+body.hmTour nav #navAbout,
+body.hmTour .navDrawer #ndAbout{display:none}
+/* Gold is reserved for the final and belongs to no team, which is the whole
+   reason it works as a signal: every side already owns an accent, so the one
+   colour nobody owns reads as "this match is different". Set by cast(), so the
+   ball is already gold on the final's match-up screen. */
+body.hmFinal{--ballSkin:url(images/soccerball-gold.webp)}
+body.hmFinal .sBall{content:url(images/soccerball-gold.webp)}
+
+/* ---------------------------------------------------------------------------
+   BAND A -- the identity strip
+   One line. What cup, what round, how far there is left to go, and the way out.
+   sec 1.8: the tournament used to disable the page's only global control for the
+   whole duration of a cup, which on a page where the tournament IS the page
+   turned a guard into a trap. `Leave the cup` is the scoped replacement.
+   --------------------------------------------------------------------------- */
+.tvStrip{
+  flex:0 0 var(--tvStripH);
+  pointer-events:auto;
+  width:100%;max-width:var(--tvMeasure);margin-inline:auto;
+  display:flex;align-items:center;gap:var(--sp-10);
+  min-width:0;
+}
+/* The left side is the part that gives: it is the only thing on the strip that
+   can be shortened, and without `overflow:hidden` its nowrap children ran
+   straight under the two chips at 390px instead of pushing or truncating. */
+.tvStripL{flex:0 1 auto;min-width:0;overflow:hidden;
+  display:flex;align-items:center;gap:var(--sp-10)}
+.tvStripR{margin-left:auto;flex:0 0 auto;
+  display:flex;align-items:center;gap:var(--sp-10)}
+.tvCup{
+  font-weight:600;font-size:var(--fs-body);letter-spacing:var(--tr-sub);
+  color:var(--c950);white-space:nowrap;
+}
+/* Every caps run on this screen is --tr-caps. Three different values (.14em,
+   .06em, .04em) used to appear on one screen; the ladder has one. */
+.tvRound,.tvDist{
+  font-weight:400;font-size:var(--fs-caption);letter-spacing:var(--tr-caps);
+  text-transform:uppercase;color:var(--c500);white-space:nowrap;
+}
+.tvRound{min-width:0;overflow:hidden;text-overflow:ellipsis}
+.tvSep{color:var(--c100);flex:0 0 auto}
+
+/* The strip controls. Quiet by construction: a hairline, no fill, no elevation.
+   Chrome separates with a rim and translucency, never a shadow. */
+.tvChip{
+  position:relative;
+  -webkit-appearance:none;appearance:none;
+  display:inline-flex;align-items:center;justify-content:center;gap:var(--sp-6);
+  min-height:var(--sp-36);padding:0 var(--sp-12);
+  border:0;border-radius:var(--r-md);
+  background:var(--mat-2);box-shadow:var(--rim-1);
+  font-family:var(--sans);font-weight:600;font-size:var(--fs-caption);
+  letter-spacing:var(--tr-body);color:var(--c700);
+  cursor:pointer;white-space:nowrap;
+  transition:box-shadow var(--ease-out-dur) var(--ease-out),
+             color var(--ease-out-dur) var(--ease-out),
+             transform var(--press-dur) var(--ease-out);
+}
+/* The 36px ink box carries a 44px hit area, which is the tokens rule for a
+   control smaller than the tap minimum. Touch has no hover, so the press state
+   below is the only feedback a finger gets -- it is not optional. */
+.tvChip::after{
+  content:"";position:absolute;left:0;right:0;top:50%;
+  height:var(--tap-min);transform:translateY(-50%);
+}
+.tvChip:hover,.tvChip:focus-visible{box-shadow:var(--rim-3);color:var(--c950)}
+.tvChip:active{transform:scale(var(--press-scale))}
+.tvChip:focus-visible{outline:var(--focus-w) solid var(--c950);outline-offset:2px}
+.tvChip:focus:not(:focus-visible){outline:none}
+/* Armed: the second tap ends the cup. Warm, not red-alert -- it is a leave, not
+   a delete. */
+.tvChip.tvArmed{box-shadow:var(--rim-3);color:var(--c950);background:var(--mat-3)}
+
+/* ---------------------------------------------------------------------------
+   BAND B -- the two columns
+   `1fr 1.05fr`: the draw is marginally the wider because it carries two
+   sub-columns of names; the fixture column is two faces and a button. Both
+   columns are the SAME height and end at the same line; the shorter one gets
+   air at its foot rather than a shrunken box.
+   --------------------------------------------------------------------------- */
+.tvBody{
+  flex:1 1 auto;min-height:0;
+  width:100%;max-width:var(--tvMeasure);margin-inline:auto;
+  display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);
+  gap:var(--sp-32);
+  padding-block:var(--sp-8) var(--sp-16);
+  align-items:stretch;
+}
+.tvFixture,.tvRail{pointer-events:auto;min-width:0;min-height:0}
+
+/* Arrivals. One curve, from the tokens, on the one axis, over 8px. This is the
+   whole ceremony now -- it replaces a 1.5s wipe-and-flash sequence, and it is
+   the version nobody has to forgive. */
+.tvFixture,.tvRail{animation:tvArrive var(--sp-settle-dur) var(--sp-settle) both}
+.tvRail{animation-delay:70ms}
+@keyframes tvArrive{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){ .tvFixture,.tvRail{animation:none} }
+
+/* ---------------------------------------------------------------------------
+   THE FIXTURE COLUMN
+   Two captains, one over the other, with the lowercase `v.` between them -- the
+   1950s programme team-sheet grammar, not the fighting-game glyph. A giant
+   angled VS is the one piece of cosplay this screen is most likely to reach for.
+
+   The round is NOT repeated here: band A says it four lines above. That
+   duplicate, the poster print and the serial caption were three of the elements
+   that made this column read as busier than the information in it.
+   --------------------------------------------------------------------------- */
+.tvFixture{
+  display:flex;flex-direction:column;justify-content:center;
+  gap:var(--sp-20);
+}
+.tvSheet{display:flex;flex-direction:column;min-width:0;min-height:0}
+.tvSide{display:flex;align-items:center;gap:var(--sp-16);min-width:0}
+/* The head is shown whole and contained. These are transparent cut-outs, not
+   avatars: cropping them to a circle fights their own silhouette and clips hair
+   and chins at every size. */
+.tvFace{
+  flex:0 0 var(--tvFace);width:var(--tvFace);height:var(--tvFace);
+  display:inline-flex;align-items:flex-end;justify-content:center;
+}
+.tvFace img{max-width:100%;max-height:100%;width:auto;height:auto;
+  object-fit:contain;display:block}
+.tvSideT{min-width:0;display:flex;flex-direction:column;gap:var(--sp-8)}
+.tvName{
+  font-weight:600;font-size:var(--fs-h2);line-height:var(--lh-auto);
+  letter-spacing:var(--tr-head);color:var(--c950);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+/* Colour as a flat bar, never as a field: a blend implies a winner, and a
+   saturated panel behind a photographic head is the esports roster card this
+   site is not. Same object as the draw's row stripe -- one mark, seen twice. */
+.tvBar{height:4px;border-radius:var(--r-hair);background:rgb(var(--tcx,117,117,117));
+  width:100%;max-width:180px}
+.tvV{
+  font-size:var(--fs-lead);line-height:var(--lh-flat);color:var(--c500);
+  margin:var(--sp-12) 0 var(--sp-12) calc(var(--tvFace) + var(--sp-16));
+  letter-spacing:var(--tr-body);
+}
+/* The tale of the tape. Real data only: __hmSess.pair has recorded every captain
+   pairing since the page loaded and nothing had ever read it back. Zero lines is
+   a legitimate state and nothing moves, because the column is centred rather
+   than stacked from the top. */
+.tvTape{
+  margin:var(--sp-20) 0 0;
+  font-size:var(--fs-small);line-height:var(--lh-body);letter-spacing:var(--tr-body);
+  color:var(--c500);
+}
+.tvTape em{font-style:normal;color:var(--c900);font-weight:600}
+.tvTape:empty{display:none}
+
+/* The one primary action, at the foot of the column that owns it -- not centred
+   at the bottom of the screen, which is the ground now. A button floating over
+   the heads is the crammed-at-the-bottom failure with extra steps. */
+.tvGo{
+  align-self:flex-start;
+  -webkit-appearance:none;appearance:none;
+  min-height:var(--tap-min);padding:0 var(--sp-24);
+  border:0;border-radius:var(--r-md);
+  background:var(--c950);color:var(--c50);
+  font-family:var(--sans);font-weight:600;font-size:var(--fs-body);
+  letter-spacing:var(--tr-body);cursor:pointer;
+  transition:opacity var(--ease-out-dur) var(--ease-out),
+             transform var(--press-dur) var(--ease-out);
+}
+.tvGo:hover,.tvGo:focus-visible{opacity:.86}
+.tvGo:active{transform:scale(var(--press-scale))}
+.tvGo:focus-visible{outline:var(--focus-w) solid var(--c950);outline-offset:2px}
+.tvGo:focus:not(:focus-visible){outline:none}
+
+/* ---------------------------------------------------------------------------
+   THE RAIL -- the draw
+   "Who am I playing, and what happens next." A round is a heading and a list. A
+   fixture is two rows. A row is the team's colour, the captain's face, the name,
+   and the score once there is one. Nothing else.
+
+   `column-fill:auto` on a fixed-height element is the whole mechanism: it fills
+   the first sub-column to the bottom and wraps to the second, which is exactly
+   "rounds flowing top-to-bottom then across" and needs no measurement. At eight
+   teams that puts the four quarter-finals on the left and the two semis plus the
+   final on the right, with no scroller at 1280 x 800.
+   --------------------------------------------------------------------------- */
+.tvRail{display:flex;flex-direction:column;min-height:0}
+.tvBoardHd{
+  flex:0 0 auto;padding:0 0 var(--sp-12);
+  font-weight:600;font-size:var(--fs-caption);letter-spacing:var(--tr-caps);
+  text-transform:uppercase;color:var(--c500);
+}
+.tvDraw{
+  flex:1 1 auto;min-height:0;overflow:hidden;
+  column-count:2;column-gap:var(--sp-32);column-fill:auto;
+}
+.tvRd{break-inside:avoid;margin:0 0 var(--sp-16)}
+.tvRdH{
+  margin:0 0 var(--sp-6);padding:0 0 var(--sp-6);
+  border-bottom:var(--hair-w) solid var(--c100);
+  font-weight:600;font-size:var(--fs-micro);letter-spacing:var(--tr-caps);
+  text-transform:uppercase;color:var(--c500);
+}
+/* The round being played is the only thing on the board that is emphasised, and
+   it is emphasised by ink weight, not by a badge. */
+.tvRdH.tvRdNow{color:var(--c950);border-bottom-color:var(--c950)}
+.tvRdL{list-style:none;margin:0;padding:0}
+.tvFx{
+  padding:var(--sp-4) 0;
+  border-radius:var(--r-xs);
+}
+.tvFx+.tvFx{margin-top:var(--sp-2)}
+/* The next fixture -- the one the left column is about -- is marked so the two
+   halves of the screen are visibly the same subject. A tinted wash and a
+   hairline, no elevation. */
+.tvFx.tvFxNext{
+  background:var(--wash-1);box-shadow:var(--rim-1);
+  padding-inline:var(--sp-8);margin-inline:calc(var(--sp-8) * -1);
+}
+/* One row per side, and the two rows are the same object -- which is what makes
+   a column of them scannable. The old ticket put the two teams side by side with
+   the score wedged between, so no two fixtures lined their names up. */
+.tvFxT{
+  display:flex;align-items:center;gap:var(--sp-8);
+  min-height:var(--tvRow);min-width:0;
+  color:var(--c700);
+}
+.tvFxC{flex:0 0 3px;width:3px;height:calc(var(--tvRow) - 6px);border-radius:var(--r-hair);
+  background:rgb(var(--tcx,117,117,117))}
+.tvFxF{flex:0 0 var(--tvRow);width:var(--tvRow);height:var(--tvRow);
+  display:inline-flex;align-items:flex-end;justify-content:center}
+.tvFxF img{max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;display:block}
+.tvFxN{
+  flex:1 1 auto;min-width:0;
+  font-size:var(--fs-caption);letter-spacing:var(--tr-body);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+/* Archivo, tabular -- the one place the broadcast face appears outside the
+   scoreboard, and the reason a column of scores lines up. An unplayed fixture
+   prints nothing: an empty score column IS "not yet", and a row of placeholder
+   dashes is noise that says the same thing louder. */
+.tvFxS{
+  flex:0 0 auto;min-width:1.2em;text-align:right;
+  font-size:var(--fs-caption);color:var(--c950);
+}
+/* Not qualified yet. No colour stripe -- a grey bar is a team wearing grey, and
+   an unplayed semi-final was showing four of them. */
+.tvFxT.tvFxTbd{color:var(--c400)}
+.tvFxT.tvFxTbd .tvFxC{background:none}
+.tvFxT.tvFxWon{color:var(--c950)}
+.tvFxT.tvFxWon .tvFxN{font-weight:600}
+.tvFxT.tvFxLost{color:var(--c400)}
+.tvFxT.tvFxLost .tvFxS{color:var(--c400)}
+.tvFxT.tvFxLost .tvFxF img{opacity:.5}
+
+/* ---------------------------------------------------------------------------
+   THE CHAMPION, and the standings
+   --------------------------------------------------------------------------- */
+.tvBody.tvDone{grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr)}
+/* Sized by WIDTH, not by "max-height:100%". A percentage height against a flex
+   item whose own height comes from `flex:1` is not a definite length here, so the
+   cap was silently ignored and the champion's head grew to the full column --
+   straight over its own caption. A width clamp cannot be ignored, and the crown
+   is positioned in percentages of it, so both scale together. */
+.tvChampWrap{position:relative;display:flex;align-items:flex-end;justify-content:center;
+  min-height:0;flex:1 1 auto;overflow:hidden}
+.tvChampHead{position:relative;width:clamp(110px, 20svh, 200px);flex:0 0 auto}
+.tvChampHead img{display:block;width:100%;height:auto}
+.tvCrown{position:absolute;left:50%;top:-8%;height:26%;width:auto;z-index:2;
+  transform:translateX(-50%) rotate(-5deg);transform-origin:50% 100%;pointer-events:none}
+.tvCrown svg{display:block;height:100%;width:auto}
+.tvChampNm{
+  margin:var(--sp-16) 0 0;text-align:center;
+  font-weight:600;font-size:var(--fs-h4);line-height:var(--lh-auto);
+  letter-spacing:var(--tr-sub);color:var(--c950);
+}
+.tvStandGrid{
+  flex:1 1 auto;min-height:0;overflow:hidden;
+  column-count:2;column-gap:var(--sp-32);column-fill:auto;
+}
+.tvStandRow{
+  break-inside:avoid;display:flex;align-items:center;gap:var(--sp-8);
+  min-height:calc(var(--tvRow) + var(--sp-10));
+  border-bottom:var(--hair-w) solid var(--c100);
+}
+.tvStandRk{flex:0 0 1.4em;font-size:var(--fs-caption);color:var(--c500);
+  font-variant-numeric:tabular-nums lining-nums}
+.tvStandNm{flex:1 1 auto;min-width:0;font-weight:600;font-size:var(--fs-caption);
+  color:var(--c950);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tvStandOut{flex:0 0 auto;font-size:var(--fs-micro);letter-spacing:var(--tr-caps);
+  text-transform:uppercase;color:var(--c500)}
+
+/* ---------------------------------------------------------------------------
+   THE DRAW SHEET -- the phone's copy of the rail
+   It exists for the phone and only for the phone. Above 760px the rail already
+   shows all three rounds, so a button opening a copy of what is on screen is one
+   of the unnecessary elements; its chip is hidden there. This is the only
+   surface allowed to scroll, because it is the only thing on screen when it is
+   open. No backdrop-filter: a scrim plus an opaque sheet says the same thing for
+   free, and two large permanently-visible surfaces are exactly what the blur
+   budget forbids blurring.
+   --------------------------------------------------------------------------- */
+.tvChipDraw{display:none}
+.tvSheetScrim{
+  position:fixed;inset:0;z-index:70;background:var(--mat-scrim);
+  opacity:0;pointer-events:none;
+  transition:opacity var(--sp-settle-dur) var(--sp-settle);
+}
+body.tvBoardOpen .tvSheetScrim{opacity:1;pointer-events:auto}
+.tvSheetPanel{
+  position:fixed;z-index:71;left:50%;top:50%;transform:translate(-50%,-50%) scale(.985);
+  width:min(560px, calc(100vw - var(--sp-32)));max-height:min(84svh, 760px);
+  overflow:auto;overscroll-behavior:contain;
+  border-radius:var(--r-xl);background:var(--mat-3-solid);box-shadow:var(--rim-1);
+  padding:var(--sp-24);
+  opacity:0;pointer-events:none;
+  transition:opacity var(--sp-settle-dur) var(--sp-settle),
+             transform var(--sp-settle-dur) var(--sp-settle);
+}
+body.tvBoardOpen .tvSheetPanel{opacity:1;pointer-events:auto;transform:translate(-50%,-50%) scale(1)}
+.tvSheetHd{display:flex;align-items:center;justify-content:space-between;gap:var(--sp-12);
+  margin-bottom:var(--sp-16)}
+.tvSheetTitle{margin:0;font-weight:600;font-size:var(--fs-h5);line-height:var(--lh-auto);
+  letter-spacing:var(--tr-sub);color:var(--c950)}
+/* One column in the sheet: it has the height to run the rounds straight down,
+   and a two-up grid inside a dialog is a second layout to keep in step. */
+.tvSheetBoard{column-count:1}
+@media(prefers-reduced-motion:reduce){
+  .tvSheetScrim,.tvSheetPanel{transition:none}
+}
+
+/* ---------------------------------------------------------------------------
+   390px -- where two columns cannot survive
+   sec 4.5: stacking them re-creates the scroll, which is the thing being fixed,
+   so the answer is REDUCTION rather than stacking. The heads stand at 71 -> 80svh
+   here, so the ground band starts HIGHER and the columns have less room, not
+   more -- which is the second reason reduction is the only honest answer.
+
+   Measured at 390 x 844: band A 44px, band B 407px. The fixture column alone is
+   ~230px there. The fixture column plus even a single round of the draw is
+   ~440px, which does not fit -- so the phone shows the fixture, and the draw is
+   one tap away on the sheet. On a phone you are looking at the match you are
+   about to play, not auditing the bracket.
+   --------------------------------------------------------------------------- */
+@media(max-width:760px){
+  :root{
+    --tvGround:62svh;
+    --tvFace:clamp(48px, 6.6svh, 60px);
+  }
+  .tvScreen{padding-inline:var(--sp-16)}
+  .tvBody{
+    grid-template-columns:minmax(0,1fr);
+    gap:var(--sp-12);padding-block:var(--sp-4) var(--sp-8);
+  }
+  .tvBody.tvDone{grid-template-columns:minmax(0,1fr)}
+  .tvRail{display:none}
+  /* The standings ARE the ending, so they stay -- the champion takes the top
+     half of band B and the table the bottom. */
+  .tvBody.tvDone{grid-template-rows:minmax(0,1fr) minmax(0,1.15fr)}
+  .tvBody.tvDone .tvRail{display:flex}
+  .tvStandGrid{column-count:2;column-gap:var(--sp-16)}
+  .tvStandOut{display:none}
+  .tvName{font-size:var(--fs-h3)}
+  .tvTape{margin-top:var(--sp-12);font-size:var(--fs-caption)}
+  .tvBar{max-width:140px}
+  .tvGo{align-self:stretch}
+  .tvChipDraw{display:inline-flex}
+  .tvDist{display:none}
+}
+/* Under 560px the strip cannot carry the cup's name AND the round AND two
+   controls: measured at 390, "UC Davis Cup · QUARTER-FINAL" plus both chips is
+   ~470px of content in 358px of strip. The round is the information and the cup
+   name is the flavour, so the flavour goes -- the cup still names itself on the
+   champion screen and in the draw sheet's title. */
+@media(max-width:560px){
+  .tvCup,.tvSep{display:none}
+  .tvChip{padding:0 var(--sp-10)}
+}
