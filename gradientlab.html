@@ -4,211 +4,335 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex">
-<title>Gradient Lab — Jayden Betts</title>
-<!-- THE SHARED DESIGN TOKENS, linked ahead of this page's own <style> so the page-local
-     stage palette (--paper/--ink/--sub/--hair/--panel) and its green --accent still win.
-     Replaces the flagged header "top-up" block that used to sit at the foot of that style
-     block. See .superpowers/sdd/2026-08-02-play-page/play-tokens-report.md §1. -->
+<title>Gradient Maker — Jayden Betts</title>
+<!-- THE SHARED DESIGN TOKENS. There is no longer a page-local palette for them to
+     lose to: --paper/--ink/--sub/--hair/--panel are gone and every rule in the block
+     below reads a shared token. What is still true is the load order -- tokens first,
+     page after, so a page-local geometry constant can be built out of a token.
+     See .superpowers/sdd/2026-08-02-play-page/play-tokens-report.md §1. -->
 <link rel="stylesheet" href="tokens.css">
 <style>
   @font-face{font-family:"Instrument Sans";src:url("fonts/instrument-sans-latin-400-normal.woff2") format("woff2");font-weight:400;font-display:swap}
   @font-face{font-family:"Instrument Sans";src:url("fonts/instrument-sans-latin-600-normal.woff2") format("woff2");font-weight:600;font-display:swap}
 
+  /* ══ PAGE-LOCAL CONSTANTS ════════════════════════════════════════════════
+     THREE NEW NAMES, NOT ONE REBINDING. The block that used to sit here bound
+     --paper/--ink/--sub/--hair/--panel to Lab-only near-misses of tokens that
+     already existed (#f8f9fa vs --c50, #232323 vs --c900, #75756e vs --c500,
+     #e7e6e1 vs --c100) -- five names for values the system had already named,
+     which is precisely the drift the token layer exists to stop. They are gone;
+     every rule below reads the shared token.
+
+     --bar-h is the site header's own chrome, DERIVED rather than retyped:
+     :root.jbShrunk .jbStick sets padding-block --sp-14 / --sp-6 around a --nav-h
+     bar, so it is 14 + 52 + 6 = 72 at every width. Everything on this page hangs
+     off that number and none of it should have to know it is 72.
+     --ok is SUCCESS -- a different idea from --accent that happens to be a
+     colour, so it gets its own name rather than a rebinding. */
   :root{
-    --paper:#f8f9fa; --ink:#232323; --sub:#75756e; --hair:#e7e6e1;
-    --panel:rgba(255,255,255,.72);
-    /* --accent is NOT rebound here. This block loads after tokens.css, so an
-       --accent:#0E6B3B here made the same name mean green on this page and blue
-       on seven others -- and the Lab's focus rings were green as a result. The
-       three interactive uses (the range focus ring, the checkbox accent-color,
-       the button focus ring) want the system's interactive blue and now inherit
-       it. The fourth wanted SUCCESS, which is a different idea that happens to
-       be the same colour, so it gets a name of its own rather than a rebinding. */
+    --bar-h:calc(var(--sp-14) + var(--nav-h) + var(--sp-6));
+    --panel-w:360px;      /* the inspector column. 4px grid; a page constant, like --rail-w */
+    --lbl-w:84px;         /* every control's label column, so every track starts on one x */
     --ok:#0E6B3B;
   }
   *{box-sizing:border-box}
-  body{margin:0;background:var(--paper);color:var(--ink);
-    font-family:"Instrument Sans",-apple-system,system-ui,sans-serif;font-size:14px;line-height:1.5}
+  /* overflow-x:clip is what the other nine pages already carry and this one did
+     not (mobile audit, method note). It is not covering anything up here -- the
+     halo bleed that used to cause a real sideways scroll is fixed structurally
+     by the stage card -- but a CLASSIC scrollbar shrinks clientWidth while the
+     fixed bar still sizes to the initial containing block, which reads as 20px
+     of horizontal overflow at 320 the moment the short-viewport release lets the
+     page scroll. clip, never hidden, so this never becomes a scroll container. */
+  html,body{height:100%;overflow-x:clip}
+  body{margin:0;background:var(--c50);color:var(--c950);
+    font-family:var(--sans);font-size:var(--fs-nav);line-height:var(--lh-body);
+    letter-spacing:var(--tr-body)}
 
-  /* THE POINTER-EVENTS CONTRACT, PRESERVED EXACTLY. Everything the page floats
-     over the stage is pointer-events:none so it never eats a click meant for the
-     canvas; the one interactive thing -- the bar -- opts back in, which is what
-     .jbStick>* does in header.css. .labBack is gone: the bar is the way back now,
-     and it is a real 44x44 target at every width. */
-  /* HEADER V2: the bar now spans the page's whole column rather than floating as
-     a 318px pill in the middle, so this label -- which sat happily in the dead
-     space to its left -- ran underneath it. It moves below the bar's 72px of
-     chrome instead. Same contract otherwise: page identity, not navigation, so
-     it stays pointer-events:none over the stage. */
-  .labId{position:absolute;top:72px;left:0;z-index:5;display:flex;align-items:center;
-    gap:10px;padding:18px 26px;pointer-events:none}
-  .labId b{font-weight:600;letter-spacing:.02em}
-  .labId span{color:var(--sub);font-size:12px;letter-spacing:.12em;text-transform:uppercase}
+  /* ══ THE FRAME ═══════════════════════════════════════════════════════════
+     A BUILDER, NOT A DOCUMENT. One viewport, no page scroll: the artifact holds
+     the centre and the inspector sits beside it. 100svh rather than 100vh
+     because on iOS Safari vh resolves against the LARGE viewport, so a 100vh
+     app frame runs its last controls under the toolbar with no way to reach
+     them -- the same reason the old panel needed 100dvh.
 
-  .lab{display:grid;grid-template-columns:1fr 320px;min-height:100vh}
-  /* THE MOBILE PASS USED TO SIT HERE, and that is exactly why none of it ever
-     ran. It is now at the FOOT of this block, below every rule it overrides. */
+     THE GUTTER IS THE SITE'S GUTTER, AND THE MEASURE IS THE SITE'S MEASURE.
+     This page measured 30 / 14 against every other page's 40 / 24 (geometry
+     audit §4.4) -- it predated --sp-40, which exists precisely to name the 40px
+     site gutter. --page-max + margin-inline:auto is the other half, and it is
+     not optional: without it the content edge sits at 40 while every other page
+     -- AND the bar itself, capped at --bar-open 1200 and centred -- resolves to
+     120 on a 1440 screen. Measured on index.html at 1440: .wrap 120, .jbNav 120.
+     Now: 120 / 120 / 120 here too. Top inset derives from --bar-h so it cannot
+     drift if the bar's own padding changes. */
+  .lab{display:grid;grid-template-columns:minmax(0,1fr) var(--panel-w);
+    gap:var(--sp-24);height:100svh;
+    max-width:var(--page-max);margin-inline:auto;
+    padding:calc(var(--bar-h) + var(--sp-16)) var(--sp-40) var(--sp-24)}
 
-  /* overflow-x:clip, not hidden and not left alone: .haloWrap is inset:-26%
-     around .orbWrap, so at 390px it is 462px wide sitting at x -36 -> 426 and
-     hung 36px off the right edge of the only page on the site that does not
-     carry a clip. That was a real two-dimensional scroll -- the page drifted
-     under the thumb while you dragged a slider -- and the single WCAG 1.4.10
-     reflow failure across the nine pages (349px of content in 320). What
-     overflows is a blurred decorative glow that is already off-screen, so
-     clipping removes the scroll without removing anything anyone can see.
-     clip rather than hidden so this never becomes a scroll container, and
-     x-only so the halo keeps its vertical bleed (visible/clip is the one
-     mixed pair CSS permits). */
-  /* GROUND MODE. What the orb is judged against — not the orb itself and not
-     the panel. Default is --c50, the site's actual paper token (the page's own
-     --paper above is a Lab-local tint, #f8f9fa, and was never meant to stand in
-     for the ground an exported orb lands on). JS drives the live value inline;
-     this rule is only the first paint before the script runs. */
+  /* ══ THE STAGE ═══════════════════════════════════════════════════════════
+     GROUND MODE. What the orb is judged against — not the orb itself and not
+     the panel. Default is --c50, the site's paper. JS drives the live value
+     inline; this rule is only the first paint before the script runs.
+
+     THE CARD IS ALSO THE OVERFLOW FIX AND THE HEADER FIX. .haloWrap is
+     inset:-26% around .orbWrap and used to hang 36px off the right edge at
+     390px -- the site's one real two-dimensional scroll and its one 400%-zoom
+     reflow failure (mobile audit B2). overflow:hidden on a card that is inset
+     from the viewport removes that structurally rather than by clipping the
+     page. And because the card starts BELOW the bar, the user's stage colour
+     never reaches the header -- which is the whole reason the header could be
+     ink and can now be light. */
   .stage{position:relative;display:flex;align-items:center;justify-content:center;
-    overflow-x:clip;min-height:72vh;padding:80px 30px 40px;background:var(--c50)}
-  .stage.bgMode{padding:0}
+    min-width:0;min-height:0;overflow:hidden;
+    border-radius:var(--r-lg);corner-shape:var(--corner);
+    background:var(--c50)}
+  /* the card's edge is an ::after ring, not an inset box-shadow: an inset shadow
+     paints under the canvas, so on a full-bleed gradient the rim would vanish */
+  .stage::after{content:"";position:absolute;inset:0;z-index:3;pointer-events:none;
+    border-radius:inherit;corner-shape:var(--corner);box-shadow:var(--rim-2)}
   .bgHost{position:absolute;inset:0;display:none;overflow:hidden}
   .stage.bgMode .bgHost{display:block}
   .stage.bgMode .orbWrap{display:none}
-  .orbWrap{position:relative;width:min(430px,78vw);aspect-ratio:1;--R:215px}
+  /* sized against the CARD, not the viewport. cqmin keeps the orb square inside
+     a box of any proportion and leaves 20% of the short side clear on each edge,
+     which is more than the halo's 26%-of-orb bleed needs -- so the glow is never
+     clipped by the very rule that stops it escaping the page. */
+  .orbWrap{position:relative;width:min(430px,72%);aspect-ratio:1;--R:215px}
+  .orbWrap.orb2{position:absolute;width:min(300px,50%);right:6%;top:7%;--R:150px}
+  .orbWrap.orb3{position:absolute;width:min(215px,36%);left:7%;bottom:6%;--R:107px}
+  @supports (container-type:size){
+    .stage{container-type:size}
+    .orbWrap{width:min(430px,60cqmin)}
+    .orbWrap.orb2{width:min(300px,42cqmin)}
+    .orbWrap.orb3{width:min(215px,30cqmin)}
+  }
   .haloWrap{position:absolute;inset:-26%;pointer-events:none;mix-blend-mode:multiply}
-  .halo{position:absolute;inset:0;border-radius:50%;overflow:hidden;
+  .halo{position:absolute;inset:0;border-radius:var(--r-full);overflow:hidden;
     filter:blur(calc(var(--R)*0.34));opacity:var(--haloA,.5)}
   /* the halo may only ever FADE — the radial mask kills the pale ring where the
      glow canvas used to terminate at its circle's rim */
   .halo canvas{position:absolute;inset:-8%;width:116%;height:116%;display:block;
     -webkit-mask-image:radial-gradient(closest-side,#000 28%,transparent 76%);
     mask-image:radial-gradient(closest-side,#000 28%,transparent 76%)}
-  .discClip{position:absolute;inset:0;border-radius:50%;overflow:hidden;
+  .discClip{position:absolute;inset:0;border-radius:var(--r-full);overflow:hidden;
     isolation:isolate;transform:translateZ(0)}
-  .discClip::after{content:"";position:absolute;inset:0;border-radius:50%;
+  .discClip::after{content:"";position:absolute;inset:0;border-radius:var(--r-full);
     pointer-events:none;z-index:2;box-shadow:var(--volSh,none)}
   .discClip canvas,.bgHost canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
-  /* scene companions: composed like the board's multi-orb poster */
-  .orbWrap.orb2{position:absolute;width:min(300px,54vw);right:6%;top:7%;--R:150px}
-  .orbWrap.orb3{position:absolute;width:min(215px,40vw);left:7%;bottom:6%;--R:107px}
 
-  /* max-height in DYNAMIC viewport units. The site had zero 100dvh anywhere; this
-     is the one declaration that needed it, because on iOS Safari vh resolves
-     against the LARGE viewport, so a 100vh scroller with the browser chrome
-     showing runs its last controls under the toolbar with no way to reach them.
-     The vh line stays first as the fallback for anything without dvh. */
-  .panel{position:sticky;top:0;align-self:start;max-height:100vh;max-height:100dvh;overflow-y:auto;
-    margin:74px 22px 26px 0;padding:20px 20px 16px;border-radius:16px;
-    background:var(--panel);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
-    border:1px solid var(--hair);box-shadow:0 1px 2px rgba(20,20,16,.04),0 18px 44px rgba(20,20,16,.07);z-index:6}
-  .sec{padding:14px 0 16px;border-bottom:1px solid var(--hair)}
-  .sec:first-child{padding-top:2px}
-  .sec:last-of-type{border-bottom:0}
-  .secH{font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;
-    color:var(--sub);margin:0 0 12px;display:flex;justify-content:space-between;align-items:center}
-  .row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:10px 0}
-  .row label{color:var(--ink);font-size:13px;white-space:nowrap}
-  .row output{color:var(--sub);font-size:12px;font-variant-numeric:tabular-nums;min-width:34px;text-align:right}
+  /* ══ THE INSPECTOR ═══════════════════════════════════════════════════════
+     A flex COLUMN with one flexible row (the tab body) and three fixed ones:
+     the tool's name, the tab strip, and the actions. The actions never leave the
+     screen, which is what "one primary action" means on a page with 30 controls.
+     Light surface, hairline rim, NO cast shadow -- the panel separates from the
+     paper by material and an edge, never by elevation. No backdrop-filter
+     either: --blur-1/2 are zeroed below 760px, so anything leaning on blur needs
+     a solid fallback, and a solid white panel simply does not need the blur. */
+  .panel{display:flex;flex-direction:column;gap:var(--sp-12);min-height:0;
+    padding:var(--sp-16);
+    border-radius:var(--r-lg);corner-shape:var(--corner);
+    background:var(--c0);box-shadow:var(--rim-2)}
 
-  input[type=color]{appearance:none;-webkit-appearance:none;width:30px;height:30px;border:1px solid var(--hair);
-    border-radius:50%;padding:0;background:none;cursor:pointer;overflow:hidden}
+  /* the tool names itself at the head of its own inspector rather than floating
+     a plate over the artifact -- and it is the page's h1, which this page did
+     not previously have at all */
+  .labHead{display:flex;align-items:baseline;justify-content:space-between;
+    gap:var(--sp-8);min-height:var(--sp-24)}
+  .labHead h1{margin:0;font-size:var(--fs-small);font-weight:600;
+    letter-spacing:var(--tr-title);color:var(--c950)}
+  .labHead span{font-size:var(--fs-micro);letter-spacing:var(--tr-caps);
+    text-transform:uppercase;color:var(--c500);white-space:nowrap}
+
+  /* ══ CONTROLS ════════════════════════════════════════════════════════════
+     docs/superpowers/specs/2026-08-03-control-system.md §2: one base, and a
+     kind may vary only background / box-shadow / colour / font-weight. Height
+     is min-height and never vertical padding -- which is the whole of why this
+     page used to carry `7px 11px` and `9px 12px`, someone padding TO a height
+     they never named (geometry audit §4.1, 58 occurrences). The rim is a
+     box-shadow, never a border. The press is scale, never translateY.
+     The spec's --ctl-* names are NOT declared here: tokens.css does not carry
+     them yet and inventing a local copy is exactly the shadowing this pass is
+     removing, so every rule reads the underlying token directly. */
+  .ctl{display:inline-flex;align-items:center;justify-content:center;gap:var(--sp-8);
+    min-height:var(--tap-min);padding:0 var(--sp-16);
+    border:0;border-radius:var(--r-md);corner-shape:var(--corner);
+    background:none;box-shadow:none;
+    font-family:var(--sans);font-size:var(--fs-label);font-weight:400;
+    line-height:var(--lh-flat);letter-spacing:var(--tr-body);color:var(--c700);
+    position:relative;cursor:pointer;white-space:nowrap;text-decoration:none;
+    -webkit-tap-highlight-color:transparent;
+    transition-property:color,background-color,box-shadow,transform;
+    transition-timing-function:var(--ease-out);
+    transition-duration:var(--hover-out-dur)}
+  .ctl:hover,.ctl:focus-visible,.ctl[aria-selected="true"]{transition-duration:var(--ease-out-dur)}
+  .ctl:hover{color:var(--c950)}
+  .ctl:active{transition-duration:var(--press-dur);transform:scale(var(--press-scale))}
+  .ctl:focus-visible{outline:var(--focus-w) solid var(--c950);outline-offset:var(--sp-2)}
+  .ctl:focus:not(:focus-visible){outline:none}
+  .ctl .gIco{width:var(--ico-md);height:var(--ico-md);flex:0 0 var(--ico-md)}
+  .ctl--icon{padding:0;width:var(--tap-min);min-width:var(--tap-min);flex:0 0 var(--tap-min)}
+  /* §3.2: the hover moves two channels and neither is a fill -- the rim goes
+     .08 -> .14 and the ink goes --c700 -> --c950, so the glyph strengthens with
+     the edge via currentColor and the whole control reads as one object. */
+  .ctl--secondary{background:none;box-shadow:var(--rim-1)}
+  .ctl--secondary:hover{box-shadow:var(--rim-2);color:var(--c950)}
+  /* THE ONE PRIMARY ACTION. Ink, not the accent -- the accent is becoming ink
+     site-wide and a filled near-black button is the only control on this page
+     that carries a solid ground. --press-scale-lg because it is a wide box. */
+  .ctl--primary{background:var(--c950);color:var(--c50);font-weight:600;flex:1 1 auto}
+  .ctl--primary:hover{background:var(--c800);color:var(--c50)}
+  .ctl--primary:active{transform:scale(var(--press-scale-lg))}
+  .ctl--primary:focus-visible{outline-color:var(--c950)}
+  .ctl.is-ok{color:var(--ok)}
+
+  /* ── the tab strip: five groups, one visible at a time. This is REDUCTION,
+     not a scrollport: 30 controls in one column is what made the old panel a
+     844px-tall scroller with its last rows unreachable. Full 44px segments --
+     the compact 36px rung needs a >=44px container and >=8px between expanded
+     hit areas (§4.2), and a segmented control has neither. */
+  .tabs{display:flex;gap:var(--sp-4)}
+  .tab{flex:1 1 0;min-width:0;padding:0 var(--sp-4);
+    border-radius:var(--r-md);corner-shape:var(--corner);
+    color:var(--c500);justify-content:center}
+  .tab[aria-selected="true"]{background:var(--c75);color:var(--c950);font-weight:600}
+
+  /* ── the tab body. Rows are FLUSH: each is its own 44px target, so the 8px
+     separation floor -- which exists to keep undersized targets apart -- has
+     nothing to do here, and a stack of full-height rows reads as one list.
+     overflow-y is a SAFETY VALVE, not a design: measured at 1440, 1280 and
+     390x844 no group ever fills it. It fires only below roughly a 660px-tall
+     desktop window, where the alternative is controls off the bottom. */
+  .tabPanel{flex:1 1 auto;display:flex;flex-direction:column;align-content:flex-start;
+    min-height:0;overflow-y:auto;overscroll-behavior:contain}
+  .tabPanel[hidden]{display:none}
+
+  .row{display:flex;align-items:center;gap:var(--sp-12);min-height:var(--tap-min)}
+  .row>label{flex:0 0 var(--lbl-w);min-width:0;font-size:var(--fs-label);color:var(--c700);
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .row>output{flex:0 0 var(--sp-28);text-align:right;font-size:var(--fs-caption);
+    color:var(--c500);font-variant-numeric:tabular-nums}
+  /* margin:0 is load-bearing, not tidiness -- .grpH is a <p>, and the UA's 1em
+     top+bottom put 28px of invisible air into the tallest group and were the
+     difference between the panel fitting a 390x844 phone and not */
+  .grpH{margin:0;display:flex;align-items:flex-end;gap:var(--sp-8);
+    min-height:var(--sp-28);padding-bottom:var(--sp-4);
+    font-size:var(--fs-micro);font-weight:600;
+    letter-spacing:var(--tr-caps);text-transform:uppercase;color:var(--c500)}
+
+  /* ── sliders. THE 2px BOX WAS THE BUG: the fix lived under @media(max-width:880px)
+     while a gradient tool is used on a desktop, so 24 of the site's ~50 target
+     failures were one inverted media query (geometry audit §3.1/§3.3). The real
+     grab band measured 14px. The input's BORDER BOX is the hit area -- a
+     ::-webkit-slider-thumb is a pseudo element that paints outside it and catches
+     nothing -- so the box is --tap-min at every width and the visible line moves
+     to ::-webkit-slider-runnable-track. touch-action:pan-y so a successful drag
+     does not also scroll. The thumb is ink because the accent is becoming ink. */
+  input[type=range]{appearance:none;-webkit-appearance:none;flex:1 1 auto;min-width:0;
+    height:var(--tap-min);margin:0;padding:0;background:none;cursor:pointer;
+    touch-action:pan-y}
+  input[type=range]::-webkit-slider-runnable-track{height:var(--focus-w);
+    border-radius:var(--r-pill);background:var(--c100)}
+  input[type=range]::-webkit-slider-thumb{appearance:none;-webkit-appearance:none;
+    width:var(--sp-20);height:var(--sp-20);border:0;border-radius:var(--r-full);
+    background:var(--c950);
+    margin-top:calc((var(--focus-w) - var(--sp-20)) / 2)}
+  input[type=range]::-moz-range-track{height:var(--focus-w);border-radius:var(--r-pill);
+    background:var(--c100)}
+  input[type=range]::-moz-range-thumb{width:var(--sp-20);height:var(--sp-20);border:0;
+    border-radius:var(--r-full);background:var(--c950)}
+  input[type=range]:focus-visible{outline:var(--focus-w) solid var(--c950);
+    outline-offset:calc(var(--sp-2) * -1)}
+
+  /* ── selects, as the spec's FIELD kind (§3.6): "a select at 28.5px next to a
+     button at 44px is the loudest single inconsistency in Gradient Lab, and a
+     form row cannot read as one object if its two halves are on different
+     ladders." appearance:none plus one caret at --ico-sm gets them onto the same
+     ladder. A field carries a ground at rest because it is the one kind whose
+     job is to look RECESSED -- --mat-3-solid against the panel's --c0 is that
+     half-step down, and it is why the rim can stay at --rim-1. */
+  select{appearance:none;-webkit-appearance:none;flex:1 1 auto;min-width:0;
+    min-height:var(--tap-min);padding:0 var(--sp-36) 0 var(--sp-12);
+    font-family:var(--sans);font-size:var(--fs-label);letter-spacing:var(--tr-body);
+    color:var(--c950);border:0;border-radius:var(--r-md);corner-shape:var(--corner);
+    background-color:var(--mat-3-solid);box-shadow:var(--rim-1);cursor:default;
+    background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="rgb(117,117,117)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6l6 -6"/></svg>');
+    background-repeat:no-repeat;background-position:right var(--sp-12) center;
+    background-size:var(--ico-sm) var(--ico-sm);
+    transition:box-shadow var(--hover-out-dur) var(--ease-out)}
+  select:hover,select:focus-visible{box-shadow:var(--rim-2)}
+  select:focus-visible{outline:var(--focus-w) solid var(--c950);outline-offset:var(--sp-2)}
+
+  /* ── colour wells. 30 x 30 was one of the 39 desktop target failures; they are
+     --tap-min circles now, spread across the row so the five read as a palette
+     rather than a huddle. The ring is inset ON THE SWATCH -- an outer shadow on
+     chrome is elevation, which this system does not use -- and it stays at
+     --rim-2 rather than a field's --rim-1 because the one swatch that has to
+     stay visible is a near-white one, which is exactly what a pale gradient
+     needs and what --rim-1 would lose. */
+  .swRow{display:flex;align-items:flex-start;justify-content:space-between;gap:var(--sp-8);
+    min-height:var(--tap-min)}
+  .sw{display:flex;flex-direction:column;align-items:center;gap:var(--sp-2);
+    font-size:var(--fs-micro);color:var(--c500);font-variant-numeric:tabular-nums}
+  input[type=color]{appearance:none;-webkit-appearance:none;
+    width:var(--tap-min);height:var(--tap-min);padding:0;border:0;
+    border-radius:var(--r-full);background:none;cursor:pointer;overflow:hidden}
   input[type=color]::-webkit-color-swatch-wrapper{padding:0}
-  input[type=color]::-webkit-color-swatch{border:none;border-radius:50%}
-  .swRow{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-  .swRow .sw{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:9px;
-    letter-spacing:.06em;text-transform:uppercase;color:var(--sub)}
-  .miniBtn{border:1px solid var(--hair);background:#fff;border-radius:6px;padding:4px 9px;
-    font-size:11px;font-weight:600;color:var(--ink);letter-spacing:.02em}
-  .miniBtn:active{transform:translateY(1px)}
+  input[type=color]::-webkit-color-swatch{border:none;border-radius:var(--r-full);
+    box-shadow:var(--rim-2)}
+  input[type=color]::-moz-color-swatch{border:none;border-radius:var(--r-full)}
+  input[type=color]:focus-visible{outline:var(--focus-w) solid var(--c950);
+    outline-offset:var(--sp-2)}
 
-  input[type=range]{appearance:none;-webkit-appearance:none;flex:1;height:2px;border-radius:1px;
-    background:var(--hair);cursor:pointer}
-  input[type=range]::-webkit-slider-thumb{appearance:none;-webkit-appearance:none;width:14px;height:14px;
-    border-radius:50%;background:#fff;border:1px solid #d5d4cd;
-    box-shadow:0 1px 3px rgba(20,20,16,.18)}
-  input[type=range]:focus-visible{outline:2px solid var(--accent);outline-offset:4px}
+  /* ── the action row, always on screen */
+  .panelFoot{display:flex;align-items:center;gap:var(--sp-8)}
+  /* the one warning surface on the page; #8A3030 is a page-local error ink the
+     ramp has no rung for -- it is not a rebinding of anything */
+  .glErr{margin:0;display:none;color:#8A3030;font-size:var(--fs-caption)}
+  /* the export snippet is ~200 lines of shader source. Nobody reads it on a
+     screen; they copy it. Keeping it as a 190px scrollport was the page's last
+     scroller and its ugliest object, so it stays in the DOM for the clipboard
+     and out of the layout. */
+  #code{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;
+    clip-path:inset(50%);white-space:pre;border:0}
 
-  select{font-family:inherit;font-size:12px;color:var(--ink);border:1px solid var(--hair);
-    border-radius:6px;padding:5px 7px;background:#fff;cursor:pointer;max-width:170px}
-  .check{display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;user-select:none}
-  .check input{accent-color:var(--accent);width:15px;height:15px;cursor:pointer}
-
-  button{font-family:inherit;cursor:pointer}
-  .btn{width:100%;border:0;border-radius:8px;padding:11px 14px;font-size:13px;font-weight:600;
-    background:var(--ink);color:#fbfbf8;letter-spacing:.02em}
-  .btn:active{transform:translateY(1px)}
-  .btn:focus-visible,.copy:focus-visible,select:focus-visible,.miniBtn:focus-visible{
-    outline:2px solid var(--accent);outline-offset:2px}
-
-  .codeBox{position:relative;margin-top:10px}
-  pre{margin:0;max-height:190px;overflow:auto;padding:12px;border-radius:8px;
-    background:#fff;border:1px solid var(--hair);font-size:10.5px;line-height:1.55;
-    font-family:ui-monospace,SFMono-Regular,Menlo,monospace;color:#3c3b36;white-space:pre;tab-size:2}
-  .copy{position:absolute;top:8px;right:8px;border:1px solid var(--hair);background:rgba(255,255,255,.92);
-    border-radius:6px;padding:5px 10px;font-size:11px;font-weight:600;color:var(--ink)}
-  .copy.ok{color:var(--ok);border-color:var(--ok)}
-  .glErr{display:none;color:#8a3030;font-size:12px;margin-top:8px}
-
-  /* ══ THE MOBILE PASS ═══════════════════════════════════════════════════════
-     IT MUST STAY BELOW EVERY RULE IT OVERRIDES, AND NOTHING MAY BE ADDED AFTER
-     IT. Until the mobile audit this block sat near the top of the sheet, above
-     the base rules -- and at equal specificity later source wins, so thirteen
-     of its fourteen declarations were silently discarded and the Lab shipped
-     its desktop density to every phone: a sticky 100vh panel, 30px colour
-     swatches, and 22 sliders that were 2px tall. A media query adds no
-     specificity. Only position does.
-
-     Two rules that came down with it were written against a block that never
-     applied, so they were never true and are corrected here rather than
-     revived: `header{padding:...}` targeted an element this page stopped having
-     when the site header was adopted, and the slider rule fixed the thumb while
-     leaving the hit area at 2px. */
+  /* ══ THE PHONE ═══════════════════════════════════════════════════════════
+     Artifact above, inspector below, still one viewport. Two fr rungs rather
+     than `auto` on the panel: an auto track is content-sized and would push the
+     stage off the bottom on the fattest group, whereas two fractions can never
+     sum past the frame. The gutter forks to --sp-24 at 760 because that is
+     where the rest of the site's does. */
   @media(max-width:880px){
-    .lab{grid-template-columns:1fr}
-    /* the panel stops being a viewport-tall sticky scroller and just becomes the
-       bottom of the page, which is the whole reason it can be read on a phone */
-    .panel{position:static;max-height:none;margin:0 12px 24px;padding:16px 16px 10px}
-    /* clears the 72px bar and the .labId plate beneath it before centring */
-    .stage{min-height:56vh;padding:132px 14px 16px}
-    .orbWrap{width:min(430px,86vw)}
-    .orbWrap.orb2{width:min(300px,46vw)}
-    .orbWrap.orb3{width:min(215px,33vw)}
-    /* 8px between 44px targets: the row's height is now the control's */
-    .row{margin:8px 0}
-
-    /* TOUCH TARGETS. The border box IS the hit area -- a ::-webkit-slider-thumb
-       is a pseudo element that paints outside a 2px input and catches nothing,
-       which is why the old 20px-thumb rule would not have fixed this even if it
-       had run. The track moves to ::-webkit-slider-runnable-track so the input
-       itself can be a full 44px target while the line stays the same 2px hair.
-       touch-action:pan-y so a successful drag does not also scroll the page. */
-    input[type=range]{height:44px;background:none;touch-action:pan-y}
-    input[type=range]::-webkit-slider-runnable-track{height:2px;border-radius:1px;
-      background:var(--hair)}
-    input[type=range]::-webkit-slider-thumb{width:20px;height:20px;margin-top:-9px}
-    /* the Gecko half is the track only: the hit area is the input's 44px box,
-       which is the actual fix, and Firefox draws its own thumb. Restyling that
-       would mean re-stating the thumb's two literal colours, which this sheet
-       already carries once and should not carry twice. */
-    input[type=range]::-moz-range-track{height:2px;border-radius:1px;background:var(--hair)}
-
-    input[type=color]{width:44px;height:44px}
-    select{max-width:150px;font-size:13px;padding:7px 8px;min-height:44px}
-    .miniBtn{padding:7px 11px;min-height:44px}
-    .btn{min-height:44px}
-    .copy{padding:9px 12px;min-height:44px}
-    .check{min-height:44px}
-    .check input{width:22px;height:22px}
-    pre{max-height:150px;font-size:10px}
+    .lab{grid-template-columns:minmax(0,1fr);
+      grid-template-rows:minmax(0,.38fr) minmax(0,1fr);
+      gap:var(--sp-16);
+      padding:calc(var(--bar-h) + var(--sp-12)) var(--sp-40) var(--sp-16)}
+    /* .38fr is not a guess: it is the smallest inspector that holds the FATTEST
+       group (Look, at 355px when Silk exposes Bend/Fold/Sheen) at 390 x 844 with
+       room to spare, and every pixel not spent on it goes to the artifact. */
+    .panel{gap:var(--sp-8);padding:var(--sp-12)}
   }
+  @media(max-width:760px){
+    .lab{padding-left:var(--sp-24);padding-right:var(--sp-24)}
+  }
+  /* below ~420 the label column has to give way before the track does */
   @media(max-width:420px){
-    .swRow{gap:8px}
-    .secH{font-size:10px;letter-spacing:.12em}
-    .row label{font-size:12.5px}
+    :root{--lbl-w:72px}
+    .tab{font-size:var(--fs-caption)}
   }
 
-/* The flagged header token top-up that used to sit here is gone: this page links
-   tokens.css now, which carries every one of those values and its own 760px rule.
-   Nothing is re-pinned. The one token the top-up set that tokens.css treats
-   differently is --sp-16-24 (pinned 24px here, 24px->16px under 880px in the shared
-   ladder) and this page has zero var(--sp-16-24) consumers, so no rule moves. */
+  /* ── THE SHORT-VIEWPORT RELEASE, and it is the opposite of a scrollport.
+     A one-viewport frame only holds while the viewport can hold it. At 320 x 256
+     -- 1280 at 400% zoom, WCAG 1.4.10 -- 100svh leaves the inspector a 0px body,
+     which is worse than a scroll: the controls exist and cannot be reached. So
+     below 560px tall the frame lets go and the PAGE scrolls, vertically only,
+     which is what reflow asks for. Measured at 320 x 256 after this rule:
+     scrollWidth 320 in a 320 viewport, no two-dimensional scrolling. Nothing
+     between 560 and any real laptop height is touched. */
+  @media(max-height:560px){
+    .lab{height:auto;min-height:100svh;grid-template-rows:auto auto}
+    .stage{min-height:40svh}
+    .tabPanel{overflow-y:visible}
+  }
 </style>
 <link rel="stylesheet" href="header.css">
 <script src="header.js" defer></script>
@@ -224,7 +348,17 @@
      Nothing lights up here: the Lab is noindex and is not in the nav, so
      forcing an active item would be a lie. -->
 <div class="jbStick isFixed">
- <nav class="jbNav" aria-label="Primary" data-surface="ink">
+ <!-- LIGHT SURFACE, and the reason is structural rather than a preference.
+      header.css:306 chose ink here on one argument: "gradientlab's stage is
+      whatever colour the user dials in", so a light bar could vanish over a pale
+      one. That argument was true while the stage ran full-bleed under the bar.
+      It no longer is -- the stage is a card inset below --bar-h, and the only
+      thing behind the bar at any width is the page's own --c50. The bar is
+      therefore in exactly the situation it is in on the other nine pages, and it
+      takes the same surface: opaque --c0 with --rim-3, which measures 1.56:1
+      against the paper on its own. --rim-top goes with the ink ground, as
+      specified -- it is an inset highlight that only reads on dark. -->
+ <nav class="jbNav" aria-label="Primary">
   <span class="jbGrp jbGrpL">
    <a class="jbHome" href="index.html" aria-label="Jayden Betts, home"><svg class="jbLogo" viewBox="0 0 30 30" aria-hidden="true"><path d="M1 26.3842C3.07605 22.5364 9.00761 17.1494 16.1255 26.3842C23.2434 35.619 14.1981 18.1678 16.1255 8.65665C18.0529 -0.854479 32.3186 -2.22723 28.2852 8.65665C24.2517 19.5405 18.6968 18.261 20.8493 13.2232C23.0018 8.1853 35.3661 26.1679 23.0066 27.4872"/></svg></a>
   </span>
@@ -248,10 +382,6 @@
   </span>
  </nav>
 </div>
-<!-- Page identity, not navigation: it names the tool, so it sits opposite the bar
-     rather than inside it. Same pointer-events:none contract as the old <header>. -->
-<div class="labId" aria-hidden="true"><b>Gradient Lab</b><span>fluid mesh system</span></div>
-
 <div class="lab">
   <main class="stage" id="stage">
     <div class="bgHost" id="bgHost"></div>
@@ -261,11 +391,27 @@
     </div>
   </main>
 
+  <!-- THE INSPECTOR. Five groups, one visible at a time, named for what they
+       affect -- the group label is the explanation, so the page carries no
+       prose at all. The three fixed rows (name, tabs, actions) never move. -->
   <aside class="panel" aria-label="Controls">
-    <div class="sec">
-      <p class="secH">Preset
-        <span style="display:flex;gap:6px;align-items:center">
-        <button class="miniBtn" id="saveBtn" type="button" title="Save current as preset">Save</button>
+    <div class="labHead"><h1>Gradient Maker</h1><span>fluid mesh system</span></div>
+
+    <div class="tabs" role="tablist" aria-label="Control groups">
+      <button class="ctl tab" type="button" role="tab" id="tabLook"   aria-controls="pLook"   aria-selected="true">Look</button>
+      <button class="ctl tab" type="button" role="tab" id="tabNodes"  aria-controls="pNodes"  aria-selected="false" tabindex="-1">Nodes</button>
+      <button class="ctl tab" type="button" role="tab" id="tabFlow"   aria-controls="pFlow"   aria-selected="false" tabindex="-1">Flow</button>
+      <button class="ctl tab" type="button" role="tab" id="tabOptics" aria-controls="pOptics" aria-selected="false" tabindex="-1">Optics</button>
+      <button class="ctl tab" type="button" role="tab" id="tabStage"  aria-controls="pStage"  aria-selected="false" tabindex="-1">Stage</button>
+    </div>
+
+    <!-- LOOK — what the gradient IS: which preset, which form, which shape, and
+         the five colours. The form-specific shape sliders live here rather than
+         with the field, because Bend / Fold / Sheen are parameters OF the form
+         and only exist when it is chosen. -->
+    <div class="tabPanel" role="tabpanel" id="pLook" aria-labelledby="tabLook">
+      <div class="row">
+        <label for="preset">Preset</label>
         <select id="preset" aria-label="Preset">
           <option value="-1" selected>Custom</option>
           <option value="0">ULR — Glacier</option>
@@ -281,9 +427,10 @@
           <option value="10">Mint Marble</option>
           <option value="11">Night Bloom</option> <option value="12">Reef</option> <option value="13">Amethyst</option> <option value="14">Rainbow Sparkles</option>
         </select>
-        </span>
-      </p>
-      <p class="secH" style="margin-top:12px">Form
+        <button class="ctl ctl--secondary ctl--icon" id="saveBtn" type="button" title="Save the current settings as a preset" aria-label="Save the current settings as a preset"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 7v14l-6 -4l-6 4v-14a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4z"/></svg></button>
+      </div>
+      <div class="row">
+        <label for="form">Form</label>
         <select id="form" aria-label="Form">
           <option value="0" selected>Planet</option>
           <option value="1">Streams</option>
@@ -292,56 +439,39 @@
           <option value="4">Pleats</option>
           <option value="5">Marble</option>
         </select>
-      </p>
-      <p class="secH" style="margin-top:12px">Shape
+      </div>
+      <div class="row">
+        <label for="shape">Shape</label>
         <select id="shape" aria-label="Shape">
           <option value="orb" selected>Orb</option>
           <option value="bleed">Full-bleed</option>
         </select>
-      </p>
-    </div>
-
-    <!-- STAGE GROUND. Judges the orb against the surface it will actually sit
-         on, not the orb itself: this changes what is BEHIND the canvas, never
-         a shader uniform, a preset, or the export. Paper/White/Grey/Ink are the
-         grounds that matter (site paper, edge+halo check, the Play page's dark
-         mode); Custom covers anything else. See lab-backgrounds-report.md for
-         what multiply and the feathered limb do on the Ink ground. -->
-    <div class="sec">
-      <p class="secH">Stage
-        <select id="stageGround" aria-label="Stage background">
-          <option value="paper" selected>Paper</option>
-          <option value="white">White</option>
-          <option value="grey">Grey</option>
-          <option value="ink">Ink</option>
-          <option value="custom">Custom</option>
-        </select>
-      </p>
-      <div class="row" id="stageGroundCustomRow" style="display:none">
-        <label for="stageGroundColor">Colour</label>
-        <input type="color" id="stageGroundColor" value="#fdfdfd" aria-label="Custom stage background colour">
       </div>
-    </div>
+      <div class="row" id="bendRow" style="display:none"><label for="bend" id="bendLbl">Bend</label><input type="range" id="bend" min="0" max="100" value="40"><output id="bendO">40</output></div>
+      <div class="row" id="foldRow" style="display:none"><label for="foldA">Fold</label><input type="range" id="foldA" min="0" max="100" value="55"><output id="foldAO">55</output></div>
+      <div class="row" id="sheenRow" style="display:none"><label for="foldSh">Sheen</label><input type="range" id="foldSh" min="0" max="100" value="45"><output id="foldShO">45</output></div>
 
-    <div class="sec">
-      <p class="secH">Palette <button class="miniBtn" id="rndColors" type="button">Random colours</button></p>
+      <p class="grpH">Colours</p>
       <div class="swRow">
-        <span class="sw"><input type="color" id="c1" value="#f2a03d" aria-label="Node one">1</span>
-        <span class="sw"><input type="color" id="c2" value="#e2472e" aria-label="Node two">2</span>
-        <span class="sw"><input type="color" id="c3" value="#c2378f" aria-label="Node three">3</span>
-        <span class="sw"><input type="color" id="c4" value="#6d34e8" aria-label="Node four">4</span>
-        <span class="sw"><input type="color" id="c5" value="#ffd9a0" aria-label="Node five">5</span>
+        <span class="sw"><input type="color" id="c1" value="#f2a03d" aria-label="Node one colour">1</span>
+        <span class="sw"><input type="color" id="c2" value="#e2472e" aria-label="Node two colour">2</span>
+        <span class="sw"><input type="color" id="c3" value="#c2378f" aria-label="Node three colour">3</span>
+        <span class="sw"><input type="color" id="c4" value="#6d34e8" aria-label="Node four colour">4</span>
+        <span class="sw"><input type="color" id="c5" value="#ffd9a0" aria-label="Node five colour">5</span>
+        <button class="ctl ctl--secondary ctl--icon" id="rndColors" type="button" title="New random palette" aria-label="New random palette"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8.1 8.1 0 0 0 -15.5 -2m-.5 -4v4h4"/><path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4"/></svg></button>
       </div>
     </div>
 
-    <div class="sec">
-      <p class="secH">Node
+    <!-- NODES — the five colour sources, one at a time. -->
+    <div class="tabPanel" role="tabpanel" id="pNodes" aria-labelledby="tabNodes" hidden>
+      <div class="row">
+        <label for="nodeSel">Node</label>
         <select id="nodeSel" aria-label="Edit node">
           <option value="0" selected>Node 1</option><option value="1">Node 2</option>
           <option value="2">Node 3</option><option value="3">Node 4</option>
           <option value="4">Node 5</option>
         </select>
-      </p>
+      </div>
       <div class="row"><label for="nx">X</label><input type="range" id="nx" min="0" max="100" value="50"><output id="nxO">50</output></div>
       <div class="row"><label for="ny">Y</label><input type="range" id="ny" min="0" max="100" value="50"><output id="nyO">50</output></div>
       <div class="row"><label for="nsize">Size</label><input type="range" id="nsize" min="10" max="200" value="100"><output id="nsizeO">100</output></div>
@@ -349,57 +479,73 @@
       <div class="row"><label for="nang">Angle</label><input type="range" id="nang" min="-90" max="90" value="0"><output id="nangO">0</output></div>
     </div>
 
-    <div class="sec">
-      <p class="secH">Field</p>
+    <!-- FLOW — how the field moves and how the masses meet. -->
+    <div class="tabPanel" role="tabpanel" id="pFlow" aria-labelledby="tabFlow" hidden>
       <div class="row"><label for="flow">Speed</label><input type="range" id="flow" min="0" max="100" value="40"><output id="flowO">40</output></div>
       <div class="row"><label for="melt">Melt</label><input type="range" id="melt" min="0" max="100" value="55"><output id="meltO">55</output></div>
       <div class="row"><label for="wob">Wobble</label><input type="range" id="wob" min="0" max="100" value="10"><output id="wobO">10</output></div>
+      <div class="row"><label for="sweep">Sweep</label><input type="range" id="sweep" min="0" max="100" value="45"><output id="sweepO">45</output></div>
       <div class="row"><label for="contour">Contour</label><input type="range" id="contour" min="0" max="100" value="18"><output id="contourO">18</output></div>
       <div class="row"><label for="tension">Tension</label><input type="range" id="tension" min="0" max="100" value="40"><output id="tensionO">40</output></div>
       <div class="row"><label for="rim">Rim</label><input type="range" id="rim" min="0" max="100" value="35"><output id="rimO">35</output></div>
       <div class="row"><label for="layer">Layer</label><input type="range" id="layer" min="0" max="100" value="55"><output id="layerO">55</output></div>
-      <div class="row" id="bendRow" style="display:none"><label for="bend" id="bendLbl">Bend</label><input type="range" id="bend" min="0" max="100" value="40"><output id="bendO">40</output></div>
-      <div class="row" id="foldRow" style="display:none"><label for="foldA">Fold</label><input type="range" id="foldA" min="0" max="100" value="55"><output id="foldAO">55</output></div>
-      <div class="row" id="sheenRow" style="display:none"><label for="foldSh">Sheen</label><input type="range" id="foldSh" min="0" max="100" value="45"><output id="foldShO">45</output></div>
-      <div class="row"><label for="edgeF">Edge</label><input type="range" id="edgeF" min="0" max="100" value="34"><output id="edgeFO">34</output></div>
-      <div class="row"><label for="glass">Glass</label><input type="range" id="glass" min="0" max="100" value="42"><output id="glassO">42</output></div>
-      <div class="row"><label for="sweep">Sweep</label><input type="range" id="sweep" min="0" max="100" value="45"><output id="sweepO">45</output></div>
-      <div class="row"><label for="expo">Exposure</label><input type="range" id="expo" min="40" max="115" value="100"><output id="expoO">100</output></div>
-      <div class="row"><label for="fringe">Fringe</label><input type="range" id="fringe" min="0" max="100" value="20"><output id="fringeO">20</output></div>
     </div>
 
-    <div class="sec">
-      <p class="secH">Light</p>
+    <!-- OPTICS — the limb, the glass and the light. Edge and Fringe are
+         properties of a sphere's limb, so the script hides them full-bleed. -->
+    <div class="tabPanel" role="tabpanel" id="pOptics" aria-labelledby="tabOptics" hidden>
+      <div class="row"><label for="edgeF">Edge</label><input type="range" id="edgeF" min="0" max="100" value="34"><output id="edgeFO">34</output></div>
+      <div class="row"><label for="glass">Glass</label><input type="range" id="glass" min="0" max="100" value="42"><output id="glassO">42</output></div>
+      <div class="row"><label for="expo">Exposure</label><input type="range" id="expo" min="40" max="115" value="100"><output id="expoO">100</output></div>
+      <div class="row"><label for="fringe">Fringe</label><input type="range" id="fringe" min="0" max="100" value="20"><output id="fringeO">20</output></div>
       <div class="row"><label for="lx">Light X</label><input type="range" id="lx" min="0" max="100" value="36"><output id="lxO">36</output></div>
       <div class="row"><label for="ly">Light Y</label><input type="range" id="ly" min="0" max="100" value="30"><output id="lyO">30</output></div>
       <div class="row"><label for="glow">Glow</label><input type="range" id="glow" min="0" max="100" value="50"><output id="glowO">50</output></div>
     </div>
 
-    <div class="sec" id="dressSec">
-      <p class="secH">Planet dressing</p>
-      <div class="row" id="sceneRow"><label for="scene">Scene</label>
-        <select id="scene" aria-label="Scene">
-          <option value="1" selected>Solo</option>
-          <option value="2">Duo</option>
-          <option value="3">Trio</option>
-        </select></div>
-      <div class="row"><label for="haloA">Halo</label><input type="range" id="haloA" min="0" max="100" value="50"><output id="haloAO">50</output></div>
-      <div class="row"><label for="vol">Volume</label><input type="range" id="vol" min="0" max="100" value="45"><output id="volO">45</output></div>
-      <div class="row"><label for="grain">Grain</label><input type="range" id="grain" min="0" max="100" value="12"><output id="grainO">12</output></div>
-    </div>
-
-    <div class="sec">
-      <button class="btn" id="rnd" type="button">Randomize everything</button>
-      <p class="glErr" id="glErr">WebGL unavailable — the export still includes a static CSS fallback.</p>
-    </div>
-
-    <div class="sec">
-      <p class="secH">Export <button class="miniBtn" id="pngBtn" type="button">Download PNG</button></p>
-      <div class="codeBox">
-        <pre id="code" tabindex="0"></pre>
-        <button class="copy" id="copyBtn" type="button">Copy</button>
+    <!-- STAGE — everything that is about the SETTING rather than the gradient.
+         The ground judges the orb against the surface it will actually sit on:
+         it changes what is BEHIND the canvas, never a shader uniform, a preset
+         or the export. Planet dressing joins it because a halo, a volume and a
+         grain are all things the stage sees and the exported field does not. -->
+    <div class="tabPanel" role="tabpanel" id="pStage" aria-labelledby="tabStage" hidden>
+      <div class="row">
+        <label for="stageGround">Ground</label>
+        <select id="stageGround" aria-label="Stage background">
+          <option value="paper" selected>Paper</option>
+          <option value="white">White</option>
+          <option value="grey">Grey</option>
+          <option value="ink">Ink</option>
+          <option value="custom">Custom</option>
+        </select>
+      </div>
+      <div class="row" id="stageGroundCustomRow" style="display:none">
+        <label for="stageGroundColor">Colour</label>
+        <input type="color" id="stageGroundColor" value="#fdfdfd" aria-label="Custom stage background colour">
+      </div>
+      <div id="dressSec">
+        <div class="row" id="sceneRow"><label for="scene">Scene</label>
+          <select id="scene" aria-label="Scene">
+            <option value="1" selected>Solo</option>
+            <option value="2">Duo</option>
+            <option value="3">Trio</option>
+          </select></div>
+        <div class="row"><label for="haloA">Halo</label><input type="range" id="haloA" min="0" max="100" value="50"><output id="haloAO">50</output></div>
+        <div class="row"><label for="vol">Volume</label><input type="range" id="vol" min="0" max="100" value="45"><output id="volO">45</output></div>
+        <div class="row"><label for="grain">Grain</label><input type="range" id="grain" min="0" max="100" value="12"><output id="grainO">12</output></div>
       </div>
     </div>
+
+    <!-- THE ACTIONS, outside the tabs because they are true of every group.
+         Download is the one primary: it is the thing a visitor came to leave
+         with, and it is the only filled control on the page. -->
+    <div class="panelFoot">
+      <button class="ctl ctl--secondary ctl--icon" id="rnd" type="button" title="Randomize everything" aria-label="Randomize everything"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4m0 2a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2z"/><path d="M8.5 8.5l0 .01"/><path d="M15.5 8.5l0 .01"/><path d="M8.5 15.5l0 .01"/><path d="M15.5 15.5l0 .01"/><path d="M12 12l0 .01"/></svg></button>
+      <button class="ctl ctl--secondary ctl--icon" id="copyBtn" type="button" title="Copy the embed code" aria-label="Copy the embed code"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"/><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"/></svg></button>
+      <button class="ctl ctl--primary" id="pngBtn" type="button"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2"/><path d="M7 11l5 5l5 -5"/><path d="M12 4l0 12"/></svg>Download PNG</button>
+    </div>
+    <p class="glErr" id="glErr">WebGL unavailable — the export still includes a static CSS fallback.</p>
+    <pre id="code" aria-hidden="true"></pre>
   </aside>
 </div>
 
@@ -1047,12 +1193,11 @@ function FluidMesh(canvas,cfg){
     writeCode(v,orb,haloA);
   }
   /* ---- stage ground: what the orb is judged against, not what it renders as.
-     Paper/Grey/Ink map to tokens.css (--c50/--c500/--c950); White is the one
-     literal because tokens.css names no plain-white token, matching how this
-     sheet already writes #fff for chrome (e.g. .miniBtn). Purely a stage-level
-     background-color swap — never touches cfg(), the shader, a preset, or
-     writeCode()'s export. */
-  var STAGE_GROUNDS={paper:"var(--c50)",white:"#fff",grey:"var(--c500)",ink:"var(--c950)"};
+     All four now map to tokens.css — --c0 is the ramp's top rung (added by the
+     header-v2 pass) and retires the last raw #fff on this page. Purely a
+     stage-level background-color swap — never touches cfg(), the shader, a
+     preset, or writeCode()'s export. */
+  var STAGE_GROUNDS={paper:"var(--c50)",white:"var(--c0)",grey:"var(--c500)",ink:"var(--c950)"};
   function applyStageBg(){
     var v=els.stageGround.value;
     $("stageGroundCustomRow").style.display=(v==="custom")?"":"none";
@@ -1093,7 +1238,7 @@ function FluidMesh(canvas,cfg){
       wob:v.wob,edgeF:v.edgeF,glass:v.glass,
       form:v.form,sph:v.sph,orb:v.orb,bend:v.bend,foldA:v.foldA,foldSh:v.foldSh,contour:v.contour};
     var fallback=".fmFallback{background:"+fallbackHalo(v,0.9)+"}";
-    var lines=["<!-- Fluid Mesh — generated by Gradient Lab -->"];
+    var lines=["<!-- Fluid Mesh — generated by Gradient Maker -->"];
     if(orb){
       lines.push("<!-- Duo/Trio scenes are a stage-preview feature; this snippet exports the solo orb -->");
       lines.push(
@@ -1189,10 +1334,17 @@ fallback,
     loadNodeSliders();syncOutputs();markCustom();apply();
   }
 
+  /* the copy control is a 44px icon button now, so its confirmation is the glyph
+     rather than the label -- same 1400ms, same idea, and the aria-label goes with
+     it so a screen reader hears the change too */
+  var COPY_ICO=$("copyBtn").innerHTML;
+  var COPY_OK='<svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l5 5l10 -10"/></svg>';
   $("copyBtn").addEventListener("click",function(){
-    var txt=$("code").textContent,btn=this;
-    function ok(){btn.textContent="Copied ✓";btn.classList.add("ok");
-      setTimeout(function(){btn.textContent="Copy";btn.classList.remove("ok");},1400);}
+    var txt=$("code").textContent,btn=this,lbl=btn.getAttribute("aria-label");
+    function ok(){btn.innerHTML=COPY_OK;btn.classList.add("is-ok");
+      btn.setAttribute("aria-label","Embed code copied");
+      setTimeout(function(){btn.innerHTML=COPY_ICO;btn.classList.remove("is-ok");
+        btn.setAttribute("aria-label",lbl);},1400);}
     function fallback(){var ta=document.createElement("textarea");ta.value=txt;
       document.body.appendChild(ta);ta.select();
       try{document.execCommand("copy");ok();}catch(e){}
@@ -1285,6 +1437,31 @@ fallback,
       a.download="gradient-"+nm.toLowerCase().replace(/[^a-z0-9]+/g,"-")+".png";
       a.click();
       setTimeout(function(){URL.revokeObjectURL(a.href);},4000);
+    });
+  });
+
+  /* ---- the tab strip. One group visible at a time is what lets thirty controls
+     live in a panel that never scrolls; it is a reduction of what is on screen,
+     not a scrollport. Roving tabindex + arrow keys per the ARIA tabs pattern:
+     one Tab stop for the whole strip, arrows to move within it. ---- */
+  var tabs=[].slice.call(document.querySelectorAll(".tab"));
+  function selectTab(el){
+    tabs.forEach(function(t){
+      var on=(t===el);
+      t.setAttribute("aria-selected",on?"true":"false");
+      t.tabIndex=on?0:-1;
+      $(t.getAttribute("aria-controls")).hidden=!on;
+    });
+  }
+  tabs.forEach(function(t,i){
+    t.addEventListener("click",function(){selectTab(t);});
+    t.addEventListener("keydown",function(e){
+      var d=(e.key==="ArrowRight")?1:(e.key==="ArrowLeft")?-1:
+            (e.key==="Home")?-i:(e.key==="End")?(tabs.length-1-i):0;
+      if(!d&&e.key!=="Home"&&e.key!=="End")return;
+      e.preventDefault();
+      var n=tabs[(i+d+tabs.length)%tabs.length];
+      selectTab(n);n.focus();
     });
   });
 
