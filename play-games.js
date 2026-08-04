@@ -210,6 +210,75 @@
    var out=c.toDataURL("image/webp",0.9);if(out.indexOf("data:image/webp")!==0)out=c.toDataURL("image/png");
    cb(out);}catch(_){cb(cut);}};
   img.onerror=function(){cb(cut);};img.src=cut;}
+
+ /* ---- THE PLANET IS NEVER EMPTY ON A FIRST VISIT.
+    Jayden: "make it so placeholder eggheads are already in the play screen on first load,
+    so the page doesn't look too confusing." An empty planet under four cards does not
+    explain itself -- and it is the same first-visit state that made the tournament look
+    broken (the page looked empty AND its one working door was disabled). A crowd on arrival
+    fixes both: you can see what a head IS before being asked to add one.
+
+    THEY ARE SCENERY, NOT A ROSTER, and that distinction is the whole design:
+
+    1. NOTHING IS WRITTEN TO localStorage. writeRoster() is not called; the eggs live in
+       _ph[] for the life of the page and are gone on reload. If they persisted, a visitor
+       who later cut out their own face would find it standing among strangers they never
+       added, and "remove head" would start deleting things they did not create.
+    2. THEY YIELD ENTIRELY, NOT PARTIALLY. If readAll() finds even one saved head, no
+       placeholder spawns at all. Topping up to a minimum was the alternative and it is
+       worse: it mixes the visitor's own face with anonymous eggs and there is no honest
+       label for the difference. One real head means the planet is already about them.
+    3. ONE SPAWN PATH. This calls the same tintEgg() + __hmSpawnOne() that
+       __hmAddEgghead uses and the tournament's twelve dyed captains use -- no second
+       spawn route to keep in sync. That also means they inherit whatever the engine does
+       with lobby heads: when the by-angle placement on the sphere lands, these are placed
+       by it for free, because they are ordinary heads to everything downstream.
+    4. SLOTS 0..N-1. Storage is empty whenever this runs, so the placeholders own the low
+       slots with nothing to collide with -- which keeps index === slot true for the team
+       picker (see heads() below) and lets __hmTeamSel key off them unchanged.
+
+    HOW MANY: five. Measured against the arena the engine actually lays out -- a head is
+    108px wide at 1280 and 64px at 390, so five is 540px across 1280 (a loose group, still
+    clearly several people) and 320px across 390 (a row that fills the phone without
+    stacking). Four looked thin at 1280; six touched at 390. ---- */
+ var _ph=[],_phTries=0;
+ function seedPlaceholders(){
+  if(readAll().length)return;                       // the visitor has heads of their own: theirs, not these
+  if(_ph.length)return;                             // idempotent -- battleGate ticks every 400ms
+  var EGG=window.__EGGHEAD;if(!EGG||!EGG.cut)return;
+  /* THE ENGINE IS NOT UP YET -- AND ON A TRUE FIRST VISIT IT NEVER WILL BE.
+     play-engine.js:13 is `if(!list.length)return;`: the whole companion IIFE bails when
+     hmCompanions is empty, so on a first visit __hmSpawnOne, __hmLive, __hmSoccerStart and
+     __hmFillerAdd are ALL undefined -- verified in the browser with storage cleared. That is
+     a bigger finding than these placeholders and it is not in this lane: it means "Play a
+     match" could never have worked on a first visit, with or without scenery.
+     So this retries for ~5s and then stops rather than spinning a timer forever. The moment
+     the engine initialises with an empty roster (one change, play-engine.js:13 -- see the
+     report), these spawn with no further work here. Deliberately NOT worked around by
+     writing the eggs to localStorage to get the engine to boot: that is the one thing these
+     must never do, and a write-then-delete still leaves a window where a reload strands five
+     strangers in the visitor's roster. */
+  if(!window.__hmSpawnOne){if(_phTries++<40)setTimeout(seedPlaceholders,120);return;}
+  var N=5,i;
+  for(i=0;i<N;i++)(function(slot){
+   tintEgg(EGG.cut,nextEggColor(),function(cut){
+    var eyes=(EGG.eyes||[]).map(function(e){var o={};for(var k in e)o[k]=e[k];return o;});
+    // the same imperceptible nudge __hmAddEgghead uses: readAll()-style de-dupe keys on
+    // marks+eyes as well as the image, and these must stay five distinct heads
+    if(eyes[0])eyes[0].x+=(slot+1)*0.0004;
+    var data={cut:cut,eyes:eyes,marks:EGG.marks,slot:slot,__ph:1};
+    _ph[slot]=data;
+    try{window.__hmSpawnOne(data,slot);}catch(_){}
+    _bgLast="";battleGate();                        // the crowd changed the head count: re-gate now, not in 400ms
+   });})(i);}
+ /* The moment a real head arrives, the scenery leaves -- storage and the planet must never
+    disagree about who is standing there. */
+ function clearPlaceholders(){
+  if(!_ph.length)return;
+  _ph.forEach(function(d){if(d)try{if(window.__hmKill)window.__hmKill(d.cut);}catch(_){}});
+  _ph=[];}
+ window.__hmPlaceholders=function(){return _ph.filter(Boolean);};
+
  window.__hmAddEgghead=function(){
   var EGG=window.__EGGHEAD;if(!EGG||!EGG.cut)return;
   if(readAll().length>=8)return;                      // the planet caps at eight, like the saved heads
@@ -217,10 +286,12 @@
    var eyes=(EGG.eyes||[]).map(function(e){var o={};for(var k in e)o[k]=e[k];return o;});
    if(eyes[0])eyes[0].x+=(Math.random()-0.5)*0.0007;
    var data={cut:cut,eyes:eyes,marks:EGG.marks};
+   clearPlaceholders();                             // a real head has arrived: the scenery steps aside
    var arr=readAll();arr.push(data);writeRoster(arr);
    try{if(window.__hmSpawnOne)window.__hmSpawnOne(data,arr.length-1);}catch(_){}});};
 
  battleGate();setInterval(battleGate,400);
+ seedPlaceholders();
  /* THE 400ms POLL IS TOO SLOW FOR A GROUND SWAP. Everything the gate used to drive was a
     dim or a hide, where a late tick is invisible. The page's ground and the header's
     material are not: body's game class flips the background instantly in CSS, so a gate
@@ -283,13 +354,46 @@
   var lavaBtn=document.getElementById("lavaTeams");   // the Floor-is-Lava teams icon opens the SAME screen in lava mode -- play.html has no lavaTeams button, so this stays null and every `if(lavaBtn)` guard below already no-ops
   var host=document.getElementById("pTeam");
   var tray=null,sel={},open=false,mode="soccer",activeTrig=teamsBtn;
+  /* EDIT MODE -- the index/About pattern (f897489), rehoused. `editing` is the mode,
+     `undo` holds the one head most recently removed so its chip slot can offer it back. */
+  var editing=false,undo=null,undoT=0;
+  var TRASH='<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12"/><path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"/></svg>';
+  function realHeads(){return readAll();}   // storage only: placeholders are never editable
+  /* The head leaves storage on the press and undo puts it back -- not a delete that waits
+     on a timer, which is the version that loses work if the tab closes mid-countdown. */
+  function removeAt(idx){
+   var cur=readAll(),gone=cur.splice(idx,1)[0];if(!gone)return;
+   var team=sel[idx]===2?2:1;
+   writeRoster(cur);
+   try{if(window.__hmKill)window.__hmKill(gone.cut);}catch(_){}
+   clearTimeout(undoT);undo={head:gone,idx:idx,team:team};
+   undoT=setTimeout(function(){undo=null;if(open)renderTray();},8000);
+   sel={};ensureSel();syncGlobal();applyPreview();renderTray();}
+  function undoRemove(){
+   if(!undo)return;clearTimeout(undoT);
+   var cur=readAll();cur.splice(Math.min(undo.idx,cur.length),0,undo.head);
+   var back=undo;undo=null;
+   writeRoster(cur);
+   try{if(window.__hmSpawnOne)window.__hmSpawnOne(back.head,Math.min(back.idx,cur.length-1));}catch(_){}
+   sel={};ensureSel();syncGlobal();applyPreview();renderTray();}
   var st=document.createElement("style");
   st.textContent=".moodRow{display:flex;align-items:center;gap:var(--sp-8)}.moodRow>#soccerGo{flex:1 1 auto}"
    +".moodTeamsBtn{flex:0 0 auto;align-self:stretch;display:inline-flex;align-items:center;justify-content:center;gap:3px;border:1px solid var(--c100);border-radius:var(--r-2xs);background:var(--c50);cursor:pointer;padding:0 var(--sp-8);transition:border-color var(--hover-out-dur) var(--ease-out),background-color var(--hover-out-dur) var(--ease-out)}"
    +".moodTeamsBtn:hover{border-color:var(--c500)}.moodTeamsBtn .tdotR,.moodTeamsBtn .tdotB{width:8px;height:8px;border-radius:var(--r-full);display:block}.moodTeamsBtn .tdotR{background:rgb(var(--tc1,224,90,78))}.moodTeamsBtn .tdotB{background:rgb(var(--tc2,90,160,216))}";
   document.head.appendChild(st);
 
-  function heads(){return readAll();}                         // hmCompanions order == the slot index each head spawns with
+  /* THE PICKER PICKS WHO IS ACTUALLY ON THE PLANET, which since the placeholders landed is
+     not always the same as who is in storage. Without this the first-visit path was broken
+     in a quiet way: battleGate counts __hmLive (5 placeholders) so "Play a match" lit up,
+     but startWithTeams() measured readAll() (0) and bailed at `rc<1` -- an enabled card that
+     does nothing, which is the same defect class as the tournament gate.
+     Storage wins whenever it has anything, so a visitor with saved heads is unaffected and
+     hmCompanions order still equals the slot index each head spawned with. The placeholders
+     are seeded into slots 0..N-1 against empty storage, so index === slot holds for them
+     too, and every sel[] key, the mini-Jayden parity check and __hmTeamSel all keep working
+     on indices without knowing which kind of head they are looking at. */
+  function heads(){var a=readAll();if(a.length)return a;
+   return (window.__hmPlaceholders?window.__hmPlaceholders():[]);}
   function balanced(n){var a=[];for(var i=0;i<n;i++)a.push(i<Math.ceil(n/2)?1:2);return a;}
   function shuffle(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=a[i];a[i]=a[j];a[j]=t;}return a;}
   function ensureSel(){var n=heads().length,ok=true,i;
@@ -354,13 +458,45 @@
    var shuf=document.createElement("button");shuf.className="pBtn";shuf.type="button";shuf.setAttribute("aria-label","Shuffle the sides");
    shuf.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 3h5v5"/><path d="M4 20 21 3"/><path d="M21 16v5h-5"/><path d="M15 15l6 6"/><path d="M4 4l5 5"/></svg>Shuffle';
    shuf.addEventListener("click",function(ev){ev.stopPropagation();var a=shuffle(balanced(n));sel={};a.forEach(function(t,i){sel[i]=t;});sel[9001]=(Math.random()<0.5?1:2);syncGlobal();applyPreview();renderTray();});
+   /* The toggle is hidden outright when the picker is showing placeholders: they are not
+      in storage, so there is nothing for this mode to act on. */
+   if(realHeads().length){
+    var ed=document.createElement("button");ed.className="pBtn pTeamEdit";ed.type="button";
+    ed.setAttribute("aria-pressed",editing?"true":"false");
+    ed.textContent=editing?"Done":"Edit";
+    ed.setAttribute("aria-label",editing?"Finish removing heads":"Remove heads");
+    ed.addEventListener("click",function(ev){ev.stopPropagation();editing=!editing;
+     if(!editing){clearTimeout(undoT);undo=null;}
+     renderTray();});
+    hb.appendChild(ed);}
    hb.appendChild(shuf);hd.appendChild(hb);wrap.appendChild(hd);
    var cols=document.createElement("div");cols.className="pTeamCols";colEls={};
+   cols.setAttribute("data-editing",editing?"true":"false");
    [1,2].forEach(function(tm){var col=document.createElement("div");col.className="pTeamCol "+(tm===1?"red":"blue");colEls[tm]=col;
     var ch=document.createElement("div");ch.className="pTeamColHdr";
     var cn=0,q;for(q=0;q<n;q++)if(sel[q]===tm)cn++;if(n%2===1&&sel[9001]===tm)cn++;
     ch.innerHTML='<span>'+(tm===1?"Red":"Blue")+'</span><span class="pTeamColN">'+cn+'</span>';col.appendChild(ch);
-    var cc=document.createElement("div");cc.className="pTeamChips";for(var i=0;i<n;i++){if(sel[i]===tm)cc.appendChild(chip(hs[i],i));}
+    var cc=document.createElement("div");cc.className="pTeamChips";
+    for(var i=0;i<n;i++){if(sel[i]!==tm)continue;
+     var ch2=chip(hs[i],i);
+     /* The delete is a SIBLING of the chip inside a positioned wrapper, never a child of
+        it: .teamChip is a <button>, and a button inside a button is invalid HTML that
+        browsers reparent -- the delete would have escaped its tile. This is the same
+        .mhItem > .mhPick + .mhX shape index.html uses, for the same reason. */
+     var tile=document.createElement("span");tile.className="teamTile";tile.appendChild(ch2);
+     if(editing){
+      var db=document.createElement("button");db.className="teamDel";db.type="button";
+      db.setAttribute("aria-label","Remove head "+(i+1)+" of "+n);
+      db.innerHTML=TRASH;
+      (function(ix){db.addEventListener("click",function(ev){ev.stopPropagation();ev.preventDefault();removeAt(ix);});})(i);
+      tile.appendChild(db);
+      ch2.setAttribute("aria-disabled","true");ch2.tabIndex=-1;   // not a visual-only lie
+     }
+     cc.appendChild(tile);}
+    if(undo&&undo.team===tm){var ub=document.createElement("button");ub.className="teamUndo";ub.type="button";
+     ub.textContent="Undo";ub.setAttribute("aria-label","Undo removing that head");
+     ub.addEventListener("click",function(ev){ev.stopPropagation();undoRemove();});
+     cc.appendChild(ub);}
     // Mini-Jayden's chip used to render whenever sel[9001] pointed at this column, regardless of
     // roster size -- but he only actually joins the match when the real roster is ODD (see
     // startWithTeams() below: `if(rc%2===1&&window.__hmFillerAdd)window.__hmFillerAdd()`, using
@@ -396,7 +532,7 @@
   /* NO outside-click-to-close. That was right for a 300px popover and is wrong for a
      screen: the rest of the viewport is the stage, every head on it is draggable, and one
      stray grab must not throw away the sides you just picked. Back and Escape close it. */
-  function closeTray(){open=false;teamOpen=false;if(tray&&!host)tray.classList.remove("open");applyPreview();
+  function closeTray(){open=false;teamOpen=false;editing=false;clearTimeout(undoT);undo=null;if(tray&&!host)tray.classList.remove("open");applyPreview();
    stageShift(false);battleGate();
    if(teamsBtn)teamsBtn.setAttribute("aria-expanded","false");if(lavaBtn)lavaBtn.setAttribute("aria-expanded","false");}
   addEventListener("keydown",function(e){if(e.key==="Escape"&&open)closeTray();});

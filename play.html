@@ -141,8 +141,12 @@
  /* ---- THE FOUR DOORS. The page's only chrome now: the planet, the heads on it, and these.
     Paper, like the rest of the site -- --c0 on a --c50 ground with a rim, the same "separates
     upward" argument header.css makes for the nav bar. ---- */
+ /* grid-auto-rows:1fr so every card is the same height whatever its label does. Measured at
+    390: "Add your head" and "Make a gradient" wrap to two lines at 179px wide while the first
+    two do not, so the rows came out 66px and 86px -- four doors that are not the same object.
+    Equal rows cost nothing and the requirement is that the four behave identically. */
  .pCards{pointer-events:auto;width:100%;max-width:var(--page-max);margin:0 auto;
-  display:grid;grid-template-columns:repeat(4,1fr);gap:var(--sp-12)}
+  display:grid;grid-template-columns:repeat(4,1fr);grid-auto-rows:1fr;gap:var(--sp-12)}
  .pCard{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:var(--sp-6);
   min-height:var(--tap-min);padding:var(--sp-14) var(--sp-16) var(--sp-16);
   border:0;border-radius:var(--r-md);background:var(--c0);box-shadow:var(--rim-1);
@@ -151,17 +155,32 @@
      control system's rule, so these breathe at the same rate as the nav */
   transition-property:color,background-color,box-shadow,transform;
   transition-timing-function:var(--ease-out);transition-duration:var(--hover-out-dur)}
- /* HOVER MOVES INK AND WEIGHT, NEVER A FILL. This card used to light its whole box with a
-    color-mix wash -- the last grey-fill hover on the site after the case studies and the nav
-    had theirs stripped, and the main reason the hub read as "not as clean as the rest of the
-    site". Now the description steps up in ink, the icon's stroke thickens with the label, and
-    the rim goes --rim-1 -> --rim-2. A hairline is the permitted affordance for a target this
-    large; a fill is not. */
- .pCard:hover{box-shadow:var(--rim-2);transition-duration:var(--ease-out-dur)}
- .pCard:hover .pCardD{color:var(--c700)}
+ /* HOVER MOVES INK, RIM AND HEIGHT -- NEVER A FILL. The fill ban stands; what changed is
+    that the answer now actually carries. Jayden: "the different modes need more of a hover
+    effect, right now it's too subtle", and he was right -- measured, the old response was a
+    rim going .08 -> .14 alpha and a description going #757575 -> #525252. Both are
+    half-steps you have to look for. Four things move now, and every one is composite-only
+    or a colour, so nothing reflows:
+      rim          --rim-1 .08  ->  --rim-3 .20   (2.5x the alpha, the ladder's own top rung)
+      description  --c500 #757575 -> --c950 #121212  (4.6:1 -> 17.4:1 on white)
+      icon         --c700 #525252 -> --c950 #121212, stroke 1.8 -> 2
+      the card     0 -> translateY(-2px)
+    The lift is the piece that makes it read as a card rather than as text changing colour,
+    and with the rim stepping up at the same time it reads as the card coming forward rather
+    than as a nudge. It is a transform, not a shadow -- chrome here still never casts.
+    NO WEIGHT CHANGE, deliberately: the title is already 600, and moving a weight re-measures
+    the text and reflows the card under the cursor.
+    ONE DURATION, 240ms, IN AND OUT. The hover-in used to snap at 160ms while the exit took
+    240ms; Jayden has called an animation abrupt twice, so the asymmetry is gone and both
+    directions take the slower rung on --ease-out. */
+ .pCard:hover{box-shadow:var(--rim-3);transform:translateY(-2px)}
+ .pCard:hover .pCardD{color:var(--c950)}
  .pCard:hover .gIco{color:var(--c950);stroke-width:var(--ico-stroke-strong)}
  /* --press-scale-lg, not --press-scale: the ladder's rule is that boxes over ~200px take the
     gentler rung. Press is scale, never translateY. */
+ /* declared after :hover so a press beats the lift: the card drops back to the page and
+    scales, which is the whole point of a press. --press-scale-lg because the ladder's rule
+    is that boxes over ~200px take the gentler rung. */
  .pCard:active{transform:scale(var(--press-scale-lg));transition-duration:var(--press-dur)}
  .pCard:focus-visible{outline:var(--focus-w) solid var(--c950);outline-offset:var(--sp-2)}
  .pCard:focus:not(:focus-visible){outline:none}
@@ -217,6 +236,67 @@
  /* The primary cannot answer with ink -- it is already full-contrast on its own fill -- so it
     takes the one affordance the rule permits a large target instead: a hairline. No fill move. */
  .pBtnGo:hover{box-shadow:inset 0 0 0 var(--hair-w) var(--c0)}
+/* ---- REMOVING A HEAD: THE INDEX/ABOUT PATTERN, ADOPTED WHOLE (commit f897489).
+    Two delete gestures across two pages would be worse than either one, so nothing here is
+    redesigned -- only rehoused. The model is unchanged: a mode, not a smaller target.
+      no delete at rest        display:none, so there is nothing invisible to hit. The old
+                               control was opacity:0 but STILL hit-testable, which is how it
+                               managed to be both impossible to find and easy to hit.
+      in edit mode             the delete is inset:0 over its OWN chip -- the whole tile is
+                               the target, 88x104 here, well past 44x44.
+      no hover anywhere        the toggle is a visible 44px control, so touch and pointer
+                               get exactly the same affordance.
+      immediate + undo         the head leaves storage on the press; undo restores it. A
+                               pending delete on a timer loses work if the tab closes.
+    WHERE IT LIVES, since this page has no roster list. The heads are on the planet and that
+    DOM belongs to the engine, so the toggle would have nowhere honest to sit above it -- and
+    Jayden already removed the thumbnail strip that used to be there. The team screen is the
+    one surface on this page that already lists every head as a tile: the tiles are already
+    88x104, it already has a bar to put a toggle in, and it is where you are looking at who
+    is on the planet anyway. So Edit lives beside Shuffle.
+    PLACEHOLDERS ARE NOT DELETABLE, and the toggle is hidden entirely when they are what the
+    picker is showing. They are scenery the visitor never created and never saved: there is
+    nothing in storage to remove, so "delete" would mean something different here than it
+    does on a real head, and an undo slot for something that was never saved is meaningless.
+    Edit mode applies to real saved heads only. ---- */
+ .pTeamEdit{min-width:var(--tap-min)}
+ .pTeamEdit[aria-pressed="true"]{box-shadow:var(--rim-3);color:var(--c950)}
+ .teamDel{display:none}
+ .teamTile{position:relative;display:block}
+ /* pointer-events INHERITS, so the none below would have reached the delete too and the
+    whole mode would have been dead on arrival. It is re-enabled explicitly here. */
+ .pTeamCols[data-editing="true"] .teamDel{
+  pointer-events:auto;
+  position:absolute;inset:0;z-index:2;
+  display:flex;align-items:center;justify-content:center;
+  min-width:var(--tap-min);min-height:var(--tap-min);padding:0;border:0;cursor:pointer;
+  border-radius:var(--r-sm);corner-shape:var(--corner);
+  background:var(--mat-scrim);color:var(--c50);box-shadow:var(--rim-2);
+  transition:background-color var(--ease-out-dur) var(--ease-out)}
+ .pTeamCols[data-editing="true"] .teamDel svg{width:var(--ico-md);height:var(--ico-md);flex:none}
+ /* The one hover on this page that legitimately moves a fill, and it is deliberate rather
+    than an exception I granted myself: this control IS a scrim over a photograph -- its whole
+    job is to darken the head it will delete -- so deepening that scrim is the state change,
+    not decoration. It is also carried verbatim from the shipped index/About pattern, where
+    two different delete gestures would be worse than either. --mat-i1 is exactly the
+    rgba(18,18,18,.58) that pattern uses, so this is the same value named. */
+ .pTeamCols[data-editing="true"] .teamDel:hover,
+ .pTeamCols[data-editing="true"] .teamDel:focus-visible{background:var(--mat-i1)}
+ /* while editing the chip underneath stops being a button -- one tile, one meaning. The
+    aria-disabled and tabindex that go with it are set in renderTray(), so this is not a
+    visual-only lie to a screen reader or a keyboard. */
+ .pTeamCols[data-editing="true"] .teamChip{pointer-events:none}
+ .pTeamCols[data-editing="true"] .teamChip:hover{transform:none}
+ /* THE UNDO takes the chip's own slot, so the row you are working along does not reflow
+    under the pointer while you are still deleting. */
+ .teamUndo{display:flex;align-items:center;justify-content:center;
+  width:calc(var(--tap-min) * 2);height:calc(var(--tap-min) * 2 + var(--sp-16));
+  padding:0;border:0;cursor:pointer;
+  border-radius:var(--r-sm);corner-shape:var(--corner);
+  background:none;box-shadow:var(--rim-2);
+  font-family:var(--sans);font-weight:600;font-size:var(--fs-micro);letter-spacing:var(--tr-body);color:var(--c700);
+  transition:color var(--ease-out-dur) var(--ease-out),box-shadow var(--ease-out-dur) var(--ease-out)}
+ .teamUndo:hover,.teamUndo:focus-visible{color:var(--c950);box-shadow:var(--rim-3)}
  .pTeamCols{display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-12)}
  /* rgb(var(--tc1)) / rgb(var(--tc2)) are the match's own team channels -- the
     same custom properties play.css:170-174 paints the goals with, so the picker
@@ -268,7 +348,12 @@
     four doors. --blur-1/2 are already 0 below 760px, and nothing here asks for
     a backdrop-filter at any width. ---- */
  @media(max-width:760px){
-  .pHub{padding-top:calc(var(--nav-h) + var(--sp-40) + var(--sp-8));padding-bottom:var(--sp-16)}
+  /* env(safe-area-inset-bottom): a phone's home indicator / browser chrome sits over the
+     bottom of a position:fixed layer, and the cards are the bottom of this one. The fallback
+     keeps it exactly --sp-16 everywhere that has no inset. */
+  .pHub{padding-top:calc(var(--nav-h) + var(--sp-40) + var(--sp-8));
+   padding-bottom:calc(var(--sp-16) + env(safe-area-inset-bottom,0px))}
+  .pTeam{padding-bottom:calc(var(--sp-24-32) + env(safe-area-inset-bottom,0px))}
   .pCards{grid-template-columns:1fr 1fr;gap:var(--sp-8)}
   .pCard{padding:var(--sp-10) var(--sp-12);gap:var(--sp-4);min-height:calc(var(--tap-min) * 1.5)}
   .pCardD{display:none}
@@ -285,6 +370,15 @@
   .pTeamCols{gap:var(--sp-8)}
   .pTeamCol{padding:var(--sp-8);min-height:calc(var(--tap-min) * 2 + var(--sp-8))}
   .teamChip{width:calc(var(--tap-min) + var(--sp-12));height:calc(var(--tap-min) * 1.5)}
+  /* the undo takes the chip's slot, so it has to BE a chip's size at every width -- it kept
+     the desktop 88x104 here and broke the row it was standing in. */
+  .teamUndo{width:calc(var(--tap-min) + var(--sp-12));height:calc(var(--tap-min) * 1.5)}
+  /* Four controls and a title do not fit on one 390px row: Back + Edit + Shuffle measure 238px
+     of the 366px available, and "Pick sides" was wrapping to two lines and pushing the panel
+     taller. The title goes -- it is the one thing on this bar that is not a control, and a
+     screen full of Red/Blue columns with heads in them does not need to announce itself. The
+     accessible name stays on the dialog, so nothing is lost to a screen reader. */
+  .pTeamTitle{display:none}
   .pTeamFoot{flex-direction:column;align-items:stretch}
   .pTeamHint{text-align:center;order:2}
   .pBtnGo{width:100%}
