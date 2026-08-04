@@ -962,7 +962,24 @@
    try{if(typeof browFlash==="function")browFlash();   // he sees each one fly in
     if(typeof busyNow==="function"&&!busyNow()&&typeof setHold==="function"){setHold("smile",900);showFace("smile");}}catch(_){}
   }
-  if(!first&&want!==shown){shown=want;root.style.opacity=want?"1":"0";root.style.filter=want?"blur(0)":"blur(6px)";shadow.style.opacity=want?"1":"0";}
+  // THE REFLECTION LEAVES THE STAGE WITH THE HEAD. This line owns "this head is not on stage" and
+  // it hid two of the head's three parts: the body and the contact shadow. The reflection was left
+  // behind, and it is left behind VISIBLE -- the last opacity written to it was shOp*REFL_K, which
+  // is non-zero for any head that was standing on the pitch a frame ago.
+  // The reason it could not fix itself is the two early returns immediately below. The only code
+  // that ever writes refl.style.opacity="0" is the else-branch of the reflection block ~500 lines
+  // further down, and `if(hideB&&!shown&&!first)return;` / `if(!shown)return;` mean a hidden head
+  // never reaches it. So the reflection freezes at its last transform and its last opacity and
+  // stays there until the page is reloaded -- which is exactly the report: the head goes, the
+  // shadow goes with it, and a reflection is left sitting on the water.
+  // WHERE: `want` is !aboutB && !hideB && !gone, and hideB is window.__hmBench -- the TOURNAMENT's
+  // bench, the squads not in the current fixture. The lobby benches nobody, which is precisely why
+  // this was only ever seen during a match and on tournament screens and never in the lobby or on
+  // the home page. A cup re-fields squads every fixture, so it accumulates.
+  // Only ever hidden here, never shown: turning it back on belongs to the per-frame law above, so
+  // that a head coming back off the bench fades its reflection in through the same shOp it always
+  // did rather than being snapped to full strength by this line.
+  if(!first&&want!==shown){shown=want;root.style.opacity=want?"1":"0";root.style.filter=want?"blur(0)":"blur(6px)";shadow.style.opacity=want?"1":"0";if(!want)refl.style.opacity="0";}
   if(hideB&&!shown&&!first)return;   // hidden AND the fade has finished: skip the whole simulation, not just the paint. Deliberately no display:none -- the lava elim/sink paths own that property and fighting them is how heads end up as orphan shadows.
   if(reduce){root.style.transform="translate("+(heroR.w*0.05)+"px,"+floorY+"px)";shadow.style.transform="translate("+(heroR.w*0.05)+"px,"+(floorY+HH-4)+"px)";return;}
   if(!shown)return;
