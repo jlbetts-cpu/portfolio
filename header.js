@@ -80,14 +80,46 @@ if(aboutBtn && aboutBtn.tagName === "BUTTON"){
      of "moved without what it depended on" this pass was told to watch for. */
   var back = nav.querySelector(".jbBack");
 
+  /* THE LIT ITEM IS EXCLUSIVE, and until round 11 it was not. Jayden: "About has
+     both Work and About highlighted for some reason." The cause is the shape of
+     the decision to keep About as an in-page takeover rather than a route: Work
+     carries aria-current="page" because the document IS the home page, and this
+     function added aria-current to About on top of it. Nothing cleared the first,
+     so two items claimed the current state at once -- a real accessibility fault
+     as well as a visual one, since two aria-current="page" elements in one nav
+     is invalid.
+     THE FIX IS TO MAKE THE STATE AUTHORITATIVE RATHER THAN ADDITIVE. The bar's
+     resting lit item is recorded once, at load, with the exact attribute VALUE
+     it shipped ("page" on index, "true" on the sub-pages) so restoring it cannot
+     silently change its semantics. While the overlay is open every other item is
+     cleared and About alone is lit; on close the recorded item is put back.
+     It is driven off body.about-open, which is the same class the MutationObserver
+     below already watches -- so all four of the overlay's exits (the button,
+     Escape, popstate and the head) restore Work without any of them knowing this
+     code exists.
+     THE HANDOFF IS THE ONE MOVE THE TRAVELLING PILL WAS BUILT FOR: Work and
+     About are siblings in the same group and the document never unloads, so the
+     indicator slides between them instead of blinking. Every other change of lit
+     item in this bar is a navigation and cannot be animated. */
+  var restLit = nav.querySelector('[aria-current]:not(.jbHome)');
+  var restLitVal = restLit ? restLit.getAttribute("aria-current") : null;
+
   var sync = function(){
     var open = body.classList.contains("about-open");
     aboutBtn.setAttribute("aria-expanded", String(open));
-    if(open) aboutBtn.setAttribute("aria-current","true");
-    else     aboutBtn.removeAttribute("aria-current");
     body.setAttribute("data-nav", open ? "about" : rest);
     if(back) back.hidden = !open;
-    /* the lockup stops being "where you are" while a takeover is open */
+
+    if(open){
+      /* exactly one lit item: clear whatever the page shipped, light About */
+      if(restLit && restLit !== aboutBtn) restLit.removeAttribute("aria-current");
+      aboutBtn.setAttribute("aria-current","true");
+    }else{
+      aboutBtn.removeAttribute("aria-current");
+      if(restLit && restLit !== aboutBtn) restLit.setAttribute("aria-current", restLitVal);
+    }
+
+    /* the mark stops being "where you are" while a takeover is open */
     if(home){
       if(open) home.removeAttribute("aria-current");
       else if(home.dataset.navHome === "1") home.setAttribute("aria-current","page");
@@ -232,6 +264,15 @@ ink.className = "jbInk"; ink.setAttribute("aria-hidden","true");
 nav.appendChild(ink);
 var armed = false;
 
+/* ROUND 11: the indicator is a GREY PILL the size of the lit item's ink box --
+   Jayden's "the grey should be on the pill around the activated tab". So it
+   takes the item's whole rect, width and height, and header.css gives it the
+   item's own --r-pill. Nothing about the measurement changed; what changed is
+   the value it paints, which was a 1.03:1 wash and is now --c100.
+   THE LIT ITEM IS BOLD as of this round, so its box is a few px wider than its
+   unlit neighbours. Measuring the live rect on every call rather than caching
+   one is what keeps the pill fitted after fonts land and after the About overlay
+   swaps which item is lit -- both already covered by the callers below. */
 function placeInk(){
   var lit = nav.querySelector('[aria-current]:not(.jbHome)');
   if(!lit){ ink.style.opacity = "0"; return; }

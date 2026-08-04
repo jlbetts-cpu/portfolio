@@ -197,6 +197,50 @@
     fork replaces it wholesale. */
  --sp-40:40px;
 
+ /* 21 - HEADER V2, ROUND 11. The bar had been subtracted past quiet into
+    absent: measured at 1280 on index.html the lit nav item was rgb(117,117,117)
+    and so was every unlit one (1.00:1), and the bar's own ground was --c50, the
+    same #FDFDFD as the page under it (1.00:1). Four names close that.
+
+    --c0 IS THE RAMP'S MISSING TOP RUNG, and the ramp genuinely did not have it:
+    it starts at --c50 #FDFDFD, which is the PAGE. Jayden's call is that the bar
+    should read lighter than the page it floats over -- separation upward, which
+    is what a floating element does and is the one direction a no-shadow rule
+    leaves open. Nothing lighter than the paper existed to say that with.
+    It is opaque, and that is a measurement rather than a preference: --mat-1/2/3
+    are all rgba(253,253,253,a), i.e. --c50 at reduced alpha, so over a --c50
+    page every one of them composites back to exactly #FDFDFD -- 1.00:1, the
+    problem restated. A translucent white cannot be lighter than a white ground.
+    #FFFFFF vs #FDFDFD is 1.02:1 on its own, so the rim below is doing most of
+    the drawing; what the white buys is that the bar never reads as a grey plate,
+    which was the previous round's error.
+
+    --rim-3 is the third rung of the rim ladder (.08 / .14 / .20). Composited on
+    white it is #D1D1D1 = 1.56:1 against the #FDFDFD page, against --rim-2's
+    1.31:1. With no cast shadow permitted on chrome and the ground only 1.02:1
+    off the paper, the rim IS the component's edge, so it takes the rung the
+    ladder stopped one short of.
+
+    --ico-stroke-strong IS THE ICON RAMP'S SECOND RUNG, and the ramp had one.
+    An icon beside a label has to change weight when the label does -- the lit
+    nav item goes 400 -> 600 and its glyph was staying at 1.5px, so half the
+    control answered and half did not. Two facts fix the value rather than an eye:
+    Tabler, the pack every icon on this site comes from, ships its own stroke
+    ladder as 1.25 / 1.5 / 2, so 2 is the pack's next rung and not a new weight;
+    and measured on this site's own face, Instrument Sans's vertical stem at 14px
+    goes 400 -> 600 as a x1.32 step, which puts 1.5 at 1.98. The two agree.
+    --ico-mark-stroke / --ico-mark-stroke-strong are the same pair for the brand
+    mark, which needs its own numbers because it is NOT non-scaling-stroke: the
+    drawing is a 30-unit viewBox rendered at --ico-mark, so its effective weight
+    is stroke*(22/30). 2 gives 1.47px, which is what makes the mark agree with a
+    1.5px nav icon at rest; 2.7 gives 1.98px, matching --ico-stroke-strong. Both
+    are the SVG's own unitless stroke-width, so they are not px values missing a
+    unit. */
+ --c0:#FFFFFF;
+ --rim-3:inset 0 0 0 1px rgba(18,18,18,.20);
+ --ico-stroke-strong:2;
+ --ico-mark-stroke:2;--ico-mark-stroke-strong:2.7;
+
  /* 18 - the page measure. 1280px is the width every full-bleed band on the
     site caps at, and it is not a spacing value -- it is the column the whole
     layout is drawn in, which is why it has never fitted on the --sp-* ladder

@@ -33,14 +33,17 @@
    The header wants the blue on every page -- a green availability dot beside a
    live-green scoreboard would be two different claims in one colour (report §4)
    -- so it takes a name of its own rather than inheriting whichever --accent the
-   host page happens to mean. Values are tokens.css's, verbatim. */
+   host page happens to mean. Values are tokens.css's, verbatim.
+   ROUND 11 DELETES --nav-accent-wash rather than leaving it declared. It was the
+   lit item's ground, that ground is now an underline, and this file's own rule
+   is that a retired value goes rather than sitting there for someone to re-adopt
+   (the same disposal --avail-dot and --avail-ring got in §4). */
 :root{
   --nav-accent:oklch(52% 0.18 262);
-  --nav-accent-wash:oklch(94.7% 0.018 262);
   --nav-accent-dark:oklch(72% 0.12 262);
 }
 @supports not (color:oklch(50% .1 200)){
-  :root{--nav-accent:#2961CE;--nav-accent-wash:#E7EEFA;--nav-accent-dark:#7BA4F0}
+  :root{--nav-accent:#2961CE;--nav-accent-dark:#7BA4F0}
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -169,16 +172,41 @@
      any ancestor with opacity<1 silently becomes a backdrop root and kills the
      effect -- this bar sits inside pages that animate opacity on overlays.
      vercel.com and anthropic.com are both fully opaque. NN/g argues against
-     translucent sticky headers outright. */
-  --nav-mat:var(--mat-3-solid);
+     translucent sticky headers outright.
+
+     ROUND 11 CHANGES THE VALUE, NOT THE ARGUMENT, and it changed it twice.
+     It was --mat-3-solid, which tokens.css defines as --c50 -- the exact
+     #FDFDFD of the page under it, so the bar's ground separated from the page at
+     1.00:1 and the only thing drawing the component was a 1.31:1 hairline.
+     The first attempt went one rung DOWN the ramp to --c75 #F1F1F1 (1.10:1).
+     Jayden's answer to that is the rule this now follows: "header should not be
+     grey -- if anything it should be lighter than the background." So the bar
+     goes UP, to --c0 #FFFFFF, a rung tokens.css did not have because the ramp
+     began at the paper. A floating object separates upward; grey made it read as
+     a plate lying on the page rather than a bar over it.
+     WHY NOT THE TRANSLUCENCY LADDER, which was the other candidate, and this is
+     arithmetic rather than taste: --mat-1/2/3 are rgba(253,253,253,.72/.86/.96)
+     -- --c50 at reduced alpha. Over a --c50 page every one of them composites
+     back to exactly #FDFDFD. Measured separation: 1.00:1, which is the defect,
+     not the fix. A translucent white cannot be lighter than a white ground.
+     Translucency is the approved alternative to a shadow for making chrome sit
+     ABOVE content; it is not an answer to chrome that is the colour of the
+     paper. White is, and the rim below carries the rest. */
+  --nav-mat:var(--c0);
 
   /* THE RIM DOES ALL OF THE SEPARATION WORK, because there is no shadow (§6).
      On a near-white page a 96%-white pill is invisible, so the hairline has to
      be the site's real hairline: --rim-2 composites to ~#DCDCDC = 1.31:1 against
      the paper, and the site's own --c100 divider is 1.30:1. Not a new visual
      weight -- the site's hairline, wrapped round a bar. --rim-1 (1.14:1) is not
-     enough on its own once the shadow is gone. */
-  --nav-rim:var(--rim-2);
+     enough on its own once the shadow is gone.
+     ROUND 11: nor, on its own, is --rim-2 -- and it matters more now the ground
+     is white, because #FFFFFF on a #FDFDFD page is 1.02:1 and the rim is
+     genuinely the whole of the component's edge. It takes the ladder's third
+     rung: --rim-3, .20 alpha, composited #D1D1D1, 1.56:1 against the paper.
+     Still a hairline, still 1px, still an INSET rim rather than a cast shadow;
+     it is the same line drawn at the weight its job actually needs. */
+  --nav-rim:var(--rim-3);
 
   /* THE HOVER DELTA, and it is set by the REST colour rather than the hover one.
      Jayden asked for two things that look contradictory and are not: take the
@@ -191,9 +219,34 @@
      currentColor so the whole control answers as one object. --c500 at 14px on
      #FDFDFD is 4.63:1, which clears WCAG 1.4.3 AA for body text with margin.
      This is the one hover rule, and it is the same one on every interactive
-     element in the bar -- tabs, Back, both split controls, both menus. */
-  --nav-ink:var(--c500);
+     element in the bar -- tabs, Back, both split controls, both menus.
+
+     ROUND 11 PUTS REST BACK TO --c700, and the reasoning above is what has to be
+     answered rather than ignored.  Measured on the shipped bar, --c500 on the
+     bar's ground is 4.44:1 -- fifteen hundredths over the 4.5 floor once the
+     bar is a tint rather than paper, and the whole nav read as disabled text.
+     Jayden's verdict on the result: "a lot of it isn't noticeable -- it's very
+     subtle in a not good way."  A 4.5:1 floor is a floor, not a target.
+     WHAT PAYS FOR THE LOST HOVER DELTA, and this is the paragraph the whole
+     round turns on. The premise above was that ink is "the only thing left to
+     carry hover", which was true only while hover was forbidden a ground.
+     Jayden's instruction in this round is "hover should just be the light grey
+     pill", and that is a DELIBERATE REVERSAL of "I don't like the extra grey
+     background it gives", stated here so nobody re-reads the paragraph above and
+     undoes it as a regression. It is also scoped: it applies to NAV ITEMS and to
+     nothing else. The case-study back link, the prose links, the tabs, the chips
+     and the buttons keep the no-fill hover he asked for, and
+     docs/superpowers/specs/2026-08-03-control-system.md still governs them.
+     So rest is free to be the value the labels actually want -- --c700, 7.8:1 on
+     the white bar, against --c500's 4.4:1 which read as disabled text. */
+  --nav-ink:var(--c700);
   --nav-ink-strong:var(--c950);
+  /* THE HOVER GROUND. Same grey as the lit item's pill, on purpose: hover and
+     active SHARE the shape and the fill, and what separates them is ink and
+     weight. That is the layering Jayden asked for, and it is why the pill can be
+     as light as he wants it -- the fill is no longer the thing that says "you are
+     here", it is the thing that says "this is a control". */
+  --nav-hover-bg:var(--c75);
   /* THE FOCUS RING IS INK, not the accent, and the header was the site's only
      outlier. --nav-accent on --c50 is 5.59:1; --c950 is 18.42:1, and every other
      focus ring on the site (index.html, the five case studies, play.css) already
@@ -201,8 +254,38 @@
      ring that changes hue between the bar and the page under it reads as two
      systems. On the dark surface it flips to --c50 for the same reason. */
   --nav-focus:var(--c950);
-  --nav-active-ink:var(--nav-accent);
-  --nav-active-bg:var(--nav-accent-wash);
+  /* THE ACTIVE STATE, and until round 11 both of these names were declared and
+     NOTHING CONSUMED THE FIRST ONE. Measured on index.html at 1280: the lit item
+     (Work, aria-current="page") computed rgb(117,117,117) at weight 400 -- byte
+     for byte the same as About, Play and Contact beside it. Active vs inactive
+     was 1.00:1. A visitor could not tell what page they were on, and the
+     travelling indicator had nothing to travel because the only thing marking
+     the lit item was a --nav-accent-wash pill at 1.03:1 against the bar.
+     WHAT THE LIT ITEM WEARS NOW, and it is Jayden's original reference: a GREY
+     PILL. "The grey should be on the pill around the activated tab." The shape
+     was never missing -- every item is already --r-pill -- only the fill was.
+     --nav-active-bg keeps its name and changes its value, from --nav-accent-wash
+     (oklch 94.7%, 1.03:1 against the bar, invisible) to a real grey.
+     WHICH GREY, AND WHY THE LIGHTER ONE WON. It shipped for one round at --c100
+     #E6E6E6 (1.25:1 against the white bar). Jayden, on a screenshot of it: "I
+     honestly like the About styling better than our style, ironically" -- the
+     lighter pill, not the mid-grey one. So it is --c75 #F1F1F1, 1.13:1.
+     THAT ONLY WORKS BECAUSE THE PILL IS NOT CARRYING THE STATE ON ITS OWN, and
+     the reason to say so is that the previous round's whole failure was one
+     under-weight mark doing the job alone. Three things mark the lit item and
+     the fill is the quietest of them: --c950 ink (16.6:1 on the pill, against
+     the unlit items' 7.8:1), 600 weight against their 400, and the pill. Lighten
+     the pill and the item is still the only bold near-black word in the bar.
+     THE LABEL IS INK, NOT THE ACCENT. Blue text on a grey pill would be a third
+     thing happening on one item, and the accent has no job left in this bar now
+     that hover is a ground rather than a line.
+     HOVERING THE LIT ITEM DOES NOTHING, and that is the correct answer rather
+     than a gap: it already wears the pill, its ink is already --c950, and the
+     one page a nav item can take you to when you are already on it is the one
+     you are on. Deepening the pill under the pointer would be a fourth grey in
+     a bar that is trying to have fewer. */
+  --nav-active-ink:var(--c950);
+  --nav-active-bg:var(--nav-hover-bg);
 
   position:relative;                       /* the travelling indicator's containing block */
   width:100%;max-width:var(--bar-open);
@@ -233,8 +316,13 @@
   --nav-rim:var(--rim-i2),var(--rim-top);
   --nav-ink:var(--i700);
   --nav-ink-strong:var(--c50);
-  --nav-active-ink:var(--nav-accent-dark);
-  --nav-active-bg:var(--wash-i1);
+  /* the pill on the dark ground: --i100 is the ink ramp's own --c100, which is
+     the same "one rung off the bar's ground" relationship the paper surface has.
+     --wash-i1 (.10) was the lighter candidate and disappears under gradientlab's
+     user-set stage colours, which is the one thing this surface exists for. */
+  --nav-hover-bg:var(--i100);
+  --nav-active-ink:var(--c50);
+  --nav-active-bg:var(--nav-hover-bg);
   --nav-focus:var(--c50);
 }
 
@@ -272,7 +360,23 @@
   color:var(--nav-ink);text-decoration:none;background:none;border:0;cursor:pointer;
   padding:0 var(--sp-16);min-height:var(--bar-item-h);
   display:inline-flex;align-items:center;gap:var(--sp-6);
-  border-radius:var(--r-pill);position:relative;white-space:nowrap;
+  /* ONE SHAPE FOR ALL THREE STATES, and corner-shape is the half that was
+     missing. Until round 11 the item declared --r-pill and NO corner-shape while
+     the travelling indicator declared both -- so the lit item's ground was a
+     squircle and the same item's focus ring was a true stadium: two shapes for
+     one control, in one component. Jayden, on a screenshot of the indicator:
+     "I like the corner rounding too of it." What he is pointing at is the
+     superellipse -- --r-pill clamped to half of a 38px box, drawn with
+     corner-shape:squircle, which reads as a soft rounded rectangle rather than a
+     capsule. It is now declared here, so rest, hover, focus and active are the
+     same silhouette and only the FILL changes between them.
+     THE MENU ROWS STAY AT --r-sm AND THAT IS NOT AN OVERSIGHT: the control-system
+     spec assigns radius per control KIND, and it already puts a full-width row
+     inside a --r-lg panel at --r-md/--r-sm by the concentric rule. A tab in a
+     horizontal bar and a row in a vertical menu are different kinds; giving the
+     rows this shape would make a stack of stadiums, not coherence. */
+  border-radius:var(--r-pill);corner-shape:var(--corner);
+  position:relative;white-space:nowrap;
   -webkit-tap-highlight-color:transparent;
   /* the case studies put filter:url(#inkSm) on chrome text; a displacement map
      on a 14px label beside a 1.35px stroke reads as a smear. */
@@ -290,23 +394,94 @@
   content:"";position:absolute;top:50%;left:0;right:0;
   height:var(--tap-min);transform:translateY(-50%);
 }
-/* THE FULL STATE SET: rest · hover · focus-visible · active.
+/* THE FULL STATE SET: rest · hover · focus-visible · active.  ROUND 11.
 
-   HOVER IS INK ONLY -- no fill, and that is Jayden's call, asked for twice:
-   "I like that the text becomes more noticeable, but I don't like the extra
-   grey background it gives." It is the same instinct as the no-shadow rule --
-   separation by colour and weight, not by a filled box -- and the five case
-   studies had this wash stripped in an earlier pass; the header kept it.
-   --c700 -> --c950 is a real jump (7.0:1 -> 16.1:1 on paper) and the icon comes
-   with it via currentColor, so the whole item darkens as one object.
-   HOW HOVER STAYS DISTINCT FROM ACTIVE, since the fill was doing that work:
-   the two now differ on three axes at once -- hue (neutral near-black vs the
-   accent blue), weight (400 vs 600), and ground (none vs --nav-accent-wash).
-   Only ONE item in the bar ever carries a fill, and it is the one you are on.
-   The focus ring never depended on the wash: it is a 2px --nav-accent outline
-   at --sp-2 offset, drawn outside the box. */
-.jbNav a:hover,.jbNav button:hover{color:var(--nav-ink-strong);
+     state    ground              ink       weight   icon stroke
+     rest     none                --c700    400      --ico-stroke
+     hover    --nav-hover-bg      --c700    400      --ico-stroke
+     active   --nav-active-bg     --c950    600      --ico-stroke-strong
+
+   THE PILL IS SHARED BY HOVER AND ACTIVE; INK AND WEIGHT ARE WHAT MARK THE
+   CURRENT PAGE. Jayden: "hover should just be the light grey pill." The two
+   states layer rather than compete -- the fill says "this is a control", the ink
+   and the weight say "this is where you are" -- which is what lets the pill be
+   as light as he asked for without the lit item going quiet again.
+
+   THIS REVERSES "no background fill on hover", WHICH HE ASKED FOR TWICE, and the
+   reversal is his. The old paragraph read: "I like that the text becomes more
+   noticeable, but I don't like the extra grey background it gives", and the
+   header answered it with ink alone -- --c500 -> --c950 -- which he then could
+   not see. It is left on the record here, not deleted, because the next person
+   to read it will otherwise remove the fill as a regression.
+   IT IS SCOPED TO NAV ITEMS AND NOWHERE ELSE. The case-study back link, prose
+   links, the case-study tabs, chips and every button keep the no-fill hover; the
+   control-system spec still governs them and is not changed by this.
+
+   HOVER NO LONGER CHANGES INK, and that is deliberate rather than dropped: with
+   a ground under it, darkening the label too would make hover louder than active
+   on two of the three axes, and active has to dominate. The old rule survives on
+   exactly one control -- .jbHome, which takes no pill (see below).
+
+   THE SELECTOR IS WRITTEN OUT LONGHAND because `.jbNav a,button` also matches
+   every row inside a disclosure panel and both buttons inside a saved-head tile,
+   and a pill on a menu row is a different control kind. The bar's own items are
+   exactly two shapes -- a direct a/button child of a zone, and the .jbDiscGo
+   inside a .jbDisc -- so those are what is named.
+
+   NOTHING MOVES. The pill is a background-color on a box that already exists at
+   rest: no padding, no border, no pseudo-element, no size change. An item's
+   getBoundingClientRect is identical in all three states, which is what stops
+   the bar shimmering as the pointer crosses it.
+   The focus ring is unaffected: a --focus-w --nav-focus outline at --sp-2
+   offset, drawn OUTSIDE the box, on the same silhouette. */
+.jbGrp>:is(a,button):not(.jbHome):hover,
+.jbGrp>.jbDisc:hover>.jbDiscGo,
+.jbGrp>.jbDisc:focus-within>.jbDiscGo{
+  background-color:var(--nav-hover-bg);
+  /* hover-IN at --ease-out-dur, hover-OUT at --hover-out-dur (declared on the
+     base rule): a control answers immediately and lets go gently. Equal timings
+     read mechanical, and "the animation was too abrupt" is a note this bar has
+     already had once. */
+  transition:background-color var(--ease-out-dur) var(--ease-out)}
+/* THE MARK KEEPS THE OLD INK-ONLY HOVER. It is a brand object, not a tab: a
+   grey pill round a logo is the one place the fill reads as chrome clutter, and
+   it is the only item in the bar that never takes the lit treatment either. */
+.jbNav .jbHome:hover{color:var(--nav-ink-strong);
   transition:color var(--ease-out-dur) var(--ease-out)}
+/* the panel's rows keep ink-only hover -- they are a different control kind and
+   the no-fill rule is untouched for them. Their colour rule is declared with the
+   rest of the panel further down; this is only the timing it hovers in at. */
+.jbNav .jbDiscMenu :is(a,button):hover{
+  transition:color var(--ease-out-dur) var(--ease-out)}
+
+/* ── THE LIT ITEM.  Round 11 ────────────────────────────────────────────────
+   Until this round --nav-active-ink was declared and never consumed: the lit
+   item computed rgb(117,117,117) at weight 400, identical to every unlit one,
+   and the only thing marking it was a --nav-accent-wash pill measuring 1.03:1
+   against the bar. Measured active-vs-inactive: 1.00:1. It was invisible.
+   Now: --c950 INK (16.6:1 on the pill, against the neighbours' 7.8:1 grey),
+   600 WEIGHT, a HEAVIER ICON STROKE, and the travelling pill below. Jayden's own
+   call -- "the grey should be on the pill around the activated tab" -- and the
+   layout his first reference screenshot showed.
+
+   THE ICON GOES BOLD WITH THE LABEL, which is the round's standing rule:
+   WHENEVER A NAV ITEM'S LABEL CHANGES WEIGHT OR INK, ITS ICON'S STROKE AND INK
+   CHANGE WITH IT. Half a control responding reads as an oversight rather than a
+   state. Ink already travelled -- the glyph is currentColor -- so only the
+   stroke was missing. It is set on the SVG's own stroke-width, not by scaling
+   the icon, and --ico-md and vector-effect:non-scaling-stroke both stay put, so
+   the glyph's box is byte-identical in both states and the label does not shift.
+   THE WEIGHT COSTS A FEW PIXELS OF LABEL WIDTH and that is accepted rather than
+   reserved with a hidden bold twin: measured, the lit item's box grows 0.7px
+   ("Work", 91.3 -> 92.0), which is under the threshold at which anything reads
+   as movement. The only lit item that ever changes while a document is alive is
+   Work <-> About on index.html, where the whole page is being taken over anyway,
+   and header.js re-measures the pill off the mutation.
+   The mark is excluded here as everywhere: a lit brand would be the loudest
+   object in the bar. */
+.jbNav [aria-current]:not(.jbHome){color:var(--nav-active-ink);font-weight:600}
+.jbNav [aria-current]:not(.jbHome) .gIco{stroke-width:var(--ico-stroke-strong)}
+.jbNav [aria-current]:not(.jbHome):hover{color:var(--nav-active-ink)}
 .jbNav a:active,.jbNav button:active{transform:scale(var(--press-scale))}
 .jbNav .jbHome:active{transform:scale(var(--press-scale-lg))}   /* larger object, less scale */
 .jbNav :focus-visible{outline:var(--focus-w) solid var(--nav-focus);outline-offset:var(--sp-2);
@@ -356,6 +531,38 @@
    screen reader hears. */
 .jbBack,.jbSoc{padding:0 var(--sp-12);min-width:var(--tap-min);justify-content:center}
 .jbBack[hidden]{display:none}
+/* ROUND 11 — BACK *REPLACES* THE MARK ON THE FIVE CASE STUDIES. Jayden: "I think
+   the back button should just replace the logo on case study pages." So the
+   leading slot holds exactly one control on all nine pages -- the mark on index,
+   play, headmaker and the Lab, the arrow on the five case studies -- and never
+   both. Three things fall out of that and all three were open problems:
+     · The bar's geometry stops depending on which page it is on. Both controls
+       are min-width:--tap-min, centre-justified, in the same slot, so the
+       leading control's centre is 68 at 1280 and 44 at 390 on all nine.
+     · IT CLOSES B5. The mobile audit found Back dead below ~350px because
+       .jbGrpL held mark + arrow (92px of content in ~53px of space) and spilled
+       into the centred group, where Work painted over it and took the hit test.
+       One control cannot overflow a slot built for one control.
+     · It supersedes the "arrow tucked against the mark's left edge" idea, which
+       was never built because reserving its slot pushed the mark 52px inboard on
+       every page -- recreating the dead space it was meant to fill.
+   THE ARROW TAKES THE MARK'S BOX, not a nav icon's, because it is standing where
+   the mark stands: --ico-mark 22px against --ico-md's 18. At 22px a 1.5px
+   non-scaling stroke and the mark's own 2/30 (=1.47px) read as the same weight,
+   so flipping between a case study and the home page does not change how heavy
+   the leading control looks. */
+.jbGrpL>.jbBack .gIco{width:var(--ico-mark);height:var(--ico-mark);
+  flex:0 0 var(--ico-mark)}
+/* AND IT TAKES THE MARK'S BOX, declared with the same properties and the same
+   values as .jbNav .jbHome below rather than inherited from .jbBack. Measured
+   without this: .jbBack's `padding:0 var(--sp-12)` is (0,1,0) and loses to
+   `.jbNav a,.jbNav button{padding:0 var(--sp-16)}` at (0,1,1), so a 22px arrow
+   in 32px of padding made a 54px box and put the leading control's centre at 73
+   on the five case studies against 68 on the other four -- the exact class of
+   five-pixel drift the one-inset rule exists to stop. (0,2,0) here wins that
+   tie the way .jbHome's own rule does, for the same reason and in the same way. */
+.jbNav .jbGrpL>.jbBack{padding:0 var(--sp-8);margin:0;min-width:var(--tap-min);
+  justify-content:center;flex:0 0 auto}
 
 /* ── PLAY AND CONTACT — TWO NAV ITEMS THAT REVEAL EXTRAS ON HOVER ──────────
    ROUND 10.  Jayden: delete both carets.  "Play drop down is not same styling."
@@ -381,8 +588,15 @@
    inherits the .jbNav a/button rule verbatim.  Play, Contact, Work and About are
    the same object; carrying a panel is not a visual difference any more. */
 .jbDisc{position:relative;display:inline-flex;align-items:center}
-/* the whole control lights as one object, panel included */
-.jbDisc:hover>.jbDiscGo,.jbDisc:focus-within>.jbDiscGo{color:var(--nav-ink-strong)}
+/* THE WHOLE CONTROL LIGHTS AS ONE OBJECT, panel included -- and as of round 11
+   what "lights" means is the pill, not the ink. The rule that used to live here
+   set color:var(--nav-ink-strong) on hover; it is gone rather than kept, because
+   Play and Contact would then have been the only two items in the bar whose ink
+   moved on hover while the four beside them only took a ground. The pill half is
+   declared with the other items' in §1's state-set block, which names
+   .jbDisc:hover>.jbDiscGo and .jbDisc:focus-within>.jbDiscGo for exactly this
+   reason: reaching any part of the control, including tabbing into its panel,
+   is what lights the label. */
 
 /* ── THE PANEL, ONE RULE FOR BOTH ENDS OF THE BAR ──────────────────────────
    Play's and Contact's panels are the same element with different payloads.
@@ -474,12 +688,24 @@
    ONE element, moved by transform. Not a background-color on each item: a
    background cannot travel, and per-item fills are what made "which one is lit"
    a paint in five places instead of one object in one.
-   It sits UNDER the labels (z-index 0 against their position:relative), carries
-   the active wash and nothing else, and its ink/weight half stays on the item --
-   so the three axes that separate active from hover (hue, weight, ground) are
-   unchanged. header.js measures it; the only thing declared here is how it moves.
-   No travel until .jbInkOn is set on the second frame, so the first paint parks
-   it silently rather than sliding it in from the origin. */
+   ROUND 11 KEEPS THE ELEMENT AND FIXES ITS VALUE. It carried --nav-accent-wash
+   -- oklch(94.7%) -- which measures 1.03:1 against the bar's ground, so the one
+   element whose entire job was saying "you are here" was three hundredths of a
+   contrast point away from not being drawn at all. It is now --c100 on white:
+   1.25:1, and a shape rather than a rumour. Jayden's words: "the grey should be
+   on the pill around the activated tab."
+   THE RADIUS IS THE ITEM'S OWN --r-pill, which is why the swoosh bug cannot
+   happen here: .tvTab.on drew its mark as a border-bottom on a radiused box and
+   the radius bent the line into a curve. This is not a border on the item, it is
+   a separate box the same shape as the item, so the radius is doing the thing
+   radii do.
+   It sits UNDER the labels (z-index 0 against their position:relative). Its
+   ink/weight half stays on the item, so active still differs from hover on three
+   axes -- ground (pill vs none), weight (600 vs 400), and the mark hover draws
+   that active does not (the accent underline).
+   header.js measures it; the only thing declared here is how it moves. No travel
+   until .jbInkOn is set on the second frame, so the first paint parks it
+   silently rather than sliding it in from the origin. */
 .jbInk{position:absolute;left:0;top:0;z-index:0;pointer-events:none;opacity:0;
   border-radius:var(--r-pill);corner-shape:var(--corner);
   background:var(--nav-active-bg)}
@@ -549,8 +775,18 @@
 .jbNav .jbHome{padding:0 var(--sp-8);margin:0;min-width:var(--tap-min);
   justify-content:center;flex:0 0 auto}
 .jbLogo{width:var(--ico-mark);height:var(--ico-mark);flex:0 0 var(--ico-mark);
-  display:block;fill:none;stroke:currentColor;stroke-width:2;
-  stroke-linecap:round;stroke-linejoin:round}
+  display:block;fill:none;stroke:currentColor;stroke-width:var(--ico-mark-stroke);
+  stroke-linecap:round;stroke-linejoin:round;
+  transition:stroke-width var(--hover-out-dur) var(--ease-out)}
+/* THE MARK OBEYS THE ROUND-11 RULE TOO: whenever an item's ink changes, its
+   glyph's stroke changes with it. The mark is the one control left whose hover
+   is ink rather than a pill, so it is also the one place a stroke has to move on
+   hover. --ico-mark-stroke-strong is 2.7 rather than --ico-stroke-strong's 2
+   because this drawing is NOT non-scaling-stroke -- 2.7*(22/30) = 1.98px, which
+   is --ico-stroke-strong rendered. Nothing about the box changes, so the mark
+   does not grow and the bar does not reflow. */
+.jbNav .jbHome:hover .jbLogo{stroke-width:var(--ico-mark-stroke-strong);
+  transition:stroke-width var(--ease-out-dur) var(--ease-out)}
 /* the mark never wears the active pill: on home it is aria-current="page"
    because it is where you are, and a lit brand would be the loudest object in
    the bar. */
