@@ -351,6 +351,7 @@
  // one scale(1,-1) in front of the head's own rotation, with no sign juggling.
  var refl=document.createElement("div");refl.className="hmRefl";refl.setAttribute("aria-hidden","true");
  refl.style.cssText="position:absolute;left:0;top:0;pointer-events:none;width:"+HW+"px;height:"+HH+"px;background-image:url("+data.cut+")";
+ var _reflFoot=-1;   // the foot line the reflection is currently pivoting on; re-written when the pixel scan changes FOOT
  // position is set INLINE, not left to play.css: index.html does not link play.css,
  // so on the home page this div arrived unstyled -- a static, display:block box HH tall per head,
  // sitting in normal flow and shoving the hero (and the head) down once per companion. That is
@@ -928,7 +929,7 @@
     else{ringEl.style.background="rgb("+tcol+")";ringEl.style.opacity="1";}   // a solid team-coloured outline
     shadow.style.background="radial-gradient(ellipse at center,rgba("+tcol+",.42),rgba("+tcol+",0) 70%)";}   // the shadow wears the team colour too
    if(S9&&!S9.on&&soccerOn){soccerOn=false;soccerWon=false;ringEl.style.opacity="0";crownEl.style.opacity="0";if(filler&&mjClone)mjClone.style.filter="none";
-    shadow.style.background="radial-gradient(ellipse at center,rgba(8,8,8,.26),rgba(8,8,8,0) 70%)";
+    shadow.style.background="radial-gradient(ellipse at center,rgba(var(--hm-contact,8,8,8),var(--hm-contact-a,.26)),rgba(var(--hm-contact,8,8,8),0) 70%)";   // back to the ground's own ink, through the same two properties spawn uses -- a hard literal here would have quietly re-blacked every shadow the moment a match ended, whatever surface it ended on
     if(!killed){shown=true;root.style.opacity="1";root.style.filter="blur(0)";shadow.style.opacity="1";root.style.display="";shadow.style.display="";
      var fs9=Math.random()<0.5;x=fs9?WL+2:WR-2;y=floorY-(140+Math.random()*240);dir=fs9?1:-1;air=true;st="fall";surface=floorY;
      vx=dir*(360+Math.random()*240);vy=-(120+Math.random()*260);if(Math.random()<0.35)startFlip();}}
@@ -1307,22 +1308,38 @@
   var shScale=Math.max(0.32,depth*(1-airH/(heroR.h*0.6)));
   shadow.style.transform="translate("+(x+HW/2-HW/2*shScale+HW*0.06).toFixed(1)+"px,"+(shG-2+_ay).toFixed(1)+"px) scale("+shScale.toFixed(3)+",1)";
   shadow.style.opacity=(window.__hmLavaOn||me.__sinking)?"0":((shown&&!perched)?String(airH<4?0.36:Math.max(0.1,0.3-airH/800)):"0");   // no cast shadows in lava mode (a shadow on the lava reads as "standing on it")
-  // THE REFLECTION, mirrored about the waterline. Composing the mirror as
-  //   translate(...) scale(1,-1) rotate(theta)
-  // is exact with no sign juggling, because S(1,-1) o R(theta) == R(-theta) o S(1,-1): reusing the
-  // head's OWN theta in this order already leans the reflection the other way, which is the whole
-  // reason this is a transform and not -webkit-box-reflect. The y term is 2*waterline - headY, minus
-  // twice the transform-origin offset because .hmRefl shares the head's 50%/94% pivot (that is what
-  // makes the rotate() pivot land on the same point in both). The head's live squash rides along at
-  // the end -- diagonal scales commute with the flip, so it needs no reordering, and a reflection
-  // that does not squash when the head squashes reads as pasted on.
-  // The waterline is shG (the SAME line the contact shadow uses) plus the same arc offset, and since
-  // every head shares one floorY, every reflection lands on ONE waterline for free -- which was the
-  // point of keeping the physics flat.
+  // THE REFLECTION. Three separate claims, each of which has to hold on its own:
+  //
+  // 1. IT MEETS THE WATERLINE AT THE FEET, NOT AT THE BOX. The pivot is written to this head's OWN
+  //    scanned foot line (FOOT, from its own pixels -- 0.945 for an egghead, 0.75 for mini-Jayden,
+  //    whose cut is baked into a 5:6 frame). With transform-origin sitting exactly on that line, the
+  //    y term is _wY - HH*FOOT and the anchor is exact whatever the rotation or the squash, because
+  //    both act about that same point. Anchoring on the BOX instead would have hung mini-Jayden's
+  //    reflection ~24px below everyone else's on the same water.
+  // 2. IT LEANS THE OTHER WAY. scale(1,-1) BEFORE rotate() is the mirror, because
+  //    S(1,-1) o R(theta) == R(-theta) o S(1,-1) -- reusing the head's own theta in this order
+  //    already tilts the reflection opposite. That is the whole reason this is a transform and not
+  //    -webkit-box-reflect, which mirrors about the element's local bottom edge and so leans a
+  //    +8deg head +8deg instead of -8.
+  // 3. A JUMPING HEAD LEAVES ITS REFLECTION ON THE WATER. This is the one place the true mirror is
+  //    deliberately not used. A real mirror image of a head h px above the surface sits h px BELOW
+  //    the waterline, detached, and at a 340px water band a 200px hop would drop it clean out of the
+  //    water and leave it floating on the page -- the "un-attaching" failure the 2D-water literature
+  //    names. So the reflection stays anchored and instead foreshortens and fades with air height,
+  //    on the same falloff curve the contact shadow already uses. Reflection and shadow are then one
+  //    system on one line, which is what welds the head to the surface.
+  //
+  // The waterline is shG (the SAME line the contact shadows sit on) plus the arc offset, and since
+  // every head shares one floorY, every reflection lands on ONE waterline for free -- which is what
+  // keeping the physics flat bought. The head's live squash rides along at the end: diagonal scales
+  // commute with the flip so it needs no reordering, and a reflection that does not squash when the
+  // head squashes reads as pasted on.
   if(soccerOn&&!elim&&!window.__hmLavaOn){
-   var _wY=floorY+HH*FOOT+_ay-2,_pv=HH*0.94;
-   refl.style.transform="translate("+_rx.toFixed(1)+"px,"+(2*_wY-_ry-2*_pv).toFixed(1)+"px) scale(1,-1) rotate("+surfRot.toFixed(1)+"deg) scale("+_rsx.toFixed(3)+","+_rsy.toFixed(3)+")";
-   refl.style.opacity=(shown&&!perched)?String(Math.max(0,0.32-airH/700).toFixed(3)):"0";   // a head that jumps leaves its reflection behind, the way a real one does
+   if(_reflFoot!==FOOT){_reflFoot=FOOT;refl.style.transformOrigin="50% "+(FOOT*100).toFixed(2)+"%";}   // FOOT arrives from an image onload, so it can change once after spawn
+   var _wY=floorY+HH*FOOT+_ay;   // the FEET plane itself, not the shadow's drawn top edge -- the shadow is nudged 2px up so its ellipse sits under the chin, and inheriting that nudge would have floated every reflection 2px off the water
+   var _rsh=Math.max(0.35,1-airH/(heroR.h*0.55));   // foreshorten with height, the way the shadow shrinks
+   refl.style.transform="translate("+_rx.toFixed(1)+"px,"+(_wY-HH*FOOT).toFixed(1)+"px) scale(1,-1) rotate("+surfRot.toFixed(1)+"deg) scale("+_rsx.toFixed(3)+","+(_rsy*_rsh).toFixed(3)+")";
+   refl.style.opacity=(shown&&!perched)?String(Math.max(0,0.32-airH/700).toFixed(3)):"0";
   }else if(refl.style.opacity!=="0")refl.style.opacity="0";   // off the pitch this is one string compare per head per frame and nothing else
   if(crowdT>0.65&&!air&&!grabbed&&!perched){crowdT=0;   // squeezed too long: it hops out of the scrum
    air=true;st="fall";surface=floorY;dir=Math.random()<0.5?-1:1;

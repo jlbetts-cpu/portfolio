@@ -78,7 +78,6 @@ let wi=0;
 let cycTimer=null,cycHold=false;
 function replayHeroChars(){if(reduce){return;}var chs=[...h1.querySelectorAll(".ch")];chs.forEach(function(c){c.style.transition="none";c.classList.remove("show");c.style.opacity="0";c.style.filter="blur(6px)";c.style.transform="translateY(0.4em)";});void h1.offsetWidth;requestAnimationFrame(function(){chs.forEach(function(c,i){c.style.transition="";c.style.transitionDelay=(i*0.03).toFixed(3)+"s";c.style.opacity="";c.style.filter="";c.style.transform="";c.classList.add("show");});});}
 function revealHeroReturn(){
- var _ha=document.getElementById("heroAbout");if(_ha)_ha.style.display="none";   // collapse the About block OUT of layout before the headline reveals, so the hero shrinks to its final height first and the headline fades in at its centered home, never starting high and snapping down
  identityShown=false;                                                                                   // never return with Soul./a mood word pinned
  if(cycWord&&cycWord.parentNode&&typeof makeCycWord==="function"){var _fresh=makeCycWord(wi,true);cycWord.replaceWith(_fresh);cycWord=_fresh;}  // rebuild a clean cycler word -> a held "mood" word can't return glitched; it re-enters smoothly
  var hc=document.querySelector(".heroCtas");
@@ -169,7 +168,7 @@ function idleBlink(){if(!reduce&&!eventLock&&!reactType&&!dizzy&&!CALIB&&!blinki
 var fidget=null,fidgetGX=0,fidgetGY=0,fidgetROT=0,fidgetBrow=false,cfR=0;
 function idleFidget(){
  var now=performance.now();
- if(!reduce&&!eventLock&&!reactType&&!dizzy&&!CALIB&&!eating&&!partyMode&&!loveMode&&!rainMode&&!bearMode&&!movieMode&&!aboutOpen&&!introMode&&!dragging&&!blinking&&!fidget&&!activeHover&&(curFace==="neutral"||curFace==="rest")){
+ if(!reduce&&!eventLock&&!reactType&&!dizzy&&!CALIB&&!eating&&!partyMode&&!loveMode&&!rainMode&&!bearMode&&!movieMode&&!introMode&&!dragging&&!blinking&&!fidget&&!activeHover&&(curFace==="neutral"||curFace==="rest")){
   var r=Math.random(),t=r<0.28?"glance":(r<0.50?"tilt":(r<0.68?"look":"brow"));
   fidget={type:t,start:now,dur:(t==="brow"?940:(t==="tilt"?1500:1150)),dir:(Math.random()<0.5?-1:1)};   // one beat at a time, never repeats back-to-back
  }
@@ -196,12 +195,12 @@ function tickFidget(){
 }
 /* welcome beat: every so often in true idle, a brief soft smile — idle-animation research: living characters acknowledge you (breath, blinks, warmth); they never just stare */
 function idleWarm(){
- if(!reduce&&!eventLock&&!reactType&&!dizzy&&!CALIB&&!eating&&!partyMode&&!loveMode&&!rainMode&&!bearMode&&!movieMode&&!aboutOpen&&!introMode&&!dragging&&!blinking&&!fidget&&!activeHover&&!holdFace&&(curFace==="neutral"||curFace==="rest")){browFlash();}   /* the warm beat is now just the eyebrow flash he loves; the random smile is gone */
+ if(!reduce&&!eventLock&&!reactType&&!dizzy&&!CALIB&&!eating&&!partyMode&&!loveMode&&!rainMode&&!bearMode&&!movieMode&&!introMode&&!dragging&&!blinking&&!fidget&&!activeHover&&!holdFace&&(curFace==="neutral"||curFace==="rest")){browFlash();}   /* the warm beat is now just the eyebrow flash he loves; the random smile is gone */
  setTimeout(idleWarm,8500+Math.random()*9000);
 }
 setTimeout(idleWarm,7200);
 /* ===== quirky idle beats: he notices his own toys — every hint is diegetic, gated, rare ===== */
-function idleFree(){return !reduce&&!eventLock&&!reactType&&!dizzy&&!CALIB&&!eating&&!partyMode&&!loveMode&&!rainMode&&!bearMode&&!movieMode&&!aboutOpen&&!introMode&&!dragging&&!blinking;}
+function idleFree(){return !reduce&&!eventLock&&!reactType&&!dizzy&&!CALIB&&!eating&&!partyMode&&!loveMode&&!rainMode&&!bearMode&&!movieMode&&!introMode&&!dragging&&!blinking;}
 /* word-notice: when the headline cycles, he glances at the new word (it is draggable, after all) */
 window.__wordNotice=function(){if(idleFree()&&!fidget&&Math.random()<0.55)fidget={type:"word",start:performance.now(),dur:850,dir:1};};
 /* corner tease: until the menu is first opened, an occasional glance at Play-a-mood while it lights up */
@@ -290,7 +289,7 @@ function updateIris(){
  var gnx,gny;                                                            // ONE gaze direction, taken from between the eyes -> both eyes look parallel (no cross-eye)
  if(useCursor){gnx=(pointer.px-scx)/SENS;gny=(pointer.py-scy)/SENS;var gm=Math.hypot(gnx,gny);if(gm>1){gnx/=gm;gny/=gm;}}
  else{gnx=gaze.x;gny=gaze.y;}
- var _fid=(!eventLock&&!reactType&&!dizzy&&!eating&&!partyMode&&!loveMode&&!rainMode&&!bearMode&&!movieMode&&!aboutOpen&&!introMode&&!dragging&&!blinking);
+ var _fid=(!eventLock&&!reactType&&!dizzy&&!eating&&!partyMode&&!loveMode&&!rainMode&&!bearMode&&!movieMode&&!introMode&&!dragging&&!blinking);
  gnx+=microSacX+(_fid?fidgetGX:0);gny+=microSacY+(_fid?fidgetGY:0);
  eyeEls.forEach(e=>{const r=e.el.getBoundingClientRect();var ecx=r.left+r.width/2;
   var nx=gnx+(ecx<scx?-EYE_OUT:EYE_OUT),ny=gny;                          // temporal bias so the forward gaze reads parallel
@@ -301,7 +300,7 @@ function updateIris(){
   if(blinking||e.el.style.display==="none"||e.el.classList.contains("eclosed")){if(e.el.style.transform)e.el.style.transform="";}   // never fight a blink
   else{var awe=(dil-1.34)/0.26;awe=awe<0?0:(awe>1?1:awe);e.el.style.transform=awe>0.04?"scaleY("+(1+awe*0.07).toFixed(3)+")":"";}   // eyes open a touch wider on awe
   });
- if(!eating&&!partyMode&&!loveMode&&!rainMode&&!introMode&&!bearMode&&!movieMode&&!aboutOpen&&!eventLock&&!reactType&&!dizzy&&!blinking&&(!blinkQ||!blinkQ.length)){   // safety net: in true idle, eyes must never stay stuck hidden
+ if(!eating&&!partyMode&&!loveMode&&!rainMode&&!introMode&&!bearMode&&!movieMode&&!eventLock&&!reactType&&!dizzy&&!blinking&&(!blinkQ||!blinkQ.length)){   // safety net: in true idle, eyes must never stay stuck hidden
    eyeEls.forEach(e=>{if(e.el.style.display==="none")e.el.style.display="";if(e.el.classList.contains("eclosed"))e.el.classList.remove("eclosed");});
    if(eyesClosed)eyesClosed=false;
  }
@@ -949,7 +948,12 @@ function attachCollab(wordEl){
  wordEl.addEventListener("lostpointercapture",onUp);}
 // the team photos that rain in. TO ADD MORE LATER: drop a compressed jpg into images/rain/ and add its filename to this list.
 /* ===== Identity word -> About takeover (drag mirrors attachCollab; drop on head opens About) ===== */
-var dragId=null,aboutOpen=false,aboutReturnFocus=null;
+var dragId=null;   // aboutOpen/aboutReturnFocus went with the overlay; every reader was a !aboutOpen guard
+/* Kept out of the deleted block on purpose: this reveals .heroCtas -- the "View my
+   work" button -- which is a live hero element with nothing to do with About. It was
+   only ever filed under About because the overlay called it on the way back. */
+function abShowCtas(){try{var hc=document.querySelector(".heroCtas");if(!hc)return;hc.classList.add("in");
+  for(var i=0;i<hc.children.length;i++){var c=hc.children[i];c.style.animation="none";c.style.opacity="1";c.style.transform="none";}}catch(_){}}
 function attachIdentity(wordEl){
  let pid=null;
  function release(){if(pid!=null){try{wordEl.releasePointerCapture(pid);}catch(_){}pid=null;}}
@@ -957,7 +961,7 @@ function attachIdentity(wordEl){
  function onUp(){if(!dragging)return;dragging=false;release();wordEl.classList.remove("grab");
   const r=stage.getBoundingClientRect();const onHead=!!dragId&&dragId._x>r.left-50&&dragId._x<r.right+50&&dragId._y>r.top-70&&dragId._y<r.bottom+30;
   if(dragId){dragId.remove();dragId=null;}
-  if(onHead){wordEl.style.opacity="0";openAbout();}
+  if(onHead){wordEl.style.opacity="0";location.href="about.html";}   // the drop used to open the overlay; About has a URL now
   else{wordEl.classList.remove("out");wordEl.style.opacity="";dragWordEl=null;cycHold=false;nextCycle(2600);}}
  wordEl.addEventListener("pointerdown",function(e){if(dragging||CALIB||partyMode||loveMode||eating||rainMode)return;e.preventDefault();
   const r=wordEl.getBoundingClientRect();dragWordEl=wordEl;wordEl.classList.add("grab");cycHold=true;clearTimeout(cycTimer);
@@ -965,291 +969,18 @@ function attachIdentity(wordEl){
   dragId._x=r.left+r.width/2;dragId._y=r.top+r.height/2;dragId.style.left=dragId._x+"px";dragId.style.top=dragId._y+"px";
   wordEl.style.opacity="0";dragging=true;pid=e.pointerId;try{wordEl.setPointerCapture(pid);}catch(_){}});
  wordEl.addEventListener("pointermove",onMove);wordEl.addEventListener("pointerup",onUp);wordEl.addEventListener("pointercancel",onUp);wordEl.addEventListener("lostpointercapture",onUp);}
-function ensureVeil(){var v=document.getElementById("aboutVeil");if(!v){v=document.createElement("div");v.className="aboutVeil";v.id="aboutVeil";v.setAttribute("aria-hidden","true");document.body.appendChild(v);}return v;}
-function abStageScaleOnly(homeR){var sw=document.getElementById("stageMorph");if(!sw||reduce||!homeR)return;var b=sw.getBoundingClientRect();if(!b.width)return;var sc=homeR.width/b.width;sw.style.transformOrigin="center center";sw.style.transition="none";sw.style.setProperty("transform","scale("+sc.toFixed(4)+")","important");}
-function abPinWrapHome(){abPinWrapTo(window.abHomeRect,window.abStageHome);}
-function abPinWrapTo(hr,sh){var sw=document.querySelector(".stagewrap"),sm=document.getElementById("stageMorph");if(!sw||!sm||reduce||!hr)return;var b=sm.getBoundingClientRect();if(!b.width)return;var sc=hr.width/b.width;sw.style.transformOrigin="center center";sw.style.transition="none";sw.style.willChange="transform";var tx=(hr.left+hr.width/2)-(b.left+b.width/2),ty=(hr.top+hr.height/2)-(b.top+b.height/2);sw.style.setProperty("transform","translate("+tx.toFixed(1)+"px,"+ty.toFixed(1)+"px) scale("+sc.toFixed(4)+")","important");var nb=sm.getBoundingClientRect();var dx=(hr.left+hr.width/2)-(nb.left+nb.width/2),dy=(hr.top+hr.height/2)-(nb.top+nb.height/2);tx+=dx;ty+=dy;sw.style.setProperty("transform","translate("+tx.toFixed(1)+"px,"+ty.toFixed(1)+"px) scale("+sc.toFixed(4)+")","important");var se=document.getElementById("stage");if(sh&&se){var sb=se.getBoundingClientRect();tx+=(sh.left+sh.width/2)-(sb.left+sb.width/2);ty+=(sh.top+sh.height/2)-(sb.top+sb.height/2);sw.style.setProperty("transform","translate("+tx.toFixed(1)+"px,"+ty.toFixed(1)+"px) scale("+sc.toFixed(4)+")","important");}}
-function abGlideWrapToAbout(){var sw=document.querySelector(".stagewrap");if(!sw)return;sw.style.transition="transform .52s cubic-bezier(.22,.61,.36,1)";sw.style.setProperty("transform","translate(0px,0px) scale(1)","important");setTimeout(function(){if(aboutOpen&&!abClosing){sw.style.removeProperty("transform");sw.style.transition="";sw.style.transformOrigin="";sw.style.willChange="";}},580);}
-/* ---- The return leg. abStageToHome() used to animate #stageMorph from the About spot
-   back to home by transform -- but at +560ms .abReturning also snaps the LAYOUT home,
-   so the transform was then measured from the wrong origin and double-counted: the head
-   sat 340px left of centre and ~19% oversized for 780ms, until abFinalizeClose stripped
-   the transform and it snapped. That is Jayden's "the head comes in going to the left and
-   then snapping back to middle", and the stale invert this task is named for. Now the
-   return is the exact mirror of the open: pin to the About rect the moment the layout
-   flips, then glide to identity. ---- */
-function abGlideWrapHome(){var sw=document.querySelector(".stagewrap");if(!sw)return;
- sw.style.transition="transform .52s cubic-bezier(.22,.61,.36,1)";
- sw.style.setProperty("transform","translate(0px,0px) scale(1)","important");
- clearTimeout(window._abRetGlideT);window._abRetGlideT=setTimeout(abWrapReset,580);}
-function abWrapReset(){var sw=document.querySelector(".stagewrap");if(!sw)return;sw.style.removeProperty("transform");sw.style.transition="";sw.style.transformOrigin="";sw.style.willChange="";}
-function abStageMorphToAbout(){var sw=document.getElementById("stageMorph");if(!sw)return;sw.style.transition="transform .5s cubic-bezier(.22,.61,.36,1)";sw.style.setProperty("transform","scale(1)","important");setTimeout(function(){if(aboutOpen&&!abClosing){sw.style.removeProperty("transform");sw.style.transition="";sw.style.transformOrigin="";}},560);}
-function abStageToHome(){var sw=document.getElementById("stageMorph"),hr=window.abHomeRect;if(!sw||!hr||reduce)return;var b=sw.getBoundingClientRect();if(!b.width)return;var sc=hr.width/b.width,tx=(hr.left+hr.width/2)-(b.left+b.width/2),ty=(hr.top+hr.height/2)-(b.top+b.height/2);sw.style.transformOrigin="center center";sw.style.transition="transform .5s steps(4,end)";sw.style.setProperty("transform","translate("+tx.toFixed(1)+"px,"+ty.toFixed(1)+"px) scale("+sc.toFixed(4)+")","important");}
-function abStageReset(){var sw=document.getElementById("stageMorph");if(!sw)return;sw.style.removeProperty("transform");sw.style.transition="";}
-function abSmoothTop(cb){var sy=window.scrollY||window.pageYOffset||0;if(sy<=1){if(cb)cb();return;}if(reduce||document.hidden){window.scrollTo({top:0,behavior:'instant'});if(cb)cb();return;}var t0=performance.now(),dur=Math.min(520,220+sy*0.14);function st(){var pr=Math.min(1,(performance.now()-t0)/dur);var e=1-Math.pow(1-pr,3);window.scrollTo({top:Math.round(sy*(1-e)),behavior:'instant'});if(pr<1)requestAnimationFrame(st);else if(cb)cb();}requestAnimationFrame(st);}
-function abNameMorphOpen(){return;/* retired: About view uses a small centered "About me" title instead of the giant name */var lg=document.getElementById("logo"),h=window.abLogoHome;if(!lg||!h||reduce)return;try{if(window._abNameAnim)window._abNameAnim.cancel();}catch(_){}lg.style.transition="none";lg.style.removeProperty("transform");var a=lg.getBoundingClientRect();if(!a.width)return;var sc=h.w/a.width,dy=h.top-a.top,dx=h.left-a.left;lg.style.transformOrigin="0% 0%";var poses=[{s:sc*0.965,p:0},{s:sc+(1-sc)*0.14,p:0.10},{s:sc+(1-sc)*0.34,p:0.30},{s:sc+(1-sc)*0.56,p:0.52},{s:sc+(1-sc)*0.76,p:0.73},{s:sc+(1-sc)*0.92,p:0.90},{s:1.045,p:1},{s:0.985,p:1},{s:1,p:1}];var kf=poses.map(function(o,i){return{transform:"translate("+(dx*(1-o.p)).toFixed(2)+"px,"+(dy*(1-o.p)).toFixed(2)+"px) scale("+o.s.toFixed(4)+")",offset:i/(poses.length-1),easing:"steps(1,end)"};});lg.style.transform=kf[0].transform;void lg.offsetWidth;if(aboutOpen&&!abClosing){var an=lg.animate(kf,{duration:1000,fill:"forwards"});window._abNameAnim=an;an.onfinish=function(){try{lg.style.transition="";lg.style.removeProperty("transform");lg.style.filter="";an.cancel();}catch(_){}};}clearTimeout(window._abNameT);window._abNameT=setTimeout(function(){if(aboutOpen&&!abClosing){try{if(window._abNameAnim)window._abNameAnim.cancel();}catch(_){}lg.style.transition="";lg.style.removeProperty("transform");lg.style.filter="";}},1220);}
-function abNameMorphClose(){return;/* retired with the giant name */var lg=document.getElementById("logo"),h=window.abLogoHome;if(!lg||!h||reduce)return;clearTimeout(window._abNameT);try{if(window._abNameAnim)window._abNameAnim.cancel();}catch(_){}lg.style.transition="none";lg.style.removeProperty("transform");lg.style.transform="translate(0px,0px) scale(1)";var a=lg.getBoundingClientRect();if(!a.width)return;var sc=h.w/a.width,dy=h.top-a.top,dx=h.left-a.left;lg.style.transformOrigin="0% 0%";var poses=[{s:1,p:0,o:0},{s:1+(sc-1)*0.30,p:0.22,o:0.10},{s:1+(sc-1)*0.54,p:0.42,o:0.28},{s:1+(sc-1)*0.74,p:0.62,o:0.48},{s:1+(sc-1)*0.90,p:0.84,o:0.72},{s:sc*0.97,p:1,o:0.90},{s:sc,p:1,o:1}];var kf=poses.map(function(o){return{transform:"translate("+(dx*o.p).toFixed(2)+"px,"+(dy*o.p).toFixed(2)+"px) scale("+o.s.toFixed(4)+")",offset:o.o,easing:"steps(1,end)"};});lg.style.transform=kf[0].transform;void lg.offsetWidth;if(abClosing){var an=lg.animate(kf,{duration:480,fill:"forwards"});window._abNameAnim=an;an.onfinish=function(){try{lg.style.filter="";}catch(_){}};}}
-function abNameReset(){var lg=document.getElementById("logo");if(!lg)return;clearTimeout(window._abNameT);try{if(window._abNameAnim)window._abNameAnim.cancel();}catch(_){}lg.style.transition="";lg.style.removeProperty("transform");lg.style.filter="";}
-function abShowCtas(){try{var hc=document.querySelector(".heroCtas");if(!hc)return;hc.classList.add("in");for(var i=0;i<hc.children.length;i++){var c=hc.children[i];c.style.animation="none";c.style.opacity="1";c.style.transform="none";}var av=document.getElementById("heroAvail");if(av){av.classList.add("in");av.style.animation="none";av.style.opacity="1";av.style.transform="none";}}catch(_){}}
-/* ---- LEAVING HERO COPY. The About state re-columns .hero the instant .about-open lands
-   (the head's FLIP has to measure against the FINAL grid, so the class cannot be delayed).
-   The headline is centred in that column, so the column going 1200px -> 608px slammed it
-   ~296px to the left while it was still at half opacity -- what Jayden saw as "hero text
-   moves to the left a bit before fading away". The old invert was set on .heroCopy, which
-   is display:contents and therefore generates NO BOX, so the transform was silently a
-   no-op; the real grid items are its children. Freeze those at their measured home rects
-   for the length of the fade. Safe to take out of flow because .stagewrap carries an
-   explicit grid-column:2 in the About state, so the head does not shift up into column 1. ---- */
-function abCopyEls(){var hc=document.querySelector(".heroCopy");if(!hc)return [];
- var out=[],q=["h1",".sub",".heroCtas",".heroAvail"];
- for(var i=0;i<q.length;i++){var e=hc.querySelector(q[i]);if(e)out.push(e);}
- return out;}
-function abCopyMeasure(){var els=abCopyEls(),out=[];
- for(var i=0;i<els.length;i++){var r=els[i].getBoundingClientRect();out.push({el:els[i],left:r.left,top:r.top,w:r.width});}
- return out;}
-function abCopyFreeze(home){if(!home)return;
- for(var i=0;i<home.length;i++){var m=home[i];if(!m.w)continue;var st=m.el.style;
-  st.position="fixed";st.left=m.left+"px";st.top=m.top+"px";st.width=m.w+"px";st.margin="0";}}
-function abCopyUnfreeze(){var els=abCopyEls();
- for(var i=0;i<els.length;i++){var st=els[i].style;
-  st.position="";st.left="";st.top="";st.width="";st.margin="";}}
-function openAbout(push){
- if(aboutOpen)return;
- if(document.body.classList.contains("hmBattle")||document.body.classList.contains("hmSoccer")||document.body.classList.contains("hmTour")){   // opening About mid-game: END the game first, let it settle, THEN take over -> a clean transition instead of About sliding over a live match
-  /* A tournament counts as a game. Without this, About opened UNDERNEATH the tournament block
-     -- which is absolutely positioned at z-index 47 and runs the height of the page -- so
-     Contact appeared to do nothing but scroll to the bottom. */
-  try{if(document.body.classList.contains("hmTour")&&window.__hmTourStop)window.__hmTourStop();}catch(_){}
-  try{if(document.body.classList.contains("hmSoccer")&&window.__hmSoccerEnd)window.__hmSoccerEnd();}catch(_){}
-  try{window.__hmRespawn=performance.now();}catch(_){}
-  document.body.classList.remove("hmBattle");document.body.classList.remove("hmSoccer");
-  try{var _mb=document.getElementById("moodbar");if(_mb)_mb.classList.remove("open");}catch(_){}
-  clearTimeout(window._abGameStopT);window._abGameStopT=setTimeout(function(){openAbout(push);},360);return;
- }
- var _sy=window.scrollY||window.pageYOffset||0;
- if(_sy>1&&!reduce){clearTimeout(window._abOpenT);abSmoothTop(function(){openAboutNow(push);});return;}   /* glide to the top first — opening About from a scrolled page used to teleport */
- openAboutNow(push);
-}
-function openAboutNow(push){
- if(aboutOpen)return;aboutOpen=true;
- clearTimeout(abReturnT);clearTimeout(abPhotoOutT);clearTimeout(abFinT);clearTimeout(window._abRetCyc);clearTimeout(window._abRetCta);clearTimeout(window._abNameCloseT);if(window.abClearSeqTimers)window.abClearSeqTimers();
- if(rainMode)endRain();if(partyMode)endParty();if(loveMode)endLove();if(eating)finishEat();
- queued=null;if(typeof hideQueue==="function")hideQueue();identityShown=false;
- try{clearHold();}catch(_){}activeHover=null;reactType=null;eventLock=false;
- try{if(speech)speech.innerHTML="";namebar=null;namebarIam=null;talkCurWord=null;talkSayMode=false;talkSmile=false;mouthimg.style.opacity="0";setMouth(0);}catch(_){}   // never let a mid-play talk word ("I am Jayden Betts") freeze on the face
- var _hr=(function(){var sw=document.getElementById("stageMorph");return sw?sw.getBoundingClientRect():null;})();window.abHomeRect=_hr;
- var _sw0=document.querySelector(".stagewrap");window.abWrapHome=_sw0?_sw0.getBoundingClientRect():null;
- var _st0=document.getElementById("stage");window.abStageHome=_st0?_st0.getBoundingClientRect():null;
- var _lg=document.getElementById("logo");if(_lg){var _lr=_lg.getBoundingClientRect();window.abLogoHome={top:_lr.top,left:_lr.left,w:_lr.width,h:_lr.height};}
- var _hc=document.querySelector(".heroCopy");var _lvHome=abCopyMeasure();
- var _haR=document.getElementById("heroAbout");if(_haR)_haR.style.display="";   // clear any inline collapse left by a prior close so the About block can display again
- document.body.classList.add("about-open");document.body.classList.remove("abShown");document.body.classList.remove("abReturning");document.body.classList.remove("abPhotoOut");
- if(!reduce)abCopyFreeze(_lvHome);
- abPinWrapHome();
- abNameMorphOpen();
- clearTimeout(abShownT);abShownT=setTimeout(function(){if(aboutOpen&&!abClosing){document.body.classList.add("abShown");abCopyUnfreeze();}},560);
- clearTimeout(window._abMorphT);window._abMorphT=setTimeout(function(){if(aboutOpen&&!abClosing)abGlideWrapToAbout();},200);   // descend the head to its about-spot first, so the cover lands below the name (not over it)
- try{if(typeof setFace==="function")setFace("neutral");}catch(_){}
- try{window.scrollTo({top:0,behavior:'instant'});}catch(_){}
- if(typeof aboutRevealPhotos==="function")aboutRevealPhotos();
- clearTimeout(window._abReactT);window._abReactT=setTimeout(function(){if(aboutOpen&&!abClosing&&window.abHeadReact)window.abHeadReact();},700);
- aboutReturnFocus=document.activeElement;
- var bk=document.getElementById("heroBack");if(bk){if(reduce){try{bk.focus();}catch(_){}}else{setTimeout(function(){try{bk.focus();}catch(_){}},620);}}
- if(push!==false){try{history.pushState({about:1},"","#about");}catch(_){}}
-}
-var abClosing=false,abShownT=0,abReturnT=0,abPhotoOutT=0,abFinT=0;
-function abMeasureHome(){try{var body=document.body,sm=document.getElementById("stageMorph"),sw=document.querySelector(".stagewrap"),st=document.getElementById("stage");if(!sm)return;var was=body.classList.contains("about-open");var smC=sm.style.cssText,swC=sw?sw.style.cssText:"",stC=st?st.style.cssText:"";if(was)body.classList.remove("about-open");sm.style.transform="none";if(sw)sw.style.transform="none";if(st)st.style.transform="none";var a=sm.getBoundingClientRect();if(a.width)window.abHomeRect=a;if(sw){var c=sw.getBoundingClientRect();if(c.width)window.abWrapHome=c;}if(st){var d=st.getBoundingClientRect();if(d.width)window.abStageHome=d;}if(was)body.classList.add("about-open");sm.style.cssText=smC;if(sw)sw.style.cssText=swC;if(st)st.style.cssText=stC;}catch(_){}}
-function closeAbout(fromPop){
- clearTimeout(window._abOpenT);
- if(!aboutOpen||abClosing)return;
- if(reduce){abFinalizeClose(fromPop);return;}
- (function(){var _bk=document.getElementById("heroBack"),_nt=document.getElementById("navTitle");if(_bk)_bk.style.animation="none";if(_nt)_nt.style.animation="none";})();
- abMeasureHome();
- abClosing=true;clearTimeout(abShownT);clearTimeout(window._abMorphT);clearTimeout(window._abNameT);if(window.abClearSeqTimers)window.abClearSeqTimers();document.body.classList.add("abclosing");
- try{document.querySelectorAll("#heroAbout .shown").forEach(function(x){x.classList.remove("shown");});}catch(_){}
- try{abPeek.active=false;}catch(_){}
- var st=document.getElementById("stage");if(st)st.style.transform="none";
- abCopyUnfreeze();
- abWrapReset();
- try{abSmoothTop();}catch(_){}
- clearTimeout(abPhotoOutT);abPhotoOutT=setTimeout(function(){document.body.classList.add("abPhotoOut");},90);
- clearTimeout(window._abNameCloseT);window._abNameCloseT=setTimeout(function(){if(abClosing)abNameMorphClose();},20);
- clearTimeout(abReturnT);abReturnT=setTimeout(function(){
-  var _sm=document.getElementById("stageMorph"),_se=document.getElementById("stage");
-  var _aR=_sm?_sm.getBoundingClientRect():null,_aS=_se?_se.getBoundingClientRect():null;   // where the head IS, before the layout flips
-  document.body.classList.add("abReturning");document.body.classList.remove("abShown");
-  window.__abDidMorph=!!(_aR&&_aR.width&&!reduce);
-  if(window.__abDidMorph){abPinWrapTo(_aR,_aS);requestAnimationFrame(function(){requestAnimationFrame(abGlideWrapHome);});}
-  try{revealHeroReturn();}catch(_){}},560);
- clearTimeout(abFinT);abFinT=setTimeout(function(){abFinalizeClose(fromPop);},1340);
-}
-function abFinalizeClose(fromPop){
- abClosing=false;aboutOpen=false;
- var _sm=document.getElementById("stageMorph");var _r0=_sm?_sm.getBoundingClientRect():null;var _lockY=(_sm&&!reduce&&_r0&&_r0.height>0)?Math.round(_r0.top):null;   // head's home screen-Y, held by the glide, captured BEFORE teardown. On mobile the head is display:none during About so its rect collapses to top:0 — guarding on height>0 skips the pin there, which otherwise yanks the head up into the headline (the long-standing jerk).
- var _swG=document.querySelector(".stagewrap");
- document.body.classList.remove("about-open");document.body.classList.remove("headburst");document.body.classList.remove("headheal");document.body.classList.remove("abclosing");document.body.classList.remove("abShown");document.body.classList.remove("abReturning");document.body.classList.remove("abPhotoOut");abStageReset();abWrapReset();abNameReset();(function(){var _bk=document.getElementById("heroBack"),_nt=document.getElementById("navTitle");if(_bk)_bk.style.animation="";if(_nt)_nt.style.animation="";})();abCopyUnfreeze();if(reduce)abShowCtas();clearTimeout(abShownT);clearTimeout(abReturnT);
- if(_swG&&!reduce){_swG.style.transition="";_swG.style.removeProperty("transform");}
- /* The entrance now runs ONLY when the return did not morph. On desktop the head is on
-    screen for the whole About state and glides home, so re-running abHeadReturn at
-    +1340ms just blinked an already-arrived head. At <=760px .stagewrap is display:none
-    during About, so there is nothing to glide and the head genuinely needs introducing. */
- if(_swG&&!reduce&&!window.__abDidMorph){_swG.classList.remove("abHeadReturn");void _swG.offsetWidth;_swG.classList.add("abHeadReturn");_swG.addEventListener("animationend",function _hr(e){if(e.animationName==="abHeadReturn"){_swG.classList.remove("abHeadReturn");_swG.removeEventListener("animationend",_hr);}});}
- /* after teardown the grid reflows for ~0.16s and the head's natural spot transiently sits ~70px high, then settles back. removing the glide pin abruptly exposed that transient (the up-jerk). instead, lock the head at its home screen-Y and let the auto-compensating transform shrink to 0 as the layout settles, then release. */
- if(_sm&&_lockY!=null&&!reduce){
-   headGliding=true;var _t0=performance.now();
-   (function _pinHome(){
-     if(aboutOpen){headGliding=false;return;}                         // a new open interrupted; bail
-     _sm.style.transition="none";_sm.style.transform="none";
-     var nat=_sm.getBoundingClientRect().top,dy=Math.round(_lockY-nat);
-     if(Math.abs(dy)>1&&performance.now()-_t0<480){_sm.style.transform="translateY("+dy+"px)";requestAnimationFrame(_pinHome);}
-     else{_sm.style.transform="none";_sm.style.transition="";_sm.style.removeProperty("transform");headGliding=false;}
-   })();
- }
- try{if(window.aboutCloseFx)window.aboutCloseFx();}catch(_){}
- dragging=false;if(reduce){cycHold=false;try{advanceCycle();}catch(_){}}
- if(aboutReturnFocus){try{aboutReturnFocus.focus();}catch(_){}aboutReturnFocus=null;}
- if(!fromPop&&location.hash==="#about"){try{history.back();}catch(_){try{history.replaceState(null,"","./");}catch(__){}}}
-}
-(function(){
- var hb=document.getElementById("heroBack");if(hb)hb.addEventListener("click",function(){closeAbout();});
- /* the talk link is a mailto now; no click interception */
- (function(){var lt=document.getElementById("talk");if(!lt)return;var bd=document.body;lt.addEventListener("mouseenter",function(){if(!aboutOpen||reduce||!matchMedia("(hover:hover)").matches)return;bd.classList.remove("headheal");void bd.offsetWidth;bd.classList.add("headburst");});lt.addEventListener("mouseleave",function(){if(!bd.classList.contains("headburst"))return;bd.classList.remove("headburst");void bd.offsetWidth;bd.classList.add("headheal");});var shc=document.getElementById("abShots");if(shc)shc.addEventListener("animationend",function(e){if(e.animationName==="photoHeal")bd.classList.remove("headheal");});})();
-
- window.addEventListener("keydown",function(e){if(e.key==="Escape"&&aboutOpen)closeAbout();});
- window.addEventListener("pointerup",function(){try{document.body.classList.remove("catchReady");}catch(_){}},true);
- window.addEventListener("popstate",function(){if(location.hash!=="#about"&&aboutOpen){closeAbout(true);}else if(location.hash==="#about"&&!aboutOpen){openAbout(false);}});
- if(location.hash==="#about"){setTimeout(function(){openAbout(false);},reduce?0:320);}
- /* photos sit in place per section and reveal (8fps wipe) as they scroll into view */
- (function(){var AB_MOB=["images/about/jayden-betts-head-grid.webp","images/about/jayden-betts-graduation.webp","images/about/jayden-betts-and-sister.webp","images/about/jayden-betts-blender-clay.webp","images/about/jayden-betts-life-grid.webp"];var ALT=["A four-panel grid showing how Jayden built the interactive head","Jayden Betts at his UC Davis graduation in a gold honor stole","Jayden Betts as a kid with his younger sister Jolee","A clay-style 3D self-portrait Jayden modeled in Blender","A four-panel grid of Jayden Betts off the clock: iced matcha, hiking a trail, a charcoal otter drawing, and a selfie"];var CAPS=["Making the floating head","Graduating from UC Davis","Me and my sister Jolee","Clay Self Portrait in Blender","Life outside work"];var mi=0,top=true,paused=false;function dots(){var b=document.querySelector(".amsDots");if(!b)return;var d=b.children;for(var i=0;i<d.length;i++)d[i].className=(i===mi?"on":"");}function advance(){var box=document.querySelector(".abMobShot");if(!box)return;var imgs=box.querySelectorAll(".amsImg");if(imgs.length<2)return;mi=(mi+1)%AB_MOB.length;var _mi=mi;var show=top?imgs[1]:imgs[0],hide=top?imgs[0]:imgs[1];show.src=AB_MOB[mi];show.alt=ALT[mi];show.removeAttribute("aria-hidden");hide.setAttribute("aria-hidden","true");show.style.zIndex="2";hide.style.zIndex="1";show.style.opacity="1";if(reduce){hide.style.opacity="0";var _c0=document.getElementById("amsCap");if(_c0)_c0.textContent=CAPS[_mi];}else{hide.style.opacity="1";show.classList.remove("amsDealing");void show.offsetWidth;show.classList.add("amsDealing");setTimeout(function(){if(mi!==_mi)return;var _c1=document.getElementById("amsCap");if(_c1)_c1.textContent=CAPS[_mi];},360);}top=!top;dots();}function tap(){advance();paused=true;var box=document.querySelector(".abMobShot");if(box)box.classList.add("amsTouched");}setInterval(function(){if(reduce||paused)return;if(window.innerWidth>760)return;if(typeof aboutOpen!=="undefined"&&!aboutOpen)return;advance();},4800);document.addEventListener("click",function(e){var b=e.target.closest?e.target.closest(".abMobShot"):null;if(b)tap();});document.addEventListener("keydown",function(e){var a=document.activeElement;if((e.key==="Enter"||e.key===" ")&&a&&a.classList&&a.classList.contains("abMobShot")){e.preventDefault();tap();}});})();
- var abBound=false,abRaf=0,abCur=-1,abLeaveT=0,peekT=0,abWordsLock=false,abPhotoLock=false,abSeqA=0,abSeqB=0,abRevealQ=[],abChainBusy=false,abChainT=0,abPeek={active:false,start:0,dir:-1,dur:1650},abReact={active:false,start:0,dur:980};
- function abSplitWords(){
-  var els=document.querySelectorAll("#heroAbout h2, #heroAbout p");
-  els.forEach(function(el){
-   if(el.dataset.split)return;el.dataset.split="1";
-   var nodes=[].slice.call(el.childNodes);el.textContent="";var wi=0;
-   nodes.forEach(function(node){
-    if(node.nodeType===3){
-     node.nodeValue.split(/(\s+)/).forEach(function(w){
-      if(!w)return;
-      if(/^\s+$/.test(w)){el.appendChild(document.createTextNode(w));return;}
-      var sp=document.createElement("span");sp.className="abw";sp.textContent=w;
-      sp.style.transitionDelay=(wi*0.014).toFixed(3)+"s";el.appendChild(sp);wi++;
-     });
-    }else{
-     var sp=document.createElement("span");sp.className="abw";sp.appendChild(node);
-     sp.style.transitionDelay=(wi*0.014).toFixed(3)+"s";el.appendChild(sp);wi++;
-    }
-   });
-   var ws=el.querySelectorAll(".abw"),eff=Math.min(0.011,0.5/(ws.length||1));
-   for(var k=0;k<ws.length;k++)ws[k].style.transitionDelay=(k*eff).toFixed(3)+"s";
-  });
- }
- function abPump(){if(abChainBusy||!abRevealQ.length)return;abChainBusy=true;var el=abRevealQ.shift();el.classList.add("shown");setTimeout(function(){var ws=el.querySelectorAll(".abw");for(var k=0;k<ws.length;k++)ws[k].style.filter="none";},680);var n=el.querySelectorAll(".abw").length||1;var wait=abRevealQ.length>1?55:Math.min(n*9+140,560);clearTimeout(abChainT);abChainT=setTimeout(function(){abChainBusy=false;abPump();},wait);}
- function abActive(){
-  abRaf=0;var shots=document.querySelectorAll("#abShots .abShot");
-  if(!shots.length)return;var vh=window.innerHeight||800,line=vh*0.42;
-  if(!abWordsLock){var revEls=document.querySelectorAll("#heroAbout h2,#heroAbout p");for(var q=0;q<revEls.length;q++){var _e=revEls[q];if(_e.classList.contains("shown")||_e.dataset.qd)continue;if(_e.getBoundingClientRect().top<=vh*0.92){_e.dataset.qd="1";abRevealQ.push(_e);}}abPump();}
-  /* photo deck advances through ALL photos at EQUAL scroll intervals (balanced spacing; scales to any number of photos) */
-  if(!abPhotoLock){
-   var host=document.getElementById("heroAbout");if(!host)return;
-   var n=shots.length,idx=0,pline=vh*0.46;                     // each photo is pinned to its spot in the text; show the latest one scrolled past
-   var ancs=host.querySelectorAll("[data-photo]");
-   for(var a=0;a<ancs.length;a++){if(ancs[a].getBoundingClientRect().top<=pline){var pi=parseInt(ancs[a].dataset.photo,10)||0;if(pi>idx)idx=pi;}}
-   if(idx>=n)idx=n-1;if(idx<0)idx=0;
-   if(idx!==abCur){
-    var prev=abCur;abCur=idx;var fwd=(prev<0)||(idx>prev);
-    for(var j=0;j<shots.length;j++){
-     var sh=shots[j];sh.classList.remove("cOn","cOff","cUnder","cThrow");
-     if(j===idx){
-      if(prev<0){sh.classList.add("cThrow");sh.style.zIndex=30;}
-      else if(fwd){sh.classList.add("cOn");sh.style.zIndex=30;}
-      else{sh.classList.add("cUnder");sh.style.zIndex=10;}
-     }else if(j===prev){
-      if(fwd){sh.classList.add("cUnder");sh.style.zIndex=10;}
-      else{sh.classList.add("cOff");sh.style.zIndex=30;}
-     }else{sh.style.zIndex=1;}
-    }
-    clearTimeout(abLeaveT);abLeaveT=setTimeout(function(){for(var m=0;m<shots.length;m++){if(m!==abCur)shots[m].classList.remove("cUnder","cOff","cOn","cThrow");}},600);
-   }
-  }
- }
- window.abHeadFrame=function(){
-  var st=document.getElementById("stage");if(!st)return;var bd=document.body;
-  if(bd.classList.contains("headburst")){
-   try{if(typeof curFace!=="undefined"&&curFace!=="smile")setFace("smile");}catch(_){}
-   var nb=performance.now(),by=Math.sin(nb*0.0052)*3.2,br=Math.sin(nb*0.0052+0.6)*1.7,dip=Math.round(st.clientHeight*0.02);
-   st.style.transform="translate(0px,"+Math.round(dip+by)+"px) rotate("+br.toFixed(1)+"deg) scale(.985)";return;
-  }
-  if(bd.classList.contains("headheal")){try{if(typeof curFace!=="undefined"&&curFace!=="neutral")setFace("neutral");}catch(_){}st.style.transform="none";return;}
-  if(abReact.active){var rp=(performance.now()-abReact.start)/abReact.dur;if(rp>=1){abReact.active=false;st.style.transform="none";return;}var rtx,rty,rrot;
-   if(rp<0.30){var rq=rp/0.30,re=rq*rq*(3-2*rq);rtx=Math.round(7*re);rty=Math.round(-5*re);rrot=(1.8*re).toFixed(1);}            // anticipation: brows-up glance, lift up-right
-   else if(rp<0.58){var rq2=(rp-0.30)/0.28,re2=rq2*rq2*(3-2*rq2);rtx=Math.round(7-11*re2);rty=Math.round(-5+9*re2);rrot=(1.8-4.0*re2).toFixed(1);}  // brace: gentle duck down-left (softer than before)
-   else{var rq3=(rp-0.58)/0.42,re3=rq3*rq3*(3-2*rq3);rtx=Math.round(-4+4*re3);rty=Math.round(4-4*re3);rrot=(-2.2+2.2*re3).toFixed(1);}            // settle smoothly back to neutral -> no snap
-   st.style.transform="translate("+rtx+"px,"+rty+"px) rotate("+rrot+"deg)";return;}
-  if(!abPeek.active){st.style.transform="none";return;}
-  var now=performance.now(),pp=(now-abPeek.start)/abPeek.dur;
-  if(pp>=1){abPeek.active=false;st.style.transform="none";return;}
-  var r=st.getBoundingClientRect(),env;
-  if(pp<0.32){var q=pp/0.32;env=q*q*(3-2*q);}
-  else if(pp<0.72){env=1;}
-  else{var q2=(pp-0.72)/0.28;env=1-q2*q2*(3-2*q2);}
-  var tx=Math.round(abPeek.dir*r.width*(0.5*env));
-  var ty=Math.round(-r.height*0.045*env+(env?Math.sin(now*0.0045)*1.1:0));
-  var rot=(abPeek.dir*5*env).toFixed(1);
-  st.style.transform="translate("+tx+"px,"+ty+"px) rotate("+rot+"deg)";
- };
- /* ---- abHeadReact paints an open-eye frame (neutral_browsup) straight onto faceImg,
-   bypassing setFace(). applyStep() closes a blink by pointing faceImg at the _closed
-   frame AND setting display:none on the iris overlays. When an idle blink happened to be
-   mid-close as About opened, this swap replaced the closed lids with an OPEN-eye face
-   while the irises stayed hidden -- blank white eyes for ~50ms, the face Jayden sees
-   "before the picture goes over him where his iris' disappear". It is intermittent
-   because it needs the blink to overlap the swap. Defer to a blink in progress (it ends
-   on setFace, which rebuilds the overlays anyway) and never leave the irises hidden
-   under a face that has its eyes open. ---- */
-function abBrowsUp(){
- if(blinking)return false;
- faceImg.src=FACES.neutral.browsup;
- for(var i=0;i<eyeEls.length;i++){var el=eyeEls[i].el;if(el.style.display==="none")el.style.display="";}
- return true;}
-function abHeadReact(){
-  if(!aboutOpen||abClosing||reduce)return;
-  var st=document.getElementById("stage");if(!st)return;
-  abReact.active=true;abReact.start=performance.now();
-  var hr=st.getBoundingClientRect(),cy=hr.top+hr.height*0.42;
-  try{abBrowsUp();}catch(_){}
-  try{faceTrackTo(window.innerWidth*0.88,cy);}catch(_){}
-  setTimeout(function(){if(abReact.active){try{abBrowsUp();faceTrackTo(window.innerWidth*0.7,cy);}catch(_){}}},300);
-  setTimeout(function(){if(abReact.active){try{requestBlink("neutral",false,false);}catch(_){}}},560);
-  setTimeout(function(){try{setFace("neutral");}catch(_){}},920);
- }
- window.abHeadReact=abHeadReact;
- function abPeekStart(){
-  if(!aboutOpen||reduce||abPeek.active)return;
-  if(document.body.classList.contains("headburst")||document.body.classList.contains("headheal")||eventLock)return;
-  var st=document.getElementById("stage");if(!st)return;
-  var hr=st.getBoundingClientRect();var mx=(typeof pointer!=="undefined"&&pointer.px)?pointer.px:window.innerWidth*0.30;
-  abPeek.dir=(Math.random()<0.85)?1:-1;abPeek.dur=2300;abPeek.start=performance.now();abPeek.active=true;
-  try{faceTrackTo(pointer.px||hr.left+hr.width/2,pointer.py||hr.top+hr.height/2);}catch(_){}
-  lastMove=performance.now();
- }
- window.abPeekStart=abPeekStart;
- function abPeekSchedule(){clearTimeout(peekT);if(!aboutOpen||reduce)return;peekT=setTimeout(function(){abPeekStart();abPeekSchedule();},9000+Math.random()*10000);}
- window.aboutCloseFx=function(){clearTimeout(peekT);clearTimeout(abSeqA);clearTimeout(abSeqB);abWordsLock=false;abPhotoLock=false;abPeek.active=false;abCur=-1;var st=document.getElementById("stage");if(st){st.style.transform="none";}
-  document.querySelectorAll("#heroAbout .abSec").forEach(function(x){x.classList.remove("seen");x.classList.remove("settled");delete x.dataset.settleT;});
-  document.querySelectorAll("#heroAbout h2,#heroAbout p").forEach(function(x){x.classList.remove("shown");delete x.dataset.qd;x.querySelectorAll(".abw").forEach(function(w){w.style.filter="";});});
-  document.querySelectorAll("#abShots .abShot").forEach(function(x){x.classList.remove("on","leaving","cOn","cOff","cUnder","cThrow");x.style.removeProperty("z-index");x.style.removeProperty("opacity");x.style.removeProperty("transform");});};
- window.abClearSeqTimers=function(){clearTimeout(abSeqA);clearTimeout(abSeqB);clearTimeout(abLeaveT);clearTimeout(peekT);clearTimeout(abChainT);clearTimeout(window._abReactT);abReact.active=false;abChainBusy=false;abRevealQ=[];};
- window.aboutRevealPhotos=function(){
-  var shots=document.querySelectorAll("#abShots .abShot");if(!shots.length)return;
-  abCur=-1;abSplitWords();abPeekSchedule();
-  abWordsLock=true;abPhotoLock=true;clearTimeout(abSeqA);clearTimeout(abSeqB);
-  abSeqA=setTimeout(function(){abWordsLock=false;abActive();},1050);
-  abSeqB=setTimeout(function(){abPhotoLock=false;abActive();},780);
-  if(!abBound){abBound=true;window.addEventListener("scroll",function(){if(!aboutOpen||abRaf)return;abRaf=requestAnimationFrame(abActive);},{passive:true});window.addEventListener("resize",function(){if(aboutOpen)abActive();});}
-  setTimeout(abActive,480);setTimeout(abActive,840);setTimeout(abActive,1200);
- };
-})();
+/* ===== 285 LINES OF ABOUT-OVERLAY MACHINERY WERE DELETED HERE =====
+   openAbout / openAboutNow / closeAbout / abFinalizeClose, the head FLIP
+   (abPinWrapTo, abGlideWrapToAbout, abGlideWrapHome, abStageToHome and their resets),
+   abCopyFreeze/Unfreeze, abNameMorphOpen/Close, ensureVeil, abSmoothTop, the #about
+   popstate + hash router, and the whole photo/word sequencer IIFE (abSplitWords,
+   abActive, abPeekStart, aboutRevealPhotos, aboutCloseFx).
+   About is about.html now. Two bugs this file carried died with it rather than being
+   fixed: the .heroCopy display:contents trap -- the invert was set on a box that is
+   never generated, so it was silently a no-op -- and the return-leg double-count that
+   put the head 340px left of centre for 780ms.
+   NOTHING ELSE DEPENDED ON THEM: every remaining caller was a guard of the form
+   !aboutOpen, and those went with the flag. #logo and #navAbout keep their ids. ===== */
 
 
 var RAIN_PHOTOS=["rain01.webp","rain02.webp","rain03.webp","rain04.webp","rain05.webp","rain06.webp","rain07.webp","rain08.webp","rain09.webp","rain10.webp","rain11.webp","rain12.webp","rain13.webp","rain14.webp","rain15.webp","rain16.webp","rain17.webp","rain18.webp"];
@@ -1283,7 +1014,7 @@ function startMovie(word){
  if(rainMode)endRain();if(partyMode)endParty();if(loveMode)endLove();if(eating)finishEat();
  dizzy=false;reactType=null;identityShown=false;
  ensureMovieEls();
- movieMode=true;movieEnding=false;movieHair=false;movieTk0=tk;eventLock=true;if(aboutOpen){document.body.classList.remove("headheal");document.body.classList.add("headburst");}clearTimeout(cycTimer);cycHold=true;if(cycWord){var mw=makePlainCycWord(word||"Motion.");cycWord.replaceWith(mw);cycWord=mw;}
+ movieMode=true;movieEnding=false;movieHair=false;movieTk0=tk;eventLock=true;clearTimeout(cycTimer);cycHold=true;if(cycWord){var mw=makePlainCycWord(word||"Motion.");cycWord.replaceWith(mw);cycWord=mw;}
  setFace("neutral");mouthimg.src=FACES.rest.img;mouthimg.style.opacity="0";setMouth(0);
  for(var i=0;i<kernelEls.length;i++)kernelEls[i].style.opacity="0";
  /* peek removed */
@@ -1297,7 +1028,7 @@ function caughtMovie(){
 }
 function endMovieCleanup(){
  /* peek removed */
- movieMode=false;movieEnding=false;movieHair=false;eventLock=false;if(document.body.classList.contains("headburst")&&aboutOpen){document.body.classList.remove("headburst");document.body.classList.add("headheal");}
+ movieMode=false;movieEnding=false;movieHair=false;eventLock=false;
  if(bucketEl)bucketEl.style.opacity="0";
  for(var i=0;i<kernelEls.length;i++){kernelEls[i].style.opacity="0";kernelEls[i]._dropping=false;kernelEls[i]._htx=null;}
  for(var i=0;i<popcrumbEls.length;i++){popcrumbEls[i]._alive=false;popcrumbEls[i].style.opacity="0";}
@@ -1482,7 +1213,7 @@ setInterval(()=>{tk++;if(!reduce)boil();if(crumbEls.length)updateCrumbs();
  if(introMode){introTick();return;}
  if(CALIB)return;
  scrollTarget=0;scrollPull+=(scrollTarget-scrollPull)*0.18;var _ffT=0;scrollFollow+=(_ffT-scrollFollow)*0.18;   // holds his spot in the hero; curiosity is hover-driven, not scroll-driven
- if(!aboutOpen&&!abClosing&&!headGliding){var _swD=document.querySelector(".stagewrap");if(_swD)_swD.style.transform="translateY("+Math.round(scrollFollow)+"px)";}
+ if(!headGliding){var _swD=document.querySelector(".stagewrap");if(_swD)_swD.style.transform="translateY("+Math.round(scrollFollow)+"px)";}
  if(partyMode){partyTick((performance.now()-partyStart)/1000);return;}
  if(loveMode){loveTick((performance.now()-loveStart)/1000);return;}
  if(rainMode){rainTick();return;}
@@ -1498,8 +1229,7 @@ setInterval(()=>{tk++;if(!reduce)boil();if(crumbEls.length)updateCrumbs();
   nextSaccade=now+650+Math.random()*1150;}
   // how badly he wants to follow the page down
  tickFidget();updateIris();
- if(aboutOpen&&window.abHeadFrame){window.abHeadFrame();return;}
- if(!reduce){const t=tk*0.125;const fy=Math.sin(t*0.85)*5,fx=Math.sin(t*0.55)*3;const dftX=Math.sin(t*0.19)*3.4+Math.sin(t*0.11+2.0)*1.9,dftY=Math.sin(t*0.15+1.0)*3.0+Math.sin(t*0.23+0.5)*1.5;  // slow wandering float (two periods = never an obvious metronome)
+  if(!reduce){const t=tk*0.125;const fy=Math.sin(t*0.85)*5,fx=Math.sin(t*0.55)*3;const dftX=Math.sin(t*0.19)*3.4+Math.sin(t*0.11+2.0)*1.9,dftY=Math.sin(t*0.15+1.0)*3.0+Math.sin(t*0.23+0.5)*1.5;  // slow wandering float (two periods = never an obvious metronome)
   const _act=HOVER&&(performance.now()-lastMove<IDLE_MS)&&window.__curNear!==false;let tgX,tgY;if(_act){tgX=((pointer.px/innerWidth)-0.5)*16;tgY=((pointer.py/innerHeight)-0.5)*10;}else{tgX=gaze.x*9;tgY=gaze.y*6-1;}paraX+=(tgX-paraX)*0.2;paraY+=(tgY-paraY)*0.2;
   const P=poseFor(curFace);curRot+=(P.rot-curRot)*0.16;curSc+=(P.sc-curSc)*0.16;curTX+=(P.tx-curTX)*0.16;curTY+=(P.ty-curTY)*0.16;
   const g=gestureOffset();
@@ -1521,10 +1251,8 @@ if(logo){
 logo.addEventListener("mouseenter",()=>{if(eventLock||CALIB)return;clearHold();activeHover="wink";showFace("wink");});
 logo.addEventListener("mouseleave",()=>{if(eventLock||CALIB)return;if(activeHover==="wink")activeHover=null;setHold("wink",WINK_LINGER);resolve();});
 logo.addEventListener("click",()=>{
- if(aboutOpen){if(typeof closeAbout==="function")closeAbout();return;}   // on About the wordmark is the way back home
  if(CALIB||eventLock||dizzy||reactType)return;clearHold();activeHover=null;startReact("talk");});  // on home, click the name -> he introduces himself
 }
-var _abtn=document.getElementById("aboutBtn");if(_abtn)_abtn.addEventListener("click",function(){if(typeof openAbout==="function")openAbout();});
 var _wbtn=document.getElementById("workBtn");if(_wbtn)_wbtn.addEventListener("click",function(){if(window.__softScroll)window.__softScroll(document.getElementById("cases"));});
 /* The browser's behaviour:"smooth" is a fixed aggressive curve -- over a long page it reads
    as a lurch. This eases in and out, and scales its duration with the distance travelled but
@@ -1549,15 +1277,11 @@ function softScroll(el){
 window.__softScroll=softScroll;
 var _navW=document.getElementById("navWork");if(_navW)_navW.addEventListener("click",function(e){e.preventDefault();
  var _go=function(){softScroll(document.getElementById("cases"));};
- if(typeof aboutOpen!=="undefined"&&aboutOpen){
-  /* The About chrome goes the SECOND you click Work. It used to ride the full ~1.4s close,
-     so "About me" and Back were still sitting in the bar long after you had left. */
-  document.body.classList.add("abSnap");
-  if(typeof closeAbout==="function")closeAbout();
-  setTimeout(function(){document.body.classList.remove("abSnap");},1500);
-  setTimeout(_go,1420);return;}   // from About, Work goes home first
  _go();});
-var _navA=document.getElementById("navAbout");if(_navA)_navA.addEventListener("click",function(){try{if(aboutOpen){if(typeof closeAbout==="function")closeAbout();return;}}catch(_){}if(typeof openAbout==="function")openAbout();});
+/* #navAbout is a real link to about.html now. Its click handler is deleted rather than
+   left as a no-op: a bound listener on a link is the first place the next reader looks
+   when navigation misbehaves. The id survives because it is a documented hook, and
+   header.js reads the data-nav-item attribute rather than this. */
 /* The mobile menu -- burger, drawer, scrim, close button and the three .ndLinks --
    was deleted with the header on 2026-08-03. It is not restyled anywhere: measured
    at a real 390px viewport the lockup and Home / About / Games fit inline in 279px
@@ -1568,20 +1292,17 @@ if(talk){   // same presence guard as #logo above -- play.html has no Contact li
 talk.addEventListener("mouseenter",()=>{if(eventLock||CALIB)return;clearHold();activeHover="smile";showFace("smile");});
 talk.addEventListener("mouseleave",()=>{if(eventLock||CALIB)return;if(activeHover==="smile")activeHover=null;setHold("smile",SMILE_LINGER);resolve();});
 talk.addEventListener("click",function(e){e.preventDefault();
- var goTo=function(){if(window.__softScroll)window.__softScroll(document.getElementById("getInTouch"));};
- if(!aboutOpen){
-  if(typeof openAbout==="function")openAbout();
-  /* Twice, deliberately. Opening About can also have to tear down a running game first, and
-     the page is still settling at 700ms -- the first scroll lands on a position that no longer
-     exists once the layout stops moving, which is why Contact appeared to just drop you at the
-     bottom of the page. The second call costs nothing when the first one worked. */
-  setTimeout(goTo,reduce?0:700);
-  if(!reduce)setTimeout(goTo,1600);
- }else{goTo();}});
+ /* #getInTouch was the About overlay's "Get in touch" section, in this same document.
+    It lives on about.html now, so this scrolled to nothing, and the deliberate
+    double-call that used to wait out the overlay's layout settling has nothing left to
+    wait for. Home's own answer to Contact is the footer, which is exactly where the
+    header's Contact control already points on all nine pages. The two routes agree now
+    instead of diverging. */
+ if(window.__softScroll)window.__softScroll(document.getElementById("contact"));});
 }
 (function(){return;/* magnetic retired: Let's talk is now a calm secondary button matching Back */var mag=document.querySelector(".talkMag");if(!mag||reduce)return;var PULL=0.22,REACH=70,MAXO=16,last=0,cx=0,cy=0;function apply(x,y){mag.style.transform=(x||y)?("translate("+x+"px,"+y+"px)"):"";}function cl(v){return v<-MAXO?-MAXO:(v>MAXO?MAXO:v);}window.addEventListener("mousemove",function(e){var now=performance.now();if(now-last<125)return;last=now;var b=mag.getBoundingClientRect();var bx=b.left+b.width/2-cx,by=b.top+b.height/2-cy;var dx=e.clientX-bx,dy=e.clientY-by;var reach=Math.max(b.width,b.height)/2+REACH;if(Math.hypot(dx,dy)<reach){cx=cl(Math.round(dx*PULL));cy=cl(Math.round(dy*PULL));apply(cx,cy);}else if(cx||cy){cx=0;cy=0;apply(0,0);}});window.addEventListener("mouseout",function(e){if(!e.relatedTarget&&(cx||cy)){cx=0;cy=0;apply(0,0);}});})();
 (function(){var HEAD={x0:0.22,x1:0.80,y0:0.12,y1:0.91};function overFace(e){var r=faceImg.getBoundingClientRect();if(!r.width||!r.height)return false;var fx=(e.clientX-r.left)/r.width,fy=(e.clientY-r.top)/r.height;return fx>=HEAD.x0&&fx<=HEAD.x1&&fy>=HEAD.y0&&fy<=HEAD.y1;}var onFace=false;window.__pointerOverFace=false;document.addEventListener("mousemove",function(e){var ov=(!aboutOpen)&&overFace(e);window.__pointerOverFace=ov;if(CALIB||aboutOpen)return;if(ov)enter();else leave();},{passive:true});document.addEventListener("mouseleave",function(){window.__pointerOverFace=false;leave();});window.addEventListener("blur",function(){window.__pointerOverFace=false;leave();});function enter(){if(eventLock||CALIB||aboutOpen)return;if(!onFace){onFace=true;clearHold();activeHover="rest";showFace("rest");}}function leave(){var was=onFace;onFace=false;if(activeHover==="rest")activeHover=null;if(!eventLock&&!CALIB){var target=activeHover||holdFace||baseFace;if(blinking){for(var i=0;i<blinkQ.length;i++){if(blinkQ[i]&&blinkQ[i].open)blinkQ[i].face=target;}}if(was)showFace(target);}if(window.__restWatch)clearInterval(window.__restWatch);var t0=Date.now();window.__restWatch=setInterval(function(){if(window.__pointerOverFace||CALIB||onFace||Date.now()-t0>1500){clearInterval(window.__restWatch);window.__restWatch=null;return;}if(eventLock)return;if(curFace==="rest"){if(blinking){for(var j=0;j<blinkQ.length;j++){if(blinkQ[j]&&blinkQ[j].open)blinkQ[j].face=baseFace;}}setFace(baseFace);}},60);}faceImg.addEventListener("mousemove",function(e){if(CALIB||aboutOpen)return;if(overFace(e))enter();else leave();});faceImg.addEventListener("mouseleave",function(){leave();});})();
-faceImg.addEventListener("click",()=>{if(CALIB||eventLock||aboutOpen)return;tapReact();});
+faceImg.addEventListener("click",()=>{if(CALIB||eventLock)return;tapReact();});
 
 function renderCal(){}
 addEventListener("keydown",e=>{if(!CALIB)return;
@@ -1626,7 +1347,7 @@ function introGaze(gx,gy){gaze.x=gx;gaze.y=gy;if(eyeEls.length&&typeof updateIri
 function startIntro(){
   var _seen=false;try{_seen=sessionStorage.getItem("introSeen")==="1";}catch(e){}
   setFace("neutral");stage.style.opacity="";
-  if(_seen||reduce||!swrap){requestAnimationFrame(function(){requestAnimationFrame(revealAll);});if(!reduce)setTimeout(function(){if(!eventLock&&!reactType&&!aboutOpen&&!dragging&&(curFace==="neutral"||curFace==="rest")){browFlash(function(){setHold("smile",950);showFace("smile");});}},1500);return;}
+  if(_seen||reduce||!swrap){requestAnimationFrame(function(){requestAnimationFrame(revealAll);});if(!reduce)setTimeout(function(){if(!eventLock&&!reactType&&!dragging&&(curFace==="neutral"||curFace==="rest")){browFlash(function(){setHold("smile",950);showFace("smile");});}},1500);return;}
   try{sessionStorage.setItem("introSeen","1");}catch(e){}
   var w=document.querySelector(".wrap");
   if(!w){requestAnimationFrame(function(){requestAnimationFrame(revealAll);});return;}
@@ -1641,7 +1362,7 @@ function startIntro(){
     w.classList.remove("developing","developed");
     document.documentElement.style.overflow="";eventLock=false;
     if(!reduce)setTimeout(idleBlink,400);
-    if(!reduce)setTimeout(function(){if(!eventLock&&!reactType&&!aboutOpen&&!dragging&&(curFace==="neutral"||curFace==="rest")){browFlash(function(){setHold("smile",950);showFace("smile");});}},700);
+    if(!reduce)setTimeout(function(){if(!eventLock&&!reactType&&!dragging&&(curFace==="neutral"||curFace==="rest")){browFlash(function(){setHold("smile",950);showFace("smile");});}},700);
   },1150);
 }
 var introLoader=null;
@@ -1682,7 +1403,7 @@ function finishIntro(){
   if(!reduce){setTimeout(idleBlink,700);setTimeout(idleFidget,5200);}   // blinks awake soon after he is uncovered
 }
 function introGreet(){            // reuse the name-click "talk" mechanism (speech word + mouth + smile + settle) WITHOUT the identity/cycler takeover
- if(reduce||aboutOpen||busyNow()||CALIB||introMode)return;
+ if(reduce||busyNow()||CALIB||introMode)return;
  eventLock=true;reactType="talk";reactStart=performance.now();
  gType=null;curRot=0;curSc=1;curTX=0;curTY=0;blinking=false;blinkQ=[];eyesClosed=false;blinkSquash=1;
  setFace("neutral");if(navigator.vibrate)navigator.vibrate(12);
@@ -1875,7 +1596,7 @@ if(!HEADONLY){stage.style.opacity="0";requestAnimationFrame(function(){requestAn
    // would abandon the draw halfway through. The reason is on the button, not in an alert.
    if(document.body.classList.contains("hmTour")){closeM();return;}
    bar.classList.contains("open")?closeM():openM();});
-  if(menu)menu.addEventListener("click",function(e){var it=e.target.closest(".moodItem");if(!it)return;var mood=it.getAttribute("data-mood");closeM();if(document.body.classList.contains("hmBattle")||document.body.classList.contains("hmSoccer")||document.body.classList.contains("hmRace"))return;if(mood==="identity"){openAbout();return;}var fn=MAP[mood];if(typeof fn!=="function")return;var now=!busyNow();runOrQueue(fn);if(now)moodHoldWord(IDX[mood]);});
+  if(menu)menu.addEventListener("click",function(e){var it=e.target.closest(".moodItem");if(!it)return;var mood=it.getAttribute("data-mood");closeM();if(document.body.classList.contains("hmBattle")||document.body.classList.contains("hmSoccer")||document.body.classList.contains("hmRace"))return;if(mood==="identity"){location.href="about.html";return;}/* About is a page now, not an overlay. NOT a // comment: this is one minified line and a line comment would swallow the rest of it. */var fn=MAP[mood];if(typeof fn!=="function")return;var now=!busyNow();runOrQueue(fn);if(now)moodHoldWord(IDX[mood]);});
   document.addEventListener("click",function(e){if(bar.classList.contains("open")&&!bar.contains(e.target))closeM();});
   document.addEventListener("keydown",function(e){if(e.key==="Escape")closeM();});
 

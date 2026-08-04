@@ -197,9 +197,19 @@ body.hmSoccer .moodMenu .moodItem:not(#endGame),body.hmSoccer .moodMenu .moodGo{
 }
 @media(prefers-reduced-motion:reduce){.hmCamBack.hmCamPunch,.hmCamFront.hmCamPunch{animation:none}}
 
-/* ================= THE PITCH PLANET, AND THE WATER UNDER THE HEADS =================
-   "In play.html they should be sitting on that gradient planet and jumping around on it -- so just
-   on the pitch." Plus a reflection under the heads.
+/* ================= THE WATER UNDER THE HEADS (and a pitch curve that is switched off) ============
+   Jayden asked for a gradient planet the heads stand on, plus a reflection. Then, on 2026-08-03, he
+   corrected the first half of that: "For the planet, I wanted the planet to be in the lobby, not the
+   match." So the PLANET moves to the Play hub as its own surface (NASA Blue Marble there, which is
+   the one place the research always said it belonged), and what stays here is the second half he
+   asked for and never withdrew -- the water and the reflection under the heads on the pitch.
+
+   What is left of the planet on this page is the drawn ground below, held behind one flag. The pitch
+   curve is OFF (play-engine.js: CURVE=false, so ARC's sag is 0 and the six render sites emit exactly
+   the strings they emitted before any of this existed) and .hmFlatPitch takes the drawn ground and
+   sky down with it. The water and the reflections are NOT gated on the curve -- they never depended
+   on it -- so with sag 0 the waterline is simply straight. __hmSag(25.6) turns the whole thing on
+   live if the curve is ever wanted back.
 
    The geometry is settled in docs/superpowers/specs/2026-08-02-planet-pitch-research.md and it is
    render-curved / physics-flat: play-engine.js adds arcY(x) as a render offset at six transform
@@ -239,10 +249,26 @@ body.hmSoccer .moodMenu .moodItem:not(#endGame),body.hmSoccer .moodMenu .moodGo{
  --planet-lx:38%;             /* the dominant light, deliberately OFF pitch centre: a symmetrically
                                  lit arch reads as an arch (A2), and the arc has to read as a world. */
  --planet-h:340px;            /* the shared box: 120px of sky above the horizon, 220px of ground below */
+
+ /* THE CONTACT SHADOW'S INK, made reachable. play-engine.js writes the head shadow as an inline
+    cssText string, and nothing in a stylesheet can reach an inline style attribute -- so on a dark
+    ground every head would have kept a black smudge under it and silently stopped being grounded.
+    The engine now writes rgba(var(--hm-contact,8,8,8),var(--hm-contact-a,.26)), and an inline var()
+    still resolves against inherited custom properties, so rebinding these two on body is all a dark
+    surface has to do. The values here are the ones the engine has always used, so this changes
+    nothing today; it only makes the change possible. The heads keep their shadow -- it is the one
+    shadow this site keeps, because they stand on something. */
+ --hm-contact:8,8,8;
+ --hm-contact-a:.26;
 }
 .hmPlanet,.hmSky,.hmWater{position:absolute;left:0;right:0;top:var(--pl-top,62%);height:var(--planet-h);
  pointer-events:none;opacity:0;transition:opacity .6s var(--ease-out)}
 body.hmSoccer .hmPlanet,body.hmSoccer .hmSky,body.hmSoccer .hmWater{opacity:1}
+/* sag 0 means no curve, so it has to mean no DRAWN curve either -- and a zero-height mask ellipse is
+   degenerate anyway. The water stays: the reflection's waterline is not a curvature feature, it just
+   becomes a straight line, so its arc mask comes off rather than the element going away. */
+.hero.hmFlatPitch .hmPlanet,.hero.hmFlatPitch .hmSky{display:none}
+.hero.hmFlatPitch .hmWater{-webkit-mask-image:none;mask-image:none}
 
 /* THE GROUND. Masked to the ellipse whose top edge IS arcY, so the horizon and the feet cannot
    disagree -- the failure the research names as fatal is heads floating a quarter of a head above a
@@ -322,6 +348,14 @@ body.hmSoccer .hmPlanet,body.hmSoccer .hmSky,body.hmSoccer .hmWater{opacity:1}
    writes are transform and opacity only, both compositor-only.
    opacity is written by the engine every frame (0 off the pitch), so it carries no transition here:
    a transition would fight the air-height falloff. */
+/* transform-origin here is only the value BEFORE the engine's pixel scan lands; play-engine.js then
+   writes this head's own scanned foot line (0.945 for an egghead, 0.75 for mini-Jayden) so the pivot
+   sits exactly on the waterline and the anchor survives any rotation or squash.
+   position/left/top/pointer-events deliberately live in the engine's inline cssText instead of here:
+   index.html loads play-engine.js and does NOT load play.css, so a reflection that depended on this
+   file for `position:absolute` was a static full-height block in the home page's flow -- one per
+   head. Visibility stays here (opacity:0, and the two overrides below), because inline beats a
+   stylesheet and inlining it would have made those overrides unreachable. */
 .hmRefl{position:absolute;left:0;top:0;z-index:1;pointer-events:none;opacity:0;
  transform-origin:50% 94%;will-change:transform,opacity;
  background-repeat:no-repeat;background-size:100% 100%;filter:saturate(.5);
