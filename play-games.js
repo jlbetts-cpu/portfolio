@@ -130,6 +130,9 @@
   // a picker left floating over a live pitch is a stuck screen with no way out (its Back
   // returns to a hub that is itself hidden). Whoever starts a game wins the stage.
   if(on&&teamOpen&&window.__hmTeamScreen){try{window.__hmTeamScreen.close();}catch(_){}}
+  /* The bar no longer needs a surface swap: the page is paper in every state now, so
+     data-surface="paper" is simply what the markup says and never changes. The toggle that
+     lived here existed only to undo the dark lobby. */
   var want=!on&&!teamOpen;
   document.body.classList.toggle("pHubOn",want);
   /* .pHubOn changes .hero's height on phones (play.html's style block), and the engine
@@ -143,60 +146,50 @@
   // a11y tree, but the fade holds visibility for 360ms and a screen reader must not read a
   // menu that is on its way out.
   hub.setAttribute("aria-hidden",(!on&&!teamOpen)?"false":"true");
-  [["pcExped",few],["pcTour",few]].forEach(function(p){
-   var el=document.getElementById(p[0]);if(!el)return;
-   el.setAttribute("aria-disabled",p[1]?"true":"false");});
-  renderCrowd();}
- /* ---- THE CROWD STRIP. Jayden: "it should be easy to add placeholder heads and remove
-    heads and that nature." Three jobs in one row: show who is on the planet, remove one,
-    add a free one.
-
-    THE TILE IS TWO ROWS, and that is carried from index.html:1606 rather than reinvented,
-    because the shape of it is the fix from the mobile audit: the remove button used to sit
-    ON the thumbnail it deletes, so a thumb aimed at a head could destroy it. Here the head
-    and its x are separate grid rows and the x's 44px target grows downward (play.html's
-    style block). Its accessible name says WHICH head it removes.
-
-    Every mutation goes through the same three steps the home page uses, in the same order:
-    write hmCompanions, keep hmCompanion pointing at something real, and tell the LIVE
-    engine -- __hmKill(cut) to take a head off the planet, __hmSpawnOne(data,slot) to put
-    one on. Without that third step the storage and the scene disagree until a reload,
-    which is exactly the bug that makes a roster control feel broken. ---- */
- var _crowdSig="";
+  /* THE TOURNAMENT IS NOT GATED ON THE ROSTER, and that was the "unplayable" bug.
+     Reproduced at 390 with hmCompanions cleared: aria-disabled="true", pointer-events:none,
+     opacity .38 -- the card was faded and genuinely unclickable, which is exactly "I can't
+     click the button to start it". Nothing else was wrong: elementFromPoint landed inside
+     the card, __hmTourStart was a function, __hmTour.live was false, and the launcher fires.
+     The gate itself is correct and stays; what was wrong is that Tournament was ever behind
+     it. It was inherited from battleGate's `few`, which dims every launcher together, but a
+     cup does not use the visitor's heads -- buildTeams() (play-tournament.js:476) sets
+     canEgg from __hmTint + __EGGHEAD, both of which this page always loads, and then fields
+     all twelve teams from dyed eggheads with zero saved heads. So on a first visit, the one
+     door that works with an empty planet was the only one closed.
+     Expedition still gates: it is a match between the visitor's own heads and there must be
+     at least one. (The engine's own launchers keep battleGate's original behaviour -- this
+     is the hub's gate, and the hub is where a first-time visitor actually lands.) */
+  var ex=document.getElementById("pcExped");
+  if(ex)ex.setAttribute("aria-disabled",few?"true":"false");
+  var tr=document.getElementById("pcTour");
+  if(tr)tr.setAttribute("aria-disabled","false");
+  }
+ /* ---- THE CROWD STRIP IS GONE, THE CAPABILITY IS NOT.
+    It rendered a row of head thumbnails with a per-head remove and an "Add an egghead"
+    button above the planet. Jayden removed it: "no stupid hero header that looks bad with
+    random head PNGs floating -- the heads are clearly visible below." That is the right
+    call -- the planet and the crowd on it already say who is here, and the strip was a
+    second, weaker version of the same statement.
+    What survives is the two operations, exposed rather than drawn, so the head-level delete
+    pattern being designed for the home dropdown and the maker can drive them when it lands
+    (one pattern, not a fourth variant):
+        window.__hmAddEgghead()      -> dye a fresh egg, store it, spawn it on the planet
+        window.__hmRemoveHead(cut)   -> drop that head from storage AND from the scene
+    Both keep the three-step contract the home page uses: write hmCompanions, keep
+    hmCompanion pointing at something real, then tell the LIVE engine (__hmSpawnOne /
+    __hmKill). Skipping the third step is what makes a roster control feel broken -- the
+    storage and the planet disagree until a reload. ---- */
  function writeRoster(arr){
   try{localStorage.setItem("hmCompanions",JSON.stringify(arr));_hcVer++;
    if(arr.length)localStorage.setItem("hmCompanion",JSON.stringify(arr[arr.length-1]));
    else localStorage.removeItem("hmCompanion");}catch(_){}
-  _bgLast="";battleGate();}   // clear the gate's signature so the very next tick repaints, rather than 400ms later
- function renderCrowd(){
-  var box=document.getElementById("pCrowd");if(!box)return;
-  var hs=readAll(),i,sig=hs.length+"|"+hs.map(function(h){return h.cut.length;}).join(",");
-  if(sig===_crowdSig)return;_crowdSig=sig;
-  box.innerHTML="";
-  hs.forEach(function(h,idx){
-   var it=document.createElement("span");it.className="mhItem";
-   var im=document.createElement("img");im.src=h.cut;im.alt="";it.appendChild(im);
-   var xb=document.createElement("button");xb.className="mhX";xb.type="button";
-   xb.setAttribute("aria-label","Remove head "+(idx+1)+" from the planet");xb.textContent="Remove";
-   xb.addEventListener("click",function(ev){ev.stopPropagation();ev.preventDefault();
-    var cur=readAll();cur.splice(idx,1);   // by position: exactly the head you pointed at
-    writeRoster(cur);
-    try{if(window.__hmKill)window.__hmKill(h.cut);}catch(_){}
-    _crowdSig="";renderCrowd();});
-   it.appendChild(xb);box.appendChild(it);});
-  // ADD AN EGGHEAD -- the zero-effort way to fill an empty planet, and the only control
-  // here: adding YOUR head is the "Add your head" card, and one command gets one label in
-  // one place. Disabled rather than hidden at the cap, so the cap is visible before it bites.
-  var add=document.createElement("button");add.className="pAdd";add.type="button";
-  add.setAttribute("aria-label","Add an egghead — a placeholder head in a fresh colour");
-  add.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 14.083c0 4.154 -2.966 6.74 -7 6.917c-4.2 0 -7 -2.763 -7 -6.917c0 -5.538 3.5 -11.09 7 -11.083c3.5 .007 7 5.545 7 11.083"/></svg>Add an egghead';
-  if(hs.length>=8)add.setAttribute("aria-disabled","true");
-  add.addEventListener("click",function(ev){ev.stopPropagation();addEgghead();});
-  box.appendChild(add);
-  var n=document.createElement("span");n.className="pCrowdN";
-  n.textContent=hs.length?(hs.length+" of 8 on the planet"):"Nobody here yet";
-  box.appendChild(n);}
-
+  _bgLast="";battleGate();}   // clear the gate's signature so the next tick repaints, not 400ms later
+ window.__hmRemoveHead=function(cut){
+  var cur=readAll(),i;
+  for(i=0;i<cur.length;i++){if(cur[i].cut===cut){cur.splice(i,1);break;}}
+  writeRoster(cur);
+  try{if(window.__hmKill)window.__hmKill(cut);}catch(_){}};
  /* The egg, dyed a fresh colour each time. Ported from index.html:1654 with one
     simplification: play.html already loads egghead-seed.js as a <script src>, so
     window.__EGGHEAD is there synchronously and the lazy-fetch dance home needs is gone.
@@ -217,7 +210,7 @@
    var out=c.toDataURL("image/webp",0.9);if(out.indexOf("data:image/webp")!==0)out=c.toDataURL("image/png");
    cb(out);}catch(_){cb(cut);}};
   img.onerror=function(){cb(cut);};img.src=cut;}
- function addEgghead(){
+ window.__hmAddEgghead=function(){
   var EGG=window.__EGGHEAD;if(!EGG||!EGG.cut)return;
   if(readAll().length>=8)return;                      // the planet caps at eight, like the saved heads
   tintEgg(EGG.cut,nextEggColor(),function(cut){
@@ -225,10 +218,21 @@
    if(eyes[0])eyes[0].x+=(Math.random()-0.5)*0.0007;
    var data={cut:cut,eyes:eyes,marks:EGG.marks};
    var arr=readAll();arr.push(data);writeRoster(arr);
-   try{if(window.__hmSpawnOne)window.__hmSpawnOne(data,arr.length-1);}catch(_){}   // onto the planet now, not on the next reload
-   _crowdSig="";renderCrowd();});}
+   try{if(window.__hmSpawnOne)window.__hmSpawnOne(data,arr.length-1);}catch(_){}});};
 
  battleGate();setInterval(battleGate,400);
+ /* THE 400ms POLL IS TOO SLOW FOR A GROUND SWAP. Everything the gate used to drive was a
+    dim or a hide, where a late tick is invisible. The page's ground and the header's
+    material are not: body's game class flips the background instantly in CSS, so a gate
+    that catches up a third of a second later leaves a light bar sitting on a dark page --
+    and the same lag shows up on every path that ends a match without going through this
+    file (the scoreboard's own End button, a tournament fixture finishing, an early exit).
+    Watching the attribute that IS the state removes the whole class of bug rather than
+    shortening the interval. The poll stays as the backstop for everything else.
+    No feedback loop: syncHub writes body classes too, but battleGate's signature guard
+    makes the re-entrant call a no-op the moment nothing has actually changed. */
+ try{new MutationObserver(function(){battleGate();})
+  .observe(document.body,{attributes:true,attributeFilter:["class"]});}catch(_){}
  function closeMenuBar(){var mb=document.getElementById("moodbar");if(mb)mb.classList.remove("open");var mbt=document.getElementById("moodBtn");if(mbt)mbt.setAttribute("aria-expanded","false");}
  var bg=document.getElementById("battleGo");
  if(bg)bg.addEventListener("click",function(){

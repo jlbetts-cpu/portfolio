@@ -21,18 +21,11 @@
 <style>
  /* The arena carries class="hero" deliberately: the engine measures ".hero" in
     16 places. Renaming those is a later pass; see spec 5.1. */
- /* DARK, 2026-08-03 (Jayden: "The whole Play page should be in dark mode since it's in
-    space."). This replaces the earlier `background:var(--c50)` and, with it, the
-    dark-backdrop-under-light-chrome compromise the research had recommended -- his call,
-    and it is the one the planet argues for anyway. --space is declared once, here, and is
-    the ground every dark rule on this page reckons against; it is --c950 pulled a little
-    toward --accent rather than a new literal, so the night is the site's own blue at the
-    bottom of its range and it follows --accent if the accent ever moves.
-    NOT a media query and NOT prefers-color-scheme: this is a PLACE, not a user preference
-    (research §2.4). Nothing here leaks to another page -- every rule in this block is
-    scoped to a selector only play.html has, or to this document. */
- :root{--space:color-mix(in oklab,var(--c950) 92%,var(--accent))}
- html,body{margin:0;height:100%;background:var(--space);overflow:hidden}
+ /* PAPER, like every other page. The dark lobby is gone: Jayden asked for it, saw it, and
+    reversed it -- "shouldn't be dark mode. Should be minimal with a NASA planet and the heads
+    jumping on it." That deleted a whole colour system from this file rather than adding one,
+    and it took the ink chrome, the terminator and the sky grain with it. */
+ html,body{margin:0;height:100%;background:var(--c50);overflow:hidden}
  /* play.css:58 also declares body{background:var(--c50)}; this block is a later
     same-specificity rule, so it wins by source order -- the same mechanism the note
     below already documents for the paper value it replaces. */
@@ -84,103 +77,43 @@
     Design: docs/superpowers/specs/2026-08-02-play-hub-research.md.
     ========================================================================== */
 
- /* ---- SPACE, AND THE LIT GROUND THE HEADS STAND ON.
-    Dark mode does not mean the heads stand on black, and this is the one piece of it that
-    is not a taste call. play-engine.js writes each head's contact shadow as an inline
-    cssText radial-gradient in rgba(8,8,8,.26) (play-engine.js:245). An inline style
-    attribute written by JS is not reachable from any stylesheet, :root override or media
-    query, so on a black ground that ellipse is simply invisible and every head stops
-    standing on anything -- it floats. See the report for the exact change requested of
-    play-engine.js's owner to make that colour reachable.
-    Until it lands, and arguably afterwards too, the answer is the one the subject already
-    gives us: this is a planet in space, so the SKY is black and the GROUND is lit. Sunlit
-    ground under a black sky is not a compromise with dark mode, it is what a planet looks
-    like -- and it keeps a dark shadow legible under every head, by construction.
-    --sky-h is the terminator: the line where the lit surface begins. It sits ABOVE the
-    tallest head's crown in both states, so no head is ever over black.
-      resting:  heads occupy ~62vh-75vh (desktop) / ~72vh-80vh (mobile)
-      pTeamOn:  .hero shrinks (below), heads rise to ~40vh-53vh
-    THE NASA PLANET IS NOT BUILT HERE YET. Jayden wants Blue Marble in the lobby with the
-    Gradient Lab halo over it; the sphere maths, the limb behaviour and the sag numbers are
-    being specified by the planet lane. This gradient is the surface that spec will replace,
-    and it is deliberately the same shape -- black above the terminator, lit below -- so
-    that swap is a background swap and not a re-layout. ---- */
- :root{--sky-h:56vh;--ground:var(--c50)}
- body.pTeamOn{--sky-h:36vh}
- /* z-index:0, NOT -1, and that is not a nudge. body carries its own
-    background:var(--c50) (line 24 above, and play.css:58 under it), and a negative-z
-    descendant paints BEFORE its ancestor's in-flow background box -- so at -1 the sky
-    rendered underneath the page's own white and the whole thing was invisible. At 0 it
-    joins the positioned-descendant layer, above body's background and below .hero, which
-    comes after it in source order and so paints over it at the same z. */
- .playSky{position:fixed;left:0;right:0;top:0;bottom:0;z-index:0;pointer-events:none;
-  /* FOUR LAYERS, top to bottom in paint order, and each one is doing a job the one under it
-     cannot. A single black-to-white ramp was the first attempt and it read as fog: the
-     terminator has to be a LINE for the lower half to read as a surface rather than haze.
-       1. the limb vignette -- the ground darkens toward the left and right edges, so the
-          lit surface curves away instead of running flat off the sides of the screen. It is
-          the only curvature cue available, because the horizon itself must stay FLAT: every
-          head's feet share one Y (the engine's shared floor line), and a curved horizon
-          would leave the heads at the edges hanging in the air.
-       2. the rim -- a thin bright arc ON the terminator. gradient-notes A4: the atmosphere
-          escapes the silhouette. This is what makes it an edge.
-       3. the sun's pool -- brightest just below the terminator, falling off toward the
-          viewer, so the ground has a light direction.
-       4. the ramp itself -- black held long, then a short, hard transition.
-     All of it is --space, --ground and --accent mixed; no new colour enters the page. */
-  background:
-   radial-gradient(120% 62% at 50% 104%,transparent 42%,color-mix(in oklab,var(--space) 55%,transparent) 100%),
-   radial-gradient(170% 9% at 50% var(--sky-h),color-mix(in oklab,var(--accent) 42%,var(--c0)) 0,transparent 78%),
-   radial-gradient(110% 30% at 50% calc(var(--sky-h) + 5vh),color-mix(in oklab,var(--c0) 94%,var(--accent)) 0,transparent 74%),
-   linear-gradient(180deg,
-    var(--space) 0,
-    var(--space) calc(var(--sky-h) - 15vh),
-    color-mix(in oklab,var(--space) 58%,var(--accent)) calc(var(--sky-h) - 4vh),
-    color-mix(in oklab,var(--ground) 86%,var(--accent)) var(--sky-h),
-    var(--ground) calc(var(--sky-h) + 16vh),var(--ground) 100%);
-  transition:opacity var(--enter-dur) var(--ease-out)}
- /* THE SKY BELONGS TO THE LOBBY, NOT TO THE MATCH. The tournament brief's register split
-    is explicit -- the lobby is the SKY register (space, night), the matchday surfaces are
-    the GROUND register (daylight print) -- and the beam-down between them is the licensed
-    transition, which is exactly what this fade is. It also keeps the sky out of two other
-    agents' lanes: the pitch brings its own ground and the tournament brings its own paper,
-    and neither was designed against a night field. Declared as game classes rather than as
-    the absence of .pHubOn so the first paint is right before any script has run. */
- body.hmSoccer .playSky,body.hmBattle .playSky,body.hmRace .playSky,body.hmTour .playSky{opacity:0}
- /* ---- AND THE GROUND GOES BACK TO PAPER FOR THE MATCH. Jayden, drawing the line himself:
-    "Only the play main page is dark mode because of the planet. The soccer game should
-    still look light with the reflections." So the dark is the LOBBY's, not the section's --
-    it belongs to the planet, and the moment the planet is replaced by a pitch the page is
-    paper again. That is also the tournament brief's own register split (the lobby is the
-    sky register, the matchday surfaces are the daylight print one) and it keeps the pitch,
-    its reflections and the whole Matchday Print package in the light they were designed
-    for, with nothing asked of play.css or play-engine.js.
-    The header stays data-surface="ink" across the transition on purpose: header.css:305
-    argues that white ink on --mat-i3-solid clears 4.5:1 over a white ground AND over
-    near-black, which is exactly why that surface is dark rather than a white pill. One bar,
-    both grounds, no swap to choreograph. ---- */
- body.hmSoccer,body.hmBattle,body.hmRace,body.hmTour{background:var(--c50)}
- /* The grain. Static, chunky, CSS-pixel cells -- the same feTurbulence-in-a-
-    data-URI trick .iris::before already uses (play.css:27), for the same reason:
-    a clean CSS gradient reads as a CSS gradient. Masked off before the horizon
-    so it never lands on the paper, where noise reads as dirt rather than air. */
- .playSky::after{content:"";position:absolute;inset:0;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='44'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='1' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='44' height='44' filter='url(%23g)'/%3E%3C/svg%3E");
-  background-size:20px 20px;opacity:.09;
-  -webkit-mask-image:linear-gradient(180deg,var(--c950) 0,var(--c950) calc(var(--sky-h) - 12vh),transparent var(--sky-h));
-  mask-image:linear-gradient(180deg,var(--c950) 0,var(--c950) calc(var(--sky-h) - 12vh),transparent var(--sky-h))}
- @media(prefers-reduced-motion:reduce){.playSky{transition:none}}
+ /* ---- THE NASA PLANET: THE ASSET IS BUILT AND SHIPPED, THE RENDER IS BLOCKED ON ONE
+    ENGINE CHANGE. Both halves of that sentence matter, so here is the arithmetic rather
+    than an apology.
 
- /* ---- THE CORNER MENU IS OFF, and the element stays.
-    #moodbar/#moodBtn/#moodMenu are kept in the DOM because the tournament
-    disables and restores #moodBtn BY ID (play-tournament.js:1163,1183) and
-    play-games.js binds every launcher through them -- the hub's cards fire the
-    same handlers. What is gone is the second visible surface: a corner "Play"
-    disclosure beside a four-card hub is two menus for one job, and every game
-    already carries its own End control on its own scoreboard
-    (play-engine.js:1433 .hmScoreEnd), so the in-game bar had nothing left to
-    hold. One slot, one surface (research §1.1). ---- */
- #moodbar{display:none}
+    BUILT: images/earth-disc.webp -- 1024x1024, 102,510 bytes (100 KB), from the committed
+    images/earth-disc-src.jpg (2048x2048, 593 KB) via `sips -Z 1024` +
+    `cwebp -q 72 -m 6 -sharp_yuv`. The 2.51 MB equirectangular master is never served. NASA
+    Blue Marble, public domain.
+
+    BLOCKED: the lobby-planet spec (planet report §5.1-5.2) places heads BY ANGLE around the
+    disc, which is play-engine.js's job. This engine puts every head on ONE FLAT feet line --
+    the shared ground rule the whole build rests on. Those two facts are not compatible at
+    any radius, and the gap is not marginal. Using the spec's own sag formula
+    R - sqrt(R^2 - d^2), measured at 1280 wide against a 1024px source:
+
+        R        sag at the screen edge      upscale needed to stay legible
+        0.65vw   300px                       1.6x   <- the spec's radius, limb on screen
+        1.0vw    171px                       2.5x
+        1.6vw    103px                       4.0x
+        3.2vw     50px                       8.0x
+        6.0vw     27px                      15.0x
+
+    A head is 108px tall. Anything above ~10px of sag has the outermost heads visibly
+    hanging in the air, so a flat feet line needs R >= 6vw; Earth stays legible only up to
+    about R = 1vw. Six times apart -- there is no radius that satisfies both, which is why
+    this is a blocker and not a tuning problem.
+    The unblock is one change in play-engine.js: place lobby heads by angle
+    (x = cx + R sin0, y = cy - R cos0, rotation = 0) reusing each head's own FOOT
+    transform-origin, exactly as report §5.3 describes. The asset, the radius and the halo
+    treatment are all decided and waiting on it -- see the report.
+
+    THE HALO, decided so it does not get re-litigated: `screen`, not Gradient Lab's
+    `multiply`. The Lab's own background-mode work found multiply collapses on a dark
+    ground; on this paper ground it would not collapse, it would DARKEN the paper around the
+    planet -- which is a cast shadow, and chrome here never casts. An atmosphere is light
+    leaving the planet, so the blend can only ever add. ---- */
+ :root{--head-edge:var(--c50)}
 
  /* ---- THE HUB. Two blocks pinned to the two ends of the viewport with the
     stage running between them, which is what makes this fit without scrolling:
@@ -189,88 +122,54 @@
     pointer-events are OFF on the frame and on the title block -- the heads are
     draggable and a full-viewport overlay would eat every grab. ---- */
  .pHub{position:fixed;inset:0;z-index:40;pointer-events:none;
-  display:flex;flex-direction:column;justify-content:space-between;
-  padding:calc(var(--nav-h) + var(--sp-40)) var(--play-gutter) var(--sp-24-32);
+  display:flex;flex-direction:column;justify-content:flex-end;
+  /* --sp-48 off --nav-h, not --sp-40. Measured at 390: .jbStick is 72px tall (a 52px nav
+     plus its own padding-block), so a 92px top inset left the h1 FOUR pixels under the bar --
+     which is most of what "crammed up there" was. 100px gives 28px of real air. */
+  padding:calc(var(--nav-h) + var(--sp-40) + var(--sp-8)) var(--play-gutter) var(--sp-24-32);
   opacity:0;visibility:hidden;
   transition:opacity var(--sp-settle-dur) var(--sp-settle),visibility 0s linear var(--sp-settle-dur)}
  body.pHubOn .pHub{opacity:1;visibility:visible;transition-delay:0s,0s}
  @media(prefers-reduced-motion:reduce){.pHub{transition:none}}
 
- /* The top block is title + crowd as ONE object, so .pHub's space-between still has exactly
-    two things to push apart: what this place is at the top, what you can do at the bottom,
-    and the planet running between them. */
- .pHubTop{display:flex;flex-direction:column;align-items:center}
- .pHubHead{max-width:46ch;margin:0 auto;text-align:center;font-family:var(--sans)}
- .pEyebrow{margin:0;font-weight:600;font-size:var(--fs-micro);line-height:var(--lh-flat);letter-spacing:var(--tr-caps);text-transform:uppercase;color:var(--i700)}
- /* --fs-h1, not --fs-hero: the hero size is index.html's one loud voice and a sub-page
-    that borrows it steals it (tokens §5.4). text-wrap:balance because both of these are
-    two-line blocks over an image, where a one-word last line is the failure you see. */
- .pTitle{margin:var(--gap-eyebrow) 0 0;font-weight:600;font-size:var(--fs-h1);line-height:var(--lh-tight);letter-spacing:var(--tr-head);color:var(--c50);text-wrap:balance}
- .pSub{margin:var(--gap-head-bot) 0 0;font-weight:400;font-size:var(--fs-lead);line-height:var(--lh-body);letter-spacing:var(--tr-body);color:var(--i700);text-wrap:balance}
+ /* ---- THE CORNER MENU IS OFF, and the element stays. #moodbar/#moodBtn/#moodMenu are kept
+    in the DOM because the tournament disables and restores #moodBtn BY ID
+    (play-tournament.js:1163,1183) and play-games.js binds every launcher through them -- the
+    hub's cards fire the same handlers. What is gone is the second visible surface. ---- */
+ #moodbar{display:none}
 
+ /* ---- THE FOUR DOORS. The page's only chrome now: the planet, the heads on it, and these.
+    Paper, like the rest of the site -- --c0 on a --c50 ground with a rim, the same "separates
+    upward" argument header.css makes for the nav bar. ---- */
  .pCards{pointer-events:auto;width:100%;max-width:var(--page-max);margin:0 auto;
   display:grid;grid-template-columns:repeat(4,1fr);gap:var(--sp-12)}
- /* INK CHROME, borrowing the header's own dark vocabulary rather than inventing a second
-    one: --mat-i3-solid for the ground, --rim-i2 + --rim-top for the edge, --i700 for
-    secondary ink and --c50 for primary. That is exactly the five-property set
-    header.css:314 declares for data-surface="ink", so the bar and the cards are one
-    material by construction. --rim-top is an INSET highlight, not a cast shadow -- chrome
-    on this site never casts, and on a dark ground the top-edge highlight is what does the
-    separating anyway. Hover lifts to --i100, the ink ramp's own hover wash. */
  .pCard{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:var(--sp-6);
   min-height:var(--tap-min);padding:var(--sp-14) var(--sp-16) var(--sp-16);
-  border:0;border-radius:var(--r-md);background:var(--mat-i3-solid);box-shadow:var(--rim-i2),var(--rim-top);
-  font-family:var(--sans);color:var(--c50);text-align:left;text-decoration:none;cursor:pointer;
-  transition:transform var(--ease-out-dur) var(--ease-out),background-color var(--hover-out-dur) var(--ease-out)}
- .pCard:hover{transform:translateY(-2px);background:color-mix(in oklab,var(--mat-i3-solid) 86%,var(--c0))}
- .pCard:active{transform:scale(var(--press-scale))}
- .pCard:focus-visible{outline:var(--focus-w) solid var(--c50);outline-offset:2px}
- .pCard[aria-disabled="true"]{opacity:.38;pointer-events:none}
- .pCard .gIco{width:var(--ico-md);height:var(--ico-md);flex:0 0 auto;color:var(--i700)}
- .pCard:hover .gIco{color:var(--c50)}
+  border:0;border-radius:var(--r-md);background:var(--c0);box-shadow:var(--rim-1);
+  font-family:var(--sans);color:var(--c950);text-align:left;text-decoration:none;cursor:pointer;
+  /* one closed transition set, hover-OUT here and the shorter hover-IN on :hover -- the
+     control system's rule, so these breathe at the same rate as the nav */
+  transition-property:color,background-color,box-shadow,transform;
+  transition-timing-function:var(--ease-out);transition-duration:var(--hover-out-dur)}
+ /* HOVER MOVES INK AND WEIGHT, NEVER A FILL. This card used to light its whole box with a
+    color-mix wash -- the last grey-fill hover on the site after the case studies and the nav
+    had theirs stripped, and the main reason the hub read as "not as clean as the rest of the
+    site". Now the description steps up in ink, the icon's stroke thickens with the label, and
+    the rim goes --rim-1 -> --rim-2. A hairline is the permitted affordance for a target this
+    large; a fill is not. */
+ .pCard:hover{box-shadow:var(--rim-2);transition-duration:var(--ease-out-dur)}
+ .pCard:hover .pCardD{color:var(--c700)}
+ .pCard:hover .gIco{color:var(--c950);stroke-width:var(--ico-stroke-strong)}
+ /* --press-scale-lg, not --press-scale: the ladder's rule is that boxes over ~200px take the
+    gentler rung. Press is scale, never translateY. */
+ .pCard:active{transform:scale(var(--press-scale-lg));transition-duration:var(--press-dur)}
+ .pCard:focus-visible{outline:var(--focus-w) solid var(--c950);outline-offset:var(--sp-2)}
+ .pCard:focus:not(:focus-visible){outline:none}
+ .pCard[aria-disabled="true"]{opacity:.38;cursor:default;pointer-events:none}
+ .pCard .gIco{width:var(--ico-md);height:var(--ico-md);flex:0 0 var(--ico-md);color:var(--c700);stroke-width:var(--ico-stroke)}
  .pCardT{font-weight:600;font-size:var(--fs-body);line-height:var(--lh-tight);letter-spacing:var(--tr-title)}
- .pCardD{font-weight:400;font-size:var(--fs-caption);line-height:var(--lh-body);letter-spacing:var(--tr-body);color:var(--i700)}
- /* "opens full screen" is a promise, not an apology: research §5.2.2 -- a link
-    that leaves the hub only feels like ejection when it is a surprise. */
- .pCardOut{margin-top:auto;font-weight:600;font-size:var(--fs-micro);line-height:var(--lh-flat);letter-spacing:var(--tr-caps);text-transform:uppercase;color:var(--i700);opacity:.8}
+ .pCardD{font-weight:400;font-size:var(--fs-caption);line-height:var(--lh-body);letter-spacing:var(--tr-body);color:var(--c500)}
 
- /* ---- THE CROWD STRIP: add a head, remove a head, see who is on the planet.
-    Jayden: "It should be easy to add placeholder heads and remove heads and that nature."
-    It sits directly under the title, not down in the cards, because it answers a different
-    question -- WHO is here, rather than WHAT can I do -- and because the cards are four
-    equal doors and a fifth thing with content in it would break that.
-    THE TILE IS TWO ROWS AND THE DELETE IS THE SECOND ROW. Carried verbatim in structure
-    from index.html:1188-1216, which is where the mobile audit's B6/P7 fix landed: the x
-    used to be pinned to the thumbnail's own corner and overlapped it (15px in the Play
-    panel, 37x37 on the maker), so a thumb aimed at a head could delete it. There is no
-    version of "smaller and more careful" that fixes an overlap -- the two controls have to
-    stop sharing pixels -- so the head and its x are separate grid rows and the x's 44px
-    target grows DOWNWARD, into the strip's own padding, never back up over the head. ---- */
- .pCrowd{pointer-events:auto;display:flex;align-items:flex-start;justify-content:center;flex-wrap:wrap;gap:var(--sp-8);margin-top:var(--sp-16)}
- .mhItem{display:grid;grid-template-rows:auto auto;gap:var(--sp-2);justify-items:stretch}
- .mhItem img{display:block;width:44px;height:52px;object-fit:contain;background:none;border-radius:var(--r-2xs)}
- .mhX{position:relative;z-index:1;width:100%;height:var(--sp-24);min-width:0;padding:0;
-  display:flex;align-items:center;justify-content:center;border:0;border-radius:var(--r-2xs);
-  background:none;color:var(--i700);font-family:var(--sans);font-size:var(--fs-micro);line-height:1;cursor:pointer;opacity:0;
-  transition:opacity var(--ease-out-dur) var(--ease-out),color var(--ease-out-dur) var(--ease-out)}
- .mhX::before{content:"";position:absolute;left:0;right:0;top:0;height:var(--tap-min)}
- .mhItem:hover .mhX,.mhItem:focus-within .mhX{opacity:1}
- .mhX:hover,.mhX:focus-visible{color:var(--c50)}
- @media(hover:none){.mhX{opacity:1;font-size:var(--fs-label)}}
- /* The two ADD controls are one pair and read as one: a real 44px target each, ink chrome,
-    the verb first. "Add an egghead" is the zero-effort way to fill an empty planet;
-    "Add your head" is the one that matters and it opens the maker. */
- .pAdd{display:inline-flex;align-items:center;gap:var(--sp-8);min-height:var(--tap-min);padding:0 var(--sp-14);
-  border:0;border-radius:var(--r-sm);background:var(--i100);box-shadow:var(--rim-i1);
-  color:var(--c50);font-family:var(--sans);font-weight:600;font-size:var(--fs-caption);line-height:var(--lh-flat);
-  text-decoration:none;cursor:pointer;align-self:center;
-  transition:background-color var(--hover-out-dur) var(--ease-out),transform var(--ease-out-dur) var(--ease-out)}
- .pAdd:hover{background:color-mix(in oklab,var(--i100) 60%,var(--c0))}
- .pAdd:active{transform:scale(var(--press-scale))}
- .pAdd:focus-visible{outline:var(--focus-w) solid var(--c50);outline-offset:2px}
- .pAdd[aria-disabled="true"]{opacity:.38;pointer-events:none}
- .pAdd svg{width:var(--ico-sm);height:var(--ico-sm);flex:0 0 auto}
- .pCrowdN{align-self:center;font-family:var(--sans);font-size:var(--fs-micro);letter-spacing:var(--tr-caps);text-transform:uppercase;color:var(--i700);opacity:.8}
 
  /* ---- THE TEAM SCREEN. Not a modal over black: the whole reason the tray was
     promoted out of its 300px corner box is that this is the moment before a
@@ -290,61 +189,77 @@
     width, and stretched to 1280 the sides read as two empty fields with a few stickers in
     them. The panel is as wide as its content wants to be and no wider. */
  .pTeamIn{pointer-events:auto;box-sizing:border-box;width:100%;max-width:920px;margin:0 auto;
-  padding:var(--sp-16);border-radius:var(--r-lg);background:var(--mat-i3-solid);box-shadow:var(--rim-i2),var(--rim-top)}
+  padding:var(--sp-16);border-radius:var(--r-lg);background:var(--c0);box-shadow:var(--rim-1)}
  .pTeamBar{display:flex;align-items:center;justify-content:space-between;gap:var(--sp-12);margin-bottom:var(--sp-12)}
  /* margin-right:auto rather than space-between doing the work: the bar is Back, then the
     title, then Shuffle pushed to the far end. Back and the title are one leading group --
     a title floated to the centre between two buttons reads as a dialog caption, and this
     is a screen. */
- .pTeamTitle{font-family:var(--sans);font-weight:600;font-size:var(--fs-h5);line-height:var(--lh-tight);letter-spacing:var(--tr-sub);color:var(--c50);margin:0 auto 0 0}
+ .pTeamTitle{font-family:var(--sans);font-weight:600;font-size:var(--fs-h5);line-height:var(--lh-tight);letter-spacing:var(--tr-sub);color:var(--c950);margin:0 auto 0 0}
  .pBtnBack{padding-left:var(--sp-12)}
  .pTeamActs{display:flex;align-items:center;gap:var(--sp-8)}
  .pBtn{display:inline-flex;align-items:center;justify-content:center;gap:var(--sp-8);
   min-height:var(--tap-min);padding:0 var(--sp-16);border:0;border-radius:var(--r-sm);
-  background:var(--i100);box-shadow:var(--rim-i1);color:var(--c50);
+  background:var(--c0);box-shadow:var(--rim-2);color:var(--c950);
   font-family:var(--sans);font-weight:600;font-size:var(--fs-small);line-height:var(--lh-flat);cursor:pointer;
   transition:background-color var(--hover-out-dur) var(--ease-out),transform var(--ease-out-dur) var(--ease-out)}
- .pBtn:hover{background:color-mix(in oklab,var(--i100) 60%,var(--c0))}
+ /* The rest-state fill stays (this is the secondary kind and it has a ground); what may not
+    move on hover is that fill. Ink to full white and the icon's stroke up with it. */
+ .pBtn:hover{color:var(--c950);box-shadow:var(--rim-3)}
+ .pBtn:hover svg{stroke-width:var(--ico-stroke-strong)}
  .pBtn:active{transform:scale(var(--press-scale))}
- .pBtn:focus-visible{outline:var(--focus-w) solid var(--c50);outline-offset:2px}
+ .pBtn:focus-visible{outline:var(--focus-w) solid var(--c950);outline-offset:var(--sp-2)}
  .pBtn svg{width:var(--ico-sm);height:var(--ico-sm);flex:0 0 auto}
  /* --accent-dark, not --accent: tokens.css defines --accent-dark as the accent's
     dark-ground rung (oklch 72%), and the mid-tone blue that carries white text on paper
     does not carry it on near-black. Same colour, the rung the ground asks for. */
- .pBtnGo{background:var(--accent-dark);color:var(--c950);box-shadow:none;padding:0 var(--sp-32)}
- .pBtnGo:hover{background:color-mix(in oklab,var(--accent-dark) 82%,var(--c0));box-shadow:none}
+ .pBtnGo{background:var(--accent);color:var(--c0);box-shadow:none;padding:0 var(--sp-32)}
+ /* The primary cannot answer with ink -- it is already full-contrast on its own fill -- so it
+    takes the one affordance the rule permits a large target instead: a hairline. No fill move. */
+ .pBtnGo:hover{box-shadow:inset 0 0 0 var(--hair-w) var(--c0)}
  .pTeamCols{display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-12)}
  /* rgb(var(--tc1)) / rgb(var(--tc2)) are the match's own team channels -- the
     same custom properties play.css:170-174 paints the goals with, so the picker
     and the pitch cannot drift apart. The fallbacks are play-engine's defaults. */
- .pTeamCol{border-radius:var(--r-md);padding:var(--sp-12);min-height:118px;border:1.5px solid}
+ /* THE RIM IS A box-shadow, NEVER A border (control system §2.2). The border added 3px to
+    each column's box, which is exactly why these paddings never lined up with anything else
+    on the page; an inset shadow renders identically and sits outside layout. */
+ .pTeamCol{border-radius:var(--r-md);padding:var(--sp-12);min-height:calc(var(--tap-min) * 2 + var(--sp-30));border:0}
  /* On black the two sides read the other way round from the paper version: the tint goes UP
     in alpha and the header takes the team colour at full strength rather than a darkened
     print variant, because a 190,58,47 red on near-black is mud. */
- .pTeamCol.red{border-color:rgba(var(--tc1,224,90,78),.5);background:rgba(var(--tc1,224,90,78),.12)}
- .pTeamCol.blue{border-color:rgba(var(--tc2,90,160,216),.5);background:rgba(var(--tc2,90,160,216),.12)}
+ .pTeamCol.red{box-shadow:inset 0 0 0 var(--hair-w) rgba(var(--tc1,224,90,78),.45);background:rgba(var(--tc1,224,90,78),.055)}
+ .pTeamCol.blue{box-shadow:inset 0 0 0 var(--hair-w) rgba(var(--tc2,90,160,216),.45);background:rgba(var(--tc2,90,160,216),.055)}
  .pTeamColHdr{display:flex;align-items:baseline;justify-content:space-between;gap:var(--sp-8);margin-bottom:var(--sp-12);font-family:var(--sans);font-weight:600;font-size:var(--fs-micro);letter-spacing:var(--tr-caps);text-transform:uppercase}
  .pTeamCol.red .pTeamColHdr{color:rgb(var(--tc1,224,90,78))}
  .pTeamCol.blue .pTeamColHdr{color:rgb(var(--tc2,90,160,216))}
- .pTeamColN{font-weight:400;color:var(--i700);letter-spacing:var(--tr-flat)}
+ .pTeamColN{font-weight:400;color:var(--c500);letter-spacing:var(--tr-flat)}
  .pTeamChips{display:flex;flex-wrap:wrap;gap:var(--sp-8);justify-content:center;align-content:flex-start}
  /* 88x104: the chip was 40x48 in the popover, which is a thumbnail. At this size it is a
     head -- you can tell whose face is on which side across the room, which is the only
     thing the screen is for. */
- .teamChip{width:88px;height:104px;border-radius:var(--r-sm);overflow:hidden;border:2px solid transparent;cursor:pointer;padding:0;background:var(--i100);
+ .teamChip{width:calc(var(--tap-min) * 2);height:calc(var(--tap-min) * 2 + var(--sp-16));border-radius:var(--r-sm);overflow:hidden;border:0;cursor:pointer;padding:0;background:var(--c100);
   touch-action:none;-webkit-user-select:none;user-select:none;
   transition:transform var(--ease-out-dur) var(--ease-out)}
  .teamChip:hover{transform:translateY(-2px)}
  .teamChip:focus-visible{outline:var(--focus-w) solid var(--accent);outline-offset:2px}
  .teamChip img{width:100%;height:100%;object-fit:cover;display:block}
- .teamChip.red{border-color:rgb(var(--tc1,224,90,78))}
- .teamChip.blue{border-color:rgb(var(--tc2,90,160,216))}
- .teamChip:focus-visible{outline:var(--focus-w) solid var(--c50);outline-offset:2px}
- .pTeamCol.dragOver{outline:2px dashed var(--i700);outline-offset:-3px}
+ /* The team ring comes off the border too, so a chip is exactly 88x104 whichever side it is
+    on -- as a 2px border it was 88x104 PLUS 4px and the two columns' grids disagreed by a
+    chip's worth across a full row. It rides an ::after rather than the chip's own inset
+    shadow because the <img> is a 100%-size child: an inset shadow paints under content, so
+    the photo covered the ring. The overlay paints over it and is pointer-events:none, so the
+    drag handler still sees the button. */
+ .teamChip{position:relative}
+ .teamChip::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none}
+ .teamChip.red::after{box-shadow:inset 0 0 0 var(--focus-w) rgb(var(--tc1,224,90,78))}
+ .teamChip.blue::after{box-shadow:inset 0 0 0 var(--focus-w) rgb(var(--tc2,90,160,216))}
+ .teamChip:focus-visible{outline:var(--focus-w) solid var(--c950);outline-offset:var(--sp-2)}
+ .pTeamCol.dragOver{outline:var(--focus-w) dashed var(--c500);outline-offset:-3px}
  .pTeamCol.red.dragOver{background:rgba(var(--tc1,224,90,78),.14)}
  .pTeamCol.blue.dragOver{background:rgba(var(--tc2,90,160,216),.14)}
  .pTeamFoot{display:flex;align-items:center;justify-content:space-between;gap:var(--sp-12);margin-top:var(--sp-12)}
- .pTeamHint{font-family:var(--sans);font-size:var(--fs-caption);letter-spacing:var(--tr-body);color:var(--i700)}
+ .pTeamHint{font-family:var(--sans);font-size:var(--fs-caption);letter-spacing:var(--tr-body);color:var(--c500)}
 
  /* ---- PHONE. The mobile audit calls this the site's best mobile page and the
     budget that makes it so is vertical: .hero is 65vh here (play.css:305) and
@@ -353,12 +268,10 @@
     four doors. --blur-1/2 are already 0 below 760px, and nothing here asks for
     a backdrop-filter at any width. ---- */
  @media(max-width:760px){
-  .pHub{padding-top:calc(var(--nav-h) + var(--sp-24));padding-bottom:var(--sp-16)}
+  .pHub{padding-top:calc(var(--nav-h) + var(--sp-40) + var(--sp-8));padding-bottom:var(--sp-16)}
   .pCards{grid-template-columns:1fr 1fr;gap:var(--sp-8)}
-  .pCard{padding:var(--sp-10) var(--sp-12);gap:var(--sp-4);min-height:66px}
-  .pCardD,.pCardOut{display:none}
-  .pCrowd{gap:var(--sp-6);margin-top:var(--sp-12)}
-  .mhItem img{width:34px;height:40px}
+  .pCard{padding:var(--sp-10) var(--sp-12);gap:var(--sp-4);min-height:calc(var(--tap-min) * 1.5)}
+  .pCardD{display:none}
   /* THE ONE PLACE THE PHONE RUNS OUT OF ROOM. Measured at 390x844: .hero is 65vh here
      (play.css:305), so the shared feet line lands at 673 and the two rows of cards begin at
      668 -- the heads' lower 65px were behind the menu. The title block and the crowd strip
@@ -370,17 +283,15 @@
   body.pHubOn .hero{height:57vh}
   .pTeamIn{padding:var(--sp-12)}
   .pTeamCols{gap:var(--sp-8)}
-  .pTeamCol{padding:var(--sp-8);min-height:96px}
-  .teamChip{width:56px;height:66px}
+  .pTeamCol{padding:var(--sp-8);min-height:calc(var(--tap-min) * 2 + var(--sp-8))}
+  .teamChip{width:calc(var(--tap-min) + var(--sp-12));height:calc(var(--tap-min) * 1.5)}
   .pTeamFoot{flex-direction:column;align-items:stretch}
   .pTeamHint{text-align:center;order:2}
   .pBtnGo{width:100%}
  }
- /* .pSub used to be dropped under 400px on a vertical-budget guess. Measured at 390x844
-    after the .hero fix above: there is ~150px of empty sky between the crowd strip and the
-    terminator, and the line costs ~40px. It stays -- it is the sentence that sorts the four
-    cards into two pairs before they are read, and the phone is the width where the cards
-    have already lost their descriptions and need it most. */
+ /* NOTE FOR WHOEVER LANDS THE HEAD-LEVEL DELETE: --tap-min is already the floor everywhere
+    on this page, and the X-on-a-head pattern being designed for the home dropdown and the
+    maker should arrive here unchanged rather than as a fourth variant. */
 
  /* ---- #tHeadEdge's flood, made REACHABLE rather than changed.
     The filter floods the cut-out's edge ring with #FDFDFD -- an invisible cut-line on
@@ -392,7 +303,7 @@
     one rule turns it into a token with the old value as its default: whoever takes the
     tournament dark sets --head-edge next to the ground they set, in the same pass, instead
     of discovering it in a screenshot. ---- */
- #tHeadEdge feFlood{flood-color:var(--head-edge,#FDFDFD)}
+ #tHeadEdge feFlood{flood-color:var(--head-edge)}
 </style>
 <link rel="stylesheet" href="header.css">
 <script src="header.js" defer></script>
@@ -409,12 +320,11 @@
      The lockup, Home and About all go to index.html; Games names this page's
      own URL, so it is the site's only aria-current="page". -->
 <div class="jbStick isFixed">
- <!-- data-surface="ink": the header component's OWN dark mode, the one gradientlab.html
-      already runs (gradientlab.html:222). Nothing about header.css changes -- the ink
-      surface is five custom properties it already defines (header.css:314) and this page
-      is now the second one to ask for them. Jayden: "Already built the dark mode header
-      in the gradient maker." -->
- <nav class="jbNav" aria-label="Primary" data-surface="ink">
+ <!-- data-surface="paper", same as every other page. This page ran data-surface="ink" for one
+      round while the lobby was dark; Jayden saw it and reversed it ("shouldn't be dark mode").
+      The ink surface is untouched in header.css and gradientlab.html still uses it -- what
+      changed is only that this page stopped asking for it. -->
+ <nav class="jbNav" aria-label="Primary" data-surface="paper">
   <span class="jbGrp jbGrpL">
    <a class="jbHome" href="index.html" aria-label="Jayden Betts, home"><svg class="jbLogo" viewBox="0 0 30 30" aria-hidden="true"><path d="M1 26.3842C3.07605 22.5364 9.00761 17.1494 16.1255 26.3842C23.2434 35.619 14.1981 18.1678 16.1255 8.65665C18.0529 -0.854479 32.3186 -2.22723 28.2852 8.65665C24.2517 19.5405 18.6968 18.261 20.8493 13.2232C23.0018 8.1853 35.3661 26.1679 23.0066 27.4872"/></svg></a>
   </span>
@@ -458,11 +368,6 @@
 <svg class="glasses" id="glasses" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><defs><pattern id="glCard" patternUnits="userSpaceOnUse" width="100" height="100"><image href="images/glass_frame_tex.webp" x="0" y="0" width="100" height="100" preserveAspectRatio="xMidYMid slice"/></pattern><linearGradient id="glSheen" x1="0" y1="0" x2="0.62" y2="1"><stop offset="0" stop-color="#fff" stop-opacity="0.5"/><stop offset="0.4" stop-color="#fff" stop-opacity="0.06"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient><mask id="glMask" maskUnits="userSpaceOnUse" x="0" y="0" width="100" height="100"><rect x="28" y="45.3" width="44" height="13.2" rx="2.4" fill="#fff"/><polygon points="28,47.2 26,48 26,50.4 28,51.2" fill="#fff"/><polygon points="72,47.2 74,48 74,50.4 72,51.2" fill="#fff"/><rect x="32.5" y="47.3" width="13" height="9.2" rx="1.8" fill="#000"/><rect x="54.5" y="47.3" width="13" height="9.2" rx="1.8" fill="#000"/><path d="M46.7 58.6 Q50 54.3 53.3 58.6 Z" fill="#000"/></mask></defs><rect class="gl-red" x="32.5" y="47.3" width="13" height="9.2" rx="1.8"/><rect class="gl-cyan" x="54.5" y="47.3" width="13" height="9.2" rx="1.8"/><rect class="gl-plast" x="32.5" y="47.3" width="13" height="9.2" rx="1.8" fill="url(#glSheen)"/><rect class="gl-plast" x="54.5" y="47.3" width="13" height="9.2" rx="1.8" fill="url(#glSheen)"/><rect x="0" y="0" width="100" height="100" fill="url(#glCard)" mask="url(#glMask)"/></svg></div></div>
  </div>
 </div>
-<!-- The sky. One element, two background layers, zero JS, zero canvas, zero rAF --
-     research §7.2.1: this page already runs one WebGL context (the lava engine) and one
-     rAF loop PER HEAD, so the most-seen surface on it has to cost a paint and nothing else.
-     aria-hidden and pointer-events:none: it is weather, not furniture. -->
-<div class="playSky" aria-hidden="true"></div>
 <main class="hero" id="playArena"></main>
 <!-- ===== THE HUB. The page's resting state: a title block on the sky, four doors on the
      paper, and the stage running live between them. play-games.js shows and hides it off
@@ -474,20 +379,16 @@
      destination reads it yet (both are other passes' files), so it is inert and harmless
      until they do. ===== -->
 <div class="pHub" id="pHub">
- <div class="pHubTop">
- <header class="pHubHead">
-  <p class="pEyebrow">Play</p>
-  <h1 class="pTitle">Four things you can do with a head.</h1>
-  <p class="pSub">Two are soccer. Two you leave with something. All of them are real things I built, not mockups.</p>
- </header>
- <!-- WHO IS ON THE PLANET, and the way to change it. Directly under the title because it
-      answers "who is here", which is a different question from the four doors' "what can I
-      do". #pCrowd is filled by play-games.js; each tile is a head with its own remove
-      control on a second row (never over the thumbnail), and the count is a real readout so
-      the 8-head cap is never a silent failure. Adding YOUR head is the Add your head card
-      below -- one command, one label, one place (NN/g), so it is not repeated here. -->
- <div class="pCrowd" id="pCrowd"></div>
- </div>
+ <!-- NO HERO BLOCK, NO CROWD STRIP. Both were built and both came out on Jayden's call:
+      "no stupid hero header that looks bad with random head PNGs floating -- the heads are
+      clearly visible below." He is right on the second point in particular; a row of head
+      thumbnails above the fold was a weaker second statement of the thing the planet and the
+      crowd already say. What went: the eyebrow/title/sub block (three type sizes), the
+      thumbnail strip, its per-head remove control and the "Add an egghead" button.
+      THE CAPABILITY DID NOT GO WITH IT. addEgghead() and the remove path still exist in
+      play-games.js and are exposed as window.__hmAddEgghead / __hmRemoveHead, so the pattern
+      the head-level delete lands as (coordinated, not a fourth variant) can drive them
+      without rebuilding anything. See the report for where I think they belong. -->
  <!-- ===== THE FOUR DOORS.
       THE COPY IS RESEARCHED, and the constraint that decided it is in this same file:
       under 760px, `.pCardD,.pCardOut{display:none}` (see the phone block above). On a
@@ -511,26 +412,22 @@
   <button class="pCard" id="pcExped" type="button">
    <svg class="gIco" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"/><path d="M12 7l4.76 3.45l-1.76 5.55h-6l-1.76 -5.55l4.76 -3.45"/><path d="M12 7v-4m3 13l2.5 3m-.74 -8.55l3.74 -1.45m-11.44 7.05l-2.56 2.95m.74 -8.55l-3.74 -1.45"/></svg>
    <span class="pCardT">Play a match</span>
-   <span class="pCardD">Split the heads into two teams and watch them play soccer.</span>
-   <span class="pCardOut">Pick the teams first</span>
+   <span class="pCardD">Split the heads into two teams and watch them play soccer. You pick the teams first.</span>
   </button>
   <button class="pCard" id="pcTour" type="button">
    <svg class="gIco" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 4a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/><path d="M18 10a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/><path d="M2 12a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/><path d="M2 20a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/><path d="M6 12h3a1 1 0 0 1 1 1v6a1 1 0 0 1 -1 1h-3"/><path d="M6 4h7a1 1 0 0 1 1 1v10a1 1 0 0 1 -1 1h-2"/><path d="M14 10h4"/></svg>
    <span class="pCardT">Tournament</span>
-   <span class="pCardD">A whole cup of matches, with a bracket, goals and a winner.</span>
-   <span class="pCardOut">One match at a time</span>
+   <span class="pCardD">A whole cup of matches, one at a time, with a bracket, goals and a winner.</span>
   </button>
   <a class="pCard" id="pcHead" href="headmaker.html?from=play">
    <svg class="gIco" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0"/><path d="M16 19h6"/><path d="M19 16v6"/><path d="M6 21v-2a4 4 0 0 1 4 -4h4"/></svg>
    <span class="pCardT">Add your head</span>
-   <span class="pCardD">Upload a photo of your face, cut it out, and it joins the crowd.</span>
-   <span class="pCardOut">Opens a new page</span>
+   <span class="pCardD">Upload a photo of your face and cut it out on a new page. It comes back and joins the crowd.</span>
   </a>
   <a class="pCard" id="pcGrad" href="gradientlab.html?from=play">
    <svg class="gIco" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3m0 2a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v14a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2z"/><path d="M3 15l6 -6l4 4l3 -3l5 5"/><path d="M8.5 8.5m-1.5 0a1.5 1.5 0 1 0 3 0a1.5 1.5 0 1 0 -3 0"/></svg>
    <span class="pCardT">Make a gradient</span>
-   <span class="pCardD">Dial a planet of coloured light and leave with the image and the code.</span>
-   <span class="pCardOut">Opens a new page</span>
+   <span class="pCardD">Dial a planet of coloured light on a new page, and leave with the image and the code.</span>
   </a>
  </nav>
 </div>
