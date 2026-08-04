@@ -258,9 +258,27 @@
  // Live tuning knob, per the research's pass-0 recommendation: type __hmSag(0) in the console and the
  // render is the old build exactly; __hmSag() reads the current value back.
  try{window.__hmSag=function(v){if(v===undefined)return ARC.sag();ARC.set(v);return ARC.sag();};}catch(_){}
- var REFL_K=0.9;   // the reflection reads at 90% of the contact shadow's strength. The ONLY number that
- // separates the two, on purpose: everything else about how they answer "how far off the ground is
- // this head" is the same two values, so they cannot drift apart as either is tuned.
+ // THE REFLECTION'S STRENGTH, relative to the contact shadow. This is the ONLY number separating the
+ // two -- everything else about how they answer "how far off the ground is this head" is the same
+ // two values, so they cannot drift apart as either is tuned. It is read from --head-refl-gain once
+ // per layout rather than per frame (a custom-property read is a style lookup; 15 heads x 60fps is
+ // not the place for one), which keeps the per-frame cost at transform + opacity and nothing else.
+ // A dark surface sets --head-refl-gain on body the same way it sets --head-shadow.
+ var REFL_K=0.9;
+ // PERSPECTIVE COMPRESSION -- the reason a straight scale(1,-1) reads as a pasted, flipped copy.
+ // A mirror is not what a viewer standing above a reflective surface sees: the reflection recedes
+ // away from the eye while the object rises toward it, so the reflected image is vertically
+ // FORESHORTENED. Derived, not picked. Assumed camera: the low side-on broadcast view this stage
+ // already implies -- eye 2.2 head-heights above the pitch and 5.5 back, i.e. the waterline sitting
+ // 21.8deg below the horizon. For an object of height h at horizontal distance D with the eye at e:
+ //     object angular height     = atan((h-e)/D) + atan(e/D)   = 0.1657 rad
+ //     reflection angular height = atan((h+e)/D) - atan(e/D)   = 0.1460 rad
+ //     ratio                                                   = 0.881
+ // Worth being honest about the size of this: perspective compression is real but it is NOT the
+ // biggest tell -- at any plausible camera it lands between 0.88 and 0.93, and only a very high
+ // viewpoint (which this flat side-on stage does not have) compresses harder. The falloff shape,
+ // the surface breaking the image up and the contrast loss (all in play.css) are each worth more.
+ var REFL_PERSP=0.88;
  // The drawn surface. Two elements, no canvas, no WebGL, no rAF: .hmPlanet carries the ground passes
  // and is masked to an ellipse whose top edge IS arcY (so the horizon and the feet cannot disagree),
  // .hmSky carries the rim that escapes the silhouette upward plus the band of not-page-background above
@@ -287,6 +305,8 @@
   h.style.setProperty("--pl-b",B.toFixed(1)+"px");
   h.style.setProperty("--pl-cy",(B+PL_UP).toFixed(1)+"px");
   h.style.setProperty("--pl-top",(groundY-PL_UP).toFixed(1)+"px");   // all three elements share ONE box, so the horizon they draw and the arc the heads walk cannot drift apart
+  var _rk=parseFloat(getComputedStyle(h).getPropertyValue("--head-refl-gain"));
+  if(_rk===_rk&&_rk>=0)REFL_K=_rk;   // NaN-safe: an unset property parses to NaN and leaves the 0.9 default standing
   h.classList.toggle("hmFlatPitch",!(S>0));   // SAG=0 is the revert switch, so it has to take the DRAWN planet with it: a zero-height mask ellipse is degenerate, and "no curve" should mean the pitch exactly as it was.
  }
  function spawnCompanion(data,slot){
@@ -338,10 +358,10 @@
  // inline style attribute written by JS, so a dark ground would have left every head with a black
  // smudge under it and nothing to stand on. Routing the ink through two custom properties fixes that
  // without moving the declaration: an inline var() still resolves against the element's own INHERITED
- // custom properties, so play.css (or a dark block on body, or index.html) can rebind --hm-contact
+ // custom properties, so play.css (or a dark block on body, or index.html) can rebind --head-shadow
  // and this picks it up. With neither property defined the fallbacks are the old 8,8,8 / .26 exactly,
  // so index.html -- which loads this same file -- renders byte-for-byte what it rendered before.
- shadow.style.cssText="position:absolute;left:0;top:0;width:"+HW+"px;height:"+(HW*0.22)+"px;border-radius:50%;background:radial-gradient(ellipse at center,rgba(var(--hm-contact,8,8,8),var(--hm-contact-a,.26)),rgba(var(--hm-contact,8,8,8),0) 70%);pointer-events:none;z-index:2;opacity:0;transition:opacity .5s cubic-bezier(.2,.8,.2,1);will-change:transform";
+ shadow.style.cssText="position:absolute;left:0;top:0;width:"+HW+"px;height:"+(HW*0.22)+"px;border-radius:50%;background:radial-gradient(ellipse at center,rgba(var(--head-shadow,8,8,8),var(--head-shadow-a,.26)),rgba(var(--head-shadow,8,8,8),0) 70%);pointer-events:none;z-index:2;opacity:0;transition:opacity .5s cubic-bezier(.2,.8,.2,1);will-change:transform";
  // THE REFLECTION. One silhouette div per head, on the SAME source the face rig already uses
  // (data.cut) -- not a clone of the head. The head is a rig (cut-out layers, two eyes with their
  // ::before/::after iris stacks, brows, mouth, crown, HP bar); cloning it would double the DOM and
@@ -932,7 +952,7 @@
     else{ringEl.style.background="rgb("+tcol+")";ringEl.style.opacity="1";}   // a solid team-coloured outline
     shadow.style.background="radial-gradient(ellipse at center,rgba("+tcol+",.42),rgba("+tcol+",0) 70%)";}   // the shadow wears the team colour too
    if(S9&&!S9.on&&soccerOn){soccerOn=false;soccerWon=false;ringEl.style.opacity="0";crownEl.style.opacity="0";if(filler&&mjClone)mjClone.style.filter="none";
-    shadow.style.background="radial-gradient(ellipse at center,rgba(var(--hm-contact,8,8,8),var(--hm-contact-a,.26)),rgba(var(--hm-contact,8,8,8),0) 70%)";   // back to the ground's own ink, through the same two properties spawn uses -- a hard literal here would have quietly re-blacked every shadow the moment a match ended, whatever surface it ended on
+    shadow.style.background="radial-gradient(ellipse at center,rgba(var(--head-shadow,8,8,8),var(--head-shadow-a,.26)),rgba(var(--head-shadow,8,8,8),0) 70%)";   // back to the ground's own ink, through the same two properties spawn uses -- a hard literal here would have quietly re-blacked every shadow the moment a match ended, whatever surface it ended on
     if(!killed){shown=true;root.style.opacity="1";root.style.filter="blur(0)";shadow.style.opacity="1";root.style.display="";shadow.style.display="";
      var fs9=Math.random()<0.5;x=fs9?WL+2:WR-2;y=floorY-(140+Math.random()*240);dir=fs9?1:-1;air=true;st="fall";surface=floorY;
      vx=dir*(360+Math.random()*240);vy=-(120+Math.random()*260);if(Math.random()<0.35)startFlip();}}
@@ -1331,7 +1351,7 @@
   // 3. IT SHRINKS AND WEAKENS WITH HEIGHT, OFF THE SHADOW'S OWN NUMBERS. Not a second curve: the
   //    literal shScale and shOp computed above for the contact shadow. The shadow flattens in x, the
   //    reflection foreshortens in y, and both fade -- one fact, two readings, incapable of
-  //    disagreeing. REFL_K is the only thing that separates them, and it is a constant.
+  //    disagreeing. Only two constants separate them, REFL_K and REFL_PERSP, and neither varies.
   // 4. THE CONTACT SHADOW IS NOT TOUCHED. It is the one shadow this site keeps, because the heads
   //    stand on something. The reflection is added underneath it, never in place of it, and the
   //    shadow's law above is the same law it always had -- only lifted out of a string.
@@ -1357,7 +1377,7 @@
   if(soccerOn&&!elim&&!window.__hmLavaOn){
    if(_reflFoot!==FOOT){_reflFoot=FOOT;refl.style.transformOrigin="50% "+(FOOT*100).toFixed(2)+"%";}   // FOOT arrives from an image onload, so it can change once after spawn
    var _wY=floorY+HH*FOOT+_ay;   // the FEET plane itself, not the shadow's drawn top edge -- the shadow is nudged 2px up so its ellipse sits under the chin, and inheriting that nudge would have floated every reflection 2px off the water
-   refl.style.transform="translate("+_rx.toFixed(1)+"px,"+(_wY-HH*FOOT).toFixed(1)+"px) scale(1,-1) rotate("+rot.toFixed(1)+"deg) scale("+_rsx.toFixed(3)+","+(_rsy*shScale).toFixed(3)+")";
+   refl.style.transform="translate("+_rx.toFixed(1)+"px,"+(_wY-HH*FOOT).toFixed(1)+"px) scale(1,-1) rotate("+rot.toFixed(1)+"deg) scale("+_rsx.toFixed(3)+","+(_rsy*shScale*REFL_PERSP).toFixed(3)+")";
    refl.style.opacity=(shOp*REFL_K).toFixed(3);
   }else if(refl.style.opacity!=="0")refl.style.opacity="0";   // off the pitch this is one string compare per head per frame and nothing else
   if(crowdT>0.65&&!air&&!grabbed&&!perched){crowdT=0;   // squeezed too long: it hops out of the scrum

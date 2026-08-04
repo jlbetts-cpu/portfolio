@@ -253,13 +253,21 @@ body.hmSoccer .moodMenu .moodItem:not(#endGame),body.hmSoccer .moodMenu .moodGo{
  /* THE CONTACT SHADOW'S INK, made reachable. play-engine.js writes the head shadow as an inline
     cssText string, and nothing in a stylesheet can reach an inline style attribute -- so on a dark
     ground every head would have kept a black smudge under it and silently stopped being grounded.
-    The engine now writes rgba(var(--hm-contact,8,8,8),var(--hm-contact-a,.26)), and an inline var()
+    The engine now writes rgba(var(--head-shadow,8,8,8),var(--head-shadow-a,.26)), and an inline var()
     still resolves against inherited custom properties, so rebinding these two on body is all a dark
     surface has to do. The values here are the ones the engine has always used, so this changes
     nothing today; it only makes the change possible. The heads keep their shadow -- it is the one
     shadow this site keeps, because they stand on something. */
- --hm-contact:8,8,8;
- --hm-contact-a:.26;
+ --head-shadow:8,8,8;
+ --head-shadow-a:.26;
+
+ /* THE REFLECTION'S STRENGTH, for the same reason. The reflection reads at this fraction of the
+    contact shadow's opacity -- the one number separating two readings of the same fact -- and the
+    engine picks it up once per layout, not per frame. A dark surface that wants a lighter, weaker
+    reflection changes this rather than forking the engine. Everything else about how the reflection
+    LOOKS (its saturate(), its mask ramp) is already in a stylesheet below and overridable there;
+    this was the only piece of its appearance stranded in JS. */
+ --head-refl-gain:0.9;
 }
 .hmPlanet,.hmSky,.hmWater{position:absolute;left:0;right:0;top:var(--pl-top,62%);height:var(--planet-h);
  pointer-events:none;opacity:0;transition:opacity .6s var(--ease-out)}
@@ -356,11 +364,53 @@ body.hmSoccer .hmPlanet,body.hmSoccer .hmSky,body.hmSoccer .hmWater{opacity:1}
    file for `position:absolute` was a static full-height block in the home page's flow -- one per
    head. Visibility stays here (opacity:0, and the two overrides below), because inline beats a
    stylesheet and inlining it would have made those overrides unreachable. */
+/* WHY IT READ AS A STICKER, and what each line does about it. Jayden: "I realize the reflections
+   aren't real at all -- like they are fake reflections." He was right and the cause was geometric:
+   a straight scale(1,-1) is a MIRROR, and a mirror is not what someone standing above a reflective
+   surface sees. Four fixes, in order of how much each is worth:
+
+   1 FALLOFF, and it has to be CONVEX. Reflection intensity drops with distance from the surface, so
+     the pixels at the waterline are nearly as strong as the head and the crown is gone. The old ramp
+     was linear (100% -> 40% -> 0 over even steps), and a linear ramp reads as a FADE, which is a
+     different thing entirely. This one holds 78% at 12% of the way up and is down to 12% by 56%:
+     strong where it touches, collapsing fast. `to top` because after the flip the element's BOTTOM
+     is the waterline.
+   2 THE SURFACE EATS INTO IT (see the @supports block below). The ripple used to live only in
+     .hmWater, painted OVER the reflection -- which is an image with texture on top of it, not an
+     image in water. The same 16px band period is now a second MASK layer on the reflection itself,
+     intersected with the falloff, so the surface breaks the reflected image up instead of sitting
+     on it. Deliberately STATIC: mask-position is not a compositor-animated property, and animating
+     it would repaint every reflection every frame -- the one thing this whole build is designed
+     never to do. The motion stays in .hmWater passing over the top. If the break-up ever needs to
+     move as well, that is the known lever and it costs one raster per head per frame.
+   3 LOWER CONTRAST, NOT JUST LOWER OPACITY. A reflection loses contrast; it does not simply become
+     see-through. contrast(.72) with a small brightness lift is the difference between "dimmer copy"
+     and "reflection". Static, so it rasterises once and never again -- the per-frame writes are
+     still transform and opacity only.
+   4 NOT SHARPER THAN THE WATER -- handled by 2 and 3 rather than by a blur, on purpose. This file
+     still declares exactly two filter:blur() rules and neither is here. If it still reads crisp,
+     a 0.6px static blur is the next lever and the first thing that should be tried.
+
+   The vertical compression that goes with all this is a scale factor in the engine, not here --
+   see REFL_PERSP in play-engine.js for the camera it is derived from. */
 .hmRefl{position:absolute;left:0;top:0;z-index:1;pointer-events:none;opacity:0;
  transform-origin:50% 94%;will-change:transform,opacity;
- background-repeat:no-repeat;background-size:100% 100%;filter:saturate(.5);
- -webkit-mask-image:linear-gradient(to top,#000 0%,rgba(0,0,0,.4) 40%,transparent 82%);
-         mask-image:linear-gradient(to top,#000 0%,rgba(0,0,0,.4) 40%,transparent 82%)}
+ background-repeat:no-repeat;background-size:100% 100%;
+ filter:saturate(.42) contrast(.72) brightness(1.06);
+ -webkit-mask-image:linear-gradient(to top,#000 0%,rgba(0,0,0,.78) 12%,rgba(0,0,0,.34) 34%,rgba(0,0,0,.12) 56%,transparent 74%);
+         mask-image:linear-gradient(to top,#000 0%,rgba(0,0,0,.78) 12%,rgba(0,0,0,.34) 34%,rgba(0,0,0,.12) 56%,transparent 74%)}
+/* The ripple layer is added only where the compositing keyword actually works. Without
+   mask-composite the two layers would default to `add` -- a UNION, which would undo the falloff and
+   make the reflection more solid rather than less. So the base rule above stands alone as the
+   fallback and this is purely additive. */
+@supports ((mask-composite:intersect) or (-webkit-mask-composite:source-in)){
+ .hmRefl{
+  -webkit-mask-image:linear-gradient(to top,#000 0%,rgba(0,0,0,.78) 12%,rgba(0,0,0,.34) 34%,rgba(0,0,0,.12) 56%,transparent 74%),
+   repeating-linear-gradient(180deg,#000 0 9px,rgba(0,0,0,.42) 10px,rgba(0,0,0,.72) 12px,#000 16px);
+  -webkit-mask-composite:source-in;
+  mask-image:linear-gradient(to top,#000 0%,rgba(0,0,0,.78) 12%,rgba(0,0,0,.34) 34%,rgba(0,0,0,.12) 56%,transparent 74%),
+   repeating-linear-gradient(180deg,#000 0 9px,rgba(0,0,0,.42) 10px,rgba(0,0,0,.72) 12px,#000 16px);
+  mask-composite:intersect}}
 /* Reflections are the first thing to drop on a phone (research §5), where the full-screen arena also
    puts the waterline on the viewport floor with nothing under it to reflect into. */
 @media(pointer:coarse){.hmRefl{display:none}}
