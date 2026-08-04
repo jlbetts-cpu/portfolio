@@ -411,6 +411,21 @@
 /* Play sits in the leading group, so its panel hangs from the LEFT edge of the
    item rather than the right one.  Nothing else about it differs. */
 .jbPlay .jbDiscMenu{left:0;right:auto}
+/* ...but only while there is room to its right.  On a phone the centred trio puts
+   Play's left edge at x 236 of 390, so a 216px panel hanging rightward ends at 452
+   -- 62px past the viewport, and html{overflow-x:clip} makes that unreachable
+   rather than merely ugly: the mood labels lose their right 57px and a fourth
+   saved head is simply not on screen.  max-width:calc(100vw - var(--sp-32)) above
+   guards a panel WIDER than the screen; nothing guarded a panel whose left anchor
+   is already near the right edge.
+   The answer is play.html:58's, ported: anchor the panel to the SAME edge the bar
+   is running out of.  At 390 that puts it at 64->280, fully inside; at 320,
+   29->245.  Measured: the flip is only needed below ~520px, so it rides this
+   component's own 640 breakpoint and desktop is untouched (panel still 700->916
+   at 1280).  It must sit AFTER the rule it overrides -- same specificity, and a
+   media query adds none -- which is exactly how gradientlab.html's entire mobile
+   pass came to be dead code. */
+@media(max-width:640px){.jbPlay .jbDiscMenu{left:auto;right:0}}
 .jbDisc.open .jbDiscMenu{opacity:1;visibility:visible;transform:none;
   transition:opacity var(--ease-out-dur) var(--ease-out),
              transform var(--ease-out-dur) var(--ease-out)}

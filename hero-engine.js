@@ -1827,15 +1827,20 @@ if(!HEADONLY){stage.style.opacity="0";requestAnimationFrame(function(){requestAn
    setTimeout(function(){var ref=(old&&old.parentNode)?old:((cycWord&&cycWord.parentNode)?cycWord:null);
     if(ref){var nw=makeCycWord(idx,false,true);nw.classList.add("mdshow");ref.replaceWith(nw);cycWord=nw;}},560);  // real word + its dot token, inert; end-fn resumes cycling
   }
-  function clampMenuX(){ try{
-    if(!menu)return;
-    var wrap=document.querySelector(".wrap"); if(!wrap)return;
-    menu.style.left=""; menu.style.right="";
-    var w=wrap.getBoundingClientRect(), b=(btn||menu).getBoundingClientRect();
-    var mw=menu.offsetWidth;
-    if(b.left+mw<=w.right){ menu.style.left="0px"; menu.style.right="auto"; }   // fits under the word
-    else { menu.style.left="auto"; menu.style.right="0px"; }                    // would leave the column
-   }catch(_){} }
+  /* THE TWO GEOMETRY CLAMPS THAT USED TO LIVE HERE ARE GONE (mobile audit, B1).
+     clampMenuX() flipped the panel to right:0 when it "would leave the column",
+     and clampMenu() capped its height against the viewport. Both were written for
+     the pre-v2 mood dock, where #moodBtn was the trigger and #moodMenu WAS the
+     panel. In the v2 header #moodBtn does not exist and #moodMenu is the static
+     .jbDiscGrp holding the four mood buttons -- the panel is #moodbar. So they
+     were not merely dead: reached through the mouseenter path below (openM is
+     hoisted, so `typeof openM==="function"` is true there), clampMenu was writing
+     `top/bottom/max-height !important` onto a position:static inner div, which is
+     junk that the next person would read as a working safety net.
+     Both jobs now belong to CSS, where the panel's geometry already lived:
+     header.css:414 anchors it to the right edge below 640px, and .jbDiscMenu's
+     own max-height:var(--menu-max-h) + overflow-y:auto caps its height. One owner
+     for the panel's box, and it is the stylesheet. */
   function closeM(){bar.classList.remove("open");if(btn)btn.setAttribute("aria-expanded","false");try{var c=bar.parentElement;if(c)c.style.zIndex="";}catch(_){}setChevron();}
   // OPEN ON HOVER (pointer devices only). A menu that only opens on click makes you commit
   // before you can see what is in it; hovering to reveal is the whole feel Jayden is after.
@@ -1849,11 +1854,6 @@ if(!HEADONLY){stage.style.opacity="0";requestAnimationFrame(function(){requestAn
    bar.addEventListener("mouseenter",over);
    bar.addEventListener("mouseleave",out);
   })();
-  function menuOpensDown(){ // purely geometric now: Play lives in the header, so on desktop the menu drops DOWN
-   var b=(btn||menu).getBoundingClientRect();
-   var below=window.innerHeight-b.bottom-14, above=b.top-14;
-   return (below>=220||below>=above);
-  }
   function setChevron(){ // caret points toward where the menu will open when closed, and flips to point back when open
    var car=btn&&btn.querySelector(".moodCar");if(!car)return;
    var open=bar.classList.contains("open");
@@ -1867,22 +1867,7 @@ if(!HEADONLY){stage.style.opacity="0";requestAnimationFrame(function(){requestAn
    car.style.setProperty("transition","transform .32s cubic-bezier(.34,1.4,.5,1), color .2s cubic-bezier(.2,.8,.2,1)","important");
    car.style.setProperty("transform","rotate("+deg+"deg)","important");
   }
-  function clampMenu(){ // mobile: never let the tall Play menu run off the top/bottom of the screen
-   if(!menu)return;
-   var mobile=window.matchMedia&&window.matchMedia("(max-width:760px)").matches;
-   if(!mobile){menu.style.removeProperty("max-height");menu.style.overflowY="";menu.style.removeProperty("top");menu.style.removeProperty("bottom");return;}
-   var b=(btn||menu).getBoundingClientRect();
-   var below=Math.round(window.innerHeight-b.bottom-14), above=Math.round(b.top-14);
-   if(below>=220||below>=above){ // roomy below (or more room below): open downward, into the empty space under the CTA
-    menu.style.setProperty("top","calc(100% + 10px)","important");menu.style.setProperty("bottom","auto","important");
-    menu.style.setProperty("max-height",Math.max(160,below)+"px","important");
-   } else { // cramped below (short/landscape screen): flip up, where there's more room
-    menu.style.setProperty("bottom","calc(100% + 10px)","important");menu.style.setProperty("top","auto","important");
-    menu.style.setProperty("max-height",Math.max(160,above)+"px","important");
-   }
-   menu.style.overflowY="auto";
-  }
-  function openM(){bar.classList.add("open");requestAnimationFrame(function(){try{clampMenuX();}catch(_){}try{window.__syncMoodSeps&&window.__syncMoodSeps();}catch(_){}});if(btn)btn.setAttribute("aria-expanded","true");try{var c=bar.parentElement;if(c)c.style.zIndex="70";}catch(_){}clampMenu();setChevron();}
+  function openM(){bar.classList.add("open");requestAnimationFrame(function(){try{window.__syncMoodSeps&&window.__syncMoodSeps();}catch(_){}});if(btn)btn.setAttribute("aria-expanded","true");try{var c=bar.parentElement;if(c)c.style.zIndex="70";}catch(_){}setChevron();}
   setChevron(); // point the caret correctly at rest (down on mobile where the menu drops, up on desktop where it lifts)
   window.addEventListener("resize",function(){if(!bar.classList.contains("open"))setChevron();},{passive:true});
   if(btn)btn.addEventListener("click",function(e){e.stopPropagation();

@@ -49,9 +49,10 @@
  .heroHeadHost .stagewrap{position:relative;width:100%}
  /* Task 3: #moodMenu's own base rule (play.css:152) sets neither left nor right, so its
     static position defaults to moodBtn's LEFT edge and grows rightward by its own width.
-    Home gets away with that because a JS module (index.html:4273 clampMenuX, deliberately not
-    ported here -- see play-games.js's menu-open-glue comment) measures at open-time and flips
-    to right:0 when the menu "would leave the column". play.html's menu bar is pinned to the
+    Home used to get away with that because of a JS module (clampMenuX) that measured at
+    open-time and flipped to right:0 when the menu "would leave the column"; it was never
+    ported here, and as of the mobile audit it is deleted there too -- the v2 header outgrew
+    it and home now does the same static thing this rule does (header.css:414). play.html's menu bar is pinned to the
     right edge (right:16px, below), so left-aligned growth runs the menu off the viewport's
     right edge every time -- measured 70px of overflow at 1280px wide, worse on anything
     narrower, and body's overflow:hidden (line 9) makes the overflow unreachable, not just
