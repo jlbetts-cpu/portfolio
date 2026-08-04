@@ -131,7 +131,9 @@ body{background:var(--c50);color:var(--c950);font-family:var(--sans);-webkit-fon
 .dshadow{position:absolute;border-radius:var(--r-full);background:radial-gradient(ellipse 50% 50% at 50% 50%,rgba(8,8,8,.5),rgba(8,8,8,.3) 40%,rgba(8,8,8,.12) 62%,transparent 76%);transform:translate(-50%,-50%);z-index:-1;pointer-events:none;opacity:0;will-change:transform,left,top,width,height,opacity}
 .queueDots{position:absolute;left:50%;top:-7%;transform:translateX(-50%);display:flex;gap:.42rem;z-index:8;opacity:0;pointer-events:none;transition:opacity var(--ease-out-dur) var(--ease-out)}
 
-.moodHeads{display:flex;flex-wrap:wrap;gap:var(--sp-8);margin:var(--sp-8) var(--sp-4) var(--sp-2)}.moodHeads:empty{display:none}
+/* .moodHeads now comes from header.css so both pages share one geometry -- this
+   wrapping flex row was the other half of the split. Only this selector was touched
+   in this file. */
 .mhItem{position:relative}.mhItem img{width:34px;height:40px;object-fit:contain;background:var(--c100);border-radius:var(--r-2xs);display:block}
 .mhPick{padding:0;border:0;background:none;cursor:pointer;display:block;border-radius:var(--r-2xs);transition:box-shadow .18s var(--ease-out)}
 .mhPick:hover,.mhPick:focus-visible{box-shadow:0 0 0 1.5px var(--c500)}

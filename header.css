@@ -701,6 +701,29 @@
    the bar's ::after expander would only overlap the item above and below. */
 .jbNav .jbDiscMenu :is(a,button)::after{content:none}
 .jbDiscMenu .jbDiscGrp{display:flex;flex-direction:column;gap:var(--gap-bar)}
+/* ── THE SAVED-HEADS ROSTER, DECLARED ONCE ───────────────────────────────────
+   Jayden: "the layout of the 'your heads' dropdown for Play is really bad from a
+   math and UX standpoint."  It was declared THREE times -- index.html as a
+   wrapping flex row, play.css as the same wrapping flex row, and index.html again
+   as a 4-column grid scoped to .jbPlayMenu. The grid won on index and neither flex
+   copy did anything there, so the two pages rendered the same component to
+   different geometry. THAT DUPLICATION IS THE BUG, and it is the same shape as the
+   --lh-prose 1.6 -> 1.5 drift: one role, three declarations, nobody's job to keep
+   them equal.
+   A WRAPPING FLEX ROW IS THE "BAD MATH". flex-wrap gives every row its own
+   arithmetic: the last row is as wide as whatever is left over, so thumbnails do
+   not line up vertically from row to row and the column positions move as the
+   roster grows. A grid with fixed tracks gives four columns whose x-positions
+   repeat exactly -- measured 790/841/892/943 at 1440 and 78/129/180/231 at 390,
+   the same four columns at 1, 2, 3, 5 and 8 heads.
+   FOUR COLUMNS because readAll() slices the roster to 8, so four is at most two
+   tidy rows and never a third. The gap is --sp-6 and the tile is 45px: 4x45 + 3x6
+   = 198 inside a 216px panel, which clears both edges. 45 >= --tap-min is what
+   makes the edit-mode delete a legal 44x44 target, so the tile cannot shrink
+   further without breaking that. */
+.jbPlayMenu .moodHeads,.moodHeads{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:var(--sp-6);margin:var(--sp-6) var(--sp-4) var(--sp-2)}
+.jbPlayMenu .moodHeads:empty,.moodHeads:empty{display:none}
 /* a rule BETWEEN groups, at the site's own hairline weight */
 .jbDiscMenu .jbDiscSep{height:var(--hair-w);background:var(--c100);
   margin:var(--sp-6) var(--sp-8);flex:0 0 auto}

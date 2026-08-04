@@ -176,7 +176,16 @@
     /* --menu-max-h is where a panel stops growing and starts scrolling inside
        itself. Play's carries a saved-heads roster that has no fixed length, and
        a panel that runs past the fold cannot be closed by scrolling to it. */
- --menu-max-h:min(70svh,440px);
+ /* 440px was the binding constraint at every realistic desktop height -- 70svh only
+    bites below a 629px viewport -- so the Play panel scrolled with ONE head in it:
+    measured content 466px against a 440px cap, before the roster grew at all. That is
+    a scrollport firing when 630px of room was free, which is the opposite of what this
+    token is for. Re-derived from the space that actually exists: the viewport, less the
+    bar it hangs from, less one gutter top and bottom. At 900 that is 780 (the fullest
+    panel is 525, no scroll); at 700 it is 580 (still no scroll); below ~620 it scrolls,
+    which is the safety valve doing its real job rather than a fixed number doing it
+    everywhere. Raising this REMOVES a scrollport, it does not add one. */
+ --menu-max-h:calc(100svh - var(--nav-h) - var(--sp-16-24) - var(--sp-16-24));
 }
 
 /* ===========================================================================
