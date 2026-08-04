@@ -144,6 +144,19 @@ img{display:block;max-width:100%}
 .hmStep.shown{opacity:1;transform:none;filter:blur(0)}
 .siteFoot{margin-top:var(--sp-80-152);padding-bottom:var(--sp-32-48);text-align:center}
 .footReach{font-weight:400;font-size:var(--fs-prose);line-height:1.55;color:var(--c700);margin:0 auto;max-width:42ch;text-wrap:balance}
+/* THE SIGN-OFF, IDENTICAL ON ALL EIGHT PAGES THAT HAVE A FOOTER: status, thanks,
+   wordmark. The thanks sits --sp-8-16 from the mark because they are one sign-off; the
+   status keeps the wider gap because it is a different statement.
+   --fs-display is the right rung for the mark but its clamp floor of 68px overflows a
+   390px column, so min() holds it to the measure without leaving the scale.
+   Decorative and marked so: an <h2> reading "Jayden Betts" would invent a section and
+   land in every screen-reader heading list; the name is already in <title>.
+   play.html and gradientlab.html are the two pages WITHOUT this, deliberately -- both
+   compute overflow:hidden and cannot scroll, so a footer there is unreachable
+   furniture. Their header Contact control points at index.html#contact instead. */
+.footAvail{font-family:var(--sans);font-weight:600;font-size:var(--fs-label);letter-spacing:.01em;color:var(--c500);margin:0 0 var(--sp-8)}
+.footMark{font-family:var(--sans);font-weight:600;font-size:min(var(--fs-display),13vw);line-height:.9;letter-spacing:var(--tr-display);color:var(--c100);margin:var(--sp-8-16) 0 0;white-space:nowrap;-webkit-user-select:none;user-select:none}
+
 .footIn{font-weight:600;color:var(--c950);text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:3px;text-decoration-color:var(--c500)}
 .footIn:hover{text-decoration-color:var(--c950)}
 /* The footer links are the one control this page never got. index.html, and all
@@ -519,7 +532,9 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
  </div>
 
  <footer class="siteFoot" id="contact" role="contentinfo">
+  <p class="footAvail">Open to work</p>
   <p class="footReach">Thanks for checking out my website. I&rsquo;d love to chat, you can find me on <a class="footIn" href="https://www.linkedin.com/in/jaydenbetts" target="_blank" rel="noopener noreferrer">LinkedIn</a>, <a class="footIn" href="https://www.instagram.com/jaydenleebetts" target="_blank" rel="noopener noreferrer">Instagram</a>, or through <a class="footIn" href="mailto:jaydenlbetts@gmail.com">email</a>.</p>
+  <div class="footMark" aria-hidden="true">Jayden Betts</div>
  </footer>
 </div>
 
