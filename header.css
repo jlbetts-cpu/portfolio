@@ -426,6 +426,47 @@
    links, the case-study tabs, chips and every button keep the no-fill hover; the
    control-system spec still governs them and is not changed by this.
 
+   ROUND 12 REVERSES THE PARAGRAPH BELOW. Jayden, having looked at the shipped
+   bar: "why is the hover effect for the tabs still like that on the home after I
+   said to change it earlier." The settled rule is now stated in one line --
+   HOVER IS THE LIGHT GREY PILL, AND THE ICON GOES BOLD WITH THE TEXT -- and the
+   table above becomes:
+
+     state    ground              ink       weight   icon stroke
+     rest     none                --c700    400      --ico-stroke
+     hover    --nav-hover-bg      --c950    600      --ico-stroke-strong
+     active   --nav-active-bg     --c950    600      --ico-stroke-strong
+
+   WHY THE OLD REASONING DOES NOT SURVIVE. It was "hover must not go louder than
+   active on two of three axes, and active has to dominate." True as far as it
+   goes, and it produced a hover a visitor could not see: the pill is --c75 at
+   1.13:1 against the bar, which was doing the whole job alone. The premise it
+   missed is that ACTIVE AND HOVER DO NOT COMPETE, because a nav item cannot be
+   both -- the lit item is the page you are already on. A visitor comparing them
+   is comparing a hovered item with the *unhovered* ones beside it, and against
+   those this hover now moves on three axes instead of one.
+   The one case where they do coincide -- pointing at the lit item -- is
+   explicitly a no-op, and stays one: the rule below is written :not([aria-current])
+   so hovering the current page changes nothing at all. That was already the
+   answer and it is still the right one.
+
+   IT IS THE ICON'S RULE THAT WAS ACTUALLY MISSING, and the header already knew
+   it. Forty lines down, the lit item's own note states the round's standing rule:
+   "WHENEVER A NAV ITEM'S LABEL CHANGES WEIGHT OR INK, ITS ICON'S STROKE AND INK
+   CHANGE WITH IT. Half a control responding reads as an oversight rather than a
+   state." The lit item obeyed it; hover was never given the chance to, because
+   hover had no weight change to travel with.
+
+   THE REFLOW COST, measured on this bar rather than feared: the lit item's box
+   grows 0.7px going 400 -> 600 ("Work", 91.3 -> 92.0). That is the same 0.7px
+   under the pointer, an order of magnitude below anything that reads as
+   movement, and the pill it sits on is `background-color` on a box that already
+   exists -- no padding, no pseudo-element, no size change. `font-weight` is NOT
+   in the transition list for exactly this reason: an animated weight interpolates
+   through fractional widths for 240ms and that IS visible. It snaps; the ground
+   and the ink glide.
+
+   ---- superseded, kept so it is not re-derived and re-applied ----
    HOVER NO LONGER CHANGES INK, and that is deliberate rather than dropped: with
    a ground under it, darkening the label too would make hover louder than active
    on two of the three axes, and active has to dominate. The old rule survives on
@@ -447,11 +488,33 @@
 .jbGrp>.jbDisc:hover>.jbDiscGo,
 .jbGrp>.jbDisc:focus-within>.jbDiscGo{
   background-color:var(--nav-hover-bg);
+  /* the other two axes. :not([aria-current]) is on the ink/weight pair only, not
+     on the pill: the lit item already wears the pill, so re-declaring it is a
+     no-op, while re-declaring ink and weight would be too -- it is written out
+     so the intent survives someone changing --nav-active-ink. */
   /* hover-IN at --ease-out-dur, hover-OUT at --hover-out-dur (declared on the
      base rule): a control answers immediately and lets go gently. Equal timings
      read mechanical, and "the animation was too abrupt" is a note this bar has
-     already had once. */
-  transition:background-color var(--ease-out-dur) var(--ease-out)}
+     already had once. font-weight is deliberately absent from the list -- see
+     the note above; it snaps, the ground and the ink glide. */
+  transition:background-color var(--ease-out-dur) var(--ease-out),
+             color var(--ease-out-dur) var(--ease-out)}
+.jbGrp>:is(a,button):not(.jbHome,[aria-current]):hover,
+.jbGrp>.jbDisc:hover>.jbDiscGo:not([aria-current]),
+.jbGrp>.jbDisc:focus-within>.jbDiscGo:not([aria-current]){
+  color:var(--nav-ink-strong);font-weight:600}
+/* THE GLYPH COMES WITH THE LABEL. Ink already travelled -- .jbNav .gIco is
+   color:inherit -- so the stroke is the only half that was standing still.
+   Set on the SVG's own stroke-width, with --ico-md and vector-effect
+   :non-scaling-stroke both untouched, so the glyph's BOX is byte-identical in
+   both states and the label does not shift when the weight changes. Same value
+   the lit item uses (--ico-stroke-strong 2, which is Tabler's own next rung and
+   measures 1.98px against Instrument Sans's 400->600 stem step of x1.32). */
+.jbGrp>:is(a,button):not(.jbHome,[aria-current]):hover .gIco,
+.jbGrp>.jbDisc:hover>.jbDiscGo:not([aria-current]) .gIco,
+.jbGrp>.jbDisc:focus-within>.jbDiscGo:not([aria-current]) .gIco{
+  stroke-width:var(--ico-stroke-strong);
+  transition:stroke-width var(--ease-out-dur) var(--ease-out)}
 /* THE MARK KEEPS THE OLD INK-ONLY HOVER. It is a brand object, not a tab: a
    grey pill round a logo is the one place the fill reads as chrome clutter, and
    it is the only item in the bar that never takes the lit treatment either. */

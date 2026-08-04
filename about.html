@@ -31,6 +31,14 @@
 <!-- Icons: Tabler Icons (MIT) - Copyright (c) 2020-2026 Pawel Kuna
      https://github.com/tabler/tabler-icons/blob/main/LICENSE
      Stroke weight is owned by CSS (header.css / tokens.css), never by per-svg attributes. -->
+<!-- THE WEBFONT. This page declared no @font-face and preloaded no font, so
+     --sans's first name never resolved and every word on About rendered in
+     -apple-system -- SF Pro on a Mac, a different typeface from the rest of the
+     site. The faces now live in tokens.css (linked below) for all ten pages;
+     these two preloads are the same pair the other pages carry, so the font is
+     in flight with the stylesheet rather than one round trip behind it. -->
+<link rel="preload" as="font" type="font/woff2" href="fonts/instrument-sans-latin-400-normal.woff2" crossorigin>
+<link rel="preload" as="font" type="font/woff2" href="fonts/instrument-sans-latin-600-normal.woff2" crossorigin>
 <link rel="stylesheet" href="tokens.css">
 <style>
 /* ===========================================================================
@@ -289,7 +297,21 @@ body{background:var(--c50);color:var(--c950);font-family:var(--sans);-webkit-fon
    drift this system has been bitten by before. The token arbitrates. */
 .footReach{font-family:var(--sans);font-weight:400;font-size:var(--fs-prose);line-height:var(--lh-prose);color:var(--c700);margin:0 auto;max-width:42ch;text-wrap:balance}
 .footIn{font-weight:600;color:var(--c950);text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:3px;text-decoration-color:var(--c500);transition:text-decoration-color var(--ease-out-dur) var(--ease-out),color var(--ease-out-dur) var(--ease-out)}
-.footIn:hover{text-decoration-color:var(--c950)}
+/* one shape for this role on all seven pages -- see the case studies. */
+.footIn:hover,.footIn:focus-visible{color:var(--accent);text-decoration-color:var(--accent)}
+.footIn:active{color:var(--accent-press);text-decoration-color:var(--accent-press)}
+/* A 24.5px INLINE LINK IS A 40.5px TARGET, at every width.
+   The control system 3.3 (.ctl--quiet.is-inline): pad the BLOCK axis by --sp-8
+   and pull the margin back by the same amount. The hit area grows, the line box
+   does not move, and the paragraph does not reflow -- which is why this and not
+   a min-height. It is the one place a negative margin is the correct tool.
+   These are text inside prose, so they get no wash, no rim and no radius; ink
+   and their own underline carry every state (see the accent note in tokens.css).
+   index.html shipped this at <=768px only -- on a phone, where a fingertip is
+   already forgiving -- and not at the widths where a pointer has to find it. */
+.footIn,.abIn{display:inline-block;
+ padding-block:var(--sp-10);margin-block:calc(var(--sp-10) * -1)}
+
 /* The closing mark, same as index.html: --fs-display is the right register but its clamp
    floor of 68px overflows a 390px column, so min() holds it to the measure. Decorative --
    see the aria-hidden div in the footer. */
@@ -368,8 +390,7 @@ body{background:var(--c50);color:var(--c950);font-family:var(--sans);-webkit-fon
  </main>
 
  <footer class="siteFoot" id="contact" role="contentinfo">
-  <p class="footAvail">Open to work</p>
-  <p class="footReach">Thanks for checking out my website. I&rsquo;d love to chat, you can find me on <a class="footIn" href="https://www.linkedin.com/in/jaydenbetts" target="_blank" rel="noopener noreferrer">LinkedIn</a>, <a class="footIn" href="https://www.instagram.com/jaydenleebetts" target="_blank" rel="noopener noreferrer">Instagram</a>, or through <a class="footIn" href="mailto:jaydenlbetts@gmail.com">email</a>.</p>
+  <p class="footReach">Thanks for checking out my website &mdash; I&rsquo;m open to full-time roles and would love to chat. Find me on <a class="footIn" href="https://www.linkedin.com/in/jaydenbetts" target="_blank" rel="noopener noreferrer">LinkedIn</a>, <a class="footIn" href="https://www.instagram.com/jaydenleebetts" target="_blank" rel="noopener noreferrer">Instagram</a>, or <a class="footIn" href="mailto:jaydenlbetts@gmail.com">email</a>.</p>
   <div class="footMark" aria-hidden="true">Jayden Betts</div>
  </footer>
 </div>

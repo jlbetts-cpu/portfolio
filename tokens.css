@@ -8,27 +8,115 @@
    *consumes* these values) stays in each page's own <style> block -- this is not a
    stylesheet merge.
 
-   --accent means the interactive signal only (link/back-link hover) -- see
-   docs/superpowers/specs/2026-08-03-interactive-accent.md. It is unrelated to the
-   tournament's live-match green (--live-deep/--live-bright in index.html/play.css),
-   which this file does not define and never has a consumer for.
+   --accent means the interactive signal only (link/back-link hover, the primary
+   button's ground, focus rings). SINCE 2026-08-04 IT IS INK, NOT A HUE -- see the
+   block at the definition below. It is unrelated to the tournament's live-match
+   green (--live-deep/--live-bright in index.html/play.css), which this file does
+   not define and never has a consumer for.
 
    Wired as of 2026-08-03: the five case studies, plus play.html, headmaker.html and
    gradientlab.html. index.html is the last page still carrying its own copy -- that
    pass lands after the concurrent hero-engine extraction finishes there.
 
-   play.html overrides --accent in play.css, deliberately: it binds it to the
-   live-match green, which is what "this match is live" means on that page. That is the
-   one sanctioned re-binding of a token in this system; see play.css's own note. */
+   THERE IS NO SANCTIONED RE-BINDING OF --accent ANY MORE. play.css used to rebind it
+   to the live-match green and gradientlab.html to the same green; both are gone, and
+   both are why the name meant two different colours on one site. One token, one
+   meaning. If you are about to write `--accent:` outside this file, don't. */
 
-:root{--fs-statnum:clamp(34px,3.6vw,48px);--fs-pagehead-sm:clamp(30px,8.2vw,40px);--sp-8-16:16px;--sp-16-24:24px;--sp-16-32:32px;--sp-16-40:40px;--sp-16-56:56px;--sp-24-32:32px;--sp-24-40:40px;--sp-24-48:48px;--sp-32-48:48px;--sp-32-56:56px;--sp-32-64:64px;--sp-40-64:64px;--sp-40-72:72px;--sp-48-64:64px;--sp-48-72:72px;--sp-48-80:80px;--sp-56-96:96px;--sp-56-112:112px;--sp-64-168:168px;--sp-72-144:144px;--sp-80-152:152px;--c50:#FDFDFD;--c100:#E6E6E6;--c75:#F1F1F1;--c500:#757575;--c600:#6B6B6B;--c700:#525252;--c900:#212121;--c950:#121212;--yellow:#FED259;--accent:oklch(52% 0.18 262);--accent-press:oklch(44% 0.16 262);--accent-wash:oklch(94.7% 0.018 262);--accent-dark:oklch(72% 0.12 262);
+/* ===========================================================================
+   THE TYPEFACE ITSELF, and it lives here for one reason: PER-PAGE COPIES ARE
+   HOW THIS KEPT BREAKING.  2026-08-04.
+
+   --sans has always been declared in this file, but the @font-face rules that
+   make "Instrument Sans" resolvable were copied into each page's own <style>.
+   Two pages never got the copy, and on both of them --sans silently fell
+   through to the next name in the stack, -apple-system -- SF Pro on a Mac.
+   Measured with document.fonts.check(), not by reading declarations:
+
+     page          @font-face  preload   ACTUALLY RENDERED
+     about.html    0           0         SF Pro       <- bug
+     play.html     0           2         SF Pro       <- bug (preloaded a font
+                                                          it then never declared,
+                                                          which is why the
+                                                          Network tab looked fine)
+     the other 8   2           2         Instrument Sans
+
+   play.html had already been reported fixed once and was not, so the fix is a
+   SHARED MECHANISM rather than a ninth and tenth copy: every page in the site
+   links tokens.css, and links it BEFORE its own <style>, so declaring the faces
+   here reaches all ten and cannot be forgotten by page eleven. The six per-page
+   copies are deleted with this pass, not left as duplicates.
+
+   Relative to THIS file, not to the document -- @font-face src URLs resolve
+   against the stylesheet, and tokens.css and fonts/ are both at the root, so
+   the path is unchanged from the copies it replaces.
+
+   TWO WEIGHTS, 400 AND 600, and no third. That is the type system's rule, and
+   the 500/700 woff2 files in fonts/ are deliberately not declared -- an
+   undeclared weight synthesises rather than silently loading a face nobody
+   approved. "Instrument Sans Var" was declared on six pages and consumed on
+   NONE of them (only headmaker.html and specimen.html use that family, and both
+   declare it themselves); those six dead declarations go with this pass.
+   Archivo is NOT here: it is the tournament's numeral face, wanted by exactly
+   two pages, and it stays declared where it is used. */
+@font-face{font-family:"Instrument Sans";font-style:normal;font-weight:400;font-display:swap;
+  src:url(fonts/instrument-sans-latin-400-normal.woff2) format("woff2")}
+@font-face{font-family:"Instrument Sans";font-style:normal;font-weight:600;font-display:swap;
+  src:url(fonts/instrument-sans-latin-600-normal.woff2) format("woff2")}
+
+:root{--fs-statnum:clamp(34px,3.6vw,48px);--fs-pagehead-sm:clamp(30px,8.2vw,40px);--sp-8-16:16px;--sp-16-24:24px;--sp-16-32:32px;--sp-16-40:40px;--sp-16-56:56px;--sp-24-32:32px;--sp-24-40:40px;--sp-24-48:48px;--sp-32-48:48px;--sp-32-56:56px;--sp-32-64:64px;--sp-40-64:64px;--sp-40-72:72px;--sp-48-64:64px;--sp-48-72:72px;--sp-48-80:80px;--sp-56-96:96px;--sp-56-112:112px;--sp-64-168:168px;--sp-72-144:144px;--sp-80-152:152px;--c50:#FDFDFD;--c100:#E6E6E6;--c75:#F1F1F1;--c500:#757575;--c600:#6B6B6B;--c700:#525252;--c900:#212121;--c950:#121212;--yellow:#FED259;--accent:#121212;--accent-press:#212121;--accent-wash:#F1F1F1;--accent-dark:#FDFDFD;
  --sans:"Instrument Sans",-apple-system,system-ui,sans-serif;--fs-display:clamp(68px,12vw,168px);--fs-h1:clamp(28px,2.6vw,38px);--fs-pagehead:clamp(33px,3.9vw,52px);--fs-h2:clamp(26px,2.5vw,36px);--fs-h3:clamp(21px,2.4vw,32px);--fs-h4:clamp(19px,2.1vw,28px);--fs-h5:clamp(20px,1.7vw,24px);--fs-lead:clamp(15px,1.4vw,18px);--fs-prose:clamp(17px,1.39vw,20px);--fs-body:16px;--fs-small:15px;--fs-tab:clamp(17px,1.5vw,20px);--fs-label:13px;--fs-caption:12px;--fs-micro:11px;--lh-display:1.0;--lh-tight:1.08;--lh-body:1.5;--lh-prose:1.5;--lh-flat:1;--rail-w:clamp(85px,7vw,110px);--rail-gutter:var(--sp-24-40);--rail-gap:var(--sp-40-72);--r-hair:2px;--r-xs:6px;--r-sm:10px;--r-md:14px;--r-lg:20px;--r-xl:28px;--r-pill:999px;--r-full:50%;--corner:squircle;--ease-out:cubic-bezier(.2,.8,.2,1);--ease-out-dur:160ms;--sp-quick:linear(0, 0.0757, 0.2282, 0.3918, 0.5383, 0.6586, 0.7524, 0.8231, 0.8751, 0.9126, 0.9394, 0.9582, 0.9714, 0.9805, 0.9867, 0.991, 0.994, 0.9959, 0.9973, 1);--sp-quick-dur:300ms;--sp-settle:linear(0, 0.024, 0.0833, 0.1633, 0.2531, 0.3454, 0.4352, 0.5193, 0.5959, 0.6642, 0.724, 0.7755, 0.8194, 0.8562, 0.8867, 0.9118, 0.9322, 0.9486, 0.9616, 0.9719, 0.9799, 0.986, 0.9907, 0.9941, 0.9967, 1);--sp-settle-dur:360ms;--sp-pop:linear(0, 0.0435, 0.1463, 0.2761, 0.4118, 0.5401, 0.6536, 0.7493, 0.8265, 0.8866, 0.9316, 0.964, 0.9863, 1.0007, 1.0092, 1.0136, 1.0151, 1.0148, 1.0134, 1.0115, 1.0095, 1.0075, 1.0057, 1.0042, 1.0029, 1);--sp-pop-dur:640ms;--sp-bounce:linear(0, 0.0659, 0.222, 0.4163, 0.6109, 0.7819, 0.917, 1.0128, 1.072, 1.1007, 1.1065, 1.0972, 1.0794, 1.0584, 1.0379, 1.0203, 1.0066, 0.9972, 0.9915, 0.989, 0.9887, 0.9899, 0.9919, 0.9942, 0.9963, 1);--sp-bounce-dur:860ms;--sp-bounce-approx:cubic-bezier(.34,1.56,.64,1);--rim-1:inset 0 0 0 1px rgba(18,18,18,.08);--rim-2:inset 0 0 0 1px rgba(18,18,18,.14);--rim-top:inset 0 1px 0 rgba(255,255,255,.55);--mat-0:transparent;--mat-1:rgba(253,253,253,.72);--mat-2:rgba(253,253,253,.86);--mat-3:rgba(253,253,253,.96);--mat-scrim:rgba(18,18,18,.34);--blur-1:8px;--blur-2:14px;--blur-3:20px;--sh-1:0 1px 2px rgba(18,18,18,.05);--sh-2:0 2px 8px rgba(18,18,18,.06),0 1px 2px rgba(18,18,18,.04);--sh-3:0 8px 28px rgba(18,18,18,.10),0 2px 6px rgba(18,18,18,.05);--sh-hero:-12px 12px 48px rgba(18,18,18,.22);--lh-auto:clamp(0.95em, 0.91em + 10.25px, 1.6em);--tr-display:-.042em;--tr-hero:-.028em;--tr-head:-.020em;--tr-sub:-.015em;--tr-title:-.010em;--tr-body:-.004em;--tr-flat:0;--tr-caps:.045em;--tr-mark:-.008em;--gap-head-top:1.6em;--gap-head-bot:.42em;--gap-eyebrow:.55em;--gap-para:.75em;--pad-bar:5px;--gap-bar:2px;--tap-min:44px;}
 @media(max-width:880px){:root{--sp-8-16:8px;--sp-16-24:16px;--sp-16-32:16px;--sp-16-40:16px;--sp-16-56:16px;--sp-24-32:24px;--sp-24-40:24px;--sp-24-48:24px;--sp-32-48:32px;--sp-32-56:32px;--sp-32-64:32px;--sp-40-64:40px;--sp-40-72:40px;--sp-48-64:48px;--sp-48-72:48px;--sp-48-80:48px;--sp-56-96:56px;--sp-56-112:56px;--sp-64-168:64px;--sp-72-144:72px;--sp-80-152:80px}}
 @media(max-width:760px){:root{--blur-1:0px;--blur-2:0px}}
 @media(prefers-reduced-motion:reduce){:root{--sp-quick-dur:1ms;--sp-settle-dur:1ms;--sp-pop-dur:1ms;--sp-bounce-dur:1ms}}
-/* hex fallback for the interactive accent on browsers without oklch() support --
-   docs/superpowers/specs/2026-08-03-interactive-accent.md §1 */
-@supports not (color:oklch(50% .1 200)){:root{--accent:#2961CE;--accent-press:#1B4BA9;--accent-wash:#E7EEFA;--accent-dark:#7BA4F0}}
+/* ===========================================================================
+   THE ACCENT IS INK.  2026-08-04, Jayden: "I think we are removing the blue
+   colour all together -- we already kinda had on hover and on everything and
+   everywhere it's shown."
+
+   THE INTENT, and it is the reason this is four literals rather than a deletion:
+   emphasis is carried by WEIGHT AND CONTRAST, not by hue. That is the Apple /
+   Stripe move, and on this site it has a second job -- THE ONLY COLOUR LEFT ON
+   THE PAGE COMES FROM JAYDEN'S OWN WORK: the heads, the photographs, the
+   gradients, the team kits. A brand hue competing with those is the thing being
+   removed. The token KEEPS ITS NAME so the ~25 rules that already resolve
+   `var(--accent)` change value without changing text; renaming it would ripple
+   across eight pages and five concurrent agents for no gain.
+
+   WHY --accent-press IS LIGHTER THAN --accent, which looks backwards and is not.
+   --accent is #121212, the page's own ink; there is nothing darker to move to.
+   Every consumer of the pair is either a DARK-FILLED control (.workCta,
+   .abLinkPrimary, .pBtnGo) whose hover/press has to be visible against a
+   near-black ground, or a text link going momentarily quiet on :active. Both
+   want a lift, not a deepening -- the same direction Apple's filled buttons dim
+   on touch and Stripe's dark buttons lighten on hover. #212121 (--c900) is a
+   1.35:1 step off #121212: visible on a 200px button, invisible as a mistake.
+   White ink on it is 15.3:1, so nothing that was legible stops being legible.
+
+   THE OTHER TWO:
+   --accent-wash is the site's existing light grey pill, --c75 #F1F1F1 -- the same
+   value header.css uses for --nav-hover-bg, so an interaction ground is one grey
+   everywhere instead of two. It is a GROUND, never a boundary (1.13:1 against
+   paper) and never text; that warning survives the colour change unchanged.
+   --accent-dark is the interactive ink ON A DARK GROUND and it is now simply the
+   paper, --c50 #FDFDFD (18.4:1 on --c950). The old #7BA4F0 existed to keep a blue
+   legible over the Play sky; with no blue there is nothing to rescue.
+
+   FOCUS RINGS. This is the one place removing colour can genuinely hurt, so it
+   was checked rather than assumed: every focus ring on the site already ships
+   `2px solid var(--c950)` at a POSITIVE offset, and --accent's new value is the
+   same #121212. Measured against the paper it goes 5.59:1 -> 18.42:1 -- the four
+   rings that were written against var(--accent) (gradientlab x2, orbs, play's
+   .teamChip) get MORE findable, not less. WCAG 1.4.11 wants 3:1; this clears it
+   six times over. On a dark region a --c950 ring is invisible and must be
+   var(--accent-dark), which is exactly what that token is now for.
+
+   No @supports fallback is needed any more -- these are four sRGB hex literals.
+   The oklch()/hex pair that stood here is deleted rather than commented out.
+   Superseded: docs/superpowers/specs/2026-08-03-interactive-accent.md, whose
+   §1 blue is no longer the shipped value. Its §2 (live-green vs interactive) and
+   §3.2 (where the signal is NOT allowed) still hold and still govern.
+   =========================================================================== */
 
 /* ===========================================================================
    THE TWELVE GAPS, closed. Landed 2026-08-03 with the site header (header.css).
@@ -200,8 +288,40 @@
        used without a fallback inside a shorthand. The workaround in use today is
        --sp-32-48 for a nominal 48, documented at each call site.
        THE FIX, when someone has room: extend the fixed ladder to --sp-48/56/64/72/80.
-       They are all on the 4px grid and none of them conflict with an existing name. */
+       They are all on the 4px grid and none of them conflict with an existing name.
+
+       CLOSED 2026-08-04 -- the five rungs are declared below. Read the note above as
+       the reason they exist, not as an open item. */
 }
+
+/* ===========================================================================
+   THE FIXED LADDER'S LAST FIVE RUNGS.  2026-08-04, closing the gap recorded
+   immediately above.
+
+   The FIXED rungs ran 2,4,6,8,10,12,14,16,20,24,28,(30),32,36,40 and stopped at
+   40. The RESPONSIVE rungs run to --sp-80-152. So anything that wanted a
+   CONSTANT 48, 56, 64, 72 or 80 had exactly two options, and both were wrong:
+   write the literal, or borrow a responsive rung that SILENTLY HALVES BELOW
+   880px. var(--sp-32-48) is 48 on a desktop and 32 on a phone; code that wanted
+   a constant 48 and reached for it has quietly shipped two different layouts.
+   That trap has already cost this project one invalid declaration (`--sp-48`
+   written before it existed, so the shorthand fell back to its initial value
+   with nothing reporting it -- token-audit.py does not catch an undefined token
+   inside a shorthand).
+
+   All five are on the 4px grid the ladder already runs on at and above 16, none
+   collides with an existing name, and NONE OF THEM OVERRIDES ANYTHING: they are
+   new names, so no shipped value moves by declaring them. They are additive on
+   purpose -- five agents are editing this site concurrently and a rename or a
+   deletion here ripples across eight pages.
+
+   WHEN TO REACH FOR WHICH. A fixed rung is correct when the value must not
+   change with the viewport -- a control's own geometry, a fixed gutter, a
+   reserved height. A responsive --sp-*-* rung is correct when the value IS the
+   page breathing -- the space between two sections. If you cannot say which of
+   those two a number is, it is the responsive one.
+   =========================================================================== */
+:root{--sp-48:48px;--sp-56:56px;--sp-64:64px;--sp-72:72px;--sp-80:80px}
 
 /* ===========================================================================
    FOUR MORE GAPS, closed by the home page's CASE-STUDY CARD pass (2026-08-03).

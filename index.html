@@ -27,7 +27,7 @@
 <meta name="twitter:description" content="SF product designer. iOS, B2C and design systems. Founder of Apollo, open to full-time roles.">
 <meta name="twitter:image" content="https://jaydenbetts.design/images/og/jayden-betts-portfolio.jpg">
 <meta name="twitter:image:alt" content="Jayden Betts as a child with his sister">
-<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebSite","@id":"https://jaydenbetts.design/#website","url":"https://jaydenbetts.design/","name":"Jayden Betts","description":"Portfolio of Jayden Betts, a San Francisco product designer working on iOS, B2C and design systems.","publisher":{"@id":"https://jaydenbetts.design/#person"},"inLanguage":"en"},{"@type":"ProfilePage","@id":"https://jaydenbetts.design/#webpage","url":"https://jaydenbetts.design/","name":"Jayden Betts, Product Designer","isPartOf":{"@id":"https://jaydenbetts.design/#website"},"about":{"@id":"https://jaydenbetts.design/#person"},"mainEntity":{"@id":"https://jaydenbetts.design/#person"},"inLanguage":"en"},{"@type":"Person","@id":"https://jaydenbetts.design/#person","name":"Jayden Betts","alternateName":"Jayden Lee Betts","url":"https://jaydenbetts.design/","image":"https://jaydenbetts.design/images/about/jayden-betts-portrait.webp","jobTitle":"Product Designer","description":"San Francisco product designer working on iOS, B2C and design systems, and the founder of Apollo. Open to full-time roles.","sameAs":["https://www.linkedin.com/in/jaydenbetts","https://www.instagram.com/jaydenleebetts"],"alumniOf":{"@type":"CollegeOrUniversity","name":"University of California, Davis"},"knowsAbout":["Product Design","UX Design","Brand Design","iOS App Design","User Research","Design Systems"]}]}</script><link rel="preload" as="font" type="font/woff2" href="fonts/instrument-sans-variable.woff2" crossorigin><link rel="preload" as="font" type="font/woff2" href="fonts/instrument-sans-latin-400-normal.woff2" crossorigin><link rel="preload" as="font" type="font/woff2" href="fonts/instrument-sans-latin-600-normal.woff2" crossorigin>
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebSite","@id":"https://jaydenbetts.design/#website","url":"https://jaydenbetts.design/","name":"Jayden Betts","description":"Portfolio of Jayden Betts, a San Francisco product designer working on iOS, B2C and design systems.","publisher":{"@id":"https://jaydenbetts.design/#person"},"inLanguage":"en"},{"@type":"ProfilePage","@id":"https://jaydenbetts.design/#webpage","url":"https://jaydenbetts.design/","name":"Jayden Betts, Product Designer","isPartOf":{"@id":"https://jaydenbetts.design/#website"},"about":{"@id":"https://jaydenbetts.design/#person"},"mainEntity":{"@id":"https://jaydenbetts.design/#person"},"inLanguage":"en"},{"@type":"Person","@id":"https://jaydenbetts.design/#person","name":"Jayden Betts","alternateName":"Jayden Lee Betts","url":"https://jaydenbetts.design/","image":"https://jaydenbetts.design/images/about/jayden-betts-portrait.webp","jobTitle":"Product Designer","description":"San Francisco product designer working on iOS, B2C and design systems, and the founder of Apollo. Open to full-time roles.","sameAs":["https://www.linkedin.com/in/jaydenbetts","https://www.instagram.com/jaydenleebetts"],"alumniOf":{"@type":"CollegeOrUniversity","name":"University of California, Davis"},"knowsAbout":["Product Design","UX Design","Brand Design","iOS App Design","User Research","Design Systems"]}]}</script><link rel="preload" as="font" type="font/woff2" href="fonts/instrument-sans-latin-400-normal.woff2" crossorigin><link rel="preload" as="font" type="font/woff2" href="fonts/instrument-sans-latin-600-normal.woff2" crossorigin>
 <link rel="preload" as="image" href="images/neutral.webp" fetchpriority="high">
 
 
@@ -52,9 +52,38 @@
 html{scroll-behavior:smooth}
 .siteFoot{scroll-margin-top:80px}
 
-:root{--c50:#FDFDFD;--c100:#E6E6E6;--c75:#F1F1F1;--c500:#757575;--c600:#6B6B6B;--c700:#525252;--c900:#212121;--c950:#121212;--accent-live:#17A45A;
- /* --accent: the one restrained highlight (deep emerald, 6.5:1 on white) -- hero keyword phrases + the active case-study tab; --accent-live: a brighter "available" status dot */
- --sans:"Instrument Sans",-apple-system,system-ui,sans-serif;--fs-display:clamp(68px,12vw,168px);--fs-h1:clamp(28px,2.6vw,38px);--fs-hero:clamp(38px,4.7vw,60px);--fs-heroline:var(--fs-pagehead-sm);--sp-8-16:16px;--sp-16-24:24px;--sp-16-32:32px;--sp-16-40:40px;--sp-24-48:48px;--sp-32-56:56px;--sp-32-64:64px;--sp-40-72:72px;--sp-48-80:80px;--sp-56-96:96px;--fs-h2:clamp(26px,2.5vw,36px);--fs-h3:clamp(21px,2.4vw,32px);--fs-h4:clamp(19px,2.1vw,28px);--fs-h5:clamp(20px,1.7vw,24px);--fs-lead:clamp(15px,1.4vw,18px);--fs-prose:clamp(17px,1.39vw,20px);--fs-body:16px;--fs-small:15px;--fs-tab:clamp(17px,1.5vw,20px);--fs-label:13px;--fs-caption:12px;--fs-micro:11px;--lh-display:1.0;--lh-tight:1.08;--lh-body:1.5;--lh-prose:1.5;--lh-flat:1;}@media(max-width:880px){:root{--sp-8-16:8px;--sp-16-24:16px;--sp-16-32:16px;--sp-16-40:16px;--sp-24-48:24px;--sp-32-56:32px;--sp-32-64:32px;--sp-40-72:40px;--sp-48-80:48px;--sp-56-96:56px}}
+/* THE PAGE'S OWN :root, CUT FROM 40 TOKENS TO 3 (2026-08-04).
+
+   THIRTY-SEVEN OF THE FORTY WERE BYTE-IDENTICAL RE-DECLARATIONS OF tokens.css,
+   which this page now links immediately above -- the whole colour ramp, --sans,
+   the --fs-* scale, the --lh-* values, eleven --sp-*-* rungs and a verbatim copy
+   of the <=880px fork. Diffed programmatically before deleting, not by eye: 37
+   identical, 0 different, and the media-query fork identical declaration for
+   declaration. Nothing on this page computes differently for their removal.
+
+   THEY ARE DELETED RATHER THAN LEFT HARMLESS BECAUSE THEY ARE NOT HARMLESS.
+   A second definition of --fs-h2 that happens to agree today is the mechanism by
+   which an h2 on this page and an h2 on a case study drift apart tomorrow: the
+   next person edits the shared file, nine pages move and this one does not, and
+   nothing reports it. That is the exact failure mode --accent already had, where
+   one name meant blue in tokens.css and green in two other files.
+
+   THE STALE COMMENT THAT STOOD HERE went with them. It read "--accent: the one
+   restrained highlight (deep emerald ...) -- hero keyword phrases + the active
+   case-study tab", and every clause of it had been false for months: the hero
+   has no accent rule, .csTab.on is ink, and --accent is neither emerald nor a
+   highlight. tokens.css documents the token now, once.
+
+   THE THREE THAT STAY ARE GENUINELY LOCAL -- no definition in tokens.css, one or
+   two consumers each, all on this page:
+     --fs-hero      the bare h1 rung (h1{} below)
+     --fs-heroline  the hero headline's mobile rung
+     --accent-live  the tournament's "happening now" green. It has NO consumer on
+                    this page today (both references to it are comments saying
+                    so); kept because play.css defines the same name for the same
+                    purpose, and deleting one half of a pair from one file is how
+                    the pair stops matching. */
+:root{--fs-hero:clamp(38px,4.7vw,60px);--fs-heroline:var(--fs-pagehead-sm);--accent-live:#17A45A}
 *{box-sizing:border-box;margin:0;padding:0}
 @media(max-width:760px){
  .moodBtn{padding:12px 16px;font-size:var(--fs-body)}
@@ -193,7 +222,7 @@ body.catchReady #stageMorph{transform:scale(1.055)}
 .reel{position:relative;z-index:1}
 .reelTrack{height:300vh}
 .reelStage{position:sticky;top:0;height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding-top:0;overflow:hidden}
-.reelFrame{position:relative;margin:0;width:min(1200px,calc(100vw - 80px),calc((100vh - 40px) * 16 / 9));aspect-ratio:16/9;border-radius:var(--rad,14px);overflow:hidden;background:var(--c600);transform:rotate(var(--rr,0deg)) scale(var(--rs,.55));transform-origin:top center;will-change:transform}
+.reelFrame{position:relative;margin:0;width:min(1200px,calc(100vw - 80px),calc((100vh - 40px) * 16 / 9));aspect-ratio:16/9;border-radius:var(--rad,var(--r-md));corner-shape:var(--corner);overflow:hidden;background:var(--c600);transform:rotate(var(--rr,0deg)) scale(var(--rs,.55));transform-origin:top center;will-change:transform}
 .reelFrame.fine{cursor:none}.reelFrame{transition:transform 0s linear,width 0s}
 
 .reelVid{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
@@ -384,7 +413,7 @@ body.moodInCta .heroCtas:not(.in) .faceMoodCorner{opacity:0!important;visibility
 .csCursor::before{content:"";position:absolute;left:-18px;top:-18px;width:36px;height:36px;border-radius:50%;-webkit-backdrop-filter:brightness(.965) contrast(1.015);backdrop-filter:brightness(.965) contrast(1.015);box-shadow:inset 0 2px 13px -7px rgba(0,0,0,.2),inset 0 -3px 14px -8px rgba(255,255,255,.24),0 1px 4px -1px rgba(0,0,0,.09);transform-origin:center}
 .csCursor.on::before{animation:csPress .24s steps(4,end)}
 @keyframes csPress{0%{transform:scale(1.42)}55%{transform:scale(.86)}100%{transform:scale(1)}}
-.csInfoCard{position:fixed;top:0;left:0;z-index:130;width:286px;max-width:78vw;background:var(--c50);box-shadow:0 18px 46px -22px rgba(8,8,8,.42),0 3px 10px -5px rgba(8,8,8,.16);opacity:0;pointer-events:none;will-change:transform,opacity;transition:opacity .25s cubic-bezier(.2,.8,.2,1)}
+.csInfoCard{position:fixed;top:0;left:0;z-index:130;width:286px;max-width:78vw;background:var(--mat-3-solid);box-shadow:var(--rim-2),var(--sh-2);opacity:0;pointer-events:none;will-change:transform,opacity;transition:opacity .25s cubic-bezier(.2,.8,.2,1)}
 .csInfoCard.on{opacity:1}
 .csInfoInner{transform:translateY(7px);transition:transform .25s cubic-bezier(.2,.8,.2,1)}
 .csInfoCard.on .csInfoInner{transform:translateY(0)}
@@ -424,11 +453,32 @@ body.moodInCta .heroCtas:not(.in) .faceMoodCorner{opacity:0!important;visibility
    rounded corners, carry an 8vh stage pad and go edge-to-edge under 760px —
    four reasons Extras read as a different tab. Same inset formula as
    .csStageInner (1280 cap minus 40px sides; 24px sides on mobile), same 2:1
-   frame, same square corners. :not(.isFull) so the fullscreen player is
-   untouched. */
+   frame. :not(.isFull) so the fullscreen player is untouched.
+
+   THE CORNERS WERE SQUARE AND EVERY NEIGHBOUR IS ROUND. Jayden: "the corner
+   roundness on the video is straight when everything else is round." The rule
+   above once said "same square corners", which was true of nothing -- measured
+   at 1280 the things beside it in the same 1200px column are .cover, .csImg,
+   .csFrame and the case-study photographs, and this page's own radius sweep puts
+   every one of them on --r-lg (20px). The video was the only 0.
+
+   WHY --r-lg AND NOT ANOTHER RUNG, since the ladder has nine.
+   Radius on this site is a function of the BOX, not of what is inside it. The
+   ladder reads 2 / 4 / 6 / 10 / 14 / 20 / 28 / pill / full, and the three rungs
+   in play here are used like this: --r-md (14) is the CONTROL rung -- every
+   button, tab and menu row; --r-lg (20) is the MEDIA-CARD rung -- anything the
+   width of the column that holds a picture; --r-xl (28) is the workcard, which
+   is a bigger object again and only rounds its top two corners.
+   This element is a 1200 x 600 picture in the column, i.e. exactly the .cover
+   case, so it takes the .cover value. Anything smaller would read as a control
+   blown up; --r-xl would make it the largest-radius object on the page, ahead of
+   the case-study covers it sits between.
+   corner-shape:squircle comes with it, per --corner, so it is the same
+   superellipse the rest of the page draws and not a plain arc at the same size. */
 .csPanel[data-panel="goodness"] .reelStage{padding:0}
 .csPanel[data-panel="goodness"] .reelFrame:not(.isFull){
-  width:min(1200px,calc(100vw - 80px))!important;aspect-ratio:2/1;border-radius:0!important}
+  width:min(1200px,calc(100vw - 80px))!important;aspect-ratio:2/1;
+  border-radius:var(--r-lg)!important;corner-shape:var(--corner)}
 .csPanel[data-panel="goodness"] .reelMeta{width:min(1200px,calc(100vw - 80px))}
 @media(max-width:760px){
  .csPanel[data-panel="goodness"] .reelFrame:not(.isFull){width:calc(100vw - 48px)!important}
@@ -469,7 +519,7 @@ body.moodInCta .heroCtas:not(.in) .faceMoodCorner{opacity:0!important;visibility
 .moodLbl{font-size:var(--fs-body);font-weight:400;letter-spacing:0}
 .moodCar{width:12px;height:12px;display:inline-block;flex:0 0 auto;color:var(--c500);transition:transform .2s cubic-bezier(.2,.8,.2,1),color .2s cubic-bezier(.2,.8,.2,1)}
 .moodbar.open .moodCar{width:12px;height:12px;display:inline-block;flex:0 0 auto;color:var(--c500);transition:transform .2s cubic-bezier(.2,.8,.2,1),color .2s cubic-bezier(.2,.8,.2,1)}
-.moodMenu{position:absolute;min-width:196px;background:var(--c50);border:1px solid var(--c100);border-radius:4px;padding:8px;box-shadow:0 8px 28px -8px rgba(18,18,18,.12),0 2px 8px -2px rgba(18,18,18,.06);opacity:0;visibility:hidden;transition:opacity .16s cubic-bezier(.2,.8,.2,1),transform .18s cubic-bezier(.2,.8,.2,1),visibility 0s .18s}
+.moodMenu{position:absolute;min-width:196px;background:var(--mat-3-solid);border:0;border-radius:var(--r-lg);corner-shape:var(--corner);padding:var(--sp-8);box-shadow:var(--rim-2),var(--sh-2);opacity:0;visibility:hidden;transition:opacity .16s cubic-bezier(.2,.8,.2,1),transform .18s cubic-bezier(.2,.8,.2,1),visibility 0s .18s}
 .moodbar.open .moodMenu{opacity:1;visibility:visible;transition:opacity .16s cubic-bezier(.2,.8,.2,1),transform .18s cubic-bezier(.2,.8,.2,1)}
 .moodItem{display:flex;align-items:center;gap:12px;width:100%;padding:8px 12px;border-radius:4px;font-family:var(--sans);font-weight:400;font-size:var(--fs-body);color:var(--c950);background:none;border:0;cursor:pointer;text-align:left;transition:background-color .1s ease-out,color .1s ease-out}
 .moodbar.open .moodItem{display:flex;align-items:center;gap:12px;width:100%;padding:8px 12px;border-radius:4px;font-family:var(--sans);font-weight:400;font-size:var(--fs-body);color:var(--c950);background:none;border:0;cursor:pointer;text-align:left;transition:background-color .1s ease-out,color .1s ease-out}
@@ -485,7 +535,14 @@ body.moodInCta .heroCtas:not(.in) .faceMoodCorner{opacity:0!important;visibility
 .heroCtas.in>*{opacity:1;transform:none;animation:ctaIn .5s cubic-bezier(.2,.8,.2,1) both}
 .heroCtas.in>*:nth-child(2){animation-delay:.125s}.heroCtas.in>*:nth-child(3){animation-delay:.25s}
 @keyframes ctaIn{0%{opacity:0;transform:translateY(12px) scale(.9)}25%{opacity:.6;transform:translateY(2px) scale(1.04)}50%{opacity:1;transform:translateY(-2px) scale(1.02)}75%{opacity:1;transform:translateY(1px) scale(.995)}100%{opacity:1;transform:translateY(0) scale(1)}}
-.workCta{display:inline-flex;align-items:center;gap:8px;padding:8px 16px;border:1px solid var(--accent);background:var(--accent);color:var(--c50);font-family:var(--sans);font-weight:400;font-size:var(--fs-body);line-height:1;cursor:pointer;transition:background .2s cubic-bezier(.2,.8,.2,1),transform .2s cubic-bezier(.2,.8,.2,1)}.workCta svg{width:16px;height:16px;display:block;flex:0 0 auto}.workCta:hover{background:var(--c900);transform:translateY(-1px)}.aboutCta{display:inline-flex;align-items:center;gap:8px;padding:8px 4px;border:0;background:none;color:var(--c500);font-family:var(--sans);font-size:var(--fs-body);line-height:1;cursor:pointer;transition:color .2s cubic-bezier(.2,.8,.2,1)}.aboutCta svg{width:16px;height:16px;display:block;flex:0 0 auto}
+/* PRIMARY. The border was `1px solid var(--accent)` on a `var(--accent)` ground --
+   a border the same colour as its own fill, which is 2px of box doing nothing but
+   putting this control 2px off every other one. Dropped per the control system
+   §3.1 ("No border"); height, padding and radius come from the base rule below. */
+.workCta{display:inline-flex;align-items:center;gap:var(--sp-8);border:0;background:var(--accent);color:var(--c50);font-family:var(--sans);font-weight:400;font-size:var(--fs-body);line-height:1;cursor:pointer;transition:background .2s cubic-bezier(.2,.8,.2,1),transform .2s cubic-bezier(.2,.8,.2,1)}.workCta svg{width:16px;height:16px;display:block;flex:0 0 auto}/* .workCta:hover{background:var(--c900);transform:translateY(-1px)} -- superseded.
+   The Primary kind is restated after the control base rule, on --accent-press,
+   and the hover LIFT is gone: transform is the :active channel and nothing else
+   (control system 5.3), and a lift implies an elevation this chrome may not have. */.aboutCta{display:inline-flex;align-items:center;gap:8px;padding:8px 4px;border:0;background:none;color:var(--c500);font-family:var(--sans);font-size:var(--fs-body);line-height:1;cursor:pointer;transition:color .2s cubic-bezier(.2,.8,.2,1)}.aboutCta svg{width:16px;height:16px;display:block;flex:0 0 auto}
 
 /* ===== Identity -> About takeover ===== */
 .iddrag{position:fixed;pointer-events:none;font-family:var(--sans);font-weight:600;letter-spacing:-.02em;text-transform:none;font-size:var(--fs-h1);transform:translate(-50%,-50%);transform-origin:50% 18%;z-index:70;will-change:transform,left,top;color:var(--c950);display:inline-flex;align-items:baseline;gap:.06em;white-space:nowrap}
@@ -520,7 +577,14 @@ body.moodInCta .heroCtas:not(.in) .faceMoodCorner{opacity:0!important;visibility
 .cycw.mdshow{cursor:default;pointer-events:none}
 /* ============ ABOUT (in-page, same document, window-scroll) ============ */
 
-@font-face{font-family:"Instrument Sans Var";src:url("fonts/instrument-sans-variable.woff2") format("woff2-variations");font-weight:400 700;font-stretch:75% 100%;font-display:swap}@font-face{font-family:"Instrument Sans";font-style:normal;font-weight:400;font-display:swap;src:url(fonts/instrument-sans-latin-400-normal.woff2) format("woff2")}@font-face{font-family:"Instrument Sans";font-style:normal;font-weight:600;font-display:swap;src:url(fonts/instrument-sans-latin-600-normal.woff2) format("woff2")}
+/* THE INSTRUMENT SANS FACES MOVED TO tokens.css (2026-08-04). They were copied
+   into nine pages' <style> blocks and missed on two of them -- about.html and
+   play.html rendered in SF Pro for that reason. tokens.css is linked by all ten
+   pages and linked before this block, so the faces are declared once. The
+   "Instrument Sans Var" face that also stood here is deleted rather than moved:
+   nothing on this page ever asked for that family.
+   Archivo stays -- it is the tournament's numeral face, wanted by this page and
+   play.css only, so it is declared where it is used. */
 @font-face{font-family:'Archivo';src:url('fonts/archivo-variable.woff2') format('woff2');
   font-weight:100 900;font-stretch:62% 125%;font-display:swap}
 
@@ -567,7 +631,22 @@ body.moodInCta .heroCtas:not(.in) .faceMoodCorner{opacity:0!important;visibility
    = 1.5. Same element, same role, two numbers -- the --lh-prose drift again. */
 .footReach{font-family:var(--sans);font-weight:400;font-size:var(--fs-prose);line-height:var(--lh-prose);color:var(--c700);margin:0 auto;max-width:42ch;text-wrap:balance}
 .footIn{font-weight:600;color:var(--c950);text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:3px;text-decoration-color:var(--c500);transition:text-decoration-color .15s cubic-bezier(.2,.8,.2,1),color .15s cubic-bezier(.2,.8,.2,1)}
-.footIn:hover{text-decoration-color:var(--c950)}
+/* one shape for this role on all seven pages: the case studies already write it
+   as var(--accent)/var(--accent-press). Same computed ink, one spelling. */
+.footIn:hover,.footIn:focus-visible{color:var(--accent);text-decoration-color:var(--accent)}
+.footIn:active{color:var(--accent-press);text-decoration-color:var(--accent-press)}
+/* A 24.5px INLINE LINK IS A 40.5px TARGET, at every width.
+   The control system 3.3 (.ctl--quiet.is-inline): pad the BLOCK axis by --sp-8
+   and pull the margin back by the same amount. The hit area grows, the line box
+   does not move, and the paragraph does not reflow -- which is why this and not
+   a min-height. It is the one place a negative margin is the correct tool.
+   These are text inside prose, so they get no wash, no rim and no radius; ink
+   and their own underline carry every state (see the accent note in tokens.css).
+   index.html shipped this at <=768px only -- on a phone, where a fingertip is
+   already forgiving -- and not at the widths where a pointer has to find it. */
+.footIn,.abIn{display:inline-block;
+ padding-block:var(--sp-10);margin-block:calc(var(--sp-10) * -1)}
+
 /* THE SIGN-OFF IS ONE BLOCK, top to bottom: status, thanks, wordmark.
    Jayden: "Make this closer to the Jayden Betts. Put Open to work on top of that,
    and remove SF from that sentence."
@@ -647,7 +726,7 @@ body.moodInCta .heroCtas:not(.in) .faceMoodCorner{opacity:0!important;visibility
 .aboutCta{border:1px solid var(--c100);border-radius:4px;background:var(--c50);color:var(--c950);padding:8px 16px;font-family:var(--sans);font-weight:400;font-size:var(--fs-body);line-height:1;transition:border-color .2s cubic-bezier(.2,.8,.2,1),color .2s cubic-bezier(.2,.8,.2,1)}.moodItem{display:flex;align-items:center;gap:12px;width:100%;padding:8px 12px;border-radius:4px;font-family:var(--sans);font-weight:400;font-size:var(--fs-body);color:var(--c950);background:none;border:0;cursor:pointer;text-align:left;transition:background-color .1s ease-out,color .1s ease-out}.moodIco{position:relative;display:inline-block;width:18px;height:18px;flex:0 0 18px;font-size:18px}.moodMenu .moodIco{width:18px!important;height:18px!important;flex:0 0 18px!important;margin:0!important;transform:none!important;vertical-align:middle!important}
 .moodMenu .moodIco::before,.moodMenu .moodIco::after{background-size:contain!important;background-position:center!important}
 /* heads and the "Show on home" switch are ONE group, not two -- no rule between them */
-.moodMenu .mhBar{border-top:0;padding-top:0}.faceMoodCorner{position:absolute;right:-14px;bottom:clamp(40px,10vw,108px);z-index:46}.faceMoodCorner .moodBtn{padding:8px 12px 8px 16px;border-radius:4px;background:var(--c50);border:1px solid var(--c100);display:inline-flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;font-family:var(--sans);font-weight:400;font-size:var(--fs-body);color:var(--c950);line-height:1;white-space:nowrap;opacity:1;transition:border-color .2s cubic-bezier(.2,.8,.2,1),color .2s cubic-bezier(.2,.8,.2,1)}.faceMoodCorner .moodBtn:hover{border-color:var(--c500);color:var(--c950)}.faceMoodCorner .moodLbl{position:static;width:auto;height:auto;overflow:visible;clip:auto;white-space:nowrap}.faceMoodIco{width:20px;height:20px;display:block;color:var(--c700);transition:color .2s}.faceMoodCorner .moodBtn:hover .faceMoodIco{color:var(--c950)}.faceMoodCorner .moodMenu{position:absolute;width:212px;min-width:0;background:var(--c50);border:1px solid var(--c100);border-radius:4px;padding:8px;top:auto;bottom:calc(100% + 12px);left:auto;right:0;transform:translateY(6px);opacity:0;visibility:hidden;transition:opacity .16s cubic-bezier(.2,.8,.2,1),transform .18s cubic-bezier(.2,.8,.2,1),visibility 0s .18s}.faceMoodCorner .moodbar.open .moodMenu{opacity:1;visibility:visible;transition:opacity .16s cubic-bezier(.2,.8,.2,1),transform .18s cubic-bezier(.2,.8,.2,1)}.faceMoodCorner .moodbar.open .moodMenu{transform:translateY(0)!important}@media(max-width:768px){.csTab{padding-top:8px;padding-bottom:16px}}@media(max-width:768px){.footIn{display:inline-block;padding-top:12px;padding-bottom:12px;margin-top:-12px;margin-bottom:-12px}}.reelMeta{width:min(1200px,calc(100vw - 80px));display:flex;align-items:baseline;justify-content:space-between;gap:24px;margin-top:12px;opacity:var(--reelMetaOp,1);transition:opacity .2s cubic-bezier(.2,.8,.2,1);will-change:opacity}.reelMeta .csName{filter:url(#inkBig)}.reelMeta .csYear{filter:url(#inkBig)}.reelFrame.isFull{position:fixed;inset:0;width:100vw;height:100vh;max-width:none;aspect-ratio:auto;transform:none!important;border-radius:0;margin:0;z-index:40;transition:width .18s cubic-bezier(.2,.8,.2,1),height .18s cubic-bezier(.2,.8,.2,1)}@media(max-width:760px){.faceMoodCorner{right:-11px!important;left:auto;bottom:auto;top:100%;transform:translateY(16px)}body.moodInCta .faceMoodCorner .moodMenu,.faceMoodCorner .moodMenu{top:calc(100% + 10px)!important;bottom:auto!important;left:auto!important;right:0!important;width:min(220px,calc(100vw - 28px))!important;max-height:min(370px,68vh)!important;overflow-y:auto;-webkit-overflow-scrolling:touch;margin-left:0}.faceMoodCorner .moodLbl{opacity:1!important;transform:none!important}body.moodInCta .faceMoodCorner .moodCar{opacity:1!important;transform:rotate(180deg)!important;transition:transform .32s cubic-bezier(.34,1.4,.5,1),color .2s cubic-bezier(.2,.8,.2,1)}.faceMoodCorner .moodBtn{border-color:var(--c100)!important;background:var(--c50)!important}}.faceMoodCorner .moodBtn:hover .moodCar,.faceMoodCorner .moodbar.open .moodCar{color:var(--c700)}@media(min-width:761px){.faceMoodCorner .moodBtn{position:relative;border-color:transparent;background:transparent;transition:border-color .5s cubic-bezier(.22,.61,.36,1),background-color .5s cubic-bezier(.22,.61,.36,1)}.faceMoodCorner .moodLbl,.faceMoodCorner .moodCar{opacity:0;transform:translateY(4px) scale(.985);transition:opacity .28s cubic-bezier(.22,.61,.36,1),transform .28s cubic-bezier(.22,.61,.36,1)}body.moodNear .faceMoodCorner .moodBtn,.faceMoodCorner:hover .moodBtn,.moodbar.open .moodBtn{border-color:var(--c100);background:var(--c50)}body.moodNear .faceMoodCorner .moodLbl,.faceMoodCorner:hover .moodLbl,.moodbar.open .moodLbl,body.moodNear .faceMoodCorner .moodCar,.faceMoodCorner:hover .moodCar,.moodbar.open .moodCar{opacity:1;transform:translateY(0) scale(1);transition:opacity .5s cubic-bezier(.22,.61,.36,1) .12s,transform .55s cubic-bezier(.22,.61,.36,1) .12s}}@media(max-width:760px){.faceMoodCorner{opacity:1!important;visibility:visible!important}}.moodMenu .moodItem:hover{color:var(--c950)}.moodSep{height:1px;background:var(--c100);margin:8px 4px 8px}.moodGo{display:flex;align-items:center;gap:12px;width:100%;padding:12px 16px;border:0;border-radius:4px;background:none;color:var(--c950);font-family:var(--sans);font-weight:400;font-size:var(--fs-small);line-height:1.2;text-decoration:none;transition:background-color .16s cubic-bezier(.2,.8,.2,1)}.moodMenu .moodGo{color:var(--c950)}
+.moodMenu .mhBar{border-top:0;padding-top:0}.faceMoodCorner{position:absolute;right:-14px;bottom:clamp(40px,10vw,108px);z-index:46}.faceMoodCorner .moodBtn{padding:8px 12px 8px 16px;border-radius:4px;background:var(--c50);border:1px solid var(--c100);display:inline-flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;font-family:var(--sans);font-weight:400;font-size:var(--fs-body);color:var(--c950);line-height:1;white-space:nowrap;opacity:1;transition:border-color .2s cubic-bezier(.2,.8,.2,1),color .2s cubic-bezier(.2,.8,.2,1)}.faceMoodCorner .moodBtn:hover{border-color:var(--c500);color:var(--c950)}.faceMoodCorner .moodLbl{position:static;width:auto;height:auto;overflow:visible;clip:auto;white-space:nowrap}.faceMoodIco{width:20px;height:20px;display:block;color:var(--c700);transition:color .2s}.faceMoodCorner .moodBtn:hover .faceMoodIco{color:var(--c950)}.faceMoodCorner .moodMenu{position:absolute;width:212px;min-width:0;background:var(--c50);border:1px solid var(--c100);border-radius:4px;padding:8px;top:auto;bottom:calc(100% + 12px);left:auto;right:0;transform:translateY(6px);opacity:0;visibility:hidden;transition:opacity .16s cubic-bezier(.2,.8,.2,1),transform .18s cubic-bezier(.2,.8,.2,1),visibility 0s .18s}.faceMoodCorner .moodbar.open .moodMenu{opacity:1;visibility:visible;transition:opacity .16s cubic-bezier(.2,.8,.2,1),transform .18s cubic-bezier(.2,.8,.2,1)}.faceMoodCorner .moodbar.open .moodMenu{transform:translateY(0)!important}@media(max-width:768px){.csTab{padding-top:8px;padding-bottom:16px}}/* the <=768 copy of the inline-link target stood here; it is unconditional now */.reelMeta{width:min(1200px,calc(100vw - 80px));display:flex;align-items:baseline;justify-content:space-between;gap:24px;margin-top:12px;opacity:var(--reelMetaOp,1);transition:opacity .2s cubic-bezier(.2,.8,.2,1);will-change:opacity}.reelMeta .csName{filter:url(#inkBig)}.reelMeta .csYear{filter:url(#inkBig)}.reelFrame.isFull{position:fixed;inset:0;width:100vw;height:100vh;max-width:none;aspect-ratio:auto;transform:none!important;border-radius:0;margin:0;z-index:40;transition:width .18s cubic-bezier(.2,.8,.2,1),height .18s cubic-bezier(.2,.8,.2,1)}@media(max-width:760px){.faceMoodCorner{right:-11px!important;left:auto;bottom:auto;top:100%;transform:translateY(16px)}body.moodInCta .faceMoodCorner .moodMenu,.faceMoodCorner .moodMenu{top:calc(100% + 10px)!important;bottom:auto!important;left:auto!important;right:0!important;width:min(220px,calc(100vw - 28px))!important;max-height:min(370px,68vh)!important;overflow-y:auto;-webkit-overflow-scrolling:touch;margin-left:0}.faceMoodCorner .moodLbl{opacity:1!important;transform:none!important}body.moodInCta .faceMoodCorner .moodCar{opacity:1!important;transform:rotate(180deg)!important;transition:transform .32s cubic-bezier(.34,1.4,.5,1),color .2s cubic-bezier(.2,.8,.2,1)}.faceMoodCorner .moodBtn{border-color:var(--c100)!important;background:var(--c50)!important}}.faceMoodCorner .moodBtn:hover .moodCar,.faceMoodCorner .moodbar.open .moodCar{color:var(--c700)}@media(min-width:761px){.faceMoodCorner .moodBtn{position:relative;border-color:transparent;background:transparent;transition:border-color .5s cubic-bezier(.22,.61,.36,1),background-color .5s cubic-bezier(.22,.61,.36,1)}.faceMoodCorner .moodLbl,.faceMoodCorner .moodCar{opacity:0;transform:translateY(4px) scale(.985);transition:opacity .28s cubic-bezier(.22,.61,.36,1),transform .28s cubic-bezier(.22,.61,.36,1)}body.moodNear .faceMoodCorner .moodBtn,.faceMoodCorner:hover .moodBtn,.moodbar.open .moodBtn{border-color:var(--c100);background:var(--c50)}body.moodNear .faceMoodCorner .moodLbl,.faceMoodCorner:hover .moodLbl,.moodbar.open .moodLbl,body.moodNear .faceMoodCorner .moodCar,.faceMoodCorner:hover .moodCar,.moodbar.open .moodCar{opacity:1;transform:translateY(0) scale(1);transition:opacity .5s cubic-bezier(.22,.61,.36,1) .12s,transform .55s cubic-bezier(.22,.61,.36,1) .12s}}@media(max-width:760px){.faceMoodCorner{opacity:1!important;visibility:visible!important}}.moodMenu .moodItem:hover{color:var(--c950)}.moodSep{height:1px;background:var(--c100);margin:8px 4px 8px}.moodGo{display:flex;align-items:center;gap:12px;width:100%;padding:12px 16px;border:0;border-radius:4px;background:none;color:var(--c950);font-family:var(--sans);font-weight:400;font-size:var(--fs-small);line-height:1.2;text-decoration:none;transition:background-color .16s cubic-bezier(.2,.8,.2,1)}.moodMenu .moodGo{color:var(--c950)}
 .moodGo:hover,.moodGo:focus-visible{color:var(--c950)}.moodGo svg{flex:0 0 18px;width:18px;height:18px;color:currentColor}.aboutCta:hover{border-color:var(--c500);color:var(--c950)}body.moodNear .faceMoodCorner .moodBtn:hover,.faceMoodCorner .moodBtn:hover,.moodbar.open .moodBtn{border-color:var(--c500)!important;color:var(--c950)}@media(min-width:761px){body.moodTeach .faceMoodCorner{opacity:1;visibility:visible;transition:opacity .5s cubic-bezier(.2,.8,.2,1)}body.moodTeach .faceMoodCorner .moodBtn{border-color:var(--c100);background:var(--c50)}body.moodTeach .faceMoodCorner .moodLbl,body.moodTeach .faceMoodCorner .moodCar{opacity:1;transform:translateX(0)}}.cycw{position:relative}@media(hover:none),(pointer:coarse){}@media(max-width:760px){.faceMoodCorner .moodBtn{min-height:44px}}.csTab{-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}.moodBtn,.aboutCta,.talk,.workCta,.heroBack,.back{-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}/* keyboard-only focus ring (never triggers on mouse click) */.talk:focus-visible,.workCta:focus-visible,.aboutCta:focus-visible,.moodBtn:focus-visible,.faceMoodCorner .moodBtn:focus-visible,.moodMenu .moodItem:focus-visible,.csTab:focus-visible,.footIn:focus-visible,.back:focus-visible,.heroBack:focus-visible{outline:2px solid var(--c950);outline-offset:3px;border-radius:var(--r-md)}.talk:focus:not(:focus-visible),.workCta:focus:not(:focus-visible),.aboutCta:focus:not(:focus-visible),.moodBtn:focus:not(:focus-visible),.faceMoodCorner .moodBtn:focus:not(:focus-visible),.moodMenu .moodItem:focus:not(:focus-visible),.csTab:focus:not(:focus-visible){outline:none}.talk{opacity:1}.reelTrack{height:auto!important}.reelStage{position:static!important}.reelFrame{transform:none!important;border-radius:4px!important;overflow:hidden}/* ---- CENTERED HERO: the type sits over the head on one axis ---- */.hero{grid-template-columns:1fr;justify-items:center;align-content:start;--heroTitleTop:var(--sp-16-40);padding-top:var(--heroTitleTop);min-height:calc(100vh - 68px)}.heroCopy{display:contents}/* CENTRED, after a round trip. He asked for left-aligned text in a centred block --
    built, measured (both lines shared a left edge at 376, the box centred at 640, the
    same centre as the head) -- and then looked at it: "Actually the centred version
@@ -676,7 +755,7 @@ body.moodInCta .heroCtas:not(.in) .faceMoodCorner{opacity:0!important;visibility
    the FIRST focusable element and moves focus to the main content -- so it sits before the
    nav in DOM order. Parked off-screen by transform (not display:none, which would take it
    out of the tab order entirely) and slid in on focus. ---- */
-.skipLink{position:fixed;top:10px;left:10px;border-radius:var(--r-xs);corner-shape:var(--corner);z-index:200;display:inline-flex;align-items:center;min-height:44px;padding:12px 16px;background:var(--c50);color:var(--c950);border:1px solid var(--c100);border-radius:4px;font-family:var(--sans);font-weight:400;font-size:var(--fs-small);line-height:1;text-decoration:none;box-shadow:0 2px 10px rgba(22,22,28,.10);transform:translateY(calc(-100% - 16px));transition:transform .2s cubic-bezier(.2,.8,.2,1)}
+.skipLink{position:fixed;top:10px;left:10px;border-radius:var(--r-xs);corner-shape:var(--corner);z-index:200;display:inline-flex;align-items:center;min-height:var(--tap-min);padding:12px 16px;background:var(--c50);color:var(--c950);border:1px solid var(--c100);font-family:var(--sans);font-weight:400;font-size:var(--fs-small);line-height:var(--lh-flat);text-decoration:none;box-shadow:none;transform:translateY(calc(-100% - 16px));transition:transform .2s cubic-bezier(.2,.8,.2,1)}
 .skipLink:focus{transform:translateY(0);outline:2px solid var(--c950);outline-offset:3px}
 @media(prefers-reduced-motion:reduce){.skipLink{transition:none}}
 #main:focus{outline:none}   /* programmatic focus target -- the user chose to land here, no stray ring */
@@ -724,7 +803,33 @@ body.moodInCta .heroCtas:not(.in) .faceMoodCorner{opacity:0!important;visibility
    breakpoints (WCAG technique C27) for free. Desktop is untouched -- the burger is display:none
    above 640px, so its new DOM position changes nothing there. ---- */
 
-}
+/* A STRAY `}` STOOD HERE AND IT WAS SILENTLY DELETING THE ENTIRE CONTROL SYSTEM
+   BELOW.  Removed 2026-08-04; this note is what stops it coming back.
+
+   It was the orphan closing brace of the mobile-header @media block whose body
+   was deleted in an earlier pass. A `}` at the top level of a stylesheet is not
+   ignored: per CSS Syntax 3 §5.4.1 the parser is between rules, so it starts
+   consuming a QUALIFIED RULE and takes everything up to the next `{` as that
+   rule's PRELUDE -- the brace, the four comments after it, and the whole
+   `.moodItem,.moodBtn,.moodGo,.reelClose,.workCta,.mhToggle,.csTab` selector
+   list. The prelude is not a valid selector, so the rule and its block were
+   dropped whole. Nothing warns. The CSS still "looks right" in the file.
+
+   WHAT WAS BEING DROPPED: the block titled "CONTROLS -- exactly THREE types",
+   which is the only place this page names a control's height, padding, ink,
+   radius and transition. Read out of the CSSOM before the fix, the inline sheet
+   went straight from the `@media(max-width:760px)` h1 rule to the `:where(...)`
+   display rule -- the base rule between them was not there at all. So every
+   number in it had been dead since the brace appeared:
+
+     .workCta   min-height 0    (declared 44)   padding 8px 16px (declared 0 16)
+     .csTab     30.5px tall     (declared 44)   -- the geometry audit's finding 8
+     .moodBtn / .moodGo / .mhToggle / .reelClose -- all falling back to whatever
+     their own older rules happened to say.
+
+   This is why "the button didn't change": the rule that would have changed it
+   was never parsed. Fixing the brace is what makes every edit in that block
+   take effect, so treat the block as newly live rather than as long-shipped. */
 /* the burger's second skin went with the burger */
 
 /* The second definition of the mobile menu stood here -- the panel-not-a-drawer
@@ -747,17 +852,56 @@ body.moodInCta .heroCtas:not(.in) .faceMoodCorner{opacity:0!important;visibility
    Interactive REGIONS (a whole case-study card, the compare handle, the
    headmaker dropzone) are deliberately not in here -- they are not buttons and
    forcing button padding on them is wrong.
+
+   THIS BLOCK ONLY STARTED WORKING ON 2026-08-04. See the stray-`}` note ~40
+   lines up: the rule below was being dropped by the parser, so every number in
+   it was dead. Read the values as new, not as shipped.
+
+   .csTab CAME OUT OF THE SELECTOR LISTS in the same pass, and that is a
+   classification, not an exemption. A TAB IS ITS OWN KIND --
+   docs/superpowers/specs/2026-08-03-control-system.md §3.4: no ground, no
+   radius anyone will see, 600 at rest, and selection carried by ink plus a
+   separate underline element. Its box is `padding:0 0 var(--sp-12)` because the
+   underline (.csTabInk) and the row's hairline both sit at the bottom of the
+   row and the padding is the distance between the word and them; giving the tab
+   this rule's `12px 16px` and 44px min-height would centre the word in a 44px
+   box, move it off that line and re-measure the travelling ink for nothing.
+   Its 44px TARGET is not lost -- .csTab::before already grows a transparent
+   --tap-min band centred on the ink box, the same technique the nav bar uses.
+   Its hover is ink-only for the same reason, and that scoping is header.css's
+   own: "the case-study back link, prose links, the case-study tabs, chips and
+   every button keep the no-fill hover" -- the grey pill belongs to NAV ITEMS.
+
+   PADDING-BLOCK IS 0 AND HEIGHT IS min-height. §2.2: "Height is set by
+   min-height, never by padding." `padding:12px 16px` on a 44px min-height is
+   the same box only while the label is one line at 15px; the moment anything
+   inside is taller the control silently grows past the rung. Naming the height
+   and zeroing the vertical padding makes the two agree by construction.
    ============================================================================ */
-.moodItem,.moodBtn,.moodGo,.reelClose,.workCta,.mhToggle,.csTab{
- font-family:var(--sans);font-weight:400;font-size:var(--fs-small);line-height:1;
+.moodItem,.moodBtn,.moodGo,.reelClose,.workCta,.mhToggle{
+ font-family:var(--sans);font-weight:400;font-size:var(--fs-small);line-height:var(--lh-flat);
  color:var(--c700);background:none;
  border:0;                      /* no borders. The wash is the affordance. */
  border-radius:var(--r-md);corner-shape:var(--corner);
- padding:12px 16px;min-height:44px;box-sizing:border-box;
- align-items:center;justify-content:center;gap:8px;
+ padding:0 var(--sp-16);min-height:var(--tap-min);box-sizing:border-box;
+ align-items:center;justify-content:center;gap:var(--sp-8);
  cursor:pointer;
- transition:background-color .16s cubic-bezier(.2,.8,.2,1),color .16s cubic-bezier(.2,.8,.2,1);
+ transition:background-color var(--ease-out-dur) var(--ease-out),
+            color var(--ease-out-dur) var(--ease-out),
+            transform var(--press-dur) var(--ease-out);
 }
+/* THE PRESS, and it is `scale` rather than `translateY` on purpose (§2.2): a
+   downward nudge on a control with no shadow -- and chrome here is never
+   allowed one -- reads as a rendering glitch, not as a press. Touch has no
+   hover, so this is the only feedback a phone gets from these seven controls.
+   --press-scale and --press-dur are both already tokens and had zero consumers
+   on this page. */
+.moodItem:active,.moodBtn:active,.moodGo:active,.reelClose:active,
+.workCta:active,.mhToggle:active,.toTop:active,.csTab:active{
+ transform:scale(var(--press-scale))}
+@media(prefers-reduced-motion:reduce){
+ .moodItem:active,.moodBtn:active,.moodGo:active,.reelClose:active,
+ .workCta:active,.mhToggle:active,.toTop:active,.csTab:active{transform:none}}
 /* display at ZERO specificity so anything that hides itself conditionally still wins */
 :where(.moodItem,.moodBtn,.moodGo,.reelClose,.workCta,
  .mhToggle,.csTab){display:inline-flex}
@@ -765,19 +909,65 @@ body.moodInCta .heroCtas:not(.in) .faceMoodCorner{opacity:0!important;visibility
 .toTop{
  font-family:var(--sans);font-size:var(--fs-small);color:var(--c700);
  background:none;border:0;border-radius:var(--r-md);corner-shape:var(--corner);
- width:44px;height:44px;min-height:44px;padding:0;
+ width:var(--tap-min);height:var(--tap-min);min-height:var(--tap-min);padding:0;
  display:inline-flex;align-items:center;justify-content:center;
  cursor:pointer;
- transition:background-color .16s cubic-bezier(.2,.8,.2,1),color .16s cubic-bezier(.2,.8,.2,1);
+ transition:background-color var(--ease-out-dur) var(--ease-out),
+            color var(--ease-out-dur) var(--ease-out),
+            transform var(--press-dur) var(--ease-out);
 }
 
-/* ONE hover, everywhere, no exceptions */
-.moodItem:hover,.moodBtn:hover,.moodGo:hover,.reelClose:hover,.workCta:hover,.mhToggle:hover,.csTab:hover,.toTop:hover,.chap:hover,.footIn:hover,.moodItem:focus-visible,.moodBtn:focus-visible,.moodGo:focus-visible,.reelClose:focus-visible,.workCta:focus-visible,.mhToggle:focus-visible,.csTab:focus-visible,.toTop:focus-visible,.chap:focus-visible,.footIn:focus-visible{
- background:var(--c75);color:var(--c950);border-color:transparent;
+/* ONE hover, everywhere, no exceptions -- EXCEPT the two kinds that are not
+   buttons. .csTab is a TAB and hovers on ink alone (§3.4, and header.css's own
+   scoping of the grey pill to nav items); .chap and .footIn are TEXT INSIDE
+   PROSE, and a grey plate behind a word in a paragraph is the one place the
+   wash reads as damage rather than as affordance -- they now hover the way
+   every other link on the site does, on ink and their own underline. */
+.moodItem:hover,.moodBtn:hover,.moodGo:hover,.reelClose:hover,.workCta:hover,.mhToggle:hover,.toTop:hover,.moodItem:focus-visible,.moodBtn:focus-visible,.moodGo:focus-visible,.reelClose:focus-visible,.workCta:focus-visible,.mhToggle:focus-visible,.toTop:focus-visible{
+ background:var(--accent-wash);color:var(--c950);border-color:transparent;
 }
+.csTab:hover,.csTab:focus-visible,
+.chap:hover,.chap:focus-visible,
+.footIn:hover,.footIn:focus-visible{background:none;color:var(--c950)}
 .chap,.footIn{
  transition:background-color var(--ease-out-dur) var(--ease-out),color var(--ease-out-dur) var(--ease-out);
 }
+
+/* ── THE TWO KINDS THAT ARE NOT QUIET, restated after the base rule ──────────
+   The base above is the QUIET kind -- no ground, no rim, ink and space
+   (control system §3.3). Two of the seven controls in its selector list are
+   not quiet, and they were declared 500 lines ABOVE it. That did not matter
+   while the base rule was being eaten by the stray `}`; the moment it parses,
+   `background:none; color:var(--c700)` lands on top of both of them. This is
+   what "a green run is necessary, not sufficient" looks like in practice --
+   nothing is undefined, every token resolves, and a black button had gone
+   transparent with grey text on it.
+   Both are restated here, after the base, as the kind they actually are. */
+
+/* PRIMARY (§3.1) -- the one filled action. Ground is --accent, which since
+   2026-08-04 is the page's own ink; hover and press take --accent-press, one
+   perceptual step lighter, because on a near-black fill there is nowhere
+   darker to go. White on #121212 is 18.4:1 and on #212121 15.3:1. No border:
+   it used to carry a 1px rim in its own fill colour. */
+.workCta{background:var(--accent);color:var(--c50);font-size:var(--fs-body)}
+.workCta:hover,.workCta:focus-visible,.workCta:active{
+ background:var(--accent-press);color:var(--c50)}
+
+/* SECONDARY-ON-MEDIA (§3.2, the one permitted addition) -- .reelClose floats
+   over a full-screen video on a near-black scrim, so it is the case the spec
+   allows a ground for: what it needs to stay legible over arbitrary content.
+   On that ground the ink ramp inverts -- --i700 -> --c50 rather than
+   --c700 -> --c950 -- and the rim takes the ink rungs. It keeps the base's
+   height, padding, radius, transition and press; only the four properties a
+   kind is allowed to vary change.
+   The bare `letter-spacing:.06em` it used to carry is --tr-caps, which is the
+   tracking for uppercase; this label is sentence case, so it takes --tr-body
+   like every other control label. */
+.reelClose{background:var(--mat-i3-solid);box-shadow:var(--rim-i1);
+ color:var(--i700);font-size:var(--fs-small);letter-spacing:var(--tr-body)}
+.reelClose:hover,.reelClose:focus-visible{
+ background:var(--mat-i3-solid);box-shadow:var(--rim-i2);color:var(--c50)}
+.reelClose:focus-visible{outline-color:var(--accent-dark)}
 
 /* The Play-menu-in-the-header overrides stood here: no card edge, no shadow, a
    max-width tuned to the page margin, all !important because it was fighting the
@@ -966,6 +1156,52 @@ html{scroll-padding-top:calc(var(--nav-h) + var(--sp-16-24))}
    carry.  At 900px the head at its original size and that line cannot both have
    comfortable air.  Reported rather than resolved by shrinking either one. */
 .hero .stagewrap{width:min(clamp(260px,calc((100svh - 248px) * .95),620px),62vw)}
+
+/* ═══ AND THE PHONE GETS ITS HEAD BACK.  2026-08-04 ═══════════════════════════
+   Jayden: "Head on mobile looks a little too small -- needs to be balanced with
+   text."  It is not a taste call; the phone lost 31% of its head to a cascade
+   accident and nobody measured after.
+
+   WHAT HAPPENED. The rule above restores the desktop expression byte for byte,
+   which is right -- but it was written with NO MEDIA QUERY and it sits ~380
+   lines BELOW the `@media(max-width:760px)` fork that gives the phone its own
+   sizing (90vw, not 62vw). Same specificity, later in the sheet, so it won at
+   every width. The phone silently started using the DESKTOP formula:
+
+     390 x 844   62vw = 241.8px   <- what shipped
+                 90vw = 351.0px   <- what the mobile fork says, and what was
+                                     there before the revert
+
+   The svh term never binds on a portrait phone (it needs viewport width <
+   height - 248), so on mobile this expression is purely `62vw` and the whole
+   height-aware half of it is dead -- which is the geometry audit's finding 11,
+   arriving from the other direction.
+
+   RESTORED, NOT INCREASED, and that distinction is the point. 90vw is the mobile
+   fork's own authored value; this rule only puts it back where the cascade can
+   see it. The head is not being grown past anything anybody approved.
+
+   THE CLEARANCE, measured at 390 x 844 rather than assumed -- this is the number
+   that has been broken twice:
+     bar bottom            72.0
+     h1 top / bottom       88.0 / 189.7   (three lines, --fs-heroline)
+     head top             205.7           (+16, --sp-16-24 below 880)
+     head height          241.8 -> 351.0
+     head bottom          447.5 -> 556.7
+     clearance to fold    396.5 -> 287.3
+   The headline does not move at all: the head is `order:3`, entirely below it,
+   so growing it consumes only the empty space under the chin. At the shortest
+   phone worth testing, 390 x 667, the feet still land at 556.7 with 110px to
+   spare. Nothing is pushed below the fold.
+
+   BALANCE, stated as the ratio it was asked for: head width against the h1's
+   measure goes 0.71 -> 1.03 at 390. Desktop is already 0.52 of a 1200px column
+   at the 620px cap and is NOT touched here -- at a realistic laptop viewport the
+   head clears the fold by 61px and grows at 95% of every pixel granted, so there
+   is no room there to spend. See the report; that half is deliberately left. */
+@media(max-width:760px){
+ .hero .stagewrap{width:min(clamp(200px,calc((100svh - 200px) * .9),460px),90vw)}
+}
 /* ═══ THE PLAY MENU — header.css's PANEL, not a second popup ═══════════════
    Jayden: "Play drop down is not same styling."  It was true: the menu was
    #moodMenu, a local skin with its own radius (4px), its own item padding, its
@@ -1347,8 +1583,7 @@ if(location.hash==="#about")location.replace("about.html");</script>
       to this later". The nav status item the research recommended is NOT built; --accent-live
       exists for it whenever he wants it. -->
  <footer class="siteFoot" id="contact" role="contentinfo">
-  <p class="footAvail">Open to work</p>
-  <p class="footReach">Thanks for checking out my website. I&rsquo;d love to chat, you can find me on <a class="footIn" href="https://www.linkedin.com/in/jaydenbetts" target="_blank" rel="noopener noreferrer">LinkedIn</a>, <a class="footIn" href="https://www.instagram.com/jaydenleebetts" target="_blank" rel="noopener noreferrer">Instagram</a>, or through <a class="footIn" href="mailto:jaydenlbetts@gmail.com">email</a>.</p>
+  <p class="footReach">Thanks for checking out my website &mdash; I&rsquo;m open to full-time roles and would love to chat. Find me on <a class="footIn" href="https://www.linkedin.com/in/jaydenbetts" target="_blank" rel="noopener noreferrer">LinkedIn</a>, <a class="footIn" href="https://www.instagram.com/jaydenleebetts" target="_blank" rel="noopener noreferrer">Instagram</a>, or <a class="footIn" href="mailto:jaydenlbetts@gmail.com">email</a>.</p>
   <div class="footMark" aria-hidden="true">Jayden Betts</div>
  </footer>
 <div class="reelOverlay" id="reelOverlay" aria-hidden="true"><button class="reelClose" id="reelClose" type="button" aria-label="Close trailer">Close</button><video class="reelOverlayVid" id="reelOverlayVid" controls playsinline preload="metadata" poster="images/reel_poster.webp"><source src="videos/reel.mp4" type="video/mp4"></video></div>
