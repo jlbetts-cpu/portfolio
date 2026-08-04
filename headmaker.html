@@ -146,6 +146,15 @@ img{display:block;max-width:100%}
 .footReach{font-weight:400;font-size:var(--fs-prose);line-height:1.55;color:var(--c700);margin:0 auto;max-width:42ch;text-wrap:balance}
 .footIn{font-weight:600;color:var(--c950);text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:3px;text-decoration-color:var(--c500)}
 .footIn:hover{text-decoration-color:var(--c950)}
+/* The footer links are the one control this page never got. index.html, and all
+   five case studies, carry this rule; headmaker was the only page without it, so
+   its three footer links measured 21px tall against a 44px minimum, with 7.7px
+   between LinkedIn and Instagram. The padding is cancelled by an equal negative
+   margin, so the prose keeps its exact leading and only the hit box grows -- 21
+   becomes 45. Copied from index.html, which is where this footer came from.
+   These stay TEXT, not buttons (see the third-category note further down); a
+   bigger target is not a different category. */
+@media(max-width:768px){.footIn{display:inline-block;padding-top:12px;padding-bottom:12px;margin-top:-12px;margin-bottom:-12px}}
 a:focus-visible,button:focus-visible,.hmDot:focus-visible{outline:2px solid var(--c950);outline-offset:3px;border-radius:4px}
 @media(max-width:760px){.wrap{padding:0 24px}nav{padding:24px 0 0}.kicker{margin-top:clamp(56px,11vh,96px)}}
 @media(prefers-reduced-motion:reduce){.hmStep{opacity:1!important;transform:none!important;filter:none!important;transition:none}}
