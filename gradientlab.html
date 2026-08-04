@@ -16,7 +16,15 @@
 
   :root{
     --paper:#f8f9fa; --ink:#232323; --sub:#75756e; --hair:#e7e6e1;
-    --panel:rgba(255,255,255,.72); --accent:#0E6B3B;
+    --panel:rgba(255,255,255,.72);
+    /* --accent is NOT rebound here. This block loads after tokens.css, so an
+       --accent:#0E6B3B here made the same name mean green on this page and blue
+       on seven others -- and the Lab's focus rings were green as a result. The
+       three interactive uses (the range focus ring, the checkbox accent-color,
+       the button focus ring) want the system's interactive blue and now inherit
+       it. The fourth wanted SUCCESS, which is a different idea that happens to
+       be the same colour, so it gets a name of its own rather than a rebinding. */
+    --ok:#0E6B3B;
   }
   *{box-sizing:border-box}
   body{margin:0;background:var(--paper);color:var(--ink);
@@ -134,7 +142,7 @@
     font-family:ui-monospace,SFMono-Regular,Menlo,monospace;color:#3c3b36;white-space:pre;tab-size:2}
   .copy{position:absolute;top:8px;right:8px;border:1px solid var(--hair);background:rgba(255,255,255,.92);
     border-radius:6px;padding:5px 10px;font-size:11px;font-weight:600;color:var(--ink)}
-  .copy.ok{color:var(--accent);border-color:var(--accent)}
+  .copy.ok{color:var(--ok);border-color:var(--ok)}
   .glErr{display:none;color:#8a3030;font-size:12px;margin-top:8px}
 
 /* The flagged header token top-up that used to sit here is gone: this page links

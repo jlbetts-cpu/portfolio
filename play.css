@@ -50,7 +50,16 @@
    --accent (it carries its own --nav-accent) precisely so this override is safe.
    --accent-live, --fs-hero, --fs-heroline: not in tokens.css at all; kept verbatim so the
    computed-value diff stays empty. --lh-prose: this page carries 1.6, tokens.css 1.5. ---- */
-:root{--accent:#0E6B3B;--accent-live:#17A45A;
+/* ---- CORRECTION, 2026-08-03: --accent is NOT rebound here any more.
+   It meant the interactive blue on seven pages and the live-match green on this
+   one and the Lab, which is the most dangerous shape a token bug takes: every
+   page looks right in isolation and the system is silently incoherent. Both of
+   this file's two var(--accent) uses were the LIVE marker -- .tM.tLive's border
+   and .tResRow.tResLive's inset bar -- so both now name --accent-live, which is
+   what they always meant and which this file already defines and uses three
+   times. Nothing here wants the blue rebound; --accent now resolves to
+   tokens.css's blue on this page as on every other. ---- */
+:root{--accent-live:#17A45A;
  --fs-hero:clamp(38px,4.7vw,60px);--fs-heroline:clamp(28px,2.6vw,38px);--lh-prose:1.6;}
 
 /* ---- THE PAGE GUTTER. Jayden: "nothing is really in the correct margins ... for that
@@ -554,7 +563,7 @@ body.hmTour .scrollCue{display:none}
 .tMi{position:relative;display:flex;flex-direction:column;justify-content:center;flex:1 1 0;width:100%;padding:var(--sp-4) 0}
 .tM{position:relative;display:flex;flex-direction:column;border:1px solid var(--c100);border-radius:var(--r-2xs);
  background:var(--c50);transition:border-color .3s var(--ease-out)}
-.tM.tLive{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.tM.tLive{border-color:var(--accent-live);box-shadow:0 0 0 1px var(--accent-live)}
 .tT{display:flex;align-items:center;gap:var(--sp-8);padding:var(--sp-8) var(--sp-12);font-size:var(--fs-small);line-height:1.2;white-space:nowrap;overflow:hidden;text-align:left;min-height:38px;box-sizing:border-box;border-left:2px solid transparent}
 .tT+.tT{border-top:1px solid var(--c100)}
 .tT:first-child{border-radius:3px 3px 0 0}
@@ -1465,7 +1474,7 @@ body.hmFinal .sbRound{color:#e8b347}
 /* pending fixture: no score yet, so the row says who it is waiting on */
 .tResVs{align-self:center;font-family:var(--sans);font-weight:400;font-size:var(--fs-caption,12px);
  letter-spacing:.1em;text-transform:uppercase;color:var(--c500)}
-.tResRow.tResLive{background:var(--c75,#F4F4F4);box-shadow:inset 2px 0 0 var(--accent)}
+.tResRow.tResLive{background:var(--c75,#F4F4F4);box-shadow:inset 2px 0 0 var(--accent-live)}
 @media(max-width:560px){
  .tResRow{grid-template-columns:1fr;gap:var(--sp-6)}
  .tResSide:nth-child(2),.tResSide:nth-child(2) .tResWho{flex-direction:row}

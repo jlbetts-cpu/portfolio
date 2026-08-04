@@ -177,6 +177,15 @@ var DISC_CLOSE_DELAY = 260;   /* forgiving enough to cross the gap to the panel 
      and a group, and it adds no glyph to the bar.
      Bound on (hover:none) rather than on a width, because the thing that
      decides this is the input device and not the viewport. */
+  /* Belt and braces on the destination row. It is display:none outside
+     (hover:none) in CSS, but a stale stylesheet would leave a second "Play" and
+     a second "Contact" visible in the panel -- which is exactly what Jayden saw.
+     Where the trigger itself navigates, the row has no job, so it is removed
+     from the DOM rather than merely hidden. */
+  if(!(window.matchMedia && matchMedia("(hover:none)").matches)){
+    [].forEach.call(menu.querySelectorAll(".jbDiscTouch"), function(el){ el.remove(); });
+  }
+
   if(window.matchMedia && matchMedia("(hover:none)").matches){
     go.addEventListener("click", function(e){
       if(isOpen()) return;             /* open already: let the row you tapped act */

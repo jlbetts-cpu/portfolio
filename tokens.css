@@ -150,6 +150,10 @@
     --menu-gap is the distance from the bar's underside to the panel. It was
     --sp-10 written inline in two files. */
  --sp-36:36px;--menu-w:216px;--menu-gap:10px;
+    /* --menu-max-h is where a panel stops growing and starts scrolling inside
+       itself. Play's carries a saved-heads roster that has no fixed length, and
+       a panel that runs past the fold cannot be closed by scrolling to it. */
+ --menu-max-h:min(70svh,440px);
 }
 
 /* ===========================================================================

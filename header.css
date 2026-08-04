@@ -240,6 +240,24 @@
    one, which is the whole of "use the margins". */
 .jbGrp{position:relative;z-index:1;                /* over the travelling indicator */
   display:flex;align-items:center;gap:var(--sp-8);flex:0 1 auto;min-width:0}
+
+/* ── THE BACK SLOT — why the bar is the same shape on nine pages that do not
+   carry the same items.  Jayden asked for two things that collide: "Back on the
+   case studies only" and "mathematically balanced and consistent on every page".
+   Content-driven geometry cannot do both -- five pages would start with a 44px
+   arrow and four would not, so the wordmark would sit 52px further left on the
+   four.  The slot is therefore RESERVED rather than content-driven: every page
+   pays for it, and the page that has a Back puts it there.  One declaration, no
+   :has(), no per-page value -- the leading group is indented by the slot and the
+   Back item is pulled back out of the indent by exactly the same number, so the
+   lockup's offset from the bar's leading edge is IDENTICAL on all nine pages
+   whether or not a Back exists.
+   It is a desktop alignment device and it retires at <=640, where the budget is
+   26px over already and dead space is the first thing that should go. */
+.jbNav{--back-slot:calc(var(--tap-min) + var(--sp-8))}
+.jbGrpL{padding-left:var(--back-slot)}
+.jbNav .jbBack{margin-left:calc(var(--back-slot) * -1)}
+@media(max-width:640px){.jbNav{--back-slot:0px}}
 .jbGrpR{justify-content:flex-end;flex:0 0 auto}
 .jbNav .jbHome{flex:0 0 auto}
 
@@ -385,16 +403,21 @@
   transition:opacity var(--ease-out-dur) var(--ease-out),
              transform var(--ease-out-dur) var(--ease-out)}
 /* the panel's items are nav items in a column: same type scale, same weight,
-   same ink, same 44px minimum, --sp-* padding, one rung down on the radius. */
-.jbNav .jbDiscMenu a,.jbNav .jbDiscMenu button{
+   same ink, same 44px minimum, --sp-* padding, one rung down on the radius --
+   which is the control system's rule that a menu row and a nav item are the same
+   control.  :not(.mhPick,.mhX) is load-bearing and is not defensive noise: the
+   saved-heads roster puts two buttons INSIDE a row rather than being one, and
+   without the exclusion this rule stretched each 34px thumbnail to width:100%
+   and pushed its own delete button onto a line of its own. */
+.jbNav .jbDiscMenu :is(a,button):not(.mhPick,.mhX){
   width:100%;justify-content:flex-start;min-width:0;text-align:left;
   padding:0 var(--sp-10);min-height:var(--tap-min);gap:var(--sp-10);
   border-radius:var(--r-sm);corner-shape:var(--corner);white-space:nowrap;
   font-size:var(--fs-nav);font-weight:400;color:var(--nav-ink)}
-.jbNav .jbDiscMenu a:hover,.jbNav .jbDiscMenu button:hover{color:var(--nav-ink-strong)}
+.jbNav .jbDiscMenu :is(a,button):not(.mhPick,.mhX):hover{color:var(--nav-ink-strong)}
 /* the panel's items are full-width, so their 44px target is the box itself --
    the bar's ::after expander would only overlap the item above and below. */
-.jbNav .jbDiscMenu a::after,.jbNav .jbDiscMenu button::after{content:none}
+.jbNav .jbDiscMenu :is(a,button)::after{content:none}
 .jbDiscMenu .jbDiscGrp{display:flex;flex-direction:column;gap:var(--gap-bar)}
 /* a rule BETWEEN groups, at the site's own hairline weight */
 .jbDiscMenu .jbDiscSep{height:var(--hair-w);background:var(--c100);
@@ -402,7 +425,7 @@
 .jbNav[data-surface="ink"] .jbDiscMenu .jbDiscSep{background:var(--i100)}
 /* Play's panel carries the saved-heads grid and can outgrow a short viewport.
    It scrolls inside itself rather than off the screen; the bar never moves. */
-.jbDiscMenu{max-height:min(70svh,var(--sp-64-168) * 3);overflow-y:auto;
+.jbDiscMenu{max-height:var(--menu-max-h);overflow-y:auto;
   overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
 
 /* ── THE TOUCH DESTINATION ROW ──────────────────────────────────────────────
@@ -548,24 +571,27 @@
    and the dot's `0 0 0 3px` is a ring -- zero offset, zero blur.
    ═══════════════════════════════════════════════════════════════════════════ */
 .heroAvail{
-  --avail-dot:7px; --avail-ring:3px;
-  display:inline-flex;align-items:center;gap:var(--sp-8);
-  margin:0;padding:0 var(--sp-14);min-height:var(--sp-30);
-  border-radius:var(--r-pill);
-  background:var(--mat-2);box-shadow:var(--rim-1);
-  -webkit-backdrop-filter:blur(var(--blur-1));backdrop-filter:blur(var(--blur-1));
+  /* NO CAPSULE, NO DOT.  Jayden: "I'd remove the pill around: Based in San
+     Francisco - Open to full-time roles", then "and remove the dot as well, just
+     keep it clean."  What went: --mat-2, --rim-1, the blur, --r-pill, the 14px
+     horizontal padding, the 30px minimum height, and the dot with its ring
+     (--avail-dot / --avail-ring are deleted, not left orphaned).
+     WHAT HAS TO DO THAT WORK NOW.  A container was making this line a different
+     register from the h1 under it; with the container gone, only type and space
+     can. --fs-label at 600 in --c700 is 8.32:1 on --c50 -- two steps smaller than
+     the h1, one weight heavier, and a full stop lighter in ink, which is the
+     eyebrow relationship the site's --gap-eyebrow token already names. --c500
+     would have been 4.63:1: legal, but this line carries the one fact a
+     recruiter is looking for and it should not be the quietest thing on the page. */
+  display:block;margin:0;padding:0;background:none;box-shadow:none;
+  -webkit-backdrop-filter:none;backdrop-filter:none;
   font-family:var(--sans);font-weight:600;font-size:var(--fs-label);
-  line-height:var(--lh-flat);
-  /* the shipped .01em is an untokenised one-off; at 13px sentence case the
-     ladder's honest rung is --tr-flat — nothing to open, nothing to close. */
-  letter-spacing:var(--tr-flat);color:var(--c700);white-space:nowrap;
+  line-height:var(--lh-flat);letter-spacing:var(--tr-flat);
+  color:var(--c700);
   opacity:0;transform:translateY(calc(var(--sp-4) * -1));
   transition:opacity var(--enter-dur) var(--ease-out),
              transform var(--enter-dur) var(--ease-out)}
 .heroAvail.in{opacity:1;transform:none}
-.heroAvail i{width:var(--avail-dot);height:var(--avail-dot);flex:0 0 var(--avail-dot);
-  border-radius:var(--r-full);background:var(--nav-accent);
-  box-shadow:0 0 0 var(--avail-ring) var(--nav-accent-wash)}
 
 /* ═══════════════════════════════════════════════════════════════════════════
    5 · THE MOOD DOCK lives in index.html, not here, and that is deliberate.
@@ -613,7 +639,7 @@
                                                            --fs-small */
     font-size:var(--fs-small);padding:0 var(--sp-8) 0 var(--mark-inset)}
   .jbBack{padding:0 var(--sp-8)}
-  .heroAvail{font-size:var(--fs-caption);padding:0 var(--sp-10);min-height:var(--sp-28)}
+  .heroAvail{font-size:var(--fs-caption)}
 }
 @media(prefers-reduced-motion:reduce){
   .heroAvail{transition:none}
