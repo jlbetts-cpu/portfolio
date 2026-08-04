@@ -1,0 +1,411 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Interactive accent — swatches</title>
+<link rel="icon" href="favicon.ico" sizes="any">
+<style>
+@font-face{font-family:"Instrument Sans";font-style:normal;font-weight:400;font-display:swap;src:url(fonts/instrument-sans-latin-400-normal.woff2) format("woff2")}
+@font-face{font-family:"Instrument Sans";font-style:normal;font-weight:600;font-display:swap;src:url(fonts/instrument-sans-latin-600-normal.woff2) format("woff2")}
+
+:root{
+  /* the site's real ramp, copied from tokens.css so this page sits on the actual paper */
+  --c50:#FDFDFD;--c75:#F1F1F1;--c100:#E6E6E6;--c500:#757575;--c600:#6B6B6B;--c700:#525252;--c900:#212121;--c950:#121212;
+  --live-deep:#0E6B3B;   /* today's --accent      */
+  --live-bright:#17A45A; /* today's --accent-live */
+
+  /* the proposal */
+  --accent:        oklch(52% 0.18 262);   /* #2961CE */
+  --accent-press:  oklch(44% 0.16 262);   /* #1B4BA9 */
+  --accent-wash:   oklch(94.7% 0.018 262);/* #E7EEFA */
+  --accent-dark:   oklch(72% 0.12 262);   /* #7BA4F0 — for dark grounds only */
+
+  /* references, for comparison only */
+  --ref-apple:#007AFF;
+  --ref-trung:#0072F5;
+  --ref-trung-wash:#E0F0FF;
+
+  --sans:"Instrument Sans",-apple-system,system-ui,sans-serif;
+  --mono:ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+@supports not (color:oklch(50% .1 200)){
+  :root{--accent:#2961CE;--accent-press:#1B4BA9;--accent-wash:#E7EEFA;--accent-dark:#7BA4F0}
+}
+
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--c50);color:var(--c950);font-family:var(--sans);font-weight:400;
+     font-size:16px;line-height:1.5;letter-spacing:-.004em;-webkit-font-smoothing:antialiased}
+.wrap{max-width:980px;margin:0 auto;padding:56px 24px 120px}
+h1{font-size:clamp(28px,2.6vw,38px);line-height:1.08;letter-spacing:-.028em;margin:0 0 12px;font-weight:400}
+h2{font-size:20px;line-height:1.2;letter-spacing:-.015em;font-weight:600;margin:0 0 6px}
+.sec{margin-top:64px;padding-top:28px;border-top:1px solid var(--c100)}
+.sec:first-of-type{border-top:0;padding-top:0}
+.lede{color:var(--c700);max-width:66ch;margin:0 0 4px}
+.note{color:var(--c500);font-size:15px;max-width:70ch;margin:10px 0 0}
+.eyebrow{font-size:11px;font-weight:600;letter-spacing:.045em;text-transform:uppercase;color:var(--c500);margin:0 0 20px}
+code,.mono{font-family:var(--mono);font-size:12.5px;letter-spacing:0}
+
+/* ---------- contrast badge ---------- */
+.cr{display:inline-flex;align-items:baseline;gap:6px;font-family:var(--mono);font-size:11.5px;letter-spacing:0;
+    color:var(--c700);white-space:nowrap}
+.cr b{font-weight:600;font-size:12.5px;color:var(--c950)}
+.cr .v{display:inline-block;min-width:2.6em}
+.pass,.fail{display:inline-block;padding:1px 5px;border-radius:3px;font-size:10px;font-weight:600;letter-spacing:.03em;
+     text-transform:uppercase;font-family:var(--sans)}
+.pass{background:#E8F3EC;color:#0E6B3B}
+.fail{background:#FBE9E9;color:#96201F}
+
+/* ---------- swatch cards ---------- */
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:16px;margin-top:20px}
+.card{border:1px solid var(--c100);border-radius:14px;overflow:hidden;background:var(--c50)}
+.chip{height:104px}
+.cbody{padding:12px 14px 14px}
+.cname{font-size:13px;font-weight:600;letter-spacing:-.01em}
+.cval{font-family:var(--mono);font-size:11.5px;color:var(--c700);margin-top:4px;line-height:1.45;letter-spacing:0}
+.crow{margin-top:9px;display:flex;flex-direction:column;gap:4px}
+.crow .cr{white-space:nowrap}
+.tagref{display:inline-block;margin-top:8px;font-size:10px;font-weight:600;letter-spacing:.045em;text-transform:uppercase;
+        color:var(--c500);border:1px solid var(--c100);border-radius:999px;padding:2px 8px}
+
+/* ---------- component demos ---------- */
+.demo{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;margin-top:22px}
+.panel{border:1px solid var(--c100);border-radius:14px;padding:20px;background:var(--c50)}
+.panel.onc75{background:var(--c75)}
+.panel.onc100{background:var(--c100)}
+.plabel{font-size:11px;font-weight:600;letter-spacing:.045em;text-transform:uppercase;color:var(--c500);margin:0 0 14px}
+.pfoot{margin-top:14px;padding-top:12px;border-top:1px solid var(--c100)}
+.verdict{display:inline-block;margin:0 0 12px;font-size:10px;font-weight:600;letter-spacing:.045em;text-transform:uppercase;
+   font-family:var(--sans);border-radius:999px;padding:3px 9px}
+.v-yes{background:#E8F3EC;color:#0E6B3B}
+.v-no{background:#F3F3F3;color:#6B6B6B}
+.v-ask{background:#FFF4DF;color:#8A6100}
+
+/* the real back-link, as it exists on the five case studies */
+.back{display:inline-flex;align-items:center;gap:8px;font-size:15px;color:var(--c500);text-decoration:none;
+      background:none;border:0;padding:4px 0;cursor:pointer;transition:color .18s cubic-bezier(.2,.8,.2,1)}
+.back svg{width:14px;height:14px}
+.back:hover,.back.is-hover{color:var(--accent)}
+.back:active{color:var(--accent-press)}
+
+/* body-size prose link */
+.prose{max-width:56ch;margin:0}
+.plink{color:var(--c950);text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px;
+       text-decoration-color:var(--c100);transition:color .18s,text-decoration-color .18s}
+.plink:hover,.plink.is-hover{color:var(--accent);text-decoration-color:var(--accent)}
+.plink.is-press{color:var(--accent-press);text-decoration-color:var(--accent-press)}
+
+/* nav */
+.nav{display:flex;align-items:center;gap:22px;font-size:15px}
+.navLink{color:var(--c700);text-decoration:none;padding:6px 0;position:relative;transition:color .18s}
+.navLink:hover{color:var(--c950)}
+.navLink.on{color:var(--accent);font-weight:600}
+.navLink.on::after{content:"";position:absolute;left:0;right:0;bottom:0;height:2px;background:var(--accent);border-radius:2px}
+.navPill{font-size:15px;font-weight:600;color:var(--accent);background:var(--accent-wash);border-radius:999px;padding:5px 13px}
+
+/* buttons */
+.btns{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.btn{font:inherit;font-size:15px;font-weight:600;letter-spacing:-.01em;border-radius:10px;padding:9px 18px;cursor:pointer;
+     border:1px solid transparent;transition:background .18s,border-color .18s,color .18s}
+.btn.dark{background:var(--c950);color:var(--c50)}
+.btn.dark:hover{background:#2b2b2b}
+.btn.acc{background:var(--accent);color:#fff}
+.btn.acc:hover,.btn.acc.is-hover{background:var(--accent-press)}
+.btn.ghost{background:none;border-color:var(--c100);color:var(--c700)}
+.btn.ghost:hover{border-color:var(--c500);color:var(--c950)}
+
+/* focus rings */
+.ringrow{display:flex;flex-wrap:wrap;gap:26px;align-items:center}
+.ringdemo{display:inline-flex;flex-direction:column;gap:8px;align-items:flex-start}
+.ringInk{outline:2px solid var(--c950);outline-offset:3px;border-radius:4px}
+.ringAcc{outline:2px solid var(--accent);outline-offset:3px;border-radius:4px}
+.ringDbl{outline:2px solid var(--accent);outline-offset:3px;border-radius:4px;box-shadow:0 0 0 5px var(--accent-wash)}
+
+/* live-vs-interactive */
+.tM{border:1px solid var(--c100);border-radius:4px;background:var(--c50);width:210px;font-size:15px}
+.tM.tLive{border-color:var(--live-deep);box-shadow:0 0 0 1px var(--live-deep)}
+.tT{display:flex;align-items:center;gap:8px;padding:8px 12px;min-height:38px;border-left:2px solid transparent}
+.tT+.tT{border-top:1px solid var(--c100)}
+.tRdNow{font-size:12px;font-weight:600;letter-spacing:.045em;text-transform:uppercase;color:var(--live-bright)}
+.tRdNow::after{content:"";display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--live-bright);
+   margin-left:8px;vertical-align:middle;box-shadow:0 0 6px rgba(23,164,90,.55)}
+
+/* dark ground */
+.dark-ground{background:#0E1626;border-radius:18px;padding:26px;color:#E8ECF5;margin-top:22px}
+.dark-ground .plabel{color:#8E9AB5}
+.dark-ground a{color:var(--accent-dark);text-decoration-color:color-mix(in oklch,var(--accent-dark) 45%,transparent)}
+.dark-ground .wrongblue{color:var(--accent)}
+.dark-ground .cr{color:#A9B4CB}
+.dark-ground .cr b{color:#E8ECF5}
+
+/* comparison table — its own scroll container, so a 7-column table can never
+   widen the document and push the whole page sideways at 390px */
+.tablewrap{overflow-x:auto;overscroll-behavior-x:contain;margin-top:20px;
+  scrollbar-width:thin;scrollbar-color:var(--c100) transparent}
+table{border-collapse:collapse;width:100%;min-width:660px;font-size:14px}
+th,td{text-align:left;padding:11px 12px;border-bottom:1px solid var(--c100);vertical-align:middle}
+th{font-size:11px;font-weight:600;letter-spacing:.045em;text-transform:uppercase;color:var(--c500)}
+td.sw i{display:inline-block;width:22px;height:22px;border-radius:6px;vertical-align:middle;box-shadow:inset 0 0 0 1px rgba(18,18,18,.10)}
+td .sample{font-size:16px;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px}
+td.num{font-family:var(--mono);font-size:13px;letter-spacing:0}
+
+/* mobile frame */
+.frame{width:390px;max-width:100%;height:760px;border:1px solid var(--c100);border-radius:20px;overflow:hidden;
+       background:var(--c50);margin-top:20px}
+.frame iframe{width:390px;height:760px;border:0;display:block}
+
+@media(max-width:640px){
+  .wrap{padding:36px 18px 90px}
+  .sec{margin-top:48px}
+  .demo{grid-template-columns:1fr}
+  .cards{grid-template-columns:1fr}
+  td .sample{white-space:nowrap}
+}
+body.inframe .hide-in-frame{display:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<p class="eyebrow">Proposal · 2026-08-03 · not applied to any page</p>
+<h1>An interactive accent for the portfolio</h1>
+<p class="lede">The site has one accent and it means “live” — it is only used by the tournament UI. Nothing carries a shared colour for “this responds to you.” This page puts one candidate blue on the real paper, on real components, with every contrast ratio measured in the browser rather than asserted.</p>
+<p class="note">Every number on this page is computed at runtime from the actual rendered colours (WCAG&nbsp;2.x relative-luminance formula). Thresholds shown: <b>4.5</b> for body-size text, <b>3.0</b> for large text, focus rings and other non-text UI.</p>
+
+<!-- ============ 1. the candidate ============ -->
+<section class="sec">
+  <h2>1 · The candidate and its family</h2>
+  <p class="lede">One base, one pressed step, one wash, one dark-ground variant. Everything is the same hue (262°) so the family reads as one colour at different energies.</p>
+  <div class="cards" id="cards-main"></div>
+</section>
+
+<!-- ============ 2. references ============ -->
+<section class="sec">
+  <h2>2 · Against the two references</h2>
+  <p class="lede">Apple’s system blue and the blue on the reference case study, shown as body-size link text on the real paper. Both are lighter than ours; both miss 4.5:1. That failure is the reason ours is darker, not a stylistic preference.</p>
+  <div class="tablewrap">
+    <table id="reftable">
+      <thead><tr><th>Colour</th><th>Swatch</th><th>Value</th><th>As a 16px link</th><th>vs paper #FDFDFD</th><th>Body 4.5</th><th>Non-text 3.0</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+  <p class="note">Apple’s <code>#007AFF</code> is a community-measured value — Apple ships an adaptive <code>systemBlue</code> token, not a fixed hex, and uses <code>#0A84FF</code> in dark mode. The reference value <code>#0072F5</code> was read off the live page in the 2026-08-02 teardown.</p>
+</section>
+
+<!-- ============ 3. real components ============ -->
+<section class="sec">
+  <h2>3 · On real components</h2>
+  <p class="lede">Hover the live ones. The static “hover” rows are forced on so both states are visible side by side.</p>
+
+  <div class="demo">
+
+    <div class="panel">
+      <span class="verdict v-yes">Recommended</span>
+      <p class="plabel">Case-study back link · the element that started this</p>
+      <div style="display:flex;flex-direction:column;gap:10px;align-items:flex-start">
+        <a class="back" href="#3"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg>Back — rest</a>
+        <a class="back is-hover" href="#3"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg>Back — hover</a>
+      </div>
+      <div class="pfoot"><span class="cr" data-fg="var(--accent)" data-bg="var(--c50)" data-min="4.5" data-label="hover on paper"></span></div>
+    </div>
+
+    <div class="panel">
+      <span class="verdict v-yes">Recommended — hover only, rest stays ink</span>
+      <p class="plabel">Body-size prose link · 16px</p>
+      <p class="prose">The engineering section names a feature that <a class="plink" href="#3">wasn’t feasible</a>, and the one <a class="plink is-hover" href="#3">shipped instead</a>. Pressed reads as <a class="plink is-press" href="#3">one step deeper</a>.</p>
+      <div class="pfoot"><span class="cr" data-fg="var(--accent)" data-bg="var(--c50)" data-min="4.5" data-label="hover on paper"></span><br><span class="cr" data-fg="var(--accent-press)" data-bg="var(--c50)" data-min="4.5" data-label="pressed on paper"></span></div>
+    </div>
+
+    <div class="panel">
+      <span class="verdict v-no">Not recommended — see §3 of the spec</span>
+      <p class="plabel">Active nav item · underline vs wash pill</p>
+      <nav class="nav"><a class="navLink on" href="#3">Work</a><a class="navLink" href="#3">About</a><a class="navLink" href="#3">Play</a></nav>
+      <div style="margin-top:16px"><span class="navPill">Work</span></div>
+      <div class="pfoot"><span class="cr" data-fg="var(--accent)" data-bg="var(--c50)" data-min="4.5" data-label="active label on paper"></span><br><span class="cr" data-fg="var(--accent)" data-bg="var(--accent-wash)" data-min="4.5" data-label="label on wash"></span><br><span class="cr" data-fg="var(--accent-wash)" data-bg="var(--c50)" data-min="3" data-label="wash vs paper"></span></div>
+    </div>
+
+    <div class="panel">
+      <span class="verdict v-no">Not recommended — the dark button stays</span>
+      <p class="plabel">Buttons · current dark, accent alternative</p>
+      <div class="btns">
+        <button class="btn dark">See the work</button>
+        <button class="btn acc">See the work</button>
+        <button class="btn acc is-hover">Hover</button>
+        <button class="btn ghost">Ghost</button>
+      </div>
+      <div class="pfoot"><span class="cr" data-fg="#FFFFFF" data-bg="var(--accent)" data-min="4.5" data-label="white on accent fill"></span><br><span class="cr" data-fg="#FFFFFF" data-bg="var(--accent-press)" data-min="4.5" data-label="white on pressed fill"></span></div>
+    </div>
+
+    <div class="panel">
+      <span class="verdict v-ask">Jayden’s call — spec recommends keeping ink</span>
+      <p class="plabel">Focus rings · today’s ink vs accent</p>
+      <div class="ringrow">
+        <span class="ringdemo"><button class="btn ghost ringInk">Ink ring</button><span class="cr" data-fg="var(--c950)" data-bg="var(--c50)" data-min="3" data-label="ring vs paper"></span></span>
+        <span class="ringdemo"><button class="btn ghost ringAcc">Accent ring</button><span class="cr" data-fg="var(--accent)" data-bg="var(--c50)" data-min="3" data-label="ring vs paper"></span></span>
+      </div>
+      <div class="ringrow" style="margin-top:20px">
+        <span class="ringdemo"><button class="btn dark ringInk">Ink ring on dark</button><span class="cr" data-fg="var(--c950)" data-bg="var(--c950)" data-min="3" data-label="ring vs the button"></span></span>
+        <span class="ringdemo"><button class="btn dark ringAcc">Accent ring on dark</button><span class="cr" data-fg="var(--accent)" data-bg="var(--c950)" data-min="3" data-label="ring vs the button"></span></span>
+      </div>
+      <p class="note">The 1.00:1 looks alarming and isn’t a failure: every ring on the site uses a <em>positive</em> <code>outline-offset</code>, so a band of paper always separates ring from control, and paper is the adjacent colour that counts. Both rings are legal. The accent ring would trade 18.42:1 for 5.59:1 across ~60 selectors — which is why the spec says keep ink.</p>
+    </div>
+
+    <div class="panel onc75">
+      <p class="plabel">On #F1F1F1 (c75) — the hover/row background</p>
+      <p class="prose" style="margin-bottom:10px">A <a class="plink is-hover" href="#3">hovered link</a> sitting on the c75 fill the site uses for hovered menu rows and the live result row.</p>
+      <span class="cr" data-fg="var(--accent)" data-bg="var(--c75)" data-min="4.5" data-label="accent on c75"></span><br>
+      <span class="cr" data-fg="var(--accent)" data-bg="var(--c100)" data-min="4.5" data-label="accent on c100"></span>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============ 4. live vs interactive ============ -->
+<section class="sec">
+  <h2>4 · “Live” and “interactive” side by side</h2>
+  <p class="lede">Green stays the broadcast signal. It only ever appears as a <em>fill, border or dot on a card</em>. Blue only ever appears as <em>text, an underline or an outline on something you can point at</em>. Different hue, different geometry, different place on the page.</p>
+  <div class="demo">
+    <div class="panel">
+      <p class="plabel">Live — green, on the card</p>
+      <p class="tRdNow">Round of 16</p>
+      <div class="tM tLive" style="margin-top:12px"><span class="tT">Sunburst FC</span><span class="tT">Iron Gulls</span></div>
+      <div class="pfoot"><span class="cr" data-fg="var(--live-deep)" data-bg="var(--c50)" data-min="3" data-label="live border vs paper"></span><br><span class="cr" data-fg="var(--live-bright)" data-bg="var(--c50)" data-min="3" data-label="live dot vs paper"></span></div>
+    </div>
+    <div class="panel">
+      <p class="plabel">Interactive — blue, on the text</p>
+      <p class="prose"><a class="plink is-hover" href="#4">A hovered link</a></p>
+      <div style="margin-top:12px"><a class="back is-hover" href="#4"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg>Back</a></div>
+      <div class="pfoot"><span class="cr" data-fg="var(--accent)" data-bg="var(--c50)" data-min="4.5" data-label="accent vs paper"></span><br><span class="cr" data-fg="var(--accent)" data-bg="var(--live-deep)" data-min="3" data-label="blue vs green, direct"></span></div>
+    </div>
+  </div>
+  <p class="note">The last number is the honest caveat: blue and green are almost the same <em>lightness</em>, so they separate by hue only. Never place them adjacent as two text colours, and never let either state be signalled by colour alone (WCAG 1.4.1) — the live card already carries a dot and a “NOW” label, and the interactive state always carries a hover, an underline or a focus outline.</p>
+</section>
+
+<!-- ============ 5. dark ground ============ -->
+<section class="sec">
+  <h2>5 · Dark ground (the Play sky)</h2>
+  <p class="lede">The base blue is a paper colour. On a night sky it collapses. A lighter same-hue variant is required — this is the same move Apple makes going from <code>#007AFF</code> to <code>#0A84FF</code>.</p>
+  <div class="dark-ground">
+    <p class="plabel">Dark panel · #0E1626</p>
+    <p style="margin:0 0 10px">The dark-ground variant: <a href="#5">pick a planet</a> — legible.</p>
+    <p style="margin:0 0 16px">The paper variant, misused here: <span class="wrongblue" style="text-decoration:underline;text-underline-offset:3px">pick a planet</span> — do not do this.</p>
+    <span class="cr" data-fg="var(--accent-dark)" data-bg="#0E1626" data-min="4.5" data-label="dark variant on sky"></span><br>
+    <span class="cr" data-fg="var(--accent)" data-bg="#0E1626" data-min="4.5" data-label="base variant on sky"></span>
+  </div>
+</section>
+
+<!-- ============ 6. mobile ============ -->
+<section class="sec hide-in-frame">
+  <h2>6 · 390px</h2>
+  <p class="lede">The same page in a true 390px viewport. Headless Chrome clamps its own window to 500px, so this iframe is the only honest mobile check.</p>
+  <div class="frame" id="mobileFrame"></div>
+</section>
+
+</div>
+
+<script>
+(function(){
+  var FRAMED=new URLSearchParams(location.search).has('frame');
+  if(FRAMED) document.body.classList.add('inframe');
+  /* The 390px preview is injected only when we are NOT already inside it -- a static
+     <iframe> here would recurse until the renderer gives up (and paints nothing). */
+  if(!FRAMED){
+    var f=document.createElement('iframe');
+    f.title='390px preview'; f.loading='lazy';
+    f.src='accent-swatches.html?frame=1&cb='+Date.now()+'#3';
+    document.getElementById('mobileFrame').appendChild(f);
+  }
+
+  /* ---------- colour maths ---------- */
+  var probe=document.createElement('span');
+  probe.style.cssText='position:absolute;left:-9999px';
+  document.body.appendChild(probe);
+  var cv=document.createElement('canvas'); cv.width=cv.height=1;
+  var ctx=cv.getContext('2d',{willReadFrequently:true});
+
+  /* getComputedStyle keeps modern colour functions verbatim -- Chrome returns
+     "oklch(0.52 0.18 262)" for an oklch() author value, not rgb(). So resolve the
+     var() through the probe, then let the canvas do the real sRGB conversion and
+     gamut clamp, and read the bytes the screen will actually show. */
+  var cache={};
+  function toRGB(v){
+    if(cache[v]) return cache[v];
+    probe.style.color='#000';
+    probe.style.color=v;
+    var resolved=getComputedStyle(probe).color;
+    ctx.clearRect(0,0,1,1);
+    ctx.fillStyle='#000'; ctx.fillStyle=resolved;
+    ctx.fillRect(0,0,1,1);
+    var d=ctx.getImageData(0,0,1,1).data;
+    return cache[v]=[d[0]/255,d[1]/255,d[2]/255];
+  }
+  function lin(c){ return c<=0.04045 ? c/12.92 : Math.pow((c+0.055)/1.055,2.4); }
+  function L(rgb){ return 0.2126*lin(rgb[0])+0.7152*lin(rgb[1])+0.0722*lin(rgb[2]); }
+  function ratio(a,b){ var x=L(toRGB(a)), y=L(toRGB(b)); if(x<y){var t=x;x=y;y=t;} return (x+0.05)/(y+0.05); }
+  function hex(v){ var c=toRGB(v); return '#'+c.map(function(n){return ('0'+Math.round(n*255).toString(16)).slice(-2)}).join('').toUpperCase(); }
+
+  /* ---------- fill every .cr badge ---------- */
+  [].forEach.call(document.querySelectorAll('.cr[data-fg]'),function(el){
+    var r=ratio(el.dataset.fg, el.dataset.bg), min=parseFloat(el.dataset.min);
+    var ok=r>=min;
+    el.innerHTML=el.dataset.label+' <b class="v">'+r.toFixed(2)+':1</b> '+
+      '<span class="'+(ok?'pass':'fail')+'">'+(ok?'pass':'fail')+' '+min.toFixed(1)+'</span>';
+  });
+
+  /* ---------- candidate cards ---------- */
+  var TEXT=[['var(--c50)','on paper',4.5],['var(--c75)','on c75',4.5],['var(--c100)','on c100',4.5]];
+  var CARDS=[
+    {n:'Accent — base',      v:'var(--accent)',      css:'oklch(52% 0.18 262)',      role:'link + back-link hover, active nav, focus ring option', k:TEXT},
+    {n:'Accent — pressed',   v:'var(--accent-press)',css:'oklch(44% 0.16 262)',      role:':active only, and the accent button’s hover', k:TEXT},
+    {n:'Accent — wash',      v:'var(--accent-wash)', css:'oklch(94.7% 0.018 262)',   role:'active-nav pill fill, focus halo. Never text — it is a ground.',
+      k:[['var(--c50)','vs paper',3],['var(--c950)','ink on it',4.5],['var(--accent)','accent on it',4.5]]},
+    {n:'Accent — dark ground',v:'var(--accent-dark)',css:'oklch(72% 0.12 262)',      role:'the Play sky only. Never on paper.',
+      k:[['#0E1626','on sky',4.5],['var(--c950)','on ink',4.5],['var(--c50)','on paper',4.5]]},
+    {n:'Live — deep',        v:'var(--live-deep)',   css:'#0E6B3B (today’s --accent)',role:'live-match border + result rail. Stays green; renamed, not reused.',
+      k:[['var(--c50)','vs paper',3],['var(--c75)','vs c75',3],['var(--accent)','vs the blue',3]]},
+    {n:'Live — bright',      v:'var(--live-bright)', css:'#17A45A (today’s --accent-live)',role:'live dot + “NOW” round heading.',
+      k:[['var(--c50)','vs paper',3],['var(--c75)','vs c75',3],['var(--accent)','vs the blue',3]]}
+  ];
+  var host=document.getElementById('cards-main');
+  CARDS.forEach(function(c){
+    var d=document.createElement('div'); d.className='card';
+    var rows=c.k.map(function(g){
+      var r=ratio(c.v,g[0]), ok=r>=g[2];
+      return '<span class="cr">'+g[1]+' <b class="v">'+r.toFixed(2)+'</b> <span class="'+(ok?'pass':'fail')+'">'+(ok?'pass':'fail')+' '+g[2]+'</span></span>';
+    }).join('');
+    d.innerHTML='<div class="chip" style="background:'+c.v+'"></div>'+
+      '<div class="cbody"><div class="cname">'+c.n+'</div>'+
+      '<div class="cval">'+c.css+'<br>'+hex(c.v)+'</div>'+
+      '<div class="crow">'+rows+'</div>'+
+      '<div class="cval" style="margin-top:9px;color:var(--c500)">'+c.role+'</div></div>';
+    host.appendChild(d);
+  });
+
+  /* ---------- reference table ---------- */
+  var REFS=[
+    {n:'Ours',                v:'var(--accent)',   note:'proposal'},
+    {n:'Apple system blue',   v:'var(--ref-apple)',note:'reference'},
+    {n:'Reference-site blue', v:'var(--ref-trung)',note:'reference'},
+    {n:'Live — deep (green)', v:'var(--live-deep)',note:'existing'},
+    {n:'Live — bright (green)',v:'var(--live-bright)',note:'existing'},
+    {n:'Body ink c700',       v:'var(--c700)',     note:'existing'}
+  ];
+  var tb=document.querySelector('#reftable tbody');
+  REFS.forEach(function(r){
+    var cr=ratio(r.v,'var(--c50)');
+    var tr=document.createElement('tr');
+    tr.innerHTML='<td>'+r.n+' <span class="tagref">'+r.note+'</span></td>'+
+      '<td class="sw"><i style="background:'+r.v+'"></i></td>'+
+      '<td class="num">'+hex(r.v)+'</td>'+
+      '<td><span class="sample" style="color:'+r.v+'">See the case study</span></td>'+
+      '<td class="num">'+cr.toFixed(2)+':1</td>'+
+      '<td><span class="'+(cr>=4.5?'pass':'fail')+'">'+(cr>=4.5?'pass':'fail')+'</span></td>'+
+      '<td><span class="'+(cr>=3?'pass':'fail')+'">'+(cr>=3?'pass':'fail')+'</span></td>';
+    tb.appendChild(tr);
+  });
+})();
+</script>
+</body>
+</html>

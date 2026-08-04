@@ -1,9 +1,20 @@
 /* ===========================================================================
-   THE SITE HEADER -- one component, every page.
-   Ported 2026-08-03 from header-prototype.html, which is the approved design and
-   the source of every measured number below. Design rationale, the four rejected
-   lockup treatments and the tokenisation audit:
-   .superpowers/sdd/2026-08-02-play-page/header-report.md
+   THE SITE HEADER -- one component, every page.  HEADER V2, 2026-08-03.
+
+   Spec + every measured number below:
+   docs/superpowers/specs/2026-08-03-header-v2-research.md
+   (v1's rationale is .superpowers/sdd/2026-08-02-play-page/header-report.md;
+   the parts of it that survive are named in the v2 spec §2.1 and carried over
+   verbatim -- notably the whole stacked-lockup block, which is unchanged.)
+
+   WHAT V2 CHANGES, in one paragraph. v1 shipped a 318px pill floating in 962px
+   of dead space with a social row stacked above it. Jayden's verdict: "the bones
+   of a good header but it feels too cramped, doesn't use the margins." So the
+   bar goes back to his original silhouette -- Work / About me / lockup /
+   Games / Contact -- at the PAGE'S OWN COLUMN WIDTH (1200px on home, 93.8% of a
+   1280 viewport, against v1's 24.9%), every item now carries a Tabler line icon,
+   the social row is deleted, and the cast shadows are gone. Detail in §2-§6 of
+   the spec; the section numbers below map onto it.
 
    Linked LAST in every page's <head>, after that page's own <style>, so a tie on
    specificity resolves in the component's favour rather than the host page's.
@@ -11,10 +22,9 @@
    Consumers: index.html, apollo.html, bearings.html, cluster.html, strata.html,
    ucdavis.html, play.html, headmaker.html, gradientlab.html.
 
-   TOKENS. Everything here comes from tokens.css by name. The five pages that
-   link tokens.css get them from there; index.html, play.css, headmaker.html and
-   gradientlab.html carry their own token blocks and have been topped up with the
-   same values -- flagged as duplication in the adoption report, not solved here.
+   TOKENS. Everything here comes from tokens.css by name. The five case studies,
+   play.html, headmaker.html and gradientlab.html link that file; index.html
+   still carries its own topped-up copy -- flagged there, not solved here.
    =========================================================================== */
 
 /* THE ONE NAME THE COMPONENT DOES NOT TAKE FROM tokens.css, and why.
@@ -34,114 +44,255 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   0 · THE WRAPPER.  Sticky on a page that scrolls, fixed on the two that do
-   not. pointer-events:none on the box and auto on the bar, always: it is what
-   keeps gradientlab's canvas and play.html's pitch clickable under the header,
-   and costs nothing on the pages that never needed it.
+   0 · THE WRAPPER, AND HOW THE BAR LEARNS EACH PAGE'S COLUMN.
+
+   Sticky on a page that scrolls, fixed on the two that do not. pointer-events
+   none on the box and auto on the bar, always: it is what keeps gradientlab's
+   canvas and play.html's pitch clickable under the header, and costs nothing on
+   the pages that never needed it.
+
+   --bar-gutter and --bar-open are the whole of the per-page configuration, and
+   they are set HERE rather than in each page's <style> for a specificity reason
+   that has bitten this codebase before: header.css is linked last, so a bare
+   `.jbStick{...}` in a host page's own stylesheet is a (0,1,0) tie that THIS
+   file wins. The pages carry a data-col attribute instead and the values live
+   below, where they can be read side by side.
+
+     data-col="home"  index.html      -- .jbStick is a body child; the gutter has
+                                        to reproduce .wrap's own padding (40px,
+                                        24px below 760) so the bar's edges land
+                                        on the h1's edges. Measured at 1280:
+                                        x 40 -> 1240, exactly the content column.
+     data-col="case"  the five studies -- .jbStick is already INSIDE .wrap, whose
+                                        content box is 80 -> 1200 at 1280. The
+                                        gutter is therefore 0 and the cap 1120:
+                                        the bar's leading edge lands on the
+                                        chapter rail's left edge, an alignment
+                                        the page has and v1 ignored.
+     (default)        play, lab,      -- full-viewport stages with no page column
+                      headmaker         to match: the responsive ladder's own
+                                        inset, 40px >=881 and 16px below.
    ═══════════════════════════════════════════════════════════════════════════ */
 /* z-index 100 is measured, not picked: index.html's .wrap creates a stacking
    context at 62 and rises to 80 while the About overlay is open, and the bar has
    to stay above both -- it is the overlay's back affordance. Everything the site
    deliberately puts OVER the header (the reel overlay at 130, the toasts at 200+)
    still wins. play.css tops out at 66; gradientlab has none above 5. */
-.jbStick{position:sticky;top:0;z-index:100;display:flex;justify-content:center;
-  padding:var(--sp-8) var(--sp-16-24) var(--sp-12);pointer-events:none}
+.jbStick{
+  --bar-gutter:var(--sp-16-40);
+  --bar-open:1200px;
+
+  position:sticky;top:0;z-index:100;
+  display:flex;justify-content:center;
+  /* 8 + 52 + 12 = 72px, and the shrunk state is 14 + 52 + 6 = 72px. THE TOTAL
+     NEVER CHANGES -- see §6.2 below and the note on --nav-h. */
+  padding-block:var(--sp-8) var(--sp-12);
+  padding-inline:var(--bar-gutter);
+  pointer-events:none;
+}
 .jbStick>*{pointer-events:auto}
 /* play.html and gradientlab.html: a full-viewport stage that must not scroll. */
 .jbStick.isFixed{position:fixed;top:0;left:0;right:0}
 
+.jbStick[data-col="home"]{--bar-gutter:40px;--bar-open:1200px}
+.jbStick[data-col="case"]{--bar-gutter:0px;--bar-open:1120px}
+@media(max-width:760px){.jbStick[data-col="home"]{--bar-gutter:24px}}   /* tracks .wrap */
+
+/* THE ONE THING THAT HAPPENS ON SCROLL, and it is the whole of it (§6.2).
+   The wrapper redistributes its padding so the bar drops 6px clear of the
+   viewport edge with page visible above it. That is Clerk's move -- the only
+   geometry the best-executed header in the survey touches -- and it is what
+   "detaches from the page edge" literally means. Six of the eight production
+   sites measured change NOTHING on scroll; this is the minimum that still reads
+   as detachment on a page whose chrome casts no shadow.
+   The wrapper's height is identical in both states, so --nav-h, the five case
+   studies' rail offsets and every scroll-margin-top stay valid. Nothing with
+   text in it moves: the transition is on a padding-box with one child. */
+:root.jbShrunk .jbStick{padding-block:var(--sp-14) var(--sp-6)}
+@media(prefers-reduced-motion:no-preference){
+  .jbStick{transition:padding-block var(--ease-out-dur) var(--ease-out)}
+}
+/* The 1px probe header.js drops at the top of the document and watches with one
+   IntersectionObserver. It replaces v1's unthrottled scroll listener -- the only
+   one on the site that was not rAF-gated, and it called getBoundingClientRect()
+   on every event. The site ends this change with one fewer scroll listener than
+   it started with. */
+.jbSentinel{position:absolute;top:0;left:0;width:1px;height:var(--sp-8);
+  pointer-events:none;visibility:hidden}
+
+/* WCAG 1.4.10 Reflow, AA -- the check v1 never ran. At 400% zoom on a 1280
+   laptop the usable vertical viewport can be ~145px, and sticky chrome cannot be
+   scrolled out of the way. Below 420px of height the bar rejoins the flow.
+   `:not(.isFixed)` is deliberate and is NOT a specificity accident: the two
+   stage pages cannot scroll at all, so un-sticking them buys nothing and would
+   put a bar in the flow above a pitch that is positioned against the viewport. */
+@media(max-height:420px){.jbStick:not(.isFixed){position:static}}
+
 /* ═══════════════════════════════════════════════════════════════════════════
-   1 · THE BAR.  One .jbNav, every page. Lockup + Home · About · Games.
-   Per-page differences: a back arrow, which item is lit, data-surface, and
-   whether the socials are riding inside the bar.
+   1 · THE BAR.  One .jbNav, every page:
+
+       [Back]  Work · About me        Jayden          Games · Contact
+                                       Betts
+
+   THREE ZONES WITH EQUAL-BASIS OUTER GROUPS. .jbGrp{flex:1 1 0} is what makes
+   the wordmark GEOMETRICALLY centred regardless of how wide each group is --
+   measured at 640.0px against a viewport centre of 640.0px even with an
+   asymmetric Back arrow in the leading group. Do not drop it: without it,
+   adding Back to a sub-page pushes the wordmark off centre.
+
+   The class is .jbGrp, NOT .navGroup, and that is load-bearing. index.html
+   already defines .navGroup{flex:1 1 0} for the OLD nav and, at <=640px,
+   `.navL{display:none}` -- adopting that name would have silently deleted Work
+   and About me from the phone. Two-class-vs-one-class collisions inside an
+   @media block (which adds no specificity) have caused three bugs in this repo.
 
    COMPONENT GEOMETRY, declared once, below. These are deliberately NOT tokens:
-   a toggle's track size and a wordmark's optical correction do not generalise
-   to anything else on the site. They are named constants so the component has
-   no scattered literals, which is a different problem from pretending they
-   belong in the design system.
+   a wordmark's optical correction does not generalise to anything else.
    ═══════════════════════════════════════════════════════════════════════════ */
 .jbNav{
   --bar-item-h:38px;        /* the nav label's ink box */
-  --bar-mark-h:42px;        /* the stacked lockup's box — this drives --nav-h */
-  --bar-rule-h:18px;        /* the hairline separator */
-  --bar-soc-max:190px;      /* three 44px glyphs + their gaps, collapsed to 0 */
+  --bar-mark-h:40px;        /* the lockup's box: 40 + 2x6 padding = --nav-h 52 */
 
-  --nav-mat:var(--mat-3);
-  --nav-rim:var(--rim-1);
-  --nav-sh:var(--sh-2);
+  /* THE MATERIAL, and it is opaque on purpose (§6.3). v1 was --mat-3 (96% white)
+     over backdrop-filter:blur(14px), patched below 760px because tokens.css
+     zeroes the blur there and a headline scrolling under a flat 96% tint ghosts
+     through. Opaque deletes that bug rather than patching it, removes the last
+     main-thread-composited property in the header, and removes the trap where
+     any ancestor with opacity<1 silently becomes a backdrop root and kills the
+     effect -- this bar sits inside pages that animate opacity on overlays.
+     vercel.com and anthropic.com are both fully opaque. NN/g argues against
+     translucent sticky headers outright. */
+  --nav-mat:var(--mat-3-solid);
+
+  /* THE RIM DOES ALL OF THE SEPARATION WORK, because there is no shadow (§6).
+     On a near-white page a 96%-white pill is invisible, so the hairline has to
+     be the site's real hairline: --rim-2 composites to ~#DCDCDC = 1.31:1 against
+     the paper, and the site's own --c100 divider is 1.30:1. Not a new visual
+     weight -- the site's hairline, wrapped round a bar. --rim-1 (1.14:1) is not
+     enough on its own once the shadow is gone. */
+  --nav-rim:var(--rim-2);
+
   --nav-ink:var(--c700);
   --nav-ink-strong:var(--c950);
-  --nav-hair:var(--c100);
-  --nav-hover:var(--wash-1);
   --nav-active-ink:var(--nav-accent);
   --nav-active-bg:var(--nav-accent-wash);
 
-  display:inline-flex;align-items:center;
-  gap:var(--gap-bar);padding:var(--pad-bar);
+  width:100%;max-width:var(--bar-open);
+  min-height:var(--nav-h);
+  display:flex;align-items:center;gap:var(--sp-8);
+  padding-inline:var(--sp-6);
   font-family:var(--sans);
   background:var(--nav-mat);
-  box-shadow:var(--nav-rim),var(--nav-sh);
-  border-radius:var(--r-pill);
-  -webkit-backdrop-filter:blur(var(--blur-2));backdrop-filter:blur(var(--blur-2));
-  transition:box-shadow var(--sp-quick-dur) var(--sp-quick);
-  max-width:100%;
+  box-shadow:var(--nav-rim);
+  border-radius:var(--r-pill);corner-shape:var(--corner);
 }
-/* THE DARK GROUND — six custom properties, no second component, no second
-   layout. Dark glass rather than a white pill: white ink on --mat-i3 clears
+/* THE DARK GROUND -- five custom properties, no second component, no second
+   layout. Dark rather than a white pill: white ink on --mat-i3-solid clears
    4.5:1 over a white ground AND over near-black. A white pill only holds over
-   dark, and gradientlab's stage is whatever colour the user dials in. */
+   dark, and gradientlab's stage is whatever colour the user dials in.
+   --rim-top is the one place an inset highlight earns its place: tokens.css's
+   `inset 0 1px 0 rgba(255,255,255,.55)` is precisely raycast.com's measured
+   `rgba(255,255,255,.15) 0 1px 1px inset`. It reads on a dark ground and is
+   invisible on a light one, so it ships here and nowhere else. It is an INSET
+   highlight, not a cast shadow -- the rule in §6 is about elevation. */
 .jbNav[data-surface="ink"]{
-  --nav-mat:var(--mat-i3);
-  --nav-rim:var(--rim-i1);
-  --nav-sh:var(--sh-i2);
+  --nav-mat:var(--mat-i3-solid);
+  --nav-rim:var(--rim-i2),var(--rim-top);
   --nav-ink:var(--i700);
   --nav-ink-strong:var(--c50);
-  --nav-hair:var(--i100);
-  --nav-hover:var(--wash-i1);
   --nav-active-ink:var(--nav-accent-dark);
   --nav-active-bg:var(--wash-i1);
-  -webkit-backdrop-filter:blur(var(--blur-3));backdrop-filter:blur(var(--blur-3));
 }
-.jbNav.isLifted{--nav-sh:var(--sh-3)}
-.jbNav[data-surface="ink"].isLifted{--nav-sh:var(--sh-i3)}
+
+/* the three zones */
+.jbGrp{display:flex;align-items:center;gap:var(--sp-8);flex:1 1 0;min-width:0}
+.jbGrpR{justify-content:flex-end}
+.jbNav .jbHome{flex:0 0 auto}
 
 .jbNav a,.jbNav button{
   font-family:inherit;font-size:var(--fs-nav);font-weight:400;line-height:var(--lh-flat);
   color:var(--nav-ink);text-decoration:none;background:none;border:0;cursor:pointer;
-  padding:0 var(--sp-12);min-height:var(--bar-item-h);
+  padding:0 var(--sp-16);min-height:var(--bar-item-h);
   display:inline-flex;align-items:center;gap:var(--sp-6);
   border-radius:var(--r-pill);position:relative;white-space:nowrap;
   -webkit-tap-highlight-color:transparent;
-  /* the case studies put filter:url(#inkSm) on chrome text; the bar is glass
-     and a displacement map on 14px labels over a blur reads as a smear. */
+  /* the case studies put filter:url(#inkSm) on chrome text; a displacement map
+     on a 14px label beside a 1.35px stroke reads as a smear. */
   filter:none;
   transition:background-color var(--ease-out-dur) var(--ease-out),
              color var(--ease-out-dur) var(--ease-out),
              transform var(--press-dur) var(--ease-out);
 }
-/* 44 × 44 with no visible padding — the ink box stays --bar-item-h, the target
+/* 44 × 44 with no visible padding -- the ink box stays --bar-item-h, the target
    grows to --tap-min underneath it. */
 .jbNav a::after,.jbNav button::after{
   content:"";position:absolute;top:50%;left:0;right:0;
   height:var(--tap-min);transform:translateY(-50%);
 }
-/* the full state set: rest · hover · focus-visible · active */
-.jbNav a:hover,.jbNav button:hover{background:var(--nav-hover);color:var(--nav-ink-strong)}
+/* THE FULL STATE SET: rest · hover · focus-visible · active.
+
+   HOVER IS INK ONLY -- no fill, and that is Jayden's call, asked for twice:
+   "I like that the text becomes more noticeable, but I don't like the extra
+   grey background it gives." It is the same instinct as the no-shadow rule --
+   separation by colour and weight, not by a filled box -- and the five case
+   studies had this wash stripped in an earlier pass; the header kept it.
+   --c700 -> --c950 is a real jump (7.0:1 -> 16.1:1 on paper) and the icon comes
+   with it via currentColor, so the whole item darkens as one object.
+   HOW HOVER STAYS DISTINCT FROM ACTIVE, since the fill was doing that work:
+   the two now differ on three axes at once -- hue (neutral near-black vs the
+   accent blue), weight (400 vs 600), and ground (none vs --nav-accent-wash).
+   Only ONE item in the bar ever carries a fill, and it is the one you are on.
+   The focus ring never depended on the wash: it is a 2px --nav-accent outline
+   at --sp-2 offset, drawn outside the box. */
+.jbNav a:hover,.jbNav button:hover{color:var(--nav-ink-strong)}
 .jbNav a:active,.jbNav button:active{transform:scale(var(--press-scale))}
 .jbNav .jbHome:active{transform:scale(var(--press-scale-lg))}   /* larger object, less scale */
 .jbNav :focus-visible{outline:var(--focus-w) solid var(--nav-accent);outline-offset:var(--sp-2);
   border-radius:var(--r-pill)}
 .jbNav :focus:not(:focus-visible){outline:none}
 
-/* ── THE LOCKUP — sentence case, TWO STACKED LINES, ragged right ────────────
-   Both lines at one size and one tracking, flush left, genuinely ragged. The
-   three rejected alternatives (font-stretch to 76.81% against an axis floor of
-   75, per-line tracking at ±0.085em, two optical sizes 30% apart) are argued in
-   report §3. The old capitals mark's font-stretch:85.8% is deleted, not carried
-   over: capitals are geometric, lowercase is not.
+/* ── 2 · THE ICON SYSTEM (§4) ───────────────────────────────────────────────
+   Tabler outline, 24x24 viewBox, one box, one stroke, currentColor, always --
+   the markup carries only class/viewBox/path and CSS owns the rest. The stroke,
+   cap and join are set site-wide in tokens.css (they were missing entirely, so
+   every .gIco on the site rendered at 0.75px with mitred joins); the header
+   scopes only the BOX here, because it is the one consumer that steps down at
+   <=640px and because index.html hard-codes .gIco at 18px in its own stylesheet.
+   `.jbNav .gIco` is (0,2,0), so it wins that without an !important.
+   Alignment is centre, not baseline: a 14px label in a 38px box baseline-aligned
+   against an 18px square sits the square 2-3px low. */
+.jbNav .gIco{width:var(--ico-md);height:var(--ico-md);flex:0 0 var(--ico-md);display:block;
+  stroke:currentColor;fill:none;
+  /* 1.5 with non-scaling-stroke = 1.5 DEVICE px at both box sizes, which is the
+     value the site's own "ICONS -- one pack" blocks already normalise every
+     other icon to, and inside the 1-1.5px stem range of a 14px/400 Instrument
+     Sans label. Restated here rather than inherited because two of the nine
+     pages (gradientlab, play) do not carry that block, and one header must not
+     render at two weights. Corrects the spec's --ico-stroke 1.8: that value
+     assumes no vector-effect and would render 1.8px here, HEAVIER than the
+     labels, not the 1.35px it was solving for. */
+  stroke-width:1.5;vector-effect:non-scaling-stroke;
+  stroke-linecap:round;stroke-linejoin:round}
 
-   NB the .jbNav prefix is load-bearing — .jbHome alone (0,1,0) loses to
+/* BACK -- its own item at the leading edge, full opacity, its own 44x44 (§5.1).
+   In v1 it was a 15px chevron at opacity .55 injected INSIDE the lockup's own
+   <a>, which is why it read as stray punctuation and why one element's
+   accessible name flipped between "Jayden Betts, home" and "Back — Jayden
+   Betts, home" depending on overlay state. Split in two, each control has one
+   stable name. Never a chevron: arrow-left is the most universally read control
+   on the web, which is also why it is the one item that needs no label at any
+   width. */
+.jbBack{padding:0 var(--sp-12);min-width:var(--tap-min);justify-content:center}
+.jbBack[hidden]{display:none}
+
+/* ── THE LOCKUP — sentence case, TWO STACKED LINES, ragged right ────────────
+   UNCHANGED FROM V1 AND DELIBERATELY SO: Jayden called it perfect, and all six
+   constants below are measured optical corrections (header-report §3). The
+   three rejected alternatives (font-stretch to 76.81% against an axis floor of
+   75, per-line tracking at ±0.085em, two optical sizes 30% apart) are argued
+   there. Its only change in v2 is that Back is no longer injected inside it.
+
+   NB the .jbNav prefix is load-bearing -- .jbHome alone (0,1,0) loses to
    .jbNav a (0,1,1) and the lockup silently renders at --fs-nav/400. */
 .jbNav .jbHome{
   --mark-inset:11px;   /* MEASURED optical flush against the pill's leading
@@ -170,74 +321,42 @@
 .jbMark{display:flex;flex-direction:column;align-items:flex-start;text-align:left}
 .jbL1,.jbL2{display:block;font-stretch:normal}   /* 85.8% was the capitals mark's */
 .jbL2{margin-left:var(--mark-flush)}
-.jbArrow{width:var(--ico-sm);height:var(--ico-sm);flex:0 0 var(--ico-sm);
-  stroke:currentColor;fill:none;stroke-width:var(--ico-stroke);
-  stroke-linecap:round;stroke-linejoin:round;opacity:.55;
-  transition:transform var(--sp-quick-dur) var(--sp-quick),
-             opacity var(--ease-out-dur) var(--ease-out)}
-.jbNav .jbHome:hover .jbArrow{transform:translateX(calc(var(--sp-2) * -1));opacity:1}
-.jbNav .jbSep{width:var(--hair-w);height:var(--bar-rule-h);flex:0 0 var(--hair-w);
-  background:var(--nav-hair);margin:0 var(--sp-6)}
+/* the lockup never wears the active pill: on home it is aria-current="page"
+   because it is where you are, and a pill on the wordmark would make the
+   brand the loudest object in the bar. */
+.jbNav .jbHome[aria-current]{background:none;color:var(--nav-ink-strong)}
 
-/* ── the explicit active state ──────────────────────────────────────────────
-   One attribute, data-nav, on <body>. aria-current comes from the same value:
-   "page" for an exact URL match, "true" for a section you are inside or an
-   overlay that is currently open — About is a state of the home page.       */
-[data-nav="home"]  .jbNav [data-nav-item="home"],
-[data-nav="about"] .jbNav [data-nav-item="about"],
-[data-nav="games"] .jbNav [data-nav-item="games"]{
+/* ── 3 · THE ACTIVE STATE ───────────────────────────────────────────────────
+   Driven by aria-current, which body[data-nav] derives (header.js mirrors the
+   About overlay into both). One rule, no per-state icon variant, no
+   outline→filled swap: a filled icon would make the active item the heaviest
+   object in the bar. The icon follows the ink via currentColor.
+   Placed AFTER the hover rules on purpose -- both are (0,2,1), so source order
+   decides, and an item you are on should not un-light when you point at it. */
+.jbNav [aria-current]:not(.jbHome){
   background:var(--nav-active-bg);color:var(--nav-active-ink);font-weight:600;
 }
-
-/* ── the socials, condensed into the bar ─────────────────────────────────── */
-.jbBarSoc{display:inline-flex;align-items:center;gap:var(--gap-bar);
-  max-width:0;opacity:0;visibility:hidden;overflow:hidden;
-  transition:max-width var(--sp-quick-dur) var(--sp-quick),
-             opacity var(--sp-quick-dur) var(--sp-quick),
-             visibility 0s var(--sp-quick-dur)}
-.jbNav.hasSoc .jbBarSoc{max-width:var(--bar-soc-max);opacity:1;visibility:visible;
-  transition-delay:0s}
-.jbBarSep{width:var(--hair-w);height:var(--bar-rule-h);flex:0 0 var(--hair-w);
-  background:var(--nav-hair);margin:0 var(--sp-4);max-width:0;opacity:0;
-  transition:max-width var(--sp-quick-dur) var(--sp-quick),
-             opacity var(--sp-quick-dur) var(--sp-quick),
-             margin var(--sp-quick-dur) var(--sp-quick)}
-.jbNav.hasSoc .jbBarSep{max-width:var(--hair-w);opacity:1;margin:0 var(--sp-6)}
-.jbNav .jbBarSoc a{padding:0;min-width:var(--tap-min);justify-content:center}
-.jbGlyph{width:var(--ico-md);height:var(--ico-md);flex:0 0 var(--ico-md);
-  fill:currentColor;stroke:none;display:block}
+.jbNav [aria-current]:not(.jbHome):hover{
+  background:var(--nav-active-bg);color:var(--nav-active-ink);
+}
+/* ...and the lockup, which carries aria-current on home without the pill, still
+   darkens on hover like everything else. (0,3,0) over the rule above. */
+.jbNav .jbHome[aria-current]:hover{color:var(--nav-ink-strong)}
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   2 · THE SOCIAL ROW — above the bar, home page only, in flow.
-   NOT inside the sticky wrapper. If the row and the bar share one sticky box
-   the row pins too and simply overlaps the content it was meant to leave.
-   ═══════════════════════════════════════════════════════════════════════════ */
-.jbTop{display:flex;justify-content:center;
-  padding:var(--sp-12) var(--sp-16-24) var(--sp-2);font-family:var(--sans)}
-.jbSocials{display:flex;align-items:center;gap:var(--sp-2)}
-.jbSocials a{display:inline-flex;align-items:center;justify-content:center;
-  width:var(--tap-min);height:var(--tap-min);color:var(--c500);
-  border-radius:var(--r-pill);-webkit-tap-highlight-color:transparent;
-  transition:color var(--ease-out-dur) var(--ease-out),
-             background-color var(--ease-out-dur) var(--ease-out),
-             transform var(--press-dur) var(--ease-out)}
-.jbSocials a:hover{color:var(--c950);background:var(--wash-1)}
-.jbSocials a:active{transform:scale(calc(var(--press-scale) - .03))}
-.jbSocials a:focus-visible{outline:var(--focus-w) solid var(--nav-accent);
-  outline-offset:var(--sp-2)}
-
-/* ═══════════════════════════════════════════════════════════════════════════
-   3 · THE HERO AVAILABILITY CAPSULE — a HERO element, above the <h1>.
+   4 · THE HERO AVAILABILITY CAPSULE — a HERO element, above the <h1>.
    Built on index.html's existing .heroAvail: same position, same entrance
    (opacity 0 → 1, translateY(−4px) → none), same .in hook, same id the
    hero-engine already reaches for. Only the skin changes.
    The dot is --nav-accent, not a green: index.html's own --accent (#0E6B3B) and
    --accent-live are reserved for "this match is happening".
+   Already shadow-clean before v2 and left alone: --mat-2 + --rim-1 is a rim,
+   and the dot's `0 0 0 3px` is a ring -- zero offset, zero blur.
    ═══════════════════════════════════════════════════════════════════════════ */
 .heroAvail{
   --avail-dot:7px; --avail-ring:3px;
   display:inline-flex;align-items:center;gap:var(--sp-8);
-  margin:0 0 var(--sp-12);padding:0 var(--sp-14);min-height:var(--sp-30);
+  margin:0;padding:0 var(--sp-14);min-height:var(--sp-30);
   border-radius:var(--r-pill);
   background:var(--mat-2);box-shadow:var(--rim-1);
   -webkit-backdrop-filter:blur(var(--blur-1));backdrop-filter:blur(var(--blur-1));
@@ -255,50 +374,53 @@
   box-shadow:0 0 0 var(--avail-ring) var(--nav-accent-wash)}
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   4 · THE MOOD DOCK lives in index.html, not here, and that is deliberate.
-   The four moods and the head roster moved out of the site header and under the
-   head they act on -- but they moved as the SAME ELEMENT: #moodbar / #moodBtn /
-   #moodMenu with their children in their shipped order, so hero-engine.js's
-   open/close/clamp/chevron and the whole mood dispatch (hero-engine.js:1822-1901)
-   keep working untouched. Re-implementing them as a .jbPanel here would have
-   meant re-implementing all of that too. Its skin is in index.html's own style
-   block, built from the same tokens this file uses.
+   5 · THE MOOD DOCK lives in index.html, not here, and that is deliberate.
+   The four moods moved out of the site header and under the head they act on --
+   but they moved as the SAME ELEMENT: #moodbar / #moodBtn / #moodMenu with
+   their children in their shipped order, so hero-engine.js's open/close/clamp/
+   chevron and the whole mood dispatch (hero-engine.js:1822-1901) keep working
+   untouched. Its skin is in index.html's own style block, built from the same
+   tokens this file uses. v2 renames its label Play -> Mood and empties it down
+   to the four dots; the saved-heads roster it used to carry now lives on
+   play.html, beside the heads it actually plays with.
    ═══════════════════════════════════════════════════════════════════════════ */
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   5 · ≤640px — a design case, not a fallback.
-   Breakpoints are raw by necessity: a media query cannot read a custom
-   property. 760 and 880 already exist in tokens.css; 640 is this component's
-   and is documented here rather than repeated as a bare number.
+   6 · ≤640px — LABELS DROP, ICONS STAY, THE ACTIVE ITEM KEEPS ITS LABEL.
+   A design case with a measured number behind it, not a fallback (§2.3).
+
+   At 390px the budget is 390 − 2×12 = 366px. Measured: a sub-page bar with Back
+   and four iconed items carrying labels is 455.9px -- NINETY pixels over, and
+   there is no arrangement of padding that recovers 90px. Labels-only fits on
+   home (319.9) but not on a sub-page (367.9). Icons-only with the active item
+   keeping its label is 327.8, with 38px spare and every target still 44×44.
+
+   It is also the stronger design on a phone: the lit item is the only WORD in
+   the row, which is a better you-are-here than any glyph treatment. Every item
+   keeps an aria-label matching its desktop label, so nothing changes for a
+   screen reader, and Back never needed a label at any width.
+
+   Breakpoints are raw by necessity: a media query cannot read a custom property.
+   760 and 880 already exist in tokens.css; 640 is this component's.
    ═══════════════════════════════════════════════════════════════════════════ */
 @media(max-width:640px){
-  .jbNav{gap:var(--sp-4)}                    /* thumb spacing between targets */
-  .jbNav a,.jbNav button{font-size:var(--fs-label);padding:0 var(--sp-8)}
-  /* the optical inset scales with the mark: ~1px at --fs-mark, ~0.9px at
-     --fs-small, so the left stays one step tighter than the right. */
-  .jbNav .jbHome{--mark-inset:7px;
+  .jbNav{--ico-md:16px;gap:var(--sp-4)}                 /* thumb spacing between targets */
+  .jbGrp{gap:var(--sp-4)}
+  .jbNav a,.jbNav button{font-size:var(--fs-label);padding:0 var(--sp-8);
+    min-width:var(--tap-min);justify-content:center}
+  .jbNav .jbLbl{display:none}
+  /* (0,3,1) beats the (0,1,1) rule above -- the lit item keeps its word. */
+  .jbNav [aria-current]:not(.jbHome) .jbLbl{display:inline}
+  .jbNav [aria-current]:not(.jbHome){min-width:0;padding:0 var(--sp-10)}
+  /* the lockup is not an icon slot and must not be forced to 44px wide */
+  .jbNav .jbHome{min-width:0;
+    --mark-inset:7px;                                   /* the optical inset scales with the
+                                                           mark: ~1px at --fs-mark, ~0.9px at
+                                                           --fs-small */
     font-size:var(--fs-small);padding:0 var(--sp-8) 0 var(--mark-inset)}
-  .jbNav .jbSep{margin:0 var(--sp-4)}
-  .jbNav .jbBarSep,.jbNav.hasSoc .jbBarSep{margin:0 var(--sp-4)}
-  /* THE STACKED LOCKUP PAID FOR THIS. The single line spent 127px of the 358px
-     budget on the leading slot; the block spends 91. Measured, one 44px glyph
-     plus its rule now fits where none fit before — so email survives on a
-     phone, on every page. Two do not: a second glyph is +48px. */
-  .jbNav{--bar-soc-max:var(--tap-min)}
-  .jbBarSoc a[data-soc="li"],.jbBarSoc a[data-soc="ig"]{display:none}
-  .jbTop{padding:var(--sp-8) var(--sp-12) 0}
-  .jbStick{padding:var(--sp-6) var(--sp-12) var(--sp-10)}
+  .jbBack{padding:0 var(--sp-8)}
   .heroAvail{font-size:var(--fs-caption);padding:0 var(--sp-10);min-height:var(--sp-28)}
 }
-/* TOKEN GAP, closed with --mat-3-solid / --mat-i3-solid: the materials ladder
-   assumes a blur behind it, but tokens.css zeroes --blur-1/2 below 760px.
-   --mat-3 with no blur is a flat 96% tint and a headline scrolling under the
-   bar ghosts through visibly. */
-@media(max-width:760px){
-  .jbNav{--nav-mat:var(--mat-3-solid)}
-  .jbNav[data-surface="ink"]{--nav-mat:var(--mat-i3-solid)}
-}
 @media(prefers-reduced-motion:reduce){
-  .jbNav .jbHome:hover .jbArrow{transform:none}
   .heroAvail{transition:none}
 }

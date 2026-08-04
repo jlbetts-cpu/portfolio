@@ -121,3 +121,43 @@
     under --r-xs, on the same even grid. */
  --r-2xs:4px;
 }
+
+/* ===========================================================================
+   HEADER V2 (2026-08-03). Two site-wide corrections that belong to the system
+   rather than to the header, landed here because the header pass is what found
+   them. Spec: docs/superpowers/specs/2026-08-03-header-v2-research.md §4.1, §7.
+   index.html does not link this file yet, so it carries a verbatim copy of both
+   rules in its own token block -- flagged there, deleted with the block when
+   that page is finally wired to tokens.css.
+   =========================================================================== */
+
+/* WCAG 2.4.11 Focus Not Obscured (Minimum), AA. Shift+Tab scrolls the focused
+   element to the very top of the viewport and the sticky bar covers it. The
+   sufficient technique is scroll-padding on the SCROLL CONTAINER, not
+   scroll-margin on every target: scroll-margin has known Safari bugs and the
+   site had it on case-study sections only. One declaration, every anchor jump
+   and every focus scroll on every page. Uses the TALLER of the bar's two
+   padding states -- which is why the bar's own height must not change. */
+html{scroll-padding-top:calc(var(--nav-h) + var(--sp-16-24))}   /* 76px >=881, 68px below */
+
+/* THE ICON STROKE, for the pages that do not declare one.
+   THE SPEC'S BUG DID NOT REPRODUCE, and this rule is what is left after checking.
+   §4.1 reports .gIco computing to stroke-width:1 with butt caps and mitre joins
+   -- 0.75px on an 18px box over a 24 viewBox, half the weight of the label. It
+   does not: index.html and all five case studies each carry an "ICONS -- one
+   pack" block that already normalises every icon inside a control to
+   stroke-width:1.5, round cap, round join, fill:none AND
+   vector-effect:non-scaling-stroke, so they render 1.5 DEVICE px regardless of
+   viewBox scaling. Measured live: 1.5px / round. index.html holds three .gIco
+   uses, not the 40+ the spec counted -- the game rows left it in an earlier pass.
+   Declaring --ico-stroke 1.8 on top of that would have made the icons heavier
+   (1.8 device px), not lighter, because non-scaling-stroke stays in force.
+   So this is the SAME normalisation, copied for gradientlab.html and any future
+   page that links tokens.css without carrying the block. It is deliberately a
+   no-op everywhere the block already exists (those rules come later in document
+   order and win the tie). Sizing is not set here: every consumer hard-codes 18px
+   and would out-specify it; the header scopes its own responsive box, and its
+   own authoritative stroke, in header.css. */
+.gIco{stroke:currentColor;fill:none;stroke-width:1.5;
+      vector-effect:non-scaling-stroke;
+      stroke-linecap:round;stroke-linejoin:round}

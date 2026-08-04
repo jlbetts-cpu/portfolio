@@ -49,6 +49,16 @@ img{display:block;max-width:100%}
 
 /* section indicator: subtle uniform chapter ticks, the current one emphasized; hovering the rail reveals the labels */
 .chapters{display:flex;flex-direction:column;align-items:flex-start;gap:16px;padding:0;pointer-events:auto;position:sticky;top:50vh;transform:translateY(-50%);transition:opacity .4s ease}
+/* HEADER V2 (2026-08-03): the rail's sticky offset now knows the bar is there.
+   MEASURED FIRST, because the adoption list's claim did not reproduce: at
+   1280x800 the computed top is 400px (50vh) and the rail rests at y=333 against
+   the bar's bottom edge at y=60 -- 273px of clearance at every scroll position,
+   not the 0px the list reported. The collision is real but conditional: the
+   centred rest position is `50vh - half the list`, so it slides under the 52px
+   bar once half the viewport is shorter than half the chapter list. Below 640px
+   of height the rail stops centring and pins to the offset the adoption list
+   called for instead. Same token as every scroll-margin-top on this page. */
+@media(max-height:640px){.chapters{top:calc(var(--nav-h) + var(--sp-16-24));transform:none}}
 .chap{display:grid;grid-template-columns:28px minmax(0,1fr);align-items:center;column-gap:16px;height:14px;text-decoration:none;outline-offset:4px}
 .tick{grid-column:1;grid-row:1;justify-self:start;width:28px;height:2px;transform-origin:left center;transform:scaleX(.5714);background:var(--c500);opacity:.4;transition:opacity var(--ease-out-dur) var(--ease-out),background var(--ease-out-dur) var(--ease-out),transform var(--sp-quick-dur) var(--sp-quick);filter:url(#inkSm)}
 .chap[aria-current="true"] .tick{background:var(--c950);opacity:1;transform:scaleX(1)}
@@ -456,30 +466,36 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
 <link rel="stylesheet" href="header.css">
 <script src="header.js" defer></script>
 </head>
-<body data-nav="home">
+<body data-nav="work">
 <a class="skipLink" href="#main">Skip to content</a>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><filter id="inkBig"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="7" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="1.1" xChannelSelector="R" yChannelSelector="G" result="d"/><feTurbulence type="fractalNoise" baseFrequency="0.5 0.42" numOctaves="2" seed="13" result="g"/><feColorMatrix in="g" type="matrix" values="0 0 0 0 0.055 0 0 0 0 0.055 0 0 0 0 0.055 0 0 0 0.42 0" result="grain"/><feComposite in="grain" in2="d" operator="atop"/></filter>
 <filter id="inkSm"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="1" seed="4" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="0.55" xChannelSelector="R" yChannelSelector="G"/></filter></svg>
 
 <div class="wrap">
-<!-- THE SITE HEADER. One component, every page: header.css + header.js, adopted
-     2026-08-03 from header-prototype.html. Replaces this page's `1fr auto 1fr`
-     grid (Back / wordmark / Contact), which could not read as a bar because its
-     three children sat at three unrelated x-positions. The lockup IS the back
-     affordance now -- Back and the wordmark went to the same URL, so two of the
-     four old slots were doing one job. Design + the measured lockup:
-     .superpowers/sdd/2026-08-02-play-page/header-report.md
-     .backlink is load-bearing: it sets sessionStorage csReturn so index.html's
-     work rail emerges from white on return (see this page's script). -->
- <div class="jbStick">
-  <nav class="jbNav hasSoc" aria-label="Primary" data-surface="paper" data-back="1">
-   <a class="jbHome backlink" href="index.html" aria-label="Back — Jayden Betts, home"><svg class="jbArrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6l6 6"/></svg><span class="jbMark" aria-hidden="true"><span class="jbL1">Jayden</span><span class="jbL2">Betts</span></span></a>
-   <span class="jbSep" aria-hidden="true"></span>
-   <a data-nav-item="home" class="backlink" href="index.html" aria-current="true">Home</a>
-   <a data-nav-item="about" class="backlink" href="index.html#about">About</a>
-   <a data-nav-item="games" href="play.html">Games</a>
-   <span class="jbBarSep" aria-hidden="true"></span>
-   <span class="jbBarSoc"><a data-soc="mail" href="mailto:jaydenlbetts@gmail.com" aria-label="Email Jayden Betts"><svg class="jbGlyph" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4.5h18c.55 0 1 .45 1 1v13c0 .55-.45 1-1 1H3c-.55 0-1-.45-1-1v-13c0-.55.45-1 1-1Zm1.4 1.5L12 11.6 19.6 6H4.4ZM20 7.4l-7.4 5.5a1 1 0 0 1-1.2 0L4 7.4V18h16V7.4Z"/></svg></a><a data-soc="li" href="https://www.linkedin.com/in/jaydenbetts" target="_blank" rel="noopener noreferrer" aria-label="Jayden Betts on LinkedIn — opens in a new tab"><svg class="jbGlyph" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.34V9h3.42v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29zM5.34 7.43a2.06 2.06 0 1 1 0-4.13 2.06 2.06 0 0 1 0 4.13zM7.12 20.45H3.55V9h3.57v11.45zM22.22 0H1.77C.8 0 0 .78 0 1.74v20.52C0 23.22.8 24 1.77 24h20.45c.98 0 1.78-.78 1.78-1.74V1.74C24 .78 23.2 0 22.22 0z"/></svg></a><a data-soc="ig" href="https://www.instagram.com/jaydenleebetts" target="_blank" rel="noopener noreferrer" aria-label="Jayden Betts on Instagram — opens in a new tab"><svg class="jbGlyph" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg></a></span>
+<!-- THE SITE HEADER. One component, all nine pages: header.css + header.js.
+     HEADER V2, 2026-08-03 -- spec docs/superpowers/specs/2026-08-03-header-v2-research.md.
+     Restores Jayden's original silhouette (Work / About me / lockup / Games / Contact)
+     at THIS PAGE'S OWN COLUMN: data-col="case" makes the bar 1120px wide starting at
+     x=80, which is exactly the chapter rail's left edge -- an alignment the page has
+     always had and the v1 header ignored. Back is its own item at the leading edge now,
+     full opacity and its own 44x44, instead of a .55-opacity chevron injected inside the
+     lockup: two controls, two stable accessible names.
+     `Work` is lit here because a case study IS the work.
+     .backlink is load-bearing: it sets sessionStorage csReturn so index.html's work rail
+     emerges from white on return (see this page's script). Every link that goes home
+     carries it, including the new Back item. -->
+ <div class="jbStick" data-col="case">
+  <nav class="jbNav" aria-label="Primary" data-surface="paper">
+   <span class="jbGrp jbGrpL">
+    <a class="jbBack backlink" href="index.html" aria-label="Back"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l14 0"/><path d="M5 12l6 6"/><path d="M5 12l6 -6"/></svg></a>
+    <a class="backlink" data-nav-item="work" href="index.html#cases" aria-label="Work" aria-current="true"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7m0 2a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v9a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2z"/><path d="M8 7v-2a2 2 0 0 1 2 -2h4a2 2 0 0 1 2 2v2"/><path d="M12 12l0 .01"/><path d="M3 13a20 20 0 0 0 18 0"/></svg><span class="jbLbl">Work</span></a>
+    <a class="backlink" data-nav-item="about" href="index.html#about" aria-label="About me"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0"/><path d="M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2"/></svg><span class="jbLbl">About me</span></a>
+   </span>
+   <a class="jbHome backlink" href="index.html" aria-label="Jayden Betts, home"><span class="jbMark" aria-hidden="true"><span class="jbL1">Jayden</span><span class="jbL2">Betts</span></span></a>
+   <span class="jbGrp jbGrpR">
+    <a data-nav-item="games" href="play.html" aria-label="Games"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 6m0 2a2 2 0 0 1 2 -2h16a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-16a2 2 0 0 1 -2 -2z"/><path d="M6 12h4m-2 -2v4"/><path d="M15 11l0 .01"/><path d="M18 13l0 .01"/></svg><span class="jbLbl">Games</span></a>
+    <a data-nav-item="contact" href="#contact" aria-label="Contact"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10z"/><path d="M3 7l9 6l9 -6"/></svg><span class="jbLbl">Contact</span></a>
+   </span>
   </nav>
  </div>
 
