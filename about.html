@@ -34,7 +34,7 @@
 <link rel="stylesheet" href="tokens.css">
 <style>
 /* ===========================================================================
-   <a data-nav-item="about" href="about.html" aria-label="About" aria-current="page"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0"/><path d="M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2"/></svg><span class="jbLbl">About</span></a> -- a real page, not an overlay.
+   ABOUT -- a real page, not an overlay.
    Extracted from index.html's #heroAbout on 2026-08-03. Jayden: "I think we make
    the About page its own page as well because I don't like the transition."
    The overlay cost four separate defects -- the head landing wrong on the way
@@ -62,8 +62,15 @@ body{background:var(--c50);color:var(--c950);font-family:var(--sans);-webkit-fon
    in everything but markup, so it is promoted rather than invented. Same rung as
    the home hero's headline (--fs-pagehead-sm, 40px capped) so the two pages open
    at the same pitch. */
-.abTitle{font-family:var(--sans);font-weight:600;font-size:var(--fs-pagehead-sm);
- line-height:1.06;letter-spacing:var(--tr-head);color:var(--c950);
+/* TWO HEADINGS WERE FIGHTING. The h1 first took --fs-pagehead-sm (40px), the rung
+   the HOME HERO uses -- correct for a hero, wrong here, because on this page a
+   section h2 at --fs-h2 (36px) follows four lines later and 40 against 36 reads as
+   two titles rather than a title and a section head.
+   Re-derived for a DOCUMENT: the page title takes --fs-pagehead (52px at 1280) and
+   section heads drop to --fs-h3 (32px). 52/32 is a 1.63 step -- unambiguous at a
+   glance and still both on the scale. Nothing new was invented for either. */
+.abTitle{font-family:var(--sans);font-weight:600;font-size:var(--fs-pagehead);
+ line-height:1.04;letter-spacing:var(--tr-head);color:var(--c950);
  margin:0 0 var(--sp-24-40);max-width:16ch;text-wrap:balance;filter:url(#inkBig)}
 
 /* THE TWO COLUMNS are the overlay's own -- minmax(0,1fr) beside
@@ -75,7 +82,7 @@ body{background:var(--c50);color:var(--c950);font-family:var(--sans);-webkit-fon
 .abBody{padding-bottom:clamp(46px,8vw,130px)}
 .abBody .abSec{margin-bottom:clamp(44px,5vw,72px)}
 .abBody .abSec:last-child{margin-bottom:0}
-.abBody h2{font-family:var(--sans);font-weight:600;font-size:var(--fs-h2);line-height:1;letter-spacing:-.015em;color:var(--c950);margin:0 0 16px;filter:url(#inkBig)}
+.abBody h2{font-family:var(--sans);font-weight:600;font-size:var(--fs-h3);line-height:1.06;letter-spacing:-.015em;color:var(--c950);margin:0 0 16px;filter:url(#inkBig)}
 .abBody p{font-family:var(--sans);font-weight:400;font-size:var(--fs-prose);line-height:var(--lh-prose);color:var(--c950);margin:0;max-width:44ch;text-wrap:pretty}
 .abBody p+p{margin-top:clamp(34px,3vw,48px)}
 .abBody .abSec.abConnect{max-width:520px}
@@ -112,18 +119,48 @@ body{background:var(--c50);color:var(--c950);font-family:var(--sans);-webkit-fon
 .abLinkRow{display:flex;flex-wrap:wrap;gap:12px}
 .abLink:focus-visible,.abIn:focus-visible,.footIn:focus-visible{outline:2px solid var(--c950);outline-offset:3px;border-radius:var(--r-md)}
 
-/* THE PHOTOGRAPHS. In the overlay these were five absolutely-stacked cards dealt
-   in and out over the head, one visible at a time -- .abShots kept them in one
-   place because there was only ever one place free. On a page they are simply a
-   column beside the prose, in the same order and with the same captions, at the
-   same 491/501 frame the overlay used. Nothing is cropped differently and no
-   caption changed. */
-.abShots{display:flex;flex-direction:column;gap:clamp(28px,3.4vw,48px)}
-.abShots .abShot{position:relative}
-.abPhotoFrame{position:relative;width:100%;aspect-ratio:491/501;overflow:hidden;background:var(--c100);border-radius:var(--r-sm);corner-shape:var(--corner)}
-.abPhotoFrame img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-.abShots .abCap{font-family:var(--sans);font-weight:400;font-size:var(--fs-small);letter-spacing:.01em;color:var(--c500);margin:clamp(10px,1.1vw,14px) 0 0;filter:url(#inkSm)}
-.abPhotoFrame img,.abShot img{-webkit-user-drag:none;user-select:none}
+/* THE PHOTOGRAPHS, AND THE INTERACTION THEY LOST.
+   In the overlay these were FIVE cards dealt in and out over the floating head, one
+   at a time -- and there was a SECOND, separate implementation for phones
+   (.abMobShot) with its own dots and its own tap-to-change. Two code paths for one
+   idea, and the reason it was reported broken: the desktop one was driven by scroll
+   position against the head's stage, and the phone one was gated on
+   `window.innerWidth > 760 return` AND on `aboutOpen`. Off the overlay, both gates
+   are unreachable, so neither ran.
+   ONE IMPLEMENTATION NOW, at every width. The stack shows one photograph, the dots
+   say how many there are and which you are on, the caption follows it, and it
+   advances on tap/click/Enter or on its own every 4.8s until you touch it. That is
+   the phone behaviour promoted to the whole page rather than the desktop one
+   rebuilt, because the phone one is the one that works without a head to animate
+   against. */
+.abShots{position:sticky;top:calc(var(--nav-h) + var(--sp-16-24))}
+.abStack{position:relative;width:100%;aspect-ratio:491/501;overflow:hidden;
+ background:var(--c100);border-radius:var(--r-sm);corner-shape:var(--corner);cursor:pointer;
+ -webkit-user-select:none;user-select:none}
+.abStack:focus-visible{outline:2px solid var(--c950);outline-offset:3px}
+.abShot{position:absolute;inset:0;opacity:0}
+.abShot.on{opacity:1;z-index:1}
+.abShot img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;-webkit-user-drag:none}
+/* the deal-in: the same stepped card-throw the overlay used, kept because it is the
+   one piece of that choreography that does not need a head to animate against */
+.abShot.dealing{animation:abDeal .62s steps(5,end) both;z-index:2}
+@keyframes abDeal{
+ 0%{transform:translate(116%,8%) rotate(12deg) scale(.9)}
+ 14%{transform:translate(108%,6%) rotate(10deg) scale(.92)}
+ 60%{transform:translate(-4%,-2%) rotate(-3deg) scale(1.02)}
+ 100%{transform:translate(0,0) rotate(0) scale(1)}}
+.amsBar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:clamp(11px,2.6vw,15px) 0 0}
+.amsDots{display:inline-flex;align-items:center;gap:8px}
+.amsDots i{width:7px;height:7px;border-radius:var(--r-full);background:var(--c100);
+ transition:background var(--sp-quick-dur) var(--ease-out),transform var(--sp-quick-dur) var(--ease-out)}
+.amsDots i.on{background:var(--c900);transform:scale(1.2)}
+.amsHint{display:inline-flex;align-items:center;font-family:var(--sans);font-weight:600;
+ font-size:var(--fs-label);letter-spacing:.01em;color:var(--c500);filter:url(#inkSm);
+ transition:opacity var(--sp-settle-dur) var(--ease-out)}
+.abShots.touched .amsHint{opacity:0;pointer-events:none}
+.abCap{font-family:var(--sans);font-weight:400;font-size:var(--fs-small);letter-spacing:.01em;
+ color:var(--c500);margin:clamp(7px,1.6vw,10px) 0 0;filter:url(#inkSm)}
+@media(prefers-reduced-motion:reduce){.abShot.dealing{animation:none}.amsDots i{transition:none}}
 
 @media(max-width:880px){
  /* One column below the two-column breakpoint, and the photographs pair up
@@ -131,11 +168,11 @@ body{background:var(--c50);color:var(--c950);font-family:var(--sans);-webkit-fon
     a phone column is 5 x 100vw of scrolling for five pictures. */
  .abGrid{grid-template-columns:1fr;gap:clamp(32px,6vw,56px)}
  .abBody .abSec.abConnect{max-width:none}
- .abShots{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(16px,3vw,28px)}
+ .abShots{position:static}
  .abBody p{max-width:none}
  .abFacts{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
-@media(max-width:600px){.abFacts{grid-template-columns:1fr;gap:16px}.abShots{grid-template-columns:1fr}}
+@media(max-width:600px){.abFacts{grid-template-columns:1fr;gap:16px}}
 
 .siteFoot{margin-top:clamp(80px,12vh,150px);padding:0 clamp(24px,5vw,40px) clamp(32px,5vh,64px);text-align:center}
 .footReach{font-family:var(--sans);font-weight:400;font-size:var(--fs-prose);line-height:1.55;color:var(--c700);margin:0 auto;max-width:42ch;text-wrap:balance}
@@ -144,8 +181,23 @@ body{background:var(--c50);color:var(--c950);font-family:var(--sans);-webkit-fon
 /* The closing mark, same as index.html: --fs-display is the right register but its clamp
    floor of 68px overflows a 390px column, so min() holds it to the measure. Decorative --
    see the aria-hidden div in the footer. */
-.footAvail{font-family:var(--sans);font-weight:600;font-size:var(--fs-label);letter-spacing:.01em;color:var(--c700);margin:var(--sp-16-24) 0 0}
-.footMark{font-family:var(--sans);font-weight:600;font-size:min(var(--fs-display),13vw);line-height:.9;letter-spacing:var(--tr-display);color:var(--c100);margin:clamp(40px,6vw,88px) 0 0;white-space:nowrap;-webkit-user-select:none;user-select:none}
+/* THE SIGN-OFF IS ONE BLOCK, top to bottom: status, thanks, wordmark.
+   Jayden: "Make this closer to the Jayden Betts. Put Open to work on top of that,
+   and remove SF from that sentence."
+   THE GAP CARRIES THE MEANING. The thanks and the wordmark are one sign-off, so they
+   sit at --sp-8-16; the status line above is a different statement and keeps the
+   larger --sp-24-40. More related, closer together -- his own rule, applied with the
+   ladder rather than with new numbers.
+   NO STATUS DOT, deliberately, though --accent-live exists and is unused. The hero's
+   availability line had a dot and a ring and both were deleted on his word -- "no
+   background, no radius, no padding, no dot" -- and --avail-dot/--avail-ring were
+   retired with them. Re-introducing the same ornament three rounds later in a new
+   place would reverse that decision by the back door. It is --c500 text: subordinate
+   to the sentence under it, and unmistakably a status rather than a heading.
+   "San Francisco" came out: the hero already says "SF product designer" and About's
+   at-a-glance says it again, so the footer was the third telling. */
+.footAvail{font-family:var(--sans);font-weight:600;font-size:var(--fs-label);letter-spacing:.01em;color:var(--c500);margin:0 0 var(--sp-8)}
+.footMark{font-family:var(--sans);font-weight:600;font-size:min(var(--fs-display),13vw);line-height:.9;letter-spacing:var(--tr-display);color:var(--c100);margin:var(--sp-8-16) 0 0;white-space:nowrap;-webkit-user-select:none;user-select:none}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 </style>
 <link rel="stylesheet" href="header.css">
@@ -169,7 +221,7 @@ body{background:var(--c50);color:var(--c950);font-family:var(--sans);-webkit-fon
   </span>
   <span class="jbGrp jbGrpC">
    <a data-nav-item="work" href="index.html#cases" aria-label="Work"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7m0 2a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v9a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2z"/><path d="M8 7v-2a2 2 0 0 1 2 -2h4a2 2 0 0 1 2 2v2"/><path d="M12 12l0 .01"/><path d="M3 13a20 20 0 0 0 18 0"/></svg><span class="jbLbl">Work</span></a>
-   ABOUT
+   <a data-nav-item="about" href="about.html" aria-label="About" aria-current="page"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0"/><path d="M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2"/></svg><span class="jbLbl">About</span></a>
    <a data-nav-item="games" href="play.html" aria-label="Play"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 6m0 2a2 2 0 0 1 2 -2h16a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-16a2 2 0 0 1 -2 -2z"/><path d="M6 12h4m-2 -2v4"/><path d="M15 11l0 .01"/><path d="M18 13l0 .01"/></svg><span class="jbLbl">Play</span></a>
   </span>
   <span class="jbGrp jbGrpR">
@@ -187,15 +239,67 @@ body{background:var(--c50);color:var(--c950);font-family:var(--sans);-webkit-fon
    <h1 class="abTitle">Hello, I&rsquo;m Jayden Betts.</h1>
    <section class="abSec abLede"><h2>I design products end to end (and I built a few of my own).</h2><p>I am a San Francisco-based product designer and recent UC Davis Design graduate with an entrepreneurial spirit. A maker at heart, I focus on iOS, B2C, and design systems, loving the challenge of creating playful, accessible experiences that tickle your brain.</p><p>Inspired by accessible design, I founded Apollo, an iOS app helping neurodivergent students track and celebrate their wins.</p></section><section class="abSec abFactsSec"><p class="abLabel">At a glance</p><div class="abFacts" data-photo="1"><div class="abFact"><span class="abFactK">Status</span><span class="abFactV">Open to full-time opportunities</span></div><div class="abFact"><span class="abFactK">Based in</span><span class="abFactV">San Francisco, CA · open to relocating</span></div><div class="abFact"><span class="abFactK">Focus</span><span class="abFactV">iOS · B2C · design systems</span></div><div class="abFact"><span class="abFactK">Education</span><span class="abFactV">B.A. Design, UC Davis</span></div></div></section><section class="abSec"><h2 data-photo="2">Design has always been my playground.</h2><p>At the age of 10 I built my first company, a greeting card business where I sold my family cards I would design for fun. I built an entire website in Wix, creating “onboarding flows” to understand what they wanted me to design. I took months on it to use it by myself, but it was fun to me. Afterwards I liked it so much I immediately launched a second site so my three-year-old sister could sell her art, too. She could barely draw but I made an artsy website for her out of my selfish intuition.</p><p data-photo="3">I didn’t realize it was something I could do in the future, so I kept designing as a hobby. Whether it be making a hundred-page comic book about a talking pea that turned into a superhero, or learning 3D modeling in Blender five times just to forget it the next month (I will be back), I was always making.</p><p>Little did I know, that childhood obsession with building, scaling, and playing would entirely shape the product designer I am today.</p></section><section class="abSec"><h2 data-photo="4">My best ideas come from real life.</h2><p>Outside of work, I draw inspiration from connecting with friends over coffee, pushing my limits at the gym, hiking, and drawing animals. You can always catch my latest adventure on <a class="abIn" href="https://www.instagram.com/jaydenleebetts" target="_blank" rel="noopener noreferrer">Instagram</a> (or making dancing videos) and <a class="abIn" href="https://www.linkedin.com/in/jaydenbetts" target="_blank" rel="noopener noreferrer">LinkedIn</a>.</p></section><section class="abSec abConnect" id="getInTouch"><p class="abLabel">Get in touch</p><div class="abLinkRow"><a class="abLink abLinkPrimary" href="mailto:jaydenlbetts@gmail.com?subject=Let%27s%20work%20together" aria-label="Email Jayden Betts"><svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M3 4.5h18c.55 0 1 .45 1 1v13c0 .55-.45 1-1 1H3c-.55 0-1-.45-1-1v-13c0-.55.45-1 1-1Zm1.4 1.5L12 11.6 19.6 6H4.4ZM20 7.4l-7.4 5.5a1 1 0 0 1-1.2 0L4 7.4V18h16V7.4Z"/></svg>Email<span class="abLinkArrow" aria-hidden="true">↗</span></a><a class="abLink" href="https://www.linkedin.com/in/jaydenbetts" target="_blank" rel="noopener noreferrer" aria-label="Jayden Betts on LinkedIn — opens in a new tab"><svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.34V9h3.42v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29zM5.34 7.43a2.06 2.06 0 1 1 0-4.13 2.06 2.06 0 0 1 0 4.13zM7.12 20.45H3.55V9h3.57v11.45zM22.22 0H1.77C.8 0 0 .78 0 1.74v20.52C0 23.22.8 24 1.77 24h20.45c.98 0 1.78-.78 1.78-1.74V1.74C24 .78 23.2 0 22.22 0z"/></svg>LinkedIn<span class="abLinkArrow" aria-hidden="true">↗</span></a><a class="abLink" href="https://www.instagram.com/jaydenleebetts" target="_blank" rel="noopener noreferrer" aria-label="Jayden Betts on Instagram — opens in a new tab"><svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>Instagram<span class="abLinkArrow" aria-hidden="true">↗</span></a><a class="abLink" href="Jayden-Betts-Resume.pdf" target="_blank" rel="noopener noreferrer" aria-label="Jayden Betts résumé (PDF, opens in a new tab)"><svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M6 2h8l4 4v16H6V2Zm7.5 1.5V7H17l-3.5-3.5ZM8.5 11h7v1.5h-7V11Zm0 3.4h7v1.5h-7v-1.5Zm0 3.4h4.5v1.5H8.5v-1.5Z"/></svg>Résumé<span class="abLinkArrow" aria-hidden="true">↗</span></a></div></section>
   </div>
-  <div class="abShots" aria-label="Photographs of Jayden">
-   <div class="abShot"><div class="abPhotoFrame"><img src="images/about/jayden-betts-head-grid.webp" alt="A four-panel grid of Jayden&rsquo;s making: a color selfie, a black-and-white version, his face cut out in Procreate, and a charcoal shark he drew"></div><div class="abCap">Making the floating head</div></div><div class="abShot"><div class="abPhotoFrame"><img src="images/about/jayden-betts-graduation.webp" alt="Jayden Betts at his UC Davis graduation in a gold honor stole"></div><div class="abCap">Graduating from UC Davis</div></div><div class="abShot"><div class="abPhotoFrame"><img src="images/about/jayden-betts-and-sister.webp" alt="Jayden Betts as a kid with his younger sister Jolee"></div><div class="abCap">Me and my sister Jolee</div></div><div class="abShot"><div class="abPhotoFrame"><img src="images/about/jayden-betts-blender-clay.webp" alt="A clay-style 3D self-portrait Jayden modeled in Blender"></div><div class="abCap">Clay Self Portrait in Blender</div></div><div class="abShot"><div class="abPhotoFrame"><img src="images/about/jayden-betts-life-grid.webp" alt="A four-panel grid of Jayden Betts off the clock: iced matcha, hiking a trail, a charcoal otter drawing, and a selfie"></div><div class="abCap">Life outside work</div></div></div>
+  <div class="abShots" id="abShots">
+   <div class="abStack" id="abStack" role="button" tabindex="0"
+        aria-label="Photographs of Jayden. Activate to see the next one." aria-live="polite">
+    <figure class="abShot on"><img src="images/about/jayden-betts-head-grid.webp" alt="A four-panel grid of Jayden&rsquo;s making: a color selfie, a black-and-white version, his face cut out in Procreate, and a charcoal shark he drew"></figure>
+    <figure class="abShot"><img src="images/about/jayden-betts-graduation.webp" alt="Jayden Betts at his UC Davis graduation in a gold honor stole" loading="lazy"></figure>
+    <figure class="abShot"><img src="images/about/jayden-betts-and-sister.webp" alt="Jayden Betts as a kid with his younger sister Jolee" loading="lazy"></figure>
+    <figure class="abShot"><img src="images/about/jayden-betts-blender-clay.webp" alt="A clay-style 3D self-portrait Jayden modeled in Blender" loading="lazy"></figure>
+    <figure class="abShot"><img src="images/about/jayden-betts-life-grid.webp" alt="A four-panel grid of Jayden Betts off the clock: iced matcha, hiking a trail, a charcoal otter drawing, and a selfie" loading="lazy"></figure>
+   </div>
+   <div class="amsBar">
+    <span class="amsDots" id="amsDots" aria-hidden="true"><i class="on"></i><i></i><i></i><i></i><i></i></span>
+    <span class="amsHint" aria-hidden="true">Tap to change</span>
+   </div>
+   <p class="abCap" id="abCap">Making the floating head</p>
   </div>
  </main>
 
  <footer class="siteFoot" id="contact" role="contentinfo">
+  <p class="footAvail">Open to work</p>
   <p class="footReach">Thanks for checking out my website. I&rsquo;d love to chat, you can find me on <a class="footIn" href="https://www.linkedin.com/in/jaydenbetts" target="_blank" rel="noopener noreferrer">LinkedIn</a>, <a class="footIn" href="https://www.instagram.com/jaydenleebetts" target="_blank" rel="noopener noreferrer">Instagram</a>, or through <a class="footIn" href="mailto:jaydenlbetts@gmail.com">email</a>.</p>
-  <p class="footAvail">San Francisco &middot; Open to full-time roles</p>
   <div class="footMark" aria-hidden="true">Jayden Betts</div>
  </footer>
 </div>
+<script>
+/* THE PHOTO SCROLLER. One implementation at every width -- see the CSS note for why
+   there used to be two and why neither survived the overlay.
+   Advances on click, tap, Enter or Space, and on its own every 4.8s until the visitor
+   touches it, at which point it stops and the hint fades: an auto-advance that keeps
+   overriding a deliberate choice is the thing carousels are disliked for.
+   Under prefers-reduced-motion there is no deal-in animation and no auto-advance --
+   only the tap -- because an unrequested 4.8s change of a large image is exactly the
+   motion that rule exists to stop. */
+(function(){
+ var CAPS=["Making the floating head", "Graduating from UC Davis", "Me and my sister Jolee", "Clay Self Portrait in Blender", "Life outside work"];
+ var ALTS=["A four-panel grid of Jayden&rsquo;s making: a color selfie, a black-and-white version, his face cut out in Procreate, and a charcoal shark he drew", "Jayden Betts at his UC Davis graduation in a gold honor stole", "Jayden Betts as a kid with his younger sister Jolee", "A clay-style 3D self-portrait Jayden modeled in Blender", "A four-panel grid of Jayden Betts off the clock: iced matcha, hiking a trail, a charcoal otter drawing, and a selfie"];
+ var wrap=document.getElementById("abShots"),stack=document.getElementById("abStack"),
+     cap=document.getElementById("abCap"),dots=document.getElementById("amsDots");
+ if(!wrap||!stack)return;
+ var shots=[].slice.call(stack.querySelectorAll(".abShot"));
+ if(shots.length<2)return;
+ var reduce=matchMedia("(prefers-reduced-motion:reduce)").matches;
+ var i=0,paused=false,timer=0;
+ function go(n){
+  if(n===i)return;
+  var prev=shots[i];i=(n+shots.length)%shots.length;var cur=shots[i];
+  prev.classList.remove("on","dealing");
+  cur.classList.add("on");
+  if(!reduce){cur.classList.remove("dealing");void cur.offsetWidth;cur.classList.add("dealing");}
+  if(cap)cap.textContent=CAPS[i];
+  stack.setAttribute("aria-label",ALTS[i]+". Activate to see the next photograph.");
+  if(dots)[].forEach.call(dots.children,function(d,k){d.className=(k===i?"on":"");});
+ }
+ function next(){go(i+1);}
+ function touched(){paused=true;wrap.classList.add("touched");clearInterval(timer);}
+ stack.addEventListener("click",function(){touched();next();});
+ stack.addEventListener("keydown",function(e){
+  if(e.key==="Enter"||e.key===" "){e.preventDefault();touched();next();}
+  else if(e.key==="ArrowRight"){e.preventDefault();touched();next();}
+  else if(e.key==="ArrowLeft"){e.preventDefault();touched();go(i-1);}
+ });
+ if(!reduce)timer=setInterval(function(){if(!paused&&!document.hidden)next();},4800);
+})();
+</script>
 </body></html>

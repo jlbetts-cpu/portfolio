@@ -663,8 +663,40 @@
   width:100%;justify-content:flex-start;min-width:0;text-align:left;
   padding:0 var(--sp-10);min-height:var(--tap-min);gap:var(--sp-10);
   border-radius:var(--r-sm);corner-shape:var(--corner);white-space:nowrap;
-  font-size:var(--fs-nav);font-weight:400;color:var(--nav-ink)}
-.jbNav .jbDiscMenu :is(a,button):not(.mhPick,.mhX):hover{color:var(--nav-ink-strong)}
+  font-size:var(--fs-nav);font-weight:400;color:var(--nav-ink);
+  transition:color var(--hover-out-dur) var(--ease-out),
+             font-weight var(--hover-out-dur) var(--ease-out)}
+.jbNav .jbDiscMenu :is(a,button):not(.mhPick,.mhX):hover{
+  transition:color var(--ease-out-dur) var(--ease-out),
+             font-weight var(--ease-out-dur) var(--ease-out)}
+.jbNav .jbDiscMenu :is(a,button) .gIco{
+  transition:stroke-width var(--hover-out-dur) var(--ease-out)}
+/* ── THE PANEL ROWS' HOVER ──────────────────────────────────────────────────
+   Jayden, twice: "The drop menus on the home -- no hover effect." An ink-only
+   move from --nav-ink to --nav-ink-strong was all that was here, and on a row
+   that is mostly empty space it reads as nothing at all.
+   THE RULE HE GAVE FOR THE BAR APPLIES HERE TOO: when a control's label changes,
+   its icon changes with it -- the whole control answers, not the text. So the row
+   moves on three axes at once: ink --c700 -> --c950, weight 400 -> 600, and the
+   glyph 1.5px -> --ico-stroke-strong.
+   NO GREY PILL ON MENU ROWS, and this is the decision applied to EVERY row in
+   BOTH panels rather than left per-row. The pill marks a tab in a horizontal bar,
+   where items sit side by side and the ground says which one you are on; a column
+   of full-width rows each taking a ground becomes a ladder of grey blocks, and
+   the row is already 100% wide so there is no "which one" to answer. That keeps
+   the site at TWO hover languages -- the pill on nav tabs, ink-and-weight
+   everywhere else, which is what the content tabs and prose links already do --
+   and not a third.
+   Weight is safe to move here: the rows are width:100% and left-aligned, so 600
+   grows into empty space on the right and nothing beside it shifts.
+   Timing is the bar's own pair, hover-in at --ease-out-dur and hover-out at
+   --hover-out-dur, because he has already called an abrupt transition out once. */
+.jbNav .jbDiscMenu :is(a,button):not(.mhPick,.mhX):hover,
+.jbNav .jbDiscMenu :is(a,button):not(.mhPick,.mhX):focus-visible{
+  color:var(--nav-ink-strong);font-weight:600}
+.jbNav .jbDiscMenu :is(a,button):not(.mhPick,.mhX):hover .gIco,
+.jbNav .jbDiscMenu :is(a,button):not(.mhPick,.mhX):focus-visible .gIco{
+  stroke-width:var(--ico-stroke-strong)}
 /* the panel's items are full-width, so their 44px target is the box itself --
    the bar's ::after expander would only overlap the item above and below. */
 .jbNav .jbDiscMenu :is(a,button)::after{content:none}
