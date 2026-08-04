@@ -70,7 +70,7 @@ body{background:var(--c50);color:var(--c950);font-family:var(--sans);-webkit-fon
    section heads drop to --fs-h3 (32px). 52/32 is a 1.63 step -- unambiguous at a
    glance and still both on the scale. Nothing new was invented for either. */
 .abTitle{font-family:var(--sans);font-weight:600;font-size:var(--fs-pagehead);
- line-height:1.04;letter-spacing:var(--tr-head);color:var(--c950);
+ line-height:var(--lh-tight);letter-spacing:var(--tr-head);color:var(--c950);
  margin:0 0 var(--sp-24-40);max-width:16ch;text-wrap:balance;filter:url(#inkBig)}
 
 /* THE TWO COLUMNS are the overlay's own -- minmax(0,1fr) beside
@@ -78,19 +78,26 @@ body{background:var(--c50);color:var(--c950);font-family:var(--sans);-webkit-fon
    prose against the head; here they hold it against the photographs, which is
    the same measure problem with a different object on the right. */
 .abGrid{display:grid;grid-template-columns:minmax(0,1fr) clamp(340px,40vw,520px);
- gap:clamp(32px,5vw,80px);align-items:start;padding-top:var(--sp-16-24)}
+ gap:var(--sp-48-80);align-items:start;padding-top:var(--sp-16-24)}
 .abBody{padding-bottom:clamp(46px,8vw,130px)}
-.abBody .abSec{margin-bottom:clamp(44px,5vw,72px)}
+.abBody .abSec{margin-bottom:var(--sp-48-72)}
 .abBody .abSec:last-child{margin-bottom:0}
-.abBody h2{font-family:var(--sans);font-weight:600;font-size:var(--fs-h3);line-height:1.06;letter-spacing:-.015em;color:var(--c950);margin:0 0 16px;filter:url(#inkBig)}
+.abBody h2{font-family:var(--sans);font-weight:600;font-size:var(--fs-h3);line-height:var(--lh-tight);letter-spacing:var(--tr-sub);color:var(--c950);margin:0 0 var(--sp-16);filter:url(#inkBig)}
 .abBody p{font-family:var(--sans);font-weight:400;font-size:var(--fs-prose);line-height:var(--lh-prose);color:var(--c950);margin:0;max-width:44ch;text-wrap:pretty}
-.abBody p+p{margin-top:clamp(34px,3vw,48px)}
+.abBody p+p{margin-top:var(--sp-32-48)}
 .abBody .abSec.abConnect{max-width:520px}
-.abLabel{font-family:var(--sans);font-weight:600;font-size:var(--fs-label);letter-spacing:.01em;text-transform:none;color:var(--c500);margin:0 0 clamp(16px,1.8vw,24px);filter:url(#inkSm)}
-.abFacts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px 48px;margin-top:0;max-width:520px}
-.abFact{display:flex;flex-direction:column;gap:8px}
-.abFactK{font-family:var(--sans);font-weight:600;font-size:var(--fs-label);letter-spacing:.01em;text-transform:none;color:var(--c500);filter:url(#inkSm)}
-.abFactV{font-family:var(--sans);font-size:var(--fs-body);color:var(--c950);line-height:1.35}
+/* .abBody p IS (0,1,1) AND THIS WAS (0,1,0), so every rule they share was decided
+   by the prose rule and not this one: "At a glance" and "Get in touch" measured
+   17.79px/400/1.5 -- body prose -- instead of the 13px/600 label they are declared
+   as. Nothing in the source looked wrong; only the computed value showed it. Scoped
+   to .abBody so it outranks the prose rule it sits inside. */
+.abBody .abLabel{font-family:var(--sans);font-weight:600;font-size:var(--fs-label);
+ line-height:var(--lh-body);letter-spacing:var(--tr-flat);text-transform:none;
+ color:var(--c500);max-width:none;margin:0 0 var(--sp-16-24);filter:url(#inkSm)}
+.abFacts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--sp-24) var(--sp-32-48);   /* the fixed ladder stops at --sp-40; --sp-32-48 is the rung that resolves to 48 */margin-top:0;max-width:520px}
+.abFact{display:flex;flex-direction:column;gap:var(--sp-8)}
+.abFactK{font-family:var(--sans);font-weight:600;font-size:var(--fs-label);line-height:var(--lh-body);letter-spacing:var(--tr-flat);text-transform:none;color:var(--c500);filter:url(#inkSm)}
+.abFactV{font-family:var(--sans);font-weight:400;font-size:var(--fs-body);color:var(--c950);line-height:var(--lh-body)}
 .abIn{font-weight:600;color:var(--c950);text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:3px;text-decoration-color:var(--c500);transition:text-decoration-color var(--ease-out-dur) var(--ease-out),color var(--ease-out-dur) var(--ease-out)}
 .abIn:hover{text-decoration-color:var(--c950)}
 
@@ -104,7 +111,7 @@ body{background:var(--c50);color:var(--c950);font-family:var(--sans);-webkit-fon
 .abLink{display:inline-flex;align-items:center;gap:var(--sp-8);padding:0 var(--sp-16);
  min-height:var(--tap-min);background:none;border:0;box-shadow:var(--rim-1);
  border-radius:var(--r-md);corner-shape:var(--corner);
- font-family:var(--sans);font-weight:400;font-size:var(--fs-body);line-height:1;
+ font-family:var(--sans);font-weight:400;font-size:var(--fs-body);line-height:var(--lh-flat);
  color:var(--c950);text-decoration:none;cursor:pointer;
  transition:box-shadow var(--ease-out-dur) var(--ease-out),
             color var(--ease-out-dur) var(--ease-out),
@@ -113,10 +120,10 @@ body{background:var(--c50);color:var(--c950);font-family:var(--sans);-webkit-fon
 .abLinkPrimary{background:var(--accent);color:var(--c50);box-shadow:none}
 .abLinkPrimary:hover{background:var(--accent-press);color:var(--c50);box-shadow:none}
 .abLinkPrimary .abLinkArrow{color:var(--c50)}
-.abLink svg{width:18px;height:18px;flex:none}
-.abLinkArrow{margin-left:1px;font-size:var(--fs-tab);color:var(--c500);transition:transform .2s var(--ease-out)}
+.abLink svg{width:18px;height:18px;flex:none}   /* icon box, not spacing: the icon ramp owns 18px */
+.abLinkArrow{margin-left:1px;   /* optical nudge, below the 4px grid on purpose: it is kerning, not spacing */font-size:var(--fs-tab);color:var(--c500);transition:transform .2s var(--ease-out)}
 .abLink:hover .abLinkArrow{transform:translate(2px,-2px)}
-.abLinkRow{display:flex;flex-wrap:wrap;gap:12px}
+.abLinkRow{display:flex;flex-wrap:wrap;gap:var(--sp-12)}
 .abLink:focus-visible,.abIn:focus-visible,.footIn:focus-visible{outline:2px solid var(--c950);outline-offset:3px;border-radius:var(--r-md)}
 
 /* THE PHOTOGRAPHS, AND THE INTERACTION THEY LOST.
@@ -177,16 +184,16 @@ body{background:var(--c50);color:var(--c950);font-family:var(--sans);-webkit-fon
 /* the caption travels WITH its photograph rather than on its own clock: the same
    curve, started in the same frame, so the pair reads as one object changing. */
 .abCap{font-family:var(--sans);font-weight:400;font-size:var(--fs-small);letter-spacing:.01em;
- color:var(--c500);margin:clamp(7px,1.6vw,10px) 0 0;filter:url(#inkSm);
+ line-height:var(--lh-body);color:var(--c500);margin:var(--sp-10) 0 0;filter:url(#inkSm);
  transition:opacity 520ms var(--ease-out),transform 680ms var(--ease-out)}
 .abCap.swapping{opacity:0;transform:translateY(6px)}
-.amsBar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:clamp(11px,2.6vw,15px) 0 0}
-.amsDots{display:inline-flex;align-items:center;gap:8px}
+.amsBar{display:flex;align-items:center;justify-content:space-between;gap:var(--sp-12);margin:clamp(11px,2.6vw,15px) 0 0}
+.amsDots{display:inline-flex;align-items:center;gap:var(--sp-8)}
 .amsDots i{width:7px;height:7px;border-radius:var(--r-full);background:var(--c100);
  transition:background 520ms var(--ease-out),transform 520ms var(--ease-out)}
 .amsDots i.on{background:var(--c900);transform:scale(1.2)}
 .amsHint{display:inline-flex;align-items:center;font-family:var(--sans);font-weight:600;
- font-size:var(--fs-label);letter-spacing:.01em;color:var(--c500);filter:url(#inkSm);
+ font-size:var(--fs-label);line-height:var(--lh-flat);letter-spacing:var(--tr-flat);color:var(--c500);filter:url(#inkSm);
  transition:opacity var(--sp-settle-dur) var(--ease-out)}
 .abShots.touched .amsHint{opacity:0;pointer-events:none}
 
@@ -212,7 +219,7 @@ body{background:var(--c50);color:var(--c950);font-family:var(--sans);-webkit-fon
 @media(max-width:880px){
  .abShots{position:static}
  .abStack{aspect-ratio:auto;overflow:visible;background:none;cursor:default;
-  display:flex;flex-direction:column;gap:clamp(20px,4vw,32px)}
+  display:flex;flex-direction:column;gap:var(--sp-16-32)}
  .abShot{position:relative;inset:auto;opacity:0;z-index:auto;
   transform:translateY(18px) scale(1.015);
   transition:opacity 760ms var(--ease-out),transform 900ms var(--ease-out)}
@@ -227,9 +234,15 @@ body{background:var(--c50);color:var(--c950);font-family:var(--sans);-webkit-fon
   object-fit:contain;border-radius:var(--r-sm);corner-shape:var(--corner);background:var(--c100)}
  /* in flow every photograph carries its own caption, so the single shared one goes */
  .amsBar,.abCap{display:none}
- .abShot figcaption{font-family:var(--sans);font-weight:400;font-size:var(--fs-small);
-  letter-spacing:.01em;color:var(--c500);margin:clamp(7px,1.6vw,10px) 0 0}
+
 }
+/* the figcaption's TYPE is declared at every width and only its DISPLAY is
+   width-dependent. Written inside the media query it left four elements computing
+   line-height:normal on desktop -- invisible because they are hidden there, but a
+   rule that is only correct at one width is how the leading drifted in the first
+   place. */
+.abShot figcaption{font-family:var(--sans);font-weight:400;font-size:var(--fs-small);
+ line-height:var(--lh-body);letter-spacing:var(--tr-flat);color:var(--c500);margin:var(--sp-10) 0 0}
 @media(min-width:881px){.abShot figcaption{display:none}}
 /* reduced motion: the photograph still CHANGES -- only the movement is dropped. */
 @media(prefers-reduced-motion:reduce){
@@ -241,7 +254,7 @@ body{background:var(--c50);color:var(--c950);font-family:var(--sans);-webkit-fon
  /* One column below the two-column breakpoint, and the photographs pair up
     rather than running full-bleed one under another -- five 100%-wide frames in
     a phone column is 5 x 100vw of scrolling for five pictures. */
- .abGrid{grid-template-columns:1fr;gap:clamp(32px,6vw,56px)}
+ .abGrid{grid-template-columns:1fr;gap:var(--sp-32-56)}
  .abBody .abSec.abConnect{max-width:none}
  .abShots{position:static}
  .abBody p{max-width:none}
@@ -250,7 +263,10 @@ body{background:var(--c50);color:var(--c950);font-family:var(--sans);-webkit-fon
 @media(max-width:600px){.abFacts{grid-template-columns:1fr;gap:16px}}
 
 .siteFoot{margin-top:clamp(80px,12vh,150px);padding:0 clamp(24px,5vw,40px) clamp(32px,5vh,64px);text-align:center}
-.footReach{font-family:var(--sans);font-weight:400;font-size:var(--fs-prose);line-height:1.55;color:var(--c700);margin:0 auto;max-width:42ch;text-wrap:balance}
+/* 1.55 was a literal and the case studies resolve the same role to var(--lh-prose)
+   = 1.5. Same element, same role, two numbers -- exactly the --lh-prose 1.6 -> 1.5
+   drift this system has been bitten by before. The token arbitrates. */
+.footReach{font-family:var(--sans);font-weight:400;font-size:var(--fs-prose);line-height:var(--lh-prose);color:var(--c700);margin:0 auto;max-width:42ch;text-wrap:balance}
 .footIn{font-weight:600;color:var(--c950);text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:3px;text-decoration-color:var(--c500);transition:text-decoration-color var(--ease-out-dur) var(--ease-out),color var(--ease-out-dur) var(--ease-out)}
 .footIn:hover{text-decoration-color:var(--c950)}
 /* The closing mark, same as index.html: --fs-display is the right register but its clamp
@@ -271,7 +287,7 @@ body{background:var(--c50);color:var(--c950);font-family:var(--sans);-webkit-fon
    to the sentence under it, and unmistakably a status rather than a heading.
    "San Francisco" came out: the hero already says "SF product designer" and About's
    at-a-glance says it again, so the footer was the third telling. */
-.footAvail{font-family:var(--sans);font-weight:600;font-size:var(--fs-label);letter-spacing:.01em;color:var(--c500);margin:0 0 var(--sp-8)}
+.footAvail{font-family:var(--sans);font-weight:600;font-size:var(--fs-label);line-height:var(--lh-body);letter-spacing:var(--tr-flat);color:var(--c500);margin:0 0 var(--sp-8)}
 .footMark{font-family:var(--sans);font-weight:600;font-size:min(var(--fs-display),13vw);line-height:.9;letter-spacing:var(--tr-display);color:var(--c100);margin:var(--sp-8-16) 0 0;white-space:nowrap;-webkit-user-select:none;user-select:none}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 </style>

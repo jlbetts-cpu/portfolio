@@ -561,7 +561,9 @@ body.moodInCta .heroCtas:not(.in) .faceMoodCorner{opacity:0!important;visibility
 .wrap.developing.developed{filter:blur(0) brightness(1);opacity:1;transition:filter .95s cubic-bezier(.2,.8,.2,1),opacity .8s cubic-bezier(.2,.8,.2,1)}
 @media(prefers-reduced-motion:reduce){.wrap.developing{filter:none!important;opacity:1!important}}
 .siteFoot{margin-top:clamp(80px,12vh,150px);padding:0 clamp(24px,5vw,40px) clamp(32px,5vh,64px);text-align:center}
-.footReach{font-family:var(--sans);font-weight:400;font-size:var(--fs-prose);line-height:1.55;color:var(--c700);margin:0 auto;max-width:42ch;text-wrap:balance}
+/* 1.55 was a literal; the case studies resolve this same role to var(--lh-prose)
+   = 1.5. Same element, same role, two numbers -- the --lh-prose drift again. */
+.footReach{font-family:var(--sans);font-weight:400;font-size:var(--fs-prose);line-height:var(--lh-prose);color:var(--c700);margin:0 auto;max-width:42ch;text-wrap:balance}
 .footIn{font-weight:600;color:var(--c950);text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:3px;text-decoration-color:var(--c500);transition:text-decoration-color .15s cubic-bezier(.2,.8,.2,1),color .15s cubic-bezier(.2,.8,.2,1)}
 .footIn:hover{text-decoration-color:var(--c950)}
 /* THE SIGN-OFF IS ONE BLOCK, top to bottom: status, thanks, wordmark.
@@ -579,8 +581,7 @@ body.moodInCta .heroCtas:not(.in) .faceMoodCorner{opacity:0!important;visibility
    to the sentence under it, and unmistakably a status rather than a heading.
    "San Francisco" came out: the hero already says "SF product designer" and About's
    at-a-glance says it again, so the footer was the third telling. */
-.footAvail{font-family:var(--sans);font-weight:600;font-size:var(--fs-label);letter-spacing:.01em;
- color:var(--c500);margin:0 0 var(--sp-8)}
+.footAvail{font-family:var(--sans);font-weight:600;font-size:var(--fs-label);line-height:var(--lh-body);letter-spacing:var(--tr-flat);color:var(--c500);margin:0 0 var(--sp-8)}
 /* --fs-display is the scale's top rung and the right register for a closing mark, but its
    clamp FLOOR is 68px: at 390 that sets ~400px of "Jayden Betts" into 342px of column and
    overflows the page. min() clamps it down to the measure without leaving the scale --
