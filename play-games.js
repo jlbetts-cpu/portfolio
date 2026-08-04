@@ -324,6 +324,51 @@
   try{if(window.__hmTourStart)window.__hmTourStart();}catch(_){}closeMenuBar();battleGate();}   // the tournament builds its own squads, so no mini-Jayden top-up here
  if(tg)tg.addEventListener("click",startTour);
  var pcT=document.getElementById("pcTour");if(pcT)pcT.addEventListener("click",startTour);   // the hub card and the menu row are ONE launcher, not two copies of one
+
+ /* ---- THE HOVER PREVIEWS LOAD ON DEMAND, AND ONLY PROVE THEMSELVES ON LOAD.
+    Jayden asked for screenshots of the inside of each screen on hover. The panel, its geometry
+    and its motion are in play.html; this is the only behaviour it needs, and it is deliberately
+    the smallest amount that makes the feature safe:
+
+    1. NOTHING IS DOWNLOADED UNTIL A CARD IS ASKED ABOUT. The <img> ships with no src at all --
+       not a lazy src, none -- so a visitor who never hovers pays nothing, and the four previews
+       can never compete with the engine for bandwidth during the first seconds of the page, which
+       is exactly when the heads are spawning. pointerenter rather than mouseenter so a pen
+       counts; focus so the keyboard gets the same reveal the mouse does. `once` on both, because
+       after the first hover the browser's own cache is the right mechanism and a listener that
+       has done its job should not stay bound.
+    2. .ready IS ADDED ON THE IMAGE'S OWN LOAD EVENT, never optimistically. This is the whole
+       reason it is safe to ship the mechanism before every screenshot exists: with the file
+       missing the load event never fires, .ready is never added, the CSS rule never matches, and
+       the card behaves precisely as it did before this existed. No empty white rectangle over the
+       crowd, no broken-image glyph, no layout reserved for nothing.
+    3. NO img.decode(), AND THAT IS A MEASURED DECISION RATHER THAN A SIMPLIFICATION. Decoding
+       before revealing is the textbook way to avoid fading in a half-painted image, and it was
+       written that way first. In this exact position it HANGS: .pCardPrev is visibility:hidden
+       until the card is hovered, and a decode() requested for an image inside a subtree that is
+       never painted has nothing to schedule against, so the promise neither resolves nor rejects.
+       Verified in the browser -- the call sat unsettled until the probe timed out at 30s, .ready
+       was never added, and the previews were silently dead while every other signal (src set,
+       complete true, naturalWidth 640) said the image was perfectly fine. That is the worst
+       shape a bug can take, so: `load` is the signal. It already guarantees the bytes are whole,
+       and the 240ms fade is far more time than the raster needs.
+
+    OUTSTANDING: images/preview/*.webp DO NOT EXIST YET, and that is on purpose rather than an
+    oversight. Three of the four screens (tournament, headmaker, gradientlab) are being rebuilt
+    right now by other passes, so any capture taken today is wrong within hours -- shipping stale
+    pictures of screens that no longer look like that is worse than shipping none, because a
+    preview that lies is worse than no preview. The contract for whoever captures them:
+        images/preview/match.webp  tournament.webp  headmaker.webp  gradientlab.webp
+        640x400 (16:10, 2x the 311px the panel occupies at 1440), WebP q72.
+        Budget ~25-40 KB each. Nothing here may approach images/earth-map-src.jpg's 2.51 MB.
+    Drop the four files in and the previews turn on with no code change anywhere. ---- */
+ [].forEach.call(document.querySelectorAll(".pCard .pCardPrev img[data-prev]"),function(img){
+  var panel=img.parentNode,card=panel.parentNode,armed=false;
+  function load(){if(armed)return;armed=true;
+   img.addEventListener("load",function(){panel.classList.add("ready");},{once:true});
+   img.src=img.getAttribute("data-prev");}
+  card.addEventListener("pointerenter",load,{once:true});
+  card.addEventListener("focus",load,{once:true});});
  var rg=document.getElementById("raceGo");
  if(rg)rg.addEventListener("click",function(){
   var rc=readAll().length;if(rc<1||gameOn())return;

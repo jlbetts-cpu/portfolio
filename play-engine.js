@@ -10,12 +10,22 @@
   var k2=JSON.stringify(d.marks||"m")+JSON.stringify((d.eyes||[]).map(function(e){return[e.x,e.y,e.w,e.h];}));
   if(seenC[d.cut]||seenC[k2])return false;seenC[d.cut]=1;seenC[k2]=1;return true;}).slice(0,8);   // unique REAL faces only, by pixels AND by geometry
  if(_rawN!==null&&_rawN!==list.length){try{localStorage.setItem("hmCompanions",JSON.stringify(list));if(typeof _hcBump==="function")_hcBump();}catch(_){}}   // heal stale duplicates once, physically
- if(!list.length)return;
+ // NO EARLY RETURN HERE. This used to read `if(!list.length)return;`, which bailed out of the whole
+ // IIFE on an empty roster -- and every one of this engine's ~67 window.__hm* exports is declared
+ // BELOW this line. So on a genuine first visit, with nothing in localStorage, __hmSpawnOne,
+ // __hmLive, __hmSoccerStart and __hmFillerAdd did not exist, and "Play a match" had never worked
+ // for anyone who had not already made a head. It failed silently rather than loudly because the
+ // ~40 call sites into this engine from other files are all `typeof`-guarded, which is exactly the
+ // shape of guard that hides a missing export forever.
+ // The intent of the old line -- do no work when there is nothing to render -- is right and is kept:
+ // it just moves to the two places that actually do work. The spawn loop iterates an empty list and
+ // no-ops (see `list.forEach` below), and the shared hero-box poll skips while nobody is on stage.
+ // Registering the API is not work; it is the door.
  var peers=[];   // every head knows where every other head is, every frame
  try{if(/[?&]wraf=1/.test(location.search))window.__peers=peers;}catch(_){}   // DEV-ONLY debug handle (opt-in), lets a headless run inspect head AI state
  var heroBox={left:0,top:0,width:0,height:0};   // ONE cached hero rect shared by every head, so N heads never each force a layout reflow per frame (older machines feel that). Refreshed only when the page actually moves.
  function refreshHeroBox(){var h=document.querySelector(".hero");if(!h)return;var r=h.getBoundingClientRect();heroBox.left=r.left;heroBox.top=r.top;heroBox.width=r.width;heroBox.height=r.height;}
- (function(){var raf=0;function mark(){if(raf)return;raf=requestAnimationFrame(function(){raf=0;refreshHeroBox();});}addEventListener("scroll",mark,{passive:true});addEventListener("resize",mark,{passive:true});refreshHeroBox();setInterval(function(){if(!document.hidden)refreshHeroBox();},500);})();   // scroll/resize (rAF-throttled) + a slow safety tick for any other layout shift
+ (function(){var raf=0;function mark(){if(raf)return;raf=requestAnimationFrame(function(){raf=0;refreshHeroBox();});}addEventListener("scroll",mark,{passive:true});addEventListener("resize",mark,{passive:true});refreshHeroBox();setInterval(function(){if(!document.hidden&&peers.length)refreshHeroBox();},500);})();   // scroll/resize (rAF-throttled) + a slow safety tick for any other layout shift
  var battlePlats=[];   // battle arena: floating platforms the heads land on and pounce from (populated by the platforms block, read every frame in the physics)
  try{if(/[?&]wraf=1/.test(location.search))window.__plats=battlePlats;}catch(_){}   // DEV-ONLY debug handle (opt-in), so a headless run can inspect the live ladder
  var sharedFeetY=null;   // the shared FLOOR line (screen-space feet row). Cached while the big head is VISIBLE so a head spawning mid-game (mini-Jayden -- the big head is hidden AND the hero box measures shorter then) lands on the SAME plane as everyone else instead of a mid-game fallback.
@@ -301,6 +311,20 @@
   function arcMax(HW,heroW){return Math.min(0.663,Math.asin(Math.max(0.08,Math.min(1,(heroW/2-HW*0.75)/R))));}
   return{sync:sync,live:function(){return live;},R:function(){return R;},cx:function(){return cx;},cy:function(){return cy;},arcMax:arcMax};
  })();
+ // IS THE LOBBY UP? Jayden: "I do want the room to be reflective like the soccer." The pitch has had
+ // honest per-head reflections since the water landed; the lobby -- the room he actually meant -- had
+ // none, because the one gate below read `soccerOn` and nothing else.
+ // This is one shared, throttled read of body.classList for the WHOLE crowd, deliberately the same
+ // shape as ORB.sync above and for the same reason: a per-head classList test every frame is N reads
+ // per frame for a fact that changes a handful of times in a session. 250ms of lag on a surface
+ // appearing is invisible; N DOM reads per frame are not.
+ // pHubOn is set by play-games.js and exists ONLY on play.html. index.html loads this engine and does
+ // NOT load play.css, so a lobby reflection there would be an unmasked, unfiltered flipped copy of
+ // every head -- gating on the hub's own class is what keeps this on the one page that dresses it.
+ var LOBBY=(function(){var on=false,t=-1e9;
+  return function(now){if(now-t<250)return on;t=now;var b=document.body.classList;
+   on=b.contains("pHubOn")&&!b.contains("hmSoccer")&&!b.contains("hmBattle")&&!b.contains("hmTour")&&!window.__hmRaceOn;
+   return on;};})();
  var REFL_K=0.9;
  // PERSPECTIVE COMPRESSION -- the reason a straight scale(1,-1) reads as a pasted, flipped copy.
  // A mirror is not what a viewer standing above a reflective surface sees: the reflection recedes
@@ -498,7 +522,20 @@
  }}catch(_){mjClone=null;}}
  var bar=document.createElement("div");bar.className="hmHp";bar.setAttribute("aria-hidden","true");
  var barFill=document.createElement("i");bar.appendChild(barFill);
- hero.appendChild(refl);hero.appendChild(shadow);hero.appendChild(root);gAdd(hero,bar);   // the .hmHp bar is game furniture: only a match ever fills it. The reflection goes in FIRST, at head-spawn time, which is the whole z-order argument: .hmWater and camBack are both created later in DOM, so the ripple and then the ball/goal shadows already paint above it with no z-index change at all.
+ // THE REFLECTION GOES IN UNDER THE WATER, NOT MERELY EARLY. .hmRefl and .hmWater are both
+ // z-index 1, so DOM order alone decides which paints on top, and the argument that used to live
+ // here -- "the reflection goes in first, .hmWater and camBack are created later" -- is only true
+ // for heads that exist BEFORE kickoff. It silently stops being true for every head that spawns
+ // once a pitch is already on screen, and there are three such paths in normal use: the mini-Jayden
+ // filler that tops up an odd roster, every tournament squad, and "Add your head" during a match.
+ // Measured: with five heads seeded and one filler added mid-game, the five pre-match reflections
+ // land at DOM indices 30-46 (before .hmWater at 50) and the filler's lands at 55 -- ABOVE the
+ // ripple AND above camBack. That head's reflection then sits ON the water instead of in it, which
+ // is precisely the "fake reflection" reading Jayden rejected, appearing only for some heads in
+ // some matches. Hence: anchor to .hmWater when there is one, append when there is not.
+ var _wt=hero.querySelector(".hmWater");
+ if(_wt)hero.insertBefore(refl,_wt);else hero.appendChild(refl);
+ hero.appendChild(shadow);hero.appendChild(root);gAdd(hero,bar);   // the .hmHp bar is game furniture: only a match ever fills it.
  // --- world geometry ---
  var heroR,floorY,plats,avoids,bigR,M=40,WL=2,WR=9999,FOOT=0.945,crownFrac=0.08;window.__hmFOOT=FOOT;
  (function(){try{var ci=new Image();ci.onload=function(){try{
@@ -1470,7 +1507,28 @@
   //
   // The waterline is the feet plane every head shares, so every reflection lands on ONE line for
   // free, whatever the head's size -- which is what keeping the physics flat bought.
-  if(soccerOn&&!elim&&!window.__hmLavaOn){
+  // THE SAME SIX CLAIMS NOW HOLD IN THE LOBBY, which is the whole reason this is a gate change and
+  // not a second implementation. Everything above -- the waterline anchor, the gap that opens when a
+  // head jumps, the shrink-and-weaken off the contact shadow's own shScale/shOp, the mirror operator
+  // applied to the head's own rotate-then-scale -- is surface-agnostic. It was only ever describing
+  // "a head standing on a reflective plane", and the lobby floor is one. So a jumping head in the
+  // lobby detaches from its reflection by exactly its height off the ground, and a head lying at rest
+  // meets its own image at its feet: the two failures Jayden named when he said the reflections
+  // "aren't real" cannot occur here either, because the numbers are literally the same numbers.
+  // What DOES change is the material, and that is play.css's business, not this file's: water ripples
+  // and breaks the image up, a polished floor does not. See `body.pHubOn .hmRefl` there.
+  // ...WITH ONE EXPLICIT EXCLUSION: !_orbLive. The contact shadow above has a spherical branch --
+  // on the planet it sits at the contact point and tilts with the surface normal, measured along
+  // orbH -- and the reflection below has NO such branch: _wY is floorY+HH*FOOT, a FLAT feet line.
+  // The two would therefore disagree the moment the planet is switched on, and disagree in the
+  // worst possible way: right at rest and wrong for every head with any height, which is an
+  // intermittent fault that looks like a rendering glitch rather than a missing case.
+  // A sphere has no single waterline, so this is a real piece of design (where does a reflection
+  // live on a curved surface?) and not a line of arithmetic. Until it is done, a head standing on
+  // the planet gets NO reflection rather than a wrong one -- the planet is postponed anyway
+  // (play.html ships no [data-hm-orb], so _orbLive is false and this costs nothing today), and
+  // this guard is what stops the two features silently breaking each other when it comes back.
+  if((soccerOn||LOBBY(now))&&!elim&&!_orbLive&&!window.__hmLavaOn){
    if(_reflFoot!==FOOT){_reflFoot=FOOT;refl.style.transformOrigin="50% "+(FOOT*100).toFixed(2)+"%";}   // FOOT arrives from an image onload, so it can change once after spawn
    var _wY=floorY+HH*FOOT+_ay;   // the FEET plane itself, not the shadow's drawn top edge -- the shadow is nudged 2px up so its ellipse sits under the chin, and inheriting that nudge would have floated every reflection 2px off the water
    refl.style.transform="translate("+_rx.toFixed(1)+"px,"+(_wY-HH*FOOT).toFixed(1)+"px) scale(1,-1) rotate("+rot.toFixed(1)+"deg) scale("+_rsx.toFixed(3)+","+(_rsy*shScale*REFL_PERSP).toFixed(3)+")";
