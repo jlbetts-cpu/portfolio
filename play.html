@@ -227,7 +227,19 @@
     390: "Add your head" and "Make a gradient" wrap to two lines at 179px wide while the first
     two do not, so the rows came out 66px and 86px -- four doors that are not the same object.
     Equal rows cost nothing and the requirement is that the four behave identically. */
- .pCards{pointer-events:auto;width:100%;max-width:var(--page-max);margin:0 auto;
+ /* THE ROW SITS IN THE SITE'S MARGINS, WHICH ARE NOT --page-max. Jayden: "is anyone fixing the
+    play mode select to be in the margins?" Measured against the two reference pages rather than
+    eyeballed -- index.html's .jbNav and gradientlab.html's main both resolve to 120 / 40 / 24 at
+    1440 / 1280 / 390, and this row was at 80 / 24 / 12. Consistently half a gutter short.
+    The cause was --page-max. A 1280 row centred in a 1440 viewport can only ever be 80 from the
+    edge; the site's content column is 1200, and --page-max is the OUTER bound that a 40px gutter
+    then sits inside (gradientlab's .lab is 1280 at L80 and its main is 1200 at L120). So this
+    names the same arithmetic in one value instead of nesting two elements to get it.
+    Why this is enough on its own: while the gutter is not binding, a centred row's inset is
+    (viewport - 1200) / 2 regardless of what the gutter is -- 120 at 1440, 40 at 1280, both
+    exact. The gutter only takes over once the viewport drops below 1200 + 2 gutters, which is
+    why the phone value is the other half of this fix (--play-gutter, play.css). */
+ .pCards{pointer-events:auto;width:100%;max-width:calc(var(--page-max) - var(--sp-40) * 2);margin:0 auto;
   display:grid;grid-template-columns:repeat(4,1fr);grid-auto-rows:1fr;gap:var(--sp-12)}
  .pCard{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:var(--sp-6);
   min-height:var(--tap-min);padding:var(--sp-14) var(--sp-16) var(--sp-16);
