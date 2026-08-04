@@ -1135,9 +1135,9 @@ function paint(){
       + '<circle cx="44" cy="13" r="3.4" fill="#f0c94e"/>'
       + '<rect x="4" y="30" width="40" height="3.4" rx="1.4" fill="#d7a531"/></svg>';
     hh.appendChild(crown); wrap.appendChild(hh);
-    var sheetC = el('div', 'tvSheet');
-    sheetC.appendChild(el('h2', 'tvChampNm', (wt ? wt.name : '—') + ' wins the cup'));
-    fix.appendChild(wrap); fix.appendChild(sheetC);
+    fix.classList.add('tvFixtureDone');   // one portrait over one line, not the two-track grid
+    fix.appendChild(wrap);
+    fix.appendChild(el('h2', 'tvChampNm', (wt ? wt.name : '—') + ' wins the cup'));
   } else {
     /* ---- THE MATCH-UP. Two captains, one under the other, with the lowercase
        `v.` between them -- the 1950s programme team-sheet grammar rather than a
@@ -1148,15 +1148,20 @@ function paint(){
        says, four lines above, and the duplicate was one of the elements that
        made the column read as busier than it is. What is left is the two things
        a visitor is here for -- who, and against whom -- plus the one true line
-       of history this cup can produce, and one button. ---- */
-    var sheet = el('div', 'tvSheet');
+       of history this cup can produce, and one button.
+
+       FLAT, deliberately: the face and the name text are appended straight to
+       .tvFixture rather than nested in a per-side wrapper, because .tvFixture is
+       a two-track grid and the tracks are what align the column. A wrapper
+       around each side would have made the sides two grid ITEMS, and the names
+       would have started on the wrapper's x instead of the shared one -- which
+       is the ragged edge this is fixing. ---- */
     [A2, B2].forEach(function(tm, i){
-      if (i === 1) sheet.appendChild(el('div', 'tvV', 'v.'));
-      var side = el('div', 'tvSide');
+      if (i === 1) fix.appendChild(el('div', 'tvV', 'v.'));
       var fw = el('span', 'tvFace');
       var cut = tm && tm.captain && (tm.captain.portrait || tm.captain.cut);
       if (cut){ var fi = el('img'); fi.src = cut; fi.alt = ''; fi.draggable = false; fw.appendChild(fi); }
-      side.appendChild(fw);
+      fix.appendChild(fw);
       var txt = el('span', 'tvSideT');
       txt.appendChild(el('span', 'tvName', tm ? tm.name : '—'));
       /* Colour as a flat bar under the name, never as a field behind the head:
@@ -1165,11 +1170,9 @@ function paint(){
       var bar = el('i', 'tvBar');
       if (tm) bar.style.setProperty('--tcx', tm.col);
       txt.appendChild(bar);
-      side.appendChild(txt);
-      sheet.appendChild(side);
+      fix.appendChild(txt);
     });
-    sheet.appendChild(buildTape(A2, B2));
-    fix.appendChild(sheet);
+    fix.appendChild(buildTape(A2, B2));
 
     /* THE MATCH-UP SCREEN ALWAYS HAS ITS ONE ACTION. This used to be gated on
        `T.phase === 'bracket'`, and phase is a variable that can be left behind:
