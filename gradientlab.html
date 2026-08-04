@@ -193,7 +193,7 @@
           <option value="8">Breeze Field</option>
           <option value="9">Curtain Rose</option>
           <option value="10">Mint Marble</option>
-          <option value="11">Night Bloom</option> <option value="12">Reef</option> <option value="13">Amethyst</option>
+          <option value="11">Night Bloom</option> <option value="12">Reef</option> <option value="13">Amethyst</option> <option value="14">Rainbow Sparkles</option>
         </select>
         </span>
       </p>
@@ -786,6 +786,14 @@ function FluidMesh(canvas,cfg){
      colors:["#f0eff7","#a07ae4","#9e35e5","#9315a4","#e6e6e6"],
      nodes:[N(.29,.25,1.18,.07,-23),N(.07,.45,1.06,.095,-20),N(.48,.53,.82,.185,-31),N(.63,.72,.75,.067,-16),N(1,.43,.46,.045,-30)],
      lx:55,ly:28,glow:44, flow:40,melt:58,wob:33,bend:50,foldA:33,foldSh:27,sweep:21,expo:97,fringe:34, haloA:0,vol:0,grain:12,glass:100,edgeF:100,
+     tension:0,rim:0,layer:0},
+    /* Rainbow Sparkles — Jayden export, 2026-08-03. Marble form, so bend takes
+       cfg()'s 0.9 factor: 0.45 exported = slider 50. Same tension/rim/layer
+       pinning as Reef and Amethyst — writeCode() does not carry those three. */
+    {name:"Rainbow Sparkles",form:5,contour:50,
+     colors:["#ff3df9","#5532d2","#c85b64","#d91226","#1ac304"],
+     nodes:[N(.26,.37,1.54,.091,6),N(.34,.457,.95,.099,-27.8),N(.515,.578,.97,.253,-31.6),N(.718,.814,.85,.099,-24),N(.832,.523,.45,.066,-29.6)],
+     lx:61,ly:23,glow:100, flow:76,melt:29,wob:39,bend:50,foldA:33,foldSh:27,sweep:22,expo:66,fringe:30, haloA:0,vol:0,grain:0,glass:37,edgeF:19,
      tension:0,rim:0,layer:0}
   ];
 
