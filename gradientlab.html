@@ -20,30 +20,22 @@
      at the same time. Verified after removal with document.fonts.check() and by
      measuring a 600/40px string against a forced system fallback: 626.77 vs
      595.46, so the webfont is what is actually rendering, not just declared. */
-  /* ══ PAGE-LOCAL CONSTANTS ════════════════════════════════════════════════
-     THREE NEW NAMES, NOT ONE REBINDING. The block that used to sit here bound
-     --paper/--ink/--sub/--hair/--panel to Lab-only near-misses of tokens that
-     already existed (#f8f9fa vs --c50, #232323 vs --c900, #75756e vs --c500,
-     #e7e6e1 vs --c100) -- five names for values the system had already named,
-     which is precisely the drift the token layer exists to stop. They are gone;
-     every rule below reads the shared token.
+  /* ══ ONE PAGE-LOCAL NAME, AND IT IS THE LAST ONE ═════════════════════════
+     The block that used to sit here bound --paper/--ink/--sub/--hair/--panel to
+     Lab-only near-misses of tokens that already existed (#f8f9fa vs --c50,
+     #232323 vs --c900, #75756e vs --c500, #e7e6e1 vs --c100) -- five names for
+     values the system had already named, which is precisely the drift the token
+     layer exists to stop.
 
-     --bar-h is the site header's own chrome, DERIVED rather than retyped:
-     :root.jbShrunk .jbStick sets padding-block --sp-14 / --sp-6 around a --nav-h
-     bar, so it is 14 + 52 + 6 = 72 at every width. Everything on this page hangs
-     off that number and none of it should have to know it is 72.
-     --ok is SUCCESS -- a different idea from --accent that happens to be a
-     colour, so it gets its own name rather than a rebinding. */
+     THE THREE BUILDER CONSTANTS THAT REPLACED THEM ARE ALSO GONE, and that is
+     the better outcome: --panel-w, --bar-h and --lbl-w are all in tokens.css now
+     (494, 518, 519), including --lbl-w's 420px fork to 72px at :521. This page
+     and headmaker.html are one archetype, so a geometry both of them use belongs
+     to neither of them. Nothing is declared locally to shadow them.
+
+     --ok is what is left: SUCCESS, a different idea from --accent that happens
+     to be a colour, so it gets its own name rather than a rebinding. */
   :root{
-    --bar-h:calc(var(--sp-14) + var(--nav-h) + var(--sp-6));
-    /* --panel-w IS NO LONGER DECLARED HERE. tokens.css:494 took it site-wide the
-       moment headmaker.html landed on the same archetype -- two names for one
-       geometry (--mk-panel and --panel-w, both 360px) is the state immediately
-       before they disagree. It kept this file's name, so consuming the shared one
-       is a deletion rather than a rename. --bar-h and --lbl-w are now in exactly
-       the position --panel-w was in, duplicated across the two builders; they are
-       tokens.css's to promote, not this file's to declare twice. */
-    --lbl-w:84px;         /* every control's label column, so every track starts on one x */
     --ok:#0E6B3B;
   }
   *{box-sizing:border-box}
@@ -161,14 +153,19 @@
      page used to carry `7px 11px` and `9px 12px`, someone padding TO a height
      they never named (geometry audit §4.1, 58 occurrences). The rim is a
      box-shadow, never a border. The press is scale, never translateY.
-     The spec's --ctl-* names are NOT declared here: tokens.css does not carry
-     them yet and inventing a local copy is exactly the shadowing this pass is
-     removing, so every rule reads the underlying token directly. */
+
+     THE TYPE IS --fs-small (15px), NOT --fs-label (13). This shipped at 13 for
+     density and that was the wrong lever: 15 is --ctl-fs, it is what the header
+     and the case studies already render, and it is what headmaker.html -- the
+     same archetype -- has. A 13px control label beside a 15px one is the
+     pick-and-choose conformance Jayden is objecting to. The spec already ships a
+     mechanism for density, and it is .is-sm's 36px box with a 44px ::after, not
+     a second type scale. Measured after the change, no group needs it. */
   .ctl{display:inline-flex;align-items:center;justify-content:center;gap:var(--sp-8);
     min-height:var(--tap-min);padding:0 var(--sp-16);
     border:0;border-radius:var(--r-md);corner-shape:var(--corner);
     background:none;box-shadow:none;
-    font-family:var(--sans);font-size:var(--fs-label);font-weight:400;
+    font-family:var(--sans);font-size:var(--fs-small);font-weight:400;
     line-height:var(--lh-flat);letter-spacing:var(--tr-body);color:var(--c700);
     position:relative;cursor:pointer;white-space:nowrap;text-decoration:none;
     -webkit-tap-highlight-color:transparent;
@@ -187,11 +184,17 @@
      the edge via currentColor and the whole control reads as one object. */
   .ctl--secondary{background:none;box-shadow:var(--rim-1)}
   .ctl--secondary:hover{box-shadow:var(--rim-2);color:var(--c950)}
-  /* THE ONE PRIMARY ACTION. Ink, not the accent -- the accent is becoming ink
-     site-wide and a filled near-black button is the only control on this page
-     that carries a solid ground. --press-scale-lg because it is a wide box. */
-  .ctl--primary{background:var(--c950);color:var(--c50);font-weight:600;flex:1 1 auto}
-  .ctl--primary:hover{background:var(--c800);color:var(--c50)}
+  /* THE ONE PRIMARY ACTION. §3.1 is 400 in every state, and the 600 that shipped
+     here was the same mistake as the 13px type -- reaching for a channel the kind
+     is not allowed to vary. It does not need one: it is the only control on the
+     page carrying a solid ground, which is emphasis enough.
+     AND IT READS --accent RATHER THAN --c950. They resolve to the same #121212
+     today, but the primary's fill IS the accent -- that is what the token means
+     now that blue is dead -- and headmaker.html writes it that way. Two names for
+     one fill is the state immediately before they disagree.
+     --press-scale-lg because it is a wide box. */
+  .ctl--primary{background:var(--accent);color:var(--c50);flex:1 1 auto}
+  .ctl--primary:hover,.ctl--primary:focus-visible{background:var(--accent-press);color:var(--c50)}
   .ctl--primary:active{transform:scale(var(--press-scale-lg))}
   .ctl--primary:focus-visible{outline-color:var(--c950)}
   .ctl.is-ok{color:var(--ok)}
@@ -263,7 +266,7 @@
      half-step down, and it is why the rim can stay at --rim-1. */
   select{appearance:none;-webkit-appearance:none;flex:1 1 auto;min-width:0;
     min-height:var(--tap-min);padding:0 var(--sp-36) 0 var(--sp-12);
-    font-family:var(--sans);font-size:var(--fs-label);letter-spacing:var(--tr-body);
+    font-family:var(--sans);font-size:var(--fs-small);letter-spacing:var(--tr-body);
     color:var(--c950);border:0;border-radius:var(--r-md);corner-shape:var(--corner);
     background-color:var(--mat-3-solid);box-shadow:var(--rim-1);cursor:default;
     background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="rgb(117,117,117)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6l6 -6"/></svg>');
@@ -325,11 +328,16 @@
   @media(max-width:760px){
     .lab{padding-left:var(--sp-24);padding-right:var(--sp-24)}
   }
-  /* below ~420 the label column has to give way before the track does */
-  @media(max-width:420px){
-    :root{--lbl-w:72px}
-    .tab{font-size:var(--fs-caption)}
-  }
+  /* THE 420 BLOCK IS GONE, both halves of it.
+     --lbl-w's fork to 72px moved to tokens.css:521 with the token itself, so the
+     rule that used to live here would now be a second copy of a shared decision.
+     .tab{font-size:--fs-caption} was the other half and it was a TYPE-SCALE FORK,
+     which is the thing that is not allowed: a control does not get smaller type
+     on a phone, it gets .is-sm's geometry. It also turned out to be unnecessary.
+     Measured at 390, where the strip is tightest: each tab's box is 60.4px with
+     8px of inset, so 52.4px is available, and the longest label renders 44.8px at
+     15/400 and 46.3px at 15/600. Both clear it. The tabs are --fs-small at every
+     width now, like every other control on the page. */
 
   /* ── THE SHORT-VIEWPORT RELEASE, and it is the opposite of a scrollport.
      A one-viewport frame only holds while the viewport can hold it. At 320 x 256
