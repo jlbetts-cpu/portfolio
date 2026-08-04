@@ -238,8 +238,15 @@
  // would fight. Every call site below is gated on soccerOn, so off the pitch this costs literally nothing.
  var ARC=(function(){
   var w=-1,half=1,cx=0,sag=0,over=null;
+  // JAYDEN, 2026-08-03: "For the planet, I wanted the planet to be in the lobby, not the match."
+  // So the curve is OFF on the pitch. The research's own escape hatch is what makes that a one-flag
+  // decision rather than a revert: every term below is ADDITIVE, so at sag=0 every call site emits
+  // character-for-character the string this engine emitted before any of this existed. The mechanism
+  // stays, inert, because the lobby globe is the same maths at a radius ~25x smaller and this is
+  // where it was proved out -- type __hmSag(25.6) in the console to switch the pitch curve on and look.
+  var CURVE=false;
   function sync(){var nw=heroBox.width||innerWidth;if(nw===w)return;w=nw;half=Math.max(1,w/2);cx=w/2;
-   sag=(over!=null)?over:Math.max(12,Math.min(30,w*0.020));}   // clamp(0.020*pitchWidth,12,30): 25.6px at 1280, 28.8 at 1440, 12 (clamped) at 390. Equivalent real radius ~8,000px, max surface tilt 4.6deg -- enough to feel in the head rotation, small enough that nobody expects Mario-Galaxy radial gravity out of it.
+   sag=(over!=null)?over:(CURVE?Math.max(12,Math.min(30,w*0.020)):0);}   // the live formula, when it is on: clamp(0.020*pitchWidth,12,30) -- 25.6px at 1280, 28.8 at 1440, 12 (clamped) at 390. Real radius ~8,000px, max surface tilt 4.6deg: enough to feel in the head rotation, small enough that nobody expects Mario-Galaxy radial gravity out of it.
   return{
    // The drop below the apex. A PARABOLA, not a circle: at R=5,000 / d=640 the two differ by 0.14px,
    // and the parabola's derivative -- the surface normal -- is exact and free.
@@ -277,6 +284,7 @@
   h.style.setProperty("--pl-b",B.toFixed(1)+"px");
   h.style.setProperty("--pl-cy",(B+PL_UP).toFixed(1)+"px");
   h.style.setProperty("--pl-top",(groundY-PL_UP).toFixed(1)+"px");   // all three elements share ONE box, so the horizon they draw and the arc the heads walk cannot drift apart
+  h.classList.toggle("hmFlatPitch",!(S>0));   // SAG=0 is the revert switch, so it has to take the DRAWN planet with it: a zero-height mask ellipse is degenerate, and "no curve" should mean the pitch exactly as it was.
  }
  function spawnCompanion(data,slot){
  var reduce=matchMedia("(prefers-reduced-motion:reduce)").matches;
@@ -321,7 +329,16 @@
  crownEl.innerHTML='<svg viewBox="0 0 48 34" width="100%" aria-hidden="true"><path d="M4 30 L4 15 L13 22 L24 6 L35 22 L44 15 L44 30 Z" fill="#e8b53a" stroke="#c9962a" stroke-width="1.2" stroke-linejoin="round"/><circle cx="4" cy="13" r="3.4" fill="#f0c94e"/><circle cx="24" cy="4" r="3.8" fill="#f0c94e"/><circle cx="44" cy="13" r="3.4" fill="#f0c94e"/><rect x="4" y="30" width="40" height="3.4" rx="1.4" fill="#d7a531"/></svg>';
  root.appendChild(crownEl);
  var shadow=document.createElement("div");
- shadow.style.cssText="position:absolute;left:0;top:0;width:"+HW+"px;height:"+(HW*0.22)+"px;border-radius:50%;background:radial-gradient(ellipse at center,rgba(8,8,8,.26),rgba(8,8,8,0) 70%);pointer-events:none;z-index:2;opacity:0;transition:opacity .5s cubic-bezier(.2,.8,.2,1);will-change:transform";
+ shadow.className="hmShadow";
+ // THE ONE SHADOW THIS SITE KEEPS -- the heads cast it because they stand on something -- and until
+ // now its ink was a literal inside a cssText string. No stylesheet and no media query can reach an
+ // inline style attribute written by JS, so a dark ground would have left every head with a black
+ // smudge under it and nothing to stand on. Routing the ink through two custom properties fixes that
+ // without moving the declaration: an inline var() still resolves against the element's own INHERITED
+ // custom properties, so play.css (or a dark block on body, or index.html) can rebind --hm-contact
+ // and this picks it up. With neither property defined the fallbacks are the old 8,8,8 / .26 exactly,
+ // so index.html -- which loads this same file -- renders byte-for-byte what it rendered before.
+ shadow.style.cssText="position:absolute;left:0;top:0;width:"+HW+"px;height:"+(HW*0.22)+"px;border-radius:50%;background:radial-gradient(ellipse at center,rgba(var(--hm-contact,8,8,8),var(--hm-contact-a,.26)),rgba(var(--hm-contact,8,8,8),0) 70%);pointer-events:none;z-index:2;opacity:0;transition:opacity .5s cubic-bezier(.2,.8,.2,1);will-change:transform";
  // THE REFLECTION. One silhouette div per head, on the SAME source the face rig already uses
  // (data.cut) -- not a clone of the head. The head is a rig (cut-out layers, two eyes with their
  // ::before/::after iris stacks, brows, mouth, crown, HP bar); cloning it would double the DOM and
@@ -333,7 +350,13 @@
  // and this adds none. transform-origin matches the head's own 50%/94% so the mirror maths below is
  // one scale(1,-1) in front of the head's own rotation, with no sign juggling.
  var refl=document.createElement("div");refl.className="hmRefl";refl.setAttribute("aria-hidden","true");
- refl.style.cssText="width:"+HW+"px;height:"+HH+"px;background-image:url("+data.cut+")";
+ refl.style.cssText="position:absolute;left:0;top:0;pointer-events:none;width:"+HW+"px;height:"+HH+"px;background-image:url("+data.cut+")";
+ // position is set INLINE, not left to play.css: index.html does not link play.css,
+ // so on the home page this div arrived unstyled -- a static, display:block box HH tall per head,
+ // sitting in normal flow and shoving the hero (and the head) down once per companion. That is
+ // the "adding eggheads pushes everything down" bug. Only POSITION is forced inline -- play.css
+ // still owns visibility via opacity, so play.html is untouched and an inline display would have
+ // silently killed the reflections there (inline beats a stylesheet).
  // --- the face rig: HIS iris classes, their skin ---
  var eyesArr=data.eyes||[],mk=data.marks||null,eyeEls3=[],ew0=eyesArr[0]?eyesArr[0].w:0.08;
  function strip(cx,cy,ww,hh){var d=document.createElement("div");
@@ -1580,10 +1603,12 @@
    // wings -- which is exactly where the goals are. arcY is measured at each goal's own centre, and
    // groundY itself is untouched: geo() and its _gyLock still know one flat number for the whole match.
    var _gl=ARC.y(XL+21),_gr=ARC.y(XR-21);
-   goalL.style.transform="translate("+XL+"px,"+(groundY-150+_gl).toFixed(1)+"px)";
-   goalR.style.transform="translate("+(XR-42)+"px,"+(groundY-150+_gr).toFixed(1)+"px)";
-   if(goalShL)goalShL.style.transform="translate("+(XL-6)+"px,"+(groundY-4+_gl).toFixed(1)+"px)";
-   if(goalShR)goalShR.style.transform="translate("+(XR-52)+"px,"+(groundY-4+_gr).toFixed(1)+"px)";}
+   // No .toFixed() anywhere here, deliberately: these four lines never formatted their y before, and
+   // `v + 0` is the identity on a float, so at SAG=0 they emit the same characters they always did.
+   goalL.style.transform="translate("+XL+"px,"+(groundY-150+_gl)+"px)";
+   goalR.style.transform="translate("+(XR-42)+"px,"+(groundY-150+_gr)+"px)";
+   if(goalShL)goalShL.style.transform="translate("+(XL-6)+"px,"+(groundY-4+_gl)+"px)";
+   if(goalShR)goalShR.style.transform="translate("+(XR-52)+"px,"+(groundY-4+_gr)+"px)";}
   /* FX bridge: __hmFX (the shared VFX canvas -- see its own comment, "coords are HERO-LOCAL, same
      space the heads live in") expects x measured from the hero's left edge and y from its top edge,
      both in unscaled screen pixels, and adds heroLeft itself. The ball (bx,by) is drawn via
