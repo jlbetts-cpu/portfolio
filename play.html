@@ -59,6 +59,189 @@
     ugly. Anchoring the menu to the SAME edge as the button it drops from is also just the
     correct static answer for a corner-pinned bar, not a workaround. */
  #moodMenu{left:auto;right:0}
+
+ /* ==========================================================================
+    THE PLAY HUB. Everything below is new for the games-menu pass and lives in
+    THIS file on purpose, not in play.css: play.css belongs to a concurrent
+    agent this pass, and a page-scoped block here is the only place these rules
+    could land without two agents writing one file. They are token-only and
+    self-contained, so lifting the whole block into play.css later is a cut and
+    a paste. See .superpowers/sdd/2026-08-02-play-page/play-hub-report.md.
+    Design: docs/superpowers/specs/2026-08-02-play-hub-research.md.
+    ========================================================================== */
+
+ /* ---- THE SKY, and why it is only a backdrop.
+    The research (§2) priced a real dark mode at 241 colour literals, all 14
+    material tokens, and -- the part no stylesheet can reach -- the head's
+    contact shadow, which play-engine.js writes as an inline cssText
+    radial-gradient in rgba(8,8,8,.26). On a dark ground that ellipse is
+    invisible and the heads stop standing on anything. So the dark stops at the
+    horizon: sky above, PAPER below, and every head's feet (and every head's
+    shadow) land on the paper. --sky-h is the horizon, and it is set ABOVE the
+    tallest head's crown in both states, so no head is ever over dark.
+      resting:  heads occupy ~62vh-75vh (desktop) / ~72vh-80vh (mobile)
+      pTeamOn:  .hero shrinks (below), heads rise to ~40vh-53vh
+    The dark end is --c950 pulled toward --accent rather than a new literal, so
+    the sky is the site's own blue at the bottom of its range, and it tracks
+    --accent if the accent ever moves again. ---- */
+ :root{--sky-h:56vh}
+ body.pTeamOn{--sky-h:36vh}
+ .playSky{position:fixed;left:0;right:0;top:0;bottom:0;z-index:-1;pointer-events:none;
+  background:
+   radial-gradient(140% 46% at 50% var(--sky-h),color-mix(in oklab,var(--accent) 30%,var(--c50)) 0,transparent 68%),
+   linear-gradient(180deg,
+    color-mix(in oklab,var(--c950) 88%,var(--accent)) 0,
+    color-mix(in oklab,var(--c950) 78%,var(--accent)) calc(var(--sky-h) - 26vh),
+    color-mix(in oklab,var(--c900) 58%,var(--accent)) calc(var(--sky-h) - 8vh),
+    var(--c50) var(--sky-h),var(--c50) 100%);
+  transition:background-position var(--sp-settle-dur) var(--sp-settle)}
+ /* The grain. Static, chunky, CSS-pixel cells -- the same feTurbulence-in-a-
+    data-URI trick .iris::before already uses (play.css:27), for the same reason:
+    a clean CSS gradient reads as a CSS gradient. Masked off before the horizon
+    so it never lands on the paper, where noise reads as dirt rather than air. */
+ .playSky::after{content:"";position:absolute;inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='44'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='1' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='44' height='44' filter='url(%23g)'/%3E%3C/svg%3E");
+  background-size:20px 20px;opacity:.09;
+  -webkit-mask-image:linear-gradient(180deg,var(--c950) 0,var(--c950) calc(var(--sky-h) - 12vh),transparent var(--sky-h));
+  mask-image:linear-gradient(180deg,var(--c950) 0,var(--c950) calc(var(--sky-h) - 12vh),transparent var(--sky-h))}
+ @media(prefers-reduced-motion:reduce){.playSky{transition:none}}
+
+ /* ---- THE CORNER MENU IS OFF, and the element stays.
+    #moodbar/#moodBtn/#moodMenu are kept in the DOM because the tournament
+    disables and restores #moodBtn BY ID (play-tournament.js:1163,1183) and
+    play-games.js binds every launcher through them -- the hub's cards fire the
+    same handlers. What is gone is the second visible surface: a corner "Play"
+    disclosure beside a four-card hub is two menus for one job, and every game
+    already carries its own End control on its own scoreboard
+    (play-engine.js:1433 .hmScoreEnd), so the in-game bar had nothing left to
+    hold. One slot, one surface (research §1.1). ---- */
+ #moodbar{display:none}
+
+ /* ---- THE HUB. Two blocks pinned to the two ends of the viewport with the
+    stage running between them, which is what makes this fit without scrolling:
+    the heads live in a band roughly 62vh-75vh, the title block ends near 24vh
+    and the cards begin near 80vh, so nothing overlaps and nothing had to move.
+    pointer-events are OFF on the frame and on the title block -- the heads are
+    draggable and a full-viewport overlay would eat every grab. ---- */
+ .pHub{position:fixed;inset:0;z-index:40;pointer-events:none;
+  display:flex;flex-direction:column;justify-content:space-between;
+  padding:calc(var(--nav-h) + var(--sp-40)) var(--play-gutter) var(--sp-24-32);
+  opacity:0;visibility:hidden;
+  transition:opacity var(--sp-settle-dur) var(--sp-settle),visibility 0s linear var(--sp-settle-dur)}
+ body.pHubOn .pHub{opacity:1;visibility:visible;transition-delay:0s,0s}
+ @media(prefers-reduced-motion:reduce){.pHub{transition:none}}
+
+ .pHubHead{max-width:46ch;margin:0 auto;text-align:center;font-family:var(--sans)}
+ .pEyebrow{margin:0;font-weight:600;font-size:var(--fs-micro);line-height:var(--lh-flat);letter-spacing:var(--tr-caps);text-transform:uppercase;color:var(--i700)}
+ .pTitle{margin:var(--gap-eyebrow) 0 0;font-weight:600;font-size:var(--fs-h1);line-height:var(--lh-tight);letter-spacing:var(--tr-head);color:var(--c50)}
+ .pSub{margin:var(--gap-head-bot) 0 0;font-weight:400;font-size:var(--fs-lead);line-height:var(--lh-body);letter-spacing:var(--tr-body);color:var(--i700)}
+
+ .pCards{pointer-events:auto;width:100%;max-width:var(--page-max);margin:0 auto;
+  display:grid;grid-template-columns:repeat(4,1fr);gap:var(--sp-12)}
+ /* --c0, not --mat-*: the cards sit on the paper half of the sky, and a
+    translucent white over #FDFDFD composites back to #FDFDFD (header.css makes
+    the same argument at length). They separate UPWARD, like the nav bar, and
+    they separate with a rim -- chrome never casts. */
+ .pCard{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:var(--sp-6);
+  min-height:var(--tap-min);padding:var(--sp-14) var(--sp-16) var(--sp-16);
+  border:0;border-radius:var(--r-md);background:var(--c0);box-shadow:var(--rim-1);
+  font-family:var(--sans);color:var(--c950);text-align:left;text-decoration:none;cursor:pointer;
+  transition:transform var(--ease-out-dur) var(--ease-out),box-shadow var(--hover-out-dur) var(--ease-out)}
+ .pCard:hover{transform:translateY(-2px);box-shadow:var(--rim-2)}
+ .pCard:active{transform:scale(var(--press-scale))}
+ .pCard:focus-visible{outline:var(--focus-w) solid var(--accent);outline-offset:2px}
+ .pCard[aria-disabled="true"]{opacity:.38;pointer-events:none}
+ .pCard .gIco{width:var(--ico-md);height:var(--ico-md);flex:0 0 auto;color:var(--c700)}
+ .pCard:hover .gIco{color:var(--c950)}
+ .pCardT{font-weight:600;font-size:var(--fs-body);line-height:var(--lh-tight);letter-spacing:var(--tr-title)}
+ .pCardD{font-weight:400;font-size:var(--fs-caption);line-height:var(--lh-body);letter-spacing:var(--tr-body);color:var(--c500)}
+ /* "opens full screen" is a promise, not an apology: research §5.2.2 -- a link
+    that leaves the hub only feels like ejection when it is a surprise. */
+ .pCardOut{margin-top:auto;font-weight:600;font-size:var(--fs-micro);line-height:var(--lh-flat);letter-spacing:var(--tr-caps);text-transform:uppercase;color:var(--c500)}
+ /* The Create-head card IS the roster (research §5.2.5): the only card with
+    content instead of an icon, because it is the one Jayden called the most
+    important thing on the page. */
+ .pCrowd{display:flex;align-items:center;gap:var(--sp-4);min-height:26px}
+ .pCrowd img{width:22px;height:26px;object-fit:cover;border-radius:var(--r-2xs);background:var(--c100);display:block}
+ .pCrowdN{font-weight:400;font-size:var(--fs-micro);color:var(--c500);margin-left:var(--sp-2)}
+
+ /* ---- THE TEAM SCREEN. Not a modal over black: the whole reason the tray was
+    promoted out of its 300px corner box is that this is the moment before a
+    match, so the planet and the heads have to stay on screen and keep changing
+    colour as you flip a chip (__hmTeamPreview, already wired). .hero shrinks
+    and the heads rise; play-games.js dispatches a resize so the engine
+    re-surveys the floor through its own tested path
+    (play-engine.js:434). ---- */
+ body.pTeamOn .hero{height:52vh;margin:6vh auto auto}
+ .pTeam{position:fixed;left:0;right:0;bottom:0;z-index:45;pointer-events:none;
+  padding:0 var(--play-gutter) var(--sp-24-32);
+  opacity:0;visibility:hidden;transform:translateY(var(--sp-12));
+  transition:opacity var(--sp-settle-dur) var(--sp-settle),transform var(--sp-settle-dur) var(--sp-settle),visibility 0s linear var(--sp-settle-dur)}
+ body.pTeamOn .pTeam{opacity:1;visibility:visible;transform:none;transition-delay:0s,0s,0s}
+ @media(prefers-reduced-motion:reduce){.pTeam{transition:none}}
+ .pTeamIn{pointer-events:auto;width:100%;max-width:var(--page-max);margin:0 auto;
+  padding:var(--sp-16);border-radius:var(--r-lg);background:var(--c0);box-shadow:var(--rim-1)}
+ .pTeamBar{display:flex;align-items:center;justify-content:space-between;gap:var(--sp-12);margin-bottom:var(--sp-12)}
+ .pTeamTitle{font-family:var(--sans);font-weight:600;font-size:var(--fs-h5);line-height:var(--lh-tight);letter-spacing:var(--tr-sub);color:var(--c950);margin:0}
+ .pTeamActs{display:flex;align-items:center;gap:var(--sp-8)}
+ .pBtn{display:inline-flex;align-items:center;justify-content:center;gap:var(--sp-8);
+  min-height:var(--tap-min);padding:0 var(--sp-16);border:0;border-radius:var(--r-sm);
+  background:var(--c0);box-shadow:var(--rim-2);color:var(--c950);
+  font-family:var(--sans);font-weight:600;font-size:var(--fs-small);line-height:var(--lh-flat);cursor:pointer;
+  transition:box-shadow var(--hover-out-dur) var(--ease-out),transform var(--ease-out-dur) var(--ease-out)}
+ .pBtn:hover{box-shadow:var(--rim-3)}
+ .pBtn:active{transform:scale(var(--press-scale))}
+ .pBtn:focus-visible{outline:var(--focus-w) solid var(--accent);outline-offset:2px}
+ .pBtn svg{width:var(--ico-sm);height:var(--ico-sm);flex:0 0 auto}
+ .pBtnGo{background:var(--accent);color:var(--c0);box-shadow:none;padding:0 var(--sp-32)}
+ .pBtnGo:hover{background:var(--accent-press);box-shadow:none}
+ .pTeamCols{display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-12)}
+ /* rgb(var(--tc1)) / rgb(var(--tc2)) are the match's own team channels -- the
+    same custom properties play.css:170-174 paints the goals with, so the picker
+    and the pitch cannot drift apart. The fallbacks are play-engine's defaults. */
+ .pTeamCol{border-radius:var(--r-md);padding:var(--sp-12);min-height:118px;border:1.5px solid}
+ .pTeamCol.red{border-color:rgba(var(--tc1,224,90,78),.42);background:rgba(var(--tc1,224,90,78),.05)}
+ .pTeamCol.blue{border-color:rgba(var(--tc2,90,160,216),.42);background:rgba(var(--tc2,90,160,216),.05)}
+ .pTeamColHdr{display:flex;align-items:baseline;justify-content:space-between;gap:var(--sp-8);margin-bottom:var(--sp-12);font-family:var(--sans);font-weight:600;font-size:var(--fs-micro);letter-spacing:var(--tr-caps);text-transform:uppercase}
+ .pTeamCol.red .pTeamColHdr{color:rgb(190,58,47)}
+ .pTeamCol.blue .pTeamColHdr{color:rgb(52,116,176)}
+ .pTeamColN{font-weight:400;color:var(--c500);letter-spacing:var(--tr-flat)}
+ .pTeamChips{display:flex;flex-wrap:wrap;gap:var(--sp-8);justify-content:center;align-content:flex-start}
+ .teamChip{width:64px;height:76px;border-radius:var(--r-sm);overflow:hidden;border:2px solid transparent;cursor:pointer;padding:0;background:var(--c100);
+  touch-action:none;-webkit-user-select:none;user-select:none;
+  transition:transform var(--ease-out-dur) var(--ease-out)}
+ .teamChip:hover{transform:translateY(-2px)}
+ .teamChip:focus-visible{outline:var(--focus-w) solid var(--accent);outline-offset:2px}
+ .teamChip img{width:100%;height:100%;object-fit:cover;display:block}
+ .teamChip.red{border-color:rgb(var(--tc1,224,90,78))}
+ .teamChip.blue{border-color:rgb(var(--tc2,90,160,216))}
+ .pTeamCol.dragOver{outline:2px dashed var(--c500);outline-offset:-3px}
+ .pTeamCol.red.dragOver{background:rgba(var(--tc1,224,90,78),.14)}
+ .pTeamCol.blue.dragOver{background:rgba(var(--tc2,90,160,216),.14)}
+ .pTeamFoot{display:flex;align-items:center;justify-content:space-between;gap:var(--sp-12);margin-top:var(--sp-12)}
+ .pTeamHint{font-family:var(--sans);font-size:var(--fs-caption);letter-spacing:var(--tr-body);color:var(--c500)}
+
+ /* ---- PHONE. The mobile audit calls this the site's best mobile page and the
+    budget that makes it so is vertical: .hero is 65vh here (play.css:305) and
+    the feet land near 80vh, leaving ~170px under them. So the cards drop their
+    description and go 2x2 -- icon and title only, still a 66px target, still
+    four doors. --blur-1/2 are already 0 below 760px, and nothing here asks for
+    a backdrop-filter at any width. ---- */
+ @media(max-width:760px){
+  .pHub{padding-top:calc(var(--nav-h) + var(--sp-24));padding-bottom:var(--sp-16)}
+  .pCards{grid-template-columns:1fr 1fr;gap:var(--sp-8)}
+  .pCard{padding:var(--sp-10) var(--sp-12);gap:var(--sp-4);min-height:66px}
+  .pCardD,.pCardOut{display:none}
+  .pCrowd{min-height:0}.pCrowd img{width:18px;height:22px}
+  .pTeamIn{padding:var(--sp-12)}
+  .pTeamCols{gap:var(--sp-8)}
+  .pTeamCol{padding:var(--sp-8);min-height:96px}
+  .teamChip{width:52px;height:62px}
+  .pTeamFoot{flex-direction:column;align-items:stretch}
+  .pTeamHint{text-align:center;order:2}
+  .pBtnGo{width:100%}
+ }
+ @media(max-width:400px){.pSub{display:none}}
 </style>
 <link rel="stylesheet" href="header.css">
 <script src="header.js" defer></script>
@@ -119,7 +302,59 @@
 <svg class="glasses" id="glasses" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><defs><pattern id="glCard" patternUnits="userSpaceOnUse" width="100" height="100"><image href="images/glass_frame_tex.webp" x="0" y="0" width="100" height="100" preserveAspectRatio="xMidYMid slice"/></pattern><linearGradient id="glSheen" x1="0" y1="0" x2="0.62" y2="1"><stop offset="0" stop-color="#fff" stop-opacity="0.5"/><stop offset="0.4" stop-color="#fff" stop-opacity="0.06"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient><mask id="glMask" maskUnits="userSpaceOnUse" x="0" y="0" width="100" height="100"><rect x="28" y="45.3" width="44" height="13.2" rx="2.4" fill="#fff"/><polygon points="28,47.2 26,48 26,50.4 28,51.2" fill="#fff"/><polygon points="72,47.2 74,48 74,50.4 72,51.2" fill="#fff"/><rect x="32.5" y="47.3" width="13" height="9.2" rx="1.8" fill="#000"/><rect x="54.5" y="47.3" width="13" height="9.2" rx="1.8" fill="#000"/><path d="M46.7 58.6 Q50 54.3 53.3 58.6 Z" fill="#000"/></mask></defs><rect class="gl-red" x="32.5" y="47.3" width="13" height="9.2" rx="1.8"/><rect class="gl-cyan" x="54.5" y="47.3" width="13" height="9.2" rx="1.8"/><rect class="gl-plast" x="32.5" y="47.3" width="13" height="9.2" rx="1.8" fill="url(#glSheen)"/><rect class="gl-plast" x="54.5" y="47.3" width="13" height="9.2" rx="1.8" fill="url(#glSheen)"/><rect x="0" y="0" width="100" height="100" fill="url(#glCard)" mask="url(#glMask)"/></svg></div></div>
  </div>
 </div>
+<!-- The sky. One element, two background layers, zero JS, zero canvas, zero rAF --
+     research §7.2.1: this page already runs one WebGL context (the lava engine) and one
+     rAF loop PER HEAD, so the most-seen surface on it has to cost a paint and nothing else.
+     aria-hidden and pointer-events:none: it is weather, not furniture. -->
+<div class="playSky" aria-hidden="true"></div>
 <main class="hero" id="playArena"></main>
+<!-- ===== THE HUB. The page's resting state: a title block on the sky, four doors on the
+     paper, and the stage running live between them. play-games.js shows and hides it off
+     the same gameOn() the launchers already gate on, so it is on screen exactly when no
+     game is. The two makers are ORDINARY LINKS with identical card treatment -- staged
+     absorption, research §5: headmaker.html stays an indexed, self-canonical URL and
+     gradientlab.html is not rebuilt this pass. ?from=play is the handshake that lets each
+     destination point its back affordance at Play instead of the portfolio; neither
+     destination reads it yet (both are other passes' files), so it is inert and harmless
+     until they do. ===== -->
+<div class="pHub" id="pHub">
+ <header class="pHubHead">
+  <p class="pEyebrow">Play</p>
+  <h1 class="pTitle">A planet for the heads.</h1>
+  <p class="pSub">Make one, pick sides, run a cup. Everything here is a toy I actually built.</p>
+ </header>
+ <nav class="pCards" aria-label="Games">
+  <button class="pCard" id="pcExped" type="button">
+   <svg class="gIco" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"/><path d="M12 7l4.76 3.45l-1.76 5.55h-6l-1.76 -5.55l4.76 -3.45"/><path d="M12 7v-4m3 13l2.5 3m-.74 -8.55l3.74 -1.45m-11.44 7.05l-2.56 2.95m.74 -8.55l-3.74 -1.45"/></svg>
+   <span class="pCardT">Expedition</span>
+   <span class="pCardD">Split the heads into two sides and kick off.</span>
+   <span class="pCardOut">Pick sides first</span>
+  </button>
+  <button class="pCard" id="pcTour" type="button">
+   <svg class="gIco" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 4a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/><path d="M18 10a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/><path d="M2 12a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/><path d="M2 20a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/><path d="M6 12h3a1 1 0 0 1 1 1v6a1 1 0 0 1 -1 1h-3"/><path d="M6 4h7a1 1 0 0 1 1 1v10a1 1 0 0 1 -1 1h-2"/><path d="M14 10h4"/></svg>
+   <span class="pCardT">Tournament</span>
+   <span class="pCardD">A whole cup: draw, bracket, goals, ratings, standings.</span>
+   <span class="pCardOut">One match at a time</span>
+  </button>
+  <a class="pCard" id="pcHead" href="headmaker.html?from=play">
+   <span class="pCrowd" id="pCrowd" aria-hidden="true"></span>
+   <span class="pCardT">Create head</span>
+   <span class="pCardD">Your head goes here. Cut one out and put it on the planet.</span>
+   <span class="pCardOut">Opens full screen</span>
+  </a>
+  <a class="pCard" id="pcGrad" href="gradientlab.html?from=play">
+   <svg class="gIco" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3m0 2a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v14a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2z"/><path d="M3 15l6 -6l4 4l3 -3l5 5"/><path d="M8.5 8.5m-1.5 0a1.5 1.5 0 1 0 3 0a1.5 1.5 0 1 0 -3 0"/></svg>
+   <span class="pCardT">Gradient maker</span>
+   <span class="pCardD">Light, built in a shader. Dial a planet and take the code.</span>
+   <span class="pCardOut">Opens full screen</span>
+  </a>
+ </nav>
+</div>
+<!-- The team screen's shell is built by play-games.js (it owns the chips, the drag, the
+     shuffle and the live __hmTeamPreview channel); this is only the mount point, so the
+     panel's place in the stacking order is declared in markup rather than invented at
+     runtime. -->
+<div class="pTeam" id="pTeam" role="dialog" aria-modal="false" aria-label="Choose sides" hidden></div>
 <!-- Task 3: the real game menu -- soccer + tournament only (Jayden cut Floor is Lava and
      Marble Race, "not quite yet"). Mirrors index.html:2320's #moodbar/#moodBtn/#moodMenu
      structure but WITHOUT the four mood dots, "Add your head", "Add an egghead", #moodHeads

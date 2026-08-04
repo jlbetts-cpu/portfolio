@@ -32,6 +32,13 @@
    400ms and the team tray reads it on every open. */
 (function(){
  var _hcVer=0,_hcCache=null,_hcCacheVer=-1;
+ /* THE HUB'S ONE PIECE OF SHARED STATE. The team screen is built inside the nested
+    picker IIFE at the foot of this file, but battleGate() -- declared above it -- has to
+    know whether that screen is up, because the hub's four cards and the team screen are
+    two surfaces competing for the same corner of the viewport and exactly one of them may
+    be visible. A plain var in this outer scope is the whole mechanism; hoisting is what
+    makes the forward reference legal. */
+ var teamOpen=false;
  try{addEventListener("storage",function(e){if(!e||e.key===null||e.key==="hmCompanions")_hcVer++;});}catch(_){}
  function readAll(){if(_hcCache&&_hcCacheVer===_hcVer)return _hcCache.slice();
   var a=[],rawN=null;
@@ -72,9 +79,14 @@
  var _bgLast="";
  function battleGate(){var n=gameCount(),on=gameOn();
   var few=n<1;                                  // ONE head count per tick -- this used to be six readAll() calls
-  var sig=(on?1:0)+"|"+(few?1:0);
+  // n and teamOpen joined the signature when the hub landed: the hub's Create-head card
+  // shows the actual crowd, so a head added in another tab has to repaint it, and the hub
+  // has to yield the moment the team screen opens. Both are state the old two-bit
+  // signature could not see, and a signature that cannot see a change never repaints.
+  var sig=(on?1:0)+"|"+(few?1:0)+"|"+n+"|"+(teamOpen?1:0);
   if(sig===_bgLast)return;                      // nothing changed since last tick: no DOM writes at all
   _bgLast=sig;
+  syncHub(on,few);
   ["battleGo","soccerGo","raceGo","tourGo"].forEach(function(id){var bi=document.getElementById(id);if(!bi)return;
    if(on){bi.style.display="none";}   // a game is running: only End game belongs here
    else{bi.style.display="flex";bi.style.opacity=few?"0.38":"";bi.style.pointerEvents=few?"none":"";bi.setAttribute("aria-disabled",few?"true":"false");}});   // even one head can play now -- mini-Jayden makes the second
@@ -99,6 +111,42 @@
   for(i=0;i<kids.length;i++){el=kids[i];
    if(el.classList.contains("moodSep"))el.style.display=el.getAttribute("data-keep")==="1"?"":"none";}}
  window.__syncMoodSeps=syncMoodSeps;
+
+ /* ---- THE HUB. play.html's resting state: a title block and four cards, shown exactly
+    when no game is running and no sub-surface is up. It is a SECOND object, not a rebuild
+    of the corner menu -- #moodBtn/#moodbar keep their ids and their handlers because the
+    tournament disables and restores that button by id (play-tournament.js:1163,1183), and
+    every card below fires the same launcher the menu row fired. The corner bar is only
+    hidden (play.html's own style block), never rewired.
+
+    The gate is the SAME gate: `on` and `few` come straight out of battleGate, so a card
+    can never offer a game the menu would have refused, and there is no second definition
+    of "can you play yet" to drift. ---- */
+ function syncHub(on,few){
+  var hub=document.getElementById("pHub");if(!hub)return;
+  document.body.classList.toggle("pHubOn",!on&&!teamOpen);
+  // aria-hidden as well as the CSS fade: a visibility:hidden subtree is already out of the
+  // a11y tree, but the fade holds visibility for 360ms and a screen reader must not read a
+  // menu that is on its way out.
+  hub.setAttribute("aria-hidden",(!on&&!teamOpen)?"false":"true");
+  [["pcExped",few],["pcTour",few]].forEach(function(p){
+   var el=document.getElementById(p[0]);if(!el)return;
+   el.setAttribute("aria-disabled",p[1]?"true":"false");});
+  renderCrowd();}
+ /* The Create-head card's face is the crowd itself (research §5.2.5) -- four thumbnails
+    and a count, not an icon. This is also the round trip that argues for putting the maker
+    in Play at all: make a head, come back, and it is already standing on the planet. */
+ var _crowdSig="";
+ function renderCrowd(){
+  var box=document.getElementById("pCrowd");if(!box)return;
+  var hs=readAll(),i,sig=hs.length+"|"+hs.map(function(h){return h.cut.length;}).join(",");
+  if(sig===_crowdSig)return;_crowdSig=sig;
+  box.innerHTML="";
+  for(i=0;i<hs.length&&i<4;i++){var im=document.createElement("img");im.src=hs[i].cut;im.alt="";box.appendChild(im);}
+  var n=document.createElement("span");n.className="pCrowdN";
+  n.textContent=hs.length?(hs.length+" of 8"):"No heads yet";
+  box.appendChild(n);}
+
  battleGate();setInterval(battleGate,400);
  function closeMenuBar(){var mb=document.getElementById("moodbar");if(mb)mb.classList.remove("open");var mbt=document.getElementById("moodBtn");if(mbt)mbt.setAttribute("aria-expanded","false");}
  var bg=document.getElementById("battleGo");
@@ -116,9 +164,10 @@
   if(rc%2===1&&window.__hmFillerAdd)window.__hmFillerAdd();   // add BEFORE kickoff so the teams count him
   try{if(window.__hmSoccerStart)window.__hmSoccerStart();}catch(_){}closeMenuBar();battleGate();});
  var tg=document.getElementById("tourGo");
- if(tg)tg.addEventListener("click",function(){
-  if(gameOn())return;
-  try{if(window.__hmTourStart)window.__hmTourStart();}catch(_){}closeMenuBar();battleGate();});   // the tournament builds its own squads, so no mini-Jayden top-up here -- Task 4 lands __hmTourStart; until then this is a correctly-gated no-op
+ function startTour(){if(gameOn())return;
+  try{if(window.__hmTourStart)window.__hmTourStart();}catch(_){}closeMenuBar();battleGate();}   // the tournament builds its own squads, so no mini-Jayden top-up here
+ if(tg)tg.addEventListener("click",startTour);
+ var pcT=document.getElementById("pcTour");if(pcT)pcT.addEventListener("click",startTour);   // the hub card and the menu row are ONE launcher, not two copies of one
  var rg=document.getElementById("raceGo");
  if(rg)rg.addEventListener("click",function(){
   var rc=readAll().length;if(rc<1||gameOn())return;
@@ -128,23 +177,31 @@
 
  var bar=document.getElementById("moodbar");if(bar)bar.addEventListener("click",function(){setTimeout(function(){battleGate();},60);});   // home also called render() here to refresh #moodHeads; play.html has no roster grid to refresh
 
- // --- SOCCER TEAM PICKER: pick sides in one tap; heads preview their team colour live ---
+ // --- THE TEAM SCREEN: pick sides in one tap; heads preview their team colour live ---
+ /* PROMOTED, NOT REDESIGNED. This was a 300px popover pinned to the bottom-right corner.
+    The interaction model was already right and already tested -- tap a chip to flip its
+    side, drag it onto the other column, shuffle for a random split, mini-Jayden joins when
+    the sides are uneven -- so none of that changed. What changed is scale and framing: it
+    now fills the foot of the stage as a real pre-match screen, the two sides are named
+    columns with live counts, shuffle is a control with a visible verb instead of a 28px
+    icon, and Start is the one primary action on the page.
+    It is deliberately NOT a modal over black. The reason to promote it is that this is the
+    moment before a match, so the planet stays lit and the heads stay on it -- and because
+    every chip flip already pushes __hmTeamPreview, the heads behind the panel change colour
+    as you pick. That anticipation beat is the whole point and it cost nothing new.
+    THE CSS MOVED TO play.html's style block, where the rest of the hub's rules live (see
+    the header on that block for why it is not in play.css this pass). What is left here is
+    the corner menu's own two rules: #moodbar is display:none on play.html now, but the
+    element and its ids stay in the DOM for the tournament, so its styling stays with it. */
  (function(){
   var teamsBtn=document.getElementById("soccerTeams");if(!teamsBtn)return;
-  var lavaBtn=document.getElementById("lavaTeams");   // the Floor-is-Lava teams icon opens the SAME tray in lava mode -- play.html has no lavaTeams button, so this stays null and every `if(lavaBtn)` guard below already no-ops
+  var lavaBtn=document.getElementById("lavaTeams");   // the Floor-is-Lava teams icon opens the SAME screen in lava mode -- play.html has no lavaTeams button, so this stays null and every `if(lavaBtn)` guard below already no-ops
+  var host=document.getElementById("pTeam");
   var tray=null,sel={},open=false,mode="soccer",activeTrig=teamsBtn;
   var st=document.createElement("style");
-  st.textContent=".moodRow{display:flex;align-items:center;gap:8px}.moodRow>#soccerGo{flex:1 1 auto}"
-   +".moodTeamsBtn{flex:0 0 auto;align-self:stretch;display:inline-flex;align-items:center;justify-content:center;gap:3px;border:1px solid var(--c100);border-radius:4px;background:var(--c50);cursor:pointer;padding:0 8px;transition:border-color .18s cubic-bezier(.2,.8,.2,1),background-color .18s}"
-   +".moodTeamsBtn:hover{border-color:var(--c500)}.moodTeamsBtn .tdotR,.moodTeamsBtn .tdotB{width:8px;height:8px;border-radius:50%;display:block}.moodTeamsBtn .tdotR{background:rgb(224,90,78)}.moodTeamsBtn .tdotB{background:rgb(90,160,216)}"
-   +".teamTray{position:fixed;right:20px;bottom:96px;z-index:80;width:300px;max-width:calc(100vw - 28px);background:var(--c50);border:1px solid var(--c100);border-radius:12px;box-shadow:0 18px 46px -18px rgba(8,8,8,.42),0 4px 12px -6px rgba(8,8,8,.18);padding:12px;opacity:0;transform:translateY(8px) scale(.98);pointer-events:none;transition:opacity .18s cubic-bezier(.2,.8,.2,1),transform .2s cubic-bezier(.2,.8,.2,1)}"
-   +".teamTray.open{opacity:1;transform:none;pointer-events:auto}@media(max-width:520px){.teamTray{left:12px;right:12px;width:auto;bottom:82px}}"
-   +".teamTrayHead{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}.teamTrayTitle{font-family:var(--sans);font-weight:600;font-size:var(--fs-small);color:var(--c950)}"
-   +".teamMini{width:28px;height:28px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--c100);border-radius:6px;background:var(--c50);color:var(--c700);cursor:pointer;font-size:var(--fs-small);line-height:1;transition:border-color .15s,color .15s}.teamMini:hover{border-color:var(--c500);color:var(--c950)}"
-   +".teamTrayCols{display:grid;grid-template-columns:1fr 1fr;gap:8px}.teamCol{border-radius:10px;padding:8px 8px 8px;min-height:118px;border:1.5px solid}.teamCol.red{border-color:rgba(224,90,78,.45);background:rgba(224,90,78,.055)}.teamCol.blue{border-color:rgba(90,160,216,.45);background:rgba(90,160,216,.055)}"
-   +".teamColHdr{font-family:var(--sans);font-weight:600;font-size:var(--fs-micro);letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px;text-align:center}.teamCol.red .teamColHdr{color:rgb(190,58,47)}.teamCol.blue .teamColHdr{color:rgb(52,116,176)}"
-   +".teamChips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;align-content:flex-start}.teamChip{width:40px;height:48px;border-radius:8px;overflow:hidden;border:2px solid transparent;cursor:pointer;padding:0;background:var(--c100);transition:transform .12s cubic-bezier(.2,.8,.2,1)}.teamChip:hover{transform:translateY(-2px)}.teamChip img{width:100%;height:100%;object-fit:cover;display:block}.teamChip.red{border-color:rgb(224,90,78)}.teamChip.blue{border-color:rgb(90,160,216)}.teamChip{touch-action:none;-webkit-user-select:none;user-select:none}.teamCol.dragOver{outline:2px dashed rgba(8,8,8,.35);outline-offset:-3px}.teamCol.red.dragOver{background:rgba(224,90,78,.14)}.teamCol.blue.dragOver{background:rgba(90,160,216,.14)}"
-   +".teamTrayFoot{margin-top:12px}.teamStart{width:100%;padding:12px;border:0;border-radius:8px;background:var(--c950);color:var(--c50);font-family:var(--sans);font-weight:600;font-size:14px;cursor:pointer;transition:opacity .15s}.teamStart:hover{opacity:.9}.teamHint{font-family:var(--sans);font-size:var(--fs-micro);color:var(--c500);text-align:center;margin-top:8px}";
+  st.textContent=".moodRow{display:flex;align-items:center;gap:var(--sp-8)}.moodRow>#soccerGo{flex:1 1 auto}"
+   +".moodTeamsBtn{flex:0 0 auto;align-self:stretch;display:inline-flex;align-items:center;justify-content:center;gap:3px;border:1px solid var(--c100);border-radius:var(--r-2xs);background:var(--c50);cursor:pointer;padding:0 var(--sp-8);transition:border-color var(--hover-out-dur) var(--ease-out),background-color var(--hover-out-dur) var(--ease-out)}"
+   +".moodTeamsBtn:hover{border-color:var(--c500)}.moodTeamsBtn .tdotR,.moodTeamsBtn .tdotB{width:8px;height:8px;border-radius:var(--r-full);display:block}.moodTeamsBtn .tdotR{background:rgb(var(--tc1,224,90,78))}.moodTeamsBtn .tdotB{background:rgb(var(--tc2,90,160,216))}";
   document.head.appendChild(st);
 
   function heads(){return readAll();}                         // hmCompanions order == the slot index each head spawns with
@@ -186,20 +243,29 @@
   function chip(h,slot){var b=document.createElement("button");b.className="teamChip "+(sel[slot]===1?"red":"blue");b.type="button";b.setAttribute("aria-label","Switch this head to the other team");
    var im=document.createElement("img");im.src=h.cut;im.alt="";b.appendChild(im);
    return bindChip(b,slot);}
-  function renderTray(){if(!tray){tray=document.createElement("div");tray.className="teamTray";tray.setAttribute("role","dialog");tray.setAttribute("aria-label","Choose soccer teams");tray.addEventListener("click",function(e){e.stopPropagation();});document.body.appendChild(tray);}
+  function renderTray(){if(!tray){tray=host||document.body.appendChild(document.createElement("div"));
+    if(!host){tray.className="pTeam";tray.setAttribute("role","dialog");tray.setAttribute("aria-label","Choose sides");}
+    tray.addEventListener("click",function(e){e.stopPropagation();});}
    var hs=heads(),n=hs.length;tray.innerHTML="";
-   var hd=document.createElement("div");hd.className="teamTrayHead";
-   var ti=document.createElement("span");ti.className="teamTrayTitle";ti.textContent=(mode==="lava"?"Lava teams":"Soccer teams");hd.appendChild(ti);
-   var hb=document.createElement("div");hb.style.cssText="display:flex;gap:8px";
-   var shuf=document.createElement("button");shuf.className="teamMini";shuf.type="button";shuf.setAttribute("aria-label","Shuffle teams");shuf.title="Shuffle";shuf.innerHTML='<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 3h5v5"/><path d="M4 20 21 3"/><path d="M21 16v5h-5"/><path d="M15 15l6 6"/><path d="M4 4l5 5"/></svg>';
+   var wrap=document.createElement("div");wrap.className="pTeamIn";tray.appendChild(wrap);
+   var hd=document.createElement("div");hd.className="pTeamBar";
+   var ti=document.createElement("h2");ti.className="pTeamTitle";ti.textContent=(mode==="lava"?"Lava teams":"Pick sides");hd.appendChild(ti);
+   var hb=document.createElement("div");hb.className="pTeamActs";
+   /* Shuffle earns a verb at this size. Randomising the sides is half the fun of the
+      screen and a 15px icon was hiding it (research §1.5). */
+   var shuf=document.createElement("button");shuf.className="pBtn";shuf.type="button";shuf.setAttribute("aria-label","Shuffle the sides");
+   shuf.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 3h5v5"/><path d="M4 20 21 3"/><path d="M21 16v5h-5"/><path d="M15 15l6 6"/><path d="M4 4l5 5"/></svg>Shuffle';
    shuf.addEventListener("click",function(ev){ev.stopPropagation();var a=shuffle(balanced(n));sel={};a.forEach(function(t,i){sel[i]=t;});sel[9001]=(Math.random()<0.5?1:2);syncGlobal();applyPreview();renderTray();});
-   var cl=document.createElement("button");cl.className="teamMini";cl.type="button";cl.setAttribute("aria-label","Close");cl.innerHTML="&times;";
+   var cl=document.createElement("button");cl.className="pBtn";cl.type="button";cl.setAttribute("aria-label","Back to the games menu");
+   cl.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="M5 12l6 6"/><path d="M5 12l6 -6"/></svg>Back';
    cl.addEventListener("click",function(ev){ev.stopPropagation();closeTray();});
-   hb.appendChild(shuf);hb.appendChild(cl);hd.appendChild(hb);tray.appendChild(hd);
-   var cols=document.createElement("div");cols.className="teamTrayCols";colEls={};
-   [1,2].forEach(function(tm){var col=document.createElement("div");col.className="teamCol "+(tm===1?"red":"blue");colEls[tm]=col;
-    var ch=document.createElement("div");ch.className="teamColHdr";ch.textContent=tm===1?"Red":"Blue";col.appendChild(ch);
-    var cc=document.createElement("div");cc.className="teamChips";for(var i=0;i<n;i++){if(sel[i]===tm)cc.appendChild(chip(hs[i],i));}
+   hb.appendChild(shuf);hb.appendChild(cl);hd.appendChild(hb);wrap.appendChild(hd);
+   var cols=document.createElement("div");cols.className="pTeamCols";colEls={};
+   [1,2].forEach(function(tm){var col=document.createElement("div");col.className="pTeamCol "+(tm===1?"red":"blue");colEls[tm]=col;
+    var ch=document.createElement("div");ch.className="pTeamColHdr";
+    var cn=0,q;for(q=0;q<n;q++)if(sel[q]===tm)cn++;if(n%2===1&&sel[9001]===tm)cn++;
+    ch.innerHTML='<span>'+(tm===1?"Red":"Blue")+'</span><span class="pTeamColN">'+cn+'</span>';col.appendChild(ch);
+    var cc=document.createElement("div");cc.className="pTeamChips";for(var i=0;i<n;i++){if(sel[i]===tm)cc.appendChild(chip(hs[i],i));}
     // Mini-Jayden's chip used to render whenever sel[9001] pointed at this column, regardless of
     // roster size -- but he only actually joins the match when the real roster is ODD (see
     // startWithTeams() below: `if(rc%2===1&&window.__hmFillerAdd)window.__hmFillerAdd()`, using
@@ -212,16 +278,39 @@
     // odd again.
     if(n%2===1&&sel[9001]===tm)cc.appendChild(mjChip());
     col.appendChild(cc);cols.appendChild(col);});
-   tray.appendChild(cols);
-   var ft=document.createElement("div");ft.className="teamTrayFoot";
-   var start=document.createElement("button");start.className="teamStart";start.type="button";start.textContent=(mode==="lava"?"Start Floor is Lava":"Start match");
+   wrap.appendChild(cols);
+   var ft=document.createElement("div");ft.className="pTeamFoot";
+   var hint=document.createElement("div");hint.className="pTeamHint";hint.textContent=(mode==="lava"?"Teammates spare each other — until they're the last team":"Tap a head to switch its side, or drag it across");ft.appendChild(hint);
+   var start=document.createElement("button");start.className="pBtn pBtnGo";start.type="button";start.textContent=(mode==="lava"?"Start Floor is Lava":"Start match");
    start.addEventListener("click",function(ev){ev.stopPropagation();startWithTeams();});ft.appendChild(start);
-   var hint=document.createElement("div");hint.className="teamHint";hint.textContent=(mode==="lava"?"Teammates spare each other — until they're the last team":"Tap a head to switch its side");ft.appendChild(hint);
-   tray.appendChild(ft);}
-  function openTray(m){if(gameOn())return;mode=(m==="lava")?"lava":"soccer";activeTrig=(mode==="lava"&&lavaBtn)?lavaBtn:teamsBtn;ensureSel();open=true;syncGlobal();applyPreview();renderTray();tray.classList.add("open");activeTrig.setAttribute("aria-expanded","true");setTimeout(function(){document.addEventListener("click",outside,true);},0);}
-  function closeTray(){open=false;if(tray)tray.classList.remove("open");applyPreview();if(teamsBtn)teamsBtn.setAttribute("aria-expanded","false");if(lavaBtn)lavaBtn.setAttribute("aria-expanded","false");document.removeEventListener("click",outside,true);}
-  function outside(e){if(tray&&!tray.contains(e.target)&&e.target!==teamsBtn&&!teamsBtn.contains(e.target)&&e.target!==lavaBtn&&(!lavaBtn||!lavaBtn.contains(e.target)))closeTray();}
-  function startWithTeams(){syncGlobal();open=false;window.__hmTeamPreview=null;if(tray)tray.classList.remove("open");document.removeEventListener("click",outside,true);
+   wrap.appendChild(ft);}
+  /* THE STAGE MOVES WITH THE SCREEN. body.pTeamOn shrinks and lifts .hero (play.html's
+     style block) so the heads rise clear of the panel; the engine derives its entire floor
+     plane from hero.clientHeight and re-runs survey() on `resize`
+     (play-engine.js:434), so dispatching one synthetic resize is the whole handoff --
+     no engine edit, and every head re-lands on one shared floor line. The rAF wait is
+     because the class has to have been applied and laid out before the engine measures. */
+  function stageShift(on){document.body.classList.toggle("pTeamOn",on);
+   requestAnimationFrame(function(){try{dispatchEvent(new Event("resize"));}catch(_){}});}
+  function openTray(m){if(gameOn())return;mode=(m==="lava")?"lava":"soccer";activeTrig=(mode==="lava"&&lavaBtn)?lavaBtn:teamsBtn;ensureSel();open=true;teamOpen=true;syncGlobal();applyPreview();
+   if(host)host.hidden=false;renderTray();
+   if(tray&&!host)tray.classList.add("open");
+   stageShift(true);battleGate();
+   activeTrig.setAttribute("aria-expanded","true");
+   var fb=tray&&tray.querySelector(".teamChip, .pBtn");if(fb)try{fb.focus({preventScroll:true});}catch(_){fb.focus();}}
+  /* NO outside-click-to-close. That was right for a 300px popover and is wrong for a
+     screen: the rest of the viewport is the stage, every head on it is draggable, and one
+     stray grab must not throw away the sides you just picked. Back and Escape close it. */
+  function closeTray(){open=false;teamOpen=false;if(tray&&!host)tray.classList.remove("open");applyPreview();
+   stageShift(false);battleGate();
+   if(teamsBtn)teamsBtn.setAttribute("aria-expanded","false");if(lavaBtn)lavaBtn.setAttribute("aria-expanded","false");}
+  addEventListener("keydown",function(e){if(e.key==="Escape"&&open)closeTray();});
+  function startWithTeams(){syncGlobal();open=false;teamOpen=false;window.__hmTeamPreview=null;if(tray&&!host)tray.classList.remove("open");
+   // The arena goes back to its full band BEFORE kickoff, and SYNCHRONOUSLY -- the launcher
+   // below runs on this same tick and lays the pitch out against whatever .hero measures
+   // then, so the rAF-deferred version stageShift() uses would have built the match inside
+   // the shrunken band and only corrected it a frame later.
+   document.body.classList.remove("pTeamOn");try{dispatchEvent(new Event("resize"));}catch(_){}
    var rc=heads().length;if(rc<1||gameOn())return;
    if(rc%2===1&&window.__hmFillerAdd)window.__hmFillerAdd();
    if(mode==="lava"){window.__hmLavaTeams=true;window.__hmBattleReq=performance.now();document.body.classList.add("hmBattle");if(window.__hmNewArena)window.__hmNewArena();}   // Floor is Lava, but in fixed teams
@@ -230,5 +319,13 @@
   teamsBtn.setAttribute("aria-expanded","false");if(lavaBtn)lavaBtn.setAttribute("aria-expanded","false");
   teamsBtn.addEventListener("click",function(e){e.stopPropagation();if(open&&mode==="soccer")closeTray();else{if(open)closeTray();openTray("soccer");}});
   if(lavaBtn)lavaBtn.addEventListener("click",function(e){e.stopPropagation();if(open&&mode==="lava")closeTray();else{if(open)closeTray();openTray("lava");}});
+  /* EXPEDITION. Jayden's settled call: it is plain soccer with teams, and the card opens
+     the full team screen rather than starting a match behind your back -- the picking IS
+     the mode. Same openTray the corner icon calls, so there is one screen, not two.
+     (Naming: the codebase calls this mode "Exhibition" in play-engine.js:776 and
+     index.html:7704. Not renamed either way this pass -- see the report.) */
+  var exp=document.getElementById("pcExped");
+  if(exp)exp.addEventListener("click",function(e){e.stopPropagation();if(open)closeTray();else openTray("soccer");});
+  window.__hmTeamScreen={open:function(){openTray("soccer");},close:closeTray};
  })();
 })();

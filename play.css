@@ -230,7 +230,7 @@ body.hmSoccer .moodMenu .moodItem:not(#endGame),body.hmSoccer .moodMenu .moodGo{
 .hmScore .sTeam i{width:9px;height:9px;border-radius:var(--r-full)}
 .hmScore .sTr i{background:#e05a4e}.hmScore .sTb i{background:#5aa0d8}
 .hmScore em{color:var(--c400);font-style:normal}
-.hmScore small{margin-left:var(--sp-8);padding-left:var(--sp-12);border-left:1px solid var(--c100);font-weight:400;font-size:var(--fs-label);color:var(--c500)}
+.hmScore small{margin-left:var(--sp-8);padding-left:var(--sp-12);border-left:1px solid var(--c100);font-weight:400;font-size:var(--fs-small);color:var(--c500)}
 /* Below the scoreboard (47), not above it. At 48 the shout landed on top of the board and
    the two illegible-ed each other. Dropped down the pitch too, clear of the board's box. */
 .hmCount{position:absolute;left:50%;top:52%;transform:translate(-50%,-50%);z-index:44;font-family:var(--sans);font-weight:600;font-size:clamp(64px,12vw,140px);line-height:1;color:var(--c950);opacity:0;pointer-events:none;filter:url(#inkBig);white-space:nowrap}
@@ -461,6 +461,36 @@ body.hmFull{overflow:hidden;overscroll-behavior:none}
 @keyframes tourIn{from{opacity:0;transform:translateX(-50%) translateY(10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
 @media(prefers-reduced-motion:reduce){.tourPanel{animation:none}}
 .tourPanel[hidden]{display:none}
+/* ═══ MOBILE AUDIT P12 — the poster stops hiding the draw ════════════════════
+   Measured: scrollHeight 1080 against clientHeight 697, so 384px of bracket and
+   schedule sat below an UNADVERTISED fold. The poster fills the viewport
+   cleanly, which is exactly the problem -- it looks finished, so a visitor never
+   learns the draw is there.
+   THE AFFORDANCE IS A GRADIENT AND A WORD, drawn on the panel's own trailing
+   edge with a sticky pseudo-element rather than a floating overlay, so it scrolls
+   out of the way at the bottom and needs no JS to know when to leave. It only
+   exists while the panel actually overflows: ::after is inside the scroll box, so
+   a panel whose content fits never generates a second scroll page to put it on.
+   Fading to the page's own ground rather than to transparent is what makes the
+   cut-off text read as "more below" instead of as a clipped line. */
+.tourPanel{position:relative}
+.tourPanel::after{content:"Scroll for the draw";position:sticky;bottom:0;z-index:2;
+ display:block;width:100%;flex:0 0 auto;margin-top:calc(var(--sp-8) * -1);
+ padding:var(--sp-24) 0 var(--sp-6);
+ font-family:var(--sans);font-weight:600;font-size:var(--fs-caption);
+ letter-spacing:var(--tr-caps);text-transform:uppercase;color:var(--c500);
+ background:linear-gradient(to bottom,transparent,var(--c50) 62%);
+ pointer-events:none}
+/* once you are at the bottom there is nothing more to advertise, and the cue is
+   the last thing in the flow -- so it scrolls off under itself. */
+@supports not (animation-timeline:scroll()){.tourPanel::after{opacity:1}}
+@supports (animation-timeline:scroll()){
+ .tourPanel{scroll-timeline:--tourScroll y}
+ .tourPanel::after{animation:tourCueOut linear both;animation-timeline:--tourScroll;
+  animation-range:contain 82% contain 100%}
+ @keyframes tourCueOut{to{opacity:0}}
+}
+@media(prefers-reduced-motion:reduce){.tourPanel::after{animation:none}}
 body.hmSoccer .tourPanel{display:none}   /* the pitch owns the screen during a fixture */
 .tDot{display:inline-block;width:.52em;height:.52em;border-radius:var(--r-full);margin-right:.42em;vertical-align:baseline;flex:0 0 auto}
 .tNext{display:flex;flex-direction:column;align-items:center;gap:var(--sp-8)}
@@ -1364,7 +1394,15 @@ body.hmFinal .sbTrophy{display:block;animation:sbTrophyIn .5s var(--ease-out) bo
  .hmScore:has(.sbCard) .sbTeam{gap:var(--sp-8)}
  .hmScore:has(.sbCard) .sbFace{flex:0 0 24px;width:24px;height:24px}
  .hmScore:has(.sbCard) .sbDot{flex:0 0 20px;width:20px;height:20px}
- .hmScore:has(.sbCard) .sbNm{font-size:10.5px;letter-spacing:.05em}
+ /* MOBILE AUDIT P3. These were 10.5px for the team names and 10px for the
+    "First to 5" line -- and this bar is the ONLY chrome on screen during a
+    match, so the smallest type on the page was carrying the one thing you are
+    watching. The type goes up, the FACES come down to pay for it: 24 -> 22px,
+    which is where the row's width budget actually is. Archivo stays; the
+    typeface was never the problem. --fs-caption 12px is the floor the site
+    already accepts for a caption, and a scoreboard label is a caption. */
+ .hmScore:has(.sbCard) .sbFace{flex:0 0 22px;width:22px;height:22px}
+ .hmScore:has(.sbCard) .sbNm{font-size:var(--fs-caption);letter-spacing:.05em}
  .hmScore:has(.sbCard) .sbScore{font-size:28px}
  .hmScore:has(.sbCard) .sbVs{font-size:var(--fs-small)}
 }
@@ -1436,7 +1474,7 @@ body.hmFinal .sbRound{color:#e8b347}
  border-top:1px solid rgba(236,233,221,.14)}
 .sbMeta{display:inline-flex;align-items:center;gap:var(--sp-6)}
 .sbMeta .sBall{width:14px;height:14px;object-fit:contain}
-.hmScore .hmScoreEnd{color:#b9b6a8;font-weight:600;font-size:var(--fs-micro);padding:var(--sp-6) var(--sp-8);min-height:0;
+.hmScore .hmScoreEnd{color:#b9b6a8;font-weight:600;font-size:var(--fs-label);padding:var(--sp-6) var(--sp-8);min-height:0;
  border-radius:8px;transition:color var(--ease-out-dur) var(--ease-out),background-color var(--ease-out-dur) var(--ease-out)}
 .hmScore .hmScoreEnd:hover,.hmScore .hmScoreEnd:focus-visible{color:#ece9dd;background:rgba(236,233,221,.12)}
 .hmScore .hmScoreEnd svg{width:13px;height:13px;stroke-width:1.6;fill:none}
@@ -1588,3 +1626,25 @@ body.hmFinal .sbRound{color:#e8b347}
    tokens.css carries every one of those, byte for byte, and its own 760px rule. */
 
 
+
+/* ═══ MOBILE AUDIT B6 / P7 — the delete stops sitting on the head ═════════════
+   .mhX was position:absolute at top:-6/right:-6 on a ~45px thumbnail: 16px, or
+   26 under (pointer:coarse), overlapping its own .mhPick by up to 37x37. A
+   destructive control inside a benign one's hit area. Its ::before target made
+   it worse by expanding further into the thumbnail.
+   The tile becomes two rows -- head, then delete -- and .mhX goes static, so the
+   two controls cannot intersect by construction. Same fix, same shape and the
+   same reasoning as index.html's Play panel; the two rosters are one component
+   rendered in two places and they must not diverge again. */
+.mhItem{display:grid;grid-template-rows:auto auto;gap:var(--sp-2)}
+.mhX{position:relative;top:auto;right:auto;
+ width:100%;height:var(--sp-24);min-width:0;min-height:0;padding:0;
+ border:0;background:none;color:var(--c500);
+ border-radius:var(--r-2xs);corner-shape:var(--corner);
+ display:flex;align-items:center;justify-content:center;
+ font-family:var(--sans);font-size:var(--fs-micro);line-height:1;cursor:pointer}
+.mhX::before{content:"";position:absolute;left:0;right:0;top:0;
+ height:var(--tap-min);border-radius:0}
+.mhX:hover,.mhX:focus-visible{color:var(--c950);border-color:transparent}
+@media(pointer:coarse){.mhX{width:100%;height:var(--sp-28);top:auto;right:auto;
+ font-size:var(--fs-label)}}

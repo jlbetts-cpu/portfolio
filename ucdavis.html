@@ -486,6 +486,30 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
 .moodCar{width:12px;height:12px;flex:0 0 12px}
 /* icons inherit the control's colour so they light up with the hover wash */
 .moodItem svg,.moodItem .gIco,.tGo svg,.hmBtn svg{color:currentColor}
+
+/* ═══ MOBILE AUDIT P1 — the before/after shots stop being halved ══════════════
+   Measured at 390: each .shot.phone img rendered 163px from a 460px source --
+   a 2.8x downscale, six per page, on the one component whose entire job is
+   letting you see the difference between two screens. The standing rule is that
+   the phone shots do not get shrunk, and two columns inside a 342px content
+   width is the only thing breaking it.
+   ONE COLUMN BELOW 560. Each shot goes 163 -> 342px, which is 0.74x of source
+   rather than 0.36x. The cost is real and is the reason this was flagged rather
+   than done blind: you no longer see before and after side by side. What
+   replaces the comparison is sequence -- the .baLabel above each shot already
+   says which is which, and they are now adjacent rather than in two columns, so
+   the pair is one scroll rather than two glances. At 342px you can actually read
+   the screens being compared, which side-by-side at 163px did not let you do.
+   THE RULE IT REPLACES WAS HALF-DEAD, which is why 163 rather than 151: the
+   @media(max-width:560px) block set repeat(2,minmax(0,1fr)) but a LATER base
+   .baGrid{grid-template-columns:repeat(2,minmax(0,270px))} out-ordered it and
+   only its `gap` survived. Same disease as gradientlab's dead mobile sheet. This
+   block is appended at the foot of the sheet so nothing can out-order it, and
+   nothing may be added after it. */
+@media(max-width:560px){
+  .baGrid{grid-template-columns:minmax(0,1fr);column-gap:0;row-gap:var(--sp-24)}
+  .baGrid .shot.phone img{aspect-ratio:720/1565}
+}
 </style>
 <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Jayden Betts","item":"https://jaydenbetts.design/"},{"@type":"ListItem","position":2,"name":"UC Davis Rec Redesign Case Study","item":"https://jaydenbetts.design/ucdavis.html"}]},{"@type":"CreativeWork","@id":"https://jaydenbetts.design/ucdavis.html#work","url":"https://jaydenbetts.design/ucdavis.html","name":"UC Davis Rec Redesign: A Product Design Case Study by Jayden Betts","description":"The UC Davis Rec app rebuilt around a real hierarchy, with the member ID moved into Apple Wallet. A product design case study by Jayden Betts.","image":"https://jaydenbetts.design/images/cs/ucrec/cover.webp","author":{"@type":"Person","@id":"https://jaydenbetts.design/#person","name":"Jayden Betts","alternateName":"Jayden Lee Betts","url":"https://jaydenbetts.design/","sameAs":["https://www.linkedin.com/in/jaydenbetts","https://www.instagram.com/jaydenleebetts"]},"genre":"Product Design","inLanguage":"en"}]}</script>
 <link rel="stylesheet" href="header.css">

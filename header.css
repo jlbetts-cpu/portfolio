@@ -794,37 +794,23 @@
 .jbNav .jbHome[aria-current]:hover{color:var(--nav-ink-strong)}
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   4 · THE HERO AVAILABILITY CAPSULE — a HERO element, above the <h1>.
-   Built on index.html's existing .heroAvail: same position, same entrance
-   (opacity 0 → 1, translateY(−4px) → none), same .in hook, same id the
-   hero-engine already reaches for. Only the skin changes.
-   The dot is --nav-accent, not a green: index.html's own --accent (#0E6B3B) and
-   --accent-live are reserved for "this match is happening".
-   Already shadow-clean before v2 and left alone: --mat-2 + --rim-1 is a rim,
-   and the dot's `0 0 0 3px` is a ring -- zero offset, zero blur.
+   4 · THE HERO AVAILABILITY LINE IS GONE, and this is its headstone.
+   It shipped as a capsule with a status dot, lost the capsule, lost the dot,
+   moved to the footer, came back above the <h1>, moved under it, and is now
+   deleted outright on Jayden's word. The reason it never settled is that it was
+   a duplicate: the About content already states "Open to full-time opportunities"
+   in its at-a-glance facts, so the hero was carrying a second copy of the one
+   fact and paying ~35px of the head's vertical budget for it. It did not exist
+   at f445f43; it is not a regression to remove.
+   WHAT WENT WITH IT: .heroAvail's own rules here and its two @media forks, the
+   two body.about-open animation hooks in index.html, and the element. --avail-dot
+   and --avail-ring were already deleted when the dot was. hero-engine.js:72
+   still adds .in to #heroAvail behind an `if(_av0)`, and its exit list at :1004
+   still names ".heroAvail" -- both are null-safe and both are inside the About
+   overlay path that is being extracted to its own page, so they are left for
+   that pass rather than half-edited here.
    ═══════════════════════════════════════════════════════════════════════════ */
-.heroAvail{
-  /* NO CAPSULE, NO DOT.  Jayden: "I'd remove the pill around: Based in San
-     Francisco - Open to full-time roles", then "and remove the dot as well, just
-     keep it clean."  What went: --mat-2, --rim-1, the blur, --r-pill, the 14px
-     horizontal padding, the 30px minimum height, and the dot with its ring
-     (--avail-dot / --avail-ring are deleted, not left orphaned).
-     WHAT HAS TO DO THAT WORK NOW.  A container was making this line a different
-     register from the h1 under it; with the container gone, only type and space
-     can. --fs-label at 600 in --c700 is 8.32:1 on --c50 -- two steps smaller than
-     the h1, one weight heavier, and a full stop lighter in ink, which is the
-     eyebrow relationship the site's --gap-eyebrow token already names. --c500
-     would have been 4.63:1: legal, but this line carries the one fact a
-     recruiter is looking for and it should not be the quietest thing on the page. */
-  display:block;margin:0;padding:0;background:none;box-shadow:none;
-  -webkit-backdrop-filter:none;backdrop-filter:none;
-  font-family:var(--sans);font-weight:600;font-size:var(--fs-label);
-  line-height:var(--lh-flat);letter-spacing:var(--tr-flat);
-  color:var(--c700);
-  opacity:0;transform:translateY(calc(var(--sp-4) * -1));
-  transition:opacity var(--enter-dur) var(--ease-out),
-             transform var(--enter-dur) var(--ease-out)}
-.heroAvail.in{opacity:1;transform:none}
+
 
 /* ═══════════════════════════════════════════════════════════════════════════
    5 · THE MOOD DOCK lives in index.html, not here, and that is deliberate.
@@ -857,8 +843,15 @@
    760 and 880 already exist in tokens.css; 640 is this component's.
    ═══════════════════════════════════════════════════════════════════════════ */
 @media(max-width:640px){
-  .jbNav{--ico-md:16px;gap:var(--sp-4)}                 /* thumb spacing between targets */
-  .jbGrp{gap:var(--sp-4)}
+  /* P6, mobile audit: the gaps were --sp-4. The 44x44 targets are genuine (the
+     ::after expander), but 4px between three same-size glyphs is thumb-tight --
+     adjacent targets effectively touch, and a miss lands on the neighbour rather
+     than on nothing. --sp-8 is the next rung and it is affordable: the audit
+     measured an icons-only sub-page bar at 327.8px against a 366px budget at
+     390, and this spends 16 of the 38px of slack. Re-measured after the change
+     on all nine pages at 390 and 320 -- no page overflows. */
+  .jbNav{--ico-md:16px;gap:var(--sp-8)}
+  .jbGrp{gap:var(--sp-8)}
   .jbNav a,.jbNav button{font-size:var(--fs-label);padding:0 var(--sp-8);
     min-width:var(--tap-min);justify-content:center}
   .jbNav .jbLbl{display:none}
@@ -867,8 +860,4 @@
   .jbNav [aria-current]:not(.jbHome){min-width:0;padding:0 var(--sp-10)}
   .jbNav .jbHome{padding:0 var(--sp-6)}
   .jbBack{padding:0 var(--sp-8)}
-  .heroAvail{font-size:var(--fs-caption)}
-}
-@media(prefers-reduced-motion:reduce){
-  .heroAvail{transition:none}
 }
