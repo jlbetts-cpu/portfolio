@@ -163,6 +163,48 @@
 }
 
 /* ===========================================================================
+   FOUR MORE GAPS, closed by the home page's CASE-STUDY CARD pass (2026-08-03).
+   Same rule as every block above: each is a rung the scale did not have, found
+   by counting what the card grid on index.html was actually writing as raw
+   pixels, and each sits on a grid that already exists. Measured case for every
+   number: .superpowers/sdd/2026-08-02-play-page/cards-report.md.
+   Nothing here overrides anything above it.
+   =========================================================================== */
+:root{
+ /* 17 - the FIXED ladder's next 4px rung. It ran 16,20,24,28,(30),32,36 and
+    stopped. 40px is the page's own side gutter and it is written as a literal
+    in four places on index.html alone (.wrap, .work, .caseInset, .csStageInner)
+    plus twice more inside `calc(100vw - 80px)`, which is this value doubled.
+    It is NOT --sp-16-40: that rung is RESPONSIVE and collapses to 16px below
+    881px, so it cannot stand in for a gutter that stays 40 until the 760px
+    fork replaces it wholesale. */
+ --sp-40:40px;
+
+ /* 18 - the page measure. 1280px is the width every full-bleed band on the
+    site caps at, and it is not a spacing value -- it is the column the whole
+    layout is drawn in, which is why it has never fitted on the --sp-* ladder
+    and has therefore been retyped as a literal everywhere instead. One name,
+    so that changing the site's measure is one edit rather than a search. */
+ --page-max:1280px;
+
+ /* 19 - the scroll-entrance travel. A case-study cover rises 26px into place
+    on reveal; the caption under it rises --sp-14. 26 is the only one of the
+    two with no rung (the ladder runs 2px below 16 and 4px above it, and 26 is
+    on neither), so it has been retyped as a literal in both the base rule and
+    the <=760 fork. This is motion distance, not spacing: it never affects
+    layout, only how far the thing comes from. Paired with --enter-dur, which
+    already exists and is the duration it takes. */
+ --enter-rise:26px;
+
+ /* 20 - the stagger between a cover's entrance and its caption's. The caption
+    starts 80ms after the cover so the two read as one gesture with a follow,
+    not as two fades. It shipped as .08s on desktop and .07s below 760px -- a
+    10ms fork with no stated reason and no perceptible difference -- so this
+    names the desktop value and both forks now use it. */
+ --enter-stagger:80ms;
+}
+
+/* ===========================================================================
    HEADER V2 (2026-08-03). Two site-wide corrections that belong to the system
    rather than to the header, landed here because the header pass is what found
    them. Spec: docs/superpowers/specs/2026-08-03-header-v2-research.md §4.1, §7.

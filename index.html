@@ -1034,17 +1034,40 @@ html{scroll-padding-top:calc(var(--nav-h) + var(--sp-16-24))}
    fighting a 24px row-gap.  row-gap is now 0 and each child owns one margin-top,
    so the rhythm is three numbers you can read in one block:
 
-     header  -> capsule   --sp-48-64    one big break between chrome and hero
+     header  -> capsule   --sp-16-24    (was --sp-48-64; the head needed the 40)
      capsule -> h1        --gap-eyebrow (.55em)  the capsule IS the h1's eyebrow
-     h1      -> head      --sp-32-48    a real break before the payload
+     h1      -> head      --sp-16-24    (was --sp-32-48; the head needed the 24)
 
    The fourth gap the spec listed (head -> Mood dock) has no object under it any
    more: the moods are back in the Play menu, where Jayden put them. */
-.hero{row-gap:0;padding-top:var(--sp-48-64)}
+.hero{row-gap:0;padding-top:var(--sp-16-24)}
 .heroCopy>.heroAvail{order:1;margin:0}
 .heroCopy h1{margin-top:var(--gap-eyebrow)}
-.hero .stagewrap{margin-top:var(--sp-32-48)}
+.hero .stagewrap{margin-top:var(--sp-16-24)}
 
+/* ═══ THE HEAD KEEPS ITS SIZE; THE SPACE ABOVE IT PAYS ════════════════════
+   REVERSED, on Jayden's word: "I feel like the head got a lot smaller... I
+   liked how the head looked before."  The previous rule here solved for the
+   head's height so its feet cleared the fold, which fit the viewport and shrank
+   the head by ~90px.  Wrong trade.  The sizing expression below is the branch
+   point's, byte for byte -- (100svh - 248) * .95, capped at 620 and at 62vw.
+
+   SO THE GAPS ABOVE IT PAY INSTEAD, and here is the arithmetic at 1280x900:
+     72  the bar (constant)
+   + 24  --sp-16-24   hero -> availability line   (was --sp-48-64, 64: -40)
+   + 13  the availability line, now bare text
+   + 22  --gap-eyebrow (.55em of --fs-h1)
+   + 111 the headline, three lines
+   + 24  --sp-16-24   h1 -> head                  (was --sp-32-48, 48: -24)
+   = 266 above the head, against 332 before -- 66px reclaimed.
+
+   AND THE HONEST RESULT, because this is his call and not ours: at 900px the
+   head is ~622 tall, so it lands at ~888 with about 12px of viewport under it.
+   It fits, but only just.  The availability line is NEW -- it does not exist at
+   the branch point -- and it plus its eyebrow gap is 35px the hero never had to
+   carry.  At 900px the head at its original size and that line cannot both have
+   comfortable air.  Reported rather than resolved by shrinking either one. */
+.hero .stagewrap{width:min(clamp(260px,calc((100svh - 248px) * .95),620px),62vw)}
 /* ═══ THE PLAY MENU — header.css's PANEL, not a second popup ═══════════════
    Jayden: "Play drop down is not same styling."  It was true: the menu was
    #moodMenu, a local skin with its own radius (4px), its own item padding, its
@@ -1167,7 +1190,7 @@ html{scroll-padding-top:calc(var(--nav-h) + var(--sp-16-24))}
      affordance; v2 splits that back out into a real 44x44 item, and header.js
      reveals it while the overlay is open. Without it the overlay would have no
      visible exit in the chrome at all. -->
-<div class="jbStick" data-col="home">
+<div class="jbStick">
  <nav class="jbNav" aria-label="Primary" data-surface="paper">
   <span class="jbGrp jbGrpL">
    <button class="jbHome" id="logo" type="button" aria-label="Jayden Betts, home"><svg class="jbLogo" viewBox="0 0 30 30" aria-hidden="true"><path d="M1 26.3842C3.07605 22.5364 9.00761 17.1494 16.1255 26.3842C23.2434 35.619 14.1981 18.1678 16.1255 8.65665C18.0529 -0.854479 32.3186 -2.22723 28.2852 8.65665C24.2517 19.5405 18.6968 18.261 20.8493 13.2232C23.0018 8.1853 35.3661 26.1679 23.0066 27.4872"/></svg></button>

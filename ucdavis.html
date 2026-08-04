@@ -496,11 +496,10 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><filter id="inkBig"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="7" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="1.1" xChannelSelector="R" yChannelSelector="G" result="d"/><feTurbulence type="fractalNoise" baseFrequency="0.5 0.42" numOctaves="2" seed="13" result="g"/><feColorMatrix in="g" type="matrix" values="0 0 0 0 0.055 0 0 0 0 0.055 0 0 0 0 0.055 0 0 0 0.42 0" result="grain"/><feComposite in="grain" in2="d" operator="atop"/></filter>
 <filter id="inkSm"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="1" seed="4" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="0.55" xChannelSelector="R" yChannelSelector="G"/></filter></svg>
 
-<div class="wrap">
 <!-- THE SITE HEADER. One component, all nine pages: header.css + header.js.
      HEADER V2, 2026-08-03 -- spec docs/superpowers/specs/2026-08-03-header-v2-research.md.
      Restores Jayden's original silhouette (Work / About me / lockup / Games / Contact)
-     at THIS PAGE'S OWN COLUMN: data-col="case" makes the bar 1120px wide starting at
+     at ONE FIXED INSET, identical on all nine pages (header.css SS0). Jayden chose an
      x=80, which is exactly the chapter rail's left edge -- an alignment the page has
      always had and the v1 header ignored. Back is its own item at the leading edge now,
      full opacity and its own 44x44, instead of a .55-opacity chevron injected inside the
@@ -509,7 +508,7 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
      .backlink is load-bearing: it sets sessionStorage csReturn so index.html's work rail
      emerges from white on return (see this page's script). Every link that goes home
      carries it, including the new Back item. -->
- <div class="jbStick" data-col="case">
+ <div class="jbStick">
   <nav class="jbNav" aria-label="Primary" data-surface="paper">
    <span class="jbGrp jbGrpL">
     <a class="jbHome backlink" href="index.html" aria-label="Jayden Betts, home"><svg class="jbLogo" viewBox="0 0 30 30" aria-hidden="true"><path d="M1 26.3842C3.07605 22.5364 9.00761 17.1494 16.1255 26.3842C23.2434 35.619 14.1981 18.1678 16.1255 8.65665C18.0529 -0.854479 32.3186 -2.22723 28.2852 8.65665C24.2517 19.5405 18.6968 18.261 20.8493 13.2232C23.0018 8.1853 35.3661 26.1679 23.0066 27.4872"/></svg></a>
@@ -535,6 +534,7 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
    </span>
   </nav>
  </div>
+<div class="wrap">
 
  <div class="layout" id="main" tabindex="-1">
   <aside class="rail" aria-label="Sections">

@@ -51,27 +51,12 @@
    canvas and play.html's pitch clickable under the header, and costs nothing on
    the pages that never needed it.
 
-   --bar-gutter and --bar-open are the whole of the per-page configuration, and
-   they are set HERE rather than in each page's <style> for a specificity reason
+   --bar-gutter and --bar-open are the whole of the bar's horizontal geometry
+   and they are UNCONDITIONAL as of 2026-08-03: one inset, one cap, nine pages.
+   They are set HERE rather than in each page's <style> for a specificity reason
    that has bitten this codebase before: header.css is linked last, so a bare
    `.jbStick{...}` in a host page's own stylesheet is a (0,1,0) tie that THIS
-   file wins. The pages carry a data-col attribute instead and the values live
-   below, where they can be read side by side.
-
-     data-col="home"  index.html      -- .jbStick is a body child; the gutter has
-                                        to reproduce .wrap's own padding (40px,
-                                        24px below 760) so the bar's edges land
-                                        on the h1's edges. Measured at 1280:
-                                        x 40 -> 1240, exactly the content column.
-     data-col="case"  the five studies -- .jbStick is already INSIDE .wrap, whose
-                                        content box is 80 -> 1200 at 1280. The
-                                        gutter is therefore 0 and the cap 1120:
-                                        the bar's leading edge lands on the
-                                        chapter rail's left edge, an alignment
-                                        the page has and v1 ignored.
-     (default)        play, lab,      -- full-viewport stages with no page column
-                      headmaker         to match: the responsive ladder's own
-                                        inset, 40px >=881 and 16px below.
+   file wins. data-col is retired -- see the note above the values.
    ═══════════════════════════════════════════════════════════════════════════ */
 /* z-index 100 is measured, not picked: index.html's .wrap creates a stacking
    context at 62 and rises to 80 while the About overlay is open, and the bar has
@@ -79,7 +64,7 @@
    deliberately puts OVER the header (the reel overlay at 130, the toasts at 200+)
    still wins. play.css tops out at 66; gradientlab has none above 5. */
 .jbStick{
-  --bar-gutter:var(--sp-16-40);
+  --bar-gutter:var(--sp-16-40);   /* 40 >=881, 16 below -- the same on all nine */
   --bar-open:1200px;
 
   position:sticky;top:0;z-index:100;
@@ -94,9 +79,22 @@
 /* play.html and gradientlab.html: a full-viewport stage that must not scroll. */
 .jbStick.isFixed{position:fixed;top:0;left:0;right:0}
 
-.jbStick[data-col="home"]{--bar-gutter:40px;--bar-open:1200px}
-.jbStick[data-col="case"]{--bar-gutter:0px;--bar-open:1120px}
-@media(max-width:760px){.jbStick[data-col="home"]{--bar-gutter:24px}}   /* tracks .wrap */
+/* ONE INSET, ONE BAR, NINE PAGES.  Jayden: "header needs to be mathematically
+   correct on every page."  Measured before this change, the mark sat at four
+   different x positions across the nine -- 68 on index and the Lab, 76 on play,
+   108 on the case studies, 148 on headmaker -- an 80px spread.  The cause was
+   the design: the bar tracked each page's own content column, and those columns
+   differ.  "Aligned to the page" and "identical everywhere" were never both
+   possible, and he chose identical.
+   TWO THINGS HAD TO CHANGE AND ONE OF THEM WAS MARKUP.  data-col is gone (the
+   gutter/cap pair below is now unconditional), and on the five case studies plus
+   headmaker the .jbStick was lifted OUT of .wrap to be a body child like the
+   other three.  That is the structural fix rather than an override: headmaker's
+   40px offset from the case studies was its .wrap having a different padding,
+   and compensating for it in the header would have left the difference in place
+   to resurface somewhere else.
+   THE ACCEPTED COST, stated because it is a real one: on a case study the bar no
+   longer lands on the chapter rail's left edge. He was told and chose this. */
 
 /* THE ONE THING THAT HAPPENS ON SCROLL, and it is the whole of it (§6.2).
    The wrapper redistributes its padding so the bar drops 6px clear of the
@@ -210,7 +208,12 @@
   width:100%;max-width:var(--bar-open);
   min-height:var(--nav-h);
   display:flex;align-items:center;justify-content:space-between;gap:var(--sp-8);
-  padding-inline:var(--sp-6);
+  /* SHORTHAND, not padding-inline, and that is a measured fix. .jbNav IS a
+     <nav>, and index.html and headmaker.html both style the bare `nav` element
+     for their own old chrome -- at <=640 that leaked padding-top:24px in and
+     made the bar 82px tall on those two pages against 72 on the other seven.
+     A longhand cannot reset what it does not name. */
+  padding:0 var(--sp-6);
   font-family:var(--sans);
   background:var(--nav-mat);
   box-shadow:var(--nav-rim);
@@ -238,6 +241,12 @@
 /* the two zones. Auto width, pushed apart by the bar's space-between: the
    leading group sits on the page's left gutter and the socials on the right
    one, which is the whole of "use the margins". */
+/* border-box, declared by the component. play.html carries no universal
+   box-sizing reset, so .jbHome's min-width:44px was CONTENT width there and the
+   mark's box measured 60px against 44 on the other eight -- which is the whole
+   of why its centre sat at 76 rather than 68. One line, and the bar's geometry
+   stops depending on whether its host page happens to have a reset. */
+.jbNav,.jbNav *,.jbNav *::before,.jbNav *::after{box-sizing:border-box}
 .jbGrp{position:relative;z-index:1;                /* over the travelling indicator */
   display:flex;align-items:center;gap:var(--sp-8);flex:0 1 auto;min-width:0}
 
@@ -315,7 +324,13 @@
    Alignment is centre, not baseline: a 14px label in a 38px box baseline-aligned
    against an 18px square sits the square 2-3px low. */
 .jbNav .gIco{width:var(--ico-md);height:var(--ico-md);flex:0 0 var(--ico-md);display:block;
-  stroke:currentColor;fill:none;
+  /* color:inherit is load-bearing, not tidiness. index.html declares
+     .gIco{color:var(--c700)} for its own game rows; inside the bar that made
+     every icon --c700 while the mark -- which has no such rule -- was --c500,
+     measured at rgb(82,82,82) against rgb(117,117,117). Two glyph colours in
+     one bar is the defect Jayden named. Inheriting means EVERY glyph is its
+     control's ink, travels with it on hover, and cannot drift again. */
+  color:inherit;stroke:currentColor;fill:none;
   /* 1.5 with non-scaling-stroke = 1.5 DEVICE px at both box sizes, which is the
      value the site's own "ICONS -- one pack" blocks already normalise every
      other icon to, and inside the 1-1.5px stem range of a 14px/400 Instrument
@@ -512,7 +527,12 @@
    mark being four pixels larger than a nav icon is right anyway.
    NB non-scaling-stroke is deliberately NOT set here: it would pin the stroke to
    a device pixel value and throw away the size/weight relationship above. */
-.jbNav .jbHome{padding:0 var(--sp-8);min-width:var(--tap-min);justify-content:center}
+/* !important is the wrong tool and this is the right one: (0,2,0) with every
+   box property NAMED, so a host page's `nav a{padding:...}` cannot half-win.
+   play.css was doing exactly that -- the mark's centre measured 76 there
+   against 68 on the other eight. */
+.jbNav .jbHome{padding:0 var(--sp-8);margin:0;min-width:var(--tap-min);
+  justify-content:center;flex:0 0 auto}
 .jbLogo{width:var(--ico-mark);height:var(--ico-mark);flex:0 0 var(--ico-mark);
   display:block;fill:none;stroke:currentColor;stroke-width:2;
   stroke-linecap:round;stroke-linejoin:round}
