@@ -324,6 +324,203 @@
 :root{--sp-48:48px;--sp-56:56px;--sp-64:64px;--sp-72:72px;--sp-80:80px}
 
 /* ===========================================================================
+   THE TWO MISSING LEADING RUNGS.  2026-08-04.
+
+   The ladder was --lh-flat 1 · --lh-display 1.0 · --lh-tight 1.08 ·
+   --lh-body/--lh-prose 1.5. The typography audit's verdict was that "leading
+   misses at BOTH ends", and the reason is visible the moment you count what the
+   pages actually write: there is a rung for a HEADING and a rung for a
+   PARAGRAPH and nothing on either side of them, so anything that is not one of
+   those two things has to invent a number. Counted across index.html, about.html
+   and the five case studies, 60 raw line-height literals in the 1.09-1.55 band:
+
+     1.12 x5  .head (case-study page title)      1.30 x5  .hq
+     1.14 x5  .head, <=760 fork                  1.35 x10 .fv .fvsub
+     1.20 x7  .hmwQ .moodGo .mhTxt               1.40 x2  .csInfoVal .pullBody
+     1.22 x5  .stepHead                          1.45 x16 .shotNote .baNote
+     1.25 x5  .hlabel                                     .playerNote figcaption
+                                                 1.55 x1  .csNoteText
+
+   TWO CLUSTERS, NOT ONE, and this is the answer to "is one rung enough":
+   everything from 1.12 to 1.25 is type LARGER than body that still wraps -- page
+   titles, section sub-heads, a 36px pull-question. Everything from 1.35 to 1.55
+   is type SMALLER than body -- captions, photo notes, figcaptions. They are
+   pulling in opposite directions from 1.5 and no single value serves both. The
+   band's median is 1.2 on one side and 1.45 on the other, and those are the two
+   values already written most often (7 and 16 declarations respectively), so the
+   rungs are the site's own measured behaviour rather than a preference.
+
+   --lh-head 1.2   the rung the brief asked for, between --lh-tight and --lh-body.
+                   Large type that wraps. Tighter than prose because the lines are
+                   long in ems and the eye does not need the extra return distance;
+                   looser than --lh-tight because 1.08 on two wrapped lines of 32px
+                   sets the descenders of one line into the ascenders of the next.
+   --lh-note 1.45  small type. Slightly tighter than --lh-prose 1.5 because at
+                   12-13px the same RATIO reads looser -- leading is proportional
+                   and legibility is not -- which is precisely why sixteen
+                   declarations independently landed on 1.45 rather than reusing
+                   --lh-prose.
+
+   Additive: nothing existing resolves differently for their being declared.
+   Conversion of the call sites is a separate, measured pass -- see the report for
+   which literals moved to a rung and which are recorded as genuinely wanting
+   their own value.
+   =========================================================================== */
+:root{--lh-head:1.2;--lh-note:1.45}
+
+/* ===========================================================================
+   THE RADIUS LADDER, AND THE RULE FOR CHOOSING A RUNG.  2026-08-04.
+
+   Jayden: "I thought we were doing 28 squircle for everything -- when did we
+   decide on 20?" The honest answer was that 28 had only ever been assigned to
+   three things (the nav drawer, the work cards, the cup panel) while the
+   design-tokens spec wrote `.card{border-radius:var(--r-lg)}`. Both were
+   defensible and neither was written down, which is the whole complaint: it
+   looked like pick-or-choose because the choosing rule did not exist.
+
+   HIS DECISION, and it is now the rule: RADIUS IS A FUNCTION OF THE BOX'S SIZE,
+   and there are three size classes.
+
+     --r-xl  28   THE BIGGEST SURFACES.  >= 900px wide.
+                  Full-width media frames, the work cards, the nav drawer, the
+                  cup panel. These are objects the width of the page's measure.
+     --r-lg  20   CARDS AND IMAGES.  ~200px to <900px.
+                  Stats, phone shots, column-width photo figures, menus,
+                  tooltips, the About stack.
+     --r-md  14   CONTROLS.  Buttons, tabs, fields, free-standing chips.
+
+   BELOW THOSE: --r-sm 10 for a row inside a menu (the concentric rule -- an
+   --r-lg panel with an --sp-8 inset gives its rows --r-md, and an --r-md control
+   inside that gives --r-sm); --r-xs 6 and --r-2xs 4 for small inline marks (a
+   numeral chip, a toast, a 130px logo tile); --r-pill for a capsule; --r-full
+   for a circle. --r-hair 2 is a 2px underline's cap, not a box.
+
+   THE 900px BOUNDARY IS A MEASUREMENT, NOT A ROUND NUMBER. Every element on the
+   site carrying a radius was measured at 1440. The widths cluster hard, with one
+   large gap: 1200 · 1120 · 1110 · 1103 · 980 | 552 · 540 · 520 · 320 · 286 · 270
+   · 216 · 206. The gap between 980 and 552 is the biggest in the distribution by
+   a factor of four, and it is exactly the line between "as wide as the column"
+   and "sits inside the column". 900 falls in it with room either side, so no
+   element is near enough the boundary for a viewport change to flip its class.
+
+   ONE DELIBERATE CARVE-OUT, so nobody "fixes" it: `.shot.phone img` on the case
+   studies is `clamp(20px, 2.6vw, 32px)`, which is off the ladder on purpose. It
+   is a PICTURE OF A PHONE, and that corner is the device's, drawn to scale with
+   the render -- it is content, not chrome. The ladder governs surfaces the site
+   draws, not the geometry of objects inside a photograph.
+   =========================================================================== */
+
+/* ===========================================================================
+   THE CONTROL BLOCK.  Specified in docs/superpowers/specs/2026-08-03-control-
+   system.md §10 and never landed until now. Both builders (headmaker.html,
+   gradientlab.html) have been consuming control values with no token home,
+   which is the state right before two components invent two geometries.
+
+   ONE CHANGE FROM THE SPEC AS WRITTEN, and it matters. §10 gives --ctl-accent
+   its own literal, with this reason: "--accent is a page-level signal and TWO
+   pages deliberately re-declare it ... A control rule written against
+   var(--accent) therefore renders GREEN on play.html and in the Lab." That is no
+   longer true -- both rebindings were removed on 2026-08-04 and --accent is now
+   defined in exactly one place. So the control accent ALIASES the page accent
+   instead of duplicating it. Keeping two literals in sync by hand is the drift
+   this file exists to prevent, and the hazard the separate token was insuring
+   against has been deleted at the root.
+
+   Everything else is the spec's table verbatim. Only --dur-state-out and
+   --dur-intent are new numbers; the rest alias rungs that already exist, which
+   is the point -- a control's height IS the tap minimum, a control's radius IS
+   the control rung of the radius ladder, and saying so in a token is what stops
+   the next component picking a different one.
+   =========================================================================== */
+:root{
+ /* the control accent -- an alias, not a copy. See above. */
+ --ctl-accent:var(--accent);
+ --ctl-accent-press:var(--accent-press);
+ --ctl-accent-wash:var(--accent-wash);
+
+ /* geometry -- two height rungs and nothing else */
+ --ctl-h:var(--tap-min);      /* 44px, the default */
+ --ctl-h-sm:var(--sp-36);     /* 36px, the compact rung. Legal only under §4.2's
+                                 three conditions: inside a >=44px container, with
+                                 the ::after hit expander, and >=8px from its
+                                 neighbours. Free-standing in content is never
+                                 compact. */
+ --ctl-pad:var(--sp-16);      /* 16px inline at the 44 rung. 44 x 0.36 */
+ --ctl-pad-sm:var(--sp-12);   /* 12px inline at the 36 rung. 36 x 0.36 */
+ --ctl-gap:var(--sp-8);       /* icon <-> label at 44 */
+ --ctl-gap-sm:var(--sp-6);    /* icon <-> label at 36; also label <-> caret at any size */
+ --ctl-r:var(--r-md);         /* 14px, the control rung of the radius ladder above.
+                                 Inside an --r-pill bar an item takes --r-pill --
+                                 the concentric rule, and 999 minus 6 is still 999. */
+
+ /* ink and type */
+ --ctl-fs:var(--fs-small);        /* 15px at the 44 rung */
+ --ctl-fs-sm:var(--fs-nav);       /* 14px at the 36 rung */
+ --ctl-ink:var(--c700);           /* 7.68:1 */
+ --ctl-ink-strong:var(--c950);    /* 18.42:1 -- hover ink, selected ink, AND the focus ring */
+ --ctl-ink-mute:var(--c500);      /* 4.53:1 -- tab rest, caret rest, placeholder */
+ --ctl-disabled-o:.38;
+
+ /* motion -- three tiers plus the hover-out asymmetry.
+    A control answers immediately and lets go gently; equal timings read
+    mechanical. 1.5x is the smallest ratio that is perceptible without reading as
+    lag. The reveal tier reuses --sp-settle / --sp-settle-dur, which already
+    exist. No fourth duration and no second curve: --ease-out for state and
+    feedback, --sp-settle for reveal. */
+ --dur-press:var(--press-dur);      /* 100ms, transform only */
+ --dur-state:var(--ease-out-dur);   /* 160ms, hover-IN / focus / select */
+ --dur-state-out:240ms;             /* 160 x 1.5, hover-OUT */
+ --dur-intent:120ms;                /* hover-intent before a menu opens (§6.1) --
+                                       why a cursor sweeping the bar does not fire
+                                       three menus */
+
+ /* between-control spacing. One ladder, 2:1, and no third value: the gap between
+    GROUPS is exactly twice the gap between ITEMS, which is what lets a bar read
+    as groups without drawing a divider. --gap-item is also the minimum
+    separation between two expanded 44px hit areas, so it is a FLOOR. */
+ --gap-item:var(--sp-8);
+ --gap-group:var(--sp-16);
+ --gap-band:var(--sp-24);
+
+ /* THE BUILDERS' PANEL. headmaker.html and gradientlab.html are the same
+    archetype -- an artifact beside an inspector -- and each declared its own name
+    for the inspector's width: --mk-panel:360px and --panel-w:360px. They AGREE
+    today, which is the good case and also the fragile one: two names for one
+    geometry is the state immediately before they disagree, and nothing would
+    report it when they did. Named once here, at the value both already use, so
+    the two tools stay the same tool. --panel-w is the surviving name because
+    gradientlab already writes it; headmaker's --mk-panel should be repointed to
+    it by that file's owner. */
+ --panel-w:360px;
+
+ /* THE OTHER TWO THE ARCHETYPE OWNS. Same test as --panel-w and the same
+    verdict: both are declared in headmaker.html AND gradientlab.html, and
+    both are declared IDENTICALLY. Extracted by diffing the two files' custom
+    properties rather than by reading them -- if two independent files have
+    arrived at the same number, that number is describing the archetype, not
+    either page, and the second copy is always the one that goes stale.
+
+    --bar-h is the height the tool's own bar reserves above the workspace.
+    It is deliberately an EXPRESSION rather than a literal: it is the site
+    header's height plus the gutter above and below it, so a change to --nav-h
+    moves both builders' layouts together instead of leaving them 8px apart.
+
+    --lbl-w is the label column every control in a builder panel aligns to.
+    A fixed label column is the whole reason a stack of sliders reads as one
+    object rather than as six unrelated rows -- every track starts on one x.
+    THE 420px FORK COMES WITH IT and is not optional: below ~420 the label
+    column has to give way before the track does, because a track that has
+    stopped being draggable is a broken control while a truncated label is
+    only a tighter one. This was reported as a divergence -- the Gradient
+    Maker had the fork and the head maker did not -- and by the time it was
+    measured here both files carried it, identically, at the same breakpoint.
+    Landing it once is what stops that being luck. */
+ --bar-h:calc(var(--sp-14) + var(--nav-h) + var(--sp-6));
+ --lbl-w:84px;
+}
+@media(max-width:420px){:root{--lbl-w:72px}}
+
+/* ===========================================================================
    FOUR MORE GAPS, closed by the home page's CASE-STUDY CARD pass (2026-08-03).
    Same rule as every block above: each is a rung the scale did not have, found
    by counting what the card grid on index.html was actually writing as raw

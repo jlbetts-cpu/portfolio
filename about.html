@@ -175,7 +175,9 @@ body{background:var(--c50);color:var(--c950);font-family:var(--sans);-webkit-fon
    through -- and with no background behind them, if that ever stops being true it will
    be visible immediately instead of being masked by a colour that matches. */
 .abStack{position:relative;width:100%;aspect-ratio:491/501;overflow:hidden;
- border-radius:var(--r-sm);corner-shape:var(--corner);cursor:pointer;
+ /* 520 x 531 measured at 1440 -- cards and images, --r-lg. Was --r-sm 10, the
+    menu-row rung. See the size-class rule in tokens.css. */
+ border-radius:var(--r-lg);corner-shape:var(--corner);cursor:pointer;
  -webkit-user-select:none;user-select:none}
 .abStack:focus-visible{outline:2px solid var(--c950);outline-offset:3px}
 .abShot{position:absolute;inset:0;z-index:0;opacity:0;
@@ -309,6 +311,19 @@ body{background:var(--c50);color:var(--c950);font-family:var(--sans);-webkit-fon
    and their own underline carry every state (see the accent note in tokens.css).
    index.html shipped this at <=768px only -- on a phone, where a fingertip is
    already forgiving -- and not at the widths where a pointer has to find it. */
+
+/* WHY THIS IS --sp-10 AND NOT A CHASE TO 44. Measured at 390: the prose these
+   links sit in has a LINE PITCH OF 25.5px (17px at --lh-prose). A vertical hit
+   expansion bigger than the pitch does not create a bigger target, it creates an
+   AMBIGUOUS one -- it reaches into the line above and the line below, so a tap
+   between two lines belongs to two links. --sp-10 already puts these at 41.5-46.7
+   depending on the page's prose size, which is past the pitch; --sp-12 would make
+   the overlap worse for 2.5px of nominal height.
+   WCAG 2.5.8 has an explicit INLINE EXCEPTION for exactly this -- "the target is
+   in a sentence or its size is otherwise constrained by the line-height of
+   non-target text" -- and it exists because the alternative is worse. This is the
+   one place on the site where 44 is the wrong answer, and it is recorded here so
+   the next audit reads it as a decision rather than a miss. */
 .footIn,.abIn{display:inline-block;
  padding-block:var(--sp-10);margin-block:calc(var(--sp-10) * -1)}
 
@@ -330,7 +345,9 @@ body{background:var(--c50);color:var(--c950);font-family:var(--sans);-webkit-fon
    to the sentence under it, and unmistakably a status rather than a heading.
    "San Francisco" came out: the hero already says "SF product designer" and About's
    at-a-glance says it again, so the footer was the third telling. */
-.footAvail{font-family:var(--sans);font-weight:600;font-size:var(--fs-label);line-height:var(--lh-body);letter-spacing:var(--tr-flat);color:var(--c500);margin:0 0 var(--sp-8)}
+/* .footAvail is gone: the <p class="footAvail">Open to work</p> it styled was
+   removed when the footer sentence absorbed the availability line. The rule had
+   no consumer on any of the seven pages that carried it. */
 .footMark{font-family:var(--sans);font-weight:600;font-size:min(var(--fs-display),13vw);line-height:.9;letter-spacing:var(--tr-display);color:var(--c100);margin:var(--sp-8-16) 0 0;white-space:nowrap;-webkit-user-select:none;user-select:none}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 </style>
