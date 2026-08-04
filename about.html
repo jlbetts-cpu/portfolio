@@ -160,6 +160,8 @@ body{background:var(--c50);color:var(--c950);font-family:var(--sans);-webkit-fon
 .abShots.touched .amsHint{opacity:0;pointer-events:none}
 .abCap{font-family:var(--sans);font-weight:400;font-size:var(--fs-small);letter-spacing:.01em;
  color:var(--c500);margin:clamp(7px,1.6vw,10px) 0 0;filter:url(#inkSm)}
+/* reduced motion: the photograph still CHANGES -- only the throw and the dot travel
+   are suppressed, so the behaviour survives and the motion does not. */
 @media(prefers-reduced-motion:reduce){.abShot.dealing{animation:none}.amsDots i{transition:none}}
 
 @media(max-width:880px){
@@ -299,7 +301,48 @@ body{background:var(--c50);color:var(--c950);font-family:var(--sans);-webkit-fon
   else if(e.key==="ArrowRight"){e.preventDefault();touched();next();}
   else if(e.key==="ArrowLeft"){e.preventDefault();touched();go(i-1);}
  });
- if(!reduce)timer=setInterval(function(){if(!paused&&!document.hidden)next();},4800);
+ /* ── THE SCROLL DRIVER ──────────────────────────────────────────────────────
+    Jayden: "The images used to auto go through on scroll for desktop at certain
+    points -- can we get that back." The [data-photo] anchors survived the move
+    intact on the prose they were attached to; only the driver was deleted.
+    IntersectionObserver, NOT the original rAF scroll loop. The original computed
+    positions against the overlay's own scroll container and re-measured every
+    frame; About is the page now, so the same job is one observer with no
+    per-frame work at all -- which is also the standing rule here about not adding
+    always-on rAF loops. Nothing polls.
+    The trigger band is a 45%/45% rootMargin: a 10% strip across the middle of the
+    viewport, so a section claims the photograph when the reader is READING it,
+    not when its top edge first appears. Scrolling back up reverses cleanly for
+    free -- go() always moves to whichever anchor is in the band, so there is no
+    forward-only path and no leaving/cOn/cOff bookkeeping to get wrong. That whole
+    class of "two photos visible at once" bug is designed out rather than handled.
+    DESKTOP ONLY, as before -- below 881 the column sits under the prose and the
+    reader is not beside it. Tap-to-change stays live at every width, and the
+    4.8s auto-advance stands down where scroll is driving, so the two never fight
+    over the same photograph. */
+ var desktop=matchMedia("(min-width:881px)");
+ var io=null;
+ function bindScroll(){
+  if(io||!desktop.matches||!("IntersectionObserver" in window))return;
+  var ancs=document.querySelectorAll(".abBody [data-photo]");
+  if(!ancs.length)return;
+  io=new IntersectionObserver(function(es){
+   for(var k=0;k<es.length;k++){
+    if(!es[k].isIntersecting)continue;
+    var n=parseInt(es[k].target.getAttribute("data-photo"),10);
+    if(!isNaN(n)&&n>=0&&n<shots.length)go(n);
+   }
+  },{rootMargin:"-45% 0px -45% 0px",threshold:0});
+  [].forEach.call(ancs,function(a){io.observe(a);});
+  clearInterval(timer);   /* scroll is the driver now */
+ }
+ function unbindScroll(){if(io){io.disconnect();io=null;}}
+ if(!reduce&&!desktop.matches)timer=setInterval(function(){if(!paused&&!document.hidden)next();},4800);
+ bindScroll();
+ desktop.addEventListener("change",function(e){
+  if(e.matches){clearInterval(timer);bindScroll();}
+  else{unbindScroll();if(!reduce&&!paused)timer=setInterval(function(){if(!paused&&!document.hidden)next();},4800);}
+ });
 })();
 </script>
 </body></html>
