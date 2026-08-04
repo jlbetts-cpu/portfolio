@@ -205,10 +205,58 @@
      the compact 36px rung needs a >=44px container and >=8px between expanded
      hit areas (§4.2), and a segmented control has neither. */
   .tabs{display:flex;gap:var(--sp-4)}
-  .tab{flex:1 1 0;min-width:0;padding:0 var(--sp-4);
+  .ctl--tab{flex:1 1 0;min-width:0;padding:0 var(--sp-4);
     border-radius:var(--r-md);corner-shape:var(--corner);
     color:var(--c500);justify-content:center}
-  .tab[aria-selected="true"]{background:var(--c75);color:var(--c950);font-weight:600}
+
+  /* ── THREE STATES, THREE CHANNELS, AND NONE OF THEM USED TWICE. Control-system
+     spec §3.4, amended in this pass -- the reasoning is recorded there and the
+     short version is that the selected tab USED to be a --c75 pill with 600 ink,
+     and that is now the site's signature for HOVER. header.css:249 binds
+     --nav-hover-bg to --c75 and --accent-wash was repointed to the same #F1F1F1
+     so the site has one interaction ground. Grey pill + ink + 600 therefore means
+     "your cursor is here" everywhere, and a tab that wore it at rest meant
+     hovering an unselected tab made it look selected.
+
+     header.css's lit nav pill is a real precedent and it is NOT this case: there,
+     the lit item's hover is a deliberate no-op, so nothing in that bar can be
+     hovered into the selected appearance. A five-tab strip has no such
+     protection, which is why the underline had to be a channel of its own.
+
+     HOVER = the grey pill (ink comes free from .ctl:hover). Never on the selected
+     tab -- that is the same :not() protection the nav gives its lit item, and
+     without it hover and selection would collide on the one tab that matters. */
+  /* --accent-wash, not --nav-hover-bg: they are the same #F1F1F1 by design
+     (tokens.css:97 -- "so an interaction ground is one grey everywhere instead of
+     two") but --nav-hover-bg is declared INSIDE .jbNav and does not resolve out
+     here. EXPECTED AUDIT WARNING: token-audit's SANCTIONED_HOVER_FILL regex knows
+     --accent-press, --nav-hover-bg and --mat-*, but not --accent-wash, so this
+     one line reports as hover_background_fill. It is the same sanctioned case;
+     the regex wants --accent-wash adding by that tool's owner. */
+  .ctl--tab:hover:not([aria-selected="true"]){background:var(--accent-wash)}
+
+  /* SELECTED = ink + 600 + the underline, and no ground at all.
+     600 AT REST WOULD BE THE SPEC'S OTHER ANSWER AND IT IS NOT NEEDED HERE.
+     §3.4 asked for 600 throughout because a weight change reflows a tab row.
+     Measured on this strip: tab x-positions are [36, 100.4, 164.8, 229.2, 293.6]
+     with Look selected and identical with Stage selected, because flex:1 1 0
+     gives every tab an equal share whatever it contains. Nothing moves, so the
+     weight is free to carry meaning -- and 400 against 600 is a contrast worth
+     having. That measurement is now in the spec. */
+  .ctl--tab[aria-selected="true"]{color:var(--c950);font-weight:600}
+
+  /* THE UNDERLINE HUGS THE WORD, NOT THE BOX. It is on a span rather than on the
+     button because the button is flex:1 1 0 -- a rule spanning its padding box
+     would be a segmented control's bottom border, which is the "swoosh under the
+     padding" §3.4 already rejects. On the label it is exactly as wide as the
+     label, and it grows with the 600 weight because it is the same box. */
+  .ctlLbl{position:relative;display:block}
+  .ctlLbl::after{content:"";position:absolute;left:0;right:0;
+    bottom:calc(var(--sp-6) * -1);height:var(--focus-w);
+    border-radius:var(--r-hair);background:var(--accent);opacity:0;
+    transition:opacity var(--ease-out-dur) var(--ease-out)}
+  .ctl--tab[aria-selected="true"] .ctlLbl::after{opacity:1}
+  @media(prefers-reduced-motion:reduce){.ctlLbl::after{transition:none}}
 
   /* ── the tab body. Rows are FLUSH: each is its own 44px target, so the 8px
      separation floor -- which exists to keep undersized targets apart -- has
@@ -331,7 +379,7 @@
   /* THE 420 BLOCK IS GONE, both halves of it.
      --lbl-w's fork to 72px moved to tokens.css:521 with the token itself, so the
      rule that used to live here would now be a second copy of a shared decision.
-     .tab{font-size:--fs-caption} was the other half and it was a TYPE-SCALE FORK,
+     .ctl--tab{font-size:--fs-caption} was the other half and it was a TYPE-SCALE FORK,
      which is the thing that is not allowed: a control does not get smaller type
      on a phone, it gets .is-sm's geometry. It also turned out to be unnecessary.
      Measured at 390, where the strip is tightest: each tab's box is 60.4px with
@@ -444,11 +492,13 @@
     <div class="labHead"><h1>Gradient Maker</h1><span>fluid mesh system</span></div>
 
     <div class="tabs" role="tablist" aria-label="Control groups">
-      <button class="ctl tab" type="button" role="tab" id="tabLook"   aria-controls="pLook"   aria-selected="true">Look</button>
-      <button class="ctl tab" type="button" role="tab" id="tabNodes"  aria-controls="pNodes"  aria-selected="false" tabindex="-1">Nodes</button>
-      <button class="ctl tab" type="button" role="tab" id="tabFlow"   aria-controls="pFlow"   aria-selected="false" tabindex="-1">Flow</button>
-      <button class="ctl tab" type="button" role="tab" id="tabOptics" aria-controls="pOptics" aria-selected="false" tabindex="-1">Optics</button>
-      <button class="ctl tab" type="button" role="tab" id="tabStage"  aria-controls="pStage"  aria-selected="false" tabindex="-1">Stage</button>
+      <!-- the label is in a span so the selected underline can be exactly as wide
+           as the word rather than as wide as an equal-flex segment -->
+      <button class="ctl ctl--tab" type="button" role="tab" id="tabLook"   aria-controls="pLook"   aria-selected="true"><span class="ctlLbl">Look</span></button>
+      <button class="ctl ctl--tab" type="button" role="tab" id="tabNodes"  aria-controls="pNodes"  aria-selected="false" tabindex="-1"><span class="ctlLbl">Nodes</span></button>
+      <button class="ctl ctl--tab" type="button" role="tab" id="tabFlow"   aria-controls="pFlow"   aria-selected="false" tabindex="-1"><span class="ctlLbl">Flow</span></button>
+      <button class="ctl ctl--tab" type="button" role="tab" id="tabOptics" aria-controls="pOptics" aria-selected="false" tabindex="-1"><span class="ctlLbl">Optics</span></button>
+      <button class="ctl ctl--tab" type="button" role="tab" id="tabStage"  aria-controls="pStage"  aria-selected="false" tabindex="-1"><span class="ctlLbl">Stage</span></button>
     </div>
 
     <!-- LOOK — what the gradient IS: which preset, which form, which shape, and
@@ -1490,7 +1540,7 @@ fallback,
      live in a panel that never scrolls; it is a reduction of what is on screen,
      not a scrollport. Roving tabindex + arrow keys per the ARIA tabs pattern:
      one Tab stop for the whole strip, arrows to move within it. ---- */
-  var tabs=[].slice.call(document.querySelectorAll(".tab"));
+  var tabs=[].slice.call(document.querySelectorAll(".ctl--tab"));
   function selectTab(el){
     tabs.forEach(function(t){
       var on=(t===el);
