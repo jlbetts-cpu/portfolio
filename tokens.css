@@ -120,6 +120,22 @@
     6px would be a redesign, not a refactor. Named where it sits: one step
     under --r-xs, on the same even grid. */
  --r-2xs:4px;
+
+ /* 15 - HEADER V2 MOTION. Two durations the ladder did not have, named rather
+    than written as literals because the site is already carrying 14 distinct
+    transition durations and 12 distinct easing curves against two defined
+    tokens -- `ease-out` and `cubic-bezier(.2,.8,.2,1)` sit side by side 272
+    times and are NOT the same curve (the keyword has a lazier start and a
+    softer landing), which is exactly why two controls that look identical at
+    rest feel different on hover. The header adds no thirteenth curve: every
+    transition in it is --ease-out.
+    --hover-out-dur is deliberately SLOWER than --ease-out-dur. Hover-in should
+    answer immediately and hover-out should let go gently; equal timings read as
+    mechanical. One rule, applied to every interactive element in the bar.
+    --nav-slide-dur is the active indicator's travel between tabs -- longer than
+    a hover because it crosses real distance, and erring soft after "the
+    animation opening social media is too abrupt". */
+ --hover-out-dur:240ms;--nav-slide-dur:280ms;
 }
 
 /* ===========================================================================

@@ -129,29 +129,39 @@
 @media(max-height:420px){.jbStick:not(.isFixed){position:static}}
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   1 · THE BAR.  One .jbNav, every page:
+   1 · THE BAR.  One .jbNav, every page, in Jayden's own running order:
 
-       [Back]  Work · About me        Jayden          Games · Contact
-                                       Betts
+       Back  Jayden   Work · About me  ......  [Games]  in · ig · mail
+             Betts
 
-   THREE ZONES WITH EQUAL-BASIS OUTER GROUPS. .jbGrp{flex:1 1 0} is what makes
-   the wordmark GEOMETRICALLY centred regardless of how wide each group is --
-   measured at 640.0px against a viewport centre of 640.0px even with an
-   asymmetric Back arrow in the leading group. Do not drop it: without it,
-   adding Back to a sub-page pushes the wordmark off centre.
+   TWO ZONES, NOT THREE, and the wordmark is NOT centred. That is a change he
+   asked for in as many words: "Back, Logo, Work, About Me -- and then on the
+   right side would be the social icons: LinkedIn, Instagram and email."
+   The lockup therefore sits INSIDE the leading group, third-of-five from the
+   left edge rather than at the bar's midpoint.
+
+   WHAT THAT RETIRES, so nobody re-adds it looking for a bug: the equal-basis
+   outer groups (.navGroup{flex:1 1 0}) that made the wordmark geometrically
+   centred regardless of group width -- measured at 640.0px against a viewport
+   centre of 640.0px even with an asymmetric Back arrow in the leading group.
+   It was load-bearing for a centred mark and it is dead weight for a
+   left-aligned one; `justify-content:space-between` on two auto-width groups
+   does the whole job. The proof itself is still worth keeping on file (spec
+   §3.7) in case the mark is ever recentred.
 
    The class is .jbGrp, NOT .navGroup, and that is load-bearing. index.html
-   already defines .navGroup{flex:1 1 0} for the OLD nav and, at <=640px,
-   `.navL{display:none}` -- adopting that name would have silently deleted Work
-   and About me from the phone. Two-class-vs-one-class collisions inside an
-   @media block (which adds no specificity) have caused three bugs in this repo.
+   already defines .navGroup for the OLD nav and, at <=640px, `.navL{display:none}`
+   -- adopting that name would have silently deleted Work and About me from the
+   phone. Two-class-vs-one-class collisions inside an @media block (which adds no
+   specificity) have caused three bugs in this repo.
 
    COMPONENT GEOMETRY, declared once, below. These are deliberately NOT tokens:
    a wordmark's optical correction does not generalise to anything else.
    ═══════════════════════════════════════════════════════════════════════════ */
 .jbNav{
   --bar-item-h:38px;        /* the nav label's ink box */
-  --bar-mark-h:40px;        /* the lockup's box: 40 + 2x6 padding = --nav-h 52 */
+  /* the lockup is now the same single-line object as the tabs, so it takes the
+     same ink box. One height in the bar, not two. */
 
   /* THE MATERIAL, and it is opaque on purpose (§6.3). v1 was --mat-3 (96% white)
      over backdrop-filter:blur(14px), patched below 760px because tokens.css
@@ -179,7 +189,7 @@
 
   width:100%;max-width:var(--bar-open);
   min-height:var(--nav-h);
-  display:flex;align-items:center;gap:var(--sp-8);
+  display:flex;align-items:center;justify-content:space-between;gap:var(--sp-8);
   padding-inline:var(--sp-6);
   font-family:var(--sans);
   background:var(--nav-mat);
@@ -204,9 +214,11 @@
   --nav-active-bg:var(--wash-i1);
 }
 
-/* the three zones */
-.jbGrp{display:flex;align-items:center;gap:var(--sp-8);flex:1 1 0;min-width:0}
-.jbGrpR{justify-content:flex-end}
+/* the two zones. Auto width, pushed apart by the bar's space-between: the
+   leading group sits on the page's left gutter and the socials on the right
+   one, which is the whole of "use the margins". */
+.jbGrp{display:flex;align-items:center;gap:var(--sp-8);flex:0 1 auto;min-width:0}
+.jbGrpR{justify-content:flex-end;flex:0 0 auto}
 .jbNav .jbHome{flex:0 0 auto}
 
 .jbNav a,.jbNav button{
@@ -282,8 +294,116 @@
    stable name. Never a chevron: arrow-left is the most universally read control
    on the web, which is also why it is the one item that needs no label at any
    width. */
-.jbBack{padding:0 var(--sp-12);min-width:var(--tap-min);justify-content:center}
+/* ── THE ICON-ONLY ITEMS: Back, and the three socials ──────────────────────
+   One rule for both, because they are the same kind of object -- a 24-grid
+   Tabler outline glyph in an 18px box inside a 44x44 target, with a name only a
+   screen reader hears. */
+.jbBack,.jbSoc{padding:0 var(--sp-12);min-width:var(--tap-min);justify-content:center}
 .jbBack[hidden]{display:none}
+
+/* ── PLAY — A DESTINATION AND A DISCLOSURE IN ONE SLOT ─────────────────────
+   "Games should be on the left after About Me. Games should just change back to
+   Play, but if you click it it navigates; if you hover it shows the other
+   options with the mood and head. I like the games icon though — keep it."
+
+   THE PATTERN IS A SPLIT BUTTON, and it is not a style choice -- it is the only
+   shape that survives all three input methods:
+     · MOUSE   hover anywhere on .jbPlay opens the menu (his ask), with an open
+               delay and a forgiving close delay so crossing the gap from the
+               label to the list does not dismiss it. hero-engine.js:1845 already
+               owns both, gated on (hover:hover) and (pointer:fine).
+     · TOUCH   there is no hover. Tapping the label NAVIGATES -- it is a real <a>
+               with a real href -- and the caret beside it is a real <button
+               aria-expanded aria-controls> that owns the disclosure. One target
+               each, so a tap can never mean two things.
+     · KEYBOARD Tab reaches the link, Tab again reaches the caret, Enter/Space
+               opens it, the menu items follow in DOM order, Escape closes.
+               hero-engine.js binds the Escape and the outside-click.
+   Hover is therefore never the ONLY route in, which is the failure this pattern
+   exists to avoid.
+
+   THE CARET'S TARGET. Its ink box is 28px so the split does not eat the bar's
+   width budget, and its ::after is pulled 8px past each edge to make a true 44px
+   square -- the same trick the labels use vertically, applied horizontally. */
+/* ONE PATTERN, BOTH ENDS OF THE BAR. Play (left) and Contact (right) are the
+   same object with different payloads, and that is deliberate: two split
+   controls that behaved differently would be worse than none. .jbDisc is the
+   wrapper, .jbDiscGo the destination, .jbDiscCar the disclosure trigger,
+   .jbDiscMenu the panel -- Play's panel happens to be #moodMenu, which
+   hero-engine.js already owns on index.html, and Contact's is a plain list of
+   socials owned by header.js. Same markup shape, same CSS, same timings. */
+.jbDisc{position:relative;display:inline-flex;align-items:center}
+/* THE TABS LOOK THE SAME, and that is the rule: Work, About me, Play and
+   Contact share icon box, stroke, label size, weight, padding, height and hit
+   area. Carrying a disclosure earns exactly one visual difference -- the caret.
+   So .jbDiscGo declares NOTHING about padding or size; it inherits the .jbNav
+   a/button rule verbatim, and only its trailing radius is squared so the caret
+   reads as attached rather than as a sixth tab. */
+.jbNav .jbDiscCar{padding:0;min-width:var(--sp-28);justify-content:center;
+  margin-left:calc(var(--sp-4) * -1)}
+/* a 28px ink box pulled out to a true 44px target, the same ::after trick the
+   labels use vertically, applied horizontally */
+.jbNav .jbDiscCar::after{left:calc(var(--sp-8) * -1);right:calc(var(--sp-8) * -1)}
+.jbDiscCar svg{width:var(--ico-xs);height:var(--ico-xs);flex:0 0 var(--ico-xs);
+  stroke:currentColor;fill:none;stroke-width:1.5;vector-effect:non-scaling-stroke;
+  stroke-linecap:round;stroke-linejoin:round;opacity:.7;
+  transition:transform var(--ease-out-dur) var(--ease-out)}
+.jbDisc.open .jbDiscCar svg{transform:rotate(180deg)}
+/* the two halves light together, so the split reads as one object */
+.jbDisc:hover .jbDiscGo,.jbDisc:hover .jbDiscCar,
+.jbDisc:focus-within .jbDiscGo,.jbDisc:focus-within .jbDiscCar{color:var(--nav-ink-strong)}
+
+/* THE CONTACT PANEL. Play's panel is index.html's #moodMenu and keeps its own
+   skin; this is the one header.css owns, built from the same tokens so the two
+   read as one system. Opens below, right-aligned to the bar's trailing edge. */
+.jbDiscMenu{position:absolute;top:calc(100% + var(--sp-10));right:0;z-index:40;
+  display:flex;flex-direction:column;min-width:var(--sp-32);
+  padding:var(--sp-6);
+  background:var(--nav-mat);box-shadow:var(--nav-rim);
+  border-radius:var(--r-lg);corner-shape:var(--corner);
+  opacity:0;visibility:hidden;transform:translateY(calc(var(--sp-4) * -1));
+  transition:opacity var(--ease-out-dur) var(--ease-out),
+             transform var(--ease-out-dur) var(--ease-out),
+             visibility 0s var(--ease-out-dur)}
+.jbDisc.open .jbDiscMenu{opacity:1;visibility:visible;transform:none;
+  transition:opacity var(--ease-out-dur) var(--ease-out),
+             transform var(--ease-out-dur) var(--ease-out)}
+.jbNav .jbDiscMenu a{justify-content:flex-start;min-width:0;
+  padding:0 var(--sp-10);min-height:var(--tap-min);gap:var(--sp-10);
+  border-radius:var(--r-sm);corner-shape:var(--corner);white-space:nowrap;
+  color:var(--nav-ink-strong)}
+
+/* ── THE SOCIALS, BACK IN THE BAR AND ON THE RIGHT (Jayden's order) ─────────
+   "and then on the right side would be the social icons: LinkedIn, Instagram
+   and email, in the same style and design system."
+
+   READ THAT AGAINST HIS EARLIER NOTE, because they look like opposites and are
+   not. "Social media icons on top not needed" was about .jbTop -- a SEPARATE
+   ROW of chrome stacked above the bar, 58px tall at 1280 and 52px at 390, on
+   the home page only. That row is deleted and stays deleted. The links
+   themselves were never the objection: they now ride in the bar's trailing
+   slot, on all nine pages, at rest, rather than sliding in on scroll.
+
+   "IN THE SAME STYLE AND DESIGN SYSTEM" IS THE OPERATIVE PHRASE, and it is why
+   there is almost nothing here. They are not a second species of control:
+   they are .jbNav anchors carrying .gIco, so they inherit the box, the 1.5
+   stroke, the round joins, currentColor, the 44x44 ::after target, the focus
+   ring and -- the part that matters most -- the SAME hover, which is ink only
+   with no fill. v1 gave them their own .jbSocials block with its own size, its
+   own colour ramp and its own wash; that separate system is exactly the
+   inconsistency he is objecting to across the site, so it is gone rather than
+   restyled. The only declaration they need of their own is the one above,
+   shared with Back.
+
+   THE GLYPHS CHANGE PACK. The old .jbGlyph set was FILLED brand marks; the icon
+   system is Tabler OUTLINE only, never the filled set, because filled and
+   outline are different packs with different optical weight and mixing them is
+   what made the site look like three icon systems. brand-linkedin,
+   brand-instagram and mail are Tabler's own outline drawings at the same 24
+   grid as briefcase, user and device-gamepad.
+
+   ORDER IS HIS: LinkedIn, Instagram, email -- which is NOT the order the old
+   markup shipped (mail first). Left as he gave it. */
 
 /* ── THE LOCKUP — sentence case, TWO STACKED LINES, ragged right ────────────
    UNCHANGED FROM V1 AND DELIBERATELY SO: Jayden called it perfect, and all six
@@ -298,18 +418,10 @@
   --mark-inset:11px;   /* MEASURED optical flush against the pill's leading
                           edge: "J" sidebearing −0.22px vs "Home" −1.20px, so
                           a metric --sp-12 reads ~1px wider on the mark. */
-  --mark-flush:-.049em;/* MEASURED optical flush-left BETWEEN the two lines:
-                          "B" −1.05px vs "J" −0.22px at --fs-mark = 0.83px,
-                          i.e. line 2's ink starts further right than line 1's
-                          at identical metric alignment. */
-  --mark-lh:1.075;     /* MEASURED leading: ink gap = lh − desc("y" 3.49px)
-                          − asc("Betts" 12.24px). 1.075 puts it at 0.15em.
-                          The shipped 1.04 collapsed it to 0.033em — the "y"
-                          all but touching the "B". */
-  font-weight:600;font-size:var(--fs-mark);line-height:var(--mark-lh);
+  font-weight:600;font-size:var(--fs-mark);line-height:var(--lh-flat);
   letter-spacing:var(--tr-mark);color:var(--nav-ink-strong);
   padding:0 var(--sp-12) 0 var(--mark-inset);gap:var(--sp-6);
-  min-height:var(--bar-mark-h);
+  min-height:var(--bar-item-h);
   /* sentence case, explicitly: five pages shipped text-transform:uppercase on
      the old mark and one of them will out-specify a bare inherit. */
   text-transform:none;
@@ -318,9 +430,26 @@
    the single line needed −1.06px because a 17px line and a 14px line centre on
    different baselines. Stacked, "Jayden"'s ascender above line 1 and "Betts"'s
    near-zero descender below line 2 balance the block to within 0.03px. */
-.jbMark{display:flex;flex-direction:column;align-items:flex-start;text-align:left}
+/* SINGLE LINE, and this is the one thing in the lockup block that changed.
+   Jayden, seeing it in the finished bar: "the Jayden Betts looks a bit bad right
+   now" -- then, given the options, "try one line first, or just update it to be
+   better." It is a PLACEMENT problem, not a design problem: measured, the
+   stacked mark is 61 x 34px in a row where every other item is a single line
+   about 18px tall, so a two-line block reads as foreign however good the mark
+   is. Single-line measures 100 x 17.8px -- within 0.2px of the tab labels'
+   optical height -- at the cost of 39px more width, which is charged to the
+   390px budget and reported there rather than waved through.
+
+   WHAT IS KEPT, because it is what he actually approved ("I love the Betts with
+   the capital B and then the rest lowercase... that is perfect"): sentence case,
+   weight 600, --fs-mark 17px, and --tr-mark -.008em (the old .08em was a
+   CAPITALS tracking value and opens sentence case up far too far). font-stretch
+   stays normal -- lowercase stops width-matching 2.75pp below the axis floor,
+   so compressing it is a rounding error that costs legibility.
+   --mark-flush and --mark-lh are retired with the stack: both were corrections
+   for line 2 sitting under line 1, and there is no line 2. */
+.jbMark{display:flex;flex-direction:row;align-items:baseline;gap:.28em;text-align:left}
 .jbL1,.jbL2{display:block;font-stretch:normal}   /* 85.8% was the capitals mark's */
-.jbL2{margin-left:var(--mark-flush)}
 /* the lockup never wears the active pill: on home it is aria-current="page"
    because it is where you are, and a pill on the wordmark would make the
    brand the loudest object in the bar. */

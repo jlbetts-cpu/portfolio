@@ -107,7 +107,88 @@ if(aboutBtn && aboutBtn.tagName === "BUTTON"){
   if(back) back.addEventListener("click", closeIfOpen);
 }
 
-/* ── 3 · THE MOOD DOCK is not wired here, and that is deliberate. It moved out
+/* ── 3 · THE SPLIT CONTROLS ────────────────────────────────────────────────
+   A destination and a disclosure in one slot, at both ends of the bar: Play on
+   the left, Contact on the right. Jayden asked for hover, and hover alone is
+   not shippable, so each control has three independent routes in:
+
+     MOUSE     hovering the wrapper opens it after OPEN_DELAY and closes it
+               after CLOSE_DELAY. Both delays matter. The open delay is what
+               stops the menu springing at you when the pointer merely crosses
+               the item on its way somewhere else -- the same abruptness he
+               objected to once already. The close delay is what lets you cross
+               the gap between the label and the panel without it vanishing.
+               Gated on (hover:hover) and (pointer:fine): on touch, mouseenter
+               fires on tap and would open and close in one gesture.
+     TOUCH     the label is a real <a href> and navigates. The caret beside it
+               is a real <button aria-expanded aria-controls> with its own
+               44x44. One target each, so a tap never means two things.
+     KEYBOARD  Tab reaches the link, Tab again the caret, Enter/Space opens,
+               the panel's links follow in DOM order because the panel is the
+               caret's next sibling. Escape closes and returns focus to the
+               caret. Moving focus out of the wrapper closes it.
+
+   #moodbar is deliberately EXCLUDED: hero-engine.js:1812-1901 already owns that
+   one on index.html -- its open, its close, its clampMenuX, its chevron, its
+   hover, its outside-click and its Escape. Two controllers on one button
+   toggle each other and the menu silently stops working, which is the exact
+   bug play-games.js documents at its own line 51. */
+var DISC_OPEN_DELAY  = 120;   /* pointer must dwell before the panel commits */
+var DISC_CLOSE_DELAY = 260;   /* forgiving enough to cross the gap to the panel */
+
+[].forEach.call(nav.querySelectorAll(".jbDisc"), function(wrap){
+  if(wrap.id === "moodbar") return;                 /* hero-engine's, not ours */
+  var car  = wrap.querySelector(".jbDiscCar");
+  var menu = wrap.querySelector(".jbDiscMenu");
+  if(!car || !menu) return;
+  var openT = 0, closeT = 0;
+
+  function open(){
+    clearTimeout(openT); clearTimeout(closeT);
+    wrap.classList.add("open"); car.setAttribute("aria-expanded","true");
+  }
+  function close(){
+    clearTimeout(openT); clearTimeout(closeT);
+    wrap.classList.remove("open"); car.setAttribute("aria-expanded","false");
+  }
+  function isOpen(){ return wrap.classList.contains("open"); }
+
+  car.addEventListener("click", function(e){
+    e.preventDefault(); e.stopPropagation();
+    isOpen() ? close() : open();
+  });
+
+  /* keyboard: reaching any part of the control opens it, leaving closes it.
+     focusout fires before focusin on the new target, so the check is deferred
+     one tick -- otherwise tabbing from the caret INTO the panel closes it. */
+  wrap.addEventListener("focusin", open);
+  wrap.addEventListener("focusout", function(){
+    setTimeout(function(){ if(!wrap.contains(document.activeElement)) close(); }, 0);
+  });
+  wrap.addEventListener("keydown", function(e){
+    if(e.key !== "Escape" || !isOpen()) return;
+    e.stopPropagation(); close(); car.focus();
+  });
+
+  if(window.matchMedia && matchMedia("(hover:hover) and (pointer:fine)").matches){
+    wrap.addEventListener("mouseenter", function(){
+      clearTimeout(closeT);
+      if(!isOpen()) openT = setTimeout(open, DISC_OPEN_DELAY);
+    });
+    wrap.addEventListener("mouseleave", function(){
+      clearTimeout(openT);
+      closeT = setTimeout(function(){
+        if(!wrap.matches(":hover") && !wrap.contains(document.activeElement)) close();
+      }, DISC_CLOSE_DELAY);
+    });
+  }
+
+  document.addEventListener("click", function(e){
+    if(isOpen() && !wrap.contains(e.target)) close();
+  });
+});
+
+/* ── 4 · THE MOOD DOCK is not wired here, and that is deliberate. It moved out
    of the header as the same element it always was (#moodbar / #moodBtn /
    #moodMenu), so hero-engine.js:1822-1901 still owns opening it, clamping it,
    the chevron and the mood dispatch. Nothing was left for this file to do. */
