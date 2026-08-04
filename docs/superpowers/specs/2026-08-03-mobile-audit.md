@@ -636,3 +636,161 @@ still does not scroll in either axis.
 **Score: 6 broken + 12 poor → 2 broken + 9 poor.** Closed: B1, B2, B3, B4, P4, P5, P8,
 and P11's one real case. Outstanding: B5, B6, and P1, P2, P3, P6, P7, P9, P10, P12 —
 every one of them flagged above with its measurement and its recommended option.
+
+---
+
+# FIX ROUND 2 — 2026-08-03, branch `broadcast-match`
+
+Worked from `a8766ed`. Three commits: `0e05bc0` (the header round, which closes B5),
+`7ba6c08` (index.html's radius scale + the About overlay's control-system pass),
+`0cfd819` (P1, P3, P6, B6/P7, P12). Both gates green at every commit —
+`tools/hm-check.py` → `syntax OK`, `tools/token-audit.py` → `errors=0 STATUS=PASS`.
+
+**Method.** `python3 -m http.server 8973 --bind 127.0.0.1`, addressed only as
+`127.0.0.1`. Headless Chrome driven over CDP with
+`Emulation.setDeviceMetricsOverride`, which is **not** subject to the 500px window
+clamp the previous round worked around with an iframe — `innerWidth === 390` and
+`=== 320` asserted on every run, and reported in every table below. Every run used
+a fresh `--user-data-dir`, so no run could read a stale stylesheet.
+
+## CLOSED
+
+### B5 — Back/Work collision on the five case studies ✅ `0e05bc0`
+
+Closed by a **different fix than either of the two the audit offered**, because
+Jayden gave a third: *"I think the back button should just replace the logo on
+case study pages."* The `.jbHome` anchor is deleted from all five case studies and
+`.jbBack` is the leading slot's only control there, exactly as the mark is the
+leading slot's only control on the other four pages.
+
+That removes the cause rather than compensating for it. The collision was
+`.jbGrpL` holding 92px of content (mark + gap + arrow) in ~53px of space at 320px
+and spilling into `.jbGrpC`, where `Work` painted on top and won the hit test. One
+control cannot overflow a slot built for one control.
+
+| viewport | `elementFromPoint` at 15 / 35 / 50 / 70 / 90% across Back |
+|---|---|
+| 320 | Back to work ×5 *(was `Work` ×5)* |
+| 344 | Back to work ×5 *(was `Work` ×5)* |
+| 360 | Back to work ×5 |
+| 390 | Back to work ×5 |
+
+Back's box is a true 44×44 with a 44px `::after` target and points at
+`index.html` — the home page — so the journey home is still one tap. The arrow
+takes the mark's `--ico-mark` 22px box rather than a nav icon's 18px, and the
+leading control's box is declared with the same properties as `.jbHome`'s: without
+that, `.jbBack{padding:0 var(--sp-12)}` at (0,1,0) lost to
+`.jbNav a,.jbNav button{padding:0 var(--sp-16)}` at (0,1,1) and the centre landed
+at 73 on the case studies against 68 elsewhere.
+
+### B6 / P7 — the delete button sat on the head it deletes ✅ `0cfd819`
+
+The audit was right that every honest fix moves the delete out of the thumbnail's
+corner, and that this means restructuring the tile. Authorised and done.
+
+`.mhItem` is two rows — the head, then the delete — and `.mhX` is `position:static`.
+The two controls cannot intersect *by construction*, which is the only version of
+this that stays fixed. The 44px target grows **downward** into the panel's padding;
+the old `::before` grew it *into* the thumbnail, making the bug worse. Applied
+identically in `index.html`'s `.jbPlayMenu` and in `play.css`, which are one
+component rendered in two places.
+
+**Correction to the audit:** `headmaker.html` has **zero** `.mhX` in its markup and
+links neither `play.css` nor any roster CSS — the saved-heads roster left that page
+before this round. B6 as written no longer reproduces there. The live copies are
+index's Play panel and `play.css` (which serves `play.html`).
+
+### P1 — before/after phone shots at 163px ✅ `0cfd819`
+
+| | 390 | 320 |
+|---|---|---|
+| `.baGrid` columns | `342px` *(was `163px 163px`)* | `272px` *(was `128px 128px`)* |
+| `.shot.phone img` | **342px** from a 460px source | **272px** |
+| downscale | 0.74× *(was 0.36×)* | 0.59× |
+
+**The comparison does change and that is the trade**, stated because the component
+exists to let you see two screens at once: they are now sequential rather than
+side by side. What replaces the side-by-side is adjacency plus the `.baLabel`
+above each shot, which already says which is which. At 163px neither screen was
+legible, so there was nothing to compare.
+
+The `@media(max-width:560px)` rule intended to handle this was half-dead exactly as
+the audit predicted — a later base `.baGrid{grid-template-columns:repeat(2,minmax(0,270px))}`
+out-ordered it and only `gap` survived. The new block is appended at the foot of
+both sheets with a standing note that nothing may follow it.
+
+### P3 — `play.html`'s live scoreboard was 10–11px ✅ `0cfd819`
+
+| | before | after |
+|---|---|---|
+| `.sbNm` team names | 10.5px | `--fs-caption` 12px |
+| `.hmScore small` ("First to 5") | `--fs-label` 13px | `--fs-small` 15px |
+| `.hmScoreEnd` chip | `--fs-micro` 11px | `--fs-label` 13px |
+| `.sbFace` | 24px | 22px — pays for the width |
+
+Archivo stays; the typeface was never the finding.
+
+### P6 — nav items 4px apart at ≤640px ✅ `0cfd819`
+
+`--sp-4` → `--sp-8` on `.jbNav` and `.jbGrp`. The targets were always a true 44×44
+via the `::after` expander; the problem was that adjacent targets effectively
+touched, so a miss landed on the neighbour rather than on nothing. The audit
+measured an icons-only sub-page bar at 327.8px against a 366px budget at 390, and
+this spends 16 of the 38px of slack. Re-swept: no page overflows at 390 or 320.
+
+### P12 — the tournament poster hid 384px behind an unadvertised scroll ✅ `0cfd819`
+
+A sticky `::after` **inside** the scroll box fades the panel's trailing edge to the
+page's own ground and labels it. Inside the scroller rather than floating over it,
+so a panel whose content fits never generates a second scroll page to put the cue
+on; it scrolls away under itself via `scroll-timeline` where that exists, and is
+statically visible where it does not.
+
+## STILL OPEN, with measurements
+
+### P2 — `ucdavis.html`'s desktop board renders 342px from 1152px
+
+Unchanged. This is a **content decision, not a CSS one**: nothing in a 1152px
+desktop screenshot is legible at 342px, and no responsive rule makes it so. The
+options are a phone-appropriate crop of the same artefact, a tap-to-open
+full-screen view, or dropping it on mobile. All three change what Jayden's case
+study says on a phone, which is his call and not a bug fix.
+
+### P9 — 13px type across the case studies
+
+Unchanged, and this one is a **token-level change that moves every page at once**.
+`--fs-label:13px` drives `.eyebrow`, `.rlabel`, `.kicker`, `.subKick`, `.baLabel`,
+`.playerKick` and `.tvTab`. Raising it to 14 collapses the gap to `--fs-nav` (14)
+and leaves the scale reading 15 / 14 / 12 / 11, which is a scale change rather than
+a size fix. Worth doing deliberately with the type spec open, not as the tail end
+of a mobile pass.
+
+### P10 — index's hero overflows itself by 20px
+
+Left as the original audit recommends: `#fsh.floorshadow`, decorative at
+`opacity:.46`, swallowed by `html{overflow-x:clip}`.
+
+## Header acceptance test — re-run
+
+The test's subject changed with the leading-slot rule: it is now **the leading
+control's centre**, which is the mark on `index`, `play`, `headmaker` and
+`gradientlab` and the back arrow on the five case studies.
+
+| | 1280 | 390 | 320 |
+|---|---|---|---|
+| `.jbStick` height | **72** ×9 | **72** ×9 | **72** ×9 |
+| inset left / right | **0 / 0** ×9 | **0 / 0** ×9 | **0 / 0** ×9 |
+| leading control centre | **68** ×9 | **44** ×9 | **44** ×9 |
+| `.jbNav` height | **52** ×9 | **52** ×9 | **52** ×9 |
+
+## Regression sweep
+
+- **390 × 844** — `scrollWidth === 390` on all nine.
+- **320 × 844** — `scrollWidth === 320` on all nine.
+- **320 × 256 (400% zoom)** — `scrollWidth === 320` on all nine.
+- **Exactly one `aria-current` per page**, all nine: index → Work, the five case
+  studies → Work, play → Play, headmaker → Play, gradientlab → Play.
+
+**Score: 2 broken + 9 poor → 0 broken + 5 poor.** Closed this round: B5, B6, P1,
+P3, P6, P7, P12. Outstanding: P2, P9, P10, and P11's `safe-area-inset` note
+(established harmless).

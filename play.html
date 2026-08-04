@@ -86,7 +86,13 @@
     --accent if the accent ever moves again. ---- */
  :root{--sky-h:56vh}
  body.pTeamOn{--sky-h:36vh}
- .playSky{position:fixed;left:0;right:0;top:0;bottom:0;z-index:-1;pointer-events:none;
+ /* z-index:0, NOT -1, and that is not a nudge. body carries its own
+    background:var(--c50) (line 24 above, and play.css:58 under it), and a negative-z
+    descendant paints BEFORE its ancestor's in-flow background box -- so at -1 the sky
+    rendered underneath the page's own white and the whole thing was invisible. At 0 it
+    joins the positioned-descendant layer, above body's background and below .hero, which
+    comes after it in source order and so paints over it at the same z. */
+ .playSky{position:fixed;left:0;right:0;top:0;bottom:0;z-index:0;pointer-events:none;
   background:
    radial-gradient(140% 46% at 50% var(--sky-h),color-mix(in oklab,var(--accent) 30%,var(--c50)) 0,transparent 68%),
    linear-gradient(180deg,

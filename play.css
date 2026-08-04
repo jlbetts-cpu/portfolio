@@ -196,6 +196,146 @@ body.hmSoccer .moodMenu .moodItem:not(#endGame),body.hmSoccer .moodMenu .moodGo{
  100%{transform:scale(1) translate(0,0)}
 }
 @media(prefers-reduced-motion:reduce){.hmCamBack.hmCamPunch,.hmCamFront.hmCamPunch{animation:none}}
+
+/* ================= THE PITCH PLANET, AND THE WATER UNDER THE HEADS =================
+   "In play.html they should be sitting on that gradient planet and jumping around on it -- so just
+   on the pitch." Plus a reflection under the heads.
+
+   The geometry is settled in docs/superpowers/specs/2026-08-02-planet-pitch-research.md and it is
+   render-curved / physics-flat: play-engine.js adds arcY(x) as a render offset at six transform
+   sites and never tells survey(), floorY, __hmFeetY or soccer's geo() about it. The four --pl-*
+   custom properties below are written on .hero by planetGeo(), once per layout, and they are shared
+   by all three elements so the drawn horizon and the arc the heads walk are the SAME ellipse rather
+   than two things tuned to look alike. --pl-b is solved from the sag, so they cannot drift apart.
+
+   Not NASA Blue Marble. images/earth-map-src.jpg is 2.51 MB and is reserved for §3.9's lobby globe,
+   where a recognisable Earth is the joke; continents under a football pitch read as a map, not as
+   ground, and a photographic Earth breaks nearly every clause of gradient-reference-notes.md §A at
+   once. This surface is Jayden's own Amethyst preset instead -- his Gradient Lab export, judged the
+   best planet of the three he saved (one dominant light zone, few masses, real limb shading). It is
+   built here as ordered gradient passes so the taste call can be made live; the moment a baked
+   .webp lands it replaces the `background` on .hmPlanet and the mask, tokens and geometry all stay.
+
+   Checked against the contract clause by clause:
+     A1 layered passes, ordered occlusion -- five passes, not one linear-gradient.
+     A2 tension edges -- the lit flank is taut (a 26% stop), the trailing side feathers to 72%.
+     A4 the rim escapes the silhouette -- .hmSky carries a warm arc that straddles the horizon and
+        bleeds ABOVE it, which is the single strongest "this is a planet, not a hill" cue.
+     A5 grain is static and chunky, concentrated in the transition, never animated.
+     A6 spherical form -- the surface taper IS the ellipse, and it darkens toward the limb.
+     B1 corner-anchored, partially cropped -- the limb sits a full pitch width off-screen on each
+        side. A centred orb is a poster, a cropped orb is UI, and an on-screen limb is exactly what
+        makes it read as "a ball they are standing on", the named failure mode.
+   Cost: three elements, zero JS per frame, zero canvas, zero WebGL, zero rAF, and no new blur --
+   play.css still declares exactly two filter:blur() rules and neither of them is here. */
+:root{
+ /* Amethyst, gradientlab.html:866-870 -- Jayden's own export, kept as tokens so a rebake is a
+    five-value edit. Definitions have to be literal; every USE below goes through the token. */
+ --planet-lit:250,249,255;    /* #f0eff7, the light zone */
+ --planet-mid:160,122,228;    /* #a07ae4, the body of the surface */
+ --planet-core:158,53,229;    /* #9e35e5, the one small accent mass */
+ --planet-deep:147,21,164;    /* #9315a4, the flank away from the light */
+ --planet-rim:255,246,232;    /* the specular. It belongs to the light, not to a stroke. */
+ --planet-lx:38%;             /* the dominant light, deliberately OFF pitch centre: a symmetrically
+                                 lit arch reads as an arch (A2), and the arc has to read as a world. */
+ --planet-h:340px;            /* the shared box: 120px of sky above the horizon, 220px of ground below */
+}
+.hmPlanet,.hmSky,.hmWater{position:absolute;left:0;right:0;top:var(--pl-top,62%);height:var(--planet-h);
+ pointer-events:none;opacity:0;transition:opacity .6s var(--ease-out)}
+body.hmSoccer .hmPlanet,body.hmSoccer .hmSky,body.hmSoccer .hmWater{opacity:1}
+
+/* THE GROUND. Masked to the ellipse whose top edge IS arcY, so the horizon and the feet cannot
+   disagree -- the failure the research names as fatal is heads floating a quarter of a head above a
+   drawn curve. Passes are listed topmost-first, the way CSS stacks them. */
+.hmPlanet{z-index:0;
+ background:
+  /* 5 - the specular, ON the horizon and just inside the silhouette */
+  radial-gradient(var(--pl-a,1920px) var(--pl-b,460px) at 50% var(--pl-cy,580px),
+   rgba(var(--planet-rim),0) 99.52%,rgba(var(--planet-rim),.9) 99.74%,rgba(var(--planet-rim),0) 100%),
+  /* 4 - the light zone: taut on the lit flank, long feathered dissolve behind it */
+  radial-gradient(54% 42% at var(--planet-lx) 36%,
+   rgba(var(--planet-lit),.95) 0%,rgba(var(--planet-lit),.42) 26%,rgba(var(--planet-lit),0) 72%),
+  /* 3 - the one small accent mass */
+  radial-gradient(15% 20% at 69% 41%,rgba(var(--planet-core),.26) 0%,rgba(var(--planet-core),0) 74%),
+  /* 2 - the deep flank, opposite the light, carrying the limb shading */
+  radial-gradient(62% 48% at 88% 44%,rgba(var(--planet-deep),.30) 0%,rgba(var(--planet-deep),0) 70%),
+  /* 1 - the surface itself, falling away from the horizon to nothing well before the box ends */
+  linear-gradient(180deg,rgba(var(--planet-mid),0) 33%,rgba(var(--planet-mid),.46) 36%,
+   rgba(var(--planet-mid),.20) 62%,rgba(var(--planet-mid),0) 92%);
+ -webkit-mask-image:radial-gradient(var(--pl-a,1920px) var(--pl-b,460px) at 50% var(--pl-cy,580px),#000 99.6%,transparent 100%);
+         mask-image:radial-gradient(var(--pl-a,1920px) var(--pl-b,460px) at 50% var(--pl-cy,580px),#000 99.6%,transparent 100%)}
+/* A5: static, CHUNKY (CSS-pixel cells), concentrated in the transition, cores clean, never animated.
+   Two co-prime cell sizes rather than one, so the pattern does not moire against itself, and no
+   feTurbulence data URI: the contract asks for pixel cells, and a nested url(#id) inside a data URI
+   is also what makes tools/token-audit.py's paren matcher lose the rest of the declaration (the same
+   artifact .iris::before at line 96 already produces). When the baked .webp lands the grain comes
+   with it -- A5 says it belongs in the bake -- and this rule is deleted. */
+.hmPlanet::before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.10;
+ mix-blend-mode:soft-light;background-blend-mode:overlay;
+ background-image:
+  repeating-conic-gradient(rgba(18,18,18,.5) 0% 25%,rgba(253,253,253,.5) 0% 50%),
+  repeating-conic-gradient(rgba(18,18,18,.5) 0% 25%,rgba(253,253,253,.5) 0% 50%);
+ background-size:3px 3px,5px 5px;
+ -webkit-mask-image:linear-gradient(180deg,transparent 33%,#000 40%,transparent 74%);
+         mask-image:linear-gradient(180deg,transparent 33%,#000 40%,transparent 74%)}
+
+/* A4 + the fifth "reads as a planet" cue: the rim that escapes the silhouette upward, and a band of
+   sky that is not the page background. Unmasked on purpose -- everything here lives OUTSIDE the
+   ellipse, which is precisely what .hmPlanet's mask cuts away. */
+.hmSky{z-index:0;
+ background:
+  radial-gradient(var(--pl-a,1920px) var(--pl-b,460px) at 50% var(--pl-cy,580px),
+   rgba(var(--planet-rim),0) 99.98%,rgba(var(--planet-rim),.5) 100.12%,rgba(var(--planet-rim),0) 101.4%),
+  radial-gradient(var(--pl-a,1920px) var(--pl-b,460px) at 50% var(--pl-cy,580px),
+   rgba(var(--planet-mid),0) 100%,rgba(var(--planet-mid),.085) 101.2%,rgba(var(--planet-mid),0) 109%)}
+
+/* THE WATER. One shared overlay whose ripple is a background-position keyframe: the motion lives in
+   the water, so the reflection elements only ever translate and never re-rasterise, and this needs
+   no rAF slot and no JS at all. Two nested masks rather than one composited pair -- the outer
+   element takes the same ellipse as the ground (so the waterline follows the horizon), the inner
+   ::before takes the vertical falloff. mask-composite is still prefix soup; nesting is not. */
+.hmWater{z-index:1;
+ -webkit-mask-image:radial-gradient(var(--pl-a,1920px) var(--pl-b,460px) at 50% var(--pl-cy,580px),#000 99.6%,transparent 100%);
+         mask-image:radial-gradient(var(--pl-a,1920px) var(--pl-b,460px) at 50% var(--pl-cy,580px),#000 99.6%,transparent 100%)}
+.hmWater::before{content:"";position:absolute;inset:0;
+ background-image:repeating-linear-gradient(180deg,
+  rgba(var(--planet-rim),.20) 0 1px,rgba(var(--planet-rim),0) 1px 7px,
+  rgba(var(--planet-deep),.055) 7px 8px,rgba(var(--planet-deep),0) 8px 16px);
+ background-size:100% 16px;
+ -webkit-mask-image:linear-gradient(180deg,transparent 33%,rgba(0,0,0,.9) 41%,rgba(0,0,0,.34) 64%,transparent 86%);
+         mask-image:linear-gradient(180deg,transparent 33%,rgba(0,0,0,.9) 41%,rgba(0,0,0,.34) 64%,transparent 86%);
+ animation:hmWaterDrift 9s linear infinite}
+/* -64px is exactly four 16px periods, so the loop is seamless. background-position only: compositor
+   work, no layout, no paint of anything else, and the browser throttles it off-screen for free. */
+@keyframes hmWaterDrift{to{background-position:0 -64px}}
+@media(prefers-reduced-motion:reduce){.hmWater::before{animation:none}}
+
+/* THE REFLECTION. One silhouette per head, on the head's own cut-out -- see play-engine.js for why
+   this is neither a clone of the head rig nor -webkit-box-reflect. transform-origin matches the head
+   root's 50%/94% so the two rotate about the same point and the mirror composes as
+   translate() scale(1,-1) rotate(theta) with no negated angle anywhere.
+   The falloff is a mask, never a blur. The mask runs `to top` because after the flip the element's
+   BOTTOM is the waterline and its top is the crown -- the reflection has to be solid where it meets
+   the water and gone at the far end, not the other way round.
+   saturate(.5) is the "colour, not detail" rule: detail in a reflection is what makes it look like a
+   copy rather than a reflection. It is static, so it rasterises once and never again -- the per-frame
+   writes are transform and opacity only, both compositor-only.
+   opacity is written by the engine every frame (0 off the pitch), so it carries no transition here:
+   a transition would fight the air-height falloff. */
+.hmRefl{position:absolute;left:0;top:0;z-index:1;pointer-events:none;opacity:0;
+ transform-origin:50% 94%;will-change:transform,opacity;
+ background-repeat:no-repeat;background-size:100% 100%;filter:saturate(.5);
+ -webkit-mask-image:linear-gradient(to top,#000 0%,rgba(0,0,0,.4) 40%,transparent 82%);
+         mask-image:linear-gradient(to top,#000 0%,rgba(0,0,0,.4) 40%,transparent 82%)}
+/* Reflections are the first thing to drop on a phone (research §5), where the full-screen arena also
+   puts the waterline on the viewport floor with nothing under it to reflect into. */
+@media(pointer:coarse){.hmRefl{display:none}}
+/* Every piece of this degrades to nothing. Without mask-image the arc becomes a rectangle and the
+   reflection becomes a hard-edged duplicate -- both worse than the pitch as it was, so take the
+   pitch as it was. */
+@supports not ((-webkit-mask-image:radial-gradient(#000,#0000)) or (mask-image:radial-gradient(#000,#0000))){
+ .hmPlanet,.hmSky,.hmWater,.hmRefl{display:none}}
+
 /* Scorer lower-third: reads only from the goal event + head roster, never an invented name.
    Enters from the left (the punch's own motion axis), holds, leaves. Positioned low on the
    pitch so it never overlaps .hmScore, which stays put at the top throughout. */
