@@ -311,6 +311,15 @@
    `rgba(255,255,255,.15) 0 1px 1px inset`. It reads on a dark ground and is
    invisible on a light one, so it ships here and nowhere else. It is an INSET
    highlight, not a cast shadow -- the rule in §6 is about elevation. */
+/* The surface can now CHANGE at runtime on index.html -- the Delight mood flips the bar
+   to ink for the length of the disco and back (hero-engine.js: heroNavSurface). Without
+   a transition that is a hard luminance snap on a 1200px bar. It rides the existing
+   --hover-out-dur/--ease-out pair rather than a new duration: the bar already agreed to
+   travel at that speed on hover, and a second timing would be a second opinion. */
+.jbNav{transition:background-color var(--hover-out-dur) var(--ease-out),
+                 box-shadow var(--hover-out-dur) var(--ease-out),
+                 color var(--hover-out-dur) var(--ease-out)}
+@media(prefers-reduced-motion:reduce){.jbNav{transition:none}}
 .jbNav[data-surface="ink"]{
   --nav-mat:var(--mat-i3-solid);
   --nav-rim:var(--rim-i2),var(--rim-top);

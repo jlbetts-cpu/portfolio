@@ -60,84 +60,19 @@ if(stick && !stick.classList.contains("isFixed") && typeof IntersectionObserver 
   },{threshold:0}).observe(probe);
 }
 
-/* ── 2 · ABOUT ─────────────────────────────────────────────────────────────
-   On index.html About is a <button> that toggles the existing in-page takeover;
-   hero-engine.js already binds it by id (#navAbout) and already routes the
-   #about hash, so this adds no opening logic. It mirrors the overlay's state
-   into the bar: which item is lit, aria-expanded, and whether the Back item is
-   showing. On every other page About is a plain link to index.html#about.
-
-   Watching body's class list rather than patching openAbout/closeAbout keeps
-   the two halves independent -- the overlay has four different exit paths
-   (button, Esc, popstate, the head) and all four land on the same class. */
-var aboutBtn = nav.querySelector('[data-nav-item="about"]');
-if(aboutBtn && aboutBtn.tagName === "BUTTON"){
-  var rest = body.getAttribute("data-nav") || "home";
-  /* The overlay's own back button and title were retired when the lockup became
-     the back affordance; v2 splits that back out into a real item (§5.1), so the
-     home page ships a hidden .jbBack and this is what reveals it. Without it the
-     overlay would have no visible exit in the chrome at all -- the exact class
-     of "moved without what it depended on" this pass was told to watch for. */
-  var back = nav.querySelector(".jbBack");
-
-  /* THE LIT ITEM IS EXCLUSIVE, and until round 11 it was not. Jayden: "About has
-     both Work and About highlighted for some reason." The cause is the shape of
-     the decision to keep About as an in-page takeover rather than a route: Work
-     carries aria-current="page" because the document IS the home page, and this
-     function added aria-current to About on top of it. Nothing cleared the first,
-     so two items claimed the current state at once -- a real accessibility fault
-     as well as a visual one, since two aria-current="page" elements in one nav
-     is invalid.
-     THE FIX IS TO MAKE THE STATE AUTHORITATIVE RATHER THAN ADDITIVE. The bar's
-     resting lit item is recorded once, at load, with the exact attribute VALUE
-     it shipped ("page" on index, "true" on the sub-pages) so restoring it cannot
-     silently change its semantics. While the overlay is open every other item is
-     cleared and About alone is lit; on close the recorded item is put back.
-     It is driven off body.about-open, which is the same class the MutationObserver
-     below already watches -- so all four of the overlay's exits (the button,
-     Escape, popstate and the head) restore Work without any of them knowing this
-     code exists.
-     THE HANDOFF IS THE ONE MOVE THE TRAVELLING PILL WAS BUILT FOR: Work and
-     About are siblings in the same group and the document never unloads, so the
-     indicator slides between them instead of blinking. Every other change of lit
-     item in this bar is a navigation and cannot be animated. */
-  var restLit = nav.querySelector('[aria-current]:not(.jbHome)');
-  var restLitVal = restLit ? restLit.getAttribute("aria-current") : null;
-
-  var sync = function(){
-    var open = body.classList.contains("about-open");
-    aboutBtn.setAttribute("aria-expanded", String(open));
-    body.setAttribute("data-nav", open ? "about" : rest);
-    if(back) back.hidden = !open;
-
-    if(open){
-      /* exactly one lit item: clear whatever the page shipped, light About */
-      if(restLit && restLit !== aboutBtn) restLit.removeAttribute("aria-current");
-      aboutBtn.setAttribute("aria-current","true");
-    }else{
-      aboutBtn.removeAttribute("aria-current");
-      if(restLit && restLit !== aboutBtn) restLit.setAttribute("aria-current", restLitVal);
-    }
-
-    /* the mark stops being "where you are" while a takeover is open */
-    if(home){
-      if(open) home.removeAttribute("aria-current");
-      else if(home.dataset.navHome === "1") home.setAttribute("aria-current","page");
-    }
-  };
-  new MutationObserver(sync).observe(body,{attributes:true,attributeFilter:["class"]});
-  sync();
-
-  /* While the overlay is open, the lockup and Back close it rather than
-     reloading the page -- same destination, no navigation. hero-engine owns
-     closeAbout. */
-  var closeIfOpen = function(e){
-    if(!body.classList.contains("about-open")) return;
-    if(typeof window.closeAbout === "function"){ e.preventDefault(); window.closeAbout(); }
-  };
-  if(home) home.addEventListener("click", closeIfOpen);
-  if(back) back.addEventListener("click", closeIfOpen);
-}
+/* ── 2 · ABOUT ───────────────────────────────────────────
+   78 lines stood here to keep the bar honest while an in-page About takeover was
+   open: mirroring body.about-open into aria-expanded, revealing a .jbBack, and --
+   the part that mattered -- making the lit item EXCLUSIVE, because Work carried
+   aria-current="page" (the document really was the home page) while this added
+   aria-current to About on top of it. Two lit items at once, which is what Jayden
+   saw and is also invalid ARIA.
+   About is about.html now, so the whole class of problem is gone rather than
+   managed: the lit item is whatever the page ships, one per page, decided by the
+   URL. No observer, no restore-on-close, no recorded resting value. The travelling
+   pill loses its one animatable handoff (Work->About was the only lit-item change
+   that did not unload the document) -- that is the honest cost of the route, and it
+   is worth it for a state that cannot desynchronise. */
 
 /* ── 3 · THE DISCLOSURES ───────────────────────────────────────────────────
    ROUND 10.  Both carets are deleted, so a .jbDisc is a plain nav item with a

@@ -30,8 +30,19 @@ const WINK_LINGER=300,SMILE_LINGER=350,IDLE_MS=2500;
 const HOVER=matchMedia("(hover: hover) and (pointer: fine)").matches;
 const WORDS=["hunger.","delight.","love.","empathy."];
 const WORD_STYLE=["hungry","party","love","collab"]; // each cycling word animates by its meaning (Identity/Soul retired with the Identity mood)
-const STATIC=["Product","designer","working","on","iOS,","B2C","and","design","systems","with"];
-const SUBTXT="Product designer working on iOS, B2C and design systems.";   // plain-text mirror of the headline (the mood word is decorative, so it is omitted)
+/* THE HEADLINE, SETTLED. Jayden: "SF product designer. iOS, B2C and design systems."
+   Two sentences, lowercase "product", both full stops -- set exactly as he wrote it.
+   docs/superpowers/specs/2026-08-03-hero-headline.md carries the analysis; the number
+   that decided it is 49 characters wrapping to TWO lines at 40px/1280 against the old
+   headline's three, which hands ~45px back to the hero and lifts the head.
+   THE "with [mood]" CLAUSE IS GONE, and the cycling word with it. That word was the
+   only place the four moods were NAMED; they still fire from the Play menu and still
+   change the big head's expression, so the feature survives and only its label is
+   retired. No new UI replaces the label -- the four rows in the Play menu already read
+   as mood names.
+   SUBTXT stood here: a plain-text mirror of the headline with no reader anywhere in
+   the repo. Deleted rather than updated to match the new words. */
+const STATIC=["SF","product","designer.","iOS,","B2C","and","design","systems."];
 const reduce=window.matchMedia("(prefers-reduced-motion:reduce)").matches;
 const stage=document.getElementById("stage"),faceImg=document.getElementById("face"),h1=document.getElementById("h1");
 try{faceImg.addEventListener("dragstart",function(e){e.preventDefault();});stage.addEventListener("dragstart",function(e){e.preventDefault();});}catch(_){}
@@ -64,13 +75,19 @@ function revealCycWord(w){if(!w)return;
 let cycWord;var dragLearned=false;document.addEventListener("pointerdown",function(e){if(dragLearned||!e.target||!e.target.closest)return;if(e.target.closest(".cycw.hungry,.cycw.party,.cycw.love,.cycw.collab,.cycw.identity")){dragLearned=true;}},true);
 let tugDemoCount=0;const TUG_MAX=3;
 function maybeTugDemo(w){if(reduce||!w||!w.classList)return;if(tugDemoCount>=TUG_MAX)return;var ix=w.classList.contains("hungry")||w.classList.contains("party")||w.classList.contains("love")||w.classList.contains("collab")||w.classList.contains("identity");if(!ix)return;tugDemoCount++;setTimeout(function(){if(!w.parentNode||w.classList.contains("out")||dragging||eating)return;w.classList.add("cwtug");setTimeout(function(){w.classList.remove("cwtug");},1600);},900);}
-function buildHeadline(){h1.textContent="";STATIC.forEach(function(w,i){   // back to the playful cycling headline -- "Shaping digital products and human experiences with [mood]" -- the character the site is known for
- if(i===STATIC.length-1)h1.appendChild(document.createElement("br"));   // "with [mood]" always begins its own line so the height never jumps as the word cycles
- h1.appendChild(makeWord(w));h1.appendChild(document.createTextNode(i<STATIC.length-1?" ":" "));});
- wi=Math.floor(Math.random()*WORDS.length);cycWord=makeCycWord(wi,true);h1.appendChild(cycWord);}   // the mood word + its drag mechanics -- headline + CTAs only, no sub/availability clutter
+function buildHeadline(){h1.textContent="";
+ /* No <br> any more. The old headline hard-broke before "with [mood]" so the block
+    height could not jump as the word cycled; with no cycling word there is nothing to
+    hold still, and a forced break would fight the measure at every width instead of
+    letting the two sentences fall where they fit.
+    cycWord stays null. Every consumer -- cycle(), moodHoldWord(), revealCycWord(),
+    showIdentity() -- already guards on it, which was written when the word first
+    became optional and is why this is a deletion rather than a rewrite. */
+ STATIC.forEach(function(w,i){h1.appendChild(makeWord(w));
+  if(i<STATIC.length-1)h1.appendChild(document.createTextNode(" "));});
+ cycWord=null;}
 function revealAll(){const chs=[...h1.querySelectorAll(".ch")];chs.forEach((c,i)=>{c.style.transitionDelay=(i*0.03)+"s";c.classList.add("show");});
  var _av0=document.getElementById("heroAvail");if(_av0)setTimeout(function(){_av0.classList.add("in");},reduce?0:100);   // the eyebrow fades in FIRST, just before the headline
- if(!reduce)setTimeout(()=>{revealCycWord(cycWord);nextCycle();},(chs.length*0.03+0.12)*1000);   // cycling word lands right AFTER "...with", then the cycle begins
  var _hc=document.querySelector(".heroCtas");                                          // CTAs enter after the headline lands (the eyebrow already came in first)
  if(_hc){if(reduce){_hc.classList.add("in");}else{var _ctaT=(chs.length*0.03+0.12)*1000+560;setTimeout(function(){_hc.classList.add("in");},_ctaT);}}
  const sub=document.getElementById("sub");const base=chs.length*0.06+0.2;[...sub.querySelectorAll(".l")].forEach((l,i)=>l.style.transitionDelay=(base+i*0.011)+"s");sub.classList.add("show");}
@@ -640,6 +657,27 @@ window.__hmPartyAt=function(getRect,ms){try{
     setTimeout(function(){live=false;},900);
   }catch(_){live=false;}},ms||6500);
 }catch(_){}};
+/* THE HEADER GOES DARK FOR THE DISCO, AND COMES BACK.
+   Jayden: when Delight runs, the header flips to its dark treatment for the duration.
+   The mechanism is the one gradientlab.html already ships -- data-surface="ink" on
+   .jbNav, which header.css answers with the whole ink token set (--nav-mat, --nav-rim,
+   --nav-ink, the pill on --i100). No second dark mode was invented, and nothing here
+   knows what "dark" looks like; it only names the surface.
+   THE RETURN IS GUARANTEED THREE WAYS, because a header stuck dark on a light page is a
+   much worse failure than a disco that never dimmed it:
+     1. endParty() restores it, and endParty is already idempotent and is what every
+        normal and early exit routes through.
+     2. the page's own surface is REMEMBERED before the flip rather than assumed to be
+        "paper", so restoring cannot silently re-light a page that was ink to begin with.
+     3. a failsafe timer at PARTY_DUR + 2s restores it even if endParty never runs.
+   Under prefers-reduced-motion the flip does not happen at all: it is a full-bar
+   luminance inversion, which is exactly what that rule exists for. */
+function heroNavSurface(ink){try{
+  var n=document.querySelector(".jbNav");if(!n)return;
+  if(ink){if(!n.dataset.surfaceHome)n.dataset.surfaceHome=n.getAttribute("data-surface")||"paper";
+   n.setAttribute("data-surface","ink");}
+  else{n.setAttribute("data-surface",n.dataset.surfaceHome||"paper");delete n.dataset.surfaceHome;}
+ }catch(_){}}
 function startParty(){try{document.body.classList.remove("catchReady");}catch(_){}
  if(partyMode||eating||dizzy||reactType||CALIB)return;
  partyMode=true;eventLock=true;cycHold=true;clearTimeout(cycTimer);
@@ -651,6 +689,9 @@ function startParty(){try{document.body.classList.remove("catchReady");}catch(_)
  blinking=false;blinkQ=[];eyesClosed=false;setFace("neutral");faceImg.src=FACES.neutral.browsup;   // cancel any frozen mid-blink so the irises are open from frame 1
  requestAnimationFrame(function(){if(partyEl)partyEl.classList.add("on");if(discoWrap)discoWrap.classList.add("on");});
  if(navigator.vibrate)navigator.vibrate([18,40,18,40,18]);
+ if(!reduce){heroNavSurface(true);
+  clearTimeout(window._partySurfaceT);
+  window._partySurfaceT=setTimeout(function(){heroNavSurface(false);},(PARTY_DUR+2)*1000);}
 }
 function partyTick(sec){
  if(sec>=PARTY_DUR){endParty();return;}
@@ -685,6 +726,7 @@ function endParty(){
  var pe=partyEl,dw=discoWrap;partyEl=null;partyLights=null;discoWrap=null;discoBall=null;
  setTimeout(function(){if(pe&&pe.remove)pe.remove();if(dw&&dw.remove)dw.remove();},650);
  partyMode=false;eventLock=false;cycHold=false;
+ clearTimeout(window._partySurfaceT);heroNavSurface(false);   /* the bar comes back with the lights */
  stage.style.transform="none";updateShadow(0,0,0);mouthimg.style.opacity="0";
  blinking=false;blinkQ=[];eyesClosed=false;settleFace();eyeEls.forEach(function(e){e.el.style.display="";e.el.style.visibility="";e.el.classList.remove("eclosed");});
  dragWordEl=null;
