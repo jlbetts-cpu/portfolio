@@ -375,6 +375,9 @@
  var filler=!!(data&&data.__filler);   // the mid-game stand-in (mini-Jayden): spawns already active, no intro
  var noIntro=filler||!!(data&&data.__noIntro);   // ...but __filler ALSO means 1.5x size. Tournament squads
  // need the skip-the-intro half only, so they get their own flag and stay normal sized.
+ var bootSeated=!filler&&(!!(data&&data.__bootSeated)||document.body.classList.contains("playBooting"));
+ // Play holds its first viewport behind a readiness class. Initial saved/fallback heads therefore
+ // start already seated; __noIntro keeps its existing falling entrance for later game spawns.
  var smileT=0,smiling=false;   // only the mini-Jayden has a second face to switch to (his real smile)
  var hero=document.querySelector(".hero");if(!hero)return;
  if(getComputedStyle(hero).position==="static")hero.style.position="relative";
@@ -935,6 +938,14 @@
   if(!hideB&&wasHideB&&!first&&!gone&&!battleOn&&!soccerOn&&!window.__hmRaceOn&&!grabbed){first=true;introSettled=true;bornWall=0;bornAt=now;shown=false;root.style.opacity="0";if(shadow)shadow.style.opacity="0";}   // UNHIDDEN -> the same one-at-a-time toss-in from the edge as the very first time
   wasHideB=hideB;
   var want=!aboutB&&!hideB&&!gone;   // moods never hide the pit: the little heads are the audience
+  if(first&&bootSeated){
+   first=false;shown=true;survey();
+   var bootTotal=Math.max(1,parseInt(data&&data.__bootTotal,10)||list.length||1);
+   var bootSpan=Math.min(heroR.w*0.7,Math.max(0,(bootTotal-1)*Math.min(HW*1.12,heroR.w/bootTotal)));
+   x=bootTotal===1?heroR.w/2-HW/2:heroR.w/2-HW/2-bootSpan/2+(slot%bootTotal)*(bootSpan/(bootTotal-1));
+   x=Math.max(WL,Math.min(WR,x));y=floorY;surface=floorY;dir=(slot%2)?-1:1;air=false;st="idle";vx=0;vy=0;
+   root.style.transition="none";shadow.style.transition="none";root.style.opacity="1";root.style.filter="none";shadow.style.opacity="1";root.setAttribute("data-hm-boot-ready","true");
+   requestAnimationFrame(function(){root.style.transition="opacity .5s steps(4,end),filter .5s steps(4,end)";shadow.style.transition="opacity .5s cubic-bezier(.2,.8,.2,1)";});}
   if(first&&noIntro){ // the mid-game stand-in drops straight in -- no waiting on the (hidden) big head's intro
    first=false;shown=true;survey();var flf=Math.random()<0.5;
    x=flf?WL+2:WR-2;y=floorY-(150+Math.random()*160);surface=floorY;dir=flf?1:-1;air=true;st="fall";
