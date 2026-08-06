@@ -51,13 +51,14 @@ for rejected_selector_fragment in ("pArenaFrame", "pModeDock", "pModeRail", "pla
     assert rejected_selector_fragment not in HTML
 
 # A viewport wrapper preserves the original 60vh/margin:auto field as a full
-# first screen while letting the footer live below it in normal document flow.
+# first screen while letting the footer live below it in normal document flow. The picker
+# and every live mode lock that document only while they own the viewport.
 assert 'class="playViewport"' in HTML
 assert ".playViewport{position:relative;min-height:100svh;display:flex}" in HTML
 assert ".hero{position:relative;width:100vw;height:60vh;margin:auto}" in HTML
 assert ".pHub{position:absolute;inset:0" in HTML
 assert "body.hmFull{height:auto;min-height:100%;overflow-x:clip;overflow-y:auto" in CSS
-assert "body.hmFull:is(.hmSoccer,.hmBattle,.hmRace,.hmTour)" in CSS and "overflow:hidden" in CSS
+assert "body.hmFull:is(.pTeamOn,.hmSoccer,.hmBattle,.hmRace,.hmTour)" in CSS and "overflow:hidden" in CSS
 
 # Initial saved and fallback heads are seated behind a readiness gate. The
 # existing __noIntro fall path remains, protecting later game/tournament motion.

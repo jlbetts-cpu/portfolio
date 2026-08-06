@@ -2088,7 +2088,7 @@ function teams(){
      g.save();g.translate(p.x,p.y);g.rotate(t*p.rv);g.scale(1,Math.max(0.2,Math.abs(Math.cos(t*p.rv))));
      g.fillStyle="rgba("+p.c+",1)";g.fillRect(-p.w/2,-p.h/2,p.w,p.h);g.restore();});
     if(t<2.3)requestAnimationFrame(fr);else{cv.remove();window.__hmFx=Math.max(0,(window.__hmFx||1)-1);}})(performance.now());}catch(_){window.__hmFx=Math.max(0,(window.__hmFx||1)-1);}}
-  function start(){if(S.on)return;_gyLock=null;geo();if(!ball)dom();layout();teams();
+  function start(){if(S.on)return;try{if(window.__hmResetPlayScroll)window.__hmResetPlayScroll();}catch(_){}_gyLock=null;geo();if(!ball)dom();layout();teams();
    /* THE MATCH GETS LONGER AS THE CUP GETS SHORTER. Every fixture was first-to-5 with
       win-by-two, so eight players meant seven matches of identical length and the whole thing
       dragged -- and the final felt exactly like a quarter-final. Early rounds are first to 3
@@ -2749,6 +2749,7 @@ function teams(){
   function start(){if(ON||document.body.classList.contains("hmBattle")||document.body.classList.contains("hmSoccer"))return;
    var rc=[];for(var i=0;i<peers.length;i++){var pp=peers[i];if(!pp.elim)rc.push(pp);}
    if(rc.length<2)return;
+   try{if(window.__hmResetPlayScroll)window.__hmResetPlayScroll();}catch(_){}
    ON=true;window.__hmRaceOn=true;document.body.classList.add("hmRace");seed++;winner=-1;order.length=0;ts=1;camY=0;endAt=0;
    balls.length=0;
    var gridOrder=rc.slice();for(var g=gridOrder.length-1;g>0;g--){var j=Math.floor(Math.random()*(g+1)),tmp=gridOrder[g];gridOrder[g]=gridOrder[j];gridOrder[j]=tmp;}   // reshuffled grid every race: fair start, different neighbours

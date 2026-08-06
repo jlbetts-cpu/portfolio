@@ -114,13 +114,52 @@ def run_desktop(browser, base_url):
     assert scrolled["y"] > 0 and scrolled["footerTop"] < 900, scrolled
     assert scrolled["hubBottom"] < 900, scrolled
 
-    # The original card still opens the original team picker and starts the live match.
-    page.evaluate("scrollTo(0, 0)")
-    page.locator("#pcExped").click()
+    # Open the original team picker from the footer offset without Playwright scrolling the
+    # off-screen card into view. The picker owns the viewport and must pin the arena at top.
+    page.locator("#pcExped").dispatch_event("click")
+    page.wait_for_selector("body.pTeamOn")
+    picker = page.evaluate(
+        """
+        () => ({
+          overflow: getComputedStyle(document.body).overflowY,
+          scrollY: scrollY
+        })
+        """
+    )
+    assert picker == {"overflow": "hidden", "scrollY": 0}, picker
+    page.evaluate("scrollTo(0, document.documentElement.scrollHeight)")
+    page.wait_for_timeout(50)
+    assert page.evaluate("scrollY") == 0
+
+    # Closing the picker restores the footer's normal document scroll.
+    page.locator(".pBtnBack").click()
+    page.wait_for_selector("body:not(.pTeamOn)")
+    assert page.evaluate("getComputedStyle(document.body).overflowY") == "auto"
+    page.locator("#contact").scroll_into_view_if_needed()
+    before_launch = page.evaluate("scrollY")
+    assert before_launch > 0, before_launch
+
+    # Launch the match from that footer offset; there is deliberately no test-side top reset.
+    page.locator("#pcExped").dispatch_event("click")
     page.wait_for_selector("body.pTeamOn")
     page.locator(".pBtnGo").click()
     page.wait_for_selector("body.hmSoccer", timeout=10_000)
-    assert page.evaluate("getComputedStyle(document.body).overflowY") == "hidden"
+    launched = page.evaluate(
+        """
+        () => {
+          var arena = document.querySelector("#playArena").getBoundingClientRect();
+          return {
+            overflow: getComputedStyle(document.body).overflowY,
+            scrollY: scrollY,
+            arenaTop: arena.top,
+            arenaBottom: arena.bottom
+          };
+        }
+        """
+    )
+    assert launched["overflow"] == "hidden", launched
+    assert launched["scrollY"] == 0, launched
+    assert launched["arenaTop"] >= 0 and launched["arenaBottom"] <= 900, launched
     assert not errors, errors
 
     # Saved heads take the same seated boot path, without persisting boot-only flags.
@@ -137,6 +176,64 @@ def run_desktop(browser, base_url):
     assert_seated(page, 1)
     stored = page.evaluate("JSON.parse(localStorage.getItem('hmCompanions'))[0]")
     assert "__bootSeated" not in stored and "__bootTotal" not in stored
+
+    # A stale saved cutout may satisfy the storage length check but fail image decoding.
+    # Play must discard it, seed the usable fallback crowd, and release the boot veil.
+    page.evaluate(
+        """
+        () => {
+          var broken = Object.assign({}, window.__EGGHEAD, {
+            cut: "data:image/png;base64," + "x".repeat(16000),
+            eyes: window.__EGGHEAD.eyes.map(function (eye, index) {
+              return Object.assign({}, eye, {x: eye.x + (index + 1) * 0.001});
+            })
+          });
+          localStorage.setItem("hmCompanions", JSON.stringify([broken]));
+          localStorage.setItem("hmCompanion", JSON.stringify(broken));
+        }
+        """
+    )
+    page.reload(wait_until="domcontentloaded")
+    wait_ready(page)
+    assert_seated(page, 5)
+    recovered = page.evaluate(
+        """
+        () => ({
+          saved: JSON.parse(localStorage.getItem("hmCompanions") || "[]").length,
+          fallbacks: window.__hmPlaceholders ? window.__hmPlaceholders().length : 0
+        })
+        """
+    )
+    assert recovered == {"saved": 0, "fallbacks": 5}, recovered
+
+    # A broken sibling must not make recovery evict a valid saved head that is still usable.
+    page.evaluate(
+        """
+        () => {
+          var broken = Object.assign({}, window.__EGGHEAD, {
+            cut: "data:image/png;base64," + "x".repeat(16000),
+            eyes: window.__EGGHEAD.eyes.map(function (eye, index) {
+              return Object.assign({}, eye, {x: eye.x + (index + 1) * 0.001});
+            })
+          });
+          localStorage.setItem("hmCompanions", JSON.stringify([broken, window.__EGGHEAD]));
+          localStorage.setItem("hmCompanion", JSON.stringify(window.__EGGHEAD));
+        }
+        """
+    )
+    page.reload(wait_until="domcontentloaded")
+    wait_ready(page)
+    assert_seated(page, 1)
+    preserved = page.evaluate(
+        """
+        () => ({
+          saved: JSON.parse(localStorage.getItem("hmCompanions") || "[]").length,
+          cut: JSON.parse(localStorage.getItem("hmCompanions") || "[]")[0].cut,
+          expected: window.__EGGHEAD.cut
+        })
+        """
+    )
+    assert preserved["saved"] == 1 and preserved["cut"] == preserved["expected"], preserved
     assert not errors, errors
     context.close()
 
