@@ -81,6 +81,12 @@
   return /ms$/i.test(raw)?duration:duration*1000;
  }
 
+ function sceneEasing(){
+  var style=computed(root);
+  var easing=style&&style.getPropertyValue?style.getPropertyValue("--hero-time-ease").trim():"";
+  return easing||"cubic-bezier(.22,1,.36,1)";
+ }
+
  function runSceneAnimation(element,frames,options){
   if(typeof element.animate!=="function")return;
   var animation=element.animate(frames,options);
@@ -103,12 +109,12 @@
   clearSettledSceneStyles();
   var target=targetScene(state);
   if(initial||prefersReducedMotion()){
-   if(prefersReducedMotion())writeFinalScene(target);
+   writeFinalScene(target);
    return;
   }
   var duration=sceneDuration();
   if(duration<=0){writeFinalScene(target);return;}
-  var options={duration:duration,easing:"cubic-bezier(.65,0,.35,1)",fill:"both"};
+  var options={duration:duration,easing:sceneEasing(),fill:"both"};
   gradients.forEach(function(layer,index){
    runSceneAnimation(layer,[{opacity:from.gradients[index]},{opacity:target.gradients[index]}],options);
   });
@@ -117,6 +123,9 @@
    {opacity:from.portrait.opacity,filter:from.portrait.filter},
    {opacity:target.portrait.opacity,filter:target.portrait.filter}
   ],options);
+  /* Pin the destination under WAAPI. This preserves the old rendered spill
+     while SiteTheme changes root state before publishing the next snapshot. */
+  writeFinalScene(target);
  }
 
  function applySnapshot(snapshot,initial){
@@ -137,16 +146,21 @@
   if(!current||destroyed)return;
   clearSceneAnimations();
   clearSettledSceneStyles();
-  if(prefersReducedMotion())writeFinalScene(targetScene(current.state));
+  writeFinalScene(targetScene(current.state));
  }
 
- function syncPortraitSource(){
-  var source=face.getAttribute("src");
+ function syncPortraitSource(useCurrentSource){
+  var source=useCurrentSource&&face.currentSrc?face.currentSrc:face.getAttribute("src");
   var sourceSet=face.getAttribute("srcset");
+  var sizes=face.getAttribute("sizes");
   if(source!==null&&portrait.getAttribute("src")!==source)portrait.setAttribute("src",source);
   if(sourceSet!==null)portrait.setAttribute("srcset",sourceSet);
   else portrait.removeAttribute("srcset");
+  if(sizes!==null)portrait.setAttribute("sizes",sizes);
+  else portrait.removeAttribute("sizes");
  }
+
+ function onFaceLoad(){syncPortraitSource(true);}
 
  function closeMenu(returnFocus){
   control.classList.remove("open","opensAbove");
@@ -243,7 +257,7 @@
   document.removeEventListener("pointerdown",onOutsidePointerdown);
   window.removeEventListener("resize",positionMenu);
   window.removeEventListener("jbthemesettle",settleScene);
-  face.removeEventListener("load",syncPortraitSource);
+  face.removeEventListener("load",onFaceLoad);
   if(portraitObserver)portraitObserver.disconnect();
   clearSceneAnimations();
   closeMenu(false);
@@ -256,12 +270,12 @@
  document.addEventListener("pointerdown",onOutsidePointerdown);
  window.addEventListener("resize",positionMenu);
  window.addEventListener("jbthemesettle",settleScene);
- face.addEventListener("load",syncPortraitSource);
+ face.addEventListener("load",onFaceLoad);
  if(typeof MutationObserver==="function"){
-  portraitObserver=new MutationObserver(syncPortraitSource);
-  portraitObserver.observe(face,{attributes:true,attributeFilter:["src","srcset"]});
+  portraitObserver=new MutationObserver(function(){syncPortraitSource(false);});
+  portraitObserver.observe(face,{attributes:true,attributeFilter:["src","srcset","sizes"]});
  }
- syncPortraitSource();
+ syncPortraitSource(false);
  unsubscribe=siteTheme.subscribe(function(snapshot){applySnapshot(snapshot,false);});
  applySnapshot(siteTheme.getSnapshot(),true);
 

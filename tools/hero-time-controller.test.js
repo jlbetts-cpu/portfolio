@@ -19,6 +19,29 @@ function eventTarget(target){
 function makeHarness(options={}){
  let document;
  const animations=[];
+ const mutationObservers=[];
+
+ class FakeAnimation{
+  constructor(element,frames,timing){
+   this.element=element;
+   this.frames=frames;
+   this.timing=timing;
+   this.progress=0;
+   this.cancelled=false;
+   this.onfinish=null;
+   element.animation=this;
+   animations.push(this);
+  }
+  value(name){
+   const from=this.frames[0][name],to=this.frames.at(-1)[name];
+   if(typeof from==="number"&&typeof to==="number")return from+(to-from)*this.progress;
+   return this.progress<1?from:to;
+  }
+  setProgress(progress){this.progress=progress;}
+  cancel(){this.cancelled=true;if(this.element.animation===this)this.element.animation=null;}
+  finish(){this.progress=1;if(this.onfinish)this.onfinish();}
+ }
+
  class FakeElement{
   constructor(attributes={}){
    eventTarget(this);
@@ -26,7 +49,9 @@ function makeHarness(options={}){
    this.children=[];
    this.parentElement=null;
    this.textContent="";
-   this.computed={opacity:"0",filter:"none"};
+   this.currentSrc="";
+   this.animation=null;
+   this.role="";
    this.style={
     values:{},
     setProperty:(name,value)=>{this.style.values[name]=String(value);},
@@ -47,7 +72,11 @@ function makeHarness(options={}){
   }
   getAttribute(name){return this.attributes.has(name)?this.attributes.get(name):null;}
   hasAttribute(name){return this.attributes.has(name);}
-  removeAttribute(name){this.attributes.delete(name);}
+  removeAttribute(name){
+   const oldValue=this.getAttribute(name);
+   this.attributes.delete(name);
+   mutationObservers.forEach(observer=>observer.notify(this,name,oldValue));
+  }
   querySelectorAll(selector){
    if(selector==='[role="menuitemradio"]')return this.children.filter(child=>child.getAttribute("role")==="menuitemradio");
    if(selector===".heroTimeGradient")return this.children.filter(child=>child.classList.contains("heroTimeGradient"));
@@ -57,14 +86,9 @@ function makeHarness(options={}){
   closest(selector){return selector==='[role="menuitemradio"]'&&this.getAttribute("role")==="menuitemradio"?this:null;}
   getBoundingClientRect(){return {top:100,bottom:300,left:100,right:300};}
   focus(){document.activeElement=this;}
-  animate(frames,timing){
-   const animation={element:this,frames,timing,cancelled:false,onfinish:null,cancel(){this.cancelled=true;}};
-   animations.push(animation);
-   return animation;
-  }
+  animate(frames,timing){return new FakeAnimation(this,frames,timing);}
  }
 
- const mutationObservers=[];
  class MutationObserver{
   constructor(callback){this.callback=callback;this.targets=[];mutationObservers.push(this);}
   observe(target,settings){this.targets.push({target,settings});}
@@ -76,7 +100,14 @@ function makeHarness(options={}){
   }
  }
 
- const hero=new FakeElement(options.heroAttributes);
+ const initial=options.snapshot||{mode:"auto",state:"daytime",theme:"light"};
+ const root=new FakeElement({
+  "data-theme-mode":initial.mode,
+  "data-theme-state":initial.state,
+  "data-theme":initial.theme,
+  "data-reduced-motion":options.reducedMotion?"reduce":"no-preference"
+ });
+ const hero=new FakeElement({"data-time-mode":initial.mode,"data-time-state":initial.state});
  hero.classList.add("hero");
  const control=new FakeElement();
  const button=new FakeElement();
@@ -86,16 +117,25 @@ function makeHarness(options={}){
  const spill=new FakeElement();
  const face=new FakeElement({src:options.faceSrc||"images/neutral.webp"});
  const portrait=new FakeElement();
- const gradients=["pre-dawn","sunrise","daytime","dusk","sunset","night"].map(state=>{
+ const states=["pre-dawn","sunrise","daytime","dusk","sunset","night"];
+ const portraitTargets={
+  "off":{opacity:0,filter:"brightness(1)"},
+  "pre-dawn":{opacity:.24,filter:"brightness(1.08) hue-rotate(175deg)"},
+  "sunrise":{opacity:.24,filter:"brightness(1.1) sepia(.16)"},
+  "daytime":{opacity:.10,filter:"brightness(1.045)"},
+  "dusk":{opacity:.16,filter:"brightness(1.055) hue-rotate(165deg)"},
+  "sunset":{opacity:.26,filter:"brightness(1.1) sepia(.18)"},
+  "night":{opacity:.26,filter:"brightness(1.075) hue-rotate(175deg)"}
+ };
+ const gradients=states.map(state=>{
   const layer=new FakeElement({"data-time-gradient":state});
   layer.classList.add("heroTimeGradient");
   hero.appendChild(layer);
   return layer;
  });
- menu.children=["auto","off","pre-dawn","sunrise","daytime","dusk","sunset","night"].map(mode=>new FakeElement({
-  role:"menuitemradio","aria-checked":mode==="auto"?"true":"false","data-time-mode":mode
+ menu.children=["auto","off",...states].map(mode=>new FakeElement({
+  role:"menuitemradio","aria-checked":mode===initial.mode?"true":"false","data-time-mode":mode
  }));
- const root=new FakeElement({"data-reduced-motion":options.reducedMotion?"reduce":"no-preference"});
  const byId={heroTime:control,heroTimeBtn:button,heroTimeMenu:menu,heroTimeIcon:icon,
   heroTimeAutoState:autoState,heroTimeSpill:spill,face,heroTimePortraitCast:portrait};
  document=eventTarget({
@@ -106,7 +146,21 @@ function makeHarness(options={}){
   getElementById:id=>byId[id]||null
  });
 
- const initial=options.snapshot||{mode:"auto",state:"daytime",theme:"light"};
+ function cssValue(element,name){
+  if(element.animation&&!element.animation.cancelled&&element.animation.frames[0][name]!==undefined){
+   return element.animation.value(name);
+  }
+  if(Object.hasOwn(element.style.values,name))return element.style.values[name];
+  const heroState=hero.getAttribute("data-time-state");
+  if(gradients.includes(element))return name==="opacity"?(element.getAttribute("data-time-gradient")===heroState?1:0):"none";
+  if(element===spill)return name==="opacity"?(root.getAttribute("data-theme-state")==="night"?1:0):"none";
+  if(element===portrait){
+   const target=portraitTargets[heroState]||portraitTargets.off;
+   return target[name];
+  }
+  return name==="opacity"?0:"none";
+ }
+
  let current=initial;
  let subscriber=null;
  let unsubscribed=0;
@@ -119,26 +173,47 @@ function makeHarness(options={}){
  const window=eventTarget({SiteTheme:siteTheme,innerHeight:800,innerWidth:1200});
  window.window=window;
  window.getComputedStyle=element=>({
-  opacity:element.computed.opacity,
-  filter:element.computed.filter,
-  getPropertyValue:name=>name==="--hero-time-duration"?(options.duration||"800ms"):""
+  opacity:String(cssValue(element,"opacity")),
+  filter:String(cssValue(element,"filter")),
+  getPropertyValue:name=>name==="--hero-time-duration"?(options.duration||"640ms"):
+   name==="--hero-time-ease"?"cubic-bezier(.22,1,.36,1)":""
  });
- let storageReads=0,storageWrites=0,clockReads=0,timerCreates=0;
+ let storageReads=0,clockReads=0,timerCreates=0,timerClears=0;
  Object.defineProperty(window,"sessionStorage",{get(){storageReads+=1;throw new Error("Hero must not access storage");}});
  class FakeDate extends Date{constructor(...args){if(args.length)super(...args);else{clockReads+=1;super(0);}}}
  function setTimeout(){timerCreates+=1;throw new Error("Hero must not own a boundary timer");}
- function clearTimeout(){storageWrites+=1;}
+ function clearTimeout(){timerClears+=1;}
  const context={window,document,MutationObserver,Date:FakeDate,setTimeout,clearTimeout};
  vm.runInNewContext(controllerSource,context,{filename:"hero-time.js"});
 
  function publish(snapshot){
+  root.setAttribute("data-theme-mode",snapshot.mode);
+  root.setAttribute("data-theme-state",snapshot.state);
+  root.setAttribute("data-theme",snapshot.theme);
   current=snapshot;
   if(subscriber)subscriber(snapshot);
  }
- function settle(){window.dispatchEvent({type:"jbthemesettle",detail:current});}
+ function settle(reduced){
+  root.setAttribute("data-reduced-motion",reduced?"reduce":"no-preference");
+  window.dispatchEvent({type:"jbthemesettle",detail:current});
+ }
+ function latestFor(element){return animations.findLast(animation=>animation.element===element);}
+ function finishLatestSet(){
+  const latest=animations.slice(-8);
+  latest.forEach(animation=>animation.finish());
+  return latest;
+ }
+ function rendered(){
+  return {
+   gradients:gradients.map(layer=>Number(cssValue(layer,"opacity"))),
+   spill:Number(cssValue(spill,"opacity")),
+   portrait:{opacity:Number(cssValue(portrait,"opacity")),filter:String(cssValue(portrait,"filter"))},
+   active:animations.filter(animation=>!animation.cancelled).length
+  };
+ }
  return {window,document,root,controller:window.HeroTimeController,hero,control,button,menu,icon,autoState,
-  gradients,spill,face,portrait,animations,modeCalls,publish,settle,
-  accesses:()=>({storageReads,storageWrites,clockReads,timerCreates}),unsubscribed:()=>unsubscribed};
+  gradients,spill,face,portrait,portraitTargets,animations,modeCalls,publish,settle,latestFor,finishLatestSet,rendered,
+  accesses:()=>({storageReads,clockReads,timerCreates,timerClears}),unsubscribed:()=>unsubscribed};
 }
 
 const failures=[];
@@ -146,23 +221,12 @@ function test(name,run){try{run();}catch(error){failures.push(name+": "+error.me
 
 test("Home renders the shared initial snapshot without storage clock or timer ownership",()=>{
  const h=makeHarness({snapshot:{mode:"night",state:"night",theme:"dark"}});
- assert.deepEqual(h.accesses(),{storageReads:0,storageWrites:0,clockReads:0,timerCreates:0});
+ assert.deepEqual(h.accesses(),{storageReads:0,clockReads:0,timerCreates:0,timerClears:0});
  assert.equal(h.hero.getAttribute("data-time-mode"),"night");
  assert.equal(h.hero.getAttribute("data-time-state"),"night");
  assert.equal(h.icon.getAttribute("data-icon"),"night");
  assert.equal(h.autoState.textContent,"· Night");
  assert.equal(h.menu.children.find(item=>item.getAttribute("data-time-mode")==="night").getAttribute("aria-checked"),"true");
-});
-
-test("shared snapshots atomically retarget the menu icon label and Hero",()=>{
- const h=makeHarness();
- h.publish({mode:"off",state:"off",theme:"light"});
- assert.equal(h.hero.getAttribute("data-time-mode"),"off");
- assert.equal(h.hero.getAttribute("data-time-state"),"off");
- assert.equal(h.icon.getAttribute("data-icon"),"off");
- assert.equal(h.autoState.textContent,"· Off");
- assert.equal(h.menu.children.find(item=>item.getAttribute("data-time-mode")==="off").getAttribute("aria-checked"),"true");
- assert.equal(h.menu.children.filter(item=>item.getAttribute("aria-checked")==="true").length,1);
 });
 
 test("Time menu delegates its choice to SiteTheme",()=>{
@@ -173,50 +237,94 @@ test("Time menu delegates its choice to SiteTheme",()=>{
  assert.equal(h.button.getAttribute("aria-expanded"),"false");
 });
 
-test("rapid scene retargeting captures and cancels before starting one coordinated set",()=>{
+test("root-before-publish Night Off Night captures the actually rendered spill and settles exclusively",()=>{
  const h=makeHarness();
- h.gradients[2].computed.opacity="0.6";
- h.spill.computed.opacity="0.2";
- h.portrait.computed.opacity="0.12";
- h.portrait.computed.filter="brightness(1.08) saturate(.9)";
+ assert.deepEqual(h.rendered(),{
+  gradients:[0,0,1,0,0,0],spill:0,
+  portrait:h.portraitTargets.daytime,active:0
+ });
+
  h.publish({mode:"night",state:"night",theme:"dark"});
- const first=h.animations.slice();
- assert.equal(first.length,8);
- assert.ok(first.every(animation=>animation.timing.duration===800&&animation.timing.easing==="cubic-bezier(.65,0,.35,1)"));
- h.gradients.forEach((layer,index)=>{layer.computed.opacity=index===5?"0.35":"0.08";});
- h.spill.computed.opacity="0.35";
- h.portrait.computed.opacity="0.18";
+ const intoNight=h.latestFor(h.spill);
+ assert.equal(h.animations.slice(-8).every(animation=>animation.timing.duration===640),true);
+ assert.equal(h.animations.slice(-8).every(animation=>animation.timing.easing==="cubic-bezier(.22,1,.36,1)"),true);
+ assert.equal(intoNight.frames[0].opacity,0,"root target must not replace the old rendered spill before capture");
+ assert.equal(intoNight.frames.at(-1).opacity,1);
+ intoNight.setProgress(.4);
+
  h.publish({mode:"off",state:"off",theme:"light"});
- assert.ok(first.every(animation=>animation.cancelled));
- const second=h.animations.slice(first.length);
- assert.equal(second.length,8);
- assert.equal(second.find(animation=>animation.element===h.spill).frames[0].opacity,0.35);
- assert.equal(second.find(animation=>animation.element===h.portrait).frames.at(-1).opacity,0);
+ const intoOff=h.latestFor(h.spill);
+ assert.equal(intoOff.frames[0].opacity,.4);
+ assert.equal(intoOff.frames.at(-1).opacity,0);
+ intoOff.setProgress(.25);
+
+ h.publish({mode:"night",state:"night",theme:"dark"});
+ const backToNight=h.latestFor(h.spill);
+ assert.ok(Math.abs(backToNight.frames[0].opacity-.3)<1e-9);
+ assert.equal(backToNight.frames.at(-1).opacity,1);
+ const finished=h.finishLatestSet();
+ assert.equal(finished.every(animation=>animation.cancelled),true);
+ assert.deepEqual(h.rendered(),{
+  gradients:[0,0,0,0,0,1],spill:1,
+  portrait:h.portraitTargets.night,active:0
+ });
 });
 
-test("live reduced motion cancels in-flight scene work and commits final values",()=>{
+test("live reduced motion settles portrait opacity and filter then restores normal retargeting",()=>{
  const h=makeHarness();
  h.publish({mode:"night",state:"night",theme:"dark"});
- const active=h.animations.slice();
- assert.ok(active.length>0);
- h.root.setAttribute("data-reduced-motion","reduce");
- h.settle();
- assert.ok(active.every(animation=>animation.cancelled));
- assert.equal(h.gradients[5].style.values.opacity,"1");
- assert.equal(h.gradients.slice(0,5).every(layer=>layer.style.values.opacity==="0"),true);
- assert.equal(h.spill.style.values.opacity,"1");
+ h.animations.slice(-8).forEach(animation=>animation.setProgress(.35));
+ const interrupted=h.animations.slice(-8);
+
+ h.settle(true);
+ assert.equal(interrupted.every(animation=>animation.cancelled),true);
+ assert.deepEqual(h.rendered(),{
+  gradients:[0,0,0,0,0,1],spill:1,
+  portrait:h.portraitTargets.night,active:0
+ });
+ assert.equal(h.portrait.style.values.opacity,String(h.portraitTargets.night.opacity));
+ assert.equal(h.portrait.style.values.filter,h.portraitTargets.night.filter);
+
+ h.settle(false);
+ assert.equal(h.portrait.style.values.opacity,String(h.portraitTargets.night.opacity));
+ assert.equal(h.portrait.style.values.filter,h.portraitTargets.night.filter);
+ assert.deepEqual(h.rendered(),{
+  gradients:[0,0,0,0,0,1],spill:1,
+  portrait:h.portraitTargets.night,active:0
+ });
+
+ h.publish({mode:"off",state:"off",theme:"light"});
+ assert.equal(h.latestFor(h.spill).frames[0].opacity,1);
+ const portraitFrames=h.latestFor(h.portrait).frames;
+ assert.equal(portraitFrames[0].opacity,h.portraitTargets.night.opacity);
+ assert.equal(portraitFrames[0].filter,h.portraitTargets.night.filter);
+ assert.equal(portraitFrames.at(-1).opacity,h.portraitTargets.off.opacity);
+ assert.equal(portraitFrames.at(-1).filter,h.portraitTargets.off.filter);
 });
 
-test("Time mirrors every Mood-owned portrait source without writing face identity",()=>{
+test("Time mirrors responsive Mood sources and becomes inert after destroy",()=>{
  const h=makeHarness({faceSrc:"images/neutral.webp"});
  assert.equal(h.portrait.getAttribute("src"),"images/neutral.webp");
+
  h.face.setAttribute("src","images/cookie.webp");
  assert.equal(h.portrait.getAttribute("src"),"images/cookie.webp");
- h.face.setAttribute("src","images/neutral_closed.webp");
- assert.equal(h.portrait.getAttribute("src"),"images/neutral_closed.webp");
- assert.equal(h.face.getAttribute("src"),"images/neutral_closed.webp");
+ h.face.setAttribute("srcset","images/cookie.webp 1x, images/cookie@2x.webp 2x");
+ h.face.setAttribute("sizes","100vw");
+ assert.equal(h.portrait.getAttribute("srcset"),"images/cookie.webp 1x, images/cookie@2x.webp 2x");
+ h.face.currentSrc="images/cookie@2x.webp";
+ h.face.dispatchEvent({type:"load"});
+ assert.equal(h.portrait.getAttribute("src"),"images/cookie@2x.webp");
+ assert.equal(h.portrait.getAttribute("srcset"),h.face.getAttribute("srcset"));
+
+ const before={src:h.portrait.getAttribute("src"),srcset:h.portrait.getAttribute("srcset")};
  h.controller.destroy();
+ h.face.setAttribute("src","images/rest.webp");
+ h.face.setAttribute("srcset","images/rest.webp 1x, images/rest@2x.webp 2x");
+ h.face.currentSrc="images/rest@2x.webp";
+ h.face.dispatchEvent({type:"load"});
+ assert.deepEqual({src:h.portrait.getAttribute("src"),srcset:h.portrait.getAttribute("srcset")},before);
  assert.equal(h.unsubscribed(),1);
+ assert.equal(h.face.listenerCount("load"),0);
 });
 
 if(failures.length){

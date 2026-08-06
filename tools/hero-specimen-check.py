@@ -41,11 +41,19 @@ for state in ("pre-dawn", "sunrise", "daytime", "dusk", "sunset", "night"):
 assert re.search(r'id="face"[^>]*><img id="heroTimePortraitCast"', html)
 assert not re.search(r'<section class="hero"[^>]+data-time-state="daytime"', html)
 assert not re.search(r'id="heroTimeIcon"[^>]+data-icon="daytime"', html)
-assert re.search(
-    r'<section class="hero" id="main"[^>]*>\s*<script>.*?data-theme-mode.*?data-theme-state.*?</script>',
-    html,
-    re.S,
-), "root theme snapshot must reach the Hero during parsing"
+prepaint = re.search(r'<script id="heroTimePrepaint">(.*?)</script>', html, re.S)
+assert prepaint, "the complete root snapshot must reach Home controls during parsing"
+for prepaint_contract in (
+    "data-theme-mode",
+    "data-theme-state",
+    "data-reduced-motion",
+    "heroTimeIcon",
+    "heroTimeAutoState",
+    "menuitemradio",
+    "aria-checked",
+):
+    assert prepaint_contract in prepaint.group(1), prepaint_contract
+assert html.index('id="heroTimeAutoState"') < html.index('id="heroTimePrepaint"') < html.index('class="stagewrap"')
 assert html.index('href="header.css"') < html.index('href="hero-time.css"')
 assert 'src="fluid-mesh.js"' not in html, "FluidMesh belongs to Gradient Maker, not the Hero"
 assert html.index('src="hero-time-presets.js"') < html.index('src="hero-engine.js"')
@@ -67,7 +75,7 @@ for controller_contract in (
     "fill:\"both\"",
     "jbthemesettle",
     "MutationObserver",
-    "attributeFilter:[\"src\",\"srcset\"]",
+    "attributeFilter:[\"src\",\"srcset\",\"sizes\"]",
     "ArrowDown",
     "ArrowUp",
     "Home",
@@ -97,7 +105,7 @@ assert 'aria-expanded="false"' in time_control.group(0)
 assert '<svg class="heroTimeIcon"' in time_control.group(0)
 assert not re.sub(r"<[^>]+>", "", time_control.group(0)).strip()
 assert re.search(r'id="heroTimeMenu"[^>]+role="menu"[^>]+aria-label="Choose time of day"', html)
-assert html.count('role="menuitemradio"') == 8
+assert len(re.findall(r'<button[^>]+role="menuitemradio"', html)) == 8
 assert html.count('role="menuitemradio" aria-checked="true"') == 1
 assert html.count('class="heroTimeOptionIcon"') == 8
 icon_symbols = {
@@ -167,6 +175,15 @@ assert "data-time-state" not in time_css.split(".heroTimeSpill", 1)[1].split(".h
 assert re.search(r':root:root\s*\{[^}]*--theme-duration:var\(--hero-time-duration\)', time_css, re.S)
 night_cases = re.search(r':root\[data-theme="dark"\] \.cases\s*\{(.*?)\}', time_css, re.S)
 assert night_cases and "background:var(--theme-page)" in night_cases.group(1)
+assert "transition:" not in night_cases.group(1), "dark values cannot own one direction of a symmetric transition"
+ready_cases = re.search(r':root\.theme-ready \.cases\s*\{(.*?)\}', time_css, re.S)
+assert ready_cases and "transition:background-color" in ready_cases.group(1)
+ready_text = re.search(r':root\.theme-ready :is\(\.csTab,\.csName,\.csYear,\.footReach,\.footIn\)\s*\{(.*?)\}', time_css, re.S)
+assert ready_text and "transition:color" in ready_text.group(1)
+reduced_chrome = re.search(r':root\[data-reduced-motion="reduce"\](.*?)\{(.*?)\}', time_css, re.S)
+assert reduced_chrome and "transition:none!important" in reduced_chrome.group(2)
+for reduced_target in (".cases", ".csTabs::before", ".csTabInk", ".csMeta", ".footReach", ".footIn"):
+    assert reduced_target in reduced_chrome.group(1), reduced_target
 for selector, token in (
     (r'\.csTab\.on', "var(--theme-ink)"),
     (r'\.csName', "var(--theme-ink)"),
@@ -205,10 +222,10 @@ for crossfade_layer in ("heroTimeSpill", "heroTimeClip", "heroTimeGradient"):
         re.S,
     ), f"{crossfade_layer} must remain paintable long enough to crossfade Off"
 
-assert "--hero-time-duration:800ms" in time_css
-assert "--hero-time-ease:cubic-bezier(.65,0,.35,1)" in time_css
+assert "--hero-time-duration:640ms" in time_css
+assert "--hero-time-ease:cubic-bezier(.22,1,.36,1)" in time_css
 mobile_time = re.search(r'@media\(max-width:760px\)\s*\{(.*?)\n\}', time_css, re.S)
-assert mobile_time and "--hero-time-duration:400ms" in mobile_time.group(1)
+assert mobile_time and "--hero-time-duration:420ms" in mobile_time.group(1)
 assert "body[data-time-state]" not in time_css
 
 menu_rule = re.search(r'\.heroTimeMenu\s*\{.*?\}', time_css, re.S)
@@ -257,6 +274,32 @@ for state in ("pre-dawn", "sunrise", "daytime", "dusk", "sunset", "night"):
     assert opacity and float(opacity.group(1)) <= 0.30, state
     for directional_contract in ("--time-cast:", "--time-light-x:", "--time-cast-filter:"):
         assert directional_contract in state_rule.group(1), f"{state}: {directional_contract}"
+
+night_state = re.search(r'\.hero\[data-time-state="night"\]\s*\{(.*?)\}', time_css, re.S)
+assert night_state
+for material_contract in (
+    "--time-primary-bg:var(--c50)",
+    "--time-secondary-bg:rgba(11,12,15,.58)",
+    "--time-secondary-hover-bg:rgba(11,12,15,.74)",
+    "--time-secondary-border:rgba(244,245,247,.28)",
+    "--time-secondary-hover-border:rgba(244,245,247,.42)",
+    "--time-menu-bg:rgba(11,12,15,.78)",
+):
+    assert material_contract in night_state.group(1), material_contract
+night_nav = re.search(r':root\[data-theme="dark"\] \.jbNav\s*\{(.*?)\}', time_css, re.S)
+assert night_nav
+for nav_material_contract in (
+    "--nav-mat:rgba(11,12,15,.68)",
+    "--nav-hover-bg:rgba(244,245,247,.10)",
+    "--nav-active-bg:rgba(244,245,247,.14)",
+    "backdrop-filter:blur(14px) saturate(1.08)",
+):
+    assert nav_material_contract in night_nav.group(1), nav_material_contract
+assert re.search(
+    r'\.hero\[data-time-state="night"\] :is\(\.heroMood \.moodBtn,\.heroTimeBtn\)\s*\{[^}]*backdrop-filter:blur\(12px\)',
+    time_css,
+    re.S,
+)
 
 exact_gradients = {
     "pre-dawn": "radial-gradient(103.24% 102.63% at 50% 102.63%,#486ffd 0,#7f81f3 9.84%,#c489ff 20.83%,#dac0ff 34.13%,#eadcff 44.86%,#f9f6ff 58.59%,#f8fafd 100%)",

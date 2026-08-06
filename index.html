@@ -1595,7 +1595,7 @@ if(location.hash==="#about")location.replace("about.html");</script>
 </div>
 <div class="wrap">
  <div class="heroTimeSpill" id="heroTimeSpill" aria-hidden="true"></div>
- <section class="hero" id="main" tabindex="-1"><script>(function(){var r=document.documentElement,h=document.getElementById("main");h.setAttribute("data-time-mode",r.getAttribute("data-theme-mode")||"auto");h.setAttribute("data-time-state",r.getAttribute("data-theme-state")||"off");})();</script>
+ <section class="hero" id="main" tabindex="-1">
   <div class="heroAura" aria-hidden="true"></div>
   <div class="heroTimeClip" id="heroTimeClip" aria-hidden="true"><div class="heroTimeGradient" data-time-gradient="pre-dawn"></div><div class="heroTimeGradient" data-time-gradient="sunrise"></div><div class="heroTimeGradient" data-time-gradient="daytime"></div><div class="heroTimeGradient" data-time-gradient="dusk"></div><div class="heroTimeGradient" data-time-gradient="sunset"></div><div class="heroTimeGradient" data-time-gradient="night"></div></div>
   <div class="heroCopy">
@@ -1616,6 +1616,7 @@ if(location.hash==="#about")location.replace("about.html");</script>
       <button type="button" role="menuitemradio" aria-checked="false" data-time-mode="night"><svg class="heroTimeOptionIcon" viewBox="0 0 24 24" aria-hidden="true"><use href="#heroTimeGlyphNight"/></svg>Night</button>
      </div>
     </div>
+    <script id="heroTimePrepaint">(function(){var r=document.documentElement,h=document.getElementById("main"),m=r.getAttribute("data-theme-mode")||"auto",s=r.getAttribute("data-theme-state")||"off",q=r.getAttribute("data-reduced-motion")||"no-preference",i=document.getElementById("heroTimeIcon"),a=document.getElementById("heroTimeAutoState"),n=document.querySelectorAll('#heroTimeMenu [role="menuitemradio"]');h.setAttribute("data-time-mode",m);h.setAttribute("data-time-state",s);h.setAttribute("data-reduced-motion",q);i.setAttribute("data-icon",s);a.textContent="\u00b7 "+s.charAt(0).toUpperCase()+s.slice(1);n.forEach(function(x){x.setAttribute("aria-checked",x.getAttribute("data-time-mode")===m?"true":"false");});})();</script>
    </div>
   </div>
   <a class="scrollCue" id="scrollCue" href="#cases" aria-label="Scroll to my work"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" aria-hidden="true"><path d="M6 9.5L12 15.5L18 9.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a><div class="stagewrap"><div class="queueDots" id="qdots" role="status" aria-live="polite"><span class="qsr"></span><i></i><i></i><i></i></div><div id="stageMorph"><div class="floorshadow" id="fsh"></div><div class="stage" id="stage"><img class="face" id="face" alt="Jayden" draggable="false"><img id="heroTimePortraitCast" class="heroTimePortraitCast" alt="" aria-hidden="true"><img class="tongue" id="tongue" src="images/tongue.webp" alt="" aria-hidden="true">
