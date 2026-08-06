@@ -40,6 +40,16 @@ assert html.count('class="heroTimeGradient"') == 6
 for state in ("pre-dawn", "sunrise", "daytime", "dusk", "sunset", "night"):
     assert html.count(f'data-time-gradient="{state}"') == 1, state
 assert re.search(r'id="face"[^>]*><img id="heroTimePortraitCast"', html)
+assert re.search(
+    r'id="moodBtn"[^>]*aria-label="Choose a mood for Jayden’s portrait"[^>]*>.*?'
+    r'<span class="moodLbl">Choose a mood</span>',
+    html,
+    re.S,
+)
+assert 'id="moodMenu" role="menu" aria-label="Choose a mood for Jayden’s portrait"' in html
+assert 'document.body.classList.add("heroEmpathy")' in hero_engine
+assert 'document.body.classList.remove("heroEmpathy")' in hero_engine
+assert re.search(r'body\.heroEmpathy \.jbStick \.jbNav\s*\{[^}]*--nav-mat:var\(--theme-page', html, re.S)
 assert not re.search(r'<section class="hero"[^>]+data-time-state="daytime"', html)
 assert not re.search(r'id="heroTimeIcon"[^>]+data-icon="daytime"', html)
 prepaint = re.search(r'<script id="heroTimePrepaint">(.*?)</script>', html, re.S)

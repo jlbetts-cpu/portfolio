@@ -34,6 +34,8 @@ def main():
                 page.on("pageerror", lambda error: errors.append(str(error)))
                 page.goto(f"http://127.0.0.1:{server.server_port}/index.html", wait_until="domcontentloaded")
                 page.wait_for_function("window.SiteTheme && document.documentElement.classList.contains('theme-ready')")
+                page.wait_for_function("typeof introMode !== 'undefined'")
+                assert page.locator("#moodBtn").inner_text().strip() == "Choose a mood"
                 for state in STATES:
                     page.evaluate("state => window.SiteTheme.setMode(state, {persist:false})", state)
                     page.wait_for_function(
@@ -42,6 +44,13 @@ def main():
                     )
                     assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
                     page.screenshot(path=str(SHOTS / f"{label}-{state}.png"), full_page=False)
+                page.evaluate("window.SiteTheme.setMode('off', {persist:false})")
+                page.evaluate("document.getElementById('moodBtn').click()")
+                page.evaluate("document.querySelector('#moodMenu [data-mood=\"empathy\"]').click()")
+                page.wait_for_function("document.body.classList.contains('heroEmpathy')")
+                nav_background = page.locator(".jbNav").evaluate("node => getComputedStyle(node).backgroundColor")
+                assert nav_background not in ("transparent", "rgba(0, 0, 0, 0)"), nav_background
+                page.screenshot(path=str(SHOTS / f"{label}-empathy-solid-header.png"), full_page=False)
                 assert not errors, errors
                 context.close()
             browser.close()

@@ -1185,6 +1185,7 @@ function movieTick(){
 stage.addEventListener("pointerenter",function(){if(movieMode&&movieEnding&&!movieHair&&(tk-movieEndTk)<=3)dumpOnHair();});
 function startRain(){try{document.body.classList.remove("catchReady");}catch(_){}
  if(rainMode)return;
+ document.body.classList.add("heroEmpathy");
  rainMode=true;eventLock=true;cycHold=true;clearTimeout(cycTimer);
  rainWrap=document.createElement("div");rainWrap.id="photorain";
  var pg=document.createElement("div");pg.className="pgrain";rainWrap.appendChild(pg);
@@ -1246,6 +1247,7 @@ function rainTick(){
   if(!on||lt>rainDropStart+64)endRain();}
 }
 function endRain(){
+ document.body.classList.remove("heroEmpathy");
  if(rainWrap&&rainWrap.parentNode)rainWrap.remove();rainWrap=null;rainList=[];rainHeadState="";
  if(camflash&&camflash.parentNode)camflash.remove();camflash=null;
  rainMode=false;eventLock=false;cycHold=false;gaze.x=0;gaze.y=0;
