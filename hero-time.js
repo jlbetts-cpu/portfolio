@@ -3,16 +3,32 @@
 
  var M=window.HeroTimeModel;
  var hero=document.querySelector(".hero");
+ var body=document.body;
  var control=document.getElementById("heroTime");
  var button=document.getElementById("heroTimeBtn");
  var menu=document.getElementById("heroTimeMenu");
  var icon=document.getElementById("heroTimeIcon");
  var autoState=document.getElementById("heroTimeAutoState");
- if(!M||!hero||!control||!button||!menu||!icon||!autoState)return;
+ if(!M||!hero||!body||!control||!button||!menu||!icon||!autoState)return;
 
  var KEY="jbHeroTimeMode";
  var items=[].slice.call(menu.querySelectorAll('[role="menuitemradio"]'));
- var mode="auto",state=M.resolveState(mode,new Date()),boundaryTimer=0,destroyed=false;
+ var mode="auto",state="off",boundaryTimer=0,destroyed=false;
+ var originalAttributes={
+  heroMode:rememberAttribute(hero,"data-time-mode"),
+  heroState:rememberAttribute(hero,"data-time-state"),
+  bodyMode:rememberAttribute(body,"data-time-mode"),
+  bodyState:rememberAttribute(body,"data-time-state")
+ };
+
+ function rememberAttribute(element,name){
+  return {present:element.hasAttribute(name),value:element.getAttribute(name)};
+ }
+
+ function restoreAttribute(element,name,original){
+  if(original.present)element.setAttribute(name,original.value);
+  else element.removeAttribute(name);
+ }
 
  function stateLabel(value){
   return value.charAt(0).toUpperCase()+value.slice(1);
@@ -22,23 +38,25 @@
   if(boundaryTimer){clearTimeout(boundaryTimer);boundaryTimer=0;}
  }
 
- function scheduleBoundary(){
+ function scheduleBoundary(now){
   clearBoundaryTimer();
   if(mode!=="auto"||destroyed)return;
-  boundaryTimer=setTimeout(function(){refreshAutomatic();},M.msUntilNextBoundary(new Date())+50);
+  boundaryTimer=setTimeout(function(){refreshAutomatic();},M.msUntilNextBoundary(now)+50);
  }
 
- function apply(nextMode,nextState){
+ function apply(nextMode,now){
   mode=nextMode;
-  state=nextState;
+  state=M.resolveState(mode,now);
   hero.setAttribute("data-time-mode",mode);
   hero.setAttribute("data-time-state",state);
+  body.setAttribute("data-time-mode",mode);
+  body.setAttribute("data-time-state",state);
   items.forEach(function(item){
    item.setAttribute("aria-checked",item.getAttribute("data-time-mode")===mode?"true":"false");
   });
   icon.setAttribute("data-icon",state);
-  autoState.textContent="\u00b7 "+stateLabel(M.resolveAutomatic(new Date()));
-  scheduleBoundary();
+  autoState.textContent="\u00b7 "+stateLabel(M.resolveAutomatic(now));
+  scheduleBoundary(now);
  }
 
  function setMode(nextMode){
@@ -47,12 +65,12 @@
    if(nextMode==="auto")sessionStorage.removeItem(KEY);
    else sessionStorage.setItem(KEY,nextMode);
   }catch(error){nextMode="auto";}
-  apply(nextMode,M.resolveState(nextMode,new Date()));
+  apply(nextMode,new Date());
  }
 
  function refreshAutomatic(){
   if(mode!=="auto"||destroyed)return;
-  apply("auto",M.resolveState("auto",new Date()));
+  apply("auto",new Date());
  }
 
  function closeMenu(returnFocus){
@@ -158,6 +176,10 @@
   document.removeEventListener("pointerdown",onOutsidePointerdown);
   document.removeEventListener("visibilitychange",onVisibilityChange);
   closeMenu(false);
+  restoreAttribute(hero,"data-time-mode",originalAttributes.heroMode);
+  restoreAttribute(hero,"data-time-state",originalAttributes.heroState);
+  restoreAttribute(body,"data-time-mode",originalAttributes.bodyMode);
+  restoreAttribute(body,"data-time-state",originalAttributes.bodyState);
  }
 
  button.addEventListener("click",toggleMenu);
@@ -169,7 +191,7 @@
 
  var initialMode="auto";
  try{initialMode=M.normalizeMode(sessionStorage.getItem(KEY));}catch(error){initialMode="auto";}
- apply(initialMode,M.resolveState(initialMode,new Date()));
+ apply(initialMode,new Date());
 
  window.HeroTimeController={
   getMode:function(){return mode;},
