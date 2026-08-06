@@ -18,10 +18,11 @@
 - Modes are exactly `auto`, `off`, `pre-dawn`, `sunrise`, `daytime`, `dusk`, `sunset`, and `night`.
 - Automatic mapping is 04:00 Pre-dawn, 06:00 Sunrise, 09:00 Daytime, 17:00 Dusk, 18:30 Sunset, and 20:30 Night using the device clock.
 - Store manual mode under `jbHeroTimeMode` in `sessionStorage`; a new browser session defaults to Automatic.
-- Visual transitions last 800 ms and retarget from the current interpolated state.
+- Desktop visual transitions use one synchronized opacity crossfade up to 800 ms; mobile uses a shorter 350–450 ms version of the same easing. Base, radial, Night field, header material, text, and controls must not flash or expose muddy mismatched intermediate states. Reduced motion is immediate.
 - The Hero does not render WebGL, mesh texture, rays, lines, grain, or filaments. Forced colors suppresses the decorative CSS layers and reduced motion makes state changes immediate. Off removes every time layer plus the original light-blue `.heroAura`; it retains only neutral surfaces, portrait, controls, and outlines.
 - Desktop FluidMesh DPR uses its existing 2.25 cap; coarse-pointer/mobile uses 1.5.
 - The Time control is icon-only, at least 44 × 44 px, immediately after Mood, keyboard operable, and clamped to a 16 px viewport gutter.
+- The Time menu uses a coherent token-colored outline icon beside every label: cycle/clock for Automatic, circle-slash for Off, and distinct horizon/sun/moon silhouettes for each named state. The trigger reflects the resolved state; View work and Mood remain text-only.
 - Preserve all unrelated working-tree edits, especially the approved popcorn/glasses hover work and media-outline/mobile-gutter work. Never stage `.superpowers/`.
 
 ---
@@ -430,7 +431,7 @@ No continuous renderer or animation loop is permitted. State changes update opac
 
 - [ ] **Step 5: Handle strict Off and teardown**
 
-Off hides the clip, every gradient, optional spill, original `.heroAura`, and portrait cast. `destroy()` restores prior state attributes and removes all listeners/timers owned by the controller. The header remains neutral and the hero's thin outline remains above the gradient.
+Off hides the clip, every gradient, optional spill, original `.heroAura`, and portrait cast, while retaining the original `.floorshadow`. Hide that shadow for every active time state while preserving its DOM for Mood compatibility. Night alone themes the actual header specimen with a translucent purple-indigo dark material and light navigation controls, preserves its thin rim, and adds a viewport-width indigo atmosphere behind and outside the header/hero boxes from the page top through the hero, fading out by the tabs. The sticky header returns to its normal light specimen when tabs/work reach it and restores Night styling when scrolling back above that boundary. It never acts as a head halo, covers content, or creates horizontal overflow. `destroy()` restores prior state attributes and removes all listeners/observers/timers owned by the controller.
 
 - [ ] **Step 6: Verify lifecycle contracts and syntax**
 
