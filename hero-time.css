@@ -1,5 +1,11 @@
 /* Home-hero time specimen: semantic materials, static fallback, and control shell. */
+:root{
+ --hero-time-duration:800ms;
+ --hero-time-ease:cubic-bezier(.65,0,.35,1)
+}
 .hero{
+ overflow:visible;
+ --time-base:var(--c50);
  --time-ink:var(--c950);
  --time-primary-bg:var(--c950);
  --time-primary-ink:var(--c50);
@@ -17,26 +23,26 @@
  --time-light-x:50%;
  --time-shadow:radial-gradient(ellipse 50% 50% at 50% 50%,rgba(8,8,8,.42),rgba(8,8,8,.28) 30%,rgba(8,8,8,.10) 58%,transparent 78%);
  --time-shadow-opacity:.5;
- --time-fallback:none;
- --time-layer-opacity:0;
- --time-orb-radius:min(30vw,240px);
- --time-orb-y:74%;
  --time-menu-bg:var(--mat-3-solid);
  --time-menu-ink:var(--c700);
  --time-menu-ink-strong:var(--c950);
  --time-menu-selected:var(--wash-1);
  --time-menu-shadow:var(--rim-2),var(--sh-2);
  --time-focus:var(--c950);
+ background-color:var(--time-base);
  color:var(--time-ink);
  box-shadow:none;
+ transition:background-color var(--hero-time-duration) var(--hero-time-ease);
 }
 .hero::after{
  content:"";position:absolute;inset:0;z-index:10;pointer-events:none;
- border-radius:inherit;corner-shape:inherit;box-shadow:var(--time-rim)
+ border-radius:inherit;corner-shape:inherit;box-shadow:var(--time-rim);
+ transition:box-shadow var(--hero-time-duration) var(--hero-time-ease)
 }
 
 body[data-time-state="off"],
 .hero[data-time-state="off"]{
+ --time-base:var(--c50);
  --time-ink:var(--c950);
  --time-primary-bg:var(--c950);
  --time-primary-ink:var(--c50);
@@ -54,8 +60,6 @@ body[data-time-state="off"],
  --time-light-x:50%;
  --time-shadow:radial-gradient(ellipse 50% 50% at 50% 50%,rgba(8,8,8,.42),rgba(8,8,8,.28) 30%,rgba(8,8,8,.10) 58%,transparent 78%);
  --time-shadow-opacity:.5;
- --time-fallback:none;
- --time-layer-opacity:0;
  --time-menu-bg:var(--mat-3-solid);
  --time-menu-ink:var(--c700);
  --time-menu-ink-strong:var(--c950);
@@ -66,16 +70,17 @@ body[data-time-state="off"],
 
 body[data-time-state="pre-dawn"],
 .hero[data-time-state="pre-dawn"]{
- --time-ink:var(--c50);
- --time-primary-bg:var(--c50);
- --time-primary-ink:var(--c950);
- --time-primary-hover-bg:var(--c100);
- --time-secondary-bg:var(--mat-i2);
- --time-secondary-ink:var(--c50);
- --time-secondary-hover-bg:var(--mat-i3-solid);
- --time-secondary-border:var(--i100);
- --time-secondary-hover-border:var(--i700);
- --time-rim:var(--rim-i2);
+ --time-base:#fff;
+ --time-ink:var(--c950);
+ --time-primary-bg:var(--c950);
+ --time-primary-ink:var(--c50);
+ --time-primary-hover-bg:var(--c900);
+ --time-secondary-bg:var(--mat-2);
+ --time-secondary-ink:var(--c950);
+ --time-secondary-hover-bg:var(--mat-3-solid);
+ --time-secondary-border:var(--c100);
+ --time-secondary-hover-border:var(--c500);
+ --time-rim:var(--rim-3);
  --time-bloom:rgba(111,169,255,.38);
  --time-cast:rgba(92,149,255,.32);
  --time-cast-filter:brightness(1.04) saturate(1.12) hue-rotate(4deg);
@@ -83,18 +88,17 @@ body[data-time-state="pre-dawn"],
  --time-light-x:34%;
  --time-shadow:radial-gradient(ellipse 54% 54% at 42% 50%,rgba(3,8,19,.68),rgba(10,22,48,.42) 38%,rgba(36,59,121,.16) 64%,transparent 82%);
  --time-shadow-opacity:.64;
- --time-fallback:radial-gradient(circle var(--time-orb-radius) at 50% var(--time-orb-y),#C7D6FF 0%,#6B6FAF 38%,#243B79 68%,rgba(36,59,121,0) 100%),linear-gradient(180deg,#071329 0%,#142C54 100%);
- --time-layer-opacity:1;
- --time-menu-bg:var(--mat-i3-solid);
- --time-menu-ink:var(--i700);
- --time-menu-ink-strong:var(--c50);
- --time-menu-selected:var(--wash-i1);
- --time-menu-shadow:var(--rim-i2),var(--sh-i2);
- --time-focus:var(--c50);
+ --time-menu-bg:var(--mat-3-solid);
+ --time-menu-ink:var(--c700);
+ --time-menu-ink-strong:var(--c950);
+ --time-menu-selected:var(--wash-1);
+ --time-menu-shadow:var(--rim-2),var(--sh-2);
+ --time-focus:var(--c950);
 }
 
 body[data-time-state="sunrise"],
 .hero[data-time-state="sunrise"]{
+ --time-base:#fff;
  --time-ink:var(--c950);
  --time-primary-bg:var(--c950);
  --time-primary-ink:var(--c50);
@@ -112,8 +116,6 @@ body[data-time-state="sunrise"],
  --time-light-x:38%;
  --time-shadow:radial-gradient(ellipse 54% 52% at 44% 50%,rgba(72,57,54,.44),rgba(181,116,85,.22) 38%,rgba(255,212,184,.08) 66%,transparent 82%);
  --time-shadow-opacity:.48;
- --time-fallback:radial-gradient(circle var(--time-orb-radius) at 50% var(--time-orb-y),#FFF0D4 0%,#F1A36B 38%,#BCD8FF 68%,rgba(188,216,255,0) 100%),linear-gradient(180deg,#F6F9FF 0%,#BCD8FF 100%);
- --time-layer-opacity:1;
  --time-menu-bg:var(--mat-3-solid);
  --time-menu-ink:var(--c700);
  --time-menu-ink-strong:var(--c950);
@@ -124,6 +126,7 @@ body[data-time-state="sunrise"],
 
 body[data-time-state="daytime"],
 .hero[data-time-state="daytime"]{
+ --time-base:#fff;
  --time-ink:var(--c950);
  --time-primary-bg:var(--c950);
  --time-primary-ink:var(--c50);
@@ -141,8 +144,6 @@ body[data-time-state="daytime"],
  --time-light-x:46%;
  --time-shadow:radial-gradient(ellipse 54% 52% at 48% 50%,rgba(24,49,78,.36),rgba(90,145,192,.18) 38%,rgba(169,214,255,.08) 64%,transparent 82%);
  --time-shadow-opacity:.42;
- --time-fallback:radial-gradient(circle var(--time-orb-radius) at 50% var(--time-orb-y),#EEF7FF 0%,#A9D6FF 38%,#74B6F2 68%,rgba(116,182,242,0) 100%),linear-gradient(180deg,#F8FBFF 0%,#DCEEFF 100%);
- --time-layer-opacity:1;
  --time-menu-bg:var(--mat-3-solid);
  --time-menu-ink:var(--c700);
  --time-menu-ink-strong:var(--c950);
@@ -153,16 +154,17 @@ body[data-time-state="daytime"],
 
 body[data-time-state="dusk"],
 .hero[data-time-state="dusk"]{
- --time-ink:var(--c50);
- --time-primary-bg:var(--c50);
- --time-primary-ink:var(--c950);
- --time-primary-hover-bg:var(--c100);
- --time-secondary-bg:var(--mat-i2);
- --time-secondary-ink:var(--c50);
- --time-secondary-hover-bg:var(--mat-i3-solid);
- --time-secondary-border:var(--i100);
- --time-secondary-hover-border:var(--i700);
- --time-rim:var(--rim-i2);
+ --time-base:#fff;
+ --time-ink:var(--c950);
+ --time-primary-bg:var(--c950);
+ --time-primary-ink:var(--c50);
+ --time-primary-hover-bg:var(--c900);
+ --time-secondary-bg:var(--mat-2);
+ --time-secondary-ink:var(--c950);
+ --time-secondary-hover-bg:var(--mat-3-solid);
+ --time-secondary-border:var(--c100);
+ --time-secondary-hover-border:var(--c500);
+ --time-rim:var(--rim-3);
  --time-bloom:rgba(178,167,209,.34);
  --time-cast:rgba(146,136,190,.24);
  --time-cast-filter:brightness(1.03) saturate(.88) hue-rotate(8deg);
@@ -170,28 +172,27 @@ body[data-time-state="dusk"],
  --time-light-x:38%;
  --time-shadow:radial-gradient(ellipse 54% 54% at 44% 50%,rgba(7,10,22,.66),rgba(38,54,92,.38) 40%,rgba(103,111,159,.14) 66%,transparent 82%);
  --time-shadow-opacity:.62;
- --time-fallback:radial-gradient(circle var(--time-orb-radius) at 50% var(--time-orb-y),#E6D9E9 0%,#B2A7D1 38%,#676F9F 68%,rgba(103,111,159,0) 100%),linear-gradient(180deg,#10162A 0%,#26365C 100%);
- --time-layer-opacity:1;
- --time-menu-bg:var(--mat-i3-solid);
- --time-menu-ink:var(--i700);
- --time-menu-ink-strong:var(--c50);
- --time-menu-selected:var(--wash-i1);
- --time-menu-shadow:var(--rim-i2),var(--sh-i2);
- --time-focus:var(--c50);
+ --time-menu-bg:var(--mat-3-solid);
+ --time-menu-ink:var(--c700);
+ --time-menu-ink-strong:var(--c950);
+ --time-menu-selected:var(--wash-1);
+ --time-menu-shadow:var(--rim-2),var(--sh-2);
+ --time-focus:var(--c950);
 }
 
 body[data-time-state="sunset"],
 .hero[data-time-state="sunset"]{
- --time-ink:var(--c50);
- --time-primary-bg:var(--c50);
- --time-primary-ink:var(--c950);
- --time-primary-hover-bg:var(--c100);
- --time-secondary-bg:var(--mat-i2);
- --time-secondary-ink:var(--c50);
- --time-secondary-hover-bg:var(--mat-i3-solid);
- --time-secondary-border:var(--i100);
- --time-secondary-hover-border:var(--i700);
- --time-rim:var(--rim-i2);
+ --time-base:#fff;
+ --time-ink:var(--c950);
+ --time-primary-bg:var(--c950);
+ --time-primary-ink:var(--c50);
+ --time-primary-hover-bg:var(--c900);
+ --time-secondary-bg:var(--mat-2);
+ --time-secondary-ink:var(--c950);
+ --time-secondary-hover-bg:var(--mat-3-solid);
+ --time-secondary-border:var(--c100);
+ --time-secondary-hover-border:var(--c500);
+ --time-rim:var(--rim-3);
  --time-bloom:rgba(255,167,120,.42);
  --time-cast:rgba(240,134,106,.30);
  --time-cast-filter:brightness(1.03) sepia(.14) saturate(1.14) hue-rotate(342deg);
@@ -199,18 +200,17 @@ body[data-time-state="sunset"],
  --time-light-x:40%;
  --time-shadow:radial-gradient(ellipse 56% 54% at 45% 50%,rgba(13,10,24,.68),rgba(60,49,93,.40) 38%,rgba(213,108,118,.16) 66%,transparent 82%);
  --time-shadow-opacity:.66;
- --time-fallback:radial-gradient(circle var(--time-orb-radius) at 50% var(--time-orb-y),#FFD5B8 0%,#F0A06F 38%,#D56C76 68%,rgba(213,108,118,0) 100%),linear-gradient(180deg,#19172B 0%,#3C315D 100%);
- --time-layer-opacity:1;
- --time-menu-bg:var(--mat-i3-solid);
- --time-menu-ink:var(--i700);
- --time-menu-ink-strong:var(--c50);
- --time-menu-selected:var(--wash-i1);
- --time-menu-shadow:var(--rim-i2),var(--sh-i2);
- --time-focus:var(--c50);
+ --time-menu-bg:var(--mat-3-solid);
+ --time-menu-ink:var(--c700);
+ --time-menu-ink-strong:var(--c950);
+ --time-menu-selected:var(--wash-1);
+ --time-menu-shadow:var(--rim-2),var(--sh-2);
+ --time-focus:var(--c950);
 }
 
 body[data-time-state="night"],
 .hero[data-time-state="night"]{
+ --time-base:#0d1738;
  --time-ink:var(--c50);
  --time-primary-bg:var(--c50);
  --time-primary-ink:var(--c950);
@@ -228,8 +228,6 @@ body[data-time-state="night"],
  --time-light-x:42%;
  --time-shadow:radial-gradient(ellipse 56% 54% at 46% 50%,rgba(0,2,8,.76),rgba(10,21,48,.48) 38%,rgba(29,74,147,.16) 66%,transparent 82%);
  --time-shadow-opacity:.72;
- --time-fallback:radial-gradient(circle var(--time-orb-radius) at 50% var(--time-orb-y),#6FA9FF 0%,#1D4A93 38%,#102A58 68%,rgba(16,42,88,0) 100%),linear-gradient(180deg,#050810 0%,#0A1530 100%);
- --time-layer-opacity:1;
  --time-menu-bg:var(--mat-i3-solid);
  --time-menu-ink:var(--i700);
  --time-menu-ink-strong:var(--c50);
@@ -238,31 +236,68 @@ body[data-time-state="night"],
  --time-focus:var(--c50);
 }
 
-.heroTimeScene{
- position:absolute;left:0;right:0;top:0;height:0;z-index:60;overflow:hidden;isolation:isolate;
- pointer-events:none;background:transparent;opacity:var(--time-layer-opacity,0);
- transition:opacity var(--sp-settle-dur) var(--ease-out)
+.heroTimeSpill{
+ position:absolute;top:calc(0px - var(--nav-h) - var(--sp-8) - var(--sp-12));
+ bottom:calc((var(--sp-48-80) + var(--sp-64)) * -1);left:50%;width:100vw;z-index:-1;pointer-events:none;
+ transform:translateX(-50%);
+ background:linear-gradient(180deg,#141e4b 0%,#141e4b calc(100% - var(--sp-48-80) - var(--sp-64)),rgba(20,30,75,.92) calc(100% - var(--sp-64)),rgba(20,30,75,0) 100%);
+ -webkit-mask-image:linear-gradient(180deg,#000 0%,#000 calc(100% - var(--sp-48-80) - var(--sp-64)),rgba(0,0,0,.72) calc(100% - var(--sp-64)),transparent 100%);
+ mask-image:linear-gradient(180deg,#000 0%,#000 calc(100% - var(--sp-48-80) - var(--sp-64)),rgba(0,0,0,.72) calc(100% - var(--sp-64)),transparent 100%);
+ opacity:0;transition:opacity var(--hero-time-duration) var(--hero-time-ease)
 }
-.heroTimeCanvas,.heroTimeBloom{
- position:absolute;inset:0;width:100%;height:100%;pointer-events:none
+body[data-time-state="night"] .heroTimeSpill{opacity:1}
+body[data-time-state] .jbNav{
+ transition:background-color var(--hero-time-duration) var(--hero-time-ease),
+  box-shadow var(--hero-time-duration) var(--hero-time-ease),
+  color var(--hero-time-duration) var(--hero-time-ease)
 }
-.heroTimeCanvas{
- z-index:0;display:block;visibility:hidden;background:transparent;opacity:0
+body[data-time-state] .jbGrp>:is(a,button),
+body[data-time-state] .jbGrp>.jbDisc>.jbDiscGo{
+ transition:color var(--hero-time-duration) var(--hero-time-ease),
+  background-color var(--hero-time-duration) var(--hero-time-ease),
+  transform var(--press-dur) var(--ease-out)
 }
-.heroTimeBloom{
- z-index:1;
- background:radial-gradient(circle min(30vw,240px) at 50% 78%,var(--time-bloom) 0%,transparent 100%);
- filter:blur(var(--sp-32));opacity:.06
+body[data-time-state="night"].heroTimeHeaderScene .jbNav{
+ --nav-mat:rgba(30,32,100,.88);
+ --nav-rim:var(--rim-i2),var(--rim-top);
+ --nav-ink:var(--i700);
+ --nav-ink-strong:var(--c50);
+ --nav-hover-bg:rgba(127,129,243,.26);
+ --nav-active-ink:var(--c50);
+ --nav-active-bg:rgba(127,129,243,.34);
+ --nav-focus:var(--c50)
 }
-body[data-time-state]:not([data-time-state="off"]) .hero{background:var(--time-fallback)}
+body[data-time-state="night"].heroTimeHeaderScene .jbDiscMenu .jbDiscSep{background:var(--i100)}
+
+.heroTimeClip{
+ position:absolute;inset:0;z-index:0;overflow:hidden;border-radius:inherit;
+ corner-shape:inherit;pointer-events:none
+}
+.heroTimeGradient{
+ position:absolute;inset:0;opacity:0;filter:none;mix-blend-mode:normal;
+ transition:opacity var(--hero-time-duration) var(--hero-time-ease)
+}
+.heroTimeGradient[data-time-gradient="pre-dawn"]{background:radial-gradient(103.24% 102.63% at 50% 102.63%,#486ffd 0,#7f81f3 9.84%,#c489ff 20.83%,#dac0ff 34.13%,#eadcff 44.86%,#f9f6ff 58.59%,#f8fafd 100%)}
+.heroTimeGradient[data-time-gradient="sunrise"]{background:radial-gradient(102.68% 99.11% at 50% 104.6%,#cb83ff 0,#ff90b9 15.77%,#ffc977 30.62%,#ffd79b 38.04%,#fff1dc 50.11%,#fff 63.1%,#fcfdfe 77.95%,#f8fafd 98.81%)}
+.heroTimeGradient[data-time-gradient="daytime"]{background:radial-gradient(102.84% 104.98% at 50% 104.98%,#0071c1 1.33%,#60a8e2 15.71%,#b4d8ff 33.15%,#d9ebff 45%,#f8fafd 60%)}
+.heroTimeGradient[data-time-gradient="dusk"]{background:radial-gradient(102.83% 103.24% at 49.98% 104.51%,#ffb451 0,#efc680 16.73%,#b4d8ff 33.03%,#d2e8ff 43.38%,#fafdff 59.16%,#fdfeff 76.24%,#f8fafd 100%)}
+.heroTimeGradient[data-time-gradient="sunset"]{background:radial-gradient(103.12% 100% at 50% 100%,#ffa577 0,#ff90a1 15.52%,#ddadff 30.09%,#ecd8ff 45.72%,#f5eaff 54.96%,#f8fafd 88.16%)}
+.heroTimeGradient[data-time-gradient="night"]{background:radial-gradient(102.82% 106.44% at 50% 106.44%,#fcfdfe 1.11%,#6763e4 28.73%,#453bb3 45.76%,#29227d 63.37%,#1e2064 78.67%,#141e4b 100%)}
+.hero[data-time-state="pre-dawn"] .heroTimeGradient[data-time-gradient="pre-dawn"]{opacity:1}
+.hero[data-time-state="sunrise"] .heroTimeGradient[data-time-gradient="sunrise"]{opacity:1}
+.hero[data-time-state="daytime"] .heroTimeGradient[data-time-gradient="daytime"]{opacity:1}
+.hero[data-time-state="dusk"] .heroTimeGradient[data-time-gradient="dusk"]{opacity:1}
+.hero[data-time-state="sunset"] .heroTimeGradient[data-time-gradient="sunset"]{opacity:1}
+.hero[data-time-state="night"] .heroTimeGradient[data-time-gradient="night"]{opacity:1}
 body[data-time-state] .heroAura{display:none}
-body[data-time-state="off"] .heroTimeScene,
-body[data-time-state="off"] .heroTimeCanvas,
-body[data-time-state="off"] .heroTimeBloom,
+.hero[data-time-state] .heroAura{display:none}
+body[data-time-state]:not([data-time-state="off"]) .hero .floorshadow{
+ background:none!important;opacity:0!important;filter:none!important
+}
 body[data-time-state="off"] .heroAura,
 body[data-time-state="off"] .heroTimePortraitCast{display:none;opacity:0}
 
-.heroCopy h1{position:relative;z-index:3;color:var(--time-ink);transition:color var(--sp-settle-dur) var(--ease-out)}
+.heroCopy h1{position:relative;z-index:3;color:var(--time-ink);transition:color var(--hero-time-duration) var(--hero-time-ease)}
 .hero[data-time-state] .workCta{
  background:var(--time-primary-bg);border-color:var(--time-primary-bg);color:var(--time-primary-ink)
 }
@@ -275,6 +310,14 @@ body[data-time-state="off"] .heroTimePortraitCast{display:none;opacity:0}
 .heroTimeBtn{
  background:var(--time-secondary-bg);border:var(--hair-w) solid var(--time-secondary-border);
  color:var(--time-secondary-ink)
+}
+.hero[data-time-state] .workCta,
+.hero[data-time-state] .heroMood .moodBtn,
+.heroTimeBtn{
+ transition:background-color var(--hero-time-duration) var(--hero-time-ease),
+  border-color var(--hero-time-duration) var(--hero-time-ease),
+  color var(--hero-time-duration) var(--hero-time-ease),
+  transform var(--press-dur) var(--ease-out)
 }
 .hero[data-time-state] .heroMood .moodBtn:hover,
 .hero[data-time-state] .heroMood .moodBtn:focus-visible,
@@ -317,7 +360,11 @@ body[data-time-state="off"] .heroTimePortraitCast{display:none;opacity:0}
 }
 .heroTimeIcon{
  width:var(--ico-md);height:var(--ico-md);fill:none;stroke:currentColor;
- stroke-width:var(--ico-stroke);stroke-linecap:round;stroke-linejoin:round
+ stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round
+}
+.heroTimeOptionIcon{
+ width:var(--ico-md);height:var(--ico-md);flex:0 0 var(--ico-md);fill:none;
+ stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round
 }
 .heroTimeIcon [data-hero-time-icon]{display:none}
 .heroTimeIcon[data-icon="pre-dawn"] [data-hero-time-icon="pre-dawn"],
@@ -376,19 +423,21 @@ body[data-time-state="off"] .heroTimePortraitCast{display:none;opacity:0}
 }
 
 @media(max-width:760px){
- .hero{--time-orb-radius:min(36vw,140px);--time-orb-y:82%}
+ :root{--hero-time-duration:400ms}
  .heroTimeMenu{width:min(var(--menu-w),calc(50vw + var(--sp-6)));max-width:calc(100vw - (var(--sp-16) * 2))}
  .heroTimeBtn{width:var(--tap-min);height:var(--tap-min)}
 }
 
 @media(prefers-reduced-motion:reduce){
- .heroTimeScene,.heroTimeCanvas,.heroTimeBloom,.heroTimePortraitCast,.heroCopy h1,
- .hero[data-time-state] .floorshadow,.heroTimeBtn,.heroTimeMenu,
+ .hero,.hero::after,.heroTimeSpill,.heroTimeClip,.heroTimeGradient,.heroTimePortraitCast,.heroCopy h1,
+ body[data-time-state] .jbNav,body[data-time-state] .jbGrp>:is(a,button),
+ body[data-time-state] .jbGrp>.jbDisc>.jbDiscGo,.hero[data-time-state] .workCta,
+ .hero[data-time-state] .heroMood .moodBtn,.hero[data-time-state] .floorshadow,.heroTimeBtn,.heroTimeMenu,
  .heroTimeMenu [role="menuitemradio"]{transition:none!important;animation:none!important}
 }
 
 @media(forced-colors:active){
- .heroTimeScene,.heroTimePortraitCast,.heroAura{display:none}
+ .heroTimeSpill,.heroTimeClip,.heroTimePortraitCast,.heroAura{display:none}
  .hero,.heroCopy h1{background:Canvas;color:CanvasText}
  .hero{box-shadow:none}
  .hero::after{box-sizing:border-box;border:var(--hair-w) solid CanvasText;box-shadow:none}
