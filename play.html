@@ -33,7 +33,8 @@
     reversed it -- "shouldn't be dark mode. Should be minimal with a NASA planet and the heads
     jumping on it." That deleted a whole colour system from this file rather than adding one,
     and it took the ink chrome, the terminator and the sky grain with it. */
- html,body{margin:0;height:100%;background:var(--c50);overflow:hidden}
+ html{margin:0;height:100%;background:var(--c50);overflow:hidden}
+ body{margin:0;height:auto;min-height:100%;background:var(--c50);overflow-x:clip;overflow-y:auto}
  /* play.css:58 also declares body{background:var(--c50)}; this block is a later
     same-specificity rule, so it wins by source order -- the same mechanism the note
     below already documents for the paper value it replaces. */
@@ -49,13 +50,14 @@
     top:40px is relative to the band, not the viewport) -- is a flat .hero
     descendant. So a shorter, vertically-centred .hero pulls the whole scene up
     into a broadcast-style band with the scoreboard sitting just above it, with NO
-    play-engine.js change: this is CSS-only. body becomes the centring flex
-    container; .hero, as body's one in-flow child (the back link and the game menu
-    are both position:fixed, out of flow), gets margin:auto to centre on both axes --
+    play-engine.js change: this is CSS-only. .playViewport becomes the centring flex
+    container; .hero, as its one in-flow child (the hub is absolute and the game menu
+    is fixed, both out of flow), gets margin:auto to centre on both axes --
     though only the vertical axis has free space to give, since .hero still spans
     the full 100vw. See task-2-report.md's fix-round-2 addendum for the measured
     before/after and the mobile decision (play.css:146). */
- body{display:flex}
+ .playViewport{position:relative;min-height:100svh;display:flex}
+ .playBooting .playViewport{visibility:hidden}
  .hero{position:relative;width:100vw;height:60vh;margin:auto}
  /* The head host: real geometry (the clone copies it), zero ink (nobody is meant to see it).
     Sized off the viewport height so it never fights the arena band, and pinned dead centre so
@@ -70,7 +72,7 @@
     it and home now does the same static thing this rule does (header.css:414). play.html's menu bar is pinned to the
     right edge (right:16px, below), so left-aligned growth runs the menu off the viewport's
     right edge every time -- measured 70px of overflow at 1280px wide, worse on anything
-    narrower, and body's overflow:hidden (line 9) makes the overflow unreachable, not just
+    narrower, and horizontal overflow is clipped, making the overflow unreachable, not just
     ugly. Anchoring the menu to the SAME edge as the button it drops from is also just the
     correct static answer for a corner-pinned bar, not a workaround. */
  #moodMenu{left:auto;right:0}
@@ -139,7 +141,7 @@
     and the cards begin near 80vh, so nothing overlaps and nothing had to move.
     pointer-events are OFF on the frame and on the title block -- the heads are
     draggable and a full-viewport overlay would eat every grab. ---- */
- .pHub{position:fixed;inset:0;z-index:40;pointer-events:none;
+ .pHub{position:absolute;inset:0;z-index:40;pointer-events:none;
   display:flex;flex-direction:column;justify-content:flex-end;
   /* --sp-48 off --nav-h, not --sp-40. Measured at 390: .jbStick is 72px tall (a 52px nav
      plus its own padding-block), so a 92px top inset left the h1 FOUR pixels under the bar --
@@ -149,6 +151,14 @@
   transition:opacity var(--sp-settle-dur) var(--sp-settle),visibility 0s linear var(--sp-settle-dur)}
  body.pHubOn .pHub{opacity:1;visibility:visible;transition-delay:0s,0s}
  @media(prefers-reduced-motion:reduce){.pHub{transition:none}}
+
+ /* The shared Home sign-off, now in Play's normal flow below the original viewport. */
+ .siteFoot{scroll-margin-top:80px;margin-top:clamp(80px,12vh,150px);padding:0 clamp(24px,5vw,40px) clamp(32px,5vh,64px);text-align:center}
+ .footReach{font-family:var(--sans);font-weight:400;font-size:var(--fs-prose);line-height:var(--lh-prose);color:var(--c700);margin:0 auto;max-width:56ch;text-wrap:balance}
+ .footIn{font-weight:600;color:var(--c950);text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:3px;text-decoration-color:var(--c500);transition:text-decoration-color .15s cubic-bezier(.2,.8,.2,1),color .15s cubic-bezier(.2,.8,.2,1);display:inline-block;padding-block:var(--sp-10);margin-block:calc(var(--sp-10) * -1)}
+ .footIn:hover,.footIn:focus-visible{color:var(--accent);text-decoration-color:var(--accent)}
+ .footIn:active{color:var(--accent-press);text-decoration-color:var(--accent-press)}
+ .footMark{font-family:var(--sans);font-weight:600;font-size:min(var(--fs-display),13vw);line-height:.9;letter-spacing:var(--tr-display);color:var(--c100);margin:var(--sp-8-16) 0 0;white-space:nowrap;-webkit-user-select:none;user-select:none}
 
  /* ---- THE CORNER MENU IS OFF, and the element stays. #moodbar/#moodBtn/#moodMenu are kept
     in the DOM because the tournament disables and restores #moodBtn BY ID
@@ -558,7 +568,7 @@
 </style>
 <link rel="stylesheet" href="header.css">
 <script src="header.js" defer></script>
-</head><body class="hmFull" data-nav="games">
+</head><body class="hmFull playBooting" data-nav="games">
 <!-- FIX ROUND 2 (Task 2): filter defs SHARED with index.html:2316-2318, copied verbatim, not moved -- index.html keeps its own copies. Must be inlined here, not linked: Safari does not support filters referenced from an external or data: URL (see index.html's own comment on tHeadEdge). #tHeadEdge is unused on play.html today but Task 4's tournament head edges need it. -->
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><!-- Cut-out edge stroke. NOT a drop-shadow stack: CSS filter functions CHAIN, each taking the previous one's output, so N shadows compound to about (N/pi)*r rather than r -- 8 at 1px measures ~2.5px, and 24 hangs the compositor outright. Worse, a stack outlines every hair strand separately and turns a photographic head into a spiky halo. Threshold the alpha FIRST so wispy strands collapse into one silhouette, dilate that, subtract to leave a ring, and flood it. One clean line, hair keeps its softness. Must be inline in this document: Safari does not support filters referenced from an external or data: URL. --><filter id="tHeadEdge" x="-25%" y="-25%" width="150%" height="150%" color-interpolation-filters="sRGB"><feGaussianBlur in="SourceAlpha" stdDeviation="1.6" result="b"/><feComponentTransfer in="b" result="sil"><feFuncA type="linear" slope="20" intercept="-13.5"/></feComponentTransfer><feMorphology in="sil" operator="dilate" radius="1" result="f"/><feComposite in="f" in2="sil" operator="out" result="r"/><feFlood flood-color="#FDFDFD" result="c"/><feComposite in="c" in2="r" operator="in" result="st"/><feMerge><feMergeNode in="st"/><feMergeNode in="SourceGraphic"/></feMerge></filter></svg>
 <svg width="0" height="0" style="position:absolute"><filter id="inkBig"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="7" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="1.1" xChannelSelector="R" yChannelSelector="G" result="d"/><feTurbulence type="fractalNoise" baseFrequency="0.5 0.42" numOctaves="2" seed="13" result="g"/><feColorMatrix in="g" type="matrix" values="0 0 0 0 0.055 0 0 0 0 0.055 0 0 0 0 0.055 0 0 0 0.42 0" result="grain"/><feComposite in="grain" in2="d" operator="atop"/></filter>
@@ -612,6 +622,7 @@
      It stays centred rather than parked off-screen so his gaze maths reads the cursor the same
      way it does at home. #face keeps a src in markup purely so it has decoded by the time
      fillerData() asks for face.complete; setFace("neutral") sets the identical value at boot. ==== -->
+<div class="playViewport">
 <div class="heroHeadHost" aria-hidden="true">
  <div class="stagewrap">
   <div class="queueDots" id="qdots" role="status" aria-live="polite"><span class="qsr"></span><i></i><i></i><i></i></div>
@@ -673,6 +684,12 @@
       display size the two clauses run together into one breathless sentence without it. -->
  <h1 class="pLede"><span>I made a few games for fun.</span> <span>Still building them.</span></h1>
  <nav class="pCards" aria-label="Games">
+  <a class="pCard" id="pcHead" href="headmaker.html?from=play">
+   <svg class="gIco" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0"/><path d="M16 19h6"/><path d="M19 16v6"/><path d="M6 21v-2a4 4 0 0 1 4 -4h4"/></svg>
+   <span class="pCardT">Add your head</span>
+   <span class="pCardD">Upload a photo of your face and cut it out on a new page. It comes back and joins the crowd.</span>
+   <span class="pCardPrev" aria-hidden="true"><img alt="" width="640" height="400" decoding="async" data-prev="images/preview/headmaker.webp"></span>
+  </a>
   <button class="pCard" id="pcExped" type="button">
    <svg class="gIco" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"/><path d="M12 7l4.76 3.45l-1.76 5.55h-6l-1.76 -5.55l4.76 -3.45"/><path d="M12 7v-4m3 13l2.5 3m-.74 -8.55l3.74 -1.45m-11.44 7.05l-2.56 2.95m.74 -8.55l-3.74 -1.45"/></svg>
    <span class="pCardT">Play a match</span>
@@ -685,12 +702,6 @@
    <span class="pCardD">A whole cup of matches, one at a time, with a bracket, goals and a winner.</span>
    <span class="pCardPrev" aria-hidden="true"><img alt="" width="640" height="400" decoding="async" data-prev="images/preview/tournament.webp"></span>
   </button>
-  <a class="pCard" id="pcHead" href="headmaker.html?from=play">
-   <svg class="gIco" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0"/><path d="M16 19h6"/><path d="M19 16v6"/><path d="M6 21v-2a4 4 0 0 1 4 -4h4"/></svg>
-   <span class="pCardT">Add your head</span>
-   <span class="pCardD">Upload a photo of your face and cut it out on a new page. It comes back and joins the crowd.</span>
-   <span class="pCardPrev" aria-hidden="true"><img alt="" width="640" height="400" decoding="async" data-prev="images/preview/headmaker.webp"></span>
-  </a>
   <a class="pCard" id="pcGrad" href="gradientlab.html?from=play">
    <svg class="gIco" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3m0 2a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v14a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2z"/><path d="M3 15l6 -6l4 4l3 -3l5 5"/><path d="M8.5 8.5m-1.5 0a1.5 1.5 0 1 0 3 0a1.5 1.5 0 1 0 -3 0"/></svg>
    <span class="pCardT">Make a gradient</span>
@@ -699,6 +710,11 @@
   </a>
  </nav>
 </div>
+</div>
+<footer class="siteFoot" id="contact" role="contentinfo">
+ <p class="footReach">I&rsquo;m open to full-time roles and would love to chat. Find me on <a class="footIn" href="https://www.linkedin.com/in/jaydenbetts" target="_blank" rel="noopener noreferrer">LinkedIn</a>, <a class="footIn" href="https://www.instagram.com/jaydenleebetts" target="_blank" rel="noopener noreferrer">Instagram</a>, or <a class="footIn" href="mailto:jaydenlbetts@gmail.com">email</a>.</p>
+ <div class="footMark" aria-hidden="true">Jayden Betts</div>
+</footer>
 <!-- The team screen's shell is built by play-games.js (it owns the chips, the drag, the
      shuffle and the live __hmTeamPreview channel); this is only the mount point, so the
      panel's place in the stacking order is declared in markup rather than invented at

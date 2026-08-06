@@ -241,23 +241,25 @@
     108px wide at 1280 and 64px at 390, so five is 540px across 1280 (a loose group, still
     clearly several people) and 320px across 390 (a row that fills the phone without
     stacking). Four looked thin at 1280; six touched at 390. ---- */
- var _ph=[],_phTries=0;
+ var _ph=[],_phTries=0,_bootWait=0;
+ /* Play's arena is hidden only until every initial head has both reached the engine's seated
+    state and decoded its cutout. Releasing on DOM creation alone still exposes a blank image
+    frame; releasing on a timer recreates the original race on slower devices. */
+ function releasePlayBoot(expected){
+  if(_bootWait||!document.body.classList.contains("playBooting")||expected<1)return;
+  _bootWait=1;
+  (function ready(){
+   var nodes=[].slice.call(document.querySelectorAll("#playArena [data-hm-boot-ready]"));
+   var painted=nodes.length>=expected&&nodes.slice(0,expected).every(function(node){var img=node.querySelector("img");return !!(img&&img.complete&&img.naturalWidth);});
+   if(!painted){requestAnimationFrame(ready);return;}
+   requestAnimationFrame(function(){document.body.classList.remove("playBooting");document.body.setAttribute("data-play-ready","true");});
+  })();}
  function seedPlaceholders(){
   if(readAll().length)return;                       // the visitor has heads of their own: theirs, not these
   if(_ph.length)return;                             // idempotent -- battleGate ticks every 400ms
   var EGG=window.__EGGHEAD;if(!EGG||!EGG.cut)return;
-  /* THE ENGINE IS NOT UP YET -- AND ON A TRUE FIRST VISIT IT NEVER WILL BE.
-     play-engine.js:13 is `if(!list.length)return;`: the whole companion IIFE bails when
-     hmCompanions is empty, so on a first visit __hmSpawnOne, __hmLive, __hmSoccerStart and
-     __hmFillerAdd are ALL undefined -- verified in the browser with storage cleared. That is
-     a bigger finding than these placeholders and it is not in this lane: it means "Play a
-     match" could never have worked on a first visit, with or without scenery.
-     So this retries for ~5s and then stops rather than spinning a timer forever. The moment
-     the engine initialises with an empty roster (one change, play-engine.js:13 -- see the
-     report), these spawn with no further work here. Deliberately NOT worked around by
-     writing the eggs to localStorage to get the engine to boot: that is the one thing these
-     must never do, and a write-then-delete still leaves a window where a reload strands five
-     strangers in the visitor's roster. */
+  /* The engine exports the empty-roster spawn API before this script runs. Keep the bounded
+     retry as a defensive load-order guard, but never write scenery into localStorage. */
   if(!window.__hmSpawnOne){if(_phTries++<40)setTimeout(seedPlaceholders,120);return;}
   var N=5,i;
   for(i=0;i<N;i++)(function(slot){
@@ -266,10 +268,11 @@
     // the same imperceptible nudge __hmAddEgghead uses: readAll()-style de-dupe keys on
     // marks+eyes as well as the image, and these must stay five distinct heads
     if(eyes[0])eyes[0].x+=(slot+1)*0.0004;
-    var data={cut:cut,eyes:eyes,marks:EGG.marks,slot:slot,__ph:1};
+    var data={cut:cut,eyes:eyes,marks:EGG.marks,slot:slot,__ph:1,__bootSeated:1,__bootTotal:N};
     _ph[slot]=data;
     try{window.__hmSpawnOne(data,slot);}catch(_){}
     _bgLast="";battleGate();                        // the crowd changed the head count: re-gate now, not in 400ms
+    if(_ph.filter(Boolean).length===N)releasePlayBoot(N);
    });})(i);}
  /* The moment a real head arrives, the scenery leaves -- storage and the planet must never
     disagree about who is standing there. */
@@ -291,6 +294,7 @@
    try{if(window.__hmSpawnOne)window.__hmSpawnOne(data,arr.length-1);}catch(_){}});};
 
  battleGate();setInterval(battleGate,400);
+ var _savedAtBoot=readAll().length;if(_savedAtBoot)releasePlayBoot(_savedAtBoot);
  seedPlaceholders();
  /* THE 400ms POLL IS TOO SLOW FOR A GROUND SWAP. Everything the gate used to drive was a
     dim or a hide, where a late tick is invisible. The page's ground and the header's
