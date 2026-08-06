@@ -443,7 +443,7 @@ If the renderer cannot resume after context restoration, retain `.timeFallback`.
 
 Implement `forceFallback()` as the same public failure path used by `onError`: cancel the transition, destroy and clear the mesh, add `.timeFallback`, and return the controller to CSS-only rendering without changing mode or state.
 
-The CSS-only fallback uses the same page-anchored boundary and strong layered bottom-origin half-circle/arc composition as the WebGL scene. It must not degrade into a weak centered radial wash.
+The CSS-only fallback uses the same page-anchored boundary and clean, strong, bottom-origin half-circle composition as the WebGL scene. It must not degrade into a weak centered radial wash or resemble the site's Gradient Maker with visible independent color nodes.
 
 - [ ] **Step 6: Verify lifecycle contracts and syntax**
 
@@ -586,7 +586,7 @@ Run Delight and another Mood while each time state is active; confirm face sourc
 
 - [ ] **Step 7: Tune only preset/catalog and semantic variables**
 
-If a state is muddy, generic, weak, or unbalanced, adjust only `hero-time-presets.js` values and the semantic state variables in `hero-time.css`. Do not move hero layout boxes. Apply the documented Stripe research guidance: layered broad bottom-emerging cropped half-circle/arc forms, clear color separation and depth, restrained grain, and original palette values rather than a generic centered radial wash.
+If a state is muddy, generic, weak, busy, or unbalanced, adjust only `hero-time-presets.js` values and the semantic state variables in `hero-time.css`. Do not move hero layout boxes. Apply the documented Stripe research guidance: one clean broad bottom-emerging cropped half-circle of light, restrained depth and grain, and original palette values. The visible result must not resemble Gradient Maker or expose discrete mesh-node blobs.
 
 - [ ] **Step 8: Re-run the full suite after tuning**
 
