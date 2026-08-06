@@ -11,6 +11,7 @@ site_theme_css = Path("site-theme.css").read_text(encoding="utf-8")
 time_controller_path = Path("hero-time.js")
 assert time_controller_path.exists(), "hero time controller must exist"
 time_controller = time_controller_path.read_text(encoding="utf-8")
+hero_engine = Path("hero-engine.js").read_text(encoding="utf-8")
 
 for forbidden_renderer_contract in (
     "new FluidMesh",
@@ -198,8 +199,17 @@ active_floor_rule = re.search(
     re.S,
 )
 assert active_floor_rule, "active time gradients must not carry a dark floor oval"
+normal_time_css = time_css.split("@media(forced-colors:active)", 1)[0]
 for floor_contract in ("background:none!important", "opacity:0!important", "filter:none!important"):
     assert floor_contract in active_floor_rule.group(0), floor_contract
+normal_floor_rules = re.findall(r'([^{}]*\.floorshadow[^{}]*)\{([^{}]*)\}', normal_time_css, re.S)
+assert not any(
+    '[data-time-state="off"]' in selectors and ':not([data-time-state="off"])' not in selectors
+    for selectors, _ in normal_floor_rules
+)
+for floor_selectors, floor_declarations in normal_floor_rules:
+    if ':not([data-time-state="off"])' not in floor_selectors:
+        assert not re.search(r'(?:^|;)\s*(?:background|opacity|filter)\s*:', floor_declarations), floor_selectors.strip()
 assert "time-orb" not in time_css, "gradient layers must fill the hero, not use a 1:1 orb"
 for forbidden_texture in ("heroTimeRay", "heroTimeLine", "heroTimeFilament", "heroTimeGrain"):
     assert forbidden_texture not in time_css and forbidden_texture not in html, forbidden_texture
@@ -257,6 +267,7 @@ for cast_contract in (
     "opacity:var(--time-cast-opacity)",
     "mix-blend-mode:screen",
     "var(--time-light-x)",
+    "var(--time-light-y)",
     "var(--time-cast-filter)",
     "drop-shadow(0 0 0 var(--time-cast))",
     "mask-image:radial-gradient",
@@ -267,13 +278,65 @@ for cast_contract in (
     assert cast_contract in portrait_shell, cast_contract
 assert "border-radius" not in portrait_shell
 assert "box-shadow" not in portrait_shell
-for state in ("pre-dawn", "sunrise", "daytime", "dusk", "sunset", "night"):
+assert "ellipse 46% 28% at var(--time-light-x) var(--time-light-y)" in portrait_shell
+assert "hue-rotate" not in time_css, "portrait lighting must not rotate skin hue"
+
+active_states = ("pre-dawn", "sunrise", "daytime", "dusk", "sunset", "night")
+state_materials = {}
+for state in active_states:
     state_rule = re.search(rf'\.hero\[data-time-state="{state}"\]\s*\{{(.*?)\}}', time_css, re.S)
     assert state_rule, state
     opacity = re.search(r'--time-cast-opacity:(\.?\d+)', state_rule.group(1))
-    assert opacity and float(opacity.group(1)) <= 0.30, state
-    for directional_contract in ("--time-cast:", "--time-light-x:", "--time-cast-filter:"):
+    assert opacity and 0 < float(opacity.group(1)) <= 0.14, state
+    light_x = re.search(r'--time-light-x:(\d+(?:\.\d+)?)%', state_rule.group(1))
+    light_y = re.search(r'--time-light-y:(\d+(?:\.\d+)?)%', state_rule.group(1))
+    assert light_x and light_y and float(light_y.group(1)) >= 84, state
+    state_materials[state] = {
+        "opacity": float(opacity.group(1)),
+        "x": float(light_x.group(1)),
+        "filter": re.search(r'--time-cast-filter:([^;]+)', state_rule.group(1)).group(1),
+    }
+    for directional_contract in ("--time-cast:", "--time-light-x:", "--time-light-y:", "--time-cast-filter:"):
         assert directional_contract in state_rule.group(1), f"{state}: {directional_contract}"
+    saturate = re.search(r'saturate\((\.?\d+)\)', state_materials[state]["filter"])
+    assert saturate and float(saturate.group(1)) <= 1, state
+
+assert state_materials["pre-dawn"]["x"] < 50
+assert state_materials["sunrise"]["x"] < 50
+assert state_materials["daytime"]["x"] == 50
+assert state_materials["dusk"]["x"] > 50
+assert state_materials["sunset"]["x"] > state_materials["dusk"]["x"]
+assert state_materials["night"]["x"] > 50
+assert state_materials["night"]["opacity"] <= 0.10, "Night must stay readable without blue skin"
+assert "sepia(" in state_materials["sunrise"]["filter"]
+assert "sepia(" in state_materials["sunset"]["filter"]
+
+off_material = re.search(r'\.hero\[data-time-state="off"\]\s*\{(.*?)\}', time_css, re.S)
+assert off_material
+for off_contract in (
+    "--time-cast:transparent",
+    "--time-cast-filter:brightness(1)",
+    "--time-cast-opacity:0",
+):
+    assert off_contract in off_material.group(1), off_contract
+
+# The source portrait stays identity-only. Lighting is confined to the duplicate
+# cast image and neither CSS nor the Mood engine may filter #face itself.
+all_css = html + "\n" + time_css
+for selectors, declarations in re.findall(r'([^{}]+)\{([^{}]*)\}', all_css, re.S):
+    exact_face_selector = any(
+        re.search(r'(?<![A-Za-z0-9_-])(?:#face|\.face)(?![A-Za-z0-9_-])', selector)
+        for selector in selectors.split(",")
+    )
+    if exact_face_selector:
+        assert not re.search(r'(?:^|;)\s*(?:-webkit-)?filter\s*:', declarations), selectors.strip()
+for forbidden_face_filter in (
+    "face.style.filter",
+    "faceImg.style.filter",
+    "face.style.setProperty(\"filter\"",
+    "faceImg.style.setProperty(\"filter\"",
+):
+    assert forbidden_face_filter not in time_controller + hero_engine, forbidden_face_filter
 
 night_state = re.search(r'\.hero\[data-time-state="night"\]\s*\{(.*?)\}', time_css, re.S)
 assert night_state
@@ -367,7 +430,7 @@ assert re.search(r'#loveScene\s*\{[^}]*z-index:\s*64', html, re.S)
 assert re.search(r'@media\(max-width:760px\).*?\.cases\s*\{[^}]*margin-top:var\(--sp-16\)', html, re.S)
 assert re.search(r'\.csTabs::before\s*\{[^}]*inset-inline:var\(--case-inset\)', html, re.S)
 
-engine = Path("hero-engine.js").read_text(encoding="utf-8")
+engine = hero_engine
 assert "aboutOpen" not in engine
 assert 'document.documentElement.classList.add("softScrolling")' in engine
 assert 'document.documentElement.classList.remove("softScrolling")' in engine

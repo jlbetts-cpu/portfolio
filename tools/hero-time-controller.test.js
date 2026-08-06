@@ -120,12 +120,12 @@ function makeHarness(options={}){
  const states=["pre-dawn","sunrise","daytime","dusk","sunset","night"];
  const portraitTargets={
   "off":{opacity:0,filter:"brightness(1)"},
-  "pre-dawn":{opacity:.24,filter:"brightness(1.08) hue-rotate(175deg)"},
-  "sunrise":{opacity:.24,filter:"brightness(1.1) sepia(.16)"},
-  "daytime":{opacity:.10,filter:"brightness(1.045)"},
-  "dusk":{opacity:.16,filter:"brightness(1.055) hue-rotate(165deg)"},
-  "sunset":{opacity:.26,filter:"brightness(1.1) sepia(.18)"},
-  "night":{opacity:.26,filter:"brightness(1.075) hue-rotate(175deg)"}
+  "pre-dawn":{opacity:.09,filter:"brightness(1.025) contrast(1.01) saturate(.78)"},
+  "sunrise":{opacity:.12,filter:"brightness(1.045) contrast(.99) sepia(.08) saturate(.92)"},
+  "daytime":{opacity:.07,filter:"brightness(1.02) contrast(.99) saturate(.88)"},
+  "dusk":{opacity:.085,filter:"brightness(1.025) contrast(1.005) saturate(.8)"},
+  "sunset":{opacity:.135,filter:"brightness(1.05) contrast(.995) sepia(.1) saturate(.94)"},
+  "night":{opacity:.09,filter:"brightness(1.02) contrast(1.015) saturate(.68)"}
  };
  const gradients=states.map(state=>{
   const layer=new FakeElement({"data-time-gradient":state});
@@ -302,6 +302,22 @@ test("live reduced motion settles portrait opacity and filter then restores norm
  assert.equal(portraitFrames.at(-1).filter,h.portraitTargets.off.filter);
 });
 
+test("reduced motion settles all seven states with exclusive scene destinations",()=>{
+ const h=makeHarness({reducedMotion:true});
+ const states=["off","pre-dawn","sunrise","daytime","dusk","sunset","night"];
+ states.forEach(state=>{
+  h.publish({mode:state,state,theme:state==="night"?"dark":"light"});
+  const expectedGradients=["pre-dawn","sunrise","daytime","dusk","sunset","night"]
+   .map(candidate=>candidate===state?1:0);
+  assert.deepEqual(h.rendered(),{
+   gradients:expectedGradients,
+   spill:state==="night"?1:0,
+   portrait:h.portraitTargets[state],
+   active:0
+  },state);
+ });
+});
+
 test("Time mirrors responsive Mood sources and becomes inert after destroy",()=>{
  const h=makeHarness({faceSrc:"images/neutral.webp"});
  assert.equal(h.portrait.getAttribute("src"),"images/neutral.webp");
@@ -316,13 +332,22 @@ test("Time mirrors responsive Mood sources and becomes inert after destroy",()=>
  assert.equal(h.portrait.getAttribute("src"),"images/cookie@2x.webp");
  assert.equal(h.portrait.getAttribute("srcset"),h.face.getAttribute("srcset"));
 
- const before={src:h.portrait.getAttribute("src"),srcset:h.portrait.getAttribute("srcset")};
+ const before={
+  src:h.portrait.getAttribute("src"),
+  srcset:h.portrait.getAttribute("srcset"),
+  sizes:h.portrait.getAttribute("sizes")
+ };
  h.controller.destroy();
  h.face.setAttribute("src","images/rest.webp");
  h.face.setAttribute("srcset","images/rest.webp 1x, images/rest@2x.webp 2x");
+ h.face.setAttribute("sizes","50vw");
  h.face.currentSrc="images/rest@2x.webp";
  h.face.dispatchEvent({type:"load"});
- assert.deepEqual({src:h.portrait.getAttribute("src"),srcset:h.portrait.getAttribute("srcset")},before);
+ assert.deepEqual({
+  src:h.portrait.getAttribute("src"),
+  srcset:h.portrait.getAttribute("srcset"),
+  sizes:h.portrait.getAttribute("sizes")
+ },before);
  assert.equal(h.unsubscribed(),1);
  assert.equal(h.face.listenerCount("load"),0);
 });
