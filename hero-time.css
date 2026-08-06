@@ -1,0 +1,375 @@
+/* Home-hero time specimen: semantic materials, static fallback, and control shell. */
+.hero{
+ --time-ink:var(--c950);
+ --time-primary-bg:var(--c950);
+ --time-primary-ink:var(--c50);
+ --time-primary-hover-bg:var(--c900);
+ --time-secondary-bg:var(--mat-2);
+ --time-secondary-ink:var(--c950);
+ --time-secondary-hover-bg:var(--mat-3-solid);
+ --time-secondary-border:var(--c100);
+ --time-rim:var(--rim-3);
+ --time-bloom:transparent;
+ --time-cast:transparent;
+ --time-cast-filter:brightness(1);
+ --time-cast-opacity:0;
+ --time-light-x:50%;
+ --time-shadow:radial-gradient(ellipse 50% 50% at 50% 50%,rgba(8,8,8,.42),rgba(8,8,8,.28) 30%,rgba(8,8,8,.10) 58%,transparent 78%);
+ --time-shadow-opacity:.5;
+ --time-fallback:none;
+ --time-layer-opacity:0;
+ --time-menu-bg:var(--mat-3-solid);
+ --time-menu-ink:var(--c700);
+ --time-menu-ink-strong:var(--c950);
+ --time-menu-selected:var(--wash-1);
+ --time-menu-shadow:var(--rim-2),var(--sh-2);
+ --time-focus:var(--c950);
+ color:var(--time-ink);
+ box-shadow:var(--time-rim);
+}
+
+.hero[data-time-state="off"]{
+ --time-ink:var(--c950);
+ --time-primary-bg:var(--c950);
+ --time-primary-ink:var(--c50);
+ --time-primary-hover-bg:var(--c900);
+ --time-secondary-bg:var(--mat-2);
+ --time-secondary-ink:var(--c950);
+ --time-secondary-hover-bg:var(--mat-3-solid);
+ --time-secondary-border:var(--c100);
+ --time-rim:var(--rim-3);
+ --time-bloom:transparent;
+ --time-cast:transparent;
+ --time-cast-filter:brightness(1);
+ --time-cast-opacity:0;
+ --time-light-x:50%;
+ --time-shadow:radial-gradient(ellipse 50% 50% at 50% 50%,rgba(8,8,8,.42),rgba(8,8,8,.28) 30%,rgba(8,8,8,.10) 58%,transparent 78%);
+ --time-shadow-opacity:.5;
+ --time-fallback:none;
+ --time-layer-opacity:0;
+ --time-menu-bg:var(--mat-3-solid);
+ --time-menu-ink:var(--c700);
+ --time-menu-ink-strong:var(--c950);
+ --time-menu-selected:var(--wash-1);
+ --time-menu-shadow:var(--rim-2),var(--sh-2);
+ --time-focus:var(--c950);
+}
+
+.hero[data-time-state="pre-dawn"]{
+ --time-ink:var(--c50);
+ --time-primary-bg:var(--c50);
+ --time-primary-ink:var(--c950);
+ --time-primary-hover-bg:var(--c100);
+ --time-secondary-bg:var(--mat-i2);
+ --time-secondary-ink:var(--c50);
+ --time-secondary-hover-bg:var(--mat-i3-solid);
+ --time-secondary-border:var(--i100);
+ --time-rim:var(--rim-i2);
+ --time-bloom:rgba(111,169,255,.38);
+ --time-cast:rgba(92,149,255,.32);
+ --time-cast-filter:brightness(1.04) saturate(1.12) hue-rotate(4deg);
+ --time-cast-opacity:.28;
+ --time-light-x:34%;
+ --time-shadow:radial-gradient(ellipse 54% 54% at 42% 50%,rgba(3,8,19,.68),rgba(10,22,48,.42) 38%,rgba(36,59,121,.16) 64%,transparent 82%);
+ --time-shadow-opacity:.64;
+ --time-fallback:radial-gradient(ellipse 72% 82% at 16% 112%,rgba(107,111,175,.88) 0%,rgba(107,111,175,0) 68%),radial-gradient(ellipse 68% 76% at 52% 118%,rgba(36,59,121,.96) 0%,rgba(36,59,121,0) 70%),radial-gradient(ellipse 58% 64% at 88% 102%,rgba(20,44,84,.92) 0%,rgba(20,44,84,0) 72%),linear-gradient(180deg,#071329 0%,#142C54 100%);
+ --time-layer-opacity:1;
+ --time-menu-bg:var(--mat-i3-solid);
+ --time-menu-ink:var(--i700);
+ --time-menu-ink-strong:var(--c50);
+ --time-menu-selected:var(--wash-i1);
+ --time-menu-shadow:var(--rim-i2),var(--sh-i2);
+ --time-focus:var(--c50);
+}
+
+.hero[data-time-state="sunrise"]{
+ --time-ink:var(--c950);
+ --time-primary-bg:var(--c950);
+ --time-primary-ink:var(--c50);
+ --time-primary-hover-bg:var(--c900);
+ --time-secondary-bg:var(--mat-2);
+ --time-secondary-ink:var(--c950);
+ --time-secondary-hover-bg:var(--mat-3-solid);
+ --time-secondary-border:var(--c100);
+ --time-rim:var(--rim-3);
+ --time-bloom:rgba(255,190,139,.42);
+ --time-cast:rgba(241,163,107,.28);
+ --time-cast-filter:brightness(1.04) sepia(.12) saturate(1.08);
+ --time-cast-opacity:.22;
+ --time-light-x:38%;
+ --time-shadow:radial-gradient(ellipse 54% 52% at 44% 50%,rgba(72,57,54,.44),rgba(181,116,85,.22) 38%,rgba(255,212,184,.08) 66%,transparent 82%);
+ --time-shadow-opacity:.48;
+ --time-fallback:radial-gradient(ellipse 74% 80% at 18% 112%,rgba(255,240,212,.96) 0%,rgba(255,240,212,0) 68%),radial-gradient(ellipse 68% 76% at 50% 118%,rgba(241,163,107,.82) 0%,rgba(241,163,107,0) 70%),radial-gradient(ellipse 62% 70% at 86% 104%,rgba(188,216,255,.94) 0%,rgba(188,216,255,0) 72%),linear-gradient(180deg,#F6F9FF 0%,#BCD8FF 100%);
+ --time-layer-opacity:1;
+ --time-menu-bg:var(--mat-3-solid);
+ --time-menu-ink:var(--c700);
+ --time-menu-ink-strong:var(--c950);
+ --time-menu-selected:var(--wash-1);
+ --time-menu-shadow:var(--rim-2),var(--sh-2);
+ --time-focus:var(--c950);
+}
+
+.hero[data-time-state="daytime"]{
+ --time-ink:var(--c950);
+ --time-primary-bg:var(--c950);
+ --time-primary-ink:var(--c50);
+ --time-primary-hover-bg:var(--c900);
+ --time-secondary-bg:var(--mat-2);
+ --time-secondary-ink:var(--c950);
+ --time-secondary-hover-bg:var(--mat-3-solid);
+ --time-secondary-border:var(--c100);
+ --time-rim:var(--rim-3);
+ --time-bloom:rgba(116,182,242,.30);
+ --time-cast:rgba(169,214,255,.20);
+ --time-cast-filter:brightness(1.025) saturate(.96);
+ --time-cast-opacity:.14;
+ --time-light-x:46%;
+ --time-shadow:radial-gradient(ellipse 54% 52% at 48% 50%,rgba(24,49,78,.36),rgba(90,145,192,.18) 38%,rgba(169,214,255,.08) 64%,transparent 82%);
+ --time-shadow-opacity:.42;
+ --time-fallback:radial-gradient(ellipse 76% 82% at 14% 112%,rgba(238,247,255,.98) 0%,rgba(238,247,255,0) 70%),radial-gradient(ellipse 70% 78% at 50% 118%,rgba(169,214,255,.82) 0%,rgba(169,214,255,0) 72%),radial-gradient(ellipse 60% 68% at 88% 104%,rgba(116,182,242,.62) 0%,rgba(116,182,242,0) 72%),linear-gradient(180deg,#F8FBFF 0%,#DCEEFF 100%);
+ --time-layer-opacity:1;
+ --time-menu-bg:var(--mat-3-solid);
+ --time-menu-ink:var(--c700);
+ --time-menu-ink-strong:var(--c950);
+ --time-menu-selected:var(--wash-1);
+ --time-menu-shadow:var(--rim-2),var(--sh-2);
+ --time-focus:var(--c950);
+}
+
+.hero[data-time-state="dusk"]{
+ --time-ink:var(--c50);
+ --time-primary-bg:var(--c50);
+ --time-primary-ink:var(--c950);
+ --time-primary-hover-bg:var(--c100);
+ --time-secondary-bg:var(--mat-i2);
+ --time-secondary-ink:var(--c50);
+ --time-secondary-hover-bg:var(--mat-i3-solid);
+ --time-secondary-border:var(--i100);
+ --time-rim:var(--rim-i2);
+ --time-bloom:rgba(178,167,209,.34);
+ --time-cast:rgba(146,136,190,.24);
+ --time-cast-filter:brightness(1.03) saturate(.88) hue-rotate(8deg);
+ --time-cast-opacity:.22;
+ --time-light-x:38%;
+ --time-shadow:radial-gradient(ellipse 54% 54% at 44% 50%,rgba(7,10,22,.66),rgba(38,54,92,.38) 40%,rgba(103,111,159,.14) 66%,transparent 82%);
+ --time-shadow-opacity:.62;
+ --time-fallback:radial-gradient(ellipse 74% 82% at 18% 112%,rgba(178,167,209,.78) 0%,rgba(178,167,209,0) 68%),radial-gradient(ellipse 68% 76% at 52% 118%,rgba(103,111,159,.92) 0%,rgba(103,111,159,0) 70%),radial-gradient(ellipse 58% 66% at 88% 104%,rgba(38,54,92,.96) 0%,rgba(38,54,92,0) 72%),linear-gradient(180deg,#10162A 0%,#26365C 100%);
+ --time-layer-opacity:1;
+ --time-menu-bg:var(--mat-i3-solid);
+ --time-menu-ink:var(--i700);
+ --time-menu-ink-strong:var(--c50);
+ --time-menu-selected:var(--wash-i1);
+ --time-menu-shadow:var(--rim-i2),var(--sh-i2);
+ --time-focus:var(--c50);
+}
+
+.hero[data-time-state="sunset"]{
+ --time-ink:var(--c50);
+ --time-primary-bg:var(--c50);
+ --time-primary-ink:var(--c950);
+ --time-primary-hover-bg:var(--c100);
+ --time-secondary-bg:var(--mat-i2);
+ --time-secondary-ink:var(--c50);
+ --time-secondary-hover-bg:var(--mat-i3-solid);
+ --time-secondary-border:var(--i100);
+ --time-rim:var(--rim-i2);
+ --time-bloom:rgba(255,167,120,.42);
+ --time-cast:rgba(240,134,106,.30);
+ --time-cast-filter:brightness(1.03) sepia(.14) saturate(1.14) hue-rotate(342deg);
+ --time-cast-opacity:.28;
+ --time-light-x:40%;
+ --time-shadow:radial-gradient(ellipse 56% 54% at 45% 50%,rgba(13,10,24,.68),rgba(60,49,93,.40) 38%,rgba(213,108,118,.16) 66%,transparent 82%);
+ --time-shadow-opacity:.66;
+ --time-fallback:radial-gradient(ellipse 76% 84% at 16% 114%,rgba(255,213,184,.90) 0%,rgba(255,213,184,0) 68%),radial-gradient(ellipse 70% 78% at 50% 118%,rgba(240,160,111,.92) 0%,rgba(240,160,111,0) 70%),radial-gradient(ellipse 62% 70% at 88% 104%,rgba(213,108,118,.86) 0%,rgba(213,108,118,0) 72%),linear-gradient(180deg,#19172B 0%,#3C315D 100%);
+ --time-layer-opacity:1;
+ --time-menu-bg:var(--mat-i3-solid);
+ --time-menu-ink:var(--i700);
+ --time-menu-ink-strong:var(--c50);
+ --time-menu-selected:var(--wash-i1);
+ --time-menu-shadow:var(--rim-i2),var(--sh-i2);
+ --time-focus:var(--c50);
+}
+
+.hero[data-time-state="night"]{
+ --time-ink:var(--c50);
+ --time-primary-bg:var(--c50);
+ --time-primary-ink:var(--c950);
+ --time-primary-hover-bg:var(--c100);
+ --time-secondary-bg:var(--mat-i2);
+ --time-secondary-ink:var(--c50);
+ --time-secondary-hover-bg:var(--mat-i3-solid);
+ --time-secondary-border:var(--i100);
+ --time-rim:var(--rim-i2);
+ --time-bloom:rgba(111,169,255,.40);
+ --time-cast:rgba(78,139,255,.34);
+ --time-cast-filter:brightness(1.04) saturate(1.18) hue-rotate(5deg);
+ --time-cast-opacity:.30;
+ --time-light-x:42%;
+ --time-shadow:radial-gradient(ellipse 56% 54% at 46% 50%,rgba(0,2,8,.76),rgba(10,21,48,.48) 38%,rgba(29,74,147,.16) 66%,transparent 82%);
+ --time-shadow-opacity:.72;
+ --time-fallback:radial-gradient(ellipse 76% 86% at 14% 114%,rgba(111,169,255,.62) 0%,rgba(111,169,255,0) 68%),radial-gradient(ellipse 70% 80% at 50% 120%,rgba(29,74,147,.94) 0%,rgba(29,74,147,0) 70%),radial-gradient(ellipse 62% 72% at 88% 106%,rgba(16,42,88,.96) 0%,rgba(16,42,88,0) 72%),linear-gradient(180deg,#050810 0%,#0A1530 100%);
+ --time-layer-opacity:1;
+ --time-menu-bg:var(--mat-i3-solid);
+ --time-menu-ink:var(--i700);
+ --time-menu-ink-strong:var(--c50);
+ --time-menu-selected:var(--wash-i1);
+ --time-menu-shadow:var(--rim-i2),var(--sh-i2);
+ --time-focus:var(--c50);
+}
+
+.heroTimeCanvas,.heroTimeBloom{
+ position:absolute;inset:0;width:100%;height:100%;pointer-events:none;
+ opacity:var(--time-layer-opacity);transition:opacity var(--sp-settle-dur) var(--ease-out)
+}
+.heroTimeCanvas{z-index:0;display:block;background:var(--time-fallback)}
+.heroTimeBloom{z-index:1;background:radial-gradient(ellipse 72% 58% at var(--time-light-x) 112%,var(--time-bloom) 0%,transparent 72%);mix-blend-mode:screen}
+.hero[data-time-state="off"] .heroTimeCanvas,
+.hero[data-time-state="off"] .heroTimeBloom,
+.hero[data-time-state="off"] .heroTimePortraitCast{opacity:0}
+
+.heroCopy h1{position:relative;z-index:3;color:var(--time-ink);transition:color var(--sp-settle-dur) var(--ease-out)}
+.hero[data-time-state] .workCta{
+ background:var(--time-primary-bg);border-color:var(--time-primary-bg);color:var(--time-primary-ink)
+}
+.hero[data-time-state] .workCta:hover,
+.hero[data-time-state] .workCta:focus-visible,
+.hero[data-time-state] .workCta:active{
+ background:var(--time-primary-hover-bg);border-color:var(--time-primary-hover-bg);color:var(--time-primary-ink)
+}
+.hero[data-time-state] .heroMood .moodBtn,
+.heroTimeBtn{
+ background:var(--time-secondary-bg);border:var(--hair-w) solid var(--time-secondary-border);
+ color:var(--time-secondary-ink)
+}
+.hero[data-time-state] .heroMood .moodBtn:hover,
+.hero[data-time-state] .heroMood .moodBtn:focus-visible,
+.hero[data-time-state] .heroMood.open .moodBtn,
+.heroTimeBtn:hover,.heroTimeBtn:focus-visible,
+.heroTime.open .heroTimeBtn,.heroTimeBtn[aria-expanded="true"]{
+ background:var(--time-secondary-hover-bg);border-color:var(--time-secondary-border);
+ color:var(--time-secondary-ink)
+}
+.hero[data-time-state] .heroMood .moodMenu{
+ background:var(--time-menu-bg);box-shadow:var(--time-menu-shadow)
+}
+.hero[data-time-state] .heroMood .moodItem{color:var(--time-menu-ink)}
+.hero[data-time-state] .heroMood .moodItem:hover,
+.hero[data-time-state] .heroMood .moodItem:focus-visible{color:var(--time-menu-ink-strong)}
+.hero[data-time-state] .floorshadow{
+ background:var(--time-shadow);opacity:var(--time-shadow-opacity);
+ transition:background var(--sp-settle-dur) var(--ease-out),opacity var(--sp-settle-dur) var(--ease-out)
+}
+
+.heroTimePortraitCast{
+ position:absolute;inset:0;z-index:2;width:100%;height:100%;object-fit:contain;
+ pointer-events:none;opacity:var(--time-cast-opacity);mix-blend-mode:screen;
+ filter:drop-shadow(0 var(--sp-8) var(--sp-16) var(--time-cast)) var(--time-cast-filter);
+ transition:opacity var(--sp-settle-dur) var(--ease-out),filter var(--sp-settle-dur) var(--ease-out);
+ -webkit-user-drag:none;user-select:none
+}
+
+.heroTime{position:relative;z-index:12;display:inline-flex}
+.heroTimeBtn{
+ width:var(--tap-min);height:var(--tap-min);min-width:var(--tap-min);min-height:var(--tap-min);
+ padding:0;border-radius:var(--r-md);corner-shape:var(--corner);display:inline-flex;
+ align-items:center;justify-content:center;cursor:pointer;
+ transition:background-color var(--hover-out-dur) var(--ease-out),
+  border-color var(--hover-out-dur) var(--ease-out),color var(--hover-out-dur) var(--ease-out),
+  transform var(--press-dur) var(--ease-out)
+}
+.heroTimeBtn:active{transform:scale(var(--press-scale))}
+.heroTimeBtn:focus-visible,.heroTimeMenu [role="menuitemradio"]:focus-visible{
+ outline:var(--focus-w) solid var(--time-focus);outline-offset:var(--sp-2)
+}
+.heroTimeIcon{
+ width:var(--ico-md);height:var(--ico-md);fill:none;stroke:currentColor;
+ stroke-width:var(--ico-stroke);stroke-linecap:round;stroke-linejoin:round
+}
+.heroTimeIcon [data-hero-time-icon]{display:none}
+.heroTimeIcon[data-icon="pre-dawn"] [data-hero-time-icon="pre-dawn"],
+.heroTimeIcon[data-icon="sunrise"] [data-hero-time-icon="sunrise"],
+.heroTimeIcon[data-icon="daytime"] [data-hero-time-icon="daytime"],
+.heroTimeIcon[data-icon="dusk"] [data-hero-time-icon="dusk"],
+.heroTimeIcon[data-icon="sunset"] [data-hero-time-icon="sunset"],
+.heroTimeIcon[data-icon="night"] [data-hero-time-icon="night"],
+.heroTimeIcon[data-icon="off"] [data-hero-time-icon="off"]{display:inline}
+
+.heroTimeMenu{
+ position:absolute;top:calc(100% + var(--sp-8));right:0;left:auto;z-index:30;
+ display:flex;flex-direction:column;gap:var(--gap-bar);width:var(--menu-w);
+ max-width:calc(100vw - (var(--sp-16) * 2));padding:var(--pad-bar);
+ border:0;border-radius:var(--r-lg);corner-shape:var(--corner);
+ background:var(--time-menu-bg);box-shadow:var(--time-menu-shadow);
+ opacity:0;visibility:hidden;pointer-events:none;
+ transform:translateY(calc(var(--sp-4) * -1));
+ transition:opacity var(--ease-out-dur) var(--ease-out),
+  transform var(--ease-out-dur) var(--ease-out),visibility 0s var(--ease-out-dur)
+}
+.heroTime.open .heroTimeMenu,
+.heroTimeBtn[aria-expanded="true"]+.heroTimeMenu{
+ opacity:1;visibility:visible;pointer-events:auto;transform:none;
+ transition:opacity var(--ease-out-dur) var(--ease-out),transform var(--ease-out-dur) var(--ease-out)
+}
+.heroTime.opensAbove .heroTimeMenu{
+ top:auto;bottom:calc(100% + var(--sp-8));transform:translateY(var(--sp-4))
+}
+.heroTime.opensAbove.open .heroTimeMenu,
+.heroTime.opensAbove .heroTimeBtn[aria-expanded="true"]+.heroTimeMenu{transform:none}
+.heroTimeMenu [role="menuitemradio"]{
+ position:relative;display:flex;align-items:center;justify-content:flex-start;gap:var(--sp-8);
+ width:100%;min-height:var(--tap-min);padding:0 var(--sp-10) 0 var(--sp-32);
+ border:0;border-radius:var(--r-sm);corner-shape:var(--corner);background:none;
+ color:var(--time-menu-ink);font-family:var(--sans);font-size:var(--fs-nav);
+ font-weight:400;line-height:var(--lh-flat);cursor:pointer;text-align:left;
+ transition:color var(--hover-out-dur) var(--ease-out),
+  background-color var(--hover-out-dur) var(--ease-out),font-weight var(--hover-out-dur) var(--ease-out)
+}
+.heroTimeMenu [role="menuitemradio"]:hover,
+.heroTimeMenu [role="menuitemradio"]:focus-visible{
+ background:var(--time-menu-selected);color:var(--time-menu-ink-strong);font-weight:600
+}
+.heroTimeMenu [role="menuitemradio"][aria-checked="true"]{
+ background:var(--time-menu-selected);color:var(--time-menu-ink-strong);font-weight:600
+}
+.heroTimeMenu [role="menuitemradio"][aria-checked="true"]::before{
+ content:"✓";position:absolute;left:var(--sp-10);font:inherit;color:currentColor
+}
+.heroTimeMenu small{
+ margin-left:auto;color:var(--time-menu-ink);font:inherit;font-size:var(--fs-caption);font-weight:400
+}
+
+@media(max-width:760px){
+ .heroTimeMenu{width:min(var(--menu-w),calc(100vw - (var(--sp-16) * 2)));max-width:calc(100vw - (var(--sp-16) * 2))}
+ .heroTimeBtn{width:var(--tap-min);height:var(--tap-min)}
+}
+
+@media(prefers-reduced-motion:reduce){
+ .heroTimeCanvas,.heroTimeBloom,.heroTimePortraitCast,.heroCopy h1,
+ .hero[data-time-state] .floorshadow,.heroTimeBtn,.heroTimeMenu,
+ .heroTimeMenu [role="menuitemradio"]{transition:none!important;animation:none!important}
+}
+
+@media(forced-colors:active){
+ .heroTimeCanvas,.heroTimeBloom,.heroTimePortraitCast,.heroAura{display:none}
+ .hero,.heroCopy h1{background:Canvas;color:CanvasText}
+ .hero{box-shadow:inset 0 0 0 var(--hair-w) CanvasText}
+ .hero[data-time-state] .floorshadow{background:none;opacity:0}
+ .hero[data-time-state] .workCta,
+ .hero[data-time-state] .workCta:hover,
+ .hero[data-time-state] .workCta:focus-visible,
+ .hero[data-time-state] .workCta:active{
+  forced-color-adjust:auto;background:Highlight;color:HighlightText;border-color:Highlight
+ }
+ .hero[data-time-state] .heroMood .moodBtn,
+ .hero[data-time-state] .heroMood .moodBtn:hover,
+ .hero[data-time-state] .heroMood .moodBtn:focus-visible,
+ .hero[data-time-state] .heroMood.open .moodBtn,
+ .heroTimeBtn:hover,.heroTimeBtn:focus-visible,
+ .heroTime.open .heroTimeBtn,.heroTimeBtn[aria-expanded="true"],
+ .heroTimeBtn,.heroTimeMenu,.heroTimeMenu [role="menuitemradio"]{
+  forced-color-adjust:auto;background:Canvas;color:CanvasText;border-color:ButtonText
+ }
+ .heroTimeMenu{border:var(--hair-w) solid CanvasText;box-shadow:none}
+ .heroTimeMenu [role="menuitemradio"][aria-checked="true"]{outline:var(--hair-w) solid Highlight}
+ .heroTimeMenu [role="menuitemradio"][aria-checked="true"]::before{color:Highlight}
+}

@@ -7,6 +7,19 @@ import re
 
 html = Path("index.html").read_text(encoding="utf-8")
 
+assert '<link rel="stylesheet" href="hero-time.css">' in html
+for node_id in (
+    "heroTimeCanvas",
+    "heroTimeBloom",
+    "heroTimeBtn",
+    "heroTimeMenu",
+    "heroTimePortraitCast",
+):
+    assert f'id="{node_id}"' in html, node_id
+assert re.search(r'id="heroTimeBtn"[^>]+aria-controls="heroTimeMenu"', html)
+assert html.index('id="moodbar"') < html.index('id="heroTimeBtn"') < html.index('class="stagewrap"')
+assert html.count("data-time-mode=") == 8
+
 assert 'class="jbDisc jbPlay"' not in html
 assert re.search(r'<a[^>]+data-nav-item="games"[^>]+href="play\.html"', html)
 assert re.search(r'<a[^>]+id="workBtn"[^>]+href="#cases"', html)
