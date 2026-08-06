@@ -326,9 +326,6 @@ addEventListener("pointermove",e=>{pointer.px=e.clientX;pointer.py=e.clientY;las
  if(dragging&&dragEl){const c=FACES[calFace].eyes[selEye],rx=ER(c,"rx",RX),ry=ER(c,"ry",RY);const r=stage.getBoundingClientRect();
   let x=(e.clientX-r.left)/r.width,y=(e.clientY-r.top)/r.height;x=Math.max(0,Math.min(1,x));y=Math.max(0,Math.min(1,y));
   c.x=+x.toFixed(4);c.y=+y.toFixed(4);dragEl.style.left=((x-rx)*100)+"%";dragEl.style.top=((y-ry)*100)+"%";renderCal();}});
-var cursorGlow=document.getElementById("cursorGlow"),cursorGlowTimer=0;
-function pulseCursorGlow(){if(!cursorGlow||HEADONLY||reduce||!HOVER)return;cursorGlow.classList.add("on");clearTimeout(cursorGlowTimer);cursorGlowTimer=setTimeout(function(){cursorGlow.classList.remove("on");},420);}
-if(cursorGlow){addEventListener("pointermove",function(e){cursorGlow.style.transform="translate3d("+Math.round(e.clientX-64)+"px,"+Math.round(e.clientY-64)+"px,0)";pulseCursorGlow();},{passive:true});addEventListener("scroll",function(){if(performance.now()-lastMove<8000)pulseCursorGlow();},{passive:true});document.addEventListener("mouseleave",function(){cursorGlow.classList.remove("on");});addEventListener("blur",function(){cursorGlow.classList.remove("on");});document.addEventListener("visibilitychange",function(){if(document.hidden)cursorGlow.classList.remove("on");});}
 addEventListener("pointerup",()=>{dragging=false;dragEl=null;});
 
 function startDizzy(){if(navigator.vibrate)navigator.vibrate([35,55,25,90,20,70]);

@@ -38,8 +38,8 @@ assert re.search(
     re.S,
 )
 assert ".heroAura" in html
-assert 'id="cursorGlow"' in html
-assert ".cursorGlow" in html and "pointer-events:none" in html
+assert 'id="cursorGlow"' not in html
+assert ".cursorGlow" not in html
 hero_aura_rule = re.search(r'\.heroAura\s*\{.*?\}', html, re.S)
 assert hero_aura_rule and "var(--accent)" not in hero_aura_rule.group(0)
 assert "@media(max-width:880px)" in html
@@ -55,7 +55,7 @@ assert 'document.documentElement.classList.add("softScrolling")' in engine
 assert 'document.documentElement.classList.remove("softScrolling")' in engine
 assert "scrollPaddingTop" in engine
 assert "recalcFollowCap" not in engine
-assert 'document.getElementById("cursorGlow")' in engine
+assert "cursorGlow" not in engine
 assert 'btn.focus()' in engine
 assert 'e.key==="Escape"' in engine
 assert 'bar.contains(e.target)' in engine

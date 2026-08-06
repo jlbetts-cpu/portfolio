@@ -1423,13 +1423,6 @@ html{scroll-padding-top:calc(var(--nav-h) + var(--sp-16-24))}
  background:radial-gradient(ellipse at center,var(--hero-aura-core) 0%,
   var(--hero-aura-mid) 38%,var(--hero-aura-fade) 76%);
  filter:blur(var(--blur-3))}
-.cursorGlow{position:fixed;left:0;top:0;z-index:89;width:128px;height:128px;
- pointer-events:none;contain:strict;border-radius:50%;opacity:0;
- background:radial-gradient(circle,transparent 0 12px,rgba(148,205,255,.11) 24px,
-  rgba(184,222,255,.065) 42px,rgba(225,241,255,0) 64px);
- transform:translate3d(-160px,-160px,0);will-change:transform,opacity;
- transition:opacity var(--hover-out-dur) var(--ease-out)}
-.cursorGlow.on{opacity:1}
 .heroCopy{display:contents}
 .heroCopy h1{order:2;margin:0 auto;max-width:min(14.4em,100%);font-size:var(--fs-heroline);
  line-height:1.06;letter-spacing:var(--tr-head);text-align:center;text-wrap:balance}
@@ -1485,7 +1478,6 @@ html{scroll-padding-top:calc(var(--nav-h) + var(--sp-16-24))}
  .hero .stagewrap{width:min(64vw,calc((100svh - 280px) * .86),500px)}
 }
 @media(max-width:760px){
- .cursorGlow{display:none!important}
  .hero{min-height:auto;padding:var(--sp-20) var(--sp-12) var(--sp-20);border-radius:var(--r-lg)}
  .heroCopy h1{font-size:var(--fs-heroline);max-width:12.5em}
  .heroCtas{margin-top:var(--sp-14)}
@@ -1504,9 +1496,7 @@ html{scroll-padding-top:calc(var(--nav-h) + var(--sp-16-24))}
 }
 @media(prefers-reduced-motion:reduce){
  .heroAura,.heroMood .moodMenu,.heroMood .moodCar,.heroCtas>*{transition:none!important;animation:none!important}
- .cursorGlow{display:none!important}
 }
-@media(hover:none),(pointer:coarse),(forced-colors:active){.cursorGlow{display:none!important}}
 </style>
 <link rel="stylesheet" href="header.css">
 <script>/* THE OLD OVERLAY'S URL STILL RESOLVES. index.html#about was the only address
@@ -1597,7 +1587,6 @@ if(location.hash==="#about")location.replace("about.html");</script>
   </span>
  </nav>
 </div>
-<div class="cursorGlow" id="cursorGlow" aria-hidden="true"></div>
 <div class="wrap">
  <section class="hero" id="main" tabindex="-1">
   <div class="heroAura" aria-hidden="true"></div>
