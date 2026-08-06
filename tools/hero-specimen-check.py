@@ -7,6 +7,7 @@ import re
 
 html = Path("index.html").read_text(encoding="utf-8")
 time_css = Path("hero-time.css").read_text(encoding="utf-8")
+site_theme_css = Path("site-theme.css").read_text(encoding="utf-8")
 time_controller_path = Path("hero-time.js")
 assert time_controller_path.exists(), "hero time controller must exist"
 time_controller = time_controller_path.read_text(encoding="utf-8")
@@ -31,13 +32,20 @@ for node_id in (
     assert f'id="{node_id}"' in html, node_id
 assert re.search(r'id="heroTimeBtn"[^>]+aria-controls="heroTimeMenu"', html)
 assert html.index('id="moodbar"') < html.index('id="heroTimeBtn"') < html.index('class="stagewrap"')
-assert html.count("data-time-mode=") == 8
+assert html.count('data-time-mode="') == 8
 assert html.index('id="heroTimeSpill"') < html.index('id="main"')
 assert html.index('id="heroTimeClip"') < html.index('class="heroCopy"')
 assert html.count('class="heroTimeGradient"') == 6
 for state in ("pre-dawn", "sunrise", "daytime", "dusk", "sunset", "night"):
     assert html.count(f'data-time-gradient="{state}"') == 1, state
 assert re.search(r'id="face"[^>]*><img id="heroTimePortraitCast"', html)
+assert not re.search(r'<section class="hero"[^>]+data-time-state="daytime"', html)
+assert not re.search(r'id="heroTimeIcon"[^>]+data-icon="daytime"', html)
+assert re.search(
+    r'<section class="hero" id="main"[^>]*>\s*<script>.*?data-theme-mode.*?data-theme-state.*?</script>',
+    html,
+    re.S,
+), "root theme snapshot must reach the Hero during parsing"
 assert html.index('href="header.css"') < html.index('href="hero-time.css"')
 assert 'src="fluid-mesh.js"' not in html, "FluidMesh belongs to Gradient Maker, not the Hero"
 assert html.index('src="hero-time-presets.js"') < html.index('src="hero-engine.js"')
@@ -49,14 +57,17 @@ clip_markup = html[clip_start:clip_end]
 assert clip_markup.count('class="heroTimeGradient"') == 6, "six gradients must live in the clip"
 
 for controller_contract in (
-    "jbHeroTimeMode",
-    "heroTimeHeaderScene",
-    "requestAnimationFrame",
-    "cancelAnimationFrame",
-    "animateSceneLayers",
+    "window.SiteTheme",
+    "siteTheme.subscribe",
+    "siteTheme.setMode",
+    "captureScene",
+    "transitionScene",
+    "clearSceneAnimations",
     ".animate(",
     "fill:\"both\"",
-    "visibilitychange",
+    "jbthemesettle",
+    "MutationObserver",
+    "attributeFilter:[\"src\",\"srcset\"]",
     "ArrowDown",
     "ArrowUp",
     "Home",
@@ -66,6 +77,17 @@ for controller_contract in (
     "opensAbove",
 ):
     assert controller_contract in time_controller, controller_contract
+for forbidden_owner_contract in (
+    "jbHeroTimeMode",
+    "sessionStorage",
+    "setTimeout",
+    "new Date",
+    "msUntilNextBoundary",
+    "heroTimeHeaderScene",
+    "requestAnimationFrame",
+    "cancelAnimationFrame",
+):
+    assert forbidden_owner_contract not in time_controller, forbidden_owner_contract
 
 time_control = re.search(r'<button class="heroTimeBtn"[^>]*>.*?</button>', html, re.S)
 assert time_control
@@ -123,7 +145,7 @@ gradient_rule = re.search(r'\.heroTimeGradient\s*\{.*?\}', time_css, re.S)
 assert gradient_rule, "full-size gradient layers must exist"
 for gradient_contract in ("position:absolute", "inset:0", "opacity:0", "filter:none", "mix-blend-mode:normal"):
     assert gradient_contract in gradient_rule.group(0), gradient_contract
-assert "transition:opacity var(--hero-time-duration) var(--hero-time-ease)" in gradient_rule.group(0)
+assert "transition:opacity" not in gradient_rule.group(0)
 hero_rule = re.search(r'\.hero\s*\{.*?\}', time_css, re.S)
 assert hero_rule and "background-color:var(--time-base)" in hero_rule.group(0)
 assert "transition:background-color var(--hero-time-duration) var(--hero-time-ease)" in hero_rule.group(0)
@@ -137,26 +159,24 @@ assert "bottom:calc((var(--sp-48-80) + var(--sp-64)) * -1)" in spill_rule.group(
 assert "linear-gradient(180deg,#141e4b 0%,#141e4b calc(100% - var(--sp-48-80) - var(--sp-64))" in spill_rule.group(0)
 assert "mask-image:linear-gradient(180deg" in spill_rule.group(0)
 assert "radial-gradient" not in spill_rule.group(0), "spill cannot become a head-centered halo"
-assert "transition:opacity var(--hero-time-duration) var(--hero-time-ease)" in spill_rule.group(0)
-assert re.search(r'body\[data-time-state="night"\] \.heroTimeSpill\s*\{[^}]*opacity:', time_css, re.S)
-night_header_rule = re.search(r'body\[data-time-state="night"\]\.heroTimeHeaderScene \.jbNav\s*\{.*?\}', time_css, re.S)
-assert night_header_rule, "Night must theme the actual header specimen"
-for header_contract in (
-    "--nav-mat:rgba(30,32,100,.88)",
-    "--nav-rim:var(--rim-i2),var(--rim-top)",
-    "--nav-ink:var(--i700)",
-    "--nav-ink-strong:var(--c50)",
-    "--nav-hover-bg:rgba(127,129,243,.26)",
-    "--nav-active-ink:var(--c50)",
-    "--nav-active-bg:rgba(127,129,243,.34)",
-    "--nav-focus:var(--c50)",
+assert "transition:opacity" not in spill_rule.group(0)
+assert re.search(r'\.hero\[data-time-state="night"\] ~ .*', time_css, re.S) is None
+assert re.search(r':root\[data-theme="dark"\]', site_theme_css)
+assert "heroTimeHeaderScene" not in time_css
+assert "data-time-state" not in time_css.split(".heroTimeSpill", 1)[1].split(".heroTimeClip", 1)[0], "header cutoff ownership must be gone"
+assert re.search(r':root:root\s*\{[^}]*--theme-duration:var\(--hero-time-duration\)', time_css, re.S)
+night_cases = re.search(r':root\[data-theme="dark"\] \.cases\s*\{(.*?)\}', time_css, re.S)
+assert night_cases and "background:var(--theme-page)" in night_cases.group(1)
+for selector, token in (
+    (r'\.csTab\.on', "var(--theme-ink)"),
+    (r'\.csName', "var(--theme-ink)"),
+    (r'\.csYear', "var(--theme-muted)"),
+    (r'\.footReach', "var(--theme-muted)"),
+    (r'\.footIn', "var(--theme-ink)"),
 ):
-    assert header_contract in night_header_rule.group(0), header_contract
-for light_state in ("off", "pre-dawn", "sunrise", "daytime", "dusk", "sunset"):
-    assert not re.search(rf'body\[data-time-state="{light_state}"\] \.jbNav', time_css), light_state
-assert 'body[data-time-state="night"] .jbNav' not in time_css, "Night header must reset at the work boundary"
+    assert re.search(rf':root\[data-theme="dark"\] {selector}\s*\{{[^}}]*color:{re.escape(token)}', time_css, re.S), selector
 active_floor_rule = re.search(
-    r'body\[data-time-state\]:not\(\[data-time-state="off"\]\) \.hero \.floorshadow\s*\{.*?\}',
+    r'\.hero\[data-time-state\]:not\(\[data-time-state="off"\]\) \.floorshadow\s*\{.*?\}',
     time_css,
     re.S,
 )
@@ -166,23 +186,21 @@ for floor_contract in ("background:none!important", "opacity:0!important", "filt
 assert "time-orb" not in time_css, "gradient layers must fill the hero, not use a 1:1 orb"
 for forbidden_texture in ("heroTimeRay", "heroTimeLine", "heroTimeFilament", "heroTimeGrain"):
     assert forbidden_texture not in time_css and forbidden_texture not in html, forbidden_texture
-assert 'body[data-time-state]:not([data-time-state="off"]) .jbNav' not in time_css
-assert re.search(r'body\[data-time-state\] \.heroAura\s*\{[^}]*display:none', time_css, re.S)
 assert re.search(r'\.hero\[data-time-state\] \.heroAura\s*\{[^}]*display:none', time_css, re.S)
 assert re.search(
-    r'body\[data-time-state="off"\].*?\.heroAura.*?display:none',
+    r'\.hero\[data-time-state="off"\].*?\.heroAura.*?display:none',
     time_css,
     re.S,
 ), "Off must hard-hide the gradient clip and original hero aura"
 for off_layer in ("heroAura", "heroTimePortraitCast"):
     assert re.search(
-        rf'body\[data-time-state="off"\] \.{off_layer}(?:,|\s*\{{).*?\{{[^}}]*display:none',
+        rf'\.hero\[data-time-state="off"\] \.{off_layer}(?:,|\s*\{{).*?\{{[^}}]*display:none',
         time_css,
         re.S,
     ), off_layer
 for crossfade_layer in ("heroTimeSpill", "heroTimeClip", "heroTimeGradient"):
     assert not re.search(
-        rf'body\[data-time-state="off"\] \.{crossfade_layer}(?:,|\s*\{{).*?\{{[^}}]*display:none',
+        rf'\.hero\[data-time-state="off"\] \.{crossfade_layer}(?:,|\s*\{{).*?\{{[^}}]*display:none',
         time_css,
         re.S,
     ), f"{crossfade_layer} must remain paintable long enough to crossfade Off"
@@ -191,11 +209,7 @@ assert "--hero-time-duration:800ms" in time_css
 assert "--hero-time-ease:cubic-bezier(.65,0,.35,1)" in time_css
 mobile_time = re.search(r'@media\(max-width:760px\)\s*\{(.*?)\n\}', time_css, re.S)
 assert mobile_time and "--hero-time-duration:400ms" in mobile_time.group(1)
-assert re.search(
-    r'body\[data-time-state\] \.jbNav\s*\{[^}]*transition:background-color var\(--hero-time-duration\) var\(--hero-time-ease\)',
-    time_css,
-    re.S,
-), "header material must join the scene cadence"
+assert "body[data-time-state]" not in time_css
 
 menu_rule = re.search(r'\.heroTimeMenu\s*\{.*?\}', time_css, re.S)
 assert menu_rule and "right:0" in menu_rule.group(0)
@@ -220,8 +234,29 @@ assert re.search(r'\.hero::after\s*\{[^}]*border:var\(--hair-w\) solid CanvasTex
 portrait_rules = re.findall(r'\.heroTimePortraitCast\s*\{.*?\}', time_css, re.S)
 portrait_shell = next((rule for rule in portrait_rules if "position:absolute" in rule), None)
 assert portrait_shell
-for hidden_cast_contract in ("display:none", "visibility:hidden", "opacity:0", "background:none", "border:0", "outline:0"):
-    assert hidden_cast_contract in portrait_shell, hidden_cast_contract
+for cast_contract in (
+    "display:block",
+    "visibility:visible",
+    "opacity:var(--time-cast-opacity)",
+    "mix-blend-mode:screen",
+    "var(--time-light-x)",
+    "var(--time-cast-filter)",
+    "drop-shadow(0 0 0 var(--time-cast))",
+    "mask-image:radial-gradient",
+    "background:none",
+    "border:0",
+    "outline:0",
+):
+    assert cast_contract in portrait_shell, cast_contract
+assert "border-radius" not in portrait_shell
+assert "box-shadow" not in portrait_shell
+for state in ("pre-dawn", "sunrise", "daytime", "dusk", "sunset", "night"):
+    state_rule = re.search(rf'\.hero\[data-time-state="{state}"\]\s*\{{(.*?)\}}', time_css, re.S)
+    assert state_rule, state
+    opacity = re.search(r'--time-cast-opacity:(\.?\d+)', state_rule.group(1))
+    assert opacity and float(opacity.group(1)) <= 0.30, state
+    for directional_contract in ("--time-cast:", "--time-light-x:", "--time-cast-filter:"):
+        assert directional_contract in state_rule.group(1), f"{state}: {directional_contract}"
 
 exact_gradients = {
     "pre-dawn": "radial-gradient(103.24% 102.63% at 50% 102.63%,#486ffd 0,#7f81f3 9.84%,#c489ff 20.83%,#dac0ff 34.13%,#eadcff 44.86%,#f9f6ff 58.59%,#f8fafd 100%)",

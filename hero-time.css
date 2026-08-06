@@ -3,6 +3,7 @@
  --hero-time-duration:800ms;
  --hero-time-ease:cubic-bezier(.65,0,.35,1)
 }
+:root:root{--theme-duration:var(--hero-time-duration)}
 .hero{
  overflow:visible;
  --time-base:var(--c50);
@@ -40,7 +41,6 @@
  transition:box-shadow var(--hero-time-duration) var(--hero-time-ease)
 }
 
-body[data-time-state="off"],
 .hero[data-time-state="off"]{
  --time-base:var(--c50);
  --time-ink:var(--c950);
@@ -68,7 +68,6 @@ body[data-time-state="off"],
  --time-focus:var(--c950);
 }
 
-body[data-time-state="pre-dawn"],
 .hero[data-time-state="pre-dawn"]{
  --time-base:#fff;
  --time-ink:var(--c950);
@@ -83,9 +82,9 @@ body[data-time-state="pre-dawn"],
  --time-rim:var(--rim-3);
  --time-bloom:rgba(111,169,255,.38);
  --time-cast:rgba(92,149,255,.32);
- --time-cast-filter:brightness(1.04) saturate(1.12) hue-rotate(4deg);
- --time-cast-opacity:.28;
- --time-light-x:34%;
+ --time-cast-filter:brightness(1.08) contrast(1.02) sepia(.12) saturate(1.45) hue-rotate(175deg);
+ --time-cast-opacity:.24;
+ --time-light-x:32%;
  --time-shadow:radial-gradient(ellipse 54% 54% at 42% 50%,rgba(3,8,19,.68),rgba(10,22,48,.42) 38%,rgba(36,59,121,.16) 64%,transparent 82%);
  --time-shadow-opacity:.64;
  --time-menu-bg:var(--mat-3-solid);
@@ -96,7 +95,6 @@ body[data-time-state="pre-dawn"],
  --time-focus:var(--c950);
 }
 
-body[data-time-state="sunrise"],
 .hero[data-time-state="sunrise"]{
  --time-base:#fff;
  --time-ink:var(--c950);
@@ -111,9 +109,9 @@ body[data-time-state="sunrise"],
  --time-rim:var(--rim-3);
  --time-bloom:rgba(255,190,139,.42);
  --time-cast:rgba(241,163,107,.28);
- --time-cast-filter:brightness(1.04) sepia(.12) saturate(1.08);
- --time-cast-opacity:.22;
- --time-light-x:38%;
+ --time-cast-filter:brightness(1.1) contrast(.98) sepia(.16) saturate(1.12);
+ --time-cast-opacity:.24;
+ --time-light-x:28%;
  --time-shadow:radial-gradient(ellipse 54% 52% at 44% 50%,rgba(72,57,54,.44),rgba(181,116,85,.22) 38%,rgba(255,212,184,.08) 66%,transparent 82%);
  --time-shadow-opacity:.48;
  --time-menu-bg:var(--mat-3-solid);
@@ -124,7 +122,6 @@ body[data-time-state="sunrise"],
  --time-focus:var(--c950);
 }
 
-body[data-time-state="daytime"],
 .hero[data-time-state="daytime"]{
  --time-base:#fff;
  --time-ink:var(--c950);
@@ -139,9 +136,9 @@ body[data-time-state="daytime"],
  --time-rim:var(--rim-3);
  --time-bloom:rgba(116,182,242,.30);
  --time-cast:rgba(169,214,255,.20);
- --time-cast-filter:brightness(1.025) saturate(.96);
- --time-cast-opacity:.14;
- --time-light-x:46%;
+ --time-cast-filter:brightness(1.045) contrast(.98) saturate(.96);
+ --time-cast-opacity:.10;
+ --time-light-x:50%;
  --time-shadow:radial-gradient(ellipse 54% 52% at 48% 50%,rgba(24,49,78,.36),rgba(90,145,192,.18) 38%,rgba(169,214,255,.08) 64%,transparent 82%);
  --time-shadow-opacity:.42;
  --time-menu-bg:var(--mat-3-solid);
@@ -152,7 +149,6 @@ body[data-time-state="daytime"],
  --time-focus:var(--c950);
 }
 
-body[data-time-state="dusk"],
 .hero[data-time-state="dusk"]{
  --time-base:#fff;
  --time-ink:var(--c950);
@@ -167,9 +163,9 @@ body[data-time-state="dusk"],
  --time-rim:var(--rim-3);
  --time-bloom:rgba(178,167,209,.34);
  --time-cast:rgba(146,136,190,.24);
- --time-cast-filter:brightness(1.03) saturate(.88) hue-rotate(8deg);
- --time-cast-opacity:.22;
- --time-light-x:38%;
+ --time-cast-filter:brightness(1.055) contrast(1.01) sepia(.08) saturate(.9) hue-rotate(165deg);
+ --time-cast-opacity:.16;
+ --time-light-x:62%;
  --time-shadow:radial-gradient(ellipse 54% 54% at 44% 50%,rgba(7,10,22,.66),rgba(38,54,92,.38) 40%,rgba(103,111,159,.14) 66%,transparent 82%);
  --time-shadow-opacity:.62;
  --time-menu-bg:var(--mat-3-solid);
@@ -180,7 +176,6 @@ body[data-time-state="dusk"],
  --time-focus:var(--c950);
 }
 
-body[data-time-state="sunset"],
 .hero[data-time-state="sunset"]{
  --time-base:#fff;
  --time-ink:var(--c950);
@@ -195,9 +190,9 @@ body[data-time-state="sunset"],
  --time-rim:var(--rim-3);
  --time-bloom:rgba(255,167,120,.42);
  --time-cast:rgba(240,134,106,.30);
- --time-cast-filter:brightness(1.03) sepia(.14) saturate(1.14) hue-rotate(342deg);
- --time-cast-opacity:.28;
- --time-light-x:40%;
+ --time-cast-filter:brightness(1.1) contrast(1.01) sepia(.18) saturate(1.18) hue-rotate(350deg);
+ --time-cast-opacity:.26;
+ --time-light-x:72%;
  --time-shadow:radial-gradient(ellipse 56% 54% at 45% 50%,rgba(13,10,24,.68),rgba(60,49,93,.40) 38%,rgba(213,108,118,.16) 66%,transparent 82%);
  --time-shadow-opacity:.66;
  --time-menu-bg:var(--mat-3-solid);
@@ -208,7 +203,6 @@ body[data-time-state="sunset"],
  --time-focus:var(--c950);
 }
 
-body[data-time-state="night"],
 .hero[data-time-state="night"]{
  --time-base:#0d1738;
  --time-ink:var(--c50);
@@ -223,9 +217,9 @@ body[data-time-state="night"],
  --time-rim:var(--rim-i2);
  --time-bloom:rgba(111,169,255,.40);
  --time-cast:rgba(78,139,255,.34);
- --time-cast-filter:brightness(1.04) saturate(1.18) hue-rotate(5deg);
- --time-cast-opacity:.30;
- --time-light-x:42%;
+ --time-cast-filter:brightness(1.075) contrast(1.03) sepia(.14) saturate(1.55) hue-rotate(175deg);
+ --time-cast-opacity:.26;
+ --time-light-x:68%;
  --time-shadow:radial-gradient(ellipse 56% 54% at 46% 50%,rgba(0,2,8,.76),rgba(10,21,48,.48) 38%,rgba(29,74,147,.16) 66%,transparent 82%);
  --time-shadow-opacity:.72;
  --time-menu-bg:var(--mat-i3-solid);
@@ -243,39 +237,35 @@ body[data-time-state="night"],
  background:linear-gradient(180deg,#141e4b 0%,#141e4b calc(100% - var(--sp-48-80) - var(--sp-64)),rgba(20,30,75,.92) calc(100% - var(--sp-64)),rgba(20,30,75,0) 100%);
  -webkit-mask-image:linear-gradient(180deg,#000 0%,#000 calc(100% - var(--sp-48-80) - var(--sp-64)),rgba(0,0,0,.72) calc(100% - var(--sp-64)),transparent 100%);
  mask-image:linear-gradient(180deg,#000 0%,#000 calc(100% - var(--sp-48-80) - var(--sp-64)),rgba(0,0,0,.72) calc(100% - var(--sp-64)),transparent 100%);
- opacity:0;transition:opacity var(--hero-time-duration) var(--hero-time-ease)
+ opacity:0
 }
-body[data-time-state="night"] .heroTimeSpill{opacity:1}
-body[data-time-state] .jbNav{
+:root[data-theme-state="night"] .heroTimeSpill{opacity:1}
+
+/* The shared dark theme persists after the Hero; authored case media is untouched. */
+:root[data-theme="dark"] .cases{
+ background:var(--theme-page);color:var(--theme-ink);
  transition:background-color var(--hero-time-duration) var(--hero-time-ease),
-  box-shadow var(--hero-time-duration) var(--hero-time-ease),
   color var(--hero-time-duration) var(--hero-time-ease)
 }
-body[data-time-state] .jbGrp>:is(a,button),
-body[data-time-state] .jbGrp>.jbDisc>.jbDiscGo{
- transition:color var(--hero-time-duration) var(--hero-time-ease),
-  background-color var(--hero-time-duration) var(--hero-time-ease),
-  transform var(--press-dur) var(--ease-out)
+:root[data-theme="dark"] .csTabs::before{background:var(--theme-rim)}
+:root[data-theme="dark"] .csTab{color:var(--theme-muted)}
+:root[data-theme="dark"] .csTab:hover,
+:root[data-theme="dark"] .csTab.on{color:var(--theme-ink)}
+:root[data-theme="dark"] .csTabInk{background:var(--theme-ink)}
+:root[data-theme="dark"] .csName{color:var(--theme-ink)}
+:root[data-theme="dark"] .csYear{color:var(--theme-muted)}
+:root[data-theme="dark"] .footReach{color:var(--theme-muted)}
+:root[data-theme="dark"] .footIn{color:var(--theme-ink)}
+:root[data-theme="dark"] :is(.csTab,.csName,.csYear,.footReach,.footIn){
+ transition-duration:var(--hero-time-duration)
 }
-body[data-time-state="night"].heroTimeHeaderScene .jbNav{
- --nav-mat:rgba(30,32,100,.88);
- --nav-rim:var(--rim-i2),var(--rim-top);
- --nav-ink:var(--i700);
- --nav-ink-strong:var(--c50);
- --nav-hover-bg:rgba(127,129,243,.26);
- --nav-active-ink:var(--c50);
- --nav-active-bg:rgba(127,129,243,.34);
- --nav-focus:var(--c50)
-}
-body[data-time-state="night"].heroTimeHeaderScene .jbDiscMenu .jbDiscSep{background:var(--i100)}
 
 .heroTimeClip{
  position:absolute;inset:0;z-index:0;overflow:hidden;border-radius:inherit;
  corner-shape:inherit;pointer-events:none
 }
 .heroTimeGradient{
- position:absolute;inset:0;opacity:0;filter:none;mix-blend-mode:normal;
- transition:opacity var(--hero-time-duration) var(--hero-time-ease)
+ position:absolute;inset:0;opacity:0;filter:none;mix-blend-mode:normal
 }
 .heroTimeGradient[data-time-gradient="pre-dawn"]{background:radial-gradient(103.24% 102.63% at 50% 102.63%,#486ffd 0,#7f81f3 9.84%,#c489ff 20.83%,#dac0ff 34.13%,#eadcff 44.86%,#f9f6ff 58.59%,#f8fafd 100%)}
 .heroTimeGradient[data-time-gradient="sunrise"]{background:radial-gradient(102.68% 99.11% at 50% 104.6%,#cb83ff 0,#ff90b9 15.77%,#ffc977 30.62%,#ffd79b 38.04%,#fff1dc 50.11%,#fff 63.1%,#fcfdfe 77.95%,#f8fafd 98.81%)}
@@ -289,13 +279,12 @@ body[data-time-state="night"].heroTimeHeaderScene .jbDiscMenu .jbDiscSep{backgro
 .hero[data-time-state="dusk"] .heroTimeGradient[data-time-gradient="dusk"]{opacity:1}
 .hero[data-time-state="sunset"] .heroTimeGradient[data-time-gradient="sunset"]{opacity:1}
 .hero[data-time-state="night"] .heroTimeGradient[data-time-gradient="night"]{opacity:1}
-body[data-time-state] .heroAura{display:none}
 .hero[data-time-state] .heroAura{display:none}
-body[data-time-state]:not([data-time-state="off"]) .hero .floorshadow{
+.hero[data-time-state]:not([data-time-state="off"]) .floorshadow{
  background:none!important;opacity:0!important;filter:none!important
 }
-body[data-time-state="off"] .heroAura,
-body[data-time-state="off"] .heroTimePortraitCast{display:none;opacity:0}
+.hero[data-time-state="off"] .heroAura,
+.hero[data-time-state="off"] .heroTimePortraitCast{display:none;opacity:0}
 
 .heroCopy h1{position:relative;z-index:3;color:var(--time-ink);transition:color var(--hero-time-duration) var(--hero-time-ease)}
 .hero[data-time-state] .workCta{
@@ -333,15 +322,13 @@ body[data-time-state="off"] .heroTimePortraitCast{display:none;opacity:0}
 .hero[data-time-state] .heroMood .moodItem{color:var(--time-menu-ink)}
 .hero[data-time-state] .heroMood .moodItem:hover,
 .hero[data-time-state] .heroMood .moodItem:focus-visible{color:var(--time-menu-ink-strong)}
-.hero[data-time-state] .floorshadow{
- background:var(--time-shadow);opacity:var(--time-shadow-opacity);
- transition:background var(--sp-settle-dur) var(--ease-out),opacity var(--sp-settle-dur) var(--ease-out)
-}
-
 .heroTimePortraitCast{
  position:absolute;inset:0;z-index:2;width:100%;height:100%;object-fit:contain;
- display:none;visibility:hidden;pointer-events:none;opacity:0;background:none;border:0;outline:0;
- mix-blend-mode:screen;filter:none;
+ display:block;visibility:visible;pointer-events:none;opacity:var(--time-cast-opacity);background:none;border:0;outline:0;
+ mix-blend-mode:screen;filter:var(--time-cast-filter) drop-shadow(0 0 0 var(--time-cast));
+ -webkit-mask-image:radial-gradient(ellipse 58% 52% at var(--time-light-x) 82%,#000 0%,rgba(0,0,0,.9) 36%,rgba(0,0,0,.42) 62%,transparent 84%);
+ mask-image:radial-gradient(ellipse 58% 52% at var(--time-light-x) 82%,#000 0%,rgba(0,0,0,.9) 36%,rgba(0,0,0,.42) 62%,transparent 84%);
+ -webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;
  -webkit-user-drag:none;user-select:none
 }
 
@@ -430,8 +417,7 @@ body[data-time-state="off"] .heroTimePortraitCast{display:none;opacity:0}
 
 @media(prefers-reduced-motion:reduce){
  .hero,.hero::after,.heroTimeSpill,.heroTimeClip,.heroTimeGradient,.heroTimePortraitCast,.heroCopy h1,
- body[data-time-state] .jbNav,body[data-time-state] .jbGrp>:is(a,button),
- body[data-time-state] .jbGrp>.jbDisc>.jbDiscGo,.hero[data-time-state] .workCta,
+ .hero[data-time-state] .workCta,
  .hero[data-time-state] .heroMood .moodBtn,.hero[data-time-state] .floorshadow,.heroTimeBtn,.heroTimeMenu,
  .heroTimeMenu [role="menuitemradio"]{transition:none!important;animation:none!important}
 }
