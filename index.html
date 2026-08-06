@@ -1599,6 +1599,12 @@ if(location.hash==="#about")location.replace("about.html");</script>
 <div class="wrap">
  <div class="heroTimeSpill" id="heroTimeSpill" aria-hidden="true"></div>
  <section class="hero" id="main" tabindex="-1">
+  <svg class="heroPortraitTintDefs" width="0" height="0" aria-hidden="true">
+   <filter id="heroPortraitTintFilter" color-interpolation-filters="sRGB">
+    <feFlood id="heroPortraitTintFlood" flood-color="var(--time-cast)" result="portraitTint"/>
+    <feComposite in="portraitTint" in2="SourceAlpha" operator="in"/>
+   </filter>
+  </svg>
   <div class="heroAura" aria-hidden="true"></div>
   <div class="heroTimeClip" id="heroTimeClip" aria-hidden="true"><div class="heroTimeGradient" data-time-gradient="pre-dawn"></div><div class="heroTimeGradient" data-time-gradient="sunrise"></div><div class="heroTimeGradient" data-time-gradient="daytime"></div><div class="heroTimeGradient" data-time-gradient="dusk"></div><div class="heroTimeGradient" data-time-gradient="sunset"></div><div class="heroTimeGradient" data-time-gradient="night"></div></div>
   <div class="heroCopy">

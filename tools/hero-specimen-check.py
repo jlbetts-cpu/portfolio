@@ -200,7 +200,7 @@ for spill_contract in ("position:absolute", "top:calc(", "bottom:calc(", "left:5
     assert spill_contract in spill_rule.group(0), spill_contract
 assert "linear-gradient(180deg" in spill_rule.group(0)
 assert "bottom:calc((var(--sp-48-80) + var(--sp-64)) * -1)" in spill_rule.group(0)
-assert "linear-gradient(180deg,#141e4b 0%,#141e4b calc(100% - var(--sp-48-80) - var(--sp-64))" in spill_rule.group(0)
+assert "linear-gradient(180deg,#0b0c0f 0%,#0b0c0f calc(100% - var(--sp-48-80) - var(--sp-64))" in spill_rule.group(0)
 assert "mask-image:linear-gradient(180deg" in spill_rule.group(0)
 assert "radial-gradient" not in spill_rule.group(0), "spill cannot become a head-centered halo"
 assert "transition:opacity" not in spill_rule.group(0)
@@ -296,6 +296,14 @@ assert re.search(r'\.hero::after\s*\{[^}]*border:var\(--hair-w\) solid CanvasTex
 portrait_rules = re.findall(r'\.heroTimePortraitCast\s*\{.*?\}', time_css, re.S)
 portrait_shell = next((rule for rule in portrait_rules if "position:absolute" in rule), None)
 assert portrait_shell
+for svg_contract in (
+    'id="heroPortraitTintFilter"',
+    'id="heroPortraitTintFlood"',
+    '<feFlood',
+    'in2="SourceAlpha"',
+    'operator="in"',
+):
+    assert svg_contract in html, svg_contract
 for cast_contract in (
     "display:block",
     "visibility:visible",
@@ -303,8 +311,7 @@ for cast_contract in (
     "mix-blend-mode:screen",
     "var(--time-light-x)",
     "var(--time-light-y)",
-    "var(--time-cast-filter)",
-    "drop-shadow(0 0 0 var(--time-cast))",
+    "url(#heroPortraitTintFilter)",
     "mask-image:radial-gradient",
     "background:none",
     "border:0",
@@ -313,28 +320,41 @@ for cast_contract in (
     assert cast_contract in portrait_shell, cast_contract
 assert "border-radius" not in portrait_shell
 assert "box-shadow" not in portrait_shell
-assert "ellipse 46% 28% at var(--time-light-x) var(--time-light-y)" in portrait_shell
+assert "drop-shadow" not in portrait_shell
+assert "ellipse 52% 39% at var(--time-light-x) var(--time-light-y)" in portrait_shell
 assert "hue-rotate" not in time_css, "portrait lighting must not rotate skin hue"
 
 active_states = ("pre-dawn", "sunrise", "daytime", "dusk", "sunset", "night")
+expected_casts = {
+    "pre-dawn": ("#9ab0ff", .22, 34, 82),
+    "sunrise": ("#ffb58c", .25, 32, 82),
+    "daytime": ("#eaf2ff", .16, 50, 84),
+    "dusk": ("#c8bceb", .20, 62, 82),
+    "sunset": ("#ffb58c", .26, 68, 82),
+    "night": ("#9ab0ff", .24, 66, 82),
+}
 state_materials = {}
 for state in active_states:
     state_rule = re.search(rf'\.hero\[data-time-state="{state}"\]\s*\{{(.*?)\}}', time_css, re.S)
     assert state_rule, state
     opacity = re.search(r'--time-cast-opacity:(\.?\d+)', state_rule.group(1))
-    assert opacity and 0 < float(opacity.group(1)) <= 0.14, state
+    assert opacity, state
     light_x = re.search(r'--time-light-x:(\d+(?:\.\d+)?)%', state_rule.group(1))
     light_y = re.search(r'--time-light-y:(\d+(?:\.\d+)?)%', state_rule.group(1))
-    assert light_x and light_y and float(light_y.group(1)) >= 84, state
+    assert light_x and light_y, state
+    cast = re.search(r'--time-cast:([^;]+)', state_rule.group(1)).group(1).strip().lower()
+    expected_color, expected_opacity, expected_x, expected_y = expected_casts[state]
+    assert cast == expected_color, (state, cast)
+    assert float(opacity.group(1)) == expected_opacity, state
+    assert float(light_x.group(1)) == expected_x, state
+    assert float(light_y.group(1)) == expected_y, state
     state_materials[state] = {
         "opacity": float(opacity.group(1)),
         "x": float(light_x.group(1)),
-        "filter": re.search(r'--time-cast-filter:([^;]+)', state_rule.group(1)).group(1),
+        "cast": cast,
     }
-    for directional_contract in ("--time-cast:", "--time-light-x:", "--time-light-y:", "--time-cast-filter:"):
+    for directional_contract in ("--time-cast:", "--time-light-x:", "--time-light-y:"):
         assert directional_contract in state_rule.group(1), f"{state}: {directional_contract}"
-    saturate = re.search(r'saturate\((\.?\d+)\)', state_materials[state]["filter"])
-    assert saturate and float(saturate.group(1)) <= 1, state
 
 assert state_materials["pre-dawn"]["x"] < 50
 assert state_materials["sunrise"]["x"] < 50
@@ -342,18 +362,23 @@ assert state_materials["daytime"]["x"] == 50
 assert state_materials["dusk"]["x"] > 50
 assert state_materials["sunset"]["x"] > state_materials["dusk"]["x"]
 assert state_materials["night"]["x"] > 50
-assert state_materials["night"]["opacity"] <= 0.10, "Night must stay readable without blue skin"
-assert "sepia(" in state_materials["sunrise"]["filter"]
-assert "sepia(" in state_materials["sunset"]["filter"]
+assert state_materials["night"]["opacity"] == .24
 
 off_material = re.search(r'\.hero\[data-time-state="off"\]\s*\{(.*?)\}', time_css, re.S)
 assert off_material
 for off_contract in (
     "--time-cast:transparent",
-    "--time-cast-filter:brightness(1)",
     "--time-cast-opacity:0",
 ):
     assert off_contract in off_material.group(1), off_contract
+
+# Night's atmosphere must resolve into the same near-black as the site rather
+# than producing a blue halo outside the outlined Hero.
+night_gradient = re.search(r'\.heroTimeGradient\[data-time-gradient="night"\]\{background:(.*?)\}', time_css, re.S)
+assert night_gradient and "#0b0c0f 100%" in night_gradient.group(1).lower()
+spill = re.search(r'\.heroTimeSpill\s*\{(.*?)\}', time_css, re.S)
+assert spill and "#0b0c0f" in spill.group(1).lower()
+assert "#141e4b 0%" not in spill.group(1).lower()
 
 # The source portrait stays identity-only. Lighting is confined to the duplicate
 # cast image and neither CSS nor the Mood engine may filter #face itself.
@@ -403,9 +428,9 @@ exact_gradients = {
     "pre-dawn": "radial-gradient(103.24% 102.63% at 50% 102.63%,#486ffd 0,#7f81f3 9.84%,#c489ff 20.83%,#dac0ff 34.13%,#eadcff 44.86%,#f9f6ff 58.59%,#f8fafd 100%)",
     "sunrise": "radial-gradient(102.68% 99.11% at 50% 104.6%,#cb83ff 0,#ff90b9 15.77%,#ffc977 30.62%,#ffd79b 38.04%,#fff1dc 50.11%,#fff 63.1%,#fcfdfe 77.95%,#f8fafd 98.81%)",
     "daytime": "radial-gradient(102.84% 104.98% at 50% 104.98%,#0071c1 1.33%,#60a8e2 15.71%,#b4d8ff 33.15%,#d9ebff 45%,#f8fafd 60%)",
-    "dusk": "radial-gradient(102.83% 103.24% at 49.98% 104.51%,#ffb451 0,#efc680 16.73%,#b4d8ff 33.03%,#d2e8ff 43.38%,#fafdff 59.16%,#fdfeff 76.24%,#f8fafd 100%)",
+    "dusk": "radial-gradient(102.83% 103.24% at 49.98% 104.51%,#ffb36a 0,#dfa0d8 14%,#9da8e4 30%,#ccd5f0 44%,#f1f3fa 58%,#f8fafd 100%)",
     "sunset": "radial-gradient(103.12% 100% at 50% 100%,#ffa577 0,#ff90a1 15.52%,#ddadff 30.09%,#ecd8ff 45.72%,#f5eaff 54.96%,#f8fafd 88.16%)",
-    "night": "radial-gradient(102.82% 106.44% at 50% 106.44%,#fcfdfe 1.11%,#6763e4 28.73%,#453bb3 45.76%,#29227d 63.37%,#1e2064 78.67%,#141e4b 100%)",
+    "night": "radial-gradient(102.82% 106.44% at 50% 106.44%,#fcfdfe 1.11%,#6763e4 28.73%,#453bb3 45.76%,#29227d 63.37%,#17194f 80%,#0b0c0f 100%)",
 }
 for state, exact_gradient in exact_gradients.items():
     layer_rule = re.search(

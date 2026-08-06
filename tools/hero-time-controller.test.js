@@ -119,13 +119,13 @@ function makeHarness(options={}){
  const portrait=new FakeElement();
  const states=["pre-dawn","sunrise","daytime","dusk","sunset","night"];
  const portraitTargets={
-  "off":{opacity:0,filter:"brightness(1)"},
-  "pre-dawn":{opacity:.09,filter:"brightness(1.025) contrast(1.01) saturate(.78)"},
-  "sunrise":{opacity:.12,filter:"brightness(1.045) contrast(.99) sepia(.08) saturate(.92)"},
-  "daytime":{opacity:.07,filter:"brightness(1.02) contrast(.99) saturate(.88)"},
-  "dusk":{opacity:.085,filter:"brightness(1.025) contrast(1.005) saturate(.8)"},
-  "sunset":{opacity:.135,filter:"brightness(1.05) contrast(.995) sepia(.1) saturate(.94)"},
-  "night":{opacity:.09,filter:"brightness(1.02) contrast(1.015) saturate(.68)"}
+  "off":{opacity:0,filter:"url(#heroPortraitTintFilter)"},
+  "pre-dawn":{opacity:.22,filter:"url(#heroPortraitTintFilter)"},
+  "sunrise":{opacity:.25,filter:"url(#heroPortraitTintFilter)"},
+  "daytime":{opacity:.16,filter:"url(#heroPortraitTintFilter)"},
+  "dusk":{opacity:.20,filter:"url(#heroPortraitTintFilter)"},
+  "sunset":{opacity:.26,filter:"url(#heroPortraitTintFilter)"},
+  "night":{opacity:.24,filter:"url(#heroPortraitTintFilter)"}
  };
  const gradients=states.map(state=>{
   const layer=new FakeElement({"data-time-gradient":state});

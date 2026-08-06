@@ -46,13 +46,20 @@ def run_viewport(browser, base_url, label, width, height):
           const mood = document.querySelector('.heroMood .moodBtn');
           const time = document.querySelector('.heroTimeBtn');
           const cta = document.querySelector('.workCta');
+          const cast = document.getElementById('heroTimePortraitCast');
+          const spill = document.getElementById('heroTimeSpill');
           const style = node => getComputedStyle(node);
           return {
             nav: style(nav).backgroundColor,
+            body: style(document.body).backgroundColor,
             hero: style(hero).backgroundColor,
             mood: style(mood).backgroundColor,
             time: style(time).backgroundColor,
             cta: style(cta).backgroundColor,
+            castOpacity: Number.parseFloat(style(cast).opacity),
+            castFilter: style(cast).filter,
+            castMask: style(cast).maskImage,
+            spillBackground: style(spill).backgroundImage,
             overflow: document.documentElement.scrollWidth - innerWidth,
             shrunk: document.documentElement.classList.contains('jbShrunk')
           };
@@ -62,7 +69,13 @@ def run_viewport(browser, base_url, label, width, height):
     assert top["nav"] == "rgba(0, 0, 0, 0)", top
     assert top["mood"] == "rgba(0, 0, 0, 0)", top
     assert top["time"] == "rgba(0, 0, 0, 0)", top
+    assert rgba_tuple(top["body"]) == (11, 12, 15), top
+    assert rgba_tuple(top["hero"]) == (11, 12, 15), top
     assert rgba_tuple(top["cta"]) != rgba_tuple(top["hero"]), top
+    assert top["castOpacity"] == .24, top
+    assert "heroPortraitTintFilter" in top["castFilter"], top
+    assert "52% 39%" in top["castMask"], top
+    assert "rgb(11, 12, 15)" in top["spillBackground"], top
     assert top["overflow"] <= 0, top
     assert not top["shrunk"], top
     page.screenshot(path=str(SHOTS / f"{label}-top.png"), full_page=False)
