@@ -10,11 +10,12 @@
 ## Findings to implement
 
 1. The outlined hero is the primary light container. Clip the source inside `.hero`; allow only a small, soft ambient color leak outside it so the separate header remains mostly neutral and consistent.
-2. Use one broad, clean, cropped bottom-origin form that reads immediately as a half-circle of light rising behind the portrait. Small low mesh nodes, discrete color blobs, random rays, filaments, contour lines, and the site's Gradient Maker aesthetic must not be visible in the result.
+2. Use one clean, true-circle radial form centered at the bottom. Its curved perimeter must remain readable and horizontally contained inside the hero rather than stretching into an edge-to-edge ellipse. Small low mesh nodes, discrete color blobs, random rays, filaments, contour lines, and the site's Gradient Maker aesthetic must not be visible in the result.
    Keep its luminance bottom-weighted: the bright field belongs behind the lower portrait/stage and must fade into the state's base background by the CTA and headline.
 3. Build strength through restrained hue separation and localized contrast, not global opacity, saturation, or visual busyness.
 4. Do not render folds, tension edges, seams, rays, or filament texture. The result is a clean gradient half-circle, not an interactive mesh demo.
 5. Off is a hard reset: stop the mesh and explicitly suppress its fallback, bloom, portrait cast, and the original `.heroAura`.
+   During active time states, suppress the original `.heroAura` as well so the contained circular gradient remains the only light source behind the portrait.
 6. Keep the thin header and hero specimen outlines visible above every active lighting layer.
 
 ## Uncertainty
