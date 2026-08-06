@@ -6,6 +6,8 @@
 
 **Architecture:** Extract the existing no-dependency `FluidMesh` renderer into a shared browser script, then add a pure preset/time model and a DOM controller dedicated to the home hero. Keep presentation in one focused stylesheet and portrait synchronization in a small adapter so Mood remains the sole owner of face changes.
 
+**Visual research:** Apply `docs/superpowers/research/2026-08-06-stripe-hero-gradient.md` during Tasks 5–7.
+
 **Tech Stack:** Semantic HTML, token-driven CSS, vanilla JavaScript, WebGL 1, OKLab color interpolation, Python static contracts, Node.js unit tests, existing browser preview.
 
 ## Global Constraints
