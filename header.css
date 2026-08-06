@@ -192,7 +192,7 @@
      Translucency is the approved alternative to a shadow for making chrome sit
      ABOVE content; it is not an answer to chrome that is the colour of the
      paper. White is, and the rim below carries the rest. */
-  --nav-mat:var(--c0);
+  --nav-mat:var(--theme-material,var(--c0));
 
   /* THE RIM DOES ALL OF THE SEPARATION WORK, because there is no shadow (§6).
      On a near-white page a 96%-white pill is invisible, so the hairline has to
@@ -206,7 +206,7 @@
      rung: --rim-3, .20 alpha, composited #D1D1D1, 1.56:1 against the paper.
      Still a hairline, still 1px, still an INSET rim rather than a cast shadow;
      it is the same line drawn at the weight its job actually needs. */
-  --nav-rim:var(--rim-3);
+  --nav-rim:0 0 0 var(--hair-w) var(--theme-rim,rgba(17,18,20,.20)) inset;
 
   /* THE HOVER DELTA, and it is set by the REST colour rather than the hover one.
      Jayden asked for two things that look contradictory and are not: take the
@@ -239,21 +239,21 @@
      docs/superpowers/specs/2026-08-03-control-system.md still governs them.
      So rest is free to be the value the labels actually want -- --c700, 7.8:1 on
      the white bar, against --c500's 4.4:1 which read as disabled text. */
-  --nav-ink:var(--c700);
-  --nav-ink-strong:var(--c950);
+  --nav-ink:var(--theme-muted,var(--c700));
+  --nav-ink-strong:var(--theme-ink,var(--c950));
   /* THE HOVER GROUND. Same grey as the lit item's pill, on purpose: hover and
      active SHARE the shape and the fill, and what separates them is ink and
      weight. That is the layering Jayden asked for, and it is why the pill can be
      as light as he wants it -- the fill is no longer the thing that says "you are
      here", it is the thing that says "this is a control". */
-  --nav-hover-bg:var(--c75);
+  --nav-hover-bg:var(--theme-elevated,var(--c75));
   /* THE FOCUS RING IS INK, not the accent, and the header was the site's only
      outlier. --nav-accent on --c50 is 5.59:1; --c950 is 18.42:1, and every other
      focus ring on the site (index.html, the five case studies, play.css) already
      ships --c950. A focus ring's job is to be unmissable, not on-brand, and a
      ring that changes hue between the bar and the page under it reads as two
      systems. On the dark surface it flips to --c50 for the same reason. */
-  --nav-focus:var(--c950);
+  --nav-focus:var(--theme-focus,var(--c950));
   /* THE ACTIVE STATE, and until round 11 both of these names were declared and
      NOTHING CONSUMED THE FIRST ONE. Measured on index.html at 1280: the lit item
      (Work, aria-current="page") computed rgb(117,117,117) at weight 400 -- byte
@@ -284,7 +284,7 @@
      one page a nav item can take you to when you are already on it is the one
      you are on. Deepening the pill under the pointer would be a fourth grey in
      a bar that is trying to have fewer. */
-  --nav-active-ink:var(--c950);
+  --nav-active-ink:var(--theme-ink,var(--c950));
   --nav-active-bg:var(--nav-hover-bg);
 
   position:relative;                       /* the travelling indicator's containing block */
@@ -334,6 +334,20 @@
   --nav-active-bg:var(--nav-hover-bg);
   --nav-focus:var(--c50);
 }
+
+/* Night chrome is neutral on every route, including the two stage pages that
+   otherwise opt into the legacy ink surface. Geometry stays in the rules above. */
+:root[data-theme="dark"] .jbNav{
+  --nav-mat:var(--theme-material,var(--mat-i3-solid));
+  --nav-rim:0 0 0 var(--hair-w) var(--theme-rim,rgba(255,255,255,.14)) inset;
+  --nav-ink:var(--theme-muted,var(--i700));
+  --nav-ink-strong:var(--theme-ink,var(--c50));
+  --nav-hover-bg:var(--theme-elevated,var(--i100));
+  --nav-active-ink:var(--theme-ink,var(--c50));
+  --nav-active-bg:var(--theme-elevated,var(--i100));
+  --nav-focus:var(--theme-focus,var(--c50));
+}
+.theme-ready .jbNav{transition:background-color var(--theme-duration,400ms) var(--ease-out),box-shadow var(--theme-duration,400ms) var(--ease-out)}
 
 /* the two zones. Auto width, pushed apart by the bar's space-between: the
    leading group sits on the page's left gutter and the socials on the right

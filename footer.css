@@ -1,0 +1,12 @@
+/* Shared footer colour roles. Page files continue to own spacing and layout. */
+.siteFoot{color:var(--theme-ink)}
+.footReach{color:var(--theme-muted)}
+.footIn{color:var(--theme-ink);text-decoration-color:var(--theme-muted)}
+.footIn:hover,.footIn:focus-visible{color:var(--theme-focus);text-decoration-color:currentColor}
+.footIn:focus-visible{outline-color:var(--theme-focus)}
+.footMark{color:var(--theme-rim)}
+
+.theme-ready .siteFoot,.theme-ready .footReach,.theme-ready .footIn,.theme-ready .footMark{
+  transition:color var(--theme-duration) var(--ease-out),
+             text-decoration-color var(--theme-duration) var(--ease-out);
+}
