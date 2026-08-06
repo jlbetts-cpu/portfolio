@@ -18,12 +18,18 @@
  "use strict";
 
  var STATES=Object.freeze(["off","pre-dawn","sunrise","daytime","dusk","sunset","night"]);
- var PROJECTS=Object.freeze(["bearings","apollo","strata","cluster"]);
+ var PROJECTS=Object.freeze(["bearings","apollo","strata","cluster","ucdavis","r3shore"]);
  var ORIGINALS=Object.freeze({
   bearings:"images/cs/bearings-cover.webp",
   apollo:"images/cs/apollo-cover.webp",
   strata:"images/cs/strata-cover.webp",
-  cluster:"images/cs/cluster/cluster-cover.webp"
+  cluster:"images/cs/cluster/cluster-cover.webp",
+  ucdavis:"images/cs/ucrec/cover.webp",
+  r3shore:"images/cs/r3shore.webp"
+ });
+ var VARIANT_DIRS=Object.freeze({
+  bearings:"bearings",apollo:"apollo",strata:"strata",cluster:"cluster",
+  ucdavis:"ucrec",r3shore:"r3shore"
  });
  var SIZES="(max-width: 760px) calc(100vw - 48px), (max-width: 1280px) calc(100vw - 80px), 1200px";
 
@@ -33,7 +39,7 @@
   if(PROJECTS.indexOf(project)===-1)return null;
   var next=normalizeState(state);
   if(next==="off")return {src:ORIGINALS[project],srcset:"",sizes:""};
-  var base="images/cs/variants/time/"+project+"/"+next;
+  var base="images/cs/variants/time/"+VARIANT_DIRS[project]+"/"+next;
   return {
    src:base+"-1200.webp",
    srcset:base+"-1200.webp 1200w, "+base+"-2400.webp 2400w",
@@ -57,7 +63,8 @@
     if(targets.indexOf(image)===-1)targets.push(image);
    });
   }
-  var groups={bearings:[],apollo:[],strata:[],cluster:[]};
+  var groups={};
+  PROJECTS.forEach(function(project){groups[project]=[];});
   function projectFor(image){
    var explicit=image.getAttribute("data-time-thumbnail");
    if(PROJECTS.indexOf(explicit)!==-1)return explicit;
@@ -158,5 +165,5 @@
   return {destroy:destroy,request:request};
  }
 
- return {STATES:STATES,PROJECTS:PROJECTS,ORIGINALS:ORIGINALS,SIZES:SIZES,sourceFor:sourceFor,createController:createController};
+ return {STATES:STATES,PROJECTS:PROJECTS,ORIGINALS:ORIGINALS,VARIANT_DIRS:VARIANT_DIRS,SIZES:SIZES,sourceFor:sourceFor,createController:createController};
 });

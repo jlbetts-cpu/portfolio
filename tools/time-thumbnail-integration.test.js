@@ -5,7 +5,9 @@ const originals = {
   bearings: "images/cs/bearings-cover.webp",
   apollo: "images/cs/apollo-cover.webp",
   strata: "images/cs/strata-cover.webp",
-  cluster: "images/cs/cluster/cluster-cover.webp"
+  cluster: "images/cs/cluster/cluster-cover.webp",
+  ucdavis: "images/cs/ucrec/cover.webp",
+  r3shore: "images/cs/r3shore.webp"
 };
 
 function image(project) {
@@ -28,17 +30,16 @@ function image(project) {
 function flush() { return new Promise(resolve => setImmediate(resolve)); }
 
 (async function () {
-  assert.deepEqual(T.PROJECTS, ["bearings", "apollo", "strata", "cluster"]);
+  assert.deepEqual(T.PROJECTS, ["bearings", "apollo", "strata", "cluster", "ucdavis", "r3shore"]);
   for (const project of T.PROJECTS) {
     assert.deepEqual(T.sourceFor(project, "off"), {src: originals[project], srcset: "", sizes: ""});
+    const variant = project === "ucdavis" ? "ucrec" : project;
     assert.deepEqual(T.sourceFor(project, "dusk"), {
-      src: `images/cs/variants/time/${project}/dusk-1200.webp`,
-      srcset: `images/cs/variants/time/${project}/dusk-1200.webp 1200w, images/cs/variants/time/${project}/dusk-2400.webp 2400w`,
+      src: `images/cs/variants/time/${variant}/dusk-1200.webp`,
+      srcset: `images/cs/variants/time/${variant}/dusk-1200.webp 1200w, images/cs/variants/time/${variant}/dusk-2400.webp 2400w`,
       sizes: T.SIZES
     });
   }
-  assert.equal(T.sourceFor("ucdavis", "night"), null);
-  assert.equal(T.sourceFor("r3shore", "night"), null);
 
   const images = T.PROJECTS.map(image);
   const document = {
@@ -61,8 +62,9 @@ function flush() { return new Promise(resolve => setImmediate(resolve)); }
   await flush();
   images.forEach((node, index) => {
     const project = T.PROJECTS[index];
-    assert.equal(node.getAttribute("src"), `images/cs/variants/time/${project}/night-1200.webp`);
-    assert.match(node.getAttribute("srcset"), new RegExp(`${project}/night-2400\\.webp 2400w$`));
+    const variant = project === "ucdavis" ? "ucrec" : project;
+    assert.equal(node.getAttribute("src"), `images/cs/variants/time/${variant}/night-1200.webp`);
+    assert.match(node.getAttribute("srcset"), new RegExp(`${variant}/night-2400\\.webp 2400w$`));
     assert.equal(node.getAttribute("alt"), project + " original alt");
   });
 
