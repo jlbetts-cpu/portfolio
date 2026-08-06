@@ -63,6 +63,8 @@ It targets `#cases`. Normal anchor behavior remains available without JavaScript
 
 The existing `.moodItem` elements and their `data-mood` values move into the hero disclosure rather than being recreated. `hero-engine.js` remains the single owner of mood dispatch.
 
+The existing mood presentation is preserved exactly at the content level: the shipped icon artwork, icon animation, label, order, and effect pairing for Empathy, Hunger, Delight, and Love all remain unchanged. Generic replacement glyphs or newly drawn icons are not permitted. Only the surrounding disclosure trigger, panel placement, and any container-level token styling needed to integrate the menu into the hero may change.
+
 The menu uses the existing material, rim, shadow, row, and motion vocabulary. It opens below the control when space permits, remains inside the viewport, and may reverse direction on constrained screens. It closes after selection, on Escape, and on outside interaction. Focus returns to the trigger when Escape dismisses it.
 
 ## Header and Play behavior
@@ -119,6 +121,7 @@ The implementation is complete when:
 3. The blue field is subtle, localized behind the head, and absent from interactive states.
 4. `View work` reaches the selected-work section with and without JavaScript.
 5. Mood opens from the hero and all four existing mood effects still run.
+   The existing mood icons and their icon animations match the pre-change menu rather than being replaced or simplified.
 6. Play is a direct link on the home page and no longer opens the former mixed-purpose panel.
 7. Head-management behavior remains available and functional on the Play page.
 8. The hero intro, face tracking, blinking, and other existing head interactions still work.
