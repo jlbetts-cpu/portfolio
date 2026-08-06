@@ -212,6 +212,120 @@ html{scrollbar-color:var(--theme-muted) var(--theme-page)}
  box-shadow:0 0 0 var(--hair-w) var(--theme-rim);
 }
 
+/* Play keeps arena art, faces, team channels, and physics in their authored
+   palettes. This adapter themes only the surrounding interface and game text. */
+:root[data-theme="dark"] body[data-theme-page="play"] :is(.pLede,.pCardT,.pTeamTitle,.hmCount,.tvCup,.tvName,.tvChampNm,.tvSheetTitle,.tvStandNm){
+ color:var(--theme-ink);
+}
+:root[data-theme="dark"] body[data-theme-page="play"] :is(.pCardD,.pTeamHint,.pTeamColN,.tvRound,.tvDist,.tvV,.tvTape,.tvBoardHd,.tvRdH,.tvFxT,.tvStandRk,.tvStandOut){
+ color:var(--theme-muted);
+}
+:root[data-theme="dark"] body[data-theme-page="play"] .pCard{
+ background-color:var(--theme-surface);color:var(--theme-ink);
+ box-shadow:inset 0 0 0 var(--hair-w) var(--theme-rim);
+}
+:root[data-theme="dark"] body[data-theme-page="play"] .pCard:hover{
+ box-shadow:inset 0 0 0 var(--hair-w) var(--theme-rim-strong);
+}
+:root[data-theme="dark"] body[data-theme-page="play"] #pcHead{
+ background-color:var(--theme-elevated);
+ box-shadow:inset 0 0 0 var(--hair-w) rgba(217,215,255,.46),
+            0 22px 60px -48px rgba(103,99,228,.72);
+}
+:root[data-theme="dark"] body[data-theme-page="play"] #pcHead .pCardT{color:var(--theme-focus)}
+:root[data-theme="dark"] body[data-theme-page="play"] :is(.pCard .gIco,.pCardD){color:var(--theme-muted)}
+:root[data-theme="dark"] body[data-theme-page="play"] .pCard:hover :is(.gIco,.pCardD){color:var(--theme-ink)}
+:root[data-theme="dark"] body[data-theme-page="play"] .pCardPrev{
+ background-color:var(--theme-elevated);box-shadow:inset 0 0 0 var(--hair-w) var(--theme-rim);
+}
+
+/* Launch menu and the full pre-match picker use the same three neutral depths. */
+:root[data-theme="dark"] body[data-theme-page="play"] :is(.moodBtn,.moodTeamsBtn){
+ background-color:var(--theme-surface);border-color:var(--theme-rim);color:var(--theme-ink);
+}
+:root[data-theme="dark"] body[data-theme-page="play"] .moodMenu{
+ background-color:var(--theme-elevated);border-color:var(--theme-rim);color:var(--theme-ink);
+ box-shadow:inset 0 0 0 var(--hair-w) var(--theme-rim);
+}
+:root[data-theme="dark"] body[data-theme-page="play"] :is(.moodItem,.moodGo){color:var(--theme-ink)}
+:root[data-theme="dark"] body[data-theme-page="play"] :is(.moodItem,.moodGo):hover,
+:root[data-theme="dark"] body[data-theme-page="play"] :is(.moodItem,.moodGo):focus-visible{
+ background-color:var(--theme-surface);color:var(--theme-ink);
+}
+:root[data-theme="dark"] body[data-theme-page="play"] .moodSep{background-color:var(--theme-rim)}
+:root[data-theme="dark"] body[data-theme-page="play"] #endGame,
+:root[data-theme="dark"] body[data-theme-page="play"] #endGame .gIco{color:#FF9B8E}
+
+:root[data-theme="dark"] body[data-theme-page="play"] .pTeamIn{
+ background-color:var(--theme-surface);box-shadow:inset 0 0 0 var(--hair-w) var(--theme-rim);
+}
+:root[data-theme="dark"] body[data-theme-page="play"] :is(.pBtn,.teamUndo){
+ background-color:var(--theme-elevated);color:var(--theme-ink);
+ box-shadow:inset 0 0 0 var(--hair-w) var(--theme-rim);
+}
+:root[data-theme="dark"] body[data-theme-page="play"] :is(.pBtn,.teamUndo):hover,
+:root[data-theme="dark"] body[data-theme-page="play"] :is(.pBtn,.teamUndo):focus-visible{
+ color:var(--theme-ink);box-shadow:inset 0 0 0 var(--hair-w) var(--theme-rim-strong);
+}
+:root[data-theme="dark"] body[data-theme-page="play"] .pBtnGo,
+:root[data-theme="dark"] body[data-theme-page="play"] .pBtnGo:hover{
+ background-color:var(--theme-focus);color:var(--theme-page);box-shadow:none;
+}
+:root[data-theme="dark"] body[data-theme-page="play"] .teamChip{background-color:var(--theme-elevated)}
+:root[data-theme="dark"] body[data-theme-page="play"] .pTeamCol.dragOver{outline-color:var(--theme-focus)}
+
+/* Live match messages remain above the authored pitch and team effects. */
+:root[data-theme="dark"] body[data-theme-page="play"] .hmScore .sbCard{
+ background-color:var(--theme-surface);border:var(--hair-w) solid var(--theme-rim);
+ -webkit-backdrop-filter:blur(18px) saturate(118%);backdrop-filter:blur(18px) saturate(118%);
+}
+:root[data-theme="dark"] body[data-theme-page="play"] .hmCount{color:var(--theme-ink)}
+:root[data-theme="dark"] body[data-theme-page="play"] :is(.battleCount,.battleBadge){
+ background-color:var(--theme-surface);border-color:var(--theme-rim);color:var(--theme-ink);
+}
+:root[data-theme="dark"] body[data-theme-page="play"] .hmLowerThird{
+ background-color:rgba(17,19,24,.94);color:var(--theme-ink);
+ box-shadow:inset 0 0 0 var(--hair-w) var(--theme-rim);
+}
+
+/* Tournament setup, draw sheet, bracket, and champion/result states. Team bars
+   and face pixels stay outside these selectors. */
+:root[data-theme="dark"] body[data-theme-page="play"] .tvChip{
+ background-color:var(--theme-surface);color:var(--theme-ink-soft);
+ box-shadow:inset 0 0 0 var(--hair-w) var(--theme-rim);
+}
+:root[data-theme="dark"] body[data-theme-page="play"] .tvSheetPanel{
+ background-color:var(--theme-surface);color:var(--theme-ink-soft);
+ box-shadow:inset 0 0 0 var(--hair-w) var(--theme-rim);
+}
+:root[data-theme="dark"] body[data-theme-page="play"] .tvChip:hover,
+:root[data-theme="dark"] body[data-theme-page="play"] .tvChip:focus-visible,
+:root[data-theme="dark"] body[data-theme-page="play"] .tvChip.tvArmed{
+ background-color:var(--theme-elevated);color:var(--theme-ink);
+ box-shadow:inset 0 0 0 var(--hair-w) var(--theme-rim-strong);
+}
+:root[data-theme="dark"] body[data-theme-page="play"] .tvGo{
+ background-color:var(--theme-focus);color:var(--theme-page);
+}
+:root[data-theme="dark"] body[data-theme-page="play"] .tvGo:focus-visible{outline-color:var(--theme-focus)}
+:root[data-theme="dark"] body[data-theme-page="play"] .tvRdH{border-color:var(--theme-rim)}
+:root[data-theme="dark"] body[data-theme-page="play"] .tvRdH.tvRdNow{
+ color:var(--theme-ink);border-color:var(--theme-ink);
+}
+:root[data-theme="dark"] body[data-theme-page="play"] .tvFx.tvFxNext{
+ background-color:rgba(103,99,228,.12);box-shadow:inset 0 0 0 var(--hair-w) var(--theme-rim);
+}
+:root[data-theme="dark"] body[data-theme-page="play"] :is(.tvFxT.tvFxWon,.tvFxS,.tvTape em){color:var(--theme-ink)}
+:root[data-theme="dark"] body[data-theme-page="play"] :is(.tvFxT.tvFxTbd,.tvFxT.tvFxLost){color:var(--theme-muted)}
+:root[data-theme="dark"] body[data-theme-page="play"] .tvStandRow{border-color:var(--theme-rim)}
+:root[data-theme="dark"] body[data-theme-page="play"] .tvSheetScrim{background-color:rgba(4,5,8,.78)}
+
+.theme-ready body[data-theme-page="play"] :is(.pLede,.pCardT,.pCardD,.pTeamTitle,.pTeamHint,.tvCup,.tvRound,.tvDist,.tvName,.tvTape,.tvRdH,.tvFxT,.tvStandNm){
+ transition-property:color,border-color;
+ transition-duration:var(--theme-duration);
+ transition-timing-function:var(--ease-out);
+}
+
 /* Theme changes transition as one system only after synchronous bootstrap. */
 .theme-ready body[data-theme-page="home"] :is(.cases,.csInfoRow,.csName,.csYear,.csInfoLabel,.csInfoVal,.reelTap),
 .theme-ready body[data-theme-page="about"] :is(.abTitle,.abBody h2,.abBody p,.abFactK,.abFactV),

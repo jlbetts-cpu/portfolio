@@ -744,8 +744,8 @@ body .navDrawer .ndLink{padding:var(--sp-8) var(--sp-12);text-align:left}
    it would be a redesign. Flagged rather than taken. ---- */
 .hmScore .sbCard{box-sizing:border-box;width:max-content;max-width:94vw;
  border-radius:var(--r-sm);corner-shape:var(--corner);
- background:var(--cupPaint,#2b2f2a);padding:0;
- box-shadow:var(--bc-contact),var(--bc-cast),inset 0 0 46px rgba(0,0,0,.30);
+ background:var(--sb-material,var(--cupPaint,#2b2f2a));padding:0;
+ box-shadow:var(--sb-rest-shadow,var(--bc-contact),var(--bc-cast),inset 0 0 46px rgba(0,0,0,.30));
  font-family:var(--sans);color:#ece9dd;position:relative}
 /* THE TROPHY rides on top of the board for the FINAL only, then is handed over at the whistle.
    Standing the prize on the scoreboard before it is won is the sourced move -- CS Majors put
@@ -901,6 +901,25 @@ body.hmFinal .sbRound{color:#e8b347}
    context that flattens their rotateX). Cup identity paints the plate during tournaments;
    the defaults above are the plain-soccer board. */
 .hmScore:has(.sbCard){width:auto;align-items:center;gap:0;filter:none}
+
+/* NIGHT SCORE MATERIAL. The backing light belongs to the board alone: .hmScore's
+   existing transform makes a local stacking context, and isolation keeps the
+   negative layer behind the card without letting it fall behind the arena.
+   Resting shadow is a variable so .sbHit's authored goal/clutch/trophy box-shadow
+   declarations remain the winning properties during play. */
+:root[data-theme="dark"] body[data-theme-page="play"]{
+ --sb-material:rgba(17,19,24,.90);
+ --sb-rest-shadow:0 16px 44px -28px rgba(0,0,0,.88),
+  inset 0 0 0 var(--hair-w) rgba(255,255,255,.15),
+  inset 0 1px 0 rgba(255,255,255,.08),
+  inset 0 0 46px rgba(0,0,0,.34);
+}
+:root[data-theme="dark"] body[data-theme-page="play"] .hmScore:has(.sbCard){isolation:isolate}
+:root[data-theme="dark"] body[data-theme-page="play"] .hmScore:has(.sbCard)::before{
+ content:"";position:absolute;inset:-28px -44px;z-index:-1;pointer-events:none;
+ background:radial-gradient(ellipse at 50% 55%,rgba(233,232,255,.28),rgba(103,99,228,.13) 42%,transparent 72%);
+ filter:blur(12px)
+}
 
 
 /* Live shared control selectors, rewritten from the portfolio's long selector
