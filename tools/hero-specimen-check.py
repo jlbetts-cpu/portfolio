@@ -6,6 +6,7 @@ import re
 
 
 html = Path("index.html").read_text(encoding="utf-8")
+time_css = Path("hero-time.css").read_text(encoding="utf-8")
 
 assert '<link rel="stylesheet" href="hero-time.css">' in html
 for node_id in (
@@ -19,6 +20,66 @@ for node_id in (
 assert re.search(r'id="heroTimeBtn"[^>]+aria-controls="heroTimeMenu"', html)
 assert html.index('id="moodbar"') < html.index('id="heroTimeBtn"') < html.index('class="stagewrap"')
 assert html.count("data-time-mode=") == 8
+assert html.index('id="heroTimeCanvas"') < html.index('id="heroTimeBloom"') < html.index('class="heroCopy"')
+assert re.search(r'id="face"[^>]*><img id="heroTimePortraitCast"', html)
+assert html.index('href="header.css"') < html.index('href="hero-time.css"')
+assert html.index('src="fluid-mesh.js"') < html.index('src="hero-time-presets.js"') < html.index('src="hero-engine.js"')
+
+time_control = re.search(r'<button class="heroTimeBtn"[^>]*>.*?</button>', html, re.S)
+assert time_control
+assert 'aria-label="Time of day"' in time_control.group(0)
+assert 'aria-haspopup="menu"' in time_control.group(0)
+assert 'aria-expanded="false"' in time_control.group(0)
+assert '<svg class="heroTimeIcon"' in time_control.group(0)
+assert not re.sub(r"<[^>]+>", "", time_control.group(0)).strip()
+assert re.search(r'id="heroTimeMenu"[^>]+role="menu"[^>]+aria-label="Choose time of day"', html)
+assert html.count('role="menuitemradio"') == 8
+assert html.count('role="menuitemradio" aria-checked="true"') == 1
+
+time_button_rules = re.findall(r'\.heroTimeBtn\s*\{.*?\}', time_css, re.S)
+time_button_rule = next((rule for rule in time_button_rules if "min-width:var(--tap-min)" in rule), None)
+assert time_button_rule
+for target_rule in ("width:var(--tap-min)", "height:var(--tap-min)", "min-width:var(--tap-min)", "min-height:var(--tap-min)"):
+    assert target_rule in time_button_rule, target_rule
+
+rim_overlay = re.search(r'\.hero::after\s*\{.*?\}', time_css, re.S)
+assert rim_overlay, "hero rim must paint above positioned atmosphere layers"
+for rim_rule in ("pointer-events:none", "box-shadow:var(--time-rim)", "border-radius:inherit"):
+    assert rim_rule in rim_overlay.group(0), rim_rule
+rim_z = re.search(r'z-index:(\d+)', rim_overlay.group(0))
+assert rim_z and int(rim_z.group(1)) > 1
+assert re.search(r'\.heroTimeCanvas\s*\{[^}]*z-index:0', time_css, re.S)
+assert re.search(r'\.heroTimeBloom\s*\{[^}]*z-index:1', time_css, re.S)
+
+menu_rule = re.search(r'\.heroTimeMenu\s*\{.*?\}', time_css, re.S)
+assert menu_rule and "right:0" in menu_rule.group(0)
+assert "width:min(var(--menu-w),calc(50vw + var(--sp-6)))" in menu_rule.group(0)
+assert "max-width:calc(100vw - (var(--sp-16) * 2))" in menu_rule.group(0)
+assert re.search(r'\.heroCtas\s*\{[^}]*justify-content:center;[^}]*flex-wrap:wrap', html, re.S)
+assert re.search(r'\.heroTime\.opensAbove \.heroTimeMenu\s*\{[^}]*top:auto;bottom:', time_css, re.S)
+
+off_state = re.search(r'\.hero\[data-time-state="off"\]\s*\{.*?\}', time_css, re.S)
+assert off_state and "--time-secondary-hover-border:var(--c500)" in off_state.group(0)
+assert re.search(
+    r'\.hero\[data-time-state\] \.heroMood \.moodBtn:hover,.*?border-color:var\(--time-secondary-hover-border\)',
+    time_css,
+    re.S,
+)
+forced_colors = re.search(r'@media\(forced-colors:active\)\s*\{(.*)\n\}', time_css, re.S)
+assert forced_colors
+assert re.search(r'\.hero::after\s*\{[^}]*border:var\(--hair-w\) solid CanvasText;[^}]*box-shadow:none', forced_colors.group(1), re.S)
+
+for state in ("pre-dawn", "sunrise", "daytime", "dusk", "sunset", "night"):
+    state_rule = re.search(rf'\.hero\[data-time-state="{state}"\]\s*\{{.*?\n\}}', time_css, re.S)
+    assert state_rule, state
+    fallback = re.search(r'--time-fallback:(.*?);', state_rule.group(0), re.S)
+    assert fallback, state
+    arcs = re.findall(
+        r'radial-gradient\(ellipse\s+(\d+)%\s+\d+%\s+at\s+\d+%\s+(\d+)%',
+        fallback.group(1),
+    )
+    assert len(arcs) >= 3, state
+    assert all(int(width) >= 80 and int(origin_y) > 100 for width, origin_y in arcs), state
 
 assert 'class="jbDisc jbPlay"' not in html
 assert re.search(r'<a[^>]+data-nav-item="games"[^>]+href="play\.html"', html)

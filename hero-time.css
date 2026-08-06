@@ -8,6 +8,7 @@
  --time-secondary-ink:var(--c950);
  --time-secondary-hover-bg:var(--mat-3-solid);
  --time-secondary-border:var(--c100);
+ --time-secondary-hover-border:var(--c500);
  --time-rim:var(--rim-3);
  --time-bloom:transparent;
  --time-cast:transparent;
@@ -25,7 +26,11 @@
  --time-menu-shadow:var(--rim-2),var(--sh-2);
  --time-focus:var(--c950);
  color:var(--time-ink);
- box-shadow:var(--time-rim);
+ box-shadow:none;
+}
+.hero::after{
+ content:"";position:absolute;inset:0;z-index:10;pointer-events:none;
+ border-radius:inherit;corner-shape:inherit;box-shadow:var(--time-rim)
 }
 
 .hero[data-time-state="off"]{
@@ -37,6 +42,7 @@
  --time-secondary-ink:var(--c950);
  --time-secondary-hover-bg:var(--mat-3-solid);
  --time-secondary-border:var(--c100);
+ --time-secondary-hover-border:var(--c500);
  --time-rim:var(--rim-3);
  --time-bloom:transparent;
  --time-cast:transparent;
@@ -64,6 +70,7 @@
  --time-secondary-ink:var(--c50);
  --time-secondary-hover-bg:var(--mat-i3-solid);
  --time-secondary-border:var(--i100);
+ --time-secondary-hover-border:var(--i700);
  --time-rim:var(--rim-i2);
  --time-bloom:rgba(111,169,255,.38);
  --time-cast:rgba(92,149,255,.32);
@@ -72,7 +79,7 @@
  --time-light-x:34%;
  --time-shadow:radial-gradient(ellipse 54% 54% at 42% 50%,rgba(3,8,19,.68),rgba(10,22,48,.42) 38%,rgba(36,59,121,.16) 64%,transparent 82%);
  --time-shadow-opacity:.64;
- --time-fallback:radial-gradient(ellipse 72% 82% at 16% 112%,rgba(107,111,175,.88) 0%,rgba(107,111,175,0) 68%),radial-gradient(ellipse 68% 76% at 52% 118%,rgba(36,59,121,.96) 0%,rgba(36,59,121,0) 70%),radial-gradient(ellipse 58% 64% at 88% 102%,rgba(20,44,84,.92) 0%,rgba(20,44,84,0) 72%),linear-gradient(180deg,#071329 0%,#142C54 100%);
+ --time-fallback:radial-gradient(ellipse 94% 82% at 16% 112%,rgba(107,111,175,.88) 0%,rgba(107,111,175,0) 68%),radial-gradient(ellipse 88% 76% at 52% 118%,rgba(36,59,121,.96) 0%,rgba(36,59,121,0) 70%),radial-gradient(ellipse 82% 64% at 88% 102%,rgba(20,44,84,.92) 0%,rgba(20,44,84,0) 72%),linear-gradient(180deg,#071329 0%,#142C54 100%);
  --time-layer-opacity:1;
  --time-menu-bg:var(--mat-i3-solid);
  --time-menu-ink:var(--i700);
@@ -91,6 +98,7 @@
  --time-secondary-ink:var(--c950);
  --time-secondary-hover-bg:var(--mat-3-solid);
  --time-secondary-border:var(--c100);
+ --time-secondary-hover-border:var(--c500);
  --time-rim:var(--rim-3);
  --time-bloom:rgba(255,190,139,.42);
  --time-cast:rgba(241,163,107,.28);
@@ -99,7 +107,7 @@
  --time-light-x:38%;
  --time-shadow:radial-gradient(ellipse 54% 52% at 44% 50%,rgba(72,57,54,.44),rgba(181,116,85,.22) 38%,rgba(255,212,184,.08) 66%,transparent 82%);
  --time-shadow-opacity:.48;
- --time-fallback:radial-gradient(ellipse 74% 80% at 18% 112%,rgba(255,240,212,.96) 0%,rgba(255,240,212,0) 68%),radial-gradient(ellipse 68% 76% at 50% 118%,rgba(241,163,107,.82) 0%,rgba(241,163,107,0) 70%),radial-gradient(ellipse 62% 70% at 86% 104%,rgba(188,216,255,.94) 0%,rgba(188,216,255,0) 72%),linear-gradient(180deg,#F6F9FF 0%,#BCD8FF 100%);
+ --time-fallback:radial-gradient(ellipse 94% 80% at 18% 112%,rgba(255,240,212,.96) 0%,rgba(255,240,212,0) 68%),radial-gradient(ellipse 88% 76% at 50% 118%,rgba(241,163,107,.82) 0%,rgba(241,163,107,0) 70%),radial-gradient(ellipse 82% 70% at 86% 104%,rgba(188,216,255,.94) 0%,rgba(188,216,255,0) 72%),linear-gradient(180deg,#F6F9FF 0%,#BCD8FF 100%);
  --time-layer-opacity:1;
  --time-menu-bg:var(--mat-3-solid);
  --time-menu-ink:var(--c700);
@@ -118,6 +126,7 @@
  --time-secondary-ink:var(--c950);
  --time-secondary-hover-bg:var(--mat-3-solid);
  --time-secondary-border:var(--c100);
+ --time-secondary-hover-border:var(--c500);
  --time-rim:var(--rim-3);
  --time-bloom:rgba(116,182,242,.30);
  --time-cast:rgba(169,214,255,.20);
@@ -126,7 +135,7 @@
  --time-light-x:46%;
  --time-shadow:radial-gradient(ellipse 54% 52% at 48% 50%,rgba(24,49,78,.36),rgba(90,145,192,.18) 38%,rgba(169,214,255,.08) 64%,transparent 82%);
  --time-shadow-opacity:.42;
- --time-fallback:radial-gradient(ellipse 76% 82% at 14% 112%,rgba(238,247,255,.98) 0%,rgba(238,247,255,0) 70%),radial-gradient(ellipse 70% 78% at 50% 118%,rgba(169,214,255,.82) 0%,rgba(169,214,255,0) 72%),radial-gradient(ellipse 60% 68% at 88% 104%,rgba(116,182,242,.62) 0%,rgba(116,182,242,0) 72%),linear-gradient(180deg,#F8FBFF 0%,#DCEEFF 100%);
+ --time-fallback:radial-gradient(ellipse 96% 82% at 14% 112%,rgba(238,247,255,.98) 0%,rgba(238,247,255,0) 70%),radial-gradient(ellipse 90% 78% at 50% 118%,rgba(169,214,255,.82) 0%,rgba(169,214,255,0) 72%),radial-gradient(ellipse 84% 68% at 88% 104%,rgba(116,182,242,.62) 0%,rgba(116,182,242,0) 72%),linear-gradient(180deg,#F8FBFF 0%,#DCEEFF 100%);
  --time-layer-opacity:1;
  --time-menu-bg:var(--mat-3-solid);
  --time-menu-ink:var(--c700);
@@ -145,6 +154,7 @@
  --time-secondary-ink:var(--c50);
  --time-secondary-hover-bg:var(--mat-i3-solid);
  --time-secondary-border:var(--i100);
+ --time-secondary-hover-border:var(--i700);
  --time-rim:var(--rim-i2);
  --time-bloom:rgba(178,167,209,.34);
  --time-cast:rgba(146,136,190,.24);
@@ -153,7 +163,7 @@
  --time-light-x:38%;
  --time-shadow:radial-gradient(ellipse 54% 54% at 44% 50%,rgba(7,10,22,.66),rgba(38,54,92,.38) 40%,rgba(103,111,159,.14) 66%,transparent 82%);
  --time-shadow-opacity:.62;
- --time-fallback:radial-gradient(ellipse 74% 82% at 18% 112%,rgba(178,167,209,.78) 0%,rgba(178,167,209,0) 68%),radial-gradient(ellipse 68% 76% at 52% 118%,rgba(103,111,159,.92) 0%,rgba(103,111,159,0) 70%),radial-gradient(ellipse 58% 66% at 88% 104%,rgba(38,54,92,.96) 0%,rgba(38,54,92,0) 72%),linear-gradient(180deg,#10162A 0%,#26365C 100%);
+ --time-fallback:radial-gradient(ellipse 94% 82% at 18% 112%,rgba(178,167,209,.78) 0%,rgba(178,167,209,0) 68%),radial-gradient(ellipse 88% 76% at 52% 118%,rgba(103,111,159,.92) 0%,rgba(103,111,159,0) 70%),radial-gradient(ellipse 82% 66% at 88% 104%,rgba(38,54,92,.96) 0%,rgba(38,54,92,0) 72%),linear-gradient(180deg,#10162A 0%,#26365C 100%);
  --time-layer-opacity:1;
  --time-menu-bg:var(--mat-i3-solid);
  --time-menu-ink:var(--i700);
@@ -172,6 +182,7 @@
  --time-secondary-ink:var(--c50);
  --time-secondary-hover-bg:var(--mat-i3-solid);
  --time-secondary-border:var(--i100);
+ --time-secondary-hover-border:var(--i700);
  --time-rim:var(--rim-i2);
  --time-bloom:rgba(255,167,120,.42);
  --time-cast:rgba(240,134,106,.30);
@@ -180,7 +191,7 @@
  --time-light-x:40%;
  --time-shadow:radial-gradient(ellipse 56% 54% at 45% 50%,rgba(13,10,24,.68),rgba(60,49,93,.40) 38%,rgba(213,108,118,.16) 66%,transparent 82%);
  --time-shadow-opacity:.66;
- --time-fallback:radial-gradient(ellipse 76% 84% at 16% 114%,rgba(255,213,184,.90) 0%,rgba(255,213,184,0) 68%),radial-gradient(ellipse 70% 78% at 50% 118%,rgba(240,160,111,.92) 0%,rgba(240,160,111,0) 70%),radial-gradient(ellipse 62% 70% at 88% 104%,rgba(213,108,118,.86) 0%,rgba(213,108,118,0) 72%),linear-gradient(180deg,#19172B 0%,#3C315D 100%);
+ --time-fallback:radial-gradient(ellipse 96% 84% at 16% 114%,rgba(255,213,184,.90) 0%,rgba(255,213,184,0) 68%),radial-gradient(ellipse 90% 78% at 50% 118%,rgba(240,160,111,.92) 0%,rgba(240,160,111,0) 70%),radial-gradient(ellipse 84% 70% at 88% 104%,rgba(213,108,118,.86) 0%,rgba(213,108,118,0) 72%),linear-gradient(180deg,#19172B 0%,#3C315D 100%);
  --time-layer-opacity:1;
  --time-menu-bg:var(--mat-i3-solid);
  --time-menu-ink:var(--i700);
@@ -199,6 +210,7 @@
  --time-secondary-ink:var(--c50);
  --time-secondary-hover-bg:var(--mat-i3-solid);
  --time-secondary-border:var(--i100);
+ --time-secondary-hover-border:var(--i700);
  --time-rim:var(--rim-i2);
  --time-bloom:rgba(111,169,255,.40);
  --time-cast:rgba(78,139,255,.34);
@@ -207,7 +219,7 @@
  --time-light-x:42%;
  --time-shadow:radial-gradient(ellipse 56% 54% at 46% 50%,rgba(0,2,8,.76),rgba(10,21,48,.48) 38%,rgba(29,74,147,.16) 66%,transparent 82%);
  --time-shadow-opacity:.72;
- --time-fallback:radial-gradient(ellipse 76% 86% at 14% 114%,rgba(111,169,255,.62) 0%,rgba(111,169,255,0) 68%),radial-gradient(ellipse 70% 80% at 50% 120%,rgba(29,74,147,.94) 0%,rgba(29,74,147,0) 70%),radial-gradient(ellipse 62% 72% at 88% 106%,rgba(16,42,88,.96) 0%,rgba(16,42,88,0) 72%),linear-gradient(180deg,#050810 0%,#0A1530 100%);
+ --time-fallback:radial-gradient(ellipse 96% 86% at 14% 114%,rgba(111,169,255,.62) 0%,rgba(111,169,255,0) 68%),radial-gradient(ellipse 90% 80% at 50% 120%,rgba(29,74,147,.94) 0%,rgba(29,74,147,0) 70%),radial-gradient(ellipse 84% 72% at 88% 106%,rgba(16,42,88,.96) 0%,rgba(16,42,88,0) 72%),linear-gradient(180deg,#050810 0%,#0A1530 100%);
  --time-layer-opacity:1;
  --time-menu-bg:var(--mat-i3-solid);
  --time-menu-ink:var(--i700);
@@ -246,7 +258,7 @@
 .hero[data-time-state] .heroMood.open .moodBtn,
 .heroTimeBtn:hover,.heroTimeBtn:focus-visible,
 .heroTime.open .heroTimeBtn,.heroTimeBtn[aria-expanded="true"]{
- background:var(--time-secondary-hover-bg);border-color:var(--time-secondary-border);
+ background:var(--time-secondary-hover-bg);border-color:var(--time-secondary-hover-border);
  color:var(--time-secondary-ink)
 }
 .hero[data-time-state] .heroMood .moodMenu{
@@ -296,7 +308,10 @@
 
 .heroTimeMenu{
  position:absolute;top:calc(100% + var(--sp-8));right:0;left:auto;z-index:30;
- display:flex;flex-direction:column;gap:var(--gap-bar);width:var(--menu-w);
+ /* Time is last on every centered flex line. Even alone its right edge is
+    50vw + 22px, so 50vw + 6px leaves the required 16px left gutter. */
+ display:flex;flex-direction:column;gap:var(--gap-bar);
+ width:min(var(--menu-w),calc(50vw + var(--sp-6)));
  max-width:calc(100vw - (var(--sp-16) * 2));padding:var(--pad-bar);
  border:0;border-radius:var(--r-lg);corner-shape:var(--corner);
  background:var(--time-menu-bg);box-shadow:var(--time-menu-shadow);
@@ -339,7 +354,7 @@
 }
 
 @media(max-width:760px){
- .heroTimeMenu{width:min(var(--menu-w),calc(100vw - (var(--sp-16) * 2)));max-width:calc(100vw - (var(--sp-16) * 2))}
+ .heroTimeMenu{width:min(var(--menu-w),calc(50vw + var(--sp-6)));max-width:calc(100vw - (var(--sp-16) * 2))}
  .heroTimeBtn{width:var(--tap-min);height:var(--tap-min)}
 }
 
@@ -352,7 +367,8 @@
 @media(forced-colors:active){
  .heroTimeCanvas,.heroTimeBloom,.heroTimePortraitCast,.heroAura{display:none}
  .hero,.heroCopy h1{background:Canvas;color:CanvasText}
- .hero{box-shadow:inset 0 0 0 var(--hair-w) CanvasText}
+ .hero{box-shadow:none}
+ .hero::after{box-sizing:border-box;border:var(--hair-w) solid CanvasText;box-shadow:none}
  .hero[data-time-state] .floorshadow{background:none;opacity:0}
  .hero[data-time-state] .workCta,
  .hero[data-time-state] .workCta:hover,
