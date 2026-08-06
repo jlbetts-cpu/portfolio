@@ -759,6 +759,11 @@
              font-weight var(--hover-out-dur) var(--ease-out);
 }
 @media(prefers-reduced-motion:reduce){.theme-ready .jbNav :is(a,button,.jbDiscGo){transition-duration:0ms}}
+@media(prefers-reduced-motion:reduce){
+  .theme-ready .jbGrp>:is(a,button):not(.jbHome):hover,
+  .theme-ready .jbGrp>.jbDisc:hover>.jbDiscGo,
+  .theme-ready .jbGrp>.jbDisc:focus-within>.jbDiscGo{transition-duration:0ms}
+}
 .jbNav .jbDiscMenu :is(a,button) .gIco{
   transition:stroke-width var(--hover-out-dur) var(--ease-out)}
 /* ── THE PANEL ROWS' HOVER ──────────────────────────────────────────────────

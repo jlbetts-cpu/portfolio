@@ -163,6 +163,9 @@ def check_shared_theme_transitions():
     direct_hover=".theme-ready.jbGrp>:is(a,button):not(.jbHome):hover,.theme-ready.jbGrp>.jbDisc:hover>.jbDiscGo,.theme-ready.jbGrp>.jbDisc:focus-within>.jbDiscGo{transition:colorvar(--theme-duration,400ms)"
     assert direct_hover in compact_header, "header.css: ready-state direct-nav hover/focus color transition is missing"
     assert compact_header.index(direct_hover)>compact_header.index(".jbGrp>:is(a,button):not(.jbHome):hover,"), "header.css: ready-state direct-nav transition must follow the overriding hover rule"
+    direct_reduced="@media(prefers-reduced-motion:reduce){.theme-ready.jbGrp>:is(a,button):not(.jbHome):hover,.theme-ready.jbGrp>.jbDisc:hover>.jbDiscGo,.theme-ready.jbGrp>.jbDisc:focus-within>.jbDiscGo{transition-duration:0ms}}"
+    assert direct_reduced in compact_header, "header.css: reduced motion must match direct-nav hover/focus specificity"
+    assert compact_header.index(direct_reduced)>compact_header.index(direct_hover), "header.css: direct-nav reduced-motion override must follow its ready transition"
     assert "@media(prefers-reduced-motion:reduce){.theme-ready.jbNav:is(a,button,.jbDiscGo){transition-duration:0ms}" in compact_header, "header.css: reduced motion must zero ready-state nav color transition"
     assert ".theme-ready.siteFoot,.theme-ready.footReach,.theme-ready.footIn,.theme-ready.footMark{transition:colorvar(--theme-duration)" in compact_footer, "footer.css: ready-state semantic footer transition is missing"
     violations=nav_color_transition_violations(header)
