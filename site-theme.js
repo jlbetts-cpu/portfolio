@@ -6,7 +6,9 @@
  if(!S||!root)return;
 
  var KEY="jbHeroTimeMode";
- var storage=typeof sessionStorage==="undefined"?null:sessionStorage;
+ var storage=null;
+ try{storage=window.sessionStorage;}
+ catch(error){}
  var current=null;
  var boundaryTimer=0;
  var listeners=new Set();

@@ -45,6 +45,9 @@ function makeHarness(options={}){
   setItem(key,value){calls.set.push([key,value]);if(options.writeFails)throw new Error("write blocked");values.set(key,value);},
   removeItem(key){calls.remove+=1;if(options.removeFails)throw new Error("remove blocked");values.delete(key);}
  };
+ let storageAccesses=0;
+ if(options.storageAccessFails)Object.defineProperty(window,"sessionStorage",{get(){storageAccesses+=1;throw new Error("storage unavailable");}});
+ else window.sessionStorage=storage;
  const times=(options.times||[new Date(2026,7,6,12).getTime()]).slice();
  let latest=times.at(-1);
  class FakeDate extends Date{
@@ -60,10 +63,8 @@ function makeHarness(options={}){
   setTimeout(handler,delay){const timer={id:++timerId,handler,delay};scheduled.push(timer);return timer.id;},
   clearTimeout(id){cleared.push(id);}
  };
- if(options.storageAccessFails)Object.defineProperty(context,"sessionStorage",{get(){throw new Error("storage unavailable");}});
- else context.sessionStorage=storage;
  vm.runInNewContext(source,context,{filename:"site-theme.js"});
- return {root,body,window,document,motion,storage,calls,values,scheduled,cleared,controller:window.SiteTheme};
+ return {root,body,window,document,motion,storage,calls,values,scheduled,cleared,storageAccesses:()=>storageAccesses,controller:window.SiteTheme};
 }
 
 const failures=[];
@@ -89,10 +90,12 @@ test("late body creation mirrors later changes without becoming the authority",(
 });
 
 test("missing invalid and unreadable storage each resolve Automatic",()=>{
- [makeHarness(),makeHarness({stored:"garbage"}),makeHarness({readFails:true}),makeHarness({storageAccessFails:true})].forEach(h=>{
+ const inaccessible=makeHarness({storageAccessFails:true});
+ [makeHarness(),makeHarness({stored:"garbage"}),makeHarness({readFails:true}),inaccessible].forEach(h=>{
   assert.deepEqual(h.controller.getSnapshot(),{mode:"auto",state:"daytime",theme:"light"});
   assert.equal(h.root.getAttribute("data-theme-mode"),"auto");
  });
+ assert.equal(inaccessible.storageAccesses(),1);
 });
 
 test("failed storage writes and removes leave the controller in Automatic",()=>{
