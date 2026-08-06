@@ -1242,6 +1242,7 @@ function start(){
     document.body.style.setProperty('--cupStock',T.id.stock);
     document.body.style.setProperty('--cupSheen',T.id.sheen);
     T.br = BR.buildBracket(teams.map(function(t){ return t.id; })); lastRound = -1;
+    try{ if(window.__hmResetPlayScroll) window.__hmResetPlayScroll(); }catch(_){}
     document.body.classList.add('hmTour');
     benchAll();
     /* Fixture one is cast the same way every other fixture is -- the first

@@ -570,20 +570,13 @@ body.moodInCta .heroCtas:not(.in) .faceMoodCorner{opacity:0!important;visibility
    Scroll is locked for the duration: a single 500px flick used to push the whole match off
    screen, still running, with no way back.
 
-   PLAY.HTML DIVERGES HERE (fix round 2, Task 2): the paragraph above describes index.html,
-   where body.hmFull only applies WHILE a game runs and .hero is otherwise a short, scrolling
-   hero -- so this rule's job was rescuing the arena from that short default. On play.html,
-   body.hmFull is PERMANENT and .hero is ALWAYS the arena (never the short portfolio hero), so
-   "hand hero the rest of the screen" no longer describes what's needed: inherited verbatim,
-   this 2-class selector silently outranked play.html's own plain-.hero centred-band rule
-   (index.html:930's copy carried the collision forward unnoticed -- flagged in Task 1's report
-   and again in this fix round). Decided deliberately instead: mobile gets its own explicit band,
-   not the desktop 60vh number, because a portrait screen has less absolute vertical room to
-   spare for margin and benefits from more usable pitch -- so it sits at 65vh, the top of
-   Jayden's approved 55-65vh range rather than the middle. Centring is inherited from the shared
-   body{display:flex}/.hero{margin:auto} rule in play.html; only the height differs by breakpoint. */
+   PLAY.HTML DIVERGES HERE: .hero is always the arena, so mobile keeps its explicit 65vh
+   resting band. The page now has a footer below that first viewport, which means hmFull can
+   no longer mean "lock Play forever". Only the full-screen team picker or an active game locks
+   scroll; the resting page is a normal document centred by .playViewport in play.html. */
 @media(max-width:760px){body.hmFull .hero{height:65vh;min-height:0}}
-body.hmFull{overflow:hidden;overscroll-behavior:none}
+body.hmFull{height:auto;min-height:100%;overflow-x:clip;overflow-y:auto;overscroll-behavior-y:auto}
+body.hmFull:is(.pTeamOn,.hmSoccer,.hmBattle,.hmRace,.hmTour){height:100%;overflow:hidden;overscroll-behavior:none}
 /* ---- 14. #soccerTeams measured 39x40 -- under the 44px minimum (WCAG 2.5.5 AAA, Apple HIG
    "at least 44x44 pt"). It sits inside a flex row with align-self:stretch, so it inherited the
    40px moodItem height. Floor both axes. ---- */

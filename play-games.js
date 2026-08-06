@@ -241,7 +241,37 @@
     108px wide at 1280 and 64px at 390, so five is 540px across 1280 (a loose group, still
     clearly several people) and 320px across 390 (a row that fills the phone without
     stacking). Four looked thin at 1280; six touched at 390. ---- */
- var _ph=[],_phTries=0;
+ var _ph=[],_phTries=0,_bootWait=0,_bootFallback=0,_bootWatch=0;
+ /* Play's arena is hidden only until every initial head has both reached the engine's seated
+    state and decoded its cutout. A saved data URL can be long enough to pass the storage filter
+    and still be undecodable, so an image error (or a bounded four-second wait) removes only the
+    failed saved heads and lets the fallback crowd take their place. The second deadline is the
+    final safety valve: even a broken bundled fallback may never strand the whole page hidden. */
+ function showPlay(){if(_bootWatch){clearTimeout(_bootWatch);_bootWatch=0;}requestAnimationFrame(function(){document.body.classList.remove("playBooting");document.body.setAttribute("data-play-ready","true");});}
+ function watchPlayBoot(){if(!_bootWatch)_bootWatch=setTimeout(showPlay,8000);}
+ function recoverPlayBoot(nodes,expected){
+  if(_bootFallback){showPlay();return;}
+  _bootFallback=1;
+  var roster=readAll(),keep=[],i,img;
+  for(i=0;i<roster.length;i++){
+   img=nodes[i]&&nodes[i].querySelector("img");
+   if(i<expected&&img&&img.naturalWidth)keep.push(roster[i]);
+   else try{if(window.__hmKill)window.__hmKill(roster[i].cut);}catch(_){}}
+  writeRoster(keep);_bootWait=0;
+  if(keep.length)releasePlayBoot(keep.length);else seedPlaceholders();}
+ function releasePlayBoot(expected){
+  if(_bootWait||!document.body.classList.contains("playBooting")||expected<1)return;
+  _bootWait=1;var deadline=performance.now()+4000;
+  (function ready(){
+   var nodes=[].slice.call(document.querySelectorAll("#playArena [data-hm-boot-ready]"));
+   var initial=nodes.slice(0,expected);
+   var settled=initial.length>=expected&&initial.every(function(node){var img=node.querySelector("img");return !!(img&&img.complete);});
+   var broken=initial.some(function(node){var img=node.querySelector("img");return !!(img&&img.complete&&!img.naturalWidth);});
+   if((settled&&broken)||performance.now()>=deadline){recoverPlayBoot(nodes,expected);return;}
+   var painted=initial.length>=expected&&initial.every(function(node){var img=node.querySelector("img");return !!(img&&img.complete&&img.naturalWidth);});
+   if(!painted){requestAnimationFrame(ready);return;}
+   showPlay();
+  })();}
  function seedPlaceholders(){
   if(readAll().length)return;                       // the visitor has heads of their own: theirs, not these
   if(_ph.length)return;                             // idempotent -- battleGate ticks every 400ms
@@ -290,7 +320,9 @@
    var arr=readAll();arr.push(data);writeRoster(arr);
    try{if(window.__hmSpawnOne)window.__hmSpawnOne(data,arr.length-1);}catch(_){}});};
 
- battleGate();setInterval(battleGate,400);
+battleGate();setInterval(battleGate,400);
+ watchPlayBoot();
+ var _savedAtBoot=readAll().length;if(_savedAtBoot)releasePlayBoot(_savedAtBoot);
  seedPlaceholders();
  /* THE 400ms POLL IS TOO SLOW FOR A GROUND SWAP. Everything the gate used to drive was a
     dim or a hide, where a late tick is invisible. The page's ground and the header's
@@ -304,6 +336,8 @@
     makes the re-entrant call a no-op the moment nothing has actually changed. */
  try{new MutationObserver(function(){battleGate();})
   .observe(document.body,{attributes:true,attributeFilter:["class"]});}catch(_){}
+ function resetPlayScroll(){try{scrollTo(0,0);}catch(_){}}
+ window.__hmResetPlayScroll=resetPlayScroll;
  function closeMenuBar(){var mb=document.getElementById("moodbar");if(mb)mb.classList.remove("open");var mbt=document.getElementById("moodBtn");if(mbt)mbt.setAttribute("aria-expanded","false");}
  var bg=document.getElementById("battleGo");
  if(bg)bg.addEventListener("click",function(){
@@ -311,7 +345,7 @@
   window.__hmLavaTeams=false;   // the plain button is a solo free-for-all (teams are the opt-in via the teams icon)
   if(rc%2===1&&window.__hmFillerAdd)window.__hmFillerAdd();   // odd sides -> mini-Jayden steps in
   window.__hmCrowd=rc+(rc%2===1?1:0);   // seed the crowd size NOW so the lava's first rise is tuned to the real player count (not a stale/default value)
-  window.__hmBattleReq=performance.now();document.body.classList.add("hmBattle");
+  resetPlayScroll();window.__hmBattleReq=performance.now();document.body.classList.add("hmBattle");
   if(window.__hmNewArena)window.__hmNewArena();   // lay the random arena BEFORE the heads scatter onto it
   closeMenuBar();battleGate();});
  var sg=document.getElementById("soccerGo");
@@ -566,7 +600,7 @@
      (play-engine.js:434), so dispatching one synthetic resize is the whole handoff --
      no engine edit, and every head re-lands on one shared floor line. The rAF wait is
      because the class has to have been applied and laid out before the engine measures. */
-  function stageShift(on){document.body.classList.toggle("pTeamOn",on);
+  function stageShift(on){if(on)resetPlayScroll();document.body.classList.toggle("pTeamOn",on);
    requestAnimationFrame(function(){try{dispatchEvent(new Event("resize"));}catch(_){}});}
   function openTray(m){if(gameOn())return;mode=(m==="lava")?"lava":"soccer";activeTrig=(mode==="lava"&&lavaBtn)?lavaBtn:teamsBtn;ensureSel();open=true;teamOpen=true;syncGlobal();applyPreview();
    if(host)host.hidden=false;renderTray();
@@ -589,7 +623,7 @@
    document.body.classList.remove("pTeamOn");try{dispatchEvent(new Event("resize"));}catch(_){}
    var rc=heads().length;if(rc<1||gameOn())return;
    if(rc%2===1&&window.__hmFillerAdd)window.__hmFillerAdd();
-   if(mode==="lava"){window.__hmLavaTeams=true;window.__hmBattleReq=performance.now();document.body.classList.add("hmBattle");if(window.__hmNewArena)window.__hmNewArena();}   // Floor is Lava, but in fixed teams
+   if(mode==="lava"){window.__hmLavaTeams=true;resetPlayScroll();window.__hmBattleReq=performance.now();document.body.classList.add("hmBattle");if(window.__hmNewArena)window.__hmNewArena();}   // Floor is Lava, but in fixed teams
    else{window.__hmLavaTeams=false;try{if(window.__hmSoccerStart)window.__hmSoccerStart();}catch(_){}}
    closeMenuBar();battleGate();}
   teamsBtn.setAttribute("aria-expanded","false");if(lavaBtn)lavaBtn.setAttribute("aria-expanded","false");
