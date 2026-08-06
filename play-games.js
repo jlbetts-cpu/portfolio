@@ -247,7 +247,7 @@
     and still be undecodable, so an image error (or a bounded four-second wait) removes only the
     failed saved heads and lets the fallback crowd take their place. The second deadline is the
     final safety valve: even a broken bundled fallback may never strand the whole page hidden. */
- function showPlay(){if(_bootWatch){clearTimeout(_bootWatch);_bootWatch=0;}requestAnimationFrame(function(){document.body.classList.remove("playBooting");document.body.setAttribute("data-play-ready","true");});}
+ function showPlay(){if(_bootWatch){clearTimeout(_bootWatch);_bootWatch=0;}try{if(window.__hmLobbyThrowIn)window.__hmLobbyThrowIn();}catch(_){}requestAnimationFrame(function(){document.body.classList.remove("playBooting");document.body.setAttribute("data-play-ready","true");});}
  function watchPlayBoot(){if(!_bootWatch)_bootWatch=setTimeout(showPlay,8000);}
  function recoverPlayBoot(nodes,expected){
   if(_bootFallback){showPlay();return;}

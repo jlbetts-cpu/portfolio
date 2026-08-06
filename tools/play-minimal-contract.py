@@ -71,6 +71,20 @@ assert "releasePlayBoot" in GAMES
 assert 'classList.remove("playBooting")' in GAMES
 assert "if(first&&noIntro)" in ENGINE
 
+# The Play lobby is character-led: Jayden's existing hero head is visible only while
+# the hub owns the viewport, and the five existing physics companions get one
+# deterministic first-load entrance immediately before the readiness curtain lifts.
+assert "body.pHubOn:not(.playBooting) .heroHeadHost" in HTML
+assert "body:is(.pTeamOn,.hmSoccer,.hmBattle,.hmRace,.hmTour) .heroHeadHost" in HTML
+assert 'class="heroHeadHost" aria-hidden="true"' in HTML
+assert "@media(prefers-reduced-motion:reduce)" in HTML and ".heroHeadHost{transition:none}" in HTML
+assert "window.__hmLobbyThrowIn=function" in ENGINE
+assert "me.lobbyThrow=function" in ENGINE
+assert "var LOBBY_THROW_STAGGER=110" in ENGINE
+assert "matchMedia(\"(prefers-reduced-motion:reduce)\").matches" in ENGINE
+show_play = GAMES[GAMES.index("function showPlay"):GAMES.index("function watchPlayBoot")]
+assert show_play.index("window.__hmLobbyThrowIn") < show_play.index('classList.remove("playBooting")')
+
 # Home-approved contact footer: exact content, links, 56ch measure and ghost mark.
 assert parser.footer_ids == ["contact"]
 assert "I&rsquo;m open to full-time roles and would love to chat. Find me on" in HTML

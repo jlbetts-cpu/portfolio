@@ -43,6 +43,8 @@ def boot_probe(context):
                 var css = getComputedStyle(node);
                 return {opacity: css.opacity, filter: css.filter};
               }),
+              throwState: body.getAttribute("data-lobby-throw"),
+              throwing: nodes.filter(node => node.getAttribute("data-hm-lobby-throw") === "active").length,
               firstState: window.__hmC && window.__hmC.get ? window.__hmC.get().st : null
             };
           }).observe(body, {attributes: true, attributeFilter: ["class"]});
@@ -54,13 +56,27 @@ def boot_probe(context):
 def wait_ready(page):
     page.wait_for_selector('body[data-play-ready="true"]', timeout=20_000)
     page.wait_for_function("window.__playBootSnapshot !== null", timeout=10_000)
+    page.wait_for_function("parseFloat(getComputedStyle(document.querySelector('.heroHeadHost')).opacity) > .99", timeout=4_000)
 
 
 def assert_seated(page, expected):
     snap = page.evaluate("window.__playBootSnapshot")
     assert snap["count"] == expected, snap
     assert snap["painted"] and snap["opaque"], snap
-    assert snap["firstState"] == "idle", snap
+    reduced = page.evaluate('matchMedia("(prefers-reduced-motion:reduce)").matches')
+    if reduced:
+        assert snap["throwState"] == "reduced" and snap["firstState"] == "idle", snap
+    else:
+        assert snap["throwState"] == "active" and snap["throwing"] >= 1, snap
+        page.wait_for_selector('body[data-lobby-throw="settled"]', timeout=4_000)
+        page.wait_for_function(
+            """count => Array.from(document.querySelectorAll('#playArena [data-hm-boot-ready]'))
+              .slice(0, count).every(node => node.getAttribute('data-hm-lobby-throw') === 'settled')""",
+            arg=expected,
+            timeout=4_000,
+        )
+        # The real solver lands at ~1.2s, then its existing contact squash relaxes.
+        page.wait_for_timeout(500)
     before = page.eval_on_selector_all(
         "#playArena [data-hm-boot-ready]",
         "els => els.map(el => el.getBoundingClientRect().top)",
@@ -160,6 +176,8 @@ def run_theme_state(browser, base_url, mode, width, height):
             const hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
             return hit && hit.closest('.pCard') === card;
           }),
+          heroHeadOpacity: getComputedStyle(document.querySelector('.heroHeadHost')).opacity,
+          heroHeadAria: document.querySelector('.heroHeadHost').getAttribute('aria-hidden'),
           headSurface: getComputedStyle(document.querySelector('#pcHead')).backgroundColor,
           regularSurface: getComputedStyle(document.querySelector('#pcExped')).backgroundColor
         })
@@ -167,6 +185,7 @@ def run_theme_state(browser, base_url, mode, width, height):
     )
     assert hub["cards"] == ["pcHead", "pcExped", "pcTour", "pcGrad"], hub
     assert hub["reachable"], hub
+    assert float(hub["heroHeadOpacity"]) > .99 and hub["heroHeadAria"] == "true", hub
     if mode == "night":
         assert hub["headSurface"] == "rgb(23, 26, 33)", hub
         assert hub["regularSurface"] == "rgb(17, 19, 24)", hub
@@ -226,12 +245,14 @@ def run_theme_state(browser, base_url, mode, width, height):
             background: getComputedStyle(card).backgroundColor,
             shadow: getComputedStyle(card).boxShadow,
             backingContent: before.content,
-            backingZ: before.zIndex
+            backingZ: before.zIndex,
+            heroHeadOpacity: parseFloat(getComputedStyle(document.querySelector('.heroHeadHost')).opacity)
           };
         }
         """
     )
     assert board["left"] >= -1 and board["right"] <= width + 1, board
+    assert board["heroHeadOpacity"] < .04, board
     if mode == "night":
         assert board["background"] == "rgb(17, 19, 24)", board
         assert board["backingContent"] == '""' and board["backingZ"] == "-1", board

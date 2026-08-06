@@ -61,11 +61,14 @@
  .playViewport{position:relative;min-height:100svh;display:flex}
  .playBooting .playViewport{visibility:hidden}
  .hero{position:relative;width:100vw;height:60vh;margin:auto}
- /* The head host: real geometry (the clone copies it), zero ink (nobody is meant to see it).
-    Sized off the viewport height so it never fights the arena band, and pinned dead centre so
-    updateIris() derives the same cursor-relative gaze it does on the home page. */
- .heroHeadHost{position:fixed;left:50%;top:50%;width:min(420px,46vw);transform:translate(-50%,-50%);opacity:0;pointer-events:none;z-index:0}
+ /* The head host is the lobby's character anchor and the mini-Jayden source. It is visible only
+    while the hub owns the viewport, then yields to every setup/game surface. The restrained
+    settle keeps the entrance premium; the face remains pointer-inert and decorative. */
+ .heroHeadHost{position:fixed;left:50%;top:50%;width:min(420px,46vw);transform:translate(-50%,-48%) scale(.985);opacity:0;pointer-events:none;z-index:2;transition:opacity .62s cubic-bezier(.16,1,.3,1),transform .82s cubic-bezier(.16,1,.3,1)}
  .heroHeadHost .stagewrap{position:relative;width:100%}
+ body.pHubOn:not(.playBooting) .heroHeadHost{opacity:1;transform:translate(-50%,-50%) scale(1)}
+ body:is(.pTeamOn,.hmSoccer,.hmBattle,.hmRace,.hmTour) .heroHeadHost{opacity:0;transform:translate(-50%,-48%) scale(.985)}
+ @media(prefers-reduced-motion:reduce){.heroHeadHost{transition:none}}
  /* Task 3: #moodMenu's own base rule (play.css:152) sets neither left nor right, so its
     static position defaults to moodBtn's LEFT edge and grows rightward by its own width.
     Home used to get away with that because of a JS module (clampMenuX) that measured at
@@ -619,12 +622,11 @@
      state and its iris/glint transforms every frame (play-engine.js:307 and :928), so his eyes
      ARE these eyes. Before this existed, play.html had no #stage, that whole branch was skipped
      and a synthetic eye rig drew a lookalike instead -- which is exactly the drift Jayden saw.
-     HIDDEN BUT LAID OUT, and that distinction is load-bearing. display:none or a zero box would
-     give the clone no geometry to copy and mjBigW (the gaze scale divisor, play-engine.js:319)
-     no width to divide by. opacity:0 is index.html's own answer to the same problem -- it is how
-     the home page hides this head during a match (index.html: body.hmSoccer .stagewrap{opacity:0}).
-     It stays centred rather than parked off-screen so his gaze maths reads the cursor the same
-     way it does at home. #face keeps a src in markup purely so it has decoded by the time
+     ALWAYS LAID OUT, and that distinction is load-bearing. The hub now reveals it, while games
+     fade it with opacity. display:none or a zero box would give the clone no geometry to copy and
+     mjBigW (the gaze scale divisor, play-engine.js:319) no width to divide by. It stays centred
+     rather than parked off-screen so his gaze maths reads the cursor the same way it does at
+     home. #face keeps a src in markup purely so it has decoded by the time
      fillerData() asks for face.complete; setFace("neutral") sets the identical value at boot. ==== -->
 <div class="playViewport">
 <div class="heroHeadHost" aria-hidden="true">

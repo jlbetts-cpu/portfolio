@@ -22,6 +22,7 @@
  // no-ops (see `list.forEach` below), and the shared hero-box poll skips while nobody is on stage.
  // Registering the API is not work; it is the door.
  var peers=[];   // every head knows where every other head is, every frame
+ var LOBBY_THROW_STAGGER=110,LOBBY_THROW_DURATION=1200,_lobbyThrowToken=0;
  try{if(/[?&]wraf=1/.test(location.search))window.__peers=peers;}catch(_){}   // DEV-ONLY debug handle (opt-in), lets a headless run inspect head AI state
  var heroBox={left:0,top:0,width:0,height:0};   // ONE cached hero rect shared by every head, so N heads never each force a layout reflow per frame (older machines feel that). Refreshed only when the page actually moves.
  function refreshHeroBox(){var h=document.querySelector(".hero");if(!h)return;var r=h.getBoundingClientRect();heroBox.left=r.left;heroBox.top=r.top;heroBox.width=r.width;heroBox.height=r.height;}
@@ -640,6 +641,7 @@
  function plane(front){root.style.zIndex="3";shadow.style.zIndex="2";}   // heads ALWAYS stay in front of the big head + the CTA buttons (the back plane is gone) -- cleaner, more premium, no ducking-behind glitches
  var G=2600,DT=0.04,facc=0,CEIL=2,surpriseAt=0;   // real units: px/s and px/s^2, integrated at 25fps
  var me={x:0,y:0,HW:HW,HH:HH,vx:0,vy:0,ground:false,perched:false,kx:0,ky:0,dmgIn:0,inB:false,elim:false,slot:slot,cut:(data&&data.cut)||null,pid:(data&&data.__pid)||null,__filler:filler};me.root=root;   // so the championship spotlight can measure this head
+ root.setAttribute("data-hm-lobby-slot",String(slot));
  // `pid` is a STABLE identity handed in by whoever spawned this head (the tournament mints one per
  // player and keeps it for the whole cup). `cut` cannot serve as identity: a respawn re-encodes the
  // art, and two heads dyed the same colour are byte-identical. It stays on the peer for the
@@ -663,6 +665,22 @@
    sqT=0.1; sqyP=big?1.16:1.1; sqxP=1/(big?1.16:1.1);
    if(big&&typeof startFlip==="function"){try{startFlip();}catch(_){}}
  }catch(_){} };
+ /* PLAY LOBBY ENTRANCE. The boot gate seats every saved/fallback companion first so a slow
+    image can never reveal an empty stage. Once all cuts are decoded, play-games asks these
+    same physics bodies for one short, deterministic entrance. No duplicate DOM and no CSS
+    approximation: x/y/vx/vy/air/st are the companion's real solver state. */
+ me.lobbyThrow=function(order,total){try{
+   if(reduce||killed||grabbed||perched)return false;
+   var bc=document.body.classList;
+   if(!bc.contains("pHubOn")||bc.contains("hmSoccer")||bc.contains("hmBattle")||bc.contains("hmRace")||bc.contains("hmTour"))return false;
+   survey();order=Math.max(0,order|0);total=Math.max(1,total|0);
+   var fromLeft=order%2===0,lift=150+(order%3)*18;
+   x=fromLeft?WL+2:WR-2;y=floorY-lift;surface=floorY;dir=fromLeft?1:-1;
+   air=true;st="fall";vx=dir*(330+order*18);vy=-(190+(order%2)*28);
+   shown=true;root.style.opacity="1";root.style.filter="none";shadow.style.opacity="1";
+   root.setAttribute("data-hm-lobby-throw","active");me.__lobbyThrown=true;
+   return true;
+  }catch(_){return false;}};
  peers.push(me);   // set it HERE rather than patching the peer from outside, so anything spawning mini-Jayden gets it right   // cut travels with the peer so the tournament can find a head it has already spawned instead of duplicating it
  // ability ACTOR: the smashing head's handle -- registry abilities drive the head through this (its physics locals live in this closure)
  var A={me:me,peers:peers,FX:FX,slot:slot,
@@ -760,6 +778,7 @@
   if(hopsLeft>0){hopsLeft--;setTimeout(function(){if(!grabbed&&st==="hop")hop(false);},240+Math.random()*160);}
   else if(bounceN>0){bounceN--;st="idle";setTimeout(function(){if(!grabbed&&!perched&&st==="idle"&&!air){air=true;st="fall";vy=-(370+Math.random()*130);vx=dir*(10+Math.random()*24);sqT=0.12;sqyP=1.1;sqxP=1/1.1;}},170+Math.random()*130);}
   else st="idle";
+  if(me.__lobbyThrown){me.__lobbyThrown=false;root.setAttribute("data-hm-lobby-throw","settled");}
   if(st==="idle"&&pendingHide&&!grabbed){var dx3=pendingHide.x-x;   // homing in on the hiding spot
    if(Math.abs(dx3)<40){var ph2=pendingHide;pendingHide=null;startHide(ph2);}
    else if((pendingHide.tries=(pendingHide.tries||0)+1)<=5){dir=dx3>0?1:-1;st="fall";air=true;surface=floorY;
@@ -1719,6 +1738,16 @@
  if(slot===0)window.__hmC={get:function(){return{x:x,y:y,st:st,gone:gone,depth:depth,grabbed:grabbed};}};
  }
  list.forEach(function(d,i){spawnCompanion(d,i);});
+ window.__hmLobbyThrowIn=function(){
+  var reduce=false;try{reduce=matchMedia("(prefers-reduced-motion:reduce)").matches;}catch(_){}
+  var crowd=peers.filter(function(peer){return peer&&!peer.__filler&&peer.root&&peer.root.isConnected&&typeof peer.lobbyThrow==="function";})
+   .sort(function(a,b){return a.slot-b.slot;});
+  if(reduce||!crowd.length){document.body.setAttribute("data-lobby-throw",reduce?"reduced":"empty");return 0;}
+  var token=++_lobbyThrowToken;document.body.setAttribute("data-lobby-throw","active");
+  crowd.forEach(function(peer,index){var launch=function(){if(token===_lobbyThrowToken)peer.lobbyThrow(index,crowd.length);};if(index===0)launch();else setTimeout(launch,index*LOBBY_THROW_STAGGER);});
+  setTimeout(function(){if(token===_lobbyThrowToken)document.body.setAttribute("data-lobby-throw","settled");},LOBBY_THROW_DURATION);
+  return crowd.length;
+ };
 
  /* ---- MATCH EVENT BUS. The engine only EMITS; every presentation system (ticker,
     director, sound, stats) is a consumer. A throwing consumer must never break
