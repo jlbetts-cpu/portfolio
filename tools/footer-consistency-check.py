@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """Static contract for the shared footer carried by the shipping pages."""
 
-import html
 import os
 import re
 import sys
@@ -23,6 +22,26 @@ APPROVED_REACH = (
     "Find me on LinkedIn, Instagram, or email."
 )
 LEGACY_PHRASE = "Thanks for checking out my website"
+APPROVED_LINKS = [
+    {
+        "label": "LinkedIn",
+        "href": "https://www.linkedin.com/in/jaydenbetts",
+        "target": "_blank",
+        "rel": "noopener noreferrer",
+    },
+    {
+        "label": "Instagram",
+        "href": "https://www.instagram.com/jaydenleebetts",
+        "target": "_blank",
+        "rel": "noopener noreferrer",
+    },
+    {
+        "label": "email",
+        "href": "mailto:jaydenlbetts@gmail.com",
+        "target": None,
+        "rel": None,
+    },
+]
 
 
 def normalise(value):
@@ -37,6 +56,8 @@ class FooterParser(HTMLParser):
         self._target = None
         self._reach = []
         self._mark = []
+        self._active_link = None
+        self.links = []
 
     def handle_starttag(self, tag, attrs):
         attr = dict(attrs)
@@ -48,15 +69,30 @@ class FooterParser(HTMLParser):
             self._target = "reach"
         if self._in_footer and tag == "div" and "footMark" in classes:
             self._target = "mark"
+        if self._target == "reach" and tag == "a":
+            self._active_link = {
+                "label": [],
+                "href": attr.get("href"),
+                "target": attr.get("target"),
+                "rel": attr.get("rel"),
+            }
 
     def handle_data(self, data):
         if self._target == "reach":
             self._reach.append(data)
+            if self._active_link is not None:
+                self._active_link["label"].append(data)
         elif self._target == "mark":
             self._mark.append(data)
 
     def handle_endtag(self, tag):
-        if tag == "p" and self._target == "reach":
+        if tag == "a" and self._active_link is not None:
+            self._active_link["label"] = normalise(
+                "".join(self._active_link["label"])
+            )
+            self.links.append(self._active_link)
+            self._active_link = None
+        elif tag == "p" and self._target == "reach":
             self._target = None
         elif tag == "div" and self._target == "mark":
             self._target = None
@@ -87,8 +123,10 @@ def validate_page(page):
         failures.append("missing siteFoot contact id")
     if parser.reach != APPROVED_REACH:
         failures.append("footer reach copy does not match approved copy")
-    if LEGACY_PHRASE in html.unescape(source):
+    if LEGACY_PHRASE in parser.reach:
         failures.append("legacy thank-you phrase remains")
+    if parser.links != APPROVED_LINKS:
+        failures.append("footer contact links do not match approved destinations or attributes")
     if not footer_measure(source):
         failures.append("footReach measure is not 56ch")
     if parser.mark != "Jayden Betts":
