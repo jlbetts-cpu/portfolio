@@ -9,10 +9,10 @@
 
 ## Findings to implement
 
-1. Treat the separate header and outlined hero as one page-level lighting scene. Clipping the effect inside `.hero`, or leaving the header opaque, weakens the composition.
-2. Use one broad, clean, cropped bottom-origin form that reads immediately as a half-circle of light rising behind the portrait. Small low mesh nodes, discrete color blobs, and the site's Gradient Maker aesthetic must not be visible in the result.
+1. The outlined hero is the primary light container. Clip the source inside `.hero`; allow only a small, soft ambient color leak outside it so the separate header remains mostly neutral and consistent.
+2. Use one broad, clean, cropped bottom-origin form that reads immediately as a half-circle of light rising behind the portrait. Small low mesh nodes, discrete color blobs, random rays, filaments, contour lines, and the site's Gradient Maker aesthetic must not be visible in the result.
 3. Build strength through restrained hue separation and localized contrast, not global opacity, saturation, or visual busyness.
-4. Any folds, tension edges, seams, or filament texture are secondary and subtle. The first read must remain the clean half-circle—not an interactive mesh demo.
+4. Do not render folds, tension edges, seams, rays, or filament texture. The result is a clean gradient half-circle, not an interactive mesh demo.
 5. Off is a hard reset: stop the mesh and explicitly suppress its fallback, bloom, portrait cast, and the original `.heroAura`.
 6. Keep the thin header and hero specimen outlines visible above every active lighting layer.
 

@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Build a device-time-aware lighting system spanning the header and outlined hero with six layered FluidMesh scenes, manual selection, a strict zero-gradient Off state, and portrait-integrated light.
+**Goal:** Build a device-time-aware hero lighting system with six clean bottom-origin half-circle gradient scenes, manual selection, a strict zero-gradient Off state, restrained ambient leakage, and portrait-integrated light.
 
 **Architecture:** Extract the existing no-dependency `FluidMesh` renderer into a shared browser script, then add a pure preset/time model and a DOM controller dedicated to the home hero. Keep presentation in one focused stylesheet and portrait synchronization in a small adapter so Mood remains the sole owner of face changes.
 
@@ -12,7 +12,7 @@
 
 ## Global Constraints
 
-- Scope is the home-page header plus outlined hero as one continuous, page-anchored lighting scene, visually analogous to the existing Delight overlay. Stop the scene before work tabs; do not theme case studies or footer.
+- Scope the primary light source inside the outlined home hero. Permit only a small, soft ambient leak outside the hero; keep the separate header mostly neutral and consistent. Stop all spill before work tabs; do not theme case studies or footer.
 - Preserve the approved hero dimensions, larger portrait, headline wrapping, CTA positions, smooth View work scroll, and hero-to-tabs spacing.
 - Add no framework, package, network request, geolocation request, or third-party dependency.
 - Modes are exactly `auto`, `off`, `pre-dawn`, `sunrise`, `daytime`, `dusk`, `sunset`, and `night`.
@@ -418,7 +418,7 @@ Expected: FAIL at `new FluidMesh`.
 
 Create the renderer only for active states after `#main` has non-zero bounds. Choose the active preset, clone it, set mobile DPR through a `dprCap` config value, and pass `onError:activateFallback`. Add `.timeFallback` when `FluidMesh` returns null, throws, or calls the error callback. Fallback still updates CSS state variables and menu semantics.
 
-Mount the decorative canvas and CSS bloom in a page-anchored `#heroTimeScene` measured from behind the separate header through the bottom of the outlined hero. The atmosphere must read as one continuous scene across both specimens and must stop before `#cases`. Keep the header and hero outlines, rims, controls, and content painted above the atmosphere. Off hides `#heroTimeScene` and the original `.heroAura`, leaving only neutral surfaces.
+Mount the decorative scene inside the outlined hero and clip the primary half-circle to that container. A separate soft spill layer may extend slightly outside the hero, but it must not fully theme the header and must stop before `#cases`. Keep header and hero outlines, rims, controls, and content painted above all atmosphere. Render no rays, lines, filaments, seams, or visible mesh texture. Off hides every scene/spill layer and the original `.heroAura`, leaving only neutral surfaces.
 
 - [ ] **Step 3: Implement retargetable 800 ms transitions**
 
@@ -443,7 +443,7 @@ If the renderer cannot resume after context restoration, retain `.timeFallback`.
 
 Implement `forceFallback()` as the same public failure path used by `onError`: cancel the transition, destroy and clear the mesh, add `.timeFallback`, and return the controller to CSS-only rendering without changing mode or state.
 
-The CSS-only fallback uses the same page-anchored boundary and clean, strong, bottom-origin half-circle composition as the WebGL scene. It must not degrade into a weak centered radial wash or resemble the site's Gradient Maker with visible independent color nodes.
+The CSS-only fallback uses the same hero-clipped boundary and clean, strong, bottom-origin half-circle composition as the active scene, plus only restrained exterior spill. It must not degrade into a weak centered radial wash, resemble the site's Gradient Maker, or show lines/rays/filaments.
 
 - [ ] **Step 6: Verify lifecycle contracts and syntax**
 
@@ -566,7 +566,7 @@ Expected: every command exits 0; token audit reports `errors=0`.
 
 - [ ] **Step 2: Verify desktop states at 1440 × 900**
 
-Check Automatic, Off, Sunrise, Daytime, Sunset, and Night. Record the separate header, `#main`, headline, CTA row, stage, Time button, menu, and `#cases` bounding boxes before/after. Requirements: no geometry changes between states; menu remains within 16 px; no horizontal overflow; View work is the strongest CTA; Night portrait retains eye/hair detail. The active atmosphere must read continuously behind the header and outlined hero, both thin specimen outlines must remain crisp above it, and the scene must stop before tabs/work.
+Check Automatic, Off, Sunrise, Daytime, Sunset, and Night. Record the separate header, `#main`, headline, CTA row, stage, Time button, menu, and `#cases` bounding boxes before/after. Requirements: no geometry changes between states; menu remains within 16 px; no horizontal overflow; View work is the strongest CTA; Night portrait retains eye/hair detail. The clean half-circle must remain clipped to the outlined hero, its thin outline must stay crisp, exterior leakage must be subtle, the header must remain consistent, and all spill must stop before tabs/work.
 
 - [ ] **Step 3: Verify mobile at 390 × 844 and 320 × 800**
 
@@ -586,7 +586,7 @@ Run Delight and another Mood while each time state is active; confirm face sourc
 
 - [ ] **Step 7: Tune only preset/catalog and semantic variables**
 
-If a state is muddy, generic, weak, busy, or unbalanced, adjust only `hero-time-presets.js` values and the semantic state variables in `hero-time.css`. Do not move hero layout boxes. Apply the documented Stripe research guidance: one clean broad bottom-emerging cropped half-circle of light, restrained depth and grain, and original palette values. The visible result must not resemble Gradient Maker or expose discrete mesh-node blobs.
+If a state is muddy, generic, weak, busy, or unbalanced, adjust only `hero-time-presets.js` values and the semantic state variables in `hero-time.css`. Do not move hero layout boxes. Apply the documented Stripe research guidance: one clean broad bottom-emerging cropped half-circle of light, restrained exterior spill, and original palette values. The visible result must not resemble Gradient Maker or expose discrete mesh-node blobs, lines, rays, filaments, or seams.
 
 - [ ] **Step 8: Re-run the full suite after tuning**
 
@@ -610,7 +610,7 @@ Before claiming completion, invoke `superpowers:verification-before-completion`,
 - No new horizontal overflow or hero/tab spacing change.
 - Gradient Maker preset/edit/export smoke passing after extraction.
 - Automatic, every manual state, Off, reduced motion, forced colors, fallback, portrait Mood synchronization, and session reload behavior verified.
-- Active lighting spans the separate header and outlined hero continuously, stops before work, and never obscures either specimen outline.
+- Active lighting is primarily clipped inside the outlined hero; only subtle ambient spill may reach outside, the header remains consistent, and nothing reaches work.
 - Off is completely neutral with `.heroAura` and every time-lighting layer suppressed.
 - Portrait cast remains invisible until a valid source loads and never reveals a broken rectangular image boundary.
 - Untracked `.superpowers/` content excluded from commits.
