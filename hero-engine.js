@@ -48,7 +48,7 @@ const stage=document.getElementById("stage"),faceImg=document.getElementById("fa
 try{faceImg.addEventListener("dragstart",function(e){e.preventDefault();});stage.addEventListener("dragstart",function(e){e.preventDefault();});}catch(_){}
 let curFace="neutral",eyeEls=[],pointer={px:innerWidth*.5,py:innerHeight*.42},tk=0;
 let CALIB=false,calFace="neutral",selEye=0,dragging=false,dragEl=null,paraX=0,paraY=0;
-let baseFace="neutral",activeHover=null,holdFace=null,holdTimer=null,eventLock=false,dizzy=false,dizzyStart=0,scrollPull=0,scrollTarget=0,scrollFollow=0,SCROLL_FOLLOW_LAG=0.62,SCROLL_FOLLOW_MAX=210,headGliding=false;
+let baseFace="neutral",activeHover=null,holdFace=null,holdTimer=null,eventLock=false,dizzy=false,dizzyStart=0,scrollPull=0,scrollTarget=0,scrollFollow=0,headGliding=false;
 let gaze={x:0,y:0},nextSaccade=0,lastMove=0;
 let irisDil=1,irisDilTarget=1,irisDilBase=1;   // pupil dilation: live value, transient target, sustained baseline (raised by mood)
 let microSacX=0,microSacY=0,microSacTX=0,microSacTY=0,microSacNext=0;   // fixational micro-saccades — the gaze never locks dead-still
@@ -326,6 +326,9 @@ addEventListener("pointermove",e=>{pointer.px=e.clientX;pointer.py=e.clientY;las
  if(dragging&&dragEl){const c=FACES[calFace].eyes[selEye],rx=ER(c,"rx",RX),ry=ER(c,"ry",RY);const r=stage.getBoundingClientRect();
   let x=(e.clientX-r.left)/r.width,y=(e.clientY-r.top)/r.height;x=Math.max(0,Math.min(1,x));y=Math.max(0,Math.min(1,y));
   c.x=+x.toFixed(4);c.y=+y.toFixed(4);dragEl.style.left=((x-rx)*100)+"%";dragEl.style.top=((y-ry)*100)+"%";renderCal();}});
+var cursorGlow=document.getElementById("cursorGlow"),cursorGlowTimer=0;
+function pulseCursorGlow(){if(!cursorGlow||HEADONLY||reduce||!HOVER)return;cursorGlow.classList.add("on");clearTimeout(cursorGlowTimer);cursorGlowTimer=setTimeout(function(){cursorGlow.classList.remove("on");},420);}
+if(cursorGlow){addEventListener("pointermove",function(e){cursorGlow.style.transform="translate3d("+Math.round(e.clientX-64)+"px,"+Math.round(e.clientY-64)+"px,0)";pulseCursorGlow();},{passive:true});addEventListener("scroll",function(){if(performance.now()-lastMove<8000)pulseCursorGlow();},{passive:true});document.addEventListener("mouseleave",function(){cursorGlow.classList.remove("on");});addEventListener("blur",function(){cursorGlow.classList.remove("on");});document.addEventListener("visibilitychange",function(){if(document.hidden)cursorGlow.classList.remove("on");});}
 addEventListener("pointerup",()=>{dragging=false;dragEl=null;});
 
 function startDizzy(){if(navigator.vibrate)navigator.vibrate([35,55,25,90,20,70]);
@@ -990,7 +993,7 @@ function attachCollab(wordEl){
  wordEl.addEventListener("lostpointercapture",onUp);}
 // the team photos that rain in. TO ADD MORE LATER: drop a compressed jpg into images/rain/ and add its filename to this list.
 /* ===== Identity word -> About takeover (drag mirrors attachCollab; drop on head opens About) ===== */
-var dragId=null;   // aboutOpen/aboutReturnFocus went with the overlay; every reader was a !aboutOpen guard
+var dragId=null;   // the retired About overlay no longer gates portrait interaction
 /* Kept out of the deleted block on purpose: this reveals .heroCtas -- the "View my
    work" button -- which is a live hero element with nothing to do with About. It was
    only ever filed under About because the overlay called it on the way back. */
@@ -1022,7 +1025,7 @@ function attachIdentity(wordEl){
    never generated, so it was silently a no-op -- and the return-leg double-count that
    put the head 340px left of centre for 780ms.
    NOTHING ELSE DEPENDED ON THEM: every remaining caller was a guard of the form
-   !aboutOpen, and those went with the flag. #logo and #navAbout keep their ids. ===== */
+   the overlay guards, and those went with the flag. #logo and #navAbout keep their ids. ===== */
 
 
 var RAIN_PHOTOS=["rain01.webp","rain02.webp","rain03.webp","rain04.webp","rain05.webp","rain06.webp","rain07.webp","rain08.webp","rain09.webp","rain10.webp","rain11.webp","rain12.webp","rain13.webp","rain14.webp","rain15.webp","rain16.webp","rain17.webp","rain18.webp"];
@@ -1246,8 +1249,6 @@ function endRain(){
  wi=(wi+1)%WORDS.length;var nw=makeCycWord(wi);if(cycWord){cycWord.replaceWith(nw);cycWord=nw;}
  nextCycle(1200);flushQueued();
 }
-function recalcFollowCap(){try{var sw=document.querySelector(".stagewrap"),tb=document.querySelector(".csTabs");if(!sw||!tb)return;var sy=window.scrollY||0;var homeBottom=sw.getBoundingClientRect().bottom+sy-Math.round(scrollFollow);var tabsTop=tb.getBoundingClientRect().top+sy;var cap=Math.round(tabsTop-homeBottom-48);SCROLL_FOLLOW_MAX=Math.max(40,Math.min(260,cap));}catch(_){}}
-addEventListener("resize",recalcFollowCap);addEventListener("scroll",recalcFollowCap,{passive:true});setTimeout(recalcFollowCap,9000);
 (function(){if(window.innerWidth>760)return;var items=[].slice.call(document.querySelectorAll(".csItem"));if(!items.length)return;function showAll(){items.forEach(function(it){it.classList.add("csIn");});}if(reduce||!("IntersectionObserver" in window)){showAll();return;}var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add("csIn");io.unobserve(e.target);}});},{threshold:0.16,rootMargin:"0px 0px -7% 0px"});items.forEach(function(it){io.observe(it);});})();
 // MASTER 8fps CLOCK
 setInterval(()=>{tk++;if(!reduce)boil();if(crumbEls.length)updateCrumbs();
@@ -1295,25 +1296,29 @@ logo.addEventListener("mouseleave",()=>{if(eventLock||CALIB)return;if(activeHove
 logo.addEventListener("click",()=>{
  if(CALIB||eventLock||dizzy||reactType)return;clearHold();activeHover=null;startReact("talk");});  // on home, click the name -> he introduces himself
 }
-var _wbtn=document.getElementById("workBtn");if(_wbtn)_wbtn.addEventListener("click",function(e){if(window.__softScroll){e.preventDefault();window.__softScroll(document.getElementById("cases"));}});
-/* The browser's behaviour:"smooth" is a fixed aggressive curve -- over a long page it reads
-   as a lurch. This eases in and out, and scales its duration with the distance travelled but
-   NOT proportionally (Carbon's rule): a short hop stays quick, a long one never drags. */
+var _wbtn=document.getElementById("workBtn");if(_wbtn)_wbtn.addEventListener("click",function(e){if(window.__softScroll){e.preventDefault();if(location.hash!==this.hash)history.pushState(null,"",this.hash);window.__softScroll(document.getElementById("cases"));}});
+/* The browser's behaviour:"smooth" is a fixed curve. This uses the site's direct ease-out,
+   respects the shared sticky-header inset, and scales with distance without letting a long
+   hop drag. The transient root class prevents CSS smooth-scroll from retargeting every frame. */
 function softScroll(el){
   if(!el)return;
-  if(typeof reduce!=="undefined"&&reduce){el.scrollIntoView({block:"start"});return;}
+  if(window.__softScrollFrame)cancelAnimationFrame(window.__softScrollFrame);
+  document.documentElement.classList.add("softScrolling");
   var startY=window.scrollY||0,
-      endY=Math.max(0,Math.min(startY+el.getBoundingClientRect().top,
+      scrollPad=parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop)||0,
+      endY=Math.max(0,Math.min(startY+el.getBoundingClientRect().top-scrollPad,
                     document.documentElement.scrollHeight-innerHeight)),
       dist=Math.abs(endY-startY);
-  if(dist<4)return;
-  var dur=Math.min(1150,Math.max(420,Math.round(320+Math.sqrt(dist)*26))), t0=null;
+  if(typeof reduce!=="undefined"&&reduce){window.scrollTo({top:endY,behavior:"auto"});requestAnimationFrame(function(){document.documentElement.classList.remove("softScrolling");});return;}
+  if(dist<4){document.documentElement.classList.remove("softScrolling");return;}
+  var dur=Math.min(750,Math.max(380,Math.round(300+Math.sqrt(dist)*14))), t0=null;
   (function step(now){
     if(t0===null)t0=now;
     var t=Math.min(1,(now-t0)/dur),
-        e=t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;   // ease-in-out cubic
+        e=1-Math.pow(1-t,3);   // direct ease-out: decisive start, quiet landing
     window.scrollTo(0,startY+(endY-startY)*e);
-    if(t<1)requestAnimationFrame(step);
+    if(t<1)window.__softScrollFrame=requestAnimationFrame(step);
+    else{window.__softScrollFrame=0;document.documentElement.classList.remove("softScrolling");}
   })(performance.now());
 }
 window.__softScroll=softScroll;
@@ -1343,7 +1348,7 @@ talk.addEventListener("click",function(e){e.preventDefault();
  if(window.__softScroll)window.__softScroll(document.getElementById("contact"));});
 }
 (function(){return;/* magnetic retired: Let's talk is now a calm secondary button matching Back */var mag=document.querySelector(".talkMag");if(!mag||reduce)return;var PULL=0.22,REACH=70,MAXO=16,last=0,cx=0,cy=0;function apply(x,y){mag.style.transform=(x||y)?("translate("+x+"px,"+y+"px)"):"";}function cl(v){return v<-MAXO?-MAXO:(v>MAXO?MAXO:v);}window.addEventListener("mousemove",function(e){var now=performance.now();if(now-last<125)return;last=now;var b=mag.getBoundingClientRect();var bx=b.left+b.width/2-cx,by=b.top+b.height/2-cy;var dx=e.clientX-bx,dy=e.clientY-by;var reach=Math.max(b.width,b.height)/2+REACH;if(Math.hypot(dx,dy)<reach){cx=cl(Math.round(dx*PULL));cy=cl(Math.round(dy*PULL));apply(cx,cy);}else if(cx||cy){cx=0;cy=0;apply(0,0);}});window.addEventListener("mouseout",function(e){if(!e.relatedTarget&&(cx||cy)){cx=0;cy=0;apply(0,0);}});})();
-(function(){var HEAD={x0:0.22,x1:0.80,y0:0.12,y1:0.91};function overFace(e){var r=faceImg.getBoundingClientRect();if(!r.width||!r.height)return false;var fx=(e.clientX-r.left)/r.width,fy=(e.clientY-r.top)/r.height;return fx>=HEAD.x0&&fx<=HEAD.x1&&fy>=HEAD.y0&&fy<=HEAD.y1;}var onFace=false;window.__pointerOverFace=false;document.addEventListener("mousemove",function(e){var ov=(!aboutOpen)&&overFace(e);window.__pointerOverFace=ov;if(CALIB||aboutOpen)return;if(ov)enter();else leave();},{passive:true});document.addEventListener("mouseleave",function(){window.__pointerOverFace=false;leave();});window.addEventListener("blur",function(){window.__pointerOverFace=false;leave();});function enter(){if(eventLock||CALIB||aboutOpen)return;if(!onFace){onFace=true;clearHold();activeHover="rest";showFace("rest");}}function leave(){var was=onFace;onFace=false;if(activeHover==="rest")activeHover=null;if(!eventLock&&!CALIB){var target=activeHover||holdFace||baseFace;if(blinking){for(var i=0;i<blinkQ.length;i++){if(blinkQ[i]&&blinkQ[i].open)blinkQ[i].face=target;}}if(was)showFace(target);}if(window.__restWatch)clearInterval(window.__restWatch);var t0=Date.now();window.__restWatch=setInterval(function(){if(window.__pointerOverFace||CALIB||onFace||Date.now()-t0>1500){clearInterval(window.__restWatch);window.__restWatch=null;return;}if(eventLock)return;if(curFace==="rest"){if(blinking){for(var j=0;j<blinkQ.length;j++){if(blinkQ[j]&&blinkQ[j].open)blinkQ[j].face=baseFace;}}setFace(baseFace);}},60);}faceImg.addEventListener("mousemove",function(e){if(CALIB||aboutOpen)return;if(overFace(e))enter();else leave();});faceImg.addEventListener("mouseleave",function(){leave();});})();
+(function(){var HEAD={x0:0.22,x1:0.80,y0:0.12,y1:0.91};function overFace(e){var r=faceImg.getBoundingClientRect();if(!r.width||!r.height)return false;var fx=(e.clientX-r.left)/r.width,fy=(e.clientY-r.top)/r.height;return fx>=HEAD.x0&&fx<=HEAD.x1&&fy>=HEAD.y0&&fy<=HEAD.y1;}var onFace=false;window.__pointerOverFace=false;document.addEventListener("mousemove",function(e){var ov=overFace(e);window.__pointerOverFace=ov;if(CALIB)return;if(ov)enter();else leave();},{passive:true});document.addEventListener("mouseleave",function(){window.__pointerOverFace=false;leave();});window.addEventListener("blur",function(){window.__pointerOverFace=false;leave();});function enter(){if(eventLock||CALIB)return;if(!onFace){onFace=true;clearHold();activeHover="rest";showFace("rest");}}function leave(){var was=onFace;onFace=false;if(activeHover==="rest")activeHover=null;if(!eventLock&&!CALIB){var target=activeHover||holdFace||baseFace;if(blinking){for(var i=0;i<blinkQ.length;i++){if(blinkQ[i]&&blinkQ[i].open)blinkQ[i].face=target;}}if(was)showFace(target);}if(window.__restWatch)clearInterval(window.__restWatch);var t0=Date.now();window.__restWatch=setInterval(function(){if(window.__pointerOverFace||CALIB||onFace||Date.now()-t0>1500){clearInterval(window.__restWatch);window.__restWatch=null;return;}if(eventLock)return;if(curFace==="rest"){if(blinking){for(var j=0;j<blinkQ.length;j++){if(blinkQ[j]&&blinkQ[j].open)blinkQ[j].face=baseFace;}}setFace(baseFace);}},60);}faceImg.addEventListener("mousemove",function(e){if(CALIB)return;if(overFace(e))enter();else leave();});faceImg.addEventListener("mouseleave",function(){leave();});})();
 faceImg.addEventListener("click",()=>{if(CALIB||eventLock)return;tapReact();});
 
 function renderCal(){}
