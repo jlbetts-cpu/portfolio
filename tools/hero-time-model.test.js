@@ -11,6 +11,10 @@ assert.equal(M.normalizeMode("sunset"),"sunset");
 assert.equal(M.normalizeMode("garbage"),"auto");
 assert.equal(M.resolveState("off",at(12)),"off");
 assert.equal(M.resolveState("auto",at(12)),"daytime");
+M.MODES.slice(1).forEach(mode=>assert.equal(M.resolveState(mode,at(12)),mode));
+assert.equal(M.msUntilNextBoundary(at(3,59)),60_000);
+assert.equal(M.msUntilNextBoundary(at(18,29)),60_000);
+assert.equal(M.msUntilNextBoundary(at(20,30)),7*60*60_000+30*60_000);
 assert.equal(M.msUntilNextBoundary(at(5,59)),60_000);
 assert.equal(M.msUntilNextBoundary(at(20,29)),60_000);
 assert.equal(M.msUntilNextBoundary(at(23,59)),4*60*60_000+60_000);
@@ -20,6 +24,7 @@ assert.deepEqual(M.STATES,["pre-dawn","sunrise","daytime","dusk","sunset","night
 M.STATES.forEach(state=>{
  assert.ok(Object.isFrozen(M.PRESETS[state]));
  assert.ok(Object.isFrozen(M.PRESETS[state].colors));
+ assert.ok(Object.isFrozen(M.PRESETS[state].light));
  assert.ok(Object.isFrozen(M.PRESETS[state].nodes));
  assert.ok(Object.isFrozen(M.PRESETS[state].nodes[0]));
  assert.equal(M.PRESETS[state].nodes.length,5);

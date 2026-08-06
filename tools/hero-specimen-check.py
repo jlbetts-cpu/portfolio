@@ -7,6 +7,9 @@ import re
 
 html = Path("index.html").read_text(encoding="utf-8")
 time_css = Path("hero-time.css").read_text(encoding="utf-8")
+time_controller_path = Path("hero-time.js")
+assert time_controller_path.exists(), "hero time controller must exist"
+time_controller = time_controller_path.read_text(encoding="utf-8")
 
 assert '<link rel="stylesheet" href="hero-time.css">' in html
 for node_id in (
@@ -24,6 +27,21 @@ assert html.index('id="heroTimeCanvas"') < html.index('id="heroTimeBloom"') < ht
 assert re.search(r'id="face"[^>]*><img id="heroTimePortraitCast"', html)
 assert html.index('href="header.css"') < html.index('href="hero-time.css"')
 assert html.index('src="fluid-mesh.js"') < html.index('src="hero-time-presets.js"') < html.index('src="hero-engine.js"')
+assert html.index('src="hero-engine.js"') < html.index('src="hero-time.js"')
+assert re.search(r'<script src="hero-engine\.js"></script>\s*<script src="hero-time\.js"></script>', html)
+
+for controller_contract in (
+    "jbHeroTimeMode",
+    "visibilitychange",
+    "ArrowDown",
+    "ArrowUp",
+    "Home",
+    "End",
+    "Escape",
+    "aria-checked",
+    "opensAbove",
+):
+    assert controller_contract in time_controller, controller_contract
 
 time_control = re.search(r'<button class="heroTimeBtn"[^>]*>.*?</button>', html, re.S)
 assert time_control
