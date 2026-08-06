@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Build a hero-only, device-time-aware lighting system with six layered FluidMesh scenes, manual selection, a strict Off state, and portrait-integrated light.
+**Goal:** Build a device-time-aware lighting system spanning the header and outlined hero with six layered FluidMesh scenes, manual selection, a strict zero-gradient Off state, and portrait-integrated light.
 
 **Architecture:** Extract the existing no-dependency `FluidMesh` renderer into a shared browser script, then add a pure preset/time model and a DOM controller dedicated to the home hero. Keep presentation in one focused stylesheet and portrait synchronization in a small adapter so Mood remains the sole owner of face changes.
 
@@ -10,14 +10,14 @@
 
 ## Global Constraints
 
-- Scope is the home-page hero only; do not theme the header, page background, work tabs, case studies, or footer.
+- Scope is the home-page header plus outlined hero as one continuous, page-anchored lighting scene, visually analogous to the existing Delight overlay. Stop the scene before work tabs; do not theme case studies or footer.
 - Preserve the approved hero dimensions, larger portrait, headline wrapping, CTA positions, smooth View work scroll, and hero-to-tabs spacing.
 - Add no framework, package, network request, geolocation request, or third-party dependency.
 - Modes are exactly `auto`, `off`, `pre-dawn`, `sunrise`, `daytime`, `dusk`, `sunset`, and `night`.
 - Automatic mapping is 04:00 Pre-dawn, 06:00 Sunrise, 09:00 Daytime, 17:00 Dusk, 18:30 Sunset, and 20:30 Night using the device clock.
 - Store manual mode under `jbHeroTimeMode` in `sessionStorage`; a new browser session defaults to Automatic.
 - Visual transitions last 800 ms and retarget from the current interpolated state.
-- WebGL is decorative: forced colors suppresses it, reduced motion renders still frames, failure uses layered CSS fallbacks, and Off restores the exact specimen baseline.
+- WebGL is decorative: forced colors suppresses it, reduced motion renders still frames, and failure uses layered CSS fallbacks. Off removes every time layer plus the original light-blue `.heroAura`; it retains only neutral surfaces, portrait, controls, and outlines.
 - Desktop FluidMesh DPR uses its existing 2.25 cap; coarse-pointer/mobile uses 1.5.
 - The Time control is icon-only, at least 44 × 44 px, immediately after Mood, keyboard operable, and clamped to a 16 px viewport gutter.
 - Preserve all unrelated working-tree edits, especially the approved popcorn/glasses hover work and media-outline/mobile-gutter work. Never stage `.superpowers/`.
@@ -240,7 +240,7 @@ git commit -m "Add hero time state model"
 
 **Interfaces:**
 - Produces DOM ids `heroTimeCanvas`, `heroTimeBloom`, `heroTimeBtn`, `heroTimeMenu`, `heroTimeIcon`, and `heroTimePortraitCast`.
-- Hero state is exposed as `data-time-mode` and `data-time-state` on `#main`.
+- Time state is exposed as `data-time-mode` and `data-time-state` on `#main` and mirrored on `body` so the shared header-plus-hero scene never depends on `:has()`.
 
 - [ ] **Step 1: Extend the static contract and verify RED**
 
@@ -398,6 +398,7 @@ git commit -m "Add accessible hero time controls"
 **Files:**
 - Modify: `hero-time.js`
 - Modify: `hero-time.css`
+- Modify: `index.html`
 - Modify: `tools/hero-specimen-check.py`
 
 **Interfaces:**
@@ -414,6 +415,8 @@ Expected: FAIL at `new FluidMesh`.
 - [ ] **Step 2: Instantiate renderer with graceful failure**
 
 Create the renderer only for active states after `#main` has non-zero bounds. Choose the active preset, clone it, set mobile DPR through a `dprCap` config value, and pass `onError:activateFallback`. Add `.timeFallback` when `FluidMesh` returns null, throws, or calls the error callback. Fallback still updates CSS state variables and menu semantics.
+
+Mount the decorative canvas and CSS bloom in a page-anchored `#heroTimeScene` measured from behind the separate header through the bottom of the outlined hero. The atmosphere must read as one continuous scene across both specimens and must stop before `#cases`. Keep the header and hero outlines, rims, controls, and content painted above the atmosphere. Off hides `#heroTimeScene` and the original `.heroAura`, leaving only neutral surfaces.
 
 - [ ] **Step 3: Implement retargetable 800 ms transitions**
 
@@ -437,6 +440,8 @@ An `IntersectionObserver` watches `#main`. Pause when Off, hidden, or non-inters
 If the renderer cannot resume after context restoration, retain `.timeFallback`. `destroy()` cancels transition RAF, automatic timer, menu listeners, media-query listeners, observer, and mesh resources.
 
 Implement `forceFallback()` as the same public failure path used by `onError`: cancel the transition, destroy and clear the mesh, add `.timeFallback`, and return the controller to CSS-only rendering without changing mode or state.
+
+The CSS-only fallback uses the same page-anchored boundary and strong layered bottom-origin half-circle/arc composition as the WebGL scene. It must not degrade into a weak centered radial wash.
 
 - [ ] **Step 6: Verify lifecycle contracts and syntax**
 
@@ -489,7 +494,7 @@ observer.observe(face,{attributes:true,attributeFilter:["src","srcset"]});
 face.addEventListener("load",sync);
 ```
 
-Initialize `cast.draggable=false`, keep it `aria-hidden`, and make `destroy()` disconnect the observer and remove the load listener.
+Initialize `cast.draggable=false`, keep it `aria-hidden`, and keep it visually hidden until a successfully mirrored source loads. Missing, loading, or errored sources must never reveal a rectangular image boundary. `destroy()` disconnects the observer and removes both load and error listeners.
 
 `setState(state)` assigns `cast.dataset.timeState=state`, calls `sync()`, and leaves color/filter selection to `hero-time.css`. Off is a valid state and maps to zero opacity.
 
@@ -497,7 +502,7 @@ Initialize `cast.draggable=false`, keep it `aria-hidden`, and make `destroy()` d
 
 The cast image matches `.face` geometry and uses the image's own alpha. Apply a radial CSS mask centered at `var(--time-light-x) 86%` so the selected state's brightest side and lower jaw receive the strongest cast, with the mask transparent before the upper face. Use `mix-blend-mode:screen`, low opacity, state-specific `--time-cast-filter`, and no permanent recoloring. Eyes and interactive overlays remain above the cast.
 
-Update the existing floor shadow through `--time-shadow` only; do not change its geometry. Off restores its existing shadow value and sets cast opacity to 0.
+Update the existing floor shadow through `--time-shadow` only; do not change its geometry. Off uses the neutral baseline shadow, sets cast opacity to 0, and suppresses both `#heroTimeScene` and the original `.heroAura`.
 
 - [ ] **Step 4: Connect state changes**
 
@@ -559,7 +564,7 @@ Expected: every command exits 0; token audit reports `errors=0`.
 
 - [ ] **Step 2: Verify desktop states at 1440 × 900**
 
-Check Automatic, Off, Sunrise, Daytime, Sunset, and Night. Record `#main`, headline, CTA row, stage, Time button, menu, and `#cases` bounding boxes before/after. Requirements: no geometry changes between states; menu remains within 16 px; no horizontal overflow; View work is the strongest CTA; Night portrait retains eye/hair detail.
+Check Automatic, Off, Sunrise, Daytime, Sunset, and Night. Record the separate header, `#main`, headline, CTA row, stage, Time button, menu, and `#cases` bounding boxes before/after. Requirements: no geometry changes between states; menu remains within 16 px; no horizontal overflow; View work is the strongest CTA; Night portrait retains eye/hair detail. The active atmosphere must read continuously behind the header and outlined hero, both thin specimen outlines must remain crisp above it, and the scene must stop before tabs/work.
 
 - [ ] **Step 3: Verify mobile at 390 × 844 and 320 × 800**
 
@@ -569,9 +574,9 @@ Requirements: 44 px Time target; centered three-control group with no orphan; me
 
 Use keyboard only to open, arrow through, select, Escape, and return focus. Test outside close, coarse-pointer tap, `prefers-reduced-motion`, and forced-colors. Confirm reduced motion renders a still and forced colors exposes every selection without decorative layers.
 
-- [ ] **Step 5: Verify lifecycle and fallback**
+- [ ] **Step 5: Verify lifecycle, strict Off, and fallback**
 
-Select Night, background/restore the tab, scroll the hero out/in, switch Off/on, and rapidly choose three states. Confirm one active RAF path, no stale tween jump, no console error, and the selected state survives reload in the same tab. Temporarily force `HeroTimeController.forceFallback()` and verify the multi-layer CSS fallback and Off state.
+Select Night, background/restore the tab, scroll the hero out/in, switch Off/on, and rapidly choose three states. Confirm one active RAF path, no stale tween jump, no console error, and the selected state survives reload in the same tab. Temporarily force `HeroTimeController.forceFallback()` and verify the multi-layer CSS fallback and Off state. In Off, explicitly verify that the mesh, fallback, bloom, portrait cast, and original `.heroAura` are all invisible and no gradient remains anywhere across header or hero. Test a missing/loading face source and confirm no rectangular cast boundary is visible.
 
 - [ ] **Step 6: Verify existing behavior regressions**
 
@@ -579,7 +584,7 @@ Run Delight and another Mood while each time state is active; confirm face sourc
 
 - [ ] **Step 7: Tune only preset/catalog and semantic variables**
 
-If a state is muddy, generic, or unbalanced, adjust only `hero-time-presets.js` values and the semantic state variables in `hero-time.css`. Do not move hero layout boxes. Keep five distinct nodes, bottom-origin composition, restrained grain, and original colors.
+If a state is muddy, generic, weak, or unbalanced, adjust only `hero-time-presets.js` values and the semantic state variables in `hero-time.css`. Do not move hero layout boxes. Apply the documented Stripe research guidance: layered broad bottom-emerging cropped half-circle/arc forms, clear color separation and depth, restrained grain, and original palette values rather than a generic centered radial wash.
 
 - [ ] **Step 8: Re-run the full suite after tuning**
 
@@ -603,4 +608,7 @@ Before claiming completion, invoke `superpowers:verification-before-completion`,
 - No new horizontal overflow or hero/tab spacing change.
 - Gradient Maker preset/edit/export smoke passing after extraction.
 - Automatic, every manual state, Off, reduced motion, forced colors, fallback, portrait Mood synchronization, and session reload behavior verified.
+- Active lighting spans the separate header and outlined hero continuously, stops before work, and never obscures either specimen outline.
+- Off is completely neutral with `.heroAura` and every time-lighting layer suppressed.
+- Portrait cast remains invisible until a valid source loads and never reveals a broken rectangular image boundary.
 - Untracked `.superpowers/` content excluded from commits.
