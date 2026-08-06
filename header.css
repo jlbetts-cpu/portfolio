@@ -1,3 +1,5 @@
+@import url("ui-icons.css");
+
 /* ===========================================================================
    THE SITE HEADER -- one component, every page.  HEADER V2, 2026-08-03.
 
@@ -12,7 +14,7 @@
    of a good header but it feels too cramped, doesn't use the margins." So the
    bar goes back to his original silhouette -- Work / About me / lockup /
    Games / Contact -- at the PAGE'S OWN COLUMN WIDTH (1200px on home, 93.8% of a
-   1280 viewport, against v1's 24.9%), every item now carries a Tabler line icon,
+   1280 viewport, against v1's 24.9%), every item now carries a Lucide line icon,
    the social row is deleted, and the cast shadows are gone. Detail in §2-§6 of
    the spec; the section numbers below map onto it.
 
@@ -535,7 +537,7 @@
    Set on the SVG's own stroke-width, with --ico-md and vector-effect
    :non-scaling-stroke both untouched, so the glyph's BOX is byte-identical in
    both states and the label does not shift when the weight changes. Same value
-   the lit item uses (--ico-stroke-strong 2, which is Tabler's own next rung and
+   the lit item uses (--ico-stroke-strong 2, the system's own next rung, and
    measures 1.98px against Instrument Sans's 400->600 stem step of x1.32). */
 .jbGrp>:is(a,button):not(.jbHome,[aria-current]):hover .gIco,
 .jbGrp>.jbDisc:hover>.jbDiscGo:not([aria-current]) .gIco,
@@ -585,7 +587,7 @@
 .jbNav :focus:not(:focus-visible){outline:none}
 
 /* ── 2 · THE ICON SYSTEM (§4) ───────────────────────────────────────────────
-   Tabler outline, 24x24 viewBox, one box, one stroke, currentColor, always --
+   Local Lucide outline, 24x24 viewBox, one box, one stroke, currentColor --
    the markup carries only class/viewBox/path and CSS owns the rest. The stroke,
    cap and join are set site-wide in tokens.css (they were missing entirely, so
    every .gIco on the site rendered at 0.75px with mitred joins); the header
@@ -610,8 +612,19 @@
      render at two weights. Corrects the spec's --ico-stroke 1.8: that value
      assumes no vector-effect and would render 1.8px here, HEAVIER than the
      labels, not the 1.35px it was solving for. */
-  stroke-width:1.5;vector-effect:non-scaling-stroke;
+  stroke-width:1.75;vector-effect:non-scaling-stroke;
   stroke-linecap:round;stroke-linejoin:round}
+
+/* A quiet disclosure cue inside the existing Contact box. Absolute placement
+   keeps the control's width, padding, radius, and 44px target unchanged. */
+.jbNav .jbDiscGo{position:relative}
+.jbNav .jbDiscChevron{position:absolute;right:var(--sp-4);top:50%;
+  width:10px;height:10px;transform:translateY(-50%);stroke-width:1.75;
+  pointer-events:none;transition:transform var(--ease-out-dur) var(--ease-out)}
+.jbNav .jbContact.open>.jbDiscGo .jbDiscChevron{
+  transform:translateY(-50%) rotate(180deg)}
+@media(max-width:640px){.jbNav .jbDiscChevron{right:2px;width:9px;height:9px}}
+@media(prefers-reduced-motion:reduce){.jbNav .jbDiscChevron{transition-duration:0ms}}
 
 /* BACK -- its own item at the leading edge, full opacity, its own 44x44 (§5.1).
    In v1 it was a 15px chevron at opacity .55 injected INSIDE the lockup's own
@@ -623,7 +636,7 @@
    width. */
 /* ── THE ICON-ONLY ITEMS: Back, and the three socials ──────────────────────
    One rule for both, because they are the same kind of object -- a 24-grid
-   Tabler outline glyph in an 18px box inside a 44x44 target, with a name only a
+   Lucide outline glyph in an 18px box inside a 44x44 target, with a name only a
    screen reader hears. */
 .jbBack,.jbSoc{padding:0 var(--sp-12);min-width:var(--tap-min);justify-content:center}
 .jbBack[hidden]{display:none}
@@ -896,12 +909,10 @@
    restyled. The only declaration they need of their own is the one above,
    shared with Back.
 
-   THE GLYPHS CHANGE PACK. The old .jbGlyph set was FILLED brand marks; the icon
-   system is Tabler OUTLINE only, never the filled set, because filled and
-   outline are different packs with different optical weight and mixing them is
-   what made the site look like three icon systems. brand-linkedin,
-   brand-instagram and mail are Tabler's own outline drawings at the same 24
-   grid as briefcase, user and device-gamepad.
+   THE GLYPHS SHARE ONE 24-GRID. Interface actions use local Lucide outlines;
+   LinkedIn and Instagram deliberately preserve recognizable brand drawings.
+   Every symbol still takes currentColor and the same optical box, so those two
+   explicit trademark exceptions do not introduce a second control geometry.
 
    ORDER IS HIS: LinkedIn, Instagram, email -- which is NOT the order the old
    markup shipped (mail first). Left as he gave it. */

@@ -34,6 +34,52 @@ var root  = document.documentElement;
 var stick = nav.closest(".jbStick");
 var home  = nav.querySelector(".jbHome");
 
+/* ── 0 · LOCAL LUCIDE GLYPHS ───────────────────────────────────────────────
+   The static routes duplicate header markup, so the shared component upgrades
+   its own utility drawings here. The brand mark sits outside these selectors
+   and remains Jayden's original inline path. */
+var SVG_NS="http://www.w3.org/2000/svg";
+var ICON_FILE="ui-icons.svg#";
+
+function lucideIcon(symbol,extraClass){
+  var svg=document.createElementNS(SVG_NS,"svg");
+  var use=document.createElementNS(SVG_NS,"use");
+  svg.setAttribute("class","gIco uiIcon"+(extraClass?" "+extraClass:""));
+  svg.setAttribute("viewBox","0 0 24 24");
+  svg.setAttribute("aria-hidden","true");
+  svg.setAttribute("focusable","false");
+  use.setAttribute("href",ICON_FILE+symbol);
+  svg.appendChild(use);
+  return svg;
+}
+
+function replaceIcon(control,symbol){
+  if(!control)return;
+  var old=control.querySelector("svg.gIco");
+  if(old)old.replaceWith(lucideIcon(symbol));
+}
+
+var navSymbols={work:"lucide-briefcase-business",about:"lucide-user-round",
+  games:"lucide-gamepad-2",contact:"lucide-mail"};
+Object.keys(navSymbols).forEach(function(key){
+  [].forEach.call(nav.querySelectorAll('[data-nav-item="'+key+'"]'),function(control){
+    replaceIcon(control,navSymbols[key]);
+  });
+});
+[].forEach.call(nav.querySelectorAll(".jbBack"),function(control){
+  replaceIcon(control,"lucide-arrow-left");
+});
+[].forEach.call(nav.querySelectorAll(".jbContact .jbDiscMenu a"),function(control){
+  var href=(control.getAttribute("href")||"").toLowerCase();
+  var symbol=href.indexOf("linkedin")>-1?"brand-linkedin":
+             href.indexOf("instagram")>-1?"brand-instagram":"lucide-mail";
+  replaceIcon(control,symbol);
+});
+var contactGo=nav.querySelector(".jbContact>.jbDiscGo");
+if(contactGo&&!contactGo.querySelector(".jbDiscChevron")){
+  contactGo.appendChild(lucideIcon("lucide-chevron-down","jbDiscChevron"));
+}
+
 /* ── 1 · THE ONE THING THAT HAPPENS ON SCROLL ──────────────────────────────
    A 1px probe at the top of the document, watched once. Out of view => the page
    has left the top => .jbStick redistributes its padding and the bar drops 6px
