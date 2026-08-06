@@ -517,6 +517,14 @@
      already had once. font-weight is deliberately absent from the list -- see
      the note above; it snaps, the ground and the ink glide. */
   transition:background-color var(--ease-out-dur) var(--ease-out)}
+/* This follows the direct-nav hover rule above and adds a class to every
+   selector, so a theme switch keeps its colour motion in every hover/focus
+   state without changing the interaction-specific background timing. */
+.theme-ready .jbGrp>:is(a,button):not(.jbHome):hover,
+.theme-ready .jbGrp>.jbDisc:hover>.jbDiscGo,
+.theme-ready .jbGrp>.jbDisc:focus-within>.jbDiscGo{
+  transition:color var(--theme-duration,400ms) var(--ease-out),
+             background-color var(--ease-out-dur) var(--ease-out)}
 .jbGrp>:is(a,button):not(.jbHome,[aria-current]):hover,
 .jbGrp>.jbDisc:hover>.jbDiscGo:not([aria-current]),
 .jbGrp>.jbDisc:focus-within>.jbDiscGo:not([aria-current]){
