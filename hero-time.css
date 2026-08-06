@@ -216,7 +216,7 @@
  --time-primary-bg:var(--c50);
  --time-primary-ink:var(--c950);
  --time-primary-hover-bg:var(--c100);
- --time-secondary-bg:rgba(11,12,15,.58);
+ --time-secondary-bg:var(--time-base);
  --time-secondary-ink:var(--c50);
  --time-secondary-hover-bg:rgba(11,12,15,.74);
  --time-secondary-border:rgba(244,245,247,.28);
@@ -277,13 +277,12 @@
 :root[data-theme="dark"] .footReach{color:var(--theme-muted)}
 :root[data-theme="dark"] .footIn{color:var(--theme-ink)}
 :root[data-theme="dark"] .jbNav{
- --nav-mat:rgba(11,12,15,.68);
+ --nav-mat:transparent;
  --nav-rim:inset 0 0 0 var(--hair-w) rgba(244,245,247,.16);
  --nav-hover-bg:rgba(244,245,247,.10);
- --nav-active-bg:rgba(244,245,247,.14);
- -webkit-backdrop-filter:blur(14px) saturate(1.08);
- backdrop-filter:blur(14px) saturate(1.08)
+ --nav-active-bg:rgba(244,245,247,.14)
 }
+:root[data-theme="dark"].jbShrunk .jbNav{--nav-mat:var(--theme-page)}
 :root[data-reduced-motion="reduce"] :is(.cases,.csTabInk,.csTab,.csPanel,.csMeta,.csName,.csYear,.footReach,.footIn),
 :root[data-reduced-motion="reduce"] .csTabs::before{transition:none!important;animation:none!important}
 
@@ -349,10 +348,6 @@
 .hero[data-time-state] .heroMood .moodItem{color:var(--time-menu-ink)}
 .hero[data-time-state] .heroMood .moodItem:hover,
 .hero[data-time-state] .heroMood .moodItem:focus-visible{color:var(--time-menu-ink-strong)}
-.hero[data-time-state="night"] :is(.heroMood .moodBtn,.heroTimeBtn){
- -webkit-backdrop-filter:blur(12px) saturate(1.06);
- backdrop-filter:blur(12px) saturate(1.06)
-}
 .heroTimePortraitCast{
  position:absolute;inset:0;z-index:2;width:100%;height:100%;object-fit:contain;
  display:block;visibility:visible;pointer-events:none;opacity:var(--time-cast-opacity);background:none;border:0;outline:0;
