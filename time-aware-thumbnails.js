@@ -18,7 +18,13 @@
  "use strict";
 
  var STATES=Object.freeze(["off","pre-dawn","sunrise","daytime","dusk","sunset","night"]);
- var PROJECTS=Object.freeze(["bearings","apollo"]);
+ var PROJECTS=Object.freeze(["bearings","apollo","strata","cluster"]);
+ var ORIGINALS=Object.freeze({
+  bearings:"images/cs/bearings-cover.webp",
+  apollo:"images/cs/apollo-cover.webp",
+  strata:"images/cs/strata-cover.webp",
+  cluster:"images/cs/cluster/cluster-cover.webp"
+ });
  var SIZES="(max-width: 760px) calc(100vw - 48px), (max-width: 1280px) calc(100vw - 80px), 1200px";
 
  function normalizeState(state){return STATES.indexOf(state)!==-1?state:"off";}
@@ -26,7 +32,7 @@
  function sourceFor(project,state){
   if(PROJECTS.indexOf(project)===-1)return null;
   var next=normalizeState(state);
-  if(next==="off")return {src:"images/cs/"+project+"-cover.webp",srcset:"",sizes:""};
+  if(next==="off")return {src:ORIGINALS[project],srcset:"",sizes:""};
   var base="images/cs/variants/time/"+project+"/"+next;
   return {
    src:base+"-1200.webp",
@@ -46,9 +52,29 @@
   }
 
   var targets=Array.prototype.slice.call(doc.querySelectorAll("img[data-time-thumbnail]"));
-  var groups={bearings:[],apollo:[]};
+  if(doc.documentElement){
+   Array.prototype.slice.call(doc.querySelectorAll(".csItem img.csImg")).forEach(function(image){
+    if(targets.indexOf(image)===-1)targets.push(image);
+   });
+  }
+  var groups={bearings:[],apollo:[],strata:[],cluster:[]};
+  function projectFor(image){
+   var explicit=image.getAttribute("data-time-thumbnail");
+   if(PROJECTS.indexOf(explicit)!==-1)return explicit;
+   var article=typeof image.closest==="function"&&image.closest(".csItem[data-slug]");
+   var slug=article&&article.getAttribute("data-slug");
+   if(PROJECTS.indexOf(slug)!==-1)return slug;
+   var anchor=typeof image.closest==="function"&&image.closest("a[href]");
+   var href=anchor&&anchor.getAttribute("href")||"";
+   var src=image.getAttribute("src")||"";
+   for(var i=0;i<PROJECTS.length;i++){
+    var project=PROJECTS[i];
+    if(href.indexOf(project+".html")!==-1||src===ORIGINALS[project])return project;
+   }
+   return null;
+  }
   targets.forEach(function(image){
-   var project=image.getAttribute("data-time-thumbnail");
+   var project=projectFor(image);
    if(groups[project])groups[project].push(image);
   });
   var cache=new Map();
@@ -132,5 +158,5 @@
   return {destroy:destroy,request:request};
  }
 
- return {STATES:STATES,PROJECTS:PROJECTS,SIZES:SIZES,sourceFor:sourceFor,createController:createController};
+ return {STATES:STATES,PROJECTS:PROJECTS,ORIGINALS:ORIGINALS,SIZES:SIZES,sourceFor:sourceFor,createController:createController};
 });
