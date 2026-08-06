@@ -65,6 +65,37 @@ clip_end = html.index('class="heroCopy"', clip_start)
 clip_markup = html[clip_start:clip_end]
 assert clip_markup.count('class="heroTimeGradient"') == 6, "six gradients must live in the clip"
 
+movie_layer = re.search(
+    r'<div class="heroMovieEffectsClip" id="heroMovieEffectsClip" aria-hidden="true">\s*'
+    r'<div class="heroMovieEffectsStage" id="heroMovieEffectsStage"></div>\s*</div>',
+    html,
+)
+assert movie_layer, "the Hero needs a dedicated movie-effects clip and stage host"
+assert html.index('id="stage"') < movie_layer.start() < html.index("</section>", movie_layer.start())
+
+movie_clip_rule = re.search(r'\.heroMovieEffectsClip\s*\{.*?\}', html, re.S)
+assert movie_clip_rule
+for movie_clip_contract in (
+    "position:absolute",
+    "inset:0",
+    "overflow:clip",
+    "border-radius:inherit",
+    "corner-shape:inherit",
+    "pointer-events:none",
+):
+    assert movie_clip_contract in movie_clip_rule.group(0), movie_clip_contract
+
+movie_stage_rule = re.search(r'\.heroMovieEffectsStage\s*\{.*?\}', html, re.S)
+assert movie_stage_rule
+for movie_stage_contract in (
+    "position:absolute",
+    "width:0",
+    "height:0",
+    "transform-origin:50% 50%",
+    "pointer-events:none",
+):
+    assert movie_stage_contract in movie_stage_rule.group(0), movie_stage_contract
+
 for controller_contract in (
     "window.SiteTheme",
     "siteTheme.subscribe",
@@ -342,7 +373,7 @@ night_state = re.search(r'\.hero\[data-time-state="night"\]\s*\{(.*?)\}', time_c
 assert night_state
 for material_contract in (
     "--time-primary-bg:var(--c50)",
-    "--time-secondary-bg:rgba(11,12,15,.58)",
+    "--time-secondary-bg:var(--time-base)",
     "--time-secondary-hover-bg:rgba(11,12,15,.74)",
     "--time-secondary-border:rgba(244,245,247,.28)",
     "--time-secondary-hover-border:rgba(244,245,247,.42)",
@@ -352,13 +383,13 @@ for material_contract in (
 night_nav = re.search(r':root\[data-theme="dark"\] \.jbNav\s*\{(.*?)\}', time_css, re.S)
 assert night_nav
 for nav_material_contract in (
-    "--nav-mat:rgba(11,12,15,.68)",
+    "--nav-mat:transparent",
     "--nav-hover-bg:rgba(244,245,247,.10)",
     "--nav-active-bg:rgba(244,245,247,.14)",
-    "backdrop-filter:blur(14px) saturate(1.08)",
 ):
     assert nav_material_contract in night_nav.group(1), nav_material_contract
-assert re.search(
+assert "backdrop-filter" not in night_nav.group(1)
+assert not re.search(
     r'\.hero\[data-time-state="night"\] :is\(\.heroMood \.moodBtn,\.heroTimeBtn\)\s*\{[^}]*backdrop-filter:blur\(12px\)',
     time_css,
     re.S,
@@ -449,6 +480,28 @@ assert re.search(r"function glassesOn\(\).*?classList\.add\(\"on\"\)", engine, r
 start_movie = re.search(r"function startMovie\(word\)\s*\{.*?\n\}", engine, re.S)
 assert start_movie and "glassesOn();" in start_movie.group(0)
 assert "function glOn()" not in engine
+
+movie_section = engine[engine.index("/* ===== popcorn movie-watching mode"):engine.index("function startRain()")]
+assert 'const movieEffectsStage=document.getElementById("heroMovieEffectsStage");' in engine
+ensure_movie = re.search(r"function ensureMovieEls\(\)\{.*?\n\}", movie_section, re.S)
+assert ensure_movie
+assert "var host=movieEffectsStage||stage;" in ensure_movie.group(0)
+assert ensure_movie.group(0).count("host.appendChild(") == 3
+for legacy_mount in (
+    "stage.appendChild(bucketEl)",
+    "stage.appendChild(k)",
+    "stage.appendChild(cc)",
+):
+    assert legacy_mount not in ensure_movie.group(0), legacy_mount
+
+sync_movie = re.search(r"function syncMovieEffectsLayer\(\)\{.*?\n\}", movie_section, re.S)
+transform_movie = re.search(r"function setMovieStageTransform\(value\)\{.*?\n\}", movie_section, re.S)
+assert sync_movie and "stage.getBoundingClientRect()" in sync_movie.group(0)
+assert "movieEffectsStage.parentNode.getBoundingClientRect()" in sync_movie.group(0)
+assert transform_movie and "stage.style.transform=value;" in transform_movie.group(0)
+assert "movieEffectsStage.style.transform=value;" in transform_movie.group(0)
+assert start_movie.group(0).index("ensureMovieEls();") < start_movie.group(0).index("syncMovieEffectsLayer();")
+assert movie_section.count("stage.style.transform=") == 3, "movie transforms must stay mirrored to the clip host"
 
 case_enter = re.search(r"function enter\(f,e\)\{.*?\}\s*// project cards", html, re.S)
 assert case_enter and "startMovie(csw)" in case_enter.group(0)
