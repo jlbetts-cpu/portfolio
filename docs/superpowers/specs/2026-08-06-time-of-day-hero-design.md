@@ -27,7 +27,7 @@ The button opens a menu anchored to its edge. The menu contains:
 7. **Sunset**
 8. **Night**
 
-Automatic displays its currently resolved state in secondary text, for example `Automatic · Night`. The selected row receives the design system's quiet selected material treatment and a check indicator; the closed button remains icon-only.
+Automatic is labeled only `Automatic`; the resolved state is already communicated by the closed button's active-state icon and must not be repeated as secondary menu text. The selected row receives the design system's quiet selected material treatment and a check indicator; the closed button remains icon-only.
 
 The menu opens on click/tap, closes on outside interaction or Escape, returns focus to the Time button on Escape, and supports arrow-key movement between rows. It opens below and right-aligned to the Time button. If its measured bottom would exceed the viewport gutter, it flips above the button; its horizontal position is clamped to the 16 px viewport gutter. It must never create horizontal overflow.
 
