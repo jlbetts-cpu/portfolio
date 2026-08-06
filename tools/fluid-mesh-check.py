@@ -9,4 +9,6 @@ assert "function FluidMesh(canvas,cfg)" in runtime
 for method in ("set:", "pause:", "resume:", "renderOnce:", "destroy:", "snapshot:"):
     assert method in runtime, method
 assert "window.FluidMesh=FluidMesh" in runtime
+assert 'if(!gl){abort(new Error("WebGL context unavailable"));return null;}' in runtime
+assert 'if(!gl.getProgramParameter(prog,gl.LINK_STATUS))throw new Error("WebGL program link failed: "+gl.getProgramInfoLog(prog));' in runtime
 print("fluid mesh extraction: OK")
