@@ -1,6 +1,13 @@
 const assert=require("node:assert/strict");
 const M=require("../hero-time-presets.js");
+const S=require("../site-theme-state.js");
 const at=(h,m=0)=>new Date(2026,7,6,h,m,0,0);
+
+assert.equal(M.resolveAutomatic,S.resolveAutomatic);
+assert.equal(M.resolveState,S.resolveState);
+assert.equal(M.normalizeMode,S.normalizeMode);
+assert.equal(M.msUntilNextBoundary,S.msUntilNextBoundary);
+assert.equal(Object.hasOwn(M,"BOUNDARIES"),false);
 
 [[3,59,"night"],[4,0,"pre-dawn"],[6,0,"sunrise"],
  [9,0,"daytime"],[17,0,"dusk"],[18,30,"sunset"],
