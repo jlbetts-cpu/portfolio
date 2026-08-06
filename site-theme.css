@@ -11,6 +11,7 @@
  --theme-ink:#F4F5F7;--theme-muted:#A7ABB4;--theme-rim:rgba(255,255,255,.14);
  --theme-material:rgba(17,19,24,.86);--theme-focus:#D9D7FF;
  --theme-atmosphere:rgba(103,99,228,.16);
+ --theme-ink-soft:#CDD0D6;--theme-rim-strong:rgba(255,255,255,.22);
 }
 
 html,body{background-color:var(--theme-page);color:var(--theme-ink)}
@@ -35,6 +36,197 @@ html{scrollbar-color:var(--theme-muted) var(--theme-page)}
 /* A named specimen boundary can consume the shared rim without changing media pixels. */
 .specimenOutline,.specimen-outline{box-shadow:0 0 0 var(--hair-w) var(--theme-rim) inset}
 
+/* Portfolio pages opt into narrow adapters so authored Hero and media styling
+   keep their own palettes. Purple stays on focus, selection, and primary links. */
+:root[data-theme="dark"] body[data-theme-page="home"] .cases{
+ background-color:var(--theme-page);color:var(--theme-ink);
+}
+:root[data-theme="dark"] body[data-theme-page="home"] .csTabs::before{
+ background-color:var(--theme-rim);
+}
+:root[data-theme="dark"] body[data-theme-page="home"] .csTab{
+ color:var(--theme-muted);
+}
+:root[data-theme="dark"] body[data-theme-page="home"] .csTab:hover,
+:root[data-theme="dark"] body[data-theme-page="home"] .csTab:focus-visible,
+:root[data-theme="dark"] body[data-theme-page="home"] .csTab.on{
+ color:var(--theme-ink);
+}
+:root[data-theme="dark"] body[data-theme-page="home"] .csTabInk{
+ background-color:var(--theme-focus);
+}
+:root[data-theme="dark"] body[data-theme-page="home"] .csFrame,
+:root[data-theme="dark"] body[data-theme-page="home"] .reelFrame:not(.isFull){
+ background-color:var(--theme-elevated);
+ box-shadow:0 0 0 var(--hair-w) var(--theme-rim);
+}
+:root[data-theme="dark"] body[data-theme-page="home"] :is(.csName,.csInfoVal){
+ color:var(--theme-ink);
+}
+:root[data-theme="dark"] body[data-theme-page="home"] :is(.csYear,.csName .soon,.csInfoLabel,.csHint .dhl,.csHint svg,.glTeaseLine,.hmTeaseLine){
+ color:var(--theme-muted);
+}
+:root[data-theme="dark"] body[data-theme-page="home"] .csItem.wip .csYear{
+ color:var(--theme-ink-soft);border-color:var(--theme-rim);
+}
+:root[data-theme="dark"] body[data-theme-page="home"] .csInfoCard{
+ background-color:var(--theme-material);
+ box-shadow:inset 0 0 0 var(--hair-w) var(--theme-rim);
+}
+:root[data-theme="dark"] body[data-theme-page="home"] .csInfoRow+.csInfoRow{
+ border-color:var(--theme-rim);
+}
+:root[data-theme="dark"] body[data-theme-page="home"] .vcInner{
+ background-color:var(--theme-material);color:var(--theme-ink);
+ box-shadow:inset 0 0 0 var(--hair-w) var(--theme-rim);
+}
+:root[data-theme="dark"] body[data-theme-page="home"] .vcArr{color:var(--theme-focus)}
+:root[data-theme="dark"] body[data-theme-page="home"] .csGo:focus-visible{outline-color:var(--theme-focus)}
+:root[data-theme="dark"] body[data-theme-page="home"] .csBackveil{background-color:var(--theme-page)}
+:root[data-theme="dark"] body[data-theme-page="home"] .reelTap{
+ background-color:var(--theme-surface);color:var(--theme-ink);
+ box-shadow:inset 0 0 0 var(--hair-w) var(--theme-rim);
+}
+:root[data-theme="dark"] body[data-theme-page="home"] .siteFoot{color:var(--theme-ink)}
+
+/* About uses the same hierarchy as the editorial case studies while keeping the
+   sticky gallery composition and every photograph dimension unchanged. */
+:root[data-theme="dark"] body[data-theme-page="about"] :is(.abTitle,.abBody h2,.abBody p,.abFactV){
+ color:var(--theme-ink);
+}
+:root[data-theme="dark"] body[data-theme-page="about"] :is(.abBody .abLabel,.abFactK,.abCap,.abShot figcaption,.amsHint){
+ color:var(--theme-muted);
+}
+:root[data-theme="dark"] body[data-theme-page="about"] .abIn{
+ color:var(--theme-focus);text-decoration-color:var(--theme-muted);
+}
+:root[data-theme="dark"] body[data-theme-page="about"] .abIn:hover{
+ color:var(--theme-ink);text-decoration-color:var(--theme-focus);
+}
+:root[data-theme="dark"] body[data-theme-page="about"] .abLink{
+ background-color:var(--theme-surface);color:var(--theme-ink);
+ box-shadow:inset 0 0 0 var(--hair-w) var(--theme-rim);
+}
+:root[data-theme="dark"] body[data-theme-page="about"] .abLink:hover{
+ background-color:var(--theme-elevated);color:var(--theme-ink);
+ box-shadow:inset 0 0 0 var(--hair-w) var(--theme-rim-strong);
+}
+:root[data-theme="dark"] body[data-theme-page="about"] .abLinkPrimary,
+:root[data-theme="dark"] body[data-theme-page="about"] .abLinkPrimary:hover{
+ background-color:var(--theme-focus);color:var(--theme-page);box-shadow:none;
+}
+:root[data-theme="dark"] body[data-theme-page="about"] .abLinkPrimary .abLinkArrow{
+ color:var(--theme-page);
+}
+:root[data-theme="dark"] body[data-theme-page="about"] .abLinkArrow{color:var(--theme-muted)}
+:root[data-theme="dark"] body[data-theme-page="about"] .amsDots i{background-color:var(--theme-rim)}
+:root[data-theme="dark"] body[data-theme-page="about"] .amsDots i.on{background-color:var(--theme-focus)}
+:root[data-theme="dark"] body[data-theme-page="about"] :is(.abLink,.abIn,.abStack):focus-visible{
+ outline-color:var(--theme-focus);
+}
+:root[data-theme="dark"] body[data-theme-page="about"] .abStack{
+ box-shadow:0 0 0 var(--hair-w) var(--theme-rim);
+}
+@media(max-width:880px){
+ :root[data-theme="dark"] body[data-theme-page="about"] .abStack{box-shadow:none}
+ :root[data-theme="dark"] body[data-theme-page="about"] .abShot img{
+  box-shadow:0 0 0 var(--hair-w) var(--theme-rim);
+ }
+}
+
+/* Case-study editorial system: neutral type hierarchy, near-black surfaces,
+   violet only for state, focus, and inline navigation. */
+:root[data-theme="dark"] body[data-theme-page="case-study"] :is(.head,.roleHead,.secHead,.hmwQ,.subHead,.statNum,.fv,.ovBody,.role p,.hq,.hlabel,.stepHead,.playerStep,.baCapLabel,.pullBody){
+ color:var(--theme-ink);
+}
+:root[data-theme="dark"] body[data-theme-page="case-study"] :is(.lede,.secBody,.statCap,.baBody,.baCap,.playerNote,.baNote){
+ color:var(--theme-ink-soft);
+}
+:root[data-theme="dark"] body[data-theme-page="case-study"] :is(.eyebrow,.kicker,.fk,.fvsub,.rlabel,.statUnit,.statSrc,.cap,.shotCap,.shotNote,.hmwLabel,.hsrc,.subKick,.playerKick,.pullWho,.photoPair figcaption,.csReach,.scrapTag,.baLabel,.demoLabel){
+ color:var(--theme-muted);
+}
+:root[data-theme="dark"] body[data-theme-page="case-study"] :is(.secBody,.ovBody,.role,.lede,.baBody) strong,
+:root[data-theme="dark"] body[data-theme-page="case-study"] .baCol.isAfter .baNote{
+ color:var(--theme-ink);
+}
+:root[data-theme="dark"] body[data-theme-page="case-study"] .facts{
+ border-color:var(--theme-rim);
+}
+:root[data-theme="dark"] body[data-theme-page="case-study"] :is(.chap,.clabel){color:var(--theme-muted)}
+:root[data-theme="dark"] body[data-theme-page="case-study"] .tick{background-color:var(--theme-muted)}
+:root[data-theme="dark"] body[data-theme-page="case-study"] .chap[aria-current="true"] :is(.clabel){color:var(--theme-ink)}
+:root[data-theme="dark"] body[data-theme-page="case-study"] .chap[aria-current="true"] .tick{
+ background-color:var(--theme-ink);
+}
+:root[data-theme="dark"] body[data-theme-page="case-study"] .chap:hover .clabel,
+:root[data-theme="dark"] body[data-theme-page="case-study"] .chap:focus-visible .clabel{
+ color:var(--theme-focus);
+}
+:root[data-theme="dark"] body[data-theme-page="case-study"] :is(.wide,.cmp,.cover){
+ background-color:var(--theme-elevated);
+}
+:root[data-theme="dark"] body[data-theme-page="case-study"] .scrollbox{
+ background-color:var(--theme-surface);
+ box-shadow:inset 0 0 0 var(--hair-w) var(--theme-rim);
+}
+:root[data-theme="dark"] body[data-theme-page="case-study"] :is(.tvTab,.sbBtn,.cmpKnob,.baGo,.baLabel,.scrapTag,.skipLink,.toTop,.pair,.baFrame){
+ background-color:var(--theme-surface);color:var(--theme-ink-soft);
+ border-color:var(--theme-rim);box-shadow:inset 0 0 0 var(--hair-w) var(--theme-rim);
+}
+:root[data-theme="dark"] body[data-theme-page="case-study"] :is(.tvTab,.sbBtn,.cmpKnob,.baGo,.skipLink,.toTop):hover,
+:root[data-theme="dark"] body[data-theme-page="case-study"] :is(.tvTab,.sbBtn,.cmpKnob,.baGo,.skipLink,.toTop):focus-visible{
+ background-color:var(--theme-elevated);color:var(--theme-ink);
+ border-color:var(--theme-rim-strong);
+}
+:root[data-theme="dark"] body[data-theme-page="case-study"] .tvTab.on{
+ color:var(--theme-ink);background-color:var(--theme-elevated);
+}
+:root[data-theme="dark"] body[data-theme-page="case-study"] .tvTab.on::after{
+ background-color:var(--theme-focus);
+}
+:root[data-theme="dark"] body[data-theme-page="case-study"] .baCol.isAfter .baLabel{
+ background-color:var(--theme-focus);border-color:var(--theme-focus);color:var(--theme-page);box-shadow:none;
+}
+:root[data-theme="dark"] body[data-theme-page="case-study"] :is(.playerTicks,.seqTicks) i{
+ background-color:var(--theme-rim);
+}
+:root[data-theme="dark"] body[data-theme-page="case-study"] :is(.playerTicks,.seqTicks) i.on{
+ background-color:var(--theme-focus);
+}
+:root[data-theme="dark"] body[data-theme-page="case-study"] .content .footIn{
+ color:var(--theme-focus);text-decoration-color:var(--theme-muted);
+}
+:root[data-theme="dark"] body[data-theme-page="case-study"] .content .footIn:hover,
+:root[data-theme="dark"] body[data-theme-page="case-study"] .content .footIn:focus-visible{
+ color:var(--theme-ink);text-decoration-color:var(--theme-focus);
+}
+:root[data-theme="dark"] body[data-theme-page="case-study"] :is(.footIn,.chap,.scrollbox,.sbBtn,.tvTab,.toTop):focus-visible{
+ outline-color:var(--theme-focus);
+}
+:root[data-theme="dark"] body[data-theme-page="case-study"] .emerge{background-color:var(--theme-page)}
+
+/* Media rims live outside the authored bitmap. No width, height, radius,
+   object-fit, margin, opacity, filter, or blend behavior changes here. */
+:root[data-theme="dark"] body[data-theme-page="case-study"] .cover,
+:root[data-theme="dark"] body[data-theme-page="case-study"] :is(.wide,.cmp,.closeShot img,.darlings img,.photoRow img,.shot img,.buildStage img,.stepShot img,.photoPair img,.playerStage img,.tvFrame img,.baPhone img,.sketch img,.videoFrame,.demoPhone,.demoPoster){
+ box-shadow:0 0 0 var(--hair-w) var(--theme-rim);
+}
+
+/* Theme changes transition as one system only after synchronous bootstrap. */
+.theme-ready body[data-theme-page="home"] :is(.cases,.csInfoRow,.csName,.csYear,.csInfoLabel,.csInfoVal,.reelTap),
+.theme-ready body[data-theme-page="about"] :is(.abTitle,.abBody h2,.abBody p,.abFactK,.abFactV),
+.theme-ready body[data-theme-page="case-study"] :is(.head,.roleHead,.secHead,.hmwQ,.subHead,.statNum,.fv,.ovBody,.role p,.lede,.secBody,.statCap,.cap,.eyebrow,.kicker,.fk,.rlabel,.statSrc,.csReach,.demoLabel,.scrollbox,.baGo,.baLabel,.scrapTag,.pair,.baFrame){
+ transition-property:color,background-color,border-color,box-shadow,text-decoration-color;
+ transition-duration:var(--theme-duration);
+ transition-timing-function:var(--ease-out);
+}
+.theme-ready body[data-theme-page="case-study"] .facts{
+ transition:opacity .5s cubic-bezier(.2,.8,.2,1),transform .5s cubic-bezier(.2,.8,.2,1),border-color var(--theme-duration) var(--ease-out)
+}
+.theme-ready body[data-theme-page="case-study"] .cmpKnob{
+ transition:box-shadow .2s cubic-bezier(.2,.8,.2,1),background-color var(--theme-duration) var(--ease-out),color var(--theme-duration) var(--ease-out)
+}
+
 .theme-ready body,.theme-ready .jbDiscMenu,.theme-ready input,.theme-ready select,.theme-ready textarea{
  transition:background-color var(--theme-duration) var(--ease-out),
             color var(--theme-duration) var(--ease-out),
@@ -43,7 +235,11 @@ html{scrollbar-color:var(--theme-muted) var(--theme-page)}
 }
 
 @media(max-width:760px){:root{--theme-duration:280ms}}
-@media(prefers-reduced-motion:reduce){:root{--theme-duration:0ms}.theme-ready body,.theme-ready .jbDiscMenu,.theme-ready input,.theme-ready select,.theme-ready textarea{transition-duration:0ms}}
+@media(prefers-reduced-motion:reduce){
+ :root{--theme-duration:0ms}
+ .theme-ready body,.theme-ready .jbDiscMenu,.theme-ready input,.theme-ready select,.theme-ready textarea,.theme-ready body[data-theme-page="case-study"] .cmpKnob{transition-duration:0ms}
+ .theme-ready body[data-theme-page="case-study"] .facts{transition:none}
+}
 @media(forced-colors:active){
  :root{--theme-atmosphere:transparent}
  :focus-visible{outline-color:CanvasText;outline-style:solid}

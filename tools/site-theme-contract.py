@@ -15,6 +15,15 @@ INTERNAL={
     "index-local-preview.html","orbs.html","specimen.html",
 }
 THEME_SOURCES=("site-theme.css","header.css","footer.css")
+PORTFOLIO_PAGES={
+    "index.html":"home",
+    "about.html":"about",
+    "apollo.html":"case-study",
+    "bearings.html":"case-study",
+    "cluster.html":"case-study",
+    "strata.html":"case-study",
+    "ucdavis.html":"case-study",
+}
 AUTHORED_MEDIA=re.compile(r"(?:\bimg\b|\bpicture\b|\bvideo\b|\bcanvas\b|\.face\b|\.case(?:Media|-media)\b|\.buildStage\b|\.shot\b|\.playerStage\b|\.game-artwork\b|\.arena\b)",re.I)
 THEME_SELECTOR=re.compile(r"(?:\[data-theme(?:[\]\s=]|$)|\.theme-ready\b)",re.I)
 FORBIDDEN_MEDIA_PROPERTY=re.compile(r"(?:^|;)\s*(filter|opacity|mix-blend-mode)\s*:",re.I)
@@ -66,6 +75,19 @@ def theme_media_violations(source):
 def assert_theme_media_safe(source,label):
     violations=theme_media_violations(source)
     assert not violations, f"{label}: theme selectors cannot alter authored media ({'; '.join(violations)})"
+
+def declarations_for(source,*selector_fragments):
+    matches=[]
+    for selector,declarations in css_rules(source):
+        if all(fragment in selector for fragment in selector_fragments):
+            matches.append(re.sub(r"\s+", "", declarations))
+    return "".join(matches)
+
+def assert_semantic_rule(source,label,selector_fragments,*declarations):
+    actual=declarations_for(source,*selector_fragments)
+    assert actual, f"site-theme.css: missing {label} semantic adapter"
+    for declaration in declarations:
+        assert re.sub(r"\s+", "", declaration) in actual, f"site-theme.css: {label} must include {declaration}"
 
 def nav_color_transition_violations(source):
     violations=[]
@@ -126,6 +148,10 @@ def check(page):
         shared_links=[order for order,href in parser.stylesheet_links if href==shared]
         assert len(shared_links)==1, f"{page}: expected one {shared}"
         assert shared_links[0]<theme_order, f"{page}: {shared} must precede site-theme.css"
+    if page in PORTFOLIO_PAGES:
+        expected=PORTFOLIO_PAGES[page]
+        source=(ROOT/page).read_text(encoding="utf-8")
+        assert re.search(rf'<body\b[^>]*\bdata-theme-page=["\']{re.escape(expected)}["\']',source), f"{page}: missing data-theme-page={expected} hook"
 
 def check_theme_stylesheet():
     source=(ROOT/"site-theme.css").read_text(encoding="utf-8")
@@ -154,6 +180,53 @@ def check_theme_stylesheet():
     else:
         raise AssertionError("site-theme.css: media safety probe did not reject a dark media filter")
 
+def check_portfolio_adapters():
+    source=(ROOT/"site-theme.css").read_text(encoding="utf-8")
+    assert_semantic_rule(source,"Home work surface",('body[data-theme-page="home"] .cases',),"background-color:var(--theme-page)")
+    assert_semantic_rule(source,"Home selected work tab",('body[data-theme-page="home"] .csTab.on',),"color:var(--theme-ink)")
+    assert_semantic_rule(source,"Home work card",('body[data-theme-page="home"] .csFrame',),"box-shadow:0 0 0 var(--hair-w) var(--theme-rim)")
+    assert_semantic_rule(source,"Home footer",('body[data-theme-page="home"] .siteFoot',),"color:var(--theme-ink)")
+
+    assert_semantic_rule(source,"About prose",('body[data-theme-page="about"]', '.abBody p'),"color:var(--theme-ink)")
+    assert_semantic_rule(source,"About facts",('body[data-theme-page="about"]', '.abFactV'),"color:var(--theme-ink)")
+    assert_semantic_rule(source,"About cards",('body[data-theme-page="about"] .abLink',),"box-shadow:inset 0 0 0 var(--hair-w) var(--theme-rim)")
+    assert_semantic_rule(source,"About media rim",('body[data-theme-page="about"] .abStack',),"box-shadow:0 0 0 var(--hair-w) var(--theme-rim)")
+
+    assert_semantic_rule(source,"Case-study prose",('body[data-theme-page="case-study"]', '.secBody'),"color:var(--theme-ink-soft)")
+    assert_semantic_rule(source,"Case-study facts",('body[data-theme-page="case-study"] .facts',),"border-color:var(--theme-rim)")
+    assert_semantic_rule(source,"Case-study rail",('body[data-theme-page="case-study"] .chap[aria-current="true"] .tick',),"background-color:var(--theme-ink)")
+    assert_semantic_rule(source,"Case-study tabs",('body[data-theme-page="case-study"] .tvTab.on',),"color:var(--theme-ink)")
+    assert_semantic_rule(source,"Case-study comparison labels",('body[data-theme-page="case-study"]', '.baLabel'),"background-color:var(--theme-surface)")
+    assert_semantic_rule(source,"Case-study demo caption",('body[data-theme-page="case-study"]', '.demoLabel'),"color:var(--theme-muted)")
+    # The cover boundary is width-independent, so it remains present when the
+    # existing mobile sheet makes the cover full-width. An outer shadow keeps
+    # every authored image pixel untouched and does not affect box geometry.
+    assert_semantic_rule(source,"Case-study media rim, including mobile",('body[data-theme-page="case-study"] .cover',),"box-shadow:0 0 0 var(--hair-w) var(--theme-rim)")
+
+    # Theme interpolation must not replace component-owned entry or interaction
+    # transitions. These selectors already define motion in their page styles;
+    # assigning transition-property from site-theme.css would make facts jump
+    # into view and would change the authored timing of tabs, links, and knobs.
+    compact=re.sub(r"\s+", "", source)
+    for selector in (".csTab", ".abIn", ".abLink", ".tvTab", ".chap"):
+        theme_transition=re.compile(
+            rf"\.theme-ready[^{{}}]*{re.escape(selector)}[^{{}}]*\{{[^{{}}]*transition-(?:property|duration|timing-function):"
+        )
+        assert not theme_transition.search(compact), f"site-theme.css: theme adapter must preserve {selector} transition ownership"
+    facts_transition=(
+        '.theme-readybody[data-theme-page="case-study"].facts{'
+        'transition:opacity.5scubic-bezier(.2,.8,.2,1),transform.5scubic-bezier(.2,.8,.2,1),'
+        'border-colorvar(--theme-duration)var(--ease-out)}'
+    )
+    assert facts_transition in compact, "site-theme.css: facts must compose its reveal and semantic border transitions"
+    knob_transition=(
+        '.theme-readybody[data-theme-page="case-study"].cmpKnob{'
+        'transition:box-shadow.2scubic-bezier(.2,.8,.2,1),'
+        'background-colorvar(--theme-duration)var(--ease-out),colorvar(--theme-duration)var(--ease-out)}'
+    )
+    assert knob_transition in compact, "site-theme.css: comparison knob must compose its interaction and semantic transitions"
+    assert '@media(prefers-reduced-motion:reduce)' in compact and facts_transition.split('{',1)[0]+'{transition:none}' in compact, "site-theme.css: reduced motion must disable the composed facts reveal"
+
 def check_shared_theme_transitions():
     header=(ROOT/"header.css").read_text(encoding="utf-8")
     footer=(ROOT/"footer.css").read_text(encoding="utf-8")
@@ -178,6 +251,7 @@ def main():
         assert all((ROOT/page).is_file() for page in SHIPPING), "a shipping page is missing"
         check_theme_stylesheet()
         check_shared_theme_transitions()
+        check_portfolio_adapters()
         for page in SHIPPING:
             check(page)
     except AssertionError as error:
