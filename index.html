@@ -633,7 +633,7 @@ body.moodInCta .heroCtas:not(.in) .faceMoodCorner{opacity:0!important;visibility
 .siteFoot{margin-top:clamp(80px,12vh,150px);padding:0 clamp(24px,5vw,40px) clamp(32px,5vh,64px);text-align:center}
 /* 1.55 was a literal; the case studies resolve this same role to var(--lh-prose)
    = 1.5. Same element, same role, two numbers -- the --lh-prose drift again. */
-.footReach{font-family:var(--sans);font-weight:400;font-size:var(--fs-prose);line-height:var(--lh-prose);color:var(--c700);margin:0 auto;max-width:42ch;text-wrap:balance}
+.footReach{font-family:var(--sans);font-weight:400;font-size:var(--fs-prose);line-height:var(--lh-prose);color:var(--c700);margin:0 auto;max-width:56ch;text-wrap:balance}
 .footIn{font-weight:600;color:var(--c950);text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:3px;text-decoration-color:var(--c500);transition:text-decoration-color .15s cubic-bezier(.2,.8,.2,1),color .15s cubic-bezier(.2,.8,.2,1)}
 /* one shape for this role on all seven pages: the case studies already write it
    as var(--accent)/var(--accent-press). Same computed ink, one spelling. */
@@ -1399,6 +1399,98 @@ html{scroll-padding-top:calc(var(--nav-h) + var(--sp-16-24))}
    that bent .tvTab.on's line round a --r-md corner cannot happen here. */
 .csTab::before{content:"";position:absolute;top:50%;left:0;right:0;
  height:var(--tap-min);transform:translateY(-50%);pointer-events:auto}
+
+/* ═══ HERO SPECIMEN FRAME, 2026-08-05 ═══════════════════════════════════════
+   The portrait remains the hero's one expressive object. The shell, controls
+   and atmosphere use the existing control/material language so they read as
+   one system with header.css instead of a second visual vocabulary. */
+:root{
+ --hero-aura-core:rgba(148,205,255,.44);
+ --hero-aura-mid:rgba(184,222,255,.24);
+ --hero-aura-fade:rgba(225,241,255,0);
+}
+.wrap{padding-inline:var(--sp-16-40)}
+.hero{
+ position:relative;isolation:isolate;overflow:hidden;
+ display:grid;grid-template-columns:1fr;justify-items:center;align-content:start;
+ min-height:calc(100svh - 84px);gap:0;padding:var(--sp-24) var(--sp-16-24) 0;
+ border:var(--hair-w) solid var(--c100);border-radius:var(--r-xl);
+ corner-shape:var(--corner);background:var(--c50)
+}
+.heroAura{position:absolute;z-index:-1;pointer-events:none;left:50%;top:61%;
+ width:min(960px,88%);height:68%;transform:translate(-50%,-50%);
+ background:radial-gradient(ellipse at center,var(--hero-aura-core) 0%,
+  var(--hero-aura-mid) 38%,var(--hero-aura-fade) 76%);
+ filter:blur(var(--blur-3))}
+.heroCopy{display:contents}
+.heroCopy h1{order:2;margin:0 auto;max-width:min(14.4em,100%);font-size:var(--fs-heroline);
+ line-height:1.06;letter-spacing:var(--tr-head);text-align:center;text-wrap:balance}
+.heroCtas{order:3;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;
+ gap:var(--sp-8);margin-top:var(--sp-16);position:relative;z-index:8}
+.workCta,.heroMood .moodBtn{height:var(--tap-min);min-height:var(--tap-min);
+ padding:0 var(--sp-16);border-radius:var(--r-md);corner-shape:var(--corner);
+ font-family:var(--sans);font-size:var(--fs-nav);font-weight:400;line-height:var(--lh-flat);
+ text-decoration:none;display:inline-flex;align-items:center;justify-content:center;
+ gap:var(--sp-8);cursor:pointer;white-space:nowrap;
+ transition:background-color var(--hover-out-dur) var(--ease-out),
+  border-color var(--hover-out-dur) var(--ease-out),color var(--hover-out-dur) var(--ease-out),
+  transform var(--press-dur) var(--ease-out)}
+.workCta{border:var(--hair-w) solid var(--c950);background:var(--c950);color:var(--c50)}
+.workCta svg,.moodFaceIco{width:var(--ico-sm);height:var(--ico-sm);fill:none;
+ stroke:currentColor;stroke-width:var(--ico-stroke);stroke-linecap:round;stroke-linejoin:round}
+.workCta:hover,.workCta:focus-visible{background:var(--c900);border-color:var(--c900);color:var(--c50)}
+.heroMood{position:relative;z-index:12;display:inline-flex}
+.heroMood .moodBtn{border:var(--hair-w) solid var(--c100);background:var(--mat-2);color:var(--c950)}
+.heroMood .moodBtn:hover,.heroMood .moodBtn:focus-visible,.heroMood.open .moodBtn{
+ border-color:var(--c500);background:var(--mat-3-solid);color:var(--c950)}
+.heroMood .moodCar{width:var(--ico-xs);height:var(--ico-xs);fill:none;stroke:currentColor;
+ stroke-width:var(--ico-stroke);stroke-linecap:round;stroke-linejoin:round;
+ transition:transform var(--sp-settle-dur) var(--ease-out)}
+.heroMood.open .moodCar{transform:rotate(180deg)}
+.heroMood .moodMenu{position:absolute;top:calc(100% + var(--sp-8));left:0;right:auto;
+ z-index:30;display:flex;flex-direction:column;gap:var(--gap-bar);width:var(--menu-w);
+ max-width:min(var(--menu-w),calc(100vw - (var(--sp-16-40) * 2)));
+ padding:var(--pad-bar);background:var(--mat-3-solid);box-shadow:var(--rim-2),var(--sh-2);
+ border:0;border-radius:var(--r-lg);corner-shape:var(--corner);
+ opacity:0;visibility:hidden;transform:translateY(calc(var(--sp-4) * -1));
+ transition:opacity var(--ease-out-dur) var(--ease-out),
+  transform var(--ease-out-dur) var(--ease-out),visibility 0s var(--ease-out-dur)}
+.heroMood.open .moodMenu{opacity:1;visibility:visible;transform:none;
+ transition:opacity var(--ease-out-dur) var(--ease-out),transform var(--ease-out-dur) var(--ease-out)}
+.heroMood .moodItem{display:flex;align-items:center;justify-content:flex-start;gap:var(--sp-10);
+ width:100%;min-height:var(--tap-min);padding:0 var(--sp-10);border:0;
+ border-radius:var(--r-sm);corner-shape:var(--corner);background:none;color:var(--c700);
+ font-family:var(--sans);font-size:var(--fs-nav);font-weight:400;line-height:var(--lh-flat);
+ cursor:pointer;text-align:left;transition:color var(--hover-out-dur) var(--ease-out),
+  background-color var(--hover-out-dur) var(--ease-out),font-weight var(--hover-out-dur) var(--ease-out)}
+.heroMood .moodItem:hover,.heroMood .moodItem:focus-visible{color:var(--c950);
+ background:var(--wash-1);font-weight:600}
+.heroMood .moodIco{width:var(--ico-md)!important;height:var(--ico-md)!important;
+ flex:0 0 var(--ico-md)!important;margin:0!important;transform:none!important}
+.hero .stagewrap{order:4;width:min(clamp(360px,calc((100svh - 300px) * .9),560px),55vw);
+ height:auto;aspect-ratio:1 / .97;margin:var(--sp-8-16) auto 0;z-index:2}
+.workCta:active,.heroMood .moodBtn:active{transform:scale(var(--press-scale))}
+.workCta:focus-visible,.heroMood .moodBtn:focus-visible,.heroMood .moodItem:focus-visible{
+ outline:var(--focus-w) solid var(--c950);outline-offset:var(--sp-2)}
+@media(max-width:760px){
+ .hero{min-height:calc(100svh - 84px);padding:var(--sp-20) var(--sp-12) 0;border-radius:var(--r-lg)}
+ .heroCopy h1{font-size:var(--fs-heroline);max-width:12.5em}
+ .heroCtas{margin-top:var(--sp-14)}
+ .workCta,.heroMood .moodBtn{height:var(--tap-min);padding-inline:var(--sp-14)}
+ .heroMood .moodMenu{left:auto;right:0;width:min(var(--menu-w),calc(100vw - var(--sp-48)))}
+ .hero .stagewrap{width:min(88vw,calc((100svh - 300px) * .86),430px);
+  margin-top:var(--sp-8)}
+ .heroAura{top:62%;width:124%;height:64%}
+}
+@media(max-height:720px) and (min-width:761px){
+ .hero{padding-top:var(--sp-16)}
+ .heroCopy h1{font-size:clamp(30px,3.2vw,36px)}
+ .heroCtas{margin-top:var(--sp-12)}
+ .hero .stagewrap{width:min(390px,44vw);margin-top:var(--sp-6)}
+}
+@media(prefers-reduced-motion:reduce){
+ .heroAura,.heroMood .moodMenu,.heroMood .moodCar,.heroCtas>*{transition:none!important;animation:none!important}
+}
 </style>
 <link rel="stylesheet" href="header.css">
 <script>/* THE OLD OVERLAY'S URL STILL RESOLVES. index.html#about was the only address
@@ -1472,10 +1564,7 @@ if(location.hash==="#about")location.replace("about.html");</script>
         saved heads / Show on home, all four keeping the ids their scripts bind by. It is
         header.css's .jbDiscMenu now, the same panel Contact opens at the other end of the
         bar, so the two read as one system rather than as two different popups. -->
-   <span class="jbDisc jbPlay" id="jbPlay">
-    <a class="jbDiscGo" data-nav-item="games" href="play.html" aria-label="Play" aria-haspopup="true" aria-expanded="false" aria-controls="moodbar"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 6m0 2a2 2 0 0 1 2 -2h16a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-16a2 2 0 0 1 -2 -2z"/><path d="M6 12h4m-2 -2v4"/><path d="M15 11l0 .01"/><path d="M18 13l0 .01"/></svg><span class="jbLbl">Play</span></a>
-    <div class="jbDiscMenu jbPlayMenu" id="moodbar"><a class="jbDiscTouch" href="play.html"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 6m0 2a2 2 0 0 1 2 -2h16a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-16a2 2 0 0 1 -2 -2z"/><path d="M6 12h4m-2 -2v4"/><path d="M15 11l0 .01"/><path d="M18 13l0 .01"/></svg>Play</a><div class="jbDiscSep jbDiscTouch" aria-hidden="true"></div><div class="jbDiscGrp" id="moodMenu"><button class="moodItem" type="button" data-mood="empathy"><span class="moodIco camDot" aria-hidden="true"></span>Empathy</button><button class="moodItem" type="button" data-mood="hunger"><span class="moodIco cookieDot" aria-hidden="true"></span>Hunger</button><button class="moodItem" type="button" data-mood="delight"><span class="moodIco discoDot" aria-hidden="true"></span>Delight</button><button class="moodItem" type="button" data-mood="love"><span class="moodIco heartDot" aria-hidden="true"></span>Love</button></div><div class="jbDiscSep" aria-hidden="true"></div><a href="headmaker.html"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0"/> <path d="M16 19h6"/> <path d="M19 16v6"/> <path d="M6 21v-2a4 4 0 0 1 4 -4h4"/></svg>Add your head</a><button id="addPlaceholder" type="button" aria-label="Add an egghead — a silly egg in a fresh colour"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 14.083c0 4.154 -2.966 6.74 -7 6.917c-4.2 0 -7 -2.763 -7 -6.917c0 -5.538 3.5 -11.09 7 -11.083c3.5 .007 7 5.545 7 11.083"/></svg>Add an egghead</button><div class="mhHead"><span class="mhTitle" id="mhTitle">Your heads</span><button class="mhEdit" id="mhEdit" type="button" aria-pressed="false" aria-controls="moodHeads" hidden>Edit</button></div><div class="moodHeads" id="moodHeads" role="group" aria-labelledby="mhTitle" data-editing="false"></div><div class="mhBar" id="mhBar" hidden><button class="mhToggle" id="headsToggle" type="button" role="switch" aria-checked="true"><span class="mhTrack" aria-hidden="true"><span class="mhKnob"></span></span><span class="mhTxt">Show on home</span></button></div></div>
-   </span>
+   <a data-nav-item="games" href="play.html" aria-label="Play"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 6m0 2a2 2 0 0 1 2 -2h16a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-16a2 2 0 0 1 -2 -2z"/><path d="M6 12h4m-2 -2v4"/><path d="M15 11l0 .01"/><path d="M18 13l0 .01"/></svg><span class="jbLbl">Play</span></a>
   </span>
   <span class="jbGrp jbGrpR">
    <!-- CONTACT -- the same split control as Play, at the other end of the bar
@@ -1494,7 +1583,8 @@ if(location.hash==="#about")location.replace("about.html");</script>
 </div>
 <div class="wrap">
  <section class="hero" id="main" tabindex="-1">
-  <div class="heroCopy"><h1 id="h1"></h1><p class="sub" id="sub"></p><div class="heroCtas"><button class="workCta" id="workBtn" type="button">View my work</button></div></div>
+  <div class="heroAura" aria-hidden="true"></div>
+  <div class="heroCopy"><h1 id="h1"></h1><p class="sub" id="sub"></p><div class="heroCtas"><a class="workCta" id="workBtn" href="#cases"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.5-6 9.5-6s9.5 6 9.5 6s-3.5 6-9.5 6s-9.5-6-9.5-6z"/><circle cx="12" cy="12" r="2.5"/></svg><span>View work</span></a><div class="heroMood moodbar" id="moodbar"><button class="moodBtn" id="moodBtn" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="moodMenu"><svg class="moodFaceIco" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8.5 10h.01M15.5 10h.01M8.5 15c1.8 1.4 5.2 1.4 7 0"/></svg><span class="moodLbl">Mood</span><svg class="moodCar" viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4"/></svg></button><div class="moodMenu" id="moodMenu" role="menu" aria-label="Choose a mood"><button class="moodItem" type="button" role="menuitem" data-mood="empathy"><span class="moodIco camDot" aria-hidden="true"></span>Empathy</button><button class="moodItem" type="button" role="menuitem" data-mood="hunger"><span class="moodIco cookieDot" aria-hidden="true"></span>Hunger</button><button class="moodItem" type="button" role="menuitem" data-mood="delight"><span class="moodIco discoDot" aria-hidden="true"></span>Delight</button><button class="moodItem" type="button" role="menuitem" data-mood="love"><span class="moodIco heartDot" aria-hidden="true"></span>Love</button></div></div></div></div>
   <a class="scrollCue" id="scrollCue" href="#cases" aria-label="Scroll to my work"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" aria-hidden="true"><path d="M6 9.5L12 15.5L18 9.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a><div class="stagewrap"><div class="queueDots" id="qdots" role="status" aria-live="polite"><span class="qsr"></span><i></i><i></i><i></i></div><div id="stageMorph"><div class="floorshadow" id="fsh"></div><div class="stage" id="stage"><img class="face" id="face" alt="Jayden" draggable="false"><img class="tongue" id="tongue" src="images/tongue.webp" alt="" aria-hidden="true">
 <svg class="glasses" id="glasses" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><defs><pattern id="glCard" patternUnits="userSpaceOnUse" width="100" height="100"><image href="images/glass_frame_tex.webp" x="0" y="0" width="100" height="100" preserveAspectRatio="xMidYMid slice"/></pattern><linearGradient id="glSheen" x1="0" y1="0" x2="0.62" y2="1"><stop offset="0" stop-color="#fff" stop-opacity="0.5"/><stop offset="0.4" stop-color="#fff" stop-opacity="0.06"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient><mask id="glMask" maskUnits="userSpaceOnUse" x="0" y="0" width="100" height="100"><rect x="28" y="45.3" width="44" height="13.2" rx="2.4" fill="#fff"/><polygon points="28,47.2 26,48 26,50.4 28,51.2" fill="#fff"/><polygon points="72,47.2 74,48 74,50.4 72,51.2" fill="#fff"/><rect x="32.5" y="47.3" width="13" height="9.2" rx="1.8" fill="#000"/><rect x="54.5" y="47.3" width="13" height="9.2" rx="1.8" fill="#000"/><path d="M46.7 58.6 Q50 54.3 53.3 58.6 Z" fill="#000"/></mask></defs><rect class="gl-red" x="32.5" y="47.3" width="13" height="9.2" rx="1.8"/><rect class="gl-cyan" x="54.5" y="47.3" width="13" height="9.2" rx="1.8"/><rect class="gl-plast" x="32.5" y="47.3" width="13" height="9.2" rx="1.8" fill="url(#glSheen)"/><rect class="gl-plast" x="54.5" y="47.3" width="13" height="9.2" rx="1.8" fill="url(#glSheen)"/><rect x="0" y="0" width="100" height="100" fill="url(#glCard)" mask="url(#glMask)"/></svg></div></div>
 </div>
@@ -1620,7 +1710,7 @@ if(location.hash==="#about")location.replace("about.html");</script>
       to this later". The nav status item the research recommended is NOT built; --accent-live
       exists for it whenever he wants it. -->
  <footer class="siteFoot" id="contact" role="contentinfo">
-  <p class="footReach">Thanks for checking out my website &mdash; I&rsquo;m open to full-time roles and would love to chat. Find me on <a class="footIn" href="https://www.linkedin.com/in/jaydenbetts" target="_blank" rel="noopener noreferrer">LinkedIn</a>, <a class="footIn" href="https://www.instagram.com/jaydenleebetts" target="_blank" rel="noopener noreferrer">Instagram</a>, or <a class="footIn" href="mailto:jaydenlbetts@gmail.com">email</a>.</p>
+  <p class="footReach">I&rsquo;m open to full-time roles and would love to chat. Find me on <a class="footIn" href="https://www.linkedin.com/in/jaydenbetts" target="_blank" rel="noopener noreferrer">LinkedIn</a>, <a class="footIn" href="https://www.instagram.com/jaydenleebetts" target="_blank" rel="noopener noreferrer">Instagram</a>, or <a class="footIn" href="mailto:jaydenlbetts@gmail.com">email</a>.</p>
   <div class="footMark" aria-hidden="true">Jayden Betts</div>
  </footer>
 <div class="reelOverlay" id="reelOverlay" aria-hidden="true"><button class="reelClose" id="reelClose" type="button" aria-label="Close trailer">Close</button><video class="reelOverlayVid" id="reelOverlayVid" controls playsinline preload="metadata" poster="images/reel_poster.webp"><source src="videos/reel.mp4" type="video/mp4"></video></div>

@@ -1295,7 +1295,7 @@ logo.addEventListener("mouseleave",()=>{if(eventLock||CALIB)return;if(activeHove
 logo.addEventListener("click",()=>{
  if(CALIB||eventLock||dizzy||reactType)return;clearHold();activeHover=null;startReact("talk");});  // on home, click the name -> he introduces himself
 }
-var _wbtn=document.getElementById("workBtn");if(_wbtn)_wbtn.addEventListener("click",function(){if(window.__softScroll)window.__softScroll(document.getElementById("cases"));});
+var _wbtn=document.getElementById("workBtn");if(_wbtn)_wbtn.addEventListener("click",function(e){if(window.__softScroll){e.preventDefault();window.__softScroll(document.getElementById("cases"));}});
 /* The browser's behaviour:"smooth" is a fixed aggressive curve -- over a long page it reads
    as a lurch. This eases in and out, and scales its duration with the distance travelled but
    NOT proportionally (Carbon's rule): a short hop stays quick, a long one never drags. */
@@ -1604,7 +1604,7 @@ if(!HEADONLY){stage.style.opacity="0";requestAnimationFrame(function(){requestAn
      header.css:414 anchors it to the right edge below 640px, and .jbDiscMenu's
      own max-height:var(--menu-max-h) + overflow-y:auto caps its height. One owner
      for the panel's box, and it is the stylesheet. */
-  function closeM(){bar.classList.remove("open");if(btn)btn.setAttribute("aria-expanded","false");try{var c=bar.parentElement;if(c)c.style.zIndex="";}catch(_){}setChevron();}
+  function closeM(restoreFocus){bar.classList.remove("open");if(btn){btn.setAttribute("aria-expanded","false");if(restoreFocus)btn.focus();}try{var c=bar.parentElement;if(c)c.style.zIndex="";}catch(_){}}
   // OPEN ON HOVER (pointer devices only). A menu that only opens on click makes you commit
   // before you can see what is in it; hovering to reveal is the whole feel Jayden is after.
   // Touch keeps click -- a hover that fires on tap would open and close in the same gesture.
@@ -1613,34 +1613,19 @@ if(!HEADONLY){stage.style.opacity="0";requestAnimationFrame(function(){requestAn
    var hideT=0;
    function over(){ clearTimeout(hideT); if(!bar.classList.contains("open")&&typeof openM==="function")openM(); }
    function out(){ clearTimeout(hideT); hideT=setTimeout(function(){
-     if(!bar.matches(":hover"))closeM(); },260); }
+     if(!bar.matches(":hover"))closeM(false); },260); }
    bar.addEventListener("mouseenter",over);
    bar.addEventListener("mouseleave",out);
   })();
-  function setChevron(){ // caret points toward where the menu will open when closed, and flips to point back when open
-   var car=btn&&btn.querySelector(".moodCar");if(!car)return;
-   var open=bar.classList.contains("open");
-   /* HEADER V2: Play is a split control in the top bar and its menu always drops
-      DOWN, so the caret is the chevron as drawn when closed and flipped when
-      open -- the same convention .jbDiscCar uses for Contact at the other end of
-      the bar. The old rule pointed it toward where the menu WOULD open, which
-      was right for a dock under the head opening upward and is backwards here:
-      it rendered a down-chevron rotated 180 while the menu was shut. */
-   var deg=open?180:0;
-   car.style.setProperty("transition","transform .32s cubic-bezier(.34,1.4,.5,1), color .2s cubic-bezier(.2,.8,.2,1)","important");
-   car.style.setProperty("transform","rotate("+deg+"deg)","important");
-  }
-  function openM(){bar.classList.add("open");requestAnimationFrame(function(){try{window.__syncMoodSeps&&window.__syncMoodSeps();}catch(_){}});if(btn)btn.setAttribute("aria-expanded","true");try{var c=bar.parentElement;if(c)c.style.zIndex="70";}catch(_){}setChevron();}
-  setChevron(); // point the caret correctly at rest (down on mobile where the menu drops, up on desktop where it lifts)
-  window.addEventListener("resize",function(){if(!bar.classList.contains("open"))setChevron();},{passive:true});
+  function openM(){bar.classList.add("open");requestAnimationFrame(function(){try{window.__syncMoodSeps&&window.__syncMoodSeps();}catch(_){}});if(btn)btn.setAttribute("aria-expanded","true");try{var c=bar.parentElement;if(c)c.style.zIndex="70";}catch(_){}}
   if(btn)btn.addEventListener("click",function(e){e.stopPropagation();
    // Play is closed off while a tournament is live -- starting a second game from in here
    // would abandon the draw halfway through. The reason is on the button, not in an alert.
-   if(document.body.classList.contains("hmTour")){closeM();return;}
-   bar.classList.contains("open")?closeM():openM();});
-  if(menu)menu.addEventListener("click",function(e){var it=e.target.closest(".moodItem");if(!it)return;var mood=it.getAttribute("data-mood");closeM();if(document.body.classList.contains("hmBattle")||document.body.classList.contains("hmSoccer")||document.body.classList.contains("hmRace"))return;if(mood==="identity"){location.href="about.html";return;}/* About is a page now, not an overlay. NOT a // comment: this is one minified line and a line comment would swallow the rest of it. */var fn=MAP[mood];if(typeof fn!=="function")return;var now=!busyNow();runOrQueue(fn);if(now)moodHoldWord(IDX[mood]);});
-  document.addEventListener("click",function(e){if(bar.classList.contains("open")&&!bar.contains(e.target))closeM();});
-  document.addEventListener("keydown",function(e){if(e.key==="Escape")closeM();});
+   if(document.body.classList.contains("hmTour")){closeM(false);return;}
+   bar.classList.contains("open")?closeM(false):openM();});
+  if(menu)menu.addEventListener("click",function(e){var it=e.target.closest(".moodItem");if(!it)return;var mood=it.getAttribute("data-mood");closeM(false);if(document.body.classList.contains("hmBattle")||document.body.classList.contains("hmSoccer")||document.body.classList.contains("hmRace"))return;if(mood==="identity"){location.href="about.html";return;}/* About is a page now, not an overlay. NOT a // comment: this is one minified line and a line comment would swallow the rest of it. */var fn=MAP[mood];if(typeof fn!=="function")return;var now=!busyNow();runOrQueue(fn);if(now)moodHoldWord(IDX[mood]);});
+  document.addEventListener("click",function(e){if(bar.classList.contains("open")&&!bar.contains(e.target))closeM(false);});
+  document.addEventListener("keydown",function(e){if(e.key==="Escape"&&bar.classList.contains("open")){e.stopPropagation();closeM(true);}});
 
  })();
 })();
