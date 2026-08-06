@@ -137,7 +137,7 @@ function makeHarness(options={}){
   role:"menuitemradio","aria-checked":mode===initial.mode?"true":"false","data-time-mode":mode
  }));
  const byId={heroTime:control,heroTimeBtn:button,heroTimeMenu:menu,heroTimeIcon:icon,
-  heroTimeAutoState:autoState,heroTimeSpill:spill,face,heroTimePortraitCast:portrait};
+  heroTimeSpill:spill,face,heroTimePortraitCast:portrait};
  document=eventTarget({
   documentElement:root,
   activeElement:null,
@@ -225,7 +225,7 @@ test("Home renders the shared initial snapshot without storage clock or timer ow
  assert.equal(h.hero.getAttribute("data-time-mode"),"night");
  assert.equal(h.hero.getAttribute("data-time-state"),"night");
  assert.equal(h.icon.getAttribute("data-icon"),"night");
- assert.equal(h.autoState.textContent,"· Night");
+ assert.equal(h.autoState.textContent,"");
  assert.equal(h.menu.children.find(item=>item.getAttribute("data-time-mode")==="night").getAttribute("aria-checked"),"true");
 });
 

@@ -60,8 +60,8 @@ def run_viewport(browser, base_url, label, width, height):
         """
     )
     assert top["nav"] == "rgba(0, 0, 0, 0)", top
-    assert rgba_tuple(top["mood"]) == rgba_tuple(top["hero"]), top
-    assert rgba_tuple(top["time"]) == rgba_tuple(top["hero"]), top
+    assert top["mood"] == "rgba(0, 0, 0, 0)", top
+    assert top["time"] == "rgba(0, 0, 0, 0)", top
     assert rgba_tuple(top["cta"]) != rgba_tuple(top["hero"]), top
     assert top["overflow"] <= 0, top
     assert not top["shrunk"], top

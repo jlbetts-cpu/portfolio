@@ -11,7 +11,7 @@
  --time-primary-bg:var(--c950);
  --time-primary-ink:var(--c50);
  --time-primary-hover-bg:var(--c900);
- --time-secondary-bg:var(--mat-2);
+ --time-secondary-bg:transparent;
  --time-secondary-ink:var(--c950);
  --time-secondary-hover-bg:var(--mat-3-solid);
  --time-secondary-border:var(--c100);
@@ -48,7 +48,7 @@
  --time-primary-bg:var(--c950);
  --time-primary-ink:var(--c50);
  --time-primary-hover-bg:var(--c900);
- --time-secondary-bg:var(--mat-2);
+ --time-secondary-bg:transparent;
  --time-secondary-ink:var(--c950);
  --time-secondary-hover-bg:var(--mat-3-solid);
  --time-secondary-border:var(--c100);
@@ -76,7 +76,7 @@
  --time-primary-bg:var(--c950);
  --time-primary-ink:var(--c50);
  --time-primary-hover-bg:var(--c900);
- --time-secondary-bg:var(--mat-2);
+ --time-secondary-bg:transparent;
  --time-secondary-ink:var(--c950);
  --time-secondary-hover-bg:var(--mat-3-solid);
  --time-secondary-border:var(--c100);
@@ -104,7 +104,7 @@
  --time-primary-bg:var(--c950);
  --time-primary-ink:var(--c50);
  --time-primary-hover-bg:var(--c900);
- --time-secondary-bg:var(--mat-2);
+ --time-secondary-bg:transparent;
  --time-secondary-ink:var(--c950);
  --time-secondary-hover-bg:var(--mat-3-solid);
  --time-secondary-border:var(--c100);
@@ -132,7 +132,7 @@
  --time-primary-bg:var(--c950);
  --time-primary-ink:var(--c50);
  --time-primary-hover-bg:var(--c900);
- --time-secondary-bg:var(--mat-2);
+ --time-secondary-bg:transparent;
  --time-secondary-ink:var(--c950);
  --time-secondary-hover-bg:var(--mat-3-solid);
  --time-secondary-border:var(--c100);
@@ -160,7 +160,7 @@
  --time-primary-bg:var(--c950);
  --time-primary-ink:var(--c50);
  --time-primary-hover-bg:var(--c900);
- --time-secondary-bg:var(--mat-2);
+ --time-secondary-bg:transparent;
  --time-secondary-ink:var(--c950);
  --time-secondary-hover-bg:var(--mat-3-solid);
  --time-secondary-border:var(--c100);
@@ -188,7 +188,7 @@
  --time-primary-bg:var(--c950);
  --time-primary-ink:var(--c50);
  --time-primary-hover-bg:var(--c900);
- --time-secondary-bg:var(--mat-2);
+ --time-secondary-bg:transparent;
  --time-secondary-ink:var(--c950);
  --time-secondary-hover-bg:var(--mat-3-solid);
  --time-secondary-border:var(--c100);
@@ -216,7 +216,7 @@
  --time-primary-bg:var(--c50);
  --time-primary-ink:var(--c950);
  --time-primary-hover-bg:var(--c100);
- --time-secondary-bg:var(--time-base);
+ --time-secondary-bg:transparent;
  --time-secondary-ink:var(--c50);
  --time-secondary-hover-bg:rgba(11,12,15,.74);
  --time-secondary-border:rgba(244,245,247,.28);

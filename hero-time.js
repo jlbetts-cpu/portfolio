@@ -8,11 +8,10 @@
  var button=document.getElementById("heroTimeBtn");
  var menu=document.getElementById("heroTimeMenu");
  var icon=document.getElementById("heroTimeIcon");
- var autoState=document.getElementById("heroTimeAutoState");
  var spill=document.getElementById("heroTimeSpill");
  var face=document.getElementById("face");
  var portrait=document.getElementById("heroTimePortraitCast");
- if(!siteTheme||!root||!hero||!control||!button||!menu||!icon||!autoState||!spill||!face||!portrait)return;
+ if(!siteTheme||!root||!hero||!control||!button||!menu||!icon||!spill||!face||!portrait)return;
 
  var items=[].slice.call(menu.querySelectorAll('[role="menuitemradio"]'));
  var gradients=[].slice.call(hero.querySelectorAll(".heroTimeGradient"));
@@ -21,10 +20,6 @@
  var destroyed=false;
  var unsubscribe=function(){};
  var portraitObserver=null;
-
- function stateLabel(value){
-  return value.charAt(0).toUpperCase()+value.slice(1);
- }
 
  function prefersReducedMotion(){
   return root.getAttribute("data-reduced-motion")==="reduce";
@@ -138,7 +133,6 @@
    item.setAttribute("aria-checked",item.getAttribute("data-time-mode")===snapshot.mode?"true":"false");
   });
   icon.setAttribute("data-icon",snapshot.state);
-  autoState.textContent="\u00b7 "+stateLabel(snapshot.state);
   transitionScene(from,snapshot.state,initial);
  }
 

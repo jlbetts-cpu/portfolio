@@ -49,12 +49,12 @@ for prepaint_contract in (
     "data-theme-state",
     "data-reduced-motion",
     "heroTimeIcon",
-    "heroTimeAutoState",
     "menuitemradio",
     "aria-checked",
 ):
     assert prepaint_contract in prepaint.group(1), prepaint_contract
-assert html.index('id="heroTimeAutoState"') < html.index('id="heroTimePrepaint"') < html.index('class="stagewrap"')
+assert "heroTimeAutoState" not in html
+assert "heroTimeAutoState" not in time_controller
 assert html.index('href="header.css"') < html.index('href="hero-time.css"')
 assert 'src="fluid-mesh.js"' not in html, "FluidMesh belongs to Gradient Maker, not the Hero"
 assert html.index('src="hero-time-presets.js"') < html.index('src="hero-engine.js"')
@@ -188,6 +188,10 @@ for gradient_contract in ("position:absolute", "inset:0", "opacity:0", "filter:n
 assert "transition:opacity" not in gradient_rule.group(0)
 hero_rule = re.search(r'\.hero\s*\{.*?\}', time_css, re.S)
 assert hero_rule and "background-color:var(--time-base)" in hero_rule.group(0)
+assert "--time-secondary-bg:transparent" in hero_rule.group(0)
+for transparent_state in ("off", "pre-dawn", "sunrise", "daytime", "dusk", "sunset", "night"):
+    state_material = re.search(rf'\.hero\[data-time-state="{transparent_state}"\]\s*\{{(.*?)\}}', time_css, re.S)
+    assert state_material and "--time-secondary-bg:transparent" in state_material.group(1), transparent_state
 assert "transition:background-color var(--hero-time-duration) var(--hero-time-ease)" in hero_rule.group(0)
 assert "overflow:visible" in hero_rule.group(0), "the clipped gradient child, not the hero, must own overflow"
 spill_rule = re.search(r'\.heroTimeSpill\s*\{.*?\}', time_css, re.S)
@@ -373,7 +377,7 @@ night_state = re.search(r'\.hero\[data-time-state="night"\]\s*\{(.*?)\}', time_c
 assert night_state
 for material_contract in (
     "--time-primary-bg:var(--c50)",
-    "--time-secondary-bg:var(--time-base)",
+    "--time-secondary-bg:transparent",
     "--time-secondary-hover-bg:rgba(11,12,15,.74)",
     "--time-secondary-border:rgba(244,245,247,.28)",
     "--time-secondary-hover-border:rgba(244,245,247,.42)",

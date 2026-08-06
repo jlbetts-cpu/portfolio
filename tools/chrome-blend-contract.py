@@ -36,10 +36,10 @@ assert "backdrop-filter" not in home_dark_nav
 home_dark_scrolled = rule(hero_time, ':root[data-theme="dark"].jbShrunk .jbNav')
 assert "--nav-mat:var(--theme-page)" in home_dark_scrolled
 
-# Mood and Time rest on the exact Night Hero base. Their hover/open state may
+# Mood and Time reveal the exact scene beneath them. Their hover/open state may
 # lift, and View work remains the distinct primary action.
 night = rule(hero_time, '.hero[data-time-state="night"]')
-assert "--time-secondary-bg:var(--time-base)" in night
+assert "--time-secondary-bg:transparent" in night
 assert "--time-primary-bg:var(--c50)" in night
 
 assert not re.search(
