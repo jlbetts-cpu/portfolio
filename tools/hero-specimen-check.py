@@ -11,8 +11,22 @@ time_controller_path = Path("hero-time.js")
 assert time_controller_path.exists(), "hero time controller must exist"
 time_controller = time_controller_path.read_text(encoding="utf-8")
 
+for lifecycle_contract in (
+    "new FluidMesh",
+    "IntersectionObserver",
+    "requestAnimationFrame",
+    ".pause()",
+    ".resume()",
+    ".renderOnce()",
+    "prefers-reduced-motion",
+    "timeFallback",
+):
+    assert lifecycle_contract in time_controller, lifecycle_contract
+assert re.search(r'TRANSITION_DURATION\s*=\s*800', time_controller), "800 ms retargetable transition"
+
 assert '<link rel="stylesheet" href="hero-time.css">' in html
 for node_id in (
+    "heroTimeScene",
     "heroTimeCanvas",
     "heroTimeBloom",
     "heroTimeBtn",
@@ -29,6 +43,9 @@ assert html.index('href="header.css"') < html.index('href="hero-time.css"')
 assert html.index('src="fluid-mesh.js"') < html.index('src="hero-time-presets.js"') < html.index('src="hero-engine.js"')
 assert html.index('src="hero-engine.js"') < html.index('src="hero-time.js"')
 assert re.search(r'<script src="hero-engine\.js"></script>\s*<script src="hero-time\.js"></script>', html)
+scene_markup = re.search(r'<div[^>]+id="heroTimeScene"[^>]*>.*?</div>\s*</div>', html, re.S)
+assert scene_markup, "time scene must be a page-level sibling spanning the separate specimens"
+assert scene_markup.group(0).index('id="heroTimeCanvas"') < scene_markup.group(0).index('id="heroTimeBloom"')
 
 for controller_contract in (
     "jbHeroTimeMode",
@@ -68,6 +85,30 @@ rim_z = re.search(r'z-index:(\d+)', rim_overlay.group(0))
 assert rim_z and int(rim_z.group(1)) > 1
 assert re.search(r'\.heroTimeCanvas\s*\{[^}]*z-index:0', time_css, re.S)
 assert re.search(r'\.heroTimeBloom\s*\{[^}]*z-index:1', time_css, re.S)
+canvas_rule = re.search(r'\.heroTimeCanvas\s*\{.*?\}', time_css, re.S)
+assert canvas_rule and "opacity:0" in canvas_rule.group(0) and "visibility:hidden" in canvas_rule.group(0)
+assert ".heroTimeScene::after" not in time_css, "active scene cannot expose contour seams"
+assert re.search(
+    r'body\[data-time-state\]:not\(\[data-time-state="off"\]\) \.hero\s*\{[^}]*background:var\(--time-fallback\)',
+    time_css,
+    re.S,
+), "primary half-circle must clip inside the outlined hero"
+assert 'body[data-time-state]:not([data-time-state="off"]) .jbNav' not in time_css
+assert re.search(r'body\[data-time-state\] \.heroAura\s*\{[^}]*display:none', time_css, re.S)
+scene_rule = re.search(r'\.heroTimeScene\s*\{.*?\}', time_css, re.S)
+assert scene_rule and "position:absolute" in scene_rule.group(0)
+assert "z-index:60" in scene_rule.group(0)
+assert re.search(
+    r'body\[data-time-state="off"\].*?\.heroAura.*?display:none',
+    time_css,
+    re.S,
+), "Off must hard-hide the page scene and original hero aura"
+for off_layer in ("heroTimeScene", "heroTimeCanvas", "heroTimeBloom", "heroAura", "heroTimePortraitCast"):
+    assert re.search(
+        rf'body\[data-time-state="off"\] \.{off_layer}(?:,|\s*\{{).*?\{{[^}}]*display:none',
+        time_css,
+        re.S,
+    ), off_layer
 
 menu_rule = re.search(r'\.heroTimeMenu\s*\{.*?\}', time_css, re.S)
 assert menu_rule and "right:0" in menu_rule.group(0)
@@ -85,19 +126,22 @@ assert re.search(
 )
 forced_colors = re.search(r'@media\(forced-colors:active\)\s*\{(.*)\n\}', time_css, re.S)
 assert forced_colors
+assert ".heroTimeScene" in forced_colors.group(1), "forced colors must remove the whole decorative scene"
 assert re.search(r'\.hero::after\s*\{[^}]*border:var\(--hair-w\) solid CanvasText;[^}]*box-shadow:none', forced_colors.group(1), re.S)
+
+portrait_rules = re.findall(r'\.heroTimePortraitCast\s*\{.*?\}', time_css, re.S)
+portrait_shell = next((rule for rule in portrait_rules if "position:absolute" in rule), None)
+assert portrait_shell
+for hidden_cast_contract in ("display:none", "visibility:hidden", "opacity:0", "background:none", "border:0", "outline:0"):
+    assert hidden_cast_contract in portrait_shell, hidden_cast_contract
 
 for state in ("pre-dawn", "sunrise", "daytime", "dusk", "sunset", "night"):
     state_rule = re.search(rf'\.hero\[data-time-state="{state}"\]\s*\{{.*?\n\}}', time_css, re.S)
     assert state_rule, state
     fallback = re.search(r'--time-fallback:(.*?);', state_rule.group(0), re.S)
     assert fallback, state
-    arcs = re.findall(
-        r'radial-gradient\(ellipse\s+(\d+)%\s+\d+%\s+at\s+\d+%\s+(\d+)%',
-        fallback.group(1),
-    )
-    assert len(arcs) >= 3, state
-    assert all(int(width) >= 80 and int(origin_y) > 100 for width, origin_y in arcs), state
+    assert fallback.group(1).count("radial-gradient(") == 1, state
+    assert "radial-gradient(circle var(--time-orb-radius) at 50% var(--time-orb-y)" in fallback.group(1), state
 
 assert 'class="jbDisc jbPlay"' not in html
 assert re.search(r'<a[^>]+data-nav-item="games"[^>]+href="play\.html"', html)
