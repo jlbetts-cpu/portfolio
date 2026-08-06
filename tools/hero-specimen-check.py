@@ -46,6 +46,8 @@ assert "@media(max-width:880px)" in html
 assert re.search(r'@media\(max-width:880px\).*?\.hero\s*\{[^}]*min-height:auto', html, re.S)
 assert re.search(r'@media\(max-height:720px\).*?\.hero \.stagewrap\{[^}]*470px', html, re.S)
 assert re.search(r'\.hero \.stagewrap\s*\{[^}]*620px', html, re.S)
+assert re.search(r'\.heroMood \.moodLbl\s*\{[^}]*font:\s*inherit', html, re.S)
+assert re.search(r'#loveScene\s*\{[^}]*z-index:\s*64', html, re.S)
 assert re.search(r'@media\(max-width:760px\).*?\.cases\s*\{[^}]*margin-top:var\(--sp-16\)', html, re.S)
 assert re.search(r'\.csTabs::before\s*\{[^}]*inset-inline:var\(--case-inset\)', html, re.S)
 
@@ -60,5 +62,19 @@ assert 'btn.focus()' in engine
 assert 'e.key==="Escape"' in engine
 assert 'bar.contains(e.target)' in engine
 assert 'var MAP={empathy:startRain,hunger:moodEat,delight:startParty,love:startLove}' in engine
+
+# Case-study covers reuse the reel's single popcorn/glasses performance. Keep
+# the glasses transition inside movie mode so every trigger gets the complete
+# animation, and never leave the old smile hover state behind after cleanup.
+assert re.search(r"function glassesOn\(\).*?classList\.add\(\"on\"\)", engine, re.S)
+start_movie = re.search(r"function startMovie\(word\)\s*\{.*?\n\}", engine, re.S)
+assert start_movie and "glassesOn();" in start_movie.group(0)
+assert "function glOn()" not in engine
+
+case_enter = re.search(r"function enter\(f,e\)\{.*?\}\s*// project cards", html, re.S)
+assert case_enter and "startMovie(csw)" in case_enter.group(0)
+assert 'activeHover="smile"' not in case_enter.group(0)
+case_leave = re.search(r"function leave\(f\)\{.*?\}\n", html, re.S)
+assert case_leave and "caughtMovie()" in case_leave.group(0)
 
 print("hero specimen structure: OK")

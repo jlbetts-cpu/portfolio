@@ -426,6 +426,14 @@ body{background:var(--c50);color:var(--c950);font-family:var(--sans);-webkit-fon
    no consumer on any of the seven pages that carried it. */
 .footMark{font-family:var(--sans);font-weight:600;font-size:min(var(--fs-display),13vw);line-height:.9;letter-spacing:var(--tr-display);color:var(--c100);margin:var(--sp-8-16) 0 0;white-space:nowrap;-webkit-user-select:none;user-select:none}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+
+/* The gallery frame owns the desktop rim; each flowing photo owns it on mobile. */
+.abStack{box-shadow:var(--rim-3)}
+@media(max-width:760px){
+ .wrap{padding-inline:16px}
+ .abStack{box-shadow:none}
+ .abShot img{border-radius:var(--r-lg);corner-shape:var(--corner);box-shadow:var(--rim-3)}
+}
 </style>
 <link rel="stylesheet" href="header.css">
 <script src="header.js" defer></script>

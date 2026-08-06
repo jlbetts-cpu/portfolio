@@ -1028,21 +1028,9 @@ function attachIdentity(wordEl){
 var RAIN_PHOTOS=["rain01.webp","rain02.webp","rain03.webp","rain04.webp","rain05.webp","rain06.webp","rain07.webp","rain08.webp","rain09.webp","rain10.webp","rain11.webp","rain12.webp","rain13.webp","rain14.webp","rain15.webp","rain16.webp","rain17.webp","rain18.webp"];
 /* ===== popcorn movie-watching mode (triggered by reel hover, alongside the 3D glasses) ===== */
 var movieMode=false,movieTk0=0,movieEnding=false,movieEndTk=0,bucketEl=null,kernelEls=[],popcrumbEls=[],movieHair=false,hairTk0=0,MOVCYCLE=18;
+function glassesOn(){var g=document.getElementById("glasses");if(g){g.classList.remove("off");g.classList.add("on");}}
 function glassesOff(){var g=document.getElementById("glasses");if(g){g.classList.remove("on");g.classList.add("off");}}
 function makePlainCycWord(text){var w=document.createElement("span");w.className="cycw";var joy=/\.\.$/.test(text);var body=joy?text.slice(0,-2):text;var arr=[...body];arr.forEach(function(ch,ci){var sp=document.createElement("span");var isDot=(!joy&&ch==="."&&ci===arr.length-1);var cls=isDot?"bounceDot":"in";sp.className="cyc-ch "+cls;sp.textContent=ch;sp.style.animationDelay=(ci*CYC_STAG).toFixed(3)+"s";sp.addEventListener("animationend",function(){sp.classList.remove(cls);},{once:true});w.appendChild(sp);});if(joy){var jd=document.createElement("span");jd.className="cyc-ch joyDot in";jd.setAttribute("aria-hidden","true");jd.innerHTML='<svg class="joySvg" viewBox="0 0 30 26" xmlns="http://www.w3.org/2000/svg"><circle class="joyEye" cx="10" cy="11" r="2.3"/><circle class="joyEye" cx="20" cy="11" r="2.3"/><path class="joySmile" pathLength="1" d="M7 16 Q15 23 23 16"/></svg>';jd.style.animationDelay=(arr.length*CYC_STAG).toFixed(3)+"s";jd.addEventListener("animationend",function(e){if(e.animationName==="cycIn")jd.classList.remove("in");});w.appendChild(jd);}return w;}
-/* lightweight hover word-swap for project cards: the same cycler-word animation the reel used (Joy../Bears?/Motion.) WITHOUT the popcorn bucket or glasses */
-var csHoverWord=false;
-function csWordShow(word){
- if(reduce||introMode||CALIB||movieMode||dragging||eating)return;
- csHoverWord=true;clearTimeout(cycTimer);cycHold=true;
- if(cycWord){var mw=makePlainCycWord(word||"Motion.");cycWord.replaceWith(mw);cycWord=mw;}
-}
-function csWordHide(){
- if(!csHoverWord)return;csHoverWord=false;
- if(reduce||movieMode)return;
- if(cycWord&&cycWord.parentNode){var nw=makeCycWord(wi);cycWord.replaceWith(nw);cycWord=nw;}
- cycHold=false;nextCycle();
-}
 function ensureMovieEls(){
  if(bucketEl)return;
  bucketEl=document.createElement("img");bucketEl.className="popbucket";bucketEl.src="images/bucket.webp";bucketEl.alt="";bucketEl.style.opacity="0";stage.appendChild(bucketEl);
@@ -1051,6 +1039,7 @@ function ensureMovieEls(){
 }
 function setKernel(el,x,y,rot,op){el.style.left=(x*100).toFixed(1)+"%";el.style.top=(y*100).toFixed(1)+"%";el.style.transform="translate(-50%,-50%) rotate("+rot.toFixed(0)+"deg)";el.style.opacity=op.toFixed(2);}
 function startMovie(word){
+ glassesOn();
  if(reduce||introMode||CALIB||movieMode)return;
  queued=null;if(typeof hideQueue==="function")hideQueue();
  if(rainMode)endRain();if(partyMode)endParty();if(loveMode)endLove();if(eating)finishEat();
@@ -1551,8 +1540,7 @@ if(!HEADONLY){stage.style.opacity="0";requestAnimationFrame(function(){requestAn
  if("IntersectionObserver" in window){var reelSeen=false;new IntersectionObserver(function(en){en.forEach(function(x){if(x.isIntersecting){reelSeen=true;if(!reduce){var rp=vid.play();if(rp&&rp.catch)rp.catch(function(){});}}else if(reelSeen){try{vid.pause();}catch(_){}}});},{rootMargin:"600px 0px"}).observe(reel);}else if(!reduce){var rp0=vid.play();if(rp0&&rp0.catch)rp0.catch(function(){});}
  vid.addEventListener("loadeddata",function(){if(ph)ph.style.display="none";if(!reduce){var pr=vid.play();if(pr&&pr.catch)pr.catch(function(){});}});
  if(fine){
-   var _gl=document.getElementById("glasses");function glOn(){if(_gl){_gl.classList.remove("off");_gl.classList.add("on");}}function glOff(){if(_gl){_gl.classList.remove("on");_gl.classList.add("off");}}
-   frame.addEventListener("pointerenter",function(e){mx=e.clientX;my=e.clientY;hovering=true;evalCursor();glOn();startMovie();});
+   frame.addEventListener("pointerenter",function(e){mx=e.clientX;my=e.clientY;hovering=true;evalCursor();startMovie();});
    frame.addEventListener("pointerleave",function(){hovering=false;evalCursor();caughtMovie();});function reelClear(){if(hovering){hovering=false;evalCursor();caughtMovie();}}document.addEventListener("mouseleave",reelClear);window.addEventListener("blur",reelClear);window.addEventListener("mouseout",function(e){if(!e.relatedTarget&&!e.toElement){reelClear();}});
    frame.addEventListener("click",openReel);
  }
