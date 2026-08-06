@@ -1,0 +1,118 @@
+/* Dark adapters for the portfolio's two creative tools. The builder pages use
+   the original ramp names internally; rebinding them here keeps their layout
+   and interaction system intact while giving every control one semantic dark
+   surface. Light states do not enter either rule. */
+:root[data-theme="dark"] body[data-theme-page="gradientlab"],
+:root[data-theme="dark"] body[data-theme-page="headmaker"]{
+ --builder-page:var(--theme-page);
+ --builder-surface:var(--theme-surface);
+ --builder-elevated:var(--theme-elevated);
+ --builder-ink:var(--theme-ink);
+ --builder-ink-soft:var(--theme-ink-soft);
+ --builder-muted:var(--theme-muted);
+ --builder-rim:var(--theme-rim);
+ --builder-rim-strong:var(--theme-rim-strong);
+
+ --c50:var(--builder-page);
+ --c0:var(--builder-surface);
+ --c75:var(--builder-surface);
+ --c100:var(--builder-rim);
+ --c500:var(--builder-muted);
+ --c700:var(--builder-ink-soft);
+ --c950:var(--builder-ink);
+ --accent:var(--theme-focus);
+ --accent-press:#C8C5FF;
+ --accent-wash:var(--builder-elevated);
+ --mat-3-solid:var(--builder-elevated);
+ --mat-i1:var(--builder-ink);
+ --rim-1:inset 0 0 0 var(--hair-w) var(--builder-rim);
+ --rim-2:inset 0 0 0 var(--hair-w) var(--builder-rim-strong);
+ --rim-3:inset 0 0 0 var(--focus-w) var(--builder-rim-strong);
+ --rim-i1:inset 0 0 0 var(--hair-w) rgba(11,12,15,.22);
+ --rim-i2:inset 0 0 0 var(--focus-w) rgba(11,12,15,.42);
+ background-color:var(--builder-page);
+ color:var(--builder-ink);
+}
+
+/* The outer shell stays almost invisible; the working surface is the one
+   raised plane. Fields receive the third depth so editable areas remain clear. */
+:root[data-theme="dark"] body[data-theme-page="gradientlab"] :is(.panel,.stage),
+:root[data-theme="dark"] body[data-theme-page="headmaker"] :is(.mkPanel,.mkStageCol){
+ background-color:var(--builder-surface);
+}
+:root[data-theme="dark"] body[data-theme-page="gradientlab"] :is(select,.panelFoot .ctl--secondary),
+:root[data-theme="dark"] body[data-theme-page="headmaker"] :is(.mkField,.skipLink){
+ background-color:var(--builder-elevated);
+ color:var(--builder-ink);
+}
+
+/* Utility controls share their surrounding ground exactly as they do in the
+   light theme. State is carried by ink, rim, or the single violet primary. */
+:root[data-theme="dark"] body[data-theme-page="gradientlab"] :is(.ctl,.ctl--secondary,.ctl--tab),
+:root[data-theme="dark"] body[data-theme-page="headmaker"] :is(.ctl,.ctl--secondary){
+ color:var(--builder-ink-soft);
+}
+:root[data-theme="dark"] body[data-theme-page="gradientlab"] :is(.ctl,.ctl--secondary,.ctl--tab):hover,
+:root[data-theme="dark"] body[data-theme-page="gradientlab"] .ctl--tab[aria-selected="true"],
+:root[data-theme="dark"] body[data-theme-page="headmaker"] :is(.ctl,.ctl--secondary):hover,
+:root[data-theme="dark"] body[data-theme-page="headmaker"] .ctl[aria-pressed="true"]{
+ color:var(--builder-ink);
+}
+:root[data-theme="dark"] body[data-theme-page="gradientlab"] .ctl--primary,
+:root[data-theme="dark"] body[data-theme-page="headmaker"] .ctl--primary{
+ background-color:var(--theme-focus);
+ color:var(--builder-page);
+}
+:root[data-theme="dark"] body[data-theme-page="gradientlab"] .ctl--primary:hover,
+:root[data-theme="dark"] body[data-theme-page="headmaker"] .ctl--primary:hover{
+ background-color:#C8C5FF;
+ color:var(--builder-page);
+}
+
+/* Rails, drop regions, and progress marks use a visible neutral hairline rather
+   than the light pages' gray fill. */
+:root[data-theme="dark"] body[data-theme-page="gradientlab"] :is(input[type=range]::-webkit-slider-runnable-track,input[type=range]::-moz-range-track),
+:root[data-theme="dark"] body[data-theme-page="headmaker"] :is(.mkSlider::-webkit-slider-runnable-track,.mkSlider::-moz-range-track,.mkSteps li::before){
+ background-color:var(--builder-rim-strong);
+}
+:root[data-theme="dark"] body[data-theme-page="headmaker"] .hmDrop{
+ border-color:var(--builder-rim-strong);
+ color:var(--builder-muted);
+}
+
+/* The framing overlay belongs to the crop tool, not the user's photograph. Its
+   dark surround keeps step two from flashing a large light-gray sheet. */
+:root[data-theme="dark"] body[data-theme-page="headmaker"] .hmOvalMask path:first-child{
+ fill:rgba(11,12,15,.90);
+}
+:root[data-theme="dark"] body[data-theme-page="headmaker"] .hmOvalMask path:last-child,
+:root[data-theme="dark"] body[data-theme-page="headmaker"] :is(#gL,#gR){
+ stroke:rgba(244,245,247,.36);
+}
+:root[data-theme="dark"] body[data-theme-page="headmaker"] .hmLoupe{
+ border-color:var(--builder-ink);
+ background-color:var(--builder-page);
+}
+:root[data-theme="dark"] body[data-theme-page="headmaker"] .hmLoupe::after{
+ border-color:var(--builder-ink);
+ background-color:rgba(11,12,15,.32);
+}
+
+:root[data-theme="dark"] body[data-theme-page="gradientlab"] :is(.ctl,select,input[type=color]),
+:root[data-theme="dark"] body[data-theme-page="headmaker"] :is(.ctl,.mkField,.mkSlider,.hmDrop,.hmPitPick,.skipLink){
+ outline-color:var(--theme-focus);
+}
+
+@media(forced-colors:active){
+ :root[data-theme="dark"] body[data-theme-page="gradientlab"],
+ :root[data-theme="dark"] body[data-theme-page="headmaker"]{
+  --builder-page:Canvas;
+  --builder-surface:Canvas;
+  --builder-elevated:Canvas;
+  --builder-ink:CanvasText;
+  --builder-ink-soft:CanvasText;
+  --builder-muted:CanvasText;
+  --builder-rim:CanvasText;
+  --builder-rim-strong:CanvasText;
+ }
+}
