@@ -144,31 +144,32 @@ assert time_control
 assert 'aria-label="Time of day"' in time_control.group(0)
 assert 'aria-haspopup="menu"' in time_control.group(0)
 assert 'aria-expanded="false"' in time_control.group(0)
-assert '<svg class="heroTimeIcon"' in time_control.group(0)
+assert '<svg class="heroTimeIcon uiIcon"' in time_control.group(0)
 assert not re.sub(r"<[^>]+>", "", time_control.group(0)).strip()
 assert re.search(r'id="heroTimeMenu"[^>]+role="menu"[^>]+aria-label="Choose time of day"', html)
 assert len(re.findall(r'<button[^>]+role="menuitemradio"', html)) == 8
 assert html.count('role="menuitemradio" aria-checked="true"') == 1
-assert html.count('class="heroTimeOptionIcon"') == 8
+assert html.count('class="heroTimeOptionIcon uiIcon"') == 8
 icon_symbols = {
-    "auto": "heroTimeGlyphAuto",
-    "off": "heroTimeGlyphOff",
-    "pre-dawn": "heroTimeGlyphPreDawn",
-    "sunrise": "heroTimeGlyphSunrise",
-    "daytime": "heroTimeGlyphDaytime",
-    "dusk": "heroTimeGlyphDusk",
-    "sunset": "heroTimeGlyphSunset",
-    "night": "heroTimeGlyphNight",
+    "auto": "lucide-rotate-ccw",
+    "off": "lucide-circle-off",
+    "pre-dawn": "lucide-moon-star",
+    "sunrise": "lucide-sunrise",
+    "daytime": "lucide-sun",
+    "dusk": "lucide-cloud-sun",
+    "sunset": "lucide-sunset",
+    "night": "lucide-moon",
 }
 for mode, symbol_id in icon_symbols.items():
-    assert f'<symbol id="{symbol_id}"' in html, symbol_id
+    assert f'id="{symbol_id}"' in Path("ui-icons.svg").read_text(encoding="utf-8"), symbol_id
     item = re.search(rf'<button[^>]+data-time-mode="{mode}"[^>]*>(.*?)</button>', html, re.S)
-    assert item and 'class="heroTimeOptionIcon"' in item.group(1), mode
+    assert item and 'class="heroTimeOptionIcon uiIcon"' in item.group(1), mode
     assert 'aria-hidden="true"' in item.group(1), mode
-    assert f'href="#{symbol_id}"' in item.group(1), mode
+    assert f'href="ui-icons.svg#{symbol_id}"' in item.group(1), mode
 for state, symbol_id in ((key, value) for key, value in icon_symbols.items() if key != "auto"):
     trigger_glyph = re.search(rf'<g data-hero-time-icon="{state}">(.*?)</g>', html, re.S)
-    assert trigger_glyph and f'href="#{symbol_id}"' in trigger_glyph.group(1), state
+    assert trigger_glyph and f'href="ui-icons.svg#{symbol_id}"' in trigger_glyph.group(1), state
+assert "heroTimeGlyph" not in html
 
 time_button_rules = re.findall(r'\.heroTimeBtn\s*\{.*?\}', time_css, re.S)
 time_button_rule = next((rule for rule in time_button_rules if "min-width:var(--tap-min)" in rule), None)
@@ -178,7 +179,7 @@ for target_rule in ("width:var(--tap-min)", "height:var(--tap-min)", "min-width:
 for icon_class in ("heroTimeIcon", "heroTimeOptionIcon"):
     icon_rule = re.search(rf'\.{icon_class}\s*\{{.*?\}}', time_css, re.S)
     assert icon_rule, icon_class
-    for icon_contract in ("stroke-width:1.6", "stroke-linecap:round", "stroke-linejoin:round"):
+    for icon_contract in ("stroke-width:1.75", "stroke-linecap:round", "stroke-linejoin:round"):
         assert icon_contract in icon_rule.group(0), f"{icon_class}: {icon_contract}"
 
 rim_overlay = re.search(r'\.hero::after\s*\{.*?\}', time_css, re.S)

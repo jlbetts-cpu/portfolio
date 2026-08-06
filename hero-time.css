@@ -366,11 +366,11 @@
 }
 .heroTimeIcon{
  width:var(--ico-md);height:var(--ico-md);fill:none;stroke:currentColor;
- stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round
+ stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round
 }
 .heroTimeOptionIcon{
  width:var(--ico-md);height:var(--ico-md);flex:0 0 var(--ico-md);fill:none;
- stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round
+ stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round
 }
 .heroTimeIcon [data-hero-time-icon]{display:none}
 .heroTimeIcon[data-icon="pre-dawn"] [data-hero-time-icon="pre-dawn"],

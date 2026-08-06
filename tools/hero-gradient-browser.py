@@ -36,6 +36,13 @@ def main():
                 page.wait_for_function("window.SiteTheme && document.documentElement.classList.contains('theme-ready')")
                 page.wait_for_function("typeof introMode !== 'undefined'")
                 assert page.locator("#moodBtn").inner_text().strip() == "Choose a mood"
+                page.evaluate("document.getElementById('heroTimeBtn').click()")
+                page.wait_for_function("document.getElementById('heroTime').classList.contains('open')")
+                page.wait_for_function(
+                    """() => Array.from(document.querySelectorAll('.heroTimeMenu .heroTimeOptionIcon'))
+                      .every(icon => icon.getBBox().width > 0 && icon.getBBox().height > 0)"""
+                )
+                page.evaluate("document.getElementById('heroTimeBtn').click()")
                 for state in STATES:
                     page.evaluate("state => window.SiteTheme.setMode(state, {persist:false})", state)
                     page.wait_for_function(
