@@ -317,8 +317,7 @@
    --hover-out-dur/--ease-out pair rather than a new duration: the bar already agreed to
    travel at that speed on hover, and a second timing would be a second opinion. */
 .jbNav{transition:background-color var(--hover-out-dur) var(--ease-out),
-                 box-shadow var(--hover-out-dur) var(--ease-out),
-                 color var(--hover-out-dur) var(--ease-out)}
+                 box-shadow var(--hover-out-dur) var(--ease-out)}
 @media(prefers-reduced-motion:reduce){.jbNav{transition:none}}
 .jbNav[data-surface="ink"]{
   --nav-mat:var(--mat-i3-solid);
@@ -407,7 +406,13 @@
   /* hover-OUT at --hover-out-dur, hover-IN at --ease-out-dur: the rule is that
      a control answers immediately and lets go gently. Equal timings read
      mechanical. Stated once here and inherited by every item in the bar. */
-  transition:color var(--hover-out-dur) var(--ease-out),
+  transition:background-color var(--hover-out-dur) var(--ease-out),
+             transform var(--press-dur) var(--ease-out);
+}
+/* Theme-colour motion starts only after the synchronous root state commits.
+   Background and press transitions above stay interaction-specific. */
+.theme-ready .jbNav :is(a,button,.jbDiscGo){
+  transition:color var(--theme-duration,400ms) var(--ease-out),
              background-color var(--hover-out-dur) var(--ease-out),
              transform var(--press-dur) var(--ease-out);
 }
@@ -511,8 +516,7 @@
      read mechanical, and "the animation was too abrupt" is a note this bar has
      already had once. font-weight is deliberately absent from the list -- see
      the note above; it snaps, the ground and the ink glide. */
-  transition:background-color var(--ease-out-dur) var(--ease-out),
-             color var(--ease-out-dur) var(--ease-out)}
+  transition:background-color var(--ease-out-dur) var(--ease-out)}
 .jbGrp>:is(a,button):not(.jbHome,[aria-current]):hover,
 .jbGrp>.jbDisc:hover>.jbDiscGo:not([aria-current]),
 .jbGrp>.jbDisc:focus-within>.jbDiscGo:not([aria-current]){
@@ -532,13 +536,10 @@
 /* THE MARK KEEPS THE OLD INK-ONLY HOVER. It is a brand object, not a tab: a
    grey pill round a logo is the one place the fill reads as chrome clutter, and
    it is the only item in the bar that never takes the lit treatment either. */
-.jbNav .jbHome:hover{color:var(--nav-ink-strong);
-  transition:color var(--ease-out-dur) var(--ease-out)}
+.jbNav .jbHome:hover{color:var(--nav-ink-strong)}
 /* the panel's rows keep ink-only hover -- they are a different control kind and
    the no-fill rule is untouched for them. Their colour rule is declared with the
    rest of the panel further down; this is only the timing it hovers in at. */
-.jbNav .jbDiscMenu :is(a,button):hover{
-  transition:color var(--ease-out-dur) var(--ease-out)}
 
 /* ── THE LIT ITEM.  Round 11 ────────────────────────────────────────────────
    Until this round --nav-active-ink was declared and never consumed: the lit
@@ -741,11 +742,15 @@
   padding:0 var(--sp-10);min-height:var(--tap-min);gap:var(--sp-10);
   border-radius:var(--r-sm);corner-shape:var(--corner);white-space:nowrap;
   font-size:var(--fs-nav);font-weight:400;color:var(--nav-ink);
-  transition:color var(--hover-out-dur) var(--ease-out),
-             font-weight var(--hover-out-dur) var(--ease-out)}
+  transition:font-weight var(--hover-out-dur) var(--ease-out)}
 .jbNav .jbDiscMenu :is(a,button):not(.mhPick,.mhX):hover{
-  transition:color var(--ease-out-dur) var(--ease-out),
-             font-weight var(--ease-out-dur) var(--ease-out)}
+  transition:font-weight var(--ease-out-dur) var(--ease-out)}
+.theme-ready .jbNav .jbDiscMenu :is(a,button):not(.mhPick,.mhX),
+.theme-ready .jbNav .jbDiscMenu :is(a,button):not(.mhPick,.mhX):hover{
+  transition:color var(--theme-duration,400ms) var(--ease-out),
+             font-weight var(--hover-out-dur) var(--ease-out);
+}
+@media(prefers-reduced-motion:reduce){.theme-ready .jbNav :is(a,button,.jbDiscGo){transition-duration:0ms}}
 .jbNav .jbDiscMenu :is(a,button) .gIco{
   transition:stroke-width var(--hover-out-dur) var(--ease-out)}
 /* ── THE PANEL ROWS' HOVER ──────────────────────────────────────────────────
