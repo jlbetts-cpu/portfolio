@@ -4,7 +4,7 @@
 
 **Goal:** Build a device-time-aware hero lighting system with six clean bottom-origin half-circle gradient scenes, manual selection, a strict zero-gradient Off state, restrained ambient leakage, and portrait-integrated light.
 
-**Architecture:** Extract the existing no-dependency `FluidMesh` renderer into a shared browser script, then add a pure preset/time model and a DOM controller dedicated to the home hero. Keep presentation in one focused stylesheet and portrait synchronization in a small adapter so Mood remains the sole owner of face changes.
+**Architecture:** Keep the completed shared `FluidMesh` extraction available to Gradient Maker, but do not render it in the Hero. The Hero uses Stripe's exact six-layer CSS construction: state base on the hero, six full-size bottom-centered radial layers inside a rounded clipping wrapper, and opacity crossfades driven by the time controller. Keep portrait synchronization in a small adapter so Mood remains the sole owner of face changes.
 
 **Visual research:** Apply `docs/superpowers/research/2026-08-06-stripe-hero-gradient.md` during Tasks 5–7.
 
@@ -19,7 +19,7 @@
 - Automatic mapping is 04:00 Pre-dawn, 06:00 Sunrise, 09:00 Daytime, 17:00 Dusk, 18:30 Sunset, and 20:30 Night using the device clock.
 - Store manual mode under `jbHeroTimeMode` in `sessionStorage`; a new browser session defaults to Automatic.
 - Visual transitions last 800 ms and retarget from the current interpolated state.
-- WebGL is decorative: forced colors suppresses it, reduced motion renders still frames, and failure uses layered CSS fallbacks. Off removes every time layer plus the original light-blue `.heroAura`; it retains only neutral surfaces, portrait, controls, and outlines.
+- The Hero does not render WebGL, mesh texture, rays, lines, grain, or filaments. Forced colors suppresses the decorative CSS layers and reduced motion makes state changes immediate. Off removes every time layer plus the original light-blue `.heroAura`; it retains only neutral surfaces, portrait, controls, and outlines.
 - Desktop FluidMesh DPR uses its existing 2.25 cap; coarse-pointer/mobile uses 1.5.
 - The Time control is icon-only, at least 44 × 44 px, immediately after Mood, keyboard operable, and clamped to a 16 px viewport gutter.
 - Preserve all unrelated working-tree edits, especially the approved popcorn/glasses hover work and media-outline/mobile-gutter work. Never stage `.superpowers/`.
@@ -395,7 +395,7 @@ git commit -m "Add accessible hero time controls"
 
 ---
 
-### Task 5: Connect FluidMesh transitions and lifecycle
+### Task 5: Connect clipped CSS gradient transitions
 
 **Files:**
 - Modify: `hero-time.js`
@@ -404,46 +404,33 @@ git commit -m "Add accessible hero time controls"
 - Modify: `tools/hero-specimen-check.py`
 
 **Interfaces:**
-- Consumes `HeroTimeModel.PRESETS`, `interpolatePreset`, and `window.FluidMesh`.
-- Extends `HeroTimeController` with `isRendering()` and `forceFallback()` for verification.
+- Consumes the active state resolved by `HeroTimeController`.
+- Renders six full-size `.heroTimeGradient` layers inside `.heroTimeClip`; exactly one is active outside a transition.
 
-- [ ] **Step 1: Add failing lifecycle contract assertions**
+- [ ] **Step 1: Add failing gradient-layer contract assertions**
 
-Assert `hero-time.js` includes `new FluidMesh`, `IntersectionObserver`, `requestAnimationFrame`, `.pause()`, `.resume()`, `.renderOnce()`, the 800 ms duration, `prefers-reduced-motion`, and `timeFallback`.
+Assert the hero markup/CSS includes `.heroTimeClip`, six state-specific `.heroTimeGradient` layers, `inset:0`, `overflow:hidden`, the exact state radial recipes, opaque outer stops, and no active Hero `new FluidMesh`, ray, line, filament, or grain layer.
 
 Run: `python3 tools/hero-specimen-check.py`  
-Expected: FAIL at `new FluidMesh`.
+Expected: FAIL at the missing clipped six-layer gradient contract.
 
-- [ ] **Step 2: Instantiate renderer with graceful failure**
+- [ ] **Step 2: Build the clipped Stripe-style layer stack**
 
-Create the renderer only for active states after `#main` has non-zero bounds. Choose the active preset, clone it, set mobile DPR through a `dprCap` config value, and pass `onError:activateFallback`. Add `.timeFallback` when `FluidMesh` returns null, throws, or calls the error callback. Fallback still updates CSS state variables and menu semantics.
+Fill the entire hero with the active state's base. Place six full-size `inset:0` gradients inside a hero-sized, rounded, `overflow:hidden` wrapper. Use the exact served percentage formulas in `docs/superpowers/research/2026-08-06-stripe-hero-gradient.md`; do not use a 1:1 orb or transparent outer stops.
 
 Mount the decorative scene inside the outlined hero and clip the primary half-circle to that container. A separate soft spill layer may extend slightly outside the hero, but it must not fully theme the header and must stop before `#cases`. Keep header and hero outlines, rims, controls, and content painted above all atmosphere. Render no rays, lines, filaments, seams, or visible mesh texture. Off hides every scene/spill layer and the original `.heroAura`, leaving only neutral surfaces.
 
-- [ ] **Step 3: Implement retargetable 800 ms transitions**
+- [ ] **Step 3: Implement state crossfades**
 
-Keep `currentConfig`, `transitionFrom`, `transitionTo`, `transitionStart`, and one transition RAF. When selection changes during a tween, calculate the current interpolated config first and use it as the new `transitionFrom`. Each frame calls:
+Toggle active gradient layers by state and crossfade opacity using the approved controller transition duration/easing. A new selection retargets without scaling or moving the radial. Reduced motion changes opacity immediately. Off clears every active layer and spill without destroying the controller.
 
-```js
-var p=Math.min(1,(now-transitionStart)/800);
-var eased=1-Math.pow(1-p,3);
-currentConfig=M.interpolatePreset(transitionFrom,transitionTo,eased);
-mesh.set(currentConfig);
-```
+- [ ] **Step 4: Implement visibility and reduced-motion behavior**
 
-Off cancels the tween, pauses the mesh, and clears active visual opacity without destroying the controller.
+No continuous renderer or animation loop is permitted. State changes update opacity only. Reduced motion and forced colors expose the current semantic selection while decorative transitions/layers are suppressed.
 
-- [ ] **Step 4: Implement visibility and viewport lifecycle**
+- [ ] **Step 5: Handle strict Off and teardown**
 
-An `IntersectionObserver` watches `#main`. Pause when Off, hidden, or non-intersecting. Resume only when all three conditions allow it. Reduced motion calls `mesh.set(preset); mesh.renderOnce(); mesh.pause()` and never starts continuous flow.
-
-- [ ] **Step 5: Handle context/fallback and teardown**
-
-If the renderer cannot resume after context restoration, retain `.timeFallback`. `destroy()` cancels transition RAF, automatic timer, menu listeners, media-query listeners, observer, and mesh resources.
-
-Implement `forceFallback()` as the same public failure path used by `onError`: cancel the transition, destroy and clear the mesh, add `.timeFallback`, and return the controller to CSS-only rendering without changing mode or state.
-
-The CSS-only fallback uses the same hero-clipped boundary and clean, strong, bottom-origin half-circle composition as the active scene, plus only restrained exterior spill. It must not degrade into a weak centered radial wash, resemble the site's Gradient Maker, or show lines/rays/filaments.
+Off hides the clip, every gradient, optional spill, original `.heroAura`, and portrait cast. `destroy()` restores prior state attributes and removes all listeners/timers owned by the controller. The header remains neutral and the hero's thin outline remains above the gradient.
 
 - [ ] **Step 6: Verify lifecycle contracts and syntax**
 
@@ -458,11 +445,11 @@ python3 tools/token-audit.py
 
 Expected: contracts pass and token audit has 0 errors.
 
-- [ ] **Step 7: Commit renderer integration**
+- [ ] **Step 7: Commit CSS gradient integration**
 
 ```bash
-git add hero-time.js hero-time.css tools/hero-specimen-check.py
-git commit -m "Render layered hero time scenes"
+git add hero-time.js hero-time.css index.html tools/hero-specimen-check.py
+git commit -m "Render clipped hero time gradients"
 ```
 
 ---
