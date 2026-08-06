@@ -31,6 +31,8 @@ def inspect_frame(page):
           const clip = document.getElementById("heroMovieEffectsClip");
           const host = document.getElementById("heroMovieEffectsStage");
           const stage = document.getElementById("stage");
+          const face = document.getElementById("face");
+          const bucket = document.querySelector(".popbucket");
           const props = Array.from(document.querySelectorAll(".popbucket,.kernel,.popcrumb"));
           const rect = node => {
             const box = node.getBoundingClientRect();
@@ -39,6 +41,22 @@ def inspect_frame(page):
           };
           const heroRect = rect(hero);
           const clipRect = clip && rect(clip);
+
+          let bucketAboveFace = null;
+          if (bucket && face && Number.parseFloat(getComputedStyle(bucket).opacity) > 0) {
+            bucket.style.pointerEvents = "auto";
+            face.style.pointerEvents = "auto";
+            const bucketRect = rect(bucket);
+            const faceRect = rect(face);
+            const left = Math.max(bucketRect.left, faceRect.left);
+            const right = Math.min(bucketRect.right, faceRect.right);
+            const top = Math.max(bucketRect.top, faceRect.top);
+            const bottom = Math.min(bucketRect.bottom, faceRect.bottom);
+            if (right > left && bottom > top) {
+              const stack = document.elementsFromPoint((left + right) / 2, (top + bottom) / 2);
+              bucketAboveFace = stack.indexOf(bucket) < stack.indexOf(face);
+            }
+          }
 
           for (const prop of props) prop.style.pointerEvents = "auto";
           const leaking = [];
@@ -84,6 +102,7 @@ def inspect_frame(page):
             leaking,
             stageTransform: getComputedStyle(stage).transform,
             hostTransform: host && getComputedStyle(host).transform,
+            bucketAboveFace,
             heroScrollTop: hero.scrollTop,
             horizontalOverflow: document.documentElement.scrollWidth > document.documentElement.clientWidth,
           };
@@ -137,6 +156,7 @@ def run_viewport(browser, base_url, label, width, height):
     assert set(first["parents"]) == {"heroMovieEffectsStage"}, first
     assert all(not sample["leaking"] for sample in samples), samples
     assert all(sample["stageTransform"] == sample["hostTransform"] for sample in samples), samples
+    assert any(sample["bucketAboveFace"] is True for sample in samples), samples
     assert all(sample["heroScrollTop"] == 0 for sample in samples), samples
     assert all(not sample["horizontalOverflow"] for sample in samples), samples
 
