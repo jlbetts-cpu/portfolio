@@ -45,8 +45,9 @@
 
 .ctl-menu{
  display:flex;flex-direction:column;gap:0;padding:var(--sp-8);min-width:var(--menu-w);
- box-sizing:border-box;border:0;border-radius:var(--r-lg);corner-shape:var(--corner);
+ box-sizing:border-box;border:0;border-radius:var(--radius-menu);corner-shape:var(--corner);
  background:var(--ctl-menu-ground);box-shadow:var(--ctl-menu-shadow);
+ max-height:calc(100svh - (var(--menu-viewport-gutter) * 2));overflow-y:auto;overscroll-behavior:contain;
  opacity:0;visibility:hidden;pointer-events:none;transform:translateY(var(--sp-6));
  transition:opacity var(--dur-state) var(--ease-out),transform var(--sp-settle-dur) var(--sp-settle),
   visibility 0s var(--sp-settle-dur)
@@ -55,12 +56,13 @@
  opacity:1;visibility:visible;pointer-events:auto;transform:none;
  transition:opacity var(--dur-state) var(--ease-out),transform var(--sp-settle-dur) var(--sp-settle)
 }
-.ctl-menu .ctl{border-radius:var(--r-md)}
+.ctl-menu .ctl{border-radius:var(--radius-control)}
 .skipLink.ctl{
  position:fixed;top:var(--skip-inset);left:var(--skip-inset);z-index:var(--layer-skip-link);
  transform:translateY(var(--skip-hidden-offset));transition-property:color,background-color,box-shadow,transform
 }
-.skipLink.ctl:focus{transform:none}
+.skipLink.ctl:focus-visible{transform:none}
+:root[data-focus-modality="pointer"] .skipLink.ctl:focus-visible{transform:translateY(var(--skip-hidden-offset))}
 
 /* Header menus are positioned by header.css, but consume the same opaque local
    material and semantic rim as every other menu on migrated pages. */
@@ -71,32 +73,51 @@
 /* Task 2 shared surfaces. Every visible decision resolves through tokens.css;
    the page may place a primitive but may not redraw it. */
 .surface{
- box-sizing:border-box;border:0;border-radius:var(--surface-radius);corner-shape:var(--corner);
+ box-sizing:border-box;border:0;border-radius:var(--radius-container);corner-shape:var(--corner);
  background:var(--surface-ground);box-shadow:var(--surface-rim)
 }
 .surface--hero{
  position:relative;overflow:hidden;border-radius:var(--surface-hero-radius);
  padding-inline:var(--surface-hero-pad)
 }
-.surface--specimen{
- width:calc(100% - (var(--surface-gutter) * 2));
- max-width:calc(var(--page-max) - (var(--surface-gutter) * 2));background:var(--surface-ground-muted);
- padding-block:var(--surface-pad);overflow:hidden
-}
+.surface--specimen{border-radius:var(--radius-container)}
 .surface--media,.surface--card{
  overflow:hidden;background:var(--surface-ground);box-shadow:var(--surface-rim)
 }
-.surface--media{border-radius:var(--surface-radius-compact)}
-.surface--card{border-radius:var(--surface-radius-compact);padding:var(--surface-pad)}
-.surface--tab-rail{
+.surface--media{border-radius:var(--radius-media)}
+.surface--card{border-radius:var(--radius-media);padding:var(--surface-pad)}
+.collection{
+ box-sizing:border-box;width:100%;overflow:hidden;border-radius:var(--radius-container);
+ corner-shape:var(--corner);background:var(--surface-ground);box-shadow:var(--surface-rim)
+}
+.cases.collection{
+ width:calc(100% - (var(--surface-gutter) * 2));
+ max-width:calc(var(--page-max) - (var(--surface-gutter) * 2));
+ background:var(--surface-ground-muted)
+}
+.collection__tabs{
  box-sizing:border-box;display:flex;gap:var(--gap-item);padding:var(--surface-inset);
- border-radius:var(--surface-radius-compact);background:var(--surface-ground);
- box-shadow:var(--surface-rim)
+ margin:0;border-radius:0;background:var(--surface-ground);box-shadow:inset 0 calc(var(--hair-w) * -1) 0 var(--theme-rim)
 }
-.surface--specimen .csFrame{
- border-radius:var(--surface-radius-compact);background:var(--surface-ground);box-shadow:var(--surface-rim)
+.collection__content{box-sizing:border-box;border-radius:0;background:var(--surface-ground);box-shadow:none;overflow:hidden}
+.collection .csStageInner{padding-inline:0}
+.collection .csFrame,.collection .tvFrame{border-radius:0!important;box-shadow:none!important}
+.collection .csFrame>img{border-radius:0!important}
+.cases.collection .collection__tabs>.ctl--tab{flex:1 1 0;min-width:0;padding-inline:var(--surface-inset)}
+.collection__tabs .csTabInk{display:none}
+.media{
+ box-sizing:border-box;width:100%;overflow:hidden;border-radius:var(--radius-media);
+ corner-shape:var(--corner);background:var(--surface-ground);box-shadow:var(--surface-rim)
 }
-.surface--specimen .csStageInner{padding-inline:0}
+.media--full{padding:0}
+.media--mockup{padding:var(--media-mockup-inset)}
+.collection__content.media--mockup{border-radius:0;box-shadow:none}
+.tv.collection .collection__content{width:100%;max-width:none;margin:0;padding:var(--media-mockup-inset)}
+.tv.collection.tvPhone .collection__content>img,
+.playerStage.media--mockup>img{width:min(var(--panel-w),100%);margin-inline:auto}
+.tv.collection.tvBoard .collection__content>img{width:100%;margin-inline:auto}
+.player{max-width:none}
+.playerStage.media--mockup{width:100%;margin-inline:0}
 .ctl--tab{font-size:inherit;color:var(--ctl-ink-mute);background:none;box-shadow:none}
 .ctl--tab:hover:not([aria-selected="true"]){background:var(--ctl-ground-hover);color:var(--ctl-ink-strong)}
 .ctl--tab[aria-selected="true"],.ctl--tab.on{color:var(--ctl-ink-strong);font-weight:600}
@@ -112,6 +133,19 @@
  background:var(--theme-rim);transition:background-color var(--dur-state) var(--ease-out)
 }
 .ctl--tick[aria-pressed="true"]::before,.ctl--tick.on::before{background:var(--ctl-ink-strong)}
+.carousel-toolbar{
+ box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;gap:0;
+ padding:var(--surface-inset);border-radius:var(--radius-menu);background:var(--ctl-container-ground);
+ box-shadow:var(--ctl-container-rim)
+}
+.ctl--internal{background:none;box-shadow:none}
+.carousel-toolbar .ctl--internal{
+ width:var(--ctl-h);height:var(--ctl-h);min-width:var(--ctl-h);padding:0;
+ border-radius:var(--radius-control);background:none;box-shadow:none
+}
+.carousel-toolbar .ctl--internal:hover,.carousel-toolbar .ctl--internal:focus-visible,
+.carousel-toolbar .ctl--internal[aria-pressed="true"]{background:var(--ctl-ground-hover);box-shadow:none}
+.carousel-toolbar .playerTicks{display:flex;gap:0}
 .ctl--media-large{min-width:var(--ctl-h);min-height:var(--ctl-h);padding-inline:var(--ctl-pad)}
 .ctl--media-large.is-icon{width:var(--ctl-h);padding:0}
 .toTop.ctl{
@@ -119,24 +153,29 @@
  z-index:var(--layer-floating-control);opacity:0;pointer-events:none
 }
 .toTop.ctl.show{opacity:1;pointer-events:auto}
-.toTop.ctl svg{transition:transform var(--dur-state) var(--ease-out)}
-.toTop.ctl:hover svg,.toTop.ctl:focus-visible svg{transform:translateY(calc(var(--sp-2) * -1))}
+.toTop.ctl svg{transition:color var(--dur-state) var(--ease-out)}
 .sbNav,.playerTicks{gap:var(--gap-item)}
-.playerBar{gap:var(--gap-group)}
-.portrait-peek{
- position:absolute;right:var(--portrait-peek-offset);bottom:0;z-index:var(--sp-10);
- width:var(--portrait-peek-width);height:var(--portrait-peek-height);overflow:hidden;
- pointer-events:none
+.playerBar{gap:0}
+.scene-swap-target{
+ display:block;contain:layout paint;transition:filter var(--scene-cut-duration) var(--scene-cut-ease),
+ opacity var(--scene-cut-duration) var(--scene-cut-ease)
 }
-.portrait-peek__image{
- position:absolute;left:50%;top:0;width:var(--portrait-peek-width);height:auto;max-width:none;
- transform:translateX(-50%);filter:grayscale(1);opacity:var(--portrait-peek-opacity)
+.heroCharacterPeek{
+ position:absolute;inset:0;z-index:2;display:flex;justify-content:center;align-items:flex-end;
+ overflow:visible;pointer-events:none;transition:transform var(--sp-settle-dur) var(--sp-settle)
 }
+.heroCharacterPeek.is-movie{transform:translateY(calc(var(--hero-peek-lift) * -1))}
+.heroCharacterPeek .stagewrap{
+ position:absolute;top:auto!important;bottom:calc((var(--hero-peek-depth) * -1) + var(--hero-peek-offset));
+ width:var(--hero-peek-width)!important;max-width:none;margin:0!important;z-index:2
+}
+.heroCharacterPeek .stage{pointer-events:auto;cursor:pointer}
 /* End Task 2 shared surfaces. */
 
 @media(prefers-reduced-motion:reduce){
  .ctl,.ctl-menu{transition-duration:1ms!important}
  .ctl:active{transform:none}
+ .heroCharacterPeek{transition-duration:1ms!important}
 }
 @media(forced-colors:active){
  .ctl--secondary,.ctl--icon,.ctl-menu,.ctl-group{background:Canvas;color:CanvasText;box-shadow:0 0 0 var(--hair-w) CanvasText inset}

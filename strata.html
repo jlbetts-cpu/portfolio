@@ -392,7 +392,7 @@ img{display:block;max-width:100%}
 .demoPoster{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;background:var(--c950);cursor:pointer;z-index:2;border-radius:inherit}
 .demoPoster.hidden{display:none}
 .demoPlay{width:66px;height:66px;border-radius:var(--r-md);corner-shape:var(--corner);border:0;background:var(--c50);color:var(--c950);display:grid;place-items:center;cursor:pointer;transition:transform .15s cubic-bezier(.2,.8,.2,1)}
-.demoPoster:hover .demoPlay{transform:scale(1.05)}
+.demoPoster:hover .demoPlay{color:var(--c950)}
 .demoPlay svg{width:26px;height:26px;margin-left:4px}
 .demoPosterLabel{font-family:var(--sans);font-size:var(--fs-caption);font-weight:600;letter-spacing:var(--tr-flat);text-transform:none;color:var(--c50)}
 .demoMute{position:absolute;top:12px;right:12px;z-index:3;display:none;align-items:center;gap:4px;padding:8px 16px 8px 8px;border-radius:var(--r-md);corner-shape:var(--corner);border:0;background:var(--c950);color:var(--c50);font-family:var(--sans);font-size:var(--fs-caption);font-weight:600;letter-spacing:var(--tr-flat);cursor:pointer;box-shadow:inset 0 0 0 1px rgba(243,243,243,.25)}
@@ -581,7 +581,7 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
    <section id="overview" class="hero">
     <h1 class="head rv" data-f="0.05" aria-label="Strata — 710 edits to learn where AI stops and design starts."><span class="eyebrow">Strata</span>710 edits to learn where AI stops and design starts.</h1>
 
-    <figure class="cover surface surface--media" id="cover"><img src="images/cs/strata-cover.webp" alt="Strata across four iOS screens on a pastoral hillside: the block tower, the day timeline, the plan grid, and the insights dashboard." loading="eager" decoding="async"></figure>
+    <figure class="cover media media--full" id="cover"><img src="images/cs/strata-cover.webp" alt="Strata across four iOS screens on a pastoral hillside: the block tower, the day timeline, the plan grid, and the insights dashboard." loading="eager" decoding="async"></figure>
 
     <dl class="facts">
      <div class="fact"><dt class="fk">Role</dt><dd class="fv">Designer &amp; builder</dd></div>
@@ -1068,7 +1068,7 @@ if('IntersectionObserver' in window){var io=new IntersectionObserver(function(es
     box.parentNode.insertBefore(wrap, box); wrap.appendChild(box);
     var nav=document.createElement('div'); nav.className='sbNav';
     function mk(dir,label){
-      var b=document.createElement('button'); b.type='button'; b.className='sbBtn ctl ctl--icon'; b.setAttribute('aria-label',label);
+      var b=document.createElement('button'); b.type='button'; b.className='sbBtn ctl ctl--internal'; b.setAttribute('aria-label',label);
       b.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="'+(dir<0?'15 18 9 12 15 6':'9 6 15 12 9 18')+'"/></svg>';
       b.addEventListener('click',function(){
         if(box.classList.contains('flow')){

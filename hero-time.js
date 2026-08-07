@@ -157,24 +157,21 @@
  function onFaceLoad(){syncPortraitSource(true);}
 
  function closeMenu(returnFocus){
-  control.classList.remove("open","opensAbove");
+  control.classList.remove("open");
   menu.style.removeProperty("transform");
+  menu.style.removeProperty("max-height");
   button.setAttribute("aria-expanded","false");
   if(returnFocus)button.focus();
  }
 
  function positionMenu(){
-  var viewportGutter=16;
-  control.classList.remove("opensAbove");
+  var viewportGutter=parseFloat(getComputedStyle(root).getPropertyValue("--menu-viewport-gutter"))||0;
   menu.style.removeProperty("transform");
-  var rect=menu.getBoundingClientRect();
+  menu.style.removeProperty("max-height");
   var buttonRect=button.getBoundingClientRect();
-  var spaceAbove=buttonRect.top-viewportGutter;
-  var spaceBelow=window.innerHeight-buttonRect.bottom-viewportGutter;
-  if(rect.bottom>window.innerHeight-viewportGutter&&spaceAbove>spaceBelow){
-   control.classList.add("opensAbove");
-   rect=menu.getBoundingClientRect();
-  }
+  var available=Math.max(0,window.innerHeight-buttonRect.bottom-viewportGutter);
+  menu.style.setProperty("max-height",available+"px");
+  var rect=menu.getBoundingClientRect();
   var minimumShift=viewportGutter-rect.left;
   var maximumShift=window.innerWidth-viewportGutter-rect.right;
   var shift=Math.max(minimumShift,Math.min(maximumShift,0));

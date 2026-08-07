@@ -505,18 +505,30 @@
  --surface-ground:var(--theme-surface,var(--c0,#fff));
  --surface-ground-muted:var(--theme-elevated,var(--c75));
  --surface-rim:var(--ctl-container-rim);
- --surface-radius:var(--r-xl);
- --surface-radius-compact:var(--r-lg);
- --surface-hero-radius:var(--r-xl);
+ --radius-container:var(--r-xl);
+ --radius-media:var(--r-lg);
+ --radius-control:var(--r-md);
+ --radius-menu:var(--r-lg);
+ --surface-radius:var(--radius-container);
+ --surface-radius-compact:var(--radius-media);
+ --surface-hero-radius:var(--radius-container);
  --surface-hero-pad:var(--sp-16-24);
  --surface-pad:var(--sp-32);
  --surface-inset:var(--sp-8);
  --surface-gutter:var(--sp-40);
  --surface-gap:var(--sp-16-24);
- --portrait-peek-width:var(--sp-80);
- --portrait-peek-height:var(--sp-56);
- --portrait-peek-offset:var(--sp-16);
- --portrait-peek-opacity:.64;
+ --media-mockup-inset:var(--sp-32);
+ --hero-peek-width:520px;
+ --hero-peek-depth:calc(190px + var(--sp-16));
+ --hero-peek-offset:var(--sp-8);
+ --hero-peek-lift:var(--sp-64);
+ --scene-cut-duration:250ms;
+ --scene-cut-ease:steps(2,end);
+ --star-twinkle-duration:7s;
+ --star-twinkle-ease:var(--ease-out);
+ --star-bright-size:1.5px;
+ --star-glow-size:var(--sp-2);
+ --menu-viewport-gutter:var(--sp-16);
  --skip-inset:var(--sp-10);
  --skip-hidden-offset:calc((var(--ctl-h) + var(--sp-16)) * -1);
  --floating-control-inset:var(--surface-gutter);
@@ -561,14 +573,15 @@
 }
 @media(max-width:760px){:root{
  --surface-pad:var(--sp-16);--surface-gutter:var(--sp-16);
- --surface-hero-radius:var(--r-lg);
+ --radius-container:var(--r-lg);--radius-media:var(--r-md);
+ --surface-hero-radius:var(--radius-container);
  --surface-hero-pad:var(--sp-12);
- --portrait-peek-width:var(--sp-64);--portrait-peek-height:var(--ctl-h);
- --portrait-peek-offset:var(--sp-8)
+ --media-mockup-inset:var(--sp-16);
+ --hero-peek-width:330px;--hero-peek-depth:calc(118px + var(--sp-12));--hero-peek-offset:var(--sp-4);
+ --hero-peek-lift:var(--sp-48)
 }}
 @media(max-width:340px){:root{
- --portrait-peek-width:var(--sp-56);--portrait-peek-height:var(--sp-36);
- --portrait-peek-offset:var(--sp-6)
+ --hero-peek-width:300px;--hero-peek-depth:calc(104px + var(--sp-12));--hero-peek-offset:var(--sp-2)
 }}
 @media(max-width:420px){:root{--lbl-w:72px}}
 
