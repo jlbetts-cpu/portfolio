@@ -1043,6 +1043,9 @@ function syncMovieEffectsLayer(){
  movieEffectsStage.style.height=stageRect.height.toFixed(2)+"px";
  movieEffectsStage.style.transform=priorTransform;
 }
+window.addEventListener("heroheadtransform",function(){
+ if(movieMode){syncMovieEffectsLayer();}
+});
 function setMovieStageTransform(value){
  stage.style.transform=value;
  if(movieEffectsStage)movieEffectsStage.style.transform=value;

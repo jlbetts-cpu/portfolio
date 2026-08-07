@@ -206,14 +206,19 @@
 .heroHeadHandle[data-corner="sw"]::before{left:0;top:100%}
 .heroHeadHandle[data-corner="se"]::before{left:100%;top:100%}
 .heroCharacterPeek .stage{pointer-events:auto;cursor:pointer;touch-action:none}
+#face:focus-visible{outline:var(--focus-w) solid var(--ctl-focus);outline-offset:var(--sp-2)}
+#face[data-pointer-focus]:focus-visible{outline:none}
+.heroHeadHandle:focus-visible::before{outline:var(--focus-w) solid var(--ctl-focus);outline-offset:var(--sp-2)}
 /* End Task 2 shared surfaces. */
 
 @media(prefers-reduced-motion:reduce){
  .ctl,.ctl-menu{transition-duration:1ms!important}
  .ctl:active{transform:none}
  .heroCharacterPeek{transition-duration:1ms!important}
+ .heroHeadTransform,.heroHeadSelection,.heroHeadHandle{transition:none!important}
 }
 @media(forced-colors:active){
  .ctl--secondary,.ctl--icon,.ctl-menu,.ctl-group{background:Canvas;color:CanvasText;box-shadow:0 0 0 var(--hair-w) CanvasText inset}
  .ctl--primary{background:Highlight;color:HighlightText}
+ .heroHeadSelection::before,.heroHeadHandle::before{forced-color-adjust:auto;box-shadow:inset 0 0 0 var(--selection-line) Highlight}
 }
