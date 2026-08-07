@@ -28,7 +28,7 @@ html{scrollbar-color:var(--theme-muted) var(--theme-page)}
 ::-webkit-scrollbar-thumb{background-color:var(--theme-muted);border-color:var(--theme-page)}
 
 /* Shared disclosure chrome; page-level menu geometry remains untouched. */
-.jbDiscMenu{background-color:var(--theme-material);box-shadow:0 0 0 var(--hair-w) var(--theme-rim) inset}
+.jbDiscMenu{background-color:var(--ctl-menu-ground);box-shadow:var(--ctl-container-rim)}
 
 /* Authored media owns its existing effects. The site-theme contract rejects any
    data-theme/theme-ready rule that applies filter, opacity, or blend changes to it. */

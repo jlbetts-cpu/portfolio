@@ -73,22 +73,22 @@ assert "releasePlayBoot" in GAMES
 assert 'classList.remove("playBooting")' in GAMES
 assert "if(first&&noIntro)" in ENGINE
 
-# The Play lobby is literally the Home hero composition: same stage, controls,
-# mood artwork, time controller, portrait tint and movie-effects host.
+# The Play lobby keeps the Home spacing/stage composition and mood artwork, but
+# intentionally has no local day-cycle UI or coloured portrait-lighting layer.
 assert 'class="heroCopy"' in HTML
 assert 'class="heroCtas"' in HTML
 assert 'id="workBtn" href="#games"' in HTML
 assert 'class="heroMood moodbar" id="moodbar"' in HTML
 assert 'id="moodBtn"' in HTML and 'aria-controls="moodMenu"' in HTML
-assert HTML.count('class="moodItem" type="button" role="menuitem" data-mood=') == 4
+assert HTML.count('data-mood=') == 4
 for artwork in ("camDot", "cookieDot", "discoDot", "heartDot"):
     assert artwork in HTML
-assert 'id="heroTime"' in HTML and 'id="heroTimeBtn"' in HTML and 'id="heroTimeMenu"' in HTML
-assert HTML.count('<div class="heroTimeGradient" data-time-gradient="') == 6
-assert 'id="heroTimePortraitCast" class="heroTimePortraitCast"' in HTML
+assert 'id="heroTime"' not in HTML and 'id="heroTimeBtn"' not in HTML and 'id="heroTimeMenu"' not in HTML
+assert 'data-time-gradient=' not in HTML and 'id="heroTimePortraitCast"' not in HTML
+assert 'id="face" src="images/neutral.webp"' in HTML
 assert 'id="heroMovieEffectsStage"' in HTML
-assert 'src="hero-time-presets.js"' in HTML and 'src="hero-time.js"' in HTML
-assert 'href="hero-time.css"' in HTML
+assert 'src="hero-time-presets.js"' not in HTML and 'src="hero-time.js"' not in HTML
+assert 'href="hero-time.css"' not in HTML
 assert 'class="playHeroReflection" aria-hidden="true"' in HTML
 assert '-webkit-box-reflect:' in HTML
 assert "playArenaSurface" not in HTML and "playArenaGradient" not in HTML
@@ -114,12 +114,8 @@ assert "matchMedia(\"(prefers-reduced-motion:reduce)\").matches" in ENGINE
 show_play = GAMES[GAMES.index("function showPlay"):GAMES.index("function watchPlayBoot")]
 assert show_play.index("window.__hmLobbyThrowIn") < show_play.index('classList.remove("playBooting")')
 
-# Play-only atmosphere points down from the fixed header and Night is a neutral
-# near-black/violet treatment without the old bright blue floor light.
-assert 'body[data-theme-page="play"] .heroTimeGradient[data-time-gradient="night"]' in HTML
-night_rule = HTML.split('body[data-theme-page="play"] .heroTimeGradient[data-time-gradient="night"]', 1)[1].split("}", 1)[0]
-assert "at 50% -" in night_rule and "#09090c" in night_rule
-assert "#fcfdfe" not in night_rule and "#6763e4" not in night_rule
+# Play uses only the neutral global page theme; no page-local atmosphere remains.
+assert "heroTimeGradient" not in HTML and "--time-cast" not in HTML
 
 # Home-approved contact footer: exact content, links, 56ch measure and ghost mark.
 assert parser.footer_ids == ["contact"]

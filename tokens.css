@@ -482,6 +482,23 @@
  --gap-group:var(--sp-16);
  --gap-band:var(--sp-24);
 
+ /* Semantic control materials. These aliases deliberately resolve through the
+    local theme instead of through a page-specific Hero colour. All resting
+    secondary/icon chrome and all popup sheets are therefore opaque in both
+    light and Night, while the raw material and grey ramps stay private. */
+ --ctl-ground:var(--theme-surface,var(--c0,#fff));
+ --ctl-ground-hover:var(--theme-elevated,var(--c75));
+ --ctl-menu-ground:var(--theme-surface,var(--c0,#fff));
+ --ctl-container-ground:var(--theme-page,var(--c50));
+ --ctl-primary-ground:var(--theme-ink,var(--c950));
+ --ctl-primary-ground-hover:var(--theme-muted,var(--c900));
+ --ctl-primary-ink:var(--theme-page,var(--c50));
+ --ctl-focus:var(--theme-focus,var(--ctl-ink-strong));
+ --ctl-rim:0 0 0 var(--hair-w) var(--theme-rim,rgba(17,18,20,.12)) inset;
+ --ctl-rim-strong:0 0 0 var(--hair-w) var(--theme-rim-strong,rgba(17,18,20,.20)) inset;
+ --ctl-container-rim:0 0 0 var(--hair-w) var(--theme-rim,rgba(17,18,20,.12)) inset;
+ --ctl-menu-shadow:var(--ctl-rim),var(--sh-2);
+
  /* THE BUILDERS' PANEL. headmaker.html and gradientlab.html are the same
     archetype -- an artifact beside an inspector -- and each declared its own name
     for the inspector's width: --mk-panel:360px and --panel-w:360px. They AGREE

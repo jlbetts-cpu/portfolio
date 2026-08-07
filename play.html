@@ -37,8 +37,9 @@
     and it took the ink chrome, the terminator and the sky grain with it. */
  html{margin:0;height:100%;background:var(--c50);overflow-x:clip;overflow-y:auto}
  body{margin:0;height:auto;min-height:100%;background:var(--c50);overflow-x:clip;overflow-y:auto}
- .skipLink{position:fixed;top:var(--sp-10);left:var(--sp-10);z-index:200;display:inline-flex;align-items:center;min-height:var(--tap-min);padding:var(--sp-12) var(--sp-16);background:var(--c50);color:var(--c950);border:var(--hair-w) solid var(--c100);border-radius:var(--r-xs);corner-shape:var(--corner);font-family:var(--sans);font-weight:400;font-size:var(--fs-small);line-height:var(--lh-flat);text-decoration:none;box-shadow:none;transform:translateY(calc(-100% - var(--sp-16)));transition:transform var(--ease-out-dur) var(--ease-out)}
- .skipLink:focus{transform:translateY(0);outline:var(--focus-w) solid var(--c950);outline-offset:var(--sp-2)}
+ *,*::before,*::after{box-sizing:border-box}
+ .skipLink{position:fixed;top:var(--sp-10);left:var(--sp-10);z-index:200;transform:translateY(calc(-100% - var(--sp-16)))}
+ .skipLink:focus{transform:translateY(0)}
  @media(prefers-reduced-motion:reduce){.skipLink{transition:none}}
  /* play.css:58 also declares body{background:var(--c50)}; this block is a later
     same-specificity rule, so it wins by source order -- the same mechanism the note
@@ -68,29 +69,12 @@
  .heroCtas{order:3;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;
   gap:var(--sp-8);margin-top:var(--sp-16);position:relative;z-index:8}
  .heroCtas>*{opacity:1;transform:none}
- .workCta,.heroMood .moodBtn{height:var(--tap-min);min-height:var(--tap-min);padding:0 var(--sp-16);
-  border-radius:var(--r-md);corner-shape:var(--corner);font-family:var(--sans);font-size:var(--fs-nav);
-  font-weight:400;line-height:var(--lh-flat);text-decoration:none;display:inline-flex;align-items:center;
-  justify-content:center;gap:var(--sp-8);cursor:pointer;white-space:nowrap}
- .workCta{border:var(--hair-w) solid var(--c950);background:var(--c950);color:var(--c50)}
- .workCta:hover,.workCta:focus-visible{background:var(--c900);border-color:var(--c900);color:var(--c50)}
  .heroMood{position:relative;z-index:12;display:inline-flex}
- .heroMood .moodBtn{border:var(--hair-w) solid var(--c100);background:var(--mat-2);color:var(--c950)}
  .heroMood .moodLbl{font:inherit}
- .heroMood .moodBtn:hover,.heroMood .moodBtn:focus-visible,.heroMood.open .moodBtn{border-color:var(--c500);background:var(--mat-3-solid);color:var(--c950)}
  .heroMood .moodCar{width:var(--ico-xs);height:var(--ico-xs);fill:none;stroke:currentColor;stroke-width:var(--ico-stroke);stroke-linecap:round;stroke-linejoin:round;transition:transform var(--sp-settle-dur) var(--ease-out)}
  .heroMood.open .moodCar{transform:rotate(180deg)}
  .heroMood .moodMenu{position:absolute;top:calc(100% + var(--sp-8));left:0;right:auto;z-index:30;
-  display:flex;flex-direction:column;gap:var(--gap-bar);width:var(--menu-w);max-width:min(var(--menu-w),calc(100vw - (var(--sp-16-40) * 2)));
-  padding:var(--pad-bar);background:var(--mat-3-solid);box-shadow:var(--rim-2),var(--sh-2);border:0;
-  border-radius:var(--r-lg);corner-shape:var(--corner);opacity:0;visibility:hidden;pointer-events:none;
-  transform:translateY(calc(var(--sp-4) * -1));transition:opacity var(--ease-out-dur) var(--ease-out),transform var(--ease-out-dur) var(--ease-out),visibility 0s var(--ease-out-dur)}
- .heroMood.open .moodMenu{opacity:1;visibility:visible;pointer-events:auto;transform:none;transition:opacity var(--ease-out-dur) var(--ease-out),transform var(--ease-out-dur) var(--ease-out)}
- .heroMood .moodItem{display:flex;align-items:center;justify-content:flex-start;gap:var(--sp-10);width:100%;
-  min-height:var(--tap-min);padding:0 var(--sp-10);border:0;border-radius:var(--r-sm);corner-shape:var(--corner);
-  background:none;color:var(--c700);font-family:var(--sans);font-size:var(--fs-nav);font-weight:400;
-  line-height:var(--lh-flat);cursor:pointer;text-align:left}
- .heroMood .moodItem:hover,.heroMood .moodItem:focus-visible{color:var(--c950);background:var(--wash-1);font-weight:600}
+  width:var(--menu-w);max-width:min(var(--menu-w),calc(100vw - (var(--sp-16-40) * 2)))}
  .heroMood .moodIco{width:var(--ico-md)!important;height:var(--ico-md)!important;flex:0 0 var(--ico-md)!important;margin:0!important;transform:none!important}
  .hero .stagewrap{order:4;width:min(clamp(400px,calc((100svh - 270px) * .98),620px),60vw);
   height:auto;aspect-ratio:1/.97;margin:var(--sp-8-16) auto 0;z-index:1}
@@ -102,18 +86,7 @@
  .heroMovieEffectsClip{position:absolute;inset:0;z-index:2;overflow:clip;border-radius:inherit;corner-shape:inherit;pointer-events:none}
  .heroMovieEffectsStage{position:absolute;left:0;top:0;width:0;height:0;transform-origin:50% 50%;pointer-events:none;will-change:transform}
 
- /* Play points every atmosphere downward from the fixed header. Night is neutral near-black
-    with a controlled violet cast, never the old bright blue floor spotlight. */
- body[data-theme-page="play"] .heroTimeSpill{top:0;background:linear-gradient(180deg,#09090c 0%,#0e0d15 72%,rgba(9,9,12,0) 100%)}
  body[data-theme-page="play"] .hero{overflow:visible}
- body[data-theme-page="play"] .heroTimeClip{top:calc(0px - var(--bar-h));bottom:0;border-radius:0}
- body[data-theme-page="play"] .heroTimeGradient[data-time-gradient="pre-dawn"]{background:radial-gradient(112% 100% at 50% -8%,#5f61c8 0,#a38bde 20%,#ddd2f1 42%,#f8fafd 72%)}
- body[data-theme-page="play"] .heroTimeGradient[data-time-gradient="sunrise"]{background:radial-gradient(112% 100% at 50% -8%,#d985d0 0,#ffb087 20%,#ffe2bd 42%,#f8fafd 72%)}
- body[data-theme-page="play"] .heroTimeGradient[data-time-gradient="daytime"]{background:radial-gradient(112% 100% at 50% -8%,#438fc7 0,#99c6e9 24%,#dbeaf7 48%,#f8fafd 74%)}
- body[data-theme-page="play"] .heroTimeGradient[data-time-gradient="dusk"]{background:radial-gradient(112% 100% at 50% -8%,#be79a8 0,#dca491 22%,#e3d9e9 48%,#f8fafd 74%)}
- body[data-theme-page="play"] .heroTimeGradient[data-time-gradient="sunset"]{background:radial-gradient(112% 100% at 50% -8%,#d96c86 0,#d99ac7 22%,#ead7eb 48%,#f8fafd 74%)}
- body[data-theme-page="play"] .heroTimeGradient[data-time-gradient="night"]{background:radial-gradient(112% 100% at 50% -8%,#51459a 0,#2d274f 24%,#17151f 52%,#09090c 82%)}
- body[data-theme-page="play"] .hero[data-time-state="night"]{--time-base:#09090c;--time-ink:var(--c50);--time-bloom:rgba(116,88,186,.22);--time-cast:#aa94dc;--time-cast-opacity:.14;--time-shadow-opacity:.35}
 
  /* The exact same #playArena becomes the live game field only while a game surface owns the
     viewport. Its page furniture fades; the engine children and measured box remain real. */
@@ -123,14 +96,13 @@
  body:is(.pTeamOn,.hmSoccer,.hmBattle,.hmRace,.hmTour) .hero::after{display:none}
  body:is(.pTeamOn,.hmSoccer,.hmBattle,.hmRace,.hmTour) .heroCopy,
  body:is(.pTeamOn,.hmSoccer,.hmBattle,.hmRace,.hmTour) .hero>.stagewrap,
- body:is(.pTeamOn,.hmSoccer,.hmBattle,.hmRace,.hmTour) .heroTimeClip,
  body:is(.pTeamOn,.hmSoccer,.hmBattle,.hmRace,.hmTour) .heroAura,
  body:is(.pTeamOn,.hmSoccer,.hmBattle,.hmRace,.hmTour) .heroMovieEffectsClip{opacity:0;pointer-events:none}
  body:is(.pTeamOn,.hmSoccer,.hmBattle,.hmRace,.hmTour) .hero>.stagewrap{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);margin:0}
  body.pTeamOn .hero{height:52vh;margin:6vh auto auto}
  @media(max-width:880px){.hero{min-height:auto;padding-bottom:var(--sp-24)}.hero .stagewrap{width:min(64vw,calc((100svh - 280px) * .86),500px)}}
- @media(max-width:760px){.hero,body.pHubOn.hmFull .hero{height:auto;min-height:calc(100svh - var(--bar-h));padding:var(--sp-20) var(--sp-12)}.heroCopy h1{max-width:12.5em}.heroCtas{margin-top:var(--sp-14)}.workCta,.heroMood .moodBtn{padding-inline:var(--sp-14)}.heroMood .moodMenu{left:auto;right:0;width:min(var(--menu-w),calc(100vw - var(--sp-48)))}.hero .stagewrap{width:min(88vw,calc((100svh - 300px) * .86),430px);margin-top:var(--sp-8)}.heroAura{top:62%;width:124%;height:64%}}
- @media(max-width:360px){.hero{padding-inline:var(--sp-8)}.heroCtas{gap:var(--sp-6)}.workCta,.heroMood .moodBtn{padding-inline:var(--sp-10)}.hero .stagewrap{width:min(90vw,calc((100svh - 318px) * .84),400px)}}
+ @media(max-width:760px){.hero,body.pHubOn.hmFull .hero{height:auto;min-height:calc(100svh - var(--bar-h));padding:var(--sp-20) var(--sp-12)}.heroCopy h1{max-width:12.5em}.heroCtas{margin-top:var(--sp-14)}.heroMood .moodMenu{left:auto;right:0;width:min(var(--menu-w),calc(100vw - var(--sp-48)))}.hero .stagewrap{width:min(88vw,calc((100svh - 300px) * .86),430px);margin-top:var(--sp-8)}.heroAura{top:62%;width:124%;height:64%}}
+ @media(max-width:360px){.hero{padding-inline:var(--sp-8)}.heroCtas{gap:var(--sp-8)}.hero .stagewrap{width:min(90vw,calc((100svh - 318px) * .84),400px)}}
  @media(max-height:720px) and (min-width:761px){.hero{padding-top:var(--sp-16)}.heroCopy h1{font-size:clamp(30px,3.2vw,36px)}.heroCtas{margin-top:var(--sp-12)}.hero .stagewrap{width:min(470px,46vw);margin-top:var(--sp-6)}}
  @media(prefers-reduced-motion:reduce){.heroAura,.heroMood .moodMenu,.heroMood .moodCar,.heroCtas>*,.playHeroReflection{transition:none!important;animation:none!important}}
 
@@ -602,12 +574,12 @@
  #tHeadEdge feFlood{flood-color:var(--head-edge)}
 </style>
 <link rel="stylesheet" href="header.css">
-<link rel="stylesheet" href="hero-time.css">
 <link rel="stylesheet" href="footer.css">
+<link rel="stylesheet" href="controls.css">
 <link rel="stylesheet" href="site-theme.css">
 <script src="header.js" defer></script>
 </head><body class="hmFull playBooting" data-nav="games" data-theme-page="play">
-<a class="skipLink" id="playSkip" href="#games">Skip to games</a>
+<a class="skipLink ctl ctl--secondary" id="playSkip" href="#games">Skip to games</a>
 <!-- FIX ROUND 2 (Task 2): filter defs SHARED with index.html:2316-2318, copied verbatim, not moved -- index.html keeps its own copies. Must be inlined here, not linked: Safari does not support filters referenced from an external or data: URL (see index.html's own comment on tHeadEdge). #tHeadEdge is unused on play.html today but Task 4's tournament head edges need it. -->
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><!-- Cut-out edge stroke. NOT a drop-shadow stack: CSS filter functions CHAIN, each taking the previous one's output, so N shadows compound to about (N/pi)*r rather than r -- 8 at 1px measures ~2.5px, and 24 hangs the compositor outright. Worse, a stack outlines every hair strand separately and turns a photographic head into a spiky halo. Threshold the alpha FIRST so wispy strands collapse into one silhouette, dilate that, subtract to leave a ring, and flood it. One clean line, hair keeps its softness. Must be inline in this document: Safari does not support filters referenced from an external or data: URL. --><filter id="tHeadEdge" x="-25%" y="-25%" width="150%" height="150%" color-interpolation-filters="sRGB"><feGaussianBlur in="SourceAlpha" stdDeviation="1.6" result="b"/><feComponentTransfer in="b" result="sil"><feFuncA type="linear" slope="20" intercept="-13.5"/></feComponentTransfer><feMorphology in="sil" operator="dilate" radius="1" result="f"/><feComposite in="f" in2="sil" operator="out" result="r"/><feFlood flood-color="#FDFDFD" result="c"/><feComposite in="c" in2="r" operator="in" result="st"/><feMerge><feMergeNode in="st"/><feMergeNode in="SourceGraphic"/></feMerge></filter></svg>
 <svg width="0" height="0" style="position:absolute"><filter id="inkBig"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="7" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="1.1" xChannelSelector="R" yChannelSelector="G" result="d"/><feTurbulence type="fractalNoise" baseFrequency="0.5 0.42" numOctaves="2" seed="13" result="g"/><feColorMatrix in="g" type="matrix" values="0 0 0 0 0.055 0 0 0 0 0.055 0 0 0 0 0.055 0 0 0 0.42 0" result="grain"/><feComposite in="grain" in2="d" operator="atop"/></filter>
@@ -624,7 +596,7 @@
       round while the lobby was dark; Jayden saw it and reversed it ("shouldn't be dark mode").
       The ink surface is untouched in header.css and gradientlab.html still uses it -- what
       changed is only that this page stopped asking for it. -->
- <nav class="jbNav" aria-label="Primary" data-surface="paper">
+ <nav class="jbNav ctl-group" aria-label="Primary" data-surface="paper">
   <span class="jbGrp jbGrpL">
    <a class="jbHome" href="index.html" aria-label="Jayden Betts, home"><svg class="jbLogo" viewBox="0 0 30 30" aria-hidden="true"><path d="M1 26.3842C3.07605 22.5364 9.00761 17.1494 16.1255 26.3842C23.2434 35.619 14.1981 18.1678 16.1255 8.65665C18.0529 -0.854479 32.3186 -2.22723 28.2852 8.65665C24.2517 19.5405 18.6968 18.261 20.8493 13.2232C23.0018 8.1853 35.3661 26.1679 23.0066 27.4872"/></svg></a>
   </span>
@@ -654,40 +626,18 @@
      physics field; CSS hides only the page furniture and preserves the engine node. -->
 <div class="playViewport">
  <div class="wrap">
-  <div class="heroTimeSpill" id="heroTimeSpill" aria-hidden="true"></div>
   <main class="hero" id="playArena" tabindex="-1">
-   <svg class="heroPortraitTintDefs" width="0" height="0" aria-hidden="true">
-    <filter id="heroPortraitTintFilter" color-interpolation-filters="sRGB">
-     <feFlood id="heroPortraitTintFlood" flood-color="var(--time-cast)" result="portraitTint"/>
-     <feComposite in="portraitTint" in2="SourceAlpha" operator="in"/>
-    </filter>
-   </svg>
    <div class="heroAura" aria-hidden="true"></div>
-   <div class="heroTimeClip" id="heroTimeClip" aria-hidden="true"><div class="heroTimeGradient" data-time-gradient="pre-dawn"></div><div class="heroTimeGradient" data-time-gradient="sunrise"></div><div class="heroTimeGradient" data-time-gradient="daytime"></div><div class="heroTimeGradient" data-time-gradient="dusk"></div><div class="heroTimeGradient" data-time-gradient="sunset"></div><div class="heroTimeGradient" data-time-gradient="night"></div></div>
    <div class="heroCopy">
     <h1 class="pLede"><span>I made a few games for fun.</span> <span>Still building them.</span></h1>
     <div class="heroCtas">
-     <a class="workCta" id="workBtn" href="#games"><span>View games</span></a>
-     <div class="heroMood moodbar" id="moodbar"><button class="moodBtn" id="moodBtn" type="button" aria-label="Choose a mood for Jayden’s portrait" aria-haspopup="menu" aria-expanded="false" aria-controls="moodMenu"><span class="moodLbl">Choose a mood</span><svg class="moodCar" viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4"/></svg></button><div class="moodMenu" id="moodMenu" role="menu" aria-label="Choose a mood for Jayden’s portrait"><button class="moodItem" type="button" role="menuitem" data-mood="empathy"><span class="moodIco camDot" aria-hidden="true"></span>Empathy</button><button class="moodItem" type="button" role="menuitem" data-mood="hunger"><span class="moodIco cookieDot" aria-hidden="true"></span>Hunger</button><button class="moodItem" type="button" role="menuitem" data-mood="delight"><span class="moodIco discoDot" aria-hidden="true"></span>Delight</button><button class="moodItem" type="button" role="menuitem" data-mood="love"><span class="moodIco heartDot" aria-hidden="true"></span>Love</button></div></div>
-     <div class="heroTime" id="heroTime">
-      <button class="heroTimeBtn" id="heroTimeBtn" type="button" aria-label="Time of day" aria-haspopup="menu" aria-expanded="false" aria-controls="heroTimeMenu"><svg class="heroTimeIcon uiIcon" id="heroTimeIcon" viewBox="0 0 24 24" aria-hidden="true"><g data-hero-time-icon="pre-dawn"><use href="ui-icons.svg#lucide-moon-star"/></g><g data-hero-time-icon="sunrise"><use href="ui-icons.svg#lucide-sunrise"/></g><g data-hero-time-icon="daytime"><use href="ui-icons.svg#lucide-sun"/></g><g data-hero-time-icon="dusk"><use href="ui-icons.svg#lucide-cloud-sun"/></g><g data-hero-time-icon="sunset"><use href="ui-icons.svg#lucide-sunset"/></g><g data-hero-time-icon="night"><use href="ui-icons.svg#lucide-moon"/></g><g data-hero-time-icon="off"><use href="ui-icons.svg#lucide-circle-off"/></g></svg></button>
-      <div class="heroTimeMenu" id="heroTimeMenu" role="menu" aria-label="Choose time of day">
-       <button type="button" role="menuitemradio" aria-checked="true" data-time-mode="auto"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true"><use href="ui-icons.svg#lucide-rotate-ccw"/></svg>Automatic</button>
-       <button type="button" role="menuitemradio" aria-checked="false" data-time-mode="off"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true"><use href="ui-icons.svg#lucide-circle-off"/></svg>Off</button>
-       <button type="button" role="menuitemradio" aria-checked="false" data-time-mode="pre-dawn"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true"><use href="ui-icons.svg#lucide-moon-star"/></svg>Pre-dawn</button>
-       <button type="button" role="menuitemradio" aria-checked="false" data-time-mode="sunrise"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true"><use href="ui-icons.svg#lucide-sunrise"/></svg>Sunrise</button>
-       <button type="button" role="menuitemradio" aria-checked="false" data-time-mode="daytime"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true"><use href="ui-icons.svg#lucide-sun"/></svg>Daytime</button>
-       <button type="button" role="menuitemradio" aria-checked="false" data-time-mode="dusk"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true"><use href="ui-icons.svg#lucide-cloud-sun"/></svg>Dusk</button>
-       <button type="button" role="menuitemradio" aria-checked="false" data-time-mode="sunset"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true"><use href="ui-icons.svg#lucide-sunset"/></svg>Sunset</button>
-       <button type="button" role="menuitemradio" aria-checked="false" data-time-mode="night"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true"><use href="ui-icons.svg#lucide-moon"/></svg>Night</button>
-      </div>
-     </div>
-     <script id="heroTimePrepaint">(function(){var r=document.documentElement,h=document.getElementById("playArena"),m=r.getAttribute("data-theme-mode")||"auto",s=r.getAttribute("data-theme-state")||"off",q=r.getAttribute("data-reduced-motion")||"no-preference",i=document.getElementById("heroTimeIcon"),n=document.querySelectorAll('#heroTimeMenu [role="menuitemradio"]');h.setAttribute("data-time-mode",m);h.setAttribute("data-time-state",s);h.setAttribute("data-reduced-motion",q);i.setAttribute("data-icon",s);n.forEach(function(x){x.setAttribute("aria-checked",x.getAttribute("data-time-mode")===m?"true":"false");});})();</script>
+     <a class="workCta ctl ctl--primary" id="workBtn" href="#games"><span>View games</span></a>
+     <div class="heroMood moodbar" id="moodbar"><button class="moodBtn ctl ctl--secondary" id="moodBtn" type="button" aria-label="Choose a mood for Jayden’s portrait" aria-haspopup="menu" aria-expanded="false" aria-controls="moodMenu"><span class="moodLbl">Choose a mood</span><svg class="moodCar" viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4"/></svg></button><div class="moodMenu ctl-menu" id="moodMenu" role="menu" aria-label="Choose a mood for Jayden’s portrait"><button class="moodItem ctl ctl--quiet ctl--row" type="button" role="menuitem" data-mood="empathy"><span class="moodIco camDot" aria-hidden="true"></span>Empathy</button><button class="moodItem ctl ctl--quiet ctl--row" type="button" role="menuitem" data-mood="hunger"><span class="moodIco cookieDot" aria-hidden="true"></span>Hunger</button><button class="moodItem ctl ctl--quiet ctl--row" type="button" role="menuitem" data-mood="delight"><span class="moodIco discoDot" aria-hidden="true"></span>Delight</button><button class="moodItem ctl ctl--quiet ctl--row" type="button" role="menuitem" data-mood="love"><span class="moodIco heartDot" aria-hidden="true"></span>Love</button></div></div>
     </div>
    </div>
    <div class="stagewrap">
     <div class="queueDots" id="qdots" role="status" aria-live="polite"><span class="qsr"></span><i></i><i></i><i></i></div>
-    <div id="stageMorph"><div class="floorshadow" id="fsh"></div><div class="stage" id="stage"><img class="face" id="face" src="images/neutral.webp" alt="Jayden" draggable="false"><img id="heroTimePortraitCast" class="heroTimePortraitCast" alt="" aria-hidden="true"><img class="tongue" id="tongue" src="images/tongue.webp" alt="" aria-hidden="true">
+    <div id="stageMorph"><div class="floorshadow" id="fsh"></div><div class="stage" id="stage"><img class="face" id="face" src="images/neutral.webp" alt="Jayden" draggable="false"><img class="tongue" id="tongue" src="images/tongue.webp" alt="" aria-hidden="true">
 <svg class="glasses" id="glasses" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><defs><pattern id="glCard" patternUnits="userSpaceOnUse" width="100" height="100"><image href="images/glass_frame_tex.webp" x="0" y="0" width="100" height="100" preserveAspectRatio="xMidYMid slice"/></pattern><linearGradient id="glSheen" x1="0" y1="0" x2="0.62" y2="1"><stop offset="0" stop-color="#fff" stop-opacity="0.5"/><stop offset="0.4" stop-color="#fff" stop-opacity="0.06"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient><mask id="glMask" maskUnits="userSpaceOnUse" x="0" y="0" width="100" height="100"><rect x="28" y="45.3" width="44" height="13.2" rx="2.4" fill="#fff"/><polygon points="28,47.2 26,48 26,50.4 28,51.2" fill="#fff"/><polygon points="72,47.2 74,48 74,50.4 72,51.2" fill="#fff"/><rect x="32.5" y="47.3" width="13" height="9.2" rx="1.8" fill="#000"/><rect x="54.5" y="47.3" width="13" height="9.2" rx="1.8" fill="#000"/><path d="M46.7 58.6 Q50 54.3 53.3 58.6 Z" fill="#000"/></mask></defs><rect class="gl-red" x="32.5" y="47.3" width="13" height="9.2" rx="1.8"/><rect class="gl-cyan" x="54.5" y="47.3" width="13" height="9.2" rx="1.8"/><rect class="gl-plast" x="32.5" y="47.3" width="13" height="9.2" rx="1.8" fill="url(#glSheen)"/><rect class="gl-plast" x="54.5" y="47.3" width="13" height="9.2" rx="1.8" fill="url(#glSheen)"/><rect x="0" y="0" width="100" height="100" fill="url(#glCard)" mask="url(#glMask)"/></svg></div></div>
     <div class="playHeroReflection" aria-hidden="true"></div>
    </div>
@@ -807,9 +757,7 @@
    that furniture only where this flag (or #playArena) says a game can actually start. */
 window.__hmGames=true;</script>
 <!-- The SAME engine index.html loads, from the same file. -->
-<script src="hero-time-presets.js"></script>
 <script src="hero-engine.js"></script>
-<script src="hero-time.js"></script>
 <script src="party.js"></script>
 <script src="egghead-seed.js"></script>
 <script src="play-engine.js"></script>

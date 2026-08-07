@@ -798,8 +798,8 @@ body.heroEmpathy .jbStick .jbNav{--nav-mat:var(--theme-page,var(--c50))!importan
    the FIRST focusable element and moves focus to the main content -- so it sits before the
    nav in DOM order. Parked off-screen by transform (not display:none, which would take it
    out of the tab order entirely) and slid in on focus. ---- */
-.skipLink{position:fixed;top:10px;left:10px;border-radius:var(--r-xs);corner-shape:var(--corner);z-index:200;display:inline-flex;align-items:center;min-height:var(--tap-min);padding:12px 16px;background:var(--c50);color:var(--c950);border:1px solid var(--c100);font-family:var(--sans);font-weight:400;font-size:var(--fs-small);line-height:var(--lh-flat);text-decoration:none;box-shadow:none;transform:translateY(calc(-100% - 16px));transition:transform .2s cubic-bezier(.2,.8,.2,1)}
-.skipLink:focus{transform:translateY(0);outline:2px solid var(--c950);outline-offset:3px}
+.skipLink{position:fixed;top:var(--sp-10);left:var(--sp-10);z-index:200;transform:translateY(calc(-100% - var(--sp-16)))}
+.skipLink:focus{transform:translateY(0)}
 @media(prefers-reduced-motion:reduce){.skipLink{transition:none}}
 #main:focus{outline:none}   /* programmatic focus target -- the user chose to land here, no stray ring */
 /* ---- "Show on home": the crowd is a feature, but it is also motion beside the headline.
@@ -1425,27 +1425,13 @@ html{scroll-padding-top:calc(var(--nav-h) + var(--sp-16-24))}
 .heroCtas{order:2;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;
  gap:var(--sp-8);margin-top:var(--sp-16);position:relative;z-index:8}
 .heroCtas>*{opacity:1;transform:none}
-.workCta{height:var(--tap-min);min-height:var(--tap-min);
- padding:0 var(--sp-16);border-radius:var(--r-md);corner-shape:var(--corner);
- font-family:var(--sans);font-size:var(--fs-nav);font-weight:400;line-height:var(--lh-flat);
- text-decoration:none;display:inline-flex;align-items:center;justify-content:center;
- gap:var(--sp-8);cursor:pointer;white-space:nowrap;
- transition:background-color var(--hover-out-dur) var(--ease-out),
-  border-color var(--hover-out-dur) var(--ease-out),color var(--hover-out-dur) var(--ease-out),
-  transform var(--press-dur) var(--ease-out)}
-.workCta{border:var(--hair-w) solid var(--c950);background:var(--c950);color:var(--c50)}
 .workCta svg,.moodFaceIco{width:var(--ico-sm);height:var(--ico-sm);fill:none;
  stroke:currentColor;stroke-width:var(--ico-stroke);stroke-linecap:round;stroke-linejoin:round}
-.workCta:hover,.workCta:focus-visible{background:var(--c900);border-color:var(--c900);color:var(--c50)}
 .heroTimeSupport{display:none!important}
-.workCta:active{transform:scale(var(--press-scale))}
-.workCta:focus-visible{
- outline:var(--focus-w) solid var(--c950);outline-offset:var(--sp-2)}
 @media(max-width:760px){
  .hero{padding:var(--sp-48) var(--sp-12);border-radius:var(--r-lg)}
  .heroCopy h1{font-size:var(--fs-heroline);max-width:12.5em}
  .heroCtas{margin-top:var(--sp-14)}
- .workCta{height:var(--tap-min);padding-inline:var(--sp-14)}
  .cases{margin-top:var(--sp-16)}
 }
 @media(max-height:720px) and (min-width:761px){
@@ -1460,6 +1446,7 @@ html{scroll-padding-top:calc(var(--nav-h) + var(--sp-16-24))}
 <link rel="stylesheet" href="header.css">
 <link rel="stylesheet" href="hero-time.css">
 <link rel="stylesheet" href="footer.css">
+<link rel="stylesheet" href="controls.css">
 <link rel="stylesheet" href="site-theme.css">
 <script>/* THE OLD OVERLAY'S URL STILL RESOLVES. index.html#about was the only address
    About ever had, and it is linked from play.html and the other sub-pages, and sits in
@@ -1470,7 +1457,7 @@ if(location.hash==="#about")location.replace("about.html");</script>
 <script src="time-aware-thumbnails.js" defer></script>
 </head>
 <body data-nav="home" data-theme-page="home">
-<a class="skipLink" href="#main">Skip to content</a>
+<a class="skipLink ctl ctl--secondary" href="#main">Skip to content</a>
 <svg width="0" height="0" style="position:absolute"><filter id="inkBig"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="7" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="1.1" xChannelSelector="R" yChannelSelector="G" result="d"/><feTurbulence type="fractalNoise" baseFrequency="0.5 0.42" numOctaves="2" seed="13" result="g"/><feColorMatrix in="g" type="matrix" values="0 0 0 0 0.055 0 0 0 0 0.055 0 0 0 0 0.055 0 0 0 0.42 0" result="grain"/><feComposite in="grain" in2="d" operator="atop"/></filter>
 <filter id="inkSm"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="1" seed="4" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="0.55" xChannelSelector="R" yChannelSelector="G"/></filter><filter id="inkEye"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="9" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="1.05" xChannelSelector="R" yChannelSelector="G"/></filter></svg>
 <!-- ═══ THE SITE HEADER ═══════════════════════════════════════════════════════
@@ -1512,7 +1499,7 @@ if(location.hash==="#about")location.replace("about.html");</script>
      reveals it while the overlay is open. Without it the overlay would have no
      visible exit in the chrome at all. -->
 <div class="jbStick">
- <nav class="jbNav" aria-label="Primary" data-surface="paper">
+ <nav class="jbNav ctl-group" aria-label="Primary" data-surface="paper">
   <span class="jbGrp jbGrpL">
    <button class="jbHome" id="logo" type="button" aria-label="Jayden Betts, home"><svg class="jbLogo" viewBox="0 0 30 30" aria-hidden="true"><path d="M1 26.3842C3.07605 22.5364 9.00761 17.1494 16.1255 26.3842C23.2434 35.619 14.1981 18.1678 16.1255 8.65665C18.0529 -0.854479 32.3186 -2.22723 28.2852 8.65665C24.2517 19.5405 18.6968 18.261 20.8493 13.2232C23.0018 8.1853 35.3661 26.1679 23.0066 27.4872"/></svg></button>
   </span>
@@ -1564,18 +1551,18 @@ if(location.hash==="#about")location.replace("about.html");</script>
   <div class="heroCopy">
    <h1 id="h1">SF product designer. iOS, B2C and design systems.</h1><p class="sub" id="sub"></p>
    <div class="heroCtas">
-   <a class="workCta" id="workBtn" href="#cases"><span>View work</span></a>
+   <a class="workCta ctl ctl--primary" id="workBtn" href="#cases"><span>View work</span></a>
     <div class="heroTime" id="heroTime">
-     <button class="heroTimeBtn" id="heroTimeBtn" type="button" aria-label="Time of day" aria-haspopup="menu" aria-expanded="false" aria-controls="heroTimeMenu"><svg class="heroTimeIcon uiIcon" id="heroTimeIcon" viewBox="0 0 24 24" aria-hidden="true"><g data-hero-time-icon="pre-dawn"><use href="ui-icons.svg#lucide-moon-star"/></g><g data-hero-time-icon="sunrise"><use href="ui-icons.svg#lucide-sunrise"/></g><g data-hero-time-icon="daytime"><use href="ui-icons.svg#lucide-sun"/></g><g data-hero-time-icon="dusk"><use href="ui-icons.svg#lucide-cloud-sun"/></g><g data-hero-time-icon="sunset"><use href="ui-icons.svg#lucide-sunset"/></g><g data-hero-time-icon="night"><use href="ui-icons.svg#lucide-moon"/></g><g data-hero-time-icon="off"><use href="ui-icons.svg#lucide-circle-off"/></g></svg></button>
-     <div class="heroTimeMenu" id="heroTimeMenu" role="menu" aria-label="Choose time of day">
-      <button type="button" role="menuitemradio" aria-checked="true" data-time-mode="auto"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true"><use href="ui-icons.svg#lucide-rotate-ccw"/></svg>Automatic</button>
-      <button type="button" role="menuitemradio" aria-checked="false" data-time-mode="off"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true"><use href="ui-icons.svg#lucide-circle-off"/></svg>Off</button>
-      <button type="button" role="menuitemradio" aria-checked="false" data-time-mode="pre-dawn"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true"><use href="ui-icons.svg#lucide-moon-star"/></svg>Pre-dawn</button>
-      <button type="button" role="menuitemradio" aria-checked="false" data-time-mode="sunrise"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true"><use href="ui-icons.svg#lucide-sunrise"/></svg>Sunrise</button>
-      <button type="button" role="menuitemradio" aria-checked="false" data-time-mode="daytime"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true"><use href="ui-icons.svg#lucide-sun"/></svg>Daytime</button>
-      <button type="button" role="menuitemradio" aria-checked="false" data-time-mode="dusk"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true"><use href="ui-icons.svg#lucide-cloud-sun"/></svg>Dusk</button>
-      <button type="button" role="menuitemradio" aria-checked="false" data-time-mode="sunset"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true"><use href="ui-icons.svg#lucide-sunset"/></svg>Sunset</button>
-      <button type="button" role="menuitemradio" aria-checked="false" data-time-mode="night"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true"><use href="ui-icons.svg#lucide-moon"/></svg>Night</button>
+     <button class="heroTimeBtn ctl ctl--icon" id="heroTimeBtn" type="button" aria-label="Time of day" aria-haspopup="menu" aria-expanded="false" aria-controls="heroTimeMenu"><svg class="heroTimeIcon uiIcon" id="heroTimeIcon" viewBox="0 0 24 24" aria-hidden="true"><g data-hero-time-icon="pre-dawn"><use href="ui-icons.svg#lucide-moon-star"/></g><g data-hero-time-icon="sunrise"><use href="ui-icons.svg#lucide-sunrise"/></g><g data-hero-time-icon="daytime"><use href="ui-icons.svg#lucide-sun"/></g><g data-hero-time-icon="dusk"><use href="ui-icons.svg#lucide-cloud-sun"/></g><g data-hero-time-icon="sunset"><use href="ui-icons.svg#lucide-sunset"/></g><g data-hero-time-icon="night"><use href="ui-icons.svg#lucide-moon"/></g><g data-hero-time-icon="off"><use href="ui-icons.svg#lucide-circle-off"/></g></svg></button>
+     <div class="heroTimeMenu ctl-menu" id="heroTimeMenu" role="menu" aria-label="Choose time of day">
+      <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="true" data-time-mode="auto"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true"><use href="ui-icons.svg#lucide-rotate-ccw"/></svg>Automatic</button>
+      <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="false" data-time-mode="off"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true"><use href="ui-icons.svg#lucide-circle-off"/></svg>Off</button>
+      <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="false" data-time-mode="pre-dawn"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true"><use href="ui-icons.svg#lucide-moon-star"/></svg>Pre-dawn</button>
+      <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="false" data-time-mode="sunrise"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true"><use href="ui-icons.svg#lucide-sunrise"/></svg>Sunrise</button>
+      <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="false" data-time-mode="daytime"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true"><use href="ui-icons.svg#lucide-sun"/></svg>Daytime</button>
+      <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="false" data-time-mode="dusk"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true"><use href="ui-icons.svg#lucide-cloud-sun"/></svg>Dusk</button>
+      <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="false" data-time-mode="sunset"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true"><use href="ui-icons.svg#lucide-sunset"/></svg>Sunset</button>
+      <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="false" data-time-mode="night"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true"><use href="ui-icons.svg#lucide-moon"/></svg>Night</button>
      </div>
     </div>
     <script id="heroTimePrepaint">(function(){var r=document.documentElement,h=document.getElementById("main"),m=r.getAttribute("data-theme-mode")||"auto",s=r.getAttribute("data-theme-state")||"off",q=r.getAttribute("data-reduced-motion")||"no-preference",i=document.getElementById("heroTimeIcon"),n=document.querySelectorAll('#heroTimeMenu [role="menuitemradio"]');h.setAttribute("data-time-mode",m);h.setAttribute("data-time-state",s);h.setAttribute("data-reduced-motion",q);i.setAttribute("data-icon",s);n.forEach(function(x){x.setAttribute("aria-checked",x.getAttribute("data-time-mode")===m?"true":"false");});})();</script>

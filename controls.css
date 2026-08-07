@@ -1,0 +1,74 @@
+/* Shared control foundation. Geometry, material, state, and motion live here;
+   page styles may position a control but do not redraw it. */
+.ctl{
+ display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;
+ min-height:var(--ctl-h);padding-block:0;padding-inline:var(--ctl-pad);gap:var(--ctl-gap);
+ border:0;border-radius:var(--ctl-r);corner-shape:var(--corner);background:none;box-shadow:none;
+ font-family:var(--sans);font-size:var(--ctl-fs);font-weight:400;line-height:var(--lh-flat);
+ letter-spacing:var(--tr-body);color:var(--ctl-ink);white-space:nowrap;text-decoration:none;
+ position:relative;cursor:pointer;-webkit-tap-highlight-color:transparent;filter:none;
+ transition-property:color,background-color,box-shadow,text-decoration-color,transform;
+ transition-duration:var(--dur-state-out);transition-timing-function:var(--ease-out)
+}
+.ctl .gIco,.ctl .uiIcon{width:var(--ico-md);height:var(--ico-md);flex:0 0 var(--ico-md)}
+.ctl:hover,.ctl:focus-visible,.ctl[aria-selected="true"],.ctl[aria-current],
+.ctl[aria-expanded="true"]{transition-duration:var(--dur-state)}
+.ctl:active{transition-duration:var(--dur-press);transform:scale(var(--press-scale))}
+.ctl:focus-visible{outline:var(--focus-w) solid var(--ctl-focus);outline-offset:var(--sp-2)}
+.ctl:focus:not(:focus-visible){outline:none}
+.ctl[disabled],.ctl[aria-disabled="true"]{opacity:var(--ctl-disabled-o);cursor:default}
+.ctl[disabled]:active,.ctl[aria-disabled="true"]:active{transform:none}
+
+.ctl--primary{background:var(--ctl-primary-ground);color:var(--ctl-primary-ink);box-shadow:none}
+.ctl--primary:hover,.ctl--primary:focus-visible,.ctl--primary:active{
+ background:var(--ctl-primary-ground-hover);color:var(--ctl-primary-ink);box-shadow:none
+}
+.ctl--secondary,.ctl--icon{
+ background:var(--ctl-ground);color:var(--ctl-ink);box-shadow:var(--ctl-rim)
+}
+.ctl--secondary:hover,.ctl--secondary:focus-visible,.ctl--secondary[aria-expanded="true"],
+.ctl--icon:hover,.ctl--icon:focus-visible,.ctl--icon[aria-expanded="true"]{
+ background:var(--ctl-ground-hover);color:var(--ctl-ink-strong);box-shadow:var(--ctl-rim-strong)
+}
+.ctl--icon{width:var(--ctl-h);height:var(--ctl-h);min-width:var(--ctl-h);padding:0}
+.ctl--quiet{background:none;color:var(--ctl-ink);box-shadow:none}
+.ctl--quiet:hover,.ctl--quiet:focus-visible,.ctl--quiet[aria-current],
+.ctl--quiet[aria-selected="true"]{background:none;color:var(--ctl-ink-strong)}
+.ctl--row{width:100%;justify-content:flex-start;text-align:left}
+.ctl--choice{padding-left:var(--sp-32)}
+.ctl--choice[aria-checked="true"]{color:var(--ctl-ink-strong);font-weight:600}
+.ctl--choice[aria-checked="true"]::before{
+ content:"✓";position:absolute;left:var(--sp-10);font:inherit;color:currentColor
+}
+.ctl--sm{min-height:var(--ctl-h-sm);padding-inline:var(--ctl-pad-sm);gap:var(--ctl-gap-sm);font-size:var(--ctl-fs-sm)}
+.ctl--sm::after{content:"";position:absolute;top:50%;left:0;right:0;height:var(--ctl-h);transform:translateY(-50%)}
+
+.ctl-menu{
+ display:flex;flex-direction:column;gap:0;padding:var(--sp-8);min-width:196px;
+ box-sizing:border-box;border:0;border-radius:var(--r-lg);corner-shape:var(--corner);
+ background:var(--ctl-menu-ground);box-shadow:var(--ctl-menu-shadow);
+ opacity:0;visibility:hidden;pointer-events:none;transform:translateY(var(--sp-6));
+ transition:opacity var(--dur-state) var(--ease-out),transform var(--sp-settle-dur) var(--sp-settle),
+  visibility 0s var(--sp-settle-dur)
+}
+.open>.ctl-menu,.ctl-menu[data-open],.ctl[aria-expanded="true"]+.ctl-menu{
+ opacity:1;visibility:visible;pointer-events:auto;transform:none;
+ transition:opacity var(--dur-state) var(--ease-out),transform var(--sp-settle-dur) var(--sp-settle)
+}
+.ctl-menu .ctl{border-radius:var(--r-md)}
+.skipLink.ctl{position:fixed}
+
+/* Header menus are positioned by header.css, but consume the same opaque local
+   material and semantic rim as every other menu on migrated pages. */
+.jbDiscMenu{background:var(--ctl-menu-ground);box-shadow:var(--ctl-container-rim)}
+
+.ctl-group{background:var(--ctl-container-ground);box-shadow:var(--ctl-container-rim)}
+
+@media(prefers-reduced-motion:reduce){
+ .ctl,.ctl-menu{transition-duration:1ms!important}
+ .ctl:active{transform:none}
+}
+@media(forced-colors:active){
+ .ctl--secondary,.ctl--icon,.ctl-menu,.ctl-group{background:Canvas;color:CanvasText;box-shadow:0 0 0 var(--hair-w) CanvasText inset}
+ .ctl--primary{background:Highlight;color:HighlightText}
+}
