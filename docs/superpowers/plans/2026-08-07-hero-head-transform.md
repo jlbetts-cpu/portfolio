@@ -664,9 +664,17 @@ function beginResize(event,corner){
   nw:{x:r.right,y:r.bottom},ne:{x:r.left,y:r.bottom},
   sw:{x:r.right,y:r.top},se:{x:r.left,y:r.top}
  }[corner];
+ var drag=cornerPoint(r,corner);
  state.pointerId=event.pointerId;state.operation="resize";
- state.start={corner:corner,anchor:opposite,rect:r,x:state.x,y:state.y,scale:state.scale};
+ state.start={corner:corner,anchor:opposite,rect:r,x:state.x,y:state.y,scale:state.scale,
+  pointerOffset:{x:drag.x-event.clientX,y:drag.y-event.clientY}};
  event.currentTarget.setPointerCapture(event.pointerId);
+}
+function cornerPoint(rect,corner){
+ return {
+  nw:{x:rect.left,y:rect.top},ne:{x:rect.right,y:rect.top},
+  sw:{x:rect.left,y:rect.bottom},se:{x:rect.right,y:rect.bottom}
+ }[corner];
 }
 function oppositePoint(rect,corner){
  return {
@@ -683,8 +691,10 @@ function applyScaleFromAnchor(next,anchor,corner){
 }
 function resize(event){
  if(state.operation!=="resize"||event.pointerId!==state.pointerId)return;
- var rx=Math.abs(event.clientX-state.start.anchor.x)/state.start.rect.width;
- var ry=Math.abs(event.clientY-state.start.anchor.y)/state.start.rect.height;
+ var dragX=event.clientX+state.start.pointerOffset.x;
+ var dragY=event.clientY+state.start.pointerOffset.y;
+ var rx=Math.abs(dragX-state.start.anchor.x)/state.start.rect.width;
+ var ry=Math.abs(dragY-state.start.anchor.y)/state.start.rect.height;
  var ratio=Math.max(rx,ry);
  var min=parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--hero-head-min-scale"))||.78;
  var max=parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--hero-head-max-scale"))||1.35;
@@ -692,6 +702,8 @@ function resize(event){
  applyScaleFromAnchor(next,state.start.anchor,state.start.corner);
 }
 ```
+
+The pointer offset is required because Task 2 deliberately keeps the 44px hit box inboard while the 8px visual square remains centered on the true corner. Resizing must begin without a scale jump regardless of where inside that hit target the user presses.
 
 Before these helpers, split geometry ownership explicitly:
 
@@ -740,9 +752,12 @@ function onKeydown(event){
  var corner=event.target.closest&&event.target.closest(".heroHeadHandle");
  event.preventDefault();
  if(corner){
-  var name=corner.getAttribute("data-corner"),rect=objectRect();
+  var name=corner.getAttribute("data-corner"),rect=logicalRect();
   var direction=(event.key==="ArrowLeft"||event.key==="ArrowUp")?-1:1;
-  var next=Math.max(.78,Math.min(1.35,state.scale+direction*(event.shiftKey?.08:.02)));
+  var style=getComputedStyle(document.documentElement);
+  var min=parseFloat(style.getPropertyValue("--hero-head-min-scale"))||.78;
+  var max=parseFloat(style.getPropertyValue("--hero-head-max-scale"))||1.35;
+  var next=Math.max(min,Math.min(max,state.scale+direction*(event.shiftKey?.08:.02)));
   applyScaleFromAnchor(next,oppositePoint(rect,name),name);
  }else{
   var next=clampMove(state.x+dx,state.y+dy);state.x=next.x;state.y=next.y;render();
