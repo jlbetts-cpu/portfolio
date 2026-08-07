@@ -1,0 +1,219 @@
+{
+  "pipeline": {
+    "canvas": [
+      2400,
+      1784
+    ],
+    "mobile": [
+      1200,
+      892
+    ],
+    "master": "images/cs/masters/strata-mockups.png",
+    "master_dimensions": [
+      3360,
+      1770
+    ],
+    "master_sha256": "eed90a8d3b248130fa06b3fd51dea050c8dea4acedec12d7875c96cf68b7cbf1",
+    "mockup_resize": [
+      1800,
+      948
+    ],
+    "mockup_position": [
+      300,
+      420
+    ],
+    "resampling": "Pillow Lanczos",
+    "encoder": "cwebp -m 6 -pass 10 -sharp_yuv -metadata none",
+    "opaque_pixel_count": 1594070,
+    "opaque_pixels_byte_identical_across_states": true,
+    "opaque_pixels_match_resized_master": true
+  },
+  "states": {
+    "pre-dawn": {
+      "plate": "images/cs/variants/time/strata/sources/pre-dawn-generated.png",
+      "plate_dimensions": [
+        1455,
+        1081
+      ],
+      "desktop": {
+        "path": "images/cs/variants/time/strata/pre-dawn-2400.webp",
+        "dimensions": [
+          2400,
+          1784
+        ],
+        "bytes": 357822,
+        "quality": 90,
+        "psnr_db_rgb": 39.906,
+        "webpmux": "Canvas size: 2400 x 1784\nNo features present.",
+        "sha256": "c3ddb9bf631c19aab2b75e69bac4868d5ad3bee8a40099eec914af90942c039e"
+      },
+      "mobile": {
+        "path": "images/cs/variants/time/strata/pre-dawn-1200.webp",
+        "dimensions": [
+          1200,
+          892
+        ],
+        "bytes": 133514,
+        "quality": 88,
+        "psnr_db_rgb": 37.314,
+        "webpmux": "Canvas size: 1200 x 892\nNo features present.",
+        "sha256": "dd7a79d9b2fea24f87a31543bcfd18f25b681297c8d26968e03291bb220de9fb"
+      }
+    },
+    "sunrise": {
+      "plate": "images/cs/variants/time/strata/sources/sunrise-generated.png",
+      "plate_dimensions": [
+        1456,
+        1080
+      ],
+      "desktop": {
+        "path": "images/cs/variants/time/strata/sunrise-2400.webp",
+        "dimensions": [
+          2400,
+          1784
+        ],
+        "bytes": 533206,
+        "quality": 90,
+        "psnr_db_rgb": 39.201,
+        "webpmux": "Canvas size: 2400 x 1784\nNo features present.",
+        "sha256": "34a4ac2383cbaeca61151453281296e3f1150fc2df0d4ed82a6863017915376d"
+      },
+      "mobile": {
+        "path": "images/cs/variants/time/strata/sunrise-1200.webp",
+        "dimensions": [
+          1200,
+          892
+        ],
+        "bytes": 201852,
+        "quality": 88,
+        "psnr_db_rgb": 36.405,
+        "webpmux": "Canvas size: 1200 x 892\nNo features present.",
+        "sha256": "0558fac13ef0fb24d26b139cb0f1d981be49dbb93aa49579fb462f31d8068e95"
+      }
+    },
+    "daytime": {
+      "plate": "images/cs/variants/time/strata/sources/daytime-generated.png",
+      "plate_dimensions": [
+        1455,
+        1081
+      ],
+      "desktop": {
+        "path": "images/cs/variants/time/strata/daytime-2400.webp",
+        "dimensions": [
+          2400,
+          1784
+        ],
+        "bytes": 504352,
+        "quality": 90,
+        "psnr_db_rgb": 39.363,
+        "webpmux": "Canvas size: 2400 x 1784\nNo features present.",
+        "sha256": "2b3a02d9a59b3bbf68d2bbde1eb233f6a013cb97828fd07aed336cf71b54b84d"
+      },
+      "mobile": {
+        "path": "images/cs/variants/time/strata/daytime-1200.webp",
+        "dimensions": [
+          1200,
+          892
+        ],
+        "bytes": 186302,
+        "quality": 88,
+        "psnr_db_rgb": 36.764,
+        "webpmux": "Canvas size: 1200 x 892\nNo features present.",
+        "sha256": "f592aaf0960ec5ce2bb01f7d1dff61845df0e752eb4b3f690f93282bf2818e8f"
+      }
+    },
+    "dusk": {
+      "plate": "images/cs/variants/time/strata/sources/dusk-generated.png",
+      "plate_dimensions": [
+        1456,
+        1080
+      ],
+      "desktop": {
+        "path": "images/cs/variants/time/strata/dusk-2400.webp",
+        "dimensions": [
+          2400,
+          1784
+        ],
+        "bytes": 528924,
+        "quality": 90,
+        "psnr_db_rgb": 39.305,
+        "webpmux": "Canvas size: 2400 x 1784\nNo features present.",
+        "sha256": "5fb07608edb5a6e414e9aa86ef20e942f9797346de7a0cd8f0770c06e69ddf51"
+      },
+      "mobile": {
+        "path": "images/cs/variants/time/strata/dusk-1200.webp",
+        "dimensions": [
+          1200,
+          892
+        ],
+        "bytes": 200530,
+        "quality": 88,
+        "psnr_db_rgb": 36.581,
+        "webpmux": "Canvas size: 1200 x 892\nNo features present.",
+        "sha256": "61427066200ea5a82aadf89293563837407f0153d8ccd6d7512c7f24a0402e53"
+      }
+    },
+    "sunset": {
+      "plate": "images/cs/variants/time/strata/sources/sunset-generated.png",
+      "plate_dimensions": [
+        1455,
+        1081
+      ],
+      "desktop": {
+        "path": "images/cs/variants/time/strata/sunset-2400.webp",
+        "dimensions": [
+          2400,
+          1784
+        ],
+        "bytes": 508194,
+        "quality": 90,
+        "psnr_db_rgb": 39.406,
+        "webpmux": "Canvas size: 2400 x 1784\nNo features present.",
+        "sha256": "81c7682eeefb733b60095af7f95d42a645caf18438eb21ea4c0870e854d60bc6"
+      },
+      "mobile": {
+        "path": "images/cs/variants/time/strata/sunset-1200.webp",
+        "dimensions": [
+          1200,
+          892
+        ],
+        "bytes": 183596,
+        "quality": 88,
+        "psnr_db_rgb": 36.569,
+        "webpmux": "Canvas size: 1200 x 892\nNo features present.",
+        "sha256": "e8df89ca0f6077c0bac398927e2040b08194b8138c32acfe8e5a2e60a097b98a"
+      }
+    },
+    "night": {
+      "plate": "images/cs/variants/time/strata/sources/night-generated.png",
+      "plate_dimensions": [
+        1456,
+        1080
+      ],
+      "desktop": {
+        "path": "images/cs/variants/time/strata/night-2400.webp",
+        "dimensions": [
+          2400,
+          1784
+        ],
+        "bytes": 348446,
+        "quality": 90,
+        "psnr_db_rgb": 39.999,
+        "webpmux": "Canvas size: 2400 x 1784\nNo features present.",
+        "sha256": "c3ca118523e35ff3f4372d1daea5966a7dbb9d6465890261923665374bab947a"
+      },
+      "mobile": {
+        "path": "images/cs/variants/time/strata/night-1200.webp",
+        "dimensions": [
+          1200,
+          892
+        ],
+        "bytes": 127034,
+        "quality": 88,
+        "psnr_db_rgb": 37.497,
+        "webpmux": "Canvas size: 1200 x 892\nNo features present.",
+        "sha256": "98b4788941c80c84c72602958ef3fc147e3e3cdcb1856617834225cf895010c7"
+      }
+    }
+  }
+}

@@ -1,0 +1,48 @@
+<style>
+  .play-study{--paper:#fdfdfd;--ground:#f7f7f5;--ink:#121212;--muted:#686868;--line:rgba(18,18,18,.14);--blue:#5aa7ff;--violet:#986ce8;margin-top:22px}
+  .play-study *{box-sizing:border-box}.play-study h2{margin-bottom:6px}.dir-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:20px}
+  .dir{border:1px solid var(--line);border-radius:18px;background:var(--paper);padding:10px;cursor:pointer;transition:transform .22s,box-shadow .22s}.dir:hover{transform:translateY(-2px);box-shadow:0 0 0 2px rgba(90,167,255,.24)}.dir.recommended{box-shadow:0 0 0 2px #121212}.dir-head{display:flex;align-items:center;justify-content:space-between;padding:6px 4px 12px}.dir-name{font-weight:700;font-size:14px}.rec{font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:#fff;background:#121212;border-radius:99px;padding:5px 7px}
+  .mini{height:310px;border:1px solid var(--line);border-radius:13px;overflow:hidden;position:relative;background:linear-gradient(#fafdff 0 47%,#e8f1ff 70%,#a283de 100%)}.mini::after{content:"";position:absolute;left:-15%;right:-15%;bottom:-28%;height:47%;border-radius:50% 50% 0 0;background:radial-gradient(circle at 38% 12%,#faf9ff 0 4%,#b993ef 25%,#754bb9 58%,#3e2e79);box-shadow:0 -1px rgba(255,255,255,.7)}
+  .mini-title{position:absolute;z-index:2;left:12px;top:12px;font-size:13px;font-weight:680;letter-spacing:-.02em}.head-row{position:absolute;z-index:3;left:20%;right:20%;bottom:32%;display:flex;justify-content:space-around}.head-row img{width:42px;height:48px;object-fit:contain;filter:drop-shadow(0 5px 3px rgba(0,0,0,.2))}.menu{position:absolute;z-index:4;left:10px;right:10px;bottom:9px;display:grid;gap:5px}.tile{height:45px;border:1px solid var(--line);border-radius:10px;background:rgba(253,253,253,.92);display:flex;align-items:center;gap:8px;padding:8px;font-size:10px;font-weight:650}.tile.on{box-shadow:0 0 0 2px #121212}.ball{width:25px;height:25px;object-fit:contain}.split2{grid-template-columns:1.25fr .75fr}.split2 .tile:first-child{grid-row:span 2;height:95px;align-items:flex-end;background:linear-gradient(155deg,#fff 10%,#d8eaff)}
+  .orbit .menu{left:50%;right:auto;bottom:17px;width:148px;transform:translateX(-50%);grid-template-columns:1fr 1fr}.orbit .tile{height:54px;justify-content:center;text-align:center}.orbit .tile.on{transform:scale(1.07)}.orbit .head-row{bottom:40%}
+  .rail .menu{left:8px;right:8px;bottom:12px;display:flex;overflow:hidden}.rail .tile{min-width:82%;height:70px}.rail .tile:not(.on){opacity:.64}.rail .head-row{bottom:37%}.rail .mini-title{max-width:140px}
+  .dir-copy{padding:13px 4px 4px;font-size:11px;line-height:1.45;color:var(--muted)}.dir-copy b{color:var(--ink)}
+  .decision{margin-top:18px;border:1px solid var(--line);border-radius:14px;background:#f8fbff;padding:14px 16px;font-size:12px;line-height:1.5}.decision b{color:var(--ink)}
+  @media(max-width:850px){.dir-grid{grid-template-columns:1fr}.dir{display:grid;grid-template-columns:170px 1fr;gap:12px}.dir-head,.dir-copy{grid-column:2}.dir-head{align-self:end}.mini{grid-row:1 / span 2;height:245px}.dir-copy{padding-top:0}.mini-title{font-size:11px}.head-row img{width:34px}.menu .tile{font-size:9px}}
+  @media(max-width:560px){.dir{display:block}.mini{height:300px}.dir-head,.dir-copy{padding-left:4px}.dir-grid{gap:18px}}
+</style>
+
+<div class="play-study">
+  <h2>Which Play menu feels most like a game?</h2>
+  <p class="subtitle">Three directions using the real planet, live heads, and paper-token system. The difference is how you choose an arena.</p>
+  <div class="dir-grid">
+    <article class="dir recommended" data-choice="stage" onclick="toggleSelect(this)">
+      <div class="dir-head"><span class="dir-name">A · Stage selector</span><span class="rec">Recommended</span></div>
+      <div class="mini">
+        <div class="mini-title">Choose an arena</div>
+        <div class="head-row"><img src="http://127.0.0.1:4173/images/neutral.webp" alt=""><img src="http://127.0.0.1:4173/images/neutral_browsup.webp" alt=""><img src="http://127.0.0.1:4173/images/wink.webp" alt=""></div>
+        <div class="menu split2"><div class="tile on"><img class="ball" src="http://127.0.0.1:4173/images/soccerball.webp" alt="">Play a match</div><div class="tile">Tournament</div><div class="tile">Create</div></div>
+      </div>
+      <div class="dir-copy"><b>One large selected arena, one next choice.</b> The live stage remains the hero; games get visual priority and makers sit in a smaller Create dock.</div>
+    </article>
+    <article class="dir orbit" data-choice="orbit" onclick="toggleSelect(this)">
+      <div class="dir-head"><span class="dir-name">B · Orbit wheel</span></div>
+      <div class="mini">
+        <div class="mini-title">Pick a mode</div>
+        <div class="head-row"><img src="http://127.0.0.1:4173/images/neutral.webp" alt=""><img src="http://127.0.0.1:4173/images/wink.webp" alt=""></div>
+        <div class="menu"><div class="tile on">Match</div><div class="tile">Cup</div><div class="tile">Head</div><div class="tile">Gradient</div></div>
+      </div>
+      <div class="dir-copy"><b>All four options orbit the stage equally.</b> Playful and compact, but makers read like games and the radial navigation is less predictable on mobile.</div>
+    </article>
+    <article class="dir rail" data-choice="rail" onclick="toggleSelect(this)">
+      <div class="dir-head"><span class="dir-name">C · Cover-flow rail</span></div>
+      <div class="mini">
+        <div class="mini-title">Slide through Play</div>
+        <div class="head-row"><img src="http://127.0.0.1:4173/images/neutral_closed.webp" alt=""><img src="http://127.0.0.1:4173/images/neutral.webp" alt=""><img src="http://127.0.0.1:4173/images/wink.webp" alt=""></div>
+        <div class="menu"><div class="tile on"><img class="ball" src="http://127.0.0.1:4173/images/soccerball.webp" alt="">Play a match</div><div class="tile">Tournament</div></div>
+      </div>
+      <div class="dir-copy"><b>One horizontal carousel.</b> Most console-like on touch, but hides choices and risks feeling like a generic streaming shelf on desktop.</div>
+    </article>
+  </div>
+  <div class="decision"><b>Recommendation — A, Stage selector.</b> It gives the two games the weight of arenas, keeps the makers available without pretending they are game modes, and scales cleanly from pointer selection to two large mobile tap targets.</div>
+</div>

@@ -1,0 +1,160 @@
+{
+  "canvas": [
+    2400,
+    1784
+  ],
+  "mobile": [
+    1200,
+    892
+  ],
+  "mockup_source": "images/cs/masters/bearings-mockups.png",
+  "mockup_source_dimensions": [
+    3360,
+    1748
+  ],
+  "mockup_transform": {
+    "size": [
+      1800,
+      936
+    ],
+    "xy": [
+      300,
+      423
+    ],
+    "filter": "Lanczos"
+  },
+  "outputs": {
+    "pre-dawn": {
+      "desktop": {
+        "path": "images/cs/variants/time/bearings/pre-dawn-2400.webp",
+        "dimensions": [
+          2400,
+          1784
+        ],
+        "bytes": 455678,
+        "quality": 90,
+        "psnr_db": 40.635
+      },
+      "mobile": {
+        "path": "images/cs/variants/time/bearings/pre-dawn-1200.webp",
+        "dimensions": [
+          1200,
+          892
+        ],
+        "bytes": 166540,
+        "quality": 88,
+        "psnr_db": 38.302
+      }
+    },
+    "sunrise": {
+      "desktop": {
+        "path": "images/cs/variants/time/bearings/sunrise-2400.webp",
+        "dimensions": [
+          2400,
+          1784
+        ],
+        "bytes": 512586,
+        "quality": 90,
+        "psnr_db": 40.719
+      },
+      "mobile": {
+        "path": "images/cs/variants/time/bearings/sunrise-1200.webp",
+        "dimensions": [
+          1200,
+          892
+        ],
+        "bytes": 180580,
+        "quality": 88,
+        "psnr_db": 37.998
+      }
+    },
+    "daytime": {
+      "desktop": {
+        "path": "images/cs/variants/time/bearings/daytime-2400.webp",
+        "dimensions": [
+          2400,
+          1784
+        ],
+        "bytes": 612270,
+        "quality": 90,
+        "psnr_db": 38.897
+      },
+      "mobile": {
+        "path": "images/cs/variants/time/bearings/daytime-1200.webp",
+        "dimensions": [
+          1200,
+          892
+        ],
+        "bytes": 223524,
+        "quality": 88,
+        "psnr_db": 36.855
+      }
+    },
+    "dusk": {
+      "desktop": {
+        "path": "images/cs/variants/time/bearings/dusk-2400.webp",
+        "dimensions": [
+          2400,
+          1784
+        ],
+        "bytes": 494386,
+        "quality": 90,
+        "psnr_db": 40.815
+      },
+      "mobile": {
+        "path": "images/cs/variants/time/bearings/dusk-1200.webp",
+        "dimensions": [
+          1200,
+          892
+        ],
+        "bytes": 174774,
+        "quality": 88,
+        "psnr_db": 38.235
+      }
+    },
+    "sunset": {
+      "desktop": {
+        "path": "images/cs/variants/time/bearings/sunset-2400.webp",
+        "dimensions": [
+          2400,
+          1784
+        ],
+        "bytes": 523044,
+        "quality": 90,
+        "psnr_db": 40.653
+      },
+      "mobile": {
+        "path": "images/cs/variants/time/bearings/sunset-1200.webp",
+        "dimensions": [
+          1200,
+          892
+        ],
+        "bytes": 184238,
+        "quality": 88,
+        "psnr_db": 37.944
+      }
+    },
+    "night": {
+      "desktop": {
+        "path": "images/cs/variants/time/bearings/night-2400.webp",
+        "dimensions": [
+          2400,
+          1784
+        ],
+        "bytes": 527478,
+        "quality": 90,
+        "psnr_db": 40.722
+      },
+      "mobile": {
+        "path": "images/cs/variants/time/bearings/night-1200.webp",
+        "dimensions": [
+          1200,
+          892
+        ],
+        "bytes": 180704,
+        "quality": 88,
+        "psnr_db": 37.96
+      }
+    }
+  }
+}

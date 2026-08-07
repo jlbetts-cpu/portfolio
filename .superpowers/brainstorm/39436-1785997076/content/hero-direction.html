@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Hero direction</title>
+<style>
+@font-face{font-family:Instrument;src:url('/files/fonts/instrument-sans-latin-400-normal.woff2')}@font-face{font-family:Instrument;src:url('/files/fonts/instrument-sans-latin-600-normal.woff2');font-weight:600}
+*{box-sizing:border-box}body{margin:0;background:#f5f5f3;color:#121212;font-family:Instrument,system-ui,sans-serif;padding:36px}main{max-width:1500px;margin:auto}.intro{max-width:720px;margin:0 auto 28px;text-align:center}.eyebrow{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#757575}.intro h1{font-size:34px;line-height:1.06;letter-spacing:-.025em;margin:10px 0 8px}.intro p{font-size:15px;line-height:1.5;color:#525252;margin:0}.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}.option{position:relative;border:1px solid #dededb;border-radius:20px;background:#fdfdfd;padding:12px;cursor:pointer;transition:.2s ease;box-shadow:0 1px 2px rgba(18,18,18,.03)}.option:hover{border-color:#8f8f8f;transform:translateY(-2px);box-shadow:0 10px 30px rgba(18,18,18,.08)}.option.selected{outline:2px solid #121212;outline-offset:2px}.pick{position:absolute;z-index:5;left:22px;top:22px;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:#121212;color:#fff;font-size:12px;font-weight:600}.preview{height:530px;background:#fafafa;border-radius:13px;overflow:hidden;padding:12px;display:flex;flex-direction:column;gap:8px}.nav{height:35px;flex:none;border:1px solid #dededb;border-radius:12px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:0 10px;background:rgba(253,253,253,.76);font-size:8px;color:#525252}.nav .mark{font-weight:600;font-size:13px;color:#121212}.nav .links{display:flex;align-items:center;gap:5px}.nav .links span{padding:6px 8px;border-radius:8px}.nav .links .on{background:#e6e6e6;color:#121212;font-weight:600}.nav .contact{justify-self:end}.hero{position:relative;flex:1;border:1px solid #dededb;border-radius:20px;overflow:hidden;background:#fdfdfd}.aura{position:absolute;width:90%;height:66%;left:5%;top:28%;background:radial-gradient(ellipse at center,rgba(164,211,255,.50) 0%,rgba(200,229,255,.22) 42%,rgba(253,253,253,0) 74%);filter:blur(11px)}.copy{position:relative;z-index:2}.copy h2{font-size:20px;line-height:1.04;letter-spacing:-.025em;margin:0;font-weight:600}.actions{display:flex;gap:6px;margin-top:10px}.btn{height:28px;padding:0 10px;border-radius:8px;border:1px solid #d2d2d2;background:rgba(253,253,253,.78);display:inline-flex;align-items:center;font-size:8px;color:#212121}.btn.primary{background:#121212;color:#fdfdfd;border-color:#121212}.head{position:absolute;z-index:1;object-fit:contain;filter:grayscale(1);transform-origin:center}.centered .copy{padding-top:16px;text-align:center}.centered .copy h2{max-width:255px;margin:auto}.centered .actions{justify-content:center}.centered .head{width:73%;height:73%;left:13.5%;bottom:1%}.splitHero{display:grid;grid-template-columns:1.05fr .95fr;align-items:center;padding:24px}.splitHero .copy{align-self:start;padding-top:24px}.splitHero .copy h2{font-size:23px;max-width:220px}.splitHero .actions{margin-top:14px}.splitHero .head{width:60%;height:78%;right:-2%;bottom:-1%}.splitHero .aura{width:70%;left:30%;top:20%}.poster .copy{padding:20px}.poster .copy h2{font-size:24px;max-width:290px}.poster .actions{position:absolute;z-index:3;bottom:16px;left:50%;transform:translateX(-50%);margin:0;white-space:nowrap}.poster .head{width:90%;height:86%;left:5%;bottom:-4%}.poster .aura{width:110%;left:-5%;height:80%;top:15%}.meta{padding:15px 8px 7px}.metaTop{display:flex;justify-content:space-between;align-items:center}.meta h3{font-size:16px;margin:0;letter-spacing:-.01em}.tag{font-size:9px;padding:4px 7px;border-radius:99px;background:#f1f1f1;color:#525252}.meta p{font-size:12px;line-height:1.4;color:#6b6b6b;margin:7px 0 0}.recommend{color:#121212;font-weight:600}@media(max-width:1050px){.grid{grid-template-columns:1fr}.option{max-width:620px;width:100%;margin:auto}.preview{height:620px}.copy h2{font-size:28px!important}.centered .copy h2{max-width:340px}.splitHero .copy h2{max-width:300px}}@media(max-width:620px){body{padding:20px 12px}.intro h1{font-size:28px}.preview{height:500px}.splitHero{display:block;padding:22px}.splitHero .head{width:82%;right:9%}.grid{gap:14px}}
+</style>
+</head>
+<body>
+<main>
+ <header class="intro"><div class="eyebrow">Hero refinement · choose a composition</div><h1>One system, three levels of emphasis</h1><p>All three reuse Instrument Sans, the existing monochrome tokens, the header’s hairline shell, and a pale blue atmosphere that never becomes an interaction color.</p></header>
+ <section class="grid">
+  <article class="option selected" data-choice="a" onclick="toggleSelect(this)">
+   <span class="pick">A</span>
+   <div class="preview">
+    <div class="nav"><span class="mark">JB</span><span class="links"><span class="on">Work</span><span>About</span><span>Play</span></span><span class="contact">Contact</span></div>
+    <div class="hero centered"><div class="aura"></div><div class="copy"><h2>SF product designer. iOS,<br>B2C and design systems.</h2><div class="actions"><span class="btn primary">View work ↓</span><span class="btn">Mood⌄</span></div></div><img class="head" src="/files/images/neutral.webp" alt=""></div>
+   </div>
+   <div class="meta"><div class="metaTop"><h3>A · Specimen frame</h3><span class="tag recommend">Recommended</span></div><p>The reference translated directly into your system: strict shell, centered thesis, restrained controls, head floating through the blue field.</p></div>
+  </article>
+  <article class="option" data-choice="b" onclick="toggleSelect(this)">
+   <span class="pick">B</span>
+   <div class="preview">
+    <div class="nav"><span class="mark">JB</span><span class="links"><span class="on">Work</span><span>About</span><span>Play</span></span><span class="contact">Contact</span></div>
+    <div class="hero splitHero"><div class="aura"></div><div class="copy"><h2>SF product designer. iOS, B2C and design systems.</h2><div class="actions"><span class="btn primary">View work ↓</span><span class="btn">Mood⌄</span></div></div><img class="head" src="/files/images/neutral.webp" alt=""></div>
+   </div>
+   <div class="meta"><div class="metaTop"><h3>B · Editorial split</h3><span class="tag">More direct</span></div><p>Faster scanning and a stronger text hierarchy, but less like the centered interactive portrait that makes this portfolio distinctive.</p></div>
+  </article>
+  <article class="option" data-choice="c" onclick="toggleSelect(this)">
+   <span class="pick">C</span>
+   <div class="preview">
+    <div class="nav"><span class="mark">JB</span><span class="links"><span class="on">Work</span><span>About</span><span>Play</span></span><span class="contact">Contact</span></div>
+    <div class="hero poster"><div class="aura"></div><div class="copy"><h2>SF product designer.<br>iOS, B2C and design systems.</h2></div><img class="head" src="/files/images/neutral.webp" alt=""><div class="actions"><span class="btn primary">View work ↓</span><span class="btn">Mood⌄</span></div></div>
+   </div>
+   <div class="meta"><div class="metaTop"><h3>C · Portrait poster</h3><span class="tag">Most expressive</span></div><p>The head dominates and the controls sit low like a caption rail. Memorable, but it makes the CTA less immediate and risks covering the face states.</p></div>
+  </article>
+ </section>
+</main>
+</body>
+</html>

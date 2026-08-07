@@ -1,0 +1,63 @@
+<style>
+  .tod-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin-top:22px}
+  .tod-card{border:1px solid #d9dce3;border-radius:18px;padding:12px;background:#fff;cursor:pointer;transition:.2s ease}
+  .tod-card:hover,.tod-card.selected{border-color:#141414;box-shadow:0 0 0 2px rgba(50,105,255,.12)}
+  .hero-mini{height:310px;border:1px solid rgba(18,18,18,.2);border-radius:16px;position:relative;overflow:hidden;background:#fdfdfd;color:#151515}
+  .sky{position:absolute;inset:0;background:radial-gradient(90% 66% at 50% 100%,rgba(82,155,255,.55),rgba(165,213,255,.25) 42%,transparent 76%)}
+  .headline{position:absolute;top:24px;left:20px;right:20px;text-align:center;font-size:17px;font-weight:650;line-height:1.05;letter-spacing:-.03em}
+  .actions{position:absolute;top:72px;left:0;right:0;display:flex;gap:6px;justify-content:center}
+  .chip{font-size:10px;border:1px solid rgba(18,18,18,.25);background:rgba(255,255,255,.86);padding:7px 10px;border-radius:9px}
+  .chip.dark{background:#151515;color:#fff}
+  .head{position:absolute;width:94px;height:118px;border-radius:50% 50% 44% 44%;background:#111;left:50%;bottom:23px;transform:translateX(-50%);box-shadow:0 18px 20px -15px rgba(13,70,160,.65)}
+  .head:before,.head:after{content:"";position:absolute;top:48px;width:9px;height:9px;background:#fff;border-radius:50%}
+  .head:before{left:25px}.head:after{right:25px}
+  .menu{position:absolute;border:1px solid rgba(18,18,18,.2);background:rgba(253,253,253,.92);backdrop-filter:blur(8px);border-radius:11px;padding:6px;display:grid;gap:2px;box-shadow:0 10px 24px rgba(20,30,60,.1)}
+  .menu span{font-size:9px;padding:5px 7px;border-radius:6px;white-space:nowrap}
+  .menu span.on{background:#e8efff;color:#1746ce;font-weight:650}
+  .anchored{top:104px;left:50%;transform:translateX(26px)}
+  .rail{right:10px;top:104px}
+  .dock{left:10px;right:10px;bottom:9px;grid-template-columns:repeat(6,1fr)}
+  .dock span{text-align:center;padding:6px 2px;font-size:8px}
+  .lettertag{display:flex;align-items:center;gap:9px;margin:13px 2px 5px}.lettertag b{display:grid;place-items:center;width:24px;height:24px;border-radius:7px;background:#151515;color:#fff;font-size:12px}
+  .lettertag strong{font-size:14px}.tod-card p{font-size:12px;line-height:1.4;color:#666;margin:5px 2px 2px}
+  .rec{display:inline-flex;margin-left:6px;padding:2px 6px;border-radius:99px;background:#e9f0ff;color:#1746ce;font-size:9px;vertical-align:2px}
+  @media(max-width:900px){.tod-grid{grid-template-columns:1fr}.hero-mini{height:290px}}
+</style>
+
+<h2>How should Time of day open?</h2>
+<p class="subtitle">All three keep the button directly beside Mood and confine the changing gradient to the outlined hero.</p>
+
+<div class="tod-grid">
+  <div class="tod-card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="hero-mini">
+      <div class="sky"></div><div class="headline">SF product designer.<br>iOS, B2C and systems.</div>
+      <div class="actions"><span class="chip dark">View work</span><span class="chip">Mood⌄</span><span class="chip">Daytime⌄</span></div>
+      <div class="menu anchored"><span>◉ Pre-dawn</span><span>☼ Sunrise</span><span class="on">☀ Daytime</span><span>◌ Dusk</span><span>◉ Sunset</span><span>☾ Night</span></div>
+      <div class="head"></div>
+    </div>
+    <div class="lettertag"><b>A</b><strong>Anchored menu</strong></div>
+    <p>The menu drops from the button like Mood. Most consistent, but it competes with the face.</p>
+  </div>
+
+  <div class="tod-card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="hero-mini">
+      <div class="sky"></div><div class="headline">SF product designer.<br>iOS, B2C and systems.</div>
+      <div class="actions"><span class="chip dark">View work</span><span class="chip">Mood⌄</span><span class="chip">Daytime⌄</span></div>
+      <div class="menu rail"><span>◉ Pre-dawn</span><span>☼ Sunrise</span><span class="on">☀ Daytime</span><span>◌ Dusk</span><span>◉ Sunset</span><span>☾ Night</span></div>
+      <div class="head"></div>
+    </div>
+    <div class="lettertag"><b>B</b><strong>Stripe-style side rail</strong><span class="rec">Recommended</span></div>
+    <p>The button stays beside Mood; its menu opens against the hero’s right edge, leaving the portrait clear.</p>
+  </div>
+
+  <div class="tod-card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="hero-mini">
+      <div class="sky"></div><div class="headline">SF product designer.<br>iOS, B2C and systems.</div>
+      <div class="actions"><span class="chip dark">View work</span><span class="chip">Mood⌄</span><span class="chip">Daytime⌄</span></div>
+      <div class="head"></div>
+      <div class="menu dock"><span>Pre-dawn</span><span>Sunrise</span><span class="on">Day</span><span>Dusk</span><span>Sunset</span><span>Night</span></div>
+    </div>
+    <div class="lettertag"><b>C</b><strong>Bottom timeline</strong></div>
+    <p>The six states become a permanent horizon control. Atmospheric, but visually busier and tighter on mobile.</p>
+  </div>
+</div>

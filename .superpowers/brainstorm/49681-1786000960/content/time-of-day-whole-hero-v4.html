@@ -1,0 +1,54 @@
+<style>
+  .tod-shell{background:#fdfdfd;border:1px solid #e0e2e7;border-radius:20px;padding:16px;margin-top:22px}
+  .tod-hero{--sky:#fff;--sky2:#f7f8fb;--ink:#15171a;--secondary:#fff;--secondary-ink:#252a32;--primary:#17191c;--primary-ink:#fff;--rim:rgba(25,28,34,.16);--aura:rgba(133,195,255,.22);--cast:rgba(123,183,255,.46);height:510px;position:relative;overflow:hidden;border-radius:20px;color:var(--ink);box-shadow:inset 0 0 0 1px var(--rim);background:radial-gradient(90% 68% at 50% 104%,var(--sky) 0%,var(--sky2) 66%,var(--sky2) 100%);transition:background 800ms cubic-bezier(.2,.8,.2,1),color 600ms,box-shadow 600ms}
+  .tod-hero[data-time="off"]{--sky:#fff;--sky2:#fbfbfc;--aura:rgba(0,0,0,0);--cast:rgba(0,0,0,0)}
+  .tod-hero[data-time="sunrise"]{--sky:#ffd0a6;--sky2:#f4f7ff;--aura:rgba(255,166,108,.26);--cast:rgba(255,147,88,.58)}
+  .tod-hero[data-time="daytime"]{--sky:#a9d7ff;--sky2:#f7faff;--aura:rgba(103,181,255,.25);--cast:rgba(102,179,255,.48)}
+  .tod-hero[data-time="sunset"]{--sky:#ed8a76;--sky2:#3a3969;--ink:#fff8f2;--secondary:rgba(29,29,49,.72);--secondary-ink:#f8eef0;--primary:#fff8f2;--primary-ink:#2c2532;--rim:rgba(255,239,232,.24);--aura:rgba(255,120,93,.32);--cast:rgba(255,112,77,.62)}
+  .tod-hero[data-time="night"]{--sky:#204b96;--sky2:#080b13;--ink:#f5f7ff;--secondary:rgba(15,22,39,.78);--secondary-ink:#e6ecfa;--primary:#f7f9ff;--primary-ink:#111827;--rim:rgba(232,239,255,.22);--aura:rgba(63,127,255,.32);--cast:rgba(65,137,255,.72)}
+  .tod-copy{position:absolute;z-index:4;top:38px;left:20px;right:20px;text-align:center;font-size:30px;font-weight:680;line-height:1.02;letter-spacing:-.045em}
+  .tod-actions{position:absolute;z-index:6;top:118px;left:0;right:0;display:flex;justify-content:center;gap:7px}
+  .tod-ctl{height:44px;padding:0 16px;border-radius:14px;border:1px solid var(--rim);background:var(--secondary);color:var(--secondary-ink);display:flex;align-items:center;justify-content:center;font-size:12px;transition:background 500ms,color 500ms,border-color 500ms,box-shadow 500ms}
+  .tod-primary{background:var(--primary);color:var(--primary-ink);border-color:var(--primary);box-shadow:0 8px 24px color-mix(in srgb,var(--cast),transparent 72%);font-weight:550}
+  .tod-icon{width:44px;padding:0;cursor:pointer}.tod-icon svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+  .tod-menu{position:absolute;z-index:8;top:169px;left:calc(50% + 80px);width:158px;padding:7px;border-radius:13px;background:color-mix(in srgb,var(--secondary),#fff 6%);box-shadow:inset 0 0 0 1px var(--rim),0 16px 32px rgba(0,0,0,.18);display:grid;gap:2px;transition:background 500ms}
+  .tod-menu button{appearance:none;border:0;background:none;text-align:left;font:inherit;font-size:11px;color:var(--secondary-ink);padding:7px 8px;border-radius:8px;cursor:pointer}.tod-menu button:hover{background:color-mix(in srgb,var(--cast),transparent 82%)}.tod-menu button.on{background:color-mix(in srgb,var(--cast),transparent 72%);font-weight:650}.tod-sep{height:1px;background:var(--rim);margin:3px 6px}
+  .tod-aura{position:absolute;z-index:1;left:50%;bottom:-92px;translate:-50% 0;width:540px;height:430px;border-radius:50%;background:radial-gradient(ellipse at center,var(--aura),transparent 67%);filter:blur(20px);transition:background 700ms,opacity 700ms}
+  .tod-head{position:absolute;z-index:3;left:50%;bottom:2px;translate:-50% 0;width:260px;height:330px;filter:drop-shadow(0 26px 22px color-mix(in srgb,var(--cast),transparent 57%));transition:filter 700ms}
+  .tod-head img,.tod-light{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+  .tod-head img{filter:contrast(1.03);transition:filter 700ms}
+  .tod-light{background:linear-gradient(to top,var(--cast) 0%,color-mix(in srgb,var(--cast),transparent 60%) 28%,transparent 68%);mix-blend-mode:screen;mask:url('../../../../images/neutral.webp') center/contain no-repeat;-webkit-mask:url('../../../../images/neutral.webp') center/contain no-repeat;opacity:.82;transition:background 700ms,opacity 700ms}
+  .tod-hero[data-time="off"] .tod-light{opacity:0}.tod-hero[data-time="off"] .tod-head{filter:none}
+  .tod-caption{display:flex;gap:10px;align-items:flex-start;margin:14px 3px 2px;color:#5d6470;font-size:12px;line-height:1.45}.tod-caption b{color:#171717}
+  @media(max-width:680px){.tod-hero{height:520px}.tod-copy{font-size:23px}.tod-menu{left:auto;right:12px}.tod-head{width:220px;height:288px}}
+</style>
+
+<h2>The whole hero becomes the sky</h2>
+<p class="subtitle">The gradient is environmental lighting—not decoration. Choose a state below to see the face, aura, frame, type, controls, and CTA hierarchy respond together.</p>
+
+<div class="tod-shell">
+  <div class="tod-hero" data-time="night" id="todHero">
+    <div class="tod-copy">SF product designer. iOS,<br>B2C and design systems.</div>
+    <div class="tod-actions"><span class="tod-ctl tod-primary">View work</span><span class="tod-ctl">Mood⌄</span><span class="tod-ctl tod-icon" aria-label="Time of day"><svg viewBox="0 0 24 24"><path d="M20.5 14.2A8.5 8.5 0 0 1 9.8 3.5 8.5 8.5 0 1 0 20.5 14.2Z"/></svg></span></div>
+    <div class="tod-menu" id="todMenu">
+      <button data-set="night">◉ &nbsp;Automatic · Night</button><div class="tod-sep"></div>
+      <button data-set="off">○ &nbsp;Off — clean hero</button>
+      <button data-set="sunrise">◌ &nbsp;Sunrise</button>
+      <button data-set="daytime">☀ &nbsp;Daytime</button>
+      <button data-set="sunset">◉ &nbsp;Sunset</button>
+      <button class="on" data-set="night">☾ &nbsp;Night</button>
+    </div>
+    <div class="tod-aura"></div>
+    <div class="tod-head"><img src="../../../../images/neutral.webp" alt="Jayden portrait lighting study"><span class="tod-light" aria-hidden="true"></span></div>
+  </div>
+  <div class="tod-caption"><b>Portrait-integrated light:</b><span>The color rises from beneath the jaw and catches the face edge as if the sky were shining behind it. Off removes the gradient, cast, glow, and stateful control colors together.</span></div>
+</div>
+
+<script>
+  const hero=document.getElementById('todHero');
+  document.getElementById('todMenu').addEventListener('click',e=>{
+    const button=e.target.closest('button[data-set]'); if(!button)return;
+    hero.dataset.time=button.dataset.set;
+    document.querySelectorAll('#todMenu button').forEach(b=>b.classList.toggle('on',b===button));
+  });
+</script>

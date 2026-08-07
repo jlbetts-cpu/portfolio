@@ -1,0 +1,219 @@
+{
+  "pipeline": {
+    "canvas": [
+      2400,
+      1784
+    ],
+    "mobile": [
+      1200,
+      892
+    ],
+    "master": "images/cs/masters/cluster-mockups.png",
+    "master_dimensions": [
+      2454,
+      1704
+    ],
+    "master_sha256": "007189c68f71169101dbec642e75bcb5d7d57723306f39eefda818e4965abdd3",
+    "mockup_resize": [
+      1313,
+      912
+    ],
+    "mockup_position": [
+      543,
+      436
+    ],
+    "resampling": "Pillow Lanczos",
+    "encoder": "cwebp -m 6 -pass 10 -sharp_yuv -metadata none",
+    "opaque_pixel_count": 1141778,
+    "opaque_pixels_byte_identical_across_states": true,
+    "opaque_pixels_match_resized_master": true
+  },
+  "states": {
+    "pre-dawn": {
+      "plate": "images/cs/variants/time/cluster/sources/pre-dawn-generated.png",
+      "plate_dimensions": [
+        1454,
+        1082
+      ],
+      "desktop": {
+        "path": "images/cs/variants/time/cluster/pre-dawn-2400.webp",
+        "dimensions": [
+          2400,
+          1784
+        ],
+        "bytes": 468678,
+        "quality": 90,
+        "psnr_db_rgb": 41.936,
+        "webpmux": "Canvas size: 2400 x 1784\nNo features present.",
+        "sha256": "1b568057b4a39dfdf0bafc988292048ab6e95918c4780ecc7564ba4f463f8927"
+      },
+      "mobile": {
+        "path": "images/cs/variants/time/cluster/pre-dawn-1200.webp",
+        "dimensions": [
+          1200,
+          892
+        ],
+        "bytes": 161038,
+        "quality": 88,
+        "psnr_db_rgb": 39.222,
+        "webpmux": "Canvas size: 1200 x 892\nNo features present.",
+        "sha256": "085467ad05b937d665218e7388a1fb8a35d2013fbeb82ef9f9e1a09e9d7a0c9a"
+      }
+    },
+    "sunrise": {
+      "plate": "images/cs/variants/time/cluster/sources/sunrise-generated.png",
+      "plate_dimensions": [
+        1454,
+        1082
+      ],
+      "desktop": {
+        "path": "images/cs/variants/time/cluster/sunrise-2400.webp",
+        "dimensions": [
+          2400,
+          1784
+        ],
+        "bytes": 646276,
+        "quality": 90,
+        "psnr_db_rgb": 41.269,
+        "webpmux": "Canvas size: 2400 x 1784\nNo features present.",
+        "sha256": "68ff65f25d0d923921a9677451754e15140f311e0db81255133dd92557cd9d20"
+      },
+      "mobile": {
+        "path": "images/cs/variants/time/cluster/sunrise-1200.webp",
+        "dimensions": [
+          1200,
+          892
+        ],
+        "bytes": 224900,
+        "quality": 88,
+        "psnr_db_rgb": 38.141,
+        "webpmux": "Canvas size: 1200 x 892\nNo features present.",
+        "sha256": "8339799451c8ffda22d7254ebaf7df02eb1f2f1b283c19449a7d0cf0870e405e"
+      }
+    },
+    "daytime": {
+      "plate": "images/cs/variants/time/cluster/sources/daytime-generated.png",
+      "plate_dimensions": [
+        1454,
+        1082
+      ],
+      "desktop": {
+        "path": "images/cs/variants/time/cluster/daytime-2400.webp",
+        "dimensions": [
+          2400,
+          1784
+        ],
+        "bytes": 694980,
+        "quality": 89,
+        "psnr_db_rgb": 40.173,
+        "webpmux": "Canvas size: 2400 x 1784\nNo features present.",
+        "sha256": "0d262134b5e41e7b3e9aaaa8bd22dee5dd5f8c6c35ac9a9bbbf61079a7d49a99"
+      },
+      "mobile": {
+        "path": "images/cs/variants/time/cluster/daytime-1200.webp",
+        "dimensions": [
+          1200,
+          892
+        ],
+        "bytes": 249594,
+        "quality": 88,
+        "psnr_db_rgb": 37.355,
+        "webpmux": "Canvas size: 1200 x 892\nNo features present.",
+        "sha256": "a8b42abb0d69709cdff67f8406d2498673437eb376ceeccc729596a4086c1001"
+      }
+    },
+    "dusk": {
+      "plate": "images/cs/variants/time/cluster/sources/dusk-generated.png",
+      "plate_dimensions": [
+        1455,
+        1081
+      ],
+      "desktop": {
+        "path": "images/cs/variants/time/cluster/dusk-2400.webp",
+        "dimensions": [
+          2400,
+          1784
+        ],
+        "bytes": 581904,
+        "quality": 90,
+        "psnr_db_rgb": 41.505,
+        "webpmux": "Canvas size: 2400 x 1784\nNo features present.",
+        "sha256": "ff24dc79db3f10144a9f85be538ad91ed5ec5f5d41147a6b3427489e5e1eee10"
+      },
+      "mobile": {
+        "path": "images/cs/variants/time/cluster/dusk-1200.webp",
+        "dimensions": [
+          1200,
+          892
+        ],
+        "bytes": 196284,
+        "quality": 88,
+        "psnr_db_rgb": 38.443,
+        "webpmux": "Canvas size: 1200 x 892\nNo features present.",
+        "sha256": "a1498269046931da8c418b5936fd91e95ebe6516bc793a7573c578b59579ffb0"
+      }
+    },
+    "sunset": {
+      "plate": "images/cs/variants/time/cluster/sources/sunset-generated.png",
+      "plate_dimensions": [
+        1454,
+        1082
+      ],
+      "desktop": {
+        "path": "images/cs/variants/time/cluster/sunset-2400.webp",
+        "dimensions": [
+          2400,
+          1784
+        ],
+        "bytes": 595492,
+        "quality": 90,
+        "psnr_db_rgb": 41.432,
+        "webpmux": "Canvas size: 2400 x 1784\nNo features present.",
+        "sha256": "7438f4cdba7810c41a9ed87239a35e490806aa0be685b6183fc3caf9950f857e"
+      },
+      "mobile": {
+        "path": "images/cs/variants/time/cluster/sunset-1200.webp",
+        "dimensions": [
+          1200,
+          892
+        ],
+        "bytes": 204804,
+        "quality": 88,
+        "psnr_db_rgb": 38.23,
+        "webpmux": "Canvas size: 1200 x 892\nNo features present.",
+        "sha256": "6396a913867882bd40eee9c7b89e2a645995014da2ca76c1fd4c5e227c2cdf13"
+      }
+    },
+    "night": {
+      "plate": "images/cs/variants/time/cluster/sources/night-generated.png",
+      "plate_dimensions": [
+        1454,
+        1082
+      ],
+      "desktop": {
+        "path": "images/cs/variants/time/cluster/night-2400.webp",
+        "dimensions": [
+          2400,
+          1784
+        ],
+        "bytes": 378136,
+        "quality": 90,
+        "psnr_db_rgb": 42.215,
+        "webpmux": "Canvas size: 2400 x 1784\nNo features present.",
+        "sha256": "4f79ea5731a316897541b65ae5e561c74ae94006fa346033ded01618fac57a41"
+      },
+      "mobile": {
+        "path": "images/cs/variants/time/cluster/night-1200.webp",
+        "dimensions": [
+          1200,
+          892
+        ],
+        "bytes": 116886,
+        "quality": 88,
+        "psnr_db_rgb": 39.564,
+        "webpmux": "Canvas size: 1200 x 892\nNo features present.",
+        "sha256": "fb973dc49d4506637659bc036247e6a3573591466a92b55d85fc07d6f82cd54c"
+      }
+    }
+  }
+}

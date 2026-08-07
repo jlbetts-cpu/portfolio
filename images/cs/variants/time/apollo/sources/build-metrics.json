@@ -1,0 +1,219 @@
+{
+  "pipeline": {
+    "canvas": [
+      2400,
+      1784
+    ],
+    "mobile": [
+      1200,
+      892
+    ],
+    "master": "images/cs/masters/apollo-mockups.png",
+    "master_dimensions": [
+      3360,
+      1752
+    ],
+    "master_sha256": "ac26c31df8e5058e54c91e51659d817fe44b1359a46e11be858ce145a09a27e9",
+    "mockup_resize": [
+      1800,
+      939
+    ],
+    "mockup_position": [
+      300,
+      423
+    ],
+    "resampling": "Pillow Lanczos",
+    "encoder": "cwebp -m 6 -pass 10 -sharp_yuv -metadata none",
+    "opaque_pixel_count": 1598907,
+    "opaque_pixels_byte_identical_across_states": true,
+    "opaque_pixels_match_resized_master": true
+  },
+  "states": {
+    "pre-dawn": {
+      "plate": "images/cs/variants/time/apollo/sources/pre-dawn-generated.png",
+      "plate_dimensions": [
+        1455,
+        1081
+      ],
+      "desktop": {
+        "path": "images/cs/variants/time/apollo/pre-dawn-2400.webp",
+        "dimensions": [
+          2400,
+          1784
+        ],
+        "bytes": 394830,
+        "quality": 90,
+        "psnr_db_rgb": 41.289,
+        "webpmux": "Canvas size: 2400 x 1784\nNo features present.",
+        "sha256": "e03374f1ab4b720dd327db42380379e2e67a9079be39d46180a2c450d6fa84bd"
+      },
+      "mobile": {
+        "path": "images/cs/variants/time/apollo/pre-dawn-1200.webp",
+        "dimensions": [
+          1200,
+          892
+        ],
+        "bytes": 126746,
+        "quality": 88,
+        "psnr_db_rgb": 39.517,
+        "webpmux": "Canvas size: 1200 x 892\nNo features present.",
+        "sha256": "0dd0ff73c8f8201eb0373677cccca00ecfe75c5f23c46d97d32b15bea8d55607"
+      }
+    },
+    "sunrise": {
+      "plate": "images/cs/variants/time/apollo/sources/sunrise-generated.png",
+      "plate_dimensions": [
+        1455,
+        1081
+      ],
+      "desktop": {
+        "path": "images/cs/variants/time/apollo/sunrise-2400.webp",
+        "dimensions": [
+          2400,
+          1784
+        ],
+        "bytes": 466742,
+        "quality": 90,
+        "psnr_db_rgb": 41.837,
+        "webpmux": "Canvas size: 2400 x 1784\nNo features present.",
+        "sha256": "d21bb1483f5174f523ed90d7dc80b76786615425590d0ac484b0038a37812a1d"
+      },
+      "mobile": {
+        "path": "images/cs/variants/time/apollo/sunrise-1200.webp",
+        "dimensions": [
+          1200,
+          892
+        ],
+        "bytes": 160292,
+        "quality": 88,
+        "psnr_db_rgb": 39.227,
+        "webpmux": "Canvas size: 1200 x 892\nNo features present.",
+        "sha256": "5e1a56a30dc2fb9b5436f1da65cb953a90186b862123b9851913734ee36478ed"
+      }
+    },
+    "daytime": {
+      "plate": "images/cs/variants/time/apollo/sources/daytime-generated.png",
+      "plate_dimensions": [
+        1455,
+        1081
+      ],
+      "desktop": {
+        "path": "images/cs/variants/time/apollo/daytime-2400.webp",
+        "dimensions": [
+          2400,
+          1784
+        ],
+        "bytes": 514466,
+        "quality": 90,
+        "psnr_db_rgb": 41.745,
+        "webpmux": "Canvas size: 2400 x 1784\nNo features present.",
+        "sha256": "3863edeca7f0392c067a654e623c9546c21faa5ca3a39263d51109343057d407"
+      },
+      "mobile": {
+        "path": "images/cs/variants/time/apollo/daytime-1200.webp",
+        "dimensions": [
+          1200,
+          892
+        ],
+        "bytes": 168392,
+        "quality": 88,
+        "psnr_db_rgb": 38.759,
+        "webpmux": "Canvas size: 1200 x 892\nNo features present.",
+        "sha256": "76d581c23e7725f4e5da33174dd7109a8e1077b466bf6817d1444849da984899"
+      }
+    },
+    "dusk": {
+      "plate": "images/cs/variants/time/apollo/sources/dusk-generated.png",
+      "plate_dimensions": [
+        1456,
+        1080
+      ],
+      "desktop": {
+        "path": "images/cs/variants/time/apollo/dusk-2400.webp",
+        "dimensions": [
+          2400,
+          1784
+        ],
+        "bytes": 436312,
+        "quality": 90,
+        "psnr_db_rgb": 42.194,
+        "webpmux": "Canvas size: 2400 x 1784\nNo features present.",
+        "sha256": "e09e9bd9855df72d65b4d9dc6af5ea56774ece03fae12af4655b7154f9d76fa2"
+      },
+      "mobile": {
+        "path": "images/cs/variants/time/apollo/dusk-1200.webp",
+        "dimensions": [
+          1200,
+          892
+        ],
+        "bytes": 142608,
+        "quality": 88,
+        "psnr_db_rgb": 39.654,
+        "webpmux": "Canvas size: 1200 x 892\nNo features present.",
+        "sha256": "46194ae34b3a60b2d0145c0192e74ff5e8f3c6b15a7435656b6b81e077131ee6"
+      }
+    },
+    "sunset": {
+      "plate": "images/cs/variants/time/apollo/sources/sunset-generated.png",
+      "plate_dimensions": [
+        1455,
+        1081
+      ],
+      "desktop": {
+        "path": "images/cs/variants/time/apollo/sunset-2400.webp",
+        "dimensions": [
+          2400,
+          1784
+        ],
+        "bytes": 483528,
+        "quality": 90,
+        "psnr_db_rgb": 41.691,
+        "webpmux": "Canvas size: 2400 x 1784\nNo features present.",
+        "sha256": "b6955397d0d8bbe011fe484507c268ce53407aabac03cbfade0536af49d1e517"
+      },
+      "mobile": {
+        "path": "images/cs/variants/time/apollo/sunset-1200.webp",
+        "dimensions": [
+          1200,
+          892
+        ],
+        "bytes": 162006,
+        "quality": 88,
+        "psnr_db_rgb": 39.088,
+        "webpmux": "Canvas size: 1200 x 892\nNo features present.",
+        "sha256": "a1ee0e51b39912b83cf7e64975d844b54ee7ec371c7fc837003920b8705a7d81"
+      }
+    },
+    "night": {
+      "plate": "images/cs/variants/time/apollo/sources/night-generated.png",
+      "plate_dimensions": [
+        1455,
+        1081
+      ],
+      "desktop": {
+        "path": "images/cs/variants/time/apollo/night-2400.webp",
+        "dimensions": [
+          2400,
+          1784
+        ],
+        "bytes": 367014,
+        "quality": 90,
+        "psnr_db_rgb": 42.087,
+        "webpmux": "Canvas size: 2400 x 1784\nNo features present.",
+        "sha256": "928ce506a75aafecdfe877e64a9def8fed64d8101cfa6eb36ecdea26744ac51d"
+      },
+      "mobile": {
+        "path": "images/cs/variants/time/apollo/night-1200.webp",
+        "dimensions": [
+          1200,
+          892
+        ],
+        "bytes": 114488,
+        "quality": 88,
+        "psnr_db_rgb": 39.933,
+        "webpmux": "Canvas size: 1200 x 892\nNo features present.",
+        "sha256": "6983005e65b77f1ff5552656693b07821e0db4ed1cd6789253bb2edcfeae21a4"
+      }
+    }
+  }
+}

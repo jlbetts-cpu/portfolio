@@ -1,0 +1,28 @@
+<style>
+  .night-page{background:#fdfdfd;border:1px solid #e0e2e7;border-radius:20px;padding:16px;margin-top:22px}
+  .night-hero{height:480px;position:relative;overflow:hidden;border-radius:20px;color:#f5f7ff;box-shadow:inset 0 0 0 1px rgba(232,239,255,.22);background:radial-gradient(95% 78% at 50% 105%,#204b96 0%,#172f60 27%,#111a32 56%,#080b13 84%)}
+  .night-copy{position:absolute;top:38px;left:20px;right:20px;text-align:center;font-size:30px;font-weight:680;line-height:1.02;letter-spacing:-.045em}
+  .night-actions{position:absolute;top:118px;left:0;right:0;display:flex;justify-content:center;gap:7px;z-index:4}
+  .night-ctl{height:44px;padding:0 16px;border-radius:14px;border:1px solid rgba(237,242,255,.22);background:rgba(15,22,39,.8);color:#e6ecfa;display:flex;align-items:center;justify-content:center;font-size:12px}
+  .night-primary{background:#f7f9ff;color:#111827;border-color:#f7f9ff;box-shadow:0 8px 24px rgba(88,135,255,.18);font-weight:550}
+  .night-icon{width:44px;padding:0;color:#a9c2ff}.night-icon svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+  .night-menu{position:absolute;top:169px;left:calc(50% + 82px);width:140px;padding:7px;border-radius:13px;background:rgba(11,17,30,.95);box-shadow:inset 0 0 0 1px rgba(236,242,255,.2),0 16px 32px rgba(0,0,0,.32);display:grid;gap:2px;z-index:5}
+  .night-menu span{font-size:11px;color:#cbd6ed;padding:7px 8px;border-radius:8px}.night-menu span.on{background:rgba(111,151,255,.2);color:#c2d3ff;font-weight:650}
+  .night-head{position:absolute;left:50%;bottom:18px;transform:translateX(-50%);width:220px;height:282px;border-radius:49% 49% 43% 43%;background:radial-gradient(circle at 50% 37%,#565e70 0 3%,#11151d 4% 58%,#04060a 80%);box-shadow:0 30px 48px -18px rgba(63,127,255,.85)}
+  .night-head:before,.night-head:after{content:"";position:absolute;top:105px;width:15px;height:13px;border-radius:50%;background:#f4f6ff;box-shadow:inset 0 0 0 4px #111}.night-head:before{left:57px}.night-head:after{right:57px}
+  .explain{display:flex;gap:10px;align-items:flex-start;margin:14px 3px 2px;color:#5d6470;font-size:12px;line-height:1.45}.explain b{color:#171717}
+  @media(max-width:680px){.night-hero{height:500px}.night-copy{font-size:23px}.night-menu{left:auto;right:14px}.night-head{width:190px;height:246px}}
+</style>
+
+<h2>Night hierarchy corrected</h2>
+<p class="subtitle">View work now visibly changes with the hero: it becomes the brightest material in the Night state, while Mood and Time stay secondary.</p>
+
+<div class="night-page">
+  <div class="night-hero">
+    <div class="night-copy">SF product designer. iOS,<br>B2C and design systems.</div>
+    <div class="night-actions"><span class="night-ctl night-primary">View work</span><span class="night-ctl">Mood⌄</span><span class="night-ctl night-icon" aria-label="Time of day"><svg viewBox="0 0 24 24"><path d="M20.5 14.2A8.5 8.5 0 0 1 9.8 3.5 8.5 8.5 0 1 0 20.5 14.2Z"/></svg></span></div>
+    <div class="night-menu"><span>◉ &nbsp;Pre-dawn</span><span>◌ &nbsp;Sunrise</span><span>☀ &nbsp;Daytime</span><span>◌ &nbsp;Dusk</span><span>◉ &nbsp;Sunset</span><span class="on">☾ &nbsp;Night</span></div>
+    <div class="night-head"></div>
+  </div>
+  <div class="explain"><b>Hero-only dark mode:</b><span>The surrounding page remains paper white, making the outlined hero read as a self-contained nighttime scene.</span></div>
+</div>
