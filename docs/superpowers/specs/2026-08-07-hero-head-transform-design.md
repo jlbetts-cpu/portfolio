@@ -120,6 +120,7 @@ The desktop entrance preserves the original full-scale Hero composition. The Her
 - Move and resize never overlap the protected headline/CTA region or escape the Hero.
 - Resize is proportional from the opposite corner at every supported viewport.
 - Gaze, blink, case-study smile, and popcorn/glasses animations remain visually aligned after moving and resizing.
+- During the complete Extras lift and performance transition, the visible portrait and selection frame remain below the protected copy gap without changing the authored x/y/scale transform state; only the peek element's own transform transition can start or stop projection tracking.
 - Home click-to-dizzy is removed; Play can retain its own game-specific behavior.
 - Outside click and Escape deselect reliably.
 - Reload restores the authored composition.

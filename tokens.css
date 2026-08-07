@@ -536,6 +536,7 @@
  --hero-head-max-scale:1.35;
  --hero-head-x:0px;
  --hero-head-y:0px;
+ --hero-movie-guard-y:0px;
  --hero-head-scale:1;
  --scene-cut-duration:250ms;
  --scene-cut-ease:steps(2,end);

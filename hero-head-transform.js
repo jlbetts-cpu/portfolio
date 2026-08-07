@@ -64,11 +64,16 @@
    syncSelection();
    state.peekFrame=requestAnimationFrame(followPeekTransition);
   }
-  function beginPeekTransition(){
+  function isOwnPeekTransform(event){
+   return event&&event.target===peek&&event.propertyName==="transform";
+  }
+  function beginPeekTransition(event){
+   if(!isOwnPeekTransform(event))return;
    state.peekAnimating=true;
    if(!state.peekFrame)state.peekFrame=requestAnimationFrame(followPeekTransition);
   }
-  function endPeekTransition(){
+  function endPeekTransition(event){
+   if(!isOwnPeekTransform(event))return;
    state.peekAnimating=false;
    if(state.peekFrame)cancelAnimationFrame(state.peekFrame);
    state.peekFrame=0;render();

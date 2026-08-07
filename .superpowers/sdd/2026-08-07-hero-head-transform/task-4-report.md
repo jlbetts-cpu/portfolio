@@ -1,8 +1,8 @@
 # Task 4 report — responsive regression closure
 
-Status: implementation and focused matrix green; final full-suite evidence recorded below
+Status: implementation, review corrections, and focused matrix green; final full-suite evidence recorded below
 
-Baseline: `67d695f Fix Hero resize axes and keyboard scope`
+Review-fix baseline: `d117f36 Verify Hero transform across responsive states`
 
 ## Outcome
 
@@ -14,6 +14,10 @@ Baseline: `67d695f Fix Hero resize axes and keyboard scope`
 - Corrected overlay ownership: the constant-size selection overlay and Hero-wide movie clip are now direct Hero-relative siblings rather than children of the animated peek layer.
 - Added per-frame projection synchronization while the authored movie lift and movie-stage performance transforms run. The transform state no longer mutates merely because movie mode starts.
 - Repaired the stale popcorn browser trigger to activate the current real Extras `#reelFrame` path. Popcorn remains pointer-transparent, clips on all four Hero edges, renders above the portrait, and is positioned with the shared `--sp-16` token so the bucket is actually visible rather than merely opaque offscreen.
+- Capped movie lift against the actual protected copy region and added a visual-only per-frame projection guard for short-height viewports. It never writes the authored x/y/scale transform state.
+- Filtered peek transition tracking to the peek element's own `transform` lifecycle. Bubbled stage/eye transition events can no longer terminate projection synchronization.
+- Strengthened the mobile touch sequence to verify unchanged scroll position, selected tab, and below-Hero hit testing after each of two portrait drags; forced-colors geometry now matches a normal reduced-motion context within 1px.
+- Corrected the smile lifecycle expectation: the authored smile face intentionally has no irises; blur must settle to neutral with freshly rebuilt eye/iris DOM before the next performance.
 
 ## RED evidence
 
@@ -23,6 +27,9 @@ Baseline: `67d695f Fix Hero resize axes and keyboard scope`
 4. The short-height matrix showed movie-class reclamping changed authored transform state by about 3.2px.
 5. The mobile movie matrix showed per-frame stage motion could move the face about 10px away from the selection overlay.
 6. The repaired popcorn test rejected the obsolete case-card trigger, then exposed the old `heroOverflow:visible` expectation and an opacity-only offscreen bucket. The strengthened visible-prop predicate failed at 1440×900 with `props:0` until the bucket intersected the Hero.
+7. Review regression coverage dispatched a bubbled stage `transitionend` and exposed a 5–6px projection race at 1440×900: stage/effects and portrait/selection stopped tracking one another.
+8. With that race isolated, the 1280×650 in-flight sample placed the visible portrait at `357.87px` against a `383.16px` safe top, overlapping the protected copy by about 25px. The final short-height movie path uses zero authored lift plus a live visual guard and is green throughout the transition.
+9. The initial smile review assertion incorrectly expected irises on `smile.webp`; `FACES.smile` explicitly declares `eyes:[]` and `noIris:true`. The corrected test requires zero live irises while smiling and fresh neutral iris nodes after blur.
 
 ## GREEN evidence
 
@@ -65,10 +72,11 @@ That 3.266:1 Play Night control contrast is outside the Hero transform boundary 
 Inspected the final responsive evidence rather than only generating it:
 
 - `/tmp/hero-head-task4/home-{1440-900,1280-650,761-844,760-844,390-844,320-800}-{off,night}-resized.png`
-- `/tmp/hero-head-task4/home-{1440-900,1280-650,390-844,320-800}-movie.png`
+- `/tmp/hero-head-task4/home-{1440-900,1280-650,390-844,320-800}-movie-active.png`
+- `/tmp/hero-head-task4/home-{1440-900,1280-650,390-844,320-800}-post-performance.png`
 - `/tmp/hero-popcorn-browser/{desktop-1280,mobile-390,mobile-320}-contained.png`
 
-The 760/761 pair preserves the intentional breakpoint distinction without changing the authored 390/320 portrait scale. Final movie frames show settled red/cyan glasses registered across the transformed eyes, the popcorn bucket visibly contained at the lower Hero edge, one constant-size 1px selection frame, and all four handles fully inboard.
+The 760/761 pair preserves the intentional breakpoint distinction without changing the authored 390/320 portrait scale. The active movie captures honestly show the live glasses/popcorn performance state (the headline may be between its authored motion frames); separate post-performance captures prove the clean neutral rebuild. The overwritten 1280×650 active capture keeps the selection/object below the complete headline-and-CTA copy region with the shared safe gap. All active captures keep the popcorn bucket inside the Hero and the four handles fully inboard.
 
 ## Scope
 

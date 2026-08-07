@@ -1030,7 +1030,48 @@ var RAIN_PHOTOS=["rain01.webp","rain02.webp","rain03.webp","rain04.webp","rain05
 /* ===== popcorn movie-watching mode (triggered by reel hover, alongside the 3D glasses) ===== */
 var movieMode=false,movieTk0=0,movieEnding=false,movieEndTk=0,bucketEl=null,kernelEls=[],popcrumbEls=[],movieHair=false,hairTk0=0,MOVCYCLE=18;
 var heroPeek=document.querySelector(".heroCharacterPeek");
-function setMoviePeek(on){if(heroPeek)heroPeek.classList.toggle("is-movie",!!on);}
+var heroHeadTransform=document.getElementById("heroHeadTransform");
+function setMoviePeek(on){
+ if(!heroPeek)return;
+ if(on){
+  var hero=document.getElementById("main"),copy=hero&&hero.querySelector(".heroCopy");
+  if(hero&&copy&&faceImg){
+   var faceRect=faceImg.getBoundingClientRect(),stageRect=stage.getBoundingClientRect();
+   var headBounds=(faceImg.getAttribute("data-head-bounds")||"0.22 0.12 0.80 0.91").split(/\s+/).map(Number);
+   var headTop=faceRect.top+faceRect.height*headBounds[1];
+   var selection=document.getElementById("heroHeadSelection");
+   if(selection&&!selection.hidden)headTop=selection.getBoundingClientRect().top;
+   var style=getComputedStyle(hero),safeTop=copy.getBoundingClientRect().bottom+
+    (parseFloat(style.getPropertyValue("--hero-head-safe-gap"))||0);
+   var desired=parseFloat(style.getPropertyValue("--hero-peek-lift"))||0;
+   /* Movie poses briefly scale the stage to 1.04 and bob it upward. Reserve that
+      projection travel before lifting the peek, so the visible head never enters copy. */
+   var projectionReserve=Math.max(4,(stageRect.top+stageRect.height/2-headTop)*0.04+3);
+   var available=Math.max(0,headTop-safeTop);
+   var lift=Math.min(desired,Math.max(0,available-projectionReserve));
+   var guard=Math.max(0,projectionReserve-available);
+   if(hero.getBoundingClientRect().height<640){lift=0;guard=projectionReserve;}
+   heroPeek.style.setProperty("--hero-peek-active-offset",(guard-lift).toFixed(2)+"px");
+  }
+  heroPeek.classList.add("is-movie");
+ }else{
+  heroPeek.classList.remove("is-movie");
+  heroPeek.style.removeProperty("--hero-peek-active-offset");
+ }
+}
+function enforceMovieSafeProjection(){
+ if(!movieMode||!heroHeadTransform)return;
+ var hero=document.getElementById("main"),copy=hero&&hero.querySelector(".heroCopy");
+ if(!hero||!copy||!faceImg)return;
+ var faceRect=faceImg.getBoundingClientRect();
+ var headBounds=(faceImg.getAttribute("data-head-bounds")||"0.22 0.12 0.80 0.91").split(/\s+/).map(Number);
+ var top=faceRect.top+faceRect.height*headBounds[1];
+ var style=getComputedStyle(hero),safeTop=copy.getBoundingClientRect().bottom+
+  (parseFloat(style.getPropertyValue("--hero-head-safe-gap"))||0);
+ var current=parseFloat(heroHeadTransform.style.getPropertyValue("--hero-movie-guard-y"))||0;
+ var next=Math.max(0,current+safeTop-top);
+ if(Math.abs(next-current)>.05)heroHeadTransform.style.setProperty("--hero-movie-guard-y",next.toFixed(2)+"px");
+}
 function syncMovieEffectsLayer(){
  if(!movieEffectsStage)return;
  var priorTransform=stage.style.transform;
@@ -1044,11 +1085,12 @@ function syncMovieEffectsLayer(){
  movieEffectsStage.style.transform=priorTransform;
 }
 window.addEventListener("heroheadtransform",function(){
- if(movieMode){syncMovieEffectsLayer();}
+ if(movieMode){enforceMovieSafeProjection();syncMovieEffectsLayer();}
 });
 function setMovieStageTransform(value){
  stage.style.transform=value;
  if(movieEffectsStage)movieEffectsStage.style.transform=value;
+ enforceMovieSafeProjection();
  dispatchEvent(new CustomEvent("heroheadstagechange"));
 }
 function glassesOn(){var g=document.getElementById("glasses");if(g){g.classList.remove("off");g.classList.add("on");}}
@@ -1064,12 +1106,13 @@ function ensureMovieEls(){
 function setKernel(el,x,y,rot,op){el.style.left=(x*100).toFixed(1)+"%";el.style.top=(y*100).toFixed(1)+"%";el.style.transform="translate(-50%,-50%) rotate("+rot.toFixed(0)+"deg)";el.style.opacity=op.toFixed(2);}
 function startMovie(word){
  glassesOn();
- setMoviePeek(true);
  if(introMode)finishIntro();
- if(reduce||CALIB||movieMode)return;
+ if(reduce||CALIB||movieMode){setMoviePeek(true);return;}
  queued=null;if(typeof hideQueue==="function")hideQueue();
  if(rainMode)endRain();if(partyMode)endParty();if(loveMode)endLove();if(eating)finishEat();
  dizzy=false;reactType=null;identityShown=false;
+ setMovieStageTransform("");
+ setMoviePeek(true);
  ensureMovieEls();
  syncMovieEffectsLayer();
  movieMode=true;movieEnding=false;movieHair=false;movieTk0=tk;eventLock=true;clearTimeout(cycTimer);cycHold=true;if(cycWord){var mw=makePlainCycWord(word||"Motion.");cycWord.replaceWith(mw);cycWord=mw;}
@@ -1092,7 +1135,8 @@ function endMovieCleanup(){
  for(var i=0;i<kernelEls.length;i++){kernelEls[i].style.opacity="0";kernelEls[i]._dropping=false;kernelEls[i]._htx=null;}
  for(var i=0;i<popcrumbEls.length;i++){popcrumbEls[i]._alive=false;popcrumbEls[i].style.opacity="0";}
  mouthimg.style.opacity="0";setMouth(0);glassesOff();setMoviePeek(false);if(tongueEl){tongueEl.style.opacity="0";tongueEl.style.transform="scaleY(0)";}
- setMovieStageTransform("");setFace("neutral");gaze.x=0;gaze.y=0;updateIris();
+ setMovieStageTransform("");if(heroHeadTransform)heroHeadTransform.style.removeProperty("--hero-movie-guard-y");
+ setFace("neutral");gaze.x=0;gaze.y=0;updateIris();
  cycHold=false;if(cycWord){var nw=makeCycWord(wi);cycWord.replaceWith(nw);cycWord=nw;}
  nextCycle(1500);
 }

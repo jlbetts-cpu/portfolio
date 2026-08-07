@@ -168,12 +168,12 @@
  position:absolute;inset:0;z-index:2;display:flex;justify-content:center;align-items:flex-end;
  overflow:visible;pointer-events:none;transition:transform var(--sp-settle-dur) var(--sp-settle)
 }
-.heroCharacterPeek.is-movie{transform:translateY(calc(var(--hero-peek-lift) * -1))}
+.heroCharacterPeek.is-movie{transform:translateY(var(--hero-peek-active-offset,calc(var(--hero-peek-lift) * -1)))}
 .heroHeadTransform{
  position:absolute;left:50%;top:auto;bottom:calc((var(--hero-peek-depth) * -1) + var(--hero-peek-offset));
  width:var(--hero-peek-width);max-width:none;z-index:2;
  transform-origin:0 0;
- transform:translate3d(calc(-50% + var(--hero-head-x)),var(--hero-head-y),0)
+ transform:translate3d(calc(-50% + var(--hero-head-x)),calc(var(--hero-head-y) + var(--hero-movie-guard-y)),0)
            scale(var(--hero-head-scale));
  will-change:transform
 }
