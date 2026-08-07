@@ -135,7 +135,8 @@ assert 'if(document.body.classList.contains("hmFull")&&window.__hmFeetY!=null)gr
 assert 'if(/[?&]wraf=1/.test(location.search))window.__hmSoccerSettleProbe=' in ENGINE
 assert 'by=groundY-BR' in ENGINE and 'S.ball.y=by' in ENGINE
 assert 'me.__settleProbe=function(){var _ps=window.__hmSoccer;if(_ps&&_ps.on)soccerKickSeen=_ps.kickSeed;survey();var _ord=peers.filter' in ENGINE
-assert 'me.kx=me.ky=0;air=false;st="idle"' in ENGINE
+assert 'me.kx=me.ky=0;me.__probeSettled=1;air=false;st="idle"' in ENGINE
+assert '!me.__probeSettled' in ENGINE and 'o2.__probeSettled' in ENGINE
 
 # Initial saved and fallback heads are seated behind a readiness gate. The
 # existing __noIntro fall path remains, protecting later game/tournament motion.

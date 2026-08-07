@@ -193,7 +193,7 @@ def assert_settled_soccer_contacts(page, label):
     def sample():
         return page.evaluate(
             """
-            () => {const hero=document.querySelector('.hero'),hr=hero.getBoundingClientRect(),plane=hr.top+(window.__hmFeetY||0),ratios=window.__settledFootRatios||(window.__settledFootRatios={});const footOf=e=>{const slot=e.getAttribute('data-hm-lobby-slot');if(ratios[slot])return ratios[slot];try{const img=e.querySelector('img'),cv=document.createElement('canvas');cv.width=36;cv.height=44;const cx=cv.getContext('2d');cx.drawImage(img,0,0,36,44);const d=cx.getImageData(0,0,36,44).data;for(let row=43;row>=0;row--){for(let col=0;col<36;col++){if(d[(row*36+col)*4+3]>40)return ratios[slot]=(row+1)/44;}}}catch(_){}return ratios[slot]=.945;};const players=Array.from(document.querySelectorAll('#playArena [data-hm-boot-ready]')).filter(e=>e.getAttribute('data-hm-lobby-slot')!=='9001').map(e=>{const r=e.getBoundingClientRect();return {slot:e.getAttribute('data-hm-lobby-slot'),left:r.left,top:r.top,feet:r.top+r.height*footOf(e)};});const br=document.querySelector('.hmBall').getBoundingClientRect();return {phase:window.__hmSoccer&&window.__hmSoccer.phase,plane,players,ballBottom:br.bottom};}
+            () => {const hero=document.querySelector('.hero'),hr=hero.getBoundingClientRect(),plane=hr.top+(window.__hmFeetY||0),ratios=window.__settledFootRatios||(window.__settledFootRatios={}),peerBySlot={};(window.__peers||[]).forEach(peer=>peerBySlot[String(peer.slot)]=peer);const footOf=e=>{const slot=e.getAttribute('data-hm-lobby-slot');if(ratios[slot])return ratios[slot];try{const img=e.querySelector('img'),cv=document.createElement('canvas');cv.width=36;cv.height=44;const cx=cv.getContext('2d');cx.drawImage(img,0,0,36,44);const d=cx.getImageData(0,0,36,44).data;for(let row=43;row>=0;row--){for(let col=0;col<36;col++){if(d[(row*36+col)*4+3]>40)return ratios[slot]=(row+1)/44;}}}catch(_){}return ratios[slot]=.945;};const players=Array.from(document.querySelectorAll('#playArena [data-hm-boot-ready]')).filter(e=>e.getAttribute('data-hm-lobby-slot')!=='9001').map(e=>{const r=e.getBoundingClientRect(),slot=e.getAttribute('data-hm-lobby-slot'),peer=peerBySlot[slot];return {slot,left:r.left,top:r.top,feet:r.top+r.height*footOf(e),ground:!!(peer&&peer.ground)};});const br=document.querySelector('.hmBall').getBoundingClientRect();return {phase:window.__hmSoccer&&window.__hmSoccer.phase,plane,players,ballBottom:br.bottom};}
             """
         )
 
@@ -202,17 +202,16 @@ def assert_settled_soccer_contacts(page, label):
     page.wait_for_timeout(120)
     second = sample()
     prior = {item["slot"]: item for item in first["players"]}
-    settled = []
+    checked = []
     for item in second["players"]:
         previous = prior.get(item["slot"])
-        airborne = abs(item["feet"] - second["plane"]) > 2 or not previous or abs(previous["feet"] - first["plane"]) > 2
+        grounded = bool(previous) and previous["ground"] and item["ground"]
         jumping = not previous or abs(item["top"] - previous["top"]) > .5
         unchanged = bool(previous) and abs(item["left"] - previous["left"]) <= .5 and abs(item["top"] - previous["top"]) <= .5
-        if unchanged and not airborne and not jumping:
-            settled.append({**item, "airborne": airborne, "jumping": jumping, "unchanged": unchanged})
-    assert second["phase"] == "play" and second["players"] and settled, (label, first, second, settled)
-    assert all(not item["airborne"] and not item["jumping"] and item["unchanged"]
-               and abs(item["feet"] - second["plane"]) <= 2 for item in settled), (label, settled, second)
+        checked.append({**item, "grounded": grounded, "jumping": jumping, "unchanged": unchanged})
+    assert second["phase"] == "play" and first["players"] and len(first["players"]) == len(second["players"]) == len(checked), (label, first, second, checked)
+    assert all(item["grounded"] and not item["jumping"] and item["unchanged"] for item in checked), (label, "ordinary player moved", first, second, checked)
+    assert all(abs(item["feet"] - second["plane"]) <= 2 for item in checked), (label, "ordinary player off plane", second, checked)
     assert abs(second["ballBottom"] - second["plane"]) <= 2, (label, "resting ball", second)
 
 
