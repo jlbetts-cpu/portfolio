@@ -304,6 +304,41 @@ def browser_contract(base_url):
                     },
                 )
 
+            for corner, axis, dx, dy in (
+                ("se", "horizontal", -32, 0),
+                ("nw", "vertical", 0, 32),
+            ):
+                page.evaluate("window.__heroHeadTransform.reset()")
+                page.wait_for_timeout(30)
+                before_axis = logical_head_rect(page)
+                expected_anchor = opposite_point(before_axis, corner)
+                axis_handle = page.locator(
+                    f'.heroHeadHandle[data-corner="{corner}"]'
+                ).bounding_box()
+                press_x = axis_handle["x"] + axis_handle["width"] / 2
+                press_y = axis_handle["y"] + axis_handle["height"] / 2
+                page.mouse.move(press_x, press_y)
+                page.mouse.down()
+                page.mouse.move(press_x + dx, press_y + dy, steps=3)
+                page.mouse.up()
+                page.wait_for_timeout(30)
+                after_axis = logical_head_rect(page)
+                actual_anchor = opposite_point(after_axis, corner)
+                axis_state = page.evaluate("window.__heroHeadTransform.getState()")
+                record(
+                    failures,
+                    axis_state["scale"] < 1
+                    and abs(actual_anchor["x"] - expected_anchor["x"]) <= 1
+                    and abs(actual_anchor["y"] - expected_anchor["y"]) <= 1,
+                    f"{label} {axis}-only inward resize",
+                    {
+                        "corner": corner,
+                        "state": axis_state,
+                        "expectedAnchor": expected_anchor,
+                        "actualAnchor": actual_anchor,
+                    },
+                )
+
             page.evaluate("window.__heroHeadTransform.reset()")
             page.wait_for_timeout(30)
 
@@ -483,6 +518,31 @@ def browser_contract(base_url):
             page.keyboard.press("Enter")
             page.evaluate("window.__heroHeadTransform.reset()")
             page.wait_for_timeout(30)
+            for selector, key in (
+                ("#heroTimeBtn", "ArrowRight"),
+                ('.csTab[role="tab"]', "ArrowDown"),
+            ):
+                unrelated = page.evaluate(
+                    """({selector,key}) => {
+                      const node=document.querySelector(selector);
+                      node.focus({preventScroll:true});
+                      const before=window.__heroHeadTransform.getState();
+                      const allowed=node.dispatchEvent(new KeyboardEvent('keydown',{
+                        key,bubbles:true,cancelable:true
+                      }));
+                      return {allowed,before,after:window.__heroHeadTransform.getState()};
+                    }""",
+                    {"selector": selector, "key": key},
+                )
+                record(
+                    failures,
+                    unrelated["allowed"] and unrelated["after"] == unrelated["before"],
+                    f"{label} unrelated {selector} {key}",
+                    unrelated,
+                )
+            page.evaluate("window.__heroHeadTransform.reset()")
+            page.wait_for_timeout(30)
+            face.evaluate("node => node.focus({preventScroll:true})")
             state0 = page.evaluate("window.__heroHeadTransform.getState()")
             page.keyboard.press("ArrowRight")
             page.wait_for_timeout(30)

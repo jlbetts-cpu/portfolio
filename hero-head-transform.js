@@ -127,7 +127,7 @@
    var dragY=event.clientY+state.start.pointerOffset.y;
    var rx=Math.abs(dragX-state.start.anchor.x)/state.start.rect.width;
    var ry=Math.abs(dragY-state.start.anchor.y)/state.start.rect.height;
-   var ratio=Math.max(rx,ry);
+   var ratio=Math.abs(rx-1)>=Math.abs(ry-1)?rx:ry;
    var min=parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--hero-head-min-scale"))||.78;
    var max=parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--hero-head-max-scale"))||1.35;
    var next=Math.max(min,Math.min(max,state.start.scale*ratio));
@@ -150,10 +150,11 @@
    face.removeAttribute("data-pointer-focus");
    if(event.key==="Escape"&&state.selected){event.preventDefault();deselect({restoreFocus:true});return;}
    if(!state.selected||!/^Arrow/.test(event.key))return;
+   var corner=event.target.closest&&event.target.closest(".heroHeadHandle");
+   if(!corner&&event.target!==face)return;
    var step=event.shiftKey?16:4;
    var dx=event.key==="ArrowLeft"?-step:event.key==="ArrowRight"?step:0;
    var dy=event.key==="ArrowUp"?-step:event.key==="ArrowDown"?step:0;
-   var corner=event.target.closest&&event.target.closest(".heroHeadHandle");
    event.preventDefault();
    if(corner){
     var name=corner.getAttribute("data-corner"),rect=logicalRect();
