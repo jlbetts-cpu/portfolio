@@ -89,6 +89,14 @@ The desktop entrance should reveal that selected work follows the Hero without r
 - The existing compact relationship between each case-study image and its own title/year metadata remains unchanged.
 - The spacing values resolve through shared semantic layout tokens rather than page-local arbitrary values.
 
+## Approved Hero edge treatment
+
+- The Hero has no visible outline, rim, border, or shadow in any time state.
+- The top of every time-of-day gradient resolves to the exact shared `--theme-page` color, not a visually similar hard-coded tint.
+- Light-state atmosphere remains concentrated lower in the Hero; its upper field becomes indistinguishable from the surrounding page.
+- Night begins with the exact dark `--theme-page` color before developing its blue-black atmosphere and stars lower in the Hero.
+- The approved lower gradient colors and radial shape remain intact; this change only removes the upper-edge hue seam.
+
 ## Accessibility and input
 
 - The portrait becomes a focusable control with a concise accessible name describing selection.
@@ -118,6 +126,8 @@ The desktop entrance should reveal that selected work follows the Hero without r
 - Pointer, touch, and keyboard paths work at 1440px, 390px, and 320px widths.
 - At 1280×720 and 1440×900, the work tabs and a deliberate thumbnail preview are visible on initial load.
 - The Hero-to-work gap computes to 16px, and consecutive case-study gaps compute to 64px desktop / 40px mobile.
+- Pixel sampling at the Hero top center and top corners matches the surrounding page background in every time state.
+- The Hero computes to `box-shadow: none` in every time state.
 - No persistent storage or page-wide layout shift is introduced.
 
 ## Non-goals

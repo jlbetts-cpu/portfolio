@@ -22,6 +22,7 @@
 - Desktop Hero block size is `clamp(520px, calc(100svh - 220px), 700px)`; mobile remains content-driven.
 - Hero-to-work gap is 16px; case-study gap is 64px desktop and 40px mobile.
 - At 1280×720 and 1440×900, the complete work tabs and a deliberate first-thumbnail preview are visible on load.
+- The Hero has no rim, border, or shadow; every gradient begins at the exact shared `--theme-page` color along its top edge.
 
 ## File Structure
 
@@ -47,7 +48,7 @@
 
 **Interfaces:**
 - Consumes: existing `--sp-16`, `--sp-40`, `--sp-64`, `.hero`, `.cases`, `.collection__tabs`, `.csItem`.
-- Produces: `--hero-entry-height`, `--section-join-gap`, `--work-item-gap`; exact responsive page rhythm used by later transform bounds tests.
+- Produces: `--hero-entry-height`, `--section-join-gap`, `--work-item-gap`; exact responsive page rhythm and seamless Hero top edge used by later transform bounds tests.
 
 - [ ] **Step 1: Write the failing rhythm contract**
 
@@ -60,6 +61,8 @@ from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from threading import Thread
 from playwright.sync_api import sync_playwright
+from io import BytesIO
+from PIL import Image, ImageColor
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -76,6 +79,12 @@ def static_contract():
     assert "--work-item-gap:var(--sp-40)" in tokens
     assert ".cases{margin-top:var(--section-join-gap)}" in html
     assert ".csItem+.csItem{margin-top:var(--work-item-gap)}" in html
+    hero_time = (ROOT / "hero-time.css").read_text(encoding="utf-8")
+    controls = (ROOT / "controls.css").read_text(encoding="utf-8")
+    assert ".surface--hero{" in controls and "box-shadow:none" in controls.split(".surface--hero{", 1)[1].split("}", 1)[0]
+    seam = hero_time.split(".heroTimeGradient::after{", 1)[1].split("}", 1)[0]
+    assert "var(--theme-page) 0%" in seam and "var(--theme-page) 10%" in seam
+    assert "transparent 28%" in seam
 
 def browser_contract(base_url):
     with sync_playwright() as p:
@@ -95,10 +104,12 @@ def browser_contract(base_url):
               return {
                 hero: box('.hero'), cases: box('.cases'), tabs: box('.collection__tabs'),
                 frame: box('.csPanel.on .csFrame'), itemGap: b.top - a.bottom,
-                overflow: document.documentElement.scrollWidth > innerWidth
+                overflow: document.documentElement.scrollWidth > innerWidth,
+                heroShadow: getComputedStyle(document.querySelector('.hero')).boxShadow
               };
             }""")
             assert not state["overflow"], (width, state)
+            assert state["heroShadow"] == "none", state
             assert 15.5 <= state["cases"]["top"] - state["hero"]["bottom"] <= 16.5, state
             expected_gap = 40 if width <= 760 else 64
             assert expected_gap - .5 <= state["itemGap"] <= expected_gap + .5, state
@@ -106,6 +117,21 @@ def browser_contract(base_url):
                 assert 519.5 <= state["hero"]["height"] <= 700.5, state
                 assert state["tabs"]["bottom"] <= height, state
                 assert state["frame"]["top"] <= height - 48, state
+            for theme in ("pre-dawn", "sunrise", "daytime", "dusk", "sunset", "night"):
+                page.evaluate("state => window.SiteTheme.setMode(state,{persist:false})", theme)
+                page.wait_for_function("state => document.querySelector('#main').dataset.timeState === state", theme)
+                page.wait_for_timeout(700)
+                hero = page.locator("#main").bounding_box()
+                expected = ImageColor.getrgb(page.evaluate(
+                    "getComputedStyle(document.documentElement).getPropertyValue('--theme-page').trim()"
+                ))
+                image = Image.open(BytesIO(page.screenshot())).convert("RGB")
+                y = int(hero["y"] + 2)
+                for fraction in (.25, .5, .75):
+                    actual = image.getpixel((int(hero["x"] + hero["width"] * fraction), y))
+                    assert max(abs(actual[i] - expected[i]) for i in range(3)) <= 2, (
+                        width, height, theme, actual, expected
+                    )
             page.close()
         browser.close()
 
@@ -157,6 +183,23 @@ At the end of the Home Hero style block in `index.html`, add:
 ```
 
 Delete the superseded `.cases{margin:clamp(80px,12vh,144px) auto 0}` top-margin value and `.csItem+.csItem{margin-top:clamp(128px,18vh,240px)}` / mobile `14vh` overrides so one rule owns each gap.
+
+In `controls.css`, make the shared Hero surface explicitly rimless:
+
+```css
+.surface--hero{box-shadow:none}
+```
+
+In `hero-time.css`, set the non-Night `--time-base` values to `var(--theme-page)`. Preserve every approved radial and linear gradient stop exactly. Add one shared, opaque-to-transparent top wash to every gradient layer:
+
+```css
+.heroTimeGradient::after{
+ content:"";position:absolute;inset:0;pointer-events:none;
+ background:linear-gradient(180deg,var(--theme-page) 0%,var(--theme-page) 10%,transparent 28%)
+}
+```
+
+This shared edge treatment covers Pre-dawn, Sunrise, Daytime, Dusk, Sunset, and both Night breakpoints without forking their artwork. Its fully opaque first 10% makes the top center and corners mathematically identical to the surrounding page, then releases the existing atmosphere by 28%.
 
 - [ ] **Step 5: Run the focused and existing geometry contracts**
 
