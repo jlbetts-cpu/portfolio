@@ -527,6 +527,16 @@
  --hero-peek-depth:calc(190px + var(--sp-16));
  --hero-peek-offset:var(--sp-8);
  --hero-peek-lift:var(--sp-64);
+ --selection-ink:#0A84FF;
+ --selection-line:1px;
+ --selection-handle-size:8px;
+ --selection-hit-size:var(--tap-min);
+ --hero-head-safe-gap:var(--sp-16);
+ --hero-head-min-scale:.78;
+ --hero-head-max-scale:1.35;
+ --hero-head-x:0px;
+ --hero-head-y:0px;
+ --hero-head-scale:1;
  --scene-cut-duration:250ms;
  --scene-cut-ease:steps(2,end);
  --star-twinkle-duration:7s;

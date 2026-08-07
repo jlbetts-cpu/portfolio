@@ -363,8 +363,19 @@ def main():
                 motion_page.wait_for_function("""before => {const iris=document.querySelector('#stage .iris');return iris ? getComputedStyle(iris).transform !== before : false;}""", arg=before_gaze)
                 gaze_samples.append(motion_page.evaluate("""() => {const iris=document.querySelector('#stage .iris');return iris ? getComputedStyle(iris).transform : null;}"""))
                 assert len([sample for sample in gaze_samples if sample is not None]) >= 2 and gaze_samples[0] != gaze_samples[1], gaze_samples
-                motion_page.locator("#face").evaluate("n=>n.click()")
-                motion_page.wait_for_function("[...document.querySelectorAll('.dlogo')].some(n=>parseFloat(getComputedStyle(n).opacity)>.1)")
+                face_box = motion_page.locator("#face").bounding_box()
+                assert face_box
+                motion_page.mouse.click(
+                    face_box["x"] + face_box["width"] * .5,
+                    face_box["y"] + face_box["height"] * .3,
+                )
+                motion_page.wait_for_function(
+                    "document.querySelector('#face').getAttribute('aria-pressed') === 'true' && !document.querySelector('#heroHeadSelection').hidden"
+                )
+                motion_page.wait_for_timeout(250)
+                assert motion_page.locator(".dlogo").evaluate_all(
+                    "nodes=>nodes.every(n=>parseFloat(getComputedStyle(n).opacity)<=.1)"
+                )
 
                 motion_page.reload(wait_until="domcontentloaded")
                 motion_page.wait_for_function("document.querySelectorAll('#stage .eye').length >= 2")

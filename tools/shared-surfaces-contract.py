@@ -131,7 +131,7 @@ def main():
     browser_contract = (ROOT / "tools/shared-surfaces-browser.py").read_text(encoding="utf-8")
     assert "const iris=document.querySelector('#stage .iris')" in browser_contract, "brittle live-eye lookup"
     assert "iris ? getComputedStyle(iris).transform : null" in browser_contract, "brittle live-eye lookup"
-    assert 'faceImg.addEventListener("click"' in (ROOT / "hero-engine.js").read_text(encoding="utf-8")
+    assert 'faceImg.addEventListener("click"' not in (ROOT / "hero-engine.js").read_text(encoding="utf-8")
     assert 'activeHover="smile"' in (ROOT / "hero-engine.js").read_text(encoding="utf-8")
     assert 'frame.addEventListener("focusin"' in (ROOT / "hero-engine.js").read_text(encoding="utf-8")
     assert 'frame.addEventListener("keydown"' in (ROOT / "hero-engine.js").read_text(encoding="utf-8")

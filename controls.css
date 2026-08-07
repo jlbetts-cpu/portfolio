@@ -169,11 +169,39 @@
  overflow:visible;pointer-events:none;transition:transform var(--sp-settle-dur) var(--sp-settle)
 }
 .heroCharacterPeek.is-movie{transform:translateY(calc(var(--hero-peek-lift) * -1))}
-.heroCharacterPeek .stagewrap{
- position:absolute;top:auto!important;bottom:calc((var(--hero-peek-depth) * -1) + var(--hero-peek-offset));
- width:var(--hero-peek-width)!important;max-width:none;margin:0!important;z-index:2
+.heroHeadTransform{
+ position:absolute;left:50%;top:auto;bottom:calc((var(--hero-peek-depth) * -1) + var(--hero-peek-offset));
+ width:var(--hero-peek-width);max-width:none;z-index:2;
+ transform-origin:0 0;
+ transform:translate3d(calc(-50% + var(--hero-head-x)),var(--hero-head-y),0)
+           scale(var(--hero-head-scale));
+ will-change:transform
 }
-.heroCharacterPeek .stage{pointer-events:auto;cursor:pointer}
+.heroHeadTransform .stagewrap{position:relative!important;width:100%!important;max-width:none;margin:0!important}
+.heroHeadSelection{
+ position:absolute;left:var(--selection-x);top:var(--selection-y);
+ width:var(--selection-w);height:var(--selection-h);z-index:6;
+ pointer-events:auto;touch-action:none;cursor:move
+}
+.heroHeadSelection::before{
+ content:"";position:absolute;inset:0;pointer-events:none;
+ box-shadow:inset 0 0 0 var(--selection-line) var(--selection-ink)
+}
+.heroHeadSelection[hidden]{display:none}
+.heroHeadHandle{
+ position:absolute;width:var(--selection-hit-size);height:var(--selection-hit-size);
+ border:0;padding:0;background:transparent;touch-action:none
+}
+.heroHeadHandle::before{
+ content:"";position:absolute;left:50%;top:50%;width:var(--selection-handle-size);height:var(--selection-handle-size);
+ transform:translate(-50%,-50%);background:var(--ctl-ground);
+ box-shadow:inset 0 0 0 var(--selection-line) var(--selection-ink)
+}
+.heroHeadHandle[data-corner="nw"]{left:calc(var(--selection-hit-size) / -2);top:calc(var(--selection-hit-size) / -2);cursor:nwse-resize}
+.heroHeadHandle[data-corner="ne"]{right:calc(var(--selection-hit-size) / -2);top:calc(var(--selection-hit-size) / -2);cursor:nesw-resize}
+.heroHeadHandle[data-corner="sw"]{left:calc(var(--selection-hit-size) / -2);bottom:calc(var(--selection-hit-size) / -2);cursor:nesw-resize}
+.heroHeadHandle[data-corner="se"]{right:calc(var(--selection-hit-size) / -2);bottom:calc(var(--selection-hit-size) / -2);cursor:nwse-resize}
+.heroCharacterPeek .stage{pointer-events:auto;cursor:pointer;touch-action:none}
 /* End Task 2 shared surfaces. */
 
 @media(prefers-reduced-motion:reduce){

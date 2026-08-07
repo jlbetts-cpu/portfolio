@@ -1561,9 +1561,16 @@ if(location.hash==="#about")location.replace("about.html");</script>
     <script id="heroTimePrepaint">(function(){var r=document.documentElement,h=document.getElementById("main"),m=r.getAttribute("data-theme-mode")||"auto",s=r.getAttribute("data-theme-state")||"off",q=r.getAttribute("data-reduced-motion")||"no-preference",i=document.getElementById("heroTimeIcon"),n=document.querySelectorAll('#heroTimeMenu [role="menuitemradio"]');h.setAttribute("data-time-mode",m);h.setAttribute("data-time-state",s);h.setAttribute("data-reduced-motion",q);i.setAttribute("data-icon",s);n.forEach(function(x){x.setAttribute("aria-checked",x.getAttribute("data-time-mode")===m?"true":"false");});})();</script>
    </div>
   </div>
-  <div class="heroTimeSupport heroCharacterPeek"><div class="stagewrap"><div class="queueDots" id="qdots" role="status" aria-live="polite"><span class="qsr"></span><i></i><i></i><i></i></div><div id="stageMorph"><div class="floorshadow" id="fsh"></div><div class="stage" id="stage"><img class="face" id="face" alt="Jayden Betts" draggable="false"><img id="heroTimePortraitCast" class="heroTimePortraitCast" alt="" aria-hidden="true"><img class="tongue" id="tongue" src="images/tongue.webp" alt="" aria-hidden="true">
+  <div class="heroTimeSupport heroCharacterPeek"><div class="heroHeadTransform" id="heroHeadTransform"><div class="stagewrap"><div class="queueDots" id="qdots" role="status" aria-live="polite"><span class="qsr"></span><i></i><i></i><i></i></div><div id="stageMorph"><div class="floorshadow" id="fsh"></div><div class="stage" id="stage"><img class="face" id="face" alt="Jayden Betts" draggable="false" role="button" tabindex="0" aria-pressed="false" aria-label="Select and reposition animated portrait" data-head-bounds="0.22 0.12 0.80 0.91"><img id="heroTimePortraitCast" class="heroTimePortraitCast" alt="" aria-hidden="true"><img class="tongue" id="tongue" src="images/tongue.webp" alt="" aria-hidden="true">
 <svg class="glasses" id="glasses" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><defs><pattern id="glCard" patternUnits="userSpaceOnUse" width="100" height="100"><image href="images/glass_frame_tex.webp" x="0" y="0" width="100" height="100" preserveAspectRatio="xMidYMid slice"/></pattern><linearGradient id="glSheen" x1="0" y1="0" x2="0.62" y2="1"><stop offset="0" stop-color="#fff" stop-opacity="0.5"/><stop offset="0.4" stop-color="#fff" stop-opacity="0.06"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient><mask id="glMask" maskUnits="userSpaceOnUse" x="0" y="0" width="100" height="100"><rect x="28" y="45.3" width="44" height="13.2" rx="2.4" fill="#fff"/><polygon points="28,47.2 26,48 26,50.4 28,51.2" fill="#fff"/><polygon points="72,47.2 74,48 74,50.4 72,51.2" fill="#fff"/><rect x="32.5" y="47.3" width="13" height="9.2" rx="1.8" fill="#000"/><rect x="54.5" y="47.3" width="13" height="9.2" rx="1.8" fill="#000"/><path d="M46.7 58.6 Q50 54.3 53.3 58.6 Z" fill="#000"/></mask></defs><rect class="gl-red" x="32.5" y="47.3" width="13" height="9.2" rx="1.8"/><rect class="gl-cyan" x="54.5" y="47.3" width="13" height="9.2" rx="1.8"/><rect class="gl-plast" x="32.5" y="47.3" width="13" height="9.2" rx="1.8" fill="url(#glSheen)"/><rect class="gl-plast" x="54.5" y="47.3" width="13" height="9.2" rx="1.8" fill="url(#glSheen)"/><rect x="0" y="0" width="100" height="100" fill="url(#glCard)" mask="url(#glMask)"/></svg></div></div>
-</div>
+</div></div>
+  <div class="heroHeadSelection" id="heroHeadSelection" role="group"
+       aria-label="Selected animated portrait" hidden>
+   <button class="heroHeadHandle" type="button" data-corner="nw" aria-label="Resize portrait from top left" tabindex="-1"></button>
+   <button class="heroHeadHandle" type="button" data-corner="ne" aria-label="Resize portrait from top right" tabindex="-1"></button>
+   <button class="heroHeadHandle" type="button" data-corner="sw" aria-label="Resize portrait from bottom left" tabindex="-1"></button>
+   <button class="heroHeadHandle" type="button" data-corner="se" aria-label="Resize portrait from bottom right" tabindex="-1"></button>
+  </div>
   <div class="heroMovieEffectsClip" id="heroMovieEffectsClip" aria-hidden="true"><div class="heroMovieEffectsStage" id="heroMovieEffectsStage"></div></div></div>
  </section>
 
@@ -1696,6 +1703,7 @@ if(location.hash==="#about")location.replace("about.html");</script>
 <!-- The original live portrait engine owns the Home face, eyes, gaze, blink, and moods. -->
 <script>(function(){var root=document.documentElement;addEventListener("pointerdown",function(){root.setAttribute("data-focus-modality","pointer");},{capture:true,passive:true});addEventListener("keydown",function(e){if(e.key==="Tab")root.setAttribute("data-focus-modality","keyboard");},true);})();</script>
 <script src="hero-engine.js"></script>
+<script src="hero-head-transform.js"></script>
 <script src="hero-time.js"></script>
 <script>
 (function(){
