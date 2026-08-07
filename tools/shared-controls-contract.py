@@ -67,6 +67,33 @@ def main():
     css = (ROOT / "controls.css").read_text(encoding="utf-8")
     for selector in (".ctl{", ".ctl--primary{", ".ctl--secondary", ".ctl--icon", ".ctl-menu{"):
         assert selector in css, selector
+    assert "min-width:var(--menu-w)" in css
+    assert ".ctl--primary{background:var(--ctl-primary-ground);color:var(--ctl-primary-ink);box-shadow:var(--ctl-rim)}" in css
+
+    tokens = (ROOT / "tokens.css").read_text(encoding="utf-8")
+    assert "--ctl-ink:var(--theme-muted" in tokens
+    assert "--ctl-ink-strong:var(--theme-ink" in tokens
+    assert "--ctl-ink-mute:var(--theme-muted" in tokens
+
+    home_css = (ROOT / "index.html").read_text(encoding="utf-8")
+    for legacy in (
+        ".workCta{display:inline-flex",
+        ".workCta{background:",
+        ".workCta:hover",
+        ".workCta:focus-visible",
+        ".workCta:active",
+        ".reelClose,.workCta,.mhToggle{",
+    ):
+        assert legacy not in home_css, legacy
+
+    play_css = (ROOT / "play.css").read_text(encoding="utf-8")
+    for legacy in (".moodBtn{display:inline-flex", ".moodMenu{position:absolute", ".moodItem{display:flex"):
+        assert legacy not in play_css, legacy
+    theme_css = (ROOT / "site-theme.css").read_text(encoding="utf-8")
+    assert ":is(.moodBtn,.moodTeamsBtn)" not in theme_css
+    assert 'body[data-theme-page="play"] .moodMenu{' not in theme_css
+
+    assert "background:var(--theme-page,var(--c50))" in play_html
 
     print("Shared control static contract: OK")
 

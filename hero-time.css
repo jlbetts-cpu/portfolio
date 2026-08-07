@@ -357,9 +357,7 @@
 
 @media(prefers-reduced-motion:reduce){
  .hero,.hero::after,.heroTimeSpill,.heroTimeClip,.heroTimeGradient,.heroTimePortraitCast,.heroCopy h1,
- .hero[data-time-state] .workCta,
- .hero[data-time-state] .heroMood .moodBtn,.hero[data-time-state] .floorshadow,.heroTimeBtn,.heroTimeMenu,
- .heroTimeMenu [role="menuitemradio"]{transition:none!important;animation:none!important}
+ .hero[data-time-state] .floorshadow{transition:none!important;animation:none!important}
 }
 
 @media(forced-colors:active){
@@ -368,22 +366,4 @@
  .hero{box-shadow:none}
  .hero::after{box-sizing:border-box;border:var(--hair-w) solid CanvasText;box-shadow:none}
  .hero[data-time-state] .floorshadow{background:none;opacity:0}
- .hero[data-time-state] .workCta,
- .hero[data-time-state] .workCta:hover,
- .hero[data-time-state] .workCta:focus-visible,
- .hero[data-time-state] .workCta:active{
-  forced-color-adjust:auto;background:Highlight;color:HighlightText;border-color:Highlight
- }
- .hero[data-time-state] .heroMood .moodBtn,
- .hero[data-time-state] .heroMood .moodBtn:hover,
- .hero[data-time-state] .heroMood .moodBtn:focus-visible,
- .hero[data-time-state] .heroMood.open .moodBtn,
- .heroTimeBtn:hover,.heroTimeBtn:focus-visible,
- .heroTime.open .heroTimeBtn,.heroTimeBtn[aria-expanded="true"],
- .heroTimeBtn,.heroTimeMenu,.heroTimeMenu [role="menuitemradio"]{
-  forced-color-adjust:auto;background:Canvas;color:CanvasText;border-color:ButtonText
- }
- .heroTimeMenu{border:var(--hair-w) solid CanvasText;box-shadow:none}
- .heroTimeMenu [role="menuitemradio"][aria-checked="true"]{outline:var(--hair-w) solid Highlight}
- .heroTimeMenu [role="menuitemradio"][aria-checked="true"]::before{color:Highlight}
 }

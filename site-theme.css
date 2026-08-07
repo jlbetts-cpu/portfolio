@@ -240,16 +240,16 @@ html{scrollbar-color:var(--theme-muted) var(--theme-page)}
 }
 
 /* Launch menu and the full pre-match picker use the same three neutral depths. */
-:root[data-theme="dark"] body[data-theme-page="play"] :is(.moodBtn,.moodTeamsBtn){
+:root[data-theme="dark"] body[data-theme-page="play"] .moodTeamsBtn{
  background-color:var(--theme-surface);border-color:var(--theme-rim);color:var(--theme-ink);
 }
-:root[data-theme="dark"] body[data-theme-page="play"] .moodMenu{
+:root[data-theme="dark"] body[data-theme-page="play"] .moodMenu:not(.ctl-menu){
  background-color:var(--theme-elevated);border-color:var(--theme-rim);color:var(--theme-ink);
  box-shadow:inset 0 0 0 var(--hair-w) var(--theme-rim);
 }
-:root[data-theme="dark"] body[data-theme-page="play"] :is(.moodItem,.moodGo){color:var(--theme-ink)}
-:root[data-theme="dark"] body[data-theme-page="play"] :is(.moodItem,.moodGo):hover,
-:root[data-theme="dark"] body[data-theme-page="play"] :is(.moodItem,.moodGo):focus-visible{
+:root[data-theme="dark"] body[data-theme-page="play"] :is(.moodItem,.moodGo):not(.ctl){color:var(--theme-ink)}
+:root[data-theme="dark"] body[data-theme-page="play"] :is(.moodItem,.moodGo):not(.ctl):hover,
+:root[data-theme="dark"] body[data-theme-page="play"] :is(.moodItem,.moodGo):not(.ctl):focus-visible{
  background-color:var(--theme-surface);color:var(--theme-ink);
 }
 :root[data-theme="dark"] body[data-theme-page="play"] .moodSep{background-color:var(--theme-rim)}

@@ -58,7 +58,7 @@
  .hero{position:relative;isolation:isolate;overflow:hidden;display:grid;grid-template-columns:1fr;height:auto;box-sizing:border-box;
   justify-items:center;align-content:start;min-height:calc(100svh - var(--bar-h));gap:0;
   padding:var(--sp-24) var(--sp-16-24) 0;border:0;box-shadow:none;
- border-radius:0;corner-shape:initial;background:var(--c50)}
+ border-radius:0;corner-shape:initial;background:var(--theme-page,var(--c50))}
  body[data-theme-page="play"] .hero::after{display:none}
  .heroAura{position:absolute;z-index:-1;pointer-events:none;left:50%;top:61%;width:min(960px,88%);height:68%;
   transform:translate(-50%,-50%);background:radial-gradient(ellipse at center,rgba(148,205,255,.44) 0%,rgba(184,222,255,.24) 38%,rgba(225,241,255,0) 76%);filter:blur(var(--blur-3))}

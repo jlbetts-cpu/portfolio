@@ -215,7 +215,7 @@ body.catchReady #stageMorph{transform:scale(1.055)}
  .hint{font-size:var(--fs-micro)}.work{margin-top:54vh}
 }
 @media(max-width:760px){                                                  /* touch targets: Apple HIG 44pt / Material 48dp minimum */
- .workCta,.aboutCta,.moodBtn{min-height:46px;padding-top:12px;padding-bottom:12px}
+ .aboutCta,.moodBtn{min-height:46px;padding-top:12px;padding-bottom:12px}
  .moodItem{display:flex;align-items:center;gap:12px;width:100%;padding:8px 12px;border-radius:4px;font-family:var(--sans);font-weight:400;font-size:var(--fs-body);color:var(--c950);background:none;border:0;cursor:pointer;text-align:left;transition:background-color .1s ease-out,color .1s ease-out}
  .heroCtas{row-gap:12px;column-gap:12px}
  .aboutCta,.moodBtn{padding-left:8px;padding-right:8px}
@@ -545,7 +545,7 @@ body.heroEmpathy .jbStick .jbNav{--nav-mat:var(--theme-page,var(--c50))!importan
    a border the same colour as its own fill, which is 2px of box doing nothing but
    putting this control 2px off every other one. Dropped per the control system
    §3.1 ("No border"); height, padding and radius come from the base rule below. */
-.workCta{display:inline-flex;align-items:center;gap:var(--sp-8);border:0;background:var(--accent);color:var(--c50);font-family:var(--sans);font-weight:400;font-size:var(--fs-body);line-height:1;cursor:pointer;transition:background .2s cubic-bezier(.2,.8,.2,1),transform .2s cubic-bezier(.2,.8,.2,1)}.workCta svg{width:16px;height:16px;display:block;flex:0 0 auto}/* .workCta:hover{background:var(--c900);transform:translateY(-1px)} -- superseded.
+.workCta svg{width:16px;height:16px;display:block;flex:0 0 auto}/* Legacy .workCta state rules were superseded.
    The Primary kind is restated after the control base rule, on --accent-press,
    and the hover LIFT is gone: transform is the :active channel and nothing else
    (control system 5.3), and a lift implies an elevation this chrome may not have. */.aboutCta{display:inline-flex;align-items:center;gap:8px;padding:8px 4px;border:0;background:none;color:var(--c500);font-family:var(--sans);font-size:var(--fs-body);line-height:1;cursor:pointer;transition:color .2s cubic-bezier(.2,.8,.2,1)}.aboutCta svg{width:16px;height:16px;display:block;flex:0 0 auto}
@@ -727,7 +727,7 @@ body.heroEmpathy .jbStick .jbNav{--nav-mat:var(--theme-page,var(--c50))!importan
    the iPhone mock-up's own curvature measured at 11.9% of its width -- a
    photograph of a real object does not take a UI radius, and gets no
    corner-shape either. .rainphoto stays 2px: it is a printed snapshot. */
-.workCta,.moodMenu button,.moodMenu a,.reelClose,
+.moodMenu button,.moodMenu a,.reelClose,
 .aboutCta,.moodBtn,.moodGo,.mhToggle,.moodItem,.back,.talk,.csTab,.toTop{
   border-radius:var(--r-md);corner-shape:var(--corner)}
 .abTalk{border-radius:var(--r-pill);corner-shape:var(--corner)}
@@ -770,7 +770,7 @@ body.heroEmpathy .jbStick .jbNav{--nav-mat:var(--theme-page,var(--c50))!importan
 .moodMenu .moodIco::before,.moodMenu .moodIco::after{background-size:contain!important;background-position:center!important}
 /* heads and the "Show on home" switch are ONE group, not two -- no rule between them */
 .moodMenu .mhBar{border-top:0;padding-top:0}.faceMoodCorner{position:absolute;right:-14px;bottom:clamp(40px,10vw,108px);z-index:46}.faceMoodCorner .moodBtn{padding:8px 12px 8px 16px;border-radius:4px;background:var(--c50);border:1px solid var(--c100);display:inline-flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;font-family:var(--sans);font-weight:400;font-size:var(--fs-body);color:var(--c950);line-height:1;white-space:nowrap;opacity:1;transition:border-color .2s cubic-bezier(.2,.8,.2,1),color .2s cubic-bezier(.2,.8,.2,1)}.faceMoodCorner .moodBtn:hover{border-color:var(--c500);color:var(--c950)}.faceMoodCorner .moodLbl{position:static;width:auto;height:auto;overflow:visible;clip:auto;white-space:nowrap}.faceMoodIco{width:20px;height:20px;display:block;color:var(--c700);transition:color .2s}.faceMoodCorner .moodBtn:hover .faceMoodIco{color:var(--c950)}.faceMoodCorner .moodMenu{position:absolute;width:212px;min-width:0;background:var(--c50);border:1px solid var(--c100);border-radius:4px;padding:8px;top:auto;bottom:calc(100% + 12px);left:auto;right:0;transform:translateY(6px);opacity:0;visibility:hidden;transition:opacity .16s cubic-bezier(.2,.8,.2,1),transform .18s cubic-bezier(.2,.8,.2,1),visibility 0s .18s}.faceMoodCorner .moodbar.open .moodMenu{opacity:1;visibility:visible;transition:opacity .16s cubic-bezier(.2,.8,.2,1),transform .18s cubic-bezier(.2,.8,.2,1)}.faceMoodCorner .moodbar.open .moodMenu{transform:translateY(0)!important}@media(max-width:768px){.csTab{padding-top:8px;padding-bottom:16px}}/* the <=768 copy of the inline-link target stood here; it is unconditional now */.reelMeta{width:min(1200px,calc(100vw - 80px));display:flex;align-items:baseline;justify-content:space-between;gap:24px;margin-top:12px;opacity:var(--reelMetaOp,1);transition:opacity .2s cubic-bezier(.2,.8,.2,1);will-change:opacity}.reelMeta .csName{filter:url(#inkBig)}.reelMeta .csYear{filter:url(#inkBig)}.reelFrame.isFull{position:fixed;inset:0;width:100vw;height:100vh;max-width:none;aspect-ratio:auto;transform:none!important;border-radius:0;margin:0;z-index:40;transition:width .18s cubic-bezier(.2,.8,.2,1),height .18s cubic-bezier(.2,.8,.2,1)}@media(max-width:760px){.faceMoodCorner{right:-11px!important;left:auto;bottom:auto;top:100%;transform:translateY(16px)}body.moodInCta .faceMoodCorner .moodMenu,.faceMoodCorner .moodMenu{top:calc(100% + 10px)!important;bottom:auto!important;left:auto!important;right:0!important;width:min(220px,calc(100vw - 28px))!important;max-height:min(370px,68vh)!important;overflow-y:auto;-webkit-overflow-scrolling:touch;margin-left:0}.faceMoodCorner .moodLbl{opacity:1!important;transform:none!important}body.moodInCta .faceMoodCorner .moodCar{opacity:1!important;transform:rotate(180deg)!important;transition:transform .32s cubic-bezier(.34,1.4,.5,1),color .2s cubic-bezier(.2,.8,.2,1)}.faceMoodCorner .moodBtn{border-color:var(--c100)!important;background:var(--c50)!important}}.faceMoodCorner .moodBtn:hover .moodCar,.faceMoodCorner .moodbar.open .moodCar{color:var(--c700)}@media(min-width:761px){.faceMoodCorner .moodBtn{position:relative;border-color:transparent;background:transparent;transition:border-color .5s cubic-bezier(.22,.61,.36,1),background-color .5s cubic-bezier(.22,.61,.36,1)}.faceMoodCorner .moodLbl,.faceMoodCorner .moodCar{opacity:0;transform:translateY(4px) scale(.985);transition:opacity .28s cubic-bezier(.22,.61,.36,1),transform .28s cubic-bezier(.22,.61,.36,1)}body.moodNear .faceMoodCorner .moodBtn,.faceMoodCorner:hover .moodBtn,.moodbar.open .moodBtn{border-color:var(--c100);background:var(--c50)}body.moodNear .faceMoodCorner .moodLbl,.faceMoodCorner:hover .moodLbl,.moodbar.open .moodLbl,body.moodNear .faceMoodCorner .moodCar,.faceMoodCorner:hover .moodCar,.moodbar.open .moodCar{opacity:1;transform:translateY(0) scale(1);transition:opacity .5s cubic-bezier(.22,.61,.36,1) .12s,transform .55s cubic-bezier(.22,.61,.36,1) .12s}}@media(max-width:760px){.faceMoodCorner{opacity:1!important;visibility:visible!important}}.moodMenu .moodItem:hover{color:var(--c950)}.moodSep{height:1px;background:var(--c100);margin:8px 4px 8px}.moodGo{display:flex;align-items:center;gap:12px;width:100%;padding:12px 16px;border:0;border-radius:4px;background:none;color:var(--c950);font-family:var(--sans);font-weight:400;font-size:var(--fs-small);line-height:var(--lh-head);text-decoration:none;transition:background-color .16s cubic-bezier(.2,.8,.2,1)}.moodMenu .moodGo{color:var(--c950)}
-.moodGo:hover,.moodGo:focus-visible{color:var(--c950)}.moodGo svg{flex:0 0 18px;width:18px;height:18px;color:currentColor}.aboutCta:hover{border-color:var(--c500);color:var(--c950)}body.moodNear .faceMoodCorner .moodBtn:hover,.faceMoodCorner .moodBtn:hover,.moodbar.open .moodBtn{border-color:var(--c500)!important;color:var(--c950)}@media(min-width:761px){body.moodTeach .faceMoodCorner{opacity:1;visibility:visible;transition:opacity .5s cubic-bezier(.2,.8,.2,1)}body.moodTeach .faceMoodCorner .moodBtn{border-color:var(--c100);background:var(--c50)}body.moodTeach .faceMoodCorner .moodLbl,body.moodTeach .faceMoodCorner .moodCar{opacity:1;transform:translateX(0)}}.cycw{position:relative}@media(hover:none),(pointer:coarse){}@media(max-width:760px){.faceMoodCorner .moodBtn{min-height:44px}}.csTab{-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}.moodBtn,.aboutCta,.talk,.workCta,.heroBack,.back{-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}/* keyboard-only focus ring (never triggers on mouse click) */.talk:focus-visible,.workCta:focus-visible,.aboutCta:focus-visible,.moodBtn:focus-visible,.faceMoodCorner .moodBtn:focus-visible,.moodMenu .moodItem:focus-visible,.csTab:focus-visible,.footIn:focus-visible,.back:focus-visible,.heroBack:focus-visible{outline:2px solid var(--c950);outline-offset:3px;border-radius:var(--r-md)}.talk:focus:not(:focus-visible),.workCta:focus:not(:focus-visible),.aboutCta:focus:not(:focus-visible),.moodBtn:focus:not(:focus-visible),.faceMoodCorner .moodBtn:focus:not(:focus-visible),.moodMenu .moodItem:focus:not(:focus-visible),.csTab:focus:not(:focus-visible){outline:none}.talk{opacity:1}.reelTrack{height:auto!important}.reelStage{position:static!important}.reelFrame{transform:none!important;border-radius:4px!important;overflow:hidden}/* ---- CENTERED HERO: the type sits over the head on one axis ---- */.hero{grid-template-columns:1fr;justify-items:center;align-content:start;--heroTitleTop:var(--sp-16-40);padding-top:var(--heroTitleTop);min-height:calc(100vh - 68px)}.heroCopy{display:contents}/* CENTRED, after a round trip. He asked for left-aligned text in a centred block --
+.moodGo:hover,.moodGo:focus-visible{color:var(--c950)}.moodGo svg{flex:0 0 18px;width:18px;height:18px;color:currentColor}.aboutCta:hover{border-color:var(--c500);color:var(--c950)}body.moodNear .faceMoodCorner .moodBtn:hover,.faceMoodCorner .moodBtn:hover,.moodbar.open .moodBtn{border-color:var(--c500)!important;color:var(--c950)}@media(min-width:761px){body.moodTeach .faceMoodCorner{opacity:1;visibility:visible;transition:opacity .5s cubic-bezier(.2,.8,.2,1)}body.moodTeach .faceMoodCorner .moodBtn{border-color:var(--c100);background:var(--c50)}body.moodTeach .faceMoodCorner .moodLbl,body.moodTeach .faceMoodCorner .moodCar{opacity:1;transform:translateX(0)}}.cycw{position:relative}@media(hover:none),(pointer:coarse){}@media(max-width:760px){.faceMoodCorner .moodBtn{min-height:44px}}.csTab{-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}.moodBtn,.aboutCta,.talk,.heroBack,.back{-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}/* keyboard-only focus ring (never triggers on mouse click) */.talk:focus-visible,.aboutCta:focus-visible,.moodBtn:focus-visible,.faceMoodCorner .moodBtn:focus-visible,.moodMenu .moodItem:focus-visible,.csTab:focus-visible,.footIn:focus-visible,.back:focus-visible,.heroBack:focus-visible{outline:2px solid var(--c950);outline-offset:3px;border-radius:var(--r-md)}.talk:focus:not(:focus-visible),.aboutCta:focus:not(:focus-visible),.moodBtn:focus:not(:focus-visible),.faceMoodCorner .moodBtn:focus:not(:focus-visible),.moodMenu .moodItem:focus:not(:focus-visible),.csTab:focus:not(:focus-visible){outline:none}.talk{opacity:1}.reelTrack{height:auto!important}.reelStage{position:static!important}.reelFrame{transform:none!important;border-radius:4px!important;overflow:hidden}/* ---- CENTERED HERO: the type sits over the head on one axis ---- */.hero{grid-template-columns:1fr;justify-items:center;align-content:start;--heroTitleTop:var(--sp-16-40);padding-top:var(--heroTitleTop);min-height:calc(100vh - 68px)}.heroCopy{display:contents}/* CENTRED, after a round trip. He asked for left-aligned text in a centred block --
    built, measured (both lines shared a left edge at 376, the box centred at 640, the
    same centre as the head) -- and then looked at it: "Actually the centred version
    looked way better." Reverted to plain centred text at the measure. Recorded because
@@ -921,7 +921,7 @@ body.heroEmpathy .jbStick .jbNav{--nav-mat:var(--theme-page,var(--c50))!importan
    inside is taller the control silently grows past the rung. Naming the height
    and zeroing the vertical padding makes the two agree by construction.
    ============================================================================ */
-.moodItem,.moodBtn,.moodGo,.reelClose,.workCta,.mhToggle{
+.moodItem,.moodBtn,.moodGo,.reelClose,.mhToggle{
  font-family:var(--sans);font-weight:400;font-size:var(--fs-small);line-height:var(--lh-flat);
  color:var(--c700);background:none;
  border:0;                      /* no borders. The wash is the affordance. */
@@ -940,13 +940,13 @@ body.heroEmpathy .jbStick .jbNav{--nav-mat:var(--theme-page,var(--c50))!importan
    --press-scale and --press-dur are both already tokens and had zero consumers
    on this page. */
 .moodItem:active,.moodBtn:active,.moodGo:active,.reelClose:active,
-.workCta:active,.mhToggle:active,.toTop:active,.csTab:active{
+.mhToggle:active,.toTop:active,.csTab:active{
  transform:scale(var(--press-scale))}
 @media(prefers-reduced-motion:reduce){
  .moodItem:active,.moodBtn:active,.moodGo:active,.reelClose:active,
- .workCta:active,.mhToggle:active,.toTop:active,.csTab:active{transform:none}}
+ .mhToggle:active,.toTop:active,.csTab:active{transform:none}}
 /* display at ZERO specificity so anything that hides itself conditionally still wins */
-:where(.moodItem,.moodBtn,.moodGo,.reelClose,.workCta,
+:where(.moodItem,.moodBtn,.moodGo,.reelClose,
  .mhToggle,.csTab){display:inline-flex}
 /* square icon-only controls: same height, no text padding */
 .toTop{
@@ -966,7 +966,7 @@ body.heroEmpathy .jbStick .jbNav{--nav-mat:var(--theme-page,var(--c50))!importan
    PROSE, and a grey plate behind a word in a paragraph is the one place the
    wash reads as damage rather than as affordance -- they now hover the way
    every other link on the site does, on ink and their own underline. */
-.moodItem:hover,.moodBtn:hover,.moodGo:hover,.reelClose:hover,.workCta:hover,.mhToggle:hover,.toTop:hover,.moodItem:focus-visible,.moodBtn:focus-visible,.moodGo:focus-visible,.reelClose:focus-visible,.workCta:focus-visible,.mhToggle:focus-visible,.toTop:focus-visible{
+.moodItem:hover,.moodBtn:hover,.moodGo:hover,.reelClose:hover,.mhToggle:hover,.toTop:hover,.moodItem:focus-visible,.moodBtn:focus-visible,.moodGo:focus-visible,.reelClose:focus-visible,.mhToggle:focus-visible,.toTop:focus-visible{
  background:var(--accent-wash);color:var(--c950);border-color:transparent;
 }
 .csTab:hover,.csTab:focus-visible,
@@ -992,10 +992,6 @@ body.heroEmpathy .jbStick .jbNav{--nav-mat:var(--theme-page,var(--c50))!importan
    perceptual step lighter, because on a near-black fill there is nowhere
    darker to go. White on #121212 is 18.4:1 and on #212121 15.3:1. No border:
    it used to carry a 1px rim in its own fill colour. */
-.workCta{background:var(--accent);color:var(--c50);font-size:var(--fs-body)}
-.workCta:hover,.workCta:focus-visible,.workCta:active{
- background:var(--accent-press);color:var(--c50)}
-
 /* SECONDARY-ON-MEDIA (§3.2, the one permitted addition) -- .reelClose floats
    over a full-screen video on a near-black scrim, so it is the case the spec
    allows a ground for: what it needs to stay legible over arbitrary content.

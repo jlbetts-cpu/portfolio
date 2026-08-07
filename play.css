@@ -615,20 +615,19 @@ body.moodInCta .heroCtas:not(.in) .faceMoodCorner{opacity:0!important;visibility
 /* ===== mood shortcut menu — triggers the head animations; sharp, Instrument Sans, 8fps stepped ===== */
 .moodbar{position:relative;display:inline-block;z-index:45}
 @keyframes moodIn{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
-.moodBtn{display:inline-flex;align-items:center;gap:var(--sp-8);background:var(--c50);border:1px solid var(--c100);border-radius:var(--r-2xs);padding:var(--sp-8) var(--sp-16);line-height:1;cursor:pointer;font-family:var(--sans);font-weight:400;font-size:var(--fs-body);color:var(--c950);transition:border-color .2s var(--ease-out),color .2s var(--ease-out)}.moodBtn:hover{border-color:var(--c500)}
-.moodBtn:hover{border-color:var(--c500)}
+.moodBtn:not(.ctl){display:inline-flex;align-items:center;gap:var(--sp-8);background:var(--c50);border:1px solid var(--c100);border-radius:var(--r-2xs);padding:var(--sp-8) var(--sp-16);line-height:1;cursor:pointer;font-family:var(--sans);font-weight:400;font-size:var(--fs-body);color:var(--c950);transition:border-color .2s var(--ease-out),color .2s var(--ease-out)}.moodBtn:not(.ctl):hover{border-color:var(--c500)}
 .moodLbl{font-size:var(--fs-body);font-weight:400;letter-spacing:0}
 .moodCar{width:12px;height:12px;display:inline-block;flex:0 0 auto;color:var(--c500);transition:transform .2s var(--ease-out),color .2s var(--ease-out)}
 .moodbar.open .moodCar{width:12px;height:12px;display:inline-block;flex:0 0 auto;color:var(--c500);transition:transform .2s var(--ease-out),color .2s var(--ease-out)}
-.moodMenu{position:absolute;min-width:196px;background:var(--c50);border:1px solid var(--c100);border-radius:var(--r-2xs);padding:var(--sp-8);box-shadow:0 8px 28px -8px rgba(18,18,18,.12),0 2px 8px -2px rgba(18,18,18,.06);opacity:0;visibility:hidden;transition:opacity var(--ease-out-dur) var(--ease-out),transform .18s var(--ease-out),visibility 0s .18s}
-.moodbar.open .moodMenu{opacity:1;visibility:visible;transition:opacity var(--ease-out-dur) var(--ease-out),transform .18s var(--ease-out)}
-.moodItem{display:flex;align-items:center;gap:var(--sp-12);width:100%;padding:var(--sp-8) var(--sp-12);border-radius:var(--r-2xs);font-family:var(--sans);font-weight:400;font-size:var(--fs-body);color:var(--c950);background:none;border:0;cursor:pointer;text-align:left;transition:background-color .1s ease-out,color .1s ease-out}
-.moodbar.open .moodItem{display:flex;align-items:center;gap:var(--sp-12);width:100%;padding:var(--sp-8) var(--sp-12);border-radius:var(--r-2xs);font-family:var(--sans);font-weight:400;font-size:var(--fs-body);color:var(--c950);background:none;border:0;cursor:pointer;text-align:left;transition:background-color .1s ease-out,color .1s ease-out}
+.moodMenu:not(.ctl-menu){position:absolute;min-width:var(--menu-w);background:var(--c50);border:1px solid var(--c100);border-radius:var(--r-2xs);padding:var(--sp-8);box-shadow:0 8px 28px -8px rgba(18,18,18,.12),0 2px 8px -2px rgba(18,18,18,.06);opacity:0;visibility:hidden;transition:opacity var(--ease-out-dur) var(--ease-out),transform .18s var(--ease-out),visibility 0s .18s}
+.moodbar.open .moodMenu:not(.ctl-menu){opacity:1;visibility:visible;transition:opacity var(--ease-out-dur) var(--ease-out),transform .18s var(--ease-out)}
+.moodItem:not(.ctl){display:flex;align-items:center;gap:var(--sp-12);width:100%;padding:var(--sp-8) var(--sp-12);border-radius:var(--r-2xs);font-family:var(--sans);font-weight:400;font-size:var(--fs-body);color:var(--c950);background:none;border:0;cursor:pointer;text-align:left;transition:background-color .1s ease-out,color .1s ease-out}
+.moodbar.open .moodItem:not(.ctl){display:flex;align-items:center;gap:var(--sp-12);width:100%;padding:var(--sp-8) var(--sp-12);border-radius:var(--r-2xs);font-family:var(--sans);font-weight:400;font-size:var(--fs-body);color:var(--c950);background:none;border:0;cursor:pointer;text-align:left;transition:background-color .1s ease-out,color .1s ease-out}
 /* 8fps staggered reveal — mirrors the site's 0.05s per-character cascade */
-.moodbar.open .moodItem:nth-child(1){transition-delay:.03s,.03s,0s}
-.moodbar.open .moodItem:nth-child(2){transition-delay:.08s,.08s,0s}
-.moodbar.open .moodItem:nth-child(3){transition-delay:.13s,.13s,0s}
-.moodbar.open .moodItem:nth-child(4){transition-delay:.18s,.18s,0s}
+.moodbar.open .moodItem:not(.ctl):nth-child(1){transition-delay:.03s,.03s,0s}
+.moodbar.open .moodItem:not(.ctl):nth-child(2){transition-delay:.08s,.08s,0s}
+.moodbar.open .moodItem:not(.ctl):nth-child(3){transition-delay:.13s,.13s,0s}
+.moodbar.open .moodItem:not(.ctl):nth-child(4){transition-delay:.18s,.18s,0s}
 
 /* ---- 5 + 6. MOBILE: a running game owns the screen.
    All three games take their height from hero.clientHeight -- race heroH(), lava hh(), soccer
@@ -648,6 +647,7 @@ body.moodInCta .heroCtas:not(.in) .faceMoodCorner{opacity:0!important;visibility
 @media(max-width:760px){body.hmFull .hero{height:65vh;min-height:0}}
 body.hmFull{height:auto;min-height:100%;overflow-x:clip;overflow-y:auto;overscroll-behavior-y:auto}
 body.hmFull:is(.pTeamOn,.hmSoccer,.hmBattle,.hmRace,.hmTour){height:100%;overflow:hidden;overscroll-behavior:none}
+body:is(.pTeamOn,.hmSoccer,.hmBattle,.hmRace,.hmTour) .siteFoot{display:none}
 /* ---- 14. #soccerTeams measured 39x40 -- under the 44px minimum (WCAG 2.5.5 AAA, Apple HIG
    "at least 44x44 pt"). It sits inside a flex row with align-self:stretch, so it inherited the
    40px moodItem height. Floor both axes. ---- */

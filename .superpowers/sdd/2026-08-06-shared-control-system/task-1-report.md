@@ -10,6 +10,9 @@
 - Kept the outer header pill as a group-container exception while moving its ground and rim to shared semantic tokens; header disclosure menus are now opaque in light and Night.
 - Per the final scope change, removed Play's Time button/menu, time gradients, portrait tint/cast layer, presets/controller scripts, and `hero-time.css` dependency. Play retains `images/neutral.webp` with no CSS filter and uses the neutral global page theme.
 - Fixed the 44px Play fold shift caused when the shared base's positioning displaced the skip link from fixed positioning; the shared skip-link composition now restores `position:fixed`.
+- Closed the independent-review gaps: Play's Hero ground now follows the page theme, all shared control inks resolve through semantic theme aliases, primary controls keep an inset rim through rest/hover/focus/active, and menu width is sourced from `--menu-w`.
+- Removed the remaining Home `.workCta` geometry/material/state overrides and excluded migrated Play Mood controls, menus, and rows from legacy page/theme skins. Page CSS now retains only placement and artwork hooks for those controls.
+- Kept Play's contact footer in normal hub flow but remove it from layout, pointer interaction, and the accessibility tree with `display:none` whenever the team picker, soccer, battle, race, or tournament owns the fullscreen arena; clearing the active class restores the footer.
 
 ## Verification
 
@@ -20,7 +23,7 @@
 - `python3 tools/shared-controls-browser.py` (Playwright, loopback server with approved sandbox escalation)
 - `git diff --check`
 
-The browser contract covers Home and Play at 1440×900, 390×844, and 320×800 in Off/light and Night. It asserts 44px border-box controls, 14px radii, zero layout borders, opaque secondary/icon/menu/header grounds, in-grid bounds, no horizontal overflow, exact Play fold alignment, same-row Play CTAs at 320px, and the absence of Play day-cycle UI/layers/scripts plus an unfiltered neutral face.
+The browser contract covers Home and Play at 1440×900, 390×844, and 320×800 in Off/light and Night. It asserts WCAG contrast for Hero text and every migrated control/menu row at rest, forced hover, and keyboard focus; focus-ring contrast; inset rims for primary/secondary/icon controls through states; 44px border-box geometry; opaque menu/header grounds; in-grid bounds; no horizontal overflow; exact Play fold alignment; same-row Play CTAs at 320px; the footer's hub/active/restored lifecycle across all five arena states; and the absence of Play day-cycle UI/layers/scripts plus an unfiltered neutral face.
 
 ## Known pre-existing audit finding
 

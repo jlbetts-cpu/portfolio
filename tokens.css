@@ -456,9 +456,9 @@
  /* ink and type */
  --ctl-fs:var(--fs-small);        /* 15px at the 44 rung */
  --ctl-fs-sm:var(--fs-nav);       /* 14px at the 36 rung */
- --ctl-ink:var(--c700);           /* 7.68:1 */
- --ctl-ink-strong:var(--c950);    /* 18.42:1 -- hover ink, selected ink, AND the focus ring */
- --ctl-ink-mute:var(--c500);      /* 4.53:1 -- tab rest, caret rest, placeholder */
+ --ctl-ink:var(--theme-muted,var(--c700));        /* semantic resting ink */
+ --ctl-ink-strong:var(--theme-ink,var(--c950));   /* hover, selected, and focus ink */
+ --ctl-ink-mute:var(--theme-muted,var(--c500));   /* caret and placeholder ink */
  --ctl-disabled-o:.38;
 
  /* motion -- three tiers plus the hover-out asymmetry.
