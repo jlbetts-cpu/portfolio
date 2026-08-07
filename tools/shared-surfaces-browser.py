@@ -71,33 +71,32 @@ def decode_viewport_images(page, selector):
 def decode_sampled_images(page, selector, limit):
     scroll_y = page.evaluate("scrollY")
     samples = page.locator(selector)
-    for index in range(min(samples.count(), limit)):
-        sample = samples.nth(index)
-        image = sample if sample.evaluate("node => node.tagName === 'IMG'") else sample.locator("img").first
-        if image.count() and image.evaluate("""node => {
-          const r=node.getBoundingClientRect(),s=getComputedStyle(node);
-          return r.width>0 && r.height>0 && s.display!=='none' && s.visibility!=='hidden';
-        }"""):
+    readiness = []
+    try:
+        for index in range(min(samples.count(), limit)):
+            sample = samples.nth(index)
+            sample_class = sample.evaluate("node => node.className")
+            image = sample if sample.evaluate("node => node.tagName === 'IMG'") else sample.locator("img").first
+            assert image.count(), ("sampled shared media lacks an image", selector, index, sample_class)
             image.scroll_into_view_if_needed(timeout=5000)
-    readiness = page.evaluate("""async ({selector,limit}) => {
-      const visibleImages=[...document.querySelectorAll(selector)].slice(0,limit)
-        .map(node => node.tagName==='IMG' ? node : node.querySelector('img'))
-        .filter(image => {
-          if(!image)return false;
-          const r=image.getBoundingClientRect(),s=getComputedStyle(image);
-          return r.width>0 && r.height>0 && s.display!=='none' && s.visibility!=='hidden';
-        });
-      const decodeWithTimeout=image=>new Promise((resolve,reject)=>{
-        const src=image.currentSrc||image.getAttribute('src')||'(missing src)';
-        const timer=setTimeout(()=>reject(new Error(`image decode timeout after 5000ms: ${src}`)),5000);
-        image.decode().then(()=>{clearTimeout(timer);resolve();},error=>{clearTimeout(timer);reject(new Error(`image decode failed: ${src}: ${error}`));});
-      });
-      await Promise.all(visibleImages.map(image => decodeWithTimeout(image)));
-      return visibleImages.map(image => ({
-        src:image.currentSrc||image.getAttribute('src'),naturalWidth:image.naturalWidth
-      }));
-    }""", {"selector": selector, "limit": limit})
-    scroll_to(page, scroll_y)
+            readiness.append(image.evaluate("""async (image,{index,sampleClass}) => {
+              const src=image.currentSrc||image.getAttribute('src')||'(missing src)';
+              const rect=image.getBoundingClientRect();
+              if(!(rect.bottom>0 && rect.top<innerHeight && rect.right>0 && rect.left<innerWidth)){
+                throw new Error(`sampled image is outside the viewport: ${src}`);
+              }
+              await new Promise((resolve,reject)=>{
+                const timer=setTimeout(()=>reject(new Error(`image decode timeout after 5000ms: ${src}`)),5000);
+                image.decode().then(()=>{clearTimeout(timer);resolve();},error=>{
+                  clearTimeout(timer);
+                  reject(new Error(`image decode failed: ${src}: ${error}`));
+                });
+              });
+              if(image.naturalWidth<=0)throw new Error(`decoded image has zero natural width: ${src}`);
+              return {index,sampleClass,src,naturalWidth:image.naturalWidth};
+            }""", {"index": index, "sampleClass": sample_class}))
+    finally:
+        scroll_to(page, scroll_y)
     return readiness
 
 
@@ -115,7 +114,7 @@ def verify(page, route, route_name, width, mode):
         )
         scroll_to(page, 0)
         page.wait_for_function("Math.abs(document.querySelector('.jbNav').getBoundingClientRect().top-8) <= .5", timeout=5000)
-    sampled_media = decode_sampled_images(page, ".media--full,.media--mockup", 8)
+    sampled_media = decode_sampled_images(page, ".media--full:not(.videoFrame),.media--mockup", 8)
     assert all(image["naturalWidth"] > 0 for image in sampled_media), (
         route_name, width, mode, "sampled shared media", sampled_media
     )
