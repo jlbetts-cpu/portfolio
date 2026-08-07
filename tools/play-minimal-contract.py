@@ -102,6 +102,33 @@ soccer_launch = handoff.index("__hmSoccerStart()")
 assert soccer_enter < picker_art_off < picker_leave < soccer_launch
 assert "dispatchEvent(new Event(\"resize\"))" not in handoff[:soccer_launch]
 
+# Soccer must promote the real fixed arena and synchronously publish the
+# companion plane before any soccer DOM/layout/team measurement consumes it.
+soccer_start = ENGINE.index("function start(){if(S.on)return")
+soccer_finish = ENGINE.index("function finish(){S.on=false", soccer_start)
+soccer_lifecycle = ENGINE[soccer_start:soccer_finish]
+assert "function syncSoccerArena()" in ENGINE
+sync_start = ENGINE.index("function syncSoccerArena()")
+sync_end = ENGINE.index("function start(){if(S.on)return", sync_start)
+sync = ENGINE[sync_start:sync_end]
+for fragment in (
+    'PlayViewportOwner.enter("soccer")',
+    'classList.add("hmSoccer")',
+    "void hero.offsetHeight",
+    'dispatchEvent(new Event("resize"))',
+    "geo()",
+):
+    assert fragment in sync
+assert sync.index('PlayViewportOwner.enter("soccer")') < sync.index('classList.add("hmSoccer")')
+assert sync.index('classList.add("hmSoccer")') < sync.index("void hero.offsetHeight")
+assert sync.index("void hero.offsetHeight") < sync.index('dispatchEvent(new Event("resize"))')
+assert sync.index('dispatchEvent(new Event("resize"))') < sync.index("geo()")
+assert "syncSoccerArena()" in soccer_lifecycle
+assert soccer_lifecycle.index("syncSoccerArena()") < soccer_lifecycle.index("if(!ball)dom()")
+assert soccer_lifecycle.count('classList.add("hmSoccer")') == 0
+direct_soccer = GAMES[GAMES.index('var sg=document.getElementById("soccerGo")'):GAMES.index('var tg=document.getElementById("tourGo")')]
+assert "var rc=gameCount()" in direct_soccer
+
 # Initial saved and fallback heads are seated behind a readiness gate. The
 # existing __noIntro fall path remains, protecting later game/tournament motion.
 assert "playBooting" in parser.body_classes

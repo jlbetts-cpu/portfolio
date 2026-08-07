@@ -587,7 +587,7 @@
   floorY=fY-HH*FOOT;                                               // feet (the visible chin, not the transparent padding) rest on that shared floor, whatever the head's size
   M=mob?16:40;plats=[];avoids=[];
   var ow=heroR?heroR.w:0;
-  var hb=hero.getBoundingClientRect();WL=-hb.left-HW*0.35;WR=innerWidth-hb.left-HW*0.65;CEIL=-(hb.top+window.scrollY)-HH*0.12;if(document.body.classList.contains("hmFull")){CEIL=2;WL=-hb.left+2;WR=innerWidth-hb.left-HW-2;}   // PHONE, GAME RUNNING: the arena now fills the screen and the nav sits right on top of it, so the ceiling stops at the hero instead of letting heads (and their health bars) climb over the wordmark. Walls tuck in too -- the desktop overhang (WL=-HW*0.35) puts ~22px of a 64px head off-screen, which is a charming detail at 1440px and eats the goalkeeper at 390px.   // it presses into the glass on every side; the VISIBLE crown reaches the top, not the box
+  var hb=hero.getBoundingClientRect();WL=-hb.left-HW*0.35;WR=innerWidth-hb.left-HW*0.65;CEIL=-(hb.top+window.scrollY)-HH*0.12;if(document.body.classList.contains("hmFull")){var _gwp=document.body.classList.contains("hmSoccer")?(mob?12:20):2;CEIL=2;WL=-hb.left+_gwp;WR=innerWidth-hb.left-HW-_gwp;}   // PHONE, GAME RUNNING: the arena now fills the screen and the nav sits right on top of it, so the ceiling stops at the hero instead of letting heads (and their health bars) climb over the wordmark. Soccer reserves enough wall room for a rotating player's painted box; other games retain their authored edge behavior.   // it presses into the glass on every side; the VISIBLE crown reaches the top, not the box
   if(ow&&Math.abs(ow-hero.clientWidth)>2)x=x/ow*hero.clientWidth;   // resizing keeps its relative spot
   if(bigR){var nHW=Math.round(Math.min(108,Math.max(66,(bigR.r-bigR.l)*0.27)));if(mob)nHW=Math.min(nHW,64);
    if(filler)nHW=Math.round(nHW*1.5);   // the mini-Jayden stays noticeably BIGGER (Jayden liked this) -- but he's on the SAME flat plane + ground line as everyone else; his size is his identity, not a depth cue
@@ -624,6 +624,7 @@
   // shrinks" clamp as the line below, made symmetric; it re-seats feet on the ground line rather
   // than offsetting anyone off it.
   if(floorY!==floorWas&&!air&&!grabbed&&!perched&&!window.__hmLavaOn&&surface>=floorWas-2){surface=floorY;if(y<floorY)y=floorY;}
+  if(gameOn&&!window.__hmLavaOn&&!grabbed&&!perched)surface=floorY;
   if(x>WR)x=WR;if(x<WL)x=WL;if(y>floorY)y=floorY;   // stay intact when the screen shrinks
  }
  survey();addEventListener("resize",function(){mob=innerWidth<=880;survey();},{passive:true});
@@ -1800,7 +1801,7 @@
   if(matchMedia("(prefers-reduced-motion:reduce)").matches)return;
   var S={on:false,seed:0,kickSeed:0,teams:{},target:5,cap:8,red:0,blue:0,ball:{x:0,y:0},phase:"idle",winner:0};
   window.__hmSoccer=S;
-  var ball,ballSkin,goalL,goalR,goalShL,goalShR,board,sR,sB,countEl,W=0,H=0,groundY=0,BR=24,OFF=0,XL=0,XR=0;
+  var ball,ballSkin,goalL,goalR,goalShL,goalShR,board,sR,sB,countEl,W=0,H=0,groundY=0,BR=24,GH=150,OFF=0,XL=0,XR=0;
   var camBack,camFront,_camT=0;   // THE GOAL GRAMMAR camera: two transform-only wrappers (ball-shadow+goals+goal-shadows / ball only) so a punch never touches .hmScore -- see stagePunch() below
   var flapR=null,flapB=null;   // the split-flap instances mounted into .sR/.sB by paintBoard()
   var bx=0,by=0,bvx=0,bvy=0,kickCd={},running=false,last=performance.now(),scoreTeam=0,ballShadow,lastShot=0;
@@ -1926,14 +1927,15 @@
    return w?Math.max(0.18,Math.min(1,w/(2*BR))):0.5;}
   var _lastGY=-1;
   function layout(){geo();planetGeo(groundY);
-   // The goals stand ON the curve too, or the pitch line and the goalmouths visibly disagree at the
-   // wings -- which is exactly where the goals are. arcY is measured at each goal's own centre, and
-   // groundY itself is untouched: geo() and its _gyLock still know one flat number for the whole match.
-   var _gl=ARC.y(XL+21),_gr=ARC.y(XR-21);
+   // Goals and companion feet share the one published flat match plane. The
+   // planet may curve visually underneath it, but applying that decorative arc
+   // only to the goals put their bottoms on a different line from every player.
+   var _gl=0,_gr=0;
    // No .toFixed() anywhere here, deliberately: these four lines never formatted their y before, and
    // `v + 0` is the identity on a float, so at SAG=0 they emit the same characters they always did.
-   goalL.style.transform="translate("+XL+"px,"+(groundY-150+_gl)+"px)";
-   goalR.style.transform="translate("+(XR-42)+"px,"+(groundY-150+_gr)+"px)";
+   GH=goalL.offsetHeight||150;
+   goalL.style.transform="translate("+XL+"px,"+(groundY-GH+_gl)+"px)";
+   goalR.style.transform="translate("+(XR-42)+"px,"+(groundY-GH+_gr)+"px)";
    // The goal shadow is 60px under a 42px goal, so it wants to sit 6px outside it on each side --
    // which is exactly what clipped once the pitch went flush to the viewport edge. Clamp it into the
    // arena rather than insetting the whole pitch to accommodate it: at the edge it slides 6px inboard
@@ -1955,7 +1957,13 @@
   /* The goals are positioned once, from start(). geo() reads innerWidth, so after a resize
    XL/XR were stale and the goals sat where the old viewport put them -- and the pitch
    bounds the physics uses went stale with them. Re-run the layout while a match is live. */
-addEventListener("resize",function(){if(S.on){try{layout();}catch(_){}}},{passive:true});
+addEventListener("resize",function(){if(S.on){try{
+ var _oxl=XL,_oxr=XR,_obx=bx,_ospan=_oxr-_oxl;
+ _gyLock=null;
+ layout();
+ if(_ospan>0&&XR>XL){var _bf=(_obx-_oxl)/_ospan;bx=Math.max(XL+BR,Math.min(XR-BR,XL+_bf*(XR-XL)));}
+ requestAnimationFrame(function(){if(!S.on)return;try{_gyLock=null;layout();}catch(_){}});
+}catch(_){}}},{passive:true});
 function teams(){
    // BENCHED heads take no part. The tournament fields only the two teams in the fixture, and a
    // benched head with no side used to fail the "does the pick cover every real head" test below,
@@ -2140,7 +2148,14 @@ function teams(){
      g.save();g.translate(p.x,p.y);g.rotate(t*p.rv);g.scale(1,Math.max(0.2,Math.abs(Math.cos(t*p.rv))));
      g.fillStyle="rgba("+p.c+",1)";g.fillRect(-p.w/2,-p.h/2,p.w,p.h);g.restore();});
     if(t<2.3)requestAnimationFrame(fr);else{cv.remove();window.__hmFx=Math.max(0,(window.__hmFx||1)-1);}})(performance.now());}catch(_){window.__hmFx=Math.max(0,(window.__hmFx||1)-1);}}
-  function start(){if(S.on)return;_gyLock=null;if(window.PlayViewportOwner)window.PlayViewportOwner.enter("soccer");geo();if(!ball)dom();layout();teams();
+  function syncSoccerArena(){
+   if(window.PlayViewportOwner)window.PlayViewportOwner.enter("soccer");
+   document.body.classList.add("hmSoccer");
+   void hero.offsetHeight;
+   try{dispatchEvent(new Event("resize"));}catch(_){}
+   geo();
+  }
+  function start(){if(S.on)return;_gyLock=null;syncSoccerArena();if(!ball)dom();layout();teams();
    /* THE MATCH GETS LONGER AS THE CUP GETS SHORTER. Every fixture was first-to-5 with
       win-by-two, so eight players meant seven matches of identical length and the whole thing
       dragged -- and the final felt exactly like a quarter-final. Early rounds are first to 3
@@ -2163,7 +2178,7 @@ function teams(){
    S.on=true;S.red=0;S.blue=0;S.winner=0;S.touches=[];if(board)board.classList.remove("won");S.seed=(S.seed||0)+1;
    paintBoard();board2();   // repaint the teams BEFORE the score, or board2 writes into rows that are about to be replaced
    ballInTitle(false);ball.style.opacity="1";goalL.style.opacity="1";goalR.style.opacity="1";board.style.opacity="1";if(ballShadow)ballShadow.style.opacity="0.28";if(goalShL){goalShL.style.opacity="1";goalShR.style.opacity="1";}
-   document.body.classList.add("hmSoccer");kickoffCountdown();
+   kickoffCountdown();
    if(!running){running=true;requestAnimationFrame(loop);}}
   window.__hmSoccerStart=start;window.__hmSoccerEnd=finish;
   function netCatch(team){if(S.phase!=="play")return;S.phase="scoring";scoreTeam=team;
@@ -2413,8 +2428,8 @@ function teams(){
      // its ball coords are engine-space, not the viewport space burst() wants.
     }
     if(by<BR+2){by=BR+2;if(Math.abs(bvy)>120){var kc0=Math.min(0.1,Math.abs(bvy)*0.00012);bsyP=1-kc0;bsxP=1/(1-kc0);bsT=0.11;}bvy=Math.abs(bvy)*0.72;}   // ceiling
-    var inG=by>groundY-150;
-    var gt=groundY-150,overL=(bx+BR>XL&&bx-BR<XL+44),overR=(bx+BR>XR-44&&bx-BR<XR);   // the crossbar
+    var inG=by>groundY-GH;
+    var gt=groundY-GH,overL=(bx+BR>XL&&bx-BR<XL+44),overR=(bx+BR>XR-44&&bx-BR<XR);   // the crossbar
     if((overL||overR)&&bvy>0&&by+BR>=gt-2&&by-BR<gt&&by<gt){by=gt-BR-2;bvy=-Math.max(160,Math.abs(bvy)*0.7);S.postSeed=(S.postSeed||0)+1;BUS.emit('woodwork',{x:S.ball.x,y:S.ball.y});   // off the bar -- and the WOODWORK moment is broadcast so the heads can feel it
      bvx+=(overL?1:-1)*(150+Math.random()*70);bvx=Math.max(-2200,Math.min(2200,bvx));
      var kc1=Math.min(0.1,Math.abs(bvy)*0.00015);bsyP=1-kc1;bsxP=1/(1-kc1);bsT=0.11;}
@@ -2441,7 +2456,7 @@ function teams(){
     // than skidding away flat, which is what made play read as a ground tug-of-war   // the pitch is SOLID: a head jumping onto the ball can't drive it under -- it squeezes out (sideways + a small pop up), never through the plane
     if(by<BR+2)by=BR+2;   // and never through the ceiling either
     bvx=Math.max(-2200,Math.min(2200,bvx));bvy=Math.max(-1900,Math.min(1400,bvy));
-    var nearGoal=(by>groundY-150)&&((bx<95&&bvx<-60)||(bx>W-95&&bvx>60));
+    var nearGoal=(by>groundY-GH)&&((bx<95&&bvx<-60)||(bx>W-95&&bvx>60));
     if(nearGoal&&now>(gaspAt||0)){gaspAt=now+1600;
      try{if(typeof busyNow==="function"&&!busyNow()){setHold("rest",650);showFace("rest");if(typeof browFlash==="function")browFlash();}}catch(_){}}
    }

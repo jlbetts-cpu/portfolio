@@ -339,7 +339,7 @@
   closeMenuBar();battleGate();});
  var sg=document.getElementById("soccerGo");
  if(sg)sg.addEventListener("click",function(){
-  var rc=readAll().length;if(rc<1||gameOn())return;
+  var rc=gameCount();if(rc<1||gameOn())return;
   if(rc%2===1&&window.__hmFillerAdd)window.__hmFillerAdd();   // add BEFORE kickoff so the teams count him
   try{if(window.__hmSoccerStart)window.__hmSoccerStart();}catch(_){}closeMenuBar();battleGate();});
  var tg=document.getElementById("tourGo");
