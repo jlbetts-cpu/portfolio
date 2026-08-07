@@ -127,7 +127,10 @@ def main():
     assert "heroNightStars" in home_html and 28 <= home_html.count("--star-x:") <= 36
     assert ".heroNightStars{position:absolute;inset:0" in hero_time_css
     assert ".hero[data-time-state=\"night\"] .heroNightStars{opacity:1}" in hero_time_css
-    assert ".heroNightStars i{animation:none!important}" in hero_time_css
+    assert ".heroNightStars i{opacity:clamp(.34,var(--star-alpha),.72);animation:none!important}" in hero_time_css
+    browser_contract = (ROOT / "tools/shared-surfaces-browser.py").read_text(encoding="utf-8")
+    assert "const iris=document.querySelector('#stage .iris')" in browser_contract, "brittle live-eye lookup"
+    assert "iris ? getComputedStyle(iris).transform : null" in browser_contract, "brittle live-eye lookup"
     assert 'faceImg.addEventListener("click"' in (ROOT / "hero-engine.js").read_text(encoding="utf-8")
     assert 'activeHover="smile"' in (ROOT / "hero-engine.js").read_text(encoding="utf-8")
     assert 'frame.addEventListener("focusin"' in (ROOT / "hero-engine.js").read_text(encoding="utf-8")
@@ -181,6 +184,20 @@ def main():
     strata = parse("strata.html")
     assert {"ctl", "ctl--media-large"} <= classes(first(strata, "demoPlay")[1])
     assert {"ctl", "ctl--media-large"} <= classes(first(strata, "demoMute")[1])
+
+    audited_media = {
+        "bearings.html": (("cmpBoard", "media--full"), ("photoPair", "media--full")),
+        "strata.html": (("videoFrame", "media--full"), ("photoPair", "media--full")),
+        "cluster.html": (("photoPair", "media--full"),),
+        "ucdavis.html": (("photoPair", "media--full"),),
+    }
+    for name, regions in audited_media.items():
+        parser = parse(name)
+        for region, expected_role in regions:
+            _, attrs = first(parser, region)
+            roles = classes(attrs) & {"media--full", "media--mockup"}
+            assert roles == {expected_role}, f"incomplete media roles: {name} .{region} has {sorted(roles)}"
+            assert "media" in classes(attrs), f"incomplete media primitive: {name} .{region}"
 
     print("Shared surface static contract: OK")
 

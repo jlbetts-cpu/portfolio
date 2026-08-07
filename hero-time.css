@@ -351,7 +351,7 @@
 @media(prefers-reduced-motion:reduce){
  .hero,.heroTimeSpill,.heroTimeClip,.heroTimeGradient,.heroTimePortraitCast,.heroCopy h1,
  .hero[data-time-state] .floorshadow{transition:none!important;animation:none!important}
- .heroNightStars i{animation:none!important}
+ .heroNightStars i{opacity:clamp(.34,var(--star-alpha),.72);animation:none!important}
 }
 
 @media(forced-colors:active){

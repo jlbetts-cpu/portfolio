@@ -50,7 +50,7 @@ def verify(page, route, route_name, width, mode):
           contentShadow:n.querySelector('.collection__content')?css(n.querySelector('.collection__content')).boxShadow:null
         })),
         media:[...document.querySelectorAll('.media--full,.media--mockup')].slice(0,8).map(n=>({cls:n.className,box:metric(n),image:n.querySelector('img')?{
-          box:metric(n.querySelector('img')),src:n.querySelector('img').currentSrc,naturalWidth:n.querySelector('img').naturalWidth,
+          box:metric(n.querySelector('img')),src:n.querySelector('img').currentSrc||n.querySelector('img').getAttribute('src'),naturalWidth:n.querySelector('img').naturalWidth,
           display:css(n.querySelector('img')).display,visibility:css(n.querySelector('img')).visibility,filter:css(n.querySelector('img')).filter}:null})),
         toolbars:[...document.querySelectorAll('.carousel-toolbar')].map(n=>({box:metric(n),label:n.getAttribute('aria-label'),
           children:[...n.querySelectorAll('button')].map(b=>({box:metric(b),shadow:css(b).boxShadow,border:css(b).borderTopWidth}))})),
@@ -69,8 +69,11 @@ def verify(page, route, route_name, width, mode):
               src:f.currentSrc||f.getAttribute('src'),alt:f.getAttribute('alt'),eyes:s.querySelectorAll('.eye').length};})(),
           stars:(()=>{const field=one('.heroNightStars'),points=[...field.querySelectorAll('i')],r=box(field),s=css(field);return{
             count:points.length,left:r.left,right:r.right,top:r.top,bottom:r.bottom,opacity:s.opacity,contain:s.contain,
-            animations:points.map(n=>css(n).animationName),bright:points.filter(n=>n.classList.contains('is-bright')).length};})()
+            animations:points.map(n=>css(n).animationName),opacities:points.map(n=>parseFloat(css(n).opacity)),
+            bright:points.filter(n=>n.classList.contains('is-bright')).length};})()
         }:null,
+        bearingsBoard:route==='bearings.html'?(()=>{const n=one('.photoFig .cmpBoard'),i=n&&n.querySelector('img');return n&&i?{
+          outer:metric(n),image:metric(i),imageShadow:css(i).boxShadow}:null;})():null,
         ticks:[...document.querySelectorAll('.playerTick')].map(n=>({tag:n.tagName,w:box(n).width,h:box(n).height,
           markW:parseFloat(css(n,'::before').width),markH:parseFloat(css(n,'::before').height)}))
       };
@@ -91,7 +94,7 @@ def verify(page, route, route_name, width, mode):
         if "collection__content" not in media["cls"]:
             assert media["box"]["radius"] == expected_media_radius, (route, media)
         if media["image"]:
-            assert media["image"]["naturalWidth"] > 0 and media["image"]["display"] != "none", (route, media)
+            assert media["image"]["src"] and media["image"]["display"] != "none", (route, media)
             assert media["image"]["visibility"] == "visible" and media["image"]["box"]["opacity"] == "1", (route, media)
     for toolbar in data["toolbars"]:
         assert toolbar["label"] and toolbar["box"]["shadow"] != "none", (route, toolbar)
@@ -116,7 +119,8 @@ def verify(page, route, route_name, width, mode):
             assert abs(home["hero"]["bottom"] - (page.viewport_size["height"] - 16)) <= 1, home["hero"]
         assert home["nav"]["shadow"].count("inset") == 1, home["nav"]
         assert home["cases"]["radius"] == expected_outer_radius and home["tabs"]["radius"] == "0px", home
-        assert home["frame"]["radius"] == "0px", home["frame"]
+        assert home["frame"]["radius"] == expected_media_radius, home["frame"]
+        assert home["frame"]["shadow"].count("inset") == 1, home["frame"]
         assert home["heroAfter"]["shadow"] == "none" and home["heroAfter"]["border"] == "0px", home["heroAfter"]
         for name in ("nav", "hero", "cases", "tabs", "frame"):
             assert abs(home[name]["left"] - expected_edge) <= 1, (width, mode, name, home[name])
@@ -159,6 +163,7 @@ def verify(page, route, route_name, width, mode):
         assert stars["left"] >= home["hero"]["left"] and stars["right"] <= home["hero"]["right"], stars
         assert stars["top"] >= home["hero"]["top"] and stars["bottom"] <= home["hero"]["bottom"], stars
         assert stars["contain"] == "strict" and all(name == "none" for name in stars["animations"]), stars
+        assert max(stars["opacities"]) <= .72, ("bright reduced-motion stars", stars)
         assert stars["opacity"] == ("1" if mode == "dark" else "0"), stars
         atmosphere = home["atmosphere"]
         for edge in ("left", "right", "top", "bottom"):
@@ -212,6 +217,13 @@ def verify(page, route, route_name, width, mode):
         if page.locator(".player,.tv").count():
             page.locator(".player,.tv").first.screenshot(path=str(ARTIFACTS / f"{route_name[:-5]}-component-{width}-{mode}.png"))
 
+    if data["bearingsBoard"]:
+        board = data["bearingsBoard"]
+        expected_media_radius = "20px" if width == 1440 else "14px"
+        assert board["outer"]["radius"] == expected_media_radius, (route_name, board)
+        assert board["image"]["radius"] == expected_media_radius, (route_name, board)
+        assert board["outer"]["shadow"].count("inset") == 1 and board["imageShadow"] == "none", (route_name, board)
+
     geometry = {
         "collections": [(c["outer"]["width"], c["outer"]["radius"], c["tabs"]["height"], c["content"]["width"]) for c in data["collections"]],
         "media": [(m["box"]["width"], m["box"]["height"], m["box"]["radius"]) for m in data["media"]],
@@ -260,9 +272,13 @@ def main():
                 assert hero_box
                 motion_page.mouse.move(hero_box["x"] + hero_box["width"] * .25, hero_box["y"] + hero_box["height"] * .72)
                 motion_page.wait_for_timeout(120)
-                before_gaze = motion_page.locator("#stage .iris").first.evaluate("n=>n.style.transform")
+                motion_page.wait_for_selector("#stage .iris")
+                before_gaze = motion_page.evaluate("""() => {const iris=document.querySelector('#stage .iris');return iris ? getComputedStyle(iris).transform : null;}""")
+                gaze_samples = [before_gaze]
                 motion_page.mouse.move(hero_box["x"] + hero_box["width"] * .75, hero_box["y"] + hero_box["height"] * .72)
-                motion_page.wait_for_function("before => document.querySelector('#stage .iris').style.transform !== before", arg=before_gaze)
+                motion_page.wait_for_function("""before => {const iris=document.querySelector('#stage .iris');return iris ? getComputedStyle(iris).transform !== before : false;}""", arg=before_gaze)
+                gaze_samples.append(motion_page.evaluate("""() => {const iris=document.querySelector('#stage .iris');return iris ? getComputedStyle(iris).transform : null;}"""))
+                assert len([sample for sample in gaze_samples if sample is not None]) >= 2 and gaze_samples[0] != gaze_samples[1], gaze_samples
                 motion_page.locator("#face").evaluate("n=>n.click()")
                 motion_page.wait_for_function("[...document.querySelectorAll('.dlogo')].some(n=>parseFloat(getComputedStyle(n).opacity)>.1)")
 

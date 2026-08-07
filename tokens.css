@@ -519,6 +519,9 @@
  --surface-gap:var(--sp-16-24);
  --section-join-gap:var(--sp-16);
  --work-item-gap:var(--sp-64);
+ --work-meta-gap:var(--sp-16);
+ --work-title-size:var(--fs-lead);
+ --work-year-size:var(--fs-small);
  --media-mockup-inset:var(--sp-32);
  --hero-peek-width:520px;
  --hero-peek-depth:calc(190px + var(--sp-16));
@@ -580,6 +583,7 @@
  --surface-hero-pad:var(--sp-12);
  --hero-mobile-height:clamp(600px,calc(100svh - 160px),680px);
  --work-item-gap:var(--sp-40);
+ --work-meta-gap:var(--sp-12);
  --media-mockup-inset:var(--sp-16);
  --hero-peek-width:clamp(312px,calc(100vw - var(--sp-8)),520px);
  --hero-peek-depth:clamp(110px,calc(42vw - var(--sp-24)),140px);--hero-peek-offset:var(--sp-4);
