@@ -1,7 +1,7 @@
 # Hero Head Transform Design
 
 **Date:** 2026-08-07  
-**Status:** Design approved; implementation plan ready
+**Status:** Implemented and verified
 **Scope:** Home Hero animated portrait only
 
 ## Intent
@@ -140,3 +140,36 @@ The work collection is one calm system rather than a tab bar, a square image, an
 - Persisting or sharing a customized layout.
 - Applying transform handles to case-study images or Play characters.
 - Rewriting the portrait animation engine.
+
+## Verification
+
+Implementation was closed in four reviewed stages:
+
+- Task 2 selection/move: `e6d4295`, with interaction corrections in `13f9784`.
+- Task 3 proportional resize, keyboard input, and animation synchronization: `986566d`, with scoped quality corrections in `67d695f`.
+- Task 4 responsive regression closure: this verification commit; its immutable hash is recorded in the Task 4 report immediately after commit.
+
+Task 4 covers 1440×900, 1280×720, 1280×650, 761×844, 760×844, 390×844, and 320×800. The 760px boundary keeps exact mobile height, line, control, overflow, seam, and transform-safety checks while the portrait ratio/crop/copy-gap composition remains scoped to the authored 390px and 320px phone layouts; enforcing those three phone proportions simultaneously at 760px is geometrically contradictory.
+
+Verified commands:
+
+```bash
+python3 -m py_compile \
+  tools/hero-entrance-rhythm-contract.py \
+  tools/hero-head-transform-contract.py \
+  tools/shared-surfaces-contract.py \
+  tools/shared-surfaces-browser.py \
+  tools/hero-popcorn-browser.py
+node --check hero-head-transform.js
+node --check hero-engine.js
+python3 tools/hero-entrance-rhythm-contract.py
+python3 tools/hero-head-transform-contract.py
+python3 tools/shared-controls-contract.py
+python3 tools/shared-controls-browser.py
+python3 tools/shared-surfaces-contract.py
+python3 tools/shared-surfaces-browser.py
+python3 tools/hero-popcorn-browser.py
+python3 tools/hero-specimen-check.py
+python3 tools/token-audit.py
+git diff --check
+```

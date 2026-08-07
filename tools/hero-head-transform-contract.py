@@ -7,6 +7,14 @@ from playwright.sync_api import sync_playwright
 
 ROOT = Path(__file__).resolve().parents[1]
 SHOTS = Path("/tmp/hero-head-task3")
+TASK4_SHOTS = Path("/tmp/hero-head-task4")
+TRANSFORM_VIEWPORTS = (
+    (1440, 900), (1280, 650), (761, 844),
+    (760, 844), (390, 844), (320, 800),
+)
+TRANSFORM_THEMES = ("off", "night")
+TOUCH_VIEWPORTS = ((390, 844), (320, 800))
+ACCESSIBILITY_VIEWPORTS = ((1280, 650), (390, 844))
 
 
 class Quiet(SimpleHTTPRequestHandler):
@@ -111,6 +119,95 @@ def record(failures, condition, label, detail=None):
         failures.append(f"{label}: {detail!r}")
 
 
+def storage_snapshot(page):
+    return page.evaluate(
+        "() => Object.fromEntries(Object.keys(localStorage).sort().map(k => [k, localStorage.getItem(k)]))"
+    )
+
+
+def set_theme(page, theme):
+    page.evaluate("state => window.SiteTheme.setMode(state,{persist:false})", theme)
+    page.wait_for_function(
+        "state => document.querySelector('#main').dataset.timeState === state", arg=theme
+    )
+
+
+def selected_chrome(page):
+    return page.evaluate("""() => ({
+      state: window.__heroHeadTransform.getState(),
+      pressed: document.querySelector('#face').getAttribute('aria-pressed'),
+      hidden: document.querySelector('#heroHeadSelection').hidden,
+      tabs: [...document.querySelectorAll('.heroHeadHandle')].map(n => n.tabIndex)
+    })""")
+
+
+def assert_authored_reset(page):
+    actual = selected_chrome(page)
+    assert actual == {
+        "state": {"selected": False, "x": 0, "y": 0, "scale": 1},
+        "pressed": "false",
+        "hidden": True,
+        "tabs": [-1, -1, -1, -1],
+    }, actual
+
+
+def touch_drag(context, page, start, end):
+    client = context.new_cdp_session(page)
+    client.send("Input.dispatchTouchEvent", {
+        "type": "touchStart",
+        "touchPoints": [{"x": start["x"], "y": start["y"], "id": 1}],
+    })
+    for step in range(1, 6):
+        progress = step / 5
+        client.send("Input.dispatchTouchEvent", {
+            "type": "touchMove",
+            "touchPoints": [{
+                "x": start["x"] + (end["x"] - start["x"]) * progress,
+                "y": start["y"] + (end["y"] - start["y"]) * progress,
+                "id": 1,
+            }],
+        })
+    client.send("Input.dispatchTouchEvent", {"type": "touchEnd", "touchPoints": []})
+
+
+def rect_snapshot(page):
+    return page.evaluate("""() => {
+      const rect=n=>{const r=n.getBoundingClientRect();return {
+        left:r.left,top:r.top,right:r.right,bottom:r.bottom,width:r.width,height:r.height};};
+      return {hero:rect(document.querySelector('#main')),
+        copy:rect(document.querySelector('.heroCopy')),
+        logical:(()=>{const f=document.querySelector('#face'),r=f.getBoundingClientRect();
+          const b=f.dataset.headBounds.split(/\s+/).map(Number);return {
+            left:r.left+r.width*b[0],top:r.top+r.height*b[1],
+            right:r.left+r.width*b[2],bottom:r.top+r.height*b[3],
+            width:r.width*(b[2]-b[0]),height:r.height*(b[3]-b[1])};})(),
+        selection:document.querySelector('#heroHeadSelection').hidden?null:
+          rect(document.querySelector('#heroHeadSelection'))};
+    }""")
+
+
+def select_move_resize(page):
+    face = page.locator("#face")
+    box = face.bounding_box()
+    page.mouse.click(box["x"] + box["width"] * .5, box["y"] + box["height"] * .3)
+    page.wait_for_function("!document.querySelector('#heroHeadSelection').hidden")
+    frame = page.locator("#heroHeadSelection").bounding_box()
+    page.mouse.move(frame["x"] + frame["width"] / 2, frame["y"] + frame["height"] / 2)
+    page.mouse.down()
+    page.mouse.move(frame["x"] + frame["width"] / 2 + 24,
+                    frame["y"] + frame["height"] / 2 - 12, steps=4)
+    page.mouse.up()
+    handle = page.locator('.heroHeadHandle[data-corner="se"]').bounding_box()
+    page.mouse.move(handle["x"] + handle["width"] / 2,
+                    handle["y"] + handle["height"] / 2)
+    page.mouse.down()
+    page.mouse.move(handle["x"] + handle["width"] / 2 + 20,
+                    handle["y"] + handle["height"] / 2 + 20, steps=4)
+    page.mouse.up()
+    page.wait_for_timeout(40)
+    return page.evaluate("window.__heroHeadTransform.getState()")
+
+
 def static_contract():
     html = (ROOT / "index.html").read_text(encoding="utf-8")
     css = (ROOT / "controls.css").read_text(encoding="utf-8")
@@ -149,6 +246,9 @@ def static_contract():
         assert operation in transform, operation
     assert 'getPropertyValue("--hero-head-safe-gap")' in transform
     assert "c.bottom+16" not in transform
+    assert "@media(forced-colors:active)" in css
+    forced = css.split("@media(forced-colors:active)", 1)[1]
+    assert "Highlight" in forced and "forced-color-adjust:auto" in forced
 
 
 def browser_contract(base_url):
@@ -851,8 +951,264 @@ def browser_contract(base_url):
         assert not failures, "\n" + "\n".join(failures)
 
 
+def task4_matrix(base_url):
+    """Cross-state closure: breakpoints, persistence, touch, a11y, and performances."""
+    with sync_playwright() as p:
+        browser = p.chromium.launch()
+        defaults = {}
+        for width, height in TRANSFORM_VIEWPORTS:
+            for theme in TRANSFORM_THEMES:
+                label = (width, height, theme)
+                context = browser.new_context(
+                    viewport={"width": width, "height": height}, reduced_motion="reduce"
+                )
+                context.add_init_script("try{sessionStorage.setItem('introSeen','1')}catch(e){}")
+                page = context.new_page()
+                errors = []
+                page.on("pageerror", lambda error: errors.append(str(error)))
+                page.on("console", lambda message: errors.append(message.text)
+                        if message.type == "error" else None)
+                page.goto(base_url + "/index.html?head-transform-task4=1", wait_until="load")
+                page.wait_for_function("window.__heroHeadTransform && window.SiteTheme")
+                set_theme(page, theme)
+                page.wait_for_timeout(80)
+                authored = rect_snapshot(page)
+                authored_logical = authored["logical"]
+                if theme == "off":
+                    defaults[(width, height)] = authored
+                else:
+                    expected = defaults[(width, height)]
+                    for group in ("hero", "copy", "logical"):
+                        for edge in ("left", "top", "right", "bottom", "width", "height"):
+                            assert abs(authored[group][edge] - expected[group][edge]) <= 1, (
+                                label, group, edge, authored[group], expected[group]
+                            )
+
+                before_storage = storage_snapshot(page)
+                before_url = page.url
+                changed = select_move_resize(page)
+                assert changed["selected"] and (changed["x"] or changed["y"]), (label, changed)
+                assert changed["scale"] != 1, (label, changed)
+                transformed = rect_snapshot(page)
+                hero = transformed["hero"]
+                selection = transformed["selection"]
+                assert selection["left"] >= hero["left"] - .5, (label, transformed)
+                assert selection["right"] <= hero["right"] + .5, (label, transformed)
+                assert selection["bottom"] <= hero["bottom"] + .5, (label, transformed)
+                assert document_width(page) <= width + 1, (label, document_width(page), width)
+                assert storage_snapshot(page) == before_storage, label
+                assert page.url == before_url, label
+
+                motion = page.evaluate("""() => {
+                  const read=selector=>{const s=getComputedStyle(document.querySelector(selector));
+                    return {transitionDuration:s.transitionDuration,animationName:s.animationName};};
+                  return {matches:matchMedia('(prefers-reduced-motion:reduce)').matches,
+                    transform:read('#heroHeadTransform'),selection:read('#heroHeadSelection'),
+                    handle:read('.heroHeadHandle')};
+                }""")
+                assert motion["matches"], (label, motion)
+                for key in ("transform", "selection", "handle"):
+                    assert set(motion[key]["transitionDuration"].split(", ")) <= {"0s"}, (label, motion)
+                    assert motion[key]["animationName"] == "none", (label, motion)
+
+                if theme == "off" or (width, height) in ((1280, 650), (390, 844)):
+                    page.screenshot(path=str(TASK4_SHOTS / f"home-{width}-{height}-{theme}-resized.png"))
+                page.reload(wait_until="load")
+                page.wait_for_function("window.__heroHeadTransform && window.__heroHeadTransform.getState")
+                assert_authored_reset(page)
+                assert storage_snapshot(page) == before_storage, label
+                assert page.url == before_url, label
+                reset_logical = logical_head_rect(page)
+                normalized = {"x": authored_logical["left"], "y": authored_logical["top"],
+                              "width": authored_logical["width"], "height": authored_logical["height"]}
+                assert all(abs(reset_logical[k] - normalized[k]) <= 1 for k in normalized), (
+                    label, normalized, reset_logical
+                )
+                assert not errors, (label, errors)
+                context.close()
+
+        for width, height in TOUCH_VIEWPORTS:
+            label = (width, height, "touch")
+            context = browser.new_context(
+                viewport={"width": width, "height": height}, has_touch=True,
+                is_mobile=True, reduced_motion="reduce"
+            )
+            context.add_init_script("try{sessionStorage.setItem('introSeen','1')}catch(e){}")
+            page = context.new_page()
+            page.goto(base_url + "/index.html?head-transform-touch=1", wait_until="load")
+            page.wait_for_function("window.__heroHeadTransform && window.SiteTheme")
+            set_theme(page, "off")
+            time_button = page.locator("#heroTimeBtn").bounding_box()
+            page.touchscreen.tap(time_button["x"] + time_button["width"] / 2,
+                                 time_button["y"] + time_button["height"] / 2)
+            assert page.locator("#heroTimeBtn").get_attribute("aria-expanded") == "true", label
+            page.keyboard.press("Escape")
+            before = page.evaluate("""() => ({scrollY,time:document.querySelector('#main').dataset.timeMode,
+              expanded:document.querySelector('#heroTimeBtn').getAttribute('aria-expanded'),
+              tab:document.querySelector('.csTab[aria-selected="true"]').dataset.tab})""")
+            face = page.locator("#face").bounding_box()
+            start = {"x": face["x"] + face["width"] * .5, "y": face["y"] + face["height"] * .3}
+            end = {"x": time_button["x"] + time_button["width"] / 2,
+                   "y": time_button["y"] + time_button["height"] / 2}
+            touch_drag(context, page, start, end)
+            page.wait_for_timeout(60)
+            after = page.evaluate("""() => ({state:window.__heroHeadTransform.getState(),scrollY,
+              time:document.querySelector('#main').dataset.timeMode,
+              expanded:document.querySelector('#heroTimeBtn').getAttribute('aria-expanded'),
+              tab:document.querySelector('.csTab[aria-selected="true"]').dataset.tab})""")
+            assert after["state"]["selected"] and (after["state"]["x"] or after["state"]["y"]), (label, after)
+            assert abs(after["scrollY"] - before["scrollY"]) <= 1, (label, before, after)
+            assert (after["time"], after["expanded"], after["tab"]) == (
+                before["time"], before["expanded"], before["tab"]), (label, before, after)
+            frame = page.locator("#heroHeadSelection").bounding_box()
+            hero = page.locator("#main").bounding_box()
+            touch_drag(context, page,
+                       {"x": frame["x"] + frame["width"] / 2,
+                        "y": frame["y"] + frame["height"] / 2},
+                       {"x": width / 2, "y": hero["y"] + hero["height"] + 30})
+            page.wait_for_timeout(60)
+            frame = page.locator("#heroHeadSelection").bounding_box()
+            assert frame["y"] + frame["height"] <= hero["y"] + hero["height"] + .5, (label, frame, hero)
+            hit = page.evaluate("""y => {const n=document.elementFromPoint(innerWidth/2,y);
+              return n && (n.id === 'heroHeadSelection' || n.classList.contains('heroHeadHandle'));}""",
+                                min(height - 1, hero["y"] + hero["height"] + 2))
+            assert not hit, label
+            page.touchscreen.tap(time_button["x"] + time_button["width"] / 2,
+                                 time_button["y"] + time_button["height"] / 2)
+            assert not page.evaluate("window.__heroHeadTransform.getState().selected"), label
+            assert page.locator("#heroTimeBtn").get_attribute("aria-expanded") == "true", label
+            page.keyboard.press("Escape")
+            page.locator("#cases").scroll_into_view_if_needed()
+            tab = page.locator('.csTab[data-tab="goodness"]')
+            tab_box = tab.bounding_box()
+            page.touchscreen.tap(tab_box["x"] + tab_box["width"] / 2,
+                                 tab_box["y"] + tab_box["height"] / 2)
+            assert tab.get_attribute("aria-selected") == "true", label
+            context.close()
+
+        for width, height in ACCESSIBILITY_VIEWPORTS:
+            label = (width, height, "forced-colors")
+            context = browser.new_context(
+                viewport={"width": width, "height": height},
+                forced_colors="active", reduced_motion="reduce"
+            )
+            context.add_init_script("try{sessionStorage.setItem('introSeen','1')}catch(e){}")
+            page = context.new_page()
+            page.goto(base_url + "/index.html?head-transform-forced=1", wait_until="load")
+            page.locator("#face").focus()
+            page.keyboard.press("Enter")
+            page.locator('.heroHeadHandle[data-corner="se"]').focus()
+            forced = page.evaluate("""() => {
+              const frame=getComputedStyle(document.querySelector('#heroHeadSelection'),'::before');
+              const handle=getComputedStyle(document.querySelector('.heroHeadHandle:focus'),'::before');
+              return {matches:matchMedia('(forced-colors:active)').matches,
+                frameOutline:frame.outlineStyle,frameAdjust:frame.forcedColorAdjust,
+                handleOutline:handle.outlineStyle,handleAdjust:handle.forcedColorAdjust,
+                active:document.activeElement && document.activeElement.dataset.corner,
+                boxes:[...document.querySelectorAll('.heroHeadHandle')].map(n=>{const r=n.getBoundingClientRect();return[r.width,r.height];})};
+            }""")
+            assert forced["matches"] and forced["active"], (label, forced)
+            assert forced["frameOutline"] != "none" and forced["handleOutline"] != "none", (label, forced)
+            assert forced["frameAdjust"] == "auto" and forced["handleAdjust"] == "auto", (label, forced)
+            assert all(w >= 44 and h >= 44 for w, h in forced["boxes"]), (label, forced)
+            context.close()
+
+        for width, height in ((1440, 900), (1280, 650), (390, 844), (320, 800)):
+            label = (width, height, "performances")
+            context = browser.new_context(
+                viewport={"width": width, "height": height}, reduced_motion="no-preference"
+            )
+            context.add_init_script("try{sessionStorage.setItem('introSeen','1')}catch(e){}")
+            page = context.new_page()
+            errors = []
+            page.on("pageerror", lambda error: errors.append(str(error)))
+            page.on("console", lambda message: errors.append(message.text)
+                    if message.type == "error" else None)
+            page.goto(base_url + "/index.html?head-transform-performances=1", wait_until="load")
+            page.wait_for_function("typeof introMode !== 'undefined' && !introMode && !eventLock", timeout=15_000)
+            transformed = select_move_resize(page)
+            hero = page.locator("#main").bounding_box()
+            page.mouse.move(hero["x"] + hero["width"] * .25, hero["y"] + hero["height"] * .72)
+            page.wait_for_selector("#stage .iris")
+            gaze_a = iris_transform(page)
+            page.mouse.move(hero["x"] + hero["width"] * .75, hero["y"] + hero["height"] * .72)
+            page.wait_for_function("""before => {const iris=document.querySelector('#stage .iris');
+              return iris ? getComputedStyle(iris).transform !== before : false;}""", arg=gaze_a)
+            gaze_b = iris_transform(page)
+            assert gaze_a and gaze_b and gaze_a != gaze_b, (label, gaze_a, gaze_b)
+            page.evaluate("requestBlink('neutral', false, false)")
+            page.wait_for_function("/_closed\.webp$/.test(document.querySelector('#face').getAttribute('src'))")
+            page.wait_for_function("document.querySelectorAll('#stage .iris').length >= 2")
+            page.locator(".csPanel.on .csGo").first.evaluate("n=>n.focus({preventScroll:true})")
+            page.wait_for_function("/smile\.webp$/.test(document.querySelector('#face').getAttribute('src'))")
+            page.locator(".csPanel.on .csGo").first.evaluate("n=>n.blur()")
+            page.locator('.csTab[data-tab="goodness"]').evaluate("n=>n.click()")
+            page.locator("#reelFrame").evaluate("n=>n.focus({preventScroll:true})")
+            page.wait_for_function("""document.querySelector('.heroCharacterPeek').classList.contains('is-movie') &&
+              document.querySelector('#glasses').classList.contains('on') && document.querySelector('.popbucket') &&
+              document.querySelector('.heroCharacterPeek').hasAttribute('data-movie-tick')""")
+            page.wait_for_function("parseFloat(getComputedStyle(document.querySelector('.popbucket')).opacity)>0")
+            page.wait_for_function("""() => {const b=document.querySelector('.popbucket').getBoundingClientRect(),
+              h=document.querySelector('#main').getBoundingClientRect();return b.top<h.bottom && b.bottom>h.top &&
+              parseFloat(getComputedStyle(document.querySelector('.popbucket')).opacity)>.5 &&
+              parseFloat(getComputedStyle(document.querySelector('#glasses')).opacity)>.5 &&
+              document.querySelector('#glasses').getAnimations().every(a=>a.playState==='finished');}""")
+            projection = movie_projection(page)
+            assert projection["state"] == transformed, (label, transformed, projection)
+            assert projection["glasses"] and projection["props"] >= 1, (label, projection)
+            assert projection["clipOverflow"] == "clip", (label, projection)
+            assert all(abs(projection["stage"][edge] - projection["effects"][edge]) <= 1
+                       for edge in ("left", "top", "right", "bottom")), (label, projection)
+            assert all(abs(projection["hero"][edge] - projection["clip"][edge]) <= .5
+                       for edge in ("left", "top", "right", "bottom")), (label, projection)
+            assert all(abs(projection["visible"][edge] - projection["selection"][edge]) <= 1
+                       for edge in ("left", "top", "right", "bottom")), (label, projection)
+            page.screenshot(path=str(TASK4_SHOTS / f"home-{width}-{height}-movie.png"))
+            page.locator("#reelFrame").evaluate("n=>n.blur()")
+            page.wait_for_function("!document.querySelector('.heroCharacterPeek').classList.contains('is-movie')")
+            page.wait_for_function("document.querySelectorAll('#stage .iris').length >= 2")
+            assert page.evaluate("window.__heroHeadTransform.getState()") == transformed, label
+            assert not errors, (label, errors)
+            context.close()
+        browser.close()
+
+
+def document_width(page):
+    return page.evaluate("document.documentElement.scrollWidth")
+
+
+def iris_transform(page):
+    return page.evaluate("""() => {const iris=document.querySelector('#stage .iris');
+      return iris ? getComputedStyle(iris).transform : null;}""")
+
+
+def movie_projection(page):
+    return page.evaluate("""() => {
+      const rect=node=>{const r=node.getBoundingClientRect();return {
+        left:r.left,top:r.top,right:r.right,bottom:r.bottom,width:r.width,height:r.height};};
+      const face=document.querySelector('#face');
+      const bounds=face.dataset.headBounds.split(/\s+/).map(Number);
+      const f=rect(face),h=rect(document.querySelector('#main'));
+      const logical={left:f.left+f.width*bounds[0],top:f.top+f.height*bounds[1],
+        right:f.left+f.width*bounds[2],bottom:f.top+f.height*bounds[3]};
+      const visible={left:Math.max(logical.left,h.left),top:Math.max(logical.top,h.top),
+        right:Math.min(logical.right,h.right),bottom:Math.min(logical.bottom,h.bottom)};
+      return {state:window.__heroHeadTransform.getState(),visible,
+        selection:rect(document.querySelector('#heroHeadSelection')),
+        stage:rect(document.querySelector('#stage')),
+        effects:rect(document.querySelector('#heroMovieEffectsStage')),hero:h,
+        clip:rect(document.querySelector('#heroMovieEffectsClip')),
+        clipOverflow:getComputedStyle(document.querySelector('#heroMovieEffectsClip')).overflow,
+        glasses:document.querySelector('#glasses').classList.contains('on'),
+        props:[...document.querySelectorAll('.popbucket,.kernel,.popcrumb')]
+          .filter(n=>{const r=n.getBoundingClientRect();return parseFloat(getComputedStyle(n).opacity)>0 &&
+            r.right>h.left && r.left<h.right && r.bottom>h.top && r.top<h.bottom;}).length};
+    }""")
+
+
 def main():
     SHOTS.mkdir(parents=True, exist_ok=True)
+    TASK4_SHOTS.mkdir(parents=True, exist_ok=True)
     static_contract()
     server = ThreadingHTTPServer(
         ("127.0.0.1", 0), partial(Quiet, directory=str(ROOT))
@@ -860,6 +1216,7 @@ def main():
     Thread(target=server.serve_forever, daemon=True).start()
     try:
         browser_contract(f"http://127.0.0.1:{server.server_port}")
+        task4_matrix(f"http://127.0.0.1:{server.server_port}")
     finally:
         server.shutdown()
         server.server_close()

@@ -7,8 +7,10 @@
   if(!hero||!wrap||!face||!selection)return null;
   var handles=[].slice.call(selection.querySelectorAll(".heroHeadHandle"));
   var state={selected:false,x:0,y:0,scale:1,pointerId:null,operation:null,start:null,
-   capture:null,frame:0,pendingAnchor:null,rendered:{x:0,y:0,scale:1}};
+   capture:null,frame:0,peekFrame:0,peekAnimating:false,pendingAnchor:null,
+   rendered:{x:0,y:0,scale:1}};
   var content=hero.querySelector(".heroCopy");
+  var peek=hero.querySelector(".heroCharacterPeek");
   var bounds=(face.getAttribute("data-head-bounds")||"0.22 0.12 0.80 0.91").split(/\s+/).map(Number);
 
   function logicalRect(){
@@ -55,6 +57,21 @@
   }
   function render(){
    if(!state.frame)state.frame=requestAnimationFrame(flushRender);
+  }
+  function followPeekTransition(){
+   if(!state.peekAnimating){state.peekFrame=0;return;}
+   dispatchEvent(new CustomEvent("heroheadtransform",{detail:getState()}));
+   syncSelection();
+   state.peekFrame=requestAnimationFrame(followPeekTransition);
+  }
+  function beginPeekTransition(){
+   state.peekAnimating=true;
+   if(!state.peekFrame)state.peekFrame=requestAnimationFrame(followPeekTransition);
+  }
+  function endPeekTransition(){
+   state.peekAnimating=false;
+   if(state.peekFrame)cancelAnimationFrame(state.peekFrame);
+   state.peekFrame=0;render();
   }
   function clampMove(x,y){
    var current=objectRect(),safe=safeRect();
@@ -196,14 +213,15 @@
    if(state.selected&&!selection.contains(e.target)&&e.target!==face)deselect();
   },true);
   document.addEventListener("keydown",onKeydown);
+  addEventListener("heroheadstagechange",syncSelection);
   document.addEventListener("visibilitychange",function(){if(document.hidden)end();});
   addEventListener("blur",end);
   addEventListener("resize",reclamp);
   new ResizeObserver(reclamp).observe(hero);
   new ResizeObserver(reclamp).observe(content);
-  new MutationObserver(reclamp).observe(
-   hero.querySelector(".heroCharacterPeek"),{attributes:true,attributeFilter:["class"]}
-  );
+  peek.addEventListener("transitionrun",beginPeekTransition);
+  peek.addEventListener("transitioncancel",endPeekTransition);
+  peek.addEventListener("transitionend",endPeekTransition);
   return {select:select,deselect:deselect,reset:reset,reclamp:reclamp,getState:getState};
  }
  window.HeroHeadTransform={init:init};

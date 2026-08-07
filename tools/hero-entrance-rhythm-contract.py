@@ -13,6 +13,21 @@ PORTRAIT = Image.open(ROOT / "images/neutral.webp").convert("RGBA")
 PORTRAIT_ALPHA_BOUNDS = PORTRAIT.getchannel("A").getbbox()
 PORTRAIT_ART_WIDTH_RATIO = (PORTRAIT_ALPHA_BOUNDS[2] - PORTRAIT_ALPHA_BOUNDS[0]) / PORTRAIT.width
 PORTRAIT_ART_TOP_RATIO = PORTRAIT_ALPHA_BOUNDS[1] / PORTRAIT.height
+RHYTHM_VIEWPORTS = (
+    (1440, 900),
+    (1280, 720),
+    (1280, 650),
+    (761, 844),
+    (760, 844),
+    (390, 844),
+    (320, 800),
+)
+
+
+def expected_hero_height(width, height):
+    if width > 760:
+        return height - 88
+    return min(680, max(600, height - 160))
 
 class Quiet(SimpleHTTPRequestHandler):
     def log_message(self, _format, *_args):
@@ -38,7 +53,7 @@ def static_contract():
 def browser_contract(base_url):
     with sync_playwright() as p:
         browser = p.chromium.launch()
-        for width, height in ((1280, 720), (1440, 900), (390, 844), (320, 800)):
+        for width, height in RHYTHM_VIEWPORTS:
             page = browser.new_page(viewport={"width": width, "height": height}, reduced_motion="reduce")
             page.goto(base_url + "/index.html?rhythm=1", wait_until="load")
             page.wait_for_selector(".csFrame")
@@ -76,23 +91,24 @@ def browser_contract(base_url):
             assert 15.5 <= state["cases"]["top"] - state["hero"]["bottom"] <= 16.5, state
             expected_gap = 40 if width <= 760 else 64
             assert expected_gap - .5 <= state["itemGap"] <= expected_gap + .5, state
-            if width > 760:
-                assert height - 88.5 <= state["hero"]["height"] <= height - 87.5, state
-            else:
-                target = 680 if width == 390 else 640
-                assert target - .5 <= state["hero"]["height"] <= target + .5, state
+            target = expected_hero_height(width, height)
+            assert target - .5 <= state["hero"]["height"] <= target + .5, (
+                width, height, state
+            )
+            if width <= 760:
                 assert state["mobile"]["lineCount"] <= 3, state
-                head_ratio = state["mobile"]["peek"]["width"] * PORTRAIT_ART_WIDTH_RATIO / state["mobile"]["innerWidth"]
-                assert .60 <= head_ratio <= .72, state
-                visible_head_top = state["mobile"]["peek"]["top"] + state["mobile"]["peek"]["height"] * PORTRAIT_ART_TOP_RATIO
-                head_gap = visible_head_top - state["mobile"]["ctas"]["bottom"]
-                assert 24 <= head_gap <= 96, state
-                crop_ratio = (state["hero"]["bottom"] - state["mobile"]["peek"]["top"]) / state["mobile"]["peek"]["height"]
-                assert .62 <= crop_ratio <= .67, state
                 assert state["mobile"]["copy"]["top"] >= state["hero"]["top"], state
                 assert state["mobile"]["ctas"]["bottom"] <= state["hero"]["bottom"], state
                 assert state["mobile"]["peek"]["top"] >= state["hero"]["top"], state
                 assert all(control["width"] >= 43.5 and control["height"] >= 43.5 for control in state["mobile"]["controls"]), state
+                if width <= 420:
+                    head_ratio = state["mobile"]["peek"]["width"] * PORTRAIT_ART_WIDTH_RATIO / state["mobile"]["innerWidth"]
+                    assert .60 <= head_ratio <= .72, state
+                    visible_head_top = state["mobile"]["peek"]["top"] + state["mobile"]["peek"]["height"] * PORTRAIT_ART_TOP_RATIO
+                    head_gap = visible_head_top - state["mobile"]["ctas"]["bottom"]
+                    assert 24 <= head_gap <= 96, state
+                    crop_ratio = (state["hero"]["bottom"] - state["mobile"]["peek"]["top"]) / state["mobile"]["peek"]["height"]
+                    assert .62 <= crop_ratio <= .67, state
                 page.wait_for_function("() => [...document.querySelectorAll('.heroCopy h1 .ch')].every(node => node.classList.contains('show'))")
                 page.wait_for_timeout(2200)
                 for capture in ("daytime", "night", "off"):
@@ -101,7 +117,7 @@ def browser_contract(base_url):
                     page.wait_for_timeout(700)
                     page.screenshot(path=str(ARTIFACTS / f"home-{width}-{height}-{capture}.png"), full_page=False)
             page.evaluate("document.querySelectorAll('.jbStick,.heroCopy').forEach(el => el.style.visibility = 'hidden')")
-            for theme in ("pre-dawn", "sunrise", "daytime", "dusk", "sunset", "night"):
+            for theme in ("off", "pre-dawn", "sunrise", "daytime", "dusk", "sunset", "night"):
                 page.evaluate("state => window.SiteTheme.setMode(state,{persist:false})", theme)
                 page.wait_for_function("state => document.querySelector('#main').dataset.timeState === state", arg=theme)
                 page.wait_for_timeout(700)
@@ -111,12 +127,18 @@ def browser_contract(base_url):
                 ))
                 image = Image.open(BytesIO(page.screenshot())).convert("RGB")
                 y = int(hero["y"] + 2)
-                for fraction in (.25, .5, .75):
-                    x = int(hero["x"] + hero["width"] * fraction)
+                xs = (
+                    int(hero["x"] + 2),
+                    int(hero["x"] + hero["width"] * .25),
+                    int(hero["x"] + hero["width"] * .50),
+                    int(hero["x"] + hero["width"] * .75),
+                    int(hero["x"] + hero["width"] - 3),
+                )
+                for x in xs:
                     actual = image.getpixel((x, y))
                     hit = page.evaluate("([x,y]) => { const el = document.elementFromPoint(x,y); return el && `${el.tagName}.${el.className}`; }", [x, y])
                     assert max(abs(actual[i] - expected[i]) for i in range(3)) <= 2, (
-                        width, height, theme, fraction, hero, hit, actual, expected
+                        width, height, theme, x, hero, hit, actual, expected
                     )
             page.close()
         browser.close()

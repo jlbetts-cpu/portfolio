@@ -1049,6 +1049,7 @@ window.addEventListener("heroheadtransform",function(){
 function setMovieStageTransform(value){
  stage.style.transform=value;
  if(movieEffectsStage)movieEffectsStage.style.transform=value;
+ dispatchEvent(new CustomEvent("heroheadstagechange"));
 }
 function glassesOn(){var g=document.getElementById("glasses");if(g){g.classList.remove("off");g.classList.add("on");}}
 function glassesOff(){var g=document.getElementById("glasses");if(g){g.classList.remove("on");g.classList.add("off");}}

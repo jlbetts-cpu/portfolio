@@ -173,7 +173,8 @@ body.catchReady #stageMorph{transform:scale(1.055)}
 .hint{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);font-size:var(--fs-caption);color:var(--c500);z-index:5;background:rgba(243,243,243,.7);padding:8px 12px;border-radius:4px;backdrop-filter:blur(4px)}
 .popcrumb{position:absolute;width:2.2%;height:2.2%;background:#e7ddc7;z-index:5;opacity:0;pointer-events:none;will-change:transform,opacity}
 .popbucket{position:absolute;left:50%;bottom:-24%;width:44%;height:auto;transform:translateX(-50%);transform-origin:50% 78%;z-index:8;opacity:0;pointer-events:none;will-change:transform,opacity;filter:url(#inkSm) drop-shadow(0 2px 2px rgba(0,0,0,.32))}.kernel{position:absolute;width:9%;height:auto;z-index:8;opacity:0;pointer-events:none;will-change:transform,opacity;filter:url(#inkSm)}.mouth{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;opacity:0;pointer-events:none;z-index:2;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat}
-.heroMovieEffectsClip{position:absolute;inset:0;z-index:2;overflow:clip;border-radius:inherit;corner-shape:inherit;pointer-events:none}
+#heroMovieEffectsStage .popbucket{bottom:var(--sp-16)}
+.heroMovieEffectsClip{position:absolute;inset:0;z-index:4;overflow:clip;border-radius:inherit;corner-shape:inherit;pointer-events:none}
 .heroMovieEffectsStage{position:absolute;left:0;top:0;width:0;height:0;transform-origin:50% 50%;pointer-events:none;will-change:transform}
 .dlogo{border-radius:var(--r-2xs);position:absolute;width:21%;height:21%;opacity:0;backface-visibility:hidden;will-change:transform,left,top,opacity;filter:drop-shadow(0 3px 8px rgba(0,0,0,.22))}
 .dshadow{position:absolute;border-radius:50%;background:radial-gradient(ellipse 50% 50% at 50% 50%,rgba(8,8,8,.5),rgba(8,8,8,.3) 40%,rgba(8,8,8,.12) 62%,transparent 76%);transform:translate(-50%,-50%);z-index:-1;pointer-events:none;opacity:0;will-change:transform,left,top,width,height,opacity}
@@ -1563,7 +1564,7 @@ if(location.hash==="#about")location.replace("about.html");</script>
   </div>
   <div class="heroTimeSupport heroCharacterPeek"><div class="heroHeadTransform" id="heroHeadTransform"><div class="stagewrap"><div class="queueDots" id="qdots" role="status" aria-live="polite"><span class="qsr"></span><i></i><i></i><i></i></div><div id="stageMorph"><div class="floorshadow" id="fsh"></div><div class="stage" id="stage"><img class="face" id="face" alt="Jayden Betts" draggable="false" role="button" tabindex="0" aria-pressed="false" aria-label="Select and reposition animated portrait" data-head-bounds="0.22 0.12 0.80 0.91"><img id="heroTimePortraitCast" class="heroTimePortraitCast" alt="" aria-hidden="true"><img class="tongue" id="tongue" src="images/tongue.webp" alt="" aria-hidden="true">
 <svg class="glasses" id="glasses" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><defs><pattern id="glCard" patternUnits="userSpaceOnUse" width="100" height="100"><image href="images/glass_frame_tex.webp" x="0" y="0" width="100" height="100" preserveAspectRatio="xMidYMid slice"/></pattern><linearGradient id="glSheen" x1="0" y1="0" x2="0.62" y2="1"><stop offset="0" stop-color="#fff" stop-opacity="0.5"/><stop offset="0.4" stop-color="#fff" stop-opacity="0.06"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient><mask id="glMask" maskUnits="userSpaceOnUse" x="0" y="0" width="100" height="100"><rect x="28" y="45.3" width="44" height="13.2" rx="2.4" fill="#fff"/><polygon points="28,47.2 26,48 26,50.4 28,51.2" fill="#fff"/><polygon points="72,47.2 74,48 74,50.4 72,51.2" fill="#fff"/><rect x="32.5" y="47.3" width="13" height="9.2" rx="1.8" fill="#000"/><rect x="54.5" y="47.3" width="13" height="9.2" rx="1.8" fill="#000"/><path d="M46.7 58.6 Q50 54.3 53.3 58.6 Z" fill="#000"/></mask></defs><rect class="gl-red" x="32.5" y="47.3" width="13" height="9.2" rx="1.8"/><rect class="gl-cyan" x="54.5" y="47.3" width="13" height="9.2" rx="1.8"/><rect class="gl-plast" x="32.5" y="47.3" width="13" height="9.2" rx="1.8" fill="url(#glSheen)"/><rect class="gl-plast" x="54.5" y="47.3" width="13" height="9.2" rx="1.8" fill="url(#glSheen)"/><rect x="0" y="0" width="100" height="100" fill="url(#glCard)" mask="url(#glMask)"/></svg></div></div>
-</div></div>
+</div></div></div>
   <div class="heroHeadSelection" id="heroHeadSelection" role="group"
        aria-label="Selected animated portrait" hidden>
    <button class="heroHeadHandle" type="button" data-corner="nw" aria-label="Resize portrait from top left" tabindex="-1"></button>
@@ -1571,7 +1572,7 @@ if(location.hash==="#about")location.replace("about.html");</script>
    <button class="heroHeadHandle" type="button" data-corner="sw" aria-label="Resize portrait from bottom left" tabindex="-1"></button>
    <button class="heroHeadHandle" type="button" data-corner="se" aria-label="Resize portrait from bottom right" tabindex="-1"></button>
   </div>
-  <div class="heroMovieEffectsClip" id="heroMovieEffectsClip" aria-hidden="true"><div class="heroMovieEffectsStage" id="heroMovieEffectsStage"></div></div></div>
+  <div class="heroMovieEffectsClip" id="heroMovieEffectsClip" aria-hidden="true"><div class="heroMovieEffectsStage" id="heroMovieEffectsStage"></div></div>
  </section>
 
 </div>

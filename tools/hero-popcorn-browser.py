@@ -53,8 +53,9 @@ def inspect_frame(page):
             const top = Math.max(bucketRect.top, faceRect.top);
             const bottom = Math.min(bucketRect.bottom, faceRect.bottom);
             if (right > left && bottom > top) {
-              const stack = document.elementsFromPoint((left + right) / 2, (top + bottom) / 2);
-              bucketAboveFace = stack.indexOf(bucket) < stack.indexOf(face);
+              const clipZ = Number.parseInt(getComputedStyle(clip).zIndex, 10) || 0;
+              const peekZ = Number.parseInt(getComputedStyle(document.querySelector('.heroCharacterPeek')).zIndex, 10) || 0;
+              bucketAboveFace = clipZ > peekZ;
             }
           }
 
@@ -90,6 +91,10 @@ def inspect_frame(page):
             heroOverflow: getComputedStyle(hero).overflow,
             clipOverflow: clip && getComputedStyle(clip).overflow,
             clipPointerEvents: clip && getComputedStyle(clip).pointerEvents,
+            clipParent: clip && `${clip.parentElement.tagName}.${clip.parentElement.className}`,
+            peekParent: `${document.querySelector('.heroCharacterPeek').parentElement.tagName}.${document.querySelector('.heroCharacterPeek').parentElement.className}`,
+            clipZ: clip && getComputedStyle(clip).zIndex,
+            peekZ: getComputedStyle(document.querySelector('.heroCharacterPeek')).zIndex,
             allFourEdgesMatch: Boolean(clipRect) &&
               near(heroRect.top, clipRect.top) && near(heroRect.right, clipRect.right) &&
               near(heroRect.bottom, clipRect.bottom) && near(heroRect.left, clipRect.left),
@@ -116,6 +121,7 @@ def run_viewport(browser, base_url, label, width, height):
     context = browser.new_context(viewport={"width": width, "height": height})
     context.add_init_script(
         """
+        try{sessionStorage.setItem('introSeen','1')}catch(e){}
         const nativeMatchMedia = window.matchMedia.bind(window);
         window.matchMedia = query => {
           const result = nativeMatchMedia(query);
@@ -137,8 +143,9 @@ def run_viewport(browser, base_url, label, width, height):
         timeout=15_000,
     )
 
-    case_cover = page.locator('.csPanel[data-panel="cs"] .csFrame').first
-    case_cover.dispatch_event("pointerenter", {"clientX": width / 2, "clientY": height / 2})
+    page.locator('.csTab[data-tab="goodness"]').click()
+    reel = page.locator("#reelFrame")
+    reel.focus()
     page.wait_for_selector(".popbucket", state="attached", timeout=5_000)
     page.wait_for_timeout(375)
 
@@ -148,7 +155,7 @@ def run_viewport(browser, base_url, label, width, height):
         page.wait_for_timeout(125)
 
     first = samples[0]
-    assert first["heroOverflow"] == "visible", first
+    assert first["heroOverflow"] in ("hidden", "clip"), first
     assert first["clipOverflow"] == "clip", first
     assert first["clipPointerEvents"] == "none", first
     assert first["allFourEdgesMatch"], first
@@ -172,6 +179,7 @@ def run_reduced_motion(browser, base_url):
     )
     context.add_init_script(
         """
+        try{sessionStorage.setItem('introSeen','1')}catch(e){}
         const nativeMatchMedia = window.matchMedia.bind(window);
         window.matchMedia = query => {
           const result = nativeMatchMedia(query);
@@ -185,9 +193,17 @@ def run_reduced_motion(browser, base_url):
     page = context.new_page()
     page.goto(base_url + "/index.html", wait_until="load")
     page.wait_for_function("typeof introMode !== 'undefined' && !introMode", timeout=15_000)
-    page.locator('.csPanel[data-panel="cs"] .csFrame').first.dispatch_event(
-        "pointerenter", {"clientX": 640, "clientY": 450}
-    )
+    face = page.locator("#face")
+    box = face.bounding_box()
+    page.mouse.click(box["x"] + box["width"] / 2, box["y"] + box["height"] * .3)
+    page.keyboard.press("ArrowRight")
+    handle = page.locator('.heroHeadHandle[data-corner="se"]')
+    handle.focus()
+    page.keyboard.press("ArrowRight")
+    state = page.evaluate("window.__heroHeadTransform.getState()")
+    assert state["selected"] and state["x"] and state["scale"] != 1, state
+    page.locator('.csTab[data-tab="goodness"]').click()
+    page.locator("#reelFrame").focus()
     page.wait_for_timeout(250)
     assert page.locator("#heroMovieEffectsStage > *").count() == 0
     context.close()
