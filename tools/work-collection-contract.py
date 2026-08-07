@@ -20,6 +20,37 @@ class QuietHandler(SimpleHTTPRequestHandler):
         pass
 
 
+def wait_for_thumbnail_variant(page, state):
+    page.wait_for_function("""state => {
+      const images=[...document.querySelectorAll('.csPanel.on .csFrame img')];
+      return images.length >= 2 && images.every(image => {
+        const src=image.getAttribute('src')||'',srcset=image.getAttribute('srcset')||'';
+        return state === 'night'
+          ? src.includes('/night-1200.webp') && srcset.includes('/night-1200.webp') && srcset.includes('/night-2400.webp')
+          : !src.includes('/variants/time/') && srcset === '';
+      });
+    }""", arg=state)
+
+
+def decode_visible_active_thumbnails(page):
+    return page.evaluate("""async () => {
+      const visibleImages=[...document.querySelectorAll('.csPanel.on .csFrame img')].filter(image => {
+        const r=image.getBoundingClientRect(),s=getComputedStyle(image);
+        return r.bottom>0 && r.top<innerHeight && r.right>0 && r.left<innerWidth &&
+          s.display!=='none' && s.visibility!=='hidden';
+      });
+      const decodeWithTimeout=image=>new Promise((resolve,reject)=>{
+        const src=image.currentSrc||image.getAttribute('src')||'(missing src)';
+        const timer=setTimeout(()=>reject(new Error(`image decode timeout after 5000ms: ${src}`)),5000);
+        image.decode().then(()=>{clearTimeout(timer);resolve();},error=>{clearTimeout(timer);reject(new Error(`image decode failed: ${src}: ${error}`));});
+      });
+      await Promise.all(visibleImages.map(image => decodeWithTimeout(image)));
+      return visibleImages.map(image => ({
+        src:image.currentSrc||image.getAttribute('src'),naturalWidth:image.naturalWidth
+      }));
+    }""")
+
+
 def static_contract():
     tokens = (ROOT / "tokens.css").read_text(encoding="utf-8")
     return [
@@ -36,6 +67,7 @@ def browser_contract(base_url):
         browser = playwright.chromium.launch(headless=True)
         for width, height in VIEWPORTS:
             for mode in MODES:
+                label = f"{width}x{height} {mode}"
                 context = browser.new_context(
                     viewport={"width": width, "height": height}, reduced_motion="reduce"
                 )
@@ -47,6 +79,18 @@ def browser_contract(base_url):
                     mode,
                 )
                 page.wait_for_selector(".csPanel.on .csFrame img")
+                wait_for_thumbnail_variant(page, mode)
+                page.evaluate("""() => {
+                  document.documentElement.style.scrollBehavior='auto';
+                  const r=document.querySelector('#cases').getBoundingClientRect();
+                  window.scrollTo(0,scrollY+r.top-72);
+                }""")
+                thumbnails = decode_visible_active_thumbnails(page)
+                assert len(thumbnails) >= 2 and all(image["naturalWidth"] > 0 for image in thumbnails), (
+                    label,
+                    "visible active Home thumbnails",
+                    thumbnails,
+                )
                 data = page.evaluate("""() => {
                   const one=s=>document.querySelector(s), css=n=>getComputedStyle(n), box=n=>n.getBoundingClientRect();
                   const collection=one('#cases'), frame=one('.csPanel.on .csFrame'), image=frame.querySelector('img');
@@ -64,7 +108,6 @@ def browser_contract(base_url):
                     stars:stars.map(n=>({opacity:parseFloat(css(n).opacity),animation:css(n).animationName}))
                   };
                 }""")
-                label = f"{width}x{height} {mode}"
                 expected_edge = 120 if width == 1440 else 16
                 expected_radius = "20px" if width == 1440 else "14px"
                 expected_gap = 16 if width == 1440 else 12
@@ -95,16 +138,6 @@ def browser_contract(base_url):
                     brightest = max(star["opacity"] for star in data["stars"])
                     if brightest > .72:
                         failures.append(f"bright reduced-motion stars: {label} max opacity {brightest} > .72")
-                page.evaluate("""() => {
-                  document.documentElement.style.scrollBehavior='auto';
-                  const r=document.querySelector('#cases').getBoundingClientRect();
-                  window.scrollTo(0, scrollY+r.top-72);
-                }""")
-                if mode == "night":
-                    page.wait_for_function("""() => [...document.querySelectorAll('.csPanel.on img[data-time-thumbnail]')]
-                      .every(image => image.getAttribute('src').includes('/night-'))""")
-                page.wait_for_function("""() => [...document.querySelectorAll('.csPanel.on .csFrame img')]
-                  .every(image => image.complete && image.naturalWidth > 0)""")
                 page.screenshot(path=str(ARTIFACTS / f"home-work-{width}-{mode}.png"), full_page=False)
                 context.close()
         browser.close()
