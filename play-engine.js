@@ -642,6 +642,7 @@
  function plane(front){root.style.zIndex="3";shadow.style.zIndex="2";}   // heads ALWAYS stay in front of the big head + the CTA buttons (the back plane is gone) -- cleaner, more premium, no ducking-behind glitches
  var G=2600,DT=0.04,facc=0,CEIL=2,surpriseAt=0;   // real units: px/s and px/s^2, integrated at 25fps
  var me={x:0,y:0,HW:HW,HH:HH,vx:0,vy:0,ground:false,perched:false,kx:0,ky:0,dmgIn:0,inB:false,elim:false,slot:slot,cut:(data&&data.cut)||null,pid:(data&&data.__pid)||null,__filler:filler};me.root=root;   // so the championship spotlight can measure this head
+ if(/[?&]wraf=1/.test(location.search))me.__settleProbe=function(){var _ps=window.__hmSoccer;if(_ps&&_ps.on)soccerKickSeen=_ps.kickSeed;survey();var _ord=peers.filter(function(peer){return !peer.__filler;}),_ix=_ord.indexOf(me);if(_ix>=0)x=_ord.length>1?WL+(WR-WL)*_ix/(_ord.length-1):(WL+WR)/2;y=floorY;surface=floorY;vx=vy=0;me.kx=me.ky=0;air=false;st="idle";perched=false;grabbed=false;flipA=flipV=0;sqx=sqy=sqxP=sqyP=1;sqxv=sqyv=0;sqT=0;decideAt=performance.now()+1000;};   // DEV-ONLY: acknowledge the current kickoff, distribute ordinary players without overlap across their real WL/WR bounds, then seat each REAL companion closure on its production survey() plane. The normal render loop still paints them; browser contracts merely get a deterministic two-sample rest interval instead of racing soccer AI/collision impulses.
  root.setAttribute("data-hm-lobby-slot",String(slot));
  // `pid` is a STABLE identity handed in by whoever spawned this head (the tournament mints one per
  // player and keeps it for the whole cup). `cut` cannot serve as identity: a respawn re-encodes the
@@ -1806,6 +1807,8 @@
   var flapR=null,flapB=null;   // the split-flap instances mounted into .sR/.sB by paintBoard()
   var bx=0,by=0,bvx=0,bvy=0,kickCd={},running=false,last=performance.now(),scoreTeam=0,ballShadow,lastShot=0;
   var bsx=1,bsy=1,bsxv=0,bsyv=0,bsxP=1,bsyP=1,bsT=0;
+  if(/[?&]wraf=1/.test(location.search))window.__hmSoccerSettleProbe=function(){
+   if(!S.on||!ball)return false;geo();bx=(XL+XR)/2;by=groundY-BR;bvx=0;bvy=0;bsx=bsy=bsxP=bsyP=bsp=1;bsxv=bsyv=0;bsT=0;S.phase="play";S.ball.x=bx;S.ball.y=by;if(goalL){goalL.classList.remove("hmGoalHit");goalR.classList.remove("hmGoalHit");}if(camBack){camBack.classList.remove("hmCamPunch");camFront.classList.remove("hmCamPunch");}window.__hmFreeze=Math.max(window.__hmFreeze||0,performance.now()+600);return true;};   // DEV-ONLY: park the REAL private ball model at midfield on the production pitch, clear transient score-camera transforms, then let the normal loop render it. Browser contracts can measure exact stable geometry after a live resize without waiting for AI players to stop kicking it.
   function geo(){var r=hero.getBoundingClientRect();W=r.width;H=r.height;OFF=r.left;XL=-OFF;XR=innerWidth-OFF;   // the pitch spans the whole screen, wall to wall
    // THE PITCH IS FLUSH TO THE GLASS, phone included. This used to read `if(innerWidth<=640){XL+=12;XR-=12;}`
    // -- a 12px inset added because at zero inset the goal SHADOWS clipped (they are 60px wide and
@@ -1820,12 +1823,13 @@
    // move together by construction and cannot desync. That is why this is the right line to change
    // and why nudging the goal graphic alone would have been the wrong one.
    var st=document.getElementById("stage");if(st){var sr=st.getBoundingClientRect();groundY=sr.bottom-r.top;}else groundY=H-40;   // the pitch line == where the heads' feet rest (the stage bottom), so ball and players share one ground
-   if(document.body.classList.contains("hmFull")&&window.__hmFeetY!=null)groundY=window.__hmFeetY;
-   if(S.on&&_gyLock!=null)groundY=_gyLock;   // LATCH. The pitch line is fixed for the whole match:
+   var _ownedFeet=document.body.classList.contains("hmFull")&&window.__hmFeetY!=null;
+   if(_ownedFeet){groundY=window.__hmFeetY;if(S.on)_gyLock=groundY;}
+   else if(S.on&&_gyLock!=null)groundY=_gyLock;   // LATCH. Outside the owned full-screen arena, the pitch line is fixed for the whole match:
    // the head engine already refuses to trust the big head mid-game ("during a game the big head
    // STEPS OFF ... so his position is NOT the floor then") and soccer has to do the same, or the
    // goals chase him across the screen as he fades out.
-   else if(S.on&&_gyLock==null)_gyLock=groundY;   // full-screen phone arena: the heads dropped to the bottom of it, so the goalmouths must too -- the big head's stage is still up where the hero used to end
+   else if(S.on&&_gyLock==null)_gyLock=groundY;   // inside the owned arena, __hmFeetY is the shared source of truth and refreshes this latch after a live viewport reversal; outside it, the big head cannot drag the pitch around mid-match
    if(groundY>H-16)groundY=H-16;
    var nBR=innerWidth<=880?16:24;   // the heads shrink on mobile (96->64), so the ball shrinks with them (48->32) to keep the player:ball ratio honest
    BR=nBR;   // was gated on nBR!==BR, but dom() calls geo() BEFORE it creates the ball: BR flipped

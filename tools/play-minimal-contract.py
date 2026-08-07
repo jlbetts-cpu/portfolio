@@ -130,6 +130,12 @@ direct_soccer = GAMES[GAMES.index('var sg=document.getElementById("soccerGo")'):
 assert "var rc=gameCount()" in direct_soccer
 assert "if(soccerOn&&!window.__hmLavaOn&&!grabbed&&!perched)surface=floorY" in ENGINE
 assert "if(gameOn&&!window.__hmLavaOn&&!grabbed&&!perched)surface=floorY" not in ENGINE
+assert 'if(_ownedFeet){groundY=window.__hmFeetY;if(S.on)_gyLock=groundY;}' in ENGINE
+assert 'if(document.body.classList.contains("hmFull")&&window.__hmFeetY!=null)groundY=window.__hmFeetY;' not in ENGINE
+assert 'if(/[?&]wraf=1/.test(location.search))window.__hmSoccerSettleProbe=' in ENGINE
+assert 'by=groundY-BR' in ENGINE and 'S.ball.y=by' in ENGINE
+assert 'me.__settleProbe=function(){var _ps=window.__hmSoccer;if(_ps&&_ps.on)soccerKickSeen=_ps.kickSeed;survey();var _ord=peers.filter' in ENGINE
+assert 'me.kx=me.ky=0;air=false;st="idle"' in ENGINE
 
 # Initial saved and fallback heads are seated behind a readiness gate. The
 # existing __noIntro fall path remains, protecting later game/tournament motion.

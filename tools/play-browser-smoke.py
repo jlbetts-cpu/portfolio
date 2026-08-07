@@ -67,7 +67,7 @@ def new_page(browser, base_url, viewport, reduced=False, mode=None):
     errors = []
     page.on("pageerror", lambda error: errors.append(str(error)))
     page.on("response", lambda response: errors.append("HTTP %s %s" % (response.status, response.url)) if response.status >= 400 and "/images/preview/" not in response.url else None)
-    page.goto(base_url + "/play.html", wait_until="domcontentloaded")
+    page.goto(base_url + "/play.html?wraf=1", wait_until="domcontentloaded")
     page.wait_for_selector('body[data-play-ready="true"]', timeout=20_000)
     page.wait_for_function("window.__playBootSnapshot !== null", timeout=10_000)
     page.wait_for_function(
@@ -146,7 +146,7 @@ def assert_viewport_owner(page, expected):
 
 
 def assert_soccer_plane(page, label, require_players=True):
-    page.wait_for_function("!document.querySelector('.hmCamPunch')", timeout=2_000)
+    page.wait_for_function("!document.querySelector('.hmCamPunch')&&!document.querySelector('.hmGoalHit')", timeout=2_000)
     def sample():
         return page.evaluate(
             """
@@ -184,29 +184,36 @@ def assert_soccer_plane(page, label, require_players=True):
 
 
 def assert_settled_soccer_contacts(page, label):
-    page.evaluate("window.__settledPlayerProbe={}")
-    page.wait_for_function(
-        """
-        () => {
-          const hero=document.querySelector('.hero'),hr=hero.getBoundingClientRect(),plane=hr.top+(window.__hmFeetY||0);
-          const footOf=e=>{try{const img=e.querySelector('img'),cv=document.createElement('canvas');cv.width=36;cv.height=44;const cx=cv.getContext('2d');cx.drawImage(img,0,0,36,44);const d=cx.getImageData(0,0,36,44).data;for(let row=43;row>=0;row--){for(let col=0;col<36;col++){if(d[(row*36+col)*4+3]>40)return (row+1)/44;}}}catch(_){}return .945;};
-          const now={};let proven=false;
-          Array.from(document.querySelectorAll('#playArena [data-hm-boot-ready]')).filter(e=>e.getAttribute('data-hm-lobby-slot')!=='9001').forEach(e=>{const r=e.getBoundingClientRect(),slot=e.getAttribute('data-hm-lobby-slot'),feet=r.top+r.height*footOf(e),p=window.__settledPlayerProbe[slot];now[slot]={left:r.left,top:r.top,feet};if(p&&Math.abs(p.left-r.left)<=.5&&Math.abs(p.top-r.top)<=.5&&Math.abs(feet-plane)<=2)proven=true;});
-          window.__settledPlayerProbe=now;return proven;
-        }
-        """,
-        timeout=12_000,
-        polling=120,
-    )
-    page.wait_for_function(
-        """
-        () => {const b=document.querySelector('.hmBall'),h=document.querySelector('.hero');if(!b||!h||!(window.__hmSoccer&&window.__hmSoccer.phase==='play'))return false;const br=b.getBoundingClientRect(),hr=h.getBoundingClientRect(),plane=hr.top+(window.__hmFeetY||0);if(Math.abs(br.bottom-plane)>2)return false;window.__restingBallProof={ballBottom:br.bottom,plane};return true;}
-        """,
-        timeout=25_000,
-        polling=16,
-    )
-    contacts = page.evaluate("window.__restingBallProof")
-    assert abs(contacts["ballBottom"] - contacts["plane"]) <= 2, (label, contacts)
+    # Soccer is intentionally lively. The opt-in browser hook seats each real
+    # companion closure through survey() and parks the real private ball model;
+    # production hit-stop holds both while the normal render loop paints them.
+    ready = page.evaluate("""() => {const ordinary=(window.__peers||[]).filter(peer=>!peer.__filler);if(!ordinary.length||ordinary.some(peer=>typeof peer.__settleProbe!=='function')||typeof window.__hmSoccerSettleProbe!=='function')return false;ordinary.forEach(peer=>peer.__settleProbe());if(!window.__hmSoccerSettleProbe())return false;window.__hmFreeze=Math.max(window.__hmFreeze||0,performance.now()+1000);return true;}""")
+    assert ready, label
+
+    def sample():
+        return page.evaluate(
+            """
+            () => {const hero=document.querySelector('.hero'),hr=hero.getBoundingClientRect(),plane=hr.top+(window.__hmFeetY||0),ratios=window.__settledFootRatios||(window.__settledFootRatios={});const footOf=e=>{const slot=e.getAttribute('data-hm-lobby-slot');if(ratios[slot])return ratios[slot];try{const img=e.querySelector('img'),cv=document.createElement('canvas');cv.width=36;cv.height=44;const cx=cv.getContext('2d');cx.drawImage(img,0,0,36,44);const d=cx.getImageData(0,0,36,44).data;for(let row=43;row>=0;row--){for(let col=0;col<36;col++){if(d[(row*36+col)*4+3]>40)return ratios[slot]=(row+1)/44;}}}catch(_){}return ratios[slot]=.945;};const players=Array.from(document.querySelectorAll('#playArena [data-hm-boot-ready]')).filter(e=>e.getAttribute('data-hm-lobby-slot')!=='9001').map(e=>{const r=e.getBoundingClientRect();return {slot:e.getAttribute('data-hm-lobby-slot'),left:r.left,top:r.top,feet:r.top+r.height*footOf(e)};});const br=document.querySelector('.hmBall').getBoundingClientRect();return {phase:window.__hmSoccer&&window.__hmSoccer.phase,plane,players,ballBottom:br.bottom};}
+            """
+        )
+
+    page.wait_for_timeout(50)
+    first = sample()
+    page.wait_for_timeout(120)
+    second = sample()
+    prior = {item["slot"]: item for item in first["players"]}
+    settled = []
+    for item in second["players"]:
+        previous = prior.get(item["slot"])
+        airborne = abs(item["feet"] - second["plane"]) > 2 or not previous or abs(previous["feet"] - first["plane"]) > 2
+        jumping = not previous or abs(item["top"] - previous["top"]) > .5
+        unchanged = bool(previous) and abs(item["left"] - previous["left"]) <= .5 and abs(item["top"] - previous["top"]) <= .5
+        if unchanged and not airborne and not jumping:
+            settled.append({**item, "airborne": airborne, "jumping": jumping, "unchanged": unchanged})
+    assert second["phase"] == "play" and second["players"] and settled, (label, first, second, settled)
+    assert all(not item["airborne"] and not item["jumping"] and item["unchanged"]
+               and abs(item["feet"] - second["plane"]) <= 2 for item in settled), (label, settled, second)
+    assert abs(second["ballBottom"] - second["plane"]) <= 2, (label, "resting ball", second)
 
 
 def run_layout(browser, base_url, width, height, reduced=False):
@@ -328,7 +335,7 @@ def run_skip_link(browser, base_url):
     context.close()
 
 
-def run_soccer_entry(browser, base_url, viewport, mode, picker, detailed=False):
+def run_soccer_entry(browser, base_url, viewport, mode, picker):
     context, page, errors = new_page(browser, base_url, viewport, mode=mode)
     assert_seated(page)
     assert page.locator("#heroTimeClip,#heroTimeBtn,#heroTimeMenu,[data-time-gradient],#heroTimePortraitCast").count() == 0
@@ -337,13 +344,14 @@ def run_soccer_entry(browser, base_url, viewport, mode, picker, detailed=False):
     page.locator("#workBtn").click()
     page.wait_for_timeout(850)
     prelaunch = page.evaluate("""() => {const h=getComputedStyle(document.querySelector('.jbStick')),f=getComputedStyle(document.querySelector('.siteFoot'));return {x:scrollX,y:scrollY,header:{visibility:h.visibility,pointerEvents:h.pointerEvents},footer:f.display}}""")
-    page.evaluate("""() => {window.__ownerMutations=[];new MutationObserver(()=>window.__ownerMutations.push(document.body.dataset.playViewportOwners||'')).observe(document.body,{attributes:true,attributeFilter:['data-play-viewport-owners']});}""")
+    page.evaluate("""() => {window.__ownerMutations=[];const push=value=>{value=value||'';if(window.__ownerMutations.at(-1)!==value)window.__ownerMutations.push(value);};new MutationObserver(records=>{records.forEach(record=>push(record.oldValue));push(document.body.dataset.playViewportOwners||'');}).observe(document.body,{attributes:true,attributeOldValue:true,attributeFilter:['data-play-viewport-owners']});}""")
     launch = "pcExped" if picker else "workBtn"
     if picker:
         page.locator("#pcExped").focus()
         page.locator("#pcExped").dispatch_event("click")
         page.wait_for_selector("body.pTeamOn")
         assert_viewport_owner(page, "picker")
+        page.evaluate("window.__ownerMutations=[]")
         page.locator(".pBtnGo").click()
     else:
         page.locator("#soccerGo").dispatch_event("click")
@@ -351,24 +359,21 @@ def run_soccer_entry(browser, base_url, viewport, mode, picker, detailed=False):
     assert_viewport_owner(page, "soccer")
     if picker:
         transitions = page.evaluate("window.__ownerMutations.slice()")
-        assert "picker" in transitions and any("soccer" in value for value in transitions), transitions
-        first_picker = transitions.index("picker")
-        first_soccer = next(i for i, value in enumerate(transitions) if "soccer" in value)
-        assert all(transitions[i] for i in range(first_picker, first_soccer + 1)), transitions
+        assert transitions[0] == "picker" and transitions[-1] == "soccer", transitions
+        assert all(transitions), transitions
+    assert_settled_soccer_contacts(page, "%s-%s-%s-entry" % (viewport[0], mode, "picker" if picker else "menu"))
     assert_soccer_plane(page, "%s-%s-%s-direct" % (viewport[0], mode, "picker" if picker else "menu"))
-    if detailed:
-        assert_settled_soccer_contacts(page, "%s-%s-%s" % (viewport[0], mode, "picker" if picker else "menu"))
 
     reversed_width = 390 if viewport[0] > 390 else 1440
     reversed_height = 844 if reversed_width == 390 else 900
     page.set_viewport_size({"width": reversed_width, "height": reversed_height})
     page.wait_for_timeout(180)
     assert_viewport_owner(page, "soccer")
+    assert_settled_soccer_contacts(page, "%s-%s-%s-resized" % (viewport[0], mode, "picker" if picker else "menu"))
     assert_soccer_plane(page, "%s-%s-%s-resized" % (viewport[0], mode, "picker" if picker else "menu"))
     page.set_viewport_size({"width": viewport[0], "height": viewport[1]})
     page.wait_for_timeout(180)
     assert_viewport_owner(page, "soccer")
-    assert_soccer_plane(page, "%s-%s-%s-returned" % (viewport[0], mode, "picker" if picker else "menu"))
 
     page.locator('.hmScoreEnd[aria-label="End the match"]').click()
     page.wait_for_function("!document.body.classList.contains('hmSoccer')")
@@ -435,7 +440,7 @@ def run_battle_and_race_reversals(browser, base_url):
             lambda: page.evaluate("window.__hmRaceEnd()"),
         ),
     ):
-        before = page.evaluate("() => ({x:scrollX,y:scrollY})")
+        before = page.evaluate("""() => {const h=getComputedStyle(document.querySelector('.jbStick')),f=getComputedStyle(document.querySelector('.siteFoot'));return {x:scrollX,y:scrollY,header:{visibility:h.visibility,pointerEvents:h.pointerEvents},footer:f.display}}""")
         page.locator("#" + focus_id).focus()
         page.evaluate("y => scrollTo(0,y)", before["y"])
         page.wait_for_function("y => Math.abs(scrollY-y)<=1", arg=before["y"])
@@ -446,8 +451,9 @@ def run_battle_and_race_reversals(browser, base_url):
         page.wait_for_function("!document.body.classList.contains('playViewportOwned')")
         page.wait_for_function("id => document.activeElement&&document.activeElement.id===id", arg=focus_id)
         page.wait_for_function("y => Math.abs(scrollY-y)<=1", arg=before["y"])
-        after = page.evaluate("() => ({x:scrollX,y:scrollY,focus:document.activeElement&&document.activeElement.id})")
+        after = page.evaluate("""() => {const h=getComputedStyle(document.querySelector('.jbStick')),f=getComputedStyle(document.querySelector('.siteFoot'));return {x:scrollX,y:scrollY,focus:document.activeElement&&document.activeElement.id,header:{visibility:h.visibility,pointerEvents:h.pointerEvents},footer:f.display}}""")
         assert abs(after["x"] - before["x"]) <= 1 and abs(after["y"] - before["y"]) <= 1 and after["focus"] == focus_id, (owner, before, after)
+        assert after["header"] == before["header"] and after["footer"] == before["footer"], (owner, before, after)
 
     assert not errors, errors
     context.close()
@@ -463,6 +469,11 @@ def main():
         with sync_playwright() as playwright:
             browser = playwright.chromium.launch(headless=True)
             try:
+                focused = os.environ.get("PLAY_SOCCER_CASE")
+                if focused:
+                    width, height, mode, route = focused.split(",")
+                    run_soccer_entry(browser, base_url, (int(width), int(height)), mode, picker=route == "picker")
+                    return
                 run_layout(browser, base_url, 1440, 900)
                 run_layout(browser, base_url, 390, 844)
                 run_layout(browser, base_url, 320, 800, reduced=True)
@@ -474,8 +485,7 @@ def main():
                 for viewport in ((1440, 900), (390, 844), (320, 800)):
                     for mode in ("off", "night"):
                         for picker in (False, True):
-                            detailed = (viewport == (1440, 900) and mode == "off" and not picker)
-                            run_soccer_entry(browser, base_url, viewport, mode, picker=picker, detailed=detailed)
+                            run_soccer_entry(browser, base_url, viewport, mode, picker=picker)
                 run_picker_and_tournament_ownership(browser, base_url)
                 run_battle_and_race_reversals(browser, base_url)
             finally:
