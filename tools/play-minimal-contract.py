@@ -9,6 +9,7 @@ ROOT = Path(__file__).resolve().parents[1]
 HTML = (ROOT / "play.html").read_text(encoding="utf-8")
 GAMES = (ROOT / "play-games.js").read_text(encoding="utf-8")
 ENGINE = (ROOT / "play-engine.js").read_text(encoding="utf-8")
+HERO_ENGINE = (ROOT / "hero-engine.js").read_text(encoding="utf-8")
 CSS = (ROOT / "play.css").read_text(encoding="utf-8")
 
 
@@ -33,10 +34,12 @@ class PlayParser(HTMLParser):
 parser = PlayParser()
 parser.feed(HTML)
 
-# The accepted page stays the original page: one live arena, the honest lede,
-# the same four doors, copy, destinations and launch IDs. Only their order changes.
+# The accepted page keeps one live arena, the honest lede, and the same four doors.
+# The first screen is now the real Home hero; the doors live in #games below it.
 assert HTML.count('class="hero" id="playArena"') == 1
 assert "I made a few games for fun.</span> <span>Still building them." in HTML
+assert '<section class="pHub" id="games"' in HTML
+assert HTML.index('class="hero" id="playArena"') < HTML.index('id="games"')
 assert parser.card_ids == ["pcHead", "pcExped", "pcTour", "pcGrad"]
 for fragment in (
     "Upload a photo of your face and cut it out on a new page. It comes back and joins the crowd.",
@@ -50,13 +53,12 @@ for fragment in (
 for rejected_selector_fragment in ("pArenaFrame", "pModeDock", "pModeRail", "play-select.css"):
     assert rejected_selector_fragment not in HTML
 
-# A viewport wrapper preserves the original 60vh/margin:auto field as a full
-# first screen while letting the footer live below it in normal document flow. The picker
-# and every live mode lock that document only while they own the viewport.
+# The resting page is normal flow. Picker/game/tournament modes promote the same
+# hero to a fixed arena and lock only while they own the viewport.
 assert 'class="playViewport"' in HTML
-assert ".playViewport{position:relative;min-height:100svh;display:flex}" in HTML
-assert ".hero{position:relative;width:100vw;height:60vh;margin:auto}" in HTML
-assert ".pHub{position:absolute;inset:0" in HTML
+assert ".playViewport{position:relative" in HTML
+assert "body:is(.pTeamOn,.hmSoccer,.hmBattle,.hmRace,.hmTour) .playViewport" in HTML
+assert ".pHub{position:relative" in HTML
 assert "body.hmFull{height:auto;min-height:100%;overflow-x:clip;overflow-y:auto" in CSS
 assert "body.hmFull:is(.pTeamOn,.hmSoccer,.hmBattle,.hmRace,.hmTour)" in CSS and "overflow:hidden" in CSS
 
@@ -71,19 +73,53 @@ assert "releasePlayBoot" in GAMES
 assert 'classList.remove("playBooting")' in GAMES
 assert "if(first&&noIntro)" in ENGINE
 
-# The Play lobby is character-led: Jayden's existing hero head is visible only while
-# the hub owns the viewport, and the five existing physics companions get one
-# deterministic first-load entrance immediately before the readiness curtain lifts.
-assert "body.pHubOn:not(.playBooting) .heroHeadHost" in HTML
-assert "body:is(.pTeamOn,.hmSoccer,.hmBattle,.hmRace,.hmTour) .heroHeadHost" in HTML
-assert 'class="heroHeadHost" aria-hidden="true"' in HTML
-assert "@media(prefers-reduced-motion:reduce)" in HTML and ".heroHeadHost{transition:none}" in HTML
+# The Play lobby is literally the Home hero composition: same stage, controls,
+# mood artwork, time controller, portrait tint and movie-effects host.
+assert 'class="heroCopy"' in HTML
+assert 'class="heroCtas"' in HTML
+assert 'id="workBtn" href="#games"' in HTML
+assert 'class="heroMood moodbar" id="moodbar"' in HTML
+assert 'id="moodBtn"' in HTML and 'aria-controls="moodMenu"' in HTML
+assert HTML.count('class="moodItem" type="button" role="menuitem" data-mood=') == 4
+for artwork in ("camDot", "cookieDot", "discoDot", "heartDot"):
+    assert artwork in HTML
+assert 'id="heroTime"' in HTML and 'id="heroTimeBtn"' in HTML and 'id="heroTimeMenu"' in HTML
+assert HTML.count('<div class="heroTimeGradient" data-time-gradient="') == 6
+assert 'id="heroTimePortraitCast" class="heroTimePortraitCast"' in HTML
+assert 'id="heroMovieEffectsStage"' in HTML
+assert 'src="hero-time-presets.js"' in HTML and 'src="hero-time.js"' in HTML
+assert 'href="hero-time.css"' in HTML
+assert 'class="playHeroReflection" aria-hidden="true"' in HTML
+assert '-webkit-box-reflect:' in HTML
+assert "playArenaSurface" not in HTML and "playArenaGradient" not in HTML
+
+# The hidden game launcher has its own identity. The visible Home mood menu is
+# the sole owner of the canonical mood IDs and controller.
+for game_id in ("gamebar", "gameBtn", "gameMenu"):
+    assert f'id="{game_id}"' in HTML
+assert HTML.count('id="moodbar"') == HTML.count('id="moodBtn"') == HTML.count('id="moodMenu"') == 1
+assert 'getElementById("gamebar")' in GAMES and 'getElementById("gameBtn")' in GAMES
+assert "getElementById('gameBtn')" in (ROOT / "play-tournament.js").read_text(encoding="utf-8")
+assert "function installHeroMoodMenu" in HERO_ENGINE
+assert "if(HEADONLY) return" not in HERO_ENGINE
+assert 'this.hash.slice(1)' in HERO_ENGINE
+
+# The five existing physics companions decode while hidden, then launch from
+# alternating offstage sides. Reduced motion keeps the stable seated path.
 assert "window.__hmLobbyThrowIn=function" in ENGINE
 assert "me.lobbyThrow=function" in ENGINE
+assert "me.lobbyThrowPrepare=function" in ENGINE
 assert "var LOBBY_THROW_STAGGER=110" in ENGINE
 assert "matchMedia(\"(prefers-reduced-motion:reduce)\").matches" in ENGINE
 show_play = GAMES[GAMES.index("function showPlay"):GAMES.index("function watchPlayBoot")]
 assert show_play.index("window.__hmLobbyThrowIn") < show_play.index('classList.remove("playBooting")')
+
+# Play-only atmosphere points down from the fixed header and Night is a neutral
+# near-black/violet treatment without the old bright blue floor light.
+assert 'body[data-theme-page="play"] .heroTimeGradient[data-time-gradient="night"]' in HTML
+night_rule = HTML.split('body[data-theme-page="play"] .heroTimeGradient[data-time-gradient="night"]', 1)[1].split("}", 1)[0]
+assert "at 50% -" in night_rule and "#09090c" in night_rule
+assert "#fcfdfe" not in night_rule and "#6763e4" not in night_rule
 
 # Home-approved contact footer: exact content, links, 56ch measure and ghost mark.
 assert parser.footer_ids == ["contact"]

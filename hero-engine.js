@@ -1303,7 +1303,7 @@ logo.addEventListener("mouseleave",()=>{if(eventLock||CALIB)return;if(activeHove
 logo.addEventListener("click",()=>{
  if(CALIB||eventLock||dizzy||reactType)return;clearHold();activeHover=null;startReact("talk");});  // on home, click the name -> he introduces himself
 }
-var _wbtn=document.getElementById("workBtn");if(_wbtn)_wbtn.addEventListener("click",function(e){if(window.__softScroll){e.preventDefault();if(location.hash!==this.hash)history.pushState(null,"",this.hash);window.__softScroll(document.getElementById("cases"));}});
+var _wbtn=document.getElementById("workBtn");if(_wbtn)_wbtn.addEventListener("click",function(e){if(window.__softScroll){e.preventDefault();if(location.hash!==this.hash)history.pushState(null,"",this.hash);window.__softScroll(document.getElementById(this.hash.slice(1)));}});
 /* The browser's behaviour:"smooth" is a fixed curve. This uses the site's direct ease-out,
    respects the shared sticky-header inset, and scales with distance without letting a long
    hop drag. The transient root class prevents CSS smooth-scroll from retargeting every frame. */
@@ -1522,6 +1522,7 @@ if(!HEADONLY){stage.style.opacity="0";requestAnimationFrame(function(){requestAn
 (function(){
  var reel=document.getElementById("reel"),frame=document.getElementById("reelFrame"),vid=document.getElementById("reelVid"),ph=document.getElementById("reelPh"),pc=document.getElementById("playCursor"),ov=document.getElementById("reelOverlay"),ovv=document.getElementById("reelOverlayVid"),closeBtn=document.getElementById("reelClose"),tapBtn=document.getElementById("reelTap");
  var ovf=document.getElementById("reelOverlayYt"),YT_ID="WDnRtdwFREA";
+ installHeroMoodMenu();
  if(!reel)return;
  if(pc&&pc.parentNode!==document.body)document.body.appendChild(pc);
  var fine=window.matchMedia("(hover:hover) and (pointer:fine)").matches;
@@ -1583,13 +1584,10 @@ if(!HEADONLY){stage.style.opacity="0";requestAnimationFrame(function(){requestAn
  addEventListener("keydown",function(e){if(e.key==="Escape"&&ov.classList.contains("on"))closeReel();});
 
  // ===== mood shortcut menu -> fire the head animations directly =====
- (function(){
-  /* The ONLY place the two hosts genuinely collide. play.html reuses the same #moodbar /
-     #moodBtn / #moodMenu ids (deliberately -- the tournament disables #moodBtn by id), but
-     play-games.js already binds its own open/close toggle to them. Two toggles on one button
-     open and then immediately close the menu, so Play would silently stop working there. The
-     head-animation moods this block fires (rain / eat / party / love) are home-only anyway. */
-  if(HEADONLY) return;
+ function installHeroMoodMenu(){
+  /* Home and Play deliberately expose the same portrait control IDs, so this is their one
+     shared menu controller and mood dispatcher. Play's hidden game launcher has game-specific
+     IDs and cannot add a second toggle to this button. */
   var bar=document.getElementById("moodbar"); if(!bar) return;
   var btn=document.getElementById("moodBtn"), menu=document.getElementById("moodMenu");
   var MAP={empathy:startRain,hunger:moodEat,delight:startParty,love:startLove};
@@ -1638,5 +1636,5 @@ if(!HEADONLY){stage.style.opacity="0";requestAnimationFrame(function(){requestAn
   document.addEventListener("click",function(e){if(bar.classList.contains("open")&&!bar.contains(e.target))closeM(false);});
   document.addEventListener("keydown",function(e){if(e.key==="Escape"&&bar.classList.contains("open")){e.stopPropagation();closeM(true);}});
 
- })();
+ }
 })();

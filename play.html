@@ -1,4 +1,4 @@
-<!doctype html><html lang="en" class="jbShrunk"><head>
+<!doctype html><html lang="en"><head>
 <script src="site-theme-state.js"></script>
 <script src="site-theme.js"></script>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
@@ -37,6 +37,9 @@
     and it took the ink chrome, the terminator and the sky grain with it. */
  html{margin:0;height:100%;background:var(--c50);overflow:hidden}
  body{margin:0;height:auto;min-height:100%;background:var(--c50);overflow-x:clip;overflow-y:auto}
+ .skipLink{position:fixed;top:var(--sp-10);left:var(--sp-10);z-index:200;display:inline-flex;align-items:center;min-height:var(--tap-min);padding:var(--sp-12) var(--sp-16);background:var(--c50);color:var(--c950);border:var(--hair-w) solid var(--c100);border-radius:var(--r-xs);corner-shape:var(--corner);font-family:var(--sans);font-weight:400;font-size:var(--fs-small);line-height:var(--lh-flat);text-decoration:none;box-shadow:none;transform:translateY(calc(-100% - var(--sp-16)));transition:transform var(--ease-out-dur) var(--ease-out)}
+ .skipLink:focus{transform:translateY(0);outline:var(--focus-w) solid var(--c950);outline-offset:var(--sp-2)}
+ @media(prefers-reduced-motion:reduce){.skipLink{transition:none}}
  /* play.css:58 also declares body{background:var(--c50)}; this block is a later
     same-specificity rule, so it wins by source order -- the same mechanism the note
     below already documents for the paper value it replaces. */
@@ -46,41 +49,88 @@
     play.css already carries the correct body{background:var(--c50)} base rule (copied from
     index.html:58), but this inline block is a later same-specificity rule (a plain `body`
     selector either way), so it won the cascade by source order and silently shadowed it. */
- /* COMPOSITION (fix round 2): the engine derives its entire floor plane from
-    hero.clientHeight (FLOORCAP, play-engine.js survey()) and every game element --
-    ball, goals, heads, and the scoreboard itself (a .hero child; .hmScore's
-    top:40px is relative to the band, not the viewport) -- is a flat .hero
-    descendant. So a shorter, vertically-centred .hero pulls the whole scene up
-    into a broadcast-style band with the scoreboard sitting just above it, with NO
-    play-engine.js change: this is CSS-only. .playViewport becomes the centring flex
-    container; .hero, as its one in-flow child (the hub is absolute and the game menu
-    is fixed, both out of flow), gets margin:auto to centre on both axes --
-    though only the vertical axis has free space to give, since .hero still spans
-    the full 100vw. See task-2-report.md's fix-round-2 addendum for the measured
-    before/after and the mobile decision (play.css:146). */
- .playViewport{position:relative;min-height:100svh;display:flex}
+ /* HOME HERO, UNFORKED. The page begins below the 72px fixed header, then uses the
+    canonical Home grid, type rhythm, controls and responsive portrait sizing. */
+ .playViewport{position:relative;height:100svh;min-height:100svh;padding-top:var(--bar-h);box-sizing:border-box}
  .playBooting .playViewport{visibility:hidden}
- .hero{position:relative;width:100vw;height:60vh;margin:auto}
- /* The head host is the lobby's character anchor and the mini-Jayden source. It is visible only
-    while the hub owns the viewport, then yields to every setup/game surface. The restrained
-    settle keeps the entrance premium; the face remains pointer-inert and decorative. */
- .heroHeadHost{position:fixed;left:50%;top:50%;width:min(420px,46vw);transform:translate(-50%,-48%) scale(.985);opacity:0;pointer-events:none;z-index:2;transition:opacity .62s cubic-bezier(.16,1,.3,1),transform .82s cubic-bezier(.16,1,.3,1)}
- .heroHeadHost .stagewrap{position:relative;width:100%}
- body.pHubOn:not(.playBooting) .heroHeadHost{opacity:1;transform:translate(-50%,-50%) scale(1)}
- body:is(.pTeamOn,.hmSoccer,.hmBattle,.hmRace,.hmTour) .heroHeadHost{opacity:0;transform:translate(-50%,-48%) scale(.985)}
- @media(prefers-reduced-motion:reduce){.heroHeadHost{transition:none}}
- /* Task 3: #moodMenu's own base rule (play.css:152) sets neither left nor right, so its
-    static position defaults to moodBtn's LEFT edge and grows rightward by its own width.
-    Home used to get away with that because of a JS module (clampMenuX) that measured at
-    open-time and flipped to right:0 when the menu "would leave the column"; it was never
-    ported here, and as of the mobile audit it is deleted there too -- the v2 header outgrew
-    it and home now does the same static thing this rule does (header.css:414). play.html's menu bar is pinned to the
-    right edge (right:16px, below), so left-aligned growth runs the menu off the viewport's
-    right edge every time -- measured 70px of overflow at 1280px wide, worse on anything
-    narrower, and horizontal overflow is clipped, making the overflow unreachable, not just
-    ugly. Anchoring the menu to the SAME edge as the button it drops from is also just the
-    correct static answer for a corner-pinned bar, not a workaround. */
- #moodMenu{left:auto;right:0}
+ .wrap{position:relative;z-index:62;width:100%;max-width:none;margin:0;padding:0}
+ .hero{position:relative;isolation:isolate;overflow:hidden;display:grid;grid-template-columns:1fr;height:auto;box-sizing:border-box;
+  justify-items:center;align-content:start;min-height:calc(100svh - var(--bar-h));gap:0;
+  padding:var(--sp-24) var(--sp-16-24) 0;border:0;box-shadow:none;
+ border-radius:0;corner-shape:initial;background:var(--c50)}
+ body[data-theme-page="play"] .hero::after{display:none}
+ .heroAura{position:absolute;z-index:-1;pointer-events:none;left:50%;top:61%;width:min(960px,88%);height:68%;
+  transform:translate(-50%,-50%);background:radial-gradient(ellipse at center,rgba(148,205,255,.44) 0%,rgba(184,222,255,.24) 38%,rgba(225,241,255,0) 76%);filter:blur(var(--blur-3))}
+ .heroCopy{display:contents}
+ .heroCopy h1{order:2;margin:0 auto;max-width:min(14.4em,100%);font-size:var(--fs-heroline);
+  line-height:1.06;letter-spacing:var(--tr-head);text-align:center;text-wrap:balance}
+ .heroCopy h1 span{display:block}
+ .heroCtas{order:3;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;
+  gap:var(--sp-8);margin-top:var(--sp-16);position:relative;z-index:8}
+ .heroCtas>*{opacity:1;transform:none}
+ .workCta,.heroMood .moodBtn{height:var(--tap-min);min-height:var(--tap-min);padding:0 var(--sp-16);
+  border-radius:var(--r-md);corner-shape:var(--corner);font-family:var(--sans);font-size:var(--fs-nav);
+  font-weight:400;line-height:var(--lh-flat);text-decoration:none;display:inline-flex;align-items:center;
+  justify-content:center;gap:var(--sp-8);cursor:pointer;white-space:nowrap}
+ .workCta{border:var(--hair-w) solid var(--c950);background:var(--c950);color:var(--c50)}
+ .workCta:hover,.workCta:focus-visible{background:var(--c900);border-color:var(--c900);color:var(--c50)}
+ .heroMood{position:relative;z-index:12;display:inline-flex}
+ .heroMood .moodBtn{border:var(--hair-w) solid var(--c100);background:var(--mat-2);color:var(--c950)}
+ .heroMood .moodLbl{font:inherit}
+ .heroMood .moodBtn:hover,.heroMood .moodBtn:focus-visible,.heroMood.open .moodBtn{border-color:var(--c500);background:var(--mat-3-solid);color:var(--c950)}
+ .heroMood .moodCar{width:var(--ico-xs);height:var(--ico-xs);fill:none;stroke:currentColor;stroke-width:var(--ico-stroke);stroke-linecap:round;stroke-linejoin:round;transition:transform var(--sp-settle-dur) var(--ease-out)}
+ .heroMood.open .moodCar{transform:rotate(180deg)}
+ .heroMood .moodMenu{position:absolute;top:calc(100% + var(--sp-8));left:0;right:auto;z-index:30;
+  display:flex;flex-direction:column;gap:var(--gap-bar);width:var(--menu-w);max-width:min(var(--menu-w),calc(100vw - (var(--sp-16-40) * 2)));
+  padding:var(--pad-bar);background:var(--mat-3-solid);box-shadow:var(--rim-2),var(--sh-2);border:0;
+  border-radius:var(--r-lg);corner-shape:var(--corner);opacity:0;visibility:hidden;pointer-events:none;
+  transform:translateY(calc(var(--sp-4) * -1));transition:opacity var(--ease-out-dur) var(--ease-out),transform var(--ease-out-dur) var(--ease-out),visibility 0s var(--ease-out-dur)}
+ .heroMood.open .moodMenu{opacity:1;visibility:visible;pointer-events:auto;transform:none;transition:opacity var(--ease-out-dur) var(--ease-out),transform var(--ease-out-dur) var(--ease-out)}
+ .heroMood .moodItem{display:flex;align-items:center;justify-content:flex-start;gap:var(--sp-10);width:100%;
+  min-height:var(--tap-min);padding:0 var(--sp-10);border:0;border-radius:var(--r-sm);corner-shape:var(--corner);
+  background:none;color:var(--c700);font-family:var(--sans);font-size:var(--fs-nav);font-weight:400;
+  line-height:var(--lh-flat);cursor:pointer;text-align:left}
+ .heroMood .moodItem:hover,.heroMood .moodItem:focus-visible{color:var(--c950);background:var(--wash-1);font-weight:600}
+ .heroMood .moodIco{width:var(--ico-md)!important;height:var(--ico-md)!important;flex:0 0 var(--ico-md)!important;margin:0!important;transform:none!important}
+ .hero .stagewrap{order:4;width:min(clamp(400px,calc((100svh - 270px) * .98),620px),60vw);
+  height:auto;aspect-ratio:1/.97;margin:var(--sp-8-16) auto 0;z-index:1}
+ body.pHubOn:not(.playBooting) .hero .stagewrap #stageMorph{-webkit-box-reflect:below -13% linear-gradient(to bottom,rgba(0,0,0,.13) 0%,rgba(0,0,0,.045) 16%,transparent 34%)}
+ .playHeroReflection{position:absolute;left:50%;top:87%;width:58%;height:21%;transform:translateX(-50%) scaleY(-1);
+  transform-origin:50% 0;background:url(images/neutral.webp) center top/contain no-repeat;opacity:.08;
+  -webkit-mask-image:linear-gradient(#000,transparent 62%);mask-image:linear-gradient(#000,transparent 62%);pointer-events:none}
+ @supports(-webkit-box-reflect:below){.playHeroReflection{display:none}}
+ .heroMovieEffectsClip{position:absolute;inset:0;z-index:2;overflow:clip;border-radius:inherit;corner-shape:inherit;pointer-events:none}
+ .heroMovieEffectsStage{position:absolute;left:0;top:0;width:0;height:0;transform-origin:50% 50%;pointer-events:none;will-change:transform}
+
+ /* Play points every atmosphere downward from the fixed header. Night is neutral near-black
+    with a controlled violet cast, never the old bright blue floor spotlight. */
+ body[data-theme-page="play"] .heroTimeSpill{top:0;background:linear-gradient(180deg,#09090c 0%,#0e0d15 72%,rgba(9,9,12,0) 100%)}
+ body[data-theme-page="play"] .heroTimeGradient[data-time-gradient="pre-dawn"]{background:radial-gradient(112% 100% at 50% -8%,#5f61c8 0,#a38bde 20%,#ddd2f1 42%,#f8fafd 72%)}
+ body[data-theme-page="play"] .heroTimeGradient[data-time-gradient="sunrise"]{background:radial-gradient(112% 100% at 50% -8%,#d985d0 0,#ffb087 20%,#ffe2bd 42%,#f8fafd 72%)}
+ body[data-theme-page="play"] .heroTimeGradient[data-time-gradient="daytime"]{background:radial-gradient(112% 100% at 50% -8%,#438fc7 0,#99c6e9 24%,#dbeaf7 48%,#f8fafd 74%)}
+ body[data-theme-page="play"] .heroTimeGradient[data-time-gradient="dusk"]{background:radial-gradient(112% 100% at 50% -8%,#be79a8 0,#dca491 22%,#e3d9e9 48%,#f8fafd 74%)}
+ body[data-theme-page="play"] .heroTimeGradient[data-time-gradient="sunset"]{background:radial-gradient(112% 100% at 50% -8%,#d96c86 0,#d99ac7 22%,#ead7eb 48%,#f8fafd 74%)}
+ body[data-theme-page="play"] .heroTimeGradient[data-time-gradient="night"]{background:radial-gradient(112% 100% at 50% -8%,#51459a 0,#2d274f 24%,#17151f 52%,#09090c 82%)}
+ body[data-theme-page="play"] .hero[data-time-state="night"]{--time-base:#09090c;--time-ink:var(--c50);--time-bloom:rgba(116,88,186,.22);--time-cast:#aa94dc;--time-cast-opacity:.14;--time-shadow-opacity:.35}
+
+ /* The exact same #playArena becomes the live game field only while a game surface owns the
+    viewport. Its page furniture fades; the engine children and measured box remain real. */
+ body:is(.pTeamOn,.hmSoccer,.hmBattle,.hmRace,.hmTour) .playViewport{position:fixed;inset:0;z-index:30;min-height:100svh;padding:0;display:flex}
+ body:is(.pTeamOn,.hmSoccer,.hmBattle,.hmRace,.hmTour) .playViewport>.wrap{width:100%;max-width:none;padding:0;display:flex}
+ body:is(.pTeamOn,.hmSoccer,.hmBattle,.hmRace,.hmTour) .hero{display:block;width:100vw;height:60vh;min-height:0;margin:auto;padding:0;overflow:visible;border-radius:0;box-shadow:none;background:transparent}
+ body:is(.pTeamOn,.hmSoccer,.hmBattle,.hmRace,.hmTour) .hero::after{display:none}
+ body:is(.pTeamOn,.hmSoccer,.hmBattle,.hmRace,.hmTour) .heroCopy,
+ body:is(.pTeamOn,.hmSoccer,.hmBattle,.hmRace,.hmTour) .hero>.stagewrap,
+ body:is(.pTeamOn,.hmSoccer,.hmBattle,.hmRace,.hmTour) .heroTimeClip,
+ body:is(.pTeamOn,.hmSoccer,.hmBattle,.hmRace,.hmTour) .heroAura,
+ body:is(.pTeamOn,.hmSoccer,.hmBattle,.hmRace,.hmTour) .heroMovieEffectsClip{opacity:0;pointer-events:none}
+ body:is(.pTeamOn,.hmSoccer,.hmBattle,.hmRace,.hmTour) .hero>.stagewrap{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);margin:0}
+ body.pTeamOn .hero{height:52vh;margin:6vh auto auto}
+ @media(max-width:880px){.hero{min-height:auto;padding-bottom:var(--sp-24)}.hero .stagewrap{width:min(64vw,calc((100svh - 280px) * .86),500px)}}
+ @media(max-width:760px){.hero,body.pHubOn.hmFull .hero{height:auto;min-height:calc(100svh - var(--bar-h));padding:var(--sp-20) var(--sp-12)}.heroCopy h1{max-width:12.5em}.heroCtas{margin-top:var(--sp-14)}.workCta,.heroMood .moodBtn{padding-inline:var(--sp-14)}.heroMood .moodMenu{left:auto;right:0;width:min(var(--menu-w),calc(100vw - var(--sp-48)))}.hero .stagewrap{width:min(88vw,calc((100svh - 300px) * .86),430px);margin-top:var(--sp-8)}.heroAura{top:62%;width:124%;height:64%}}
+ @media(max-width:360px){.hero{padding-inline:var(--sp-8)}.heroCtas{gap:var(--sp-6)}.workCta,.heroMood .moodBtn{padding-inline:var(--sp-10)}.hero .stagewrap{width:min(90vw,calc((100svh - 318px) * .84),400px)}}
+ @media(max-height:720px) and (min-width:761px){.hero{padding-top:var(--sp-16)}.heroCopy h1{font-size:clamp(30px,3.2vw,36px)}.heroCtas{margin-top:var(--sp-12)}.hero .stagewrap{width:min(470px,46vw);margin-top:var(--sp-6)}}
+ @media(prefers-reduced-motion:reduce){.heroAura,.heroMood .moodMenu,.heroMood .moodCar,.heroCtas>*,.playHeroReflection{transition:none!important;animation:none!important}}
 
  /* ==========================================================================
     THE PLAY HUB. Everything below is new for the games-menu pass and lives in
@@ -140,21 +190,12 @@
     ========================================================================== */
  :root{--head-edge:var(--c50)}
 
- /* ---- THE HUB. Two blocks pinned to the two ends of the viewport with the
-    stage running between them, which is what makes this fit without scrolling:
-    the heads live in a band roughly 62vh-75vh, the title block ends near 24vh
-    and the cards begin near 80vh, so nothing overlaps and nothing had to move.
-    pointer-events are OFF on the frame and on the title block -- the heads are
-    draggable and a full-viewport overlay would eat every grab. ---- */
- .pHub{position:absolute;inset:0;z-index:40;pointer-events:none;
-  display:flex;flex-direction:column;justify-content:flex-end;
-  /* --sp-48 off --nav-h, not --sp-40. Measured at 390: .jbStick is 72px tall (a 52px nav
-     plus its own padding-block), so a 92px top inset left the h1 FOUR pixels under the bar --
-     which is most of what "crammed up there" was. 100px gives 28px of real air. */
-  padding:calc(var(--nav-h) + var(--sp-40) + var(--sp-8)) var(--play-gutter) var(--sp-24-32);
-  opacity:0;visibility:hidden;
+ /* The games are a real below-Hero section. It starts one 16px step after the first screen,
+    stays in normal flow, and only fades while a full-screen game surface owns the viewport. */
+ .pHub{position:relative;z-index:40;width:100%;box-sizing:border-box;padding:var(--sp-16) var(--play-gutter) 0;
+  pointer-events:none;opacity:0;visibility:hidden;scroll-margin-top:calc(var(--bar-h) + var(--sp-8));
   transition:opacity var(--sp-settle-dur) var(--sp-settle),visibility 0s linear var(--sp-settle-dur)}
- body.pHubOn .pHub{opacity:1;visibility:visible;transition-delay:0s,0s}
+ body.pHubOn .pHub{pointer-events:auto;opacity:1;visibility:visible;transition-delay:0s,0s}
  @media(prefers-reduced-motion:reduce){.pHub{transition:none}}
 
  /* The shared Home sign-off, now in Play's normal flow below the original viewport. */
@@ -165,11 +206,8 @@
  .footIn:active{color:var(--accent-press);text-decoration-color:var(--accent-press)}
  .footMark{font-family:var(--sans);font-weight:600;font-size:min(var(--fs-display),13vw);line-height:.9;letter-spacing:var(--tr-display);color:var(--c100);margin:var(--sp-8-16) 0 0;white-space:nowrap;-webkit-user-select:none;user-select:none}
 
- /* ---- THE CORNER MENU IS OFF, and the element stays. #moodbar/#moodBtn/#moodMenu are kept
-    in the DOM because the tournament disables and restores #moodBtn BY ID
-    (play-tournament.js:1163,1183) and play-games.js binds every launcher through them -- the
-    hub's cards fire the same handlers. What is gone is the second visible surface. ---- */
- #moodbar{display:none}
+ /* The legacy launcher is behavior-only. The visible Hero mood control owns the canonical IDs. */
+ #gamebar{display:none}
 
  /* ---- THE LINE AT THE TOP. Jayden: "I would like if on top it was honest, had the same look
     as the h1 on the home ... I just want it to say something on the top that's honest."
@@ -523,21 +561,11 @@
   /* env(safe-area-inset-bottom): a phone's home indicator / browser chrome sits over the
      bottom of a position:fixed layer, and the cards are the bottom of this one. The fallback
      keeps it exactly --sp-16 everywhere that has no inset. */
-  .pHub{padding-top:calc(var(--nav-h) + var(--sp-40) + var(--sp-8));
-   padding-bottom:calc(var(--sp-16) + env(safe-area-inset-bottom,0px))}
+  .pHub{padding-top:var(--sp-16);padding-bottom:calc(var(--sp-16) + env(safe-area-inset-bottom,0px))}
   .pTeam{padding-bottom:calc(var(--sp-24-32) + env(safe-area-inset-bottom,0px))}
   .pCards{grid-template-columns:1fr 1fr;gap:var(--sp-8)}
   .pCard{padding:var(--sp-10) var(--sp-12);gap:var(--sp-4);min-height:calc(var(--tap-min) * 1.5)}
   .pCardD{display:none}
-  /* THE ONE PLACE THE PHONE RUNS OUT OF ROOM. Measured at 390x844: .hero is 65vh here
-     (play.css:305), so the shared feet line lands at 673 and the two rows of cards begin at
-     668 -- the heads' lower 65px were behind the menu. The title block and the crowd strip
-     are already as tight as they read, and the cards cannot go lower (they are on the
-     bottom gutter), so the stage is what gives: 57vh puts the feet at 638 with 30px of
-     clear ground under them. Only while the hub is up -- the match gets the full band back,
-     because .pHubOn comes off before kickoff. syncHub() dispatches a resize when this class
-     changes so the engine re-surveys the floor through its own tested path. */
-  body.pHubOn .hero{height:57vh}
   .pTeamIn{padding:var(--sp-12)}
   .pTeamCols{gap:var(--sp-8)}
   .pTeamCol{padding:var(--sp-8);min-height:calc(var(--tap-min) * 2 + var(--sp-8))}
@@ -572,10 +600,12 @@
  #tHeadEdge feFlood{flood-color:var(--head-edge)}
 </style>
 <link rel="stylesheet" href="header.css">
+<link rel="stylesheet" href="hero-time.css">
 <link rel="stylesheet" href="footer.css">
 <link rel="stylesheet" href="site-theme.css">
 <script src="header.js" defer></script>
 </head><body class="hmFull playBooting" data-nav="games" data-theme-page="play">
+<a class="skipLink" id="playSkip" href="#games">Skip to games</a>
 <!-- FIX ROUND 2 (Task 2): filter defs SHARED with index.html:2316-2318, copied verbatim, not moved -- index.html keeps its own copies. Must be inlined here, not linked: Safari does not support filters referenced from an external or data: URL (see index.html's own comment on tHeadEdge). #tHeadEdge is unused on play.html today but Task 4's tournament head edges need it. -->
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><!-- Cut-out edge stroke. NOT a drop-shadow stack: CSS filter functions CHAIN, each taking the previous one's output, so N shadows compound to about (N/pi)*r rather than r -- 8 at 1px measures ~2.5px, and 24 hangs the compositor outright. Worse, a stack outlines every hair strand separately and turns a photographic head into a spiky halo. Threshold the alpha FIRST so wispy strands collapse into one silhouette, dilate that, subtract to leave a ring, and flood it. One clean line, hair keeps its softness. Must be inline in this document: Safari does not support filters referenced from an external or data: URL. --><filter id="tHeadEdge" x="-25%" y="-25%" width="150%" height="150%" color-interpolation-filters="sRGB"><feGaussianBlur in="SourceAlpha" stdDeviation="1.6" result="b"/><feComponentTransfer in="b" result="sil"><feFuncA type="linear" slope="20" intercept="-13.5"/></feComponentTransfer><feMorphology in="sil" operator="dilate" radius="1" result="f"/><feComposite in="f" in2="sil" operator="out" result="r"/><feFlood flood-color="#FDFDFD" result="c"/><feComposite in="c" in2="r" operator="in" result="st"/><feMerge><feMergeNode in="st"/><feMergeNode in="SourceGraphic"/></feMerge></filter></svg>
 <svg width="0" height="0" style="position:absolute"><filter id="inkBig"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="7" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="1.1" xChannelSelector="R" yChannelSelector="G" result="d"/><feTurbulence type="fractalNoise" baseFrequency="0.5 0.42" numOctaves="2" seed="13" result="g"/><feColorMatrix in="g" type="matrix" values="0 0 0 0 0.055 0 0 0 0 0.055 0 0 0 0 0.055 0 0 0 0.42 0" result="grain"/><feComposite in="grain" in2="d" operator="atop"/></filter>
@@ -616,41 +646,55 @@
   </span>
  </nav>
 </div>
-<!-- ===== THE BIG HEAD. Not decoration and not a copy: this is index.html's hero stage, the
-     same markup, driven by the same hero-engine.js. mini-Jayden (the odd-count filler) renders
-     by CLONING #stage every time he spawns and then mirroring its face src, its .eye.eclosed
-     state and its iris/glint transforms every frame (play-engine.js:307 and :928), so his eyes
-     ARE these eyes. Before this existed, play.html had no #stage, that whole branch was skipped
-     and a synthetic eye rig drew a lookalike instead -- which is exactly the drift Jayden saw.
-     ALWAYS LAID OUT, and that distinction is load-bearing. The hub now reveals it, while games
-     fade it with opacity. display:none or a zero box would give the clone no geometry to copy and
-     mjBigW (the gaze scale divisor, play-engine.js:319) no width to divide by. It stays centred
-     rather than parked off-screen so his gaze maths reads the cursor the same way it does at
-     home. #face keeps a src in markup purely so it has decoded by the time
-     fillerData() asks for face.complete; setFace("neutral") sets the identical value at boot. ==== -->
+<!-- Play uses the Home hero itself: the same live stage, controls, time controller and
+     hero-engine mood performances. The copy is Play-specific, but there is no parallel
+     portrait implementation. During a game this same #playArena becomes the measured
+     physics field; CSS hides only the page furniture and preserves the engine node. -->
 <div class="playViewport">
-<div class="heroHeadHost" aria-hidden="true">
- <div class="stagewrap">
-  <div class="queueDots" id="qdots" role="status" aria-live="polite"><span class="qsr"></span><i></i><i></i><i></i></div>
-  <div id="stageMorph"><div class="floorshadow" id="fsh"></div><div class="stage" id="stage"><img class="face" id="face" src="images/neutral.webp" alt="" draggable="false"><img class="tongue" id="tongue" src="images/tongue.webp" alt="" aria-hidden="true">
+ <div class="wrap">
+  <div class="heroTimeSpill" id="heroTimeSpill" aria-hidden="true"></div>
+  <main class="hero" id="playArena" tabindex="-1">
+   <svg class="heroPortraitTintDefs" width="0" height="0" aria-hidden="true">
+    <filter id="heroPortraitTintFilter" color-interpolation-filters="sRGB">
+     <feFlood id="heroPortraitTintFlood" flood-color="var(--time-cast)" result="portraitTint"/>
+     <feComposite in="portraitTint" in2="SourceAlpha" operator="in"/>
+    </filter>
+   </svg>
+   <div class="heroAura" aria-hidden="true"></div>
+   <div class="heroTimeClip" id="heroTimeClip" aria-hidden="true"><div class="heroTimeGradient" data-time-gradient="pre-dawn"></div><div class="heroTimeGradient" data-time-gradient="sunrise"></div><div class="heroTimeGradient" data-time-gradient="daytime"></div><div class="heroTimeGradient" data-time-gradient="dusk"></div><div class="heroTimeGradient" data-time-gradient="sunset"></div><div class="heroTimeGradient" data-time-gradient="night"></div></div>
+   <div class="heroCopy">
+    <h1 class="pLede"><span>I made a few games for fun.</span> <span>Still building them.</span></h1>
+    <div class="heroCtas">
+     <a class="workCta" id="workBtn" href="#games"><span>View games</span></a>
+     <div class="heroMood moodbar" id="moodbar"><button class="moodBtn" id="moodBtn" type="button" aria-label="Choose a mood for Jayden’s portrait" aria-haspopup="menu" aria-expanded="false" aria-controls="moodMenu"><span class="moodLbl">Choose a mood</span><svg class="moodCar" viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4"/></svg></button><div class="moodMenu" id="moodMenu" role="menu" aria-label="Choose a mood for Jayden’s portrait"><button class="moodItem" type="button" role="menuitem" data-mood="empathy"><span class="moodIco camDot" aria-hidden="true"></span>Empathy</button><button class="moodItem" type="button" role="menuitem" data-mood="hunger"><span class="moodIco cookieDot" aria-hidden="true"></span>Hunger</button><button class="moodItem" type="button" role="menuitem" data-mood="delight"><span class="moodIco discoDot" aria-hidden="true"></span>Delight</button><button class="moodItem" type="button" role="menuitem" data-mood="love"><span class="moodIco heartDot" aria-hidden="true"></span>Love</button></div></div>
+     <div class="heroTime" id="heroTime">
+      <button class="heroTimeBtn" id="heroTimeBtn" type="button" aria-label="Time of day" aria-haspopup="menu" aria-expanded="false" aria-controls="heroTimeMenu"><svg class="heroTimeIcon uiIcon" id="heroTimeIcon" viewBox="0 0 24 24" aria-hidden="true"><g data-hero-time-icon="pre-dawn"><use href="ui-icons.svg#lucide-moon-star"/></g><g data-hero-time-icon="sunrise"><use href="ui-icons.svg#lucide-sunrise"/></g><g data-hero-time-icon="daytime"><use href="ui-icons.svg#lucide-sun"/></g><g data-hero-time-icon="dusk"><use href="ui-icons.svg#lucide-cloud-sun"/></g><g data-hero-time-icon="sunset"><use href="ui-icons.svg#lucide-sunset"/></g><g data-hero-time-icon="night"><use href="ui-icons.svg#lucide-moon"/></g><g data-hero-time-icon="off"><use href="ui-icons.svg#lucide-circle-off"/></g></svg></button>
+      <div class="heroTimeMenu" id="heroTimeMenu" role="menu" aria-label="Choose time of day">
+       <button type="button" role="menuitemradio" aria-checked="true" data-time-mode="auto"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true"><use href="ui-icons.svg#lucide-rotate-ccw"/></svg>Automatic</button>
+       <button type="button" role="menuitemradio" aria-checked="false" data-time-mode="off"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true"><use href="ui-icons.svg#lucide-circle-off"/></svg>Off</button>
+       <button type="button" role="menuitemradio" aria-checked="false" data-time-mode="pre-dawn"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true"><use href="ui-icons.svg#lucide-moon-star"/></svg>Pre-dawn</button>
+       <button type="button" role="menuitemradio" aria-checked="false" data-time-mode="sunrise"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true"><use href="ui-icons.svg#lucide-sunrise"/></svg>Sunrise</button>
+       <button type="button" role="menuitemradio" aria-checked="false" data-time-mode="daytime"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true"><use href="ui-icons.svg#lucide-sun"/></svg>Daytime</button>
+       <button type="button" role="menuitemradio" aria-checked="false" data-time-mode="dusk"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true"><use href="ui-icons.svg#lucide-cloud-sun"/></svg>Dusk</button>
+       <button type="button" role="menuitemradio" aria-checked="false" data-time-mode="sunset"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true"><use href="ui-icons.svg#lucide-sunset"/></svg>Sunset</button>
+       <button type="button" role="menuitemradio" aria-checked="false" data-time-mode="night"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true"><use href="ui-icons.svg#lucide-moon"/></svg>Night</button>
+      </div>
+     </div>
+     <script id="heroTimePrepaint">(function(){var r=document.documentElement,h=document.getElementById("playArena"),m=r.getAttribute("data-theme-mode")||"auto",s=r.getAttribute("data-theme-state")||"off",q=r.getAttribute("data-reduced-motion")||"no-preference",i=document.getElementById("heroTimeIcon"),n=document.querySelectorAll('#heroTimeMenu [role="menuitemradio"]');h.setAttribute("data-time-mode",m);h.setAttribute("data-time-state",s);h.setAttribute("data-reduced-motion",q);i.setAttribute("data-icon",s);n.forEach(function(x){x.setAttribute("aria-checked",x.getAttribute("data-time-mode")===m?"true":"false");});})();</script>
+    </div>
+   </div>
+   <div class="stagewrap">
+    <div class="queueDots" id="qdots" role="status" aria-live="polite"><span class="qsr"></span><i></i><i></i><i></i></div>
+    <div id="stageMorph"><div class="floorshadow" id="fsh"></div><div class="stage" id="stage"><img class="face" id="face" src="images/neutral.webp" alt="Jayden" draggable="false"><img id="heroTimePortraitCast" class="heroTimePortraitCast" alt="" aria-hidden="true"><img class="tongue" id="tongue" src="images/tongue.webp" alt="" aria-hidden="true">
 <svg class="glasses" id="glasses" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><defs><pattern id="glCard" patternUnits="userSpaceOnUse" width="100" height="100"><image href="images/glass_frame_tex.webp" x="0" y="0" width="100" height="100" preserveAspectRatio="xMidYMid slice"/></pattern><linearGradient id="glSheen" x1="0" y1="0" x2="0.62" y2="1"><stop offset="0" stop-color="#fff" stop-opacity="0.5"/><stop offset="0.4" stop-color="#fff" stop-opacity="0.06"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient><mask id="glMask" maskUnits="userSpaceOnUse" x="0" y="0" width="100" height="100"><rect x="28" y="45.3" width="44" height="13.2" rx="2.4" fill="#fff"/><polygon points="28,47.2 26,48 26,50.4 28,51.2" fill="#fff"/><polygon points="72,47.2 74,48 74,50.4 72,51.2" fill="#fff"/><rect x="32.5" y="47.3" width="13" height="9.2" rx="1.8" fill="#000"/><rect x="54.5" y="47.3" width="13" height="9.2" rx="1.8" fill="#000"/><path d="M46.7 58.6 Q50 54.3 53.3 58.6 Z" fill="#000"/></mask></defs><rect class="gl-red" x="32.5" y="47.3" width="13" height="9.2" rx="1.8"/><rect class="gl-cyan" x="54.5" y="47.3" width="13" height="9.2" rx="1.8"/><rect class="gl-plast" x="32.5" y="47.3" width="13" height="9.2" rx="1.8" fill="url(#glSheen)"/><rect class="gl-plast" x="54.5" y="47.3" width="13" height="9.2" rx="1.8" fill="url(#glSheen)"/><rect x="0" y="0" width="100" height="100" fill="url(#glCard)" mask="url(#glMask)"/></svg></div></div>
+    <div class="playHeroReflection" aria-hidden="true"></div>
+   </div>
+   <div class="heroMovieEffectsClip" id="heroMovieEffectsClip" aria-hidden="true"><div class="heroMovieEffectsStage" id="heroMovieEffectsStage"></div></div>
+  </main>
  </div>
 </div>
-<!-- NO [data-hm-orb] CHILD, ON PURPOSE. That one attribute is the entire on/off switch for the
-     engine's spherical placement (see THE NASA PLANET IS POSTPONED above): with no element
-     carrying it, ORB.sync() finds nothing, the crowd stands on the flat feet line, and the
-     lobby floor below is a plane -- which is what makes a reflection in it honest. -->
-<main class="hero" id="playArena"></main>
-<!-- ===== THE HUB. The page's resting state: a title block on the sky, four doors on the
-     paper, and the stage running live between them. play-games.js shows and hides it off
-     the same gameOn() the launchers already gate on, so it is on screen exactly when no
-     game is. The two makers are ORDINARY LINKS with identical card treatment -- staged
-     absorption, research §5: headmaker.html stays an indexed, self-canonical URL and
-     gradientlab.html is not rebuilt this pass. ?from=play is the handshake that lets each
-     destination point its back affordance at Play instead of the portfolio; neither
-     destination reads it yet (both are other passes' files), so it is inert and harmless
-     until they do. ===== -->
-<div class="pHub" id="pHub">
+<!-- The four established launchers now sit below the Hero in normal document flow. -->
+<section class="pHub" id="games" tabindex="-1" aria-label="Games">
  <!-- NO HERO BLOCK, NO CROWD STRIP. Both were built and both came out on Jayden's call:
       "no stupid hero header that looks bad with random head PNGs floating -- the heads are
       clearly visible below." He is right on the second point in particular; a row of head
@@ -688,7 +732,6 @@
       apology: he is job-hunting, and a disclaimer reads to a recruiter as an excuse where
       "still building" reads as momentum. The full stop in the middle is load-bearing too -- at
       display size the two clauses run together into one breathless sentence without it. -->
- <h1 class="pLede"><span>I made a few games for fun.</span> <span>Still building them.</span></h1>
  <nav class="pCards" aria-label="Games">
   <a class="pCard" id="pcHead" href="headmaker.html?from=play">
    <svg class="gIco" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0"/><path d="M16 19h6"/><path d="M19 16v6"/><path d="M6 21v-2a4 4 0 0 1 4 -4h4"/></svg>
@@ -715,8 +758,7 @@
    <span class="pCardPrev" aria-hidden="true"><img alt="" width="640" height="400" decoding="async" data-prev="images/preview/gradientlab.webp"></span>
   </a>
  </nav>
-</div>
-</div>
+</section>
 <footer class="siteFoot" id="contact" role="contentinfo">
  <p class="footReach">I&rsquo;m open to full-time roles and would love to chat. Find me on <a class="footIn" href="https://www.linkedin.com/in/jaydenbetts" target="_blank" rel="noopener noreferrer">LinkedIn</a>, <a class="footIn" href="https://www.instagram.com/jaydenleebetts" target="_blank" rel="noopener noreferrer">Instagram</a>, or <a class="footIn" href="mailto:jaydenlbetts@gmail.com">email</a>.</p>
  <div class="footMark" aria-hidden="true">Jayden Betts</div>
@@ -726,25 +768,12 @@
      panel's place in the stacking order is declared in markup rather than invented at
      runtime. -->
 <div class="pTeam" id="pTeam" role="dialog" aria-modal="false" aria-label="Choose sides" hidden></div>
-<!-- Task 3: the real game menu -- soccer + tournament only (Jayden cut Floor is Lava and
-     Marble Race, "not quite yet"). Mirrors index.html:2320's #moodbar/#moodBtn/#moodMenu
-     structure but WITHOUT the four mood dots, "Add your head", "Add an egghead", #moodHeads
-     or the "Show on home" toggle -- those are home-owned (spec §3.2). #moodBtn and #moodbar
-     must keep those exact ids: the tournament disables/restores #moodBtn by id
-     (index.html:8545,8565). Positioned fixed top-right, replacing the Task 2 #playGo
-     scaffolding; behavior (open/close, launchers, gating, team tray) lives in
-     play-games.js. -->
-<!-- The inset is --play-gutter / --play-top, both defined in play.css next to the note
-     that explains them: the gutter IS the site header's gutter at every width, and
-     below 760px --play-top drops this control onto its own row because the header bar
-     and this button physically overlap under ~699px (the header wins on z-index, so
-     "Play" was invisible on a phone). Kept as a style attribute rather than moved into
-     play.css because play-games.js identifies this element by id and toggles only its
-     class list -- nothing reads these values, but leaving the element's position where
-     it has always been declared keeps that obvious. -->
-<div class="moodbar" id="moodbar" style="position:fixed;right:var(--play-gutter);top:var(--play-top);z-index:60">
- <button class="moodBtn" id="moodBtn" type="button" aria-label="Play" aria-expanded="false" aria-controls="moodMenu"><span class="moodLbl">Play</span><svg class="moodCar" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M6 9l6 6l6 -6"/></svg></button>
- <div class="moodMenu" id="moodMenu">
+<!-- Legacy launcher controls remain as a hidden behavior surface for the team picker and
+     tournament. Their IDs are deliberately game-specific so the visible Home mood menu is
+     the sole owner of #moodbar/#moodBtn/#moodMenu and cannot receive two toggle handlers. -->
+<div class="gamebar" id="gamebar" hidden>
+ <button class="gameBtn" id="gameBtn" type="button" aria-label="Play" aria-expanded="false" aria-controls="gameMenu">Play</button>
+ <div class="gameMenu" id="gameMenu">
   <div class="moodRow" id="soccerRow"><button class="moodItem" id="soccerGo" type="button" aria-label="Play a match — a soccer match between your heads"><svg class="gIco" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"/> <path d="M12 7l4.76 3.45l-1.76 5.55h-6l-1.76 -5.55l4.76 -3.45"/> <path d="M12 7v-4m3 13l2.5 3m-.74 -8.55l3.74 -1.45m-11.44 7.05l-2.56 2.95m.74 -8.55l-3.74 -1.45"/></svg>Play a match</button><button class="moodTeamsBtn" id="soccerTeams" type="button" aria-haspopup="dialog" aria-expanded="false" aria-label="Choose soccer teams"><span class="tdotR" aria-hidden="true"></span><span class="tdotB" aria-hidden="true"></span></button></div>
   <button class="moodItem" id="tourGo" type="button" aria-label="Start a soccer tournament — single elimination, one match at a time, with goals, assists and ratings tracked"><svg class="gIco" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M2 4a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/> <path d="M18 10a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/> <path d="M2 12a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/> <path d="M2 20a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/> <path d="M6 12h3a1 1 0 0 1 1 1v6a1 1 0 0 1 -1 1h-3"/> <path d="M6 4h7a1 1 0 0 1 1 1v10a1 1 0 0 1 -1 1h-2"/> <path d="M14 10h4"/></svg>Tournament</button>
   <button class="moodItem" id="endGame" type="button" aria-label="End the current game" style="display:none"><svg class="gIco" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M5 7a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2l0 -10"/></svg>End game</button>
@@ -767,10 +796,7 @@
      which is the file it was copied out of -- and it loads below, ahead of play-engine.js, so
      it still installs before anything schedules a frame. Keeping the copy would have started a
      second Web-Worker ticker whose queue nothing ever drains. -->
-<!-- HEAD-ONLY MODE, set before the engine loads: give me the head, not the portfolio page.
-     hero-engine.js reads this to skip index.html's wake-up cinematic and its Play-menu wiring
-     (play-games.js already owns #moodBtn here; two toggles on one button cancel out). Nothing
-     about the head itself changes -- that is the point. -->
+<!-- HEAD-ONLY MODE skips Home's intro/reel furniture, not the shared mood controller. -->
 <script>window.__hmHeroHeadOnly=true;
 /* THIS is the page where games run. play-engine.js builds its game furniture (the lava
    layers, the 20 battle rungs, the countdown, the battle counter, the race board, the
@@ -779,7 +805,9 @@
    that furniture only where this flag (or #playArena) says a game can actually start. */
 window.__hmGames=true;</script>
 <!-- The SAME engine index.html loads, from the same file. -->
+<script src="hero-time-presets.js"></script>
 <script src="hero-engine.js"></script>
+<script src="hero-time.js"></script>
 <script src="party.js"></script>
 <script src="egghead-seed.js"></script>
 <script src="play-engine.js"></script>

@@ -55,20 +55,20 @@
  // in a separate home-only module (index.html:4260-4462) mixed in with mood-word triggers
  // (startRain/moodEat/startParty/startLove) that have no meaning without the hero headline.
  // Every one of those functions is unreachable on play.html, so it is not portable, but SOME
- // open/close glue is required or #moodBtn does nothing: .moodMenu's visibility is entirely
- // gated on body>.moodbar.open (play.css:152-153, carried over from index.html). Minimal
+ // Open/close glue for the hidden game launcher remains behavior-only. The visible portrait
+ // mood menu is owned by hero-engine.js and uses separate canonical IDs. Minimal
  // version only: click-to-toggle, outside-click-to-close, Escape-to-close. No hover-intent, no
  // mobile edge-clamping, no chevron-rotation choreography -- home's menu carries four mood rows
  // plus a saved-heads grid and can run off the top of a short phone screen; this one is three
  // rows and sits in a fixed top-right corner with room to open downward, so the fancier
  // clamping home needs was solving a problem this menu doesn't have.
  (function(){
-  var bar=document.getElementById("moodbar");if(!bar)return;
-  var btn=document.getElementById("moodBtn");
+  var bar=document.getElementById("gamebar");if(!bar)return;
+  var btn=document.getElementById("gameBtn");
   function closeM(){bar.classList.remove("open");if(btn)btn.setAttribute("aria-expanded","false");}
   function openM(){bar.classList.add("open");if(btn)btn.setAttribute("aria-expanded","true");}
   if(btn)btn.addEventListener("click",function(e){e.stopPropagation();
-   if(document.body.classList.contains("hmTour")){closeM();return;}   // tournament disables moodBtn (index.html:8545) -- honor that here too
+   if(document.body.classList.contains("hmTour")){closeM();return;}   // tournament disables gameBtn -- honor that here too
    bar.classList.contains("open")?closeM():openM();});
   document.addEventListener("click",function(e){if(bar.classList.contains("open")&&!bar.contains(e.target))closeM();});
   addEventListener("keydown",function(e){if(e.key==="Escape"&&bar.classList.contains("open"))closeM();});
@@ -91,7 +91,7 @@
    if(on){bi.style.display="none";}   // a game is running: only End game belongs here
    else{bi.style.display="flex";bi.style.opacity=few?"0.38":"";bi.style.pointerEvents=few?"none":"";bi.setAttribute("aria-disabled",few?"true":"false");}});   // even one head can play now -- mini-Jayden makes the second
   ["soccerTeams","lavaTeams"].forEach(function(tid){var tb=document.getElementById(tid);if(tb){if(on){tb.style.display="none";}else{tb.style.display="";tb.style.opacity=few?"0.38":"";tb.style.pointerEvents=few?"none":"";}}});   // the team-picker icons ride with the Soccer + Floor-is-Lava rows
-  var offNow=on;[].forEach.call(document.querySelectorAll(".moodMenu .moodItem[data-mood], #addPlaceholder, .moodMenu .moodGo"),function(el){
+  var offNow=on;[].forEach.call(document.querySelectorAll(".gameMenu .moodItem[data-mood], #addPlaceholder, .gameMenu .moodGo"),function(el){
    if(offNow)el.setAttribute("aria-disabled","true");else el.removeAttribute("aria-disabled");});   // the dim is CSS; this is what a screen reader hears
   var eg=document.getElementById("endGame");if(eg)eg.style.display="none";   // End now lives on the scoreboard, not the menu
   syncMoodSeps();}
@@ -100,7 +100,7 @@
     dots, no "Add an egghead" group to separate from), so this is a no-op here -- kept verbatim
     so a later pass that adds dividers back gets the behavior for free. ---- */
  function syncMoodSeps(){
-  var mm=document.getElementById("moodMenu");if(!mm)return;
+  var mm=document.getElementById("gameMenu");if(!mm)return;
   var kids=[].slice.call(mm.children),last=null,before=false,i,el;
   var shown=function(e){if(e.hasAttribute("hidden"))return false;
    if(getComputedStyle(e).display==="none")return false;
@@ -114,7 +114,7 @@
 
  /* ---- THE HUB. play.html's resting state: a title block and four cards, shown exactly
     when no game is running and no sub-surface is up. It is a SECOND object, not a rebuild
-    of the corner menu -- #moodBtn/#moodbar keep their ids and their handlers because the
+    of the hidden game launcher -- #gameBtn/#gamebar keep their ids and handlers because the
     tournament disables and restores that button by id (play-tournament.js:1163,1183), and
     every card below fires the same launcher the menu row fired. The corner bar is only
     hidden (play.html's own style block), never rewired.
@@ -124,7 +124,7 @@
     of "can you play yet" to drift. ---- */
  var _hubWas=null;
  function syncHub(on,few){
-  var hub=document.getElementById("pHub");if(!hub)return;
+  var hub=document.getElementById("games");if(!hub)return;
   // A game starting is the one thing that can outrank the team screen: the tournament and
   // the corner launchers can both begin a match without going through startWithTeams(), and
   // a picker left floating over a live pitch is a stuck screen with no way out (its Back
@@ -140,8 +140,8 @@
      and on nothing else (play-engine.js:434). So a class that moves the stage has to say
      so, or the heads keep standing on the old floor line until the next real resize. Only
      on an actual change, and only after layout has settled. */
-  if(_hubWas!==want){_hubWas=want;
-   requestAnimationFrame(function(){try{dispatchEvent(new Event("resize"));}catch(_){}});}
+  if(_hubWas!==want){var returning=want&&_hubWas===false;_hubWas=want;
+   requestAnimationFrame(function(){try{dispatchEvent(new Event("resize"));}catch(_){}if(returning)restorePlayPosition();});}
   // aria-hidden as well as the CSS fade: a visibility:hidden subtree is already out of the
   // a11y tree, but the fade holds visibility for 360ms and a screen reader must not read a
   // menu that is on its way out.
@@ -327,9 +327,20 @@
     makes the re-entrant call a no-op the moment nothing has actually changed. */
  try{new MutationObserver(function(){battleGate();})
   .observe(document.body,{attributes:true,attributeFilter:["class"]});}catch(_){}
- function resetPlayScroll(){try{scrollTo(0,0);}catch(_){}}
+ /* A game locks the scrolling root, which makes Chromium temporarily clamp window.scrollY
+    to zero even though the arena itself is fixed. Preserve the hub position and launch
+    control across that lock so Back/End returns to the exact card the visitor used. */
+ var _returnFocus=null,_returnScroll=null;
+ function resetPlayScroll(){try{
+  if(!_returnScroll)_returnScroll={x:window.scrollX||0,y:window.scrollY||0};
+  if(!_returnFocus&&document.activeElement&&document.activeElement!==document.body)_returnFocus=document.activeElement;
+ }catch(_){}}
+ function restorePlayPosition(){var focus=_returnFocus,pos=_returnScroll;_returnFocus=null;_returnScroll=null;
+  if(pos)try{window.scrollTo(pos.x,pos.y);}catch(_){}
+  if(!focus||!focus.isConnected)return;
+  try{focus.focus({preventScroll:true});}catch(_){try{focus.focus();}catch(__){}}}
  window.__hmResetPlayScroll=resetPlayScroll;
- function closeMenuBar(){var mb=document.getElementById("moodbar");if(mb)mb.classList.remove("open");var mbt=document.getElementById("moodBtn");if(mbt)mbt.setAttribute("aria-expanded","false");}
+ function closeMenuBar(){var mb=document.getElementById("gamebar");if(mb)mb.classList.remove("open");var mbt=document.getElementById("gameBtn");if(mbt)mbt.setAttribute("aria-expanded","false");}
  var bg=document.getElementById("battleGo");
  if(bg)bg.addEventListener("click",function(){
   var rc=readAll().length;if(rc<1||gameOn())return;
@@ -401,7 +412,7 @@
   setTimeout(function(){try{if(window.__hmRaceStart)window.__hmRaceStart();}catch(_){}},_dly);closeMenuBar();battleGate();});
  // End game retired from the menu -- it lives on each game's own scoreboard, beside the thing it controls
 
- var bar=document.getElementById("moodbar");if(bar)bar.addEventListener("click",function(){setTimeout(function(){battleGate();},60);});   // home also called render() here to refresh #moodHeads; play.html has no roster grid to refresh
+ var bar=document.getElementById("gamebar");if(bar)bar.addEventListener("click",function(){setTimeout(function(){battleGate();},60);});
 
  // --- THE TEAM SCREEN: pick sides in one tap; heads preview their team colour live ---
  /* PROMOTED, NOT REDESIGNED. This was a 300px popover pinned to the bottom-right corner.
@@ -417,7 +428,7 @@
     as you pick. That anticipation beat is the whole point and it cost nothing new.
     THE CSS MOVED TO play.html's style block, where the rest of the hub's rules live (see
     the header on that block for why it is not in play.css this pass). What is left here is
-    the corner menu's own two rules: #moodbar is display:none on play.html now, but the
+    the hidden game launcher's own two rules: #gamebar is display:none on play.html, but the
     element and its ids stay in the DOM for the tournament, so its styling stays with it. */
  (function(){
   var teamsBtn=document.getElementById("soccerTeams");if(!teamsBtn)return;

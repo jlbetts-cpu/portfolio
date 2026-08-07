@@ -669,6 +669,18 @@
     image can never reveal an empty stage. Once all cuts are decoded, play-games asks these
     same physics bodies for one short, deterministic entrance. No duplicate DOM and no CSS
     approximation: x/y/vx/vy/air/st are the companion's real solver state. */
+ me.lobbyThrowPrepare=function(order,total){try{
+   if(reduce||killed||grabbed||perched)return false;
+   var bc=document.body.classList;
+   if(!bc.contains("pHubOn")||bc.contains("hmSoccer")||bc.contains("hmBattle")||bc.contains("hmRace")||bc.contains("hmTour"))return false;
+   survey();order=Math.max(0,order|0);total=Math.max(1,total|0);
+   var fromLeft=order%2===0,lift=150+(order%3)*18;
+   x=fromLeft?WL-HW*1.2:WR+HW*1.2;y=floorY-lift;surface=floorY;dir=fromLeft?1:-1;
+   air=false;st="idle";vx=0;vy=0;shown=true;
+   root.style.opacity="0";root.style.filter="none";shadow.style.opacity="0";refl.style.opacity="0";
+   root.setAttribute("data-hm-lobby-throw","queued");
+   return true;
+  }catch(_){return false;}};
  me.lobbyThrow=function(order,total){try{
    if(reduce||killed||grabbed||perched)return false;
    var bc=document.body.classList;
@@ -1011,7 +1023,17 @@
   // did rather than being snapped to full strength by this line.
   if(!first&&want!==shown){shown=want;root.style.opacity=want?"1":"0";root.style.filter=want?"blur(0)":"blur(6px)";shadow.style.opacity=want?"1":"0";if(!want)refl.style.opacity="0";}
   if(hideB&&!shown&&!first)return;   // hidden AND the fade has finished: skip the whole simulation, not just the paint. Deliberately no display:none -- the lava elim/sink paths own that property and fighting them is how heads end up as orphan shadows.
-  if(reduce){root.style.transform="translate("+(heroR.w*0.05)+"px,"+floorY+"px)";shadow.style.transform="translate("+(heroR.w*0.05)+"px,"+(floorY+HH-4)+"px)";return;}
+  if(reduce){
+   /* Boot already seats every companion across the shared floor. Reduced motion freezes those
+      real seats; it must not replace every x with the same 5% fallback and collapse the crowd
+      into one head. Keep the contact shadow and the existing polished-floor reflection static
+      on that same feet line too. */
+   root.style.transform="translate("+x.toFixed(1)+"px,"+y.toFixed(1)+"px)";
+   shadow.style.transform="translate("+(x+HW*0.06).toFixed(1)+"px,"+(floorY+HH*FOOT-2).toFixed(1)+"px)";shadow.style.opacity=shown?"0.36":"0";
+   if(shown&&LOBBY(now)){if(_reflFoot!==FOOT){_reflFoot=FOOT;refl.style.transformOrigin="50% "+(FOOT*100).toFixed(2)+"%";}
+    refl.style.transform="translate("+x.toFixed(1)+"px,"+floorY.toFixed(1)+"px) scale(1,-1) scale(1,"+REFL_PERSP.toFixed(3)+")";refl.style.opacity=(0.36*REFL_K).toFixed(3);}
+   else refl.style.opacity="0";
+   return;}
   if(!shown)return;
   // battleOn is DERIVED from the same two globals the class guardian uses -- every head reads it identically, so no head can be fighting after the whistle or stuck in the fight
   try{var _bReq=window.__hmBattleReq||0,_bResp=window.__hmRespawn||0,_wantB=_bReq>0&&_bReq>_bResp&&!killed;
@@ -1744,6 +1766,7 @@
    .sort(function(a,b){return a.slot-b.slot;});
   if(reduce||!crowd.length){document.body.setAttribute("data-lobby-throw",reduce?"reduced":"empty");return 0;}
   var token=++_lobbyThrowToken;document.body.setAttribute("data-lobby-throw","active");
+  crowd.forEach(function(peer,index){peer.lobbyThrowPrepare(index,crowd.length);});
   crowd.forEach(function(peer,index){var launch=function(){if(token===_lobbyThrowToken)peer.lobbyThrow(index,crowd.length);};if(index===0)launch();else setTimeout(launch,index*LOBBY_THROW_STAGGER);});
   setTimeout(function(){if(token===_lobbyThrowToken)document.body.setAttribute("data-lobby-throw","settled");},LOBBY_THROW_DURATION);
   return crowd.length;

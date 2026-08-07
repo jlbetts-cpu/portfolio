@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Static contract checks for the home-page specimen-frame hero."""
+"""Static contract checks for Home's minimal time-aware hero."""
 
 from pathlib import Path
 import re
@@ -32,7 +32,7 @@ for node_id in (
 ):
     assert f'id="{node_id}"' in html, node_id
 assert re.search(r'id="heroTimeBtn"[^>]+aria-controls="heroTimeMenu"', html)
-assert html.index('id="moodbar"') < html.index('id="heroTimeBtn"') < html.index('class="stagewrap"')
+assert html.index('id="workBtn"') < html.index('id="heroTimeBtn"') < html.index('class="heroTimeSupport"')
 assert html.count('data-time-mode="') == 8
 assert html.index('id="heroTimeSpill"') < html.index('id="main"')
 assert html.index('id="heroTimeClip"') < html.index('class="heroCopy"')
@@ -40,13 +40,9 @@ assert html.count('class="heroTimeGradient"') == 6
 for state in ("pre-dawn", "sunrise", "daytime", "dusk", "sunset", "night"):
     assert html.count(f'data-time-gradient="{state}"') == 1, state
 assert re.search(r'id="face"[^>]*><img id="heroTimePortraitCast"', html)
-assert re.search(
-    r'id="moodBtn"[^>]*aria-label="Choose a mood for Jayden’s portrait"[^>]*>.*?'
-    r'<span class="moodLbl">Choose a mood</span>',
-    html,
-    re.S,
-)
-assert 'id="moodMenu" role="menu" aria-label="Choose a mood for Jayden’s portrait"' in html
+assert 'id="moodBtn"' not in html
+assert 'id="moodMenu"' not in html
+assert 'data-mood=' not in html
 assert 'document.body.classList.add("heroEmpathy")' in hero_engine
 assert 'document.body.classList.remove("heroEmpathy")' in hero_engine
 assert re.search(r'body\.heroEmpathy \.jbStick \.jbNav\s*\{[^}]*--nav-mat:var\(--theme-page', html, re.S)
@@ -67,9 +63,9 @@ assert "heroTimeAutoState" not in html
 assert "heroTimeAutoState" not in time_controller
 assert html.index('href="header.css"') < html.index('href="hero-time.css"')
 assert 'src="fluid-mesh.js"' not in html, "FluidMesh belongs to Gradient Maker, not the Hero"
-assert html.index('src="hero-time-presets.js"') < html.index('src="hero-engine.js"')
-assert html.index('src="hero-engine.js"') < html.index('src="hero-time.js"')
-assert re.search(r'<script src="hero-engine\.js"></script>\s*<script src="hero-time\.js"></script>', html)
+assert '<script src="hero-time-presets.js"></script>' not in html
+assert '<script src="hero-engine.js"></script>' not in html
+assert '<script src="hero-time.js"></script>' in html
 clip_start = html.index('id="heroTimeClip"')
 clip_end = html.index('class="heroCopy"', clip_start)
 clip_markup = html[clip_start:clip_end]
@@ -462,25 +458,9 @@ assert re.search(r'<a[^>]+data-nav-item="games"[^>]+href="play\.html"', html)
 assert re.search(r'<a[^>]+id="workBtn"[^>]+href="#cases"', html)
 work_control = re.search(r'<a[^>]+id="workBtn".*?</a>', html, re.S)
 assert work_control and "<svg" not in work_control.group(0)
-assert 'id="moodbar"' in html and 'class="heroMood' in html
-assert re.search(r'<button[^>]+id="moodBtn"[^>]+aria-controls="moodMenu"', html)
-mood_control = re.search(r'<button[^>]+id="moodBtn".*?</button>', html, re.S)
-assert mood_control and "moodFaceIco" not in mood_control.group(0)
-assert html.count('class="moodItem"') >= 4
-
-for mood, icon, label in (
-    ("empathy", "camDot", "Empathy"),
-    ("hunger", "cookieDot", "Hunger"),
-    ("delight", "discoDot", "Delight"),
-    ("love", "heartDot", "Love"),
-):
-    pattern = rf'data-mood="{mood}"[^>]*>.*?class="moodIco {icon}".*?{label}</button>'
-    assert re.search(pattern, html, re.S), mood
-
-assert html.index('id="h1"') < html.index('id="moodbar"') < html.index('class="stagewrap"')
-
-for token in ("--hero-aura-core", "--hero-aura-mid", "--hero-aura-fade"):
-    assert token in html, token
+assert 'id="moodbar"' not in html and 'class="heroMood' not in html
+assert html.index('id="h1"') < html.index('id="heroTimeBtn"') < html.index('class="heroTimeSupport"')
+assert '<h1 id="h1">SF product designer. iOS, B2C and design systems.</h1>' in html
 
 assert re.search(
     r'\.hero\s*\{[^}]*box-shadow:\s*var\(--rim-3\)',
@@ -493,10 +473,9 @@ assert ".cursorGlow" not in html
 hero_aura_rule = re.search(r'\.heroAura\s*\{.*?\}', html, re.S)
 assert hero_aura_rule and "var(--accent)" not in hero_aura_rule.group(0)
 assert "@media(max-width:880px)" in html
-assert re.search(r'@media\(max-width:880px\).*?\.hero\s*\{[^}]*min-height:auto', html, re.S)
-assert re.search(r'@media\(max-height:720px\).*?\.hero \.stagewrap\{[^}]*470px', html, re.S)
-assert re.search(r'\.hero \.stagewrap\s*\{[^}]*620px', html, re.S)
-assert re.search(r'\.heroMood \.moodLbl\s*\{[^}]*font:\s*inherit', html, re.S)
+assert re.search(r'@media\(max-width:880px\).*?\.hero\s*\{[^}]*min-height:clamp\(336px,46svh,440px\)', html, re.S)
+assert re.search(r'\.heroTimeSupport\s*\{[^}]*display:none!important', html, re.S)
+assert re.search(r'\.heroCtas>\*\s*\{[^}]*opacity:1;[^}]*transform:none', html, re.S)
 assert re.search(r'#loveScene\s*\{[^}]*z-index:\s*64', html, re.S)
 assert re.search(r'@media\(max-width:760px\).*?\.cases\s*\{[^}]*margin-top:var\(--sp-16\)', html, re.S)
 assert re.search(r'\.csTabs::before\s*\{[^}]*inset-inline:var\(--case-inset\)', html, re.S)
@@ -543,10 +522,10 @@ assert "movieEffectsStage.style.transform=value;" in transform_movie.group(0)
 assert start_movie.group(0).index("ensureMovieEls();") < start_movie.group(0).index("syncMovieEffectsLayer();")
 assert movie_section.count("stage.style.transform=") == 3, "movie transforms must stay mirrored to the clip host"
 
-case_enter = re.search(r"function enter\(f,e\)\{.*?\}\s*// project cards", html, re.S)
-assert case_enter and "startMovie(csw)" in case_enter.group(0)
+case_enter = re.search(r"function enter\(f,e\)\{.*?\}\n\s*function leave", html, re.S)
+assert case_enter and "startMovie" not in case_enter.group(0)
 assert 'activeHover="smile"' not in case_enter.group(0)
 case_leave = re.search(r"function leave\(f\)\{.*?\}\n", html, re.S)
-assert case_leave and "caughtMovie()" in case_leave.group(0)
+assert case_leave and "caughtMovie" not in case_leave.group(0)
 
 print("hero specimen structure: OK")

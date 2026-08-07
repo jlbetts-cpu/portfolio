@@ -355,7 +355,7 @@ body.moodInCta .heroCtas:not(.in) .faceMoodCorner{opacity:0!important;visibility
 .camDot::before{content:"";position:absolute;inset:0;background:center/contain no-repeat;background-image:url(images/cam.webp);filter:url(#inkSm);animation:camSnap 2.8s steps(1,end) infinite;transform-origin:50% 70%}
 @keyframes camSnap{0%,88%{transform:scale(1)}91%{transform:scale(1.12)}94%{transform:scale(.95)}97%,100%{transform:scale(1)}}
 #photorain{position:absolute;top:0;left:0;right:0;height:100vh;-webkit-mask-image:linear-gradient(#000 86%,transparent 100%);mask-image:linear-gradient(#000 86%,transparent 100%);z-index:95;pointer-events:none;overflow:hidden}
-body.heroEmpathy .jbStick .jbNav{--nav-mat:var(--theme-page,var(--c50))!important;--nav-rim:inset 0 0 0 var(--hair-w) var(--theme-rim,var(--c100))!important}
+body.heroEmpathy .jbStick .jbNav{--nav-mat:var(--theme-page,var(--c50))!important;--nav-rim:inset 0 0 0 var(--hair-w) var(--theme-rim,var(--c100))!important;background-color:var(--theme-page,var(--c50))!important;transition:none!important}
 #camflash{position:absolute;top:0;left:0;right:0;height:100vh;z-index:98;pointer-events:none;opacity:0;background:radial-gradient(circle at 50% 42%,#fff 0%,#fff 56%,rgba(255,255,255,.8) 100%)}
 #photorain .pgrain{position:absolute;inset:0;background:url(images/overlay.webp) repeat;opacity:.18;mix-blend-mode:multiply;animation:rainGrain 1s steps(8,end) infinite}
 @keyframes rainGrain{0%{background-position:0 0}12.5%{background-position:-13px 7px}25%{background-position:9px -11px}37.5%{background-position:-7px -6px}50%{background-position:12px 8px}62.5%{background-position:-11px 10px}75%{background-position:6px -9px}87.5%{background-position:-9px 4px}100%{background-position:0 0}}
@@ -1406,34 +1406,26 @@ html{scroll-padding-top:calc(var(--nav-h) + var(--sp-16-24))}
 .csTab::before{content:"";position:absolute;top:50%;left:0;right:0;
  height:var(--tap-min);transform:translateY(-50%);pointer-events:auto}
 
-/* ═══ HERO SPECIMEN FRAME, 2026-08-05 ═══════════════════════════════════════
-   The portrait remains the hero's one expressive object. The shell, controls
-   and atmosphere use the existing control/material language so they read as
-   one system with header.css instead of a second visual vocabulary. */
-:root{
- --hero-aura-core:rgba(148,205,255,.44);
- --hero-aura-mid:rgba(184,222,255,.24);
- --hero-aura-fade:rgba(225,241,255,0);
-}
+/* ═══ HOME MINIMAL HERO ══════════════════════════════════════════════════════
+   The Home page is the recruiter-facing entry point: the existing time scene
+   frames a direct headline and one work action. Hidden source/cast nodes remain
+   only for the time controller; no portrait or companion engine boots here. */
 .wrap{padding-inline:var(--sp-16-40)}
 .hero{
  position:relative;isolation:isolate;overflow:hidden;
- display:grid;grid-template-columns:1fr;justify-items:center;align-content:start;
- min-height:calc(100svh - 84px);gap:0;padding:var(--sp-24) var(--sp-16-24) 0;
+ display:grid;grid-template-columns:1fr;justify-items:center;align-content:center;
+ min-height:clamp(360px,48svh,500px);gap:0;padding:clamp(72px,12svh,112px) var(--sp-16-24);
  border:0;box-shadow:var(--rim-3);border-radius:var(--r-xl);
  corner-shape:var(--corner);background:var(--c50)
 }
-.heroAura{position:absolute;z-index:-1;pointer-events:none;left:50%;top:61%;
- width:min(960px,88%);height:68%;transform:translate(-50%,-50%);
- background:radial-gradient(ellipse at center,var(--hero-aura-core) 0%,
-  var(--hero-aura-mid) 38%,var(--hero-aura-fade) 76%);
- filter:blur(var(--blur-3))}
+.heroAura{display:none}
 .heroCopy{display:contents}
-.heroCopy h1{order:2;margin:0 auto;max-width:min(14.4em,100%);font-size:var(--fs-heroline);
+.heroCopy h1{order:1;margin:0 auto;max-width:min(14.4em,100%);font-size:var(--fs-heroline);
  line-height:1.06;letter-spacing:var(--tr-head);text-align:center;text-wrap:balance}
-.heroCtas{order:3;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;
+.heroCtas{order:2;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;
  gap:var(--sp-8);margin-top:var(--sp-16);position:relative;z-index:8}
-.workCta,.heroMood .moodBtn{height:var(--tap-min);min-height:var(--tap-min);
+.heroCtas>*{opacity:1;transform:none}
+.workCta{height:var(--tap-min);min-height:var(--tap-min);
  padding:0 var(--sp-16);border-radius:var(--r-md);corner-shape:var(--corner);
  font-family:var(--sans);font-size:var(--fs-nav);font-weight:400;line-height:var(--lh-flat);
  text-decoration:none;display:inline-flex;align-items:center;justify-content:center;
@@ -1445,63 +1437,27 @@ html{scroll-padding-top:calc(var(--nav-h) + var(--sp-16-24))}
 .workCta svg,.moodFaceIco{width:var(--ico-sm);height:var(--ico-sm);fill:none;
  stroke:currentColor;stroke-width:var(--ico-stroke);stroke-linecap:round;stroke-linejoin:round}
 .workCta:hover,.workCta:focus-visible{background:var(--c900);border-color:var(--c900);color:var(--c50)}
-.heroMood{position:relative;z-index:12;display:inline-flex}
-.heroMood .moodBtn{border:var(--hair-w) solid var(--c100);background:var(--mat-2);color:var(--c950)}
-.heroMood .moodLbl{font:inherit}
-.heroMood .moodBtn:hover,.heroMood .moodBtn:focus-visible,.heroMood.open .moodBtn{
- border-color:var(--c500);background:var(--mat-3-solid);color:var(--c950)}
-.heroMood .moodCar{width:var(--ico-xs);height:var(--ico-xs);fill:none;stroke:currentColor;
- stroke-width:var(--ico-stroke);stroke-linecap:round;stroke-linejoin:round;
- transition:transform var(--sp-settle-dur) var(--ease-out)}
-.heroMood.open .moodCar{transform:rotate(180deg)}
-.heroMood .moodMenu{position:absolute;top:calc(100% + var(--sp-8));left:0;right:auto;
- z-index:30;display:flex;flex-direction:column;gap:var(--gap-bar);width:var(--menu-w);
- max-width:min(var(--menu-w),calc(100vw - (var(--sp-16-40) * 2)));
- padding:var(--pad-bar);background:var(--mat-3-solid);box-shadow:var(--rim-2),var(--sh-2);
- border:0;border-radius:var(--r-lg);corner-shape:var(--corner);
- opacity:0;visibility:hidden;transform:translateY(calc(var(--sp-4) * -1));
- transition:opacity var(--ease-out-dur) var(--ease-out),
-  transform var(--ease-out-dur) var(--ease-out),visibility 0s var(--ease-out-dur)}
-.heroMood.open .moodMenu{opacity:1;visibility:visible;transform:none;
- transition:opacity var(--ease-out-dur) var(--ease-out),transform var(--ease-out-dur) var(--ease-out)}
-.heroMood .moodItem{display:flex;align-items:center;justify-content:flex-start;gap:var(--sp-10);
- width:100%;min-height:var(--tap-min);padding:0 var(--sp-10);border:0;
- border-radius:var(--r-sm);corner-shape:var(--corner);background:none;color:var(--c700);
- font-family:var(--sans);font-size:var(--fs-nav);font-weight:400;line-height:var(--lh-flat);
- cursor:pointer;text-align:left;transition:color var(--hover-out-dur) var(--ease-out),
-  background-color var(--hover-out-dur) var(--ease-out),font-weight var(--hover-out-dur) var(--ease-out)}
-.heroMood .moodItem:hover,.heroMood .moodItem:focus-visible{color:var(--c950);
- background:var(--wash-1);font-weight:600}
-.heroMood .moodIco{width:var(--ico-md)!important;height:var(--ico-md)!important;
- flex:0 0 var(--ico-md)!important;margin:0!important;transform:none!important}
-.hero .stagewrap{order:4;width:min(clamp(400px,calc((100svh - 270px) * .98),620px),60vw);
- height:auto;aspect-ratio:1 / .97;margin:var(--sp-8-16) auto 0;z-index:1}
-.workCta:active,.heroMood .moodBtn:active{transform:scale(var(--press-scale))}
-.workCta:focus-visible,.heroMood .moodBtn:focus-visible,.heroMood .moodItem:focus-visible{
+.heroTimeSupport{display:none!important}
+.workCta:active{transform:scale(var(--press-scale))}
+.workCta:focus-visible{
  outline:var(--focus-w) solid var(--c950);outline-offset:var(--sp-2)}
 @media(max-width:880px){
- .hero{min-height:auto;padding-bottom:var(--sp-24)}
- .hero .stagewrap{width:min(64vw,calc((100svh - 280px) * .86),500px)}
+ .hero{min-height:clamp(336px,46svh,440px)}
 }
 @media(max-width:760px){
- .hero{min-height:auto;padding:var(--sp-20) var(--sp-12) var(--sp-20);border-radius:var(--r-lg)}
+ .hero{min-height:0;padding:var(--sp-48) var(--sp-12);border-radius:var(--r-lg)}
  .heroCopy h1{font-size:var(--fs-heroline);max-width:12.5em}
  .heroCtas{margin-top:var(--sp-14)}
- .workCta,.heroMood .moodBtn{height:var(--tap-min);padding-inline:var(--sp-14)}
- .heroMood .moodMenu{left:auto;right:0;width:min(var(--menu-w),calc(100vw - var(--sp-48)))}
- .hero .stagewrap{width:min(88vw,calc((100svh - 300px) * .86),430px);
-  margin-top:var(--sp-8)}
- .heroAura{top:62%;width:124%;height:64%}
+ .workCta{height:var(--tap-min);padding-inline:var(--sp-14)}
  .cases{margin-top:var(--sp-16)}
 }
 @media(max-height:720px) and (min-width:761px){
- .hero{padding-top:var(--sp-16)}
+ .hero{min-height:clamp(320px,44svh,400px);padding-block:var(--sp-48)}
  .heroCopy h1{font-size:clamp(30px,3.2vw,36px)}
  .heroCtas{margin-top:var(--sp-12)}
- .hero .stagewrap{width:min(470px,46vw);margin-top:var(--sp-6)}
 }
 @media(prefers-reduced-motion:reduce){
- .heroAura,.heroMood .moodMenu,.heroMood .moodCar,.heroCtas>*{transition:none!important;animation:none!important}
+ .heroCtas>*{transition:none!important;animation:none!important}
 }
 </style>
 <link rel="stylesheet" href="header.css">
@@ -1609,10 +1565,9 @@ if(location.hash==="#about")location.replace("about.html");</script>
   <div class="heroAura" aria-hidden="true"></div>
   <div class="heroTimeClip" id="heroTimeClip" aria-hidden="true"><div class="heroTimeGradient" data-time-gradient="pre-dawn"></div><div class="heroTimeGradient" data-time-gradient="sunrise"></div><div class="heroTimeGradient" data-time-gradient="daytime"></div><div class="heroTimeGradient" data-time-gradient="dusk"></div><div class="heroTimeGradient" data-time-gradient="sunset"></div><div class="heroTimeGradient" data-time-gradient="night"></div></div>
   <div class="heroCopy">
-   <h1 id="h1"></h1><p class="sub" id="sub"></p>
+   <h1 id="h1">SF product designer. iOS, B2C and design systems.</h1><p class="sub" id="sub"></p>
    <div class="heroCtas">
-    <a class="workCta" id="workBtn" href="#cases"><span>View work</span></a>
-    <div class="heroMood moodbar" id="moodbar"><button class="moodBtn" id="moodBtn" type="button" aria-label="Choose a mood for Jayden’s portrait" aria-haspopup="menu" aria-expanded="false" aria-controls="moodMenu"><span class="moodLbl">Choose a mood</span><svg class="moodCar" viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4"/></svg></button><div class="moodMenu" id="moodMenu" role="menu" aria-label="Choose a mood for Jayden’s portrait"><button class="moodItem" type="button" role="menuitem" data-mood="empathy"><span class="moodIco camDot" aria-hidden="true"></span>Empathy</button><button class="moodItem" type="button" role="menuitem" data-mood="hunger"><span class="moodIco cookieDot" aria-hidden="true"></span>Hunger</button><button class="moodItem" type="button" role="menuitem" data-mood="delight"><span class="moodIco discoDot" aria-hidden="true"></span>Delight</button><button class="moodItem" type="button" role="menuitem" data-mood="love"><span class="moodIco heartDot" aria-hidden="true"></span>Love</button></div></div>
+   <a class="workCta" id="workBtn" href="#cases"><span>View work</span></a>
     <div class="heroTime" id="heroTime">
      <button class="heroTimeBtn" id="heroTimeBtn" type="button" aria-label="Time of day" aria-haspopup="menu" aria-expanded="false" aria-controls="heroTimeMenu"><svg class="heroTimeIcon uiIcon" id="heroTimeIcon" viewBox="0 0 24 24" aria-hidden="true"><g data-hero-time-icon="pre-dawn"><use href="ui-icons.svg#lucide-moon-star"/></g><g data-hero-time-icon="sunrise"><use href="ui-icons.svg#lucide-sunrise"/></g><g data-hero-time-icon="daytime"><use href="ui-icons.svg#lucide-sun"/></g><g data-hero-time-icon="dusk"><use href="ui-icons.svg#lucide-cloud-sun"/></g><g data-hero-time-icon="sunset"><use href="ui-icons.svg#lucide-sunset"/></g><g data-hero-time-icon="night"><use href="ui-icons.svg#lucide-moon"/></g><g data-hero-time-icon="off"><use href="ui-icons.svg#lucide-circle-off"/></g></svg></button>
      <div class="heroTimeMenu" id="heroTimeMenu" role="menu" aria-label="Choose time of day">
@@ -1629,10 +1584,10 @@ if(location.hash==="#about")location.replace("about.html");</script>
     <script id="heroTimePrepaint">(function(){var r=document.documentElement,h=document.getElementById("main"),m=r.getAttribute("data-theme-mode")||"auto",s=r.getAttribute("data-theme-state")||"off",q=r.getAttribute("data-reduced-motion")||"no-preference",i=document.getElementById("heroTimeIcon"),n=document.querySelectorAll('#heroTimeMenu [role="menuitemradio"]');h.setAttribute("data-time-mode",m);h.setAttribute("data-time-state",s);h.setAttribute("data-reduced-motion",q);i.setAttribute("data-icon",s);n.forEach(function(x){x.setAttribute("aria-checked",x.getAttribute("data-time-mode")===m?"true":"false");});})();</script>
    </div>
   </div>
-  <a class="scrollCue" id="scrollCue" href="#cases" aria-label="Scroll to my work"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" aria-hidden="true"><path d="M6 9.5L12 15.5L18 9.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a><div class="stagewrap"><div class="queueDots" id="qdots" role="status" aria-live="polite"><span class="qsr"></span><i></i><i></i><i></i></div><div id="stageMorph"><div class="floorshadow" id="fsh"></div><div class="stage" id="stage"><img class="face" id="face" alt="Jayden" draggable="false"><img id="heroTimePortraitCast" class="heroTimePortraitCast" alt="" aria-hidden="true"><img class="tongue" id="tongue" src="images/tongue.webp" alt="" aria-hidden="true">
+  <div class="heroTimeSupport" hidden inert aria-hidden="true"><div class="stagewrap"><div class="queueDots" id="qdots" role="status" aria-live="polite"><span class="qsr"></span><i></i><i></i><i></i></div><div id="stageMorph"><div class="floorshadow" id="fsh"></div><div class="stage" id="stage"><img class="face" id="face" alt="" draggable="false"><img id="heroTimePortraitCast" class="heroTimePortraitCast" alt="" aria-hidden="true"><img class="tongue" id="tongue" src="images/tongue.webp" alt="" aria-hidden="true">
 <svg class="glasses" id="glasses" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><defs><pattern id="glCard" patternUnits="userSpaceOnUse" width="100" height="100"><image href="images/glass_frame_tex.webp" x="0" y="0" width="100" height="100" preserveAspectRatio="xMidYMid slice"/></pattern><linearGradient id="glSheen" x1="0" y1="0" x2="0.62" y2="1"><stop offset="0" stop-color="#fff" stop-opacity="0.5"/><stop offset="0.4" stop-color="#fff" stop-opacity="0.06"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient><mask id="glMask" maskUnits="userSpaceOnUse" x="0" y="0" width="100" height="100"><rect x="28" y="45.3" width="44" height="13.2" rx="2.4" fill="#fff"/><polygon points="28,47.2 26,48 26,50.4 28,51.2" fill="#fff"/><polygon points="72,47.2 74,48 74,50.4 72,51.2" fill="#fff"/><rect x="32.5" y="47.3" width="13" height="9.2" rx="1.8" fill="#000"/><rect x="54.5" y="47.3" width="13" height="9.2" rx="1.8" fill="#000"/><path d="M46.7 58.6 Q50 54.3 53.3 58.6 Z" fill="#000"/></mask></defs><rect class="gl-red" x="32.5" y="47.3" width="13" height="9.2" rx="1.8"/><rect class="gl-cyan" x="54.5" y="47.3" width="13" height="9.2" rx="1.8"/><rect class="gl-plast" x="32.5" y="47.3" width="13" height="9.2" rx="1.8" fill="url(#glSheen)"/><rect class="gl-plast" x="54.5" y="47.3" width="13" height="9.2" rx="1.8" fill="url(#glSheen)"/><rect x="0" y="0" width="100" height="100" fill="url(#glCard)" mask="url(#glMask)"/></svg></div></div>
 </div>
-  <div class="heroMovieEffectsClip" id="heroMovieEffectsClip" aria-hidden="true"><div class="heroMovieEffectsStage" id="heroMovieEffectsStage"></div></div>
+  <div class="heroMovieEffectsClip" id="heroMovieEffectsClip" aria-hidden="true"><div class="heroMovieEffectsStage" id="heroMovieEffectsStage"></div></div></div>
  </section>
 
 </div>
@@ -1760,12 +1715,7 @@ if(location.hash==="#about")location.replace("about.html");</script>
  </footer>
 <div class="reelOverlay" id="reelOverlay" aria-hidden="true"><button class="reelClose" id="reelClose" type="button" aria-label="Close trailer">Close</button><video class="reelOverlayVid" id="reelOverlayVid" controls playsinline preload="metadata" poster="images/reel_poster.webp"><source src="videos/reel.mp4" type="video/mp4"></video></div>
 <div class="viewCursor" id="viewCursor" aria-hidden="true"><span class="vcInner"><span class="vcArr"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="square" stroke-linejoin="miter"><path d="M12 20V5M5 12l7-7 7 7"/></svg></span>View case study</span></div>
-<!-- The hero/big-head engine. Extracted verbatim from this inline block so play.html can
-     load THE SAME engine and mini-Jayden mirrors the real big head rather than a lookalike.
-     Classic script, no defer: it executes here, in this exact position, before every later
-     inline block -- so its top-level const/let still share one script scope with them. -->
-<script src="hero-time-presets.js"></script>
-<script src="hero-engine.js"></script>
+<!-- Home owns only the time-gradient control. The portrait and companion engines are Play-only. -->
 <script src="hero-time.js"></script>
 <script>
 (function(){
@@ -1825,8 +1775,8 @@ if(location.hash==="#about")location.replace("about.html");</script>
   function anchor(){var cw=card.offsetWidth||286,ch=card.offsetHeight||200,off=22,tx=mx+off,ty=my+off; if(tx+cw>window.innerWidth-14)tx=mx-off-cw; if(tx<14)tx=14; if(ty+ch>window.innerHeight-14)ty=window.innerHeight-14-ch; if(ty<14)ty=14; return [tx,ty];}
   function follow(){ if(!active){running=false;return;} cur.style.transform='translate('+mx+'px,'+my+'px)'; var a=anchor(); cardX+=(a[0]-cardX)*0.26; cardY+=(a[1]-cardY)*0.26; card.style.transform='translate('+cardX.toFixed(1)+'px,'+cardY.toFixed(1)+'px)'; requestAnimationFrame(follow); }
   function onMove(e){mx=e.clientX;my=e.clientY;if(vc){vc.style.setProperty('--px',e.clientX+'px');vc.style.setProperty('--py',e.clientY+'px');}}
-  function enter(f,e){var slug=slugOf(f),info=slug&&CSINFO[slug];if(!info)return;active=f;mx=e.clientX;my=e.clientY;vR.textContent=info.role;vP.textContent=info.problem;vS.textContent=info.solution;var a=anchor();cardX=a[0];cardY=a[1];card.style.transform='translate('+cardX.toFixed(1)+'px,'+cardY.toFixed(1)+'px)';cur.style.transform='translate('+mx+'px,'+my+'px)';if(!RM)f.style.cursor='none';card.classList.add('on');if(!RM){cur.classList.add('on');}if(!running){running=true;requestAnimationFrame(follow);}try{if(!RM&&!eventLock&&!CALIB){clearHold();activeHover=null;var csw={bearings:'Bears?',ucdavis:'Joy..',apollo:'Motion.',strata:'Motion.',cluster:'Motion.',headmaker:'You..?'}[slug];startMovie(csw);}}catch(_){}}   // project cards reuse the reel's full popcorn + glasses performance, including the contextual Joy../Bears?/Motion. word
-  function leave(f){if(active!==f)return;active=null;card.classList.remove('on');cur.classList.remove('on');if(vc)vc.classList.remove('on');f.style.cursor='';try{if(!RM)caughtMovie();}catch(_){}}
+  function enter(f,e){var slug=slugOf(f),info=slug&&CSINFO[slug];if(!info)return;active=f;mx=e.clientX;my=e.clientY;vR.textContent=info.role;vP.textContent=info.problem;vS.textContent=info.solution;var a=anchor();cardX=a[0];cardY=a[1];card.style.transform='translate('+cardX.toFixed(1)+'px,'+cardY.toFixed(1)+'px)';cur.style.transform='translate('+mx+'px,'+my+'px)';if(!RM)f.style.cursor='none';card.classList.add('on');if(!RM){cur.classList.add('on');}if(!running){running=true;requestAnimationFrame(follow);}}
+  function leave(f){if(active!==f)return;active=null;card.classList.remove('on');cur.classList.remove('on');if(vc)vc.classList.remove('on');f.style.cursor='';}
   [].slice.call(document.querySelectorAll('.csFrame')).forEach(function(f){f.addEventListener('pointerenter',function(e){enter(f,e);});f.addEventListener('pointermove',onMove);f.addEventListener('pointerleave',function(){leave(f);});});function cardClear(){if(active){leave(active);}}document.addEventListener('mouseleave',cardClear);window.addEventListener('blur',cardClear);window.addEventListener('mouseout',function(e){if(!e.relatedTarget&&!e.toElement){cardClear();}});
  })();
 
@@ -1855,42 +1805,6 @@ if(location.hash==="#about")location.replace("about.html");</script>
  })();
 })();
 
-(function(){
-  var stage=document.getElementById('stageMorph');if(!stage)return;
-  var near=false,raf=0;
-  function check(e){
-    if(window.innerWidth<=760)return;
-    var r=stage.getBoundingClientRect();
-    // proximity zone: within ~180px of the head box
-    var hx0=r.left+r.width*0.22, hx1=r.left+r.width*0.80, hy0=r.top+r.height*0.12, hy1=r.top+r.height*0.91;
-    var pad=90;
-    var inHead=e.clientX>=hx0-pad&&e.clientX<=hx1+pad&&e.clientY>=hy0-pad&&e.clientY<=hy1+pad;
-    // also keep it revealed when approaching or over the button itself (it sits off to the side of the head)
-    var corner=document.querySelector(".faceMoodCorner");
-    var inBtn=false;
-    if(corner){var br=corner.getBoundingClientRect();var bpad=70;inBtn=e.clientX>=br.left-bpad&&e.clientX<=br.right+bpad&&e.clientY>=br.top-bpad&&e.clientY<=br.bottom+bpad;}
-    var inside=inHead||inBtn;
-    if(inside!==near){near=inside;document.body.classList.toggle('moodNear',near);}
-  }
-  window.addEventListener('mousemove',function(e){if(raf)return;raf=requestAnimationFrame(function(){raf=0;check(e);});},{passive:true});function moodClear(){if(near){near=false;document.body.classList.remove('moodNear');}}document.addEventListener('mouseleave',moodClear);window.addEventListener('blur',moodClear);window.addEventListener('mouseout',function(e){if(!e.relatedTarget&&!e.toElement){moodClear();}});
-})();
-
-(function(){
-  if(window.matchMedia&&window.matchMedia('(max-width:760px)').matches)return; // mobile always shows
-  var corner=document.querySelector('.faceMoodCorner');if(!corner)return;
-  // wait for the hero intro to settle, then do a one-time teaching reveal
-  function teach(){
-    document.body.classList.add('moodTeach');
-    setTimeout(function(){document.body.classList.remove('moodTeach');},2200); // show ~2.2s then fade out
-  }
-  // fire once eyes have opened (intro done) — poll for eclosed like the rest of the pipeline
-  var tries=0;
-  var iv=setInterval(function(){
-    tries++;
-    var eye=document.querySelector('.eye');
-    if((eye&&eye.classList.contains('eclosed'))||tries>60){clearInterval(iv);setTimeout(teach,600);}
-  },200);
-})();
 </script>
 <script>
 (function(){ // the crowd in the menu: your saved heads, each removable with one quiet x
@@ -1996,10 +1910,7 @@ if(location.hash==="#about")location.replace("about.html");</script>
  // deliberate -- unloading a running engine mid-session is not worth the complexity.
  var bar=document.getElementById("mhBar"),tog=document.getElementById("headsToggle");
  function headsShown(){try{return localStorage.getItem("hmHeadsOff")!=="1";}catch(_){return true;}}
- function loadEngine(){if(window.__hmLive)return;                       // already running
-  if(document.querySelector('script[data-hm-engine]'))return;           // already in flight
-  if(!readAll().length)return;                                          // nothing to animate
-  var s=document.createElement("script");s.src="play-engine.js";s.setAttribute("data-hm-engine","1");document.head.appendChild(s);}
+ function loadEngine(){}   // Companion animation is Play-only; Home only manages the saved roster.
  function applyHeads(on){document.body.classList.toggle("hmHeadsOff",!on);
   if(tog)tog.setAttribute("aria-checked",on?"true":"false");
   if(on)loadEngine();}
@@ -2066,27 +1977,7 @@ if(location.hash==="#about")location.replace("about.html");</script>
  })();
 })();
 </script>
-<!-- ==== AMBIENT HEADS: the conditional bootstrap ====
-     The engine that wanders the saved heads around the hero used to be 2,700 lines inline in
-     this file; it is play-engine.js now and it is play.html's main event. On HOME it is a
-     garnish, so it is only worth its bytes for a visitor who actually has heads and wants to
-     see them. This gate must not depend on the engine it is deciding whether to load, so it
-     reads localStorage directly -- the same two keys the roster module above reads.
-     Ordering: play-engine.js's mini-Jayden clone path reads #stage, which hero-engine.js owns.
-     hero-engine.js is a plain, non-defer, non-async script tag earlier in the document, so it
-     has already executed by the time this runs; the injected tag can only be later still. ==== -->
-<script>
-(function(){try{
- if(localStorage.getItem("hmHeadsOff")==="1")return;
- var raw=localStorage.getItem("hmCompanions"),a=null;
- if(raw)try{a=JSON.parse(raw);}catch(_){}
- if(!a||!a.length){try{var one=JSON.parse(localStorage.getItem("hmCompanion")||"null");a=(one&&one.cut)?[one]:null;}catch(_){}}   // the single-head legacy key, same fallback readAll() uses
- if(!a||!a.length)return;
- if(document.querySelector('script[data-hm-engine]'))return;
- var s=document.createElement("script");s.src="play-engine.js";s.defer=true;s.setAttribute("data-hm-engine","1");
- document.head.appendChild(s);
-}catch(_){}})();
-</script>
+<!-- Saved companions remain available in Play and Head Maker; Home never boots their engine. -->
 <div class="csBackveil" id="csBackveil" aria-hidden="true"></div>
 <div class="flash" id="flash" aria-hidden="true"></div>
 <!-- The head-maker card reveal lived here: [data-slug=headmaker] sat in a panel that is hidden
