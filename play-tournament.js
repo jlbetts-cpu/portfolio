@@ -1242,7 +1242,7 @@ function start(){
     document.body.style.setProperty('--cupStock',T.id.stock);
     document.body.style.setProperty('--cupSheen',T.id.sheen);
     T.br = BR.buildBracket(teams.map(function(t){ return t.id; })); lastRound = -1;
-    try{ if(window.__hmResetPlayScroll) window.__hmResetPlayScroll(); }catch(_){}
+    if(window.PlayViewportOwner) window.PlayViewportOwner.enter("tournament");
     document.body.classList.add('hmTour');
     benchAll();
     /* Fixture one is cast the same way every other fixture is -- the first
@@ -1268,6 +1268,7 @@ function stop(){
   document.body.classList.remove('hmTour');
   try { var tt2 = document.querySelector('.hmScore .sTitleTxt'); if (tt2) tt2.textContent = 'Soccer'; } catch (_) {}
   clearSpawned(); paint();
+  if(window.PlayViewportOwner) window.PlayViewportOwner.leave("tournament");
 }
 window.__hmTourStart = start;
 window.__hmTourStop = stop;

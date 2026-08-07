@@ -2140,7 +2140,7 @@ function teams(){
      g.save();g.translate(p.x,p.y);g.rotate(t*p.rv);g.scale(1,Math.max(0.2,Math.abs(Math.cos(t*p.rv))));
      g.fillStyle="rgba("+p.c+",1)";g.fillRect(-p.w/2,-p.h/2,p.w,p.h);g.restore();});
     if(t<2.3)requestAnimationFrame(fr);else{cv.remove();window.__hmFx=Math.max(0,(window.__hmFx||1)-1);}})(performance.now());}catch(_){window.__hmFx=Math.max(0,(window.__hmFx||1)-1);}}
-  function start(){if(S.on)return;try{if(window.__hmResetPlayScroll)window.__hmResetPlayScroll();}catch(_){}_gyLock=null;geo();if(!ball)dom();layout();teams();
+  function start(){if(S.on)return;_gyLock=null;if(window.PlayViewportOwner)window.PlayViewportOwner.enter("soccer");geo();if(!ball)dom();layout();teams();
    /* THE MATCH GETS LONGER AS THE CUP GETS SHORTER. Every fixture was first-to-5 with
       win-by-two, so eight players meant seven matches of identical length and the whole thing
       dragged -- and the final felt exactly like a quarter-final. Early rounds are first to 3
@@ -2344,7 +2344,8 @@ function teams(){
       kickabout got the final's ball. Every match ends here, so this is the one honest place. */
    document.body.classList.remove("hmFinal");
    try{if(window.__hmFX)window.__hmFX.clear();}catch(_){}
-   try{if(window.__hmGoalL3Teardown)window.__hmGoalL3Teardown();}catch(_){}}   // THE GOAL GRAMMAR: a goal scored just before the match ended must not leave its lower-third floating over the emptied stage
+   try{if(window.__hmGoalL3Teardown)window.__hmGoalL3Teardown();}catch(_){}
+   if(window.PlayViewportOwner)window.PlayViewportOwner.leave("soccer");}   // THE GOAL GRAMMAR: a goal scored just before the match ended must not leave its lower-third floating over the emptied stage
   var spin=0,bw=0,gaspAt=0;   // spin = rendered rotation, bw = angular velocity (deg/s)
   function loop(now){if(!S.on){running=false;return;}requestAnimationFrame(loop);
    var dt=Math.min(0.05,Math.max(0.006,(now-last)/1000));last=now;
@@ -2801,7 +2802,7 @@ function teams(){
   function start(){if(ON||document.body.classList.contains("hmBattle")||document.body.classList.contains("hmSoccer"))return;
    var rc=[];for(var i=0;i<peers.length;i++){var pp=peers[i];if(!pp.elim)rc.push(pp);}
    if(rc.length<2)return;
-   try{if(window.__hmResetPlayScroll)window.__hmResetPlayScroll();}catch(_){}
+   if(window.PlayViewportOwner)window.PlayViewportOwner.enter("race");
    ON=true;window.__hmRaceOn=true;document.body.classList.add("hmRace");seed++;winner=-1;order.length=0;ts=1;camY=0;endAt=0;
    balls.length=0;
    var gridOrder=rc.slice();for(var g=gridOrder.length-1;g>0;g--){var j=Math.floor(Math.random()*(g+1)),tmp=gridOrder[g];gridOrder[g]=gridOrder[j];gridOrder[j]=tmp;}   // reshuffled grid every race: fair start, different neighbours
@@ -2819,7 +2820,8 @@ function teams(){
    try{for(var uz=0;uz<balls.length;uz++){var UB=balls[uz];if(!UB.fin&&!UB.out){UB.out=true;if(UB.row){UB.row.classList.remove("top");UB.row.classList.add("out");}}}}catch(_){}   // whoever was still mid-course when the wrap hit resolves as OUT -- the board never ends with limbo rows
    try{for(var pz=1;pz<=2&&pz<order.length;pz++){var pb=balls[order[pz]];if(pb&&pb.peer.slot!=null&&window.__hmCareer)window.__hmCareer.rec("podium",pb.peer.slot);}}catch(_){}
    if(cEl)cEl.textContent="";
-   for(var i=0;i<balls.length;i++){var b=balls[i],pr=b.peer;pr.raceX=null;pr.raceY=null;}}   // heads snap back to their own physics and tumble home
+   for(var i=0;i<balls.length;i++){var b=balls[i],pr=b.peer;pr.raceX=null;pr.raceY=null;}
+   if(window.PlayViewportOwner)window.PlayViewportOwner.leave("race");}   // heads snap back to their own physics and tumble home
   window.__hmRaceStart=start;window.__hmRaceEnd=finish;
   try{if(/[?&]wraf=1/.test(location.search))window.__race={balls:balls,segs:segs,pegs:pegs,spins:spins,st:function(){return {ts:ts,camY:camY,winner:winner,goAt:goAt,now:performance.now(),running:running,finishY:finishY};}};}catch(_){}   // DEV-ONLY debug handle (opt-in)
   function step(dt){
@@ -2949,7 +2951,7 @@ function teams(){
    // CENTRAL GUARDIAN: the hmBattle class is ON iff the latest battle request is newer than the latest respawn. One source of truth -> it can never desync or stick, no matter how frames are throttled.
    var _req=window.__hmBattleReq||0,_resp=window.__hmRespawn||0,_bon=_req>0&&_req>_resp,_hasB=document.body.classList.contains("hmBattle");
    if(_bon&&!_hasB&&!document.body.classList.contains("hmSoccer"))document.body.classList.add("hmBattle");
-   else if(!_bon&&_hasB){document.body.classList.remove("hmBattle");try{if(window.__hmFX)window.__hmFX.clear();}catch(_){}}   // battle over -> wipe any lingering VFX even if the loop was throttled
+   else if(!_bon&&_hasB){document.body.classList.remove("hmBattle");try{if(window.__hmFX)window.__hmFX.clear();}catch(_){}if(window.PlayViewportOwner)window.PlayViewportOwner.leave("battle");}   // battle over -> wipe any lingering VFX even if the loop was throttled
    var on=document.body.classList.contains("hmBattle");
    if(on&&!wasOn)countdown();if(!on&&wasOn){cdN++;cEl.textContent="";}wasOn=on;
    if(!on){if(el.style.opacity!=="0"){el.style.opacity="0";shownN=-1;}return;}

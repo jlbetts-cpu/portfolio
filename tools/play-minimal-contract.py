@@ -11,6 +11,7 @@ GAMES = (ROOT / "play-games.js").read_text(encoding="utf-8")
 ENGINE = (ROOT / "play-engine.js").read_text(encoding="utf-8")
 HERO_ENGINE = (ROOT / "hero-engine.js").read_text(encoding="utf-8")
 CSS = (ROOT / "play.css").read_text(encoding="utf-8")
+TOURNAMENT = (ROOT / "play-tournament.js").read_text(encoding="utf-8")
 
 
 class PlayParser(HTMLParser):
@@ -53,15 +54,53 @@ for fragment in (
 for rejected_selector_fragment in ("pArenaFrame", "pModeDock", "pModeRail", "play-select.css"):
     assert rejected_selector_fragment not in HTML
 
-# The resting page is normal flow. Picker/game/tournament modes promote the same
-# hero to a fixed arena and lock only while they own the viewport.
+# The resting page is normal flow. One named-owner state machine promotes the
+# same hero to a fixed arena and owns chrome/scroll restoration for every game.
 assert 'class="playViewport"' in HTML
 assert ".playViewport{position:relative" in HTML
-assert "body:is(.pTeamOn,.hmSoccer,.hmBattle,.hmRace,.hmTour) .playViewport" in HTML
+assert 'src="play-viewport.js"' in HTML
+assert HTML.index('src="play-viewport.js"') < HTML.index('src="hero-engine.js"')
+assert HTML.index('src="play-viewport.js"') < HTML.index('src="play-engine.js"')
+assert "body.playViewportOwned .playViewport" in HTML
+assert "body.playViewportOwned .jbStick" in HTML
 assert ".pHub{position:relative" in HTML
 assert "body.hmFull{height:auto;min-height:100%;overflow-x:clip;overflow-y:auto" in CSS
-assert "body.hmFull:is(.pTeamOn,.hmSoccer,.hmBattle,.hmRace,.hmTour)" in CSS and "overflow:hidden" in CSS
-assert "body:is(.pTeamOn,.hmSoccer,.hmBattle,.hmRace,.hmTour) .siteFoot{display:none}" in CSS
+assert "body.hmFull.playViewportOwned" in CSS and "overflow:hidden" in CSS
+assert "body.playViewportOwned .siteFoot{display:none}" in CSS
+assert "body:is(.pTeamOn,.hmSoccer,.hmBattle,.hmRace,.hmTour) .playViewport" not in HTML
+assert "body.hmFull:is(.pTeamOn,.hmSoccer,.hmBattle,.hmRace,.hmTour)" not in CSS
+assert "body:is(.pTeamOn,.hmSoccer,.hmBattle,.hmRace,.hmTour) .siteFoot" not in CSS
+
+# Each lifecycle has one authoritative named owner. Duplicate legacy scroll /
+# focus capture must be absent or a second rAF can race the owner controller.
+for owner_name, source in (
+    ('"picker"', GAMES),
+    ('"soccer"', ENGINE + GAMES),
+    ('"battle"', ENGINE + GAMES),
+    ('"race"', ENGINE),
+    ('"tournament"', TOURNAMENT),
+):
+    assert f"PlayViewportOwner.enter({owner_name})" in source
+    assert f"PlayViewportOwner.leave({owner_name})" in source
+for rejected_restore in (
+    "_returnFocus",
+    "_returnScroll",
+    "resetPlayScroll",
+    "restorePlayPosition",
+    "__hmResetPlayScroll",
+):
+    assert rejected_restore not in GAMES + ENGINE + TOURNAMENT
+
+# Picker -> game is a continuous handoff: destination first, then picker art /
+# owner release, then launch. The old synthetic resize belongs to Soccer Task 2.
+handoff_start = GAMES.index("function startWithTeams")
+handoff = GAMES[handoff_start : GAMES.index('teamsBtn.setAttribute("aria-expanded"', handoff_start)]
+soccer_enter = handoff.index('PlayViewportOwner.enter("soccer")')
+picker_art_off = handoff.index('classList.remove("pTeamOn")')
+picker_leave = handoff.index('PlayViewportOwner.leave("picker")')
+soccer_launch = handoff.index("__hmSoccerStart()")
+assert soccer_enter < picker_art_off < picker_leave < soccer_launch
+assert "dispatchEvent(new Event(\"resize\"))" not in handoff[:soccer_launch]
 
 # Initial saved and fallback heads are seated behind a readiness gate. The
 # existing __noIntro fall path remains, protecting later game/tournament motion.

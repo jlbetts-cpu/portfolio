@@ -90,15 +90,16 @@
 
  /* The exact same #playArena becomes the live game field only while a game surface owns the
     viewport. Its page furniture fades; the engine children and measured box remain real. */
- body:is(.pTeamOn,.hmSoccer,.hmBattle,.hmRace,.hmTour) .playViewport{position:fixed;inset:0;z-index:30;min-height:100svh;padding:0;display:flex}
- body:is(.pTeamOn,.hmSoccer,.hmBattle,.hmRace,.hmTour) .playViewport>.wrap{width:100%;max-width:none;padding:0;display:flex}
- body:is(.pTeamOn,.hmSoccer,.hmBattle,.hmRace,.hmTour) .hero{display:block;width:100vw;height:60vh;min-height:0;margin:auto;padding:0;overflow:visible;border-radius:0;box-shadow:none;background:transparent}
- body:is(.pTeamOn,.hmSoccer,.hmBattle,.hmRace,.hmTour) .hero::after{display:none}
- body:is(.pTeamOn,.hmSoccer,.hmBattle,.hmRace,.hmTour) .heroCopy,
- body:is(.pTeamOn,.hmSoccer,.hmBattle,.hmRace,.hmTour) .hero>.stagewrap,
- body:is(.pTeamOn,.hmSoccer,.hmBattle,.hmRace,.hmTour) .heroAura,
- body:is(.pTeamOn,.hmSoccer,.hmBattle,.hmRace,.hmTour) .heroMovieEffectsClip{opacity:0;pointer-events:none}
- body:is(.pTeamOn,.hmSoccer,.hmBattle,.hmRace,.hmTour) .hero>.stagewrap{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);margin:0}
+ body.playViewportOwned .playViewport{position:fixed;inset:0;z-index:30;min-height:100svh;padding:0;display:flex}
+ body.playViewportOwned .playViewport>.wrap{width:100%;max-width:none;padding:0;display:flex}
+ body.playViewportOwned .hero{display:block;width:100vw;height:60vh;min-height:0;margin:auto;padding:0;overflow:visible;border-radius:0;box-shadow:none;background:transparent}
+ body.playViewportOwned .hero::after{display:none}
+ body.playViewportOwned .heroCopy,
+ body.playViewportOwned .hero>.stagewrap,
+ body.playViewportOwned .heroAura,
+ body.playViewportOwned .heroMovieEffectsClip{opacity:0;pointer-events:none}
+ body.playViewportOwned .hero>.stagewrap{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);margin:0}
+ body.playViewportOwned .jbStick{visibility:hidden;pointer-events:none}
  body.pTeamOn .hero{height:52vh;margin:6vh auto auto}
  @media(max-width:880px){.hero{min-height:auto;padding-bottom:var(--sp-24)}.hero .stagewrap{width:min(64vw,calc((100svh - 280px) * .86),500px)}}
  @media(max-width:760px){.hero,body.pHubOn.hmFull .hero{height:auto;min-height:calc(100svh - var(--bar-h));padding:var(--sp-20) var(--sp-12)}.heroCopy h1{max-width:12.5em}.heroCtas{margin-top:var(--sp-14)}.heroMood .moodMenu{left:auto;right:0;width:min(var(--menu-w),calc(100vw - var(--sp-48)))}.hero .stagewrap{width:min(88vw,calc((100svh - 300px) * .86),430px);margin-top:var(--sp-8)}.heroAura{top:62%;width:124%;height:64%}}
@@ -757,6 +758,7 @@
    that furniture only where this flag (or #playArena) says a game can actually start. */
 window.__hmGames=true;</script>
 <!-- The SAME engine index.html loads, from the same file. -->
+<script src="play-viewport.js"></script>
 <script src="hero-engine.js"></script>
 <script src="party.js"></script>
 <script src="egghead-seed.js"></script>

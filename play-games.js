@@ -140,8 +140,8 @@
      and on nothing else (play-engine.js:434). So a class that moves the stage has to say
      so, or the heads keep standing on the old floor line until the next real resize. Only
      on an actual change, and only after layout has settled. */
-  if(_hubWas!==want){var returning=want&&_hubWas===false;_hubWas=want;
-   requestAnimationFrame(function(){try{dispatchEvent(new Event("resize"));}catch(_){}if(returning)restorePlayPosition();});}
+  if(_hubWas!==want){_hubWas=want;
+   requestAnimationFrame(function(){try{dispatchEvent(new Event("resize"));}catch(_){}});}
   // aria-hidden as well as the CSS fade: a visibility:hidden subtree is already out of the
   // a11y tree, but the fade holds visibility for 360ms and a screen reader must not read a
   // menu that is on its way out.
@@ -327,19 +327,6 @@
     makes the re-entrant call a no-op the moment nothing has actually changed. */
  try{new MutationObserver(function(){battleGate();})
   .observe(document.body,{attributes:true,attributeFilter:["class"]});}catch(_){}
- /* A game locks the scrolling root, which makes Chromium temporarily clamp window.scrollY
-    to zero even though the arena itself is fixed. Preserve the hub position and launch
-    control across that lock so Back/End returns to the exact card the visitor used. */
- var _returnFocus=null,_returnScroll=null;
- function resetPlayScroll(){try{
-  if(!_returnScroll)_returnScroll={x:window.scrollX||0,y:window.scrollY||0};
-  if(!_returnFocus&&document.activeElement&&document.activeElement!==document.body)_returnFocus=document.activeElement;
- }catch(_){}}
- function restorePlayPosition(){var focus=_returnFocus,pos=_returnScroll;_returnFocus=null;_returnScroll=null;
-  if(pos)try{window.scrollTo(pos.x,pos.y);}catch(_){}
-  if(!focus||!focus.isConnected)return;
-  try{focus.focus({preventScroll:true});}catch(_){try{focus.focus();}catch(__){}}}
- window.__hmResetPlayScroll=resetPlayScroll;
  function closeMenuBar(){var mb=document.getElementById("gamebar");if(mb)mb.classList.remove("open");var mbt=document.getElementById("gameBtn");if(mbt)mbt.setAttribute("aria-expanded","false");}
  var bg=document.getElementById("battleGo");
  if(bg)bg.addEventListener("click",function(){
@@ -347,7 +334,7 @@
   window.__hmLavaTeams=false;   // the plain button is a solo free-for-all (teams are the opt-in via the teams icon)
   if(rc%2===1&&window.__hmFillerAdd)window.__hmFillerAdd();   // odd sides -> mini-Jayden steps in
   window.__hmCrowd=rc+(rc%2===1?1:0);   // seed the crowd size NOW so the lava's first rise is tuned to the real player count (not a stale/default value)
-  resetPlayScroll();window.__hmBattleReq=performance.now();document.body.classList.add("hmBattle");
+  if(window.PlayViewportOwner)window.PlayViewportOwner.enter("battle");window.__hmBattleReq=performance.now();document.body.classList.add("hmBattle");
   if(window.__hmNewArena)window.__hmNewArena();   // lay the random arena BEFORE the heads scatter onto it
   closeMenuBar();battleGate();});
  var sg=document.getElementById("soccerGo");
@@ -602,7 +589,9 @@
      (play-engine.js:434), so dispatching one synthetic resize is the whole handoff --
      no engine edit, and every head re-lands on one shared floor line. The rAF wait is
      because the class has to have been applied and laid out before the engine measures. */
-  function stageShift(on){if(on)resetPlayScroll();document.body.classList.toggle("pTeamOn",on);
+  function stageShift(on){
+   if(on){if(window.PlayViewportOwner)window.PlayViewportOwner.enter("picker");document.body.classList.add("pTeamOn");}
+   else{document.body.classList.remove("pTeamOn");if(window.PlayViewportOwner)window.PlayViewportOwner.leave("picker");}
    requestAnimationFrame(function(){try{dispatchEvent(new Event("resize"));}catch(_){}});}
   function openTray(m){if(gameOn())return;mode=(m==="lava")?"lava":"soccer";activeTrig=(mode==="lava"&&lavaBtn)?lavaBtn:teamsBtn;ensureSel();open=true;teamOpen=true;syncGlobal();applyPreview();
    if(host)host.hidden=false;renderTray();
@@ -618,14 +607,15 @@
    if(teamsBtn)teamsBtn.setAttribute("aria-expanded","false");if(lavaBtn)lavaBtn.setAttribute("aria-expanded","false");}
   addEventListener("keydown",function(e){if(e.key==="Escape"&&open)closeTray();});
   function startWithTeams(){syncGlobal();open=false;teamOpen=false;window.__hmTeamPreview=null;if(tray&&!host)tray.classList.remove("open");
-   // The arena goes back to its full band BEFORE kickoff, and SYNCHRONOUSLY -- the launcher
-   // below runs on this same tick and lays the pitch out against whatever .hero measures
-   // then, so the rAF-deferred version stageShift() uses would have built the match inside
-   // the shrunken band and only corrected it a frame later.
-   document.body.classList.remove("pTeamOn");try{dispatchEvent(new Event("resize"));}catch(_){}
-   var rc=heads().length;if(rc<1||gameOn())return;
+   var rc=heads().length;if(rc<1||gameOn()){stageShift(false);battleGate();return;}
+   if(window.PlayViewportOwner){
+    if(mode==="lava")window.PlayViewportOwner.enter("battle");
+    else window.PlayViewportOwner.enter("soccer");
+   }
+   document.body.classList.remove("pTeamOn");
+   if(window.PlayViewportOwner)window.PlayViewportOwner.leave("picker");
    if(rc%2===1&&window.__hmFillerAdd)window.__hmFillerAdd();
-   if(mode==="lava"){window.__hmLavaTeams=true;resetPlayScroll();window.__hmBattleReq=performance.now();document.body.classList.add("hmBattle");if(window.__hmNewArena)window.__hmNewArena();}   // Floor is Lava, but in fixed teams
+   if(mode==="lava"){window.__hmLavaTeams=true;window.__hmBattleReq=performance.now();document.body.classList.add("hmBattle");if(window.__hmNewArena)window.__hmNewArena();}   // Floor is Lava, but in fixed teams
    else{window.__hmLavaTeams=false;try{if(window.__hmSoccerStart)window.__hmSoccerStart();}catch(_){}}
    closeMenuBar();battleGate();}
   teamsBtn.setAttribute("aria-expanded","false");if(lavaBtn)lavaBtn.setAttribute("aria-expanded","false");
