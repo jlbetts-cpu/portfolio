@@ -27,7 +27,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <link rel="preload" as="font" type="font/woff2" href="fonts/instrument-sans-latin-400-normal.woff2" crossorigin><link rel="preload" as="font" type="font/woff2" href="fonts/instrument-sans-latin-600-normal.woff2" crossorigin>
 <link rel="preload" as="image" href="images/cs/strata-cover.webp" fetchpriority="high">
-<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="tokens.css?v=20260806-shared-surfaces">
 <style>
 /* THE FACES MOVED TO tokens.css (2026-08-04) -- declared once for all ten pages
    instead of copied into nine of them and missed on two (about.html and
@@ -367,20 +367,20 @@ img{display:block;max-width:100%}
  .facts{opacity:1!important;transform:none!important;transition:none}
  .dv,.photoRow.dv>img,.step.dv .stepShot,.step.dv .stepText{opacity:1!important;transform:none!important;filter:none!important;transition:none;will-change:auto!important}
 }
-.toTop{position:fixed;right:clamp(18px,2.6vw,36px);bottom:clamp(18px,2.6vw,36px);width:46px;height:46px;display:grid;place-items:center;background:var(--c50);border:1px solid var(--c100);border-radius:50%;color:var(--c700);cursor:pointer;z-index:90;opacity:0;pointer-events:none;filter:url(#inkSm);transition:opacity .3s ease,transform .12s cubic-bezier(.2,.8,.2,1),border-color .2s cubic-bezier(.2,.8,.2,1),color .2s cubic-bezier(.2,.8,.2,1);-webkit-tap-highlight-color:transparent}
-.toTop.show{opacity:1;pointer-events:auto}
+
+
 /* A malformed rule stood here: `.toTop:hover .toTopLabel,.toTop:focus-visible
    @media(hover:none){}` -- an at-rule inside a selector list, which is not a
    selector, so the browser dropped the whole thing. Its body was empty so nothing
    ever rendered from it. Found by diffing this file's source selectors against
    document.styleSheets[].cssRules; a .toTopLabel does not exist in the markup
    either. Deleted rather than repaired. */
-.toTop:hover,.toTop:focus-visible{border-color:var(--c500);color:var(--c950)}
-.toTop:active{transform:scale(.92)}
-.toTop svg{transition:transform .14s cubic-bezier(.2,.8,.2,1)}
-.toTop:hover svg,.toTop:focus-visible svg{transform:translateY(-2px)}
-.toTop:focus-visible{outline:2px solid var(--c950);outline-offset:3px}
-@media (prefers-reduced-motion:reduce){.toTop svg{transition:none}}
+
+
+
+
+
+@media (prefers-reduced-motion:reduce){}
 .demoWrap{margin:var(--sp-40-64) 0 0}
 .demoLabel{font-family:var(--sans);font-size:var(--fs-label);font-weight:600;letter-spacing:var(--tr-flat);text-transform:none;color:var(--c500);margin:0 auto 16px;max-width:680px}
 .demoPhone{display:block;margin-inline:auto;width:min(380px,86vw);aspect-ratio:390/844;border-radius:clamp(22px,2.4vw,30px);overflow:hidden;background:var(--c50);box-shadow:var(--rim-1);position:relative}
@@ -445,126 +445,14 @@ img{display:block;max-width:100%}
    the pair reads as one decision rather than as two things that got missed:
    .shot.phone img here, and .demoFrame / .demoPoster on strata.html, which is a
    live phone demo in an iframe at clamp(22px,2.4vw,30px). */
-.shot.phone img{border-radius:clamp(20px,2.6vw,32px)}.videoFrame,.cmpBoard{overflow:hidden}.scrollbox{overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain}/* refined thin carousel scrollbar (palette-matched) */.scrollbox{scrollbar-width:thin;scrollbar-color:var(--c100) transparent}.scrollbox::-webkit-scrollbar{height:8px}.scrollbox::-webkit-scrollbar-track{background:transparent;margin:0 4px}.scrollbox::-webkit-scrollbar-thumb{background:var(--c100);border-radius:99px;border:2px solid transparent;background-clip:padding-box}.scrollbox::-webkit-scrollbar-thumb:hover{background:var(--c500);background-clip:padding-box}.secBody strong,.ovBody strong,.ov strong,.rv strong,.role strong,.lede strong{font-weight:600;color:var(--c950)}@media(max-width:899px){.rail{display:none}}@media(min-width:900px) and (max-width:1360px){.layout{display:grid;grid-template-columns:var(--rail-w) minmax(0,1fr);column-gap:var(--rail-gutter)}.rail{position:static;margin-right:0}}.content :is(.cap,.csReach){margin-inline:auto}.scrollbox:focus-visible{outline:2px solid var(--c950);outline-offset:3px}.scrollbox{scrollbar-width:none}.scrollbox::-webkit-scrollbar{display:none}.sbNav{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}.sbBtn{width:42px;height:42px;border-radius:50%;background:var(--c50);border:1px solid rgba(8,8,8,.16);color:var(--c700);display:grid;place-items:center;cursor:pointer;transition:border-color .2s cubic-bezier(.2,.8,.2,1),color .2s cubic-bezier(.2,.8,.2,1),opacity .2s cubic-bezier(.2,.8,.2,1)}.sbBtn:hover,.sbBtn:focus-visible{border-color:var(--accent);color:var(--accent)}.sbBtn:focus-visible{outline:2px solid var(--c950);outline-offset:3px}.sbBtn[disabled]{opacity:.28;pointer-events:none}.sbBtn svg{width:16px;height:16px}@media(max-width:880px){.sbNav{display:none}}@media(prefers-reduced-motion:reduce){.sbBtn{transition:none}}.cap{text-align:center}.footIn:focus-visible,.chap:focus-visible{outline:2px solid var(--c950);outline-offset:3px;border-radius:var(--r-xs)}@media(max-width:880px){.subBlock{margin-top:56px}}.sec>.stat:last-child{margin-bottom:0}/* ---- SKIP LINK: WCAG 2.4.1 Bypass Blocks (Level A). Technique G1 requires a link that is
+.shot.phone img{border-radius:clamp(20px,2.6vw,32px)}.videoFrame,.cmpBoard{overflow:hidden}.scrollbox{overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain}/* refined thin carousel scrollbar (palette-matched) */.scrollbox{scrollbar-width:thin;scrollbar-color:var(--c100) transparent}.scrollbox::-webkit-scrollbar{height:8px}.scrollbox::-webkit-scrollbar-track{background:transparent;margin:0 4px}.scrollbox::-webkit-scrollbar-thumb{background:var(--c100);border-radius:99px;border:2px solid transparent;background-clip:padding-box}.scrollbox::-webkit-scrollbar-thumb:hover{background:var(--c500);background-clip:padding-box}.secBody strong,.ovBody strong,.ov strong,.rv strong,.role strong,.lede strong{font-weight:600;color:var(--c950)}@media(max-width:899px){.rail{display:none}}@media(min-width:900px) and (max-width:1360px){.layout{display:grid;grid-template-columns:var(--rail-w) minmax(0,1fr);column-gap:var(--rail-gutter)}.rail{position:static;margin-right:0}}.content :is(.cap,.csReach){margin-inline:auto}.scrollbox:focus-visible{outline:2px solid var(--c950);outline-offset:3px}.scrollbox{scrollbar-width:none}.scrollbox::-webkit-scrollbar{display:none}.sbNav{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}@media(max-width:880px){.sbNav{display:none}}@media(prefers-reduced-motion:reduce){}.cap{text-align:center}.footIn:focus-visible,.chap:focus-visible{outline:2px solid var(--c950);outline-offset:3px;border-radius:var(--r-xs)}@media(max-width:880px){.subBlock{margin-top:56px}}.sec>.stat:last-child{margin-bottom:0}/* ---- SKIP LINK: WCAG 2.4.1 Bypass Blocks (Level A). Technique G1 requires a link that is
    the FIRST focusable element and moves focus to the main content -- so it sits before the
    nav in DOM order. Parked off-screen by transform (not display:none, which would take it
    out of the tab order entirely) and slid in on focus. ---- */
-.skipLink{position:fixed;top:10px;left:10px;z-index:200;display:inline-flex;align-items:center;min-height:44px;padding:12px 16px;background:var(--c50);color:var(--c950);border:1px solid var(--c100);border-radius:var(--r-xs);font-family:var(--sans);font-weight:400;font-size:var(--fs-small);line-height:1;text-decoration:none;box-shadow:none;transform:translateY(calc(-100% - 16px));transition:transform .2s cubic-bezier(.2,.8,.2,1)}
-.skipLink:focus{transform:translateY(0);outline:2px solid var(--c950);outline-offset:3px}
-@media(prefers-reduced-motion:reduce){.skipLink{transition:none}}
+
+
+@media(prefers-reduced-motion:reduce){}
 #main:focus{outline:none}
-
-/* Controls that had no hover at all: the case-study card link, the chapter nav, the compare
-   handle and the skip link. Same wash as everything else -- one feedback, no exceptions. */
-.csGo,.chap,.cmpHandle,.skipLink,.abBack,.back,.talk,.footIn,.abLink,.hmPitX,.hmPitPick{
- transition:background-color .16s cubic-bezier(.2,.8,.2,1),color .16s cubic-bezier(.2,.8,.2,1);
-}
-.cmpHandle:hover,.skipLink:hover,.abBack:hover,.back:hover,.talk:hover,
-.abLink:hover,.hmPitX:hover,.hmPitPick:hover,
-.abBack:focus-visible,.back:focus-visible,
-.talk:focus-visible,.abLink:focus-visible{
- background:var(--c75);color:var(--c950);
-}
-.csGo:hover,.csGo:focus-visible{background:none;color:var(--accent)}
-
-/* ONE HEADER HEIGHT SITE-WIDE -- now --nav-h (52px) in tokens.css, consumed by
-   header.css. The bar is a fixed object you navigate underneath on every page,
-   which is what this rule was reaching for with a min-height floor. */
-/* ============================================================================
-   CONTROLS -- exactly THREE types. Nothing else is allowed.
-   An audit across four pages found NINETEEN distinct control appearances: eight
-   different paddings, nine visible borders, five font sizes, and heights from
-   14px to 46px. This block is last in the sheet so it wins without !important.
-
-     1. STANDARD  quiet text, 12/16 padding, 44px min, no border, wash on hover
-     2. PRIMARY   the one filled-ink action on a screen
-     3. ICON      square 44x44 for icon-only controls
-
-   Interactive REGIONS (a whole case-study card, the compare handle, the
-   headmaker dropzone) are deliberately not in here -- they are not buttons and
-   forcing button padding on them is wrong.
-   ============================================================================ */
-.moodItem,.moodBtn,.moodGo,.hmGo,.tGo,.reelClose,.workCta,
-.mhToggle,.hmScoreEnd,.tvTab,.abBack,.abLink,.csTab,.hmBtn{
- font-family:var(--sans);font-weight:400;font-size:var(--fs-small);line-height:1;
- color:var(--c700);background:none;
- border:0;                      /* no borders. The wash is the affordance. */
- border-radius:var(--r-md);corner-shape:var(--corner);
- padding:12px 16px;min-height:44px;box-sizing:border-box;
- align-items:center;justify-content:center;gap:8px;
- cursor:pointer;
- transition:background-color .16s cubic-bezier(.2,.8,.2,1),color .16s cubic-bezier(.2,.8,.2,1);
-}
-/* square icon-only controls: same height, no text padding */
-.toTop,.sbBtn,.hmPitX{
- font-family:var(--sans);font-size:var(--fs-small);color:var(--c700);
- background:none;border:0;border-radius:var(--r-md);corner-shape:var(--corner);
- width:44px;height:44px;min-height:44px;padding:0;
- display:inline-flex;align-items:center;justify-content:center;
- cursor:pointer;
- transition:background-color .16s cubic-bezier(.2,.8,.2,1),color .16s cubic-bezier(.2,.8,.2,1);
-}
-/* display at ZERO specificity so anything that hides itself conditionally still wins */
-:where(.moodItem,.moodBtn,.moodGo,.hmGo,.tGo,.reelClose,.workCta,
- .mhToggle,.hmScoreEnd,.tvTab,.abBack,.abLink,.csTab,.hmBtn){display:inline-flex}
-
-/* ONE hover, everywhere, no exceptions */
-.moodItem:hover,.moodBtn:hover,.moodGo:hover,.hmGo:hover,.tGo:hover,.reelClose:hover,
-.workCta:hover,.mhToggle:hover,.hmScoreEnd:hover,
-.abBack:hover,.abLink:hover,.csTab:hover,.hmBtn:hover,
-.toTop:hover,.hmPitX:hover,
-.hmPitPick:hover,
-.moodItem:focus-visible,.moodBtn:focus-visible,.moodGo:focus-visible,.hmGo:focus-visible,
-.tGo:focus-visible,.reelClose:focus-visible,.workCta:focus-visible,
-.mhToggle:focus-visible,.hmScoreEnd:focus-visible,
-.abBack:focus-visible,
-.abLink:focus-visible,.csTab:focus-visible,.hmBtn:focus-visible,.toTop:focus-visible,
-.hmPitX:focus-visible{
- background:var(--c75);color:var(--c950);border-color:transparent;
-}
-.csGo,.chap,.footIn,.hmPitPick{
- transition:background-color .16s cubic-bezier(.2,.8,.2,1),color .16s cubic-bezier(.2,.8,.2,1);
-}
-
-/* PRIMARY: the single filled action on a screen */
-.tGo:not(.tGoQuiet),.hmGoPrimary,.hmBtn.hmBtnPrimary{
- background:var(--c950);color:var(--c50);
-}
-.tGo:not(.tGoQuiet):hover,.hmGoPrimary:hover,.hmBtn.hmBtnPrimary:hover{
- background:var(--c900);color:var(--c50);
-}
-
-/* THE PLAY MENU: plain text under the word, no card edge, no lift off the page.
-   Sits inside the page margin and is sized to its own content. */
-.moodMenu{
- left:0!important;right:auto!important;
- width:max-content!important;min-width:0!important;max-width:min(220px,40vw)!important;
- text-align:left!important;
- background:var(--c50)!important;
- border:0!important;
- box-shadow:none!important;          /* it must not pop off the page */
- border-radius:var(--r-lg)!important;corner-shape:var(--corner);
- padding:4px!important;
-}
-.moodItem,.moodBtn{white-space:nowrap}
-.moodItem{justify-content:flex-start!important;padding:12px 16px!important}
-.moodBtn{padding:12px 16px!important}
-/* Play sits near the right edge -- below this width a left-aligned menu would leave the margin */
-@media(max-width:1380px){.moodMenu{left:auto!important;right:0!important}}
-
-
-/* the last stragglers, measured: .back/.talk were square, .moodBtn was 40px not 44,
-   .moodItem was inheriting 16px instead of the one control size, and the wordmark ran 2px
-   taller than the home page's. Inline links inside prose (.chap, .footIn, .csGo) are a
-   deliberate THIRD category -- text, not buttons -- so they keep their own size. */
-.tvTab,.csTab{border-radius:var(--r-md);corner-shape:var(--corner)}
-.moodBtn{min-height:44px!important;height:44px}
-.moodItem{font-size:var(--fs-small)!important}
-/* ONE WORDMARK, and it is header.css's now. The block that stood here forced the
-   sub-page mark to 15px capitals at letter-spacing .08em with font-stretch 85.8%
-   on line 1. All three are void in sentence case: the mark is two stacked lines at
-   one size and one tracking, and 85.8% was only ever survivable because capitals
-   are geometric -- lowercase bowls and stems are not. Measured: report §3. */
 
 /* ============================================================================
    ICONS -- one pack. An audit found NINE authored stroke-widths (1.2 1.4 1.5
@@ -603,12 +491,10 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
    HOVER GOES INK TOO, for the same reason: --accent on both the border and the
    label made hover and active the same hue, which is two states competing for
    one signal. */
-.tvTab.on{color:var(--c950);border-bottom:0;position:relative}
-.tvTab.on::after{content:"";position:absolute;left:var(--sp-16);right:var(--sp-16);
- bottom:calc(var(--focus-w) * -1);height:var(--focus-w);border-radius:var(--r-hair);
- background:var(--c950)}
-.tvTab:hover,.tvTab:focus-visible{border-color:var(--c500);color:var(--c950)}
-.tvTab{min-height:var(--tap-min)}
+
+
+
+
 
 /* MEDIA BOUNDARY — one specimen rim at the outer visible edge. */
 .wide::after,.cover::after,.cmp::after{border-radius:inherit;box-shadow:var(--rim-3)}
@@ -628,14 +514,15 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
  .photoPair figure,.photoPair img{border-radius:var(--r-sm);corner-shape:var(--corner)}
 }
 </style>
+<link rel="stylesheet" href="controls.css?v=20260806-shared-surfaces">
 <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Jayden Betts","item":"https://jaydenbetts.design/"},{"@type":"ListItem","position":2,"name":"Strata Case Study","item":"https://jaydenbetts.design/strata.html"}]},{"@type":"CreativeWork","@id":"https://jaydenbetts.design/strata.html#work","url":"https://jaydenbetts.design/strata.html","name":"Strata: A Product Design Case Study by Jayden Betts","description":"Strata is a gamified habit builder where your wins stack up into a tower of colourful blocks, playable right on the page. A product design case study by Jayden Betts.","image":"https://jaydenbetts.design/images/cs/strata-cover.webp","author":{"@type":"Person","@id":"https://jaydenbetts.design/#person","name":"Jayden Betts","alternateName":"Jayden Lee Betts","url":"https://jaydenbetts.design/","sameAs":["https://www.linkedin.com/in/jaydenbetts","https://www.instagram.com/jaydenleebetts"]},"genre":"Product Design","inLanguage":"en"}]}</script>
-<link rel="stylesheet" href="header.css">
-<link rel="stylesheet" href="footer.css">
-<link rel="stylesheet" href="site-theme.css">
+<link rel="stylesheet" href="header.css?v=20260806-shared-surfaces">
+<link rel="stylesheet" href="footer.css?v=20260806-shared-surfaces">
+<link rel="stylesheet" href="site-theme.css?v=20260806-shared-surfaces">
 <script src="header.js" defer></script>
 </head>
 <body data-nav="work" data-theme-page="case-study">
-<a class="skipLink" href="#main">Skip to content</a>
+<a class="skipLink ctl ctl--secondary" href="#main">Skip to content</a>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><filter id="inkBig"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="7" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="1.1" xChannelSelector="R" yChannelSelector="G" result="d"/><feTurbulence type="fractalNoise" baseFrequency="0.5 0.42" numOctaves="2" seed="13" result="g"/><feColorMatrix in="g" type="matrix" values="0 0 0 0 0.055 0 0 0 0 0.055 0 0 0 0 0.055 0 0 0 0.42 0" result="grain"/><feComposite in="grain" in2="d" operator="atop"/></filter>
 <filter id="inkSm"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="1" seed="4" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="0.55" xChannelSelector="R" yChannelSelector="G"/></filter></svg>
 
@@ -694,7 +581,7 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
    <section id="overview" class="hero">
     <h1 class="head rv" data-f="0.05" aria-label="Strata — 710 edits to learn where AI stops and design starts."><span class="eyebrow">Strata</span>710 edits to learn where AI stops and design starts.</h1>
 
-    <figure class="cover" id="cover"><img src="images/cs/strata-cover.webp" alt="Strata across four iOS screens on a pastoral hillside: the block tower, the day timeline, the plan grid, and the insights dashboard." loading="eager" decoding="async"></figure>
+    <figure class="cover surface surface--media" id="cover"><img src="images/cs/strata-cover.webp" alt="Strata across four iOS screens on a pastoral hillside: the block tower, the day timeline, the plan grid, and the insights dashboard." loading="eager" decoding="async"></figure>
 
     <dl class="facts">
      <div class="fact"><dt class="fk">Role</dt><dd class="fv">Designer &amp; builder</dd></div>
@@ -715,10 +602,10 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
     <div class="demoPhone" id="demoPhone">
      <iframe class="demoFrame" id="demoFrame" data-src="https://stratahabit.lovable.app?playsinline=1" title="Strata, live and interactive" allow="autoplay; fullscreen"></iframe>
      <div class="demoPoster" id="demoPoster">
-      <button class="demoPlay" id="demoPlay" type="button" aria-label="Play Strata with sound"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></button>
+      <button class="demoPlay ctl ctl--primary ctl--media-large is-icon" id="demoPlay" type="button" aria-label="Play Strata with sound"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></button>
       <span class="demoPosterLabel">Play Strata, with sound</span>
      </div>
-     <button class="demoMute" id="demoMute" type="button" aria-label="Mute and stop the demo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H2v6h4l5 4V5z"/><line x1="22" y1="9" x2="16" y2="15"/><line x1="16" y1="9" x2="22" y2="15"/></svg>Mute</button>
+     <button class="demoMute ctl ctl--secondary ctl--media-large" id="demoMute" type="button" aria-label="Mute and stop the demo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H2v6h4l5 4V5z"/><line x1="22" y1="9" x2="16" y2="15"/><line x1="16" y1="9" x2="22" y2="15"/></svg>Mute</button>
     </div>
     <figcaption class="cap">The real Strata, live and playable, this is the Lovable build. Stack a block, hear it land, add a photo, everything here works.</figcaption>
    </figure>
@@ -1149,7 +1036,7 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
 })();
 </script>
 
- <button class="toTop" type="button" aria-label="Back to top" aria-hidden="true"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="6 11 12 5 18 11"></polyline></svg></button>
+ <button class="toTop ctl ctl--icon" type="button" aria-label="Back to top" aria-hidden="true"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="6 11 12 5 18 11"></polyline></svg></button>
  <script>
  (function(){var b=document.querySelector('.toTop');if(!b)return;var shown=false,tick=false;
  function u(){var s=window.scrollY>window.innerHeight*1.2;if(s!==shown){shown=s;b.classList.toggle('show',s);b.setAttribute('aria-hidden',s?'false':'true');}tick=false;}
@@ -1181,7 +1068,7 @@ if('IntersectionObserver' in window){var io=new IntersectionObserver(function(es
     box.parentNode.insertBefore(wrap, box); wrap.appendChild(box);
     var nav=document.createElement('div'); nav.className='sbNav';
     function mk(dir,label){
-      var b=document.createElement('button'); b.type='button'; b.className='sbBtn'; b.setAttribute('aria-label',label);
+      var b=document.createElement('button'); b.type='button'; b.className='sbBtn ctl ctl--icon'; b.setAttribute('aria-label',label);
       b.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="'+(dir<0?'15 18 9 12 15 6':'9 6 15 12 9 18')+'"/></svg>';
       b.addEventListener('click',function(){
         if(box.classList.contains('flow')){

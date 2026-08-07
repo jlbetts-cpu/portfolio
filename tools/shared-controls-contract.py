@@ -35,11 +35,16 @@ def by_id(parser, element_id):
     return next(attrs for _, attrs in parser.elements if attrs.get("id") == element_id)
 
 
+def asset_name(href):
+    return href.split("?", 1)[0] if href else href
+
+
 def main():
     for name in ("index.html", "play.html"):
         parsed = page(name)
-        assert "controls.css" in parsed.stylesheets, (name, parsed.stylesheets)
-        assert parsed.stylesheets.index("tokens.css") < parsed.stylesheets.index("controls.css")
+        assets = [asset_name(href) for href in parsed.stylesheets]
+        assert "controls.css" in assets, (name, parsed.stylesheets)
+        assert assets.index("tokens.css") < assets.index("controls.css")
 
         assert {"ctl", "ctl--primary"} <= classes(by_id(parsed, "workBtn"))
         assert {"ctl", "ctl--secondary"} <= classes(

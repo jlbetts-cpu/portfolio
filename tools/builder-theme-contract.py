@@ -27,8 +27,9 @@ def main():
             rf'<body\b[^>]*\bdata-theme-page=["\']{page_name}["\']', source
         ), f"{filename}: missing data-theme-page={page_name}"
         links = re.findall(r'<link\b[^>]*href=["\']([^"\']+)["\']', source)
-        assert links.count("builder-theme.css") == 1, f"{filename}: expected one builder-theme.css"
-        assert links.index("builder-theme.css") < links.index("site-theme.css"), (
+        assets = [link.split("?", 1)[0] for link in links]
+        assert assets.count("builder-theme.css") == 1, f"{filename}: expected one builder-theme.css"
+        assert assets.index("builder-theme.css") < assets.index("site-theme.css"), (
             f"{filename}: site-theme.css must remain the final stylesheet"
         )
 

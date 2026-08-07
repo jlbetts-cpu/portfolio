@@ -499,6 +499,30 @@
  --ctl-container-rim:0 0 0 var(--hair-w) var(--theme-rim,rgba(17,18,20,.12)) inset;
  --ctl-menu-shadow:var(--ctl-rim),var(--sh-2);
 
+ /* Shared surface/container system. Components consume these semantic aliases;
+    authored media continues to own its pixels while the shared frame owns the
+    ground, rim, radius, padding, and responsive page gutter around it. */
+ --surface-ground:var(--theme-surface,var(--c0,#fff));
+ --surface-ground-muted:var(--theme-elevated,var(--c75));
+ --surface-rim:var(--ctl-container-rim);
+ --surface-radius:var(--r-xl);
+ --surface-radius-compact:var(--r-lg);
+ --surface-hero-radius:var(--r-xl);
+ --surface-hero-pad:var(--sp-16-24);
+ --surface-pad:var(--sp-32);
+ --surface-inset:var(--sp-8);
+ --surface-gutter:var(--sp-40);
+ --surface-gap:var(--sp-16-24);
+ --portrait-peek-width:var(--sp-80);
+ --portrait-peek-height:var(--sp-56);
+ --portrait-peek-offset:var(--sp-16);
+ --portrait-peek-opacity:.64;
+ --skip-inset:var(--sp-10);
+ --skip-hidden-offset:calc((var(--ctl-h) + var(--sp-16)) * -1);
+ --floating-control-inset:var(--surface-gutter);
+ --layer-floating-control:90;
+ --layer-skip-link:200;
+
  /* THE BUILDERS' PANEL. headmaker.html and gradientlab.html are the same
     archetype -- an artifact beside an inspector -- and each declared its own name
     for the inspector's width: --mk-panel:360px and --panel-w:360px. They AGREE
@@ -535,6 +559,17 @@
  --bar-h:calc(var(--sp-14) + var(--nav-h) + var(--sp-6));
  --lbl-w:84px;
 }
+@media(max-width:760px){:root{
+ --surface-pad:var(--sp-16);--surface-gutter:var(--sp-16);
+ --surface-hero-radius:var(--r-lg);
+ --surface-hero-pad:var(--sp-12);
+ --portrait-peek-width:var(--sp-64);--portrait-peek-height:var(--ctl-h);
+ --portrait-peek-offset:var(--sp-8)
+}}
+@media(max-width:340px){:root{
+ --portrait-peek-width:var(--sp-56);--portrait-peek-height:var(--sp-36);
+ --portrait-peek-offset:var(--sp-6)
+}}
 @media(max-width:420px){:root{--lbl-w:72px}}
 
 /* ===========================================================================

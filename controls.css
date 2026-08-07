@@ -56,13 +56,83 @@
  transition:opacity var(--dur-state) var(--ease-out),transform var(--sp-settle-dur) var(--sp-settle)
 }
 .ctl-menu .ctl{border-radius:var(--r-md)}
-.skipLink.ctl{position:fixed}
+.skipLink.ctl{
+ position:fixed;top:var(--skip-inset);left:var(--skip-inset);z-index:var(--layer-skip-link);
+ transform:translateY(var(--skip-hidden-offset));transition-property:color,background-color,box-shadow,transform
+}
+.skipLink.ctl:focus{transform:none}
 
 /* Header menus are positioned by header.css, but consume the same opaque local
    material and semantic rim as every other menu on migrated pages. */
 .jbDiscMenu{background:var(--ctl-menu-ground);box-shadow:var(--ctl-container-rim)}
 
 .ctl-group{background:var(--ctl-container-ground);box-shadow:var(--ctl-container-rim)}
+
+/* Task 2 shared surfaces. Every visible decision resolves through tokens.css;
+   the page may place a primitive but may not redraw it. */
+.surface{
+ box-sizing:border-box;border:0;border-radius:var(--surface-radius);corner-shape:var(--corner);
+ background:var(--surface-ground);box-shadow:var(--surface-rim)
+}
+.surface--hero{
+ position:relative;overflow:hidden;border-radius:var(--surface-hero-radius);
+ padding-inline:var(--surface-hero-pad)
+}
+.surface--specimen{
+ width:calc(100% - (var(--surface-gutter) * 2));
+ max-width:calc(var(--page-max) - (var(--surface-gutter) * 2));background:var(--surface-ground-muted);
+ padding-block:var(--surface-pad);overflow:hidden
+}
+.surface--media,.surface--card{
+ overflow:hidden;background:var(--surface-ground);box-shadow:var(--surface-rim)
+}
+.surface--media{border-radius:var(--surface-radius-compact)}
+.surface--card{border-radius:var(--surface-radius-compact);padding:var(--surface-pad)}
+.surface--tab-rail{
+ box-sizing:border-box;display:flex;gap:var(--gap-item);padding:var(--surface-inset);
+ border-radius:var(--surface-radius-compact);background:var(--surface-ground);
+ box-shadow:var(--surface-rim)
+}
+.surface--specimen .csFrame{
+ border-radius:var(--surface-radius-compact);background:var(--surface-ground);box-shadow:var(--surface-rim)
+}
+.surface--specimen .csStageInner{padding-inline:0}
+.ctl--tab{font-size:inherit;color:var(--ctl-ink-mute);background:none;box-shadow:none}
+.ctl--tab:hover:not([aria-selected="true"]){background:var(--ctl-ground-hover);color:var(--ctl-ink-strong)}
+.ctl--tab[aria-selected="true"],.ctl--tab.on{color:var(--ctl-ink-strong);font-weight:600}
+.ctl--tab::after{
+ content:"";position:absolute;left:var(--ctl-pad);right:var(--ctl-pad);bottom:0;
+ height:var(--focus-w);background:var(--ctl-focus);opacity:0;transform:scaleX(0);
+ transition:opacity var(--dur-state) var(--ease-out),transform var(--sp-settle-dur) var(--sp-settle)
+}
+.ctl--tab[aria-selected="true"]::after,.ctl--tab.on::after{opacity:1;transform:scaleX(1)}
+.ctl--tick{width:var(--ctl-h);height:var(--ctl-h);min-width:var(--ctl-h);padding:0;border-radius:var(--ctl-r)}
+.ctl--tick::before{
+ content:"";width:var(--sp-14);height:var(--focus-w);border-radius:var(--r-hair);
+ background:var(--theme-rim);transition:background-color var(--dur-state) var(--ease-out)
+}
+.ctl--tick[aria-pressed="true"]::before,.ctl--tick.on::before{background:var(--ctl-ink-strong)}
+.ctl--media-large{min-width:var(--ctl-h);min-height:var(--ctl-h);padding-inline:var(--ctl-pad)}
+.ctl--media-large.is-icon{width:var(--ctl-h);padding:0}
+.toTop.ctl{
+ position:fixed;right:var(--floating-control-inset);bottom:var(--floating-control-inset);
+ z-index:var(--layer-floating-control);opacity:0;pointer-events:none
+}
+.toTop.ctl.show{opacity:1;pointer-events:auto}
+.toTop.ctl svg{transition:transform var(--dur-state) var(--ease-out)}
+.toTop.ctl:hover svg,.toTop.ctl:focus-visible svg{transform:translateY(calc(var(--sp-2) * -1))}
+.sbNav,.playerTicks{gap:var(--gap-item)}
+.playerBar{gap:var(--gap-group)}
+.portrait-peek{
+ position:absolute;right:var(--portrait-peek-offset);bottom:0;z-index:var(--sp-10);
+ width:var(--portrait-peek-width);height:var(--portrait-peek-height);overflow:hidden;
+ pointer-events:none
+}
+.portrait-peek__image{
+ position:absolute;left:50%;top:0;width:var(--portrait-peek-width);height:auto;max-width:none;
+ transform:translateX(-50%);filter:grayscale(1);opacity:var(--portrait-peek-opacity)
+}
+/* End Task 2 shared surfaces. */
 
 @media(prefers-reduced-motion:reduce){
  .ctl,.ctl-menu{transition-duration:1ms!important}

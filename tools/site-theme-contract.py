@@ -140,12 +140,12 @@ def check(page):
     assert state_order<controller_order, f"{page}: state model must load before controller"
     assert parser.styles, f"{page}: no themeable styles found"
     assert controller_order<min(parser.styles), f"{page}: controller must precede all themeable styles"
-    theme_links=[(order,href) for order,href in parser.stylesheet_links if href=="site-theme.css"]
+    theme_links=[(order,href) for order,href in parser.stylesheet_links if href.split("?",1)[0]=="site-theme.css"]
     assert len(theme_links)==1, f"{page}: expected one site-theme.css"
     theme_order=theme_links[0][0]
     assert theme_order==max(parser.styles), f"{page}: site-theme.css must be the final stylesheet"
     for shared in ("header.css", "footer.css"):
-        shared_links=[order for order,href in parser.stylesheet_links if href==shared]
+        shared_links=[order for order,href in parser.stylesheet_links if href.split("?",1)[0]==shared]
         assert len(shared_links)==1, f"{page}: expected one {shared}"
         assert shared_links[0]<theme_order, f"{page}: {shared} must precede site-theme.css"
     if page in PORTFOLIO_PAGES:
@@ -195,7 +195,9 @@ def check_portfolio_adapters():
     assert_semantic_rule(source,"Case-study prose",('body[data-theme-page="case-study"]', '.secBody'),"color:var(--theme-ink-soft)")
     assert_semantic_rule(source,"Case-study facts",('body[data-theme-page="case-study"] .facts',),"border-color:var(--theme-rim)")
     assert_semantic_rule(source,"Case-study rail",('body[data-theme-page="case-study"] .chap[aria-current="true"] .tick',),"background-color:var(--theme-ink)")
-    assert_semantic_rule(source,"Case-study tabs",('body[data-theme-page="case-study"] .tvTab.on',),"color:var(--theme-ink)")
+    controls=(ROOT/"controls.css").read_text(encoding="utf-8")
+    assert ".ctl--tab[aria-selected=\"true\"]" in controls and "color:var(--ctl-ink-strong)" in controls, "shared case-study tabs must consume semantic control ink"
+    assert 'body[data-theme-page="case-study"] .tvTab.on' not in source, "migrated case-study tabs must not keep a competing theme adapter"
     assert_semantic_rule(source,"Case-study comparison labels",('body[data-theme-page="case-study"]', '.baLabel'),"background-color:var(--theme-surface)")
     assert_semantic_rule(source,"Case-study demo caption",('body[data-theme-page="case-study"]', '.demoLabel'),"color:var(--theme-muted)")
     # The cover boundary is width-independent, so it remains present when the

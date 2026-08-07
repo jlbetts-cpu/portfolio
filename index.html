@@ -49,7 +49,7 @@
      page alone, so the ink-surface nav lost its top highlight here and nowhere
      else. Linked BEFORE this page's <style>, so anything the page still declares
      for itself continues to win. -->
-<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="tokens.css?v=20260806-shared-surfaces">
 <style>
 html{scroll-behavior:smooth}
 html.softScrolling{scroll-behavior:auto}
@@ -1439,11 +1439,11 @@ html{scroll-padding-top:calc(var(--nav-h) + var(--sp-16-24))}
  .heroCtas>*{transition:none!important;animation:none!important}
 }
 </style>
-<link rel="stylesheet" href="header.css">
-<link rel="stylesheet" href="hero-time.css">
-<link rel="stylesheet" href="footer.css">
-<link rel="stylesheet" href="controls.css">
-<link rel="stylesheet" href="site-theme.css">
+<link rel="stylesheet" href="header.css?v=20260806-shared-surfaces">
+<link rel="stylesheet" href="hero-time.css?v=20260806-shared-surfaces">
+<link rel="stylesheet" href="footer.css?v=20260806-shared-surfaces">
+<link rel="stylesheet" href="controls.css?v=20260806-shared-surfaces">
+<link rel="stylesheet" href="site-theme.css?v=20260806-shared-surfaces">
 <script>/* THE OLD OVERLAY'S URL STILL RESOLVES. index.html#about was the only address
    About ever had, and it is linked from play.html and the other sub-pages, and sits in
    anyone's history. Redirected before first paint (replace(), so it leaves no entry to
@@ -1535,7 +1535,7 @@ if(location.hash==="#about")location.replace("about.html");</script>
 </div>
 <div class="wrap">
  <div class="heroTimeSpill" id="heroTimeSpill" aria-hidden="true"></div>
- <section class="hero" id="main" tabindex="-1">
+ <section class="hero surface surface--hero" id="main" tabindex="-1">
   <svg class="heroPortraitTintDefs" width="0" height="0" aria-hidden="true">
    <filter id="heroPortraitTintFilter" color-interpolation-filters="sRGB">
     <feFlood id="heroPortraitTintFlood" flood-color="var(--time-cast)" result="portraitTint"/>
@@ -1549,7 +1549,7 @@ if(location.hash==="#about")location.replace("about.html");</script>
    <div class="heroCtas">
    <a class="workCta ctl ctl--primary" id="workBtn" href="#cases"><span>View work</span></a>
     <div class="heroTime" id="heroTime">
-     <button class="heroTimeBtn ctl ctl--icon" id="heroTimeBtn" type="button" aria-label="Time of day" aria-haspopup="menu" aria-expanded="false" aria-controls="heroTimeMenu"><svg class="heroTimeIcon uiIcon" id="heroTimeIcon" viewBox="0 0 24 24" aria-hidden="true"><g data-hero-time-icon="pre-dawn"><use href="ui-icons.svg#lucide-moon-star"/></g><g data-hero-time-icon="sunrise"><use href="ui-icons.svg#lucide-sunrise"/></g><g data-hero-time-icon="daytime"><use href="ui-icons.svg#lucide-sun"/></g><g data-hero-time-icon="dusk"><use href="ui-icons.svg#lucide-cloud-sun"/></g><g data-hero-time-icon="sunset"><use href="ui-icons.svg#lucide-sunset"/></g><g data-hero-time-icon="night"><use href="ui-icons.svg#lucide-moon"/></g><g data-hero-time-icon="off"><use href="ui-icons.svg#lucide-circle-off"/></g></svg></button>
+     <button class="heroTimeBtn ctl ctl--secondary ctl--icon" id="heroTimeBtn" type="button" aria-label="Time of day" aria-haspopup="menu" aria-expanded="false" aria-controls="heroTimeMenu"><svg class="heroTimeIcon uiIcon" id="heroTimeIcon" viewBox="0 0 24 24" aria-hidden="true"><g data-hero-time-icon="pre-dawn"><use href="ui-icons.svg#lucide-moon-star"/></g><g data-hero-time-icon="sunrise"><use href="ui-icons.svg#lucide-sunrise"/></g><g data-hero-time-icon="daytime"><use href="ui-icons.svg#lucide-sun"/></g><g data-hero-time-icon="dusk"><use href="ui-icons.svg#lucide-cloud-sun"/></g><g data-hero-time-icon="sunset"><use href="ui-icons.svg#lucide-sunset"/></g><g data-hero-time-icon="night"><use href="ui-icons.svg#lucide-moon"/></g><g data-hero-time-icon="off"><use href="ui-icons.svg#lucide-circle-off"/></g></svg></button>
      <div class="heroTimeMenu ctl-menu" id="heroTimeMenu" role="menu" aria-label="Choose time of day">
       <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="true" data-time-mode="auto"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true"><use href="ui-icons.svg#lucide-rotate-ccw"/></svg>Automatic</button>
       <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="false" data-time-mode="off"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true"><use href="ui-icons.svg#lucide-circle-off"/></svg>Off</button>
@@ -1568,16 +1568,17 @@ if(location.hash==="#about")location.replace("about.html");</script>
 <svg class="glasses" id="glasses" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><defs><pattern id="glCard" patternUnits="userSpaceOnUse" width="100" height="100"><image href="images/glass_frame_tex.webp" x="0" y="0" width="100" height="100" preserveAspectRatio="xMidYMid slice"/></pattern><linearGradient id="glSheen" x1="0" y1="0" x2="0.62" y2="1"><stop offset="0" stop-color="#fff" stop-opacity="0.5"/><stop offset="0.4" stop-color="#fff" stop-opacity="0.06"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient><mask id="glMask" maskUnits="userSpaceOnUse" x="0" y="0" width="100" height="100"><rect x="28" y="45.3" width="44" height="13.2" rx="2.4" fill="#fff"/><polygon points="28,47.2 26,48 26,50.4 28,51.2" fill="#fff"/><polygon points="72,47.2 74,48 74,50.4 72,51.2" fill="#fff"/><rect x="32.5" y="47.3" width="13" height="9.2" rx="1.8" fill="#000"/><rect x="54.5" y="47.3" width="13" height="9.2" rx="1.8" fill="#000"/><path d="M46.7 58.6 Q50 54.3 53.3 58.6 Z" fill="#000"/></mask></defs><rect class="gl-red" x="32.5" y="47.3" width="13" height="9.2" rx="1.8"/><rect class="gl-cyan" x="54.5" y="47.3" width="13" height="9.2" rx="1.8"/><rect class="gl-plast" x="32.5" y="47.3" width="13" height="9.2" rx="1.8" fill="url(#glSheen)"/><rect class="gl-plast" x="54.5" y="47.3" width="13" height="9.2" rx="1.8" fill="url(#glSheen)"/><rect x="0" y="0" width="100" height="100" fill="url(#glCard)" mask="url(#glMask)"/></svg></div></div>
 </div>
   <div class="heroMovieEffectsClip" id="heroMovieEffectsClip" aria-hidden="true"><div class="heroMovieEffectsStage" id="heroMovieEffectsStage"></div></div></div>
+  <figure class="portrait-peek" aria-hidden="true"><img class="portrait-peek__image" src="images/neutral.webp" alt="" draggable="false"></figure>
  </section>
 
 </div>
-<section class="cases" id="cases" aria-label="Selected work">
+<section class="cases surface surface--specimen" id="cases" aria-label="Selected work">
 <div class="csCursor" id="csCursor" aria-hidden="true"></div>
 <div class="csInfoCard" id="csInfoCard" aria-hidden="true"><div class="csInfoInner"><div class="csInfoRow"><div class="csInfoLabel">Role</div><p class="csInfoVal" data-f="role"></p></div><div class="csInfoRow"><div class="csInfoLabel">Problem</div><p class="csInfoVal" data-f="problem"></p></div><div class="csInfoRow"><div class="csInfoLabel">Solution</div><p class="csInfoVal" data-f="solution"></p></div></div></div>
- <nav class="csTabs caseInset" role="tablist" aria-label="Work categories">
-  <button class="csTab on" type="button" role="tab" data-tab="cs" aria-selected="true">Featured</button>
-  <button class="csTab" type="button" role="tab" data-tab="fun" aria-selected="false">Case Studies</button>
-  <button class="csTab" type="button" role="tab" data-tab="goodness" aria-selected="false">Extras</button>
+ <nav class="csTabs caseInset surface--tab-rail" role="tablist" aria-label="Work categories">
+  <button class="csTab on ctl ctl--tab" type="button" role="tab" data-tab="cs" aria-selected="true">Featured</button>
+  <button class="csTab ctl ctl--tab" type="button" role="tab" data-tab="fun" aria-selected="false">Case Studies</button>
+  <button class="csTab ctl ctl--tab" type="button" role="tab" data-tab="goodness" aria-selected="false">Extras</button>
   <span class="csTabInk" id="csTabInk" aria-hidden="true"></span>
  </nav>
  
