@@ -17,7 +17,8 @@
   }
   function safeRect(){
    var h=hero.getBoundingClientRect(),c=content.getBoundingClientRect();
-   return {left:h.left,right:h.right,top:Math.min(h.bottom,c.bottom+16),bottom:h.bottom};
+   var gap=parseFloat(getComputedStyle(hero).getPropertyValue("--hero-head-safe-gap"))||0;
+   return {left:h.left,right:h.right,top:Math.min(h.bottom,c.bottom+gap),bottom:h.bottom};
   }
   function syncSelection(){
    state.frame=0;
@@ -79,7 +80,10 @@
 
   face.addEventListener("pointerdown",beginMove);
   face.addEventListener("keydown",function(event){
-   if(event.key==="Enter"||event.key===" "){event.preventDefault();select();}
+   if(event.key==="Enter"||event.key===" "){
+    event.preventDefault();
+    if(state.selected)deselect({restoreFocus:true});else select();
+   }
   });
   selection.addEventListener("pointerdown",function(e){if(!e.target.closest(".heroHeadHandle"))beginMove(e);});
   [face,selection].forEach(function(node){
@@ -87,6 +91,7 @@
    node.addEventListener("pointercancel",end);node.addEventListener("lostpointercapture",end);
   });
   document.addEventListener("pointerdown",function(e){
+   if(state.pointerId!==null)return;
    if(state.selected&&!selection.contains(e.target)&&e.target!==face)deselect();
   },true);
   document.addEventListener("keydown",function(e){

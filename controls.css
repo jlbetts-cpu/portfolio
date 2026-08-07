@@ -193,14 +193,18 @@
  border:0;padding:0;background:transparent;touch-action:none
 }
 .heroHeadHandle::before{
- content:"";position:absolute;left:50%;top:50%;width:var(--selection-handle-size);height:var(--selection-handle-size);
+ content:"";position:absolute;width:var(--selection-handle-size);height:var(--selection-handle-size);
  transform:translate(-50%,-50%);background:var(--ctl-ground);
  box-shadow:inset 0 0 0 var(--selection-line) var(--selection-ink)
 }
-.heroHeadHandle[data-corner="nw"]{left:calc(var(--selection-hit-size) / -2);top:calc(var(--selection-hit-size) / -2);cursor:nwse-resize}
-.heroHeadHandle[data-corner="ne"]{right:calc(var(--selection-hit-size) / -2);top:calc(var(--selection-hit-size) / -2);cursor:nesw-resize}
-.heroHeadHandle[data-corner="sw"]{left:calc(var(--selection-hit-size) / -2);bottom:calc(var(--selection-hit-size) / -2);cursor:nesw-resize}
-.heroHeadHandle[data-corner="se"]{right:calc(var(--selection-hit-size) / -2);bottom:calc(var(--selection-hit-size) / -2);cursor:nwse-resize}
+.heroHeadHandle[data-corner="nw"]{left:0;top:0;cursor:nwse-resize}
+.heroHeadHandle[data-corner="ne"]{right:0;top:0;cursor:nesw-resize}
+.heroHeadHandle[data-corner="sw"]{left:0;bottom:0;cursor:nesw-resize}
+.heroHeadHandle[data-corner="se"]{right:0;bottom:0;cursor:nwse-resize}
+.heroHeadHandle[data-corner="nw"]::before{left:0;top:0}
+.heroHeadHandle[data-corner="ne"]::before{left:100%;top:0}
+.heroHeadHandle[data-corner="sw"]::before{left:0;top:100%}
+.heroHeadHandle[data-corner="se"]::before{left:100%;top:100%}
 .heroCharacterPeek .stage{pointer-events:auto;cursor:pointer;touch-action:none}
 /* End Task 2 shared surfaces. */
 
