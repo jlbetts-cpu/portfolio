@@ -129,8 +129,11 @@ def browser_contract(base_url):
             assert state["directPointerTargets"] == 0, state
             assert not state["horizontalOverflow"], state
             assert all(target["width"] >= 44 and target["height"] >= 44 for target in state["targets"]), state
-            assert state["hero"]["height"] <= height * 0.72, state
+            # The approved Hero owns the opening viewport. Moving the portrait to Play must
+            # not collapse Home into a short banner at any responsive width.
+            assert height - 90 <= state["hero"]["height"] <= height - 86, state
             assert state["title"]["top"] >= state["hero"]["top"], state
+            assert state["title"]["top"] <= state["hero"]["top"] + state["hero"]["height"] * 0.38, state
             assert state["ctas"]["bottom"] <= state["hero"]["bottom"], state
             assert state["casesTop"] - state["hero"]["bottom"] <= 160, state
             initial_geometry = state["hero"]
@@ -139,6 +142,10 @@ def browser_contract(base_url):
             page.wait_for_function("document.getElementById('main').dataset.timeState === 'off'")
             page.wait_for_timeout(700)
             off_geometry = page.locator("#main").bounding_box()
+            off_surfaces = page.evaluate(
+                """['.jbNav','#heroTimeBtn'].map(selector => getComputedStyle(document.querySelector(selector)).backgroundColor)"""
+            )
+            assert all(not color.startswith("rgba(") or not color.endswith(", 0)") for color in off_surfaces), off_surfaces
             assert not page.evaluate("document.documentElement.scrollWidth > document.documentElement.clientWidth")
             visible_portraits = page.evaluate(
                 """[...document.querySelectorAll('#face,#heroTimePortraitCast,#stage,.hmRefl,.hmShadow')]
@@ -151,6 +158,10 @@ def browser_contract(base_url):
             page.wait_for_function("document.getElementById('main').dataset.timeState === 'night'")
             page.wait_for_timeout(700)
             night_geometry = page.locator("#main").bounding_box()
+            night_surfaces = page.evaluate(
+                """['.jbNav','#heroTimeBtn'].map(selector => getComputedStyle(document.querySelector(selector)).backgroundColor)"""
+            )
+            assert all(not color.startswith("rgba(") or not color.endswith(", 0)") for color in night_surfaces), night_surfaces
             assert not page.evaluate("document.documentElement.scrollWidth > document.documentElement.clientWidth")
             for geometry in (off_geometry, night_geometry):
                 assert abs(geometry["height"] - initial_geometry["height"]) <= 0.5, (initial_geometry, geometry)

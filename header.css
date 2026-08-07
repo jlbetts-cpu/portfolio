@@ -194,7 +194,7 @@
      Translucency is the approved alternative to a shadow for making chrome sit
      ABOVE content; it is not an answer to chrome that is the colour of the
      paper. White is, and the rim below carries the rest. */
-  --nav-mat:transparent;
+  --nav-mat:var(--theme-page,var(--c50));
 
   /* THE RIM DOES ALL OF THE SEPARATION WORK, because there is no shadow (§6).
      On a near-white page a 96%-white pill is invisible, so the hairline has to
@@ -339,7 +339,7 @@
 /* Night chrome is neutral on every route, including the two stage pages that
    otherwise opt into the legacy ink surface. Geometry stays in the rules above. */
 :root[data-theme="dark"] .jbNav{
-  --nav-mat:transparent;
+  --nav-mat:var(--theme-page,var(--c50));
   --nav-rim:0 0 0 var(--hair-w) var(--theme-rim,rgba(255,255,255,.14)) inset;
   --nav-ink:var(--theme-muted,var(--i700));
   --nav-ink-strong:var(--theme-ink,var(--c50));

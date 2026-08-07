@@ -11,9 +11,9 @@
  --time-primary-bg:var(--c950);
  --time-primary-ink:var(--c50);
  --time-primary-hover-bg:var(--c900);
- --time-secondary-bg:transparent;
+ --time-secondary-bg:var(--time-base);
  --time-secondary-ink:var(--c950);
- --time-secondary-hover-bg:var(--mat-3-solid);
+ --time-secondary-hover-bg:var(--time-base);
  --time-secondary-border:var(--c100);
  --time-secondary-hover-border:var(--c500);
  --time-rim:var(--rim-3);
@@ -24,7 +24,7 @@
  --time-light-y:86%;
  --time-shadow:radial-gradient(ellipse 50% 50% at 50% 50%,rgba(8,8,8,.42),rgba(8,8,8,.28) 30%,rgba(8,8,8,.10) 58%,transparent 78%);
  --time-shadow-opacity:.5;
- --time-menu-bg:var(--mat-3-solid);
+ --time-menu-bg:var(--time-base);
  --time-menu-ink:var(--c700);
  --time-menu-ink-strong:var(--c950);
  --time-menu-selected:var(--wash-1);
@@ -47,9 +47,9 @@
  --time-primary-bg:var(--c950);
  --time-primary-ink:var(--c50);
  --time-primary-hover-bg:var(--c900);
- --time-secondary-bg:transparent;
+ --time-secondary-bg:var(--time-base);
  --time-secondary-ink:var(--c950);
- --time-secondary-hover-bg:var(--mat-3-solid);
+ --time-secondary-hover-bg:var(--time-base);
  --time-secondary-border:var(--c100);
  --time-secondary-hover-border:var(--c500);
  --time-rim:var(--rim-3);
@@ -60,7 +60,7 @@
  --time-light-y:86%;
  --time-shadow:radial-gradient(ellipse 50% 50% at 50% 50%,rgba(8,8,8,.42),rgba(8,8,8,.28) 30%,rgba(8,8,8,.10) 58%,transparent 78%);
  --time-shadow-opacity:.5;
- --time-menu-bg:var(--mat-3-solid);
+ --time-menu-bg:var(--time-base);
  --time-menu-ink:var(--c700);
  --time-menu-ink-strong:var(--c950);
  --time-menu-selected:var(--wash-1);
@@ -74,9 +74,9 @@
  --time-primary-bg:var(--c950);
  --time-primary-ink:var(--c50);
  --time-primary-hover-bg:var(--c900);
- --time-secondary-bg:transparent;
+ --time-secondary-bg:var(--time-base);
  --time-secondary-ink:var(--c950);
- --time-secondary-hover-bg:var(--mat-3-solid);
+ --time-secondary-hover-bg:var(--time-base);
  --time-secondary-border:var(--c100);
  --time-secondary-hover-border:var(--c500);
  --time-rim:var(--rim-3);
@@ -87,7 +87,7 @@
  --time-light-y:82%;
  --time-shadow:radial-gradient(ellipse 54% 54% at 42% 50%,rgba(3,8,19,.68),rgba(10,22,48,.42) 38%,rgba(36,59,121,.16) 64%,transparent 82%);
  --time-shadow-opacity:.64;
- --time-menu-bg:var(--mat-3-solid);
+ --time-menu-bg:var(--time-base);
  --time-menu-ink:var(--c700);
  --time-menu-ink-strong:var(--c950);
  --time-menu-selected:var(--wash-1);
@@ -101,9 +101,9 @@
  --time-primary-bg:var(--c950);
  --time-primary-ink:var(--c50);
  --time-primary-hover-bg:var(--c900);
- --time-secondary-bg:transparent;
+ --time-secondary-bg:var(--time-base);
  --time-secondary-ink:var(--c950);
- --time-secondary-hover-bg:var(--mat-3-solid);
+ --time-secondary-hover-bg:var(--time-base);
  --time-secondary-border:var(--c100);
  --time-secondary-hover-border:var(--c500);
  --time-rim:var(--rim-3);
@@ -114,7 +114,7 @@
  --time-light-y:82%;
  --time-shadow:radial-gradient(ellipse 54% 52% at 44% 50%,rgba(72,57,54,.44),rgba(181,116,85,.22) 38%,rgba(255,212,184,.08) 66%,transparent 82%);
  --time-shadow-opacity:.48;
- --time-menu-bg:var(--mat-3-solid);
+ --time-menu-bg:var(--time-base);
  --time-menu-ink:var(--c700);
  --time-menu-ink-strong:var(--c950);
  --time-menu-selected:var(--wash-1);
@@ -128,9 +128,9 @@
  --time-primary-bg:var(--c950);
  --time-primary-ink:var(--c50);
  --time-primary-hover-bg:var(--c900);
- --time-secondary-bg:transparent;
+ --time-secondary-bg:var(--time-base);
  --time-secondary-ink:var(--c950);
- --time-secondary-hover-bg:var(--mat-3-solid);
+ --time-secondary-hover-bg:var(--time-base);
  --time-secondary-border:var(--c100);
  --time-secondary-hover-border:var(--c500);
  --time-rim:var(--rim-3);
@@ -141,7 +141,7 @@
  --time-light-y:84%;
  --time-shadow:radial-gradient(ellipse 54% 52% at 48% 50%,rgba(24,49,78,.36),rgba(90,145,192,.18) 38%,rgba(169,214,255,.08) 64%,transparent 82%);
  --time-shadow-opacity:.42;
- --time-menu-bg:var(--mat-3-solid);
+ --time-menu-bg:var(--time-base);
  --time-menu-ink:var(--c700);
  --time-menu-ink-strong:var(--c950);
  --time-menu-selected:var(--wash-1);
@@ -155,9 +155,9 @@
  --time-primary-bg:var(--c950);
  --time-primary-ink:var(--c50);
  --time-primary-hover-bg:var(--c900);
- --time-secondary-bg:transparent;
+ --time-secondary-bg:var(--time-base);
  --time-secondary-ink:var(--c950);
- --time-secondary-hover-bg:var(--mat-3-solid);
+ --time-secondary-hover-bg:var(--time-base);
  --time-secondary-border:var(--c100);
  --time-secondary-hover-border:var(--c500);
  --time-rim:var(--rim-3);
@@ -168,7 +168,7 @@
  --time-light-y:82%;
  --time-shadow:radial-gradient(ellipse 54% 54% at 44% 50%,rgba(7,10,22,.66),rgba(38,54,92,.38) 40%,rgba(103,111,159,.14) 66%,transparent 82%);
  --time-shadow-opacity:.62;
- --time-menu-bg:var(--mat-3-solid);
+ --time-menu-bg:var(--time-base);
  --time-menu-ink:var(--c700);
  --time-menu-ink-strong:var(--c950);
  --time-menu-selected:var(--wash-1);
@@ -182,9 +182,9 @@
  --time-primary-bg:var(--c950);
  --time-primary-ink:var(--c50);
  --time-primary-hover-bg:var(--c900);
- --time-secondary-bg:transparent;
+ --time-secondary-bg:var(--time-base);
  --time-secondary-ink:var(--c950);
- --time-secondary-hover-bg:var(--mat-3-solid);
+ --time-secondary-hover-bg:var(--time-base);
  --time-secondary-border:var(--c100);
  --time-secondary-hover-border:var(--c500);
  --time-rim:var(--rim-3);
@@ -195,7 +195,7 @@
  --time-light-y:82%;
  --time-shadow:radial-gradient(ellipse 56% 54% at 45% 50%,rgba(13,10,24,.68),rgba(60,49,93,.40) 38%,rgba(213,108,118,.16) 66%,transparent 82%);
  --time-shadow-opacity:.66;
- --time-menu-bg:var(--mat-3-solid);
+ --time-menu-bg:var(--time-base);
  --time-menu-ink:var(--c700);
  --time-menu-ink-strong:var(--c950);
  --time-menu-selected:var(--wash-1);
@@ -209,9 +209,9 @@
  --time-primary-bg:var(--c50);
  --time-primary-ink:var(--c950);
  --time-primary-hover-bg:var(--c100);
- --time-secondary-bg:transparent;
+ --time-secondary-bg:var(--time-base);
  --time-secondary-ink:var(--c50);
- --time-secondary-hover-bg:rgba(11,12,15,.74);
+ --time-secondary-hover-bg:var(--time-base);
  --time-secondary-border:rgba(244,245,247,.28);
  --time-secondary-hover-border:rgba(244,245,247,.42);
  --time-rim:var(--rim-i2);
@@ -222,7 +222,7 @@
  --time-light-y:82%;
  --time-shadow:radial-gradient(ellipse 56% 54% at 46% 50%,rgba(0,2,8,.76),rgba(10,21,48,.48) 38%,rgba(29,74,147,.16) 66%,transparent 82%);
  --time-shadow-opacity:.72;
- --time-menu-bg:rgba(11,12,15,.78);
+ --time-menu-bg:var(--time-base);
  --time-menu-ink:var(--i700);
  --time-menu-ink-strong:var(--c50);
  --time-menu-selected:var(--wash-i1);
@@ -269,7 +269,7 @@
 :root[data-theme="dark"] .footReach{color:var(--theme-muted)}
 :root[data-theme="dark"] .footIn{color:var(--theme-ink)}
 :root[data-theme="dark"] .jbNav{
- --nav-mat:transparent;
+ --nav-mat:var(--theme-page);
  --nav-rim:inset 0 0 0 var(--hair-w) rgba(244,245,247,.16);
  --nav-hover-bg:rgba(244,245,247,.10);
  --nav-active-bg:rgba(244,245,247,.14)

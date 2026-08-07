@@ -195,10 +195,11 @@ for gradient_contract in ("position:absolute", "inset:0", "opacity:0", "filter:n
 assert "transition:opacity" not in gradient_rule.group(0)
 hero_rule = re.search(r'\.hero\s*\{.*?\}', time_css, re.S)
 assert hero_rule and "background-color:var(--time-base)" in hero_rule.group(0)
-assert "--time-secondary-bg:transparent" in hero_rule.group(0)
-for transparent_state in ("off", "pre-dawn", "sunrise", "daytime", "dusk", "sunset", "night"):
-    state_material = re.search(rf'\.hero\[data-time-state="{transparent_state}"\]\s*\{{(.*?)\}}', time_css, re.S)
-    assert state_material and "--time-secondary-bg:transparent" in state_material.group(1), transparent_state
+assert "--time-secondary-bg:var(--time-base)" in hero_rule.group(0)
+for opaque_state in ("off", "pre-dawn", "sunrise", "daytime", "dusk", "sunset", "night"):
+    state_material = re.search(rf'\.hero\[data-time-state="{opaque_state}"\]\s*\{{(.*?)\}}', time_css, re.S)
+    assert state_material and "--time-secondary-bg:var(--time-base)" in state_material.group(1), opaque_state
+    assert "--time-menu-bg:var(--time-base)" in state_material.group(1), opaque_state
 assert "transition:background-color var(--hero-time-duration) var(--hero-time-ease)" in hero_rule.group(0)
 assert "overflow:visible" in hero_rule.group(0), "the clipped gradient child, not the hero, must own overflow"
 spill_rule = re.search(r'\.heroTimeSpill\s*\{.*?\}', time_css, re.S)
@@ -409,17 +410,17 @@ night_state = re.search(r'\.hero\[data-time-state="night"\]\s*\{(.*?)\}', time_c
 assert night_state
 for material_contract in (
     "--time-primary-bg:var(--c50)",
-    "--time-secondary-bg:transparent",
-    "--time-secondary-hover-bg:rgba(11,12,15,.74)",
+    "--time-secondary-bg:var(--time-base)",
+    "--time-secondary-hover-bg:var(--time-base)",
     "--time-secondary-border:rgba(244,245,247,.28)",
     "--time-secondary-hover-border:rgba(244,245,247,.42)",
-    "--time-menu-bg:rgba(11,12,15,.78)",
+    "--time-menu-bg:var(--time-base)",
 ):
     assert material_contract in night_state.group(1), material_contract
 night_nav = re.search(r':root\[data-theme="dark"\] \.jbNav\s*\{(.*?)\}', time_css, re.S)
 assert night_nav
 for nav_material_contract in (
-    "--nav-mat:transparent",
+    "--nav-mat:var(--theme-page)",
     "--nav-hover-bg:rgba(244,245,247,.10)",
     "--nav-active-bg:rgba(244,245,247,.14)",
 ):
@@ -472,8 +473,8 @@ assert 'id="cursorGlow"' not in html
 assert ".cursorGlow" not in html
 hero_aura_rule = re.search(r'\.heroAura\s*\{.*?\}', html, re.S)
 assert hero_aura_rule and "var(--accent)" not in hero_aura_rule.group(0)
-assert "@media(max-width:880px)" in html
-assert re.search(r'@media\(max-width:880px\).*?\.hero\s*\{[^}]*min-height:clamp\(336px,46svh,440px\)', html, re.S)
+assert re.search(r'\.hero\s*\{[^}]*min-height:calc\(100svh - 88px\)', html, re.S)
+assert re.search(r'\.heroCopy\s*\{[^}]*transform:translateY\(clamp\(-80px,-8svh,-48px\)\)', html, re.S)
 assert re.search(r'\.heroTimeSupport\s*\{[^}]*display:none!important', html, re.S)
 assert re.search(r'\.heroCtas>\*\s*\{[^}]*opacity:1;[^}]*transform:none', html, re.S)
 assert re.search(r'#loveScene\s*\{[^}]*z-index:\s*64', html, re.S)

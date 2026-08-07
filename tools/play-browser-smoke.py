@@ -127,6 +127,7 @@ def run_layout(browser, base_url, width, height, reduced=False):
         () => {
           const r = s => document.querySelector(s).getBoundingClientRect();
           const hero = r('#playArena'), header = r('.jbStick'), nav = r('.jbNav');
+          const gradientClip = r('#heroTimeClip');
           const h1 = r('.heroCopy h1'), ctas = r('.heroCtas'), stage = r('.stagewrap');
           const games = r('#games'), cards = r('.pCards');
           const bounds = rect => ({left:rect.left,right:rect.right,width:rect.width});
@@ -138,6 +139,7 @@ def run_layout(browser, base_url, width, height, reduced=False):
             columns: getComputedStyle(document.querySelector('.pCards')).gridTemplateColumns.split(' ').length,
             header: {top:header.top,height:header.height}, navTop: nav.top,
             hero: {top:hero.top,left:hero.left,right:hero.right,bottom:hero.bottom,height:hero.height},
+            gradientTop: gradientClip.top,
             gamesGap: cards.top - hero.bottom,
             h1Cta: ctas.top - h1.bottom,
             ctaStage: stage.top - ctas.bottom,
@@ -150,6 +152,7 @@ def run_layout(browser, base_url, width, height, reduced=False):
             canonical: ['moodbar','moodBtn','moodMenu'].map(id => document.querySelectorAll('#'+id).length),
             gameIds: ['gamebar','gameBtn','gameMenu'].every(id => !!document.getElementById(id)),
             statusHidden: !!document.querySelector('#qdots[aria-live] [aria-hidden="true"]')
+            ,surfaces: ['.jbNav','#moodBtn','#heroTimeBtn'].map(selector => getComputedStyle(document.querySelector(selector)).backgroundColor)
           };
         }
         """
@@ -160,6 +163,7 @@ def run_layout(browser, base_url, width, height, reduced=False):
     assert abs(data["header"]["top"]) <= 1 and abs(data["header"]["height"] - 72) <= 1, data
     assert abs(data["navTop"] - 8) <= 1, data
     assert abs(data["hero"]["top"] - 72) <= 1, data
+    assert data["gradientTop"] <= 1, data
     assert abs(data["hero"]["left"]) <= 1 and abs(data["hero"]["right"] - width) <= 1, data
     assert abs(data["hero"]["bottom"] - height) <= 2, data
     assert 14 <= data["gamesGap"] <= 18, data
@@ -167,6 +171,7 @@ def run_layout(browser, base_url, width, height, reduced=False):
     assert all(item["w"] >= 44 and item["h"] >= 44 for item in data["targets"]), data
     assert data["stage"]["left"] >= -1 and data["stage"]["right"] <= width + 1, data
     assert not data["statusHidden"], data
+    assert all(not color.startswith("rgba(") or not color.endswith(", 0)") for color in data["surfaces"]), data
     if width <= 390:
         assert data["columns"] == 2, data
         assert data["games"]["left"] >= -1 and data["games"]["right"] <= width + 1 and data["games"]["width"] <= width + 1, data
@@ -179,6 +184,12 @@ def run_layout(browser, base_url, width, height, reduced=False):
         assert data["columns"] == 4, data
     assert_no_overflow(page, "layout-%s" % width)
     screenshot(page, "layout-%sx%s" % (width, height))
+
+    page.mouse.wheel(0, 520)
+    page.wait_for_timeout(120)
+    natural_scroll = page.evaluate("scrollY")
+    assert natural_scroll > 0, (width, natural_scroll)
+    page.evaluate("window.scrollTo(0, 0)")
 
     page.locator("#workBtn").click()
     page.wait_for_function("location.hash === '#games'")
@@ -238,7 +249,8 @@ def run_time_and_games(browser, base_url):
           mode: document.documentElement.dataset.themeMode,
           h1: getComputedStyle(document.querySelector('.heroCopy h1')).color,
           background: getComputedStyle(document.querySelector('#playArena [data-time-gradient="night"]')).backgroundImage,
-          heroBg: getComputedStyle(document.querySelector('#playArena')).backgroundColor
+          heroBg: getComputedStyle(document.querySelector('#playArena')).backgroundColor,
+          surfaces: ['.jbNav','#moodBtn','#heroTimeBtn'].map(selector => getComputedStyle(document.querySelector(selector)).backgroundColor)
         })
         """
     )
@@ -246,6 +258,7 @@ def run_time_and_games(browser, base_url):
     assert all(int(x) >= 240 for x in night["h1"].removeprefix("rgb(").removesuffix(")").split(", ")), night
     assert "81, 69, 154" in night["background"] and "9, 9, 12" in night["background"], night
     assert "spotlight" not in night["background"].lower(), night
+    assert all(not color.startswith("rgba(") or not color.endswith(", 0)") for color in night["surfaces"]), night
 
     page.locator("#heroTimeBtn").click()
     page.locator('#heroTimeMenu [data-time-mode="daytime"]').click()

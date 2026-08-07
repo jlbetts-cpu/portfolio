@@ -35,7 +35,7 @@
     reversed it -- "shouldn't be dark mode. Should be minimal with a NASA planet and the heads
     jumping on it." That deleted a whole colour system from this file rather than adding one,
     and it took the ink chrome, the terminator and the sky grain with it. */
- html{margin:0;height:100%;background:var(--c50);overflow:hidden}
+ html{margin:0;height:100%;background:var(--c50);overflow-x:clip;overflow-y:auto}
  body{margin:0;height:auto;min-height:100%;background:var(--c50);overflow-x:clip;overflow-y:auto}
  .skipLink{position:fixed;top:var(--sp-10);left:var(--sp-10);z-index:200;display:inline-flex;align-items:center;min-height:var(--tap-min);padding:var(--sp-12) var(--sp-16);background:var(--c50);color:var(--c950);border:var(--hair-w) solid var(--c100);border-radius:var(--r-xs);corner-shape:var(--corner);font-family:var(--sans);font-weight:400;font-size:var(--fs-small);line-height:var(--lh-flat);text-decoration:none;box-shadow:none;transform:translateY(calc(-100% - var(--sp-16)));transition:transform var(--ease-out-dur) var(--ease-out)}
  .skipLink:focus{transform:translateY(0);outline:var(--focus-w) solid var(--c950);outline-offset:var(--sp-2)}
@@ -105,6 +105,8 @@
  /* Play points every atmosphere downward from the fixed header. Night is neutral near-black
     with a controlled violet cast, never the old bright blue floor spotlight. */
  body[data-theme-page="play"] .heroTimeSpill{top:0;background:linear-gradient(180deg,#09090c 0%,#0e0d15 72%,rgba(9,9,12,0) 100%)}
+ body[data-theme-page="play"] .hero{overflow:visible}
+ body[data-theme-page="play"] .heroTimeClip{top:calc(0px - var(--bar-h));bottom:0;border-radius:0}
  body[data-theme-page="play"] .heroTimeGradient[data-time-gradient="pre-dawn"]{background:radial-gradient(112% 100% at 50% -8%,#5f61c8 0,#a38bde 20%,#ddd2f1 42%,#f8fafd 72%)}
  body[data-theme-page="play"] .heroTimeGradient[data-time-gradient="sunrise"]{background:radial-gradient(112% 100% at 50% -8%,#d985d0 0,#ffb087 20%,#ffe2bd 42%,#f8fafd 72%)}
  body[data-theme-page="play"] .heroTimeGradient[data-time-gradient="daytime"]{background:radial-gradient(112% 100% at 50% -8%,#438fc7 0,#99c6e9 24%,#dbeaf7 48%,#f8fafd 74%)}
