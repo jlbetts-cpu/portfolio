@@ -587,7 +587,7 @@
   floorY=fY-HH*FOOT;                                               // feet (the visible chin, not the transparent padding) rest on that shared floor, whatever the head's size
   M=mob?16:40;plats=[];avoids=[];
   var ow=heroR?heroR.w:0;
-  var hb=hero.getBoundingClientRect();WL=-hb.left-HW*0.35;WR=innerWidth-hb.left-HW*0.65;CEIL=-(hb.top+window.scrollY)-HH*0.12;if(document.body.classList.contains("hmFull")){var _gwp=document.body.classList.contains("hmSoccer")?(mob?12:20):2;CEIL=2;WL=-hb.left+_gwp;WR=innerWidth-hb.left-HW-_gwp;}   // PHONE, GAME RUNNING: the arena now fills the screen and the nav sits right on top of it, so the ceiling stops at the hero instead of letting heads (and their health bars) climb over the wordmark. Soccer reserves enough wall room for a rotating player's painted box; other games retain their authored edge behavior.   // it presses into the glass on every side; the VISIBLE crown reaches the top, not the box
+  var hb=hero.getBoundingClientRect();WL=-hb.left-HW*0.35;WR=innerWidth-hb.left-HW*0.65;CEIL=-(hb.top+window.scrollY)-HH*0.12;if(document.body.classList.contains("hmFull")){var _socWall=document.body.classList.contains("hmSoccer"),_gwp=_socWall?(mob?28:40):2;CEIL=_socWall?_gwp:2;WL=-hb.left+_gwp;WR=innerWidth-hb.left-HW-_gwp;}   // PHONE, GAME RUNNING: the arena now fills the screen and the nav sits right on top of it, so the ceiling stops at the hero instead of letting heads (and their health bars) climb over the wordmark. Soccer reserves the half-diagonal overhang of a rotating/squashing player at the sides and ceiling, so the painted box remains inside the arena; other games retain their authored edge behavior.   // it presses into the glass on every side; the VISIBLE crown reaches the top, not the box
   if(ow&&Math.abs(ow-hero.clientWidth)>2)x=x/ow*hero.clientWidth;   // resizing keeps its relative spot
   if(bigR){var nHW=Math.round(Math.min(108,Math.max(66,(bigR.r-bigR.l)*0.27)));if(mob)nHW=Math.min(nHW,64);
    if(filler)nHW=Math.round(nHW*1.5);   // the mini-Jayden stays noticeably BIGGER (Jayden liked this) -- but he's on the SAME flat plane + ground line as everyone else; his size is his identity, not a depth cue
@@ -624,7 +624,7 @@
   // shrinks" clamp as the line below, made symmetric; it re-seats feet on the ground line rather
   // than offsetting anyone off it.
   if(floorY!==floorWas&&!air&&!grabbed&&!perched&&!window.__hmLavaOn&&surface>=floorWas-2){surface=floorY;if(y<floorY)y=floorY;}
-  if(gameOn&&!window.__hmLavaOn&&!grabbed&&!perched)surface=floorY;
+  if(soccerOn&&!window.__hmLavaOn&&!grabbed&&!perched)surface=floorY;
   if(x>WR)x=WR;if(x<WL)x=WL;if(y>floorY)y=floorY;   // stay intact when the screen shrinks
  }
  survey();addEventListener("resize",function(){mob=innerWidth<=880;survey();},{passive:true});
@@ -2469,8 +2469,9 @@ function teams(){
    var _bs=dt>0.02?Math.ceil(dt/0.02):1,_bd=dt/_bs;   // same sub-step guard for the ball, so a laggy frame can't balloon it either
    for(var _bi=0;_bi<_bs;_bi++){bsxv+=((bsxP-bsx)*1150-bsxv*62)*_bd;bsx+=bsxv*_bd;bsyv+=((bsyP-bsy)*1150-bsyv*62)*_bd;bsy+=bsyv*_bd;}
    bsx=Math.max(0.7,Math.min(1.32,bsx));bsy=Math.max(0.7,Math.min(1.32,bsy));
-   var _by=ARC.y(bx);   // the ball rides the same swell as the feet. Render only: REST, `grounded`, the roll model and every kick still work on the one flat groundY.
-   if(ball){ball.style.transform="translate("+(bx-BR).toFixed(1)+"px,"+(by-BR+_by).toFixed(1)+"px) scale("+(bsx*bsp).toFixed(3)+","+(bsy*bsp).toFixed(3)+")";   // container: position + squash, it never rotates
+   var _by=0;   // the ball, goals, and companion feet render on the same published flat match plane; the planet arc remains decorative scenery only.
+   var _drawHalf=BR*bsx*bsp,_drawBx=Math.max(XL+_drawHalf,Math.min(XR-_drawHalf,bx));
+   if(ball){ball.style.transform="translate("+(_drawBx-BR).toFixed(1)+"px,"+(by-BR+_by).toFixed(1)+"px) scale("+(bsx*bsp).toFixed(3)+","+(bsy*bsp).toFixed(3)+")";   // container: position + squash, it never rotates; the painted squash stays inside the arena even while physics contacts the wall
     if(ballSkin)ballSkin.style.transform="rotate("+spin.toFixed(1)+"deg)";}   // only the printed pattern spins, dead-centre -- the lighting stays put
    if(ballShadow){var bBot=by+BR,airH=Math.max(0,groundY-bBot),scv=Math.max(0.4,1-airH/460);   // the shadow lives on the pitch line, dead under the ball, shrinking as it rises
     var hw9=(peers.length&&peers[0].HW)?peers[0].HW:(innerWidth<=880?64:96),shOff=hw9*0.11-2;   // sit it on the SAME line the heads' shadows use (they cast ~HW*0.11 forward of their feet), so ball and players read on one plane

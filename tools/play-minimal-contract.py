@@ -128,6 +128,8 @@ assert soccer_lifecycle.index("syncSoccerArena()") < soccer_lifecycle.index("if(
 assert soccer_lifecycle.count('classList.add("hmSoccer")') == 0
 direct_soccer = GAMES[GAMES.index('var sg=document.getElementById("soccerGo")'):GAMES.index('var tg=document.getElementById("tourGo")')]
 assert "var rc=gameCount()" in direct_soccer
+assert "if(soccerOn&&!window.__hmLavaOn&&!grabbed&&!perched)surface=floorY" in ENGINE
+assert "if(gameOn&&!window.__hmLavaOn&&!grabbed&&!perched)surface=floorY" not in ENGINE
 
 # Initial saved and fallback heads are seated behind a readiness gate. The
 # existing __noIntro fall path remains, protecting later game/tournament motion.

@@ -146,6 +146,7 @@ def assert_viewport_owner(page, expected):
 
 
 def assert_soccer_plane(page, label, require_players=True):
+    page.wait_for_function("!document.querySelector('.hmCamPunch')", timeout=2_000)
     def sample():
         return page.evaluate(
             """
@@ -175,21 +176,37 @@ def assert_soccer_plane(page, label, require_players=True):
         assert rect["left"] >= arena["left"] - 2 and rect["right"] <= arena["right"] + 2, (label, rect, arena)
         assert rect["top"] >= arena["top"] - 2 and rect["bottom"] <= arena["bottom"] + 2, (label, rect, arena)
     for rect in second["players"]:
-        # Rotating/squashing heads intentionally overhang the 60vh hero pitch,
-        # but the fixed owner viewport must keep the full painted box onscreen.
-        assert rect["left"] >= -12 and rect["right"] <= viewport["w"] + 12, (label, rect, viewport)
-        assert rect["top"] >= -12 and rect["bottom"] <= viewport["h"] + 12, (label, rect, viewport)
-    # Do not mistake a rotating/jumping player's axis-aligned box for its
-    # contact point. Only unchanged ordinary players prove the resting plane.
-    prior = {player["slot"]: player for player in first["players"]}
-    settled = [player for player in second["players"] if player["slot"] in prior
-               and abs(player["feet"] - prior[player["slot"]]["feet"]) <= 1
-               and abs(player["left"] - prior[player["slot"]]["left"]) <= 1]
-    assert all(player["feet"] <= second["plane"] + 12 for player in second["players"]), (label, second)
-    assert all(abs(player["feet"] - second["plane"]) <= 2 for player in settled), (label, settled, second)
+        assert rect["left"] >= arena["left"] - 1 and rect["right"] <= arena["right"] + 1, (label, rect, arena)
+        assert rect["top"] >= arena["top"] - 1 and rect["bottom"] <= arena["bottom"] + 1, (label, rect, arena)
     # Goal bottoms share the same flat line when the authored planet arc is at
     # its neutral edge; never permit a stale lobby line below the arena plane.
     assert all(abs(goal["bottom"] - second["plane"]) <= 2 for goal in second["goals"]), (label, second)
+
+
+def assert_settled_soccer_contacts(page, label):
+    page.evaluate("window.__settledPlayerProbe={}")
+    page.wait_for_function(
+        """
+        () => {
+          const hero=document.querySelector('.hero'),hr=hero.getBoundingClientRect(),plane=hr.top+(window.__hmFeetY||0);
+          const footOf=e=>{try{const img=e.querySelector('img'),cv=document.createElement('canvas');cv.width=36;cv.height=44;const cx=cv.getContext('2d');cx.drawImage(img,0,0,36,44);const d=cx.getImageData(0,0,36,44).data;for(let row=43;row>=0;row--){for(let col=0;col<36;col++){if(d[(row*36+col)*4+3]>40)return (row+1)/44;}}}catch(_){}return .945;};
+          const now={};let proven=false;
+          Array.from(document.querySelectorAll('#playArena [data-hm-boot-ready]')).filter(e=>e.getAttribute('data-hm-lobby-slot')!=='9001').forEach(e=>{const r=e.getBoundingClientRect(),slot=e.getAttribute('data-hm-lobby-slot'),feet=r.top+r.height*footOf(e),p=window.__settledPlayerProbe[slot];now[slot]={left:r.left,top:r.top,feet};if(p&&Math.abs(p.left-r.left)<=.5&&Math.abs(p.top-r.top)<=.5&&Math.abs(feet-plane)<=2)proven=true;});
+          window.__settledPlayerProbe=now;return proven;
+        }
+        """,
+        timeout=12_000,
+        polling=120,
+    )
+    page.wait_for_function(
+        """
+        () => {const b=document.querySelector('.hmBall'),h=document.querySelector('.hero');if(!b||!h||!(window.__hmSoccer&&window.__hmSoccer.phase==='play'))return false;const br=b.getBoundingClientRect(),hr=h.getBoundingClientRect(),plane=hr.top+(window.__hmFeetY||0);if(Math.abs(br.bottom-plane)>2)return false;window.__restingBallProof={ballBottom:br.bottom,plane};return true;}
+        """,
+        timeout=25_000,
+        polling=16,
+    )
+    contacts = page.evaluate("window.__restingBallProof")
+    assert abs(contacts["ballBottom"] - contacts["plane"]) <= 2, (label, contacts)
 
 
 def run_layout(browser, base_url, width, height, reduced=False):
@@ -311,7 +328,7 @@ def run_skip_link(browser, base_url):
     context.close()
 
 
-def run_soccer_entry(browser, base_url, viewport, mode, picker):
+def run_soccer_entry(browser, base_url, viewport, mode, picker, detailed=False):
     context, page, errors = new_page(browser, base_url, viewport, mode=mode)
     assert_seated(page)
     assert page.locator("#heroTimeClip,#heroTimeBtn,#heroTimeMenu,[data-time-gradient],#heroTimePortraitCast").count() == 0
@@ -319,6 +336,8 @@ def run_soccer_entry(browser, base_url, viewport, mode, picker):
     page.wait_for_function("theme => document.documentElement.dataset.theme === theme", arg=expected_theme)
     page.locator("#workBtn").click()
     page.wait_for_timeout(850)
+    prelaunch = page.evaluate("""() => {const h=getComputedStyle(document.querySelector('.jbStick')),f=getComputedStyle(document.querySelector('.siteFoot'));return {x:scrollX,y:scrollY,header:{visibility:h.visibility,pointerEvents:h.pointerEvents},footer:f.display}}""")
+    page.evaluate("""() => {window.__ownerMutations=[];new MutationObserver(()=>window.__ownerMutations.push(document.body.dataset.playViewportOwners||'')).observe(document.body,{attributes:true,attributeFilter:['data-play-viewport-owners']});}""")
     launch = "pcExped" if picker else "workBtn"
     if picker:
         page.locator("#pcExped").focus()
@@ -330,7 +349,15 @@ def run_soccer_entry(browser, base_url, viewport, mode, picker):
         page.locator("#soccerGo").dispatch_event("click")
     page.wait_for_selector("body.hmSoccer")
     assert_viewport_owner(page, "soccer")
+    if picker:
+        transitions = page.evaluate("window.__ownerMutations.slice()")
+        assert "picker" in transitions and any("soccer" in value for value in transitions), transitions
+        first_picker = transitions.index("picker")
+        first_soccer = next(i for i, value in enumerate(transitions) if "soccer" in value)
+        assert all(transitions[i] for i in range(first_picker, first_soccer + 1)), transitions
     assert_soccer_plane(page, "%s-%s-%s-direct" % (viewport[0], mode, "picker" if picker else "menu"))
+    if detailed:
+        assert_settled_soccer_contacts(page, "%s-%s-%s" % (viewport[0], mode, "picker" if picker else "menu"))
 
     reversed_width = 390 if viewport[0] > 390 else 1440
     reversed_height = 844 if reversed_width == 390 else 900
@@ -338,13 +365,19 @@ def run_soccer_entry(browser, base_url, viewport, mode, picker):
     page.wait_for_timeout(180)
     assert_viewport_owner(page, "soccer")
     assert_soccer_plane(page, "%s-%s-%s-resized" % (viewport[0], mode, "picker" if picker else "menu"))
+    page.set_viewport_size({"width": viewport[0], "height": viewport[1]})
+    page.wait_for_timeout(180)
+    assert_viewport_owner(page, "soccer")
+    assert_soccer_plane(page, "%s-%s-%s-returned" % (viewport[0], mode, "picker" if picker else "menu"))
 
     page.locator('.hmScoreEnd[aria-label="End the match"]').click()
     page.wait_for_function("!document.body.classList.contains('hmSoccer')")
     page.wait_for_function("!document.body.classList.contains('playViewportOwned')")
     page.wait_for_function("id => document.activeElement&&document.activeElement.id===id", arg=launch)
-    restored = page.evaluate("() => ({focus:document.activeElement&&document.activeElement.id, owners:document.body.dataset.playViewportOwners||''})")
+    restored = page.evaluate("""() => {const h=getComputedStyle(document.querySelector('.jbStick')),f=getComputedStyle(document.querySelector('.siteFoot'));return {x:scrollX,y:scrollY,focus:document.activeElement&&document.activeElement.id,owners:document.body.dataset.playViewportOwners||'',header:{visibility:h.visibility,pointerEvents:h.pointerEvents},footer:f.display}}""")
     assert restored["owners"] == "" and restored["focus"] == launch, restored
+    assert abs(restored["x"] - prelaunch["x"]) <= 1 and abs(restored["y"] - prelaunch["y"]) <= 1, (prelaunch, restored)
+    assert restored["header"] == prelaunch["header"] and restored["footer"] == prelaunch["footer"], (prelaunch, restored)
     assert not errors, errors
     context.close()
 
@@ -384,6 +417,42 @@ def run_picker_and_tournament_ownership(browser, base_url):
     context.close()
 
 
+def run_battle_and_race_reversals(browser, base_url):
+    context, page, errors = new_page(browser, base_url, (390, 844), mode="off")
+    assert_seated(page)
+    page.locator("#workBtn").click()
+    page.wait_for_timeout(850)
+
+    for owner, focus_id, enter_js, exit_action in (
+        (
+            "battle", "pcGrad",
+            """() => {window.PlayViewportOwner.enter('battle');window.__hmBattleReq=performance.now();document.body.classList.add('hmBattle');if(window.__hmNewArena)window.__hmNewArena();}""",
+            lambda: page.locator('.hmScoreEnd[aria-label="End the battle"]').click(),
+        ),
+        (
+            "race", "pcHead",
+            """() => {window.__hmRaceStart();}""",
+            lambda: page.evaluate("window.__hmRaceEnd()"),
+        ),
+    ):
+        before = page.evaluate("() => ({x:scrollX,y:scrollY})")
+        page.locator("#" + focus_id).focus()
+        page.evaluate("y => scrollTo(0,y)", before["y"])
+        page.wait_for_function("y => Math.abs(scrollY-y)<=1", arg=before["y"])
+        page.evaluate(enter_js)
+        page.wait_for_function("name => document.body.dataset.playViewportOwners===name", arg=owner)
+        assert_viewport_owner(page, owner)
+        exit_action()
+        page.wait_for_function("!document.body.classList.contains('playViewportOwned')")
+        page.wait_for_function("id => document.activeElement&&document.activeElement.id===id", arg=focus_id)
+        page.wait_for_function("y => Math.abs(scrollY-y)<=1", arg=before["y"])
+        after = page.evaluate("() => ({x:scrollX,y:scrollY,focus:document.activeElement&&document.activeElement.id})")
+        assert abs(after["x"] - before["x"]) <= 1 and abs(after["y"] - before["y"]) <= 1 and after["focus"] == focus_id, (owner, before, after)
+
+    assert not errors, errors
+    context.close()
+
+
 def main():
     handler = partial(QuietHandler, directory=str(ROOT))
     server = ThreadingHTTPServer(("127.0.0.1", 0), handler)
@@ -402,13 +471,13 @@ def main():
                 run_mood(browser, base_url, "hunger", ".hungerdrag", "() => !!document.querySelector('.hungerdrag') && parseFloat(getComputedStyle(document.querySelector('.mouth')).opacity) > .9", reduced=False)
                 run_mood(browser, base_url, "delight", "#party.on", "() => document.body.classList.contains('partyLock') && !!document.querySelector('#discoWrap.on')")
                 run_mood(browser, base_url, "love", "#loveScene.on", "() => document.querySelectorAll('.heartEye').length === 2")
-                run_soccer_entry(browser, base_url, (1440, 900), "off", picker=False)
-                run_soccer_entry(browser, base_url, (1440, 900), "night", picker=True)
-                run_soccer_entry(browser, base_url, (390, 844), "off", picker=False)
-                run_soccer_entry(browser, base_url, (390, 844), "night", picker=True)
-                run_soccer_entry(browser, base_url, (320, 800), "off", picker=False)
-                run_soccer_entry(browser, base_url, (320, 800), "night", picker=True)
+                for viewport in ((1440, 900), (390, 844), (320, 800)):
+                    for mode in ("off", "night"):
+                        for picker in (False, True):
+                            detailed = (viewport == (1440, 900) and mode == "off" and not picker)
+                            run_soccer_entry(browser, base_url, viewport, mode, picker=picker, detailed=detailed)
                 run_picker_and_tournament_ownership(browser, base_url)
+                run_battle_and_race_reversals(browser, base_url)
             finally:
                 browser.close()
     finally:
