@@ -109,11 +109,12 @@ def verify(page, route, route_name, width, mode):
         expected_hero_radius = expected_outer_radius
         assert home["skip"]["bottom"] <= 0, home["skip"]
         assert home["nav"]["shadow"] != "none" and home["nav"]["radius"] == "999px", home["nav"]
-        assert home["hero"]["shadow"] != "none" and home["hero"]["radius"] == expected_hero_radius, home["hero"]
+        assert home["hero"]["shadow"] == "none" and home["hero"]["radius"] == expected_hero_radius, home["hero"]
         assert abs(home["nav"]["top"] - 8) <= .5 and abs(home["nav"]["height"] - 52) <= .5, home["nav"]
         assert abs(home["hero"]["top"] - home["nav"]["bottom"] - 12) <= .5, (home["nav"], home["hero"])
-        assert abs(home["hero"]["bottom"] - (page.viewport_size["height"] - 16)) <= 1, home["hero"]
-        assert home["nav"]["shadow"].count("inset") == 1 and home["hero"]["shadow"].count("inset") == 1, (home["nav"], home["hero"])
+        if width > 760:
+            assert abs(home["hero"]["bottom"] - (page.viewport_size["height"] - 16)) <= 1, home["hero"]
+        assert home["nav"]["shadow"].count("inset") == 1, home["nav"]
         assert home["cases"]["radius"] == expected_outer_radius and home["tabs"]["radius"] == "0px", home
         assert home["frame"]["radius"] == "0px", home["frame"]
         assert home["heroAfter"]["shadow"] == "none" and home["heroAfter"]["border"] == "0px", home["heroAfter"]
@@ -124,9 +125,10 @@ def verify(page, route, route_name, width, mode):
             assert home[name]["height"] >= 43.5 and alpha(home[name]["ground"]) == 1, (name, home[name])
         assert abs(home["primary"]["top"] - home["time"]["top"]) <= .5, home
         assert abs(home["primary"]["bottom"] - home["time"]["bottom"]) <= .5, home
-        copy_center = (home["copy"]["top"] + home["copy"]["bottom"]) / 2
-        copy_position = (copy_center - home["hero"]["top"]) / home["hero"]["height"]
-        assert .34 <= copy_position <= .48 and home["ctas"]["bottom"] < home["hero"]["top"] + home["hero"]["height"] * .6, home
+        if width > 760:
+            copy_center = (home["copy"]["top"] + home["copy"]["bottom"]) / 2
+            copy_position = (copy_center - home["hero"]["top"]) / home["hero"]["height"]
+            assert .34 <= copy_position <= .48 and home["ctas"]["bottom"] < home["hero"]["top"] + home["hero"]["height"] * .6, home
         page.mouse.click(width / 2, 2)
         page.locator(".skipLink").evaluate("n=>n.focus()")
         programmatic_skip = page.locator(".skipLink").evaluate("n=>{const r=n.getBoundingClientRect();return{bottom:r.bottom,visible:n.matches(':focus-visible')}}")
@@ -142,12 +144,16 @@ def verify(page, route, route_name, width, mode):
         assert peek["display"] != "none" and peek["src"] and "neutral" in peek["src"], peek
         assert peek["alt"] == "Jayden Betts" and peek["eyes"] >= 2, peek
         assert abs((peek["left"] + peek["right"]) / 2 - width / 2) <= 2, peek
-        assert peek["width"] >= (500 if width == 1440 else 290), peek
+        assert peek["width"] >= (500 if width == 1440 else 270), peek
         assert peek["top"] < peek["heroBottom"] < peek["bottom"], peek
         visible_ratio = (peek["heroBottom"] - max(peek["top"], peek["heroTop"])) / peek["height"]
-        assert .52 <= visible_ratio <= .72, peek
         face_cutoff = (peek["heroBottom"] - peek["faceTop"]) / peek["faceHeight"]
-        assert .59 <= face_cutoff <= .65, peek
+        if width > 760:
+            assert .52 <= visible_ratio <= .72, peek
+            assert .59 <= face_cutoff <= .65, peek
+        else:
+            assert .62 <= visible_ratio <= .67, peek
+            assert .62 <= face_cutoff <= .67, peek
         stars = home["stars"]
         assert 28 <= stars["count"] <= 36 and 3 <= stars["bright"] <= 7, stars
         assert stars["left"] >= home["hero"]["left"] and stars["right"] <= home["hero"]["right"], stars

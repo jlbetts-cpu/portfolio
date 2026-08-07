@@ -517,6 +517,8 @@
  --surface-inset:var(--sp-8);
  --surface-gutter:var(--sp-40);
  --surface-gap:var(--sp-16-24);
+ --section-join-gap:var(--sp-16);
+ --work-item-gap:var(--sp-64);
  --media-mockup-inset:var(--sp-32);
  --hero-peek-width:520px;
  --hero-peek-depth:calc(190px + var(--sp-16));
@@ -576,12 +578,15 @@
  --radius-container:var(--r-lg);--radius-media:var(--r-md);
  --surface-hero-radius:var(--radius-container);
  --surface-hero-pad:var(--sp-12);
+ --hero-mobile-height:clamp(600px,calc(100svh - 160px),680px);
+ --work-item-gap:var(--sp-40);
  --media-mockup-inset:var(--sp-16);
- --hero-peek-width:330px;--hero-peek-depth:calc(118px + var(--sp-12));--hero-peek-offset:var(--sp-4);
+ --hero-peek-width:clamp(312px,calc(100vw - var(--sp-8)),520px);
+ --hero-peek-depth:clamp(110px,calc(42vw - var(--sp-24)),140px);--hero-peek-offset:var(--sp-4);
  --hero-peek-lift:var(--sp-48)
 }}
 @media(max-width:340px){:root{
- --hero-peek-width:300px;--hero-peek-depth:calc(104px + var(--sp-12));--hero-peek-offset:var(--sp-2)
+ --hero-peek-offset:var(--sp-2)
 }}
 @media(max-width:420px){:root{--lbl-w:72px}}
 

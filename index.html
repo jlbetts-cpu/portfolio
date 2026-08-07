@@ -382,7 +382,7 @@ body.heroEmpathy .jbStick .jbNav{--nav-mat:var(--theme-page,var(--c50))!importan
 .csBackveil.clear{opacity:0;transition:opacity .6s cubic-bezier(.2,.8,.2,1)}
 
 /* ===== Work — tabbed, full-width case-study thumbnails with scroll-lock (8fps house motion) ===== */
-.cases{position:relative;z-index:61;margin:clamp(80px,12vh,144px) auto 0;background:var(--c50)}
+.cases{position:relative;z-index:61;margin-inline:auto;background:var(--c50)}
 .caseInset{--case-inset:var(--sp-40);max-width:var(--page-max);margin:0 auto;padding:0 var(--case-inset)}
 /* tab bar: Instrument Sans, active = ink + underline, others muted; stepped like the rest of the site */
 .csTabs{display:flex;flex-wrap:wrap;gap:24px;align-items:flex-end;justify-content:flex-start;
@@ -399,7 +399,6 @@ body.heroEmpathy .jbStick .jbNav{--nav-mat:var(--theme-page,var(--c50))!importan
 @keyframes csPanelIn{from{opacity:0}to{opacity:1}}
 /* one project = a scroll runway + a sticky stage that scales/locks the banner, with name+year glued beneath */
 .csItem{position:relative}
-.csItem+.csItem{margin-top:clamp(128px,18vh,240px)}
 .csTrack{height:auto}
 .csStage{position:relative;display:flex;flex-direction:column;overflow:visible}
 .csStageInner{max-width:var(--page-max);width:100%;margin:0 auto;padding:0 var(--sp-40);display:flex;flex-direction:column;gap:clamp(var(--sp-16),1.7vw,var(--sp-24))}
@@ -504,7 +503,6 @@ body.heroEmpathy .jbStick .jbNav{--nav-mat:var(--theme-page,var(--c50))!importan
  .csItem.csIn .csFrame{transform:none;opacity:1}
  .csMeta{opacity:0;transform:translateY(var(--sp-14));transition:opacity var(--enter-dur) var(--ease-out) var(--enter-stagger),transform var(--enter-dur) var(--ease-out) var(--enter-stagger)}
  .csItem.csIn .csMeta{opacity:1;transform:none}
- .csItem+.csItem{margin-top:14vh}
 }
 @media(prefers-reduced-motion:reduce){
  .csFrame{border-radius:var(--r-lg);opacity:1!important;transform:none!important;transition:none!important}
@@ -1422,9 +1420,9 @@ html{scroll-padding-top:calc(var(--nav-h) + var(--sp-16-24))}
  stroke:currentColor;stroke-width:var(--ico-stroke);stroke-linecap:round;stroke-linejoin:round}
 @media(max-width:760px){
  .hero{padding:var(--sp-48) var(--sp-12);border-radius:var(--r-lg)}
- .heroCopy h1{font-size:var(--fs-heroline);max-width:12.5em}
+ .heroCopy{transform:translateY(calc(var(--sp-14) * -1))}
+ .heroCopy h1{font-size:clamp(28px,7.7vw,32px);max-width:13em}
  .heroCtas{margin-top:var(--sp-14)}
- .cases{margin-top:var(--sp-16)}
 }
 @media(max-height:720px) and (min-width:761px){
  .hero{padding-block:var(--sp-48)}
@@ -1434,6 +1432,9 @@ html{scroll-padding-top:calc(var(--nav-h) + var(--sp-16-24))}
 @media(prefers-reduced-motion:reduce){
  .heroCtas>*{transition:none!important;animation:none!important}
 }
+.cases{margin-top:var(--section-join-gap)}
+.csItem+.csItem{margin-top:var(--work-item-gap)}
+@media(max-width:760px){.hero{min-height:var(--hero-mobile-height)}}
 </style>
 <link rel="stylesheet" href="header.css?v=20260806-shared-surfaces">
 <link rel="stylesheet" href="hero-time.css?v=20260806-shared-surfaces">

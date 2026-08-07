@@ -6,7 +6,7 @@
 :root:root{--theme-duration:var(--hero-time-duration)}
 .hero{
  overflow:visible;
- --time-base:var(--c50);
+ --time-base:var(--theme-page);
  --time-ink:var(--c950);
  --time-primary-bg:var(--c950);
  --time-primary-ink:var(--c50);
@@ -36,7 +36,7 @@
  transition:background-color var(--hero-time-duration) var(--hero-time-ease);
 }
 .hero[data-time-state="off"]{
- --time-base:var(--c50);
+ --time-base:var(--theme-page);
  --time-ink:var(--c950);
  --time-primary-bg:var(--c950);
  --time-primary-ink:var(--c50);
@@ -63,7 +63,7 @@
 }
 
 .hero[data-time-state="pre-dawn"]{
- --time-base:#fff;
+ --time-base:var(--theme-page);
  --time-ink:var(--c950);
  --time-primary-bg:var(--c950);
  --time-primary-ink:var(--c50);
@@ -90,7 +90,7 @@
 }
 
 .hero[data-time-state="sunrise"]{
- --time-base:#fff;
+ --time-base:var(--theme-page);
  --time-ink:var(--c950);
  --time-primary-bg:var(--c950);
  --time-primary-ink:var(--c50);
@@ -117,7 +117,7 @@
 }
 
 .hero[data-time-state="daytime"]{
- --time-base:#fff;
+ --time-base:var(--theme-page);
  --time-ink:var(--c950);
  --time-primary-bg:var(--c950);
  --time-primary-ink:var(--c50);
@@ -144,7 +144,7 @@
 }
 
 .hero[data-time-state="dusk"]{
- --time-base:#fff;
+ --time-base:var(--theme-page);
  --time-ink:var(--c950);
  --time-primary-bg:var(--c950);
  --time-primary-ink:var(--c50);
@@ -171,7 +171,7 @@
 }
 
 .hero[data-time-state="sunset"]{
- --time-base:#fff;
+ --time-base:var(--theme-page);
  --time-ink:var(--c950);
  --time-primary-bg:var(--c950);
  --time-primary-ink:var(--c50);
@@ -270,6 +270,10 @@
 }
 .heroTimeGradient{
  position:absolute;inset:0;opacity:0;filter:none;mix-blend-mode:normal
+}
+.heroTimeGradient::after{
+ content:"";position:absolute;inset:0;pointer-events:none;
+ background:linear-gradient(180deg,var(--theme-page) 0%,var(--theme-page) 10%,transparent 28%)
 }
 .heroTimeGradient[data-time-gradient="pre-dawn"]{background:radial-gradient(103.24% 102.63% at 50% 102.63%,#486ffd 0,#7f81f3 9.84%,#c489ff 20.83%,#dac0ff 34.13%,#eadcff 44.86%,#f9f6ff 58.59%,#f8fafd 100%)}
 .heroTimeGradient[data-time-gradient="sunrise"]{background:radial-gradient(102.68% 99.11% at 50% 104.6%,#cb83ff 0,#ff90b9 15.77%,#ffc977 30.62%,#ffd79b 38.04%,#fff1dc 50.11%,#fff 63.1%,#fcfdfe 77.95%,#f8fafd 98.81%)}

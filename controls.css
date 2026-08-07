@@ -78,7 +78,7 @@
 }
 .surface--hero{
  position:relative;overflow:hidden;border-radius:var(--surface-hero-radius);
- padding-inline:var(--surface-hero-pad)
+ padding-inline:var(--surface-hero-pad);box-shadow:none
 }
 .surface--specimen{border-radius:var(--radius-container)}
 .surface--media,.surface--card{
