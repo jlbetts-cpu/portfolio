@@ -37,13 +37,18 @@ def run_viewport(browser, base_url, label, width, height):
     page.wait_for_function("window.SiteTheme && document.documentElement.classList.contains('theme-ready')")
     page.evaluate("window.SiteTheme.setMode('night', {persist:false})")
     page.wait_for_function("document.documentElement.dataset.theme === 'dark'")
+    page.wait_for_function(
+        "getComputedStyle(document.querySelector('.jbNav')).backgroundColor === 'rgb(17, 19, 24)'"
+    )
+    page.wait_for_function(
+        "getComputedStyle(document.querySelector('.heroTimeBtn')).backgroundColor === 'rgb(17, 19, 24)'"
+    )
 
     top = page.evaluate(
         """
         () => {
           const nav = document.querySelector('.jbNav');
           const hero = document.querySelector('.hero');
-          const mood = document.querySelector('.heroMood .moodBtn');
           const time = document.querySelector('.heroTimeBtn');
           const cta = document.querySelector('.workCta');
           const cast = document.getElementById('heroTimePortraitCast');
@@ -53,7 +58,6 @@ def run_viewport(browser, base_url, label, width, height):
             nav: style(nav).backgroundColor,
             body: style(document.body).backgroundColor,
             hero: style(hero).backgroundColor,
-            mood: style(mood).backgroundColor,
             time: style(time).backgroundColor,
             cta: style(cta).backgroundColor,
             castOpacity: Number.parseFloat(style(cast).opacity),
@@ -66,11 +70,10 @@ def run_viewport(browser, base_url, label, width, height):
         }
         """
     )
-    assert top["nav"] == "rgba(0, 0, 0, 0)", top
-    assert top["mood"] == "rgba(0, 0, 0, 0)", top
-    assert top["time"] == "rgba(0, 0, 0, 0)", top
+    assert rgba_tuple(top["nav"]) == (17, 19, 24), top
+    assert rgba_tuple(top["time"]) == (17, 19, 24), top
     assert rgba_tuple(top["body"]) == (11, 12, 15), top
-    assert rgba_tuple(top["hero"]) == (11, 12, 15), top
+    assert rgba_tuple(top["hero"]) == (17, 19, 24), top
     assert rgba_tuple(top["cta"]) != rgba_tuple(top["hero"]), top
     assert top["castOpacity"] == .24, top
     assert "heroPortraitTintFilter" in top["castFilter"], top
@@ -85,7 +88,7 @@ def run_viewport(browser, base_url, label, width, height):
         "scrollY > 100 && document.documentElement.classList.contains('jbShrunk')"
     )
     page.wait_for_function(
-        "getComputedStyle(document.querySelector('.jbNav')).backgroundColor === 'rgb(11, 12, 15)'"
+        "getComputedStyle(document.querySelector('.jbNav')).backgroundColor === 'rgb(17, 19, 24)'"
     )
     scrolled = page.evaluate(
         """
@@ -96,7 +99,7 @@ def run_viewport(browser, base_url, label, width, height):
         }
         """
     )
-    assert rgba_tuple(scrolled["nav"]) == (11, 12, 15), scrolled
+    assert rgba_tuple(scrolled["nav"]) == (17, 19, 24), scrolled
     assert scrolled["page"].lower() == "#0b0c0f", scrolled
     page.screenshot(path=str(SHOTS / f"{label}-scrolled.png"), full_page=False)
 

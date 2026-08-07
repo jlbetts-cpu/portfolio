@@ -166,7 +166,7 @@
     ANY ground including white, because gradientlab's stage colour is user-set;
     NOT mirrored arithmetically from the light rungs. */
  --mat-i1:rgba(18,18,18,.58);--mat-i2:rgba(18,18,18,.70);--mat-i3:rgba(18,18,18,.82);
- --mat-i3-solid:rgba(18,18,18,.92);
+ --mat-i3-solid:rgb(18,18,18);
  --rim-i1:inset 0 0 0 1px rgba(253,253,253,.14);
  --rim-i2:inset 0 0 0 1px rgba(253,253,253,.22);
  --sh-i2:0 8px 28px rgba(0,0,0,.28);--sh-i3:0 12px 36px rgba(0,0,0,.36);

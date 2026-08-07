@@ -15,26 +15,25 @@ def rule(source: str, selector: str) -> str:
     return re.sub(r"\s+", "", match.group(1))
 
 
-# The header is always an opaque page-token surface, including before scroll,
-# so gradients and page content cannot ghost through it.
+# The header is always the shared opaque control ground, including before
+# scroll, so gradients and page content cannot ghost through it.
 nav = rule(header, ".jbNav")
-assert "--nav-mat:var(--theme-page,var(--c50))" in nav
+assert "--nav-mat:var(--ctl-ground)" in nav
+assert "--nav-rim:var(--ctl-container-rim)" in nav
 
 shrunk = rule(header, ":root.jbShrunk .jbNav")
-assert "--nav-mat:var(--theme-page,var(--c50))" in shrunk
+assert "--nav-mat:var(--ctl-ground)" in shrunk
+assert "--nav-rim:var(--ctl-container-rim)" in shrunk
 
 dark_nav = rule(header, ':root[data-theme="dark"] .jbNav')
-assert "--nav-mat:var(--theme-page,var(--c50))" in dark_nav
+assert "--nav-mat:var(--ctl-ground)" in dark_nav
+assert "--nav-rim:var(--ctl-container-rim)" in dark_nav
 
-# Home Night owns a later override and preserves the same opaque surface.
-home_dark_nav = rule(hero_time, ':root[data-theme="dark"] .jbNav')
-assert "--nav-mat:var(--theme-page)" in home_dark_nav
-assert "backdrop-filter" not in home_dark_nav
+# Hero scene CSS cannot own or repaint shared header material.
+assert ':root[data-theme="dark"] .jbNav' not in hero_time
+assert ':root[data-theme="dark"].jbShrunk .jbNav' not in hero_time
 
-home_dark_scrolled = rule(hero_time, ':root[data-theme="dark"].jbShrunk .jbNav')
-assert "--nav-mat:var(--theme-page)" in home_dark_scrolled
-
-# Mood and Time use the Hero's opaque base color. View work remains distinct.
+# Time uses the Hero's opaque base color. View work remains distinct.
 night = rule(hero_time, '.hero[data-time-state="night"]')
 assert "--time-secondary-bg:var(--time-base)" in night
 assert "--time-primary-bg:var(--c50)" in night

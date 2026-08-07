@@ -254,13 +254,6 @@
 :root[data-theme="dark"] .csYear{color:var(--theme-muted)}
 :root[data-theme="dark"] .footReach{color:var(--theme-muted)}
 :root[data-theme="dark"] .footIn{color:var(--theme-ink)}
-:root[data-theme="dark"] .jbNav{
- --nav-mat:var(--theme-page);
- --nav-rim:inset 0 0 0 var(--hair-w) rgba(244,245,247,.16);
- --nav-hover-bg:rgba(244,245,247,.10);
- --nav-active-bg:rgba(244,245,247,.14)
-}
-:root[data-theme="dark"].jbShrunk .jbNav{--nav-mat:var(--theme-page)}
 :root[data-reduced-motion="reduce"] :is(.cases,.csTabInk,.csTab,.csPanel,.csMeta,.csName,.csYear,.footReach,.footIn),
 :root[data-reduced-motion="reduce"] .csTabs::before{transition:none!important;animation:none!important}
 

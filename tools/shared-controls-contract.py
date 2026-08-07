@@ -3,6 +3,7 @@
 
 from html.parser import HTMLParser
 from pathlib import Path
+import re
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -37,6 +38,16 @@ def by_id(parser, element_id):
 
 def asset_name(href):
     return href.split("?", 1)[0] if href else href
+
+
+def compact(value):
+    return re.sub(r"\s+", "", value)
+
+
+def rule(source, selector):
+    match = re.search(re.escape(selector) + r"\s*\{([^}]*)\}", source, re.S)
+    assert match, selector
+    return compact(match.group(1))
 
 
 def main():
@@ -74,11 +85,36 @@ def main():
         assert selector in css, selector
     assert "min-width:var(--menu-w)" in css
     assert ".ctl--primary{background:var(--ctl-primary-ground);color:var(--ctl-primary-ink);box-shadow:var(--ctl-rim)}" in css
+    compact_controls = compact(css)
+    assert ".ctl-group:not(.jbNav){background:var(--ctl-container-ground);box-shadow:var(--ctl-container-rim)}" in compact_controls
+    assert ".ctl-group{" not in compact_controls
+
+    header = (ROOT / "header.css").read_text(encoding="utf-8")
+    for selector in (".jbNav", ':root[data-theme="dark"] .jbNav', ":root.jbShrunk .jbNav"):
+        material = rule(header, selector)
+        assert "--nav-mat:var(--ctl-ground)" in material, (selector, material)
+        assert "--nav-rim:var(--ctl-container-rim)" in material, (selector, material)
+    assert "border-radius:var(--r-pill)" in rule(header, ".jbNav")
+
+    hero_time = (ROOT / "hero-time.css").read_text(encoding="utf-8")
+    assert ':root[data-theme="dark"] .jbNav' not in hero_time
+    assert ':root[data-theme="dark"].jbShrunk .jbNav' not in hero_time
+
+    # Page effects may select a semantic material, but the component stylesheet
+    # remains the sole owner of the nav's actual paint properties.
+    for path in (ROOT / "index.html", ROOT / "play.css"):
+        source = path.read_text(encoding="utf-8")
+        empathy = rule(source, "body.heroEmpathy .jbStick .jbNav")
+        assert "--nav-mat:var(--ctl-ground)" in empathy, (path.name, empathy)
+        assert "--nav-rim:var(--ctl-container-rim)" in empathy, (path.name, empathy)
+        assert not re.search(r"(?:^|;)(?:background|background-color|box-shadow):", empathy), (path.name, empathy)
+        assert "!important" not in empathy, (path.name, empathy)
 
     tokens = (ROOT / "tokens.css").read_text(encoding="utf-8")
     assert "--ctl-ink:var(--theme-muted" in tokens
     assert "--ctl-ink-strong:var(--theme-ink" in tokens
     assert "--ctl-ink-mute:var(--theme-muted" in tokens
+    assert "--mat-i3-solid:rgb(18,18,18)" in compact(tokens)
 
     home_css = (ROOT / "index.html").read_text(encoding="utf-8")
     for legacy in (

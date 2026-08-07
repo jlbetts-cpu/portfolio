@@ -35,7 +35,6 @@ def main():
                 page.goto(f"http://127.0.0.1:{server.server_port}/index.html", wait_until="domcontentloaded")
                 page.wait_for_function("window.SiteTheme && document.documentElement.classList.contains('theme-ready')")
                 page.wait_for_function("typeof introMode !== 'undefined'")
-                assert page.locator("#moodBtn").inner_text().strip() == "Choose a mood"
                 page.evaluate("document.getElementById('heroTimeBtn').click()")
                 page.wait_for_function("document.getElementById('heroTime').classList.contains('open')")
                 page.wait_for_function(
@@ -52,12 +51,18 @@ def main():
                     assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
                     page.screenshot(path=str(SHOTS / f"{label}-{state}.png"), full_page=False)
                 page.evaluate("window.SiteTheme.setMode('off', {persist:false})")
-                page.evaluate("document.getElementById('moodBtn').click()")
-                page.evaluate("document.querySelector('#moodMenu [data-mood=\"empathy\"]').click()")
-                page.wait_for_function("document.body.classList.contains('heroEmpathy')")
-                nav_background = page.locator(".jbNav").evaluate("node => getComputedStyle(node).backgroundColor")
-                assert nav_background not in ("transparent", "rgba(0, 0, 0, 0)"), nav_background
-                page.screenshot(path=str(SHOTS / f"{label}-empathy-solid-header.png"), full_page=False)
+                page.wait_for_function("getComputedStyle(document.querySelector('.jbNav')).backgroundColor === 'rgb(255, 255, 255)'")
+                before = page.locator(".jbNav").evaluate("node => getComputedStyle(node).backgroundColor")
+                page.evaluate("document.querySelector('.jbNav').setAttribute('data-surface','ink')")
+                page.wait_for_function("getComputedStyle(document.querySelector('.jbNav')).backgroundColor === 'rgb(18, 18, 18)'")
+                material = page.locator(".jbNav").evaluate(
+                    "node => ({after:getComputedStyle(node).backgroundColor,radius:getComputedStyle(node).borderRadius})"
+                )
+                material["before"] = before
+                assert material["after"] not in ("transparent", "rgba(0, 0, 0, 0)"), material
+                assert material["after"] != material["before"], material
+                assert material["radius"] == "999px", material
+                page.screenshot(path=str(SHOTS / f"{label}-ink-solid-header.png"), full_page=False)
                 assert not errors, errors
                 context.close()
             browser.close()

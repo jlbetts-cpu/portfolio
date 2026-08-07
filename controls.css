@@ -68,7 +68,7 @@
    material and semantic rim as every other menu on migrated pages. */
 .jbDiscMenu{background:var(--ctl-menu-ground);box-shadow:var(--ctl-container-rim)}
 
-.ctl-group{background:var(--ctl-container-ground);box-shadow:var(--ctl-container-rim)}
+.ctl-group:not(.jbNav){background:var(--ctl-container-ground);box-shadow:var(--ctl-container-rim)}
 
 /* Task 2 shared surfaces. Every visible decision resolves through tokens.css;
    the page may place a primitive but may not redraw it. */
@@ -218,7 +218,7 @@
  .heroHeadTransform,.heroHeadSelection,.heroHeadHandle{transition:none!important}
 }
 @media(forced-colors:active){
- .ctl--secondary,.ctl--icon,.ctl-menu,.ctl-group{background:Canvas;color:CanvasText;box-shadow:0 0 0 var(--hair-w) CanvasText inset}
+ .ctl--secondary,.ctl--icon,.ctl-menu,.ctl-group:not(.jbNav){background:Canvas;color:CanvasText;box-shadow:0 0 0 var(--hair-w) CanvasText inset}
  .ctl--primary{background:Highlight;color:HighlightText}
  .heroHeadSelection::before,.heroHeadHandle::before{
   forced-color-adjust:auto;box-shadow:none;outline:var(--selection-line) solid Highlight;outline-offset:calc(var(--selection-line) * -1)
