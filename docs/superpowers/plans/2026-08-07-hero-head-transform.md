@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Add a minimal Figma-style move/resize interaction to the animated Home portrait and tighten the opening-page rhythm so selected work is visibly discoverable on desktop.
+**Goal:** Add a minimal Figma-style move/resize interaction to the animated Home portrait while preserving the original full-scale Hero and tightening the spacing between adjacent sections and projects.
 
 **Architecture:** Keep `hero-engine.js` authoritative for portrait rendering and animation. A new focused `hero-head-transform.js` module owns only selection, translation, proportional scale, bounds, and input; it transforms a wrapper outside the existing stage so all engine-local eye and prop coordinates remain unchanged. Shared layout and selection geometry resolve through `tokens.css` and `controls.css`, while focused Python/Playwright contracts verify exact desktop/mobile geometry and animation alignment.
 
@@ -19,10 +19,11 @@
 - Home click-to-dizzy is removed.
 - Escape and outside activation deselect; reload restores the authored default; no transform state is persisted.
 - Pointer, touch, keyboard, reduced-motion, 1440px, 390px, and 320px paths must work.
-- Desktop Hero block size is `clamp(520px, calc(100svh - 220px), 700px)`; mobile remains content-driven.
+- Desktop Hero block size remains `calc(100svh - 88px)`; mobile uses `clamp(600px, calc(100svh - 160px), 680px)`.
 - Hero-to-work gap is 16px; case-study gap is 64px desktop and 40px mobile.
-- At 1280×720 and 1440×900, the complete work tabs and a deliberate first-thumbnail preview are visible on load.
+- The work collection may begin below the initial viewport; do not shorten the Hero to manufacture a thumbnail preview.
 - The Hero has no rim, border, or shadow; every gradient begins at the exact shared `--theme-page` color along its top edge.
+- Home collection media uses the shared `20px` desktop / `14px` mobile media radius and one inset rim; project metadata sits `16px` / `12px` below it using the shared lead and 15px metadata scales.
 
 ## File Structure
 
@@ -32,6 +33,7 @@
 - `hero-head-transform.js`: all selection, move, resize, clamp, reset, and keyboard behavior.
 - `hero-engine.js`: remove the Home dizzy binding and consume one transform-sync event for external popcorn props.
 - `tools/hero-entrance-rhythm-contract.py`: exact layout-token and fold-visibility regression.
+- `tools/work-collection-contract.py`: exact media radius/rim, metadata scale/gap, shared media-role, and reduced-motion Night-star regression.
 - `tools/hero-head-transform-contract.py`: static structure plus pointer/touch/keyboard/animation browser regression.
 - `tools/shared-surfaces-contract.py`: update the existing head-click contract to the new component boundary.
 - `tools/shared-surfaces-browser.py`: reuse guarded, live eye lookups so engine DOM rebuilds cannot make the suite flaky.
@@ -48,7 +50,7 @@
 
 **Interfaces:**
 - Consumes: existing `--sp-16`, `--sp-40`, `--sp-64`, `.hero`, `.cases`, `.collection__tabs`, `.csItem`.
-- Produces: `--hero-entry-height`, `--section-join-gap`, `--work-item-gap`; exact responsive page rhythm and seamless Hero top edge used by later transform bounds tests.
+- Produces: `--section-join-gap`, `--work-item-gap`; preserved full-scale Hero geometry, exact responsive page rhythm, and seamless Hero top edge used by later transform bounds tests.
 
 - [ ] **Step 1: Write the failing rhythm contract**
 
@@ -73,7 +75,6 @@ class Quiet(SimpleHTTPRequestHandler):
 def static_contract():
     tokens = (ROOT / "tokens.css").read_text(encoding="utf-8")
     html = (ROOT / "index.html").read_text(encoding="utf-8")
-    assert "--hero-entry-height:clamp(520px,calc(100svh - 220px),700px)" in tokens
     assert "--section-join-gap:var(--sp-16)" in tokens
     assert "--work-item-gap:var(--sp-64)" in tokens
     assert "--work-item-gap:var(--sp-40)" in tokens
@@ -114,9 +115,7 @@ def browser_contract(base_url):
             expected_gap = 40 if width <= 760 else 64
             assert expected_gap - .5 <= state["itemGap"] <= expected_gap + .5, state
             if width > 760:
-                assert 519.5 <= state["hero"]["height"] <= 700.5, state
-                assert state["tabs"]["bottom"] <= height, state
-                assert state["frame"]["top"] <= height - 48, state
+                assert height - 88.5 <= state["hero"]["height"] <= height - 87.5, state
             for theme in ("pre-dawn", "sunrise", "daytime", "dusk", "sunset", "night"):
                 page.evaluate("state => window.SiteTheme.setMode(state,{persist:false})", theme)
                 page.wait_for_function("state => document.querySelector('#main').dataset.timeState === state", theme)
@@ -153,14 +152,13 @@ if __name__ == "__main__":
 
 Run: `python3 tools/hero-entrance-rhythm-contract.py`
 
-Expected: FAIL because `--hero-entry-height` and the two shared gap tokens do not exist.
+Expected: FAIL because the two shared gap tokens and seamless Hero-edge contract do not exist.
 
 - [ ] **Step 3: Add the semantic rhythm tokens**
 
 Add to the shared surface token block in `tokens.css`:
 
 ```css
---hero-entry-height:clamp(520px,calc(100svh - 220px),700px);
 --section-join-gap:var(--sp-16);
 --work-item-gap:var(--sp-64);
 ```
@@ -178,7 +176,7 @@ At the end of the Home Hero style block in `index.html`, add:
 ```css
 .cases{margin-top:var(--section-join-gap)}
 .csItem+.csItem{margin-top:var(--work-item-gap)}
-@media(min-width:761px){.hero{min-height:var(--hero-entry-height)}}
+@media(min-width:761px){.hero{min-height:calc(100svh - 88px)}}
 @media(max-width:760px){.hero{min-height:auto}}
 ```
 
@@ -211,7 +209,7 @@ python3 tools/shared-surfaces-contract.py
 python3 tools/shared-surfaces-browser.py
 ```
 
-Expected: all PASS; screenshots show tabs plus a controlled thumbnail preview at 1280×720 and 1440×900, with no mobile overflow.
+Expected: all PASS; screenshots preserve the original full-scale desktop Hero, remove the duplicated inter-section pause, and show no mobile overflow.
 
 - [ ] **Step 6: Commit the rhythm change**
 
@@ -219,6 +217,49 @@ Expected: all PASS; screenshots show tabs plus a controlled thumbnail preview at
 git add tokens.css index.html tools/hero-entrance-rhythm-contract.py
 git commit -m "Refine Hero and work entrance rhythm"
 ```
+
+---
+
+### Task 1.5: Connected Work Media and Shared Surface Closure
+
+**Files:**
+- Modify: `tokens.css`
+- Modify: `controls.css`
+- Modify: `index.html`
+- Modify: `bearings.html`
+- Modify: `strata.html`
+- Modify: `cluster.html`
+- Modify: `ucdavis.html`
+- Modify: `hero-time.css`
+- Modify: `tools/shared-surfaces-contract.py`
+- Modify: `tools/shared-surfaces-browser.py`
+- Create: `tools/work-collection-contract.py`
+
+**Interfaces:**
+- Consumes: `--radius-media`, `--surface-rim`, `.collection`, `.csFrame`, `.csMeta`, `.media--full`, `.media--mockup`, `.heroNightStars`.
+- Produces: one rounded full-width work-media boundary; compact, typographically connected project metadata; complete shared media-role coverage; restrained static Night stars under reduced motion; null-safe live-eye regression checks.
+
+- [ ] **Step 1: Write the failing collection contract**
+
+Cover 1440×900, 390×844, and 320×800 in light and Night modes. Assert the active Home thumbnail computes to `20px` desktop / `14px` mobile with exactly one inset rim; image and wrapper radii agree; metadata gap is `16px` / `12px`; title uses the shared lead scale; year computes to `15px`; collection width remains aligned to the shared page gutter with no horizontal overflow. Assert reduced-motion Night stars are static with opacity no greater than `.72`.
+
+Extend the static shared-surface contract so every image-led case-study region named by the prior review (`photoFig`/`cmpBoard`, `videoFrame`, and `photoPair`) declares exactly one of `media--full` or `media--mockup`. Add a browser assertion for the nested Bearings board image and make live eye lookups null-safe across engine rebuilds.
+
+- [ ] **Step 2: Run the focused contracts and confirm RED**
+
+Run `python3 tools/work-collection-contract.py`, `python3 tools/shared-surfaces-contract.py`, and the focused browser route. Confirm failures name the square Home media, oversized metadata, incomplete media roles, bright reduced-motion stars, and brittle live-eye lookup.
+
+- [ ] **Step 3: Implement the shared collection treatment**
+
+Add semantic metadata-gap/type tokens. Remove the joined-collection rules that force Home `.csFrame` and its image to radius zero. Apply `--radius-media` and exactly one `--surface-rim` boundary while keeping the thumbnail margin-to-margin inside the collection. Remove the duplicate `.csMeta` margin so the flex gap is the sole image-to-label spacing owner. Set `.csName` to the shared lead scale and `.csYear` to 15px without adding a card or panel.
+
+- [ ] **Step 4: Close the reviewed shared-surface gaps**
+
+Apply the correct media role to each audited case-study region, normalize joined Bearings board image radius/rim ownership, give reduced-motion stars their restrained authored static opacity, and guard live eye DOM reads against the face engine rebuilding nodes.
+
+- [ ] **Step 5: Verify and commit**
+
+Run both focused contracts, the full shared static/browser contracts, Python compilation, and `git diff --check`. Capture Home collection screenshots at 1440, 390, and 320 in light and Night. Commit only this task.
 
 ---
 
@@ -856,7 +897,7 @@ Expected: every command PASS with no console errors, horizontal overflow, select
 At 1440×900, 1280×720, 390×844, and 320×800, verify:
 
 - Resting Hero is clean.
-- Tabs and thumbnail preview are visible at both desktop heights.
+- The desktop Hero retains its original full-scale height at both desktop viewports.
 - Selected frame tracks the visible portrait precisely and never leaves a white seam at the Hero bottom.
 - Four handles look like 8px Figma handles while remaining easy to touch.
 - Drag cannot cross the protected content boundary.

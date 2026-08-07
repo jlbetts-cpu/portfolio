@@ -79,12 +79,12 @@ The wrapper writes its final transform through CSS custom properties. Selection 
 
 ## Approved entrance rhythm
 
-The desktop entrance should reveal that selected work follows the Hero without reducing the portrait to a small decorative asset. The Hero and work collection remain separate outlined surfaces, connected by one shared structural gap.
+The desktop entrance preserves the original full-scale Hero composition. The Hero and work collection remain separate surfaces, connected by one shared structural gap.
 
-- Desktop Hero block size uses `clamp(520px, calc(100svh - 220px), 700px)`.
+- Desktop Hero block size remains the authored `calc(100svh - 88px)`.
 - The Hero-to-work collection gap is exactly `16px` on desktop and mobile.
-- At common 720–900px desktop viewport heights, the initial view exposes the complete work tab row and approximately 48–72px of the first thumbnail.
-- Mobile Hero height remains content-driven; it is not forced to the desktop clamp.
+- Selected work is allowed to begin below the initial desktop viewport; the Hero is not shortened to manufacture a thumbnail preview.
+- Mobile uses an intentional responsive Hero height of `clamp(600px, calc(100svh - 160px), 680px)` so the headline, controls, and large lower-edge portrait remain balanced at both 390px and 320px without borrowing the desktop viewport rule.
 - The gap between complete case-study items is `64px` on desktop and `40px` on mobile.
 - The existing compact relationship between each case-study image and its own title/year metadata remains unchanged.
 - The spacing values resolve through shared semantic layout tokens rather than page-local arbitrary values.
@@ -124,10 +124,14 @@ The desktop entrance should reveal that selected work follows the Hero without r
 - Outside click and Escape deselect reliably.
 - Reload restores the authored composition.
 - Pointer, touch, and keyboard paths work at 1440px, 390px, and 320px widths.
-- At 1280×720 and 1440×900, the work tabs and a deliberate thumbnail preview are visible on initial load.
+- At 1280×720 and 1440×900, the Hero computes to `calc(100svh - 88px)` without responsive shrinkage.
 - The Hero-to-work gap computes to 16px, and consecutive case-study gaps compute to 64px desktop / 40px mobile.
 - Pixel sampling at the Hero top center and top corners matches the surrounding page background in every time state.
 - The Hero computes to `box-shadow: none` in every time state.
+
+## Connected work collection
+
+The work collection is one calm system rather than a tab bar, a square image, and oversized detached metadata. Its media spans the collection width but retains the shared media radius and one inset rim: `20px` on desktop and `14px` on mobile. The project label immediately follows the image at one shared gap (`16px` desktop, `12px` mobile); the name uses the shared lead scale and the year uses the 15px metadata scale. No nested card, extra panel, or second boundary is introduced.
 - No persistent storage or page-wide layout shift is introduced.
 
 ## Non-goals
