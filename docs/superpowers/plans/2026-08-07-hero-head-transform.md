@@ -607,8 +607,16 @@ assert moved["y"] >= protected["y"] + protected["height"] + 15
 assert moved["x"] >= hero["x"] and moved["x"] + moved["width"] <= hero["x"] + hero["width"]
 assert moved["y"] + moved["height"] <= hero["y"] + hero["height"] + .5
 
+def logical_head_rect():
+    return page.evaluate("""() => {
+      const face=document.querySelector('#face'),r=face.getBoundingClientRect();
+      const b=face.dataset.headBounds.split(/\s+/).map(Number);
+      return {x:r.left+r.width*b[0],y:r.top+r.height*b[1],
+        width:r.width*(b[2]-b[0]),height:r.height*(b[3]-b[1])};
+    }""")
+
 se = page.locator('.heroHeadHandle[data-corner="se"]')
-before = page.locator("#heroHeadSelection").bounding_box()
+before = logical_head_rect()
 anchor = (before["x"], before["y"])
 handle = se.bounding_box()
 page.mouse.move(handle["x"] + handle["width"] / 2, handle["y"] + handle["height"] / 2)
@@ -616,10 +624,13 @@ page.mouse.down()
 page.mouse.move(handle["x"] + handle["width"] / 2 + 36,
                 handle["y"] + handle["height"] / 2 + 36, steps=4)
 page.mouse.up()
-after = page.locator("#heroHeadSelection").bounding_box()
+after = logical_head_rect()
+assert page.evaluate("window.__heroHeadTransform.getState().scale") > 1
 assert abs(after["x"] - anchor[0]) <= 1 and abs(after["y"] - anchor[1]) <= 1
 assert abs(after["width"] / before["width"] - after["height"] / before["height"]) <= .02
 ```
+
+The authored portrait remains intentionally clipped by the Hero edge. The proportional invariant therefore uses the full logical face bounds, not the visible selection frame: width and height must scale together and the logical opposite corner must remain fixed even while the visible bottom stays clipped.
 
 Add keyboard assertions:
 
@@ -647,8 +658,9 @@ Add these exact helpers to `hero-head-transform.js`:
 
 ```js
 function beginResize(event,corner){
+ if(state.pointerId!==null)return;
  event.preventDefault();event.stopPropagation();select();
- var r=objectRect(),opposite={
+ var r=logicalRect(),opposite={
   nw:{x:r.right,y:r.bottom},ne:{x:r.left,y:r.bottom},
   sw:{x:r.right,y:r.top},se:{x:r.left,y:r.top}
  }[corner];
@@ -664,7 +676,7 @@ function oppositePoint(rect,corner){
 }
 function applyScaleFromAnchor(next,anchor,corner){
  state.scale=next;render();
- var actual=oppositePoint(objectRect(),corner);
+ var actual=oppositePoint(logicalRect(),corner);
  state.x+=anchor.x-actual.x;state.y+=anchor.y-actual.y;render();
  var clamped=clampMove(state.x,state.y);
  state.x=clamped.x;state.y=clamped.y;render();
@@ -680,6 +692,23 @@ function resize(event){
  applyScaleFromAnchor(next,state.start.anchor,state.start.corner);
 }
 ```
+
+Before these helpers, split geometry ownership explicitly:
+
+```js
+function logicalRect(){
+ var f=face.getBoundingClientRect();
+ return {left:f.left+f.width*bounds[0],top:f.top+f.height*bounds[1],
+  right:f.left+f.width*bounds[2],bottom:f.top+f.height*bounds[3]};
+}
+function objectRect(){
+ var h=hero.getBoundingClientRect(),r=logicalRect();
+ return {left:Math.max(r.left,h.left),top:Math.max(r.top,h.top),
+  right:Math.min(r.right,h.right),bottom:Math.min(r.bottom,h.bottom)};
+}
+```
+
+`logicalRect()` owns proportional anchor math. `objectRect()` remains the visible, Hero-clipped rectangle used by selection chrome and movement constraints. Do not change the approved resting crop to make the resize test easier.
 
 Register each handle with the shared resize path:
 

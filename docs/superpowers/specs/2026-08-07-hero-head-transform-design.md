@@ -67,7 +67,7 @@ State is minimal:
 - current translation and scale
 - current lower-artboard bounds
 
-The wrapper writes its final transform through CSS custom properties. Selection chrome is a sibling overlay inside the wrapper, so it follows the same transform without affecting image measurements. Hero mood/movie classes remain authoritative for animation content; selection state only controls editor chrome and pointer behavior.
+The wrapper writes its final transform through CSS custom properties. Selection chrome is a Hero-relative sibling immediately after the wrapper: it remeasures the visible transformed portrait each frame, so the blue line stays 1px, handles stay 8px, and touch targets stay 44px instead of scaling with the portrait. Hero mood/movie classes remain authoritative for animation content; selection state only controls editor chrome and pointer behavior.
 
 ## Responsive behavior
 
