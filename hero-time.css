@@ -261,46 +261,46 @@
 :root[data-reduced-motion="reduce"] :is(.cases,.csTabInk,.csTab,.csPanel,.csMeta,.csName,.csYear,.footReach,.footIn),
 :root[data-reduced-motion="reduce"] .csTabs::before{transition:none!important;animation:none!important}
 
-/* The clip runs PAST the Hero's lower edge by --hero-time-bleed. Full-bleed
-   removed the rounded card, and without this the gradient would end in a hard
-   colour band the full width of the viewport. The gradient keeps painting into
-   the strip below and the mask lets it go, so the work section catches a
-   little of the light instead of butting against an edge. The Hero itself no
-   longer clips (controls.css) -- the portrait crop moved to its own element. */
-/* The clip runs 7% PAST the Hero's lower edge, so the Hero's own edge lands at
-   --hero-time-edge (93.46%) of this box at every viewport -- which is what
-   lets every vertical number below stay a plain percentage. */
+/* The clip IS the Hero's box. It inherits the radius, so the light stops
+   exactly on the curved bottom edge and squarely on the three that meet the
+   viewport. No bleed and no mask: the bottom edge is meant to be hard.
+   The Hero itself no longer clips (controls.css) -- the portrait crop lives on
+   .heroCharacterPeek, which inherits the same radius a few rules down. */
 .heroTimeClip{
- position:absolute;inset:0 0 auto 0;height:calc(100% + var(--hero-time-bleed));
+ position:absolute;inset:0;
  z-index:0;overflow:hidden;border-radius:inherit;corner-shape:inherit;pointer-events:none
 }
-.heroTimeGradient{
- position:absolute;inset:0;opacity:0;filter:none;mix-blend-mode:normal;
- -webkit-mask-image:linear-gradient(180deg,#000 0,#000 calc(var(--hero-time-edge) - var(--hero-time-fade)),transparent 100%);
- mask-image:linear-gradient(180deg,#000 0,#000 calc(var(--hero-time-edge) - var(--hero-time-fade)),transparent 100%)
-}
+.heroTimeGradient{position:absolute;inset:0;opacity:0;filter:none;mix-blend-mode:normal}
 .heroTimeGradient::after{
  content:"";position:absolute;inset:0;pointer-events:none;
  background:linear-gradient(180deg,var(--theme-page) 0%,var(--theme-page) 10%,transparent 28%)
 }
-/* RETUNED FOR FULL-BLEED. Two changes, and only two:
-   1. The horizontal radius is a capped LENGTH instead of 103% of the box. At
-      1200 the number is what it always was; past that the light source keeps
-      its size rather than spreading out until the glow has no focus left.
-   2. Every vertical percentage is the authored one multiplied by .9346, which
-      re-expresses it against the bled box so the focal core lands in exactly
-      the same place relative to the Hero's floor as before.
-   Every colour stop is untouched. */
-.heroTimeGradient[data-time-gradient="pre-dawn"]{background:radial-gradient(var(--hero-glow-rx) 95.92% at 50% 95.92%,#486ffd 0,#7f81f3 9.84%,#c489ff 20.83%,#dac0ff 34.13%,#eadcff 44.86%,#f9f6ff 58.59%,#f8fafd 100%)}
-.heroTimeGradient[data-time-gradient="sunrise"]{background:radial-gradient(var(--hero-glow-rx) 92.63% at 50% 97.76%,#cb83ff 0,#ff90b9 15.77%,#ffc977 30.62%,#ffd79b 38.04%,#fff1dc 50.11%,#fff 63.1%,#fcfdfe 77.95%,#f8fafd 98.81%)}
-.heroTimeGradient[data-time-gradient="daytime"]{background:radial-gradient(var(--hero-glow-rx) 98.11% at 50% 98.11%,#0071c1 1.33%,#60a8e2 15.71%,#b4d8ff 33.15%,#d9ebff 45%,#f8fafd 60%)}
-.heroTimeGradient[data-time-gradient="dusk"]{background:radial-gradient(var(--hero-glow-rx) 96.49% at 50% 97.68%,#ffb36a 0,#dfa0d8 14%,#9da8e4 30%,#ccd5f0 44%,#f1f3fa 58%,#f8fafd 100%)}
-.heroTimeGradient[data-time-gradient="sunset"]{background:radial-gradient(var(--hero-glow-rx) 93.46% at 50% 93.46%,#ffa577 0,#ff90a1 15.52%,#ddadff 30.09%,#ecd8ff 45.72%,#f5eaff 54.96%,#f8fafd 88.16%)}
-.heroTimeGradient[data-time-gradient="night"]{background:radial-gradient(var(--hero-glow-rx-near) 39.25% at 50% 97.20%,rgba(93,80,155,.58) 0,rgba(48,52,105,.38) 38%,rgba(24,35,70,.18) 60%,transparent 78%),radial-gradient(var(--hero-glow-rx-far) 54.21% at 50% 82.25%,rgba(35,55,101,.22),transparent 76%),linear-gradient(180deg,#060a13,#09101f 66%,#11162b)}
+/* RETUNED ON ONE AXIS ONLY, because only one axis changed.
+   HORIZONTAL: a capped LENGTH instead of ~103% of the box. At 1200 the number
+   is what it always was; past that the light source keeps its size rather than
+   spreading with the monitor until the glow has no focus left. That is the
+   whole point -- saturation stays concentrated low and centre on a 2560 screen
+   instead of washing evenly across it.
+   VERTICAL: the AUTHORED percentages, unchanged. The bleed is gone, so 100% is
+   the Hero's own floor again and the focal core sits where it was authored to.
+   Every colour stop is untouched, at every state. */
+.heroTimeGradient[data-time-gradient="pre-dawn"]{background:radial-gradient(var(--hero-glow-rx) 102.63% at 50% 102.63%,#486ffd 0,#7f81f3 9.84%,#c489ff 20.83%,#dac0ff 34.13%,#eadcff 44.86%,#f9f6ff 58.59%,#f8fafd 100%)}
+.heroTimeGradient[data-time-gradient="sunrise"]{background:radial-gradient(var(--hero-glow-rx) 99.11% at 50% 104.6%,#cb83ff 0,#ff90b9 15.77%,#ffc977 30.62%,#ffd79b 38.04%,#fff1dc 50.11%,#fff 63.1%,#fcfdfe 77.95%,#f8fafd 98.81%)}
+.heroTimeGradient[data-time-gradient="daytime"]{background:radial-gradient(var(--hero-glow-rx) 104.98% at 50% 104.98%,#0071c1 1.33%,#60a8e2 15.71%,#b4d8ff 33.15%,#d9ebff 45%,#f8fafd 60%)}
+.heroTimeGradient[data-time-gradient="dusk"]{background:radial-gradient(var(--hero-glow-rx) 103.24% at 49.98% 104.51%,#ffb36a 0,#dfa0d8 14%,#9da8e4 30%,#ccd5f0 44%,#f1f3fa 58%,#f8fafd 100%)}
+.heroTimeGradient[data-time-gradient="sunset"]{background:radial-gradient(var(--hero-glow-rx) 100% at 50% 100%,#ffa577 0,#ff90a1 15.52%,#ddadff 30.09%,#ecd8ff 45.72%,#f5eaff 54.96%,#f8fafd 88.16%)}
+.heroTimeGradient[data-time-gradient="night"]{background:radial-gradient(var(--hero-glow-rx-near) 42% at 50% 104%,rgba(93,80,155,.58) 0,rgba(48,52,105,.38) 38%,rgba(24,35,70,.18) 60%,transparent 78%),radial-gradient(var(--hero-glow-rx-far) 58% at 50% 88%,rgba(35,55,101,.22),transparent 76%),linear-gradient(180deg,#060a13,#09101f 66%,#11162b)}
 @media(max-width:760px){
- .heroTimeGradient[data-time-gradient="night"]{background:radial-gradient(var(--hero-glow-rx-near) 37.38% at 50% 97.20%,rgba(93,80,155,.58) 0,rgba(48,52,105,.38) 38%,rgba(24,35,70,.18) 60%,transparent 78%),radial-gradient(var(--hero-glow-rx-far) 52.34% at 50% 82.25%,rgba(35,55,101,.22),transparent 76%),linear-gradient(180deg,#060a13,#09101f 66%,#11162b)}
+ .heroTimeGradient[data-time-gradient="night"]{background:radial-gradient(var(--hero-glow-rx-near) 40% at 50% 104%,rgba(93,80,155,.58) 0,rgba(48,52,105,.38) 38%,rgba(24,35,70,.18) 60%,transparent 78%),radial-gradient(var(--hero-glow-rx-far) 56% at 50% 88%,rgba(35,55,101,.22),transparent 76%),linear-gradient(180deg,#060a13,#09101f 66%,#11162b)}
 }
-.heroNightStars{position:absolute;inset:0 0 var(--hero-time-bleed) 0;z-index:1;overflow:hidden;contain:strict;opacity:0;pointer-events:none}
+.heroNightStars{position:absolute;inset:0;z-index:1;overflow:hidden;contain:strict;opacity:0;pointer-events:none}
+/* THE CROP HAS TO FOLLOW THE CURVE. .heroCharacterPeek is inset:0 with
+   overflow:hidden and no radius of its own, so it was clipping the portrait to
+   a SQUARE box laid over a Hero whose bottom corners are round -- a head
+   dragged or scaled into a corner would paint outside the Hero's own edge. It
+   inherits the radius now, so the boundary the head is cropped by and the
+   boundary the clamp reasons about are the same shape. */
+.heroCharacterPeek{border-radius:inherit;corner-shape:inherit}
 .heroNightStars i{--star-visible:clamp(.34,var(--star-alpha),.72);position:absolute;left:var(--star-x);top:var(--star-y);width:var(--hair-w);height:var(--hair-w);border-radius:var(--r-full);background:#f4f7ff;animation:heroStarTwinkle calc(var(--star-twinkle-duration) * var(--star-rate)) var(--star-twinkle-ease) var(--star-delay) infinite alternate}
 .heroNightStars i.is-bright{--star-visible:.78;width:var(--star-bright-size);height:var(--star-bright-size);box-shadow:0 0 var(--star-glow-size) rgba(205,220,255,.32)}
 .hero[data-time-state="night"] .heroNightStars{opacity:1}

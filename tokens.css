@@ -516,7 +516,13 @@
     in, so it is the one surface with no corners at all. Everything else stays
     a rounded card precisely because this one stopped being one; a partial
     radius here would read as a mistake rather than a decision. */
- --surface-hero-radius:0px;
+ /* THREE SQUARE EDGES AND ONE CURVED ONE, and that is not a compromise radius.
+    The Hero runs to the viewport on the left, right and top, and an edge that
+    meets the viewport has nothing to round against -- a corner there would be
+    a notch of page colour. The BOTTOM edge is the only one that terminates
+    inside the page, so it is the only one that gets a corner. Jayden picked
+    this directly: sharp bottom edge, curved bottom corners, no fade. */
+ --surface-hero-radius:0 0 var(--r-xl) var(--r-xl);
  --surface-hero-pad:var(--sp-16-40);
  --surface-pad:var(--sp-32);
  --surface-inset:var(--sp-8);
@@ -532,23 +538,18 @@
  --hero-peek-depth:calc(190px + var(--sp-16));
  --hero-peek-offset:var(--sp-8);
  --hero-peek-lift:var(--sp-64);
- /* The Hero is full-bleed, so its lower edge would otherwise be a hard colour
-    band across the whole viewport. --hero-time-bleed is how far the gradient
-    layer continues BELOW the Hero and --hero-time-fade is how far ABOVE that
-    edge the mask starts letting go, so the light falls into the work section
-    instead of stopping at it.
-    BOTH ARE PERCENTAGES ON PURPOSE. A radial-gradient's ending-shape size
-    rejects a calc() that mixes px with %, so a pixel bleed would have made
-    every vertical number in the six gradients uncomputable. Sizing the bleed
-    as a share of the Hero keeps --hero-time-edge -- the Hero's own lower edge
-    inside the bled box -- a single constant at every viewport. */
- --hero-time-bleed:7%;
- --hero-time-edge:93.46%;   /* 100 / 1.07 */
- --hero-time-fade:4%;
- /* The six radials were authored against a 1200px box. Full-bleed makes the
-    same percentage spread out and the glow flatten, so the horizontal radius
+ /* NO BLEED AND NO BOTTOM FADE. A bleed token and a downward mask existed so
+    the light could fall into the work section; Jayden rejected that outright
+    ("I liked when it was sharp"). The gradient now stops dead on the Hero's
+    own lower edge, and the rounded bottom corners are what keep that hard
+    stop from reading as a slab. Both tokens are deleted rather than zeroed so
+    neither reads as a knob someone forgot to turn back.
+    THE VERTICAL PERCENTAGES ARE THEREFORE THE AUTHORED ONES AGAIN -- with no
+    bled box to re-express them against, 100% is the Hero's floor once more.
+    The six radials were authored against a 1200px box. Full width makes the
+    same HORIZONTAL percentage spread out and the glow flatten, so that radius
     is capped as a LENGTH: the light source keeps its size instead of growing
-    with the monitor. */
+    with the monitor. That is the whole retune -- one axis, not both. */
  --hero-glow-rx:clamp(1060px,84vw,1720px);
  --hero-glow-rx-near:clamp(560px,44vw,900px);
  --hero-glow-rx-far:clamp(740px,58vw,1180px);
@@ -639,7 +640,7 @@
 @media(max-width:760px){:root{
  --surface-pad:var(--sp-16);--surface-gutter:var(--sp-16);
  --radius-container:var(--r-lg);--radius-media:var(--r-md);
- --surface-hero-radius:0px;
+ --surface-hero-radius:0 0 var(--r-lg) var(--r-lg);
  --surface-hero-pad:var(--sp-16);
  /* The phone Hero is already narrower than the authored box, so the cap that
     protects the desktop focus would only shrink the glow further here. */
