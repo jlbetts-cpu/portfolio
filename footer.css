@@ -51,8 +51,15 @@
    flush with the section above it on each page.
    A hairline, not a shadow: chrome on this site separates with a 1px rule and
    never with elevation. */
+/* 2fr / 1fr: the identity block takes two thirds of the measure and the two link
+   columns share the last third. Measured against the reference set at 1440 that
+   puts the columns at ~154px, between Linear's 160px lists and Josh Comeau's
+   104-160px -- narrow columns are the convention, wide ones look like a sitemap.
+   Both tracks are minmax(0,Nfr) and therefore sized by the GRID, not by their
+   contents, which is what lets a row go bold under the pointer without shoving
+   the column beside it. */
 .footTop{
- display:grid;grid-template-columns:minmax(0,1fr) auto;gap:var(--sp-48-80);
+ display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:var(--sp-48-80);
  align-items:start;padding-block:var(--sp-48-80) var(--sp-32-64);
  border-top:var(--hair-w) solid var(--theme-rim)
 }
@@ -95,32 +102,41 @@
 }
 
 /* ── The link columns ─────────────────────────────────────────────────────── */
-/* FIXED TRACKS, DELIBERATELY. The rows go bold on hover -- the site's settled
-   answer for an interactive text row is ink plus weight, and the grey pill
-   ground is reserved for nav items, so it is not available here. A content-
-   sized track would then resize under the pointer and shove the column beside
-   it. --menu-w is the system's width for a column of .ctl rows; this is one. */
 .footNav{
- display:grid;grid-template-columns:repeat(2,minmax(0,var(--menu-w)));
- gap:var(--sp-48-80);--ctl-pad:0
+ display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+ gap:var(--sp-32-64);--ctl-pad:0
 }
 .footCol{min-width:0}
-/* 13px/600 in ink over 15px/400 muted: the heading is the smaller type and
-   still unmistakably the senior one. Same label shape as .abLabel on About --
-   sentence case, --tr-flat, no caps -- so the site has one label, not two.
-   --sp-8 to the first row reads as ~19px optically: the 44px row carries 11px
-   of half-leading above its text before a single pixel of gap is added. */
+/* SAME SIZE AS THE LINKS, SENIOR BY WEIGHT AND INK ALONE. This is the one thing
+   every reference agrees on and the thing that is easiest to get wrong: Linear
+   sets heading and link both at 13px (510 vs 400), Apple both at 12px (600 vs
+   400), Vercel both at 14px (500 vs 400). A heading SMALLER than the links it
+   introduces -- the first cut of this file, at --fs-label 13 over --fs-small 15
+   -- has no precedent in any of them. So: --ctl-fs on both, ink against muted,
+   600 against 400. The site has two weights and this needs exactly two.
+   No caps and no tracking: sentence case matches .abLabel on About, and the
+   uppercase micro-cap treatment belongs to the portfolios that use it INSTEAD
+   of a weight difference, not on top of one.
+   --sp-16 to the first row is ~27px optically once the 44px row's 11px of
+   half-leading is counted -- level with the ~26px between one row's text and
+   the next. Heading-to-list should never read tighter than list-to-list. */
 .footHead{
- font-family:var(--sans);font-weight:600;font-size:var(--fs-label);
- line-height:var(--lh-note);letter-spacing:var(--tr-flat);color:var(--theme-ink);
- margin:0 0 var(--sp-8)
+ font-family:var(--sans);font-weight:600;font-size:var(--ctl-fs);
+ line-height:var(--lh-note);letter-spacing:var(--tr-body);color:var(--theme-ink);
+ margin:0 0 var(--sp-16)
 }
 .footList{list-style:none;margin:0;padding:0}
 /* A COLUMN OF STANDALONE LINKS IS NOT PROSE, so the inline exception does not
    apply to it. .footIn used to take padding-block:--sp-10 and land at 41-47px,
    which was correct while these were words inside a sentence at a 25.5px line
    pitch. As rows they get the real thing: .ctl's --ctl-h, 44px, measured, with
-   the full column track as the hit width. */
+   the full column track as the hit width.
+   THIS IS DELIBERATELY LOOSER THAN THE REFERENCES. Measured 2026-08-08, footer
+   link pitch runs 24px at Stripe, 26 at Apple, 28 at Vercel, 30 at Linear --
+   none of the four reaches 44, because 44 x 44 is WCAG 2.5.5 (AAA) and 2.5.8
+   (AA) only asks for 24 x 24. 44 costs this footer about 50px of height per
+   column and buys a target a thumb cannot miss. On a site whose whole purpose
+   is to get someone to press "Email", that is the right side to err on. */
 .footLink:hover,.footLink:focus-visible{color:var(--theme-ink);font-weight:600}
 
 /* ── The closing wordmark ─────────────────────────────────────────────────── */

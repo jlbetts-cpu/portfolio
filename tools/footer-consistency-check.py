@@ -287,7 +287,8 @@ def validate_footer_css():
     required = {
         ".footTop": ["border-top", "var(--hair-w)", "var(--theme-rim)", "grid-template-columns"],
         ".footStatus": ["var(--fs-lead)", "var(--theme-ink)"],
-        ".footHead": ["var(--fs-label)", "var(--theme-ink)"],
+        # heading and link share one size; the heading is senior by weight and ink.
+        ".footHead": ["var(--ctl-fs)", "var(--theme-ink)"],
         ".footMark": ["var(--fs-display)", "var(--theme-rim)"],
     }
     for selector, needles in required.items():
