@@ -40,7 +40,18 @@
    at (#contact is on the <footer> itself).
    ════════════════════════════════════════════════════════════════════════════ */
 
-.siteFoot{color:var(--theme-ink)}
+/* THE FOOTER IS ITS OWN MEASURE. container-type:inline-size makes 100cqw mean
+   "the footer's content width" on every page that carries one -- on index.html
+   .siteFoot holds the page gutter itself, on about.html and the five case
+   studies it sits inside .wrap which has already applied it, and the content box
+   is the page measure either way. That is what lets .footMark below fit the
+   measure with no JS and no per-page number. (headmaker.html already uses the
+   same technique for its stage, so this is not a new idea in the codebase.)
+   overflow-x:CLIP, not hidden: it is a guard for one failure only -- if
+   Instrument Sans does not load, the fallback's metrics are wider and a
+   nowrap display string would push the page sideways. clip does not create a
+   scrollport, so "nothing scrolls that should not" still holds; hidden would. */
+.siteFoot{color:var(--theme-ink);container-type:inline-size;overflow-x:clip}
 
 /* THE HAIRLINE SITS ON .footTop, NOT ON .siteFoot. index.html's footer is a
    child of <body> and carries the page gutter itself; on about.html and the
@@ -136,21 +147,71 @@
    none of the four reaches 44, because 44 x 44 is WCAG 2.5.5 (AAA) and 2.5.8
    (AA) only asks for 24 x 24. 44 costs this footer about 50px of height per
    column and buys a target a thumb cannot miss. On a site whose whole purpose
-   is to get someone to press "Email", that is the right side to err on. */
-.footLink:hover,.footLink:focus-visible{color:var(--theme-ink);font-weight:600}
+   is to get someone to press "Email", that is the right side to err on.
 
-/* ── The closing wordmark ─────────────────────────────────────────────────── */
-/* --fs-display is the scale's top rung and the right register for a sign-off,
-   but its clamp FLOOR is 68px: at 390 that sets ~400px of "Jayden Betts" into a
-   342px column and pushes the page sideways. min() holds it to the measure
-   without leaving the scale -- the rung is still --fs-display, it just never
-   exceeds 13vw. Decorative and marked so: an <h2> reading "Jayden Betts" would
-   invent a section, land in every screen-reader heading list, and say his name
-   a fourth time after <title>, the JSON-LD Person and the mark's aria-label. */
+   .footLink HAS NO RULE OF ITS OWN, AND THAT IS THE POINT. Height, padding,
+   font, ink and every state come from .ctl.ctl--quiet.ctl--row; the class is a
+   hook for this comment and for the contract tool, nothing more. An earlier cut
+   added `font-weight:600` on hover here. It went, for a reason worth recording:
+   .footHead is 600 ink at exactly --ctl-fs, so a link that went 600 ink on
+   hover became pixel-for-pixel its own column heading, and the strongest
+   signal in the column started meaning two different things. Ink alone carries
+   hover -- which is also what Stripe, Linear, Apple and Vercel all do. */
+
+/* ── The closing wordmark: the plinth the footer stands on ────────────────── */
+/* JAYDEN'S COMPLAINT, AND THE ANSWER. He asked for the big name to go, reversed
+   within minutes, and said why: "keep the big Jayden Betts, but I would make it
+   feel more cohesive -- right now it just feels like it's there, not even
+   pertaining to anything." That is not a size note and not a placement note.
+   Sized by --fs-display it set 919px of ink into a 1200px measure, so its right
+   edge landed 280px short of the column above it and matched no other edge on
+   the page. It was ATTACHED TO NOTHING, and it read as decoration.
+   THE FIX IS AN EDGE, NOT A SIZE. The wordmark now spans the footer's measure
+   exactly: its left edge is the identity mark's left edge and its right edge is
+   the Contact column's right edge, so both verticals that bound the footer run
+   through it. Everything above stands on it. It is the same colour as the
+   hairline that opens the footer (--theme-rim), so the component is bracketed
+   top and bottom by one value -- and because that value is a --theme-* token it
+   takes the time-of-day tint with everything else on this branch, which is the
+   second direction the brief offered, had for free.
+   The third -- a companion head standing on the wordmark -- was rejected: it
+   answers "this element is decorative" by adding a second decorative element,
+   it needs the head rig on all seven pages including five case studies that
+   load none of it, and the heads' contact shadows are the one sanctioned
+   exception to the no-shadows rule. Spending it on a footer devalues it.
+
+   HOW THE FIT WORKS. --foot-mark-fit is a MEASURED FONT METRIC, not a design
+   value: "Jayden Betts" set in Instrument Sans 600 at --tr-display advances
+   5.4739em, measured live off a Range over the text node at 1440. Dividing the
+   container measure by it gives the size at which the run lands flush on both
+   edges. It is unitless and scales with the string, the weight and the tracking
+   -- change any of those three and this number is re-measured, which is why it
+   is named and commented and not inlined.
+   NO CLAMP AND NO --fs-display CEILING, DELIBERATELY. Capping at the scale's top
+   rung (168px) would put the ink back at 919px in a 1200px measure at 1440 --
+   i.e. it would restore the exact defect this rule exists to remove. The
+   wordmark is not text on the type scale; like --rail-w it is a LAYOUT-DERIVED
+   dimension, and its real ceiling is the measure: .wrap tops out at 1200, so
+   the size tops out with it at ~218px and stops. --fs-display stays the
+   authority for display TYPE, which this is not.
+   THE TOP MARGIN IS AN OPTICAL TRIM, NOT A GAP. Even at --lh-display the line
+   box carries .029em of ascender space above the cap line -- measured off the
+   font's own bounding box at 219px, not guessed -- so .footTop's 64px
+   padding-block-end paints as 70. Removing exactly that much makes the
+   specified gap the gap you see, which is the only way the footer's vertical
+   rhythm means anything: 64px desktop / 32px phone, straight off --sp-32-64,
+   the same rung as everything else in here. Being in em it re-derives itself at
+   every width; nothing about this is a breakpoint.
+   Decorative and marked so: an <h2> reading "Jayden Betts" would invent a
+   section, land in every screen-reader heading list, and say his name a fourth
+   time after <title>, the JSON-LD Person and the mark's aria-label. */
 .footMark{
- font-family:var(--sans);font-weight:600;font-size:min(var(--fs-display),13vw);
+ --foot-mark-fit:5.4739;
+ font-family:var(--sans);font-weight:600;
+ font-size:calc(100cqw / var(--foot-mark-fit));
  line-height:var(--lh-display);letter-spacing:var(--tr-display);color:var(--theme-rim);
- margin:0;white-space:nowrap;-webkit-user-select:none;user-select:none
+ margin:-.029em 0 0;white-space:nowrap;
+ -webkit-user-select:none;user-select:none
 }
 
 /* ── Night ───────────────────────────────────────────────────────────────── */

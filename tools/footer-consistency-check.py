@@ -262,16 +262,51 @@ def validate_page(page, source, canonical):
 
     # 4. The page may own placement only. Any footer type, colour, grid or state
     #    rule left in a page <style> block is the drift this tool exists to stop.
+    #
+    #    .footIn IS EXEMPT, AND THE EXEMPTION IS THE FINDING. It reads like a
+    #    footer class and it is not one: besides the retired footer sentence it
+    #    has always carried the INLINE CROSS-LINKS in case-study prose (Apollo ->
+    #    Strata x2, Strata -> Apollo, UC Davis -> Bearings, Cluster's three,
+    #    index's three, play's three). Restyling it as a footer link would have
+    #    silently rewritten links in the middle of the body copy. The footer's
+    #    links are .footLink now; .footIn stays a prose class, keeps its name
+    #    because site-theme.css and hero-time.css already theme it under
+    #    .content, and keeps its own target rule (the WCAG 2.5.8 inline
+    #    exception, 41.5-46.7px on a 25.5px line pitch) which the footer's
+    #    standalone 44px rows do not qualify for.
+    #    So the exemption is not a hole: the two rules below hold the concerns
+    #    apart in both directions -- the prose class may not appear in the
+    #    footer's markup, and the component stylesheet may not style it.
     style = "".join(re.findall(r"<style[^>]*>(.*?)</style>", source, re.S))
+    if "footIn" in block:
+        failures.append("the prose cross-link class .footIn is back inside the footer markup")
     for selector in re.findall(r"(?m)^\s*(\.(?:siteFoot|foot[A-Z]\w*)[^{]*)\{([^}]*)\}", style):
         head, body = selector[0].strip(), selector[1]
+        if head.startswith(".footIn"):
+            continue
         if head != ".siteFoot":
             failures.append("page still styles %s; that belongs in footer.css" % head)
             continue
+        # PLACEMENT, AND ONLY PLACEMENT. Six of the seven pages carry the footer
+        # inside .wrap, which has already applied the page measure, so they need
+        # two properties. index.html's footer is a child of <body>, so on that
+        # page the measure itself is a page decision and it needs four more --
+        # all of them still placement, none of them type, colour, grid or state.
+        # The shorthands are NOT allowed: `padding` would smuggle in padding-top
+        # and `margin` would smuggle in a horizontal offset. text-align is not
+        # here on purpose; it is what made the old footer a centred sentence.
         stray = [
             prop
             for prop in re.findall(r"([a-z-]+)\s*:", body)
-            if prop not in {"margin-top", "padding-bottom", "scroll-margin-top"}
+            if prop
+            not in {
+                "margin-top",
+                "margin-inline",
+                "max-width",
+                "padding-inline",
+                "padding-bottom",
+                "scroll-margin-top",
+            }
         ]
         if stray:
             failures.append(
@@ -289,7 +324,15 @@ def validate_footer_css():
         ".footStatus": ["var(--fs-lead)", "var(--theme-ink)"],
         # heading and link share one size; the heading is senior by weight and ink.
         ".footHead": ["var(--ctl-fs)", "var(--theme-ink)"],
-        ".footMark": ["var(--fs-display)", "var(--theme-rim)"],
+        # THE WORDMARK IS SIZED BY THE MEASURE, NOT BY THE TYPE SCALE. Jayden's
+        # note was that it "doesn't pertain to anything"; the answer is that its
+        # ink spans the footer's measure exactly, so the same two verticals bound
+        # the hairline at the top and the wordmark at the bottom. --fs-display
+        # deliberately does NOT appear here: capping at the scale's top rung put
+        # the ink 280px short of the right edge at 1440, which is the defect.
+        # --theme-rim keeps it on the time-of-day theme AND makes it literally
+        # the hairline's colour.
+        ".footMark": ["100cqw", "var(--foot-mark-fit)", "var(--theme-rim)"],
     }
     for selector, needles in required.items():
         match = re.search(re.escape(selector) + r"\s*\{([^}]*)\}", source, re.S)
@@ -306,6 +349,26 @@ def validate_footer_css():
     # The links take their height from the control system, not from a literal.
     if "--ctl-pad" not in source:
         failures.append("footer links do not consume the control system's padding token")
+
+    # THE SILENT FAILURE THIS PROJECT KEEPS HITTING. 100cqw with no query
+    # container above it does not error -- it quietly resolves against the small
+    # viewport instead. On index.html, whose .siteFoot carries the page gutter as
+    # its own padding, that would set the wordmark ~80px too wide and push the
+    # page sideways, and the CSS would still read correctly. So the container is
+    # a contract, not a detail.
+    site_foot = re.search(r"(?m)^\.siteFoot\s*\{([^}]*)\}", source)
+    if not site_foot:
+        failures.append("footer.css has no .siteFoot rule")
+    elif "container-type:inline-size" not in re.sub(r"\s+", "", site_foot.group(1)):
+        failures.append(
+            ".siteFoot does not establish an inline-size container; .footMark's "
+            "100cqw would silently resolve against the viewport"
+        )
+
+    # And the other direction of the .footIn separation: the component stylesheet
+    # may mention the prose class in prose, but must never style it.
+    if re.search(r"(?m)^\s*[^/\n]*\.footIn[^{\n]*\{", source):
+        failures.append("footer.css styles .footIn; that is a prose class, not a footer link")
     return failures
 
 

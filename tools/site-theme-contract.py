@@ -242,7 +242,13 @@ def check_shared_theme_transitions():
     assert direct_reduced in compact_header, "header.css: reduced motion must match direct-nav hover/focus specificity"
     assert compact_header.index(direct_reduced)>compact_header.index(direct_hover), "header.css: direct-nav reduced-motion override must follow its ready transition"
     assert "@media(prefers-reduced-motion:reduce){.theme-ready.jbNav:is(a,button,.jbDiscGo){transition-duration:0ms}" in compact_header, "header.css: reduced motion must zero ready-state nav color transition"
-    assert ".theme-ready.siteFoot,.theme-ready.footReach,.theme-ready.footIn,.theme-ready.footMark{transition:colorvar(--theme-duration)" in compact_footer, "footer.css: ready-state semantic footer transition is missing"
+    # 2026-08-08: the footer became a multi-column component, so this list is its
+    # new set of ink-bearing parts. .footReach (the retired centred sentence) and
+    # .footIn (which turned out to be the CASE-STUDY PROSE cross-link class, not
+    # a footer class at all -- see tools/footer-consistency-check.py) are gone
+    # from it deliberately. .footIn is still themed, by site-theme.css under
+    # .content, which is where a prose link belongs.
+    assert ".theme-ready.siteFoot,.theme-ready.footStatus,.theme-ready.footCopy,.theme-ready.footHead,.theme-ready.footMark{transition:colorvar(--theme-duration)" in compact_footer, "footer.css: ready-state semantic footer transition is missing"
     violations=nav_color_transition_violations(header)
     assert not violations, f"header.css: nav color transitions must be theme-ready ({'; '.join(violations)})"
 
