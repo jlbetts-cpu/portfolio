@@ -549,17 +549,39 @@ def browser_contract(base_url):
             page.evaluate("window.__heroHeadTransform.reclamp()")
             drag_selection_to(page, width / 2, -height)
             page.wait_for_timeout(30)
+            # MEASURED AGAINST THE REACHABLE REGION, NOT THE HERO BOX. This
+            # assertion used to take the Hero's own top edge as the ceiling.
+            # That stopped being true when the Hero went full-bleed and ran up
+            # BEHIND the floating header: the bar is opaque and sits at
+            # z-index 100, so a handle parked under it cannot be clicked at
+            # all. The clamp therefore treats the bar's footprint as
+            # unreachable, and the visible share has to be counted from the
+            # bar's lower edge -- otherwise this test asserts the head can be
+            # pushed into a region where its own handles do not work.
             gap_result = page.evaluate(
                 """() => {
                   const hero=document.querySelector('#main');
                   const face=document.querySelector('#face');
                   const b=face.dataset.headBounds.split(/\s+/).map(Number);
                   const h=hero.getBoundingClientRect(),f=face.getBoundingClientRect();
-                  const top=f.top+f.height*b[1],bottom=f.top+f.height*b[3];
+                  const bar=document.querySelector('.jbStick .jbNav')
+                    ||document.querySelector('.jbStick');
+                  let ceiling=h.top;
+                  if(bar){const r=bar.getBoundingClientRect();
+                    if(r.bottom>h.top&&r.top<h.bottom&&r.width>0)
+                      ceiling=Math.min(r.bottom,h.bottom);}
+                  // Measured from the RIGID box the clamp enforces, not from
+                  // the rendered silhouette. hero-engine gives the portrait its
+                  // own idle breathing, so getBoundingClientRect() disagrees
+                  // with the enforced geometry by ~14px at any instant --
+                  // sampling it would be measuring the breathing, not the rule.
+                  const box=window.__heroHeadTransform.getState().box;
+                  const top=h.top+box.top,bottom=h.top+box.bottom;
                   const gap=parseFloat(getComputedStyle(hero)
                     .getPropertyValue('--hero-head-safe-gap'));
-                  return {gap,visibleY:Math.min(bottom,h.bottom)-Math.max(top,h.top),
-                    expected:Math.min(gap,h.height)};
+                  return {gap,ceiling,
+                    visibleY:Math.min(bottom,h.bottom)-Math.max(top,ceiling),
+                    expected:Math.min(gap,h.bottom-ceiling)};
                 }"""
             )
             assert gap_result["gap"] == 260 and abs(

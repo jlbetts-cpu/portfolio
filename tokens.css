@@ -555,6 +555,12 @@
  --hero-glow-rx-far:clamp(740px,58vw,1180px);
  --selection-ink:#0A84FF;
  --selection-line:1px;
+ /* A UNIFORM RING OF AIR, IN SCREEN PIXELS. A frame drawn tight against an
+    irregular photographic cutout reads as cramped -- it traces a silhouette
+    instead of describing a region, which is the other half of "too conformed
+    to the head". This is added to the frame's half-extents and is never
+    scaled, so the gap is identical at 0.24x and at 2.2x. */
+ --selection-air:8px;
  --selection-handle-size:8px;
  --selection-hit-size:var(--tap-min);
  --selection-rotate-size:10px;
@@ -588,6 +594,31 @@
     stage's corner. The authored values are the data-head-bounds midpoints. */
  --hero-head-origin-x:51%;
  --hero-head-origin-y:51.5%;
+ /* THE FLOAT. Amplitudes are deliberately below the threshold at which a
+    visitor can consciously track the motion -- it should read as "suspended"
+    in peripheral vision while they read the headline, not as a bob.
+    THE PERIODS ARE MUTUALLY PRIME-ISH ON PURPOSE. One sine wave on Y is
+    instantly recognisable as canned; three slow motions at 5.9s / 8.3s /
+    11.7s plus a small 3.7s harmonic on Y only re-align after about 38
+    minutes, so the path never visibly repeats. Seconds, written as plain
+    numbers because JS does the arithmetic. */
+ --hero-head-float-y-amp:9;
+ --hero-head-float-y-period:5.9;
+ --hero-head-float-y2-amp:3;
+ --hero-head-float-y2-period:3.7;
+ --hero-head-float-x-amp:5;
+ --hero-head-float-x-period:8.3;
+ --hero-head-float-rot-amp:.7;
+ --hero-head-float-rot-period:11.7;
+ /* How far the contact shadow answers the float. Spread grows the shadow as
+    the head rises, fade lightens it -- the coupling that makes a suspended
+    object read as an object rather than a sticker with a smudge under it. */
+ --hero-head-shadow-spread:.14;
+ --hero-head-shadow-fade:.30;
+ /* The greeting: how far below its resting place the head starts, and how
+    long it waits so it arrives just after the headline has been read. */
+ --hero-head-enter-rise:64px;
+ --hero-head-enter-delay:420ms;
  --scene-cut-duration:250ms;
  --scene-cut-ease:steps(2,end);
  --star-twinkle-duration:7s;

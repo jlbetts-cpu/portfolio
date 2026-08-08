@@ -370,6 +370,66 @@
  -webkit-user-drag:none;user-select:none
 }
 
+/* ── THE HERO IS AN ARTBOARD CAUGHT MID-EDIT ──────────────────────────────────
+   The selection box is not an affordance you discover by clicking, it is the
+   aesthetic: the page arrives with the head already selected. That only reads
+   as deliberate if the head MOVES -- static-plus-selection-box reads as a
+   rendering bug, floating-plus-selection-box reads as a design tool. The
+   motion is therefore load-bearing, not decoration.
+
+   THE FLOAT IS ADDITIVE AND SEPARATE FROM THE USER'S TRANSFORM. --hero-head-x
+   /-y/-rotate are the visitor's arrangement; the float vars are added on top.
+   So a drag continues from wherever they put it and the float never pulls it
+   back toward a home position -- the two never fight, because they are never
+   the same number. The entrance rides in the same translate for the same
+   reason: it lands at 0 and hands straight over to the float. */
+@property --hero-head-enter-y{syntax:"<length>";inherits:false;initial-value:0px}
+@property --hero-head-enter-o{syntax:"<number>";inherits:false;initial-value:1}
+.heroHeadTransform{
+ transform:translate3d(
+   calc(-50% + var(--hero-head-x) + var(--hero-head-float-x,0px)),
+   calc(var(--hero-head-y) + var(--hero-movie-guard-y) + var(--hero-head-float-y,0px) + var(--hero-head-enter-y,0px)),0)
+  rotate(calc(var(--hero-head-rotate) + var(--hero-head-float-rot,0deg)))
+  scale(var(--hero-head-scale))
+}
+/* Once per page load, and it resolves INTO the float rather than stopping
+   dead. --sp-bounce is the shipped overshoot curve; the shorter --sp-pop-dur
+   rung is used instead of --sp-bounce-dur's 860ms because this is a greeting,
+   not an entrance -- it should be over before you have decided how to feel
+   about it. It is delayed past the copy so it arrives just AFTER the headline
+   is read, which is the difference between a hello and an interruption. */
+@keyframes heroHeadArrive{
+ from{--hero-head-enter-y:var(--hero-head-enter-rise);--hero-head-enter-o:0}
+ to{--hero-head-enter-y:0px;--hero-head-enter-o:1}
+}
+.heroHeadTransform{opacity:var(--hero-head-enter-o,1)}
+:root.theme-ready .heroHeadTransform{
+ animation:heroHeadArrive var(--sp-pop-dur) var(--sp-bounce) var(--hero-head-enter-delay) both
+}
+/* A suspended object is not standing on anything, and this site's one shadow
+   rule is that the head casts a contact shadow BECAUSE it stands on something.
+   The honest resolution is to make the shadow read the height: as the head
+   rises the shadow spreads and lightens, as it drifts down it tightens and
+   darkens. --hero-head-shadow-lift is written per frame from the float's own
+   Y, so the two can never disagree. */
+.hero[data-time-state]:not([data-time-state="off"]) .floorshadow{
+ transform:scale(calc(1 + var(--hero-head-shadow-lift,0) * var(--hero-head-shadow-spread)));
+ opacity:calc(var(--time-shadow-opacity) * (1 - var(--hero-head-shadow-lift,0) * var(--hero-head-shadow-fade)))
+}
+@media(prefers-reduced-motion:reduce){
+ :root.theme-ready .heroHeadTransform{animation:none}
+ .heroHeadTransform{opacity:1}
+}
+/* Corner resize beats rotate on the hit test. The rotator is authored at the
+   top edge's midpoint "where no corner competes", and at rest that is true --
+   but when the head is dragged mostly off-screen the selection box collapses
+   toward the viewport edge, both points clamp into the same 44px square, and
+   the rotator (later in the DOM) swallowed the ne handle's taps. Resizing is
+   the more essential affordance and the rotator stays reachable whenever the
+   box is not degenerate, so the corners win. */
+.heroHeadSelection .heroHeadHandle{z-index:2}
+.heroHeadSelection .heroHeadRotate{z-index:1}
+
 .heroTime{position:relative;z-index:12;display:inline-flex}
 .heroTimeIcon{
  width:var(--ico-md);height:var(--ico-md);fill:none;stroke:currentColor;
