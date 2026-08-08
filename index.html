@@ -635,10 +635,15 @@ body.heroEmpathy .jbStick .jbNav{--nav-mat:var(--ctl-ground);--nav-rim:var(--ctl
 .wrap.developing{filter:blur(16px) brightness(1.05);opacity:.4;will-change:filter,opacity}
 .wrap.developing.developed{filter:blur(0) brightness(1);opacity:1;transition:filter .95s cubic-bezier(.2,.8,.2,1),opacity .8s cubic-bezier(.2,.8,.2,1)}
 @media(prefers-reduced-motion:reduce){.wrap.developing{filter:none!important;opacity:1!important}}
-.siteFoot{margin-top:clamp(80px,12vh,150px);padding:0 clamp(24px,5vw,40px) clamp(32px,5vh,64px);text-align:center}
-/* 1.55 was a literal; the case studies resolve this same role to var(--lh-prose)
-   = 1.5. Same element, same role, two numbers -- the --lh-prose drift again. */
-.footReach{font-family:var(--sans);font-weight:400;font-size:var(--fs-prose);line-height:var(--lh-prose);color:var(--c700);margin:0 auto;max-width:56ch;text-wrap:balance}
+/* A <body> child on this page rather than a wrapper child, so the page measure
+   is a page decision here. text-align:center is gone: that is what made the old
+   footer a centred sentence, and the new one is a two-column layout. 16px at
+   <=760 matches .cases and about.html -- .wrap's 24px is the outlier. */
+.siteFoot{
+ margin-top:var(--sp-80-152);max-width:var(--page-max);margin-inline:auto;
+ padding-inline:var(--sp-40);padding-bottom:var(--sp-32-64)
+}
+@media(max-width:760px){.siteFoot{padding-inline:var(--sp-16)}}
 .footIn{font-weight:600;color:var(--c950);text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:3px;text-decoration-color:var(--c500);transition:text-decoration-color .15s cubic-bezier(.2,.8,.2,1),color .15s cubic-bezier(.2,.8,.2,1)}
 /* one shape for this role on all seven pages: the case studies already write it
    as var(--accent)/var(--accent-press). Same computed ink, one spelling. */
@@ -691,9 +696,6 @@ body.heroEmpathy .jbStick .jbNav{--nav-mat:var(--ctl-ground);--nav-rim:var(--ctl
    clamp FLOOR is 68px: at 390 that sets ~400px of "Jayden Betts" into 342px of column and
    overflows the page. min() clamps it down to the measure without leaving the scale --
    the rung is still --fs-display, it just never exceeds 13vw. Nothing wraps, nothing scrolls. */
-.footMark{font-family:var(--sans);font-weight:600;font-size:min(var(--fs-display),13vw);
- line-height:.9;letter-spacing:var(--tr-display);color:var(--c100);
- margin:var(--sp-8-16) 0 0;white-space:nowrap;-webkit-user-select:none;user-select:none}
 .csNote{margin-top:calc(-1 * clamp(14px,2vh,28px));margin-bottom:clamp(30px,4vh,48px)}
 .csNoteText{font-family:var(--sans);font-weight:400;font-size:var(--fs-small);line-height:1.55;color:var(--c500);max-width:64ch;margin:0}
 @media(max-width:760px){.hero{grid-template-columns:1fr!important}}
@@ -1720,7 +1722,32 @@ if(location.hash==="#about")location.replace("about.html");</script>
       to this later". The nav status item the research recommended is NOT built; --accent-live
       exists for it whenever he wants it. -->
  <footer class="siteFoot" id="contact" role="contentinfo">
-  <p class="footReach">I&rsquo;m open to full-time roles and would love to chat. Find me on <a class="footIn" href="https://www.linkedin.com/in/jaydenbetts" target="_blank" rel="noopener noreferrer">LinkedIn</a>, <a class="footIn" href="https://www.instagram.com/jaydenleebetts" target="_blank" rel="noopener noreferrer">Instagram</a>, or <a class="footIn" href="mailto:jaydenlbetts@gmail.com">email</a>.</p>
+  <div class="footTop">
+   <div class="footId">
+    <a class="footBrand ctl ctl--quiet" href="index.html" aria-label="Jayden Betts, home"><svg class="footLogo" viewBox="0 0 30 30" aria-hidden="true"><path d="M1 26.3842C3.07605 22.5364 9.00761 17.1494 16.1255 26.3842C23.2434 35.619 14.1981 18.1678 16.1255 8.65665C18.0529 -0.854479 32.3186 -2.22723 28.2852 8.65665C24.2517 19.5405 18.6968 18.261 20.8493 13.2232C23.0018 8.1853 35.3661 26.1679 23.0066 27.4872"/></svg></a>
+    <p class="footStatus">Open to full-time roles.</p>
+    <p class="footCopy">&copy; 2026 Jayden Betts</p>
+   </div>
+   <nav class="footNav" aria-label="Footer">
+    <div class="footCol">
+     <h2 class="footHead" id="footMenu">Menu</h2>
+     <ul class="footList" aria-labelledby="footMenu">
+      <li><a class="footLink ctl ctl--quiet ctl--row" href="index.html#cases">Work</a></li>
+      <li><a class="footLink ctl ctl--quiet ctl--row" href="about.html">About</a></li>
+      <li><a class="footLink ctl ctl--quiet ctl--row" href="play.html">Play</a></li>
+      <li><a class="footLink ctl ctl--quiet ctl--row" href="Jayden-Betts-Resume.pdf" target="_blank" rel="noopener noreferrer" aria-label="Jayden Betts résumé (PDF, opens in a new tab)">Résumé</a></li>
+     </ul>
+    </div>
+    <div class="footCol">
+     <h2 class="footHead" id="footContact">Contact</h2>
+     <ul class="footList" aria-labelledby="footContact">
+      <li><a class="footLink ctl ctl--quiet ctl--row" href="https://www.linkedin.com/in/jaydenbetts" target="_blank" rel="noopener noreferrer">LinkedIn</a></li>
+      <li><a class="footLink ctl ctl--quiet ctl--row" href="https://www.instagram.com/jaydenleebetts" target="_blank" rel="noopener noreferrer">Instagram</a></li>
+      <li><a class="footLink ctl ctl--quiet ctl--row" href="mailto:jaydenlbetts@gmail.com">Email</a></li>
+     </ul>
+    </div>
+   </nav>
+  </div>
   <div class="footMark" aria-hidden="true">Jayden Betts</div>
  </footer>
 <div class="reelOverlay" id="reelOverlay" aria-hidden="true"><button class="reelClose" id="reelClose" type="button" aria-label="Close trailer">Close</button><video class="reelOverlayVid" id="reelOverlayVid" controls playsinline preload="metadata" poster="images/reel_poster.webp"><source src="videos/reel.mp4" type="video/mp4"></video></div>

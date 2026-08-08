@@ -251,14 +251,12 @@
  transition:transform .34s cubic-bezier(.2,.8,.2,1),width .34s cubic-bezier(.2,.8,.2,1),
   background-color var(--hero-time-duration) var(--hero-time-ease)
 }
-:root.theme-ready :is(.csTab,.csName,.csYear,.footReach,.footIn){
+:root.theme-ready :is(.csTab,.csName,.csYear,.footIn){
  transition:color var(--hero-time-duration) var(--hero-time-ease)
 }
 :root[data-theme="dark"] .csName{color:var(--theme-ink)}
 :root[data-theme="dark"] .csYear{color:var(--theme-muted)}
-:root[data-theme="dark"] .footReach{color:var(--theme-muted)}
-:root[data-theme="dark"] .footIn{color:var(--theme-ink)}
-:root[data-reduced-motion="reduce"] :is(.cases,.csTabInk,.csTab,.csPanel,.csMeta,.csName,.csYear,.footReach,.footIn),
+:root[data-reduced-motion="reduce"] :is(.cases,.csTabInk,.csTab,.csPanel,.csMeta,.csName,.csYear,.footIn),
 :root[data-reduced-motion="reduce"] .csTabs::before{transition:none!important;animation:none!important}
 
 /* The clip IS the Hero's box. It inherits the radius, so the light stops

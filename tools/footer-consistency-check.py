@@ -47,8 +47,22 @@ LEGACY_PHRASES = (
     "would love to chat",
 )
 # Column heading -> the rows under it, in order, with the attributes each row
-# must carry. Nothing here may be padded with a link that does not exist:
-# there is no Resume page, and Spotify is not an account he has.
+# must carry. Nothing here may be padded with a link that does not exist, and
+# Spotify is not an account he has.
+#
+# THE RÉSUMÉ ROW IS REAL, and the earlier "there is no Resume page" note was
+# half-right: there is no résumé PAGE, but Jayden-Betts-Resume.pdf is a shipping
+# 105 KB file that about.html has always linked. A footer is where a recruiter
+# looks for it, so it is the fourth Menu row -- 4 and 3 across the two columns
+# rather than 3 and 3.
+# ITS ONLY PDF AFFORDANCE IS THE ACCESSIBLE NAME, and that is deliberate. The
+# whole site signals "this is a PDF" in exactly one place -- about.html's
+# aria-label, matched here word for word. The file icon and the arrow on that
+# link are .abLink component furniture that every one of its four links carries,
+# so neither is a PDF signal and copying either would be inventing a treatment.
+# It is also the only footer row with an accessible name: LinkedIn and Instagram
+# merely open in a new tab, while this one changes the KIND of thing you land on.
+APPROVED_RESUME_LABEL = "Jayden Betts résumé (PDF, opens in a new tab)"
 APPROVED_COLUMNS = [
     (
         "Menu",
@@ -56,6 +70,12 @@ APPROVED_COLUMNS = [
             ("Work", "index.html#cases", None, None),
             ("About", "about.html", None, None),
             ("Play", "play.html", None, None),
+            (
+                "Résumé",
+                "Jayden-Betts-Resume.pdf",
+                "_blank",
+                "noopener noreferrer",
+            ),
         ],
     ),
     (
@@ -99,8 +119,11 @@ FOOTER_RE = re.compile(
 # footer, or to change the old one -- the hash stops matching and the page is held
 # to the same contract as every other page. Deleting an entry is the whole of
 # "closing" it; nothing else has to change.
+# index.html is OUT: it carried the old centred-sentence footer and was pinned
+# by hash so the contract would not fail on it while the hero lane held the
+# file. It now ships the same conventional footer as every other page, so it is
+# held to the full byte-identical contract like the rest.
 LEGACY_FOOTER_SHA256 = {
-    "index.html": "12cccd8fdaa09d5d8c54bf30f8445b932f38bc174b225b1bc660466fd927cce0",
     "play.html": "f0adb841fff9e044169c8d765bd2bd951ee4801c429d22d4fc2bbc03ca1f65b4",
 }
 
@@ -165,6 +188,7 @@ class FooterParser(HTMLParser):
                 "href": attr.get("href"),
                 "target": attr.get("target"),
                 "rel": attr.get("rel"),
+                "aria-label": attr.get("aria-label"),
             }
             self._open("link")
 
@@ -255,6 +279,24 @@ def validate_page(page, source, canonical):
                 failures.append(
                     "%r is not a shared control row (.ctl.ctl--quiet.ctl--row)" % row["label"]
                 )
+            # THE ONE ROW THAT LEAVES THE WEB. Its accessible name is the site's
+            # only PDF signal, so it is contract, not decoration.
+            if row["label"] == "Résumé" and row["aria-label"] != APPROVED_RESUME_LABEL:
+                failures.append(
+                    "the Résumé row's accessible name is missing or reworded "
+                    "(expected %r)" % APPROVED_RESUME_LABEL
+                )
+            # AND THE RULE THAT MADE US DOUBT IT IN THE FIRST PLACE: no invented
+            # destinations. A relative href must be a file that actually ships,
+            # which is what turns "there is no résumé" into a question the tool
+            # can answer instead of a note someone has to remember.
+            href = row["href"] or ""
+            if not re.match(r"^(https?:|mailto:|#)", href):
+                target = href.split("#", 1)[0].split("?", 1)[0]
+                if target and not os.path.exists(os.path.join(ROOT, target)):
+                    failures.append(
+                        "%r points at %r, which does not exist" % (row["label"], target)
+                    )
 
     for phrase in LEGACY_PHRASES:
         if phrase in block:
