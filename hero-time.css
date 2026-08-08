@@ -427,6 +427,21 @@
    box is not degenerate, so the corners win. */
 .heroHeadSelection .heroHeadHandle{z-index:2}
 .heroHeadSelection .heroHeadRotate{z-index:1}
+/* THE CHROME GOES BEHIND THE COPY, WITH THE HEAD. controls.css puts the
+   selection at z-index 6; .heroCopy is 3 and creates its own stacking context,
+   so 6 put a full-size, pointer-events:auto, cursor:move surface OVER the
+   headline, the CTAs and the time menu. That was survivable while the box only
+   appeared after you clicked the head. It is not survivable now that it is
+   visible on load: Playwright could not click the time menu at all -- the
+   selection intercepted every attempt. Dropping it to the head's own layer
+   restores the decision already taken for the head itself, that it passes
+   BEHIND the copy rather than covering it. It still paints above the portrait
+   because it comes later in the DOM at the same level.
+   AN ID, DELIBERATELY. controls.css links AFTER hero-time.css, so a bare
+   .heroHeadSelection here loses the cascade to its z-index:6 at equal
+   specificity -- the rule read correctly and did nothing, and Playwright still
+   could not reach the time menu. Verified live from the CSSOM, not by eye. */
+#heroHeadSelection{z-index:2}
 
 .heroTime{position:relative;z-index:12;display:inline-flex}
 .heroTimeIcon{
