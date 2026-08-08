@@ -176,6 +176,13 @@
    The two link columns stay side by side rather than stacking into one tall
    ribbon: 3 rows each at 44px is 132px of column, and 158px tracks at 390 hold
    "Instagram" with room to spare. */
+/* THE LAPTOP BAND, 881-1000. 2fr/1fr is right once the measure is ~1120 and up;
+   at 900 it leaves the identity block 493px it has no use for and squeezes the
+   columns to 91. Even tracks give them 153 and cost the identity nothing it was
+   using. 1000 is a rung the rest of the site already turns on. */
+@media(max-width:1000px){
+ .footTop{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+}
 @media(max-width:880px){
  .footTop{grid-template-columns:minmax(0,1fr);gap:var(--sp-32-48)}
  .footNav{grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--sp-24)}

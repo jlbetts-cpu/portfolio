@@ -204,6 +204,41 @@ img{display:block;max-width:100%}
    have no consumer any more; see the report. */
 .siteFoot{margin-top:var(--sp-80-152);padding-bottom:var(--sp-32-64)}
 
+/* .footIn IS NOT A FOOTER CLASS ANY MORE, and strictly it never only was.
+   Besides the old footer sentence it has always carried the INLINE CROSS-LINKS
+   in case-study prose -- Apollo -> Strata (x2), Strata -> Apollo, UC Davis ->
+   Bearings, Cluster's three. The footer's links are .footLink now and live in
+   footer.css; what is left here is the inline prose link, a different component
+   with a different target rule. The NAME is kept deliberately: site-theme.css
+   and hero-time.css already carry the night-theme rules for .footIn inside
+   .content, and those rules were always aimed at these links.
+   (bearings.html carries the rule with no consumer today. The five case studies
+   share one <style> in this region and divergence between them is the failure
+   mode this pass exists to end, so it stays identical on all five.)
+
+   A 24.5px INLINE LINK IS A 40.5px TARGET at every width. The control system 3.3
+   (.ctl--quiet.is-inline): pad the BLOCK axis and pull the margin back by the
+   same amount, so the hit area grows, the line box does not move, and the
+   paragraph does not reflow -- which is why this and not a min-height. Text
+   inside prose gets no wash, no rim and no radius; ink and its own underline
+   carry every state.
+
+   WHY --sp-10 AND NOT A CHASE TO 44. Measured at 390: this prose has a LINE
+   PITCH OF 25.5px (17px at --lh-prose). A vertical hit expansion bigger than the
+   pitch does not make a bigger target, it makes an AMBIGUOUS one -- it reaches
+   into the line above and the line below, so a tap between two lines belongs to
+   two links. --sp-10 already puts these at 41.5-46.7, which is past the pitch;
+   --sp-12 would worsen the overlap for 2.5px of nominal height. WCAG 2.5.8 has
+   an explicit INLINE EXCEPTION for exactly this case.
+   THE FOOTER LINKS NO LONGER QUALIFY FOR IT: they are standalone rows in a
+   column now, not words in a sentence, so footer.css gives them a real 44px
+   control height instead. */
+.footIn{font-weight:600;color:var(--c950);text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:3px;text-decoration-color:var(--c500);transition:text-decoration-color var(--ease-out-dur) var(--ease-out),color var(--ease-out-dur) var(--ease-out)}
+.footIn:hover,.footIn:focus-visible{color:var(--accent);text-decoration-color:var(--accent)}
+.footIn:active{color:var(--accent-press);text-decoration-color:var(--accent-press)}
+.footIn{display:inline-block;
+ padding-block:var(--sp-10);margin-block:calc(var(--sp-10) * -1)}
+
 .hq{position:absolute;left:var(--x);top:var(--qt);width:var(--w,20%);margin:0;font-family:var(--sans);font-weight:400;font-size:var(--fs-body);line-height:1.3;color:var(--c950);text-wrap:pretty}
 .hval{position:absolute;left:var(--x);top:var(--nt);width:var(--w,20%)}
 .hlabel{margin:.45em 0 0;font-family:var(--sans);font-weight:600;font-size:var(--fs-body);line-height:var(--lh-head);color:var(--c950);text-wrap:pretty}

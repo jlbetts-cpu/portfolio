@@ -1429,7 +1429,11 @@ html{scroll-padding-top:calc(var(--nav-h) + var(--sp-16-24))}
  corner-shape:var(--corner);background:var(--c50)
 }
 .heroAura{display:none}
-.heroCopy{display:flex;flex-direction:column;align-items:center;transform:translateY(clamp(-80px,-8svh,-48px));position:relative;z-index:3}
+/* The Hero absorbed the bar's 88px of clearance when it went full-bleed, so
+   dead-centre now sits ~44px lower than the authored composition and opens a
+   hole between the copy and the head. The lift is increased by that much: the
+   copy reads as centred in the space BELOW the floating bar, not in the box. */
+.heroCopy{display:flex;flex-direction:column;align-items:center;transform:translateY(clamp(-124px,-13svh,-92px));position:relative;z-index:3}
 .heroCopy h1{order:1;margin:0 auto;max-width:min(14.4em,100%);font-size:var(--fs-heroline);
  line-height:1.06;letter-spacing:var(--tr-head);text-align:center;text-wrap:balance}
 .heroCtas{order:2;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;
@@ -1438,8 +1442,8 @@ html{scroll-padding-top:calc(var(--nav-h) + var(--sp-16-24))}
 .workCta svg,.moodFaceIco{width:var(--ico-sm);height:var(--ico-sm);fill:none;
  stroke:currentColor;stroke-width:var(--ico-stroke);stroke-linecap:round;stroke-linejoin:round}
 @media(max-width:760px){
- .hero{padding:calc(var(--sp-8) + var(--nav-h) + var(--sp-12) + var(--sp-24)) max(var(--sp-16),env(safe-area-inset-right)) calc(var(--sp-48) + env(safe-area-inset-bottom)) max(var(--sp-16),env(safe-area-inset-left));border-radius:0}
- .heroCopy{transform:translateY(calc(var(--sp-14) * -1))}
+ .hero{padding:calc(var(--sp-8) + var(--nav-h) + var(--sp-12)) max(var(--sp-16),env(safe-area-inset-right)) calc(var(--sp-48) + env(safe-area-inset-bottom)) max(var(--sp-16),env(safe-area-inset-left));border-radius:0}
+ .heroCopy{transform:translateY(calc((var(--sp-14) + var(--sp-48)) * -1))}
  .heroCopy h1{font-size:clamp(28px,7.7vw,32px);max-width:13em}
  .heroCtas{margin-top:var(--sp-14)}
 }

@@ -1,5 +1,18 @@
 #!/usr/bin/env python3
-"""Home's recruiter-facing minimal hero contract."""
+"""Home's recruiter-facing minimal hero contract.
+
+SUPERSEDED CLAUSES, AND WHY THEY ARE GONE. This file was written when the
+minimal Hero had NO portrait: it asserted the stage was hidden/inert, that
+hero-engine.js never loaded, and that nothing in the Hero was pointer-driven.
+The head-transform generation deliberately reversed all three -- the animated
+portrait is back, selectable, movable, resizable and rotatable, and
+tools/hero-head-transform-contract.py is the authority on it. Those assertions
+were left inverted and this file had been failing on them for several commits.
+What survives here is what is still true and still worth blocking on: the
+headline, the absence of the old mood bar, no horizontal overflow, 44px
+targets, and the Hero owning the opening viewport -- which is now the WHOLE
+viewport, because the Hero is full-bleed on all four edges.
+"""
 
 from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
@@ -22,7 +35,9 @@ class QuietHandler(SimpleHTTPRequestHandler):
 
 def static_contract():
     html = (ROOT / "index.html").read_text(encoding="utf-8")
-    start = html.index('<section class="hero" id="main"')
+    # The Hero carries the shared surface classes now (.surface .surface--hero),
+    # so it can no longer be found by an exact opening tag.
+    start = html.index('<section class="hero surface surface--hero" id="main"')
     end = html.index("</section>", start) + len("</section>")
     hero = html[start:end]
 
@@ -32,11 +47,10 @@ def static_contract():
     assert 'id="moodBtn"' not in hero
     assert 'id="moodMenu"' not in hero
     assert 'data-mood=' not in hero
-    assert 'class="heroTimeSupport" hidden inert aria-hidden="true"' in hero
-    support = hero[hero.index('class="heroTimeSupport"'):]
+    assert 'class="heroTimeSupport heroCharacterPeek"' in hero
+    support = hero[hero.index('class="heroTimeSupport heroCharacterPeek"'):]
     assert 'id="stage"' in support and 'id="face"' in support
     assert 'id="heroTimePortraitCast"' in hero
-    assert '<script src="hero-engine.js"></script>' not in html
     assert '<script src="play-engine.js"></script>' not in html
     assert 's.src="play-engine.js"' not in html
     assert '<h1 id="h1">SF product designer. iOS, B2C and design systems.</h1>' in hero
@@ -72,8 +86,18 @@ def browser_contract(base_url):
             page.on("pageerror", lambda error: errors.append(str(error)))
             page.on("console", lambda message: errors.append(message.text) if message.type == "error" else None)
             page.goto(base_url + "/index.html", wait_until="load")
-            overflow_at_load = page.evaluate("document.documentElement.style.overflow")
+            # The portrait engine's intro owns a brief scroll lock, so "never
+            # hidden" is only meaningful once the intro has finished. The
+            # guarantee that matters -- the page is scrollable when the Hero is
+            # ready -- is asserted below on rootOverflow.
+            page.wait_for_function(
+                "typeof introMode === 'undefined' || !introMode", timeout=15_000
+            )
             page.wait_for_timeout(1_400 if viewport_index == 0 else 100)
+            page.wait_for_function(
+                "document.documentElement.style.overflow !== 'hidden'", timeout=15_000
+            )
+            overflow_at_load = page.evaluate("document.documentElement.style.overflow")
 
             state = page.evaluate(
                 """
@@ -119,19 +143,18 @@ def browser_contract(base_url):
             )
             assert state["headline"] == "SF product designer. iOS, B2C and design systems.", state
             assert state["moodControls"] == 0, state
-            assert not state["portraitVisible"], state
             assert state["focusableMoodControls"] == 0, state
-            assert state["headScripts"] == 0, state
-            assert state["headGlobals"] == [], state
+            assert state["headScripts"] == 1, state
             assert overflow_at_load != "hidden", (profile, overflow_at_load)
             assert state["rootOverflow"] != "hidden", state
             assert state["directCompanions"] == 0, state
-            assert state["directPointerTargets"] == 0, state
             assert not state["horizontalOverflow"], state
             assert all(target["width"] >= 44 and target["height"] >= 44 for target in state["targets"]), state
             # The approved Hero owns the opening viewport. Moving the portrait to Play must
             # not collapse Home into a short banner at any responsive width.
-            assert height - 90 <= state["hero"]["height"] <= height - 86, state
+            # Full-bleed: the Hero is the viewport, top and bottom flush.
+            assert abs(state["hero"]["height"] - height) <= .5, state
+            assert abs(state["hero"]["top"]) <= .5, state
             assert state["title"]["top"] >= state["hero"]["top"], state
             assert state["title"]["top"] <= state["hero"]["top"] + state["hero"]["height"] * 0.38, state
             assert state["ctas"]["bottom"] <= state["hero"]["bottom"], state
@@ -151,7 +174,7 @@ def browser_contract(base_url):
                 """[...document.querySelectorAll('#face,#heroTimePortraitCast,#stage,.hmRefl,.hmShadow')]
                   .filter(node => node.getClientRects().length && getComputedStyle(node).visibility !== 'hidden').length"""
             )
-            assert visible_portraits == 0
+            assert visible_portraits >= 1
             page.screenshot(path=str(SHOTS / f"{profile}-{width}x{height}-off.png"), full_page=False)
 
             page.evaluate("window.SiteTheme.setMode('night', {persist:false})")
@@ -170,7 +193,7 @@ def browser_contract(base_url):
                 """[...document.querySelectorAll('#face,#heroTimePortraitCast,#stage,.hmRefl,.hmShadow')]
                   .filter(node => node.getClientRects().length && getComputedStyle(node).visibility !== 'hidden').length"""
             )
-            assert visible_portraits == 0
+            assert visible_portraits >= 1
             page.screenshot(path=str(SHOTS / f"{profile}-{width}x{height}-night.png"), full_page=False)
 
             if profile == "returning" and width in (1280, 390):

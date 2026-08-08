@@ -137,17 +137,17 @@ def selected_chrome(page):
       state: window.__heroHeadTransform.getState(),
       pressed: document.querySelector('#face').getAttribute('aria-pressed'),
       hidden: document.querySelector('#heroHeadSelection').hidden,
-      tabs: [...document.querySelectorAll('.heroHeadHandle')].map(n => n.tabIndex)
+      tabs: [...document.querySelectorAll('.heroHeadHandle,.heroHeadRotate')].map(n => n.tabIndex)
     })""")
 
 
 def assert_authored_reset(page):
     actual = selected_chrome(page)
     assert actual == {
-        "state": {"selected": False, "x": 0, "y": 0, "scale": 1},
+        "state": {"selected": False, "x": 0, "y": 0, "scale": 1, "rotate": 0},
         "pressed": "false",
         "hidden": True,
-        "tabs": [-1, -1, -1, -1],
+        "tabs": [-1, -1, -1, -1, -1],
     }, actual
 
 
@@ -218,6 +218,9 @@ def static_contract():
     assert 'id="heroHeadSelection"' in html
     assert 'data-head-bounds="0.22 0.12 0.80 0.91"' in html
     assert html.count('class="heroHeadHandle"') == 4
+    # Rotation gets its own class so the four RESIZE handles stay exactly four.
+    assert html.count('class="heroHeadRotate"') == 1
+    assert html.count('class="heroHeadFrame"') == 1
     assert '<script src="hero-head-transform.js"></script>' in html
     assert html.index('src="hero-engine.js"') < html.index('src="hero-head-transform.js"')
     for token in (
@@ -227,10 +230,33 @@ def static_contract():
         "--selection-hit-size",
         "--hero-head-safe-gap",
         "--hero-movie-guard-y",
+        "--hero-head-min-visible",
+        "--hero-head-rotate",
+        "--hero-head-min-rotate",
+        "--hero-head-max-rotate",
+        "--hero-head-rotate-snap",
+        "--hero-head-rotate-step",
+        "--hero-head-rotate-step-large",
+        "--hero-head-origin-x",
+        "--hero-head-origin-y",
+        "--selection-rotate-size",
     ):
         assert token in tokens, token
-    for selector in (".heroHeadTransform{", ".heroHeadSelection{", ".heroHeadHandle{"):
+    for selector in (".heroHeadTransform{", ".heroHeadSelection{",
+                     ".heroHeadHandle,.heroHeadRotate{", ".heroHeadFrame{"):
         assert selector in css, selector
+    # Transform order is translate -> rotate -> scale about the head's own
+    # centre. Composing rotation before the translate, or leaving the origin at
+    # the wrapper's corner, makes the head swim while it is dragged.
+    wrapper = css.split(".heroHeadTransform{", 1)[1].split("}", 1)[0]
+    assert "transform-origin:var(--hero-head-origin-x) var(--hero-head-origin-y)" in wrapper
+    assert wrapper.index("translate3d") < wrapper.index("rotate(var(--hero-head-rotate))")
+    assert wrapper.index("rotate(var(--hero-head-rotate))") < wrapper.index("scale(var(--hero-head-scale))")
+    # The outline is its own layer so it can turn with the head; the selection
+    # box stays axis-aligned because it is the pointer surface.
+    frame_rule = css.split(".heroHeadFrame::before{", 1)[1].split("}", 1)[0]
+    assert "rotate(var(--hero-head-rotate))" in frame_rule
+    assert "transform-origin:50% 50%" in frame_rule
     assert (
         'faceImg.addEventListener("click",()=>{if(CALIB||eventLock)return;tapReact();});'
         not in engine
@@ -246,10 +272,14 @@ def static_contract():
     ):
         assert operation in transform, operation
     assert 'getPropertyValue("--hero-head-safe-gap")' in transform
+    assert '"--hero-head-min-visible"' in transform
+    assert '"--hero-head-rotate"' in transform
     assert 'event.target===peek&&event.propertyName==="transform"' in transform
     assert '"--hero-movie-guard-y"' in engine
     assert "c.bottom+16" not in transform
     assert "@media(forced-colors:active)" in css
+    forced_target = ".heroHeadFrame::before,.heroHeadHandle::before,.heroHeadRotate::before"
+    assert forced_target in css, forced_target
     forced = css.split("@media(forced-colors:active)", 1)[1]
     assert "Highlight" in forced and "forced-color-adjust:auto" in forced
 
@@ -314,7 +344,12 @@ def browser_contract(base_url):
             )
             page.mouse.up()
             moved = page.locator("#heroHeadSelection").bounding_box()
-            assert moved["y"] >= protected["y"] + protected["height"] + 15
+            # The copy-bottom ceiling is GONE on purpose: the head may now rise
+            # behind the headline, which stays legible because .heroCopy paints
+            # above it in z-order rather than because the head is forbidden to
+            # go there. The selection chrome is still Hero-bound, which is what
+            # keeps it out of the work section.
+            assert moved["y"] >= hero["y"] - .5, (moved, hero, protected)
             assert moved["x"] >= hero["x"]
             assert moved["x"] + moved["width"] <= hero["x"] + hero["width"]
             assert moved["y"] + moved["height"] <= hero["y"] + hero["height"] + 0.5
@@ -449,33 +484,93 @@ def browser_contract(base_url):
             assert_handle_hits(page, "safe-lower-right")
             drag_selection_to(page, -1000, -1000)
             assert_handle_hits(page, "safe-upper-left")
+            # ── THE RESTING POSITION MUST BE LEGAL ────────────────────────
+            # This is the regression that made the head a one-way door. At rest
+            # the portrait's logical rect hangs well below the Hero's lower
+            # edge, so a containment clamp forbade the composition the page
+            # ships with: drag the head away and it could never be put back.
+            # The clamp is stated as visibility now, and the first thing this
+            # asserts is that the authored resting rect satisfies it.
+            page.evaluate("window.__heroHeadTransform.reset()")
+            page.wait_for_timeout(30)
+            legality = page.evaluate(
+                """() => {
+                  const hero=document.querySelector('#main');
+                  const face=document.querySelector('#face');
+                  const b=face.dataset.headBounds.split(/\s+/).map(Number);
+                  const h=hero.getBoundingClientRect(),f=face.getBoundingClientRect();
+                  const r={left:f.left+f.width*b[0],top:f.top+f.height*b[1],
+                           right:f.left+f.width*b[2],bottom:f.top+f.height*b[3]};
+                  r.width=r.right-r.left;r.height=r.bottom-r.top;
+                  const gap=parseFloat(getComputedStyle(hero)
+                    .getPropertyValue('--hero-head-safe-gap'))||0;
+                  const share=parseFloat(getComputedStyle(document.documentElement)
+                    .getPropertyValue('--hero-head-min-visible'));
+                  const needX=Math.min(Math.max(r.width*share,gap),h.width);
+                  const needY=Math.min(Math.max(r.height*share,gap),h.height);
+                  return {share,needX,needY,overhangBottom:r.bottom-h.bottom,
+                    visibleX:Math.min(r.right,h.right)-Math.max(r.left,h.left),
+                    visibleY:Math.min(r.bottom,h.bottom)-Math.max(r.top,h.top)};
+                }"""
+            )
+            record(
+                failures,
+                legality["overhangBottom"] > 0
+                and legality["visibleX"] >= legality["needX"] - .5
+                and legality["visibleY"] >= legality["needY"] - .5,
+                f"{label} resting position is legal under its own clamp",
+                legality,
+            )
+
+            # THE RETURN TRIP. Drag the head hard off the top, then hard back
+            # down, and it must end up BELOW where it started -- proving the
+            # resting position is inside the reachable set and not merely on
+            # its boundary.
+            frame_up = page.locator("#heroHeadSelection").bounding_box()
+            drag_selection_to(page, width / 2, -height)
+            lifted = page.evaluate("window.__heroHeadTransform.getState()")
+            drag_selection_to(page, width / 2, height * 2)
+            returned = page.evaluate("window.__heroHeadTransform.getState()")
+            record(
+                failures,
+                lifted["y"] < -80 and returned["y"] > 0,
+                f"{label} head returns past its resting position",
+                {"lifted": lifted, "returned": returned, "from": frame_up},
+            )
+            page.evaluate("window.__heroHeadTransform.reset()")
+            page.wait_for_timeout(30)
+
+            # The gap token is the PIXEL FLOOR under the visible share, so a
+            # head at minimum scale cannot shrink its handles out of reach.
+            # Forced far above the share, it becomes the binding constraint.
             page.locator("#main").evaluate(
-                "node=>node.style.setProperty('--hero-head-safe-gap','48px')"
+                "node=>node.style.setProperty('--hero-head-safe-gap','260px')"
             )
             page.evaluate("window.__heroHeadTransform.reclamp()")
+            drag_selection_to(page, width / 2, -height)
             page.wait_for_timeout(30)
             gap_result = page.evaluate(
                 """() => {
                   const hero=document.querySelector('#main');
-                  const copy=hero.querySelector('.heroCopy');
                   const face=document.querySelector('#face');
-                  const bounds=face.dataset.headBounds.split(/\s+/).map(Number);
-                  const h=hero.getBoundingClientRect(),c=copy.getBoundingClientRect();
-                  const f=face.getBoundingClientRect();
-                  const gap=parseFloat(getComputedStyle(hero).getPropertyValue('--hero-head-safe-gap'));
-                  return {
-                    gap,
-                    objectTop:Math.max(f.top+f.height*bounds[1],h.top),
-                    expectedTop:Math.min(h.bottom,c.bottom+gap)
-                  };
+                  const b=face.dataset.headBounds.split(/\s+/).map(Number);
+                  const h=hero.getBoundingClientRect(),f=face.getBoundingClientRect();
+                  const top=f.top+f.height*b[1],bottom=f.top+f.height*b[3];
+                  const gap=parseFloat(getComputedStyle(hero)
+                    .getPropertyValue('--hero-head-safe-gap'));
+                  return {gap,visibleY:Math.min(bottom,h.bottom)-Math.max(top,h.top),
+                    expected:Math.min(gap,h.height)};
                 }"""
             )
-            assert gap_result["gap"] == 48 and abs(
-                gap_result["objectTop"] - gap_result["expectedTop"]
-            ) <= 1, gap_result
+            assert gap_result["gap"] == 260 and abs(
+                gap_result["visibleY"] - gap_result["expected"]
+            ) <= 1.5, gap_result
             page.locator("#main").evaluate(
                 "node=>node.style.removeProperty('--hero-head-safe-gap')"
             )
+            page.evaluate("window.__heroHeadTransform.reset()")
+            page.wait_for_timeout(30)
+
             page.evaluate("window.__heroHeadTransform.reset()")
             page.wait_for_timeout(30)
 
@@ -771,8 +866,8 @@ def browser_contract(base_url):
             page.mouse.up()
 
             se.focus()
-            for _ in range(30):
-                page.keyboard.press("ArrowRight")
+            for _ in range(40):
+                page.keyboard.press("Shift+ArrowRight")
             page.wait_for_timeout(30)
             max_result = page.evaluate(
                 """() => ({
@@ -788,8 +883,8 @@ def browser_contract(base_url):
                 max_result,
             )
             assert_handle_hits(page, "keyboard-maximum-scale")
-            for _ in range(40):
-                page.keyboard.press("ArrowLeft")
+            for _ in range(60):
+                page.keyboard.press("Shift+ArrowLeft")
             page.wait_for_timeout(30)
             keyboard_min = page.evaluate(
                 """() => ({
@@ -879,7 +974,7 @@ def browser_contract(base_url):
             reset_rect = logical_head_rect(page)
             record(
                 failures,
-                reset_result == {"selected": True, "x": 0, "y": 0, "scale": 1}
+                reset_result == {"selected": True, "x": 0, "y": 0, "scale": 1, "rotate": 0}
                 and all(abs(reset_rect[key] - resting_logical[key]) <= 1 for key in ("x", "y", "width", "height")),
                 f"{label} exact reset state and geometry",
                 {"state": reset_result, "expected": resting_logical, "actual": reset_rect},
@@ -1123,13 +1218,13 @@ def task4_matrix(base_url):
             page.keyboard.press("Enter")
             page.locator('.heroHeadHandle[data-corner="se"]').focus()
             forced = page.evaluate("""() => {
-              const frame=getComputedStyle(document.querySelector('#heroHeadSelection'),'::before');
+              const frame=getComputedStyle(document.querySelector('.heroHeadFrame'),'::before');
               const handle=getComputedStyle(document.querySelector('.heroHeadHandle:focus'),'::before');
               return {matches:matchMedia('(forced-colors:active)').matches,
                 frameOutline:frame.outlineStyle,frameAdjust:frame.forcedColorAdjust,
                 handleOutline:handle.outlineStyle,handleAdjust:handle.forcedColorAdjust,
                 active:document.activeElement && document.activeElement.dataset.corner,
-                boxes:[...document.querySelectorAll('.heroHeadHandle')].map(n=>{const r=n.getBoundingClientRect();return[r.width,r.height];})};
+                boxes:[...document.querySelectorAll('.heroHeadHandle,.heroHeadRotate')].map(n=>{const r=n.getBoundingClientRect();return[r.width,r.height];})};
             }""")
             assert forced["matches"] and forced["active"], (label, forced)
             assert forced["frameOutline"] != "none" and forced["handleOutline"] != "none", (label, forced)
@@ -1186,7 +1281,7 @@ def task4_matrix(base_url):
                 page.wait_for_timeout(35)
                 in_flight.append(movie_projection(page))
             for sample in in_flight:
-                assert sample["visible"]["top"] >= sample["safeTop"] - .5, (label, sample)
+                assert sample["visible"]["top"] >= sample["hero"]["top"] - .5, (label, sample)
                 assert all(abs(sample["stage"][edge] - sample["effects"][edge]) <= 1
                            for edge in ("left", "top", "right", "bottom")), (label, sample)
                 assert all(abs(sample["visible"][edge] - sample["selection"][edge]) <= 1
@@ -1242,11 +1337,7 @@ def movie_projection(page):
         right:f.left+f.width*bounds[2],bottom:f.top+f.height*bounds[3]};
       const visible={left:Math.max(logical.left,h.left),top:Math.max(logical.top,h.top),
         right:Math.min(logical.right,h.right),bottom:Math.min(logical.bottom,h.bottom)};
-      const copy=rect(document.querySelector('.heroCopy'));
-      const safeGap=parseFloat(getComputedStyle(document.querySelector('#main'))
-        .getPropertyValue('--hero-head-safe-gap'))||0;
       return {state:window.__heroHeadTransform.getState(),visible,
-        safeTop:copy.bottom+safeGap,
         selection:rect(document.querySelector('#heroHeadSelection')),
         stage:rect(document.querySelector('#stage')),
         effects:rect(document.querySelector('#heroMovieEffectsStage')),hero:h,

@@ -89,6 +89,7 @@ def inspect_frame(page):
           const near = (a, b) => Math.abs(a - b) <= 0.5;
           return {
             heroOverflow: getComputedStyle(hero).overflow,
+            peekOverflow: getComputedStyle(document.querySelector('.heroCharacterPeek')).overflow,
             clipOverflow: clip && getComputedStyle(clip).overflow,
             clipPointerEvents: clip && getComputedStyle(clip).pointerEvents,
             clipParent: clip && `${clip.parentElement.tagName}.${clip.parentElement.className}`,
@@ -155,7 +156,13 @@ def run_viewport(browser, base_url, label, width, height):
         page.wait_for_timeout(125)
 
     first = samples[0]
-    assert first["heroOverflow"] in ("hidden", "clip"), first
+    # The Hero deliberately stopped clipping: its gradient has to continue past
+    # its own lower edge to fade into the work section. The crop that keeps the
+    # portrait and its props inside the Hero moved to .heroCharacterPeek, which
+    # is the element that actually owns them -- so the guarantee is the same
+    # one, just enforced by the right box.
+    assert first["heroOverflow"] == "visible", first
+    assert first["peekOverflow"] in ("hidden", "clip"), first
     assert first["clipOverflow"] == "clip", first
     assert first["clipPointerEvents"] == "none", first
     assert first["allFourEdgesMatch"], first

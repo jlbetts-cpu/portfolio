@@ -25,9 +25,13 @@ RHYTHM_VIEWPORTS = (
 
 
 def expected_hero_height(width, height):
-    if width > 760:
-        return height - 88
-    return min(680, max(600, height - 160))
+    # FULL-BLEED, ALL FOUR EDGES. The Hero used to be a card: desktop reserved
+    # 88px for the bar above it plus a gap below, and mobile was deliberately
+    # shorter than the screen. Both of those subtractions ARE the gap Jayden
+    # asked us to remove -- the bar floats over the Hero now, so the Hero is
+    # the viewport. 100dvh is what makes this exact on a phone; svh would
+    # reopen the gap the moment browser chrome retracts.
+    return height
 
 class Quiet(SimpleHTTPRequestHandler):
     def log_message(self, _format, *_args):
