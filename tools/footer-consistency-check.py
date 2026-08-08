@@ -32,11 +32,13 @@ PAGES = [
     "strata.html",
     "ucdavis.html",
 ]
-# THESE TWO DELIBERATELY CARRY NO FOOTER: both compute overflow:hidden and cannot
-# scroll to one, so a footer there is furniture nobody can reach. Their header
-# Contact control points at index.html#contact instead. A footer appearing on
-# either is a regression. (play.html is often described alongside them and is NOT
-# one of them -- see the waiver note above.)
+# THE RULE IS "PAGES THAT CAN SCROLL GET THE FOOTER", NOT "TOOLS DON'T HAVE ONE".
+# Stated the second way it swept play.html in with these two and kept the Play
+# hub out of this component for a whole pass. play.html scrolls and has always
+# carried a footer; only these two genuinely cannot reach one, because both
+# compute overflow:hidden. Their header Contact control points at
+# index.html#contact instead. A footer appearing on either is a regression --
+# and so is one going missing from any page that scrolls.
 FOOTERLESS = ["headmaker.html", "gradientlab.html"]
 
 APPROVED_STATUS = "Open to full-time roles."

@@ -10,10 +10,18 @@
    last section and the footer is a page decision), and everything visible is
    here. The markup is byte-identical on all seven pages that carry a footer.
 
-   play.html, headmaker.html and gradientlab.html deliberately have no footer at
-   all: all three compute overflow:hidden and cannot scroll to one, so a footer
-   there is furniture nobody can reach. Their header Contact control points at
-   index.html#contact instead. That exception stands.
+   THE RULE IS "PAGES THAT CAN SCROLL GET THE FOOTER", NOT "TOOLS DON'T HAVE
+   ONE". The old wording said the exception covered play.html, headmaker.html
+   and gradientlab.html alike, and it was wrong about the first one -- play.html
+   has carried a <footer class="siteFoot"> at the end of the Play hub all along.
+   The hub scrolls and reaches it perfectly well; play.css only hides it while a
+   game owns the viewport (body.playViewportOwned), which is correct and stays.
+   Only headmaker.html and gradientlab.html genuinely qualify: both compute
+   overflow:hidden, so a footer there is furniture nobody can reach, and their
+   header Contact control points at index.html#contact instead.
+   The wrong wording is what let play.html sit outside this component for a
+   whole pass without anyone noticing, so it is restated here in the form that
+   can be checked rather than the form that sounded right.
 
    WHAT SURVIVED FROM THE OLD FOOTER, AND WHERE IT WENT.
    1. "Open to full-time roles." -- Jayden is job-hunting and asked for this
@@ -34,10 +42,18 @@
    this site's real content that is 3 / 2 / 1, and a heading over a single link
    is wider than the link it introduces -- the column reads as an error. The
    links regroup with nothing invented and nothing dropped: Menu (Work, About,
-   Play -- his three nav destinations) and Contact (LinkedIn, Instagram, Email
-   -- every channel he answers on). 3 and 3, both headings earned, and the
-   second heading is the word the header's Contact control has always pointed
-   at (#contact is on the <footer> itself).
+   Play, Résumé) and Contact (LinkedIn, Instagram, Email -- every channel he
+   answers on). 4 and 3, both headings earned, and the second heading is the
+   word the header's Contact control has always pointed at (#contact is on the
+   <footer> itself).
+   THE RÉSUMÉ ROW WAS ALMOST NOT BUILT. The brief said to invent no Resume link
+   because there is no Resume page, and that is true -- but Jayden-Betts-Resume.pdf
+   is a 105 KB file that ships and that about.html has always linked, so the row
+   is a real destination and a footer is where a recruiter looks for it. Its
+   accessible name is copied word for word from that link, because the aria-label
+   is the ONLY place on this whole site that says "PDF": the file icon and the
+   arrow next to it are .abLink furniture that all four of its links wear, so
+   neither is a format signal and copying either would have invented one.
    ════════════════════════════════════════════════════════════════════════════ */
 
 /* THE FOOTER IS ITS OWN MEASURE. container-type:inline-size makes 100cqw mean
@@ -235,8 +251,10 @@
    roles.", not a list of links. It also keeps reading order and tab order the
    same thing, which a reordered grid would not.
    The two link columns stay side by side rather than stacking into one tall
-   ribbon: 3 rows each at 44px is 132px of column, and 158px tracks at 390 hold
-   "Instagram" with room to spare. */
+   ribbon: at 44px a row, the taller column is 4 rows = 176px, and the 167px
+   tracks measured at 390 hold "Instagram" and "Résumé" with room to spare.
+   Stacking them would make one 308px ribbon of identical rows -- longer to
+   thumb past and no easier to read. */
 /* THE LAPTOP BAND, 881-1000. 2fr/1fr is right once the measure is ~1120 and up;
    at 900 it leaves the identity block 493px it has no use for and squeezes the
    columns to 91. Even tracks give them 153 and cost the identity nothing it was
