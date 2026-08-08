@@ -101,10 +101,22 @@ ones read stronger — **do not pad with invented links**.
 - **"Open to full-time roles" must survive.** The reference has no slot for it.
   It is the highest-value line in the footer while he is job-hunting; it belongs
   in the identity block near his name, reading as status rather than a link.
-- **The giant "Jayden Betts" wordmark under the footer is REMOVED.** Jayden,
-  2026-08-08: *"I would remove the giant Jayden Betts on the bottom underneath
-  the footer."* This reverses his earlier request for it. Delete it; do not fold
-  it into the identity block as a large display element.
+- **The giant "Jayden Betts" wordmark STAYS — but it must earn its place.**
+  Jayden asked to remove it and then reversed within minutes: *"actually maybe
+  keep the big Jayden Betts, but I would make it feel more cohesive — right now
+  it just feels like it's there, not even pertaining to anything."*
+  **The complaint is not size or placement, it is that the wordmark is
+  unattached.** It reads as decoration dropped at the bottom of the page rather
+  than as part of the site. Do not solve this by shrinking it or by deleting it —
+  solve it by giving it a relationship to something.
+  Directions worth weighing, strongest first: **make it the footer's actual
+  identity** so the columns hang off it rather than sitting beside an unrelated
+  slab; **let it join a system that already exists** — it can take the
+  time-of-day tint like everything else on this branch does, so at night it is
+  night-coloured and it stops being a static block; or **let the companion head
+  interact with it**, standing on it or peeking over it, which is the site's own
+  established language and the reason the heads cast contact shadows. Pick one,
+  and say why the others were rejected.
 - Footer must be **byte-identical on every page that has one** — it has drifted
   before. `tools/footer-consistency-check.py` exists for this.
 - **`play.html`, `headmaker.html` and `gradientlab.html` deliberately have no
@@ -112,6 +124,33 @@ ones read stronger — **do not pad with invented links**.
   at `index.html#contact`. That exception stands.
 - Must work in **all six time-of-day states** — the night theme reaches the
   footer on this branch.
+
+### 2b. Work-card captions are being clipped — **diagnosed, not fixed**
+
+Jayden: *"the thumbnail section cuts off letters at the bottom, because of the
+corner rounding."* Screenshot shows the Apollo card's caption with the year
+`2026` clipped on its right edge and `Apollo` tight against the bottom.
+
+**It is not the corner rounding.** `.csName` (`index.html:412`) and `.csYear`
+(`:414`) both carry **`filter: url(#inkBig)`**, and `<filter id="inkBig">` is
+declared with **no `x` / `y` / `width` / `height`**, so it falls back to the SVG
+default filter region: `x="-10%" y="-10%" width="120%" height="120%"` of the
+object bounding box. An ink filter displaces pixels *outward*; 10% of a short,
+wide string's box is only a few pixels, so glyph edges are pushed straight
+outside the region and clipped. **A short wide element like a four-digit year is
+the worst case**, which is exactly where he saw it.
+
+Fix by giving the filter an explicit, generous region — start around
+`x="-25%" y="-25%" width="150%" height="150%"` and verify the clipping is gone
+at every size the filter is used at, rather than only on the year. **Check all
+three ink filters** (`#inkBig`, `#inkSm`, `#inkEye`); they are declared the same
+way and share the flaw. `#inkBig` is used 6× on `index.html` and 1× on
+`apollo.html`.
+
+Related history worth knowing: an unresolvable `filter: url()` makes Chrome drop
+the element entirely — that already cost this project a round when the eye rig
+vanished on `play.html`. These filters are load-bearing; widen the region, do not
+remove the filter.
 
 ### 3. Component-system adoption — **audit done, fixes not started**
 
