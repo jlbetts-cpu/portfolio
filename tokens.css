@@ -511,8 +511,13 @@
  --radius-menu:var(--r-lg);
  --surface-radius:var(--radius-container);
  --surface-radius-compact:var(--radius-media);
- --surface-hero-radius:var(--radius-container);
- --surface-hero-pad:var(--sp-16-24);
+ /* The radius ladder governs OBJECTS -- cards, media, controls, things that sit
+    ON the page. The Hero is not an object, it is the environment the page sits
+    in, so it is the one surface with no corners at all. Everything else stays
+    a rounded card precisely because this one stopped being one; a partial
+    radius here would read as a mistake rather than a decision. */
+ --surface-hero-radius:0px;
+ --surface-hero-pad:var(--sp-16-40);
  --surface-pad:var(--sp-32);
  --surface-inset:var(--sp-8);
  --surface-gutter:var(--sp-40);
@@ -527,17 +532,61 @@
  --hero-peek-depth:calc(190px + var(--sp-16));
  --hero-peek-offset:var(--sp-8);
  --hero-peek-lift:var(--sp-64);
+ /* The Hero is full-bleed, so its lower edge would otherwise be a hard colour
+    band across the whole viewport. --hero-time-bleed is how far the gradient
+    layer continues BELOW the Hero and --hero-time-fade is how far ABOVE that
+    edge the mask starts letting go, so the light falls into the work section
+    instead of stopping at it.
+    BOTH ARE PERCENTAGES ON PURPOSE. A radial-gradient's ending-shape size
+    rejects a calc() that mixes px with %, so a pixel bleed would have made
+    every vertical number in the six gradients uncomputable. Sizing the bleed
+    as a share of the Hero keeps --hero-time-edge -- the Hero's own lower edge
+    inside the bled box -- a single constant at every viewport. */
+ --hero-time-bleed:7%;
+ --hero-time-edge:93.46%;   /* 100 / 1.07 */
+ --hero-time-fade:4%;
+ /* The six radials were authored against a 1200px box. Full-bleed makes the
+    same percentage spread out and the glow flatten, so the horizontal radius
+    is capped as a LENGTH: the light source keeps its size instead of growing
+    with the monitor. */
+ --hero-glow-rx:clamp(1060px,84vw,1720px);
+ --hero-glow-rx-near:clamp(560px,44vw,900px);
+ --hero-glow-rx-far:clamp(740px,58vw,1180px);
  --selection-ink:#0A84FF;
  --selection-line:1px;
  --selection-handle-size:8px;
  --selection-hit-size:var(--tap-min);
+ --selection-rotate-size:10px;
+ /* The portrait is a peeking head, not a contained object: at rest its logical
+    rect already hangs ~150px below the Hero's lower edge. A containment clamp
+    therefore makes the RESTING position illegal, so once the head is dragged
+    away it can never be put back. The clamp is stated as visibility instead --
+    a share of the head's box must stay inside the Hero on every axis -- which
+    the resting composition satisfies and which is what "still grabbable"
+    actually means. --hero-head-safe-gap is the pixel floor under that share so
+    a head at minimum scale cannot shrink its own handle out of reach. */
+ --hero-head-min-visible:.42;
  --hero-head-safe-gap:var(--sp-16);
- --hero-head-min-scale:.78;
- --hero-head-max-scale:1.35;
+ --hero-head-min-scale:.24;
+ --hero-head-max-scale:2.2;
  --hero-head-x:0px;
  --hero-head-y:0px;
  --hero-movie-guard-y:0px;
  --hero-head-scale:1;
+ /* Rotation is clamped to a half turn either way, which still reaches every
+    orientation, so nothing is unreachable -- but the angle cannot accumulate
+    into a number that makes level feel far away. Snap and step are degrees. */
+ --hero-head-rotate:0deg;
+ --hero-head-min-rotate:-180;
+ --hero-head-max-rotate:180;
+ --hero-head-rotate-snap:6;
+ --hero-head-rotate-step:2;
+ --hero-head-rotate-step-large:15;
+ /* Written by hero-head-transform.js: the logical head's centre inside the
+    wrapper, so rotation turns the head about itself rather than about the
+    stage's corner. The authored values are the data-head-bounds midpoints. */
+ --hero-head-origin-x:51%;
+ --hero-head-origin-y:51.5%;
  --scene-cut-duration:250ms;
  --scene-cut-ease:steps(2,end);
  --star-twinkle-duration:7s;
@@ -590,9 +639,19 @@
 @media(max-width:760px){:root{
  --surface-pad:var(--sp-16);--surface-gutter:var(--sp-16);
  --radius-container:var(--r-lg);--radius-media:var(--r-md);
- --surface-hero-radius:var(--radius-container);
- --surface-hero-pad:var(--sp-12);
- --hero-mobile-height:clamp(600px,calc(100svh - 160px),680px);
+ --surface-hero-radius:0px;
+ --surface-hero-pad:var(--sp-16);
+ /* The phone Hero is already narrower than the authored box, so the cap that
+    protects the desktop focus would only shrink the glow further here. */
+ --hero-glow-rx:104%;
+ --hero-glow-rx-near:88%;
+ --hero-glow-rx-far:110%;
+ /* A head twice the phone's width is cropped, not big. 1.7 is the largest
+    scale whose logical box still fits inside 390 with the copy gutter. */
+ --hero-head-max-scale:1.7;
+ /* Was clamp(600px,100svh - 160px,680px): a phone Hero deliberately shorter
+    than the screen. Full-bleed retires that -- the Hero IS the screen now. */
+ --hero-mobile-height:100dvh;
  --work-item-gap:var(--sp-40);
  --work-meta-gap:var(--sp-12);
  --media-mockup-inset:var(--sp-16);

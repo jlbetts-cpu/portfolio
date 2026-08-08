@@ -95,6 +95,8 @@ def main():
         assert "--nav-mat:var(--ctl-ground)" in material, (selector, material)
         assert "--nav-rim:var(--ctl-container-rim)" in material, (selector, material)
     assert "border-radius:var(--r-pill)" in rule(header, ".jbNav")
+    compact_header = compact(header)
+    assert "@media(forced-colors:active){.jbNav{background:Canvas;color:CanvasText;box-shadow:none;outline:var(--hair-w)solidCanvasText;outline-offset:calc(var(--hair-w)*-1)}}" in compact_header
 
     hero_time = (ROOT / "hero-time.css").read_text(encoding="utf-8")
     assert ':root[data-theme="dark"] .jbNav' not in hero_time

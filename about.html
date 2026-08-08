@@ -371,62 +371,38 @@ body{background:var(--c50);color:var(--c950);font-family:var(--sans);-webkit-fon
 }
 
 
-.siteFoot{margin-top:clamp(80px,12vh,150px);padding:0 clamp(24px,5vw,40px) clamp(32px,5vh,64px);text-align:center}
-/* 1.55 was a literal and the case studies resolve the same role to var(--lh-prose)
-   = 1.5. Same element, same role, two numbers -- exactly the --lh-prose 1.6 -> 1.5
-   drift this system has been bitten by before. The token arbitrates. */
-.footReach{font-family:var(--sans);font-weight:400;font-size:var(--fs-prose);line-height:var(--lh-prose);color:var(--c700);margin:0 auto;max-width:56ch;text-wrap:balance}
-.footIn{font-weight:600;color:var(--c950);text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:3px;text-decoration-color:var(--c500);transition:text-decoration-color var(--ease-out-dur) var(--ease-out),color var(--ease-out-dur) var(--ease-out)}
-/* one shape for this role on all seven pages -- see the case studies. */
-.footIn:hover,.footIn:focus-visible{color:var(--accent);text-decoration-color:var(--accent)}
-.footIn:active{color:var(--accent-press);text-decoration-color:var(--accent-press)}
-/* A 24.5px INLINE LINK IS A 40.5px TARGET, at every width.
-   The control system 3.3 (.ctl--quiet.is-inline): pad the BLOCK axis by --sp-8
-   and pull the margin back by the same amount. The hit area grows, the line box
-   does not move, and the paragraph does not reflow -- which is why this and not
-   a min-height. It is the one place a negative margin is the correct tool.
-   These are text inside prose, so they get no wash, no rim and no radius; ink
-   and their own underline carry every state (see the accent note in tokens.css).
-   index.html shipped this at <=768px only -- on a phone, where a fingertip is
-   already forgiving -- and not at the widths where a pointer has to find it. */
+/* THE SITE FOOTER LIVES IN footer.css NOW -- the whole component: the grid, the
+   hairline, the type, the ink, the states, the night theme and the phone stack.
+   It used to be forty lines of identical CSS in seven <style> blocks, which is
+   precisely how a "shared" footer drifts. The page keeps only its PLACEMENT:
+   how far the footer sits from the last section, and how much room it leaves
+   under itself. Everything else is the component's own business.
+   The old .footReach sentence and its inline .footIn links are gone with it --
+   the sentence became the identity block's status line and the links became two
+   real columns. The rules that themed them in hero-time.css and site-theme.css
+   have no consumer any more; see the report. */
+.siteFoot{margin-top:var(--sp-80-152);padding-bottom:var(--sp-32-64)}
 
-/* WHY THIS IS --sp-10 AND NOT A CHASE TO 44. Measured at 390: the prose these
-   links sit in has a LINE PITCH OF 25.5px (17px at --lh-prose). A vertical hit
-   expansion bigger than the pitch does not create a bigger target, it creates an
-   AMBIGUOUS one -- it reaches into the line above and the line below, so a tap
-   between two lines belongs to two links. --sp-10 already puts these at 41.5-46.7
-   depending on the page's prose size, which is past the pitch; --sp-12 would make
-   the overlap worse for 2.5px of nominal height.
+/* .abIn IS STILL PROSE and keeps the sanctioned inline hit expansion.
+   A 24.5px inline link is a 40.5px target at every width. The control system 3.3
+   (.ctl--quiet.is-inline): pad the BLOCK axis and pull the margin back by the
+   same amount, so the hit area grows, the line box does not move, and the
+   paragraph does not reflow -- which is why this and not a min-height.
+
+   WHY --sp-10 AND NOT A CHASE TO 44. Measured at 390: the prose these links sit
+   in has a LINE PITCH OF 25.5px (17px at --lh-prose). A vertical hit expansion
+   bigger than the pitch does not make a bigger target, it makes an AMBIGUOUS
+   one -- it reaches into the line above and the line below, so a tap between two
+   lines belongs to two links. --sp-10 already puts these at 41.5-46.7, which is
+   past the pitch; --sp-12 would worsen the overlap for 2.5px of nominal height.
    WCAG 2.5.8 has an explicit INLINE EXCEPTION for exactly this -- "the target is
    in a sentence or its size is otherwise constrained by the line-height of
-   non-target text" -- and it exists because the alternative is worse. This is the
-   one place on the site where 44 is the wrong answer, and it is recorded here so
-   the next audit reads it as a decision rather than a miss. */
-.footIn,.abIn{display:inline-block;
+   non-target text". It is recorded here so the next audit reads it as a decision.
+   THE FOOTER LINKS NO LONGER QUALIFY FOR IT: they are standalone rows in a
+   column now, not words in a sentence, so footer.css gives them a real 44px
+   control height instead. */
+.abIn{display:inline-block;
  padding-block:var(--sp-10);margin-block:calc(var(--sp-10) * -1)}
-
-/* The closing mark, same as index.html: --fs-display is the right register but its clamp
-   floor of 68px overflows a 390px column, so min() holds it to the measure. Decorative --
-   see the aria-hidden div in the footer. */
-/* THE SIGN-OFF IS ONE BLOCK, top to bottom: status, thanks, wordmark.
-   Jayden: "Make this closer to the Jayden Betts. Put Open to work on top of that,
-   and remove SF from that sentence."
-   THE GAP CARRIES THE MEANING. The thanks and the wordmark are one sign-off, so they
-   sit at --sp-8-16; the status line above is a different statement and keeps the
-   larger --sp-24-40. More related, closer together -- his own rule, applied with the
-   ladder rather than with new numbers.
-   NO STATUS DOT, deliberately, though --accent-live exists and is unused. The hero's
-   availability line had a dot and a ring and both were deleted on his word -- "no
-   background, no radius, no padding, no dot" -- and --avail-dot/--avail-ring were
-   retired with them. Re-introducing the same ornament three rounds later in a new
-   place would reverse that decision by the back door. It is --c500 text: subordinate
-   to the sentence under it, and unmistakably a status rather than a heading.
-   "San Francisco" came out: the hero already says "SF product designer" and About's
-   at-a-glance says it again, so the footer was the third telling. */
-/* .footAvail is gone: the <p class="footAvail">Open to work</p> it styled was
-   removed when the footer sentence absorbed the availability line. The rule had
-   no consumer on any of the seven pages that carried it. */
-.footMark{font-family:var(--sans);font-weight:600;font-size:min(var(--fs-display),13vw);line-height:.9;letter-spacing:var(--tr-display);color:var(--c100);margin:var(--sp-8-16) 0 0;white-space:nowrap;-webkit-user-select:none;user-select:none}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 
 /* The gallery frame owns the desktop rim; each flowing photo owns it on mobile. */
@@ -437,8 +413,14 @@ body{background:var(--c50);color:var(--c950);font-family:var(--sans);-webkit-fon
  .abShot img{border-radius:var(--r-lg);corner-shape:var(--corner);box-shadow:var(--rim-3)}
 }
 </style>
+<!-- about.html was the ONE shipping page not loading the shared control layer, so
+     any .ctl on it fell back to bare anchor styling. The footer's link rows are
+     .ctl--quiet.ctl--row, so it needs it -- and it should have had it anyway.
+     It loads BEFORE header.css, the same order the five case studies use, so
+     header.css keeps the last word on .jbDiscMenu exactly as it does there. -->
+<link rel="stylesheet" href="controls.css?v=20260806-shared-surfaces">
 <link rel="stylesheet" href="header.css?v=20260806-shared-surfaces">
-<link rel="stylesheet" href="footer.css?v=20260806-shared-surfaces">
+<link rel="stylesheet" href="footer.css?v=20260808-columns">
 <link rel="stylesheet" href="site-theme.css?v=20260806-shared-surfaces">
 <script src="header.js" defer></script>
 </head>
@@ -495,7 +477,31 @@ body{background:var(--c50);color:var(--c950);font-family:var(--sans);-webkit-fon
  </main>
 
  <footer class="siteFoot" id="contact" role="contentinfo">
-  <p class="footReach">I&rsquo;m open to full-time roles and would love to chat. Find me on <a class="footIn" href="https://www.linkedin.com/in/jaydenbetts" target="_blank" rel="noopener noreferrer">LinkedIn</a>, <a class="footIn" href="https://www.instagram.com/jaydenleebetts" target="_blank" rel="noopener noreferrer">Instagram</a>, or <a class="footIn" href="mailto:jaydenlbetts@gmail.com">email</a>.</p>
+  <div class="footTop">
+   <div class="footId">
+    <a class="footBrand ctl ctl--quiet" href="index.html" aria-label="Jayden Betts, home"><svg class="footLogo" viewBox="0 0 30 30" aria-hidden="true"><path d="M1 26.3842C3.07605 22.5364 9.00761 17.1494 16.1255 26.3842C23.2434 35.619 14.1981 18.1678 16.1255 8.65665C18.0529 -0.854479 32.3186 -2.22723 28.2852 8.65665C24.2517 19.5405 18.6968 18.261 20.8493 13.2232C23.0018 8.1853 35.3661 26.1679 23.0066 27.4872"/></svg></a>
+    <p class="footStatus">Open to full-time roles.</p>
+    <p class="footCopy">&copy; 2026 Jayden Betts</p>
+   </div>
+   <nav class="footNav" aria-label="Footer">
+    <div class="footCol">
+     <h2 class="footHead" id="footMenu">Menu</h2>
+     <ul class="footList" aria-labelledby="footMenu">
+      <li><a class="footLink ctl ctl--quiet ctl--row" href="index.html#cases">Work</a></li>
+      <li><a class="footLink ctl ctl--quiet ctl--row" href="about.html">About</a></li>
+      <li><a class="footLink ctl ctl--quiet ctl--row" href="play.html">Play</a></li>
+     </ul>
+    </div>
+    <div class="footCol">
+     <h2 class="footHead" id="footContact">Contact</h2>
+     <ul class="footList" aria-labelledby="footContact">
+      <li><a class="footLink ctl ctl--quiet ctl--row" href="https://www.linkedin.com/in/jaydenbetts" target="_blank" rel="noopener noreferrer">LinkedIn</a></li>
+      <li><a class="footLink ctl ctl--quiet ctl--row" href="https://www.instagram.com/jaydenleebetts" target="_blank" rel="noopener noreferrer">Instagram</a></li>
+      <li><a class="footLink ctl ctl--quiet ctl--row" href="mailto:jaydenlbetts@gmail.com">Email</a></li>
+     </ul>
+    </div>
+   </nav>
+  </div>
   <div class="footMark" aria-hidden="true">Jayden Betts</div>
  </footer>
 </div>

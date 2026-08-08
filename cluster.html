@@ -192,51 +192,17 @@ img{display:block;max-width:100%}
 .hmwLabel{font-family:var(--sans);font-weight:600;font-size:var(--fs-label);letter-spacing:var(--tr-flat);text-transform:none;color:var(--c500);filter:url(#inkSm);margin:0 0 var(--sp-16-24)}
 .hmwQ{font-family:var(--sans);font-weight:400;font-size:var(--fs-h2);line-height:var(--lh-head);letter-spacing:-.015em;color:var(--c950);margin:0;max-width:860px;text-wrap:balance}
 .scaffold{color:var(--c500)}
-/* site footer: reach-me line over a full-width ghost wordmark */
-.siteFoot{margin-top:var(--sp-80-152);padding-bottom:var(--sp-32-64);text-align:center}
-.footReach{font-family:var(--sans);font-weight:400;font-size:var(--fs-prose);line-height:var(--lh-prose);color:var(--c700);margin:0 auto;max-width:56ch;text-wrap:balance}
-/* THE SIGN-OFF, IDENTICAL ON ALL EIGHT PAGES THAT HAVE A FOOTER: status, thanks,
-   wordmark. The thanks sits --sp-8-16 from the mark because they are one sign-off; the
-   status keeps the wider gap because it is a different statement.
-   --fs-display is the right rung for the mark but its clamp floor of 68px overflows a
-   390px column, so min() holds it to the measure without leaving the scale.
-   Decorative and marked so: an <h2> reading "Jayden Betts" would invent a section and
-   land in every screen-reader heading list; the name is already in <title>.
-   play.html and gradientlab.html are the two pages WITHOUT this, deliberately -- both
-   compute overflow:hidden and cannot scroll, so a footer there is unreachable
-   furniture. Their header Contact control points at index.html#contact instead. */
-/* .footAvail is gone: the <p class="footAvail">Open to work</p> it styled was
-   removed when the footer sentence absorbed the availability line. The rule had
-   no consumer on any of the seven pages that carried it. */
-.footMark{font-family:var(--sans);font-weight:600;font-size:min(var(--fs-display),13vw);line-height:.9;letter-spacing:var(--tr-display);color:var(--c100);margin:var(--sp-8-16) 0 0;white-space:nowrap;-webkit-user-select:none;user-select:none}
-
-.footIn{font-weight:600;color:var(--c950);text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:3px;text-decoration-color:var(--c500);transition:text-decoration-color .15s cubic-bezier(.2,.8,.2,1),color .15s cubic-bezier(.2,.8,.2,1)}
-.footIn:hover,.footIn:focus-visible{color:var(--accent);text-decoration-color:var(--accent)}
-.footIn:active{color:var(--accent-press);text-decoration-color:var(--accent-press)}
-/* A 24.5px INLINE LINK IS A 40.5px TARGET, at every width.
-   The control system 3.3 (.ctl--quiet.is-inline): pad the BLOCK axis by --sp-8
-   and pull the margin back by the same amount. The hit area grows, the line box
-   does not move, and the paragraph does not reflow -- which is why this and not
-   a min-height. It is the one place a negative margin is the correct tool.
-   These are text inside prose, so they get no wash, no rim and no radius; ink
-   and their own underline carry every state (see the accent note in tokens.css).
-   index.html shipped this at <=768px only -- on a phone, where a fingertip is
-   already forgiving -- and not at the widths where a pointer has to find it. */
-
-/* WHY THIS IS --sp-10 AND NOT A CHASE TO 44. Measured at 390: the prose these
-   links sit in has a LINE PITCH OF 25.5px (17px at --lh-prose). A vertical hit
-   expansion bigger than the pitch does not create a bigger target, it creates an
-   AMBIGUOUS one -- it reaches into the line above and the line below, so a tap
-   between two lines belongs to two links. --sp-10 already puts these at 41.5-46.7
-   depending on the page's prose size, which is past the pitch; --sp-12 would make
-   the overlap worse for 2.5px of nominal height.
-   WCAG 2.5.8 has an explicit INLINE EXCEPTION for exactly this -- "the target is
-   in a sentence or its size is otherwise constrained by the line-height of
-   non-target text" -- and it exists because the alternative is worse. This is the
-   one place on the site where 44 is the wrong answer, and it is recorded here so
-   the next audit reads it as a decision rather than a miss. */
-.footIn,.abIn{display:inline-block;
- padding-block:var(--sp-10);margin-block:calc(var(--sp-10) * -1)}
+/* THE SITE FOOTER LIVES IN footer.css NOW -- the whole component: the grid, the
+   hairline, the type, the ink, the states, the night theme and the phone stack.
+   It used to be forty lines of identical CSS in seven <style> blocks, which is
+   precisely how a "shared" footer drifts. The page keeps only its PLACEMENT:
+   how far the footer sits from the last section, and how much room it leaves
+   under itself. Everything else is the component's own business.
+   The old .footReach sentence and its inline .footIn links are gone with it --
+   the sentence became the identity block's status line and the links became two
+   real columns. The rules that themed them in hero-time.css and site-theme.css
+   have no consumer any more; see the report. */
+.siteFoot{margin-top:var(--sp-80-152);padding-bottom:var(--sp-32-64)}
 
 .hq{position:absolute;left:var(--x);top:var(--qt);width:var(--w,20%);margin:0;font-family:var(--sans);font-weight:400;font-size:var(--fs-body);line-height:1.3;color:var(--c950);text-wrap:pretty}
 .hval{position:absolute;left:var(--x);top:var(--nt);width:var(--w,20%)}
@@ -500,7 +466,7 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
 <link rel="stylesheet" href="controls.css?v=20260806-shared-surfaces">
 <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Jayden Betts","item":"https://jaydenbetts.design/"},{"@type":"ListItem","position":2,"name":"Cluster Case Study","item":"https://jaydenbetts.design/cluster.html"}]},{"@type":"CreativeWork","@id":"https://jaydenbetts.design/cluster.html#work","url":"https://jaydenbetts.design/cluster.html","name":"Cluster: A Product Design Case Study by Jayden Betts","description":"Cluster is a campus app that helps students discover the clubs they would never stumble on, among 800+ at UC Davis. A product design case study by Jayden Betts.","image":"https://jaydenbetts.design/images/cs/cluster.webp","author":{"@type":"Person","@id":"https://jaydenbetts.design/#person","name":"Jayden Betts","alternateName":"Jayden Lee Betts","url":"https://jaydenbetts.design/","sameAs":["https://www.linkedin.com/in/jaydenbetts","https://www.instagram.com/jaydenleebetts"]},"genre":"Product Design","inLanguage":"en"}]}</script>
 <link rel="stylesheet" href="header.css?v=20260806-shared-surfaces">
-<link rel="stylesheet" href="footer.css?v=20260806-shared-surfaces">
+<link rel="stylesheet" href="footer.css?v=20260808-columns">
 <link rel="stylesheet" href="site-theme.css?v=20260806-shared-surfaces">
 <script src="header.js" defer></script>
 </head>
@@ -620,8 +586,32 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
  </div>
 
  <p class="csReach caseInset">Reach out to learn more about full products, files, and slides.</p>
-   <footer class="siteFoot" id="contact" role="contentinfo">
-  <p class="footReach">I&rsquo;m open to full-time roles and would love to chat. Find me on <a class="footIn" href="https://www.linkedin.com/in/jaydenbetts" target="_blank" rel="noopener noreferrer">LinkedIn</a>, <a class="footIn" href="https://www.instagram.com/jaydenleebetts" target="_blank" rel="noopener noreferrer">Instagram</a>, or <a class="footIn" href="mailto:jaydenlbetts@gmail.com">email</a>.</p>
+ <footer class="siteFoot" id="contact" role="contentinfo">
+  <div class="footTop">
+   <div class="footId">
+    <a class="footBrand ctl ctl--quiet" href="index.html" aria-label="Jayden Betts, home"><svg class="footLogo" viewBox="0 0 30 30" aria-hidden="true"><path d="M1 26.3842C3.07605 22.5364 9.00761 17.1494 16.1255 26.3842C23.2434 35.619 14.1981 18.1678 16.1255 8.65665C18.0529 -0.854479 32.3186 -2.22723 28.2852 8.65665C24.2517 19.5405 18.6968 18.261 20.8493 13.2232C23.0018 8.1853 35.3661 26.1679 23.0066 27.4872"/></svg></a>
+    <p class="footStatus">Open to full-time roles.</p>
+    <p class="footCopy">&copy; 2026 Jayden Betts</p>
+   </div>
+   <nav class="footNav" aria-label="Footer">
+    <div class="footCol">
+     <h2 class="footHead" id="footMenu">Menu</h2>
+     <ul class="footList" aria-labelledby="footMenu">
+      <li><a class="footLink ctl ctl--quiet ctl--row" href="index.html#cases">Work</a></li>
+      <li><a class="footLink ctl ctl--quiet ctl--row" href="about.html">About</a></li>
+      <li><a class="footLink ctl ctl--quiet ctl--row" href="play.html">Play</a></li>
+     </ul>
+    </div>
+    <div class="footCol">
+     <h2 class="footHead" id="footContact">Contact</h2>
+     <ul class="footList" aria-labelledby="footContact">
+      <li><a class="footLink ctl ctl--quiet ctl--row" href="https://www.linkedin.com/in/jaydenbetts" target="_blank" rel="noopener noreferrer">LinkedIn</a></li>
+      <li><a class="footLink ctl ctl--quiet ctl--row" href="https://www.instagram.com/jaydenleebetts" target="_blank" rel="noopener noreferrer">Instagram</a></li>
+      <li><a class="footLink ctl ctl--quiet ctl--row" href="mailto:jaydenlbetts@gmail.com">Email</a></li>
+     </ul>
+    </div>
+   </nav>
+  </div>
   <div class="footMark" aria-hidden="true">Jayden Betts</div>
  </footer>
 

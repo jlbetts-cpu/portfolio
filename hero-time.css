@@ -224,10 +224,14 @@
  --time-focus:var(--c50);
 }
 
+/* left/right:0 rather than left:50%;width:100vw. 100vw INCLUDES the scrollbar,
+   so on any scrolling page it is wider than the content box and pushes a
+   horizontal scrollbar -- the recurring overflow bug on this site. The Hero's
+   wrapper is full-bleed now, so the two edges are already the viewport. */
 .heroTimeSpill{
  position:absolute;top:calc(0px - var(--nav-h) - var(--sp-8) - var(--sp-12));
- bottom:calc((var(--sp-48-80) + var(--sp-64)) * -1);left:50%;width:100vw;z-index:-1;pointer-events:none;
- transform:translateX(-50%);
+ bottom:calc((var(--sp-48-80) + var(--sp-64)) * -1);left:0;right:0;width:auto;z-index:-1;pointer-events:none;
+ transform:translateX(0);
  background:linear-gradient(180deg,#0b0c0f 0%,#0b0c0f calc(100% - var(--sp-48-80) - var(--sp-64)),rgba(11,12,15,.92) calc(100% - var(--sp-64)),rgba(11,12,15,0) 100%);
  -webkit-mask-image:linear-gradient(180deg,#000 0%,#000 calc(100% - var(--sp-48-80) - var(--sp-64)),rgba(0,0,0,.72) calc(100% - var(--sp-64)),transparent 100%);
  mask-image:linear-gradient(180deg,#000 0%,#000 calc(100% - var(--sp-48-80) - var(--sp-64)),rgba(0,0,0,.72) calc(100% - var(--sp-64)),transparent 100%);
@@ -257,27 +261,46 @@
 :root[data-reduced-motion="reduce"] :is(.cases,.csTabInk,.csTab,.csPanel,.csMeta,.csName,.csYear,.footReach,.footIn),
 :root[data-reduced-motion="reduce"] .csTabs::before{transition:none!important;animation:none!important}
 
+/* The clip runs PAST the Hero's lower edge by --hero-time-bleed. Full-bleed
+   removed the rounded card, and without this the gradient would end in a hard
+   colour band the full width of the viewport. The gradient keeps painting into
+   the strip below and the mask lets it go, so the work section catches a
+   little of the light instead of butting against an edge. The Hero itself no
+   longer clips (controls.css) -- the portrait crop moved to its own element. */
+/* The clip runs 7% PAST the Hero's lower edge, so the Hero's own edge lands at
+   --hero-time-edge (93.46%) of this box at every viewport -- which is what
+   lets every vertical number below stay a plain percentage. */
 .heroTimeClip{
- position:absolute;inset:0;z-index:0;overflow:hidden;border-radius:inherit;
- corner-shape:inherit;pointer-events:none
+ position:absolute;inset:0 0 auto 0;height:calc(100% + var(--hero-time-bleed));
+ z-index:0;overflow:hidden;border-radius:inherit;corner-shape:inherit;pointer-events:none
 }
 .heroTimeGradient{
- position:absolute;inset:0;opacity:0;filter:none;mix-blend-mode:normal
+ position:absolute;inset:0;opacity:0;filter:none;mix-blend-mode:normal;
+ -webkit-mask-image:linear-gradient(180deg,#000 0,#000 calc(var(--hero-time-edge) - var(--hero-time-fade)),transparent 100%);
+ mask-image:linear-gradient(180deg,#000 0,#000 calc(var(--hero-time-edge) - var(--hero-time-fade)),transparent 100%)
 }
 .heroTimeGradient::after{
  content:"";position:absolute;inset:0;pointer-events:none;
  background:linear-gradient(180deg,var(--theme-page) 0%,var(--theme-page) 10%,transparent 28%)
 }
-.heroTimeGradient[data-time-gradient="pre-dawn"]{background:radial-gradient(103.24% 102.63% at 50% 102.63%,#486ffd 0,#7f81f3 9.84%,#c489ff 20.83%,#dac0ff 34.13%,#eadcff 44.86%,#f9f6ff 58.59%,#f8fafd 100%)}
-.heroTimeGradient[data-time-gradient="sunrise"]{background:radial-gradient(102.68% 99.11% at 50% 104.6%,#cb83ff 0,#ff90b9 15.77%,#ffc977 30.62%,#ffd79b 38.04%,#fff1dc 50.11%,#fff 63.1%,#fcfdfe 77.95%,#f8fafd 98.81%)}
-.heroTimeGradient[data-time-gradient="daytime"]{background:radial-gradient(102.84% 104.98% at 50% 104.98%,#0071c1 1.33%,#60a8e2 15.71%,#b4d8ff 33.15%,#d9ebff 45%,#f8fafd 60%)}
-.heroTimeGradient[data-time-gradient="dusk"]{background:radial-gradient(102.83% 103.24% at 49.98% 104.51%,#ffb36a 0,#dfa0d8 14%,#9da8e4 30%,#ccd5f0 44%,#f1f3fa 58%,#f8fafd 100%)}
-.heroTimeGradient[data-time-gradient="sunset"]{background:radial-gradient(103.12% 100% at 50% 100%,#ffa577 0,#ff90a1 15.52%,#ddadff 30.09%,#ecd8ff 45.72%,#f5eaff 54.96%,#f8fafd 88.16%)}
-.heroTimeGradient[data-time-gradient="night"]{background:radial-gradient(54% 42% at 50% 104%,rgba(93,80,155,.58) 0,rgba(48,52,105,.38) 38%,rgba(24,35,70,.18) 60%,transparent 78%),radial-gradient(70% 58% at 50% 88%,rgba(35,55,101,.22),transparent 76%),linear-gradient(180deg,#060a13,#09101f 66%,#11162b)}
+/* RETUNED FOR FULL-BLEED. Two changes, and only two:
+   1. The horizontal radius is a capped LENGTH instead of 103% of the box. At
+      1200 the number is what it always was; past that the light source keeps
+      its size rather than spreading out until the glow has no focus left.
+   2. Every vertical percentage is the authored one multiplied by .9346, which
+      re-expresses it against the bled box so the focal core lands in exactly
+      the same place relative to the Hero's floor as before.
+   Every colour stop is untouched. */
+.heroTimeGradient[data-time-gradient="pre-dawn"]{background:radial-gradient(var(--hero-glow-rx) 95.92% at 50% 95.92%,#486ffd 0,#7f81f3 9.84%,#c489ff 20.83%,#dac0ff 34.13%,#eadcff 44.86%,#f9f6ff 58.59%,#f8fafd 100%)}
+.heroTimeGradient[data-time-gradient="sunrise"]{background:radial-gradient(var(--hero-glow-rx) 92.63% at 50% 97.76%,#cb83ff 0,#ff90b9 15.77%,#ffc977 30.62%,#ffd79b 38.04%,#fff1dc 50.11%,#fff 63.1%,#fcfdfe 77.95%,#f8fafd 98.81%)}
+.heroTimeGradient[data-time-gradient="daytime"]{background:radial-gradient(var(--hero-glow-rx) 98.11% at 50% 98.11%,#0071c1 1.33%,#60a8e2 15.71%,#b4d8ff 33.15%,#d9ebff 45%,#f8fafd 60%)}
+.heroTimeGradient[data-time-gradient="dusk"]{background:radial-gradient(var(--hero-glow-rx) 96.49% at 50% 97.68%,#ffb36a 0,#dfa0d8 14%,#9da8e4 30%,#ccd5f0 44%,#f1f3fa 58%,#f8fafd 100%)}
+.heroTimeGradient[data-time-gradient="sunset"]{background:radial-gradient(var(--hero-glow-rx) 93.46% at 50% 93.46%,#ffa577 0,#ff90a1 15.52%,#ddadff 30.09%,#ecd8ff 45.72%,#f5eaff 54.96%,#f8fafd 88.16%)}
+.heroTimeGradient[data-time-gradient="night"]{background:radial-gradient(var(--hero-glow-rx-near) 39.25% at 50% 97.20%,rgba(93,80,155,.58) 0,rgba(48,52,105,.38) 38%,rgba(24,35,70,.18) 60%,transparent 78%),radial-gradient(var(--hero-glow-rx-far) 54.21% at 50% 82.25%,rgba(35,55,101,.22),transparent 76%),linear-gradient(180deg,#060a13,#09101f 66%,#11162b)}
 @media(max-width:760px){
- .heroTimeGradient[data-time-gradient="night"]{background:radial-gradient(88% 40% at 50% 104%,rgba(93,80,155,.58) 0,rgba(48,52,105,.38) 38%,rgba(24,35,70,.18) 60%,transparent 78%),radial-gradient(110% 56% at 50% 88%,rgba(35,55,101,.22),transparent 76%),linear-gradient(180deg,#060a13,#09101f 66%,#11162b)}
+ .heroTimeGradient[data-time-gradient="night"]{background:radial-gradient(var(--hero-glow-rx-near) 37.38% at 50% 97.20%,rgba(93,80,155,.58) 0,rgba(48,52,105,.38) 38%,rgba(24,35,70,.18) 60%,transparent 78%),radial-gradient(var(--hero-glow-rx-far) 52.34% at 50% 82.25%,rgba(35,55,101,.22),transparent 76%),linear-gradient(180deg,#060a13,#09101f 66%,#11162b)}
 }
-.heroNightStars{position:absolute;inset:0;z-index:1;overflow:hidden;contain:strict;opacity:0;pointer-events:none}
+.heroNightStars{position:absolute;inset:0 0 var(--hero-time-bleed) 0;z-index:1;overflow:hidden;contain:strict;opacity:0;pointer-events:none}
 .heroNightStars i{--star-visible:clamp(.34,var(--star-alpha),.72);position:absolute;left:var(--star-x);top:var(--star-y);width:var(--hair-w);height:var(--hair-w);border-radius:var(--r-full);background:#f4f7ff;animation:heroStarTwinkle calc(var(--star-twinkle-duration) * var(--star-rate)) var(--star-twinkle-ease) var(--star-delay) infinite alternate}
 .heroNightStars i.is-bright{--star-visible:.78;width:var(--star-bright-size);height:var(--star-bright-size);box-shadow:0 0 var(--star-glow-size) rgba(205,220,255,.32)}
 .hero[data-time-state="night"] .heroNightStars{opacity:1}
@@ -289,9 +312,49 @@
 .hero[data-time-state="sunset"] .heroTimeGradient[data-time-gradient="sunset"]{opacity:1}
 .hero[data-time-state="night"] .heroTimeGradient[data-time-gradient="night"]{opacity:1}
 .hero[data-time-state] .heroAura{display:none}
+/* The contact shadow comes back. --time-shadow and --time-shadow-opacity were
+   authored per state and then never consumed: the rule that replaced them
+   nulled the floor shadow outright, so in all six time states the head was
+   standing on nothing. On this site a head casts a shadow because it is
+   standing on something, and that is the one place a shadow is load-bearing. */
 .hero[data-time-state]:not([data-time-state="off"]) .floorshadow{
- background:none!important;opacity:0!important;filter:none!important
+ background:var(--time-shadow);opacity:var(--time-shadow-opacity);filter:blur(9px);
+ transition:opacity var(--hero-time-duration) var(--hero-time-ease)
 }
+
+/* ── READABLE PORTRAIT, second pass ───────────────────────────────────────────
+   The head read as a hard near-black cutout pasted onto a soft sky: not "in"
+   the scene, "on top of" it. That is a black-point problem, not an opacity
+   one -- a flat opacity drop ghosts the eyes too, and the eyes are the whole
+   charm. So three moves, in order of how much each actually does:
+
+   1. LIFT THE BLACKS. contrast() pulls both ends toward mid and brightness()
+      puts the highlights back, which raises the darkest values toward the
+      sky's tone while leaving the midtones and the silhouette intact.
+   2. LET THE SKY TINT IT. #heroPortraitTintFlood was carrying flood-color as
+      an SVG presentation ATTRIBUTE with a var() inside it, which SVG does not
+      substitute -- so the flood resolved to black and screen-blending black is
+      a no-op. Declaring it in CSS is what finally makes the authored per-state
+      light colour land on the lower face.
+   3. ONLY THEN a modest opacity reduction, and only where the sky is palest.
+
+   The eyes are siblings of #face inside .stage at z-index 3, so none of this
+   touches them: they stay at full strength and keep tracking and blinking. */
+#heroPortraitTintFlood{flood-color:var(--time-cast);flood-opacity:1}
+.hero[data-time-state] #face{
+ filter:var(--time-portrait-filter,none);opacity:var(--time-portrait-opacity,1);
+ transition:filter var(--hero-time-duration) var(--hero-time-ease),
+  opacity var(--hero-time-duration) var(--hero-time-ease)
+}
+.hero[data-time-state="off"]{--time-portrait-filter:none;--time-portrait-opacity:1}
+.hero[data-time-state="pre-dawn"]{--time-portrait-filter:contrast(.86) brightness(1.09);--time-portrait-opacity:.97}
+.hero[data-time-state="sunrise"]{--time-portrait-filter:contrast(.84) brightness(1.10);--time-portrait-opacity:.96}
+.hero[data-time-state="daytime"]{--time-portrait-filter:contrast(.82) brightness(1.12);--time-portrait-opacity:.95}
+.hero[data-time-state="dusk"]{--time-portrait-filter:contrast(.87) brightness(1.08);--time-portrait-opacity:.97}
+.hero[data-time-state="sunset"]{--time-portrait-filter:contrast(.85) brightness(1.09);--time-portrait-opacity:.96}
+/* Night is the inversion: against a near-black sky a lower-contrast head has
+   to get LIGHTER, not darker, or it disappears into its own background. */
+.hero[data-time-state="night"]{--time-portrait-filter:contrast(.88) brightness(1.18);--time-portrait-opacity:1}
 .hero[data-time-state="off"] .heroAura,
 .hero[data-time-state="off"] .heroTimePortraitCast{display:none;opacity:0}
 

@@ -1402,12 +1402,30 @@ html{scroll-padding-top:calc(var(--nav-h) + var(--sp-16-24))}
    The Home page is the recruiter-facing entry point: the existing time scene
    frames a direct headline and one work action. Hidden source/cast nodes remain
    only for the time controller; no portrait or companion engine boots here. */
-.wrap{padding-inline:var(--sp-16-40)}
+/* FULL-BLEED. .wrap holds nothing but the Hero on this page, so dropping its
+   measure and gutter is what makes the Hero span the viewport -- with no vw
+   unit anywhere. `width:100vw` includes the scrollbar and is the recurring
+   source of horizontal overflow on this site; a plain block at the body's
+   content width cannot overflow by construction. The copy stays on the measure
+   through the Hero's own padding and the h1's em max-width. */
+.wrap{max-width:none;padding-inline:0;margin-top:calc((var(--sp-8) + var(--nav-h) + var(--sp-12)) * -1)}
+/* Full-bleed is all four edges. The Hero starts at the top of the document --
+   the sticky bar floats over it rather than reserving space above it -- and
+   runs the whole height.
+   THE UNIT IS A REAL TRADE. 100vh is the LARGEST viewport, so with phone
+   chrome showing the Hero overflows and the page scrolls when it must not.
+   100svh is the smallest, which is guaranteed safe but reopens exactly the gap
+   he is complaining about the moment the chrome retracts. 100dvh tracks the
+   chrome live: the height changes as you scroll, which on a gradient is
+   invisible, whereas a gap is not. svh is declared first as the fallback for
+   engines without dvh. The copy is centred, so a live height change moves it
+   by half the chrome -- accepted, and only during the scroll that hides it. */
 .hero{
- position:relative;isolation:isolate;overflow:hidden;
+ position:relative;isolation:isolate;overflow:visible;
  display:grid;grid-template-columns:1fr;justify-items:center;align-content:center;
- min-height:calc(100svh - 88px);gap:0;padding:clamp(72px,12svh,112px) var(--sp-16-24);
- border:0;box-shadow:var(--rim-3);border-radius:var(--r-xl);
+ min-height:100svh;min-height:100dvh;gap:0;
+ padding:clamp(72px,12svh,112px) max(var(--sp-16-40),env(safe-area-inset-right)) calc(clamp(72px,12svh,112px) + env(safe-area-inset-bottom)) max(var(--sp-16-40),env(safe-area-inset-left));
+ border:0;box-shadow:none;border-radius:0;
  corner-shape:var(--corner);background:var(--c50)
 }
 .heroAura{display:none}
@@ -1420,7 +1438,7 @@ html{scroll-padding-top:calc(var(--nav-h) + var(--sp-16-24))}
 .workCta svg,.moodFaceIco{width:var(--ico-sm);height:var(--ico-sm);fill:none;
  stroke:currentColor;stroke-width:var(--ico-stroke);stroke-linecap:round;stroke-linejoin:round}
 @media(max-width:760px){
- .hero{padding:var(--sp-48) var(--sp-12);border-radius:var(--r-lg)}
+ .hero{padding:calc(var(--sp-8) + var(--nav-h) + var(--sp-12) + var(--sp-24)) max(var(--sp-16),env(safe-area-inset-right)) calc(var(--sp-48) + env(safe-area-inset-bottom)) max(var(--sp-16),env(safe-area-inset-left));border-radius:0}
  .heroCopy{transform:translateY(calc(var(--sp-14) * -1))}
  .heroCopy h1{font-size:clamp(28px,7.7vw,32px);max-width:13em}
  .heroCtas{margin-top:var(--sp-14)}
@@ -1571,6 +1589,8 @@ if(location.hash==="#about")location.replace("about.html");</script>
    <button class="heroHeadHandle" type="button" data-corner="ne" aria-label="Resize portrait from top right" tabindex="-1"></button>
    <button class="heroHeadHandle" type="button" data-corner="sw" aria-label="Resize portrait from bottom left" tabindex="-1"></button>
    <button class="heroHeadHandle" type="button" data-corner="se" aria-label="Resize portrait from bottom right" tabindex="-1"></button>
+   <button class="heroHeadRotate" type="button" data-rotate="1" aria-label="Rotate portrait" tabindex="-1"></button>
+   <div class="heroHeadFrame" aria-hidden="true"></div>
   </div>
   <div class="heroMovieEffectsClip" id="heroMovieEffectsClip" aria-hidden="true"><div class="heroMovieEffectsStage" id="heroMovieEffectsStage"></div></div>
  </section>

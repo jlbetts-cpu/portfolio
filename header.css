@@ -350,6 +350,12 @@
 }
 :root.jbShrunk .jbNav{--nav-mat:var(--ctl-ground);--nav-rim:var(--ctl-container-rim)}
 .theme-ready .jbNav{transition:background-color var(--theme-duration,400ms) var(--ease-out),box-shadow var(--theme-duration,400ms) var(--ease-out)}
+@media(forced-colors:active){
+ .jbNav{
+  background:Canvas;color:CanvasText;box-shadow:none;
+  outline:var(--hair-w) solid CanvasText;outline-offset:calc(var(--hair-w) * -1)
+ }
+}
 
 /* the two zones. Auto width, pushed apart by the bar's space-between: the
    leading group sits on the page's left gutter and the socials on the right

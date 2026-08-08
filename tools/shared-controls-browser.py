@@ -48,7 +48,9 @@ def read_nav(page):
             shadow:css.boxShadow, expectedShadow:probeCss.boxShadow,
             page:getComputedStyle(document.body).backgroundColor,
             radius:css.borderRadius, height:box.height, left:box.left, right:box.right,
-            paddingLeft:css.paddingLeft, paddingRight:css.paddingRight
+            paddingLeft:css.paddingLeft, paddingRight:css.paddingRight,
+            outlineStyle:css.outlineStyle, outlineWidth:css.outlineWidth,
+            outlineColor:css.outlineColor
           };
           probe.remove();
           return result;
@@ -114,6 +116,26 @@ def verify(page, base, route, width, height, mode):
     assert page.evaluate("document.documentElement.scrollWidth - document.documentElement.clientWidth") <= 1
 
 
+def verify_forced_colors(browser, base, width, height):
+    context = browser.new_context(
+        viewport={"width": width, "height": height},
+        reduced_motion="reduce",
+        forced_colors="active",
+    )
+    page = context.new_page()
+    page.goto(f"{base}/index.html", wait_until="domcontentloaded")
+    page.wait_for_selector(".jbNav")
+    state = read_nav(page)
+    assert alpha(state["background"]) == 1, (width, state)
+    assert state["shadow"] == "none", (width, state)
+    assert state["outlineStyle"] == "solid", (width, state)
+    assert float(state["outlineWidth"].removesuffix("px")) >= 1, (width, state)
+    assert state["outlineColor"] not in ("transparent", "rgba(0, 0, 0, 0)"), (width, state)
+    assert state["radius"] == "999px" and close(state["height"], 52), (width, state)
+    assert page.evaluate("document.documentElement.scrollWidth - document.documentElement.clientWidth") <= 1
+    context.close()
+
+
 def main():
     server = ThreadingHTTPServer(("127.0.0.1", 0), partial(QuietHandler, directory=str(ROOT)))
     Thread(target=server.serve_forever, daemon=True).start()
@@ -131,6 +153,8 @@ def main():
                         verify(page, base, route, width, height, mode)
                         context.close()
                         print(f"PASS {route} {width}x{height} {mode}")
+                verify_forced_colors(browser, base, width, height)
+                print(f"PASS index.html {width}x{height} forced-colors")
             browser.close()
     finally:
         server.shutdown()

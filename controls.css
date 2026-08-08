@@ -76,8 +76,12 @@
  box-sizing:border-box;border:0;border-radius:var(--radius-container);corner-shape:var(--corner);
  background:var(--surface-ground);box-shadow:var(--surface-rim)
 }
+/* The Hero no longer clips. Its gradient has to continue below its own lower
+   edge to fade into the work section, so the crop that keeps the portrait
+   standing ON the Hero's floor moved down to .heroCharacterPeek, which is the
+   element that actually owns the portrait. */
 .surface--hero{
- position:relative;overflow:hidden;border-radius:var(--surface-hero-radius);
+ position:relative;overflow:visible;border-radius:var(--surface-hero-radius);
  padding-inline:var(--surface-hero-pad);box-shadow:none
 }
 .surface--specimen{border-radius:var(--radius-container)}
@@ -166,15 +170,20 @@
 }
 .heroCharacterPeek{
  position:absolute;inset:0;z-index:2;display:flex;justify-content:center;align-items:flex-end;
- overflow:visible;pointer-events:none;transition:transform var(--sp-settle-dur) var(--sp-settle)
+ overflow:hidden;pointer-events:none;transition:transform var(--sp-settle-dur) var(--sp-settle)
 }
 .heroCharacterPeek.is-movie{transform:translateY(var(--hero-peek-active-offset,calc(var(--hero-peek-lift) * -1)))}
+/* Transform order is translate -> rotate -> scale. Translate has to come first
+   because it is the position; rotate and a UNIFORM scale commute, so the only
+   thing that matters after that is the origin. The origin is the logical
+   head's own centre (written by hero-head-transform.js), which makes the head
+   spin in place instead of swimming around the stage's corner while you drag. */
 .heroHeadTransform{
  position:absolute;left:50%;top:auto;bottom:calc((var(--hero-peek-depth) * -1) + var(--hero-peek-offset));
  width:var(--hero-peek-width);max-width:none;z-index:2;
- transform-origin:0 0;
+ transform-origin:var(--hero-head-origin-x) var(--hero-head-origin-y);
  transform:translate3d(calc(-50% + var(--hero-head-x)),calc(var(--hero-head-y) + var(--hero-movie-guard-y)),0)
-           scale(var(--hero-head-scale));
+           rotate(var(--hero-head-rotate)) scale(var(--hero-head-scale));
  will-change:transform
 }
 .heroHeadTransform .stagewrap{position:relative!important;width:100%!important;max-width:none;margin:0!important}
@@ -183,44 +192,66 @@
  width:var(--selection-w);height:var(--selection-h);z-index:6;
  pointer-events:auto;touch-action:none;cursor:move
 }
-.heroHeadSelection::before{
- content:"";position:absolute;inset:0;pointer-events:none;
+/* The selection BOX stays the Hero-clamped bounding rect: it is the pointer
+   surface, so it must never reach past the Hero into the work section. The
+   OUTLINE is a separate layer inside it, drawn at the head's own unrotated
+   rect and turned with it, so the line keeps hugging the subject at any angle
+   instead of drifting out to a rotated bounding box. The box clips it. */
+.heroHeadFrame{position:absolute;inset:0;overflow:hidden;pointer-events:none}
+.heroHeadFrame::before{
+ content:"";position:absolute;pointer-events:none;
+ left:var(--frame-x,0px);top:var(--frame-y,0px);
+ width:var(--frame-w,100%);height:var(--frame-h,100%);
+ transform:rotate(var(--hero-head-rotate));transform-origin:50% 50%;
  box-shadow:inset 0 0 0 var(--selection-line) var(--selection-ink)
 }
 .heroHeadSelection[hidden]{display:none}
-.heroHeadHandle{
- position:absolute;width:var(--selection-hit-size);height:var(--selection-hit-size);
+/* Handles are placed by point rather than by corner keyword, because once the
+   head can rotate "top left" is no longer a side of the box. JS writes the
+   turned corner as --h-x/--h-y clamped so the 44px target stays inside the
+   box, and --h-dx/--h-dy carries the visible square back out to the true
+   corner. At 0deg the arithmetic collapses to the authored inset geometry. */
+.heroHeadHandle,.heroHeadRotate{
+ position:absolute;left:var(--h-x,0px);top:var(--h-y,0px);
+ width:var(--selection-hit-size);height:var(--selection-hit-size);
+ margin:calc(var(--selection-hit-size) / -2) 0 0 calc(var(--selection-hit-size) / -2);
  border:0;padding:0;background:transparent;touch-action:none
 }
-.heroHeadHandle::before{
- content:"";position:absolute;width:var(--selection-handle-size);height:var(--selection-handle-size);
+.heroHeadHandle::before,.heroHeadRotate::before{
+ content:"";position:absolute;
+ left:calc(50% + var(--h-dx,0px));top:calc(50% + var(--h-dy,0px));
+ width:var(--selection-handle-size);height:var(--selection-handle-size);
  transform:translate(-50%,-50%);background:var(--ctl-ground);
  box-shadow:inset 0 0 0 var(--selection-line) var(--selection-ink)
 }
-.heroHeadHandle[data-corner="nw"]{left:0;top:0;cursor:nwse-resize}
-.heroHeadHandle[data-corner="ne"]{right:0;top:0;cursor:nesw-resize}
-.heroHeadHandle[data-corner="sw"]{left:0;bottom:0;cursor:nesw-resize}
-.heroHeadHandle[data-corner="se"]{right:0;bottom:0;cursor:nwse-resize}
-.heroHeadHandle[data-corner="nw"]::before{left:0;top:0}
-.heroHeadHandle[data-corner="ne"]::before{left:100%;top:0}
-.heroHeadHandle[data-corner="sw"]::before{left:0;top:100%}
-.heroHeadHandle[data-corner="se"]::before{left:100%;top:100%}
+.heroHeadHandle[data-corner="nw"],.heroHeadHandle[data-corner="se"]{cursor:nwse-resize}
+.heroHeadHandle[data-corner="ne"],.heroHeadHandle[data-corner="sw"]{cursor:nesw-resize}
+/* Round, not square: the shape is what tells you this one turns rather than
+   resizes, and it sits on the top edge's midpoint where no corner competes. */
+.heroHeadRotate{cursor:grab}
+.heroHeadRotate:active{cursor:grabbing}
+.heroHeadRotate::before{
+ width:var(--selection-rotate-size);height:var(--selection-rotate-size);
+ border-radius:var(--r-full)
+}
 .heroCharacterPeek .stage{pointer-events:auto;cursor:pointer;touch-action:none}
 #face:focus-visible{outline:var(--focus-w) solid var(--ctl-focus);outline-offset:var(--sp-2)}
 #face[data-pointer-focus]:focus-visible{outline:none}
-.heroHeadHandle:focus-visible::before{outline:var(--focus-w) solid var(--ctl-focus);outline-offset:var(--sp-2)}
+.heroHeadHandle:focus-visible::before,.heroHeadRotate:focus-visible::before{
+ outline:var(--focus-w) solid var(--ctl-focus);outline-offset:var(--sp-2)
+}
 /* End Task 2 shared surfaces. */
 
 @media(prefers-reduced-motion:reduce){
  .ctl,.ctl-menu{transition-duration:1ms!important}
  .ctl:active{transform:none}
  .heroCharacterPeek{transition-duration:1ms!important}
- .heroHeadTransform,.heroHeadSelection,.heroHeadHandle{transition:none!important}
+ .heroHeadTransform,.heroHeadSelection,.heroHeadFrame,.heroHeadHandle,.heroHeadRotate{transition:none!important}
 }
 @media(forced-colors:active){
  .ctl--secondary,.ctl--icon,.ctl-menu,.ctl-group:not(.jbNav){background:Canvas;color:CanvasText;box-shadow:0 0 0 var(--hair-w) CanvasText inset}
  .ctl--primary{background:Highlight;color:HighlightText}
- .heroHeadSelection::before,.heroHeadHandle::before{
+ .heroHeadFrame::before,.heroHeadHandle::before,.heroHeadRotate::before{
   forced-color-adjust:auto;box-shadow:none;outline:var(--selection-line) solid Highlight;outline-offset:calc(var(--selection-line) * -1)
  }
 }
