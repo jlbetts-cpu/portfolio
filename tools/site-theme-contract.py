@@ -215,18 +215,34 @@ def check_portfolio_adapters():
             rf"\.theme-ready[^{{}}]*{re.escape(selector)}[^{{}}]*\{{[^{{}}]*transition-(?:property|duration|timing-function):"
         )
         assert not theme_transition.search(compact), f"site-theme.css: theme adapter must preserve {selector} transition ownership"
+    # 2026-08-08, the motion consolidation. Both strings below were pinned to
+    # LITERALS -- .5s / .2s / cubic-bezier(.2,.8,.2,1) -- and both now name the
+    # motion ladder instead. What this contract exists to protect is the
+    # COMPOSITION: the component keeps its own reveal/interaction timing AND the
+    # theme keeps --theme-duration on the semantic property, in one declaration.
+    # That is unchanged, and so is the reveal: --dur-enter IS 500ms and
+    # --ease-out IS cubic-bezier(.2,.8,.2,1), so .facts is byte-for-byte the same
+    # animation. The knob is the one deliberate change -- 200ms -> --dur-state's
+    # 160ms -- so every control on the site shares one hover-in.
     facts_transition=(
         '.theme-readybody[data-theme-page="case-study"].facts{'
-        'transition:opacity.5scubic-bezier(.2,.8,.2,1),transform.5scubic-bezier(.2,.8,.2,1),'
+        'transition:opacityvar(--dur-enter)var(--ease-out),transformvar(--dur-enter)var(--ease-out),'
         'border-colorvar(--theme-duration)var(--ease-out)}'
     )
     assert facts_transition in compact, "site-theme.css: facts must compose its reveal and semantic border transitions"
     knob_transition=(
         '.theme-readybody[data-theme-page="case-study"].cmpKnob{'
-        'transition:box-shadow.2scubic-bezier(.2,.8,.2,1),'
+        'transition:box-shadowvar(--dur-state)var(--ease-out),'
         'background-colorvar(--theme-duration)var(--ease-out),colorvar(--theme-duration)var(--ease-out)}'
     )
     assert knob_transition in compact, "site-theme.css: comparison knob must compose its interaction and semantic transitions"
+    # And the ladder must actually be defined, or all three names above are a
+    # silent inherit. This is the trap the radius rule fell into.
+    tokens=(ROOT/"tokens.css").read_text(encoding="utf-8")
+    for rung in ("--dur-press","--dur-state","--dur-state-out","--dur-move",
+                 "--dur-reveal","--dur-enter"):
+        assert re.search(rf"{re.escape(rung)}\s*:", tokens), \
+            f"tokens.css: motion ladder rung {rung} is referenced but not defined"
     assert '@media(prefers-reduced-motion:reduce)' in compact and facts_transition.split('{',1)[0]+'{transition:none}' in compact, "site-theme.css: reduced motion must disable the composed facts reveal"
 
 def check_shared_theme_transitions():

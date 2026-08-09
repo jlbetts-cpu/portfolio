@@ -344,11 +344,16 @@ html{scrollbar-color:var(--theme-muted) var(--theme-page)}
  transition-duration:var(--theme-duration);
  transition-timing-function:var(--ease-out);
 }
+/* .facts arrives once per view -> --dur-enter. The knob is a control changing
+   its own shadow on focus/hover -> --dur-state. Both were writing the ladder's
+   own numbers as literals, and both wrote cubic-bezier(.2,.8,.2,1) longhand for
+   what --ease-out already is. Values unchanged at 500ms; the knob moves 200 ->
+   160 so it matches every other control's hover-in on the site. */
 .theme-ready body[data-theme-page="case-study"] .facts{
- transition:opacity .5s cubic-bezier(.2,.8,.2,1),transform .5s cubic-bezier(.2,.8,.2,1),border-color var(--theme-duration) var(--ease-out)
+ transition:opacity var(--dur-enter) var(--ease-out),transform var(--dur-enter) var(--ease-out),border-color var(--theme-duration) var(--ease-out)
 }
 .theme-ready body[data-theme-page="case-study"] .cmpKnob{
- transition:box-shadow .2s cubic-bezier(.2,.8,.2,1),background-color var(--theme-duration) var(--ease-out),color var(--theme-duration) var(--ease-out)
+ transition:box-shadow var(--dur-state) var(--ease-out),background-color var(--theme-duration) var(--ease-out),color var(--theme-duration) var(--ease-out)
 }
 
 .theme-ready body,.theme-ready .jbDiscMenu,.theme-ready input,.theme-ready select,.theme-ready textarea{

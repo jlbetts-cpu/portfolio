@@ -461,18 +461,91 @@
  --ctl-ink-mute:var(--theme-muted,var(--c500));   /* caret and placeholder ink */
  --ctl-disabled-o:.38;
 
- /* motion -- three tiers plus the hover-out asymmetry.
-    A control answers immediately and lets go gently; equal timings read
-    mechanical. 1.5x is the smallest ratio that is perceptible without reading as
-    lag. The reveal tier reuses --sp-settle / --sp-settle-dur, which already
-    exist. No fourth duration and no second curve: --ease-out for state and
-    feedback, --sp-settle for reveal. */
- --dur-press:var(--press-dur);      /* 100ms, transform only */
- --dur-state:var(--ease-out-dur);   /* 160ms, hover-IN / focus / select */
- --dur-state-out:240ms;             /* 160 x 1.5, hover-OUT */
- --dur-intent:120ms;                /* hover-intent before a menu opens (§6.1) --
-                                       why a cursor sweeping the bar does not fire
-                                       three menus */
+ /* ===================== THE MOTION LADDER =====================
+    SIX RUNGS, NAMED FOR THE JOB, NOT THE LENGTH. This block started as the
+    control system's three tiers; the 2026-08-08 motion audit found the site
+    carrying 34 distinct literal transition durations and 11 distinct literal
+    easings against two motion tokens, so it is now the site-wide index rather
+    than the control system's private set. Pick by the JOB column. If no row
+    describes what you are doing, you are probably choreographing, not
+    transitioning -- see THE EXCEPTIONS below.
+
+      RUNG              ms   JOB
+      --dur-press      100   the acknowledgement under the finger. Transform
+                             only, and it must finish before the release.
+      --dur-state      160   hover-IN / focus / aria-selected. A control
+                             changing its own colour, border or ink IN PLACE.
+      --dur-state-out  240   the same change letting go. 160 x 1.5 -- a control
+                             answers immediately and releases gently; equal
+                             timings read mechanical, and "the animation was too
+                             abrupt" is a note this site has already had twice.
+      --dur-move       280   travel across real distance -- the nav ink sliding
+                             between tabs, a carousel, a caret crossing a row.
+                             Longer than a state change because it covers ground.
+      --dur-reveal     360   appear or dismiss IN PLACE -- menus, sheets,
+                             scrims, panels, a scoreboard growing a part.
+      --dur-enter      500   first arrival. A section, panel or page region
+                             showing up on load or on scroll-in. Once per view.
+
+    NOT RUNGS, and deliberately so:
+      --dur-intent     120   a DELAY, not a duration (§6.1) -- why a cursor
+                             sweeping the bar does not fire three menus.
+      --theme-duration 400   site-theme.css. A whole-page repaint, not one
+                             element, and it forks to 280ms under 760px and 0ms
+                             under prefers-reduced-motion. Owned there.
+
+    EVERY RUNG EXCEPT --dur-move AND --dur-reveal WAS ALREADY IN THIS FILE under
+    another name (--press-dur, --ease-out-dur, --hover-out-dur, --nav-slide-dur,
+    --enter-dur, --sp-settle-dur). That is the evidence the ladder is DERIVED
+    and not invented: it is the set the site had already converged on, given one
+    home and one naming convention. The older names stay valid and are what
+    these alias, so nothing that already references them breaks.
+
+    THE EXCEPTIONS -- values that are NOT on the ladder and must not be pulled
+    onto it. A measurement can tell you a value is unusual; it cannot tell you
+    it is wrong.
+      1. --hero-time-duration (hero-time.css). The sky's own cross-fade,
+         deliberately slower than chrome. The sky is not a control.
+      2. The spring durations --sp-quick-dur / --sp-pop-dur / --sp-bounce-dur.
+         These are BOUND TO THEIR CURVES: a linear() spring is sampled for a
+         specific length and re-timing it re-shapes the overshoot. The head has
+         weight and --sp-bounce is where that weight lives. Never swap one for a
+         generic ease.
+      3. about.html's dissolve -- 680ms in / 1000ms out / 1200ms drift. Three
+         different numbers ON PURPOSE, so the crossfade is never a 50/50 blend.
+         Collapsing them to one rung is the bug, not the fix.
+      4. The pitch props in play.css -- .hmBall / .hmGoal / .hmScore and their
+         shadows all fade at .3s, and play-engine.js writes the SAME .3s inline
+         when it builds crates, rings and crowns at runtime. It is one authored
+         convention spanning CSS and JS; moving the CSS half alone would create
+         the inconsistency this ladder exists to remove.
+      5. prefers-reduced-motion forks (0ms / 1ms / `none`). Those are the
+         accessibility contract, not stray literals.
+
+    ONE CURVE for chrome: --ease-out. The `ease-out` KEYWORD is not the same
+    curve (lazier start, softer landing) and is why two controls that look
+    identical at rest feel different on hover -- see --ease-exit below for the
+    only sanctioned second curve. */
+ --dur-press:var(--press-dur);          /* 100ms */
+ --dur-state:var(--ease-out-dur);       /* 160ms */
+ --dur-state-out:var(--hover-out-dur);  /* 240ms -- was a second literal 240 next
+                                           to --hover-out-dur's. One number, one
+                                           definition; this is now the alias. */
+ --dur-move:var(--nav-slide-dur);       /* 280ms */
+ --dur-reveal:var(--sp-settle-dur);     /* 360ms -- the spring's own settle time,
+                                           reused rather than a seventh number.
+                                           Pair it with --ease-out for a plain
+                                           fade, or with --sp-settle when the
+                                           thing that appears should have weight. */
+ --dur-enter:var(--enter-dur);          /* 500ms */
+ --dur-intent:120ms;                    /* a delay, not a rung. See above. */
+
+ /* The ONE sanctioned second curve. --ease-out decelerates, which is right for
+    anything arriving and wrong for anything leaving: a dismissal that eases OUT
+    hangs on the screen after the user has moved on. This is the accelerating
+    mirror, and it was already shipping as a literal in six places (the party
+    scrim and the disco ball, both on their way off). Named, not added. */
+ --ease-exit:cubic-bezier(.3,0,.8,.15);
 
  /* between-control spacing. One ladder, 2:1, and no third value: the gap between
     GROUPS is exactly twice the gap between ITEMS, which is what lets a bar read

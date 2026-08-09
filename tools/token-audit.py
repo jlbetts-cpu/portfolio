@@ -102,9 +102,14 @@ SHIPPING_HTML = ['index.html', 'about.html', 'play.html', 'apollo.html',
 # library sat outside its own gate. footer.css and builder-theme.css join them
 # for the same reason. hero-time.css is deliberately still out: it is mid-rewrite
 # on this branch and belongs to another lane.
+# tournament.css joins on 2026-08-08. play.html has linked it since the
+# broadcast overhaul, so it has always been shipping CSS on a shipping page --
+# it was simply never listed here, and 11 motion declarations sat outside the
+# motion count as a result. An audit that does not know about a stylesheet
+# reports a smaller number, not a better site.
 SHIPPING_CSS = ['tokens.css', 'header.css', 'play.css',
                 'controls.css', 'site-theme.css', 'footer.css',
-                'builder-theme.css']
+                'builder-theme.css', 'tournament.css']
 SHIPPING_JS = ['header.js', 'hero-engine.js', 'play-engine.js', 'play-games.js',
                'play-tournament.js', 'party.js', 'egghead-seed.js']
 
@@ -930,6 +935,20 @@ class Audit:
         self.metrics['duration_histogram'] = alld.most_common()
         self.metrics['easing_histogram'] = alle.most_common()
         self.metrics['tokenised_motion_refs'] = tokenised.most_common()
+        # steps() is a FRAME COUNT, not a curve. play.css drives the mood dots,
+        # the party lights and the disco ball off sprite sheets, so steps(7,end)
+        # means "this sheet has 7 frames" -- it is decided by the asset, not by
+        # taste, and consolidating those onto a shared easing would break the
+        # sprite. They are still counted in distinct_easings, because they are
+        # genuinely distinct values, but a reader treating that number as "how
+        # many opinions about feel does this site hold" needs them separated:
+        # the answer is the non-stepped count. Reported, never silently netted
+        # off, so the headline stays comparable across runs.
+        stepped = {k for k in alle if k.startswith('steps(')}
+        self.metrics['stepped_easings'] = len(stepped)
+        self.metrics['curve_easings'] = len(alle) - len(stepped)
+        self.metrics['stepped_transition_easings'] = len(
+            [k for k in ease['transition'] if k.startswith('steps(')])
         token_curve = norm('cubic-bezier(.2,.8,.2,1)')
         kw, lit = alle.get('ease-out', 0), alle.get(token_curve, 0)
         self.metrics['ease_out_keyword'] = kw
@@ -1259,7 +1278,11 @@ def report(audit, args):
           % (f, px.get(f, 0), pxt.get(f, 0), hx.get(f, 0), hxt.get(f, 0)))
     w('\nMOTION\n')
     w('    distinct durations : %d\n' % m.get('distinct_durations', 0))
-    w('    distinct easings   : %d\n' % m.get('distinct_easings', 0))
+    w('    distinct easings   : %d  (%d real curves + %d steps() sprite frame\n'
+      '                             counts, which are decided by the asset and\n'
+      '                             are not opinions about feel)\n'
+      % (m.get('distinct_easings', 0), m.get('curve_easings', 0),
+         m.get('stepped_easings', 0)))
     w('    ease-out keyword   : %d\n' % m.get('ease_out_keyword', 0))
     w('    literal .2,.8,.2,1 : %d\n' % m.get('ease_out_literal_curve', 0))
     if args.verbose:
@@ -1276,6 +1299,8 @@ def report(audit, args):
       % sum(f.get('count', 1) for f in findings.get('untokenised_literal', [])))
     w('distinct_durations=%d\n' % m.get('distinct_durations', 0))
     w('distinct_easings=%d\n' % m.get('distinct_easings', 0))
+    w('curve_easings=%d\n' % m.get('curve_easings', 0))
+    w('stepped_easings=%d\n' % m.get('stepped_easings', 0))
     w('control_padding_variants=%d\n' % m.get('control_padding_variants', 0))
     w('raw_px_total=%d\n' % sum(px.values()))
     w('raw_hex_total=%d\n' % sum(hx.values()))

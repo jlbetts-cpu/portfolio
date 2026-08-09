@@ -175,7 +175,7 @@ body{background:var(--c50);color:var(--c950);font-family:var(--sans);-webkit-fon
 .qsr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
 @media(prefers-reduced-motion:reduce){.cookieDot::before,.discoDot::after,.heartDot::before,.camDot::before,.queueDots i,.stachecrumb,.glasses.on,.glasses.off{animation:none}.glasses.on{opacity:1}.glasses.off{opacity:0}}
 #party{position:absolute;top:0;left:0;right:0;height:112vh;-webkit-mask-image:linear-gradient(#000 90%,transparent 100%);mask-image:linear-gradient(#000 90%,transparent 100%);z-index:63;pointer-events:none;opacity:0;transition:opacity 1.15s cubic-bezier(.33,0,.2,1)}
-#party:not(.on){transition:opacity .42s cubic-bezier(.3,0,.8,.15)}#party.on{opacity:1}
+#party:not(.on){transition:opacity .42s var(--ease-exit)}#party.on{opacity:1}
 .partyDark{position:absolute;inset:0;background:radial-gradient(circle var(--hr,180px) at var(--hx,50%) var(--hy,38%),rgba(6,5,16,0) 0%,rgba(6,5,16,.55) 44%,rgba(2,1,8,.96) 100%)}
 .partyHaze{position:absolute;left:var(--bx,50%);top:var(--by,30%);width:120vmax;height:120vmax;margin:-60vmax 0 0 -60vmax;background:radial-gradient(circle,rgba(120,150,255,.16),rgba(180,90,220,.06) 40%,transparent 66%);mix-blend-mode:screen;animation:hazePulse 1.5s steps(12,end) infinite,hueShift 5.6s steps(7,end) infinite}
 .beamWrap{position:absolute;left:var(--bx,50%);top:var(--by,30%);width:0;height:0}
@@ -186,8 +186,8 @@ body{background:var(--c50);color:var(--c950);font-family:var(--sans);-webkit-fon
 .partyGrain{position:absolute;inset:-40px;background:url(images/overlay.webp);background-size:150px 150px;mix-blend-mode:overlay;opacity:.4}
 @keyframes spinL{to{transform:rotate(360deg)}}@keyframes spinB{to{transform:rotate(360deg)}}
 @keyframes twinkle{0%,100%{opacity:0}14%{opacity:.1}50%{opacity:1}}@keyframes hazePulse{0%,100%{opacity:.55}50%{opacity:1}}@keyframes beat{0%,62%,100%{opacity:0}70%{opacity:.5}82%{opacity:.12}}@keyframes hueShift{to{filter:hue-rotate(360deg)}}
-#discoWrap{position:absolute;z-index:64;pointer-events:none;opacity:0;transform:translate(-50%,-140%) scale(.82);transition:opacity .7s cubic-bezier(.2,.8,.2,1),transform .95s cubic-bezier(.22,1.15,.32,1)}
-#discoWrap:not(.on){transition:opacity .38s cubic-bezier(.3,0,.8,.15),transform .5s cubic-bezier(.3,0,.8,.15)}#discoWrap.on{transform:translate(-50%,-50%) scale(1);opacity:1}
+#discoWrap{position:absolute;z-index:64;pointer-events:none;opacity:0;transform:translate(-50%,-140%) scale(.82);transition:opacity .7s var(--ease-out),transform .95s cubic-bezier(.22,1.15,.32,1)}
+#discoWrap:not(.on){transition:opacity .38s var(--ease-exit),transform .5s var(--ease-exit)}#discoWrap.on{transform:translate(-50%,-50%) scale(1);opacity:1}
 .dbGlow{position:absolute;left:50%;top:50%;width:300%;height:300%;transform:translate(-50%,-50%);background:radial-gradient(circle,rgba(190,210,255,.45),rgba(150,120,220,.12) 30%,transparent 60%);mix-blend-mode:screen;animation:hazePulse 1.25s steps(10,end) infinite}
 #discoBall{position:relative;width:clamp(104px,12.5vw,156px);height:clamp(104px,12.5vw,156px);border-radius:50%;overflow:hidden;clip-path:circle(50%);filter:drop-shadow(0 7px 18px rgba(0,0,0,.55))}
 #discoBall .dbPhoto{position:absolute;inset:0;background:url(images/discoball.webp) center/cover no-repeat}
@@ -196,7 +196,7 @@ body{background:var(--c50);color:var(--c950);font-family:var(--sans);-webkit-fon
 #discoBall .dbShade{position:absolute;inset:0;background:radial-gradient(circle at 33% 28%,rgba(255,255,255,.5),rgba(255,255,255,0) 44%),radial-gradient(circle at 50% 50%,transparent 62%,rgba(2,2,12,.6) 100%)}
 @keyframes dbScroll{to{background-position-x:-150px}}@keyframes dbSweep{0%{transform:translateX(-65%)}100%{transform:translateX(65%)}}
 body.partyLock{overflow:hidden}
-#loveScene{position:absolute;top:0;left:0;right:0;height:100vh;z-index:64;pointer-events:none;opacity:0;transition:opacity .45s cubic-bezier(.2,.8,.2,1)}#loveScene.on{opacity:1}
+#loveScene{position:absolute;top:0;left:0;right:0;height:100vh;z-index:64;pointer-events:none;opacity:0;transition:opacity .45s var(--ease-out)}#loveScene.on{opacity:1}
 .heartLayer{position:absolute;inset:0}.heartEye{position:absolute;width:17%;transform:translate(-50%,-50%);transform-origin:50% 50%;z-index:5;pointer-events:none;will-change:transform,opacity;filter:url(#inkSm) drop-shadow(0 1px 2px rgba(0,0,0,.32))}
 .loveHeart{position:fixed;transform:translate(-50%,-50%);will-change:transform,opacity;opacity:0;filter:url(#inkSm) drop-shadow(0 2px 4px rgba(0,0,0,.3))}
 @keyframes heartFloat{0%{opacity:0;transform:translate(-50%,-50%) scale(.4) rotate(0)}16%{opacity:1}100%{opacity:0;transform:translate(calc(-50% + var(--dx,0px)),calc(-50% - 132px)) scale(1) rotate(var(--rot,0deg))}}
@@ -213,13 +213,13 @@ body.heroEmpathy .jbStick .jbNav{--nav-mat:var(--ctl-ground);--nav-rim:var(--ctl
    wrapping flex row was the other half of the split. Only this selector was touched
    in this file. */
 .mhItem{position:relative}.mhItem img{width:34px;height:40px;object-fit:contain;background:var(--c100);border-radius:var(--r-2xs);display:block}
-.mhPick{padding:0;border:0;background:none;cursor:pointer;display:block;border-radius:var(--r-2xs);transition:box-shadow .18s var(--ease-out)}
+.mhPick{padding:0;border:0;background:none;cursor:pointer;display:block;border-radius:var(--r-2xs);transition:box-shadow var(--dur-state) var(--ease-out)}
 .mhPick:hover,.mhPick:focus-visible{box-shadow:0 0 0 1.5px var(--c500)}
 .mhX{position:absolute;top:-6px;right:-6px;width:16px;height:16px;border-radius:var(--r-full);border:1px solid var(--c100);background:var(--c50);color:var(--c700);font-size:var(--fs-micro);line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0}
 .mhX::before{content:"";position:absolute;inset:-4px;border-radius:var(--r-full)}.mhX:hover{color:var(--c950);border-color:var(--c500)}
 
 .moodMenu .moodItem[hidden]{display:none}
-.gIco{width:18px;height:18px;flex:0 0 18px;display:block;color:var(--c700);transition:color .1s ease-out}
+.gIco{width:18px;height:18px;flex:0 0 18px;display:block;color:var(--c700);transition:color var(--dur-state) var(--ease-out)}
 .moodItem:hover .gIco{color:var(--c950)}
 #endGame{color:#b3402e}#endGame .gIco{color:#b3402e}#endGame:hover{color:#8f3323}#endGame:hover .gIco{color:#8f3323}
 /* The maker links (Create head, Gradient maker) are <a>, not <button>, so they take .moodGo --
@@ -586,14 +586,14 @@ body.pHubOn .hmRefl{
    the two illegible-ed each other. Dropped down the pitch too, clear of the board's box. */
 .hmCount{position:absolute;left:50%;top:52%;transform:translate(-50%,-50%);z-index:44;font-family:var(--sans);font-weight:600;font-size:clamp(64px,12vw,140px);line-height:1;color:var(--c950);opacity:0;pointer-events:none;filter:url(#inkBig);white-space:nowrap}
 .hmCount.hmMsg{font-size:clamp(32px,6vw,72px);font-weight:600;letter-spacing:-.01em}   /* a word, not a digit: fits "Blue wins!" */
-.hmScoreEnd{margin-left:var(--sp-8);padding:var(--sp-2) var(--sp-2) var(--sp-2) var(--sp-12);border:0;border-left:1px solid var(--c100);border-radius:0;background:none;display:inline-flex;align-items:center;gap:var(--sp-4);cursor:pointer;pointer-events:auto;color:#b3402e;font-family:var(--sans);font-weight:600;font-size:var(--fs-label);line-height:1;transition:color .15s}
+.hmScoreEnd{margin-left:var(--sp-8);padding:var(--sp-2) var(--sp-2) var(--sp-2) var(--sp-12);border:0;border-left:1px solid var(--c100);border-radius:0;background:none;display:inline-flex;align-items:center;gap:var(--sp-4);cursor:pointer;pointer-events:auto;color:#b3402e;font-family:var(--sans);font-weight:600;font-size:var(--fs-label);line-height:1;transition:color var(--dur-state) var(--ease-out)}
 .hmScoreEnd:hover{color:#8f3323}.hmScoreEnd svg{width:12px;height:12px;flex:0 0 auto}
 /* battle arena platforms: light Apple-clean slabs with a hair of 2.5D thickness -- the heads leap up for height and pounce down */
 .hmPlat{position:absolute;left:0;top:0;height:12px;border-radius:var(--r-xs);background:var(--c50);border:1px solid rgba(22,22,28,.14);box-shadow:0 1px 2px rgba(22,22,28,.08);border:1px solid rgba(22,22,28,.16);opacity:0;pointer-events:none;transition:opacity .45s var(--ease-out);z-index:2;will-change:transform}
 body.hmBattle .hmPlat.arrived{opacity:1}
 body.hmPodium .hmPlat{opacity:0}   /* platforms clear off once the podium rises */
 /* the winners' podium: three light blocks, 1st tallest in the middle, that rise at the end of a battle */
-.hmPodium{position:absolute;left:0;top:0;border-radius:var(--r-sm) var(--r-sm) 3px 3px;background:linear-gradient(180deg,#fefeff 0%,#eeeef2 62%,#e1e1e8 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,.92),0 12px 24px -11px rgba(22,22,28,.34),0 2px 5px rgba(22,22,28,.12);border:1px solid rgba(22,22,28,.06);opacity:0;pointer-events:none;transition:opacity .5s var(--ease-out),transform .5s var(--ease-out);z-index:2;display:flex;align-items:flex-start;justify-content:center;overflow:hidden}
+.hmPodium{position:absolute;left:0;top:0;border-radius:var(--r-sm) var(--r-sm) 3px 3px;background:linear-gradient(180deg,#fefeff 0%,#eeeef2 62%,#e1e1e8 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,.92),0 12px 24px -11px rgba(22,22,28,.34),0 2px 5px rgba(22,22,28,.12);border:1px solid rgba(22,22,28,.06);opacity:0;pointer-events:none;transition:opacity var(--dur-enter) var(--ease-out),transform var(--dur-enter) var(--ease-out);z-index:2;display:flex;align-items:flex-start;justify-content:center;overflow:hidden}
 .hmPodium b{margin-top:var(--sp-8);font-family:var(--sans);font-weight:600;font-size:var(--fs-label);color:var(--c400);line-height:1}
 .hmPodium.show{opacity:1}
 /* --- "Play a mood" relocated into the hero CTA row (moodInCta) --- */
@@ -602,7 +602,7 @@ body.moodInCta .faceMoodCorner{position:relative;right:auto;left:auto;top:auto;b
 body.moodInCta .faceMoodCorner .moodBtn{position:relative;border:1px solid var(--c100)!important;background:var(--c50)!important;color:var(--c950);font-weight:400;font-size:var(--fs-body);padding:var(--sp-8) var(--sp-16);border-radius:var(--r-2xs)!important;opacity:1!important}
 body.moodInCta .faceMoodCorner .moodBtn:hover{border-color:var(--c500)!important;color:var(--c950)}
 body.moodInCta .faceMoodCorner .moodLbl{opacity:1!important;transform:none!important}
-body.moodInCta .faceMoodCorner .moodCar{opacity:1!important;transform:rotate(0deg)!important;transition:transform .32s cubic-bezier(.34,1.4,.5,1),color .2s var(--ease-out)}   /* menu opens UP in the CTA -> caret points up when closed */
+body.moodInCta .faceMoodCorner .moodCar{opacity:1!important;transform:rotate(0deg)!important;transition:transform .32s cubic-bezier(.34,1.4,.5,1),color var(--dur-state) var(--ease-out)}   /* menu opens UP in the CTA -> caret points up when closed */
 body.moodInCta .faceMoodCorner .moodbar.open .moodCar{transform:rotate(180deg)!important}   /* ...and flips to point down when the menu is open */
 body.moodInCta .faceMoodCorner .moodMenu{bottom:calc(100% + 12px)!important;top:auto!important;left:0!important;right:auto!important;z-index:60!important}
 body.moodInCta .heroCtas:not(.in) .faceMoodCorner{opacity:0!important;visibility:hidden!important;pointer-events:none!important}   /* stay hidden through the intro until the CTA row reveals -- !important so it wins over the mobile force-visible rule too, keeping Play in lockstep with "View my work" on every viewport */
@@ -611,18 +611,18 @@ body.moodInCta .heroCtas:not(.in) .faceMoodCorner{opacity:0!important;visibility
 @keyframes hmCountP{0%{opacity:0;transform:translate(-50%,-50%) scale(1.35)}18%{opacity:1}70%{opacity:1;transform:translate(-50%,-50%) scale(1)}100%{opacity:0;transform:translate(-50%,-50%) scale(.86)}}
 @media(prefers-reduced-motion:reduce){.hmCount.hmCountPulse{animation:none;opacity:1}}
 .hmHp{position:absolute;left:0;top:0;width:44px;height:4px;border-radius:var(--r-hair);background:rgba(8,8,8,.13);z-index:4;pointer-events:none;opacity:0;transition:opacity .3s var(--ease-out)}
-.hmHp i{display:block;height:100%;border-radius:var(--r-hair);background:var(--c950);transition:width .18s var(--ease-out),background-color .3s}
+.hmHp i{display:block;height:100%;border-radius:var(--r-hair);background:var(--c950);transition:width var(--dur-state) var(--ease-out),background-color .3s}
 /* ===== mood shortcut menu — triggers the head animations; sharp, Instrument Sans, 8fps stepped ===== */
 .moodbar{position:relative;display:inline-block;z-index:45}
 @keyframes moodIn{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
-.moodBtn:not(.ctl){display:inline-flex;align-items:center;gap:var(--sp-8);background:var(--c50);border:1px solid var(--c100);border-radius:var(--r-2xs);padding:var(--sp-8) var(--sp-16);line-height:1;cursor:pointer;font-family:var(--sans);font-weight:400;font-size:var(--fs-body);color:var(--c950);transition:border-color .2s var(--ease-out),color .2s var(--ease-out)}.moodBtn:not(.ctl):hover{border-color:var(--c500)}
+.moodBtn:not(.ctl){display:inline-flex;align-items:center;gap:var(--sp-8);background:var(--c50);border:1px solid var(--c100);border-radius:var(--r-2xs);padding:var(--sp-8) var(--sp-16);line-height:1;cursor:pointer;font-family:var(--sans);font-weight:400;font-size:var(--fs-body);color:var(--c950);transition:border-color var(--dur-state) var(--ease-out),color var(--dur-state) var(--ease-out)}.moodBtn:not(.ctl):hover{border-color:var(--c500)}
 .moodLbl{font-size:var(--fs-body);font-weight:400;letter-spacing:0}
-.moodCar{width:12px;height:12px;display:inline-block;flex:0 0 auto;color:var(--c500);transition:transform .2s var(--ease-out),color .2s var(--ease-out)}
-.moodbar.open .moodCar{width:12px;height:12px;display:inline-block;flex:0 0 auto;color:var(--c500);transition:transform .2s var(--ease-out),color .2s var(--ease-out)}
-.moodMenu:not(.ctl-menu){position:absolute;min-width:var(--menu-w);background:var(--c50);border:1px solid var(--c100);border-radius:var(--r-2xs);padding:var(--sp-8);box-shadow:0 8px 28px -8px rgba(18,18,18,.12),0 2px 8px -2px rgba(18,18,18,.06);opacity:0;visibility:hidden;transition:opacity var(--ease-out-dur) var(--ease-out),transform .18s var(--ease-out),visibility 0s .18s}
-.moodbar.open .moodMenu:not(.ctl-menu){opacity:1;visibility:visible;transition:opacity var(--ease-out-dur) var(--ease-out),transform .18s var(--ease-out)}
-.moodItem:not(.ctl){display:flex;align-items:center;gap:var(--sp-12);width:100%;padding:var(--sp-8) var(--sp-12);border-radius:var(--r-2xs);font-family:var(--sans);font-weight:400;font-size:var(--fs-body);color:var(--c950);background:none;border:0;cursor:pointer;text-align:left;transition:background-color .1s ease-out,color .1s ease-out}
-.moodbar.open .moodItem:not(.ctl){display:flex;align-items:center;gap:var(--sp-12);width:100%;padding:var(--sp-8) var(--sp-12);border-radius:var(--r-2xs);font-family:var(--sans);font-weight:400;font-size:var(--fs-body);color:var(--c950);background:none;border:0;cursor:pointer;text-align:left;transition:background-color .1s ease-out,color .1s ease-out}
+.moodCar{width:12px;height:12px;display:inline-block;flex:0 0 auto;color:var(--c500);transition:transform var(--dur-state) var(--ease-out),color var(--dur-state) var(--ease-out)}
+.moodbar.open .moodCar{width:12px;height:12px;display:inline-block;flex:0 0 auto;color:var(--c500);transition:transform var(--dur-state) var(--ease-out),color var(--dur-state) var(--ease-out)}
+.moodMenu:not(.ctl-menu){position:absolute;min-width:var(--menu-w);background:var(--c50);border:1px solid var(--c100);border-radius:var(--r-2xs);padding:var(--sp-8);box-shadow:0 8px 28px -8px rgba(18,18,18,.12),0 2px 8px -2px rgba(18,18,18,.06);opacity:0;visibility:hidden;transition:opacity var(--ease-out-dur) var(--ease-out),transform var(--dur-state) var(--ease-out),visibility 0s var(--dur-state)}
+.moodbar.open .moodMenu:not(.ctl-menu){opacity:1;visibility:visible;transition:opacity var(--ease-out-dur) var(--ease-out),transform var(--dur-state) var(--ease-out)}
+.moodItem:not(.ctl){display:flex;align-items:center;gap:var(--sp-12);width:100%;padding:var(--sp-8) var(--sp-12);border-radius:var(--r-2xs);font-family:var(--sans);font-weight:400;font-size:var(--fs-body);color:var(--c950);background:none;border:0;cursor:pointer;text-align:left;transition:background-color var(--dur-state) var(--ease-out),color var(--dur-state) var(--ease-out)}
+.moodbar.open .moodItem:not(.ctl){display:flex;align-items:center;gap:var(--sp-12);width:100%;padding:var(--sp-8) var(--sp-12);border-radius:var(--r-2xs);font-family:var(--sans);font-weight:400;font-size:var(--fs-body);color:var(--c950);background:none;border:0;cursor:pointer;text-align:left;transition:background-color var(--dur-state) var(--ease-out),color var(--dur-state) var(--ease-out)}
 /* 8fps staggered reveal — mirrors the site's 0.05s per-character cascade */
 .moodbar.open .moodItem:not(.ctl):nth-child(1){transition-delay:.03s,.03s,0s}
 .moodbar.open .moodItem:not(.ctl):nth-child(2){transition-delay:.08s,.08s,0s}
@@ -681,7 +681,7 @@ body.playViewportOwned .siteFoot{display:none}
    is dropped and the word glides back to true centre. */
 .hmScore .sTitle{gap:0}
 .hmScore .sBall{width:.62em;height:.62em;margin-left:.2em;object-fit:contain;flex:0 0 auto;
- transition:opacity var(--ease-out-dur) var(--ease-out),width .34s var(--ease-out),margin-left .34s var(--ease-out)}
+ transition:opacity var(--ease-out-dur) var(--ease-out),width var(--dur-reveal) var(--ease-out),margin-left var(--dur-reveal) var(--ease-out)}
 /* Two stages, deliberately. ballOut only hides the ball; the SLOT stays, so during the frozen
    countdown the title still reserves its space and the live ball sits exactly in it. Collapsing
    the slot immediately re-centred "Soccer" while the ball was still parked there, sliding the word
@@ -826,7 +826,7 @@ body .navDrawer .ndLink{padding:var(--sp-8) var(--sp-12);text-align:left}
 .sbTrophy{position:absolute;left:50%;bottom:calc(100% - 10px);transform:translateX(-50%);
  width:clamp(46px,7vw,66px);height:auto;pointer-events:none;z-index:2;display:none;
  filter:drop-shadow(0 6px 14px rgba(15,23,42,.26))}
-body.hmFinal .sbTrophy{display:block;animation:sbTrophyIn .5s var(--ease-out) both}
+body.hmFinal .sbTrophy{display:block;animation:sbTrophyIn var(--dur-enter) var(--ease-out) both}
 @keyframes sbTrophyIn{from{opacity:0;transform:translateX(-50%) translateY(10px) scale(.9)}
  to{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}}
 /* Handed over: lifted out of the board and flown to the winner, then it rides with them.
@@ -897,7 +897,7 @@ body.hmFinal .sbTrophy{display:block;animation:sbTrophyIn .5s var(--ease-out) bo
 /* THE GOAL FLASH. The board lights up in the scorer's colour for a beat, then settles.
    A ring plus a soft bloom rather than a fill, so the score stays readable through it --
    the number is the thing you are looking at when a goal goes in. */
-.hmScore .sbCard{transition:box-shadow .5s var(--ease-out)}
+.hmScore .sbCard{transition:box-shadow var(--dur-enter) var(--ease-out)}
 .hmScore.sbHit .sbCard{
  box-shadow:0 0 0 3px rgb(var(--sbFlash,148,163,184)),
             0 0 44px -4px rgba(var(--sbFlash,148,163,184),.72);
