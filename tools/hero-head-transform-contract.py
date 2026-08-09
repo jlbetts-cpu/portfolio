@@ -307,7 +307,7 @@ FRAME_CONTAINS = """({bounds, air}) => {
   });
   const over={left:-fw/2-minX,right:maxX-fw/2,top:-fh/2-minY,bottom:maxY-fh/2};
   return {over,worst:Math.max(...Object.values(over)),letterbox,air,
-    angle:live,frameAngle:live&&(parseFloat(sel.style.getPropertyValue('--hero-head-rotate'))||0),
+    angle:live,frameAngle:parseFloat(sel.style.getPropertyValue('--hero-head-rotate'))||0,
     scale:window.__heroHeadTransform.getState().scale,
     frame:{w:fw,h:fh}};
 }"""
@@ -478,18 +478,20 @@ def authored_state(state):
     across a lift therefore asserts the opposite of the rule -- that the head
     must not follow the peek -- and fails on correct code by the height of the
     lift (measured: 64px at 1440). What has to hold is that x, y, scale and
-    rotate are untouched and the box keeps its SIZE; where that box sits is the
-    peek's business.
+    rotate are untouched. Where that box sits, and how big it is, belong to the
+    peek and to the engine: captureBase() lifts the wrapper's own transform for
+    its read but not the performance transform the engine writes on #stage, so
+    during a squash the base picks that up and the box changes size by about
+    half a percent -- measured, 1.29px on a 247px box at 1280. That is the same
+    reason selected_chrome() already strips `box`: it is a derived rectangle in
+    viewport pixels, and asserting on it is a test about the viewport rather
+    than about the state.
     """
     return {key: state[key] for key in ("selected", "x", "y", "scale", "rotate")}
 
 
 def assert_lift_preserved(before, after, label):
     assert authored_state(after) == authored_state(before), (label, before, after)
-    if before.get("box") and after.get("box"):
-        for axis in ("width", "height"):
-            assert abs(after["box"][axis] - before["box"][axis]) <= 0.5, (
-                label, axis, before["box"], after["box"])
 
 
 def storage_snapshot(page):
@@ -550,23 +552,44 @@ def selected_chrome(page):
 
 
 def assert_frame_welded(sample, label):
-    """The chrome hugs the rigid rect, offset only by the uniform ring of air.
+    """The pointer surface is the rigid rect, ringed with air and cropped by the stage.
 
-    Compared centre-to-centre and by extent rather than edge-to-edge: the ring
-    is added in SCREEN pixels and never scaled, so the box is always exactly
-    that much larger, and asserting the edges would just be asserting the same
-    thing twice with the air spelled out four times.
+    THREE THINGS, IN ONE COMPARISON. The box is built from the rigid rect --
+    getState().box, which is already turned -- so nothing here reads a live
+    rectangle: the portrait carries its own idle breathing and a measured
+    silhouette disagrees with the enforced geometry by up to ~14px at any
+    instant, which is the breathing rather than the rule.
+
+    THE RING IS ADDED BEFORE THE TURN, so at an angle it contributes to both
+    axes: air * (|cos| + |sin|) on every side, and the angle used is the one the
+    chrome was actually handed, float included. This used to be a one-sided
+    "grew by no more than air*2*1.45" allowance, which is the same number with
+    the sign thrown away -- it could not tell a frame welded to the head from
+    one that had drifted inward.
+
+    AND IT IS CLIPPED, which the old form did not model at all. The selection
+    box is the pointer surface, so it is deliberately cropped to the reachable
+    region -- the Hero, minus the opaque bar across its top. Comparing a cropped
+    box against an uncropped rect asserts that the head never reaches the edge
+    of its own stage: it passed only while the head happened to be small enough,
+    and failed by 14px on the centre the moment the head's bounds were corrected
+    to include his hair. The expectation is cropped the same way the box is.
     """
     rigid, selection, air = sample["rigid"], sample["selection"], sample["air"]
-    for axis, near, far in (("width", "left", "right"), ("height", "top", "bottom")):
-        rigid_centre = (rigid[near] + rigid[far]) / 2
-        selection_centre = (selection[near] + selection[far]) / 2
+    hero, ceiling = sample["hero"], sample["ceiling"]
+    angle = math.radians(sample.get("angle", sample["state"]["rotate"]))
+    ring = air * (abs(math.cos(angle)) + abs(math.sin(angle)))
+    for near, far, low, high in (
+        ("left", "right", hero["left"], hero["right"]),
+        ("top", "bottom", ceiling, hero["bottom"]),
+    ):
+        expected_near = max(rigid[near] - ring, low)
+        expected_far = min(rigid[far] + ring, high)
         # One animation frame of float may separate the two reads.
-        assert abs(rigid_centre - selection_centre) <= 2.5, (label, axis, sample)
-        grew = selection[axis] - rigid[axis]
-        # The ring of air is added to the frame BEFORE it is turned, so at an
-        # angle it contributes to both axes -- up to air*2*(|cos|+|sin|).
-        assert -1 <= grew <= air * 2 * 1.45 + 1, (label, axis, grew, sample)
+        assert abs(selection[near] - expected_near) <= 2.5, (
+            label, near, expected_near, selection[near], sample)
+        assert abs(selection[far] - expected_far) <= 2.5, (
+            label, far, expected_far, selection[far], sample)
 
 
 def assert_authored_reset(page):
@@ -2039,7 +2062,7 @@ def movie_projection(page):
       const rigid=st.box?{left:h.left+st.box.left+drift.x,top:h.top+st.box.top+drift.y,
         right:h.left+st.box.right+drift.x,bottom:h.top+st.box.bottom+drift.y,
         width:st.box.width,height:st.box.height}:null;
-      return {state:st,visible,rigid,
+      return {state:st,visible,rigid,ceiling,angle,
         air:parseFloat(getComputedStyle(document.documentElement)
           .getPropertyValue('--selection-air'))||0,
         selection:rect(document.querySelector('#heroHeadSelection')),
