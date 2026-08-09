@@ -413,35 +413,42 @@
  /* ══ THE WORD WOBBLES WHILE YOU ARE HOLDING IT ══════════════════════════════════
     Jayden: "add the animation back when you drag the letter -- they do a little wobble."
 
-    THIS IS NOT THE TUG COMING BACK, AND THE DIFFERENCE IS CAUSALITY. The tug that was
-    deleted moved the word sideways twice, on its own 900ms timer, 900ms after it landed,
-    to TELL you it was draggable -- the site talking at you, unprompted, about something
-    you had not asked about. This runs only while your pointer is down on the word, and it
-    is the object answering you. One was rejected for being unprompted; this was asked for
-    because it is a response. Nothing here starts on a timer: the rule is scoped to .mdgl,
-    the ghost's glyphs, and the ghost exists for exactly the length of the drag -- it is
-    created on pointerdown and removed on pointerup. The wobble therefore cannot outlive or
-    precede the gesture, by construction rather than by bookkeeping.
+    THE MOTION IS NOT IN THIS FILE, AND THAT IS THE POINT. What was here before this pass
+    was a `@keyframes mdWobble ... infinite` -- a canned two-second-a-minute loop that ran
+    identically whether you flung the word across the viewport or held it dead still. That
+    is a decoration wearing a physics costume, and it is not what was asked for: the thing
+    Jayden wants back is hero-engine.js's wobbleDrag() (line 755), whose whole substance is
+    that it reads the cursor. A CSS keyframe cannot read the cursor, so the wobble is
+    written in play-games.js against the same 8fps clock and the same smoothed-velocity
+    lean the original used. The full derivation lives beside that code.
+    (The old rule was also inert in a second way worth recording so it is not rebuilt: its
+    stagger was `calc(var(--i) * ...)` and nothing ever set --i on a .mdgl, so every glyph
+    ran at delay 0 and the word tilted as ONE rigid sticker -- the exact failure the
+    per-character span wrapping exists to avoid.)
+
+    WHAT THIS FILE STILL OWNS is the two things that must be true before the rig writes a
+    transform. inline-block, because a transform on an inline box is ignored -- this is the
+    same reason .cyc-ch is inline-block, and it is not tidiness. And the promotion hint,
+    which is safe to leave standing here precisely because .mdgl only ever exists inside a
+    ghost that is created on pointerdown and removed on pointerup: the layer cannot outlive
+    the gesture, so unlike .cyc-ch (which strips .in on animationend to drop its layer)
+    there is nothing to clean up.
 
     IT NEVER FIGHTS THE POINTER. The ghost's position is written to left/top and its own
     centring transform is on .moodDrag; the wobble is on the CHILD glyphs, so it composes
     underneath the position the pointer dictates and can never contest it. Transform only,
-    no layout read, nothing for the idle contract to catch.
+    no layout read, nothing for the idle contract to catch. */
+    THE PIVOT IS NEAR THE TOP OF THE GLYPH, NOT ITS CENTRE, and that is the difference
+    between a letter spinning and a letter HANGING. The word is held at the cursor, so the
+    letters are suspended from it; a pendulum swings about its anchor. 12% down the glyph
+    box is roughly the cap line, which is where a letter would be pinched. .moodDrag itself
+    uses 50% 18% for the same reason. */
+ .mdgl{display:inline-block;white-space:pre;will-change:transform;transform-origin:50% 12%}
 
-    THE STAGGER IS A LOOSE JIGGLE, NOT A WAVE. One --dur-press (100ms) of negative delay
-    per glyph against a --dur-enter (500ms) period puts each letter at its own phase and
-    starts them all mid-swing, so there is no ramp-up on pickup. 500ms is 2Hz -- deliberately
-    nowhere near the ~0.2Hz sustained oscillation the HIG singles out as the frequency
-    people are most sensitive to.
-    THE AMPLITUDE IS DELIBERATELY UNDER A PIXEL AND A HALF at the headline's size. This is
-    a word in an h1; the brief is "a little wobble", and anything you could measure by eye
-    would read as a toy. */
- .mdgl{display:inline-block;white-space:pre;
-  animation:mdWobble var(--dur-enter) ease-in-out infinite;
-  animation-delay:calc(var(--i,0) * var(--dur-press) * -1)}
- @keyframes mdWobble{
-  0%,100%{transform:translate3d(0,-.022em,0) rotate(-1.9deg)}
-  50%    {transform:translate3d(0,.022em,0) rotate(1.9deg)}}
+ /* The settle borrows the same pivot so the unwind continues the swing rather than
+    starting a new one. The transition itself is written inline by settleGlyphs() -- it has
+    to be, because the per-letter delay is measured from wherever you grabbed. */
+ .cycw.settling .cyc-ch{transform-origin:50% 12%}
 
  /* REDUCED MOTION GETS A DISSOLVE, NOT A DEAD STOP. The old rule was `animation:none`,
     which is the substitution Apple's accessibility guidance specifically tells you not to
@@ -896,7 +903,7 @@
    </div>
    <div class="stagewrap">
     <div class="queueDots" id="qdots" role="status" aria-live="polite"><span class="qsr"></span><i></i><i></i><i></i></div>
-    <div id="stageMorph"><div class="floorshadow" id="fsh"></div><div class="stage" id="stage"><img class="face" id="face" src="images/neutral.webp" alt="Jayden" draggable="false"><img class="tongue" id="tongue" src="images/tongue.webp" alt="" aria-hidden="true">
+    <div id="stageMorph"><div class="floorshadow" id="fsh"></div><div class="stage" id="stage"><img class="face" id="face" src="images/neutral.webp" alt="Jayden" draggable="false" data-head-bounds="0.1933 0.0616 0.8484 0.9234"><img class="tongue" id="tongue" src="images/tongue.webp" alt="" aria-hidden="true">
 <svg class="glasses" id="glasses" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><defs><pattern id="glCard" patternUnits="userSpaceOnUse" width="100" height="100"><image href="images/glass_frame_tex.webp" x="0" y="0" width="100" height="100" preserveAspectRatio="xMidYMid slice"/></pattern><linearGradient id="glSheen" x1="0" y1="0" x2="0.62" y2="1"><stop offset="0" stop-color="#fff" stop-opacity="0.5"/><stop offset="0.4" stop-color="#fff" stop-opacity="0.06"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient><mask id="glMask" maskUnits="userSpaceOnUse" x="0" y="0" width="100" height="100"><rect x="28" y="45.3" width="44" height="13.2" rx="2.4" fill="#fff"/><polygon points="28,47.2 26,48 26,50.4 28,51.2" fill="#fff"/><polygon points="72,47.2 74,48 74,50.4 72,51.2" fill="#fff"/><rect x="32.5" y="47.3" width="13" height="9.2" rx="1.8" fill="#000"/><rect x="54.5" y="47.3" width="13" height="9.2" rx="1.8" fill="#000"/><path d="M46.7 58.6 Q50 54.3 53.3 58.6 Z" fill="#000"/></mask></defs><rect class="gl-red" x="32.5" y="47.3" width="13" height="9.2" rx="1.8"/><rect class="gl-cyan" x="54.5" y="47.3" width="13" height="9.2" rx="1.8"/><rect class="gl-plast" x="32.5" y="47.3" width="13" height="9.2" rx="1.8" fill="url(#glSheen)"/><rect class="gl-plast" x="54.5" y="47.3" width="13" height="9.2" rx="1.8" fill="url(#glSheen)"/><rect x="0" y="0" width="100" height="100" fill="url(#glCard)" mask="url(#glMask)"/></svg></div></div>
    </div>
    <div class="heroMovieEffectsClip" id="heroMovieEffectsClip" aria-hidden="true"><div class="heroMovieEffectsStage" id="heroMovieEffectsStage"></div></div>

@@ -769,10 +769,15 @@
                         to their durations and may not be re-timed (360)
       --dur-state       two jobs, both of them "one state has become another": the point
                         in the exit at which the next word takes over (see cycle()), and
-                        the reduced-motion dissolve in both directions (160) */
+                        the reduced-motion dissolve in both directions (160)
+      --sp-bounce-dur   the duration --sp-bounce is SAMPLED FOR, and the only duration it
+                        may be run at (§6 again). It is what the dropped letters unwind
+                        on, because it is the one curve in the file that OVERSHOOTS
+                        enough to see in a rotation -- see settleGlyphs() (860) */
  var CS=getComputedStyle(document.documentElement);
  function ms(name,fallback){var v=parseFloat(CS.getPropertyValue(name));return v>0?v:fallback;}
- var SETTLE_MS=ms("--sp-settle-dur",360), FADE_MS=ms("--dur-state",160);
+ var SETTLE_MS=ms("--sp-settle-dur",360), FADE_MS=ms("--dur-state",160),
+     BOUNCE_MS=ms("--sp-bounce-dur",860);
  var wi=Math.floor(Math.random()*MOODS.length);
  var cycWord=null,cycTimer=0,cycHold=false,dragging=false,ghost=null,pid=null;
  var tugCount=0,TUG_MAX=3;
@@ -902,6 +907,10 @@
 
  function place(i,defer){
   endSettle();                                 // never measure a rect that is mid-tween
+  endGlyphSettle();                            /* and never measure letters still unwinding
+                                                  from a drop -- a rotated glyph widens the
+                                                  word's rect, which would poison the
+                                                  before/after the line settle is built on */
   var before=(cycWord&&cycWord.parentNode)?shot(cycWord):null;
   var next=build(i,defer);
   if(before){
@@ -967,21 +976,231 @@
   if(item)item.click();
  }
 
- function onHead(x,y){
-  /* ONE radial zone for all four, rather than the original's split between a radial test
-     for hunger and a rectangle-with-asymmetric-padding for the other three -- four different
-     drop targets for four identical gestures is a difference the visitor cannot see.
-     0.55, NOT the original's 0.72, AND THE NUMBER IS MEASURED. On the home page the head sat
-     far below a left-aligned headline; here it is directly under a centred one, and at
-     1440x900 the word's own resting centre is 330px from the head's centre while 0.72 of the
-     head's 466px width is 335 -- so the word started the gesture ALREADY INSIDE its own drop
-     zone and a 2px slip fired a mood. 0.55 puts the boundary at 256px, which clears the
-     resting position at every measured size (390: 275px apart against a 189px radius) while
-     still covering the whole visible face rather than just the mouth.
-     It reads the LIVE rect, so it follows the head wherever hero-head-transform.js has
-     moved, turned or scaled it. */
+ /* ══ WHERE "OVER THE FACE" ACTUALLY IS ══════════════════════════════════════════
+    ONE zone for all four moods, rather than the home page original's split between a radial
+    test for hunger and a rectangle-with-asymmetric-padding for the other three -- four
+    different drop targets for four identical gestures is a difference the visitor cannot
+    see, but can feel as inconsistency.
+
+    IT IS THE INK, NOT THE BOX. #face is a transparent cut-out and its element rect is much
+    bigger than the head inside it -- most of the top-left and top-right corners are empty
+    pixels of hair-gap. data-head-bounds carries the REAL alpha extents, derived from the
+    images and already the source of truth for hero-engine.js's overFace() hover test and
+    hero-head-transform.js's frame. Reading the same attribute is what stops this page's
+    idea of "on the head" drifting away from the other two consumers of it: if the artwork
+    is ever recut, all three move together.
+
+    AN ELLIPSE INSCRIBED IN THOSE BOUNDS, NOT THE BOUNDS THEMSELVES. The bounds are an
+    axis-aligned bounding box, so its four corners are still empty -- and the corners are
+    exactly where a rectangle lies to you, because that is where the hair curves away. A
+    head is an ellipse to a much better approximation than it is a rectangle, and the test
+    costs the same two multiplies. HEAD_PAD then gives back 6%, because a drop target that
+    is pixel-exact is a drop target you keep missing; the pad is a hair of forgiveness at
+    the silhouette, not a second, looser zone.
+
+    THIS IS STRICTLY TIGHTER THAN WHAT IT REPLACES, which matters because the number it
+    replaces was itself a bug fix. The old test was radius 0.55 x the stage width, chosen
+    down from the home page's 0.72 after measuring that at 1440x900 the word's own RESTING
+    centre sits 330px from the head's centre while 0.72 of the 466px stage is 335 -- the
+    word began the gesture already inside its own drop zone and a 2px slip fired a mood.
+    The ellipse's half-width is 0.328 x 1.06 = 0.347 of the stage and its half-height 0.457
+    x 1.06 = 0.484, both under 0.55, so that fix is preserved by construction at every
+    breakpoint rather than by re-measuring one.
+
+    THE RECT IS READ ONCE PER GESTURE, NOT ONCE PER MOVE. This runs on every pointermove, and
+    a getBoundingClientRect there is a forced layout in the drag path -- the exact cost the
+    performance pass just took out (long tasks during a drag: 249ms -> 0ms). The head does
+    drift while you drag, because hero-engine floats it on the 8fps clock, but that float is
+    a few pixels against a zone ~160x210px, so a cached box is wrong by an amount nothing
+    can feel and right about the thing the contract measures.
+    The read is taken at pointerdown, BEFORE .catchReady can have scaled #stageMorph, so the
+    zone is the resting one; the 5.5% lean is then pure hysteresis in the visitor's favour
+    and can never feed back into the test that triggered it. */
+ var HEAD_PAD=1.06,headBox=null;
+
+ function measureHead(){
   var r=stage.getBoundingClientRect();
-  return Math.hypot(x-(r.left+r.width/2),y-(r.top+r.height/2))<r.width*0.55;
+  var f=document.getElementById("face");
+  var b=((f&&f.getAttribute("data-head-bounds"))||"0.1933 0.0616 0.8484 0.9234")
+        .trim().split(/\s+/).map(Number);
+  if(b.length!==4||b.some(function(v){return !isFinite(v);}))b=[0.1933,0.0616,0.8484,0.9234];
+  headBox={cx:r.left+r.width*(b[0]+b[2])/2,
+           cy:r.top+r.height*(b[1]+b[3])/2,
+           rx:Math.max(1,r.width*(b[2]-b[0])/2*HEAD_PAD),
+           ry:Math.max(1,r.height*(b[3]-b[1])/2*HEAD_PAD)};
+ }
+
+ function onHead(x,y){
+  if(!headBox)return false;
+  var nx=(x-headBox.cx)/headBox.rx, ny=(y-headBox.cy)/headBox.ry;
+  return nx*nx+ny*ny<=1;
+ }
+
+ /* ══ THE LETTERS WOBBLE IN YOUR HAND ════════════════════════════════════════════
+    Jayden: "add the animation back when you drag the letter -- they do a little wobble."
+
+    HE IS ASKING FOR SOMETHING BACK, SO THIS IS A RESTORATION, NOT A DESIGN. The original
+    is hero-engine.js's wobbleDrag() (line 755), which drove the home page's dragged
+    cookie/disco-ball/heart, and its four ingredients are copied here by value:
+
+      the 8fps clock      hero-engine.js:1425 -- one setInterval at 125ms, commented
+                          "MASTER 8fps CLOCK", and wobbleDrag is called from inside it.
+                          The stop-motion judder IS the character; the original comment
+                          says "squirm like picking up a Mii (8fps stop-motion)". Running
+                          this at 60fps would be smoother and would be a different feel.
+      the 0.45 smoothing  vel += (dx - vel) * 0.45
+      the 0.7 / +-16deg   lean = clamp(vel * 0.7, +-16) -- "follow-through: body trails
+                          the motion". This is the ingredient that makes it read as
+                          physics: the tilt is the CURSOR'S VELOCITY, so a fling leans
+                          hard and a still hand barely moves. Nothing here loops
+                          independently of what your hand is doing.
+      squash & stretch    sx = 1 - s*0.03 - |lean|*0.0009, sy = 1 + s*0.04
+
+    WHAT IS NEW, AND WHY. The original tilted the whole ghost -- one rigid object, which
+    was right when the object was a cookie. The payload here is a WORD, and play.html
+    already wraps it one character per inline-block span for exactly this reason. A word
+    tilting as a unit is a sticker; letters reacting individually are alive. So the
+    original's single lean value is fanned out over the glyphs as a CHAIN:
+
+      the glyph under your thumb chases the raw velocity target
+      every other glyph chases its NEIGHBOUR one step nearer that grab point
+
+    which is a cascade of first-order filters, so phase lag accumulates with distance and
+    the far end of the word arrives late and smaller without a single hand-written delay.
+    That is the stagger, and it is derived from where you actually grabbed rather than
+    from the letter index -- grab "delight." by the "t" and the wave runs the other way.
+
+    THE IDLE SQUIRM IS KEPT AND DELIBERATELY DEMOTED. The original also carried a
+    pointer-independent pendulum (sin(tk*0.9)*4 + sin(tk*1.7)*1.5, so +-5.5deg) and
+    dropping it would lose the "there is something alive in your hand" reading that is
+    half of why the original is memorable. But a term that runs regardless of your hand is
+    exactly the canned-decoration failure, so it is held to +-4.6deg against the lean's
+    +-16 and given a per-glyph phase offset, which turns a wave into a squirm. The lean
+    dominates any real movement by better than 3:1; the squirm is what is left when you
+    hold still, and holding still is the only time it is the loudest thing.
+
+    NO LAYOUT IS READ AND NONE IS WRITTEN. The tick touches nothing but .style.transform
+    on glyphs that are already promoted, off a clock, from state carried in JS -- there is
+    no getBoundingClientRect in the loop for tools/performance-idle-contract.py to find.
+    The one rect read in the whole gesture is the one pointerdown was already doing.
+    ══════════════════════════════════════════════════════════════════════════════ */
+ var WOB_MS=125,                                  // the master clock's period, 8fps
+     WOB_FOLLOW=0.45,                             // hero-engine.js:758, verbatim
+     WOB_LEAN=0.7, WOB_LEAN_MAX=16,               // hero-engine.js:759, verbatim
+     SETTLE_STEP=16;                              /* the 16ms per-character step the
+                                                     headline's own entrance cascade uses
+                                                     (play.html: calc(var(--i) * 16ms)) --
+                                                     the settle is the same word rippling,
+                                                     so it ripples at the same rate */
+ var wob=null;
+
+ /* Start the squirm. gi is the glyph the pointer came down on: the head of the chain. */
+ function wobStart(g,gi){
+  if(reduce)return;                               // see the reduced-motion note in up()
+  var els=[].slice.call(g.children);
+  if(!els.length)return;
+  wob={els:els,gi:Math.max(0,Math.min(els.length-1,gi)),tk:0,lx:null,vel:0,
+       lean:els.map(function(){return 0;}),timer:0};
+  wob.timer=setInterval(wobTick,WOB_MS);
+ }
+
+ function wobTick(){
+  if(!wob||!ghost)return;
+  var t=++wob.tk;
+  /* Smoothed horizontal cursor velocity, from the position the move handler already
+     stored -- the tick never asks the pointer or the DOM anything. */
+  if(wob.lx==null)wob.lx=ghost._x;
+  var dx=ghost._x-wob.lx;wob.lx=ghost._x;
+  wob.vel+=(dx-wob.vel)*WOB_FOLLOW;
+  var target=Math.max(-WOB_LEAN_MAX,Math.min(WOB_LEAN_MAX,wob.vel*WOB_LEAN));
+  /* Walk OUTWARD from the grab point so a glyph always chases a neighbour that has
+     already been updated this tick -- that is what makes the lag accumulate with
+     distance instead of every letter lagging the target by the same one step. */
+  var gi=wob.gi,n=wob.els.length,d,i;
+  for(d=0;d<n;d++){
+   for(var s=0;s<2;s++){
+    i=s?gi-d:gi+d;
+    if(d===0&&s)continue;
+    if(i<0||i>=n)continue;
+    var src=d===0?target:wob.lean[s?i+1:i-1];
+    wob.lean[i]+=(src-wob.lean[i])*WOB_FOLLOW;
+   }
+  }
+  for(i=0;i<n;i++){
+   var ph=t*0.9+i*0.8, sv=Math.sin(ph);
+   var sway=sv*3.2+Math.sin(t*1.7+i*1.3)*1.4;     // demoted from the original's 4 + 1.5
+   var rot=sway+wob.lean[i];
+   var sx=1-sv*0.03-Math.abs(wob.lean[i])*0.0009; // squash & stretch, hero-engine.js:763
+   var sy=1+sv*0.04;
+   var bob=Math.round(sv*2);
+   wob.els[i].style.transform="translate3d(0,"+bob+"px,0) rotate("+rot.toFixed(1)+"deg) scale("+sx.toFixed(3)+","+sy.toFixed(3)+")";
+  }
+ }
+
+ /* ── AND THEN THEY COME TO REST ──────────────────────────────────────────────
+    The ghost dies at pointerup, so the settle cannot happen on it. It happens on the REAL
+    word, which is the correct object anyway: the letters you were holding are the letters
+    that go back into the sentence, and handing the ghost's final angles across is what
+    makes the return continuous rather than a cut.
+
+    --sp-bounce, AND IT HAD TO BE THAT ONE. Of the four springs it is the only one whose
+    overshoot survives being applied to a rotation: it goes to 1.1065, so a letter left at
+    12deg swings ~1.3deg past upright before settling -- visible, and the "little
+    overshoot" a hand-thrown object owes you. --sp-pop peaks at 1.0151, which on the same
+    12deg is 0.18deg and would not be seen. Its duration is --sp-bounce-dur and may not be
+    changed independently (tokens.css §6). Under reduced motion tokens.css already collapses
+    every spring duration to 1ms, so this rule needs no @media of its own -- the letters are
+    simply upright, which is where they were going.
+
+    THE STAGGER RUNS THE SAME WAY THE WOBBLE DID: delay by distance from the grab point, so
+    the letter you were pinching lands first and the word unwinds away from your thumb. */
+ var settleGlyphTimer=0,settleGlyphWord=null,takenTimer=0;
+
+ function endGlyphSettle(){
+  clearTimeout(settleGlyphTimer);
+  if(settleGlyphWord){
+   [].forEach.call(settleGlyphWord.querySelectorAll(".cyc-ch"),function(ch){
+    ch.style.transition="";ch.style.transform="";ch.style.transitionDelay="";ch.style.willChange="";
+   });
+   settleGlyphWord.classList.remove("settling");
+  }
+  settleGlyphWord=null;
+ }
+
+ function settleGlyphs(w){
+  endGlyphSettle();
+  if(!wob||reduce)return;
+  var chs=[].slice.call(w.querySelectorAll(".cyc-ch"));
+  var n=Math.min(chs.length,wob.els.length);
+  if(!n)return;
+  var gi=wob.gi,any=false,i;
+  for(i=0;i<n;i++){
+   if(Math.abs(wob.lean[i])<0.15)continue;
+   any=true;
+   chs[i].style.willChange="transform";
+   chs[i].style.transition="none";
+   chs[i].style.transform="rotate("+wob.lean[i].toFixed(1)+"deg)";
+  }
+  if(!any)return;
+  settleGlyphWord=w;
+  void w.offsetWidth;                             // one forced reflow, once per drop
+  var maxD=0;
+  for(i=0;i<n;i++){
+   var d=Math.abs(i-gi);if(d>maxD)maxD=d;
+   chs[i].style.transition="transform var(--sp-bounce-dur) var(--sp-bounce)";
+   chs[i].style.transitionDelay=(d*SETTLE_STEP)+"ms";
+   chs[i].style.transform="rotate(0deg)";
+  }
+  w.classList.add("settling");
+  /* The promotion comes off when the last letter is home, for the same reason .cyc-ch
+     strips .in on animationend: a span left carrying a layer keeps it forever. */
+  settleGlyphTimer=setTimeout(endGlyphSettle,BOUNCE_MS+maxD*SETTLE_STEP+60);
+ }
+
+ function wobStop(){
+  if(!wob)return;
+  clearInterval(wob.timer);
+  wob=null;
  }
 
  function makeGhost(w){
@@ -1014,10 +1233,24 @@
   function up(){
    if(!dragging)return;
    dragging=false;release();w.classList.remove("grab");
-   document.body.classList.remove("catchReady");
    var hit=ghost&&onHead(ghost._x,ghost._y);
-   if(ghost){ghost.remove();ghost=null;}
    w.style.opacity="";                     // the word comes home either way
+   /* THE ANGLES CROSS OVER BEFORE THE GHOST DIES. settleGlyphs reads wob, so it has to run
+      while wob is still standing; it writes the ghost's final lean onto the real letters
+      in the same frame the word becomes visible again, which is what makes the return one
+      continuous movement rather than a cut back to upright. */
+   settleGlyphs(w);wobStop();
+   if(ghost){ghost.remove();ghost=null;}
+   /* THE LEAN LETS GO HERE, AND HOW IT LETS GO DEPENDS ON WHETHER IT WAS FED. A taken drop
+      hands the head over to the mood performance on the settle spring (play.css); an
+      abandoned one just retracts. .pMoodTaken is dropped again once that handover is over
+      so a later hover-out is never left riding the wrong curve. */
+   document.body.classList.remove("catchReady");
+   if(hit){
+    document.body.classList.add("pMoodTaken");
+    clearTimeout(takenTimer);
+    takenTimer=setTimeout(function(){document.body.classList.remove("pMoodTaken");},SETTLE_MS+60);
+   }
    cycHold=false;
    if(hit)fire(w.getAttribute("data-mood"));
    nextCycle(hit?DWELL:2600);              // a miss puts the word back and resumes sooner
@@ -1035,7 +1268,8 @@
       the ghost is built from it, and endSettle() lands any in-flight line settle on its end
       state so the rect this gesture measures is the resting one. */
    w.classList.remove("out");
-   endSettle();
+   endSettle();endGlyphSettle();           // a second grab lands the first one's unwind
+   measureHead();                          // the gesture's one read of the drop zone
    var r=w.getBoundingClientRect();
    w.classList.add("grab");
    cycHold=true;clearTimeout(cycTimer);    // freeze the cycler for the whole gesture
@@ -1043,6 +1277,12 @@
    document.body.appendChild(ghost);
    ghost._x=r.left+r.width/2;ghost._y=r.top+r.height/2;   // spawns exactly where the word was
    ghost.style.left=ghost._x+"px";ghost.style.top=ghost._y+"px";
+   /* WHICH LETTER YOU PINCHED, from the rect this gesture was already reading -- no extra
+      layout, and no per-glyph measurement. The word is a single nowrap line of equal-ish
+      glyphs, so the fraction across its box is the glyph index to within one letter, which
+      is all a stagger origin needs to be. */
+   var gn=ghost.childElementCount||1;
+   wobStart(ghost,r.width?Math.floor((e.clientX-r.left)/r.width*gn):0);
    /* opacity:0, NOT visibility:hidden and NOT removal. It keeps the headline's layout slot
       (no reflow, no line jump mid-drag) AND keeps the element receiving pointer events,
       which is what makes setPointerCapture on it hold the gesture. */

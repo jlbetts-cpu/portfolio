@@ -172,20 +172,28 @@ body.pMoodTaken #stageMorph{transition:transform var(--sp-settle-dur) var(--sp-s
    and stopping there would leave the affordance with no signal at all -- which is the
    failure Apple's reduced-motion criteria name directly (don't remove it, substitute
    something that does not move). The substitute is the drop zone itself, drawn: a hairline
-   circle at the radius play-games.js's onHead() actually tests, cross-faded in while the
+   outline of the shape play-games.js's onHead() actually tests, cross-faded in while the
    head is armed. It is more informative than the lean, not less -- the lean says "I will
    take this", the ring says "I will take this, from anywhere inside here" -- and it is
    built from opacity alone, which is the substitution Apple asks for.
-   THE RADIUS IS THE REAL ONE: onHead() accepts inside 0.55 x the stage's width from its
-   centre, and #stageMorph is the same box, so 110% of it is that circle exactly. If the
-   hit test ever moves, this must move with it. */
+
+   THE SHAPE IS THE REAL ONE AND THESE NUMBERS ARE NOT DECORATIVE. onHead() tests an ellipse
+   inscribed in #face's data-head-bounds ("0.1933 0.0616 0.8484 0.9234") with a 1.06 pad, so:
+     centre   x (.1933+.8484)/2 = 52.09%   y (.0616+.9234)/2 = 49.25%
+     size     w (.8484-.1933)*1.06 = 69.44%   h (.9234-.0616)*1.06 = 91.35%
+     offset   left 52.09-69.44/2 = 17.37%    top 49.25-91.35/2 = 3.58%
+   It is hung on .stage rather than on #stageMorph because .stage is the box onHead()
+   measures -- #stageMorph also contains the floor shadow and is therefore taller, which
+   would have drawn a ring that lied by the height of the shadow.
+   IF THE HIT TEST MOVES, THIS MUST MOVE WITH IT. There is no way to derive one from the
+   other in CSS, so the coupling is this comment. */
 @media(prefers-reduced-motion:reduce){
  #stageMorph,body.pMoodTaken #stageMorph{transition:none}
  body.catchReady #stageMorph{transform:none}
- #stageMorph::after{content:"";position:absolute;left:50%;top:50%;width:110%;aspect-ratio:1;
-  transform:translate(-50%,-50%);border-radius:var(--r-full);border:1px solid var(--c400);
+ .stage::after{content:"";position:absolute;left:17.37%;top:3.58%;width:69.44%;height:91.35%;
+  border-radius:var(--r-full);border:1px solid var(--c400);
   opacity:0;transition:opacity var(--dur-state) linear;pointer-events:none;z-index:6}
- body.catchReady #stageMorph::after{opacity:1}
+ body.catchReady .stage::after{opacity:1}
 }
 .stage{position:relative;width:100%;aspect-ratio:1;will-change:transform;z-index:5}
 .face{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;-webkit-user-select:none;user-select:none;cursor:pointer}
