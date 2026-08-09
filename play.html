@@ -399,8 +399,6 @@
  /* THE TUG. Nine pixels sideways, twice, and then it never asks again -- see the budget
     in play-games.js. It is the only affordance the gesture gets, because the headline
     spec is explicit that a hint line under the h1 is not allowed to pay for this. */
- .cycw.cwtug{animation:cwTug var(--dur-enter) var(--ease-out) 2 both}
- @keyframes cwTug{0%{transform:translateX(0)}22%{transform:translateX(9px)}52%{transform:translateX(0)}74%{transform:translateX(5px)}100%{transform:translateX(0)}}
 
  /* THE GHOST. position:fixed on <body> with translate(-50%,-50%), which is what lets the
     rig write left/top straight from clientX/clientY and have the word centred under the
@@ -416,7 +414,6 @@
 
  @media(prefers-reduced-motion:reduce){
   .cyc-ch.in,.cycw.out .cyc-ch{animation:none!important;opacity:1!important;filter:none!important;transform:none!important}
-  .cycw.cwtug{animation:none}
  }
 
  /* ══ THE HEADLINE ARRIVES, AND SO DO THE BUTTONS ════════════════════════════════

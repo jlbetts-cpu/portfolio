@@ -824,20 +824,13 @@
   },560);
  }
 
- /* THE TUG IS THE ONLY THING THAT TEACHES THE GESTURE. There is no label, no hint line and
-    no tooltip -- the spec that killed the clause on the home page was explicit that a hint
-    line is not the answer -- so the word nudges itself sideways twice, 900ms after it
-    lands, at most three times in a session, never during a drag and never under reduced
-    motion. Same budget the original used (TUG_MAX = 3). */
- function tug(w){
-  if(reduce||!w||tugCount>=TUG_MAX)return;
-  tugCount++;
-  setTimeout(function(){
-   if(!w.parentNode||w.classList.contains("out")||dragging)return;
-   w.classList.add("cwtug");
-   setTimeout(function(){w.classList.remove("cwtug");},1600);
-  },900);
- }
+  /* NO TUG. The word used to nudge itself sideways twice, 900ms after landing, to teach
+     that it is draggable. Jayden: "I don't like the jolt hint" -- removed entirely.
+     tug() stays as a no-op so its call sites remain honest rather than being unpicked
+     one at a time. If the gesture ever needs teaching again it should be taught by the
+     word's resting appearance, not by motion -- a hint line is still not the answer,
+     which was settled when the same clause was killed on the home page. */
+  function tug(){}
 
  function fire(mood){
   /* One owner of what a mood means. This is the menu's own button, so hero-engine.js's
