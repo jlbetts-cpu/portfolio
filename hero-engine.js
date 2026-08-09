@@ -810,7 +810,19 @@ function spawnCrumbs(sp,n){
  var mx=(sr.left-hr.left)+sr.width*0.5,my=(sr.top-hr.top)+sr.height*0.86,sw=sr.width;
  for(let i=0;i<n;i++){const c=document.createElement("div");c.className="crumb";const s=4+Math.random()*8;
   c.style.width=s.toFixed(1)+"px";c.style.height=(s*(0.7+Math.random()*0.5)).toFixed(1)+"px";
-  var isText=Math.random()<0.45;c.style.backgroundImage="url(images/"+(isText?"texttex":"crumbtex")+".png)";c.style.backgroundPosition=(-(Math.random()*120)|0)+"px "+(-(Math.random()*120)|0)+"px";
+  /* THE TEXTURE COMES FROM THE STYLESHEET, which has always had it right.
+     This line used to write the background image inline, and got it wrong
+     twice: it asked for crumbtex.PNG when the only file that has ever existed
+     is crumbtex.webp, and 45% of the time it asked for texttex.png, which has
+     never existed in any format in any commit -- so nearly half of every
+     crumb 404'd from the day this shipped, and the inline value beat the
+     correct one in .crumb. Dropping the write lets play.css / index.html
+     supply images/crumbtex.webp, which both already declare.
+     The position randomisation is the part that was doing real work -- it is
+     what stops every crumb showing the same corner of the sheet -- so it
+     stays. If the second, text-grained crumb variant is still wanted, it
+     needs an asset made; there is nothing here to restore. */
+  c.style.backgroundPosition=(-(Math.random()*120)|0)+"px "+(-(Math.random()*120)|0)+"px";
   c.style.clipPath=randCrumbShape();
   const sh=document.createElement("div");sh.className="crumbshadow";sh.style.opacity="0";host.appendChild(sh);c._sh=sh;
   c._x=mx+(Math.random()-0.5)*sw*0.16;c._y=my+(Math.random()-0.5)*6;

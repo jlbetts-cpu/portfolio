@@ -207,6 +207,14 @@ PATCHES = {
     # recalc, five times a frame, on the largest DOM on the site. The value read
     # is --selection-handle-size, which is a constant that cannot change without
     # a resize, and metrics() is the cache that resize already invalidates.
+    # REVERTS the eye-transform write elision, so the A/B can be run in one
+    # process with no git juggling: with this applied, every eye writes its
+    # transform each frame whether or not the value changed, which is what
+    # forced filter:url(#inkEye) to re-rasterise 24 times a frame.
+    "no-eye-elision": ("play-engine.js", [
+        (' function setT(el,v){if(!el||el.__lastT===v)return;el.__lastT=v;el.style.transform=v;}',
+         ' function setT(el,v){if(!el)return;el.style.transform=v;}'),
+    ]),
     "hero-handle-cache": ("hero-head-transform.js", [
         ('    yAmp:rootNumber("--hero-head-float-y-amp",9),',
          '    handle:rootNumber("--selection-handle-size",8),\n'

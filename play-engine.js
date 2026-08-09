@@ -666,6 +666,27 @@
   if(o.__bwAt!==HW||!o.__bw){var w=o.box.offsetWidth;if(w>0){o.__bw=w;o.__bwAt=HW;}else return 34;}
   return o.__bw;
  }
+ /* ── A WRITE THAT CHANGES NOTHING STILL COSTS EVERYTHING ─────────────────
+    .eye carries filter:url(#inkEye) -- an feTurbulence feeding an
+    feDisplacementMap, which is the non-accelerated filter path. Chromium
+    re-runs that graph whenever the filtered subtree is dirtied, and _frame
+    wrote a transform to the eye box, the lid, the iris and the glint on EVERY
+    frame regardless of whether the value had changed. The gaze offsets are
+    Math.round()ed and the lid string is constant while nobody is blinking, so
+    most of those writes set a property to the value it already held -- and
+    bought a full filter re-rasterisation, per eye, for an identical picture.
+    Twenty-four eyes across twelve heads is twenty-four displacement graphs
+    re-run per frame to draw exactly what was already on screen.
+    This is the reason to reach for elision rather than for the filter itself:
+    the ink is the look. Rendered at 4x and compared side by side, dropping
+    filter:url(#inkEye) turns the iris from a ragged, hand-inked disc into a
+    geometrically perfect circle -- the pasted-on-sticker reading the whole
+    head rig exists to avoid. The filter is kept exactly as authored; a still
+    eye simply stops asking for it to be recomputed.
+    These four elements are written here and nowhere else in this file, which
+    is what makes a cached last-value safe. */
+ function setT(el,v){if(!el||el.__lastT===v)return;el.__lastT=v;el.style.transform=v;}
+ var _rmSig="";   // the reduced-motion branch's last-written state; see the block that uses it
  function collides(nx,ny,pad){for(var i=0;i<avoids.length;i++){var a=avoids[i];
   if(nx+HW>a.l-pad&&nx<a.r+pad&&ny+HH>a.t-pad&&ny<a.b+pad)return true;}return false;}
  // --- state ---
@@ -853,7 +874,12 @@
    if(typeof drowsy!=="undefined"&&drowsy&&Math.random()<0.4){wig={t:0.7,dur:0.7,type:"stretch"};sqT=0.6;sqyP=1.09;sqxP=1/1.09;mof=6;if(bf===0)bf=5;return;}}catch(_){}
   try{ // curiosity: a hand resting nearby gets approached, the way a still hand does
    if(typeof pointer!=="undefined"&&typeof lastMove!=="undefined"&&now-lastMove<4200){
-    var hcr=hero.getBoundingClientRect(),cxr=pointer.px-hcr.left-HW/2;
+    /* heroBox, not a fresh rect: this runs inside the per-head loop, so a
+       measurement here is taken once per head rather than once. The shared
+       cache exists for exactly this, and is refreshed rAF-throttled on scroll
+       and resize plus a slow safety tick -- and only .left is wanted, which
+       is the most stable number on it. */
+    var cxr=pointer.px-heroBox.left-HW/2;
     var dxc=Math.abs(cxr-x);
     if(dxc>120&&dxc<430&&cxr>M&&cxr<heroR.w-HW-M&&Math.random()<0.3){
      dir=cxr>x?1:-1;gzx=dir*0.8;gzy=0.15;sacAt=now+900;
@@ -1068,9 +1094,24 @@
       real seats; it must not replace every x with the same 5% fallback and collapse the crowd
       into one head. Keep the contact shadow and the existing polished-floor reflection static
       on that same feet line too. */
+   /* AND IT WRITES ONLY WHEN ONE OF THOSE FROZEN VALUES ACTUALLY CHANGES.
+      Reduced motion freezes x and y, so this block was setting six properties
+      per head to the values they already held, sixty times a second, for as
+      long as the tab stayed open. Twelve heads made that seventy-two writes a
+      frame to redraw an identical picture -- which is how asking for LESS
+      motion ended up costing MORE style recalculation than leaving it on:
+      measured 62.8 recalcs/sec against 45.7 with motion allowed. Someone who
+      asks for stillness should be the cheapest visitor on the site, not the
+      most expensive.
+      Every input here is frozen or step-changing, so one signature covers the
+      lot; when it matches, the frame has nothing to say and says nothing. */
+   var _lob=(shown&&LOBBY(now))?1:0;
+   var _sig=x.toFixed(1)+"|"+y.toFixed(1)+"|"+floorY.toFixed(1)+"|"+FOOT+"|"+HW+"|"+(shown?1:0)+"|"+_lob;
+   if(_sig===_rmSig)return;
+   _rmSig=_sig;
    root.style.transform="translate("+x.toFixed(1)+"px,"+y.toFixed(1)+"px)";
    shadow.style.transform="translate("+(x+HW*0.06).toFixed(1)+"px,"+(floorY+HH*FOOT-2).toFixed(1)+"px)";shadow.style.opacity=shown?"0.36":"0";
-   if(shown&&LOBBY(now)){if(_reflFoot!==FOOT){_reflFoot=FOOT;refl.style.transformOrigin="50% "+(FOOT*100).toFixed(2)+"%";}
+   if(_lob){if(_reflFoot!==FOOT){_reflFoot=FOOT;refl.style.transformOrigin="50% "+(FOOT*100).toFixed(2)+"%";}
     refl.style.transform="translate("+x.toFixed(1)+"px,"+floorY.toFixed(1)+"px) scale(1,-1) scale(1,"+REFL_PERSP.toFixed(3)+")";refl.style.opacity=(0.36*REFL_K).toFixed(3);}
    else refl.style.opacity="0";
    return;}
@@ -1786,11 +1827,11 @@
   if(mof>0&&mouth){mouth.style.transform=(mof%2)?"translateY(1.2px) scaleY(1.06)":"translateY(0.5px) scaleY(1.02)";mof--;}
   else if(mouth&&mof===0)mouth.style.transform="";
   eyeEls3.forEach(function(o,oi){
-   if(o.box)o.box.style.transform="rotate("+((o.ang||0)+(Math.abs(rot)>20?0:-rot)).toFixed(1)+"deg)";   // THEIR canthal tilt stays; the glint's light source does not tilt with the head
-   if(bf>0){var lp=(bf===5||bf===1)?-44:(bf===4?-14:-4);o.lid.style.transform="translateY("+lp+"%)";}
-   else o.lid.style.transform=drowse2?"translateY(-64%)":"translateY(-105%)";   // heavy lids when sleepy
-   if(dzf>0){var ph=(12-dzf)*0.95+(oi?2.2:0);var ebw2=eyeBoxW(o);o.iris.style.transform="translate("+Math.round(Math.cos(ph)*ebw2*0.22)+"px,"+Math.round(Math.sin(ph)*ebw2*0.14)+"px)";}
-   else{var ebw=eyeBoxW(o);var gtx2=Math.round(nx*ebw*0.18),gty2=Math.round(ny*ebw*0.10);o.iris.style.transform="translate("+gtx2+"px,"+gty2+"px)";if(o.glint)o.glint.style.transform="translate("+Math.round(gtx2*0.62)+"px,"+Math.round(gty2*0.62)+"px)";}
+   setT(o.box,"rotate("+((o.ang||0)+(Math.abs(rot)>20?0:-rot)).toFixed(1)+"deg)");   // THEIR canthal tilt stays; the glint's light source does not tilt with the head
+   if(bf>0){var lp=(bf===5||bf===1)?-44:(bf===4?-14:-4);setT(o.lid,"translateY("+lp+"%)");}
+   else setT(o.lid,drowse2?"translateY(-64%)":"translateY(-105%)");   // heavy lids when sleepy
+   if(dzf>0){var ph=(12-dzf)*0.95+(oi?2.2:0);var ebw2=eyeBoxW(o);setT(o.iris,"translate("+Math.round(Math.cos(ph)*ebw2*0.22)+"px,"+Math.round(Math.sin(ph)*ebw2*0.14)+"px)");}
+   else{var ebw=eyeBoxW(o);var gtx2=Math.round(nx*ebw*0.18),gty2=Math.round(ny*ebw*0.10);setT(o.iris,"translate("+gtx2+"px,"+gty2+"px)");setT(o.glint,"translate("+Math.round(gtx2*0.62)+"px,"+Math.round(gty2*0.62)+"px)");}
   });
   if(dzf>0)dzf--;
   if(bf>0)bf--;
@@ -3136,7 +3177,7 @@ function teams(){
   wrap.style.cssText="position:absolute;left:0;right:0;bottom:0;top:0;pointer-events:none;z-index:8;opacity:0;transition:opacity .5s";   // molten body IN FRONT of the platforms + heads (clipped to below the surface) so anything the lava reaches vanishes under it
   var gcv=document.createElement("canvas");gcv.className="hmLavaGL";gcv.style.cssText="position:absolute;left:0;bottom:0;width:100%;height:100%;display:block";
   var crust=document.createElement("canvas");crust.className="hmLavaCrust";crust.style.cssText="position:absolute;left:0;top:0;width:100%;height:100%;display:block;pointer-events:none;z-index:9";
-  var haze=document.createElement("div");haze.className="hmLavaHaze";haze.style.cssText="position:absolute;left:0;right:0;height:96px;pointer-events:none;z-index:10;opacity:0;transition:opacity .4s;-webkit-backdrop-filter:blur(1.4px) url(#hmHeatFilter) brightness(1.06) saturate(1.2);backdrop-filter:blur(1.4px) url(#hmHeatFilter) brightness(1.06) saturate(1.2);-webkit-mask-image:linear-gradient(to top,#000 30%,rgba(0,0,0,0));mask-image:linear-gradient(to top,#000 30%,rgba(0,0,0,0));background:linear-gradient(to top,rgba(255,130,35,.14),rgba(255,130,35,0));animation:hmHazeWob 2.1s ease-in-out infinite";
+  var haze=document.createElement("div");haze.className="hmLavaHaze";haze.style.cssText="position:absolute;left:0;right:0;height:96px;pointer-events:none;z-index:10;opacity:0;transition:opacity .4s;-webkit-backdrop-filter:blur(1.4px) url(#hmHeatFilter) brightness(1.06) saturate(1.2);backdrop-filter:blur(1.4px) url(#hmHeatFilter) brightness(1.06) saturate(1.2);-webkit-mask-image:linear-gradient(to top,#000 30%,rgba(0,0,0,0));mask-image:linear-gradient(to top,#000 30%,rgba(0,0,0,0));background:linear-gradient(to top,rgba(255,130,35,.14),rgba(255,130,35,0));animation:hmHazeWob 2.1s ease-in-out infinite;animation-play-state:paused";
   var glow=document.createElement("div");glow.className="hmLavaGlow";glow.style.cssText="position:absolute;left:0;right:0;bottom:0;top:0;pointer-events:none;z-index:1;opacity:0;transition:opacity .5s;background:radial-gradient(120% 60% at 50% 100%,rgba(255,120,30,.28),rgba(255,80,10,.06) 45%,transparent 70%)";   // warm ambient glow stays BEHIND the heads as atmosphere
   wrap.appendChild(gcv);gAdd(hero,wrap);gAdd(hero,glow);gAdd(hero,crust);gAdd(hero,haze);
 
@@ -3182,7 +3223,7 @@ function teams(){
    if(!gl&&!initGL()){/* no webgl: crust-only fallback */}sizeGL();running=true;wrap.style.opacity="1";glow.style.opacity="1";window.__hmLavaOn=true;requestAnimationFrame(loop);}
   function stop(){
   try{var _h=document.querySelector('.hero'); if(_h)_h.style.minHeight='';
-      document.body.classList.remove('tSchedOpen');}catch(_){}running=false;window.__hmLavaOn=false;wrap.style.opacity="0";glow.style.opacity="0";haze.style.opacity="0";surfaceY=1e9;level=0;embers.length=0;bubbles.length=0;if(cctx)cctx.clearRect(0,0,crust.width,crust.height);}
+      document.body.classList.remove('tSchedOpen');}catch(_){}running=false;window.__hmLavaOn=false;wrap.style.opacity="0";glow.style.opacity="0";haze.style.opacity="0";haze.style.animationPlayState="paused";haze.__on="0";surfaceY=1e9;level=0;embers.length=0;bubbles.length=0;if(cctx)cctx.clearRect(0,0,crust.width,crust.height);}
   var wasOn=false,lastFrame=performance.now();
   function loop(n){if(!active()){if(wasOn){stop();wasOn=false;}return;}
    requestAnimationFrame(loop);var tsec=(n-t0)/1000;
@@ -3245,7 +3286,19 @@ function teams(){
     cctx.beginPath();cctx.arc(em.x,em.y,em.r,0,6.283);cctx.fillStyle="rgba(255,"+(150+ea*90|0)+","+(40+ea*90|0)+","+(ea*0.9).toFixed(2)+")";cctx.shadowColor="rgba(255,140,40,"+ea.toFixed(2)+")";cctx.shadowBlur=6;cctx.fill();}
     cctx.shadowBlur=0;}
    // heat haze band sits just above the surface
-   haze.style.top=Math.round(surfaceY-90)+"px";haze.style.opacity=(surfaceY<arenaH-20?"1":"0");
+   /* THE HAZE ONLY SHIMMERS WHEN IT IS ON SCREEN. hmHazeWob animates a
+      transform, which would normally ride the compositor for free -- but this
+      element carries a backdrop-filter, and Chromium cannot composite an
+      animation on a backdrop-filtered layer, so it falls back to the main
+      thread and costs a style recalculation on EVERY frame. The haze is
+      created at page load and is invisible outside a lava fight, so that was
+      ~60 recalcs a second, forever, on every visit to Play, to shimmer
+      something at opacity 0. It now runs only while it is actually showing,
+      and the writes are elided so a steady state costs nothing. */
+   haze.style.top=Math.round(surfaceY-90)+"px";
+   var _hzOn=(surfaceY<arenaH-20)?"1":"0";
+   if(haze.__on!==_hzOn){haze.__on=_hzOn;haze.style.opacity=_hzOn;
+    haze.style.animationPlayState=(_hzOn==="1")?"running":"paused";}
    lastFrame=n;wasOn=true;}
   function drawCrust(tsec){if(!cctx)return;cctx.clearRect(0,0,crust.width,crust.height);
    var W=crust.width,sy=surfaceY;if(sy>arenaH-4)return;
