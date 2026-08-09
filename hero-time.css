@@ -132,7 +132,13 @@
 }
 @media(max-width:760px){:root{
  --hero-peek-width:211px;
- --hero-peek-shift-x:-152px;
+ /* -152 was read off the HUD at 390 and it puts the head OFF-SCREEN: at 211px
+    wide the centre lands at x=43, so the left edge is -62.5 and about a quarter
+    of the face is sliced by the screen. -74 seats it with a 16px gutter, which
+    is play/about's own phone gutter. This is a CLIP FIX, not a composition
+    call -- Jayden placed the desktop rest deliberately and should retune this
+    one by eye; the constraint is only that shift-x >= -89.5 keeps it on screen. */
+ --hero-peek-shift-x:-74px;
  --hero-peek-depth:-129px
 }}
 /* --theme-duration is NOT overridden here. It was :root:root{--theme-duration:
