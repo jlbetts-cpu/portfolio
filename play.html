@@ -174,12 +174,18 @@
  @media(prefers-reduced-motion:reduce){.pHub{transition:none}}
 
  /* The shared Home sign-off, now in Play's normal flow below the original viewport. */
- .siteFoot{scroll-margin-top:80px;margin-top:clamp(80px,12vh,150px);padding:0 clamp(24px,5vw,40px) clamp(32px,5vh,64px);text-align:center}
- .footReach{font-family:var(--sans);font-weight:400;font-size:var(--fs-prose);line-height:var(--lh-prose);color:var(--c700);margin:0 auto;max-width:56ch;text-wrap:balance}
- .footIn{font-weight:600;color:var(--c950);text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:3px;text-decoration-color:var(--c500);transition:text-decoration-color .15s cubic-bezier(.2,.8,.2,1),color .15s cubic-bezier(.2,.8,.2,1);display:inline-block;padding-block:var(--sp-10);margin-block:calc(var(--sp-10) * -1)}
- .footIn:hover,.footIn:focus-visible{color:var(--accent);text-decoration-color:var(--accent)}
- .footIn:active{color:var(--accent-press);text-decoration-color:var(--accent-press)}
- .footMark{font-family:var(--sans);font-weight:600;font-size:min(var(--fs-display),13vw);line-height:.9;letter-spacing:var(--tr-display);color:var(--c100);margin:var(--sp-8-16) 0 0;white-space:nowrap;-webkit-user-select:none;user-select:none}
+ /* The shared sign-off, in Play's normal flow below the original viewport.
+    The whole component lives in footer.css; the page owns placement only.
+    play.css keeps hiding it while a game owns the viewport -- that rule keys
+    on .siteFoot itself, so the markup change does not reach it. */
+ .siteFoot{
+  scroll-margin-top:80px;margin-top:var(--sp-80-152);
+  max-width:var(--page-max);margin-inline:auto;
+  padding-inline:var(--sp-40);padding-bottom:var(--sp-32-64)
+ }
+ /* 24, not the 16 the other pages use: .pHub's own phone gutter is 24, and the
+    hairline has to land on the card grid directly above it. */
+ @media(max-width:760px){.siteFoot{padding-inline:var(--sp-24)}}
 
  /* The legacy launcher is behavior-only. The visible Hero mood control owns the canonical IDs. */
  #gamebar{display:none}
@@ -712,10 +718,35 @@
   </a>
  </nav>
 </section>
-<footer class="siteFoot" id="contact" role="contentinfo">
- <p class="footReach">I&rsquo;m open to full-time roles and would love to chat. Find me on <a class="footIn" href="https://www.linkedin.com/in/jaydenbetts" target="_blank" rel="noopener noreferrer">LinkedIn</a>, <a class="footIn" href="https://www.instagram.com/jaydenleebetts" target="_blank" rel="noopener noreferrer">Instagram</a>, or <a class="footIn" href="mailto:jaydenlbetts@gmail.com">email</a>.</p>
- <div class="footMark" aria-hidden="true">Jayden Betts</div>
-</footer>
+ <footer class="siteFoot" id="contact" role="contentinfo">
+  <div class="footTop">
+   <div class="footId">
+    <a class="footBrand ctl ctl--quiet" href="index.html" aria-label="Jayden Betts, home"><svg class="footLogo" viewBox="0 0 30 30" aria-hidden="true"><path d="M1 26.3842C3.07605 22.5364 9.00761 17.1494 16.1255 26.3842C23.2434 35.619 14.1981 18.1678 16.1255 8.65665C18.0529 -0.854479 32.3186 -2.22723 28.2852 8.65665C24.2517 19.5405 18.6968 18.261 20.8493 13.2232C23.0018 8.1853 35.3661 26.1679 23.0066 27.4872"/></svg></a>
+    <p class="footStatus">Open to full-time roles.</p>
+    <p class="footCopy">&copy; 2026 Jayden Betts</p>
+   </div>
+   <nav class="footNav" aria-label="Footer">
+    <div class="footCol">
+     <h2 class="footHead" id="footMenu">Menu</h2>
+     <ul class="footList" aria-labelledby="footMenu">
+      <li><a class="footLink ctl ctl--quiet ctl--row" href="index.html#cases">Work</a></li>
+      <li><a class="footLink ctl ctl--quiet ctl--row" href="about.html">About</a></li>
+      <li><a class="footLink ctl ctl--quiet ctl--row" href="play.html">Play</a></li>
+      <li><a class="footLink ctl ctl--quiet ctl--row" href="Jayden-Betts-Resume.pdf" target="_blank" rel="noopener noreferrer" aria-label="Jayden Betts résumé (PDF, opens in a new tab)">Résumé</a></li>
+     </ul>
+    </div>
+    <div class="footCol">
+     <h2 class="footHead" id="footContact">Contact</h2>
+     <ul class="footList" aria-labelledby="footContact">
+      <li><a class="footLink ctl ctl--quiet ctl--row" href="https://www.linkedin.com/in/jaydenbetts" target="_blank" rel="noopener noreferrer">LinkedIn</a></li>
+      <li><a class="footLink ctl ctl--quiet ctl--row" href="https://www.instagram.com/jaydenleebetts" target="_blank" rel="noopener noreferrer">Instagram</a></li>
+      <li><a class="footLink ctl ctl--quiet ctl--row" href="mailto:jaydenlbetts@gmail.com">Email</a></li>
+     </ul>
+    </div>
+   </nav>
+  </div>
+  <div class="footMark" aria-hidden="true">Jayden Betts</div>
+ </footer>
 <!-- The team screen's shell is built by play-games.js (it owns the chips, the drag, the
      shuffle and the live __hmTeamPreview channel); this is only the mount point, so the
      panel's place in the stacking order is declared in markup rather than invented at

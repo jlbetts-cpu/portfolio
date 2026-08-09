@@ -31,6 +31,12 @@ PAGES = [
     "cluster.html",
     "strata.html",
     "ucdavis.html",
+    # play.html is here for the same reason as everything above it: it scrolls,
+    # so it gets the footer. It was the last waived page, and it was waived on a
+    # misreading -- see LEGACY_FOOTER_SHA256 below. play.css:650 hides the footer
+    # while a game owns the viewport; that rule keys on .siteFoot itself, so it
+    # survives markup changes and does not exempt the page from this contract.
+    "play.html",
 ]
 # THE RULE IS "PAGES THAT CAN SCROLL GET THE FOOTER", NOT "TOOLS DON'T HAVE ONE".
 # Stated the second way it swept play.html in with these two and kept the Play
@@ -125,9 +131,15 @@ FOOTER_RE = re.compile(
 # by hash so the contract would not fail on it while the hero lane held the
 # file. It now ships the same conventional footer as every other page, so it is
 # held to the full byte-identical contract like the rest.
-LEGACY_FOOTER_SHA256 = {
-    "play.html": "f0adb841fff9e044169c8d765bd2bd951ee4801c429d22d4fc2bbc03ca1f65b4",
-}
+# Empty, and it should stay that way. play.html was the last waiver: it was held
+# out because the rule had been written as "full-viewport tools have no footer",
+# which is not the rule. The rule is "pages that can scroll get the footer" --
+# the Play hub scrolls and only hides the footer while a game owns the viewport
+# (body.playViewportOwned, play.css:650, which keys on .siteFoot itself and so
+# survives a markup swap). headmaker.html and gradientlab.html compute
+# overflow:hidden and genuinely cannot reach a footer; they are FOOTERLESS, not
+# waived. A waiver here means a page is shipping a footer nobody is checking.
+LEGACY_FOOTER_SHA256 = {}
 
 
 def normalise(value):
