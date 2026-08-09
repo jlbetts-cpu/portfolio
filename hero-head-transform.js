@@ -16,7 +16,30 @@
    rendered:{x:0,y:0,scale:1,rotate:0}};
   var content=hero.querySelector(".heroCopy");
   var peek=hero.querySelector(".heroCharacterPeek");
-  var bounds=(face.getAttribute("data-head-bounds")||"0.22 0.12 0.80 0.91").split(/\s+/).map(Number);
+  /* ── THE BOUNDS ARE THE ARTWORK'S, AND THEY WERE THE FACE'S ──────────────
+     data-head-bounds is where the head sits inside its own image, and the
+     frame traces it exactly -- so if it is one pixel tighter than the cut-out,
+     the head pokes out of its own selection box and no amount of --selection-air
+     hides it once the head is scaled up. It was: the authored 0.22 0.12 0.80
+     0.91 is a rectangle around the FACE, and the artwork is a photographic
+     cut-out with HAIR. Measured off the alpha channel of every image #face can
+     wear, the real extents are 0.1933 0.0617 0.8483 0.9233 -- 5.8% of the
+     image's height missing off the top alone, because wink.webp carries the
+     tallest hair of the nine. At the resting 235px that is the head standing
+     5.7px outside its own frame at scale 1, and 58px outside it at 2.2. That is
+     "sometimes the head peaks out of it": always, by the hair, and further on
+     some moods than others.
+     THE VALUE IS THE UNION OF ALL NINE FACES, NOT THE CURRENT ONE. A frame that
+     re-hugged each face would resize itself every time he blinks -- the exact
+     breathing the rigid-body rewrite exists to stop -- and would let the next
+     mood swap step outside it. One rectangle that bounds every face the head
+     can wear is the object's bounds; that is what a design tool frames.
+     IT IS MEASURED, NOT AUTHORED. tools/hero-head-transform-contract.py reads
+     the alpha channels back out of images/ and fails if this attribute is
+     tighter than the pixels, so a re-exported portrait cannot quietly grow out
+     of its frame again. */
+  var bounds=(face.getAttribute("data-head-bounds")||"0.1933 0.0616 0.8484 0.9234")
+   .split(/\s+/).map(Number);
 
   function rootNumber(name,fallback){
    var value=parseFloat(getComputedStyle(document.documentElement).getPropertyValue(name));
@@ -174,7 +197,8 @@
    wrap.style.setProperty("--hero-head-scale",String(state.scale));
    wrap.style.setProperty("--hero-head-rotate",state.rotate+"deg");
    hero.style.setProperty("--hero-head-scale",String(state.scale));
-   updateLight(cssNumber(wrap,"--hero-head-float-x"),cssNumber(wrap,"--hero-head-float-y"));
+   updateLight(cssNumber(wrap,"--hero-head-float-x"),cssNumber(wrap,"--hero-head-float-y"),
+    cssNumber(wrap,"--hero-head-float-rot"));
    state.rendered={x:state.x,y:state.y,scale:state.scale,rotate:state.rotate};
    state.stamp++;
   }
@@ -622,7 +646,7 @@
   }
   function writeFloat(ms){
    var f=floatAt(ms);
-   updateLight(f.x,f.y);
+   updateLight(f.x,f.y,f.rot);
    wrap.style.setProperty("--hero-head-float-x",f.x.toFixed(2)+"px");
    wrap.style.setProperty("--hero-head-float-y",f.y.toFixed(2)+"px");
    wrap.style.setProperty("--hero-head-float-rot",f.rot.toFixed(3)+"deg");
@@ -670,7 +694,20 @@
 
      THE GRADIENT IS STILL THE ONLY SOURCE. The stop table is parsed from the
      CSSOM at state-change time, not duplicated in JS, so retuning a sky in
-     hero-time.css retunes the lighting with it and the two cannot drift. */
+     hero-time.css retunes the lighting with it and the two cannot drift.
+
+     A SKY IS EVERY LAYER OF ITSELF. This read only the FIRST radial-gradient
+     in the background, which is right for the five daylight states because
+     they are one opaque radial and nothing else. It is wrong for night, which
+     is two TRANSLUCENT glows over an opaque linear base -- so the model saw
+     rgba(...,0) wherever the glows had faded out and concluded the sky was
+     pure black. Measured on the shipped build: at the resting position
+     --env-color read rgb(0,0,0) and --env-raw read 0.000, which collapsed the
+     rim to 3.9% alpha and the ambient term to nothing. Night, the one state
+     whose legibility this file puts ON the rim and the catchlight, was the one
+     state with neither. Every layer is parsed and composited now, over the
+     Hero's own background colour, so what is sampled is the sky that is
+     actually painted. */
   var env=null;
   function splitTop(str){
    var out=[],depth=0,cur="";
@@ -682,7 +719,56 @@
    if(cur.trim())out.push(cur);
    return out;
   }
-  function parseGradient(){
+  function parseColour(token){
+   var m=token.match(/rgba?\(([^)]+)\)/);
+   if(!m)return null;
+   var n=m[1].split(/[,\/\s]+/).filter(function(s){return s.length;}).map(parseFloat);
+   if(n.length<3||!isFinite(n[0]))return null;
+   return {r:n[0],g:n[1],b:n[2],a:n.length>3&&isFinite(n[3])?n[3]:1};
+  }
+  function parseStops(parts,from){
+   var stops=[];
+   for(var j=from;j<parts.length;j++){
+    var token=parts[j].trim(),c=parseColour(token);
+    if(!c)continue;
+    /* Chrome serialises the first stop of these gradients as `0px`, not `0%`.
+       A length anywhere else would need the gradient's own line length to
+       normalise, which none of these skies use -- so anything but zero is
+       left implicit and spaced evenly, exactly as CSS would. */
+    var at=token.match(/(?:^|\s)(-?[\d.]+)(%|px)\s*$/);
+    c.p=at?(at[2]==="%"?parseFloat(at[1])/100:(parseFloat(at[1])===0?0:null)):null;
+    stops.push(c);
+   }
+   if(!stops.length)return null;
+   if(stops[0].p===null)stops[0].p=0;
+   if(stops[stops.length-1].p===null)stops[stops.length-1].p=1;
+   for(var k=1;k<stops.length-1;k++)if(stops[k].p===null)stops[k].p=k/(stops.length-1);
+   return stops;
+  }
+  /* PREMULTIPLIED, because CSS is. Interpolating straight RGB toward a
+     `transparent` stop drags the hue to black on the way out, which is how a
+     violet glow fading to nothing was read as a black one fading to nothing. */
+  function sampleStops(stops,t){
+   if(t<=stops[0].p)return stops[0];
+   var last=stops[stops.length-1];
+   if(t>=last.p)return last;
+   var i=0;
+   while(i<stops.length-1&&t>stops[i+1].p)i++;
+   var a=stops[i],b=stops[i+1],span=b.p-a.p,f=span>0?(t-a.p)/span:0;
+   var al=a.a+(b.a-a.a)*f;
+   if(al<=0)return {r:0,g:0,b:0,a:0};
+   return {r:(a.r*a.a+(b.r*b.a-a.r*a.a)*f)/al,
+    g:(a.g*a.a+(b.g*b.a-a.g*a.a)*f)/al,
+    b:(a.b*a.a+(b.b*b.a-a.b*a.a)*f)/al,a:al};
+  }
+  function over(src,dst){
+   var a=src.a+dst.a*(1-src.a);
+   if(a<=0)return {r:0,g:0,b:0,a:0};
+   return {r:(src.r*src.a+dst.r*dst.a*(1-src.a))/a,
+    g:(src.g*src.a+dst.g*dst.a*(1-src.a))/a,
+    b:(src.b*src.a+dst.b*dst.a*(1-src.a))/a,a:a};
+  }
+  function parseSky(){
    /* The MOST visible sky, not one that is exactly opacity 1. During the
       640ms cross-fade no layer is at 1, and requiring that made this return
       null for the whole transition -- which left the previous hour's colours
@@ -693,56 +779,88 @@
     if(o>best){best=o;lit=nodes[i];}
    }
    if(!lit||best<=0)return null;
-   var img=getComputedStyle(lit).backgroundImage;
-   var at=img.indexOf("radial-gradient(");
-   if(at<0)return null;
-   var start=at+"radial-gradient(".length,depth=1,end=start;
-   while(end<img.length&&depth>0){
-    if(img[end]==="(")depth++;else if(img[end]===")")depth--;
-    if(depth>0)end++;
-   }
-   var parts=splitTop(img.slice(start,end));
-   if(parts.length<2)return null;
-   var head=parts[0].trim();
    var box=lit.getBoundingClientRect();
-   var pos=head.match(/at\s+([\d.]+)%\s+([\d.]+)%/);
-   var size=head.match(/^([\d.]+)(px|%)\s+([\d.]+)%/);
-   if(!pos||!size)return null;
-   var rx=size[2]==="px"?parseFloat(size[1])/box.width:parseFloat(size[1])/100;
-   var stops=[];
-   for(var j=1;j<parts.length;j++){
-    var m=parts[j].trim().match(/rgba?\(([^)]+)\)(?:\s+([\d.]+)%)?/);
-    if(!m)continue;
-    var n=m[1].split(",").map(parseFloat);
-    stops.push({r:n[0],g:n[1],b:n[2],a:n.length>3?n[3]:1,
-     p:m[2]!==undefined?parseFloat(m[2])/100:null});
+   if(!box.width||!box.height)return null;
+   var layers=[],focus=null;
+   splitTop(getComputedStyle(lit).backgroundImage).forEach(function(token){
+    token=token.trim();
+    var body=token.slice(token.indexOf("(")+1,token.lastIndexOf(")"));
+    if(token.indexOf("radial-gradient(")===0){
+     var parts=splitTop(body),head=parts[0].trim();
+     var pos=head.match(/at\s+([\d.]+)%\s+([\d.]+)%/);
+     var size=head.match(/^([\d.]+)(px|%)\s+([\d.]+)(px|%)/);
+     var stops=parseStops(parts,1);
+     if(!pos||!size||!stops)return;
+     var layer={kind:"radial",fx:parseFloat(pos[1])/100,fy:parseFloat(pos[2])/100,
+      rx:size[2]==="px"?parseFloat(size[1])/box.width:parseFloat(size[1])/100,
+      ry:size[4]==="px"?parseFloat(size[3])/box.height:parseFloat(size[3])/100,
+      stops:stops};
+     layers.push(layer);
+     if(!focus)focus=layer;
+    }else if(token.indexOf("linear-gradient(")===0){
+     var lparts=splitTop(body);
+     /* Chrome omits `180deg` from the serialisation because it is the
+        default, so a missing angle means top-to-bottom, not "unparseable". */
+     var angle=lparts[0].trim().match(/^(-?[\d.]+)deg$/);
+     var lstops=parseStops(lparts,angle?1:0);
+     if(!lstops)return;
+     layers.push({kind:"linear",angle:angle?parseFloat(angle[1]):180,stops:lstops});
+    }
+   });
+   if(!layers.length)return null;
+   return {layers:layers,w:box.width,h:box.height,
+    /* WHERE THE LIGHT IS IS WHERE THE SKY SAYS IT IS. Every one of these
+       gradients carries its own focal point, so that point IS the source --
+       it does not have to be re-authored beside the gradient, and it cannot
+       drift from it. Falls back to the CSS-authored position when a sky is
+       something this cannot read. */
+    fx:focus?focus.fx:null,fy:focus?focus.fy:null,
+    base:parseColour(getComputedStyle(hero).backgroundColor)||{r:255,g:255,b:255,a:1},
+    key:null};
+  }
+  /* The composited sky at a point, in the gradient box's own 0-1 coordinates.
+     Layers paint first-listed on top, so they are composited last-to-first. */
+  function skyAt(u,v){
+   var out=env.base;
+   for(var i=env.layers.length-1;i>=0;i--){
+    var l=env.layers[i],c;
+    if(l.kind==="radial"){
+     c=sampleStops(l.stops,Math.sqrt(Math.pow((u-l.fx)/(l.rx||1),2)
+                                    +Math.pow((v-l.fy)/(l.ry||1),2)));
+    }else{
+     var th=l.angle*Math.PI/180,dx=Math.sin(th),dy=-Math.cos(th);
+     var len=Math.abs(env.w*dx)+Math.abs(env.h*dy);
+     c=sampleStops(l.stops,.5+((u-.5)*env.w*dx+(v-.5)*env.h*dy)/len);
+    }
+    out=over(c,out);
    }
-   if(!stops.length)return null;
-   // fill in any implicit stop positions, evenly, as CSS does
-   if(stops[0].p===null)stops[0].p=0;
-   if(stops[stops.length-1].p===null)stops[stops.length-1].p=1;
-   for(var k=1;k<stops.length-1;k++)if(stops[k].p===null)stops[k].p=k/(stops.length-1);
-   return {fx:parseFloat(pos[1])/100,fy:parseFloat(pos[2])/100,
-    rx:rx,ry:parseFloat(size[3])/100,stops:stops};
+   return out;
   }
-  /* The environment's colour where the head is standing. t is the head's
-     distance from the focus in the gradient's own elliptical coordinates, so
-     0 is dead centre of the light and 1 is its outer stop. */
-  function sampleEnv(t){
-   var st=env.stops,i=0;
-   while(i<st.length-1&&t>st[i+1].p)i++;
-   var a=st[i],b=st[Math.min(i+1,st.length-1)];
-   var span=b.p-a.p,f=span>0?Math.max(0,Math.min(1,(t-a.p)/span)):0;
-   return {r:a.r+(b.r-a.r)*f,g:a.g+(b.g-a.g)*f,b:a.b+(b.b-a.b)*f,
-    a:a.a+(b.a-a.a)*f};
-  }
+  function luminance(c){return (0.2126*c.r+0.7152*c.g+0.0722*c.b)/255;}
   var lightDir=0;
-  function updateLight(fx,fy){
+  function updateLight(fx,fy,frot){
    var m=metrics(),b=state.base;
    if(!b)return;
+   if(!env)env=parseSky();
    var headX=b.left+b.width/2+state.x+fx;
    var headY=b.top+b.height/2+state.y+fy;
-   var lx=m.heroW*m.lightX, ly=m.heroH*m.lightY;
+   /* ── THE SOURCE IS THE GRADIENT'S OWN FOCUS ──────────────────────────────
+      --time-light-x/-y were authored per state, and five of the six were
+      FICTION: they said sunrise came from 32% and sunset from 68%, while every
+      sky in this scene is a radial gradient focused at 50% of its own lower
+      edge. Nothing in the picture is brighter on one side, so the head was
+      being lit from a place that did not exist -- and because proximity is
+      measured to that place, the head could be dragged INTO the glow and read
+      as further from the light. Measured at rest, the authored positions gave
+      light vectors of (0.04,1.00) at pre-dawn, (-0.23,0.97) at sunrise and
+      (0.98,0.21) at sunset: the rim swung from underneath to sideways to the
+      opposite side between hours whose skies are identical in shape.
+      The focus is read straight off the gradient now, so the source is
+      wherever the sky is actually bright and the two can never disagree. The
+      authored pair survives as the pre-script fallback, and is the answer for
+      any future sky this parser cannot read. */
+   var lx=m.heroW*(env&&env.fx!==null?env.fx:m.lightX);
+   var ly=m.heroH*(env&&env.fy!==null?env.fy:m.lightY);
    var dx=lx-headX, dy=ly-headY;
    lightDir=Math.max(-1,Math.min(1,dx/(m.heroW*.5)));
    var len=Math.sqrt(dx*dx+dy*dy)||1;
@@ -771,37 +889,55 @@
    var ux=dx/len, uy=dy/len;
    hero.style.setProperty("--light-ux",ux.toFixed(3));
    hero.style.setProperty("--light-uy",uy.toFixed(3));
+   /* THE RAMP LIVES IN A BOX THAT IS TURNED, AND THE LIGHT DOES NOT.
+      --light-angle is a SCREEN direction, but the uplight's mask is painted in
+      the portrait's own box, which hangs inside a wrapper rotated by the
+      resting tilt plus the float. A gradient authored at A in that box renders
+      at A + rotation on screen, so the ramp was arriving 13.8deg off the light
+      it is supposed to be describing -- and rocking with the float on top. The
+      head's own angle is subtracted here, which is the only place that knows
+      both numbers in the same frame. */
+   var headRot=state.rotate+(frot||0);
    hero.style.setProperty("--light-angle",
-    (Math.atan2(-ux,uy)*180/Math.PI).toFixed(1)+"deg");
-   if(!env)env=parseGradient();
+    (Math.atan2(-ux,uy)*180/Math.PI-headRot).toFixed(1)+"deg");
    if(!env)return;
-   /* Where the head sits inside the sky's own radial coordinate. */
-   var t=Math.sqrt(Math.pow((headX/m.heroW-env.fx)/(env.rx||1),2)
-                  +Math.pow((headY/m.heroH-env.fy)/(env.ry||1),2));
-   var c=sampleEnv(Math.max(0,Math.min(1,t)));
+   /* ── DIFFUSE AND SPECULAR ARE NOT THE SAME QUESTION ──────────────────────
+      The face is shaded by IRRADIANCE: the light arriving from everywhere,
+      dominated by whatever is large, bright and close. Here that is the sky
+      immediately around the head, and it arrives blurred -- which is why the
+      diffuse terms sample the composited sky AT the head and nothing else.
+      The rim is the opposite: a grazing highlight is a reflection of the
+      brightest thing in the environment, not an average of it. Sampling the
+      sky behind the head for that is what left night with no edge at all --
+      the sky there is genuinely near-black, but the thing lighting the head is
+      the glow below it. So the rim's weight blends the local sky toward the
+      SOURCE's own luminance by proximity: near the glow the edge knows about
+      the glow, far away it falls back to whatever light is actually there. */
+   var here=skyAt(headX/m.heroW,headY/m.heroH);
+   if(env.key===null)env.key=luminance(skyAt(env.fx===null?.5:env.fx,
+    Math.min(env.fy===null?1:env.fy,1)));
    /* JUDGEMENT OVER ACCURACY, in two deliberate places.
       SATURATION IS RESTRAINED: full colour bleed reads as a gel, and he has
       called this lighting harsh twice. The hue is pulled a long way toward its
       own grey, so it is present and never announced.
       THE RANGE IS COMPRESSED: a literal falloff makes the head vanish in a dim
       corner, so luminance keeps a floor and never reaches either end. */
-   var lum=(0.2126*c.r+0.7152*c.g+0.0722*c.b)/255*(c.a===undefined?1:c.a);
-   var grey=(c.r+c.g+c.b)/3, sat=0.42;
-   var er=Math.round(grey+(c.r-grey)*sat),
-       eg=Math.round(grey+(c.g-grey)*sat),
-       eb=Math.round(grey+(c.b-grey)*sat);
+   var lum=Math.max(0,Math.min(1,luminance(here)));
+   var grey=(here.r+here.g+here.b)/3, sat=0.42;
+   var er=Math.round(grey+(here.r-grey)*sat),
+       eg=Math.round(grey+(here.g-grey)*sat),
+       eb=Math.round(grey+(here.b-grey)*sat);
    hero.style.setProperty("--env-color","rgb("+er+","+eg+","+eb+")");
-   hero.style.setProperty("--env-lum",(0.35+0.65*Math.max(0,Math.min(1,lum))).toFixed(3));
+   hero.style.setProperty("--env-lum",(0.35+0.65*lum).toFixed(3));
    /* TWO LUMINANCES, BECAUSE TWO THINGS NEED DIFFERENT ANSWERS.
       --env-lum is COMPRESSED with a floor, and that floor is deliberate: it is
       what stops the head vanishing in a dim corner. But a floor is exactly
-      wrong for the rim. At night the sky is near-black and the compressed value
-      still reads .35, so the edge came out several times brighter than anything
-      around it -- and a bright line on dark ground is the single most
-      recognisable tell of a pasted-on cutout. That is the "clear white line".
-      --env-raw is the scene's own luminance, uncompressed, so an edge weighted
-      by it cannot be brighter than the light that is supposed to be making it. */
-   hero.style.setProperty("--env-raw",Math.max(0,Math.min(1,lum)).toFixed(3));
+      wrong for the rim. Against a near-black sky the compressed value still
+      reads .35, and an edge brighter than everything around it is the single
+      most recognisable tell of a pasted-on cutout -- the "clear white line".
+      --env-raw is uncompressed and unfloored, so an edge weighted by it can
+      never out-shine the light that is supposed to be making it. */
+   hero.style.setProperty("--env-raw",(lum+(env.key-lum)*prox).toFixed(3));
   }
   function floatFrame(ms){
    if(!state.floating){state.floatFrame=0;return;}
@@ -1009,11 +1145,13 @@
      re-reads cost nothing and guarantee the lighting ends on the new hour. */
   function relight(){
    state.metrics=null;env=null;
-   updateLight(cssNumber(wrap,"--hero-head-float-x"),cssNumber(wrap,"--hero-head-float-y"));
+   updateLight(cssNumber(wrap,"--hero-head-float-x"),cssNumber(wrap,"--hero-head-float-y"),
+    cssNumber(wrap,"--hero-head-float-rot"));
   }
   new MutationObserver(function(){
    [0,120,340,700].forEach(function(d){setTimeout(relight,d);});
-   state.metrics=null;env=null;updateLight(cssNumber(wrap,"--hero-head-float-x"),cssNumber(wrap,"--hero-head-float-y"));
+   state.metrics=null;env=null;updateLight(cssNumber(wrap,"--hero-head-float-x"),cssNumber(wrap,"--hero-head-float-y"),
+    cssNumber(wrap,"--hero-head-float-rot"));
   }).observe(hero,{attributes:true,attributeFilter:["data-time-state"]});
   ambient();startFloat();
   if(document.readyState==="complete")recapture();

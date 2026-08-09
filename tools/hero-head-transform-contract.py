@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 import math
+import re
 from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from threading import Thread
+from PIL import Image
 from playwright.sync_api import sync_playwright
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -21,6 +23,64 @@ ACCESSIBILITY_VIEWPORTS = ((1280, 650), (390, 844))
 class Quiet(SimpleHTTPRequestHandler):
     def log_message(self, _format, *_args):
         pass
+
+
+# ── THE HEAD'S BOUNDS ARE MEASURED, NOT AUTHORED ─────────────────────────────
+# data-head-bounds is where the head sits inside its own image, and the frame
+# traces it exactly -- so a value one pixel tighter than the cut-out is a head
+# standing outside its own selection box, permanently, on a frame that never
+# goes away. It shipped tighter: 0.22 0.12 0.80 0.91 is a rectangle around the
+# FACE, and the artwork is a photographic cut-out with HAIR. Measured off the
+# alpha channel, the top edge alone was 5.8% of the image short, which is 5.7px
+# of head outside the frame at the resting 235px and 58px outside it at 2.2x.
+# So the number is not asserted as a literal any more. It is DERIVED here, from
+# the same pixels the browser paints, and the attribute is checked against the
+# derivation -- neither tighter (the head escapes) nor padded (a fudge that
+# happens to work at one size). A re-exported portrait with taller hair now
+# fails this file instead of quietly growing out of its frame.
+def face_images():
+    """Every image the engine can put in #face, read from the engine's own table.
+
+    Listing them here by hand is how one gets missed: wink.webp carries the
+    tallest hair of the nine and is reachable from an idle fidget and from the
+    logo hover, neither of which anybody thinks about when editing a list.
+    """
+    engine = (ROOT / "hero-engine.js").read_text(encoding="utf-8")
+    table = engine.split("const FACES={", 1)[1].split("\n};", 1)[0]
+    names = sorted(set(re.findall(r'"(images/[\w./-]+\.webp)"', table)))
+    assert len(names) >= 8, names
+    return names
+
+
+def measured_head_bounds():
+    """The union of every face's opaque extent, as fractions of its own image.
+
+    THE UNION, NOT THE CURRENT FACE. A frame that re-hugged whichever face is
+    showing would resize itself every time he blinks -- the exact breathing the
+    rigid-body rewrite exists to stop -- and would let the next mood step
+    outside it. One rectangle that bounds every face the head can wear is the
+    object's bounds, and that is what a design tool frames.
+    """
+    left, top, right, bottom = 1.0, 1.0, 0.0, 0.0
+    for name in face_images():
+        image = Image.open(ROOT / name).convert("RGBA")
+        width, height = image.size
+        box = image.getchannel("A").getbbox()
+        assert box, name
+        left = min(left, box[0] / width)
+        top = min(top, box[1] / height)
+        right = max(right, box[2] / width)
+        bottom = max(bottom, box[3] / height)
+    return left, top, right, bottom
+
+
+def authored_head_bounds():
+    html = (ROOT / "index.html").read_text(encoding="utf-8")
+    found = re.search(r'data-head-bounds="([\d.\s]+)"', html)
+    assert found, "the portrait must declare where the head sits in its image"
+    values = [float(part) for part in found.group(1).split()]
+    assert len(values) == 4, values
+    return values
 
 
 DRAWN_DOT = """name => {
@@ -178,6 +238,129 @@ def assert_handle_hits(page, label):
     ), handles
 
 
+# ── THE FRAME MUST CONTAIN THE ARTWORK, AT EVERY SIZE AND EVERY ANGLE ────────
+# "Sometimes the head peaks out of it" was the hair: data-head-bounds traced the
+# face, the frame traced data-head-bounds, and the difference is a photographic
+# cut-out's silhouette. This measures the real thing -- the artwork's opaque
+# extent, from the alpha channel -- and asks whether it lies inside the
+# rectangle actually drawn on screen.
+#
+# IN THE FRAME'S OWN FRAME. Rotation is not a source of error here as long as
+# both the head and its frame go through one matrix, and proving that is the
+# point: the artwork's corners are turned about the head's rotation centre, the
+# frame's corners about the frame's, and the two are compared after un-turning
+# by the frame's angle. If anything downstream ever computes the frame from a
+# TURNED bounding box and then turns it again, the corners escape and this
+# fails -- which is exactly the failure the 45deg sample exists to catch, since
+# that is where a turned box is furthest from the rectangle it holds.
+#
+# AND IT MUST NOT BE PADDED EITHER. The clearance is asserted to be the authored
+# --selection-air and no more, so nobody can pass this by making the frame
+# generous: a fudge factor that reads right at 1x is visibly loose at 0.24x and
+# still short at 2.2x.
+FRAME_CONTAINS = """({bounds, air}) => {
+  const wrap=document.querySelector('#heroHeadTransform');
+  const face=document.querySelector('#face');
+  const sel=document.querySelector('#heroHeadSelection');
+  const frameNode=document.querySelector('.heroHeadFrame');
+  const authored=face.dataset.headBounds.split(/\\s+/).map(Number);
+  // The head measured LEVEL, which is the only state its bounds fractions mean
+  // anything in, plus the point it turns about -- the centre of those same
+  // fractions, because that is what syncOrigin() writes as transform-origin.
+  const names=['--hero-head-rotate','--hero-head-float-rot','--hero-head-enter-rot'];
+  const live=names.reduce((sum,n)=>
+    sum+(parseFloat(getComputedStyle(wrap).getPropertyValue(n))||0),0);
+  const saved=names.map(n=>[n,wrap.style.getPropertyValue(n),wrap.style.getPropertyPriority(n)]);
+  names.forEach(n=>wrap.style.setProperty(n,'0deg','important'));
+  const f=face.getBoundingClientRect();
+  saved.forEach(([n,v,p])=>{if(v)wrap.style.setProperty(n,v,p);else wrap.style.removeProperty(n);});
+  // No letterbox: the fractions are fractions of the IMAGE, and they are
+  // applied to the ELEMENT. object-fit:contain makes those the same rectangle
+  // only while the element's aspect matches the image's, so that is asserted
+  // rather than assumed.
+  const fit=Math.min(f.width/face.naturalWidth,f.height/face.naturalHeight);
+  const letterbox=Math.max(Math.abs(f.width-face.naturalWidth*fit),
+                           Math.abs(f.height-face.naturalHeight*fit))/2;
+  const art={left:f.left+f.width*bounds[0],top:f.top+f.height*bounds[1],
+             right:f.left+f.width*bounds[2],bottom:f.top+f.height*bounds[3]};
+  const pivot={x:f.left+f.width*(authored[0]+authored[2])/2,
+               y:f.top+f.height*(authored[1]+authored[3])/2};
+  const rad=live*Math.PI/180,cos=Math.cos(rad),sin=Math.sin(rad);
+  const spin=(x,y)=>({x:pivot.x+(x-pivot.x)*cos-(y-pivot.y)*sin,
+                      y:pivot.y+(x-pivot.x)*sin+(y-pivot.y)*cos});
+  const corners=[[art.left,art.top],[art.right,art.top],
+                 [art.right,art.bottom],[art.left,art.bottom]].map(c=>spin(c[0],c[1]));
+  // The rectangle actually painted: the selection box's origin, the frame
+  // layer's offset inside it, and the angle the chrome was handed.
+  const r=sel.getBoundingClientRect();
+  const num=n=>parseFloat(frameNode.style.getPropertyValue(n))||0;
+  const fw=num('--frame-w'),fh=num('--frame-h');
+  const fc={x:r.left+num('--frame-x')+fw/2,y:r.top+num('--frame-y')+fh/2};
+  const fang=(parseFloat(sel.style.getPropertyValue('--hero-head-rotate'))||0)*Math.PI/180;
+  const fcos=Math.cos(-fang),fsin=Math.sin(-fang);
+  let minX=Infinity,maxX=-Infinity,minY=Infinity,maxY=-Infinity;
+  corners.forEach(c=>{
+    const dx=c.x-fc.x,dy=c.y-fc.y;
+    const lx=dx*fcos-dy*fsin,ly=dx*fsin+dy*fcos;
+    minX=Math.min(minX,lx);maxX=Math.max(maxX,lx);
+    minY=Math.min(minY,ly);maxY=Math.max(maxY,ly);
+  });
+  const over={left:-fw/2-minX,right:maxX-fw/2,top:-fh/2-minY,bottom:maxY-fh/2};
+  return {over,worst:Math.max(...Object.values(over)),letterbox,air,
+    angle:live,frameAngle:live&&(parseFloat(sel.style.getPropertyValue('--hero-head-rotate'))||0),
+    scale:window.__heroHeadTransform.getState().scale,
+    frame:{w:fw,h:fh}};
+}"""
+
+
+def assert_frame_contains_artwork(page, label, bounds, failures):
+    page.evaluate("window.__heroHeadTransform.stopFloat()")
+    page.wait_for_timeout(40)
+    air = page.evaluate(
+        "() => parseFloat(getComputedStyle(document.documentElement)"
+        ".getPropertyValue('--selection-air'))||0"
+    )
+    result = page.evaluate(FRAME_CONTAINS, {"bounds": list(bounds), "air": air})
+    CONTAINMENT_TALLY["total"] += 1
+    contained = result["worst"] <= 0
+    snug = result["worst"] >= -(air + 1.5)
+    CONTAINMENT_TALLY["hit"] += contained and snug
+    record(
+        failures,
+        contained and snug and result["letterbox"] <= 0.5,
+        f"{label} frame contains the artwork",
+        result,
+    )
+    return result
+
+
+CONTAINMENT_TALLY = {"hit": 0, "total": 0}
+
+
+def turn_to(page, degrees):
+    """Rotate with the keyboard, which quantises to --hero-head-rotate-step-large."""
+    page.locator(".heroHeadRotate").evaluate("node => node.focus({preventScroll:true})")
+    for _ in range(32):
+        now = page.evaluate("window.__heroHeadTransform.getState().rotate")
+        if abs(now - degrees) <= 0.01:
+            return now
+        page.keyboard.press(
+            "Shift+ArrowRight" if degrees > now else "Shift+ArrowLeft"
+        )
+        page.wait_for_timeout(20)
+    return page.evaluate("window.__heroHeadTransform.getState().rotate")
+
+
+def scale_to_limit(page, direction):
+    page.locator('.heroHeadHandle[data-corner="se"]').evaluate(
+        "node => node.focus({preventScroll:true})"
+    )
+    for _ in range(40):
+        page.keyboard.press(f"Shift+Arrow{direction}")
+    page.wait_for_timeout(40)
+    return page.evaluate("window.__heroHeadTransform.getState().scale")
+
+
 GESTURE_TALLY = {"hit": 0, "total": 0}
 
 
@@ -280,6 +463,33 @@ def opposite_point(rect, corner):
 def record(failures, condition, label, detail=None):
     if not condition:
         failures.append(f"{label}: {detail!r}")
+
+
+def authored_state(state):
+    """The arrangement the visitor made, without the rectangle derived from it.
+
+    THE EXTRAS LIFT MOVES THE BOX AND MUST NOT MOVE THE STATE. getState()
+    reports `box` as a convenience for tests that need the geometry the clamp
+    enforces -- but it is captured from the live layout, and during a
+    performance the peek element travels under its own transform, which is
+    exactly the behaviour the spec allows: "without changing the authored
+    x/y/scale transform state; only the peek element's own transform transition
+    can start or stop projection tracking". Comparing whole getState() dicts
+    across a lift therefore asserts the opposite of the rule -- that the head
+    must not follow the peek -- and fails on correct code by the height of the
+    lift (measured: 64px at 1440). What has to hold is that x, y, scale and
+    rotate are untouched and the box keeps its SIZE; where that box sits is the
+    peek's business.
+    """
+    return {key: state[key] for key in ("selected", "x", "y", "scale", "rotate")}
+
+
+def assert_lift_preserved(before, after, label):
+    assert authored_state(after) == authored_state(before), (label, before, after)
+    if before.get("box") and after.get("box"):
+        for axis in ("width", "height"):
+            assert abs(after["box"][axis] - before["box"][axis]) <= 0.5, (
+                label, axis, before["box"], after["box"])
 
 
 def storage_snapshot(page):
@@ -517,7 +727,23 @@ def static_contract():
     rest_pose_contract()
     assert 'id="heroHeadTransform"' in html
     assert 'id="heroHeadSelection"' in html
-    assert 'data-head-bounds="0.22 0.12 0.80 0.91"' in html
+    # ── THE FRAME'S BOUNDS ARE THE ARTWORK'S, TO WITHIN A ROUNDING ────────────
+    # Not tighter, or the head stands outside its own frame. Not looser by more
+    # than the fourth decimal the attribute is written to, or the number has
+    # stopped being a measurement and become a pad -- and a pad that reads right
+    # at one size is wrong at the other end of a 9x scale range.
+    authored = authored_head_bounds()
+    measured = measured_head_bounds()
+    slack = 1e-4
+    for index, (name, direction) in enumerate(
+        (("left", -1), ("top", -1), ("right", 1), ("bottom", 1))
+    ):
+        gap = (authored[index] - measured[index]) * direction
+        assert 0 <= gap <= slack, (
+            f"data-head-bounds {name}: authored {authored[index]!r} vs measured "
+            f"{measured[index]!r} across {len(face_images())} faces"
+        )
+    assert 'data-head-bounds="0.1933 0.0616 0.8484 0.9234"' in html
     assert html.count('class="heroHeadHandle"') == 4
     # Rotation gets its own class so the four RESIZE handles stay exactly four.
     assert html.count('class="heroHeadRotate"') == 1
@@ -652,6 +878,33 @@ def browser_contract(base_url):
                 )
             page.screenshot(path=str(SHOTS / f"home-{label}-selected.png"))
             assert_handle_gestures(page, f"{label} rest")
+
+            # ── THE FRAME CONTAINS THE HEAD, AT EVERY SIZE AND EVERY ANGLE ────
+            # Six samples, because this invariant fails differently in each
+            # direction: too-tight bounds show up worst at maximum scale, where
+            # the error is multiplied by 9x; a rotation composed in the wrong
+            # order shows up worst at 45deg, where a turned box is furthest from
+            # the rectangle it holds; and a frame that has been padded rather
+            # than measured shows up at minimum scale, where a fixed pad is the
+            # whole object.
+            measured_bounds = measured_head_bounds()
+            for turn_angle in (None, 45):
+                page.evaluate("window.__heroHeadTransform.reset()")
+                page.wait_for_timeout(40)
+                pose = "rest" if turn_angle is None else "45deg"
+                if turn_angle is not None:
+                    turn_to(page, turn_angle)
+                assert_frame_contains_artwork(
+                    page, f"{label} {pose}", measured_bounds, failures)
+                scale_to_limit(page, "Right")
+                assert_frame_contains_artwork(
+                    page, f"{label} {pose} max scale", measured_bounds, failures)
+                scale_to_limit(page, "Left")
+                assert_frame_contains_artwork(
+                    page, f"{label} {pose} min scale", measured_bounds, failures)
+            page.evaluate("window.__heroHeadTransform.reset()")
+            page.evaluate("window.__heroHeadTransform.startFloat()")
+            page.wait_for_timeout(40)
 
             frame0 = page.locator("#heroHeadSelection").bounding_box()
             hero = page.locator("#main").bounding_box()
@@ -1705,7 +1958,7 @@ def task4_matrix(base_url):
               parseFloat(getComputedStyle(document.querySelector('#glasses')).opacity)>.5 &&
               document.querySelector('#glasses').getAnimations().every(a=>a.playState==='finished');}""")
             projection = movie_projection(page)
-            assert projection["state"] == transformed, (label, transformed, projection)
+            assert_lift_preserved(transformed, projection["state"], label)
             assert projection["glasses"] and projection["props"] >= 1, (label, projection)
             assert projection["clipOverflow"] == "clip", (label, projection)
             assert all(abs(projection["stage"][edge] - projection["effects"][edge]) <= 2
@@ -1718,7 +1971,8 @@ def task4_matrix(base_url):
             page.wait_for_function("!document.querySelector('.heroCharacterPeek').classList.contains('is-movie')")
             page.wait_for_function("parseFloat(getComputedStyle(document.querySelector('#glasses')).opacity)===0")
             page.wait_for_function("document.querySelectorAll('#stage .iris').length >= 2")
-            assert page.evaluate("window.__heroHeadTransform.getState()") == transformed, label
+            assert_lift_preserved(
+                transformed, page.evaluate("window.__heroHeadTransform.getState()"), label)
             page.screenshot(path=str(TASK4_SHOTS / f"home-{width}-{height}-post-performance.png"))
             assert not errors, (label, errors)
             context.close()
@@ -1819,6 +2073,8 @@ def main():
           f" = {rate:.1f}%")
     print(f"Handle gestures started correctly: {GESTURE_TALLY['hit']}"
           f"/{GESTURE_TALLY['total']}")
+    print(f"Frame contained the artwork: {CONTAINMENT_TALLY['hit']}"
+          f"/{CONTAINMENT_TALLY['total']} samples")
     assert not HIT_TALLY["worst"], HIT_TALLY["worst"]
     assert rate == 100, rate
     print("Hero head transform: OK")
