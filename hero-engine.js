@@ -1114,6 +1114,43 @@ function syncMovieEffectsLayer(){
   Math.max(0,stageRect.bottom-heroBox.getBoundingClientRect().bottom).toFixed(2)+"px");
  movieEffectsStage.style.transform=priorTransform;
 }
+/* ── THE EFFECTS LAYER IS NOT IN THE HEAD'S COORDINATE SPACE ───────────────
+   #heroMovieEffectsStage lives in #heroMovieEffectsClip, a Hero-relative
+   SIBLING of .heroCharacterPeek, because the props have to be cropped to the
+   Hero's rounded corner. So it inherits none of the head's transform chain,
+   and the four numbers written above are a SNAPSHOT: where the stage was, in
+   the clip's space, at the instant sync last ran.
+   THE ONLY THING THAT USED TO RE-RUN THE SYNC WAS the heroheadtransform
+   event, and during a movie nobody is dragging the head, so that event has
+   exactly one source: followPeekTransition() in hero-head-transform.js, which
+   fires it per frame while .heroCharacterPeek's OWN transform transition is
+   running. That transition is --sp-settle-dur -- 360ms, once, when .is-movie
+   goes on. So the layer tracked the head for the length of the peek's lift and
+   then froze. Measured at 1280x650: six syncs inside the first 600ms of a
+   performance and not one afterwards.
+   AND TWO OTHER THINGS KEEP MOVING THE STAGE AFTER THAT, both on the Y axis
+   and neither on X, which is why the failure reads as "same size, same x,
+   wrong y". The idle float, which hero-head-transform.js writes to
+   --hero-head-float-* on its own animation frame and which never dispatches
+   the event. And --hero-movie-guard-y, which enforceMovieSafeProjection()
+   re-integrates on every 125ms tick of the engine loop below, and which climbs
+   to ~83px at 1280x650 because the Hero is short enough there that the head
+   has to be pushed clear of the copy. Together: 3-5px of drift on a settled
+   movie, and the full height of the guard -- 83px, the whole distance between
+   the resting head and the movie head -- on any run where the peek's 360ms ran
+   out before the guard had finished ramping. The Hero's lighting composites
+   into this layer, so that is 83px of rim light landing on nothing.
+   So it is synced from the two clocks that actually move it: in the same
+   synchronous block that writes the guard, so a guard step is tracked with no
+   lag at all, and once per animation frame for the float in between ticks. */
+var movieSyncFrame=0;
+function movieSyncLoop(){
+ if(!movieMode){movieSyncFrame=0;return;}
+ syncMovieEffectsLayer();
+ movieSyncFrame=requestAnimationFrame(movieSyncLoop);
+}
+function startMovieSync(){if(!movieSyncFrame)movieSyncFrame=requestAnimationFrame(movieSyncLoop);}
+function stopMovieSync(){if(movieSyncFrame)cancelAnimationFrame(movieSyncFrame);movieSyncFrame=0;}
 window.addEventListener("heroheadtransform",function(){
  if(movieMode){enforceMovieSafeProjection();syncMovieEffectsLayer();}
 });
@@ -1121,6 +1158,7 @@ function setMovieStageTransform(value){
  stage.style.transform=value;
  if(movieEffectsStage)movieEffectsStage.style.transform=value;
  enforceMovieSafeProjection();
+ if(movieMode)syncMovieEffectsLayer();
  dispatchEvent(new CustomEvent("heroheadstagechange"));
 }
 function glassesOn(){var g=document.getElementById("glasses");if(g){g.classList.remove("off");g.classList.add("on");}}
@@ -1145,7 +1183,7 @@ function startMovie(word){
  setMoviePeek(true);
  ensureMovieEls();
  syncMovieEffectsLayer();
- movieMode=true;movieEnding=false;movieHair=false;movieTk0=tk;eventLock=true;clearTimeout(cycTimer);cycHold=true;if(cycWord){var mw=makePlainCycWord(word||"Motion.");cycWord.replaceWith(mw);cycWord=mw;}
+ movieMode=true;startMovieSync();movieEnding=false;movieHair=false;movieTk0=tk;eventLock=true;clearTimeout(cycTimer);cycHold=true;if(cycWord){var mw=makePlainCycWord(word||"Motion.");cycWord.replaceWith(mw);cycWord=mw;}
  setFace("neutral");mouthimg.src=FACES.rest.img;mouthimg.style.opacity="0";setMouth(0);
  for(var i=0;i<kernelEls.length;i++)kernelEls[i].style.opacity="0";
  /* peek removed */
@@ -1159,7 +1197,7 @@ function caughtMovie(){
 }
 function endMovieCleanup(){
  /* peek removed */
- movieMode=false;movieEnding=false;movieHair=false;eventLock=false;
+ movieMode=false;stopMovieSync();movieEnding=false;movieHair=false;eventLock=false;
  if(heroPeek)heroPeek.removeAttribute("data-movie-tick");
  if(bucketEl)bucketEl.style.opacity="0";
  for(var i=0;i<kernelEls.length;i++){kernelEls[i].style.opacity="0";kernelEls[i]._dropping=false;kernelEls[i]._htx=null;}
