@@ -10,16 +10,28 @@
    big the head rests. This file links after tokens.css, so these win for the
    two pre-existing --hero-peek-* names they deliberately override. */
 :root{
- /* THE GROUND. Inset lifts the ellipse clear of the Hero's lower edge so it is
-    not cut in half; width is a share of the head's own layout width so it
-    stays proportionate when the head is resized; stretch is how much longer it
-    gets as the light drops toward the horizon; throw is how far it is pushed
-    sideways, away from the source. */
- --hero-ground-inset:12px;
- --hero-ground-width:.62;
- --hero-ground-height:26px;
- --hero-ground-stretch:.55;
- --hero-ground-throw:54;
+ /* ── THERE IS NO GROUND SHADOW ANY MORE ─────────────────────────────────────
+    This site's one shadow rule is that a head casts a contact shadow BECAUSE
+    it is standing on something -- shadows are grounding information here, and
+    that is the only thing they are allowed to be. The hero head stopped
+    standing on anything the moment --hero-peek-depth went negative: it is
+    suspended 164px clear of the Hero's floor. An ellipse that far below a
+    suspended object is not its contact shadow, it is an unrelated smudge near
+    the bottom of the page, which is exactly how Jayden read it.
+    So the element, its writer, its five --hero-ground-* knobs and the
+    per-state --time-shadow/--time-shadow-opacity pairs are DELETED rather
+    than zeroed -- a knob left at zero is something the next person finds and
+    turns back on. The head is grounded by the environment lighting instead:
+    the rim takes the sky's colour and the sky's direction, and because the
+    head rests above the glow that direction is upward -- the light coming off
+    the Hero's floor lands on the underside of the face, which is a truer
+    account of a suspended object than an ellipse it is nowhere near.
+    Every other head on the site keeps its shadow: the companions on Play, in
+    soccer and in the tournament genuinely stand on a surface, and
+    hero-engine's updateShadow() still writes theirs.
+    WHAT SURVIVES: the Hero's floor is still a line props stand on, so the
+    popcorn bucket keeps an inset off it under a name that says so. */
+ --hero-floor-inset:12px;
  /* The float freezes the moment the pointer arrives and waits this long after
     it leaves, so clipping an edge in passing does not make it stutter. */
  --hero-head-float-resume-delay:var(--dur-move);
@@ -46,13 +58,21 @@
     resting value the transform owns: reset() returns here, not to 0deg, and
     the entrance lands here. A rotated box is wider than the head it holds, so
     the clamp has to stay legal at this angle -- see the contract. */
- --hero-head-rest-rotate:-13.8deg
+ --hero-head-rest-rotate:-13.8deg;
+ /* HOW MUCH STRAIGHTER THE HEAD ARRIVES. The entrance starts this far back
+    toward level and turns INTO the tilt as it lands, so the arrival is one
+    motion -- rise, turn, settle -- rather than a level head that snaps over
+    once it has stopped. It is added to the resting angle, so the greeting
+    starts at -4.8deg, and because --sp-bounce overshoots it goes a degree or
+    so PAST the tilt before settling on it, which is what a dropped object
+    does. It resolves to 0 and hands the angle straight back to the rest
+    value, exactly as --hero-head-enter-y hands back the position. */
+ --hero-head-enter-spin:9deg
 }
 @media(max-width:760px){:root{
  --hero-peek-width:211px;
  --hero-peek-shift-x:-152px;
- --hero-peek-depth:-129px;
- --hero-ground-height:20px
+ --hero-peek-depth:-129px
 }}
 /* --theme-duration is NOT overridden here. It was :root:root{--theme-duration:
    var(--hero-time-duration)}, which made index run chrome transitions at 640ms
@@ -75,10 +95,8 @@
  --time-rim:var(--rim-3);
  --time-bloom:transparent;
  --time-cast:transparent;
- --time-cast-opacity:0;
  --time-light-x:50%;
  --time-light-dir:0;
- --time-light-elev:1.0;
  /* THE LIGHT IS A PLACE IN THE SCENE, NOT A DIRECTION.
     --time-light-x / -y are authored per state: where the source actually
     sits in the Hero. --time-light-dir is no longer authored data -- it is
@@ -89,13 +107,17 @@
     never do that, which is exactly why the lighting read as stagnant.
     The values below are the REST fallback: correct before the script runs
     and if it never does. --light-prox is 1 next to the source and 0 far
-    from it, and fades the rim with distance. --time-light-elev is how high
-    the source sits: 1 overhead, 0 on the horizon, which is what makes a
-    sunset shadow long and a midday one short. */
+    from it: it fades the rim AND scales the face's own exposure, so dragging
+    the head toward the glow lifts it and dragging it away lets it fall back.
+    THE VERTICAL HALF OF THE VECTOR IS REAL DATA NOW. There was a
+    --time-light-elev constant here standing in for "how high the sun is",
+    which could describe a sun but never the light's position relative to the
+    head -- so a head resting directly ABOVE the glow, which is where this one
+    rests, could not be lit from underneath. --time-light-y is authored low in
+    the frame because that is where every one of these skies is actually
+    bright, and the head-to-light vector does the rest. */
  --light-prox:1;
  --time-light-y:86%;
- --time-shadow:radial-gradient(ellipse 50% 50% at 50% 50%,rgba(8,8,8,.42),rgba(8,8,8,.28) 30%,rgba(8,8,8,.10) 58%,transparent 78%);
- --time-shadow-opacity:.5;
  --time-menu-bg:var(--time-base);
  --time-menu-ink:var(--c700);
  --time-menu-ink-strong:var(--c950);
@@ -121,13 +143,9 @@
  --time-rim:var(--rim-3);
  --time-bloom:transparent;
  --time-cast:transparent;
- --time-cast-opacity:0;
  --time-light-x:50%;
  --time-light-dir:0;
- --time-light-elev:1.0;
  --time-light-y:86%;
- --time-shadow:radial-gradient(ellipse 50% 50% at 50% 50%,rgba(8,8,8,.42),rgba(8,8,8,.28) 30%,rgba(8,8,8,.10) 58%,transparent 78%);
- --time-shadow-opacity:.5;
  --time-menu-bg:var(--time-base);
  --time-menu-ink:var(--c700);
  --time-menu-ink-strong:var(--c950);
@@ -150,13 +168,9 @@
  --time-rim:var(--rim-3);
  --time-bloom:rgba(111,169,255,.38);
  --time-cast:#9ab0ff;
- --time-cast-opacity:.22;
  --time-light-x:34%;
  --time-light-dir:-0.32;
- --time-light-elev:0.3;
  --time-light-y:82%;
- --time-shadow:radial-gradient(ellipse 54% 54% at 42% 50%,rgba(3,8,19,.68),rgba(10,22,48,.42) 38%,rgba(36,59,121,.16) 64%,transparent 82%);
- --time-shadow-opacity:.64;
  --time-menu-bg:var(--time-base);
  --time-menu-ink:var(--c700);
  --time-menu-ink-strong:var(--c950);
@@ -179,13 +193,9 @@
  --time-rim:var(--rim-3);
  --time-bloom:rgba(255,190,139,.42);
  --time-cast:#ffb58c;
- --time-cast-opacity:.25;
  --time-light-x:32%;
  --time-light-dir:-0.36;
- --time-light-elev:0.25;
  --time-light-y:82%;
- --time-shadow:radial-gradient(ellipse 54% 52% at 44% 50%,rgba(72,57,54,.44),rgba(181,116,85,.22) 38%,rgba(255,212,184,.08) 66%,transparent 82%);
- --time-shadow-opacity:.48;
  --time-menu-bg:var(--time-base);
  --time-menu-ink:var(--c700);
  --time-menu-ink-strong:var(--c950);
@@ -208,13 +218,9 @@
  --time-rim:var(--rim-3);
  --time-bloom:rgba(116,182,242,.30);
  --time-cast:#eaf2ff;
- --time-cast-opacity:.16;
  --time-light-x:50%;
  --time-light-dir:0;
- --time-light-elev:0.85;
  --time-light-y:84%;
- --time-shadow:radial-gradient(ellipse 54% 52% at 48% 50%,rgba(24,49,78,.36),rgba(90,145,192,.18) 38%,rgba(169,214,255,.08) 64%,transparent 82%);
- --time-shadow-opacity:.42;
  --time-menu-bg:var(--time-base);
  --time-menu-ink:var(--c700);
  --time-menu-ink-strong:var(--c950);
@@ -237,13 +243,9 @@
  --time-rim:var(--rim-3);
  --time-bloom:rgba(178,167,209,.34);
  --time-cast:#c8bceb;
- --time-cast-opacity:.20;
  --time-light-x:62%;
  --time-light-dir:0.24;
- --time-light-elev:0.35;
  --time-light-y:82%;
- --time-shadow:radial-gradient(ellipse 54% 54% at 44% 50%,rgba(7,10,22,.66),rgba(38,54,92,.38) 40%,rgba(103,111,159,.14) 66%,transparent 82%);
- --time-shadow-opacity:.62;
  --time-menu-bg:var(--time-base);
  --time-menu-ink:var(--c700);
  --time-menu-ink-strong:var(--c950);
@@ -266,13 +268,9 @@
  --time-rim:var(--rim-3);
  --time-bloom:rgba(255,167,120,.42);
  --time-cast:#ffb58c;
- --time-cast-opacity:.26;
  --time-light-x:68%;
  --time-light-dir:0.36;
- --time-light-elev:0.22;
  --time-light-y:82%;
- --time-shadow:radial-gradient(ellipse 56% 54% at 45% 50%,rgba(13,10,24,.68),rgba(60,49,93,.40) 38%,rgba(213,108,118,.16) 66%,transparent 82%);
- --time-shadow-opacity:.66;
  --time-menu-bg:var(--time-base);
  --time-menu-ink:var(--c700);
  --time-menu-ink-strong:var(--c950);
@@ -295,13 +293,9 @@
  --time-rim:var(--rim-i2);
  --time-bloom:rgba(111,169,255,.40);
  --time-cast:#9ab0ff;
- --time-cast-opacity:.24;
  --time-light-x:66%;
  --time-light-dir:0.32;
- --time-light-elev:0.4;
  --time-light-y:82%;
- --time-shadow:radial-gradient(ellipse 56% 54% at 46% 50%,rgba(0,2,8,.76),rgba(10,21,48,.48) 38%,rgba(29,74,147,.16) 66%,transparent 82%);
- --time-shadow-opacity:.72;
  --time-menu-bg:var(--time-base);
  --time-menu-ink:var(--i700);
  --time-menu-ink-strong:var(--c50);
@@ -408,48 +402,12 @@
 .hero[data-time-state="sunset"] .heroTimeGradient[data-time-gradient="sunset"]{opacity:1}
 .hero[data-time-state="night"] .heroTimeGradient[data-time-gradient="night"]{opacity:1}
 .hero[data-time-state] .heroAura{display:none}
-/* The contact shadow comes back. --time-shadow and --time-shadow-opacity were
-   authored per state and then never consumed: the rule that replaced them
-   nulled the floor shadow outright, so in all six time states the head was
-   standing on nothing. On this site a head casts a shadow because it is
-   standing on something, and that is the one place a shadow is load-bearing. */
-/* ── THE SHADOW BELONGS TO THE GROUND, NOT TO THE HEAD ───────────────────────
-   It used to live inside #stageMorph, i.e. INSIDE .heroHeadTransform, so every
-   translate applied to the head applied to it as well. It rose when the head
-   rose and stayed the same distance beneath it -- which is precisely why it
-   read as a smudge stuck to the object and, as Jayden put it, "doesn't show
-   where the ground is at all". Nothing about softening it could have fixed
-   that: an attached shadow has no ground to describe.
-   It is a child of .heroCharacterPeek now, a sibling of the transformed
-   wrapper, so the head's transform cannot reach it.
-
-   THE GROUND LINE IS THE HERO'S OWN LOWER EDGE. That is not arbitrary: the
-   authored resting composition is cropped by exactly that edge, so it is
-   already the surface the head is standing on and behind. --hero-ground-inset
-   lifts the ellipse a little off it so the shadow is not half-clipped.
-
-   VERTICAL POSITION IS A CONSTANT. Horizontal tracking, spread, opacity and
-   blur are all written by updateShadow() from the head's live offset -- it
-   already computes lift as -dy and never emits a translateY, which is exactly
-   the model wanted, so the float feeds that instead of competing with it. */
-/* A LOW SUN CASTS A LONG SHADOW. --time-light-elev is 1 overhead and 0 on the
-   horizon, so the ellipse stretches as the source drops -- widest at sunset
-   (elev .22) and tightest at midday (.85). The sideways THROW is handled in JS
-   with the same signed --time-light-dir that aims the rim light, because the
-   two must never contradict each other: a rim on the left with a shadow
-   falling left is worse than no rim at all. */
-.hero[data-time-state] .floorshadow{
- position:absolute;left:50%;top:auto;
- bottom:var(--hero-ground-inset);
- width:calc(var(--hero-peek-width) * var(--hero-ground-width) * var(--hero-head-scale,1)
-   * (1 + (1 - var(--time-light-elev)) * var(--hero-ground-stretch)));
- height:var(--hero-ground-height);
- z-index:0;pointer-events:none
-}
-.hero[data-time-state]:not([data-time-state="off"]) .floorshadow{
- background:var(--time-shadow);
- transition:background var(--hero-time-duration) var(--hero-time-ease)
-}
+/* THE HERO HAS NO FLOOR SHADOW. Not hidden, not zeroed -- there is no
+   .floorshadow element in the Hero to write rules for, and no --time-shadow
+   for them to read. See the deletion note at the top of this file: the head is
+   suspended 164px clear of the floor, so an ellipse on that floor is not its
+   contact shadow. What decides which SIDE the rim sits on is no longer a
+   per-state sun height either -- it is the live vector to the light. */
 
 /* ── READABLE PORTRAIT, second pass ───────────────────────────────────────────
    The head read as a hard near-black cutout pasted onto a soft sky: not "in"
@@ -469,35 +427,52 @@
 
    The eyes are siblings of #face inside .stage at z-index 3, so none of this
    touches them: they stay at full strength and keep tracking and blinking. */
-#heroPortraitTintFlood{flood-color:var(--time-cast);flood-opacity:1}
+/* The flood is the LIGHT's colour, which is the sampled sky pulled toward the
+   state's intent -- the same --time-lit the rim uses, so the edge and the
+   surface can never disagree about what is illuminating the head. It was
+   var(--time-cast) alone, i.e. a per-state constant, which is the model that
+   could not respond to where the head was standing. */
+#heroPortraitTintFlood{
+ flood-color:var(--time-lit-face);
+ /* WHERE PROXIMITY REACHES THE FACE. Closer to the source, more of the sky's
+    own colour lands on the lit side; far away it falls back toward the floor
+    and the ambient term carries the head. */
+ flood-opacity:calc(.24 + .76 * var(--light-prox,1))
+}
 /* ── LIT BY THE SCENE, NOT TINTED TO MATCH IT ────────────────────────────────
    A tint is colour correction: it makes a cutout agree with a palette. It does
    not make it occupy a place, because the head is still lit from wherever it
    was originally photographed. What reads as "part of the world" is DIRECTION,
-   and all of it is derived from --time-light-dir / --time-light-elev /
-   --time-cast, so nothing here can drift out of agreement with the sky.
+   and all of it is derived from the live head-to-light vector and the sky
+   sampled where the head is standing, so nothing here can drift out of
+   agreement with the sky.
 
    1. RIM LIGHT, the highest-value cue and the one compositors actually use.
       drop-shadow follows the image's ALPHA, so on a cut-out portrait it traces
       the silhouette exactly -- a coloured edge on the side the light is on,
-      with no mask, no second copy of the photo, and no per-frame work. The
-      offset is signed by --time-light-dir, so the edge is on the left at
-      sunrise and the right at sunset without a single hand-authored look.
-   2. GROUND BOUNCE, a fainter upward edge in the ground's colour. This is what
-      stops a suspended object reading as a sticker, and it is the same light
-      the ground-plane shadow is made of.
-   3. EXPOSURE PER HOUR. Harsh and contrasty under a high sun; markedly softer
-      at dusk and night, which is what "too contrasty" was asking for. Night is
-      dim, not merely flattened.
+      with no mask, no second copy of the photo, and no per-frame work. Its
+      offset is the FULL head-to-light vector, so the edge travels around the
+      silhouette as the head is dragged: to the right when the light is right,
+      along the BOTTOM when the head is above the glow, and over the top when
+      it drops below it. A signed left/right number could only ever pick one of
+      two sides, which is why the resting pose read as unlit.
+   2. AMBIENT FILL, the same colour undirected and opposite the rim, so the
+      unlit side is never a void. Deliberately tiny.
+   3. EXPOSURE, per hour AND per position. The authored per-state exposure is
+      multiplied by --env-gain, which rises toward the source, so the head is
+      brighter in the glow than in a far corner instead of being uniformly lit
+      wherever it happens to be.
    Both edges are drop-shadows on one filter chain: GPU-composited, and they
-   cost nothing while the head floats. */
+   cost nothing while the head floats. The directional shading ACROSS the face
+   is the one thing they cannot do, and that is the uplight layer further
+   down -- an edge cannot describe a lit surface. */
 .hero[data-time-state] #face{
  filter:
-  drop-shadow(calc(var(--time-light-dir) * var(--rim-throw))
-              calc(var(--time-light-elev) * var(--rim-throw) * -.6)
+  drop-shadow(calc(var(--light-ux,0) * var(--rim-throw))
+              calc(var(--light-uy,-1) * var(--rim-throw))
               var(--rim-blur) var(--time-rim))
-  drop-shadow(0 var(--bounce-throw) var(--bounce-blur) var(--time-bounce))
-  drop-shadow(calc(var(--time-light-dir) * var(--rim-throw) * -.5) 0
+  drop-shadow(calc(var(--light-ux,0) * var(--rim-throw) * -.5)
+              calc(var(--light-uy,-1) * var(--rim-throw) * -.5)
               calc(var(--rim-blur) * 2.4) var(--time-ambient))
   var(--time-portrait-filter,none);
  opacity:var(--time-portrait-opacity,1);
@@ -514,6 +489,24 @@
    elev .22 is almost entirely sideways. */
 .hero[data-time-state]{
  --rim-throw:30px;--rim-blur:3px;--rim-strength:20%;
+ /* ── HOW MUCH OF THE SOURCE THE HEAD IS CATCHING ───────────────────────────
+    --light-prox used to fade the RIM and nothing else, which meant the head
+    could be dragged into the brightest part of the sky and its illumination
+    never changed -- only its edge treatment did. That is not "the sky is the
+    light", it is a decal that knows where the lamp is. Proximity now scales
+    the face's own exposure, so moving toward the glow lifts the whole head and
+    moving away lets it fall back toward the ambient term.
+    PROXIMITY, NOT --env-lum, DRIVES THIS. They disagree, and proximity is the
+    one that means what he asked for: measured at sunset, --env-lum RISES as
+    the head moves away from the source, because the periphery of that sky is
+    near-white while its core is saturated. Weighting exposure by luminance
+    would have brightened the head in the far corner -- defensible as image
+    lighting, and the exact opposite of "drag it to the glow and it brightens".
+    The floor is what stops a distant head becoming a silhouette. */
+ --lit-floor:.74;--lit-swing:.52;
+ --env-gain:calc(var(--lit-floor) + var(--lit-swing) * var(--light-prox,1));
+ --time-portrait-filter:contrast(var(--time-contrast,1))
+   brightness(calc(var(--time-exposure,1) * var(--env-gain)));
  /* THE RIM TAKES THE SKY'S OWN COLOUR WHERE THE HEAD IS STANDING.
     --env-color and --env-lum are written per frame by hero-head-transform.js,
     evaluated analytically from the authored gradient's stops at the head's
@@ -525,44 +518,87 @@
     at full authored strength, far from it about a third. */
  --env-color:var(--time-cast);
  --env-lum:1;
+ --env-raw:1;
+ /* ONE COLOUR FOR EVERY LIT SURFACE. The rim, the ambient fill and the
+    directional uplight all read this, so they cannot disagree about what
+    colour the light is. It is the sampled sky pulled toward the state's
+    authored intent, so retuning a gradient retunes the light with it and a
+    near-black sample still carries the right hue. */
+ --time-lit:color-mix(in oklab,var(--env-color) 62%,var(--time-cast));
+ /* THE SURFACE NEEDS A BRIGHTER MIX THAN THE EDGE, and that is not a fudge.
+    A rim must never be brighter than the scene making it -- that is the sticker
+    tell -- so --time-lit stays weighted toward the sampled sky, which at night
+    is nearly black. Light landing ON a surface is the opposite problem: screen
+    a near-black colour onto a face and nothing happens at all, and an effect
+    you cannot see reads as broken rather than as tasteful. So the surface term
+    is weighted toward the state's AUTHORED light colour, which is what the hour
+    says the light is made of, and the sampled sky shifts it toward wherever the
+    head is standing. */
+ --time-lit-face:color-mix(in oklab,var(--env-color) 30%,var(--time-cast));
+ /* A RIM IS THE COLOUR AND THE BRIGHTNESS OF THE LIGHT MAKING IT.
+    This was weighted by --env-lum, which carries a .35 floor so a head in a
+    dim corner cannot vanish. That floor is right for the FACE and wrong for
+    the edge: at night it held the rim at roughly a third strength against a
+    near-black sky, and an edge brighter than everything around it is the most
+    recognisable tell of a pasted-on cutout -- the "clear white line". Weighted
+    by the scene's own uncompressed luminance instead, with a small floor so
+    the silhouette does not disappear outright. */
  --time-rim:color-mix(in srgb,
-   color-mix(in oklab,var(--env-color) 62%,var(--time-cast))
-   calc(var(--rim-strength) * var(--env-lum) * (.34 + .66 * var(--light-prox,1))),
+   var(--time-lit)
+   calc(var(--rim-strength) * (.18 + .82 * var(--env-raw))
+        * (.34 + .66 * var(--light-prox,1))),
    transparent);
  /* THE AMBIENT TERM. Environment light arrives from everywhere, so the side
     facing away from the source is never truly black -- it is filled by the
     rest of the sky. This is the third of the three terms, and it is what stops
     a dark head reading as a void at night. Deliberately tiny. */
  --time-ambient:color-mix(in srgb,var(--env-color) calc(var(--env-lum) * 16%),transparent);
- --bounce-throw:0px;--bounce-blur:9px;--time-bounce:transparent
+ /* THE GROUND BOUNCE IS GONE, and the rim is why. It was authored as a fainter
+    upward edge in the ground's colour -- 2px of offset under 9px of blur, which
+    by this file's own rule is a glow and not an edge. At night it was the
+    brightest thing in the picture and it sat on every side of the head at once.
+    A rim that can point DOWNWARD says the same thing honestly: light arriving
+    from below is the rim, not a second halo pretending to be one. */
+ /* HOW MUCH OF THE HOUR'S LIGHT LANDS ON THE FACE. Authored per state because
+    the answer is different at noon and at midnight in both directions: night
+    needs the MOST, because its sampled sky is nearly black and a faithful
+    screen of it does nothing you can see, and daytime needs the least, because
+    its light colour is close to white and a strong screen flattens the face
+    into paper. Measured against each sky rather than judged in isolation. */
+ --time-uplight:0
 }
 /* off = the neutral page: no scene, so no scene lighting. */
 .hero[data-time-state="off"]{
  --time-portrait-filter:none;--time-portrait-opacity:1;
- --rim-throw:0px;--bounce-throw:0px;--time-bounce:transparent
+ --rim-throw:0px;--time-uplight:0
 }
-/* A LOW SUN THROWS THE LONGEST RIM. Sunrise and sunset sit at elev .25/.22,
-   so they get the widest offset and the warmest edge; daytime is nearly
-   overhead and gets a tight, neutral one. */
+/* THE HOUR SETS THE EXPOSURE AND THE EDGE'S REACH; POSITION SETS EVERYTHING
+   ELSE. There used to be a --time-light-elev constant here deciding which way
+   the rim pointed, and its authored values were sun heights. Direction is the
+   live head-to-light vector now, so what is left per state is what genuinely
+   belongs to the hour: how bright the scene is (--time-exposure), how contrasty
+   (--time-contrast), how far the edge throws, and how much of the light lands
+   on the face. Sunrise and sunset keep the warmest, longest edges; daytime a
+   tight neutral one. */
 .hero[data-time-state="pre-dawn"]{
- --time-portrait-filter:contrast(.78) brightness(.84);--time-portrait-opacity:.97;
- --rim-throw:30px;--rim-blur:3px;--rim-strength:18%;--bounce-throw:2px;--time-bounce:rgba(96,120,196,.30)
+ --time-contrast:.78;--time-exposure:.84;--time-portrait-opacity:.97;
+ --rim-throw:30px;--rim-blur:3px;--rim-strength:18%;--time-uplight:.38
 }
 .hero[data-time-state="sunrise"]{
- --time-portrait-filter:contrast(.82) brightness(1.09);--time-portrait-opacity:.96;
- --rim-throw:32px;--rim-blur:3px;--rim-strength:26%;--bounce-throw:2px;--time-bounce:rgba(255,183,140,.34)
+ --time-contrast:.82;--time-exposure:1.09;--time-portrait-opacity:.96;
+ --rim-throw:32px;--rim-blur:3px;--rim-strength:26%;--time-uplight:.34
 }
 .hero[data-time-state="daytime"]{
- --time-portrait-filter:contrast(.94) brightness(1.05);--time-portrait-opacity:.97;
- --rim-throw:26px;--rim-blur:3px;--rim-strength:18%;--bounce-throw:2px;--time-bounce:rgba(180,214,255,.26)
+ --time-contrast:.94;--time-exposure:1.05;--time-portrait-opacity:.97;
+ --rim-throw:26px;--rim-blur:3px;--rim-strength:18%;--time-uplight:.26
 }
 .hero[data-time-state="dusk"]{
- --time-portrait-filter:contrast(.78) brightness(1.06);--time-portrait-opacity:.96;
- --rim-throw:30px;--rim-blur:3px;--rim-strength:20%;--bounce-throw:2px;--time-bounce:rgba(150,140,190,.30)
+ --time-contrast:.78;--time-exposure:1.06;--time-portrait-opacity:.96;
+ --rim-throw:30px;--rim-blur:3px;--rim-strength:20%;--time-uplight:.34
 }
 .hero[data-time-state="sunset"]{
- --time-portrait-filter:contrast(.80) brightness(1.07);--time-portrait-opacity:.96;
- --rim-throw:32px;--rim-blur:3px;--rim-strength:26%;--bounce-throw:2px;--time-bounce:rgba(255,158,116,.34)
+ --time-contrast:.80;--time-exposure:1.07;--time-portrait-opacity:.96;
+ --rim-throw:32px;--rim-blur:3px;--rim-strength:26%;--time-uplight:.36
 }
 /* NIGHT IS DARKER. Lifting a face in the darkest scene is backwards, and it is
    exactly what made it a ghost: a pale head at brightness 1.12 floating on a
@@ -574,11 +610,30 @@
    the most strength. Measured against its own sky rather than judged in
    isolation. */
 .hero[data-time-state="night"]{
- --time-portrait-filter:contrast(.66) brightness(.40);--time-portrait-opacity:1;
- --rim-throw:30px;--rim-blur:3px;--rim-strength:30%;--bounce-throw:2px;--time-bounce:rgba(64,86,150,.32)
+ --time-contrast:.66;--time-exposure:.40;--time-portrait-opacity:1;
+ --rim-throw:30px;--rim-blur:3px;--rim-strength:30%;--time-uplight:.50
 }
-.hero[data-time-state="off"] .heroAura,
-.hero[data-time-state="off"] .heroTimePortraitCast{display:none;opacity:0}
+.hero[data-time-state="off"] .heroAura{display:none;opacity:0}
+/* ── OFF IS A DESTINATION, NOT AN EXCEPTION ──────────────────────────────────
+   This carried display:none, and display is not animatable. Leaving Off the
+   cast layer appeared instantly at full strength and only then began its
+   transition; entering Off it vanished on one frame -- a pop against a 640ms
+   sky cross-fade that was doing the right thing all around it. Off is the only
+   state that used display, which is exactly why it was the only transition
+   that looked wonky.
+   THIS PROJECT HAS PAID FOR THIS ONE BEFORE, in the head and face internals:
+   display cannot be transitioned and visibility can, if it is stepped. So the
+   layer stays in the layout and fades on opacity, and visibility follows one
+   duration LATER on the way out so the element is still there to be seen fading
+   -- and immediately on the way back in so it is there before it starts. The
+   original intent of display:none was that an inert layer must not participate;
+   visibility:hidden keeps that, and the base rule's pointer-events:none keeps
+   it from catching anything either way. */
+.hero[data-time-state="off"] .heroTimePortraitCast{
+ opacity:0;visibility:hidden;
+ transition:opacity var(--hero-time-duration) var(--hero-time-ease),
+  visibility 0s var(--hero-time-ease) var(--hero-time-duration)
+}
 
 /* ── THE CATCHLIGHT IS A REFLECTION OF THE SKY ───────────────────────────────
    An eye is a wet sphere, and its bright spot is a specular reflection of
@@ -624,19 +679,6 @@
    the source is on. Authored at left:32%, it slides with --time-light-dir --
    left at sunrise, right at sunset -- so it agrees with the rim light instead
    of sitting somewhere else on the eye. */
-/* ── THE CAST FLOOD IS GONE ──────────────────────────────────────────────────
-   Measured before removing it, three ways at sunset and night: with the cast
-   forced to zero the picture barely changes. At sunset the big warm bloom
-   Jayden was pointing at is still there without it -- that bloom is the SKY's
-   own sun, the authored radial whose focus sits at 50% just below the Hero's
-   floor. At night what survives cast-off is the rim, and halving the rim is
-   what actually removes it. So the flood was paying for nothing while adding
-   the one thing he objected to: a localised bright patch with a findable edge.
-   Light has no edge. The rim, the directional shading, the per-hour exposure
-   and the ground bounce carry the lighting on their own now.
-   --time-cast survives as the light COLOUR, which the rim, the bounce and the
-   catchlight all read. --time-cast-opacity is retired with the layer. */
-.hero[data-time-state] .heroTimePortraitCast{display:none}
 .hero[data-time-state] .glint{
  left:calc(32% + var(--time-light-dir) * var(--eye-glint-shift));
  width:var(--eye-glint-size);height:var(--eye-glint-size);
@@ -665,14 +707,43 @@
 
 .heroCopy h1{position:relative;z-index:3;color:var(--time-ink);transition:color var(--hero-time-duration) var(--hero-time-ease)}
 .heroPortraitTintDefs{position:absolute;width:0;height:0;overflow:hidden;pointer-events:none}
+/* ── THE FLOOD IS BACK, AND IT IS A DIFFERENT THING ──────────────────────────
+   It was removed for a specific reason and the reason was correct: it was
+   masked by a radial ellipse anchored in HERO space, so it painted a localised
+   bright patch on the head with a findable edge. If you can see where the light
+   ends, it is wrong. Light has no edge; a glow does.
+   What is here now is not that. The mask is a LINEAR ramp in the head's own
+   box, oriented along the live head-to-light vector, and the layer is a copy of
+   the portrait composited into its own alpha -- so it is a gradient ACROSS the
+   face that fades to nothing before it reaches any boundary. There is no edge
+   to find, because the ramp never terminates against anything.
+   WHY IT HAD TO COME BACK: the rim is an edge treatment, and an edge cannot say
+   "this face is lit from underneath". The head rests above the glow every sky
+   focuses on, and Jayden pointed straight at it -- the chin and the underside
+   of the nose should catch that light and the brow should fall away. That is a
+   gradient over a surface. Nothing else in the chain can express it.
+   Restrained on purpose: uplight is the most dramatic direction there is, this
+   lighting has been called harsh twice, and the direction should be the thing
+   you notice rather than the intensity. Proximity scales it, so the effect
+   arrives as the head is dragged toward the source and leaves as it goes. */
 .heroTimePortraitCast{
  position:absolute;inset:0;z-index:2;width:100%;height:100%;object-fit:contain;
- display:block;visibility:visible;pointer-events:none;opacity:var(--time-cast-opacity);background:none;border:0;outline:0;
+ display:block;visibility:visible;pointer-events:none;background:none;border:0;outline:0;
+ /* PER-STATE ONLY, because hero-time.js cross-fades this element's opacity
+    through the Web Animations API and pins the result inline -- a live
+    proximity term written here would be frozen at whatever it was when the hour
+    last changed. The live half rides --flood-opacity inside the filter instead,
+    which nothing else writes. */
+ opacity:var(--time-uplight,0);
  mix-blend-mode:screen;filter:url(#heroPortraitTintFilter);
- -webkit-mask-image:radial-gradient(ellipse 52% 39% at var(--time-light-x) var(--time-light-y),#000 0%,rgba(0,0,0,.84) 34%,rgba(0,0,0,.28) 66%,transparent 88%);
- mask-image:radial-gradient(ellipse 52% 39% at var(--time-light-x) var(--time-light-y),#000 0%,rgba(0,0,0,.84) 34%,rgba(0,0,0,.28) 66%,transparent 88%);
+ -webkit-mask-image:linear-gradient(var(--light-angle,180deg),
+   #000 0%,rgba(0,0,0,.66) 30%,rgba(0,0,0,.22) 62%,transparent 86%);
+ mask-image:linear-gradient(var(--light-angle,180deg),
+   #000 0%,rgba(0,0,0,.66) 30%,rgba(0,0,0,.22) 62%,transparent 86%);
  -webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;
- -webkit-user-drag:none;user-select:none
+ -webkit-user-drag:none;user-select:none;
+ transition:opacity var(--hero-time-duration) var(--hero-time-ease),
+  visibility 0s var(--hero-time-ease) 0s
 }
 
 /* ── THE HERO IS AN ARTBOARD CAUGHT MID-EDIT ──────────────────────────────────
@@ -690,11 +761,36 @@
    reason: it lands at 0 and hands straight over to the float. */
 @property --hero-head-enter-y{syntax:"<length>";inherits:false;initial-value:0px}
 @property --hero-head-enter-o{syntax:"<number>";inherits:false;initial-value:1}
-.heroHeadTransform{
+@property --hero-head-enter-rot{syntax:"<angle>";inherits:false;initial-value:0deg}
+/* ── THE RESTING ANGLE, BEFORE ANY SCRIPT RUNS ───────────────────────────────
+   tokens.css authors --hero-head-rotate:0deg at :root, which is right as the
+   TRANSFORM's neutral value. Rest is not neutral any more, so the element
+   itself carries the resting tilt: the first paint is already tilted with no
+   JS at all, and hero-head-transform.js -- which owns this property inline
+   from its first write -- initialises its own state to the same token, so the
+   number the clamp reasons about and the pixels on screen are never two
+   different things. It also means the measurement helpers, which neutralise
+   the inline value by REMOVING it, fall back to rest rather than to level. */
+#heroHeadTransform{--hero-head-rotate:var(--hero-head-rest-rotate)}
+/* ── AN ID, AND THE REASON IS THE THIRD TIME THIS FILE HAS BEEN BITTEN ───────
+   controls.css links AFTER hero-time.css and declares .heroHeadTransform
+   {transform:...} of its own. At equal specificity the later sheet wins, so
+   this rule -- the one that adds the float and the entrance to the transform
+   -- read perfectly and did nothing: measured live, --hero-head-float-y ran
+   -0.4 -> -9.6px while the painted matrix's ty stayed pinned at 0.
+   THE SYMPTOM WAS THE THING JAYDEN CALLED OUT. The selection chrome is a
+   Hero-relative SIBLING positioned from JS, so it floated on schedule while
+   the head it is supposed to be welded to never moved: the box visibly drifted
+   ~10px off the artwork and back, forever. "The resize box doesn't function
+   cleanly" was not the handles, it was the frame tracking a motion the head
+   was not performing. Same failure mode as left:50% and the z-index above --
+   a class selector here reads correctly and loses. */
+#heroHeadTransform{
  transform:translate3d(
    calc(-50% + var(--hero-head-x) + var(--hero-head-float-x,0px)),
    calc(var(--hero-head-y) + var(--hero-movie-guard-y) + var(--hero-head-float-y,0px) + var(--hero-head-enter-y,0px)),0)
-  rotate(calc(var(--hero-head-rotate) + var(--hero-head-float-rot,0deg)))
+  rotate(calc(var(--hero-head-rotate) + var(--hero-head-float-rot,0deg)
+              + var(--hero-head-enter-rot,0deg)))
   scale(var(--hero-head-scale))
 }
 /* Once per page load, and it resolves INTO the float rather than stopping
@@ -703,9 +799,20 @@
    not an entrance -- it should be over before you have decided how to feel
    about it. It is delayed past the copy so it arrives just AFTER the headline
    is read, which is the difference between a hello and an interruption. */
+/* IT ARRIVES TURNING. The head rests tilted, and a level arrival followed by a
+   snap into the tilt reads as two events -- the second of which looks like a
+   bug. So the greeting starts --hero-head-enter-spin closer to level and turns
+   into the resting angle as it rises, one motion. Both channels resolve to 0
+   and hand the pose straight back to --hero-head-rotate, so the animation is
+   an OFFSET from rest rather than a second opinion about where rest is: it
+   cannot end anywhere else, whatever the rest angle is retuned to. */
 @keyframes heroHeadArrive{
- from{--hero-head-enter-y:var(--hero-head-enter-rise);--hero-head-enter-o:0}
- to{--hero-head-enter-y:0px;--hero-head-enter-o:1}
+ from{
+  --hero-head-enter-y:var(--hero-head-enter-rise);
+  --hero-head-enter-rot:var(--hero-head-enter-spin);
+  --hero-head-enter-o:0
+ }
+ to{--hero-head-enter-y:0px;--hero-head-enter-rot:0deg;--hero-head-enter-o:1}
 }
 .heroHeadTransform{opacity:var(--hero-head-enter-o,1)}
 :root.theme-ready .heroHeadTransform{
@@ -808,8 +915,8 @@
 }
 
 @media(prefers-reduced-motion:reduce){
- .hero,.heroTimeSpill,.heroTimeClip,.heroTimeGradient,.heroTimePortraitCast,.heroCopy h1,
- .hero[data-time-state] .floorshadow{transition:none!important;animation:none!important}
+ .hero,.heroTimeSpill,.heroTimeClip,.heroTimeGradient,.heroTimePortraitCast,
+ .heroCopy h1{transition:none!important;animation:none!important}
  .heroNightStars i{opacity:clamp(.34,var(--star-alpha),.72);animation:none!important}
 }
 
@@ -817,5 +924,4 @@
  .heroTimeSpill,.heroTimeClip,.heroTimePortraitCast,.heroAura{display:none}
  .hero,.heroCopy h1{background:Canvas;color:CanvasText}
  .hero{box-shadow:none}
- .hero[data-time-state] .floorshadow{background:none;opacity:0}
 }

@@ -947,7 +947,13 @@ const _tb=document.querySelector("#inkBig feTurbulence"),_ts=document.querySelec
 const SEEDS=[7,19,3,28,11,23,5,31];
 function boil(){const s=SEEDS[tk%SEEDS.length];if(_tb)_tb.setAttribute("seed",s);if(_ts)_ts.setAttribute("seed",(s*2+5)%37);}
 // floating contact shadow: higher head -> bigger, softer, lighter; lower -> tighter, darker, sharper (and follows sideways)
-function updateShadow(dx,dy,rot){const lift=-dy;
+// NOT EVERY HEAD STANDS ON SOMETHING. Play's companion does, and its shadow is
+// grounding information. The home Hero's portrait does not -- it is suspended
+// clear of the floor -- so index.html carries no #fsh at all and every call
+// here is a no-op rather than a write to a hidden element. Deleting the shadow
+// from one scene must not delete it from the other, which is why the engine
+// keeps the model and the page decides whether it has a ground.
+function updateShadow(dx,dy,rot){if(!fsh)return;const lift=-dy;
  const sx=Math.max(0.55,Math.min(1.7,1+lift*0.010)),sy=Math.max(0.5,Math.min(1.5,1+lift*0.006));
  const op=Math.max(0.12,Math.min(0.6,0.5-lift*0.006)),bl=Math.max(4,Math.min(22,7+lift*0.45));
  fsh.style.transform="translateX(calc(-50% + "+Math.round(dx*0.55)+"px)) skewX("+(rot*0.25).toFixed(1)+"deg) scale("+sx.toFixed(3)+","+sy.toFixed(3)+")";

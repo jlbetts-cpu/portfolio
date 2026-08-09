@@ -305,7 +305,14 @@
   /* The engine exports the empty-roster spawn API before this script runs. Keep the bounded
      retry as a defensive load-order guard, but never write scenery into localStorage. */
   if(!window.__hmSpawnOne){if(_phTries++<40)setTimeout(seedPlaceholders,120);return;}
-  var N=1,i;
+  /* ONE, unless a harness says otherwise. __hmPlaceholderCount exists because the
+     placeholder crowd stopped being big enough to test MATCH physics with the moment it
+     became one head: tools/play-browser-smoke.py's contact assertions read
+     `#playArena [data-hm-boot-ready]`, which only boot-seated heads carry, so they cannot
+     be satisfied by adding heads after load -- and a one-player match never settles into
+     the "play" phase at all, because there is nobody to stop the first goal. It is a
+     number, not a behaviour switch: nothing downstream branches on it, and unset means 1. */
+  var N=(window.__hmPlaceholderCount|0)||1,i;
   for(i=0;i<N;i++)(function(slot){
    tintEgg(EGG.cut,PLACEHOLDER_COLOR,function(cut){
     var eyes=(EGG.eyes||[]).map(function(e){var o={};for(var k in e)o[k]=e[k];return o;});

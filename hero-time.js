@@ -57,13 +57,31 @@
   portrait.style.removeProperty("filter");
  }
 
+ /* ── THE DESTINATION IS WHAT THE HOUR ASKS FOR, NOT WHAT IS ON SCREEN ──────
+    portrait.opacity used to be read back off the element -- and writeFinalScene
+    PINS that number inline, so every transition's target was the previous
+    transition's target. The layer's strength was a fixed point: whatever it
+    happened to be when the page loaded, it stayed, for every hour. That was
+    invisible while the cast was a dead layer sitting at 0 in all six states.
+    It stopped being invisible the moment the layer started carrying the
+    directional uplight, which is authored per state: measured, sunset rendered
+    at night's 0.50 and daytime rendered at 0 after a visit to Off.
+    --time-uplight is the authored value, it lives on the Hero, and nothing
+    pins it. data-time-state is already set to the incoming state by the time
+    this runs, so the read is of the destination and not of the departure. */
+ function uplightNow(){
+  var style=computed(hero);
+  var value=style?parseFloat(style.getPropertyValue("--time-uplight")):0;
+  return Number.isFinite(value)?value:0;
+ }
+
  function targetScene(state){
   var portraitStyle=computed(portrait);
   return {
    gradients:gradients.map(function(layer){return layer.getAttribute("data-time-gradient")===state?1:0;}),
    spill:state==="night"?1:0,
    portrait:{
-    opacity:state==="off"?0:(portraitStyle?number(portraitStyle.opacity):0),
+    opacity:state==="off"?0:uplightNow(),
     filter:portraitStyle&&portraitStyle.filter?portraitStyle.filter:"none"
    }
   };

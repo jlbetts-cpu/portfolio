@@ -30,26 +30,44 @@
     right:f.left+f.width*bounds[2],bottom:f.top+f.height*bounds[3],
     width:f.width*(bounds[2]-bounds[0]),height:f.height*(bounds[3]-bounds[1])};
   }
-  /* Once the wrapper carries a rotation, getBoundingClientRect() returns the
+  /* ── THE RESTING ANGLE ───────────────────────────────────────────────────
+     Every other resting value is LAYOUT -- width, shift, depth -- so that
+     reset() lands exactly home and the clamp never sees rest as "already
+     moved". A rotation has nowhere to live but the transform, so this one
+     resting value is transform state, read from the same stylesheet the rest
+     of the composition is authored in. reset() returns here, the entrance
+     lands here, and the float oscillates around here. */
+  function restRotate(){return rootNumber("--hero-head-rest-rotate",0);}
+  /* ── MEASURE THE HEAD LEVEL, WHATEVER IT IS DOING ────────────────────────
+     Once the wrapper carries a rotation, getBoundingClientRect() returns the
      TURNED bounding box, and slicing head-bounds fractions out of that is not
-     the head. Rather than invert the matrix, the rotation is lifted off for one
-     read and put straight back: the measurement is exact at any angle, and the
-     extra layout only happens while the head is actually turned. The result is
-     cached per render pass so a drag frame pays for it once. */
+     the head. Rather than invert the matrix, every angle the wrapper is
+     carrying is lifted off for one read and put straight back: the
+     measurement is exact at any angle.
+     THE NEUTRALISING WRITE HAS TO BE !important. --hero-head-enter-rot is
+     driven by a keyframe, and an animation outranks an inline style in the
+     cascade -- so a plain inline 0deg is silently ignored for the whole
+     arrival and the base rectangle everything downstream trusts gets captured
+     through whatever angle the entrance happened to be passing. An important
+     declaration is the one thing that does beat an animation. */
+  var LEVEL=["--hero-head-rotate","--hero-head-float-rot","--hero-head-enter-rot"];
+  function withLevel(read){
+   var saved=LEVEL.map(function(name){
+    return [name,wrap.style.getPropertyValue(name)];
+   });
+   LEVEL.forEach(function(name){wrap.style.setProperty(name,"0deg","important");});
+   var measured=read();
+   saved.forEach(function(pair){
+    if(pair[1])wrap.style.setProperty(pair[0],pair[1]);
+    else wrap.style.removeProperty(pair[0]);
+   });
+   return measured;
+  }
+  /* Cached per render pass so a drag frame pays for the extra layout once. */
   function geom(){
    if(state.geomStamp===state.stamp&&state.geom)return state.geom;
-   var measured;
-   if(!state.rotate){
-    measured=logicalRaw();
-   }else{
-    var previous=wrap.style.getPropertyValue("--hero-head-rotate");
-    wrap.style.setProperty("--hero-head-rotate","0deg");
-    measured=logicalRaw();
-    if(previous)wrap.style.setProperty("--hero-head-rotate",previous);
-    else wrap.style.removeProperty("--hero-head-rotate");
-   }
-   state.geom=measured;state.geomStamp=state.stamp;
-   return measured;
+   state.geom=withLevel(logicalRaw);state.geomStamp=state.stamp;
+   return state.geom;
   }
   function radians(){return state.rotate*Math.PI/180;}
   /* Rotation happens about the head's own centre, so the turned bounding box
@@ -138,8 +156,7 @@
        live position, so the rim swings as the head moves and crosses over
        when it passes under the source. */
     lightX:(parseFloat(getComputedStyle(hero).getPropertyValue("--time-light-x"))||50)/100,
-    lightY:(parseFloat(getComputedStyle(hero).getPropertyValue("--time-light-y"))||84)/100,
-    throw:rootNumber("--hero-ground-throw",54)
+    lightY:(parseFloat(getComputedStyle(hero).getPropertyValue("--time-light-y"))||84)/100
    };
    return state.metrics;
   }
@@ -159,31 +176,109 @@
    hero.style.setProperty("--hero-head-scale",String(state.scale));
    updateLight(cssNumber(wrap,"--hero-head-float-x"),cssNumber(wrap,"--hero-head-float-y"));
    state.rendered={x:state.x,y:state.y,scale:state.scale,rotate:state.rotate};
-   state.stamp++;paintShadow();
+   state.stamp++;
   }
   /* The wrapper's transform-origin is the logical head's centre expressed as a
      percentage of the wrapper, so the head turns about itself rather than
      about the stage's corner. Percentages are scale-invariant, so this is a
-     layout constant -- measured whenever the head is level, never while it is
-     turned, because a turned bounding box would not give the same ratio. */
+     layout constant -- but a turned bounding box would not give the same
+     ratio, so the measurement has to be taken level.
+     THE HEAD IS NEVER LEVEL ANY MORE, so this cannot be guarded on
+     state.rotate being zero the way it was -- with a rotated resting pose that
+     guard would have skipped the write for the life of the page and left the
+     origin on its authored fallback. It measures through withLevel() instead,
+     which is exact at any angle. A pure translation or a uniform scale about
+     this same point preserves the ratio, so only the rotation has to come off. */
   function syncOrigin(){
-   if(state.rotate)return;
-   var u=logicalRaw(),w=wrap.getBoundingClientRect();
+   var measured=withLevel(function(){
+    return {u:logicalRaw(),w:wrap.getBoundingClientRect()};
+   });
+   var u=measured.u,w=measured.w;
    if(!w.width||!w.height)return;
    wrap.style.setProperty("--hero-head-origin-x",
     (((u.left+u.right)/2-w.left)/w.width*100)+"%");
    wrap.style.setProperty("--hero-head-origin-y",
     (((u.top+u.bottom)/2-w.top)/w.height*100)+"%");
   }
-  function place(node,point,box){
-   var hit=metrics().hit;
+  /* WHERE THE DOT IS ACTUALLY DRAWN, kept as a number rather than re-measured.
+     controls.css draws the visible square at --h-dx/--h-dy off the hit box's
+     centre, and hero-time.css clamps that offset so the square can never leave
+     its own 44px target. Reproducing the same clamp here means the arbitration
+     below can ask "which dot did they aim at" without reading ::before styles
+     back out of the CSSOM on every press. Selection-local, like --h-x/--h-y. */
+  /* ── A TARGET THAT HANGS OFF THE VIEWPORT IS NOT A TARGET ────────────────
+     The hit box used to be clamped into the SELECTION box, and to fall back to
+     the box's centre whenever the box was narrower than 44px. That is fine
+     while the box is big; at 320 with the head at minimum scale it is not --
+     the resting composition already sits mostly past the left edge there, the
+     visible box measures about 27px, and centring a 44px target in it put a
+     third of the target off-screen where no pointer can reach it.
+     Reachability wins over tidiness: the target is clamped into the region the
+     visitor can actually press -- the Hero, minus the opaque bar across its top
+     -- and only then into the box. When the two conflict, because the box is
+     smaller than the minimum target, the Hero is the one that is real. */
+  function axis(point,extent,lead,limit,hit){
    var half=hit/2;
-   var cx=box.width<hit?box.width/2:Math.max(half,Math.min(box.width-half,point.x));
-   var cy=box.height<hit?box.height/2:Math.max(half,Math.min(box.height-half,point.y));
+   var min=half-lead,max=limit-lead-half;
+   if(max<min)max=min=(min+max)/2;
+   var want=extent<hit?extent/2:Math.max(half,Math.min(extent-half,point));
+   return Math.max(min,Math.min(max,want));
+  }
+  function place(node,point,box,lead){
+   var m=metrics(),hit=m.hit;
+   var cx=axis(point.x,box.width,lead.x,m.heroW,hit);
+   var cy=axis(point.y,box.height,lead.y-m.ceiling,m.heroH-m.ceiling,hit);
    node.style.setProperty("--h-x",cx+"px");
    node.style.setProperty("--h-y",cy+"px");
    node.style.setProperty("--h-dx",(point.x-cx)+"px");
    node.style.setProperty("--h-dy",(point.y-cy)+"px");
+   var reach=(m.hit-rootNumber("--selection-handle-size",8))/2;
+   node.__dot={x:cx+Math.max(-reach,Math.min(reach,point.x-cx)),
+               y:cy+Math.max(-reach,Math.min(reach,point.y-cy))};
+  }
+  /* ── THE DOT YOU AIMED AT WINS, NOT THE ONE THAT PAINTS ON TOP ────────────
+     Five 44px targets do not fit on a 136px head without overlapping, and the
+     head just got small. Measured at rest on a 390 viewport: the rotate dot
+     sits 24px from the nw dot, so it was entirely inside nw's target -- and
+     because .heroHeadHandle sits above .heroHeadRotate in z-order, the rotate
+     handle was DEAD at the default composition on every phone. That z-order
+     rule was written for a degenerate box collapsed against a viewport edge,
+     where it is still right; as a general rule it decides overlaps by paint
+     order, which has nothing to do with what the visitor was pointing at.
+     The rule instead is the one the visible design already promises: the
+     nearest DRAWN dot takes the press. It only engages when targets genuinely
+     overlap, so nothing changes at desktop rest where they do not, and it
+     resolves every historical collision in this component -- the rotator
+     swallowing ne, and now the corners swallowing the rotator -- with one
+     comparison rather than a standing preference for either. */
+  /* AND A PRESS THAT IS NEAR NO DOT AT ALL IS A PRESS ON THE HEAD. The hit
+     boxes are clamped to stay inside the selection, so on a small frame they
+     migrate INWARD, off their own edges and over the artwork -- at 320 with the
+     head scaled down, the rotate target had drifted far enough across the face
+     that grabbing the head to move it started a rotation instead. A 44px target
+     is a promise about the dot, not a licence to own the middle of the object,
+     so the radius is measured from the dot and the interior goes back to the
+     head. */
+  function chromeAt(event){
+   var reach=metrics().hit/2;
+   var origin=selection.getBoundingClientRect(),best=null,shortest=Infinity;
+   chrome.forEach(function(node){
+    var dot=node.__dot;
+    if(!dot)return;
+    /* Chebyshev, not Euclidean: the promise a 44px target makes is a 44px
+       SQUARE, so measuring a radius would quietly shrink the corners of every
+       handle by 6px for no reason anyone could see. */
+    var dx=Math.abs(origin.left+dot.x-event.clientX);
+    var dy=Math.abs(origin.top+dot.y-event.clientY);
+    var distance=Math.max(dx,dy);
+    if(distance<shortest){shortest=distance;best=node;}
+   });
+   return shortest<=reach?best:null;
+  }
+  function beginChrome(event,node){
+   var corner=node.getAttribute("data-corner");
+   if(corner)beginResize(event,corner,node);
+   else beginRotate(event,node);
   }
   /* ── THE FRAME IS A RIGID BODY, NOT A MEASUREMENT ────────────────────────
      It used to be rebuilt from getBoundingClientRect() on every render, which
@@ -197,14 +292,22 @@
      that local rect once and transforms it, and the animation loop performs no
      layout reads at all -- which is also what makes it cheap enough to run
      forever on the landing page. */
+  /* THE ENTRANCE IS PART OF WHAT HAS TO COME OFF. --hero-head-enter-y and
+     --hero-head-enter-rot ride the same transform, and they are keyframed --
+     so they are still moving at exactly the moment this runs, and a keyframe
+     beats a plain inline write. Neutralised at !important along with
+     everything else, or the local rectangle the frame draws and the clamp
+     enforces gets captured mid-arrival and stays wrong for the life of the
+     page. */
+  var NEUTRAL=["--hero-head-x","--hero-head-y","--hero-head-scale","--hero-head-rotate",
+   "--hero-head-float-x","--hero-head-float-y","--hero-head-float-rot",
+   "--hero-head-enter-y","--hero-head-enter-rot"];
   function captureBase(){
-   var saved=["--hero-head-x","--hero-head-y","--hero-head-scale","--hero-head-rotate",
-    "--hero-head-float-x","--hero-head-float-y","--hero-head-float-rot"]
-    .map(function(n){return [n,wrap.style.getPropertyValue(n)];});
-   wrap.style.setProperty("--hero-head-x","0px");wrap.style.setProperty("--hero-head-y","0px");
-   wrap.style.setProperty("--hero-head-scale","1");wrap.style.setProperty("--hero-head-rotate","0deg");
-   wrap.style.setProperty("--hero-head-float-x","0px");wrap.style.setProperty("--hero-head-float-y","0px");
-   wrap.style.setProperty("--hero-head-float-rot","0deg");
+   var saved=NEUTRAL.map(function(n){return [n,wrap.style.getPropertyValue(n)];});
+   NEUTRAL.forEach(function(name){
+    wrap.style.setProperty(name,
+     name==="--hero-head-scale"?"1":/rot/.test(name)?"0deg":"0px","important");
+   });
    var u=logicalRaw(),h=hero.getBoundingClientRect();
    state.base={left:u.left-h.left,top:u.top-h.top,width:u.width,height:u.height};
    saved.forEach(function(pair){
@@ -269,12 +372,13 @@
     var px=g.cx+dx*cos-dy*sin-r.left,py=g.cy+dx*sin+dy*cos-r.top;
     return {x:Math.max(0,Math.min(w,px)),y:Math.max(0,Math.min(ht,py))};
    };
+   var lead={x:r.left,y:r.top};
    handles.forEach(function(handle){
     var corner=handle.getAttribute("data-corner");
     place(handle,turn(corner.indexOf("w")>-1?-g.w/2:g.w/2,
-     corner.indexOf("n")>-1?-g.h/2:g.h/2),box);
+     corner.indexOf("n")>-1?-g.h/2:g.h/2),box,lead);
    });
-   if(rotator)place(rotator,turn(0,-g.h/2),box);
+   if(rotator)place(rotator,turn(0,-g.h/2),box,lead);
   }
   function flushRender(){
    state.frame=0;writeTransform();
@@ -386,7 +490,7 @@
                       state.start.y+event.clientY-state.start.clientY);
    state.x=next.x;state.y=next.y;render();
   }
-  function beginResize(event,corner){
+  function beginResize(event,corner,node){
    if(state.pointerId!==null)return;
    if(event.button!==undefined&&event.button!==0)return;
    event.preventDefault();event.stopPropagation();select();stopFloat();
@@ -398,7 +502,7 @@
    state.pointerId=event.pointerId;state.operation="resize";
    state.start={corner:corner,anchor:opposite,rect:r,x:state.x,y:state.y,scale:state.scale,
     pointerOffset:{x:drag.x-event.clientX,y:drag.y-event.clientY}};
-   state.capture=event.currentTarget;state.capture.setPointerCapture(event.pointerId);
+   state.capture=node||event.currentTarget;state.capture.setPointerCapture(event.pointerId);
   }
   function cornerPoint(rect,corner){
    return {
@@ -443,18 +547,30 @@
      all. A drag passes through the snap zone continuously and genuinely wants
      to be caught by it; a key press is already quantised and means exactly
      what it says. */
+  /* TWO ANGLES ARE WORTH CATCHING, NOT ONE. Level is one of them -- it always
+     was. The other is the RESTING tilt, which used to be level and is not any
+     more: reset() returns there, so a drag has to be able to find it too, or
+     the only way home from a turn is a keyboard shortcut nobody knows about.
+     The two zones cannot overlap while the rest angle is further from level
+     than the snap width, which -13.8deg against 6deg comfortably is; if they
+     ever did, the nearer target simply wins. */
   function limitRotate(value,quantise,allowSnap){
    var increment=rootNumber("--hero-head-rotate-step-large",15);
    var snap=rootNumber("--hero-head-rotate-snap",6);
    if(quantise)value=Math.round(value/increment)*increment;
-   else if(allowSnap!==false&&Math.abs(value)<=snap)value=0;
+   else if(allowSnap!==false){
+    var rest=restRotate();
+    var toLevel=Math.abs(value),toRest=Math.abs(value-rest);
+    if(toLevel<=snap&&toLevel<=toRest)value=0;
+    else if(toRest<=snap)value=rest;
+   }
    return Math.max(rootNumber("--hero-head-min-rotate",-180),
     Math.min(rootNumber("--hero-head-max-rotate",180),value));
   }
   function pointerAngle(centre,x,y){
    return Math.atan2(y-centre.y,x-centre.x)*180/Math.PI;
   }
-  function beginRotate(event){
+  function beginRotate(event,node){
    if(state.pointerId!==null)return;
    if(event.button!==undefined&&event.button!==0)return;
    event.preventDefault();event.stopPropagation();select();stopFloat();
@@ -462,7 +578,7 @@
    state.pointerId=event.pointerId;state.operation="rotate";
    state.start={centre:centre,angle:pointerAngle(centre,event.clientX,event.clientY),
     rotate:state.rotate};
-   state.capture=event.currentTarget;state.capture.setPointerCapture(event.pointerId);
+   state.capture=node||event.currentTarget;state.capture.setPointerCapture(event.pointerId);
   }
   function turn(event){
    if(state.operation!=="rotate"||event.pointerId!==state.pointerId)return;
@@ -479,8 +595,13 @@
    if(capture&&pointerId!==null&&capture.hasPointerCapture(pointerId))capture.releasePointerCapture(pointerId);
    releaseFloat();
   }
+  /* HOME IS NOT 0 ON EVERY AXIS. x, y and scale rest at their neutral values
+     because the whole resting composition is expressed in LAYOUT. The angle
+     cannot be -- there is no layout property that turns a box -- so rest is
+     --hero-head-rest-rotate and this returns to it. Clearing the angle to 0
+     here would put the head somewhere it has never been. */
   function reset(){
-   state.x=0;state.y=0;state.scale=1;state.rotate=0;
+   state.x=0;state.y=0;state.scale=1;state.rotate=restRotate();
    state.pendingAnchor=null;state.pendingClamp=false;render();
   }
   /* ── THE FLOAT ───────────────────────────────────────────────────────────
@@ -499,27 +620,25 @@
    var r=m.rAmp*Math.sin(tau*t/m.rPer+2.4);
    return {x:x,y:y,rot:r};
   }
-  /* Negative Y is up. The lift is normalised 0..1 against the summed Y
-     amplitude so the shadow reads HEIGHT rather than raw pixels, and stays
-     correct if the amplitudes are retuned. */
   function writeFloat(ms){
    var f=floatAt(ms);
    updateLight(f.x,f.y);
    wrap.style.setProperty("--hero-head-float-x",f.x.toFixed(2)+"px");
    wrap.style.setProperty("--hero-head-float-y",f.y.toFixed(2)+"px");
    wrap.style.setProperty("--hero-head-float-rot",f.rot.toFixed(3)+"deg");
-   paintShadow(f);
   }
-  /* ── ONE WRITER FOR THE GROUND SHADOW ────────────────────────────────────
-     hero-engine's updateShadow() already models this correctly: it derives
-     lift from -dy, spreads and softens and lightens the ellipse as lift grows,
-     tracks horizontally at 0.55 of the head's travel, and -- the part that
-     matters -- never emits a translateY. What it did not know about was the
-     head's own arrangement and the float, which are a second source of height.
-     Two writers on one inline style would flicker, so the engine's function is
-     wrapped: its reaction offsets are recorded, and every write from either
-     source goes through one place that adds them together. */
-  var engineShadow={dx:0,dy:0,rot:0},baseShadow=null;
+  /* ── THE HEAD CASTS NOTHING, SO NOTHING HERE WRITES A SHADOW ─────────────
+     There was a wrapper around hero-engine's updateShadow() here. It existed
+     because the engine knew about the head's own reactions but not about the
+     visitor's arrangement or the float, and two writers on one inline style
+     flicker -- so every write went through one place that summed them.
+     The Hero has no ground ellipse to write to now. --hero-peek-depth went
+     negative and the head is suspended 164px clear of the floor, and this
+     site's rule is that a head casts a contact shadow BECAUSE it stands on
+     something; at that separation the ellipse was an unrelated smudge near the
+     bottom of the page. The whole wrapper is deleted rather than left pointing
+     at a hidden element. Play's companion still stands on a surface, still has
+     its #fsh, and hero-engine still writes it. */
   /* ── THE LIGHT IS A PLACE, AND DIRECTION IS THE VECTOR TO IT ─────────────
      --time-light-dir used to be a constant per time-of-day state, so the head
      could be dragged the whole width of the Hero and its lighting never
@@ -626,10 +745,34 @@
    var lx=m.heroW*m.lightX, ly=m.heroH*m.lightY;
    var dx=lx-headX, dy=ly-headY;
    lightDir=Math.max(-1,Math.min(1,dx/(m.heroW*.5)));
-   var dist=Math.sqrt(dx*dx+dy*dy)/(m.heroW*.9);
+   var len=Math.sqrt(dx*dx+dy*dy)||1;
+   var dist=len/(m.heroW*.9);
    var prox=Math.max(0,Math.min(1,1-dist));
    hero.style.setProperty("--time-light-dir",lightDir.toFixed(3));
    hero.style.setProperty("--light-prox",prox.toFixed(3));
+   /* ── THE VECTOR HAS TWO COMPONENTS AND BOTH OF THEM MEAN SOMETHING ───────
+      The first pass resolved direction HORIZONTALLY: --time-light-dir is a
+      signed left/right number and the rim it drove was an x-displacement. The
+      vertical half of the vector was thrown away and a per-state
+      --time-light-elev constant stood in for it, which could only ever describe
+      how high a SUN was -- never where the light is relative to the head.
+      That made the resting composition impossible to render. Every sky in this
+      scene focuses on its own lower edge, and the head rests ABOVE that glow,
+      so the truthful answer is uplight: the chin, the underside of the nose and
+      the lower cheeks catch it and the brow falls away. The old model had no
+      way to say that, so it said nothing.
+      Normalised, so the rim's offset is a direction and not a distance --
+      distance is --light-prox's job. --light-angle is the same vector turned
+      into the CSS gradient convention (0deg points up, clockwise) and pointing
+      AWAY from the source, so a mask written with it is opaque on the lit side
+      and fades across the head. It is written here rather than derived in CSS
+      because atan2() in calc() is too new to rely on and this loop already
+      owns the arithmetic. */
+   var ux=dx/len, uy=dy/len;
+   hero.style.setProperty("--light-ux",ux.toFixed(3));
+   hero.style.setProperty("--light-uy",uy.toFixed(3));
+   hero.style.setProperty("--light-angle",
+    (Math.atan2(-ux,uy)*180/Math.PI).toFixed(1)+"deg");
    if(!env)env=parseGradient();
    if(!env)return;
    /* Where the head sits inside the sky's own radial coordinate. */
@@ -649,27 +792,16 @@
        eb=Math.round(grey+(c.b-grey)*sat);
    hero.style.setProperty("--env-color","rgb("+er+","+eg+","+eb+")");
    hero.style.setProperty("--env-lum",(0.35+0.65*Math.max(0,Math.min(1,lum))).toFixed(3));
-  }
-  function paintShadow(f){
-   if(!baseShadow)return;
-   var fx=f?f.x:cssNumber(wrap,"--hero-head-float-x");
-   var fy=f?f.y:cssNumber(wrap,"--hero-head-float-y");
-   var fr=f?f.rot:cssNumber(wrap,"--hero-head-float-rot");
-   var m=metrics();
-   /* updateShadow scales dx by .55 on its way into translateX, so the throw is
-      pre-divided to land as the authored pixel distance on the ground. */
-   var thrown=-lightDir*m.throw/0.55;
-   baseShadow(engineShadow.dx+state.x+fx+thrown,
-              engineShadow.dy+state.y+fy,
-              engineShadow.rot+state.rotate+fr);
-  }
-  function hookShadow(){
-   if(typeof window.updateShadow!=="function")return;
-   baseShadow=window.updateShadow;
-   window.updateShadow=function(dx,dy,rot){
-    engineShadow={dx:dx,dy:dy,rot:rot};paintShadow();
-   };
-   paintShadow();
+   /* TWO LUMINANCES, BECAUSE TWO THINGS NEED DIFFERENT ANSWERS.
+      --env-lum is COMPRESSED with a floor, and that floor is deliberate: it is
+      what stops the head vanishing in a dim corner. But a floor is exactly
+      wrong for the rim. At night the sky is near-black and the compressed value
+      still reads .35, so the edge came out several times brighter than anything
+      around it -- and a bright line on dark ground is the single most
+      recognisable tell of a pasted-on cutout. That is the "clear white line".
+      --env-raw is the scene's own luminance, uncompressed, so an edge weighted
+      by it cannot be brighter than the light that is supposed to be making it. */
+   hero.style.setProperty("--env-raw",Math.max(0,Math.min(1,lum)).toFixed(3));
   }
   function floatFrame(ms){
    if(!state.floating){state.floatFrame=0;return;}
@@ -703,8 +835,8 @@
   /* ── A DRIFTING 44px TARGET IS A MISSED CLICK ────────────────────────────
      "Sometimes it doesn't let me resize or rotate" is not an intermittent
      failure, it is a moving target: you aim at a handle, it drifts, the press
-     lands on the background and deselects instead. Pausing on pointerDOWN was
-     always too late -- by then the miss has happened. The float freezes when
+     lands on the background and starts a drag of the head instead. Pausing on
+     pointerDOWN was always too late -- by then the miss has happened. The float freezes when
      the pointer ARRIVES over the head or its frame, so anyone reaching for a
      handle gets a completely still target, and it keeps drifting for someone
      who is only reading. The grace period on the way out stops it stuttering
@@ -777,6 +909,20 @@
     if(state.selected)deselect({restoreFocus:true});else select();
    }
   });
+  /* Capture phase, so the arbitration happens BEFORE the handle the browser
+     happened to hit-test can claim the gesture. It only intervenes when the
+     press landed inside more than one target and the nearest dot is not the
+     one that would have won on paint order. */
+  selection.addEventListener("pointerdown",function(e){
+   if(state.pointerId!==null)return;
+   var aimed=e.target.closest&&e.target.closest(".heroHeadHandle,.heroHeadRotate");
+   if(!aimed)return;
+   var nearest=chromeAt(e);
+   if(nearest===aimed)return;
+   e.stopPropagation();
+   if(nearest)beginChrome(e,nearest);
+   else beginMove(e);
+  },true);
   selection.addEventListener("pointerdown",function(e){
    if(!e.target.closest(".heroHeadHandle")&&!e.target.closest(".heroHeadRotate"))beginMove(e);
   });
@@ -786,7 +932,7 @@
   });
   handles.forEach(function(handle){
    handle.addEventListener("pointerdown",function(event){
-    beginResize(event,handle.getAttribute("data-corner"));
+    beginResize(event,handle.getAttribute("data-corner"),handle);
    });
    handle.addEventListener("pointermove",resize);
    handle.addEventListener("pointerup",end);
@@ -794,37 +940,34 @@
    handle.addEventListener("lostpointercapture",end);
   });
   if(rotator){
-   rotator.addEventListener("pointerdown",beginRotate);
+   rotator.addEventListener("pointerdown",function(event){beginRotate(event,rotator);});
    rotator.addEventListener("pointermove",turn);
    rotator.addEventListener("pointerup",end);
    rotator.addEventListener("pointercancel",end);
    rotator.addEventListener("lostpointercapture",end);
   }
-  /* ── CLICKING AWAY DISMISSES, WITHOUT EATING THE CLICK ───────────────────
-     The ambient guard used to make the box undismissable, which is the one
-     convention every canvas UI shares. It dismisses on pointerDOWN so it feels
-     immediate rather than waiting for the click to complete.
-     IT DOES NOT SWALLOW THE INTERACTION. No preventDefault, no
-     stopPropagation: clicking "View work" while the head is selected dismisses
-     the frame AND follows the link. Dismissing and eating the click would be
-     worse than not dismissing at all.
-     WHAT DISMISSAL MEANS. state.ambient stays true, so this hides the frame
-     only until the visitor touches the head again -- the artboard reads as an
-     artboard the moment they re-engage, and the page never ends up permanently
-     bare, which would lose the idea the whole hero is built on. Escape is the
-     stronger gesture and remains the permanent one: it clears ambient, so the
-     frame does not come back on its own for the rest of the session.
-     The stage counts as inside, not just the <img>: the head's pointer surface
-     is .stage, so a press that lands between the alpha and the box is still a
-     press on the head. */
-  document.addEventListener("pointerdown",function(e){
-   if(state.pointerId!==null)return;
-   if(!state.selected)return;
-   var stage=hero.querySelector("#stage");
-   var inside=selection.contains(e.target)||e.target===face
-    ||(stage&&stage.contains(e.target));
-   if(!inside)deselect();
-  },true);
+  /* ── THE FRAME IS PERMANENT ──────────────────────────────────────────────
+     There was a dismiss-on-outside-pointerdown handler here, because that is
+     the convention every canvas UI shares. It is the wrong convention for this
+     page. The frame is not a selection state a visitor discovers by clicking
+     the head, it is the composition: the Hero is an artboard caught mid-edit,
+     and that is the idea the header is built on. Dismissing it on the first
+     click anywhere destroys that idea within seconds of arrival -- which is
+     exactly what happens when someone lands and reaches for "View work".
+     WHAT MAKES A PERMANENT FRAME READ AS DESIGN RATHER THAN AS A RENDERING
+     BUG IS THAT THE HEAD MOVES. Static artwork inside a selection box looks
+     broken; drifting artwork inside one looks like a tool. The float is
+     therefore load-bearing twice over now, and nothing should quietly disable
+     it.
+     ESCAPE IS THE ONLY WAY OUT, and it stays. It costs nothing, it is
+     invisible unless someone reaches for it, and a permanent decorative
+     overlay should have some exit. It clears state.ambient, so the frame does
+     not come back on its own for the rest of the session.
+     THE CLICK IS STILL NOT SWALLOWED, and that guarantee matters MORE now, not
+     less: with the frame on screen for the whole visit, the chrome must never
+     be the reason a CTA does not fire. The selection surface sits below
+     .heroCopy in z-order and does not preventDefault on anything outside its
+     own handles. */
   document.addEventListener("keydown",onKeydown);
   addEventListener("heroheadstagechange",function(){state.stamp++;state.metrics=null;captureBase();syncSelection();});
   document.addEventListener("visibilitychange",function(){if(document.hidden)end();});
@@ -835,6 +978,14 @@
   peek.addEventListener("transitionrun",beginPeekTransition);
   peek.addEventListener("transitioncancel",endPeekTransition);
   peek.addEventListener("transitionend",endPeekTransition);
+  /* THE HEAD STARTS AT ITS RESTING ANGLE, AND SOMETHING HAS TO WRITE IT.
+     The stylesheet gives .heroHeadTransform the rest angle so the very first
+     paint is already tilted with no script at all, but the transform state has
+     to agree with the pixels or the clamp, the frame and the handles would all
+     be reasoning about a level head that is not on screen. Written straight
+     out rather than left to the first interaction. */
+  state.rotate=restRotate();
+  writeTransform();
   syncOrigin();captureBase();
   /* THE PAGE ARRIVES ALREADY SELECTED. This is the concept, not a leftover
      hover state: the Hero is an artboard caught mid-edit. It is opened without
@@ -851,7 +1002,6 @@
    node.addEventListener("pointerenter",holdFloat);
    node.addEventListener("pointerleave",releaseFloat);
   });
-  hookShadow();
   /* The light direction is authored per state, so a change of hour invalidates
      the cache. Observing the attribute costs nothing until it actually moves. */
   /* A time change is a 640ms cross-fade, not an instant, so the sky has to be
@@ -860,11 +1010,10 @@
   function relight(){
    state.metrics=null;env=null;
    updateLight(cssNumber(wrap,"--hero-head-float-x"),cssNumber(wrap,"--hero-head-float-y"));
-   paintShadow();
   }
   new MutationObserver(function(){
    [0,120,340,700].forEach(function(d){setTimeout(relight,d);});
-   state.metrics=null;env=null;updateLight(cssNumber(wrap,"--hero-head-float-x"),cssNumber(wrap,"--hero-head-float-y"));paintShadow();
+   state.metrics=null;env=null;updateLight(cssNumber(wrap,"--hero-head-float-x"),cssNumber(wrap,"--hero-head-float-y"));
   }).observe(hero,{attributes:true,attributeFilter:["data-time-state"]});
   ambient();startFloat();
   if(document.readyState==="complete")recapture();
