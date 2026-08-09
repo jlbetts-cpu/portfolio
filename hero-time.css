@@ -28,20 +28,30 @@
     so reset() returns it exactly here and the entrance still lands on it.
     Baking either into --hero-head-x/-scale would have made the resting state
     something the clamp treats as "already moved". */
- --hero-peek-width:336px;
- --hero-peek-shift-x:-136px;
- /* THE CROP HAS TO SCALE WITH THE HEAD. --hero-peek-depth was a fixed 206px,
-    which was a sane share of a 520px head and is far too much of a 336px one:
-    at the new size only 40.5% of the head stayed above the Hero's floor, under
-    the 42% the reachability clamp requires. The resting position was therefore
-    ILLEGAL under its own clamp -- measured y settled at -13.8px instead of 0,
-    which would have meant the entrance no longer landing where the head rests.
-    Expressed as a share of the head's own width it stays legal at any size. */
- --hero-peek-depth:calc(var(--hero-peek-width) * .40)
+ --hero-peek-width:235px;
+ --hero-peek-shift-x:-241px;
+ /* NEGATIVE DEPTH, AND THAT IS THE POINT. Depth is how far the head hangs
+    PAST the Hero's floor, so a negative value lifts it clear of the floor
+    entirely -- the head stops being a portrait cropped by the bottom edge and
+    becomes an object suspended above the ground its shadow sits on. That also
+    retires the clamp hazard the old value carried: --hero-peek-depth was a
+    fixed 206px, a sane share of a 520px head and far too much of a smaller
+    one, and at 336px it left only 40.5% of the head above the floor against
+    the 42% the reachability clamp requires -- so the resting position was
+    ILLEGAL under its own clamp and settled at y=-13.8px instead of 0. Nothing
+    hangs below the floor now, so the share is 100% at any size. */
+ --hero-peek-depth:-155px;
+ /* The resting pose is ROTATED. Everything else about rest is layout, but a
+    rotation has nowhere to live except the transform, so this is the one
+    resting value the transform owns: reset() returns here, not to 0deg, and
+    the entrance lands here. A rotated box is wider than the head it holds, so
+    the clamp has to stay legal at this angle -- see the contract. */
+ --hero-head-rest-rotate:-13.8deg
 }
 @media(max-width:760px){:root{
- --hero-peek-width:clamp(206px,calc(100vw - var(--sp-64) - var(--sp-48)),336px);
- --hero-peek-shift-x:-42px;
+ --hero-peek-width:211px;
+ --hero-peek-shift-x:-152px;
+ --hero-peek-depth:-129px;
  --hero-ground-height:20px
 }}
 /* --theme-duration is NOT overridden here. It was :root:root{--theme-duration:
