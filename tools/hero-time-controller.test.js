@@ -118,15 +118,19 @@ function makeHarness(options={}){
  const face=new FakeElement({src:options.faceSrc||"images/neutral.webp"});
  const portrait=new FakeElement();
  const states=["pre-dawn","sunrise","daytime","dusk","sunset","night"];
- const portraitTargets={
-  "off":{opacity:0,filter:"url(#heroPortraitTintFilter)"},
-  "pre-dawn":{opacity:.22,filter:"url(#heroPortraitTintFilter)"},
-  "sunrise":{opacity:.25,filter:"url(#heroPortraitTintFilter)"},
-  "daytime":{opacity:.16,filter:"url(#heroPortraitTintFilter)"},
-  "dusk":{opacity:.20,filter:"url(#heroPortraitTintFilter)"},
-  "sunset":{opacity:.26,filter:"url(#heroPortraitTintFilter)"},
-  "night":{opacity:.24,filter:"url(#heroPortraitTintFilter)"}
+ /* ── THE DESTINATION COMES FROM THE HOUR, NOT FROM THE LAYER ────────────────
+    --time-shade is what each state authors, and it is read off the HERO. The
+    layer's own rendered opacity is deliberately pinned to a value no state ever
+    asks for, so anything that goes back to reading the element -- directly, or
+    by depending on clearSettledSceneStyles() having run first -- fails every
+    state assertion below instead of quietly agreeing with itself. */
+ const shadeTargets={
+  "off":0,"pre-dawn":.48,"sunrise":.40,"daytime":.34,
+  "dusk":.44,"sunset":.42,"night":.58
  };
+ const PORTRAIT_DECOY=.99;
+ const portraitTargets=Object.fromEntries(Object.entries(shadeTargets)
+  .map(([state,opacity])=>[state,{opacity}]));
  const gradients=states.map(state=>{
   const layer=new FakeElement({"data-time-gradient":state});
   layer.classList.add("heroTimeGradient");
@@ -154,10 +158,7 @@ function makeHarness(options={}){
   const heroState=hero.getAttribute("data-time-state");
   if(gradients.includes(element))return name==="opacity"?(element.getAttribute("data-time-gradient")===heroState?1:0):"none";
   if(element===spill)return name==="opacity"?(root.getAttribute("data-theme-state")==="night"?1:0):"none";
-  if(element===portrait){
-   const target=portraitTargets[heroState]||portraitTargets.off;
-   return target[name];
-  }
+  if(element===portrait)return name==="opacity"?PORTRAIT_DECOY:"none";
   return name==="opacity"?0:"none";
  }
 
@@ -176,7 +177,9 @@ function makeHarness(options={}){
   opacity:String(cssValue(element,"opacity")),
   filter:String(cssValue(element,"filter")),
   getPropertyValue:name=>name==="--hero-time-duration"?(options.duration||"640ms"):
-   name==="--hero-time-ease"?"cubic-bezier(.22,1,.36,1)":""
+   name==="--hero-time-ease"?"cubic-bezier(.22,1,.36,1)":
+   name==="--time-shade"&&element===hero
+    ? String(shadeTargets[hero.getAttribute("data-time-state")]??0) : ""
  });
  let storageReads=0,clockReads=0,timerCreates=0,timerClears=0;
  Object.defineProperty(window,"sessionStorage",{get(){storageReads+=1;throw new Error("Hero must not access storage");}});
@@ -207,7 +210,7 @@ function makeHarness(options={}){
   return {
    gradients:gradients.map(layer=>Number(cssValue(layer,"opacity"))),
    spill:Number(cssValue(spill,"opacity")),
-   portrait:{opacity:Number(cssValue(portrait,"opacity")),filter:String(cssValue(portrait,"filter"))},
+   portrait:{opacity:Number(cssValue(portrait,"opacity"))},
    active:animations.filter(animation=>!animation.cancelled).length
   };
  }

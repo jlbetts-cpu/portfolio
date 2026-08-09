@@ -243,3 +243,193 @@ still writes theirs, and now no-ops on a page that has no `#fsh`.
   anything live written to `opacity` in CSS is frozen at whatever it was when
   the hour last changed. Per-state values belong on `opacity`; per-frame values
   belong on `flood-opacity` inside the filter, which nothing else writes.
+
+## Third pass: the sign of the problem was wrong
+
+Jayden, on the second-pass build: *"The light is washing out the face, and it's
+not hitting the face realistically at all."* Then, unprompted: *"Honestly I feel
+like no shadow might be the move"*, and immediately after, *"maybe shadows on the
+face itself, but not on the ground or background."*
+
+Those last two are not a contradiction. They are the distinction this pass is
+built on, and it is worth stating in the vocabulary so nobody collapses it again:
+
+| | what it is | verdict |
+|---|---|---|
+| **cast shadow** | the dark shape an object throws **onto a surface** | gone, and stays gone — nothing here stands on anything |
+| **form shadow** | the object's own far side **falling away from the light** | kept, and it is now doing most of the work |
+| `drop-shadow()` | a filter that follows alpha, used to draw the **rim** | kept — it draws light and only shares the name |
+
+### First, the measurement nobody had taken: which way is the photograph lit
+
+Every earlier tuning pass was guessing, because the head is a photograph and
+nobody had established what light it was already carrying. Sampled off the alpha
+and pixels of `images/rest.webp`:
+
+- six columns across the **mid-face** band read `.568 / .767 / .756 / .736 /
+  .707 / .412` left to right — **symmetric to within a few percent**;
+- the **mouth/chin** band reads `.683` against `.692` and the **jaw** `.544`
+  against `.538` — symmetric to within `.01`;
+- the luminance centroid sits **dead centre horizontally** (`dx −0.013` of the
+  head's width) and **0.14 below** the geometric centre.
+
+So: **a broad, soft, near-frontal key with a slight lift from underneath, and
+essentially no form shadow of its own.** Beauty lighting. Two consequences that
+decide everything downstream:
+
+1. **The scene's direction cannot contradict the photograph, because the
+   photograph does not assert one.** Any azimuth is available.
+2. **A flat face composited into a directional sky is the "sticker".** And the
+   second-pass layer *screened light onto it*, which flattens it further and
+   lifts the blacks. Adding light to a face that is already evenly lit is the
+   wash. **What it was missing was the dark it never had.**
+
+### The layer inverted: screen → multiply
+
+Same element, opposite sign. It is a copy of the portrait composited into its own
+alpha, so it can only ever paint on the face — it cannot reach the ground or the
+sky, and there is no cast anywhere in this file. What changed:
+
+- `mix-blend-mode: screen` → **`multiply`**;
+- the mask ramp is turned `+180deg`, so it is opaque on the side facing **away**
+  from the source and fades to nothing by 92%, with its last third under `.1`.
+  If you can see where it ends it is wrong, and that applies to the absence of
+  light as much as to light;
+- `--time-uplight` → **`--time-shade`**, and the per-state ordering **inverts**:
+  daytime the lightest hand, night the firmest. A huge soft source barely shades
+  anything; a small dim one is all shadow. That inversion is itself the evidence
+  the old sign was wrong;
+- the flood colour is `--time-shade-color`, the hour's light taken down toward a
+  dark blue rather than toward black — **a shadow is not an absence of colour**,
+  it is what the rest of the sky still reaches into.
+
+Measured, lit-side over shadow-side across the head, with the layer off and on:
+`2.91 → 3.67` at night, `9.95 → 10.91` at daytime, `4.25 → 4.81` at sunset. The
+mean face luminance moves far less than that — which is the point. **The shade
+layer supplies form, not exposure.** Exposure is `--time-exposure`.
+
+### The light was standing somewhere it is not
+
+`--time-light-x` was authored per state at `34% / 32% / 50% / 62% / 68% / 66%`.
+**Five of those six were fiction.** Every sky here is a radial gradient focused
+at `50%` of its own lower edge; nothing in any of them is brighter on one side.
+The head therefore got a different light vector each hour for a reason not
+present in the picture — measured at rest, `(0.04, 1.00)` at pre-dawn,
+`(−0.23, 0.97)` at sunrise, `(0.98, 0.21)` at sunset. The rim swung from directly
+underneath to sideways to the opposite side between skies that are identical in
+shape.
+
+**The source is read off the gradient's own focal point now.** The authored pair
+survives as the pre-script fallback and has been retuned to name the same place.
+At rest the vector is `(0.57–0.64, 0.77–0.82)` in **every** state — consistently
+up and inward, which is both true and the uplight Jayden asked for.
+
+`--light-angle` also has the head's own rotation subtracted. The ramp is painted
+in the portrait's box, which hangs inside a wrapper turned `−13.8°` plus the
+float, so a screen-space angle was arriving that much off the light it describes.
+
+### A sky is every layer of itself
+
+`parseGradient` read only the **first** `radial-gradient(` in the background.
+Right for the five daylight skies, which are one opaque radial. Wrong for night,
+which is two translucent glows over an opaque linear base — so the model saw
+`rgba(…,0)` wherever the glows had faded and concluded the sky was **pure
+black**. Measured on the shipped build at the resting position: `--env-color`
+`rgb(0,0,0)`, `--env-raw` `0.000`, which collapsed the rim to **3.9% alpha** and
+the ambient to nothing. Night — the one state this file puts legibility *on* the
+rim and the catchlight — had neither.
+
+Every layer is parsed and composited now, over the Hero's own background colour,
+with **premultiplied** stop interpolation (straight RGB drags a hue to black on
+its way through a `transparent` stop). Night's sample at rest is `rgb(19,23,31)`.
+
+**And the rim asks a different question from the face.** Diffuse shading is
+irradiance — large, close, blurred — so `--env-color` / `--env-lum` sample the
+sky **at the head**. A grazing highlight is a reflection of the **brightest**
+thing present, so `--env-raw` blends the local sky toward the **source's** own
+luminance by proximity. That is why the rim can exist at night without the face
+being lifted to match.
+
+### The self-referential opacity: investigated, and it was not the cause
+
+Handed over as the prime suspect for the wash. It is not, and the reason is an
+ordering detail: `transitionScene` calls `clearSettledSceneStyles()` **before**
+`targetScene()`, so the inline pin is gone by the time the read happens and the
+computed value falls through to the authored per-state CSS. Reproduced in the
+browser on a probe carrying the same `opacity:var(--authored)` plus a 640ms
+opacity transition — pin `.34`, retarget to `.18`, `removeProperty`, read →
+**`0.18`, not `0.34`**; identical with the transition removed. The controller's
+own unit tests assert a different destination per hour and passed against the
+pre-fix source, which is the same answer from a second direction.
+
+It is still read from `--time-shade` on the Hero rather than off the element,
+because the old version's correctness rested entirely on two lines in another
+function staying in that order. The test harness now pins the layer's rendered
+opacity to a decoy no state asks for, so a regression fails every state
+assertion instead of quietly agreeing with itself. The `filter` channel was read
+the same way and is simply **not written any more** — it never varies by hour.
+
+**The wash was the additive flood plus night's exposure**, not the plumbing.
+
+## The measured table, at 1440, at rest
+
+Ratios are against **each state's own sky**, never absolute.
+
+| state | face | its sky | **ratio** | rim α | rim vs sky | form (off → on) | light | vector |
+|---|---|---|---|---|---|---|---|---|
+| `off` | .350 | 1.000 | **0.35** | — | — | — | — | — |
+| `pre-dawn` | .388 | .823 | **0.47** | .114 | 1.02× | 3.98 → 4.61 | 50% 103% | (.61, .80) |
+| `sunrise` | .456 | .879 | **0.52** | .157 | 1.01× | 4.72 → 5.31 | 50% 105% | (.58, .82) |
+| `daytime` | .452 | .872 | **0.52** | .082 | 1.02× | 9.95 → 10.91 | 50% 105% | (.57, .82) |
+| `dusk` | .432 | .784 | **0.55** | .137 | 1.02× | 4.00 → 4.57 | 50% 105% | (.59, .81) |
+| `sunset` | .442 | .801 | **0.55** | .165 | 1.02× | 4.25 → 4.81 | 50% 100% | (.64, .77) |
+| `night` | .136 | .077 | **1.77** | .086 | 1.23× | 2.91 → 3.67 | 50% 104% | (.60, .80) |
+
+Night was **2.87×** before this pass — worse than the 2.40× already called a
+ghost. It is 1.77× against the 1.68× that was judged right. Every daylight state
+is below 1: the face is the darker thing against a bright sky, which is correct.
+
+## And in motion, which is the only way to judge it
+
+Dragging the head around the night sky, at 1440:
+
+| head at | ux | uy | prox | face | its sky | ratio | rim α |
+|---|---|---|---|---|---|---|---|
+| rest (482, 622) | +.60 | +.80 | .70 | .136 | .078 | 1.76 | .090 |
+| into the glow (699, 761) | +.09 | **+1.00** | **.86** | .145 | .132 | 1.10 | .110 |
+| left of it (300, 640) | **+.81** | +.59 | .60 | .131 | .073 | 1.81 | .078 |
+| right of it (1148, 640) | **−.82** | +.57 | .59 | .129 | .073 | 1.78 | .078 |
+| high above it (700, 239) | +.02 | **+1.00** | .46 | .125 | .048 | 2.62 | .063 |
+| far top-left (148, 200) | +.61 | +.80 | .28 | .115 | .046 | 2.50 | .047 |
+
+- The rim **crosses over**: `ux` swings `+.81 → −.82` as the head passes the
+  glow, `--light-angle` sweeping a 110° arc, and `uy` stays positive throughout —
+  the light is always below, which is the truth of this composition.
+- **Proximity drives exposure**: face luminance falls monotonically `.145 → .115`
+  as `--light-prox` falls `.86 → .28`. A 1.26× swing from nothing but position.
+- **The face takes the sky's colour**: `--env-color` `rgb(33,36,49)` in the glow,
+  `rgb(11,13,18)` in the far corner.
+- The far corners rise to ~2.5×, because the sky there is nearly black while the
+  face is held up by the `--lit-floor` and the `--env-lum` floor. That is the
+  compression working as authored: a head dragged into a dead corner reads dim
+  rather than disappearing.
+
+## The default hour is `daytime`
+
+Not `auto`. A recruiter opening this at 11pm landed on the near-black hero, which
+is the least legible state and the hardest one to judge any of the above in.
+Daytime is the legible baseline and discovery becomes a reward rather than a
+lottery. `auto` stays in the menu and still follows the real clock.
+
+The mechanical part matters: `auto` used to be persisted **by removing the
+storage key**, so an explicit choice of Automatic and never having chosen were
+the same row. Harmless while auto was also the default, fatal once it is not — a
+default has to apply where there is no preference and lose to one where there is,
+including to `auto`. Every mode is written out now, and only a genuinely absent
+key falls through to `SiteThemeState.DEFAULT_MODE`. `normalizeMode` still answers
+`auto` for garbage on purpose: that names an *unreadable* preference, which is a
+different question from a *missing* one.
+
+Verified on a fresh origin: no key → `data-theme-mode="daytime"`, state
+`daytime`, icon `daytime`, exactly one `aria-checked` item and it is Daytime. A
+stored `auto` survives a reload and resolves to the real hour.

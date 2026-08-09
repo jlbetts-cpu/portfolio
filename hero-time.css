@@ -168,9 +168,9 @@
  --time-rim:var(--rim-3);
  --time-bloom:rgba(111,169,255,.38);
  --time-cast:#9ab0ff;
- --time-light-x:34%;
+ --time-light-x:50%;
  --time-light-dir:-0.32;
- --time-light-y:82%;
+ --time-light-y:103%;
  --time-menu-bg:var(--time-base);
  --time-menu-ink:var(--c700);
  --time-menu-ink-strong:var(--c950);
@@ -193,9 +193,9 @@
  --time-rim:var(--rim-3);
  --time-bloom:rgba(255,190,139,.42);
  --time-cast:#ffb58c;
- --time-light-x:32%;
+ --time-light-x:50%;
  --time-light-dir:-0.36;
- --time-light-y:82%;
+ --time-light-y:105%;
  --time-menu-bg:var(--time-base);
  --time-menu-ink:var(--c700);
  --time-menu-ink-strong:var(--c950);
@@ -220,7 +220,7 @@
  --time-cast:#eaf2ff;
  --time-light-x:50%;
  --time-light-dir:0;
- --time-light-y:84%;
+ --time-light-y:105%;
  --time-menu-bg:var(--time-base);
  --time-menu-ink:var(--c700);
  --time-menu-ink-strong:var(--c950);
@@ -243,9 +243,9 @@
  --time-rim:var(--rim-3);
  --time-bloom:rgba(178,167,209,.34);
  --time-cast:#c8bceb;
- --time-light-x:62%;
+ --time-light-x:50%;
  --time-light-dir:0.24;
- --time-light-y:82%;
+ --time-light-y:105%;
  --time-menu-bg:var(--time-base);
  --time-menu-ink:var(--c700);
  --time-menu-ink-strong:var(--c950);
@@ -268,9 +268,9 @@
  --time-rim:var(--rim-3);
  --time-bloom:rgba(255,167,120,.42);
  --time-cast:#ffb58c;
- --time-light-x:68%;
+ --time-light-x:50%;
  --time-light-dir:0.36;
- --time-light-y:82%;
+ --time-light-y:100%;
  --time-menu-bg:var(--time-base);
  --time-menu-ink:var(--c700);
  --time-menu-ink-strong:var(--c950);
@@ -293,9 +293,9 @@
  --time-rim:var(--rim-i2);
  --time-bloom:rgba(111,169,255,.40);
  --time-cast:#9ab0ff;
- --time-light-x:66%;
+ --time-light-x:50%;
  --time-light-dir:0.32;
- --time-light-y:82%;
+ --time-light-y:104%;
  --time-menu-bg:var(--time-base);
  --time-menu-ink:var(--i700);
  --time-menu-ink-strong:var(--c50);
@@ -427,17 +427,40 @@
 
    The eyes are siblings of #face inside .stage at z-index 3, so none of this
    touches them: they stay at full strength and keep tracking and blinking. */
-/* The flood is the LIGHT's colour, which is the sampled sky pulled toward the
-   state's intent -- the same --time-lit the rim uses, so the edge and the
-   surface can never disagree about what is illuminating the head. It was
-   var(--time-cast) alone, i.e. a per-state constant, which is the model that
-   could not respond to where the head was standing. */
+/* ── THE FLOOD IS THE SHADOW NOW, NOT THE LIGHT ──────────────────────────────
+   MEASURED FIRST, because this is the finding every earlier tuning pass was
+   missing: the source photograph is almost perfectly FLAT. Sampled across
+   images/rest.webp in six columns, the mid-face band reads .568 / .767 / .756
+   / .736 / .707 / .412 left to right -- symmetric to within a few percent, and
+   the mouth and jaw bands are symmetric to within .01. Its luminance centroid
+   sits dead centre horizontally (dx -0.013 of the head's width) and 0.14 BELOW
+   the geometric centre. That is a broad, soft, near-frontal key with a slight
+   lift from underneath: beauty lighting, which is to say almost no form shadow
+   at all.
+   A flat face composited into a directional sky is the "sticker" quality he has
+   named four times, and ADDING light was making it worse -- the layer used to
+   screen the hour's colour onto the silhouette, which lifts the blacks hardest
+   of all and flattens what little modelling the photograph had. Measured at
+   night: the face read 2.87x the luminance of its own sky, against the 1.68x
+   that was judged right and the 2.40x that was already called a ghost.
+   What a flat face is missing is not light, it is DARK. So the same layer is
+   multiplied in rather than screened on, and its ramp is turned to face away
+   from the source: the side of the head the light cannot reach falls off, which
+   is the one cue that makes a photograph read as an object under a light.
+   It shades the FACE and nothing else -- it is composited into the portrait's
+   own alpha, so it can never fall on the ground or on the sky. There is no
+   surface under this head for a cast shadow to land on, and there is no cast.
+   THE SHADOW IS NOT BLACK. Nothing in a real scene is: the side turned away
+   from the key is still lit by the rest of the sky, so it takes the sky's own
+   hue at a much lower value. That is the ambient term doing the same job the
+   rim's --time-ambient does on the other side of the same argument. */
 #heroPortraitTintFlood{
- flood-color:var(--time-lit-face);
- /* WHERE PROXIMITY REACHES THE FACE. Closer to the source, more of the sky's
-    own colour lands on the lit side; far away it falls back toward the floor
-    and the ambient term carries the head. */
- flood-opacity:calc(.24 + .76 * var(--light-prox,1))
+ flood-color:var(--time-shade-color);
+ /* WHERE PROXIMITY REACHES THE FACE. A near, dominant source throws a deep
+    terminator; a distant one leaves the head flat under the ambient. So the
+    shading DEEPENS toward the glow and relaxes away from it -- the same
+    proximity that lifts the exposure sharpens the modelling. */
+ flood-opacity:calc(.34 + .66 * var(--light-prox,1))
 }
 /* ── LIT BY THE SCENE, NOT TINTED TO MATCH IT ────────────────────────────────
    A tint is colour correction: it makes a cutout agree with a palette. It does
@@ -524,17 +547,15 @@
     colour the light is. It is the sampled sky pulled toward the state's
     authored intent, so retuning a gradient retunes the light with it and a
     near-black sample still carries the right hue. */
- --time-lit:color-mix(in oklab,var(--env-color) 62%,var(--time-cast));
- /* THE SURFACE NEEDS A BRIGHTER MIX THAN THE EDGE, and that is not a fudge.
-    A rim must never be brighter than the scene making it -- that is the sticker
-    tell -- so --time-lit stays weighted toward the sampled sky, which at night
-    is nearly black. Light landing ON a surface is the opposite problem: screen
-    a near-black colour onto a face and nothing happens at all, and an effect
-    you cannot see reads as broken rather than as tasteful. So the surface term
-    is weighted toward the state's AUTHORED light colour, which is what the hour
-    says the light is made of, and the sampled sky shifts it toward wherever the
-    head is standing. */
- --time-lit-face:color-mix(in oklab,var(--env-color) 30%,var(--time-cast));
+ --time-lit:color-mix(in oklab,var(--env-color) 48%,var(--time-cast));
+ /* THE COLOUR OF THE SHADOW SIDE. A shadow is not an absence of colour, it is
+    what the sky still reaches into: the side turned away from the key is lit by
+    everything else, which is dimmer and cooler. So this is the hour's own light
+    colour taken down toward a dark blue rather than toward black -- black would
+    read as a hole punched in the face, and the same near-neutral that makes the
+    ambient rim believable makes this believable. How DEEP it goes is
+    --time-shade per state; this only decides what colour deep is. */
+ --time-shade-color:color-mix(in oklab,var(--time-lit) 46%,#0a0c14);
  /* A RIM IS THE COLOUR AND THE BRIGHTNESS OF THE LIGHT MAKING IT.
     This was weighted by --env-lum, which carries a .35 floor so a head in a
     dim corner cannot vanish. That floor is right for the FACE and wrong for
@@ -559,18 +580,20 @@
     brightest thing in the picture and it sat on every side of the head at once.
     A rim that can point DOWNWARD says the same thing honestly: light arriving
     from below is the rim, not a second halo pretending to be one. */
- /* HOW MUCH OF THE HOUR'S LIGHT LANDS ON THE FACE. Authored per state because
-    the answer is different at noon and at midnight in both directions: night
-    needs the MOST, because its sampled sky is nearly black and a faithful
-    screen of it does nothing you can see, and daytime needs the least, because
-    its light colour is close to white and a strong screen flattens the face
-    into paper. Measured against each sky rather than judged in isolation. */
- --time-uplight:0
+ /* HOW DEEP THE TERMINATOR GOES, authored per state, and the two ends are
+    opposite problems. A bright sky is a huge soft source and a huge soft source
+    barely shades anything -- push it at daytime and the head reads as if it
+    were photographed at dusk, which contradicts the sky behind it. A dim sky is
+    a small hard source and its shadows are the whole picture. So daytime is the
+    lightest hand and night the firmest, which is the exact inverse of what the
+    additive version wanted, and that inversion is the tell that it had the sign
+    of the problem wrong. Measured against each sky, never in isolation. */
+ --time-shade:0
 }
 /* off = the neutral page: no scene, so no scene lighting. */
 .hero[data-time-state="off"]{
  --time-portrait-filter:none;--time-portrait-opacity:1;
- --rim-throw:0px;--time-uplight:0
+ --rim-throw:0px;--time-shade:0
 }
 /* THE HOUR SETS THE EXPOSURE AND THE EDGE'S REACH; POSITION SETS EVERYTHING
    ELSE. There used to be a --time-light-elev constant here deciding which way
@@ -581,24 +604,24 @@
    on the face. Sunrise and sunset keep the warmest, longest edges; daytime a
    tight neutral one. */
 .hero[data-time-state="pre-dawn"]{
- --time-contrast:.78;--time-exposure:.84;--time-portrait-opacity:.97;
- --rim-throw:30px;--rim-blur:3px;--rim-strength:18%;--time-uplight:.38
+ --time-contrast:.80;--time-exposure:.97;--time-portrait-opacity:.97;
+ --rim-throw:14px;--rim-blur:5px;--rim-strength:22%;--time-shade:.48
 }
 .hero[data-time-state="sunrise"]{
- --time-contrast:.82;--time-exposure:1.09;--time-portrait-opacity:.96;
- --rim-throw:32px;--rim-blur:3px;--rim-strength:26%;--time-uplight:.34
+ --time-contrast:.84;--time-exposure:1.14;--time-portrait-opacity:.96;
+ --rim-throw:16px;--rim-blur:5px;--rim-strength:26%;--time-shade:.40
 }
 .hero[data-time-state="daytime"]{
- --time-contrast:.94;--time-exposure:1.05;--time-portrait-opacity:.97;
- --rim-throw:26px;--rim-blur:3px;--rim-strength:18%;--time-uplight:.26
+ --time-contrast:.96;--time-exposure:1.20;--time-portrait-opacity:.97;
+ --rim-throw:13px;--rim-blur:4px;--rim-strength:16%;--time-shade:.34
 }
 .hero[data-time-state="dusk"]{
- --time-contrast:.78;--time-exposure:1.06;--time-portrait-opacity:.96;
- --rim-throw:30px;--rim-blur:3px;--rim-strength:20%;--time-uplight:.34
+ --time-contrast:.80;--time-exposure:1.08;--time-portrait-opacity:.96;
+ --rim-throw:14px;--rim-blur:5px;--rim-strength:22%;--time-shade:.44
 }
 .hero[data-time-state="sunset"]{
- --time-contrast:.80;--time-exposure:1.07;--time-portrait-opacity:.96;
- --rim-throw:32px;--rim-blur:3px;--rim-strength:26%;--time-uplight:.36
+ --time-contrast:.82;--time-exposure:1.10;--time-portrait-opacity:.96;
+ --rim-throw:16px;--rim-blur:5px;--rim-strength:26%;--time-shade:.42
 }
 /* NIGHT IS DARKER. Lifting a face in the darkest scene is backwards, and it is
    exactly what made it a ghost: a pale head at brightness 1.12 floating on a
@@ -610,8 +633,8 @@
    the most strength. Measured against its own sky rather than judged in
    isolation. */
 .hero[data-time-state="night"]{
- --time-contrast:.66;--time-exposure:.40;--time-portrait-opacity:1;
- --rim-throw:30px;--rim-blur:3px;--rim-strength:30%;--time-uplight:.50
+ --time-contrast:.70;--time-exposure:.36;--time-portrait-opacity:1;
+ --rim-throw:15px;--rim-blur:5px;--rim-strength:34%;--time-shade:.58
 }
 .hero[data-time-state="off"] .heroAura{display:none;opacity:0}
 /* ── OFF IS A DESTINATION, NOT AN EXCEPTION ──────────────────────────────────
@@ -707,39 +730,48 @@
 
 .heroCopy h1{position:relative;z-index:3;color:var(--time-ink);transition:color var(--hero-time-duration) var(--hero-time-ease)}
 .heroPortraitTintDefs{position:absolute;width:0;height:0;overflow:hidden;pointer-events:none}
-/* ── THE FLOOD IS BACK, AND IT IS A DIFFERENT THING ──────────────────────────
-   It was removed for a specific reason and the reason was correct: it was
-   masked by a radial ellipse anchored in HERO space, so it painted a localised
-   bright patch on the head with a findable edge. If you can see where the light
-   ends, it is wrong. Light has no edge; a glow does.
-   What is here now is not that. The mask is a LINEAR ramp in the head's own
-   box, oriented along the live head-to-light vector, and the layer is a copy of
-   the portrait composited into its own alpha -- so it is a gradient ACROSS the
-   face that fades to nothing before it reaches any boundary. There is no edge
-   to find, because the ramp never terminates against anything.
-   WHY IT HAD TO COME BACK: the rim is an edge treatment, and an edge cannot say
-   "this face is lit from underneath". The head rests above the glow every sky
-   focuses on, and Jayden pointed straight at it -- the chin and the underside
-   of the nose should catch that light and the brow should fall away. That is a
-   gradient over a surface. Nothing else in the chain can express it.
-   Restrained on purpose: uplight is the most dramatic direction there is, this
-   lighting has been called harsh twice, and the direction should be the thing
-   you notice rather than the intensity. Proximity scales it, so the effect
-   arrives as the head is dragged toward the source and leaves as it goes. */
+/* ── THE FORM SHADOW. NOT A CAST SHADOW, AND THE DIFFERENCE IS THE WHOLE RULE ─
+   A CAST shadow is the dark shape an object throws ONTO A SURFACE. There is no
+   surface here: the head hangs 155px clear of the Hero's floor, the floor
+   ellipse was deleted for exactly that reason, and nothing in this file paints
+   on the ground or on the sky. That rule stands.
+   A FORM shadow is the object's own far side falling away from the light. It is
+   not information about a floor, it is information about a SHAPE, and it is the
+   entire mechanism by which a photograph reads as three-dimensional. Jayden:
+   "maybe shadows on the face itself, but not on the ground or background." That
+   is precisely this distinction, and this layer is the "on the face itself"
+   half. It is composited into the portrait's own alpha, so it cannot reach
+   anything the portrait does not already cover.
+   THE MEASUREMENT THAT DECIDED THE SIGN. images/rest.webp is lit almost dead
+   frontally: six columns across the mid-face read within a few percent of each
+   other, and the mouth and jaw bands are symmetric to within .01. The
+   photograph has essentially NO form shadow of its own. A flat face dropped
+   into a directional sky is the "sticker" quality he has objected to four
+   times -- and the previous version of this layer SCREENED light onto it, which
+   flattens it further and lifts the blacks, which is the wash he named. What a
+   flat face needs is not more light. It is the dark it never had.
+   So the layer multiplies instead of screening, and the ramp is turned 180deg:
+   opaque on the side facing AWAY from the source, fading to nothing well before
+   any boundary. The ramp lives in the head's own box and --light-angle already
+   has the head's rotation taken out of it, so the terminator tracks the light
+   and not the tilt.
+   NO EDGE, STILL. Light has no edge and neither does its absence -- the ramp
+   reaches zero at 92% and the last third of it is under .1, so there is nowhere
+   the shading can be seen to stop. If you can see where it ends, it is wrong. */
 .heroTimePortraitCast{
  position:absolute;inset:0;z-index:2;width:100%;height:100%;object-fit:contain;
  display:block;visibility:visible;pointer-events:none;background:none;border:0;outline:0;
  /* PER-STATE ONLY, because hero-time.js cross-fades this element's opacity
     through the Web Animations API and pins the result inline -- a live
     proximity term written here would be frozen at whatever it was when the hour
-    last changed. The live half rides --flood-opacity inside the filter instead,
+    last changed. The live half rides flood-opacity inside the filter instead,
     which nothing else writes. */
- opacity:var(--time-uplight,0);
- mix-blend-mode:screen;filter:url(#heroPortraitTintFilter);
- -webkit-mask-image:linear-gradient(var(--light-angle,180deg),
-   #000 0%,rgba(0,0,0,.66) 30%,rgba(0,0,0,.22) 62%,transparent 86%);
- mask-image:linear-gradient(var(--light-angle,180deg),
-   #000 0%,rgba(0,0,0,.66) 30%,rgba(0,0,0,.22) 62%,transparent 86%);
+ opacity:var(--time-shade,0);
+ mix-blend-mode:multiply;filter:url(#heroPortraitTintFilter);
+ -webkit-mask-image:linear-gradient(calc(var(--light-angle,180deg) + 180deg),
+   #000 0%,rgba(0,0,0,.72) 26%,rgba(0,0,0,.34) 54%,rgba(0,0,0,.08) 76%,transparent 92%);
+ mask-image:linear-gradient(calc(var(--light-angle,180deg) + 180deg),
+   #000 0%,rgba(0,0,0,.72) 26%,rgba(0,0,0,.34) 54%,rgba(0,0,0,.08) 76%,transparent 92%);
  -webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;
  -webkit-user-drag:none;user-select:none;
  transition:opacity var(--hero-time-duration) var(--hero-time-ease),

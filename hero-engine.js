@@ -6,6 +6,23 @@
  window.requestAnimationFrame=function(fn){var h=nid++;q.push({h:h,fn:fn});return h;};
  window.cancelAnimationFrame=function(h){for(var i=0;i<q.length;i++){if(q[i].h===h){q.splice(i,1);break;}}};
 }catch(e){}})();
+/* ── ONE MEASUREMENT, ONE COPY ───────────────────────────────────────────────
+   The artwork's extents were hand-written into three separate fallbacks here
+   and a fourth time onto #face's data-head-bounds attribute, and the two
+   drifted: the attribute was remeasured off the alpha of all nine images
+   (0.1933 0.0616 0.8484 0.9234) while these still said 0.22 0.12 0.80 0.91 --
+   the old FACE bounds, whose top edge is 5.83% short because wink.webp carries
+   the tallest hair in the set. Nothing was visibly wrong, because every reader
+   consults the attribute first. It would have gone wrong the moment one went
+   missing, which is exactly how this class of bug has recurred on this project.
+   The attribute stays the source of truth -- it is the one a contract can read
+   off the DOM -- and this is the single fallback behind it. */
+const HEAD_BOUNDS_FALLBACK="0.1933 0.0616 0.8484 0.9234";
+function headBoundsOf(img){
+ var node=img||faceImg;
+ var raw=(node&&node.getAttribute("data-head-bounds"))||HEAD_BOUNDS_FALLBACK;
+ return raw.split(/\s+/).map(Number);
+}
 const FACES={
  neutral:{browsup:"images/neutral_browsup.webp",img:"images/neutral.webp",closed:"images/neutral_closed.webp",eyes:[{x:0.3999,y:0.5176},{x:0.6018,y:0.5265}]},
  rest:{img:"images/rest.webp",closed:"images/rest_closed.webp",eyes:[{x:0.4,y:0.5169},{x:0.6041,y:0.5269}]},
@@ -1043,7 +1060,7 @@ function setMoviePeek(on){
   var hero=document.getElementById("main"),copy=hero&&hero.querySelector(".heroCopy");
   if(hero&&copy&&faceImg){
    var faceRect=faceImg.getBoundingClientRect(),stageRect=stage.getBoundingClientRect();
-   var headBounds=(faceImg.getAttribute("data-head-bounds")||"0.22 0.12 0.80 0.91").split(/\s+/).map(Number);
+   var headBounds=headBoundsOf();
    var headTop=faceRect.top+faceRect.height*headBounds[1];
    var selection=document.getElementById("heroHeadSelection");
    if(selection&&!selection.hidden)headTop=selection.getBoundingClientRect().top;
@@ -1070,7 +1087,7 @@ function enforceMovieSafeProjection(){
  var hero=document.getElementById("main"),copy=hero&&hero.querySelector(".heroCopy");
  if(!hero||!copy||!faceImg)return;
  var faceRect=faceImg.getBoundingClientRect();
- var headBounds=(faceImg.getAttribute("data-head-bounds")||"0.22 0.12 0.80 0.91").split(/\s+/).map(Number);
+ var headBounds=headBoundsOf();
  var top=faceRect.top+faceRect.height*headBounds[1];
  var style=getComputedStyle(hero),safeTop=copy.getBoundingClientRect().bottom+
   (parseFloat(style.getPropertyValue("--hero-head-safe-gap"))||0);
@@ -1428,7 +1445,7 @@ talk.addEventListener("click",function(e){e.preventDefault();
  cards.forEach(function(card){card.addEventListener("pointerenter",enter);card.addEventListener("pointerleave",function(){leave(card);});card.addEventListener("focusin",enter);card.addEventListener("focusout",function(){requestAnimationFrame(function(){leave(card);});});});
 })();
 (function(){return;/* magnetic retired: Let's talk is now a calm secondary button matching Back */var mag=document.querySelector(".talkMag");if(!mag||reduce)return;var PULL=0.22,REACH=70,MAXO=16,last=0,cx=0,cy=0;function apply(x,y){mag.style.transform=(x||y)?("translate("+x+"px,"+y+"px)"):"";}function cl(v){return v<-MAXO?-MAXO:(v>MAXO?MAXO:v);}window.addEventListener("mousemove",function(e){var now=performance.now();if(now-last<125)return;last=now;var b=mag.getBoundingClientRect();var bx=b.left+b.width/2-cx,by=b.top+b.height/2-cy;var dx=e.clientX-bx,dy=e.clientY-by;var reach=Math.max(b.width,b.height)/2+REACH;if(Math.hypot(dx,dy)<reach){cx=cl(Math.round(dx*PULL));cy=cl(Math.round(dy*PULL));apply(cx,cy);}else if(cx||cy){cx=0;cy=0;apply(0,0);}});window.addEventListener("mouseout",function(e){if(!e.relatedTarget&&(cx||cy)){cx=0;cy=0;apply(0,0);}});})();
-(function(){var headBounds=(faceImg.getAttribute("data-head-bounds")||"0.22 0.12 0.80 0.91").split(/\s+/).map(Number);var HEAD={x0:headBounds[0],y0:headBounds[1],x1:headBounds[2],y1:headBounds[3]};function overFace(e){var r=faceImg.getBoundingClientRect();if(!r.width||!r.height)return false;var fx=(e.clientX-r.left)/r.width,fy=(e.clientY-r.top)/r.height;return fx>=HEAD.x0&&fx<=HEAD.x1&&fy>=HEAD.y0&&fy<=HEAD.y1;}var onFace=false;window.__pointerOverFace=false;document.addEventListener("mousemove",function(e){var ov=overFace(e);window.__pointerOverFace=ov;if(CALIB)return;if(ov)enter();else leave();},{passive:true});document.addEventListener("mouseleave",function(){window.__pointerOverFace=false;leave();});window.addEventListener("blur",function(){window.__pointerOverFace=false;leave();});function enter(){if(eventLock||CALIB)return;if(!onFace){onFace=true;clearHold();activeHover="rest";showFace("rest");}}function leave(){var was=onFace;onFace=false;if(activeHover==="rest")activeHover=null;if(!eventLock&&!CALIB){var target=activeHover||holdFace||baseFace;if(blinking){for(var i=0;i<blinkQ.length;i++){if(blinkQ[i]&&blinkQ[i].open)blinkQ[i].face=target;}}if(was)showFace(target);}if(window.__restWatch)clearInterval(window.__restWatch);var t0=Date.now();window.__restWatch=setInterval(function(){if(window.__pointerOverFace||CALIB||onFace||Date.now()-t0>1500){clearInterval(window.__restWatch);window.__restWatch=null;return;}if(eventLock)return;if(curFace==="rest"){if(blinking){for(var j=0;j<blinkQ.length;j++){if(blinkQ[j]&&blinkQ[j].open)blinkQ[j].face=baseFace;}}setFace(baseFace);}},60);}faceImg.addEventListener("mousemove",function(e){if(CALIB)return;if(overFace(e))enter();else leave();});faceImg.addEventListener("mouseleave",function(){leave();});})();
+(function(){var headBounds=headBoundsOf();var HEAD={x0:headBounds[0],y0:headBounds[1],x1:headBounds[2],y1:headBounds[3]};function overFace(e){var r=faceImg.getBoundingClientRect();if(!r.width||!r.height)return false;var fx=(e.clientX-r.left)/r.width,fy=(e.clientY-r.top)/r.height;return fx>=HEAD.x0&&fx<=HEAD.x1&&fy>=HEAD.y0&&fy<=HEAD.y1;}var onFace=false;window.__pointerOverFace=false;document.addEventListener("mousemove",function(e){var ov=overFace(e);window.__pointerOverFace=ov;if(CALIB)return;if(ov)enter();else leave();},{passive:true});document.addEventListener("mouseleave",function(){window.__pointerOverFace=false;leave();});window.addEventListener("blur",function(){window.__pointerOverFace=false;leave();});function enter(){if(eventLock||CALIB)return;if(!onFace){onFace=true;clearHold();activeHover="rest";showFace("rest");}}function leave(){var was=onFace;onFace=false;if(activeHover==="rest")activeHover=null;if(!eventLock&&!CALIB){var target=activeHover||holdFace||baseFace;if(blinking){for(var i=0;i<blinkQ.length;i++){if(blinkQ[i]&&blinkQ[i].open)blinkQ[i].face=target;}}if(was)showFace(target);}if(window.__restWatch)clearInterval(window.__restWatch);var t0=Date.now();window.__restWatch=setInterval(function(){if(window.__pointerOverFace||CALIB||onFace||Date.now()-t0>1500){clearInterval(window.__restWatch);window.__restWatch=null;return;}if(eventLock)return;if(curFace==="rest"){if(blinking){for(var j=0;j<blinkQ.length;j++){if(blinkQ[j]&&blinkQ[j].open)blinkQ[j].face=baseFace;}}setFace(baseFace);}},60);}faceImg.addEventListener("mousemove",function(e){if(CALIB)return;if(overFace(e))enter();else leave();});faceImg.addEventListener("mouseleave",function(){leave();});})();
 
 function renderCal(){}
 addEventListener("keydown",e=>{if(!CALIB)return;

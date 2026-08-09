@@ -40,7 +40,7 @@
    spill:(function(){var style=computed(spill);return style?number(style.opacity):0;})(),
    portrait:(function(){
     var style=computed(portrait);
-    return {opacity:style?number(style.opacity):0,filter:style&&style.filter?style.filter:"none"};
+    return {opacity:style?number(style.opacity):0};
    })()
   };
  }
@@ -54,36 +54,43 @@
   gradients.forEach(function(layer){layer.style.removeProperty("opacity");});
   spill.style.removeProperty("opacity");
   portrait.style.removeProperty("opacity");
-  portrait.style.removeProperty("filter");
  }
 
  /* ── THE DESTINATION IS WHAT THE HOUR ASKS FOR, NOT WHAT IS ON SCREEN ──────
-    portrait.opacity used to be read back off the element -- and writeFinalScene
-    PINS that number inline, so every transition's target was the previous
-    transition's target. The layer's strength was a fixed point: whatever it
-    happened to be when the page loaded, it stayed, for every hour. That was
-    invisible while the cast was a dead layer sitting at 0 in all six states.
-    It stopped being invisible the moment the layer started carrying the
-    directional uplight, which is authored per state: measured, sunset rendered
-    at night's 0.50 and daytime rendered at 0 after a visit to Off.
-    --time-uplight is the authored value, it lives on the Hero, and nothing
-    pins it. data-time-state is already set to the incoming state by the time
-    this runs, so the read is of the destination and not of the departure. */
- function uplightNow(){
+    THE SUSPECT THIS INHERITED, AND THE VERDICT. This function used to read the
+    layer's target opacity back off the ELEMENT, and writeFinalScene pins that
+    number inline -- which reads as a fixed point: a value that reads itself
+    converges on whatever it already is rather than on what the state asks for.
+    It was handed over as the prime suspect for the face washing out.
+    It is not, and the sequence is why: transitionScene calls
+    clearSettledSceneStyles() BEFORE targetScene(), so the inline pin is gone by
+    the time the read happens and the computed value falls through to the CSS,
+    which is the authored per-state value for the state data-time-state was
+    already set to. Reproduced in the browser on a probe carrying the same
+    `opacity:var(--authored)` plus a 640ms opacity transition: pin .34, retarget
+    to .18, removeProperty, read -> 0.18. Not 0.34. With the transition removed,
+    identical. The controller's own unit tests assert a different destination per
+    hour and passed against the pre-fix source, which is the same result from a
+    second direction.
+    IT IS STILL READ FROM THE HOUR AND NOT FROM THE ELEMENT, because the
+    correctness of the old version rested entirely on clear-then-read ordering
+    inside another function. Reorder those two lines and the fixed point becomes
+    real. --time-shade cannot be pinned by anything here, so the ordering stops
+    being load-bearing.
+    The filter was read off the element the same way, and it is simply not
+    written any more: it never varies by hour, so animating a constant back onto
+    itself bought nothing and cost the same fragility. */
+ function shadeNow(){
   var style=computed(hero);
-  var value=style?parseFloat(style.getPropertyValue("--time-uplight")):0;
+  var value=style?parseFloat(style.getPropertyValue("--time-shade")):0;
   return Number.isFinite(value)?value:0;
  }
 
  function targetScene(state){
-  var portraitStyle=computed(portrait);
   return {
    gradients:gradients.map(function(layer){return layer.getAttribute("data-time-gradient")===state?1:0;}),
    spill:state==="night"?1:0,
-   portrait:{
-    opacity:state==="off"?0:uplightNow(),
-    filter:portraitStyle&&portraitStyle.filter?portraitStyle.filter:"none"
-   }
+   portrait:{opacity:state==="off"?0:shadeNow()}
   };
  }
 
@@ -114,7 +121,6 @@
   gradients.forEach(function(layer,index){layer.style.setProperty("opacity",target.gradients[index]);});
   spill.style.setProperty("opacity",target.spill);
   portrait.style.setProperty("opacity",target.portrait.opacity);
-  portrait.style.setProperty("filter",target.portrait.filter);
  }
 
  function transitionScene(from,state,initial){
@@ -133,8 +139,7 @@
   });
   runSceneAnimation(spill,[{opacity:from.spill},{opacity:target.spill}],options);
   runSceneAnimation(portrait,[
-   {opacity:from.portrait.opacity,filter:from.portrait.filter},
-   {opacity:target.portrait.opacity,filter:target.portrait.filter}
+   {opacity:from.portrait.opacity},{opacity:target.portrait.opacity}
   ],options);
   /* Pin the destination under WAAPI. This preserves the old rendered spill
      while SiteTheme changes root state before publishing the next snapshot. */
