@@ -13,6 +13,31 @@
  var portrait=document.getElementById("heroTimePortraitCast");
  if(!siteTheme||!root||!hero||!control||!button||!menu||!icon||!spill||!face||!portrait)return;
 
+ /* ── THE LIT SIDE NEEDS A BOX OF ITS OWN, AND IT IS BUILT HERE ──────────────
+    One element can carry one blend mode, and light and shadow are two: the
+    portrait cast multiplies the hour's shading colour along a ramp facing away
+    from the source, and this one screens the hour's LIGHT colour out of a
+    radial hot spot facing toward it. See hero-time.css for why the second term
+    is not the first one inverted.
+    IT IS CREATED RATHER THAN AUTHORED because index.html is not this lane's to
+    edit, and because an element that exists only to carry a treatment this file
+    owns should be built and torn down with it -- a markup element for a purely
+    presentational layer is one more thing to leave behind if the treatment ever
+    changes again. It is inserted immediately after the cast so it paints above
+    it at the same z-index and below the eyes, which sit at 3 and must stay the
+    brightest thing on the head.
+    IT REUSES THE PORTRAIT AS ITS OWN MASK. Same file, already decoded, so there
+    is no second fetch -- and because the mask is the artwork's alpha, the layer
+    is confined to the silhouette by construction rather than by tuning. */
+ var glow=document.getElementById("heroTimePortraitLit");
+ if(!glow){
+  glow=document.createElement("div");
+  glow.id="heroTimePortraitLit";
+  glow.classList.add("heroTimePortraitLit");
+  glow.setAttribute("aria-hidden","true");
+  if(portrait.parentNode)portrait.parentNode.insertBefore(glow,portrait.nextSibling);
+ }
+
  var items=[].slice.call(menu.querySelectorAll('[role="menuitemradio"]'));
  var gradients=[].slice.call(hero.querySelectorAll(".heroTimeGradient"));
  var sceneAnimations=[];
@@ -207,6 +232,17 @@
   else portrait.removeAttribute("srcset");
   if(sizes!==null)portrait.setAttribute("sizes",sizes);
   else portrait.removeAttribute("sizes");
+  /* The lit layer has no src -- it is a gradient wearing the portrait's alpha,
+     so the same file arrives as a mask instead. Every face image the engine can
+     swap in is square and .face is object-fit:contain inside a square .stage,
+     so mask-size:contain lands the mask on exactly the pixels the portrait is
+     painting. Quotes are escaped rather than trusted: this string is
+     interpolated into a url() token, and a src the engine builds is still a
+     value, not a literal. */
+  if(source!==null){
+   glow.style.setProperty("--time-portrait-mask",
+    'url("'+String(source).replace(/["\\]/g,encodeURIComponent)+'")');
+  }else glow.style.removeProperty("--time-portrait-mask");
  }
 
  function onFaceLoad(){syncPortraitSource(true);}

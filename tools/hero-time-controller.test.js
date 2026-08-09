@@ -64,7 +64,22 @@ function makeHarness(options={}){
     contains:name=>this.classList.values.has(name)
    };
   }
-  appendChild(child){child.parentElement=this;this.children.push(child);return child;}
+  appendChild(child){child.parentElement=this;child.parentNode=this;this.children.push(child);return child;}
+  /* The controller builds its own lit layer and splices it in beside the cast,
+     so the stub has to model insertion and sibling order -- not just appending.
+     Modelled rather than stubbed out, because "it lands immediately after the
+     cast" is the thing that puts it above the shading and below the eyes. */
+  insertBefore(child,ref){
+   const at=ref?this.children.indexOf(ref):-1;
+   child.parentElement=this;child.parentNode=this;
+   if(at<0)this.children.push(child);else this.children.splice(at,0,child);
+   return child;
+  }
+  get nextSibling(){
+   const parent=this.parentElement;
+   if(!parent)return null;
+   return parent.children[parent.children.indexOf(this)+1]||null;
+  }
   setAttribute(name,value){
    const oldValue=this.getAttribute(name);
    this.attributes.set(name,String(value));
@@ -117,6 +132,12 @@ function makeHarness(options={}){
  const spill=new FakeElement();
  const face=new FakeElement({src:options.faceSrc||"images/neutral.webp"});
  const portrait=new FakeElement();
+ /* The cast layer lives inside the portrait stage on the real page, and the lit
+    layer is inserted next to it -- so it needs a parent here or the controller
+    has nowhere to put it. */
+ const stage=new FakeElement();
+ stage.appendChild(face);
+ stage.appendChild(portrait);
  const states=["pre-dawn","sunrise","daytime","dusk","sunset","night"];
  /* ── THE DESTINATION COMES FROM THE HOUR, NOT FROM THE LAYER ────────────────
     --time-shade is what each state authors, and it is read off the HERO. The
@@ -147,7 +168,8 @@ function makeHarness(options={}){
   activeElement:null,
   hidden:false,
   querySelector:selector=>selector===".hero"?hero:null,
-  getElementById:id=>byId[id]||null
+  getElementById:id=>byId[id]||null,
+  createElement:()=>new FakeElement()
  });
 
  function cssValue(element,name){
@@ -215,7 +237,7 @@ function makeHarness(options={}){
   };
  }
  return {window,document,root,controller:window.HeroTimeController,hero,control,button,menu,icon,autoState,
-  gradients,spill,face,portrait,portraitTargets,animations,modeCalls,publish,settle,latestFor,finishLatestSet,rendered,
+  gradients,spill,face,portrait,stage,portraitTargets,animations,modeCalls,publish,settle,latestFor,finishLatestSet,rendered,
   accesses:()=>({storageReads,clockReads,timerCreates,timerClears}),unsubscribed:()=>unsubscribed};
 }
 
@@ -389,6 +411,30 @@ test("Time mirrors responsive Mood sources and becomes inert after destroy",()=>
  },before);
  assert.equal(h.unsubscribed(),1);
  assert.equal(h.face.listenerCount("load"),0);
+});
+
+/* ── THE LIT LAYER IS A GRADIENT WEARING THE PORTRAIT'S ALPHA ────────────────
+   It has no src of its own -- the artwork arrives as a mask instead -- so the
+   one thing that can silently break it is the mask falling out of step with the
+   face the engine is currently showing. A stale mask does not throw and does not
+   disappear; it puts the previous expression's silhouette over the current one,
+   which is a soft edge nobody notices in a screenshot. Asserted with the src
+   sync it rides on, and asserted to sit immediately after the cast, because
+   that ordering is what puts the light above the shading and below the eyes. */
+test("the lit layer masks itself with whatever face the engine is showing",()=>{
+ const h=makeHarness({faceSrc:"images/neutral.webp"});
+ const glow=h.stage.children.find(node=>node.classList.contains("heroTimePortraitLit"));
+ assert.ok(glow,"lit layer built");
+ assert.equal(h.stage.children.indexOf(glow),h.stage.children.indexOf(h.portrait)+1);
+ assert.equal(glow.getAttribute("aria-hidden"),"true");
+ assert.equal(glow.style.values["--time-portrait-mask"],'url("images/neutral.webp")');
+
+ h.face.setAttribute("src","images/cookie.webp");
+ assert.equal(glow.style.values["--time-portrait-mask"],'url("images/cookie.webp")');
+ h.face.currentSrc="images/cookie@2x.webp";
+ h.face.dispatchEvent({type:"load"});
+ assert.equal(glow.style.values["--time-portrait-mask"],'url("images/cookie@2x.webp")');
+ assert.equal(glow.getAttribute("src"),null);
 });
 
 if(failures.length){

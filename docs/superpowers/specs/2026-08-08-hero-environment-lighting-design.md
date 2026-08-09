@@ -414,6 +414,199 @@ Dragging the head around the night sky, at 1440:
   compression working as authored: a head dragged into a dead corner reads dim
   rather than disappearing.
 
+## Fourth pass: a treatment with one value everywhere is not lighting
+
+Jayden, after four rounds of tuning:
+
+> *"The agent still hasn't specifically found how to affect only certain parts of
+> the face lighting based on location and where they are corresponding to the
+> middle light. It only knows how to change the lighting of the entire element."*
+
+That is the correct diagnosis of every version of this document up to the third
+pass, and it survives the third pass's own conclusion being right. A `filter`, a
+`feFlood`, an `opacity` — each has **one value at every point**. It can make the
+head lighter or darker as a unit. It can never say *the chin catches this and
+the brow does not*. **Uniform adjustment is colour grading. Light is spatial**,
+and the only thing in CSS with a different value at every point is a gradient.
+
+The third pass did add one: the shade layer's mask ramp. It was doing real work
+and not enough of it — measured below, it moved the terminator by about 8% while
+the exposure term moved the whole head by 30%, so the spatial half was buried
+under the uniform half.
+
+### What the whole-face average was hiding
+
+Every table above this section reports one number per state. Sampled instead at
+nine named landmarks, at 1440, at rest, on the shipped third-pass build:
+
+| state | forehead | cheek L | cheek R | under-nose | jaw L | jaw R | chin | sky |
+|---|---|---|---|---|---|---|---|---|
+| `daytime` (before) | .919 | **.935** | .871 | .720 | .660 | .627 | .788 | .813 |
+
+The face was **brighter than the midday sky behind it** at four of the nine
+points, and the left cheek was within a few counts of clipping. The whole-face
+ratio for that same frame read `0.52`, which is how it survived four reviews: an
+average over a head whose top half is dark hair hides a blown cheek completely.
+**A single whole-element number cannot prove a spatial claim, and it can disprove
+a real complaint.** Every measurement in this section is per-point.
+
+The asymmetry was also **backwards**. The light sits down and to the right
+(`ux +.585, uy +.811`), so the right jaw should be the lit one. It read `.627`
+against the left's `.660`.
+
+### Two layers, because light and shadow are not one channel with a sign
+
+- **Shade** — the existing `.heroTimePortraitCast`: the hour's shading colour
+  **multiplied** through a linear ramp facing away from the source. Unchanged in
+  kind, deepened in degree now that something else lifts the other side.
+- **Light** — a new `.heroTimePortraitLit`, built by `hero-time.js` rather than
+  authored in `index.html`: a **radial** gradient in the hour's light colour,
+  **screened**, masked by the portrait's own alpha.
+
+Both are confined to the silhouette by construction — one composites into the
+image's alpha through the SVG filter, the other wears the same image as a
+`mask-image` — so neither can reach the sky or the ground. *Shadows on the face
+itself, and nowhere else*, is a property of the mechanism here, not a tuning.
+
+**Radial, not linear, and that is the whole difference.** A linear ramp lights
+everything on one side of a line equally, which is right for a source at
+infinity and wrong for this one: every sky here focuses on its own lower edge, a
+few hundred pixels under a head that hangs above it. A near source throws a hot
+spot with a falloff, so the chin, the jaw and the underside of the nose catch it
+and a forehead one head-height further away does not.
+
+The blob's centre is `--lit-reach` of the portrait's box from its centre, aimed
+along `--light-angle` — the same per-frame angle the shade ramp uses, already
+carrying the head's own rotation subtracted, so the two layers describe one
+light and cannot disagree. `sin()`/`cos()` in `calc()` rather than two more
+per-frame writes: the angle is already on the Hero every frame, and the float
+loop must not grow.
+
+### Each layer measured on its own, at the same nine points
+
+Daytime, at rest, at 1440. `control` is both layers off; the deltas are what
+each layer contributes.
+
+| | forehead | cheek L | cheek R | under-nose | jaw L | jaw R | chin |
+|---|---|---|---|---|---|---|---|
+| control | .791 | .811 | .711 | .589 | .532 | .500 | .625 |
+| **shade only** Δ | **−.100** | −.080 | −.051 | −.041 | −.029 | **−.015** | −.016 |
+| **light only** Δ | **.000** | +.004 | +.017 | +.034 | +.028 | **+.086** | +.039 |
+| both | .691 | .735 | .683 | .585 | .534 | .574 | .650 |
+
+The shading runs **6.7× deeper at the far corner than at the near one**. The
+light is **exactly zero at the forehead** and strongest at the near jaw. Neither
+is a number applied to an element.
+
+### And the pattern changes when the light moves, which is the actual claim
+
+Same sky, same exposure, head dragged. `far-left` and `far-right` put the source
+on opposite sides at the same height:
+
+| | ux | cheek R − cheek L | jaw R − jaw L |
+|---|---|---|---|
+| control, far-left | +.775 | −.053 | +.010 |
+| control, far-right | −.781 | −.049 | +.009 |
+| **treated, far-left** | +.775 | **+.001** | **+.069** |
+| **treated, far-right** | −.781 | **−.112** | **−.031** |
+
+**The control is identical at both positions** — the photograph and the global
+exposure produce the same picture wherever the head is, which is precisely the
+failure being fixed. Treated, the cheek difference swings `.113` and the jaw
+difference `.100`, and both **change sign**. Nothing about the state changed;
+only where the head was standing.
+
+### Daytime came down, and the form shadow took over what it gave up
+
+`--time-exposure` `1.20 → .93`, `--time-shade` `.34 → .60`. Measured after:
+forehead `.919 → .691`, left cheek `.935 → .735`, and the face is now the darker
+thing against its own sky, which is what midday actually looks like. The other
+five hours moved by 3-5% at most; the ordering between them is unchanged. Night
+also lost a little exposure (`.36 → .31`) so that adding an uplight term did not
+lift it back toward the ghost it was two passes ago.
+
+**Trust the eye, then find the number that agrees with it.** The complaint was
+"washed out" and the table said `0.52`. The table was measuring the wrong thing.
+
+## The selection frame has two looks and three states
+
+> *"I know I said I want the resize block to be there all the time and I still
+> do, but I think when you click off of it it should have a very subtle version
+> of it, like that the user can tell it's not activated — in greyscale."*
+
+Then, on the first attempt:
+
+> *"Lowkey the grey resize box — I was thinking even more subtle, like you can
+> barely tell it's there, but still it's there."*
+
+**Present and active are two different questions**, and collapsing them is why
+"click off it" previously had no answer except destroying the composition:
+
+| | |
+|---|---|
+| `state.selected` | is the frame on screen at all. True for the whole visit. **Escape** is the only thing that ends it. |
+| `state.active` | is it the live control. False the moment a press lands anywhere else. |
+
+Written as one attribute, `data-selection`, so the stylesheet never reasons
+about `hidden`. The outside listener is capture-phase and touches nothing — no
+`preventDefault`, no focus change — because the press that relaxes the frame is
+on its way to a CTA and has to arrive.
+
+### Barely there is a distance, not a colour
+
+A fixed grey cannot be equally subtle on seven backdrops. Measured over the
+frame's own pixels, by diffing the drawn frame against the same frame hidden:
+
+| | first attempt (one grey at 34%) | pegged to `--env-lum` |
+|---|---|---|
+| six daylight skies | contrast 1.216-1.233, ΔL\* 7.3-8.1 | 1.109-1.136, ΔL\* 3.9-5.1 |
+| **night** | **2.470, ΔL\* 25.1** | **1.188, ΔL\* 4.65** |
+| spread across states | **2.0×** | **1.07×** |
+
+`--env-lum` is the composited sky sampled where the head is, already written
+every frame for the lighting. Reusing it means the frame keeps a roughly
+constant *perceptual* distance from whatever is behind it, follows a sky
+cross-fade rather than stepping at the end of one, and cannot drift when a
+gradient is retuned. The clamp's floor is load-bearing: **gone is not the goal**
+— Jayden keeps the frame because it *"adds to the structure and gives that
+design look"*, so invisible would be a different bug, not a success.
+
+**The handles stay, and go quieter than the line.** Absent was the offered
+alternative and it is the wrong one: four corner dots are what make a rectangle
+read as a *selection* rather than as a border. They keep their geometry, lose
+their fill entirely, and take 58% of the frame's own alpha — the faintest thing
+in the picture, while still saying what the rectangle is. They leave the tab
+order with the attribute. **Hit-testing does not change**: pressing a handle,
+the box or the head still selects, because "clicking the head brings it back"
+has to be true from every point in the chrome.
+
+One duration, `--dur-reveal` (360ms), the ladder's *appear or dismiss in place*
+rung — which is literally what this is — and 2.25× the state rung the first
+attempt used. No in/out asymmetry: that convention belongs to hover, where the
+pointer's arrival is the event. Here the event is elsewhere on the page.
+
+## The float loop reads nothing from the DOM, and now something checks
+
+The third pass rewrote the loop to write only, and recorded the invariant in a
+sixteen-line comment. It was broken anyway: an uncached `rootNumber()` came back
+inside `place()`, which runs once per handle per frame, so **five
+`getComputedStyle()` calls on the root of a 200KB document landed in every
+frame** — each immediately after that same root had been written to. Audited at
+219 root reads a second and roughly 300ms of style recalculation per second on
+a page where nothing was happening. Measured on one machine, eight-second
+windows: **22.5-26.9fps with the read, 58.3fps without**; dropped frames 57-66%
+against 1.9%.
+
+`--selection-handle-size` is a per-state token and now lives in `metrics()` with
+`--selection-air` and the float constants, invalidated by the same `reclamp()`.
+
+**A comment is not an invariant.** Every DOM read in the module goes through two
+helpers that increment a counter; `floatFrame()` diffs the counter across its
+own frame and totals the difference onto `getState().loopReads`. It is zero if
+and only if the loop read nothing, and the contract asserts it does not move
+across a second of real floating. The next person to put a read back breaks a
+test instead of the machine.
+
 ## The default hour is `daytime`
 
 Not `auto`. A recruiter opening this at 11pm landed on the near-black hero, which

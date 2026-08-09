@@ -1920,6 +1920,25 @@ def task4_matrix(base_url):
                     if message.type == "error" else None)
             page.goto(base_url + "/index.html?head-transform-performances=1", wait_until="load")
             page.wait_for_function("typeof introMode !== 'undefined' && !introMode && !eventLock", timeout=15_000)
+            # ── THE FLOAT LOOP READS NOTHING FROM THE DOM ─────────────────
+            # This invariant was written down in a sixteen-line comment in
+            # hero-head-transform.js and broken anyway: an uncached
+            # rootNumber() came back inside place(), which runs once per handle
+            # per frame, so five getComputedStyle() calls on the ROOT landed in
+            # every frame -- audited at 219 root reads a second and ~300ms of
+            # style recalculation per second on an idle page, which is what
+            # "everything feels laggy just existing on the site" was. Measured:
+            # 22.5-26.9fps with the read, 58.3fps without, same machine.
+            # A COMMENT IS NOT AN INVARIANT, so it is asserted here. The module
+            # counts every DOM read it makes and totals the ones that happen
+            # inside a float frame; at rest that total must not move. Anyone who
+            # puts a read back breaks this instead of the machine.
+            page.wait_for_timeout(900)
+            reads_before = page.evaluate("window.__heroHeadTransform.getState().loopReads")
+            page.wait_for_timeout(1200)
+            reads_after = page.evaluate("window.__heroHeadTransform.getState().loopReads")
+            assert reads_after == reads_before, (
+                label, "the float loop read the DOM", reads_before, reads_after)
             transformed = select_move_resize(page)
             hero = page.locator("#main").bounding_box()
             page.mouse.move(hero["x"] + hero["width"] * .25, hero["y"] + hero["height"] * .72)

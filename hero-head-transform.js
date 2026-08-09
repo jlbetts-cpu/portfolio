@@ -9,10 +9,10 @@
   var rotator=selection.querySelector(".heroHeadRotate");
   var frame=selection.querySelector(".heroHeadFrame");
   var chrome=handles.concat(rotator?[rotator]:[]);
-  var state={selected:false,x:0,y:0,scale:1,rotate:0,pointerId:null,operation:null,start:null,
+  var state={selected:false,active:false,x:0,y:0,scale:1,rotate:0,pointerId:null,operation:null,start:null,
    capture:null,frame:0,peekFrame:0,peekAnimating:false,pendingAnchor:null,pendingClamp:false,
    stamp:0,geomStamp:-1,geom:null,floating:false,floatFrame:0,ambient:false,base:null,metrics:null,
-   hovering:false,resumeTimer:0,floatShift:0,holdAt:0,lastFloatMs:0,
+   hovering:false,resumeTimer:0,floatShift:0,holdAt:0,lastFloatMs:0,loopReads:0,
    rendered:{x:0,y:0,scale:1,rotate:0}};
   var content=hero.querySelector(".heroCopy");
   var peek=hero.querySelector(".heroCharacterPeek");
@@ -41,14 +41,37 @@
   var bounds=(face.getAttribute("data-head-bounds")||"0.1933 0.0616 0.8484 0.9234")
    .split(/\s+/).map(Number);
 
+  /* ── EVERY DOM READ GOES THROUGH HERE, AND IT IS COUNTED ──────────────────
+     The float loop's invariant is that it reads NOTHING from the DOM: it only
+     writes, so a frame can never force a style recalc or a synchronous layout.
+     That invariant was written down in a sixteen-line comment further down this
+     file, and it was broken anyway -- an uncached rootNumber() came back inside
+     place(), which runs once per handle per frame, so five getComputedStyle()
+     calls on the ROOT of a 200KB document landed in every frame, each one
+     immediately after that same root had been written to. Audited at 219
+     root reads a second and roughly 300ms of style recalculation per second
+     with nothing happening on the page, which is what "everything feels laggy
+     just existing on the site" actually was.
+     A COMMENT IS NOT AN INVARIANT. It had already failed once, so this is the
+     enforcement rather than a stronger warning: every read is funnelled through
+     two helpers that increment a counter, floatFrame() diffs the counter across
+     its own frame, and the total lands on getState().loopReads. It is zero if
+     and only if the loop read nothing, and the contract asserts that across a
+     second of real floating -- so the next person to put a read back in breaks
+     a test rather than a machine.
+     The counter is two integer increments per read on paths that were already
+     doing a style resolve; it cannot cost more than what it measures. */
+  var domReads=0;
+  function computedOf(node){domReads++;return getComputedStyle(node);}
+  function rectOf(node){domReads++;return node.getBoundingClientRect();}
   function rootNumber(name,fallback){
-   var value=parseFloat(getComputedStyle(document.documentElement).getPropertyValue(name));
+   var value=parseFloat(computedOf(document.documentElement).getPropertyValue(name));
    return isFinite(value)?value:fallback;
   }
   /* The logical head as laid out, with no rotation applied. Every clamp and
      every piece of chrome is derived from this one rectangle. */
   function logicalRaw(){
-   var f=face.getBoundingClientRect();
+   var f=rectOf(face);
    return {left:f.left+f.width*bounds[0],top:f.top+f.height*bounds[1],
     right:f.left+f.width*bounds[2],bottom:f.top+f.height*bounds[3],
     width:f.width*(bounds[2]-bounds[0]),height:f.height*(bounds[3]-bounds[1])};
@@ -104,7 +127,7 @@
    return {left:cx-w/2,top:cy-h/2,right:cx+w/2,bottom:cy+h/2,width:w,height:h};
   }
   function objectRect(){
-   var h=hero.getBoundingClientRect(),r=boundsBox(geom());
+   var h=rectOf(hero),r=boundsBox(geom());
    return {left:Math.max(r.left,h.left),top:Math.max(r.top,h.top),
     right:Math.min(r.right,h.right),bottom:Math.min(r.bottom,h.bottom)};
   }
@@ -130,11 +153,11 @@
      The resting composition sits far below the bar, so this cannot make the
      start position illegal -- asserted in the contract. */
   function usableRect(){
-   var h=hero.getBoundingClientRect();
+   var h=rectOf(hero);
    var bar=document.querySelector(".jbStick .jbNav")||document.querySelector(".jbStick");
    var top=h.top;
    if(bar){
-    var b=bar.getBoundingClientRect();
+    var b=rectOf(bar);
     if(b.bottom>h.top&&b.top<h.bottom&&b.width>0)top=Math.min(b.bottom,h.bottom);
    }
    return {left:h.left,top:top,right:h.right,bottom:h.bottom,
@@ -159,13 +182,20 @@
      distance, so scrolling cannot stale it. */
   function metrics(){
    if(state.metrics)return state.metrics;
-   var h=hero.getBoundingClientRect(),u=usableRect();
+   var h=rectOf(hero),u=usableRect();
    var hitNode=handles[0]||rotator;
    state.metrics={
     heroW:h.width,heroH:h.height,ceiling:u.top-h.top,
     air:rootNumber("--selection-air",0),
-    hit:(hitNode?hitNode.getBoundingClientRect().width:0)
+    hit:(hitNode?rectOf(hitNode).width:0)
       ||rootNumber("--selection-hit-size",44)||44,
+    /* THE DOT'S OWN SIZE BELONGS HERE, WITH EVERY OTHER TOKEN THE LOOP NEEDS.
+       It was being read inside place(), which runs once per handle per frame --
+       five root reads a frame for a number that cannot change without a
+       stylesheet change, and the single largest idle cost measured on the page.
+       It is the same class of value as --selection-air two lines up and it
+       is invalidated by the same reclamp(). */
+    dot:rootNumber("--selection-handle-size",8),
     yAmp:rootNumber("--hero-head-float-y-amp",9),
     yPer:rootNumber("--hero-head-float-y-period",5.9),
     y2Amp:rootNumber("--hero-head-float-y2-amp",3),
@@ -178,14 +208,14 @@
        state; the DIRECTION is derived from it every frame against the head's
        live position, so the rim swings as the head moves and crosses over
        when it passes under the source. */
-    lightX:(parseFloat(getComputedStyle(hero).getPropertyValue("--time-light-x"))||50)/100,
-    lightY:(parseFloat(getComputedStyle(hero).getPropertyValue("--time-light-y"))||84)/100
+    lightX:(parseFloat(computedOf(hero).getPropertyValue("--time-light-x"))||50)/100,
+    lightY:(parseFloat(computedOf(hero).getPropertyValue("--time-light-y"))||84)/100
    };
    return state.metrics;
   }
   function reachable(box){
    var h=usableRect();
-   var gap=parseFloat(getComputedStyle(hero).getPropertyValue("--hero-head-safe-gap"))||0;
+   var gap=parseFloat(computedOf(hero).getPropertyValue("--hero-head-safe-gap"))||0;
    var share=rootNumber("--hero-head-min-visible",.42);
    return {hero:h,
     x:Math.min(Math.max(box.width*share,gap),h.width),
@@ -215,7 +245,7 @@
      this same point preserves the ratio, so only the rotation has to come off. */
   function syncOrigin(){
    var measured=withLevel(function(){
-    return {u:logicalRaw(),w:wrap.getBoundingClientRect()};
+    return {u:logicalRaw(),w:rectOf(wrap)};
    });
    var u=measured.u,w=measured.w;
    if(!w.width||!w.height)return;
@@ -256,7 +286,7 @@
    node.style.setProperty("--h-y",cy+"px");
    node.style.setProperty("--h-dx",(point.x-cx)+"px");
    node.style.setProperty("--h-dy",(point.y-cy)+"px");
-   var reach=(m.hit-rootNumber("--selection-handle-size",8))/2;
+   var reach=(m.hit-m.dot)/2;
    node.__dot={x:cx+Math.max(-reach,Math.min(reach,point.x-cx)),
                y:cy+Math.max(-reach,Math.min(reach,point.y-cy))};
   }
@@ -285,7 +315,7 @@
      head. */
   function chromeAt(event){
    var reach=metrics().hit/2;
-   var origin=selection.getBoundingClientRect(),best=null,shortest=Infinity;
+   var origin=rectOf(selection),best=null,shortest=Infinity;
    chrome.forEach(function(node){
     var dot=node.__dot;
     if(!dot)return;
@@ -332,7 +362,7 @@
     wrap.style.setProperty(name,
      name==="--hero-head-scale"?"1":/rot/.test(name)?"0deg":"0px","important");
    });
-   var u=logicalRaw(),h=hero.getBoundingClientRect();
+   var u=logicalRaw(),h=rectOf(hero);
    state.base={left:u.left-h.left,top:u.top-h.top,width:u.width,height:u.height};
    saved.forEach(function(pair){
     if(pair[1])wrap.style.setProperty(pair[0],pair[1]);else wrap.style.removeProperty(pair[0]);
@@ -480,7 +510,7 @@
   }
   function clampMove(x,y){
    if(!state.base)captureBase();
-   var hr=hero.getBoundingClientRect(),u=usableRect();
+   var hr=rectOf(hero),u=usableRect();
    var top=u.top-hr.top,bottom=u.bottom-hr.top,right=hr.width;
    var box=transformedBox(x,y),need=reachable(box);
    var minLeft=need.x-box.width,maxLeft=right-need.x;
@@ -489,15 +519,51 @@
    var wantTop=Math.min(Math.max(box.top,minTop),maxTop);
    return {x:x+(wantLeft-box.left),y:y+(wantTop-box.top)};
   }
+  /* ── THE FRAME HAS TWO LOOKS AND THREE STATES, AND THEY ARE NOT THE SAME AXIS
+     Jayden: "I know I said I want the resize block to be there all the time and
+     I still do, but I think when you click off of it it should have a very
+     subtle version of it, like that the user can tell it's not activated -- in
+     greyscale."
+     So PRESENT and ACTIVE are two different questions:
+       - state.selected -- is the frame on screen at all. The artboard idea
+         lives here, and it stays true for the whole visit; Escape is the only
+         thing that takes it away.
+       - state.active   -- is it the live control. True while the head is
+         engaged, false the moment attention goes somewhere else on the page.
+     Collapsing them is what the old code did, and it is why "click off it"
+     had no answer that was not "destroy the composition". They are written as
+     one attribute, data-selection, so the stylesheet can say what each look is
+     without ever having to reason about hidden.
+     WHY NOT JUST DROP state.selected ON AN OUTSIDE CLICK: because the frame
+     would go, and a permanent frame is the whole conceit of the header. And
+     because the contracts assert getState().selected survives a tap elsewhere,
+     which is that requirement written down. The idle look is the answer to
+     both. */
+  function paint(){
+   selection.setAttribute("data-selection",state.active?"active":"idle");
+   chrome.forEach(function(node){node.tabIndex=state.active?0:-1;});
+  }
   function select(){
-   var opening=!state.selected;
-   state.selected=true;face.setAttribute("aria-pressed","true");selection.hidden=false;
-   chrome.forEach(function(node){node.tabIndex=0;});syncSelection();
+   var opening=!state.selected||!state.active;
+   state.selected=true;state.active=true;
+   face.setAttribute("aria-pressed","true");selection.hidden=false;
+   paint();syncSelection();
    if(opening&&document.activeElement!==face)face.focus({preventScroll:true});
   }
+  /* Attention went somewhere else. The frame stays exactly where it is and
+     keeps tracking the head -- it is still describing the composition -- it
+     just stops presenting itself as something you can grab. No focus is moved
+     and nothing is preventDefault'ed, because the press that caused this is on
+     its way to a CTA and must arrive. */
+  function relax(){
+   if(!state.selected||!state.active)return;
+   if(state.pointerId!==null)return;
+   state.active=false;paint();
+  }
   function deselect(options){
-   end();state.selected=false;face.setAttribute("aria-pressed","false");selection.hidden=true;
-   chrome.forEach(function(node){node.tabIndex=-1;});
+   end();state.selected=false;state.active=false;
+   face.setAttribute("aria-pressed","false");selection.hidden=true;
+   paint();
    if(options&&options.restoreFocus)face.focus({preventScroll:true});
   }
   function beginMove(event){
@@ -783,7 +849,7 @@
      transition; only the opacities are re-read, and only while one is running. */
   function parseLayers(node,box){
    var layers=[],focus=null;
-   splitTop(getComputedStyle(node).backgroundImage).forEach(function(token){
+   splitTop(computedOf(node).backgroundImage).forEach(function(token){
     token=token.trim();
     var body=token.slice(token.indexOf("(")+1,token.lastIndexOf(")"));
     if(token.indexOf("radial-gradient(")===0){
@@ -813,14 +879,14 @@
   function parseSky(){
    var nodes=hero.querySelectorAll(".heroTimeGradient");
    if(!nodes.length)return null;
-   var box=nodes[0].getBoundingClientRect();
+   var box=rectOf(nodes[0]);
    if(!box.width||!box.height)return null;
    var skies=[];
    for(var i=0;i<nodes.length;i++){
     /* PAINT ORDER, NOT DOM ORDER. hero-time.js lifts the arriving sky above
        the one it is replacing, so the z-index has to be honoured or the two
        are composited the wrong way round for the length of every change. */
-    var style=getComputedStyle(nodes[i]);
+    var style=computedOf(nodes[i]);
     var parsed=parseLayers(nodes[i],box);
     if(!parsed)continue;
     parsed.node=nodes[i];
@@ -831,7 +897,7 @@
    if(!skies.length)return null;
    skies.sort(function(a,b){return a.order-b.order;});
    return {skies:skies,w:box.width,h:box.height,
-    base:parseColour(getComputedStyle(hero).backgroundColor)||{r:255,g:255,b:255,a:1},
+    base:parseColour(computedOf(hero).backgroundColor)||{r:255,g:255,b:255,a:1},
     fx:null,fy:null,key:null};
   }
   /* Only while a sky is actually changing. Outside that window every weight is
@@ -841,7 +907,7 @@
    var fx=0,fy=0,total=0;
    for(var i=0;i<env.skies.length;i++){
     var sky=env.skies[i];
-    sky.weight=parseFloat(getComputedStyle(sky.node).opacity)||0;
+    sky.weight=parseFloat(computedOf(sky.node).opacity)||0;
     if(sky.fx===null)continue;
     fx+=sky.fx*sky.weight;fy+=sky.fy*sky.weight;total+=sky.weight;
    }
@@ -996,6 +1062,12 @@
   function floatFrame(ms){
    if(!state.floating){state.floatFrame=0;return;}
    state.lastFloatMs=ms;
+   /* THE INVARIANT, MEASURED RATHER THAN ASSERTED. Everything below this line
+      must write and never read; loopReads is the running total of DOM reads
+      that happened inside a float frame, so it is 0 for a healthy page and
+      grows by exactly the number of reads somebody put back. getState() exposes
+      it and the contract fails on any growth at rest. */
+   var readsBefore=domReads;
    /* The float is a pure function of absolute time, so resuming after a pause
       would snap to wherever the sine had travelled meanwhile. The elapsed
       paused time is subtracted instead, which makes the motion continue from
@@ -1004,6 +1076,7 @@
    /* The head has physically moved, so every cached measurement is stale and
       the chrome has to be re-derived from the new rect, in THIS frame. */
    state.stamp++;syncSelection();
+   state.loopReads+=domReads-readsBefore;
    state.floatFrame=requestAnimationFrame(floatFrame);
   }
   function startFloat(){
@@ -1059,7 +1132,8 @@
       getBoundingClientRect() reading drifts by ~14px against the geometry the
       clamp enforces. A test that measures the silhouette is measuring the
       breathing; this lets it measure the invariant. */
-   return {selected:state.selected,x:state.x,y:state.y,scale:state.scale,rotate:state.rotate,
+   return {selected:state.selected,active:state.active,loopReads:state.loopReads,
+    x:state.x,y:state.y,scale:state.scale,rotate:state.rotate,
     box:state.base?transformedBox(state.x,state.y):null};
   }
   function onKeydown(event){
@@ -1136,23 +1210,38 @@
    rotator.addEventListener("pointercancel",end);
    rotator.addEventListener("lostpointercapture",end);
   }
-  /* ── THE FRAME IS PERMANENT ──────────────────────────────────────────────
-     There was a dismiss-on-outside-pointerdown handler here, because that is
-     the convention every canvas UI shares. It is the wrong convention for this
-     page. The frame is not a selection state a visitor discovers by clicking
-     the head, it is the composition: the Hero is an artboard caught mid-edit,
-     and that is the idea the header is built on. Dismissing it on the first
-     click anywhere destroys that idea within seconds of arrival -- which is
-     exactly what happens when someone lands and reaches for "View work".
-     WHAT MAKES A PERMANENT FRAME READ AS DESIGN RATHER THAN AS A RENDERING
+  /* ── CLICKING AWAY RELAXES THE FRAME. IT DOES NOT DISMISS IT ─────────────
+     The canvas convention is dismiss-on-outside-pointerdown, and it was
+     deleted from here once already for good reason: the frame is not a
+     selection state a visitor discovers by clicking the head, it is the
+     composition, and taking it away on the first click destroys the idea
+     within seconds of arrival. That reasoning is unchanged.
+     What was missing is the middle state. A frame that looks identical whether
+     or not it is the thing under your hand is telling you something untrue --
+     which is what Jayden noticed. So an outside press moves it to IDLE: still
+     there, still welded to the head, visibly not the live control. Pressing the
+     head or its box brings it back.
+     IT LISTENS IN CAPTURE AND TOUCHES NOTHING. No preventDefault, no
+     stopPropagation, no focus change -- the press that relaxes the frame is on
+     its way to a CTA and has to arrive. Capture only so the look changes on the
+     same press rather than a frame later. */
+  document.addEventListener("pointerdown",function(e){
+   if(!state.selected||!state.active)return;
+   var node=e.target;
+   if(node===face||(node&&node.closest&&(node.closest("#heroHeadSelection")||node.closest("#face"))))return;
+   relax();
+  },true);
+  /* WHAT MAKES A PERMANENT FRAME READ AS DESIGN RATHER THAN AS A RENDERING
      BUG IS THAT THE HEAD MOVES. Static artwork inside a selection box looks
      broken; drifting artwork inside one looks like a tool. The float is
      therefore load-bearing twice over now, and nothing should quietly disable
-     it.
-     ESCAPE IS THE ONLY WAY OUT, and it stays. It costs nothing, it is
+     it -- and it keeps running in the idle look, which is what stops the
+     greyed frame reading as something that failed to load.
+     ESCAPE IS STILL THE ONLY WAY OUT, and it stays. It costs nothing, it is
      invisible unless someone reaches for it, and a permanent decorative
      overlay should have some exit. It clears state.ambient, so the frame does
-     not come back on its own for the rest of the session.
+     not come back on its own for the rest of the session. Relaxing is not an
+     exit and deliberately does not clear it.
      THE CLICK IS STILL NOT SWALLOWED, and that guarantee matters MORE now, not
      less: with the frame on screen for the whole visit, the chrome must never
      be the reason a CTA does not fire. The selection surface sits below
@@ -1184,8 +1273,9 @@
      for good, which is the escape hatch for anyone who does not want it. */
   function ambient(){
    state.ambient=true;
-   state.selected=true;face.setAttribute("aria-pressed","true");selection.hidden=false;
-   chrome.forEach(function(node){node.tabIndex=0;});
+   state.selected=true;state.active=true;
+   face.setAttribute("aria-pressed","true");selection.hidden=false;
+   paint();
    state.stamp++;syncSelection();
   }
   [face,selection].forEach(function(node){
@@ -1202,7 +1292,7 @@
    /* The window is the sky's own duration plus a frame or two of slack, read
       from the token rather than repeated as a literal, so retuning the
       cross-fade retunes this with it. */
-   var raw=getComputedStyle(document.documentElement)
+   var raw=computedOf(document.documentElement)
      .getPropertyValue("--hero-time-duration").trim();
    var ms=parseFloat(raw)||0;
    if(!/ms$/i.test(raw))ms*=1000;
