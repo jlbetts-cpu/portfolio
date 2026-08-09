@@ -198,13 +198,31 @@ def browser_contract(base_url):
 
             if profile == "returning" and width in (1280, 390):
                 page.evaluate("window.scrollTo(0, 0); history.replaceState(null, '', location.pathname)")
-                page.locator("#workBtn").click()
-                scroll_samples = []
-                for _ in range(6):
-                    page.wait_for_timeout(50)
-                    scroll_samples.append(page.evaluate("scrollY"))
-                page.wait_for_timeout(700)
-                final_scroll = page.evaluate("scrollY")
+                page.wait_for_timeout(200)
+                # SAMPLED IN THE PAGE, ON ITS OWN FRAMES. This used to poll
+                # scrollY over CDP with page.evaluate() every 50ms, and that
+                # does not measure what it means to measure: one round-trip
+                # costs more than the interval it is trying to sample at, so
+                # the first reading routinely lands after an 840px scroll has
+                # already finished and a perfectly smooth scroll reads as an
+                # instant jump. It reported a jump on the pre-full-bleed build
+                # too, so it was not detecting a regression -- it was
+                # detecting its own latency. Sampling on requestAnimationFrame
+                # inside the page removes the round-trip from the loop
+                # entirely and records what actually rendered.
+                trace = page.evaluate(
+                    """async () => {
+                      const trace = []; let stop = false;
+                      (function tick(){ trace.push(Math.round(scrollY));
+                        if (!stop) requestAnimationFrame(tick); })();
+                      document.querySelector('#workBtn').click();
+                      await new Promise(r => setTimeout(r, 1500));
+                      stop = true;
+                      return {trace, final: Math.round(scrollY)};
+                    }"""
+                )
+                scroll_samples, final_scroll = trace["trace"], trace["final"]
+                assert final_scroll > 0, (profile, width, scroll_samples, final_scroll)
                 assert any(0 < sample < final_scroll for sample in scroll_samples), (
                     profile, width, scroll_samples, final_scroll
                 )

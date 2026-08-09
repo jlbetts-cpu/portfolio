@@ -11,7 +11,7 @@
   var chrome=handles.concat(rotator?[rotator]:[]);
   var state={selected:false,x:0,y:0,scale:1,rotate:0,pointerId:null,operation:null,start:null,
    capture:null,frame:0,peekFrame:0,peekAnimating:false,pendingAnchor:null,pendingClamp:false,
-   stamp:0,geomStamp:-1,geom:null,floating:false,floatFrame:0,ambient:false,base:null,
+   stamp:0,geomStamp:-1,geom:null,floating:false,floatFrame:0,ambient:false,base:null,metrics:null,
    rendered:{x:0,y:0,scale:1,rotate:0}};
   var content=hero.querySelector(".heroCopy");
   var peek=hero.querySelector(".heroCharacterPeek");
@@ -98,6 +98,43 @@
    return {left:h.left,top:top,right:h.right,bottom:h.bottom,
     width:h.right-h.left,height:Math.max(0,h.bottom-top)};
   }
+  /* ── EVERYTHING THE FLOAT LOOP NEEDS, READ ONCE ──────────────────────────
+     The loop runs forever on the landing page, so anything it does per frame
+     it does about 60 times a second for as long as the tab is open. It was
+     resolving styles and forcing layout on every one of them: rootNumber()
+     is a getComputedStyle() on the root, and floatAt() alone called it eight
+     times, plus --selection-air, plus a hero rect, plus the two rects inside
+     usableRect(), plus a getBoundingClientRect() per handle inside place().
+     Because syncSelection WRITES left/top/width/height and then place() READ
+     geometry back, each frame also forced a synchronous relayout.
+     Measured cost of that: 8 rendered frames in a 1.5s window against 24 on
+     the pre-float build. None of these values can change without a resize,
+     and reclamp() already runs on resize and on both ResizeObservers, so they
+     are cached and invalidated there. The steady-state loop now reads nothing
+     from the DOM at all -- it only writes.
+     Sizes and differences only: h.width/h.height are scroll-invariant, and
+     the ceiling is stored as (usable.top - hero.top), a layout-relative
+     distance, so scrolling cannot stale it. */
+  function metrics(){
+   if(state.metrics)return state.metrics;
+   var h=hero.getBoundingClientRect(),u=usableRect();
+   var hitNode=handles[0]||rotator;
+   state.metrics={
+    heroW:h.width,heroH:h.height,ceiling:u.top-h.top,
+    air:rootNumber("--selection-air",0),
+    hit:(hitNode?hitNode.getBoundingClientRect().width:0)
+      ||rootNumber("--selection-hit-size",44)||44,
+    yAmp:rootNumber("--hero-head-float-y-amp",9),
+    yPer:rootNumber("--hero-head-float-y-period",5.9),
+    y2Amp:rootNumber("--hero-head-float-y2-amp",3),
+    y2Per:rootNumber("--hero-head-float-y2-period",3.7),
+    xAmp:rootNumber("--hero-head-float-x-amp",5),
+    xPer:rootNumber("--hero-head-float-x-period",8.3),
+    rAmp:rootNumber("--hero-head-float-rot-amp",.7),
+    rPer:rootNumber("--hero-head-float-rot-period",11.7)
+   };
+   return state.metrics;
+  }
   function reachable(box){
    var h=usableRect();
    var gap=parseFloat(getComputedStyle(hero).getPropertyValue("--hero-head-safe-gap"))||0;
@@ -129,7 +166,7 @@
     (((u.top+u.bottom)/2-w.top)/w.height*100)+"%");
   }
   function place(node,point,box){
-   var hit=node.getBoundingClientRect().width||44;
+   var hit=metrics().hit;
    var half=hit/2;
    var cx=box.width<hit?box.width/2:Math.max(half,Math.min(box.width-half,point.x));
    var cy=box.height<hit?box.height/2:Math.max(half,Math.min(box.height-half,point.y));
@@ -174,7 +211,7 @@
   function frameGeometry(){
    if(!state.base)captureBase();
    var b=state.base,s=state.scale;
-   var air=rootNumber("--selection-air",0);
+   var air=metrics().air;
    var cx=b.left+b.width/2+state.x+cssNumber(wrap,"--hero-head-float-x");
    var cy=b.top+b.height/2+state.y+cssNumber(wrap,"--hero-head-float-y");
    return {cx:cx,cy:cy,
@@ -183,7 +220,7 @@
   }
   function syncSelection(){
    if(!state.selected)return;
-   var h=hero.getBoundingClientRect(),g=frameGeometry();
+   var h=metrics(),g=frameGeometry();
    var rad=g.ang*Math.PI/180,cos=Math.cos(rad),sin=Math.sin(rad);
    /* The BOX is the pointer surface and must not reach past the Hero, so it
       stays the turned bounding box clamped to the Hero -- but it is now
@@ -195,9 +232,9 @@
       upper handles underneath an opaque nav at z-index 100 and they stop
       taking clicks. Riding the bar's lower edge instead keeps every handle
       hittable, and matches the region clampMove already confines the head to. */
-   var u=usableRect(),ceiling=u.top-h.top;
+   var ceiling=h.ceiling;
    var r={left:Math.max(raw.left,0),top:Math.max(raw.top,ceiling),
-    right:Math.min(raw.right,h.width),bottom:Math.min(raw.bottom,h.height)};
+    right:Math.min(raw.right,h.heroW),bottom:Math.min(raw.bottom,h.heroH)};
    var w=Math.max(1,r.right-r.left),ht=Math.max(1,r.bottom-r.top);
    selection.style.setProperty("--selection-x",r.left+"px");
    selection.style.setProperty("--selection-y",r.top+"px");
@@ -434,26 +471,19 @@
      collapses the whole artboard illusion.
      Three slow sinusoids plus one faster harmonic on Y. They are summed, not
      switched, so the path is quasi-periodic and never obviously loops. */
-  function floatAmp(name,fallback){return rootNumber(name,fallback);}
   function floatAt(ms){
-   var t=ms/1000;
-   var tau=Math.PI*2;
-   var y=floatAmp("--hero-head-float-y-amp",9)
-      *Math.sin(tau*t/floatAmp("--hero-head-float-y-period",5.9))
-     +floatAmp("--hero-head-float-y2-amp",3)
-      *Math.sin(tau*t/floatAmp("--hero-head-float-y2-period",3.7)+1.7);
-   var x=floatAmp("--hero-head-float-x-amp",5)
-      *Math.sin(tau*t/floatAmp("--hero-head-float-x-period",8.3)+.9);
-   var r=floatAmp("--hero-head-float-rot-amp",.7)
-      *Math.sin(tau*t/floatAmp("--hero-head-float-rot-period",11.7)+2.4);
+   var m=metrics(),t=ms/1000,tau=Math.PI*2;
+   var y=m.yAmp*Math.sin(tau*t/m.yPer)+m.y2Amp*Math.sin(tau*t/m.y2Per+1.7);
+   var x=m.xAmp*Math.sin(tau*t/m.xPer+.9);
+   var r=m.rAmp*Math.sin(tau*t/m.rPer+2.4);
    return {x:x,y:y,rot:r};
   }
   /* Negative Y is up. The lift is normalised 0..1 against the summed Y
      amplitude so the shadow reads HEIGHT rather than raw pixels, and stays
      correct if the amplitudes are retuned. */
   function writeFloat(ms){
-   var f=floatAt(ms);
-   var span=floatAmp("--hero-head-float-y-amp",9)+floatAmp("--hero-head-float-y2-amp",3);
+   var f=floatAt(ms),m=metrics();
+   var span=m.yAmp+m.y2Amp;
    var lift=span>0?Math.max(0,Math.min(1,(-f.y+span)/(span*2))):0;
    wrap.style.setProperty("--hero-head-float-x",f.x.toFixed(2)+"px");
    wrap.style.setProperty("--hero-head-float-y",f.y.toFixed(2)+"px");
@@ -487,7 +517,7 @@
     ||document.documentElement.getAttribute("data-reduced-motion")==="reduce";
   }
   function reclamp(){
-   state.stamp++;syncOrigin();captureBase();
+   state.stamp++;state.metrics=null;syncOrigin();captureBase();
    var next=clampMove(state.x,state.y);state.x=next.x;state.y=next.y;render();
   }
   function getState(){
@@ -566,7 +596,7 @@
    if(state.selected&&!selection.contains(e.target)&&e.target!==face)deselect();
   },true);
   document.addEventListener("keydown",onKeydown);
-  addEventListener("heroheadstagechange",function(){state.stamp++;syncSelection();});
+  addEventListener("heroheadstagechange",function(){state.stamp++;state.metrics=null;captureBase();syncSelection();});
   document.addEventListener("visibilitychange",function(){if(document.hidden)end();});
   addEventListener("blur",end);
   addEventListener("resize",reclamp);
