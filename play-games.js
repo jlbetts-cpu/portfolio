@@ -199,6 +199,8 @@
     would collapse into one head. */
  var _eggBag=[];
  var EGG_COLORS=["#E8734A","#E0A32E","#3FA99A","#4E86C7","#8E6FC7","#D45D86","#5FA855","#C9552F","#2E9BB0","#B07CC6"];
+ /* The one placeholder's colour. Deliberately NOT drawn from the bag -- see seedPlaceholders. */
+ var PLACEHOLDER_COLOR="#3FA99A";
  function nextEggColor(){if(!_eggBag.length){_eggBag=EGG_COLORS.slice();for(var i=_eggBag.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=_eggBag[i];_eggBag[i]=_eggBag[j];_eggBag[j]=t;}}return _eggBag.pop();}
  function tintEgg(cut,color,cb){var img=new Image();
   img.onload=function(){try{
@@ -237,10 +239,34 @@
        slots with nothing to collide with -- which keeps index === slot true for the team
        picker (see heads() below) and lets __hmTeamSel key off them unchanged.
 
-    HOW MANY: five. Measured against the arena the engine actually lays out -- a head is
-    108px wide at 1280 and 64px at 390, so five is 540px across 1280 (a loose group, still
-    clearly several people) and 320px across 390 (a row that fills the phone without
-    stacking). Four looked thin at 1280; six touched at 390. ---- */
+    HOW MANY: ONE. It was five, and five was measured for the job of looking like a crowd
+    (a head is 108px wide at 1280, so five spanned 540px; four looked thin, six touched at
+    390). Jayden, after weighing hiding them altogether: "keep it on at default -- but can
+    we only show one coloured egghead, not all of them."
+    ONE IS THE ANSWER TO TWO REQUIREMENTS THAT LOOKED INCOMPATIBLE. The placeholders exist
+    so a first visit does not look empty and broken; the reveal exists so a visitor who
+    cuts out their own face meets a crowd they helped make. Five satisfied the first and
+    spent the second -- the whole cast was on stage before you had done anything. One says
+    SOMETHING LIVES HERE without showing the company: it is a hint, not a crowd, and the
+    surprise survives.
+    WHERE IT STANDS IS NOT LEFT TO CHANCE. At n=5 the row read as a group wherever it
+    landed; at n=1 a lone head in a bad spot reads as a bug. play-engine.js:978 already
+    branches on exactly this -- `bootTotal===1` centres the head on the arena's own axis
+    instead of distributing it along the boot span -- so the single egghead stands dead
+    centre at the foot of the field, on the same vertical axis as the portrait above it and
+    as the headline above that. It is the one placement that reads as composed rather than
+    as leftover, and it needs no new geometry: it is the engine's existing single-head case,
+    which until now nothing ever reached.
+    ITS COLOUR IS CHOSEN, NOT DEALT. nextEggColor() draws from a shuffled bag, which is
+    right when the palette itself is the statement and wrong when one head IS the whole
+    first impression of the head system. #3FA99A is picked for three measured reasons:
+    its relative luminance is 0.31, so it holds its value on both grounds (3.0:1 on
+    --c50 paper, 7.0:1 on the night page) where the bag's #E0A32E burns on paper and its
+    #4E86C7 sinks at night; it is far from BOTH team channels (--tc1 224,90,78 and --tc2
+    90,160,216), so a lone head cannot be misread as already picked for a side; and it is
+    far from the violet the dark theme owns (--theme-focus / --theme-atmosphere), so it
+    cannot be misread as selected either. The bag is untouched and still runs every other
+    spawn path. ---- */
  var _ph=[],_phTries=0,_bootWait=0,_bootFallback=0,_bootWatch=0;
  /* Play's arena is hidden only until every initial head has both reached the engine's seated
     state and decoded its cutout. A saved data URL can be long enough to pass the storage filter
@@ -279,12 +305,13 @@
   /* The engine exports the empty-roster spawn API before this script runs. Keep the bounded
      retry as a defensive load-order guard, but never write scenery into localStorage. */
   if(!window.__hmSpawnOne){if(_phTries++<40)setTimeout(seedPlaceholders,120);return;}
-  var N=5,i;
+  var N=1,i;
   for(i=0;i<N;i++)(function(slot){
-   tintEgg(EGG.cut,nextEggColor(),function(cut){
+   tintEgg(EGG.cut,PLACEHOLDER_COLOR,function(cut){
     var eyes=(EGG.eyes||[]).map(function(e){var o={};for(var k in e)o[k]=e[k];return o;});
     // the same imperceptible nudge __hmAddEgghead uses: readAll()-style de-dupe keys on
-    // marks+eyes as well as the image, and these must stay five distinct heads
+    // marks+eyes as well as the image, so distinct placeholders stay distinct. Harmless
+    // at N=1 and correct again the moment N is ever raised.
     if(eyes[0])eyes[0].x+=(slot+1)*0.0004;
     var data={cut:cut,eyes:eyes,marks:EGG.marks,slot:slot,__ph:1,__bootSeated:1,__bootTotal:N};
     _ph[slot]=data;
@@ -630,4 +657,339 @@
   if(exp)exp.addEventListener("click",function(e){e.stopPropagation();if(open)closeTray();else openTray("soccer");});
   window.__hmTeamScreen={open:function(){openTray("soccer");},close:closeTray};
  })();
+})();
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   SHOW THE CROWD  -- the checkbox at the foot of the mood menu.
+   Markup and the full reasoning live in play.html; this is only the latch.
+   hero-engine.js owns #moodMenu and dispatches on `e.target.closest(".moodItem")`,
+   so a control that is NOT a .moodItem is invisible to it and cannot be mistaken
+   for a fifth mood. That is why this file can own the behaviour without forking
+   the menu controller.
+   ══════════════════════════════════════════════════════════════════════════════ */
+(function(){
+ "use strict";
+ var KEY="jbPlayCrowd";                       // "0" | "1", and never anything else
+ var btn=document.getElementById("moodCrowd");
+ if(!btn)return;
+ function read(){
+  /* Absent means ON. A first visit has no preference, and the page's resting state is
+     the crowd visible -- so the default is not stored, it is simply the absence of a
+     choice. Only an explicit "0" hides them, which also means a cleared browser or a
+     private window lands on the state Jayden asked for rather than on a remembered no. */
+  try{return window.localStorage.getItem(KEY)!=="0";}catch(_){return true;}
+ }
+ function write(on){try{window.localStorage.setItem(KEY,on?"1":"0");}catch(_){}}
+ function apply(on){
+  document.body.classList.toggle("hmCrowdOff",!on);
+  btn.setAttribute("aria-checked",on?"true":"false");
+ }
+ apply(read());
+ btn.addEventListener("click",function(e){
+  /* stopPropagation, not preventDefault: hero-engine's outside-click handler closes the
+     menu on any click it did not recognise, and a checkbox that closes the surface it
+     lives in cannot be used to compare the two states. Ticking it leaves the menu open. */
+  e.stopPropagation();
+  var next=btn.getAttribute("aria-checked")!=="true";
+  write(next);apply(next);
+ });
+})();
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   THE DRAGGABLE MOOD WORD  -- the home page's old headline device, rebuilt here.
+
+   Jayden: "I was thinking we bring back the draggable mood words and recreate the
+   h1 on this page, since the Play page kinda turned into what the home page used
+   to look like. Make the text actually have that animation, and the buttons."
+
+   HISTORY, because this is a restoration and not an invention. index.html's h1 used
+   to end in a live word that cycled between the four moods every 8.5s and could be
+   picked up and dropped on Jayden's head to fire that mood. Commit e5bc0dc deleted
+   the clause from the HOME page, and the spec that drove it
+   (docs/superpowers/specs/2026-08-03-hero-headline.md §7) is explicit that the cut
+   was a CLARITY-FOR-RECRUITERS argument -- "the clause was the weakest carrier of
+   the site's charm and the strongest tax on its clarity" -- and equally explicit
+   about the three things it cost: the moods' only passive announcement, the tug
+   that taught the gesture, and the character in the first six seconds. Every one of
+   those is a thing the Play page wants and the home page did not. Same device, right
+   page. §7 also records "removing the clause removes one entry point, not the
+   feature", which is why nothing in hero-engine.js had to change to bring it back.
+
+   IT DOES NOT FORK THE MOOD SYSTEM. A successful drop dispatches a click on the
+   REAL .moodItem in #moodMenu, so hero-engine.js runs its own dispatch, its own
+   performance and its own queue exactly as it does when you use the menu. There is
+   one owner of what a mood means and this is not it.
+
+   THE CAPITALISATION BUG IS DESIGNED OUT, not fixed. The original ghost's text was a
+   hardcoded Title Case literal ('Hunger', 'Delight', 'Love', 'Empathy'); when commit
+   ee574f0 lowercased the headline's WORDS array it did not touch those five literals,
+   so from that day the h1 read "hunger." and the thing in your hand read "Hunger".
+   Commit 79add97 added `text-transform:none` to all five ghost rules ten hours later,
+   which was a misdiagnosis -- there has never been an uppercase rule anywhere in that
+   element's ancestry, so the declaration was inert and the literals are still Title
+   Case at HEAD. The ghost below is BUILT FROM THE WORD IT IS LIFTING, so casing,
+   punctuation and any future copy change have exactly one source and the whole class
+   of bug is gone rather than papered over.
+   ══════════════════════════════════════════════════════════════════════════════ */
+(function(){
+ "use strict";
+ var lede=document.getElementById("playLede");
+ var slot=lede&&lede.querySelector(".pMoodSlot");
+ var stage=document.getElementById("stage");
+ if(!lede||!slot||!stage)return;
+
+ /* The four are named in the SAME ORDER the menu lists them, and each entry carries the
+    data-mood the menu keys on plus the glyph class that replaces the word's full stop --
+    the same .camDot/.cookieDot/.discoDot/.heartDot artwork the menu items wear, which the
+    hero spec (2026-08-05 §66) forbids replacing with newly drawn ones. */
+ var MOODS=[
+  {word:"empathy.",mood:"empathy",dot:"camDot",   style:"collab"},
+  {word:"hunger.", mood:"hunger", dot:"cookieDot",style:"hungry"},
+  {word:"delight.",mood:"delight",dot:"discoDot", style:"party"},
+  {word:"love.",   mood:"love",   dot:"heartDot", style:"love"}
+ ];
+
+ var reduce=window.matchMedia&&window.matchMedia("(prefers-reduced-motion:reduce)").matches;
+ var CYC_STAG=0.05, DWELL=8500;
+ var wi=Math.floor(Math.random()*MOODS.length);
+ var cycWord=null,cycTimer=0,cycHold=false,dragging=false,ghost=null,pid=null;
+ var tugCount=0,TUG_MAX=3;
+
+ var baseDelay=0;                        // ms of head start the FIRST word gives the static text
+ function build(i,defer){
+  var m=MOODS[i];
+  var w=document.createElement("span");
+  w.className="cycw "+m.style;
+  w.setAttribute("data-mood",m.mood);
+  [].forEach.call(m.word,function(ch,ci){
+   var sp=document.createElement("span");
+   var isDot=(ch===".");
+   sp.className="cyc-ch"+(isDot?" "+m.dot:"")+(defer?"":" in");
+   if(!isDot)sp.textContent=ch;
+   sp.style.animationDelay=(baseDelay/1000+ci*CYC_STAG).toFixed(3)+"s";
+   /* drop the compositing layer once the entrance is over, exactly as the original did --
+      a permanently animating span is a permanent layer */
+   sp.addEventListener("animationend",function(){sp.classList.remove("in");},{once:true});
+   w.appendChild(sp);
+  });
+  attach(w);
+  return w;
+ }
+
+ function place(i,defer){
+  var next=build(i,defer);
+  if(cycWord&&cycWord.parentNode){
+   /* THE min-width TWEEN IS LOAD-BEARING ON A CENTRED HEADLINE and it is not decoration.
+      The four words differ in width by up to ~84px; on a text-align:center line that
+      snapped the whole clause sideways by half that on every swap. Ease from the outgoing
+      width to the incoming one and the line glides instead. Commit 79add97 established
+      this on the home page and recorded that a fixed-width slot was tried and rejected
+      (it trades the jump for a permanent gap). Reduced motion opts out. */
+   var prev=cycWord.getBoundingClientRect().width;
+   cycWord.replaceWith(next);cycWord=next;
+   if(!reduce){
+    var nat=next.getBoundingClientRect().width;
+    if(Math.abs(prev-nat)>1){
+     next.style.transition="none";next.style.minWidth=prev+"px";void next.offsetWidth;
+     next.style.transition="min-width var(--dur-reveal) var(--ease-out)";
+     next.style.minWidth=nat+"px";
+     setTimeout(function(){next.style.minWidth="";next.style.transition="";},520);
+    }
+   }
+  }else{
+   slot.appendChild(next);cycWord=next;
+  }
+  tug(next);
+ }
+
+ function nextCycle(ms){
+  if(reduce)return;                       // the word never cycles under reduced motion: it rests on one
+  clearTimeout(cycTimer);
+  cycTimer=setTimeout(cycle,ms||DWELL);
+ }
+ function cycle(){
+  if(cycHold||dragging||!cycWord)return;  // never swap out from under a hand
+  cycWord.classList.add("out");
+  clearTimeout(cycTimer);
+  cycTimer=setTimeout(function(){
+   if(cycHold||dragging||!cycWord)return;
+   wi=(wi+1)%MOODS.length;place(wi,false);nextCycle();
+  },560);
+ }
+
+ /* THE TUG IS THE ONLY THING THAT TEACHES THE GESTURE. There is no label, no hint line and
+    no tooltip -- the spec that killed the clause on the home page was explicit that a hint
+    line is not the answer -- so the word nudges itself sideways twice, 900ms after it
+    lands, at most three times in a session, never during a drag and never under reduced
+    motion. Same budget the original used (TUG_MAX = 3). */
+ function tug(w){
+  if(reduce||!w||tugCount>=TUG_MAX)return;
+  tugCount++;
+  setTimeout(function(){
+   if(!w.parentNode||w.classList.contains("out")||dragging)return;
+   w.classList.add("cwtug");
+   setTimeout(function(){w.classList.remove("cwtug");},1600);
+  },900);
+ }
+
+ function fire(mood){
+  /* One owner of what a mood means. This is the menu's own button, so hero-engine.js's
+     dispatch runs unchanged -- including its game gating, its busy queue and its
+     "conjure a proxy so he does not chew air" path for hunger. */
+  var item=document.querySelector('#moodMenu .moodItem[data-mood="'+mood+'"]');
+  if(item)item.click();
+ }
+
+ function onHead(x,y){
+  /* ONE radial zone for all four, rather than the original's split between a radial test
+     for hunger and a rectangle-with-asymmetric-padding for the other three -- four different
+     drop targets for four identical gestures is a difference the visitor cannot see.
+     0.55, NOT the original's 0.72, AND THE NUMBER IS MEASURED. On the home page the head sat
+     far below a left-aligned headline; here it is directly under a centred one, and at
+     1440x900 the word's own resting centre is 330px from the head's centre while 0.72 of the
+     head's 466px width is 335 -- so the word started the gesture ALREADY INSIDE its own drop
+     zone and a 2px slip fired a mood. 0.55 puts the boundary at 256px, which clears the
+     resting position at every measured size (390: 275px apart against a 189px radius) while
+     still covering the whole visible face rather than just the mouth.
+     It reads the LIVE rect, so it follows the head wherever hero-head-transform.js has
+     moved, turned or scaled it. */
+  var r=stage.getBoundingClientRect();
+  return Math.hypot(x-(r.left+r.width/2),y-(r.top+r.height/2))<r.width*0.55;
+ }
+
+ function makeGhost(w){
+  var g=document.createElement("div");
+  g.className="moodDrag";
+  g.setAttribute("aria-hidden","true");    // the real word is still in the h1 and still read
+  /* BUILT FROM THE WORD, NEVER FROM A LITERAL -- see the header note on ee574f0. */
+  [].forEach.call(w.querySelectorAll(".cyc-ch"),function(ch){
+   var sp=document.createElement("span");
+   sp.className=ch.className.replace(/\bcyc-ch\b/,"mdgl").replace(/\bin\b/,"").trim();
+   sp.textContent=ch.textContent;
+   g.appendChild(sp);
+  });
+  /* Match the ghost to the word's OWN computed type rather than to a token, so the thing in
+     your hand is the size that left the sentence at every breakpoint. */
+  var cs=getComputedStyle(w);
+  g.style.fontSize=cs.fontSize;g.style.fontWeight=cs.fontWeight;g.style.letterSpacing=cs.letterSpacing;
+  return g;
+ }
+
+ function attach(w){
+  function release(){if(pid!=null){try{w.releasePointerCapture(pid);}catch(_){}pid=null;}}
+  function move(e){
+   if(!dragging||!ghost)return;
+   ghost._x=e.clientX;ghost._y=e.clientY;
+   ghost.style.left=e.clientX+"px";ghost.style.top=e.clientY+"px";
+   /* the head's own catch cue, the same class hero-engine's faceTrackTo toggles */
+   document.body.classList.toggle("catchReady",onHead(e.clientX,e.clientY));
+  }
+  function up(){
+   if(!dragging)return;
+   dragging=false;release();w.classList.remove("grab");
+   document.body.classList.remove("catchReady");
+   var hit=ghost&&onHead(ghost._x,ghost._y);
+   if(ghost){ghost.remove();ghost=null;}
+   w.style.opacity="";                     // the word comes home either way
+   cycHold=false;
+   if(hit)fire(w.getAttribute("data-mood"));
+   nextCycle(hit?DWELL:2600);              // a miss puts the word back and resumes sooner
+  }
+  w.addEventListener("pointerdown",function(e){
+   if(dragging)return;
+   if(document.body.classList.contains("hmBattle")||document.body.classList.contains("hmSoccer")
+    ||document.body.classList.contains("hmRace")||document.body.classList.contains("hmTour"))return;
+   e.preventDefault();
+   var r=w.getBoundingClientRect();
+   w.classList.add("grab");
+   cycHold=true;clearTimeout(cycTimer);    // freeze the cycler for the whole gesture
+   ghost=makeGhost(w);
+   document.body.appendChild(ghost);
+   ghost._x=r.left+r.width/2;ghost._y=r.top+r.height/2;   // spawns exactly where the word was
+   ghost.style.left=ghost._x+"px";ghost.style.top=ghost._y+"px";
+   /* opacity:0, NOT visibility:hidden and NOT removal. It keeps the headline's layout slot
+      (no reflow, no line jump mid-drag) AND keeps the element receiving pointer events,
+      which is what makes setPointerCapture on it hold the gesture. */
+   w.style.opacity="0";dragging=true;pid=e.pointerId;
+   try{w.setPointerCapture(pid);}catch(_){}
+  });
+  w.addEventListener("pointermove",move);
+  w.addEventListener("pointerup",up);
+  w.addEventListener("pointercancel",up);
+  w.addEventListener("lostpointercapture",up);   // a dropped word can never get stranded
+ }
+
+ /* ── THE ENTRANCE ────────────────────────────────────────────────────────────
+    "Make the text actually have that animation, and the buttons." The two static
+    sentences are split into per-character spans and given an index; the CSS in
+    play.html turns that index into a 16ms cascade on the same cycIn keyframes the
+    live word uses, so the headline assembles as one object rather than as a block
+    of type plus a widget. The live word is given the whole static run as a head
+    start so it lands last, which is exactly the sequencing revealAll() used on the
+    home page ("the cycling word lands right AFTER ...with, then the cycle begins").
+
+    IT SPLITS TEXT NODES ONLY, and .pMoodSlot is left alone -- the word builds its
+    own spans and owns its own stagger. Splitting is skipped entirely under reduced
+    motion: there is no animation to carry, and a headline shattered into 60 spans
+    is 60 things for a screen reader's character navigation to walk through for no
+    benefit. The sentence stays one text node in that case.
+    THE GATE IS data-play-ready, not DOMContentLoaded. .playBooting sets
+    visibility:hidden on the whole viewport until every initial head has decoded,
+    and visibility:hidden does not pause an animation -- an entrance started at load
+    would finish behind the curtain. */
+ /* CHARACTERS ARE WRAPPED IN WORDS, AND THAT IS NOT TIDINESS. An inline-block per
+    character is a break opportunity per character: measured at 390 the first line came
+    back as "I made a few g / ames for fun." Each word becomes its own nowrap inline-block
+    and the characters live inside it, so the line breaks between words exactly as the
+    original text did. This is the same .word > .ch nesting hero-engine.js's makeWord()
+    used, for the same reason. */
+ function split(){
+  var n=0;
+  [].forEach.call(lede.querySelectorAll(".pLine"),function(line){
+   [].slice.call(line.childNodes).forEach(function(node){
+    if(node.nodeType!==3)return;
+    var frag=document.createDocumentFragment();
+    node.nodeValue.split(/(\s+)/).forEach(function(part){
+     if(!part)return;
+     if(/^\s+$/.test(part)){frag.appendChild(document.createTextNode(part));return;}
+     var word=document.createElement("span");
+     word.className="wd";
+     [].forEach.call(part,function(ch){
+      var sp=document.createElement("span");
+      sp.className="ch";sp.textContent=ch;sp.style.setProperty("--i",n++);
+      word.appendChild(sp);
+     });
+     frag.appendChild(word);
+    });
+    line.replaceChild(frag,node);
+   });
+  });
+  return n;
+ }
+
+ function enter(){
+  if(reduce){place(wi,false);return;}
+  var n=split();
+  baseDelay=n*16+120;                    // the word lands one beat after the last letter
+  place(wi,false);
+  baseDelay=0;                           // every later swap starts immediately
+  lede.classList.add("isIn");
+  var ctas=document.querySelector(".heroCtas");
+  if(ctas){
+   [].forEach.call(ctas.children,function(el,i){el.style.setProperty("--i",n+4+i*3);});
+   ctas.classList.add("isIn");
+  }
+  nextCycle();
+ }
+
+ if(document.body.getAttribute("data-play-ready")==="true")enter();
+ else{
+  var obs=new MutationObserver(function(){
+   if(document.body.getAttribute("data-play-ready")==="true"){obs.disconnect();enter();}
+  });
+  obs.observe(document.body,{attributes:true,attributeFilter:["data-play-ready"]});
+  /* the arena's own boot watchdog gives up at 8s; this one is its backstop, so a page
+     that never reports ready still shows a finished headline rather than an empty one */
+  setTimeout(function(){if(!lede.classList.contains("isIn")&&!cycWord){obs.disconnect();enter();}},9000);
+ }
 })();
