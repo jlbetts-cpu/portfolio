@@ -1,3 +1,5 @@
+@import url("ui-icons.css");
+
 /* ===========================================================================
    THE SITE HEADER -- one component, every page.  HEADER V2, 2026-08-03.
 
@@ -12,7 +14,7 @@
    of a good header but it feels too cramped, doesn't use the margins." So the
    bar goes back to his original silhouette -- Work / About me / lockup /
    Games / Contact -- at the PAGE'S OWN COLUMN WIDTH (1200px on home, 93.8% of a
-   1280 viewport, against v1's 24.9%), every item now carries a Tabler line icon,
+   1280 viewport, against v1's 24.9%), every item now carries a Lucide line icon,
    the social row is deleted, and the cast shadows are gone. Detail in §2-§6 of
    the spec; the section numbers below map onto it.
 
@@ -192,7 +194,7 @@
      Translucency is the approved alternative to a shadow for making chrome sit
      ABOVE content; it is not an answer to chrome that is the colour of the
      paper. White is, and the rim below carries the rest. */
-  --nav-mat:var(--c0);
+  --nav-mat:var(--ctl-ground);
 
   /* THE RIM DOES ALL OF THE SEPARATION WORK, because there is no shadow (§6).
      On a near-white page a 96%-white pill is invisible, so the hairline has to
@@ -206,7 +208,7 @@
      rung: --rim-3, .20 alpha, composited #D1D1D1, 1.56:1 against the paper.
      Still a hairline, still 1px, still an INSET rim rather than a cast shadow;
      it is the same line drawn at the weight its job actually needs. */
-  --nav-rim:var(--rim-3);
+  --nav-rim:var(--ctl-container-rim);
 
   /* THE HOVER DELTA, and it is set by the REST colour rather than the hover one.
      Jayden asked for two things that look contradictory and are not: take the
@@ -239,21 +241,21 @@
      docs/superpowers/specs/2026-08-03-control-system.md still governs them.
      So rest is free to be the value the labels actually want -- --c700, 7.8:1 on
      the white bar, against --c500's 4.4:1 which read as disabled text. */
-  --nav-ink:var(--c700);
-  --nav-ink-strong:var(--c950);
+  --nav-ink:var(--theme-muted,var(--c700));
+  --nav-ink-strong:var(--theme-ink,var(--c950));
   /* THE HOVER GROUND. Same grey as the lit item's pill, on purpose: hover and
      active SHARE the shape and the fill, and what separates them is ink and
      weight. That is the layering Jayden asked for, and it is why the pill can be
      as light as he wants it -- the fill is no longer the thing that says "you are
      here", it is the thing that says "this is a control". */
-  --nav-hover-bg:var(--c75);
+  --nav-hover-bg:var(--theme-elevated,var(--c75));
   /* THE FOCUS RING IS INK, not the accent, and the header was the site's only
      outlier. --nav-accent on --c50 is 5.59:1; --c950 is 18.42:1, and every other
      focus ring on the site (index.html, the five case studies, play.css) already
      ships --c950. A focus ring's job is to be unmissable, not on-brand, and a
      ring that changes hue between the bar and the page under it reads as two
      systems. On the dark surface it flips to --c50 for the same reason. */
-  --nav-focus:var(--c950);
+  --nav-focus:var(--theme-focus,var(--c950));
   /* THE ACTIVE STATE, and until round 11 both of these names were declared and
      NOTHING CONSUMED THE FIRST ONE. Measured on index.html at 1280: the lit item
      (Work, aria-current="page") computed rgb(117,117,117) at weight 400 -- byte
@@ -284,7 +286,7 @@
      one page a nav item can take you to when you are already on it is the one
      you are on. Deepening the pill under the pointer would be a fourth grey in
      a bar that is trying to have fewer. */
-  --nav-active-ink:var(--c950);
+  --nav-active-ink:var(--theme-ink,var(--c950));
   --nav-active-bg:var(--nav-hover-bg);
 
   position:relative;                       /* the travelling indicator's containing block */
@@ -317,12 +319,11 @@
    --hover-out-dur/--ease-out pair rather than a new duration: the bar already agreed to
    travel at that speed on hover, and a second timing would be a second opinion. */
 .jbNav{transition:background-color var(--hover-out-dur) var(--ease-out),
-                 box-shadow var(--hover-out-dur) var(--ease-out),
-                 color var(--hover-out-dur) var(--ease-out)}
+                 box-shadow var(--hover-out-dur) var(--ease-out)}
 @media(prefers-reduced-motion:reduce){.jbNav{transition:none}}
 .jbNav[data-surface="ink"]{
   --nav-mat:var(--mat-i3-solid);
-  --nav-rim:var(--rim-i2),var(--rim-top);
+  --nav-rim:var(--rim-i2);
   --nav-ink:var(--i700);
   --nav-ink-strong:var(--c50);
   /* the pill on the dark ground: --i100 is the ink ramp's own --c100, which is
@@ -333,6 +334,27 @@
   --nav-active-ink:var(--c50);
   --nav-active-bg:var(--nav-hover-bg);
   --nav-focus:var(--c50);
+}
+
+/* Night chrome is neutral on every route, including the two stage pages that
+   otherwise opt into the legacy ink surface. Geometry stays in the rules above. */
+:root[data-theme="dark"] .jbNav{
+  --nav-mat:var(--ctl-ground);
+  --nav-rim:var(--ctl-container-rim);
+  --nav-ink:var(--theme-muted,var(--i700));
+  --nav-ink-strong:var(--theme-ink,var(--c50));
+  --nav-hover-bg:var(--theme-elevated,var(--i100));
+  --nav-active-ink:var(--theme-ink,var(--c50));
+  --nav-active-bg:var(--theme-elevated,var(--i100));
+  --nav-focus:var(--theme-focus,var(--c50));
+}
+:root.jbShrunk .jbNav{--nav-mat:var(--ctl-ground);--nav-rim:var(--ctl-container-rim)}
+.theme-ready .jbNav{transition:background-color var(--theme-duration,400ms) var(--ease-out),box-shadow var(--theme-duration,400ms) var(--ease-out)}
+@media(forced-colors:active){
+ .jbNav{
+  background:Canvas;color:CanvasText;box-shadow:none;
+  outline:var(--hair-w) solid CanvasText;outline-offset:calc(var(--hair-w) * -1)
+ }
 }
 
 /* the two zones. Auto width, pushed apart by the bar's space-between: the
@@ -393,7 +415,13 @@
   /* hover-OUT at --hover-out-dur, hover-IN at --ease-out-dur: the rule is that
      a control answers immediately and lets go gently. Equal timings read
      mechanical. Stated once here and inherited by every item in the bar. */
-  transition:color var(--hover-out-dur) var(--ease-out),
+  transition:background-color var(--hover-out-dur) var(--ease-out),
+             transform var(--press-dur) var(--ease-out);
+}
+/* Theme-colour motion starts only after the synchronous root state commits.
+   Background and press transitions above stay interaction-specific. */
+.theme-ready .jbNav :is(a,button,.jbDiscGo){
+  transition:color var(--theme-duration,400ms) var(--ease-out),
              background-color var(--hover-out-dur) var(--ease-out),
              transform var(--press-dur) var(--ease-out);
 }
@@ -497,8 +525,15 @@
      read mechanical, and "the animation was too abrupt" is a note this bar has
      already had once. font-weight is deliberately absent from the list -- see
      the note above; it snaps, the ground and the ink glide. */
-  transition:background-color var(--ease-out-dur) var(--ease-out),
-             color var(--ease-out-dur) var(--ease-out)}
+  transition:background-color var(--ease-out-dur) var(--ease-out)}
+/* This follows the direct-nav hover rule above and adds a class to every
+   selector, so a theme switch keeps its colour motion in every hover/focus
+   state without changing the interaction-specific background timing. */
+.theme-ready .jbGrp>:is(a,button):not(.jbHome):hover,
+.theme-ready .jbGrp>.jbDisc:hover>.jbDiscGo,
+.theme-ready .jbGrp>.jbDisc:focus-within>.jbDiscGo{
+  transition:color var(--theme-duration,400ms) var(--ease-out),
+             background-color var(--ease-out-dur) var(--ease-out)}
 .jbGrp>:is(a,button):not(.jbHome,[aria-current]):hover,
 .jbGrp>.jbDisc:hover>.jbDiscGo:not([aria-current]),
 .jbGrp>.jbDisc:focus-within>.jbDiscGo:not([aria-current]){
@@ -508,7 +543,7 @@
    Set on the SVG's own stroke-width, with --ico-md and vector-effect
    :non-scaling-stroke both untouched, so the glyph's BOX is byte-identical in
    both states and the label does not shift when the weight changes. Same value
-   the lit item uses (--ico-stroke-strong 2, which is Tabler's own next rung and
+   the lit item uses (--ico-stroke-strong 2, the system's own next rung, and
    measures 1.98px against Instrument Sans's 400->600 stem step of x1.32). */
 .jbGrp>:is(a,button):not(.jbHome,[aria-current]):hover .gIco,
 .jbGrp>.jbDisc:hover>.jbDiscGo:not([aria-current]) .gIco,
@@ -518,13 +553,10 @@
 /* THE MARK KEEPS THE OLD INK-ONLY HOVER. It is a brand object, not a tab: a
    grey pill round a logo is the one place the fill reads as chrome clutter, and
    it is the only item in the bar that never takes the lit treatment either. */
-.jbNav .jbHome:hover{color:var(--nav-ink-strong);
-  transition:color var(--ease-out-dur) var(--ease-out)}
+.jbNav .jbHome:hover{color:var(--nav-ink-strong)}
 /* the panel's rows keep ink-only hover -- they are a different control kind and
    the no-fill rule is untouched for them. Their colour rule is declared with the
    rest of the panel further down; this is only the timing it hovers in at. */
-.jbNav .jbDiscMenu :is(a,button):hover{
-  transition:color var(--ease-out-dur) var(--ease-out)}
 
 /* ── THE LIT ITEM.  Round 11 ────────────────────────────────────────────────
    Until this round --nav-active-ink was declared and never consumed: the lit
@@ -561,7 +593,7 @@
 .jbNav :focus:not(:focus-visible){outline:none}
 
 /* ── 2 · THE ICON SYSTEM (§4) ───────────────────────────────────────────────
-   Tabler outline, 24x24 viewBox, one box, one stroke, currentColor, always --
+   Local Lucide outline, 24x24 viewBox, one box, one stroke, currentColor --
    the markup carries only class/viewBox/path and CSS owns the rest. The stroke,
    cap and join are set site-wide in tokens.css (they were missing entirely, so
    every .gIco on the site rendered at 0.75px with mitred joins); the header
@@ -586,8 +618,19 @@
      render at two weights. Corrects the spec's --ico-stroke 1.8: that value
      assumes no vector-effect and would render 1.8px here, HEAVIER than the
      labels, not the 1.35px it was solving for. */
-  stroke-width:1.5;vector-effect:non-scaling-stroke;
+  stroke-width:1.75;vector-effect:non-scaling-stroke;
   stroke-linecap:round;stroke-linejoin:round}
+
+/* A quiet disclosure cue inside the existing Contact box. Absolute placement
+   keeps the control's width, padding, radius, and 44px target unchanged. */
+.jbNav .jbDiscGo{position:relative}
+.jbNav .jbDiscChevron{position:absolute;right:var(--sp-4);top:50%;
+  width:10px;height:10px;transform:translateY(-50%);stroke-width:1.75;
+  pointer-events:none;transition:transform var(--ease-out-dur) var(--ease-out)}
+.jbNav .jbContact.open>.jbDiscGo .jbDiscChevron{
+  transform:translateY(-50%) rotate(180deg)}
+@media(max-width:640px){.jbNav .jbDiscChevron{right:2px;width:9px;height:9px}}
+@media(prefers-reduced-motion:reduce){.jbNav .jbDiscChevron{transition-duration:0ms}}
 
 /* BACK -- its own item at the leading edge, full opacity, its own 44x44 (§5.1).
    In v1 it was a 15px chevron at opacity .55 injected INSIDE the lockup's own
@@ -599,7 +642,7 @@
    width. */
 /* ── THE ICON-ONLY ITEMS: Back, and the three socials ──────────────────────
    One rule for both, because they are the same kind of object -- a 24-grid
-   Tabler outline glyph in an 18px box inside a 44x44 target, with a name only a
+   Lucide outline glyph in an 18px box inside a 44x44 target, with a name only a
    screen reader hears. */
 .jbBack,.jbSoc{padding:0 var(--sp-12);min-width:var(--tap-min);justify-content:center}
 .jbBack[hidden]{display:none}
@@ -688,7 +731,7 @@
   width:max-content;min-width:var(--menu-w);
   max-width:min(var(--menu-w),calc(100vw - var(--sp-32)));
   padding:var(--pad-bar);
-  background:var(--nav-mat);box-shadow:var(--nav-rim);
+  background:var(--ctl-menu-ground);box-shadow:var(--ctl-container-rim);
   border-radius:var(--r-lg);corner-shape:var(--corner);
   opacity:0;visibility:hidden;transform:translateY(calc(var(--sp-4) * -1));
   transition:opacity var(--ease-out-dur) var(--ease-out),
@@ -727,11 +770,20 @@
   padding:0 var(--sp-10);min-height:var(--tap-min);gap:var(--sp-10);
   border-radius:var(--r-sm);corner-shape:var(--corner);white-space:nowrap;
   font-size:var(--fs-nav);font-weight:400;color:var(--nav-ink);
-  transition:color var(--hover-out-dur) var(--ease-out),
-             font-weight var(--hover-out-dur) var(--ease-out)}
+  transition:font-weight var(--hover-out-dur) var(--ease-out)}
 .jbNav .jbDiscMenu :is(a,button):not(.mhPick,.mhX):hover{
-  transition:color var(--ease-out-dur) var(--ease-out),
-             font-weight var(--ease-out-dur) var(--ease-out)}
+  transition:font-weight var(--ease-out-dur) var(--ease-out)}
+.theme-ready .jbNav .jbDiscMenu :is(a,button):not(.mhPick,.mhX),
+.theme-ready .jbNav .jbDiscMenu :is(a,button):not(.mhPick,.mhX):hover{
+  transition:color var(--theme-duration,400ms) var(--ease-out),
+             font-weight var(--hover-out-dur) var(--ease-out);
+}
+@media(prefers-reduced-motion:reduce){.theme-ready .jbNav :is(a,button,.jbDiscGo){transition-duration:0ms}}
+@media(prefers-reduced-motion:reduce){
+  .theme-ready .jbGrp>:is(a,button):not(.jbHome):hover,
+  .theme-ready .jbGrp>.jbDisc:hover>.jbDiscGo,
+  .theme-ready .jbGrp>.jbDisc:focus-within>.jbDiscGo{transition-duration:0ms}
+}
 .jbNav .jbDiscMenu :is(a,button) .gIco{
   transition:stroke-width var(--hover-out-dur) var(--ease-out)}
 /* ── THE PANEL ROWS' HOVER ──────────────────────────────────────────────────
@@ -863,12 +915,10 @@
    restyled. The only declaration they need of their own is the one above,
    shared with Back.
 
-   THE GLYPHS CHANGE PACK. The old .jbGlyph set was FILLED brand marks; the icon
-   system is Tabler OUTLINE only, never the filled set, because filled and
-   outline are different packs with different optical weight and mixing them is
-   what made the site look like three icon systems. brand-linkedin,
-   brand-instagram and mail are Tabler's own outline drawings at the same 24
-   grid as briefcase, user and device-gamepad.
+   THE GLYPHS SHARE ONE 24-GRID. Interface actions use local Lucide outlines;
+   LinkedIn and Instagram deliberately preserve recognizable brand drawings.
+   Every symbol still takes currentColor and the same optical box, so those two
+   explicit trademark exceptions do not introduce a second control geometry.
 
    ORDER IS HIS: LinkedIn, Instagram, email -- which is NOT the order the old
    markup shipped (mail first). Left as he gave it. */

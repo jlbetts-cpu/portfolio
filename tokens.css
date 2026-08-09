@@ -166,7 +166,7 @@
     ANY ground including white, because gradientlab's stage colour is user-set;
     NOT mirrored arithmetically from the light rungs. */
  --mat-i1:rgba(18,18,18,.58);--mat-i2:rgba(18,18,18,.70);--mat-i3:rgba(18,18,18,.82);
- --mat-i3-solid:rgba(18,18,18,.92);
+ --mat-i3-solid:rgb(18,18,18);
  --rim-i1:inset 0 0 0 1px rgba(253,253,253,.14);
  --rim-i2:inset 0 0 0 1px rgba(253,253,253,.22);
  --sh-i2:0 8px 28px rgba(0,0,0,.28);--sh-i3:0 12px 36px rgba(0,0,0,.36);
@@ -456,9 +456,9 @@
  /* ink and type */
  --ctl-fs:var(--fs-small);        /* 15px at the 44 rung */
  --ctl-fs-sm:var(--fs-nav);       /* 14px at the 36 rung */
- --ctl-ink:var(--c700);           /* 7.68:1 */
- --ctl-ink-strong:var(--c950);    /* 18.42:1 -- hover ink, selected ink, AND the focus ring */
- --ctl-ink-mute:var(--c500);      /* 4.53:1 -- tab rest, caret rest, placeholder */
+ --ctl-ink:var(--theme-muted,var(--c700));        /* semantic resting ink */
+ --ctl-ink-strong:var(--theme-ink,var(--c950));   /* hover, selected, and focus ink */
+ --ctl-ink-mute:var(--theme-muted,var(--c500));   /* caret and placeholder ink */
  --ctl-disabled-o:.38;
 
  /* motion -- three tiers plus the hover-out asymmetry.
@@ -481,6 +481,158 @@
  --gap-item:var(--sp-8);
  --gap-group:var(--sp-16);
  --gap-band:var(--sp-24);
+
+ /* Semantic control materials. These aliases deliberately resolve through the
+    local theme instead of through a page-specific Hero colour. All resting
+    secondary/icon chrome and all popup sheets are therefore opaque in both
+    light and Night, while the raw material and grey ramps stay private. */
+ --ctl-ground:var(--theme-surface,var(--c0,#fff));
+ --ctl-ground-hover:var(--theme-elevated,var(--c75));
+ --ctl-menu-ground:var(--theme-surface,var(--c0,#fff));
+ --ctl-container-ground:var(--theme-page,var(--c50));
+ --ctl-primary-ground:var(--theme-ink,var(--c950));
+ --ctl-primary-ground-hover:var(--theme-muted,var(--c900));
+ --ctl-primary-ink:var(--theme-page,var(--c50));
+ --ctl-focus:var(--theme-focus,var(--ctl-ink-strong));
+ --ctl-rim:0 0 0 var(--hair-w) var(--theme-rim,rgba(17,18,20,.12)) inset;
+ --ctl-rim-strong:0 0 0 var(--hair-w) var(--theme-rim-strong,rgba(17,18,20,.20)) inset;
+ --ctl-container-rim:0 0 0 var(--hair-w) var(--theme-rim,rgba(17,18,20,.12)) inset;
+ /* --ctl-menu-shadow is gone. It was var(--ctl-rim),var(--sh-2) -- a rim plus a
+    real drop shadow -- and it was the site's own no-shadows-on-chrome rule being
+    broken by the library meant to enforce it. Menus take --ctl-container-rim. */
+
+ /* Shared surface/container system. Components consume these semantic aliases;
+    authored media continues to own its pixels while the shared frame owns the
+    ground, rim, radius, padding, and responsive page gutter around it. */
+ --surface-ground:var(--theme-surface,var(--c0,#fff));
+ --surface-ground-muted:var(--theme-elevated,var(--c75));
+ --surface-rim:var(--ctl-container-rim);
+ --radius-container:var(--r-xl);
+ --radius-media:var(--r-lg);
+ --radius-control:var(--r-md);
+ --radius-menu:var(--r-lg);
+ --surface-radius:var(--radius-container);
+ --surface-radius-compact:var(--radius-media);
+ /* The radius ladder governs OBJECTS -- cards, media, controls, things that sit
+    ON the page. The Hero is not an object, it is the environment the page sits
+    in, so it is the one surface with no corners at all. Everything else stays
+    a rounded card precisely because this one stopped being one; a partial
+    radius here would read as a mistake rather than a decision. */
+ /* THREE SQUARE EDGES AND ONE CURVED ONE, and that is not a compromise radius.
+    The Hero runs to the viewport on the left, right and top, and an edge that
+    meets the viewport has nothing to round against -- a corner there would be
+    a notch of page colour. The BOTTOM edge is the only one that terminates
+    inside the page, so it is the only one that gets a corner. Jayden picked
+    this directly: sharp bottom edge, curved bottom corners, no fade. */
+ --surface-hero-radius:0 0 var(--r-xl) var(--r-xl);
+ --surface-hero-pad:var(--sp-16-40);
+ --surface-pad:var(--sp-32);
+ --surface-inset:var(--sp-8);
+ --surface-gutter:var(--sp-40);
+ --surface-gap:var(--sp-16-24);
+ --section-join-gap:var(--sp-16);
+ --work-item-gap:var(--sp-64);
+ --work-meta-gap:var(--sp-16);
+ --work-title-size:var(--fs-lead);
+ --work-year-size:var(--fs-small);
+ --media-mockup-inset:var(--sp-32);
+ --hero-peek-width:520px;
+ --hero-peek-depth:calc(190px + var(--sp-16));
+ --hero-peek-offset:var(--sp-8);
+ --hero-peek-lift:var(--sp-64);
+ /* NO BLEED AND NO BOTTOM FADE. A bleed token and a downward mask existed so
+    the light could fall into the work section; Jayden rejected that outright
+    ("I liked when it was sharp"). The gradient now stops dead on the Hero's
+    own lower edge, and the rounded bottom corners are what keep that hard
+    stop from reading as a slab. Both tokens are deleted rather than zeroed so
+    neither reads as a knob someone forgot to turn back.
+    THE VERTICAL PERCENTAGES ARE THEREFORE THE AUTHORED ONES AGAIN -- with no
+    bled box to re-express them against, 100% is the Hero's floor once more.
+    The six radials were authored against a 1200px box. Full width makes the
+    same HORIZONTAL percentage spread out and the glow flatten, so that radius
+    is capped as a LENGTH: the light source keeps its size instead of growing
+    with the monitor. That is the whole retune -- one axis, not both. */
+ --hero-glow-rx:clamp(1060px,84vw,1720px);
+ --hero-glow-rx-near:clamp(560px,44vw,900px);
+ --hero-glow-rx-far:clamp(740px,58vw,1180px);
+ --selection-ink:#0A84FF;
+ --selection-line:1px;
+ /* A UNIFORM RING OF AIR, IN SCREEN PIXELS. A frame drawn tight against an
+    irregular photographic cutout reads as cramped -- it traces a silhouette
+    instead of describing a region, which is the other half of "too conformed
+    to the head". This is added to the frame's half-extents and is never
+    scaled, so the gap is identical at 0.24x and at 2.2x. */
+ --selection-air:8px;
+ --selection-handle-size:8px;
+ --selection-hit-size:var(--tap-min);
+ --selection-rotate-size:10px;
+ /* The portrait is a peeking head, not a contained object: at rest its logical
+    rect already hangs ~150px below the Hero's lower edge. A containment clamp
+    therefore makes the RESTING position illegal, so once the head is dragged
+    away it can never be put back. The clamp is stated as visibility instead --
+    a share of the head's box must stay inside the Hero on every axis -- which
+    the resting composition satisfies and which is what "still grabbable"
+    actually means. --hero-head-safe-gap is the pixel floor under that share so
+    a head at minimum scale cannot shrink its own handle out of reach. */
+ --hero-head-min-visible:.42;
+ --hero-head-safe-gap:var(--sp-16);
+ --hero-head-min-scale:.24;
+ --hero-head-max-scale:2.2;
+ --hero-head-x:0px;
+ --hero-head-y:0px;
+ --hero-movie-guard-y:0px;
+ --hero-head-scale:1;
+ /* Rotation is clamped to a half turn either way, which still reaches every
+    orientation, so nothing is unreachable -- but the angle cannot accumulate
+    into a number that makes level feel far away. Snap and step are degrees. */
+ --hero-head-rotate:0deg;
+ --hero-head-min-rotate:-180;
+ --hero-head-max-rotate:180;
+ --hero-head-rotate-snap:6;
+ --hero-head-rotate-step:2;
+ --hero-head-rotate-step-large:15;
+ /* Written by hero-head-transform.js: the logical head's centre inside the
+    wrapper, so rotation turns the head about itself rather than about the
+    stage's corner. The authored values are the data-head-bounds midpoints. */
+ --hero-head-origin-x:51%;
+ --hero-head-origin-y:51.5%;
+ /* THE FLOAT. Amplitudes are deliberately below the threshold at which a
+    visitor can consciously track the motion -- it should read as "suspended"
+    in peripheral vision while they read the headline, not as a bob.
+    THE PERIODS ARE MUTUALLY PRIME-ISH ON PURPOSE. One sine wave on Y is
+    instantly recognisable as canned; three slow motions at 5.9s / 8.3s /
+    11.7s plus a small 3.7s harmonic on Y only re-align after about 38
+    minutes, so the path never visibly repeats. Seconds, written as plain
+    numbers because JS does the arithmetic. */
+ --hero-head-float-y-amp:9;
+ --hero-head-float-y-period:5.9;
+ --hero-head-float-y2-amp:3;
+ --hero-head-float-y2-period:3.7;
+ --hero-head-float-x-amp:5;
+ --hero-head-float-x-period:8.3;
+ --hero-head-float-rot-amp:.7;
+ --hero-head-float-rot-period:11.7;
+ /* How far the contact shadow answers the float. Spread grows the shadow as
+    the head rises, fade lightens it -- the coupling that makes a suspended
+    object read as an object rather than a sticker with a smudge under it. */
+ --hero-head-shadow-spread:.14;
+ --hero-head-shadow-fade:.30;
+ /* The greeting: how far below its resting place the head starts, and how
+    long it waits so it arrives just after the headline has been read. */
+ --hero-head-enter-rise:64px;
+ --hero-head-enter-delay:420ms;
+ --scene-cut-duration:250ms;
+ --scene-cut-ease:steps(2,end);
+ --star-twinkle-duration:7s;
+ --star-twinkle-ease:var(--ease-out);
+ --star-bright-size:1.5px;
+ --star-glow-size:var(--sp-2);
+ --menu-viewport-gutter:var(--sp-16);
+ --skip-inset:var(--sp-10);
+ --skip-hidden-offset:calc((var(--ctl-h) + var(--sp-16)) * -1);
+ --floating-control-inset:var(--surface-gutter);
+ --layer-floating-control:90;
+ --layer-skip-link:200;
 
  /* THE BUILDERS' PANEL. headmaker.html and gradientlab.html are the same
     archetype -- an artifact beside an inspector -- and each declared its own name
@@ -518,6 +670,32 @@
  --bar-h:calc(var(--sp-14) + var(--nav-h) + var(--sp-6));
  --lbl-w:84px;
 }
+@media(max-width:760px){:root{
+ --surface-pad:var(--sp-16);--surface-gutter:var(--sp-16);
+ --radius-container:var(--r-lg);--radius-media:var(--r-md);
+ --surface-hero-radius:0 0 var(--r-lg) var(--r-lg);
+ --surface-hero-pad:var(--sp-16);
+ /* The phone Hero is already narrower than the authored box, so the cap that
+    protects the desktop focus would only shrink the glow further here. */
+ --hero-glow-rx:104%;
+ --hero-glow-rx-near:88%;
+ --hero-glow-rx-far:110%;
+ /* A head twice the phone's width is cropped, not big. 1.7 is the largest
+    scale whose logical box still fits inside 390 with the copy gutter. */
+ --hero-head-max-scale:1.7;
+ /* Was clamp(600px,100svh - 160px,680px): a phone Hero deliberately shorter
+    than the screen. Full-bleed retires that -- the Hero IS the screen now. */
+ --hero-mobile-height:100dvh;
+ --work-item-gap:var(--sp-40);
+ --work-meta-gap:var(--sp-12);
+ --media-mockup-inset:var(--sp-16);
+ --hero-peek-width:clamp(312px,calc(100vw - var(--sp-8)),520px);
+ --hero-peek-depth:clamp(110px,calc(42vw - var(--sp-24)),140px);--hero-peek-offset:var(--sp-4);
+ --hero-peek-lift:var(--sp-48)
+}}
+@media(max-width:340px){:root{
+ --hero-peek-offset:var(--sp-2)
+}}
 @media(max-width:420px){:root{--lbl-w:72px}}
 
 /* ===========================================================================

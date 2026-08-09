@@ -45,10 +45,11 @@ const WORD_STYLE=["hungry","party","love","collab"]; // each cycling word animat
 const STATIC=["SF","product","designer.","iOS,","B2C","and","design","systems."];
 const reduce=window.matchMedia("(prefers-reduced-motion:reduce)").matches;
 const stage=document.getElementById("stage"),faceImg=document.getElementById("face"),h1=document.getElementById("h1");
+const movieEffectsStage=document.getElementById("heroMovieEffectsStage");
 try{faceImg.addEventListener("dragstart",function(e){e.preventDefault();});stage.addEventListener("dragstart",function(e){e.preventDefault();});}catch(_){}
 let curFace="neutral",eyeEls=[],pointer={px:innerWidth*.5,py:innerHeight*.42},tk=0;
 let CALIB=false,calFace="neutral",selEye=0,dragging=false,dragEl=null,paraX=0,paraY=0;
-let baseFace="neutral",activeHover=null,holdFace=null,holdTimer=null,eventLock=false,dizzy=false,dizzyStart=0,scrollPull=0,scrollTarget=0,scrollFollow=0,SCROLL_FOLLOW_LAG=0.62,SCROLL_FOLLOW_MAX=210,headGliding=false;
+let baseFace="neutral",activeHover=null,holdFace=null,holdTimer=null,eventLock=false,dizzy=false,dizzyStart=0,scrollPull=0,scrollTarget=0,scrollFollow=0,headGliding=false;
 let gaze={x:0,y:0},nextSaccade=0,lastMove=0;
 let irisDil=1,irisDilTarget=1,irisDilBase=1;   // pupil dilation: live value, transient target, sustained baseline (raised by mood)
 let microSacX=0,microSacY=0,microSacTX=0,microSacTY=0,microSacNext=0;   // fixational micro-saccades — the gaze never locks dead-still
@@ -990,7 +991,7 @@ function attachCollab(wordEl){
  wordEl.addEventListener("lostpointercapture",onUp);}
 // the team photos that rain in. TO ADD MORE LATER: drop a compressed jpg into images/rain/ and add its filename to this list.
 /* ===== Identity word -> About takeover (drag mirrors attachCollab; drop on head opens About) ===== */
-var dragId=null;   // aboutOpen/aboutReturnFocus went with the overlay; every reader was a !aboutOpen guard
+var dragId=null;   // the retired About overlay no longer gates portrait interaction
 /* Kept out of the deleted block on purpose: this reveals .heroCtas -- the "View my
    work" button -- which is a live hero element with nothing to do with About. It was
    only ever filed under About because the overlay called it on the way back. */
@@ -1022,47 +1023,105 @@ function attachIdentity(wordEl){
    never generated, so it was silently a no-op -- and the return-leg double-count that
    put the head 340px left of centre for 780ms.
    NOTHING ELSE DEPENDED ON THEM: every remaining caller was a guard of the form
-   !aboutOpen, and those went with the flag. #logo and #navAbout keep their ids. ===== */
+   the overlay guards, and those went with the flag. #logo and #navAbout keep their ids. ===== */
 
 
 var RAIN_PHOTOS=["rain01.webp","rain02.webp","rain03.webp","rain04.webp","rain05.webp","rain06.webp","rain07.webp","rain08.webp","rain09.webp","rain10.webp","rain11.webp","rain12.webp","rain13.webp","rain14.webp","rain15.webp","rain16.webp","rain17.webp","rain18.webp"];
 /* ===== popcorn movie-watching mode (triggered by reel hover, alongside the 3D glasses) ===== */
 var movieMode=false,movieTk0=0,movieEnding=false,movieEndTk=0,bucketEl=null,kernelEls=[],popcrumbEls=[],movieHair=false,hairTk0=0,MOVCYCLE=18;
+var heroPeek=document.querySelector(".heroCharacterPeek");
+var heroHeadTransform=document.getElementById("heroHeadTransform");
+function setMoviePeek(on){
+ if(!heroPeek)return;
+ if(on){
+  var hero=document.getElementById("main"),copy=hero&&hero.querySelector(".heroCopy");
+  if(hero&&copy&&faceImg){
+   var faceRect=faceImg.getBoundingClientRect(),stageRect=stage.getBoundingClientRect();
+   var headBounds=(faceImg.getAttribute("data-head-bounds")||"0.22 0.12 0.80 0.91").split(/\s+/).map(Number);
+   var headTop=faceRect.top+faceRect.height*headBounds[1];
+   var selection=document.getElementById("heroHeadSelection");
+   if(selection&&!selection.hidden)headTop=selection.getBoundingClientRect().top;
+   var style=getComputedStyle(hero),safeTop=copy.getBoundingClientRect().bottom+
+    (parseFloat(style.getPropertyValue("--hero-head-safe-gap"))||0);
+   var desired=parseFloat(style.getPropertyValue("--hero-peek-lift"))||0;
+   /* Movie poses briefly scale the stage to 1.04 and bob it upward. Reserve that
+      projection travel before lifting the peek, so the visible head never enters copy. */
+   var projectionReserve=Math.max(4,(stageRect.top+stageRect.height/2-headTop)*0.04+3);
+   var available=Math.max(0,headTop-safeTop);
+   var lift=Math.min(desired,Math.max(0,available-projectionReserve));
+   var guard=Math.max(0,projectionReserve-available);
+   if(hero.getBoundingClientRect().height<640){lift=0;guard=projectionReserve;}
+   heroPeek.style.setProperty("--hero-peek-active-offset",(guard-lift).toFixed(2)+"px");
+  }
+  heroPeek.classList.add("is-movie");
+ }else{
+  heroPeek.classList.remove("is-movie");
+  heroPeek.style.removeProperty("--hero-peek-active-offset");
+ }
+}
+function enforceMovieSafeProjection(){
+ if(!movieMode||!heroHeadTransform)return;
+ var hero=document.getElementById("main"),copy=hero&&hero.querySelector(".heroCopy");
+ if(!hero||!copy||!faceImg)return;
+ var faceRect=faceImg.getBoundingClientRect();
+ var headBounds=(faceImg.getAttribute("data-head-bounds")||"0.22 0.12 0.80 0.91").split(/\s+/).map(Number);
+ var top=faceRect.top+faceRect.height*headBounds[1];
+ var style=getComputedStyle(hero),safeTop=copy.getBoundingClientRect().bottom+
+  (parseFloat(style.getPropertyValue("--hero-head-safe-gap"))||0);
+ var current=parseFloat(heroHeadTransform.style.getPropertyValue("--hero-movie-guard-y"))||0;
+ var next=Math.max(0,current+safeTop-top);
+ if(Math.abs(next-current)>.05)heroHeadTransform.style.setProperty("--hero-movie-guard-y",next.toFixed(2)+"px");
+}
+function syncMovieEffectsLayer(){
+ if(!movieEffectsStage)return;
+ var priorTransform=stage.style.transform;
+ stage.style.transform="none";
+ var stageRect=stage.getBoundingClientRect(),clipRect=movieEffectsStage.parentNode.getBoundingClientRect();
+ stage.style.transform=priorTransform;
+ movieEffectsStage.style.left=(stageRect.left-clipRect.left).toFixed(2)+"px";
+ movieEffectsStage.style.top=(stageRect.top-clipRect.top).toFixed(2)+"px";
+ movieEffectsStage.style.width=stageRect.width.toFixed(2)+"px";
+ movieEffectsStage.style.height=stageRect.height.toFixed(2)+"px";
+ movieEffectsStage.style.transform=priorTransform;
+}
+window.addEventListener("heroheadtransform",function(){
+ if(movieMode){enforceMovieSafeProjection();syncMovieEffectsLayer();}
+});
+function setMovieStageTransform(value){
+ stage.style.transform=value;
+ if(movieEffectsStage)movieEffectsStage.style.transform=value;
+ enforceMovieSafeProjection();
+ dispatchEvent(new CustomEvent("heroheadstagechange"));
+}
+function glassesOn(){var g=document.getElementById("glasses");if(g){g.classList.remove("off");g.classList.add("on");}}
 function glassesOff(){var g=document.getElementById("glasses");if(g){g.classList.remove("on");g.classList.add("off");}}
 function makePlainCycWord(text){var w=document.createElement("span");w.className="cycw";var joy=/\.\.$/.test(text);var body=joy?text.slice(0,-2):text;var arr=[...body];arr.forEach(function(ch,ci){var sp=document.createElement("span");var isDot=(!joy&&ch==="."&&ci===arr.length-1);var cls=isDot?"bounceDot":"in";sp.className="cyc-ch "+cls;sp.textContent=ch;sp.style.animationDelay=(ci*CYC_STAG).toFixed(3)+"s";sp.addEventListener("animationend",function(){sp.classList.remove(cls);},{once:true});w.appendChild(sp);});if(joy){var jd=document.createElement("span");jd.className="cyc-ch joyDot in";jd.setAttribute("aria-hidden","true");jd.innerHTML='<svg class="joySvg" viewBox="0 0 30 26" xmlns="http://www.w3.org/2000/svg"><circle class="joyEye" cx="10" cy="11" r="2.3"/><circle class="joyEye" cx="20" cy="11" r="2.3"/><path class="joySmile" pathLength="1" d="M7 16 Q15 23 23 16"/></svg>';jd.style.animationDelay=(arr.length*CYC_STAG).toFixed(3)+"s";jd.addEventListener("animationend",function(e){if(e.animationName==="cycIn")jd.classList.remove("in");});w.appendChild(jd);}return w;}
-/* lightweight hover word-swap for project cards: the same cycler-word animation the reel used (Joy../Bears?/Motion.) WITHOUT the popcorn bucket or glasses */
-var csHoverWord=false;
-function csWordShow(word){
- if(reduce||introMode||CALIB||movieMode||dragging||eating)return;
- csHoverWord=true;clearTimeout(cycTimer);cycHold=true;
- if(cycWord){var mw=makePlainCycWord(word||"Motion.");cycWord.replaceWith(mw);cycWord=mw;}
-}
-function csWordHide(){
- if(!csHoverWord)return;csHoverWord=false;
- if(reduce||movieMode)return;
- if(cycWord&&cycWord.parentNode){var nw=makeCycWord(wi);cycWord.replaceWith(nw);cycWord=nw;}
- cycHold=false;nextCycle();
-}
 function ensureMovieEls(){
  if(bucketEl)return;
- bucketEl=document.createElement("img");bucketEl.className="popbucket";bucketEl.src="images/bucket.webp";bucketEl.alt="";bucketEl.style.opacity="0";stage.appendChild(bucketEl);
- for(var i=0;i<7;i++){var k=document.createElement("img");k.className="kernel";k.src="images/kernel.webp";k.alt="";k.style.opacity="0";stage.appendChild(k);kernelEls.push(k);}
- for(var j=0;j<12;j++){var cc=document.createElement("div");cc.className="popcrumb";stage.appendChild(cc);popcrumbEls.push(cc);}
+ var host=movieEffectsStage||stage;
+ bucketEl=document.createElement("img");bucketEl.className="popbucket";bucketEl.src="images/bucket.webp";bucketEl.alt="";bucketEl.style.opacity="0";host.appendChild(bucketEl);
+ for(var i=0;i<7;i++){var k=document.createElement("img");k.className="kernel";k.src="images/kernel.webp";k.alt="";k.style.opacity="0";host.appendChild(k);kernelEls.push(k);}
+ for(var j=0;j<12;j++){var cc=document.createElement("div");cc.className="popcrumb";host.appendChild(cc);popcrumbEls.push(cc);}
 }
 function setKernel(el,x,y,rot,op){el.style.left=(x*100).toFixed(1)+"%";el.style.top=(y*100).toFixed(1)+"%";el.style.transform="translate(-50%,-50%) rotate("+rot.toFixed(0)+"deg)";el.style.opacity=op.toFixed(2);}
 function startMovie(word){
- if(reduce||introMode||CALIB||movieMode)return;
+ glassesOn();
+ if(introMode)finishIntro();
+ if(reduce||CALIB||movieMode){setMoviePeek(true);return;}
  queued=null;if(typeof hideQueue==="function")hideQueue();
  if(rainMode)endRain();if(partyMode)endParty();if(loveMode)endLove();if(eating)finishEat();
  dizzy=false;reactType=null;identityShown=false;
+ setMovieStageTransform("");
+ setMoviePeek(true);
  ensureMovieEls();
+ syncMovieEffectsLayer();
  movieMode=true;movieEnding=false;movieHair=false;movieTk0=tk;eventLock=true;clearTimeout(cycTimer);cycHold=true;if(cycWord){var mw=makePlainCycWord(word||"Motion.");cycWord.replaceWith(mw);cycWord=mw;}
  setFace("neutral");mouthimg.src=FACES.rest.img;mouthimg.style.opacity="0";setMouth(0);
  for(var i=0;i<kernelEls.length;i++)kernelEls[i].style.opacity="0";
  /* peek removed */
 }
 function caughtMovie(){
- if(!movieMode){glassesOff();return;}
+ if(!movieMode){glassesOff();setMoviePeek(false);return;}
  if(movieEnding)return;
  movieEnding=true;movieEndTk=tk;
  for(var i=0;i<kernelEls.length;i++){var kk=kernelEls[i];kk._x=0.46+Math.random()*0.10;kk._y=0.80;kk._vx=(Math.random()*0.10-0.05);kk._vy=-(0.04+Math.random()*0.06);kk._rot=Math.random()*360;kk._spin=Math.random()*50-25;kk._dropping=false;}
@@ -1071,11 +1130,13 @@ function caughtMovie(){
 function endMovieCleanup(){
  /* peek removed */
  movieMode=false;movieEnding=false;movieHair=false;eventLock=false;
+ if(heroPeek)heroPeek.removeAttribute("data-movie-tick");
  if(bucketEl)bucketEl.style.opacity="0";
  for(var i=0;i<kernelEls.length;i++){kernelEls[i].style.opacity="0";kernelEls[i]._dropping=false;kernelEls[i]._htx=null;}
  for(var i=0;i<popcrumbEls.length;i++){popcrumbEls[i]._alive=false;popcrumbEls[i].style.opacity="0";}
- mouthimg.style.opacity="0";setMouth(0);glassesOff();if(tongueEl){tongueEl.style.opacity="0";tongueEl.style.transform="scaleY(0)";}
- stage.style.transform="";setFace("neutral");gaze.x=0;gaze.y=0;updateIris();
+ mouthimg.style.opacity="0";setMouth(0);glassesOff();setMoviePeek(false);if(tongueEl){tongueEl.style.opacity="0";tongueEl.style.transform="scaleY(0)";}
+ setMovieStageTransform("");if(heroHeadTransform)heroHeadTransform.style.removeProperty("--hero-movie-guard-y");
+ setFace("neutral");gaze.x=0;gaze.y=0;updateIris();
  cycHold=false;if(cycWord){var nw=makeCycWord(wi);cycWord.replaceWith(nw);cycWord=nw;}
  nextCycle(1500);
 }
@@ -1115,12 +1176,13 @@ function hairTick(){
   if(ht<=7){var t=ht/7;var x=(1-t)*(1-t)*k._hsx+2*(1-t)*t*k._hpx+t*t*k._htx;var y=(1-t)*(1-t)*k._hsy+2*(1-t)*t*k._hpy+t*t*k._hty;k._hx=x;k._hy=y;k._hrot=k._hr0+(k._hr1-k._hr0)*t+t*200;setKernel(k,x,y,k._hrot,1);}
   else if(ht<39){var jt=Math.sin((tk+i*1.7)*0.5)*0.004;setKernel(k,k._htx+jt,k._hty,k._hr1,1);}
   else{if(ht===39){k._hvx=(Math.random()-0.5)*0.05;k._hvy=-0.012-Math.random()*0.02;k._hx=k._htx;k._hy=k._hty;}k._hvy+=0.013;k._hx+=k._hvx;k._hy+=k._hvy;k._hrot+=(k._hr1>=0?14:-14);setKernel(k,k._hx,k._hy,k._hrot,Math.max(0,1-(ht-39)/9));}}
- if(ht<3){if(curFace!=="rest")setFace("rest");mouthimg.style.opacity="0";gaze.x=0;gaze.y=-0.18;updateIris();stage.style.transform="scale("+(ht===0?1.04:1.0)+")";}
- else if(ht<39){if(curFace!=="neutral")setFace("neutral");gaze.x=0.04*Math.sin(tk*0.2);gaze.y=-0.16;updateIris();var hb=Math.sin(tk*0.5)*1.0;stage.style.transform="translateY("+hb.toFixed(1)+"px)";}
- else{var sh=Math.sin((ht-39)*1.7)*(7*Math.max(0,1-(ht-39)/9));gaze.x=0;gaze.y=0.04;updateIris();stage.style.transform="translateX("+sh.toFixed(1)+"px) rotate("+(sh*0.4).toFixed(2)+"deg)";}
+ if(ht<3){if(curFace!=="rest")setFace("rest");mouthimg.style.opacity="0";gaze.x=0;gaze.y=-0.18;updateIris();setMovieStageTransform("scale("+(ht===0?1.04:1.0)+")");}
+ else if(ht<39){if(curFace!=="neutral")setFace("neutral");gaze.x=0.04*Math.sin(tk*0.2);gaze.y=-0.16;updateIris();var hb=Math.sin(tk*0.5)*1.0;setMovieStageTransform("translateY("+hb.toFixed(1)+"px)");}
+ else{var sh=Math.sin((ht-39)*1.7)*(7*Math.max(0,1-(ht-39)/9));gaze.x=0;gaze.y=0.04;updateIris();setMovieStageTransform("translateX("+sh.toFixed(1)+"px) rotate("+(sh*0.4).toFixed(2)+"deg)");}
  if(ht>=48)endMovieCleanup();
 }
 function movieTick(){
+ if(heroPeek)heroPeek.setAttribute("data-movie-tick",String(tk));
  if(reduce){movieMode=false;return;}
  lastMove=performance.now()-1e6;
  updateMovieCrumbs(); 
@@ -1157,13 +1219,13 @@ function movieTick(){
   }
   updateIris();
   updateMovieDrops();
-  stage.style.transform="translateY("+ty.toFixed(1)+"px) rotate("+rot.toFixed(2)+"deg) scale("+sx.toFixed(3)+","+sy.toFixed(3)+")";
+  setMovieStageTransform("translateY("+ty.toFixed(1)+"px) rotate("+rot.toFixed(2)+"deg) scale("+sx.toFixed(3)+","+sy.toFixed(3)+")");
   return;
  }
  if(movieHair){hairTick();return;}
  var et=tk-movieEndTk;
  if(et<3){if(curFace!=="rest")setFace("rest");mouthimg.style.opacity="0";if(tongueEl)tongueEl.style.opacity="0";var sgx=et===0?0.11:et===1?-0.07:0.02,sgy=et===0?-0.12:et===1?-0.09:-0.07;gaze.x=sgx;gaze.y=sgy;updateIris();
-   var pop=et===0?1.05:et===1?1.02:1.0;stage.style.transform="scale("+pop+")";if(bucketEl)bucketEl.style.transform="translateX(-50%)";return;}
+   var pop=et===0?1.05:et===1?1.02:1.0;setMovieStageTransform("scale("+pop+")");if(bucketEl)bucketEl.style.transform="translateX(-50%)";return;}
  var k=Math.min(1,(et-3)/5);
  if(et===3){setFace("wink");glassesOff();}
  else if(et>=6&&curFace!=="neutral")setFace("neutral");
@@ -1171,12 +1233,13 @@ function movieTick(){
  if(k>=1)bucketEl.style.opacity="0";
  for(var i=0;i<kernelEls.length;i++){var kn=kernelEls[i];if(kn._vx==null)continue;kn._vy+=0.012;kn._x+=kn._vx;kn._y+=kn._vy;kn._rot+=kn._spin;setKernel(kn,kn._x,kn._y,kn._rot,Math.max(0,1-(et-3)/7));}
  rot=10*k;ty=bob+6*k;gaze.x=-0.14;gaze.y=0.13;updateIris();
- stage.style.transform="translateY("+ty.toFixed(1)+"px) rotate("+rot.toFixed(2)+"deg)";
+ setMovieStageTransform("translateY("+ty.toFixed(1)+"px) rotate("+rot.toFixed(2)+"deg)");
  if(et>=10)endMovieCleanup();
 }
 stage.addEventListener("pointerenter",function(){if(movieMode&&movieEnding&&!movieHair&&(tk-movieEndTk)<=3)dumpOnHair();});
 function startRain(){try{document.body.classList.remove("catchReady");}catch(_){}
  if(rainMode)return;
+ document.body.classList.add("heroEmpathy");
  rainMode=true;eventLock=true;cycHold=true;clearTimeout(cycTimer);
  rainWrap=document.createElement("div");rainWrap.id="photorain";
  var pg=document.createElement("div");pg.className="pgrain";rainWrap.appendChild(pg);
@@ -1238,6 +1301,7 @@ function rainTick(){
   if(!on||lt>rainDropStart+64)endRain();}
 }
 function endRain(){
+ document.body.classList.remove("heroEmpathy");
  if(rainWrap&&rainWrap.parentNode)rainWrap.remove();rainWrap=null;rainList=[];rainHeadState="";
  if(camflash&&camflash.parentNode)camflash.remove();camflash=null;
  rainMode=false;eventLock=false;cycHold=false;gaze.x=0;gaze.y=0;
@@ -1246,8 +1310,6 @@ function endRain(){
  wi=(wi+1)%WORDS.length;var nw=makeCycWord(wi);if(cycWord){cycWord.replaceWith(nw);cycWord=nw;}
  nextCycle(1200);flushQueued();
 }
-function recalcFollowCap(){try{var sw=document.querySelector(".stagewrap"),tb=document.querySelector(".csTabs");if(!sw||!tb)return;var sy=window.scrollY||0;var homeBottom=sw.getBoundingClientRect().bottom+sy-Math.round(scrollFollow);var tabsTop=tb.getBoundingClientRect().top+sy;var cap=Math.round(tabsTop-homeBottom-48);SCROLL_FOLLOW_MAX=Math.max(40,Math.min(260,cap));}catch(_){}}
-addEventListener("resize",recalcFollowCap);addEventListener("scroll",recalcFollowCap,{passive:true});setTimeout(recalcFollowCap,9000);
 (function(){if(window.innerWidth>760)return;var items=[].slice.call(document.querySelectorAll(".csItem"));if(!items.length)return;function showAll(){items.forEach(function(it){it.classList.add("csIn");});}if(reduce||!("IntersectionObserver" in window)){showAll();return;}var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add("csIn");io.unobserve(e.target);}});},{threshold:0.16,rootMargin:"0px 0px -7% 0px"});items.forEach(function(it){io.observe(it);});})();
 // MASTER 8fps CLOCK
 setInterval(()=>{tk++;if(!reduce)boil();if(crumbEls.length)updateCrumbs();
@@ -1295,25 +1357,29 @@ logo.addEventListener("mouseleave",()=>{if(eventLock||CALIB)return;if(activeHove
 logo.addEventListener("click",()=>{
  if(CALIB||eventLock||dizzy||reactType)return;clearHold();activeHover=null;startReact("talk");});  // on home, click the name -> he introduces himself
 }
-var _wbtn=document.getElementById("workBtn");if(_wbtn)_wbtn.addEventListener("click",function(){if(window.__softScroll)window.__softScroll(document.getElementById("cases"));});
-/* The browser's behaviour:"smooth" is a fixed aggressive curve -- over a long page it reads
-   as a lurch. This eases in and out, and scales its duration with the distance travelled but
-   NOT proportionally (Carbon's rule): a short hop stays quick, a long one never drags. */
+var _wbtn=document.getElementById("workBtn");if(_wbtn)_wbtn.addEventListener("click",function(e){if(window.__softScroll){e.preventDefault();if(location.hash!==this.hash)history.pushState(null,"",this.hash);window.__softScroll(document.getElementById(this.hash.slice(1)));}});
+/* The browser's behaviour:"smooth" is a fixed curve. This uses the site's direct ease-out,
+   respects the shared sticky-header inset, and scales with distance without letting a long
+   hop drag. The transient root class prevents CSS smooth-scroll from retargeting every frame. */
 function softScroll(el){
   if(!el)return;
-  if(typeof reduce!=="undefined"&&reduce){el.scrollIntoView({block:"start"});return;}
+  if(window.__softScrollFrame)cancelAnimationFrame(window.__softScrollFrame);
+  document.documentElement.classList.add("softScrolling");
   var startY=window.scrollY||0,
-      endY=Math.max(0,Math.min(startY+el.getBoundingClientRect().top,
+      scrollPad=parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop)||0,
+      endY=Math.max(0,Math.min(startY+el.getBoundingClientRect().top-scrollPad,
                     document.documentElement.scrollHeight-innerHeight)),
       dist=Math.abs(endY-startY);
-  if(dist<4)return;
-  var dur=Math.min(1150,Math.max(420,Math.round(320+Math.sqrt(dist)*26))), t0=null;
+  if(typeof reduce!=="undefined"&&reduce){window.scrollTo({top:endY,behavior:"auto"});requestAnimationFrame(function(){document.documentElement.classList.remove("softScrolling");});return;}
+  if(dist<4){document.documentElement.classList.remove("softScrolling");return;}
+  var dur=Math.min(750,Math.max(380,Math.round(300+Math.sqrt(dist)*14))), t0=null;
   (function step(now){
     if(t0===null)t0=now;
     var t=Math.min(1,(now-t0)/dur),
-        e=t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;   // ease-in-out cubic
+        e=1-Math.pow(1-t,3);   // direct ease-out: decisive start, quiet landing
     window.scrollTo(0,startY+(endY-startY)*e);
-    if(t<1)requestAnimationFrame(step);
+    if(t<1)window.__softScrollFrame=requestAnimationFrame(step);
+    else{window.__softScrollFrame=0;document.documentElement.classList.remove("softScrolling");}
   })(performance.now());
 }
 window.__softScroll=softScroll;
@@ -1342,9 +1408,14 @@ talk.addEventListener("click",function(e){e.preventDefault();
     instead of diverging. */
  if(window.__softScroll)window.__softScroll(document.getElementById("contact"));});
 }
+(function(){
+ var cards=[].slice.call(document.querySelectorAll(".csItem"));if(!cards.length)return;
+ function enter(){if(eventLock||CALIB)return;clearHold();activeHover="smile";showFace("smile");}
+ function leave(card){if(card.matches(":hover")||card.contains(document.activeElement))return;if(eventLock||CALIB)return;if(activeHover==="smile")activeHover=null;setHold("smile",SMILE_LINGER);resolve();}
+ cards.forEach(function(card){card.addEventListener("pointerenter",enter);card.addEventListener("pointerleave",function(){leave(card);});card.addEventListener("focusin",enter);card.addEventListener("focusout",function(){requestAnimationFrame(function(){leave(card);});});});
+})();
 (function(){return;/* magnetic retired: Let's talk is now a calm secondary button matching Back */var mag=document.querySelector(".talkMag");if(!mag||reduce)return;var PULL=0.22,REACH=70,MAXO=16,last=0,cx=0,cy=0;function apply(x,y){mag.style.transform=(x||y)?("translate("+x+"px,"+y+"px)"):"";}function cl(v){return v<-MAXO?-MAXO:(v>MAXO?MAXO:v);}window.addEventListener("mousemove",function(e){var now=performance.now();if(now-last<125)return;last=now;var b=mag.getBoundingClientRect();var bx=b.left+b.width/2-cx,by=b.top+b.height/2-cy;var dx=e.clientX-bx,dy=e.clientY-by;var reach=Math.max(b.width,b.height)/2+REACH;if(Math.hypot(dx,dy)<reach){cx=cl(Math.round(dx*PULL));cy=cl(Math.round(dy*PULL));apply(cx,cy);}else if(cx||cy){cx=0;cy=0;apply(0,0);}});window.addEventListener("mouseout",function(e){if(!e.relatedTarget&&(cx||cy)){cx=0;cy=0;apply(0,0);}});})();
-(function(){var HEAD={x0:0.22,x1:0.80,y0:0.12,y1:0.91};function overFace(e){var r=faceImg.getBoundingClientRect();if(!r.width||!r.height)return false;var fx=(e.clientX-r.left)/r.width,fy=(e.clientY-r.top)/r.height;return fx>=HEAD.x0&&fx<=HEAD.x1&&fy>=HEAD.y0&&fy<=HEAD.y1;}var onFace=false;window.__pointerOverFace=false;document.addEventListener("mousemove",function(e){var ov=(!aboutOpen)&&overFace(e);window.__pointerOverFace=ov;if(CALIB||aboutOpen)return;if(ov)enter();else leave();},{passive:true});document.addEventListener("mouseleave",function(){window.__pointerOverFace=false;leave();});window.addEventListener("blur",function(){window.__pointerOverFace=false;leave();});function enter(){if(eventLock||CALIB||aboutOpen)return;if(!onFace){onFace=true;clearHold();activeHover="rest";showFace("rest");}}function leave(){var was=onFace;onFace=false;if(activeHover==="rest")activeHover=null;if(!eventLock&&!CALIB){var target=activeHover||holdFace||baseFace;if(blinking){for(var i=0;i<blinkQ.length;i++){if(blinkQ[i]&&blinkQ[i].open)blinkQ[i].face=target;}}if(was)showFace(target);}if(window.__restWatch)clearInterval(window.__restWatch);var t0=Date.now();window.__restWatch=setInterval(function(){if(window.__pointerOverFace||CALIB||onFace||Date.now()-t0>1500){clearInterval(window.__restWatch);window.__restWatch=null;return;}if(eventLock)return;if(curFace==="rest"){if(blinking){for(var j=0;j<blinkQ.length;j++){if(blinkQ[j]&&blinkQ[j].open)blinkQ[j].face=baseFace;}}setFace(baseFace);}},60);}faceImg.addEventListener("mousemove",function(e){if(CALIB||aboutOpen)return;if(overFace(e))enter();else leave();});faceImg.addEventListener("mouseleave",function(){leave();});})();
-faceImg.addEventListener("click",()=>{if(CALIB||eventLock)return;tapReact();});
+(function(){var headBounds=(faceImg.getAttribute("data-head-bounds")||"0.22 0.12 0.80 0.91").split(/\s+/).map(Number);var HEAD={x0:headBounds[0],y0:headBounds[1],x1:headBounds[2],y1:headBounds[3]};function overFace(e){var r=faceImg.getBoundingClientRect();if(!r.width||!r.height)return false;var fx=(e.clientX-r.left)/r.width,fy=(e.clientY-r.top)/r.height;return fx>=HEAD.x0&&fx<=HEAD.x1&&fy>=HEAD.y0&&fy<=HEAD.y1;}var onFace=false;window.__pointerOverFace=false;document.addEventListener("mousemove",function(e){var ov=overFace(e);window.__pointerOverFace=ov;if(CALIB)return;if(ov)enter();else leave();},{passive:true});document.addEventListener("mouseleave",function(){window.__pointerOverFace=false;leave();});window.addEventListener("blur",function(){window.__pointerOverFace=false;leave();});function enter(){if(eventLock||CALIB)return;if(!onFace){onFace=true;clearHold();activeHover="rest";showFace("rest");}}function leave(){var was=onFace;onFace=false;if(activeHover==="rest")activeHover=null;if(!eventLock&&!CALIB){var target=activeHover||holdFace||baseFace;if(blinking){for(var i=0;i<blinkQ.length;i++){if(blinkQ[i]&&blinkQ[i].open)blinkQ[i].face=target;}}if(was)showFace(target);}if(window.__restWatch)clearInterval(window.__restWatch);var t0=Date.now();window.__restWatch=setInterval(function(){if(window.__pointerOverFace||CALIB||onFace||Date.now()-t0>1500){clearInterval(window.__restWatch);window.__restWatch=null;return;}if(eventLock)return;if(curFace==="rest"){if(blinking){for(var j=0;j<blinkQ.length;j++){if(blinkQ[j]&&blinkQ[j].open)blinkQ[j].face=baseFace;}}setFace(baseFace);}},60);}faceImg.addEventListener("mousemove",function(e){if(CALIB)return;if(overFace(e))enter();else leave();});faceImg.addEventListener("mouseleave",function(){leave();});})();
 
 function renderCal(){}
 addEventListener("keydown",e=>{if(!CALIB)return;
@@ -1508,8 +1579,9 @@ if(!HEADONLY){stage.style.opacity="0";requestAnimationFrame(function(){requestAn
 
 /* ===== Intro reel logic ===== */
 (function(){
- var reel=document.getElementById("reel"),frame=document.getElementById("reelFrame"),vid=document.getElementById("reelVid"),ph=document.getElementById("reelPh"),pc=document.getElementById("playCursor"),ov=document.getElementById("reelOverlay"),ovv=document.getElementById("reelOverlayVid"),closeBtn=document.getElementById("reelClose"),tapBtn=document.getElementById("reelTap");
+ var reel=document.getElementById("reel"),frame=document.getElementById("reelFrame"),vid=document.getElementById("reelVid"),ph=document.getElementById("reelPh"),pc=document.getElementById("playCursor"),ov=document.getElementById("reelOverlay"),ovv=document.getElementById("reelOverlayVid"),closeBtn=document.getElementById("reelClose");
  var ovf=document.getElementById("reelOverlayYt"),YT_ID="WDnRtdwFREA";
+ installHeroMoodMenu();
  if(!reel)return;
  if(pc&&pc.parentNode!==document.body)document.body.appendChild(pc);
  var fine=window.matchMedia("(hover:hover) and (pointer:fine)").matches;
@@ -1549,12 +1621,14 @@ if(!HEADONLY){stage.style.opacity="0";requestAnimationFrame(function(){requestAn
  if("IntersectionObserver" in window){var reelSeen=false;new IntersectionObserver(function(en){en.forEach(function(x){if(x.isIntersecting){reelSeen=true;if(!reduce){var rp=vid.play();if(rp&&rp.catch)rp.catch(function(){});}}else if(reelSeen){try{vid.pause();}catch(_){}}});},{rootMargin:"600px 0px"}).observe(reel);}else if(!reduce){var rp0=vid.play();if(rp0&&rp0.catch)rp0.catch(function(){});}
  vid.addEventListener("loadeddata",function(){if(ph)ph.style.display="none";if(!reduce){var pr=vid.play();if(pr&&pr.catch)pr.catch(function(){});}});
  if(fine){
-   var _gl=document.getElementById("glasses");function glOn(){if(_gl){_gl.classList.remove("off");_gl.classList.add("on");}}function glOff(){if(_gl){_gl.classList.remove("on");_gl.classList.add("off");}}
-   frame.addEventListener("pointerenter",function(e){mx=e.clientX;my=e.clientY;hovering=true;evalCursor();glOn();startMovie();});
-   frame.addEventListener("pointerleave",function(){hovering=false;evalCursor();caughtMovie();});function reelClear(){if(hovering){hovering=false;evalCursor();caughtMovie();}}document.addEventListener("mouseleave",reelClear);window.addEventListener("blur",reelClear);window.addEventListener("mouseout",function(e){if(!e.relatedTarget&&!e.toElement){reelClear();}});
+   frame.addEventListener("pointerenter",function(e){mx=e.clientX;my=e.clientY;hovering=true;evalCursor();startMovie();});
+   frame.addEventListener("pointerleave",function(){hovering=false;evalCursor();requestAnimationFrame(stopMovieIfDisengaged);});function reelClear(){if(hovering){hovering=false;evalCursor();caughtMovie();}}document.addEventListener("mouseleave",reelClear);window.addEventListener("blur",reelClear);window.addEventListener("mouseout",function(e){if(!e.relatedTarget&&!e.toElement){reelClear();}});
    frame.addEventListener("click",openReel);
  }
- if(tapBtn)tapBtn.addEventListener("click",function(e){e.stopPropagation();openReel();});
+ function stopMovieIfDisengaged(){if(!hovering&&!frame.contains(document.activeElement))caughtMovie();}
+ frame.addEventListener("focusin",function(){startMovie();});
+ frame.addEventListener("focusout",function(){requestAnimationFrame(stopMovieIfDisengaged);});
+ frame.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();openReel();}});
  function openReel(){
    ov.classList.add("on");ov.setAttribute("aria-hidden","false");pc.classList.remove("on");
    try{vid.pause();}catch(_){}
@@ -1572,13 +1646,10 @@ if(!HEADONLY){stage.style.opacity="0";requestAnimationFrame(function(){requestAn
  addEventListener("keydown",function(e){if(e.key==="Escape"&&ov.classList.contains("on"))closeReel();});
 
  // ===== mood shortcut menu -> fire the head animations directly =====
- (function(){
-  /* The ONLY place the two hosts genuinely collide. play.html reuses the same #moodbar /
-     #moodBtn / #moodMenu ids (deliberately -- the tournament disables #moodBtn by id), but
-     play-games.js already binds its own open/close toggle to them. Two toggles on one button
-     open and then immediately close the menu, so Play would silently stop working there. The
-     head-animation moods this block fires (rain / eat / party / love) are home-only anyway. */
-  if(HEADONLY) return;
+ function installHeroMoodMenu(){
+  /* Home and Play deliberately expose the same portrait control IDs, so this is their one
+     shared menu controller and mood dispatcher. Play's hidden game launcher has game-specific
+     IDs and cannot add a second toggle to this button. */
   var bar=document.getElementById("moodbar"); if(!bar) return;
   var btn=document.getElementById("moodBtn"), menu=document.getElementById("moodMenu");
   var MAP={empathy:startRain,hunger:moodEat,delight:startParty,love:startLove};
@@ -1604,7 +1675,7 @@ if(!HEADONLY){stage.style.opacity="0";requestAnimationFrame(function(){requestAn
      header.css:414 anchors it to the right edge below 640px, and .jbDiscMenu's
      own max-height:var(--menu-max-h) + overflow-y:auto caps its height. One owner
      for the panel's box, and it is the stylesheet. */
-  function closeM(){bar.classList.remove("open");if(btn)btn.setAttribute("aria-expanded","false");try{var c=bar.parentElement;if(c)c.style.zIndex="";}catch(_){}setChevron();}
+  function closeM(restoreFocus){bar.classList.remove("open");if(btn){btn.setAttribute("aria-expanded","false");if(restoreFocus)btn.focus();}try{var c=bar.parentElement;if(c)c.style.zIndex="";}catch(_){}}
   // OPEN ON HOVER (pointer devices only). A menu that only opens on click makes you commit
   // before you can see what is in it; hovering to reveal is the whole feel Jayden is after.
   // Touch keeps click -- a hover that fires on tap would open and close in the same gesture.
@@ -1613,34 +1684,19 @@ if(!HEADONLY){stage.style.opacity="0";requestAnimationFrame(function(){requestAn
    var hideT=0;
    function over(){ clearTimeout(hideT); if(!bar.classList.contains("open")&&typeof openM==="function")openM(); }
    function out(){ clearTimeout(hideT); hideT=setTimeout(function(){
-     if(!bar.matches(":hover"))closeM(); },260); }
+     if(!bar.matches(":hover"))closeM(false); },260); }
    bar.addEventListener("mouseenter",over);
    bar.addEventListener("mouseleave",out);
   })();
-  function setChevron(){ // caret points toward where the menu will open when closed, and flips to point back when open
-   var car=btn&&btn.querySelector(".moodCar");if(!car)return;
-   var open=bar.classList.contains("open");
-   /* HEADER V2: Play is a split control in the top bar and its menu always drops
-      DOWN, so the caret is the chevron as drawn when closed and flipped when
-      open -- the same convention .jbDiscCar uses for Contact at the other end of
-      the bar. The old rule pointed it toward where the menu WOULD open, which
-      was right for a dock under the head opening upward and is backwards here:
-      it rendered a down-chevron rotated 180 while the menu was shut. */
-   var deg=open?180:0;
-   car.style.setProperty("transition","transform .32s cubic-bezier(.34,1.4,.5,1), color .2s cubic-bezier(.2,.8,.2,1)","important");
-   car.style.setProperty("transform","rotate("+deg+"deg)","important");
-  }
-  function openM(){bar.classList.add("open");requestAnimationFrame(function(){try{window.__syncMoodSeps&&window.__syncMoodSeps();}catch(_){}});if(btn)btn.setAttribute("aria-expanded","true");try{var c=bar.parentElement;if(c)c.style.zIndex="70";}catch(_){}setChevron();}
-  setChevron(); // point the caret correctly at rest (down on mobile where the menu drops, up on desktop where it lifts)
-  window.addEventListener("resize",function(){if(!bar.classList.contains("open"))setChevron();},{passive:true});
+  function openM(){bar.classList.add("open");requestAnimationFrame(function(){try{window.__syncMoodSeps&&window.__syncMoodSeps();}catch(_){}});if(btn)btn.setAttribute("aria-expanded","true");try{var c=bar.parentElement;if(c)c.style.zIndex="70";}catch(_){}}
   if(btn)btn.addEventListener("click",function(e){e.stopPropagation();
    // Play is closed off while a tournament is live -- starting a second game from in here
    // would abandon the draw halfway through. The reason is on the button, not in an alert.
-   if(document.body.classList.contains("hmTour")){closeM();return;}
-   bar.classList.contains("open")?closeM():openM();});
-  if(menu)menu.addEventListener("click",function(e){var it=e.target.closest(".moodItem");if(!it)return;var mood=it.getAttribute("data-mood");closeM();if(document.body.classList.contains("hmBattle")||document.body.classList.contains("hmSoccer")||document.body.classList.contains("hmRace"))return;if(mood==="identity"){location.href="about.html";return;}/* About is a page now, not an overlay. NOT a // comment: this is one minified line and a line comment would swallow the rest of it. */var fn=MAP[mood];if(typeof fn!=="function")return;var now=!busyNow();runOrQueue(fn);if(now)moodHoldWord(IDX[mood]);});
-  document.addEventListener("click",function(e){if(bar.classList.contains("open")&&!bar.contains(e.target))closeM();});
-  document.addEventListener("keydown",function(e){if(e.key==="Escape")closeM();});
+   if(document.body.classList.contains("hmTour")){closeM(false);return;}
+   bar.classList.contains("open")?closeM(false):openM();});
+  if(menu)menu.addEventListener("click",function(e){var it=e.target.closest(".moodItem");if(!it)return;var mood=it.getAttribute("data-mood");closeM(false);if(document.body.classList.contains("hmBattle")||document.body.classList.contains("hmSoccer")||document.body.classList.contains("hmRace"))return;if(mood==="identity"){location.href="about.html";return;}/* About is a page now, not an overlay. NOT a // comment: this is one minified line and a line comment would swallow the rest of it. */var fn=MAP[mood];if(typeof fn!=="function")return;var now=!busyNow();runOrQueue(fn);if(now)moodHoldWord(IDX[mood]);});
+  document.addEventListener("click",function(e){if(bar.classList.contains("open")&&!bar.contains(e.target))closeM(false);});
+  document.addEventListener("keydown",function(e){if(e.key==="Escape"&&bar.classList.contains("open")){e.stopPropagation();closeM(true);}});
 
- })();
+ }
 })();

@@ -138,6 +138,77 @@ body{background:var(--c50);color:var(--c950);font-family:var(--sans);-webkit-fon
 .dshadow{position:absolute;border-radius:var(--r-full);background:radial-gradient(ellipse 50% 50% at 50% 50%,rgba(8,8,8,.5),rgba(8,8,8,.3) 40%,rgba(8,8,8,.12) 62%,transparent 76%);transform:translate(-50%,-50%);z-index:-1;pointer-events:none;opacity:0;will-change:transform,left,top,width,height,opacity}
 .queueDots{position:absolute;left:50%;top:-7%;transform:translateX(-50%);display:flex;gap:.42rem;z-index:8;opacity:0;pointer-events:none;transition:opacity var(--ease-out-dur) var(--ease-out)}
 
+/* The Home mood performances are shared JavaScript, so Play carries the same presentation
+   classes for every node that hero-engine.js and party.js create. This is not a second
+   animation implementation: the engine remains the sole state/timing owner. */
+.cookieDot{display:inline-block;width:.62em;height:.62em;vertical-align:baseline;position:relative;overflow:visible;color:transparent}
+.cookieDot::before{content:"";position:absolute;inset:0;background:center/contain no-repeat;background-image:url(images/cookie.webp);filter:url(#inkSm);animation:cookieBite 1.8s steps(1,end) infinite}
+@keyframes cookieBite{0%{background-image:url(images/cookie.webp)}25%{background-image:url(images/cookie_b1.webp)}50%{background-image:url(images/cookie_b2.webp)}75%{background-image:url(images/cookie_b3.webp)}100%{background-image:url(images/cookie.webp)}}
+.discoDot{display:inline-block;width:.62em;height:.62em;vertical-align:baseline;position:relative;overflow:visible;color:transparent;filter:drop-shadow(0 0 .05em rgba(150,180,255,.55))}
+.discoDot::before{content:"";position:absolute;inset:0;background:url(images/discoball.webp) center/contain no-repeat;filter:url(#inkSm)}
+.discoDot::after{content:"";position:absolute;left:3%;top:10%;width:94%;height:88%;border-radius:50%;background:url(images/discoglints.webp) 0 50%/130% auto repeat;opacity:.85;animation:discoSweep 1.6s steps(13,end) infinite}
+@keyframes discoSweep{from{background-position:0 50%}to{background-position:-200% 50%}}
+.heartDot{display:inline-block;width:.62em;height:.62em;vertical-align:baseline;position:relative;overflow:visible;color:transparent}
+.heartDot::before{content:"";position:absolute;inset:0;background:url(images/heart.webp) center/contain no-repeat;filter:url(#inkSm) drop-shadow(0 1px 1px rgba(0,0,0,.28));transform-origin:50% 50%;animation:heartDotBeat 1s steps(1,end) infinite}
+@keyframes heartDotBeat{0%{transform:scale(1)}12.5%{transform:scale(1.14)}25%{transform:scale(1.07)}37.5%{transform:scale(1)}100%{transform:scale(1)}}
+.camDot{display:inline-block;width:.92em;height:.66em;vertical-align:baseline;position:relative;color:transparent}
+.camDot::before{content:"";position:absolute;inset:0;background:center/contain no-repeat;background-image:url(images/cam.webp);filter:url(#inkSm);animation:camSnap 2.8s steps(1,end) infinite;transform-origin:50% 70%}
+@keyframes camSnap{0%,88%{transform:scale(1)}91%{transform:scale(1.12)}94%{transform:scale(.95)}97%,100%{transform:scale(1)}}
+.glasses.on{opacity:1;animation:glassesOn .62s steps(5,end) forwards}
+.glasses.off{opacity:0;animation:glassesOff .46s steps(4,end) forwards}
+@keyframes glassesOn{0%{transform:translateY(40%) scale(1.1) rotate(-3.5deg);opacity:0}18%{opacity:1}46%{transform:translateY(11%) scale(1.04) rotate(2deg);opacity:1}70%{transform:translateY(-3.5%) scale(.995) rotate(-1deg);opacity:1}86%{transform:translateY(1.4%) scale(1.004) rotate(.4deg);opacity:1}100%{transform:translateY(0) scale(1) rotate(0);opacity:1}}
+@keyframes glassesOff{0%{transform:translateY(0) scale(1) rotate(0);opacity:1}22%{transform:translateY(-3%) scale(1.01) rotate(1.2deg);opacity:1}100%{transform:translateY(34%) scale(1.12) rotate(-4deg);opacity:0}}
+.popcrumb{position:absolute;width:2.2%;height:2.2%;background:#e7ddc7;z-index:5;opacity:0;pointer-events:none;will-change:transform,opacity}
+.popbucket{position:absolute;left:50%;bottom:-24%;width:44%;height:auto;transform:translateX(-50%);transform-origin:50% 78%;z-index:8;opacity:0;pointer-events:none;will-change:transform,opacity;filter:url(#inkSm) drop-shadow(0 2px 2px rgba(0,0,0,.32))}
+.kernel{position:absolute;width:9%;height:auto;z-index:8;opacity:0;pointer-events:none;will-change:transform,opacity;filter:url(#inkSm)}
+.crumb{position:absolute;background-image:url(images/crumbtex.webp);background-size:150px 150px;pointer-events:none;z-index:6;will-change:transform,left,top,opacity}
+.crumbshadow{position:absolute;border-radius:50%;background:radial-gradient(ellipse,rgba(12,9,6,.55),transparent 72%);pointer-events:none;z-index:6;will-change:transform,left,top,opacity;filter:blur(1px)}
+.hungerdrag{position:fixed;pointer-events:none;font-family:var(--sans);font-weight:600;letter-spacing:-.02em;text-transform:none;font-size:var(--fs-h1);transform:translate(-50%,-50%);transform-origin:50% 18%;z-index:70;will-change:transform,left,top;color:var(--c950);display:inline-flex;align-items:baseline;gap:.04em;white-space:nowrap}
+.hungerdrag .bitn{animation:hglBite .16s steps(3,end) forwards;transform-origin:50% 38%}
+@keyframes hglBite{0%{transform:scale(1.16);opacity:1}55%{transform:scale(.5) translateY(.12em);opacity:.6}100%{transform:scale(0) translateY(.3em);opacity:0}}
+.stachecrumb{animation:stachePop .5s steps(4,end) forwards}
+@keyframes stachePop{0%{transform:rotate(var(--r)) scale(0);opacity:0}55%{transform:rotate(var(--r)) scale(1.22);opacity:1}80%{transform:rotate(var(--r)) scale(.93);opacity:1}100%{transform:rotate(var(--r)) scale(1);opacity:1}}
+.queueDots.on{opacity:.92}
+.queueDots i{width:.5rem;height:.5rem;border-radius:50%;background:var(--c950);filter:url(#inkSm);animation:qbounce .92s steps(7,end) infinite;animation-play-state:paused}
+.queueDots.on i{animation-play-state:running}.queueDots i:nth-of-type(2){animation-delay:.12s}.queueDots i:nth-of-type(3){animation-delay:.24s}
+@keyframes qbounce{0%{transform:translateY(0)}30%{transform:translateY(-95%)}60%{transform:translateY(0)}100%{transform:translateY(0)}}
+.qsr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
+@media(prefers-reduced-motion:reduce){.cookieDot::before,.discoDot::after,.heartDot::before,.camDot::before,.queueDots i,.stachecrumb,.glasses.on,.glasses.off{animation:none}.glasses.on{opacity:1}.glasses.off{opacity:0}}
+#party{position:absolute;top:0;left:0;right:0;height:112vh;-webkit-mask-image:linear-gradient(#000 90%,transparent 100%);mask-image:linear-gradient(#000 90%,transparent 100%);z-index:63;pointer-events:none;opacity:0;transition:opacity 1.15s cubic-bezier(.33,0,.2,1)}
+#party:not(.on){transition:opacity .42s cubic-bezier(.3,0,.8,.15)}#party.on{opacity:1}
+.partyDark{position:absolute;inset:0;background:radial-gradient(circle var(--hr,180px) at var(--hx,50%) var(--hy,38%),rgba(6,5,16,0) 0%,rgba(6,5,16,.55) 44%,rgba(2,1,8,.96) 100%)}
+.partyHaze{position:absolute;left:var(--bx,50%);top:var(--by,30%);width:120vmax;height:120vmax;margin:-60vmax 0 0 -60vmax;background:radial-gradient(circle,rgba(120,150,255,.16),rgba(180,90,220,.06) 40%,transparent 66%);mix-blend-mode:screen;animation:hazePulse 1.5s steps(12,end) infinite,hueShift 5.6s steps(7,end) infinite}
+.beamWrap{position:absolute;left:var(--bx,50%);top:var(--by,30%);width:0;height:0}
+.beamSpin{position:absolute;left:0;top:0;width:300vmax;height:300vmax;margin:-150vmax 0 0 -150vmax;transform-origin:center;mix-blend-mode:screen;opacity:.5;background:repeating-conic-gradient(from 0deg,rgba(255,255,255,.10) 0deg 3deg,transparent 3deg 11deg,rgba(180,210,255,.09) 11deg 13deg,transparent 13deg 26deg);animation:spinB 8s steps(64,end) infinite,hueShift 5.6s steps(7,end) infinite}
+.partyLights{position:absolute;left:var(--bx,50%);top:var(--by,30%);width:0;height:0;transform-origin:0 0;mix-blend-mode:screen;animation:spinL 6s steps(48,end) infinite,hueShift 5.6s steps(7,end) infinite}
+.pspot{position:absolute;left:0;top:0;border-radius:1px;transform-origin:0 0;opacity:0;animation-name:twinkle;animation-iteration-count:infinite;animation-timing-function:steps(8,end)}
+.partyFlash{position:absolute;inset:0;background:radial-gradient(circle at var(--bx,50%) var(--by,30%),rgba(190,200,255,.10),transparent 60%);mix-blend-mode:screen;opacity:0;animation:beat 1s steps(8,end) infinite}
+.partyGrain{position:absolute;inset:-40px;background:url(images/overlay.webp);background-size:150px 150px;mix-blend-mode:overlay;opacity:.4}
+@keyframes spinL{to{transform:rotate(360deg)}}@keyframes spinB{to{transform:rotate(360deg)}}
+@keyframes twinkle{0%,100%{opacity:0}14%{opacity:.1}50%{opacity:1}}@keyframes hazePulse{0%,100%{opacity:.55}50%{opacity:1}}@keyframes beat{0%,62%,100%{opacity:0}70%{opacity:.5}82%{opacity:.12}}@keyframes hueShift{to{filter:hue-rotate(360deg)}}
+#discoWrap{position:absolute;z-index:64;pointer-events:none;opacity:0;transform:translate(-50%,-140%) scale(.82);transition:opacity .7s cubic-bezier(.2,.8,.2,1),transform .95s cubic-bezier(.22,1.15,.32,1)}
+#discoWrap:not(.on){transition:opacity .38s cubic-bezier(.3,0,.8,.15),transform .5s cubic-bezier(.3,0,.8,.15)}#discoWrap.on{transform:translate(-50%,-50%) scale(1);opacity:1}
+.dbGlow{position:absolute;left:50%;top:50%;width:300%;height:300%;transform:translate(-50%,-50%);background:radial-gradient(circle,rgba(190,210,255,.45),rgba(150,120,220,.12) 30%,transparent 60%);mix-blend-mode:screen;animation:hazePulse 1.25s steps(10,end) infinite}
+#discoBall{position:relative;width:clamp(104px,12.5vw,156px);height:clamp(104px,12.5vw,156px);border-radius:50%;overflow:hidden;clip-path:circle(50%);filter:drop-shadow(0 7px 18px rgba(0,0,0,.55))}
+#discoBall .dbPhoto{position:absolute;inset:0;background:url(images/discoball.webp) center/cover no-repeat}
+#discoBall .dbGlints{position:absolute;inset:-12%;background:url(images/discoglints.webp) repeat-x;background-size:150px 150px;mix-blend-mode:screen;animation:dbScroll 1.5s steps(12,end) infinite}
+#discoBall .dbSweep{position:absolute;inset:0;background:linear-gradient(102deg,transparent 38%,rgba(255,255,255,.55) 50%,transparent 62%);mix-blend-mode:screen;animation:dbSweep 2s steps(16,end) infinite}
+#discoBall .dbShade{position:absolute;inset:0;background:radial-gradient(circle at 33% 28%,rgba(255,255,255,.5),rgba(255,255,255,0) 44%),radial-gradient(circle at 50% 50%,transparent 62%,rgba(2,2,12,.6) 100%)}
+@keyframes dbScroll{to{background-position-x:-150px}}@keyframes dbSweep{0%{transform:translateX(-65%)}100%{transform:translateX(65%)}}
+body.partyLock{overflow:hidden}
+#loveScene{position:absolute;top:0;left:0;right:0;height:100vh;z-index:64;pointer-events:none;opacity:0;transition:opacity .45s cubic-bezier(.2,.8,.2,1)}#loveScene.on{opacity:1}
+.heartLayer{position:absolute;inset:0}.heartEye{position:absolute;width:17%;transform:translate(-50%,-50%);transform-origin:50% 50%;z-index:5;pointer-events:none;will-change:transform,opacity;filter:url(#inkSm) drop-shadow(0 1px 2px rgba(0,0,0,.32))}
+.loveHeart{position:fixed;transform:translate(-50%,-50%);will-change:transform,opacity;opacity:0;filter:url(#inkSm) drop-shadow(0 2px 4px rgba(0,0,0,.3))}
+@keyframes heartFloat{0%{opacity:0;transform:translate(-50%,-50%) scale(.4) rotate(0)}16%{opacity:1}100%{opacity:0;transform:translate(calc(-50% + var(--dx,0px)),calc(-50% - 132px)) scale(1) rotate(var(--rot,0deg))}}
+.blush{position:absolute;inset:0;pointer-events:none;z-index:4}.blush i{position:absolute;top:54%;width:22%;height:14.5%;border-radius:50%;background:radial-gradient(ellipse,rgba(194,72,90,.5),rgba(194,72,90,.27) 42%,transparent 73%);filter:blur(4px);mix-blend-mode:multiply}.blush i:first-child{left:28%;transform:rotate(-13deg)}.blush i:last-child{left:51%;transform:rotate(13deg)}
+#photorain{position:absolute;top:0;left:0;right:0;height:100vh;-webkit-mask-image:linear-gradient(#000 86%,transparent 100%);mask-image:linear-gradient(#000 86%,transparent 100%);z-index:95;pointer-events:none;overflow:hidden}
+body.heroEmpathy .jbStick .jbNav{--nav-mat:var(--ctl-ground);--nav-rim:var(--ctl-container-rim);transition:none}
+#camflash{position:absolute;top:0;left:0;right:0;height:100vh;z-index:98;pointer-events:none;opacity:0;background:radial-gradient(circle at 50% 42%,#fff 0%,#fff 56%,rgba(255,255,255,.8) 100%)}
+#photorain .pgrain{position:absolute;inset:0;background:url(images/overlay.webp) repeat;opacity:.18;mix-blend-mode:multiply;animation:rainGrain 1s steps(8,end) infinite}
+@keyframes rainGrain{0%{background-position:0 0}12.5%{background-position:-13px 7px}25%{background-position:9px -11px}37.5%{background-position:-7px -6px}50%{background-position:12px 8px}62.5%{background-position:-11px 10px}75%{background-position:6px -9px}87.5%{background-position:-9px 4px}100%{background-position:0 0}}
+.rainphoto{position:absolute;display:block;background:#f7f6f1 url(images/paper.webp) center/cover;padding:8px 8px 16px;border-radius:2px;box-shadow:0 1px 2px rgba(0,0,0,.16),0 11px 26px rgba(0,0,0,.17);transform:translate(-50%,-50%);will-change:transform,opacity}.rainphoto img{display:block;width:100%;height:auto;filter:grayscale(1) contrast(1.03)}.rainphoto::after{content:"";position:absolute;left:6px;right:6px;top:6px;bottom:16px;background:url(images/paper.webp) center/cover;opacity:.5;mix-blend-mode:multiply;pointer-events:none}
+@media(prefers-reduced-motion:reduce){.partyLights,.beamSpin,.partyHaze,.partyFlash,.dbGlints,.dbSweep,.dbGlow,.loveHeart{display:none}#photorain .pgrain{animation:none}}
+
 /* .moodHeads now comes from header.css so both pages share one geometry -- this
    wrapping flex row was the other half of the split. Only this selector was touched
    in this file. */
@@ -544,20 +615,19 @@ body.moodInCta .heroCtas:not(.in) .faceMoodCorner{opacity:0!important;visibility
 /* ===== mood shortcut menu — triggers the head animations; sharp, Instrument Sans, 8fps stepped ===== */
 .moodbar{position:relative;display:inline-block;z-index:45}
 @keyframes moodIn{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
-.moodBtn{display:inline-flex;align-items:center;gap:var(--sp-8);background:var(--c50);border:1px solid var(--c100);border-radius:var(--r-2xs);padding:var(--sp-8) var(--sp-16);line-height:1;cursor:pointer;font-family:var(--sans);font-weight:400;font-size:var(--fs-body);color:var(--c950);transition:border-color .2s var(--ease-out),color .2s var(--ease-out)}.moodBtn:hover{border-color:var(--c500)}
-.moodBtn:hover{border-color:var(--c500)}
+.moodBtn:not(.ctl){display:inline-flex;align-items:center;gap:var(--sp-8);background:var(--c50);border:1px solid var(--c100);border-radius:var(--r-2xs);padding:var(--sp-8) var(--sp-16);line-height:1;cursor:pointer;font-family:var(--sans);font-weight:400;font-size:var(--fs-body);color:var(--c950);transition:border-color .2s var(--ease-out),color .2s var(--ease-out)}.moodBtn:not(.ctl):hover{border-color:var(--c500)}
 .moodLbl{font-size:var(--fs-body);font-weight:400;letter-spacing:0}
 .moodCar{width:12px;height:12px;display:inline-block;flex:0 0 auto;color:var(--c500);transition:transform .2s var(--ease-out),color .2s var(--ease-out)}
 .moodbar.open .moodCar{width:12px;height:12px;display:inline-block;flex:0 0 auto;color:var(--c500);transition:transform .2s var(--ease-out),color .2s var(--ease-out)}
-.moodMenu{position:absolute;min-width:196px;background:var(--c50);border:1px solid var(--c100);border-radius:var(--r-2xs);padding:var(--sp-8);box-shadow:0 8px 28px -8px rgba(18,18,18,.12),0 2px 8px -2px rgba(18,18,18,.06);opacity:0;visibility:hidden;transition:opacity var(--ease-out-dur) var(--ease-out),transform .18s var(--ease-out),visibility 0s .18s}
-.moodbar.open .moodMenu{opacity:1;visibility:visible;transition:opacity var(--ease-out-dur) var(--ease-out),transform .18s var(--ease-out)}
-.moodItem{display:flex;align-items:center;gap:var(--sp-12);width:100%;padding:var(--sp-8) var(--sp-12);border-radius:var(--r-2xs);font-family:var(--sans);font-weight:400;font-size:var(--fs-body);color:var(--c950);background:none;border:0;cursor:pointer;text-align:left;transition:background-color .1s ease-out,color .1s ease-out}
-.moodbar.open .moodItem{display:flex;align-items:center;gap:var(--sp-12);width:100%;padding:var(--sp-8) var(--sp-12);border-radius:var(--r-2xs);font-family:var(--sans);font-weight:400;font-size:var(--fs-body);color:var(--c950);background:none;border:0;cursor:pointer;text-align:left;transition:background-color .1s ease-out,color .1s ease-out}
+.moodMenu:not(.ctl-menu){position:absolute;min-width:var(--menu-w);background:var(--c50);border:1px solid var(--c100);border-radius:var(--r-2xs);padding:var(--sp-8);box-shadow:0 8px 28px -8px rgba(18,18,18,.12),0 2px 8px -2px rgba(18,18,18,.06);opacity:0;visibility:hidden;transition:opacity var(--ease-out-dur) var(--ease-out),transform .18s var(--ease-out),visibility 0s .18s}
+.moodbar.open .moodMenu:not(.ctl-menu){opacity:1;visibility:visible;transition:opacity var(--ease-out-dur) var(--ease-out),transform .18s var(--ease-out)}
+.moodItem:not(.ctl){display:flex;align-items:center;gap:var(--sp-12);width:100%;padding:var(--sp-8) var(--sp-12);border-radius:var(--r-2xs);font-family:var(--sans);font-weight:400;font-size:var(--fs-body);color:var(--c950);background:none;border:0;cursor:pointer;text-align:left;transition:background-color .1s ease-out,color .1s ease-out}
+.moodbar.open .moodItem:not(.ctl){display:flex;align-items:center;gap:var(--sp-12);width:100%;padding:var(--sp-8) var(--sp-12);border-radius:var(--r-2xs);font-family:var(--sans);font-weight:400;font-size:var(--fs-body);color:var(--c950);background:none;border:0;cursor:pointer;text-align:left;transition:background-color .1s ease-out,color .1s ease-out}
 /* 8fps staggered reveal — mirrors the site's 0.05s per-character cascade */
-.moodbar.open .moodItem:nth-child(1){transition-delay:.03s,.03s,0s}
-.moodbar.open .moodItem:nth-child(2){transition-delay:.08s,.08s,0s}
-.moodbar.open .moodItem:nth-child(3){transition-delay:.13s,.13s,0s}
-.moodbar.open .moodItem:nth-child(4){transition-delay:.18s,.18s,0s}
+.moodbar.open .moodItem:not(.ctl):nth-child(1){transition-delay:.03s,.03s,0s}
+.moodbar.open .moodItem:not(.ctl):nth-child(2){transition-delay:.08s,.08s,0s}
+.moodbar.open .moodItem:not(.ctl):nth-child(3){transition-delay:.13s,.13s,0s}
+.moodbar.open .moodItem:not(.ctl):nth-child(4){transition-delay:.18s,.18s,0s}
 
 /* ---- 5 + 6. MOBILE: a running game owns the screen.
    All three games take their height from hero.clientHeight -- race heroH(), lava hh(), soccer
@@ -570,20 +640,14 @@ body.moodInCta .heroCtas:not(.in) .faceMoodCorner{opacity:0!important;visibility
    Scroll is locked for the duration: a single 500px flick used to push the whole match off
    screen, still running, with no way back.
 
-   PLAY.HTML DIVERGES HERE (fix round 2, Task 2): the paragraph above describes index.html,
-   where body.hmFull only applies WHILE a game runs and .hero is otherwise a short, scrolling
-   hero -- so this rule's job was rescuing the arena from that short default. On play.html,
-   body.hmFull is PERMANENT and .hero is ALWAYS the arena (never the short portfolio hero), so
-   "hand hero the rest of the screen" no longer describes what's needed: inherited verbatim,
-   this 2-class selector silently outranked play.html's own plain-.hero centred-band rule
-   (index.html:930's copy carried the collision forward unnoticed -- flagged in Task 1's report
-   and again in this fix round). Decided deliberately instead: mobile gets its own explicit band,
-   not the desktop 60vh number, because a portrait screen has less absolute vertical room to
-   spare for margin and benefits from more usable pitch -- so it sits at 65vh, the top of
-   Jayden's approved 55-65vh range rather than the middle. Centring is inherited from the shared
-   body{display:flex}/.hero{margin:auto} rule in play.html; only the height differs by breakpoint. */
+   PLAY.HTML DIVERGES HERE: .hero is always the arena, so mobile keeps its explicit 65vh
+   resting band. The page now has a footer below that first viewport, which means hmFull can
+   no longer mean "lock Play forever". Only the full-screen team picker or an active game locks
+   scroll; the resting page is a normal document centred by .playViewport in play.html. */
 @media(max-width:760px){body.hmFull .hero{height:65vh;min-height:0}}
-body.hmFull{overflow:hidden;overscroll-behavior:none}
+body.hmFull{height:auto;min-height:100%;overflow-x:clip;overflow-y:auto;overscroll-behavior-y:auto}
+body.hmFull.playViewportOwned{height:100%;overflow:hidden;overscroll-behavior:none}
+body.playViewportOwned .siteFoot{display:none}
 /* ---- 14. #soccerTeams measured 39x40 -- under the 44px minimum (WCAG 2.5.5 AAA, Apple HIG
    "at least 44x44 pt"). It sits inside a flex row with align-self:stretch, so it inherited the
    40px moodItem height. Floor both axes. ---- */
@@ -751,8 +815,8 @@ body .navDrawer .ndLink{padding:var(--sp-8) var(--sp-12);text-align:left}
    it would be a redesign. Flagged rather than taken. ---- */
 .hmScore .sbCard{box-sizing:border-box;width:max-content;max-width:94vw;
  border-radius:var(--r-sm);corner-shape:var(--corner);
- background:var(--cupPaint,#2b2f2a);padding:0;
- box-shadow:var(--bc-contact),var(--bc-cast),inset 0 0 46px rgba(0,0,0,.30);
+ background:var(--sb-material,var(--cupPaint,#2b2f2a));padding:0;
+ box-shadow:var(--sb-rest-shadow,var(--bc-contact),var(--bc-cast),inset 0 0 46px rgba(0,0,0,.30));
  font-family:var(--sans);color:#ece9dd;position:relative}
 /* THE TROPHY rides on top of the board for the FINAL only, then is handed over at the whistle.
    Standing the prize on the scoreboard before it is won is the sourced move -- CS Majors put
@@ -908,6 +972,25 @@ body.hmFinal .sbRound{color:#e8b347}
    context that flattens their rotateX). Cup identity paints the plate during tournaments;
    the defaults above are the plain-soccer board. */
 .hmScore:has(.sbCard){width:auto;align-items:center;gap:0;filter:none}
+
+/* NIGHT SCORE MATERIAL. The backing light belongs to the board alone: .hmScore's
+   existing transform makes a local stacking context, and isolation keeps the
+   negative layer behind the card without letting it fall behind the arena.
+   Resting shadow is a variable so .sbHit's authored goal/clutch/trophy box-shadow
+   declarations remain the winning properties during play. */
+:root[data-theme="dark"] body[data-theme-page="play"]{
+ --sb-material:rgba(17,19,24,.90);
+ --sb-rest-shadow:0 16px 44px -28px rgba(0,0,0,.88),
+  inset 0 0 0 var(--hair-w) rgba(255,255,255,.15),
+  inset 0 1px 0 rgba(255,255,255,.08),
+  inset 0 0 46px rgba(0,0,0,.34);
+}
+:root[data-theme="dark"] body[data-theme-page="play"] .hmScore:has(.sbCard){isolation:isolate}
+:root[data-theme="dark"] body[data-theme-page="play"] .hmScore:has(.sbCard)::before{
+ content:"";position:absolute;inset:-28px -44px;z-index:-1;pointer-events:none;
+ background:radial-gradient(ellipse at 50% 55%,rgba(233,232,255,.28),rgba(103,99,228,.13) 42%,transparent 72%);
+ filter:blur(12px)
+}
 
 
 /* Live shared control selectors, rewritten from the portfolio's long selector

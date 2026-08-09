@@ -1,5 +1,7 @@
 <!DOCTYPE html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="en"><head><script src="site-theme-state.js"></script>
+<script src="site-theme.js"></script>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Jayden Betts</title>
 <link rel="icon" type="image/png" sizes="192x192" href="favicon-192.png">
 <link rel="icon" type="image/png" sizes="96x96" href="favicon-96.png">
@@ -47,9 +49,10 @@
      page alone, so the ink-surface nav lost its top highlight here and nowhere
      else. Linked BEFORE this page's <style>, so anything the page still declares
      for itself continues to win. -->
-<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="tokens.css?v=20260806-shared-surfaces">
 <style>
 html{scroll-behavior:smooth}
+html.softScrolling{scroll-behavior:auto}
 .siteFoot{scroll-margin-top:80px}
 
 /* THE PAGE'S OWN :root, CUT FROM 40 TOKENS TO 3 (2026-08-04).
@@ -170,6 +173,9 @@ body.catchReady #stageMorph{transform:scale(1.055)}
 .hint{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);font-size:var(--fs-caption);color:var(--c500);z-index:5;background:rgba(243,243,243,.7);padding:8px 12px;border-radius:4px;backdrop-filter:blur(4px)}
 .popcrumb{position:absolute;width:2.2%;height:2.2%;background:#e7ddc7;z-index:5;opacity:0;pointer-events:none;will-change:transform,opacity}
 .popbucket{position:absolute;left:50%;bottom:-24%;width:44%;height:auto;transform:translateX(-50%);transform-origin:50% 78%;z-index:8;opacity:0;pointer-events:none;will-change:transform,opacity;filter:url(#inkSm) drop-shadow(0 2px 2px rgba(0,0,0,.32))}.kernel{position:absolute;width:9%;height:auto;z-index:8;opacity:0;pointer-events:none;will-change:transform,opacity;filter:url(#inkSm)}.mouth{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;opacity:0;pointer-events:none;z-index:2;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat}
+#heroMovieEffectsStage .popbucket{bottom:var(--sp-16)}
+.heroMovieEffectsClip{position:absolute;inset:0;z-index:4;overflow:clip;border-radius:inherit;corner-shape:inherit;pointer-events:none}
+.heroMovieEffectsStage{position:absolute;left:0;top:0;width:0;height:0;transform-origin:50% 50%;pointer-events:none;will-change:transform}
 .dlogo{border-radius:var(--r-2xs);position:absolute;width:21%;height:21%;opacity:0;backface-visibility:hidden;will-change:transform,left,top,opacity;filter:drop-shadow(0 3px 8px rgba(0,0,0,.22))}
 .dshadow{position:absolute;border-radius:50%;background:radial-gradient(ellipse 50% 50% at 50% 50%,rgba(8,8,8,.5),rgba(8,8,8,.3) 40%,rgba(8,8,8,.12) 62%,transparent 76%);transform:translate(-50%,-50%);z-index:-1;pointer-events:none;opacity:0;will-change:transform,left,top,width,height,opacity}
 .grain{position:absolute;top:0;left:0;right:0;height:165vh;z-index:60;pointer-events:none;background-image:url(images/overlay.webp);background-size:150px 150px;mix-blend-mode:overlay;opacity:.28;-webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 40%,transparent 58%);mask-image:linear-gradient(to bottom,#000 0%,#000 40%,transparent 58%)}
@@ -202,7 +208,7 @@ body.catchReady #stageMorph{transform:scale(1.055)}
 @media(prefers-reduced-motion:reduce){.speech .tw{animation:none!important;opacity:1}}
 @media(max-width:1000px){.hero{gap:16px}.stagewrap{width:clamp(340px,46vw,520px)}}
 @media(max-width:760px){
- .wrap{padding:0 24px}.work{padding:0 var(--sp-24)}.cases .caseInset{padding:0 var(--sp-24)}.cases .csStageInner{padding:0 var(--sp-24)}nav{gap:16px;padding:24px 0 0}nav a{font-size:var(--fs-tab)}
+ .wrap{padding:0 24px}.work{padding:0 var(--sp-24)}.cases .caseInset{--case-inset:var(--sp-24)}.cases .csStageInner{padding:0 var(--sp-24)}nav{gap:16px;padding:24px 0 0}nav a{font-size:var(--fs-tab)}
  .hero{grid-template-columns:1fr;min-height:auto;padding:32px 0 8px;gap:16px;text-align:left}
  h1{font-size:clamp(34px,9.2vw,46px);max-width:16ch}.sub{font-size:var(--fs-body);max-width:90%}
  .stagewrap{justify-self:center;width:clamp(280px,82vw,400px);margin-top:8px}
@@ -210,7 +216,7 @@ body.catchReady #stageMorph{transform:scale(1.055)}
  .hint{font-size:var(--fs-micro)}.work{margin-top:54vh}
 }
 @media(max-width:760px){                                                  /* touch targets: Apple HIG 44pt / Material 48dp minimum */
- .workCta,.aboutCta,.moodBtn{min-height:46px;padding-top:12px;padding-bottom:12px}
+ .aboutCta,.moodBtn{min-height:46px;padding-top:12px;padding-bottom:12px}
  .moodItem{display:flex;align-items:center;gap:12px;width:100%;padding:8px 12px;border-radius:4px;font-family:var(--sans);font-weight:400;font-size:var(--fs-body);color:var(--c950);background:none;border:0;cursor:pointer;text-align:left;transition:background-color .1s ease-out,color .1s ease-out}
  .heroCtas{row-gap:12px;column-gap:12px}
  .aboutCta,.moodBtn{padding-left:8px;padding-right:8px}
@@ -298,7 +304,7 @@ body.partyLock{overflow:hidden}
 .cycw.love{cursor:grab}
 .heartDot{display:inline-block;width:.62em;height:.62em;vertical-align:baseline;position:relative;overflow:visible;color:transparent}.heartDot::before{content:"";position:absolute;inset:0;background:url(images/heart.webp) center/contain no-repeat;filter:url(#inkSm) drop-shadow(0 1px 1px rgba(0,0,0,.28));transform-origin:50% 50%;animation:heartDotBeat 1s steps(1,end) infinite}@keyframes heartDotBeat{0%{transform:scale(1)}12.5%{transform:scale(1.14)}25%{transform:scale(1.07)}37.5%{transform:scale(1)}100%{transform:scale(1)}}
 .lovedrag{position:fixed;pointer-events:none;font-family:var(--sans);font-weight:600;letter-spacing:-.02em;text-transform:none;font-size:var(--fs-h1);transform:translate(-50%,-50%);transform-origin:50% 18%;z-index:70;will-change:transform,left,top;color:var(--c950);display:inline-flex;align-items:baseline;gap:.05em}
-#loveScene{position:absolute;top:0;left:0;right:0;height:100vh;z-index:55;pointer-events:none;opacity:0;transition:opacity .45s cubic-bezier(.2,.8,.2,1)}
+#loveScene{position:absolute;top:0;left:0;right:0;height:100vh;z-index:64;pointer-events:none;opacity:0;transition:opacity .45s cubic-bezier(.2,.8,.2,1)}
 #loveScene.on{opacity:1}
 .heartLayer{position:absolute;inset:0}
 .heartEye{position:absolute;width:17%;transform:translate(-50%,-50%);transform-origin:50% 50%;z-index:5;pointer-events:none;will-change:transform,opacity;filter:url(#inkSm) drop-shadow(0 1px 2px rgba(0,0,0,.32))}
@@ -350,6 +356,7 @@ body.moodInCta .heroCtas:not(.in) .faceMoodCorner{opacity:0!important;visibility
 .camDot::before{content:"";position:absolute;inset:0;background:center/contain no-repeat;background-image:url(images/cam.webp);filter:url(#inkSm);animation:camSnap 2.8s steps(1,end) infinite;transform-origin:50% 70%}
 @keyframes camSnap{0%,88%{transform:scale(1)}91%{transform:scale(1.12)}94%{transform:scale(.95)}97%,100%{transform:scale(1)}}
 #photorain{position:absolute;top:0;left:0;right:0;height:100vh;-webkit-mask-image:linear-gradient(#000 86%,transparent 100%);mask-image:linear-gradient(#000 86%,transparent 100%);z-index:95;pointer-events:none;overflow:hidden}
+body.heroEmpathy .jbStick .jbNav{--nav-mat:var(--ctl-ground);--nav-rim:var(--ctl-container-rim);transition:none}
 #camflash{position:absolute;top:0;left:0;right:0;height:100vh;z-index:98;pointer-events:none;opacity:0;background:radial-gradient(circle at 50% 42%,#fff 0%,#fff 56%,rgba(255,255,255,.8) 100%)}
 #photorain .pgrain{position:absolute;inset:0;background:url(images/overlay.webp) repeat;opacity:.18;mix-blend-mode:multiply;animation:rainGrain 1s steps(8,end) infinite}
 @keyframes rainGrain{0%{background-position:0 0}12.5%{background-position:-13px 7px}25%{background-position:9px -11px}37.5%{background-position:-7px -6px}50%{background-position:12px 8px}62.5%{background-position:-11px 10px}75%{background-position:6px -9px}87.5%{background-position:-9px 4px}100%{background-position:0 0}}
@@ -376,11 +383,11 @@ body.moodInCta .heroCtas:not(.in) .faceMoodCorner{opacity:0!important;visibility
 .csBackveil.clear{opacity:0;transition:opacity .6s cubic-bezier(.2,.8,.2,1)}
 
 /* ===== Work — tabbed, full-width case-study thumbnails with scroll-lock (8fps house motion) ===== */
-.cases{position:relative;z-index:61;margin:clamp(80px,12vh,144px) auto 0;background:var(--c50)}
-.caseInset{max-width:var(--page-max);margin:0 auto;padding:0 var(--sp-40)}
+.cases{position:relative;z-index:61;margin-inline:auto;background:var(--c50)}
+.caseInset{--case-inset:var(--sp-40);max-width:var(--page-max);margin:0 auto;padding:0 var(--case-inset)}
 /* tab bar: Instrument Sans, active = ink + underline, others muted; stepped like the rest of the site */
 .csTabs{display:flex;flex-wrap:wrap;gap:24px;align-items:flex-end;justify-content:flex-start;
- margin:0 auto clamp(24px,3.2vh,40px);position:relative}.csTabs::before{content:"";position:absolute;left:16px;right:0;bottom:0;height:1px;background:var(--c100)}
+ margin:0 auto clamp(24px,3.2vh,40px);position:relative}.csTabs::before{content:"";position:absolute;inset-inline:var(--case-inset);bottom:0;height:1px;background:var(--c100)}
 .csTab{position:relative;background:none;border:0;padding:0 0 var(--sp-12);margin:0;font:inherit;font-family:var(--sans);font-weight:600;font-size:var(--fs-small);letter-spacing:.01em;text-transform:none;color:var(--c500);cursor:pointer;transition:color .25s cubic-bezier(.2,.8,.2,1);filter:url(#inkSm)}
 .csTab:hover{color:var(--c950)}
 .csTab.on{color:var(--c950)}
@@ -393,19 +400,18 @@ body.moodInCta .heroCtas:not(.in) .faceMoodCorner{opacity:0!important;visibility
 @keyframes csPanelIn{from{opacity:0}to{opacity:1}}
 /* one project = a scroll runway + a sticky stage that scales/locks the banner, with name+year glued beneath */
 .csItem{position:relative}
-.csItem+.csItem{margin-top:clamp(128px,18vh,240px)}
 .csTrack{height:auto}
 .csStage{position:relative;display:flex;flex-direction:column;overflow:visible}
-.csStageInner{max-width:var(--page-max);width:100%;margin:0 auto;padding:0 var(--sp-40);display:flex;flex-direction:column;gap:clamp(var(--sp-16),1.7vw,var(--sp-24))}
+.csStageInner{max-width:var(--page-max);width:100%;margin:0 auto;padding:0 var(--sp-40);display:flex;flex-direction:column;gap:var(--work-meta-gap)}
 .csFrame{position:relative;width:100%;aspect-ratio:2/1;overflow:hidden;border-radius:0;background:var(--c100);opacity:0;transform:translateY(var(--enter-rise));transition:opacity var(--enter-dur) var(--ease-out),transform var(--enter-dur) var(--ease-out);will-change:opacity,transform}
 .csItem.csIn .csFrame{opacity:1;transform:none}
 .csImg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
 .csItem:has(.soon) .csImg{filter:grayscale(1)}
-.csMeta{display:flex;align-items:baseline;justify-content:space-between;gap:var(--sp-24);margin:var(--sp-12) 0 0;opacity:0;transform:translateY(var(--sp-14));transition:opacity var(--enter-dur) var(--ease-out) var(--enter-stagger),transform var(--enter-dur) var(--ease-out) var(--enter-stagger);will-change:transform,opacity}
+.csMeta{display:flex;align-items:baseline;justify-content:space-between;gap:var(--sp-24);margin:0;opacity:0;transform:translateY(var(--sp-14));transition:opacity var(--enter-dur) var(--ease-out) var(--enter-stagger),transform var(--enter-dur) var(--ease-out) var(--enter-stagger);will-change:transform,opacity}
 .csItem.csIn .csMeta{opacity:1;transform:none}
-.csName{font-family:var(--sans);font-weight:600;font-size:var(--fs-h3);letter-spacing:var(--tr-head);color:var(--c950);filter:url(#inkBig)}
+.csName{font-family:var(--sans);font-weight:600;font-size:var(--work-title-size);letter-spacing:var(--tr-head);color:var(--c950);filter:url(#inkBig)}
 .csName .soon{font-weight:600;font-size:.62em;letter-spacing:var(--tr-flat);color:var(--c500);margin-left:.5em;vertical-align:baseline}
-.csYear{font-family:var(--sans);font-weight:600;font-size:var(--fs-h4);letter-spacing:var(--tr-title);color:var(--c500);font-variant-numeric:tabular-nums;filter:url(#inkBig)}.csItem.wip .csYear{border:var(--hair-w) dashed var(--c100);border-radius:var(--r-2xs);padding:var(--sp-8) var(--sp-16);font-size:var(--fs-label);color:var(--c700);line-height:var(--lh-flat);filter:none;align-self:center}
+.csYear{font-family:var(--sans);font-weight:600;font-size:var(--work-year-size);letter-spacing:var(--tr-title);color:var(--c500);font-variant-numeric:tabular-nums;filter:url(#inkBig)}.csItem.wip .csYear{border:var(--hair-w) dashed var(--c100);border-radius:var(--r-2xs);padding:var(--sp-8) var(--sp-16);font-size:var(--fs-label);color:var(--c700);line-height:var(--lh-flat);filter:none;align-self:center}
 /* cursor-following case-study reader (desktop hover only) */
 .csCursor{position:fixed;top:0;left:0;width:0;height:0;z-index:131;pointer-events:none;opacity:0;transition:opacity .16s cubic-bezier(.2,.8,.2,1)}
 .csCursor.on{opacity:1}
@@ -498,10 +504,9 @@ body.moodInCta .heroCtas:not(.in) .faceMoodCorner{opacity:0!important;visibility
  .csItem.csIn .csFrame{transform:none;opacity:1}
  .csMeta{opacity:0;transform:translateY(var(--sp-14));transition:opacity var(--enter-dur) var(--ease-out) var(--enter-stagger),transform var(--enter-dur) var(--ease-out) var(--enter-stagger)}
  .csItem.csIn .csMeta{opacity:1;transform:none}
- .csItem+.csItem{margin-top:14vh}
 }
 @media(prefers-reduced-motion:reduce){
- .csFrame{border-radius:var(--r-lg);opacity:1!important;transform:none!important;transition:none!important}
+ .csFrame{border-radius:var(--radius-media);opacity:1!important;transform:none!important;transition:none!important}
  .csMeta{opacity:1!important;transform:none!important;transition:none!important}
  .csPanel.on{animation:none}
  .csTab::after{transition:none}
@@ -539,7 +544,7 @@ body.moodInCta .heroCtas:not(.in) .faceMoodCorner{opacity:0!important;visibility
    a border the same colour as its own fill, which is 2px of box doing nothing but
    putting this control 2px off every other one. Dropped per the control system
    §3.1 ("No border"); height, padding and radius come from the base rule below. */
-.workCta{display:inline-flex;align-items:center;gap:var(--sp-8);border:0;background:var(--accent);color:var(--c50);font-family:var(--sans);font-weight:400;font-size:var(--fs-body);line-height:1;cursor:pointer;transition:background .2s cubic-bezier(.2,.8,.2,1),transform .2s cubic-bezier(.2,.8,.2,1)}.workCta svg{width:16px;height:16px;display:block;flex:0 0 auto}/* .workCta:hover{background:var(--c900);transform:translateY(-1px)} -- superseded.
+.workCta svg{width:16px;height:16px;display:block;flex:0 0 auto}/* Legacy .workCta state rules were superseded.
    The Primary kind is restated after the control base rule, on --accent-press,
    and the hover LIFT is gone: transform is the :active channel and nothing else
    (control system 5.3), and a lift implies an elevation this chrome may not have. */.aboutCta{display:inline-flex;align-items:center;gap:8px;padding:8px 4px;border:0;background:none;color:var(--c500);font-family:var(--sans);font-size:var(--fs-body);line-height:1;cursor:pointer;transition:color .2s cubic-bezier(.2,.8,.2,1)}.aboutCta svg{width:16px;height:16px;display:block;flex:0 0 auto}
@@ -630,10 +635,15 @@ body.moodInCta .heroCtas:not(.in) .faceMoodCorner{opacity:0!important;visibility
 .wrap.developing{filter:blur(16px) brightness(1.05);opacity:.4;will-change:filter,opacity}
 .wrap.developing.developed{filter:blur(0) brightness(1);opacity:1;transition:filter .95s cubic-bezier(.2,.8,.2,1),opacity .8s cubic-bezier(.2,.8,.2,1)}
 @media(prefers-reduced-motion:reduce){.wrap.developing{filter:none!important;opacity:1!important}}
-.siteFoot{margin-top:clamp(80px,12vh,150px);padding:0 clamp(24px,5vw,40px) clamp(32px,5vh,64px);text-align:center}
-/* 1.55 was a literal; the case studies resolve this same role to var(--lh-prose)
-   = 1.5. Same element, same role, two numbers -- the --lh-prose drift again. */
-.footReach{font-family:var(--sans);font-weight:400;font-size:var(--fs-prose);line-height:var(--lh-prose);color:var(--c700);margin:0 auto;max-width:42ch;text-wrap:balance}
+/* A <body> child on this page rather than a wrapper child, so the page measure
+   is a page decision here. text-align:center is gone: that is what made the old
+   footer a centred sentence, and the new one is a two-column layout. 16px at
+   <=760 matches .cases and about.html -- .wrap's 24px is the outlier. */
+.siteFoot{
+ margin-top:var(--sp-80-152);max-width:var(--page-max);margin-inline:auto;
+ padding-inline:var(--sp-40);padding-bottom:var(--sp-32-64)
+}
+@media(max-width:760px){.siteFoot{padding-inline:var(--sp-16)}}
 .footIn{font-weight:600;color:var(--c950);text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:3px;text-decoration-color:var(--c500);transition:text-decoration-color .15s cubic-bezier(.2,.8,.2,1),color .15s cubic-bezier(.2,.8,.2,1)}
 /* one shape for this role on all seven pages: the case studies already write it
    as var(--accent)/var(--accent-press). Same computed ink, one spelling. */
@@ -686,9 +696,6 @@ body.moodInCta .heroCtas:not(.in) .faceMoodCorner{opacity:0!important;visibility
    clamp FLOOR is 68px: at 390 that sets ~400px of "Jayden Betts" into 342px of column and
    overflows the page. min() clamps it down to the measure without leaving the scale --
    the rung is still --fs-display, it just never exceeds 13vw. Nothing wraps, nothing scrolls. */
-.footMark{font-family:var(--sans);font-weight:600;font-size:min(var(--fs-display),13vw);
- line-height:.9;letter-spacing:var(--tr-display);color:var(--c100);
- margin:var(--sp-8-16) 0 0;white-space:nowrap;-webkit-user-select:none;user-select:none}
 .csNote{margin-top:calc(-1 * clamp(14px,2vh,28px));margin-bottom:clamp(30px,4vh,48px)}
 .csNoteText{font-family:var(--sans);font-weight:400;font-size:var(--fs-small);line-height:1.55;color:var(--c500);max-width:64ch;margin:0}
 @media(max-width:760px){.hero{grid-template-columns:1fr!important}}
@@ -721,7 +728,7 @@ body.moodInCta .heroCtas:not(.in) .faceMoodCorner{opacity:0!important;visibility
    the iPhone mock-up's own curvature measured at 11.9% of its width -- a
    photograph of a real object does not take a UI radius, and gets no
    corner-shape either. .rainphoto stays 2px: it is a printed snapshot. */
-.workCta,.moodMenu button,.moodMenu a,.reelClose,
+.moodMenu button,.moodMenu a,.reelClose,
 .aboutCta,.moodBtn,.moodGo,.mhToggle,.moodItem,.back,.talk,.csTab,.toTop{
   border-radius:var(--r-md);corner-shape:var(--corner)}
 .abTalk{border-radius:var(--r-pill);corner-shape:var(--corner)}
@@ -764,7 +771,7 @@ body.moodInCta .heroCtas:not(.in) .faceMoodCorner{opacity:0!important;visibility
 .moodMenu .moodIco::before,.moodMenu .moodIco::after{background-size:contain!important;background-position:center!important}
 /* heads and the "Show on home" switch are ONE group, not two -- no rule between them */
 .moodMenu .mhBar{border-top:0;padding-top:0}.faceMoodCorner{position:absolute;right:-14px;bottom:clamp(40px,10vw,108px);z-index:46}.faceMoodCorner .moodBtn{padding:8px 12px 8px 16px;border-radius:4px;background:var(--c50);border:1px solid var(--c100);display:inline-flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;font-family:var(--sans);font-weight:400;font-size:var(--fs-body);color:var(--c950);line-height:1;white-space:nowrap;opacity:1;transition:border-color .2s cubic-bezier(.2,.8,.2,1),color .2s cubic-bezier(.2,.8,.2,1)}.faceMoodCorner .moodBtn:hover{border-color:var(--c500);color:var(--c950)}.faceMoodCorner .moodLbl{position:static;width:auto;height:auto;overflow:visible;clip:auto;white-space:nowrap}.faceMoodIco{width:20px;height:20px;display:block;color:var(--c700);transition:color .2s}.faceMoodCorner .moodBtn:hover .faceMoodIco{color:var(--c950)}.faceMoodCorner .moodMenu{position:absolute;width:212px;min-width:0;background:var(--c50);border:1px solid var(--c100);border-radius:4px;padding:8px;top:auto;bottom:calc(100% + 12px);left:auto;right:0;transform:translateY(6px);opacity:0;visibility:hidden;transition:opacity .16s cubic-bezier(.2,.8,.2,1),transform .18s cubic-bezier(.2,.8,.2,1),visibility 0s .18s}.faceMoodCorner .moodbar.open .moodMenu{opacity:1;visibility:visible;transition:opacity .16s cubic-bezier(.2,.8,.2,1),transform .18s cubic-bezier(.2,.8,.2,1)}.faceMoodCorner .moodbar.open .moodMenu{transform:translateY(0)!important}@media(max-width:768px){.csTab{padding-top:8px;padding-bottom:16px}}/* the <=768 copy of the inline-link target stood here; it is unconditional now */.reelMeta{width:min(1200px,calc(100vw - 80px));display:flex;align-items:baseline;justify-content:space-between;gap:24px;margin-top:12px;opacity:var(--reelMetaOp,1);transition:opacity .2s cubic-bezier(.2,.8,.2,1);will-change:opacity}.reelMeta .csName{filter:url(#inkBig)}.reelMeta .csYear{filter:url(#inkBig)}.reelFrame.isFull{position:fixed;inset:0;width:100vw;height:100vh;max-width:none;aspect-ratio:auto;transform:none!important;border-radius:0;margin:0;z-index:40;transition:width .18s cubic-bezier(.2,.8,.2,1),height .18s cubic-bezier(.2,.8,.2,1)}@media(max-width:760px){.faceMoodCorner{right:-11px!important;left:auto;bottom:auto;top:100%;transform:translateY(16px)}body.moodInCta .faceMoodCorner .moodMenu,.faceMoodCorner .moodMenu{top:calc(100% + 10px)!important;bottom:auto!important;left:auto!important;right:0!important;width:min(220px,calc(100vw - 28px))!important;max-height:min(370px,68vh)!important;overflow-y:auto;-webkit-overflow-scrolling:touch;margin-left:0}.faceMoodCorner .moodLbl{opacity:1!important;transform:none!important}body.moodInCta .faceMoodCorner .moodCar{opacity:1!important;transform:rotate(180deg)!important;transition:transform .32s cubic-bezier(.34,1.4,.5,1),color .2s cubic-bezier(.2,.8,.2,1)}.faceMoodCorner .moodBtn{border-color:var(--c100)!important;background:var(--c50)!important}}.faceMoodCorner .moodBtn:hover .moodCar,.faceMoodCorner .moodbar.open .moodCar{color:var(--c700)}@media(min-width:761px){.faceMoodCorner .moodBtn{position:relative;border-color:transparent;background:transparent;transition:border-color .5s cubic-bezier(.22,.61,.36,1),background-color .5s cubic-bezier(.22,.61,.36,1)}.faceMoodCorner .moodLbl,.faceMoodCorner .moodCar{opacity:0;transform:translateY(4px) scale(.985);transition:opacity .28s cubic-bezier(.22,.61,.36,1),transform .28s cubic-bezier(.22,.61,.36,1)}body.moodNear .faceMoodCorner .moodBtn,.faceMoodCorner:hover .moodBtn,.moodbar.open .moodBtn{border-color:var(--c100);background:var(--c50)}body.moodNear .faceMoodCorner .moodLbl,.faceMoodCorner:hover .moodLbl,.moodbar.open .moodLbl,body.moodNear .faceMoodCorner .moodCar,.faceMoodCorner:hover .moodCar,.moodbar.open .moodCar{opacity:1;transform:translateY(0) scale(1);transition:opacity .5s cubic-bezier(.22,.61,.36,1) .12s,transform .55s cubic-bezier(.22,.61,.36,1) .12s}}@media(max-width:760px){.faceMoodCorner{opacity:1!important;visibility:visible!important}}.moodMenu .moodItem:hover{color:var(--c950)}.moodSep{height:1px;background:var(--c100);margin:8px 4px 8px}.moodGo{display:flex;align-items:center;gap:12px;width:100%;padding:12px 16px;border:0;border-radius:4px;background:none;color:var(--c950);font-family:var(--sans);font-weight:400;font-size:var(--fs-small);line-height:var(--lh-head);text-decoration:none;transition:background-color .16s cubic-bezier(.2,.8,.2,1)}.moodMenu .moodGo{color:var(--c950)}
-.moodGo:hover,.moodGo:focus-visible{color:var(--c950)}.moodGo svg{flex:0 0 18px;width:18px;height:18px;color:currentColor}.aboutCta:hover{border-color:var(--c500);color:var(--c950)}body.moodNear .faceMoodCorner .moodBtn:hover,.faceMoodCorner .moodBtn:hover,.moodbar.open .moodBtn{border-color:var(--c500)!important;color:var(--c950)}@media(min-width:761px){body.moodTeach .faceMoodCorner{opacity:1;visibility:visible;transition:opacity .5s cubic-bezier(.2,.8,.2,1)}body.moodTeach .faceMoodCorner .moodBtn{border-color:var(--c100);background:var(--c50)}body.moodTeach .faceMoodCorner .moodLbl,body.moodTeach .faceMoodCorner .moodCar{opacity:1;transform:translateX(0)}}.cycw{position:relative}@media(hover:none),(pointer:coarse){}@media(max-width:760px){.faceMoodCorner .moodBtn{min-height:44px}}.csTab{-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}.moodBtn,.aboutCta,.talk,.workCta,.heroBack,.back{-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}/* keyboard-only focus ring (never triggers on mouse click) */.talk:focus-visible,.workCta:focus-visible,.aboutCta:focus-visible,.moodBtn:focus-visible,.faceMoodCorner .moodBtn:focus-visible,.moodMenu .moodItem:focus-visible,.csTab:focus-visible,.footIn:focus-visible,.back:focus-visible,.heroBack:focus-visible{outline:2px solid var(--c950);outline-offset:3px;border-radius:var(--r-md)}.talk:focus:not(:focus-visible),.workCta:focus:not(:focus-visible),.aboutCta:focus:not(:focus-visible),.moodBtn:focus:not(:focus-visible),.faceMoodCorner .moodBtn:focus:not(:focus-visible),.moodMenu .moodItem:focus:not(:focus-visible),.csTab:focus:not(:focus-visible){outline:none}.talk{opacity:1}.reelTrack{height:auto!important}.reelStage{position:static!important}.reelFrame{transform:none!important;border-radius:4px!important;overflow:hidden}/* ---- CENTERED HERO: the type sits over the head on one axis ---- */.hero{grid-template-columns:1fr;justify-items:center;align-content:start;--heroTitleTop:var(--sp-16-40);padding-top:var(--heroTitleTop);min-height:calc(100vh - 68px)}.heroCopy{display:contents}/* CENTRED, after a round trip. He asked for left-aligned text in a centred block --
+.moodGo:hover,.moodGo:focus-visible{color:var(--c950)}.moodGo svg{flex:0 0 18px;width:18px;height:18px;color:currentColor}.aboutCta:hover{border-color:var(--c500);color:var(--c950)}body.moodNear .faceMoodCorner .moodBtn:hover,.faceMoodCorner .moodBtn:hover,.moodbar.open .moodBtn{border-color:var(--c500)!important;color:var(--c950)}@media(min-width:761px){body.moodTeach .faceMoodCorner{opacity:1;visibility:visible;transition:opacity .5s cubic-bezier(.2,.8,.2,1)}body.moodTeach .faceMoodCorner .moodBtn{border-color:var(--c100);background:var(--c50)}body.moodTeach .faceMoodCorner .moodLbl,body.moodTeach .faceMoodCorner .moodCar{opacity:1;transform:translateX(0)}}.cycw{position:relative}@media(hover:none),(pointer:coarse){}@media(max-width:760px){.faceMoodCorner .moodBtn{min-height:44px}}.csTab{-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}.moodBtn,.aboutCta,.talk,.heroBack,.back{-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}/* keyboard-only focus ring (never triggers on mouse click) */.talk:focus-visible,.aboutCta:focus-visible,.moodBtn:focus-visible,.faceMoodCorner .moodBtn:focus-visible,.moodMenu .moodItem:focus-visible,.csTab:focus-visible,.footIn:focus-visible,.back:focus-visible,.heroBack:focus-visible{outline:2px solid var(--c950);outline-offset:3px;border-radius:var(--r-md)}.talk:focus:not(:focus-visible),.aboutCta:focus:not(:focus-visible),.moodBtn:focus:not(:focus-visible),.faceMoodCorner .moodBtn:focus:not(:focus-visible),.moodMenu .moodItem:focus:not(:focus-visible),.csTab:focus:not(:focus-visible){outline:none}.talk{opacity:1}.reelTrack{height:auto!important}.reelStage{position:static!important}.reelFrame{transform:none!important;border-radius:4px!important;overflow:hidden}/* ---- CENTERED HERO: the type sits over the head on one axis ---- */.hero{grid-template-columns:1fr;justify-items:center;align-content:start;--heroTitleTop:var(--sp-16-40);padding-top:var(--heroTitleTop);min-height:calc(100vh - 68px)}.heroCopy{display:contents}/* CENTRED, after a round trip. He asked for left-aligned text in a centred block --
    built, measured (both lines shared a left edge at 376, the box centred at 640, the
    same centre as the head) -- and then looked at it: "Actually the centred version
    looked way better." Reverted to plain centred text at the measure. Recorded because
@@ -792,9 +799,6 @@ body.moodInCta .heroCtas:not(.in) .faceMoodCorner{opacity:0!important;visibility
    the FIRST focusable element and moves focus to the main content -- so it sits before the
    nav in DOM order. Parked off-screen by transform (not display:none, which would take it
    out of the tab order entirely) and slid in on focus. ---- */
-.skipLink{position:fixed;top:10px;left:10px;border-radius:var(--r-xs);corner-shape:var(--corner);z-index:200;display:inline-flex;align-items:center;min-height:var(--tap-min);padding:12px 16px;background:var(--c50);color:var(--c950);border:1px solid var(--c100);font-family:var(--sans);font-weight:400;font-size:var(--fs-small);line-height:var(--lh-flat);text-decoration:none;box-shadow:none;transform:translateY(calc(-100% - 16px));transition:transform .2s cubic-bezier(.2,.8,.2,1)}
-.skipLink:focus{transform:translateY(0);outline:2px solid var(--c950);outline-offset:3px}
-@media(prefers-reduced-motion:reduce){.skipLink{transition:none}}
 #main:focus{outline:none}   /* programmatic focus target -- the user chose to land here, no stray ring */
 /* ---- "Show on home": the crowd is a feature, but it is also motion beside the headline.
    One quiet switch under the roster -- the games always override it, so hiding never means
@@ -915,7 +919,7 @@ body.moodInCta .heroCtas:not(.in) .faceMoodCorner{opacity:0!important;visibility
    inside is taller the control silently grows past the rung. Naming the height
    and zeroing the vertical padding makes the two agree by construction.
    ============================================================================ */
-.moodItem,.moodBtn,.moodGo,.reelClose,.workCta,.mhToggle{
+.moodItem,.moodBtn,.moodGo,.reelClose,.mhToggle{
  font-family:var(--sans);font-weight:400;font-size:var(--fs-small);line-height:var(--lh-flat);
  color:var(--c700);background:none;
  border:0;                      /* no borders. The wash is the affordance. */
@@ -934,13 +938,13 @@ body.moodInCta .heroCtas:not(.in) .faceMoodCorner{opacity:0!important;visibility
    --press-scale and --press-dur are both already tokens and had zero consumers
    on this page. */
 .moodItem:active,.moodBtn:active,.moodGo:active,.reelClose:active,
-.workCta:active,.mhToggle:active,.toTop:active,.csTab:active{
+.mhToggle:active,.toTop:active,.csTab:active{
  transform:scale(var(--press-scale))}
 @media(prefers-reduced-motion:reduce){
  .moodItem:active,.moodBtn:active,.moodGo:active,.reelClose:active,
- .workCta:active,.mhToggle:active,.toTop:active,.csTab:active{transform:none}}
+ .mhToggle:active,.toTop:active,.csTab:active{transform:none}}
 /* display at ZERO specificity so anything that hides itself conditionally still wins */
-:where(.moodItem,.moodBtn,.moodGo,.reelClose,.workCta,
+:where(.moodItem,.moodBtn,.moodGo,.reelClose,
  .mhToggle,.csTab){display:inline-flex}
 /* square icon-only controls: same height, no text padding */
 .toTop{
@@ -960,7 +964,7 @@ body.moodInCta .heroCtas:not(.in) .faceMoodCorner{opacity:0!important;visibility
    PROSE, and a grey plate behind a word in a paragraph is the one place the
    wash reads as damage rather than as affordance -- they now hover the way
    every other link on the site does, on ink and their own underline. */
-.moodItem:hover,.moodBtn:hover,.moodGo:hover,.reelClose:hover,.workCta:hover,.mhToggle:hover,.toTop:hover,.moodItem:focus-visible,.moodBtn:focus-visible,.moodGo:focus-visible,.reelClose:focus-visible,.workCta:focus-visible,.mhToggle:focus-visible,.toTop:focus-visible{
+.moodItem:hover,.moodBtn:hover,.moodGo:hover,.reelClose:hover,.mhToggle:hover,.toTop:hover,.moodItem:focus-visible,.moodBtn:focus-visible,.moodGo:focus-visible,.reelClose:focus-visible,.mhToggle:focus-visible,.toTop:focus-visible{
  background:var(--accent-wash);color:var(--c950);border-color:transparent;
 }
 .csTab:hover,.csTab:focus-visible,
@@ -986,10 +990,6 @@ body.moodInCta .heroCtas:not(.in) .faceMoodCorner{opacity:0!important;visibility
    perceptual step lighter, because on a near-black fill there is nowhere
    darker to go. White on #121212 is 18.4:1 and on #212121 15.3:1. No border:
    it used to carry a 1px rim in its own fill colour. */
-.workCta{background:var(--accent);color:var(--c50);font-size:var(--fs-body)}
-.workCta:hover,.workCta:focus-visible,.workCta:active{
- background:var(--accent-press);color:var(--c50)}
-
 /* SECONDARY-ON-MEDIA (§3.2, the one permitted addition) -- .reelClose floats
    over a full-screen video on a near-black scrim, so it is the case the spec
    allows a ground for: what it needs to stay legible over arbitrary content.
@@ -1399,17 +1399,83 @@ html{scroll-padding-top:calc(var(--nav-h) + var(--sp-16-24))}
    that bent .tvTab.on's line round a --r-md corner cannot happen here. */
 .csTab::before{content:"";position:absolute;top:50%;left:0;right:0;
  height:var(--tap-min);transform:translateY(-50%);pointer-events:auto}
+
+/* ═══ HOME MINIMAL HERO ══════════════════════════════════════════════════════
+   The Home page is the recruiter-facing entry point: the existing time scene
+   frames a direct headline and one work action. Hidden source/cast nodes remain
+   only for the time controller; no portrait or companion engine boots here. */
+/* FULL-BLEED. .wrap holds nothing but the Hero on this page, so dropping its
+   measure and gutter is what makes the Hero span the viewport -- with no vw
+   unit anywhere. `width:100vw` includes the scrollbar and is the recurring
+   source of horizontal overflow on this site; a plain block at the body's
+   content width cannot overflow by construction. The copy stays on the measure
+   through the Hero's own padding and the h1's em max-width. */
+.wrap{max-width:none;padding-inline:0;margin-top:calc((var(--sp-8) + var(--nav-h) + var(--sp-12)) * -1)}
+/* Full-bleed is all four edges. The Hero starts at the top of the document --
+   the sticky bar floats over it rather than reserving space above it -- and
+   runs the whole height.
+   THE UNIT IS A REAL TRADE. 100vh is the LARGEST viewport, so with phone
+   chrome showing the Hero overflows and the page scrolls when it must not.
+   100svh is the smallest, which is guaranteed safe but reopens exactly the gap
+   he is complaining about the moment the chrome retracts. 100dvh tracks the
+   chrome live: the height changes as you scroll, which on a gradient is
+   invisible, whereas a gap is not. svh is declared first as the fallback for
+   engines without dvh. The copy is centred, so a live height change moves it
+   by half the chrome -- accepted, and only during the scroll that hides it. */
+.hero{
+ position:relative;isolation:isolate;overflow:visible;
+ display:grid;grid-template-columns:1fr;justify-items:center;align-content:center;
+ min-height:100svh;min-height:100dvh;gap:0;
+ padding:clamp(72px,12svh,112px) max(var(--sp-16-40),env(safe-area-inset-right)) calc(clamp(72px,12svh,112px) + env(safe-area-inset-bottom)) max(var(--sp-16-40),env(safe-area-inset-left));
+ border:0;box-shadow:none;border-radius:var(--surface-hero-radius);
+ corner-shape:var(--corner);background:var(--c50)
+}
+.heroAura{display:none}
+/* The Hero absorbed the bar's 88px of clearance when it went full-bleed, so
+   dead-centre now sits ~44px lower than the authored composition and opens a
+   hole between the copy and the head. The lift is increased by that much: the
+   copy reads as centred in the space BELOW the floating bar, not in the box. */
+.heroCopy{display:flex;flex-direction:column;align-items:center;transform:translateY(clamp(-124px,-13svh,-92px));position:relative;z-index:3}
+.heroCopy h1{order:1;margin:0 auto;max-width:min(14.4em,100%);font-size:var(--fs-heroline);
+ line-height:1.06;letter-spacing:var(--tr-head);text-align:center;text-wrap:balance}
+.heroCtas{order:2;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;
+ gap:var(--sp-8);margin-top:var(--sp-16);position:relative;z-index:8}
+.heroCtas>*{opacity:1;transform:none}
+.workCta svg,.moodFaceIco{width:var(--ico-sm);height:var(--ico-sm);fill:none;
+ stroke:currentColor;stroke-width:var(--ico-stroke);stroke-linecap:round;stroke-linejoin:round}
+@media(max-width:760px){
+ .hero{padding:calc(var(--sp-8) + var(--nav-h) + var(--sp-12)) max(var(--sp-16),env(safe-area-inset-right)) calc(var(--sp-48) + env(safe-area-inset-bottom)) max(var(--sp-16),env(safe-area-inset-left));border-radius:var(--surface-hero-radius)}
+ .heroCopy{transform:translateY(calc((var(--sp-14) + var(--sp-48)) * -1))}
+ .heroCopy h1{font-size:clamp(28px,7.7vw,32px);max-width:13em}
+ .heroCtas{margin-top:var(--sp-14)}
+}
+@media(max-height:720px) and (min-width:761px){
+ .hero{padding-block:var(--sp-48)}
+ .heroCopy h1{font-size:clamp(30px,3.2vw,36px)}
+ .heroCtas{margin-top:var(--sp-12)}
+}
+@media(prefers-reduced-motion:reduce){
+ .heroCtas>*{transition:none!important;animation:none!important}
+}
+.cases{margin-top:var(--section-join-gap)}
+.csItem+.csItem{margin-top:var(--work-item-gap)}
+@media(max-width:760px){.hero{min-height:var(--hero-mobile-height)}}
 </style>
-<link rel="stylesheet" href="header.css">
+<link rel="stylesheet" href="header.css?v=20260806-shared-surfaces">
+<link rel="stylesheet" href="hero-time.css?v=20260806-shared-surfaces">
+<link rel="stylesheet" href="footer.css?v=20260806-shared-surfaces">
+<link rel="stylesheet" href="controls.css?v=20260806-shared-surfaces">
+<link rel="stylesheet" href="site-theme.css?v=20260806-shared-surfaces">
 <script>/* THE OLD OVERLAY'S URL STILL RESOLVES. index.html#about was the only address
    About ever had, and it is linked from play.html and the other sub-pages, and sits in
    anyone's history. Redirected before first paint (replace(), so it leaves no entry to
    go Back into) rather than left to scroll to an anchor that no longer exists. */
 if(location.hash==="#about")location.replace("about.html");</script>
 <script src="header.js" defer></script>
+<script src="time-aware-thumbnails.js" defer></script>
 </head>
-<body data-nav="home">
-<a class="skipLink" href="#main">Skip to content</a>
+<body data-nav="home" data-theme-page="home">
+<a class="skipLink ctl ctl--secondary" href="#main">Skip to content</a>
 <svg width="0" height="0" style="position:absolute"><filter id="inkBig"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="7" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="1.1" xChannelSelector="R" yChannelSelector="G" result="d"/><feTurbulence type="fractalNoise" baseFrequency="0.5 0.42" numOctaves="2" seed="13" result="g"/><feColorMatrix in="g" type="matrix" values="0 0 0 0 0.055 0 0 0 0 0.055 0 0 0 0 0.055 0 0 0 0.42 0" result="grain"/><feComposite in="grain" in2="d" operator="atop"/></filter>
 <filter id="inkSm"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="1" seed="4" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="0.55" xChannelSelector="R" yChannelSelector="G"/></filter><filter id="inkEye"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="9" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="1.05" xChannelSelector="R" yChannelSelector="G"/></filter></svg>
 <!-- ═══ THE SITE HEADER ═══════════════════════════════════════════════════════
@@ -1451,7 +1517,7 @@ if(location.hash==="#about")location.replace("about.html");</script>
      reveals it while the overlay is open. Without it the overlay would have no
      visible exit in the chrome at all. -->
 <div class="jbStick">
- <nav class="jbNav" aria-label="Primary" data-surface="paper">
+ <nav class="jbNav ctl-group" aria-label="Primary" data-surface="paper">
   <span class="jbGrp jbGrpL">
    <button class="jbHome" id="logo" type="button" aria-label="Jayden Betts, home"><svg class="jbLogo" viewBox="0 0 30 30" aria-hidden="true"><path d="M1 26.3842C3.07605 22.5364 9.00761 17.1494 16.1255 26.3842C23.2434 35.619 14.1981 18.1678 16.1255 8.65665C18.0529 -0.854479 32.3186 -2.22723 28.2852 8.65665C24.2517 19.5405 18.6968 18.261 20.8493 13.2232C23.0018 8.1853 35.3661 26.1679 23.0066 27.4872"/></svg></button>
   </span>
@@ -1472,10 +1538,7 @@ if(location.hash==="#about")location.replace("about.html");</script>
         saved heads / Show on home, all four keeping the ids their scripts bind by. It is
         header.css's .jbDiscMenu now, the same panel Contact opens at the other end of the
         bar, so the two read as one system rather than as two different popups. -->
-   <span class="jbDisc jbPlay" id="jbPlay">
-    <a class="jbDiscGo" data-nav-item="games" href="play.html" aria-label="Play" aria-haspopup="true" aria-expanded="false" aria-controls="moodbar"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 6m0 2a2 2 0 0 1 2 -2h16a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-16a2 2 0 0 1 -2 -2z"/><path d="M6 12h4m-2 -2v4"/><path d="M15 11l0 .01"/><path d="M18 13l0 .01"/></svg><span class="jbLbl">Play</span></a>
-    <div class="jbDiscMenu jbPlayMenu" id="moodbar"><a class="jbDiscTouch" href="play.html"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 6m0 2a2 2 0 0 1 2 -2h16a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-16a2 2 0 0 1 -2 -2z"/><path d="M6 12h4m-2 -2v4"/><path d="M15 11l0 .01"/><path d="M18 13l0 .01"/></svg>Play</a><div class="jbDiscSep jbDiscTouch" aria-hidden="true"></div><div class="jbDiscGrp" id="moodMenu"><button class="moodItem" type="button" data-mood="empathy"><span class="moodIco camDot" aria-hidden="true"></span>Empathy</button><button class="moodItem" type="button" data-mood="hunger"><span class="moodIco cookieDot" aria-hidden="true"></span>Hunger</button><button class="moodItem" type="button" data-mood="delight"><span class="moodIco discoDot" aria-hidden="true"></span>Delight</button><button class="moodItem" type="button" data-mood="love"><span class="moodIco heartDot" aria-hidden="true"></span>Love</button></div><div class="jbDiscSep" aria-hidden="true"></div><a href="headmaker.html"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0"/> <path d="M16 19h6"/> <path d="M19 16v6"/> <path d="M6 21v-2a4 4 0 0 1 4 -4h4"/></svg>Add your head</a><button id="addPlaceholder" type="button" aria-label="Add an egghead — a silly egg in a fresh colour"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 14.083c0 4.154 -2.966 6.74 -7 6.917c-4.2 0 -7 -2.763 -7 -6.917c0 -5.538 3.5 -11.09 7 -11.083c3.5 .007 7 5.545 7 11.083"/></svg>Add an egghead</button><div class="mhHead"><span class="mhTitle" id="mhTitle">Your heads</span><button class="mhEdit" id="mhEdit" type="button" aria-pressed="false" aria-controls="moodHeads" hidden>Edit</button></div><div class="moodHeads" id="moodHeads" role="group" aria-labelledby="mhTitle" data-editing="false"></div><div class="mhBar" id="mhBar" hidden><button class="mhToggle" id="headsToggle" type="button" role="switch" aria-checked="true"><span class="mhTrack" aria-hidden="true"><span class="mhKnob"></span></span><span class="mhTxt">Show on home</span></button></div></div>
-   </span>
+   <a data-nav-item="games" href="play.html" aria-label="Play"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 6m0 2a2 2 0 0 1 2 -2h16a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-16a2 2 0 0 1 -2 -2z"/><path d="M6 12h4m-2 -2v4"/><path d="M15 11l0 .01"/><path d="M18 13l0 .01"/></svg><span class="jbLbl">Play</span></a>
   </span>
   <span class="jbGrp jbGrpR">
    <!-- CONTACT -- the same split control as Play, at the other end of the bar
@@ -1493,31 +1556,69 @@ if(location.hash==="#about")location.replace("about.html");</script>
  </nav>
 </div>
 <div class="wrap">
- <section class="hero" id="main" tabindex="-1">
-  <div class="heroCopy"><h1 id="h1"></h1><p class="sub" id="sub"></p><div class="heroCtas"><button class="workCta" id="workBtn" type="button">View my work</button></div></div>
-  <a class="scrollCue" id="scrollCue" href="#cases" aria-label="Scroll to my work"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" aria-hidden="true"><path d="M6 9.5L12 15.5L18 9.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a><div class="stagewrap"><div class="queueDots" id="qdots" role="status" aria-live="polite"><span class="qsr"></span><i></i><i></i><i></i></div><div id="stageMorph"><div class="floorshadow" id="fsh"></div><div class="stage" id="stage"><img class="face" id="face" alt="Jayden" draggable="false"><img class="tongue" id="tongue" src="images/tongue.webp" alt="" aria-hidden="true">
+ <div class="heroTimeSpill" id="heroTimeSpill" aria-hidden="true"></div>
+ <section class="hero surface surface--hero" id="main" tabindex="-1">
+  <svg class="heroPortraitTintDefs" width="0" height="0" aria-hidden="true">
+   <filter id="heroPortraitTintFilter" color-interpolation-filters="sRGB">
+    <feFlood id="heroPortraitTintFlood" flood-color="var(--time-cast)" result="portraitTint"/>
+    <feComposite in="portraitTint" in2="SourceAlpha" operator="in"/>
+   </filter>
+  </svg>
+  <div class="heroAura" aria-hidden="true"></div>
+  <div class="heroTimeClip" id="heroTimeClip" aria-hidden="true"><div class="heroTimeGradient" data-time-gradient="pre-dawn"></div><div class="heroTimeGradient" data-time-gradient="sunrise"></div><div class="heroTimeGradient" data-time-gradient="daytime"></div><div class="heroTimeGradient" data-time-gradient="dusk"></div><div class="heroTimeGradient" data-time-gradient="sunset"></div><div class="heroTimeGradient" data-time-gradient="night"></div><div class="heroNightStars"><i style="--star-x:7%;--star-y:17%;--star-alpha:.42;--star-delay:-2s;--star-rate:1.18"></i><i style="--star-x:14%;--star-y:38%;--star-alpha:.28;--star-delay:-5s;--star-rate:.91"></i><i style="--star-x:21%;--star-y:12%;--star-alpha:.34;--star-delay:-1s;--star-rate:1.31"></i><i class="is-bright" style="--star-x:28%;--star-y:29%;--star-alpha:.58;--star-delay:-4s;--star-rate:1.06"></i><i style="--star-x:34%;--star-y:8%;--star-alpha:.25;--star-delay:-6s;--star-rate:.84"></i><i style="--star-x:39%;--star-y:43%;--star-alpha:.37;--star-delay:-3s;--star-rate:1.24"></i><i style="--star-x:46%;--star-y:19%;--star-alpha:.31;--star-delay:-7s;--star-rate:.96"></i><i style="--star-x:53%;--star-y:35%;--star-alpha:.22;--star-delay:-2s;--star-rate:1.37"></i><i class="is-bright" style="--star-x:59%;--star-y:11%;--star-alpha:.54;--star-delay:-5s;--star-rate:1.12"></i><i style="--star-x:64%;--star-y:47%;--star-alpha:.27;--star-delay:-1s;--star-rate:.88"></i><i style="--star-x:70%;--star-y:23%;--star-alpha:.35;--star-delay:-6s;--star-rate:1.28"></i><i style="--star-x:77%;--star-y:8%;--star-alpha:.24;--star-delay:-3s;--star-rate:1.01"></i><i class="is-bright" style="--star-x:83%;--star-y:32%;--star-alpha:.49;--star-delay:-8s;--star-rate:1.16"></i><i style="--star-x:91%;--star-y:15%;--star-alpha:.33;--star-delay:-4s;--star-rate:.93"></i><i style="--star-x:10%;--star-y:61%;--star-alpha:.21;--star-delay:-7s;--star-rate:1.33"></i><i style="--star-x:19%;--star-y:52%;--star-alpha:.30;--star-delay:-2s;--star-rate:1.08"></i><i style="--star-x:73%;--star-y:59%;--star-alpha:.25;--star-delay:-5s;--star-rate:.86"></i><i style="--star-x:88%;--star-y:54%;--star-alpha:.29;--star-delay:-1s;--star-rate:1.21"></i><i style="--star-x:4%;--star-y:46%;--star-alpha:.51;--star-delay:-6s;--star-rate:1.04"></i><i style="--star-x:17%;--star-y:25%;--star-alpha:.62;--star-delay:-3s;--star-rate:.89"></i><i style="--star-x:24%;--star-y:47%;--star-alpha:.47;--star-delay:-8s;--star-rate:1.26"></i><i style="--star-x:31%;--star-y:58%;--star-alpha:.86;--star-delay:-2s;--star-rate:1.13"></i><i style="--star-x:37%;--star-y:31%;--star-alpha:.56;--star-delay:-5s;--star-rate:.97"></i><i style="--star-x:43%;--star-y:6%;--star-alpha:.49;--star-delay:-1s;--star-rate:1.32"></i><i style="--star-x:49%;--star-y:51%;--star-alpha:.64;--star-delay:-7s;--star-rate:.87"></i><i style="--star-x:57%;--star-y:26%;--star-alpha:.53;--star-delay:-4s;--star-rate:1.19"></i><i style="--star-x:63%;--star-y:62%;--star-alpha:.46;--star-delay:-9s;--star-rate:1.08"></i><i style="--star-x:68%;--star-y:14%;--star-alpha:.84;--star-delay:-3s;--star-rate:.94"></i><i style="--star-x:75%;--star-y:41%;--star-alpha:.59;--star-delay:-6s;--star-rate:1.23"></i><i style="--star-x:82%;--star-y:20%;--star-alpha:.45;--star-delay:-2s;--star-rate:1.36"></i><i style="--star-x:86%;--star-y:66%;--star-alpha:.55;--star-delay:-5s;--star-rate:.92"></i><i style="--star-x:96%;--star-y:37%;--star-alpha:.48;--star-delay:-8s;--star-rate:1.15"></i></div></div>
+  <div class="heroCopy">
+   <h1 id="h1">SF product designer. iOS, B2C and design systems.</h1><p class="sub" id="sub"></p>
+   <div class="heroCtas">
+   <a class="workCta ctl ctl--primary" id="workBtn" href="#cases"><span>View work</span></a>
+    <div class="heroTime" id="heroTime">
+     <button class="heroTimeBtn ctl ctl--secondary ctl--icon" id="heroTimeBtn" type="button" aria-label="Time of day" aria-haspopup="menu" aria-expanded="false" aria-controls="heroTimeMenu"><svg class="heroTimeIcon uiIcon" id="heroTimeIcon" viewBox="0 0 24 24" aria-hidden="true"><g data-hero-time-icon="pre-dawn"><use href="ui-icons.svg#lucide-moon-star"/></g><g data-hero-time-icon="sunrise"><use href="ui-icons.svg#lucide-sunrise"/></g><g data-hero-time-icon="daytime"><use href="ui-icons.svg#lucide-sun"/></g><g data-hero-time-icon="dusk"><use href="ui-icons.svg#lucide-cloud-sun"/></g><g data-hero-time-icon="sunset"><use href="ui-icons.svg#lucide-sunset"/></g><g data-hero-time-icon="night"><use href="ui-icons.svg#lucide-moon"/></g><g data-hero-time-icon="off"><use href="ui-icons.svg#lucide-circle-off"/></g></svg></button>
+     <div class="heroTimeMenu ctl-menu" id="heroTimeMenu" role="menu" aria-label="Choose time of day">
+      <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="true" data-time-mode="auto"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true"><use href="ui-icons.svg#lucide-rotate-ccw"/></svg>Automatic</button>
+      <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="false" data-time-mode="off"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true"><use href="ui-icons.svg#lucide-circle-off"/></svg>Off</button>
+      <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="false" data-time-mode="pre-dawn"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true"><use href="ui-icons.svg#lucide-moon-star"/></svg>Pre-dawn</button>
+      <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="false" data-time-mode="sunrise"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true"><use href="ui-icons.svg#lucide-sunrise"/></svg>Sunrise</button>
+      <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="false" data-time-mode="daytime"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true"><use href="ui-icons.svg#lucide-sun"/></svg>Daytime</button>
+      <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="false" data-time-mode="dusk"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true"><use href="ui-icons.svg#lucide-cloud-sun"/></svg>Dusk</button>
+      <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="false" data-time-mode="sunset"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true"><use href="ui-icons.svg#lucide-sunset"/></svg>Sunset</button>
+      <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="false" data-time-mode="night"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true"><use href="ui-icons.svg#lucide-moon"/></svg>Night</button>
+     </div>
+    </div>
+    <script id="heroTimePrepaint">(function(){var r=document.documentElement,h=document.getElementById("main"),m=r.getAttribute("data-theme-mode")||"auto",s=r.getAttribute("data-theme-state")||"off",q=r.getAttribute("data-reduced-motion")||"no-preference",i=document.getElementById("heroTimeIcon"),n=document.querySelectorAll('#heroTimeMenu [role="menuitemradio"]');h.setAttribute("data-time-mode",m);h.setAttribute("data-time-state",s);h.setAttribute("data-reduced-motion",q);i.setAttribute("data-icon",s);n.forEach(function(x){x.setAttribute("aria-checked",x.getAttribute("data-time-mode")===m?"true":"false");});})();</script>
+   </div>
+  </div>
+  <div class="heroTimeSupport heroCharacterPeek"><div class="heroHeadTransform" id="heroHeadTransform"><div class="stagewrap"><div class="queueDots" id="qdots" role="status" aria-live="polite"><span class="qsr"></span><i></i><i></i><i></i></div><div id="stageMorph"><div class="floorshadow" id="fsh"></div><div class="stage" id="stage"><img class="face" id="face" alt="Jayden Betts" draggable="false" role="button" tabindex="0" aria-pressed="false" aria-label="Select and reposition animated portrait" data-head-bounds="0.22 0.12 0.80 0.91"><img id="heroTimePortraitCast" class="heroTimePortraitCast" alt="" aria-hidden="true"><img class="tongue" id="tongue" src="images/tongue.webp" alt="" aria-hidden="true">
 <svg class="glasses" id="glasses" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><defs><pattern id="glCard" patternUnits="userSpaceOnUse" width="100" height="100"><image href="images/glass_frame_tex.webp" x="0" y="0" width="100" height="100" preserveAspectRatio="xMidYMid slice"/></pattern><linearGradient id="glSheen" x1="0" y1="0" x2="0.62" y2="1"><stop offset="0" stop-color="#fff" stop-opacity="0.5"/><stop offset="0.4" stop-color="#fff" stop-opacity="0.06"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient><mask id="glMask" maskUnits="userSpaceOnUse" x="0" y="0" width="100" height="100"><rect x="28" y="45.3" width="44" height="13.2" rx="2.4" fill="#fff"/><polygon points="28,47.2 26,48 26,50.4 28,51.2" fill="#fff"/><polygon points="72,47.2 74,48 74,50.4 72,51.2" fill="#fff"/><rect x="32.5" y="47.3" width="13" height="9.2" rx="1.8" fill="#000"/><rect x="54.5" y="47.3" width="13" height="9.2" rx="1.8" fill="#000"/><path d="M46.7 58.6 Q50 54.3 53.3 58.6 Z" fill="#000"/></mask></defs><rect class="gl-red" x="32.5" y="47.3" width="13" height="9.2" rx="1.8"/><rect class="gl-cyan" x="54.5" y="47.3" width="13" height="9.2" rx="1.8"/><rect class="gl-plast" x="32.5" y="47.3" width="13" height="9.2" rx="1.8" fill="url(#glSheen)"/><rect class="gl-plast" x="54.5" y="47.3" width="13" height="9.2" rx="1.8" fill="url(#glSheen)"/><rect x="0" y="0" width="100" height="100" fill="url(#glCard)" mask="url(#glMask)"/></svg></div></div>
-</div>
+</div></div></div>
+  <div class="heroHeadSelection" id="heroHeadSelection" role="group"
+       aria-label="Selected animated portrait" hidden>
+   <button class="heroHeadHandle" type="button" data-corner="nw" aria-label="Resize portrait from top left" tabindex="-1"></button>
+   <button class="heroHeadHandle" type="button" data-corner="ne" aria-label="Resize portrait from top right" tabindex="-1"></button>
+   <button class="heroHeadHandle" type="button" data-corner="sw" aria-label="Resize portrait from bottom left" tabindex="-1"></button>
+   <button class="heroHeadHandle" type="button" data-corner="se" aria-label="Resize portrait from bottom right" tabindex="-1"></button>
+   <button class="heroHeadRotate" type="button" data-rotate="1" aria-label="Rotate portrait" tabindex="-1"></button>
+   <div class="heroHeadFrame" aria-hidden="true"></div>
+  </div>
+  <div class="heroMovieEffectsClip" id="heroMovieEffectsClip" aria-hidden="true"><div class="heroMovieEffectsStage" id="heroMovieEffectsStage"></div></div>
  </section>
 
 </div>
-<section class="cases" id="cases" aria-label="Selected work">
+<section class="cases collection" id="cases" aria-label="Selected work">
 <div class="csCursor" id="csCursor" aria-hidden="true"></div>
 <div class="csInfoCard" id="csInfoCard" aria-hidden="true"><div class="csInfoInner"><div class="csInfoRow"><div class="csInfoLabel">Role</div><p class="csInfoVal" data-f="role"></p></div><div class="csInfoRow"><div class="csInfoLabel">Problem</div><p class="csInfoVal" data-f="problem"></p></div><div class="csInfoRow"><div class="csInfoLabel">Solution</div><p class="csInfoVal" data-f="solution"></p></div></div></div>
- <nav class="csTabs caseInset" role="tablist" aria-label="Work categories">
-  <button class="csTab on" type="button" role="tab" data-tab="cs" aria-selected="true">Featured</button>
-  <button class="csTab" type="button" role="tab" data-tab="fun" aria-selected="false">Case Studies</button>
-  <button class="csTab" type="button" role="tab" data-tab="goodness" aria-selected="false">Extras</button>
+ <nav class="csTabs caseInset collection__tabs" role="tablist" aria-label="Work categories">
+  <button class="csTab on ctl ctl--tab" type="button" role="tab" data-tab="cs" aria-selected="true">Featured</button>
+  <button class="csTab ctl ctl--tab" type="button" role="tab" data-tab="fun" aria-selected="false">Case Studies</button>
+  <button class="csTab ctl ctl--tab" type="button" role="tab" data-tab="goodness" aria-selected="false">Extras</button>
   <span class="csTabInk" id="csTabInk" aria-hidden="true"></span>
  </nav>
- 
+ <div class="collection__content">
 
  <div class="csPanel on" data-panel="cs" role="tabpanel" aria-label="Featured">
   <article class="csItem" data-slug="bearings">
    <div class="csTrack">
     <div class="csStage">
      <div class="csStageInner">
-      <a class="csGo" href="bearings.html" aria-label="View the Bearings case study"><figure class="csFrame"><img class="csImg" src="images/cs/bearings-cover.webp" alt="Bearings — a group road-trip planner shown across four iOS screens over a wildflower meadow" loading="eager" fetchpriority="high" decoding="async"></figure></a>
+      <a class="csGo" href="bearings.html" aria-label="View the Bearings case study"><figure class="csFrame"><img class="csImg" data-time-thumbnail="bearings" src="images/cs/bearings-cover.webp" alt="Bearings — a group road-trip planner shown across four iOS screens over a wildflower meadow" loading="eager" fetchpriority="high" decoding="async"></figure></a>
       <div class="csMeta"><span class="csName">Bearings</span><span class="csYear">2026</span></div>
      </div>
     </div>
@@ -1528,7 +1629,7 @@ if(location.hash==="#about")location.replace("about.html");</script>
    <div class="csTrack">
     <div class="csStage">
      <div class="csStageInner">
-      <a class="csGo" href="apollo.html" aria-label="View the Apollo case study"><figure class="csFrame"><img class="csImg" src="images/cs/apollo-cover.webp" alt="Apollo — a social app for celebrating wins, shown across four iOS screens over rolling hills" loading="lazy" decoding="async"></figure></a>
+      <a class="csGo" href="apollo.html" aria-label="View the Apollo case study"><figure class="csFrame"><img class="csImg" data-time-thumbnail="apollo" src="images/cs/apollo-cover.webp" alt="Apollo — a social app for celebrating wins, shown across four iOS screens over rolling hills" loading="lazy" decoding="async"></figure></a>
       <div class="csMeta"><span class="csName">Apollo</span><span class="csYear">2026</span></div>
      </div>
     </div>
@@ -1542,7 +1643,7 @@ if(location.hash==="#about")location.replace("about.html");</script>
    <div class="csTrack">
     <div class="csStage">
      <div class="csStageInner">
-      <a class="csGo" href="bearings.html" aria-label="View the Bearings case study"><figure class="csFrame"><img class="csImg" src="images/cs/bearings-cover.webp" alt="Bearings — a group road-trip planner shown across four iOS screens over a wildflower meadow" loading="lazy" decoding="async"></figure></a>
+      <a class="csGo" href="bearings.html" aria-label="View the Bearings case study"><figure class="csFrame"><img class="csImg" data-time-thumbnail="bearings" src="images/cs/bearings-cover.webp" alt="Bearings — a group road-trip planner shown across four iOS screens over a wildflower meadow" loading="lazy" decoding="async"></figure></a>
       <div class="csMeta"><span class="csName">Bearings</span><span class="csYear">2026</span></div>
      </div>
     </div>
@@ -1552,7 +1653,7 @@ if(location.hash==="#about")location.replace("about.html");</script>
    <div class="csTrack">
     <div class="csStage">
      <div class="csStageInner">
-      <a class="csGo" href="apollo.html" aria-label="View the Apollo case study"><figure class="csFrame"><img class="csImg" src="images/cs/apollo-cover.webp" alt="Apollo — a social app for celebrating wins, shown across four iOS screens over rolling hills" loading="lazy" decoding="async"></figure></a>
+      <a class="csGo" href="apollo.html" aria-label="View the Apollo case study"><figure class="csFrame"><img class="csImg" data-time-thumbnail="apollo" src="images/cs/apollo-cover.webp" alt="Apollo — a social app for celebrating wins, shown across four iOS screens over rolling hills" loading="lazy" decoding="async"></figure></a>
       <div class="csMeta"><span class="csName">Apollo</span><span class="csYear">2026</span></div>
      </div>
     </div>
@@ -1602,9 +1703,10 @@ if(location.hash==="#about")location.replace("about.html");</script>
  </div>
 
  <div class="csPanel" data-panel="goodness" role="tabpanel" aria-label="Extras" hidden>
-  <section class="reel" id="reel"><div class="reelTrack"><div class="reelStage" id="reelStage"><figure class="reelFrame" id="reelFrame"><video class="reelVid" id="reelVid" muted loop playsinline preload="none" poster="images/reel_poster.webp"><source src="videos/reel.mp4" type="video/mp4"></video><button class="reelTap" id="reelTap" type="button" aria-label="Play video"><span class="tri"></span>Play video</button><div class="playCursor" id="playCursor" aria-hidden="true"><span class="pcInner"><span class="tri"></span>Play video</span></div></figure><div class="reelMeta"><span class="csName">Wired to fail</span><span class="csYear">2026</span></div></div></div></section>
+  <section class="reel" id="reel"><div class="reelTrack"><div class="reelStage" id="reelStage"><figure class="reelFrame" id="reelFrame" role="button" tabindex="0" aria-label="Play intro video"><video class="reelVid" id="reelVid" muted loop playsinline preload="none" poster="images/reel_poster.webp"><source src="videos/reel.mp4" type="video/mp4"></video><span class="reelTap" id="reelTap" aria-hidden="true"><span class="tri"></span>Play video</span><div class="playCursor" id="playCursor" aria-hidden="true"><span class="pcInner"><span class="tri"></span>Play video</span></div></figure><div class="reelMeta"><span class="csName">Wired to fail</span><span class="csYear">2026</span></div></div></div></section>
   <!-- Task 5: the head-maker and Gradient Lab cards moved to the Play menu (play.html).
        They are makers, not case studies, and Extras is where the reel lives. -->
+ </div>
  </div>
 </section>
  <!-- THE FOOTER CLOSES ON HIS NAME. Jayden asked for "Jayden Betts" at the bottom of
@@ -1620,16 +1722,41 @@ if(location.hash==="#about")location.replace("about.html");</script>
       to this later". The nav status item the research recommended is NOT built; --accent-live
       exists for it whenever he wants it. -->
  <footer class="siteFoot" id="contact" role="contentinfo">
-  <p class="footReach">Thanks for checking out my website &mdash; I&rsquo;m open to full-time roles and would love to chat. Find me on <a class="footIn" href="https://www.linkedin.com/in/jaydenbetts" target="_blank" rel="noopener noreferrer">LinkedIn</a>, <a class="footIn" href="https://www.instagram.com/jaydenleebetts" target="_blank" rel="noopener noreferrer">Instagram</a>, or <a class="footIn" href="mailto:jaydenlbetts@gmail.com">email</a>.</p>
+  <div class="footTop">
+   <div class="footId">
+    <a class="footBrand ctl ctl--quiet" href="index.html" aria-label="Jayden Betts, home"><svg class="footLogo" viewBox="0 0 30 30" aria-hidden="true"><path d="M1 26.3842C3.07605 22.5364 9.00761 17.1494 16.1255 26.3842C23.2434 35.619 14.1981 18.1678 16.1255 8.65665C18.0529 -0.854479 32.3186 -2.22723 28.2852 8.65665C24.2517 19.5405 18.6968 18.261 20.8493 13.2232C23.0018 8.1853 35.3661 26.1679 23.0066 27.4872"/></svg></a>
+    <p class="footStatus">Open to full-time roles.</p>
+    <p class="footCopy">&copy; 2026 Jayden Betts</p>
+   </div>
+   <nav class="footNav" aria-label="Footer">
+    <div class="footCol">
+     <h2 class="footHead" id="footMenu">Menu</h2>
+     <ul class="footList" aria-labelledby="footMenu">
+      <li><a class="footLink ctl ctl--quiet ctl--row" href="index.html#cases">Work</a></li>
+      <li><a class="footLink ctl ctl--quiet ctl--row" href="about.html">About</a></li>
+      <li><a class="footLink ctl ctl--quiet ctl--row" href="play.html">Play</a></li>
+      <li><a class="footLink ctl ctl--quiet ctl--row" href="Jayden-Betts-Resume.pdf" target="_blank" rel="noopener noreferrer" aria-label="Jayden Betts résumé (PDF, opens in a new tab)">Résumé</a></li>
+     </ul>
+    </div>
+    <div class="footCol">
+     <h2 class="footHead" id="footContact">Contact</h2>
+     <ul class="footList" aria-labelledby="footContact">
+      <li><a class="footLink ctl ctl--quiet ctl--row" href="https://www.linkedin.com/in/jaydenbetts" target="_blank" rel="noopener noreferrer">LinkedIn</a></li>
+      <li><a class="footLink ctl ctl--quiet ctl--row" href="https://www.instagram.com/jaydenleebetts" target="_blank" rel="noopener noreferrer">Instagram</a></li>
+      <li><a class="footLink ctl ctl--quiet ctl--row" href="mailto:jaydenlbetts@gmail.com">Email</a></li>
+     </ul>
+    </div>
+   </nav>
+  </div>
   <div class="footMark" aria-hidden="true">Jayden Betts</div>
  </footer>
 <div class="reelOverlay" id="reelOverlay" aria-hidden="true"><button class="reelClose" id="reelClose" type="button" aria-label="Close trailer">Close</button><video class="reelOverlayVid" id="reelOverlayVid" controls playsinline preload="metadata" poster="images/reel_poster.webp"><source src="videos/reel.mp4" type="video/mp4"></video></div>
 <div class="viewCursor" id="viewCursor" aria-hidden="true"><span class="vcInner"><span class="vcArr"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="square" stroke-linejoin="miter"><path d="M12 20V5M5 12l7-7 7 7"/></svg></span>View case study</span></div>
-<!-- The hero/big-head engine. Extracted verbatim from this inline block so play.html can
-     load THE SAME engine and mini-Jayden mirrors the real big head rather than a lookalike.
-     Classic script, no defer: it executes here, in this exact position, before every later
-     inline block -- so its top-level const/let still share one script scope with them. -->
+<!-- The original live portrait engine owns the Home face, eyes, gaze, blink, and moods. -->
+<script>(function(){var root=document.documentElement;addEventListener("pointerdown",function(){root.setAttribute("data-focus-modality","pointer");},{capture:true,passive:true});addEventListener("keydown",function(e){if(e.key==="Tab")root.setAttribute("data-focus-modality","keyboard");},true);})();</script>
 <script src="hero-engine.js"></script>
+<script src="hero-head-transform.js"></script>
+<script src="hero-time.js"></script>
 <script>
 (function(){
  var reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion:reduce)').matches;
@@ -1688,8 +1815,8 @@ if(location.hash==="#about")location.replace("about.html");</script>
   function anchor(){var cw=card.offsetWidth||286,ch=card.offsetHeight||200,off=22,tx=mx+off,ty=my+off; if(tx+cw>window.innerWidth-14)tx=mx-off-cw; if(tx<14)tx=14; if(ty+ch>window.innerHeight-14)ty=window.innerHeight-14-ch; if(ty<14)ty=14; return [tx,ty];}
   function follow(){ if(!active){running=false;return;} cur.style.transform='translate('+mx+'px,'+my+'px)'; var a=anchor(); cardX+=(a[0]-cardX)*0.26; cardY+=(a[1]-cardY)*0.26; card.style.transform='translate('+cardX.toFixed(1)+'px,'+cardY.toFixed(1)+'px)'; requestAnimationFrame(follow); }
   function onMove(e){mx=e.clientX;my=e.clientY;if(vc){vc.style.setProperty('--px',e.clientX+'px');vc.style.setProperty('--py',e.clientY+'px');}}
-  function enter(f,e){var slug=slugOf(f),info=slug&&CSINFO[slug];if(!info)return;active=f;mx=e.clientX;my=e.clientY;vR.textContent=info.role;vP.textContent=info.problem;vS.textContent=info.solution;var a=anchor();cardX=a[0];cardY=a[1];card.style.transform='translate('+cardX.toFixed(1)+'px,'+cardY.toFixed(1)+'px)';cur.style.transform='translate('+mx+'px,'+my+'px)';if(!RM)f.style.cursor='none';card.classList.add('on');if(!RM){cur.classList.add('on');}if(!running){running=true;requestAnimationFrame(follow);}try{if(!RM&&!eventLock&&!CALIB){clearHold();activeHover="smile";showFace("smile");var csw={bearings:'Bears?',ucdavis:'Joy..',apollo:'Motion.',strata:'Motion.',cluster:'Motion.',headmaker:'You..?'}[slug];if(csw)csWordShow(csw);}}catch(_){}}   // project cards: warm smile (like Let's talk) + the Joy../Bears?/Motion. word animation; popcorn stays on the video only
-  function leave(f){if(active!==f)return;active=null;card.classList.remove('on');cur.classList.remove('on');if(vc)vc.classList.remove('on');f.style.cursor='';try{if(!RM){if(activeHover==="smile")activeHover=null;setHold("smile",SMILE_LINGER);resolve();csWordHide();}}catch(_){}}
+  function enter(f,e){var slug=slugOf(f),info=slug&&CSINFO[slug];if(!info)return;active=f;mx=e.clientX;my=e.clientY;vR.textContent=info.role;vP.textContent=info.problem;vS.textContent=info.solution;var a=anchor();cardX=a[0];cardY=a[1];card.style.transform='translate('+cardX.toFixed(1)+'px,'+cardY.toFixed(1)+'px)';cur.style.transform='translate('+mx+'px,'+my+'px)';if(!RM)f.style.cursor='none';card.classList.add('on');if(!RM){cur.classList.add('on');}if(!running){running=true;requestAnimationFrame(follow);}}
+  function leave(f){if(active!==f)return;active=null;card.classList.remove('on');cur.classList.remove('on');if(vc)vc.classList.remove('on');f.style.cursor='';}
   [].slice.call(document.querySelectorAll('.csFrame')).forEach(function(f){f.addEventListener('pointerenter',function(e){enter(f,e);});f.addEventListener('pointermove',onMove);f.addEventListener('pointerleave',function(){leave(f);});});function cardClear(){if(active){leave(active);}}document.addEventListener('mouseleave',cardClear);window.addEventListener('blur',cardClear);window.addEventListener('mouseout',function(e){if(!e.relatedTarget&&!e.toElement){cardClear();}});
  })();
 
@@ -1718,42 +1845,6 @@ if(location.hash==="#about")location.replace("about.html");</script>
  })();
 })();
 
-(function(){
-  var stage=document.getElementById('stageMorph');if(!stage)return;
-  var near=false,raf=0;
-  function check(e){
-    if(window.innerWidth<=760)return;
-    var r=stage.getBoundingClientRect();
-    // proximity zone: within ~180px of the head box
-    var hx0=r.left+r.width*0.22, hx1=r.left+r.width*0.80, hy0=r.top+r.height*0.12, hy1=r.top+r.height*0.91;
-    var pad=90;
-    var inHead=e.clientX>=hx0-pad&&e.clientX<=hx1+pad&&e.clientY>=hy0-pad&&e.clientY<=hy1+pad;
-    // also keep it revealed when approaching or over the button itself (it sits off to the side of the head)
-    var corner=document.querySelector(".faceMoodCorner");
-    var inBtn=false;
-    if(corner){var br=corner.getBoundingClientRect();var bpad=70;inBtn=e.clientX>=br.left-bpad&&e.clientX<=br.right+bpad&&e.clientY>=br.top-bpad&&e.clientY<=br.bottom+bpad;}
-    var inside=inHead||inBtn;
-    if(inside!==near){near=inside;document.body.classList.toggle('moodNear',near);}
-  }
-  window.addEventListener('mousemove',function(e){if(raf)return;raf=requestAnimationFrame(function(){raf=0;check(e);});},{passive:true});function moodClear(){if(near){near=false;document.body.classList.remove('moodNear');}}document.addEventListener('mouseleave',moodClear);window.addEventListener('blur',moodClear);window.addEventListener('mouseout',function(e){if(!e.relatedTarget&&!e.toElement){moodClear();}});
-})();
-
-(function(){
-  if(window.matchMedia&&window.matchMedia('(max-width:760px)').matches)return; // mobile always shows
-  var corner=document.querySelector('.faceMoodCorner');if(!corner)return;
-  // wait for the hero intro to settle, then do a one-time teaching reveal
-  function teach(){
-    document.body.classList.add('moodTeach');
-    setTimeout(function(){document.body.classList.remove('moodTeach');},2200); // show ~2.2s then fade out
-  }
-  // fire once eyes have opened (intro done) — poll for eclosed like the rest of the pipeline
-  var tries=0;
-  var iv=setInterval(function(){
-    tries++;
-    var eye=document.querySelector('.eye');
-    if((eye&&eye.classList.contains('eclosed'))||tries>60){clearInterval(iv);setTimeout(teach,600);}
-  },200);
-})();
 </script>
 <script>
 (function(){ // the crowd in the menu: your saved heads, each removable with one quiet x
@@ -1859,10 +1950,7 @@ if(location.hash==="#about")location.replace("about.html");</script>
  // deliberate -- unloading a running engine mid-session is not worth the complexity.
  var bar=document.getElementById("mhBar"),tog=document.getElementById("headsToggle");
  function headsShown(){try{return localStorage.getItem("hmHeadsOff")!=="1";}catch(_){return true;}}
- function loadEngine(){if(window.__hmLive)return;                       // already running
-  if(document.querySelector('script[data-hm-engine]'))return;           // already in flight
-  if(!readAll().length)return;                                          // nothing to animate
-  var s=document.createElement("script");s.src="play-engine.js";s.setAttribute("data-hm-engine","1");document.head.appendChild(s);}
+ function loadEngine(){}   // Companion animation is Play-only; Home only manages the saved roster.
  function applyHeads(on){document.body.classList.toggle("hmHeadsOff",!on);
   if(tog)tog.setAttribute("aria-checked",on?"true":"false");
   if(on)loadEngine();}
@@ -1929,27 +2017,7 @@ if(location.hash==="#about")location.replace("about.html");</script>
  })();
 })();
 </script>
-<!-- ==== AMBIENT HEADS: the conditional bootstrap ====
-     The engine that wanders the saved heads around the hero used to be 2,700 lines inline in
-     this file; it is play-engine.js now and it is play.html's main event. On HOME it is a
-     garnish, so it is only worth its bytes for a visitor who actually has heads and wants to
-     see them. This gate must not depend on the engine it is deciding whether to load, so it
-     reads localStorage directly -- the same two keys the roster module above reads.
-     Ordering: play-engine.js's mini-Jayden clone path reads #stage, which hero-engine.js owns.
-     hero-engine.js is a plain, non-defer, non-async script tag earlier in the document, so it
-     has already executed by the time this runs; the injected tag can only be later still. ==== -->
-<script>
-(function(){try{
- if(localStorage.getItem("hmHeadsOff")==="1")return;
- var raw=localStorage.getItem("hmCompanions"),a=null;
- if(raw)try{a=JSON.parse(raw);}catch(_){}
- if(!a||!a.length){try{var one=JSON.parse(localStorage.getItem("hmCompanion")||"null");a=(one&&one.cut)?[one]:null;}catch(_){}}   // the single-head legacy key, same fallback readAll() uses
- if(!a||!a.length)return;
- if(document.querySelector('script[data-hm-engine]'))return;
- var s=document.createElement("script");s.src="play-engine.js";s.defer=true;s.setAttribute("data-hm-engine","1");
- document.head.appendChild(s);
-}catch(_){}})();
-</script>
+<!-- Saved companions remain available in Play and Head Maker; Home never boots their engine. -->
 <div class="csBackveil" id="csBackveil" aria-hidden="true"></div>
 <div class="flash" id="flash" aria-hidden="true"></div>
 <!-- The head-maker card reveal lived here: [data-slug=headmaker] sat in a panel that is hidden

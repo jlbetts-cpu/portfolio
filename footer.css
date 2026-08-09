@@ -1,0 +1,279 @@
+/* ═══ THE SITE FOOTER ════════════════════════════════════════════════════════
+   A conventional multi-column footer: an identity block on the left, two link
+   columns on the right, and the closing wordmark beneath them.
+
+   THIS FILE OWNS THE WHOLE COMPONENT. It used to own only colour roles -- the
+   comment at the top read "page files continue to own spacing and layout" --
+   and that is exactly how the footer drifted: seven copies of the same grid,
+   type and state rules living in seven <style> blocks. The pages now own ONE
+   declaration each (margin-top and padding-bottom, because the gap between the
+   last section and the footer is a page decision), and everything visible is
+   here. The markup is byte-identical on all seven pages that carry a footer.
+
+   THE RULE IS "PAGES THAT CAN SCROLL GET THE FOOTER", NOT "TOOLS DON'T HAVE
+   ONE". The old wording said the exception covered play.html, headmaker.html
+   and gradientlab.html alike, and it was wrong about the first one -- play.html
+   has carried a <footer class="siteFoot"> at the end of the Play hub all along.
+   The hub scrolls and reaches it perfectly well; play.css only hides it while a
+   game owns the viewport (body.playViewportOwned), which is correct and stays.
+   Only headmaker.html and gradientlab.html genuinely qualify: both compute
+   overflow:hidden, so a footer there is furniture nobody can reach, and their
+   header Contact control points at index.html#contact instead.
+   The wrong wording is what let play.html sit outside this component for a
+   whole pass without anyone noticing, so it is restated here in the form that
+   can be checked rather than the form that sounded right.
+
+   WHAT SURVIVED FROM THE OLD FOOTER, AND WHERE IT WENT.
+   1. "Open to full-time roles." -- Jayden is job-hunting and asked for this
+      line explicitly, so it is the highest-value thing in the footer. It is now
+      the identity block's headline, in the slot the reference gives to the
+      name: mark, status, copyright. It is a <p>, not a link and not a pill --
+      a status, in ink, at the rank the sentence deserves.
+   2. The large light-grey wordmark -- "a light grey and nice and big", his
+      words, and the one typographic moment his name still gets anywhere on the
+      site. It stays as its own band UNDER the columns rather than collapsing
+      into the identity block, because at --fs-display it cannot be a column
+      item, and shrinking it to fit one would delete the thing he liked. The
+      identity block carries his name in its legal form ("© 2026 Jayden Betts")
+      and the band carries it as the sign-off, which is the same division a
+      company footer makes between its copyright line and its logotype.
+
+   TWO COLUMNS, NOT THREE. The reference runs Menu / Socials / Contact Me. With
+   this site's real content that is 3 / 2 / 1, and a heading over a single link
+   is wider than the link it introduces -- the column reads as an error. The
+   links regroup with nothing invented and nothing dropped: Menu (Work, About,
+   Play, Résumé) and Contact (LinkedIn, Instagram, Email -- every channel he
+   answers on). 4 and 3, both headings earned, and the second heading is the
+   word the header's Contact control has always pointed at (#contact is on the
+   <footer> itself).
+   THE RÉSUMÉ ROW WAS ALMOST NOT BUILT. The brief said to invent no Resume link
+   because there is no Resume page, and that is true -- but Jayden-Betts-Resume.pdf
+   is a 105 KB file that ships and that about.html has always linked, so the row
+   is a real destination and a footer is where a recruiter looks for it. Its
+   accessible name is copied word for word from that link, because the aria-label
+   is the ONLY place on this whole site that says "PDF": the file icon and the
+   arrow next to it are .abLink furniture that all four of its links wear, so
+   neither is a format signal and copying either would have invented one.
+   ════════════════════════════════════════════════════════════════════════════ */
+
+/* THE FOOTER IS ITS OWN MEASURE. container-type:inline-size makes 100cqw mean
+   "the footer's content width" on every page that carries one -- on index.html
+   .siteFoot holds the page gutter itself, on about.html and the five case
+   studies it sits inside .wrap which has already applied it, and the content box
+   is the page measure either way. That is what lets .footMark below fit the
+   measure with no JS and no per-page number. (headmaker.html already uses the
+   same technique for its stage, so this is not a new idea in the codebase.)
+   overflow-x:CLIP, not hidden: it is a guard for one failure only -- if
+   Instrument Sans does not load, the fallback's metrics are wider and a
+   nowrap display string would push the page sideways. clip does not create a
+   scrollport, so "nothing scrolls that should not" still holds; hidden would. */
+.siteFoot{color:var(--theme-ink);container-type:inline-size;overflow-x:clip}
+
+/* THE HAIRLINE SITS ON .footTop, NOT ON .siteFoot. index.html's footer is a
+   child of <body> and carries the page gutter itself; on about.html and the
+   five case studies the footer sits inside .wrap, which has already applied
+   it. A border on the footer box would therefore draw a line 80px wider on one
+   page than on the other six. .footTop is the CONTENT box everywhere, so the
+   line is always exactly the page measure -- which is also what makes it land
+   flush with the section above it on each page.
+   A hairline, not a shadow: chrome on this site separates with a 1px rule and
+   never with elevation. */
+/* 2fr / 1fr: the identity block takes two thirds of the measure and the two link
+   columns share the last third. Measured against the reference set at 1440 that
+   puts the columns at ~154px, between Linear's 160px lists and Josh Comeau's
+   104-160px -- narrow columns are the convention, wide ones look like a sitemap.
+   Both tracks are minmax(0,Nfr) and therefore sized by the GRID, not by their
+   contents, which is what lets a row go bold under the pointer without shoving
+   the column beside it. */
+.footTop{
+ display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:var(--sp-48-80);
+ align-items:start;padding-block:var(--sp-48-80) var(--sp-32-64);
+ border-top:var(--hair-w) solid var(--theme-rim)
+}
+
+/* ── The identity block ───────────────────────────────────────────────────── */
+.footId{display:grid;justify-items:start}
+
+/* The mark is a link home and therefore a target: it takes the control system's
+   44px rung from .ctl. --ctl-pad is zeroed through the custom property rather
+   than by re-declaring padding, so the control is CONSUMED and not redrawn --
+   and because a custom property set on an ancestor always beats a stylesheet
+   further down the cascade, this holds on index.html too, where controls.css
+   happens to load after this file. min-width completes the 44 x 44 box that a
+   22px mark alone would not fill. */
+.footBrand{min-width:var(--ctl-h);justify-content:flex-start;--ctl-pad:0;color:var(--ctl-ink-strong)}
+.footLogo{
+ width:var(--ico-mark);height:var(--ico-mark);flex:0 0 var(--ico-mark);
+ fill:none;stroke:currentColor;stroke-width:var(--ico-mark-stroke);stroke-linecap:round;
+ transition:stroke-width var(--dur-state) var(--ease-out)
+}
+/* The header's mark answers a pointer by thickening its stroke, not by lighting
+   a ground. Same mark, same answer. */
+.footBrand:hover .footLogo,.footBrand:focus-visible .footLogo{stroke-width:var(--ico-mark-stroke-strong)}
+
+/* THE STATUS LINE. --fs-lead is the rung above body and below a heading, which
+   is the rank this sentence has: it is the loudest thing in the footer without
+   pretending to be a section title. 600 and ink against the 400/muted links so
+   the eye lands here first. No dot, no ring, no wash -- the hero's availability
+   line had all three and they were deleted on his word; re-introducing the
+   ornament in a new place would reverse that decision by the back door. */
+.footStatus{
+ font-family:var(--sans);font-weight:600;font-size:var(--fs-lead);
+ line-height:var(--lh-head);letter-spacing:var(--tr-title);color:var(--theme-ink);
+ margin:var(--sp-8) 0 0;max-width:24ch;text-wrap:balance
+}
+.footCopy{
+ font-family:var(--sans);font-weight:400;font-size:var(--fs-label);
+ line-height:var(--lh-note);letter-spacing:var(--tr-flat);color:var(--theme-muted);
+ margin:var(--sp-12) 0 0
+}
+
+/* ── The link columns ─────────────────────────────────────────────────────── */
+.footNav{
+ display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+ gap:var(--sp-32-64);--ctl-pad:0
+}
+.footCol{min-width:0}
+/* SAME SIZE AS THE LINKS, SENIOR BY WEIGHT AND INK ALONE. This is the one thing
+   every reference agrees on and the thing that is easiest to get wrong: Linear
+   sets heading and link both at 13px (510 vs 400), Apple both at 12px (600 vs
+   400), Vercel both at 14px (500 vs 400). A heading SMALLER than the links it
+   introduces -- the first cut of this file, at --fs-label 13 over --fs-small 15
+   -- has no precedent in any of them. So: --ctl-fs on both, ink against muted,
+   600 against 400. The site has two weights and this needs exactly two.
+   No caps and no tracking: sentence case matches .abLabel on About, and the
+   uppercase micro-cap treatment belongs to the portfolios that use it INSTEAD
+   of a weight difference, not on top of one.
+   --sp-16 to the first row is ~27px optically once the 44px row's 11px of
+   half-leading is counted -- level with the ~26px between one row's text and
+   the next. Heading-to-list should never read tighter than list-to-list. */
+.footHead{
+ font-family:var(--sans);font-weight:600;font-size:var(--ctl-fs);
+ line-height:var(--lh-note);letter-spacing:var(--tr-body);color:var(--theme-ink);
+ margin:0 0 var(--sp-16)
+}
+.footList{list-style:none;margin:0;padding:0}
+/* A COLUMN OF STANDALONE LINKS IS NOT PROSE, so the inline exception does not
+   apply to it. .footIn used to take padding-block:--sp-10 and land at 41-47px,
+   which was correct while these were words inside a sentence at a 25.5px line
+   pitch. As rows they get the real thing: .ctl's --ctl-h, 44px, measured, with
+   the full column track as the hit width.
+   THIS IS DELIBERATELY LOOSER THAN THE REFERENCES. Measured 2026-08-08, footer
+   link pitch runs 24px at Stripe, 26 at Apple, 28 at Vercel, 30 at Linear --
+   none of the four reaches 44, because 44 x 44 is WCAG 2.5.5 (AAA) and 2.5.8
+   (AA) only asks for 24 x 24. 44 costs this footer about 50px of height per
+   column and buys a target a thumb cannot miss. On a site whose whole purpose
+   is to get someone to press "Email", that is the right side to err on.
+
+   .footLink HAS NO RULE OF ITS OWN, AND THAT IS THE POINT. Height, padding,
+   font, ink and every state come from .ctl.ctl--quiet.ctl--row; the class is a
+   hook for this comment and for the contract tool, nothing more. An earlier cut
+   added `font-weight:600` on hover here. It went, for a reason worth recording:
+   .footHead is 600 ink at exactly --ctl-fs, so a link that went 600 ink on
+   hover became pixel-for-pixel its own column heading, and the strongest
+   signal in the column started meaning two different things. Ink alone carries
+   hover -- which is also what Stripe, Linear, Apple and Vercel all do. */
+
+/* ── The closing wordmark: the plinth the footer stands on ────────────────── */
+/* JAYDEN'S COMPLAINT, AND THE ANSWER. He asked for the big name to go, reversed
+   within minutes, and said why: "keep the big Jayden Betts, but I would make it
+   feel more cohesive -- right now it just feels like it's there, not even
+   pertaining to anything." That is not a size note and not a placement note.
+   Sized by --fs-display it set 919px of ink into a 1200px measure, so its right
+   edge landed 280px short of the column above it and matched no other edge on
+   the page. It was ATTACHED TO NOTHING, and it read as decoration.
+   THE FIX IS AN EDGE, NOT A SIZE. The wordmark now spans the footer's measure
+   exactly: its left edge is the identity mark's left edge and its right edge is
+   the Contact column's right edge, so both verticals that bound the footer run
+   through it. Everything above stands on it. It is the same colour as the
+   hairline that opens the footer (--theme-rim), so the component is bracketed
+   top and bottom by one value -- and because that value is a --theme-* token it
+   takes the time-of-day tint with everything else on this branch, which is the
+   second direction the brief offered, had for free.
+   The third -- a companion head standing on the wordmark -- was rejected: it
+   answers "this element is decorative" by adding a second decorative element,
+   it needs the head rig on all seven pages including five case studies that
+   load none of it, and the heads' contact shadows are the one sanctioned
+   exception to the no-shadows rule. Spending it on a footer devalues it.
+
+   HOW THE FIT WORKS. --foot-mark-fit is a MEASURED FONT METRIC, not a design
+   value: "Jayden Betts" set in Instrument Sans 600 at --tr-display advances
+   5.4739em, measured live off a Range over the text node at 1440. Dividing the
+   container measure by it gives the size at which the run lands flush on both
+   edges. It is unitless and scales with the string, the weight and the tracking
+   -- change any of those three and this number is re-measured, which is why it
+   is named and commented and not inlined.
+   NO CLAMP AND NO --fs-display CEILING, DELIBERATELY. Capping at the scale's top
+   rung (168px) would put the ink back at 919px in a 1200px measure at 1440 --
+   i.e. it would restore the exact defect this rule exists to remove. The
+   wordmark is not text on the type scale; like --rail-w it is a LAYOUT-DERIVED
+   dimension, and its real ceiling is the measure: .wrap tops out at 1200, so
+   the size tops out with it at ~218px and stops. --fs-display stays the
+   authority for display TYPE, which this is not.
+   THE TOP MARGIN IS AN OPTICAL TRIM, NOT A GAP. Even at --lh-display the line
+   box carries .029em of ascender space above the cap line -- measured off the
+   font's own bounding box at 219px, not guessed -- so .footTop's 64px
+   padding-block-end paints as 70. Removing exactly that much makes the
+   specified gap the gap you see, which is the only way the footer's vertical
+   rhythm means anything: 64px desktop / 32px phone, straight off --sp-32-64,
+   the same rung as everything else in here. Being in em it re-derives itself at
+   every width; nothing about this is a breakpoint.
+   Decorative and marked so: an <h2> reading "Jayden Betts" would invent a
+   section, land in every screen-reader heading list, and say his name a fourth
+   time after <title>, the JSON-LD Person and the mark's aria-label. */
+.footMark{
+ --foot-mark-fit:5.4739;
+ font-family:var(--sans);font-weight:600;
+ font-size:calc(100cqw / var(--foot-mark-fit));
+ line-height:var(--lh-display);letter-spacing:var(--tr-display);color:var(--theme-rim);
+ margin:-.029em 0 0;white-space:nowrap;
+ -webkit-user-select:none;user-select:none
+}
+
+/* ── Night ───────────────────────────────────────────────────────────────── */
+/* Nothing here is a dark-mode override: every colour above already resolves
+   through --theme-*, so the footer follows the site-wide time-of-day theme into
+   every state without a second set of rules. This block only makes the change
+   travel at the theme's own pace. The links are left out on purpose -- .ctl
+   already owns their transition, and a 400ms colour on hover would feel stuck. */
+.theme-ready .siteFoot,.theme-ready .footStatus,.theme-ready .footCopy,
+.theme-ready .footHead,.theme-ready .footMark{
+ transition:color var(--theme-duration) var(--ease-out)
+}
+.theme-ready .footTop{transition:border-color var(--theme-duration) var(--ease-out)}
+
+/* ── The phone ───────────────────────────────────────────────────────────── */
+/* 880 is where the --sp ladder itself collapses, so the footer stacks on the
+   same line the spacing system does rather than inventing a second breakpoint.
+   THE ORDER IS SOURCE ORDER, deliberately: the header's Contact control scrolls
+   #contact -- the <footer> element -- to the top of the viewport, so the first
+   thing a visitor who asked for contact sees has to be "Open to full-time
+   roles.", not a list of links. It also keeps reading order and tab order the
+   same thing, which a reordered grid would not.
+   The two link columns stay side by side rather than stacking into one tall
+   ribbon: at 44px a row, the taller column is 4 rows = 176px, and the 167px
+   tracks measured at 390 hold "Instagram" and "Résumé" with room to spare.
+   Stacking them would make one 308px ribbon of identical rows -- longer to
+   thumb past and no easier to read. */
+/* THE LAPTOP BAND, 881-1000. 2fr/1fr is right once the measure is ~1120 and up;
+   at 900 it leaves the identity block 493px it has no use for and squeezes the
+   columns to 91. Even tracks give them 153 and cost the identity nothing it was
+   using. 1000 is a rung the rest of the site already turns on. */
+@media(max-width:1000px){
+ .footTop{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+}
+@media(max-width:880px){
+ .footTop{grid-template-columns:minmax(0,1fr);gap:var(--sp-32-48)}
+ .footNav{grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--sp-24)}
+}
+
+@media(prefers-reduced-motion:reduce){
+ .theme-ready .siteFoot,.theme-ready .footStatus,.theme-ready .footCopy,
+ .theme-ready .footHead,.theme-ready .footMark,.theme-ready .footTop,
+ .footLogo{transition-duration:1ms}
+}
+
+@media(forced-colors:active){
+ .footTop{border-top-color:CanvasText}
+ .footMark{color:GrayText}
+}

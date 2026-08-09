@@ -55,20 +55,20 @@
  // in a separate home-only module (index.html:4260-4462) mixed in with mood-word triggers
  // (startRain/moodEat/startParty/startLove) that have no meaning without the hero headline.
  // Every one of those functions is unreachable on play.html, so it is not portable, but SOME
- // open/close glue is required or #moodBtn does nothing: .moodMenu's visibility is entirely
- // gated on body>.moodbar.open (play.css:152-153, carried over from index.html). Minimal
+ // Open/close glue for the hidden game launcher remains behavior-only. The visible portrait
+ // mood menu is owned by hero-engine.js and uses separate canonical IDs. Minimal
  // version only: click-to-toggle, outside-click-to-close, Escape-to-close. No hover-intent, no
  // mobile edge-clamping, no chevron-rotation choreography -- home's menu carries four mood rows
  // plus a saved-heads grid and can run off the top of a short phone screen; this one is three
  // rows and sits in a fixed top-right corner with room to open downward, so the fancier
  // clamping home needs was solving a problem this menu doesn't have.
  (function(){
-  var bar=document.getElementById("moodbar");if(!bar)return;
-  var btn=document.getElementById("moodBtn");
+  var bar=document.getElementById("gamebar");if(!bar)return;
+  var btn=document.getElementById("gameBtn");
   function closeM(){bar.classList.remove("open");if(btn)btn.setAttribute("aria-expanded","false");}
   function openM(){bar.classList.add("open");if(btn)btn.setAttribute("aria-expanded","true");}
   if(btn)btn.addEventListener("click",function(e){e.stopPropagation();
-   if(document.body.classList.contains("hmTour")){closeM();return;}   // tournament disables moodBtn (index.html:8545) -- honor that here too
+   if(document.body.classList.contains("hmTour")){closeM();return;}   // tournament disables gameBtn -- honor that here too
    bar.classList.contains("open")?closeM():openM();});
   document.addEventListener("click",function(e){if(bar.classList.contains("open")&&!bar.contains(e.target))closeM();});
   addEventListener("keydown",function(e){if(e.key==="Escape"&&bar.classList.contains("open"))closeM();});
@@ -91,7 +91,7 @@
    if(on){bi.style.display="none";}   // a game is running: only End game belongs here
    else{bi.style.display="flex";bi.style.opacity=few?"0.38":"";bi.style.pointerEvents=few?"none":"";bi.setAttribute("aria-disabled",few?"true":"false");}});   // even one head can play now -- mini-Jayden makes the second
   ["soccerTeams","lavaTeams"].forEach(function(tid){var tb=document.getElementById(tid);if(tb){if(on){tb.style.display="none";}else{tb.style.display="";tb.style.opacity=few?"0.38":"";tb.style.pointerEvents=few?"none":"";}}});   // the team-picker icons ride with the Soccer + Floor-is-Lava rows
-  var offNow=on;[].forEach.call(document.querySelectorAll(".moodMenu .moodItem[data-mood], #addPlaceholder, .moodMenu .moodGo"),function(el){
+  var offNow=on;[].forEach.call(document.querySelectorAll(".gameMenu .moodItem[data-mood], #addPlaceholder, .gameMenu .moodGo"),function(el){
    if(offNow)el.setAttribute("aria-disabled","true");else el.removeAttribute("aria-disabled");});   // the dim is CSS; this is what a screen reader hears
   var eg=document.getElementById("endGame");if(eg)eg.style.display="none";   // End now lives on the scoreboard, not the menu
   syncMoodSeps();}
@@ -100,7 +100,7 @@
     dots, no "Add an egghead" group to separate from), so this is a no-op here -- kept verbatim
     so a later pass that adds dividers back gets the behavior for free. ---- */
  function syncMoodSeps(){
-  var mm=document.getElementById("moodMenu");if(!mm)return;
+  var mm=document.getElementById("gameMenu");if(!mm)return;
   var kids=[].slice.call(mm.children),last=null,before=false,i,el;
   var shown=function(e){if(e.hasAttribute("hidden"))return false;
    if(getComputedStyle(e).display==="none")return false;
@@ -114,7 +114,7 @@
 
  /* ---- THE HUB. play.html's resting state: a title block and four cards, shown exactly
     when no game is running and no sub-surface is up. It is a SECOND object, not a rebuild
-    of the corner menu -- #moodBtn/#moodbar keep their ids and their handlers because the
+    of the hidden game launcher -- #gameBtn/#gamebar keep their ids and handlers because the
     tournament disables and restores that button by id (play-tournament.js:1163,1183), and
     every card below fires the same launcher the menu row fired. The corner bar is only
     hidden (play.html's own style block), never rewired.
@@ -124,7 +124,7 @@
     of "can you play yet" to drift. ---- */
  var _hubWas=null;
  function syncHub(on,few){
-  var hub=document.getElementById("pHub");if(!hub)return;
+  var hub=document.getElementById("games");if(!hub)return;
   // A game starting is the one thing that can outrank the team screen: the tournament and
   // the corner launchers can both begin a match without going through startWithTeams(), and
   // a picker left floating over a live pitch is a stuck screen with no way out (its Back
@@ -241,23 +241,43 @@
     108px wide at 1280 and 64px at 390, so five is 540px across 1280 (a loose group, still
     clearly several people) and 320px across 390 (a row that fills the phone without
     stacking). Four looked thin at 1280; six touched at 390. ---- */
- var _ph=[],_phTries=0;
+ var _ph=[],_phTries=0,_bootWait=0,_bootFallback=0,_bootWatch=0;
+ /* Play's arena is hidden only until every initial head has both reached the engine's seated
+    state and decoded its cutout. A saved data URL can be long enough to pass the storage filter
+    and still be undecodable, so an image error (or a bounded four-second wait) removes only the
+    failed saved heads and lets the fallback crowd take their place. The second deadline is the
+    final safety valve: even a broken bundled fallback may never strand the whole page hidden. */
+ function showPlay(){if(_bootWatch){clearTimeout(_bootWatch);_bootWatch=0;}try{if(window.__hmLobbyThrowIn)window.__hmLobbyThrowIn();}catch(_){}requestAnimationFrame(function(){document.body.classList.remove("playBooting");document.body.setAttribute("data-play-ready","true");});}
+ function watchPlayBoot(){if(!_bootWatch)_bootWatch=setTimeout(showPlay,8000);}
+ function recoverPlayBoot(nodes,expected){
+  if(_bootFallback){showPlay();return;}
+  _bootFallback=1;
+  var roster=readAll(),keep=[],i,img;
+  for(i=0;i<roster.length;i++){
+   img=nodes[i]&&nodes[i].querySelector("img");
+   if(i<expected&&img&&img.naturalWidth)keep.push(roster[i]);
+   else try{if(window.__hmKill)window.__hmKill(roster[i].cut);}catch(_){}}
+  writeRoster(keep);_bootWait=0;
+  if(keep.length)releasePlayBoot(keep.length);else seedPlaceholders();}
+ function releasePlayBoot(expected){
+  if(_bootWait||!document.body.classList.contains("playBooting")||expected<1)return;
+  _bootWait=1;var deadline=performance.now()+4000;
+  (function ready(){
+   var nodes=[].slice.call(document.querySelectorAll("#playArena [data-hm-boot-ready]"));
+   var initial=nodes.slice(0,expected);
+   var settled=initial.length>=expected&&initial.every(function(node){var img=node.querySelector("img");return !!(img&&img.complete);});
+   var broken=initial.some(function(node){var img=node.querySelector("img");return !!(img&&img.complete&&!img.naturalWidth);});
+   if((settled&&broken)||performance.now()>=deadline){recoverPlayBoot(nodes,expected);return;}
+   var painted=initial.length>=expected&&initial.every(function(node){var img=node.querySelector("img");return !!(img&&img.complete&&img.naturalWidth);});
+   if(!painted){requestAnimationFrame(ready);return;}
+   showPlay();
+  })();}
  function seedPlaceholders(){
   if(readAll().length)return;                       // the visitor has heads of their own: theirs, not these
   if(_ph.length)return;                             // idempotent -- battleGate ticks every 400ms
   var EGG=window.__EGGHEAD;if(!EGG||!EGG.cut)return;
-  /* THE ENGINE IS NOT UP YET -- AND ON A TRUE FIRST VISIT IT NEVER WILL BE.
-     play-engine.js:13 is `if(!list.length)return;`: the whole companion IIFE bails when
-     hmCompanions is empty, so on a first visit __hmSpawnOne, __hmLive, __hmSoccerStart and
-     __hmFillerAdd are ALL undefined -- verified in the browser with storage cleared. That is
-     a bigger finding than these placeholders and it is not in this lane: it means "Play a
-     match" could never have worked on a first visit, with or without scenery.
-     So this retries for ~5s and then stops rather than spinning a timer forever. The moment
-     the engine initialises with an empty roster (one change, play-engine.js:13 -- see the
-     report), these spawn with no further work here. Deliberately NOT worked around by
-     writing the eggs to localStorage to get the engine to boot: that is the one thing these
-     must never do, and a write-then-delete still leaves a window where a reload strands five
-     strangers in the visitor's roster. */
+  /* The engine exports the empty-roster spawn API before this script runs. Keep the bounded
+     retry as a defensive load-order guard, but never write scenery into localStorage. */
   if(!window.__hmSpawnOne){if(_phTries++<40)setTimeout(seedPlaceholders,120);return;}
   var N=5,i;
   for(i=0;i<N;i++)(function(slot){
@@ -266,10 +286,11 @@
     // the same imperceptible nudge __hmAddEgghead uses: readAll()-style de-dupe keys on
     // marks+eyes as well as the image, and these must stay five distinct heads
     if(eyes[0])eyes[0].x+=(slot+1)*0.0004;
-    var data={cut:cut,eyes:eyes,marks:EGG.marks,slot:slot,__ph:1};
+    var data={cut:cut,eyes:eyes,marks:EGG.marks,slot:slot,__ph:1,__bootSeated:1,__bootTotal:N};
     _ph[slot]=data;
     try{window.__hmSpawnOne(data,slot);}catch(_){}
     _bgLast="";battleGate();                        // the crowd changed the head count: re-gate now, not in 400ms
+    if(_ph.filter(Boolean).length===N)releasePlayBoot(N);
    });})(i);}
  /* The moment a real head arrives, the scenery leaves -- storage and the planet must never
     disagree about who is standing there. */
@@ -291,6 +312,8 @@
    try{if(window.__hmSpawnOne)window.__hmSpawnOne(data,arr.length-1);}catch(_){}});};
 
  battleGate();setInterval(battleGate,400);
+ watchPlayBoot();
+ var _savedAtBoot=readAll().length;if(_savedAtBoot)releasePlayBoot(_savedAtBoot);
  seedPlaceholders();
  /* THE 400ms POLL IS TOO SLOW FOR A GROUND SWAP. Everything the gate used to drive was a
     dim or a hide, where a late tick is invisible. The page's ground and the header's
@@ -304,19 +327,19 @@
     makes the re-entrant call a no-op the moment nothing has actually changed. */
  try{new MutationObserver(function(){battleGate();})
   .observe(document.body,{attributes:true,attributeFilter:["class"]});}catch(_){}
- function closeMenuBar(){var mb=document.getElementById("moodbar");if(mb)mb.classList.remove("open");var mbt=document.getElementById("moodBtn");if(mbt)mbt.setAttribute("aria-expanded","false");}
+ function closeMenuBar(){var mb=document.getElementById("gamebar");if(mb)mb.classList.remove("open");var mbt=document.getElementById("gameBtn");if(mbt)mbt.setAttribute("aria-expanded","false");}
  var bg=document.getElementById("battleGo");
  if(bg)bg.addEventListener("click",function(){
   var rc=readAll().length;if(rc<1||gameOn())return;
   window.__hmLavaTeams=false;   // the plain button is a solo free-for-all (teams are the opt-in via the teams icon)
   if(rc%2===1&&window.__hmFillerAdd)window.__hmFillerAdd();   // odd sides -> mini-Jayden steps in
   window.__hmCrowd=rc+(rc%2===1?1:0);   // seed the crowd size NOW so the lava's first rise is tuned to the real player count (not a stale/default value)
-  window.__hmBattleReq=performance.now();document.body.classList.add("hmBattle");
+  if(window.PlayViewportOwner)window.PlayViewportOwner.enter("battle");window.__hmBattleReq=performance.now();document.body.classList.add("hmBattle");
   if(window.__hmNewArena)window.__hmNewArena();   // lay the random arena BEFORE the heads scatter onto it
   closeMenuBar();battleGate();});
  var sg=document.getElementById("soccerGo");
  if(sg)sg.addEventListener("click",function(){
-  var rc=readAll().length;if(rc<1||gameOn())return;
+  var rc=gameCount();if(rc<1||gameOn())return;
   if(rc%2===1&&window.__hmFillerAdd)window.__hmFillerAdd();   // add BEFORE kickoff so the teams count him
   try{if(window.__hmSoccerStart)window.__hmSoccerStart();}catch(_){}closeMenuBar();battleGate();});
  var tg=document.getElementById("tourGo");
@@ -376,7 +399,7 @@
   setTimeout(function(){try{if(window.__hmRaceStart)window.__hmRaceStart();}catch(_){}},_dly);closeMenuBar();battleGate();});
  // End game retired from the menu -- it lives on each game's own scoreboard, beside the thing it controls
 
- var bar=document.getElementById("moodbar");if(bar)bar.addEventListener("click",function(){setTimeout(function(){battleGate();},60);});   // home also called render() here to refresh #moodHeads; play.html has no roster grid to refresh
+ var bar=document.getElementById("gamebar");if(bar)bar.addEventListener("click",function(){setTimeout(function(){battleGate();},60);});
 
  // --- THE TEAM SCREEN: pick sides in one tap; heads preview their team colour live ---
  /* PROMOTED, NOT REDESIGNED. This was a 300px popover pinned to the bottom-right corner.
@@ -392,7 +415,7 @@
     as you pick. That anticipation beat is the whole point and it cost nothing new.
     THE CSS MOVED TO play.html's style block, where the rest of the hub's rules live (see
     the header on that block for why it is not in play.css this pass). What is left here is
-    the corner menu's own two rules: #moodbar is display:none on play.html now, but the
+    the hidden game launcher's own two rules: #gamebar is display:none on play.html, but the
     element and its ids stay in the DOM for the tournament, so its styling stays with it. */
  (function(){
   var teamsBtn=document.getElementById("soccerTeams");if(!teamsBtn)return;
@@ -566,7 +589,9 @@
      (play-engine.js:434), so dispatching one synthetic resize is the whole handoff --
      no engine edit, and every head re-lands on one shared floor line. The rAF wait is
      because the class has to have been applied and laid out before the engine measures. */
-  function stageShift(on){document.body.classList.toggle("pTeamOn",on);
+  function stageShift(on){
+   if(on){if(window.PlayViewportOwner)window.PlayViewportOwner.enter("picker");document.body.classList.add("pTeamOn");}
+   else{document.body.classList.remove("pTeamOn");if(window.PlayViewportOwner)window.PlayViewportOwner.leave("picker");}
    requestAnimationFrame(function(){try{dispatchEvent(new Event("resize"));}catch(_){}});}
   function openTray(m){if(gameOn())return;mode=(m==="lava")?"lava":"soccer";activeTrig=(mode==="lava"&&lavaBtn)?lavaBtn:teamsBtn;ensureSel();open=true;teamOpen=true;syncGlobal();applyPreview();
    if(host)host.hidden=false;renderTray();
@@ -582,12 +607,13 @@
    if(teamsBtn)teamsBtn.setAttribute("aria-expanded","false");if(lavaBtn)lavaBtn.setAttribute("aria-expanded","false");}
   addEventListener("keydown",function(e){if(e.key==="Escape"&&open)closeTray();});
   function startWithTeams(){syncGlobal();open=false;teamOpen=false;window.__hmTeamPreview=null;if(tray&&!host)tray.classList.remove("open");
-   // The arena goes back to its full band BEFORE kickoff, and SYNCHRONOUSLY -- the launcher
-   // below runs on this same tick and lays the pitch out against whatever .hero measures
-   // then, so the rAF-deferred version stageShift() uses would have built the match inside
-   // the shrunken band and only corrected it a frame later.
-   document.body.classList.remove("pTeamOn");try{dispatchEvent(new Event("resize"));}catch(_){}
-   var rc=heads().length;if(rc<1||gameOn())return;
+   var rc=heads().length;if(rc<1||gameOn()){stageShift(false);battleGate();return;}
+   if(window.PlayViewportOwner){
+    if(mode==="lava")window.PlayViewportOwner.enter("battle");
+    else window.PlayViewportOwner.enter("soccer");
+   }
+   document.body.classList.remove("pTeamOn");
+   if(window.PlayViewportOwner)window.PlayViewportOwner.leave("picker");
    if(rc%2===1&&window.__hmFillerAdd)window.__hmFillerAdd();
    if(mode==="lava"){window.__hmLavaTeams=true;window.__hmBattleReq=performance.now();document.body.classList.add("hmBattle");if(window.__hmNewArena)window.__hmNewArena();}   // Floor is Lava, but in fixed teams
    else{window.__hmLavaTeams=false;try{if(window.__hmSoccerStart)window.__hmSoccerStart();}catch(_){}}

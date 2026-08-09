@@ -1,0 +1,385 @@
+/* Shared control foundation. Geometry, material, state, and motion live here;
+   page styles may position a control but do not redraw it. */
+.ctl{
+ display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;
+ min-height:var(--ctl-h);padding-block:0;padding-inline:var(--ctl-pad);gap:var(--ctl-gap);
+ border:0;border-radius:var(--ctl-r);corner-shape:var(--corner);background:none;box-shadow:none;
+ font-family:var(--sans);font-size:var(--ctl-fs);font-weight:400;line-height:var(--lh-flat);
+ letter-spacing:var(--tr-body);color:var(--ctl-ink);white-space:nowrap;text-decoration:none;
+ position:relative;cursor:pointer;-webkit-tap-highlight-color:transparent;filter:none;
+ transition-property:color,background-color,box-shadow,text-decoration-color,transform;
+ transition-duration:var(--dur-state-out);transition-timing-function:var(--ease-out)
+}
+.ctl .gIco,.ctl .uiIcon{width:var(--ico-md);height:var(--ico-md);flex:0 0 var(--ico-md)}
+.ctl:hover,.ctl:focus-visible,.ctl[aria-selected="true"],.ctl[aria-current],
+.ctl[aria-expanded="true"],.ctl[aria-pressed="true"]{transition-duration:var(--dur-state)}
+.ctl:active{transition-duration:var(--dur-press);transform:scale(var(--press-scale))}
+.ctl:focus-visible{outline:var(--focus-w) solid var(--ctl-focus);outline-offset:var(--sp-2)}
+.ctl:focus:not(:focus-visible){outline:none}
+.ctl[disabled],.ctl[aria-disabled="true"]{opacity:var(--ctl-disabled-o);cursor:default}
+.ctl[disabled]:active,.ctl[aria-disabled="true"]:active{transform:none}
+
+.ctl--primary{background:var(--ctl-primary-ground);color:var(--ctl-primary-ink);box-shadow:var(--ctl-rim)}
+.ctl--primary:hover,.ctl--primary:focus-visible,.ctl--primary:active{
+ background:var(--ctl-primary-ground-hover);color:var(--ctl-primary-ink);box-shadow:var(--ctl-rim-strong)
+}
+.ctl--secondary,.ctl--icon{
+ background:var(--ctl-ground);color:var(--ctl-ink);box-shadow:var(--ctl-rim)
+}
+/* aria-pressed sits in this list beside aria-expanded because a toggle button IS
+   a selection: the two differ in what they announce, not in what they look like.
+   Without it a latched control had no resting "on" appearance in the library, and
+   headmaker.html grew a private `.isOn` rule to supply one. */
+.ctl--secondary:hover,.ctl--secondary:focus-visible,.ctl--secondary[aria-expanded="true"],
+.ctl--secondary[aria-pressed="true"],
+.ctl--icon:hover,.ctl--icon:focus-visible,.ctl--icon[aria-expanded="true"],
+.ctl--icon[aria-pressed="true"]{
+ background:var(--ctl-ground-hover);color:var(--ctl-ink-strong);box-shadow:var(--ctl-rim-strong)
+}
+.ctl--icon{width:var(--ctl-h);height:var(--ctl-h);min-width:var(--ctl-h);padding:0}
+.ctl--quiet{background:none;color:var(--ctl-ink);box-shadow:none}
+.ctl--quiet:hover,.ctl--quiet:focus-visible,.ctl--quiet[aria-current],
+.ctl--quiet[aria-selected="true"]{background:none;color:var(--ctl-ink-strong)}
+.ctl--row{width:100%;justify-content:flex-start;text-align:left}
+.ctl--choice{padding-left:var(--sp-32)}
+.ctl--choice[aria-checked="true"]{color:var(--ctl-ink-strong);font-weight:600}
+.ctl--choice[aria-checked="true"]::before{
+ content:"✓";position:absolute;left:var(--sp-10);font:inherit;color:currentColor
+}
+.ctl--sm{min-height:var(--ctl-h-sm);padding-inline:var(--ctl-pad-sm);gap:var(--ctl-gap-sm);font-size:var(--ctl-fs-sm)}
+.ctl--sm::after{content:"";position:absolute;top:50%;left:0;right:0;height:var(--ctl-h);transform:translateY(-50%)}
+.ctl--sm .gIco,.ctl--sm .uiIcon{width:var(--ico-sm);height:var(--ico-sm);flex:0 0 var(--ico-sm)}
+/* A control that owns its row rather than sitting in one. `display:flex` because
+   an inline-flex box at width:100% still carries the inline box's baseline gap. */
+.ctl--block{display:flex;width:100%}
+
+/* THE FIELD. The library had no form primitive at all, and that absence is the
+   documented reason headmaker.html and gradientlab.html each forked `.ctl`
+   rather than adopting it: a builder is mostly fields, and a system that cannot
+   draw one cannot be adopted by a builder. It is a sibling of `.ctl`, not a
+   variant of it, because the two disagree on the things that matter -- a field
+   is left-aligned, carries a ground AT REST (its job is to look like where
+   content goes), and takes a text caret rather than a pointer.
+   Every value resolves through the same --ctl-* semantic layer, so retuning the
+   control ladder retunes the fields with it. */
+.field{
+ box-sizing:border-box;display:flex;align-items:center;width:100%;
+ min-height:var(--ctl-h);padding-block:0;padding-inline:var(--ctl-pad);
+ border:0;border-radius:var(--ctl-r);corner-shape:var(--corner);
+ background:var(--ctl-ground);box-shadow:var(--ctl-rim);
+ font-family:var(--sans);font-size:var(--ctl-fs);font-weight:400;
+ line-height:var(--lh-flat);letter-spacing:var(--tr-body);color:var(--ctl-ink-strong);
+ transition-property:color,background-color,box-shadow;
+ transition-duration:var(--dur-state-out);transition-timing-function:var(--ease-out)
+}
+.field:hover{transition-duration:var(--dur-state);box-shadow:var(--ctl-rim-strong)}
+/* :focus, not only :focus-visible -- a text field is focused by clicking into it
+   as often as by tabbing, and in both cases the caret is already there. This is
+   the one control kind where a pointer focus is not an accident. */
+.field:focus,.field:focus-visible{
+ transition-duration:var(--dur-state);box-shadow:var(--ctl-rim-strong);
+ outline:var(--focus-w) solid var(--ctl-focus);outline-offset:var(--sp-2)
+}
+.field::placeholder{color:var(--ctl-ink-mute)}
+.field[disabled],.field[aria-disabled="true"]{opacity:var(--ctl-disabled-o);cursor:default}
+/* The caret is a background image rather than a pseudo-element because a <select>
+   has no generated-content box. Colour is --ctl-ink-mute's light value; the dark
+   adapter repaints it, exactly as it already did for the page-local copy. */
+.field--select{
+ display:block;appearance:none;-webkit-appearance:none;cursor:default;
+ padding-inline:var(--ctl-pad-sm) var(--sp-36);
+ background-image:var(--field-caret);background-repeat:no-repeat;
+ background-position:right var(--ctl-pad-sm) center;
+ background-size:var(--ico-sm) var(--ico-sm)
+}
+.field--flex{width:auto;flex:1 1 auto;min-width:0}
+
+/* ── MIGRATION SHIM, and it is meant to be deleted. ─────────────────────────
+   The adoption audit (2026-08-08) measured 26 of 27 one-off control families
+   with no disabled state and 14 with a hover but no press. A phone has no
+   hover, so those 14 acknowledge a tap with nothing at all until the action
+   completes. Patching them one at a time in 13 files would have written the
+   duplicate out 14 more times, so the two universal states are declared once,
+   here, against the families by name.
+   THE LIST IS INTERACTIVE FAMILIES ONLY. .baGo, .baChip, .baLabel and
+   .battleBadge are deliberately absent: measured, .baGo is a <span
+   aria-hidden="true"> with no href, no role, no listener and no tabindex
+   attribute -- a decorative arrow between two screenshots. The audit read its
+   DOM tabIndex of -1 as an authored attribute and filed it as an unreachable
+   button; it is not a control, and giving it a press state would be inventing
+   an interaction that does not exist. The badges are the same case.
+   :where() so the whole block has ZERO specificity: any page rule that has an
+   opinion about transform, opacity or cursor beats it without a fight, and
+   migrating a family to .ctl simply makes its entry here redundant. Delete a
+   name from these lists when its family adopts .ctl; delete the block when the
+   lists are empty. --press-scale and --ctl-disabled-o are the same values .ctl
+   itself presses and dims by, so a migrated control does not change behaviour.
+   The sliders are deliberately absent, and so is the field: a text input must
+   not move under the caret while you are typing in it. */
+:where(.abLink,.aboutCta,.teamChip,.sbBtn,.tGo,.hmBtn,.hmDrop,
+ .moodBtn,.moodItem,.moodGo,.reelClose,.mhToggle,.csTab,.cmpKnob,
+ .pBtn,.tvChip,.tvGo,.hmPitPick):active{
+ transition-duration:var(--dur-press);transform:scale(var(--press-scale))
+}
+:where(.abLink,.aboutCta,.teamChip,.sbBtn,.tGo,.hmBtn,.hmDrop,
+ .moodBtn,.moodItem,.moodGo,.reelClose,.mhToggle,.csTab,.cmpKnob,
+ .pBtn,.tvChip,.tvGo,.hmPitPick,.mkSlider):is([disabled],[aria-disabled="true"]){
+ opacity:var(--ctl-disabled-o);cursor:default
+}
+:where(.abLink,.aboutCta,.teamChip,.sbBtn,.tGo,.hmBtn,.hmDrop,
+ .moodBtn,.moodItem,.moodGo,.reelClose,.mhToggle,.csTab,.cmpKnob,
+ .pBtn,.tvChip,.tvGo,.hmPitPick):is([disabled],[aria-disabled="true"]):active{transform:none}
+/* ── end migration shim ─────────────────────────────────────────────────── */
+
+.ctl-menu{
+ display:flex;flex-direction:column;gap:0;padding:var(--sp-8);min-width:var(--menu-w);
+ box-sizing:border-box;border:0;border-radius:var(--radius-menu);corner-shape:var(--corner);
+ /* NO CAST SHADOW. A menu is chrome: it does not stand on anything, so it has
+    nothing to cast onto. It separates the way the rest of the site's chrome
+    separates -- an opaque ground and a hairline rim. This rule used to read
+    --ctl-menu-shadow, which is `var(--ctl-rim),var(--sh-2)`: the rim plus two
+    drop layers (0 2px 8px, 0 1px 2px). That made the shared library the one
+    thing on the site breaking the site's own rule, and every menu that adopted
+    it inherited the breach. header.css:734 and .jbDiscMenu below were already
+    written the correct way; this is the third menu converging on them, not a
+    new idea. --ctl-menu-shadow (tokens.css:500) now has no consumer. */
+ background:var(--ctl-menu-ground);box-shadow:var(--ctl-container-rim);
+ max-height:calc(100svh - (var(--menu-viewport-gutter) * 2));overflow-y:auto;overscroll-behavior:contain;
+ opacity:0;visibility:hidden;pointer-events:none;transform:translateY(var(--sp-6));
+ transition:opacity var(--dur-state) var(--ease-out),transform var(--sp-settle-dur) var(--sp-settle),
+  visibility 0s var(--sp-settle-dur)
+}
+.open>.ctl-menu,.ctl-menu[data-open],.ctl[aria-expanded="true"]+.ctl-menu{
+ opacity:1;visibility:visible;pointer-events:auto;transform:none;
+ transition:opacity var(--dur-state) var(--ease-out),transform var(--sp-settle-dur) var(--sp-settle)
+}
+.ctl-menu .ctl{border-radius:var(--radius-control)}
+.skipLink.ctl{
+ position:fixed;top:var(--skip-inset);left:var(--skip-inset);z-index:var(--layer-skip-link);
+ transform:translateY(var(--skip-hidden-offset));transition-property:color,background-color,box-shadow,transform
+}
+.skipLink.ctl:focus-visible{transform:none}
+:root[data-focus-modality="pointer"] .skipLink.ctl:focus-visible{transform:translateY(var(--skip-hidden-offset))}
+
+/* Header menus are positioned by header.css, but consume the same opaque local
+   material and semantic rim as every other menu on migrated pages. */
+.jbDiscMenu{background:var(--ctl-menu-ground);box-shadow:var(--ctl-container-rim)}
+
+.ctl-group:not(.jbNav){background:var(--ctl-container-ground);box-shadow:var(--ctl-container-rim)}
+
+/* Task 2 shared surfaces. Every visible decision resolves through tokens.css;
+   the page may place a primitive but may not redraw it. */
+.surface{
+ box-sizing:border-box;border:0;border-radius:var(--radius-container);corner-shape:var(--corner);
+ background:var(--surface-ground);box-shadow:var(--surface-rim)
+}
+/* The Hero no longer clips. Its gradient has to continue below its own lower
+   edge to fade into the work section, so the crop that keeps the portrait
+   standing ON the Hero's floor moved down to .heroCharacterPeek, which is the
+   element that actually owns the portrait. */
+.surface--hero{
+ position:relative;overflow:visible;border-radius:var(--surface-hero-radius);
+ padding-inline:var(--surface-hero-pad);box-shadow:none
+}
+.surface--specimen{border-radius:var(--radius-container)}
+.surface--media,.surface--card{
+ overflow:hidden;background:var(--surface-ground);box-shadow:var(--surface-rim)
+}
+.surface--media{border-radius:var(--radius-media)}
+.surface--card{border-radius:var(--radius-media);padding:var(--surface-pad)}
+.collection{
+ box-sizing:border-box;width:100%;overflow:hidden;border-radius:var(--radius-container);
+ corner-shape:var(--corner);background:var(--surface-ground);box-shadow:var(--surface-rim)
+}
+.cases.collection{
+ width:calc(100% - (var(--surface-gutter) * 2));
+ max-width:calc(var(--page-max) - (var(--surface-gutter) * 2));
+ background:var(--surface-ground-muted)
+}
+.collection__tabs{
+ box-sizing:border-box;display:flex;gap:var(--gap-item);padding:var(--surface-inset);
+ margin:0;border-radius:0;background:var(--surface-ground);box-shadow:inset 0 calc(var(--hair-w) * -1) 0 var(--theme-rim)
+}
+.collection__content{box-sizing:border-box;border-radius:0;background:var(--surface-ground);box-shadow:none;overflow:hidden}
+/* THE CAPTION CLIP. Jayden: "the thumbnail section cuts off letters at the
+   bottom, because of the corner rounding." He was right, and measured it is two
+   clips at one edge, not one.
+   The last case item's caption sat with its bottom edge EXACTLY on the container's
+   bottom edge -- .csMeta rest position 1066, .collection__content bottom 1066, zero
+   clearance. Two things then eat it. (1) .collection__content is overflow:hidden,
+   so anything past that line is gone outright; index.html's entrance reveal
+   translates .csMeta down by a measured 9.79px, which puts the whole caption
+   9.79px past the line while it plays. (2) .cases.collection is overflow:hidden
+   with --radius-container, so even at rest the bottom 28px of the box is inside
+   the corner arcs -- and the caption's two words sit hard against the left and
+   right edges. "Apollo" on the left, "2026" on the right: exactly the two he saw.
+   THE CAPTION IS TEXT, SO IT DOES NOT BELONG IN A CLIPPED CORNER. The media does
+   -- .csFrame carries --radius-media and its own clip already, so nothing here is
+   holding the images in. What was missing is a floor: the arc, plus the inset the
+   tab strip already uses at the other end of the same card. That clears the
+   corner geometrically (28px above the bottom is the arc's tangent point) and
+   absorbs the 9.79px reveal with 26px to spare. */
+.cases.collection .collection__content{
+ padding-bottom:calc(var(--radius-container) + var(--surface-inset))
+}
+.collection .csStageInner{padding-inline:0}
+.collection .tvFrame{border-radius:0!important;box-shadow:none!important}
+.cases.collection .csFrame{border-radius:var(--radius-media)!important;box-shadow:var(--surface-rim)!important}
+.cases.collection .csFrame>img{border-radius:inherit!important;box-shadow:none!important}
+.cases.collection .collection__tabs>.ctl--tab{flex:1 1 0;min-width:0;padding-inline:var(--surface-inset)}
+.collection__tabs .csTabInk{display:none}
+.media{
+ box-sizing:border-box;width:100%;overflow:hidden;border-radius:var(--radius-media);
+ corner-shape:var(--corner);background:var(--surface-ground);box-shadow:var(--surface-rim)
+}
+.media--full{padding:0}
+.media--mockup{padding:var(--media-mockup-inset)}
+.cmpBoard.media--full{box-shadow:var(--surface-rim)!important}
+.cmpBoard.media--full::after{box-shadow:none}
+.cmpBoard.media--full img{border-radius:var(--radius-media);box-shadow:none!important}
+.collection__content.media--mockup{border-radius:0;box-shadow:none}
+.tv.collection .collection__content{width:100%;max-width:none;margin:0;padding:var(--media-mockup-inset)}
+.tv.collection.tvPhone .collection__content>img,
+.playerStage.media--mockup>img{width:min(var(--panel-w),100%);margin-inline:auto}
+.tv.collection.tvBoard .collection__content>img{width:100%;margin-inline:auto}
+.player{max-width:none}
+.playerStage.media--mockup{width:100%;margin-inline:0}
+.ctl--tab{font-size:inherit;color:var(--ctl-ink-mute);background:none;box-shadow:none}
+.ctl--tab:hover:not([aria-selected="true"]){background:var(--ctl-ground-hover);color:var(--ctl-ink-strong)}
+.ctl--tab[aria-selected="true"],.ctl--tab.on{color:var(--ctl-ink-strong);font-weight:600}
+.ctl--tab::after{
+ content:"";position:absolute;left:var(--ctl-pad);right:var(--ctl-pad);bottom:0;
+ height:var(--focus-w);background:var(--ctl-focus);opacity:0;transform:scaleX(0);
+ transition:opacity var(--dur-state) var(--ease-out),transform var(--sp-settle-dur) var(--sp-settle)
+}
+.ctl--tab[aria-selected="true"]::after,.ctl--tab.on::after{opacity:1;transform:scaleX(1)}
+.ctl--tick{width:var(--ctl-h);height:var(--ctl-h);min-width:var(--ctl-h);padding:0;border-radius:var(--ctl-r)}
+.ctl--tick::before{
+ content:"";width:var(--sp-14);height:var(--focus-w);border-radius:var(--r-hair);
+ background:var(--theme-rim);transition:background-color var(--dur-state) var(--ease-out)
+}
+.ctl--tick[aria-pressed="true"]::before,.ctl--tick.on::before{background:var(--ctl-ink-strong)}
+.carousel-toolbar{
+ box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;gap:0;
+ padding:var(--surface-inset);border-radius:var(--radius-menu);background:var(--ctl-container-ground);
+ box-shadow:var(--ctl-container-rim)
+}
+.ctl--internal{background:none;box-shadow:none}
+.carousel-toolbar .ctl--internal{
+ width:var(--ctl-h);height:var(--ctl-h);min-width:var(--ctl-h);padding:0;
+ border-radius:var(--radius-control);background:none;box-shadow:none
+}
+.carousel-toolbar .ctl--internal:hover,.carousel-toolbar .ctl--internal:focus-visible,
+.carousel-toolbar .ctl--internal[aria-pressed="true"]{background:var(--ctl-ground-hover);box-shadow:none}
+.carousel-toolbar .playerTicks{display:flex;gap:0}
+.ctl--media-large{min-width:var(--ctl-h);min-height:var(--ctl-h);padding-inline:var(--ctl-pad)}
+.ctl--media-large.is-icon{width:var(--ctl-h);padding:0}
+.toTop.ctl{
+ position:fixed;right:var(--floating-control-inset);bottom:var(--floating-control-inset);
+ z-index:var(--layer-floating-control);opacity:0;pointer-events:none
+}
+.toTop.ctl.show{opacity:1;pointer-events:auto}
+.toTop.ctl svg{transition:color var(--dur-state) var(--ease-out)}
+.sbNav,.playerTicks{gap:var(--gap-item)}
+.playerBar{gap:0}
+.scene-swap-target{
+ display:block;contain:layout paint;transition:filter var(--scene-cut-duration) var(--scene-cut-ease),
+ opacity var(--scene-cut-duration) var(--scene-cut-ease)
+}
+.heroCharacterPeek{
+ position:absolute;inset:0;z-index:2;display:flex;justify-content:center;align-items:flex-end;
+ overflow:hidden;pointer-events:none;transition:transform var(--sp-settle-dur) var(--sp-settle)
+}
+.heroCharacterPeek.is-movie{transform:translateY(var(--hero-peek-active-offset,calc(var(--hero-peek-lift) * -1)))}
+/* Transform order is translate -> rotate -> scale. Translate has to come first
+   because it is the position; rotate and a UNIFORM scale commute, so the only
+   thing that matters after that is the origin. The origin is the logical
+   head's own centre (written by hero-head-transform.js), which makes the head
+   spin in place instead of swimming around the stage's corner while you drag. */
+.heroHeadTransform{
+ position:absolute;left:50%;top:auto;bottom:calc((var(--hero-peek-depth) * -1) + var(--hero-peek-offset));
+ width:var(--hero-peek-width);max-width:none;z-index:2;
+ transform-origin:var(--hero-head-origin-x) var(--hero-head-origin-y);
+ transform:translate3d(calc(-50% + var(--hero-head-x)),calc(var(--hero-head-y) + var(--hero-movie-guard-y)),0)
+           rotate(var(--hero-head-rotate)) scale(var(--hero-head-scale));
+ will-change:transform
+}
+.heroHeadTransform .stagewrap{position:relative!important;width:100%!important;max-width:none;margin:0!important}
+/* The four --selection-* values are written by hero-head-transform.js at runtime.
+   The 0px fallbacks are not cosmetic: without them the four properties are
+   invalid at computed-value time before the first write, so `left`/`top` fall
+   back to auto and the box has no defined position at all. It is hidden until
+   the head is selected, so nothing showed -- but a rule that only works because
+   its element is display:none is the same class of latent bug as a radius that
+   never wins a declaration. */
+.heroHeadSelection{
+ position:absolute;left:var(--selection-x,0px);top:var(--selection-y,0px);
+ width:var(--selection-w,0px);height:var(--selection-h,0px);z-index:6;
+ pointer-events:auto;touch-action:none;cursor:move
+}
+/* The selection BOX stays the Hero-clamped bounding rect: it is the pointer
+   surface, so it must never reach past the Hero into the work section. The
+   OUTLINE is a separate layer inside it, drawn at the head's own unrotated
+   rect and turned with it, so the line keeps hugging the subject at any angle
+   instead of drifting out to a rotated bounding box. The box clips it. */
+.heroHeadFrame{position:absolute;inset:0;overflow:hidden;pointer-events:none}
+.heroHeadFrame::before{
+ content:"";position:absolute;pointer-events:none;
+ left:var(--frame-x,0px);top:var(--frame-y,0px);
+ width:var(--frame-w,100%);height:var(--frame-h,100%);
+ transform:rotate(var(--hero-head-rotate));transform-origin:50% 50%;
+ box-shadow:inset 0 0 0 var(--selection-line) var(--selection-ink)
+}
+.heroHeadSelection[hidden]{display:none}
+/* Handles are placed by point rather than by corner keyword, because once the
+   head can rotate "top left" is no longer a side of the box. JS writes the
+   turned corner as --h-x/--h-y clamped so the 44px target stays inside the
+   box, and --h-dx/--h-dy carries the visible square back out to the true
+   corner. At 0deg the arithmetic collapses to the authored inset geometry. */
+.heroHeadHandle,.heroHeadRotate{
+ position:absolute;left:var(--h-x,0px);top:var(--h-y,0px);
+ width:var(--selection-hit-size);height:var(--selection-hit-size);
+ margin:calc(var(--selection-hit-size) / -2) 0 0 calc(var(--selection-hit-size) / -2);
+ border:0;padding:0;background:transparent;touch-action:none
+}
+.heroHeadHandle::before,.heroHeadRotate::before{
+ content:"";position:absolute;
+ left:calc(50% + var(--h-dx,0px));top:calc(50% + var(--h-dy,0px));
+ width:var(--selection-handle-size);height:var(--selection-handle-size);
+ transform:translate(-50%,-50%);background:var(--ctl-ground);
+ box-shadow:inset 0 0 0 var(--selection-line) var(--selection-ink)
+}
+.heroHeadHandle[data-corner="nw"],.heroHeadHandle[data-corner="se"]{cursor:nwse-resize}
+.heroHeadHandle[data-corner="ne"],.heroHeadHandle[data-corner="sw"]{cursor:nesw-resize}
+/* Round, not square: the shape is what tells you this one turns rather than
+   resizes, and it sits on the top edge's midpoint where no corner competes. */
+.heroHeadRotate{cursor:grab}
+.heroHeadRotate:active{cursor:grabbing}
+.heroHeadRotate::before{
+ width:var(--selection-rotate-size);height:var(--selection-rotate-size);
+ border-radius:var(--r-full)
+}
+.heroCharacterPeek .stage{pointer-events:auto;cursor:pointer;touch-action:none}
+#face:focus-visible{outline:var(--focus-w) solid var(--ctl-focus);outline-offset:var(--sp-2)}
+#face[data-pointer-focus]:focus-visible{outline:none}
+.heroHeadHandle:focus-visible::before,.heroHeadRotate:focus-visible::before{
+ outline:var(--focus-w) solid var(--ctl-focus);outline-offset:var(--sp-2)
+}
+/* End Task 2 shared surfaces. */
+
+@media(prefers-reduced-motion:reduce){
+ .ctl,.ctl-menu,.field{transition-duration:1ms!important}
+ .ctl:active{transform:none}
+ :where(.abLink,.aboutCta,.teamChip,.sbBtn,.tGo,.hmBtn,.hmDrop,
+  .moodBtn,.moodItem,.moodGo,.reelClose,.mhToggle,.csTab,.cmpKnob,
+  .pBtn,.tvChip,.tvGo,.hmPitPick):active{transform:none}
+ .heroCharacterPeek{transition-duration:1ms!important}
+ .heroHeadTransform,.heroHeadSelection,.heroHeadFrame,.heroHeadHandle,.heroHeadRotate{transition:none!important}
+}
+@media(forced-colors:active){
+ .ctl--secondary,.ctl--icon,.ctl-menu,.ctl-group:not(.jbNav),.field{background:Canvas;color:CanvasText;box-shadow:0 0 0 var(--hair-w) CanvasText inset}
+ .ctl--primary{background:Highlight;color:HighlightText}
+ .heroHeadFrame::before,.heroHeadHandle::before,.heroHeadRotate::before{
+  forced-color-adjust:auto;box-shadow:none;outline:var(--selection-line) solid Highlight;outline-offset:calc(var(--selection-line) * -1)
+ }
+}

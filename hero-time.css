@@ -1,0 +1,556 @@
+/* Home-hero time specimen: semantic materials, static fallback, and control shell. */
+:root{
+ --hero-time-duration:640ms;
+ --hero-time-ease:cubic-bezier(.22,1,.36,1)
+}
+/* --theme-duration is NOT overridden here. It was :root:root{--theme-duration:
+   var(--hero-time-duration)}, which made index run chrome transitions at 640ms
+   while the other nine pages ran site-theme.css's authored 400ms. 640 is
+   --sp-pop-dur reused for a sky, never authored as a chrome duration, and it
+   also bypassed site-theme's 280ms mobile fork and 0ms reduced-motion fork.
+   The hero gradients are unaffected: they read --hero-time-duration direct. */
+.hero{
+ overflow:visible;
+ --time-base:var(--theme-page);
+ --time-ink:var(--c950);
+ --time-primary-bg:var(--c950);
+ --time-primary-ink:var(--c50);
+ --time-primary-hover-bg:var(--c900);
+ --time-secondary-bg:var(--time-base);
+ --time-secondary-ink:var(--c950);
+ --time-secondary-hover-bg:var(--time-base);
+ --time-secondary-border:var(--c100);
+ --time-secondary-hover-border:var(--c500);
+ --time-rim:var(--rim-3);
+ --time-bloom:transparent;
+ --time-cast:transparent;
+ --time-cast-opacity:0;
+ --time-light-x:50%;
+ --time-light-y:86%;
+ --time-shadow:radial-gradient(ellipse 50% 50% at 50% 50%,rgba(8,8,8,.42),rgba(8,8,8,.28) 30%,rgba(8,8,8,.10) 58%,transparent 78%);
+ --time-shadow-opacity:.5;
+ --time-menu-bg:var(--time-base);
+ --time-menu-ink:var(--c700);
+ --time-menu-ink-strong:var(--c950);
+ --time-menu-selected:var(--wash-1);
+ --time-menu-shadow:var(--rim-2),var(--sh-2);
+ --time-focus:var(--c950);
+ background-color:var(--time-base);
+ color:var(--time-ink);
+ box-shadow:none;
+ transition:background-color var(--hero-time-duration) var(--hero-time-ease);
+}
+.hero[data-time-state="off"]{
+ --time-base:var(--theme-page);
+ --time-ink:var(--c950);
+ --time-primary-bg:var(--c950);
+ --time-primary-ink:var(--c50);
+ --time-primary-hover-bg:var(--c900);
+ --time-secondary-bg:var(--time-base);
+ --time-secondary-ink:var(--c950);
+ --time-secondary-hover-bg:var(--time-base);
+ --time-secondary-border:var(--c100);
+ --time-secondary-hover-border:var(--c500);
+ --time-rim:var(--rim-3);
+ --time-bloom:transparent;
+ --time-cast:transparent;
+ --time-cast-opacity:0;
+ --time-light-x:50%;
+ --time-light-y:86%;
+ --time-shadow:radial-gradient(ellipse 50% 50% at 50% 50%,rgba(8,8,8,.42),rgba(8,8,8,.28) 30%,rgba(8,8,8,.10) 58%,transparent 78%);
+ --time-shadow-opacity:.5;
+ --time-menu-bg:var(--time-base);
+ --time-menu-ink:var(--c700);
+ --time-menu-ink-strong:var(--c950);
+ --time-menu-selected:var(--wash-1);
+ --time-menu-shadow:var(--rim-2),var(--sh-2);
+ --time-focus:var(--c950);
+}
+
+.hero[data-time-state="pre-dawn"]{
+ --time-base:var(--theme-page);
+ --time-ink:var(--c950);
+ --time-primary-bg:var(--c950);
+ --time-primary-ink:var(--c50);
+ --time-primary-hover-bg:var(--c900);
+ --time-secondary-bg:var(--time-base);
+ --time-secondary-ink:var(--c950);
+ --time-secondary-hover-bg:var(--time-base);
+ --time-secondary-border:var(--c100);
+ --time-secondary-hover-border:var(--c500);
+ --time-rim:var(--rim-3);
+ --time-bloom:rgba(111,169,255,.38);
+ --time-cast:#9ab0ff;
+ --time-cast-opacity:.22;
+ --time-light-x:34%;
+ --time-light-y:82%;
+ --time-shadow:radial-gradient(ellipse 54% 54% at 42% 50%,rgba(3,8,19,.68),rgba(10,22,48,.42) 38%,rgba(36,59,121,.16) 64%,transparent 82%);
+ --time-shadow-opacity:.64;
+ --time-menu-bg:var(--time-base);
+ --time-menu-ink:var(--c700);
+ --time-menu-ink-strong:var(--c950);
+ --time-menu-selected:var(--wash-1);
+ --time-menu-shadow:var(--rim-2),var(--sh-2);
+ --time-focus:var(--c950);
+}
+
+.hero[data-time-state="sunrise"]{
+ --time-base:var(--theme-page);
+ --time-ink:var(--c950);
+ --time-primary-bg:var(--c950);
+ --time-primary-ink:var(--c50);
+ --time-primary-hover-bg:var(--c900);
+ --time-secondary-bg:var(--time-base);
+ --time-secondary-ink:var(--c950);
+ --time-secondary-hover-bg:var(--time-base);
+ --time-secondary-border:var(--c100);
+ --time-secondary-hover-border:var(--c500);
+ --time-rim:var(--rim-3);
+ --time-bloom:rgba(255,190,139,.42);
+ --time-cast:#ffb58c;
+ --time-cast-opacity:.25;
+ --time-light-x:32%;
+ --time-light-y:82%;
+ --time-shadow:radial-gradient(ellipse 54% 52% at 44% 50%,rgba(72,57,54,.44),rgba(181,116,85,.22) 38%,rgba(255,212,184,.08) 66%,transparent 82%);
+ --time-shadow-opacity:.48;
+ --time-menu-bg:var(--time-base);
+ --time-menu-ink:var(--c700);
+ --time-menu-ink-strong:var(--c950);
+ --time-menu-selected:var(--wash-1);
+ --time-menu-shadow:var(--rim-2),var(--sh-2);
+ --time-focus:var(--c950);
+}
+
+.hero[data-time-state="daytime"]{
+ --time-base:var(--theme-page);
+ --time-ink:var(--c950);
+ --time-primary-bg:var(--c950);
+ --time-primary-ink:var(--c50);
+ --time-primary-hover-bg:var(--c900);
+ --time-secondary-bg:var(--time-base);
+ --time-secondary-ink:var(--c950);
+ --time-secondary-hover-bg:var(--time-base);
+ --time-secondary-border:var(--c100);
+ --time-secondary-hover-border:var(--c500);
+ --time-rim:var(--rim-3);
+ --time-bloom:rgba(116,182,242,.30);
+ --time-cast:#eaf2ff;
+ --time-cast-opacity:.16;
+ --time-light-x:50%;
+ --time-light-y:84%;
+ --time-shadow:radial-gradient(ellipse 54% 52% at 48% 50%,rgba(24,49,78,.36),rgba(90,145,192,.18) 38%,rgba(169,214,255,.08) 64%,transparent 82%);
+ --time-shadow-opacity:.42;
+ --time-menu-bg:var(--time-base);
+ --time-menu-ink:var(--c700);
+ --time-menu-ink-strong:var(--c950);
+ --time-menu-selected:var(--wash-1);
+ --time-menu-shadow:var(--rim-2),var(--sh-2);
+ --time-focus:var(--c950);
+}
+
+.hero[data-time-state="dusk"]{
+ --time-base:var(--theme-page);
+ --time-ink:var(--c950);
+ --time-primary-bg:var(--c950);
+ --time-primary-ink:var(--c50);
+ --time-primary-hover-bg:var(--c900);
+ --time-secondary-bg:var(--time-base);
+ --time-secondary-ink:var(--c950);
+ --time-secondary-hover-bg:var(--time-base);
+ --time-secondary-border:var(--c100);
+ --time-secondary-hover-border:var(--c500);
+ --time-rim:var(--rim-3);
+ --time-bloom:rgba(178,167,209,.34);
+ --time-cast:#c8bceb;
+ --time-cast-opacity:.20;
+ --time-light-x:62%;
+ --time-light-y:82%;
+ --time-shadow:radial-gradient(ellipse 54% 54% at 44% 50%,rgba(7,10,22,.66),rgba(38,54,92,.38) 40%,rgba(103,111,159,.14) 66%,transparent 82%);
+ --time-shadow-opacity:.62;
+ --time-menu-bg:var(--time-base);
+ --time-menu-ink:var(--c700);
+ --time-menu-ink-strong:var(--c950);
+ --time-menu-selected:var(--wash-1);
+ --time-menu-shadow:var(--rim-2),var(--sh-2);
+ --time-focus:var(--c950);
+}
+
+.hero[data-time-state="sunset"]{
+ --time-base:var(--theme-page);
+ --time-ink:var(--c950);
+ --time-primary-bg:var(--c950);
+ --time-primary-ink:var(--c50);
+ --time-primary-hover-bg:var(--c900);
+ --time-secondary-bg:var(--time-base);
+ --time-secondary-ink:var(--c950);
+ --time-secondary-hover-bg:var(--time-base);
+ --time-secondary-border:var(--c100);
+ --time-secondary-hover-border:var(--c500);
+ --time-rim:var(--rim-3);
+ --time-bloom:rgba(255,167,120,.42);
+ --time-cast:#ffb58c;
+ --time-cast-opacity:.26;
+ --time-light-x:68%;
+ --time-light-y:82%;
+ --time-shadow:radial-gradient(ellipse 56% 54% at 45% 50%,rgba(13,10,24,.68),rgba(60,49,93,.40) 38%,rgba(213,108,118,.16) 66%,transparent 82%);
+ --time-shadow-opacity:.66;
+ --time-menu-bg:var(--time-base);
+ --time-menu-ink:var(--c700);
+ --time-menu-ink-strong:var(--c950);
+ --time-menu-selected:var(--wash-1);
+ --time-menu-shadow:var(--rim-2),var(--sh-2);
+ --time-focus:var(--c950);
+}
+
+.hero[data-time-state="night"]{
+ --time-base:#0b0c0f;
+ --time-ink:var(--c50);
+ --time-primary-bg:var(--c50);
+ --time-primary-ink:var(--c950);
+ --time-primary-hover-bg:var(--c100);
+ --time-secondary-bg:var(--time-base);
+ --time-secondary-ink:var(--c50);
+ --time-secondary-hover-bg:var(--time-base);
+ --time-secondary-border:rgba(244,245,247,.28);
+ --time-secondary-hover-border:rgba(244,245,247,.42);
+ --time-rim:var(--rim-i2);
+ --time-bloom:rgba(111,169,255,.40);
+ --time-cast:#9ab0ff;
+ --time-cast-opacity:.24;
+ --time-light-x:66%;
+ --time-light-y:82%;
+ --time-shadow:radial-gradient(ellipse 56% 54% at 46% 50%,rgba(0,2,8,.76),rgba(10,21,48,.48) 38%,rgba(29,74,147,.16) 66%,transparent 82%);
+ --time-shadow-opacity:.72;
+ --time-menu-bg:var(--time-base);
+ --time-menu-ink:var(--i700);
+ --time-menu-ink-strong:var(--c50);
+ --time-menu-selected:var(--wash-i1);
+ --time-menu-shadow:inset 0 0 0 var(--hair-w) rgba(244,245,247,.20);
+ --time-focus:var(--c50);
+}
+
+/* left/right:0 rather than left:50%;width:100vw. 100vw INCLUDES the scrollbar,
+   so on any scrolling page it is wider than the content box and pushes a
+   horizontal scrollbar -- the recurring overflow bug on this site. The Hero's
+   wrapper is full-bleed now, so the two edges are already the viewport. */
+.heroTimeSpill{
+ position:absolute;top:calc(0px - var(--nav-h) - var(--sp-8) - var(--sp-12));
+ bottom:calc((var(--sp-48-80) + var(--sp-64)) * -1);left:0;right:0;width:auto;z-index:-1;pointer-events:none;
+ transform:translateX(0);
+ background:linear-gradient(180deg,#0b0c0f 0%,#0b0c0f calc(100% - var(--sp-48-80) - var(--sp-64)),rgba(11,12,15,.92) calc(100% - var(--sp-64)),rgba(11,12,15,0) 100%);
+ -webkit-mask-image:linear-gradient(180deg,#000 0%,#000 calc(100% - var(--sp-48-80) - var(--sp-64)),rgba(0,0,0,.72) calc(100% - var(--sp-64)),transparent 100%);
+ mask-image:linear-gradient(180deg,#000 0%,#000 calc(100% - var(--sp-48-80) - var(--sp-64)),rgba(0,0,0,.72) calc(100% - var(--sp-64)),transparent 100%);
+ opacity:0
+}
+:root[data-theme-state="night"] .heroTimeSpill{opacity:1}
+
+/* The shared dark theme persists after the Hero; authored case media is untouched. */
+:root.theme-ready .cases{
+ transition:background-color var(--hero-time-duration) var(--hero-time-ease),
+  color var(--hero-time-duration) var(--hero-time-ease)
+}
+:root.theme-ready .csTabs::before{
+ transition:background-color var(--hero-time-duration) var(--hero-time-ease)
+}
+:root.theme-ready .csTabInk{
+ transition:transform .34s cubic-bezier(.2,.8,.2,1),width .34s cubic-bezier(.2,.8,.2,1),
+  background-color var(--hero-time-duration) var(--hero-time-ease)
+}
+:root.theme-ready :is(.csTab,.csName,.csYear,.footIn){
+ transition:color var(--hero-time-duration) var(--hero-time-ease)
+}
+:root[data-theme="dark"] .csName{color:var(--theme-ink)}
+:root[data-theme="dark"] .csYear{color:var(--theme-muted)}
+:root[data-reduced-motion="reduce"] :is(.cases,.csTabInk,.csTab,.csPanel,.csMeta,.csName,.csYear,.footIn),
+:root[data-reduced-motion="reduce"] .csTabs::before{transition:none!important;animation:none!important}
+
+/* The clip IS the Hero's box. It inherits the radius, so the light stops
+   exactly on the curved bottom edge and squarely on the three that meet the
+   viewport. No bleed and no mask: the bottom edge is meant to be hard.
+   The Hero itself no longer clips (controls.css) -- the portrait crop lives on
+   .heroCharacterPeek, which inherits the same radius a few rules down. */
+.heroTimeClip{
+ position:absolute;inset:0;
+ z-index:0;overflow:hidden;border-radius:inherit;corner-shape:inherit;pointer-events:none
+}
+.heroTimeGradient{position:absolute;inset:0;opacity:0;filter:none;mix-blend-mode:normal}
+.heroTimeGradient::after{
+ content:"";position:absolute;inset:0;pointer-events:none;
+ background:linear-gradient(180deg,var(--theme-page) 0%,var(--theme-page) 10%,transparent 28%)
+}
+/* RETUNED ON ONE AXIS ONLY, because only one axis changed.
+   HORIZONTAL: a capped LENGTH instead of ~103% of the box. At 1200 the number
+   is what it always was; past that the light source keeps its size rather than
+   spreading with the monitor until the glow has no focus left. That is the
+   whole point -- saturation stays concentrated low and centre on a 2560 screen
+   instead of washing evenly across it.
+   VERTICAL: the AUTHORED percentages, unchanged. The bleed is gone, so 100% is
+   the Hero's own floor again and the focal core sits where it was authored to.
+   Every colour stop is untouched, at every state. */
+.heroTimeGradient[data-time-gradient="pre-dawn"]{background:radial-gradient(var(--hero-glow-rx) 102.63% at 50% 102.63%,#486ffd 0,#7f81f3 9.84%,#c489ff 20.83%,#dac0ff 34.13%,#eadcff 44.86%,#f9f6ff 58.59%,#f8fafd 100%)}
+.heroTimeGradient[data-time-gradient="sunrise"]{background:radial-gradient(var(--hero-glow-rx) 99.11% at 50% 104.6%,#cb83ff 0,#ff90b9 15.77%,#ffc977 30.62%,#ffd79b 38.04%,#fff1dc 50.11%,#fff 63.1%,#fcfdfe 77.95%,#f8fafd 98.81%)}
+.heroTimeGradient[data-time-gradient="daytime"]{background:radial-gradient(var(--hero-glow-rx) 104.98% at 50% 104.98%,#0071c1 1.33%,#60a8e2 15.71%,#b4d8ff 33.15%,#d9ebff 45%,#f8fafd 60%)}
+.heroTimeGradient[data-time-gradient="dusk"]{background:radial-gradient(var(--hero-glow-rx) 103.24% at 49.98% 104.51%,#ffb36a 0,#dfa0d8 14%,#9da8e4 30%,#ccd5f0 44%,#f1f3fa 58%,#f8fafd 100%)}
+.heroTimeGradient[data-time-gradient="sunset"]{background:radial-gradient(var(--hero-glow-rx) 100% at 50% 100%,#ffa577 0,#ff90a1 15.52%,#ddadff 30.09%,#ecd8ff 45.72%,#f5eaff 54.96%,#f8fafd 88.16%)}
+.heroTimeGradient[data-time-gradient="night"]{background:radial-gradient(var(--hero-glow-rx-near) 42% at 50% 104%,rgba(93,80,155,.58) 0,rgba(48,52,105,.38) 38%,rgba(24,35,70,.18) 60%,transparent 78%),radial-gradient(var(--hero-glow-rx-far) 58% at 50% 88%,rgba(35,55,101,.22),transparent 76%),linear-gradient(180deg,#060a13,#09101f 66%,#11162b)}
+@media(max-width:760px){
+ .heroTimeGradient[data-time-gradient="night"]{background:radial-gradient(var(--hero-glow-rx-near) 40% at 50% 104%,rgba(93,80,155,.58) 0,rgba(48,52,105,.38) 38%,rgba(24,35,70,.18) 60%,transparent 78%),radial-gradient(var(--hero-glow-rx-far) 56% at 50% 88%,rgba(35,55,101,.22),transparent 76%),linear-gradient(180deg,#060a13,#09101f 66%,#11162b)}
+}
+.heroNightStars{position:absolute;inset:0;z-index:1;overflow:hidden;contain:strict;opacity:0;pointer-events:none}
+/* THE CROP HAS TO FOLLOW THE CURVE. .heroCharacterPeek is inset:0 with
+   overflow:hidden and no radius of its own, so it was clipping the portrait to
+   a SQUARE box laid over a Hero whose bottom corners are round -- a head
+   dragged or scaled into a corner would paint outside the Hero's own edge. It
+   inherits the radius now, so the boundary the head is cropped by and the
+   boundary the clamp reasons about are the same shape. */
+.heroCharacterPeek{border-radius:inherit;corner-shape:inherit}
+.heroNightStars i{--star-visible:clamp(.34,var(--star-alpha),.72);position:absolute;left:var(--star-x);top:var(--star-y);width:var(--hair-w);height:var(--hair-w);border-radius:var(--r-full);background:#f4f7ff;animation:heroStarTwinkle calc(var(--star-twinkle-duration) * var(--star-rate)) var(--star-twinkle-ease) var(--star-delay) infinite alternate}
+.heroNightStars i.is-bright{--star-visible:.78;width:var(--star-bright-size);height:var(--star-bright-size);box-shadow:0 0 var(--star-glow-size) rgba(205,220,255,.32)}
+.hero[data-time-state="night"] .heroNightStars{opacity:1}
+@keyframes heroStarTwinkle{from{opacity:calc(var(--star-visible) * .84)}to{opacity:var(--star-visible)}}
+.hero[data-time-state="pre-dawn"] .heroTimeGradient[data-time-gradient="pre-dawn"]{opacity:1}
+.hero[data-time-state="sunrise"] .heroTimeGradient[data-time-gradient="sunrise"]{opacity:1}
+.hero[data-time-state="daytime"] .heroTimeGradient[data-time-gradient="daytime"]{opacity:1}
+.hero[data-time-state="dusk"] .heroTimeGradient[data-time-gradient="dusk"]{opacity:1}
+.hero[data-time-state="sunset"] .heroTimeGradient[data-time-gradient="sunset"]{opacity:1}
+.hero[data-time-state="night"] .heroTimeGradient[data-time-gradient="night"]{opacity:1}
+.hero[data-time-state] .heroAura{display:none}
+/* The contact shadow comes back. --time-shadow and --time-shadow-opacity were
+   authored per state and then never consumed: the rule that replaced them
+   nulled the floor shadow outright, so in all six time states the head was
+   standing on nothing. On this site a head casts a shadow because it is
+   standing on something, and that is the one place a shadow is load-bearing. */
+.hero[data-time-state]:not([data-time-state="off"]) .floorshadow{
+ background:var(--time-shadow);opacity:var(--time-shadow-opacity);filter:blur(9px);
+ transition:opacity var(--hero-time-duration) var(--hero-time-ease)
+}
+
+/* ── READABLE PORTRAIT, second pass ───────────────────────────────────────────
+   The head read as a hard near-black cutout pasted onto a soft sky: not "in"
+   the scene, "on top of" it. That is a black-point problem, not an opacity
+   one -- a flat opacity drop ghosts the eyes too, and the eyes are the whole
+   charm. So three moves, in order of how much each actually does:
+
+   1. LIFT THE BLACKS. contrast() pulls both ends toward mid and brightness()
+      puts the highlights back, which raises the darkest values toward the
+      sky's tone while leaving the midtones and the silhouette intact.
+   2. LET THE SKY TINT IT. #heroPortraitTintFlood was carrying flood-color as
+      an SVG presentation ATTRIBUTE with a var() inside it, which SVG does not
+      substitute -- so the flood resolved to black and screen-blending black is
+      a no-op. Declaring it in CSS is what finally makes the authored per-state
+      light colour land on the lower face.
+   3. ONLY THEN a modest opacity reduction, and only where the sky is palest.
+
+   The eyes are siblings of #face inside .stage at z-index 3, so none of this
+   touches them: they stay at full strength and keep tracking and blinking. */
+#heroPortraitTintFlood{flood-color:var(--time-cast);flood-opacity:1}
+.hero[data-time-state] #face{
+ filter:var(--time-portrait-filter,none);opacity:var(--time-portrait-opacity,1);
+ transition:filter var(--hero-time-duration) var(--hero-time-ease),
+  opacity var(--hero-time-duration) var(--hero-time-ease)
+}
+.hero[data-time-state="off"]{--time-portrait-filter:none;--time-portrait-opacity:1}
+.hero[data-time-state="pre-dawn"]{--time-portrait-filter:contrast(.86) brightness(1.09);--time-portrait-opacity:.97}
+.hero[data-time-state="sunrise"]{--time-portrait-filter:contrast(.84) brightness(1.10);--time-portrait-opacity:.96}
+.hero[data-time-state="daytime"]{--time-portrait-filter:contrast(.82) brightness(1.12);--time-portrait-opacity:.95}
+.hero[data-time-state="dusk"]{--time-portrait-filter:contrast(.87) brightness(1.08);--time-portrait-opacity:.97}
+.hero[data-time-state="sunset"]{--time-portrait-filter:contrast(.85) brightness(1.09);--time-portrait-opacity:.96}
+/* Night is the inversion: against a near-black sky a lower-contrast head has
+   to get LIGHTER, not darker, or it disappears into its own background. */
+.hero[data-time-state="night"]{--time-portrait-filter:contrast(.88) brightness(1.18);--time-portrait-opacity:1}
+.hero[data-time-state="off"] .heroAura,
+.hero[data-time-state="off"] .heroTimePortraitCast{display:none;opacity:0}
+
+/* ── THE CATCHLIGHT IS A REFLECTION OF THE SKY ───────────────────────────────
+   An eye is a wet sphere, and its bright spot is a specular reflection of
+   whatever is lighting it -- so a fixed white dot at every hour is part of why
+   the head reads as pasted ONTO the scene rather than lit BY it.
+
+   ONLY THE CATCHLIGHT TAKES THE COLOUR. The iris and pupil are untouched:
+   tint the whole eye and it reads as coloured contacts, tint the highlight
+   and it reads as wet.
+
+   IT IS DRIVEN FROM --time-cast, the same authored per-state light colour the
+   portrait tint already uses, so the eyes cannot drift out of agreement with
+   the sky if the gradients are ever retuned -- there is one source, not two.
+
+   NO JS. The .glint element already exists, already follows the iris with
+   parallax (hero-engine), and already hides on a blink via .eye.eclosed. So
+   this is colour only: the rig keeps tracking and blinking exactly as before,
+   and the per-frame cost is zero, which matters because every companion head
+   on the site carries this element, not just the Hero portrait. */
+.hero[data-time-state]{
+ --eye-glint-tint:var(--time-cast);
+ --eye-glint-mix:26%;   /* how much sky is in the white */
+ --eye-glint-alpha:1;
+ --eye-glint-size:20%;
+ --eye-glint-core:color-mix(in oklab,var(--eye-glint-tint) var(--eye-glint-mix),#fff)
+}
+/* "Off" has --time-cast:transparent, and mixing toward transparent would eat
+   the highlight rather than colour it. The neutral state gets a plain white
+   catchlight, which is what it had before any of this. */
+.hero[data-time-state="off"]{--eye-glint-tint:#fff;--eye-glint-mix:0%}
+/* NIGHT IS THE ONE TO GET RIGHT: dim, small and cool. A bright white spark in
+   a near-black scene is the single thing that reads as wrong instantly, so the
+   sky's share more than doubles, the highlight shrinks by a quarter, and it
+   loses a third of its strength. It stays present -- the eyes are the charm
+   and they must not go dead -- it just stops being the brightest thing on the
+   page at midnight. */
+.hero[data-time-state="night"]{--eye-glint-mix:56%;--eye-glint-alpha:.68;--eye-glint-size:15%}
+.hero[data-time-state="pre-dawn"]{--eye-glint-mix:44%;--eye-glint-alpha:.8;--eye-glint-size:17%}
+.hero[data-time-state="dusk"]{--eye-glint-mix:38%;--eye-glint-alpha:.88;--eye-glint-size:18%}
+.hero[data-time-state="sunrise"],.hero[data-time-state="sunset"]{--eye-glint-mix:34%;--eye-glint-alpha:.94}
+.hero[data-time-state] .glint{
+ width:var(--eye-glint-size);height:var(--eye-glint-size);
+ background:radial-gradient(circle at 50% 50%,
+  color-mix(in srgb,var(--eye-glint-core) calc(var(--eye-glint-alpha) * 98%),transparent) 0%,
+  color-mix(in srgb,var(--eye-glint-core) calc(var(--eye-glint-alpha) * 72%),transparent) 24%,
+  transparent 60%);
+ transition:background var(--hero-time-duration) var(--hero-time-ease),
+  width var(--hero-time-duration) var(--hero-time-ease),
+  height var(--hero-time-duration) var(--hero-time-ease)
+}
+/* The second, lower highlight is the same reflection bouncing off the lower
+   lid, so it takes the same colour at a lower strength. */
+.hero[data-time-state] .glint::after{
+ background:radial-gradient(circle,
+  color-mix(in srgb,var(--eye-glint-core) calc(var(--eye-glint-alpha) * 55%),transparent) 0%,
+  transparent 68%)
+}
+@media(prefers-reduced-motion:reduce){
+ .hero[data-time-state] .glint{transition:none}
+}
+
+.heroCopy h1{position:relative;z-index:3;color:var(--time-ink);transition:color var(--hero-time-duration) var(--hero-time-ease)}
+.heroPortraitTintDefs{position:absolute;width:0;height:0;overflow:hidden;pointer-events:none}
+.heroTimePortraitCast{
+ position:absolute;inset:0;z-index:2;width:100%;height:100%;object-fit:contain;
+ display:block;visibility:visible;pointer-events:none;opacity:var(--time-cast-opacity);background:none;border:0;outline:0;
+ mix-blend-mode:screen;filter:url(#heroPortraitTintFilter);
+ -webkit-mask-image:radial-gradient(ellipse 52% 39% at var(--time-light-x) var(--time-light-y),#000 0%,rgba(0,0,0,.84) 34%,rgba(0,0,0,.28) 66%,transparent 88%);
+ mask-image:radial-gradient(ellipse 52% 39% at var(--time-light-x) var(--time-light-y),#000 0%,rgba(0,0,0,.84) 34%,rgba(0,0,0,.28) 66%,transparent 88%);
+ -webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;
+ -webkit-user-drag:none;user-select:none
+}
+
+/* ── THE HERO IS AN ARTBOARD CAUGHT MID-EDIT ──────────────────────────────────
+   The selection box is not an affordance you discover by clicking, it is the
+   aesthetic: the page arrives with the head already selected. That only reads
+   as deliberate if the head MOVES -- static-plus-selection-box reads as a
+   rendering bug, floating-plus-selection-box reads as a design tool. The
+   motion is therefore load-bearing, not decoration.
+
+   THE FLOAT IS ADDITIVE AND SEPARATE FROM THE USER'S TRANSFORM. --hero-head-x
+   /-y/-rotate are the visitor's arrangement; the float vars are added on top.
+   So a drag continues from wherever they put it and the float never pulls it
+   back toward a home position -- the two never fight, because they are never
+   the same number. The entrance rides in the same translate for the same
+   reason: it lands at 0 and hands straight over to the float. */
+@property --hero-head-enter-y{syntax:"<length>";inherits:false;initial-value:0px}
+@property --hero-head-enter-o{syntax:"<number>";inherits:false;initial-value:1}
+.heroHeadTransform{
+ transform:translate3d(
+   calc(-50% + var(--hero-head-x) + var(--hero-head-float-x,0px)),
+   calc(var(--hero-head-y) + var(--hero-movie-guard-y) + var(--hero-head-float-y,0px) + var(--hero-head-enter-y,0px)),0)
+  rotate(calc(var(--hero-head-rotate) + var(--hero-head-float-rot,0deg)))
+  scale(var(--hero-head-scale))
+}
+/* Once per page load, and it resolves INTO the float rather than stopping
+   dead. --sp-bounce is the shipped overshoot curve; the shorter --sp-pop-dur
+   rung is used instead of --sp-bounce-dur's 860ms because this is a greeting,
+   not an entrance -- it should be over before you have decided how to feel
+   about it. It is delayed past the copy so it arrives just AFTER the headline
+   is read, which is the difference between a hello and an interruption. */
+@keyframes heroHeadArrive{
+ from{--hero-head-enter-y:var(--hero-head-enter-rise);--hero-head-enter-o:0}
+ to{--hero-head-enter-y:0px;--hero-head-enter-o:1}
+}
+.heroHeadTransform{opacity:var(--hero-head-enter-o,1)}
+:root.theme-ready .heroHeadTransform{
+ animation:heroHeadArrive var(--sp-pop-dur) var(--sp-bounce) var(--hero-head-enter-delay) both
+}
+/* A suspended object is not standing on anything, and this site's one shadow
+   rule is that the head casts a contact shadow BECAUSE it stands on something.
+   The honest resolution is to make the shadow read the height: as the head
+   rises the shadow spreads and lightens, as it drifts down it tightens and
+   darkens. --hero-head-shadow-lift is written per frame from the float's own
+   Y, so the two can never disagree. */
+.hero[data-time-state]:not([data-time-state="off"]) .floorshadow{
+ transform:scale(calc(1 + var(--hero-head-shadow-lift,0) * var(--hero-head-shadow-spread)));
+ opacity:calc(var(--time-shadow-opacity) * (1 - var(--hero-head-shadow-lift,0) * var(--hero-head-shadow-fade)))
+}
+@media(prefers-reduced-motion:reduce){
+ :root.theme-ready .heroHeadTransform{animation:none}
+ .heroHeadTransform{opacity:1}
+}
+/* Corner resize beats rotate on the hit test. The rotator is authored at the
+   top edge's midpoint "where no corner competes", and at rest that is true --
+   but when the head is dragged mostly off-screen the selection box collapses
+   toward the viewport edge, both points clamp into the same 44px square, and
+   the rotator (later in the DOM) swallowed the ne handle's taps. Resizing is
+   the more essential affordance and the rotator stays reachable whenever the
+   box is not degenerate, so the corners win. */
+.heroHeadSelection .heroHeadHandle{z-index:2}
+.heroHeadSelection .heroHeadRotate{z-index:1}
+/* THE CHROME GOES BEHIND THE COPY, WITH THE HEAD. controls.css puts the
+   selection at z-index 6; .heroCopy is 3 and creates its own stacking context,
+   so 6 put a full-size, pointer-events:auto, cursor:move surface OVER the
+   headline, the CTAs and the time menu. That was survivable while the box only
+   appeared after you clicked the head. It is not survivable now that it is
+   visible on load: Playwright could not click the time menu at all -- the
+   selection intercepted every attempt. Dropping it to the head's own layer
+   restores the decision already taken for the head itself, that it passes
+   BEHIND the copy rather than covering it. It still paints above the portrait
+   because it comes later in the DOM at the same level.
+   AN ID, DELIBERATELY. controls.css links AFTER hero-time.css, so a bare
+   .heroHeadSelection here loses the cascade to its z-index:6 at equal
+   specificity -- the rule read correctly and did nothing, and Playwright still
+   could not reach the time menu. Verified live from the CSSOM, not by eye. */
+#heroHeadSelection{z-index:2}
+
+.heroTime{position:relative;z-index:12;display:inline-flex}
+.heroTimeIcon{
+ width:var(--ico-md);height:var(--ico-md);fill:none;stroke:currentColor;
+ stroke-width:var(--ico-stroke);stroke-linecap:round;stroke-linejoin:round
+}
+.heroTimeOptionIcon{
+ width:var(--ico-md);height:var(--ico-md);flex:0 0 var(--ico-md);fill:none;
+ stroke:currentColor;stroke-width:var(--ico-stroke);stroke-linecap:round;stroke-linejoin:round
+}
+.heroTimeIcon [data-hero-time-icon]{display:none}
+.heroTimeIcon[data-icon="pre-dawn"] [data-hero-time-icon="pre-dawn"],
+.heroTimeIcon[data-icon="sunrise"] [data-hero-time-icon="sunrise"],
+.heroTimeIcon[data-icon="daytime"] [data-hero-time-icon="daytime"],
+.heroTimeIcon[data-icon="dusk"] [data-hero-time-icon="dusk"],
+.heroTimeIcon[data-icon="sunset"] [data-hero-time-icon="sunset"],
+.heroTimeIcon[data-icon="night"] [data-hero-time-icon="night"],
+.heroTimeIcon[data-icon="off"] [data-hero-time-icon="off"]{display:inline}
+
+.heroTimeMenu{
+ position:absolute;top:calc(100% + var(--sp-8));right:0;left:auto;z-index:30;
+ /* Time is last on every centered flex line. Even alone its right edge is
+    50vw + 22px, so 50vw + 6px leaves the required 16px left gutter. */
+ width:min(var(--menu-w),calc(50vw + var(--sp-6)));
+ max-width:calc(100vw - (var(--sp-16) * 2))
+}
+.heroTimeMenu small{
+ margin-left:auto;color:var(--ctl-ink);font:inherit;font-size:var(--fs-caption);font-weight:400
+}
+
+@media(max-width:760px){
+ :root{--hero-time-duration:420ms}
+ .heroTimeMenu{width:min(var(--menu-w),calc(50vw + var(--sp-6)));max-width:calc(100vw - (var(--sp-16) * 2))}
+}
+
+@media(prefers-reduced-motion:reduce){
+ .hero,.heroTimeSpill,.heroTimeClip,.heroTimeGradient,.heroTimePortraitCast,.heroCopy h1,
+ .hero[data-time-state] .floorshadow{transition:none!important;animation:none!important}
+ .heroNightStars i{opacity:clamp(.34,var(--star-alpha),.72);animation:none!important}
+}
+
+@media(forced-colors:active){
+ .heroTimeSpill,.heroTimeClip,.heroTimePortraitCast,.heroAura{display:none}
+ .hero,.heroCopy h1{background:Canvas;color:CanvasText}
+ .hero{box-shadow:none}
+ .hero[data-time-state] .floorshadow{background:none;opacity:0}
+}

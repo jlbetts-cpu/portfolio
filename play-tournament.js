@@ -7,14 +7,14 @@
    block's own comment for why porting just the function, not the button, is correct here.
    Consumes: window.__hmSess (play-engine.js:1308), window.__hmFillerData/__hmFillerAdd/
    __hmSlotFor/__hmSlots/__hmKill (play-engine.js), window.__EGGHEAD (egghead-seed.js),
-   window.__hmSoccerStart/__hmSoccerEnd (play-engine.js), #moodBtn and .hero (play.html markup),
+   window.__hmSoccerStart/__hmSoccerEnd (play-engine.js), #gameBtn and .hero (play.html markup),
    #tHeadEdge (play.html's inline SVG filter defs). Produces: window.__hmTourStart, __hmTourStop,
    __hmTour, __hmTourWin, __hmTourAbort, window.__hmBracket, window.__hmChampFx, window.__hmTint. */
 
 (function(){   // ===== TOURNAMENT: egghead dye, ported from index.html's "Add an egghead" module =====
 // index.html registers window.__hmTint as a side effect of wiring the #addPlaceholder button
 // (index.html:2717-2733). play.html's menu deliberately drops that button (spec 3.2 -- Task 3's
-// moodMenu has no addPlaceholder, no #moodHeads, no "Show on home" toggle), but the tournament's
+// gameMenu has no addPlaceholder, no #moodHeads, no "Show on home" toggle), but the tournament's
 // squad-padding step (below, "no egg art: field the captain alone...") still calls
 // window.__hmTint to dye spare eggheads into a team's colour. Without it, every team here would
 // fall back to a captain-only roster -- fielding the same lone head that index.html only takes
@@ -1232,7 +1232,7 @@ function start(){
   if (T.live) return;
   buildTeams(function(teams){
     T.live = true; T.phase = 'bracket';
-    try{ var _pb=document.getElementById('moodBtn');
+    try{ var _pb=document.getElementById('gameBtn');
       if(_pb){_pb.setAttribute('aria-disabled','true');
               _pb.setAttribute('title','Finish the tournament first');} }catch(_){}
     T.cup = CUPS[Math.floor(Math.random() * CUPS.length)] + ' Cup';
@@ -1242,6 +1242,7 @@ function start(){
     document.body.style.setProperty('--cupStock',T.id.stock);
     document.body.style.setProperty('--cupSheen',T.id.sheen);
     T.br = BR.buildBracket(teams.map(function(t){ return t.id; })); lastRound = -1;
+    if(window.PlayViewportOwner) window.PlayViewportOwner.enter("tournament");
     document.body.classList.add('hmTour');
     benchAll();
     /* Fixture one is cast the same way every other fixture is -- the first
@@ -1255,7 +1256,7 @@ function stop(){
   T.live = false; T.cur = null; T.phase = 'idle';
   document.body.classList.remove('tvBoardOpen');
   try{ document.body.classList.remove('hmFinal'); }catch(_){}
-  try{ var _pb2=document.getElementById('moodBtn');
+  try{ var _pb2=document.getElementById('gameBtn');
     if(_pb2){_pb2.removeAttribute('aria-disabled');_pb2.removeAttribute('title');} }catch(_){}
   try{ window.__hmChampFx(null); }catch(_){}   // the fall must not outlive the tournament
   bcGrainOff();   // the grain must not outlive the board either
@@ -1267,6 +1268,7 @@ function stop(){
   document.body.classList.remove('hmTour');
   try { var tt2 = document.querySelector('.hmScore .sTitleTxt'); if (tt2) tt2.textContent = 'Soccer'; } catch (_) {}
   clearSpawned(); paint();
+  if(window.PlayViewportOwner) window.PlayViewportOwner.leave("tournament");
 }
 window.__hmTourStart = start;
 window.__hmTourStop = stop;
