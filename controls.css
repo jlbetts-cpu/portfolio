@@ -98,28 +98,35 @@
    The adoption audit (2026-08-08) measured 26 of 27 one-off control families
    with no disabled state and 14 with a hover but no press. A phone has no
    hover, so those 14 acknowledge a tap with nothing at all until the action
-   completes. Patching 14 families in 13 files would have written the duplicate
-   out 14 more times, so the two universal states are declared once, here,
-   against the families by name.
+   completes. Patching them one at a time in 13 files would have written the
+   duplicate out 14 more times, so the two universal states are declared once,
+   here, against the families by name.
+   THE LIST IS INTERACTIVE FAMILIES ONLY. .baGo, .baChip, .baLabel and
+   .battleBadge are deliberately absent: measured, .baGo is a <span
+   aria-hidden="true"> with no href, no role, no listener and no tabindex
+   attribute -- a decorative arrow between two screenshots. The audit read its
+   DOM tabIndex of -1 as an authored attribute and filed it as an unreachable
+   button; it is not a control, and giving it a press state would be inventing
+   an interaction that does not exist. The badges are the same case.
    :where() so the whole block has ZERO specificity: any page rule that has an
    opinion about transform, opacity or cursor beats it without a fight, and
    migrating a family to .ctl simply makes its entry here redundant. Delete a
    name from these lists when its family adopts .ctl; delete the block when the
    lists are empty. --press-scale and --ctl-disabled-o are the same values .ctl
    itself presses and dims by, so a migrated control does not change behaviour.
-   .mkField and the sliders are deliberately absent: a text field must not move
-   under the caret. */
-:where(.abLink,.aboutCta,.teamChip,.sbBtn,.tGo,.hmBtn,.hmDrop,.baGo,.baChip,
+   The sliders are deliberately absent, and so is the field: a text input must
+   not move under the caret while you are typing in it. */
+:where(.abLink,.aboutCta,.teamChip,.sbBtn,.tGo,.hmBtn,.hmDrop,
  .moodBtn,.moodItem,.moodGo,.reelClose,.mhToggle,.csTab,.cmpKnob,
  .pBtn,.tvChip,.tvGo,.hmPitPick):active{
  transition-duration:var(--dur-press);transform:scale(var(--press-scale))
 }
-:where(.abLink,.aboutCta,.teamChip,.sbBtn,.tGo,.hmBtn,.hmDrop,.baGo,.baChip,
+:where(.abLink,.aboutCta,.teamChip,.sbBtn,.tGo,.hmBtn,.hmDrop,
  .moodBtn,.moodItem,.moodGo,.reelClose,.mhToggle,.csTab,.cmpKnob,
- .pBtn,.tvChip,.tvGo,.hmPitPick,.mkField,.mkSlider):is([disabled],[aria-disabled="true"]){
+ .pBtn,.tvChip,.tvGo,.hmPitPick,.mkSlider):is([disabled],[aria-disabled="true"]){
  opacity:var(--ctl-disabled-o);cursor:default
 }
-:where(.abLink,.aboutCta,.teamChip,.sbBtn,.tGo,.hmBtn,.hmDrop,.baGo,.baChip,
+:where(.abLink,.aboutCta,.teamChip,.sbBtn,.tGo,.hmBtn,.hmDrop,
  .moodBtn,.moodItem,.moodGo,.reelClose,.mhToggle,.csTab,.cmpKnob,
  .pBtn,.tvChip,.tvGo,.hmPitPick):is([disabled],[aria-disabled="true"]):active{transform:none}
 /* ── end migration shim ─────────────────────────────────────────────────── */
@@ -363,7 +370,7 @@
 @media(prefers-reduced-motion:reduce){
  .ctl,.ctl-menu,.field{transition-duration:1ms!important}
  .ctl:active{transform:none}
- :where(.abLink,.aboutCta,.teamChip,.sbBtn,.tGo,.hmBtn,.hmDrop,.baGo,.baChip,
+ :where(.abLink,.aboutCta,.teamChip,.sbBtn,.tGo,.hmBtn,.hmDrop,
   .moodBtn,.moodItem,.moodGo,.reelClose,.mhToggle,.csTab,.cmpKnob,
   .pBtn,.tvChip,.tvGo,.hmPitPick):active{transform:none}
  .heroCharacterPeek{transition-duration:1ms!important}
