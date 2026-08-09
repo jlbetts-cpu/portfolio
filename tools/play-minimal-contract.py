@@ -193,16 +193,33 @@ assert show_play.index("window.__hmLobbyThrowIn") < show_play.index('classList.r
 # Play uses only the neutral global page theme; no page-local atmosphere remains.
 assert "heroTimeGradient" not in HTML and "--time-cast" not in HTML
 
-# Home-approved contact footer: exact content, links, 56ch measure and ghost mark.
+# The shared sign-off. This page used to carry its own copy of the footer -- a
+# centred sentence in a 56ch measure, styled by five page-local rules. It is now
+# the same column footer as every other scrolling page, and footer.css owns the
+# whole component. So this contract asserts only what is Play's business:
+#   * the footer is here at all, with the #contact anchor the header links to;
+#   * the three contact destinations survive;
+#   * the page declares no footer styling of its own beyond placement.
+# Byte-identical markup across all eight pages is footer-consistency-check.py's
+# job and is NOT duplicated here -- two tools asserting the same strings is how
+# a footer change turns into two failures and one of them gets waived.
 assert parser.footer_ids == ["contact"]
-assert "I&rsquo;m open to full-time roles and would love to chat. Find me on" in HTML
 for href in (
     "https://www.linkedin.com/in/jaydenbetts",
     "https://www.instagram.com/jaydenleebetts",
     "mailto:jaydenlbetts@gmail.com",
 ):
     assert f'href="{href}"' in HTML
-assert ".footReach{" in HTML and "max-width:56ch" in HTML
+# The page owns placement (margin, measure, gutters) and nothing else. These four
+# were the old page-local component and must not come back.
+for dead in (".footReach{", ".footIn{", ".footMark{", "max-width:56ch"):
+    assert dead not in HTML, f"play.html re-declares retired footer CSS: {dead}"
+# ...and .siteFoot must carry placement only. text-align:center is what made the
+# old footer a centred sentence; it is legitimate elsewhere on this page (.pLede,
+# the hero line), so match the rule rather than the property.
+site_foot = HTML[HTML.index(".siteFoot{"):]
+site_foot = site_foot[: site_foot.index("}")]
+assert "text-align" not in site_foot, ".siteFoot must not set text-align"
 assert '<div class="footMark" aria-hidden="true">Jayden Betts</div>' in HTML
 
 print("play minimal contract: PASS")
