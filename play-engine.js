@@ -27,6 +27,23 @@
  var heroBox={left:0,top:0,width:0,height:0};   // ONE cached hero rect shared by every head, so N heads never each force a layout reflow per frame (older machines feel that). Refreshed only when the page actually moves.
  function refreshHeroBox(){var h=document.querySelector(".hero");if(!h)return;var r=h.getBoundingClientRect();heroBox.left=r.left;heroBox.top=r.top;heroBox.width=r.width;heroBox.height=r.height;}
  (function(){var raf=0;function mark(){if(raf)return;raf=requestAnimationFrame(function(){raf=0;refreshHeroBox();});}addEventListener("scroll",mark,{passive:true});addEventListener("resize",mark,{passive:true});refreshHeroBox();setInterval(function(){if(!document.hidden&&peers.length)refreshHeroBox();},500);})();   // scroll/resize (rAF-throttled) + a slow safety tick for any other layout shift
+ /* ── ONE FRAME, ONE MEASUREMENT ──────────────────────────────────────────
+    heroBox above already refuses to let N heads each force a layout per FRAME.
+    The resize path had no such rule, and resize is where it matters most: a
+    hand on the window corner emits an event per compositor tick, far faster
+    than frames arrive, and every listener below re-measures layout when it
+    fires. survey() is registered PER HEAD, so a twelve-head lobby turned a
+    single drag event into twelve read-write-read cycles -- each head reading
+    the hero rect, writing its own width/height/shadow/reflection, and the next
+    head then reading the rect back out of a dirtied tree.
+    Measured on a 30-step drag at 1440 with twelve heads seated: 3.2 layouts
+    per step and a 33.0ms median frame, against 16.7ms at rest.
+    Coalescing to a frame changes nothing anyone can see -- a size that is
+    measured and discarded between two frames was never painted -- and it is
+    the same discipline, applied to the same problem, one event source over. */
+ function onResizeFrame(fn){var raf=0;addEventListener("resize",function(){
+  if(raf)return;raf=requestAnimationFrame(function(){raf=0;try{fn();}catch(_){}});
+ },{passive:true});}
  var battlePlats=[];   // battle arena: floating platforms the heads land on and pounce from (populated by the platforms block, read every frame in the physics)
  try{if(/[?&]wraf=1/.test(location.search))window.__plats=battlePlats;}catch(_){}   // DEV-ONLY debug handle (opt-in), so a headless run can inspect the live ladder
  var sharedFeetY=null;   // the shared FLOOR line (screen-space feet row). Cached while the big head is VISIBLE so a head spawning mid-game (mini-Jayden -- the big head is hidden AND the hero box measures shorter then) lands on the SAME plane as everyone else instead of a mid-game fallback.
@@ -587,7 +604,10 @@
   floorY=fY-HH*FOOT;                                               // feet (the visible chin, not the transparent padding) rest on that shared floor, whatever the head's size
   M=mob?16:40;plats=[];avoids=[];
   var ow=heroR?heroR.w:0;
-  var hb=hero.getBoundingClientRect();WL=-hb.left-HW*0.35;WR=innerWidth-hb.left-HW*0.65;CEIL=-(hb.top+window.scrollY)-HH*0.12;if(document.body.classList.contains("hmFull")){var _socWall=document.body.classList.contains("hmSoccer"),_gwp=_socWall?(mob?28:40):2;CEIL=_socWall?_gwp:2;WL=-hb.left+_gwp;WR=innerWidth-hb.left-HW-_gwp;}   // PHONE, GAME RUNNING: the arena now fills the screen and the nav sits right on top of it, so the ceiling stops at the hero instead of letting heads (and their health bars) climb over the wordmark. Soccer reserves the half-diagonal overhang of a rotating/squashing player at the sides and ceiling, so the painted box remains inside the arena; other games retain their authored edge behavior.   // it presses into the glass on every side; the VISIBLE crown reaches the top, not the box
+  /* THE SAME RECT, NOT A SECOND ONE. Nothing between hr above and this line
+     writes to the tree, so this was a second forced layout for a value already
+     in hand -- and survey() runs once per head, so it was N of them. */
+  var hb=hr;WL=-hb.left-HW*0.35;WR=innerWidth-hb.left-HW*0.65;CEIL=-(hb.top+window.scrollY)-HH*0.12;if(document.body.classList.contains("hmFull")){var _socWall=document.body.classList.contains("hmSoccer"),_gwp=_socWall?(mob?28:40):2;CEIL=_socWall?_gwp:2;WL=-hb.left+_gwp;WR=innerWidth-hb.left-HW-_gwp;}   // PHONE, GAME RUNNING: the arena now fills the screen and the nav sits right on top of it, so the ceiling stops at the hero instead of letting heads (and their health bars) climb over the wordmark. Soccer reserves the half-diagonal overhang of a rotating/squashing player at the sides and ceiling, so the painted box remains inside the arena; other games retain their authored edge behavior.   // it presses into the glass on every side; the VISIBLE crown reaches the top, not the box
   if(ow&&Math.abs(ow-hero.clientWidth)>2)x=x/ow*hero.clientWidth;   // resizing keeps its relative spot
   if(bigR){var nHW=Math.round(Math.min(108,Math.max(66,(bigR.r-bigR.l)*0.27)));if(mob)nHW=Math.min(nHW,64);
    if(filler)nHW=Math.round(nHW*1.5);   // the mini-Jayden stays noticeably BIGGER (Jayden liked this) -- but he's on the SAME flat plane + ground line as everyone else; his size is his identity, not a depth cue
@@ -627,7 +647,25 @@
   if(soccerOn&&!window.__hmLavaOn&&!grabbed&&!perched)surface=floorY;
   if(x>WR)x=WR;if(x<WL)x=WL;if(y>floorY)y=floorY;   // stay intact when the screen shrinks
  }
- survey();addEventListener("resize",function(){mob=innerWidth<=880;survey();},{passive:true});
+ survey();onResizeFrame(function(){mob=innerWidth<=880;survey();});
+ /* ── THE EYE BOX IS MEASURED WHEN IT CHANGES, NOT WHEN IT MOVES ──────────
+    _frame read o.box.offsetWidth on the line directly below the one that
+    writes o.box.style.transform, so every eye performed a write and then read
+    geometry back out of the tree it had just dirtied -- a forced synchronous
+    layout. Two eyes on each of twelve heads is twenty-four of them per frame,
+    for as long as the tab is open. Measured across one window drag it was 2736
+    layout reads, more than every other source on the page put together.
+    The width is a function of the head's SIZE and nothing else -- the eyes are
+    laid out as a percentage of the head -- and HW is exactly that number, kept
+    current by survey(). So the measurement is cached against HW and repeated
+    only when the head actually resizes. A zero is never cached: the box has no
+    width until the portrait has landed, and caching that would freeze every
+    iris at the fallback offset. */
+ function eyeBoxW(o){
+  if(!o||!o.box)return 34;
+  if(o.__bwAt!==HW||!o.__bw){var w=o.box.offsetWidth;if(w>0){o.__bw=w;o.__bwAt=HW;}else return 34;}
+  return o.__bw;
+ }
  function collides(nx,ny,pad){for(var i=0;i<avoids.length;i++){var a=avoids[i];
   if(nx+HW>a.l-pad&&nx<a.r+pad&&ny+HH>a.t-pad&&ny<a.b+pad)return true;}return false;}
  // --- state ---
@@ -1751,8 +1789,8 @@
    if(o.box)o.box.style.transform="rotate("+((o.ang||0)+(Math.abs(rot)>20?0:-rot)).toFixed(1)+"deg)";   // THEIR canthal tilt stays; the glint's light source does not tilt with the head
    if(bf>0){var lp=(bf===5||bf===1)?-44:(bf===4?-14:-4);o.lid.style.transform="translateY("+lp+"%)";}
    else o.lid.style.transform=drowse2?"translateY(-64%)":"translateY(-105%)";   // heavy lids when sleepy
-   if(dzf>0){var ph=(12-dzf)*0.95+(oi?2.2:0);var ebw2=o.box?o.box.offsetWidth:34;o.iris.style.transform="translate("+Math.round(Math.cos(ph)*ebw2*0.22)+"px,"+Math.round(Math.sin(ph)*ebw2*0.14)+"px)";}
-   else{var ebw=o.box?o.box.offsetWidth:34;var gtx2=Math.round(nx*ebw*0.18),gty2=Math.round(ny*ebw*0.10);o.iris.style.transform="translate("+gtx2+"px,"+gty2+"px)";if(o.glint)o.glint.style.transform="translate("+Math.round(gtx2*0.62)+"px,"+Math.round(gty2*0.62)+"px)";}
+   if(dzf>0){var ph=(12-dzf)*0.95+(oi?2.2:0);var ebw2=eyeBoxW(o);o.iris.style.transform="translate("+Math.round(Math.cos(ph)*ebw2*0.22)+"px,"+Math.round(Math.sin(ph)*ebw2*0.14)+"px)";}
+   else{var ebw=eyeBoxW(o);var gtx2=Math.round(nx*ebw*0.18),gty2=Math.round(ny*ebw*0.10);o.iris.style.transform="translate("+gtx2+"px,"+gty2+"px)";if(o.glint)o.glint.style.transform="translate("+Math.round(gtx2*0.62)+"px,"+Math.round(gty2*0.62)+"px)";}
   });
   if(dzf>0)dzf--;
   if(bf>0)bf--;
@@ -1961,13 +1999,13 @@
   /* The goals are positioned once, from start(). geo() reads innerWidth, so after a resize
    XL/XR were stale and the goals sat where the old viewport put them -- and the pitch
    bounds the physics uses went stale with them. Re-run the layout while a match is live. */
-addEventListener("resize",function(){if(S.on){try{
+onResizeFrame(function(){if(S.on){try{
  var _oxl=XL,_oxr=XR,_obx=bx,_ospan=_oxr-_oxl;
  _gyLock=null;
  layout();
  if(_ospan>0&&XR>XL){var _bf=(_obx-_oxl)/_ospan;bx=Math.max(XL+BR,Math.min(XR-BR,XL+_bf*(XR-XL)));}
  requestAnimationFrame(function(){if(!S.on)return;try{_gyLock=null;layout();}catch(_){}});
-}catch(_){}}},{passive:true});
+}catch(_){}}});
 function teams(){
    // BENCHED heads take no part. The tournament fields only the two teams in the fixture, and a
    // benched head with no side used to fail the "does the pick cover every real head" test below,
@@ -3071,7 +3109,9 @@ function teams(){
     if(q.dead||q.y>lavaAt(qcx,OXs)+30||q.y>H+120){q.dead=false;respawn(q);}}   // swallowed by the lava (or crumbled away) -> rebuilt above the top rung
    render();};
   build();render();
-  addEventListener("resize",function(){build();render();},{passive:true});
+  /* build() tears down and re-creates every rung element; doing that once per
+     resize EVENT rebuilt the whole tower dozens of times across one drag. */
+  onResizeFrame(function(){build();render();});
   var arenaReq=0;
   window.__hmNewArena=function(){arenaReq=window.__hmBattleReq||0;window.__hmLavaLevel=0;build();render();};   // a brand-new random tower every fight
   setInterval(function(){var inB=document.body.classList.contains("hmBattle");

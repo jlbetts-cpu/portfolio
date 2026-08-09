@@ -271,8 +271,19 @@ placeInk();
 if(document.fonts && document.fonts.ready) document.fonts.ready.then(placeInk);
 new MutationObserver(placeInk).observe(nav,{subtree:true,attributes:true,
   attributeFilter:["aria-current","hidden"]});
+/* ONE PLACEMENT PER FRAME, NOT ONE PER EVENT. placeInk() reads two live rects
+   and then writes four style properties, so running it on every resize event --
+   which a window drag emits faster than frames arrive -- was a read-after-write
+   against the nav on every tick of the drag. The pill is only ever SEEN once a
+   frame, so measuring it more often than that buys nothing; coalescing to a
+   frame keeps the last size, which is the only one that gets painted. */
+var inkRaf = 0;
 addEventListener("resize", function(){
-  nav.classList.remove("jbInkOn"); armed = false; placeInk();
+  if(inkRaf) return;
+  inkRaf = requestAnimationFrame(function(){
+    inkRaf = 0;
+    nav.classList.remove("jbInkOn"); armed = false; placeInk();
+  });
 }, {passive:true});
 
 /* ── 4 · THE MOOD DOCK is not wired here, and that is deliberate. It moved out
