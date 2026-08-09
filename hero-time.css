@@ -3,6 +3,66 @@
  --hero-time-duration:640ms;
  --hero-time-ease:cubic-bezier(.22,1,.36,1)
 }
+/* ── AN UNREGISTERED CUSTOM PROPERTY DOES NOT INTERPOLATE. IT SNAPS. ─────────
+   Jayden: "when it goes to dark mode it should feel like the time of day is
+   changing." It did not, and this is why. To CSS an unregistered custom
+   property is an untyped string, so a transition on it jumps from the old value
+   to the new one at the substitution point -- there is no "halfway between
+   #eaf2ff and #9ab0ff" for the engine to compute, because it does not know
+   those are colours.
+   Measured on the shipped build, sampling 25% of the way through a
+   daytime -> night change (169ms of 640): --time-cast was ALREADY #9ab0ff,
+   --time-exposure already .36, --time-contrast already .70, --rim-strength
+   already 34%, --time-shade already .58, --eye-glint-mix already 56%. Six of
+   the scene's channels finished on frame one while the sky took the full 640ms
+   behind them. That is the "settings change" reading: the light jumps, the
+   backdrop drifts after it.
+   @property gives them a type, and a typed property interpolates.
+
+   WHICH ONES GET A TRANSITION IS THE WHOLE DESIGN.
+   - PER-STATE channels -- what the HOUR is -- are registered AND transitioned
+     on .hero below, so an hour change is one continuous 640ms event.
+   - PER-FRAME channels -- where the HEAD is -- are registered for their type
+     and deliberately left OUT of that list. hero-head-transform.js writes them
+     inline every frame from the head's live position; a transition on those
+     would make the lighting chase the drag with a 640ms lag, which is the same
+     bug wearing the opposite coat.
+   Registration is not free of consequence: a registered property always has a
+   value, so `var(--x, fallback)` stops reaching its fallback and uses the
+   initial-value instead. Every initial-value below is therefore set to the
+   fallback its var() already carried, not to a fresh opinion.
+   NOT REGISTERED, on purpose: --time-rim, --time-ambient, --time-lit,
+   --time-shade-color and --time-portrait-filter are DERIVED. They recompute
+   from the channels above on every frame of the transition, so they arrive
+   smooth without a type of their own -- and --time-rim in particular cannot be
+   typed, because the base .hero rule assigns it var(--rim-3), a box-shadow. */
+@property --time-cast{syntax:"<color>";inherits:true;initial-value:transparent}
+@property --time-bloom{syntax:"<color>";inherits:true;initial-value:transparent}
+@property --time-exposure{syntax:"<number>";inherits:true;initial-value:1}
+@property --time-contrast{syntax:"<number>";inherits:true;initial-value:1}
+@property --time-portrait-opacity{syntax:"<number>";inherits:true;initial-value:1}
+@property --time-shade{syntax:"<number>";inherits:true;initial-value:0}
+@property --rim-throw{syntax:"<length>";inherits:true;initial-value:0px}
+@property --rim-blur{syntax:"<length>";inherits:true;initial-value:3px}
+@property --rim-strength{syntax:"<percentage>";inherits:true;initial-value:0%}
+@property --lit-floor{syntax:"<number>";inherits:true;initial-value:1}
+@property --lit-swing{syntax:"<number>";inherits:true;initial-value:0}
+@property --time-light-x{syntax:"<percentage>";inherits:true;initial-value:50%}
+@property --time-light-y{syntax:"<percentage>";inherits:true;initial-value:100%}
+@property --eye-glint-tint{syntax:"<color>";inherits:true;initial-value:#fff}
+@property --eye-glint-mix{syntax:"<percentage>";inherits:true;initial-value:0%}
+@property --eye-glint-alpha{syntax:"<number>";inherits:true;initial-value:1}
+@property --eye-glint-size{syntax:"<percentage>";inherits:true;initial-value:20%}
+@property --eye-glint-shift{syntax:"<percentage>";inherits:true;initial-value:16%}
+/* Per-frame. Typed, never transitioned -- see above. */
+@property --light-ux{syntax:"<number>";inherits:true;initial-value:0}
+@property --light-uy{syntax:"<number>";inherits:true;initial-value:-1}
+@property --light-prox{syntax:"<number>";inherits:true;initial-value:1}
+@property --light-angle{syntax:"<angle>";inherits:true;initial-value:180deg}
+@property --time-light-dir{syntax:"<number>";inherits:true;initial-value:0}
+@property --env-color{syntax:"<color>";inherits:true;initial-value:transparent}
+@property --env-lum{syntax:"<number>";inherits:true;initial-value:1}
+@property --env-raw{syntax:"<number>";inherits:true;initial-value:1}
 /* ── HERO-OWNED CONSTANTS ────────────────────────────────────────────────────
    Declared here rather than in tokens.css: tokens.css is the shared design
    layer and is owned by the motion consolidation right now, and every value
@@ -127,7 +187,34 @@
  background-color:var(--time-base);
  color:var(--time-ink);
  box-shadow:none;
- transition:background-color var(--hero-time-duration) var(--hero-time-ease);
+ /* ── ONE EVENT, ONE DURATION, ONE CURVE ────────────────────────────────────
+    Everything that constitutes the SCENE lands together. A sky on 640ms with a
+    rim on 400ms reads as sloppy even when both are individually smooth, so
+    there is exactly one duration and one easing here and every channel of the
+    hour is listed against them.
+    LONGHANDS, DELIBERATELY. This was `transition:` shorthand, which is what
+    cost .csTab its motion when a themeing rule replaced the list it inherited.
+    Nineteen properties repeating the same duration and easing nineteen times
+    invites exactly that edit; naming the duration ONCE makes "they all land
+    together" structural rather than a coincidence maintained by hand. The
+    reduced-motion rule below still wins, because `transition:none!important`
+    resets every longhand.
+    WHAT IS NOT IN THIS LIST IS AS DELIBERATE AS WHAT IS. The per-frame
+    channels -- --light-ux/-uy, --light-prox, --light-angle, --env-color,
+    --env-lum, --env-raw, --time-light-dir -- are absent, so the lighting
+    answers the head's position on the frame it moves rather than 640ms later.
+    CHROME IS NOT SCENE AND KEEPS ITS OWN RUNG. The nav, the footer and the
+    case-study surfaces run on --theme-duration (400ms) because they are UI
+    responding to a theme change, not sky moving. That difference is intended;
+    do not "fix" it by folding them in here. */
+ transition-property:background-color,
+  --time-cast,--time-bloom,--time-exposure,--time-contrast,
+  --time-portrait-opacity,--time-shade,
+  --rim-throw,--rim-blur,--rim-strength,--lit-floor,--lit-swing,
+  --time-light-x,--time-light-y,
+  --eye-glint-tint,--eye-glint-mix,--eye-glint-alpha,--eye-glint-size,--eye-glint-shift;
+ transition-duration:var(--hero-time-duration);
+ transition-timing-function:var(--hero-time-ease);
 }
 .hero[data-time-state="off"]{
  --time-base:var(--theme-page);
@@ -380,7 +467,11 @@
 @media(max-width:760px){
  .heroTimeGradient[data-time-gradient="night"]{background:radial-gradient(var(--hero-glow-rx-near) 40% at 50% 104%,rgba(93,80,155,.58) 0,rgba(48,52,105,.38) 38%,rgba(24,35,70,.18) 60%,transparent 78%),radial-gradient(var(--hero-glow-rx-far) 56% at 50% 88%,rgba(35,55,101,.22),transparent 76%),linear-gradient(180deg,#060a13,#09101f 66%,#11162b)}
 }
-.heroNightStars{position:absolute;inset:0;z-index:1;overflow:hidden;contain:strict;opacity:0;pointer-events:none}
+/* The stars belong to the scene, so they arrive with the sky rather than
+   appearing on the frame the attribute flips. Measured before: 0 -> 1 with no
+   transition declared at all, which was a pop against a 640ms cross-fade. */
+.heroNightStars{position:absolute;inset:0;z-index:1;overflow:hidden;contain:strict;opacity:0;pointer-events:none;
+ transition:opacity var(--hero-time-duration) var(--hero-time-ease)}
 /* THE CROP HAS TO FOLLOW THE CURVE. .heroCharacterPeek is inset:0 with
    overflow:hidden and no radius of its own, so it was clipping the portrait to
    a SQUARE box laid over a Hero whose bottom corners are round -- a head
@@ -499,8 +590,20 @@
               calc(var(--rim-blur) * 2.4) var(--time-ambient))
   var(--time-portrait-filter,none);
  opacity:var(--time-portrait-opacity,1);
- transition:filter var(--hero-time-duration) var(--hero-time-ease),
-  opacity var(--hero-time-duration) var(--hero-time-ease)
+ /* ── NO TRANSITION HERE, AND THAT IS WHAT MAKES IT SMOOTH ──────────────────
+    filter and opacity used to transition on 640ms. That is the obvious way to
+    smooth an hour change and it is the wrong one, because this chain is fed by
+    the head's LIVE position as well as by the hour: --light-ux/-uy change every
+    frame while the head floats or is dragged, and a transition restarts on
+    every one of those changes, so the rendered rim chased the head with a 640ms
+    lag. The feature Jayden asked for -- the edge swinging as he drags the head
+    past the light -- was being smeared by the mechanism meant to smooth it.
+    The hour is smooth anyway now: --time-contrast, --time-exposure,
+    --rim-throw, --rim-strength and --time-cast are registered and transitioned
+    on .hero, so this filter is recomputed from values that are already
+    interpolating. It follows them continuously and answers the head instantly.
+    It also sidesteps the filter-list interpolation rule entirely -- no two
+    chains ever have to be matched, because no chain is ever interpolated. */
 }
 /* THE OFFSET HAS TO BEAT THE BLUR OR IT IS A GLOW, NOT A RIM. The first pass
    had a 9px blur against a 1.6px offset, which put an even halo right around
@@ -590,10 +693,26 @@
     of the problem wrong. Measured against each sky, never in isolation. */
  --time-shade:0
 }
-/* off = the neutral page: no scene, so no scene lighting. */
+/* ── OFF IS A LOOK, NOT AN ABSENCE ───────────────────────────────────────────
+   It used to say --time-portrait-filter:none, which is a different SHAPE of
+   value, not a quieter one -- `filter:drop-shadow(...) drop-shadow(...) none`
+   is not even valid, so the whole declaration was dropped and the head lost its
+   filter chain in one frame. Off is the state most likely to carry this kind of
+   thing, because it gets written as "none of the above" rather than as a look,
+   and this file has already paid for that once with display:none on the cast
+   layer.
+   So every channel Off wants quiet is authored at its NEUTRAL VALUE instead of
+   being removed: contrast and exposure at 1, the rim at zero strength and zero
+   throw rather than a shorter chain, the shading at zero. Every one of those is
+   a registered number, so leaving and entering Off is the same continuous
+   640ms event as any other hour rather than the one transition that pops.
+   --lit-floor/--lit-swing are what make brightness exactly 1: --env-gain is
+   floor + swing x proximity, so a floor of 1 and no swing pins it there, and
+   the neutral page stops being lit by a scene it is not in. */
 .hero[data-time-state="off"]{
- --time-portrait-filter:none;--time-portrait-opacity:1;
- --rim-throw:0px;--time-shade:0
+ --time-contrast:1;--time-exposure:1;--time-portrait-opacity:1;
+ --lit-floor:1;--lit-swing:0;
+ --rim-throw:0px;--rim-strength:0%;--time-shade:0
 }
 /* THE HOUR SETS THE EXPOSURE AND THE EDGE'S REACH; POSITION SETS EVERYTHING
    ELSE. There used to be a --time-light-elev constant here deciding which way
@@ -709,13 +828,15 @@
   color-mix(in srgb,var(--eye-glint-core) calc(var(--eye-glint-alpha) * 98%),transparent) 0%,
   color-mix(in srgb,var(--eye-glint-core) calc(var(--eye-glint-alpha) * 72%),transparent) 24%,
   transparent 60%);
- /* On the ladder: the catchlight changing colour is a reveal IN PLACE, not a
-    journey, so --dur-reveal rather than the sky's own 640ms theme duration. On
-    an 8px highlight finishing 280ms before the sky is imperceptible, and it
-    keeps the eye off a one-off literal. */
- transition:background var(--dur-reveal) var(--ease-out),
-  width var(--dur-reveal) var(--ease-out),
-  height var(--dur-reveal) var(--ease-out)
+ /* NO SECOND CURVE. --eye-glint-mix/-alpha/-size are registered and
+    transitioned on .hero now, so this element's background and box already
+    interpolate over the sky's own 640ms. The --dur-reveal transition that used
+    to live here ran a SECOND, shorter ramp on top of the first: the highlight
+    finished twice, once at 360ms and again at 640ms, which is exactly the
+    compound easing that reads as sloppy. The catchlight is scene, not chrome --
+    it is a reflection OF the sky -- so it lands when the sky lands.
+    `left` is unlisted on purpose: it rides --time-light-dir, which is written
+    per frame from the head's position and must answer immediately. */
 }
 /* The second, lower highlight is the same reflection bouncing off the lower
    lid, so it takes the same colour at a lower strength. */
@@ -724,9 +845,7 @@
   color-mix(in srgb,var(--eye-glint-core) calc(var(--eye-glint-alpha) * 55%),transparent) 0%,
   transparent 68%)
 }
-@media(prefers-reduced-motion:reduce){
- .hero[data-time-state] .glint{transition:none}
-}
+
 
 .heroCopy h1{position:relative;z-index:3;color:var(--time-ink);transition:color var(--hero-time-duration) var(--hero-time-ease)}
 .heroPortraitTintDefs{position:absolute;width:0;height:0;overflow:hidden;pointer-events:none}

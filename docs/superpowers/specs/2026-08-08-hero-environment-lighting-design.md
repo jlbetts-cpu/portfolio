@@ -433,3 +433,178 @@ different question from a *missing* one.
 Verified on a fresh origin: no key → `data-theme-mode="daytime"`, state
 `daytime`, icon `daytime`, exactly one `aria-checked` item and it is Daytime. A
 stored `auto` survives a reload and resolves to the real hour.
+
+## Fourth pass: an hour has to pass, not be set
+
+Jayden: *"All the transitions of the lighting need to be smooth as well... when
+it goes to dark mode it should feel like the time of day is changing."*
+
+Every value was landing on the right number. They were just not travelling.
+
+### Unregistered custom properties do not interpolate — they snap
+
+To CSS an unregistered custom property is an untyped string, so a transition on
+it jumps at the substitution point. There is no halfway between `#eaf2ff` and
+`#9ab0ff` for the engine to compute, because it does not know those are colours.
+
+Measured 25% of the way through a daytime → night change (169ms of 640):
+
+| channel | 0% | **25%** | 100% |
+|---|---|---|---|
+| `--time-cast` | `#eaf2ff` | **`#9ab0ff`** | `#9ab0ff` |
+| `--time-exposure` | 1.20 | **.36** | .36 |
+| `--time-contrast` | .96 | **.70** | .70 |
+| `--rim-strength` | 16% | **34%** | 34% |
+| `--time-shade` | .34 | **.58** | .58 |
+| `--eye-glint-mix` | 26% | **56%** | 56% |
+| `.heroNightStars` opacity | 0 | **1** | 1 |
+
+Six channels and the stars finished on frame one while the sky took the full
+640ms behind them. That is the "settings change" reading exactly: the light
+jumps, the backdrop drifts after it.
+
+`@property` fixes it, and **which properties get a transition is the design**:
+
+- **Per-state channels — what the hour *is*** — are registered and transitioned
+  on `.hero`. One duration, one easing, declared once via `transition-property`
+  longhands rather than repeated nineteen times.
+- **Per-frame channels — where the head *is*** (`--light-ux/-uy`,
+  `--light-prox`, `--light-angle`, `--env-color`, `--env-lum`, `--env-raw`,
+  `--time-light-dir`) — are registered for their *type* and deliberately left
+  out of that list. A transition on those makes the lighting chase the drag.
+- **Derived values are registered for nothing**: `--time-rim`, `--time-ambient`,
+  `--time-lit`, `--time-shade-color`, `--time-portrait-filter` recompute from
+  the channels above on every frame and arrive smooth without a type of their
+  own. `--time-rim` in particular *cannot* be typed — the base `.hero` rule
+  assigns it `var(--rim-3)`, a box-shadow.
+
+**Registration is not free**: a registered property always has a value, so
+`var(--x, fallback)` stops reaching its fallback. Every `initial-value` is set
+to the fallback its `var()` already carried.
+
+### The transition that was making it worse
+
+`#face` transitioned `filter` and `opacity` on 640ms. That is the obvious way to
+smooth an hour change and it was the wrong one: the chain is fed by
+`--light-ux/-uy`, which change **every frame** while the head floats or is
+dragged, and a transition restarts on every change — so the rendered rim chased
+the head with a 640ms lag. The feature Jayden asked for was being smeared by the
+mechanism meant to smooth it. Both are gone; the filter is recomputed from values
+that are already interpolating. Measured after: the rendered `drop-shadow` offset
+matches `--light-ux × --rim-throw` to **0.00px on the frame the drag lands.**
+
+It also retires the filter-list interpolation rule entirely — no two chains ever
+have to be structurally matched, because no chain is ever interpolated.
+
+### `off` was an absence, and now it is a look
+
+`--time-portrait-filter:none` is a different *shape* of value, not a quieter one:
+`filter:drop-shadow(…) drop-shadow(…) none` is not even valid, so the whole
+declaration was dropped and the head lost its chain in one frame. Every channel
+Off wants quiet is authored at its neutral value instead — contrast and exposure
+at 1, `--lit-floor:1`/`--lit-swing:0` to pin `--env-gain`, the rim at **zero
+strength and zero throw rather than a shorter chain**, the shading at zero.
+Measured: `off` now reports rim alpha exactly `0`, and leaving or entering it is
+the same continuous event as any other hour.
+
+There is **no `display` toggled by any `data-time-state` selector** any more. The
+only survivors are `.heroAura`, which is `display:none` in *every* state and so
+never transitions, and the icon glyph swap.
+
+### A cross-fade of two stacked layers is not a cross-fade
+
+The six skies are separate layers cross-faded on opacity, which is right —
+gradients cannot interpolate. But both layers ramped at once, one up and one
+down, and they are **stacked**: at weights *w* and *1−w* the picture is
+`w·incoming + (1−w)·((1−w)·outgoing + w·backdrop)`, so a quarter of the Hero's
+own background paints *through* the pair at the midpoint — and that background is
+itself mid-transition between white and near-black.
+
+Measured at the head's resting point, daytime → night, against a straight blend
+of the two skies:
+
+| night's weight | luminance error | deviation R / G / B |
+|---|---|---|
+| .42 | **−11.2%** | −9.6 / −16.3 / −23.3 |
+| .57 | **−23.2%** | −18.8 / −25.5 / −32.3 |
+| .69 | **−33.2%** | −22.4 / −28.1 / −34.1 |
+
+The sky dipped dark and desaturated on its way to night — every value moving
+correctly and the composite still lurching. **Hold and cover** replaces it: the
+arriving sky is lifted above the others and fades 0 → 1; every other layer holds
+where it is and is dropped to its destination only once the arriving one is
+opaque. The lift is mandatory rather than tidy — the arriving layer is often
+*earlier* in the DOM than the outgoing one, and without it the held layer would
+cover the arriving one and vanish in a single frame. `off` is the one state with
+no arriving sky, and the one where the page underneath is the point, so it keeps
+the plain fade.
+
+Measured after, on `daytime→night`, `night→daytime`, `sunset→night` and
+`daytime→off`, at weights .41 / .57 / .74: **deviation 0.0 in every channel.**
+
+### The sampler was reading one sky at a time
+
+`parseSky()` took the *most visible* layer. Better than requiring `opacity === 1`
+— which returned null for the whole 640ms and stranded the previous hour's
+colours — but it still **switches which sky it reads, in one frame**, when the
+incoming layer overtakes the outgoing. Measured sunset → night: the blue channel
+of the shading colour travelled **62% of its journey backwards** before
+returning.
+
+Every on-screen layer is parsed now and the sample is the weighted composite the
+eye is actually looking at, honouring the z-index the cross-fade sets. The
+expensive half — tokenising the gradients — is cached per element; only the
+opacities are re-read, and only inside a window of `--hero-time-duration` after a
+state change. That window replaced a row of `setTimeout(relight)` calls at
+0/120/340/700ms, which was the same idea sampled four times — and four samples
+across a cross-fade *is* a step.
+
+### The verification
+
+Eleven legs, sampling every lighting channel at 160 / 320 / 480ms of 640, judged
+against the reference curve that `background-color` — a real CSS property on the
+same duration and easing — actually traces: `(0.635, 0.940, 0.991)`.
+
+**95 channels with a meaningful excursion. 5 flags, all benign:** two are a
+measurement artefact (`skyIncoming` degenerates on the leg into `off`, which has
+no arriving layer), three are the shade flood overshooting ~12–22% on `off→night`
+— a few units on a near-black colour under a layer whose own opacity is ramping
+from zero.
+
+Below the 24-unit noise floor sit another 125 channel/leg pairs where the total
+travel is smaller than 8-bit rounding. Two signatures are **correct** and were
+flagged by an earlier, naiver check: colour channels interpolating to or from
+`transparent` show RGB at target immediately with alpha ramping, which is
+premultiplied interpolation doing the right thing (a fade-in, not a pass through
+black); and `cubic-bezier(.22,1,.36,1)` is ~69% complete at 25% of its duration,
+so "already most of the way there" is the curve, not a snap.
+
+### The chrome exception, on purpose
+
+Nav, footer and the case-study surfaces run on `--theme-duration` (400ms). They
+are UI responding to a theme change, not sky moving. The scene — sky, spill,
+stars, rim, exposure, shading, catchlight, hero background — all runs on
+`--hero-time-duration` (640ms) and lands together. **That difference is intended;
+it is not a rung someone forgot to update.**
+
+The catchlight lost its own `--dur-reveal` transition in this pass. Its inputs
+now interpolate on the sky's duration, so the old rule ran a *second*, shorter
+ramp on top of the first — the highlight finished twice, at 360ms and again at
+640ms, which is exactly the compound easing that reads as sloppy. It is a
+reflection *of* the sky, so it lands when the sky lands. Its `left` stays
+unlisted: that rides `--time-light-dir`, which is per-frame.
+
+## The measured table after the transition pass, at 1440, at rest
+
+| state | face | its sky | **ratio** | rim α | rim vs sky | form (off → on) | vector |
+|---|---|---|---|---|---|---|---|
+| `off` | .350 | 1.000 | **0.35** | **0** | — | — | — |
+| `pre-dawn` | .387 | .827 | **0.47** | .114 | 1.02× | 3.97 → 4.60 | (.61, .79) |
+| `sunrise` | .455 | .884 | **0.52** | .157 | 1.01× | 4.71 → 5.29 | (.59, .81) |
+| `daytime` | .451 | .876 | **0.52** | .082 | 1.02× | 9.89 → 10.84 | (.58, .81) |
+| `dusk` | .432 | .786 | **0.55** | .137 | 1.02× | 3.99 → 4.55 | (.60, .80) |
+| `sunset` | .442 | .800 | **0.55** | .165 | 1.02× | 4.23 → 4.79 | (.66, .76) |
+| `night` | .136 | .078 | **1.75** | .086 | 1.23× | 2.90 → 3.66 | (.61, .79) |
+
+Unchanged from the third pass to within .003 — the smoothing moved how the
+values travel, not where they arrive.

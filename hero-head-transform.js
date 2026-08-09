@@ -708,7 +708,7 @@
      state with neither. Every layer is parsed and composited now, over the
      Hero's own background colour, so what is sampled is the sky that is
      actually painted. */
-  var env=null;
+  var env=null,skyShiftUntil=0;
   function splitTop(str){
    var out=[],depth=0,cur="";
    for(var i=0;i<str.length;i++){
@@ -768,21 +768,22 @@
     g:(src.g*src.a+dst.g*dst.a*(1-src.a))/a,
     b:(src.b*src.a+dst.b*dst.a*(1-src.a))/a,a:a};
   }
-  function parseSky(){
-   /* The MOST visible sky, not one that is exactly opacity 1. During the
-      640ms cross-fade no layer is at 1, and requiring that made this return
-      null for the whole transition -- which left the previous hour's colours
-      stranded on the head until something else happened to call in. */
-   var lit=null,best=-1,nodes=hero.querySelectorAll(".heroTimeGradient");
-   for(var i=0;i<nodes.length;i++){
-    var o=parseFloat(getComputedStyle(nodes[i]).opacity)||0;
-    if(o>best){best=o;lit=nodes[i];}
-   }
-   if(!lit||best<=0)return null;
-   var box=lit.getBoundingClientRect();
-   if(!box.width||!box.height)return null;
+  /* ── A CROSS-FADE IS TWO SKIES, AND THE LIGHT COMES FROM BOTH ──────────────
+     This used to take the MOST VISIBLE layer and read only that one. It was
+     already an improvement on requiring opacity===1, which returned null for
+     the whole 640ms and stranded the previous hour's colours on the head -- but
+     it still means the sampler SWITCHES which sky it is reading, in one frame,
+     at the moment the incoming layer overtakes the outgoing one. Measured
+     sunset -> night: the blue channel of the shading colour travelled 62% of
+     its journey BACKWARDS before returning, because halfway through it stopped
+     describing sunset and started describing night with nothing in between.
+     Every layer that is on screen is parsed now, and the sample is the same
+     weighted composite the eye is actually looking at. The expensive half --
+     tokenising the gradients -- is cached per element and survives the whole
+     transition; only the opacities are re-read, and only while one is running. */
+  function parseLayers(node,box){
    var layers=[],focus=null;
-   splitTop(getComputedStyle(lit).backgroundImage).forEach(function(token){
+   splitTop(getComputedStyle(node).backgroundImage).forEach(function(token){
     token=token.trim();
     var body=token.slice(token.indexOf("(")+1,token.lastIndexOf(")"));
     if(token.indexOf("radial-gradient(")===0){
@@ -807,32 +808,73 @@
      layers.push({kind:"linear",angle:angle?parseFloat(angle[1]):180,stops:lstops});
     }
    });
-   if(!layers.length)return null;
-   return {layers:layers,w:box.width,h:box.height,
-    /* WHERE THE LIGHT IS IS WHERE THE SKY SAYS IT IS. Every one of these
-       gradients carries its own focal point, so that point IS the source --
-       it does not have to be re-authored beside the gradient, and it cannot
-       drift from it. Falls back to the CSS-authored position when a sky is
-       something this cannot read. */
-    fx:focus?focus.fx:null,fy:focus?focus.fy:null,
+   return layers.length?{layers:layers,fx:focus?focus.fx:null,fy:focus?focus.fy:null}:null;
+  }
+  function parseSky(){
+   var nodes=hero.querySelectorAll(".heroTimeGradient");
+   if(!nodes.length)return null;
+   var box=nodes[0].getBoundingClientRect();
+   if(!box.width||!box.height)return null;
+   var skies=[];
+   for(var i=0;i<nodes.length;i++){
+    /* PAINT ORDER, NOT DOM ORDER. hero-time.js lifts the arriving sky above
+       the one it is replacing, so the z-index has to be honoured or the two
+       are composited the wrong way round for the length of every change. */
+    var style=getComputedStyle(nodes[i]);
+    var parsed=parseLayers(nodes[i],box);
+    if(!parsed)continue;
+    parsed.node=nodes[i];
+    parsed.order=(parseInt(style.zIndex,10)||0)*100+i;
+    parsed.weight=parseFloat(style.opacity)||0;
+    skies.push(parsed);
+   }
+   if(!skies.length)return null;
+   skies.sort(function(a,b){return a.order-b.order;});
+   return {skies:skies,w:box.width,h:box.height,
     base:parseColour(getComputedStyle(hero).backgroundColor)||{r:255,g:255,b:255,a:1},
-    key:null};
+    fx:null,fy:null,key:null};
+  }
+  /* Only while a sky is actually changing. Outside that window every weight is
+     0 or 1 and re-reading them per frame would put a style recalc back into a
+     loop that was deliberately reduced to writes. */
+  function refreshSkyWeights(){
+   var fx=0,fy=0,total=0;
+   for(var i=0;i<env.skies.length;i++){
+    var sky=env.skies[i];
+    sky.weight=parseFloat(getComputedStyle(sky.node).opacity)||0;
+    if(sky.fx===null)continue;
+    fx+=sky.fx*sky.weight;fy+=sky.fy*sky.weight;total+=sky.weight;
+   }
+   /* The focal point is blended too, so the source does not jump between two
+      skies that focus a couple of percent apart. */
+   env.fx=total>0?fx/total:null;
+   env.fy=total>0?fy/total:null;
+   env.key=null;
   }
   /* The composited sky at a point, in the gradient box's own 0-1 coordinates.
-     Layers paint first-listed on top, so they are composited last-to-first. */
+     Within one sky, layers paint first-listed on top, so they are composited
+     last-to-first; the skies themselves are composited in paint order, each
+     scaled by how visible it currently is. */
   function skyAt(u,v){
    var out=env.base;
-   for(var i=env.layers.length-1;i>=0;i--){
-    var l=env.layers[i],c;
-    if(l.kind==="radial"){
-     c=sampleStops(l.stops,Math.sqrt(Math.pow((u-l.fx)/(l.rx||1),2)
-                                    +Math.pow((v-l.fy)/(l.ry||1),2)));
-    }else{
-     var th=l.angle*Math.PI/180,dx=Math.sin(th),dy=-Math.cos(th);
-     var len=Math.abs(env.w*dx)+Math.abs(env.h*dy);
-     c=sampleStops(l.stops,.5+((u-.5)*env.w*dx+(v-.5)*env.h*dy)/len);
+   for(var s=0;s<env.skies.length;s++){
+    var sky=env.skies[s];
+    if(sky.weight<=0)continue;
+    var acc={r:0,g:0,b:0,a:0};
+    for(var i=sky.layers.length-1;i>=0;i--){
+     var l=sky.layers[i],c;
+     if(l.kind==="radial"){
+      c=sampleStops(l.stops,Math.sqrt(Math.pow((u-l.fx)/(l.rx||1),2)
+                                     +Math.pow((v-l.fy)/(l.ry||1),2)));
+     }else{
+      var th=l.angle*Math.PI/180,dx=Math.sin(th),dy=-Math.cos(th);
+      var len=Math.abs(env.w*dx)+Math.abs(env.h*dy);
+      c=sampleStops(l.stops,.5+((u-.5)*env.w*dx+(v-.5)*env.h*dy)/len);
+     }
+     acc=over(c,acc);
     }
-    out=over(c,out);
+    acc.a*=sky.weight;
+    out=over(acc,out);
    }
    return out;
   }
@@ -841,7 +883,19 @@
   function updateLight(fx,fy,frot){
    var m=metrics(),b=state.base;
    if(!b)return;
-   if(!env)env=parseSky();
+   if(!env){env=parseSky();if(env)refreshSkyWeights();}
+   /* ── THE SKY IS ONLY MOVING FOR 640ms, SO ONLY LOOK FOR 640ms ─────────────
+      While an hour is changing, the two skies' opacities change every frame and
+      the sampled light has to follow them or it steps. Outside that window
+      every weight is 0 or 1 and nothing about them can change, so the read is
+      skipped entirely and the loop goes back to writing only. This replaced a
+      row of setTimeout(relight) calls at 0/120/340/700ms, which was the same
+      idea sampled four times -- and four samples across a cross-fade is what a
+      step looks like. */
+   if(env&&skyShiftUntil>0){
+    if(performance.now()<=skyShiftUntil)refreshSkyWeights();
+    else{skyShiftUntil=0;refreshSkyWeights();}
+   }
    var headX=b.left+b.width/2+state.x+fx;
    var headY=b.top+b.height/2+state.y+fy;
    /* ── THE SOURCE IS THE GRADIENT'S OWN FOCUS ──────────────────────────────
@@ -1145,14 +1199,28 @@
      re-reads cost nothing and guarantee the lighting ends on the new hour. */
   function relight(){
    state.metrics=null;env=null;
+   /* The window is the sky's own duration plus a frame or two of slack, read
+      from the token rather than repeated as a literal, so retuning the
+      cross-fade retunes this with it. */
+   var raw=getComputedStyle(document.documentElement)
+     .getPropertyValue("--hero-time-duration").trim();
+   var ms=parseFloat(raw)||0;
+   if(!/ms$/i.test(raw))ms*=1000;
+   skyShiftUntil=performance.now()+(ms||640)+120;
    updateLight(cssNumber(wrap,"--hero-head-float-x"),cssNumber(wrap,"--hero-head-float-y"),
     cssNumber(wrap,"--hero-head-float-rot"));
+   /* The float loop carries the window while it is running. It is not running
+      under reduced motion or while a pointer is holding the head, so one
+      catch-up pass past the end of the window guarantees the settled value. */
+   setTimeout(function(){
+    if(!env)env=parseSky();
+    if(env)refreshSkyWeights();
+    updateLight(cssNumber(wrap,"--hero-head-float-x"),cssNumber(wrap,"--hero-head-float-y"),
+     cssNumber(wrap,"--hero-head-float-rot"));
+   },(ms||640)+140);
   }
-  new MutationObserver(function(){
-   [0,120,340,700].forEach(function(d){setTimeout(relight,d);});
-   state.metrics=null;env=null;updateLight(cssNumber(wrap,"--hero-head-float-x"),cssNumber(wrap,"--hero-head-float-y"),
-    cssNumber(wrap,"--hero-head-float-rot"));
-  }).observe(hero,{attributes:true,attributeFilter:["data-time-state"]});
+  new MutationObserver(relight)
+   .observe(hero,{attributes:true,attributeFilter:["data-time-state"]});
   ambient();startFloat();
   if(document.readyState==="complete")recapture();
   else addEventListener("load",function(){recapture();render();});

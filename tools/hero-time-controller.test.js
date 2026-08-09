@@ -305,6 +305,42 @@ test("live reduced motion settles portrait opacity and filter then restores norm
  assert.equal(portraitFrames.at(-1).filter,h.portraitTargets.off.filter);
 });
 
+/* ── THE CROSS-FADE MUST NOT LET THE BACKDROP THROUGH ────────────────────────
+   Two stacked layers ramping in opposite directions sum to 1 and still show a
+   quarter of whatever is behind them at the midpoint, because the lower one is
+   partly transparent underneath the upper one. The incoming sky is therefore
+   lifted above the rest and is the ONLY layer that moves; every other layer
+   holds where it was and is dropped to its destination by the settled write,
+   under an incoming layer that is opaque by then. */
+test("an arriving sky is lifted and is the only layer that ramps",()=>{
+ const h=makeHarness({snapshot:{mode:"daytime",state:"daytime",theme:"light"}});
+ h.finishLatestSet();
+ h.publish({mode:"night",state:"night",theme:"dark"});
+ const daytime=h.gradients[2],night=h.gradients[5];
+ assert.equal(night.style.values["z-index"],"1","the arriving sky must be lifted above the one it replaces");
+ assert.equal(daytime.style.values["z-index"],undefined,"only the arriving sky is lifted");
+ const arriving=h.latestFor(night).frames;
+ assert.equal(arriving[0].opacity,0);
+ assert.equal(arriving.at(-1).opacity,1);
+ const leaving=h.latestFor(daytime).frames;
+ assert.equal(leaving[0].opacity,1);
+ assert.equal(leaving.at(-1).opacity,1,"the outgoing sky holds rather than fading through the backdrop");
+ assert.equal(Number(daytime.style.values.opacity),0,"and lands on 0 once the arriving sky covers it");
+});
+
+/* off has no arriving sky, and it is the one state where the page underneath IS
+   the destination, so it keeps the plain fade out. */
+test("Off fades the outgoing sky out rather than holding it",()=>{
+ const h=makeHarness({snapshot:{mode:"night",state:"night",theme:"dark"}});
+ h.finishLatestSet();
+ h.publish({mode:"off",state:"off",theme:"light"});
+ const night=h.gradients[5];
+ assert.equal(night.style.values["z-index"],undefined);
+ const leaving=h.latestFor(night).frames;
+ assert.equal(leaving[0].opacity,1);
+ assert.equal(leaving.at(-1).opacity,0);
+});
+
 test("reduced motion settles all seven states with exclusive scene destinations",()=>{
  const h=makeHarness({reducedMotion:true});
  const states=["off","pre-dawn","sunrise","daytime","dusk","sunset","night"];

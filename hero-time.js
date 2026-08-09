@@ -51,7 +51,10 @@
  }
 
  function clearSettledSceneStyles(){
-  gradients.forEach(function(layer){layer.style.removeProperty("opacity");});
+  gradients.forEach(function(layer){
+   layer.style.removeProperty("opacity");
+   layer.style.removeProperty("z-index");
+  });
   spill.style.removeProperty("opacity");
   portrait.style.removeProperty("opacity");
  }
@@ -117,6 +120,10 @@
   };
  }
 
+ /* The lift is NOT cleared here. This runs immediately after the animations are
+    created, so removing it would undo the one that was just set -- and it is
+    cleared by clearSettledSceneStyles() at the head of every transition anyway,
+    which is the only moment it can be stale. */
  function writeFinalScene(target){
   gradients.forEach(function(layer,index){layer.style.setProperty("opacity",target.gradients[index]);});
   spill.style.setProperty("opacity",target.spill);
@@ -134,8 +141,33 @@
   var duration=sceneDuration();
   if(duration<=0){writeFinalScene(target);return;}
   var options={duration:duration,easing:sceneEasing(),fill:"both"};
+  /* ── A CROSS-FADE OF TWO PARTLY-TRANSPARENT LAYERS IS NOT A CROSS-FADE ─────
+     Both skies used to ramp at once, one up and one down. Their opacities sum
+     to 1, which looks like it should be safe, but they are STACKED: at weights
+     w and 1-w the picture is w*incoming + (1-w)*((1-w)*outgoing + w*backdrop),
+     so a quarter of the Hero's own background colour paints THROUGH the pair at
+     the midpoint -- and that background is itself mid-transition between white
+     and near-black. Measured at the head's resting point, daytime -> night: the
+     composite ran 11% / 23% / 33% DARKER than a straight blend of the two skies
+     at weights .42 / .57 / .69, and the deviation was half again as large in
+     blue as in red. The sky dipped grey and desaturated on its way to night,
+     which is precisely the "not smooth" Jayden was pointing at -- every value
+     was moving correctly and the composite still lurched.
+     HOLD AND COVER instead. The incoming sky is lifted above the others and
+     fades 0 -> 1; every other layer HOLDS wherever it is and is dropped to its
+     destination only once the incoming is opaque, where nothing can see it. The
+     backdrop contributes nothing at any instant, so the blend is exactly the
+     two skies. The lift is mandatory rather than tidy: the incoming layer is
+     often EARLIER in the DOM than the outgoing one (daytime is third, night is
+     sixth), and without it the held layer would cover the arriving one
+     completely and then vanish in a single frame.
+     `off` is the one state with no incoming sky, and it is also the one state
+     where the page underneath is the point -- so it keeps the plain fade. */
+  var incoming=target.gradients.indexOf(1);
   gradients.forEach(function(layer,index){
-   runSceneAnimation(layer,[{opacity:from.gradients[index]},{opacity:target.gradients[index]}],options);
+   var settled=index===incoming||incoming<0?target.gradients[index]:from.gradients[index];
+   if(index===incoming)layer.style.setProperty("z-index","1");
+   runSceneAnimation(layer,[{opacity:from.gradients[index]},{opacity:settled}],options);
   });
   runSceneAnimation(spill,[{opacity:from.spill},{opacity:target.spill}],options);
   runSceneAnimation(portrait,[
