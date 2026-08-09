@@ -312,7 +312,14 @@ body.hmSoccer .moodMenu .moodItem:not(#endGame),body.hmSoccer .moodMenu .moodGo{
 .hmBallSkin{position:absolute;inset:0;background:var(--ballSkin,url(images/soccerball.webp)) center/contain no-repeat;transform-origin:50% 50%;will-change:transform}
 .hmBallShade{position:absolute;inset:0;border-radius:var(--r-full);pointer-events:none;background:radial-gradient(circle at 35% 29%,rgba(255,255,255,.92) 0%,rgba(255,255,255,.32) 7%,rgba(255,255,255,0) 20%),radial-gradient(circle at 38% 32%,rgba(255,255,255,.3) 0%,rgba(255,255,255,0) 46%),radial-gradient(circle at 35% 32%,rgba(0,0,0,0) 28%,rgba(0,0,0,.2) 70%,rgba(0,0,0,.46) 100%),radial-gradient(circle at 50% 50%,rgba(0,0,0,0) 78%,rgba(0,0,0,.46) 100%);mix-blend-mode:normal}
 .hmBallShadow{position:absolute;left:0;top:0;width:48px;height:13px;border-radius:var(--r-full);background:radial-gradient(ellipse at center,rgba(8,8,8,.26),rgba(8,8,8,0) 70%);opacity:0;pointer-events:none;z-index:1;transition:opacity .3s}
-.hmGoal{position:absolute;left:0;top:0;width:42px;height:162px;z-index:2;opacity:0;pointer-events:none;transition:opacity .3s;border-radius:3px;background:repeating-linear-gradient(45deg,rgba(26,26,26,.16) 0 1px,transparent 1px 8px),repeating-linear-gradient(-45deg,rgba(26,26,26,.16) 0 1px,transparent 1px 8px)}
+/* THE NET IS INK ON A GROUND, so it has to know what the ground is. Both hatches were the literal
+   rgba(26,26,26,.16) -- 16% of near-black, which is a mesh on #FDFDFD and nothing at all on the
+   #0B0C0F Night page. Measured: in Night each goal collapsed to its coloured post, a single 6px
+   vertical bar at the extreme screen edge with a stray crossbar stub, and stopped reading as a goal.
+   Routed through --goal-net/--goal-net-a for the same reason --head-shadow is: the ink is the only
+   part that belongs to the surface, so a dark ground rebinds one number and every other property of
+   the net -- the 45deg pair, the 1-in-8 pitch, the alpha -- stays exactly as authored. */
+.hmGoal{position:absolute;left:0;top:0;width:42px;height:162px;z-index:2;opacity:0;pointer-events:none;transition:opacity .3s;border-radius:3px;background:repeating-linear-gradient(45deg,rgba(var(--goal-net,26,26,26),var(--goal-net-a,.16)) 0 1px,transparent 1px 8px),repeating-linear-gradient(-45deg,rgba(var(--goal-net,26,26,26),var(--goal-net-a,.16)) 0 1px,transparent 1px 8px)}
 .hmGoalShadow{position:absolute;left:0;top:0;width:60px;height:15px;border-radius:var(--r-full);background:radial-gradient(ellipse at center,rgba(8,8,8,.24),rgba(8,8,8,0) 72%);opacity:0;pointer-events:none;z-index:1;transition:opacity .3s}
 .hmGoalR{box-shadow:inset 20px 0 26px -14px rgba(16,16,16,.5),inset 0 12px 16px -12px rgba(16,16,16,.35)}
 .hmGoalB{box-shadow:inset -20px 0 26px -14px rgba(16,16,16,.5),inset 0 12px 16px -12px rgba(16,16,16,.35)}
@@ -418,6 +425,13 @@ body.hmSoccer .moodMenu .moodItem:not(#endGame),body.hmSoccer .moodMenu .moodGo{
     LOOKS (its saturate(), its mask ramp) is already in a stylesheet below and overridable there;
     this was the only piece of its appearance stranded in JS. */
  --head-refl-gain:0.9;
+
+ /* THE NET'S INK, on the same principle and for the same measured reason. See .hmGoal below.
+    The alpha is shared between light and dark deliberately: at .16 the luminance step the hatch
+    makes against its ground is 227*.16=36 levels on paper and 225*.16=36 on the Night page, so
+    the net is the same strength on both and only the ink flips. */
+ --goal-net:26,26,26;
+ --goal-net-a:.16;
 }
 .hmPlanet,.hmSky,.hmWater{position:absolute;left:0;right:0;top:var(--pl-top,62%);height:var(--planet-h);
  pointer-events:none;opacity:0;transition:opacity .6s var(--ease-out)}
@@ -1049,6 +1063,10 @@ body.hmFinal .sbRound{color:#e8b347}
    Resting shadow is a variable so .sbHit's authored goal/clutch/trophy box-shadow
    declarations remain the winning properties during play. */
 :root[data-theme="dark"] body[data-theme-page="play"]{
+ /* NIGHT GROUND, NIGHT NET. The one number a dark surface owes the goal -- see --goal-net at the
+    top of this file. #ECEEF5 rather than pure white so the mesh sits with the page's own light
+    rather than glaring out of it. */
+ --goal-net:236,238,245;
  --sb-material:rgba(17,19,24,.90);
  --sb-rest-shadow:0 16px 44px -28px rgba(0,0,0,.88),
   inset 0 0 0 var(--hair-w) rgba(255,255,255,.15),

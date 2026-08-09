@@ -580,6 +580,11 @@
  }catch(_){}}
  if(fi&&fi.complete&&fi.naturalWidth)scan();else if(fi)fi.addEventListener("load",scan);}catch(_){}})();
  function survey(){
+  // THE PLANE THIS HEAD WAS SEATED AGAINST WHEN survey() WAS ENTERED. Captured here and nowhere
+  // later, because floorY is written twice below (once off fY, once again after the size branches)
+  // and the re-seat at the bottom has to compare against what the head was ACTUALLY standing on.
+  // Read the note on that clause for what taking this reading in the wrong place cost.
+  var floorWas=floorY;
   heroR={w:hero.clientWidth,h:hero.clientHeight};
   var hr=hero.getBoundingClientRect();
   function rel(el){if(!el)return null;var r=el.getBoundingClientRect();if(!r.width)return null;return{l:r.left-hr.left,t:r.top-hr.top,r:r.right-hr.left,b:r.bottom-hr.top};}
@@ -635,7 +640,7 @@
   // survey(), and is a no-op on the (common) frames where neither branch changed HH.
   // The shadow needs nothing further: its box was resized in the branch above, and its placement
   // is derived per-frame from floorY+HH*FOOT (see shG in the render block), so it follows.
-  var floorWas=floorY;floorY=fY-HH*FOOT;
+  floorY=fY-HH*FOOT;
   // ...and whoever was STANDING ON THE OLD FLOOR has to come with it. `surface` is the plane this
   // head is currently resting on, so `surface>=floorWas-2` means "on the ground", not "on a
   // platform" -- a head perched on a slab keeps its slab. Re-pointing surface at the new floor
@@ -643,7 +648,29 @@
   // moves the hover one hop into the future. This is the same "stay intact when the screen
   // shrinks" clamp as the line below, made symmetric; it re-seats feet on the ground line rather
   // than offsetting anyone off it.
-  if(floorY!==floorWas&&!air&&!grabbed&&!perched&&!window.__hmLavaOn&&surface>=floorWas-2){surface=floorY;if(y<floorY)y=floorY;}
+  //
+  // ...AND IT HAS TO BE COMPARED AGAINST THE FLOOR THE HEAD WAS ACTUALLY ON. `floorWas` used to be
+  // read on this line, i.e. AFTER line 604 had already written the new floor into floorY -- so it was
+  // not the old floor at all, it was the new one, and `floorY!==floorWas` could only ever be true when
+  // one of the size branches above had just changed HH. That is the case the clause was written for
+  // and it kept working; every OTHER way the ground moves was silently exempt. The ground moves that
+  // way constantly on this page: fY is the hero's own height, and the hero is 828 in the hub, 468 in
+  // the team picker and 540 with a game owning the viewport. At 1440x900 the feet plane therefore runs
+  // 789 -> 429 -> 501 -> 789 across one match, and not one of those steps reached this test. floorWas
+  // now comes from the top of survey(), before either write, so it means what it says.
+  //
+  // AIR IS NOT AN EXEMPTION EITHER. `!air` used to gate the whole clause, and the frame the floor moves
+  // is exactly the frame the returning crowd is mid-throw, so the heads that most needed re-seating were
+  // the ones it skipped. What `air` legitimately governs is the SNAP, not the re-point: a head in flight
+  // keeps its arc and lands on the new plane, a head that was standing comes down with the floor the same
+  // frame. So the test moves inside, onto the y write it was always about.
+  //
+  // These two together are why "a head on a different plane with no shadow under it" (the team picker)
+  // and "a head-shaped shadow with no head above it" (returning from a match) are one defect seen from
+  // two sides: shG is drawn from floorY, always the CURRENT ground, while the head was left resting on
+  // the ground of the stage before. Measured returning from a match at 1440x900: heads stranded 287px
+  // above the lobby floor with their shadows on it, still there at +11s.
+  if(floorY!==floorWas&&!grabbed&&!perched&&!window.__hmLavaOn&&surface>=floorWas-2){surface=floorY;if(!air&&y<floorY)y=floorY;}
   if(soccerOn&&!window.__hmLavaOn&&!grabbed&&!perched)surface=floorY;
   if(x>WR)x=WR;if(x<WL)x=WL;if(y>floorY)y=floorY;   // stay intact when the screen shrinks
  }

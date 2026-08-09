@@ -498,6 +498,15 @@
    return (window.__hmPlaceholders?window.__hmPlaceholders():[]);}
   function balanced(n){var a=[];for(var i=0;i<n;i++)a.push(i<Math.ceil(n/2)?1:2);return a;}
   function shuffle(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=a[i];a[i]=a[j];a[j]=t;}return a;}
+  /* WHICH SIDE MINI-JAYDEN JOINS. He only appears on an ODD roster, and the reason he appears at
+     all is stated in the line that used to pick for him: "he joins when the sides are uneven". So
+     the pick cannot be a coin flip -- with five heads split 3/2 it landed on the long side half the
+     time and the tray read RED 4 / BLUE 2, a screen whose entire job is to show a fair split
+     showing a 2-player gap. Counting is the whole fix: he takes the short side, and a tie (which an
+     odd roster cannot produce, but a mid-tray drag can) falls to red. A tap or a drag still moves
+     him -- this only decides where he starts. */
+  function shortSide(n){var r=0,b=0;for(var i=0;i<n;i++){if(sel[i]===1)r++;else if(sel[i]===2)b++;}
+   return b<r?2:1;}
   function ensureSel(){var n=heads().length,ok=true,i;
    for(i=0;i<n;i++){if(sel[i]!==1&&sel[i]!==2){ok=false;break;}}
    for(var k in sel){if(+k>=n&&+k<9000)delete sel[k];}   // keep the mini-Jayden key (9001)
@@ -507,7 +516,7 @@
     if(good){sel={};for(i=0;i<n;i++)sel[i]=prev[i];}
     else{var a=balanced(n);sel={};a.forEach(function(t,i2){sel[i2]=t;});}
     if(mjKeep===1||mjKeep===2)sel[9001]=mjKeep;else if(prev&&(prev[9001]===1||prev[9001]===2))sel[9001]=prev[9001];}
-   if(sel[9001]!==1&&sel[9001]!==2)sel[9001]=(Math.random()<0.5?1:2);   // Jayden picks a side too (he joins when the sides are uneven)
+   if(sel[9001]!==1&&sel[9001]!==2)sel[9001]=shortSide(n);   // Jayden takes the side that is a player down -- see shortSide()
    return n;}
   function syncGlobal(){var o={};for(var k in sel)o[k]=sel[k];window.__hmTeamSel=o;}
   function applyPreview(){if(open){var o={};for(var k in sel)o[k]=sel[k];window.__hmTeamPreview=o;}else window.__hmTeamPreview=null;}
@@ -528,8 +537,21 @@
      syncGlobal();applyPreview();renderTray();}
     document.addEventListener("pointermove",mv);document.addEventListener("pointerup",up);});
    return b;}
+  /* HIS CHIP IS THE HEAD HE FIELDS, not a second picture of him. It was images/smile.webp: a
+     different photograph (grinning, where the head that takes the pitch is his resting face) AND a
+     different frame (the raw square cutout, with transparent margin all round, so his tile floated
+     centred with air on four sides while every egghead beside it filled its tile to the chin).
+     Two heads of the same person, side by side, in the row whose whole job is to say who is playing.
+     __hmFillerData() is the engine's own source for the head it spawns -- the 5:6 bake, chin seated
+     on the shared foot line -- so reading it here makes the tray quote the roster rather than
+     illustrate it. Baked ONCE: fillerData() runs a 500x600 getImageData, and renderTray() re-runs on
+     every chip tap. smile.webp stays as the fallback for the frame before #face has decoded. */
+  var _mjCut=null;
+  function mjCut(){if(_mjCut)return _mjCut;
+   try{var d=window.__hmFillerData&&window.__hmFillerData();if(d&&d.cut)_mjCut=d.cut;}catch(_){}
+   return _mjCut||"images/smile.webp";}
   function mjChip(){var b=document.createElement("button");b.className="teamChip "+(sel[9001]===1?"red":"blue");b.type="button";b.title="Mini-Jayden — joins when the sides are uneven";b.setAttribute("aria-label","Mini-Jayden, switch his side");
-   var im=document.createElement("img");im.src="images/smile.webp";im.alt="";b.appendChild(im);   // the grinning mini-Jayden
+   var im=document.createElement("img");im.src=mjCut();im.alt="";b.appendChild(im);
    return bindChip(b,9001);}
   function chip(h,slot){var b=document.createElement("button");b.className="teamChip "+(sel[slot]===1?"red":"blue");b.type="button";b.setAttribute("aria-label","Switch this head to the other team");
    var im=document.createElement("img");im.src=h.cut;im.alt="";b.appendChild(im);
@@ -559,7 +581,7 @@
       screen and a 15px icon was hiding it (research §1.5). */
    var shuf=document.createElement("button");shuf.className="pBtn";shuf.type="button";shuf.setAttribute("aria-label","Shuffle the sides");
    shuf.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 3h5v5"/><path d="M4 20 21 3"/><path d="M21 16v5h-5"/><path d="M15 15l6 6"/><path d="M4 4l5 5"/></svg>Shuffle';
-   shuf.addEventListener("click",function(ev){ev.stopPropagation();var a=shuffle(balanced(n));sel={};a.forEach(function(t,i){sel[i]=t;});sel[9001]=(Math.random()<0.5?1:2);syncGlobal();applyPreview();renderTray();});
+   shuf.addEventListener("click",function(ev){ev.stopPropagation();var a=shuffle(balanced(n));sel={};a.forEach(function(t,i){sel[i]=t;});sel[9001]=shortSide(n);syncGlobal();applyPreview();renderTray();});
    /* The toggle is hidden outright when the picker is showing placeholders: they are not
       in storage, so there is nothing for this mode to act on. */
    if(realHeads().length){
