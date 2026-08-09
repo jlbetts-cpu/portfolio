@@ -180,6 +180,16 @@ ABLATIONS = {
     "no-lava-canvas": ".hmLavaGL,.hmLavaCrust{display:none!important}",
     # the eyes, which carry filter:url(#inkEye) and move every frame
     "no-eyes": ".eye{display:none!important}",
+    # THE FILTER ONLY, eyes still drawn -- separates "the ink costs" from
+    # "the element costs", which display:none cannot tell apart
+    "no-eye-filter": ".eye{filter:none!important}",
+    # every SVG filter reference, leaving CSS blur/drop-shadow in place: this is
+    # the sub-question that matters, because url(#...) is the non-accelerated
+    # path and blur()/drop-shadow() are not
+    "no-svg-filter": ".eye,.tongue,.glasses,.dlogo,.hmCount,.hmScore,.battleBadge,"
+                     ".battleCount,.queueDots i,.popbucket,.kernel,.heartEye,"
+                     ".loveHeart,.cookieDot::before,.discoDot::before,"
+                     ".heartDot::before,.camDot::before{filter:none!important}",
 }
 
 
