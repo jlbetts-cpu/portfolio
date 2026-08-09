@@ -1155,6 +1155,70 @@ class Audit:
                          'not fill)' % (sel[:70], value[:60]),
                          selector=sel[:120], value=value[:120])
 
+    # ── THE LEADING LADDER ────────────────────────────────────────────────────
+    # THIS CHECK EXISTS BECAUSE THE AUDIT COULD NOT SEE ITS OWN BIGGEST MISS.
+    # `--lh-` sits in NON_SUBSTITUTABLE (correctly -- a bare 1.5 in `flex` is not
+    # a leading) and `line-height` is in no property category, so check_literals
+    # is structurally blind to it. The 2026-08-09 conformance audit measured the
+    # consequence: `line-height:1.12` on five case studies and `1.06` on index +
+    # play, both off every rung, both invisible to a PASSing suite -- and the
+    # --lh-head/--lh-note rungs were ADDED on 2026-08-04 specifically to absorb
+    # that 1.12 cluster (see tokens.css, "THE TWO MISSING LEADING RUNGS"). The
+    # rungs landed and the call sites never moved. Nothing reported it.
+    #
+    # SCOPED TO UNITLESS RATIOS ON PURPose. A `line-height` in px or em is a
+    # deliberate metric decision (a 2px cap rule, an optical alignment) and
+    # cannot be compared against a ratio ladder without knowing the element's
+    # font-size, which a static reader does not have. Unitless is the form the
+    # ladder is written in and the form 60 of the site's declarations use.
+    #
+    # THE LADDER IS READ FROM tokens.css, NOT HARDCODED. A rung list retyped
+    # here is a second definition of the ladder and would drift from the file it
+    # is meant to police -- which is the same failure this tool exists to catch.
+    LH_UNITLESS = re.compile(r'^(\d*\.?\d+)$')
+
+    def leading_ladder(self):
+        """{ratio -> [token names]} read live out of tokens.css."""
+        ladder = defaultdict(list)
+        for name, entries in self.defs.get(TOKENS_FILE, {}).items():
+            if not name.startswith('--lh-'):
+                continue
+            for e in entries:
+                m = self.LH_UNITLESS.match(norm(e['value']))
+                if m:
+                    ladder[round(float(m.group(1)), 4)].append(name)
+        return ladder
+
+    def check_leading(self):
+        ladder = self.leading_ladder()
+        self.metrics['leading_rungs'] = sorted(ladder)
+        seen = Counter()
+        for fname, decls in self.decls.items():
+            src = self.sources[fname]
+            for pos, prop, value, sel in decls:
+                if prop != 'line-height':
+                    continue
+                v = norm(value)
+                m = self.LH_UNITLESS.match(v)
+                if not m:
+                    continue           # px/em/% leading -- see the note above
+                ratio = round(float(m.group(1)), 4)
+                seen[ratio] += 1
+                if ratio in ladder:
+                    self.add('leading_literal_on_rung', 'WARNING', src.where(pos),
+                             '%s -- line-height:%s is %s, written as a literal'
+                             % (sel[:56], v, '/'.join(sorted(ladder[ratio]))),
+                             file=fname, selector=sel[:120], value=v)
+                else:
+                    near = min(ladder, key=lambda r: abs(r - ratio)) if ladder else None
+                    self.add('leading_off_ladder', 'WARNING', src.where(pos),
+                             '%s -- line-height:%s is on no rung (nearest %s = %s)'
+                             % (sel[:56], v,
+                                '/'.join(sorted(ladder.get(near, []))) or '-', near),
+                             file=fname, selector=sel[:120], value=v)
+        self.metrics['leading_distinct_unitless'] = len(seen)
+        self.metrics['leading_histogram'] = seen.most_common()
+
     ALLOWED_FONT = re.compile(
         r'^(?:var\(--(?:sans|serif|mono)\)|inherit|unset|initial|revert)$', re.I)
 
@@ -1195,6 +1259,7 @@ class Audit:
         self.check_shadows()
         self.check_hover_fill()
         self.check_fonts()
+        self.check_leading()
         return self
 
 
@@ -1221,6 +1286,8 @@ ORDER = [
     ('hover_background_fill', 'Hover states that fill a background'),
     ('hover_fill_sanctioned', 'Hover fills the specs sanction (not a finding)'),
     ('third_font_family', 'Font families outside the system'),
+    ('leading_off_ladder', 'Leading: unitless line-height on no --lh-* rung'),
+    ('leading_literal_on_rung', 'Leading: a rung written as a literal'),
 ]
 
 

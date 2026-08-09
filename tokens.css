@@ -369,6 +369,47 @@
 :root{--lh-head:1.2;--lh-note:1.45}
 
 /* ===========================================================================
+   THE TWO HERO TYPE RUNGS THAT WERE BEING USED WITHOUT EXISTING.  2026-08-09.
+
+   Same test, and the same verdict, as --panel-w / --bar-h / --lbl-w above:
+   found by diffing custom-property DEFINITIONS across every shipping file
+   rather than by reading any one of them. --fs-hero is declared in THREE files
+   and --fs-heroline in TWO, and this file -- the one that owns the type scale --
+   declares neither:
+
+     --fs-hero      index.html:89   play.css:63   specimen.html:59
+     --fs-heroline  index.html:89   play.css:63
+
+   ALL FIVE DECLARATIONS AGREE TODAY, which is exactly why this is worth doing
+   now: two names for one geometry is the state immediately before they
+   disagree, and nothing would report it when they did. play.css:51 already says
+   so in as many words -- "not in tokens.css at all; kept verbatim so the ..." --
+   which is a file flagging its own copy and having nowhere to move it to.
+
+   WHAT THEY ARE. --fs-hero is the bare h1 rung: bigger than --fs-pagehead (52)
+   and smaller than --fs-display (168), the size an h1 takes when it is the only
+   thing on the screen. --fs-heroline is the STEPPED-DOWN size the home and Play
+   heroes actually set, because both of those h1s wrap to two or three lines and
+   the bare rung is sized for one; it aliases --fs-pagehead-sm rather than
+   carrying its own literal, which is what keeps the step a RELATIONSHIP instead
+   of a second number to maintain.
+
+   ADDITIVE, AND NOTHING SHIPPED MOVES BY DECLARING THEM. index.html and
+   play.css keep their local copies and those copies still win -- a page's own
+   :root is later in the cascade. This is the home the two names did not have;
+   deleting the local copies belongs to those files' owners, and until they do,
+   the values here are identical so the site renders byte-for-byte as before.
+
+   NOT DONE HERE, deliberately: --accent-live (#17A45A, three copies, same
+   shape of fork) stays out. The header of this file states the decision that
+   the tournament's live-match green is NOT a token this file defines, and
+   reversing a recorded decision is a design call for Jayden, not a tidy-up.
+   It is reported in docs/superpowers/specs/2026-08-09-system-conformance-audit.md
+   instead.
+   =========================================================================== */
+:root{--fs-hero:clamp(38px,4.7vw,60px);--fs-heroline:var(--fs-pagehead-sm)}
+
+/* ===========================================================================
    THE RADIUS LADDER, AND THE RULE FOR CHOOSING A RUNG.  2026-08-04.
 
    Jayden: "I thought we were doing 28 squircle for everything -- when did we
