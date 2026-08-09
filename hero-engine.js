@@ -1082,6 +1082,13 @@ function syncMovieEffectsLayer(){
  movieEffectsStage.style.top=(stageRect.top-clipRect.top).toFixed(2)+"px";
  movieEffectsStage.style.width=stageRect.width.toFixed(2)+"px";
  movieEffectsStage.style.height=stageRect.height.toFixed(2)+"px";
+ // HOW FAR THE HEAD HANGS PAST THE SCENE'S FLOOR. The stage tracks the head,
+ // and the head's resting composition sits well below the Hero's lower edge,
+ // so anything anchored to the stage's bottom lands off-screen. Published so
+ // the popcorn bucket can sit on the Hero's floor instead of the stage's.
+ var heroBox=document.getElementById("main");
+ if(heroBox)movieEffectsStage.style.setProperty("--movie-stage-overhang",
+  Math.max(0,stageRect.bottom-heroBox.getBoundingClientRect().bottom).toFixed(2)+"px");
  movieEffectsStage.style.transform=priorTransform;
 }
 window.addEventListener("heroheadtransform",function(){

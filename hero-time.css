@@ -22,18 +22,26 @@
  --hero-ground-throw:54;
  /* The float freezes the moment the pointer arrives and waits this long after
     it leaves, so clipping an edge in passing does not make it stutter. */
- --hero-head-float-resume-delay:280;
+ --hero-head-float-resume-delay:var(--dur-move);
  /* SMALLER, AND A LITTLE LEFT -- Jayden's call on the resting composition.
     Both are LAYOUT, not transform: the head still rests at scale 1 with x=0,
     so reset() returns it exactly here and the entrance still lands on it.
     Baking either into --hero-head-x/-scale would have made the resting state
     something the clamp treats as "already moved". */
- --hero-peek-width:444px;
- --hero-peek-shift-x:-58px
+ --hero-peek-width:336px;
+ --hero-peek-shift-x:-136px;
+ /* THE CROP HAS TO SCALE WITH THE HEAD. --hero-peek-depth was a fixed 206px,
+    which was a sane share of a 520px head and is far too much of a 336px one:
+    at the new size only 40.5% of the head stayed above the Hero's floor, under
+    the 42% the reachability clamp requires. The resting position was therefore
+    ILLEGAL under its own clamp -- measured y settled at -13.8px instead of 0,
+    which would have meant the entrance no longer landing where the head rests.
+    Expressed as a share of the head's own width it stays legal at any size. */
+ --hero-peek-depth:calc(var(--hero-peek-width) * .40)
 }
 @media(max-width:760px){:root{
- --hero-peek-width:clamp(268px,calc(100vw - var(--sp-64)),444px);
- --hero-peek-shift-x:-18px;
+ --hero-peek-width:clamp(206px,calc(100vw - var(--sp-64) - var(--sp-48)),336px);
+ --hero-peek-shift-x:-42px;
  --hero-ground-height:20px
 }}
 /* --theme-duration is NOT overridden here. It was :root:root{--theme-duration:
@@ -58,19 +66,23 @@
  --time-bloom:transparent;
  --time-cast:transparent;
  --time-cast-opacity:0;
+ --time-light-x:50%;
  --time-light-dir:0;
  --time-light-elev:1.0;
- /* ONE NUMBER FOR WHERE THE LIGHT IS. Every sky gradient in this file has
-    its focal x at 50%, so the radial focus carries no horizontal direction
-    at all -- the authored direction has always lived in --time-light-x, the
-    position the portrait cast's mask reads. That is now DERIVED from a
-    signed --time-light-dir (-1 fully left, +1 fully right) so a single
-    number drives the cast mask, the rim light, the ground bounce, the
-    shadow's throw and the catchlight's offset. They cannot disagree,
-    because there is nothing to keep in sync. --time-light-elev is how high
+ /* THE LIGHT IS A PLACE IN THE SCENE, NOT A DIRECTION.
+    --time-light-x / -y are authored per state: where the source actually
+    sits in the Hero. --time-light-dir is no longer authored data -- it is
+    COMPUTED every frame by hero-head-transform.js from the vector between
+    that point and wherever the head currently is, and written back onto the
+    Hero. So the rim swings across the face as the head is dragged past the
+    light, and crosses over when it passes underneath it. A constant could
+    never do that, which is exactly why the lighting read as stagnant.
+    The values below are the REST fallback: correct before the script runs
+    and if it never does. --light-prox is 1 next to the source and 0 far
+    from it, and fades the rim with distance. --time-light-elev is how high
     the source sits: 1 overhead, 0 on the horizon, which is what makes a
     sunset shadow long and a midday one short. */
- --time-light-x:calc(50% + var(--time-light-dir) * 50%);
+ --light-prox:1;
  --time-light-y:86%;
  --time-shadow:radial-gradient(ellipse 50% 50% at 50% 50%,rgba(8,8,8,.42),rgba(8,8,8,.28) 30%,rgba(8,8,8,.10) 58%,transparent 78%);
  --time-shadow-opacity:.5;
@@ -100,6 +112,7 @@
  --time-bloom:transparent;
  --time-cast:transparent;
  --time-cast-opacity:0;
+ --time-light-x:50%;
  --time-light-dir:0;
  --time-light-elev:1.0;
  --time-light-y:86%;
@@ -128,6 +141,7 @@
  --time-bloom:rgba(111,169,255,.38);
  --time-cast:#9ab0ff;
  --time-cast-opacity:.22;
+ --time-light-x:34%;
  --time-light-dir:-0.32;
  --time-light-elev:0.3;
  --time-light-y:82%;
@@ -156,6 +170,7 @@
  --time-bloom:rgba(255,190,139,.42);
  --time-cast:#ffb58c;
  --time-cast-opacity:.25;
+ --time-light-x:32%;
  --time-light-dir:-0.36;
  --time-light-elev:0.25;
  --time-light-y:82%;
@@ -184,6 +199,7 @@
  --time-bloom:rgba(116,182,242,.30);
  --time-cast:#eaf2ff;
  --time-cast-opacity:.16;
+ --time-light-x:50%;
  --time-light-dir:0;
  --time-light-elev:0.85;
  --time-light-y:84%;
@@ -212,6 +228,7 @@
  --time-bloom:rgba(178,167,209,.34);
  --time-cast:#c8bceb;
  --time-cast-opacity:.20;
+ --time-light-x:62%;
  --time-light-dir:0.24;
  --time-light-elev:0.35;
  --time-light-y:82%;
@@ -240,6 +257,7 @@
  --time-bloom:rgba(255,167,120,.42);
  --time-cast:#ffb58c;
  --time-cast-opacity:.26;
+ --time-light-x:68%;
  --time-light-dir:0.36;
  --time-light-elev:0.22;
  --time-light-y:82%;
@@ -268,6 +286,7 @@
  --time-bloom:rgba(111,169,255,.40);
  --time-cast:#9ab0ff;
  --time-cast-opacity:.24;
+ --time-light-x:66%;
  --time-light-dir:0.32;
  --time-light-elev:0.4;
  --time-light-y:82%;
@@ -468,6 +487,8 @@
               calc(var(--time-light-elev) * var(--rim-throw) * -.6)
               var(--rim-blur) var(--time-rim))
   drop-shadow(0 var(--bounce-throw) var(--bounce-blur) var(--time-bounce))
+  drop-shadow(calc(var(--time-light-dir) * var(--rim-throw) * -.5) 0
+              calc(var(--rim-blur) * 2.4) var(--time-ambient))
   var(--time-portrait-filter,none);
  opacity:var(--time-portrait-opacity,1);
  transition:filter var(--hero-time-duration) var(--hero-time-ease),
@@ -482,8 +503,27 @@
    midday sun has no side to be on, so its rim goes on top, while a sunset at
    elev .22 is almost entirely sideways. */
 .hero[data-time-state]{
- --rim-throw:30px;--rim-blur:4px;--rim-strength:46%;
- --time-rim:color-mix(in srgb,var(--time-cast) var(--rim-strength),transparent);
+ --rim-throw:30px;--rim-blur:3px;--rim-strength:20%;
+ /* THE RIM TAKES THE SKY'S OWN COLOUR WHERE THE HEAD IS STANDING.
+    --env-color and --env-lum are written per frame by hero-head-transform.js,
+    evaluated analytically from the authored gradient's stops at the head's
+    position -- so moving the head toward the bright part of the sky makes the
+    edge take that hue and brighten, and moving it into a dim corner lets it
+    fall away. --time-cast stays in the mix as the state's authored intent, so
+    a sky retune cannot drag the lighting somewhere unintended.
+    Falloff is gentle and monotonic, not physical: near the source the edge is
+    at full authored strength, far from it about a third. */
+ --env-color:var(--time-cast);
+ --env-lum:1;
+ --time-rim:color-mix(in srgb,
+   color-mix(in oklab,var(--env-color) 62%,var(--time-cast))
+   calc(var(--rim-strength) * var(--env-lum) * (.34 + .66 * var(--light-prox,1))),
+   transparent);
+ /* THE AMBIENT TERM. Environment light arrives from everywhere, so the side
+    facing away from the source is never truly black -- it is filled by the
+    rest of the sky. This is the third of the three terms, and it is what stops
+    a dark head reading as a void at night. Deliberately tiny. */
+ --time-ambient:color-mix(in srgb,var(--env-color) calc(var(--env-lum) * 16%),transparent);
  --bounce-throw:0px;--bounce-blur:9px;--time-bounce:transparent
 }
 /* off = the neutral page: no scene, so no scene lighting. */
@@ -495,32 +535,37 @@
    so they get the widest offset and the warmest edge; daytime is nearly
    overhead and gets a tight, neutral one. */
 .hero[data-time-state="pre-dawn"]{
- --time-portrait-filter:contrast(.84) brightness(1.07);--time-portrait-opacity:.97;
- --rim-throw:30px;--rim-blur:4px;--rim-strength:40%;--bounce-throw:3px;--time-bounce:rgba(96,120,196,.30)
+ --time-portrait-filter:contrast(.78) brightness(.84);--time-portrait-opacity:.97;
+ --rim-throw:30px;--rim-blur:3px;--rim-strength:18%;--bounce-throw:2px;--time-bounce:rgba(96,120,196,.30)
 }
 .hero[data-time-state="sunrise"]{
  --time-portrait-filter:contrast(.82) brightness(1.09);--time-portrait-opacity:.96;
- --rim-throw:32px;--rim-blur:4px;--rim-strength:54%;--bounce-throw:3px;--time-bounce:rgba(255,183,140,.34)
+ --rim-throw:32px;--rim-blur:3px;--rim-strength:26%;--bounce-throw:2px;--time-bounce:rgba(255,183,140,.34)
 }
 .hero[data-time-state="daytime"]{
  --time-portrait-filter:contrast(.94) brightness(1.05);--time-portrait-opacity:.97;
- --rim-throw:26px;--rim-blur:5px;--rim-strength:42%;--bounce-throw:2px;--time-bounce:rgba(180,214,255,.26)
+ --rim-throw:26px;--rim-blur:3px;--rim-strength:18%;--bounce-throw:2px;--time-bounce:rgba(180,214,255,.26)
 }
 .hero[data-time-state="dusk"]{
  --time-portrait-filter:contrast(.78) brightness(1.06);--time-portrait-opacity:.96;
- --rim-throw:30px;--rim-blur:4px;--rim-strength:44%;--bounce-throw:3px;--time-bounce:rgba(150,140,190,.30)
+ --rim-throw:30px;--rim-blur:3px;--rim-strength:20%;--bounce-throw:2px;--time-bounce:rgba(150,140,190,.30)
 }
 .hero[data-time-state="sunset"]{
  --time-portrait-filter:contrast(.80) brightness(1.07);--time-portrait-opacity:.96;
- --rim-throw:32px;--rim-blur:4px;--rim-strength:54%;--bounce-throw:3px;--time-bounce:rgba(255,158,116,.34)
+ --rim-throw:32px;--rim-blur:3px;--rim-strength:26%;--bounce-throw:2px;--time-bounce:rgba(255,158,116,.34)
 }
-/* Night is the inversion: against a near-black sky a lower-contrast head has
-   to get LIGHTER overall or it disappears into its own background -- but the
-   rim is what actually separates it, so the edge carries more of the work and
-   the exposure carries less. */
+/* NIGHT IS DARKER. Lifting a face in the darkest scene is backwards, and it is
+   exactly what made it a ghost: a pale head at brightness 1.12 floating on a
+   near-black sky is a sticker, not a person in the dark. A real face at night
+   is mostly IN shadow -- you read the edge of it and the light in the eyes,
+   not an evenly lit surface. So the exposure drops well below 1, contrast
+   drops with it so nothing goes to pure black, and legibility moves onto the
+   rim and the catchlight, which is why night is the one state whose rim keeps
+   the most strength. Measured against its own sky rather than judged in
+   isolation. */
 .hero[data-time-state="night"]{
- --time-portrait-filter:contrast(.76) brightness(1.12);--time-portrait-opacity:1;
- --rim-throw:30px;--rim-blur:5px;--rim-strength:34%;--bounce-throw:3px;--time-bounce:rgba(64,86,150,.32)
+ --time-portrait-filter:contrast(.66) brightness(.40);--time-portrait-opacity:1;
+ --rim-throw:30px;--rim-blur:3px;--rim-strength:30%;--bounce-throw:2px;--time-bounce:rgba(64,86,150,.32)
 }
 .hero[data-time-state="off"] .heroAura,
 .hero[data-time-state="off"] .heroTimePortraitCast{display:none;opacity:0}
@@ -569,6 +614,19 @@
    the source is on. Authored at left:32%, it slides with --time-light-dir --
    left at sunrise, right at sunset -- so it agrees with the rim light instead
    of sitting somewhere else on the eye. */
+/* ── THE CAST FLOOD IS GONE ──────────────────────────────────────────────────
+   Measured before removing it, three ways at sunset and night: with the cast
+   forced to zero the picture barely changes. At sunset the big warm bloom
+   Jayden was pointing at is still there without it -- that bloom is the SKY's
+   own sun, the authored radial whose focus sits at 50% just below the Hero's
+   floor. At night what survives cast-off is the rim, and halving the rim is
+   what actually removes it. So the flood was paying for nothing while adding
+   the one thing he objected to: a localised bright patch with a findable edge.
+   Light has no edge. The rim, the directional shading, the per-hour exposure
+   and the ground bounce carry the lighting on their own now.
+   --time-cast survives as the light COLOUR, which the rim, the bounce and the
+   catchlight all read. --time-cast-opacity is retired with the layer. */
+.hero[data-time-state] .heroTimePortraitCast{display:none}
 .hero[data-time-state] .glint{
  left:calc(32% + var(--time-light-dir) * var(--eye-glint-shift));
  width:var(--eye-glint-size);height:var(--eye-glint-size);
@@ -576,9 +634,13 @@
   color-mix(in srgb,var(--eye-glint-core) calc(var(--eye-glint-alpha) * 98%),transparent) 0%,
   color-mix(in srgb,var(--eye-glint-core) calc(var(--eye-glint-alpha) * 72%),transparent) 24%,
   transparent 60%);
- transition:background var(--hero-time-duration) var(--hero-time-ease),
-  width var(--hero-time-duration) var(--hero-time-ease),
-  height var(--hero-time-duration) var(--hero-time-ease)
+ /* On the ladder: the catchlight changing colour is a reveal IN PLACE, not a
+    journey, so --dur-reveal rather than the sky's own 640ms theme duration. On
+    an 8px highlight finishing 280ms before the sky is imperceptible, and it
+    keeps the eye off a one-off literal. */
+ transition:background var(--dur-reveal) var(--ease-out),
+  width var(--dur-reveal) var(--ease-out),
+  height var(--dur-reveal) var(--ease-out)
 }
 /* The second, lower highlight is the same reflection bouncing off the lower
    lid, so it takes the same colour at a lower strength. */

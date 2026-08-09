@@ -133,10 +133,12 @@
     xPer:rootNumber("--hero-head-float-x-period",8.3),
     rAmp:rootNumber("--hero-head-float-rot-amp",.7),
     rPer:rootNumber("--hero-head-float-rot-period",11.7),
-    /* Signed light direction, read from the Hero because it is authored per
-       time-of-day state. -1 is fully left, +1 fully right. The shadow is
-       thrown the OTHER way: light on the left puts the shadow on the right. */
-    lightDir:parseFloat(getComputedStyle(hero).getPropertyValue("--time-light-dir"))||0,
+    /* WHERE THE LIGHT IS, as a share of the Hero. Authored per time-of-day
+       state; the DIRECTION is derived from it every frame against the head's
+       live position, so the rim swings as the head moves and crosses over
+       when it passes under the source. */
+    lightX:(parseFloat(getComputedStyle(hero).getPropertyValue("--time-light-x"))||50)/100,
+    lightY:(parseFloat(getComputedStyle(hero).getPropertyValue("--time-light-y"))||84)/100,
     throw:rootNumber("--hero-ground-throw",54)
    };
    return state.metrics;
@@ -155,6 +157,7 @@
    wrap.style.setProperty("--hero-head-scale",String(state.scale));
    wrap.style.setProperty("--hero-head-rotate",state.rotate+"deg");
    hero.style.setProperty("--hero-head-scale",String(state.scale));
+   updateLight(cssNumber(wrap,"--hero-head-float-x"),cssNumber(wrap,"--hero-head-float-y"));
    state.rendered={x:state.x,y:state.y,scale:state.scale,rotate:state.rotate};
    state.stamp++;paintShadow();
   }
@@ -501,6 +504,7 @@
      correct if the amplitudes are retuned. */
   function writeFloat(ms){
    var f=floatAt(ms);
+   updateLight(f.x,f.y);
    wrap.style.setProperty("--hero-head-float-x",f.x.toFixed(2)+"px");
    wrap.style.setProperty("--hero-head-float-y",f.y.toFixed(2)+"px");
    wrap.style.setProperty("--hero-head-float-rot",f.rot.toFixed(3)+"deg");
@@ -516,6 +520,136 @@
      wrapped: its reaction offsets are recorded, and every write from either
      source goes through one place that adds them together. */
   var engineShadow={dx:0,dy:0,rot:0},baseShadow=null;
+  /* ── THE LIGHT IS A PLACE, AND DIRECTION IS THE VECTOR TO IT ─────────────
+     --time-light-dir used to be a constant per time-of-day state, so the head
+     could be dragged the whole width of the Hero and its lighting never
+     changed -- stagnant, and no tuning of the constant could have fixed it
+     because the model had no notion of position.
+     Now: normalise (light - head). Left of the source the rim sits on the
+     right; drag the head past the source and it swings over. Proximity fades
+     the rim with distance -- gentle and monotonic, not physical.
+     Everything the loop needs is cached in metrics(), so this is arithmetic
+     and two setProperty calls per frame: it does not undo the work that got
+     the float loop down to writes only. One custom property out, and CSS does
+     the rest -- the rim, the bounce, the shadow throw and the catchlight all
+     read it already. */
+  /* ── IMAGE-BASED LIGHTING, EVALUATED FROM THE AUTHORED GRADIENT ──────────
+     "If it's closer to the gradient it should shine that colour brighter."
+     That is environment lighting: the sky IS the source, rather than a lamp
+     placed in front of a backdrop. Renderers reduce an environment to three
+     terms -- a dominant direction, a dominant colour, and an ambient fill (the
+     L1 spherical-harmonic approximation) -- because that captures nearly all
+     of the perceptual effect for almost none of the cost. Those three are
+     exactly what is derived here.
+
+     NO PIXELS ARE READ. The skies are authored CSS radial gradients with known
+     focal points and colour stops, so they can be evaluated ANALYTICALLY: work
+     out where the head sits in the gradient's own radial coordinate and
+     interpolate its stops there. getImageData would force a GPU->CPU readback
+     every frame, and this codebase has already deleted one of those -- the
+     tournament posters' --fit alpha probe -- for that exact reason.
+
+     THE GRADIENT IS STILL THE ONLY SOURCE. The stop table is parsed from the
+     CSSOM at state-change time, not duplicated in JS, so retuning a sky in
+     hero-time.css retunes the lighting with it and the two cannot drift. */
+  var env=null;
+  function splitTop(str){
+   var out=[],depth=0,cur="";
+   for(var i=0;i<str.length;i++){
+    var c=str[i];
+    if(c==="(")depth++;else if(c===")")depth--;
+    if(c===","&&depth===0){out.push(cur);cur="";}else cur+=c;
+   }
+   if(cur.trim())out.push(cur);
+   return out;
+  }
+  function parseGradient(){
+   /* The MOST visible sky, not one that is exactly opacity 1. During the
+      640ms cross-fade no layer is at 1, and requiring that made this return
+      null for the whole transition -- which left the previous hour's colours
+      stranded on the head until something else happened to call in. */
+   var lit=null,best=-1,nodes=hero.querySelectorAll(".heroTimeGradient");
+   for(var i=0;i<nodes.length;i++){
+    var o=parseFloat(getComputedStyle(nodes[i]).opacity)||0;
+    if(o>best){best=o;lit=nodes[i];}
+   }
+   if(!lit||best<=0)return null;
+   var img=getComputedStyle(lit).backgroundImage;
+   var at=img.indexOf("radial-gradient(");
+   if(at<0)return null;
+   var start=at+"radial-gradient(".length,depth=1,end=start;
+   while(end<img.length&&depth>0){
+    if(img[end]==="(")depth++;else if(img[end]===")")depth--;
+    if(depth>0)end++;
+   }
+   var parts=splitTop(img.slice(start,end));
+   if(parts.length<2)return null;
+   var head=parts[0].trim();
+   var box=lit.getBoundingClientRect();
+   var pos=head.match(/at\s+([\d.]+)%\s+([\d.]+)%/);
+   var size=head.match(/^([\d.]+)(px|%)\s+([\d.]+)%/);
+   if(!pos||!size)return null;
+   var rx=size[2]==="px"?parseFloat(size[1])/box.width:parseFloat(size[1])/100;
+   var stops=[];
+   for(var j=1;j<parts.length;j++){
+    var m=parts[j].trim().match(/rgba?\(([^)]+)\)(?:\s+([\d.]+)%)?/);
+    if(!m)continue;
+    var n=m[1].split(",").map(parseFloat);
+    stops.push({r:n[0],g:n[1],b:n[2],a:n.length>3?n[3]:1,
+     p:m[2]!==undefined?parseFloat(m[2])/100:null});
+   }
+   if(!stops.length)return null;
+   // fill in any implicit stop positions, evenly, as CSS does
+   if(stops[0].p===null)stops[0].p=0;
+   if(stops[stops.length-1].p===null)stops[stops.length-1].p=1;
+   for(var k=1;k<stops.length-1;k++)if(stops[k].p===null)stops[k].p=k/(stops.length-1);
+   return {fx:parseFloat(pos[1])/100,fy:parseFloat(pos[2])/100,
+    rx:rx,ry:parseFloat(size[3])/100,stops:stops};
+  }
+  /* The environment's colour where the head is standing. t is the head's
+     distance from the focus in the gradient's own elliptical coordinates, so
+     0 is dead centre of the light and 1 is its outer stop. */
+  function sampleEnv(t){
+   var st=env.stops,i=0;
+   while(i<st.length-1&&t>st[i+1].p)i++;
+   var a=st[i],b=st[Math.min(i+1,st.length-1)];
+   var span=b.p-a.p,f=span>0?Math.max(0,Math.min(1,(t-a.p)/span)):0;
+   return {r:a.r+(b.r-a.r)*f,g:a.g+(b.g-a.g)*f,b:a.b+(b.b-a.b)*f,
+    a:a.a+(b.a-a.a)*f};
+  }
+  var lightDir=0;
+  function updateLight(fx,fy){
+   var m=metrics(),b=state.base;
+   if(!b)return;
+   var headX=b.left+b.width/2+state.x+fx;
+   var headY=b.top+b.height/2+state.y+fy;
+   var lx=m.heroW*m.lightX, ly=m.heroH*m.lightY;
+   var dx=lx-headX, dy=ly-headY;
+   lightDir=Math.max(-1,Math.min(1,dx/(m.heroW*.5)));
+   var dist=Math.sqrt(dx*dx+dy*dy)/(m.heroW*.9);
+   var prox=Math.max(0,Math.min(1,1-dist));
+   hero.style.setProperty("--time-light-dir",lightDir.toFixed(3));
+   hero.style.setProperty("--light-prox",prox.toFixed(3));
+   if(!env)env=parseGradient();
+   if(!env)return;
+   /* Where the head sits inside the sky's own radial coordinate. */
+   var t=Math.sqrt(Math.pow((headX/m.heroW-env.fx)/(env.rx||1),2)
+                  +Math.pow((headY/m.heroH-env.fy)/(env.ry||1),2));
+   var c=sampleEnv(Math.max(0,Math.min(1,t)));
+   /* JUDGEMENT OVER ACCURACY, in two deliberate places.
+      SATURATION IS RESTRAINED: full colour bleed reads as a gel, and he has
+      called this lighting harsh twice. The hue is pulled a long way toward its
+      own grey, so it is present and never announced.
+      THE RANGE IS COMPRESSED: a literal falloff makes the head vanish in a dim
+      corner, so luminance keeps a floor and never reaches either end. */
+   var lum=(0.2126*c.r+0.7152*c.g+0.0722*c.b)/255*(c.a===undefined?1:c.a);
+   var grey=(c.r+c.g+c.b)/3, sat=0.42;
+   var er=Math.round(grey+(c.r-grey)*sat),
+       eg=Math.round(grey+(c.g-grey)*sat),
+       eb=Math.round(grey+(c.b-grey)*sat);
+   hero.style.setProperty("--env-color","rgb("+er+","+eg+","+eb+")");
+   hero.style.setProperty("--env-lum",(0.35+0.65*Math.max(0,Math.min(1,lum))).toFixed(3));
+  }
   function paintShadow(f){
    if(!baseShadow)return;
    var fx=f?f.x:cssNumber(wrap,"--hero-head-float-x");
@@ -524,7 +658,7 @@
    var m=metrics();
    /* updateShadow scales dx by .55 on its way into translateX, so the throw is
       pre-divided to land as the authored pixel distance on the ground. */
-   var thrown=-m.lightDir*m.throw/0.55;
+   var thrown=-lightDir*m.throw/0.55;
    baseShadow(engineShadow.dx+state.x+fx+thrown,
               engineShadow.dy+state.y+fy,
               engineShadow.rot+state.rotate+fr);
@@ -666,10 +800,30 @@
    rotator.addEventListener("pointercancel",end);
    rotator.addEventListener("lostpointercapture",end);
   }
+  /* ── CLICKING AWAY DISMISSES, WITHOUT EATING THE CLICK ───────────────────
+     The ambient guard used to make the box undismissable, which is the one
+     convention every canvas UI shares. It dismisses on pointerDOWN so it feels
+     immediate rather than waiting for the click to complete.
+     IT DOES NOT SWALLOW THE INTERACTION. No preventDefault, no
+     stopPropagation: clicking "View work" while the head is selected dismisses
+     the frame AND follows the link. Dismissing and eating the click would be
+     worse than not dismissing at all.
+     WHAT DISMISSAL MEANS. state.ambient stays true, so this hides the frame
+     only until the visitor touches the head again -- the artboard reads as an
+     artboard the moment they re-engage, and the page never ends up permanently
+     bare, which would lose the idea the whole hero is built on. Escape is the
+     stronger gesture and remains the permanent one: it clears ambient, so the
+     frame does not come back on its own for the rest of the session.
+     The stage counts as inside, not just the <img>: the head's pointer surface
+     is .stage, so a press that lands between the alpha and the box is still a
+     press on the head. */
   document.addEventListener("pointerdown",function(e){
    if(state.pointerId!==null)return;
-   if(state.ambient)return;
-   if(state.selected&&!selection.contains(e.target)&&e.target!==face)deselect();
+   if(!state.selected)return;
+   var stage=hero.querySelector("#stage");
+   var inside=selection.contains(e.target)||e.target===face
+    ||(stage&&stage.contains(e.target));
+   if(!inside)deselect();
   },true);
   document.addEventListener("keydown",onKeydown);
   addEventListener("heroheadstagechange",function(){state.stamp++;state.metrics=null;captureBase();syncSelection();});
@@ -700,8 +854,17 @@
   hookShadow();
   /* The light direction is authored per state, so a change of hour invalidates
      the cache. Observing the attribute costs nothing until it actually moves. */
+  /* A time change is a 640ms cross-fade, not an instant, so the sky has to be
+     re-read as it settles rather than once at the start. A few sampled
+     re-reads cost nothing and guarantee the lighting ends on the new hour. */
+  function relight(){
+   state.metrics=null;env=null;
+   updateLight(cssNumber(wrap,"--hero-head-float-x"),cssNumber(wrap,"--hero-head-float-y"));
+   paintShadow();
+  }
   new MutationObserver(function(){
-   state.metrics=null;paintShadow();
+   [0,120,340,700].forEach(function(d){setTimeout(relight,d);});
+   state.metrics=null;env=null;updateLight(cssNumber(wrap,"--hero-head-float-x"),cssNumber(wrap,"--hero-head-float-y"));paintShadow();
   }).observe(hero,{attributes:true,attributeFilter:["data-time-state"]});
   ambient();startFloat();
   if(document.readyState==="complete")recapture();

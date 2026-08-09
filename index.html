@@ -173,7 +173,25 @@ body.catchReady #stageMorph{transform:scale(1.055)}
 .hint{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);font-size:var(--fs-caption);color:var(--c500);z-index:5;background:rgba(243,243,243,.7);padding:8px 12px;border-radius:4px;backdrop-filter:blur(4px)}
 .popcrumb{position:absolute;width:2.2%;height:2.2%;background:#e7ddc7;z-index:5;opacity:0;pointer-events:none;will-change:transform,opacity}
 .popbucket{position:absolute;left:50%;bottom:-24%;width:44%;height:auto;transform:translateX(-50%);transform-origin:50% 78%;z-index:8;opacity:0;pointer-events:none;will-change:transform,opacity;filter:url(#inkSm) drop-shadow(0 2px 2px rgba(0,0,0,.32))}.kernel{position:absolute;width:9%;height:auto;z-index:8;opacity:0;pointer-events:none;will-change:transform,opacity;filter:url(#inkSm)}.mouth{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;opacity:0;pointer-events:none;z-index:2;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat}
-#heroMovieEffectsStage .popbucket{bottom:var(--sp-16)}
+/* THE BUCKET SITS ON THE SCENE'S FLOOR, NOT THE STAGE'S. It is a child of the
+   effects stage, which tracks the HEAD -- and the head hangs past the Hero's
+   lower edge, so a bucket pinned to the stage's bottom was landing 101px below
+   the floor at 1440 and 1280 and 73px below it at 390: mostly out of frame at
+   every width, which is what "doesn't look like it's in the right spot" was.
+   Horizontal tracking stays on the head, because the head is holding it. The
+   vertical anchor moves to the Hero's floor plus the same --hero-ground-inset
+   the contact shadow uses, so the bucket and the shadow share one ground line.
+   A LEAN, NOT A PIN. Everything else in this scene has orientation -- the head
+   rotates, the rim tracks the sun, the shadow throws with the light -- so a
+   bucket locked to vertical read as pasted on. `rotate` is an INDEPENDENT
+   property here on purpose: hero-engine writes .style.transform on every movie
+   frame, so a rotate() inside transform would be overwritten, while the
+   separate property composes with it and survives. The lean leans away from
+   the light, using the same signed --time-light-dir as the rim and shadow. */
+#heroMovieEffectsStage .popbucket{
+ bottom:calc(var(--movie-stage-overhang,0px) + var(--hero-ground-inset,12px));
+ rotate:calc(var(--pop-tilt,-7deg) - var(--time-light-dir,0) * 5deg)
+}
 .heroMovieEffectsClip{position:absolute;inset:0;z-index:4;overflow:clip;border-radius:inherit;corner-shape:inherit;pointer-events:none}
 .heroMovieEffectsStage{position:absolute;left:0;top:0;width:0;height:0;transform-origin:50% 50%;pointer-events:none;will-change:transform}
 .dlogo{border-radius:var(--r-2xs);position:absolute;width:21%;height:21%;opacity:0;backface-visibility:hidden;will-change:transform,left,top,opacity;filter:drop-shadow(0 3px 8px rgba(0,0,0,.22))}
@@ -1756,6 +1774,8 @@ if(location.hash==="#about")location.replace("about.html");</script>
 <script>(function(){var root=document.documentElement;addEventListener("pointerdown",function(){root.setAttribute("data-focus-modality","pointer");},{capture:true,passive:true});addEventListener("keydown",function(e){if(e.key==="Tab")root.setAttribute("data-focus-modality","keyboard");},true);})();</script>
 <script src="hero-engine.js"></script>
 <script src="hero-head-transform.js"></script>
+<!-- TEMPORARY: head placement readout, gated behind ?hud=1. Delete this line and hero-head-hud.js to remove. -->
+<script src="hero-head-hud.js"></script>
 <script src="hero-time.js"></script>
 <script>
 (function(){
