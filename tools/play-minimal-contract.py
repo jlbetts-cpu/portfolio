@@ -42,20 +42,21 @@ parser.feed(HTML)
 # The accepted page keeps one live arena, the honest lede, and the same four doors.
 # The first screen is now the real Home hero; the doors live in #games below it.
 assert HTML.count('class="hero" id="playArena"') == 1
-# THE LEDE PINNED HERE WAS THE OLD ONE, AND IT WAS RIGHT TO PIN IT UNTIL IT WASN'T.
-# It asserted the exact string "I made a few games for fun.</span> <span>Still building
-# them." because the honest, one-size line was the fix for an earlier headline that
-# stacked three type sizes over the crowd. Jayden has now reversed the second sentence's
-# terminal punctuation and only that: "H1 is weak ... I was thinking we bring back the
-# draggable mood words and recreate the h1 on this page, since the Play page kinda turned
-# into what the home page used to look like."
-# So the assertion keeps everything the original was protecting -- his own two sentences,
-# verbatim and in order -- and adds the clause that hosts the live word. What it must NOT
-# go back to protecting is a fixed final sentence, because the last line's WIDTH now
-# changes every 8.5s as the mood cycles; the shape is asserted instead of the string.
-assert "I made a few games for fun." in HTML and "Still building them," in HTML
-assert 'class="pLine pMoodLine">with <span class="pMoodSlot"></span>' in HTML, \
+# THE LEDE HAS BEEN ITERATED THREE TIMES AND THE PIN HAS FOLLOWED IT EACH TIME.
+# v1 stacked three type sizes and was cut for it. v2 was the honest one-size line
+# "I made a few games for fun. / Still building them," which Jayden then rejected:
+# "this is a bad h1 lowkey". The fault was structural, not tonal -- the mood word
+# arrived as a dangling clause ("with <word>") bolted onto a sentence that did not
+# want one. v3 gives the word a grammatical home: "made with <word>" reads as
+# English with all four of them (delight, empathy, hunger, love), which is the
+# constraint that actually governs this line.
+# What is asserted is the SHAPE, never the final string: the live word's width
+# changes every 8.5s, so pinning the last sentence would pin a moving target.
+assert "Crafting digital experiences," in HTML
+assert 'class="pLine pMoodLine">made with <span class="pMoodSlot"></span>' in HTML, \
     "the mood clause owns its own line so a word swap cannot reflow the sentence"
+for retired in ("I made a few games for fun.", "Still building them,"):
+    assert retired not in LIVE, f"v2 lede text survives: {retired}"
 assert 'id="playLede"' in HTML, "play-games.js's word rig mounts on this id"
 # ONE TYPE SIZE STILL. The regression Jayden named originally ("too many sizes") is a
 # size count, not a line count, and the live word inherits the h1's type outright.
