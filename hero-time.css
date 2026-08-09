@@ -356,6 +356,66 @@
 .hero[data-time-state="off"] .heroAura,
 .hero[data-time-state="off"] .heroTimePortraitCast{display:none;opacity:0}
 
+/* ── THE CATCHLIGHT IS A REFLECTION OF THE SKY ───────────────────────────────
+   An eye is a wet sphere, and its bright spot is a specular reflection of
+   whatever is lighting it -- so a fixed white dot at every hour is part of why
+   the head reads as pasted ONTO the scene rather than lit BY it.
+
+   ONLY THE CATCHLIGHT TAKES THE COLOUR. The iris and pupil are untouched:
+   tint the whole eye and it reads as coloured contacts, tint the highlight
+   and it reads as wet.
+
+   IT IS DRIVEN FROM --time-cast, the same authored per-state light colour the
+   portrait tint already uses, so the eyes cannot drift out of agreement with
+   the sky if the gradients are ever retuned -- there is one source, not two.
+
+   NO JS. The .glint element already exists, already follows the iris with
+   parallax (hero-engine), and already hides on a blink via .eye.eclosed. So
+   this is colour only: the rig keeps tracking and blinking exactly as before,
+   and the per-frame cost is zero, which matters because every companion head
+   on the site carries this element, not just the Hero portrait. */
+.hero[data-time-state]{
+ --eye-glint-tint:var(--time-cast);
+ --eye-glint-mix:26%;   /* how much sky is in the white */
+ --eye-glint-alpha:1;
+ --eye-glint-size:20%;
+ --eye-glint-core:color-mix(in oklab,var(--eye-glint-tint) var(--eye-glint-mix),#fff)
+}
+/* "Off" has --time-cast:transparent, and mixing toward transparent would eat
+   the highlight rather than colour it. The neutral state gets a plain white
+   catchlight, which is what it had before any of this. */
+.hero[data-time-state="off"]{--eye-glint-tint:#fff;--eye-glint-mix:0%}
+/* NIGHT IS THE ONE TO GET RIGHT: dim, small and cool. A bright white spark in
+   a near-black scene is the single thing that reads as wrong instantly, so the
+   sky's share more than doubles, the highlight shrinks by a quarter, and it
+   loses a third of its strength. It stays present -- the eyes are the charm
+   and they must not go dead -- it just stops being the brightest thing on the
+   page at midnight. */
+.hero[data-time-state="night"]{--eye-glint-mix:56%;--eye-glint-alpha:.68;--eye-glint-size:15%}
+.hero[data-time-state="pre-dawn"]{--eye-glint-mix:44%;--eye-glint-alpha:.8;--eye-glint-size:17%}
+.hero[data-time-state="dusk"]{--eye-glint-mix:38%;--eye-glint-alpha:.88;--eye-glint-size:18%}
+.hero[data-time-state="sunrise"],.hero[data-time-state="sunset"]{--eye-glint-mix:34%;--eye-glint-alpha:.94}
+.hero[data-time-state] .glint{
+ width:var(--eye-glint-size);height:var(--eye-glint-size);
+ background:radial-gradient(circle at 50% 50%,
+  color-mix(in srgb,var(--eye-glint-core) calc(var(--eye-glint-alpha) * 98%),transparent) 0%,
+  color-mix(in srgb,var(--eye-glint-core) calc(var(--eye-glint-alpha) * 72%),transparent) 24%,
+  transparent 60%);
+ transition:background var(--hero-time-duration) var(--hero-time-ease),
+  width var(--hero-time-duration) var(--hero-time-ease),
+  height var(--hero-time-duration) var(--hero-time-ease)
+}
+/* The second, lower highlight is the same reflection bouncing off the lower
+   lid, so it takes the same colour at a lower strength. */
+.hero[data-time-state] .glint::after{
+ background:radial-gradient(circle,
+  color-mix(in srgb,var(--eye-glint-core) calc(var(--eye-glint-alpha) * 55%),transparent) 0%,
+  transparent 68%)
+}
+@media(prefers-reduced-motion:reduce){
+ .hero[data-time-state] .glint{transition:none}
+}
+
 .heroCopy h1{position:relative;z-index:3;color:var(--time-ink);transition:color var(--hero-time-duration) var(--hero-time-ease)}
 .heroPortraitTintDefs{position:absolute;width:0;height:0;overflow:hidden;pointer-events:none}
 .heroTimePortraitCast{
