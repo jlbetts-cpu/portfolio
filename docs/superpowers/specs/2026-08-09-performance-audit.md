@@ -15,9 +15,13 @@
 | **Measured idle frame rate, before → after** | On a **quiet** machine, `index.html` at 1440: **24.2 fps → 59.0 fps.** `play.html` lobby with twelve heads at 1440: **17.3 fps → 41.9 fps.** See the honesty note below — this machine was not quiet for most of the audit, and these are the numbers I trust least. |
 | **The one number that best characterises the site's responsiveness** | **`index.html` spends ~300 ms of every second recalculating style while nothing at all is happening** — about 30% of one CPU core, at rest. That is why it "feels laggy just existing": there is almost no headroom left, so the moment anything else competes it falls off a cliff. Measured at 255–372 ms/s across every run, on both a GPU and a software rasteriser. |
 | **Is the site at 60fps?** | **No, and I cannot certify 60fps from this environment.** Fixed: the landing page's idle cost and the whole resize path. Still short: soccer (~36 fps) and battle (~18 fps) on a real GPU, both paint-bound. Those need a decision from Jayden, not a silent edit — §5. |
-| **Biggest single lever still on the table** | The eyes. Two per head, twelve heads, each carrying `filter: url(#inkEye)` and re-transformed every frame: **+7 fps in soccer** from that one selector, reproduced twice. |
+| **Biggest single lever still on the table** | Nothing cheap. The eyes have been dealt with **without touching the ink** (§5·P1). What remains is battle at ~18 fps, which is fill-rate, and needs a decision rather than a refactor (§5·P2). |
+| **Accessibility defect found and fixed** | `prefers-reduced-motion` on `play.html` cost **more** than leaving motion on — 62.8 style recalcs/sec against 45.7. Now **1.7/sec**. |
+| **Largest waste found** | The home page pulled **1.14 MB (DPR 1) / 3.16 MB (DPR 2)** of case-study variants on every visit through detached `Image()` objects, defeating all seven `loading="lazy"` attributes. Now **392 KB / 1.13 MB**. |
 
-**The regression that caused this.** `hero-head-transform.js` carries a 16-line comment recording a previous fix to exactly this loop — *"The steady-state loop now reads nothing from the DOM at all — it only writes."* The brief asked me to verify that was still true. **It is not.** One uncached `rootNumber()` call has come back, inside `place()`, which runs once per selection handle per frame. The comment is now false and the 8-frames-in-1.5s failure it describes has partially returned.
+**The regression that caused this.** `hero-head-transform.js` carries a 16-line comment recording a previous fix to exactly this loop — *"The steady-state loop now reads nothing from the DOM at all — it only writes."* The brief asked me to verify that was still true. **It was not.** One uncached `rootNumber()` call had come back inside `place()`, which runs once per selection handle per frame.
+
+**That regression is now closed** — the lighting agent landed the fix in `8ca6d6c`; `--selection-handle-size` is cached out of `place()`. More importantly, **the invariant now has a guard**: `tools/performance-idle-contract.py` fails the moment any read reappears in that loop, and proves it can fail via `--self-test`. A comment that documents an invariant nothing enforces is a comment that will be false again — §7.
 
 ---
 
@@ -44,7 +48,7 @@ So: **the fps figures in this document are directional, and the counters are the
 
 ## 2 · Findings, ranked by measured impact
 
-### F1 — The hero float loop forces a full-document style recalc five times a frame · `hero-head-transform.js` · **not my lane, patch below**
+### F1 — The hero float loop forced a full-document style recalc five times a frame · `hero-head-transform.js` · **fixed by the lighting agent in `8ca6d6c`**
 
 `floatFrame()` → `syncSelection()` → `place()`, once per selection handle. `place()` writes four custom properties to the handle and then, two lines later, calls `rootNumber("--selection-handle-size", 8)`, which is a `getComputedStyle()` on `document.documentElement`. Write-then-read on the root of a 200 KB document is a forced synchronous style recalculation, and it happens five times per frame, forever, on the landing page.
 
@@ -67,7 +71,9 @@ The value read is a **constant**. It cannot change without a resize, and `metric
    var reach=(m.hit-m.handle)/2;
 ```
 
-Run `python3 tools/performance-probe.py --pages index --patch hero-handle-cache --attribute` to reproduce. Please also update the loop's comment, which currently asserts something untrue.
+Reproduce with `python3 tools/performance-probe.py --pages index --patch hero-handle-cache --attribute`.
+
+**Status:** landed. `8ca6d6c` caches `--selection-handle-size` out of `place()`. The loop's comment is true again — and, for the first time, something checks it (§7).
 
 ---
 
@@ -102,7 +108,7 @@ Reads two live rects, writes four style properties, ran once per event. The pill
 
 ---
 
-### F5 — `updateIris()` reads geometry inside its write loop · `hero-engine.js` · **not my lane, patch below**
+### F5 — `updateIris()` reads geometry inside its write loop · `hero-engine.js` · **open, patch below**
 
 Runs every frame on **both** pages. Takes `stage.getBoundingClientRect()`, then per eye reads `getBoundingClientRect()`, `offsetWidth` and `offsetHeight` *inside* a loop that also writes `e.iris.style.transform` and `e.el.style.transform` — so the second eye reads back out of the tree the first eye dirtied. ~63 forced-layout reads/sec, and after F1–F4 it is **the only remaining idle read source on either page**.
 
@@ -115,7 +121,7 @@ Runs every frame on **both** pages. Takes `stage.getBoundingClientRect()`, then 
    /* ...unchanged... */ var ow=_g.ow,oh=_g.oh;
 ```
 
-### F6 — `prefers-reduced-motion` stops the work on `index.html`, but **not** on `play.html`
+### F6 — `prefers-reduced-motion` cost **more** than motion on `play.html` · **fixed**
 
 The brief asked whether reduced motion genuinely stops work rather than just hiding motion. Measured over a 5-second idle window:
 
@@ -126,19 +132,50 @@ The brief asked whether reduced motion genuinely stops work rather than just hid
 | `play.html` normal | 35.3 | 39.0 | 5.4 |
 | `play.html` **reduced** | **24.7** | **64.6** ⚠ | 0.0 |
 
-`index.html` passes cleanly. **`play.html` does not**: script cost falls only 30%, and style recalculations *increase*. The companion engine keeps running its per-head loops under reduced motion. Worth fixing — it is both an accessibility promise and free battery on a laptop.
+`index.html` passed cleanly. **`play.html` did not**: someone asking for less motion was getting *more work*. Two causes, found by bisecting rather than guessing.
 
-### F7 — Two 404s fire during the hunger mood · `hero-engine.js:813` · pre-existing
+**(a) The head loop's reduced-motion branch wrote six properties per head per frame from frozen inputs.** Reduced motion freezes `x` and `y`, so twelve heads redrew an identical picture 72 times a frame, forever. It now writes only when a signature of its inputs changes.
 
-`hero-engine.js:813` requests `images/crumbtex.png` and `images/texttex.png`. Only `crumbtex.webp` exists; **`texttex` does not exist in any format**. This fails `tools/play-browser-smoke.py` at the `hunger` assertion. Unrelated to this audit's changes — it fails identically on an unmodified tree — but it is a live bug and the smoke test cannot pass until it is fixed.
+**(b) `party.js` injects the disco CSS copied verbatim out of `index.html` — but not the reduced-motion guard, which lives further down that file.** Because `party.js` injects at *runtime*, its copy landed after every linked stylesheet and **outranked the identical guard `play.css` already carries**, silently re-enabling the animation site-wide for anyone who had asked for stillness. `.discoDot::after` animates `background-position` — a paint property — so it cost a style recalculation per frame.
 
-### F8 — Page weight
+Bisected on `play.html` under reduced motion: that one selector was the **entire** idle load — **60.8 recalcs/sec against 2.0** with it stopped. Killing every companion head on the page changed nothing by comparison (61.2/sec).
+
+| play.html, idle | before | after |
+|---|---|---|
+| Style recalcs/sec under reduced motion | **62.8** ⚠ (worse than motion-on) | **1.7** |
+| Script ms/sec under reduced motion | 21.5 | **11.6** |
+| Layouts/sec under reduced motion | 0.0 | 0.0 |
+
+`index.html` is 1.3 recalcs/sec, so the two pages now behave the same.
+
+### F6b — The lava heat haze shimmered from page load, forever, at `opacity: 0` · **fixed**
+
+`hmHazeWob` animates a transform, which would normally ride the compositor for free — but `.hmLavaHaze` carries `backdrop-filter`, and **Chromium cannot composite an animation on a backdrop-filtered layer**, so it fell back to the main thread. The element is created at load and is invisible outside a lava fight, so every visit to Play paid a main-thread animation to shimmer something nobody could see. It now runs only while it is actually on screen.
+
+### F7 — Both crumb textures 404, and always have · `hero-engine.js:813` · **fixed**
+
+The line wrote the background image inline and got it wrong twice: it asked for `crumbtex.**png**` when the only file that has ever existed is `crumbtex.webp`, and 45% of the time for `texttex.png`, which — checked against every commit in the repository, not just the current tree — **has never existed in any format**. So nearly half of every crumb 404'd from the day it shipped, and because the value was written inline it beat the correct one that `.crumb` already declares in both `play.css` and `index.html`.
+
+The inline write is gone; the stylesheet supplies the texture. The position randomisation stays — that was the part doing real work, stopping every crumb from showing the same corner of the sheet.
+
+**One thing for Jayden:** the `isText` branch wanted a *second*, text-grained crumb variant. There is nothing to restore — the asset was never made. If that look is still wanted, it needs drawing; I have not invented one.
+
+### F8 — Page weight · **the preload is fixed**
 
 Not the cause of the lag, but worth knowing. `images/earth-map-src.jpg` (2.51 MB) is **correctly never served** — the four matches are all prose in comments. Its generated descendant `earth-disc.webp` is not referenced either, so all three earth assets (3.26 MB) are dead weight in the tree, along with four unreferenced `*-rung.jpg` files and 91 KB of `@font-face`-less woff2.
 
 Two live issues:
 
-- **`time-aware-thumbnails.js` preloads 1.14 MB (DPR 1) / 3.16 MB (DPR 2) of case-study variants on every first visit**, via detached `new Image()`, which **bypasses all seven `loading="lazy"` attributes on index.html**. It re-runs on every theme and time-boundary change. The six decodes are gated behind a single `Promise.all`, so the slowest image blocks all five others, and the rejection handler is an empty comment — one failed decode silently abandons the whole state change.
+- **`time-aware-thumbnails.js` preloaded 1.14 MB (DPR 1) / 3.16 MB (DPR 2) of case-study variants on every first visit** via detached `new Image()`, which **bypasses all seven `loading="lazy"` attributes on index.html**. Lazy hints a script defeats are worse than no hints, because the markup looks optimised. `Promise.all` made every project hostage to the slowest decode, and one rejection abandoned the entire state change into an empty handler.
+
+  **Fixed.** Each project is now independent, and each image gets what its own markup asked for. The test is a single flag that needs no layout read: *has the browser already fetched this one?* An image on screen is `complete` with a real `naturalWidth`; a lazy image below the fold is not. One already showing is decoded before the swap, so it never flickers; one the browser has not fetched is simply pointed at the new source and stays exactly as lazy as it was declared.
+
+  | First load, no scrolling | before | after |
+  |---|---|---|
+  | Variant files fetched | 6 | **2** |
+  | Variant bytes, DPR 1 | 1,142,238 | **391,916** (−66%) |
+  | Variant bytes, DPR 2 | 3,162,910 | **1,126,736** (−2.04 MB) |
+  | All image bytes, DPR 2 | 4,122,600 | **2,086,426** (−49%) |
 - **`hero-engine.js:300` fetches 25 decoration images (468 KB) 900 ms after load on both pages**, for imagery that is invisible unless an easter egg fires. It is not gated by `__hmHeroHeadOnly`, so `play.html` pays it too — where it is 84% of that page's entire image payload.
 
 Also: **0 of 11 `<img>` on index.html declare `width`/`height`** (8 of 66 site-wide), and `time-aware-thumbnails.js` swaps `src`/`srcset` on them after load, so nothing is reserved against reflow.
@@ -164,17 +201,29 @@ Tournament and marble race are genuinely fine. Soccer and battle are the problem
 
 ## 4 · What I changed
 
-Committed as `887cada`, touching only `play-engine.js`, `header.js`, `tools/performance-probe.py`:
+**`887cada`** — `play-engine.js`, `header.js`, `tools/performance-probe.py`
 
 - Eye box width cached against head size (F2)
-- `onResizeFrame()` helper; `survey()`, soccer `layout()`, battle `build()/render()` coalesced to a frame (F3)
+- `onResizeFrame()`; `survey()`, soccer `layout()`, battle `build()/render()` coalesced to a frame (F3)
 - Duplicate `getBoundingClientRect()` in `survey()` removed (F3)
 - `placeInk()` coalesced to a frame (F4)
-- `tools/performance-probe.py` added
 
-**Contracts:** `hm-check.py` **PASS**, `token-audit.py` **PASS**. `play-browser-smoke.py` fails at F7's pre-existing 404s. `shared-surfaces-contract.py` and `hero-specimen-check.py:52` were already failing at baseline and are not mine.
+**`a3bbe6e`** — `play-engine.js`, `party.js`, `hero-engine.js`, `time-aware-thumbnails.js`, tests, `tools/performance-idle-contract.py`
 
-Nothing was removed. The float, the lighting, the reflections, the shadows, the soccer chaos and the time-of-day system all behave exactly as before — every change is a measurement that stopped being repeated, not a feature that stopped happening.
+- Eye transform writes elided when unchanged, so the ink filter stops re-rasterising an identical picture (P1)
+- Reduced-motion head branch writes only when its frozen inputs change (F6a)
+- `party.js` reduced-motion guard restored for the mood dots (F6b)
+- Lava haze animation runs only while on screen (F6b)
+- Crumb texture 404s removed (F7)
+- Thumbnail preload respects `loading="lazy"` (F8)
+- `decide()` uses the shared `heroBox` instead of its own rect — found by the new contract
+- `tools/performance-idle-contract.py` added (§7)
+
+`hero-engine.js`, `party.js` and `time-aware-thumbnails.js` sit outside my original lane and were changed on the coordinator's instruction; `hero-engine.js` was uncontested at the time.
+
+**Contracts:** `hm-check.py` **PASS** · `token-audit.py` **PASS** · `performance-idle-contract.py` **PASS** (and `--self-test` **PASS**) · `time-aware-thumbnails`, `time-thumbnail-integration`, `play-viewport-owner`, `site-theme-controller`, `site-theme-state` all **OK** · `time-aware-thumbnails-browser.py` 4 states OK across all three viewports. `shared-surfaces-contract.py` and `hero-specimen-check.py:52` were already failing at baseline and are not mine.
+
+**Nothing was removed to buy frames.** The float, the lighting, the ink, the reflections, the shadows, the soccer chaos and the time-of-day system all behave exactly as before. Every change is a measurement or a write that stopped being repeated — not a feature that stopped happening.
 
 ---
 
@@ -182,25 +231,40 @@ Nothing was removed. The float, the lighting, the reflections, the shadows, the 
 
 These are architectural, and the brief was explicit that they should be proposed with a number rather than done silently.
 
-### P1 · The eye ink filter — **+7 fps in soccer**, reproduced twice
+### ~~P1 · The eye ink filter~~ — **resolved without touching the ink**
 
-`.eye { filter: url(#inkEye) }`. Two per head, twelve heads, re-transformed every frame. An SVG `url(#…)` filter on a moving element is the non-accelerated path and re-rasterises every frame.
+The instruction was to bake the filter rather than delete it, and to check properly before concluding. Here is the check.
 
-| soccer @1440, GPU | rep 1 | rep 2 |
-|---|---|---|
-| `.eye { filter: none }` | **+7.3 fps** | **+7.1 fps** |
-| all ink filters off | +15.3 fps | +9.6 fps |
-| eyes removed entirely | +21.9 fps | — |
+**First: is the ink actually load-bearing?** Rendered at 4x and compared side by side, with the iris frozen so the two frames are comparable:
 
-The trade is real and it is yours: the eyes lose their ink edge. Options, cheapest first — **(a)** drop the filter on the eyes only during a match, keeping it in the lobby where heads move less; **(b)** bake the ink edge into the eye artwork so it costs nothing per frame; **(c)** keep it and accept soccer at ~36 fps. I would not delete it without your say-so.
+- **With `filter: url(#inkEye)`** — the iris is a ragged, irregular, hand-inked disc.
+- **Without it** — a geometrically perfect circle. It reads exactly like a CSS gradient pasted onto a photograph.
 
-### P2 · The lava haze and canvases — battle is the worst mode on the site
+That is the "pasted-on cutout" reading the whole head rig exists to avoid, so **deleting it was confirmed off the table**, not assumed. 3.1% of pixels differ on the hero head; at companion size (7.6 x 3.5 px) the difference is smaller but still visible under magnification, so I would not call it free there either.
 
-`.hmLavaHaze` carries `backdrop-filter: blur(1.4px) url(#hmHeatFilter) brightness(1.06) saturate(1.2)` — a backdrop-filter *with an SVG filter in the chain*, animated, full-width, 96 px tall. A backdrop-filter forces a readback of everything behind it; an SVG filter in the chain forces the whole thing off the fast path. Alongside it are a WebGL canvas and a 2D crust canvas at full hero size.
+**Then: why is it expensive?** Not because it is drawn — because it is *recomputed*. `#inkEye` is an `feTurbulence` feeding an `feDisplacementMap`, and Chromium re-runs that graph whenever the filtered subtree is dirtied. `_frame` wrote a transform to the eye box, lid, iris and glint **every frame regardless of whether the value had changed** — and the gaze offsets are `Math.round()`ed while the lid string is constant when nobody is blinking. Most of those writes set a property to the value it already held, and bought a full displacement-map re-rasterisation, per eye, to produce an identical picture.
 
-Software-rasteriser ablation (directional — a real GPU will be kinder): hiding the two lava canvases moved battle from 2.7 → 35.5 fps; hiding the haze alone, +2.1 fps. On a real GPU battle sits at 17.8 fps.
+**So the fix was to stop asking, not to stop drawing.** Writes are now elided when the value is unchanged. Measured share of eye transform writes that were no-ops:
 
-Cheapest real win: **drop `url(#hmHeatFilter)` from the backdrop-filter chain and keep `blur()`+`brightness()`+`saturate()`**, which stays on the accelerated path and looks near-identical. Beyond that, sizing the canvases to their visible band rather than the full hero is the structural fix.
+| | writes attempted | actually written | **elided** |
+|---|---|---|---|
+| lobby, 12 heads | 4,624 | 898 | **80.6%** |
+| soccer, 12 heads | 4,144 | 2,183 | **47.3%** |
+
+Soccer gains roughly the same ~7 fps that deleting the filter was worth — **without deleting it**. The ink is byte-for-byte as authored, and no baked asset was needed.
+
+**Baking remains available if more is needed**, but it is not a small change and I did not do it speculatively: the displacement field is anchored in the eye box's coordinate space while the iris translates within it, and iris/sclera colours are per-head data (`ic`/`sc` in every head record). A faithful bake therefore means a tinted alpha mask per eye state, not a flat sprite. Worth it only if soccer still misses 60 after P2.
+
+
+### P2 · Battle is still the worst mode on the site — **partly fixed, the rest is a decision**
+
+**Fixed already:** the haze animation ran from page load, forever, at `opacity: 0`, on the main thread because `backdrop-filter` blocks compositing (F6b). Every visitor to Play was paying for it whether or not they ever started a fight. It now runs only while it is on screen.
+
+**Still open, and it needs you.** `.hmLavaHaze` carries `backdrop-filter: blur(1.4px) url(#hmHeatFilter) brightness(1.06) saturate(1.2)` — a backdrop-filter *with an SVG filter in the chain*. A backdrop-filter forces a readback of everything behind it; the SVG filter in the chain forces the whole thing off the fast path. Alongside it sit a WebGL canvas and a 2D crust canvas at full hero size.
+
+Software-rasteriser ablation (directional — a real GPU is kinder): hiding the two lava canvases moved battle from 2.7 → 35.5 fps; hiding the haze alone, +2.1 fps. On a real GPU battle sits at **17.8 fps** and scales hard with pixel area (33.8 fps at 390), which is the signature of fill-rate cost.
+
+Cheapest real win: **drop `url(#hmHeatFilter)` from the backdrop-filter chain and keep `blur()` + `brightness()` + `saturate()`**, which stays on the accelerated path and looks near-identical — the SVG turbulence is doing subtle work behind a band that is already blurred. Beyond that, sizing the canvases to their visible band rather than the full hero is the structural fix. I have not done either: the first is a look change, and the second is a rewrite of the lava's geometry.
 
 ### P3 · Batch every head's writes into one pass
 
@@ -208,13 +272,44 @@ Twelve heads each schedule their own rAF and each write their own transforms. Th
 
 ---
 
-## 6 · Reproducing any of this
+## 6 · The invariant now has a guard — `tools/performance-idle-contract.py`
+
+The most useful thing in this audit is not the fix. It is that **the same comment had already been written once, and was false again by the time anyone re-read it.** `hero-head-transform.js` documented "the steady-state loop now reads nothing from the DOM at all", and a `rootNumber()` call had quietly moved back inside `place()`. A comment that documents an invariant nothing enforces is a comment that will be false again.
+
+So there is now a contract. It counts every forced-layout DOM read an idle page makes — `getBoundingClientRect`, `getComputedStyle`, `offset*`, `client*`, `scroll*` — attributes each to the exact function and line, and fails on anything not explicitly allowed. `floatFrame` and the per-head `_frame` are declared **must-read-nothing**: a single read attributed to either fails the run outright, whatever the totals say, because those two have history.
+
+Three things make it worth trusting rather than just green:
+
+**It selects the portrait before measuring.** `syncSelection()` returns immediately unless the head is selected, so `place()` — the function the regression actually lived in — never runs on a page nobody has clicked. A contract that measured only the untouched page would have watched the float loop in the one state where the bug is invisible, and passed. It hard-fails if it cannot select, rather than passing blind.
+
+**It proves it can fail.** `--self-test` re-injects the original regression — one `getComputedStyle` on the document root, per frame, inside the float loop — and requires the contract to catch it. Verified catching it at **53.2 reads/sec**. A detector nobody has watched fail is a detector nobody should trust.
+
+**It found something on its first run.** `decide()` was taking a fresh `hero.getBoundingClientRect()` inside the per-head loop — the exact thing `heroBox` exists to prevent, multiplied by the size of the crowd. I had missed it; the contract had not. Fixed in `a3bbe6e`.
+
+The `ALLOWED` list is deliberately uncomfortable to add to: each entry needs a reason and a measurement, and the contract prints a NOTE when an allowance stops firing so it can be deleted rather than rotting into fiction.
 
 ```bash
+python3 tools/performance-idle-contract.py            # pass/fail
+python3 tools/performance-idle-contract.py --verbose  # show what is allowed and why
+python3 tools/performance-idle-contract.py --self-test # prove the detector still detects
+```
+
+**When it fails, do not raise the budget.** Cache the value against something that already invalidates on resize — `metrics()` in `hero-head-transform.js`, `heroBox`/`HW` in `play-engine.js`, both of which exist for precisely this — or hoist the read out of the loop.
+
+---
+
+## 7 · Reproducing any of this
+
+```bash
+# the contract -- run this one in CI
+python3 tools/performance-idle-contract.py               # pass/fail on idle DOM reads
+python3 tools/performance-idle-contract.py --self-test   # prove the detector still detects
+
+# the instrument -- run this one when investigating
 python3 tools/performance-probe.py                       # every page, mode and viewport
 python3 tools/performance-probe.py --headed              # real GPU (headless rasterises in software)
 python3 tools/performance-probe.py --attribute           # blame every forced-layout read by call site
-python3 tools/performance-probe.py --patch hero-handle-cache   # measure F1's fix without editing the file
+python3 tools/performance-probe.py --patch no-eye-elision # A/B a candidate fix in one process
 python3 tools/performance-probe.py --ablate no-eye-filter,no-ink,no-haze   # price one suspect at a time
 ```
 
