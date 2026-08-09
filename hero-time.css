@@ -305,10 +305,19 @@
  transition:background-color var(--hero-time-duration) var(--hero-time-ease)
 }
 :root.theme-ready .csTabInk{
- transition:transform .34s cubic-bezier(.2,.8,.2,1),width .34s cubic-bezier(.2,.8,.2,1),
+ transition:transform var(--dur-reveal) var(--ease-out),width var(--dur-reveal) var(--ease-out),
   background-color var(--hero-time-duration) var(--hero-time-ease)
 }
-:root.theme-ready :is(.csTab,.csName,.csYear,.footIn){
+/* .csTab is NOT in this list, and that is the whole point of the comment.
+   `transition:` is a shorthand: it REPLACES the list it inherits rather than
+   adding to it. While .csTab was here, its own .ctl transition -- background,
+   box-shadow, ink and the press scale -- was wiped and replaced by this single
+   colour line. Measured on index: `color | 0.64s` and nothing else, so a tab
+   that animates correctly on the five case studies snapped everywhere on the
+   home page. .ctl owns the tab's motion; this rule only theme-fades the text
+   that has no control of its own. footer.css excludes its links from an
+   identical rule for exactly this reason. */
+:root.theme-ready :is(.csName,.csYear,.footIn){
  transition:color var(--hero-time-duration) var(--hero-time-ease)
 }
 :root[data-theme="dark"] .csName{color:var(--theme-ink)}

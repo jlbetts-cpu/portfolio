@@ -118,7 +118,7 @@ img{display:block;max-width:100%}
 .cmp::after{content:"";position:absolute;inset:0;box-shadow:var(--rim-1);pointer-events:none;z-index:3}
 .cmpHandle{position:absolute;top:0;bottom:0;left:100%;width:44px;transform:translateX(-50%);background:none;border:0;padding:0;margin:0;z-index:4;outline:none;cursor:ew-resize;touch-action:none}
 .cmpLine{position:absolute;top:0;bottom:0;left:50%;width:2px;transform:translateX(-50%);background:var(--c50);box-shadow:var(--rim-1)}
-.cmpKnob{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:34px;height:34px;border-radius:50%;background:var(--c50);color:var(--c700);display:flex;align-items:center;justify-content:center;box-shadow:var(--rim-1);transition:box-shadow .2s cubic-bezier(.2,.8,.2,1)}
+.cmpKnob{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:34px;height:34px;border-radius:50%;background:var(--c50);color:var(--c700);display:flex;align-items:center;justify-content:center;box-shadow:var(--rim-1);transition:box-shadow var(--dur-state) var(--ease-out)}
 .cmpHandle:hover .cmpKnob{box-shadow:var(--rim-2)}
 .cmpHandle:focus-visible .cmpKnob{box-shadow:var(--rim-1),0 0 0 2px var(--c950)}
 .cmpBoard{aspect-ratio:2400/1112}
@@ -140,7 +140,7 @@ img{display:block;max-width:100%}
 .cover{position:relative;aspect-ratio:12/5;overflow:hidden;background:var(--c100);margin-top:var(--sp-24-32);width:100%;transform:scale(.985);opacity:0}
 .cover img{width:100%;height:100%;object-fit:cover;box-shadow:var(--rim-1)}
 .cover::after{content:"";position:absolute;inset:0;box-shadow:var(--rim-1);border-radius:inherit;pointer-events:none}
-.cover.in{animation:coverIn .7s cubic-bezier(.2,.8,.2,1) forwards}
+.cover.in{animation:coverIn .7s var(--ease-out) forwards}
 @keyframes coverIn{0%{opacity:0;transform:scale(.985) translateY(8px)}26%{opacity:1}82%{transform:scale(1.002) translateY(0)}100%{opacity:1;transform:scale(1) translateY(0)}}
 
 /* at a glance — spec list */
@@ -250,16 +250,16 @@ img{display:block;max-width:100%}
 .heroFoot{height:clamp(40px,7vh,90px)}
 
 /* flow rows: the whole journey lined up; one screen performs at a time, grows to take focus, the rest wait dimmed */
-.flow .shot{transition:transform .375s cubic-bezier(.2,.8,.2,1),opacity .375s cubic-bezier(.2,.8,.2,1),filter .375s cubic-bezier(.2,.8,.2,1);transform-origin:50% 55%;cursor:pointer}
+.flow .shot{transition:transform var(--dur-reveal) var(--ease-out),opacity var(--dur-reveal) var(--ease-out),filter var(--dur-reveal) var(--ease-out);transform-origin:50% 55%;cursor:pointer}
 .flow .shot.act{transform:translateY(-6px) scale(1.06);position:relative;z-index:2;transition:none}
 .flow.playing .shot:not(.act){opacity:.62;filter:grayscale(.4)}
 .flow .shot:not(.act):hover{opacity:.85;transform:translateY(-2px)}
-.flow .shot img{transition:box-shadow .375s cubic-bezier(.2,.8,.2,1)}
+.flow .shot img{transition:box-shadow var(--dur-reveal) var(--ease-out)}
 .flow .shot.act img{box-shadow:var(--rim-1)}
 .flow .shot.act .shotCap{color:var(--c950)}
 /* focus handoff borrows the About reveal: the incoming screen develops in (blur to sharp, gentle rise) */
 @keyframes actIn{0%{opacity:.6;filter:blur(3px);transform:translateY(2px) scale(1)}100%{opacity:1;filter:none;transform:translateY(-6px) scale(1.06)}}
-.flow .shot.act{animation:actIn .375s steps(3,end)}
+.flow .shot.act{animation:actIn var(--dur-reveal) steps(3,end)}
 @media (prefers-reduced-motion:reduce){.flow .shot.act{animation:none}}
 .flow{padding-top:48px;padding-bottom:32px}
 /* scrollytelling stage: the step texts scroll, one phone stays and performs the active step (mobile keeps per-step figures) */
@@ -270,7 +270,7 @@ img{display:block;max-width:100%}
 .buildFlow .step .stepShot{display:none}
 .buildStage{position:sticky;top:max(96px,calc(50vh - clamp(240px,36vh,360px)));margin-top:16px}
 .buildStage figure{margin:0;cursor:pointer;outline:none}
-.buildStage img{width:100%;height:auto;aspect-ratio:804/1748;display:block;background:#fff;box-shadow:var(--rim-1);transition:box-shadow .25s cubic-bezier(.2,.8,.2,1)}
+.buildStage img{width:100%;height:auto;aspect-ratio:804/1748;display:block;background:#fff;box-shadow:var(--rim-1);transition:box-shadow var(--dur-state-out) var(--ease-out)}
 .buildStage figure:hover img,.buildStage figure:focus-visible img{box-shadow:var(--rim-1)}
 /* ===== the system: onboarding gallery + the five-step build — one hero screen per step, the reasoning beside it ===== */
 .subBlock{margin:clamp(64px,8.5vh,96px) 0 0}
@@ -290,30 +290,30 @@ img{display:block;max-width:100%}
 .step.payoff{grid-template-columns:minmax(0,1fr) clamp(250px,27vw,330px);margin-top:var(--sp-48-72)}
 /* one-shot stage sequences: each step performs its stages once on arrival (hard cuts on the 8fps clock), rests on the resolved frame, and replays a stage per tap. Motion stops inside ~5s, so no pause chrome is needed (WCAG 2.2.2) */
 .seq{cursor:pointer;outline:none}
-.seq img{transition:box-shadow .25s cubic-bezier(.2,.8,.2,1)}
+.seq img{transition:box-shadow var(--dur-state-out) var(--ease-out)}
 .seq:hover img,.seq:focus-visible img{box-shadow:var(--rim-1)}
 .seqWrap{position:relative}
 .seqTap{position:absolute;width:11%;aspect-ratio:1;border-radius:50%;background:rgba(8,8,8,.20);box-shadow:0 0 0 1.5px rgba(8,8,8,.28);transform:translate(-50%,-50%) scale(1);opacity:0;pointer-events:none}
-.seqTap.show{opacity:1;transform:translate(-50%,-50%) scale(.82);transition:opacity .125s cubic-bezier(.2,.8,.2,1),transform .25s cubic-bezier(.2,.8,.2,1)}
+.seqTap.show{opacity:1;transform:translate(-50%,-50%) scale(.82);transition:opacity .125s var(--ease-out),transform var(--dur-state-out) var(--ease-out)}
 .seqTicks{display:flex;gap:8px;justify-content:center;margin:var(--sp-8-16) 0 0}
-.seqTicks i{width:14px;height:2px;background:var(--c100);transition:background .25s cubic-bezier(.2,.8,.2,1)}
+.seqTicks i{width:14px;height:2px;background:var(--c100);transition:background var(--dur-state-out) var(--ease-out)}
 .seqTicks i.on{background:var(--c950)}
 /* step rows develop like the photo row: the screen lands, its reasoning follows one frame later */
 .step.dv,.step.dv.shown{opacity:1;transform:none;transition:none;filter:none}
-.step.dv .stepShot,.step.dv .stepText{transition:opacity .5s cubic-bezier(.2,.8,.2,1),transform .5s cubic-bezier(.2,.8,.2,1),filter .5s cubic-bezier(.2,.8,.2,1);will-change:transform,opacity,filter}
+.step.dv .stepShot,.step.dv .stepText{transition:opacity var(--dur-enter) var(--ease-out),transform var(--dur-enter) var(--ease-out),filter var(--dur-enter) var(--ease-out);will-change:transform,opacity,filter}
 .step.dv:not(.shown) .stepShot,.step.dv:not(.shown) .stepText{opacity:0;transform:translateY(12px);filter:blur(6px)}
 .step.dv.shown .stepText{transition-delay:0s}
 .step.dv.shown .stepShot{transition-delay:.125s}
 
 /* ===== reveal system (word-by-word prose + block fade) — 8fps stepped ===== */
-.rv .abw{display:inline-block;opacity:0;filter:blur(6px);transform:translateY(.4em);transition:opacity .375s cubic-bezier(.2,.8,.2,1),filter .375s cubic-bezier(.2,.8,.2,1),transform .375s cubic-bezier(.2,.8,.2,1)}
+.rv .abw{display:inline-block;opacity:0;filter:blur(6px);transform:translateY(.4em);transition:opacity var(--dur-reveal) var(--ease-out),filter var(--dur-reveal) var(--ease-out),transform var(--dur-reveal) var(--ease-out)}
 .rv.shown .abw{opacity:1;filter:blur(0);transform:none}
 /* ===== chapter develop (block-level: rise for inked text, blur-develop for prose and imagery) — 8fps stepped, staggered on the 125ms grid ===== */
-.dv{opacity:0;transform:translateY(12px);transition:opacity .5s cubic-bezier(.2,.8,.2,1),transform .5s cubic-bezier(.2,.8,.2,1);will-change:transform,opacity}
-.dv.dvb{filter:blur(6px);transition:opacity .5s cubic-bezier(.2,.8,.2,1),transform .5s cubic-bezier(.2,.8,.2,1),filter .5s cubic-bezier(.2,.8,.2,1);will-change:transform,opacity,filter}
+.dv{opacity:0;transform:translateY(12px);transition:opacity var(--dur-enter) var(--ease-out),transform var(--dur-enter) var(--ease-out);will-change:transform,opacity}
+.dv.dvb{filter:blur(6px);transition:opacity var(--dur-enter) var(--ease-out),transform var(--dur-enter) var(--ease-out),filter var(--dur-enter) var(--ease-out);will-change:transform,opacity,filter}
 .dv.shown{opacity:1;transform:none}
 .dv.dvb.shown{filter:blur(0)}
-.photoRow.dv>img{transition:opacity .5s cubic-bezier(.2,.8,.2,1),transform .5s cubic-bezier(.2,.8,.2,1),filter .5s cubic-bezier(.2,.8,.2,1)}
+.photoRow.dv>img{transition:opacity var(--dur-enter) var(--ease-out),transform var(--dur-enter) var(--ease-out),filter var(--dur-enter) var(--ease-out)}
 .photoRow.dv:not(.shown)>img{opacity:0;transform:translateY(12px);filter:blur(6px)}
 .photoRow.dv.shown>img{opacity:1;transform:none;filter:blur(0)}
 .photoRow.dv.shown>img:nth-child(1){transition-delay:0s}
@@ -321,12 +321,12 @@ img{display:block;max-width:100%}
 .photoRow.dv.shown>img:nth-child(3){transition-delay:.25s}
 .photoRow.dv,.photoRow.dv.shown{opacity:1;transform:none;transition:none}
 .statNum{font-variant-numeric:tabular-nums}
-.facts{opacity:0;transform:translateY(12px);transition:opacity .5s cubic-bezier(.2,.8,.2,1),transform .5s cubic-bezier(.2,.8,.2,1)}
+.facts{opacity:0;transform:translateY(12px);transition:opacity var(--dur-enter) var(--ease-out),transform var(--dur-enter) var(--ease-out)}
 .facts.shown{opacity:1;transform:none}
 
 /* emerge: the page develops out of the portal's white */
 .emerge{position:fixed;inset:0;z-index:9999;background:#fff;opacity:1;pointer-events:none}
-.emerge.clear{opacity:0;transition:opacity .7s cubic-bezier(.2,.8,.2,1)}
+.emerge.clear{opacity:0;transition:opacity .7s var(--ease-out)}
 
 @media(max-width:880px){
  .layout{margin-top:var(--sp-48-64)}
@@ -400,7 +400,7 @@ img{display:block;max-width:100%}
 .csImg,.cover,.cover img,.shot img,.photoFig img,.photoPair figure,.photoPair img,.stat,.reelOverlayVid,.reelOverlayYt{border-radius:var(--r-lg);corner-shape:var(--corner)}
 .talk{border-radius:var(--r-md)!important;corner-shape:var(--corner)}
 .workcard{border-radius:var(--r-xl) var(--r-xl) 0 0!important}
-/* horizontal-scroll affordance */.sbWrap{position:relative}.sbWrap::after{content:none}.sbMore{position:absolute;right:14px;top:-30px;display:inline-flex;align-items:center;gap:4px;font-family:var(--sans);font-size:var(--fs-caption);font-weight:600;color:var(--c500);letter-spacing:var(--tr-flat);opacity:0;transform:translateY(4px);transition:opacity .3s cubic-bezier(.2,.8,.2,1),transform .3s cubic-bezier(.2,.8,.2,1);pointer-events:none;z-index:3}.sbWrap.canScroll .sbMore{opacity:1;transform:none}.sbWrap.atEnd .sbMore{opacity:0}.sbMore svg{width:14px;height:14px}@media(prefers-reduced-motion:reduce){.sbWrap::after,.sbMore{transition:none}}.secBody strong,.ovBody strong,.ov strong,.rv strong,.role strong,.lede strong{font-weight:600;color:var(--c950)}/* before/after comparison — full figure width, left-aligned, framed like .pair */.baStack{display:flex;flex-direction:column;gap:clamp(64px,8.5vh,96px);margin:var(--sp-40-64) 0 0}.ba{margin:0;width:100%;align-self:stretch}.baFrame{display:flex;align-items:stretch;gap:var(--sp-16-40);padding:var(--sp-24-48);background:var(--c50);box-shadow:var(--rim-1);border-radius:var(--r-lg);corner-shape:var(--corner);width:100%}.baCol{flex:1 1 0;min-width:0;display:flex;flex-direction:column;gap:16px}.baTag{font-family:var(--sans);font-size:var(--fs-label);font-weight:600;letter-spacing:var(--tr-flat);color:var(--c500);filter:url(#inkSm)}.baTagAfter{color:var(--c950)}.baPhone{margin:0;width:100%;display:block}.baPhone img{width:100%;max-width:300px;height:auto;aspect-ratio:720/1565;object-fit:cover;display:block;border-radius:clamp(20px,2.6vw,32px);box-shadow:var(--rim-1);background:#fff}.baArrow{flex:0 0 auto;align-self:center;color:var(--c500);width:clamp(22px,2vw,28px)}.baArrow svg{width:100%;height:auto;display:block}.baCap{margin:var(--sp-16-24) 0 0;max-width:680px;font-family:var(--sans);font-size:var(--fs-body);line-height:var(--lh-body);color:var(--c700);text-wrap:pretty}.baCapLabel{display:block;font-family:var(--sans);font-weight:600;font-size:var(--fs-h2);line-height:var(--lh-tight);letter-spacing:var(--tr-sub);color:var(--c950);margin:0 0 8px;text-wrap:balance}.baCap strong{font-weight:600;color:var(--c950)}@media(max-width:720px){.baFrame{gap:16px;padding:16px}.baArrow{transform:rotate(90deg);width:20px}.baPhone img{max-width:none}}/* before/after grid, matches photoPair + shot.phone language */.baBlock{margin:0}.baGrid{display:grid;grid-template-columns:repeat(2,minmax(0,340px));justify-content:center;gap:var(--sp-16-24);align-items:start}.baCol{display:flex;flex-direction:column;gap:8px;min-width:0}.baLabel{font-family:var(--sans);font-size:var(--fs-small);font-weight:600;letter-spacing:var(--tr-body);color:var(--c500);filter:url(#inkSm)}.baCol.isAfter .baLabel{color:var(--c950)}.baGrid .shot.phone{width:100%}.baGrid .shot.phone img{width:100%;height:auto;aspect-ratio:720/1565;object-fit:cover;display:block;background:#000;border-radius:clamp(20px,2.6vw,32px)}.baText{margin:var(--sp-16-24) auto 0;max-width:70ch}.baText .subHead{margin:4px 0 0}.baText .subKick{margin:0}.baBody{margin:var(--sp-8-16) 0 0;font-family:var(--sans);font-size:var(--fs-body);line-height:var(--lh-body);color:var(--c700)}.baBody strong{font-weight:600;color:var(--c950)}@media(max-width:560px){.baText{margin:var(--sp-16-24) auto 0;max-width:70ch}}.csReach{font-family:var(--sans);font-weight:400;font-size:var(--fs-small);color:var(--c500);margin:var(--sp-32-56) auto var(--sp-8-16);max-width:64ch;text-align:center;filter:url(#inkSm)}.shot.phone img{border-radius:clamp(20px,2.6vw,32px);background:#000;object-fit:cover;aspect-ratio:720/1565}@media(max-width:560px){.baGrid{grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}}@media(max-width:768px){.footIn{display:inline-block;padding-top:8px;padding-bottom:8px;margin-top:-8px;margin-bottom:-8px}}/* ── RADIUS BY SIZE CLASS ── Jayden, 2026-08-04: "I thought we were doing 28
+/* horizontal-scroll affordance */.sbWrap{position:relative}.sbWrap::after{content:none}.sbMore{position:absolute;right:14px;top:-30px;display:inline-flex;align-items:center;gap:4px;font-family:var(--sans);font-size:var(--fs-caption);font-weight:600;color:var(--c500);letter-spacing:var(--tr-flat);opacity:0;transform:translateY(4px);transition:opacity .3s var(--ease-out),transform .3s var(--ease-out);pointer-events:none;z-index:3}.sbWrap.canScroll .sbMore{opacity:1;transform:none}.sbWrap.atEnd .sbMore{opacity:0}.sbMore svg{width:14px;height:14px}@media(prefers-reduced-motion:reduce){.sbWrap::after,.sbMore{transition:none}}.secBody strong,.ovBody strong,.ov strong,.rv strong,.role strong,.lede strong{font-weight:600;color:var(--c950)}/* before/after comparison — full figure width, left-aligned, framed like .pair */.baStack{display:flex;flex-direction:column;gap:clamp(64px,8.5vh,96px);margin:var(--sp-40-64) 0 0}.ba{margin:0;width:100%;align-self:stretch}.baFrame{display:flex;align-items:stretch;gap:var(--sp-16-40);padding:var(--sp-24-48);background:var(--c50);box-shadow:var(--rim-1);border-radius:var(--r-lg);corner-shape:var(--corner);width:100%}.baCol{flex:1 1 0;min-width:0;display:flex;flex-direction:column;gap:16px}.baTag{font-family:var(--sans);font-size:var(--fs-label);font-weight:600;letter-spacing:var(--tr-flat);color:var(--c500);filter:url(#inkSm)}.baTagAfter{color:var(--c950)}.baPhone{margin:0;width:100%;display:block}.baPhone img{width:100%;max-width:300px;height:auto;aspect-ratio:720/1565;object-fit:cover;display:block;border-radius:clamp(20px,2.6vw,32px);box-shadow:var(--rim-1);background:#fff}.baArrow{flex:0 0 auto;align-self:center;color:var(--c500);width:clamp(22px,2vw,28px)}.baArrow svg{width:100%;height:auto;display:block}.baCap{margin:var(--sp-16-24) 0 0;max-width:680px;font-family:var(--sans);font-size:var(--fs-body);line-height:var(--lh-body);color:var(--c700);text-wrap:pretty}.baCapLabel{display:block;font-family:var(--sans);font-weight:600;font-size:var(--fs-h2);line-height:var(--lh-tight);letter-spacing:var(--tr-sub);color:var(--c950);margin:0 0 8px;text-wrap:balance}.baCap strong{font-weight:600;color:var(--c950)}@media(max-width:720px){.baFrame{gap:16px;padding:16px}.baArrow{transform:rotate(90deg);width:20px}.baPhone img{max-width:none}}/* before/after grid, matches photoPair + shot.phone language */.baBlock{margin:0}.baGrid{display:grid;grid-template-columns:repeat(2,minmax(0,340px));justify-content:center;gap:var(--sp-16-24);align-items:start}.baCol{display:flex;flex-direction:column;gap:8px;min-width:0}.baLabel{font-family:var(--sans);font-size:var(--fs-small);font-weight:600;letter-spacing:var(--tr-body);color:var(--c500);filter:url(#inkSm)}.baCol.isAfter .baLabel{color:var(--c950)}.baGrid .shot.phone{width:100%}.baGrid .shot.phone img{width:100%;height:auto;aspect-ratio:720/1565;object-fit:cover;display:block;background:#000;border-radius:clamp(20px,2.6vw,32px)}.baText{margin:var(--sp-16-24) auto 0;max-width:70ch}.baText .subHead{margin:4px 0 0}.baText .subKick{margin:0}.baBody{margin:var(--sp-8-16) 0 0;font-family:var(--sans);font-size:var(--fs-body);line-height:var(--lh-body);color:var(--c700)}.baBody strong{font-weight:600;color:var(--c950)}@media(max-width:560px){.baText{margin:var(--sp-16-24) auto 0;max-width:70ch}}.csReach{font-family:var(--sans);font-weight:400;font-size:var(--fs-small);color:var(--c500);margin:var(--sp-32-56) auto var(--sp-8-16);max-width:64ch;text-align:center;filter:url(#inkSm)}.shot.phone img{border-radius:clamp(20px,2.6vw,32px);background:#000;object-fit:cover;aspect-ratio:720/1565}@media(max-width:560px){.baGrid{grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}}@media(max-width:768px){.footIn{display:inline-block;padding-top:8px;padding-bottom:8px;margin-top:-8px;margin-bottom:-8px}}/* ── RADIUS BY SIZE CLASS ── Jayden, 2026-08-04: "I thought we were doing 28
    squircle for everything -- when did we decide on 20?" The rule and the
    measured 900px boundary live in tokens.css beside the ladder. Short form:
    BIGGEST SURFACES 28 · CARDS AND IMAGES 20 · CONTROLS 14.
