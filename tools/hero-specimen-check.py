@@ -22,7 +22,11 @@ for forbidden_renderer_contract in (
 ):
     assert forbidden_renderer_contract not in time_controller, forbidden_renderer_contract
 
-assert '<link rel="stylesheet" href="hero-time.css">' in html
+# The stylesheet links carry a cache-busting query string, so match the href up
+# to it rather than the whole literal -- this assertion had been failing on an
+# exact string that stopped existing when ?v= was introduced, which meant every
+# check below it was dead code.
+assert re.search(r'<link rel="stylesheet" href="hero-time\.css(?:\?[^"]*)?">', html)
 for node_id in (
     "heroTimeSpill",
     "heroTimeClip",
@@ -32,7 +36,7 @@ for node_id in (
 ):
     assert f'id="{node_id}"' in html, node_id
 assert re.search(r'id="heroTimeBtn"[^>]+aria-controls="heroTimeMenu"', html)
-assert html.index('id="workBtn"') < html.index('id="heroTimeBtn"') < html.index('class="heroTimeSupport"')
+assert html.index('id="workBtn"') < html.index('id="heroTimeBtn"') < html.index('class="heroTimeSupport')
 assert html.count('data-time-mode="') == 8
 assert html.index('id="heroTimeSpill"') < html.index('id="main"')
 assert html.index('id="heroTimeClip"') < html.index('class="heroCopy"')
@@ -61,7 +65,7 @@ for prepaint_contract in (
     assert prepaint_contract in prepaint.group(1), prepaint_contract
 assert "heroTimeAutoState" not in html
 assert "heroTimeAutoState" not in time_controller
-assert html.index('href="header.css"') < html.index('href="hero-time.css"')
+assert html.index('href="header.css') < html.index('href="hero-time.css')
 assert 'src="fluid-mesh.js"' not in html, "FluidMesh belongs to Gradient Maker, not the Hero"
 assert '<script src="hero-time-presets.js"></script>' not in html
 assert '<script src="hero-engine.js"></script>' not in html
@@ -236,23 +240,22 @@ for selector, token in (
     (r'\.footIn', "var(--theme-ink)"),
 ):
     assert re.search(rf':root\[data-theme="dark"\] {selector}\s*\{{[^}}]*color:{re.escape(token)}', time_css, re.S), selector
-active_floor_rule = re.search(
-    r'\.hero\[data-time-state\]:not\(\[data-time-state="off"\]\) \.floorshadow\s*\{.*?\}',
-    time_css,
-    re.S,
-)
-assert active_floor_rule, "active time gradients must not carry a dark floor oval"
+# ── THE HERO HAS NO FLOOR SHADOW AT ALL ──────────────────────────────────────
+# It used to be asserted as "present but neutralised in the active states",
+# which was the right contract while the head still stood on the Hero's lower
+# edge. --hero-peek-depth went negative and it does not: the head is suspended
+# clear of the floor, and this site only permits a shadow where it is grounding
+# information. The element, its writer and its tokens are deleted, so the
+# contract is now an absence -- and an absence is the only version of this that
+# cannot quietly come back as a smudge near the bottom of the page.
 normal_time_css = time_css.split("@media(forced-colors:active)", 1)[0]
-for floor_contract in ("background:none!important", "opacity:0!important", "filter:none!important"):
-    assert floor_contract in active_floor_rule.group(0), floor_contract
-normal_floor_rules = re.findall(r'([^{}]*\.floorshadow[^{}]*)\{([^{}]*)\}', normal_time_css, re.S)
-assert not any(
-    '[data-time-state="off"]' in selectors and ':not([data-time-state="off"])' not in selectors
-    for selectors, _ in normal_floor_rules
-)
-for floor_selectors, floor_declarations in normal_floor_rules:
-    if ':not([data-time-state="off"])' not in floor_selectors:
-        assert not re.search(r'(?:^|;)\s*(?:background|opacity|filter)\s*:', floor_declarations), floor_selectors.strip()
+assert "floorshadow" not in html, "the Hero must not carry a floor shadow element"
+assert 'id="fsh"' not in html
+assert not re.search(r'\.floorshadow\s*[,{]', time_css), \
+    "no rule may style a Hero floor shadow that does not exist"
+for retired in ("--time-shadow:", "--time-shadow-opacity:", "--hero-ground-width:",
+                "--hero-ground-height:", "--hero-ground-stretch:", "--hero-ground-throw:"):
+    assert retired not in time_css, retired
 assert "time-orb" not in time_css, "gradient layers must fill the hero, not use a 1:1 orb"
 for forbidden_texture in ("heroTimeRay", "heroTimeLine", "heroTimeFilament", "heroTimeGrain"):
     assert forbidden_texture not in time_css and forbidden_texture not in html, forbidden_texture
@@ -262,12 +265,27 @@ assert re.search(
     time_css,
     re.S,
 ), "Off must hard-hide the gradient clip and original hero aura"
-for off_layer in ("heroAura", "heroTimePortraitCast"):
-    assert re.search(
-        rf'\.hero\[data-time-state="off"\] \.{off_layer}(?:,|\s*\{{).*?\{{[^}}]*display:none',
-        time_css,
-        re.S,
-    ), off_layer
+assert re.search(
+    r'\.hero\[data-time-state="off"\] \.heroAura(?:,|\s*\{).*?\{[^}]*display:none',
+    time_css,
+    re.S,
+), "heroAura"
+# ── OFF IS A DESTINATION, NOT AN EXCEPTION ───────────────────────────────────
+# The cast layer used to be display:none in Off, and display is not animatable:
+# leaving Off it appeared instantly at full strength and only then transitioned,
+# entering Off it vanished on one frame. Against a 640ms sky cross-fade that
+# reads as the transition being broken, and Off was the only state doing it.
+# It fades on opacity now, with visibility stepped one duration behind so the
+# element is still there to be seen going.
+off_cast = re.search(
+    r'\.hero\[data-time-state="off"\] \.heroTimePortraitCast\s*\{([^}]*)\}',
+    time_css, re.S,
+)
+assert off_cast, "Off must still neutralise the portrait cast"
+assert "display:none" not in off_cast.group(1), \
+    "display is not animatable: Off must not pop the cast layer"
+assert "opacity:0" in off_cast.group(1) and "visibility:hidden" in off_cast.group(1)
+assert "transition:opacity var(--hero-time-duration)" in off_cast.group(1)
 for crossfade_layer in ("heroTimeSpill", "heroTimeClip", "heroTimeGradient"):
     assert not re.search(
         rf'\.hero\[data-time-state="off"\] \.{crossfade_layer}(?:,|\s*\{{).*?\{{[^}}]*display:none',
@@ -460,7 +478,7 @@ assert re.search(r'<a[^>]+id="workBtn"[^>]+href="#cases"', html)
 work_control = re.search(r'<a[^>]+id="workBtn".*?</a>', html, re.S)
 assert work_control and "<svg" not in work_control.group(0)
 assert 'id="moodbar"' not in html and 'class="heroMood' not in html
-assert html.index('id="h1"') < html.index('id="heroTimeBtn"') < html.index('class="heroTimeSupport"')
+assert html.index('id="h1"') < html.index('id="heroTimeBtn"') < html.index('class="heroTimeSupport')
 assert '<h1 id="h1">SF product designer. iOS, B2C and design systems.</h1>' in html
 
 assert re.search(

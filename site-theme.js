@@ -15,19 +15,29 @@
  var destroyed=false;
  var motion=typeof window.matchMedia==="function"?window.matchMedia("(prefers-reduced-motion: reduce)"):null;
 
+ /* ── ABSENT MEANS "HAS NOT CHOSEN", NOT "AUTO" ──────────────────────────────
+    "auto" used to be stored by REMOVING the key, so a visitor who deliberately
+    picked Automatic and a visitor who had never touched the control were the
+    same row in storage. That was harmless while auto was also the default and
+    is not survivable now that it is not: the default has to apply where there
+    is no preference and lose to one where there is, including to an explicit
+    "auto". So every mode is written out, and only a genuinely missing key falls
+    through to S.DEFAULT_MODE. */
  function readMode(){
-  if(!storage)return "auto";
-  try{return S.normalizeMode(storage.getItem(KEY));}
-  catch(error){return "auto";}
+  if(!storage)return S.DEFAULT_MODE;
+  try{
+   var stored=storage.getItem(KEY);
+   return stored===null?S.DEFAULT_MODE:S.normalizeMode(stored);
+  }catch(error){return S.DEFAULT_MODE;}
  }
 
+ /* A choice that cannot be remembered is not honoured -- the visitor would get
+    it once and lose it on the next page, which reads as a bug. Unchanged
+    behaviour; what it falls back TO is the default rather than auto. */
  function persistMode(mode){
-  if(!storage)return mode==="auto"?"auto":null;
-  try{
-   if(mode==="auto")storage.removeItem(KEY);
-   else storage.setItem(KEY,mode);
-   return mode;
-  }catch(error){return "auto";}
+  if(!storage)return mode===S.DEFAULT_MODE?mode:null;
+  try{storage.setItem(KEY,mode);return mode;}
+  catch(error){return null;}
  }
 
  function setRootAttribute(name,value){root.setAttribute(name,value);}
@@ -83,8 +93,7 @@
   var next=S.normalizeMode(mode);
   var opts=options||{};
   if(opts.persist!==false){
-   var persisted=persistMode(next);
-   if(persisted===null||persisted==="auto"&&next!=="auto")next="auto";
+   if(persistMode(next)===null)next=S.DEFAULT_MODE;
   }
   return commit(next,new Date(),true);
  }

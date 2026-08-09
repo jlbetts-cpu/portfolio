@@ -14,6 +14,7 @@ targets, and the Hero owning the opening viewport -- which is now the WHOLE
 viewport, because the Hero is full-bleed on all four edges.
 """
 
+import json
 from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -26,11 +27,50 @@ ROOT = Path(__file__).resolve().parents[1]
 SHOTS = Path("/tmp/home-minimal-hero-contract")
 VIEWPORTS = ((1280, 900), (1440, 900), (390, 844), (320, 800))
 PROFILES = ("empty", "returning")
+TAP_TARGETS = ("workBtn", "heroTimeBtn")
 
 
 class QuietHandler(SimpleHTTPRequestHandler):
     def log_message(self, _format, *_args):
         pass
+
+
+def wait_for_tap_targets_at_rest(page):
+    """A tap target measured mid-entrance is not the tap target.
+
+    THE RULER WAS MOVING, NOT THE BUTTONS. getBoundingClientRect() reports the
+    TRANSFORMED box, and the Hero's CTAs arrive on @keyframes ctaIn, whose 0%
+    frame is translateY(12px) scale(.9). The second and third children carry
+    animation-delays of .125s and .25s with fill mode `both`, so a control sits
+    PINNED on that first frame -- not easing through it, parked on it -- for up
+    to a quarter of a second. That is the whole of the 39.6 x 39.6 this line
+    used to fail on: 44 * 0.9, measured off a control that had not started
+    moving yet. Sampled once every 400ms across the entrance, the reading at
+    t+1600ms was heroTimeBtn 39.5999 with its own transform reading
+    matrix(0.9, 0, 0, 0.9, 0, 12) and offsetWidth/offsetHeight still 44 -- the
+    layout box never changed at any point. (It is not .ctl:active either:
+    --press-scale is .97, which would read 42.7.)
+
+    So the wait is on the thing the measurement actually needs, which is that
+    nothing between the control and the page is SCALING it. Translation is
+    allowed through deliberately -- .heroCopy carries a permanent
+    translateY(-117px) that will never settle to identity, and a translation
+    cannot change a width or a height anyway, which is all this file asserts.
+    On the mobile widths, where the entrance is switched off, the condition is
+    already true on the first poll and nothing is waited for.
+    """
+    page.wait_for_function(
+        """ids => ids.every(id => {
+             let node = document.getElementById(id);
+             if (!node) return false;
+             for (; node && node !== document.body; node = node.parentElement) {
+               const matrix = new DOMMatrixReadOnly(getComputedStyle(node).transform);
+               if (matrix.a !== 1 || matrix.b !== 0 || matrix.c !== 0 || matrix.d !== 1) return false;
+             }
+             return true;
+           })""",
+        arg=list(TAP_TARGETS), timeout=15_000
+    )
 
 
 def static_contract():
@@ -98,6 +138,7 @@ def browser_contract(base_url):
                 "document.documentElement.style.overflow !== 'hidden'", timeout=15_000
             )
             overflow_at_load = page.evaluate("document.documentElement.style.overflow")
+            wait_for_tap_targets_at_rest(page)
 
             state = page.evaluate(
                 """
@@ -129,9 +170,15 @@ def browser_contract(base_url):
                       return style.cursor === 'grab' || style.touchAction === 'none';
                     }).length,
                     horizontalOverflow: document.documentElement.scrollWidth > document.documentElement.clientWidth,
-                    targets: ['workBtn','heroTimeBtn'].map(id => {
-                      const box = document.getElementById(id).getBoundingClientRect();
-                      return {id, width: box.width, height: box.height};
+                    // layoutWidth/layoutHeight ride along so a future failure says
+                    // WHICH of the two it is: a control that really is too small,
+                    // or a control caught inside a transform again.
+                    targets: __TAP_TARGETS__.map(id => {
+                      const node = document.getElementById(id);
+                      const box = node.getBoundingClientRect();
+                      return {id, width: box.width, height: box.height,
+                              layoutWidth: node.offsetWidth, layoutHeight: node.offsetHeight,
+                              transform: getComputedStyle(node).transform};
                     }),
                     hero: {top: hero.top, bottom: hero.bottom, height: hero.height},
                     title: {top: title.top, bottom: title.bottom},
@@ -139,7 +186,7 @@ def browser_contract(base_url):
                     casesTop: cases.top,
                   };
                 }
-                """
+                """.replace("__TAP_TARGETS__", json.dumps(list(TAP_TARGETS)))
             )
             assert state["headline"] == "SF product designer. iOS, B2C and design systems.", state
             assert state["moodControls"] == 0, state

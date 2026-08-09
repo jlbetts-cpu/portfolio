@@ -102,9 +102,14 @@ SHIPPING_HTML = ['index.html', 'about.html', 'play.html', 'apollo.html',
 # library sat outside its own gate. footer.css and builder-theme.css join them
 # for the same reason. hero-time.css is deliberately still out: it is mid-rewrite
 # on this branch and belongs to another lane.
+# tournament.css joins on 2026-08-08. play.html has linked it since the
+# broadcast overhaul, so it has always been shipping CSS on a shipping page --
+# it was simply never listed here, and 11 motion declarations sat outside the
+# motion count as a result. An audit that does not know about a stylesheet
+# reports a smaller number, not a better site.
 SHIPPING_CSS = ['tokens.css', 'header.css', 'play.css',
                 'controls.css', 'site-theme.css', 'footer.css',
-                'builder-theme.css']
+                'builder-theme.css', 'tournament.css']
 SHIPPING_JS = ['header.js', 'hero-engine.js', 'play-engine.js', 'play-games.js',
                'play-tournament.js', 'party.js', 'egghead-seed.js']
 
@@ -930,6 +935,20 @@ class Audit:
         self.metrics['duration_histogram'] = alld.most_common()
         self.metrics['easing_histogram'] = alle.most_common()
         self.metrics['tokenised_motion_refs'] = tokenised.most_common()
+        # steps() is a FRAME COUNT, not a curve. play.css drives the mood dots,
+        # the party lights and the disco ball off sprite sheets, so steps(7,end)
+        # means "this sheet has 7 frames" -- it is decided by the asset, not by
+        # taste, and consolidating those onto a shared easing would break the
+        # sprite. They are still counted in distinct_easings, because they are
+        # genuinely distinct values, but a reader treating that number as "how
+        # many opinions about feel does this site hold" needs them separated:
+        # the answer is the non-stepped count. Reported, never silently netted
+        # off, so the headline stays comparable across runs.
+        stepped = {k for k in alle if k.startswith('steps(')}
+        self.metrics['stepped_easings'] = len(stepped)
+        self.metrics['curve_easings'] = len(alle) - len(stepped)
+        self.metrics['stepped_transition_easings'] = len(
+            [k for k in ease['transition'] if k.startswith('steps(')])
         token_curve = norm('cubic-bezier(.2,.8,.2,1)')
         kw, lit = alle.get('ease-out', 0), alle.get(token_curve, 0)
         self.metrics['ease_out_keyword'] = kw
@@ -1136,6 +1155,70 @@ class Audit:
                          'not fill)' % (sel[:70], value[:60]),
                          selector=sel[:120], value=value[:120])
 
+    # ── THE LEADING LADDER ────────────────────────────────────────────────────
+    # THIS CHECK EXISTS BECAUSE THE AUDIT COULD NOT SEE ITS OWN BIGGEST MISS.
+    # `--lh-` sits in NON_SUBSTITUTABLE (correctly -- a bare 1.5 in `flex` is not
+    # a leading) and `line-height` is in no property category, so check_literals
+    # is structurally blind to it. The 2026-08-09 conformance audit measured the
+    # consequence: `line-height:1.12` on five case studies and `1.06` on index +
+    # play, both off every rung, both invisible to a PASSing suite -- and the
+    # --lh-head/--lh-note rungs were ADDED on 2026-08-04 specifically to absorb
+    # that 1.12 cluster (see tokens.css, "THE TWO MISSING LEADING RUNGS"). The
+    # rungs landed and the call sites never moved. Nothing reported it.
+    #
+    # SCOPED TO UNITLESS RATIOS ON PURPose. A `line-height` in px or em is a
+    # deliberate metric decision (a 2px cap rule, an optical alignment) and
+    # cannot be compared against a ratio ladder without knowing the element's
+    # font-size, which a static reader does not have. Unitless is the form the
+    # ladder is written in and the form 60 of the site's declarations use.
+    #
+    # THE LADDER IS READ FROM tokens.css, NOT HARDCODED. A rung list retyped
+    # here is a second definition of the ladder and would drift from the file it
+    # is meant to police -- which is the same failure this tool exists to catch.
+    LH_UNITLESS = re.compile(r'^(\d*\.?\d+)$')
+
+    def leading_ladder(self):
+        """{ratio -> [token names]} read live out of tokens.css."""
+        ladder = defaultdict(list)
+        for name, entries in self.defs.get(TOKENS_FILE, {}).items():
+            if not name.startswith('--lh-'):
+                continue
+            for e in entries:
+                m = self.LH_UNITLESS.match(norm(e['value']))
+                if m:
+                    ladder[round(float(m.group(1)), 4)].append(name)
+        return ladder
+
+    def check_leading(self):
+        ladder = self.leading_ladder()
+        self.metrics['leading_rungs'] = sorted(ladder)
+        seen = Counter()
+        for fname, decls in self.decls.items():
+            src = self.sources[fname]
+            for pos, prop, value, sel in decls:
+                if prop != 'line-height':
+                    continue
+                v = norm(value)
+                m = self.LH_UNITLESS.match(v)
+                if not m:
+                    continue           # px/em/% leading -- see the note above
+                ratio = round(float(m.group(1)), 4)
+                seen[ratio] += 1
+                if ratio in ladder:
+                    self.add('leading_literal_on_rung', 'WARNING', src.where(pos),
+                             '%s -- line-height:%s is %s, written as a literal'
+                             % (sel[:56], v, '/'.join(sorted(ladder[ratio]))),
+                             file=fname, selector=sel[:120], value=v)
+                else:
+                    near = min(ladder, key=lambda r: abs(r - ratio)) if ladder else None
+                    self.add('leading_off_ladder', 'WARNING', src.where(pos),
+                             '%s -- line-height:%s is on no rung (nearest %s = %s)'
+                             % (sel[:56], v,
+                                '/'.join(sorted(ladder.get(near, []))) or '-', near),
+                             file=fname, selector=sel[:120], value=v)
+        self.metrics['leading_distinct_unitless'] = len(seen)
+        self.metrics['leading_histogram'] = seen.most_common()
+
     ALLOWED_FONT = re.compile(
         r'^(?:var\(--(?:sans|serif|mono)\)|inherit|unset|initial|revert)$', re.I)
 
@@ -1176,6 +1259,7 @@ class Audit:
         self.check_shadows()
         self.check_hover_fill()
         self.check_fonts()
+        self.check_leading()
         return self
 
 
@@ -1202,6 +1286,8 @@ ORDER = [
     ('hover_background_fill', 'Hover states that fill a background'),
     ('hover_fill_sanctioned', 'Hover fills the specs sanction (not a finding)'),
     ('third_font_family', 'Font families outside the system'),
+    ('leading_off_ladder', 'Leading: unitless line-height on no --lh-* rung'),
+    ('leading_literal_on_rung', 'Leading: a rung written as a literal'),
 ]
 
 
@@ -1259,7 +1345,11 @@ def report(audit, args):
           % (f, px.get(f, 0), pxt.get(f, 0), hx.get(f, 0), hxt.get(f, 0)))
     w('\nMOTION\n')
     w('    distinct durations : %d\n' % m.get('distinct_durations', 0))
-    w('    distinct easings   : %d\n' % m.get('distinct_easings', 0))
+    w('    distinct easings   : %d  (%d real curves + %d steps() sprite frame\n'
+      '                             counts, which are decided by the asset and\n'
+      '                             are not opinions about feel)\n'
+      % (m.get('distinct_easings', 0), m.get('curve_easings', 0),
+         m.get('stepped_easings', 0)))
     w('    ease-out keyword   : %d\n' % m.get('ease_out_keyword', 0))
     w('    literal .2,.8,.2,1 : %d\n' % m.get('ease_out_literal_curve', 0))
     if args.verbose:
@@ -1276,6 +1366,8 @@ def report(audit, args):
       % sum(f.get('count', 1) for f in findings.get('untokenised_literal', [])))
     w('distinct_durations=%d\n' % m.get('distinct_durations', 0))
     w('distinct_easings=%d\n' % m.get('distinct_easings', 0))
+    w('curve_easings=%d\n' % m.get('curve_easings', 0))
+    w('stepped_easings=%d\n' % m.get('stepped_easings', 0))
     w('control_padding_variants=%d\n' % m.get('control_padding_variants', 0))
     w('raw_px_total=%d\n' % sum(px.values()))
     w('raw_hex_total=%d\n' % sum(hx.values()))

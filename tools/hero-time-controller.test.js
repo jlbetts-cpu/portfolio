@@ -64,7 +64,22 @@ function makeHarness(options={}){
     contains:name=>this.classList.values.has(name)
    };
   }
-  appendChild(child){child.parentElement=this;this.children.push(child);return child;}
+  appendChild(child){child.parentElement=this;child.parentNode=this;this.children.push(child);return child;}
+  /* The controller builds its own lit layer and splices it in beside the cast,
+     so the stub has to model insertion and sibling order -- not just appending.
+     Modelled rather than stubbed out, because "it lands immediately after the
+     cast" is the thing that puts it above the shading and below the eyes. */
+  insertBefore(child,ref){
+   const at=ref?this.children.indexOf(ref):-1;
+   child.parentElement=this;child.parentNode=this;
+   if(at<0)this.children.push(child);else this.children.splice(at,0,child);
+   return child;
+  }
+  get nextSibling(){
+   const parent=this.parentElement;
+   if(!parent)return null;
+   return parent.children[parent.children.indexOf(this)+1]||null;
+  }
   setAttribute(name,value){
    const oldValue=this.getAttribute(name);
    this.attributes.set(name,String(value));
@@ -117,16 +132,26 @@ function makeHarness(options={}){
  const spill=new FakeElement();
  const face=new FakeElement({src:options.faceSrc||"images/neutral.webp"});
  const portrait=new FakeElement();
+ /* The cast layer lives inside the portrait stage on the real page, and the lit
+    layer is inserted next to it -- so it needs a parent here or the controller
+    has nowhere to put it. */
+ const stage=new FakeElement();
+ stage.appendChild(face);
+ stage.appendChild(portrait);
  const states=["pre-dawn","sunrise","daytime","dusk","sunset","night"];
- const portraitTargets={
-  "off":{opacity:0,filter:"url(#heroPortraitTintFilter)"},
-  "pre-dawn":{opacity:.22,filter:"url(#heroPortraitTintFilter)"},
-  "sunrise":{opacity:.25,filter:"url(#heroPortraitTintFilter)"},
-  "daytime":{opacity:.16,filter:"url(#heroPortraitTintFilter)"},
-  "dusk":{opacity:.20,filter:"url(#heroPortraitTintFilter)"},
-  "sunset":{opacity:.26,filter:"url(#heroPortraitTintFilter)"},
-  "night":{opacity:.24,filter:"url(#heroPortraitTintFilter)"}
+ /* ── THE DESTINATION COMES FROM THE HOUR, NOT FROM THE LAYER ────────────────
+    --time-shade is what each state authors, and it is read off the HERO. The
+    layer's own rendered opacity is deliberately pinned to a value no state ever
+    asks for, so anything that goes back to reading the element -- directly, or
+    by depending on clearSettledSceneStyles() having run first -- fails every
+    state assertion below instead of quietly agreeing with itself. */
+ const shadeTargets={
+  "off":0,"pre-dawn":.48,"sunrise":.40,"daytime":.34,
+  "dusk":.44,"sunset":.42,"night":.58
  };
+ const PORTRAIT_DECOY=.99;
+ const portraitTargets=Object.fromEntries(Object.entries(shadeTargets)
+  .map(([state,opacity])=>[state,{opacity}]));
  const gradients=states.map(state=>{
   const layer=new FakeElement({"data-time-gradient":state});
   layer.classList.add("heroTimeGradient");
@@ -143,7 +168,8 @@ function makeHarness(options={}){
   activeElement:null,
   hidden:false,
   querySelector:selector=>selector===".hero"?hero:null,
-  getElementById:id=>byId[id]||null
+  getElementById:id=>byId[id]||null,
+  createElement:()=>new FakeElement()
  });
 
  function cssValue(element,name){
@@ -154,10 +180,7 @@ function makeHarness(options={}){
   const heroState=hero.getAttribute("data-time-state");
   if(gradients.includes(element))return name==="opacity"?(element.getAttribute("data-time-gradient")===heroState?1:0):"none";
   if(element===spill)return name==="opacity"?(root.getAttribute("data-theme-state")==="night"?1:0):"none";
-  if(element===portrait){
-   const target=portraitTargets[heroState]||portraitTargets.off;
-   return target[name];
-  }
+  if(element===portrait)return name==="opacity"?PORTRAIT_DECOY:"none";
   return name==="opacity"?0:"none";
  }
 
@@ -176,7 +199,9 @@ function makeHarness(options={}){
   opacity:String(cssValue(element,"opacity")),
   filter:String(cssValue(element,"filter")),
   getPropertyValue:name=>name==="--hero-time-duration"?(options.duration||"640ms"):
-   name==="--hero-time-ease"?"cubic-bezier(.22,1,.36,1)":""
+   name==="--hero-time-ease"?"cubic-bezier(.22,1,.36,1)":
+   name==="--time-shade"&&element===hero
+    ? String(shadeTargets[hero.getAttribute("data-time-state")]??0) : ""
  });
  let storageReads=0,clockReads=0,timerCreates=0,timerClears=0;
  Object.defineProperty(window,"sessionStorage",{get(){storageReads+=1;throw new Error("Hero must not access storage");}});
@@ -207,12 +232,12 @@ function makeHarness(options={}){
   return {
    gradients:gradients.map(layer=>Number(cssValue(layer,"opacity"))),
    spill:Number(cssValue(spill,"opacity")),
-   portrait:{opacity:Number(cssValue(portrait,"opacity")),filter:String(cssValue(portrait,"filter"))},
+   portrait:{opacity:Number(cssValue(portrait,"opacity"))},
    active:animations.filter(animation=>!animation.cancelled).length
   };
  }
  return {window,document,root,controller:window.HeroTimeController,hero,control,button,menu,icon,autoState,
-  gradients,spill,face,portrait,portraitTargets,animations,modeCalls,publish,settle,latestFor,finishLatestSet,rendered,
+  gradients,spill,face,portrait,stage,portraitTargets,animations,modeCalls,publish,settle,latestFor,finishLatestSet,rendered,
   accesses:()=>({storageReads,clockReads,timerCreates,timerClears}),unsubscribed:()=>unsubscribed};
 }
 
@@ -302,6 +327,42 @@ test("live reduced motion settles portrait opacity and filter then restores norm
  assert.equal(portraitFrames.at(-1).filter,h.portraitTargets.off.filter);
 });
 
+/* ── THE CROSS-FADE MUST NOT LET THE BACKDROP THROUGH ────────────────────────
+   Two stacked layers ramping in opposite directions sum to 1 and still show a
+   quarter of whatever is behind them at the midpoint, because the lower one is
+   partly transparent underneath the upper one. The incoming sky is therefore
+   lifted above the rest and is the ONLY layer that moves; every other layer
+   holds where it was and is dropped to its destination by the settled write,
+   under an incoming layer that is opaque by then. */
+test("an arriving sky is lifted and is the only layer that ramps",()=>{
+ const h=makeHarness({snapshot:{mode:"daytime",state:"daytime",theme:"light"}});
+ h.finishLatestSet();
+ h.publish({mode:"night",state:"night",theme:"dark"});
+ const daytime=h.gradients[2],night=h.gradients[5];
+ assert.equal(night.style.values["z-index"],"1","the arriving sky must be lifted above the one it replaces");
+ assert.equal(daytime.style.values["z-index"],undefined,"only the arriving sky is lifted");
+ const arriving=h.latestFor(night).frames;
+ assert.equal(arriving[0].opacity,0);
+ assert.equal(arriving.at(-1).opacity,1);
+ const leaving=h.latestFor(daytime).frames;
+ assert.equal(leaving[0].opacity,1);
+ assert.equal(leaving.at(-1).opacity,1,"the outgoing sky holds rather than fading through the backdrop");
+ assert.equal(Number(daytime.style.values.opacity),0,"and lands on 0 once the arriving sky covers it");
+});
+
+/* off has no arriving sky, and it is the one state where the page underneath IS
+   the destination, so it keeps the plain fade out. */
+test("Off fades the outgoing sky out rather than holding it",()=>{
+ const h=makeHarness({snapshot:{mode:"night",state:"night",theme:"dark"}});
+ h.finishLatestSet();
+ h.publish({mode:"off",state:"off",theme:"light"});
+ const night=h.gradients[5];
+ assert.equal(night.style.values["z-index"],undefined);
+ const leaving=h.latestFor(night).frames;
+ assert.equal(leaving[0].opacity,1);
+ assert.equal(leaving.at(-1).opacity,0);
+});
+
 test("reduced motion settles all seven states with exclusive scene destinations",()=>{
  const h=makeHarness({reducedMotion:true});
  const states=["off","pre-dawn","sunrise","daytime","dusk","sunset","night"];
@@ -350,6 +411,30 @@ test("Time mirrors responsive Mood sources and becomes inert after destroy",()=>
  },before);
  assert.equal(h.unsubscribed(),1);
  assert.equal(h.face.listenerCount("load"),0);
+});
+
+/* ── THE LIT LAYER IS A GRADIENT WEARING THE PORTRAIT'S ALPHA ────────────────
+   It has no src of its own -- the artwork arrives as a mask instead -- so the
+   one thing that can silently break it is the mask falling out of step with the
+   face the engine is currently showing. A stale mask does not throw and does not
+   disappear; it puts the previous expression's silhouette over the current one,
+   which is a soft edge nobody notices in a screenshot. Asserted with the src
+   sync it rides on, and asserted to sit immediately after the cast, because
+   that ordering is what puts the light above the shading and below the eyes. */
+test("the lit layer masks itself with whatever face the engine is showing",()=>{
+ const h=makeHarness({faceSrc:"images/neutral.webp"});
+ const glow=h.stage.children.find(node=>node.classList.contains("heroTimePortraitLit"));
+ assert.ok(glow,"lit layer built");
+ assert.equal(h.stage.children.indexOf(glow),h.stage.children.indexOf(h.portrait)+1);
+ assert.equal(glow.getAttribute("aria-hidden"),"true");
+ assert.equal(glow.style.values["--time-portrait-mask"],'url("images/neutral.webp")');
+
+ h.face.setAttribute("src","images/cookie.webp");
+ assert.equal(glow.style.values["--time-portrait-mask"],'url("images/cookie.webp")');
+ h.face.currentSrc="images/cookie@2x.webp";
+ h.face.dispatchEvent({type:"load"});
+ assert.equal(glow.style.values["--time-portrait-mask"],'url("images/cookie@2x.webp")');
+ assert.equal(glow.getAttribute("src"),null);
 });
 
 if(failures.length){

@@ -8,6 +8,11 @@ const at=(h,m=0)=>new Date(2026,7,6,h,m,0,0);
   assert.equal(S.resolveAutomatic(at(h,m)),state));
 
 assert.equal(S.normalizeMode("garbage"),"auto");
+/* THE DEFAULT IS AN HOUR, AND IT IS NOT WHAT normalizeMode ANSWERS. One names
+   the absence of a preference, the other an unreadable one; they were the same
+   value while auto was also the default and they are different questions. */
+assert.equal(S.DEFAULT_MODE,"daytime");
+assert.ok(S.MODES.indexOf(S.DEFAULT_MODE)!==-1);
 assert.equal(S.normalizeMode(null),"auto");
 assert.equal(S.resolveState("off",at(12)),"off");
 S.MODES.slice(1).forEach(mode=>assert.equal(S.resolveState(mode,at(12)),mode));

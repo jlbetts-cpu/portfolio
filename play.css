@@ -125,6 +125,76 @@ body{background:var(--c50);color:var(--c950);font-family:var(--sans);-webkit-fon
    headline for, or from the Play menu block that HEADONLY turns off).
    Sources, index.html: 134, 137, 138, 139, 145-147, 162, 163, 164, 166, 168, 308. ---- */
 #stageMorph{position:relative;width:100%;transform-origin:center center}
+
+/* ══ THE HEAD LEANS IN WHEN IT WILL TAKE WHAT YOU ARE HOLDING ═══════════════════
+   Jayden: "when you drag it to the face, the face comes forward a little bit to show
+   that you can drag on it."
+
+   IT IS A DROP TARGET, SO IT IS BUILT LIKE ONE. .catchReady is the site's existing
+   "a valid payload is over me" signal -- hero-engine.js's faceTrackTo() raises it for a
+   dragged cookie and play-games.js's word rig raises it for a dragged mood word -- and
+   index.html already rewards it at line 149 with exactly this scale. Copying the value
+   rather than picking a new one means the head answers a drag identically on both pages;
+   a drop target that leans by a different amount depending on which page you are on is
+   two affordances pretending to be one.
+
+   #stageMorph, NOT #stage, AND THAT IS THE WHOLE REASON IT COMPOSES. hero-engine.js
+   writes #stage's transform on every frame of the idle float -- translate, rotate and
+   squash -- so anything this stylesheet put there would be overwritten within 16ms.
+   #stageMorph is its parent and nothing writes it, so the lean multiplies into the float
+   instead of racing it: the head keeps breathing and drifting exactly as it did, and the
+   whole portrait -- head, floor shadow, speech bubble and the drifting logo marks, which
+   are #stageMorph's other children -- comes forward together as one object. The crowd of
+   companions is NOT in this subtree, so they stay put; it is the portrait that leans,
+   not the scene.
+
+   IT ONLY EVER FIRES DURING A DRAG. Both owners of .catchReady set it inside a pointer
+   gesture and clear it on release, so a bare cursor crossing the head does nothing. On
+   this page there is no competing gesture to confuse it with: hero-head-transform.js --
+   the selection frame that makes the portrait draggable, scalable and rotatable -- is
+   loaded by index.html only, so on Play the head is never itself picked up.
+
+   THE RETURN IS SLOWER THAN THE ARRIVAL, and asymmetric on purpose. Arming is a response
+   and should feel instant (--dur-state); disarming is the state letting go and gets the
+   rung built for that (--dur-state-out), which is the same 160/240 pair tokens.css §6
+   defines for hover in and hover out. index.html transitions both directions at 160 and
+   therefore snaps back; the patch to bring it in line is in the audit doc.
+   AND A DROP THAT WAS TAKEN RELAXES DIFFERENTLY FROM ONE THAT WAS ABANDONED. On a
+   successful drop the mood performance is about to start, so the lean hands over on the
+   settle spring instead of retracting -- the head is not returning to rest, it is going
+   somewhere. .pMoodTaken is set for exactly that release and dropped again by the rig. */
+#stageMorph{transition:transform var(--dur-state-out) var(--ease-out)}
+body.catchReady #stageMorph{transform:scale(1.055);transition-duration:var(--dur-state)}
+body.pMoodTaken #stageMorph{transition:transform var(--sp-settle-dur) var(--sp-settle)}
+
+/* REDUCED MOTION KEEPS THE DROP TARGET, AND DRAWS IT INSTEAD OF PERFORMING IT.
+   The lean is the only thing telling you the head accepts the word, so switching it off
+   and stopping there would leave the affordance with no signal at all -- which is the
+   failure Apple's reduced-motion criteria name directly (don't remove it, substitute
+   something that does not move). The substitute is the drop zone itself, drawn: a hairline
+   outline of the shape play-games.js's onHead() actually tests, cross-faded in while the
+   head is armed. It is more informative than the lean, not less -- the lean says "I will
+   take this", the ring says "I will take this, from anywhere inside here" -- and it is
+   built from opacity alone, which is the substitution Apple asks for.
+
+   THE SHAPE IS THE REAL ONE AND THESE NUMBERS ARE NOT DECORATIVE. onHead() tests an ellipse
+   inscribed in #face's data-head-bounds ("0.1933 0.0616 0.8484 0.9234") with a 1.06 pad, so:
+     centre   x (.1933+.8484)/2 = 52.09%   y (.0616+.9234)/2 = 49.25%
+     size     w (.8484-.1933)*1.06 = 69.44%   h (.9234-.0616)*1.06 = 91.35%
+     offset   left 52.09-69.44/2 = 17.37%    top 49.25-91.35/2 = 3.58%
+   It is hung on .stage rather than on #stageMorph because .stage is the box onHead()
+   measures -- #stageMorph also contains the floor shadow and is therefore taller, which
+   would have drawn a ring that lied by the height of the shadow.
+   IF THE HIT TEST MOVES, THIS MUST MOVE WITH IT. There is no way to derive one from the
+   other in CSS, so the coupling is this comment. */
+@media(prefers-reduced-motion:reduce){
+ #stageMorph,body.pMoodTaken #stageMorph{transition:none}
+ body.catchReady #stageMorph{transform:none}
+ .stage::after{content:"";position:absolute;left:17.37%;top:3.58%;width:69.44%;height:91.35%;
+  border-radius:var(--r-full);border:1px solid var(--c400);
+  opacity:0;transition:opacity var(--dur-state) linear;pointer-events:none;z-index:6}
+ body.catchReady .stage::after{opacity:1}
+}
 .stage{position:relative;width:100%;aspect-ratio:1;will-change:transform;z-index:5}
 .face{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;-webkit-user-select:none;user-select:none;cursor:pointer}
 .stage img,.face{-webkit-user-drag:none;-khtml-user-drag:none;user-select:none}
@@ -163,19 +233,19 @@ body{background:var(--c50);color:var(--c950);font-family:var(--sans);-webkit-fon
 .kernel{position:absolute;width:9%;height:auto;z-index:8;opacity:0;pointer-events:none;will-change:transform,opacity;filter:url(#inkSm)}
 .crumb{position:absolute;background-image:url(images/crumbtex.webp);background-size:150px 150px;pointer-events:none;z-index:6;will-change:transform,left,top,opacity}
 .crumbshadow{position:absolute;border-radius:50%;background:radial-gradient(ellipse,rgba(12,9,6,.55),transparent 72%);pointer-events:none;z-index:6;will-change:transform,left,top,opacity;filter:blur(1px)}
-.hungerdrag{position:fixed;pointer-events:none;font-family:var(--sans);font-weight:600;letter-spacing:-.02em;text-transform:none;font-size:var(--fs-h1);transform:translate(-50%,-50%);transform-origin:50% 18%;z-index:70;will-change:transform,left,top;color:var(--c950);display:inline-flex;align-items:baseline;gap:.04em;white-space:nowrap}
+.hungerdrag{position:fixed;pointer-events:none;font-family:var(--sans);font-weight:600;letter-spacing:-.02em;text-transform:none;font-size:var(--fs-h1);transform:translate(-50%,-50%);transform-origin:50% 18%;z-index:70;will-change:transform,left,top;color:var(--theme-ink);display:inline-flex;align-items:baseline;gap:.04em;white-space:nowrap}
 .hungerdrag .bitn{animation:hglBite .16s steps(3,end) forwards;transform-origin:50% 38%}
 @keyframes hglBite{0%{transform:scale(1.16);opacity:1}55%{transform:scale(.5) translateY(.12em);opacity:.6}100%{transform:scale(0) translateY(.3em);opacity:0}}
 .stachecrumb{animation:stachePop .5s steps(4,end) forwards}
 @keyframes stachePop{0%{transform:rotate(var(--r)) scale(0);opacity:0}55%{transform:rotate(var(--r)) scale(1.22);opacity:1}80%{transform:rotate(var(--r)) scale(.93);opacity:1}100%{transform:rotate(var(--r)) scale(1);opacity:1}}
 .queueDots.on{opacity:.92}
-.queueDots i{width:.5rem;height:.5rem;border-radius:50%;background:var(--c950);filter:url(#inkSm);animation:qbounce .92s steps(7,end) infinite;animation-play-state:paused}
+.queueDots i{width:.5rem;height:.5rem;border-radius:50%;background:var(--theme-ink);filter:url(#inkSm);animation:qbounce .92s steps(7,end) infinite;animation-play-state:paused}
 .queueDots.on i{animation-play-state:running}.queueDots i:nth-of-type(2){animation-delay:.12s}.queueDots i:nth-of-type(3){animation-delay:.24s}
 @keyframes qbounce{0%{transform:translateY(0)}30%{transform:translateY(-95%)}60%{transform:translateY(0)}100%{transform:translateY(0)}}
 .qsr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
 @media(prefers-reduced-motion:reduce){.cookieDot::before,.discoDot::after,.heartDot::before,.camDot::before,.queueDots i,.stachecrumb,.glasses.on,.glasses.off{animation:none}.glasses.on{opacity:1}.glasses.off{opacity:0}}
 #party{position:absolute;top:0;left:0;right:0;height:112vh;-webkit-mask-image:linear-gradient(#000 90%,transparent 100%);mask-image:linear-gradient(#000 90%,transparent 100%);z-index:63;pointer-events:none;opacity:0;transition:opacity 1.15s cubic-bezier(.33,0,.2,1)}
-#party:not(.on){transition:opacity .42s cubic-bezier(.3,0,.8,.15)}#party.on{opacity:1}
+#party:not(.on){transition:opacity .42s var(--ease-exit)}#party.on{opacity:1}
 .partyDark{position:absolute;inset:0;background:radial-gradient(circle var(--hr,180px) at var(--hx,50%) var(--hy,38%),rgba(6,5,16,0) 0%,rgba(6,5,16,.55) 44%,rgba(2,1,8,.96) 100%)}
 .partyHaze{position:absolute;left:var(--bx,50%);top:var(--by,30%);width:120vmax;height:120vmax;margin:-60vmax 0 0 -60vmax;background:radial-gradient(circle,rgba(120,150,255,.16),rgba(180,90,220,.06) 40%,transparent 66%);mix-blend-mode:screen;animation:hazePulse 1.5s steps(12,end) infinite,hueShift 5.6s steps(7,end) infinite}
 .beamWrap{position:absolute;left:var(--bx,50%);top:var(--by,30%);width:0;height:0}
@@ -186,8 +256,8 @@ body{background:var(--c50);color:var(--c950);font-family:var(--sans);-webkit-fon
 .partyGrain{position:absolute;inset:-40px;background:url(images/overlay.webp);background-size:150px 150px;mix-blend-mode:overlay;opacity:.4}
 @keyframes spinL{to{transform:rotate(360deg)}}@keyframes spinB{to{transform:rotate(360deg)}}
 @keyframes twinkle{0%,100%{opacity:0}14%{opacity:.1}50%{opacity:1}}@keyframes hazePulse{0%,100%{opacity:.55}50%{opacity:1}}@keyframes beat{0%,62%,100%{opacity:0}70%{opacity:.5}82%{opacity:.12}}@keyframes hueShift{to{filter:hue-rotate(360deg)}}
-#discoWrap{position:absolute;z-index:64;pointer-events:none;opacity:0;transform:translate(-50%,-140%) scale(.82);transition:opacity .7s cubic-bezier(.2,.8,.2,1),transform .95s cubic-bezier(.22,1.15,.32,1)}
-#discoWrap:not(.on){transition:opacity .38s cubic-bezier(.3,0,.8,.15),transform .5s cubic-bezier(.3,0,.8,.15)}#discoWrap.on{transform:translate(-50%,-50%) scale(1);opacity:1}
+#discoWrap{position:absolute;z-index:64;pointer-events:none;opacity:0;transform:translate(-50%,-140%) scale(.82);transition:opacity .7s var(--ease-out),transform .95s cubic-bezier(.22,1.15,.32,1)}
+#discoWrap:not(.on){transition:opacity .38s var(--ease-exit),transform .5s var(--ease-exit)}#discoWrap.on{transform:translate(-50%,-50%) scale(1);opacity:1}
 .dbGlow{position:absolute;left:50%;top:50%;width:300%;height:300%;transform:translate(-50%,-50%);background:radial-gradient(circle,rgba(190,210,255,.45),rgba(150,120,220,.12) 30%,transparent 60%);mix-blend-mode:screen;animation:hazePulse 1.25s steps(10,end) infinite}
 #discoBall{position:relative;width:clamp(104px,12.5vw,156px);height:clamp(104px,12.5vw,156px);border-radius:50%;overflow:hidden;clip-path:circle(50%);filter:drop-shadow(0 7px 18px rgba(0,0,0,.55))}
 #discoBall .dbPhoto{position:absolute;inset:0;background:url(images/discoball.webp) center/cover no-repeat}
@@ -196,7 +266,7 @@ body{background:var(--c50);color:var(--c950);font-family:var(--sans);-webkit-fon
 #discoBall .dbShade{position:absolute;inset:0;background:radial-gradient(circle at 33% 28%,rgba(255,255,255,.5),rgba(255,255,255,0) 44%),radial-gradient(circle at 50% 50%,transparent 62%,rgba(2,2,12,.6) 100%)}
 @keyframes dbScroll{to{background-position-x:-150px}}@keyframes dbSweep{0%{transform:translateX(-65%)}100%{transform:translateX(65%)}}
 body.partyLock{overflow:hidden}
-#loveScene{position:absolute;top:0;left:0;right:0;height:100vh;z-index:64;pointer-events:none;opacity:0;transition:opacity .45s cubic-bezier(.2,.8,.2,1)}#loveScene.on{opacity:1}
+#loveScene{position:absolute;top:0;left:0;right:0;height:100vh;z-index:64;pointer-events:none;opacity:0;transition:opacity .45s var(--ease-out)}#loveScene.on{opacity:1}
 .heartLayer{position:absolute;inset:0}.heartEye{position:absolute;width:17%;transform:translate(-50%,-50%);transform-origin:50% 50%;z-index:5;pointer-events:none;will-change:transform,opacity;filter:url(#inkSm) drop-shadow(0 1px 2px rgba(0,0,0,.32))}
 .loveHeart{position:fixed;transform:translate(-50%,-50%);will-change:transform,opacity;opacity:0;filter:url(#inkSm) drop-shadow(0 2px 4px rgba(0,0,0,.3))}
 @keyframes heartFloat{0%{opacity:0;transform:translate(-50%,-50%) scale(.4) rotate(0)}16%{opacity:1}100%{opacity:0;transform:translate(calc(-50% + var(--dx,0px)),calc(-50% - 132px)) scale(1) rotate(var(--rot,0deg))}}
@@ -212,27 +282,27 @@ body.heroEmpathy .jbStick .jbNav{--nav-mat:var(--ctl-ground);--nav-rim:var(--ctl
 /* .moodHeads now comes from header.css so both pages share one geometry -- this
    wrapping flex row was the other half of the split. Only this selector was touched
    in this file. */
-.mhItem{position:relative}.mhItem img{width:34px;height:40px;object-fit:contain;background:var(--c100);border-radius:var(--r-2xs);display:block}
-.mhPick{padding:0;border:0;background:none;cursor:pointer;display:block;border-radius:var(--r-2xs);transition:box-shadow .18s var(--ease-out)}
-.mhPick:hover,.mhPick:focus-visible{box-shadow:0 0 0 1.5px var(--c500)}
-.mhX{position:absolute;top:-6px;right:-6px;width:16px;height:16px;border-radius:var(--r-full);border:1px solid var(--c100);background:var(--c50);color:var(--c700);font-size:var(--fs-micro);line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0}
-.mhX::before{content:"";position:absolute;inset:-4px;border-radius:var(--r-full)}.mhX:hover{color:var(--c950);border-color:var(--c500)}
+.mhItem{position:relative}.mhItem img{width:34px;height:40px;object-fit:contain;background:var(--ctl-ground-hover);border-radius:var(--r-2xs);display:block}
+.mhPick{padding:0;border:0;background:none;cursor:pointer;display:block;border-radius:var(--r-2xs);transition:box-shadow var(--dur-state) var(--ease-out)}
+.mhPick:hover,.mhPick:focus-visible{box-shadow:0 0 0 1.5px var(--ctl-ink)}
+.mhX{position:absolute;top:-6px;right:-6px;width:16px;height:16px;border-radius:var(--r-full);border:1px solid var(--theme-rim);background:var(--ctl-ground);color:var(--ctl-ink);font-size:var(--fs-micro);line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0}
+.mhX::before{content:"";position:absolute;inset:-4px;border-radius:var(--r-full)}.mhX:hover{color:var(--ctl-ink-strong);border-color:var(--theme-rim-strong)}
 
 .moodMenu .moodItem[hidden]{display:none}
-.gIco{width:18px;height:18px;flex:0 0 18px;display:block;color:var(--c700);transition:color .1s ease-out}
-.moodItem:hover .gIco{color:var(--c950)}
+.gIco{width:18px;height:18px;flex:0 0 18px;display:block;color:var(--ctl-ink);transition:color var(--dur-state) var(--ease-out)}
+.moodItem:hover .gIco{color:var(--ctl-ink-strong)}
 #endGame{color:#b3402e}#endGame .gIco{color:#b3402e}#endGame:hover{color:#8f3323}#endGame:hover .gIco{color:#8f3323}
 /* The maker links (Create head, Gradient maker) are <a>, not <button>, so they take .moodGo --
    the same class index.html's "Add your head" link uses. play.css referenced .moodGo in two
    game-gating rules (above) but never carried its base rule, because until now play.html had no
    link in the menu. Copied verbatim from index.html's own .moodGo/.moodSep declarations so the
    two menus stay one design. */
-.moodGo{display:flex;align-items:center;gap:var(--sp-12);width:100%;padding:var(--sp-12) var(--sp-16);border:0;border-radius:var(--r-2xs);background:none;color:var(--c950);font-family:var(--sans);font-weight:400;font-size:var(--fs-small);line-height:1.2;text-decoration:none;transition:background-color var(--ease-out-dur) var(--ease-out)}
-.moodMenu .moodGo{color:var(--c950)}
-.moodGo:hover,.moodGo:focus-visible{background:#F1F1F1}
+.moodGo{display:flex;align-items:center;gap:var(--sp-12);width:100%;padding:var(--sp-12) var(--sp-16);border:0;border-radius:var(--r-2xs);background:none;color:var(--ctl-ink-strong);font-family:var(--sans);font-weight:400;font-size:var(--fs-small);line-height:1.2;text-decoration:none;transition:background-color var(--ease-out-dur) var(--ease-out)}
+.moodMenu .moodGo{color:var(--ctl-ink-strong)}
+.moodGo:hover,.moodGo:focus-visible{background:var(--ctl-ground-hover)}
 .moodGo svg{flex:0 0 18px;width:18px;height:18px;color:currentColor}
-.moodSep{height:1px;background:var(--c100);margin:var(--sp-8) var(--sp-4) var(--sp-8)}
-.battleBadge{display:none;position:absolute;left:50%;top:14px;transform:translateX(-50%);z-index:47;align-items:center;gap:var(--sp-8);padding:var(--sp-8) var(--sp-12);border:1px solid var(--c100);border-radius:var(--r-2xs);background:var(--c50);font-family:var(--sans);font-size:var(--fs-label);font-weight:600;color:var(--c700);filter:url(#inkSm);pointer-events:none}
+.moodSep{height:1px;background:var(--theme-rim);margin:var(--sp-8) var(--sp-4) var(--sp-8)}
+.battleBadge{display:none;position:absolute;left:50%;top:14px;transform:translateX(-50%);z-index:47;align-items:center;gap:var(--sp-8);padding:var(--sp-8) var(--sp-12);border:1px solid var(--theme-rim);border-radius:var(--r-2xs);background:var(--ctl-ground);font-family:var(--sans);font-size:var(--fs-label);font-weight:600;color:var(--ctl-ink);filter:url(#inkSm);pointer-events:none}
 .battleBadge i{width:7px;height:7px;border-radius:var(--r-full);background:#b3402e;animation:bbPulse 1.1s steps(2,end) infinite}
 @keyframes bbPulse{0%,100%{opacity:1}50%{opacity:.35}}
 body.hmBattle .moodMenu .moodItem:not(#endGame),body.hmBattle .moodMenu .moodGo{opacity:.38;pointer-events:none}
@@ -568,7 +638,7 @@ body.pHubOn .hmRefl{
 .hmLowerThird .hmL3Nm{font-size:var(--fs-nav);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 @media(max-width:640px){.hmLowerThird{left:10px;bottom:9%;max-width:min(82vw,300px);padding:7px var(--sp-12) 7px 7px}}
 @media(prefers-reduced-motion:reduce){.hmLowerThird{transition:none}}
-.battleCount{position:absolute;left:50%;top:12px;transform:translateX(-50%);z-index:47;display:flex;align-items:center;gap:var(--sp-8);padding:var(--sp-8) var(--sp-16);border:1px solid var(--c100);border-radius:var(--r-2xs);background:var(--c50);font-family:var(--sans);font-weight:600;font-size:var(--fs-body);color:var(--c950);opacity:0;pointer-events:none;transition:opacity .3s;filter:url(#inkSm)}
+.battleCount{position:absolute;left:50%;top:12px;transform:translateX(-50%);z-index:47;display:flex;align-items:center;gap:var(--sp-8);padding:var(--sp-8) var(--sp-16);border:1px solid var(--theme-rim);border-radius:var(--r-2xs);background:var(--ctl-ground);font-family:var(--sans);font-weight:600;font-size:var(--fs-body);color:var(--ctl-ink-strong);opacity:0;pointer-events:none;transition:opacity .3s;filter:url(#inkSm)}
 /* Was z-index:47 -- above the heads (root, z:3), the goals (.hmGoal, z:2) and their shadows
    (z:1), so the board painted OVER the pitch instead of sitting on it. Jayden: "score board
    should be behind everything." 0 puts it below every pitch element (heads, ball z:48, goals,
@@ -584,16 +654,16 @@ body.pHubOn .hmRefl{
 .hmScore small{margin-left:var(--sp-8);padding-left:var(--sp-12);border-left:1px solid var(--c100);font-weight:400;font-size:var(--fs-small);color:var(--c500)}
 /* Below the scoreboard (47), not above it. At 48 the shout landed on top of the board and
    the two illegible-ed each other. Dropped down the pitch too, clear of the board's box. */
-.hmCount{position:absolute;left:50%;top:52%;transform:translate(-50%,-50%);z-index:44;font-family:var(--sans);font-weight:600;font-size:clamp(64px,12vw,140px);line-height:1;color:var(--c950);opacity:0;pointer-events:none;filter:url(#inkBig);white-space:nowrap}
+.hmCount{position:absolute;left:50%;top:52%;transform:translate(-50%,-50%);z-index:44;font-family:var(--sans);font-weight:600;font-size:clamp(64px,12vw,140px);line-height:1;color:var(--theme-ink);opacity:0;pointer-events:none;filter:url(#inkBig);white-space:nowrap}
 .hmCount.hmMsg{font-size:clamp(32px,6vw,72px);font-weight:600;letter-spacing:-.01em}   /* a word, not a digit: fits "Blue wins!" */
-.hmScoreEnd{margin-left:var(--sp-8);padding:var(--sp-2) var(--sp-2) var(--sp-2) var(--sp-12);border:0;border-left:1px solid var(--c100);border-radius:0;background:none;display:inline-flex;align-items:center;gap:var(--sp-4);cursor:pointer;pointer-events:auto;color:#b3402e;font-family:var(--sans);font-weight:600;font-size:var(--fs-label);line-height:1;transition:color .15s}
+.hmScoreEnd{margin-left:var(--sp-8);padding:var(--sp-2) var(--sp-2) var(--sp-2) var(--sp-12);border:0;border-left:1px solid var(--c100);border-radius:0;background:none;display:inline-flex;align-items:center;gap:var(--sp-4);cursor:pointer;pointer-events:auto;color:#b3402e;font-family:var(--sans);font-weight:600;font-size:var(--fs-label);line-height:1;transition:color var(--dur-state) var(--ease-out)}
 .hmScoreEnd:hover{color:#8f3323}.hmScoreEnd svg{width:12px;height:12px;flex:0 0 auto}
 /* battle arena platforms: light Apple-clean slabs with a hair of 2.5D thickness -- the heads leap up for height and pounce down */
 .hmPlat{position:absolute;left:0;top:0;height:12px;border-radius:var(--r-xs);background:var(--c50);border:1px solid rgba(22,22,28,.14);box-shadow:0 1px 2px rgba(22,22,28,.08);border:1px solid rgba(22,22,28,.16);opacity:0;pointer-events:none;transition:opacity .45s var(--ease-out);z-index:2;will-change:transform}
 body.hmBattle .hmPlat.arrived{opacity:1}
 body.hmPodium .hmPlat{opacity:0}   /* platforms clear off once the podium rises */
 /* the winners' podium: three light blocks, 1st tallest in the middle, that rise at the end of a battle */
-.hmPodium{position:absolute;left:0;top:0;border-radius:var(--r-sm) var(--r-sm) 3px 3px;background:linear-gradient(180deg,#fefeff 0%,#eeeef2 62%,#e1e1e8 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,.92),0 12px 24px -11px rgba(22,22,28,.34),0 2px 5px rgba(22,22,28,.12);border:1px solid rgba(22,22,28,.06);opacity:0;pointer-events:none;transition:opacity .5s var(--ease-out),transform .5s var(--ease-out);z-index:2;display:flex;align-items:flex-start;justify-content:center;overflow:hidden}
+.hmPodium{position:absolute;left:0;top:0;border-radius:var(--r-sm) var(--r-sm) 3px 3px;background:linear-gradient(180deg,#fefeff 0%,#eeeef2 62%,#e1e1e8 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,.92),0 12px 24px -11px rgba(22,22,28,.34),0 2px 5px rgba(22,22,28,.12);border:1px solid rgba(22,22,28,.06);opacity:0;pointer-events:none;transition:opacity var(--dur-enter) var(--ease-out),transform var(--dur-enter) var(--ease-out);z-index:2;display:flex;align-items:flex-start;justify-content:center;overflow:hidden}
 .hmPodium b{margin-top:var(--sp-8);font-family:var(--sans);font-weight:600;font-size:var(--fs-label);color:var(--c400);line-height:1}
 .hmPodium.show{opacity:1}
 /* --- "Play a mood" relocated into the hero CTA row (moodInCta) --- */
@@ -602,7 +672,7 @@ body.moodInCta .faceMoodCorner{position:relative;right:auto;left:auto;top:auto;b
 body.moodInCta .faceMoodCorner .moodBtn{position:relative;border:1px solid var(--c100)!important;background:var(--c50)!important;color:var(--c950);font-weight:400;font-size:var(--fs-body);padding:var(--sp-8) var(--sp-16);border-radius:var(--r-2xs)!important;opacity:1!important}
 body.moodInCta .faceMoodCorner .moodBtn:hover{border-color:var(--c500)!important;color:var(--c950)}
 body.moodInCta .faceMoodCorner .moodLbl{opacity:1!important;transform:none!important}
-body.moodInCta .faceMoodCorner .moodCar{opacity:1!important;transform:rotate(0deg)!important;transition:transform .32s cubic-bezier(.34,1.4,.5,1),color .2s var(--ease-out)}   /* menu opens UP in the CTA -> caret points up when closed */
+body.moodInCta .faceMoodCorner .moodCar{opacity:1!important;transform:rotate(0deg)!important;transition:transform .32s cubic-bezier(.34,1.4,.5,1),color var(--dur-state) var(--ease-out)}   /* menu opens UP in the CTA -> caret points up when closed */
 body.moodInCta .faceMoodCorner .moodbar.open .moodCar{transform:rotate(180deg)!important}   /* ...and flips to point down when the menu is open */
 body.moodInCta .faceMoodCorner .moodMenu{bottom:calc(100% + 12px)!important;top:auto!important;left:0!important;right:auto!important;z-index:60!important}
 body.moodInCta .heroCtas:not(.in) .faceMoodCorner{opacity:0!important;visibility:hidden!important;pointer-events:none!important}   /* stay hidden through the intro until the CTA row reveals -- !important so it wins over the mobile force-visible rule too, keeping Play in lockstep with "View my work" on every viewport */
@@ -611,18 +681,18 @@ body.moodInCta .heroCtas:not(.in) .faceMoodCorner{opacity:0!important;visibility
 @keyframes hmCountP{0%{opacity:0;transform:translate(-50%,-50%) scale(1.35)}18%{opacity:1}70%{opacity:1;transform:translate(-50%,-50%) scale(1)}100%{opacity:0;transform:translate(-50%,-50%) scale(.86)}}
 @media(prefers-reduced-motion:reduce){.hmCount.hmCountPulse{animation:none;opacity:1}}
 .hmHp{position:absolute;left:0;top:0;width:44px;height:4px;border-radius:var(--r-hair);background:rgba(8,8,8,.13);z-index:4;pointer-events:none;opacity:0;transition:opacity .3s var(--ease-out)}
-.hmHp i{display:block;height:100%;border-radius:var(--r-hair);background:var(--c950);transition:width .18s var(--ease-out),background-color .3s}
+.hmHp i{display:block;height:100%;border-radius:var(--r-hair);background:var(--theme-ink);transition:width var(--dur-state) var(--ease-out),background-color .3s}
 /* ===== mood shortcut menu — triggers the head animations; sharp, Instrument Sans, 8fps stepped ===== */
 .moodbar{position:relative;display:inline-block;z-index:45}
 @keyframes moodIn{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
-.moodBtn:not(.ctl){display:inline-flex;align-items:center;gap:var(--sp-8);background:var(--c50);border:1px solid var(--c100);border-radius:var(--r-2xs);padding:var(--sp-8) var(--sp-16);line-height:1;cursor:pointer;font-family:var(--sans);font-weight:400;font-size:var(--fs-body);color:var(--c950);transition:border-color .2s var(--ease-out),color .2s var(--ease-out)}.moodBtn:not(.ctl):hover{border-color:var(--c500)}
+.moodBtn:not(.ctl){display:inline-flex;align-items:center;gap:var(--sp-8);background:var(--ctl-ground);border:1px solid var(--theme-rim);border-radius:var(--r-2xs);padding:var(--sp-8) var(--sp-16);line-height:1;cursor:pointer;font-family:var(--sans);font-weight:400;font-size:var(--fs-body);color:var(--ctl-ink-strong);transition:border-color var(--dur-state) var(--ease-out),color var(--dur-state) var(--ease-out)}.moodBtn:not(.ctl):hover{border-color:var(--theme-rim-strong)}
 .moodLbl{font-size:var(--fs-body);font-weight:400;letter-spacing:0}
-.moodCar{width:12px;height:12px;display:inline-block;flex:0 0 auto;color:var(--c500);transition:transform .2s var(--ease-out),color .2s var(--ease-out)}
-.moodbar.open .moodCar{width:12px;height:12px;display:inline-block;flex:0 0 auto;color:var(--c500);transition:transform .2s var(--ease-out),color .2s var(--ease-out)}
-.moodMenu:not(.ctl-menu){position:absolute;min-width:var(--menu-w);background:var(--c50);border:1px solid var(--c100);border-radius:var(--r-2xs);padding:var(--sp-8);box-shadow:0 8px 28px -8px rgba(18,18,18,.12),0 2px 8px -2px rgba(18,18,18,.06);opacity:0;visibility:hidden;transition:opacity var(--ease-out-dur) var(--ease-out),transform .18s var(--ease-out),visibility 0s .18s}
-.moodbar.open .moodMenu:not(.ctl-menu){opacity:1;visibility:visible;transition:opacity var(--ease-out-dur) var(--ease-out),transform .18s var(--ease-out)}
-.moodItem:not(.ctl){display:flex;align-items:center;gap:var(--sp-12);width:100%;padding:var(--sp-8) var(--sp-12);border-radius:var(--r-2xs);font-family:var(--sans);font-weight:400;font-size:var(--fs-body);color:var(--c950);background:none;border:0;cursor:pointer;text-align:left;transition:background-color .1s ease-out,color .1s ease-out}
-.moodbar.open .moodItem:not(.ctl){display:flex;align-items:center;gap:var(--sp-12);width:100%;padding:var(--sp-8) var(--sp-12);border-radius:var(--r-2xs);font-family:var(--sans);font-weight:400;font-size:var(--fs-body);color:var(--c950);background:none;border:0;cursor:pointer;text-align:left;transition:background-color .1s ease-out,color .1s ease-out}
+.moodCar{width:12px;height:12px;display:inline-block;flex:0 0 auto;color:var(--ctl-ink);transition:transform var(--dur-state) var(--ease-out),color var(--dur-state) var(--ease-out)}
+.moodbar.open .moodCar{width:12px;height:12px;display:inline-block;flex:0 0 auto;color:var(--ctl-ink);transition:transform var(--dur-state) var(--ease-out),color var(--dur-state) var(--ease-out)}
+.moodMenu:not(.ctl-menu){position:absolute;min-width:var(--menu-w);background:var(--ctl-menu-ground);border:1px solid var(--theme-rim);border-radius:var(--r-2xs);padding:var(--sp-8);box-shadow:var(--ctl-container-rim);opacity:0;visibility:hidden;transition:opacity var(--ease-out-dur) var(--ease-out),transform var(--dur-state) var(--ease-out),visibility 0s var(--dur-state)}
+.moodbar.open .moodMenu:not(.ctl-menu){opacity:1;visibility:visible;transition:opacity var(--ease-out-dur) var(--ease-out),transform var(--dur-state) var(--ease-out)}
+.moodItem:not(.ctl){display:flex;align-items:center;gap:var(--sp-12);width:100%;padding:var(--sp-8) var(--sp-12);border-radius:var(--r-2xs);font-family:var(--sans);font-weight:400;font-size:var(--fs-body);color:var(--ctl-ink-strong);background:none;border:0;cursor:pointer;text-align:left;transition:background-color var(--dur-state) var(--ease-out),color var(--dur-state) var(--ease-out)}
+.moodbar.open .moodItem:not(.ctl){display:flex;align-items:center;gap:var(--sp-12);width:100%;padding:var(--sp-8) var(--sp-12);border-radius:var(--r-2xs);font-family:var(--sans);font-weight:400;font-size:var(--fs-body);color:var(--ctl-ink-strong);background:none;border:0;cursor:pointer;text-align:left;transition:background-color var(--dur-state) var(--ease-out),color var(--dur-state) var(--ease-out)}
 /* 8fps staggered reveal — mirrors the site's 0.05s per-character cascade */
 .moodbar.open .moodItem:not(.ctl):nth-child(1){transition-delay:.03s,.03s,0s}
 .moodbar.open .moodItem:not(.ctl):nth-child(2){transition-delay:.08s,.08s,0s}
@@ -666,7 +736,7 @@ body.playViewportOwned .siteFoot{display:none}
 .hmScore{border:0;background:none;padding:0;filter:url(#inkSm);
  flex-direction:column;align-items:center;text-align:center;
  top:var(--heroTitleTop,40px);gap:clamp(var(--sp-2),.6vh,var(--sp-6));
- font-family:var(--sans);font-weight:600;font-size:var(--fs-h1);line-height:1.06;letter-spacing:-.015em;color:var(--c950)}
+ font-family:var(--sans);font-weight:600;font-size:var(--fs-h1);line-height:1.06;letter-spacing:-.015em;color:var(--theme-ink)}
 .hmScore .sTitle{display:inline-flex;align-items:center;white-space:nowrap}
 /* The ball rests in the title at the size Jayden liked (.62em, the .discoDot metric), and the
    drop is a SCALE TWEEN on the live ball rather than a swap between two images -- it used to read
@@ -681,7 +751,7 @@ body.playViewportOwned .siteFoot{display:none}
    is dropped and the word glides back to true centre. */
 .hmScore .sTitle{gap:0}
 .hmScore .sBall{width:.62em;height:.62em;margin-left:.2em;object-fit:contain;flex:0 0 auto;
- transition:opacity var(--ease-out-dur) var(--ease-out),width .34s var(--ease-out),margin-left .34s var(--ease-out)}
+ transition:opacity var(--ease-out-dur) var(--ease-out),width var(--dur-reveal) var(--ease-out),margin-left var(--dur-reveal) var(--ease-out)}
 /* Two stages, deliberately. ballOut only hides the ball; the SLOT stays, so during the frozen
    countdown the title still reserves its space and the live ball sits exactly in it. Collapsing
    the slot immediately re-centred "Soccer" while the ball was still parked there, sliding the word
@@ -826,7 +896,7 @@ body .navDrawer .ndLink{padding:var(--sp-8) var(--sp-12);text-align:left}
 .sbTrophy{position:absolute;left:50%;bottom:calc(100% - 10px);transform:translateX(-50%);
  width:clamp(46px,7vw,66px);height:auto;pointer-events:none;z-index:2;display:none;
  filter:drop-shadow(0 6px 14px rgba(15,23,42,.26))}
-body.hmFinal .sbTrophy{display:block;animation:sbTrophyIn .5s var(--ease-out) both}
+body.hmFinal .sbTrophy{display:block;animation:sbTrophyIn var(--dur-enter) var(--ease-out) both}
 @keyframes sbTrophyIn{from{opacity:0;transform:translateX(-50%) translateY(10px) scale(.9)}
  to{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}}
 /* Handed over: lifted out of the board and flown to the winner, then it rides with them.
@@ -897,7 +967,7 @@ body.hmFinal .sbTrophy{display:block;animation:sbTrophyIn .5s var(--ease-out) bo
 /* THE GOAL FLASH. The board lights up in the scorer's colour for a beat, then settles.
    A ring plus a soft bloom rather than a fill, so the score stays readable through it --
    the number is the thing you are looking at when a goal goes in. */
-.hmScore .sbCard{transition:box-shadow .5s var(--ease-out)}
+.hmScore .sbCard{transition:box-shadow var(--dur-enter) var(--ease-out)}
 .hmScore.sbHit .sbCard{
  box-shadow:0 0 0 3px rgb(var(--sbFlash,148,163,184)),
             0 0 44px -4px rgba(var(--sbFlash,148,163,184),.72);
@@ -995,10 +1065,25 @@ body.hmFinal .sbRound{color:#e8b347}
 
 /* Live shared control selectors, rewritten from the portfolio's long selector
    lists (index.html 1284-1456) down to the four that are actually reachable
-   on play.html: .tGo, .hmBtn, .hmScoreEnd, .sbBtn. */
+   on play.html: .tGo, .hmBtn, .hmScoreEnd, .sbBtn.
+
+   THESE FOUR NOW READ --ctl-*, NOT THE RAW --c* RAMP, and that is the fix for
+   the one measured contrast failure in Night. The --c* ramp is NOT rebound by
+   the dark theme on this page -- only builder-theme.css rebinds it, and only
+   for the two builder pages -- so `color:var(--c700)` stayed #525252 at night
+   and the End control inside .battleCount measured 2.50:1 against the
+   #111318 it sits on (pixel-sampled, not composited: 4.5 needed). Every
+   --ctl-* below resolves through --theme-*, so one declaration is now correct
+   in all six time-of-day states instead of one being correct in five.
+   The PRIMARY pair matters as much as the ink. --c950 on --c50 painted a
+   #121212 button on a #0B0C0F page at night: 1.05:1 of ground against ground,
+   i.e. a primary action with no visible edge at all. --ctl-primary-ground
+   inverts with the theme, which is what every other primary on the site
+   already does. Its hover moves to --ctl-primary-ground-hover rather than
+   --c900 so the game bar breathes on the same rung as the rest of the ladder. */
 .tGo,.hmScoreEnd,.hmBtn{
  font-family:var(--sans);font-weight:400;font-size:var(--fs-small);line-height:1;
- color:var(--c700);background:none;
+ color:var(--ctl-ink);background:none;
  border:0;
  border-radius:var(--r-2xs);
  padding:var(--sp-12) var(--sp-16);min-height:44px;box-sizing:border-box;
@@ -1007,7 +1092,7 @@ body.hmFinal .sbRound{color:#e8b347}
  transition:background-color var(--ease-out-dur) var(--ease-out),color var(--ease-out-dur) var(--ease-out);
 }
 .sbBtn{
- font-family:var(--sans);font-size:var(--fs-small);color:var(--c700);
+ font-family:var(--sans);font-size:var(--fs-small);color:var(--ctl-ink);
  background:none;border:0;border-radius:var(--r-2xs);
  width:44px;height:44px;min-height:44px;padding:0;
  display:inline-flex;align-items:center;justify-content:center;
@@ -1017,13 +1102,13 @@ body.hmFinal .sbRound{color:#e8b347}
 :where(.tGo,.hmScoreEnd,.hmBtn){display:inline-flex}
 .tGo:hover,.hmScoreEnd:hover,.hmBtn:hover,.sbBtn:hover,
 .tGo:focus-visible,.hmScoreEnd:focus-visible,.hmBtn:focus-visible,.sbBtn:focus-visible{
- background:var(--c75);color:var(--c950);border-color:transparent;
+ background:var(--ctl-ground-hover);color:var(--ctl-ink-strong);border-color:transparent;
 }
 .tGo:not(.tGoQuiet),.hmBtn.hmBtnPrimary{
- background:var(--c950);color:var(--c50);
+ background:var(--ctl-primary-ground);color:var(--ctl-primary-ink);
 }
 .tGo:not(.tGoQuiet):hover,.hmBtn.hmBtnPrimary:hover{
- background:var(--c900);color:var(--c50);
+ background:var(--ctl-primary-ground-hover);color:var(--ctl-primary-ink);
 }
 .tGo svg,.hmBtn svg{color:currentColor}
 
@@ -1050,12 +1135,12 @@ body.hmFinal .sbRound{color:#e8b347}
 .mhItem{display:grid;grid-template-rows:auto auto;gap:var(--sp-2)}
 .mhX{position:relative;top:auto;right:auto;
  width:100%;height:var(--sp-24);min-width:0;min-height:0;padding:0;
- border:0;background:none;color:var(--c500);
+ border:0;background:none;color:var(--ctl-ink);
  border-radius:var(--r-2xs);corner-shape:var(--corner);
  display:flex;align-items:center;justify-content:center;
  font-family:var(--sans);font-size:var(--fs-micro);line-height:1;cursor:pointer}
 .mhX::before{content:"";position:absolute;left:0;right:0;top:0;
  height:var(--tap-min);border-radius:0}
-.mhX:hover,.mhX:focus-visible{color:var(--c950);border-color:transparent}
+.mhX:hover,.mhX:focus-visible{color:var(--ctl-ink-strong);border-color:transparent}
 @media(pointer:coarse){.mhX{width:100%;height:var(--sp-28);top:auto;right:auto;
  font-size:var(--fs-label)}}

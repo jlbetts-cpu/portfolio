@@ -60,12 +60,61 @@
   padding:var(--sp-24) var(--sp-16-24) 0;border:0;box-shadow:none;
  border-radius:0;corner-shape:initial;background:var(--theme-page,var(--c50))}
  body[data-theme-page="play"] .hero::after{display:none}
- .heroAura{position:absolute;z-index:-1;pointer-events:none;left:50%;top:61%;width:min(960px,88%);height:68%;
-  transform:translate(-50%,-50%);background:radial-gradient(ellipse at center,rgba(148,205,255,.44) 0%,rgba(184,222,255,.24) 38%,rgba(225,241,255,0) 76%);filter:blur(var(--blur-3))}
+ /* THE AURA IS GONE, ELEMENT AND ALL. Jayden: "Subtle gradient behind the head
+    that looks bad -- just remove the gradient completely." It was a single
+    daylight-blue radial (rgba(148,205,255,.44)) that never learned about the
+    other five time-of-day states, and reshaping it into a horizon was the wrong
+    answer to "remove it completely", so both the reshape and the original are
+    out. The element, the two --play-aura declarations, the phone override, the
+    reduced-motion entry and the .playViewportOwned fade all went with it -- a
+    zeroed knob is something the next person revives.
+    --theme-atmosphere therefore has no consumer again. It stays declared,
+    because tools/site-theme-contract.py:163 pins its value and the token names a
+    real property of the dark theme; it is simply unused, which is what it was
+    before this pass began. */
+ /* ---- THE LEAD. The other half of "the h1 falls a bit flat."
+    Measured at 1440x900, the two heroes keep the SAME interval below the copy and
+    a wildly different one above it:
+                          above the h1     copy block     below it, to the floor
+      index.html              261px         261-405              495px
+      play.html (was)          24px          96-241              659px
+    Home's gap from the CTA row to the top of the portrait is 97px; Play's was 95.
+    That interval was already right. What was missing is the space ABOVE -- home
+    gives the line 29% of the hero before it starts, Play gave it 2.9%, which is
+    the difference between a statement placed in a frame and a page title stuck
+    under the nav bar. It is the one thing on this screen that reads as "flat"
+    while every type property is identical.
+    THE LEAD IS PAID FOR OUT OF THE CROWD, AND THAT IS THE WHOLE TRADE. On a
+    screen that must not scroll, air above the line can only come from the figure
+    below it, so --play-hero-lead is subtracted from the portrait's own height
+    budget in the same breath it is added to the copy -- see .hero .stagewrap
+    below, whose `100svh - 270px` term is literally "space reserved for the copy".
+    The crowd's feet line and its clearance to the four cards therefore do not
+    move by a pixel; the head simply gets 18% smaller at 1440 and stops being the
+    only thing on the screen with a voice. It is still 2x the home portrait.
+    THE PHONE TAKES HALF. --sp-56-112 is 112 above 880px and 56 below it, which is
+    the site's own fluid pair rather than a second number invented here; on the
+    phone the portrait is width-bound (88vw) rather than height-bound, so the 56
+    costs the crowd nothing at 390x844 and only bites on genuinely short phones,
+    where a smaller head is the right answer anyway.
+    AND THE LEAD ONLY EXISTS WHERE THE CROWD CAN AFFORD IT. This is a clamp, not
+    a constant, and the 788px is a MEASURED floor rather than a round number: the
+    portrait's width formula bottoms out at its own `clamp(400px, ...)` rung, and
+    once that floor binds the head has nothing left to give back -- so every
+    further pixel of lead pushes the crowd's feet down into the four cards
+    instead of being paid for. Measured at 1024x768 with a flat 112px lead, the
+    clearance above the cards went 35px -> 6px for exactly that reason, and at
+    1280x700 it went 15px -> -13px, i.e. the heads overlapped the cards. Below
+    788px of viewport the lead is 0 and this screen is laid out exactly as it was
+    before this pass; above it the lead grows 1:1 with the spare height until it
+    reaches the rung. Verified at 1440/1280/1024/390 wide and 900/844/768/700
+    tall: the crowd's clearance above the cards does not drop below its
+    pre-change value at any of them. ---- */
+ :root{--play-hero-lead:clamp(0px,calc(100svh - 788px),var(--sp-56-112))}
  .heroCopy{display:contents}
- .heroCopy h1{order:2;margin:0 auto;max-width:min(14.4em,100%);font-size:var(--fs-heroline);
+ .heroCopy h1{order:2;margin:var(--play-hero-lead) auto 0;max-width:min(14.4em,100%);font-size:var(--fs-heroline);
   line-height:1.06;letter-spacing:var(--tr-head);text-align:center;text-wrap:balance}
- .heroCopy h1 span{display:block}
+ .heroCopy h1>.pLine{display:block}
  .heroCtas{order:3;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;
   gap:var(--sp-8);margin-top:var(--sp-16);position:relative;z-index:8}
  .heroCtas>*{opacity:1;transform:none}
@@ -76,15 +125,66 @@
  .heroMood .moodMenu{position:absolute;top:calc(100% + var(--sp-8));left:0;right:auto;z-index:30;
   width:var(--menu-w);max-width:min(var(--menu-w),calc(100vw - (var(--sp-16-40) * 2)))}
  .heroMood .moodIco{width:var(--ico-md)!important;height:var(--ico-md)!important;flex:0 0 var(--ico-md)!important;margin:0!important;transform:none!important}
- .hero .stagewrap{order:4;width:min(clamp(400px,calc((100svh - 270px) * .98),620px),60vw);
+ /* The `100svh - 270px` term is the copy's reservation, so the headline's lead is
+    subtracted here in the same breath it is added above. That is what keeps the
+    crowd's feet on the line they were already on. */
+ .hero .stagewrap{order:4;width:min(clamp(400px,calc((100svh - 312px - var(--play-hero-lead)) * .98),620px),60vw);
   height:auto;aspect-ratio:1/.97;margin:var(--sp-8-16) auto 0;z-index:1}
- body.pHubOn:not(.playBooting) .hero .stagewrap #stageMorph{-webkit-box-reflect:below -13% linear-gradient(to bottom,rgba(0,0,0,.13) 0%,rgba(0,0,0,.045) 16%,transparent 34%)}
- .playHeroReflection{position:absolute;left:50%;top:87%;width:58%;height:21%;transform:translateX(-50%) scaleY(-1);
-  transform-origin:50% 0;background:url(images/neutral.webp) center top/contain no-repeat;opacity:.08;
-  -webkit-mask-image:linear-gradient(#000,transparent 62%);mask-image:linear-gradient(#000,transparent 62%);pointer-events:none}
- @supports(-webkit-box-reflect:below){.playHeroReflection{display:none}}
+ /* THE HEAD'S REFLECTION IS GONE, BOTH IMPLEMENTATIONS. Jayden: "there is a
+    random reflection of the big head on the bottom which looks horrible and not
+    like the rest." It was two elements doing one job -- a -webkit-box-reflect on
+    #stageMorph where the browser supports it, and .playHeroReflection, a scaled
+    -1 copy of images/neutral.webp at opacity .08, where it does not -- and both
+    are deleted rather than dimmed.
+    IT WAS DESCRIBING SOMETHING THAT IS NOT THERE. A reflection is a claim that
+    the subject stands on a polished surface; this head hangs in the middle of an
+    empty field with nothing under it, so the reflection had no floor to be in.
+    The hero lane is removing the home portrait's ground shadow for the same
+    reason, and the site's own rule is that only the heads cast, because they
+    stand on something.
+    THE IN-MATCH REFLECTIONS STAY. .hmRefl on the pitch and in the lobby belongs
+    to heads that genuinely stand on a surface (play.css:428 documents why it is
+    a transform rather than a box-reflect) and is not in scope here. */
  .heroMovieEffectsClip{position:absolute;inset:0;z-index:2;overflow:clip;border-radius:inherit;corner-shape:inherit;pointer-events:none}
  .heroMovieEffectsStage{position:absolute;left:0;top:0;width:0;height:0;transform-origin:50% 50%;pointer-events:none;will-change:transform}
+
+ /* ---- SHOW THE CROWD. Jayden: "in the mood, make sure option on bottom to show heads
+    or uncheck heads". It sits at the FOOT of the mood menu behind a separator because it
+    is not a fifth mood -- the four above it are things that happen to the portrait, and
+    this is a property of the page -- and it is a role="menuitemcheckbox" carrying
+    .ctl--choice, so its tick, its 32px indent and its 600 weight when on are the control
+    library's own checked state rather than a fifth thing that looks like a checkbox.
+    IT DEFAULTS ON. It was going to default off, so a visitor who had never made a head
+    would not meet the whole cast before doing anything -- Jayden: "to save the surprise a
+    little bit" -- and then he resolved it the better way: "keep it on at default, but can
+    we only show one coloured egghead, not all of them." Off-by-default and a page that is
+    empty on arrival were the same problem wearing two hats; one placeholder head solves it
+    without a hidden default, so the control is simply a control and its resting state is
+    the state the page is in.
+    THE LABEL IS "THE CROWD" BECAUSE THAT IS WHAT THE PAGE ALREADY CALLS THEM -- the "Add
+    your head" card ends "It comes back and joins the crowd." A visitor who has never made
+    a head can read this and know what turning it off would take away.
+    IT ONLY REACHES THE LOBBY. The selector excludes every game state, because a head you
+    cannot see is still a head the ball can hit; hiding the cast mid-match would be a
+    rendering lie about the simulation. It is opacity, not display, for the same reason --
+    the engine keeps measuring and stepping them, so turning the crowd back on returns you
+    to a scene that carried on without you rather than to a re-seeded one.
+    THE PREFERENCE PERSISTS UNDER ITS OWN KEY. jbPlayCrowd holds "0" or "1" and nothing
+    else; it is deliberately not near the roster's key and holds no head data, so nothing
+    reading it could mistake it for a saved head. ---- */
+ /* !important, AND IT IS EARNED. play-engine.js writes `opacity` as an INLINE style on
+    every companion root (measured: `opacity: 1; transition: opacity .5s steps(4)`) because
+    that is the channel its own dim-during-a-game uses. A stylesheet rule cannot beat an
+    inline declaration, so without this the checkbox flipped the body class, flipped
+    aria-checked, wrote the preference and changed nothing on screen. The engine's own
+    stepped half-second transition then carries the fade, which is why no transition is
+    declared here -- the crowd leaves in the engine's language, not in a second one.
+    THE REFLECTION AND THE SHADOW GO WITH THEM. Measured, a head's .hmRefl, .hmShadow and
+    .hmHp are SIBLINGS of its root inside .hero rather than children of it, so hiding the
+    root alone left a row of disembodied reflections on the floor. Jayden's own portrait is
+    unaffected: its shadow is #fsh/.floorshadow inside .stagewrap, not one of these. */
+ body.hmCrowdOff:not(.hmBattle):not(.hmSoccer):not(.hmRace):not(.hmTour) .hero>:is([data-hm-lobby-slot],.hmRefl,.hmShadow,.hmHp){
+  opacity:0!important;pointer-events:none!important}
 
  body[data-theme-page="play"] .hero{overflow:visible}
 
@@ -94,18 +194,30 @@
  body.playViewportOwned .playViewport>.wrap{width:100%;max-width:none;padding:0;display:flex}
  body.playViewportOwned .hero{display:block;width:100vw;height:60vh;min-height:0;margin:auto;padding:0;overflow:visible;border-radius:0;box-shadow:none;background:transparent}
  body.playViewportOwned .hero::after{display:none}
- body.playViewportOwned .heroCopy,
+ /* .heroCopy is NOT in this list, and it was, and that was the bug. It computes
+    display:contents on this page, which generates NO BOX -- so opacity, and every
+    other property needing a rendering context, is ignored outright. The rule read
+    correctly, the CSSOM held it, and the headline and the CTAs rendered at full
+    strength through it for the whole match. Its CHILDREN are hidden instead,
+    because they are the things that actually paint. Reported as: "the header the
+    h1 and buttons still appear in the games". */
+ body.playViewportOwned .heroCopy>*,
  body.playViewportOwned .hero>.stagewrap,
- body.playViewportOwned .heroAura,
  body.playViewportOwned .heroMovieEffectsClip{opacity:0;pointer-events:none}
  body.playViewportOwned .hero>.stagewrap{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);margin:0}
  body.playViewportOwned .jbStick{visibility:hidden;pointer-events:none}
  body.pTeamOn .hero{height:52vh;margin:6vh auto auto}
- @media(max-width:880px){.hero{min-height:auto;padding-bottom:var(--sp-24)}.hero .stagewrap{width:min(64vw,calc((100svh - 280px) * .86),500px)}}
- @media(max-width:760px){.hero,body.pHubOn.hmFull .hero{height:auto;min-height:calc(100svh - var(--bar-h));padding:var(--sp-20) var(--sp-12)}.heroCopy h1{max-width:12.5em}.heroCtas{margin-top:var(--sp-14)}.heroMood .moodMenu{left:auto;right:0;width:min(var(--menu-w),calc(100vw - var(--sp-48)))}.hero .stagewrap{width:min(88vw,calc((100svh - 300px) * .86),430px);margin-top:var(--sp-8)}.heroAura{top:62%;width:124%;height:64%}}
- @media(max-width:360px){.hero{padding-inline:var(--sp-8)}.heroCtas{gap:var(--sp-8)}.hero .stagewrap{width:min(90vw,calc((100svh - 318px) * .84),400px)}}
- @media(max-height:720px) and (min-width:761px){.hero{padding-top:var(--sp-16)}.heroCopy h1{font-size:clamp(30px,3.2vw,36px)}.heroCtas{margin-top:var(--sp-12)}.hero .stagewrap{width:min(470px,46vw);margin-top:var(--sp-6)}}
- @media(prefers-reduced-motion:reduce){.heroAura,.heroMood .moodMenu,.heroMood .moodCar,.heroCtas>*,.playHeroReflection{transition:none!important;animation:none!important}}
+ @media(max-width:880px){.hero{min-height:auto;padding-bottom:var(--sp-24)}.hero .stagewrap{width:min(64vw,calc((100svh - 322px - var(--play-hero-lead)) * .86),500px)}}
+ @media(max-width:760px){.hero,body.pHubOn.hmFull .hero{height:auto;min-height:calc(100svh - var(--bar-h));padding:var(--sp-20) var(--sp-12)}.heroCopy h1{max-width:12.5em}.heroCtas{margin-top:var(--sp-14)}.heroMood .moodMenu{left:auto;right:0;width:min(var(--menu-w),calc(100vw - var(--sp-48)))}.hero .stagewrap{width:min(88vw,calc((100svh - 334px - var(--play-hero-lead)) * .86),430px);margin-top:var(--sp-8)}}
+ @media(max-width:360px){.hero{padding-inline:var(--sp-8)}.heroCtas{gap:var(--sp-8)}.hero .stagewrap{width:min(90vw,calc((100svh - 352px - var(--play-hero-lead)) * .84),400px)}}
+ /* The one breakpoint whose portrait is sized by a LITERAL rather than by the svh
+    budget, so it cannot absorb the mood clause's extra line on its own. Measured at
+    1280x700: the third line put the crowd 31px THROUGH the cards where it had 15px of
+    clearance before, and 470 -> 420 puts it back with room to spare. --play-hero-lead
+    is already 0 here (the clamp bottoms out below 788px of viewport), so this is
+    paying for the line and nothing else. */
+ @media(max-height:720px) and (min-width:761px){.hero{padding-top:var(--sp-16)}.heroCopy h1{font-size:clamp(30px,3.2vw,36px)}.heroCtas{margin-top:var(--sp-12)}.hero .stagewrap{width:min(420px,42vw);margin-top:var(--sp-6)}}
+ @media(prefers-reduced-motion:reduce){.heroMood .moodMenu,.heroMood .moodCar,.heroCtas>*{transition:none!important;animation:none!important}}
 
  /* ==========================================================================
     THE PLAY HUB. Everything below is new for the games-menu pass and lives in
@@ -252,7 +364,141 @@
   font-family:var(--sans);font-weight:600;font-size:var(--fs-heroline);
   line-height:var(--lh-tight);letter-spacing:var(--tr-head);color:var(--c950);
   text-wrap:balance}
- .pLede span{display:block}
+ .pLede>.pLine{display:block}
+
+ /* ══ THE LIVE WORD AND ITS GHOST ════════════════════════════════════════════════
+    The rig is play-games.js; this is what it looks like. Every value here either
+    resolves through a token or is quoted from the home page's original rules, which
+    are still in index.html (lines 115-136, 285-287) and were never deleted -- only
+    orphaned when commit e5bc0dc removed the clause that hosted them.
+
+    THE WORD IS TYPOGRAPHICALLY INVISIBLE. It inherits weight, size and tracking from
+    the h1 and sits on the baseline with the same .14em bottom pad the original used,
+    so the sentence does not visibly contain a widget. The ONLY things that mark it
+    are the cursor and the glyph standing where its full stop should be -- which is
+    the same artwork the four menu items wear, per the hero spec's rule that these
+    icons may not be substituted.
+    THE GLYPH IS WHY .cyc-ch IS inline-block AND NOT block. play.html's h1 used to
+    say `.heroCopy h1 span{display:block}` to stack its two sentences; that selector
+    would have caught every character span in here and set the headline one letter
+    per line. It is now scoped to > .pLine, which is the only span that wanted it.
+    ══════════════════════════════════════════════════════════════════════════════ */
+ .cycw{display:inline-block;position:relative;vertical-align:baseline;white-space:nowrap;
+  line-height:var(--lh-tight);padding-bottom:.14em;font:inherit;letter-spacing:inherit;
+  cursor:grab;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+ .cycw.grab{cursor:grabbing}
+ .cyc-ch{display:inline-block;white-space:pre}
+ /* .in is the ENTRANCE ONLY and play-games.js strips it on animationend: a span left
+    carrying an animation keeps a compositing layer forever, and on Safari that layer is
+    what stops the ink texture painting. Same reason the original did it. */
+ .cyc-ch.in{will-change:transform,opacity,filter;animation:cycIn var(--dur-reveal) var(--ease-out) both}
+ .cycw.out .cyc-ch{will-change:transform,opacity,filter;animation:cycOut var(--dur-state-out) var(--ease-out) both}
+ @keyframes cycIn{from{opacity:0;filter:blur(6px);transform:translateY(.4em)}to{opacity:1;filter:blur(0);transform:translateY(0)}}
+ @keyframes cycOut{from{opacity:1;filter:blur(0);transform:translateY(0)}to{opacity:0;filter:blur(5px);transform:translateY(-.3em)}}
+
+ /* THE TUG. Nine pixels sideways, twice, and then it never asks again -- see the budget
+    in play-games.js. It is the only affordance the gesture gets, because the headline
+    spec is explicit that a hint line under the h1 is not allowed to pay for this. */
+
+ /* THE GHOST. position:fixed on <body> with translate(-50%,-50%), which is what lets the
+    rig write left/top straight from clientX/clientY and have the word centred under the
+    finger. Its type is copied off the real word at pickup rather than named here, so it
+    cannot drift out of step at a breakpoint the way the original's var(--fs-h1) did
+    against a headline running var(--fs-heroline). */
+ .moodDrag{position:fixed;z-index:70;pointer-events:none;
+  transform:translate(-50%,-50%);transform-origin:50% 18%;
+  display:inline-flex;align-items:baseline;gap:.04em;white-space:nowrap;
+  font-family:var(--sans);text-transform:none;color:var(--theme-ink);
+  will-change:left,top}
+ /* ══ THE WORD WOBBLES WHILE YOU ARE HOLDING IT ══════════════════════════════════
+    Jayden: "add the animation back when you drag the letter -- they do a little wobble."
+
+    THE MOTION IS NOT IN THIS FILE, AND THAT IS THE POINT. What was here before this pass
+    was a `@keyframes mdWobble ... infinite` -- a canned two-second-a-minute loop that ran
+    identically whether you flung the word across the viewport or held it dead still. That
+    is a decoration wearing a physics costume, and it is not what was asked for: the thing
+    Jayden wants back is hero-engine.js's wobbleDrag() (line 755), whose whole substance is
+    that it reads the cursor. A CSS keyframe cannot read the cursor, so the wobble is
+    written in play-games.js against the same 8fps clock and the same smoothed-velocity
+    lean the original used. The full derivation lives beside that code.
+    (The old rule was also inert in a second way worth recording so it is not rebuilt: its
+    stagger was `calc(var(--i) * ...)` and nothing ever set --i on a .mdgl, so every glyph
+    ran at delay 0 and the word tilted as ONE rigid sticker -- the exact failure the
+    per-character span wrapping exists to avoid.)
+
+    WHAT THIS FILE STILL OWNS is the two things that must be true before the rig writes a
+    transform. inline-block, because a transform on an inline box is ignored -- this is the
+    same reason .cyc-ch is inline-block, and it is not tidiness. And the promotion hint,
+    which is safe to leave standing here precisely because .mdgl only ever exists inside a
+    ghost that is created on pointerdown and removed on pointerup: the layer cannot outlive
+    the gesture, so unlike .cyc-ch (which strips .in on animationend to drop its layer)
+    there is nothing to clean up.
+
+    IT NEVER FIGHTS THE POINTER. The ghost's position is written to left/top and its own
+    centring transform is on .moodDrag; the wobble is on the CHILD glyphs, so it composes
+    underneath the position the pointer dictates and can never contest it. Transform only,
+    no layout read, nothing for the idle contract to catch. */
+    THE PIVOT IS NEAR THE TOP OF THE GLYPH, NOT ITS CENTRE, and that is the difference
+    between a letter spinning and a letter HANGING. The word is held at the cursor, so the
+    letters are suspended from it; a pendulum swings about its anchor. 12% down the glyph
+    box is roughly the cap line, which is where a letter would be pinched. .moodDrag itself
+    uses 50% 18% for the same reason. */
+ .mdgl{display:inline-block;white-space:pre;will-change:transform;transform-origin:50% 12%}
+
+ /* The settle borrows the same pivot so the unwind continues the swing rather than
+    starting a new one. The transition itself is written inline by settleGlyphs() -- it has
+    to be, because the per-letter delay is measured from wherever you grabbed. */
+ .cycw.settling .cyc-ch{transform-origin:50% 12%}
+
+ /* REDUCED MOTION GETS A DISSOLVE, NOT A DEAD STOP. The old rule was `animation:none`,
+    which is the substitution Apple's accessibility guidance specifically tells you not to
+    make: Reduce Motion asks for a cross-fade in place of movement, not for the change to
+    stop happening. Paired with play-games.js, which keeps the 8.5s cycle running under
+    reduce, the word still announces all four moods -- it just never travels.
+    WHAT IS ACTUALLY REMOVED is every vestibular trigger: no translateY, no blur, no
+    per-character stagger (the rig writes animation-delay inline, and an author !important
+    is the one thing that outranks an inline declaration), and no line settle. The clause's
+    new length lands in the single frame between the two fades, while the slot is empty.
+    THE `both` FILL IS WHAT MAKES THE END STATE CORRECT: .in holds opacity:1 after it runs
+    and the rig strips the class on animationend, so a dissolve that is interrupted -- by a
+    drag, by a tab going to the background -- still resolves to a fully visible word rather
+    than to whatever opacity it was passing through. */
+ @media(prefers-reduced-motion:reduce){
+  .cyc-ch.in{animation:cycDissolveIn var(--dur-state) linear both!important;animation-delay:0s!important}
+  .cycw.out .cyc-ch{animation:cycDissolveOut var(--dur-state) linear both!important;animation-delay:0s!important}
+  @keyframes cycDissolveIn{from{opacity:0}to{opacity:1}}
+  @keyframes cycDissolveOut{from{opacity:1}to{opacity:0}}
+ }
+
+ /* ══ THE HEADLINE ARRIVES, AND SO DO THE BUTTONS ════════════════════════════════
+    Jayden: "Make the text actually have that animation, and the buttons."
+    The static characters take the same cycIn the live word takes, on a per-character
+    stagger written by the rig as --i, and the CTA row follows them in. Two rules, not
+    a second animation system: the buttons ride the same keyframes and the same
+    --ease-out, one rung slower (--dur-enter against --dur-reveal) because a 44px
+    control settling is a bigger object than a letter landing.
+    IT WAITS FOR data-play-ready. .playBooting hides the whole viewport while the heads
+    decode, and visibility:hidden does not pause an animation -- without the gate the
+    entrance would play to nobody and the page would appear already finished. The rig
+    adds .isIn when the arena is released. */
+ .pLede .wd{display:inline-block;white-space:nowrap}
+ .pLede .ch{display:inline-block;white-space:pre}
+ /* NO `opacity:0` IN THE RULE, and that is deliberate rather than an omission.
+    `animation-fill-mode:both` already holds the keyframe's 0% state through the delay,
+    so the letters are hidden before their turn WITHOUT the base rule hiding them. The
+    difference only shows up when animations do not run -- a print stylesheet, a
+    prefers-reduced-motion path, an extension, or a test harness that neutralises
+    motion before measuring -- and there the element keeps its natural opacity:1 and
+    the headline is simply THERE. A base `opacity:0` waiting for an animation to undo
+    it is a headline that vanishes the moment the animation does. Measured: with
+    `*{animation:none}` injected, the old rule left the h1 blank. */
+ .pLede.isIn .ch{animation:cycIn var(--dur-reveal) var(--ease-out) both;
+  animation-delay:calc(var(--i,0) * 16ms)}
+ .heroCtas.isIn>*{animation:cycIn var(--dur-enter) var(--ease-out) both;
+  animation-delay:calc(var(--i,0) * 16ms)}
+ @media(prefers-reduced-motion:reduce){
+  .pLede.isIn .ch,.heroCtas.isIn>*{animation:none!important;opacity:1!important}
+ }
 
  /* ---- THE FOUR DOORS. The page's only chrome now: the planet, the heads on it, and these.
     Paper, like the rest of the site -- --c0 on a --c50 ground with a rim, the same "separates
@@ -273,10 +519,24 @@
     (viewport - 1200) / 2 regardless of what the gutter is -- 120 at 1440, 40 at 1280, both
     exact. The gutter only takes over once the viewport drops below 1200 + 2 gutters, which is
     why the phone value is the other half of this fix (--play-gutter, play.css). */
+ /* TWO ON TOP, TWO ON THE BOTTOM. Jayden: "I think making the menu for the games -- it
+    should be like two on the top, two on the bottom, so we can make them bigger."
+    The row stays on the site column -- max-width is unchanged, so the grid still measures
+    120 / 40 / 24 from the viewport edge at 1440 / 1280 / 390 -- and the four cards simply
+    split it two ways instead of four. Measured at 1440 that takes each card from 291px to
+    594px wide, which is what buys the extra size; the block goes 113px tall to 238px, and
+    since .pHub already begins at exactly 100svh (the hero owns the first screen and the
+    cards have sat below the fold since the shared footer landed) the extra 125px is spent
+    on a section that was already below the fold. Nothing above the fold moves and the
+    crowd's clearance is untouched.
+    THE CARDS GROW BY GETTING TALLER TYPE ROOM, NOT BY GETTING PADDING. The description
+    was wrapping to two lines inside a 291px card and now sits comfortably on one or two
+    inside 594; grid-auto-rows:1fr still holds all four to a single height, which was the
+    original reason that property is there. */
  .pCards{pointer-events:auto;width:100%;max-width:calc(var(--page-max) - var(--sp-40) * 2);margin:0 auto;
-  display:grid;grid-template-columns:repeat(4,1fr);grid-auto-rows:1fr;gap:var(--sp-12)}
+  display:grid;grid-template-columns:repeat(2,1fr);grid-auto-rows:1fr;gap:var(--sp-12)}
  .pCard{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:var(--sp-6);
-  min-height:var(--tap-min);padding:var(--sp-14) var(--sp-16) var(--sp-16);
+  min-height:var(--tap-min);padding:var(--sp-16) var(--sp-20) var(--sp-20);
   border:0;border-radius:var(--r-md);background:var(--c0);box-shadow:var(--rim-1);
   font-family:var(--sans);color:var(--c950);text-align:left;text-decoration:none;cursor:pointer;
   /* one closed transition set, hover-OUT here and the shorter hover-IN on :hover -- the
@@ -622,7 +882,7 @@
         Socials in HIS order: LinkedIn, Instagram, email. -->
    <span class="jbDisc jbContact">
     <a class="jbDiscGo" data-nav-item="contact" aria-haspopup="true" aria-expanded="false" aria-controls="jbContactMenu" href="index.html#contact" aria-label="Contact"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10z"/><path d="M3 7l9 6l9 -6"/></svg><span class="jbLbl">Contact</span></a>
-    <div class="jbDiscMenu" id="jbContactMenu"><a class="jbDiscTouch" href="index.html#contact"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10z"/><path d="M3 7l9 6l9 -6"/></svg>Contact</a><div class="jbDiscSep jbDiscTouch" aria-hidden="true"></div><a href="https://www.linkedin.com/in/jaydenbetts" target="_blank" rel="noopener noreferrer"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 11l0 5"/><path d="M8 8l0 .01"/><path d="M12 16l0 -5"/><path d="M16 16v-3a2 2 0 0 0 -4 0"/><path d="M3 7a4 4 0 0 1 4 -4h10a4 4 0 0 1 4 4v10a4 4 0 0 1 -4 4h-10a4 4 0 0 1 -4 -4z"/></svg>LinkedIn</a><a href="https://www.instagram.com/jaydenleebetts" target="_blank" rel="noopener noreferrer"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4m0 4a4 4 0 0 1 4 -4h8a4 4 0 0 1 4 4v8a4 4 0 0 1 -4 4h-8a4 4 0 0 1 -4 -4z"/><path d="M12 12m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"/><path d="M16.5 7.5l0 .01"/></svg>Instagram</a><a href="mailto:jaydenlbetts@gmail.com"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10z"/><path d="M3 7l9 6l9 -6"/></svg>Email</a></div>
+    <div class="jbDiscMenu" id="jbContactMenu"><a class="jbDiscTouch ctl ctl--quiet ctl--row" href="index.html#contact"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10z"/><path d="M3 7l9 6l9 -6"/></svg>Contact</a><div class="jbDiscSep jbDiscTouch" aria-hidden="true"></div><a class="ctl ctl--quiet ctl--row" href="https://www.linkedin.com/in/jaydenbetts" target="_blank" rel="noopener noreferrer"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 11l0 5"/><path d="M8 8l0 .01"/><path d="M12 16l0 -5"/><path d="M16 16v-3a2 2 0 0 0 -4 0"/><path d="M3 7a4 4 0 0 1 4 -4h10a4 4 0 0 1 4 4v10a4 4 0 0 1 -4 4h-10a4 4 0 0 1 -4 -4z"/></svg>LinkedIn</a><a class="ctl ctl--quiet ctl--row" href="https://www.instagram.com/jaydenleebetts" target="_blank" rel="noopener noreferrer"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4m0 4a4 4 0 0 1 4 -4h8a4 4 0 0 1 4 4v8a4 4 0 0 1 -4 4h-8a4 4 0 0 1 -4 -4z"/><path d="M12 12m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"/><path d="M16.5 7.5l0 .01"/></svg>Instagram</a><a class="ctl ctl--quiet ctl--row" href="mailto:jaydenlbetts@gmail.com"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10z"/><path d="M3 7l9 6l9 -6"/></svg>Email</a></div>
    </span>
   </span>
  </nav>
@@ -634,19 +894,17 @@
 <div class="playViewport">
  <div class="wrap">
   <main class="hero" id="playArena" tabindex="-1">
-   <div class="heroAura" aria-hidden="true"></div>
    <div class="heroCopy">
-    <h1 class="pLede"><span>I made a few games for fun.</span> <span>Still building them.</span></h1>
+    <h1 class="pLede" id="playLede"><span class="pLine">Crafting digital experiences,</span> <span class="pLine pMoodLine">made with <span class="pMoodSlot"></span></span></h1>
     <div class="heroCtas">
      <a class="workCta ctl ctl--primary" id="workBtn" href="#games"><span>View games</span></a>
-     <div class="heroMood moodbar" id="moodbar"><button class="moodBtn ctl ctl--secondary" id="moodBtn" type="button" aria-label="Choose a mood for Jayden’s portrait" aria-haspopup="menu" aria-expanded="false" aria-controls="moodMenu"><span class="moodLbl">Choose a mood</span><svg class="moodCar" viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4"/></svg></button><div class="moodMenu ctl-menu" id="moodMenu" role="menu" aria-label="Choose a mood for Jayden’s portrait"><button class="moodItem ctl ctl--quiet ctl--row" type="button" role="menuitem" data-mood="empathy"><span class="moodIco camDot" aria-hidden="true"></span>Empathy</button><button class="moodItem ctl ctl--quiet ctl--row" type="button" role="menuitem" data-mood="hunger"><span class="moodIco cookieDot" aria-hidden="true"></span>Hunger</button><button class="moodItem ctl ctl--quiet ctl--row" type="button" role="menuitem" data-mood="delight"><span class="moodIco discoDot" aria-hidden="true"></span>Delight</button><button class="moodItem ctl ctl--quiet ctl--row" type="button" role="menuitem" data-mood="love"><span class="moodIco heartDot" aria-hidden="true"></span>Love</button></div></div>
+     <div class="heroMood moodbar" id="moodbar"><button class="moodBtn ctl ctl--secondary" id="moodBtn" type="button" aria-label="Choose a mood for Jayden’s portrait" aria-haspopup="menu" aria-expanded="false" aria-controls="moodMenu"><span class="moodLbl">Choose a mood</span><svg class="moodCar" viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4"/></svg></button><div class="moodMenu ctl-menu" id="moodMenu" role="menu" aria-label="Choose a mood for Jayden’s portrait"><button class="moodItem ctl ctl--quiet ctl--row" type="button" role="menuitem" data-mood="empathy"><span class="moodIco camDot" aria-hidden="true"></span>Empathy</button><button class="moodItem ctl ctl--quiet ctl--row" type="button" role="menuitem" data-mood="hunger"><span class="moodIco cookieDot" aria-hidden="true"></span>Hunger</button><button class="moodItem ctl ctl--quiet ctl--row" type="button" role="menuitem" data-mood="delight"><span class="moodIco discoDot" aria-hidden="true"></span>Delight</button><button class="moodItem ctl ctl--quiet ctl--row" type="button" role="menuitem" data-mood="love"><span class="moodIco heartDot" aria-hidden="true"></span>Love</button><div class="moodSep" role="separator"></div><button class="moodCrowd ctl ctl--quiet ctl--row ctl--choice" id="moodCrowd" type="button" role="menuitemcheckbox" aria-checked="true">Show the crowd</button></div></div>
     </div>
    </div>
    <div class="stagewrap">
     <div class="queueDots" id="qdots" role="status" aria-live="polite"><span class="qsr"></span><i></i><i></i><i></i></div>
-    <div id="stageMorph"><div class="floorshadow" id="fsh"></div><div class="stage" id="stage"><img class="face" id="face" src="images/neutral.webp" alt="Jayden" draggable="false"><img class="tongue" id="tongue" src="images/tongue.webp" alt="" aria-hidden="true">
+    <div id="stageMorph"><div class="floorshadow" id="fsh"></div><div class="stage" id="stage"><img class="face" id="face" src="images/neutral.webp" alt="Jayden" draggable="false" data-head-bounds="0.1933 0.0616 0.8484 0.9234"><img class="tongue" id="tongue" src="images/tongue.webp" alt="" aria-hidden="true">
 <svg class="glasses" id="glasses" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><defs><pattern id="glCard" patternUnits="userSpaceOnUse" width="100" height="100"><image href="images/glass_frame_tex.webp" x="0" y="0" width="100" height="100" preserveAspectRatio="xMidYMid slice"/></pattern><linearGradient id="glSheen" x1="0" y1="0" x2="0.62" y2="1"><stop offset="0" stop-color="#fff" stop-opacity="0.5"/><stop offset="0.4" stop-color="#fff" stop-opacity="0.06"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient><mask id="glMask" maskUnits="userSpaceOnUse" x="0" y="0" width="100" height="100"><rect x="28" y="45.3" width="44" height="13.2" rx="2.4" fill="#fff"/><polygon points="28,47.2 26,48 26,50.4 28,51.2" fill="#fff"/><polygon points="72,47.2 74,48 74,50.4 72,51.2" fill="#fff"/><rect x="32.5" y="47.3" width="13" height="9.2" rx="1.8" fill="#000"/><rect x="54.5" y="47.3" width="13" height="9.2" rx="1.8" fill="#000"/><path d="M46.7 58.6 Q50 54.3 53.3 58.6 Z" fill="#000"/></mask></defs><rect class="gl-red" x="32.5" y="47.3" width="13" height="9.2" rx="1.8"/><rect class="gl-cyan" x="54.5" y="47.3" width="13" height="9.2" rx="1.8"/><rect class="gl-plast" x="32.5" y="47.3" width="13" height="9.2" rx="1.8" fill="url(#glSheen)"/><rect class="gl-plast" x="54.5" y="47.3" width="13" height="9.2" rx="1.8" fill="url(#glSheen)"/><rect x="0" y="0" width="100" height="100" fill="url(#glCard)" mask="url(#glMask)"/></svg></div></div>
-    <div class="playHeroReflection" aria-hidden="true"></div>
    </div>
    <div class="heroMovieEffectsClip" id="heroMovieEffectsClip" aria-hidden="true"><div class="heroMovieEffectsStage" id="heroMovieEffectsStage"></div></div>
   </main>

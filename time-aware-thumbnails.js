@@ -123,28 +123,59 @@
    }
   }
 
+  /* HAS THE BROWSER ACTUALLY FETCHED THIS ONE YET?
+     This is the whole question, and it is answerable without touching layout.
+     An <img loading="lazy"> that is still below the fold has not been fetched,
+     so complete/naturalWidth are false -- and an image the visitor is looking
+     at has been, so they are true. That single flag separates the two cases
+     this controller has to treat differently, with no getBoundingClientRect
+     and no IntersectionObserver. */
+  function alreadyFetched(image){
+   return !!(image.complete&&image.naturalWidth>0);
+  }
+
+  /* WHY THIS NO LONGER PRELOADS EVERYTHING.
+     It used to hand all six covers to `new Image()` and wait on Promise.all
+     before committing any of them. Three things were wrong with that.
+     1. A detached Image() is invisible to loading="lazy". Seven of the eight
+        covers on the home page carry that attribute, and this defeated every
+        one of them -- 1.14 MB at DPR 1 and 3.16 MB at DPR 2 pulled on first
+        paint for artwork most visitors never scroll to. Lazy hints a script
+        overrides are worse than none, because the markup looks optimised.
+     2. Promise.all is an AND: the slowest of six decodes held the other five
+        back, and one rejection abandoned the entire state change -- into an
+        empty handler, so nothing retried and nothing said why.
+     3. It re-ran in full on every theme flip and every time-of-day boundary.
+     Each project is now independent, and each image gets the treatment its
+     own markup asked for: one already on screen is decoded before the swap,
+     so the picture never flickers mid-change; one the browser has not fetched
+     is simply pointed at the new source, and stays as lazy as it was
+     declared. Nothing is downloaded on behalf of a cover nobody has scrolled
+     to yet. */
   function request(state){
    if(destroyed)return;
    var next=normalizeState(state);
    var id=++requestId;
    requestedState=next;
-   var descriptors={};
-   var jobs=[];
    PROJECTS.forEach(function(project){
-    if(!groups[project].length)return;
+    var images=groups[project];
+    if(!images.length)return;
     var descriptor=sourceFor(project,next);
-    descriptors[project]=descriptor;
-    jobs.push(preload(descriptor));
-   });
-   Promise.all(jobs).then(function(){
-    if(destroyed||id!==requestId||next!==requestedState)return;
-    PROJECTS.forEach(function(project){
-     var descriptor=descriptors[project];
-     if(!descriptor)return;
-     groups[project].forEach(function(image){commit(image,descriptor);});
-    });
-   },function(){
-    /* Keep the previously decoded image visible. A later state publication can retry. */
+    var visible=[],deferred=[],i;
+    for(i=0;i<images.length;i++)(alreadyFetched(images[i])?visible:deferred).push(images[i]);
+    /* Not yet fetched: hand it the new source and let loading="lazy" decide
+       when, or whether, it is ever worth a request. */
+    for(i=0;i<deferred.length;i++)commit(deferred[i],descriptor);
+    if(!visible.length)return;
+    /* On screen: decode first so the swap is invisible. A failure here leaves
+       the cover that is currently up exactly where it is, which is the right
+       answer -- committing a source that would not decode replaces a good
+       picture with a broken one. It is now scoped to this project, so a single
+       missing variant can no longer take the other five down with it. */
+    preload(descriptor).then(function(){
+     if(destroyed||id!==requestId||next!==requestedState)return;
+     for(var j=0;j<visible.length;j++)commit(visible[j],descriptor);
+    },function(){});
    });
   }
 

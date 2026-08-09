@@ -4,6 +4,17 @@
  --theme-ink:#111214;--theme-muted:#686b73;--theme-rim:rgba(17,18,20,.12);
  --theme-material:rgba(255,255,255,.86);--theme-focus:#111214;
  --theme-atmosphere:transparent;--theme-duration:400ms;
+ /* THESE TWO WERE DEFINED IN DARK ONLY, and that is a half-token rather than a
+    dark-mode decision. --theme-rim-strong had every light consumer running on
+    the rgba() fallback hand-written into tokens.css:571, and --theme-ink-soft
+    has no fallback anywhere -- a light-mode rule naming it computes to nothing
+    and the property is dropped. controls.css:134 documents the first case and
+    routes around it with color-mix rather than using the token, which is the
+    shape of a token nobody trusts. Both values are the light ramp's existing
+    ones, so nothing on screen moves: #3f424a is the softened prose ink the
+    case studies already reach for through --c700's neighbourhood, and .20 is
+    the alpha tokens.css was already falling back to. */
+ --theme-ink-soft:#3F424A;--theme-rim-strong:rgba(17,18,20,.20);
  /* The field caret. It lives here rather than in controls.css because its ink is
     a theme decision, and here rather than on the two builder pages because both
     of them had drawn their own copy of the same chevron. */
@@ -237,12 +248,47 @@ html{scrollbar-color:var(--theme-muted) var(--theme-page)}
 :root[data-theme="dark"] body[data-theme-page="play"] .pCard:hover{
  box-shadow:inset 0 0 0 var(--hair-w) var(--theme-rim-strong);
 }
+/* THE VIOLET ON #pcHead IS GONE; THE EMPHASIS IT WAS BURIED IN IS NOT.
+   Jayden: "some aren't legible, others are like gradient on text and buttons
+   for no reason." Measured at 1440 in Night, this was the "for no reason":
+   three of the four hub cards were --theme-surface (#111318) with a
+   rgba(255,255,255,.14) hairline, and the first one was --theme-elevated
+   (#171A21) with a rgba(217,215,255,.46) LAVENDER hairline, a lavender title
+   (#D9D7FF where its three siblings are #F4F5F7) and a 60px-blurred violet
+   radial bleeding 22px out of its bottom edge.
+   Three separate things were wrong with it and only one is contrast:
+     1. IT EXISTS ONLY IN DARK. Light has no #pcHead rule anywhere in the repo,
+        so the four cards are identical in five of the six time-of-day states
+        and one card is decorated in the sixth. A component that changes
+        MEANING with the theme is the definition of a theme that was not
+        audited -- a lavender-titled card among three neutral ones reads as
+        selected or current, and none of them is.
+     2. A BLURRED SHADOW IS A GRADIENT, and this one is on a control. The card
+        is an <a> to headmaker.html; a fill that fades out underneath it is the
+        thing the control system bans on interactive grounds, and it is what
+        made a button look like it had a gradient on it.
+     3. CHROME NEVER CASTS. `0 22px 60px -48px` is a drop shadow on a card that
+        stands on nothing, which is the site's own no-cast-shadows rule broken
+        by the one card the rule was written about.
+   WHAT SURVIVES IS THE ONE CHANNEL THAT WAS ASSERTED. tools/hm-check.py:40
+   pins `#pcHead { background-color: var(--theme-elevated) }` under the label
+   "Add-your-head emphasis", so the step up the depth ladder is a decision
+   somebody made on purpose and it stays. The rim, the glow and the title ink
+   were not pinned by anything, and they are three more channels saying what
+   the ground already says -- the site's rule for emphasis is one channel, and
+   for chrome it is never a cast one. The card keeps .pCard's own
+   --theme-rim hairline by simply not declaring a box-shadow of its own.
+   MEASURE THIS BEFORE TRUSTING IT, THOUGH, and the number is the reason this
+   note is long: --theme-elevated (#171A21) against --theme-surface (#111318)
+   is 1.09:1. The emphasis the contract names was being carried almost entirely
+   by the violet, not by the ground it pins -- so with the violet gone, card one
+   is very nearly identical to its three siblings, which is what light has
+   always looked like. If "Add your head" is genuinely meant to be the loud
+   door, that wants deciding for all six states in play.html beside the other
+   three cards, not restoring here. Flagged, not silently re-styled. */
 :root[data-theme="dark"] body[data-theme-page="play"] #pcHead{
  background-color:var(--theme-elevated);
- box-shadow:inset 0 0 0 var(--hair-w) rgba(217,215,255,.46),
-            0 22px 60px -48px rgba(103,99,228,.72);
 }
-:root[data-theme="dark"] body[data-theme-page="play"] #pcHead .pCardT{color:var(--theme-focus)}
 :root[data-theme="dark"] body[data-theme-page="play"] :is(.pCard .gIco,.pCardD){color:var(--theme-muted)}
 :root[data-theme="dark"] body[data-theme-page="play"] .pCard:hover :is(.gIco,.pCardD){color:var(--theme-ink)}
 :root[data-theme="dark"] body[data-theme-page="play"] .pCardPrev{
@@ -344,11 +390,16 @@ html{scrollbar-color:var(--theme-muted) var(--theme-page)}
  transition-duration:var(--theme-duration);
  transition-timing-function:var(--ease-out);
 }
+/* .facts arrives once per view -> --dur-enter. The knob is a control changing
+   its own shadow on focus/hover -> --dur-state. Both were writing the ladder's
+   own numbers as literals, and both wrote cubic-bezier(.2,.8,.2,1) longhand for
+   what --ease-out already is. Values unchanged at 500ms; the knob moves 200 ->
+   160 so it matches every other control's hover-in on the site. */
 .theme-ready body[data-theme-page="case-study"] .facts{
- transition:opacity .5s cubic-bezier(.2,.8,.2,1),transform .5s cubic-bezier(.2,.8,.2,1),border-color var(--theme-duration) var(--ease-out)
+ transition:opacity var(--dur-enter) var(--ease-out),transform var(--dur-enter) var(--ease-out),border-color var(--theme-duration) var(--ease-out)
 }
 .theme-ready body[data-theme-page="case-study"] .cmpKnob{
- transition:box-shadow .2s cubic-bezier(.2,.8,.2,1),background-color var(--theme-duration) var(--ease-out),color var(--theme-duration) var(--ease-out)
+ transition:box-shadow var(--dur-state) var(--ease-out),background-color var(--theme-duration) var(--ease-out),color var(--theme-duration) var(--ease-out)
 }
 
 .theme-ready body,.theme-ready .jbDiscMenu,.theme-ready input,.theme-ready select,.theme-ready textarea{

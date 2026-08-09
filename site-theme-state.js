@@ -8,6 +8,24 @@
  var MODES=Object.freeze(["auto","off","pre-dawn","sunrise","daytime","dusk","sunset","night"]);
  var STATES=Object.freeze(MODES.slice(2));
  var BOUNDARIES=[4*60,6*60,9*60,17*60,18*60+30,20*60+30];
+ /* ── WHAT AN UNVISITED PAGE RENDERS ─────────────────────────────────────────
+    It was "auto": the sky followed the visitor's own clock. Lovely idea, wrong
+    first impression -- a recruiter opening this at 11pm landed on the near-black
+    hero, which is the least legible state and the one every lighting subtlety is
+    hardest to see in. Daytime is the legible baseline: brightest sky, clearest
+    type contrast, and the state the work reads fastest against. Discovering the
+    other five then becomes a reward rather than a lottery decided by the hour
+    someone happened to click the link.
+    "auto" is DEMOTED, NOT REMOVED: it is still in the menu, it still follows the
+    real clock, and someone who picks it still gets their own hour. What changed
+    is only what happens when nobody has chosen. That distinction is why
+    site-theme.js now WRITES "auto" to storage instead of representing it by the
+    key's absence -- absence used to mean auto, and it has to mean "has not
+    chosen" for a default to exist at all.
+    normalizeMode still answers "auto" for garbage on purpose. This names the
+    absence of a preference; that names an unreadable one, and they are not the
+    same question. */
+ var DEFAULT_MODE="daytime";
 
  function normalizeMode(value){
   return MODES.indexOf(value)!==-1?value:"auto";
@@ -49,5 +67,5 @@
   return next.getTime()-current;
  }
 
- return {MODES:MODES,STATES:STATES,normalizeMode:normalizeMode,resolveAutomatic:resolveAutomatic,resolveState:resolveState,themeForState:themeForState,resolveSnapshot:resolveSnapshot,msUntilNextBoundary:msUntilNextBoundary};
+ return {MODES:MODES,STATES:STATES,DEFAULT_MODE:DEFAULT_MODE,normalizeMode:normalizeMode,resolveAutomatic:resolveAutomatic,resolveState:resolveState,themeForState:themeForState,resolveSnapshot:resolveSnapshot,msUntilNextBoundary:msUntilNextBoundary};
 });

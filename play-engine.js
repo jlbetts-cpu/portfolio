@@ -27,6 +27,23 @@
  var heroBox={left:0,top:0,width:0,height:0};   // ONE cached hero rect shared by every head, so N heads never each force a layout reflow per frame (older machines feel that). Refreshed only when the page actually moves.
  function refreshHeroBox(){var h=document.querySelector(".hero");if(!h)return;var r=h.getBoundingClientRect();heroBox.left=r.left;heroBox.top=r.top;heroBox.width=r.width;heroBox.height=r.height;}
  (function(){var raf=0;function mark(){if(raf)return;raf=requestAnimationFrame(function(){raf=0;refreshHeroBox();});}addEventListener("scroll",mark,{passive:true});addEventListener("resize",mark,{passive:true});refreshHeroBox();setInterval(function(){if(!document.hidden&&peers.length)refreshHeroBox();},500);})();   // scroll/resize (rAF-throttled) + a slow safety tick for any other layout shift
+ /* ── ONE FRAME, ONE MEASUREMENT ──────────────────────────────────────────
+    heroBox above already refuses to let N heads each force a layout per FRAME.
+    The resize path had no such rule, and resize is where it matters most: a
+    hand on the window corner emits an event per compositor tick, far faster
+    than frames arrive, and every listener below re-measures layout when it
+    fires. survey() is registered PER HEAD, so a twelve-head lobby turned a
+    single drag event into twelve read-write-read cycles -- each head reading
+    the hero rect, writing its own width/height/shadow/reflection, and the next
+    head then reading the rect back out of a dirtied tree.
+    Measured on a 30-step drag at 1440 with twelve heads seated: 3.2 layouts
+    per step and a 33.0ms median frame, against 16.7ms at rest.
+    Coalescing to a frame changes nothing anyone can see -- a size that is
+    measured and discarded between two frames was never painted -- and it is
+    the same discipline, applied to the same problem, one event source over. */
+ function onResizeFrame(fn){var raf=0;addEventListener("resize",function(){
+  if(raf)return;raf=requestAnimationFrame(function(){raf=0;try{fn();}catch(_){}});
+ },{passive:true});}
  var battlePlats=[];   // battle arena: floating platforms the heads land on and pounce from (populated by the platforms block, read every frame in the physics)
  try{if(/[?&]wraf=1/.test(location.search))window.__plats=battlePlats;}catch(_){}   // DEV-ONLY debug handle (opt-in), so a headless run can inspect the live ladder
  var sharedFeetY=null;   // the shared FLOOR line (screen-space feet row). Cached while the big head is VISIBLE so a head spawning mid-game (mini-Jayden -- the big head is hidden AND the hero box measures shorter then) lands on the SAME plane as everyone else instead of a mid-game fallback.
@@ -587,7 +604,10 @@
   floorY=fY-HH*FOOT;                                               // feet (the visible chin, not the transparent padding) rest on that shared floor, whatever the head's size
   M=mob?16:40;plats=[];avoids=[];
   var ow=heroR?heroR.w:0;
-  var hb=hero.getBoundingClientRect();WL=-hb.left-HW*0.35;WR=innerWidth-hb.left-HW*0.65;CEIL=-(hb.top+window.scrollY)-HH*0.12;if(document.body.classList.contains("hmFull")){var _socWall=document.body.classList.contains("hmSoccer"),_gwp=_socWall?(mob?28:40):2;CEIL=_socWall?_gwp:2;WL=-hb.left+_gwp;WR=innerWidth-hb.left-HW-_gwp;}   // PHONE, GAME RUNNING: the arena now fills the screen and the nav sits right on top of it, so the ceiling stops at the hero instead of letting heads (and their health bars) climb over the wordmark. Soccer reserves the half-diagonal overhang of a rotating/squashing player at the sides and ceiling, so the painted box remains inside the arena; other games retain their authored edge behavior.   // it presses into the glass on every side; the VISIBLE crown reaches the top, not the box
+  /* THE SAME RECT, NOT A SECOND ONE. Nothing between hr above and this line
+     writes to the tree, so this was a second forced layout for a value already
+     in hand -- and survey() runs once per head, so it was N of them. */
+  var hb=hr;WL=-hb.left-HW*0.35;WR=innerWidth-hb.left-HW*0.65;CEIL=-(hb.top+window.scrollY)-HH*0.12;if(document.body.classList.contains("hmFull")){var _socWall=document.body.classList.contains("hmSoccer"),_gwp=_socWall?(mob?28:40):2;CEIL=_socWall?_gwp:2;WL=-hb.left+_gwp;WR=innerWidth-hb.left-HW-_gwp;}   // PHONE, GAME RUNNING: the arena now fills the screen and the nav sits right on top of it, so the ceiling stops at the hero instead of letting heads (and their health bars) climb over the wordmark. Soccer reserves the half-diagonal overhang of a rotating/squashing player at the sides and ceiling, so the painted box remains inside the arena; other games retain their authored edge behavior.   // it presses into the glass on every side; the VISIBLE crown reaches the top, not the box
   if(ow&&Math.abs(ow-hero.clientWidth)>2)x=x/ow*hero.clientWidth;   // resizing keeps its relative spot
   if(bigR){var nHW=Math.round(Math.min(108,Math.max(66,(bigR.r-bigR.l)*0.27)));if(mob)nHW=Math.min(nHW,64);
    if(filler)nHW=Math.round(nHW*1.5);   // the mini-Jayden stays noticeably BIGGER (Jayden liked this) -- but he's on the SAME flat plane + ground line as everyone else; his size is his identity, not a depth cue
@@ -627,7 +647,46 @@
   if(soccerOn&&!window.__hmLavaOn&&!grabbed&&!perched)surface=floorY;
   if(x>WR)x=WR;if(x<WL)x=WL;if(y>floorY)y=floorY;   // stay intact when the screen shrinks
  }
- survey();addEventListener("resize",function(){mob=innerWidth<=880;survey();},{passive:true});
+ survey();onResizeFrame(function(){mob=innerWidth<=880;survey();});
+ /* ── THE EYE BOX IS MEASURED WHEN IT CHANGES, NOT WHEN IT MOVES ──────────
+    _frame read o.box.offsetWidth on the line directly below the one that
+    writes o.box.style.transform, so every eye performed a write and then read
+    geometry back out of the tree it had just dirtied -- a forced synchronous
+    layout. Two eyes on each of twelve heads is twenty-four of them per frame,
+    for as long as the tab is open. Measured across one window drag it was 2736
+    layout reads, more than every other source on the page put together.
+    The width is a function of the head's SIZE and nothing else -- the eyes are
+    laid out as a percentage of the head -- and HW is exactly that number, kept
+    current by survey(). So the measurement is cached against HW and repeated
+    only when the head actually resizes. A zero is never cached: the box has no
+    width until the portrait has landed, and caching that would freeze every
+    iris at the fallback offset. */
+ function eyeBoxW(o){
+  if(!o||!o.box)return 34;
+  if(o.__bwAt!==HW||!o.__bw){var w=o.box.offsetWidth;if(w>0){o.__bw=w;o.__bwAt=HW;}else return 34;}
+  return o.__bw;
+ }
+ /* ── A WRITE THAT CHANGES NOTHING STILL COSTS EVERYTHING ─────────────────
+    .eye carries filter:url(#inkEye) -- an feTurbulence feeding an
+    feDisplacementMap, which is the non-accelerated filter path. Chromium
+    re-runs that graph whenever the filtered subtree is dirtied, and _frame
+    wrote a transform to the eye box, the lid, the iris and the glint on EVERY
+    frame regardless of whether the value had changed. The gaze offsets are
+    Math.round()ed and the lid string is constant while nobody is blinking, so
+    most of those writes set a property to the value it already held -- and
+    bought a full filter re-rasterisation, per eye, for an identical picture.
+    Twenty-four eyes across twelve heads is twenty-four displacement graphs
+    re-run per frame to draw exactly what was already on screen.
+    This is the reason to reach for elision rather than for the filter itself:
+    the ink is the look. Rendered at 4x and compared side by side, dropping
+    filter:url(#inkEye) turns the iris from a ragged, hand-inked disc into a
+    geometrically perfect circle -- the pasted-on-sticker reading the whole
+    head rig exists to avoid. The filter is kept exactly as authored; a still
+    eye simply stops asking for it to be recomputed.
+    These four elements are written here and nowhere else in this file, which
+    is what makes a cached last-value safe. */
+ function setT(el,v){if(!el||el.__lastT===v)return;el.__lastT=v;el.style.transform=v;}
+ var _rmSig="";   // the reduced-motion branch's last-written state; see the block that uses it
  function collides(nx,ny,pad){for(var i=0;i<avoids.length;i++){var a=avoids[i];
   if(nx+HW>a.l-pad&&nx<a.r+pad&&ny+HH>a.t-pad&&ny<a.b+pad)return true;}return false;}
  // --- state ---
@@ -815,7 +874,12 @@
    if(typeof drowsy!=="undefined"&&drowsy&&Math.random()<0.4){wig={t:0.7,dur:0.7,type:"stretch"};sqT=0.6;sqyP=1.09;sqxP=1/1.09;mof=6;if(bf===0)bf=5;return;}}catch(_){}
   try{ // curiosity: a hand resting nearby gets approached, the way a still hand does
    if(typeof pointer!=="undefined"&&typeof lastMove!=="undefined"&&now-lastMove<4200){
-    var hcr=hero.getBoundingClientRect(),cxr=pointer.px-hcr.left-HW/2;
+    /* heroBox, not a fresh rect: this runs inside the per-head loop, so a
+       measurement here is taken once per head rather than once. The shared
+       cache exists for exactly this, and is refreshed rAF-throttled on scroll
+       and resize plus a slow safety tick -- and only .left is wanted, which
+       is the most stable number on it. */
+    var cxr=pointer.px-heroBox.left-HW/2;
     var dxc=Math.abs(cxr-x);
     if(dxc>120&&dxc<430&&cxr>M&&cxr<heroR.w-HW-M&&Math.random()<0.3){
      dir=cxr>x?1:-1;gzx=dir*0.8;gzy=0.15;sacAt=now+900;
@@ -1030,9 +1094,24 @@
       real seats; it must not replace every x with the same 5% fallback and collapse the crowd
       into one head. Keep the contact shadow and the existing polished-floor reflection static
       on that same feet line too. */
+   /* AND IT WRITES ONLY WHEN ONE OF THOSE FROZEN VALUES ACTUALLY CHANGES.
+      Reduced motion freezes x and y, so this block was setting six properties
+      per head to the values they already held, sixty times a second, for as
+      long as the tab stayed open. Twelve heads made that seventy-two writes a
+      frame to redraw an identical picture -- which is how asking for LESS
+      motion ended up costing MORE style recalculation than leaving it on:
+      measured 62.8 recalcs/sec against 45.7 with motion allowed. Someone who
+      asks for stillness should be the cheapest visitor on the site, not the
+      most expensive.
+      Every input here is frozen or step-changing, so one signature covers the
+      lot; when it matches, the frame has nothing to say and says nothing. */
+   var _lob=(shown&&LOBBY(now))?1:0;
+   var _sig=x.toFixed(1)+"|"+y.toFixed(1)+"|"+floorY.toFixed(1)+"|"+FOOT+"|"+HW+"|"+(shown?1:0)+"|"+_lob;
+   if(_sig===_rmSig)return;
+   _rmSig=_sig;
    root.style.transform="translate("+x.toFixed(1)+"px,"+y.toFixed(1)+"px)";
    shadow.style.transform="translate("+(x+HW*0.06).toFixed(1)+"px,"+(floorY+HH*FOOT-2).toFixed(1)+"px)";shadow.style.opacity=shown?"0.36":"0";
-   if(shown&&LOBBY(now)){if(_reflFoot!==FOOT){_reflFoot=FOOT;refl.style.transformOrigin="50% "+(FOOT*100).toFixed(2)+"%";}
+   if(_lob){if(_reflFoot!==FOOT){_reflFoot=FOOT;refl.style.transformOrigin="50% "+(FOOT*100).toFixed(2)+"%";}
     refl.style.transform="translate("+x.toFixed(1)+"px,"+floorY.toFixed(1)+"px) scale(1,-1) scale(1,"+REFL_PERSP.toFixed(3)+")";refl.style.opacity=(0.36*REFL_K).toFixed(3);}
    else refl.style.opacity="0";
    return;}
@@ -1748,11 +1827,11 @@
   if(mof>0&&mouth){mouth.style.transform=(mof%2)?"translateY(1.2px) scaleY(1.06)":"translateY(0.5px) scaleY(1.02)";mof--;}
   else if(mouth&&mof===0)mouth.style.transform="";
   eyeEls3.forEach(function(o,oi){
-   if(o.box)o.box.style.transform="rotate("+((o.ang||0)+(Math.abs(rot)>20?0:-rot)).toFixed(1)+"deg)";   // THEIR canthal tilt stays; the glint's light source does not tilt with the head
-   if(bf>0){var lp=(bf===5||bf===1)?-44:(bf===4?-14:-4);o.lid.style.transform="translateY("+lp+"%)";}
-   else o.lid.style.transform=drowse2?"translateY(-64%)":"translateY(-105%)";   // heavy lids when sleepy
-   if(dzf>0){var ph=(12-dzf)*0.95+(oi?2.2:0);var ebw2=o.box?o.box.offsetWidth:34;o.iris.style.transform="translate("+Math.round(Math.cos(ph)*ebw2*0.22)+"px,"+Math.round(Math.sin(ph)*ebw2*0.14)+"px)";}
-   else{var ebw=o.box?o.box.offsetWidth:34;var gtx2=Math.round(nx*ebw*0.18),gty2=Math.round(ny*ebw*0.10);o.iris.style.transform="translate("+gtx2+"px,"+gty2+"px)";if(o.glint)o.glint.style.transform="translate("+Math.round(gtx2*0.62)+"px,"+Math.round(gty2*0.62)+"px)";}
+   setT(o.box,"rotate("+((o.ang||0)+(Math.abs(rot)>20?0:-rot)).toFixed(1)+"deg)");   // THEIR canthal tilt stays; the glint's light source does not tilt with the head
+   if(bf>0){var lp=(bf===5||bf===1)?-44:(bf===4?-14:-4);setT(o.lid,"translateY("+lp+"%)");}
+   else setT(o.lid,drowse2?"translateY(-64%)":"translateY(-105%)");   // heavy lids when sleepy
+   if(dzf>0){var ph=(12-dzf)*0.95+(oi?2.2:0);var ebw2=eyeBoxW(o);setT(o.iris,"translate("+Math.round(Math.cos(ph)*ebw2*0.22)+"px,"+Math.round(Math.sin(ph)*ebw2*0.14)+"px)");}
+   else{var ebw=eyeBoxW(o);var gtx2=Math.round(nx*ebw*0.18),gty2=Math.round(ny*ebw*0.10);setT(o.iris,"translate("+gtx2+"px,"+gty2+"px)");setT(o.glint,"translate("+Math.round(gtx2*0.62)+"px,"+Math.round(gty2*0.62)+"px)");}
   });
   if(dzf>0)dzf--;
   if(bf>0)bf--;
@@ -1961,13 +2040,13 @@
   /* The goals are positioned once, from start(). geo() reads innerWidth, so after a resize
    XL/XR were stale and the goals sat where the old viewport put them -- and the pitch
    bounds the physics uses went stale with them. Re-run the layout while a match is live. */
-addEventListener("resize",function(){if(S.on){try{
+onResizeFrame(function(){if(S.on){try{
  var _oxl=XL,_oxr=XR,_obx=bx,_ospan=_oxr-_oxl;
  _gyLock=null;
  layout();
  if(_ospan>0&&XR>XL){var _bf=(_obx-_oxl)/_ospan;bx=Math.max(XL+BR,Math.min(XR-BR,XL+_bf*(XR-XL)));}
  requestAnimationFrame(function(){if(!S.on)return;try{_gyLock=null;layout();}catch(_){}});
-}catch(_){}}},{passive:true});
+}catch(_){}}});
 function teams(){
    // BENCHED heads take no part. The tournament fields only the two teams in the fixture, and a
    // benched head with no side used to fail the "does the pick cover every real head" test below,
@@ -3071,7 +3150,9 @@ function teams(){
     if(q.dead||q.y>lavaAt(qcx,OXs)+30||q.y>H+120){q.dead=false;respawn(q);}}   // swallowed by the lava (or crumbled away) -> rebuilt above the top rung
    render();};
   build();render();
-  addEventListener("resize",function(){build();render();},{passive:true});
+  /* build() tears down and re-creates every rung element; doing that once per
+     resize EVENT rebuilt the whole tower dozens of times across one drag. */
+  onResizeFrame(function(){build();render();});
   var arenaReq=0;
   window.__hmNewArena=function(){arenaReq=window.__hmBattleReq||0;window.__hmLavaLevel=0;build();render();};   // a brand-new random tower every fight
   setInterval(function(){var inB=document.body.classList.contains("hmBattle");
@@ -3096,7 +3177,7 @@ function teams(){
   wrap.style.cssText="position:absolute;left:0;right:0;bottom:0;top:0;pointer-events:none;z-index:8;opacity:0;transition:opacity .5s";   // molten body IN FRONT of the platforms + heads (clipped to below the surface) so anything the lava reaches vanishes under it
   var gcv=document.createElement("canvas");gcv.className="hmLavaGL";gcv.style.cssText="position:absolute;left:0;bottom:0;width:100%;height:100%;display:block";
   var crust=document.createElement("canvas");crust.className="hmLavaCrust";crust.style.cssText="position:absolute;left:0;top:0;width:100%;height:100%;display:block;pointer-events:none;z-index:9";
-  var haze=document.createElement("div");haze.className="hmLavaHaze";haze.style.cssText="position:absolute;left:0;right:0;height:96px;pointer-events:none;z-index:10;opacity:0;transition:opacity .4s;-webkit-backdrop-filter:blur(1.4px) url(#hmHeatFilter) brightness(1.06) saturate(1.2);backdrop-filter:blur(1.4px) url(#hmHeatFilter) brightness(1.06) saturate(1.2);-webkit-mask-image:linear-gradient(to top,#000 30%,rgba(0,0,0,0));mask-image:linear-gradient(to top,#000 30%,rgba(0,0,0,0));background:linear-gradient(to top,rgba(255,130,35,.14),rgba(255,130,35,0));animation:hmHazeWob 2.1s ease-in-out infinite";
+  var haze=document.createElement("div");haze.className="hmLavaHaze";haze.style.cssText="position:absolute;left:0;right:0;height:96px;pointer-events:none;z-index:10;opacity:0;transition:opacity .4s;-webkit-backdrop-filter:blur(1.4px) url(#hmHeatFilter) brightness(1.06) saturate(1.2);backdrop-filter:blur(1.4px) url(#hmHeatFilter) brightness(1.06) saturate(1.2);-webkit-mask-image:linear-gradient(to top,#000 30%,rgba(0,0,0,0));mask-image:linear-gradient(to top,#000 30%,rgba(0,0,0,0));background:linear-gradient(to top,rgba(255,130,35,.14),rgba(255,130,35,0));animation:hmHazeWob 2.1s ease-in-out infinite;animation-play-state:paused";
   var glow=document.createElement("div");glow.className="hmLavaGlow";glow.style.cssText="position:absolute;left:0;right:0;bottom:0;top:0;pointer-events:none;z-index:1;opacity:0;transition:opacity .5s;background:radial-gradient(120% 60% at 50% 100%,rgba(255,120,30,.28),rgba(255,80,10,.06) 45%,transparent 70%)";   // warm ambient glow stays BEHIND the heads as atmosphere
   wrap.appendChild(gcv);gAdd(hero,wrap);gAdd(hero,glow);gAdd(hero,crust);gAdd(hero,haze);
 
@@ -3142,7 +3223,7 @@ function teams(){
    if(!gl&&!initGL()){/* no webgl: crust-only fallback */}sizeGL();running=true;wrap.style.opacity="1";glow.style.opacity="1";window.__hmLavaOn=true;requestAnimationFrame(loop);}
   function stop(){
   try{var _h=document.querySelector('.hero'); if(_h)_h.style.minHeight='';
-      document.body.classList.remove('tSchedOpen');}catch(_){}running=false;window.__hmLavaOn=false;wrap.style.opacity="0";glow.style.opacity="0";haze.style.opacity="0";surfaceY=1e9;level=0;embers.length=0;bubbles.length=0;if(cctx)cctx.clearRect(0,0,crust.width,crust.height);}
+      document.body.classList.remove('tSchedOpen');}catch(_){}running=false;window.__hmLavaOn=false;wrap.style.opacity="0";glow.style.opacity="0";haze.style.opacity="0";haze.style.animationPlayState="paused";haze.__on="0";surfaceY=1e9;level=0;embers.length=0;bubbles.length=0;if(cctx)cctx.clearRect(0,0,crust.width,crust.height);}
   var wasOn=false,lastFrame=performance.now();
   function loop(n){if(!active()){if(wasOn){stop();wasOn=false;}return;}
    requestAnimationFrame(loop);var tsec=(n-t0)/1000;
@@ -3205,7 +3286,19 @@ function teams(){
     cctx.beginPath();cctx.arc(em.x,em.y,em.r,0,6.283);cctx.fillStyle="rgba(255,"+(150+ea*90|0)+","+(40+ea*90|0)+","+(ea*0.9).toFixed(2)+")";cctx.shadowColor="rgba(255,140,40,"+ea.toFixed(2)+")";cctx.shadowBlur=6;cctx.fill();}
     cctx.shadowBlur=0;}
    // heat haze band sits just above the surface
-   haze.style.top=Math.round(surfaceY-90)+"px";haze.style.opacity=(surfaceY<arenaH-20?"1":"0");
+   /* THE HAZE ONLY SHIMMERS WHEN IT IS ON SCREEN. hmHazeWob animates a
+      transform, which would normally ride the compositor for free -- but this
+      element carries a backdrop-filter, and Chromium cannot composite an
+      animation on a backdrop-filtered layer, so it falls back to the main
+      thread and costs a style recalculation on EVERY frame. The haze is
+      created at page load and is invisible outside a lava fight, so that was
+      ~60 recalcs a second, forever, on every visit to Play, to shimmer
+      something at opacity 0. It now runs only while it is actually showing,
+      and the writes are elided so a steady state costs nothing. */
+   haze.style.top=Math.round(surfaceY-90)+"px";
+   var _hzOn=(surfaceY<arenaH-20)?"1":"0";
+   if(haze.__on!==_hzOn){haze.__on=_hzOn;haze.style.opacity=_hzOn;
+    haze.style.animationPlayState=(_hzOn==="1")?"running":"paused";}
    lastFrame=n;wasOn=true;}
   function drawCrust(tsec){if(!cctx)return;cctx.clearRect(0,0,crust.width,crust.height);
    var W=crust.width,sy=surfaceY;if(sy>arenaH-4)return;

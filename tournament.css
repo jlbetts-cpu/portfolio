@@ -174,10 +174,14 @@ body.hmSoccer .tvScreen{display:none}
    with them for the same space, and they are already hidden once a fixture
    starts, so nothing pops back in mid-cup.
    --------------------------------------------------------------------------- */
+/* The fade is a dismissal in place -> --dur-reveal (350 -> 360, +3%). The
+   HEIGHT stays at its authored 420ms: it is deliberately the slower of the two
+   so the copy is gone before the space it occupied closes, and collapsing the
+   pair onto one rung would delete that ordering. */
 body.hmTour .heroCopy h1,
-body.hmTour .hero .stagewrap{opacity:0;pointer-events:none;transition:opacity .35s var(--ease-out)}
+body.hmTour .hero .stagewrap{opacity:0;pointer-events:none;transition:opacity var(--dur-reveal) var(--ease-out)}
 body.hmTour .hero .stagewrap{height:0;min-height:0;overflow:hidden;margin:0;
-  transition:opacity .35s var(--ease-out),height .42s var(--ease-out)}
+  transition:opacity var(--dur-reveal) var(--ease-out),height .42s var(--ease-out)}
 body.hmTour .scrollCue{display:none}
 @media(prefers-reduced-motion:reduce){
   body.hmTour .heroCopy h1,body.hmTour .hero .stagewrap{transition:none}

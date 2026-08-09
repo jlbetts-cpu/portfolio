@@ -13,6 +13,31 @@
  var portrait=document.getElementById("heroTimePortraitCast");
  if(!siteTheme||!root||!hero||!control||!button||!menu||!icon||!spill||!face||!portrait)return;
 
+ /* ── THE LIT SIDE NEEDS A BOX OF ITS OWN, AND IT IS BUILT HERE ──────────────
+    One element can carry one blend mode, and light and shadow are two: the
+    portrait cast multiplies the hour's shading colour along a ramp facing away
+    from the source, and this one screens the hour's LIGHT colour out of a
+    radial hot spot facing toward it. See hero-time.css for why the second term
+    is not the first one inverted.
+    IT IS CREATED RATHER THAN AUTHORED because index.html is not this lane's to
+    edit, and because an element that exists only to carry a treatment this file
+    owns should be built and torn down with it -- a markup element for a purely
+    presentational layer is one more thing to leave behind if the treatment ever
+    changes again. It is inserted immediately after the cast so it paints above
+    it at the same z-index and below the eyes, which sit at 3 and must stay the
+    brightest thing on the head.
+    IT REUSES THE PORTRAIT AS ITS OWN MASK. Same file, already decoded, so there
+    is no second fetch -- and because the mask is the artwork's alpha, the layer
+    is confined to the silhouette by construction rather than by tuning. */
+ var glow=document.getElementById("heroTimePortraitLit");
+ if(!glow){
+  glow=document.createElement("div");
+  glow.id="heroTimePortraitLit";
+  glow.classList.add("heroTimePortraitLit");
+  glow.setAttribute("aria-hidden","true");
+  if(portrait.parentNode)portrait.parentNode.insertBefore(glow,portrait.nextSibling);
+ }
+
  var items=[].slice.call(menu.querySelectorAll('[role="menuitemradio"]'));
  var gradients=[].slice.call(hero.querySelectorAll(".heroTimeGradient"));
  var sceneAnimations=[];
@@ -40,7 +65,7 @@
    spill:(function(){var style=computed(spill);return style?number(style.opacity):0;})(),
    portrait:(function(){
     var style=computed(portrait);
-    return {opacity:style?number(style.opacity):0,filter:style&&style.filter?style.filter:"none"};
+    return {opacity:style?number(style.opacity):0};
    })()
   };
  }
@@ -51,21 +76,49 @@
  }
 
  function clearSettledSceneStyles(){
-  gradients.forEach(function(layer){layer.style.removeProperty("opacity");});
+  gradients.forEach(function(layer){
+   layer.style.removeProperty("opacity");
+   layer.style.removeProperty("z-index");
+  });
   spill.style.removeProperty("opacity");
   portrait.style.removeProperty("opacity");
-  portrait.style.removeProperty("filter");
+ }
+
+ /* ── THE DESTINATION IS WHAT THE HOUR ASKS FOR, NOT WHAT IS ON SCREEN ──────
+    THE SUSPECT THIS INHERITED, AND THE VERDICT. This function used to read the
+    layer's target opacity back off the ELEMENT, and writeFinalScene pins that
+    number inline -- which reads as a fixed point: a value that reads itself
+    converges on whatever it already is rather than on what the state asks for.
+    It was handed over as the prime suspect for the face washing out.
+    It is not, and the sequence is why: transitionScene calls
+    clearSettledSceneStyles() BEFORE targetScene(), so the inline pin is gone by
+    the time the read happens and the computed value falls through to the CSS,
+    which is the authored per-state value for the state data-time-state was
+    already set to. Reproduced in the browser on a probe carrying the same
+    `opacity:var(--authored)` plus a 640ms opacity transition: pin .34, retarget
+    to .18, removeProperty, read -> 0.18. Not 0.34. With the transition removed,
+    identical. The controller's own unit tests assert a different destination per
+    hour and passed against the pre-fix source, which is the same result from a
+    second direction.
+    IT IS STILL READ FROM THE HOUR AND NOT FROM THE ELEMENT, because the
+    correctness of the old version rested entirely on clear-then-read ordering
+    inside another function. Reorder those two lines and the fixed point becomes
+    real. --time-shade cannot be pinned by anything here, so the ordering stops
+    being load-bearing.
+    The filter was read off the element the same way, and it is simply not
+    written any more: it never varies by hour, so animating a constant back onto
+    itself bought nothing and cost the same fragility. */
+ function shadeNow(){
+  var style=computed(hero);
+  var value=style?parseFloat(style.getPropertyValue("--time-shade")):0;
+  return Number.isFinite(value)?value:0;
  }
 
  function targetScene(state){
-  var portraitStyle=computed(portrait);
   return {
    gradients:gradients.map(function(layer){return layer.getAttribute("data-time-gradient")===state?1:0;}),
    spill:state==="night"?1:0,
-   portrait:{
-    opacity:state==="off"?0:(portraitStyle?number(portraitStyle.opacity):0),
-    filter:portraitStyle&&portraitStyle.filter?portraitStyle.filter:"none"
-   }
+   portrait:{opacity:state==="off"?0:shadeNow()}
   };
  }
 
@@ -92,11 +145,14 @@
   };
  }
 
+ /* The lift is NOT cleared here. This runs immediately after the animations are
+    created, so removing it would undo the one that was just set -- and it is
+    cleared by clearSettledSceneStyles() at the head of every transition anyway,
+    which is the only moment it can be stale. */
  function writeFinalScene(target){
   gradients.forEach(function(layer,index){layer.style.setProperty("opacity",target.gradients[index]);});
   spill.style.setProperty("opacity",target.spill);
   portrait.style.setProperty("opacity",target.portrait.opacity);
-  portrait.style.setProperty("filter",target.portrait.filter);
  }
 
  function transitionScene(from,state,initial){
@@ -110,13 +166,37 @@
   var duration=sceneDuration();
   if(duration<=0){writeFinalScene(target);return;}
   var options={duration:duration,easing:sceneEasing(),fill:"both"};
+  /* ── A CROSS-FADE OF TWO PARTLY-TRANSPARENT LAYERS IS NOT A CROSS-FADE ─────
+     Both skies used to ramp at once, one up and one down. Their opacities sum
+     to 1, which looks like it should be safe, but they are STACKED: at weights
+     w and 1-w the picture is w*incoming + (1-w)*((1-w)*outgoing + w*backdrop),
+     so a quarter of the Hero's own background colour paints THROUGH the pair at
+     the midpoint -- and that background is itself mid-transition between white
+     and near-black. Measured at the head's resting point, daytime -> night: the
+     composite ran 11% / 23% / 33% DARKER than a straight blend of the two skies
+     at weights .42 / .57 / .69, and the deviation was half again as large in
+     blue as in red. The sky dipped grey and desaturated on its way to night,
+     which is precisely the "not smooth" Jayden was pointing at -- every value
+     was moving correctly and the composite still lurched.
+     HOLD AND COVER instead. The incoming sky is lifted above the others and
+     fades 0 -> 1; every other layer HOLDS wherever it is and is dropped to its
+     destination only once the incoming is opaque, where nothing can see it. The
+     backdrop contributes nothing at any instant, so the blend is exactly the
+     two skies. The lift is mandatory rather than tidy: the incoming layer is
+     often EARLIER in the DOM than the outgoing one (daytime is third, night is
+     sixth), and without it the held layer would cover the arriving one
+     completely and then vanish in a single frame.
+     `off` is the one state with no incoming sky, and it is also the one state
+     where the page underneath is the point -- so it keeps the plain fade. */
+  var incoming=target.gradients.indexOf(1);
   gradients.forEach(function(layer,index){
-   runSceneAnimation(layer,[{opacity:from.gradients[index]},{opacity:target.gradients[index]}],options);
+   var settled=index===incoming||incoming<0?target.gradients[index]:from.gradients[index];
+   if(index===incoming)layer.style.setProperty("z-index","1");
+   runSceneAnimation(layer,[{opacity:from.gradients[index]},{opacity:settled}],options);
   });
   runSceneAnimation(spill,[{opacity:from.spill},{opacity:target.spill}],options);
   runSceneAnimation(portrait,[
-   {opacity:from.portrait.opacity,filter:from.portrait.filter},
-   {opacity:target.portrait.opacity,filter:target.portrait.filter}
+   {opacity:from.portrait.opacity},{opacity:target.portrait.opacity}
   ],options);
   /* Pin the destination under WAAPI. This preserves the old rendered spill
      while SiteTheme changes root state before publishing the next snapshot. */
@@ -152,6 +232,17 @@
   else portrait.removeAttribute("srcset");
   if(sizes!==null)portrait.setAttribute("sizes",sizes);
   else portrait.removeAttribute("sizes");
+  /* The lit layer has no src -- it is a gradient wearing the portrait's alpha,
+     so the same file arrives as a mask instead. Every face image the engine can
+     swap in is square and .face is object-fit:contain inside a square .stage,
+     so mask-size:contain lands the mask on exactly the pixels the portrait is
+     painting. Quotes are escaped rather than trusted: this string is
+     interpolated into a url() token, and a src the engine builds is still a
+     value, not a literal. */
+  if(source!==null){
+   glow.style.setProperty("--time-portrait-mask",
+    'url("'+String(source).replace(/["\\]/g,encodeURIComponent)+'")');
+  }else glow.style.removeProperty("--time-portrait-mask");
  }
 
  function onFaceLoad(){syncPortraitSource(true);}

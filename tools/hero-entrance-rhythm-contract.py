@@ -66,6 +66,23 @@ def browser_contract(base_url):
                 const r = document.querySelector(selector).getBoundingClientRect();
                 return {top:r.top,bottom:r.bottom,width:r.width,height:r.height};
               };
+              // MEASURED LEVEL. The head rests rotated now, so a bounding rect of
+              // the stage is the TURNED box -- about 21% wider than the portrait at
+              // 390 -- and the proportions below would be measuring the rotation
+              // rather than the composition. Every angle the wrapper carries is
+              // lifted for one read, !important because the entrance keyframe
+              // outranks an inline write.
+              const levelBox = selector => {
+                const wrap = document.querySelector('#heroHeadTransform');
+                const names = ['--hero-head-rotate','--hero-head-float-rot','--hero-head-enter-rot'];
+                const saved = names.map(n => [n, wrap.style.getPropertyValue(n),
+                  wrap.style.getPropertyPriority(n)]);
+                names.forEach(n => wrap.style.setProperty(n, '0deg', 'important'));
+                const out = box(selector);
+                saved.forEach(([n,v,pr]) => { if (v) wrap.style.setProperty(n,v,pr);
+                  else wrap.style.removeProperty(n); });
+                return out;
+              };
               const items = [...document.querySelectorAll('.csPanel.on .csItem')];
               const a = items[0].getBoundingClientRect();
               const b = items[1].getBoundingClientRect();
@@ -86,7 +103,7 @@ def browser_contract(base_url):
                 mobile: {
                   innerWidth: hero.getBoundingClientRect().width - parseFloat(heroStyle.paddingLeft) - parseFloat(heroStyle.paddingRight),
                   lineCount, copy: box('.heroCopy'), ctas: box('.heroCtas'),
-                  peek: box('.heroCharacterPeek .stagewrap'), controls
+                  peek: levelBox('.heroCharacterPeek .stagewrap'), controls
                 }
               };
             }""")
@@ -106,13 +123,30 @@ def browser_contract(base_url):
                 assert state["mobile"]["peek"]["top"] >= state["hero"]["top"], state
                 assert all(control["width"] >= 43.5 and control["height"] >= 43.5 for control in state["mobile"]["controls"]), state
                 if width <= 420:
+                    # ── THE HEAD IS SMALLER, AND THAT IS JAYDEN'S CALL ────
+                    # The old band (.60-.72) described a 336px portrait filling
+                    # most of a phone's width. He placed it himself with the
+                    # HUD at 211px, which is .35 of the art at 390 and .44 at
+                    # 320 -- a portrait in a composition rather than a portrait
+                    # that IS the composition. The band brackets both authored
+                    # widths; it is a guard against the head drifting back to
+                    # dominating the phone, not a re-derivation of the value.
                     head_ratio = state["mobile"]["peek"]["width"] * PORTRAIT_ART_WIDTH_RATIO / state["mobile"]["innerWidth"]
-                    assert .60 <= head_ratio <= .72, state
+                    assert .30 <= head_ratio <= .48, (head_ratio, state)
                     visible_head_top = state["mobile"]["peek"]["top"] + state["mobile"]["peek"]["height"] * PORTRAIT_ART_TOP_RATIO
                     head_gap = visible_head_top - state["mobile"]["ctas"]["bottom"]
                     assert 24 <= head_gap <= 96, state
-                    crop_ratio = (state["hero"]["bottom"] - state["mobile"]["peek"]["top"]) / state["mobile"]["peek"]["height"]
-                    assert .62 <= crop_ratio <= .67, state
+                    # ── THE HEAD NO LONGER MEETS THE FLOOR ────────────────
+                    # This asserted a CROP: 62-67% of the portrait above the
+                    # Hero's lower edge, with the rest hanging past it. That was
+                    # the right contract while --hero-peek-depth was positive.
+                    # It is negative now, deliberately -- the head is suspended
+                    # clear of the floor rather than cropped by it, which is
+                    # also why the ground shadow was deleted. Asserting a crop
+                    # ratio would now be asserting the old composition back.
+                    clearance = state["hero"]["bottom"] - state["mobile"]["peek"]["bottom"]
+                    assert clearance > 0, ("the head must clear the floor", state)
+                    assert clearance <= state["mobile"]["peek"]["height"] * .9, state
                 page.wait_for_function("() => [...document.querySelectorAll('.heroCopy h1 .ch')].every(node => node.classList.contains('show'))")
                 page.wait_for_timeout(2200)
                 for capture in ("daytime", "night", "off"):

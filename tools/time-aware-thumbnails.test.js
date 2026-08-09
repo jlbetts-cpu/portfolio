@@ -9,7 +9,13 @@ function deferred(){
  return {promise,resolve,reject};
 }
 
-function target(project,loading){
+/* `fetched` models the only thing that separates the controller's two paths:
+   whether the browser has actually pulled this image down yet. A cover the
+   visitor is looking at is complete with a real intrinsic width; an
+   <img loading="lazy"> still below the fold is not. Defaults to true so every
+   test written before that distinction existed still exercises the
+   decode-before-swap path it was written for. */
+function target(project,loading,fetched=true){
  const attributes=new Map([
   ["data-time-thumbnail",project],
   ["src","images/cs/"+project+"-cover.webp"],
@@ -19,6 +25,8 @@ function target(project,loading){
  ]);
  return {
   attributes,
+  complete:fetched,
+  naturalWidth:fetched?1200:0,
   setAttribute(name,value){attributes.set(name,String(value));},
   getAttribute(name){return attributes.has(name)?attributes.get(name):null;},
   hasAttribute(name){return attributes.has(name);},
@@ -26,8 +34,9 @@ function target(project,loading){
  };
 }
 
-function harness(initialState="off"){
- const images=[target("bearings","eager"),target("apollo","lazy"),target("bearings","lazy"),target("apollo","lazy")];
+function harness(initialState="off",fetched=true){
+ const images=[target("bearings","eager",fetched),target("apollo","lazy",fetched),
+               target("bearings","lazy",fetched),target("apollo","lazy",fetched)];
  const document={querySelectorAll(selector){
   assert.equal(selector,"img[data-time-thumbnail]");
   return images;
@@ -99,7 +108,17 @@ async function test(name,run){
   assert.match(h.pending[1].srcset,/daytime-1200\.webp 1200w, .*daytime-2400\.webp 2400w$/);
   h.pending[0].request.resolve();
   await flush();
-  h.images.forEach((image,index)=>assert.equal(attr(image,"src"),"images/cs/"+(index%2?"apollo":"bearings")+"-cover.webp"));
+  /* Bearings has decoded, so both bearings instances swap NOW. Apollo has not,
+     so both apollo instances hold their previous cover. This assertion used to
+     require all four to wait for both decodes -- that was Promise.all making
+     every project hostage to the slowest one, and it is the behaviour that has
+     deliberately gone. Duplicates of the SAME project still move together,
+     which is what this test is really about. */
+  h.images.forEach(image=>{
+   const project=attr(image,"data-time-thumbnail");
+   if(project==="bearings")assert.match(attr(image,"src"),/daytime-1200\.webp$/);
+   else assert.equal(attr(image,"src"),"images/cs/apollo-cover.webp");
+  });
   h.pending[1].request.resolve();
   await flush();
   h.images.forEach(image=>{
@@ -112,6 +131,35 @@ async function test(name,run){
   });
   assert.equal(attr(h.images[0],"loading"),"eager");
   assert.equal(attr(h.images[1],"loading"),"lazy");
+ });
+
+ await test("an unfetched lazy cover is retargeted without a preload, so loading=lazy still governs",async()=>{
+  /* THE POINT OF THE WHOLE CHANGE. A detached new Image() is invisible to
+     loading="lazy", so preloading every cover downloaded artwork for
+     case studies most visitors never scroll to -- 1.14 MB at DPR 1, 3.16 MB at
+     DPR 2, on first paint, defeating all seven lazy attributes in the markup.
+     A cover the browser has not fetched now just gets pointed at the new
+     source: no Image(), no request, and the lazy attribute decides if and when
+     anything is downloaded. */
+  const h=harness("daytime",false);
+  assert.equal(h.pending.length,0,"nothing may be preloaded on behalf of an unfetched cover");
+  h.images.forEach(image=>{
+   const project=attr(image,"data-time-thumbnail");
+   assert.equal(attr(image,"src"),"images/cs/variants/time/"+project+"/daytime-1200.webp");
+   assert.match(attr(image,"srcset"),/daytime-1200\.webp 1200w, .*daytime-2400\.webp 2400w$/);
+  });
+  assert.equal(attr(h.images[1],"loading"),"lazy");
+ });
+
+ await test("a visible cover is still decoded before it is swapped, so it never flickers",async()=>{
+  const h=harness("off");
+  h.pending.forEach(loader=>loader.request.resolve());
+  await flush();
+  h.publish("night");
+  h.images.forEach(image=>assert.match(attr(image,"src"),/-cover\.webp$/));
+  h.pending.forEach(loader=>loader.request.resolve());
+  await flush();
+  h.images.forEach(image=>assert.match(attr(image,"src"),/night-1200\.webp$/));
  });
 
  await test("Off restores exact original src and removes responsive attributes only after decode",async()=>{
@@ -147,7 +195,13 @@ async function test(name,run){
   h.images.forEach(image=>assert.match(attr(image,"src"),/sunset-1200\.webp$/));
  });
 
- await test("decode failure leaves every previous image visible and allows a later retry",async()=>{
+ await test("a decode failure is scoped to its own project and cannot hold the others back",async()=>{
+  /* This used to assert the opposite -- that one rejection left EVERY cover on
+     its previous source. That was Promise.all doing an AND across all six
+     projects: the slowest decode gated every other, and a single missing
+     variant abandoned the entire state change into an empty handler. Each
+     project now stands on its own, so bearings updates and only apollo, which
+     actually failed, keeps the picture it already had. */
   const h=harness("off");
   h.pending.forEach(loader=>loader.request.resolve());
   await flush();
@@ -155,7 +209,11 @@ async function test(name,run){
   h.pending[2].request.resolve();
   h.pending[3].request.reject(new Error("decode failed"));
   await flush();
-  h.images.forEach(image=>assert.match(attr(image,"src"),/-cover\.webp$/));
+  h.images.forEach(image=>{
+   const project=attr(image,"data-time-thumbnail");
+   if(project==="bearings")assert.match(attr(image,"src"),/night-1200\.webp$/);
+   else assert.match(attr(image,"src"),/-cover\.webp$/);
+  });
   h.publish("off");
   await flush();
   h.publish("night");

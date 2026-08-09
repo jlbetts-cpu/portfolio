@@ -53,7 +53,7 @@ def boot_probe(context):
     )
 
 
-def new_page(browser, base_url, viewport, reduced=False, mode=None):
+def new_page(browser, base_url, viewport, reduced=False, mode=None, placeholders=None):
     context = browser.new_context(
         viewport={"width": viewport[0], "height": viewport[1]},
         reduced_motion="reduce" if reduced else "no-preference",
@@ -62,6 +62,10 @@ def new_page(browser, base_url, viewport, reduced=False, mode=None):
         context.add_init_script(
             "try { sessionStorage.setItem('jbHeroTimeMode', %r); } catch (_) {}" % mode,
         )
+    if placeholders:
+        # Before the page boots, so these heads are boot-seated and carry
+        # data-hm-boot-ready -- see MATCH_CROWD.
+        context.add_init_script("window.__hmPlaceholderCount = %d;" % placeholders)
     boot_probe(context)
     page = context.new_page()
     errors = []
@@ -77,7 +81,16 @@ def new_page(browser, base_url, viewport, reduced=False, mode=None):
     return context, page, errors
 
 
-def assert_seated(page, expected=5):
+# ONE, NOT FIVE. The default was the placeholder crowd's old size. Jayden, after
+# weighing hiding the crowd behind an off-by-default toggle: "keep it on at default --
+# but can we only show one coloured egghead, not all of them." Five satisfied "the page
+# must not look empty"; it spent the reveal a visitor gets when they cut out their own
+# face. One satisfies both.
+# EVERY OTHER ASSERTION IN THIS FUNCTION IS UNCHANGED and still meaningful at n=1: the
+# head must paint, the throw must run (throwing + queued == expected), and every seated
+# head must reach data-hm-lobby-throw="settled". Measured on the live page the snapshot
+# now reads {count: 1, painted: true, throwState: "active", throwing: 1, queued: 0}.
+def assert_seated(page, expected=1):
     snap = page.evaluate("window.__playBootSnapshot")
     assert snap["count"] == expected and snap["painted"], snap
     reduced = page.evaluate('matchMedia("(prefers-reduced-motion:reduce)").matches')
@@ -103,8 +116,20 @@ def assert_seated(page, expected=5):
     )
     assert all(item["opacity"] >= .99 and item["right"] > 0 and item["left"] < page.viewport_size["width"] for item in visible), visible
     if page.viewport_size["width"] <= 390:
-        centers = sorted((item["left"] + item["right"]) / 2 for item in visible)
-        assert centers[-1] - centers[0] >= page.viewport_size["width"] * .55, visible
+        if len(visible) > 1:
+            # THE SPREAD TEST ONLY MEANS ANYTHING FOR A CROWD. It existed to catch five
+            # placeholders piling up in one spot on a phone; with one head the span is 0
+            # by definition, so asserting it would be asserting nothing and failing.
+            centers = sorted((item["left"] + item["right"]) / 2 for item in visible)
+            assert centers[-1] - centers[0] >= page.viewport_size["width"] * .55, visible
+        else:
+            # What is worth asserting about ONE head is that the whole of it is on screen.
+            # This is strictly stronger than the right>0 / left<width test above, which only
+            # requires it to overlap the viewport, and it is the failure that would actually
+            # show: a lone head half off the edge reads as a bug rather than as a hint.
+            # It is not asserted to be CENTRED, deliberately -- play-engine.js:978 seats a
+            # single boot head on the arena's axis and then it walks, like every other head.
+            assert all(0 <= item["left"] and item["right"] <= page.viewport_size["width"] for item in visible), visible
 
 
 def assert_no_overflow(page, label):
@@ -276,7 +301,18 @@ def run_layout(browser, base_url, width, height, reduced=False):
         assert 6 <= data["ctaStage"] <= 10, data
         assert data["stage"]["width"] >= (250 if width == 320 else 300), data
     else:
-        assert data["columns"] == 4, data
+        # TWO ON TOP, TWO ON THE BOTTOM AT EVERY WIDTH NOW. Jayden: "I think making the
+        # menu for the games -- it should be like two on the top, two on the bottom, so we
+        # can make them bigger." The phone already used two columns, so this branch is no
+        # longer the odd one out; the assertion stays split because the narrow branch
+        # carries five more checks the wide one does not.
+        assert data["columns"] == 2, data
+        # ...and the cards still sit on the SITE COLUMN, which is the constraint the
+        # column count could quietly have broken. Measured 120 / 40 at 1440 / 1280.
+        gutter = (width - 1200) / 2 if width >= 1280 else None
+        if gutter is not None:
+            assert abs(data["cardsBounds"]["left"] - gutter) <= 1, data
+            assert abs((width - data["cardsBounds"]["right"]) - gutter) <= 1, data
     assert_no_overflow(page, "layout-%s" % width)
     screenshot(page, "layout-%sx%s" % (width, height))
 
@@ -334,9 +370,27 @@ def run_skip_link(browser, base_url):
     context.close()
 
 
+MATCH_CROWD = 5
+"""How many heads a MATCH test needs on the field, seated at boot.
+
+THE PLACEHOLDER COUNT IS NO LONGER THE GAME ROSTER, and that separation is why this
+constant exists. It used to be five, which happened to be enough bodies for the soccer
+assertions below to measure what they were written to measure. Jayden has since cut the
+lobby to one head ("can we only show one coloured egghead, not all of them") -- a decision
+about the first impression of the LOBBY that says nothing about how a match should behave.
+Left alone, assert_settled_soccer_contacts started failing on a one-player match, and for
+a reason that is true rather than incidental: with nobody to stop the first goal the match
+never settles into the "play" phase at all.
+Adding heads after load does not work either -- the sampler reads
+`#playArena [data-hm-boot-ready]`, an attribute only boot-seated heads carry -- so the
+count is set BEFORE the page boots, through play-games.js's own __hmPlaceholderCount.
+The lobby's real default (1) is still exercised by every layout and theme run in this file.
+"""
+
+
 def run_soccer_entry(browser, base_url, viewport, mode, picker):
-    context, page, errors = new_page(browser, base_url, viewport, mode=mode)
-    assert_seated(page)
+    context, page, errors = new_page(browser, base_url, viewport, mode=mode, placeholders=MATCH_CROWD)
+    assert_seated(page, MATCH_CROWD)
     assert page.locator("#heroTimeClip,#heroTimeBtn,#heroTimeMenu,[data-time-gradient],#heroTimePortraitCast").count() == 0
     expected_theme = "dark" if mode == "night" else "light"
     page.wait_for_function("theme => document.documentElement.dataset.theme === theme", arg=expected_theme)

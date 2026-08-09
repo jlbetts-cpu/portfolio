@@ -6,6 +6,23 @@
  window.requestAnimationFrame=function(fn){var h=nid++;q.push({h:h,fn:fn});return h;};
  window.cancelAnimationFrame=function(h){for(var i=0;i<q.length;i++){if(q[i].h===h){q.splice(i,1);break;}}};
 }catch(e){}})();
+/* ── ONE MEASUREMENT, ONE COPY ───────────────────────────────────────────────
+   The artwork's extents were hand-written into three separate fallbacks here
+   and a fourth time onto #face's data-head-bounds attribute, and the two
+   drifted: the attribute was remeasured off the alpha of all nine images
+   (0.1933 0.0616 0.8484 0.9234) while these still said 0.22 0.12 0.80 0.91 --
+   the old FACE bounds, whose top edge is 5.83% short because wink.webp carries
+   the tallest hair in the set. Nothing was visibly wrong, because every reader
+   consults the attribute first. It would have gone wrong the moment one went
+   missing, which is exactly how this class of bug has recurred on this project.
+   The attribute stays the source of truth -- it is the one a contract can read
+   off the DOM -- and this is the single fallback behind it. */
+const HEAD_BOUNDS_FALLBACK="0.1933 0.0616 0.8484 0.9234";
+function headBoundsOf(img){
+ var node=img||faceImg;
+ var raw=(node&&node.getAttribute("data-head-bounds"))||HEAD_BOUNDS_FALLBACK;
+ return raw.split(/\s+/).map(Number);
+}
 const FACES={
  neutral:{browsup:"images/neutral_browsup.webp",img:"images/neutral.webp",closed:"images/neutral_closed.webp",eyes:[{x:0.3999,y:0.5176},{x:0.6018,y:0.5265}]},
  rest:{img:"images/rest.webp",closed:"images/rest_closed.webp",eyes:[{x:0.4,y:0.5169},{x:0.6041,y:0.5269}]},
@@ -793,7 +810,19 @@ function spawnCrumbs(sp,n){
  var mx=(sr.left-hr.left)+sr.width*0.5,my=(sr.top-hr.top)+sr.height*0.86,sw=sr.width;
  for(let i=0;i<n;i++){const c=document.createElement("div");c.className="crumb";const s=4+Math.random()*8;
   c.style.width=s.toFixed(1)+"px";c.style.height=(s*(0.7+Math.random()*0.5)).toFixed(1)+"px";
-  var isText=Math.random()<0.45;c.style.backgroundImage="url(images/"+(isText?"texttex":"crumbtex")+".png)";c.style.backgroundPosition=(-(Math.random()*120)|0)+"px "+(-(Math.random()*120)|0)+"px";
+  /* THE TEXTURE COMES FROM THE STYLESHEET, which has always had it right.
+     This line used to write the background image inline, and got it wrong
+     twice: it asked for crumbtex.PNG when the only file that has ever existed
+     is crumbtex.webp, and 45% of the time it asked for texttex.png, which has
+     never existed in any format in any commit -- so nearly half of every
+     crumb 404'd from the day this shipped, and the inline value beat the
+     correct one in .crumb. Dropping the write lets play.css / index.html
+     supply images/crumbtex.webp, which both already declare.
+     The position randomisation is the part that was doing real work -- it is
+     what stops every crumb showing the same corner of the sheet -- so it
+     stays. If the second, text-grained crumb variant is still wanted, it
+     needs an asset made; there is nothing here to restore. */
+  c.style.backgroundPosition=(-(Math.random()*120)|0)+"px "+(-(Math.random()*120)|0)+"px";
   c.style.clipPath=randCrumbShape();
   const sh=document.createElement("div");sh.className="crumbshadow";sh.style.opacity="0";host.appendChild(sh);c._sh=sh;
   c._x=mx+(Math.random()-0.5)*sw*0.16;c._y=my+(Math.random()-0.5)*6;
@@ -947,7 +976,13 @@ const _tb=document.querySelector("#inkBig feTurbulence"),_ts=document.querySelec
 const SEEDS=[7,19,3,28,11,23,5,31];
 function boil(){const s=SEEDS[tk%SEEDS.length];if(_tb)_tb.setAttribute("seed",s);if(_ts)_ts.setAttribute("seed",(s*2+5)%37);}
 // floating contact shadow: higher head -> bigger, softer, lighter; lower -> tighter, darker, sharper (and follows sideways)
-function updateShadow(dx,dy,rot){const lift=-dy;
+// NOT EVERY HEAD STANDS ON SOMETHING. Play's companion does, and its shadow is
+// grounding information. The home Hero's portrait does not -- it is suspended
+// clear of the floor -- so index.html carries no #fsh at all and every call
+// here is a no-op rather than a write to a hidden element. Deleting the shadow
+// from one scene must not delete it from the other, which is why the engine
+// keeps the model and the page decides whether it has a ground.
+function updateShadow(dx,dy,rot){if(!fsh)return;const lift=-dy;
  const sx=Math.max(0.55,Math.min(1.7,1+lift*0.010)),sy=Math.max(0.5,Math.min(1.5,1+lift*0.006));
  const op=Math.max(0.12,Math.min(0.6,0.5-lift*0.006)),bl=Math.max(4,Math.min(22,7+lift*0.45));
  fsh.style.transform="translateX(calc(-50% + "+Math.round(dx*0.55)+"px)) skewX("+(rot*0.25).toFixed(1)+"deg) scale("+sx.toFixed(3)+","+sy.toFixed(3)+")";
@@ -1037,7 +1072,7 @@ function setMoviePeek(on){
   var hero=document.getElementById("main"),copy=hero&&hero.querySelector(".heroCopy");
   if(hero&&copy&&faceImg){
    var faceRect=faceImg.getBoundingClientRect(),stageRect=stage.getBoundingClientRect();
-   var headBounds=(faceImg.getAttribute("data-head-bounds")||"0.22 0.12 0.80 0.91").split(/\s+/).map(Number);
+   var headBounds=headBoundsOf();
    var headTop=faceRect.top+faceRect.height*headBounds[1];
    var selection=document.getElementById("heroHeadSelection");
    if(selection&&!selection.hidden)headTop=selection.getBoundingClientRect().top;
@@ -1064,7 +1099,7 @@ function enforceMovieSafeProjection(){
  var hero=document.getElementById("main"),copy=hero&&hero.querySelector(".heroCopy");
  if(!hero||!copy||!faceImg)return;
  var faceRect=faceImg.getBoundingClientRect();
- var headBounds=(faceImg.getAttribute("data-head-bounds")||"0.22 0.12 0.80 0.91").split(/\s+/).map(Number);
+ var headBounds=headBoundsOf();
  var top=faceRect.top+faceRect.height*headBounds[1];
  var style=getComputedStyle(hero),safeTop=copy.getBoundingClientRect().bottom+
   (parseFloat(style.getPropertyValue("--hero-head-safe-gap"))||0);
@@ -1082,8 +1117,52 @@ function syncMovieEffectsLayer(){
  movieEffectsStage.style.top=(stageRect.top-clipRect.top).toFixed(2)+"px";
  movieEffectsStage.style.width=stageRect.width.toFixed(2)+"px";
  movieEffectsStage.style.height=stageRect.height.toFixed(2)+"px";
+ // HOW FAR THE HEAD HANGS PAST THE SCENE'S FLOOR. The stage tracks the head,
+ // and the head's resting composition sits well below the Hero's lower edge,
+ // so anything anchored to the stage's bottom lands off-screen. Published so
+ // the popcorn bucket can sit on the Hero's floor instead of the stage's.
+ var heroBox=document.getElementById("main");
+ if(heroBox)movieEffectsStage.style.setProperty("--movie-stage-overhang",
+  Math.max(0,stageRect.bottom-heroBox.getBoundingClientRect().bottom).toFixed(2)+"px");
  movieEffectsStage.style.transform=priorTransform;
 }
+/* ── THE EFFECTS LAYER IS NOT IN THE HEAD'S COORDINATE SPACE ───────────────
+   #heroMovieEffectsStage lives in #heroMovieEffectsClip, a Hero-relative
+   SIBLING of .heroCharacterPeek, because the props have to be cropped to the
+   Hero's rounded corner. So it inherits none of the head's transform chain,
+   and the four numbers written above are a SNAPSHOT: where the stage was, in
+   the clip's space, at the instant sync last ran.
+   THE ONLY THING THAT USED TO RE-RUN THE SYNC WAS the heroheadtransform
+   event, and during a movie nobody is dragging the head, so that event has
+   exactly one source: followPeekTransition() in hero-head-transform.js, which
+   fires it per frame while .heroCharacterPeek's OWN transform transition is
+   running. That transition is --sp-settle-dur -- 360ms, once, when .is-movie
+   goes on. So the layer tracked the head for the length of the peek's lift and
+   then froze. Measured at 1280x650: six syncs inside the first 600ms of a
+   performance and not one afterwards.
+   AND TWO OTHER THINGS KEEP MOVING THE STAGE AFTER THAT, both on the Y axis
+   and neither on X, which is why the failure reads as "same size, same x,
+   wrong y". The idle float, which hero-head-transform.js writes to
+   --hero-head-float-* on its own animation frame and which never dispatches
+   the event. And --hero-movie-guard-y, which enforceMovieSafeProjection()
+   re-integrates on every 125ms tick of the engine loop below, and which climbs
+   to ~83px at 1280x650 because the Hero is short enough there that the head
+   has to be pushed clear of the copy. Together: 3-5px of drift on a settled
+   movie, and the full height of the guard -- 83px, the whole distance between
+   the resting head and the movie head -- on any run where the peek's 360ms ran
+   out before the guard had finished ramping. The Hero's lighting composites
+   into this layer, so that is 83px of rim light landing on nothing.
+   So it is synced from the two clocks that actually move it: in the same
+   synchronous block that writes the guard, so a guard step is tracked with no
+   lag at all, and once per animation frame for the float in between ticks. */
+var movieSyncFrame=0;
+function movieSyncLoop(){
+ if(!movieMode){movieSyncFrame=0;return;}
+ syncMovieEffectsLayer();
+ movieSyncFrame=requestAnimationFrame(movieSyncLoop);
+}
+function startMovieSync(){if(!movieSyncFrame)movieSyncFrame=requestAnimationFrame(movieSyncLoop);}
+function stopMovieSync(){if(movieSyncFrame)cancelAnimationFrame(movieSyncFrame);movieSyncFrame=0;}
 window.addEventListener("heroheadtransform",function(){
  if(movieMode){enforceMovieSafeProjection();syncMovieEffectsLayer();}
 });
@@ -1091,6 +1170,7 @@ function setMovieStageTransform(value){
  stage.style.transform=value;
  if(movieEffectsStage)movieEffectsStage.style.transform=value;
  enforceMovieSafeProjection();
+ if(movieMode)syncMovieEffectsLayer();
  dispatchEvent(new CustomEvent("heroheadstagechange"));
 }
 function glassesOn(){var g=document.getElementById("glasses");if(g){g.classList.remove("off");g.classList.add("on");}}
@@ -1115,7 +1195,7 @@ function startMovie(word){
  setMoviePeek(true);
  ensureMovieEls();
  syncMovieEffectsLayer();
- movieMode=true;movieEnding=false;movieHair=false;movieTk0=tk;eventLock=true;clearTimeout(cycTimer);cycHold=true;if(cycWord){var mw=makePlainCycWord(word||"Motion.");cycWord.replaceWith(mw);cycWord=mw;}
+ movieMode=true;startMovieSync();movieEnding=false;movieHair=false;movieTk0=tk;eventLock=true;clearTimeout(cycTimer);cycHold=true;if(cycWord){var mw=makePlainCycWord(word||"Motion.");cycWord.replaceWith(mw);cycWord=mw;}
  setFace("neutral");mouthimg.src=FACES.rest.img;mouthimg.style.opacity="0";setMouth(0);
  for(var i=0;i<kernelEls.length;i++)kernelEls[i].style.opacity="0";
  /* peek removed */
@@ -1129,7 +1209,7 @@ function caughtMovie(){
 }
 function endMovieCleanup(){
  /* peek removed */
- movieMode=false;movieEnding=false;movieHair=false;eventLock=false;
+ movieMode=false;stopMovieSync();movieEnding=false;movieHair=false;eventLock=false;
  if(heroPeek)heroPeek.removeAttribute("data-movie-tick");
  if(bucketEl)bucketEl.style.opacity="0";
  for(var i=0;i<kernelEls.length;i++){kernelEls[i].style.opacity="0";kernelEls[i]._dropping=false;kernelEls[i]._htx=null;}
@@ -1415,7 +1495,7 @@ talk.addEventListener("click",function(e){e.preventDefault();
  cards.forEach(function(card){card.addEventListener("pointerenter",enter);card.addEventListener("pointerleave",function(){leave(card);});card.addEventListener("focusin",enter);card.addEventListener("focusout",function(){requestAnimationFrame(function(){leave(card);});});});
 })();
 (function(){return;/* magnetic retired: Let's talk is now a calm secondary button matching Back */var mag=document.querySelector(".talkMag");if(!mag||reduce)return;var PULL=0.22,REACH=70,MAXO=16,last=0,cx=0,cy=0;function apply(x,y){mag.style.transform=(x||y)?("translate("+x+"px,"+y+"px)"):"";}function cl(v){return v<-MAXO?-MAXO:(v>MAXO?MAXO:v);}window.addEventListener("mousemove",function(e){var now=performance.now();if(now-last<125)return;last=now;var b=mag.getBoundingClientRect();var bx=b.left+b.width/2-cx,by=b.top+b.height/2-cy;var dx=e.clientX-bx,dy=e.clientY-by;var reach=Math.max(b.width,b.height)/2+REACH;if(Math.hypot(dx,dy)<reach){cx=cl(Math.round(dx*PULL));cy=cl(Math.round(dy*PULL));apply(cx,cy);}else if(cx||cy){cx=0;cy=0;apply(0,0);}});window.addEventListener("mouseout",function(e){if(!e.relatedTarget&&(cx||cy)){cx=0;cy=0;apply(0,0);}});})();
-(function(){var headBounds=(faceImg.getAttribute("data-head-bounds")||"0.22 0.12 0.80 0.91").split(/\s+/).map(Number);var HEAD={x0:headBounds[0],y0:headBounds[1],x1:headBounds[2],y1:headBounds[3]};function overFace(e){var r=faceImg.getBoundingClientRect();if(!r.width||!r.height)return false;var fx=(e.clientX-r.left)/r.width,fy=(e.clientY-r.top)/r.height;return fx>=HEAD.x0&&fx<=HEAD.x1&&fy>=HEAD.y0&&fy<=HEAD.y1;}var onFace=false;window.__pointerOverFace=false;document.addEventListener("mousemove",function(e){var ov=overFace(e);window.__pointerOverFace=ov;if(CALIB)return;if(ov)enter();else leave();},{passive:true});document.addEventListener("mouseleave",function(){window.__pointerOverFace=false;leave();});window.addEventListener("blur",function(){window.__pointerOverFace=false;leave();});function enter(){if(eventLock||CALIB)return;if(!onFace){onFace=true;clearHold();activeHover="rest";showFace("rest");}}function leave(){var was=onFace;onFace=false;if(activeHover==="rest")activeHover=null;if(!eventLock&&!CALIB){var target=activeHover||holdFace||baseFace;if(blinking){for(var i=0;i<blinkQ.length;i++){if(blinkQ[i]&&blinkQ[i].open)blinkQ[i].face=target;}}if(was)showFace(target);}if(window.__restWatch)clearInterval(window.__restWatch);var t0=Date.now();window.__restWatch=setInterval(function(){if(window.__pointerOverFace||CALIB||onFace||Date.now()-t0>1500){clearInterval(window.__restWatch);window.__restWatch=null;return;}if(eventLock)return;if(curFace==="rest"){if(blinking){for(var j=0;j<blinkQ.length;j++){if(blinkQ[j]&&blinkQ[j].open)blinkQ[j].face=baseFace;}}setFace(baseFace);}},60);}faceImg.addEventListener("mousemove",function(e){if(CALIB)return;if(overFace(e))enter();else leave();});faceImg.addEventListener("mouseleave",function(){leave();});})();
+(function(){var headBounds=headBoundsOf();var HEAD={x0:headBounds[0],y0:headBounds[1],x1:headBounds[2],y1:headBounds[3]};function overFace(e){var r=faceImg.getBoundingClientRect();if(!r.width||!r.height)return false;var fx=(e.clientX-r.left)/r.width,fy=(e.clientY-r.top)/r.height;return fx>=HEAD.x0&&fx<=HEAD.x1&&fy>=HEAD.y0&&fy<=HEAD.y1;}var onFace=false;window.__pointerOverFace=false;document.addEventListener("mousemove",function(e){var ov=overFace(e);window.__pointerOverFace=ov;if(CALIB)return;if(ov)enter();else leave();},{passive:true});document.addEventListener("mouseleave",function(){window.__pointerOverFace=false;leave();});window.addEventListener("blur",function(){window.__pointerOverFace=false;leave();});function enter(){if(eventLock||CALIB)return;if(!onFace){onFace=true;clearHold();activeHover="rest";showFace("rest");}}function leave(){var was=onFace;onFace=false;if(activeHover==="rest")activeHover=null;if(!eventLock&&!CALIB){var target=activeHover||holdFace||baseFace;if(blinking){for(var i=0;i<blinkQ.length;i++){if(blinkQ[i]&&blinkQ[i].open)blinkQ[i].face=target;}}if(was)showFace(target);}if(window.__restWatch)clearInterval(window.__restWatch);var t0=Date.now();window.__restWatch=setInterval(function(){if(window.__pointerOverFace||CALIB||onFace||Date.now()-t0>1500){clearInterval(window.__restWatch);window.__restWatch=null;return;}if(eventLock)return;if(curFace==="rest"){if(blinking){for(var j=0;j<blinkQ.length;j++){if(blinkQ[j]&&blinkQ[j].open)blinkQ[j].face=baseFace;}}setFace(baseFace);}},60);}faceImg.addEventListener("mousemove",function(e){if(CALIB)return;if(overFace(e))enter();else leave();});faceImg.addEventListener("mouseleave",function(){leave();});})();
 
 function renderCal(){}
 addEventListener("keydown",e=>{if(!CALIB)return;

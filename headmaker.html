@@ -230,30 +230,30 @@ img{display:block;max-width:100%}
    the documented reason this page forked in the first place, and it brings the
    focus ring `.mkField` never had.
 
-   WHAT STAYS HERE IS WHAT THE LIBRARY HAS NO OPINION ABOUT — the slider, the
-   drop region, the stage. A page may position a control; it may not redraw one.
+   WHAT STAYS HERE IS WHAT THE LIBRARY HAS NO OPINION ABOUT — the drop region
+   and the stage. The SLIDER left this list on 2026-08-08, for the same reason
+   .ctl did: the library had no range primitive, so this page drew one, and so
+   did gradientlab.html, differently. A page may position a control; it may not
+   redraw one.
    ─────────────────────────────────────────────────────────────────────────── */
 
-/* the sliders. The input's own box IS the hit area — a ::-webkit-slider-thumb
-   paints outside a 2px input and catches nothing, which is how this page
-   shipped two 2px-tall targets. The track moves to ::-slider-runnable-track so
-   the line stays a hairline while the control is a full 44. */
-.mkSlider{-webkit-appearance:none;appearance:none;flex:1 1 auto;min-width:0;
- height:var(--tap-min);background:none;cursor:pointer;touch-action:pan-y;
- font-family:var(--sans)}   /* a range carries no text, but a UA-default Arial on it is a third family in the computed styles */
-.mkSlider::-webkit-slider-runnable-track{height:var(--focus-w);border-radius:var(--r-hair);background:var(--c100)}
-.mkSlider::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;
- width:var(--ico-md);height:var(--ico-md);border-radius:var(--r-full);
- background:var(--accent);border:0;
- margin-top:calc((var(--focus-w) - var(--ico-md)) / 2)}
-.mkSlider::-moz-range-track{height:var(--focus-w);border-radius:var(--r-hair);background:var(--c100)}
-.mkSlider::-moz-range-thumb{width:var(--ico-md);height:var(--ico-md);border:0;
- border-radius:var(--r-full);background:var(--accent)}
-.mkSlider:focus-visible{outline:var(--focus-w) solid var(--c950);outline-offset:var(--sp-2)}
+/* THE SLIDER IS GONE FROM THIS FILE TOO, and it is the same story as .ctl one
+   layer down. `.mkSlider` was five rules of bespoke pseudo-element geometry
+   reading the RAW ramps (--focus-w, --c100, --ico-md, --accent) rather than the
+   --ctl-* semantic layer, and gradientlab.html carried a second, DIFFERENT copy
+   of the same idea under a different name -- 20px thumb there against 18 here,
+   and --c950 there against --accent here, which in Night rendered one page's
+   thumb near-white and this one's violet. One role, two drawings, neither
+   discoverable from the markup. controls.css now ships `.ctl--range`; the two
+   inputs above carry it, and with it come the hover, press and disabled states
+   `.mkSlider` never had.
+   The `.mkRow` layout above is what a page is still allowed to say about a
+   slider: where it sits, and how wide its label column is. */
 
-/* .ctl and .field are suppressed by controls.css's own reduced-motion block. */
+/* .ctl, .ctl--range and .field are suppressed by controls.css's own
+   reduced-motion block, pseudo-elements included. */
 @media(prefers-reduced-motion:reduce){
- .mkSlider,.mkSteps li,.mkSteps li::before,.hmDie{
+ .mkSteps li,.mkSteps li::before,.hmDie{
   transition-duration:1ms!important;animation-duration:1ms!important}
 }
 
@@ -666,8 +666,8 @@ img{display:block;max-width:100%}
    <section class="mkStep hidden" id="step2">
     <div class="mkGroup mkGroup--rows">
      <h2 class="mkGroupH">Frame</h2>
-     <div class="mkRow"><label class="mkLbl" for="zoom">Zoom</label><input type="range" class="mkSlider" id="zoom" min="1" max="4" step="0.01" value="1.2"><output class="mkVal" id="zoomVal" for="zoom">1.20&times;</output></div>
-     <div class="mkRow"><label class="mkLbl" for="rota">Straighten</label><input type="range" class="mkSlider" id="rota" min="-30" max="30" step="0.5" value="0"><output class="mkVal" id="rotaVal" for="rota">0&deg;</output></div>
+     <div class="mkRow"><label class="mkLbl" for="zoom">Zoom</label><input type="range" class="ctl ctl--range" id="zoom" min="1" max="4" step="0.01" value="1.2"><output class="mkVal" id="zoomVal" for="zoom">1.20&times;</output></div>
+     <div class="mkRow"><label class="mkLbl" for="rota">Straighten</label><input type="range" class="ctl ctl--range" id="rota" min="-30" max="30" step="0.5" value="0"><output class="mkVal" id="rotaVal" for="rota">0&deg;</output></div>
      <p class="mkHint">Drag the photo to move it. Chin near the bottom, a little room above the hair.</p>
     </div>
     <div class="mkActs">
@@ -858,8 +858,17 @@ rota.addEventListener("input",function(){pz.r=parseFloat(rota.value)||0;apply();
    only two controls on the page whose value is not visible in the artifact
    itself the instant you let go. */
 (function(){var zv=document.getElementById("zoomVal"),rv=document.getElementById("rotaVal");
+ /* The fill goes in the SAME function as the readouts, for the same reason it
+    does on gradientlab: controls.css's .ctl--range needs --ctl-range-value as a
+    0..1 number because no shipping engine hands a range's value to CSS, and
+    sync() is already the one place both sliders re-read themselves -- it is
+    bound to input and exposed as __hmSyncCrop, which initFrame() calls after it
+    resets zoom and rota programmatically. A second listener would miss that. */
+ function fill(r){var lo=parseFloat(r.min),hi=parseFloat(r.max),v=parseFloat(r.value);
+  r.style.setProperty("--ctl-range-value",(hi>lo)?((v-lo)/(hi-lo)).toFixed(4):"0");}
  function sync(){if(zv)zv.textContent=parseFloat(zoom.value).toFixed(2)+"×";
-  if(rv)rv.textContent=(parseFloat(rota.value)||0).toFixed(1).replace(/\.0$/,"")+"°";}
+  if(rv)rv.textContent=(parseFloat(rota.value)||0).toFixed(1).replace(/\.0$/,"")+"°";
+  fill(zoom);fill(rota);}
  zoom.addEventListener("input",sync);rota.addEventListener("input",sync);
  window.__hmSyncCrop=sync;sync();})();
 document.getElementById("back2").addEventListener("click",function(){show(0);});

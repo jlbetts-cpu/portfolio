@@ -129,7 +129,7 @@ body{background:var(--c50);color:var(--c950);font-family:var(--sans);-webkit-fon
    site's stroked .gIco set -- tokens.css's .gIco{fill:none} would erase them --
    so the icon box stays here, on the library's own --ico-md rung. */
 .abLink svg{width:var(--ico-md);height:var(--ico-md);flex:none}
-.abLinkArrow{margin-left:1px;   /* optical nudge, below the 4px grid on purpose: it is kerning, not spacing */font-size:var(--fs-tab);color:var(--ctl-ink-mute);transition:transform .2s var(--ease-out)}
+.abLinkArrow{margin-left:1px;   /* optical nudge, below the 4px grid on purpose: it is kerning, not spacing */font-size:var(--fs-tab);color:var(--ctl-ink-mute);transition:transform var(--dur-state) var(--ease-out)}
 .abLink:hover .abLinkArrow{transform:translate(2px,-2px)}
 .abLink.ctl--primary .abLinkArrow{color:var(--ctl-primary-ink)}
 @media(prefers-reduced-motion:reduce){.abLinkArrow{transition:none}}

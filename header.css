@@ -765,11 +765,46 @@
    saved-heads roster puts two buttons INSIDE a row rather than being one, and
    without the exclusion this rule stretched each 34px thumbnail to width:100%
    and pushed its own delete button onto a line of its own. */
+/* ── THE PANEL ROW IS THE LIBRARY'S ROW ──────────────────────────────────────
+   Jayden: "Why are the LinkedIn, email, and Instagram different from the About
+   page on the contact dropdown?" He is right, and measured at 1440 the three
+   destinations differed on five properties at rest even though the ink was
+   already the same decision under two names:
+
+     property        this panel (was)   .footLink.ctl.ctl--quiet.ctl--row
+     font-size       14px (--fs-nav)    15px (--ctl-fs)
+     letter-spacing  normal             -0.06px (--tr-body)
+     line-height     14px               15px (--lh-flat)
+     gap             10px (--sp-10)     8px (--ctl-gap)
+     border-radius   10px (--r-sm)      14px (--ctl-r)
+     padding-inline  10px               16px (--ctl-pad)
+     colour          #686b73            #686b73   <- already equal
+     height          44px               44px      <- already equal
+
+   THE DEFECT WAS NEVER THE VALUES, IT WAS THE MEMBERSHIP. These rows are bare
+   <a> elements with no class at all, dressed by a descendant selector, so they
+   never joined the control library and drifted from it one token at a time --
+   --fs-nav is the metric for an item in a horizontal BAR, and a full-width row in
+   a column is not that. --nav-ink already resolves to --theme-muted and so does
+   --ctl-ink, which is the tell: the same decision was written twice and only one
+   copy was maintained.
+   Every metric below now reads --ctl-*, so the dropdown and the footer are one
+   component in two places rather than two components that agree about colour.
+   The row rule stays here rather than moving to the markup because this panel
+   ships in nine HTML files; play.html and index.html additionally carry the real
+   `ctl ctl--quiet ctl--row` classes now, and the two paths are verified to compute
+   identically -- so the remaining seven pages can take the classes whenever their
+   owners touch them, with no visual step either way.
+   :not(.mhPick,.mhX) is load-bearing and is not defensive noise: the saved-heads
+   roster puts two buttons INSIDE a row rather than being one, and without the
+   exclusion this rule stretched each 34px thumbnail to width:100% and pushed its
+   own delete button onto a line of its own. */
 .jbNav .jbDiscMenu :is(a,button):not(.mhPick,.mhX){
   width:100%;justify-content:flex-start;min-width:0;text-align:left;
-  padding:0 var(--sp-10);min-height:var(--tap-min);gap:var(--sp-10);
-  border-radius:var(--r-sm);corner-shape:var(--corner);white-space:nowrap;
-  font-size:var(--fs-nav);font-weight:400;color:var(--nav-ink);
+  padding:0 var(--ctl-pad);min-height:var(--ctl-h);gap:var(--ctl-gap);
+  border-radius:var(--ctl-r);corner-shape:var(--corner);white-space:nowrap;
+  font-size:var(--ctl-fs);font-weight:400;line-height:var(--lh-flat);
+  letter-spacing:var(--tr-body);color:var(--ctl-ink);
   transition:font-weight var(--hover-out-dur) var(--ease-out)}
 .jbNav .jbDiscMenu :is(a,button):not(.mhPick,.mhX):hover{
   transition:font-weight var(--ease-out-dur) var(--ease-out)}
@@ -806,9 +841,17 @@
    grows into empty space on the right and nothing beside it shifts.
    Timing is the bar's own pair, hover-in at --ease-out-dur and hover-out at
    --hover-out-dur, because he has already called an abrupt transition out once. */
+/* THE HOVER IS THE ONE THING THAT STAYS THE NAV'S AND NOT THE LIBRARY'S, and it
+   is a deliberate exception rather than a leftover. .ctl--quiet's hover moves ink
+   alone; this panel moves ink, weight AND the glyph's stroke, which is the rule
+   Jayden gave for the bar -- when a control's label changes, its icon changes with
+   it. The footer's rows carry no icon, so two of those three channels have nothing
+   to move there; matching them would mean taking a channel away from the surface
+   that has one. Rest state is identical, which is the state the two lists are
+   compared in. Scoped to .jbNav so nothing outside the bar inherits it. */
 .jbNav .jbDiscMenu :is(a,button):not(.mhPick,.mhX):hover,
 .jbNav .jbDiscMenu :is(a,button):not(.mhPick,.mhX):focus-visible{
-  color:var(--nav-ink-strong);font-weight:600}
+  color:var(--ctl-ink-strong);font-weight:600}
 .jbNav .jbDiscMenu :is(a,button):not(.mhPick,.mhX):hover .gIco,
 .jbNav .jbDiscMenu :is(a,button):not(.mhPick,.mhX):focus-visible .gIco{
   stroke-width:var(--ico-stroke-strong)}
@@ -840,7 +883,10 @@
   gap:var(--sp-6);margin:var(--sp-6) var(--sp-4) var(--sp-2)}
 .jbPlayMenu .moodHeads:empty,.moodHeads:empty{display:none}
 /* a rule BETWEEN groups, at the site's own hairline weight */
-.jbDiscMenu .jbDiscSep{height:var(--hair-w);background:var(--c100);
+/* --theme-rim, not --c100: the ramp is never rebound by the dark theme, so a
+   #E6E6E6 hairline was a near-white rule across a #111318 panel at night -- the
+   one bright line in a menu whose every other edge is a translucent wash. */
+.jbDiscMenu .jbDiscSep{height:var(--hair-w);background:var(--theme-rim);
   margin:var(--sp-6) var(--sp-8);flex:0 0 auto}
 .jbNav[data-surface="ink"] .jbDiscMenu .jbDiscSep{background:var(--i100)}
 /* Play's panel carries the saved-heads grid and can outgrow a short viewport.

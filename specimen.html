@@ -47,7 +47,13 @@
 
   /* ── PROPOSED: type ── */
   --lh-auto:clamp(0.95em, 0.91em + 10.25px, 1.6em);
-  --lh-prose-new:1.55;--lh-prose-old:1.6;
+  /* --lh-prose-new WAS 1.55, the value this page proposed on 2026-08-02. The site
+     shipped 1.5 (tokens.css, --lh-prose) and this page went on asserting 1.55 in
+     bold for a week -- measured 2026-08-09: specimen p = 15px/23.25px = 1.55,
+     shipped prose = 20px/30px = 1.5. A specimen that states a value the system
+     does not hold is worse than no specimen, so the NEW column now renders what
+     ships. The OLD column keeps 1.6 because that IS what it is for. */
+  --lh-prose-new:1.5;--lh-prose-old:1.6;
   --tr-display:-.042em;--tr-hero:-.028em;--tr-head:-.020em;--tr-sub:-.015em;
   --tr-title:-.010em;--tr-body:-.004em;--tr-flat:0;--tr-caps:.045em;
   --tr-mark:-.008em;   /* sentence case. was +.100em when the mark was capitals */
@@ -448,6 +454,31 @@ h2.sec em{font-style:normal;color:var(--c500);font-weight:400}
 <div class="page">
 
 <section style="padding-top:34px">
+  <h2 class="sec">What this page is — read this first</h2>
+  <div class="warn" style="max-width:78ch;margin-bottom:26px">
+    <b>This is a proposal from 2026-08-02, not a picture of the shipped system.</b>
+    It is standalone by design — it links no stylesheet and copies the tokens it
+    demonstrates into its own <code>:root</code>. Measured 2026-08-09: it declares
+    <b>70</b> custom properties against the <b>316</b> that ship in
+    <code>tokens.css</code> + <code>controls.css</code>, so it covers
+    <b>20.6%</b> of the system, and the copies can drift without anything
+    reporting it — <code>--lh-prose</code> already did (it asserted 1.55 for a week
+    after 1.5 shipped; corrected above).
+    <br><br>
+    <b>It shows none of:</b> the leading ladder (<code>--lh-tight/head/note/prose</code>),
+    the control layer (<code>--ctl-*</code>, 44/36px rungs, the eleven
+    <code>.ctl</code> variants, <code>.field</code>, <code>.ctl--range</code>,
+    <code>.ctl--swatch</code>), the surface primitives
+    (<code>.surface</code>, <code>.collection</code>, <code>.media</code>), the
+    six-rung motion ladder (<code>--dur-press</code> → <code>--dur-enter</code>)
+    or the fixed <code>--sp-*</code> spacing ladder. Those are the parts of the
+    system a reviewer would actually ask about.
+    <br><br>
+    <b>The shipped system is <code>tokens.css</code> and <code>controls.css</code>.</b>
+    When those two and this page disagree, they are right and this page is stale.
+    Conformance measured against them:
+    <code>docs/superpowers/specs/2026-08-09-system-conformance-audit.md</code>.
+  </div>
   <h2 class="sec">How to read this page</h2>
   <p class="dek">
     Every block below is a pair. <b>Left is what the site does today.</b>
@@ -1099,9 +1130,10 @@ h2.sec em{font-style:normal;color:var(--c500);font-weight:400}
         <div><div class="spec-h2 newset">A heading at h2</div><div class="mini">→ 1.19 @36 · 1.30 @26</div></div>
         <div><div class="spec-h3 newset">And one at h3</div><div class="mini">→ 1.23 @32 · 1.40 @21</div></div>
         <div><div class="spec-p newset">Research-driven product design. The measure is capped
-          at 680px, the leading is 1.55, and the tracking is −.004em — which is what this
+          at 680px, the leading is 1.5, and the tracking is −.004em — which is what this
           face wants at its 0.51&nbsp;em x-height.</div>
-          <div class="mini"><b>--lh-prose 1.55</b> · <b>--tr-body</b> · a 3% tightening</div></div>
+          <div class="mini"><b>--lh-prose 1.5</b> (the shipped value) · <b>--tr-body</b> ·
+          a 6% tightening</div></div>
         <p class="n"><b>The one hero proposal:</b> at the 38px mobile floor the hero currently
         still runs 1.08 — 4.1px of air between a descender and the cap below it, on a
         headline that wraps to three lines. The law wants 1.18 (7.9px). <b>Judge it at 390px,

@@ -14,7 +14,21 @@
 .cycw.party.grab,.cycw.love.grab,.cycw.collab.grab{cursor:grabbing}
 .cycw.cwtug{animation:cwTug 1.5s steps(1,end) both}
 @keyframes cwTug{0%{transform:translateX(0)}6%{transform:translateX(3px)}12%{transform:translateX(6px)}18%{transform:translateX(9px)}24%{transform:translateX(6px)}30%{transform:translateX(3px)}36%{transform:translateX(0)}44%{transform:translateX(4px)}50%{transform:translateX(8px)}56%{transform:translateX(4px)}62%{transform:translateX(0)}100%{transform:translateX(0)}}
-@media(prefers-reduced-motion:reduce){.cycw.cwtug{animation:none}}
+@media(prefers-reduced-motion:reduce){.cycw.cwtug{animation:none}
+/* THE DOTS' GUARD HAD TO COME WITH THE DOTS. The disco CSS above was copied
+   verbatim out of index.html, but the reduced-motion block that switches these
+   infinite loops off lives further down that file and did not come with it --
+   and because this stylesheet is injected at RUNTIME it lands after every
+   linked sheet, so it outranked the identical guard play.css already carries
+   and quietly re-enabled the animation site-wide for anyone who had asked for
+   stillness.
+   .discoDot::after animates BACKGROUND-POSITION, a paint property, so it costs
+   a style recalculation on every frame rather than riding the compositor.
+   Measured on play.html under prefers-reduced-motion: this one selector was
+   the entire idle load, 60.8 style recalcs per second against 2.0 with it
+   stopped -- killing every companion head on the page changed nothing by
+   comparison. */
+.heartDot::before,.discoDot::after,.cookieDot::before,.camDot::before{animation:none}}
 #party{position:absolute;top:0;left:0;right:0;height:112vh;-webkit-mask-image:linear-gradient(#000 90%,transparent 100%);mask-image:linear-gradient(#000 90%,transparent 100%);z-index:63;pointer-events:none;opacity:0;transition:opacity 1.15s cubic-bezier(.33,0,.2,1)}
 #party:not(.on){transition:opacity .42s cubic-bezier(.3,0,.8,.15)}
 #party.on{opacity:1}

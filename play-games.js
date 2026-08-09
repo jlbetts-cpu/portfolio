@@ -199,6 +199,8 @@
     would collapse into one head. */
  var _eggBag=[];
  var EGG_COLORS=["#E8734A","#E0A32E","#3FA99A","#4E86C7","#8E6FC7","#D45D86","#5FA855","#C9552F","#2E9BB0","#B07CC6"];
+ /* The one placeholder's colour. Deliberately NOT drawn from the bag -- see seedPlaceholders. */
+ var PLACEHOLDER_COLOR="#3FA99A";
  function nextEggColor(){if(!_eggBag.length){_eggBag=EGG_COLORS.slice();for(var i=_eggBag.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=_eggBag[i];_eggBag[i]=_eggBag[j];_eggBag[j]=t;}}return _eggBag.pop();}
  function tintEgg(cut,color,cb){var img=new Image();
   img.onload=function(){try{
@@ -237,10 +239,34 @@
        slots with nothing to collide with -- which keeps index === slot true for the team
        picker (see heads() below) and lets __hmTeamSel key off them unchanged.
 
-    HOW MANY: five. Measured against the arena the engine actually lays out -- a head is
-    108px wide at 1280 and 64px at 390, so five is 540px across 1280 (a loose group, still
-    clearly several people) and 320px across 390 (a row that fills the phone without
-    stacking). Four looked thin at 1280; six touched at 390. ---- */
+    HOW MANY: ONE. It was five, and five was measured for the job of looking like a crowd
+    (a head is 108px wide at 1280, so five spanned 540px; four looked thin, six touched at
+    390). Jayden, after weighing hiding them altogether: "keep it on at default -- but can
+    we only show one coloured egghead, not all of them."
+    ONE IS THE ANSWER TO TWO REQUIREMENTS THAT LOOKED INCOMPATIBLE. The placeholders exist
+    so a first visit does not look empty and broken; the reveal exists so a visitor who
+    cuts out their own face meets a crowd they helped make. Five satisfied the first and
+    spent the second -- the whole cast was on stage before you had done anything. One says
+    SOMETHING LIVES HERE without showing the company: it is a hint, not a crowd, and the
+    surprise survives.
+    WHERE IT STANDS IS NOT LEFT TO CHANCE. At n=5 the row read as a group wherever it
+    landed; at n=1 a lone head in a bad spot reads as a bug. play-engine.js:978 already
+    branches on exactly this -- `bootTotal===1` centres the head on the arena's own axis
+    instead of distributing it along the boot span -- so the single egghead stands dead
+    centre at the foot of the field, on the same vertical axis as the portrait above it and
+    as the headline above that. It is the one placement that reads as composed rather than
+    as leftover, and it needs no new geometry: it is the engine's existing single-head case,
+    which until now nothing ever reached.
+    ITS COLOUR IS CHOSEN, NOT DEALT. nextEggColor() draws from a shuffled bag, which is
+    right when the palette itself is the statement and wrong when one head IS the whole
+    first impression of the head system. #3FA99A is picked for three measured reasons:
+    its relative luminance is 0.31, so it holds its value on both grounds (3.0:1 on
+    --c50 paper, 7.0:1 on the night page) where the bag's #E0A32E burns on paper and its
+    #4E86C7 sinks at night; it is far from BOTH team channels (--tc1 224,90,78 and --tc2
+    90,160,216), so a lone head cannot be misread as already picked for a side; and it is
+    far from the violet the dark theme owns (--theme-focus / --theme-atmosphere), so it
+    cannot be misread as selected either. The bag is untouched and still runs every other
+    spawn path. ---- */
  var _ph=[],_phTries=0,_bootWait=0,_bootFallback=0,_bootWatch=0;
  /* Play's arena is hidden only until every initial head has both reached the engine's seated
     state and decoded its cutout. A saved data URL can be long enough to pass the storage filter
@@ -279,12 +305,20 @@
   /* The engine exports the empty-roster spawn API before this script runs. Keep the bounded
      retry as a defensive load-order guard, but never write scenery into localStorage. */
   if(!window.__hmSpawnOne){if(_phTries++<40)setTimeout(seedPlaceholders,120);return;}
-  var N=5,i;
+  /* ONE, unless a harness says otherwise. __hmPlaceholderCount exists because the
+     placeholder crowd stopped being big enough to test MATCH physics with the moment it
+     became one head: tools/play-browser-smoke.py's contact assertions read
+     `#playArena [data-hm-boot-ready]`, which only boot-seated heads carry, so they cannot
+     be satisfied by adding heads after load -- and a one-player match never settles into
+     the "play" phase at all, because there is nobody to stop the first goal. It is a
+     number, not a behaviour switch: nothing downstream branches on it, and unset means 1. */
+  var N=(window.__hmPlaceholderCount|0)||1,i;
   for(i=0;i<N;i++)(function(slot){
-   tintEgg(EGG.cut,nextEggColor(),function(cut){
+   tintEgg(EGG.cut,PLACEHOLDER_COLOR,function(cut){
     var eyes=(EGG.eyes||[]).map(function(e){var o={};for(var k in e)o[k]=e[k];return o;});
     // the same imperceptible nudge __hmAddEgghead uses: readAll()-style de-dupe keys on
-    // marks+eyes as well as the image, and these must stay five distinct heads
+    // marks+eyes as well as the image, so distinct placeholders stay distinct. Harmless
+    // at N=1 and correct again the moment N is ever raised.
     if(eyes[0])eyes[0].x+=(slot+1)*0.0004;
     var data={cut:cut,eyes:eyes,marks:EGG.marks,slot:slot,__ph:1,__bootSeated:1,__bootTotal:N};
     _ph[slot]=data;
@@ -630,4 +664,708 @@
   if(exp)exp.addEventListener("click",function(e){e.stopPropagation();if(open)closeTray();else openTray("soccer");});
   window.__hmTeamScreen={open:function(){openTray("soccer");},close:closeTray};
  })();
+})();
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   SHOW THE CROWD  -- the checkbox at the foot of the mood menu.
+   Markup and the full reasoning live in play.html; this is only the latch.
+   hero-engine.js owns #moodMenu and dispatches on `e.target.closest(".moodItem")`,
+   so a control that is NOT a .moodItem is invisible to it and cannot be mistaken
+   for a fifth mood. That is why this file can own the behaviour without forking
+   the menu controller.
+   ══════════════════════════════════════════════════════════════════════════════ */
+(function(){
+ "use strict";
+ var KEY="jbPlayCrowd";                       // "0" | "1", and never anything else
+ var btn=document.getElementById("moodCrowd");
+ if(!btn)return;
+ function read(){
+  /* Absent means ON. A first visit has no preference, and the page's resting state is
+     the crowd visible -- so the default is not stored, it is simply the absence of a
+     choice. Only an explicit "0" hides them, which also means a cleared browser or a
+     private window lands on the state Jayden asked for rather than on a remembered no. */
+  try{return window.localStorage.getItem(KEY)!=="0";}catch(_){return true;}
+ }
+ function write(on){try{window.localStorage.setItem(KEY,on?"1":"0");}catch(_){}}
+ function apply(on){
+  document.body.classList.toggle("hmCrowdOff",!on);
+  btn.setAttribute("aria-checked",on?"true":"false");
+ }
+ apply(read());
+ btn.addEventListener("click",function(e){
+  /* stopPropagation, not preventDefault: hero-engine's outside-click handler closes the
+     menu on any click it did not recognise, and a checkbox that closes the surface it
+     lives in cannot be used to compare the two states. Ticking it leaves the menu open. */
+  e.stopPropagation();
+  var next=btn.getAttribute("aria-checked")!=="true";
+  write(next);apply(next);
+ });
+})();
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   THE DRAGGABLE MOOD WORD  -- the home page's old headline device, rebuilt here.
+
+   Jayden: "I was thinking we bring back the draggable mood words and recreate the
+   h1 on this page, since the Play page kinda turned into what the home page used
+   to look like. Make the text actually have that animation, and the buttons."
+
+   HISTORY, because this is a restoration and not an invention. index.html's h1 used
+   to end in a live word that cycled between the four moods every 8.5s and could be
+   picked up and dropped on Jayden's head to fire that mood. Commit e5bc0dc deleted
+   the clause from the HOME page, and the spec that drove it
+   (docs/superpowers/specs/2026-08-03-hero-headline.md §7) is explicit that the cut
+   was a CLARITY-FOR-RECRUITERS argument -- "the clause was the weakest carrier of
+   the site's charm and the strongest tax on its clarity" -- and equally explicit
+   about the three things it cost: the moods' only passive announcement, the tug
+   that taught the gesture, and the character in the first six seconds. Every one of
+   those is a thing the Play page wants and the home page did not. Same device, right
+   page. §7 also records "removing the clause removes one entry point, not the
+   feature", which is why nothing in hero-engine.js had to change to bring it back.
+
+   IT DOES NOT FORK THE MOOD SYSTEM. A successful drop dispatches a click on the
+   REAL .moodItem in #moodMenu, so hero-engine.js runs its own dispatch, its own
+   performance and its own queue exactly as it does when you use the menu. There is
+   one owner of what a mood means and this is not it.
+
+   THE CAPITALISATION BUG IS DESIGNED OUT, not fixed. The original ghost's text was a
+   hardcoded Title Case literal ('Hunger', 'Delight', 'Love', 'Empathy'); when commit
+   ee574f0 lowercased the headline's WORDS array it did not touch those five literals,
+   so from that day the h1 read "hunger." and the thing in your hand read "Hunger".
+   Commit 79add97 added `text-transform:none` to all five ghost rules ten hours later,
+   which was a misdiagnosis -- there has never been an uppercase rule anywhere in that
+   element's ancestry, so the declaration was inert and the literals are still Title
+   Case at HEAD. The ghost below is BUILT FROM THE WORD IT IS LIFTING, so casing,
+   punctuation and any future copy change have exactly one source and the whole class
+   of bug is gone rather than papered over.
+   ══════════════════════════════════════════════════════════════════════════════ */
+(function(){
+ "use strict";
+ var lede=document.getElementById("playLede");
+ var slot=lede&&lede.querySelector(".pMoodSlot");
+ var line=lede&&lede.querySelector(".pMoodLine");
+ var stage=document.getElementById("stage");
+ if(!lede||!slot||!line||!stage)return;
+
+ /* The four are named in the SAME ORDER the menu lists them, and each entry carries the
+    data-mood the menu keys on plus the glyph class that replaces the word's full stop --
+    the same .camDot/.cookieDot/.discoDot/.heartDot artwork the menu items wear, which the
+    hero spec (2026-08-05 §66) forbids replacing with newly drawn ones. */
+ var MOODS=[
+  {word:"empathy.",mood:"empathy",dot:"camDot",   style:"collab"},
+  {word:"hunger.", mood:"hunger", dot:"cookieDot",style:"hungry"},
+  {word:"delight.",mood:"delight",dot:"discoDot", style:"party"},
+  {word:"love.",   mood:"love",   dot:"heartDot", style:"love"}
+ ];
+
+ var reduce=window.matchMedia&&window.matchMedia("(prefers-reduced-motion:reduce)").matches;
+ var CYC_STAG=0.05, DWELL=8500;
+
+ /* THE MOTION LADDER IS READ, NOT RETYPED. Three rungs govern the swap and all three
+    already have names in tokens.css; parsing them once at boot costs one style read and
+    means a change to the ladder moves this rig with it instead of leaving a literal
+    behind. parseFloat("240ms") is 240, so no unit handling is needed.
+      --sp-settle-dur   the line's own settle, and the duration --sp-settle is SAMPLED
+                        FOR -- tokens.css §6 is explicit that the spring curves are bound
+                        to their durations and may not be re-timed (360)
+      --dur-state       two jobs, both of them "one state has become another": the point
+                        in the exit at which the next word takes over (see cycle()), and
+                        the reduced-motion dissolve in both directions (160)
+      --sp-bounce-dur   the duration --sp-bounce is SAMPLED FOR, and the only duration it
+                        may be run at (§6 again). It is what the dropped letters unwind
+                        on, because it is the one curve in the file that OVERSHOOTS
+                        enough to see in a rotation -- see settleGlyphs() (860) */
+ var CS=getComputedStyle(document.documentElement);
+ function ms(name,fallback){var v=parseFloat(CS.getPropertyValue(name));return v>0?v:fallback;}
+ var SETTLE_MS=ms("--sp-settle-dur",360), FADE_MS=ms("--dur-state",160),
+     BOUNCE_MS=ms("--sp-bounce-dur",860);
+ var wi=Math.floor(Math.random()*MOODS.length);
+ var cycWord=null,cycTimer=0,cycHold=false,dragging=false,ghost=null,pid=null;
+ var tugCount=0,TUG_MAX=3;
+
+ var baseDelay=0;                        // ms of head start the FIRST word gives the static text
+ function build(i,defer){
+  var m=MOODS[i];
+  var w=document.createElement("span");
+  w.className="cycw "+m.style;
+  w.setAttribute("data-mood",m.mood);
+  [].forEach.call(m.word,function(ch,ci){
+   var sp=document.createElement("span");
+   var isDot=(ch===".");
+   sp.className="cyc-ch"+(isDot?" "+m.dot:"")+(defer?"":" in");
+   if(!isDot)sp.textContent=ch;
+   sp.style.animationDelay=(baseDelay/1000+ci*CYC_STAG).toFixed(3)+"s";
+   /* drop the compositing layer once the entrance is over, exactly as the original did --
+      a permanently animating span is a permanent layer */
+   sp.addEventListener("animationend",function(){sp.classList.remove("in");},{once:true});
+   w.appendChild(sp);
+  });
+  attach(w);
+  return w;
+ }
+
+ /* ══ THE LINE GROWS AND SHRINKS ═════════════════════════════════════════════════
+    Jayden: "make sure to animate the line growing or shrinking in a sleek way."
+
+    THE FOUR WORDS DIFFER IN WIDTH BY UP TO ~84px, and .pLede is text-align:center, so
+    every swap changes where "made with" sits by half that. Something has to carry that
+    change or the clause snaps sideways.
+
+    WHAT WAS HERE BEFORE, AND WHY IT WENT. The previous rig eased the incoming word's
+    min-width from the outgoing word's width down to its own. It was not instant -- it
+    was a real 360ms tween and it did stop the snap -- but it had two faults, both
+    measured on this page at 1280x900:
+
+      1. IT ANIMATED A LAYOUT PROPERTY ON AN h1. min-width is an input to layout, so
+         every frame of the tween re-laid the clause AND re-ran text-wrap:balance on
+         .pLede. Benchmarked against this exact element: 0.188ms per invalidation for
+         min-width against 0.023ms for the transform pair below, ~8x, on a page whose
+         other rAF budget is a crowd of physics heads. This is the same class of work
+         the performance pass just took out of the drag path (idle forced-layout reads
+         278/s -> 57/s); paying it back on the headline would be a poor trade.
+      2. IT MADE THE WORD DRIFT SIDEWAYS AS IT ARRIVED. min-width pads the inline-block
+         to the RIGHT of its glyphs, so while the box shrank the line re-centred and the
+         new word's letters slid 22px right -- measured: "made" travelled 440.36 -> 462.66
+         while "hunger." was still blurring in. The letters were doing two things at once
+         and reading as neither.
+
+    WHAT IS HERE NOW. Nothing about the layout is animated at all. The swap lands the new
+    word at its FINAL width in a single layout, and then two transforms -- one on the line,
+    one on the word, equal and opposite -- put the picture back where the eye left it and
+    relax to identity together:
+
+        .pMoodLine   translateX(+d)  ->  0     the static run holds still, then glides
+        .cycw        translateX(-d)  ->  0     cancels the line's shift for the word only
+
+    Because they are the same duration and curve they stay in lockstep, so the NET
+    transform on the word is zero for the whole tween: the arriving word never moves, and
+    the only thing that travels is "made with". That is the sleek reading of this change --
+    the eye is on the word that is changing, so the word is the thing that stays put and
+    the sentence settles around it. On a centred line the word's CENTRE is invariant under
+    a width change anyway (the left edge goes out by d and the right edge in by d), so
+    holding it still is not a trick, it is the geometry.
+
+    THE DISTANCE IS MEASURED, NOT DERIVED. Reading the real before/after positions of the
+    first static word and the word's own centre costs the same two layout reads as the
+    width maths would and is correct in cases the maths is not -- most importantly when the
+    clause wraps at a narrow viewport, where "made with" does not move at all and the right
+    compensation is zero rather than half the width delta.
+
+    THE CURVE IS --sp-settle, AND ITS DURATION IS --sp-settle-dur. A line finding its
+    length is a settle, which is what that spring is for; it is sampled monotonic (no
+    overshoot), so type never wobbles, and tokens.css §6 requires the pair be used
+    together. The word's own letters keep cycIn/--ease-out: a letter landing and a line
+    settling are different objects and it is right that they are not the same curve.
+
+    ONE forced reflow per swap (the void offsetWidth that commits the start transform),
+    against 22 layouts per swap before. Reduced motion takes none of it -- see cycle().
+    ══════════════════════════════════════════════════════════════════════════════ */
+ var settleTimer=0,settleWord=null;
+
+ /* The two numbers the settle needs, read together so the pair costs one layout. */
+ function shot(w){
+  var wd=line.querySelector(".wd");            // the first static word, if the lede was split
+  var r=w?w.getBoundingClientRect():null;
+  return {wd:wd?wd.getBoundingClientRect().left:null,
+          cx:r?r.left+r.width/2:null,
+          w:r?r.width:null};
+ }
+
+ /* SNAP TO THE END STATE, never to a half-way one. Called before every measurement, at the
+    end of every tween, and the moment a hand picks the word up -- a settle that is still
+    running when the next thing happens must leave the sentence where it was GOING, so
+    nothing downstream ever measures a transformed rect or inherits a stranded offset. */
+ function endSettle(){
+  clearTimeout(settleTimer);
+  line.style.transition="";line.style.transform="";line.style.willChange="";
+  if(settleWord){settleWord.style.transition="";settleWord.style.transform="";settleWord.style.willChange="";}
+  settleWord=null;
+ }
+
+ function settle(before,w){
+  endSettle();
+  if(reduce||!before)return;                   // reduced motion changes the word, never moves it
+  var after=shot(w);
+  /* How far the static run jumped, and how far the word's centre jumped with it. */
+  var dLine=(before.wd!=null&&after.wd!=null)?before.wd-after.wd
+           :(before.w!=null&&after.w!=null)?(after.w-before.w)/2:0;   // fallback: half the delta
+  var dWord=(before.cx!=null&&after.cx!=null)?(before.cx-after.cx)-dLine:-dLine;
+  if(Math.abs(dLine)<0.5&&Math.abs(dWord)<0.5)return;
+  var ease="transform "+SETTLE_MS+"ms var(--sp-settle)";
+  settleWord=w;
+  line.style.willChange="transform";w.style.willChange="transform";
+  line.style.transition="none";w.style.transition="none";
+  line.style.transform="translate3d("+dLine.toFixed(2)+"px,0,0)";
+  w.style.transform="translate3d("+dWord.toFixed(2)+"px,0,0)";
+  void line.offsetWidth;                       // the one forced reflow, once per swap
+  line.style.transition=ease;w.style.transition=ease;
+  line.style.transform="translate3d(0,0,0)";
+  w.style.transform="translate3d(0,0,0)";
+  /* The layer comes off when the tween is over -- a permanently promoted h1 line is a
+     permanent layer, the same reason .cyc-ch strips .in on animationend. */
+  settleTimer=setTimeout(endSettle,SETTLE_MS+60);
+ }
+
+ function place(i,defer){
+  endSettle();                                 // never measure a rect that is mid-tween
+  endGlyphSettle();                            /* and never measure letters still unwinding
+                                                  from a drop -- a rotated glyph widens the
+                                                  word's rect, which would poison the
+                                                  before/after the line settle is built on */
+  var before=(cycWord&&cycWord.parentNode)?shot(cycWord):null;
+  var next=build(i,defer);
+  if(before){
+   cycWord.replaceWith(next);cycWord=next;
+   settle(before,next);
+  }else{
+   slot.appendChild(next);cycWord=next;
+  }
+  tug(next);
+ }
+
+ /* THE WORD STILL CHANGES UNDER REDUCED MOTION. It used to stop dead on whichever mood it
+    booted with, which is the failure mode Apple names directly: Reduce Motion asks for a
+    different animation, not for the feature to be withdrawn, and the substitution it names
+    is a dissolve. The four moods are this page's only passive announcement that the moods
+    exist at all, so withdrawing the cycle withdraws information, not just decoration. What
+    reduced motion drops is every bit of TRAVEL -- no per-letter stagger, no translateY, no
+    blur, and no settle: the clause's new length simply is, at the one moment nothing is
+    visible. See the @media block in play.html for the paired keyframes. */
+ function nextCycle(ms){
+  clearTimeout(cycTimer);
+  cycTimer=setTimeout(cycle,ms||DWELL);
+ }
+ function cycle(){
+  if(cycHold||dragging||!cycWord)return;  // never swap out from under a hand
+  cycWord.classList.add("out");
+  clearTimeout(cycTimer);
+  /* WHEN THE NEW WORD ARRIVES IS DERIVED FROM THE OLD ONE, not a constant. The exit is
+     staggered per character exactly as the entrance is, so a five-letter word is clear
+     4x50ms sooner than an eight-letter one. The old fixed 560 was wrong at both ends: it
+     cut "delight." and "empathy." off with 30ms of their last letter still to run, and it
+     left "love." sitting as a hole in a full-width slot for 120ms -- the awkward half-empty
+     space this swap exists to never show. Measured at 1280x900: the last letter of "love."
+     was already under 5% opacity at 333ms and the swap did not come until 560.
+     THE HANDOVER IS ONE RUNG EARLY ON PURPOSE. It waits --dur-state (160) of the last
+     letter's --dur-state-out (240), not the whole thing. --ease-out is front-loaded, so at
+     that point the letter is at ~4% opacity behind 4.8px of blur -- gone to the eye, with
+     only the tail of the curve left to run. Cutting the tail is what closes the hole to a
+     frame or two: the last letter leaves as the first one arrives, and the line starts
+     settling on the same frame, so the word changing and the clause changing are ONE event
+     rather than two with a gap between them. The number is a rung, not a fudge factor. */
+  var n=cycWord.childElementCount||1;
+  var gap=reduce?FADE_MS:(n-1)*CYC_STAG*1000+FADE_MS;
+  cycTimer=setTimeout(function(){
+   if(cycHold||dragging||!cycWord)return;
+   wi=(wi+1)%MOODS.length;place(wi,false);nextCycle();
+  },gap);
+ }
+
+  /* NO TUG. The word used to nudge itself sideways twice, 900ms after landing, to teach
+     that it is draggable. Jayden: "I don't like the jolt hint" -- removed entirely.
+     tug() stays as a no-op so its call sites remain honest rather than being unpicked
+     one at a time. If the gesture ever needs teaching again it should be taught by the
+     word's resting appearance, not by motion -- a hint line is still not the answer,
+     which was settled when the same clause was killed on the home page. */
+  function tug(){}
+
+ function fire(mood){
+  /* One owner of what a mood means. This is the menu's own button, so hero-engine.js's
+     dispatch runs unchanged -- including its game gating, its busy queue and its
+     "conjure a proxy so he does not chew air" path for hunger. */
+  var item=document.querySelector('#moodMenu .moodItem[data-mood="'+mood+'"]');
+  if(item)item.click();
+ }
+
+ /* ══ WHERE "OVER THE FACE" ACTUALLY IS ══════════════════════════════════════════
+    ONE zone for all four moods, rather than the home page original's split between a radial
+    test for hunger and a rectangle-with-asymmetric-padding for the other three -- four
+    different drop targets for four identical gestures is a difference the visitor cannot
+    see, but can feel as inconsistency.
+
+    IT IS THE INK, NOT THE BOX. #face is a transparent cut-out and its element rect is much
+    bigger than the head inside it -- most of the top-left and top-right corners are empty
+    pixels of hair-gap. data-head-bounds carries the REAL alpha extents, derived from the
+    images and already the source of truth for hero-engine.js's overFace() hover test and
+    hero-head-transform.js's frame. Reading the same attribute is what stops this page's
+    idea of "on the head" drifting away from the other two consumers of it: if the artwork
+    is ever recut, all three move together.
+
+    AN ELLIPSE INSCRIBED IN THOSE BOUNDS, NOT THE BOUNDS THEMSELVES. The bounds are an
+    axis-aligned bounding box, so its four corners are still empty -- and the corners are
+    exactly where a rectangle lies to you, because that is where the hair curves away. A
+    head is an ellipse to a much better approximation than it is a rectangle, and the test
+    costs the same two multiplies. HEAD_PAD then gives back 6%, because a drop target that
+    is pixel-exact is a drop target you keep missing; the pad is a hair of forgiveness at
+    the silhouette, not a second, looser zone.
+
+    THIS IS STRICTLY TIGHTER THAN WHAT IT REPLACES, which matters because the number it
+    replaces was itself a bug fix. The old test was radius 0.55 x the stage width, chosen
+    down from the home page's 0.72 after measuring that at 1440x900 the word's own RESTING
+    centre sits 330px from the head's centre while 0.72 of the 466px stage is 335 -- the
+    word began the gesture already inside its own drop zone and a 2px slip fired a mood.
+    The ellipse's half-width is 0.328 x 1.06 = 0.347 of the stage and its half-height 0.457
+    x 1.06 = 0.484, both under 0.55, so that fix is preserved by construction at every
+    breakpoint rather than by re-measuring one.
+
+    THE RECT IS READ ONCE PER GESTURE, NOT ONCE PER MOVE. This runs on every pointermove, and
+    a getBoundingClientRect there is a forced layout in the drag path -- the exact cost the
+    performance pass just took out (long tasks during a drag: 249ms -> 0ms). The head does
+    drift while you drag, because hero-engine floats it on the 8fps clock, but that float is
+    a few pixels against a zone ~160x210px, so a cached box is wrong by an amount nothing
+    can feel and right about the thing the contract measures.
+    The read is taken at pointerdown, BEFORE .catchReady can have scaled #stageMorph, so the
+    zone is the resting one; the 5.5% lean is then pure hysteresis in the visitor's favour
+    and can never feed back into the test that triggered it. */
+ var HEAD_PAD=1.06,headBox=null;
+
+ function measureHead(){
+  var r=stage.getBoundingClientRect();
+  var f=document.getElementById("face");
+  var b=((f&&f.getAttribute("data-head-bounds"))||"0.1933 0.0616 0.8484 0.9234")
+        .trim().split(/\s+/).map(Number);
+  if(b.length!==4||b.some(function(v){return !isFinite(v);}))b=[0.1933,0.0616,0.8484,0.9234];
+  headBox={cx:r.left+r.width*(b[0]+b[2])/2,
+           cy:r.top+r.height*(b[1]+b[3])/2,
+           rx:Math.max(1,r.width*(b[2]-b[0])/2*HEAD_PAD),
+           ry:Math.max(1,r.height*(b[3]-b[1])/2*HEAD_PAD)};
+ }
+
+ function onHead(x,y){
+  if(!headBox)return false;
+  var nx=(x-headBox.cx)/headBox.rx, ny=(y-headBox.cy)/headBox.ry;
+  return nx*nx+ny*ny<=1;
+ }
+
+ /* ══ THE LETTERS WOBBLE IN YOUR HAND ════════════════════════════════════════════
+    Jayden: "add the animation back when you drag the letter -- they do a little wobble."
+
+    HE IS ASKING FOR SOMETHING BACK, SO THIS IS A RESTORATION, NOT A DESIGN. The original
+    is hero-engine.js's wobbleDrag() (line 755), which drove the home page's dragged
+    cookie/disco-ball/heart, and its four ingredients are copied here by value:
+
+      the 8fps clock      hero-engine.js:1425 -- one setInterval at 125ms, commented
+                          "MASTER 8fps CLOCK", and wobbleDrag is called from inside it.
+                          The stop-motion judder IS the character; the original comment
+                          says "squirm like picking up a Mii (8fps stop-motion)". Running
+                          this at 60fps would be smoother and would be a different feel.
+      the 0.45 smoothing  vel += (dx - vel) * 0.45
+      the 0.7 / +-16deg   lean = clamp(vel * 0.7, +-16) -- "follow-through: body trails
+                          the motion". This is the ingredient that makes it read as
+                          physics: the tilt is the CURSOR'S VELOCITY, so a fling leans
+                          hard and a still hand barely moves. Nothing here loops
+                          independently of what your hand is doing.
+      squash & stretch    sx = 1 - s*0.03 - |lean|*0.0009, sy = 1 + s*0.04
+
+    WHAT IS NEW, AND WHY. The original tilted the whole ghost -- one rigid object, which
+    was right when the object was a cookie. The payload here is a WORD, and play.html
+    already wraps it one character per inline-block span for exactly this reason. A word
+    tilting as a unit is a sticker; letters reacting individually are alive. So the
+    original's single lean value is fanned out over the glyphs as a CHAIN:
+
+      the glyph under your thumb chases the raw velocity target
+      every other glyph chases its NEIGHBOUR one step nearer that grab point
+
+    which is a cascade of first-order filters, so phase lag accumulates with distance and
+    the far end of the word arrives late and smaller without a single hand-written delay.
+    That is the stagger, and it is derived from where you actually grabbed rather than
+    from the letter index -- grab "delight." by the "t" and the wave runs the other way.
+
+    THE IDLE SQUIRM IS KEPT AND DELIBERATELY DEMOTED. The original also carried a
+    pointer-independent pendulum (sin(tk*0.9)*4 + sin(tk*1.7)*1.5, so +-5.5deg) and
+    dropping it would lose the "there is something alive in your hand" reading that is
+    half of why the original is memorable. But a term that runs regardless of your hand is
+    exactly the canned-decoration failure, so it is held to +-4.6deg against the lean's
+    +-16 and given a per-glyph phase offset, which turns a wave into a squirm. The lean
+    dominates any real movement by better than 3:1; the squirm is what is left when you
+    hold still, and holding still is the only time it is the loudest thing.
+
+    NO LAYOUT IS READ AND NONE IS WRITTEN. The tick touches nothing but .style.transform
+    on glyphs that are already promoted, off a clock, from state carried in JS -- there is
+    no getBoundingClientRect in the loop for tools/performance-idle-contract.py to find.
+    The one rect read in the whole gesture is the one pointerdown was already doing.
+    ══════════════════════════════════════════════════════════════════════════════ */
+ var WOB_MS=125,                                  // the master clock's period, 8fps
+     WOB_FOLLOW=0.45,                             // hero-engine.js:758, verbatim
+     WOB_LEAN=0.7, WOB_LEAN_MAX=16,               // hero-engine.js:759, verbatim
+     SETTLE_STEP=16;                              /* the 16ms per-character step the
+                                                     headline's own entrance cascade uses
+                                                     (play.html: calc(var(--i) * 16ms)) --
+                                                     the settle is the same word rippling,
+                                                     so it ripples at the same rate */
+ var wob=null;
+
+ /* Start the squirm. gi is the glyph the pointer came down on: the head of the chain. */
+ function wobStart(g,gi){
+  if(reduce)return;                               // see the reduced-motion note in up()
+  var els=[].slice.call(g.children);
+  if(!els.length)return;
+  wob={els:els,gi:Math.max(0,Math.min(els.length-1,gi)),tk:0,lx:null,vel:0,
+       lean:els.map(function(){return 0;}),timer:0};
+  wob.timer=setInterval(wobTick,WOB_MS);
+ }
+
+ function wobTick(){
+  if(!wob||!ghost)return;
+  var t=++wob.tk;
+  /* Smoothed horizontal cursor velocity, from the position the move handler already
+     stored -- the tick never asks the pointer or the DOM anything. */
+  if(wob.lx==null)wob.lx=ghost._x;
+  var dx=ghost._x-wob.lx;wob.lx=ghost._x;
+  wob.vel+=(dx-wob.vel)*WOB_FOLLOW;
+  var target=Math.max(-WOB_LEAN_MAX,Math.min(WOB_LEAN_MAX,wob.vel*WOB_LEAN));
+  /* Walk OUTWARD from the grab point so a glyph always chases a neighbour that has
+     already been updated this tick -- that is what makes the lag accumulate with
+     distance instead of every letter lagging the target by the same one step. */
+  var gi=wob.gi,n=wob.els.length,d,i;
+  for(d=0;d<n;d++){
+   for(var s=0;s<2;s++){
+    i=s?gi-d:gi+d;
+    if(d===0&&s)continue;
+    if(i<0||i>=n)continue;
+    var src=d===0?target:wob.lean[s?i+1:i-1];
+    wob.lean[i]+=(src-wob.lean[i])*WOB_FOLLOW;
+   }
+  }
+  for(i=0;i<n;i++){
+   var ph=t*0.9+i*0.8, sv=Math.sin(ph);
+   var sway=sv*3.2+Math.sin(t*1.7+i*1.3)*1.4;     // demoted from the original's 4 + 1.5
+   var rot=sway+wob.lean[i];
+   var sx=1-sv*0.03-Math.abs(wob.lean[i])*0.0009; // squash & stretch, hero-engine.js:763
+   var sy=1+sv*0.04;
+   var bob=Math.round(sv*2);
+   wob.els[i].style.transform="translate3d(0,"+bob+"px,0) rotate("+rot.toFixed(1)+"deg) scale("+sx.toFixed(3)+","+sy.toFixed(3)+")";
+  }
+ }
+
+ /* ── AND THEN THEY COME TO REST ──────────────────────────────────────────────
+    The ghost dies at pointerup, so the settle cannot happen on it. It happens on the REAL
+    word, which is the correct object anyway: the letters you were holding are the letters
+    that go back into the sentence, and handing the ghost's final angles across is what
+    makes the return continuous rather than a cut.
+
+    --sp-bounce, AND IT HAD TO BE THAT ONE. Of the four springs it is the only one whose
+    overshoot survives being applied to a rotation: it goes to 1.1065, so a letter left at
+    12deg swings ~1.3deg past upright before settling -- visible, and the "little
+    overshoot" a hand-thrown object owes you. --sp-pop peaks at 1.0151, which on the same
+    12deg is 0.18deg and would not be seen. Its duration is --sp-bounce-dur and may not be
+    changed independently (tokens.css §6). Under reduced motion tokens.css already collapses
+    every spring duration to 1ms, so this rule needs no @media of its own -- the letters are
+    simply upright, which is where they were going.
+
+    THE STAGGER RUNS THE SAME WAY THE WOBBLE DID: delay by distance from the grab point, so
+    the letter you were pinching lands first and the word unwinds away from your thumb. */
+ var settleGlyphTimer=0,settleGlyphWord=null,takenTimer=0;
+
+ function endGlyphSettle(){
+  clearTimeout(settleGlyphTimer);
+  if(settleGlyphWord){
+   [].forEach.call(settleGlyphWord.querySelectorAll(".cyc-ch"),function(ch){
+    ch.style.transition="";ch.style.transform="";ch.style.transitionDelay="";ch.style.willChange="";
+   });
+   settleGlyphWord.classList.remove("settling");
+  }
+  settleGlyphWord=null;
+ }
+
+ function settleGlyphs(w){
+  endGlyphSettle();
+  if(!wob||reduce)return;
+  var chs=[].slice.call(w.querySelectorAll(".cyc-ch"));
+  var n=Math.min(chs.length,wob.els.length);
+  if(!n)return;
+  var gi=wob.gi,any=false,i;
+  for(i=0;i<n;i++){
+   if(Math.abs(wob.lean[i])<0.15)continue;
+   any=true;
+   chs[i].style.willChange="transform";
+   chs[i].style.transition="none";
+   chs[i].style.transform="rotate("+wob.lean[i].toFixed(1)+"deg)";
+  }
+  if(!any)return;
+  settleGlyphWord=w;
+  void w.offsetWidth;                             // one forced reflow, once per drop
+  var maxD=0;
+  for(i=0;i<n;i++){
+   var d=Math.abs(i-gi);if(d>maxD)maxD=d;
+   chs[i].style.transition="transform var(--sp-bounce-dur) var(--sp-bounce)";
+   chs[i].style.transitionDelay=(d*SETTLE_STEP)+"ms";
+   chs[i].style.transform="rotate(0deg)";
+  }
+  w.classList.add("settling");
+  /* The promotion comes off when the last letter is home, for the same reason .cyc-ch
+     strips .in on animationend: a span left carrying a layer keeps it forever. */
+  settleGlyphTimer=setTimeout(endGlyphSettle,BOUNCE_MS+maxD*SETTLE_STEP+60);
+ }
+
+ function wobStop(){
+  if(!wob)return;
+  clearInterval(wob.timer);
+  wob=null;
+ }
+
+ function makeGhost(w){
+  var g=document.createElement("div");
+  g.className="moodDrag";
+  g.setAttribute("aria-hidden","true");    // the real word is still in the h1 and still read
+  /* BUILT FROM THE WORD, NEVER FROM A LITERAL -- see the header note on ee574f0. */
+  [].forEach.call(w.querySelectorAll(".cyc-ch"),function(ch){
+   var sp=document.createElement("span");
+   sp.className=ch.className.replace(/\bcyc-ch\b/,"mdgl").replace(/\bin\b/,"").trim();
+   sp.textContent=ch.textContent;
+   g.appendChild(sp);
+  });
+  /* Match the ghost to the word's OWN computed type rather than to a token, so the thing in
+     your hand is the size that left the sentence at every breakpoint. */
+  var cs=getComputedStyle(w);
+  g.style.fontSize=cs.fontSize;g.style.fontWeight=cs.fontWeight;g.style.letterSpacing=cs.letterSpacing;
+  return g;
+ }
+
+ function attach(w){
+  function release(){if(pid!=null){try{w.releasePointerCapture(pid);}catch(_){}pid=null;}}
+  function move(e){
+   if(!dragging||!ghost)return;
+   ghost._x=e.clientX;ghost._y=e.clientY;
+   ghost.style.left=e.clientX+"px";ghost.style.top=e.clientY+"px";
+   /* the head's own catch cue, the same class hero-engine's faceTrackTo toggles */
+   document.body.classList.toggle("catchReady",onHead(e.clientX,e.clientY));
+  }
+  function up(){
+   if(!dragging)return;
+   dragging=false;release();w.classList.remove("grab");
+   var hit=ghost&&onHead(ghost._x,ghost._y);
+   w.style.opacity="";                     // the word comes home either way
+   /* THE ANGLES CROSS OVER BEFORE THE GHOST DIES. settleGlyphs reads wob, so it has to run
+      while wob is still standing; it writes the ghost's final lean onto the real letters
+      in the same frame the word becomes visible again, which is what makes the return one
+      continuous movement rather than a cut back to upright. */
+   settleGlyphs(w);wobStop();
+   if(ghost){ghost.remove();ghost=null;}
+   /* THE LEAN LETS GO HERE, AND HOW IT LETS GO DEPENDS ON WHETHER IT WAS FED. A taken drop
+      hands the head over to the mood performance on the settle spring (play.css); an
+      abandoned one just retracts. .pMoodTaken is dropped again once that handover is over
+      so a later hover-out is never left riding the wrong curve. */
+   document.body.classList.remove("catchReady");
+   if(hit){
+    document.body.classList.add("pMoodTaken");
+    clearTimeout(takenTimer);
+    takenTimer=setTimeout(function(){document.body.classList.remove("pMoodTaken");},SETTLE_MS+60);
+   }
+   cycHold=false;
+   if(hit)fire(w.getAttribute("data-mood"));
+   nextCycle(hit?DWELL:2600);              // a miss puts the word back and resumes sooner
+  }
+  w.addEventListener("pointerdown",function(e){
+   if(dragging)return;
+   if(document.body.classList.contains("hmBattle")||document.body.classList.contains("hmSoccer")
+    ||document.body.classList.contains("hmRace")||document.body.classList.contains("hmTour"))return;
+   e.preventDefault();
+   /* A SWAP MUST NEVER FIGHT A DRAG, AND A CANCELLED SWAP MUST NOT STRAND THE WORD.
+      Grabbing during the exit used to clear the timer that was going to replace the word
+      while leaving .out on it -- animation-fill-mode:both then held it at opacity 0, so the
+      word came back from the drop INVISIBLE and stayed that way until the next cycle
+      finally swapped it, up to 8.5s later. Dropping .out here restores it in the same frame
+      the ghost is built from it, and endSettle() lands any in-flight line settle on its end
+      state so the rect this gesture measures is the resting one. */
+   w.classList.remove("out");
+   endSettle();endGlyphSettle();           // a second grab lands the first one's unwind
+   measureHead();                          // the gesture's one read of the drop zone
+   var r=w.getBoundingClientRect();
+   w.classList.add("grab");
+   cycHold=true;clearTimeout(cycTimer);    // freeze the cycler for the whole gesture
+   ghost=makeGhost(w);
+   document.body.appendChild(ghost);
+   ghost._x=r.left+r.width/2;ghost._y=r.top+r.height/2;   // spawns exactly where the word was
+   ghost.style.left=ghost._x+"px";ghost.style.top=ghost._y+"px";
+   /* WHICH LETTER YOU PINCHED, from the rect this gesture was already reading -- no extra
+      layout, and no per-glyph measurement. The word is a single nowrap line of equal-ish
+      glyphs, so the fraction across its box is the glyph index to within one letter, which
+      is all a stagger origin needs to be. */
+   var gn=ghost.childElementCount||1;
+   wobStart(ghost,r.width?Math.floor((e.clientX-r.left)/r.width*gn):0);
+   /* opacity:0, NOT visibility:hidden and NOT removal. It keeps the headline's layout slot
+      (no reflow, no line jump mid-drag) AND keeps the element receiving pointer events,
+      which is what makes setPointerCapture on it hold the gesture. */
+   w.style.opacity="0";dragging=true;pid=e.pointerId;
+   try{w.setPointerCapture(pid);}catch(_){}
+  });
+  w.addEventListener("pointermove",move);
+  w.addEventListener("pointerup",up);
+  w.addEventListener("pointercancel",up);
+  w.addEventListener("lostpointercapture",up);   // a dropped word can never get stranded
+ }
+
+ /* ── THE ENTRANCE ────────────────────────────────────────────────────────────
+    "Make the text actually have that animation, and the buttons." The two static
+    sentences are split into per-character spans and given an index; the CSS in
+    play.html turns that index into a 16ms cascade on the same cycIn keyframes the
+    live word uses, so the headline assembles as one object rather than as a block
+    of type plus a widget. The live word is given the whole static run as a head
+    start so it lands last, which is exactly the sequencing revealAll() used on the
+    home page ("the cycling word lands right AFTER ...with, then the cycle begins").
+
+    IT SPLITS TEXT NODES ONLY, and .pMoodSlot is left alone -- the word builds its
+    own spans and owns its own stagger. Splitting is skipped entirely under reduced
+    motion: there is no animation to carry, and a headline shattered into 60 spans
+    is 60 things for a screen reader's character navigation to walk through for no
+    benefit. The sentence stays one text node in that case.
+    THE GATE IS data-play-ready, not DOMContentLoaded. .playBooting sets
+    visibility:hidden on the whole viewport until every initial head has decoded,
+    and visibility:hidden does not pause an animation -- an entrance started at load
+    would finish behind the curtain. */
+ /* CHARACTERS ARE WRAPPED IN WORDS, AND THAT IS NOT TIDINESS. An inline-block per
+    character is a break opportunity per character: measured at 390 the first line came
+    back as "I made a few g / ames for fun." Each word becomes its own nowrap inline-block
+    and the characters live inside it, so the line breaks between words exactly as the
+    original text did. This is the same .word > .ch nesting hero-engine.js's makeWord()
+    used, for the same reason. */
+ function split(){
+  var n=0;
+  [].forEach.call(lede.querySelectorAll(".pLine"),function(line){
+   [].slice.call(line.childNodes).forEach(function(node){
+    if(node.nodeType!==3)return;
+    var frag=document.createDocumentFragment();
+    node.nodeValue.split(/(\s+)/).forEach(function(part){
+     if(!part)return;
+     if(/^\s+$/.test(part)){frag.appendChild(document.createTextNode(part));return;}
+     var word=document.createElement("span");
+     word.className="wd";
+     [].forEach.call(part,function(ch){
+      var sp=document.createElement("span");
+      sp.className="ch";sp.textContent=ch;sp.style.setProperty("--i",n++);
+      word.appendChild(sp);
+     });
+     frag.appendChild(word);
+    });
+    line.replaceChild(frag,node);
+   });
+  });
+  return n;
+ }
+
+ function enter(){
+  if(reduce){place(wi,false);nextCycle();return;}
+  var n=split();
+  baseDelay=n*16+120;                    // the word lands one beat after the last letter
+  place(wi,false);
+  baseDelay=0;                           // every later swap starts immediately
+  lede.classList.add("isIn");
+  var ctas=document.querySelector(".heroCtas");
+  if(ctas){
+   [].forEach.call(ctas.children,function(el,i){el.style.setProperty("--i",n+4+i*3);});
+   ctas.classList.add("isIn");
+  }
+  nextCycle();
+ }
+
+ if(document.body.getAttribute("data-play-ready")==="true")enter();
+ else{
+  var obs=new MutationObserver(function(){
+   if(document.body.getAttribute("data-play-ready")==="true"){obs.disconnect();enter();}
+  });
+  obs.observe(document.body,{attributes:true,attributeFilter:["data-play-ready"]});
+  /* the arena's own boot watchdog gives up at 8s; this one is its backstop, so a page
+     that never reports ready still shows a finished headline rather than an empty one */
+  setTimeout(function(){if(!lede.classList.contains("isIn")&&!cycWord){obs.disconnect();enter();}},9000);
+ }
 })();

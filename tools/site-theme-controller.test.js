@@ -81,7 +81,7 @@ test("persisted manual Night commits all root attributes during evaluation",()=>
 
 test("late body creation mirrors later changes without becoming the authority",()=>{
  const h=makeHarness({bodyAtBoot:false});
- assert.equal(h.root.getAttribute("data-theme-mode"),"auto");
+ assert.equal(h.root.getAttribute("data-theme-mode"),"daytime");
  h.document.body=h.body;
  h.controller.setMode("night");
  assert.equal(h.root.getAttribute("data-theme-mode"),"night");
@@ -89,22 +89,51 @@ test("late body creation mirrors later changes without becoming the authority",(
  assert.equal(h.body.getAttribute("data-theme-state"),"night");
 });
 
-test("missing invalid and unreadable storage each resolve Automatic",()=>{
+/* A MISSING PREFERENCE AND AN UNREADABLE ONE ARE DIFFERENT QUESTIONS.
+   No key at all means the visitor has never chosen, and that is the only case
+   the default owns -- it resolves to Daytime, and to Daytime as the MODE, not
+   as an hour that Automatic happens to be passing through. A key holding
+   garbage is an unreadable preference, and normalizeMode still answers
+   Automatic for that. Storage that cannot be reached at all is treated as
+   never-chosen, because there is nowhere for a preference to have been. */
+test("a missing preference resolves Daytime and an unreadable one resolves Automatic",()=>{
  const inaccessible=makeHarness({storageAccessFails:true});
- [makeHarness(),makeHarness({stored:"garbage"}),makeHarness({readFails:true}),inaccessible].forEach(h=>{
-  assert.deepEqual(h.controller.getSnapshot(),{mode:"auto",state:"daytime",theme:"light"});
-  assert.equal(h.root.getAttribute("data-theme-mode"),"auto");
+ [makeHarness(),makeHarness({readFails:true}),inaccessible].forEach(h=>{
+  assert.deepEqual(h.controller.getSnapshot(),{mode:"daytime",state:"daytime",theme:"light"});
+  assert.equal(h.root.getAttribute("data-theme-mode"),"daytime");
  });
+ const garbage=makeHarness({stored:"garbage"});
+ assert.deepEqual(garbage.controller.getSnapshot(),{mode:"auto",state:"daytime",theme:"light"});
+ assert.equal(garbage.root.getAttribute("data-theme-mode"),"auto");
  assert.equal(inaccessible.storageAccesses(),1);
 });
 
-test("failed storage writes and removes leave the controller in Automatic",()=>{
+/* THE DEFAULT LOSES TO A CHOICE, AND "auto" IS A CHOICE. It used to be stored
+   by removing the key, which made it indistinguishable from never having
+   chosen -- survivable while auto was also the default, fatal now. */
+test("a stored Automatic survives the Daytime default",()=>{
+ const h=makeHarness({stored:"auto",times:[new Date(2026,7,6,22).getTime()]});
+ assert.deepEqual(h.controller.getSnapshot(),{mode:"auto",state:"night",theme:"dark"});
+ assert.equal(h.root.getAttribute("data-theme-mode"),"auto");
+});
+
+test("choosing Automatic writes it out rather than clearing the key",()=>{
+ const h=makeHarness({stored:"night",times:[new Date(2026,7,6,12).getTime()]});
+ h.controller.setMode("auto");
+ assert.deepEqual(h.calls.set,[["jbHeroTimeMode","auto"]]);
+ assert.equal(h.calls.remove,0);
+ assert.deepEqual(h.controller.getSnapshot(),{mode:"auto",state:"daytime",theme:"light"});
+});
+
+/* A choice that cannot be remembered is not honoured: the visitor would get it
+   once and lose it on the next page, which reads as a bug. It falls back to the
+   default now rather than to Automatic. */
+test("failed storage writes leave the controller on the default",()=>{
  const write=harnessWithWriteFailure();
- assert.deepEqual(write.controller.setMode("night"),{mode:"auto",state:"daytime",theme:"light"});
- assert.equal(write.root.getAttribute("data-theme-mode"),"auto");
- const remove=makeHarness({stored:"night",removeFails:true});
- assert.deepEqual(remove.controller.setMode("auto"),{mode:"auto",state:"daytime",theme:"light"});
- assert.equal(remove.root.getAttribute("data-theme-mode"),"auto");
+ assert.deepEqual(write.controller.setMode("night"),{mode:"daytime",state:"daytime",theme:"light"});
+ assert.equal(write.root.getAttribute("data-theme-mode"),"daytime");
+ const auto=harnessWithWriteFailure();
+ assert.deepEqual(auto.controller.setMode("auto"),{mode:"daytime",state:"daytime",theme:"light"});
 });
 
 function harnessWithWriteFailure(){return makeHarness({writeFails:true});}
@@ -124,11 +153,11 @@ test("manual mode persists and publishes one shared snapshot",()=>{
  assert.strictEqual(h.controller.getSnapshot(),snapshot);
 });
 
-test("Automatic clears persistence and schedules the next boundary exactly",()=>{
+test("Automatic persists and schedules the next boundary exactly",()=>{
  const now=new Date(2026,7,6,3,59).getTime();
  const h=makeHarness({stored:"night",times:[now]});
  h.controller.setMode("auto");
- assert.equal(h.calls.remove,1);
+ assert.deepEqual(h.calls.set,[["jbHeroTimeMode","auto"]]);
  assert.equal(h.scheduled.length,1);
  assert.equal(h.scheduled[0].delay,60_000);
  assert.deepEqual(h.controller.getSnapshot(),{mode:"auto",state:"night",theme:"dark"});
@@ -136,7 +165,7 @@ test("Automatic clears persistence and schedules the next boundary exactly",()=>
 
 test("same-state Automatic refresh publishes nothing",()=>{
  const now=new Date(2026,7,6,12).getTime();
- const h=makeHarness({times:[now]});
+ const h=makeHarness({stored:"auto",times:[now]});
  const first=h.controller.getSnapshot();
  let changes=0;
  h.controller.subscribe(()=>{changes+=1;});
@@ -148,7 +177,7 @@ test("same-state Automatic refresh publishes nothing",()=>{
 });
 
 test("reduced-motion changes settle and destroy releases controller resources",()=>{
- const h=makeHarness();
+ const h=makeHarness({stored:"auto"});
  const settles=[];
  h.window.addEventListener("jbthemesettle",event=>settles.push(event.detail));
  h.motion.matches=true;

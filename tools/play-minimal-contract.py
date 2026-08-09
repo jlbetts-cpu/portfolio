@@ -3,12 +3,16 @@
 
 from html.parser import HTMLParser
 from pathlib import Path
+import re
 
 
 ROOT = Path(__file__).resolve().parents[1]
 HTML = (ROOT / "play.html").read_text(encoding="utf-8")
 GAMES = (ROOT / "play-games.js").read_text(encoding="utf-8")
 ENGINE = (ROOT / "play-engine.js").read_text(encoding="utf-8")
+# The page with every comment removed. Assertions that a thing is GONE have to read this
+# rather than the raw source, or the note recording the removal trips the assertion.
+LIVE = re.sub(r"<!--.*?-->", "", re.sub(r"/\*.*?\*/", "", HTML, flags=re.S), flags=re.S)
 HERO_ENGINE = (ROOT / "hero-engine.js").read_text(encoding="utf-8")
 CSS = (ROOT / "play.css").read_text(encoding="utf-8")
 TOURNAMENT = (ROOT / "play-tournament.js").read_text(encoding="utf-8")
@@ -38,7 +42,26 @@ parser.feed(HTML)
 # The accepted page keeps one live arena, the honest lede, and the same four doors.
 # The first screen is now the real Home hero; the doors live in #games below it.
 assert HTML.count('class="hero" id="playArena"') == 1
-assert "I made a few games for fun.</span> <span>Still building them." in HTML
+# THE LEDE HAS BEEN ITERATED THREE TIMES AND THE PIN HAS FOLLOWED IT EACH TIME.
+# v1 stacked three type sizes and was cut for it. v2 was the honest one-size line
+# "I made a few games for fun. / Still building them," which Jayden then rejected:
+# "this is a bad h1 lowkey". The fault was structural, not tonal -- the mood word
+# arrived as a dangling clause ("with <word>") bolted onto a sentence that did not
+# want one. v3 gives the word a grammatical home: "made with <word>" reads as
+# English with all four of them (delight, empathy, hunger, love), which is the
+# constraint that actually governs this line.
+# What is asserted is the SHAPE, never the final string: the live word's width
+# changes every 8.5s, so pinning the last sentence would pin a moving target.
+assert "Crafting digital experiences," in HTML
+assert 'class="pLine pMoodLine">made with <span class="pMoodSlot"></span>' in HTML, \
+    "the mood clause owns its own line so a word swap cannot reflow the sentence"
+for retired in ("I made a few games for fun.", "Still building them,"):
+    assert retired not in LIVE, f"v2 lede text survives: {retired}"
+assert 'id="playLede"' in HTML, "play-games.js's word rig mounts on this id"
+# ONE TYPE SIZE STILL. The regression Jayden named originally ("too many sizes") is a
+# size count, not a line count, and the live word inherits the h1's type outright.
+assert ".pLede{" in HTML and "font-size:var(--fs-heroline)" in HTML
+assert not re.search(r"\.pLede[^{]*\{[^}]*font-size:[^;}]*;[^}]*font-size:", HTML)
 assert '<section class="pHub" id="games"' in HTML
 assert HTML.index('class="hero" id="playArena"') < HTML.index('id="games"')
 assert parser.card_ids == ["pcHead", "pcExped", "pcTour", "pcGrad"]
@@ -165,8 +188,24 @@ assert 'id="face" src="images/neutral.webp"' in HTML
 assert 'id="heroMovieEffectsStage"' in HTML
 assert 'src="hero-time-presets.js"' not in HTML and 'src="hero-time.js"' not in HTML
 assert 'href="hero-time.css"' not in HTML
-assert 'class="playHeroReflection" aria-hidden="true"' in HTML
-assert '-webkit-box-reflect:' in HTML
+# THE HERO REFLECTION IS GONE AND THE ASSERTION IS INVERTED, not deleted -- a removal
+# that leaves no trace is a removal the next pass re-adds. Jayden: "there is a random
+# reflection of the big head on the bottom which looks horrible and not like the rest."
+# Both implementations went: the -webkit-box-reflect on #stageMorph and the
+# .playHeroReflection fallback for engines without it. A reflection asserts a polished
+# floor, and this head hangs over an empty field.
+# THE MATCH REFLECTIONS ARE NOT IN SCOPE and are not asserted against: .hmRefl belongs to
+# heads that genuinely stand on the pitch, and play.css:428 records why it is a transform
+# rather than a box-reflect.
+# Measured against the page with its CSS and HTML comments stripped: the note explaining
+# WHY these went names them, and a note is the opposite of a regression.
+assert 'playHeroReflection' not in LIVE, "the hero head's reflection was removed on purpose"
+assert '-webkit-box-reflect:' not in LIVE, "the hero head's reflection was removed on purpose"
+# AND THE HERO GRADIENT WITH IT. "Subtle gradient behind the head that looks bad -- just
+# remove the gradient completely." The element, its rule and its --play-aura tokens are
+# out; nothing on this page paints a backdrop behind the portrait any more.
+assert 'heroAura' not in LIVE and '--play-aura' not in LIVE, \
+    "the Play hero carries no backdrop gradient"
 assert "playArenaSurface" not in HTML and "playArenaGradient" not in HTML
 
 # The hidden game launcher has its own identity. The visible Home mood menu is
