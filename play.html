@@ -410,10 +410,57 @@
   display:inline-flex;align-items:baseline;gap:.04em;white-space:nowrap;
   font-family:var(--sans);text-transform:none;color:var(--theme-ink);
   will-change:left,top}
- .mdgl{display:inline-block;white-space:pre}
+ /* ══ THE WORD WOBBLES WHILE YOU ARE HOLDING IT ══════════════════════════════════
+    Jayden: "add the animation back when you drag the letter -- they do a little wobble."
 
+    THIS IS NOT THE TUG COMING BACK, AND THE DIFFERENCE IS CAUSALITY. The tug that was
+    deleted moved the word sideways twice, on its own 900ms timer, 900ms after it landed,
+    to TELL you it was draggable -- the site talking at you, unprompted, about something
+    you had not asked about. This runs only while your pointer is down on the word, and it
+    is the object answering you. One was rejected for being unprompted; this was asked for
+    because it is a response. Nothing here starts on a timer: the rule is scoped to .mdgl,
+    the ghost's glyphs, and the ghost exists for exactly the length of the drag -- it is
+    created on pointerdown and removed on pointerup. The wobble therefore cannot outlive or
+    precede the gesture, by construction rather than by bookkeeping.
+
+    IT NEVER FIGHTS THE POINTER. The ghost's position is written to left/top and its own
+    centring transform is on .moodDrag; the wobble is on the CHILD glyphs, so it composes
+    underneath the position the pointer dictates and can never contest it. Transform only,
+    no layout read, nothing for the idle contract to catch.
+
+    THE STAGGER IS A LOOSE JIGGLE, NOT A WAVE. One --dur-press (100ms) of negative delay
+    per glyph against a --dur-enter (500ms) period puts each letter at its own phase and
+    starts them all mid-swing, so there is no ramp-up on pickup. 500ms is 2Hz -- deliberately
+    nowhere near the ~0.2Hz sustained oscillation the HIG singles out as the frequency
+    people are most sensitive to.
+    THE AMPLITUDE IS DELIBERATELY UNDER A PIXEL AND A HALF at the headline's size. This is
+    a word in an h1; the brief is "a little wobble", and anything you could measure by eye
+    would read as a toy. */
+ .mdgl{display:inline-block;white-space:pre;
+  animation:mdWobble var(--dur-enter) ease-in-out infinite;
+  animation-delay:calc(var(--i,0) * var(--dur-press) * -1)}
+ @keyframes mdWobble{
+  0%,100%{transform:translate3d(0,-.022em,0) rotate(-1.9deg)}
+  50%    {transform:translate3d(0,.022em,0) rotate(1.9deg)}}
+
+ /* REDUCED MOTION GETS A DISSOLVE, NOT A DEAD STOP. The old rule was `animation:none`,
+    which is the substitution Apple's accessibility guidance specifically tells you not to
+    make: Reduce Motion asks for a cross-fade in place of movement, not for the change to
+    stop happening. Paired with play-games.js, which keeps the 8.5s cycle running under
+    reduce, the word still announces all four moods -- it just never travels.
+    WHAT IS ACTUALLY REMOVED is every vestibular trigger: no translateY, no blur, no
+    per-character stagger (the rig writes animation-delay inline, and an author !important
+    is the one thing that outranks an inline declaration), and no line settle. The clause's
+    new length lands in the single frame between the two fades, while the slot is empty.
+    THE `both` FILL IS WHAT MAKES THE END STATE CORRECT: .in holds opacity:1 after it runs
+    and the rig strips the class on animationend, so a dissolve that is interrupted -- by a
+    drag, by a tab going to the background -- still resolves to a fully visible word rather
+    than to whatever opacity it was passing through. */
  @media(prefers-reduced-motion:reduce){
-  .cyc-ch.in,.cycw.out .cyc-ch{animation:none!important;opacity:1!important;filter:none!important;transform:none!important}
+  .cyc-ch.in{animation:cycDissolveIn var(--dur-state) linear both!important;animation-delay:0s!important}
+  .cycw.out .cyc-ch{animation:cycDissolveOut var(--dur-state) linear both!important;animation-delay:0s!important}
+  @keyframes cycDissolveIn{from{opacity:0}to{opacity:1}}
+  @keyframes cycDissolveOut{from{opacity:1}to{opacity:0}}
  }
 
  /* ══ THE HEADLINE ARRIVES, AND SO DO THE BUTTONS ════════════════════════════════

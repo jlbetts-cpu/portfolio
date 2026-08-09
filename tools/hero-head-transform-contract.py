@@ -1940,17 +1940,21 @@ def task4_matrix(base_url):
             assert reads_after == reads_before, (
                 label, "the float loop read the DOM", reads_before, reads_after)
             transformed = select_move_resize(page)
-            hero = page.locator("#main").bounding_box()
-            page.mouse.move(hero["x"] + hero["width"] * .25, hero["y"] + hero["height"] * .72)
             page.wait_for_selector("#stage .iris")
-            gaze_a = iris_transform(page)
-            page.mouse.move(hero["x"] + hero["width"] * .75, hero["y"] + hero["height"] * .72)
-            page.wait_for_function("""before => {const iris=document.querySelector('#stage .iris');
-              return iris ? getComputedStyle(iris).transform !== before : false;}""", arg=gaze_a)
-            gaze_b = iris_transform(page)
-            assert gaze_a and gaze_b and gaze_a != gaze_b, (label, gaze_a, gaze_b)
-            page.evaluate("requestBlink('neutral', false, false)")
-            page.wait_for_function("/_closed\.webp$/.test(document.querySelector('#face').getAttribute('src'))")
+            # Pinned to the HEAD, not the hero: the eyes only follow a cursor
+            # within stage.width * 1.4 of themselves, and a point outside that
+            # reads the idle wander instead of the gaze. One stage-width to
+            # either side is comfortably inside that radius and far enough out
+            # to peg the gaze at full deflection, which is what makes the two
+            # readings separate by more than the rounding.
+            stage = page.locator("#stage").bounding_box()
+            gaze_cx = stage["x"] + stage["width"] / 2
+            gaze_y = min(height - 4, max(4, stage["y"] + stage["height"] * .42))
+            gaze_a = settled_gaze(page, max(4, gaze_cx - stage["width"]), gaze_y, label)
+            gaze_b = settled_gaze(page, min(width - 4, gaze_cx + stage["width"]), gaze_y, label)
+            assert gaze_b["x"] - gaze_a["x"] >= 1, (label, gaze_a, gaze_b)
+            blink = page.evaluate(BLINK_TO_NEUTRAL)
+            assert blink["ok"], (label, blink)
             page.wait_for_function("document.querySelectorAll('#stage .iris').length >= 2")
             page.evaluate("document.querySelectorAll('#stage .iris').forEach(n=>n.dataset.task4BeforeSmile='1')")
             page.locator(".csPanel.on .csGo").first.evaluate("n=>n.focus({preventScroll:true})")
@@ -2025,9 +2029,110 @@ def document_width(page):
     return page.evaluate("document.documentElement.scrollWidth")
 
 
-def iris_transform(page):
-    return page.evaluate("""() => {const iris=document.querySelector('#stage .iris');
-      return iris ? getComputedStyle(iris).transform : null;}""")
+# ── THE GAZE IS SEVEN INTEGERS WIDE, SO "IT CHANGED" MEANT NOTHING ──────────
+# This block used to read the iris transform, move the mouse, wait for the
+# string to stop matching, and assert the two readings differed. Every clause
+# of that was noise:
+#
+#   * updateIris() ROUNDS the iris offset to whole pixels, off an eye element
+#     that is 18px wide at TRAVEL 0.16. The entire range the eyes can travel is
+#     round(nx * 2.88) -- seven values, -3 to 3 -- so two genuinely different
+#     gaze directions routinely land on the same integer. That is where the
+#     reported "both were matrix(1, 0, 0, 1, -1, 0)" came from.
+#   * It re-rolls a microsaccade and a hippus term EVERY FRAME. The transform
+#     string therefore changes constantly without the gaze having moved, so the
+#     wait returned on jitter and the reading taken one round-trip later had
+#     already settled back.
+#   * The right-hand sample point was outside the range the engine tracks at
+#     all. updateIris() only follows the cursor while window.__curNear -- the
+#     pointer inside stage.width * 1.4 of the head -- and 75% of the HERO's
+#     width is beyond that on the wide viewports. Measured over six runs of
+#     this exact block: __curNear was false at that point in four of them, so
+#     the two "gaze" samples were two draws from the idle saccade wander. The
+#     assertion passed all six times, and in two of them the pointer went RIGHT
+#     while the iris went LEFT. It was not testing gaze tracking.
+#
+# So: the sample points come off the HEAD now, which is what keeps them inside
+# the range the engine follows; the reading is the median of a window of frames
+# instead of one instant; a window is thrown away if a blink or a fidget ran
+# through it, because both drive the eyes for reasons that have nothing to do
+# with the cursor; and the assertion is DIRECTION, which is the thing this test
+# means and the thing seven quantised values can still carry.
+GAZE_WINDOW_MS = 700
+
+GAZE_SAMPLER = """async ms => {
+  const frame = () => new Promise(resolve => requestAnimationFrame(resolve));
+  const xs = [];
+  let clean = true;
+  const started = performance.now();
+  while (performance.now() - started < ms) {
+    const iris = document.querySelector('#stage .iris');
+    if (!iris || blinking || fidget || !window.__curNear) clean = false;
+    else xs.push(new DOMMatrixReadOnly(getComputedStyle(iris).transform).m41);
+    await frame();
+  }
+  xs.sort((a, b) => a - b);
+  return {clean: clean && xs.length >= 20, samples: xs.length,
+          x: xs.length ? xs[xs.length >> 1] : null,
+          spread: xs.length ? xs[xs.length - 1] - xs[0] : null};
+}"""
+
+
+def settled_gaze(page, x, y, label):
+    """Where the eyes come to rest with the pointer held at (x, y).
+
+    Retried rather than averaged. A blink or a fidget inside the window is not
+    noise to be smoothed away -- it is something else driving the eyes -- and
+    the honest answer is to read a window that does not contain one. Moving the
+    pointer again on every attempt is load-bearing: the cursor stops being
+    followed IDLE_MS after the last pointer event, and the fallback is silent,
+    which is the exact failure this helper exists to stop.
+    """
+    reading = None
+    for _ in range(8):
+        page.mouse.move(x, y)
+        reading = page.evaluate(GAZE_SAMPLER, GAZE_WINDOW_MS)
+        if reading["clean"]:
+            return reading
+    raise AssertionError((label, "the eyes never held still long enough to read", reading))
+
+
+# ── requestBlink() HAS A PRECONDITION, AND THIS IS IT ────────────────────────
+# The old sequence was `page.evaluate("requestBlink(...)")` followed by a
+# wait_for_function polling #face's src for a _closed frame, and it timed out
+# roughly one run in three. With a blink already in flight requestBlink
+# RETARGETS that blink's reopen and returns -- hero-engine.js:191, "retarget
+# mid-blink" -- it does not start a new one, so the closed frame the poller was
+# waiting for may already have been and gone. Idle blinks fire every 2.1-5.3s
+# and the head also blinks itself on hover and on face changes, so the call
+# lands inside one often. On top of that the closed frame is a transient the
+# engine is free to overwrite (browFlash and the brow fidgets write #face's src
+# directly), and it was measured at 112-228ms -- a window a poller installed
+# one CDP round-trip later has no business betting on.
+#
+# None of that has to be raced. buildBlink()'s first step is a close and
+# applyStep() runs it SYNCHRONOUSLY inside requestBlink, so if the call is made
+# from inside the page, with the precondition checked in the same task, the
+# closed frame is readable on the very next line with no round-trip to lose it
+# in.
+BLINK_TO_NEUTRAL = """async () => {
+  const face = document.querySelector('#face');
+  const frame = () => new Promise(resolve => requestAnimationFrame(resolve));
+  const src = () => face.getAttribute('src') || '';
+  const closed = /_closed\\.webp$/;
+  const deadline = performance.now() + 8000;
+  while (blinking && performance.now() < deadline) await frame();
+  if (blinking) return {ok: false, why: 'a blink was still in flight after 8s', src: src()};
+  requestBlink('neutral', false, false);
+  const shut = src();
+  if (!closed.test(shut)) return {ok: false, why: 'requestBlink did not close the eyes', shut};
+  // Drain it before handing back. setFace() rebuilds the irises on the reopen,
+  // so the caller marking them mid-blink marks elements the blink itself is
+  // about to replace -- and the "these are fresh irises" assertion downstream
+  // then passes for the wrong reason.
+  while ((blinking || closed.test(src())) && performance.now() < deadline) await frame();
+  return {ok: !blinking && !closed.test(src()), shut, reopened: src(), curFace};
+}"""
 
 
 def movie_projection(page):

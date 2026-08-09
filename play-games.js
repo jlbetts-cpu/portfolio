@@ -742,8 +742,9 @@
  "use strict";
  var lede=document.getElementById("playLede");
  var slot=lede&&lede.querySelector(".pMoodSlot");
+ var line=lede&&lede.querySelector(".pMoodLine");
  var stage=document.getElementById("stage");
- if(!lede||!slot||!stage)return;
+ if(!lede||!slot||!line||!stage)return;
 
  /* The four are named in the SAME ORDER the menu lists them, and each entry carries the
     data-mood the menu keys on plus the glyph class that replaces the word's full stop --
@@ -758,6 +759,20 @@
 
  var reduce=window.matchMedia&&window.matchMedia("(prefers-reduced-motion:reduce)").matches;
  var CYC_STAG=0.05, DWELL=8500;
+
+ /* THE MOTION LADDER IS READ, NOT RETYPED. Three rungs govern the swap and all three
+    already have names in tokens.css; parsing them once at boot costs one style read and
+    means a change to the ladder moves this rig with it instead of leaving a literal
+    behind. parseFloat("240ms") is 240, so no unit handling is needed.
+      --sp-settle-dur   the line's own settle, and the duration --sp-settle is SAMPLED
+                        FOR -- tokens.css §6 is explicit that the spring curves are bound
+                        to their durations and may not be re-timed (360)
+      --dur-state       two jobs, both of them "one state has become another": the point
+                        in the exit at which the next word takes over (see cycle()), and
+                        the reduced-motion dissolve in both directions (160) */
+ var CS=getComputedStyle(document.documentElement);
+ function ms(name,fallback){var v=parseFloat(CS.getPropertyValue(name));return v>0?v:fallback;}
+ var SETTLE_MS=ms("--sp-settle-dur",360), FADE_MS=ms("--dur-state",160);
  var wi=Math.floor(Math.random()*MOODS.length);
  var cycWord=null,cycTimer=0,cycHold=false,dragging=false,ghost=null,pid=null;
  var tugCount=0,TUG_MAX=3;
@@ -783,34 +798,130 @@
   return w;
  }
 
+ /* ══ THE LINE GROWS AND SHRINKS ═════════════════════════════════════════════════
+    Jayden: "make sure to animate the line growing or shrinking in a sleek way."
+
+    THE FOUR WORDS DIFFER IN WIDTH BY UP TO ~84px, and .pLede is text-align:center, so
+    every swap changes where "made with" sits by half that. Something has to carry that
+    change or the clause snaps sideways.
+
+    WHAT WAS HERE BEFORE, AND WHY IT WENT. The previous rig eased the incoming word's
+    min-width from the outgoing word's width down to its own. It was not instant -- it
+    was a real 360ms tween and it did stop the snap -- but it had two faults, both
+    measured on this page at 1280x900:
+
+      1. IT ANIMATED A LAYOUT PROPERTY ON AN h1. min-width is an input to layout, so
+         every frame of the tween re-laid the clause AND re-ran text-wrap:balance on
+         .pLede. Benchmarked against this exact element: 0.188ms per invalidation for
+         min-width against 0.023ms for the transform pair below, ~8x, on a page whose
+         other rAF budget is a crowd of physics heads. This is the same class of work
+         the performance pass just took out of the drag path (idle forced-layout reads
+         278/s -> 57/s); paying it back on the headline would be a poor trade.
+      2. IT MADE THE WORD DRIFT SIDEWAYS AS IT ARRIVED. min-width pads the inline-block
+         to the RIGHT of its glyphs, so while the box shrank the line re-centred and the
+         new word's letters slid 22px right -- measured: "made" travelled 440.36 -> 462.66
+         while "hunger." was still blurring in. The letters were doing two things at once
+         and reading as neither.
+
+    WHAT IS HERE NOW. Nothing about the layout is animated at all. The swap lands the new
+    word at its FINAL width in a single layout, and then two transforms -- one on the line,
+    one on the word, equal and opposite -- put the picture back where the eye left it and
+    relax to identity together:
+
+        .pMoodLine   translateX(+d)  ->  0     the static run holds still, then glides
+        .cycw        translateX(-d)  ->  0     cancels the line's shift for the word only
+
+    Because they are the same duration and curve they stay in lockstep, so the NET
+    transform on the word is zero for the whole tween: the arriving word never moves, and
+    the only thing that travels is "made with". That is the sleek reading of this change --
+    the eye is on the word that is changing, so the word is the thing that stays put and
+    the sentence settles around it. On a centred line the word's CENTRE is invariant under
+    a width change anyway (the left edge goes out by d and the right edge in by d), so
+    holding it still is not a trick, it is the geometry.
+
+    THE DISTANCE IS MEASURED, NOT DERIVED. Reading the real before/after positions of the
+    first static word and the word's own centre costs the same two layout reads as the
+    width maths would and is correct in cases the maths is not -- most importantly when the
+    clause wraps at a narrow viewport, where "made with" does not move at all and the right
+    compensation is zero rather than half the width delta.
+
+    THE CURVE IS --sp-settle, AND ITS DURATION IS --sp-settle-dur. A line finding its
+    length is a settle, which is what that spring is for; it is sampled monotonic (no
+    overshoot), so type never wobbles, and tokens.css §6 requires the pair be used
+    together. The word's own letters keep cycIn/--ease-out: a letter landing and a line
+    settling are different objects and it is right that they are not the same curve.
+
+    ONE forced reflow per swap (the void offsetWidth that commits the start transform),
+    against 22 layouts per swap before. Reduced motion takes none of it -- see cycle().
+    ══════════════════════════════════════════════════════════════════════════════ */
+ var settleTimer=0,settleWord=null;
+
+ /* The two numbers the settle needs, read together so the pair costs one layout. */
+ function shot(w){
+  var wd=line.querySelector(".wd");            // the first static word, if the lede was split
+  var r=w?w.getBoundingClientRect():null;
+  return {wd:wd?wd.getBoundingClientRect().left:null,
+          cx:r?r.left+r.width/2:null,
+          w:r?r.width:null};
+ }
+
+ /* SNAP TO THE END STATE, never to a half-way one. Called before every measurement, at the
+    end of every tween, and the moment a hand picks the word up -- a settle that is still
+    running when the next thing happens must leave the sentence where it was GOING, so
+    nothing downstream ever measures a transformed rect or inherits a stranded offset. */
+ function endSettle(){
+  clearTimeout(settleTimer);
+  line.style.transition="";line.style.transform="";line.style.willChange="";
+  if(settleWord){settleWord.style.transition="";settleWord.style.transform="";settleWord.style.willChange="";}
+  settleWord=null;
+ }
+
+ function settle(before,w){
+  endSettle();
+  if(reduce||!before)return;                   // reduced motion changes the word, never moves it
+  var after=shot(w);
+  /* How far the static run jumped, and how far the word's centre jumped with it. */
+  var dLine=(before.wd!=null&&after.wd!=null)?before.wd-after.wd
+           :(before.w!=null&&after.w!=null)?(after.w-before.w)/2:0;   // fallback: half the delta
+  var dWord=(before.cx!=null&&after.cx!=null)?(before.cx-after.cx)-dLine:-dLine;
+  if(Math.abs(dLine)<0.5&&Math.abs(dWord)<0.5)return;
+  var ease="transform "+SETTLE_MS+"ms var(--sp-settle)";
+  settleWord=w;
+  line.style.willChange="transform";w.style.willChange="transform";
+  line.style.transition="none";w.style.transition="none";
+  line.style.transform="translate3d("+dLine.toFixed(2)+"px,0,0)";
+  w.style.transform="translate3d("+dWord.toFixed(2)+"px,0,0)";
+  void line.offsetWidth;                       // the one forced reflow, once per swap
+  line.style.transition=ease;w.style.transition=ease;
+  line.style.transform="translate3d(0,0,0)";
+  w.style.transform="translate3d(0,0,0)";
+  /* The layer comes off when the tween is over -- a permanently promoted h1 line is a
+     permanent layer, the same reason .cyc-ch strips .in on animationend. */
+  settleTimer=setTimeout(endSettle,SETTLE_MS+60);
+ }
+
  function place(i,defer){
+  endSettle();                                 // never measure a rect that is mid-tween
+  var before=(cycWord&&cycWord.parentNode)?shot(cycWord):null;
   var next=build(i,defer);
-  if(cycWord&&cycWord.parentNode){
-   /* THE min-width TWEEN IS LOAD-BEARING ON A CENTRED HEADLINE and it is not decoration.
-      The four words differ in width by up to ~84px; on a text-align:center line that
-      snapped the whole clause sideways by half that on every swap. Ease from the outgoing
-      width to the incoming one and the line glides instead. Commit 79add97 established
-      this on the home page and recorded that a fixed-width slot was tried and rejected
-      (it trades the jump for a permanent gap). Reduced motion opts out. */
-   var prev=cycWord.getBoundingClientRect().width;
+  if(before){
    cycWord.replaceWith(next);cycWord=next;
-   if(!reduce){
-    var nat=next.getBoundingClientRect().width;
-    if(Math.abs(prev-nat)>1){
-     next.style.transition="none";next.style.minWidth=prev+"px";void next.offsetWidth;
-     next.style.transition="min-width var(--dur-reveal) var(--ease-out)";
-     next.style.minWidth=nat+"px";
-     setTimeout(function(){next.style.minWidth="";next.style.transition="";},520);
-    }
-   }
+   settle(before,next);
   }else{
    slot.appendChild(next);cycWord=next;
   }
   tug(next);
  }
 
+ /* THE WORD STILL CHANGES UNDER REDUCED MOTION. It used to stop dead on whichever mood it
+    booted with, which is the failure mode Apple names directly: Reduce Motion asks for a
+    different animation, not for the feature to be withdrawn, and the substitution it names
+    is a dissolve. The four moods are this page's only passive announcement that the moods
+    exist at all, so withdrawing the cycle withdraws information, not just decoration. What
+    reduced motion drops is every bit of TRAVEL -- no per-letter stagger, no translateY, no
+    blur, and no settle: the clause's new length simply is, at the one moment nothing is
+    visible. See the @media block in play.html for the paired keyframes. */
  function nextCycle(ms){
-  if(reduce)return;                       // the word never cycles under reduced motion: it rests on one
   clearTimeout(cycTimer);
   cycTimer=setTimeout(cycle,ms||DWELL);
  }
@@ -818,10 +929,26 @@
   if(cycHold||dragging||!cycWord)return;  // never swap out from under a hand
   cycWord.classList.add("out");
   clearTimeout(cycTimer);
+  /* WHEN THE NEW WORD ARRIVES IS DERIVED FROM THE OLD ONE, not a constant. The exit is
+     staggered per character exactly as the entrance is, so a five-letter word is clear
+     4x50ms sooner than an eight-letter one. The old fixed 560 was wrong at both ends: it
+     cut "delight." and "empathy." off with 30ms of their last letter still to run, and it
+     left "love." sitting as a hole in a full-width slot for 120ms -- the awkward half-empty
+     space this swap exists to never show. Measured at 1280x900: the last letter of "love."
+     was already under 5% opacity at 333ms and the swap did not come until 560.
+     THE HANDOVER IS ONE RUNG EARLY ON PURPOSE. It waits --dur-state (160) of the last
+     letter's --dur-state-out (240), not the whole thing. --ease-out is front-loaded, so at
+     that point the letter is at ~4% opacity behind 4.8px of blur -- gone to the eye, with
+     only the tail of the curve left to run. Cutting the tail is what closes the hole to a
+     frame or two: the last letter leaves as the first one arrives, and the line starts
+     settling on the same frame, so the word changing and the clause changing are ONE event
+     rather than two with a gap between them. The number is a rung, not a fudge factor. */
+  var n=cycWord.childElementCount||1;
+  var gap=reduce?FADE_MS:(n-1)*CYC_STAG*1000+FADE_MS;
   cycTimer=setTimeout(function(){
    if(cycHold||dragging||!cycWord)return;
    wi=(wi+1)%MOODS.length;place(wi,false);nextCycle();
-  },560);
+  },gap);
  }
 
   /* NO TUG. The word used to nudge itself sideways twice, 900ms after landing, to teach
@@ -900,6 +1027,15 @@
    if(document.body.classList.contains("hmBattle")||document.body.classList.contains("hmSoccer")
     ||document.body.classList.contains("hmRace")||document.body.classList.contains("hmTour"))return;
    e.preventDefault();
+   /* A SWAP MUST NEVER FIGHT A DRAG, AND A CANCELLED SWAP MUST NOT STRAND THE WORD.
+      Grabbing during the exit used to clear the timer that was going to replace the word
+      while leaving .out on it -- animation-fill-mode:both then held it at opacity 0, so the
+      word came back from the drop INVISIBLE and stayed that way until the next cycle
+      finally swapped it, up to 8.5s later. Dropping .out here restores it in the same frame
+      the ghost is built from it, and endSettle() lands any in-flight line settle on its end
+      state so the rect this gesture measures is the resting one. */
+   w.classList.remove("out");
+   endSettle();
    var r=w.getBoundingClientRect();
    w.classList.add("grab");
    cycHold=true;clearTimeout(cycTimer);    // freeze the cycler for the whole gesture
@@ -968,7 +1104,7 @@
  }
 
  function enter(){
-  if(reduce){place(wi,false);return;}
+  if(reduce){place(wi,false);nextCycle();return;}
   var n=split();
   baseDelay=n*16+120;                    // the word lands one beat after the last letter
   place(wi,false);

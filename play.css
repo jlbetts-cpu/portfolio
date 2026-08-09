@@ -125,6 +125,68 @@ body{background:var(--c50);color:var(--c950);font-family:var(--sans);-webkit-fon
    headline for, or from the Play menu block that HEADONLY turns off).
    Sources, index.html: 134, 137, 138, 139, 145-147, 162, 163, 164, 166, 168, 308. ---- */
 #stageMorph{position:relative;width:100%;transform-origin:center center}
+
+/* ══ THE HEAD LEANS IN WHEN IT WILL TAKE WHAT YOU ARE HOLDING ═══════════════════
+   Jayden: "when you drag it to the face, the face comes forward a little bit to show
+   that you can drag on it."
+
+   IT IS A DROP TARGET, SO IT IS BUILT LIKE ONE. .catchReady is the site's existing
+   "a valid payload is over me" signal -- hero-engine.js's faceTrackTo() raises it for a
+   dragged cookie and play-games.js's word rig raises it for a dragged mood word -- and
+   index.html already rewards it at line 149 with exactly this scale. Copying the value
+   rather than picking a new one means the head answers a drag identically on both pages;
+   a drop target that leans by a different amount depending on which page you are on is
+   two affordances pretending to be one.
+
+   #stageMorph, NOT #stage, AND THAT IS THE WHOLE REASON IT COMPOSES. hero-engine.js
+   writes #stage's transform on every frame of the idle float -- translate, rotate and
+   squash -- so anything this stylesheet put there would be overwritten within 16ms.
+   #stageMorph is its parent and nothing writes it, so the lean multiplies into the float
+   instead of racing it: the head keeps breathing and drifting exactly as it did, and the
+   whole portrait -- head, floor shadow, speech bubble and the drifting logo marks, which
+   are #stageMorph's other children -- comes forward together as one object. The crowd of
+   companions is NOT in this subtree, so they stay put; it is the portrait that leans,
+   not the scene.
+
+   IT ONLY EVER FIRES DURING A DRAG. Both owners of .catchReady set it inside a pointer
+   gesture and clear it on release, so a bare cursor crossing the head does nothing. On
+   this page there is no competing gesture to confuse it with: hero-head-transform.js --
+   the selection frame that makes the portrait draggable, scalable and rotatable -- is
+   loaded by index.html only, so on Play the head is never itself picked up.
+
+   THE RETURN IS SLOWER THAN THE ARRIVAL, and asymmetric on purpose. Arming is a response
+   and should feel instant (--dur-state); disarming is the state letting go and gets the
+   rung built for that (--dur-state-out), which is the same 160/240 pair tokens.css §6
+   defines for hover in and hover out. index.html transitions both directions at 160 and
+   therefore snaps back; the patch to bring it in line is in the audit doc.
+   AND A DROP THAT WAS TAKEN RELAXES DIFFERENTLY FROM ONE THAT WAS ABANDONED. On a
+   successful drop the mood performance is about to start, so the lean hands over on the
+   settle spring instead of retracting -- the head is not returning to rest, it is going
+   somewhere. .pMoodTaken is set for exactly that release and dropped again by the rig. */
+#stageMorph{transition:transform var(--dur-state-out) var(--ease-out)}
+body.catchReady #stageMorph{transform:scale(1.055);transition-duration:var(--dur-state)}
+body.pMoodTaken #stageMorph{transition:transform var(--sp-settle-dur) var(--sp-settle)}
+
+/* REDUCED MOTION KEEPS THE DROP TARGET, AND DRAWS IT INSTEAD OF PERFORMING IT.
+   The lean is the only thing telling you the head accepts the word, so switching it off
+   and stopping there would leave the affordance with no signal at all -- which is the
+   failure Apple's reduced-motion criteria name directly (don't remove it, substitute
+   something that does not move). The substitute is the drop zone itself, drawn: a hairline
+   circle at the radius play-games.js's onHead() actually tests, cross-faded in while the
+   head is armed. It is more informative than the lean, not less -- the lean says "I will
+   take this", the ring says "I will take this, from anywhere inside here" -- and it is
+   built from opacity alone, which is the substitution Apple asks for.
+   THE RADIUS IS THE REAL ONE: onHead() accepts inside 0.55 x the stage's width from its
+   centre, and #stageMorph is the same box, so 110% of it is that circle exactly. If the
+   hit test ever moves, this must move with it. */
+@media(prefers-reduced-motion:reduce){
+ #stageMorph,body.pMoodTaken #stageMorph{transition:none}
+ body.catchReady #stageMorph{transform:none}
+ #stageMorph::after{content:"";position:absolute;left:50%;top:50%;width:110%;aspect-ratio:1;
+  transform:translate(-50%,-50%);border-radius:var(--r-full);border:1px solid var(--c400);
+  opacity:0;transition:opacity var(--dur-state) linear;pointer-events:none;z-index:6}
+ body.catchReady #stageMorph::after{opacity:1}
+}
 .stage{position:relative;width:100%;aspect-ratio:1;will-change:transform;z-index:5}
 .face{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;-webkit-user-select:none;user-select:none;cursor:pointer}
 .stage img,.face{-webkit-user-drag:none;-khtml-user-drag:none;user-select:none}
