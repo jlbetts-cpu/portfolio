@@ -79,8 +79,23 @@ def main():
         assert selector in controls, selector
 
     # The shared component layer may only resolve geometry/motion through tokens.
+    #
+    # TWO CORRECTIONS, 2026-08-08, both of which were making this assert fire on
+    # things that are not geometry.
+    #  1. COMMENTS ARE NOT CSS. The block is heavily commented, and the moment a
+    #     comment said "the 44px target stays inside the box" the check failed on
+    #     prose describing the token ladder rather than on a value bypassing it.
+    #  2. A ZERO FALLBACK IS NOT A CONSTANT. `var(--selection-x,0px)` does not
+    #     pick a length off any ladder -- it names the absence of one, for the
+    #     frames before JS writes the real value. Zero is on no rung, cannot
+    #     drift, and inside calc() it cannot be written unitless. Any NON-zero
+    #     literal still fails, which is the case the rule was written for.
     task2_css = controls.split("/* Task 2 shared surfaces", 1)[1].split("/* End Task 2 shared surfaces", 1)[0]
-    assert not re.search(r"(?<![-\w])\d+(?:\.\d+)?(?:px|ms|s)\b", task2_css), task2_css
+    task2_decls = re.sub(r"/\*.*?\*/", " ", task2_css, flags=re.S)
+    offenders = [m.group(0) for m in
+                 re.finditer(r"(?<![-\w])\d+(?:\.\d+)?(?:px|ms|s)\b", task2_decls)
+                 if float(m.group(0).rstrip("pxms")) != 0]
+    assert not offenders, (offenders, task2_decls)
     assert "cubic-bezier(" not in task2_css
 
     home = parse("index.html")

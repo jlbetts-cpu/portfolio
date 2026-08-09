@@ -163,42 +163,24 @@
      pick-and-choose conformance Jayden is objecting to. The spec already ships a
      mechanism for density, and it is .is-sm's 36px box with a 44px ::after, not
      a second type scale. Measured after the change, no group needs it. */
-  .ctl{display:inline-flex;align-items:center;justify-content:center;gap:var(--sp-8);
-    min-height:var(--tap-min);padding:0 var(--sp-16);
-    border:0;border-radius:var(--r-md);corner-shape:var(--corner);
-    background:none;box-shadow:none;
-    font-family:var(--sans);font-size:var(--fs-small);font-weight:400;
-    line-height:var(--lh-flat);letter-spacing:var(--tr-body);color:var(--c700);
-    position:relative;cursor:pointer;white-space:nowrap;text-decoration:none;
-    -webkit-tap-highlight-color:transparent;
-    transition-property:color,background-color,box-shadow,transform;
-    transition-timing-function:var(--ease-out);
-    transition-duration:var(--hover-out-dur)}
-  .ctl:hover,.ctl:focus-visible,.ctl[aria-selected="true"]{transition-duration:var(--ease-out-dur)}
-  .ctl:hover{color:var(--c950)}
-  .ctl:active{transition-duration:var(--press-dur);transform:scale(var(--press-scale))}
-  .ctl:focus-visible{outline:var(--focus-w) solid var(--c950);outline-offset:var(--sp-2)}
-  .ctl:focus:not(:focus-visible){outline:none}
-  .ctl .gIco{width:var(--ico-md);height:var(--ico-md);flex:0 0 var(--ico-md)}
-  .ctl--icon{padding:0;width:var(--tap-min);min-width:var(--tap-min);flex:0 0 var(--tap-min)}
-  /* §3.2: the hover moves two channels and neither is a fill -- the rim goes
-     .08 -> .14 and the ink goes --c700 -> --c950, so the glyph strengthens with
-     the edge via currentColor and the whole control reads as one object. */
-  .ctl--secondary{background:none;box-shadow:var(--rim-1)}
-  .ctl--secondary:hover{box-shadow:var(--rim-2);color:var(--c950)}
-  /* THE ONE PRIMARY ACTION. §3.1 is 400 in every state, and the 600 that shipped
-     here was the same mistake as the 13px type -- reaching for a channel the kind
-     is not allowed to vary. It does not need one: it is the only control on the
-     page carrying a solid ground, which is emphasis enough.
-     AND IT READS --accent RATHER THAN --c950. They resolve to the same #121212
-     today, but the primary's fill IS the accent -- that is what the token means
-     now that blue is dead -- and headmaker.html writes it that way. Two names for
-     one fill is the state immediately before they disagree.
-     --press-scale-lg because it is a wide box. */
-  .ctl--primary{background:var(--accent);color:var(--c50);flex:1 1 auto}
-  .ctl--primary:hover,.ctl--primary:focus-visible{background:var(--accent-press);color:var(--c50)}
-  .ctl--primary:active{transform:scale(var(--press-scale-lg))}
-  .ctl--primary:focus-visible{outline-color:var(--c950)}
+  /* THE BASE, THE KINDS AND THEIR STATES ARE GONE FROM THIS FILE. Every line
+     that used to sit here -- .ctl, its four state rules, .ctl--icon, .ctl--secondary
+     and .ctl--primary -- is now controls.css's, linked below the block. What the
+     copy said and what the library says agreed on geometry and disagreed on
+     material: the primary's fill read --accent (#121212) rather than
+     --ctl-primary-ground (--theme-ink, #111214) and it carried no rim at all,
+     so this page's one emphasis control was a different object from the same
+     control on every other page. Deleting the copy is what makes retuning
+     --ctl-* reach this page; keeping it is what guaranteed it never would.
+     WHAT SURVIVES BELOW IS LAYOUT ONLY, which is the whole of what a page is
+     allowed to say about a control. */
+  /* the panel foot is a flex row: the icon buttons hold their 44px square and
+     the one primary action takes the rest of it. */
+  .ctl--icon{flex:0 0 auto}
+  .ctl--primary{flex:1 1 auto}
+  /* SUCCESS, briefly, on the copy button. --ok is a different idea from --accent
+     that happens to be a colour, so it keeps its own name; the ink channel is the
+     library's own, which is why this can stay one declaration. */
   .ctl.is-ok{color:var(--ok)}
 
   /* ── the tab strip: five groups, one visible at a time. This is REDUCTION,
@@ -206,10 +188,22 @@
      844px-tall scroller with its last rows unreachable. Full 44px segments --
      the compact 36px rung needs a >=44px container and >=8px between expanded
      hit areas (§4.2), and a segmented control has neither. */
-  .tabs{display:flex;gap:var(--sp-4)}
-  .ctl--tab{flex:1 1 0;min-width:0;padding:0 var(--sp-4);
-    border-radius:var(--r-md);corner-shape:var(--corner);
-    color:var(--c500);justify-content:center}
+  /* THE STRIP IS LAYOUT; THE TAB IS THE LIBRARY'S. .ctl--tab used to be redrawn
+     here -- its own ink, its own selected weight, and its own underline hung off
+     a .ctlLbl span -- which is how one role came to render three different ways
+     across the site (audit §2.1). controls.css already ships exactly the design
+     this page argued for: hover is the grey pill and never touches the selected
+     tab, selection is ink + 600, and the underline is a third channel. So the
+     three channels stay and the second implementation of them goes.
+     THE TYPE STAYS 15px. .ctl--tab reads `font-size:inherit` by design -- a tab
+     takes the scale of the strip it sits in -- so the strip declares --ctl-fs and
+     the measurement that justified it (longest label 46.3px at 15/600 inside a
+     52.4px track at 390) still holds. */
+  .tabs{display:flex;gap:var(--sp-4);font-size:var(--ctl-fs)}
+  .tabs>.ctl--tab{flex:1 1 0;min-width:0;padding-inline:var(--sp-4)}
+  /* the underline follows the tab's own inset rather than the 44px rung's 16px,
+     which on a 60px track would leave it shorter than the word it belongs to. */
+  .tabs>.ctl--tab::after{left:var(--sp-4);right:var(--sp-4)}
 
   /* ── THREE STATES, THREE CHANNELS, AND NONE OF THEM USED TWICE. Control-system
      spec §3.4, amended in this pass -- the reasoning is recorded there and the
@@ -225,40 +219,16 @@
      hovered into the selected appearance. A five-tab strip has no such
      protection, which is why the underline had to be a channel of its own.
 
-     HOVER = the grey pill (ink comes free from .ctl:hover). Never on the selected
-     tab -- that is the same :not() protection the nav gives its lit item, and
-     without it hover and selection would collide on the one tab that matters. */
-  /* --accent-wash, not --nav-hover-bg: they are the same #F1F1F1 by design
-     (tokens.css:97 -- "so an interaction ground is one grey everywhere instead of
-     two") but --nav-hover-bg is declared INSIDE .jbNav and does not resolve out
-     here. EXPECTED AUDIT WARNING: token-audit's SANCTIONED_HOVER_FILL regex knows
-     --accent-press, --nav-hover-bg and --mat-*, but not --accent-wash, so this
-     one line reports as hover_background_fill. It is the same sanctioned case;
-     the regex wants --accent-wash adding by that tool's owner. */
-  .ctl--tab:hover:not([aria-selected="true"]){background:var(--accent-wash)}
-
-  /* SELECTED = ink + 600 + the underline, and no ground at all.
-     600 AT REST WOULD BE THE SPEC'S OTHER ANSWER AND IT IS NOT NEEDED HERE.
-     §3.4 asked for 600 throughout because a weight change reflows a tab row.
-     Measured on this strip: tab x-positions are [36, 100.4, 164.8, 229.2, 293.6]
-     with Look selected and identical with Stage selected, because flex:1 1 0
-     gives every tab an equal share whatever it contains. Nothing moves, so the
-     weight is free to carry meaning -- and 400 against 600 is a contrast worth
-     having. That measurement is now in the spec. */
-  .ctl--tab[aria-selected="true"]{color:var(--c950);font-weight:600}
-
-  /* THE UNDERLINE HUGS THE WORD, NOT THE BOX. It is on a span rather than on the
-     button because the button is flex:1 1 0 -- a rule spanning its padding box
-     would be a segmented control's bottom border, which is the "swoosh under the
-     padding" §3.4 already rejects. On the label it is exactly as wide as the
-     label, and it grows with the 600 weight because it is the same box. */
-  .ctlLbl{position:relative;display:block}
-  .ctlLbl::after{content:"";position:absolute;left:0;right:0;
-    bottom:calc(var(--sp-6) * -1);height:var(--focus-w);
-    border-radius:var(--r-hair);background:var(--accent);opacity:0;
-    transition:opacity var(--ease-out-dur) var(--ease-out)}
-  .ctl--tab[aria-selected="true"] .ctlLbl::after{opacity:1}
-  @media(prefers-reduced-motion:reduce){.ctlLbl::after{transition:none}}
+     ALL THREE CHANNELS NOW COME FROM controls.css, which reached the same answer:
+     `.ctl--tab:hover:not([aria-selected="true"])` fills with --ctl-ground-hover,
+     `[aria-selected="true"]` takes --ctl-ink-strong at 600, and a ::after rule
+     carries the underline. The measurement that used to justify the local copy
+     still holds and is recorded in the spec: tab x-positions are
+     [36, 100.4, 164.8, 229.2, 293.6] whichever tab is selected, because flex:1 1 0
+     gives every tab an equal share whatever it contains, so the weight change
+     reflows nothing.
+     The .ctlLbl spans stay in the markup -- they are the label's box and cost
+     nothing -- but they no longer carry an underline of their own. */
 
   /* ── the tab body. Rows are FLUSH: each is its own 44px target, so the 8px
      separation floor -- which exists to keep undersized targets apart -- has
@@ -307,24 +277,21 @@
   input[type=range]:focus-visible{outline:var(--focus-w) solid var(--c950);
     outline-offset:calc(var(--sp-2) * -1)}
 
-  /* ── selects, as the spec's FIELD kind (§3.6): "a select at 28.5px next to a
-     button at 44px is the loudest single inconsistency in Gradient Lab, and a
-     form row cannot read as one object if its two halves are on different
-     ladders." appearance:none plus one caret at --ico-sm gets them onto the same
-     ladder. A field carries a ground at rest because it is the one kind whose
-     job is to look RECESSED -- --mat-3-solid against the panel's --c0 is that
-     half-step down, and it is why the rim can stay at --rim-1. */
-  select{appearance:none;-webkit-appearance:none;flex:1 1 auto;min-width:0;
-    min-height:var(--tap-min);padding:0 var(--sp-36) 0 var(--sp-12);
-    font-family:var(--sans);font-size:var(--fs-small);letter-spacing:var(--tr-body);
-    color:var(--c950);border:0;border-radius:var(--r-md);corner-shape:var(--corner);
-    background-color:var(--mat-3-solid);box-shadow:var(--rim-1);cursor:default;
-    background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="rgb(117,117,117)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6l6 -6"/></svg>');
-    background-repeat:no-repeat;background-position:right var(--sp-12) center;
-    background-size:var(--ico-sm) var(--ico-sm);
-    transition:box-shadow var(--hover-out-dur) var(--ease-out)}
-  select:hover,select:focus-visible{box-shadow:var(--rim-2)}
-  select:focus-visible{outline:var(--focus-w) solid var(--c950);outline-offset:var(--sp-2)}
+  /* ── selects. The spec's FIELD kind (§3.6) is now a real primitive rather than
+     a page-local drawing of one: `.field .field--select .field--flex` in
+     controls.css. The argument this block used to make -- "a select at 28.5px
+     next to a button at 44px is the loudest single inconsistency in Gradient Lab,
+     and a form row cannot read as one object if its two halves are on different
+     ladders" -- is exactly why the primitive exists, and the absence of one is
+     the documented reason this page forked .ctl in the first place.
+     ONE MEASURED CORRECTION CAME OUT OF THE MOVE. The old rule set
+     background-color:var(--mat-3-solid) (#FDFDFD) and site-theme.css's
+     `input,select,textarea{background-color:var(--theme-surface)}` loads after
+     this block and quietly won, so the ground has been rendering #FFF, not the
+     half-step-down this comment claimed. .field reads --ctl-ground, which IS
+     --theme-surface, so the file now says what the page actually draws. The rim
+     moves with it, --rim-1 (.08) -> --ctl-rim (.12), which is the site's hairline
+     and the only thing separating the field now that the ground is not. */
 
   /* ── colour wells. 30 x 30 was one of the 39 desktop target failures; they are
      --tap-min circles now, spread across the row so the five read as a palette
@@ -403,6 +370,16 @@
     .tabPanel{overflow-y:visible}
   }
 </style>
+<!-- THE SHARED CONTROL LIBRARY. This page used to carry a PRIVATE COPY of `.ctl`
+     in the block above -- same class name, different definition, reading raw
+     primitives (--tap-min, --sp-16, --r-md) instead of the --ctl-* semantic layer
+     the library consumes. Nothing in the markup revealed which of the two was in
+     force, and they had already drifted: .ctl--primary rendered rgb(18,18,18)
+     with no rim here against rgb(17,18,20) with a rim everywhere else. The copy
+     is gone; this link is what replaces it. Loaded AFTER the page block, which is
+     the order index/play/about/apollo already use, so the library wins any tie
+     and what is left above can only position a control, never redraw one. -->
+<link rel="stylesheet" href="controls.css?v=20260806-shared-surfaces">
 <link rel="stylesheet" href="header.css?v=20260806-shared-surfaces">
 <link rel="stylesheet" href="footer.css?v=20260806-shared-surfaces">
 <link rel="stylesheet" href="builder-theme.css">
@@ -513,7 +490,7 @@
     <div class="tabPanel" role="tabpanel" id="pLook" aria-labelledby="tabLook">
       <div class="row">
         <label for="preset">Preset</label>
-        <select id="preset" aria-label="Preset">
+        <select class="field field--select field--flex" id="preset" aria-label="Preset">
           <option value="-1" selected>Custom</option>
           <option value="0">ULR — Glacier</option>
           <option value="1">Thoby — Deep Teal</option>
@@ -532,7 +509,7 @@
       </div>
       <div class="row">
         <label for="form">Form</label>
-        <select id="form" aria-label="Form">
+        <select class="field field--select field--flex" id="form" aria-label="Form">
           <option value="0" selected>Planet</option>
           <option value="1">Streams</option>
           <option value="2">Silk</option>
@@ -543,7 +520,7 @@
       </div>
       <div class="row">
         <label for="shape">Shape</label>
-        <select id="shape" aria-label="Shape">
+        <select class="field field--select field--flex" id="shape" aria-label="Shape">
           <option value="orb" selected>Orb</option>
           <option value="bleed">Full-bleed</option>
         </select>
@@ -567,7 +544,7 @@
     <div class="tabPanel" role="tabpanel" id="pNodes" aria-labelledby="tabNodes" hidden>
       <div class="row">
         <label for="nodeSel">Node</label>
-        <select id="nodeSel" aria-label="Edit node">
+        <select class="field field--select field--flex" id="nodeSel" aria-label="Edit node">
           <option value="0" selected>Node 1</option><option value="1">Node 2</option>
           <option value="2">Node 3</option><option value="3">Node 4</option>
           <option value="4">Node 5</option>
@@ -612,7 +589,7 @@
     <div class="tabPanel" role="tabpanel" id="pStage" aria-labelledby="tabStage" hidden>
       <div class="row">
         <label for="stageGround">Ground</label>
-        <select id="stageGround" aria-label="Stage background">
+        <select class="field field--select field--flex" id="stageGround" aria-label="Stage background">
           <option value="paper" selected>Paper</option>
           <option value="white">White</option>
           <option value="grey">Grey</option>
@@ -626,7 +603,7 @@
       </div>
       <div id="dressSec">
         <div class="row" id="sceneRow"><label for="scene">Scene</label>
-          <select id="scene" aria-label="Scene">
+          <select class="field field--select field--flex" id="scene" aria-label="Scene">
             <option value="1" selected>Solo</option>
             <option value="2">Duo</option>
             <option value="3">Trio</option>

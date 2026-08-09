@@ -4,14 +4,30 @@
  --theme-ink:#111214;--theme-muted:#686b73;--theme-rim:rgba(17,18,20,.12);
  --theme-material:rgba(255,255,255,.86);--theme-focus:#111214;
  --theme-atmosphere:transparent;--theme-duration:400ms;
+ /* The field caret. It lives here rather than in controls.css because its ink is
+    a theme decision, and here rather than on the two builder pages because both
+    of them had drawn their own copy of the same chevron. */
+ --field-caret:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="rgb(104,107,115)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6l6 -6"/></svg>');
 }
 :root[data-theme="dark"]{
  color-scheme:dark;
  --theme-page:#0B0C0F;--theme-surface:#111318;--theme-elevated:#171A21;
  --theme-ink:#F4F5F7;--theme-muted:#A7ABB4;--theme-rim:rgba(255,255,255,.14);
+ /* --theme-focus:#D9D7FF LEFT DELIBERATELY ALONE, and the reason is worth
+    recording because the adoption audit called it stale.
+    The case for stale: light's focus is light's ink (#111214), and the accent
+    migration made --accent ink (#121212), so dark's focus "should" be dark's ink.
+    The case against, which won: --theme-atmosphere is still rgba(103,99,228,.16)
+    on the very next line, so the dark theme does deliberately keep a violet
+    identity that light does not have -- and tools/site-theme-contract.py:162
+    PINS this exact value, which is a deliberate assertion by whoever wrote it,
+    not an oversight. Changing it is a design decision about what dark mode IS,
+    which is bigger than a token clean-up and belongs to whoever owns that call.
+    Flagged in the 2026-08-08 adoption report; not changed unilaterally. */
  --theme-material:rgba(17,19,24,.86);--theme-focus:#D9D7FF;
  --theme-atmosphere:rgba(103,99,228,.16);
  --theme-ink-soft:#CDD0D6;--theme-rim-strong:rgba(255,255,255,.22);
+ --field-caret:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="rgb(167,171,180)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6l6 -6"/></svg>');
 }
 
 html,body{background-color:var(--theme-page);color:var(--theme-ink)}

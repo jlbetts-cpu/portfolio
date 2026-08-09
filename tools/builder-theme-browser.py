@@ -12,22 +12,29 @@ from playwright.sync_api import sync_playwright
 
 ROOT = Path(__file__).resolve().parents[1]
 ARTIFACTS = Path(os.environ.get("BUILDER_THEME_ARTIFACTS", "/tmp/builder-theme"))
+# 2026-08-08: both pages stopped carrying a private copy of `.ctl` and now link
+# controls.css, so three selectors and two expectations moved with them.
+#   field    -- `select` / `.mkField` were two page-local drawings of one idea;
+#               both are `.field`, the library's form primitive, now.
+#   utility  -- pinned to `.ctl--secondary` on both pages and excluding the
+#               latched state, so the probe lands on the same KIND on each page
+#               instead of "whatever .ctl comes first in the DOM".
 PAGES = {
     "gradientlab": {
         "path": "gradientlab.html",
         "panel": ".panel",
-        "field": "select",
+        "field": ".field",
         "primary": ".ctl--primary",
-        "utility": ".ctl--secondary",
+        "utility": ".ctl--secondary:not([aria-pressed='true'])",
         "ink": ".labHead h1",
         "muted": ".labHead span",
     },
     "headmaker": {
         "path": "headmaker.html",
         "panel": ".mkPanel",
-        "field": ".mkField",
+        "field": ".field",
         "primary": ".ctl--primary",
-        "utility": ".ctl:not(.ctl--primary)",
+        "utility": ".ctl--secondary:not([aria-pressed='true'])",
         "ink": ".mkSteps li[aria-current]",
         "muted": ".mkHint",
     },
@@ -78,8 +85,20 @@ def run_case(browser, base_url, name, config, mode, width, height):
     errors = []
     page.on("console", lambda msg: errors.append(f"console: {msg.text}") if msg.type == "error" else None)
     page.on("pageerror", lambda error: errors.append(f"pageerror: {error}"))
-    page.goto(f"{base_url}/{config['path']}", wait_until="load")
-    page.wait_for_timeout(80)
+    # domcontentloaded, not load. Gradient Maker compiles its fluid-mesh shader
+    # on a headless software rasteriser; measured here, `load` fires at 33-83s
+    # against this tool's 30s default and the same times at HEAD, so pinning to
+    # `load` made the contract fail on the machine rather than on the CSS. Every
+    # value this tool reads is a computed style, and the theme is set by a
+    # parser-blocking script in <head>, so it is all settled at DOMContentLoaded.
+    # ...and a timeout sized for that rasteriser. fluid-mesh.js is a
+    # parser-blocking <script> in gradientlab's body and its shader compile
+    # therefore sits in front of DOMContentLoaded; measured on this machine it
+    # ranges 30-85s under load, at HEAD and after, so the 30s default was
+    # testing the GPU rather than the CSS.
+    page.goto(f"{base_url}/{config['path']}", wait_until="domcontentloaded",
+              timeout=180_000)
+    page.wait_for_timeout(250)
 
     expected_theme = "dark" if mode == "night" else "light"
     assert page.locator(f'html[data-theme="{expected_theme}"]').count() == 1
@@ -91,8 +110,20 @@ def run_case(browser, base_url, name, config, mode, width, height):
         assert rgb(page, "body", "backgroundColor") == "rgb(11, 12, 15)"
         assert rgb(page, config["panel"], "backgroundColor") == "rgb(17, 19, 24)"
         assert rgb(page, config["field"], "backgroundColor") == "rgb(23, 26, 33)"
-        assert rgb(page, config["utility"], "backgroundColor") == "rgba(0, 0, 0, 0)"
-        assert rgb(page, config["primary"], "backgroundColor") == "rgb(217, 215, 255)"
+        # "Utility controls share their surrounding ground" (builder-theme.css).
+        # That used to be achieved by a transparent background; the shared
+        # library's `.ctl--secondary` states it directly as --ctl-ground, which
+        # resolves to --theme-surface -- the SAME colour the panel is painted.
+        # Assert the relationship rather than the mechanism, so the next honest
+        # way of expressing it does not fail the contract.
+        assert (rgb(page, config["utility"], "backgroundColor")
+                in ("rgba(0, 0, 0, 0)", rgb(page, config["panel"], "backgroundColor")))
+        # THE PRIMARY IS THE SITE'S PRIMARY NOW. builder-theme.css used to repaint
+        # it violet (#D9D7FF) for these two pages alone; that override is gone,
+        # so it takes --ctl-primary-ground (--theme-ink) in dark exactly as the
+        # primary does on index, play and the five case studies.
+        assert rgb(page, config["primary"], "backgroundColor") == "rgb(244, 245, 247)"
+        assert rgb(page, config["primary"], "color") == "rgb(11, 12, 15)"
         assert contrast(page, config["ink"], config["panel"]) >= 7
         assert contrast(page, config["muted"], config["panel"]) >= 4.5
     else:

@@ -91,10 +91,20 @@ from collections import Counter, defaultdict
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-SHIPPING_HTML = ['index.html', 'play.html', 'apollo.html', 'bearings.html',
-                 'cluster.html', 'strata.html', 'ucdavis.html',
+# about.html was the only shipping page outside this list, and it was also the
+# page the 2026-08-08 adoption audit measured at 0% component adoption. The two
+# facts were related: nothing below its header was checked by anything.
+SHIPPING_HTML = ['index.html', 'about.html', 'play.html', 'apollo.html',
+                 'bearings.html', 'cluster.html', 'strata.html', 'ucdavis.html',
                  'headmaker.html', 'gradientlab.html']
-SHIPPING_CSS = ['tokens.css', 'header.css', 'play.css']
+# controls.css and site-theme.css are the two files that GOVERN the rest of the
+# site's controls and colour, and until 2026-08-08 neither was audited -- the
+# library sat outside its own gate. footer.css and builder-theme.css join them
+# for the same reason. hero-time.css is deliberately still out: it is mid-rewrite
+# on this branch and belongs to another lane.
+SHIPPING_CSS = ['tokens.css', 'header.css', 'play.css',
+                'controls.css', 'site-theme.css', 'footer.css',
+                'builder-theme.css']
 SHIPPING_JS = ['header.js', 'hero-engine.js', 'play-engine.js', 'play-games.js',
                'play-tournament.js', 'party.js', 'egghead-seed.js']
 
@@ -364,6 +374,25 @@ GLOBAL_SCOPE = re.compile(r'^(?::root|html|\*|:where\(:root\)|:root\s*,|html\s*,
                           re.I)
 
 
+def is_global_scope(sel):
+    """A GLOBAL definition is one made on the root element itself.
+
+    `GLOBAL_SCOPE.match` alone was too generous: it anchors on the START of the
+    selector, so `:root[data-theme="dark"] body[data-theme-page="headmaker"]`
+    counted as global even though the declaration lands on <body>, on one page,
+    in one theme. That is the language's own scoping mechanism -- the same thing
+    `.jbNav{--ico-md:16px}` is -- and it is never a competing global value.
+    Reading it as global made builder-theme.css's dark adapter report 17
+    `conflicting_definition` ERRORs for doing exactly the job it exists to do.
+    So: the selector must start at the root AND its last compound must still be
+    the root. Any descendant or child combinator means it is scoped."""
+    s = (sel or '').strip()
+    if not GLOBAL_SCOPE.match(s):
+        return False
+    return not any(re.search(r'[\s>+~]', part.strip())
+                   for part in s.split(','))
+
+
 def collect_defs(src):
     """token name -> list of Def dicts.
 
@@ -385,7 +414,7 @@ def collect_defs(src):
         sel = anc[-1] if anc else ''
         out[m.group(1)].append({
             'pos': m.start(), 'value': value, 'at': at,
-            'scope': 'global' if GLOBAL_SCOPE.match(sel or '') else 'scoped',
+            'scope': 'global' if is_global_scope(sel) else 'scoped',
             'selector': sel,
         })
     for m in SETPROP_RE.finditer(src.text):
@@ -1060,7 +1089,17 @@ class Audit:
     SANCTIONED_HOVER_FILL = re.compile(
         r'var\(\s*--(?:ctl-)?accent-press|var\(\s*--nav-(?:hover|active)-bg|'
         r'var\(\s*--accent-wash|'
+        r'var\(\s*--ctl-(?:ground-hover|primary-ground-hover)|'
         r'var\(\s*--mat-', re.I)
+    # --ctl-ground-hover / --ctl-primary-ground-hover are the SEMANTIC names for
+    # the same two sanctioned fills the raw names above already carry:
+    # --ctl-ground-hover is --theme-elevated, the site's one interaction ground
+    # (the same #F1F1F1 pill --nav-hover-bg and --accent-wash resolve to in
+    # light), and --ctl-primary-ground-hover is the primary's pressed ground,
+    # which --accent-press already covers under its old name. Without them,
+    # controls.css -- added to SHIPPING_CSS on 2026-08-08 -- reported its own
+    # base library as three unsanctioned hover fills, which is the tool
+    # disagreeing with the system it audits rather than with a defect.
     # --accent-wash is the SAME sanctioned case as --nav-hover-bg: both resolve to
     # #F1F1F1, the site's one interaction ground. --nav-hover-bg is declared inside
     # .jbNav and does not resolve outside the bar, so any control outside the header

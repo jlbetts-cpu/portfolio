@@ -12,7 +12,7 @@
 }
 .ctl .gIco,.ctl .uiIcon{width:var(--ico-md);height:var(--ico-md);flex:0 0 var(--ico-md)}
 .ctl:hover,.ctl:focus-visible,.ctl[aria-selected="true"],.ctl[aria-current],
-.ctl[aria-expanded="true"]{transition-duration:var(--dur-state)}
+.ctl[aria-expanded="true"],.ctl[aria-pressed="true"]{transition-duration:var(--dur-state)}
 .ctl:active{transition-duration:var(--dur-press);transform:scale(var(--press-scale))}
 .ctl:focus-visible{outline:var(--focus-w) solid var(--ctl-focus);outline-offset:var(--sp-2)}
 .ctl:focus:not(:focus-visible){outline:none}
@@ -26,8 +26,14 @@
 .ctl--secondary,.ctl--icon{
  background:var(--ctl-ground);color:var(--ctl-ink);box-shadow:var(--ctl-rim)
 }
+/* aria-pressed sits in this list beside aria-expanded because a toggle button IS
+   a selection: the two differ in what they announce, not in what they look like.
+   Without it a latched control had no resting "on" appearance in the library, and
+   headmaker.html grew a private `.isOn` rule to supply one. */
 .ctl--secondary:hover,.ctl--secondary:focus-visible,.ctl--secondary[aria-expanded="true"],
-.ctl--icon:hover,.ctl--icon:focus-visible,.ctl--icon[aria-expanded="true"]{
+.ctl--secondary[aria-pressed="true"],
+.ctl--icon:hover,.ctl--icon:focus-visible,.ctl--icon[aria-expanded="true"],
+.ctl--icon[aria-pressed="true"]{
  background:var(--ctl-ground-hover);color:var(--ctl-ink-strong);box-shadow:var(--ctl-rim-strong)
 }
 .ctl--icon{width:var(--ctl-h);height:var(--ctl-h);min-width:var(--ctl-h);padding:0}
@@ -42,11 +48,95 @@
 }
 .ctl--sm{min-height:var(--ctl-h-sm);padding-inline:var(--ctl-pad-sm);gap:var(--ctl-gap-sm);font-size:var(--ctl-fs-sm)}
 .ctl--sm::after{content:"";position:absolute;top:50%;left:0;right:0;height:var(--ctl-h);transform:translateY(-50%)}
+.ctl--sm .gIco,.ctl--sm .uiIcon{width:var(--ico-sm);height:var(--ico-sm);flex:0 0 var(--ico-sm)}
+/* A control that owns its row rather than sitting in one. `display:flex` because
+   an inline-flex box at width:100% still carries the inline box's baseline gap. */
+.ctl--block{display:flex;width:100%}
+
+/* THE FIELD. The library had no form primitive at all, and that absence is the
+   documented reason headmaker.html and gradientlab.html each forked `.ctl`
+   rather than adopting it: a builder is mostly fields, and a system that cannot
+   draw one cannot be adopted by a builder. It is a sibling of `.ctl`, not a
+   variant of it, because the two disagree on the things that matter -- a field
+   is left-aligned, carries a ground AT REST (its job is to look like where
+   content goes), and takes a text caret rather than a pointer.
+   Every value resolves through the same --ctl-* semantic layer, so retuning the
+   control ladder retunes the fields with it. */
+.field{
+ box-sizing:border-box;display:flex;align-items:center;width:100%;
+ min-height:var(--ctl-h);padding-block:0;padding-inline:var(--ctl-pad);
+ border:0;border-radius:var(--ctl-r);corner-shape:var(--corner);
+ background:var(--ctl-ground);box-shadow:var(--ctl-rim);
+ font-family:var(--sans);font-size:var(--ctl-fs);font-weight:400;
+ line-height:var(--lh-flat);letter-spacing:var(--tr-body);color:var(--ctl-ink-strong);
+ transition-property:color,background-color,box-shadow;
+ transition-duration:var(--dur-state-out);transition-timing-function:var(--ease-out)
+}
+.field:hover{transition-duration:var(--dur-state);box-shadow:var(--ctl-rim-strong)}
+/* :focus, not only :focus-visible -- a text field is focused by clicking into it
+   as often as by tabbing, and in both cases the caret is already there. This is
+   the one control kind where a pointer focus is not an accident. */
+.field:focus,.field:focus-visible{
+ transition-duration:var(--dur-state);box-shadow:var(--ctl-rim-strong);
+ outline:var(--focus-w) solid var(--ctl-focus);outline-offset:var(--sp-2)
+}
+.field::placeholder{color:var(--ctl-ink-mute)}
+.field[disabled],.field[aria-disabled="true"]{opacity:var(--ctl-disabled-o);cursor:default}
+/* The caret is a background image rather than a pseudo-element because a <select>
+   has no generated-content box. Colour is --ctl-ink-mute's light value; the dark
+   adapter repaints it, exactly as it already did for the page-local copy. */
+.field--select{
+ display:block;appearance:none;-webkit-appearance:none;cursor:default;
+ padding-inline:var(--ctl-pad-sm) var(--sp-36);
+ background-image:var(--field-caret);background-repeat:no-repeat;
+ background-position:right var(--ctl-pad-sm) center;
+ background-size:var(--ico-sm) var(--ico-sm)
+}
+.field--flex{width:auto;flex:1 1 auto;min-width:0}
+
+/* ── MIGRATION SHIM, and it is meant to be deleted. ─────────────────────────
+   The adoption audit (2026-08-08) measured 26 of 27 one-off control families
+   with no disabled state and 14 with a hover but no press. A phone has no
+   hover, so those 14 acknowledge a tap with nothing at all until the action
+   completes. Patching 14 families in 13 files would have written the duplicate
+   out 14 more times, so the two universal states are declared once, here,
+   against the families by name.
+   :where() so the whole block has ZERO specificity: any page rule that has an
+   opinion about transform, opacity or cursor beats it without a fight, and
+   migrating a family to .ctl simply makes its entry here redundant. Delete a
+   name from these lists when its family adopts .ctl; delete the block when the
+   lists are empty. --press-scale and --ctl-disabled-o are the same values .ctl
+   itself presses and dims by, so a migrated control does not change behaviour.
+   .mkField and the sliders are deliberately absent: a text field must not move
+   under the caret. */
+:where(.abLink,.aboutCta,.teamChip,.sbBtn,.tGo,.hmBtn,.hmDrop,.baGo,.baChip,
+ .moodBtn,.moodItem,.moodGo,.reelClose,.mhToggle,.csTab,.cmpKnob,
+ .pBtn,.tvChip,.tvGo,.hmPitPick):active{
+ transition-duration:var(--dur-press);transform:scale(var(--press-scale))
+}
+:where(.abLink,.aboutCta,.teamChip,.sbBtn,.tGo,.hmBtn,.hmDrop,.baGo,.baChip,
+ .moodBtn,.moodItem,.moodGo,.reelClose,.mhToggle,.csTab,.cmpKnob,
+ .pBtn,.tvChip,.tvGo,.hmPitPick,.mkField,.mkSlider):is([disabled],[aria-disabled="true"]){
+ opacity:var(--ctl-disabled-o);cursor:default
+}
+:where(.abLink,.aboutCta,.teamChip,.sbBtn,.tGo,.hmBtn,.hmDrop,.baGo,.baChip,
+ .moodBtn,.moodItem,.moodGo,.reelClose,.mhToggle,.csTab,.cmpKnob,
+ .pBtn,.tvChip,.tvGo,.hmPitPick):is([disabled],[aria-disabled="true"]):active{transform:none}
+/* ── end migration shim ─────────────────────────────────────────────────── */
 
 .ctl-menu{
  display:flex;flex-direction:column;gap:0;padding:var(--sp-8);min-width:var(--menu-w);
  box-sizing:border-box;border:0;border-radius:var(--radius-menu);corner-shape:var(--corner);
- background:var(--ctl-menu-ground);box-shadow:var(--ctl-menu-shadow);
+ /* NO CAST SHADOW. A menu is chrome: it does not stand on anything, so it has
+    nothing to cast onto. It separates the way the rest of the site's chrome
+    separates -- an opaque ground and a hairline rim. This rule used to read
+    --ctl-menu-shadow, which is `var(--ctl-rim),var(--sh-2)`: the rim plus two
+    drop layers (0 2px 8px, 0 1px 2px). That made the shared library the one
+    thing on the site breaking the site's own rule, and every menu that adopted
+    it inherited the breach. header.css:734 and .jbDiscMenu below were already
+    written the correct way; this is the third menu converging on them, not a
+    new idea. --ctl-menu-shadow (tokens.css:500) now has no consumer. */
+ background:var(--ctl-menu-ground);box-shadow:var(--ctl-container-rim);
  max-height:calc(100svh - (var(--menu-viewport-gutter) * 2));overflow-y:auto;overscroll-behavior:contain;
  opacity:0;visibility:hidden;pointer-events:none;transform:translateY(var(--sp-6));
  transition:opacity var(--dur-state) var(--ease-out),transform var(--sp-settle-dur) var(--sp-settle),
@@ -104,6 +194,27 @@
  margin:0;border-radius:0;background:var(--surface-ground);box-shadow:inset 0 calc(var(--hair-w) * -1) 0 var(--theme-rim)
 }
 .collection__content{box-sizing:border-box;border-radius:0;background:var(--surface-ground);box-shadow:none;overflow:hidden}
+/* THE CAPTION CLIP. Jayden: "the thumbnail section cuts off letters at the
+   bottom, because of the corner rounding." He was right, and measured it is two
+   clips at one edge, not one.
+   The last case item's caption sat with its bottom edge EXACTLY on the container's
+   bottom edge -- .csMeta rest position 1066, .collection__content bottom 1066, zero
+   clearance. Two things then eat it. (1) .collection__content is overflow:hidden,
+   so anything past that line is gone outright; index.html's entrance reveal
+   translates .csMeta down by a measured 9.79px, which puts the whole caption
+   9.79px past the line while it plays. (2) .cases.collection is overflow:hidden
+   with --radius-container, so even at rest the bottom 28px of the box is inside
+   the corner arcs -- and the caption's two words sit hard against the left and
+   right edges. "Apollo" on the left, "2026" on the right: exactly the two he saw.
+   THE CAPTION IS TEXT, SO IT DOES NOT BELONG IN A CLIPPED CORNER. The media does
+   -- .csFrame carries --radius-media and its own clip already, so nothing here is
+   holding the images in. What was missing is a floor: the arc, plus the inset the
+   tab strip already uses at the other end of the same card. That clears the
+   corner geometrically (28px above the bottom is the arc's tangent point) and
+   absorbs the 9.79px reveal with 26px to spare. */
+.cases.collection .collection__content{
+ padding-bottom:calc(var(--radius-container) + var(--surface-inset))
+}
 .collection .csStageInner{padding-inline:0}
 .collection .tvFrame{border-radius:0!important;box-shadow:none!important}
 .cases.collection .csFrame{border-radius:var(--radius-media)!important;box-shadow:var(--surface-rim)!important}
@@ -187,9 +298,16 @@
  will-change:transform
 }
 .heroHeadTransform .stagewrap{position:relative!important;width:100%!important;max-width:none;margin:0!important}
+/* The four --selection-* values are written by hero-head-transform.js at runtime.
+   The 0px fallbacks are not cosmetic: without them the four properties are
+   invalid at computed-value time before the first write, so `left`/`top` fall
+   back to auto and the box has no defined position at all. It is hidden until
+   the head is selected, so nothing showed -- but a rule that only works because
+   its element is display:none is the same class of latent bug as a radius that
+   never wins a declaration. */
 .heroHeadSelection{
- position:absolute;left:var(--selection-x);top:var(--selection-y);
- width:var(--selection-w);height:var(--selection-h);z-index:6;
+ position:absolute;left:var(--selection-x,0px);top:var(--selection-y,0px);
+ width:var(--selection-w,0px);height:var(--selection-h,0px);z-index:6;
  pointer-events:auto;touch-action:none;cursor:move
 }
 /* The selection BOX stays the Hero-clamped bounding rect: it is the pointer
@@ -243,13 +361,16 @@
 /* End Task 2 shared surfaces. */
 
 @media(prefers-reduced-motion:reduce){
- .ctl,.ctl-menu{transition-duration:1ms!important}
+ .ctl,.ctl-menu,.field{transition-duration:1ms!important}
  .ctl:active{transform:none}
+ :where(.abLink,.aboutCta,.teamChip,.sbBtn,.tGo,.hmBtn,.hmDrop,.baGo,.baChip,
+  .moodBtn,.moodItem,.moodGo,.reelClose,.mhToggle,.csTab,.cmpKnob,
+  .pBtn,.tvChip,.tvGo,.hmPitPick):active{transform:none}
  .heroCharacterPeek{transition-duration:1ms!important}
  .heroHeadTransform,.heroHeadSelection,.heroHeadFrame,.heroHeadHandle,.heroHeadRotate{transition:none!important}
 }
 @media(forced-colors:active){
- .ctl--secondary,.ctl--icon,.ctl-menu,.ctl-group:not(.jbNav){background:Canvas;color:CanvasText;box-shadow:0 0 0 var(--hair-w) CanvasText inset}
+ .ctl--secondary,.ctl--icon,.ctl-menu,.ctl-group:not(.jbNav),.field{background:Canvas;color:CanvasText;box-shadow:0 0 0 var(--hair-w) CanvasText inset}
  .ctl--primary{background:Highlight;color:HighlightText}
  .heroHeadFrame::before,.heroHeadHandle::before,.heroHeadRotate::before{
   forced-color-adjust:auto;box-shadow:none;outline:var(--selection-line) solid Highlight;outline-offset:calc(var(--selection-line) * -1)

@@ -20,6 +20,11 @@
  --c500:var(--builder-muted);
  --c700:var(--builder-ink-soft);
  --c950:var(--builder-ink);
+ /* --accent stays bound to --theme-focus: the dark theme keeps a violet identity
+    (see --theme-atmosphere) and this is what the slider thumb and the page's own
+    accent-coloured marks read. It no longer reaches the PRIMARY BUTTON, which is
+    the change that matters -- .ctl--primary now comes from controls.css and takes
+    --ctl-primary-ground like every other page's primary does in dark. */
  --accent:var(--theme-focus);
  --accent-press:#C8C5FF;
  --accent-wash:var(--builder-elevated);
@@ -40,34 +45,22 @@
 :root[data-theme="dark"] body[data-theme-page="headmaker"] :is(.mkPanel,.mkStageCol){
  background-color:var(--builder-surface);
 }
-:root[data-theme="dark"] body[data-theme-page="gradientlab"] :is(select,.panelFoot .ctl--secondary),
-:root[data-theme="dark"] body[data-theme-page="headmaker"] :is(.mkField,.skipLink){
+:root[data-theme="dark"] body[data-theme-page="gradientlab"] :is(.field,.panelFoot .ctl--secondary),
+:root[data-theme="dark"] body[data-theme-page="headmaker"] :is(.field,.skipLink){
  background-color:var(--builder-elevated);
  color:var(--builder-ink);
 }
 
-/* Utility controls share their surrounding ground exactly as they do in the
-   light theme. State is carried by ink, rim, or the single violet primary. */
-:root[data-theme="dark"] body[data-theme-page="gradientlab"] :is(.ctl,.ctl--secondary,.ctl--tab),
-:root[data-theme="dark"] body[data-theme-page="headmaker"] :is(.ctl,.ctl--secondary){
- color:var(--builder-ink-soft);
-}
-:root[data-theme="dark"] body[data-theme-page="gradientlab"] :is(.ctl,.ctl--secondary,.ctl--tab):hover,
-:root[data-theme="dark"] body[data-theme-page="gradientlab"] .ctl--tab[aria-selected="true"],
-:root[data-theme="dark"] body[data-theme-page="headmaker"] :is(.ctl,.ctl--secondary):hover,
-:root[data-theme="dark"] body[data-theme-page="headmaker"] .ctl[aria-pressed="true"]{
- color:var(--builder-ink);
-}
-:root[data-theme="dark"] body[data-theme-page="gradientlab"] .ctl--primary,
-:root[data-theme="dark"] body[data-theme-page="headmaker"] .ctl--primary{
- background-color:var(--theme-focus);
- color:var(--builder-page);
-}
-:root[data-theme="dark"] body[data-theme-page="gradientlab"] .ctl--primary:hover,
-:root[data-theme="dark"] body[data-theme-page="headmaker"] .ctl--primary:hover{
- background-color:#C8C5FF;
- color:var(--builder-page);
-}
+/* THE .ctl DARK ADAPTERS THAT USED TO SIT HERE ARE GONE, and their absence is
+   the point. They existed because both builder pages carried a PRIVATE copy of
+   `.ctl` that bound raw --c* ramps, so dark mode had to be handed to it by
+   name — five rules restating rest ink, hover ink and the primary's fill and
+   hover fill. Both pages link controls.css as of 2026-08-08, and the library
+   reads --ctl-ink / --ctl-ink-strong / --ctl-primary-ground, every one of which
+   already resolves through --theme-* and is therefore already dark. Restating
+   them here would be a third definition of the same decision.
+   The --c* rebinding block above stays: it is what makes the page's REMAINING
+   local styling — the stage, the drop region, the sliders — dark-aware. */
 
 /* Rails, drop regions, and progress marks use a visible neutral hairline rather
    than the light pages' gray fill. */
@@ -98,8 +91,10 @@
  background-color:rgba(11,12,15,.32);
 }
 
-:root[data-theme="dark"] body[data-theme-page="gradientlab"] :is(.ctl,select,input[type=color]),
-:root[data-theme="dark"] body[data-theme-page="headmaker"] :is(.ctl,.mkField,.mkSlider,.hmDrop,.hmPitPick,.skipLink){
+/* .ctl and .field take --ctl-focus, which is --theme-focus already. Only the
+   page-local controls still need telling. */
+:root[data-theme="dark"] body[data-theme-page="gradientlab"] input[type=color],
+:root[data-theme="dark"] body[data-theme-page="headmaker"] :is(.mkSlider,.hmDrop,.hmPitPick){
  outline-color:var(--theme-focus);
 }
 
