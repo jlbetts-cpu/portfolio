@@ -60,8 +60,26 @@
   padding:var(--sp-24) var(--sp-16-24) 0;border:0;box-shadow:none;
  border-radius:0;corner-shape:initial;background:var(--theme-page,var(--c50))}
  body[data-theme-page="play"] .hero::after{display:none}
+ /* THE AURA IS A SKY, AND A SKY HAS TO KNOW WHAT TIME IT IS.
+    This element is the only gradient on the Play hero, it sits directly behind the
+    headline and the crowd, and it was one value in all six time-of-day states:
+    rgba(148,205,255,.44), a daylight blue. On a #0B0C0F page that composites to a
+    pale grey-blue haze roughly 960 x 563 across the middle of the screen -- a lit
+    sky drawn on an unlit page. It is the second half of Jayden's "gradient ... for
+    no reason": the first was the violet glow under one hub card (site-theme.css),
+    this is the one the headline actually sits on.
+    THE FIX IS A TOKEN, NOT A SECOND GRADIENT. The core stop at night is
+    --theme-atmosphere, which is the site's name for exactly this -- a coloured
+    volume of light the dark theme has and the light theme does not -- and which
+    until now had no consumer anywhere in the repo. The two outer stops are the
+    home page's own night sky (hero-time.css's night gradient reads rgba(48,52,105)
+    and rgba(24,35,70) for the same job), so the two heroes now describe the same
+    night instead of two different ones. forced-colors already zeroes
+    --theme-atmosphere, so the high-contrast path needs no rule of its own. */
+ :root{--play-aura:radial-gradient(ellipse at center,rgba(148,205,255,.44) 0%,rgba(184,222,255,.24) 38%,rgba(225,241,255,0) 76%)}
+ :root[data-theme="dark"]{--play-aura:radial-gradient(ellipse at center,var(--theme-atmosphere) 0%,rgba(48,52,105,.10) 42%,rgba(24,35,70,0) 74%)}
  .heroAura{position:absolute;z-index:-1;pointer-events:none;left:50%;top:61%;width:min(960px,88%);height:68%;
-  transform:translate(-50%,-50%);background:radial-gradient(ellipse at center,rgba(148,205,255,.44) 0%,rgba(184,222,255,.24) 38%,rgba(225,241,255,0) 76%);filter:blur(var(--blur-3))}
+  transform:translate(-50%,-50%);background:var(--play-aura);filter:blur(var(--blur-3))}
  .heroCopy{display:contents}
  .heroCopy h1{order:2;margin:0 auto;max-width:min(14.4em,100%);font-size:var(--fs-heroline);
   line-height:1.06;letter-spacing:var(--tr-head);text-align:center;text-wrap:balance}
