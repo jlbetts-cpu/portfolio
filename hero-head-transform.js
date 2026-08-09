@@ -12,6 +12,7 @@
   var state={selected:false,x:0,y:0,scale:1,rotate:0,pointerId:null,operation:null,start:null,
    capture:null,frame:0,peekFrame:0,peekAnimating:false,pendingAnchor:null,pendingClamp:false,
    stamp:0,geomStamp:-1,geom:null,floating:false,floatFrame:0,ambient:false,base:null,metrics:null,
+   hovering:false,resumeTimer:0,floatShift:0,holdAt:0,lastFloatMs:0,
    rendered:{x:0,y:0,scale:1,rotate:0}};
   var content=hero.querySelector(".heroCopy");
   var peek=hero.querySelector(".heroCharacterPeek");
@@ -131,7 +132,12 @@
     xAmp:rootNumber("--hero-head-float-x-amp",5),
     xPer:rootNumber("--hero-head-float-x-period",8.3),
     rAmp:rootNumber("--hero-head-float-rot-amp",.7),
-    rPer:rootNumber("--hero-head-float-rot-period",11.7)
+    rPer:rootNumber("--hero-head-float-rot-period",11.7),
+    /* Signed light direction, read from the Hero because it is authored per
+       time-of-day state. -1 is fully left, +1 fully right. The shadow is
+       thrown the OTHER way: light on the left puts the shadow on the right. */
+    lightDir:parseFloat(getComputedStyle(hero).getPropertyValue("--time-light-dir"))||0,
+    throw:rootNumber("--hero-ground-throw",54)
    };
    return state.metrics;
   }
@@ -148,8 +154,9 @@
    wrap.style.setProperty("--hero-head-y",state.y+"px");
    wrap.style.setProperty("--hero-head-scale",String(state.scale));
    wrap.style.setProperty("--hero-head-rotate",state.rotate+"deg");
+   hero.style.setProperty("--hero-head-scale",String(state.scale));
    state.rendered={x:state.x,y:state.y,scale:state.scale,rotate:state.rotate};
-   state.stamp++;
+   state.stamp++;paintShadow();
   }
   /* The wrapper's transform-origin is the logical head's centre expressed as a
      percentage of the wrapper, so the head turns about itself rather than
@@ -467,7 +474,7 @@
    var capture=state.capture,pointerId=state.pointerId;
    state.pointerId=null;state.operation=null;state.start=null;state.capture=null;
    if(capture&&pointerId!==null&&capture.hasPointerCapture(pointerId))capture.releasePointerCapture(pointerId);
-   startFloat();
+   releaseFloat();
   }
   function reset(){
    state.x=0;state.y=0;state.scale=1;state.rotate=0;
@@ -493,17 +500,51 @@
      amplitude so the shadow reads HEIGHT rather than raw pixels, and stays
      correct if the amplitudes are retuned. */
   function writeFloat(ms){
-   var f=floatAt(ms),m=metrics();
-   var span=m.yAmp+m.y2Amp;
-   var lift=span>0?Math.max(0,Math.min(1,(-f.y+span)/(span*2))):0;
+   var f=floatAt(ms);
    wrap.style.setProperty("--hero-head-float-x",f.x.toFixed(2)+"px");
    wrap.style.setProperty("--hero-head-float-y",f.y.toFixed(2)+"px");
    wrap.style.setProperty("--hero-head-float-rot",f.rot.toFixed(3)+"deg");
-   hero.style.setProperty("--hero-head-shadow-lift",lift.toFixed(3));
+   paintShadow(f);
+  }
+  /* ── ONE WRITER FOR THE GROUND SHADOW ────────────────────────────────────
+     hero-engine's updateShadow() already models this correctly: it derives
+     lift from -dy, spreads and softens and lightens the ellipse as lift grows,
+     tracks horizontally at 0.55 of the head's travel, and -- the part that
+     matters -- never emits a translateY. What it did not know about was the
+     head's own arrangement and the float, which are a second source of height.
+     Two writers on one inline style would flicker, so the engine's function is
+     wrapped: its reaction offsets are recorded, and every write from either
+     source goes through one place that adds them together. */
+  var engineShadow={dx:0,dy:0,rot:0},baseShadow=null;
+  function paintShadow(f){
+   if(!baseShadow)return;
+   var fx=f?f.x:cssNumber(wrap,"--hero-head-float-x");
+   var fy=f?f.y:cssNumber(wrap,"--hero-head-float-y");
+   var fr=f?f.rot:cssNumber(wrap,"--hero-head-float-rot");
+   var m=metrics();
+   /* updateShadow scales dx by .55 on its way into translateX, so the throw is
+      pre-divided to land as the authored pixel distance on the ground. */
+   var thrown=-m.lightDir*m.throw/0.55;
+   baseShadow(engineShadow.dx+state.x+fx+thrown,
+              engineShadow.dy+state.y+fy,
+              engineShadow.rot+state.rotate+fr);
+  }
+  function hookShadow(){
+   if(typeof window.updateShadow!=="function")return;
+   baseShadow=window.updateShadow;
+   window.updateShadow=function(dx,dy,rot){
+    engineShadow={dx:dx,dy:dy,rot:rot};paintShadow();
+   };
+   paintShadow();
   }
   function floatFrame(ms){
    if(!state.floating){state.floatFrame=0;return;}
-   writeFloat(ms);
+   state.lastFloatMs=ms;
+   /* The float is a pure function of absolute time, so resuming after a pause
+      would snap to wherever the sine had travelled meanwhile. The elapsed
+      paused time is subtracted instead, which makes the motion continue from
+      exactly the offset it was frozen at -- no jump when the cursor leaves. */
+   writeFloat(ms-state.floatShift);
    /* The head has physically moved, so every cached measurement is stale and
       the chrome has to be re-derived from the new rect, in THIS frame. */
    state.stamp++;syncSelection();
@@ -511,6 +552,7 @@
   }
   function startFloat(){
    if(state.floating||prefersReducedMotion())return;
+   if(state.holdAt){state.floatShift+=performance.now()-state.holdAt;state.holdAt=0;}
    state.floating=true;
    if(!state.floatFrame)state.floatFrame=requestAnimationFrame(floatFrame);
   }
@@ -519,9 +561,32 @@
      exactly where you put it -- so the float holds its current offset and
      resumes from the live clock on release, which avoids a jump back. */
   function stopFloat(){
+   if(state.floating&&!state.holdAt)state.holdAt=performance.now();
    state.floating=false;
    if(state.floatFrame)cancelAnimationFrame(state.floatFrame);
    state.floatFrame=0;
+  }
+  /* ── A DRIFTING 44px TARGET IS A MISSED CLICK ────────────────────────────
+     "Sometimes it doesn't let me resize or rotate" is not an intermittent
+     failure, it is a moving target: you aim at a handle, it drifts, the press
+     lands on the background and deselects instead. Pausing on pointerDOWN was
+     always too late -- by then the miss has happened. The float freezes when
+     the pointer ARRIVES over the head or its frame, so anyone reaching for a
+     handle gets a completely still target, and it keeps drifting for someone
+     who is only reading. The grace period on the way out stops it stuttering
+     when the cursor clips an edge in passing. */
+  function holdFloat(){
+   state.hovering=true;
+   if(state.resumeTimer){clearTimeout(state.resumeTimer);state.resumeTimer=0;}
+   stopFloat();
+  }
+  function releaseFloat(){
+   state.hovering=false;
+   if(state.resumeTimer)clearTimeout(state.resumeTimer);
+   state.resumeTimer=setTimeout(function(){
+    state.resumeTimer=0;
+    if(!state.hovering&&state.pointerId===null)startFloat();
+   },rootNumber("--hero-head-float-resume-delay",280));
   }
   function prefersReducedMotion(){
    return matchMedia("(prefers-reduced-motion: reduce)").matches
@@ -628,6 +693,16 @@
    chrome.forEach(function(node){node.tabIndex=0;});
    state.stamp++;syncSelection();
   }
+  [face,selection].forEach(function(node){
+   node.addEventListener("pointerenter",holdFloat);
+   node.addEventListener("pointerleave",releaseFloat);
+  });
+  hookShadow();
+  /* The light direction is authored per state, so a change of hour invalidates
+     the cache. Observing the attribute costs nothing until it actually moves. */
+  new MutationObserver(function(){
+   state.metrics=null;paintShadow();
+  }).observe(hero,{attributes:true,attributeFilter:["data-time-state"]});
   ambient();startFloat();
   if(document.readyState==="complete")recapture();
   else addEventListener("load",function(){recapture();render();});
