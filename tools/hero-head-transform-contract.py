@@ -326,7 +326,25 @@ def browser_contract(base_url):
                 for h in selected["handles"]
             ), selected
             assert_handle_hits(page, "default")
-            resting_logical = logical_head_rect(page)
+            # SNAPSHOT ONLY ONCE THE LAYOUT HAS STOPPED MOVING. This is the
+            # rectangle every later assertion is compared against, and it used
+            # to be grabbed the instant the head was first clicked -- while the
+            # peek was still travelling. It read 198px high at 1440, so a reset
+            # that landed perfectly on the authored resting position was scored
+            # against a position the head only ever occupied in transit. The
+            # test was asserting against a transient it had snapshotted itself.
+            # Two consecutive agreeing reads mean the head has settled.
+            previous, resting_logical = None, logical_head_rect(page)
+            for _ in range(40):
+                page.wait_for_timeout(100)
+                previous, resting_logical = resting_logical, logical_head_rect(page)
+                if all(abs(previous[k] - resting_logical[k]) <= .5
+                       for k in ("x", "y", "width", "height")):
+                    break
+            else:
+                raise AssertionError(
+                    ("head never settled", label, previous, resting_logical)
+                )
             page.screenshot(path=str(SHOTS / f"home-{label}-selected.png"))
 
             frame0 = page.locator("#heroHeadSelection").bounding_box()
@@ -579,9 +597,19 @@ def browser_contract(base_url):
                   const top=h.top+box.top,bottom=h.top+box.bottom;
                   const gap=parseFloat(getComputedStyle(hero)
                     .getPropertyValue('--hero-head-safe-gap'));
-                  return {gap,ceiling,
+                  // CAPPED BY THE HEAD ITSELF. The gap is a floor under the
+                  // visible SHARE, but no clamp can keep 260px of a head
+                  // visible when the head is only 246.48px tall -- and at 320
+                  // it is exactly that, because --hero-peek-width bottoms out
+                  // at 312 and the logical head is .79 of it. The old
+                  // expectation asked for a visible extent larger than the
+                  // object and so could only ever pass at the wider two
+                  // viewports. What the rule actually promises is: as much of
+                  // the head as the gap asks for, or the whole head, whichever
+                  // comes first.
+                  return {gap,ceiling,boxHeight:box.height,
                     visibleY:Math.min(bottom,h.bottom)-Math.max(top,ceiling),
-                    expected:Math.min(gap,h.bottom-ceiling)};
+                    expected:Math.min(gap,h.bottom-ceiling,box.height)};
                 }"""
             )
             assert gap_result["gap"] == 260 and abs(

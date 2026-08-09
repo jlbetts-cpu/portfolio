@@ -305,11 +305,22 @@
    state.peekAnimating=true;
    if(!state.peekFrame)state.peekFrame=requestAnimationFrame(followPeekTransition);
   }
+  /* THE LOCAL BOUNDS ARE ONLY TRUE ONCE THE LAYOUT HAS SETTLED. captureBase()
+     at init reads the head where it is at that instant, and at that instant the
+     peek has not finished travelling and the portrait may not have been sized
+     by its image yet -- measured 198px out at 1440. Everything downstream
+     trusts that rectangle (the frame draws it, the clamp enforces it), so a
+     base captured mid-flight is silently wrong for the life of the page.
+     Re-taken whenever the layout can have changed: when the peek stops moving,
+     and on window load once every image has its real box. */
+  function recapture(){
+   state.metrics=null;captureBase();state.stamp++;syncSelection();
+  }
   function endPeekTransition(event){
    if(!isOwnPeekTransform(event))return;
    state.peekAnimating=false;
    if(state.peekFrame)cancelAnimationFrame(state.peekFrame);
-   state.peekFrame=0;render();
+   state.peekFrame=0;recapture();render();
   }
   /* THE CLAMP AND THE FRAME MUST READ THE SAME GEOMETRY. They did not: the
      clamp measured the live rect while the frame transformed the cached local
@@ -618,6 +629,8 @@
    state.stamp++;syncSelection();
   }
   ambient();startFloat();
+  if(document.readyState==="complete")recapture();
+  else addEventListener("load",function(){recapture();render();});
   /* A tab in the background gets no frames, so the float would resume from a
      clock that jumped. Stopping and restarting keeps it continuous. */
   document.addEventListener("visibilitychange",function(){
