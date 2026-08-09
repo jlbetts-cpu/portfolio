@@ -194,7 +194,14 @@
  body.playViewportOwned .playViewport>.wrap{width:100%;max-width:none;padding:0;display:flex}
  body.playViewportOwned .hero{display:block;width:100vw;height:60vh;min-height:0;margin:auto;padding:0;overflow:visible;border-radius:0;box-shadow:none;background:transparent}
  body.playViewportOwned .hero::after{display:none}
- body.playViewportOwned .heroCopy,
+ /* .heroCopy is NOT in this list, and it was, and that was the bug. It computes
+    display:contents on this page, which generates NO BOX -- so opacity, and every
+    other property needing a rendering context, is ignored outright. The rule read
+    correctly, the CSSOM held it, and the headline and the CTAs rendered at full
+    strength through it for the whole match. Its CHILDREN are hidden instead,
+    because they are the things that actually paint. Reported as: "the header the
+    h1 and buttons still appear in the games". */
+ body.playViewportOwned .heroCopy>*,
  body.playViewportOwned .hero>.stagewrap,
  body.playViewportOwned .heroMovieEffectsClip{opacity:0;pointer-events:none}
  body.playViewportOwned .hero>.stagewrap{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);margin:0}
