@@ -3,7 +3,12 @@
  --hero-time-duration:640ms;
  --hero-time-ease:cubic-bezier(.22,1,.36,1)
 }
-:root:root{--theme-duration:var(--hero-time-duration)}
+/* --theme-duration is NOT overridden here. It was :root:root{--theme-duration:
+   var(--hero-time-duration)}, which made index run chrome transitions at 640ms
+   while the other nine pages ran site-theme.css's authored 400ms. 640 is
+   --sp-pop-dur reused for a sky, never authored as a chrome duration, and it
+   also bypassed site-theme's 280ms mobile fork and 0ms reduced-motion fork.
+   The hero gradients are unaffected: they read --hero-time-duration direct. */
 .hero{
  overflow:visible;
  --time-base:var(--theme-page);

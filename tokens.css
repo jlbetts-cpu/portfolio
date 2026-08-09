@@ -497,7 +497,9 @@
  --ctl-rim:0 0 0 var(--hair-w) var(--theme-rim,rgba(17,18,20,.12)) inset;
  --ctl-rim-strong:0 0 0 var(--hair-w) var(--theme-rim-strong,rgba(17,18,20,.20)) inset;
  --ctl-container-rim:0 0 0 var(--hair-w) var(--theme-rim,rgba(17,18,20,.12)) inset;
- --ctl-menu-shadow:var(--ctl-rim),var(--sh-2);
+ /* --ctl-menu-shadow is gone. It was var(--ctl-rim),var(--sh-2) -- a rim plus a
+    real drop shadow -- and it was the site's own no-shadows-on-chrome rule being
+    broken by the library meant to enforce it. Menus take --ctl-container-rim. */
 
  /* Shared surface/container system. Components consume these semantic aliases;
     authored media continues to own its pixels while the shared frame owns the
