@@ -94,6 +94,285 @@
 }
 .field--flex{width:auto;flex:1 1 auto;min-width:0}
 
+/* ══ THE RANGE AND THE COLOUR WELL ═══════════════════════════════════════════
+   The adoption audit (2026-08-08) measured 34 raw <input type="range"> and
+   <input type="color"> elements the library could not express -- 26 ranges and
+   6 wells on gradientlab.html, 2 ranges on headmaker.html -- and that single
+   absence is why Gradient Maker capped at 28.6% adoption with 40 of its 56
+   controls unreachable by the system. Both pages had therefore drawn their own,
+   and the two drawings had already diverged on the one thing that matters:
+   gradientlab's thumb is --c950 and headmaker's is --accent, which in Night
+   makes one thumb near-white and the other violet. One role, two values, no
+   markup that reveals which. That is the fork, one layer down from the .ctl
+   fork the audit already caught.
+
+   THESE ARE .ctl VARIANTS, NOT SIBLINGS OF IT -- unlike .field, which is a
+   sibling because a text field disagrees with a button about alignment, ground
+   and caret. A slider and a colour well agree with .ctl about everything the
+   base actually decides: the 44px rung, the state ladder, the two motion
+   durations, the disabled dim, the focus token. What they disagree about is
+   that their INTERIOR is drawn by the UA in a shadow tree, so each one resets
+   the four base declarations that assume a flex box of text and then dresses
+   pseudo-elements the base cannot reach. Carrying .ctl is also what makes the
+   adoption number honest: a primitive that opts out of the base it claims to
+   join has joined nothing.
+
+   ── the values with no --ctl-* home yet ───────────────────────────────────
+   A track thickness, a thumb diameter and a state-layer radius are control
+   geometry, so they belong in tokens.css beside --ctl-h and --ctl-pad. They are
+   declared HERE, in the library that consumes them, because tokens.css is owned
+   by a concurrent motion-token consolidation on this branch and a second writer
+   in one file is how a token ends up with two definitions -- the exact failure
+   this block exists to repair. Every one of them resolves through an existing
+   rung or through --ctl-ink-strong, so nothing below invents a number. They are
+   reported for promotion, not parked: move the block verbatim into the control
+   section of tokens.css and this declaration becomes redundant rather than
+   contradictory.
+
+   --ctl-track-ground and the two state layers are color-mix on --ctl-ink-strong
+   rather than --theme-rim / --theme-rim-strong, and that is deliberate:
+   --theme-rim-strong is DEFINED ONLY IN DARK (site-theme.css:29) and every
+   light-mode consumer is quietly running on the rgba() fallback written into
+   tokens.css:498. A translucent wash of the theme's own ink inverts by itself
+   in every theme, needs no fallback, and cannot drift from a token that is not
+   there. This is also what satisfies the six time-of-day states: five of them
+   resolve to data-theme="light" and night resolves to "dark"
+   (site-theme-state.js:31), so a value derived from --ctl-ink-strong is correct
+   in all six by construction rather than by a second set of numbers. */
+:root{
+ --ctl-track-h:var(--focus-w);            /* 2px. The site separates with hairlines;
+                                             a 4px rail would be the one control
+                                             drawing a bar. */
+ --ctl-track-r:var(--r-pill);
+ --ctl-thumb-size:var(--sp-20);           /* 20px. 20/44 = .45 -- the same ratio
+                                             --ctl-r's 14/44 gives the box. */
+ --ctl-track-ground:color-mix(in srgb,var(--ctl-ink-strong) 18%,transparent);
+ --ctl-track-ground-hover:color-mix(in srgb,var(--ctl-ink-strong) 30%,transparent);
+ /* The STATE LAYER: a hard-edged ring around the thumb, no blur and no offset,
+    so it is a translucent wash and not elevation. The no-cast-shadows rule bans
+    a control pretending to stand on the page; a ring concentric with the thumb
+    claims no height at all. Material calls this a state layer and Radix, Base UI
+    and shadcn all ship the same device, for the same reason: a 20px thumb has no
+    room to change ink, so the only channel left is the space around it. */
+ --ctl-state-layer:color-mix(in srgb,var(--ctl-ink-strong) 12%,transparent);
+ --ctl-state-layer-strong:color-mix(in srgb,var(--ctl-ink-strong) 20%,transparent);
+ --ctl-state-layer-w:var(--sp-4);
+ --ctl-state-layer-w-strong:var(--sp-6);
+ /* THE SWATCH RIM IS TWO-TONE, and this is the one control on the site whose
+    ground is set by the visitor. A single hairline cannot survive that. The
+    OUTER ring is the theme's ink, which is by definition the opposite of the
+    panel, so it is the ring that does the work in the case that actually breaks
+    -- a near-white value on a light panel, or a near-black one at night, where
+    the fill and the ground are the same colour and the edge is the only thing
+    identifying the control at all. The INNER ring is the theme's paper, and it
+    covers the mirror case: a value that matches the INK, where the outer ring
+    disappears into the fill.
+    THE OUTER ALPHA IS 45% AND THAT NUMBER IS NOT TASTE. Composited over white,
+    rgba(17,18,20,.45) is #8C8D8E, which is 3.05:1 against the paper either side
+    of it -- the floor WCAG 2.2 SC 1.4.11 sets for the visual information that
+    identifies a control. The site's ordinary hairline is .12-.20 and would
+    measure 1.15:1 here; that is fine for a rim that merely refines a control
+    which is already visible, and not fine for the one rim that IS the control.
+    This is Adobe Spectrum's ColorHandle construction (translucent dark outside,
+    light inside, fill in the middle) resolved through this site's two themes
+    instead of through literal black and white.
+    contrast-color() reached Baseline in April 2026 and would collapse the pair
+    into one ring that flips off the FILL rather than off the theme -- but it
+    needs the value in a custom property, which means the page mirroring
+    input.value into CSS on every change, and it returns only pure black or
+    white, so MDN's own example (royal blue) fails against both. Two static
+    rings need no JS and have no mid-tone hole. Revisit if the swatch ever grows
+    a JS value mirror for another reason. */
+ --ctl-swatch-rim:
+  inset 0 0 0 var(--hair-w) color-mix(in srgb,var(--ctl-ink-strong) 45%,transparent),
+  inset 0 0 0 calc(var(--hair-w) * 2) color-mix(in srgb,var(--ctl-primary-ink) 55%,transparent);
+ --ctl-swatch-rim-strong:
+  inset 0 0 0 var(--hair-w) color-mix(in srgb,var(--ctl-ink-strong) 68%,transparent),
+  inset 0 0 0 calc(var(--hair-w) * 2) color-mix(in srgb,var(--ctl-primary-ink) 82%,transparent);
+}
+
+/* ── .ctl--range ───────────────────────────────────────────────────────────
+   THE BOX IS THE TARGET. A ::-webkit-slider-thumb paints outside the input's
+   border box and catches nothing, which is how this site once shipped a 2px-tall
+   slider with a 14px grab band that the geometry audit called BROKEN. So the
+   input keeps its full --ctl-h and the VISIBLE line moves to the runnable track:
+   the hairline is 2px and the target is 44, measured by hit-testing the top and
+   bottom pixel rows rather than by reading the declaration. Both engines centre
+   the track inside the input's content box for you, so the height alone does it.
+   NOT THE ::after EXPANDER THE 38px NAV USES, and the difference is the element.
+   css-pseudo-4 suppresses generated content on REPLACED elements; Chromium paints
+   ::after on a range anyway and Gecko follows the spec (wpt/interop#1124), so an
+   expander here would be a 44px target in one browser and a 2px one in another.
+   .jbNav a is an anchor, where ::after is guaranteed. A range already accepts a
+   real height, which is the reliable answer and needs no second box.
+   padding-inline is reset to 0 because .ctl's 16px would inset the track --
+   which on a range is not decoration, it is the thumb's travel. */
+.ctl--range{
+ appearance:none;-webkit-appearance:none;display:block;
+ flex:1 1 0;width:100%;min-width:0;
+ height:var(--ctl-h);min-height:var(--ctl-h);
+ padding:0;margin:0;background:none;box-shadow:none;
+ cursor:pointer;
+ /* MEASURED: a range's computed touch-action is `auto`. No UA rule saves you, so
+    a horizontal drag also scrolls the page under the finger. pan-y rather than
+    none: the page keeps scrolling vertically until the browser sees horizontal
+    intent, at which point it hands the gesture to the slider. */
+ touch-action:pan-y;
+ /* a range renders no text, but without this the UA's Arial shows up as a third
+    font family in the page's computed styles */
+ font-family:var(--sans);
+ /* The filled portion -- the one thing Apple's HIG actually specifies about a
+    slider ("the portion of track between the minimum value and the thumb fills
+    with color"), and what makes a 26-slider panel readable as a shape rather
+    than as a list of dots. Pure CSS cannot know a range's value: ::-moz-range-
+    progress is Gecko-only, and ::slider-fill needs appearance:base, which
+    measures unsupported in Chrome 151 (CSS.supports('appearance','base') is
+    false; only base-select has shipped). So the page writes --ctl-range-value as
+    a 0..1 number wherever it ALREADY syncs its readouts -- one hook, not a new
+    one. The default is 0, which degrades to a plain unfilled rail rather than to
+    a broken one. The stop is offset by half a thumb at each end so the fill ends
+    UNDER the thumb's centre instead of at the track's edge, which is the 10px
+    lie every naive percentage fill tells. */
+ --ctl-range-pos:calc(
+  var(--ctl-range-value,0) * (100% - var(--ctl-thumb-size)) + (var(--ctl-thumb-size) / 2)
+ )
+}
+.ctl--range::-webkit-slider-runnable-track{
+ height:var(--ctl-track-h);border-radius:var(--ctl-track-r);
+ background:linear-gradient(to right,
+  var(--ctl-ink-strong) 0,var(--ctl-ink-strong) var(--ctl-range-pos),
+  var(--ctl-track-ground) var(--ctl-range-pos),var(--ctl-track-ground) 100%);
+ transition:background var(--dur-state-out) var(--ease-out)
+}
+.ctl--range::-moz-range-track{
+ height:var(--ctl-track-h);border-radius:var(--ctl-track-r);background:var(--ctl-track-ground)
+}
+/* Gecko has a real progress pseudo, so it gets the fill without the page's help. */
+.ctl--range::-moz-range-progress{
+ height:var(--ctl-track-h);border-radius:var(--ctl-track-r);background:var(--ctl-ink-strong)
+}
+/* WebKit lays the thumb out ON the track's box and needs the centring correction;
+   Gecko centres it for you, which is why only one of the two carries a margin. */
+.ctl--range::-webkit-slider-thumb{
+ appearance:none;-webkit-appearance:none;
+ width:var(--ctl-thumb-size);height:var(--ctl-thumb-size);
+ border:0;border-radius:var(--r-full);background:var(--ctl-ink-strong);
+ margin-top:calc((var(--ctl-track-h) - var(--ctl-thumb-size)) / 2);
+ box-shadow:0 0 0 0 transparent;
+ transition:box-shadow var(--dur-state-out) var(--ease-out)
+}
+.ctl--range::-moz-range-thumb{
+ width:var(--ctl-thumb-size);height:var(--ctl-thumb-size);
+ border:0;border-radius:var(--r-full);background:var(--ctl-ink-strong);
+ box-shadow:0 0 0 0 transparent;
+ transition:box-shadow var(--dur-state-out) var(--ease-out)
+}
+/* HOVER MOVES TWO CHANNELS AND NEITHER IS A FILL, the same shape as
+   .ctl--secondary's rim-plus-ink: the empty rail strengthens and the thumb
+   gains its state layer. Hover is claimed by the whole 44px band, not by the
+   20px thumb, so the control answers the pointer before you have found the grab. */
+.ctl--range:hover::-webkit-slider-runnable-track{
+ background:linear-gradient(to right,
+  var(--ctl-ink-strong) 0,var(--ctl-ink-strong) var(--ctl-range-pos),
+  var(--ctl-track-ground-hover) var(--ctl-range-pos),var(--ctl-track-ground-hover) 100%);
+ transition-duration:var(--dur-state)
+}
+.ctl--range:hover::-moz-range-track{background:var(--ctl-track-ground-hover)}
+.ctl--range:hover::-webkit-slider-thumb,
+.ctl--range:active::-webkit-slider-thumb,
+.ctl--range:focus-visible::-webkit-slider-thumb{transition-duration:var(--dur-state)}
+.ctl--range:hover::-webkit-slider-thumb{box-shadow:0 0 0 var(--ctl-state-layer-w) var(--ctl-state-layer)}
+.ctl--range:hover::-moz-range-thumb{box-shadow:0 0 0 var(--ctl-state-layer-w) var(--ctl-state-layer)}
+/* :active, NOT :hover, is what a phone can reach -- and it is the only press
+   feedback a slider may have. .ctl's scale(.97) is suppressed below because
+   shrinking a 44px track by 3% slides every value under the finger that is
+   holding it: the press would change the number you are pressing. */
+.ctl--range:active::-webkit-slider-thumb{box-shadow:0 0 0 var(--ctl-state-layer-w-strong) var(--ctl-state-layer-strong)}
+.ctl--range:active::-moz-range-thumb{box-shadow:0 0 0 var(--ctl-state-layer-w-strong) var(--ctl-state-layer-strong)}
+.ctl--range:active{transform:none}
+/* THE FOCUS RING GOES ON THE THUMB, AND IT IS TWO-TONE.
+   .ctl's ring is a rounded rectangle at 2px offset, which around a 192x44 box
+   containing one hairline marks a region rather than a control -- and the thing
+   the arrow keys actually move is the 20px thumb. So the ring hugs the thumb.
+   Two tones because a single one cannot work here: the ring's colour is
+   --ctl-focus, which in light is the same ink the thumb is painted in (the
+   1.00:1 the audit measured against .ctl--primary's fill), so a paper hairline
+   is laid between them. Thumb / 1px paper / 2px focus reads against the thumb on
+   the inside and against the panel on the outside, in every theme, without
+   depending on an offset gap the way the base ring does. */
+.ctl--range:focus-visible{outline:none}
+.ctl--range:focus-visible::-webkit-slider-thumb{
+ box-shadow:
+  0 0 0 var(--hair-w) var(--ctl-primary-ink),
+  0 0 0 calc(var(--hair-w) + var(--focus-w)) var(--ctl-focus)
+}
+.ctl--range:focus-visible::-moz-range-thumb{
+ box-shadow:
+  0 0 0 var(--hair-w) var(--ctl-primary-ink),
+  0 0 0 calc(var(--hair-w) + var(--focus-w)) var(--ctl-focus)
+}
+/* Keyboard needs no help: arrows, PageUp/PageDown, Home and End are the UA's,
+   and appearance:none does not remove them. What it does remove is the ring,
+   which is what the two rules above put back. */
+.ctl--range[disabled],.ctl--range[aria-disabled="true"]{cursor:default}
+.ctl--range[disabled]::-webkit-slider-thumb,
+.ctl--range[aria-disabled="true"]::-webkit-slider-thumb{box-shadow:0 0 0 0 transparent}
+.ctl--range[disabled]::-moz-range-thumb{box-shadow:0 0 0 0 transparent}
+
+/* ── .ctl--swatch ──────────────────────────────────────────────────────────
+   A 44px square well whose ground the visitor sets. Everything hard about it
+   follows from that one fact, and it is why the rim above is two-tone.
+   THE SHAPE IS --ctl-r, NOT --r-full. The page shipped 44px circles; a circle
+   is a 22px radius, which is on no rung of the ladder, and the control system's
+   rule is that radius is a function of the box and never of what is inside it.
+   It also puts the well in the same family as the two icon buttons standing
+   beside it in the same row -- measured, that row now has one radius in it
+   instead of two. */
+.ctl--swatch{
+ appearance:none;-webkit-appearance:none;display:block;box-sizing:border-box;
+ width:var(--ctl-h);height:var(--ctl-h);
+ min-width:var(--ctl-h);min-height:var(--ctl-h);
+ flex:0 0 var(--ctl-h);
+ padding:0;border:0;border-radius:var(--ctl-r);corner-shape:var(--corner);
+ background:none;box-shadow:none;overflow:hidden;cursor:pointer
+}
+/* The rim lives on the swatch pseudo, not on the input: an inset shadow on the
+   host paints UNDER its shadow content, so a rim declared there is invisible. */
+.ctl--swatch::-webkit-color-swatch-wrapper{padding:0}
+.ctl--swatch::-webkit-color-swatch{
+ border:0;border-radius:var(--ctl-r);corner-shape:var(--corner);
+ box-shadow:var(--ctl-swatch-rim);
+ transition:box-shadow var(--dur-state-out) var(--ease-out)
+}
+.ctl--swatch::-moz-color-swatch{
+ border:0;border-radius:var(--ctl-r);corner-shape:var(--corner);
+ box-shadow:var(--ctl-swatch-rim);
+ transition:box-shadow var(--dur-state-out) var(--ease-out)
+}
+.ctl--swatch:hover::-webkit-color-swatch,
+.ctl--swatch:focus-visible::-webkit-color-swatch,
+.ctl--swatch:active::-webkit-color-swatch{
+ box-shadow:var(--ctl-swatch-rim-strong);transition-duration:var(--dur-state)
+}
+.ctl--swatch:hover::-moz-color-swatch,
+.ctl--swatch:focus-visible::-moz-color-swatch,
+.ctl--swatch:active::-moz-color-swatch{
+ box-shadow:var(--ctl-swatch-rim-strong);transition-duration:var(--dur-state)
+}
+/* SELECTED is an outer ring, because every inner channel is already spoken for
+   by the visitor's colour. Paper hairline then ink, hard-edged and concentric --
+   the same two-tone device as the rim and the thumb's focus, so a selected
+   near-white well in daylight and a selected near-black one at night both keep
+   an edge. It is 3px, and the focus ring's offset below is 4px so the two can be
+   worn at once without touching. */
+.ctl--swatch[aria-pressed="true"],.ctl--swatch[data-selected="true"]{
+ box-shadow:
+  0 0 0 var(--hair-w) var(--ctl-primary-ink),
+  0 0 0 calc(var(--hair-w) + var(--focus-w)) var(--ctl-ink-strong)
+}
+.ctl--swatch:focus-visible{outline-offset:var(--sp-4)}
+.ctl--swatch[disabled],.ctl--swatch[aria-disabled="true"]{cursor:default}
+
 /* ── MIGRATION SHIM, and it is meant to be deleted. ─────────────────────────
    The adoption audit (2026-08-08) measured 26 of 27 one-off control families
    with no disabled state and 14 with a hover but no press. A phone has no
@@ -114,8 +393,13 @@
    name from these lists when its family adopts .ctl; delete the block when the
    lists are empty. --press-scale and --ctl-disabled-o are the same values .ctl
    itself presses and dims by, so a migrated control does not change behaviour.
-   The sliders are deliberately absent, and so is the field: a text input must
-   not move under the caret while you are typing in it. */
+   The sliders are deliberately absent from the PRESS list, and so is the field:
+   a text input must not move under the caret while you are typing in it, and a
+   track that shrinks under the finger holding it changes the value being
+   pressed. `.mkSlider` has now left the DISABLED list too, and that is a
+   migration rather than an exemption -- headmaker's two sliders carry
+   `.ctl--range`, so `.ctl[disabled]` reaches them directly. One name gone; the
+   block is meant to end empty. */
 :where(.abLink,.aboutCta,.teamChip,.sbBtn,.tGo,.hmBtn,.hmDrop,
  .moodBtn,.moodItem,.moodGo,.reelClose,.mhToggle,.csTab,.cmpKnob,
  .pBtn,.tvChip,.tvGo,.hmPitPick):active{
@@ -123,7 +407,7 @@
 }
 :where(.abLink,.aboutCta,.teamChip,.sbBtn,.tGo,.hmBtn,.hmDrop,
  .moodBtn,.moodItem,.moodGo,.reelClose,.mhToggle,.csTab,.cmpKnob,
- .pBtn,.tvChip,.tvGo,.hmPitPick,.mkSlider):is([disabled],[aria-disabled="true"]){
+ .pBtn,.tvChip,.tvGo,.hmPitPick):is([disabled],[aria-disabled="true"]){
  opacity:var(--ctl-disabled-o);cursor:default
 }
 :where(.abLink,.aboutCta,.teamChip,.sbBtn,.tGo,.hmBtn,.hmDrop,
@@ -370,6 +654,14 @@
 @media(prefers-reduced-motion:reduce){
  .ctl,.ctl-menu,.field{transition-duration:1ms!important}
  .ctl:active{transform:none}
+ /* The pseudo-elements need naming individually: a shadow-tree box does not
+    inherit the host's transition-duration, so the block above never reached the
+    thumb or the swatch. It removes MOTION, not feedback -- the state layer, the
+    focus ring and the rim all still appear, instantly. */
+ .ctl--range::-webkit-slider-runnable-track,.ctl--range::-webkit-slider-thumb,
+ .ctl--swatch::-webkit-color-swatch{transition-duration:1ms!important}
+ .ctl--range::-moz-range-track,.ctl--range::-moz-range-thumb,
+ .ctl--swatch::-moz-color-swatch{transition-duration:1ms!important}
  :where(.abLink,.aboutCta,.teamChip,.sbBtn,.tGo,.hmBtn,.hmDrop,
   .moodBtn,.moodItem,.moodGo,.reelClose,.mhToggle,.csTab,.cmpKnob,
   .pBtn,.tvChip,.tvGo,.hmPitPick):active{transform:none}
@@ -379,6 +671,24 @@
 @media(forced-colors:active){
  .ctl--secondary,.ctl--icon,.ctl-menu,.ctl-group:not(.jbNav),.field{background:Canvas;color:CanvasText;box-shadow:0 0 0 var(--hair-w) CanvasText inset}
  .ctl--primary{background:Highlight;color:HighlightText}
+ /* Forced colours drop every color-mix, so the two-tone rims and the state layer
+    all resolve to nothing. The thumb's focus ring goes back on the BOX as a real
+    outline -- the one place the base ring is the better answer, because a system
+    palette has no paper tone to lay between a thumb and its ring. */
+ .ctl--range:focus-visible{outline:var(--focus-w) solid Highlight;outline-offset:var(--sp-2)}
+ .ctl--range::-webkit-slider-runnable-track{background:CanvasText}
+ .ctl--range::-webkit-slider-thumb{background:Highlight;box-shadow:none}
+ .ctl--range::-moz-range-track{background:CanvasText}
+ .ctl--range::-moz-range-progress{background:Highlight}
+ .ctl--range::-moz-range-thumb{background:Highlight;box-shadow:none}
+ /* forced-color-adjust:none on the swatch alone: a colour well whose whole
+    purpose is to show a colour is the documented exception to repainting. */
+ .ctl--swatch{forced-color-adjust:none;box-shadow:none}
+ .ctl--swatch::-webkit-color-swatch{box-shadow:0 0 0 var(--focus-w) CanvasText inset}
+ .ctl--swatch::-moz-color-swatch{box-shadow:0 0 0 var(--focus-w) CanvasText inset}
+ .ctl--swatch[aria-pressed="true"],.ctl--swatch[data-selected="true"]{
+  outline:var(--focus-w) solid Highlight;outline-offset:var(--hair-w)
+ }
  .heroHeadFrame::before,.heroHeadHandle::before,.heroHeadRotate::before{
   forced-color-adjust:auto;box-shadow:none;outline:var(--selection-line) solid Highlight;outline-offset:calc(var(--selection-line) * -1)
  }
