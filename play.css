@@ -59,8 +59,13 @@
    what they always meant and which this file already defines and uses three
    times. Nothing here wants the blue rebound; --accent now resolves to
    tokens.css's blue on this page as on every other. ---- */
-:root{--accent-live:#17A45A;
- --fs-hero:clamp(38px,4.7vw,60px);--fs-heroline:var(--fs-pagehead-sm);--lh-prose:1.5;}
+:root{--accent-live:#17A45A}
+/* --fs-hero, --fs-heroline and --lh-prose used to be redeclared here. tokens.css:410
+   carries the first two now and has always carried --lh-prose, byte-identical in all
+   three cases, and play.html links tokens.css ahead of this file -- so these were a
+   second definition of a token, which is the exact shape --lh-prose was in when it
+   drifted 1.6 -> 1.5 unnoticed. --accent-live stays: tokens.css records the decision
+   that the live-match green is not a token it defines. */
 
 /* ---- THE PAGE GUTTER. Jayden: "nothing is really in the correct margins ... for that
    whole screen". The Play bar was the case in point: it was pinned with a hard-coded
@@ -285,7 +290,7 @@ body.heroEmpathy .jbStick .jbNav{--nav-mat:var(--ctl-ground);--nav-rim:var(--ctl
 .mhItem{position:relative}.mhItem img{width:34px;height:40px;object-fit:contain;background:var(--ctl-ground-hover);border-radius:var(--r-2xs);display:block}
 .mhPick{padding:0;border:0;background:none;cursor:pointer;display:block;border-radius:var(--r-2xs);transition:box-shadow var(--dur-state) var(--ease-out)}
 .mhPick:hover,.mhPick:focus-visible{box-shadow:0 0 0 1.5px var(--ctl-ink)}
-.mhX{position:absolute;top:-6px;right:-6px;width:16px;height:16px;border-radius:var(--r-full);border:1px solid var(--theme-rim);background:var(--ctl-ground);color:var(--ctl-ink);font-size:var(--fs-micro);line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0}
+.mhX{position:absolute;top:-6px;right:-6px;width:16px;height:16px;border-radius:var(--r-full);border:1px solid var(--theme-rim);background:var(--ctl-ground);color:var(--ctl-ink);font-size:var(--fs-micro);line-height:var(--lh-flat);display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0}
 .mhX::before{content:"";position:absolute;inset:-4px;border-radius:var(--r-full)}.mhX:hover{color:var(--ctl-ink-strong);border-color:var(--theme-rim-strong)}
 
 .moodMenu .moodItem[hidden]{display:none}
@@ -297,7 +302,7 @@ body.heroEmpathy .jbStick .jbNav{--nav-mat:var(--ctl-ground);--nav-rim:var(--ctl
    game-gating rules (above) but never carried its base rule, because until now play.html had no
    link in the menu. Copied verbatim from index.html's own .moodGo/.moodSep declarations so the
    two menus stay one design. */
-.moodGo{display:flex;align-items:center;gap:var(--sp-12);width:100%;padding:var(--sp-12) var(--sp-16);border:0;border-radius:var(--r-2xs);background:none;color:var(--ctl-ink-strong);font-family:var(--sans);font-weight:400;font-size:var(--fs-small);line-height:1.2;text-decoration:none;transition:background-color var(--ease-out-dur) var(--ease-out)}
+.moodGo{display:flex;align-items:center;gap:var(--sp-12);width:100%;padding:var(--sp-12) var(--sp-16);border:0;border-radius:var(--r-2xs);background:none;color:var(--ctl-ink-strong);font-family:var(--sans);font-weight:400;font-size:var(--fs-small);line-height:var(--lh-head);text-decoration:none;transition:background-color var(--ease-out-dur) var(--ease-out)}
 .moodMenu .moodGo{color:var(--ctl-ink-strong)}
 .moodGo:hover,.moodGo:focus-visible{background:var(--ctl-ground-hover)}
 .moodGo svg{flex:0 0 18px;width:18px;height:18px;color:currentColor}
@@ -312,7 +317,14 @@ body.hmSoccer .moodMenu .moodItem:not(#endGame),body.hmSoccer .moodMenu .moodGo{
 .hmBallSkin{position:absolute;inset:0;background:var(--ballSkin,url(images/soccerball.webp)) center/contain no-repeat;transform-origin:50% 50%;will-change:transform}
 .hmBallShade{position:absolute;inset:0;border-radius:var(--r-full);pointer-events:none;background:radial-gradient(circle at 35% 29%,rgba(255,255,255,.92) 0%,rgba(255,255,255,.32) 7%,rgba(255,255,255,0) 20%),radial-gradient(circle at 38% 32%,rgba(255,255,255,.3) 0%,rgba(255,255,255,0) 46%),radial-gradient(circle at 35% 32%,rgba(0,0,0,0) 28%,rgba(0,0,0,.2) 70%,rgba(0,0,0,.46) 100%),radial-gradient(circle at 50% 50%,rgba(0,0,0,0) 78%,rgba(0,0,0,.46) 100%);mix-blend-mode:normal}
 .hmBallShadow{position:absolute;left:0;top:0;width:48px;height:13px;border-radius:var(--r-full);background:radial-gradient(ellipse at center,rgba(8,8,8,.26),rgba(8,8,8,0) 70%);opacity:0;pointer-events:none;z-index:1;transition:opacity .3s}
-.hmGoal{position:absolute;left:0;top:0;width:42px;height:162px;z-index:2;opacity:0;pointer-events:none;transition:opacity .3s;border-radius:3px;background:repeating-linear-gradient(45deg,rgba(26,26,26,.16) 0 1px,transparent 1px 8px),repeating-linear-gradient(-45deg,rgba(26,26,26,.16) 0 1px,transparent 1px 8px)}
+/* THE NET IS INK ON A GROUND, so it has to know what the ground is. Both hatches were the literal
+   rgba(26,26,26,.16) -- 16% of near-black, which is a mesh on #FDFDFD and nothing at all on the
+   #0B0C0F Night page. Measured: in Night each goal collapsed to its coloured post, a single 6px
+   vertical bar at the extreme screen edge with a stray crossbar stub, and stopped reading as a goal.
+   Routed through --goal-net/--goal-net-a for the same reason --head-shadow is: the ink is the only
+   part that belongs to the surface, so a dark ground rebinds one number and every other property of
+   the net -- the 45deg pair, the 1-in-8 pitch, the alpha -- stays exactly as authored. */
+.hmGoal{position:absolute;left:0;top:0;width:42px;height:162px;z-index:2;opacity:0;pointer-events:none;transition:opacity .3s;border-radius:3px;background:repeating-linear-gradient(45deg,rgba(var(--goal-net,26,26,26),var(--goal-net-a,.16)) 0 1px,transparent 1px 8px),repeating-linear-gradient(-45deg,rgba(var(--goal-net,26,26,26),var(--goal-net-a,.16)) 0 1px,transparent 1px 8px)}
 .hmGoalShadow{position:absolute;left:0;top:0;width:60px;height:15px;border-radius:var(--r-full);background:radial-gradient(ellipse at center,rgba(8,8,8,.24),rgba(8,8,8,0) 72%);opacity:0;pointer-events:none;z-index:1;transition:opacity .3s}
 .hmGoalR{box-shadow:inset 20px 0 26px -14px rgba(16,16,16,.5),inset 0 12px 16px -12px rgba(16,16,16,.35)}
 .hmGoalB{box-shadow:inset -20px 0 26px -14px rgba(16,16,16,.5),inset 0 12px 16px -12px rgba(16,16,16,.35)}
@@ -418,6 +430,13 @@ body.hmSoccer .moodMenu .moodItem:not(#endGame),body.hmSoccer .moodMenu .moodGo{
     LOOKS (its saturate(), its mask ramp) is already in a stylesheet below and overridable there;
     this was the only piece of its appearance stranded in JS. */
  --head-refl-gain:0.9;
+
+ /* THE NET'S INK, on the same principle and for the same measured reason. See .hmGoal below.
+    The alpha is shared between light and dark deliberately: at .16 the luminance step the hatch
+    makes against its ground is 227*.16=36 levels on paper and 225*.16=36 on the Night page, so
+    the net is the same strength on both and only the ink flips. */
+ --goal-net:26,26,26;
+ --goal-net-a:.16;
 }
 .hmPlanet,.hmSky,.hmWater{position:absolute;left:0;right:0;top:var(--pl-top,62%);height:var(--planet-h);
  pointer-events:none;opacity:0;transition:opacity .6s var(--ease-out)}
@@ -633,12 +652,17 @@ body.pHubOn .hmRefl{
 .hmLowerThird.right.in{transform:translateX(0)}
 .hmLowerThird .hmL3Face{width:34px;height:34px;border-radius:var(--r-full);overflow:hidden;flex:0 0 auto;background:#333}
 .hmLowerThird .hmL3Face img{width:100%;height:100%;object-fit:cover;display:block}
-.hmLowerThird .hmL3Txt{display:flex;flex-direction:column;line-height:1.22;min-width:0}
-.hmLowerThird .hmL3Tag{font-size:10px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:rgb(var(--l3c,255,206,74))}
+.hmLowerThird .hmL3Txt{display:flex;flex-direction:column;line-height:var(--lh-head);min-width:0}
+.hmLowerThird .hmL3Tag{font-size:10px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:rgb(var(--l3c,255,206,74))}
 .hmLowerThird .hmL3Nm{font-size:var(--fs-nav);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 @media(max-width:640px){.hmLowerThird{left:10px;bottom:9%;max-width:min(82vw,300px);padding:7px var(--sp-12) 7px 7px}}
 @media(prefers-reduced-motion:reduce){.hmLowerThird{transition:none}}
 .battleCount{position:absolute;left:50%;top:12px;transform:translateX(-50%);z-index:47;display:flex;align-items:center;gap:var(--sp-8);padding:var(--sp-8) var(--sp-16);border:1px solid var(--theme-rim);border-radius:var(--r-2xs);background:var(--ctl-ground);font-family:var(--sans);font-weight:600;font-size:var(--fs-body);color:var(--ctl-ink-strong);opacity:0;pointer-events:none;transition:opacity .3s;filter:url(#inkSm)}
+/* TWO WEIGHTS ONLY. A bare <b> resolves to `bolder`, which CSS maps to 900 when
+   its parent is 600 -- and tokens.css declares the 400 and 600 faces only, so the
+   browser synthesises one. These <b>s are built in play-engine.js and mean "this
+   is the number", not "make this heavier". */
+.battleCount b,.hmRaceRow b,.sbScore{font-weight:600}
 /* Was z-index:47 -- above the heads (root, z:3), the goals (.hmGoal, z:2) and their shadows
    (z:1), so the board painted OVER the pitch instead of sitting on it. Jayden: "score board
    should be behind everything." 0 puts it below every pitch element (heads, ball z:48, goals,
@@ -654,9 +678,9 @@ body.pHubOn .hmRefl{
 .hmScore small{margin-left:var(--sp-8);padding-left:var(--sp-12);border-left:1px solid var(--c100);font-weight:400;font-size:var(--fs-small);color:var(--c500)}
 /* Below the scoreboard (47), not above it. At 48 the shout landed on top of the board and
    the two illegible-ed each other. Dropped down the pitch too, clear of the board's box. */
-.hmCount{position:absolute;left:50%;top:52%;transform:translate(-50%,-50%);z-index:44;font-family:var(--sans);font-weight:600;font-size:clamp(64px,12vw,140px);line-height:1;color:var(--theme-ink);opacity:0;pointer-events:none;filter:url(#inkBig);white-space:nowrap}
+.hmCount{position:absolute;left:50%;top:52%;transform:translate(-50%,-50%);z-index:44;font-family:var(--sans);font-weight:600;font-size:clamp(64px,12vw,140px);line-height:var(--lh-flat);color:var(--theme-ink);opacity:0;pointer-events:none;filter:url(#inkBig);white-space:nowrap}
 .hmCount.hmMsg{font-size:clamp(32px,6vw,72px);font-weight:600;letter-spacing:-.01em}   /* a word, not a digit: fits "Blue wins!" */
-.hmScoreEnd{margin-left:var(--sp-8);padding:var(--sp-2) var(--sp-2) var(--sp-2) var(--sp-12);border:0;border-left:1px solid var(--c100);border-radius:0;background:none;display:inline-flex;align-items:center;gap:var(--sp-4);cursor:pointer;pointer-events:auto;color:#b3402e;font-family:var(--sans);font-weight:600;font-size:var(--fs-label);line-height:1;transition:color var(--dur-state) var(--ease-out)}
+.hmScoreEnd{margin-left:var(--sp-8);padding:var(--sp-2) var(--sp-2) var(--sp-2) var(--sp-12);border:0;border-left:1px solid var(--c100);border-radius:0;background:none;display:inline-flex;align-items:center;gap:var(--sp-4);cursor:pointer;pointer-events:auto;color:#b3402e;font-family:var(--sans);font-weight:600;font-size:var(--fs-label);line-height:var(--lh-flat);transition:color var(--dur-state) var(--ease-out)}
 .hmScoreEnd:hover{color:#8f3323}.hmScoreEnd svg{width:12px;height:12px;flex:0 0 auto}
 /* battle arena platforms: light Apple-clean slabs with a hair of 2.5D thickness -- the heads leap up for height and pounce down */
 .hmPlat{position:absolute;left:0;top:0;height:12px;border-radius:var(--r-xs);background:var(--c50);border:1px solid rgba(22,22,28,.14);box-shadow:0 1px 2px rgba(22,22,28,.08);border:1px solid rgba(22,22,28,.16);opacity:0;pointer-events:none;transition:opacity .45s var(--ease-out);z-index:2;will-change:transform}
@@ -664,7 +688,7 @@ body.hmBattle .hmPlat.arrived{opacity:1}
 body.hmPodium .hmPlat{opacity:0}   /* platforms clear off once the podium rises */
 /* the winners' podium: three light blocks, 1st tallest in the middle, that rise at the end of a battle */
 .hmPodium{position:absolute;left:0;top:0;border-radius:var(--r-sm) var(--r-sm) 3px 3px;background:linear-gradient(180deg,#fefeff 0%,#eeeef2 62%,#e1e1e8 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,.92),0 12px 24px -11px rgba(22,22,28,.34),0 2px 5px rgba(22,22,28,.12);border:1px solid rgba(22,22,28,.06);opacity:0;pointer-events:none;transition:opacity var(--dur-enter) var(--ease-out),transform var(--dur-enter) var(--ease-out);z-index:2;display:flex;align-items:flex-start;justify-content:center;overflow:hidden}
-.hmPodium b{margin-top:var(--sp-8);font-family:var(--sans);font-weight:600;font-size:var(--fs-label);color:var(--c400);line-height:1}
+.hmPodium b{margin-top:var(--sp-8);font-family:var(--sans);font-weight:600;font-size:var(--fs-label);color:var(--c400);line-height:var(--lh-flat)}
 .hmPodium.show{opacity:1}
 /* --- "Play a mood" relocated into the hero CTA row (moodInCta) --- */
 body.moodInCta .heroCtas{align-items:center}
@@ -685,7 +709,7 @@ body.moodInCta .heroCtas:not(.in) .faceMoodCorner{opacity:0!important;visibility
 /* ===== mood shortcut menu — triggers the head animations; sharp, Instrument Sans, 8fps stepped ===== */
 .moodbar{position:relative;display:inline-block;z-index:45}
 @keyframes moodIn{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
-.moodBtn:not(.ctl){display:inline-flex;align-items:center;gap:var(--sp-8);background:var(--ctl-ground);border:1px solid var(--theme-rim);border-radius:var(--r-2xs);padding:var(--sp-8) var(--sp-16);line-height:1;cursor:pointer;font-family:var(--sans);font-weight:400;font-size:var(--fs-body);color:var(--ctl-ink-strong);transition:border-color var(--dur-state) var(--ease-out),color var(--dur-state) var(--ease-out)}.moodBtn:not(.ctl):hover{border-color:var(--theme-rim-strong)}
+.moodBtn:not(.ctl){display:inline-flex;align-items:center;gap:var(--sp-8);background:var(--ctl-ground);border:1px solid var(--theme-rim);border-radius:var(--r-2xs);padding:var(--sp-8) var(--sp-16);line-height:var(--lh-flat);cursor:pointer;font-family:var(--sans);font-weight:400;font-size:var(--fs-body);color:var(--ctl-ink-strong);transition:border-color var(--dur-state) var(--ease-out),color var(--dur-state) var(--ease-out)}.moodBtn:not(.ctl):hover{border-color:var(--theme-rim-strong)}
 .moodLbl{font-size:var(--fs-body);font-weight:400;letter-spacing:0}
 .moodCar{width:12px;height:12px;display:inline-block;flex:0 0 auto;color:var(--ctl-ink);transition:transform var(--dur-state) var(--ease-out),color var(--dur-state) var(--ease-out)}
 .moodbar.open .moodCar{width:12px;height:12px;display:inline-block;flex:0 0 auto;color:var(--ctl-ink);transition:transform var(--dur-state) var(--ease-out),color var(--dur-state) var(--ease-out)}
@@ -736,7 +760,7 @@ body.playViewportOwned .siteFoot{display:none}
 .hmScore{border:0;background:none;padding:0;filter:url(#inkSm);
  flex-direction:column;align-items:center;text-align:center;
  top:var(--heroTitleTop,40px);gap:clamp(var(--sp-2),.6vh,var(--sp-6));
- font-family:var(--sans);font-weight:600;font-size:var(--fs-h1);line-height:1.06;letter-spacing:-.015em;color:var(--theme-ink)}
+ font-family:var(--sans);font-weight:600;font-size:var(--fs-h1);line-height:var(--lh-tight);letter-spacing:var(--tr-sub);color:var(--theme-ink)}
 .hmScore .sTitle{display:inline-flex;align-items:center;white-space:nowrap}
 /* The ball rests in the title at the size Jayden liked (.62em, the .discoDot metric), and the
    drop is a SCALE TWEEN on the live ball rather than a swap between two images -- it used to read
@@ -794,7 +818,16 @@ body.playViewportOwned .siteFoot{display:none}
    the site. Leaderboards carry a face, a team dot, the rating and one number -- at 390px there is
    room for a name column plus about three numerics, and that is the whole budget. ---- */
 /* Broadcast digits: Archivo, tabular, condensed. The display face touches numerals
-   and moments ONLY -- names, labels and UI stay Instrument Sans 400/600. */
+   and moments ONLY -- names, labels and UI stay Instrument Sans 400/600.
+   THE 800 BELOW IS A REAL INSTANCE, NOT A SYNTHESIS, and it keeps being
+   rediscovered as a two-weights violation. It is not one. The two-weights rule is
+   about Instrument Sans, which ships as two static faces (see the @font-face pair
+   at the top of this file) so any other weight has to be faux-bolded. Archivo is
+   declared `font-weight:100 900` -- a variable font with a real weight axis -- so
+   800 loads a genuine instance and the browser synthesises nothing. It is also
+   invisible to any at-rest census, including the 2026-08-09 audit's: .bcNum has
+   zero nodes until a tournament is running. Third weight in the codebase, second
+   family, no synthesis, and deliberate. */
 .bcNum{font-family:'Archivo',var(--sans);font-variant-numeric:tabular-nums lining-nums;
   font-variation-settings:'wdth' 68;font-weight:800;letter-spacing:.01em}
 /* ---- MATERIALS. Two shadows one light (down-right, matching the head photos --
@@ -930,7 +963,7 @@ body.hmFinal .sbTrophy{display:block;animation:sbTrophyIn var(--dur-enter) var(-
  min-width:0;flex:1 1 auto}
 .sbScore{font-size:40px;display:flex;align-items:center;flex:0 0 auto}
 /* dim divider glyph only -- no rule lines, no "multiple colour lines and all that" */
-.sbVs{flex:0 0 auto;color:#77746a;font-size:20px;font-weight:600;line-height:1;padding:0 var(--sp-2)}
+.sbVs{flex:0 0 auto;color:#77746a;font-size:20px;font-weight:600;line-height:var(--lh-flat);padding:0 var(--sp-2)}
 /* Mobile is the acceptance bar for this layout -- it previously failed here at a bigger scale
    (that's why it was a stack before); the simplification is what makes one row viable: faces
    shrink, names ellipsize, nothing needs to wrap. Scoped, never bare. */
@@ -1000,7 +1033,7 @@ body.hmFinal .sbTrophy{display:block;animation:sbTrophyIn var(--dur-enter) var(-
    ("Quarter-final") wrapped to a second line and shoved the ledge taller, while a short one
    ("Final") never did -- the row changed height depending on which round you were in.
    Neither field may wrap; the label sheds its letter-spacing before it sheds a line. */
-.sbRound{font-weight:600;font-size:var(--fs-micro);line-height:1;letter-spacing:.14em;
+.sbRound{font-weight:600;font-size:var(--fs-micro);line-height:var(--lh-flat);letter-spacing:.14em;
  text-transform:uppercase;color:#b9b6a8;white-space:nowrap;flex:0 0 auto;
  padding-right:9px;margin-right:1px;border-right:1px solid rgba(236,233,221,.14)}
 .sbFoot .sbMeta{white-space:nowrap;flex:0 0 auto}
@@ -1009,7 +1042,7 @@ body.hmFinal .sbTrophy{display:block;animation:sbTrophyIn var(--dur-enter) var(-
    (the round that matters gets its own colour), tuned for the new material. */
 body.hmFinal .sbRound{color:#e8b347}
 .sbFoot{display:flex;justify-content:space-between;align-items:center;gap:var(--sp-8);
- padding:7px var(--sp-14);font-weight:600;font-size:10px;line-height:1.1;color:#b9b6a8;
+ padding:7px var(--sp-14);font-weight:600;font-size:10px;line-height:var(--lh-tight);color:#b9b6a8;
  /* The card owns its own 10px radius and the ledge no longer paints its own background --
     it sits directly on the plate now, so it has no corners of its own left to carry. The
     ledge's own horizontal padding matches .sbInner's (14px) -- round·rule sits at the same
@@ -1049,6 +1082,10 @@ body.hmFinal .sbRound{color:#e8b347}
    Resting shadow is a variable so .sbHit's authored goal/clutch/trophy box-shadow
    declarations remain the winning properties during play. */
 :root[data-theme="dark"] body[data-theme-page="play"]{
+ /* NIGHT GROUND, NIGHT NET. The one number a dark surface owes the goal -- see --goal-net at the
+    top of this file. #ECEEF5 rather than pure white so the mesh sits with the page's own light
+    rather than glaring out of it. */
+ --goal-net:236,238,245;
  --sb-material:rgba(17,19,24,.90);
  --sb-rest-shadow:0 16px 44px -28px rgba(0,0,0,.88),
   inset 0 0 0 var(--hair-w) rgba(255,255,255,.15),
@@ -1082,7 +1119,7 @@ body.hmFinal .sbRound{color:#e8b347}
    already does. Its hover moves to --ctl-primary-ground-hover rather than
    --c900 so the game bar breathes on the same rung as the rest of the ladder. */
 .tGo,.hmScoreEnd,.hmBtn{
- font-family:var(--sans);font-weight:400;font-size:var(--fs-small);line-height:1;
+ font-family:var(--sans);font-weight:400;font-size:var(--fs-small);line-height:var(--lh-flat);
  color:var(--ctl-ink);background:none;
  border:0;
  border-radius:var(--r-2xs);
@@ -1138,7 +1175,7 @@ body.hmFinal .sbRound{color:#e8b347}
  border:0;background:none;color:var(--ctl-ink);
  border-radius:var(--r-2xs);corner-shape:var(--corner);
  display:flex;align-items:center;justify-content:center;
- font-family:var(--sans);font-size:var(--fs-micro);line-height:1;cursor:pointer}
+ font-family:var(--sans);font-size:var(--fs-micro);line-height:var(--lh-flat);cursor:pointer}
 .mhX::before{content:"";position:absolute;left:0;right:0;top:0;
  height:var(--tap-min);border-radius:0}
 .mhX:hover,.mhX:focus-visible{color:var(--ctl-ink-strong);border-color:transparent}

@@ -13,7 +13,7 @@
    capture:null,frame:0,peekFrame:0,peekAnimating:false,pendingAnchor:null,pendingClamp:false,
    stamp:0,geomStamp:-1,geom:null,floating:false,floatFrame:0,ambient:false,base:null,metrics:null,
    hovering:false,resumeTimer:0,floatShift:0,holdAt:0,lastFloatMs:0,loopReads:0,
-   rendered:{x:0,y:0,scale:1,rotate:0}};
+   frameInset:null,rendered:{x:0,y:0,scale:1,rotate:0}};
   var content=hero.querySelector(".heroCopy");
   var peek=hero.querySelector(".heroCharacterPeek");
   /* ── THE BOUNDS ARE THE ARTWORK'S, AND THEY WERE THE FACE'S ──────────────
@@ -97,16 +97,45 @@
      through whatever angle the entrance happened to be passing. An important
      declaration is the one thing that does beat an animation. */
   var LEVEL=["--hero-head-rotate","--hero-head-float-rot","--hero-head-enter-rot"];
-  function withLevel(read){
-   var saved=LEVEL.map(function(name){
-    return [name,wrap.style.getPropertyValue(name)];
-   });
-   LEVEL.forEach(function(name){wrap.style.setProperty(name,"0deg","important");});
-   var measured=read();
+  /* ── PUTTING AN !important BACK IS NOT THE SAME AS TAKING IT OFF ──────────
+     Every measurement below neutralises the transform with `important`,
+     because a keyframe outranks a plain inline style and the base rectangle
+     everything downstream trusts would otherwise be captured mid-entrance.
+     The restore then wrote the saved value back with no priority, on the
+     assumption that setProperty(name,value) clears the flag. It does in
+     Blink. IT DOES NOT IN WEBKIT: setting a custom property that is already
+     declared !important leaves the priority alone, so the neutralising flag
+     survives the restore and every later write -- writeTransform(),
+     writeFloat(), the whole float loop -- loses to it in the cascade.
+     Measured in WebKit at 390x844 on the shipped build: after a drag,
+     --hero-head-x read `0px !important` inline while getState().x read 24,
+     and the computed transform was matrix(1,0,0,1,-105.5,0) -- the head not
+     merely stuck but LEVEL, never having received the resting -13.8deg
+     either. So on iPhone the portrait never floated, never tilted and never
+     followed a drag, while the selection frame -- which is written from
+     state.x/y and not from these properties -- tracked the finger perfectly.
+     That is exactly "the box moves but the head doesn't".
+     removeProperty() drops the declaration and its priority together, in
+     every engine, and there is no combination of arguments to setProperty()
+     that is guaranteed to. It runs at init, on resize and on a stage change
+     -- never inside a drag or a float frame -- so it costs nothing. */
+  function restore(saved){
    saved.forEach(function(pair){
-    if(pair[1])wrap.style.setProperty(pair[0],pair[1]);
-    else wrap.style.removeProperty(pair[0]);
+    wrap.style.removeProperty(pair[0]);
+    if(pair[1])wrap.style.setProperty(pair[0],pair[1],pair[2]||"");
    });
+  }
+  function neutralise(names,valueOf){
+   var saved=names.map(function(name){
+    return [name,wrap.style.getPropertyValue(name),wrap.style.getPropertyPriority(name)];
+   });
+   names.forEach(function(name){wrap.style.setProperty(name,valueOf(name),"important");});
+   return saved;
+  }
+  function withLevel(read){
+   var saved=neutralise(LEVEL,function(){return "0deg";});
+   var measured=read();
+   restore(saved);
    return measured;
   }
   /* Cached per render pass so a drag frame pays for the extra layout once. */
@@ -357,16 +386,12 @@
    "--hero-head-float-x","--hero-head-float-y","--hero-head-float-rot",
    "--hero-head-enter-y","--hero-head-enter-rot"];
   function captureBase(){
-   var saved=NEUTRAL.map(function(n){return [n,wrap.style.getPropertyValue(n)];});
-   NEUTRAL.forEach(function(name){
-    wrap.style.setProperty(name,
-     name==="--hero-head-scale"?"1":/rot/.test(name)?"0deg":"0px","important");
+   var saved=neutralise(NEUTRAL,function(name){
+    return name==="--hero-head-scale"?"1":/rot/.test(name)?"0deg":"0px";
    });
    var u=logicalRaw(),h=rectOf(hero);
    state.base={left:u.left-h.left,top:u.top-h.top,width:u.width,height:u.height};
-   saved.forEach(function(pair){
-    if(pair[1])wrap.style.setProperty(pair[0],pair[1]);else wrap.style.removeProperty(pair[0]);
-   });
+   restore(saved);
   }
   function cssNumber(node,name){return parseFloat(node.style.getPropertyValue(name))||0;}
   /* The frame in Hero-relative space: local bounds, scaled about their own
@@ -394,13 +419,28 @@
       computed from the rigid frame rather than measured from pixels. */
    var bw=Math.abs(g.w*cos)+Math.abs(g.h*sin),bh=Math.abs(g.w*sin)+Math.abs(g.h*cos);
    var raw={left:g.cx-bw/2,top:g.cy-bh/2,right:g.cx+bw/2,bottom:g.cy+bh/2};
-   /* Clipped to the REACHABLE region, not the Hero. The Hero runs up behind
-      the floating bar, so a box clipped to the Hero's own top edge parks its
-      upper handles underneath an opaque nav at z-index 100 and they stop
-      taking clicks. Riding the bar's lower edge instead keeps every handle
-      hittable, and matches the region clampMove already confines the head to. */
-   var ceiling=h.ceiling;
-   var r={left:Math.max(raw.left,0),top:Math.max(raw.top,ceiling),
+   /* ── THE OUTLINE IS CROPPED BY THE STAGE. THE HANDLES ARE CROPPED BY REACH.
+      Those are two different rectangles, and the box was carrying both. It
+      stopped at the floating bar's lower edge so that no handle could park
+      under an opaque nav -- but .heroHeadFrame is inset:0 of this box and
+      clips its own line, so the whole band between the Hero's top edge and the
+      bar's bottom was surrendered by the OUTLINE for a reason that only ever
+      concerned the DOTS. The head is cropped by .heroCharacterPeek, which is
+      inset:0 of the Hero, so head and frame vanished on different lines: drag
+      the head up and its top edge is still painted beside the centred nav pill
+      while the outline's top line, and the rotate dot with it, are simply
+      gone. Measured at 1440x900 -- ceiling 60px, clamp lets the box reach
+      y=-56 -- that is a 60px band of missing frame over a visible head. It is
+      what "the resize box randomly clips and parts disappear" actually is:
+      not random, conditional on how far up the head has been dragged.
+      So the box is clipped to the HERO on all four sides now, which is exactly
+      the head's own crop, and the reachability rule is left where it was
+      already being enforced independently: place() clamps every hit target
+      into [ceiling, heroH] through its lead/limit arguments, so a handle still
+      cannot end up under the bar. Nothing here needs a second element or a
+      per-frame layout write -- the frame element is unchanged and the loop
+      still only writes compositor properties. */
+   var r={left:Math.max(raw.left,0),top:Math.max(raw.top,0),
     right:Math.min(raw.right,h.heroW),bottom:Math.min(raw.bottom,h.heroH)};
    var w=Math.max(1,r.right-r.left),ht=Math.max(1,r.bottom-r.top);
    selection.style.setProperty("--selection-x",r.left+"px");

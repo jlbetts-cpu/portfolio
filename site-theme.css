@@ -163,7 +163,7 @@ html{scrollbar-color:var(--theme-muted) var(--theme-page)}
 
 /* Case-study editorial system: neutral type hierarchy, near-black surfaces,
    violet only for state, focus, and inline navigation. */
-:root[data-theme="dark"] body[data-theme-page="case-study"] :is(.head,.roleHead,.secHead,.hmwQ,.subHead,.statNum,.fv,.ovBody,.role p,.hq,.hlabel,.stepHead,.playerStep,.baCapLabel,.pullBody){
+:root[data-theme="dark"] body[data-theme-page="case-study"] :is(.head,.roleHead,.secHead,.hmwQ,.subHead,.statNum,.fv,.ovBody,.role p,.stepHead,.playerStep,.baCapLabel,.pullBody){
  color:var(--theme-ink);
 }
 :root[data-theme="dark"] body[data-theme-page="case-study"] :is(.lede,.secBody,.statCap,.baBody,.baCap,.playerNote,.baNote){

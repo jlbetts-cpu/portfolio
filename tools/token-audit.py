@@ -1039,6 +1039,36 @@ class Audit:
         r'(?:head(?!er)|shadow|hero|photo|ball|orb|cup|trophy|face|eye|blob|'
         r'crate|marble|confetti|spark|glow|planet|lava|goal|pitch|sun|moon)', re.I)
 
+    # -- THE ONE SANCTIONED SHADOW, NAMED RATHER THAN REGEX'D  (2026-08-10) ----
+    # NOT_CHROME_SEL is a word list, and widening it to let the broadcast
+    # scoreboard through would also exempt every future thing with "card" or
+    # "board" in its name -- which is how a standing rule quietly stops
+    # standing. So the exemption is an explicit entry with a reason, the way
+    # performance-idle-contract.py's ALLOWED works, and it is REPORTED rather
+    # than silenced: it still prints, as an INFO line, so it stays visible.
+    #
+    # The scoreboard is not chrome. It is a hanging card in a stadium -- the
+    # painted-board direction, drawn as an object in the scene the same way the
+    # companion heads are. The heads cast contact shadows because they stand on
+    # something; the board casts one because it hangs from something. Its two
+    # layers are named --bc-contact and --bc-cast for exactly that reason, and
+    # play.css records that their light direction was matched to the head
+    # cutouts. Removing them would flatten the one photoreal object on the page.
+    #
+    # Anything ADDED here has to argue that its element is scene, not chrome.
+    # "It looks better with a shadow" is not that argument.
+    SHADOW_ALLOWED = (
+        ('play.css', '.sbCard',
+         'the broadcast board is a hanging object in the scene, not chrome; '
+         '--bc-contact/--bc-cast are matched to the head cutouts light'),
+    )
+
+    def _shadow_allowed(self, fname, sel):
+        for f, needle, reason in self.SHADOW_ALLOWED:
+            if fname.endswith(f) and needle in sel:
+                return reason
+        return None
+
     def check_shadows(self):
         for fname, decls in self.decls.items():
             if fname == TOKENS_FILE:
@@ -1058,6 +1088,12 @@ class Audit:
                         if self._is_cast(l)]
                 if not cast:
                     continue          # pure rim -- a border, not an elevation
+                reason = self._shadow_allowed(fname, sel)
+                if reason:
+                    self.add('chrome_cast_shadow_allowed', 'INFO', src.where(pos),
+                             '%s -- sanctioned: %s' % (sel[:70], reason),
+                             selector=sel[:120], value=value[:160], layers=cast)
+                    continue
                 self.add('chrome_cast_shadow', 'WARNING', src.where(pos),
                          '%s -- box-shadow:%s (chrome separates with hairlines, '
                          'not elevation)' % (sel[:70], value[:90]),

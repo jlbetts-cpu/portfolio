@@ -49,6 +49,24 @@
 .ctl--sm{min-height:var(--ctl-h-sm);padding-inline:var(--ctl-pad-sm);gap:var(--ctl-gap-sm);font-size:var(--ctl-fs-sm)}
 .ctl--sm::after{content:"";position:absolute;top:50%;left:0;right:0;height:var(--ctl-h);transform:translateY(-50%)}
 .ctl--sm .gIco,.ctl--sm .uiIcon{width:var(--ico-sm);height:var(--ico-sm);flex:0 0 var(--ico-sm)}
+/* .ctl--nav -- THE BAR ITEM. A tab in a horizontal bar, and the third height
+   rung the site has been using for a fortnight without the library owning it.
+   It differs from .ctl--sm in exactly three measured values: 38px rather than
+   36, 16px of inline padding rather than 12, and --r-pill rather than --r-md.
+   THE PILL IS A DECISION, NOT DRIFT, and it is Jayden's, on a screenshot of the
+   travelling indicator: "I like the corner rounding too of it." --r-pill clamped
+   to half of a 38px box and drawn with corner-shape:squircle reads as a soft
+   rounded rectangle rather than a capsule, and rest, hover, focus and active are
+   the same silhouette -- only the fill changes. Do not fold it to --r-md.
+   The menu ROWS keep --r-sm: a tab in a bar and a row in a vertical menu are
+   different kinds, and giving the rows this shape would make a stack of stadiums.
+   Font size is --ctl-fs-sm, which tokens.css already binds to --fs-nav -- the
+   library and the bar had already agreed on type before they agreed on box. */
+.ctl--nav{min-height:var(--ctl-h-nav);padding-inline:var(--ctl-pad-nav);gap:var(--sp-6);
+ border-radius:var(--r-pill);corner-shape:var(--corner);font-size:var(--ctl-fs-sm)}
+/* the ink box stays 38; the target grows to --tap-min underneath it. */
+.ctl--nav::after{content:"";position:absolute;top:50%;left:0;right:0;height:var(--tap-min);transform:translateY(-50%)}
+.ctl--nav .gIco,.ctl--nav .uiIcon{width:var(--ico-sm);height:var(--ico-sm);flex:0 0 var(--ico-sm)}
 /* A control that owns its row rather than sitting in one. `display:flex` because
    an inline-flex box at width:100% still carries the inline box's baseline gap. */
 .ctl--block{display:flex;width:100%}
@@ -117,79 +135,12 @@
    adoption number honest: a primitive that opts out of the base it claims to
    join has joined nothing.
 
-   ── the values with no --ctl-* home yet ───────────────────────────────────
-   A track thickness, a thumb diameter and a state-layer radius are control
-   geometry, so they belong in tokens.css beside --ctl-h and --ctl-pad. They are
-   declared HERE, in the library that consumes them, because tokens.css is owned
-   by a concurrent motion-token consolidation on this branch and a second writer
-   in one file is how a token ends up with two definitions -- the exact failure
-   this block exists to repair. Every one of them resolves through an existing
-   rung or through --ctl-ink-strong, so nothing below invents a number. They are
-   reported for promotion, not parked: move the block verbatim into the control
-   section of tokens.css and this declaration becomes redundant rather than
-   contradictory.
-
-   --ctl-track-ground and the two state layers are color-mix on --ctl-ink-strong
-   rather than --theme-rim / --theme-rim-strong, and that is deliberate:
-   --theme-rim-strong is DEFINED ONLY IN DARK (site-theme.css:29) and every
-   light-mode consumer is quietly running on the rgba() fallback written into
-   tokens.css:498. A translucent wash of the theme's own ink inverts by itself
-   in every theme, needs no fallback, and cannot drift from a token that is not
-   there. This is also what satisfies the six time-of-day states: five of them
-   resolve to data-theme="light" and night resolves to "dark"
-   (site-theme-state.js:31), so a value derived from --ctl-ink-strong is correct
-   in all six by construction rather than by a second set of numbers. */
-:root{
- --ctl-track-h:var(--focus-w);            /* 2px. The site separates with hairlines;
-                                             a 4px rail would be the one control
-                                             drawing a bar. */
- --ctl-track-r:var(--r-pill);
- --ctl-thumb-size:var(--sp-20);           /* 20px. 20/44 = .45 -- the same ratio
-                                             --ctl-r's 14/44 gives the box. */
- --ctl-track-ground:color-mix(in srgb,var(--ctl-ink-strong) 18%,transparent);
- --ctl-track-ground-hover:color-mix(in srgb,var(--ctl-ink-strong) 30%,transparent);
- /* The STATE LAYER: a hard-edged ring around the thumb, no blur and no offset,
-    so it is a translucent wash and not elevation. The no-cast-shadows rule bans
-    a control pretending to stand on the page; a ring concentric with the thumb
-    claims no height at all. Material calls this a state layer and Radix, Base UI
-    and shadcn all ship the same device, for the same reason: a 20px thumb has no
-    room to change ink, so the only channel left is the space around it. */
- --ctl-state-layer:color-mix(in srgb,var(--ctl-ink-strong) 12%,transparent);
- --ctl-state-layer-strong:color-mix(in srgb,var(--ctl-ink-strong) 20%,transparent);
- --ctl-state-layer-w:var(--sp-4);
- --ctl-state-layer-w-strong:var(--sp-6);
- /* THE SWATCH RIM IS TWO-TONE, and this is the one control on the site whose
-    ground is set by the visitor. A single hairline cannot survive that. The
-    OUTER ring is the theme's ink, which is by definition the opposite of the
-    panel, so it is the ring that does the work in the case that actually breaks
-    -- a near-white value on a light panel, or a near-black one at night, where
-    the fill and the ground are the same colour and the edge is the only thing
-    identifying the control at all. The INNER ring is the theme's paper, and it
-    covers the mirror case: a value that matches the INK, where the outer ring
-    disappears into the fill.
-    THE OUTER ALPHA IS 45% AND THAT NUMBER IS NOT TASTE. Composited over white,
-    rgba(17,18,20,.45) is #8C8D8E, which is 3.05:1 against the paper either side
-    of it -- the floor WCAG 2.2 SC 1.4.11 sets for the visual information that
-    identifies a control. The site's ordinary hairline is .12-.20 and would
-    measure 1.15:1 here; that is fine for a rim that merely refines a control
-    which is already visible, and not fine for the one rim that IS the control.
-    This is Adobe Spectrum's ColorHandle construction (translucent dark outside,
-    light inside, fill in the middle) resolved through this site's two themes
-    instead of through literal black and white.
-    contrast-color() reached Baseline in April 2026 and would collapse the pair
-    into one ring that flips off the FILL rather than off the theme -- but it
-    needs the value in a custom property, which means the page mirroring
-    input.value into CSS on every change, and it returns only pure black or
-    white, so MDN's own example (royal blue) fails against both. Two static
-    rings need no JS and have no mid-tone hole. Revisit if the swatch ever grows
-    a JS value mirror for another reason. */
- --ctl-swatch-rim:
-  inset 0 0 0 var(--hair-w) color-mix(in srgb,var(--ctl-ink-strong) 45%,transparent),
-  inset 0 0 0 calc(var(--hair-w) * 2) color-mix(in srgb,var(--ctl-primary-ink) 55%,transparent);
- --ctl-swatch-rim-strong:
-  inset 0 0 0 var(--hair-w) color-mix(in srgb,var(--ctl-ink-strong) 68%,transparent),
-  inset 0 0 0 calc(var(--hair-w) * 2) color-mix(in srgb,var(--ctl-primary-ink) 82%,transparent);
-}
+   ── the values that used to be declared here ─────────────────────────────
+   The track / thumb / state-layer / swatch-rim tokens lived in this file with a
+   note asking for them to be "moved verbatim into the control section of
+   tokens.css". They have been, on 2026-08-10, with their rationale. This file
+   consumes them like every other --ctl-*; it does not redeclare one, because a
+   second definition is the failure that note was written to avoid. */
 
 /* ── .ctl--range ───────────────────────────────────────────────────────────
    THE BOX IS THE TARGET. A ::-webkit-slider-thumb paints outside the input's
@@ -485,6 +436,40 @@
  margin:0;border-radius:0;background:var(--surface-ground);box-shadow:inset 0 calc(var(--hair-w) * -1) 0 var(--theme-rim)
 }
 .collection__content{box-sizing:border-box;border-radius:0;background:var(--surface-ground);box-shadow:none;overflow:hidden}
+/* ── .badge ────────────────────────────────────────────────────────────────
+   THE SURFACE FAMILY GAINS ITS SMALLEST MEMBER, and "non-interactive" is the
+   whole of the design. The MIGRATION SHIM comment above already rules this
+   family out of .ctl by name -- "the badges are the same case" -- so .badge
+   takes a ground, a rim and a radius and takes NO cursor, no press scale, no
+   focus ring and no --tap-min floor. A 34px box is right for something nobody
+   can tap; giving it 44 would be inventing an affordance that does not exist.
+
+   The 14 instances it replaces were three hand-rolled copies of one skin,
+   measured byte-identical apart from border STYLE and the ink filter:
+   .baLabel (apollo x6, ucdavis x6), .scrapTag (bearings x1, ucdavis x1).
+   Both differences become modifiers rather than a second class.
+
+   LINE-HEIGHT IS DELIBERATELY NOT DECLARED. The measured box is 34px, which is
+   8 + 8 padding + a `normal` line box on 13px Instrument Sans + 2 of rim.
+   Setting --lh-flat here would make it 31px and silently reshape all 14. */
+.badge{
+ display:inline-flex;align-items:center;box-sizing:border-box;
+ padding:var(--sp-8) var(--sp-16);
+ border:var(--hair-w) solid var(--badge-rim);
+ border-radius:var(--r-xs);corner-shape:var(--corner);
+ background:var(--badge-ground);color:var(--badge-ink);
+ font-family:var(--sans);font-size:var(--fs-label);font-weight:600;
+ letter-spacing:var(--tr-flat);white-space:nowrap
+}
+/* the "scrapped direction" tag: a dashed rim says provisional, and the box owns
+   its row so it can centre itself with an auto margin. */
+.badge--dashed{border-style:dashed}
+.badge--block{display:table}
+/* the case studies put the ink texture on chrome text; the tags do not carry it. */
+.badge--inked{filter:url(#inkSm)}
+/* the inverted half of a before/after pair. */
+.badge--strong{background:var(--badge-ground-strong);border-color:var(--badge-ground-strong);color:var(--badge-ink-strong)}
+
 /* THE CAPTION CLIP. Jayden: "the thumbnail section cuts off letters at the
    bottom, because of the corner rounding." He was right, and measured it is two
    clips at one edge, not one.

@@ -167,7 +167,44 @@ function buildEyes(name){
   stage.appendChild(el);eyeEls.push({el,iris,pupil,glint});
  });
 }
-function setFace(name){curFace=name;faceImg.src=PFX+FACES[name].img;buildEyes(name);}  // raw hard swap
+/* ── THE ARTWORK AND THE IRISES ARE TWO LAYERS WITH TWO CLOCKS ──────────────
+   A blink is two things at once: the drawn face swaps to its closed variant and
+   the live eye divs -- which carry the irises -- are hidden. The div change is
+   style and lands on the next paint. The artwork change is a DECODE, and an
+   <img> keeps painting its previous frame until the new bitmap is ready, so
+   when the decode misses the next paint the two disagree for a frame or two:
+   the irises are gone while the OPEN face is still on screen. A blank-eyed
+   stare, which is what Jayden means by "sometimes it freezes a frame where the
+   iris disappears".
+   MEASURED, not theorised: instrumenting the src setter on a warm cache with no
+   throttling at all, 6 of 45 swaps in 26 seconds landed with complete === false
+   and took one or two frames to present, four of them on the close step.
+   THE FIX IS AT THE SOURCE, NOT AT THE CALL SITE. Deferring the eye change
+   until the image reported itself ready was tried, and measured worse: an <img>
+   whose src is reassigned mid-flight fires no load and no error for the
+   abandoned request, so any face change landing inside the wait dropped the
+   pairing onto a timeout and produced unbroken runs of 8 to 17 frames of
+   exactly the defect it was meant to remove -- an order of magnitude worse than
+   the single frame it bought back. Every deferral has a stale window, and this
+   engine changes faces from a dozen places.
+   What removes the gap without a window is making the swap not need a decode:
+   the warm-up at the bottom of this file now DECODES every face frame rather
+   than merely fetching it, and holds the handles so the bitmaps stay resident.
+   A decoded, cached frame presents on the next paint, which is the same paint
+   the div change lands on. tools/hero-eye-contract.py watches the outcome. */
+function setFace(name){
+ /* SHOWING AN OPEN FACE IS THE DEFINITION OF THE EYES BEING OPEN, and
+    buildEyes() reads `eyesClosed` to decide whether the elements it is about to
+    create start .eclosed -- which is visibility:hidden with the iris at zero.
+    Every pop-in path (showFace's smile and wink) reaches here without clearing
+    the flag, so a stale true built a fresh, invisible eye under open artwork
+    and left it that way until the master clock's recovery caught it up to eight
+    frames later. Caught as a single frame on wink.webp by the contract. */
+ eyesClosed=false;
+ curFace=name;buildEyes(name);
+ var open=PFX+FACES[name].img;
+ if(faceImg.getAttribute("src")!==open)faceImg.src=open;
+}
 function applyBlink(){eyeEls.forEach(e=>e.el.classList.toggle("eclosed",eyesClosed));}
 // REAL blink — posterized to the 8fps grid, with natural variation + a bit of crunch
 function buildBlink(openTo,withGesture,allowDouble){
@@ -271,6 +308,73 @@ addEventListener("pointermove",function(e){
   if(near)_wasNear=true;else if(d>r.width*1.1)_wasNear=false;
  }catch(_){}
 },{passive:true});
+/* ── NOTHING HOLDS A POSE FOREVER ────────────────────────────────────────────
+   The 8fps judder is deliberate character and this must not touch it. A STUCK
+   pose is a different thing, and there is a real path to one: the master clock
+   drains blinkQ at its very last line, after `return` statements for party,
+   love, rain, movie, dizzy, eating and the tap reactions. Anything that takes
+   over the clock mid-blink stops the queue draining, and the recovery on the
+   line below the drain -- `else if(!blinking)` -- cannot help, because it is
+   past the same returns AND because it does nothing at all while `blinking` is
+   still true. So a blink interrupted at its closed step can leave the lids
+   shut and the irises hidden with no route home.
+   THE ELISION IS NOT THE CAUSE, checked rather than assumed: the only elided
+   eye write is `if(e.el.style.transform)e.el.style.transform=""` in
+   updateIris(), and every recovery write in this file is already guarded by a
+   read of the state it is about to change (`if(display==="none")`,
+   `if(contains("eclosed"))`). A guard that reads the live value cannot skip a
+   write that would have changed it. The elision stays.
+   THE WATCHDOG IS A DEADLINE, NOT A POLL. It runs at the top of the existing
+   125ms clock -- no new timer, no per-frame work, no layout read: it looks at
+   inline style strings and its own booleans and nothing else. It arms only
+   while the eyes are held shut with no mode owning them, and it fires once,
+   past the longest shut span any authored sequence can ask for. buildBlink's
+   worst case is five shut steps and slowBlink's is five, so 625ms is the
+   ceiling the design uses; 1400ms is more than twice that, which is far enough
+   away that it can never clip a real blink and near enough that a stuck pose
+   is over before it reads as a stuck pose.
+   IT COMES HOME THROUGH THE ORDINARY DOOR. setFace() rebuilds the eyes and
+   pairs them with the open artwork, so recovery cannot itself produce the
+   iris-less frame the decoding warm-up above exists to prevent. */
+var EYE_SHUT_BUDGET=1400,eyeShutSince=0,eyeRecovered=0;
+function eyesHeldShut(){
+ for(var i=0;i<eyeEls.length;i++){
+  var el=eyeEls[i].el;
+  if(el.style.display==="none"||el.style.visibility==="hidden"
+     ||el.classList.contains("eclosed"))return true;
+ }
+ /* A queue that is not being drained is a pose waiting to become permanent,
+    even before the lids have gone down for it. */
+ return blinking;
+}
+function eyeWatchdog(){
+ if(CALIB||reduce||eating||partyMode||loveMode||rainMode||bearMode||movieMode
+    ||introMode||dizzy||reactType){eyeShutSince=0;return;}
+ if(!eyesHeldShut()){eyeShutSince=0;return;}
+ var now=performance.now();
+ if(!eyeShutSince){eyeShutSince=now;return;}
+ if(now-eyeShutSince<EYE_SHUT_BUDGET)return;
+ eyeShutSince=0;eyeRecovered++;
+ blinking=false;blinkQ=[];eyesClosed=false;blinkSquash=1;
+ setFace((curFace==="neutral"||curFace==="rest")?curFace:"neutral");
+}
+/* DEV-ONLY, opt-in via ?eyestuck=1. A detector nobody has watched fail is one
+   nobody should trust, so tools/hero-eye-contract.py forces the exact pose the
+   watchdog exists for -- lids down, queue empty, `blinking` still true, the one
+   combination that neither branch of the master clock's blink drain can leave --
+   and then watches it come home. Totally inert for real visitors: without the
+   query flag nothing here is defined. */
+if(/[?&]eyestuck=1/.test(location.search)){
+ window.__hmEyeStick=function(){
+  blinking=true;blinkQ=[];eyesClosed=true;
+  eyeEls.forEach(function(e){e.el.style.display="none";});
+  faceImg.src=FACES[curFace].closed;
+ };
+ window.__hmEyeState=function(){
+  return {blinking:blinking,queued:blinkQ.length,shut:eyesHeldShut(),
+   face:faceImg.getAttribute("src"),budget:EYE_SHUT_BUDGET,recovered:eyeRecovered};
+ };
+}
 /* the disappointed slow blink: shut, a long beat, reopen (mirrors buildBlink's grid steps) */
 function slowBlink(){if(blinking||reduce)return;blinking=true;blinkQ=[{close:1,sq:0.9},{close:1,sq:0.93},{close:1,sq:0.94},{close:1,sq:0.94},{close:1,sq:0.94},{open:1,face:curFace,sq:1}];applyStep(blinkQ.shift());}
 /* rare quirks: pop-culture beats plus the wink and the blep — one roll, long gaps, never twice in a row */
@@ -297,7 +401,13 @@ function idleQuirk(){
 }
 setTimeout(idleQuirk,18000);
 /* warm every face frame once the page settles, so no expression swap ever flashes a half-loaded frame */
-window.addEventListener("load",function(){setTimeout(function(){var W=["images/neutral_browsup.webp","images/neutral_closed.webp","images/rest.webp","images/rest_closed.webp","images/wink.webp","images/wink_closed.webp","images/smile.webp","images/smile_closed.webp","images/tongue.webp","images/heart.webp","images/heart_eye.webp","images/cookie.webp","images/cookie_b1.webp","images/cookie_b2.webp","images/cookie_b3.webp","images/discoball.webp","images/discoglints.webp","images/cam.webp","images/fingerprint.webp","images/bucket.webp","images/kernel.webp","images/crumbtex.webp","images/procreate.webp","images/overlay.webp","images/paper.webp"];window.__faceWarm=W.map(function(src){var im=new Image();im.decoding="async";im.src=src;return im;});},900);});
+window.addEventListener("load",function(){setTimeout(function(){var W=["images/neutral_browsup.webp","images/neutral_closed.webp","images/rest.webp","images/rest_closed.webp","images/wink.webp","images/wink_closed.webp","images/smile.webp","images/smile_closed.webp","images/tongue.webp","images/heart.webp","images/heart_eye.webp","images/cookie.webp","images/cookie_b1.webp","images/cookie_b2.webp","images/cookie_b3.webp","images/discoball.webp","images/discoglints.webp","images/cam.webp","images/fingerprint.webp","images/bucket.webp","images/kernel.webp","images/crumbtex.webp","images/procreate.webp","images/overlay.webp","images/paper.webp"];/* DECODED, not merely fetched. A warmed src that has never been decoded still
+   costs a decode on first paint, and that decode is the gap in which the
+   irises and the artwork disagree;
+   decoding here means the common path stays the synchronous one. The handles
+   are kept so the decoded bitmaps are not immediately evicted. */
+window.__faceWarm=W.map(function(src){var im=new Image();im.decoding="async";im.src=src;
+ if(im.decode)im.decode().catch(function(){});return im;});},900);});
 /* eyebrow flash (Eibl-Eibesfeldt): a ~220ms brow raise that precedes warm expressions — anticipation, never a snap */
 function browFlash(cb){if(reduce||blinking||(curFace!=="neutral"&&curFace!=="rest")){if(cb)cb();return;}faceImg.src=PFX+FACES.neutral.browsup;setTimeout(function(){if(!blinking&&(curFace==="neutral"||curFace==="rest"))faceImg.src=PFX+FACES[curFace].img;if(cb)cb();},220);}
 /* mood exits come home through a blink, never a hard swap; sometimes he looks quietly pleased after */
@@ -1063,6 +1173,7 @@ function attachIdentity(wordEl){
 
 var RAIN_PHOTOS=["rain01.webp","rain02.webp","rain03.webp","rain04.webp","rain05.webp","rain06.webp","rain07.webp","rain08.webp","rain09.webp","rain10.webp","rain11.webp","rain12.webp","rain13.webp","rain14.webp","rain15.webp","rain16.webp","rain17.webp","rain18.webp"];
 /* ===== popcorn movie-watching mode (triggered by reel hover, alongside the 3D glasses) ===== */
+var BUCKET_CENTRE="translateX(-50%) ";
 var movieMode=false,movieTk0=0,movieEnding=false,movieEndTk=0,bucketEl=null,kernelEls=[],popcrumbEls=[],movieHair=false,hairTk0=0,MOVCYCLE=18;
 var heroPeek=document.querySelector(".heroCharacterPeek");
 var heroHeadTransform=document.getElementById("heroHeadTransform");
@@ -1179,6 +1290,29 @@ function makePlainCycWord(text){var w=document.createElement("span");w.className
 function ensureMovieEls(){
  if(bucketEl)return;
  var host=movieEffectsStage||stage;
+ /* ── A CENTRING INSIDE `transform` GETS ROTATED, AND THE BUCKET IS ROTATED ──
+    The bucket's tilt is written as the independent CSS `rotate` property, on
+    purpose: this loop overwrites .style.transform on every movie frame, so a
+    rotate() inside the list would be clobbered. That part is right. What it
+    misses is the ORDER. Per CSS Transforms L2 the matrix resolves as
+    translate -> rotate -> scale -> transform, all about transform-origin, so
+    the `rotate` property is applied OUTSIDE the transform list -- and the
+    translateX(-50%) that centres the bucket is inside it. The centring vector
+    is therefore rotated with the artwork.
+    Measured at 390x844: the bucket is 113px wide, so the centring is -56.5px,
+    and the tilt resolves to -8.855deg (--pop-tilt -7deg, minus the light
+    direction's 1.855). Rotating (-56.5, 0) by that angle yields (-55.9, +8.7):
+    the bucket lands 8.7px BELOW where its own `bottom` asks for it, and the
+    error is half the bucket's width times sin(tilt), so it grows with the
+    Hero -- about 11px at 1440. It is not the popcorn that is misplaced, it is
+    the popcorn's centring being turned by the popcorn's own lean.
+    So on the Hero the centring leaves the transform entirely and becomes
+    layout: left:0/right:0 with auto inline margins, which centres an
+    absolutely positioned box of definite width with no matrix at all and
+    cannot be rotated by anything. The string stays for any host that is NOT
+    the Hero's effects layer -- play.css owns its own .popbucket rule and is
+    not this lane's to change -- so nothing outside the Hero moves. */
+ BUCKET_CENTRE=movieEffectsStage?"":"translateX(-50%) ";
  bucketEl=document.createElement("img");bucketEl.className="popbucket";bucketEl.src="images/bucket.webp";bucketEl.alt="";bucketEl.style.opacity="0";host.appendChild(bucketEl);
  for(var i=0;i<7;i++){var k=document.createElement("img");k.className="kernel";k.src="images/kernel.webp";k.alt="";k.style.opacity="0";host.appendChild(k);kernelEls.push(k);}
  for(var j=0;j<12;j++){var cc=document.createElement("div");cc.className="popcrumb";host.appendChild(cc);popcrumbEls.push(cc);}
@@ -1251,7 +1385,7 @@ function dumpOnHair(){
 }
 function hairTick(){
  var ht=tk-hairTk0;
- if(bucketEl){var bk=Math.min(1,ht/6);bucketEl.style.opacity=(bk>=1?0:1).toString();bucketEl.style.transform="translateX(-50%) translate("+(22*bk).toFixed(0)+"%,"+(34*bk*bk).toFixed(0)+"%) rotate("+(46*bk).toFixed(0)+"deg)";}
+ if(bucketEl){var bk=Math.min(1,ht/6);bucketEl.style.opacity=(bk>=1?0:1).toString();bucketEl.style.transform=BUCKET_CENTRE+"translate("+(22*bk).toFixed(0)+"%,"+(34*bk*bk).toFixed(0)+"%) rotate("+(46*bk).toFixed(0)+"deg)";}
  for(var i=0;i<kernelEls.length;i++){var k=kernelEls[i];if(k._htx==null)continue;
   if(ht<=7){var t=ht/7;var x=(1-t)*(1-t)*k._hsx+2*(1-t)*t*k._hpx+t*t*k._htx;var y=(1-t)*(1-t)*k._hsy+2*(1-t)*t*k._hpy+t*t*k._hty;k._hx=x;k._hy=y;k._hrot=k._hr0+(k._hr1-k._hr0)*t+t*200;setKernel(k,x,y,k._hrot,1);}
   else if(ht<39){var jt=Math.sin((tk+i*1.7)*0.5)*0.004;setKernel(k,k._htx+jt,k._hty,k._hr1,1);}
@@ -1273,7 +1407,7 @@ function movieTick(){
   if(tk>=movGazeNext){movGX=(Math.random()*2-1)*0.42;movGY=0.10+Math.random()*0.22;if(Math.random()<0.16)movGY=0.32+Math.random()*0.06;movGazeNext=tk+2+(Math.random()*4|0);}
   gaze.x=movGX+(Math.random()*0.02-0.01);gaze.y=movGY+(Math.random()*0.02-0.01);
   var reach=0;
-  if(lt<3){var bin=lt/3;bucketEl.style.opacity=bin.toFixed(2);bucketEl.style.transform="translateX(-50%) translateY("+((1-bin)*44).toFixed(0)+"%)";}
+  if(lt<3){var bin=lt/3;bucketEl.style.opacity=bin.toFixed(2);bucketEl.style.transform=BUCKET_CENTRE+"translateY("+((1-bin)*44).toFixed(0)+"%)";}
   else{
    bucketEl.style.opacity="1";
    var c=(lt-3)%MOVCYCLE,ci=Math.floor((lt-3)/MOVCYCLE),side=(ci%2)?0.58:0.42,K=kernelEls[0];
@@ -1295,7 +1429,7 @@ function movieTick(){
    else if(c===14&&movieLickThis&&tongueEl){tongueEl.style.transform="translateX(10%) scaleY(0.95) rotate(7deg)";}
    else if(c===15&&tongueEl){tongueEl.style.opacity="0";tongueEl.style.transform="scaleY(0)";}
    var sway=Math.sin(tk*0.42)*1.5,bj=Math.sin(tk*0.42+1)*1.1;
-   bucketEl.style.transform="translateX(-50%) translateY("+bj.toFixed(1)+"px) rotate("+(sway+reach).toFixed(1)+"deg)";
+   bucketEl.style.transform=BUCKET_CENTRE+"translateY("+bj.toFixed(1)+"px) rotate("+(sway+reach).toFixed(1)+"deg)";
   }
   updateIris();
   updateMovieDrops();
@@ -1305,11 +1439,11 @@ function movieTick(){
  if(movieHair){hairTick();return;}
  var et=tk-movieEndTk;
  if(et<3){if(curFace!=="rest")setFace("rest");mouthimg.style.opacity="0";if(tongueEl)tongueEl.style.opacity="0";var sgx=et===0?0.11:et===1?-0.07:0.02,sgy=et===0?-0.12:et===1?-0.09:-0.07;gaze.x=sgx;gaze.y=sgy;updateIris();
-   var pop=et===0?1.05:et===1?1.02:1.0;setMovieStageTransform("scale("+pop+")");if(bucketEl)bucketEl.style.transform="translateX(-50%)";return;}
+   var pop=et===0?1.05:et===1?1.02:1.0;setMovieStageTransform("scale("+pop+")");if(bucketEl)bucketEl.style.transform=BUCKET_CENTRE||"none";return;}
  var k=Math.min(1,(et-3)/5);
  if(et===3){setFace("wink");glassesOff();}
  else if(et>=6&&curFace!=="neutral")setFace("neutral");
- bucketEl.style.transform="translateX(-50%) translate("+(-160*k).toFixed(0)+"%,"+(-15-150*k*k).toFixed(0)+"%) rotate("+(-320*k).toFixed(0)+"deg)";
+ bucketEl.style.transform=BUCKET_CENTRE+"translate("+(-160*k).toFixed(0)+"%,"+(-15-150*k*k).toFixed(0)+"%) rotate("+(-320*k).toFixed(0)+"deg)";
  if(k>=1)bucketEl.style.opacity="0";
  for(var i=0;i<kernelEls.length;i++){var kn=kernelEls[i];if(kn._vx==null)continue;kn._vy+=0.012;kn._x+=kn._vx;kn._y+=kn._vy;kn._rot+=kn._spin;setKernel(kn,kn._x,kn._y,kn._rot,Math.max(0,1-(et-3)/7));}
  rot=10*k;ty=bob+6*k;gaze.x=-0.14;gaze.y=0.13;updateIris();
@@ -1392,7 +1526,7 @@ function endRain(){
 }
 (function(){if(window.innerWidth>760)return;var items=[].slice.call(document.querySelectorAll(".csItem"));if(!items.length)return;function showAll(){items.forEach(function(it){it.classList.add("csIn");});}if(reduce||!("IntersectionObserver" in window)){showAll();return;}var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add("csIn");io.unobserve(e.target);}});},{threshold:0.16,rootMargin:"0px 0px -7% 0px"});items.forEach(function(it){io.observe(it);});})();
 // MASTER 8fps CLOCK
-setInterval(()=>{tk++;if(!reduce)boil();if(crumbEls.length)updateCrumbs();
+setInterval(()=>{tk++;eyeWatchdog();if(!reduce)boil();if(crumbEls.length)updateCrumbs();
  var _dv=dragCookie||dragDisco||dragLove||dragCam||dragId;if(dragging&&_dv&&!reduce)wobbleDrag(_dv);
  if(introMode){introTick();return;}
  if(CALIB)return;
@@ -1496,6 +1630,17 @@ talk.addEventListener("click",function(e){e.preventDefault();
 })();
 (function(){return;/* magnetic retired: Let's talk is now a calm secondary button matching Back */var mag=document.querySelector(".talkMag");if(!mag||reduce)return;var PULL=0.22,REACH=70,MAXO=16,last=0,cx=0,cy=0;function apply(x,y){mag.style.transform=(x||y)?("translate("+x+"px,"+y+"px)"):"";}function cl(v){return v<-MAXO?-MAXO:(v>MAXO?MAXO:v);}window.addEventListener("mousemove",function(e){var now=performance.now();if(now-last<125)return;last=now;var b=mag.getBoundingClientRect();var bx=b.left+b.width/2-cx,by=b.top+b.height/2-cy;var dx=e.clientX-bx,dy=e.clientY-by;var reach=Math.max(b.width,b.height)/2+REACH;if(Math.hypot(dx,dy)<reach){cx=cl(Math.round(dx*PULL));cy=cl(Math.round(dy*PULL));apply(cx,cy);}else if(cx||cy){cx=0;cy=0;apply(0,0);}});window.addEventListener("mouseout",function(e){if(!e.relatedTarget&&(cx||cy)){cx=0;cy=0;apply(0,0);}});})();
 (function(){var headBounds=headBoundsOf();var HEAD={x0:headBounds[0],y0:headBounds[1],x1:headBounds[2],y1:headBounds[3]};function overFace(e){var r=faceImg.getBoundingClientRect();if(!r.width||!r.height)return false;var fx=(e.clientX-r.left)/r.width,fy=(e.clientY-r.top)/r.height;return fx>=HEAD.x0&&fx<=HEAD.x1&&fy>=HEAD.y0&&fy<=HEAD.y1;}var onFace=false;window.__pointerOverFace=false;document.addEventListener("mousemove",function(e){var ov=overFace(e);window.__pointerOverFace=ov;if(CALIB)return;if(ov)enter();else leave();},{passive:true});document.addEventListener("mouseleave",function(){window.__pointerOverFace=false;leave();});window.addEventListener("blur",function(){window.__pointerOverFace=false;leave();});function enter(){if(eventLock||CALIB)return;if(!onFace){onFace=true;clearHold();activeHover="rest";showFace("rest");}}function leave(){var was=onFace;onFace=false;if(activeHover==="rest")activeHover=null;if(!eventLock&&!CALIB){var target=activeHover||holdFace||baseFace;if(blinking){for(var i=0;i<blinkQ.length;i++){if(blinkQ[i]&&blinkQ[i].open)blinkQ[i].face=target;}}if(was)showFace(target);}if(window.__restWatch)clearInterval(window.__restWatch);var t0=Date.now();window.__restWatch=setInterval(function(){if(window.__pointerOverFace||CALIB||onFace||Date.now()-t0>1500){clearInterval(window.__restWatch);window.__restWatch=null;return;}if(eventLock)return;if(curFace==="rest"){if(blinking){for(var j=0;j<blinkQ.length;j++){if(blinkQ[j]&&blinkQ[j].open)blinkQ[j].face=baseFace;}}setFace(baseFace);}},60);}faceImg.addEventListener("mousemove",function(e){if(CALIB)return;if(overFace(e))enter();else leave();});faceImg.addEventListener("mouseleave",function(){leave();});})();
+/* THE HEAD GOES DIZZY WHEN YOU TAP IT. This binding was deleted as collateral
+   in e6d4295 ("Add selectable movable Hero portrait"): that commit rewrote the
+   overFace IIFE on the line above, and the click listener that sat on the very
+   next line went out with the same hunk. tapReact/startDizzy/TAPS were never
+   touched -- only the caller vanished, which is why nothing errored and nobody
+   saw it for three days. Guarded on the transform host rather than restored
+   bare: on index the head is a select-and-move object now, pointerdown's
+   preventDefault does not suppress the click that follows, and a bare listener
+   would fire dizzy at the end of every drag. Play gets the original behaviour
+   byte for byte. */
+if(!faceImg.closest(".heroHeadTransform"))faceImg.addEventListener("click",()=>{if(CALIB||eventLock)return;tapReact();});
 
 function renderCal(){}
 addEventListener("keydown",e=>{if(!CALIB)return;

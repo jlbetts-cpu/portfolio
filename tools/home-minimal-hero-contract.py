@@ -196,7 +196,20 @@ def browser_contract(base_url):
             assert state["rootOverflow"] != "hidden", state
             assert state["directCompanions"] == 0, state
             assert not state["horizontalOverflow"], state
-            assert all(target["width"] >= 44 and target["height"] >= 44 for target in state["targets"]), state
+            # 44px, MEASURED WITH A SUB-PIXEL TOLERANCE (2026-08-10).
+            # getBoundingClientRect returns floats, and a control that IS 44 can
+            # report 43.98 or 43.86 -- fractional layout, a device pixel ratio
+            # that does not divide evenly, or the --press-scale .97 catching it
+            # mid-press. The 2026-08-09 audit logged this line failing on
+            # workBtn 102.29 x 43.984 and heroTimeBtn 43.859 x 43.859: three
+            # correct 44px controls, one exact-comparison bug. The tolerance is
+            # the same 0.51 shared-controls-browser.py already uses, which is
+            # half a CSS pixel -- wide enough to absorb rounding, far too narrow
+            # to let a genuinely undersized 43px target through.
+            TAP_MIN, TOL = 44, 0.51
+            undersized = [t for t in state["targets"]
+                          if t["width"] < TAP_MIN - TOL or t["height"] < TAP_MIN - TOL]
+            assert not undersized, (undersized, state)
             # The approved Hero owns the opening viewport. Moving the portrait to Play must
             # not collapse Home into a short banner at any responsive width.
             # Full-bleed: the Hero is the viewport, top and bottom flush.
