@@ -190,7 +190,17 @@ body.catchReady #stageMorph{transform:scale(1.055)}
    frame, so a rotate() inside transform would be overwritten, while the
    separate property composes with it and survives. The lean leans away from
    the light, using the same signed --time-light-dir as the rim. */
+/* AND THE CENTRING CANNOT LIVE IN THE TRANSFORM, because `rotate` is applied
+   OUTSIDE it: the resolved matrix is translate -> rotate -> scale -> transform,
+   so a translateX(-50%) inside the list is turned by the lean above. Measured
+   at 390: a 113px bucket leaning -8.855deg landed 8.7px below its own `bottom`,
+   and the error is half the width times sin(tilt), so it grows with the Hero --
+   ~11px at 1440. Centred by LAYOUT instead: left/right 0 with auto inline
+   margins centres an absolutely positioned box of definite width using no
+   matrix at all, so the lean has nothing to rotate. hero-engine drops its
+   translateX(-50%) for this host to match; every other host keeps it. */
 #heroMovieEffectsStage .popbucket{
+ left:0;right:0;margin-inline:auto;transform:none;
  bottom:calc(var(--movie-stage-overhang,0px) + var(--hero-floor-inset,12px));
  rotate:calc(var(--pop-tilt,-7deg) - var(--time-light-dir,0) * 5deg)
 }
@@ -500,15 +510,36 @@ body.heroEmpathy .jbStick .jbNav{--nav-mat:var(--ctl-ground);--nav-rim:var(--ctl
    the case-study covers it sits between.
    corner-shape:squircle comes with it, per --corner, so it is the same
    superellipse the rest of the page draws and not a plain arc at the same size. */
+/* AND THE RUNG IS RESPONSIVE, which is why this said --r-lg and wrote --r-xl.
+   The reasoning above is right and the declaration under it was not: measured,
+   the neighbours in this column read 20px at 1440 and 14px at 390, because
+   --radius-media steps down to --r-md with every other card at the 760px size
+   class. A fixed literal cannot be right at both widths -- pinned to --r-xl
+   this was 28px at BOTH, so it was 8px too round on desktop and exactly twice
+   its neighbours on a phone. That is the "different rounding" Jayden is
+   seeing, and the token is the fix, not a second literal.
+   THE WIDTH WAS MEASURED OFF THE VIEWPORT INSTEAD OF THE COLUMN. Every sibling
+   is laid out by .cases.collection, which insets by --surface-gutter; this
+   restated that inset as the literals 80 and 48, and 48 was simply wrong --
+   the gutter is 16 at that width, so the reel sat at left 24 / width 342 while
+   the cards beside it sat at left 16 / width 358, stepping 8px in on each side
+   for no reason anyone chose. Both breakpoints now derive from the same token,
+   so the phone override is gone and a change to the gutter moves the reel with
+   the cards instead of leaving it behind. */
 .csPanel[data-panel="goodness"] .reelStage{padding:0}
 .csPanel[data-panel="goodness"] .reelFrame:not(.isFull){
-  width:min(1200px,calc(100vw - 80px))!important;aspect-ratio:2/1;
-  border-radius:var(--r-xl)!important;corner-shape:var(--corner)}
-.csPanel[data-panel="goodness"] .reelMeta{width:min(1200px,calc(100vw - 80px))}
-@media(max-width:760px){
- .csPanel[data-panel="goodness"] .reelFrame:not(.isFull){width:calc(100vw - 48px)!important}
- .csPanel[data-panel="goodness"] .reelMeta{width:calc(100vw - 48px)}
-}
+  width:min(calc(var(--page-max) - var(--surface-gutter) * 2),
+            calc(100vw - var(--surface-gutter) * 2))!important;aspect-ratio:2/1;
+  border-radius:var(--radius-media)!important;corner-shape:var(--corner)}
+/* The video takes the frame's corners the way .csImg takes .csFrame's. It had
+   none of its own and leaned entirely on overflow, which is the fragile path
+   under a squircle corner-shape and left it reading as a square inside a round
+   box at the one place the two disagree. */
+.csPanel[data-panel="goodness"] .reelFrame:not(.isFull) .reelVid{
+  border-radius:inherit;corner-shape:inherit}
+.csPanel[data-panel="goodness"] .reelMeta{
+  width:min(calc(var(--page-max) - var(--surface-gutter) * 2),
+            calc(100vw - var(--surface-gutter) * 2))}
 @media(max-width:760px){
 
  /* Extras was wrapping onto a second line at 390 and landing at the inset edge while

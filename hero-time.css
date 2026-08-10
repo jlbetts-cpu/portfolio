@@ -101,7 +101,16 @@
     so reset() returns it exactly here and the entrance still lands on it.
     Baking either into --hero-head-x/-scale would have made the resting state
     something the clamp treats as "already moved". */
- --hero-peek-width:235px;
+ /* 235 -> 275 on Jayden's call that the head should read slightly bigger on a
+    desktop: +17%, which is one step on this project's "slightly" scale and not
+    a change of composition. It is still LAYOUT, so rest stays x=0 scale=1 and
+    everything above still holds. Two things had to survive it and are asserted
+    in tools/hero-head-transform-contract.py rather than reasoned about: the
+    resting position stays legal under the reachability clamp (a bigger head
+    needs a bigger share inside the Hero), and the entrance still lands exactly
+    on rest. The phone value below is deliberately NOT scaled with it -- see
+    the note there; growing it re-clips the face off the left edge. */
+ --hero-peek-width:275px;
  --hero-peek-shift-x:-241px;
  /* NEGATIVE DEPTH, AND THAT IS THE POINT. Depth is how far the head hangs
     PAST the Hero's floor, so a negative value lifts it clear of the floor
