@@ -1630,6 +1630,17 @@ talk.addEventListener("click",function(e){e.preventDefault();
 })();
 (function(){return;/* magnetic retired: Let's talk is now a calm secondary button matching Back */var mag=document.querySelector(".talkMag");if(!mag||reduce)return;var PULL=0.22,REACH=70,MAXO=16,last=0,cx=0,cy=0;function apply(x,y){mag.style.transform=(x||y)?("translate("+x+"px,"+y+"px)"):"";}function cl(v){return v<-MAXO?-MAXO:(v>MAXO?MAXO:v);}window.addEventListener("mousemove",function(e){var now=performance.now();if(now-last<125)return;last=now;var b=mag.getBoundingClientRect();var bx=b.left+b.width/2-cx,by=b.top+b.height/2-cy;var dx=e.clientX-bx,dy=e.clientY-by;var reach=Math.max(b.width,b.height)/2+REACH;if(Math.hypot(dx,dy)<reach){cx=cl(Math.round(dx*PULL));cy=cl(Math.round(dy*PULL));apply(cx,cy);}else if(cx||cy){cx=0;cy=0;apply(0,0);}});window.addEventListener("mouseout",function(e){if(!e.relatedTarget&&(cx||cy)){cx=0;cy=0;apply(0,0);}});})();
 (function(){var headBounds=headBoundsOf();var HEAD={x0:headBounds[0],y0:headBounds[1],x1:headBounds[2],y1:headBounds[3]};function overFace(e){var r=faceImg.getBoundingClientRect();if(!r.width||!r.height)return false;var fx=(e.clientX-r.left)/r.width,fy=(e.clientY-r.top)/r.height;return fx>=HEAD.x0&&fx<=HEAD.x1&&fy>=HEAD.y0&&fy<=HEAD.y1;}var onFace=false;window.__pointerOverFace=false;document.addEventListener("mousemove",function(e){var ov=overFace(e);window.__pointerOverFace=ov;if(CALIB)return;if(ov)enter();else leave();},{passive:true});document.addEventListener("mouseleave",function(){window.__pointerOverFace=false;leave();});window.addEventListener("blur",function(){window.__pointerOverFace=false;leave();});function enter(){if(eventLock||CALIB)return;if(!onFace){onFace=true;clearHold();activeHover="rest";showFace("rest");}}function leave(){var was=onFace;onFace=false;if(activeHover==="rest")activeHover=null;if(!eventLock&&!CALIB){var target=activeHover||holdFace||baseFace;if(blinking){for(var i=0;i<blinkQ.length;i++){if(blinkQ[i]&&blinkQ[i].open)blinkQ[i].face=target;}}if(was)showFace(target);}if(window.__restWatch)clearInterval(window.__restWatch);var t0=Date.now();window.__restWatch=setInterval(function(){if(window.__pointerOverFace||CALIB||onFace||Date.now()-t0>1500){clearInterval(window.__restWatch);window.__restWatch=null;return;}if(eventLock)return;if(curFace==="rest"){if(blinking){for(var j=0;j<blinkQ.length;j++){if(blinkQ[j]&&blinkQ[j].open)blinkQ[j].face=baseFace;}}setFace(baseFace);}},60);}faceImg.addEventListener("mousemove",function(e){if(CALIB)return;if(overFace(e))enter();else leave();});faceImg.addEventListener("mouseleave",function(){leave();});})();
+/* THE HEAD GOES DIZZY WHEN YOU TAP IT. This binding was deleted as collateral
+   in e6d4295 ("Add selectable movable Hero portrait"): that commit rewrote the
+   overFace IIFE on the line above, and the click listener that sat on the very
+   next line went out with the same hunk. tapReact/startDizzy/TAPS were never
+   touched -- only the caller vanished, which is why nothing errored and nobody
+   saw it for three days. Guarded on the transform host rather than restored
+   bare: on index the head is a select-and-move object now, pointerdown's
+   preventDefault does not suppress the click that follows, and a bare listener
+   would fire dizzy at the end of every drag. Play gets the original behaviour
+   byte for byte. */
+if(!faceImg.closest(".heroHeadTransform"))faceImg.addEventListener("click",()=>{if(CALIB||eventLock)return;tapReact();});
 
 function renderCal(){}
 addEventListener("keydown",e=>{if(!CALIB)return;
