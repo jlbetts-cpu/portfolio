@@ -133,7 +133,7 @@ img{display:block;max-width:100%}
    measured) -- one role, two leadings, on pages that sit next to each other. */
 .eyebrow{font-family:var(--sans);font-weight:600;font-size:var(--fs-label);line-height:var(--lh-body);letter-spacing:var(--tr-flat);text-transform:none;color:var(--c500);filter:url(#inkSm)}
 .head .eyebrow{display:block;margin:0 0 var(--sp-8-16)}
-.head{font-family:var(--sans);font-weight:600;font-size:var(--fs-h1);line-height:1.12;letter-spacing:-.02em;color:var(--c950);margin:16px 0 0;filter:url(#inkBig);text-wrap:balance}
+.head{font-family:var(--sans);font-weight:600;font-size:var(--fs-h1);line-height:var(--lh-head);letter-spacing:var(--tr-head);color:var(--c950);margin:16px 0 0;filter:url(#inkBig);text-wrap:balance}
 .head .hl{display:block}
 .lede{font-family:var(--sans);font-weight:400;font-size:var(--fs-prose);line-height:var(--lh-prose);color:var(--c700);margin:var(--sp-24-32) 0 0;text-wrap:pretty}
 
@@ -148,8 +148,8 @@ img{display:block;max-width:100%}
 .facts{width:100%;max-width:none;display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));column-gap:var(--sp-16-32);row-gap:var(--sp-16-32);margin:var(--sp-24-32) 0 0;border-top:1px solid var(--c100);border-bottom:1px solid var(--c100);padding:var(--sp-16-24) 0}
 .fact{min-width:0}
 .fk{display:block;font-family:var(--sans);font-weight:600;font-size:var(--fs-label);letter-spacing:var(--tr-flat);text-transform:none;color:var(--c500);filter:url(#inkSm);margin:0 0 var(--sp-8-16)}
-.fv{font-family:var(--sans);font-weight:400;font-size:var(--fs-body);line-height:1.35;color:var(--c950);margin:0;text-wrap:pretty}
-.fvsub{display:block;font-weight:400;font-size:var(--fs-small);line-height:1.35;color:var(--c500);margin-top:4px}
+.fv{font-family:var(--sans);font-weight:400;font-size:var(--fs-body);line-height:var(--lh-note);color:var(--c950);margin:0;text-wrap:pretty}
+.fvsub{display:block;font-weight:400;font-size:var(--fs-small);line-height:var(--lh-note);color:var(--c500);margin-top:4px}
 
 /* overview — a couple of orienting sentences before the role block */
 .ov{margin:var(--sp-40-64) 0 0}
@@ -168,7 +168,7 @@ img{display:block;max-width:100%}
 .secBody{font-family:var(--sans);font-weight:400;font-size:var(--fs-prose);line-height:var(--lh-prose);color:var(--c700);margin:16px 0 0;text-wrap:pretty}
 /* pulled stat — clean editorial callout (no ink; texture stays on the hero title only) */
 .stat{margin:var(--sp-32-48) 0;max-width:540px}
-.statNum{font-family:var(--sans);font-weight:400;font-size:var(--fs-statnum);line-height:1;letter-spacing:-.02em;color:var(--c950);margin:0;display:flex;align-items:baseline;gap:.16em}
+.statNum{font-family:var(--sans);font-weight:400;font-size:var(--fs-statnum);line-height:var(--lh-flat);letter-spacing:var(--tr-head);color:var(--c950);margin:0;display:flex;align-items:baseline;gap:.16em}
 .statUnit{font-size:.36em;font-weight:400;letter-spacing:0;color:var(--c500)}
 .statCap{font-family:var(--sans);font-weight:400;font-size:var(--fs-prose);line-height:var(--lh-prose);color:var(--c700);margin:16px 0 0;text-wrap:pretty}
 .statSrc{font-family:var(--sans);font-weight:400;font-size:var(--fs-small);letter-spacing:0;color:var(--c500);margin:16px 0 0;filter:url(#inkSm)}
@@ -239,13 +239,6 @@ img{display:block;max-width:100%}
 .footIn{display:inline-block;
  padding-block:var(--sp-10);margin-block:calc(var(--sp-10) * -1)}
 
-.hq{position:absolute;left:var(--x);top:var(--qt);width:var(--w,20%);margin:0;font-family:var(--sans);font-weight:400;font-size:var(--fs-body);line-height:1.3;color:var(--c950);text-wrap:pretty}
-.hval{position:absolute;left:var(--x);top:var(--nt);width:var(--w,20%)}
-.hlabel{margin:.45em 0 0;font-family:var(--sans);font-weight:600;font-size:var(--fs-body);line-height:var(--lh-head);color:var(--c950);text-wrap:pretty}
-.hsrc{position:absolute;left:0;bottom:1.5%;margin:0;font-family:var(--sans);font-weight:400;font-size:var(--fs-caption);letter-spacing:var(--tr-flat);text-transform:none;color:var(--c500);filter:url(#inkSm)}
-.hs1{--x:23%;--qt:5%;--nt:41%}
-.hs2{--x:50%;--qt:13%;--nt:53%}
-.hs3{--x:79%;--qt:21%;--nt:69%}
 
 .heroFoot{height:clamp(40px,7vh,90px)}
 
@@ -346,14 +339,11 @@ img{display:block;max-width:100%}
  .step,.step.payoff{grid-template-columns:1fr;row-gap:var(--sp-16-24)}
  .stepShot{width:min(62vw,300px)}
  .sec{min-height:0;padding-top:var(--sp-56-96)}
- .hq{position:relative;left:auto;top:auto;width:auto;margin:0 0 .35em;font-size:var(--fs-small);color:var(--c500)}
- .hval{position:relative;left:auto;top:auto;width:auto}
- .hsrc{position:relative;left:auto;bottom:auto;margin-top:var(--sp-24-32);display:block}
 }
 @media(max-width:760px){
  .wrap{padding:0 24px}
  .cover{aspect-ratio:4/3}
- .head{font-size:var(--fs-pagehead-sm);line-height:1.14}
+ .head{font-size:var(--fs-pagehead-sm);line-height:var(--lh-head)}
  .shot img{width:clamp(220px,70vw,300px);height:clamp(220px,70vw,300px)}
  .shot.phone{width:calc(clamp(340px,52vh,440px)*.46)}
  .shot.phone img{width:100%;height:auto}
@@ -429,7 +419,8 @@ img{display:block;max-width:100%}
    the pair reads as one decision rather than as two things that got missed:
    .shot.phone img here, and .demoFrame / .demoPoster on strata.html, which is a
    live phone demo in an iframe at clamp(22px,2.4vw,30px). */
-.shot.phone img{border-radius:clamp(20px,2.6vw,32px)}.videoFrame,.cmpBoard{overflow:hidden}.scrollbox{overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain}/* refined thin carousel scrollbar (palette-matched) */.scrollbox{scrollbar-width:thin;scrollbar-color:var(--c100) transparent}.scrollbox::-webkit-scrollbar{height:8px}.scrollbox::-webkit-scrollbar-track{background:transparent;margin:0 4px}.scrollbox::-webkit-scrollbar-thumb{background:var(--c100);border-radius:99px;border:2px solid transparent;background-clip:padding-box}.scrollbox::-webkit-scrollbar-thumb:hover{background:var(--c500);background-clip:padding-box}.secBody strong,.ovBody strong,.ov strong,.rv strong,.role strong,.lede strong{font-weight:600;color:var(--c950)}@media(max-width:899px){.rail{display:none}}@media(min-width:900px) and (max-width:1360px){.layout{display:grid;grid-template-columns:var(--rail-w) minmax(0,1fr);column-gap:var(--rail-gutter)}.rail{position:static;margin-right:0}}.content :is(.cap,.csReach){margin-inline:auto}.scrollbox:focus-visible{outline:2px solid var(--c950);outline-offset:3px}.scrollbox{scrollbar-width:none}.scrollbox::-webkit-scrollbar{display:none}.sbNav{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}@media(max-width:880px){.sbNav{display:none}}@media(prefers-reduced-motion:reduce){}.cap{text-align:center}.footIn:focus-visible,.chap:focus-visible{outline:2px solid var(--c950);outline-offset:3px;border-radius:var(--r-xs)}@media(max-width:880px){.subBlock{margin-top:56px}}.sec>.stat:last-child{margin-bottom:0}/* ===== single-phone flow player: the whole flow in one device, like a demo video ===== */.player{margin:var(--sp-40-64) auto 0;max-width:680px;text-align:center}.playerStage{width:min(320px,62vw);margin:0 auto}.playerStage img{width:100%;aspect-ratio:720/1565;object-fit:cover;display:block;background:#000;border-radius:clamp(20px,2.6vw,32px);box-shadow:var(--rim-1);transition:filter var(--scene-cut-duration) var(--scene-cut-ease),opacity var(--scene-cut-duration) var(--scene-cut-ease)}.player.dev .playerStage img{filter:blur(4px);opacity:.7}.playerCap{margin:var(--sp-16-24) auto 0;max-width:420px;font-size:var(--fs-small)}.playerStep{display:block;font-family:var(--sans);font-weight:600;font-size:var(--fs-label);letter-spacing:var(--tr-flat);color:var(--c950);filter:url(#inkSm)}.playerNote{display:block;margin-top:8px;font-family:var(--sans);font-weight:400;font-size:var(--fs-small);line-height:var(--lh-note);color:var(--c500);text-wrap:pretty}.playerBar{display:flex;align-items:center;justify-content:center;gap:16px;margin-top:var(--sp-16-24)}.playerTicks{display:flex;gap:8px}/* ===== tabbed viewer: every artifact one tap away, nothing hidden behind a drag ===== */.tv{margin:var(--sp-40-64) auto 0;text-align:center}.tvTabs{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}.tvTab:focus-visible{outline:2px solid var(--c950);outline-offset:3px}.tvFrame{margin:var(--sp-16-24) auto 0}.tv.tvBoard .tvFrame{max-width:980px}.tv.tvBoard .tvFrame img{width:100%;max-height:64vh;object-fit:contain;display:block;background:var(--c50);border-radius:var(--r-xl);  /* 980 wide -- top class. Its .tvPhone sibling below keeps the device clamp. */box-shadow:var(--rim-1);transition:filter var(--scene-cut-duration) var(--scene-cut-ease),opacity var(--scene-cut-duration) var(--scene-cut-ease)}.tv.tvPhone .tvFrame{width:min(320px,62vw)}.tv.tvPhone .tvFrame img{width:100%;aspect-ratio:720/1565;object-fit:cover;display:block;background:#fff;border-radius:clamp(20px,2.6vw,32px);box-shadow:var(--rim-1);transition:filter var(--scene-cut-duration) var(--scene-cut-ease),opacity var(--scene-cut-duration) var(--scene-cut-ease)}.tv.dev .tvFrame img{filter:blur(4px);opacity:.7}@media(prefers-reduced-motion:reduce){.playerStage img,.tv .tvFrame img{transition:none}}.darlings img{filter:grayscale(.35);opacity:.94}.scrapTag{display:table;margin:0 auto var(--sp-16-24);padding:8px 16px;border-radius:var(--r-xs);border:1px dashed var(--c100);color:var(--c700);font-family:var(--sans);font-size:var(--fs-label);font-weight:600;letter-spacing:var(--tr-flat);background:var(--c50)}@media(max-width:880px){}/* ---- SKIP LINK: WCAG 2.4.1 Bypass Blocks (Level A). Technique G1 requires a link that is
+.shot.phone img{border-radius:clamp(20px,2.6vw,32px)}.videoFrame,.cmpBoard{overflow:hidden}.scrollbox{overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain}/* refined thin carousel scrollbar (palette-matched) */.scrollbox{scrollbar-width:thin;scrollbar-color:var(--c100) transparent}.scrollbox::-webkit-scrollbar{height:8px}.scrollbox::-webkit-scrollbar-track{background:transparent;margin:0 4px}.scrollbox::-webkit-scrollbar-thumb{background:var(--c100);border-radius:99px;border:2px solid transparent;background-clip:padding-box}.scrollbox::-webkit-scrollbar-thumb:hover{background:var(--c500);background-clip:padding-box}.secBody strong,.ovBody strong,.ov strong,.rv strong,.role strong,.lede strong{font-weight:600;color:var(--c950)}@media(max-width:899px){.rail{display:none}}@media(min-width:900px) and (max-width:1360px){.layout{display:grid;grid-template-columns:var(--rail-w) minmax(0,1fr);column-gap:var(--rail-gutter)}.rail{position:static;margin-right:0}}.content :is(.cap,.csReach){margin-inline:auto}.scrollbox:focus-visible{outline:2px solid var(--c950);outline-offset:3px}.scrollbox{scrollbar-width:none}.scrollbox::-webkit-scrollbar{display:none}.sbNav{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}@media(max-width:880px){.sbNav{display:none}}@media(prefers-reduced-motion:reduce){}.cap{text-align:center}.footIn:focus-visible,.chap:focus-visible{outline:2px solid var(--c950);outline-offset:3px;border-radius:var(--r-xs)}@media(max-width:880px){.subBlock{margin-top:56px}}.sec>.stat:last-child{margin-bottom:0}/* ===== single-phone flow player: the whole flow in one device, like a demo video ===== */.player{margin:var(--sp-40-64) auto 0;max-width:680px;text-align:center}.playerStage{width:min(320px,62vw);margin:0 auto}.playerStage img{width:100%;aspect-ratio:720/1565;object-fit:cover;display:block;background:#000;border-radius:clamp(20px,2.6vw,32px);box-shadow:var(--rim-1);transition:filter var(--scene-cut-duration) var(--scene-cut-ease),opacity var(--scene-cut-duration) var(--scene-cut-ease)}.player.dev .playerStage img{filter:blur(4px);opacity:.7}.playerCap{margin:var(--sp-16-24) auto 0;max-width:420px;font-size:var(--fs-small)}.playerStep{display:block;font-family:var(--sans);font-weight:600;font-size:var(--fs-label);letter-spacing:var(--tr-flat);color:var(--c950);filter:url(#inkSm)}.playerNote{display:block;margin-top:8px;font-family:var(--sans);font-weight:400;font-size:var(--fs-small);line-height:var(--lh-note);color:var(--c500);text-wrap:pretty}.playerBar{display:flex;align-items:center;justify-content:center;gap:16px;margin-top:var(--sp-16-24)}.playerTicks{display:flex;gap:8px}/* ===== tabbed viewer: every artifact one tap away, nothing hidden behind a drag ===== */.tv{margin:var(--sp-40-64) auto 0;text-align:center}.tvTabs{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}.tvTab:focus-visible{outline:2px solid var(--c950);outline-offset:3px}.tvFrame{margin:var(--sp-16-24) auto 0}.tv.tvBoard .tvFrame{max-width:980px}.tv.tvBoard .tvFrame img{width:100%;max-height:64vh;object-fit:contain;display:block;background:var(--c50);border-radius:var(--r-xl);  /* 980 wide -- top class. Its .tvPhone sibling below keeps the device clamp. */box-shadow:var(--rim-1);transition:filter var(--scene-cut-duration) var(--scene-cut-ease),opacity var(--scene-cut-duration) var(--scene-cut-ease)}.tv.tvPhone .tvFrame{width:min(320px,62vw)}.tv.tvPhone .tvFrame img{width:100%;aspect-ratio:720/1565;object-fit:cover;display:block;background:#fff;border-radius:clamp(20px,2.6vw,32px);box-shadow:var(--rim-1);transition:filter var(--scene-cut-duration) var(--scene-cut-ease),opacity var(--scene-cut-duration) var(--scene-cut-ease)}.tv.dev .tvFrame img{filter:blur(4px);opacity:.7}@media(prefers-reduced-motion:reduce){.playerStage img,.tv .tvFrame img{transition:none}}.darlings img{filter:grayscale(.35);opacity:.94}/* only the placement is local now; the skin is .badge badge--dashed badge--block. */
+.scrapTag{margin:0 auto var(--sp-16-24)}@media(max-width:880px){}/* ---- SKIP LINK: WCAG 2.4.1 Bypass Blocks (Level A). Technique G1 requires a link that is
    the FIRST focusable element and moves focus to the main content -- so it sits before the
    nav in DOM order. Parked off-screen by transform (not display:none, which would take it
    out of the tab order entirely) and slid in on focus. ---- */
@@ -490,6 +481,32 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
 .videoFrame,.demoPhone{box-shadow:var(--rim-3)}
 .videoFrame:fullscreen,.videoFrame iframe:fullscreen,
 .demoPhone:fullscreen,.demoFrame:fullscreen{border-radius:0!important;box-shadow:none}
+/* ── THE SIZE CLASS .photoFig NEVER HAD ─────────────────────────────────────
+   The ladder above assigns radius by the BOX's width, boundary measured at ~900px,
+   and every width in it "was read off the rendered page at 1440". That is exactly
+   the problem: .photoFig took --r-xl from a single 1440 read and then had no
+   responsive rule at all -- not a media query with the wrong number in it, no rule.
+   Proven by walking document.styleSheets rather than by reading: of the four rules
+   whose selector mentions .photoFig, the one that wins is unconditional.
+
+   Measured, the box is 1120px at 1440, 990px at 1280, 795px at 1000 and 358px at
+   390, and it crosses the ladder's own 900px boundary at viewport 1105 (box 900.0px;
+   at 1104, 899.0px). Everything below 1105 was carrying the rung reserved for the
+   widest surfaces on a box down to a third the size -- not a phone-only defect.
+
+   WHY A VIEWPORT QUERY AND NOT A CONTAINER QUERY. A container query is the honest
+   tool for a size class and is what this should eventually be. It is not what ships
+   here: container-type:inline-size applies layout containment, which makes .photoFig
+   a BFC and stops its first child's top margin collapsing through it. Measured, that
+   adds 64px to every figure on apollo, cluster and ucdavis (+128, +128 and +320px of
+   document height) and moves 125 of ucdavis's 285 content elements. bearings escapes
+   only because all three of its figures happen to start with a zero-top-margin child.
+   The box's width here is a pure function of the viewport, so the breakpoint is exact
+   and costs nothing. The container query needs those margins reworked first; it is
+   recorded rather than skipped. */
+@media(max-width:1104px){
+ .photoFig{border-radius:var(--r-lg);corner-shape:var(--corner)}
+}
 @media(max-width:760px){
  .wrap{padding-inline:16px}
  .cover,.cover>img,.wide,.wide>img,.cmp,.cmpBoard,.cmpImg,.cmpImg>img,.cmpImg>video,
@@ -649,7 +666,7 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
      <p class="secBody">I don&rsquo;t design in a straight line. I pull a wall of references into Figma, chase a mood, and start building, and then, every single time, an idea hits mid-build and I end up somewhere completely different from where I started. I love that. It&rsquo;s where most of the good work comes from.</p>
      <p class="secBody">It&rsquo;s also how I fell for a paper-collage direction: hand-torn cars and characters with real texture and imperfection, buttons that felt handmade. I was attached to them. But the more I built, the more the app tipped childlike, away from the premium feel I was after. <strong>So I scrapped the style, characters and all</strong>, even though it stung.</p>
      <figure class="photoFig">
-      <span class="scrapTag">Scrapped direction · not the final design</span><div class="darlings">
+      <span class="scrapTag badge badge--dashed badge--block">Scrapped direction · not the final design</span><div class="darlings">
        <img src="images/cs/darlings-board.webp" alt="The paper-collage character set: hand-cut cars, a motorcycle and scooter, and people and pet avatars with photo faces." loading="lazy" decoding="async">
        <img src="images/cs/darlings-collage.webp" alt="The paper-collage direction in the Trips screen: a plush bear riding a hand-cut car carrying the crew, over the Painted Ladies." loading="lazy" decoding="async">
        <img src="images/cs/darlings-feed.webp" alt="The collage direction shown in the trip feed before it was pulled back." loading="lazy" decoding="async">

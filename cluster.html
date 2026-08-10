@@ -133,7 +133,7 @@ img{display:block;max-width:100%}
    measured) -- one role, two leadings, on pages that sit next to each other. */
 .eyebrow{font-family:var(--sans);font-weight:600;font-size:var(--fs-label);line-height:var(--lh-body);letter-spacing:var(--tr-flat);text-transform:none;color:var(--c500);filter:url(#inkSm)}
 .head .eyebrow{display:block;margin:0 0 var(--sp-8-16)}
-.head{font-family:var(--sans);font-weight:600;font-size:var(--fs-h1);line-height:1.12;letter-spacing:-.02em;color:var(--c950);margin:16px 0 0;filter:url(#inkBig);text-wrap:balance}
+.head{font-family:var(--sans);font-weight:600;font-size:var(--fs-h1);line-height:var(--lh-head);letter-spacing:var(--tr-head);color:var(--c950);margin:16px 0 0;filter:url(#inkBig);text-wrap:balance}
 .head .hl{display:block}
 .lede{font-family:var(--sans);font-weight:400;font-size:var(--fs-prose);line-height:var(--lh-prose);color:var(--c700);margin:var(--sp-24-32) 0 0;text-wrap:pretty}
 
@@ -148,8 +148,8 @@ img{display:block;max-width:100%}
 .facts{width:100%;max-width:none;display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));column-gap:var(--sp-16-32);row-gap:var(--sp-16-32);margin:var(--sp-24-32) 0 0;border-top:1px solid var(--c100);border-bottom:1px solid var(--c100);padding:var(--sp-16-24) 0}
 .fact{min-width:0}
 .fk{display:block;font-family:var(--sans);font-weight:600;font-size:var(--fs-label);letter-spacing:var(--tr-flat);text-transform:none;color:var(--c500);filter:url(#inkSm);margin:0 0 var(--sp-8-16)}
-.fv{font-family:var(--sans);font-weight:400;font-size:var(--fs-body);line-height:1.35;color:var(--c950);margin:0;text-wrap:pretty}
-.fvsub{display:block;font-weight:400;font-size:var(--fs-small);line-height:1.35;color:var(--c500);margin-top:4px}
+.fv{font-family:var(--sans);font-weight:400;font-size:var(--fs-body);line-height:var(--lh-note);color:var(--c950);margin:0;text-wrap:pretty}
+.fvsub{display:block;font-weight:400;font-size:var(--fs-small);line-height:var(--lh-note);color:var(--c500);margin-top:4px}
 
 /* overview — a couple of orienting sentences before the role block */
 .ov{margin:var(--sp-40-64) 0 0}
@@ -168,7 +168,7 @@ img{display:block;max-width:100%}
 .secBody{font-family:var(--sans);font-weight:400;font-size:var(--fs-prose);line-height:var(--lh-prose);color:var(--c700);margin:16px 0 0;text-wrap:pretty}
 /* pulled stat — clean editorial callout (no ink; texture stays on the hero title only) */
 .stat{margin:var(--sp-32-48) 0;max-width:540px}
-.statNum{font-family:var(--sans);font-weight:400;font-size:var(--fs-statnum);line-height:1;letter-spacing:-.02em;color:var(--c950);margin:0;display:flex;align-items:baseline;gap:.16em}
+.statNum{font-family:var(--sans);font-weight:400;font-size:var(--fs-statnum);line-height:var(--lh-flat);letter-spacing:var(--tr-head);color:var(--c950);margin:0;display:flex;align-items:baseline;gap:.16em}
 .statUnit{font-size:.36em;font-weight:400;letter-spacing:0;color:var(--c500)}
 .statCap{font-family:var(--sans);font-weight:400;font-size:var(--fs-prose);line-height:var(--lh-prose);color:var(--c700);margin:16px 0 0;text-wrap:pretty}
 .statSrc{font-family:var(--sans);font-weight:400;font-size:var(--fs-small);letter-spacing:0;color:var(--c500);margin:16px 0 0;filter:url(#inkSm)}
@@ -239,13 +239,6 @@ img{display:block;max-width:100%}
 .footIn{display:inline-block;
  padding-block:var(--sp-10);margin-block:calc(var(--sp-10) * -1)}
 
-.hq{position:absolute;left:var(--x);top:var(--qt);width:var(--w,20%);margin:0;font-family:var(--sans);font-weight:400;font-size:var(--fs-body);line-height:1.3;color:var(--c950);text-wrap:pretty}
-.hval{position:absolute;left:var(--x);top:var(--nt);width:var(--w,20%)}
-.hlabel{margin:.45em 0 0;font-family:var(--sans);font-weight:600;font-size:var(--fs-body);line-height:var(--lh-head);color:var(--c950);text-wrap:pretty}
-.hsrc{position:absolute;left:0;bottom:1.5%;margin:0;font-family:var(--sans);font-weight:400;font-size:var(--fs-caption);letter-spacing:var(--tr-flat);text-transform:none;color:var(--c500);filter:url(#inkSm)}
-.hs1{--x:23%;--qt:5%;--nt:41%}
-.hs2{--x:50%;--qt:13%;--nt:53%}
-.hs3{--x:79%;--qt:21%;--nt:69%}
 
 .heroFoot{height:clamp(40px,7vh,90px)}
 
@@ -346,14 +339,11 @@ img{display:block;max-width:100%}
  .step,.step.payoff{grid-template-columns:1fr;row-gap:var(--sp-16-24)}
  .stepShot{width:min(62vw,300px)}
  .sec{min-height:0;padding-top:var(--sp-56-96)}
- .hq{position:relative;left:auto;top:auto;width:auto;margin:0 0 .35em;font-size:var(--fs-small);color:var(--c500)}
- .hval{position:relative;left:auto;top:auto;width:auto}
- .hsrc{position:relative;left:auto;bottom:auto;margin-top:var(--sp-24-32);display:block}
 }
 @media(max-width:760px){
  .wrap{padding:0 24px}
  .cover{aspect-ratio:4/3}
- .head{font-size:var(--fs-pagehead-sm);line-height:1.14}
+ .head{font-size:var(--fs-pagehead-sm);line-height:var(--lh-head)}
  .shot img{width:clamp(220px,70vw,300px);height:clamp(220px,70vw,300px)}
  .shot.phone{width:calc(clamp(340px,52vh,440px)*.46)}
  .shot.phone img{width:100%;height:auto}
@@ -490,6 +480,32 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
 .videoFrame,.demoPhone{box-shadow:var(--rim-3)}
 .videoFrame:fullscreen,.videoFrame iframe:fullscreen,
 .demoPhone:fullscreen,.demoFrame:fullscreen{border-radius:0!important;box-shadow:none}
+/* ── THE SIZE CLASS .photoFig NEVER HAD ─────────────────────────────────────
+   The ladder above assigns radius by the BOX's width, boundary measured at ~900px,
+   and every width in it "was read off the rendered page at 1440". That is exactly
+   the problem: .photoFig took --r-xl from a single 1440 read and then had no
+   responsive rule at all -- not a media query with the wrong number in it, no rule.
+   Proven by walking document.styleSheets rather than by reading: of the four rules
+   whose selector mentions .photoFig, the one that wins is unconditional.
+
+   Measured, the box is 1120px at 1440, 990px at 1280, 795px at 1000 and 358px at
+   390, and it crosses the ladder's own 900px boundary at viewport 1105 (box 900.0px;
+   at 1104, 899.0px). Everything below 1105 was carrying the rung reserved for the
+   widest surfaces on a box down to a third the size -- not a phone-only defect.
+
+   WHY A VIEWPORT QUERY AND NOT A CONTAINER QUERY. A container query is the honest
+   tool for a size class and is what this should eventually be. It is not what ships
+   here: container-type:inline-size applies layout containment, which makes .photoFig
+   a BFC and stops its first child's top margin collapsing through it. Measured, that
+   adds 64px to every figure on apollo, cluster and ucdavis (+128, +128 and +320px of
+   document height) and moves 125 of ucdavis's 285 content elements. bearings escapes
+   only because all three of its figures happen to start with a zero-top-margin child.
+   The box's width here is a pure function of the viewport, so the breakpoint is exact
+   and costs nothing. The container query needs those margins reworked first; it is
+   recorded rather than skipped. */
+@media(max-width:1104px){
+ .photoFig{border-radius:var(--r-lg);corner-shape:var(--corner)}
+}
 @media(max-width:760px){
  .wrap{padding-inline:16px}
  .cover,.cover>img,.wide,.wide>img,.cmp,.cmpBoard,.cmpImg,.cmpImg>img,.cmpImg>video,

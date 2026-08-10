@@ -92,7 +92,7 @@ body{background:var(--c50);color:var(--c950);font-family:var(--sans);-webkit-fon
 .abBody{padding-bottom:clamp(46px,8vw,130px)}
 .abBody .abSec{margin-bottom:var(--sp-48-72)}
 .abBody .abSec:last-child{margin-bottom:0}
-.abBody h2{font-family:var(--sans);font-weight:600;font-size:var(--fs-h3);line-height:var(--lh-tight);letter-spacing:var(--tr-sub);color:var(--c950);margin:0 0 var(--sp-16);filter:url(#inkBig)}
+.abBody h2{font-family:var(--sans);font-weight:600;font-size:var(--fs-h2);line-height:var(--lh-tight);letter-spacing:var(--tr-sub);color:var(--c950);margin:0 0 var(--sp-16);filter:url(#inkBig)}
 .abBody p{font-family:var(--sans);font-weight:400;font-size:var(--fs-prose);line-height:var(--lh-prose);color:var(--c950);margin:0;max-width:44ch;text-wrap:pretty}
 .abBody p+p{margin-top:var(--sp-32-48)}
 .abBody .abSec.abConnect{max-width:520px}
@@ -211,7 +211,14 @@ body{background:var(--c50);color:var(--c950);font-family:var(--sans);-webkit-fon
  object-position:50% 50%;-webkit-user-drag:none}
 /* the caption travels WITH its photograph rather than on its own clock: the same
    curve, started in the same frame, so the pair reads as one object changing. */
-.abCap{font-family:var(--sans);font-weight:400;font-size:var(--fs-small);letter-spacing:.01em;
+/* .abCap was the site's ONLY positive letter-spacing: +.010em, on no rung -- the
+   ladder runs 0 (--tr-flat) then straight to +.045em (--tr-caps), because positive
+   tracking is for capitals and this is sentence case. Every other caption role
+   already sits at --tr-flat (.shotCap, .demoLabel, .demoPosterLabel; .shotNote
+   writes the same value as a literal 0). At 15px the change is 0.15px per
+   character. Adding a rung for one call site is the drift the ladder exists to
+   prevent, so the call site joins the family instead. */
+.abCap{font-family:var(--sans);font-weight:400;font-size:var(--fs-small);letter-spacing:var(--tr-flat);
  line-height:var(--lh-body);color:var(--c500);margin:var(--sp-10) 0 0;filter:url(#inkSm);
  transition:opacity 520ms var(--ease-out),transform 680ms var(--ease-out)}
 .abCap.swapping{opacity:0;transform:translateY(6px)}
@@ -425,7 +432,8 @@ body{background:var(--c50);color:var(--c950);font-family:var(--sans);-webkit-fon
 <script src="header.js" defer></script>
 </head>
 <body data-nav="about" data-theme-page="about">
-<svg width="0" height="0" style="position:absolute"><filter id="inkBig"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="7" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="1.1" xChannelSelector="R" yChannelSelector="G" result="d"/><feTurbulence type="fractalNoise" baseFrequency="0.5 0.42" numOctaves="2" seed="13" result="g"/><feColorMatrix in="g" type="matrix" values="0 0 0 0 0.055 0 0 0 0 0.055 0 0 0 0 0.055 0 0 0 0.42 0" result="grain"/><feComposite in="grain" in2="d" operator="atop"/></filter>
+<a class="skipLink ctl ctl--secondary" href="#main">Skip to content</a>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><filter id="inkBig"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="7" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="1.1" xChannelSelector="R" yChannelSelector="G" result="d"/><feTurbulence type="fractalNoise" baseFrequency="0.5 0.42" numOctaves="2" seed="13" result="g"/><feColorMatrix in="g" type="matrix" values="0 0 0 0 0.055 0 0 0 0 0.055 0 0 0 0 0.055 0 0 0 0.42 0" result="grain"/><feComposite in="grain" in2="d" operator="atop"/></filter>
 <filter id="inkSm"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="1" seed="4" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="0.55" xChannelSelector="R" yChannelSelector="G"/></filter><filter id="inkEye"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="9" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="1.05" xChannelSelector="R" yChannelSelector="G"/></filter></svg>
 
 <!-- THE HEADER, IDENTICAL TO THE OTHER NINE PAGES.

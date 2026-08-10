@@ -162,7 +162,12 @@
    a wordmark's optical correction does not generalise to anything else.
    ═══════════════════════════════════════════════════════════════════════════ */
 .jbNav{
-  --bar-item-h:38px;        /* the nav label's ink box */
+  /* the nav label's ink box. The NUMBER has not changed; its home has. It used to
+     be declared here as a third height rung beside the control system's 44 and 36,
+     which is what made 50 nav/back-link controls read as bespoke. tokens.css owns
+     it now as --ctl-h-nav and controls.css draws it as .ctl--nav; this alias stays
+     because every rule below already names it and renaming them would be churn. */
+  --bar-item-h:var(--ctl-h-nav);
   /* the lockup is now the same single-line object as the tabs, so it takes the
      same ink box. One height in the bar, not two. */
 
@@ -389,7 +394,7 @@
 .jbNav a,.jbNav button{
   font-family:inherit;font-size:var(--fs-nav);font-weight:400;line-height:var(--lh-flat);
   color:var(--nav-ink);text-decoration:none;background:none;border:0;cursor:pointer;
-  padding:0 var(--sp-16);min-height:var(--bar-item-h);
+  padding:0 var(--ctl-pad-nav);min-height:var(--bar-item-h);
   display:inline-flex;align-items:center;gap:var(--sp-6);
   /* ONE SHAPE FOR ALL THREE STATES, and corner-shape is the half that was
      missing. Until round 11 the item declared --r-pill and NO corner-shape while

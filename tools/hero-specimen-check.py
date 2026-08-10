@@ -49,7 +49,24 @@ assert 'id="moodMenu"' not in html
 assert 'data-mood=' not in html
 assert 'document.body.classList.add("heroEmpathy")' in hero_engine
 assert 'document.body.classList.remove("heroEmpathy")' in hero_engine
-assert re.search(r'body\.heroEmpathy \.jbStick \.jbNav\s*\{[^}]*--nav-mat:var\(--theme-page', html, re.S)
+# THE EMPATHY BAR'S MATERIAL, AND WHY THIS LINE CHANGED  (2026-08-10)
+# This asserted --nav-mat:var(--theme-page) and had been failing since the
+# header-material work. It was the TOOL that was stale, not the site: --theme-page
+# is the paper (#FDFDFD), so pinning the bar to it put the bar's ground at 1.00:1
+# against the page under it, and the only thing drawing the component was a 1.31:1
+# hairline. header.css records the fix and Jayden's rule behind it -- "header should
+# not be grey -- if anything it should be lighter than the background" -- so the bar
+# went UP the ramp to --c0, which is what --ctl-ground resolves to in light. This
+# assertion was demanding the bug back.
+# It now also requires index.html and play.css to AGREE, because the override is
+# written out in full in both and two copies of one rule is how a value drifts.
+EMPATHY_BAR = (r'body\.heroEmpathy \.jbStick \.jbNav\s*\{[^}]*'
+               r'--nav-mat:var\(--ctl-ground\)[^}]*--nav-rim:var\(--ctl-container-rim\)')
+assert re.search(EMPATHY_BAR, html, re.S), \
+    "index.html: the empathy bar must take the control ground, not the paper"
+_play_css = Path("play.css").read_text(encoding="utf-8")
+assert re.search(EMPATHY_BAR, _play_css, re.S), \
+    "play.css carries the same override and has drifted from index.html's"
 assert not re.search(r'<section class="hero"[^>]+data-time-state="daytime"', html)
 assert not re.search(r'id="heroTimeIcon"[^>]+data-icon="daytime"', html)
 prepaint = re.search(r'<script id="heroTimePrepaint">(.*?)</script>', html, re.S)
