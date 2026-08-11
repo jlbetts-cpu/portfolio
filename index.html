@@ -480,7 +480,37 @@ body.heroEmpathy .jbStick .jbNav{--nav-mat:var(--ctl-ground);--nav-rim:var(--ctl
    Naming it --work-stage-pad and having BOTH stages read it makes the two agree
    by construction: the reel cannot drift again without the cards drifting with
    it. Desktop resolves to 0, which is what every panel already measured. */
-.cases{position:relative;z-index:61;margin-inline:auto;background:var(--c50);--work-stage-pad:0px}
+/* ── z-index 62, NOT 61, AND IT IS A LEGIBILITY FIX ─────────────────────────
+   Jayden: in night mode "some of the text isn't legible, like the tabs". The
+   tab ink was never the problem -- Featured computes rgb(244,245,247) on
+   rgb(17,19,24), 17.03:1, and every other tab bar on the site (apollo,
+   ucdavis, gradientlab) measures 17.03 / 8.08 and passes. What the CSSOM could
+   not see is that these three were being PAINTED OVER. Measured off the
+   screenshot at 1440 in Night: Featured painted rgb(62,63,65) on rgb(11,12,16)
+   -- 1.85:1 -- and the two unselected tabs 1.46:1 and 1.42:1. A read of colour
+   against computed ground reports all three as passing; only the pixels show it.
+   THE LAYER IS #heroTimeSpill, and it is not misbehaving -- it is trapped.
+   The spill is the night sky's fade-out below the Hero. It declares z-index:-1,
+   which is an unambiguous statement of intent: paint behind content. But it
+   lives in .wrap, and .wrap is z-index:62, so "behind .wrap's content" is still
+   in front of everything in a lower stacking context -- and .cases was 61. Its
+   box runs to y=1044 while .cases starts at 916, so 128px of near-opaque
+   #0b0c0f lay across exactly the tab row, at roughly 78% coverage.
+   RAISING .cases IS SAFE, AND IT WAS MEASURED BEFORE IT WAS CHANGED, because
+   the reason .wrap outranks the work section is the floating head: small heads
+   pass behind the big one, and the Hero is meant to overlap what follows.
+   Enumerated at 1440 in Night, the ONLY visible .wrap descendant whose box
+   reaches into .cases is #heroTimeSpill. Nothing else the Hero draws overlaps
+   this section, so there is no overlap to preserve.
+   62 rather than 63 on purpose. It ties .wrap and wins on document order, which
+   is the minimum that clears the spill -- and it keeps the mood layers above,
+   which is what they are for. #party (63), #discoWrap (64) and #loveScene (64)
+   are appended to document.body by party.js, not into .wrap, so they are
+   siblings in the root stacking context and still paint over the work section
+   the way disco and party have always spilled down the page. .grain (60) stays
+   below. Anything that needs to sit above the Hero AND below the moods now has
+   exactly one rung, and this is it. */
+.cases{position:relative;z-index:62;margin-inline:auto;background:var(--c50);--work-stage-pad:0px}
 .caseInset{--case-inset:var(--sp-40);max-width:var(--page-max);margin:0 auto;padding:0 var(--case-inset)}
 /* tab bar: Instrument Sans, active = ink + underline, others muted; stepped like the rest of the site */
 .csTabs{display:flex;flex-wrap:wrap;gap:24px;align-items:flex-end;justify-content:flex-start;

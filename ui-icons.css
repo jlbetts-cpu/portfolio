@@ -1,6 +1,0 @@
-/* Shared local Lucide contract. Control geometry belongs to each component. */
-.uiIcon{width:1em;height:1em;display:block;flex:none;overflow:visible;color:inherit;
-  fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;
-  stroke-linejoin:round;vector-effect:non-scaling-stroke}
-.uiIcon use{pointer-events:none}
-@media(forced-colors:active){.uiIcon{color:CanvasText}}

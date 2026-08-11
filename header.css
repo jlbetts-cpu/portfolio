@@ -1,4 +1,27 @@
-@import url("ui-icons.css");
+/* ── THE LUCIDE CONTRACT, FOLDED IN. THE @import IT REPLACES WAS A SECOND
+   ROUND TRIP. ────────────────────────────────────────────────────────────────
+   This was `@import url("ui-icons.css")`, and an @import at the top of a
+   stylesheet is the one thing a stylesheet cannot do cheaply: the browser
+   cannot know the file exists until it has fetched and begun parsing
+   header.css, so the two loads are SERIALISED rather than parallel. Nothing
+   else on this site links ui-icons.css -- header.css's @import was its only
+   consumer on all nine pages -- so the cost bought exactly five declarations.
+   IT IS A LEGIBILITY BUG, NOT A PERFORMANCE ONE, which is why it is being
+   fixed here rather than filed. `.uiIcon` is what makes a Lucide symbol a LINE
+   drawing: fill:none, stroke:currentColor, stroke-width:1.75. An SVG <symbol>
+   whose shapes carry no presentation attributes of their own -- and Lucide's
+   carry none -- renders with the SVG defaults until this rule lands, and the
+   SVG default is fill:black, stroke:none. So in the window between header.css
+   parsing and ui-icons.css arriving, every header glyph paints as a solid black
+   blob rather than an outline. Jayden: "sometimes the icons don't load in
+   properly in the header." This is one of the two mechanisms behind that; the
+   other is the sprite fetch, handled in header.js.
+   The rules below are ui-icons.css verbatim. That file is now unreferenced. */
+.uiIcon{width:1em;height:1em;display:block;flex:none;overflow:visible;color:inherit;
+  fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;
+  stroke-linejoin:round;vector-effect:non-scaling-stroke}
+.uiIcon use{pointer-events:none}
+@media(forced-colors:active){.uiIcon{color:CanvasText}}
 
 /* ===========================================================================
    THE SITE HEADER -- one component, every page.  HEADER V2, 2026-08-03.

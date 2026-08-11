@@ -23,6 +23,40 @@
 .ctl--primary:hover,.ctl--primary:focus-visible,.ctl--primary:active{
  background:var(--ctl-primary-ground-hover);color:var(--ctl-primary-ink);box-shadow:var(--ctl-rim-strong)
 }
+/* ── THE PRIMARY'S RING IS TWO-TONE NOW. THIS IS THE AUDIT'S 1.00:1 ─────────
+   2026-08-08-component-adoption-audit.md:181 measured --ctl-focus at 1.00:1
+   against .ctl--primary's own fill and noted it survives only on its 2px
+   outline-offset -- the gap lets the PAGE show through, and the ring is read
+   against that rather than against the control. .ctl--range and .ctl--swatch
+   were given the two-tone construction that fixes this (see :286-306); the
+   primary was named as the case that motivated it and never got it.
+   MEASURED ON BOTH SIDES OF THE THEME, at 1440, with real keyboard focus so
+   :focus-visible actually matches (a programmatic .focus() does not, and an
+   unfocused read returns currentColor, which is how this looked fine twice):
+     light  ring #111214 on the focused fill #686b73 -> 3.52:1, scraping past 3.0
+     night  ring #D9D7FF on the focused fill #A7ABB4 -> 1.66:1, FAILS 3.0
+   Night is the half-migrated half: --theme-focus keeps dark's lavender identity
+   (deliberate, and pinned at site-theme-contract.py:162) while the primary's
+   fill flipped to near-white with the ink ramp, and nobody re-measured the pair.
+   The lavender is not the problem and is not touched here.
+   THE FIX IS A SEPARATOR, NOT A NEW COLOUR, which is why it composes with every
+   theme without a second decision. --ctl-primary-ink is the control's own
+   inverted ink -- the colour its LABEL is already drawn in -- so a 2px ring of
+   it fills the offset gap between the fill and the outline. The stack reads
+   fill / primary-ink / focus / page, and every adjacent pair clears 3.0 in both
+   themes: separator vs fill 5.33 light and 8.50 night, ring vs separator 18.43
+   light and 14.08 night. The indicator no longer depends on what the page
+   ground happens to be, which is the whole failure mode .ctl--on-dark documents
+   at :58-65 for a primary that lands on a dark scrim.
+   THE OUTLINE STAYS. .ctl--range drops it and rebuilds the ring in box-shadow,
+   which is right for a thumb and wrong here: box-shadow is not painted in
+   forced-colors mode, and site-theme.css:420 repaints :focus-visible outlines
+   as CanvasText. Keeping the outline keeps that working; the separator is
+   purely additive and disappears with the rest of the shadows under forced
+   colors, leaving the high-contrast ring the OS wants. */
+.ctl--primary:focus-visible{
+ box-shadow:var(--ctl-rim-strong),0 0 0 var(--sp-2) var(--ctl-primary-ink)
+}
 .ctl--secondary,.ctl--icon{
  background:var(--ctl-ground);color:var(--ctl-ink);box-shadow:var(--ctl-rim)
 }
