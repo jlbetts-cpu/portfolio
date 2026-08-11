@@ -1848,9 +1848,17 @@ if(!HEADONLY){stage.style.opacity="0";requestAnimationFrame(function(){requestAn
    if(wantFull!==frame.classList.contains("isFull"))frame.classList.toggle("isFull",wantFull);
    if(wantFull){reel.style.setProperty("--reelMetaOp","0");return;}
    var fw=frame.offsetWidth||1200;var full=window.innerWidth/fw;
-   frame.style.setProperty("--rs",(MINS+(full-MINS)*e).toFixed(4));
+   var s=MINS+(full-MINS)*e;
+   frame.style.setProperty("--rs",s.toFixed(4));
    frame.style.setProperty("--rr","0deg");
-   frame.style.setProperty("--rad","4px");
+   /* THE FRAME IS SCALED, SO A FIXED RADIUS IS MULTIPLIED ON SCREEN. A raw 4px
+      was written here and then magnified by --rs. The corner is drawn in the
+      element's own coordinates and the transform stretches it afterwards, so
+      the radius grew while the video grew and never read as a rounded corner
+      at any size. Dividing the target by the scale holds the DRAWN radius at
+      20px -- the ladder's rung for images and cards -- through the whole
+      growth, instead of only at scale 1. */
+   frame.style.setProperty("--rad",(20/s).toFixed(2)+"px");
    var metaOp=p<=0.02?1:(p>=0.22?0:1-(p-0.02)/0.20);
    reel.style.setProperty("--reelMetaOp",metaOp.toFixed(2));
    frame.classList.toggle("big",p>0.45);
