@@ -68,7 +68,12 @@ assert parser.card_ids == ["pcHead", "pcExped", "pcTour", "pcGrad"]
 for fragment in (
     "Upload a photo of your face and cut it out on a new page. It comes back and joins the crowd.",
     "Split the heads into two teams and watch them play soccer. You pick the teams first.",
-    "A whole cup of matches, one at a time, with a bracket, goals and a winner.",
+    # 2026-08-11: the cup became a twelve-team league, so the card's sentence had to
+    # change with it -- "a bracket" and "a cup" were both false. The LABEL is still
+    # "Tournament", which is the word Jayden uses for this door and the word on the
+    # Play menu row; one command in two menus must read identically, and the
+    # description is where the truth about the format lives.
+    "Twelve heads, a league table, three matchdays. Every team plays; top of the table wins.",
     "Dial a planet of coloured light on a new page, and leave with the image and the code.",
     'href="headmaker.html?from=play"',
     'href="gradientlab.html?from=play"',

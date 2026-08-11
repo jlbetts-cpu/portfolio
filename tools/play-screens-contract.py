@@ -223,31 +223,40 @@ ARCHIVO = r"""
 """
 
 
-# Drive a whole cup, through the UI, the way a visitor does.
+# Drive a whole SEASON, through the UI, the way a visitor does.
 #
-# IT IS SLOW ON PURPOSE -- about fifty seconds -- and the obvious shortcut does
-# not work. Recording the first six winners straight through the bracket core
-# leaves T.cur pointing at fixture zero while the board has moved on, so the
-# next Kick off re-records a decided match and throws "match already final";
-# and propagate() re-derives every round after the one you touch, so seeding the
-# later rounds first is not safe either. paint() is internal and __hmTourWin is
-# the only thing that calls it, so the honest path is the only path.
+# 2026-08-11 -- the cup became a twelve-team league (play-tournament.js, FIELD and
+# SEASON), so this drives 18 fixtures rather than 7 and the shortcut it used to
+# refuse is now legal in principle: a league records a result against one fixture
+# and propagates nothing, so results could be seeded in any order. It still is not
+# taken. T.cur is set by cast(), and paint() is internal with __hmTourWin as its
+# only caller, so writing results behind the screen's back would leave T.cur
+# pointing at a fixture the board has moved past -- the same "fixture already
+# played" throw the bracket produced, for a different reason. The honest path is
+# still the only path.
 #
-# THE DELAYS ARE NOT PADDING. The celebration holds the screen for 5,600ms after
-# every fixture and 10,500ms after the final, before the next screen is painted.
-# Sampling early is one of the two things that make a working bracket look stuck
-# -- the other is a missing __hmSoccerEnd -- and both have cost this project time.
+# THE DELAYS ARE NOT PADDING, AND T.holdMs IS NOT A CHEAT. play-engine.js's win
+# path holds the celebration and calls finish() at 5,400ms; play-tournament.js
+# waits 5,600 before painting the next screen so it cannot draw over a live pitch.
+# Eighteen fixtures at 6.1s is nearly two minutes of a contract sleeping, so the
+# hold is read from T.holdMs (documented at its use site) and this driver shortens
+# it -- while still making BOTH calls the engine makes, __hmTourWin and then
+# __hmSoccerEnd. Skipping the second is one of the two documented traps that make
+# a working season look stuck: .tvScreen is display:none under body.hmSoccer, every
+# rect reads 0, and the champion screen appears never to paint.
 CHAMPION_DRIVE = r"""
 async () => {
   const sleep = ms => new Promise(r => setTimeout(r, ms));
-  for (let i = 0; i < 10; i++) {
+  const season = window.__hmTourSeason ? window.__hmTourSeason() : null;
+  if (!season) return {name: null, why: 'no __hmTourSeason'};
+  window.__hmTour.holdMs = 60;
+  for (let i = 0; i < season.fixtures + 2; i++) {
     if (document.querySelector('.tvChampNm')) break;
     const go = document.querySelector('.tvGo');
     if (!go) return {name: null, why: 'no Kick off at fixture ' + i};
     go.click();
-    await sleep(700);
+    await sleep(160);
     if (!window.__hmTourWin) return {name: null, why: 'no __hmTourWin'};
-    const isFinal = document.body.classList.contains('hmFinal');
     window.__hmTourWin(1, 2, 1);
     /* AND THEN THE PITCH HAS TO HAND THE SCREEN BACK. play-engine.js's win path
        calls __hmTourWin and then `setTimeout(finish, 5400)` -- finish IS
@@ -259,7 +268,7 @@ async () => {
        contract a false green -- the clipping assertions all passed on boxes of
        size zero. Drive the same two calls the engine drives. */
     try { if (window.__hmSoccerEnd) window.__hmSoccerEnd(); } catch (_) {}
-    await sleep(isFinal ? 11200 : 6100);
+    await sleep(320);
   }
 
   const wrap = document.querySelector('.tvChampWrap');
@@ -279,12 +288,13 @@ async () => {
     return {name: nm ? nm.textContent : null,
             why: 'the champion screen has no box -- body.className is "'
                  + document.body.className + '"'};
-  const rows = Array.from(document.querySelectorAll('.tvStandRow'));
+  const rows = Array.from(document.querySelectorAll('.tvStandRow:not(.tvKeyRow)'));
   // A row is hidden if it falls outside its own clipping grid OR off the screen.
   const hidden = rows.filter(r => { const q = r.getBoundingClientRect();
     return q.right > gb.right + 0.5 || q.bottom > gb.bottom + 0.5
         || q.right > innerWidth + 0.5 || q.bottom > innerHeight + 0.5; });
   return {name: nm ? nm.textContent : null,
+          season: season,
           headClipped: head.getBoundingClientRect().top < wb.top - 0.5,
           crownClipped: !!crown && crown.getBoundingClientRect().top < wb.top - 0.5,
           rows: rows.length, rowsHidden: hidden.length,
@@ -464,16 +474,89 @@ def run(base, browser, f, sabotage=None, strip_ctl=False):
                 "tournament %s: the round name is not truncated" % at,
                 json.dumps(strip))
 
-        # Eight teams, three rounds, zero byes -- and the labels derived from the
-        # field rather than hardcoded.
-        shape = pg.evaluate("""() => { const t = window.__hmTourStandings();
-          const heads = document.querySelectorAll('.tvRdH, .tvSheetBoard .tvRdH');
-          return {teams: t.length, rounds: new Set([...document.querySelectorAll('.tvRd')]
-            .map(e => e.querySelector('.tvRdH') && e.querySelector('.tvRdH').textContent)).size}; }""")
-        f.check(shape["teams"] == 8, "tournament %s: the field is eight" % at, json.dumps(shape))
-        if w > 760:
-            f.check(shape["rounds"] == 3, "tournament %s: three rounds, no ghost round" % at,
+        # ---- THE LEAGUE'S SHAPE, read off the running season rather than asserted
+        # against a constant that could have been copied. FIELD and SEASON are the
+        # only two numbers that decide the competition; every figure below is
+        # DERIVED from them, so this fails the moment something downstream grows a
+        # second, hardcoded copy -- which is exactly how the old `column-fill:auto`
+        # and the hardcoded four-row standings grid each hid half a table.
+        # ON A PHONE THE TABLE IS THE SECOND PANE, so switch to it before measuring
+        # it -- a `display:none` grid reports its UN-LAID-OUT gridTemplateRows (two
+        # tracks, from the stylesheet's fallback), which is a measurement of nothing
+        # that reads exactly like a real failure. Flipping the tab is also the only
+        # thing in this contract that exercises the pane switch at all.
+        pg.evaluate("() => { const b = [...document.querySelectorAll('.tvPane')];"
+                    "  if (b[1]) b[1].click(); }")
+        pg.wait_for_timeout(400)
+        shape = pg.evaluate("""() => {
+          const t = window.__hmTourStandings(), s = window.__hmTourSeason();
+          const rows = [...document.querySelectorAll('.tvStandGrid .tvStandRow:not(.tvKeyRow)')];
+          const grid = document.querySelector('.tvStandGrid');
+          const gs = grid ? getComputedStyle(grid) : null;
+          return {teams: t.length, season: s,
+                  tableRows: rows.length,
+                  gridShown: !!(gs && gs.display !== 'none'),
+                  declaredRows: grid ? +grid.style.getPropertyValue('--tvStandRows') : null,
+                  gridRows: gs ? gs.gridTemplateRows.split(' ').length : null,
+                  seedShown: /seed/i.test(document.querySelector('.tvScreen').textContent),
+                  round: (document.querySelector('.tvRound')||{}).textContent}; }""")
+        f.check(shape["season"]["teams"] == shape["teams"],
+                "league %s: the table lists every team in the field" % at, json.dumps(shape))
+        f.check(shape["season"]["fixtures"]
+                == shape["season"]["teams"] * shape["season"]["matchdays"] // 2,
+                "league %s: fixtures = teams x matchdays / 2, derived not hardcoded" % at,
+                json.dumps(shape))
+        # THE SEED IS GONE FROM THE SCREEN, and this is the assertion that says so.
+        # Jayden: "The seeds don't really make sense -- like who is 1 and 8, and what
+        # does that mean." The word came back on the match-up screen once already
+        # ("Seeds 3 and 7"), so it is checked rather than remembered.
+        f.check(not shape["seedShown"],
+                "league %s: the word 'seed' appears nowhere on the screen" % at,
+                json.dumps(shape))
+        f.check("Matchday" in (shape["round"] or ""),
+                "league %s: the round is a matchday, named from the schedule" % at,
+                json.dumps(shape))
+        # THE GRID'S ROW COUNT IS ceil(N/2), SET BY THE JS FROM THE FIELD. A number
+        # written in the stylesheet instead silently grows a third and fourth
+        # sub-column the day the field changes; that is not hypothetical, it is what
+        # happened when the field went twelve -> eight and again eight -> twelve.
+        if shape["tableRows"]:
+            want = -(-shape["teams"] // 2)
+            # BOTH HALVES, because either alone passes on a broken screen: the
+            # declaration proves the JS derived it from the field, and the laid-out
+            # track count proves the stylesheet's fallback did not win anyway.
+            f.check(shape["declaredRows"] == want,
+                    "league %s: --tvStandRows is set to %d from the field" % (at, want),
                     json.dumps(shape))
+            f.check(shape["gridShown"] and shape["gridRows"] == want,
+                    "league %s: the table lays out as %d rows in two sub-columns"
+                    % (at, want), json.dumps(shape))
+            f.check(shape["tableRows"] == shape["teams"],
+                    "league %s: every one of the %d teams has a row"
+                    % (at, shape["teams"]), json.dumps(shape))
+
+        # ---- NOTHING CROSSES THE GROUND LINE. .tvScreen is height-banded so that
+        # 58svh -> 100svh (62svh on a phone) belongs to the world and the heads. It
+        # is structural rather than a promise, but only for elements that FIT: a
+        # column whose content is taller than its band overflows downward and draws
+        # over the pitch, which is what twelve table rows did to the champion screen
+        # at 390 and what the pane switch did to Kick off at 320. Both were silent.
+        ground = pg.evaluate("""() => {
+          const s = document.querySelector('.tvScreen');
+          if (!s) return null;
+          const b = s.getBoundingClientRect();
+          const over = [...s.querySelectorAll('*')].filter(e => {
+            const q = e.getBoundingClientRect();
+            return q.height > 0.5 && q.bottom > b.bottom + 0.5; })
+            .map(e => e.className + '@' + e.getBoundingClientRect().bottom.toFixed(1));
+          return {bottom: +b.bottom.toFixed(1), over: over.slice(0, 6),
+                  docScroll: document.documentElement.scrollHeight > innerHeight + 1}; }""")
+        f.check(ground and not ground["over"],
+                "league %s: nothing on the screen crosses the ground line" % at,
+                json.dumps(ground))
+        f.check(ground and not ground["docScroll"],
+                "league %s: the page does not scroll while a season is up" % at,
+                json.dumps(ground))
 
         # ---- THE CASCADE, which is where this pass nearly shipped a regression.
         # controls.css is linked after play.html's <style> block and after
@@ -499,12 +582,15 @@ def run(base, browser, f, sabotage=None, strip_ctl=False):
                 "cascade %s: the chip keeps its --c100 ground" % at, json.dumps(cascade))
         f.check(cascade["goPad"] == "32px",
                 "cascade %s: Start match keeps its --sp-32 padding" % at, json.dumps(cascade))
-        # The draw button exists for the phone only: above 760 the rail already
-        # shows all three rounds, so a button opening a copy of what is on screen
-        # is one of the unnecessary elements this screen was rebuilt to remove.
-        want = "none" if w > 760 else "flex"
-        f.check(cascade["drawDisplay"] == want,
-                "cascade %s: the draw chip is %s here" % (at, "hidden" if w > 760 else "shown"),
+        # THE FIXTURES CHIP IS SHOWN AT EVERY WIDTH, and the rule that used to hide
+        # it above 760px is gone. Its argument was sound while the rail was the draw
+        # -- the chip opened a copy of what was already on screen. The rail is the
+        # TABLE now, so the fixture list lives on no screen at any width and this
+        # chip is its only door. `.tvChip.tvChipDraw` stays a two-class selector
+        # because controls.css is linked after tournament.css and a single-class
+        # rule loses to `.ctl{display:inline-flex}` on source order alone.
+        f.check(cascade["drawDisplay"] not in (None, "none"),
+                "cascade %s: the Fixtures chip is reachable here" % at,
                 json.dumps(cascade))
 
         # ---- the Archivo exception ----
@@ -522,7 +608,7 @@ def run(base, browser, f, sabotage=None, strip_ctl=False):
                 json.dumps(a["faces"]))
 
         # ---- THE CHAMPION SCREEN, at the size that broke it.
-        # It is the payoff of seven fixtures and it arrived clipped: at 320x568
+        # It is the payoff of eighteen fixtures and it arrived clipped: at 320x568
         # the head was a sliver of chin, the crown -- which sits ABOVE the head's
         # own box, at top:-8% -- was gone entirely, and `column-fill:auto` in a
         # 111px band pushed ranks 5 to 8 into a third and fourth column and
@@ -542,8 +628,9 @@ def run(base, browser, f, sabotage=None, strip_ctl=False):
                 f.check(champ["rowsHidden"] == 0,
                         "champion %s: every team is in the final table (%d rows)"
                         % (at, champ["rows"]), json.dumps(champ))
-                f.check(champ["rows"] == 8,
-                        "champion %s: eight teams finish the cup" % at, json.dumps(champ))
+                f.check(champ["rows"] == champ["season"]["teams"],
+                        "champion %s: all %d teams finish the season"
+                        % (at, champ["season"]["teams"]), json.dumps(champ))
 
         pg.evaluate("() => window.__hmTourStop()")
         pg.wait_for_timeout(500)

@@ -297,6 +297,10 @@ body.hmFinal .sBall{content:url(images/soccerball-gold.webp)}
   align-items:stretch;
 }
 .tvFixture,.tvRail{pointer-events:auto;min-width:0;min-height:0}
+/* THE PANE SWITCH IS DESKTOP-INVISIBLE. Above 760px both columns are on screen, so
+   a control that chooses between them is a control for nothing. It is not merely
+   hidden -- it is out of the grid entirely, so it cannot take a track. */
+.tvPanes{display:none}
 
 /* Arrivals. One curve, from the tokens, on the one axis, over 8px. This is the
    whole ceremony now -- it replaces a 1.5s wipe-and-flash sequence, and it is
@@ -396,27 +400,50 @@ body.hmFinal .sBall{content:url(images/soccerball-gold.webp)}
 .tvGo{justify-self:start}
 
 /* ---------------------------------------------------------------------------
-   THE RAIL -- the draw
-   "Who am I playing, and what happens next." A round is a heading and a list. A
-   fixture is two rows. A row is the team's colour, the captain's face, the name,
-   and the score once there is one. Nothing else.
-
-   `column-fill:auto` on a fixed-height element is the whole mechanism: it fills
-   the first sub-column to the bottom and wraps to the second, which is exactly
-   "rounds flowing top-to-bottom then across" and needs no measurement. At eight
-   teams that puts the four quarter-finals on the left and the two semis plus the
-   final on the right, with no scroller at 1280 x 800.
+   THE RAIL -- the table
+   It was the draw, because a bracket's live object is who plays whom next. A
+   league's live object is the table, so that is what stands here and it updates
+   the instant a result lands. The fixture list moved to the sheet behind the
+   Fixtures chip -- see the sheet block near the foot of this file.
    --------------------------------------------------------------------------- */
 .tvRail{display:flex;flex-direction:column;min-height:0}
 .tvBoardHd{
-  flex:0 0 auto;padding:0 0 var(--sp-12);
+  flex:0 0 auto;padding:0 0 var(--sp-8);
+  display:flex;align-items:baseline;gap:var(--sp-10);flex-wrap:wrap;
   font-weight:600;font-size:var(--fs-caption);letter-spacing:var(--tr-caps);
   text-transform:uppercase;color:var(--c500);
 }
-.tvDraw{
-  flex:1 1 auto;min-height:0;overflow:hidden;
-  column-count:2;column-gap:var(--sp-32);column-fill:auto;
+/* THE TIE-BREAK, PRINTED. The whole reason the format changed is that a number on
+   this screen should be explainable, so the rule that produced the order is beside
+   the order. Sentence case and --fs-micro: it is a footnote riding on the heading's
+   baseline, not a second heading. */
+.tvBoardRule{
+  font-weight:400;font-size:var(--fs-micro);letter-spacing:var(--tr-body);
+  text-transform:none;color:var(--theme-muted,var(--c500));
 }
+/* THE COLUMN KEY, and the way it stays aligned is the point. It is not a hand-placed
+   caption: it is the SAME two-column grid as the table with the SAME .tvStandRow inside
+   it, whose leading cells are empty spacers. So P, GD and PTS sit over the columns they
+   name by construction, at every width, and can never drift the way a second set of
+   hand-tuned widths eventually does. Two key rows because there are two sub-columns.
+   It is a caption rather than a <th> row for one measured reason: a header row costs one
+   of the six rows this band has to fit at 320x568, and three letters are ambiguous only
+   the first time you read them. */
+.tvKeyGrid{
+  flex:0 0 auto;display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));column-gap:var(--sp-24);
+}
+.tvStandRow.tvKeyRow{
+  border-bottom:0;min-height:0;padding-bottom:var(--sp-4);
+  font-size:var(--fs-micro);letter-spacing:var(--tr-caps);
+  color:var(--theme-muted,var(--c500));
+}
+.tvKeyRow .tvStandRk,.tvKeyRow .tvFxC,.tvKeyRow .tvFxF{visibility:hidden}
+/* PTS is the loud column in the BODY of the table because it is the answer; in the KEY
+   it is one of three labels and must not shout over the other two. Same weight, same
+   ink, all three. */
+.tvKeyRow .tvStandPts{font-weight:400;color:inherit}
+.tvKeyRow .tvStandP,.tvKeyRow .tvStandGd{color:inherit}
 .tvRd{break-inside:avoid;margin:0 0 var(--sp-16)}
 .tvRdH{
   margin:0 0 var(--sp-6);padding:0 0 var(--sp-6);
@@ -557,7 +584,7 @@ body.hmFinal .sBall{content:url(images/soccerball-gold.webp)}
   font-weight:600;font-size:var(--fs-h4);line-height:var(--lh-auto);
   letter-spacing:var(--tr-sub);color:var(--c950);
 }
-/* THE FINAL TABLE MUST SHOW EVERY TEAM, and until 2026-08-10 it did not.
+/* THE TABLE MUST SHOW EVERY TEAM, and until 2026-08-10 it did not.
    `column-count:2` with `column-fill:auto` fills column one to the CONTAINER'S
    height and wraps; on a 320x568 phone that container is ~111px, so two rows
    filled column one, two filled column two, and ranks 5 to 8 flowed into
@@ -573,29 +600,70 @@ body.hmFinal .sBall{content:url(images/soccerball-gold.webp)}
    the right -- a ranking reads down, not across.
 
    THE ROW COUNT IS NOT WRITTEN HERE. `--tvStandRows` is set by
-   play-tournament.js from the length of the standings it just built, for the
-   same reason the round names derive from the field: four is what eight teams
-   happen to need today, and a hardcoded four would quietly grow a third and
+   play-tournament.js from the length of the table it just built, for the same
+   reason the matchday labels derive from the schedule: six is what twelve teams
+   happen to need today, and a hardcoded six would quietly grow a third and
    fourth column the moment the field changed -- which is the failure this rule
-   is replacing. The 4 in the fallback is a floor for the frame before the JS
-   has spoken, not a decision. */
+   is replacing, and which it already caused once when the field went from twelve
+   to eight. The 6 in the fallback is a floor for the frame before the JS has
+   spoken, not a decision.
+
+   THE GAP IS --sp-24, NOT --sp-32, and that is a measured change rather than a
+   preference. The row grew three numeric columns when the cup became a league.
+   At 1440 the rail is ~557px, so each sub-column is (557 - gap)/2: at 32 that is
+   262px and the name track came out 109px -- under eight characters of a
+   fourteen-character name before the ellipsis. At 24 it is 266px and 119px. The
+   eight pixels went to the only cell on the row that can use them. */
 .tvStandGrid{
   flex:1 1 auto;min-height:0;
   display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
-  grid-template-rows:repeat(var(--tvStandRows, 4), auto);grid-auto-flow:column;
-  column-gap:var(--sp-32);align-content:start;
+  grid-template-rows:repeat(var(--tvStandRows, 6), auto);grid-auto-flow:column;
+  column-gap:var(--sp-24);align-content:start;
 }
 .tvStandRow{
-  break-inside:avoid;display:flex;align-items:center;gap:var(--sp-8);
+  break-inside:avoid;display:flex;align-items:center;gap:var(--sp-6);
   min-height:calc(var(--tvRow) + var(--sp-10));
   border-bottom:var(--hair-w) solid var(--c100);
 }
-.tvStandRk{flex:0 0 1.4em;font-size:var(--fs-caption);color:var(--c500);
-  font-variant-numeric:tabular-nums lining-nums}
+.tvStandRk{flex:0 0 1.6em;text-align:right;font-size:var(--fs-caption);color:var(--c500)}
 .tvStandNm{flex:1 1 auto;min-width:0;font-weight:600;font-size:var(--fs-caption);
-  color:var(--c950);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.tvStandOut{flex:0 0 auto;font-size:var(--fs-micro);letter-spacing:var(--tr-caps);
-  text-transform:uppercase;color:var(--c500)}
+  color:var(--c950);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  margin-inline-end:var(--sp-4)}
+/* THE THREE NUMERIC COLUMNS. Right-aligned and fixed-width in em, so a column of
+   twelve numbers is a column rather than twelve numbers. They carry .bcNum from the
+   markup -- Archivo, tabular, lining -- which is the same numeral treatment the
+   fixture scores take and the reason 9 and 12 line up on their units digit.
+   Pts is the loud one: it is the answer. P and GD are the working.
+
+   ---- THEY TAKE --theme-ink / --theme-muted, NOT --c950 / --c500, AND THE FIRST
+   DRAFT DID NOT, WHICH IS WHY THIS NOTE IS LONG.
+
+   site-theme.css themes this page by ENUMERATING class names -- `:is(.pLede, .tvCup,
+   .tvName, .tvStandNm, ...)` gets --theme-ink after dark, `:is(.tvRound, .tvBoardHd,
+   .tvStandRk, ...)` gets --theme-muted. That file is not this lane's, and more to the
+   point a list cannot know about a class invented after it was written. So a new cell
+   coloured `var(--c950)` keeps the light ramp's literal #121212 in every theme.
+
+   Measured on the night theme: the whole Pts column, and the PTS key above it, computed
+   rgb(18,18,18) on a rgb(11,12,15) page. The single most important number in the league
+   was black on black -- present, aligned, and unreadable -- while the name beside it,
+   same declaration, went white because .tvStandNm is on the list.
+
+   Naming the theme tokens directly is the fix that does not depend on being added to
+   somebody else's list, and it is what the enumeration resolves to anyway, so the row is
+   one system rather than two. The ramp literals stay as var() fallbacks for any host that
+   ships tournament.css without the theme layer. Night contrast, measured: #F4F5F7 on
+   #0B0C0F and #A7ABB4 on #0B0C0F.
+
+   TWO LEVELS OF INK, NOT FOUR. The first draft had P at --c400 and GD at --c500, half a
+   step apart and both nearly invisible after dark. The honest hierarchy is Pts (the
+   answer) against everything else (the working), which is also exactly how the existing
+   enumeration already splits .tvStandNm from .tvStandRk. ---- */
+.tvStandP,.tvStandGd,.tvStandPts{flex:0 0 auto;text-align:right}
+.tvStandP{min-width:1.1em;font-size:var(--fs-micro);color:var(--theme-muted,var(--c500))}
+.tvStandGd{min-width:2.1em;font-size:var(--fs-micro);color:var(--theme-muted,var(--c500))}
+.tvStandPts{min-width:1.7em;font-size:var(--fs-caption);font-weight:600;
+  color:var(--theme-ink,var(--c950))}
 
 /* ---------------------------------------------------------------------------
    THE DRAW SHEET -- the phone's copy of the rail
@@ -607,13 +675,14 @@ body.hmFinal .sBall{content:url(images/soccerball-gold.webp)}
    free, and two large permanently-visible surfaces are exactly what the blur
    budget forbids blurring.
    --------------------------------------------------------------------------- */
-/* `.tvChip.tvChipDraw`, not `.tvChipDraw`. controls.css is linked AFTER this
-   file, so a bare single-class rule here loses to `.ctl{display:inline-flex}` on
-   source order alone -- which is exactly what happened: the phone's draw button
-   appeared at 1440, next to the rail that already shows all three rounds, i.e.
-   the "unnecessary elements" this screen was rebuilt to remove. Two classes is
-   (0,2,0) and settles it without an !important. */
-.tvChip.tvChipDraw{display:none}
+/* THE FIXTURES CHIP IS VISIBLE AT EVERY WIDTH NOW, and the rule that used to hide
+   it above 760px is deleted rather than tightened. Its argument was sound and is
+   no longer true: it hid a button that opened a copy of the draw the rail was
+   already showing. The rail is the TABLE, so the fixture list is on no screen at
+   any width and this chip is its only door. (The `.tvChip.tvChipDraw` two-class
+   form is kept below in the phone block for the same cascade reason it was needed
+   here: controls.css is linked after this file, so a single-class rule loses to
+   `.ctl{display:inline-flex}` on source order alone.) */
 /* ENTER AND EXIT ARE NOT THE SAME LENGTH, on the scrim and on the sheet below.
    The declaration on the BASE rule is the one that runs on the way OUT -- that
    is the half a symmetrical `transition:` gets wrong, and both of these were
@@ -650,9 +719,15 @@ body.tvBoardOpen .tvSheetPanel{opacity:1;pointer-events:auto;transform:translate
   margin-bottom:var(--sp-16)}
 .tvSheetTitle{margin:0;font-weight:600;font-size:var(--fs-h5);line-height:var(--lh-auto);
   letter-spacing:var(--tr-sub);color:var(--c950)}
-/* One column in the sheet: it has the height to run the rounds straight down,
-   and a two-up grid inside a dialog is a second layout to keep in step. */
-.tvSheetBoard{column-count:1}
+/* TWO COLUMNS ABOVE 560px, ONE BELOW. It was one column always, which was right
+   when the sheet held seven fixtures and existed only for the phone. A season is
+   eighteen -- thirty-six rows and three headings, ~800px of content -- and this
+   sheet is now the only place they live at any width. Two columns halves the run
+   and lands a full season inside the 84svh cap on a laptop; one column below 560,
+   where a 130px sub-column cannot carry a name. Scrolling is still sanctioned
+   here, and only here, because it is the only thing on screen when it is open. */
+.tvSheetBoard{column-count:2;column-gap:var(--sp-24)}
+@media(max-width:560px){ .tvSheetBoard{column-count:1} }
 @media(prefers-reduced-motion:reduce){
   .tvSheetScrim,.tvSheetPanel{transition:none}
 }
@@ -687,16 +762,69 @@ body.tvBoardOpen .tvSheetPanel{opacity:1;pointer-events:auto;transform:translate
   .tvStrip,.tvBody{padding-inline:var(--sp-24)}
   .tvBody{
     grid-template-columns:minmax(0,1fr);
-    gap:var(--sp-12);padding-block:var(--sp-4) var(--sp-8);
+    grid-template-rows:auto minmax(0,1fr);
+    gap:var(--sp-8);padding-block:var(--sp-4) var(--sp-8);
   }
+  /* ---- ONE PANE AT A TIME, WHICH IS THE REDUCTION THIS SCREEN ALWAYS USES.
+     The rail used to be `display:none` here, full stop. That was defensible while
+     the rail was a draw you could re-open in a sheet; it stopped being defensible
+     the day the rail became the league table, because a phone that never shows the
+     table has not been given the feature at all.
+
+     Stacking the two is not the alternative -- it re-creates the scroll that this
+     whole screen exists to remove. Measured at 320x568, band B is 220px: a
+     match-up column is ~156px and twelve rows in two sub-columns are ~114px, so
+     together they are 270px in 220. They do not fit and no amount of tightening
+     makes them.
+
+     So the reduction is in time rather than in content, which is the Gradient
+     Maker's own answer to thirty controls and no room: show one group, let the
+     visitor pick. Twelve rows alone in 220px is six rows of ~34px per sub-column,
+     which is comfortable, and the match-up alone gets the whole band. ---- */
+  .tvPanes{
+    display:flex;grid-row:1;justify-self:start;align-items:center;gap:var(--sp-2);
+    padding:var(--sp-2);border-radius:var(--r-md);
+  }
+  .tvPane{flex:0 0 auto}
+  .tvFixture,.tvRail{grid-row:2}
+  .tvBody:not(.tvPaneTable) .tvRail{display:none}
+  .tvBody.tvPaneTable .tvFixture{display:none}
+  /* ---- THE ENDING has no pane switch: the champion and the finished table are one
+     statement, so they are shown together and the tabs are gone with the choice.
+
+     THE SPLIT MOVED, AND TWELVE ROWS ARE WHY. This was 1 : 1.15, measured when the
+     table was eight teams in four sub-rows. Twelve teams is SIX sub-rows -- 50% more
+     table -- and at 390x844 the rows drew 31px past the bottom of their own grid and
+     out into the ground band, which is the one line this screen may not cross. It was
+     silent, exactly as the eight-team version of this bug was: nothing overflowed and
+     nothing scrolled, the screen simply answered a different question.
+
+     Measured at 390x844: band B is 384.6px, so the six rows need 6 x 30.7 = 184px.
+     1 : 1.2 gives the rail 205 and the champion 171. At 320x568 (where the rows are
+     floored at --tvRow, 19px) they need 114 of the 212 available and get 115.6.
+     The heading and the key pay for the difference below. ---- */
   .tvBody.tvDone{grid-template-columns:minmax(0,1fr)}
-  .tvRail{display:none}
-  /* The standings ARE the ending, so they stay -- the champion takes the top
-     half of band B and the table the bottom. */
-  .tvBody.tvDone{grid-template-rows:minmax(0,1fr) minmax(0,1.15fr)}
-  .tvBody.tvDone .tvRail{display:flex}
-  .tvStandGrid{column-gap:var(--sp-16)}
-  .tvStandOut{display:none}
+  .tvBody.tvDone{grid-template-rows:minmax(0,1fr) minmax(0,1.2fr)}
+  .tvBody.tvDone .tvFixture{grid-row:1}
+  .tvBody.tvDone .tvRail{grid-row:2;display:flex}
+  /* "FINAL TABLE" and the P/GD/PTS key are the two captions on this screen that are
+     captions for something already said: "Moe wins the league" is printed in --fs-h4
+     directly above them, and the columns under a crowned champion are self-evidently
+     the finishing table. Forty pixels, bought by removing labels rather than by
+     cropping a face or adding a scrollport. (Desktop keeps both -- it has the room,
+     and above 760 the table is a live mid-season object where the key earns itself.) */
+  .tvBody.tvDone .tvBoardHd,
+  .tvBody.tvDone .tvKeyGrid{display:none}
+  /* The key's grid tracks the table's at every breakpoint, or the letters stop
+     sitting over the columns they name. Both are written here, together, so the
+     pair cannot be changed one at a time. */
+  .tvStandGrid,.tvKeyGrid{column-gap:var(--sp-12)}
+  /* The face and the played column are the two cells a 130px sub-column cannot
+     afford, and they are the two it misses least: the colour stripe already says
+     who, and P only ever differs by one inside a matchday. GD stays, because it is
+     the tie-break and dropping it would leave an order with no working shown. */
+  .tvStandRow .tvFxF{display:none}
+  .tvStandP{display:none}
   .tvFixture{gap:var(--sp-16) var(--sp-12)}
   .tvName{font-size:var(--fs-h3)}
   .tvTape{font-size:var(--fs-caption)}
@@ -767,19 +895,54 @@ body.tvBoardOpen .tvSheetPanel{opacity:1;pointer-events:auto;transform:translate
    of a layout that wanted one, and the head came out 21x25. The height query
    alone was not the condition -- the condition is the stacked layout. */
 @media(max-height:640px) and (max-width:760px){
-  .tvBody.tvDone{grid-template-rows:minmax(0,1.3fr) minmax(0,1fr)}
-  .tvBody.tvDone .tvBoardHd{display:none}
+  /* 2026-08-11: this used to read 1.3 : 1, giving the picture the larger share, and
+     that was correct for a table of eight. Twelve teams need six sub-rows, six
+     sub-rows need 114px, and at 320x568 band B has 220.2 of which padding and the
+     stack gap take 12. Every rung below is that arithmetic, in the order the
+     information deserves -- the intervals give, then the split, then the picture.
+     It is still a WHOLE crowned head, which is the property this block exists to
+     defend; it is simply a smaller one, and that is what a field of twelve costs on
+     a 568px phone. */
+  /* THE BAND'S OWN AIR GOES FIRST, on both states, and the match-up needed it as
+     badly as the ending did. The pane switch is a real 44px control and it takes 48
+     of the 220px band; measured at 320x568 with it in place, Kick off finished 2.1px
+     BELOW the ground line -- the one line nothing on this screen may cross. Six
+     pixels of padding and four of stack gap is the whole correction, and it is the
+     right place to find them: air between two blocks is the cheapest thing on a
+     screen whose only real problem is height. */
+  .tvBody{padding-block:var(--sp-2) var(--sp-4);gap:var(--sp-4)}
+  .tvBody.tvDone{grid-template-rows:minmax(0,1fr) minmax(0,1.3fr)}
   .tvStandRow{min-height:var(--tvRow)}
-  .tvChampNm{margin-top:var(--sp-8)}
+  /* THE CHAMPION'S OWN FLOOR, and it is the last thing the twelve rows cost. The
+     clamp's low rung was 76px; in an 88px column, 76 plus its 16% crown reserve plus
+     a name plus the stack gap does not fit -- and a clamp whose floor is larger than
+     the space it is clamped into is a clamp that overflows rather than one that
+     shrinks. The head lands around 38px wide with the gold whole above it, against
+     the 52px the eight-team version reached in a 113px column. */
+  :root{--tvChamp:clamp(48px, 11.5svh, 120px)}
+  /* The two intervals inside the champion column give before the picture does. */
+  .tvFixture.tvFixtureDone{gap:var(--sp-8)}
+  .tvChampNm{margin-top:var(--sp-4)}
+  /* AND THE MATCH-UP'S ROW GAP IS THE LAST 12px. Measured at 320x568 with the pane
+     switch in place: the column's four rows are 40 + 16 + 40 + 44 = 140px and it has
+     162.2 to live in, so at the --sp-10 rung the three gaps made 170 and Kick off
+     finished below the ground line. --sp-6 makes them 158, four clear. The gap gives
+     rather than the face, because a 36px head is a thumbnail and the two captains are
+     what this column is for -- the same order every other rung on this screen uses. */
+  .tvFixture{gap:var(--sp-6) var(--sp-12)}
 }
 
-/* Under 560px the strip cannot carry the cup's name AND the round AND two
-   controls: measured at 390, "UC Davis Cup · QUARTER-FINAL" plus both chips is
-   ~470px of content in 358px of strip. The round is the information and the cup
-   name is the flavour, so the flavour goes -- the cup still names itself on the
-   champion screen and in the draw sheet's title. */
+/* Under 560px the strip cannot carry the league's name AND the matchday AND two
+   controls: measured at 390, "UC Davis League · MATCHDAY 2 OF 3" plus both chips
+   is more content than the 358px strip has. The matchday is the information and
+   the league name is the flavour, so the flavour goes -- the league still names
+   itself on the champion screen and in the fixtures sheet's title. */
 @media(max-width:560px){
   .tvCup,.tvSep{display:none}
+  /* The printed tie-break leaves at the width where the heading and it cannot
+     share a line. Nothing is lost: the GD column beside Pts is the same fact, in
+     the place it is actually used. */
+  .tvBoardRule{display:none}
   /* The `padding:0 --sp-10` that used to sit here is gone. It shaved 4px off
      each chip by overriding --ctl-pad-sm, which is the library's own compact
      rung -- a private 10 next to a shared 12, saving 8px in total, on a strip
