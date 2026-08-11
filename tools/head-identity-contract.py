@@ -62,10 +62,14 @@ PORT = 4917
 # The number every file must agree on. Read from the source rather than hardcoded, so
 # raising the roster does not mean editing this file too -- but every copy must match.
 CAP_DECL = re.compile(r"window\.__HM_MAX_HEADS\s*=\s*window\.__HM_MAX_HEADS\s*\|\|\s*(\d+)")
-CAP_FILES = ["play-games.js", "play-engine.js", "headmaker.html"]
-# index.html carries the same two enforcement sites but belongs to another lane; it is
-# reported rather than asserted until the handover patch lands.
-CAP_ADVISORY = ["index.html"]
+# index.html JOINED THE ENFORCED SET once its own read path was fixed. It was
+# advisory only because it belonged to another lane mid-session; it kept the
+# literal 8 and the capped write-back, so loading the home page -- which only
+# wants to draw some ambient heads -- deleted the ninth. It now matches the
+# others, and being merely "noted" is what let it stay broken while every other
+# file was green.
+CAP_FILES = ["play-games.js", "play-engine.js", "headmaker.html", "index.html"]
+CAP_ADVISORY = []   # nothing is merely advised any more; see CAP_FILES
 
 DEDUPE_KEY = ('var k2=d.cut.length+"|"+JSON.stringify(d.marks||"m")'
               '+JSON.stringify((d.eyes||[]).map(function(e){return[e.x,e.y,e.w,e.h];}));')
@@ -162,10 +166,19 @@ class QuietHandler(SimpleHTTPRequestHandler):
 
 # ── the historical bugs, re-injected one at a time ───────────────────────────
 SELF_TEST_INJECTIONS = {
-    "restart-keeps-the-last-face": (
+    # THIS INJECTION MOVED, because the one it replaced could not fail.
+    # It used to break only the restart button's newSubject() call. But a new
+    # PHOTO also calls newSubject (headmaker.html:904, "a new photo is a new
+    # face"), and this contract builds its second head by uploading one -- so
+    # the upload reset the subject no matter what restart did, and the injected
+    # bug never reached the assertion. It read as "caught" once, from an
+    # assertion of mine that was firing on the real tree too; both were noise.
+    # The guard that actually protects the shipped flow is the one on the photo
+    # load, so that is the one worth proving can fail.
+    "new-photo-keeps-the-last-face": (
         "headmaker.html",
-        'document.getElementById("restart").addEventListener("click",function(){newSubject();',
-        'document.getElementById("restart").addEventListener("click",function(){restoredEyes=null;'),
+        'var g=newSubject();   /* a new photo is a new face',
+        'var g=subjGen;   /* a new photo is a new face'),
     "dedupe-key-without-the-picture": (
         "headmaker.html",
         'var k2=d.cut.length+"|"+JSON.stringify(d.marks||"m")',
@@ -221,6 +234,32 @@ def run(inject=None, verbose=False):
             # headmaker breaks the line differently; match on the distinguishing part
             if 'k2=d.cut.length+"|"' not in src:
                 fails.append("%s does not use the shared dedupe key (cut length + geometry)" % f)
+    # THE GEOMETRY GUARDS ARE ASSERTED STATICALLY, BECAUSE THE BEHAVIOUR CANNOT BE
+    # PROVOKED FROM HERE. The carry-over bug is that a new subject inherits the last
+    # one's pts and marks, and buildLive() then cuts brow and eye-cover patches from
+    # another person's coordinates -- what Jayden sees as the previous person's skin
+    # on the new face. Two separate injections were tried, breaking newSubject() at
+    # the restart button and at the photo load, and NEITHER reached the assertion:
+    # every path this contract can drive resets the subject by some other route, and
+    # guessFace does not reliably decline even on a featureless fixture, so the marks
+    # get overwritten anyway. Rather than leave an injection that cannot fail -- the
+    # exact defect this file was written to stamp out -- the guards are named here.
+    # A textual check is weaker than a behavioural one, and it is far stronger than a
+    # green tick that proves nothing.
+    maker = (ROOT / "headmaker.html").read_text()
+    for what, needle in (
+        ("a new photo must start a new subject",
+         "var g=newSubject();   /* a new photo is a new face"),
+        ("Start over must start a new subject",
+         'document.getElementById("restart").addEventListener("click",function(){newSubject();'),
+        ("a restored head is a subject too",
+         "var g=newSubject();   // a restored head is a subject too"),
+    ):
+        if needle not in maker:
+            fails.append("headmaker.html: %s -- newSubject() is gone from that path, so "
+                         "pts and marks survive into the next person and their patches "
+                         "are cut from the last face's coordinates" % what)
+
     if len(set(caps.values())) > 1:
         fails.append("the roster cap disagrees across files: %s" % caps)
     cap = max(caps.values()) if caps else 0

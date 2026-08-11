@@ -279,7 +279,15 @@ body.hmFinal .sBall{content:url(images/soccerball-gold.webp)}
    --------------------------------------------------------------------------- */
 .tvPane{
   flex:1 1 auto;min-height:0;
-  display:flex;flex-direction:column;justify-content:center;gap:var(--sp-10);
+  /* `safe` IS LOAD-BEARING, NOT DECORATION. A centred flex column that overflows
+     spills in BOTH directions at once -- half above the box and half below -- so
+     the Final, which is the only pane carrying a poster AND a gold eyebrow AND
+     two tape lines, pushed FINAL up through the tab row's underline and pushed
+     the head-to-head line down behind the foot, from one cause. `safe` falls
+     back to flex-start the moment the content stops fitting, so an overflow can
+     only ever go one way and never collides with the chrome above it. It changes
+     nothing while the content fits, which is every other round. */
+  display:flex;flex-direction:column;justify-content:safe center;gap:var(--sp-10);
 }
 
 /* THE EYEBROW. The round's name, once, at the top of the pane -- the Lab's
@@ -669,6 +677,13 @@ body.hmFinal .tvPanel{
 @media(max-height:760px){
   .tvPanel{padding:var(--sp-12);gap:var(--sp-8)}
   .tvPane{gap:var(--sp-8)}
+  /* THE BUDGET ABOVE COUNTS A NORMAL ROUND -- two --tvFace rows and a `v.` -- and
+     the Final is not one. It alone adds a poster (up to 104px) and a gold eyebrow
+     on top of that, so it was the only pane that overflowed, and it did so where
+     nothing else did. The picture gives up its height before the two captains or
+     the head-to-head line do, which is the order this file already uses: air
+     first, pictures last, information never. It is hidden outright below 640. */
+  .tvPoster{height:clamp(44px, 7svh, 72px)}
 }
 /* ---- 640 AND UNDER, WHERE THE ARITHMETIC ACTUALLY RUNS OUT, and the first build
    of this file overflowed here by a measured 9px: at 320x568 the band is 264, the
