@@ -1096,30 +1096,53 @@
  .heroHeadTransform{opacity:1}
 }
 /* ── THE DOT YOU SEE MUST BE THE DOT YOU CAN CLICK ───────────────────────────
-   controls.css draws each handle's visible square at --h-dx/--h-dy, which
-   carries it back out to the head's TRUE corner while the 44px hit area stays
-   clamped inside the selection box. That is right whenever the corner is on
-   stage. At rest it is not: the authored composition hangs ~150px below the
-   Hero's lower edge, so the two bottom corners were being drawn about 30px
-   BELOW the clickable area -- elementFromPoint returns NULL there, at 1440 and
-   at 390 alike. The bottom-left and bottom-right handles were not
-   intermittently hard to hit, they were permanently dead, which is what
-   "sometimes it doesn't let me resize or rotate" actually was.
-   The offset is clamped to half the hit target minus half the square, so the
-   visible dot can never leave its own 44px box. When the true corner is off
-   stage the dot rides the clamped edge, which is what a design tool does when
-   the artboard crops the selection. An ID because controls.css links after
-   this file and would otherwise win at equal specificity. */
-#heroHeadSelection .heroHeadHandle::before,
-#heroHeadSelection .heroHeadRotate::before{
- left:calc(50% + clamp(
-   calc((var(--selection-hit-size) - var(--selection-handle-size)) / -2),
-   var(--h-dx,0px),
-   calc((var(--selection-hit-size) - var(--selection-handle-size)) / 2)));
- top:calc(50% + clamp(
-   calc((var(--selection-hit-size) - var(--selection-handle-size)) / -2),
-   var(--h-dy,0px),
-   calc((var(--selection-hit-size) - var(--selection-handle-size)) / 2)))
+   There was a clamp here holding each visible square inside its own 44px
+   target, because the target was being pushed away from its corner and a
+   square that follows it out of its own hit area is a dead handle -- two of
+   them were, permanently, which is what "sometimes it doesn't let me resize or
+   rotate" was.
+   IT WAS THE SECOND HALF OF A PROBLEM, USED AS A CURE FOR THE FIRST. The dot
+   only ever left its target because the target had been dragged off the corner
+   by clamps in hero-head-transform.js, and pulling the square part-way back
+   just split the error between them: a flat 4px on all four corners at rest,
+   and a level row of five dots along the bottom of the screen once the head was
+   dragged up. The clamps that moved the dot are gone now -- the corner is the
+   corner, at every angle and every scale -- so this clamp has nothing left to
+   correct, and correcting a rigid body in screen space is the thing the frame
+   exists not to do. controls.css already draws the square at --h-dx/--h-dy,
+   which is now exactly the vector from the target's centre to the true corner,
+   and place() guarantees that vector never exceeds the target's own half-width
+   -- so the dot's centre, which is what anybody aims at, is always inside the
+   44px surface that answers for it.
+   What replaces it is not a smaller clamp, it is an honest answer to the case
+   the clamp was invented for: a corner that has left the stage takes its
+   handle with it. Hidden and unpressable together -- never a live target with
+   no dot, never a dot painted where it cannot be pressed, and never a square
+   left over the Work section, which the Hero does not clip. */
+/* ── OFF THE STAGE FOR THE POINTER. STILL THERE FOR THE KEYBOARD ─────────────
+   The first version of this rule was visibility:hidden, which is correct about
+   the pointer and wrong about everything else: a hidden element cannot hold
+   focus, so the browser blurs it. Measured at 1440, holding Shift+ArrowRight on
+   the se handle grew the head to 2.12 and then simply stopped -- the corner had
+   left the stage, the element vanished, the focus went with it and the rest of
+   the key presses landed on nobody. The token maximum became unreachable from
+   that corner, silently, and the same trap closes on anyone mid-gesture.
+   A corner that is off stage has nowhere honest to draw its dot. It has not
+   stopped being a control: "resize from the top left" is a perfectly meaningful
+   thing to ask for with an arrow key whether or not the top left is on screen.
+   So the DOT goes and the BUTTON stays -- unpressable, because there is nothing
+   to press, and still focusable, because there is still something to operate.
+   The focus ring moves onto the 44px box for the same reason: the box is inside
+   the reachable region by construction, so the ring lands somewhere a person
+   can see, which a ring on an invisible dot would not. */
+#heroHeadSelection .heroHeadHandle[data-off],
+#heroHeadSelection .heroHeadRotate[data-off]{pointer-events:none}
+#heroHeadSelection .heroHeadHandle[data-off]::before,
+#heroHeadSelection .heroHeadRotate[data-off]::before{opacity:0}
+#heroHeadSelection .heroHeadHandle[data-off]:focus-visible,
+#heroHeadSelection .heroHeadRotate[data-off]:focus-visible{
+ outline:var(--focus-w) solid var(--ctl-focus);
+ outline-offset:calc(var(--sp-2) * -1)
 }
 /* Corner resize beats rotate on the hit test. The rotator is authored at the
    top edge's midpoint "where no corner competes", and at rest that is true --

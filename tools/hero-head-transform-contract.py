@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import math
 import re
+import sys
 from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -126,10 +127,11 @@ def body_point(page):
 
 
 HIT_TALLY = {"hit": 0, "total": 0, "worst": []}
+RIGID_TALLY = {"worst": 0.0, "samples": 0, "where": None}
 
 
 def assert_handle_hits(page, label):
-    """Every drawn dot must be aimable.
+    """Every drawn dot must be aimable, and welded to the corner it names.
 
     THE TEST IS THE DOT, NOT THE BOX. Nobody aims at an invisible 44px square;
     they aim at the 8px square they can see. This component has already shipped
@@ -141,6 +143,32 @@ def assert_handle_hits(page, label):
     so the selection box's own corners are the corners of a bounding box, not of
     the head. Asserting the dot sits on those would be asserting the head is
     level, which it has not been since --hero-head-rest-rotate was wired.
+
+    ── AND THE OFFSET FROM THAT CORNER IS ZERO, NOT MERELY BOUNDED ─────────────
+    The assertion here used to be that the dot lies somewhere on the segment
+    between its hit box's centre and the true corner. That is satisfied by a dot
+    anywhere in a 22px range, which is how the shipped build could draw all four
+    corner dots 4px off their corners at rest, and -- once the head was dragged
+    up -- draw nw, ne and the rotator at exactly the same y while the box was
+    turned -13.8deg. Being LEVEL was the tell Jayden's screenshot carried: a
+    rotated rectangle's corners cannot share a y unless something is overriding
+    it, and three independent clamps against one shared bound is what does that.
+
+    The frame and the head are one rigid body -- measured at 0.000e+00 variance
+    across sixty float frames -- and the handles are part of that body. So the
+    offset is asserted to be ZERO, which makes it invariant under rotation and
+    scale by construction rather than by a separate sweep. This assertion runs
+    at rest, at both scale limits, at the tested rotations, at both widths and
+    with the head dragged against each edge.
+
+    A HANDLE WHOSE CORNER HAS LEFT THE STAGE IS ALLOWED NOT TO EXIST -- and is
+    then held to a stricter standard, not a looser one. It must be hidden AND
+    unpressable together (a live target with no dot is the dead handle again,
+    from the other direction), and it must be genuinely off stage: the predicate
+    is restated here from the Hero's own rect rather than read back from the
+    attribute, so the module and the contract cannot agree on a wrong answer.
+    At least one corner must survive in every arrangement, or the composition
+    would be unrecoverable.
     """
     page.wait_for_timeout(30)
     handles = page.evaluate(
@@ -148,6 +176,28 @@ def assert_handle_hits(page, label):
           const selection=document.querySelector('#heroHeadSelection');
           const selectedRect=selection.getBoundingClientRect();
           const heroRect=document.querySelector('#main').getBoundingClientRect();
+          // THE REACHABLE REGION, RESTATED. The Hero minus the opaque floating
+          // bar across its top -- derived here from the live DOM rather than
+          // taken from the module, so the two are independent witnesses.
+          const barNode=document.querySelector('.jbStick .jbNav')
+            ||document.querySelector('.jbStick');
+          let reachTop=heroRect.top;
+          if(barNode){
+            const b=barNode.getBoundingClientRect();
+            if(b.bottom>heroRect.top&&b.top<heroRect.bottom&&b.width>0)
+              reachTop=Math.min(b.bottom,heroRect.bottom);
+          }
+          const hitSize=parseFloat(getComputedStyle(document.documentElement)
+            .getPropertyValue('--selection-hit-size'))||44;
+          const dotSize=parseFloat(getComputedStyle(document.documentElement)
+            .getPropertyValue('--selection-handle-size'))||8;
+          // A dot is unreachable exactly when its corner has left the region a
+          // pointer can press. The target slides to stay inside that region and
+          // by no more than the corner is past its edge, so "the target no
+          // longer contains its own dot" and "the corner is off the stage" are
+          // the same statement -- which is why this can be restated from the
+          // Hero's rect alone, with no reference to the module's arithmetic.
+          const edge=0;
           const frame=document.querySelector('.heroHeadFrame');
           const num=name=>parseFloat(frame.style.getPropertyValue(name))||0;
           const angle=parseFloat(selection.style.getPropertyValue('--hero-head-rotate'))||0;
@@ -200,6 +250,7 @@ def assert_handle_hits(page, label):
               Math.min(rect.right,heroRect.right)-Math.max(rect.left,heroRect.left));
             const heroIntersectionHeight=Math.max(0,
               Math.min(rect.bottom,heroRect.bottom)-Math.max(rect.top,heroRect.top));
+            const style=getComputedStyle(handle);
             return {
               label, corner, hits, angle,
               selectedIntersection:intersectionWidth*intersectionHeight,
@@ -210,17 +261,35 @@ def assert_handle_hits(page, label):
               dotOutsideHit:Math.max(0,rect.left-dot.x,dot.x-rect.right,
                 rect.top-dot.y,dot.y-rect.bottom),
               along, dotLen, truthLen,
+              // ZERO, NOT BOUNDED: how far the painted square sits from the
+              // corner of the rigid body it belongs to.
+              rigid:Math.hypot(dot.x-truth.x,dot.y-truth.y),
+              off:handle.hasAttribute('data-off'),
+              // The dot goes and the button stays: nothing is drawn where it
+              // cannot be pressed, nothing is pressable where nothing is drawn,
+              // and the control is still there for a keyboard.
+              hidden:parseFloat(before.opacity)===0,
+              inert:style.pointerEvents==='none',
+              operable:style.visibility!=='hidden'&&style.display!=='none',
+              // The same predicate the module applies, restated from the Hero.
+              offStage:truth.x<heroRect.left+edge||truth.x>heroRect.right-edge
+                ||truth.y<reachTop+edge||truth.y>heroRect.bottom-edge,
               rect:{left:rect.left,top:rect.top,right:rect.right,bottom:rect.bottom}
             };
           });
         }""",
         label,
     )
-    for handle in handles:
+    live = [handle for handle in handles if not handle["off"]]
+    for handle in live:
         HIT_TALLY["total"] += len(handle["hits"])
         HIT_TALLY["hit"] += sum(handle["hits"])
         if not all(handle["hits"]):
             HIT_TALLY["worst"].append((label, handle["corner"], handle["hits"]))
+        RIGID_TALLY["samples"] += 1
+        if handle["rigid"] > RIGID_TALLY["worst"]:
+            RIGID_TALLY["worst"] = handle["rigid"]
+            RIGID_TALLY["where"] = (label, handle["corner"], round(handle["angle"], 2))
     assert all(
         # REACHABILITY IS THE HERO, NOT THE BOX. A 44px target cannot fit inside
         # a selection box narrower than 44px, and at 320 with the head at
@@ -233,9 +302,28 @@ def assert_handle_hits(page, label):
         and handle["dotOutsideHit"] <= 0.5
         and handle["along"]
         and handle["dotLen"] <= handle["truthLen"] + 0.5
+        # THE HANDLE IS PART OF THE RIGID BODY. Half a pixel of slack for the
+        # float's own sub-pixel rounding, and nothing else.
+        and handle["rigid"] <= 0.5
+        and not handle["offStage"]
         and all(handle["hits"])
+        for handle in live
+    ), [h for h in live if h["rigid"] > 0.5 or h["offStage"] or not all(h["hits"])]
+    # A handle that has stepped off the stage must be hidden AND inert, and must
+    # actually be off the stage. Half-measures here are the dead handle again.
+    assert all(
+        handle["hidden"]
+        and handle["inert"]
+        and handle["offStage"]
+        # AND STILL OPERABLE FROM THE KEYBOARD. Removing it outright cost the
+        # token maximum scale, silently, to anyone holding an arrow key.
+        and handle["operable"]
         for handle in handles
-    ), handles
+        if handle["off"]
+    ), [h for h in handles if h["off"]]
+    assert any(
+        handle["corner"] != "rotate" for handle in live
+    ), ("no corner handle survives -- the arrangement is unrecoverable", label, handles)
 
 
 # ── THE FRAME MUST CONTAIN THE ARTWORK, AT EVERY SIZE AND EVERY ANGLE ────────
@@ -373,8 +461,29 @@ def assert_handle_gestures(page, label):
     nw dot, entirely inside nw's target, and .heroHeadHandle paints above
     .heroHeadRotate). Real input only: the handlers use setPointerCapture, so a
     dispatched PointerEvent reports failure on working code.
+
+    ── A HANDLE THAT IS NOT ON SCREEN IS NOT TESTED, AND THAT IS NOT A LOOPHOLE
+    At 320 the authored resting composition puts the head's nw corner 12px past
+    the left edge of the window. There is no honest place to draw that handle:
+    the shipped build drew it at x=4, sixteen pixels from the corner it names,
+    and a test that pressed it was confirming the frame could lie rather than
+    that the handle worked. The corner is off stage, the handle says so, and it
+    is skipped here for the same reason the frame's own outline is cropped
+    there.
+    WHAT IS ASSERTED INSTEAD IS THAT THE COMPOSITION STAYS RECOVERABLE: every
+    handle that IS on screen must start the gesture it advertises, and at least
+    one corner must be on screen, or nothing could ever be resized back.
     """
-    for name in ("nw", "ne", "sw", "se", "rotate"):
+    # Asked at rest, because rest is the pose every iteration below returns to.
+    page.evaluate("window.__heroHeadTransform.reset()")
+    page.wait_for_timeout(40)
+    present = page.evaluate(
+        """() => [...document.querySelectorAll('.heroHeadHandle,.heroHeadRotate')]
+             .filter(n => !n.hasAttribute('data-off'))
+             .map(n => n.getAttribute('data-corner') || 'rotate')"""
+    )
+    assert any(name != "rotate" for name in present), (label, "no corner on stage", present)
+    for name in present:
         page.evaluate("window.__heroHeadTransform.reset()")
         page.wait_for_timeout(40)
         page.evaluate("window.__heroHeadTransform.stopFloat()")
@@ -403,6 +512,32 @@ def assert_handle_gestures(page, label):
         assert started == expected, (label, name, expected, started, before, after)
     page.evaluate("window.__heroHeadTransform.reset()")
     page.wait_for_timeout(40)
+
+
+# ── DRIVE A HANDLE THAT IS ACTUALLY THERE ────────────────────────────────────
+# A corner whose true position has left the stage is hidden and inert, so a test
+# that keeps pressing `se` because `se` is the tidy choice stops testing
+# anything the moment the head is scaled up far enough to push that corner past
+# the Hero's floor -- it presses empty space, nothing moves, and the assertion
+# blames the scale limits. The tests below ask which corners are on stage and
+# drive one of those, preferring the one they were written around. What they are
+# really about -- that the token bounds the scale, that the opposite corner
+# stays put -- is a property of any corner, not of that one.
+def live_corners(page):
+    return page.evaluate(
+        """() => [...document.querySelectorAll('.heroHeadHandle')]
+             .filter(node => !node.hasAttribute('data-off'))
+             .map(node => node.getAttribute('data-corner'))"""
+    )
+
+
+def a_live_corner(page, prefer):
+    corners = live_corners(page)
+    assert corners, (
+        "no corner handle is on stage, so the scale could never be brought back -- "
+        "that is the failure, not the assertion that follows"
+    )
+    return prefer if prefer in corners else corners[0]
 
 
 def drag_selection_to(page, x, y):
@@ -985,6 +1120,7 @@ def browser_contract(base_url):
             )
             page.screenshot(path=str(SHOTS / f"home-{label}-resized.png"))
 
+            tested_corners = []
             for corner in ("nw", "ne", "sw", "se"):
                 page.evaluate("window.__heroHeadTransform.reset()")
                 page.wait_for_timeout(30)
@@ -995,6 +1131,12 @@ def browser_contract(base_url):
                         frame["x"] + frame["width"] / 2,
                         frame["y"] + frame["height"] / 2 + 40,
                     )
+                # At 320 the authored composition already puts nw 12px past the
+                # window's left edge, so that corner has no dot to press. Skip
+                # it rather than press empty space and blame the anchor maths.
+                if corner not in live_corners(page):
+                    continue
+                tested_corners.append(corner)
                 before_corner = logical_head_rect(page)
                 anchor_corner = opposite_point(before_corner, corner)
                 press_corner = drawn_dot(page, corner)
@@ -1028,12 +1170,28 @@ def browser_contract(base_url):
                     },
                 )
 
+            record(
+                failures,
+                len(tested_corners) >= 2,
+                f"{label} corners reachable at rest",
+                {"tested": tested_corners, "live": live_corners(page)},
+            )
+
             for corner, axis, dx, dy in (
                 ("se", "horizontal", -32, 0),
                 ("nw", "vertical", 0, 32),
             ):
                 page.evaluate("window.__heroHeadTransform.reset()")
                 page.wait_for_timeout(30)
+                # The claim is about a one-axis drag on a CORNER, not about that
+                # corner: at 320 nw has no dot, so a live one stands in and the
+                # drag's sign is taken from whichever side it is on, so it still
+                # pulls inward.
+                corner = a_live_corner(page, corner)
+                if axis == "horizontal":
+                    dx, dy = (-32 if corner.endswith("e") else 32), 0
+                else:
+                    dx, dy = 0, (32 if corner.startswith("n") else -32)
                 before_axis = logical_head_rect(page)
                 expected_anchor = opposite_point(before_axis, corner)
                 axis_handle = drawn_dot(page, corner)
@@ -1545,6 +1703,10 @@ def browser_contract(base_url):
                 max_result,
             )
             assert_handle_hits(page, "keyboard-maximum-scale")
+            # NOTE: se is off stage at 2.2 and keeps its focus anyway, which is
+            # the point of drawing the dot away rather than removing the button.
+            # If this loop ever stops short of the token minimum, that guarantee
+            # has gone, not the arithmetic.
             for _ in range(60):
                 page.keyboard.press("Shift+ArrowLeft")
             page.wait_for_timeout(30)
@@ -1590,13 +1752,18 @@ def browser_contract(base_url):
             )
             assert_handle_hits(page, "pointer-maximum-scale")
 
+            shrink_corner = a_live_corner(page, "se")
             logical = logical_head_rect(page)
-            anchor = opposite_point(logical, "se")
-            drag = corner_point(logical, "se")
-            press = drawn_dot(page, "se")
+            anchor = opposite_point(logical, shrink_corner)
+            drag = corner_point(logical, shrink_corner)
+            press = drawn_dot(page, shrink_corner)
+            # 10% of the way from the anchor toward whichever side this corner
+            # is on, so the drag shrinks rather than flips whichever one it is.
             target_drag = {
-                "x": anchor["x"] + logical["width"] * 0.1,
-                "y": anchor["y"] + logical["height"] * 0.1,
+                "x": anchor["x"]
+                + logical["width"] * 0.1 * (1 if shrink_corner.endswith("e") else -1),
+                "y": anchor["y"]
+                + logical["height"] * 0.1 * (1 if shrink_corner.startswith("s") else -1),
             }
             page.mouse.move(press["x"], press["y"])
             page.mouse.down()
@@ -2208,15 +2375,110 @@ def movie_projection(page):
     }""")
 
 
+# ── PROVING THE WELD DETECTOR CAN FAIL ───────────────────────────────────────
+# A contract nobody has watched fail is a contract nobody should trust, and the
+# assertion this file gained is the one that would have caught a bug that
+# shipped on the landing page. So --self-test puts the shipped chain back: the
+# hit centre clamped into the selection box as well as into the Hero, and the
+# painted square clamped back toward that centre by at most half the target --
+# the pair that drew all four corner dots 4px off their corners at the resting
+# composition, at both widths, and strung nw, ne and the rotator out along one
+# shared y once the head was dragged upward.
+#
+# THE FIRST ATTEMPT AT THIS SELF-TEST PASSED, WHICH IS WHY IT IS WRITTEN THIS
+# WAY. Re-injecting turn()'s crop alone proved nothing: at rest no corner is off
+# stage, so that clamp is a no-op, and once a corner IS off stage the handle is
+# hidden and correctly exempt. The clamp that has to be re-injected is the one
+# that bites where the head actually lives. `point` is rewritten to the clamped
+# centre at the end so the off-stage rule sees the zero offset it historically
+# saw, and all five handles stay live exactly as they did on the shipped build.
+#
+# The run is expected to FAIL. If it passes, the detector is broken and every
+# green run before it was noise.
+SELF_TEST_SITE = """   var cx=axis(point.x,lead.x,m.heroW,hit);
+   var cy=axis(point.y,lead.y-m.ceiling,m.heroH-m.ceiling,hit);
+   node.style.setProperty("--h-x",cx+"px");
+   node.style.setProperty("--h-y",cy+"px");
+   node.style.setProperty("--h-dx",(point.x-cx)+"px");
+   node.style.setProperty("--h-dy",(point.y-cy)+"px");
+   node.__dot={x:point.x,y:point.y};"""
+SELF_TEST_INJECT = """   var ex=parseFloat(selection.style.getPropertyValue("--selection-w"))||0;
+   var ey=parseFloat(selection.style.getPropertyValue("--selection-h"))||0;
+   var shipped=function(at,extent,lead,limit){
+    var half=hit/2,lo=half-lead,hi=limit-lead-half;
+    if(hi<lo)hi=lo=(lo+hi)/2;
+    var want=extent<hit?extent/2:Math.max(half,Math.min(extent-half,at));
+    return Math.max(lo,Math.min(hi,want));
+   };
+   var cx=shipped(point.x,ex,lead.x,m.heroW);
+   var cy=shipped(point.y,ey,lead.y-m.ceiling,m.heroH-m.ceiling);
+   var css=(hit-m.dot)/2;
+   var sx=Math.max(-css,Math.min(css,point.x-cx));
+   var sy=Math.max(-css,Math.min(css,point.y-cy));
+   node.style.setProperty("--h-x",cx+"px");
+   node.style.setProperty("--h-y",cy+"px");
+   node.style.setProperty("--h-dx",sx+"px");
+   node.style.setProperty("--h-dy",sy+"px");
+   node.__dot={x:cx+sx,y:cy+sy};
+   point={x:cx,y:cy};"""
+
+
+def self_test(base_url):
+    """Re-inject the clamp and require assert_handle_hits() to reject it."""
+    source = (ROOT / "hero-head-transform.js").read_text(encoding="utf-8")
+    if SELF_TEST_SITE not in source:
+        raise SystemExit(
+            "--self-test cannot find turn() in hero-head-transform.js; update "
+            "SELF_TEST_SITE to match it rather than letting the self-test pass blind."
+        )
+    broken = source.replace(SELF_TEST_SITE, SELF_TEST_INJECT, 1)
+    with sync_playwright() as pw:
+        browser = pw.chromium.launch()
+        try:
+            for width, height in ((1440, 900), (390, 844)):
+                context = browser.new_context(viewport={"width": width, "height": height})
+                context.route(
+                    "**/hero-head-transform.js*",
+                    lambda route: route.fulfill(
+                        status=200, content_type="application/javascript", body=broken
+                    ),
+                )
+                page = context.new_page()
+                page.goto(f"{base_url}/index.html", wait_until="load")
+                page.wait_for_timeout(2500)
+                page.evaluate("window.__heroHeadTransform.stopFloat()")
+                try:
+                    assert_handle_hits(page, f"self-test {width}")
+                except AssertionError:
+                    print(f"self-test {width}x{height}: the weld assertion rejected "
+                          f"the re-injected clamp, as it must")
+                    context.close()
+                    continue
+                context.close()
+                raise SystemExit(
+                    f"--self-test FAILED at {width}x{height}: the re-injected corner "
+                    "clamp was accepted. The rigidity assertion is not detecting "
+                    "anything and every green run of this file is noise."
+                )
+        finally:
+            browser.close()
+    print("Hero head transform self-test: OK (the detector fails when it should)")
+
+
 def main():
     SHOTS.mkdir(parents=True, exist_ok=True)
     TASK4_SHOTS.mkdir(parents=True, exist_ok=True)
-    static_contract()
+    only_self_test = "--self-test" in sys.argv
+    if not only_self_test:
+        static_contract()
     server = ThreadingHTTPServer(
         ("127.0.0.1", 0), partial(Quiet, directory=str(ROOT))
     )
     Thread(target=server.serve_forever, daemon=True).start()
     try:
+        if only_self_test:
+            self_test(f"http://127.0.0.1:{server.server_port}")
+            return
         browser_contract(f"http://127.0.0.1:{server.server_port}")
         task4_matrix(f"http://127.0.0.1:{server.server_port}")
     finally:
@@ -2229,8 +2491,12 @@ def main():
           f"/{GESTURE_TALLY['total']}")
     print(f"Frame contained the artwork: {CONTAINMENT_TALLY['hit']}"
           f"/{CONTAINMENT_TALLY['total']} samples")
+    print(f"Handle welded to its own corner: worst offset "
+          f"{RIGID_TALLY['worst']:.4f}px over {RIGID_TALLY['samples']} samples"
+          f" (at {RIGID_TALLY['where']})")
     assert not HIT_TALLY["worst"], HIT_TALLY["worst"]
     assert rate == 100, rate
+    assert RIGID_TALLY["samples"] > 0, "the rigidity assertion never ran"
     print("Hero head transform: OK")
 
 
