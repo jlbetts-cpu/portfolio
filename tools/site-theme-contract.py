@@ -12,7 +12,7 @@ SHIPPING=(
 )
 INTERNAL={
     "accent-swatches.html","button-system.html","header-prototype.html",
-    "index-local-preview.html","orbs.html","specimen.html",
+    "orbs.html","specimen.html",
 }
 THEME_SOURCES=("site-theme.css","header.css","footer.css")
 PORTFOLIO_PAGES={

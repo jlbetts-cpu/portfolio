@@ -407,13 +407,16 @@
    completes. Patching them one at a time in 13 files would have written the
    duplicate out 14 more times, so the two universal states are declared once,
    here, against the families by name.
-   THE LIST IS INTERACTIVE FAMILIES ONLY. .baGo, .baChip, .baLabel and
-   .battleBadge are deliberately absent: measured, .baGo is a <span
+   THE LIST IS INTERACTIVE FAMILIES ONLY. .baGo, .baLabel and .battleBadge are
+   deliberately absent: measured, .baGo is a <span
    aria-hidden="true"> with no href, no role, no listener and no tabindex
    attribute -- a decorative arrow between two screenshots. The audit read its
    DOM tabIndex of -1 as an authored attribute and filed it as an unreachable
    button; it is not a control, and giving it a press state would be inventing
    an interaction that does not exist. The badges are the same case.
+   (.baChip was named here too until 2026-08-11, when a census found it had no
+   rule and no markup left anywhere in the tree -- it had been retired, and the
+   only thing still asserting it existed was this sentence.)
    :where() so the whole block has ZERO specificity: any page rule that has an
    opinion about transform, opacity or cursor beats it without a fight, and
    migrating a family to .ctl simply makes its entry here redundant. Delete a

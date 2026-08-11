@@ -173,16 +173,27 @@ body.catchReady #stageMorph{transform:scale(1.055)}
 .hint{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);font-size:var(--fs-caption);color:var(--c500);z-index:5;background:rgba(243,243,243,.7);padding:8px 12px;border-radius:4px;backdrop-filter:blur(4px)}
 .popcrumb{position:absolute;width:2.2%;height:2.2%;background:#e7ddc7;z-index:5;opacity:0;pointer-events:none;will-change:transform,opacity}
 .popbucket{position:absolute;left:50%;bottom:-24%;width:44%;height:auto;transform:translateX(-50%);transform-origin:50% 78%;z-index:8;opacity:0;pointer-events:none;will-change:transform,opacity;filter:url(#inkSm) drop-shadow(0 2px 2px rgba(0,0,0,.32))}.kernel{position:absolute;width:9%;height:auto;z-index:8;opacity:0;pointer-events:none;will-change:transform,opacity;filter:url(#inkSm)}.mouth{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;opacity:0;pointer-events:none;z-index:2;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat}
-/* THE BUCKET SITS ON THE SCENE'S FLOOR, NOT THE STAGE'S. It is a child of the
-   effects stage, which tracks the HEAD -- and the head hangs past the Hero's
-   lower edge, so a bucket pinned to the stage's bottom was landing 101px below
-   the floor at 1440 and 1280 and 73px below it at 390: mostly out of frame at
-   every width, which is what "doesn't look like it's in the right spot" was.
-   Horizontal tracking stays on the head, because the head is holding it. The
-   vertical anchor moves to the Hero's floor plus --hero-floor-inset, which is
-   the one line in this scene that props stand on. (The head's own contact
-   shadow used to share it; the head no longer stands on anything and the
-   shadow is gone, but the FLOOR is still where a dropped bucket lands.)
+/* THE BUCKET HANGS FROM THE CHIN, NOT FROM ANY FLOOR. Two passes anchored it to
+   a floor -- first the stage's, then the Hero's -- and both were answering the
+   wrong question. A floor says where a bucket that has been PUT DOWN belongs.
+   Nobody has put this one down: the head is holding it, and Jayden's note says
+   what that means -- "popcorn isn't near his chin, it's in front of his face,
+   which is wrong because the audience needs to see him chew."
+   THE FACE STAYING VISIBLE IS THE SPECIFICATION, and it is a statement about
+   the CHIN, which is the one landmark a floor cannot predict: the head floats,
+   is draggable and resizable, and grew to 275px with a negative resting depth,
+   so the gap between chin and floor is different at every width and in every
+   pose. Anchored to the Hero's floor the bucket measured, with the movie
+   running: 1440 -> covering the lowest 149.7px of the head, 390 -> 118.7px,
+   320 -> 116.0px. That is 52-54% of the head at every width -- the mouth, the
+   moustache and the chin, which is precisely the performance.
+   So the anchor is the chin itself. --movie-chin-y is published per frame by
+   hero-engine's syncMovieEffectsLayer() from the LIVE data-head-bounds of the
+   face currently in #face, in the effects stage's own coordinates, and the
+   bucket's TOP hangs --hero-chin-gap below it. The bucket may now run past the
+   Hero's lower edge; .heroMovieEffectsClip crops it there, which is what a
+   bucket held below the frame line should look like and is exactly the
+   containment the design spec already asks for.
    A LEAN, NOT A PIN. Everything else in this scene has orientation -- the head
    rests tilted, the rim tracks the sun and swings as the head moves -- so a
    bucket locked to vertical read as pasted on. `rotate` is an INDEPENDENT
@@ -201,11 +212,11 @@ body.catchReady #stageMorph{transform:scale(1.055)}
    translateX(-50%) for this host to match; every other host keeps it. */
 #heroMovieEffectsStage .popbucket{
  left:0;right:0;margin-inline:auto;transform:none;
- bottom:calc(var(--movie-stage-overhang,0px) + var(--hero-floor-inset,12px));
+ top:calc(var(--movie-chin-y,92%) + var(--hero-chin-gap,8px));bottom:auto;
  rotate:calc(var(--pop-tilt,-7deg) - var(--time-light-dir,0) * 5deg)
 }
 .heroMovieEffectsClip{position:absolute;inset:0;z-index:4;overflow:clip;border-radius:inherit;corner-shape:inherit;pointer-events:none}
-.heroMovieEffectsStage{position:absolute;left:0;top:0;width:0;height:0;transform-origin:50% 50%;pointer-events:none;will-change:transform}
+.heroMovieEffectsStage{position:absolute;left:0;top:0;width:0;height:0;transform-origin:50% 50%;pointer-events:none;will-change:transform;--hero-chin-gap:var(--sp-8)}
 .dlogo{border-radius:var(--r-2xs);position:absolute;width:21%;height:21%;opacity:0;backface-visibility:hidden;will-change:transform,left,top,opacity;filter:drop-shadow(0 3px 8px rgba(0,0,0,.22))}
 .dshadow{position:absolute;border-radius:50%;background:radial-gradient(ellipse 50% 50% at 50% 50%,rgba(8,8,8,.5),rgba(8,8,8,.3) 40%,rgba(8,8,8,.12) 62%,transparent 76%);transform:translate(-50%,-50%);z-index:-1;pointer-events:none;opacity:0;will-change:transform,left,top,width,height,opacity}
 .grain{position:absolute;top:0;left:0;right:0;height:165vh;z-index:60;pointer-events:none;background-image:url(images/overlay.webp);background-size:150px 150px;mix-blend-mode:overlay;opacity:.28;-webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 40%,transparent 58%);mask-image:linear-gradient(to bottom,#000 0%,#000 40%,transparent 58%)}
@@ -1701,8 +1712,8 @@ if(location.hash==="#about")location.replace("about.html");</script>
    <button class="jbHome ctl ctl--nav" id="logo" type="button" aria-label="Jayden Betts, home"><svg class="jbLogo" viewBox="0 0 30 30" aria-hidden="true"><path d="M1 26.3842C3.07605 22.5364 9.00761 17.1494 16.1255 26.3842C23.2434 35.619 14.1981 18.1678 16.1255 8.65665C18.0529 -0.854479 32.3186 -2.22723 28.2852 8.65665C24.2517 19.5405 18.6968 18.261 20.8493 13.2232C23.0018 8.1853 35.3661 26.1679 23.0066 27.4872"/></svg></button>
   </span>
   <span class="jbGrp jbGrpC">
-   <a class="ctl ctl--nav" data-nav-item="work" href="#cases" aria-label="Work" aria-current="page"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7m0 2a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v9a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2z"/><path d="M8 7v-2a2 2 0 0 1 2 -2h4a2 2 0 0 1 2 2v2"/><path d="M12 12l0 .01"/><path d="M3 13a20 20 0 0 0 18 0"/></svg><span class="jbLbl">Work</span></a>
-   <a class="ctl ctl--nav" data-nav-item="about" href="about.html" aria-label="About"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0"/><path d="M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2"/></svg><span class="jbLbl">About</span></a>
+   <a class="ctl ctl--nav" data-nav-item="work" href="#cases" aria-label="Work" aria-current="page"><svg class="gIco uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 12h.01"/><path d="M16 6V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><path d="M22 13a18.15 18.15 0 0 1-20 0"/><rect width="20" height="14" x="2" y="6" rx="2"/></svg><span class="jbLbl">Work</span></a>
+   <a class="ctl ctl--nav" data-nav-item="about" href="about.html" aria-label="About"><svg class="gIco uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/></svg><span class="jbLbl">About</span></a>
    <!-- PLAY -- ROUND 10.  A destination that reveals its extras on hover, and NO CARET.
         Jayden: "Play drop down is not same styling" and, on the carets, delete them --
         Play and Contact are plain nav items that navigate on click and open on hover.
@@ -1717,7 +1728,7 @@ if(location.hash==="#about")location.replace("about.html");</script>
         saved heads / Show on home, all four keeping the ids their scripts bind by. It is
         header.css's .jbDiscMenu now, the same panel Contact opens at the other end of the
         bar, so the two read as one system rather than as two different popups. -->
-   <a class="ctl ctl--nav" data-nav-item="games" href="play.html" aria-label="Play"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 6m0 2a2 2 0 0 1 2 -2h16a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-16a2 2 0 0 1 -2 -2z"/><path d="M6 12h4m-2 -2v4"/><path d="M15 11l0 .01"/><path d="M18 13l0 .01"/></svg><span class="jbLbl">Play</span></a>
+   <a class="ctl ctl--nav" data-nav-item="games" href="play.html" aria-label="Play"><svg class="gIco uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><line x1="6" x2="10" y1="11" y2="11"/><line x1="8" x2="8" y1="9" y2="13"/><line x1="15" x2="15.01" y1="12" y2="12"/><line x1="18" x2="18.01" y1="10" y2="10"/><path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258-.006-.051-.011-.1-.017-.151A4 4 0 0 0 17.32 5z"/></svg><span class="jbLbl">Play</span></a>
   </span>
   <span class="jbGrp jbGrpR">
    <!-- CONTACT -- the same split control as Play, at the other end of the bar
@@ -1728,8 +1739,8 @@ if(location.hash==="#about")location.replace("about.html");</script>
         never mean two things. header.js owns it on all nine pages.
         Socials in HIS order: LinkedIn, Instagram, email. -->
    <span class="jbDisc jbContact">
-    <a class="jbDiscGo ctl ctl--nav" data-nav-item="contact" aria-haspopup="true" aria-expanded="false" aria-controls="jbContactMenu" href="#contact" aria-label="Contact"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10z"/><path d="M3 7l9 6l9 -6"/></svg><span class="jbLbl">Contact</span></a>
-    <div class="jbDiscMenu" id="jbContactMenu"><a class="jbDiscTouch" href="#contact"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10z"/><path d="M3 7l9 6l9 -6"/></svg>Contact</a><div class="jbDiscSep jbDiscTouch" aria-hidden="true"></div><a href="https://www.linkedin.com/in/jaydenbetts" target="_blank" rel="noopener noreferrer"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 11l0 5"/><path d="M8 8l0 .01"/><path d="M12 16l0 -5"/><path d="M16 16v-3a2 2 0 0 0 -4 0"/><path d="M3 7a4 4 0 0 1 4 -4h10a4 4 0 0 1 4 4v10a4 4 0 0 1 -4 4h-10a4 4 0 0 1 -4 -4z"/></svg>LinkedIn</a><a href="https://www.instagram.com/jaydenleebetts" target="_blank" rel="noopener noreferrer"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4m0 4a4 4 0 0 1 4 -4h8a4 4 0 0 1 4 4v8a4 4 0 0 1 -4 4h-8a4 4 0 0 1 -4 -4z"/><path d="M12 12m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"/><path d="M16.5 7.5l0 .01"/></svg>Instagram</a><a href="mailto:jaydenlbetts@gmail.com"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10z"/><path d="M3 7l9 6l9 -6"/></svg>Email</a></div>
+    <a class="jbDiscGo ctl ctl--nav" data-nav-item="contact" aria-haspopup="true" aria-expanded="false" aria-controls="jbContactMenu" href="#contact" aria-label="Contact"><svg class="gIco uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg><span class="jbLbl">Contact</span></a>
+    <div class="jbDiscMenu" id="jbContactMenu"><a class="jbDiscTouch" href="#contact"><svg class="gIco uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>Contact</a><div class="jbDiscSep jbDiscTouch" aria-hidden="true"></div><a href="https://www.linkedin.com/in/jaydenbetts" target="_blank" rel="noopener noreferrer"><svg class="gIco uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M8 11v5M8 8v.01M12 16v-5M16 16v-3a2 2 0 0 0-4 0"/><path d="M3 7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4v10a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4z"/></svg>LinkedIn</a><a href="https://www.instagram.com/jaydenleebetts" target="_blank" rel="noopener noreferrer"><svg class="gIco uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect width="16" height="16" x="4" y="4" rx="4"/><circle cx="12" cy="12" r="3"/><line x1="16.5" x2="16.51" y1="7.5" y2="7.5"/></svg>Instagram</a><a href="mailto:jaydenlbetts@gmail.com"><svg class="gIco uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>Email</a></div>
    </span>
   </span>
  </nav>

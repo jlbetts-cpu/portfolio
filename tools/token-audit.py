@@ -77,8 +77,9 @@ DEMOS     specimen / header-prototype / accent-swatches / button-system / orbs -
           design demos, deliberately full of raw values because that is what they
           are demonstrating. Audited only under --scope demos|all, and never
           counted in the shipping totals.
-EXCLUDED  index-local-preview.html -- a stale build artefact, excluded always and
-          reported as excluded so its absence is never mistaken for an oversight.
+EXCLUDED  nothing. index-local-preview.html used to sit here -- a 374 KB stale
+          build artefact that was still shipping to production as index,follow.
+          It was deleted on 2026-08-11 rather than kept and skipped.
 """
 
 import argparse
@@ -115,7 +116,7 @@ SHIPPING_JS = ['header.js', 'hero-engine.js', 'play-engine.js', 'play-games.js',
 
 DEMO_FILES = ['specimen.html', 'header-prototype.html', 'accent-swatches.html',
               'button-system.html', 'orbs.html']
-EXCLUDED_FILES = ['index-local-preview.html']
+EXCLUDED_FILES = []
 
 TOKENS_FILE = 'tokens.css'
 
