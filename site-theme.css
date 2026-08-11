@@ -245,22 +245,33 @@ html{scrollbar-color:var(--theme-muted) var(--theme-page)}
 
 /* Play keeps arena art, faces, team channels, and physics in their authored
    palettes. This adapter themes only the surrounding interface and game text. */
-:root[data-theme="dark"] body[data-theme-page="play"] :is(.pLede,.pCardT,.pTeamTitle,.hmCount,.tvCup,.tvName,.tvChampNm,.tvSheetTitle,.tvStandNm){
+:root[data-theme="dark"] body[data-theme-page="play"] :is(.pLede,.pCardT,.pTeamTitle,.hmCount,.tvChampNm){
  color:var(--theme-ink);
 }
-/* 2026-08-11 -- `.tvStandOut` REMOVED, and it is a deletion rather than a rename.
-   It printed how a team's cup ended ("Out - Semi-final") next to its rank, which is a
-   sentence only a knockout can produce. The tournament is a twelve-team league now, so
-   the cell is gone from play-tournament.js and the class exists nowhere; the
-   dark-legibility contract flags a dark rule addressing markup no page carries, and it
-   is right to -- a treatment that has silently stopped running is indistinguishable from
-   one that never worked.
-   ITS REPLACEMENTS ARE DELIBERATELY NOT ADDED TO THIS LIST. The table's new P / GD / PTS
-   cells name --theme-ink and --theme-muted directly in tournament.css, because this
-   adapter themes by ENUMERATING class names and a list cannot know about a class invented
-   after it -- which is exactly how the Pts column shipped black-on-black for one build.
-   Naming the token at the declaration cannot go stale. */
-:root[data-theme="dark"] body[data-theme-page="play"] :is(.pCardD,.pTeamHint,.pTeamColN,.tvRound,.tvDist,.tvV,.tvTape,.tvBoardHd,.tvRdH,.tvFxT,.tvStandRk){
+/* 2026-08-11 -- THE TOURNAMENT'S CLASSES ARE ALMOST ALL GONE FROM THIS FILE, and this
+   is the note that says why there is nothing to add back.
+
+   First `.tvStandOut` went when the cup became a league, then the league was reverted and
+   the cup was rebuilt as a single-elimination knockout with a new markup tree -- so this
+   adapter was left naming SIX classes no page carries (.tvFxWon, .tvFxS, .tvFxTbd,
+   .tvFxLost, .tvStandRow, .tvSheetScrim) plus a dozen more the rebuild retired. The
+   dark-legibility contract flags every one of them and is right to: a treatment that has
+   silently stopped running is indistinguishable from one that never worked.
+
+   THE REBUILD IS NOT ADDED TO THIS LIST, DELIBERATELY. tournament.css names --theme-ink,
+   --theme-muted and --theme-rim AT EVERY DECLARATION, because this adapter themes by
+   ENUMERATING class names and a list cannot know about a class invented after it -- which
+   is exactly how the league's Pts column shipped black-on-black for one build, and exactly
+   how this list came to be stale in the other direction. Naming the token at the
+   declaration cannot go stale in either.
+
+   Verified on a live night-theme page with every rule below neutralised: the panel's ink
+   computes identically with and without them (8.08:1 for the muted rung, 17.03:1 for the
+   ink rung, on rgb(17,19,24)). The only tournament selectors kept are `.tvChampNm` and
+   `.tvGo` -- the first because it is a heading like the others in its list, the second
+   because it carries the same primary convention `.pBtnGo` does on this page, and those
+   two must not diverge. `.tvFrame` below is the case-study photo frame, not this feature. */
+:root[data-theme="dark"] body[data-theme-page="play"] :is(.pCardD,.pTeamHint,.pTeamColN,.tvV,.tvTape){
  color:var(--theme-muted);
 }
 :root[data-theme="dark"] body[data-theme-page="play"] .pCard{
@@ -313,9 +324,11 @@ html{scrollbar-color:var(--theme-muted) var(--theme-page)}
 }
 :root[data-theme="dark"] body[data-theme-page="play"] :is(.pCard .gIco,.pCardD){color:var(--theme-muted)}
 :root[data-theme="dark"] body[data-theme-page="play"] .pCard:hover :is(.gIco,.pCardD){color:var(--theme-ink)}
-:root[data-theme="dark"] body[data-theme-page="play"] .pCardPrev{
- background-color:var(--theme-elevated);box-shadow:inset 0 0 0 var(--hair-w) var(--theme-rim);
-}
+/* `.pCardPrev` REMOVED 2026-08-11. The hub's hover-preview panel is deleted from
+   play.html and play-games.js: it read images/preview/, which never existed, so
+   `.ready` was never set and no visitor on any device ever saw one. A dark rule for a
+   panel that has never rendered is the purest form of the defect this section keeps
+   catching. */
 
 /* Launch menu and the full pre-match picker use the same three neutral depths. */
 :root[data-theme="dark"] body[data-theme-page="play"] .moodTeamsBtn{
@@ -368,37 +381,13 @@ html{scrollbar-color:var(--theme-muted) var(--theme-page)}
 
 /* Tournament setup, draw sheet, bracket, and champion/result states. Team bars
    and face pixels stay outside these selectors. */
-:root[data-theme="dark"] body[data-theme-page="play"] .tvChip{
- background-color:var(--theme-surface);color:var(--theme-ink-soft);
- box-shadow:inset 0 0 0 var(--hair-w) var(--theme-rim);
-}
-:root[data-theme="dark"] body[data-theme-page="play"] .tvSheetPanel{
- background-color:var(--theme-surface);color:var(--theme-ink-soft);
- box-shadow:inset 0 0 0 var(--hair-w) var(--theme-rim);
-}
-:root[data-theme="dark"] body[data-theme-page="play"] .tvChip:hover,
-:root[data-theme="dark"] body[data-theme-page="play"] .tvChip:focus-visible,
-:root[data-theme="dark"] body[data-theme-page="play"] .tvChip.tvArmed{
- background-color:var(--theme-elevated);color:var(--theme-ink);
- box-shadow:inset 0 0 0 var(--hair-w) var(--theme-rim-strong);
-}
 :root[data-theme="dark"] body[data-theme-page="play"] .tvGo{
  background-color:var(--theme-focus);color:var(--theme-page);
 }
 :root[data-theme="dark"] body[data-theme-page="play"] .tvGo:focus-visible{outline-color:var(--theme-focus)}
-:root[data-theme="dark"] body[data-theme-page="play"] .tvRdH{border-color:var(--theme-rim)}
-:root[data-theme="dark"] body[data-theme-page="play"] .tvRdH.tvRdNow{
- color:var(--theme-ink);border-color:var(--theme-ink);
-}
-:root[data-theme="dark"] body[data-theme-page="play"] .tvFx.tvFxNext{
- background-color:rgba(103,99,228,.12);box-shadow:inset 0 0 0 var(--hair-w) var(--theme-rim);
-}
-:root[data-theme="dark"] body[data-theme-page="play"] :is(.tvFxT.tvFxWon,.tvFxS,.tvTape em){color:var(--theme-ink)}
-:root[data-theme="dark"] body[data-theme-page="play"] :is(.tvFxT.tvFxTbd,.tvFxT.tvFxLost){color:var(--theme-muted)}
-:root[data-theme="dark"] body[data-theme-page="play"] .tvStandRow{border-color:var(--theme-rim)}
-:root[data-theme="dark"] body[data-theme-page="play"] .tvSheetScrim{background-color:rgba(4,5,8,.78)}
+:root[data-theme="dark"] body[data-theme-page="play"] .tvTape em{color:var(--theme-ink)}
 
-.theme-ready body[data-theme-page="play"] :is(.pLede,.pCardT,.pCardD,.pTeamTitle,.pTeamHint,.tvCup,.tvRound,.tvDist,.tvName,.tvTape,.tvRdH,.tvFxT,.tvStandNm){
+.theme-ready body[data-theme-page="play"] :is(.pLede,.pCardT,.pCardD,.pTeamTitle,.pTeamHint,.tvTape,.tvChampNm,.tvV){
  transition-property:color,border-color;
  transition-duration:var(--theme-duration);
  transition-timing-function:var(--ease-out);
