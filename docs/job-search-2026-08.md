@@ -349,10 +349,14 @@ scanning your résumé will not find the phrase. **Add one line to the Apollo bu
 AI product design, and add "AI-assisted prototyping" or similar to your skills row.** That is a
 fifteen-minute change with disproportionate return on the two best-fit roles you have.
 
-**4. Your résumé does not mention Strata or the UC Davis Rec redesign at all.** It lists R3SHORE,
-the Design Interactive cohort (Bearings), and the fellowship. Strata is the direct evidence for
-TikTok's "vibe coding" requirement, and it is on your site but not on the document that gets
-screened. **Add it.** One line: built end to end in Lovable, rebuilt natively in Xcode.
+**4. Two of your five case studies are invisible on your résumé.** It covers R3SHORE, the Design
+Interactive cohort (Bearings), and the fellowship — and Cluster appears only obliquely, as *"a mobile
+app concept… earning the team's Most Innovative Design award"*, without its name. **Strata and the
+UC Davis Rec redesign do not appear at all.** That matters here specifically: Strata is the direct
+evidence for TikTok's "vibe coding" requirement and for Klaviyo's AI-fluency bullet, and the Rec
+redesign is the Apple Wallet interaction. Both are on your site; neither is on the document that
+gets screened first. **Add a one-line Projects block.** Strata — built end to end in Lovable,
+rebuilt natively in Xcode. UC Davis Rec — three-day redesign, member ID moved into Apple Wallet.
 
 **5. Your title is going to raise an eyebrow, and that is fine — prepare the sentence.**
 "Head of User Experience & Product Design" on a four-month tenure at an early-stage company is
@@ -388,7 +392,7 @@ aggregator data. This is how I swept 212 companies, and you can run it yourself 
 # Greenhouse  (Figma, Discord, Chime, Reddit, Airbnb, Robinhood, Stripe, Gusto, Klaviyo …)
 curl -s "https://boards-api.greenhouse.io/v1/boards/discord/jobs" | grep -i design
 
-# Lever       (Palantir, Netflix, Match Group …)
+# Lever       (Palantir, Match Group, Gopuff …)
 curl -s "https://api.lever.co/v0/postings/palantir?mode=json" | grep -i design
 
 # Ashby       (Solace, OpenAI, Notion, Ramp, Linear, Perplexity, Cursor …)
