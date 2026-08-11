@@ -166,19 +166,23 @@ class QuietHandler(SimpleHTTPRequestHandler):
 
 # ── the historical bugs, re-injected one at a time ───────────────────────────
 SELF_TEST_INJECTIONS = {
-    # THIS INJECTION MOVED, because the one it replaced could not fail.
-    # It used to break only the restart button's newSubject() call. But a new
-    # PHOTO also calls newSubject (headmaker.html:904, "a new photo is a new
-    # face"), and this contract builds its second head by uploading one -- so
-    # the upload reset the subject no matter what restart did, and the injected
-    # bug never reached the assertion. It read as "caught" once, from an
-    # assertion of mine that was firing on the real tree too; both were noise.
-    # The guard that actually protects the shipped flow is the one on the photo
-    # load, so that is the one worth proving can fail.
-    "new-photo-keeps-the-last-face": (
-        "headmaker.html",
-        'var g=newSubject();   /* a new photo is a new face',
-        'var g=subjGen;   /* a new photo is a new face'),
+    # THE GEOMETRY CARRY-OVER HAS NO INJECTION HERE, DELIBERATELY, AND THIS NOTE
+    # IS THE POINT OF IT. Three attempts, all failed, each for its own reason:
+    #   1. break newSubject() at the restart button -- unreachable, because a new
+    #      PHOTO also calls newSubject (headmaker.html, "a new photo is a new
+    #      face") and this contract builds its second head by uploading one, so
+    #      the upload reset the subject no matter what restart did.
+    #   2. break it at the photo load instead -- still missed, because guessFace
+    #      does not reliably decline even on a flat featureless fixture, so the
+    #      marks get overwritten and no contamination survives to be measured.
+    #   3. assert the guards statically instead -- correct, and invisible to THIS
+    #      harness: injections are served over HTTP to the browser, while a static
+    #      check reads the file from disk, which the injection never touches.
+    # So the guards are named in run() and they will fail if anyone deletes them
+    # from the source. What is NOT claimed is that this file can provoke the bug
+    # behaviourally. An injection kept here would report "caught" or "MISSED" on
+    # something it is not testing, and a detector that reports on nothing is the
+    # exact defect this whole file exists to stamp out.
     "dedupe-key-without-the-picture": (
         "headmaker.html",
         'var k2=d.cut.length+"|"+JSON.stringify(d.marks||"m")',
