@@ -249,6 +249,16 @@ async () => {
     if (!window.__hmTourWin) return {name: null, why: 'no __hmTourWin'};
     const isFinal = document.body.classList.contains('hmFinal');
     window.__hmTourWin(1, 2, 1);
+    /* AND THEN THE PITCH HAS TO HAND THE SCREEN BACK. play-engine.js's win path
+       calls __hmTourWin and then `setTimeout(finish, 5400)` -- finish IS
+       __hmSoccerEnd, and it is the only thing that clears body.hmSoccer. Calling
+       __hmTourWin on its own, as a test driver naturally does, records the result
+       and leaves the pitch up forever: .tvScreen is `display:none` under
+       hmSoccer, every rect reads 0, and the champion screen appears never to
+       paint. This is the documented missing-__hmSoccerEnd trap and it cost this
+       contract a false green -- the clipping assertions all passed on boxes of
+       size zero. Drive the same two calls the engine drives. */
+    try { if (window.__hmSoccerEnd) window.__hmSoccerEnd(); } catch (_) {}
     await sleep(isFinal ? 11200 : 6100);
   }
 
@@ -259,6 +269,16 @@ async () => {
   const nm = document.querySelector('.tvChampNm');
   if (!wrap || !head || !grid) return {name: nm ? nm.textContent : null, why: 'champion did not paint'};
   const wb = wrap.getBoundingClientRect(), gb = grid.getBoundingClientRect();
+  // A ZERO-SIZE SCREEN MUST NOT READ AS "NOT CLIPPED". body.hmSoccer sets
+  // .tvScreen to display:none, and __hmTourWin can leave it set when the engine's
+  // own __hmSoccerEnd has not run -- one of the two documented traps here. Every
+  // rect is then 0, `head.top < wrap.top - 0.5` is 0 < -0.5, and the clipping
+  // assertions all pass on a screen nobody can see. This gate did exactly that
+  // once, and reported green on a champion who was visibly a chin.
+  if (wb.height < 1 || gb.width < 1)
+    return {name: nm ? nm.textContent : null,
+            why: 'the champion screen has no box -- body.className is "'
+                 + document.body.className + '"'};
   const rows = Array.from(document.querySelectorAll('.tvStandRow'));
   // A row is hidden if it falls outside its own clipping grid OR off the screen.
   const hidden = rows.filter(r => { const q = r.getBoundingClientRect();
@@ -511,7 +531,10 @@ def run(base, browser, f, sabotage=None, strip_ctl=False):
             champ = pg.evaluate(CHAMPION_DRIVE)
             f.check(champ.get("name"), "champion %s: the cup produces a champion" % at,
                     json.dumps(champ)[:200])
-            if champ.get("name"):
+            f.check(not champ.get("why"),
+                    "champion %s: the champion screen actually paints" % at,
+                    champ.get("why", ""))
+            if champ.get("name") and not champ.get("why"):
                 f.check(not champ["headClipped"],
                         "champion %s: the winner's head is whole" % at, json.dumps(champ))
                 f.check(not champ["crownClipped"],
@@ -575,7 +598,17 @@ def self_test(base, browser):
 
     print("  [6] restore column-fill:auto, which dropped half the final table at 320")
     f6 = Findings(verbose=False)
+    # THE WHOLE SHIPPED MECHANISM, not just the display mode. Re-injecting
+    # column-fill alone no longer reproduced the bug, because the 640-and-under
+    # block now buys the table 26px of heading and 9px a row -- so eight short
+    # rows fit two columns even under the old algorithm, and the detector went
+    # quiet on a defect that had genuinely been fixed twice over. An injection
+    # that no longer reproduces its defect is a passing self-test that proves
+    # nothing. This restores the band split and the row height with it.
     run(base, browser, f6, sabotage="""
+      .tvBody.tvDone{grid-template-rows:minmax(0,1fr) minmax(0,1.15fr)!important}
+      .tvBody.tvDone .tvBoardHd{display:block!important}
+      .tvStandRow{min-height:29px!important}
       .tvStandGrid{display:block!important;column-count:2;column-fill:auto;overflow:hidden}""")
     caught6 = [r for r in f6.failures if "every team is in the final table" in r[1]]
     print("      %d standings failure(s) raised" % len(caught6))

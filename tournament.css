@@ -506,15 +506,49 @@ body.hmFinal .sBall{content:url(images/soccerball-gold.webp)}
    with the window's width. See the phone and short-viewport blocks at the foot
    of this file for the two rungs below this one. */
 :root{--tvChamp:clamp(110px, 20svh, 200px)}
-/* The crown's own overhang, reserved INSIDE the clip. 26% of the head's height
-   sits above it at top:-8%, so 8% of a 6/5-tall head is the headroom the wrap
-   has to keep back or the gold is the first thing cut. Stated once, in terms of
-   the same variable the crown is drawn from, so the two cannot drift. */
-.tvChampWrap{position:relative;display:flex;align-items:flex-end;justify-content:center;
+/* --tvChamp IS A CEILING NOW, NOT A SIZE, and that is the whole fix. A width
+   clamp cannot be ignored -- which is why the old rule used one -- but it also
+   cannot know how much room the band actually has, and on a phone the band is
+   smaller than any rung of the clamp. Measured with a real cup driven to its
+   champion: at 320x568 the wrap was 31.7px tall holding a 91.2px head, so 59.5px
+   of face was above the clip and the crown 68.1px above it. At 390x844 it was
+   23.5px and 36px. Both read as a chin.
+   `align-items:stretch` gives the head a DEFINITE height -- the flex line's --
+   and `aspect-ratio` derives the width from it, so the picture is as big as the
+   space allows and never one pixel bigger. max-width keeps the desktop rung.
+   This is the same shape as the earlier `max-height:100%` attempt and it is not
+   the same mechanism: a percentage MAX-height against an indefinite height
+   resolves to `none` and is dropped, which is why that one was silently ignored.
+   A stretched flex item's cross size is definite by construction. */
+.tvChampWrap{position:relative;display:flex;align-items:stretch;justify-content:center;
   min-height:0;flex:1 1 auto;overflow:hidden;
-  padding-top:calc(var(--tvChamp) * 6 / 5 * 0.20)}
-.tvChampHead{position:relative;width:var(--tvChamp);flex:0 0 auto}
-.tvChampHead img{display:block;width:100%;height:auto}
+  /* THE CROWN'S HEADROOM, reserved inside the clip. The crown hangs at top:-8%
+     of the head's height, and the head is at most --tvChamp wide, so at most
+     1.2 x --tvChamp tall, so its overhang is at most 0.096 x --tvChamp. 12% is
+     that bound -- and 12% was measured SHORT, by 3.7px at 1440, because the
+     crown is `rotate(-5deg)` and a rotated box is taller than the one it was
+     drawn from. 16% covers the rotation with room over. It is a CEILING-derived
+     reserve rather than a measured one on purpose: the head shrinks to whatever
+     is left, so reserving slightly too much costs a couple of pixels of portrait
+     and never costs the gold. */
+  padding-top:calc(var(--tvChamp) * 0.16)}
+/* BOTH AXES ARE CAPPED, and the second cap is not redundant. With only
+   max-width, a tall narrow band gives the box the band's full height and the
+   width cap alone -- 76 x 123.7 at 1440x620, a 0.61 box holding a 0.83 picture.
+   `contain` letterboxes the artwork inside it, so the head LOOKS right, but the
+   crown is positioned in percentages of the BOX and floats up off the forehead
+   into the padding -- it cleared the clip by 0.4px there, which is a collision
+   that has not happened yet. Capping the height at the same 5:6 keeps the box on
+   the picture and keeps the reserve above honest, because that reserve is
+   derived from --tvChamp. */
+.tvChampHead{position:relative;flex:0 1 auto;
+  aspect-ratio:5 / 6;height:100%;width:auto;
+  max-width:var(--tvChamp);max-height:calc(var(--tvChamp) * 6 / 5)}
+/* `contain`, not the old `width:100%;height:auto`: the box is now sized by the
+   band and the artwork has to fit INSIDE it whichever axis binds. These are
+   transparent cut-outs -- the same argument .tvFace makes eight hundred lines
+   up -- so a crop would eat hair and chin rather than empty pixels. */
+.tvChampHead img{display:block;width:100%;height:100%;object-fit:contain}
 .tvCrown{position:absolute;left:50%;top:-8%;height:26%;width:auto;z-index:2;
   transform:translateX(-50%) rotate(-5deg);transform-origin:50% 100%;pointer-events:none}
 .tvCrown svg{display:block;height:100%;width:auto}
@@ -705,6 +739,38 @@ body.tvBoardOpen .tvSheetPanel{opacity:1;pointer-events:auto;transform:translate
    visitor did not come for. */
 @media(max-height:700px){
   .tvTape{display:none}
+}
+/* ---------------------------------------------------------------------------
+   640 AND UNDER -- the champion screen, where the arithmetic finally runs out
+   Measured at 320x568: band B is 208px, and a portrait plus a name plus a
+   heading plus eight standings rows is more than 208px of content. Sizing the
+   head to the space (above) stops it being CLIPPED but on its own it leaves a
+   19x23 speck -- whole, and meaningless.
+
+   So this is a reduction, in the order the information deserves. The board's
+   heading goes first: "Player 1 wins the cup" is printed in --fs-h4 directly
+   above it, so "FINAL STANDINGS" is a caption for something that has already
+   said what it is. Then the rows drop their extra air to --tvRow, which is
+   itself floored at 19px. Then the row split moves 1:1.15 -> 1.3:1, because the
+   picture is the thing this screen exists to show and the table has just been
+   given back 26px of heading and 16px of row air to pay for it.
+
+   Result at 320x568: a whole crowned portrait around 52px wide with all eight
+   teams still listed under it, and nothing crossing the ground line. Nothing
+   scrolls, and nothing is hidden -- the space was found by removing a caption,
+   not by cropping a face or adding a scrollport.
+   --------------------------------------------------------------------------- */
+/* AND IT IS SCOPED TO THE PHONE'S LAYOUT, which cost a measurement to learn.
+   `.tvBody.tvDone` is TWO COLUMNS AND ONE ROW above 760px and ONE COLUMN AND TWO
+   ROWS below it. A bare `grid-template-rows` here therefore invented a second
+   row on a wide-but-short window: at 1440x620 the champion took 1.3 of 2.3 rows
+   of a layout that wanted one, and the head came out 21x25. The height query
+   alone was not the condition -- the condition is the stacked layout. */
+@media(max-height:640px) and (max-width:760px){
+  .tvBody.tvDone{grid-template-rows:minmax(0,1.3fr) minmax(0,1fr)}
+  .tvBody.tvDone .tvBoardHd{display:none}
+  .tvStandRow{min-height:var(--tvRow)}
+  .tvChampNm{margin-top:var(--sp-8)}
 }
 
 /* Under 560px the strip cannot carry the cup's name AND the round AND two
