@@ -778,6 +778,22 @@ img{display:block;max-width:100%}
 <script>
 (function(){
 "use strict";
+/* ---------- HOW MANY HEADS THE PIT HOLDS ----------
+   ONE RULE, DECLARED IDENTICALLY IN EVERY FILE THAT ENFORCES IT. It used to be
+   the literal 8, written out in eight separate places across four files, and
+   three of those places also HEAL localStorage -- they rewrite the roster when
+   the deduped list is shorter than what they read. So a single stale copy does
+   not merely disagree, it DELETES: a builder saving twelve and a reader capping
+   at eight loses four heads permanently on the next page load.
+   There is no script shared by index.html, play.html and headmaker.html that
+   the games lane owns, so a single canonical module is not reachable without
+   adding a script tag to a page this lane must not touch. Instead every copy is
+   the SAME idempotent line: whichever script runs first on a page defines the
+   number and the rest adopt it, so within any one page every enforcement site
+   is literally the same value. tools/roster-cap-contract.py fails when the
+   literals drift apart across files, which is the failure this shape cannot
+   prevent on its own. */
+var HM_MAX=(window.__HM_MAX_HEADS=window.__HM_MAX_HEADS||12);
 var reduce=window.matchMedia&&window.matchMedia("(prefers-reduced-motion:reduce)").matches;
 /* ---------- the step switch ----------
    THREE THINGS MOVE TOGETHER AND NOTHING SCROLLS. The panel group, the stage
@@ -805,6 +821,31 @@ var pz={s:1.2,x:0,y:0,r:0};                               // pan/zoom in stage-2
 var pts={Li:{x:0.335,y:0.42},Lo:{x:0.455,y:0.42},Ri:{x:0.545,y:0.42},Ro:{x:0.665,y:0.42},Lt:{x:0.395,y:0.405},Lb:{x:0.395,y:0.437},Rt:{x:0.605,y:0.405},Rb:{x:0.605,y:0.437}};   // corners + lids
 var marks={BL:{x:0.395,y:0.345},BR:{x:0.605,y:0.345},N:{x:0.5,y:0.555},M:{x:0.5,y:0.685}};   // brows, nose, mouth
 var restoredEyes=null;
+/* ---------- WHOSE FACE IS ON THE BENCH ----------
+   Everything in this builder is module-scope state describing ONE subject: `photo`,
+   `bakedCanvas`, `cutURL`, `pts`, `marks`, `restoredEyes`. Three separate things write
+   some of that asynchronously -- the restore decode, the FaceDetector promise, and the
+   one-shot repack -- and not one of them checked, when it landed, whether it was still
+   talking about the same person. A promise started for subject A that resolves after
+   subject B is on the bench writes A's pixels or A's landmarks onto B, which is exactly
+   the shape of "sometimes it shows some of the skin from the last person".
+   subjGen is bumped the moment a new subject arrives. Every async landing captures it
+   going in and drops its result if the number has moved. This is the only defence that
+   works, because there is no way to cancel an image decode already in flight. */
+var subjGen=0;
+function newSubject(){   // a different person is on the bench: nothing of the last one may survive
+ subjGen++;
+ bakedCanvas=null;cutURL=null;restoredEyes=null;
+ /* pts and marks were the quiet half of this bug. restart() cleared restoredEyes and
+    nothing else, so the eye corners and the brow/nose/mouth marks stayed exactly where
+    the previous face had put them -- and guessFace() only overwrites them when its
+    heuristic actually finds two eyes. When it declines, the new face is measured with
+    the old face's geometry, and buildLive() then cuts its brow and eye-cover patches
+    from those coordinates. Reproduced: a second photo inherited the first's marks to
+    the last decimal place. */
+ try{if(typeof PTS0!=="undefined"&&PTS0)Object.keys(PTS0).forEach(function(k){pts[k]={x:PTS0[k].x,y:PTS0[k].y};});}catch(_){}
+ try{if(typeof MARKS0!=="undefined"&&MARKS0)marks={BL:{x:MARKS0.BL.x,y:MARKS0.BL.y},BR:{x:MARKS0.BR.x,y:MARKS0.BR.y},N:{x:MARKS0.N.x,y:MARKS0.N.y},M:{x:MARKS0.M.x,y:MARKS0.M.y}};}catch(_){}
+ return subjGen;}
 function deriveEyes(){if(restoredEyes)return restoredEyes; // centre, width, and tilt straight from the corners the visitor marked
  function one(a,b,t,btm){var w=Math.hypot(b.x-a.x,(b.y-a.y)*(BAKE_H/BAKE_W))*1.02;
   var ap=Math.abs(btm.y-t.y)*1.18;   // true lid aperture, marked by the visitor
@@ -860,9 +901,10 @@ function load(f){
  var looksImg=/^image\//.test(f.type)||/\.(hei[cf]|jpe?g|png|webp|gif|avif|bmp)$/i.test(f.name||"");   // HEIC often arrives with an empty type
  if(!looksImg)return;
  if(smileSlot){loadSmile(f);return;}
- restoredEyes=null;   /* a new photo is a new face: never reuse a restored head's geometry or colors */
+ var g=newSubject();   /* a new photo is a new face: never reuse a restored head's geometry, colours, bake or landmarks */
  photoErr(false);
  readAsImage(f,function(im,url){
+  if(g!==subjGen)return;   // a slow decode that lost the race: a THIRD photo is already on the bench
   if(photoURL)URL.revokeObjectURL(photoURL);
   photoURL=url;photo=im;
   show(1);requestAnimationFrame(function(){requestAnimationFrame(initFrame);});
@@ -970,7 +1012,9 @@ function guessFace(){try{
   applyFaceGuess(le,re,findMouth(mid));
  }
  if(window.FaceDetector){   // when the browser can really see, let it override the heuristic
+  var _g=subjGen;
   new FaceDetector({maxDetectedFaces:1,fastMode:false}).detect(bakedCanvas).then(function(fs){
+   if(_g!==subjGen)return;   // landmarks measured on the PREVIOUS face. They land as much as a second late on a real photo, and applyFaceGuess below writes straight into pts and marks -- so without this, one person's eyes, brows and mouth get stamped onto the next person's head, and every skin patch buildLive() cuts is then cut from the wrong place.
    if(!fs||!fs[0]||!fs[0].landmarks)return;
    function ctr(t){var loc=[];fs[0].landmarks.forEach(function(m){if(m.type===t&&m.locations)loc=loc.concat(m.locations);});
     if(!loc.length)return null;var sx=0,sy=0;loc.forEach(function(p){sx+=p.x;sy+=p.y;});
@@ -1259,9 +1303,9 @@ function buildLive(){
   if(!(_all instanceof Array))_all=[];
   if(_rawS===null){try{var _lg=JSON.parse(localStorage.getItem("hmCompanion")||"null");if(_lg&&_lg.cut&&_lg.cut.length>100)_all=[_lg];}catch(_){}}
   _all=_all.filter(function(h){return h&&h.cut&&h.cut.length>=15000&&h.cut!==_nh.cut;});   // real faces only; the same face re-saved just moves to newest
-  _all.push(_nh);while(_all.length>8)_all.shift();   // the pit holds eight: the oldest head retires
-  for(var qa=0;qa<8;qa++){try{localStorage.setItem("hmCompanions",JSON.stringify(_all));break;}
-   catch(_q){if(_all.length<=1)break;_all.shift();}}   // quota can never eat a save silently again
+  _all.push(_nh);while(_all.length>HM_MAX){_retiredT=Date.now();_retiredName=(_all[0]&&_all[0].name)||"";_all.shift();}   // the pit is full: the OLDEST head retires, never the one just made -- and renderPit's heading says so
+  for(var qa=0;qa<=HM_MAX;qa++){try{localStorage.setItem("hmCompanions",JSON.stringify(_all));break;}
+   catch(_q){if(_all.length<=1)break;_all.shift();}}   // quota can never eat a save silently again -- the retry budget has to be the roster size, not a literal 8, or a full pit runs out of attempts before it runs out of heads to shed
   try{localStorage.setItem("hmCompanion",JSON.stringify(_nh));}catch(_){}
   }catch(_){}
  renderPit();
@@ -1326,12 +1370,17 @@ function loadSmile(f){
 function readPit(){var all=[],rawN1=null;
  try{var raw1=localStorage.getItem("hmCompanions");if(raw1!==null){all=JSON.parse(raw1)||[];rawN1=all.length;}}catch(_){}
  if(rawN1===null){try{var lg1=JSON.parse(localStorage.getItem("hmCompanion")||"null");if(lg1&&lg1.cut)all=[lg1];}catch(_){}}
+ /* THE GEOMETRY KEY NEEDS THE PICTURE IN IT. "Same marks and same eye boxes" was being
+    treated as "same head", which is false: two different people marked at the same
+    coordinates are two different people, and the second one was being deleted as a
+    duplicate. Reproduced 3/3 -- build one face, Start over, build a second whose auto
+    guess declines, and the roster still holds one head, the first one. The cut length
+    costs nothing and makes the key about the FACE as well as where its eyes are. */
  var seenP={};all=all.filter(function(d){if(!d||!d.cut||d.cut.length<15000)return false;
-  var kk=d.cut.length+"|"+JSON.stringify(d.marks||"")+"|"+JSON.stringify(d.eyes&&d.eyes[0]&&d.eyes[0].x);
-  var k2=JSON.stringify(d.marks||"m")+JSON.stringify((d.eyes||[]).map(function(e){return[e.x,e.y,e.w,e.h];}));
-  if(seenP[d.cut]||seenP[k2])return false;seenP[d.cut]=1;seenP[k2]=1;return true;}).slice(0,8);
- if(rawN1!==null&&rawN1!==all.length){try{localStorage.setItem("hmCompanions",JSON.stringify(all));}catch(_){}}   // heal: duplicates and debris leave the record for good
- return all;}
+  var k2=d.cut.length+"|"+JSON.stringify(d.marks||"m")+JSON.stringify((d.eyes||[]).map(function(e){return[e.x,e.y,e.w,e.h];}));
+  if(seenP[d.cut]||seenP[k2])return false;seenP[d.cut]=1;seenP[k2]=1;return true;});
+ if(rawN1!==null&&rawN1!==all.length){try{localStorage.setItem("hmCompanions",JSON.stringify(all));}catch(_){}}   // heal: duplicates and debris leave the record for good. The HEALED list only -- chaining the cap onto the filter above and persisting THAT is what deleted every head past the eighth on a plain page load, which is why the pit appeared unable to hold more than eight.
+ return all.slice(0,HM_MAX);}   // the cap shapes the pit that is drawn; it never shortens what is stored
 /* THE CANONICAL REMOVE PATTERN -- see index.html for the full reasoning. Shape:
      .mkGroupHead > .mkGroupH#hmPitTitle + .hmPitEdit[aria-pressed]  -- the mode toggle
      .hmPit[data-editing] > .hmPitItem                     -- the grid
@@ -1350,8 +1399,19 @@ function pitRemove(idx){var cur=readPit(),gone=cur.splice(idx,1)[0];if(!gone)ret
 function pitUndoRemove(){if(!_pitUndo)return;var cur=readPit();
  cur.splice(Math.min(_pitUndo.idx,cur.length),0,_pitUndo.head);
  pitCommit(cur);clearTimeout(_pitUndoT);_pitUndo=null;renderPit();}
+/* WHAT THE PIT SAYS WHEN IT IS FULL. Saving a head into a full pit retires the oldest
+   one, and it used to do that in total silence -- the tile simply was not there any more
+   and nothing on screen had said why. Silent is the one thing a save that discards work
+   must never be. This says it in the heading that is already on the page rather than in
+   a new strip of chrome: the count while the pit is full, and for eight seconds after a
+   retirement, what just happened. Same eight seconds the Undo tile lives for. */
+var _retiredT=0,_retiredName="";
+function pitTitle(n){var h=document.getElementById("hmPitTitle");if(!h)return;
+ if(_retiredT&&Date.now()-_retiredT<8000){h.textContent="Your heads — "+(_retiredName?("“"+_retiredName+"” "):"the oldest ")+"retired to make room";return;}
+ h.textContent=(n>=HM_MAX)?("Your heads — "+n+" of "+HM_MAX+", full"):"Your heads";}
 function renderPit(){try{var row=document.getElementById("hmPitRow"),sec=document.getElementById("hmPitSec");if(!row)return;
  var all=readPit();
+ pitTitle(all.length);if(_retiredT)setTimeout(function(){if(Date.now()-_retiredT>=8000){_retiredT=0;pitTitle(readPit().length);}},8100);
  if(sec)sec.classList.toggle("hidden",!all.length&&!_pitUndo);
  row.setAttribute("data-editing",_pitEdit?"true":"false");
  var eb=document.getElementById("hmPitEdit");
@@ -1390,14 +1450,40 @@ function renderPit(){try{var row=document.getElementById("hmPitRow"),sec=documen
 (function(){var eb=document.getElementById("hmPitEdit");
  if(eb)eb.addEventListener("click",function(ev){ev.preventDefault();_pitEdit=!_pitEdit;renderPit();});})();
 renderPit();
-(function slimDown(){try{ // old 900k PNG heads repack themselves to travel light
+/* old 900k PNG heads repack themselves to travel light.
+   THIS USED TO DELETE HEADS. It snapshotted the roster at page load, spent as long as
+   the decodes took re-encoding it, and then wrote the WHOLE SNAPSHOT back over
+   hmCompanions -- so any head saved while it was working was erased, along with
+   hmCompanion, which it also overwrote with a stale entry. Decoding and re-encoding
+   several ~1MB PNGs is hundreds of milliseconds of window, it runs once and never
+   again (need goes false), and it is exactly the kind of intermittent, unattributable
+   loss that reads as "it sometimes forgets a head".
+   It now writes back per head, by identity: re-read the roster as it stands NOW and
+   replace only the entry whose cut is still the one that was repacked. A head saved
+   meanwhile is not in that set, so it cannot be touched. Nothing is ever removed. */
+(function slimDown(){try{
  var all=readPit(),need=all.some(function(h){return h.cut.length>500000;});if(!need)return;
- var done=0;all.forEach(function(h,i){if(h.cut.length<=500000){done++;return;}
-  var im2=new Image();im2.onload=function(){try{var c4=document.createElement("canvas");c4.width=BAKE_W;c4.height=BAKE_H;
-   c4.getContext("2d").drawImage(im2,0,0,BAKE_W,BAKE_H);all[i]=Object.assign({},h,{cut:packCut(c4)});}catch(_){}
-   if(++done===all.length){try{localStorage.setItem("hmCompanions",JSON.stringify(all));
-    localStorage.setItem("hmCompanion",JSON.stringify(all[all.length-1]));renderPit();}catch(_){}}};
-  im2.onerror=function(){if(++done===all.length){}};im2.src=h.cut;});}catch(_){}})();
+ var pend=0,changed=false;
+ function land(oldCut,newCut){
+  if(newCut){try{
+   var cur=[];try{cur=JSON.parse(localStorage.getItem("hmCompanions")||"[]")||[];}catch(_){}
+   if(!(cur instanceof Array))return;
+   for(var j=0;j<cur.length;j++)if(cur[j]&&cur[j].cut===oldCut){cur[j]=Object.assign({},cur[j],{cut:newCut});changed=true;
+    localStorage.setItem("hmCompanions",JSON.stringify(cur));
+    try{var one=JSON.parse(localStorage.getItem("hmCompanion")||"null");
+     if(one&&one.cut===oldCut)localStorage.setItem("hmCompanion",JSON.stringify(Object.assign({},one,{cut:newCut})));}catch(_){}
+    break;}
+  }catch(_){}}
+  if(--pend<=0&&changed)renderPit();}
+ all.forEach(function(h){if(h.cut.length<=500000)return;
+  pend++;
+  var im2=new Image();
+  im2.onload=function(){var packed=null;
+   try{var c4=document.createElement("canvas");c4.width=BAKE_W;c4.height=BAKE_H;
+    c4.getContext("2d").drawImage(im2,0,0,BAKE_W,BAKE_H);packed=packCut(c4);}catch(_){}
+   land(h.cut,packed);};
+  im2.onerror=function(){land(h.cut,null);};   // one head that will not decode must not strand the other seven, which is what the old counter did
+  im2.src=h.cut;});}catch(_){}})();
 document.getElementById("saveFile").addEventListener("click",function(){ // your head as a keepsake file: reupload it any time
  try{if(!cutURL||cutURL.length<100)return;
   var _d2=deriveEyes();
@@ -1406,7 +1492,7 @@ document.getElementById("saveFile").addEventListener("click",function(){ // your
   var a=document.createElement("a");a.download="my-floating-head.headjson";
   a.href="data:application/json;charset=utf-8,"+encodeURIComponent(JSON.stringify(payload));a.click();
  }catch(_){}});
-document.getElementById("restart").addEventListener("click",function(){restoredEyes=null;
+document.getElementById("restart").addEventListener("click",function(){newSubject();   // Start over means a different person: clear the bake, the cut and the facial geometry too, not just restoredEyes
  if(tick){clearInterval(tick);tick=null;}
  eyeEls.forEach(function(e){e.wrap.remove();});eyeEls=[];
  if(photoURL){URL.revokeObjectURL(photoURL);photoURL=null;}
@@ -1518,14 +1604,14 @@ document.getElementById("save").addEventListener("click",function(){
 });
 /* returning visitors get their head back — this runs last, after all state exists
    (it used to run before the var declarations executed, which nulled the restored image: the glitch) */
-function pitSave(nh){ // write one head into the eight-slot pit, quota-safe
+function pitSave(nh){ // write one head into the pit (HM_MAX slots), quota-safe
   var all=[],rawS=null;try{var r2=localStorage.getItem("hmCompanions");if(r2!==null){all=JSON.parse(r2)||[];rawS=1;}}catch(_){}
   if(!(all instanceof Array))all=[];
   if(rawS===null){try{var lg=JSON.parse(localStorage.getItem("hmCompanion")||"null");if(lg&&lg.cut&&lg.cut.length>100)all=[lg];}catch(_){}}
   all=all.filter(function(h){return h&&h.cut&&h.cut.length>=15000&&h.cut!==nh.cut;});   // the same file re-uploaded just moves to newest, never doubles
-  all.push(nh);while(all.length>8)all.shift();   // eight slots; the oldest retires
-  for(var qa=0;qa<8;qa++){try{localStorage.setItem("hmCompanions",JSON.stringify(all));break;}
-   catch(_q){if(all.length<=1)break;all.shift();}}   // quota can never eat the save silently
+  all.push(nh);while(all.length>HM_MAX){_retiredT=Date.now();_retiredName=(all[0]&&all[0].name)||"";all.shift();}   // the pit is full: the OLDEST retires, never the one just made -- and the heading says so, because a save that discards work in silence is the bug this whole cap already caused once
+  for(var qa=0;qa<=HM_MAX;qa++){try{localStorage.setItem("hmCompanions",JSON.stringify(all));break;}
+   catch(_q){if(all.length<=1)break;all.shift();}}   // quota can never eat the save silently -- retry budget is the roster size, so a full pit always has an attempt left for every head it can shed
   try{localStorage.setItem("hmCompanion",JSON.stringify(nh));}catch(_){}
   renderPit();
 }
@@ -1544,8 +1630,14 @@ function registerHead(_sv){try{ // a saved head file re-uploaded joins the pit l
   img.src=_sv.cut;
  }catch(_){}}
 function restoreHead(_sv,save){if(!(_sv&&_sv.cut&&_sv.cut.length>100))return false;
- cutURL=_sv.cut;restoredEyes=_sv.eyes;if(_sv.marks)marks=_sv.marks;
- try{var rim=new Image();rim.onload=function(){try{var rc=document.createElement("canvas");rc.width=BAKE_W;rc.height=BAKE_H;
+ var g=newSubject();   // a restored head is a subject too, and it is the one that used to arrive LATE and overwrite somebody else
+ cutURL=_sv.cut;restoredEyes=_sv.eyes;
+ /* COPIED, NOT ALIASED. `marks=_sv.marks` pointed the live marks at the object inside
+    the saved record, so every later drag of a dot silently edited the head already on
+    disk -- and the next save wrote that same shared object into a second record. */
+ if(_sv.marks)try{marks={BL:{x:_sv.marks.BL.x,y:_sv.marks.BL.y},BR:{x:_sv.marks.BR.x,y:_sv.marks.BR.y},N:{x:_sv.marks.N.x,y:_sv.marks.N.y},M:{x:_sv.marks.M.x,y:_sv.marks.M.y}};}catch(_){}
+ try{var rim=new Image();rim.onload=function(){if(g!==subjGen)return;   // THE ONE THAT CAUSED THIS. An image decode cannot be cancelled, so the only defence is refusing the result: by the time this lands, somebody else may be on the bench, and writing here put the previous person's whole face into the new person's bake.
+  try{var rc=document.createElement("canvas");rc.width=BAKE_W;rc.height=BAKE_H;
   rc.getContext("2d").drawImage(rim,0,0,BAKE_W,BAKE_H);bakedCanvas=rc;}catch(_){}};rim.src=_sv.cut;}catch(_){}
  if(save)registerHead(_sv);   // uploads register; auto-restore and pit-clicks only display
  setTimeout(function(){try{buildLive();show(3);}catch(_){}},60);return true;}

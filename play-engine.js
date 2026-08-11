@@ -3,13 +3,29 @@
    stands on the CTA buttons, never covers the big head or the text, wanders off screen and
    comes back, and you can pick it up like a Mii — it panics, you drop it, it bounces, it gets dizzy. */
 (function(){
- var list=[],_rawN=null;   // up to eight little heads: the ball pit
+ /* HOW MANY HEADS THE PIT HOLDS -- ONE RULE, DECLARED IDENTICALLY IN EVERY FILE
+    THAT ENFORCES IT (play-engine.js, play-games.js, headmaker.html and
+    index.html). Was the literal 8 in eight places; three of them, including the
+    filter directly below, also HEAL localStorage by rewriting the roster when
+    the deduped list comes out shorter than what was read. A stale copy does not
+    just disagree, it DELETES. No script is shared by all three pages that this
+    lane owns, so each copy is the same idempotent line: first script on the page
+    to run defines it, the rest adopt it. tools/roster-cap-contract.py fails when
+    the literals drift apart across files. */
+ var HM_MAX=(window.__HM_MAX_HEADS=window.__HM_MAX_HEADS||12);
+ var list=[],_rawN=null;   // up to HM_MAX little heads: the ball pit
  try{var _raw=localStorage.getItem("hmCompanions");if(_raw!==null){var _m=JSON.parse(_raw)||[];_rawN=_m.length;list=_m;}}catch(_){}
  if(_rawN===null){try{var _one=JSON.parse(localStorage.getItem("hmCompanion")||"null");if(_one)list=[_one];}catch(_){}}   // legacy only when the new key has never existed: an emptied pit stays empty
+ /* HEALING WRITES BACK. CAPPING DOES NOT. Chaining .slice(HM_MAX) onto this filter and
+    then persisting the result meant a plain page load DELETED every head past the cap:
+    eleven saved, eight on disk after a reload, and the difference not recoverable. The
+    dedupe is a genuine repair and is still written; the cap only decides how many heads
+    this page puts on the ground. Anything beyond it waits on disk. */
  var seenC={};list=list.filter(function(d){if(!d||!d.cut||d.cut.length<15000)return false;
-  var k2=JSON.stringify(d.marks||"m")+JSON.stringify((d.eyes||[]).map(function(e){return[e.x,e.y,e.w,e.h];}));
-  if(seenC[d.cut]||seenC[k2])return false;seenC[d.cut]=1;seenC[k2]=1;return true;}).slice(0,8);   // unique REAL faces only, by pixels AND by geometry
- if(_rawN!==null&&_rawN!==list.length){try{localStorage.setItem("hmCompanions",JSON.stringify(list));if(typeof _hcBump==="function")_hcBump();}catch(_){}}   // heal stale duplicates once, physically
+  var k2=d.cut.length+"|"+JSON.stringify(d.marks||"m")+JSON.stringify((d.eyes||[]).map(function(e){return[e.x,e.y,e.w,e.h];}));   // the cut length is part of the key: two DIFFERENT people marked at the same coordinates are not one head, and the newer one was being deleted as a duplicate. This key must stay byte-identical across play-games.js, play-engine.js, headmaker.html and index.html -- four copies disagreeing about who is a duplicate is four pages disagreeing about who exists.
+  if(seenC[d.cut]||seenC[k2])return false;seenC[d.cut]=1;seenC[k2]=1;return true;});   // unique REAL faces only, by pixels AND by geometry
+ if(_rawN!==null&&_rawN!==list.length){try{localStorage.setItem("hmCompanions",JSON.stringify(list));if(typeof _hcBump==="function")_hcBump();}catch(_){}}   // heal stale duplicates once, physically -- the HEALED list, never the capped one
+ list=list.slice(0,HM_MAX);
  // NO EARLY RETURN HERE. This used to read `if(!list.length)return;`, which bailed out of the whole
  // IIFE on an empty roster -- and every one of this engine's ~67 window.__hm* exports is declared
  // BELOW this line. So on a genuine first visit, with nothing in localStorage, __hmSpawnOne,
@@ -2998,7 +3014,17 @@ function teams(){
    +".hmRaceRow.fin{border-color:rgba(8,8,8,.55)}.hmRaceRow.fin::after{content:\"\\2713\";font-size:10px;line-height:1;color:var(--c700);margin-left:1px}.hmRaceRow.out{opacity:.45}.hmRaceRow.out img{filter:grayscale(1)}.hmRaceRow.out b{color:var(--c500)}.hmRaceRow.out::after{content:\"\\2715\";font-size:9px;line-height:1;color:var(--c500);margin-left:1px}"
    +".hmRaceRow.top{background:var(--c950);border-color:var(--c950);color:var(--c50)}.hmRaceRow.top b{color:var(--c50)}.hmRaceRow.top::after{content:\"\\265B\";font-size:10px;line-height:1;color:var(--c50);margin-left:1px}"   /* the leader's chip flips to ink + a quiet crown -- being #1 should FEEL like something */
    +".hmRaceRow.doom{animation:hmDoom .5s steps(2,end) infinite}@keyframes hmDoom{50%{background:rgba(224,90,78,.3);border-color:rgba(224,90,78,.8)}}"
-   +"@media(max-width:640px){.hmRaceBoard{left:0;right:0;top:auto;bottom:10px;transform:none;flex-direction:row;justify-content:center;flex-wrap:nowrap;gap:4px;padding:0 8px;opacity:.94}.hmRaceBoard .hmRaceRow{padding:3px 4px;font-size:var(--fs-micro);gap:0}.hmRaceBoard .hmRaceRow img{width:17px;height:20px}.hmRaceBoard .hmRaceRow b{display:none}.hmRaceBoard button.hmRaceRow{padding:3px 8px}}";   /* MOBILE STANDINGS. The board used to be display:none below 640 ("the race itself is the interface"),      but with no board and no positions a phone viewer cannot tell who is who or who is winning -- and      the vertical column cannot simply come back, because it lives in the LEFT RAIL that only exists on      desktop (X0 drops 104 -> 8 on mobile, so the course occupies the gutter). So: same chips, laid out      as a horizontal strip along the bottom, top three only. Bottom rather than top because the HUD      (count + End) already owns the top centre, and the camera rides the leader at ~42% height.
+   /* THE QUALIFYING LINE. When the race is deciding who reaches a knockout, the one
+      thing a viewer needs is not the winner -- it is the CUT: am I above it or below
+      it. One hairline in the gap the board already has, on the chip that sits first
+      below the line. A hairline and not a gap, a rule and not a shadow, and no margin
+      of its own: the FLIP that glides chips between rungs derives its distance from a
+      fixed pitch, so anything that changed the spacing would put every glide below the
+      line out by that much. */
+   +".hmRaceRow.cut::before{content:\"\";position:absolute;left:-3px;right:-3px;top:-2.5px;height:1px;background:var(--c300);border-radius:1px}.hmRaceRow{position:relative}"
+   +"@media(max-width:640px){.hmRaceBoard{left:0;right:0;top:auto;bottom:10px;transform:none;flex-direction:row;justify-content:center;flex-wrap:nowrap;gap:4px;padding:0 8px;opacity:.94}.hmRaceBoard .hmRaceRow{padding:3px 4px;font-size:var(--fs-micro);gap:0}.hmRaceBoard .hmRaceRow img{width:17px;height:20px}.hmRaceBoard .hmRaceRow b{display:none}.hmRaceBoard button.hmRaceRow{padding:3px 8px}}"   /* MOBILE STANDINGS. The board used to be display:none below 640 ("the race itself is the interface"),      but with no board and no positions a phone viewer cannot tell who is who or who is winning -- and      the vertical column cannot simply come back, because it lives in the LEFT RAIL that only exists on      desktop (X0 drops 104 -> 8 on mobile, so the course occupies the gutter). So: same chips, laid out      as a horizontal strip along the bottom, top three only. Bottom rather than top because the HUD      (count + End) already owns the top centre, and the camera rides the leader at ~42% height.
+      The cut hairline turns on its side with the strip: down the gap, not across it. */
+   +"@media(max-width:640px){.hmRaceRow.cut::before{left:-2.5px;right:auto;top:-3px;bottom:-3px;height:auto;width:1px}}";   /*
       Rank is applied with flex `order` (row.style.order = i), NOT DOM order -- so a :nth-child rule
       selects by DOM position and can hide the LEADER. Measured it doing exactly that: chips landed
       at x 116/226/171, i.e. DOM order 1,3,2. So no hiding: the whole field shows, the rank NUMBER is
@@ -3017,14 +3043,40 @@ function teams(){
      var tt=(list[i].slot!=null&&window.__hmCareer)?window.__hmCareer.titles(list[i].slot):0;
      row.innerHTML="<b>"+(i+1)+"</b><img alt='' src='"+img+"'>"+(tt>0?"<em style='font-size:9px;font-weight:600;font-style:normal;color:var(--c700)'>"+tt+"\u265B</em>":"");this.rows[list[i].key]=row;board.appendChild(row);}
     var endB=document.createElement("button");endB.className="hmRaceRow";endB.type="button";endB.style.cssText="cursor:pointer;order:99;justify-content:center;font-weight:600;color:#b3402e;border-color:var(--c100)";endB.textContent="End";
-    var self=this;endB.addEventListener("click",function(e){e.stopPropagation();if(self.endFn)self.endFn();});board.appendChild(endB);},
-   rank:function(orderKeys,locked){var prev={},k,r;   // FLIP: measure where every chip sits, reorder, then let each one GLIDE to its new rung -- overtakes read as real movement, never a teleport
-    for(k in this.rows){prev[k]=this.rows[k].getBoundingClientRect().top;}
-    for(var i=0;i<orderKeys.length;i++){r=this.rows[orderKeys[i]];if(!r)continue;
+    var self=this;endB.addEventListener("click",function(e){e.stopPropagation();if(self.endFn)self.endFn();});board.appendChild(endB);
+    /* MEASURE THE RUNG PITCH ONCE, HERE, AND NEVER AGAIN. rank() used to take two
+       getBoundingClientRect readings per chip on every re-rank: at twelve racers,
+       re-ranking three times a second, that is ~80 forced layouts per second inside
+       an animation loop -- the exact cost performance-idle-contract.py exists to stop
+       creeping back. The chips are a uniform flex line, so flex `order` alone decides
+       where each one sits: the distance between two rungs is a constant, and the glide
+       distance is (oldRank - newRank) * pitch with no measuring at all. */
+    this.at={};this.axis="translateY";this.pitch=0;
+    var rk=Object.keys(this.rows);
+    if(rk.length>1){var b0=this.rows[rk[0]].getBoundingClientRect(),b1=this.rows[rk[1]].getBoundingClientRect();
+     var dv=b1.top-b0.top,dh=b1.left-b0.left;
+     if(Math.abs(dh)>Math.abs(dv)){this.axis="translateX";this.pitch=dh;}else{this.pitch=dv;}}
+    if(!this.pitch)this.pitch=(this.axis==="translateX")?25:28;},   // one racer: nothing can shuffle, so the fallback never animates anything
+   /* FLIP: reorder, then let each chip GLIDE to its new rung -- an overtake has to read as
+      movement, never a teleport. Two changes from the version that shipped:
+      (1) the glide is a Web Animation, not a transition primed by a forced reflow, so the
+          re-rank costs zero layout;
+      (2) EVERY chip's transform is settled every time. The old code only touched rows whose
+          measured delta exceeded 2px, so a chip caught mid-glide that happened to land back
+          on its own rung kept its stale translate FOREVER -- which is why the board grew
+          overlapping, stacked chips once there were twelve racers re-ranking constantly.
+      `cut` is the qualifying line: the rank index that the hairline sits above. 0 = none. */
+   rank:function(orderKeys,locked,cut){var k,r,i,at=this.at||{},nxt={};
+    for(i=0;i<orderKeys.length;i++){r=this.rows[orderKeys[i]];if(!r)continue;nxt[orderKeys[i]]=i;
      r.style.order=i;var b=r.querySelector("b");if(b)b.textContent=i+1;
-     var st9=locked?locked[orderKeys[i]]:null;r.classList.toggle("fin",st9==="fin");r.classList.toggle("out",st9==="out");r.classList.toggle("top",i===0&&st9==="fin");}
-    for(k in this.rows){r=this.rows[k];var nt=r.getBoundingClientRect().top,d=prev[k]-nt;
-     if(Math.abs(d)>2){r.style.transition="none";r.style.transform="translateY("+d+"px)";void r.offsetWidth;r.style.transition="transform .38s cubic-bezier(.2,.8,.2,1)";r.style.transform="";}}}};
+     var st9=locked?locked[orderKeys[i]]:null;r.classList.toggle("fin",st9==="fin");r.classList.toggle("out",st9==="out");r.classList.toggle("top",i===0&&st9==="fin");
+     r.classList.toggle("cut",!!cut&&i===cut);}
+    for(k in this.rows){r=this.rows[k];if(nxt[k]==null)continue;
+     var d=((at[k]==null?nxt[k]:at[k])-nxt[k])*this.pitch;
+     if(r.style.transform)r.style.transform="";
+     if(Math.abs(d)>2&&r.animate)try{r.animate([{transform:this.axis+"("+d.toFixed(1)+"px)"},{transform:"none"}],
+      {duration:380,easing:"cubic-bezier(.2,.8,.2,1)"});}catch(_){}}
+    this.at=nxt;}};
   window.__hmBoard=BOARD;
   // ===== CAREER: the tiniest season system that makes favorites real (Jelle's insight: records create rooting) =====
   var CAREER={key:function(slot){try{var c=JSON.parse(localStorage.getItem("hmCompanions")||"[]")[slot];return c&&c.cut?("h"+c.cut.length+"_"+c.cut.slice(60,84).replace(/[^a-zA-Z0-9]/g,"")):null;}catch(_){return null;}},
@@ -3035,6 +3087,17 @@ function teams(){
    titles:function(slot){var k=this.key(slot);if(!k)return 0;var h=this.load()[k];return h?(h.raceWins+h.lavaWins+(h.soccerWins||0)):0;}};
   window.__hmCareer=CAREER;
   var ON=false,balls=[],pegs=[],segs=[],spins=[],gates=[],gateEls=[],X0=8,CW=0,CC=0,elimMode=false,nextCut=0,doomIx=-1,doomAt=0,outOrder=[],finishY=0,camY=0,ts=1,winner=-1,order=[],raceT0=0,seed=0,lastN=performance.now(),running=false,endAt=0,goAt=0,W=0,H=0,D=64,statT=0;
+  /* ===== THE RACE'S OWN CLOCK =====
+     Every deadline the mode owns -- the countdown, the elimination bell, the wrap-up
+     -- used to be compared against the rAF timestamp. That is the same thing as real
+     time right up until the tab goes to the background, where rAF is throttled to a
+     crawl and then stopped: the simulation freezes while the deadlines keep arriving,
+     so a race comes back from a hidden tab already over, or never over at all.
+     `clock` advances by exactly the simulated time that has been stepped, whoever
+     stepped it, so a deadline always means "this much race has happened". */
+  var clock=0,hidT=null,cutLine=0,elimGap=8000,stallY=-1e9,stallAt=0;
+  var ELIM_WINDOW=34000;   // how much race an elimination bracket has to fit inside: the course takes ~40s to fall at twelve racers, measured
+  var STALL_MS=6000;       // the front of the race gaining nothing for this long means the course is finished with us, whatever the standings say. The anti-stuck kick escalates over 2.7s, so this is comfortably longer than any legitimate jam.
   function heroW(){return innerWidth;}   // the COURSE spans the whole viewport, wall to wall -- the screen edges are the rails, so no head is ever pinned mid-air at an invisible wall with open space beyond it
   var HL=0;function refreshHL(){HL=Math.round(hero.getBoundingClientRect().left);}   // viewport-space -> hero-space shift (heads + FX live in hero coords)
   function heroH(){return hero.clientHeight||600;}
@@ -3123,31 +3186,190 @@ function teams(){
    BOARD.build(balls.map(function(bl,ix){return {key:String(ix),slot:(bl.peer?bl.peer.slot:null)};}),finish);
    for(i=0;i<balls.length;i++)balls[i].row=BOARD.rows[String(i)];}
   function bigText(t){if(!cEl)return;cEl.textContent=t;cEl.classList.remove("hmCountPulse");void cEl.offsetWidth;cEl.classList.add("hmCountPulse");}
-  function start(){if(ON||document.body.classList.contains("hmBattle")||document.body.classList.contains("hmSoccer"))return;
-   var rc=[];for(var i=0;i<peers.length;i++){var pp=peers[i];if(!pp.elim)rc.push(pp);}
-   if(rc.length<2)return;
+  /* ===== ONE RANKING, USED BY THE BOARD AND BY THE QUALIFIER =====
+     Finished heads in the order they crossed, then everyone still running deepest
+     first, then the vacuumed ones in reverse (first out finishes last). The board
+     and the qualifier answering from the same function is the whole point: a
+     tournament that seeds off a different list from the one the viewer just watched
+     is a tournament nobody believes. Returns ball indices. */
+  function standings(){
+   var un=[],ri;
+   for(ri=0;ri<balls.length;ri++)if(!balls[ri].fin&&!balls[ri].out)un.push(ri);
+   un.sort(function(a,b){return balls[b].y-balls[a].y;});
+   return order.slice().concat(un).concat(outOrder.slice().reverse());}
+  function start(opt){if(ON||document.body.classList.contains("hmBattle")||document.body.classList.contains("hmSoccer"))return false;
+   opt=opt||{};
+   var rc=[],i,pp;
+   /* WHO IS RACING. Left alone this is every live head that has not been eliminated
+      elsewhere, which is what the standalone game wants. A qualifier hands in an
+      explicit roster of slots instead, because the field it is deciding is not
+      necessarily everyone standing on the planet. */
+   if(opt.slots&&opt.slots.length){
+    for(i=0;i<peers.length;i++){pp=peers[i];if(!pp.elim&&pp.slot!=null&&opt.slots.indexOf(pp.slot)>=0)rc.push(pp);}}
+   else{for(i=0;i<peers.length;i++){pp=peers[i];if(!pp.elim)rc.push(pp);}}
+   if(rc.length<2)return false;
    if(window.PlayViewportOwner)window.PlayViewportOwner.enter("race");
    ON=true;window.__hmRaceOn=true;document.body.classList.add("hmRace");seed++;winner=-1;order.length=0;ts=1;camY=0;endAt=0;
+   clock=performance.now();stallY=-1e9;stallAt=0;
+   cutLine=(opt.advance>0&&opt.advance<rc.length)?(opt.advance|0):0;   // the hairline sits ABOVE this rank index; 0 means the board shows no cut
    balls.length=0;
    var gridOrder=rc.slice();for(var g=gridOrder.length-1;g>0;g--){var j=Math.floor(Math.random()*(g+1)),tmp=gridOrder[g];gridOrder[g]=gridOrder[j];gridOrder[j]=tmp;}   // reshuffled grid every race: fair start, different neighbours
    W=heroW();H=heroH();X0=(W<=640)?8:104;CW=W-X0;CC=(X0+W)/2;   // the rail bounds are needed BEFORE the grid spawns (buildCourse re-derives them a beat later)
-   elimMode=(window.__forceElim!=null)?!!window.__forceElim:Math.random()<0.45;nextCut=0;doomIx=-1;doomAt=0;outOrder.length=0;   // the FORMAT is rolled before the course is built -- it was being read one round stale, and a doubled deck then indexed off the end
+   elimMode=(opt.format==="elim")?true:(opt.format==="line")?false:(window.__forceElim!=null)?!!window.__forceElim:Math.random()<0.45;nextCut=0;doomIx=-1;doomAt=0;outOrder.length=0;   // the FORMAT is rolled before the course is built -- it was being read one round stale, and a doubled deck then indexed off the end
+   /* THE ELIMINATION BELL HAS TO FIT THE COURSE. It was a flat 8 seconds a cut, which
+      is right at six racers and catastrophic at twelve: eleven cuts need 88 seconds and
+      the course runs out in about forty. Measured at twelve, with the bell at 8s -- from
+      t=44s every surviving head was parked in the finish pen, spread 0px, and the mode
+      spent a further 64 seconds deleting motionless heads one at a time. Nothing about
+      that is chaos; it is the race having stopped. So the gap is derived from the field:
+      the whole bracket fits inside the course, and a small field still gets the original
+      8-second beat because the clamp holds it there (12 -> 3.1s, 6 -> 6.8s, 5 or fewer
+      -> 8s). Fixed at the start rather than recomputed, so the pace never drifts under
+      a viewer mid-race. */
+   elimGap=Math.max(2200,Math.min(8000,ELIM_WINDOW/Math.max(1,gridOrder.length-1)));
    for(var n=0;n<gridOrder.length;n++){var pr=gridOrder[n],r=pr.HW*0.5*0.92;
     balls.push({peer:pr,r:r,x:X0+(CW/(gridOrder.length+1))*(n+1)+rnd(-2,2),y:H*0.42-rnd(0,3),vx:0,vy:0,slow:0,fin:false,row:null});}
    buildCourse();buildDOM();
-   goAt=performance.now()+3200;raceT0=goAt;if(elimMode)nextCut=goAt+8000;
-   var s=seed;bigText(3);if(elimMode)setTimeout(function(){if(s===seed&&ON&&cEl){cEl.classList.add("hmMsg");bigText("last one out\u2026");setTimeout(function(){if(s===seed){cEl.textContent="";cEl.classList.remove("hmMsg");}},1600);}},3400);   // the format card: every 8s the last head is OUT
+   goAt=clock+3200;raceT0=goAt;if(elimMode)nextCut=goAt+elimGap;
+   var s=seed;bigText(3);if(elimMode)setTimeout(function(){if(s===seed&&ON&&cEl){cEl.classList.add("hmMsg");bigText("last one out\u2026");setTimeout(function(){if(s===seed){cEl.textContent="";cEl.classList.remove("hmMsg");}},1600);}},3400);   // the format card: the last head out, on the bell
    setTimeout(function(){if(s===seed&&ON)bigText(2);},800);setTimeout(function(){if(s===seed&&ON)bigText(1);},1600);
    setTimeout(function(){if(s===seed&&ON){bigText("Go");setTimeout(function(){if(s===seed)cEl.textContent="";},600);}},2400);
-   if(!running){running=true;lastN=performance.now();requestAnimationFrame(loop);}}
-  function finish(){if(!ON)return;ON=false;window.__hmRaceOn=false;document.body.classList.remove("hmRace");
+   if(!running){running=true;lastN=performance.now();requestAnimationFrame(loop);}
+   hidWatch();
+   return true;}
+  /* finish(reason). The natural wrap-up passes "finished". EVERY OTHER WAY OUT reaches
+     here with nothing -- the End chip, __hmRaceEnd from outside, a screen change -- and
+     those are abandonments, so the default says so. The distinction is the qualifier's:
+     a caller has to be able to tell a decided race from an interrupted one, and both
+     still hand back the standings as they stood. */
+  function finish(reason){if(!ON)return;
+   qSettle(typeof reason==="string"?reason:"aborted");   // BEFORE the sweep below, which resolves everyone still on course as OUT without recording where they were: the qualifier has to read the standings the viewer was just looking at
+   ON=false;window.__hmRaceOn=false;document.body.classList.remove("hmRace");cutLine=0;
+   if(hidT){clearInterval(hidT);hidT=null;}
    try{for(var uz=0;uz<balls.length;uz++){var UB=balls[uz];if(!UB.fin&&!UB.out){UB.out=true;if(UB.row){UB.row.classList.remove("top");UB.row.classList.add("out");}}}}catch(_){}   // whoever was still mid-course when the wrap hit resolves as OUT -- the board never ends with limbo rows
    try{for(var pz=1;pz<=2&&pz<order.length;pz++){var pb=balls[order[pz]];if(pb&&pb.peer.slot!=null&&window.__hmCareer)window.__hmCareer.rec("podium",pb.peer.slot);}}catch(_){}
    if(cEl)cEl.textContent="";
    for(var i=0;i<balls.length;i++){var b=balls[i],pr=b.peer;pr.raceX=null;pr.raceY=null;}
    if(window.PlayViewportOwner)window.PlayViewportOwner.leave("race");}   // heads snap back to their own physics and tumble home
   window.__hmRaceStart=start;window.__hmRaceEnd=finish;
-  try{if(/[?&]wraf=1/.test(location.search))window.__race={balls:balls,segs:segs,pegs:pegs,spins:spins,st:function(){return {ts:ts,camY:camY,winner:winner,goAt:goAt,now:performance.now(),running:running,finishY:finishY};}};}catch(_){}   // DEV-ONLY debug handle (opt-in)
+
+  /* ======================= THE QUALIFIER SEAM =======================
+     window.__hmRaceQualify(opts) -> Promise(result), and/or a callback.
+
+       opts.slots     [Number]  roster slots to race. Omitted = every live head that
+                                has not already been eliminated. Slots that are not
+                                on the planet are simply absent from the result.
+       opts.advance   Number    how many places qualify. Draws the cut hairline on the
+                                board and splits the result; 0/omitted = no cut shown.
+       opts.format    "line"    a finish line, which produces a real finishing order.
+                      "elim"    the every-N-seconds bell, which produces a reverse one.
+                                DEFAULT IS "line" -- see the note on elimination below.
+       opts.timeout   Number    wall-clock ms before the race is called on the standings
+                                as they stand. Default 120000. Never disable it.
+
+     result = {
+       order:      [{slot,cut,ball,finished}]  EVERY racer, best first, always the
+                                               whole field. `cut` is the join key back
+                                               to hmCompanions -- `slot` is null for
+                                               filler and placeholder heads, so a caller
+                                               building teams from saved heads must use
+                                               `cut`. `finished` says whether that
+                                               placing was earned at the line.
+       slots:      [slot]                      the same list, slots only
+       qualified:  [slot]  order.slice(0, advance)
+       eliminated: [slot]  order.slice(advance)
+       field:      Number  how many raced
+       resolved:   Number  how many of them crossed the line. resolved === field is the
+                           same statement as complete === true.
+       reason:     "finished" | "timeout" | "aborted" | "busy" | "nofield"
+       complete:   true only when every racer resolved by racing to the line
+     }
+
+     ON PLACINGS THAT WERE NOT EARNED. `order` always covers the whole field, because a
+     caller that gets a short list has nothing to do with it. Racers who did not cross
+     are ranked by how far down the course they had got, which is a measurement and not
+     an invention -- but `finished:false` marks every one of them, and `resolved` counts
+     them, so a caller that would rather fall back than seed off an unfinished race has
+     exactly the number it needs to decide.
+
+     THE ONE GUARANTEE: it always settles. A qualifier that can hang leaves the whole
+     tournament stuck, so every exit is wired -- the natural finish, the End chip, a
+     mode change, the page hiding, a wedged course, and finally the timeout. On any
+     early exit the standings so far are still returned, in order, with `complete`
+     false and a `reason` saying which exit fired; the caller can seed from them or
+     re-run, but it is never handed nothing and never left waiting.
+
+     WHY THE DEFAULT IS "line". Elimination has no finish line, so its order is only
+     ever a reverse one, and its length is set by the bell rather than by the course.
+     Measured at twelve racers it ran 110 seconds. A line race with the same field
+     measured 35-38. For a gate in front of a knockout, "line" is the format.
+
+     ABANDONMENT AND THE HIDDEN TAB are handled in hidWatch() below. */
+  var QREQ=null;
+  function qResult(reason,advance){
+   var ord=standings(),res=[],i,b,done=0;
+   for(i=0;i<ord.length;i++){b=balls[ord[i]];if(!b)continue;
+    /* `cut` RIDES ALONG AND MUST NOT BE DROPPED. A caller building teams reads
+       hmCompanions, not stage slots, so `cut` is the only key that joins a racer
+       back to a saved head; `slot` is null for filler and placeholder heads. */
+    if(b.fin)done++;
+    res.push({slot:(b.peer&&b.peer.slot!=null)?b.peer.slot:null,cut:(b.peer&&b.peer.cut)||null,ball:ord[i],finished:!!b.fin});}
+   var adv=Math.max(0,Math.min(advance|0,res.length));
+   return {order:res,slots:res.map(function(r){return r.slot;}),
+    qualified:adv?res.slice(0,adv).map(function(r){return r.slot;}):[],
+    eliminated:adv?res.slice(adv).map(function(r){return r.slot;}):[],
+    field:res.length,resolved:done,
+    reason:reason,complete:(reason==="finished")&&res.length>0&&done===res.length};}
+  function qSettle(reason){
+   if(!QREQ)return;var q=QREQ;QREQ=null;   // nulled FIRST so nothing can settle twice, whichever exit fires
+   if(q.timer){clearTimeout(q.timer);q.timer=0;}
+   var out=qResult(reason,q.advance);     // ...which is why the advance travels as an argument rather than being read back off QREQ
+   try{if(q.cb)q.cb(out);}catch(_){}
+   try{if(q.res)q.res(out);}catch(_){}}
+  window.__hmRaceQualify=function(opts,cb){
+   opts=opts||{};
+   var settle=null,promise=null;
+   try{promise=new Promise(function(r){settle=r;});}catch(_){}
+   function bail(reason){var out={order:[],slots:[],qualified:[],eliminated:[],reason:reason,complete:false};
+    try{if(cb)cb(out);}catch(_){}if(settle)settle(out);return promise||out;}
+   if(QREQ||ON)return bail("busy");   // one qualifier at a time, and never on top of a race somebody is already watching
+   QREQ={cb:cb||null,res:settle,advance:opts.advance|0,timer:0};
+   if(!start({slots:opts.slots,advance:opts.advance,format:opts.format||"line"})){QREQ=null;return bail("nofield");}
+   QREQ.timer=setTimeout(function(){
+    /* THE BACKSTOP. Not a substitute for the exits above -- a last line under all of
+       them, so no combination of throttling, a wedged head and a viewer who walked
+       away can leave a caller waiting forever. */
+    if(!QREQ)return;qSettle("timeout");try{finish();}catch(_){}},Math.max(10000,opts.timeout||120000));
+   return promise||true;};
+
+  /* ===== ABANDONMENT: THE RACE MUST NOT DEPEND ON BEING WATCHED =====
+     requestAnimationFrame does not slow down in a background tab, it STOPS. A race
+     driven only by rAF therefore does not run slowly while the viewer is away -- it
+     freezes mid-course, and anything waiting on it freezes too. The deliberate choice
+     here is that the race carries on without an audience: while the document is
+     hidden a timer steps the simulation on wall-clock time with every DOM write
+     skipped, since nobody is looking at them. Chrome clamps background timers to
+     about one call a second, and each call is allowed to catch up at most CATCHUP of
+     simulated time, so a hidden race advances at roughly real speed and a long
+     absence can never land as one multi-second freeze on the way back.
+     The trade, stated plainly: come back to a hidden race and you may find it already
+     decided. The alternative is a tournament that stalls until someone remembers to
+     switch tabs, which is worse. */
+  var CATCHUP=1.0;
+  function hidWatch(){
+   if(hidT)return;
+   hidT=setInterval(function(){
+    if(!ON){clearInterval(hidT);hidT=null;return;}
+    if(!document.hidden)return;                 // the rAF loop has the clock while anyone is looking
+    var n=performance.now(),el=(n-lastN)/1000;lastN=n;
+    if(el<=0)return;
+    el=Math.min(el,CATCHUP);
+    while(el>0.0005){var s=Math.min(el,1/120);tickWorld(s,false);el-=s;}
+   },250);}
+  try{document.addEventListener("visibilitychange",function(){
+   if(!ON)return;lastN=performance.now();   // whichever driver takes over starts from now, so the handover never books the gap twice
+   if(!document.hidden&&!running){running=true;requestAnimationFrame(loop);}});}catch(_){}
+  try{if(/[?&]wraf=1/.test(location.search))window.__race={balls:balls,segs:segs,pegs:pegs,spins:spins,st:function(){return {ts:ts,camY:camY,winner:winner,goAt:goAt,now:clock,running:running,finishY:finishY,elimMode:elimMode,elimGap:elimGap,cutLine:cutLine,pitch:BOARD.pitch,qOpen:!!QREQ};},standings:function(){return standings();}};}catch(_){}   // DEV-ONLY debug handle (opt-in)
   function step(dt){
    var i,j,leader=-1,lead=-1e9,second=-1,sec2=-1e9;
    for(i=0;i<balls.length;i++){var b=balls[i];if(b.fin)continue;if(b.y>lead){sec2=lead;second=leader;lead=b.y;leader=i;}else if(b.y>sec2){sec2=b.y;second=i;}}
@@ -3188,7 +3410,7 @@ function teams(){
       if(a.nud>=3){a.nud=0;a.vx=(CC>a.x?1:-1)*rnd(520,680);a.vy=-rnd(160,260);}   // three nudges and still pinned -> a hard kick toward open course (out of any corner pocket), with a little pop up to clear the lip
       else{var m=rnd(300,460);a.vx+=(Math.random()<0.5?-1:1)*m*0.5;a.vy+=m;}}}}
     if(!a.fin&&!elimMode&&a.y>finishY){a.fin=true;order.push(i);if(a.row){a.row.classList.add("fin");}
-     if(winner<0){winner=i;a.peer.raceWin=true;ts=0.28;endAt=performance.now()+7600;try{if(window.__hmCareer&&a.peer.slot!=null)window.__hmCareer.rec("raceWin",a.peer.slot);}catch(_){}
+     if(winner<0){winner=i;a.peer.raceWin=true;ts=0.28;endAt=clock+7600;try{if(window.__hmCareer&&a.peer.slot!=null)window.__hmCareer.rec("raceWin",a.peer.slot);}catch(_){}
       try{bigText("🏁");if(window.__hmFX){window.__hmFX.burst(a.x-HL,finishY-camY,{count:26,color:"224,90,78",speed:520,gravity:900,life:0.9,size:5,dir:-1.57,spread:0.9});window.__hmFX.burst(a.x-HL,finishY-camY,{count:26,color:"90,160,216",speed:520,gravity:900,life:0.9,size:5,dir:-1.57,spread:0.9});}}catch(_){}
       setTimeout(function(){if(ON)bigText("Winner!");},900);setTimeout(function(){if(ON&&cEl)cEl.textContent="";},2600);}}}
    // ball-vs-ball: the jostle that makes the queue at every funnel a lottery
@@ -3200,23 +3422,32 @@ function teams(){
      var rvx4=B.vx-A.vx,rvy4=B.vy-A.vy,vn4=rvx4*nx4+rvy4*ny4;
      if(vn4<0){var imp=-(1+0.5)*vn4/2*soft;A.vx-=nx4*imp;A.vy-=ny4*imp;B.vx+=nx4*imp;B.vy+=ny4*imp;}}}
   }
-  function loop(n){if(!ON&&!balls.length){running=false;return;}
-   requestAnimationFrame(loop);
-   var raw=Math.min(0.05,Math.max(0.001,(n-lastN)/1000));lastN=n;
-   if(!ON)return;
-   // photo-finish slow-mo: leaders neck-and-neck at the line -> the world holds its breath
-   if(winner<0){var lead2=-1e9,sec3=-1e9;for(var q=0;q<balls.length;q++){if(balls[q].fin||balls[q].out)continue;if(balls[q].y>lead2){sec3=lead2;lead2=balls[q].y;}else if(balls[q].y>sec3)sec3=balls[q].y;}
+  /* ===== ONE FRAME OF RACE =====
+     Split out of loop() so that something other than requestAnimationFrame can drive
+     it -- see hidWatch(). `raw` is real seconds; `draw` is false when nobody is
+     looking, in which case every DOM write below is skipped and only the simulation
+     advances. Absolute deadlines are compared against `clock`, the race's own clock,
+     which this function is the only thing that moves. */
+  function tickWorld(raw,draw){
+   // photo-finish slow-mo: leaders neck-and-neck at the line -> the world holds its breath.
+   // NOT IN ELIMINATION. There is no line in that format, so finishY is just geometry the
+   // pack eventually falls past -- and once it did, this test stayed true forever and the
+   // mode ran the rest of its bracket at 0.3x. Measured: ts pinned at 0.30 from t=46s to
+   // the end of a 110-second race. A format with no line cannot have a photo finish.
+   if(winner<0&&!elimMode){var lead2=-1e9,sec3=-1e9;for(var q=0;q<balls.length;q++){if(balls[q].fin||balls[q].out)continue;if(balls[q].y>lead2){sec3=lead2;lead2=balls[q].y;}else if(balls[q].y>sec3)sec3=balls[q].y;}
     var want=(lead2>finishY-H*0.9&&(lead2-sec3)<H*0.35)?0.3:1;ts+=(want-ts)*Math.min(1,raw*6);}
-   else ts+=(1-ts)*Math.min(1,raw*2.2);
+   else if(winner>=0)ts+=(1-ts)*Math.min(1,raw*2.2);
+   else ts=1;
    var dt=raw*ts;
+   clock+=raw*1000;var n=clock;
    if(n>=goAt)
     {var sub=dt>0.017?2:1,sdt=dt/sub;for(var s2=0;s2<sub;s2++)step(sdt);}
    for(var sI=0;sI<spins.length;sI++)spins[sI].a+=spins[sI].w*dt;
    for(var gI=0;gI<gates.length;gI++){var gt=gates[gI];gt.ph+=gt.spd*0.32*dt;   // the gate glides on its own clock (slow-mo slows it too, so a photo finish at the gate stays readable)
     var ocx=CC+Math.sin(gt.ph)*gt.travel;gt.l.x2=ocx-gt.ow/2;gt.r.x1=ocx+gt.ow/2;}
-   for(var gE=0;gE<gateEls.length;gE++){var ge2=gateEls[gE],sg=ge2.seg,ln=Math.max(0,sg.x2-sg.x1);
+   if(draw)for(var gE=0;gE<gateEls.length;gE++){var ge2=gateEls[gE],sg=ge2.seg,ln=Math.max(0,sg.x2-sg.x1);
     ge2.el.style.left=sg.x1.toFixed(1)+"px";ge2.el.style.width=ln.toFixed(1)+"px";}
-   // ELIMINATION variant: every 8s the trailing head gets a 1s red-flash warning, then is vacuumed off the course
+   // ELIMINATION variant: on every bell the trailing head gets a 1s red-flash warning, then is vacuumed off the course
    if(ON&&elimMode&&winner<0&&n>=goAt){
     var liveN=0,lastIx=-1,lastY=1e18;
     for(var eb=0;eb<balls.length;eb++){var EB=balls[eb];if(EB.fin||EB.out)continue;liveN++;if(EB.y<lastY){lastY=EB.y;lastIx=eb;}}
@@ -3228,33 +3459,64 @@ function teams(){
       if(DB&&!DB.out&&!DB.fin){DB.out=true;outOrder.push(doomIx);
        try{if(window.__hmFX)window.__hmFX.burst(DB.x-HL,DB.y-camY,{count:14,color:"224,90,78",speed:420,gravity:600,life:0.6,size:4});}catch(_){}
        if(DB.row){DB.row.classList.remove("doom");}}
-      doomIx=-1;nextCut=n+8000;}}
+      doomIx=-1;nextCut=n+elimGap;}}
     else if(doomIx>=0){var dr2=balls[doomIx].row;if(dr2)dr2.classList.remove("doom");doomIx=-1;}
     if(liveN===1&&winner<0){for(var wj=0;wj<balls.length;wj++){if(!balls[wj].fin&&!balls[wj].out){winner=wj;balls[wj].fin=true;order.push(wj);balls[wj].peer.raceWin=true;if(balls[wj].row)balls[wj].row.classList.add("fin");
      try{if(window.__hmCareer&&balls[wj].peer.slot!=null)window.__hmCareer.rec("raceWin",balls[wj].peer.slot);}catch(_){}
-     ts=0.28;endAt=performance.now()+5200;try{bigText("Winner!");}catch(_){}break;}}}}
+     ts=0.28;endAt=clock+5200;try{bigText("Winner!");}catch(_){}break;}}}}
    // camera: ride the leader with a soft spring, never backward, and stop at the pen
    var leadY=-1e9;for(var c2=0;c2<balls.length;c2++)if(!balls[c2].out&&balls[c2].y>leadY)leadY=balls[c2].y;
    var tgt=Math.max(camY,Math.min(leadY-H*0.42,finishY+H*0.9-H));
    camY+=(tgt-camY)*Math.min(1,raw*4);
-   if(world)world.style.transform="translateY("+(-camY).toFixed(1)+"px)";
-   for(var sE=0;sE<spinEls.length;sE++){var se=spinEls[sE];se.el.style.transform="rotate("+((se.sp.a+se.k*Math.PI/2)*180/Math.PI).toFixed(1)+"deg)";}
-   // hand every head its screen position (the mailbox its own frame loop follows)
-   for(var m2=0;m2<balls.length;m2++){var bb=balls[m2],pr2=bb.peer;
-    if(bb.out){pr2.raceHide=true;pr2.raceVX=0;pr2.raceVY=0;continue;}   // vacuumed heads HIDE IN PLACE -- parking them at -9999 stranded their restore and poisoned the next round with off-map ghosts
-    pr2.raceX=bb.x-HL-pr2.HW/2;pr2.raceY=(bb.y-camY)-pr2.HH*0.55;pr2.raceVX=bb.vx;pr2.raceVY=bb.vy;
-    pr2.raceHide=((bb.y-camY)<-pr2.HH*0.6)||((bb.y-camY)>H+pr2.HH);}   // off the camera window = OFF THE SCREEN: a head that hasn't reached this stretch yet must not float over the header
-   // leaderboard: re-rank every ~0.3s, finished heads keep their locked position
-   statT+=raw;if(statT>0.3){statT=0;
-    var un=[];for(var ri=0;ri<balls.length;ri++)if(!balls[ri].fin&&!balls[ri].out)un.push(ri);
-    un.sort(function(a,b){return balls[b].y-balls[a].y;});   // the deepest still-running head ranks highest
-    var outs=outOrder.slice().reverse().map(String);   // first vacuumed = last place
-    var keys=order.map(String).concat(un.map(String)).concat(outs),locked={};
-    for(var oi=0;oi<order.length;oi++)locked[String(order[oi])]="fin";
-    for(var ox2=0;ox2<outs.length;ox2++)locked[outs[ox2]]="out";
-    BOARD.rank(keys,locked);}
-   if(endAt&&n>=endAt)finish();
+   if(draw){
+    if(world)world.style.transform="translateY("+(-camY).toFixed(1)+"px)";
+    for(var sE=0;sE<spinEls.length;sE++){var se=spinEls[sE];se.el.style.transform="rotate("+((se.sp.a+se.k*Math.PI/2)*180/Math.PI).toFixed(1)+"deg)";}
+    // hand every head its screen position (the mailbox its own frame loop follows)
+    for(var m2=0;m2<balls.length;m2++){var bb=balls[m2],pr2=bb.peer;
+     if(bb.out){pr2.raceHide=true;pr2.raceVX=0;pr2.raceVY=0;continue;}   // vacuumed heads HIDE IN PLACE -- parking them at -9999 stranded their restore and poisoned the next round with off-map ghosts
+     pr2.raceX=bb.x-HL-pr2.HW/2;pr2.raceY=(bb.y-camY)-pr2.HH*0.55;pr2.raceVX=bb.vx;pr2.raceVY=bb.vy;
+     pr2.raceHide=((bb.y-camY)<-pr2.HH*0.6)||((bb.y-camY)>H+pr2.HH);}   // off the camera window = OFF THE SCREEN: a head that hasn't reached this stretch yet must not float over the header
+    // leaderboard: re-rank every ~0.3s, finished heads keep their locked position.
+    // The keys come from standings() so the chips and the qualifier's result can never
+    // tell two different stories about who beat whom.
+    statT+=raw;if(statT>0.3){statT=0;
+     var keys=standings().map(String),locked={},oi;
+     for(oi=0;oi<order.length;oi++)locked[String(order[oi])]="fin";
+     for(oi=0;oi<outOrder.length;oi++)locked[String(outOrder[oi])]="out";
+     BOARD.rank(keys,locked,cutLine);}}
+   /* ===== THE RACE ALWAYS ENDS =====
+      endAt is only ever set when somebody crosses, so before this, a leader that
+      wedged left the mode running with no exit but the End chip -- and in elimination,
+      where the pack can reach the pen and stop dead, that was the normal case rather
+      than the edge one. Watch the FRONT of the race: if the deepest live head has not
+      gained ground in STALL_MS, the course has nothing left to give. In elimination
+      that rings the bell immediately, so the bracket resolves at speed instead of
+      waiting out a timer over a still picture. Everywhere else it wraps the race up on
+      the standings as they stand. */
+   if(ON&&n>=goAt+1000){
+    if(leadY>stallY+24){stallY=leadY;stallAt=n;}
+    else{if(!stallAt)stallAt=n;
+     if(n-stallAt>STALL_MS){stallAt=n;
+      if(elimMode&&winner<0)nextCut=Math.min(nextCut,n);
+      else if(!endAt)endAt=n+1200;}}}
+   /* A SCREEN CHANGE IS AN ABANDONMENT. Anything that takes the page somewhere else --
+      the hub, a soccer match, the tournament -- drops body.hmRace, and the race has no
+      other way to hear about it. Without this the simulation kept running invisibly and
+      a qualifier waiting on it waited for a race nobody could see. */
+   if(ON&&!document.body.classList.contains("hmRace")){finish("aborted");return;}
+   if(endAt&&n>=endAt)finish("finished");
    if(winner>=0&&order.length>=balls.length)endAt=Math.min(endAt||1e18,n+1400);   // everyone's home -> wrap up quicker
+  }
+  /* The rAF driver. It used to re-request a frame forever: the exit test was
+     `!ON && !balls.length`, and balls is only ever emptied by the NEXT start(), so
+     after any race the page carried a permanent do-nothing callback on every frame
+     for the rest of its life. Measured `running:true` on a page whose race had been
+     over for ten seconds. `!ON` is the whole condition. */
+  function loop(n){if(!ON){running=false;return;}
+   requestAnimationFrame(loop);
+   var raw=Math.min(0.05,Math.max(0.001,(n-lastN)/1000));lastN=n;
+   if(document.hidden)return;   // the hidden driver owns the clock while nobody is looking; taking a rAF here as well would book the same seconds twice
+   tickWorld(raw,true);
   }
  })();
 
