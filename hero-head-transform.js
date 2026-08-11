@@ -331,35 +331,85 @@
      its own 44px target. Reproducing the same clamp here means the arbitration
      below can ask "which dot did they aim at" without reading ::before styles
      back out of the CSSOM on every press. Selection-local, like --h-x/--h-y. */
-  /* ── A TARGET THAT HANGS OFF THE VIEWPORT IS NOT A TARGET ────────────────
-     The hit box used to be clamped into the SELECTION box, and to fall back to
-     the box's centre whenever the box was narrower than 44px. That is fine
-     while the box is big; at 320 with the head at minimum scale it is not --
-     the resting composition already sits mostly past the left edge there, the
-     visible box measures about 27px, and centring a 44px target in it put a
-     third of the target off-screen where no pointer can reach it.
-     Reachability wins over tidiness: the target is clamped into the region the
-     visitor can actually press -- the Hero, minus the opaque bar across its top
-     -- and only then into the box. When the two conflict, because the box is
-     smaller than the minimum target, the Hero is the one that is real. */
-  function axis(point,extent,lead,limit,hit){
+  /* ── A HANDLE BELONGS TO THE BOX, NOT TO THE VIEWPORT ────────────────────
+     Jayden: "the resize box where the points aren't in the correct spot" --
+     the frame drawn correctly around the head, and all five dots strung out in
+     a level row along the bottom of the screen. Being LEVEL is the tell: the
+     box was turned -13.8deg, and a rotated rectangle's corners cannot share a y
+     unless something is overriding their y.
+     Something was, twice over, and both of them moved the DRAWN dot:
+       - turn() clamped each true corner into the Hero-clipped box before it was
+         ever handed over, and every corner of a bounding box lies exactly ON an
+         edge of that box, so this bit on all four at every angle;
+       - axis() then clamped the 44px target into the box as well, which pushes
+         the target 22px in from its own corner, and the stylesheet clamped the
+         square back out by at most 18 -- a flat 4px of error on every corner at
+         rest, at both widths, before the head has been touched.
+     Push the head up and the two compound: the corners clip to y=0, the targets
+     clamp to the bar's underside, and nw, ne and the rotator are all drawn at
+     exactly y=64. Independently clamped points collapse onto their shared
+     bound, which is a horizontal row.
+     THE FRAME AND THE HEAD ARE ONE RIGID BODY AND THE HANDLES ARE PART OF IT.
+     They are the box's own corners pushed through the box's own matrix; a
+     screen-space correction applied afterwards silently breaks that, even in
+     the cases where it happens to look right. So the dot is now drawn at the
+     true corner, always, and its offset from that corner is exactly zero at
+     every rotation and every scale -- asserted in
+     tools/hero-head-transform-contract.py, because this frame never goes away
+     and neither would the flaw.
+     REACHABILITY IS STILL REAL, AND IT MOVES UP A LEVEL. It was never a
+     statement about where a dot is drawn; it is a statement about whether the
+     44px target can be pressed. So the INVISIBLE target still slides to stay
+     inside the region a pointer can actually reach -- the Hero, minus the
+     opaque bar across its top -- while the visible dot stays welded to the
+     corner. The one thing that must never happen is the two coming apart far
+     enough that the target no longer contains its own dot: that is the
+     historical dead handle, a live 44px surface with nothing drawn in it and a
+     square drawn 30px away that does nothing. So the threshold is exactly that:
+     the target may slide until its own edge reaches the dot, and no further.
+     That bound is not a tuned number -- it is algebraically the same statement
+     as "the corner is still on the stage", because the target only ever moves
+     by however far the corner is past the Hero's edge. When the corner travels
+     off the stage, the handle stops existing rather than lying about itself:
+     hidden and unpressable together, which is also what stops an off-stage dot
+     painting over the Work section, since the Hero does not clip.
+     THE THRESHOLD IS THE DOT'S CENTRE, NOT THE WHOLE SQUARE, AND THAT IS WHAT
+     MAKES IT CHECKABLE. Half the target is the distance at which the target's
+     own edge reaches the dot, and because the target only ever slides by
+     however far the corner is past the Hero's, that distance is reached at
+     exactly the moment the corner leaves -- so "off" can be restated from the
+     Hero's rectangle alone, with no reference to how big the mark or its target
+     happen to be, which is how the contract witnesses it independently.
+     Demanding all 8px of the square fit instead would put a 4px fudge into that
+     restatement and buy nothing measurable: it changes the answer only for a
+     corner sitting within four pixels of the window's edge, and what a visitor
+     aims at is the middle of the mark they can see. A square with two pixels of
+     itself past the edge is the artboard cropping the selection, which is what
+     happens to the frame's own outline in the same place. */
+  function axis(point,lead,limit,hit){
    var half=hit/2;
    var min=half-lead,max=limit-lead-half;
    if(max<min)max=min=(min+max)/2;
-   var want=extent<hit?extent/2:Math.max(half,Math.min(extent-half,point));
-   return Math.max(min,Math.min(max,want));
+   return Math.max(min,Math.min(max,point));
   }
-  function place(node,point,box,lead){
-   var m=metrics(),hit=m.hit;
-   var cx=axis(point.x,box.width,lead.x,m.heroW,hit);
-   var cy=axis(point.y,box.height,lead.y-m.ceiling,m.heroH-m.ceiling,hit);
+  function place(node,point,lead){
+   var m=metrics(),hit=m.hit,reach=hit/2;
+   var cx=axis(point.x,lead.x,m.heroW,hit);
+   var cy=axis(point.y,lead.y-m.ceiling,m.heroH-m.ceiling,hit);
    node.style.setProperty("--h-x",cx+"px");
    node.style.setProperty("--h-y",cy+"px");
    node.style.setProperty("--h-dx",(point.x-cx)+"px");
    node.style.setProperty("--h-dy",(point.y-cy)+"px");
-   var reach=(m.hit-m.dot)/2;
-   node.__dot={x:cx+Math.max(-reach,Math.min(reach,point.x-cx)),
-               y:cy+Math.max(-reach,Math.min(reach,point.y-cy))};
+   node.__dot={x:point.x,y:point.y};
+   /* Compared against a cached flag rather than read back off the element: this
+      runs once per handle per float frame, and the loop's invariant is that it
+      writes and never reads. The attribute is only touched when the answer
+      changes, which at rest is never. */
+   var off=Math.max(Math.abs(point.x-cx),Math.abs(point.y-cy))>reach;
+   if(node.__off!==off){
+    node.__off=off;
+    if(off)node.setAttribute("data-off","");else node.removeAttribute("data-off");
+   }
   }
   /* ── THE DOT YOU AIMED AT WINS, NOT THE ONE THAT PAINTS ON TOP ────────────
      Five 44px targets do not fit on a 136px head without overlapping, and the
@@ -389,7 +439,11 @@
    var origin=rectOf(selection),best=null,shortest=Infinity;
    chrome.forEach(function(node){
     var dot=node.__dot;
-    if(!dot)return;
+    /* A handle whose corner has left the stage is hidden and unpressable, so it
+       must not win the arbitration either -- otherwise the nearest DRAWN dot
+       could be one that is not drawn, and a press meant for the head or for a
+       live corner would be swallowed by a ghost. */
+    if(!dot||node.__off)return;
     /* Chebyshev, not Euclidean: the promise a 44px target makes is a 44px
        SQUARE, so measuring a radius would quietly shrink the corners of every
        handle by 6px for no reason anyone could see. */
@@ -500,23 +554,22 @@
     frame.style.setProperty("--frame-w",g.w+"px");
     frame.style.setProperty("--frame-h",g.h+"px");
    }
-   var box={width:w,height:ht};
-   /* Clamped into the VISIBLE box. At rest the head hangs ~166px below the
-      Hero's lower edge, so its true bottom corners are off-stage; a handle
-      drawn there would be unreachable and would read as the frame leaking out
-      of the scene. The corner rides the clipped edge instead, which is what a
-      design tool does when the artboard crops the selection. */
+   /* The corner in the box's own local space, turned by the box's own angle and
+      expressed relative to the box's origin. Nothing else happens to it: this
+      is the whole of what makes a handle part of the rigid body, and every
+      correction that used to be applied here is now either unnecessary (the
+      dot rides its corner off-stage and is cropped with it) or applied to the
+      invisible target alone, inside place(). */
    var turn=function(dx,dy){
-    var px=g.cx+dx*cos-dy*sin-r.left,py=g.cy+dx*sin+dy*cos-r.top;
-    return {x:Math.max(0,Math.min(w,px)),y:Math.max(0,Math.min(ht,py))};
+    return {x:g.cx+dx*cos-dy*sin-r.left,y:g.cy+dx*sin+dy*cos-r.top};
    };
    var lead={x:r.left,y:r.top};
    handles.forEach(function(handle){
     var corner=handle.getAttribute("data-corner");
     place(handle,turn(corner.indexOf("w")>-1?-g.w/2:g.w/2,
-     corner.indexOf("n")>-1?-g.h/2:g.h/2),box,lead);
+     corner.indexOf("n")>-1?-g.h/2:g.h/2),lead);
    });
-   if(rotator)place(rotator,turn(0,-g.h/2),box,lead);
+   if(rotator)place(rotator,turn(0,-g.h/2),lead);
   }
   function flushRender(){
    state.frame=0;writeTransform();
