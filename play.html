@@ -649,11 +649,18 @@
     re-surveys the floor through its own tested path
     (play-engine.js:434). ---- */
  body.pTeamOn .hero{height:52vh;margin:6vh auto auto}
+ /* ENTER AND EXIT ARE NOT SYMMETRICAL. The base rule is what runs on the way OUT,
+    and both directions used to be 360ms on the settle spring. Arriving keeps
+    --dur-reveal on --sp-settle -- a panel has to look like it came to rest.
+    Leaving is --dur-state-out on --ease-exit, because a dismissal that takes as
+    long as an arrival is the thing that reads as lag. Same 360-in / 240-out
+    split as the tournament's draw sheet, so the two screens leave at one speed. */
  .pTeam{position:fixed;left:0;right:0;bottom:0;z-index:45;pointer-events:none;
   padding:0 var(--play-gutter) var(--sp-24-32);
   opacity:0;visibility:hidden;transform:translateY(var(--sp-12));
-  transition:opacity var(--sp-settle-dur) var(--sp-settle),transform var(--sp-settle-dur) var(--sp-settle),visibility 0s linear var(--sp-settle-dur)}
- body.pTeamOn .pTeam{opacity:1;visibility:visible;transform:none;transition-delay:0s,0s,0s}
+  transition:opacity var(--dur-state-out) var(--ease-exit),transform var(--dur-state-out) var(--ease-exit),visibility 0s linear var(--dur-state-out)}
+ body.pTeamOn .pTeam{opacity:1;visibility:visible;transform:none;
+  transition:opacity var(--dur-reveal) var(--sp-settle),transform var(--dur-reveal) var(--sp-settle),visibility 0s linear 0s}
  @media(prefers-reduced-motion:reduce){.pTeam{transition:none}}
  /* 920px, not --page-max: two columns holding at most four chips each have a natural
     width, and stretched to 1280 the sides read as two empty fields with a few stickers in
@@ -666,27 +673,46 @@
     a title floated to the centre between two buttons reads as a dialog caption, and this
     is a screen. */
  .pTeamTitle{font-family:var(--sans);font-weight:600;font-size:var(--fs-h5);line-height:var(--lh-tight);letter-spacing:var(--tr-sub);color:var(--c950);margin:0 auto 0 0}
- .pBtnBack{padding-left:var(--sp-12)}
  .pTeamActs{display:flex;align-items:center;gap:var(--sp-8)}
- .pBtn{display:inline-flex;align-items:center;justify-content:center;gap:var(--sp-8);
-  min-height:var(--tap-min);padding:0 var(--sp-16);border:0;border-radius:var(--r-sm);
-  background:var(--c0);box-shadow:var(--rim-2);color:var(--c950);
-  font-family:var(--sans);font-weight:600;font-size:var(--fs-small);line-height:var(--lh-flat);cursor:pointer;
-  transition:background-color var(--hover-out-dur) var(--ease-out),transform var(--ease-out-dur) var(--ease-out)}
- /* The rest-state fill stays (this is the secondary kind and it has a ground); what may not
-    move on hover is that fill. Ink to full white and the icon's stroke up with it. */
- .pBtn:hover{color:var(--c950);box-shadow:var(--rim-3)}
- .pBtn:hover svg{stroke-width:var(--ico-stroke-strong)}
- .pBtn:active{transform:scale(var(--press-scale))}
- .pBtn:focus-visible{outline:var(--focus-w) solid var(--c950);outline-offset:var(--sp-2)}
+ /* ---- THE BAR BUTTONS ARE controls.css's. play-games.js emits
+    `pBtn ctl ctl--secondary ctl--sm`, and everything this block used to declare
+    -- a 44px box, --r-sm, a --rim-2 ground, 15px/600, a hover rim, a press
+    scale, a focus ring and two transitions -- was a private re-draw of rules the
+    library already ships. Three of them had drifted off it: --r-sm 10 where the
+    control rung is --r-md 14, 600 where every other control on this site is 400,
+    and `background:var(--accent)` on the primary where the page's own View games
+    button resolves --ctl-primary-ground through --theme-ink. Measured side by
+    side at 390: View games was 15px/400/14px on rgb(17,18,20), Start match
+    15px/600/10px on #121212 and Kick off 16px/600/14px. Three primary buttons,
+    one visit, three drawings.
+
+    THE `.ctl` SUFFIX ON EVERY OVERRIDE BELOW IS LOAD-BEARING. READ THIS BEFORE
+    ADDING ONE. controls.css is linked at the FOOT of this head, after this
+    <style> block -- so a page rule and a library rule of equal specificity are
+    settled by source order, and the library wins every time. Written as
+    `.teamChip{padding:0}` against `.ctl{padding-inline:var(--ctl-pad)}` the page
+    loses, and it loses SILENTLY: the rule reads correctly, the CSSOM holds it,
+    and the chip renders with 16px of padding a side. Measured on the way to this
+    line -- a 65.5px chip with a 33.5px image in it, the head squeezed to half
+    width, and it looked like an object-fit crop rather than a cascade loss.
+    Four rules were affected: the chip's padding and its --c100 ground, Start
+    match's --sp-32, Back's optical left padding, and (in tournament.css) the
+    draw chip's `display:none`, which had the phone's button showing at 1440
+    beside the rail it duplicates.
+    `.x.ctl` is (0,2,0) and beats the library's (0,1,0) without an !important
+    and without touching a file this lane does not own. tools/play-screens-
+    contract.py asserts the four computed values, so the next one fails loudly. ---- */
+ /* The icons keep their one page-owned line: the library sizes .gIco and
+    .uiIcon, and these are bare inline <svg> from play-games.js's own strings. */
  .pBtn svg{width:var(--ico-sm);height:var(--ico-sm);flex:0 0 auto}
- /* --accent-dark, not --accent: tokens.css defines --accent-dark as the accent's
-    dark-ground rung (oklch 72%), and the mid-tone blue that carries white text on paper
-    does not carry it on near-black. Same colour, the rung the ground asks for. */
- .pBtnGo{background:var(--accent);color:var(--c0);box-shadow:none;padding:0 var(--sp-32)}
- /* The primary cannot answer with ink -- it is already full-contrast on its own fill -- so it
-    takes the one affordance the rule permits a large target instead: a hairline. No fill move. */
- .pBtnGo:hover{box-shadow:inset 0 0 0 var(--hair-w) var(--c0)}
+ .pBtn:hover svg{stroke-width:var(--ico-stroke-strong)}
+ /* Back leads and its arrow sits closer to the edge than its label does -- the one
+    optical correction the bar keeps, now expressed against the compact rung's own
+    padding token rather than against a literal. */
+ .pBtnBack.ctl{padding-left:var(--ctl-gap-sm)}
+ /* Start match is the full 44 rung while the bar above it is the 36. That is the
+    hierarchy stated in geometry: one primary action, three secondary ones. */
+ .pBtnGo.ctl{padding-inline:var(--sp-32)}
 /* ---- REMOVING A HEAD: THE INDEX/ABOUT PATTERN, ADOPTED WHOLE (commit f897489).
     Two delete gestures across two pages would be worse than either one, so nothing here is
     redesigned -- only rehoused. The model is unchanged: a mode, not a smaller target.
@@ -710,20 +736,24 @@
     nothing in storage to remove, so "delete" would mean something different here than it
     does on a real head, and an undo slot for something that was never saved is meaningless.
     Edit mode applies to real saved heads only. ---- */
+ /* The latched appearance is `.ctl--secondary[aria-pressed="true"]`, which the
+    library added for exactly this case, so the private copy that used to sit here
+    is gone. Only the width floor is this screen's: "Edit" and "Done" are
+    different lengths and the bar must not twitch when the mode flips. */
  .pTeamEdit{min-width:var(--tap-min)}
- .pTeamEdit[aria-pressed="true"]{box-shadow:var(--rim-3);color:var(--c950)}
  .teamDel{display:none}
  .teamTile{position:relative;display:block}
  /* pointer-events INHERITS, so the none below would have reached the delete too and the
     whole mode would have been dead on arrival. It is re-enabled explicitly here. */
+ /* `.ctl` supplies the box-sizing, the radius, the press scale, the focus ring and
+    the motion rungs; what is left here is the one thing that makes this control
+    different from every other -- it is a scrim lying exactly over the picture it
+    will delete, so it is positioned, and its ground is a scrim rather than paper. */
  .pTeamCols[data-editing="true"] .teamDel{
   pointer-events:auto;
   position:absolute;inset:0;z-index:2;
-  display:flex;align-items:center;justify-content:center;
-  min-width:var(--tap-min);min-height:var(--tap-min);padding:0;border:0;cursor:pointer;
-  border-radius:var(--r-sm);corner-shape:var(--corner);
-  background:var(--mat-scrim);color:var(--c50);box-shadow:var(--rim-2);
-  transition:background-color var(--ease-out-dur) var(--ease-out)}
+  min-width:var(--tap-min);min-height:var(--tap-min);padding:0;
+  background:var(--mat-scrim);color:var(--c50);box-shadow:var(--rim-2)}
  .pTeamCols[data-editing="true"] .teamDel svg{width:var(--ico-md);height:var(--ico-md);flex:none}
  /* The one hover on this page that legitimately moves a fill, and it is deliberate rather
     than an exception I granted myself: this control IS a scrim over a photograph -- its whole
@@ -740,14 +770,9 @@
  .pTeamCols[data-editing="true"] .teamChip:hover{transform:none}
  /* THE UNDO takes the chip's own slot, so the row you are working along does not reflow
     under the pointer while you are still deleting. */
- .teamUndo{display:flex;align-items:center;justify-content:center;
-  width:calc(var(--tap-min) * 2);height:calc(var(--tap-min) * 2 + var(--sp-16));
-  padding:0;border:0;cursor:pointer;
-  border-radius:var(--r-sm);corner-shape:var(--corner);
-  background:none;box-shadow:var(--rim-2);
-  font-family:var(--sans);font-weight:600;font-size:var(--fs-micro);letter-spacing:var(--tr-body);color:var(--c700);
-  transition:color var(--ease-out-dur) var(--ease-out),box-shadow var(--ease-out-dur) var(--ease-out)}
- .teamUndo:hover,.teamUndo:focus-visible{color:var(--c950);box-shadow:var(--rim-3)}
+ /* It stands in a chip's slot, so it is a chip's SIZE -- that, and nothing else, is
+    what this rule is for. Appearance is `.ctl--secondary`'s. */
+ .teamUndo.ctl{width:var(--chip-w);height:var(--chip-h);padding:0;background:none}
  .pTeamCols{display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-12)}
  /* rgb(var(--tc1)) / rgb(var(--tc2)) are the match's own team channels -- the
     same custom properties play.css:170-174 paints the goals with, so the picker
@@ -768,12 +793,16 @@
  .pTeamChips{display:flex;flex-wrap:wrap;gap:var(--sp-8);justify-content:center;align-content:flex-start}
  /* 88x104: the chip was 40x48 in the popover, which is a thumbnail. At this size it is a
     head -- you can tell whose face is on which side across the room, which is the only
-    thing the screen is for. */
- .teamChip{width:calc(var(--tap-min) * 2);height:calc(var(--tap-min) * 2 + var(--sp-16));border-radius:var(--r-sm);overflow:hidden;border:0;cursor:pointer;padding:0;background:var(--c100);
-  touch-action:none;-webkit-user-select:none;user-select:none;
-  transition:transform var(--ease-out-dur) var(--ease-out)}
- .teamChip:hover{transform:translateY(-2px)}
- .teamChip:focus-visible{outline:var(--focus-w) solid var(--accent);outline-offset:2px}
+    thing the screen is for. ONE PAIR OF NUMBERS, because the undo button has to stand in
+    a chip's slot and the two had already disagreed once. */
+ :root{--chip-w:calc(var(--tap-min) * 2);--chip-h:calc(var(--tap-min) * 2 + var(--sp-16))}
+ .teamChip.ctl{width:var(--chip-w);height:var(--chip-h);overflow:hidden;padding:0;background:var(--c100);
+  touch-action:none;-webkit-user-select:none;user-select:none}
+ /* The lift on hover is the chip's own -- it is the only control on this page that
+    moves rather than changing material, because it is a thing you pick up. The
+    press scale under it is the library's, and the chip had none at all before:
+    a tile that answered only HOVER gave a finger nothing back. */
+ .teamChip.ctl:hover{transform:translateY(-2px)}
  .teamChip img{width:100%;height:100%;object-fit:cover;display:block}
  /* The team ring comes off the border too, so a chip is exactly 88x104 whichever side it is
     on -- as a 2px border it was 88x104 PLUS 4px and the two columns' grids disagreed by a
@@ -781,11 +810,9 @@
     shadow because the <img> is a 100%-size child: an inset shadow paints under content, so
     the photo covered the ring. The overlay paints over it and is pointer-events:none, so the
     drag handler still sees the button. */
- .teamChip{position:relative}
  .teamChip::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none}
  .teamChip.red::after{box-shadow:inset 0 0 0 var(--focus-w) rgb(var(--tc1,224,90,78))}
  .teamChip.blue::after{box-shadow:inset 0 0 0 var(--focus-w) rgb(var(--tc2,90,160,216))}
- .teamChip:focus-visible{outline:var(--focus-w) solid var(--c950);outline-offset:var(--sp-2)}
  .pTeamCol.dragOver{outline:var(--focus-w) dashed var(--c500);outline-offset:-3px}
  .pTeamCol.red.dragOver{background:rgba(var(--tc1,224,90,78),.14)}
  .pTeamCol.blue.dragOver{background:rgba(var(--tc2,90,160,216),.14)}
@@ -810,10 +837,28 @@
   .pTeamIn{padding:var(--sp-12)}
   .pTeamCols{gap:var(--sp-8)}
   .pTeamCol{padding:var(--sp-8);min-height:calc(var(--tap-min) * 2 + var(--sp-8))}
-  .teamChip{width:calc(var(--tap-min) + var(--sp-12));height:calc(var(--tap-min) * 1.5)}
+  /* ---- TWO CHIPS TO A ROW, AND THE SIZE IS DERIVED RATHER THAN PICKED.
+     The chip was a fixed 56x66 here. Measured at 320x568 with a full roster, a
+     column's inside measure is 104px -- so 56 + --sp-8 + 56 = 120 did not fit,
+     every chip took a row of its own, and four of them stacked the panel to 533px
+     of a 568px screen. The heads on the stage behind it were 94% covered, which
+     kills the one reason this screen exists: you flip a chip and the head BEHIND
+     the panel changes colour. The anticipation beat was invisible on a phone.
+
+     A two-track grid asks the column how wide it is instead of guessing: 48px a
+     chip at 320, 64 at 390, and two to a row at both. The panel drops to ~366px
+     at 320 and the stage comes back. NOT a scrollport -- the column is shorter,
+     not scrolled -- and not smaller type either, because the chip is a
+     photograph and 48px of face is still a face you can name.
+
+     11/13 is the desktop chip's own 88:104, so a head is the same shape at every
+     width and nothing re-crops between breakpoints. ---- */
+  .pTeamChips{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-content:flex-start}
+  :root{--chip-w:auto;--chip-h:auto}
   /* the undo takes the chip's slot, so it has to BE a chip's size at every width -- it kept
-     the desktop 88x104 here and broke the row it was standing in. */
-  .teamUndo{width:calc(var(--tap-min) + var(--sp-12));height:calc(var(--tap-min) * 1.5)}
+     the desktop 88x104 here once and broke the row it was standing in. Both take the same
+     two variables now, so they cannot drift apart again. */
+  .teamChip.ctl,.teamUndo.ctl{aspect-ratio:11 / 13;min-height:0;min-width:0}
   /* Four controls and a title do not fit on one 390px row: Back + Edit + Shuffle measure 238px
      of the 366px available, and "Pick sides" was wrapping to two lines and pushing the panel
      taller. The title goes -- it is the one thing on this bar that is not a control, and a

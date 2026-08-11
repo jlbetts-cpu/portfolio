@@ -189,7 +189,41 @@ def check_portfolio_adapters():
 
     assert_semantic_rule(source,"About prose",('body[data-theme-page="about"]', '.abBody p'),"color:var(--theme-ink)")
     assert_semantic_rule(source,"About facts",('body[data-theme-page="about"]', '.abFactV'),"color:var(--theme-ink)")
-    assert_semantic_rule(source,"About cards",('body[data-theme-page="about"] .abLink',),"box-shadow:inset 0 0 0 var(--hair-w) var(--theme-rim)")
+    # ── THE "About cards" ASSERTION IS INVERTED, AND THIS IS THE REVERSAL ─────
+    # It used to require site-theme.css to draw .abLink's dark rim itself:
+    #   assert_semantic_rule(... 'body[data-theme-page="about"] .abLink',
+    #                        'box-shadow:inset 0 0 0 var(--hair-w) var(--theme-rim)')
+    # That rule is why the email button went missing at night. It is (0,4,1) and
+    # .ctl--primary is (0,1,0), so an adapter written to give the row a rim also
+    # overrode the library's PRIMARY -- ground, ink and all -- and repainted the
+    # only call to action on a hiring page as a fourth secondary. Beside it sat
+    # three rules for .abLinkPrimary, a class about.html stopped carrying when
+    # the button became a .ctl, so the treatment meant to protect the primary
+    # had not run since that migration.
+    # The rim did not go away; it moved to where it was always defined.
+    # .abLink is `class="abLink ctl ctl--primary|ctl--secondary"`, and
+    # .ctl--secondary already paints --ctl-rim, which tokens.css binds to
+    # var(--theme-rim). So the assertion now guards the thing that actually has
+    # to stay true: THE ABOUT ADAPTER MUST NOT RESTATE WHAT THE CONTROL LIBRARY
+    # OWNS. Anything that re-declares ground, ink or shadow for .abLink here
+    # will outrank .ctl--primary again by specificity and reintroduce the bug.
+    # The painted-pixel proof that the buttons are still themed AND still
+    # distinguishable lives in tools/dark-legibility-contract.py, which measures
+    # the rendered result in all seven states instead of the source text.
+    # Declarations are matched at a boundary, not as substrings: the surviving
+    # ':is(.abLink,.abIn,.abStack):focus-visible{outline-color:...}' rule is
+    # legitimate, and a naive 'color:' test flags its outline-color and reports
+    # a bug that is not there.
+    about_ablink=re.compile(
+        r'\[data-theme-page="about"\][^{}]*\.abLink[^{}]*\{([^{}]*)\}')
+    owned_declaration=re.compile(r"(?:^|;)(background-color|background|color|box-shadow):")
+    for body in about_ablink.findall(re.sub(r"\s+","",source)):
+        hit=owned_declaration.search(body)
+        assert hit is None, (
+            "site-theme.css: the About adapter re-declares "
+            f"'{hit.group(1)}' for .abLink. That selector outranks "
+            ".ctl--primary and will repaint the email button as a secondary; "
+            "let controls.css own it through --ctl-* instead.")
     assert_semantic_rule(source,"About media rim",('body[data-theme-page="about"] .abStack',),"box-shadow:0 0 0 var(--hair-w) var(--theme-rim)")
 
     assert_semantic_rule(source,"Case-study prose",('body[data-theme-page="case-study"]', '.secBody'),"color:var(--theme-ink-soft)")

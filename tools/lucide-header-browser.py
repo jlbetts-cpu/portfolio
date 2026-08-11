@@ -3,6 +3,7 @@
 
 from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
+import re
 from pathlib import Path
 from threading import Thread
 
@@ -25,6 +26,9 @@ EXPECTED = {
 }
 
 
+SPRITE_SHAPES = {}
+
+
 class QuietHandler(SimpleHTTPRequestHandler):
     def log_message(self, _format, *_args):
         pass
@@ -35,8 +39,35 @@ class QuietServer(ThreadingHTTPServer):
         pass
 
 
-def icon_href(page, selector):
-    return page.locator(selector).first.locator("svg.uiIcon use").first.get_attribute("href")
+def normalise(markup):
+    """Shape markup canonicalised so the header's drawing can be compared with the
+    sprite's without depending on either side's serialisation.
+
+    The sprite is authored self-closing (`<path d="..."/>`); the DOM serialises
+    the same node as `<path d="..."></path>`. Both collapse to the same string
+    here, which is the only reason this comparison is meaningful rather than a
+    test of how Chrome writes SVG back out."""
+    text = re.sub(r"\s+", " ", (markup or "")).replace('"', "'").strip()
+    text = re.sub(r"\s*/>", ">", text)                  # self-closing -> open
+    text = re.sub(r"</(path|rect|circle|line|polyline|polygon|ellipse)>", "", text)
+    return re.sub(r"\s+>", ">", text).strip()
+
+
+def icon_shapes(page, selector):
+    """What the header ACTUALLY DRAWS for this control.
+
+    This used to read the <use href="ui-icons.svg#..."> attribute -- it pinned the
+    MECHANISM, and the mechanism was the bug. An external <use> renders nothing
+    until its document resolves, so on a cold cache the header showed the stale
+    inline Tabler drawing, then a hole, then the Lucide one. Measured at rAF
+    resolution with the sprite delayed 900ms: Tabler at t+107ms, blank at
+    t+205ms, drawn at t+1039ms. The glyphs are inline in header.js now, so there
+    is no href to read and no fetch to lose -- and what has to stay true is not
+    "it points at the sprite" but "it draws the right Lucide shape". That is
+    what this returns, and SPRITE_SHAPES is what it is checked against, so
+    ui-icons.svg remains the single source of truth for the drawings even though
+    the header no longer fetches it."""
+    return normalise(page.locator(selector).first.locator("svg.uiIcon").first.inner_html())
 
 
 def verify_page(browser, base_url, route, viewport, theme):
@@ -55,7 +86,7 @@ def verify_page(browser, base_url, route, viewport, theme):
     page.on("requestfailed", lambda request: failed.append(request.url))
     page.goto(f"{base_url}/{route}", wait_until="domcontentloaded")
     page.wait_for_selector(".jbNav")
-    page.wait_for_function("document.querySelectorAll('.jbNav svg.uiIcon use').length >= 8")
+    page.wait_for_function("document.querySelectorAll('.jbNav svg.uiIcon').length >= 8")
 
     if page.evaluate("Boolean(window.SiteTheme)"):
         page.evaluate("mode => window.SiteTheme.setMode(mode, {persist:false})", theme)
@@ -64,22 +95,22 @@ def verify_page(browser, base_url, route, viewport, theme):
         )
 
     for item, symbol in EXPECTED.items():
-        href = icon_href(page, f'.jbNav [data-nav-item="{item}"]')
-        assert href == f"ui-icons.svg#{symbol}", (route, item, href)
+        drawn = icon_shapes(page, f'.jbNav [data-nav-item="{item}"]')
+        assert drawn == SPRITE_SHAPES[symbol], (route, item, symbol, drawn)
 
     back = page.locator(".jbNav .jbBack")
     if back.count():
-        assert icon_href(page, ".jbNav .jbBack") == "ui-icons.svg#lucide-arrow-left"
+        assert icon_shapes(page, ".jbNav .jbBack") == SPRITE_SHAPES["lucide-arrow-left"]
 
     menu = page.locator(".jbContact .jbDiscMenu")
-    assert icon_href(page, '.jbContact .jbDiscMenu a[href*="linkedin"]') == "ui-icons.svg#brand-linkedin"
-    assert icon_href(page, '.jbContact .jbDiscMenu a[href*="instagram"]') == "ui-icons.svg#brand-instagram"
-    assert icon_href(page, '.jbContact .jbDiscMenu a[href^="mailto:"]') == "ui-icons.svg#lucide-mail"
+    assert icon_shapes(page, '.jbContact .jbDiscMenu a[href*="linkedin"]') == SPRITE_SHAPES["brand-linkedin"]
+    assert icon_shapes(page, '.jbContact .jbDiscMenu a[href*="instagram"]') == SPRITE_SHAPES["brand-instagram"]
+    assert icon_shapes(page, '.jbContact .jbDiscMenu a[href^="mailto:"]') == SPRITE_SHAPES["lucide-mail"]
 
     contact = page.locator(".jbContact > .jbDiscGo")
     chevrons = contact.locator("svg.jbDiscChevron")
     assert chevrons.count() == 1, (route, chevrons.count())
-    assert chevrons.locator("use").get_attribute("href") == "ui-icons.svg#lucide-chevron-down"
+    assert normalise(chevrons.inner_html()) == SPRITE_SHAPES["lucide-chevron-down"]
     assert chevrons.get_attribute("aria-hidden") == "true"
     assert chevrons.get_attribute("focusable") == "false"
     assert contact.get_attribute("aria-label") == "Contact"
@@ -101,7 +132,9 @@ def verify_page(browser, base_url, route, viewport, theme):
             paintedWidth: painted.width,
             paintedHeight: painted.height,
             logoPathCount: logo ? logo.querySelectorAll('path').length : 0,
-            inlineUtilityPaths: document.querySelectorAll('.jbNav svg.uiIcon path').length,
+            inlineUtilityPaths: document.querySelectorAll(
+              '.jbNav svg.uiIcon :is(path,rect,circle,line)').length,
+            useElements: document.querySelectorAll('.jbNav svg.uiIcon use').length,
             iconHidden: ico.getAttribute('aria-hidden'),
             iconFocusable: ico.getAttribute('focusable')
           };
@@ -114,7 +147,18 @@ def verify_page(browser, base_url, route, viewport, theme):
     assert metrics["iconWidth"] == expected_size, (route, label, metrics)
     assert metrics["iconHeight"] == expected_size, (route, label, metrics)
     assert metrics["paintedWidth"] > 0 and metrics["paintedHeight"] > 0, (route, label, metrics)
-    assert metrics["inlineUtilityPaths"] == 0, (route, metrics)
+    # THIS ASSERTION IS INVERTED, and the inversion is the fix.
+    # It used to be `inlineUtilityPaths == 0` -- the header was required to carry
+    # NO inline shapes, because every glyph had to come through the sprite. That
+    # requirement is what produced "sometimes the icons don't load in properly":
+    # a <use> at an external document paints nothing until the fetch lands, and
+    # the fetch is a separate request that can be slow, cold or absent. The
+    # shapes are inline now, so the header cannot have a blank state at all.
+    assert metrics["inlineUtilityPaths"] > 0, (route, metrics)
+    assert metrics["useElements"] == 0, (
+        route, metrics,
+        "a header glyph is back on an external <use>; that reintroduces the "
+        "blank window between the swap and the sprite arriving")
     assert metrics["iconHidden"] == "true", (route, metrics)
     assert metrics["iconFocusable"] == "false", (route, metrics)
     if page.locator(".jbLogo").count():
@@ -151,6 +195,40 @@ def main():
             }
             for symbol in required:
                 assert sprite.count(f'id="{symbol}"') == 1, symbol
+                body = re.search(rf'<symbol id="{re.escape(symbol)}"[^>]*>(.*?)</symbol>',
+                                 sprite, re.S)
+                assert body, symbol
+                SPRITE_SHAPES[symbol] = normalise(body.group(1))
+
+            # ── THE REGRESSION THIS FILE NOW EXISTS TO CATCH ────────────────
+            # Jayden: "sometimes the icons don't load in properly in the header."
+            # The header must not need ui-icons.svg AT ALL. Blocking the sprite
+            # outright is the only honest test of that: with the request failing,
+            # every header glyph must still render with non-zero geometry. Under
+            # the old <use> implementation this page would show eight empty
+            # boxes, which is exactly what a cold or flaky cache produced.
+            blocked = browser.new_page()
+            sprite_requests = []
+            blocked.route("**/ui-icons.svg",
+                          lambda route: (sprite_requests.append(route.request.url),
+                                         route.abort()))
+            blocked.goto(f"{base_url}/about.html", wait_until="load")
+            blocked.wait_for_function(
+                "document.querySelectorAll('.jbNav svg.uiIcon').length >= 8")
+            drawn = blocked.evaluate("""
+                () => Array.from(document.querySelectorAll('.jbNav svg.uiIcon'))
+                        .map(s => { try { const b = s.getBBox();
+                                          return Math.round(b.width * b.height); }
+                                    catch (e) { return 0; } })""")
+            assert drawn and all(area > 0 for area in drawn), (
+                "with ui-icons.svg blocked, header glyphs rendered empty: " + repr(drawn) +
+                " -- the header has taken a network dependency on the sprite again")
+            assert not sprite_requests, (
+                "about.html requested ui-icons.svg: " + repr(sprite_requests) +
+                " -- the header's glyphs are inline and must cost no request")
+            blocked.close()
+            print(f"PASS sprite-blocked cold-cache render ({len(drawn)} glyphs drawn)")
+
             for route in ROUTES:
                 for viewport in VIEWPORTS:
                     for theme in THEMES:

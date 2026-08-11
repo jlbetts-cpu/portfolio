@@ -39,17 +39,60 @@ var home  = nav.querySelector(".jbHome");
    its own utility drawings here. The brand mark sits outside these selectors
    and remains Jayden's original inline path. */
 var SVG_NS="http://www.w3.org/2000/svg";
-var ICON_FILE="ui-icons.svg#";
+
+/* ── THE GLYPHS ARE INLINE. THEY USED TO BE <use href="ui-icons.svg#...">, AND
+   THAT ONE FETCH PRODUCED BOTH OF THE SYMPTOMS. ─────────────────────────────
+   Jayden: "the Play icon briefly changes to the old icon for a sec, and
+   sometimes the icons don't load in properly in the header."
+
+   MEASURED AT rAF RESOLUTION, index.html at 1440, sprite delayed 900ms to stand
+   in for a cold cache (which is the state a recruiter arrives in, and the only
+   one where this reproduces reliably):
+      t+ 107ms  TABLER inline path   rendered, bbox 240   <- the OLD icon
+      t+ 205ms  LUCIDE <use>         bbox 0, BLANK        <- header.js swapped
+      t+1039ms  LUCIDE <use>         rendered, bbox 280   <- sprite arrived
+   Two things are wrong there and they are Jayden's two sentences in order. The
+   first is the swap itself: the shipped nav markup still carries the previous
+   Tabler drawings, so first paint is always the old icon and this file trades
+   it for the new one afterwards. The second is that an EXTERNAL <use> renders
+   NOTHING until its document resolves, so the trade opens a hole the width of
+   one network request. That hole is what "don't load in properly" is.
+
+   INLINING KILLS THE SECOND ONE OUTRIGHT, on all nine pages, from this file.
+   The header needs eight glyphs; their path data is about 1.4KB, which is less
+   than the request that was fetching it, so this is strictly cheaper than the
+   round trip it replaces -- no fetch, no cache variance, no blank window, and
+   nothing to 404. The drawings are copied verbatim from ui-icons.svg, which
+   remains the source of truth for the hero-time control's own eight symbols
+   (index.html still references it directly and every one of those fragments was
+   verified to exist).
+
+   THE FIRST ONE NEEDS THE MARKUP, NOT THIS FILE. The swap can only stop being
+   visible when the shipped nav stops being stale, and that markup is duplicated
+   across nine pages, three of which belong to other lanes. Handed over rather
+   than half-done: with the fetch gone the swap is now synchronous inside this
+   deferred script -- one frame, never blank -- instead of a hole. */
+var ICONS={
+ "lucide-briefcase-business":'<path d="M12 12h.01"/><path d="M16 6V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><path d="M22 13a18.15 18.15 0 0 1-20 0"/><rect width="20" height="14" x="2" y="6" rx="2"/>',
+ "lucide-user-round":'<circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/>',
+ "lucide-gamepad-2":'<line x1="6" x2="10" y1="11" y2="11"/><line x1="8" x2="8" y1="9" y2="13"/><line x1="15" x2="15.01" y1="12" y2="12"/><line x1="18" x2="18.01" y1="10" y2="10"/><path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258-.006-.051-.011-.1-.017-.151A4 4 0 0 0 17.32 5z"/>',
+ "lucide-mail":'<rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>',
+ "lucide-arrow-left":'<path d="m12 19-7-7 7-7"/><path d="M19 12H5"/>',
+ "lucide-chevron-down":'<path d="m6 9 6 6 6-6"/>',
+ "brand-linkedin":'<path d="M8 11v5M8 8v.01M12 16v-5M16 16v-3a2 2 0 0 0-4 0"/><path d="M3 7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4v10a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4z"/>',
+ "brand-instagram":'<rect width="16" height="16" x="4" y="4" rx="4"/><circle cx="12" cy="12" r="3"/><line x1="16.5" x2="16.51" y1="7.5" y2="7.5"/>'
+};
 
 function lucideIcon(symbol,extraClass){
   var svg=document.createElementNS(SVG_NS,"svg");
-  var use=document.createElementNS(SVG_NS,"use");
   svg.setAttribute("class","gIco uiIcon"+(extraClass?" "+extraClass:""));
   svg.setAttribute("viewBox","0 0 24 24");
   svg.setAttribute("aria-hidden","true");
   svg.setAttribute("focusable","false");
-  use.setAttribute("href",ICON_FILE+symbol);
-  svg.appendChild(use);
+  /* innerHTML on an SVG element parses in the SVG namespace, which is what the
+     shapes need. The strings above are authored constants in this file, never
+     anything from the DOM, a URL or storage. */
+  svg.innerHTML=ICONS[symbol]||"";
   return svg;
 }
 

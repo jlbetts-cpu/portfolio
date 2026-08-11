@@ -266,23 +266,62 @@ body.catchReady #stageMorph{transform:scale(1.055)}
 .reelPh .s{font-size:var(--fs-caption);letter-spacing:.01em;text-transform:none;opacity:.66}
 .reelCap{position:absolute;left:16px;bottom:13px;color:var(--c50);font-size:var(--fs-micro);letter-spacing:.01em;text-transform:none;opacity:0;transition:opacity var(--dur-enter) var(--ease-out);mix-blend-mode:difference}
 .reelFrame.big .reelCap{opacity:.9}
-.reelTap{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:3;display:none;align-items:center;gap:8px;padding:12px 20px 12px 16px;border:0;border-radius:4px;background:var(--c50);color:var(--c950);font-size:var(--fs-small);font-weight:400;white-space:nowrap;cursor:pointer;filter:url(#inkSm)}
+.reelTap{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:3;display:none;align-items:center;justify-content:center;border:0;border-radius:4px;background:var(--c50);color:var(--c950);font-size:var(--fs-small);font-weight:400;white-space:nowrap;cursor:pointer;filter:url(#inkSm)}
 .reel.coarse .reelTap{display:flex}
 .reelTap .tri,.playCursor .tri{width:0;height:0;border-style:solid;border-width:7px 0 7px 12px;border-color:transparent transparent transparent var(--c950);margin-left:1px}
 .playCursor{position:fixed;left:0;top:0;z-index:90;pointer-events:none;transform:translate(var(--px,-300px),var(--py,-300px))}
-.pcInner{display:flex;align-items:center;gap:8px;padding:12px 20px 12px 16px;border-radius:4px;background:var(--c50);color:var(--c950);font-size:var(--fs-small);font-weight:400;white-space:nowrap;filter:url(#inkSm);transform:translate(-50%,-50%) scale(0);transform-origin:center;opacity:0;transition:opacity var(--dur-state-out) var(--ease-out),transform var(--dur-reveal) var(--ease-out)}
+.pcInner{display:flex;align-items:center;border-radius:4px;background:var(--c50);color:var(--c950);font-size:var(--fs-small);font-weight:400;white-space:nowrap;filter:url(#inkSm);transform:translate(-50%,-50%) scale(0);transform-origin:center;opacity:0;transition:opacity var(--dur-state-out) var(--ease-out),transform var(--dur-reveal) var(--ease-out)}
 .playCursor.on .pcInner{opacity:1;transform:translate(-50%,-50%) scale(1)}
-.reelOverlay{position:fixed;inset:0;z-index:90;display:flex;align-items:center;justify-content:center;background:rgba(15,15,15,.92);opacity:0;visibility:hidden;transition:opacity var(--dur-state-out) var(--ease-out),visibility 0s var(--dur-state-out);backdrop-filter:blur(6px)}
-.reelOverlay.on{opacity:1;visibility:visible;transition:opacity var(--dur-state-out) var(--ease-out)}
-.reelOverlayVid{width:min(92vw,calc(86vh * 16 / 9));aspect-ratio:16/9;background:#000;border-radius:4px;transform:scale(.82);transition:transform var(--dur-state-out) var(--ease-out)}
-.reelOverlay.on .reelOverlayVid{transform:scale(1)}
-.reelClose{position:fixed;top:24px;right:26px;z-index:91;background:transparent;border:1px solid var(--c500);color:var(--c50);padding:8px 16px;border-radius:4px;font-size:var(--fs-caption);letter-spacing:.06em;cursor:pointer;text-transform:none}
-.reelYtLink{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:91;color:var(--c100);font-size:var(--fs-caption);letter-spacing:.06em;text-decoration:none;opacity:.6}
+/* ── THE FULL-SCREEN PLAYER. Jayden: "the play video pop-up isn't tokenized as
+   well." It was the last surface on this page with no treatment at all: a raw
+   scrim colour, a raw blur, a dead radius literal restated three times, a 90px
+   CAST SHADOW on chrome, and a close button whose two offsets were 24 and 26 --
+   one on the grid, one not, four lines apart.
+
+   THE Z-INDEX WAS THE BUG THAT MATTERED. header.css:69 justifies .jbStick's
+   z-index:100 with a list of what still outranks it: "the reel overlay at 130,
+   the toasts at 200+". The overlay was at 90 and both are <body> children, so
+   the bar painted straight over the player -- and over its Close button.
+   MEASURED, close button vs .jbNav's right edge:
+     1440  nav ends 1320, button 1343-1414  -- clear, works
+     1280  nav ends 1240, button 1183-1254  -- 57 of 71px covered
+      390  nav ends  374, button  293- 364  -- elementFromPoint returns
+                                               .jbDiscGo at all three sampled
+                                               points; the button is 100% dead
+   It takes --layer-modal now, which is the 130 header.css already documents. A
+   comment is not an invariant, and this one had not been true for some time.
+
+   ENTER IS SLOWER THAN EXIT, which is the ladder's own asymmetry rather than the
+   same 240 in both directions it used to run. Arriving takes --dur-reveal (360),
+   leaving keeps --dur-state-out (240). */
+.reelOverlay{position:fixed;inset:0;z-index:var(--layer-modal);display:flex;align-items:center;justify-content:center;background:var(--mat-i4);opacity:0;visibility:hidden;transition:opacity var(--dur-state-out) var(--ease-out),visibility 0s var(--dur-state-out);backdrop-filter:blur(var(--blur-1))}
+.reelOverlay.on{opacity:1;visibility:visible;transition:opacity var(--dur-reveal) var(--ease-out)}
+/* NO CAST SHADOW. `0 24px 90px rgba(0,0,0,.6)` sat here and is the rule this
+   site breaks for exactly one thing, the companion heads, because their shadow
+   says they are standing on something. A video floating on a scrim is not. It
+   separates the way all the other chrome does -- an inverse hairline. */
+.reelOverlayVid{width:min(94vw,calc(88vh * 16 / 9));aspect-ratio:16/9;max-height:88vh;background:#000;border:0;box-shadow:var(--rim-i1);display:block;transform:scale(.82);transition:transform var(--dur-state-out) var(--ease-out)}
+.reelOverlay.on .reelOverlayVid{transform:scale(1);transition:transform var(--dur-reveal) var(--ease-out)}
+/* .reelClose is .ctl .ctl--on-dark in the markup now; the library owns its
+   height, padding, radius, ink, rim, focus, press and transitions. What is left
+   here is the one thing a library cannot know: where on the screen it sits. */
+/* SCOPED TO .reelOverlay ON PURPOSE, AND MEASURED. Written flat as `.reelClose`
+   this rule LOST: controls.css is linked after this page's <style>, so `.ctl`'s
+   own `position:relative` (0,1,0, later) beat `.reelClose{position:fixed}`
+   (0,1,0, earlier) and the button stopped being fixed the moment it adopted the
+   library. It did not vanish -- it became a flex item of the centred overlay and
+   measured left:-16 top:452 at 1440, i.e. off the left edge of its own scrim,
+   while `getComputedStyle` still reported top:24px right:24px because those
+   declarations were live and simply had nothing to position against. That is the
+   fourth rule on this project to read correctly and not run.
+   (0,2,0) is the fix and it is also the honest description: the library owns how
+   a control is DRAWN, the page owns where it SITS, and this control sits in a
+   place only the overlay knows about. */
+.reelOverlay .reelClose{position:fixed;top:var(--sp-24);right:var(--sp-24);z-index:var(--layer-modal-control)}
+.reelOverlay .reelYtLink{position:fixed;left:50%;bottom:var(--sp-24);transform:translateX(-50%);z-index:var(--layer-modal-control);color:var(--i700);font-size:var(--fs-caption);letter-spacing:var(--tr-body);text-decoration:none}
 .reelYt{position:absolute;inset:0;width:100%;height:100%;border:0;z-index:1;pointer-events:none}
-.reelOverlayVid{width:min(94vw,calc(88vh * 16 / 9));aspect-ratio:16/9;max-height:88vh;background:#000;border:0;border-radius:4px;box-shadow:0 24px 90px rgba(0,0,0,.6);display:block;transform:scale(.82);transition:transform var(--dur-state-out) var(--ease-out)}
-.reelOverlay.on .reelOverlayVid{transform:scale(1)}
-.reelOverlayYt{width:min(92vw,calc(86vh * 16 / 9));aspect-ratio:16/9;background:#000;border:0;border-radius:4px;transform:scale(.82);transition:transform var(--dur-state-out) var(--ease-out)}
-.reelOverlay.on .reelOverlayYt{transform:scale(1)}
+.reelOverlayYt{width:min(92vw,calc(86vh * 16 / 9));aspect-ratio:16/9;background:#000;border:0;transform:scale(.82);transition:transform var(--dur-state-out) var(--ease-out)}
+.reelOverlay.on .reelOverlayYt{transform:scale(1);transition:transform var(--dur-reveal) var(--ease-out)}
 @media(max-width:760px){.reelTrack{height:auto}.reelStage{position:relative;height:auto;padding:8vh 0}}
 @media(prefers-reduced-motion:reduce){.reelFrame{transform:scale(.92)}}
 /* ===== Disco party easter egg ===== */
@@ -395,8 +434,20 @@ body.heroEmpathy .jbStick .jbNav{--nav-mat:var(--ctl-ground);--nav-rim:var(--ctl
 @media(prefers-reduced-motion:reduce){.camDot::before{animation:none}#photorain .pgrain{animation:none}}
 @keyframes csPhotoIn{from{opacity:0;transform:translateY(26px) scale(.96)}to{opacity:1;transform:translateY(0) scale(1)}}
 .viewCursor{position:fixed;left:0;top:0;z-index:90;pointer-events:none;transform:translate(var(--px,-300px),var(--py,-300px))}
-.vcInner{display:flex;align-items:center;gap:8px;padding:12px 20px 12px 16px;border-radius:4px;background:var(--c50);color:var(--c950);font-size:var(--fs-small);font-weight:400;white-space:nowrap;filter:url(#inkSm);transform:translate(-50%,-50%) scale(0);transform-origin:center;opacity:0;transition:opacity var(--dur-state-out) var(--ease-out),transform var(--dur-reveal) var(--ease-out)}
+.vcInner{display:flex;align-items:center;border-radius:4px;background:var(--c50);color:var(--c950);font-size:var(--fs-small);font-weight:400;white-space:nowrap;filter:url(#inkSm);transform:translate(-50%,-50%) scale(0);transform-origin:center;opacity:0;transition:opacity var(--dur-state-out) var(--ease-out),transform var(--dur-reveal) var(--ease-out)}
 .viewCursor.on .vcInner{opacity:1;transform:translate(-50%,-50%) scale(1)}
+/* ── THE PILL, DRAWN ONCE. Three copies of one box -- the tap pill over the
+   reel, the play toast that follows the cursor across it, and the "View case
+   study" toast -- each restating `gap:8px;padding:12px 20px 12px 16px`. Every
+   one of those four numbers is already a rung (--sp-8 / --sp-12 / --sp-20 /
+   --sp-16); none of them was written as one, so the ladder could move and these
+   would not. They differ in radius by role and that stays: .reelTap is a button
+   and takes --r-md, the two toasts are inline marks and take --r-2xs.
+   .reelTap additionally takes --tap-min. It measured 43px, and on a phone it is
+   the ONLY affordance the video has -- see the touch note by .reel.coarse. */
+.reelTap,.pcInner,.vcInner{
+  gap:var(--sp-8);padding:var(--sp-12) var(--sp-20) var(--sp-12) var(--sp-16)}
+.reelTap{min-height:var(--tap-min);box-sizing:border-box}
 .vcArr{display:inline-flex;align-items:center;color:var(--c950)}
 .csHint{display:inline-flex;align-items:center;gap:8px;margin-top:8px;opacity:0;pointer-events:none;filter:url(#inkSm)}
 .csHint .dhl{font-family:var(--sans);font-size:clamp(9px,0.95vw,12px);letter-spacing:.22em;text-transform:none;font-weight:600;color:var(--c500);line-height:1}
@@ -412,7 +463,54 @@ body.heroEmpathy .jbStick .jbNav{--nav-mat:var(--ctl-ground);--nav-rim:var(--ctl
 .csBackveil.clear{opacity:0;transition:opacity .6s var(--ease-out)}
 
 /* ===== Work — tabbed, full-width case-study thumbnails with scroll-lock (8fps house motion) ===== */
-.cases{position:relative;z-index:61;margin-inline:auto;background:var(--c50)}
+/* THE RHYTHM BELOW THE TAB LINE IS ONE NUMBER, DECLARED ONCE.
+   Jayden: "the extra video thumbnail is still not on the same spacing as the
+   others -- sitting on the tab line while the others sit below." Measured, and
+   he is describing the phone: at 390 every .csFrame in Featured and Case Studies
+   started 16.875px under the tab hairline while the Extras reel started at 0.
+   At 1440 and 1280 all three sit flush at 0, so the offset is a <=760 defect and
+   nothing above that width moves.
+
+   THE CAUSE WAS THAT THE TWO STAGES NEVER SHARED A VALUE. .csStage took
+   `padding:clamp(var(--sp-14),2vh,var(--sp-28)) 0` inside the <=760 block, and
+   .reelStage -- which has a stage padding of its own for the old sticky runway --
+   was zeroed outright by `.csPanel[data-panel="goodness"] .reelStage{padding:0}`.
+   Zero was right against 8vh and wrong against the clamp, so the moment the
+   siblings gained a rhythm the reel was left on the line.
+   Naming it --work-stage-pad and having BOTH stages read it makes the two agree
+   by construction: the reel cannot drift again without the cards drifting with
+   it. Desktop resolves to 0, which is what every panel already measured. */
+/* ── z-index 62, NOT 61, AND IT IS A LEGIBILITY FIX ─────────────────────────
+   Jayden: in night mode "some of the text isn't legible, like the tabs". The
+   tab ink was never the problem -- Featured computes rgb(244,245,247) on
+   rgb(17,19,24), 17.03:1, and every other tab bar on the site (apollo,
+   ucdavis, gradientlab) measures 17.03 / 8.08 and passes. What the CSSOM could
+   not see is that these three were being PAINTED OVER. Measured off the
+   screenshot at 1440 in Night: Featured painted rgb(62,63,65) on rgb(11,12,16)
+   -- 1.85:1 -- and the two unselected tabs 1.46:1 and 1.42:1. A read of colour
+   against computed ground reports all three as passing; only the pixels show it.
+   THE LAYER IS #heroTimeSpill, and it is not misbehaving -- it is trapped.
+   The spill is the night sky's fade-out below the Hero. It declares z-index:-1,
+   which is an unambiguous statement of intent: paint behind content. But it
+   lives in .wrap, and .wrap is z-index:62, so "behind .wrap's content" is still
+   in front of everything in a lower stacking context -- and .cases was 61. Its
+   box runs to y=1044 while .cases starts at 916, so 128px of near-opaque
+   #0b0c0f lay across exactly the tab row, at roughly 78% coverage.
+   RAISING .cases IS SAFE, AND IT WAS MEASURED BEFORE IT WAS CHANGED, because
+   the reason .wrap outranks the work section is the floating head: small heads
+   pass behind the big one, and the Hero is meant to overlap what follows.
+   Enumerated at 1440 in Night, the ONLY visible .wrap descendant whose box
+   reaches into .cases is #heroTimeSpill. Nothing else the Hero draws overlaps
+   this section, so there is no overlap to preserve.
+   62 rather than 63 on purpose. It ties .wrap and wins on document order, which
+   is the minimum that clears the spill -- and it keeps the mood layers above,
+   which is what they are for. #party (63), #discoWrap (64) and #loveScene (64)
+   are appended to document.body by party.js, not into .wrap, so they are
+   siblings in the root stacking context and still paint over the work section
+   the way disco and party have always spilled down the page. .grain (60) stays
+   below. Anything that needs to sit above the Hero AND below the moods now has
+   exactly one rung, and this is it. */
+.cases{position:relative;z-index:62;margin-inline:auto;background:var(--c50);--work-stage-pad:0px}
 .caseInset{--case-inset:var(--sp-40);max-width:var(--page-max);margin:0 auto;padding:0 var(--case-inset)}
 /* tab bar: Instrument Sans, active = ink + underline, others muted; stepped like the rest of the site */
 .csTabs{display:flex;flex-wrap:wrap;gap:24px;align-items:flex-end;justify-content:flex-start;
@@ -430,7 +528,7 @@ body.heroEmpathy .jbStick .jbNav{--nav-mat:var(--ctl-ground);--nav-rim:var(--ctl
 /* one project = a scroll runway + a sticky stage that scales/locks the banner, with name+year glued beneath */
 .csItem{position:relative}
 .csTrack{height:auto}
-.csStage{position:relative;display:flex;flex-direction:column;overflow:visible}
+.csStage{position:relative;display:flex;flex-direction:column;overflow:visible;padding:var(--work-stage-pad) 0}
 .csStageInner{max-width:var(--page-max);width:100%;margin:0 auto;padding:0 var(--sp-40);display:flex;flex-direction:column;gap:var(--work-meta-gap)}
 .csFrame{position:relative;width:100%;aspect-ratio:2/1;overflow:hidden;border-radius:0;background:var(--c100);opacity:0;transform:translateY(var(--enter-rise));transition:opacity var(--enter-dur) var(--ease-out),transform var(--enter-dur) var(--ease-out);will-change:opacity,transform}
 .csItem.csIn .csFrame{opacity:1;transform:none}
@@ -448,7 +546,13 @@ body.heroEmpathy .jbStick .jbNav{--nav-mat:var(--ctl-ground);--nav-rim:var(--ctl
 .csCursor::before{content:"";position:absolute;left:-18px;top:-18px;width:36px;height:36px;border-radius:50%;-webkit-backdrop-filter:brightness(.965) contrast(1.015);backdrop-filter:brightness(.965) contrast(1.015);box-shadow:inset 0 2px 13px -7px rgba(0,0,0,.2),inset 0 -3px 14px -8px rgba(255,255,255,.24),0 1px 4px -1px rgba(0,0,0,.09);transform-origin:center}
 .csCursor.on::before{animation:csPress var(--dur-state-out) steps(4,end)}
 @keyframes csPress{0%{transform:scale(1.42)}55%{transform:scale(.86)}100%{transform:scale(1)}}
-.csInfoCard{position:fixed;top:0;left:0;z-index:130;width:286px;max-width:78vw;background:var(--mat-3-solid);box-shadow:var(--rim-2),var(--sh-2);opacity:0;pointer-events:none;will-change:transform,opacity;transition:opacity var(--dur-state-out) var(--ease-out)}
+/* NO CAST SHADOW ON CHROME. Both surfaces below carried --rim-2,--sh-2; the
+   rim is the separation and the drop shadow was the rule this site keeps for
+   exactly one thing, the companion heads, because their shadow says they are
+   standing on something. tokens.css:707 already records the same deletion
+   being made in the library -- "--ctl-menu-shadow is gone. It was
+   var(--ctl-rim),var(--sh-2)" -- and these are the two page copies it missed. */
+.csInfoCard{position:fixed;top:0;left:0;z-index:130;width:286px;max-width:78vw;background:var(--mat-3-solid);box-shadow:var(--rim-2);opacity:0;pointer-events:none;will-change:transform,opacity;transition:opacity var(--dur-state-out) var(--ease-out)}
 .csInfoCard.on{opacity:1}
 .csInfoInner{transform:translateY(7px);transition:transform var(--dur-state-out) var(--ease-out)}
 .csInfoCard.on .csInfoInner{transform:translateY(0)}
@@ -509,7 +613,11 @@ body.heroEmpathy .jbStick .jbNav{--nav-mat:var(--ctl-ground);--nav-rim:var(--ctl
    blown up; --r-xl would make it the largest-radius object on the page, ahead of
    the case-study covers it sits between.
    corner-shape:squircle comes with it, per --corner, so it is the same
-   superellipse the rest of the page draws and not a plain arc at the same size. */
+   superellipse the rest of the page draws and not a plain arc at the same size.
+
+   AND ITS STAGE PADDING IS THE SIBLINGS', NOT ZERO -- see --work-stage-pad up
+   at .cases. This line used to read `padding:0`, which cleared .reelStage's own
+   8vh runway pad and, at <=760, left the reel 16.875px above every card. */
 /* AND THE RUNG IS RESPONSIVE, which is why this said --r-lg and wrote --r-xl.
    The reasoning above is right and the declaration under it was not: measured,
    the neighbours in this column read 20px at 1440 and 14px at 390, because
@@ -526,7 +634,7 @@ body.heroEmpathy .jbStick .jbNav{--nav-mat:var(--ctl-ground);--nav-rim:var(--ctl
    for no reason anyone chose. Both breakpoints now derive from the same token,
    so the phone override is gone and a change to the gutter moves the reel with
    the cards instead of leaving it behind. */
-.csPanel[data-panel="goodness"] .reelStage{padding:0}
+.csPanel[data-panel="goodness"] .reelStage{padding:var(--work-stage-pad) 0}
 .csPanel[data-panel="goodness"] .reelFrame:not(.isFull){
   width:min(calc(var(--page-max) - var(--surface-gutter) * 2),
             calc(100vw - var(--surface-gutter) * 2))!important;aspect-ratio:2/1;
@@ -549,7 +657,8 @@ body.heroEmpathy .jbStick .jbNav{--nav-mat:var(--ctl-ground);--nav-rim:var(--ctl
    margin so the scroll origin cannot clip it. */
 .csTabs{gap:16px;flex-wrap:nowrap;justify-content:center}.csTabs .csTab{flex:0 0 auto;white-space:nowrap}
  .csTrack{height:auto}
- .csStage{position:relative;height:auto;padding:clamp(var(--sp-14),2vh,var(--sp-28)) 0;justify-content:flex-start;overflow:visible}
+ .cases{--work-stage-pad:clamp(var(--sp-14),2vh,var(--sp-28))}
+ .csStage{position:relative;height:auto;justify-content:flex-start;overflow:visible}
  .csFrame{transform:translateY(var(--enter-rise));opacity:0;transition:opacity var(--enter-dur) var(--ease-out),transform var(--enter-dur) var(--ease-out)}
  .csItem.csIn .csFrame{transform:none;opacity:1}
  .csMeta{opacity:0;transform:translateY(var(--sp-14));transition:opacity var(--enter-dur) var(--ease-out) var(--enter-stagger),transform var(--enter-dur) var(--ease-out) var(--enter-stagger)}
@@ -574,7 +683,7 @@ body.heroEmpathy .jbStick .jbNav{--nav-mat:var(--ctl-ground);--nav-rim:var(--ctl
 .moodLbl{font-size:var(--fs-body);font-weight:400;letter-spacing:0}
 .moodCar{width:12px;height:12px;display:inline-block;flex:0 0 auto;color:var(--c500);transition:transform var(--dur-state) var(--ease-out),color var(--dur-state) var(--ease-out)}
 .moodbar.open .moodCar{width:12px;height:12px;display:inline-block;flex:0 0 auto;color:var(--c500);transition:transform var(--dur-state) var(--ease-out),color var(--dur-state) var(--ease-out)}
-.moodMenu{position:absolute;min-width:196px;background:var(--mat-3-solid);border:0;border-radius:var(--r-lg);corner-shape:var(--corner);padding:var(--sp-8);box-shadow:var(--rim-2),var(--sh-2);opacity:0;visibility:hidden;transition:opacity var(--dur-state) var(--ease-out),transform var(--dur-state) var(--ease-out),visibility 0s var(--dur-state)}
+.moodMenu{position:absolute;min-width:196px;background:var(--mat-3-solid);border:0;border-radius:var(--r-lg);corner-shape:var(--corner);padding:var(--sp-8);box-shadow:var(--rim-2);opacity:0;visibility:hidden;transition:opacity var(--dur-state) var(--ease-out),transform var(--dur-state) var(--ease-out),visibility 0s var(--dur-state)}
 .moodbar.open .moodMenu{opacity:1;visibility:visible;transition:opacity var(--dur-state) var(--ease-out),transform var(--dur-state) var(--ease-out)}
 .moodItem{display:flex;align-items:center;gap:12px;width:100%;padding:8px 12px;border-radius:4px;font-family:var(--sans);font-weight:400;font-size:var(--fs-body);color:var(--c950);background:none;border:0;cursor:pointer;text-align:left;transition:background-color var(--dur-state) var(--ease-out),color var(--dur-state) var(--ease-out)}
 .moodbar.open .moodItem{display:flex;align-items:center;gap:12px;width:100%;padding:8px 12px;border-radius:4px;font-family:var(--sans);font-weight:400;font-size:var(--fs-body);color:var(--c950);background:none;border:0;cursor:pointer;text-align:left;transition:background-color var(--dur-state) var(--ease-out),color var(--dur-state) var(--ease-out)}
@@ -778,7 +887,7 @@ body.heroEmpathy .jbStick .jbNav{--nav-mat:var(--ctl-ground);--nav-rim:var(--ctl
    the iPhone mock-up's own curvature measured at 11.9% of its width -- a
    photograph of a real object does not take a UI radius, and gets no
    corner-shape either. .rainphoto stays 2px: it is a printed snapshot. */
-.moodMenu button,.moodMenu a,.reelClose,
+.moodMenu button,.moodMenu a,
 .aboutCta,.moodBtn,.moodGo,.mhToggle,.moodItem,.back,.talk,.csTab,.toTop{
   border-radius:var(--r-md);corner-shape:var(--corner)}
 .abTalk{border-radius:var(--r-pill);corner-shape:var(--corner)}
@@ -969,7 +1078,7 @@ body.heroEmpathy .jbStick .jbNav{--nav-mat:var(--ctl-ground);--nav-rim:var(--ctl
    inside is taller the control silently grows past the rung. Naming the height
    and zeroing the vertical padding makes the two agree by construction.
    ============================================================================ */
-.moodItem,.moodBtn,.moodGo,.reelClose,.mhToggle{
+.moodItem,.moodBtn,.moodGo,.mhToggle{
  font-family:var(--sans);font-weight:400;font-size:var(--fs-small);line-height:var(--lh-flat);
  color:var(--c700);background:none;
  border:0;                      /* no borders. The wash is the affordance. */
@@ -987,14 +1096,14 @@ body.heroEmpathy .jbStick .jbNav{--nav-mat:var(--ctl-ground);--nav-rim:var(--ctl
    hover, so this is the only feedback a phone gets from these seven controls.
    --press-scale and --press-dur are both already tokens and had zero consumers
    on this page. */
-.moodItem:active,.moodBtn:active,.moodGo:active,.reelClose:active,
+.moodItem:active,.moodBtn:active,.moodGo:active,
 .mhToggle:active,.toTop:active,.csTab:active{
  transform:scale(var(--press-scale))}
 @media(prefers-reduced-motion:reduce){
- .moodItem:active,.moodBtn:active,.moodGo:active,.reelClose:active,
+ .moodItem:active,.moodBtn:active,.moodGo:active,
  .mhToggle:active,.toTop:active,.csTab:active{transform:none}}
 /* display at ZERO specificity so anything that hides itself conditionally still wins */
-:where(.moodItem,.moodBtn,.moodGo,.reelClose,
+:where(.moodItem,.moodBtn,.moodGo,
  .mhToggle,.csTab){display:inline-flex}
 /* square icon-only controls: same height, no text padding */
 .toTop{
@@ -1014,7 +1123,7 @@ body.heroEmpathy .jbStick .jbNav{--nav-mat:var(--ctl-ground);--nav-rim:var(--ctl
    PROSE, and a grey plate behind a word in a paragraph is the one place the
    wash reads as damage rather than as affordance -- they now hover the way
    every other link on the site does, on ink and their own underline. */
-.moodItem:hover,.moodBtn:hover,.moodGo:hover,.reelClose:hover,.mhToggle:hover,.toTop:hover,.moodItem:focus-visible,.moodBtn:focus-visible,.moodGo:focus-visible,.reelClose:focus-visible,.mhToggle:focus-visible,.toTop:focus-visible{
+.moodItem:hover,.moodBtn:hover,.moodGo:hover,.mhToggle:hover,.toTop:hover,.moodItem:focus-visible,.moodBtn:focus-visible,.moodGo:focus-visible,.mhToggle:focus-visible,.toTop:focus-visible{
  background:var(--accent-wash);color:var(--c950);border-color:transparent;
 }
 .csTab:hover,.csTab:focus-visible,
@@ -1050,11 +1159,15 @@ body.heroEmpathy .jbStick .jbNav{--nav-mat:var(--ctl-ground);--nav-rim:var(--ctl
    The bare `letter-spacing:.06em` it used to carry is --tr-caps, which is the
    tracking for uppercase; this label is sentence case, so it takes --tr-body
    like every other control label. */
-.reelClose{background:var(--mat-i3-solid);box-shadow:var(--rim-i1);
- color:var(--i700);font-size:var(--fs-small);letter-spacing:var(--tr-body)}
-.reelClose:hover,.reelClose:focus-visible{
- background:var(--mat-i3-solid);box-shadow:var(--rim-i2);color:var(--c50)}
-.reelClose:focus-visible{outline-color:var(--accent-dark)}
+   AND IT IS A LIBRARY MODIFIER NOW, NOT A PRIVATE ONE. Everything the four
+   rules here used to declare -- the ground, the inverted ink ramp, the two rim
+   rungs and the paper focus colour -- moved verbatim into .ctl--on-dark in
+   controls.css, which the 2026-08-09 audit specified and nobody built. Measured
+   before and after: identical, because --ctl-h/--ctl-pad/--ctl-gap/--ctl-r/
+   --ctl-fs already resolve to the same 44 / 16 / 8 / --r-md / --fs-small this
+   block was restating. .reelClose was also removed from the six selector lists
+   above for the same reason: the library owns them, and a page rule that agrees
+   with the library is still a page rule that can stop agreeing. */
 
 /* The Play-menu-in-the-header overrides stood here: no card edge, no shadow, a
    max-width tuned to the page margin, all !important because it was fighting the
@@ -1511,10 +1624,26 @@ html{scroll-padding-top:calc(var(--nav-h) + var(--sp-16-24))}
 .csItem+.csItem{margin-top:var(--work-item-gap)}
 @media(max-width:760px){.hero{min-height:var(--hero-mobile-height)}}
 </style>
+<!-- STYLESHEET ORDER, AND IT IS THE OTHER SIX PAGES' ORDER NOW.
+     controls.css used to be linked FOURTH here and SECOND on about.html and all
+     five case studies, so a (0,2,0) tie between the library and header.css
+     resolved one way on six pages and the other way on this one. That is not a
+     preference, it is a coin-flip, and it had already produced two live bugs the
+     moment anything on this page adopted a .ctl class:
+       .ctl--nav .gIco beat .jbNav .gIco and shrank the bar's icons 18px -> 15px,
+         which narrowed all four labelled nav items by exactly 3px;
+       .ctl{position:relative} beat .reelClose{position:fixed} and threw the video
+         player's Close button off the left edge of its own scrim.
+     Both are the same fault. The library declares the DEFAULT for a control and
+     header.css declares what the BAR does differently, so header.css has to be
+     able to win a tie -- which means it has to come last. Measured after the
+     move: 24,600 computed properties over 820 elements at 1440 and 390, and the
+     only differences are the nav icons going back to the 18px they have always
+     drawn at. -->
+<link rel="stylesheet" href="controls.css?v=20260806-shared-surfaces">
 <link rel="stylesheet" href="header.css?v=20260806-shared-surfaces">
 <link rel="stylesheet" href="hero-time.css?v=20260806-shared-surfaces">
 <link rel="stylesheet" href="footer.css?v=20260806-shared-surfaces">
-<link rel="stylesheet" href="controls.css?v=20260806-shared-surfaces">
 <link rel="stylesheet" href="site-theme.css?v=20260806-shared-surfaces">
 <script>/* THE OLD OVERLAY'S URL STILL RESOLVES. index.html#about was the only address
    About ever had, and it is linked from play.html and the other sub-pages, and sits in
@@ -1569,11 +1698,11 @@ if(location.hash==="#about")location.replace("about.html");</script>
 <div class="jbStick">
  <nav class="jbNav ctl-group" aria-label="Primary" data-surface="paper">
   <span class="jbGrp jbGrpL">
-   <button class="jbHome" id="logo" type="button" aria-label="Jayden Betts, home"><svg class="jbLogo" viewBox="0 0 30 30" aria-hidden="true"><path d="M1 26.3842C3.07605 22.5364 9.00761 17.1494 16.1255 26.3842C23.2434 35.619 14.1981 18.1678 16.1255 8.65665C18.0529 -0.854479 32.3186 -2.22723 28.2852 8.65665C24.2517 19.5405 18.6968 18.261 20.8493 13.2232C23.0018 8.1853 35.3661 26.1679 23.0066 27.4872"/></svg></button>
+   <button class="jbHome ctl ctl--nav" id="logo" type="button" aria-label="Jayden Betts, home"><svg class="jbLogo" viewBox="0 0 30 30" aria-hidden="true"><path d="M1 26.3842C3.07605 22.5364 9.00761 17.1494 16.1255 26.3842C23.2434 35.619 14.1981 18.1678 16.1255 8.65665C18.0529 -0.854479 32.3186 -2.22723 28.2852 8.65665C24.2517 19.5405 18.6968 18.261 20.8493 13.2232C23.0018 8.1853 35.3661 26.1679 23.0066 27.4872"/></svg></button>
   </span>
   <span class="jbGrp jbGrpC">
-   <a data-nav-item="work" href="#cases" aria-label="Work" aria-current="page"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7m0 2a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v9a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2z"/><path d="M8 7v-2a2 2 0 0 1 2 -2h4a2 2 0 0 1 2 2v2"/><path d="M12 12l0 .01"/><path d="M3 13a20 20 0 0 0 18 0"/></svg><span class="jbLbl">Work</span></a>
-   <a data-nav-item="about" href="about.html" aria-label="About"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0"/><path d="M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2"/></svg><span class="jbLbl">About</span></a>
+   <a class="ctl ctl--nav" data-nav-item="work" href="#cases" aria-label="Work" aria-current="page"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7m0 2a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v9a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2z"/><path d="M8 7v-2a2 2 0 0 1 2 -2h4a2 2 0 0 1 2 2v2"/><path d="M12 12l0 .01"/><path d="M3 13a20 20 0 0 0 18 0"/></svg><span class="jbLbl">Work</span></a>
+   <a class="ctl ctl--nav" data-nav-item="about" href="about.html" aria-label="About"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0"/><path d="M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2"/></svg><span class="jbLbl">About</span></a>
    <!-- PLAY -- ROUND 10.  A destination that reveals its extras on hover, and NO CARET.
         Jayden: "Play drop down is not same styling" and, on the carets, delete them --
         Play and Contact are plain nav items that navigate on click and open on hover.
@@ -1588,7 +1717,7 @@ if(location.hash==="#about")location.replace("about.html");</script>
         saved heads / Show on home, all four keeping the ids their scripts bind by. It is
         header.css's .jbDiscMenu now, the same panel Contact opens at the other end of the
         bar, so the two read as one system rather than as two different popups. -->
-   <a data-nav-item="games" href="play.html" aria-label="Play"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 6m0 2a2 2 0 0 1 2 -2h16a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-16a2 2 0 0 1 -2 -2z"/><path d="M6 12h4m-2 -2v4"/><path d="M15 11l0 .01"/><path d="M18 13l0 .01"/></svg><span class="jbLbl">Play</span></a>
+   <a class="ctl ctl--nav" data-nav-item="games" href="play.html" aria-label="Play"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 6m0 2a2 2 0 0 1 2 -2h16a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-16a2 2 0 0 1 -2 -2z"/><path d="M6 12h4m-2 -2v4"/><path d="M15 11l0 .01"/><path d="M18 13l0 .01"/></svg><span class="jbLbl">Play</span></a>
   </span>
   <span class="jbGrp jbGrpR">
    <!-- CONTACT -- the same split control as Play, at the other end of the bar
@@ -1599,7 +1728,7 @@ if(location.hash==="#about")location.replace("about.html");</script>
         never mean two things. header.js owns it on all nine pages.
         Socials in HIS order: LinkedIn, Instagram, email. -->
    <span class="jbDisc jbContact">
-    <a class="jbDiscGo" data-nav-item="contact" aria-haspopup="true" aria-expanded="false" aria-controls="jbContactMenu" href="#contact" aria-label="Contact"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10z"/><path d="M3 7l9 6l9 -6"/></svg><span class="jbLbl">Contact</span></a>
+    <a class="jbDiscGo ctl ctl--nav" data-nav-item="contact" aria-haspopup="true" aria-expanded="false" aria-controls="jbContactMenu" href="#contact" aria-label="Contact"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10z"/><path d="M3 7l9 6l9 -6"/></svg><span class="jbLbl">Contact</span></a>
     <div class="jbDiscMenu" id="jbContactMenu"><a class="jbDiscTouch" href="#contact"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10z"/><path d="M3 7l9 6l9 -6"/></svg>Contact</a><div class="jbDiscSep jbDiscTouch" aria-hidden="true"></div><a href="https://www.linkedin.com/in/jaydenbetts" target="_blank" rel="noopener noreferrer"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 11l0 5"/><path d="M8 8l0 .01"/><path d="M12 16l0 -5"/><path d="M16 16v-3a2 2 0 0 0 -4 0"/><path d="M3 7a4 4 0 0 1 4 -4h10a4 4 0 0 1 4 4v10a4 4 0 0 1 -4 4h-10a4 4 0 0 1 -4 -4z"/></svg>LinkedIn</a><a href="https://www.instagram.com/jaydenleebetts" target="_blank" rel="noopener noreferrer"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4m0 4a4 4 0 0 1 4 -4h8a4 4 0 0 1 4 4v8a4 4 0 0 1 -4 4h-8a4 4 0 0 1 -4 -4z"/><path d="M12 12m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"/><path d="M16.5 7.5l0 .01"/></svg>Instagram</a><a href="mailto:jaydenlbetts@gmail.com"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10z"/><path d="M3 7l9 6l9 -6"/></svg>Email</a></div>
    </span>
   </span>
@@ -1804,7 +1933,7 @@ if(location.hash==="#about")location.replace("about.html");</script>
   </div>
   <div class="footMark" aria-hidden="true">Jayden Betts</div>
  </footer>
-<div class="reelOverlay" id="reelOverlay" aria-hidden="true"><button class="reelClose" id="reelClose" type="button" aria-label="Close trailer">Close</button><video class="reelOverlayVid" id="reelOverlayVid" controls playsinline preload="metadata" poster="images/reel_poster.webp"><source src="videos/reel.mp4" type="video/mp4"></video></div>
+<div class="reelOverlay" id="reelOverlay" aria-hidden="true"><button class="reelClose ctl ctl--on-dark" id="reelClose" type="button" aria-label="Close trailer">Close</button><video class="reelOverlayVid" id="reelOverlayVid" controls playsinline preload="metadata" poster="images/reel_poster.webp"><source src="videos/reel.mp4" type="video/mp4"></video></div>
 <div class="viewCursor" id="viewCursor" aria-hidden="true"><span class="vcInner"><span class="vcArr"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="square" stroke-linejoin="miter"><path d="M12 20V5M5 12l7-7 7 7"/></svg></span>View case study</span></div>
 <!-- The original live portrait engine owns the Home face, eyes, gaze, blink, and moods. -->
 <script>(function(){var root=document.documentElement;addEventListener("pointerdown",function(){root.setAttribute("data-focus-modality","pointer");},{capture:true,passive:true});addEventListener("keydown",function(e){if(e.key==="Tab")root.setAttribute("data-focus-modality","keyboard");},true);})();</script>

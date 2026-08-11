@@ -130,22 +130,32 @@ html{scrollbar-color:var(--theme-muted) var(--theme-page)}
 :root[data-theme="dark"] body[data-theme-page="about"] .abIn:hover{
  color:var(--theme-ink);text-decoration-color:var(--theme-focus);
 }
-:root[data-theme="dark"] body[data-theme-page="about"] .abLink{
- background-color:var(--theme-surface);color:var(--theme-ink);
- box-shadow:inset 0 0 0 var(--hair-w) var(--theme-rim);
-}
-:root[data-theme="dark"] body[data-theme-page="about"] .abLink:hover{
- background-color:var(--theme-elevated);color:var(--theme-ink);
- box-shadow:inset 0 0 0 var(--hair-w) var(--theme-rim-strong);
-}
-:root[data-theme="dark"] body[data-theme-page="about"] .abLinkPrimary,
-:root[data-theme="dark"] body[data-theme-page="about"] .abLinkPrimary:hover{
- background-color:var(--theme-focus);color:var(--theme-page);box-shadow:none;
-}
-:root[data-theme="dark"] body[data-theme-page="about"] .abLinkPrimary .abLinkArrow{
- color:var(--theme-page);
-}
-:root[data-theme="dark"] body[data-theme-page="about"] .abLinkArrow{color:var(--theme-muted)}
+/* ── THE EMAIL BUTTON WENT MISSING IN NIGHT, AND IT WAS THIS BLOCK ──────────
+   Jayden: "Email in the About is missing." Measured at 1440 in Night, it was
+   rendering perfectly legibly -- #F4F5F7 on #111318, 17.03:1 -- and that is
+   exactly the bug. It was legible AS A SECONDARY. All four buttons in the
+   "Get in touch" row came out with one ground, one rim and one ink, so the
+   primary call to action on a hiring site was visually identical to Résumé.
+   In daytime it is a solid near-black pill and the loudest thing on the page.
+   TWO FAULTS, ONE BLOCK, AND THE FIRST ONE IS A DEAD SELECTOR. about.html has
+   no .abLinkPrimary. The markup is `class="abLink ctl ctl--primary"` -- it was
+   migrated to the control library and the class it used to carry went with the
+   old hand-rolled styling. Three rules here still addressed it, so the primary
+   treatment they describe has not run since that migration.
+   The second fault is what filled the gap. The generic `.abLink` rule above is
+   (0,4,1) and `.ctl--primary` is (0,1,0), so the adapter repainted the primary
+   as a secondary -- it did not merely fail to style it, it actively overrode
+   the library's own primary. Same for .abLinkArrow, which beat
+   `.abLink.ctl--primary .abLinkArrow` (0,3,0) and put muted grey on what should
+   be the primary's inverted ink.
+   NOTHING REPLACES IT, WHICH IS THE POINT. Every value these rules restated is
+   already a --ctl-* token resolving through --theme-*: --ctl-ground,
+   --ctl-primary-ground, --ctl-rim and --ctl-ink are dark the moment the theme
+   is. Measured after deletion in Night: primary #0B0C0F on #F4F5F7 (17.93:1),
+   secondaries #A7ABB4 on #111318 (8.08:1) -- the same relationship light has,
+   inverted, which is what a themed control library is for. The whole About
+   adapter for these buttons was a second definition of a decision the token
+   layer had already made, and it was the stale copy. */
 :root[data-theme="dark"] body[data-theme-page="about"] .amsDots i{background-color:var(--theme-rim)}
 :root[data-theme="dark"] body[data-theme-page="about"] .amsDots i.on{background-color:var(--theme-focus)}
 :root[data-theme="dark"] body[data-theme-page="about"] :is(.abLink,.abIn,.abStack):focus-visible{
@@ -169,7 +179,7 @@ html{scrollbar-color:var(--theme-muted) var(--theme-page)}
 :root[data-theme="dark"] body[data-theme-page="case-study"] :is(.lede,.secBody,.statCap,.baBody,.baCap,.playerNote,.baNote){
  color:var(--theme-ink-soft);
 }
-:root[data-theme="dark"] body[data-theme-page="case-study"] :is(.eyebrow,.kicker,.fk,.fvsub,.rlabel,.statUnit,.statSrc,.cap,.shotCap,.shotNote,.hmwLabel,.hsrc,.subKick,.playerKick,.pullWho,.photoPair figcaption,.csReach,.scrapTag,.baLabel,.demoLabel){
+:root[data-theme="dark"] body[data-theme-page="case-study"] :is(.eyebrow,.kicker,.fk,.fvsub,.rlabel,.statUnit,.statSrc,.cap,.shotCap,.shotNote,.hmwLabel,.subKick,.playerKick,.pullWho,.photoPair figcaption,.csReach,.scrapTag,.baLabel,.demoLabel){
  color:var(--theme-muted);
 }
 :root[data-theme="dark"] body[data-theme-page="case-study"] :is(.secBody,.ovBody,.role,.lede,.baBody) strong,

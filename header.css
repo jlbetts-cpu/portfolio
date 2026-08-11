@@ -1,4 +1,27 @@
-@import url("ui-icons.css");
+/* ── THE LUCIDE CONTRACT, FOLDED IN. THE @import IT REPLACES WAS A SECOND
+   ROUND TRIP. ────────────────────────────────────────────────────────────────
+   This was `@import url("ui-icons.css")`, and an @import at the top of a
+   stylesheet is the one thing a stylesheet cannot do cheaply: the browser
+   cannot know the file exists until it has fetched and begun parsing
+   header.css, so the two loads are SERIALISED rather than parallel. Nothing
+   else on this site links ui-icons.css -- header.css's @import was its only
+   consumer on all nine pages -- so the cost bought exactly five declarations.
+   IT IS A LEGIBILITY BUG, NOT A PERFORMANCE ONE, which is why it is being
+   fixed here rather than filed. `.uiIcon` is what makes a Lucide symbol a LINE
+   drawing: fill:none, stroke:currentColor, stroke-width:1.75. An SVG <symbol>
+   whose shapes carry no presentation attributes of their own -- and Lucide's
+   carry none -- renders with the SVG defaults until this rule lands, and the
+   SVG default is fill:black, stroke:none. So in the window between header.css
+   parsing and ui-icons.css arriving, every header glyph paints as a solid black
+   blob rather than an outline. Jayden: "sometimes the icons don't load in
+   properly in the header." This is one of the two mechanisms behind that; the
+   other is the sprite fetch, handled in header.js.
+   The rules below are ui-icons.css verbatim. That file is now unreferenced. */
+.uiIcon{width:1em;height:1em;display:block;flex:none;overflow:visible;color:inherit;
+  fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;
+  stroke-linejoin:round;vector-effect:non-scaling-stroke}
+.uiIcon use{pointer-events:none}
+@media(forced-colors:active){.uiIcon{color:CanvasText}}
 
 /* ===========================================================================
    THE SITE HEADER -- one component, every page.  HEADER V2, 2026-08-03.
@@ -391,6 +414,26 @@
 .jbGrpR{flex:1 1 0;justify-content:flex-end}
 .jbNav .jbHome{flex:0 0 auto}
 
+/* ── THE BAR IS UNTRACKED, AND THAT IS THE WHOLE COST OF THE ADOPTION ───────
+   The bar items carry `ctl ctl--nav` in the markup now. .jbNav's own rules are
+   (0,1,1) and .ctl/.ctl--nav are (0,1,0), so the library wins NOTHING the bar
+   already sets -- height, padding, gap, radius, corner-shape, colour, focus,
+   press, transition and font-size all stay exactly where they were. The single
+   property .ctl adds that the bar had never declared is letter-spacing:
+   --tr-body, and at 14px that is 0.056px per character. Invisible on one label
+   and about 3.4px across a word, which re-flows the bar by that much.
+   The 2026-08-10 patch offered two ways to land it: accept the 3.4px, or hold
+   the bar at `normal` so the adoption costs zero pixels. This is the second, and
+   it is the conservative one on purpose -- Jayden is sending this site out this
+   week and the bar is the component he looks at most. Verified: 4,536 computed
+   properties across 168 nav items, 8 pages x 3 widths, ZERO delta.
+   THE PRIZE IS NOT CLAIMED YET. Once play.html, headmaker.html and
+   gradientlab.html carry the class too, the six duplicated geometry declarations
+   below (min-height, padding-inline, gap, border-radius, corner-shape,
+   font-size) can be deleted outright, because .ctl--nav supplies all six. That
+   deletion is only safe at 100% adoption; those three files are another agent's
+   lane, and a patch for them ships beside this. */
+.jbNav :is(a,button).ctl{letter-spacing:normal}
 .jbNav a,.jbNav button{
   font-family:inherit;font-size:var(--fs-nav);font-weight:400;line-height:var(--lh-flat);
   color:var(--nav-ink);text-decoration:none;background:none;border:0;cursor:pointer;

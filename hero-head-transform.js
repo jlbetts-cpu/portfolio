@@ -138,6 +138,45 @@
    restore(saved);
    return measured;
   }
+  /* ── THE BASE IS LAYOUT. THE BREATHING IS NOT. ───────────────────────────
+     state.base is the head's rectangle in the Hero's own coordinates, and
+     everything durable is built on it: the frame is drawn from it and the
+     clamp reasons about it. It is captured by reading the portrait's live
+     rect -- and the portrait is never still. hero-engine gives it its own
+     idle pose on a 125ms clock, written as a transform on #stage and
+     .stagewrap, worth about 14px. So every capture rolled a different base
+     depending on which instant it happened to run in.
+     THAT TURNS A RESIZE INTO A PERMANENT NUDGE, and on a phone a scroll IS a
+     resize: retracting the URL bar changes innerHeight, the Hero is 100dvh,
+     the ResizeObserver fires, reclamp() re-captures. Measured at 390 wide,
+     dragging the head and then cycling the viewport 760 -> 844 -> 760 -- one
+     scroll down and back -- left the frame 10.8px from where it started and
+     the clamp's own box 6 to 7px out, with state.x/y untouched at (-60,-150).
+     It does not settle, because nothing brings it back; it accumulates, once
+     per scroll gesture, which is "it doesn't actually stay in the same spot".
+     The wrapper's own transform was already lifted off for this measurement
+     for exactly this reason. The breathing is the same problem one level
+     down, so it comes off too, and the base becomes what it always claimed to
+     be: a function of layout alone, identical whenever it is taken.
+     THE ENGINE OWNS THESE, so they are put back exactly, priority included,
+     and it rewrites them within 125ms regardless. This runs at init, on
+     resize and on a stage change -- never in a drag or a float frame. */
+  var BODY=[hero.querySelector(".stagewrap"),hero.querySelector("#stage")]
+   .filter(function(node){return node;});
+  function stillBody(read){
+   var saved=BODY.map(function(node){
+    return [node,node.style.transform,node.style.getPropertyPriority("transform")];
+   });
+   BODY.forEach(function(node){node.style.setProperty("transform","none","important");});
+   var measured=read();
+   saved.forEach(function(pair){
+    /* removeProperty first, for the reason the essay above gives: a
+       priority-less setProperty does not lift the !important in WebKit. */
+    pair[0].style.removeProperty("transform");
+    if(pair[1])pair[0].style.setProperty("transform",pair[1],pair[2]||"");
+   });
+   return measured;
+  }
   /* Cached per render pass so a drag frame pays for the extra layout once. */
   function geom(){
    if(state.geomStamp===state.stamp&&state.geom)return state.geom;
@@ -272,9 +311,12 @@
      origin on its authored fallback. It measures through withLevel() instead,
      which is exact at any angle. A pure translation or a uniform scale about
      this same point preserves the ratio, so only the rotation has to come off. */
+  /* Measured through stillBody() for the same reason captureBase() is: this
+     comment already calls the ratio a layout constant, and it only is one if
+     the idle pose is off the head while it is taken. */
   function syncOrigin(){
    var measured=withLevel(function(){
-    return {u:logicalRaw(),w:rectOf(wrap)};
+    return stillBody(function(){return {u:logicalRaw(),w:rectOf(wrap)};});
    });
    var u=measured.u,w=measured.w;
    if(!w.width||!w.height)return;
@@ -389,8 +431,10 @@
    var saved=neutralise(NEUTRAL,function(name){
     return name==="--hero-head-scale"?"1":/rot/.test(name)?"0deg":"0px";
    });
-   var u=logicalRaw(),h=rectOf(hero);
-   state.base={left:u.left-h.left,top:u.top-h.top,width:u.width,height:u.height};
+   stillBody(function(){
+    var u=logicalRaw(),h=rectOf(hero);
+    state.base={left:u.left-h.left,top:u.top-h.top,width:u.width,height:u.height};
+   });
    restore(saved);
   }
   function cssNumber(node,name){return parseFloat(node.style.getPropertyValue(name))||0;}
