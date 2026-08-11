@@ -1848,8 +1848,14 @@ if(!HEADONLY){stage.style.opacity="0";requestAnimationFrame(function(){requestAn
  if(fine){
    frame.addEventListener("pointerenter",function(e){mx=e.clientX;my=e.clientY;hovering=true;evalCursor();startMovie();});
    frame.addEventListener("pointerleave",function(){hovering=false;evalCursor();requestAnimationFrame(stopMovieIfDisengaged);});function reelClear(){if(hovering){hovering=false;evalCursor();caughtMovie();}}document.addEventListener("mouseleave",reelClear);window.addEventListener("blur",reelClear);window.addEventListener("mouseout",function(e){if(!e.relatedTarget&&!e.toElement){reelClear();}});
-   frame.addEventListener("click",openReel);
  }
+ /* OPENING THE REEL IS NOT A HOVER AFFORDANCE. This binding used to live inside
+    if(fine), alongside the pointerenter/leave movie handlers where it looked like
+    it belonged -- so on a coarse pointer CSS rendered the "Play video" pill and
+    nothing was behind it. Measured: real taps on the frame AND on the pill both
+    left the overlay closed at 390. The movie preview genuinely is fine-pointer
+    only; opening the video is not. */
+ frame.addEventListener("click",openReel);
  function stopMovieIfDisengaged(){if(!hovering&&!frame.contains(document.activeElement))caughtMovie();}
  frame.addEventListener("focusin",function(){startMovie();});
  frame.addEventListener("focusout",function(){requestAnimationFrame(stopMovieIfDisengaged);});
