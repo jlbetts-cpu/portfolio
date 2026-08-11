@@ -612,3 +612,43 @@ page title read the real job. Both are live.
 
 So: a status code lies about dead jobs, and a keyword search lies about live ones. **Read the rendered
 body.**
+
+### Big tech — the floor is 2+ years, and that is the whole story
+
+Two more Bay Area roles, both re-fetched and confirmed live today:
+
+**Adobe — Product Designer, Acrobat Mobile Growth** — **San Francisco** (primary), plus Seattle
+and San Jose.
+<https://adobe.wd5.myworkdayjobs.com/external_experienced/job/San-Francisco/Product-Designer--Acrobat-Mobile-Growth_R170472-1>
+*"2+ years of product design experience, with a portfolio demonstrating solid UX craft and clear
+interaction thinking"*, and the posting says you would *"work within an established design team,
+alongside experienced designers"* — written for a junior IC. No graduation-year gate, no visa
+language. **California range $139,400–$201,950.** Posted 30 July, no deadline.
+
+**Amazon — Product Designer, Amazon Music** — **San Francisco**.
+<https://www.amazon.jobs/en/jobs/10482769/product-designer-amazon-music-product-design>
+*"2+ years of design experience · Have an available online portfolio · Experience with Figma"*.
+No grad-year gate. Also open: **Interaction Designer, Prime Video** (SF, posted 13 May — oldest of
+the set, may be stale) and **UX Designer, Shopping Design** (Seattle).
+
+**Be clear-eyed about "2+ years."** That is a floor, not a range that includes zero. These are
+Amazon's L4 and Adobe's junior bar — the most junior design requisitions open anywhere in big tech
+right now — and your four months as Head of UX is the argument, not a match.
+
+**Verified empty**, each against live data rather than inference: **Google** (388 early-career roles,
+**zero** design; its ~39 UX roles are all 4+ or 6+ years), **Meta** (Product Designer posts are 6+,
+8+ and 4+; four University Grad postings site-wide, none design), **Apple's experienced board**
+(13 US product/UX design posts, lowest bar 4+ years — note this is separate from the Prototyping
+Designer role above, which is the exception that makes it worth applying), **Microsoft**, plus
+ServiceNow, Salesforce, Intuit, NVIDIA, Cisco, **Oracle (all 1,533 reqs — zero product/UX design at
+any level)**, SAP, Dell, HP, Autodesk, Workday, Snap, eBay, DoorDash, Block, Pinterest, Roblox,
+Duolingo, Dropbox, Discord, Reddit, Robinhood, Coinbase, Chime, Nextdoor, Lyft, Instacart, Airbnb
+and Twilio.
+
+**Unchecked, not empty — needs a browser session:** **LinkedIn** (your warmest lead, since Bearings
+was judged by people there), **Uber, PayPal, Visa, Qualcomm** — all hard-blocked. And **Zoom, Yelp,
+Spotify, Netflix, Samsung, Sony, Zillow, Expedia, Booking.com, Atlassian** were never reached.
+
+**One thing to poll weekly:** Adobe's university board is live and returns a valid *empty* result —
+the endpoint works, the cohort simply is not posted yet. That is the cheapest recurring check on
+this list.
