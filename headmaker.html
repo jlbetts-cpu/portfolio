@@ -6,12 +6,43 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Make Your Own Head · Jayden Betts</title>
+<!-- The full icon set, which this page carried three of. The 180px apple-touch-icon
+     is the one that matters most here: this is the page a visitor is most likely to
+     add to an iOS home screen, and without it Safari screenshots the page instead. -->
 <link rel="icon" type="image/png" sizes="192x192" href="favicon-192.png">
+<link rel="icon" type="image/png" sizes="96x96" href="favicon-96.png">
+<link rel="icon" type="image/png" sizes="48x48" href="favicon-48.png">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="favicon-180.png">
 <link rel="icon" href="favicon.ico" sizes="any">
 <meta name="description" content="Turn a photo of your face into a floating cutout head with living eyes, the same treatment as the one on my homepage. Everything happens in your browser.">
-<meta name="robots" content="index,follow">
+<meta name="author" content="Jayden Betts">
+<meta name="robots" content="index,follow,max-image-preview:large">
 <link rel="canonical" href="https://jaydenbetts.design/headmaker.html">
+<!-- SHARE CARDS. This page is indexable and was the only indexable page on the site
+     with no Open Graph and no Twitter card at all, so every link to it -- in a DM, a
+     Slack, a portfolio email -- unfurled as a bare URL.
+
+     THE STRINGS BELOW ARE NOT NEW COPY. og:title is this page's existing <title>
+     with the site suffix dropped, and og:description is its existing meta
+     description verbatim. Nothing here says anything the page did not already say;
+     the words were simply not reaching the surfaces that render a link preview. -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Jayden Betts">
+<meta property="og:title" content="Make Your Own Head">
+<meta property="og:description" content="Turn a photo of your face into a floating cutout head with living eyes, the same treatment as the one on my homepage. Everything happens in your browser.">
+<meta property="og:url" content="https://jaydenbetts.design/headmaker.html">
+<meta property="og:image" content="https://jaydenbetts.design/images/og/jayden-betts-portfolio.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:type" content="image/jpeg">
+<meta property="og:image:alt" content="Jayden Betts as a child with his sister">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Make Your Own Head">
+<meta name="twitter:description" content="Turn a photo of your face into a floating cutout head with living eyes, the same treatment as the one on my homepage. Everything happens in your browser.">
+<meta name="twitter:image" content="https://jaydenbetts.design/images/og/jayden-betts-portfolio.jpg">
+<meta name="twitter:image:alt" content="Jayden Betts as a child with his sister">
 <link rel="preload" as="font" type="font/woff2" href="fonts/instrument-sans-variable.woff2" crossorigin><link rel="preload" as="font" type="font/woff2" href="fonts/instrument-sans-latin-400-normal.woff2" crossorigin><link rel="preload" as="font" type="font/woff2" href="fonts/instrument-sans-latin-600-normal.woff2" crossorigin>
 <!-- THE SHARED DESIGN TOKENS. Everything geometric on this page resolves through
      them; this file's own <style> declares no colour ramp, no type scale and no

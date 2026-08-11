@@ -24,7 +24,28 @@
 <meta property="og:url" content="https://jaydenbetts.design/bearings.html">
 <meta property="og:image" content="https://jaydenbetts.design/images/cs/bearings.webp">
 <meta property="og:image:alt" content="Bearings, a group road-trip planner designed by Jayden Betts, shown across four iOS screens">
+<!-- THE REST OF THE CARD. This page declared og:image and then stopped, so a
+     scraper had to fetch and decode the file to learn its shape before it could
+     decide between a large card and a thumbnail -- and several never bother, which
+     is why these unfurled small. Width/height/type are the file's real measured
+     values, and the twitter:* pair mirrors the og:* one so a client that reads only
+     the Twitter namespace gets the same card.
+
+     NO NEW COPY: twitter:title and twitter:description repeat this page's existing
+     og:title and og:description verbatim.
+
+     NOTE the image is WebP. LinkedIn's unfurler has historically been the weakest
+     on WebP of any surface a recruiter uses, and the home page's card is a JPEG for
+     exactly that reason. Flagged in the audit; a re-export is an images-lane
+     change, not a head-region one. -->
+<meta property="og:image:width" content="1600">
+<meta property="og:image:height" content="800">
+<meta property="og:image:type" content="image/webp">
 <meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Bearings: A Product Design Case Study">
+<meta name="twitter:description" content="A group road-trip planner concept: plan the route, discover the detours, keep the memories.">
+<meta name="twitter:image" content="https://jaydenbetts.design/images/cs/bearings.webp">
+<meta name="twitter:image:alt" content="Bearings, a group road-trip planner designed by Jayden Betts, shown across four iOS screens">
 <link rel="preload" as="font" type="font/woff2" href="fonts/instrument-sans-latin-400-normal.woff2" crossorigin><link rel="preload" as="font" type="font/woff2" href="fonts/instrument-sans-latin-600-normal.woff2" crossorigin>
 <link rel="preload" as="image" href="images/cs/bearings-cover.webp" fetchpriority="high">
 <link rel="stylesheet" href="tokens.css?v=20260806-shared-surfaces">

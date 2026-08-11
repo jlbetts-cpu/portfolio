@@ -29,6 +29,25 @@
 <meta name="twitter:description" content="San Francisco product designer focused on iOS, B2C and design systems. Founder of Apollo.">
 <meta name="twitter:image" content="https://jaydenbetts.design/images/og/jayden-betts-portfolio.jpg">
 <meta name="twitter:image:alt" content="Jayden Betts as a child with his sister">
+<!-- STRUCTURED DATA. This page had none, which was the biggest single gap in the
+     site's answer to a search for his name: About is the most name-relevant page
+     here, and it was the only one of the eight indexable pages saying nothing
+     machine-readable about who the page is about.
+
+     The Person @id is IDENTICAL to the one index.html declares
+     (https://jaydenbetts.design/#person). That is the whole point of an @id: two
+     pages describing the same node consolidate into one entity rather than
+     competing as two. A different @id here -- or none -- would have split the
+     signal across two pages instead of doubling it on one.
+
+     DELIBERATELY NO `description` KEY. index.html's Person node carries one, and
+     it claims San Francisco, which his resume contradicts (Davis, CA). Restating
+     it here would have propagated a contested claim into a second machine-readable
+     surface. The identifying properties below are the ones that are not in dispute.
+     When the location copy is settled -- the options are written up in
+     docs/superpowers/specs/2026-08-09-copy-options.md, and he has not picked one --
+     a description can be added here if it is wanted. -->
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"ProfilePage","@id":"https://jaydenbetts.design/about.html#webpage","url":"https://jaydenbetts.design/about.html","name":"About Jayden Betts","isPartOf":{"@id":"https://jaydenbetts.design/#website"},"about":{"@id":"https://jaydenbetts.design/#person"},"mainEntity":{"@id":"https://jaydenbetts.design/#person"},"inLanguage":"en"},{"@type":"Person","@id":"https://jaydenbetts.design/#person","name":"Jayden Betts","alternateName":"Jayden Lee Betts","url":"https://jaydenbetts.design/","image":"https://jaydenbetts.design/images/about/jayden-betts-portrait.webp","jobTitle":"Product Designer","sameAs":["https://www.linkedin.com/in/jaydenbetts","https://www.instagram.com/jaydenleebetts"],"alumniOf":{"@type":"CollegeOrUniversity","name":"University of California, Davis"},"knowsAbout":["Product Design","UX Design","Brand Design","iOS App Design","User Research","Design Systems"]}]}</script>
 
 <!-- Icons: Tabler Icons (MIT) - Copyright (c) 2020-2026 Pawel Kuna
      https://github.com/tabler/tabler-icons/blob/main/LICENSE

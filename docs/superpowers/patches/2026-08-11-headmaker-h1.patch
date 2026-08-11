@@ -1,0 +1,29 @@
+diff --git a/headmaker.html b/headmaker.html
+index 3612fa3..e730625 100644
+--- a/headmaker.html
++++ b/headmaker.html
+@@ -579,6 +610,24 @@ img{display:block;max-width:100%}
+      those two, the header's Contact control points at index.html#contact.
+      ═══════════════════════════════════════════════════════════════════════════ -->
+ <main class="mkApp" id="main" tabindex="-1">
++ <!-- THE PAGE'S SUBJECT, STATED ONCE. This page had no h1 at all: it opened
++      straight onto six h2 panel labels (Frame, Landmarks, Pose, Name, Keep it,
++      Your heads), so its heading outline began at level 2 with no level 1 above
++      it. The page's actual subject existed only in <title>, which is not part of
++      the document outline -- to a crawler and to a screen reader working through
++      headings, the page announced its controls and never announced itself.
++
++      VISUALLY HIDDEN, so nothing about the layout changes: the builder's own
++      chrome already tells a sighted visitor where they are, and adding a visible
++      heading above the stage is a composition decision that is Jayden's to make,
++      not a defect fix. If he would rather it were visible, this is the element to
++      promote. The wording is this page's existing <title> with the site suffix
++      dropped -- no new copy, and nothing said here that the page did not already
++      say.
++
++      This is NOT hidden keyword text: it is one honest heading naming the page,
++      identical to what the tab already reads. -->
++ <h1 style="position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;border:0">Make Your Own Head</h1>
+ 
+  <div class="mkStageCol">
+   <div class="mkStageBox">

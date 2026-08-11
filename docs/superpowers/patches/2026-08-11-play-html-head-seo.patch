@@ -1,0 +1,37 @@
+diff --git a/play.html b/play.html
+index 94f412f..8515fb1 100644
+--- a/play.html
++++ b/play.html
+@@ -3,7 +3,31 @@
+ <script src="site-theme.js"></script>
+ <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+ <title>Play — Jayden Betts</title>
+-<meta name="robots" content="noindex">
++<!-- The full icon set, which this page carried none of. Nothing to do with search
++     -- a noindex page still opens in a tab, and this was the only page on the site
++     showing the browser's blank-document glyph. -->
++<link rel="icon" type="image/png" sizes="192x192" href="favicon-192.png">
++<link rel="icon" type="image/png" sizes="96x96" href="favicon-96.png">
++<link rel="icon" type="image/png" sizes="48x48" href="favicon-48.png">
++<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
++<link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png">
++<link rel="apple-touch-icon" sizes="180x180" href="favicon-180.png">
++<link rel="icon" href="favicon.ico" sizes="any">
++<!-- NOINDEX, STATED THE WAY gradientlab.html NOW STATES IT.
++     `follow` is explicit rather than implicit. Bare `noindex` already meant
++     `noindex,follow`, so this changes NO crawler behaviour -- it makes the intent
++     legible, because the neighbouring tool page carried the same bare directive and
++     it was not obvious both were deliberate.
++
++     WORTH RE-DECIDING, flagged rather than changed: this page is a real
++     demonstration of craft and it is excluded from search entirely. Defensible when
++     the site was not trying to be found; worth a second look now that it is. What
++     belongs in public search is Jayden's call, not an auditor's.
++
++     NO CANONICAL, DELIBERATELY. A canonical on a noindex page is at best inert and
++     at worst a mixed signal, so this page and gradientlab.html carry none, and
++     neither appears in sitemap.xml. -->
++<meta name="robots" content="noindex,follow">
+ <!-- The two text faces, ahead of the stylesheet that declares them: a preload must be in the
+      document head, and these are the only fonts a visible word on this page ever uses. Same
+      three attributes index.html uses (as=font, type, crossorigin -- fonts are always fetched
