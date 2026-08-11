@@ -652,3 +652,70 @@ Spotify, Netflix, Samsung, Sony, Zillow, Expedia, Booking.com, Atlassian** were 
 **One thing to poll weekly:** Adobe's university board is live and returns a valid *empty* result —
 the endpoint works, the cohort simply is not posted yet. That is the cheapest recurring check on
 this list.
+
+---
+
+## TikTok — the largest cluster found, and a verification conflict you must resolve first
+
+A sweep of 19 consumer and fintech companies found that **exactly one has genuine early-career
+product design openings: TikTok/ByteDance.** Seven roles, all San Jose (Bay Area). That is more
+entry-level product design than the rest of this document combined.
+
+### ⚠️ Read this before opening any of them
+
+**You may only ever apply to TWO TikTok/ByteDance roles, globally, for life.** The postings say so
+outright: *"Candidates can apply to a maximum of two positions."* With seven roles open, choosing
+is the task — a wasted application is unrecoverable.
+
+**And there is a conflict I could not resolve.** The agent that found these verified them in a real
+browser and reported them live. It also documented TikTok's own liveness tell: the field
+`channel_online_status` in `lifeattiktok.com/api/v1/job/posts/<id>` reads **1 for live** and **0 for
+dead-but-still-served** — and it used that to prove TikTok's *2026* cohort pages are 404s that search
+engines still surface.
+
+**When I re-checked the four best roles against that same field, all four returned 0.** The rendered
+pages return HTTP 200 with the correct job title, but this site is exactly the one where a 200 means
+nothing — dead postings here render their 404 in JavaScript.
+
+So: **the agent's browser said live, the API field it identified says dead.** One of those is wrong
+and I could not tell which from a script.
+
+> **Open each one in a real browser before you spend an application.** If it renders the job, apply.
+> If it renders a 404, do not burn one of your two on it.
+
+### The seven, ranked by fit
+
+**Grad cohort — 2027 Start**, posted 29 July, rolling review, **$76,000–$151,200**:
+- **Product Designer Graduate (TikTok-Design)** — <https://lifeattiktok.com/search/7667791791502821637>
+- **AI Product Designer Graduate (TikTok-Design)** — <https://lifeattiktok.com/search/7667794209077152053>
+
+Both ask for someone *"completing or have recently completed a Bachelor's or Master's"* — a June 2026
+graduate reads as recently completed. Both want **"vibe coding"** — building high-fidelity prototypes
+with AI-assisted tools. **Apollo's North companion and Strata answer that literally**, and you have
+already written the reasoning down.
+
+**Open to any experience level**, verbatim — *"Open to candidates at any experience level; what
+matters is deep hands-on practice with AI coding tools"*:
+- **Product Designer (Design Engineering, AI workflow)** — <https://lifeattiktok.com/search/7644839024281159941>
+- **Product Designer (Social)** — <https://lifeattiktok.com/search/7647489259548805381>
+
+**1+ years:** Content Ecosystem & Integrity (**$108,000–$220,400**), and User Growth/Tablet.
+**2+ years:** Creator.
+
+**Do not apply to** the two "Product Designer (Multiple Positions)" postings at $200,221–$210,221.
+They route résumés to an immigration mailbox and carry PERM labor-certification boilerplate — they
+are not open-market requisitions.
+
+### Everything else in that sweep was empty
+
+Uber (Product Designer II is 3+ years), DoorDash, Snap (its "Interface Designer" body asks for a
+*Senior* at 5+ years), Spotify (one design role globally, 3+ years), Netflix, eBay, PayPal, Visa,
+Block, Atlassian (zero early-career design in 241 reqs), **Zoom, Yelp and Zillow — zero design roles
+of any level**, Samsung, Sony, Expedia, Booking.
+
+**Uber's "Graduate 2026 Product Designer I, U4B — San Francisco" no longer exists**, despite ranking
+in search. Its source URL 404s and it is absent from Uber's live API.
+
+**LinkedIn:** 35 US postings scanned via the guest API, zero design — but that is keyword-filtered
+rather than a full enumeration, so it is good evidence and not certainty. **Given Bearings was judged
+by people from LinkedIn, this is the one worth checking by hand.**
