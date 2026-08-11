@@ -295,7 +295,14 @@ body.catchReady #stageMorph{transform:scale(1.055)}
 .reelFrame{position:relative;margin:0;width:min(1200px,calc(100vw - 80px),calc((100vh - 40px) * 16 / 9));aspect-ratio:16/9;border-radius:var(--rad,var(--r-md));corner-shape:var(--corner);overflow:hidden;background:var(--c600);transform:rotate(var(--rr,0deg)) scale(var(--rs,.55));transform-origin:top center;will-change:transform}
 .reelFrame.fine{cursor:none}.reelFrame{transition:transform 0s linear,width 0s}
 
-.reelVid{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+/* THE VIDEO CARRIES ITS OWN CORNER. .reelFrame is rounded and clips with
+   overflow:hidden, which is enough for every ordinary child -- but a <video> is
+   promoted to its own compositing layer, and a composited layer is painted by
+   the GPU outside the parent's clip. The frame was correctly rounded the whole
+   time and the video sat square inside it. Inheriting the radius means the
+   corner is drawn on the element that actually paints, so it no longer depends
+   on the parent's clip winning against the compositor. */
+.reelVid{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;border-radius:inherit;corner-shape:inherit}
 /* .reelPh (a poster placeholder), .reelCap and .reelFrame.big .reelCap stood
    here. NONE of the three elements exists in this document -- checked against
    the live DOM at 1440, 390 and 320, not by reading the markup -- and .big is
@@ -2079,10 +2086,21 @@ if(location.hash==="#about")location.replace("about.html");</script>
   var a=[],rawN=null;
   try{var raw=localStorage.getItem("hmCompanions");if(raw!==null){a=JSON.parse(raw)||[];rawN=a.length;}}catch(_){}
   if(rawN===null){try{var l=JSON.parse(localStorage.getItem("hmCompanion")||"null");if(l&&l.cut)a=[l];}catch(_){}}   // an emptied pit stays empty
+  /* A READ MUST NEVER DELETE. This filter used to chain .slice(0,8), and the line
+     below then wrote the SHORTENED list back -- so merely loading this page, which
+     only wants to draw some ambient heads, destroyed the ninth. Measured: seed
+     eleven heads, load any page, eight remain. The cap now limits what THIS PAGE
+     USES and nothing more; anything above it stays on disk and comes back when a
+     slot frees. Only the builder's own save may drop a head, where the pit is on
+     screen and the oldest visibly retires.
+     AND THE KEY CARRIES THE PICTURE. Without d.cut.length, two DIFFERENT people
+     whose marks and eye boxes land on the same coordinates hash identically, and
+     the newer one is deleted as a duplicate of someone they have never met. */
   var seen={};a=a.filter(function(d){if(!d||!d.cut||d.cut.length<15000)return false;
-  var k2=JSON.stringify(d.marks||"m")+JSON.stringify((d.eyes||[]).map(function(e){return[e.x,e.y,e.w,e.h];}));
-  if(seen[d.cut]||seen[k2])return false;seen[d.cut]=1;seen[k2]=1;return true;}).slice(0,8);
+  var k2=d.cut.length+"|"+JSON.stringify(d.marks||"m")+JSON.stringify((d.eyes||[]).map(function(e){return[e.x,e.y,e.w,e.h];}));
+  if(seen[d.cut]||seen[k2])return false;seen[d.cut]=1;seen[k2]=1;return true;});
   if(rawN!==null&&rawN!==a.length){try{localStorage.setItem("hmCompanions",JSON.stringify(a));_hcBump();}catch(_){}}   // heal duplicates so one x is always one head
+  a=a.slice(0,(window.__HM_MAX_HEADS=window.__HM_MAX_HEADS||12));
   _hcCache=a;_hcCacheVer=_hcVer;
   return a.slice();}
  /* ── REMOVING A HEAD. The pattern is documented in full beside its CSS above;

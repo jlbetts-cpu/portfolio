@@ -259,7 +259,16 @@ def run(inject=None, verbose=False):
             page.on("pageerror", lambda e: errs.append(str(e)))
 
             # ── identity: two subjects, twice, with and without findable eyes ────
-            for label, (a, b_) in (("guessable", (p1, p2)), ("featureless", (f1, f2))):
+            # "mixed" is the pair that actually pins the geometry bug: a face
+            # guessFace CAN read, followed by one it cannot. Head 1 is measured
+            # into real marks; head 2 must fall back to the defaults. If restart
+            # failed to reset, head 2 keeps head 1's measured geometry and the
+            # patches are cut from another person's coordinates. Two featureless
+            # faces cannot show this -- both are defaults either way -- and two
+            # readable faces cannot either, because the second overwrites.
+            for label, (a, b_) in (("guessable", (p1, p2)),
+                                   ("featureless", (f1, f2)),
+                                   ("mixed", (p1, f2))):
                 page.goto("http://127.0.0.1:%d/headmaker.html" % PORT, wait_until="load")
                 page.wait_for_timeout(400)
                 page.evaluate("()=>{localStorage.removeItem('hmCompanions');"
@@ -287,6 +296,45 @@ def run(inject=None, verbose=False):
                 if not (m2[2] - m2[0] > 6):
                     fails.append("[%s] head 2 carries the previous person's skin: %s "
                                  "(expected cool, got warm or neutral)" % (label, m2))
+
+                # THE COLOUR CHECK ABOVE CANNOT SEE THE HALF OF THIS BUG THAT HURT.
+                # It compares mean skin tone, and the cut is always taken from the
+                # NEW photo, so the tone is the new person's even when everything
+                # else was inherited. What actually survived was the GEOMETRY:
+                # newSubject() resets pts and marks, but restart() once cleared
+                # restoredEyes and nothing else, and guessFace() only overwrites the
+                # marks when its heuristic finds two eyes. When it declines, the new
+                # face is measured with the old face's eye corners and brow/nose/
+                # mouth marks, and buildLive() cuts its brow and eye-cover patches
+                # from those coordinates -- which is exactly what Jayden sees as
+                # "some of the skin from the last person on the new person's face".
+                # Reproduced historically to the last decimal place, and the
+                # self-test's restart-keeps-the-last-face injection was MISSED until
+                # this assertion existed: every green run before it was noise.
+                # IDENTICAL MARKS ARE ONLY DAMNING WHEN THEY ARE NOT THE DEFAULTS.
+                # Measured on the real tree: two FEATURELESS faces both come out
+                # carrying BL 0.395 / BR 0.605 / M 0.5 -- MARKS0, symmetric about
+                # centre -- because guessFace declines on both and each correctly
+                # resets to the defaults. That is the fix working, not the bug, and
+                # a naive equality check cannot tell "both reset" from "the second
+                # inherited the first". The signal is a match on marks that some
+                # face was actually MEASURED into.
+                # ONLY THE MIXED PAIR CAN JUDGE THIS, so only it is asked to.
+                # Reading MARKS0 out of the page to recognise "these are just the
+                # defaults" does not work -- it is not on the global scope, the
+                # probe returns null, and the comparison then fires on every
+                # featureless run. The mixed pair needs no such probe: head 1 was
+                # MEASURED into real marks and head 2 must not be wearing them,
+                # whatever the defaults happen to be.
+                g1 = json.dumps(stored[0].get("marks"), sort_keys=True)
+                g2 = json.dumps(stored[1].get("marks"), sort_keys=True)
+                if label == "mixed" and g1 == g2 and stored[0].get("marks") is not None:
+                    fails.append("[%s] head 2 was measured with head 1's geometry -- "
+                                 "identical NON-DEFAULT marks %s. restart() must reset "
+                                 "pts and marks, not just restoredEyes; guessFace only "
+                                 "overwrites them when it finds two eyes, so a face it "
+                                 "declines keeps whatever the last one left."
+                                 % (label, g1[:120]))
                 if verbose:
                     print("  %-12s head 1 %s   head 2 %s   cut bytes %d/%d"
                           % (label, m1, m2, len(stored[0]["cut"]), len(stored[1]["cut"])))
