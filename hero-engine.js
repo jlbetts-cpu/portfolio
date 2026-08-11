@@ -1174,6 +1174,10 @@ function attachIdentity(wordEl){
 var RAIN_PHOTOS=["rain01.webp","rain02.webp","rain03.webp","rain04.webp","rain05.webp","rain06.webp","rain07.webp","rain08.webp","rain09.webp","rain10.webp","rain11.webp","rain12.webp","rain13.webp","rain14.webp","rain15.webp","rain16.webp","rain17.webp","rain18.webp"];
 /* ===== popcorn movie-watching mode (triggered by reel hover, alongside the 3D glasses) ===== */
 var BUCKET_CENTRE="translateX(-50%) ";
+/* The bucket's rim hangs this far below the chin -- kept in step with
+   --hero-chin-gap on .heroMovieEffectsStage, which is var(--sp-8). The kernel
+   starts MOVIE_KERNEL_DIP further down, i.e. just inside the rim. */
+var MOVIE_CHIN_GAP=8,MOVIE_KERNEL_DIP=10,movieKernelStartY=0.84;
 var movieMode=false,movieTk0=0,movieEnding=false,movieEndTk=0,bucketEl=null,kernelEls=[],popcrumbEls=[],movieHair=false,hairTk0=0,MOVCYCLE=18;
 var heroPeek=document.querySelector(".heroCharacterPeek");
 var heroHeadTransform=document.getElementById("heroHeadTransform");
@@ -1228,13 +1232,26 @@ function syncMovieEffectsLayer(){
  movieEffectsStage.style.top=(stageRect.top-clipRect.top).toFixed(2)+"px";
  movieEffectsStage.style.width=stageRect.width.toFixed(2)+"px";
  movieEffectsStage.style.height=stageRect.height.toFixed(2)+"px";
- // HOW FAR THE HEAD HANGS PAST THE SCENE'S FLOOR. The stage tracks the head,
- // and the head's resting composition sits well below the Hero's lower edge,
- // so anything anchored to the stage's bottom lands off-screen. Published so
- // the popcorn bucket can sit on the Hero's floor instead of the stage's.
- var heroBox=document.getElementById("main");
- if(heroBox)movieEffectsStage.style.setProperty("--movie-stage-overhang",
-  Math.max(0,stageRect.bottom-heroBox.getBoundingClientRect().bottom).toFixed(2)+"px");
+ // WHERE THE CHIN IS, IN THE EFFECTS LAYER'S OWN COORDINATES.
+ // The bucket hangs from the chin because Jayden's note is about the face
+ // staying visible -- "the audience needs to see him chew" -- and the chin is
+ // the only landmark that survives the head floating, being dragged, being
+ // resized, and swapping to a face with different bounds. A floor cannot: the
+ // distance from chin to floor is different at every width and in every pose,
+ // which is how a bucket pinned to the Hero's floor ended up covering 52-54%
+ // of the head at 1440, 390 and 320 alike.
+ // data-head-bounds is a fraction of the FACE box, and .face is inset:0 in the
+ // stage, so the stage's height is the right multiplier.
+ var hb=headBoundsOf();
+ var chinY=stageRect.height*hb[3];
+ movieEffectsStage.style.setProperty("--movie-chin-y",chinY.toFixed(2)+"px");
+ // THE KERNEL IS LIFTED OUT OF THE BUCKET, SO ITS START HAS TO FOLLOW IT.
+ // This used to be the literal Sy=0.84 in the movie loop, which was a fraction
+ // of the stage picked when the bucket stood on the stage's floor. Moving the
+ // bucket without moving this would have the kernel appear in mid-air above it.
+ // MOVIE_KERNEL_DIP is how far INSIDE the bucket's rim it starts.
+ movieKernelStartY=stageRect.height
+  ? (chinY+MOVIE_CHIN_GAP+MOVIE_KERNEL_DIP)/stageRect.height : 0.84;
  movieEffectsStage.style.transform=priorTransform;
 }
 /* ── THE EFFECTS LAYER IS NOT IN THE HEAD'S COORDINATE SPACE ───────────────
@@ -1412,7 +1429,7 @@ function movieTick(){
    bucketEl.style.opacity="1";
    var c=(lt-3)%MOVCYCLE,ci=Math.floor((lt-3)/MOVCYCLE),side=(ci%2)?0.58:0.42,K=kernelEls[0];
    if(c===0){movieCrumbThis=Math.random()<0.38;movieLickThis=movieCrumbThis&&Math.random()<0.22;movieDropThis=Math.random()<0.22;movieGlanceThis=Math.random()<0.25;if(tongueEl){tongueEl.style.opacity="0";tongueEl.style.transform="scaleY(0)";}}
-   if(c<=4){var t=c/4,Sx=side,Sy=0.84,Px=0.49,Py=0.6,Ex=0.5,Ey=0.73;
+   if(c<=4){var t=c/4,Sx=side,Sy=movieKernelStartY,Px=0.49,Py=0.6,Ex=0.5,Ey=0.73;
      var x=(1-t)*(1-t)*Sx+2*(1-t)*t*Px+t*t*Ex,y=(1-t)*(1-t)*Sy+2*(1-t)*t*Py+t*t*Ey;
      setKernel(K,x,y,t*150,1);setMouth(0);
      var rk=Math.sin(Math.PI*(c/4));reach=(side<0.5?-1:1)*2.4*rk;
