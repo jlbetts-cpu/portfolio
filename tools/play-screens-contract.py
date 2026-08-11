@@ -252,6 +252,22 @@ async () => {
     if (document.querySelector('.tvChampNm')) break;
     const go = document.querySelector('.tvGo');
     if (!go) return {name: null, why: 'no Kick off at fixture ' + i};
+    /* On the last fixture -- the final -- record the treatment BEFORE kicking off, because
+       after the whistle the screen is the champion and the match-up is gone. */
+    const cup = window.__hmTourCup ? window.__hmTourCup() : null;
+    if (cup && cup.remaining === 1) {
+      const eb = document.querySelector('.tvEyebrow');
+      window.__hmTourFinalSeen = {
+        poster: document.querySelectorAll('.tvPoster').length,
+        posterAnimated: (function(){ const p = document.querySelector('.tvPoster');
+          if (!p) return null; const cs = getComputedStyle(p);
+          return cs.animationName !== 'none' || cs.transitionDuration !== '0s'; })(),
+        gold: document.querySelectorAll('.tvEyebrowGold').length,
+        eyebrow: eb ? eb.textContent : null,
+        goldBall: document.body.classList.contains('hmFinal'),
+        length: (function(){ const t = document.querySelector('.tvTape');
+          return t ? (t.textContent.match(/First to (\d+)/) || [])[1] : null; })()};
+    }
     go.click();
     await sleep(160);
     if (!window.__hmTourWin) return {name: null, why: 'no __hmTourWin'};
@@ -289,6 +305,12 @@ async () => {
   const back = document.querySelectorAll('.tvTab')[0];
   if (back) { back.click(); await sleep(200); }
 
+  /* THE FINAL ITSELF, caught on the way past. The poster and the gold are a treatment for
+     ONE fixture, and the thing that must be true is that they exist there and nowhere else.
+     Nothing about them animates: the 2026-08-04 cancellation was a full-viewport wipe, and
+     this is a still picture in a card. */
+  const seenFinal = window.__hmTourFinalSeen || null;
+
   const wrap = document.querySelector('.tvChampWrap');
   const head = document.querySelector('.tvChampHead');
   const crown = document.querySelector('.tvCrown');
@@ -315,6 +337,7 @@ async () => {
              below its own clip -- and a top-only check passed on it. */
           headClipped: hb.top < wb.top - 0.5 || hb.bottom > wb.bottom + 0.5,
           crownClipped: !!cb && (cb.top < wb.top - 0.5 || cb.bottom > wb.bottom + 0.5),
+          final: seenFinal,
           named: seen.size,
           standings: (window.__hmTourStandings ? window.__hmTourStandings().length : 0)};
 }
@@ -587,53 +610,101 @@ def run(base, browser, f, sabotage=None, strip_ctl=False, tamper=None):
         f.check(not shape["tabsClipped"],
                 "cup %s: no tab label is clipped by its own column" % at,
                 json.dumps(shape["tabsClipped"]))
+        # EVERY TAB IS A 44px TARGET, and this is the assertion the Draft tab broke: a
+        # finished twelve-head cup carries six tabs, and at 320 six equal columns measured
+        # 39.7 wide. Width, not just height -- .ctl--tab's ::after is an underline, not a
+        # hit pad, so nothing is padding these out.
+        tabw = pg.evaluate("""() => [...document.querySelectorAll('.tvTab')]
+          .map(e => ({t: e.textContent, w: +e.getBoundingClientRect().width.toFixed(1)}))""")
+        thin = [t for t in tabw if t["w"] < 43.99]
+        f.check(not thin, "cup %s: every tab clears the 44px target on width" % at,
+                json.dumps(tabw))
         f.check((shape["eyebrow"] or "").strip() in ("Quarter-final", "Last 8"),
                 "cup %s: the pane names its round" % at, json.dumps(shape["eyebrow"]))
+        # THE DRAFT ORDER DOES NOT EXIST UNTIL THERE IS ONE. Publishing a provisional order
+        # mid-cup would be the seed in its most expensive form -- a draft pick decided by a
+        # shuffle. The tab is absent rather than present and empty.
+        f.check("Draft" not in shape["tabs"],
+                "draft %s: there is no draft order until the cup has one" % at,
+                json.dumps(shape["tabs"]))
+        # ---- THE POSTER IS THE FINAL'S ALONE. The 2026-08-04 cancellation was a
+        # full-viewport wipe on EVERY fixture -- "looks like a glitch" -- so the thing that
+        # must never come back is this treatment appearing on an ordinary tie. Checked in the
+        # quarter-final, where it must be absent; the champion drive checks the final itself.
+        f.check(pg.evaluate("() => document.querySelectorAll('.tvPoster').length") == 0,
+                "poster %s: no poster on a quarter-final" % at)
+        f.check(pg.evaluate("() => document.querySelectorAll('.tvEyebrowGold').length") == 0,
+                "poster %s: no gold on a quarter-final" % at)
 
-        # ---- THE FIELD OPTION, which is the whole of what Jayden asked for: "an
-        # additional optional 4 more heads so I can use it to do the fantasy order".
-        # Flipping it must produce a REAL twelve-team knockout -- 11 fixtures, a
-        # four-fixture play-in, and still no round named for sixteen.
-        twelve = pg.evaluate("""async () => {
+        # ---- THE FIELD FOLLOWS THE ROSTER, AND NOBODY IS ASKED. Jayden: "it shouldn't
+        # be like you pick 8 or 12 it should just be like based on how many heads you have
+        # built like before 8 it would be 8 more than 8 it would be 12." The 8/12 control is
+        # deleted, so the first assertion is that it is not there.
+        f.check(pg.evaluate("() => document.querySelectorAll('.tvOptG').length") == 0,
+                "field %s: the 8/12 control is gone -- the roster answers the question" % at)
+
+        # THE BOUNDARY IS PINNED DIRECTLY, not through the roster, and that is deliberate:
+        # play-engine.js:11 and play-games.js:49 both slice hmCompanions to 8 AND write the
+        # truncated list back, so a live roster can never report 9 today and an assertion
+        # routed through it would silently test nothing. Testing the rule itself means this
+        # keeps working -- and keeps being checked -- on the day that cap is raised.
+        rule = pg.evaluate("""() => { const g = window.__hmTourField; if (!g) return null;
+          return {a: g(0), b: g(1), c: g(8), d: g(9), e: g(12), f: g(20)}; }""")
+        f.check(rule is not None, "field %s: the field rule is a conditional global" % at)
+        if rule:
+            f.check(rule["c"] == 8 and rule["d"] == 12,
+                    "field %s: 8 heads -> 8, 9 heads -> 12 (the boundary Jayden named)" % at,
+                    json.dumps(rule))
+            f.check(rule["a"] == 8 and rule["b"] == 8,
+                    "field %s: an empty or tiny roster still gets a real cup" % at,
+                    json.dumps(rule))
+            f.check(rule["e"] == 12 and rule["f"] == 12,
+                    "field %s: above the boundary it stays 12" % at, json.dumps(rule))
+
+        # ---- AND THE SCREEN SAYS HOW THE FIELD WAS MADE. With seven built heads the cup is
+        # eight, so one captain is not the visitor's -- and a cup that silently presents a
+        # stranger as your roster is the quiet lie this screen has been cleaned of twice.
+        legend = pg.evaluate("""() => {
+          const e = document.querySelector('.tvHead .tvOptL');
+          return {text: e ? e.textContent : null,
+                  roster: (window.__hmTour && window.__hmTour.roster) || null}; }""")
+        f.check(legend["text"], "field %s: the match-up says how the field was made" % at,
+                json.dumps(legend))
+        if legend["text"] and legend["roster"]:
+            r = legend["roster"]
+            f.check(r["mine"] + r["house"] + r["eggs"] == r["field"],
+                    "field %s: the roster tally accounts for every captain" % at,
+                    json.dumps(legend))
+            f.check(str(r["mine"]) in legend["text"],
+                    "field %s: the legend names how many are the visitor's own" % at,
+                    json.dumps(legend))
+
+        # ---- HOW LONG THE MATCH IS, SAID BEFORE IT STARTS. Jayden: "make that clear."
+        # AND IT IS CHECKED AGAINST THE ENGINE, not against a copy of the engine's number.
+        # play-engine.js owns the curve (first to 5 at the final, 4 one round out, 3
+        # elsewhere) and this lane mirrors the expression; a mirror that nobody watches is a
+        # number waiting to drift. So: read the label, start the match, read the scoreboard's
+        # own .sbRule, and require them to agree.
+        length = pg.evaluate("""async () => {
           const sleep = ms => new Promise(r => setTimeout(r, ms));
-          const b = [...document.querySelectorAll('.tvOptG .ctl')]
-                      .find(e => e.textContent.trim() === '12');
-          if (!b) return {why: 'no field control'};
-          b.click();
-          await sleep(1500);
-          const c = window.__hmTourCup ? window.__hmTourCup() : null;
-          return {cup: c, tabs: [...document.querySelectorAll('.tvTab')].map(e => e.textContent),
-                  pressed: [...document.querySelectorAll('.tvOptG .ctl')]
-                             .map(e => e.textContent + ':' + e.getAttribute('aria-pressed'))};
-        }""")
-        f.check(not twelve.get("why"), "field %s: the 8/12 control is on the screen" % at,
-                twelve.get("why", ""))
-        t12 = twelve.get("cup")
-        f.check(t12 and t12["teams"] == 12,
-                "field %s: choosing 12 fields twelve heads" % at, json.dumps(twelve)[:200])
-        f.check(t12 and t12["playIn"] and t12["rounds"][0]["matches"] == 4,
-                "field %s: twelve opens with a four-fixture play-in" % at,
-                json.dumps(t12 and t12["rounds"]))
-        f.check(t12 and t12["fixtures"] == 11,
-                "field %s: twelve is 11 fixtures -- still N-1, still knockout" % at,
-                json.dumps(t12))
-        f.check(t12 and [r["label"] for r in t12["rounds"]]
-                == ["Play-in", "Quarter-final", "Semi-final", "Final"],
-                "field %s: the twelve-team rounds are play-in, quarter, semi, final" % at,
-                json.dumps(t12 and [r["label"] for r in t12["rounds"]]))
-        f.check(twelve.get("tabs") == ["Next", "Play-in", "Last 8", "Last 4", "Final"],
-                "field %s: the play-in gets its own tab, named by the bracket" % at,
-                json.dumps(twelve.get("tabs")))
-        # and back to eight, because a control that only goes one way is a trapdoor
-        eight = pg.evaluate("""async () => {
-          const sleep = ms => new Promise(r => setTimeout(r, ms));
-          const b = [...document.querySelectorAll('.tvOptG .ctl')]
-                      .find(e => e.textContent.trim() === '8');
-          if (!b) return null;
-          b.click(); await sleep(1500);
-          return window.__hmTourCup ? window.__hmTourCup() : null; }""")
-        f.check(eight and eight["teams"] == 8 and not eight["playIn"],
-                "field %s: it goes back to eight" % at, json.dumps(eight))
+          const tape = document.querySelector('.tvTape');
+          const said = tape ? (tape.textContent.match(/First to (\\d+)/) || [])[1] : null;
+          const go = document.querySelector('.tvGo');
+          if (!go) return {said: said, why: 'no Kick off'};
+          go.click();
+          await sleep(900);
+          const el = document.querySelector('.hmScore .sbRule');
+          const shown = el ? (el.textContent.match(/First to (\\d+)/) || [])[1] : null;
+          return {said: said, shown: shown, board: !!el}; }""")
+        f.check(length.get("said"),
+                "length %s: the match-up says how long the match is" % at, json.dumps(length))
+        f.check(length.get("shown") and length["said"] == length["shown"],
+                "length %s: it agrees with the scoreboard the engine paints" % at,
+                json.dumps(length))
+        # hand the pitch back, or .tvScreen stays display:none for everything after this
+        pg.evaluate("() => { try{ window.__hmTourAbort && window.__hmTourAbort(); }catch(_){}"
+                    "  try{ window.__hmSoccerEnd && window.__hmSoccerEnd(); }catch(_){} }")
+        pg.wait_for_timeout(700)
 
         # ---- THE PANEL, which is the thing this screen did not have. Every element on
         # it used to be ink floating on the page: measured at 390, elementsFromPoint at
@@ -782,6 +853,24 @@ def run(base, browser, f, sabotage=None, strip_ctl=False, tamper=None):
             f.check(not champ.get("why"),
                     "champion %s: the champion screen actually paints" % at,
                     champ.get("why", ""))
+            # ---- THE FINAL'S OWN TREATMENT, recorded on the way past. Jayden wants "that
+            # finals poster design implemented into the UI of the final matchup"; the trap is
+            # the cancelled wipe growing back, so this asserts the treatment EXISTS and that
+            # it does not move.
+            fin = champ.get("final") or {}
+            f.check(fin.get("gold"), "final %s: the final's round name wears the cup's gold"
+                    % at, json.dumps(fin))
+            f.check(fin.get("goldBall"),
+                    "final %s: hmFinal is set, so the ball is gold too" % at, json.dumps(fin))
+            f.check(fin.get("length") == "5",
+                    "final %s: the final says it is first to 5" % at, json.dumps(fin))
+            # NOT ANIMATED. The poster is a still picture in a card. A transition or an
+            # animation on it is the 2026-08-04 wipe growing back, and it is checked rather
+            # than promised. (At 320 the poster itself is dropped for room -- see
+            # tournament.css -- so its presence is asserted only where it is meant to be.)
+            f.check(fin.get("posterAnimated") in (False, None),
+                    "final %s: the poster does not move -- the wipe stays cancelled" % at,
+                    json.dumps(fin))
             if champ.get("name") and not champ.get("why"):
                 f.check(not champ["headClipped"],
                         "champion %s: the winner's head is whole" % at, json.dumps(champ))
@@ -793,6 +882,49 @@ def run(base, browser, f, sabotage=None, strip_ctl=False, tamper=None):
                 f.check(champ["standings"] == champ["season"]["teams"],
                         "champion %s: the standings account for every head" % at,
                         json.dumps(champ))
+                # ---- THE DRAFT ORDER, which is what the whole tournament is for. Jayden:
+                # "after the cup finishes can see clear number order to make sure everyone
+                # knows the draft order at the end". It must be 1..N with NO GAPS -- a draft
+                # needs a number for every head, not a list of survivors -- it must only
+                # exist once the cup is finished, and it must not interrupt the champion
+                # (the ending still opens on the champion, not on the draft).
+                draft = pg.evaluate("""async () => {
+                  const sleep = ms => new Promise(r => setTimeout(r, ms));
+                  const opened = document.querySelector('.tvTab[aria-selected="true"]');
+                  const openedOn = opened ? opened.textContent : null;
+                  const t = [...document.querySelectorAll('.tvTab')]
+                              .find(e => e.textContent.trim() === 'Draft');
+                  if (!t) return {why: 'no Draft tab', openedOn: openedOn};
+                  t.click(); await sleep(300);
+                  const rows = [...document.querySelectorAll('.tvDraftRow')];
+                  return {openedOn: openedOn,
+                          n: rows.length,
+                          numbers: rows.map(r => (r.querySelector('.tvDraftN')||{}).textContent),
+                          wheres: rows.map(r => (r.querySelector('.tvDraftOut')||{}).textContent),
+                          drawn: rows.filter(r => r.classList.contains('tvDrawn')).length,
+                          key: !!document.querySelector('.tvDraftKey')}; }""")
+                f.check(not draft.get("why"),
+                        "draft %s: the finished cup grows a Draft tab" % at,
+                        draft.get("why", ""))
+                f.check(draft.get("openedOn") == "Cup",
+                        "draft %s: the ending still opens on the champion, not the draft" % at,
+                        json.dumps(draft.get("openedOn")))
+                if not draft.get("why"):
+                    want = [str(i + 1) for i in range(champ["season"]["teams"])]
+                    f.check(draft["numbers"] == want,
+                            "draft %s: it is 1..%d with no gaps"
+                            % (at, champ["season"]["teams"]), json.dumps(draft)[:220])
+                    # EVERY POSITION SAYS WHERE IT CAME FROM. A number with no account of
+                    # itself is the seed again, in the one place it would cost somebody a
+                    # draft pick.
+                    f.check(all(w for w in draft["wheres"]),
+                            "draft %s: every row says which round it went out in" % at,
+                            json.dumps(draft["wheres"]))
+                    # ...and where it came from nothing. If any row is separated from the one
+                    # above it only by the draw, the key has to be printed.
+                    f.check(draft["drawn"] == 0 or draft["key"],
+                            "draft %s: rows split by the draw are marked and keyed" % at,
+                            json.dumps(draft))
 
         pg.evaluate("() => window.__hmTourStop()")
         pg.wait_for_timeout(500)
