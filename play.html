@@ -171,7 +171,24 @@
     to a scene that carried on without you rather than to a re-seeded one.
     THE PREFERENCE PERSISTS UNDER ITS OWN KEY. jbPlayCrowd holds "0" or "1" and nothing
     else; it is deliberately not near the roster's key and holds no head data, so nothing
-    reading it could mistake it for a saved head. ---- */
+    reading it could mistake it for a saved head.
+
+    2026-08-11 -- ASKED FOR AGAIN, AND DELIBERATELY NOT DONE. A later brief came back with
+    the original instruction verbatim: "Default OFF, flipping ON once the visitor has
+    actually saved a head of their own -- to save the surprise a little bit", along with
+    "resolve the conflict with the placeholder eggheads". Both are already resolved, and
+    resolved by Jayden, in the reversal quoted four lines above: "keep it on at default,
+    but can we only show one coloured egghead, not all of them."
+    So the conflict is not open. He was offered off-by-default, understood what it bought,
+    and traded it for a cheaper version of the same protection: ONE anonymous placeholder
+    stands in for a cast the visitor has not earned yet, and the control keeps a resting
+    state that matches the page. Flipping the default now would re-implement the thing he
+    overturned and re-open the empty-lobby problem the placeholder was introduced to close.
+    Everything else the brief asked for is here and was verified rather than assumed: the
+    control is at the foot of the mood menu, the choice sticks (an explicit "0" is never
+    overridden by anything), and the key holds nothing mistakable for roster data. Measured
+    on a live page: 44x200 target, aria-checked flips, body.hmCrowdOff applies, the heads
+    compute opacity 0, and the preference survives a reload. ---- */
  /* !important, AND IT IS EARNED. play-engine.js writes `opacity` as an INLINE style on
     every companion root (measured: `opacity: 1; transition: opacity .5s steps(4)`) because
     that is the channel its own dim-during-a-game uses. A stylesheet rule cannot beat an
@@ -183,7 +200,20 @@
     .hmHp are SIBLINGS of its root inside .hero rather than children of it, so hiding the
     root alone left a row of disembodied reflections on the floor. Jayden's own portrait is
     unaffected: its shadow is #fsh/.floorshadow inside .stagewrap, not one of these. */
- body.hmCrowdOff:not(.hmBattle):not(.hmSoccer):not(.hmRace):not(.hmTour) .hero>:is([data-hm-lobby-slot],.hmRefl,.hmShadow,.hmHp){
+ /* ---- AND `:not(.pTeamOn)`, WHICH WAS MISSING AND MATTERED. The exclusion list was
+    written as "every game state", and the team picker is not a game -- so with the crowd
+    off, opening Choose sides showed a panel of chips over an empty stage. Measured: the
+    picker open, body.hmCrowdOff set, every lobby head at computed opacity 0.
+    That is not a cosmetic miss, it is the screen's whole reason for existing. The picker
+    is deliberately not a modal over black -- the note at .pTeam records it: "the planet
+    stays lit and the heads stay on it, and because every chip flip already pushes
+    __hmTeamPreview, the heads behind the panel change colour". With the crowd hidden the
+    preview channel still fires and there is nothing to see it on, so the one interaction
+    the screen teaches is invisible.
+    The crowd comes back for exactly as long as the picker is open, and the visitor's
+    preference is untouched -- pTeamOn leaves, the crowd goes back to whatever they chose.
+    Same argument as the four game states, one state further out. ---- */
+ body.hmCrowdOff:not(.hmBattle):not(.hmSoccer):not(.hmRace):not(.hmTour):not(.pTeamOn) .hero>:is([data-hm-lobby-slot],.hmRefl,.hmShadow,.hmHp){
   opacity:0!important;pointer-events:none!important}
 
  body[data-theme-page="play"] .hero{overflow:visible}
@@ -819,12 +849,52 @@
  .pTeamFoot{display:flex;align-items:center;justify-content:space-between;gap:var(--sp-12);margin-top:var(--sp-12)}
  .pTeamHint{font-family:var(--sans);font-size:var(--fs-caption);letter-spacing:var(--tr-body);color:var(--c500)}
 
- /* ---- PHONE. The mobile audit calls this the site's best mobile page and the
-    budget that makes it so is vertical: .hero is 65vh here (play.css:305) and
-    the feet land near 80vh, leaving ~170px under them. So the cards drop their
-    description and go 2x2 -- icon and title only, still a 66px target, still
-    four doors. --blur-1/2 are already 0 below 760px, and nothing here asks for
-    a backdrop-filter at any width. ---- */
+ /* ---- PHONE.
+    2026-08-11 -- THE MOBILE PASS THIS SECTION NEVER GOT. Jayden: "Did the play screen get
+    revamped at all for mobile? It doesn't look good and looks the exact same." He is
+    right; the tournament and the picker were rebuilt and the hub was not.
+
+    THE RULE IT WAS LIVING BY WAS STALE, AND THAT IS THE WHOLE DIAGNOSIS. The comment that
+    used to be here read: ".hero is 65vh, the feet land near 80vh, leaving ~170px under
+    them. So the cards drop their description and go 2x2 -- icon and title only." That was
+    written when .pHub was a `position:fixed` layer pinned into the space under the crowd's
+    feet. It is not that any more: .pHub is an ordinary below-the-fold section starting at
+    exactly 100svh, measured today at y=844 on a 390x844 phone and y=568 at 320x568. There
+    is no 170px budget. The cards were being squeezed into a constraint that had already
+    been removed, and the squeeze cost them the only text on the card that says what is
+    behind it.
+
+    THE TRADE THE HIDE WAS PART OF NEVER PAID EITHER. The description was dropped on the
+    grounds that touch gets the hover preview panel instead. `images/preview/` DOES NOT
+    EXIST -- four <img data-prev> that never load, so `.ready` is never set and the panel
+    has never rendered on any device. Nobody has ever had a preview and phones have had no
+    description, which makes the phone the surface with the least information about four
+    doors that all look identical.
+
+    MEASURED, at four widths, and every number below is one of these:
+
+      viewport   card       label          description
+      1440       594 x 101  one line       shown
+      760        360 x 66   one line       HIDDEN   <- 360px is not a narrow column
+      560        252 x 66   one line       HIDDEN
+      390        167 x 66   one line       HIDDEN
+      320        132 x 76   WRAPS TO TWO   HIDDEN   <- "Make a gradient"
+
+    So there are two different problems wearing one breakpoint, and they get two answers.
+    Between 561 and 760 the column is 252-360px, which carries a description comfortably --
+    it comes back. At 560 and below two columns cannot: at 320 the column is 132px and the
+    label itself wraps, which is the cramped case. There the grid goes to ONE column, which
+    is 272px at 320 and 342px at 390 -- wider than the 252px two-up column that already
+    carries the text -- so the description comes back there too and the wrap is gone.
+
+    "TWO ON TOP, TWO ON THE BOTTOM" IS NOT BEING OVERTURNED. That instruction came with its
+    own reason attached -- "so we can make them bigger" -- and it was measured at 1440,
+    where it takes a card from 291px to 594px. At 320 a second column is what makes a card
+    SMALL: 132px, a wrapped label, and no room for the sentence every other viewport gets.
+    One column at 272px is the same instruction applied to a phone.
+
+    --blur-1/2 are already 0 below 760px, and nothing here asks for a backdrop-filter at
+    any width. ---- */
  @media(max-width:760px){
   /* env(safe-area-inset-bottom): a phone's home indicator / browser chrome sits over the
      bottom of a position:fixed layer, and the cards are the bottom of this one. The fallback
@@ -832,8 +902,18 @@
   .pHub{padding-top:var(--sp-16);padding-bottom:calc(var(--sp-16) + env(safe-area-inset-bottom,0px))}
   .pTeam{padding-bottom:calc(var(--sp-24-32) + env(safe-area-inset-bottom,0px))}
   .pCards{grid-template-columns:1fr 1fr;gap:var(--sp-8)}
-  .pCard{padding:var(--sp-10) var(--sp-12);gap:var(--sp-4);min-height:calc(var(--tap-min) * 1.5)}
-  .pCardD{display:none}
+  /* THE CARD KEEPS ITS OWN PADDING RUNG, one step down from the desktop's 16/20/20
+     rather than two. The old 10/12 is what a 167px card needed and it is what made a
+     360px card read as a list row -- and 10 is the only value in this block that was
+     not on the 4px grid. */
+  .pCard{padding:var(--sp-12) var(--sp-16) var(--sp-16);gap:var(--sp-6);
+    min-height:calc(var(--tap-min) * 1.5)}
+  /* The icon was --ico-md at every width, so on the one surface where it is the card's
+     only picture it was also its smallest element -- 18px under a 16px 600 label. It is
+     the door's sign here, not a bullet. --ico-mark is the ladder's next rung up (22px);
+     no new size is invented for this, and the stroke stays --ico-stroke so the four
+     icons keep the weight every other icon on the site has. */
+  .pCard .gIco{width:var(--ico-mark);height:var(--ico-mark);flex:0 0 var(--ico-mark)}
   .pTeamIn{padding:var(--sp-12)}
   .pTeamCols{gap:var(--sp-8)}
   .pTeamCol{padding:var(--sp-8);min-height:calc(var(--tap-min) * 2 + var(--sp-8))}
@@ -868,6 +948,27 @@
   .pTeamFoot{flex-direction:column;align-items:stretch}
   .pTeamHint{text-align:center;order:2}
   .pBtnGo{width:100%}
+ }
+ /* ---- 560 AND UNDER -- one column, and the sentence comes back with it.
+    The number is measured, not chosen. The grid's column is `(viewport - 2 x
+    --play-gutter - --sp-8) / 2`, i.e. `(vw - 56) / 2` under 640px:
+
+      vw    two-up column   one-up card
+      560       252            504
+      390       167            342
+      320       132            272
+
+    252px is where a description still reads as two or three lines, and it is where the
+    label still fits on one; 167 and 132 are not, and at 132 "Make a gradient" wraps. So
+    561-760 keeps two columns and gets its text back in the block above, and this is where
+    the second column stops paying for itself. A 272px card at 320 is wider than the 252px
+    two-up card that already carries the description, so the same text is legible here for
+    the same reason.
+    THE ROW IS STILL A CARD, NOT A LIST ITEM: the icon stays above the label rather than
+    beside it, so the four doors are the same object at every width and only their measure
+    changes. ---- */
+ @media(max-width:560px){
+  .pCards{grid-template-columns:minmax(0,1fr)}
  }
  /* NOTE FOR WHOEVER LANDS THE HEAD-LEVEL DELETE: --tap-min is already the floor everywhere
     on this page, and the X-on-a-head pattern being designed for the home dropdown and the
@@ -1010,7 +1111,13 @@
   <button class="pCard" id="pcTour" type="button">
    <svg class="gIco" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 4a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/><path d="M18 10a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/><path d="M2 12a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/><path d="M2 20a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/><path d="M6 12h3a1 1 0 0 1 1 1v6a1 1 0 0 1 -1 1h-3"/><path d="M6 4h7a1 1 0 0 1 1 1v10a1 1 0 0 1 -1 1h-2"/><path d="M14 10h4"/></svg>
    <span class="pCardT">Tournament</span>
-   <span class="pCardD">A whole cup of matches, one at a time, with a bracket, goals and a winner.</span>
+   <!-- THE SENTENCE HAD TO CHANGE WITH THE FORMAT. It said "A whole cup of matches, one
+        at a time, with a bracket, goals and a winner" and there is no cup and no bracket
+        any more -- twelve teams, three matchdays, a table. The LABEL stays "Tournament":
+        it is the word Jayden uses for this door ("the tournament mode, for the fantasy
+        football league"), it is the same word on the Play menu row, and one command in
+        two menus must read identically. The description is where the truth lives. -->
+   <span class="pCardD">Twelve heads, a league table, three matchdays. Every team plays; top of the table wins.</span>
    <span class="pCardPrev" aria-hidden="true"><img alt="" width="640" height="400" decoding="async" data-prev="images/preview/tournament.webp"></span>
   </button>
   <a class="pCard" id="pcGrad" href="gradientlab.html?from=play">
@@ -1062,7 +1169,7 @@
  <button class="gameBtn" id="gameBtn" type="button" aria-label="Play" aria-expanded="false" aria-controls="gameMenu">Play</button>
  <div class="gameMenu" id="gameMenu">
   <div class="moodRow" id="soccerRow"><button class="moodItem" id="soccerGo" type="button" aria-label="Play a match — a soccer match between your heads"><svg class="gIco" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"/> <path d="M12 7l4.76 3.45l-1.76 5.55h-6l-1.76 -5.55l4.76 -3.45"/> <path d="M12 7v-4m3 13l2.5 3m-.74 -8.55l3.74 -1.45m-11.44 7.05l-2.56 2.95m.74 -8.55l-3.74 -1.45"/></svg>Play a match</button><button class="moodTeamsBtn" id="soccerTeams" type="button" aria-haspopup="dialog" aria-expanded="false" aria-label="Choose soccer teams"><span class="tdotR" aria-hidden="true"></span><span class="tdotB" aria-hidden="true"></span></button></div>
-  <button class="moodItem" id="tourGo" type="button" aria-label="Start a soccer tournament — single elimination, one match at a time, with goals, assists and ratings tracked"><svg class="gIco" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M2 4a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/> <path d="M18 10a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/> <path d="M2 12a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/> <path d="M2 20a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/> <path d="M6 12h3a1 1 0 0 1 1 1v6a1 1 0 0 1 -1 1h-3"/> <path d="M6 4h7a1 1 0 0 1 1 1v10a1 1 0 0 1 -1 1h-2"/> <path d="M14 10h4"/></svg>Tournament</button>
+  <button class="moodItem" id="tourGo" type="button" aria-label="Start a soccer tournament — a twelve-team league, one match at a time, three matchdays, top of the table wins"><svg class="gIco" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M2 4a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/> <path d="M18 10a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/> <path d="M2 12a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/> <path d="M2 20a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/> <path d="M6 12h3a1 1 0 0 1 1 1v6a1 1 0 0 1 -1 1h-3"/> <path d="M6 4h7a1 1 0 0 1 1 1v10a1 1 0 0 1 -1 1h-2"/> <path d="M14 10h4"/></svg>Tournament</button>
   <button class="moodItem" id="endGame" type="button" aria-label="End the current game" style="display:none"><svg class="gIco" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M5 7a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2l0 -10"/></svg>End game</button>
   <!-- The two maker rows carry the SAME text as the two maker cards in the hub -- "Add your
        head" and "Make a gradient". They are the same command to the same destination, and

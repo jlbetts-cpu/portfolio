@@ -248,7 +248,19 @@ html{scrollbar-color:var(--theme-muted) var(--theme-page)}
 :root[data-theme="dark"] body[data-theme-page="play"] :is(.pLede,.pCardT,.pTeamTitle,.hmCount,.tvCup,.tvName,.tvChampNm,.tvSheetTitle,.tvStandNm){
  color:var(--theme-ink);
 }
-:root[data-theme="dark"] body[data-theme-page="play"] :is(.pCardD,.pTeamHint,.pTeamColN,.tvRound,.tvDist,.tvV,.tvTape,.tvBoardHd,.tvRdH,.tvFxT,.tvStandRk,.tvStandOut){
+/* 2026-08-11 -- `.tvStandOut` REMOVED, and it is a deletion rather than a rename.
+   It printed how a team's cup ended ("Out - Semi-final") next to its rank, which is a
+   sentence only a knockout can produce. The tournament is a twelve-team league now, so
+   the cell is gone from play-tournament.js and the class exists nowhere; the
+   dark-legibility contract flags a dark rule addressing markup no page carries, and it
+   is right to -- a treatment that has silently stopped running is indistinguishable from
+   one that never worked.
+   ITS REPLACEMENTS ARE DELIBERATELY NOT ADDED TO THIS LIST. The table's new P / GD / PTS
+   cells name --theme-ink and --theme-muted directly in tournament.css, because this
+   adapter themes by ENUMERATING class names and a list cannot know about a class invented
+   after it -- which is exactly how the Pts column shipped black-on-black for one build.
+   Naming the token at the declaration cannot go stale. */
+:root[data-theme="dark"] body[data-theme-page="play"] :is(.pCardD,.pTeamHint,.pTeamColN,.tvRound,.tvDist,.tvV,.tvTape,.tvBoardHd,.tvRdH,.tvFxT,.tvStandRk){
  color:var(--theme-muted);
 }
 :root[data-theme="dark"] body[data-theme-page="play"] .pCard{

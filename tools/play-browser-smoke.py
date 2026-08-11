@@ -293,7 +293,17 @@ def run_layout(browser, base_url, width, height, reduced=False):
     assert not data["statusHidden"], data
     assert all(not color.startswith("rgba(") or not color.endswith(", 0)") for color in data["surfaces"]), data
     if width <= 390:
-        assert data["columns"] == 2, data
+        # ---- ONE COLUMN UNDER 560px, AND IT IS THE SAME INSTRUCTION, NOT A REVERSAL.
+        # "Two on top, two on the bottom, so we can make them bigger" was measured at
+        # 1440, where a second column takes a card from 291px to 594px. Under 560 it
+        # does the opposite: measured, the two-up column is 167px at 390 and 132px at
+        # 320, where "Make a gradient" WRAPS TO TWO LINES and no card has room for the
+        # sentence every wider viewport gets. One column is 342px and 272px -- wider
+        # than the 252px two-up card that already carries its description -- so the
+        # label fits on one line and the description comes back.
+        # The card is still a CARD (icon over label over sentence), not a list row, so
+        # the four doors are one object at every width and only their measure changes.
+        assert data["columns"] == 1, data
         assert data["games"]["left"] >= -1 and data["games"]["right"] <= width + 1 and data["games"]["width"] <= width + 1, data
         assert data["cardsBounds"]["left"] >= -1 and data["cardsBounds"]["right"] <= width + 1, data
         assert all(card["left"] >= -1 and card["right"] <= width + 1 for card in data["cardBounds"]), data
