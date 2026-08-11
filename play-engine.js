@@ -456,22 +456,25 @@
  // one scale(1,-1) in front of the head's own rotation, with no sign juggling.
  var refl=document.createElement("div");refl.className="hmRefl";refl.setAttribute("aria-hidden","true");
  refl.style.cssText="position:absolute;left:0;top:0;pointer-events:none;width:"+HW+"px;height:"+HH+"px;background-image:url("+data.cut+")";
- /* HOW DEEP THE MIRROR RUNS IS A PROPERTY OF THE FLOOR, NOT OF WHO IS STANDING ON IT.
-    The falloff mask in play.css is written in PERCENTAGES of this element, and this element is HH tall,
-    so every head currently shows the same FRACTION of itself -- measured 74% of its own height, giving
-    a drawn depth of 77.6px for a little head and 117.5px for the mini-Jayden at 1440 (ratio 1.500,
-    exactly his size ratio; depth/HH is 0.599 against 0.605, i.e. identical fractions). That is why
-    more of his reflection shows than anyone else's.
-    It is the wrong law. The fade is the water giving out -- one medium, one shared waterline (see the
-    note at the render site: "the waterline is the feet plane every head shares... so every reflection
-    lands on ONE line for free, whatever the head's size"). A head being 1.5x taller does not make the
-    water 1.5x clearer. The image should be extinguished at the same DEPTH below that one line for
-    everybody, which is what makes the crowd read as standing on a single floor.
-    His 1.5x size is untouched: only the mask's reach is normalised, by the reciprocal of his size
-    ratio. A standard head gets exactly 1, so its reflection is byte-for-byte what it was.
-    NB the consuming half of this lives in play.css (another lane's file) -- until that patch lands
-    this property is simply an unread custom property and nothing changes. */
- try{refl.style.setProperty("--refl-k",filler?(1/1.5).toFixed(4):"1");}catch(_){}
+ /* WHY THERE IS NO DEPTH-NORMALISING PROPERTY HERE, HAVING BRIEFLY SHIPPED ONE.
+    Measured at 1440, a little head's reflection is drawn 77.6px deep and the mini-Jayden's 117.5px --
+    ratio 1.500, exactly his size ratio, with depth/HH identical at 0.599 vs 0.605. So the rule the
+    code implements is "the same FRACTION of your own box", and the obvious reading is that a shared
+    floor should extinguish every image at a shared DEPTH. That was built, and it is wrong twice over.
+    First, it CAPS him -- it takes reflection away from the head that has it, where the standing
+    instruction is to loosen the tighter side and never tighten the looser one.
+    Second, and the reason the depth reading is a red herring: the mask percentages are fractions of
+    the BOX, and the two heads' ink does not start in the same place inside their boxes. A little
+    head's ink runs 0.058->0.938 of its box; bakeMiniCut draws his square portrait into a 5:6 frame
+    and seats it on the shared FOOT, so his runs 0.227->0.933 and a fifth of his box is empty above
+    his hair. One flat 74% cut therefore eats 20% of a little head and 3% of him: he keeps 95% of his
+    face where everyone else keeps 77%. "More of his reflection is shown" is more of the FACE, not
+    more pixels, and it is identical at any size -- so his 1.5x is not the cause and must not be
+    touched. The fix is to anchor the falloff between each head's own ink top and ink bottom, both of
+    which the pixel scan already produces per head (crownFrac and FOOT).
+    That analysis and its play.css half are written up in
+    docs/superpowers/specs/2026-08-11-refl-mask-handover.patch.md. The engine side is deliberately
+    NOT applied ahead of it, so there is one mechanism and one story rather than two half-built ones. */
  var _reflFoot=-1;   // the foot line the reflection is currently pivoting on; re-written when the pixel scan changes FOOT
  var orbOn=false,orbA=0,orbAV=0,orbH=0,orbVH=0,orbGoal=0,orbNext=0;   // THE LOBBY PLANET: this head's angle round the disc, its angular speed, its height above the surface and the radial speed of the hop. Entirely separate from x/y/vx/vy/floorY, which keep meaning exactly what they meant.
  // position is set INLINE, not left to play.css: index.html does not link play.css,
