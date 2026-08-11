@@ -2086,8 +2086,8 @@ if(location.hash==="#about")location.replace("about.html");</script>
   var a=[],rawN=null;
   try{var raw=localStorage.getItem("hmCompanions");if(raw!==null){a=JSON.parse(raw)||[];rawN=a.length;}}catch(_){}
   if(rawN===null){try{var l=JSON.parse(localStorage.getItem("hmCompanion")||"null");if(l&&l.cut)a=[l];}catch(_){}}   // an emptied pit stays empty
-  /* A READ MUST NEVER DELETE. This filter used to chain .slice(0,8), and the line
-     below then wrote the SHORTENED list back -- so merely loading this page, which
+  /* A READ MUST NEVER DELETE. This filter used to chain a hard cap of eight onto
+     itself, and the line below then wrote the SHORTENED list back -- so loading this page, which
      only wants to draw some ambient heads, destroyed the ninth. Measured: seed
      eleven heads, load any page, eight remain. The cap now limits what THIS PAGE
      USES and nothing more; anything above it stays on disk and comes back when a
