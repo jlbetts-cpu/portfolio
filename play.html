@@ -607,68 +607,24 @@
  .pCardT{font-weight:600;font-size:var(--fs-body);line-height:var(--lh-tight);letter-spacing:var(--tr-title)}
  .pCardD{font-weight:400;font-size:var(--fs-caption);line-height:var(--lh-body);letter-spacing:var(--tr-body);color:var(--c500)}
 
- /* ---- WHAT IS INSIDE EACH DOOR. Jayden: "I think a better use of the space would be to show
-    screenshots of inside the pages so the users can understand what's inside on hover."
-    Four cards, four labels, and until now the only way to find out what any of them actually
-    looked like was to commit to it and go full screen. The band above the cards was the empty
-    space that was going to hold a planet; this is a better tenant for it.
+ /* ---- THE HOVER PREVIEW IS REMOVED, AND IT IS A DELETION RATHER THAN A DEFERRAL.
+    The mechanism shipped complete -- a lazy <img data-prev>, a .ready gate on the load
+    event, a pointer-only media query, the lot -- against four files in images/preview/
+    that were never captured. `.ready` is set on load, so with no file the panel never
+    becomes visible: NO VISITOR ON ANY DEVICE HAS EVER SEEN ONE. It has been dead code
+    with a full set of comments explaining how it works.
 
-    IT COMPOSES WITH THE HOVER, IT DOES NOT REPLACE IT. The rim, the description ink, the icon
-    stroke and the -2px lift all still fire on the same 240ms in both directions -- the preview
-    is a fifth thing that moves on that same beat, not a substitute for the four. Nothing here
-    touches .pCard's own transition set.
+    The argument for finally capturing the four screenshots does not survive the reason
+    they were deferred: three of the four screens were being rebuilt, and one of them --
+    the tournament -- has just been rebuilt again. A picture of a screen is stale the
+    next time that screen changes, and a preview that lies is worse than no preview.
+    Capturing only the settled two would fire the panel on two cards and not the other
+    two, which is worse than uniformly not firing.
 
-    IT CANNOT REFLOW THE CARD. position:absolute out of the card's flow and bottom:100%, so the
-    panel grows UPWARD into the empty band and the card under the cursor never changes size --
-    the same reason the hover pass refused a font-weight change. It also never intercepts the
-    pointer (pointer-events:none), so moving onto the preview cannot make the card think you
-    left it, which is the classic way a hover panel starts flickering.
-
-    NO SHADOW. It is chrome, so it separates with a hairline and its own paper, like every other
-    surface on this page. A floating panel is exactly where a drop shadow feels most justified
-    and it is still not allowed: the heads cast, chrome does not.
-
-    TOUCH GETS NOTHING, DELIBERATELY. Not "not yet" -- nothing, and the gate is
-    (hover:hover) and (pointer:fine) rather than a width query, because the question is the
-    input device and not the screen size. Three reasons, in order:
-      1. The card's action IS the thing being previewed. On a phone a tap is already inside the
-         screen in under a second, so a preview is a slower path to the same information. On a
-         pointer the preview is faster than the click; on touch it is strictly slower.
-      2. Press is taken. The card is a button and press-to-launch is bound; a long-press would be
-         a second, undiscoverable gesture on the same target, and an inline preview would push
-         the four cards taller on the one viewport that has no room -- Jayden has objected to
-         this page scrolling four times.
-      3. It would cost every phone visitor four images to show a thing they cannot trigger.
-    This is Apple's own split: previews are a pointer affordance and touch gets directness.
-
-    WEIGHT. The <img> ships with NO src -- play-games.js copies data-prev into src on the first
-    hover or focus of that card, so a visitor who never hovers downloads nothing at all, and each
-    card costs exactly one image the first time it is asked for and never again. width/height are
-    declared so the panel reserves its box before the bytes land and nothing jumps. The budget is
-    640x400 WebP, ~2x the 311px the panel occupies at 1440, which lands around 25-40 KB each.
-    The cautionary tale is in this same repo: images/earth-map-src.jpg is 2.51 MB and must never
-    be served raw -- a preview that shipped at that size would cost more than the whole page.
-
-    IF THE IMAGE IS NOT THERE, NOTHING HAPPENS. .pCardPrev only becomes visible once
-    play-games.js has added .ready, which it does on the image's own load event. So a missing or
-    broken file leaves the card behaving exactly as it does today rather than flashing an empty
-    white rectangle over the crowd. That is what makes it safe to ship this mechanism before all
-    four screenshots exist -- see the note in play-games.js for which ones are outstanding. ---- */
- .pCardPrev{position:absolute;left:0;right:0;bottom:calc(100% + var(--sp-10));
-  aspect-ratio:16 / 10;max-height:min(24vh,220px);
-  border-radius:var(--r-md);background:var(--c0);box-shadow:var(--rim-1);
-  overflow:hidden;pointer-events:none;
-  opacity:0;visibility:hidden;transform:translateY(var(--sp-4));
-  transition:opacity var(--hover-out-dur) var(--ease-out),
-             transform var(--hover-out-dur) var(--ease-out),
-             visibility 0s linear var(--hover-out-dur)}
- .pCardPrev img{width:100%;height:100%;object-fit:cover;object-position:50% 0;display:block}
- /* visibility rides along so a panel that is not showing is not a hit-test or paint candidate at
-    all; the 0s delay is what lets it turn on instantly and off only after the fade. */
- @media(hover:hover) and (pointer:fine){
-  .pCard:hover .pCardPrev.ready,.pCard:focus-visible .pCardPrev.ready{
-   opacity:1;visibility:visible;transform:none;transition-delay:0s,0s,0s}}
- @media(prefers-reduced-motion:reduce){.pCardPrev{transform:none;transition-property:opacity,visibility}}
+    What made the preview seem necessary was the cards losing their descriptions on a
+    phone. They have those back, so each card now says what is behind it in words that
+    cannot go stale. Premium is subtraction: the sentence is the preview.
+    ---- */
 
 
  /* ---- THE TEAM SCREEN. Not a modal over black: the whole reason the tray was
@@ -865,11 +821,12 @@
     behind it.
 
     THE TRADE THE HIDE WAS PART OF NEVER PAID EITHER. The description was dropped on the
-    grounds that touch gets the hover preview panel instead. `images/preview/` DOES NOT
-    EXIST -- four <img data-prev> that never load, so `.ready` is never set and the panel
-    has never rendered on any device. Nobody has ever had a preview and phones have had no
-    description, which makes the phone the surface with the least information about four
-    doors that all look identical.
+    grounds that touch gets the hover preview panel instead. That panel never rendered on
+    any device on any visit, because the four files it read did not exist -- so nobody
+    ever had a preview and phones had no description, which made the phone the surface
+    with the least information about four doors that all look identical. (2026-08-11: the
+    preview mechanism has since been deleted outright rather than fed. See the note above
+    .pCard's own block. The description is the preview now.)
 
     MEASURED, at four widths, and every number below is one of these:
 
@@ -1100,31 +1057,29 @@
    <svg class="gIco" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0"/><path d="M16 19h6"/><path d="M19 16v6"/><path d="M6 21v-2a4 4 0 0 1 4 -4h4"/></svg>
    <span class="pCardT">Add your head</span>
    <span class="pCardD">Upload a photo of your face and cut it out on a new page. It comes back and joins the crowd.</span>
-   <span class="pCardPrev" aria-hidden="true"><img alt="" width="640" height="400" decoding="async" data-prev="images/preview/headmaker.webp"></span>
   </a>
   <button class="pCard" id="pcExped" type="button">
    <svg class="gIco" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"/><path d="M12 7l4.76 3.45l-1.76 5.55h-6l-1.76 -5.55l4.76 -3.45"/><path d="M12 7v-4m3 13l2.5 3m-.74 -8.55l3.74 -1.45m-11.44 7.05l-2.56 2.95m.74 -8.55l-3.74 -1.45"/></svg>
    <span class="pCardT">Play a match</span>
    <span class="pCardD">Split the heads into two teams and watch them play soccer. You pick the teams first.</span>
-   <span class="pCardPrev" aria-hidden="true"><img alt="" width="640" height="400" decoding="async" data-prev="images/preview/match.webp"></span>
   </button>
   <button class="pCard" id="pcTour" type="button">
    <svg class="gIco" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 4a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/><path d="M18 10a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/><path d="M2 12a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/><path d="M2 20a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/><path d="M6 12h3a1 1 0 0 1 1 1v6a1 1 0 0 1 -1 1h-3"/><path d="M6 4h7a1 1 0 0 1 1 1v10a1 1 0 0 1 -1 1h-2"/><path d="M14 10h4"/></svg>
    <span class="pCardT">Tournament</span>
-   <!-- THE SENTENCE HAD TO CHANGE WITH THE FORMAT. It said "A whole cup of matches, one
-        at a time, with a bracket, goals and a winner" and there is no cup and no bracket
-        any more -- twelve teams, three matchdays, a table. The LABEL stays "Tournament":
-        it is the word Jayden uses for this door ("the tournament mode, for the fantasy
-        football league"), it is the same word on the Play menu row, and one command in
-        two menus must read identically. The description is where the truth lives. -->
-   <span class="pCardD">Twelve heads, a league table, three matchdays. Every team plays; top of the table wins.</span>
-   <span class="pCardPrev" aria-hidden="true"><img alt="" width="640" height="400" decoding="async" data-prev="images/preview/tournament.webp"></span>
+   <!-- THE SENTENCE FOLLOWS THE FORMAT, AND THE FORMAT WENT BACK. It briefly read
+        "Twelve heads, a league table, three matchdays" because the cup had briefly
+        become a league; Jayden: "I still did like the one game elimination format."
+        So this says what the cup is again -- one game, you lose, you are out -- and
+        names the option he actually asked for in the same breath, because a card is
+        where a visitor decides whether to open the door. The LABEL stays "Tournament":
+        it is the word he uses for this door, it is the same word on the Play menu row,
+        and one command in two menus must read identically. -->
+   <span class="pCardD">Eight heads knock each other out, one match at a time. Lose and you are gone. Add four more if you like.</span>
   </button>
   <a class="pCard" id="pcGrad" href="gradientlab.html?from=play">
    <svg class="gIco" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3m0 2a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v14a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2z"/><path d="M3 15l6 -6l4 4l3 -3l5 5"/><path d="M8.5 8.5m-1.5 0a1.5 1.5 0 1 0 3 0a1.5 1.5 0 1 0 -3 0"/></svg>
    <span class="pCardT">Make a gradient</span>
    <span class="pCardD">Dial a planet of coloured light on a new page, and leave with the image and the code.</span>
-   <span class="pCardPrev" aria-hidden="true"><img alt="" width="640" height="400" decoding="async" data-prev="images/preview/gradientlab.webp"></span>
   </a>
  </nav>
 </section>
@@ -1169,7 +1124,7 @@
  <button class="gameBtn" id="gameBtn" type="button" aria-label="Play" aria-expanded="false" aria-controls="gameMenu">Play</button>
  <div class="gameMenu" id="gameMenu">
   <div class="moodRow" id="soccerRow"><button class="moodItem" id="soccerGo" type="button" aria-label="Play a match — a soccer match between your heads"><svg class="gIco" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"/> <path d="M12 7l4.76 3.45l-1.76 5.55h-6l-1.76 -5.55l4.76 -3.45"/> <path d="M12 7v-4m3 13l2.5 3m-.74 -8.55l3.74 -1.45m-11.44 7.05l-2.56 2.95m.74 -8.55l-3.74 -1.45"/></svg>Play a match</button><button class="moodTeamsBtn" id="soccerTeams" type="button" aria-haspopup="dialog" aria-expanded="false" aria-label="Choose soccer teams"><span class="tdotR" aria-hidden="true"></span><span class="tdotB" aria-hidden="true"></span></button></div>
-  <button class="moodItem" id="tourGo" type="button" aria-label="Start a soccer tournament — a twelve-team league, one match at a time, three matchdays, top of the table wins"><svg class="gIco" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M2 4a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/> <path d="M18 10a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/> <path d="M2 12a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/> <path d="M2 20a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/> <path d="M6 12h3a1 1 0 0 1 1 1v6a1 1 0 0 1 -1 1h-3"/> <path d="M6 4h7a1 1 0 0 1 1 1v10a1 1 0 0 1 -1 1h-2"/> <path d="M14 10h4"/></svg>Tournament</button>
+  <button class="moodItem" id="tourGo" type="button" aria-label="Start a soccer tournament — eight heads in a knockout, one match at a time, with the option of twelve"><svg class="gIco" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M2 4a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/> <path d="M18 10a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/> <path d="M2 12a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/> <path d="M2 20a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/> <path d="M6 12h3a1 1 0 0 1 1 1v6a1 1 0 0 1 -1 1h-3"/> <path d="M6 4h7a1 1 0 0 1 1 1v10a1 1 0 0 1 -1 1h-2"/> <path d="M14 10h4"/></svg>Tournament</button>
   <button class="moodItem" id="endGame" type="button" aria-label="End the current game" style="display:none"><svg class="gIco" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M5 7a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2l0 -10"/></svg>End game</button>
   <!-- The two maker rows carry the SAME text as the two maker cards in the hub -- "Add your
        head" and "Make a gradient". They are the same command to the same destination, and

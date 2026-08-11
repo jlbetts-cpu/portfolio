@@ -225,15 +225,13 @@ ARCHIVO = r"""
 
 # Drive a whole SEASON, through the UI, the way a visitor does.
 #
-# 2026-08-11 -- the cup became a twelve-team league (play-tournament.js, FIELD and
-# SEASON), so this drives 18 fixtures rather than 7 and the shortcut it used to
-# refuse is now legal in principle: a league records a result against one fixture
-# and propagates nothing, so results could be seeded in any order. It still is not
-# taken. T.cur is set by cast(), and paint() is internal with __hmTourWin as its
-# only caller, so writing results behind the screen's back would leave T.cur
-# pointing at a fixture the board has moved past -- the same "fixture already
-# played" throw the bracket produced, for a different reason. The honest path is
-# still the only path.
+# 2026-08-11, SECOND MOVE -- the league has been reverted and the cup is a single
+# elimination knockout again, so this drives N-1 fixtures (7 at the default field of
+# 8, 11 at 12) rather than a league's 18. The shortcut of writing results straight
+# into the bracket is refused for the reason it always was: a knockout PROPAGATES,
+# so a result recorded behind the screen's back leaves T.cur pointing at a fixture
+# the board has already moved past, and the core throws "match already final". The
+# honest path is the only path.
 #
 # THE DELAYS ARE NOT PADDING, AND T.holdMs IS NOT A CHEAT. play-engine.js's win
 # path holds the celebration and calls finish() at 5,400ms; play-tournament.js
@@ -247,13 +245,29 @@ ARCHIVO = r"""
 CHAMPION_DRIVE = r"""
 async () => {
   const sleep = ms => new Promise(r => setTimeout(r, ms));
-  const season = window.__hmTourSeason ? window.__hmTourSeason() : null;
-  if (!season) return {name: null, why: 'no __hmTourSeason'};
+  const season = window.__hmTourCup ? window.__hmTourCup() : null;
+  if (!season) return {name: null, why: 'no __hmTourCup'};
   window.__hmTour.holdMs = 60;
   for (let i = 0; i < season.fixtures + 2; i++) {
     if (document.querySelector('.tvChampNm')) break;
     const go = document.querySelector('.tvGo');
     if (!go) return {name: null, why: 'no Kick off at fixture ' + i};
+    /* On the last fixture -- the final -- record the treatment BEFORE kicking off, because
+       after the whistle the screen is the champion and the match-up is gone. */
+    const cup = window.__hmTourCup ? window.__hmTourCup() : null;
+    if (cup && cup.remaining === 1) {
+      const eb = document.querySelector('.tvEyebrow');
+      window.__hmTourFinalSeen = {
+        poster: document.querySelectorAll('.tvPoster').length,
+        posterAnimated: (function(){ const p = document.querySelector('.tvPoster');
+          if (!p) return null; const cs = getComputedStyle(p);
+          return cs.animationName !== 'none' || cs.transitionDuration !== '0s'; })(),
+        gold: document.querySelectorAll('.tvEyebrowGold').length,
+        eyebrow: eb ? eb.textContent : null,
+        goldBall: document.body.classList.contains('hmFinal'),
+        length: (function(){ const t = document.querySelector('.tvTape');
+          return t ? (t.textContent.match(/First to (\d+)/) || [])[1] : null; })()};
+    }
     go.click();
     await sleep(160);
     if (!window.__hmTourWin) return {name: null, why: 'no __hmTourWin'};
@@ -271,34 +285,61 @@ async () => {
     await sleep(320);
   }
 
+  /* ---- THE BOARD IS WALKED FIRST, AND THE PICTURE IS MEASURED AFTER, because
+     clicking a tab REPAINTS -- paint() does `h.innerHTML = ''` -- and every node
+     held from before the walk is detached by the time it is asked for its box. A
+     detached element reports a zero rect, `0 < wrap.top` is true, and this gate
+     reported the champion's head as clipped on a screen where it was measurably
+     whole. That is the documented "measuring a box of size zero" trap, and it
+     produced a false FAILURE here rather than the usual false pass.
+
+     So: collect the names, come back to the ending, and only then query. ---- */
+  const seen = new Set();
+  const tabs = [...document.querySelectorAll('.tvTab')];
+  for (let i = 1; i < tabs.length; i++) {
+    tabs[i].click();
+    await sleep(80);
+    document.querySelectorAll('.tvTie .tvNm').forEach(e => {
+      const t = e.textContent.trim(); if (t && t !== '\u2014') seen.add(t); });
+  }
+  const back = document.querySelectorAll('.tvTab')[0];
+  if (back) { back.click(); await sleep(200); }
+
+  /* THE FINAL ITSELF, caught on the way past. The poster and the gold are a treatment for
+     ONE fixture, and the thing that must be true is that they exist there and nowhere else.
+     Nothing about them animates: the 2026-08-04 cancellation was a full-viewport wipe, and
+     this is a still picture in a card. */
+  const seenFinal = window.__hmTourFinalSeen || null;
+
   const wrap = document.querySelector('.tvChampWrap');
   const head = document.querySelector('.tvChampHead');
   const crown = document.querySelector('.tvCrown');
-  const grid = document.querySelector('.tvStandGrid');
+  const panel = document.querySelector('.tvPanel');
   const nm = document.querySelector('.tvChampNm');
-  if (!wrap || !head || !grid) return {name: nm ? nm.textContent : null, why: 'champion did not paint'};
-  const wb = wrap.getBoundingClientRect(), gb = grid.getBoundingClientRect();
+  if (!wrap || !head || !panel)
+    return {name: nm ? nm.textContent : null, why: 'champion did not paint'};
+  const wb = wrap.getBoundingClientRect(), gb = panel.getBoundingClientRect();
   // A ZERO-SIZE SCREEN MUST NOT READ AS "NOT CLIPPED". body.hmSoccer sets
   // .tvScreen to display:none, and __hmTourWin can leave it set when the engine's
   // own __hmSoccerEnd has not run -- one of the two documented traps here. Every
-  // rect is then 0, `head.top < wrap.top - 0.5` is 0 < -0.5, and the clipping
-  // assertions all pass on a screen nobody can see. This gate did exactly that
-  // once, and reported green on a champion who was visibly a chin.
+  // rect is then 0, and the clipping assertions all pass on a screen nobody can see.
   if (wb.height < 1 || gb.width < 1)
     return {name: nm ? nm.textContent : null,
             why: 'the champion screen has no box -- body.className is "'
                  + document.body.className + '"'};
-  const rows = Array.from(document.querySelectorAll('.tvStandRow:not(.tvKeyRow)'));
-  // A row is hidden if it falls outside its own clipping grid OR off the screen.
-  const hidden = rows.filter(r => { const q = r.getBoundingClientRect();
-    return q.right > gb.right + 0.5 || q.bottom > gb.bottom + 0.5
-        || q.right > innerWidth + 0.5 || q.bottom > innerHeight + 0.5; });
+  const hb = head.getBoundingClientRect();
+  const cb = crown ? crown.getBoundingClientRect() : null;
   return {name: nm ? nm.textContent : null,
-          season: season,
-          headClipped: head.getBoundingClientRect().top < wb.top - 0.5,
-          crownClipped: !!crown && crown.getBoundingClientRect().top < wb.top - 0.5,
-          rows: rows.length, rowsHidden: hidden.length,
-          standRows: getComputedStyle(grid).gridTemplateRows};
+          season: window.__hmTourCup ? window.__hmTourCup() : season,
+          /* BOTH EDGES. The first version only looked UP, because the shipped defect
+             cropped the top of the head. The rebuild produced the same bug upside
+             down -- the head resolved to 109px inside a 34px wrap and was cut off 89px
+             below its own clip -- and a top-only check passed on it. */
+          headClipped: hb.top < wb.top - 0.5 || hb.bottom > wb.bottom + 0.5,
+          crownClipped: !!cb && (cb.top < wb.top - 0.5 || cb.bottom > wb.bottom + 0.5),
+          final: seenFinal,
+          named: seen.size,
+          standings: (window.__hmTourStandings ? window.__hmTourStandings().length : 0)};
 }
 """
 
@@ -324,7 +365,7 @@ class Findings:
         return [r for r in self.rows if not r[0]]
 
 
-def open_page(browser, base, w, h, sabotage=None):
+def open_page(browser, base, w, h, sabotage=None, tamper=None):
     ctx = browser.new_context(viewport={"width": w, "height": h}, device_scale_factor=2,
                               is_mobile=(w < 700), has_touch=(w < 700))
     pg = ctx.new_page()
@@ -336,6 +377,12 @@ def open_page(browser, base, w, h, sabotage=None):
     if sabotage:
         pg.add_style_tag(content=sabotage)
         pg.wait_for_timeout(120)
+    # A FORMAT DEFECT CANNOT BE INJECTED WITH A STYLESHEET. The self-test's format
+    # case replaces the conditional global the shape assertions read, which is the
+    # only honest way to make "this is a league again" happen to a running page.
+    if tamper:
+        pg.evaluate(tamper)
+        pg.wait_for_timeout(80)
     return pg
 
 
@@ -359,17 +406,18 @@ def tour(pg):
     pg.wait_for_timeout(1800)
 
 
-def run(base, browser, f, sabotage=None, strip_ctl=False):
+def run(base, browser, f, sabotage=None, strip_ctl=False, tamper=None):
     """Every assertion, at every size. Returns the adoption tally for the report."""
     tally = {}
     for (w, h) in SIZES:
-        pg = open_page(browser, base, w, h, sabotage)
+        pg = open_page(browser, base, w, h, sabotage, tamper)
         if strip_ctl:
             # The self-test's first injection: take the two screens back off the
             # shared library exactly the way they were before this pass.
             pg.evaluate("""() => { const strip = () => document.querySelectorAll(
-              '.pBtn, .teamChip, .teamDel, .teamUndo, .tvChip, .tvGo').forEach(
-              e => e.classList.remove('ctl','ctl--primary','ctl--secondary','ctl--sm'));
+              '.pBtn, .teamChip, .teamDel, .teamUndo, .tvTab, .tvQuit, .tvGo, .tvOptG button')
+              .forEach(e => e.classList.remove(
+                'ctl','ctl--primary','ctl--secondary','ctl--sm','ctl--tab'));
               strip(); new MutationObserver(strip).observe(document.body,
                 {subtree:true, childList:true}); }""")
             pg.wait_for_timeout(200)
@@ -467,80 +515,256 @@ def run(base, browser, f, sabotage=None, strip_ctl=False):
 
         # THE ROUND NAME MUST SURVIVE. It is the one piece of information on the
         # strip, and it is what the short button labels were bought to protect.
-        strip = pg.evaluate("""() => { const l = document.querySelector('.tvRound');
-          if (!l) return null;
-          return {text: l.textContent, clipped: l.scrollWidth > l.clientWidth + 1}; }""")
-        f.check(strip and not strip["clipped"],
-                "tournament %s: the round name is not truncated" % at,
-                json.dumps(strip))
-
-        # ---- THE LEAGUE'S SHAPE, read off the running season rather than asserted
-        # against a constant that could have been copied. FIELD and SEASON are the
-        # only two numbers that decide the competition; every figure below is
-        # DERIVED from them, so this fails the moment something downstream grows a
-        # second, hardcoded copy -- which is exactly how the old `column-fill:auto`
-        # and the hardcoded four-row standings grid each hid half a table.
-        # ON A PHONE THE TABLE IS THE SECOND PANE, so switch to it before measuring
-        # it -- a `display:none` grid reports its UN-LAID-OUT gridTemplateRows (two
-        # tracks, from the stylesheet's fallback), which is a measurement of nothing
-        # that reads exactly like a real failure. Flipping the tab is also the only
-        # thing in this contract that exercises the pane switch at all.
-        pg.evaluate("() => { const b = [...document.querySelectorAll('.tvPane')];"
-                    "  if (b[1]) b[1].click(); }")
-        pg.wait_for_timeout(400)
+        # ---- THE CUP'S SHAPE, read off the running bracket rather than asserted
+        # against a constant that could have been copied. FIELD is the only number
+        # that decides the competition; the rounds, their names, the fixture count
+        # and whether there is a play-in at all are DERIVED from it, so every check
+        # below fails the moment something downstream grows a second hardcoded copy.
+        # That is not hypothetical: a hardcoded row count hid half a table twice, once
+        # when the field went 12 -> 8 and again when it went 8 -> 12.
         shape = pg.evaluate("""() => {
-          const t = window.__hmTourStandings(), s = window.__hmTourSeason();
-          const rows = [...document.querySelectorAll('.tvStandGrid .tvStandRow:not(.tvKeyRow)')];
-          const grid = document.querySelector('.tvStandGrid');
-          const gs = grid ? getComputedStyle(grid) : null;
-          return {teams: t.length, season: s,
-                  tableRows: rows.length,
-                  gridShown: !!(gs && gs.display !== 'none'),
-                  declaredRows: grid ? +grid.style.getPropertyValue('--tvStandRows') : null,
-                  gridRows: gs ? gs.gridTemplateRows.split(' ').length : null,
+          const c = window.__hmTourCup ? window.__hmTourCup() : null;
+          const st = window.__hmTourStandings ? window.__hmTourStandings() : [];
+          const tabs = [...document.querySelectorAll('.tvTab')];
+          const clipped = tabs.filter(e => e.scrollWidth > e.clientWidth + 1)
+                              .map(e => e.textContent);
+          return {cup: c, teams: st.length,
+                  tabs: tabs.map(e => e.textContent), tabsClipped: clipped,
+                  eyebrow: (document.querySelector('.tvEyebrow')||{}).textContent,
                   seedShown: /seed/i.test(document.querySelector('.tvScreen').textContent),
-                  round: (document.querySelector('.tvRound')||{}).textContent}; }""")
-        f.check(shape["season"]["teams"] == shape["teams"],
-                "league %s: the table lists every team in the field" % at, json.dumps(shape))
-        f.check(shape["season"]["fixtures"]
-                == shape["season"]["teams"] * shape["season"]["matchdays"] // 2,
-                "league %s: fixtures = teams x matchdays / 2, derived not hardcoded" % at,
-                json.dumps(shape))
-        # THE SEED IS GONE FROM THE SCREEN, and this is the assertion that says so.
-        # Jayden: "The seeds don't really make sense -- like who is 1 and 8, and what
-        # does that mean." The word came back on the match-up screen once already
-        # ("Seeds 3 and 7"), so it is checked rather than remembered.
+                  screenText: document.querySelector('.tvScreen').textContent}; }""")
+        cup = shape["cup"]
+        f.check(bool(cup), "cup %s: a cup is running and describes itself" % at,
+                json.dumps(shape)[:200])
+
+        # ---- SINGLE ELIMINATION, WHICH IS THE FORMAT JAYDEN ASKED FOR BACK.
+        # "I still did like the one game elimination format." A knockout has exactly
+        # N-1 fixtures, because every fixture eliminates exactly one team and all but
+        # the champion are eliminated. That identity is the format, so asserting it is
+        # asserting the format -- a league of the same field would have had 18.
+        f.check(cup and cup["fixtures"] == cup["teams"] - 1,
+                "cup %s: %s fixtures for %s teams -- N-1, single elimination"
+                % (at, cup and cup["fixtures"], cup and cup["teams"]), json.dumps(cup))
+
+        # ---- THE DEFAULT FIELD IS EIGHT, and it is quarter -> semi -> final with
+        # nothing else. This is the shape the cup had before the league and the shape
+        # he named. A field of 8 needs no play-in, so there must not be one.
+        f.check(cup and cup["teams"] == 8,
+                "cup %s: the default field is 8" % at, json.dumps(cup))
+        f.check(cup and not cup["playIn"],
+                "cup %s: a field of 8 opens with no play-in" % at, json.dumps(cup))
+        f.check(cup and [r["label"] for r in cup["rounds"]]
+                == ["Quarter-final", "Semi-final", "Final"],
+                "cup %s: the rounds are quarter, semi, final" % at,
+                json.dumps(cup and [r["label"] for r in cup["rounds"]]))
+
+        # ---- NO ROUND MAY BE NAMED FOR MORE TEAMS THAN ENTERED. Jayden, on the
+        # sixteen-slot bracket the field was cut to eight to escape: "What's the round
+        # of 16? There are only 8 players." A round named for competitors who do not
+        # exist is the specific defect, so it is checked rather than remembered.
+        if cup:
+            phantom = [r["label"] for r in cup["rounds"] if r["teams"] > cup["teams"]]
+            f.check(not phantom,
+                    "cup %s: no round is named for more teams than entered" % at,
+                    json.dumps(phantom))
+
+        # ---- AND NO BYES. The play-in construction cannot produce one at any field
+        # size, which is the whole reason it was chosen over padding to sixteen -- a
+        # bye is free advancement handed to whoever the draw favoured. Every fixture
+        # the board carries must have two real sides by the time it is playable, and
+        # the round sizes must add up to the field with nobody counted twice.
+        if cup:
+            entered = cup["rounds"][0]["matches"] * 2 + (
+                cup["rounds"][1]["matches"] * 2 - cup["rounds"][0]["matches"]
+                if cup["playIn"] else 0)
+            f.check(entered == cup["teams"],
+                    "cup %s: every one of the %d heads enters a real fixture"
+                    % (at, cup["teams"]), json.dumps({"entered": entered, "cup": cup}))
+            f.check("bye" not in shape["screenText"].lower()
+                    and "walkover" not in shape["screenText"].lower(),
+                    "cup %s: the words bye and walkover appear nowhere on screen" % at)
+
+        # ---- THE SEED IS GONE FROM THE SCREEN. Jayden: "The seeds don't really make
+        # sense -- like who is 1 and 8, and what does that mean." It came back on the
+        # match-up screen once already ("Seeds 3 and 7"), so it is checked rather than
+        # remembered. The league replaced it with a league POSITION, which meant
+        # replacing the format; the knockout needs neither, because who meets whom is
+        # the draw.
         f.check(not shape["seedShown"],
-                "league %s: the word 'seed' appears nowhere on the screen" % at,
-                json.dumps(shape))
-        f.check("Matchday" in (shape["round"] or ""),
-                "league %s: the round is a matchday, named from the schedule" % at,
-                json.dumps(shape))
-        # THE GRID'S ROW COUNT IS ceil(N/2), SET BY THE JS FROM THE FIELD. A number
-        # written in the stylesheet instead silently grows a third and fourth
-        # sub-column the day the field changes; that is not hypothetical, it is what
-        # happened when the field went twelve -> eight and again eight -> twelve.
-        if shape["tableRows"]:
-            want = -(-shape["teams"] // 2)
-            # BOTH HALVES, because either alone passes on a broken screen: the
-            # declaration proves the JS derived it from the field, and the laid-out
-            # track count proves the stylesheet's fallback did not win anyway.
-            f.check(shape["declaredRows"] == want,
-                    "league %s: --tvStandRows is set to %d from the field" % (at, want),
-                    json.dumps(shape))
-            f.check(shape["gridShown"] and shape["gridRows"] == want,
-                    "league %s: the table lays out as %d rows in two sub-columns"
-                    % (at, want), json.dumps(shape))
-            f.check(shape["tableRows"] == shape["teams"],
-                    "league %s: every one of the %d teams has a row"
-                    % (at, shape["teams"]), json.dumps(shape))
+                "cup %s: the word 'seed' appears nowhere on the screen" % at,
+                json.dumps(shape["screenText"])[:160])
+
+        # ---- AND SO IS THE LEAGUE. The vocabulary it brought must not outlive it on
+        # this screen, or the two formats are both half-present.
+        low = shape["screenText"].lower()
+        stale = [w for w in ("matchday", "league table", "goal difference", "points")
+                 if w in low]
+        f.check(not stale, "cup %s: no league vocabulary survives on the screen" % at,
+                json.dumps(stale))
+
+        # ---- THE ROUND NAMES DERIVE FROM THE FIELD, and the tabs carry them. Nothing
+        # in the UI counts rounds or names them: it asks the bracket, which had to know
+        # how many teams are in each round in order to build it.
+        f.check(shape["tabs"] == ["Next", "Last 8", "Last 4", "Final"],
+                "cup %s: the tabs are named by the bracket" % at, json.dumps(shape["tabs"]))
+        f.check(not shape["tabsClipped"],
+                "cup %s: no tab label is clipped by its own column" % at,
+                json.dumps(shape["tabsClipped"]))
+        # EVERY TAB IS A 44px TARGET, and this is the assertion the Draft tab broke: a
+        # finished twelve-head cup carries six tabs, and at 320 six equal columns measured
+        # 39.7 wide. Width, not just height -- .ctl--tab's ::after is an underline, not a
+        # hit pad, so nothing is padding these out.
+        tabw = pg.evaluate("""() => [...document.querySelectorAll('.tvTab')]
+          .map(e => ({t: e.textContent, w: +e.getBoundingClientRect().width.toFixed(1)}))""")
+        thin = [t for t in tabw if t["w"] < 43.99]
+        f.check(not thin, "cup %s: every tab clears the 44px target on width" % at,
+                json.dumps(tabw))
+        f.check((shape["eyebrow"] or "").strip() in ("Quarter-final", "Last 8"),
+                "cup %s: the pane names its round" % at, json.dumps(shape["eyebrow"]))
+        # THE DRAFT ORDER DOES NOT EXIST UNTIL THERE IS ONE. Publishing a provisional order
+        # mid-cup would be the seed in its most expensive form -- a draft pick decided by a
+        # shuffle. The tab is absent rather than present and empty.
+        f.check("Draft" not in shape["tabs"],
+                "draft %s: there is no draft order until the cup has one" % at,
+                json.dumps(shape["tabs"]))
+        # ---- THE POSTER IS THE FINAL'S ALONE. The 2026-08-04 cancellation was a
+        # full-viewport wipe on EVERY fixture -- "looks like a glitch" -- so the thing that
+        # must never come back is this treatment appearing on an ordinary tie. Checked in the
+        # quarter-final, where it must be absent; the champion drive checks the final itself.
+        f.check(pg.evaluate("() => document.querySelectorAll('.tvPoster').length") == 0,
+                "poster %s: no poster on a quarter-final" % at)
+        f.check(pg.evaluate("() => document.querySelectorAll('.tvEyebrowGold').length") == 0,
+                "poster %s: no gold on a quarter-final" % at)
+
+        # ---- THE FIELD FOLLOWS THE ROSTER, AND NOBODY IS ASKED. Jayden: "it shouldn't
+        # be like you pick 8 or 12 it should just be like based on how many heads you have
+        # built like before 8 it would be 8 more than 8 it would be 12." The 8/12 control is
+        # deleted, so the first assertion is that it is not there.
+        f.check(pg.evaluate("() => document.querySelectorAll('.tvOptG').length") == 0,
+                "field %s: the 8/12 control is gone -- the roster answers the question" % at)
+
+        # THE BOUNDARY IS PINNED DIRECTLY, not through the roster, and that is deliberate:
+        # play-engine.js:11 and play-games.js:49 both slice hmCompanions to 8 AND write the
+        # truncated list back, so a live roster can never report 9 today and an assertion
+        # routed through it would silently test nothing. Testing the rule itself means this
+        # keeps working -- and keeps being checked -- on the day that cap is raised.
+        rule = pg.evaluate("""() => { const g = window.__hmTourField; if (!g) return null;
+          return {a: g(0), b: g(1), c: g(8), d: g(9), e: g(12), f: g(20)}; }""")
+        f.check(rule is not None, "field %s: the field rule is a conditional global" % at)
+        if rule:
+            f.check(rule["c"] == 8 and rule["d"] == 12,
+                    "field %s: 8 heads -> 8, 9 heads -> 12 (the boundary Jayden named)" % at,
+                    json.dumps(rule))
+            f.check(rule["a"] == 8 and rule["b"] == 8,
+                    "field %s: an empty or tiny roster still gets a real cup" % at,
+                    json.dumps(rule))
+            f.check(rule["e"] == 12 and rule["f"] == 12,
+                    "field %s: above the boundary it stays 12" % at, json.dumps(rule))
+
+        # ---- AND THE SCREEN SAYS HOW THE FIELD WAS MADE. With seven built heads the cup is
+        # eight, so one captain is not the visitor's -- and a cup that silently presents a
+        # stranger as your roster is the quiet lie this screen has been cleaned of twice.
+        legend = pg.evaluate("""() => {
+          const e = document.querySelector('.tvHead .tvOptL');
+          return {text: e ? e.textContent : null,
+                  roster: (window.__hmTour && window.__hmTour.roster) || null}; }""")
+        f.check(legend["text"], "field %s: the match-up says how the field was made" % at,
+                json.dumps(legend))
+        if legend["text"] and legend["roster"]:
+            r = legend["roster"]
+            f.check(r["mine"] + r["house"] + r["eggs"] == r["field"],
+                    "field %s: the roster tally accounts for every captain" % at,
+                    json.dumps(legend))
+            f.check(str(r["mine"]) in legend["text"],
+                    "field %s: the legend names how many are the visitor's own" % at,
+                    json.dumps(legend))
+
+        # ---- HOW LONG THE MATCH IS, SAID BEFORE IT STARTS. Jayden: "make that clear."
+        # AND IT IS CHECKED AGAINST THE ENGINE, not against a copy of the engine's number.
+        # play-engine.js owns the curve (first to 5 at the final, 4 one round out, 3
+        # elsewhere) and this lane mirrors the expression; a mirror that nobody watches is a
+        # number waiting to drift. So: read the label, start the match, read the scoreboard's
+        # own .sbRule, and require them to agree.
+        length = pg.evaluate("""async () => {
+          const sleep = ms => new Promise(r => setTimeout(r, ms));
+          const tape = document.querySelector('.tvTape');
+          const said = tape ? (tape.textContent.match(/First to (\\d+)/) || [])[1] : null;
+          const go = document.querySelector('.tvGo');
+          if (!go) return {said: said, why: 'no Kick off'};
+          go.click();
+          await sleep(900);
+          const el = document.querySelector('.hmScore .sbRule');
+          const shown = el ? (el.textContent.match(/First to (\\d+)/) || [])[1] : null;
+          return {said: said, shown: shown, board: !!el}; }""")
+        f.check(length.get("said"),
+                "length %s: the match-up says how long the match is" % at, json.dumps(length))
+        f.check(length.get("shown") and length["said"] == length["shown"],
+                "length %s: it agrees with the scoreboard the engine paints" % at,
+                json.dumps(length))
+        # hand the pitch back, or .tvScreen stays display:none for everything after this
+        pg.evaluate("() => { try{ window.__hmTourAbort && window.__hmTourAbort(); }catch(_){}"
+                    "  try{ window.__hmSoccerEnd && window.__hmSoccerEnd(); }catch(_){} }")
+        pg.wait_for_timeout(700)
+
+        # ---- THE PANEL, which is the thing this screen did not have. Every element on
+        # it used to be ink floating on the page: measured at 390, elementsFromPoint at
+        # the centre of Kick off returned tvGo -> tvFixture -> pCard -> pCards -> hero,
+        # so the primary action was painted on a Play-hub card. That is the defect three
+        # passes of spacing work could not fix, and these are the assertions that say it
+        # cannot come back.
+        panel = pg.evaluate("""() => {
+          const pn = document.querySelector('.tvPanel');
+          if (!pn) return {why: 'no panel'};
+          const b = pn.getBoundingClientRect(), cs = getComputedStyle(pn);
+          const go = document.querySelector('.tvGo');
+          const gb = go ? go.getBoundingClientRect() : null;
+          const under = gb ? document.elementsFromPoint(gb.x + gb.width / 2, gb.y + gb.height / 2)
+                              .map(e => (e.className.baseVal ?? e.className) || e.tagName) : [];
+          return {ground: cs.backgroundColor, shadow: cs.boxShadow,
+                  radius: cs.borderRadius, onSurface: pn.classList.contains('surface'),
+                  centred: +((b.left) - (innerWidth - b.right)).toFixed(1),
+                  under: under.slice(0, 6),
+                  goRightInset: gb ? +(b.right - gb.right).toFixed(1) : null,
+                  padRight: parseFloat(cs.paddingRight)}; }""")
+        f.check(panel.get("onSurface"),
+                "panel %s: the screen is one .surface from the shared library" % at,
+                json.dumps(panel)[:200])
+        f.check(panel.get("ground") not in (None, "rgba(0, 0, 0, 0)"),
+                "panel %s: it has a ground, so nothing behind it reads through" % at,
+                json.dumps(panel.get("ground")))
+        # The hub card must no longer be under the primary action.
+        f.check("pCard" not in " ".join(panel.get("under", [])),
+                "panel %s: no Play-hub card is painted under Kick off" % at,
+                json.dumps(panel.get("under")))
+        # NO CAST SHADOW. The heads cast contact shadows because they stand on
+        # something; chrome separates with a hairline and translucency. `.surface`'s
+        # rim is an INSET hairline, which is what the rule asks for -- so this looks
+        # for an OUTSET layer rather than for any box-shadow at all.
+        cast = [x for x in str(panel.get("shadow", "none")).split("), ")
+                if x.strip() and "inset" not in x]
+        f.check(str(panel.get("shadow")) == "none" or not cast,
+                "panel %s: the panel casts no shadow, it has a hairline" % at,
+                json.dumps(panel.get("shadow")))
+        _c = panel.get("centred")
+        f.check(_c is not None and abs(_c) <= 0.5,
+                "panel %s: the panel is centred in the window" % at,
+                json.dumps(panel.get("centred")))
+        # ---- AND THE BUTTON IS CENTRED BY CONSTRUCTION. Jayden: "The button isn't
+        # even centred." It was `justify-self:start` on the second track of a two-track
+        # grid, so at 390 it had 91.7px of inset on the left and 24 on the right. It now
+        # fills the panel's row, so its right edge is exactly the panel's own padding --
+        # which is a thing that can be asserted, unlike "it looks centred".
+        f.check(panel.get("goRightInset") is not None
+                and abs(panel["goRightInset"] - panel["padRight"]) <= 0.5,
+                "panel %s: the primary reaches the panel's own padding on the right" % at,
+                json.dumps(panel))
 
         # ---- NOTHING CROSSES THE GROUND LINE. .tvScreen is height-banded so that
         # 58svh -> 100svh (62svh on a phone) belongs to the world and the heads. It
-        # is structural rather than a promise, but only for elements that FIT: a
-        # column whose content is taller than its band overflows downward and draws
-        # over the pitch, which is what twelve table rows did to the champion screen
-        # at 390 and what the pane switch did to Kick off at 320. Both were silent.
+        # is structural rather than a promise, but only for elements that FIT: content
+        # taller than its band overflows downward and draws over the pitch, which is
+        # what twelve table rows did to the champion screen at 390 and what the pane
+        # switch did to Kick off at 320. Both were silent.
         ground = pg.evaluate("""() => {
           const s = document.querySelector('.tvScreen');
           if (!s) return null;
@@ -552,20 +776,19 @@ def run(base, browser, f, sabotage=None, strip_ctl=False):
           return {bottom: +b.bottom.toFixed(1), over: over.slice(0, 6),
                   docScroll: document.documentElement.scrollHeight > innerHeight + 1}; }""")
         f.check(ground and not ground["over"],
-                "league %s: nothing on the screen crosses the ground line" % at,
+                "cup %s: nothing on the screen crosses the ground line" % at,
                 json.dumps(ground))
         f.check(ground and not ground["docScroll"],
-                "league %s: the page does not scroll while a season is up" % at,
+                "cup %s: the page does not scroll while a cup is up" % at,
                 json.dumps(ground))
 
-        # ---- THE CASCADE, which is where this pass nearly shipped a regression.
+        # ---- THE CASCADE, which is where an earlier pass nearly shipped a regression.
         # controls.css is linked after play.html's <style> block and after
-        # tournament.css, so a page rule of EQUAL specificity loses to the
-        # library on source order and loses silently -- the rule reads correctly
-        # and the CSSOM holds it. Four overrides were lost that way and one of
-        # them (the chip's padding) squeezed every head to half its tile.
-        # Computed values, not source text, because source text was what looked
-        # fine.
+        # tournament.css, so a page rule of EQUAL specificity loses to the library on
+        # source order and loses SILENTLY -- the rule reads correctly and the CSSOM
+        # holds it. Four overrides were lost that way and one of them squeezed every
+        # head to half its tile. Computed values, not source text, because source text
+        # was what looked fine.
         cascade = pg.evaluate("""() => {
           const g = (sel, prop) => { const e = document.querySelector(sel);
             return e ? getComputedStyle(e)[prop] : null; };
@@ -573,7 +796,8 @@ def run(base, browser, f, sabotage=None, strip_ctl=False):
                   chipGround: g('.teamChip', 'backgroundColor'),
                   goPad: g('.pBtnGo', 'paddingInline'),
                   backPad: g('.pBtnBack', 'paddingLeft'),
-                  drawDisplay: g('.tvChipDraw', 'display')};
+                  tabSize: g('.tvTab', 'fontSize'),
+                  goFlex: g('.tvGo', 'flexGrow')};
         }""")
         f.check(cascade["chipPad"] == "0px",
                 "cascade %s: the chip's own padding beats the library's" % at,
@@ -582,18 +806,25 @@ def run(base, browser, f, sabotage=None, strip_ctl=False):
                 "cascade %s: the chip keeps its --c100 ground" % at, json.dumps(cascade))
         f.check(cascade["goPad"] == "32px",
                 "cascade %s: Start match keeps its --sp-32 padding" % at, json.dumps(cascade))
-        # THE FIXTURES CHIP IS SHOWN AT EVERY WIDTH, and the rule that used to hide
-        # it above 760px is gone. Its argument was sound while the rail was the draw
-        # -- the chip opened a copy of what was already on screen. The rail is the
-        # TABLE now, so the fixture list lives on no screen at any width and this
-        # chip is its only door. `.tvChip.tvChipDraw` stays a two-class selector
-        # because controls.css is linked after tournament.css and a single-class
-        # rule loses to `.ctl{display:inline-flex}` on source order alone.
-        f.check(cascade["drawDisplay"] not in (None, "none"),
-                "cascade %s: the Fixtures chip is reachable here" % at,
+        # `.ctl--tab` declares `font-size:inherit`, so a tab takes the size of the row
+        # it is in -- and this row inherits <body>'s 16px unless the row names the
+        # control rung. Measured before it did, the tabs were the largest text on the
+        # panel after the names. This is the assertion that keeps every control on this
+        # screen at one size.
+        f.check(cascade["tabSize"] == "15px",
+                "cascade %s: the tabs take the control rung, not the body's 16px" % at,
                 json.dumps(cascade))
+        f.check(cascade["goFlex"] not in (None, "0"),
+                "cascade %s: the primary still fills its row" % at, json.dumps(cascade))
 
         # ---- the Archivo exception ----
+        # ON A ROUND PANE, because .bcNum rides the SCORE cell and an unplayed tie
+        # prints nothing -- that empty column is the intended "not yet". Counting it on
+        # the match-up, which has no scores at all, measured zero and read exactly like
+        # the numeral having been deleted.
+        pg.evaluate("() => { const t = document.querySelectorAll('.tvTab');"
+                    "  if (t[1]) t[1].click(); }")
+        pg.wait_for_timeout(300)
         a = pg.evaluate(ARCHIVO)
         f.check(a["count"] > 0, "Archivo: .bcNum exists while a cup is running",
                 json.dumps({"nodes": a["count"]}))
@@ -608,11 +839,13 @@ def run(base, browser, f, sabotage=None, strip_ctl=False):
                 json.dumps(a["faces"]))
 
         # ---- THE CHAMPION SCREEN, at the size that broke it.
-        # It is the payoff of eighteen fixtures and it arrived clipped: at 320x568
-        # the head was a sliver of chin, the crown -- which sits ABOVE the head's
-        # own box, at top:-8% -- was gone entirely, and `column-fill:auto` in a
-        # 111px band pushed ranks 5 to 8 into a third and fourth column and
-        # straight into overflow:hidden. Half the final table, silently missing.
+        # It is the payoff of the whole cup and it arrived clipped: at 320x568 the
+        # head was a sliver of chin and the crown -- which sits ABOVE the head's own
+        # box, at top:-8% -- was gone entirely. The second failure here was that the
+        # ending silently described fewer competitors than entered, which
+        # `column-fill:auto` did to the final table. The knockout has no table, so
+        # that assertion is now made against the BOARD: walk every round pane and the
+        # names on it must account for the whole field.
         if (w, h) == (320, 568):
             champ = pg.evaluate(CHAMPION_DRIVE)
             f.check(champ.get("name"), "champion %s: the cup produces a champion" % at,
@@ -620,22 +853,83 @@ def run(base, browser, f, sabotage=None, strip_ctl=False):
             f.check(not champ.get("why"),
                     "champion %s: the champion screen actually paints" % at,
                     champ.get("why", ""))
+            # ---- THE FINAL'S OWN TREATMENT, recorded on the way past. Jayden wants "that
+            # finals poster design implemented into the UI of the final matchup"; the trap is
+            # the cancelled wipe growing back, so this asserts the treatment EXISTS and that
+            # it does not move.
+            fin = champ.get("final") or {}
+            f.check(fin.get("gold"), "final %s: the final's round name wears the cup's gold"
+                    % at, json.dumps(fin))
+            f.check(fin.get("goldBall"),
+                    "final %s: hmFinal is set, so the ball is gold too" % at, json.dumps(fin))
+            f.check(fin.get("length") == "5",
+                    "final %s: the final says it is first to 5" % at, json.dumps(fin))
+            # NOT ANIMATED. The poster is a still picture in a card. A transition or an
+            # animation on it is the 2026-08-04 wipe growing back, and it is checked rather
+            # than promised. (At 320 the poster itself is dropped for room -- see
+            # tournament.css -- so its presence is asserted only where it is meant to be.)
+            f.check(fin.get("posterAnimated") in (False, None),
+                    "final %s: the poster does not move -- the wipe stays cancelled" % at,
+                    json.dumps(fin))
             if champ.get("name") and not champ.get("why"):
                 f.check(not champ["headClipped"],
                         "champion %s: the winner's head is whole" % at, json.dumps(champ))
                 f.check(not champ["crownClipped"],
                         "champion %s: the crown is inside the clip" % at, json.dumps(champ))
-                f.check(champ["rowsHidden"] == 0,
-                        "champion %s: every team is in the final table (%d rows)"
-                        % (at, champ["rows"]), json.dumps(champ))
-                f.check(champ["rows"] == champ["season"]["teams"],
-                        "champion %s: all %d teams finish the season"
+                f.check(champ["named"] == champ["season"]["teams"],
+                        "champion %s: all %d heads are named on the finished board"
                         % (at, champ["season"]["teams"]), json.dumps(champ))
+                f.check(champ["standings"] == champ["season"]["teams"],
+                        "champion %s: the standings account for every head" % at,
+                        json.dumps(champ))
+                # ---- THE DRAFT ORDER, which is what the whole tournament is for. Jayden:
+                # "after the cup finishes can see clear number order to make sure everyone
+                # knows the draft order at the end". It must be 1..N with NO GAPS -- a draft
+                # needs a number for every head, not a list of survivors -- it must only
+                # exist once the cup is finished, and it must not interrupt the champion
+                # (the ending still opens on the champion, not on the draft).
+                draft = pg.evaluate("""async () => {
+                  const sleep = ms => new Promise(r => setTimeout(r, ms));
+                  const opened = document.querySelector('.tvTab[aria-selected="true"]');
+                  const openedOn = opened ? opened.textContent : null;
+                  const t = [...document.querySelectorAll('.tvTab')]
+                              .find(e => e.textContent.trim() === 'Draft');
+                  if (!t) return {why: 'no Draft tab', openedOn: openedOn};
+                  t.click(); await sleep(300);
+                  const rows = [...document.querySelectorAll('.tvDraftRow')];
+                  return {openedOn: openedOn,
+                          n: rows.length,
+                          numbers: rows.map(r => (r.querySelector('.tvDraftN')||{}).textContent),
+                          wheres: rows.map(r => (r.querySelector('.tvDraftOut')||{}).textContent),
+                          drawn: rows.filter(r => r.classList.contains('tvDrawn')).length,
+                          key: !!document.querySelector('.tvDraftKey')}; }""")
+                f.check(not draft.get("why"),
+                        "draft %s: the finished cup grows a Draft tab" % at,
+                        draft.get("why", ""))
+                f.check(draft.get("openedOn") == "Cup",
+                        "draft %s: the ending still opens on the champion, not the draft" % at,
+                        json.dumps(draft.get("openedOn")))
+                if not draft.get("why"):
+                    want = [str(i + 1) for i in range(champ["season"]["teams"])]
+                    f.check(draft["numbers"] == want,
+                            "draft %s: it is 1..%d with no gaps"
+                            % (at, champ["season"]["teams"]), json.dumps(draft)[:220])
+                    # EVERY POSITION SAYS WHERE IT CAME FROM. A number with no account of
+                    # itself is the seed again, in the one place it would cost somebody a
+                    # draft pick.
+                    f.check(all(w for w in draft["wheres"]),
+                            "draft %s: every row says which round it went out in" % at,
+                            json.dumps(draft["wheres"]))
+                    # ...and where it came from nothing. If any row is separated from the one
+                    # above it only by the draw, the key has to be printed.
+                    f.check(draft["drawn"] == 0 or draft["key"],
+                            "draft %s: rows split by the draw are marked and keyed" % at,
+                            json.dumps(draft))
 
         pg.evaluate("() => window.__hmTourStop()")
         pg.wait_for_timeout(500)
         screen_bc = pg.evaluate(
-            "() => document.querySelectorAll('.tvScreen .bcNum, #tvSheet .bcNum').length")
+            "() => document.querySelectorAll('.tvScreen .bcNum').length")
         f.check(screen_bc == 0,
                 "Archivo %s: the tournament screen's numerals leave with the cup" % at,
                 "%d node(s) survived" % screen_bc)
@@ -683,23 +977,47 @@ def self_test(base, browser):
     print("      %d cascade failure(s) raised" % len(caught5))
     ok = ok and bool(caught5)
 
-    print("  [6] restore column-fill:auto, which dropped half the final table at 320")
+    print("  [6] take the panel's ground away -- the defect the whole rewrite is for")
     f6 = Findings(verbose=False)
-    # THE WHOLE SHIPPED MECHANISM, not just the display mode. Re-injecting
-    # column-fill alone no longer reproduced the bug, because the 640-and-under
-    # block now buys the table 26px of heading and 9px a row -- so eight short
-    # rows fit two columns even under the old algorithm, and the detector went
-    # quiet on a defect that had genuinely been fixed twice over. An injection
-    # that no longer reproduces its defect is a passing self-test that proves
-    # nothing. This restores the band split and the row height with it.
-    run(base, browser, f6, sabotage="""
-      .tvBody.tvDone{grid-template-rows:minmax(0,1fr) minmax(0,1.15fr)!important}
-      .tvBody.tvDone .tvBoardHd{display:block!important}
-      .tvStandRow{min-height:29px!important}
-      .tvStandGrid{display:block!important;column-count:2;column-fill:auto;overflow:hidden}""")
-    caught6 = [r for r in f6.failures if "every team is in the final table" in r[1]]
-    print("      %d standings failure(s) raised" % len(caught6))
+    # THE ORIGINAL DEFECT, RE-INJECTED. `.tvScreen` was a transparent layer and every
+    # element on it was ink floating on the page: measured at 390, the Play-hub card
+    # was painted directly under the Kick off button. Making the panel transparent
+    # again reproduces exactly that, and both detectors -- the ground check and the
+    # elementsFromPoint check -- have to fire.
+    run(base, browser, f6, sabotage=".tvPanel{background:transparent!important}")
+    caught6 = [r for r in f6.failures
+               if "it has a ground" in r[1] or "Play-hub card is painted" in r[1]]
+    print("      %d panel-ground failure(s) raised" % len(caught6))
     ok = ok and bool(caught6)
+
+    print("  [7] put the primary back on the old two-track grid, off-centre at 390")
+    f7 = Findings(verbose=False)
+    # Jayden: "The button isn't even centred." The shipped defect was
+    # `justify-self:start` inside a grid whose first track was the captains' faces,
+    # so the button began 91.7px in on the left and 24 in on the right. Stopping the
+    # primary from filling its row reproduces the asymmetry.
+    run(base, browser, f7, sabotage=".tvGo{flex:0 0 auto!important}")
+    caught7 = [r for r in f7.failures if "reaches the panel's own padding" in r[1]
+               or "still fills its row" in r[1]]
+    print("      %d off-centre failure(s) raised" % len(caught7))
+    ok = ok and bool(caught7)
+
+    print("  [8] rebuild the cup as a league -- the format revert, asserted")
+    f8 = Findings(verbose=False)
+    # The format is the thing that was reverted, so the gate has to fail when it
+    # comes back. There is no stylesheet that can do this, so it is injected at the
+    # source: a league of the same field has more fixtures than N-1, which is the
+    # identity that DEFINES single elimination.
+    run(base, browser, f8, tamper="""() => {
+      const real = window.__hmTourCup;
+      window.__hmTourCup = function(){ const c = real(); if (!c) return c;
+        c.fixtures = c.teams * 3 / 2;              // three matchdays, a league
+        c.rounds = [{label:'Matchday 1', short:'MD1', teams:c.teams, playIn:false,
+                     matches:c.teams/2}];
+        return c; }; }""")
+    caught8 = [r for r in f8.failures if "single elimination" in r[1]]
+    print("      %d format failure(s) raised" % len(caught8))
+    ok = ok and bool(caught8)
 
     print("  [4] give .bcNum a second declaration site")
     f4 = Findings(verbose=False)

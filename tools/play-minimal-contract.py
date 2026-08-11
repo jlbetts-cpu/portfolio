@@ -68,12 +68,17 @@ assert parser.card_ids == ["pcHead", "pcExped", "pcTour", "pcGrad"]
 for fragment in (
     "Upload a photo of your face and cut it out on a new page. It comes back and joins the crowd.",
     "Split the heads into two teams and watch them play soccer. You pick the teams first.",
-    # 2026-08-11: the cup became a twelve-team league, so the card's sentence had to
-    # change with it -- "a bracket" and "a cup" were both false. The LABEL is still
-    # "Tournament", which is the word Jayden uses for this door and the word on the
-    # Play menu row; one command in two menus must read identically, and the
-    # description is where the truth about the format lives.
-    "Twelve heads, a league table, three matchdays. Every team plays; top of the table wins.",
+    # 2026-08-11, SECOND MOVE: the cup became a twelve-team league and has been put
+    # back. Jayden: "I still did like the one game elimination format." So the
+    # sentence describes a knockout again, and it names the option he did ask for --
+    # four more heads -- because the card is where a visitor decides whether to open
+    # this door. The LABEL is still "Tournament", which is the word he uses for it and
+    # the word on the Play menu row; one command in two menus must read identically.
+    # This assertion is UPDATED rather than removed: the point of it is that the card
+    # cannot silently disagree with the format again, which is what it caught here.
+    "Eight heads knock each other out, one match at a time. Lose and you are gone. Add four more if you like.",
+    # And the words the league brought with it must not survive it anywhere on the page.
+
     "Dial a planet of coloured light on a new page, and leave with the image and the code.",
     'href="headmaker.html?from=play"',
     'href="gradientlab.html?from=play"',

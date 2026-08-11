@@ -123,6 +123,151 @@
    }
   }
 
+  var fadeNodes=[];
+
+  function dropGhost(ghost){
+   if(!ghost)return;
+   var at=fadeNodes.indexOf(ghost);
+   if(at!==-1)fadeNodes.splice(at,1);
+   if(ghost.__timeFadeTimer&&win&&typeof win.clearTimeout==="function")win.clearTimeout(ghost.__timeFadeTimer);
+   ghost.__timeFadeTimer=0;
+   if(ghost.parentNode)ghost.parentNode.removeChild(ghost);
+   if(ghost.__timeFadeOwner&&ghost.__timeFadeOwner.__timeFadeNode===ghost)ghost.__timeFadeOwner.__timeFadeNode=null;
+   ghost.__timeFadeOwner=null;
+  }
+
+  /* CROSS-FADE A COVER THAT IS ALREADY ON SCREEN.
+     The old picture is lifted into a ghost stacked over the cover, the cover is
+     repointed underneath it, and the ghost is faded out. Two orderings matter
+     and both are load-bearing:
+
+     1. THE GHOST IS PROVEN PAINTABLE BEFORE THE COVER MOVES. If we repointed
+        first and appended after, there is a frame where the new picture is
+        uncovered -- a flash of exactly the cut this function exists to remove.
+        The ghost's src is the one the browser is displaying this instant, so it
+        is a memory-cache hit and `complete` is almost always already true; the
+        decode path below is the honest version of "almost always".
+     2. THE FADE STARTS ON A LATER FRAME THAN THE APPEND. A node appended and
+        given its end state in the same frame has no start state to interpolate
+        from and snaps. The double rAF is that, not superstition.
+
+     Cleanup runs from transitionend AND from a timer, because transitionend
+     does not fire for a zero-duration transition and does not fire at all if
+     the node is display:none in a panel the visitor switched away from
+     mid-fade. Either path is idempotent. */
+  function crossFade(image,descriptor){
+   var previous=image.getAttribute("src")||"";
+   var snapshot=image.currentSrc||previous;
+   var frame=image.parentNode;
+   /* EVERY ESCAPE HERE FALLS BACK TO commit(), the exact behaviour that shipped
+      before this function existed. The cross-fade is the enhancement; putting
+      the right picture on screen is the job, and it still happens when the
+      enhancement cannot. */
+   if(previous===descriptor.src||!snapshot||!frame||
+      typeof doc.createElement!=="function"||typeof frame.appendChild!=="function"){
+    commit(image,descriptor);
+    return;
+   }
+   dropGhost(image.__timeFadeNode);
+   var ghost=doc.createElement("img");
+   ghost.className="csImgOut";
+   ghost.setAttribute("alt","");
+   ghost.setAttribute("aria-hidden","true");
+   ghost.setAttribute("role","presentation");
+   ghost.decoding="sync";
+   ghost.src=snapshot;
+   ghost.__timeFadeOwner=image;
+   image.__timeFadeNode=ghost;
+   fadeNodes.push(ghost);
+
+   function begin(){
+    if(destroyed||image.__timeFadeNode!==ghost){dropGhost(ghost);return;}
+    frame.appendChild(ghost);
+    commit(image,descriptor);
+    ghost.addEventListener("transitionend",function(event){
+     if(!event||event.propertyName==="opacity")dropGhost(ghost);
+    });
+    if(win&&typeof win.setTimeout==="function"){
+     ghost.__timeFadeTimer=win.setTimeout(function(){dropGhost(ghost);},2000);
+    }
+    var raf=win&&typeof win.requestAnimationFrame==="function"?win.requestAnimationFrame.bind(win):null;
+    if(raf)raf(function(){raf(function(){
+     if(ghost.parentNode)ghost.setAttribute("data-time-fade","out");
+    });});
+    else ghost.setAttribute("data-time-fade","out");
+   }
+
+   if(ghost.complete&&ghost.naturalWidth>0)begin();
+   else if(typeof ghost.decode==="function")ghost.decode().then(begin,begin);
+   else{
+    ghost.onload=begin;
+    ghost.onerror=function(){dropGhost(ghost);commit(image,descriptor);};
+   }
+  }
+
+  /* Below this, an arrival is indistinguishable from having always been there,
+     so it is not animated. Above it, the visitor watched an empty frame and the
+     picture should land rather than appear. */
+  var ARRIVE_THRESHOLD=120;
+
+  function inClosedPanel(image){
+   var panel=typeof image.closest==="function"&&image.closest(".csPanel");
+   return !!(panel&&panel.classList&&!panel.classList.contains("on"));
+  }
+
+  /* A COVER THAT IS ARRIVING RATHER THAN CHANGING.
+     Only reached for an image the browser has not fetched, which on this page
+     means a lazy one below the fold. It fades in over the frame that was
+     already holding its space, instead of appearing between two paints.
+
+     A COVER IN A CLOSED PANEL IS SKIPPED, and this is the whole safety story
+     rather than a detail. .csPanel{display:none} means the browser never
+     fetches those images and their load event never fires, so pre-hiding one
+     buys nothing -- nobody is looking at it -- and costs everything: measured,
+     four covers in the closed "fun" panel sat at opacity 0, and a visitor who
+     opened that panel inside the backstop window would have found it empty.
+     Fading in something nobody can see is pure risk, so it is not done.
+
+     The mark is cleared on load, on error, and by a backstop timer. The
+     backstop degrades to the OLD behaviour -- an un-faded pop -- rather than to
+     an invisible cover, which is the right direction to fail in.
+
+     Every DOM method used here is feature-tested, because the arrival fade is a
+     nicety and the cover is not. Anything missing means no fade, never a cover
+     left at opacity 0 -- and it keeps the controller usable against the plain
+     object literals tools/time-aware-thumbnails.test.js stands in for images. */
+  function markArrival(image){
+   if(image.__timeArriveBound)return;
+   if(typeof image.addEventListener!=="function"||typeof image.setAttribute!=="function")return;
+   if(inClosedPanel(image))return;
+   image.__timeArriveBound=true;
+   image.setAttribute("data-time-arrive","pending");
+   var settled=false;
+   var since=(win&&win.performance&&typeof win.performance.now==="function")?win.performance.now():0;
+
+   /* NEVER ANIMATE SOMETHING THAT WAS ALREADY THERE.
+      A cover served from cache resolves in a handful of milliseconds, and
+      fading that in for 360ms would make a fast load look slower than it is --
+      the site paying an animation tax for a problem it did not have. Under the
+      threshold the mark is simply dropped, which returns the element to the
+      markup's own opacity:1 with no transition declared for that state, so it
+      appears on the very next paint. The fade is reserved for a cover that
+      genuinely made the visitor wait. */
+   function reveal(){
+    if(settled)return;
+    settled=true;
+    var waited=((win&&win.performance&&typeof win.performance.now==="function")?win.performance.now():0)-since;
+    if(waited<ARRIVE_THRESHOLD)image.removeAttribute("data-time-arrive");
+    else image.setAttribute("data-time-arrive","in");
+   }
+   image.addEventListener("load",reveal);
+   /* A cover that failed to load is revealed rather than un-marked: "in" is
+      opacity 1, so the broken-image state the visitor would have seen anyway is
+      what they see, and no path leaves the element transparent. */
+   image.addEventListener("error",reveal);
+   if(win&&typeof win.setTimeout==="function")win.setTimeout(reveal,8000);
+  }
+
   /* HAS THE BROWSER ACTUALLY FETCHED THIS ONE YET?
      This is the whole question, and it is answerable without touching layout.
      An <img loading="lazy"> that is still below the fold has not been fetched,
@@ -164,8 +309,12 @@
     var visible=[],deferred=[],i;
     for(i=0;i<images.length;i++)(alreadyFetched(images[i])?visible:deferred).push(images[i]);
     /* Not yet fetched: hand it the new source and let loading="lazy" decide
-       when, or whether, it is ever worth a request. */
-    for(i=0;i<deferred.length;i++)commit(deferred[i],descriptor);
+       when, or whether, it is ever worth a request. It has no picture to be
+       cross-faded from, so it gets the arrival fade instead -- the two branches
+       here are exactly the skeleton-vs-cross-fade question, and the answer
+       differs between them because one of them genuinely has nothing on screen
+       and the other one does. */
+    for(i=0;i<deferred.length;i++){markArrival(deferred[i]);commit(deferred[i],descriptor);}
     if(!visible.length)return;
     /* On screen: decode first so the swap is invisible. A failure here leaves
        the cover that is currently up exactly where it is, which is the right
@@ -174,7 +323,7 @@
        missing variant can no longer take the other five down with it. */
     preload(descriptor).then(function(){
      if(destroyed||id!==requestId||next!==requestedState)return;
-     for(var j=0;j<visible.length;j++)commit(visible[j],descriptor);
+     for(var j=0;j<visible.length;j++)crossFade(visible[j],descriptor);
     },function(){});
    });
   }
@@ -187,6 +336,9 @@
    requestId+=1;
    unsubscribe();
    if(win&&typeof win.removeEventListener==="function")win.removeEventListener("pagehide",onPageHide);
+   /* A ghost outliving its controller would sit over a cover at whatever
+      opacity it had reached. Copy first: dropGhost splices the array. */
+   fadeNodes.slice().forEach(dropGhost);
    cache.clear();
   }
 

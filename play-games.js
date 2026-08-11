@@ -31,6 +31,23 @@
    version-bump shape as the home copy, since battleGate() polls it every
    400ms and the team tray reads it on every open. */
 (function(){
+ /* HOW MANY HEADS THE ROSTER HOLDS -- ONE RULE, DECLARED IDENTICALLY IN EVERY
+    FILE THAT ENFORCES IT (play-games.js, play-engine.js, headmaker.html and
+    index.html). It used to be the literal 8 in eight separate places, and three
+    of those places also HEAL localStorage: they rewrite the roster whenever the
+    deduped list is shorter than what they read. So a stale copy does not merely
+    disagree with the others, it DELETES -- a builder that saves twelve and a
+    reader that caps at eight destroys four heads on the next page load, and
+    those bakes are not recoverable.
+    There is no script shared by index.html, play.html and headmaker.html that
+    this lane owns, so a single canonical module is not reachable without adding
+    a script tag to a page this lane must not touch. Every copy is therefore the
+    SAME idempotent line: whichever script runs first on a page defines the
+    number and the rest adopt it, so within a page every enforcement site is
+    literally the same value. tools/roster-cap-contract.py fails when the
+    literals drift apart across files, which is the one failure this shape
+    cannot prevent on its own. */
+ var HM_MAX=(window.__HM_MAX_HEADS=window.__HM_MAX_HEADS||12);
  var _hcVer=0,_hcCache=null,_hcCacheVer=-1;
  /* THE HUB'S ONE PIECE OF SHARED STATE. The team screen is built inside the nested
     picker IIFE at the foot of this file, but battleGate() -- declared above it -- has to
@@ -44,10 +61,23 @@
   var a=[],rawN=null;
   try{var raw=localStorage.getItem("hmCompanions");if(raw!==null){a=JSON.parse(raw)||[];rawN=a.length;}}catch(_){}
   if(rawN===null){try{var l=JSON.parse(localStorage.getItem("hmCompanion")||"null");if(l&&l.cut)a=[l];}catch(_){}}   // an emptied pit stays empty
+  /* HEALING AND CAPPING ARE TWO DIFFERENT THINGS, AND THEY USED TO BE ONE LINE.
+     The filter below drops debris and duplicates, and writing that result back is
+     right: it is what makes one tile mean one head. The .slice() that used to be
+     chained onto it is NOT healing -- and because the write-back fired whenever the
+     result was shorter than what was read, a roster of nine went in and a roster of
+     eight came back out, on a plain page load, with the ninth head gone from disk
+     forever. That is the bug behind "there is no way to create more than 8 heads":
+     the ninth was not refused, it was deleted by the next thing that read it.
+     So the cap now limits only what THIS PAGE USES. Anything over it stays on disk,
+     untouched, and comes back the moment a slot frees up. The one place allowed to
+     drop a head is the builder's own save, where the pit is on screen and the oldest
+     visibly retires. A read must never delete. */
   var seen={};a=a.filter(function(d){if(!d||!d.cut||d.cut.length<15000)return false;
-  var k2=JSON.stringify(d.marks||"m")+JSON.stringify((d.eyes||[]).map(function(e){return[e.x,e.y,e.w,e.h];}));
-  if(seen[d.cut]||seen[k2])return false;seen[d.cut]=1;seen[k2]=1;return true;}).slice(0,8);
-  if(rawN!==null&&rawN!==a.length){try{localStorage.setItem("hmCompanions",JSON.stringify(a));_hcVer++;}catch(_){}}   // heal duplicates so one x is always one head
+  var k2=d.cut.length+"|"+JSON.stringify(d.marks||"m")+JSON.stringify((d.eyes||[]).map(function(e){return[e.x,e.y,e.w,e.h];}));   // the cut length is part of the key: two DIFFERENT people marked at the same coordinates are not one head, and the newer one was being deleted as a duplicate. This key must stay byte-identical across play-games.js, play-engine.js, headmaker.html and index.html -- four copies disagreeing about who is a duplicate is four pages disagreeing about who exists.
+  if(seen[d.cut]||seen[k2])return false;seen[d.cut]=1;seen[k2]=1;return true;});
+  if(rawN!==null&&rawN!==a.length){try{localStorage.setItem("hmCompanions",JSON.stringify(a));_hcVer++;}catch(_){}}   // heal duplicates so one x is always one head -- the HEALED list, never the capped one
+  a=a.slice(0,HM_MAX);
   _hcCache=a;_hcCacheVer=_hcVer;
   return a.slice();}
 
@@ -336,7 +366,7 @@
 
  window.__hmAddEgghead=function(){
   var EGG=window.__EGGHEAD;if(!EGG||!EGG.cut)return;
-  if(readAll().length>=8)return;                      // the planet caps at eight, like the saved heads
+  if(readAll().length>=HM_MAX)return;                 // the planet caps where the saved heads do
   tintEgg(EGG.cut,nextEggColor(),function(cut){
    var eyes=(EGG.eyes||[]).map(function(e){var o={};for(var k in e)o[k]=e[k];return o;});
    if(eyes[0])eyes[0].x+=(Math.random()-0.5)*0.0007;
@@ -382,50 +412,11 @@
  if(tg)tg.addEventListener("click",startTour);
  var pcT=document.getElementById("pcTour");if(pcT)pcT.addEventListener("click",startTour);   // the hub card and the menu row are ONE launcher, not two copies of one
 
- /* ---- THE HOVER PREVIEWS LOAD ON DEMAND, AND ONLY PROVE THEMSELVES ON LOAD.
-    Jayden asked for screenshots of the inside of each screen on hover. The panel, its geometry
-    and its motion are in play.html; this is the only behaviour it needs, and it is deliberately
-    the smallest amount that makes the feature safe:
-
-    1. NOTHING IS DOWNLOADED UNTIL A CARD IS ASKED ABOUT. The <img> ships with no src at all --
-       not a lazy src, none -- so a visitor who never hovers pays nothing, and the four previews
-       can never compete with the engine for bandwidth during the first seconds of the page, which
-       is exactly when the heads are spawning. pointerenter rather than mouseenter so a pen
-       counts; focus so the keyboard gets the same reveal the mouse does. `once` on both, because
-       after the first hover the browser's own cache is the right mechanism and a listener that
-       has done its job should not stay bound.
-    2. .ready IS ADDED ON THE IMAGE'S OWN LOAD EVENT, never optimistically. This is the whole
-       reason it is safe to ship the mechanism before every screenshot exists: with the file
-       missing the load event never fires, .ready is never added, the CSS rule never matches, and
-       the card behaves precisely as it did before this existed. No empty white rectangle over the
-       crowd, no broken-image glyph, no layout reserved for nothing.
-    3. NO img.decode(), AND THAT IS A MEASURED DECISION RATHER THAN A SIMPLIFICATION. Decoding
-       before revealing is the textbook way to avoid fading in a half-painted image, and it was
-       written that way first. In this exact position it HANGS: .pCardPrev is visibility:hidden
-       until the card is hovered, and a decode() requested for an image inside a subtree that is
-       never painted has nothing to schedule against, so the promise neither resolves nor rejects.
-       Verified in the browser -- the call sat unsettled until the probe timed out at 30s, .ready
-       was never added, and the previews were silently dead while every other signal (src set,
-       complete true, naturalWidth 640) said the image was perfectly fine. That is the worst
-       shape a bug can take, so: `load` is the signal. It already guarantees the bytes are whole,
-       and the 240ms fade is far more time than the raster needs.
-
-    OUTSTANDING: images/preview/*.webp DO NOT EXIST YET, and that is on purpose rather than an
-    oversight. Three of the four screens (tournament, headmaker, gradientlab) are being rebuilt
-    right now by other passes, so any capture taken today is wrong within hours -- shipping stale
-    pictures of screens that no longer look like that is worse than shipping none, because a
-    preview that lies is worse than no preview. The contract for whoever captures them:
-        images/preview/match.webp  tournament.webp  headmaker.webp  gradientlab.webp
-        640x400 (16:10, 2x the 311px the panel occupies at 1440), WebP q72.
-        Budget ~25-40 KB each. Nothing here may approach images/earth-map-src.jpg's 2.51 MB.
-    Drop the four files in and the previews turn on with no code change anywhere. ---- */
- [].forEach.call(document.querySelectorAll(".pCard .pCardPrev img[data-prev]"),function(img){
-  var panel=img.parentNode,card=panel.parentNode,armed=false;
-  function load(){if(armed)return;armed=true;
-   img.addEventListener("load",function(){panel.classList.add("ready");},{once:true});
-   img.src=img.getAttribute("data-prev");}
-  card.addEventListener("pointerenter",load,{once:true});
-  card.addEventListener("focus",load,{once:true});});
+ /* ---- THE HOVER PREVIEW'S LOADER IS REMOVED WITH THE PANEL IT FED. See play.html for
+    the argument; the short version is that images/preview/ never existed, `.ready` is
+    set on the image's load event, and so this listener has spent its whole life arming
+    a fade for a file that never arrives. The cards carry their descriptions again,
+    which is the thing the preview was standing in for. ---- */
  var rg=document.getElementById("raceGo");
  if(rg)rg.addEventListener("click",function(){
   var rc=readAll().length;if(rc<1||gameOn())return;

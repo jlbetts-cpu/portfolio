@@ -35,176 +35,333 @@ function tint(cut,color,cb){var img=new Image();
 window.__hmTint=window.__hmTint||tint;   // guarded: harmless if some future page already defines it
 })();
 
-(function(){   // ===== TOURNAMENT: league core =====
-// A LEAGUE, NOT A BRACKET, and the reason is the one thing Jayden complained about.
+(function(){   // ===== TOURNAMENT: knockout core =====
+// SINGLE ELIMINATION. One game, you lose, you are out. Jayden, on the league that
+// briefly replaced it:
 //
-//   "The seeds don't really make sense -- like who is 1 and 8, and what does that mean.
-//    Also we need to increase the head amount to 12 and the tournament mode, for the
-//    fantasy football league."
+//   "I do think the change to the tournament mode was pretty bad and not really what
+//    I had in mind. I liked the original tournament format we had. I just want to add
+//    it so you could add an additional optional 4 more heads so I can use it to do the
+//    fantasy order. I still did like the one game elimination format."
 //
-// He is right, and the seed was not a labelling mistake -- it was a claim the data could
-// not support. The competitors are randomly dyed eggheads drawn in a random order. A seed
-// says "this one earned first place before a ball was kicked", and nothing here ever
-// earned anything, so "1 v 8" was decoration wearing the clothes of information. A bracket
-// cannot be fixed by renaming its seeds, because a bracket NEEDS a prior ranking to decide
-// who meets whom; without one the whole first round is arbitrary and the shape of the cup
-// is arbitrary with it.
+// He asked for room for four more heads. That was turned into a twelve-team, three-
+// matchday league, which is a different game. The format is back; the four heads are
+// the feature, and they are the only thing that is new.
 //
-// A LEAGUE TABLE HAS THE OPPOSITE PROPERTY. A position in it is a consequence of matches
-// that were played, so the number is earned by the time you read it. Seeds become
-// standings: the same 1..12 column, now meaning something. That is the whole design.
+// THE FIELD IS 8 BY DEFAULT -- quarter-final, semi-final, final. Seven fixtures, three
+// rounds, no empty slots. That is the shape the cup had before the league and the shape
+// he says he likes.
 //
-// The alternative considered and rejected was a 16-slot bracket with four byes -- which is
-// exactly the phantom-round problem the field was cut from twelve to eight to avoid ("What's
-// the round of 16? There are only 8 players"). Padding twelve teams back up to sixteen would
-// have reinstated it.
+// TWELVE IS THE OPTION, AND A PLAY-IN IS HOW IT IS HONEST. Twelve is not a power of two,
+// so a knockout cannot simply pair it off, and the two ways out are not equal:
 //
-// WHAT THIS CORE IS. Pure functions, no DOM, so the schedule and the table can be reasoned
-// about (and driven) without a browser.
+//   * A 16-SLOT BRACKET WITH FOUR BYES. Rejected, twice, and the second time in his own
+//     words: "What's the round of 16? There are only 8 players." It names a round for
+//     competitors who do not exist and prints four fixtures nobody plays, and a bye is
+//     free advancement handed to whoever the draw happened to favour.
+//   * A PLAY-IN. Eight of the twelve play four real matches for the last four
+//     quarter-final places; four enter at the quarter-final. Every fixture on the board
+//     is played by two real teams, nothing is a walkover, and the BRACKET is still the
+//     eight-team quarter -> semi -> final it is at the default field. No phantom round
+//     is ever named, because no phantom round exists.
 //
-//  * THE SCHEDULE is the circle method: fix one team, rotate the rest. Over N-1 rounds it
-//    produces a full round robin; over the first M of them it produces a partial season in
-//    which every team plays exactly M matches and no pairing repeats. Nothing about twelve
-//    is written down -- N comes from the field and M from SEASON.
-//  * A SEASON IS THREE MATCHDAYS, and that number is argued in play-tournament's FIELD/SEASON
-//    block rather than here, because it is a product decision and this file is arithmetic.
-//  * SIDES ALTERNATE. `a` is the left-hand side on the pitch, and the left goal genuinely
-//    concedes more today (measured 50:32 across ten matches -- see the soccer revamp spec
-//    3.2). Alternating by (round + slot) parity means no team is systematically handed the
-//    better end for a whole season, so a live engine asymmetry cannot bend the table.
+// It is not free, and the honest statement of the cost is that four teams play one match
+// fewer than the other eight. That is arithmetic, not a design choice: twelve into a
+// knockout means somebody plays more. What the play-in buys is that the extra match is a
+// REAL match rather than a walkover somebody else was excused from, and that the round is
+// called what it is.
 //
-// TWO KINDS OF EMPTY, still worth keeping apart: `winner === undefined` is "not played
-// yet", and that is the ONLY empty a league has. There is no BYE, no TBD, and no
-// propagation -- a result changes exactly one fixture and nothing downstream, which is why
-// results may be recorded in any order.
+// THE CONSTRUCTION GENERALISES, AND THAT IS WHY THERE IS NO `BYE` IN THIS FILE AT ALL.
+// Take M = the largest power of two <= N. Then N - M teams-worth of matches make up the
+// play-in: 2(N - M) teams play (N - M) matches, and the (N - M) winners join the
+// (M - (N - M)) teams that entered directly to fill M slots. For N = 8 the play-in is
+// empty and the bracket is the plain eight. For N = 12 it is four matches. For N = 5, 6,
+// 7 -- which only the no-egg-art fallback can produce -- it is 1, 2 and 3 matches, and
+// every one of those fields also comes out with no byes, where the old core had to place
+// them by the ITTF rule. A whole category of empty slot, and the two kinds of empty that
+// had to be told apart, are gone with it.
+//
+// NOTHING IS HARDCODED. The round names come from how many teams are left in the round,
+// the tab labels come from the same number, the number of rounds comes from the field,
+// and the play-in exists or does not exist according to the arithmetic above. Setting the
+// field to 8 or 12 changes the whole screen correctly and changes nothing else.
 
-/* ---- THE SCHEDULE. Circle method (the standard round-robin construction): team 0 is
-   fixed and the rest rotate one place each round, so round r pairs arr[i] with
-   arr[n-1-i]. Every team appears exactly once per round and no pair repeats inside the
-   first n-1 rounds -- which is the property that makes "the first M rounds" a legitimate
-   partial season rather than an arbitrary list of fixtures. */
-function schedule(ids, rounds) {
-  const n = ids.length;
-  if (n < 2 || n % 2) throw new Error('the circle method needs an even field: ' + n);
-  if (rounds < 1 || rounds > n - 1)
-    throw new Error('a season is 1..' + (n - 1) + ' matchdays, not ' + rounds);
-  let arr = ids.slice();
-  const out = [];
-  for (let r = 0; r < rounds; r++) {
-    const ms = [];
-    for (let i = 0; i < n / 2; i++) {
-      const x = arr[i], y = arr[n - 1 - i];
-      // alternate which team takes the left-hand side -- see the note above
-      ms.push((r + i) % 2 ? { a: y, b: x, sa: undefined, sb: undefined, winner: undefined }
-                          : { a: x, b: y, sa: undefined, sb: undefined, winner: undefined });
-    }
-    out.push(ms);
-    arr = [arr[0], arr[n - 1]].concat(arr.slice(1, n - 1));   // rotate all but the first
-  }
-  return out;
+/* The largest power of two that fits inside the field. This is the bracket proper --
+   the part that is a clean knockout -- and everything else is the play-in. */
+function mainSize(N) { let M = 1; while (M * 2 <= N) M *= 2; return M; }
+
+/* A ROUND IS NAMED FOR HOW MANY TEAMS ARE IN IT, which is the property that keeps the
+   label honest at every field size. Eight left is a quarter-final because a quarter-final
+   is what eight teams playing off is called -- not because the cup was told to have one. */
+function roundLabel(teamsLeft) {
+  if (teamsLeft === 2) return 'Final';
+  if (teamsLeft === 4) return 'Semi-final';
+  if (teamsLeft === 8) return 'Quarter-final';
+  return 'Round of ' + teamsLeft;
+}
+/* The short form, for the tab row -- same number, fewer characters, because five tabs
+   have to share a 272px phone. "Last 8" is the same fact as "Quarter-final" and it is
+   the form that fits; the long name is still the pane's own heading and the tab's
+   accessible name, so nothing is lost to the abbreviation. */
+function roundShortLabel(teamsLeft) {
+  return teamsLeft === 2 ? 'Final' : 'Last ' + teamsLeft;
 }
 
-/* `rounds` is the matchday array, and it is called `rounds` on purpose: play-engine.js
-   reads `T.br.rounds.length` and `T.cur.round` to decide how long a fixture is (first to
-   3, then 4, then 5 as the season closes). That coupling is in a file this lane does not
-   own, so the shape it reads is preserved exactly -- and it happens to be right for a
-   league too: matchday one is quick, the run-in is long. */
-function buildSeason(teamIds, matchdays) {
+/* Read a fixture through this rather than indexing rounds, so callers do not know the
+   storage. There is no '3p' any more: the third-place playoff was opt-in, nothing asked
+   for it, and Jayden's "too much random unnecessary elements" was aimed squarely at a
+   fourth labelled group whose winner goes on to nothing. */
+function matchAt(br, round, index) { return br.rounds[round].matches[index]; }
+
+/* Recompute every round from the one before it. Append-only: a result is written to one
+   fixture and everything downstream is DERIVED, never patched, which is what makes
+   recording a result in the wrong order impossible to corrupt.
+
+   The play-in feeds the first bracket round differently from the way a bracket round
+   feeds the next one, and that is the only special case in the file. A bracket round
+   takes both its sides from the two matches beneath it; the first bracket round takes one
+   side from a team that entered directly and the other from a play-in winner. Pairing a
+   direct entrant against a qualifier in every fixture (rather than, say, putting all four
+   qualifiers on one side of the draw) is deliberate: it is the shape every real play-in
+   uses, and it means no half of the bracket is systematically the easier one. */
+function propagate(br) {
+  const first = br.playIn ? 1 : 0;   // index of the first BRACKET round
+  if (br.playIn) {
+    /* ---- THE FIRST BRACKET ROUND IS FILLED BY THE FOLD, and the first version of this was
+       wrong at five field sizes. It read `a = direct[i]` and `b = qualifier[i] ?? direct[4+i]`,
+       which silently assumed there are as many direct entrants as slots AND as many
+       qualifiers as slots. That is true at twelve (4 and 4) and false everywhere else: at
+       nine there are seven direct entrants and one qualifier, so slot 3 asked for direct[7]
+       in a seven-long array and got `undefined` -- a bracket slot nobody could ever fill, on
+       a screen whose whole promise is that no fixture is a walkover. Nine, ten and eleven
+       heads are all reachable from the roster now that the field is derived from it, and
+       five and seven are reachable from the no-egg-art fallback.
+
+       The fold is the standard construction and it is correct for every field by
+       construction rather than by cases: lay the M entrants out as one list -- direct
+       entrants first, then the play-in's qualifiers -- and pair the outermost two, then the
+       next two, inward. Every source is used exactly once because i and M-1-i together
+       enumerate the whole list, and because direct entrants are at one end and qualifiers at
+       the other, a fixture is direct-versus-qualifier wherever the counts allow it and only
+       falls back to like-versus-like when arithmetic forces it.
+
+       Checked at every field this can produce:
+         12 -> 4 direct, 4 qualifiers: all four ties are direct v qualifier
+         11 -> 5 and 3   10 -> 6 and 2   9 -> 7 and 1   7 -> 1 and 3   5 -> 3 and 1
+       and in each the sources are consumed exactly once with no undefined slot. ---- */
+    const pi = br.rounds[0].matches, ms = br.rounds[first].matches;
+    const src = br.direct.concat(pi.map(function (m) { return m.winner; }));
+    for (let i = 0; i < ms.length; i++) {
+      const m = ms[i], kept = m.winner;
+      m.a = src[i];
+      m.b = src[src.length - 1 - i];
+      m.winner = (kept !== undefined && (kept === m.a || kept === m.b)) ? kept : undefined;
+    }
+  }
+  for (let r = first + 1; r < br.rounds.length; r++) {
+    const prev = br.rounds[r - 1].matches, ms = br.rounds[r].matches;
+    for (let i = 0; i < ms.length; i++) {
+      const m = ms[i], kept = m.winner;
+      m.a = prev[i * 2].winner;           // undefined => nobody has qualified yet
+      m.b = prev[i * 2 + 1].winner;
+      m.winner = (kept !== undefined && (kept === m.a || kept === m.b)) ? kept : undefined;
+    }
+  }
+  return br;
+}
+
+/* teamIds: the draw order. There is no `seed` on a team and there must never be one
+   again -- it was `i + 1`, the index of a shuffled array, printed on the match-up screen
+   as "Seeds 3 and 7", and it is the thing Jayden called out: a number that looks like a
+   ranking and is a loop counter. A knockout does not need one. Who meets whom is the
+   draw, the draw is random, and a random draw is an honest answer to "why these two?" in
+   a way that a fabricated ranking is not. */
+function buildCup(teamIds) {
   const N = teamIds.length;
   if (N < 2) throw new Error('need at least 2 teams');
-  const rounds = schedule(teamIds, matchdays).map(function (ms, i) {
-    return { label: 'Matchday ' + (i + 1), matches: ms };
-  });
-  return { N, teams: teamIds.slice(), matchdays, rounds };
+  const M = mainSize(N);
+  const playIn = N - M;                       // fixtures in the play-in; 0 at any power of two
+  const ids = teamIds.slice();
+  const rounds = [];
+
+  /* The play-in takes the LAST 2 x playIn teams of the draw and the direct entrants are
+     the first (M - playIn). Which end is arbitrary and the draw is already shuffled, so
+     this is a slicing convention rather than a decision about who is favoured. */
+  const direct = ids.slice(0, M - playIn);
+  const contest = ids.slice(M - playIn);
+  if (playIn > 0) {
+    const ms = [];
+    for (let i = 0; i < playIn; i++)
+      ms.push({ a: contest[i * 2], b: contest[i * 2 + 1], sa: undefined, sb: undefined,
+                winner: undefined });
+    rounds.push({ label: 'Play-in', short: 'Play-in', teams: playIn * 2, playIn: true,
+                  matches: ms });
+  }
+  for (let count = M / 2; count >= 1; count /= 2) {
+    const ms = [];
+    for (let i = 0; i < count; i++)
+      ms.push({ a: undefined, b: undefined, sa: undefined, sb: undefined, winner: undefined });
+    rounds.push({ label: roundLabel(count * 2), short: roundShortLabel(count * 2),
+                  teams: count * 2, playIn: false, matches: ms });
+  }
+  /* With no play-in the bracket's first round is the draw itself, folded by the same rule
+     the play-in case uses -- one construction, so the two cannot disagree about which slot
+     a team lands in. */
+  if (playIn === 0) {
+    const ms = rounds[0].matches;
+    for (let i = 0; i < ms.length; i++) { ms[i].a = ids[i]; ms[i].b = ids[ids.length - 1 - i]; }
+  }
+  const br = { N: N, M: M, playIn: playIn > 0, draw: ids, direct: direct, rounds: rounds };
+  return propagate(br);
 }
 
-/* Read any fixture through this rather than indexing `rounds`, for the same reason the
-   bracket did: the callers should not know the storage. There is no '3p' any more -- a
-   league has no playoff, because it has no semi-finals to lose. */
-function matchAt(se, round, index) { return se.rounds[round].matches[index]; }
-
-function fixtures(se) {
-  const out = [];
-  se.rounds.forEach(function (rd, r) {
-    rd.matches.forEach(function (m, i) { out.push({ round: r, index: i, match: m }); });
-  });
-  return out;
-}
-
-// The first fixture still needing to be played, in schedule order, or null when the
-// season is over. No jumping, no holding anything back: matchday one is played before
-// matchday two, which is what a fixture list is.
-function nextMatch(se) {
-  for (let r = 0; r < se.rounds.length; r++) {
-    const ms = se.rounds[r].matches;
-    for (let i = 0; i < ms.length; i++)
-      if (ms[i].winner === undefined) return { round: r, index: i, match: ms[i] };
+/* The first fixture still needing to be played, in board order, or null when the cup is
+   won. Both sides must be known -- a bracket round whose feeders are still open is not
+   playable, and that is the ONLY kind of empty this core has. */
+function nextMatch(br) {
+  for (let r = 0; r < br.rounds.length; r++) {
+    const ms = br.rounds[r].matches;
+    for (let i = 0; i < ms.length; i++) {
+      const m = ms[i];
+      if (m.winner === undefined && m.a !== undefined && m.b !== undefined)
+        return { round: r, index: i, match: m };
+    }
   }
   return null;
 }
 
-function played(se) {
-  let n = 0;
-  se.rounds.forEach(function (rd) {
-    rd.matches.forEach(function (m) { if (m.winner !== undefined) n++; }); });
-  return n;
-}
-function total(se) { return se.rounds.length * se.rounds[0].matches.length; }
-function complete(se) { return nextMatch(se) === null; }
+function champion(br) { return br.rounds[br.rounds.length - 1].matches[0].winner; }
+function complete(br) { return champion(br) !== undefined; }
+function played(br) { let n = 0; br.rounds.forEach(function (rd) {
+  rd.matches.forEach(function (m) { if (m.winner !== undefined) n++; }); }); return n; }
+function total(br) { let n = 0; br.rounds.forEach(function (rd) { n += rd.matches.length; });
+  return n; }
+/* How many fixtures are left, which is the one number this screen can say about distance.
+   A knockout halves, so "3 matches to play" is not the same shape of fact a league's is --
+   it is the run-in itself. */
+function remaining(br) { return total(br) - played(br); }
 
-/* ---- THE TABLE. Three points a win, none for a loss, and there is deliberately no draw
-   column: the engine plays every fixture to a winner (first to N, win by two -- see
-   play-engine.js's `S.target`), so a drawn match cannot occur and a D column of twelve
-   zeroes would be a promise the game cannot keep. For the same reason W is not printed
-   either: with no draws W is exactly Pts/3, and a column that restates another column is
-   the "random unnecessary element" this screen has already been cut for once.
-
-   THE TIE-BREAK IS GOAL DIFFERENCE, THEN GOALS SCORED, THEN THE DRAW. It is shown, not
-   just applied -- the GD column is on the table and the rule is printed under its heading,
-   because a position nobody can explain is the seed problem again in a new hat. The draw
-   order is the last resort only; two teams reaching identical points, identical goal
-   difference AND identical goals scored is the one case where nothing was earned either
-   way, and something has to be deterministic. ---- */
-function table(se) {
-  const row = {};
-  se.teams.forEach(function (id, i) {
-    row[id] = { id: id, drawn: i, played: 0, won: 0, lost: 0, gf: 0, ga: 0, gd: 0, points: 0 };
-  });
-  se.rounds.forEach(function (rd) {
+/* WHAT A TEAM DID IN THIS CUP, from the results and nothing else. Every field here is a
+   count of things that happened on the pitch, which is what makes it safe to print. */
+function record(br, id) {
+  const r = { played: 0, won: 0, gf: 0, ga: 0, gd: 0, out: undefined };
+  br.rounds.forEach(function (rd, i) {
     rd.matches.forEach(function (m) {
+      if (m.a !== id && m.b !== id) return;
       if (m.winner === undefined) return;
-      const A = row[m.a], B = row[m.b];
-      if (!A || !B) return;
-      const sa = m.sa | 0, sb = m.sb | 0;
-      A.played++; B.played++;
-      A.gf += sa; A.ga += sb; B.gf += sb; B.ga += sa;
-      if (m.winner === m.a) { A.won++; B.lost++; } else { B.won++; A.lost++; }
+      const mine = (m.a === id) ? m.sa : m.sb, theirs = (m.a === id) ? m.sb : m.sa;
+      r.played++;
+      r.gf += mine | 0; r.ga += theirs | 0;
+      if (m.winner === id) r.won++; else r.out = i;
     });
   });
-  const rows = se.teams.map(function (id) {
-    const t = row[id]; t.gd = t.gf - t.ga; t.points = t.won * 3; return t;
-  });
-  rows.sort(function (x, y) {
-    return (y.points - x.points) || (y.gd - x.gd) || (y.gf - x.gf) || (x.drawn - y.drawn);
-  });
-  rows.forEach(function (t, i) { t.rank = i + 1; });
-  return rows;
+  r.gd = r.gf - r.ga;
+  return r;
 }
 
-/* WHERE A TEAM STANDS RIGHT NOW, by id -- the number that replaced the seed. Returns null
-   before anybody has played, because on matchday one every position in the table is the
-   draw order and printing it would be the seed all over again. That guard is the whole
-   point of this function existing rather than callers indexing table(). */
-function positionOf(se, id) {
-  if (played(se) === 0) return null;
-  const rows = table(se);
-  for (let i = 0; i < rows.length; i++) if (rows[i].id === id) return rows[i].rank;
+/* ---- THE FINISHING ORDER, 1..N, WITH NO GAPS -- and it is a FULL ordering rather than a
+   list of survivors, because a draft needs a number for every head. It sorts br.draw, which
+   is the whole field, not the winners.
+
+   HOW FAR YOU GOT IS THE FIRST KEY, and it is the only one the bracket establishes
+   outright: the final settles 1 and 2, and below that nobody outside a given round played
+   each other, so "reached the semi-final" is the strongest true statement about a team.
+
+   INSIDE A ROUND, GOAL DIFFERENCE THEN GOALS SCORED. This was the draw order -- the index of
+   a shuffled array -- which is the seed problem wearing a third hat: four quarter-finalists
+   would be handed 5, 6, 7 and 8 by nothing at all, and a draft order is exactly the place
+   that matters. GD and GF are things the teams DID in the matches they played, so most
+   positions become explainable. The draw is the last resort only, for two teams that went
+   out in the same round having scored and conceded identically; something has to be
+   deterministic, and at that point nothing was earned either way.
+
+   `tiedFromDraw` is published rather than hidden. The UI must not print a number as if it
+   were earned when it was not, so the row that is separated from the one above it ONLY by
+   the draw says so. ---- */
+function standings(br) {
+  const deepest = new Map(), drawn = new Map(), rec = new Map();
+  br.draw.forEach(function (id, i) {
+    deepest.set(id, -1); drawn.set(id, i); rec.set(id, record(br, id)); });
+  br.rounds.forEach(function (rd, r) {
+    rd.matches.forEach(function (m) {
+      [m.a, m.b].forEach(function (t) {
+        if (t === undefined || !deepest.has(t)) return;
+        if (r > deepest.get(t)) deepest.set(t, r);
+      });
+    });
+  });
+  const order = br.draw.slice().sort(function (x, y) {
+    const rx = rec.get(x), ry = rec.get(y);
+    return (deepest.get(y) - deepest.get(x))
+        || (ry.gd - rx.gd) || (ry.gf - rx.gf) || (drawn.get(x) - drawn.get(y));
+  });
+  const fin = br.rounds[br.rounds.length - 1].matches[0], ch = fin.winner;
+  let ids = order;
+  if (ch !== undefined) {
+    const ru = (ch === fin.a) ? fin.b : fin.a;
+    const head = [ch]; if (ru !== undefined) head.push(ru);
+    ids = head.concat(order.filter(function (id) { return head.indexOf(id) < 0; }));
+  }
+  /* Only the draw separated these two if they are level on every key above it. Computed
+     against the row ABOVE, because that is the claim the number makes. */
+  return ids.map(function (id, i) {
+    const prev = i > 0 ? ids[i - 1] : null;
+    const a = rec.get(id), b = prev ? rec.get(prev) : null;
+    return { id: id, rank: i + 1, out: deepest.get(id), record: a,
+             tiedFromDraw: !!(b && deepest.get(prev) === deepest.get(id)
+                              && b.gd === a.gd && b.gf === a.gf) };
+  });
+}
+
+/* WHICH ROUND KNOCKED A TEAM OUT, or undefined if it is still in. The ending screen says
+   "Out - Semi-final" rather than a position, because in a knockout that is the true thing:
+   there is no table, there is only how far you got. */
+function outAt(br, id) {
+  for (let r = 0; r < br.rounds.length; r++) {
+    const ms = br.rounds[r].matches;
+    for (let i = 0; i < ms.length; i++) {
+      const m = ms[i];
+      if (m.winner !== undefined && (m.a === id || m.b === id) && m.winner !== id) return r;
+    }
+  }
+  return undefined;
+}
+
+function recordWinner(br, round, index, winnerId, sa, sb) {
+  const m = matchAt(br, round, index);
+  if (m.winner !== undefined) throw new Error('match already final');
+  if (winnerId !== m.a && winnerId !== m.b) throw new Error('winner not in this match');
+  m.winner = winnerId;
+  if (sa !== undefined) { m.sa = sa | 0; m.sb = sb | 0; }
+  return propagate(br);
+}
+
+/* INVARIANTS, asserted rather than commented, because a comment is not an invariant and
+   both of these are properties a later simplification would quietly break.
+     * No team may sit in two un-eliminated slots in one round -- the classic
+       double-advance, which is what a hand-patched propagate() produces.
+     * Every team must appear exactly once in the round it enters at, so the play-in and
+       the direct entrants together account for the whole field with nobody counted twice
+       and nobody dropped. That second one is the new construction's own risk. */
+function check(br) {
+  for (const rd of br.rounds) {
+    const seen = new Set();
+    for (const m of rd.matches) {
+      for (const t of [m.a, m.b]) {
+        if (t === undefined) continue;
+        if (seen.has(t)) return 'team ' + t + ' appears twice in ' + rd.label;
+        seen.add(t);
+      }
+    }
+  }
+  const entry = new Set();
+  if (br.playIn) br.rounds[0].matches.forEach(function (m) { entry.add(m.a); entry.add(m.b); });
+  br.direct.forEach(function (id) { entry.add(id); });
+  if (entry.size !== br.N)
+    return 'the field is ' + br.N + ' but ' + entry.size + ' teams enter the cup';
+  for (const id of br.draw) if (!entry.has(id)) return 'team ' + id + ' never enters the cup';
   return null;
 }
-
-// Top of the table, once every fixture has been played. Mid-season it is nobody: a leader
-// is not a champion, and calling one that is how a league starts lying about itself.
-function champion(se) { return complete(se) ? table(se)[0].id : undefined; }
 
 /* ---- CHAMPION CONFETTI ----------------------------------------------------------------
    Not the one-shot burst the match win uses: this keeps falling for as long as the champion
@@ -296,56 +453,22 @@ function champConfetti(rgb){
    tournament module. Exposed rather than duplicated so there is one confetti loop. */
 window.__hmChampFx = champConfetti;
 
-/* Append-only, and in a league that is literally true: a result changes one fixture and
-   nothing else. There is no propagate() here and there must never be one -- the bracket
-   needed it because a winner walked forward into a slot; a table is re-derived from the
-   results every time it is asked for, so there is no downstream state to keep in step. */
-function recordResult(se, round, index, winnerId, sa, sb) {
-  const m = matchAt(se, round, index);
-  if (m.winner !== undefined) throw new Error('fixture already played');
-  if (winnerId !== m.a && winnerId !== m.b) throw new Error('winner not in this fixture');
-  m.winner = winnerId;
-  if (sa !== undefined) { m.sa = sa | 0; m.sb = sb | 0; }
-  return se;
-}
-
-/* INVARIANT: no team may appear twice in one matchday, and no pairing may repeat across
-   the season. Both are properties of the circle method rather than of anything this file
-   does at runtime -- which is exactly why they are asserted. A comment is not an
-   invariant; the schedule generator is the kind of thing a later "simplification" turns
-   into `for (i) pair(random, random)`. */
-function checkSchedule(se) {
-  const seenPair = new Set();
-  for (const rd of se.rounds) {
-    const seen = new Set();
-    for (const m of rd.matches) {
-      for (const t of [m.a, m.b]) {
-        if (seen.has(t)) return 'team ' + t + ' plays twice in ' + rd.label;
-        seen.add(t);
-      }
-      const k = m.a < m.b ? m.a + '|' + m.b : m.b + '|' + m.a;
-      if (seenPair.has(k)) return 'pairing ' + k + ' is scheduled twice';
-      seenPair.add(k);
-    }
-    if (seen.size !== se.N) return rd.label + ' fields ' + seen.size + ' of ' + se.N + ' teams';
-  }
-  return null;
-}
-window.__hmLeague = { schedule: schedule, buildSeason: buildSeason, matchAt: matchAt,
-  fixtures: fixtures, nextMatch: nextMatch, recordResult: recordResult, table: table,
-  positionOf: positionOf, champion: champion, complete: complete, played: played,
-  total: total, checkSchedule: checkSchedule };
+window.__hmBracket = { buildCup: buildCup, mainSize: mainSize, matchAt: matchAt,
+  nextMatch: nextMatch, recordWinner: recordWinner, champion: champion, complete: complete,
+  played: played, total: total, remaining: remaining, standings: standings, outAt: outAt,
+  record: record,
+  roundLabel: roundLabel, roundShortLabel: roundShortLabel, check: check };
 })();
+
 
 (function(){   // ===== TOURNAMENT: teams, squads, stats, bracket =====
 // Exhibition (the old Soccer) is untouched. This mode fields the same two-sided engine one
 // fixture at a time and keeps a record around it.
 //
-// NO BYES, and now not even the concept: a league has no empty slot to fill. The field is
-// padded to an EVEN number with egghead-captained teams, which is all the circle method
-// asks for -- against the bracket's demand for a power of two, which is what forced the
-// field down to eight and would have forced twelve back up to sixteen.
-var BR = window.__hmLeague; if (!BR) return;
+// NO BYES, and not because they are handled -- because the core's play-in construction
+// cannot produce one at any field size. See its header. The field is padded to FIELD with
+// egghead-captained teams and then simply drawn.
+var BR = window.__hmBracket; if (!BR) return;
 
 // Eight team colours. Kept saturated enough to read against a near-monochrome pitch, and far
 // enough apart in hue that two teams on the same pitch are never ambiguous.
@@ -436,25 +559,20 @@ var CUP_ID={
   'Blender': {paint:'#31262b',stock:'#f3ece2',sheen:'rgba(246,214,222,.30)',pfx:'BLN',tex:1}
 };
 
-/* A round is a MATCHDAY, numbered from the schedule's own shape. `total` is
-   T.br.rounds.length, so nothing here knows how long a season is -- exactly the
-   discipline roundName() already had when it derived "Quarter-final" from the bracket
-   rather than from a constant. The "of N" is carried because on a league screen the
-   thing a visitor cannot otherwise know is how much is left. */
-function roundName(r,total){
-  var n=(r|0)+1;
-  return total>1 ? ('Matchday '+n+' of '+total) : 'Matchday '+n;
-}
-/* The bare label, for surfaces that already carry the count elsewhere (the round beat
-   in the middle of the screen, and the fixture sheet's headings). */
-function roundShort(r){ return 'Matchday '+((r|0)+1); }
+/* THE ROUND'S NAME IS THE ROUND'S OWN, and it is read off the bracket rather than
+   computed here, because the core already had to know how many teams are in each round in
+   order to build it. Nothing in this file counts rounds or names them; asking the round
+   is the whole mechanism, and it is what makes a field of 8 and a field of 12 print
+   correct labels without a branch anywhere in the UI. */
+function roundName(r){ var rd = T.br && T.br.rounds[r]; return rd ? rd.label : ''; }
+function roundShort(r){ var rd = T.br && T.br.rounds[r]; return rd ? rd.short : ''; }
 
 var T = { live: false, teams: [], br: null, stats: {}, cur: null, phase: 'idle', log: [], cup: '' };
 /* Exposed so the scoreboard block (a different script, in a file this lane does not own)
    can name the round without knowing the format. It gets the SHORT label: the scoreboard
    stamp is a two-word slot beside the score, and "Matchday 2 of 3" is a status line, not
    a stamp. The count belongs in band A, which has a whole strip for it. */
-T.roundName = function(r){ return roundShort(r); };
+T.roundName = function(r){ return roundName(r); };
 window.__hmTour = T;
 
 function mob()   { return innerWidth <= 640; }
@@ -467,42 +585,49 @@ function rgb(c)  { return 'rgb(' + c + ')'; }
 function shade(c, amt){ return c.split(',').map(function(v){
   return Math.max(0, Math.min(255, Math.round(+v + amt))); }).join(','); }
 
-/* ---- THE TWO NUMBERS THAT DECIDE THE COMPETITION, and they are the only two.
-   Everything else -- the fixture count, the matchday labels, the table's row count, the
-   number of sub-columns it is drawn in, how long each match runs -- is derived from
-   these. Setting FIELD to 10 or SEASON to 4 changes the whole screen correctly and
-   changes nothing else.
+/* ---- THE FIELD IS DERIVED FROM THE ROSTER, AND NOBODY IS ASKED ABOUT IT. Jayden:
+   "the tournament mode it shouldn't be like you pick 8 or 12 it should just be like based
+   on how many heads you have built like before 8 it would be 8 more than 8 it would be 12."
 
-   FIELD = 12, because Jayden asked for twelve heads. Under the bracket that was
-   impossible without padding to sixteen and opening the cup with four walkovers, which
-   is the "What's the round of 16? There are only 8 players" muddle the field was cut to
-   eight to escape. A league only asks that the field be EVEN, so twelve is simply twelve.
+   He is right, and the 8/12 control this replaces was the wrong shape of question: a visitor
+   who has built eleven heads has already answered it. So eight or fewer heads gives an
+   eight-team cup and more than eight gives a twelve-team cup with the play-in, and the
+   control is deleted rather than defaulted.
 
-   SEASON = 3 MATCHDAYS -> 18 fixtures, and the reasoning is worth keeping because a
-   full round robin at twelve is 66 matches and unwatchable:
+   THE FIELD IS STILL THE ONE NUMBER THAT DECIDES THE COMPETITION. The rounds, their names,
+   the fixture count and whether there is a play-in at all are derived from it by the core,
+   which is exactly why this change is one line at the source and nothing downstream moved.
 
-     * THERE ARE NO DRAWS IN THIS ENGINE. Every fixture is first-to-N, win by two
-       (play-engine.js's S.target), so a match cannot end level and points are exactly
-       3 x wins. Over TWO matchdays that leaves every team on 0, 3 or 6 -- twelve teams
-       in three buckets, with the top bucket usually holding three or four of them and
-       goal difference picking the champion. That is the seed complaint again: a number
-       at the top that nobody earned outright. Three matchdays gives 0/3/6/9 and, on the
-       measured win rate, usually a single team on nine.
-     * THE ENGINE ALREADY PACES THREE ROUNDS. It reads T.br.rounds.length and sets the
-       match to first-to-3, then 4, then 5 as the season closes (play-engine.js:2334).
-       Matchday one is quick -- a measured first-to-3 fixture has a 16s median -- and the
-       run-in is long. That curve was written for a three-round cup and lands exactly on
-       a three-matchday season without touching a file this lane does not own.
-     * DEAD TIME IS THE REAL BUDGET, and it is 5,600ms per result. That number is NOT
-       arbitrary and must not be shortened here: play-engine.js runs its celebration and
-       then calls finish() at 5,400ms, so anything under that paints the match-up screen
-       over a live pitch. 18 fixtures is 101s of celebration; 66 would have been six
-       minutes of it. That is what caps the season, not the matches.
+   WHAT HAPPENS BELOW EIGHT, said plainly rather than left to be discovered. The field is
+   still eight; the shortfall is captained by DYED EGGHEADS, which is what this mode has
+   always done. They are not strangers and not filler in the pejorative sense -- they are the
+   cast, named deterministically from the palette slot, so the red egghead is always Gus and
+   the gold one always Milo across every session. Mini-Jayden takes a shirt before any
+   anonymous egg does. With one saved head you get your head, Jayden, and six eggheads.
 
-   The circle method guarantees no pairing repeats inside SEASON <= FIELD-1 matchdays,
-   so every one of the 18 fixtures is a different meeting. ---- */
-var FIELD = 12;
-var SEASON = 3;
+   AND THE SCREEN SAYS SO. The match-up prints how the field was made until the first result
+   lands -- "3 yours - 5 eggheads" -- because a cup that silently presents six strangers as
+   your roster is the kind of quiet lie this screen has been cleaned of twice. It occupies
+   exactly the slot the 8/12 control used to, so nothing moved to make room for it.
+
+   The one case this cannot cover is no egg art at all (__EGGHEAD or __hmTint missing), where
+   the field is only as big as the real heads on hand. The core takes any N >= 2 and is
+   bye-free at every one of them -- verified at 2..16 -- so that path degrades to a smaller
+   real cup rather than to a broken eight. ---- */
+function fieldFor(built){ return built > 8 ? 12 : 8; }
+var FIELD = 8;
+/* ---- AND IT IS CURRENTLY CAPPED UPSTREAM, WHICH IS NOT THIS LANE'S TO FIX.
+   play-engine.js:11 and play-games.js:49 both read hmCompanions, `.slice(0,8)`, and then
+   WRITE THE TRUNCATED LIST BACK ("heal stale duplicates once, physically"). Measured: seed
+   eleven heads, reload, and localStorage holds eight. So a ninth head is not ignored, it is
+   destroyed on the next load -- and the roster can never report more than 8, which means
+   fieldFor() can never return 12 from a real visitor's roster today.
+
+   The rule above is still the right rule and it is deliberately written to the ROSTER rather
+   than to the cap: the day those two slices become 12, twelve-head cups start happening with
+   no further edit here. The contract pins the boundary directly (8 -> 8, 9 -> 12) rather
+   than through the capped roster, so it cannot rot while it waits. ---- */
+window.__hmTourField = fieldFor;
 
 function readHeads(){ try { return JSON.parse(localStorage.getItem('hmCompanions') || '[]') || []; } catch (_) { return []; } }
 
@@ -518,20 +643,20 @@ function shuffled(a){ var r = a.slice(); for (var i = r.length - 1; i > 0; i--){
 // captained by a dyed egghead so every team in the league has a face.
 var PIDN = 0;   // player-id counter: monotonic for the life of the page, so no two players ever share one
 function buildTeams(cb){
-  var heads = readHeads().slice(0, FIELD);
+  var all = readHeads();
+  FIELD = fieldFor(all.length);
+  var heads = all.slice(0, FIELD);
   var EGG = window.__EGGHEAD;
   /* Without egg art nobody can be dyed a captain, so the field is only as big as the real
      heads on hand -- fielding twelve teams eleven of which have no captain would print a
      table of blanks. */
   var canEgg = !!(EGG && EGG.cut && window.__hmTint);
   var n = canEgg ? FIELD : Math.max(2, Math.min(FIELD, heads.length + 1));
-  /* AN ODD FIELD CANNOT BE SCHEDULED, and this is the one line that says so. The circle
-     method pairs arr[i] with arr[n-1-i]; with n odd somebody is left over every round and
-     the real fix in league football is a ghost team you get a rest against -- a bye by
-     another name, which is exactly what this competition was rebuilt to stop printing.
-     Only the no-egg-art fallback can produce an odd n (FIELD is even by decree), so the
-     smallest honest correction is to field one team fewer. */
-  if (n % 2) n -= 1;
+  /* NO PARITY GUARD, AND NONE IS NEEDED. The league needed an even field because the
+     circle method pairs arr[i] with arr[n-1-i] and an odd field leaves somebody out every
+     round. The knockout core takes ANY n >= 2: it plays the remainder above the nearest
+     power of two off in a play-in, so 5, 6, 7 and 12 all come out with no byes and no
+     phantom fixtures. The only floor left is that a cup needs two teams. */
   if (n < 2) n = 2;
   var teams = [], pending = 0, done = false;
   var pal8 = shuffled(PAL);   // fresh colour draw per cup
@@ -547,8 +672,8 @@ function buildTeams(cb){
       if (mj){ mj.portrait = 'images/smile.webp'; caps.push(mj); } } catch (_) {}
   }
 
-  caps = shuffled(caps);   // ...and a fresh draw for who starts where in the schedule
-  if (!canEgg){ n = Math.max(2, Math.min(n, caps.length)); if (n % 2) n -= 1; if (n < 2) n = 2; }
+  caps = shuffled(caps);   // ...and a fresh draw for who starts where in the cup
+  if (!canEgg){ n = Math.max(2, Math.min(n, caps.length)); if (n < 2) n = 2; }
 
   for (var i = 0; i < n; i++){
     // Past the eighth team the palette wraps onto its own darkened second lap -- see palAt().
@@ -571,13 +696,13 @@ function buildTeams(cb){
     // for the bar, the ring and the nets.
     else if (!cap || cap.__egg)                     nm = pal.who || pal.n;
     else                                            nm = 'Player ' + (i + 1);
-    /* NO `seed`. It was `i + 1` -- the index of a shuffled array, printed on the
-       match-up screen as "Seeds 3 and 7" -- and it is the thing Jayden called out: a
-       number that looks like a ranking and is a loop counter. Its replacement is the
-       team's LEAGUE POSITION, which is not stored on the team at all because it is not a
-       property of the team; it is a fact about the results so far, so it is read from
-       the table (BR.positionOf) at the moment it is drawn and it is null until somebody
-       has actually played. */
+    /* NO `seed`, and there is nothing that replaced it. It was `i + 1` -- the index of
+       a shuffled array, printed on the match-up screen as "Seeds 3 and 7" -- and it is
+       the thing Jayden called out: a number that looks like a ranking and is a loop
+       counter. The league's answer was to replace it with a league position, which meant
+       replacing the format to have one. A knockout does not need either: who meets whom
+       is the DRAW, the draw is random, and "these two were drawn together" is a complete
+       and honest answer in a way that a fabricated ranking is not. */
     teams.push({ id: 'tm' + i, name: nm, col: pal.c, colName: pal.n,
                  ink: pal.ink, edge: pal.e,
                  captain: cap, squad: [], out: false });
@@ -607,6 +732,18 @@ function buildTeams(cb){
         if (p.__name === undefined) p.__name = playerName(tm, p, i);
       });
     });
+    /* HOW THE FIELD WAS MADE, counted here where the roster is still in hand rather than
+       inferred later from the pictures. `mine` is the visitor's own saved heads that got a
+       shirt, `house` is mini-Jayden (he is neither theirs nor an anonymous egg), and the
+       rest are dyed eggheads. */
+    T.roster = { field: teams.length, mine: Math.min(heads.length, teams.length),
+                 house: 0, eggs: 0 };
+    teams.forEach(function(tm){
+      var c = tm.captain;
+      if (c && c.__mirror) T.roster.house++;
+      else if (!c || c.__egg) T.roster.eggs++;
+    });
+    T.roster.mine = Math.max(0, teams.length - T.roster.house - T.roster.eggs);
     T.teams = teams; cb(teams); }
 
   teams.forEach(function(tm){
@@ -644,10 +781,11 @@ window.__hmTourAbort = function(){
 window.__hmTourWin = function(winSide, scoreR, scoreB){
   if (!T.live || !T.cur) return;
   var c = T.cur, winnerId = c.side[winSide];
-  /* The scoreline travels with the result, and in a league it is not decoration: goal
-     difference is the published tie-break, so `sa`/`sb` ARE table data. Side 1 is always
+  /* The scoreline travels with the result. In a knockout it is not a tie-break -- there
+     is nothing to break, you are out -- but it is what the bracket prints beside a tie
+     that has been played, which is how a board tells a 2-1 from a 5-0. Side 1 is always
      the fixture's `a` and side 2 its `b` -- cast() built c.side from exactly that. */
-  BR.recordResult(T.br, c.round, c.index, winnerId, scoreR, scoreB);
+  BR.recordWinner(T.br, c.round, c.index, winnerId, scoreR, scoreB);
   /* SESSION MEMORY: record the pair result by captain slot. The captain is the first entry in
      tm.slots (startFixture builds slots in playersOf() order, captain first), so ka/kb are the
      two captains' head slots and kw is whichever of them just won. */
@@ -664,18 +802,25 @@ window.__hmTourWin = function(winSide, scoreR, scoreB){
      after someone had already won. It also means the TABLE behind the celebration is already
      the new one, which is the payoff of a league: you look up and you have moved. */
   try{ paint(); }catch(_){}
-  var bad = BR.checkSchedule(T.br);
-  if (bad) { try { console.warn('[league]', bad); } catch (_) {} }
+  var bad = BR.check(T.br);
+  if (bad) { try { console.warn('[cup]', bad); } catch (_) {} }
   T.cur = null;
   /* ---- 5,600ms, AND IT IS NOT PADDING. play-engine.js's win path fires the confetti, holds
      the call on screen to 4,600ms and only then runs `setTimeout(finish, 5400)` -- finish IS
      __hmSoccerEnd and it is the only thing that takes the pitch down. Painting the next
      match-up at, say, 2,600ms would draw it over a live match. So this number is slaved to
      the engine's and belongs to a file this lane does not own; shortening it is an engine
-     change, not a tournament one. It is also why the season is three matchdays and not six
-     (see SEASON): 5.6s x fixtures is the real cost of a longer league.
-     The old `hmFinal ? 10500` branch is gone with hmFinal itself -- see cast(). ---- */
-  var hold = (typeof T.holdMs === 'number' && T.holdMs >= 0) ? T.holdMs : 5600;
+     change, not a tournament one.
+
+     THE FINAL GETS 10,500, and that branch is back because the final is back. hmFinal
+     buys the gold ball and the championship disco from play-engine.js, and the disco runs
+     long; cutting to the champion screen at 5,600 would take the pitch down in the middle
+     of it. The league deleted this because a league has no final -- it has a table that
+     stops moving -- and handTrophy() would have given the trophy to whoever won the last
+     ordinary fixture. A knockout's last fixture IS the final and its winner IS the
+     champion, so the trophy lands in the right hands again. ---- */
+  var hold = (typeof T.holdMs === 'number' && T.holdMs >= 0) ? T.holdMs
+           : (document.body.classList.contains('hmFinal') ? 10500 : 5600);
   setTimeout(function(){ if (T.live) between(); }, hold);
 };
 
@@ -728,23 +873,27 @@ window.__hmTourPlayerAt = function(slot){
    they arrive; the __hmSlotForPid dedupe stays exactly as it is (the `taken`
    map is the fix for a real own-goal bug and must not be simplified).
 
-   ---- hmFinal IS GONE, AND THAT IS A DELETION RATHER THAN AN OVERSIGHT.
-   `body.hmFinal` bought three things from play-engine.js: the gold ball, the
-   championship disco, and handTrophy() -- which puts the trophy in the hands of a
-   player on the team that just won THAT MATCH. In a cup that team is the champion.
-   In a league it is whoever happened to win the last fixture of matchday three,
-   who may be eleventh. A trophy handed to eleventh place is worse than no trophy,
-   and the alternative -- lighting all six of the last matchday's fixtures gold --
-   spends the one colour nobody owns on six ordinary matches.
+   ---- hmFinal IS BACK, BECAUSE THE FINAL IS BACK. `body.hmFinal` buys three
+   things from play-engine.js: the gold ball, the championship disco, and
+   handTrophy(), which puts the trophy in the hands of a player on the team that
+   just won THAT MATCH.
 
-   So the league does not claim a final, because it does not have one: it has a
-   table that stops moving. The payoff moved to where it is true, which is the
-   champion screen -- the crown, the confetti and the finished table. The engine's
-   own `classList.remove('hmFinal')` in finish() and the one in stop() below stay
-   as they are; they now simply never have anything to remove. ---- */
+   The league deleted all three, and it was right to: in a league the team that
+   wins the last fixture may be eleventh, so handTrophy would have crowned the
+   wrong head, and lighting the last matchday's six fixtures gold would have spent
+   the one colour nobody owns on six ordinary matches.
+
+   A knockout has none of that problem. Its last fixture IS the final, its winner
+   IS the champion, and gold is reserved for exactly one match out of seven. The
+   toggle is set HERE rather than at kick-off so the ball is already gold on the
+   final's match-up screen -- the ceremony starts when you can see who is in it. ---- */
 function cast(nm){
   var A = teamById(nm.match.a), Bm = teamById(nm.match.b);
   if (!A || !Bm) return;
+  /* The last round is the final by construction -- one match, two teams -- so this asks
+     the bracket rather than a constant, and it is correct whether the cup opened with a
+     play-in or not. */
+  try{ document.body.classList.toggle('hmFinal', nm.round === T.br.rounds.length - 1); }catch(_){}
   var side = { 1: A.id, 2: Bm.id };
   T.cur = { round: nm.round, index: nm.index, side: side, a: A, b: Bm };
 
@@ -843,13 +992,13 @@ function benchAll(){
 var lastRound = -1;
 function between(){
   clearSpawned(); benchAll();
-  // MATCHDAY BEAT: when the season moves up a matchday, announce it in the middle of the
-  // screen the same way the countdown and the win call do, so the league has a rhythm
-  // between fixtures rather than just swapping panels. The bare label here, not the
-  // "of 3" one -- band A is already carrying the count two lines above.
+  // ROUND BEAT: when the cup moves up a round, announce it in the middle of the screen
+  // the same way the countdown and the win call do, so the competition has a rhythm
+  // between fixtures rather than just swapping panels. The FULL name here -- "Semi-final"
+  // is the moment, and it is the one place on the screen with room to say it whole.
   try{ var n0 = BR.nextMatch(T.br);
     if (n0 && n0.round !== lastRound){ lastRound = n0.round;
-      var cE = document.querySelector('.hmCount'), _lbl = roundShort(n0.round);
+      var cE = document.querySelector('.hmCount'), _lbl = roundName(n0.round);
       if (cE){ cE.classList.add('hmMsg'); cE.textContent = _lbl;
         cE.classList.remove('hmCountPulse'); void cE.offsetWidth; cE.classList.add('hmCountPulse');
         setTimeout(function(){ if (cE.textContent === _lbl){ cE.textContent=''; cE.classList.remove('hmMsg'); } }, 1900); } }
@@ -865,20 +1014,15 @@ function between(){
 
 // ---------- UI ----------
 var host = null;
-/* WHICH PANE THE PHONE IS SHOWING -- 'fixture' or 'table'. It lives out here rather than
-   inside paint() because paint() runs after every result, and a visitor who switched to
-   the table would be thrown back to the match-up by the very event they were watching
-   for. Reset in start(), so a new season opens on the match-up like every other one. */
-var pane = 'fixture';
 function el(tag, cls, txt){ var e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; }
-/* THE SHARED CONTROL CLASSES, named once so a chip cannot be built two ways.
-   controls.css owns the geometry, the material, the focus ring, the press scale
-   and the motion rungs for both of these; tournament.css adds placement and the
-   one state (.tvArmed) the library has no name for. `.ctl--sm` is the 36px rung
-   -- legal here because it ships its own 44px ::after hit pad, which is the
-   tokens rule for a control whose ink box is under the tap minimum. */
-var CHIP = 'ctl ctl--secondary ctl--sm';
-var GO   = 'ctl ctl--primary';
+/* THE CONTROL CLASSES ARE NAMED AT THE CALL SITE NOW, not held in two constants
+   here, because there are only three controls left on this screen and each is
+   emitted once: the tabs (`ctl ctl--tab`), Leave (`ctl ctl--secondary ctl--sm`)
+   and the primary (`ctl ctl--primary`). controls.css owns the geometry, the
+   material, the focus ring, the press scale and the motion rungs for all three;
+   tournament.css adds placement and the one state the library has no name for
+   (.tvArmed). Two constants pointing at three call sites was how the chip and the
+   button drifted apart in the first place. */
 
 /* ---- THE SCREEN. One fixed element, banded off svh.
 
@@ -940,506 +1084,601 @@ function bcGrainOff(){if(_grainEl&&_grainEl.parentNode)_grainEl.parentNode.remov
    consumers must guard (see Foundations contracts). */
 window.__bcMat={grainOn:bcGrainOn,grainOff:bcGrainOff,jitter:bcJitter,rand:cupRand};
 
-/* ---- THE SEASON'S RUNNING ORDER, in one place. It stays a function rather than an
-   inlined `T.br.rounds.map` because it is the one place that decides what a section of
-   the fixture list is, and because the sheet and any future surface must agree. */
-function sections(){
-  return T.br.rounds.map(function(rd, i){
-    return { r:i, label:roundShort(i), ms:rd.matches }; });
+/* ===========================================================================
+   THE SCREEN, REMADE. Jayden, having been told twice that it had been brought
+   onto the system:
+
+     "My biggest problem was the UI, and it still looks the exact same on mobile.
+      The button isn't even centred. Nothing about the current tournament UI looks
+      premium or up to par with anything on the site. It needs to be remade, not
+      tweaked. It needs to look like Apple and what we have already. I'm looking
+      for innovation, not a lazy patch."
+
+   HE IS RIGHT, AND THE REPORTS WERE WRONG. Screenshotting it at 390 and 320
+   before touching anything found a defect nobody had named, and it is the reason
+   none of the tuning ever helped:
+
+     THE SCREEN HAD NO SURFACE. `.tvScreen` was a transparent fixed layer and
+     every element on it -- the round name, the tabs, the two captains, Kick off
+     -- was ink floating directly on the page. Measured at 390x844,
+     `elementsFromPoint` at the centre of the Kick off button returned
+     tvGo -> tvFixture -> pCard -> pCards -> hero: the primary action of this
+     screen was painted on top of a Play-hub card. body.hmTour collapses the hero
+     (min-height 772px -> 0), the hub rides up to y=0 behind it, and for the whole
+     of its fade the tournament reads as two pages printed on the same paper.
+
+   You cannot tune your way out of that, which is why three passes of tuning did
+   not. Everything below follows from giving the screen an object.
+
+   WHAT IT IS NOW. One panel. `.surface` from the shared library -- the same
+   ground, the same hairline rim, the same --r-xl 28 as every other big surface on
+   the site -- width-capped and centred, sitting above the ground band where the
+   heads stand. Inside it, three things in a column:
+
+     tabs      Next, then one per round, named by the bracket
+     pane      whichever of those you are looking at
+     foot      Leave, and the one primary action
+
+   THE REFERENCE IS THE GRADIENT MAKER, which is the page he called amazing, and
+   this is its grammar rather than a new one: a single panel with a hairline and no
+   shadow; underlined text tabs with no pill and no box around them; the primary
+   action full-width at the foot with a small secondary beside it; and generous,
+   even vertical rhythm inside. Measured off that page, its whole control panel
+   uses two weights and four sizes, and the dominant size carries 41 of its nodes.
+
+   WHAT WAS SUBTRACTED, because premium is subtraction and this is the list:
+
+     * THE SECOND COLUMN. Band B was a two-track grid -- match-up left, a rail
+       right. The rail is gone; the bracket is a tab. One column at every width
+       means the phone is no longer a different layout, it is the same layout.
+     * THE PANE SWITCH. A phone-only segmented control in a bordered pill,
+       measured as the loudest object on the screen at 390. Its job is now done by
+       the tab row, which had to exist anyway.
+     * THE FIXTURES CHIP, THE SHEET, THE SCRIM, AND THE ESCAPE HANDLER. A whole
+       modal, and the only surface on this screen that was ever allowed to scroll.
+       The bracket is a pane now, so there is nothing to open and nothing to
+       scroll. Three components and an exception, deleted.
+     * THE DISTANCE LINE ("18 matches to play"). A bracket shows you how far it is
+       by being a bracket.
+     * THE COLUMN KEY (P / GD / PTS) and the printed tie-break, which were the
+       league's and have no meaning in a knockout.
+     * THE CUP'S NAME from the chrome. It is flavour; it survives on the ending,
+       where there is room and a reason.
+
+   AND THE BUTTON IS CENTRED, structurally rather than by a nudge. It was
+   `justify-self:start` on the second track of a two-track grid, so it began at the
+   captains' text column and ran to the gutter -- measured at 390, 91.7px of inset
+   on the left against 24px on the right, which is the 67.7px asymmetry he could
+   see without measuring. It is now the full width of a panel that is itself
+   centred, so there is no number to get wrong.
+
+   NOTHING SCROLLS, at any size. Where it does not fit, it is reduced: a round pane
+   holds at most half the field's fixtures, which is four at twelve teams and four
+   at eight, and that is bounded by the format rather than by hope.
+   =========================================================================== */
+
+/* WHICH PANE IS OPEN: the string 'next', or a round INDEX. It lives out here
+   rather than inside paint() because paint() runs after every result, and a
+   visitor who had opened the bracket would otherwise be thrown back to the
+   match-up by the very event they were watching for. Reset in start(). */
+var view = 'next';
+
+/* ---- THE TALE OF THE TAPE, REBUILT. Jayden liked the intent -- "setting the stage" --
+   and not the execution: "i would research what actual sports people do to hype up matches
+   and put that."
+
+   WHAT BROADCAST MATCH PREVIEWS ACTUALLY DO. Match-centre and pre-match graphics are built
+   from a small, repeated set: the HEAD-TO-HEAD record between these two, recent FORM, the
+   STAKES (what the result decides), and a storyline -- the rematch, the streak, the run.
+   The advanced end of it is xG, heat maps, possession and player ratings.
+
+   SO THE RULE HERE IS: TAKE THE SHAPES, REFUSE THE STATS WE DO NOT HAVE. A fabricated
+   rivalry is worse than a flat line, and this tournament tracks no possession, no shots and
+   no ratings -- inventing them would be the seed problem again in its most dishonest form.
+   What it DOES track is enough for three of the four shapes, and they are printed in the
+   order a preview uses them:
+
+     1. THE STAKES, which is the one thing a knockout has more of than a league and the old
+        line never said. It is derived from the round -- the winner of a semi-final is in the
+        final, and that is a fact about the bracket, not a claim about the teams. Every
+        fixture has it, so the tape is never empty from the first round on.
+     2. FORM, as the route each side took to get here: how many they have won in this cup and
+        what they scored doing it. Real counts from recorded results.
+     3. HEAD-TO-HEAD, which is the line this replaces. __hmSess.pair has been recording every
+        captain pairing since the page loaded; it now prints the COUNT as well as the last
+        winner, because "they have met four times" is a different story from "they have met",
+        and the count is the thing a broadcast graphic leads with.
+
+   Round one has no form and usually no history, so it gets the stakes alone -- which is
+   correct: before anybody has played, the stakes ARE the story. ---- */
+function ord(n){ var s = ['th','st','nd','rd'], v = n % 100;
+  return n + (s[(v - 20) % 10] || s[v] || s[0]); }
+
+/* ---- HOW LONG THIS MATCH IS, SAID BEFORE IT STARTS. Jayden: "make that clear."
+   The scoreboard already says it DURING a match -- play-engine.js paints `.sbRule` and keeps
+   it honest through deuce ("Win by 2", then "First to N+2" at the cap). What was missing is
+   before kick-off, which is exactly when a viewer is deciding whether to watch.
+
+   THE RULE IS NOT WHAT THE BRIEF SAID. It is not "every match first to 3, the final first to
+   5": play-engine.js:2411 computes `left = (rounds.length - 1) - cur.round` and takes
+   first-to-5 at the final, first-to-4 one round out, first-to-3 everywhere else. So a semi is
+   4, and printing 3 there would have been a confident lie on the one screen that exists to
+   explain the match.
+
+   IT IS A SECOND COPY OF A NUMBER THIS LANE DOES NOT OWN, and that is the real risk here --
+   the engine could change its curve and this label would go on saying the old one. The
+   expression is mirrored exactly, and play-screens-contract asserts the label against the
+   scoreboard's own `.sbRule` on a LIVE match, so the two cannot drift without the gate
+   failing. A comment is not an invariant. ---- */
+function matchLength(round){
+  var left = (T.br.rounds.length - 1) - (round | 0);
+  return (left <= 0) ? 5 : (left === 1 ? 4 : 3);
 }
-/* How much season is left, counted in the only unit a league has: fixtures. It is the
-   one number on this screen that is not a score or a position. */
-function distText(){
-  var left = BR.total(T.br) - BR.played(T.br);
-  if (left <= 0) return 'the season is over';
-  return left === 1 ? 'one match to play' : (left + ' matches to play');
+
+/* WHAT THE WINNER EARNS. Read off the bracket rather than named, so it is right at any
+   field size and says "quarter-final" only when a quarter-final is what comes next. */
+function stakesLine(round){
+  var last = T.br.rounds.length - 1;
+  if (round >= last) return 'The winner takes the cup.';
+  var next = T.br.rounds[round + 1];
+  if (!next) return '';
+  return round + 1 === last ? 'The winner is in the final.'
+                            : 'The winner goes to the ' + next.label.toLowerCase() + '.';
 }
 
-/* ---- THE TALE OF THE TAPE, and this is where the seed complaint is actually answered.
+/* THE ROUTE, which is this cup's form guide. Wins and goals only -- both counted from
+   results that were actually played.
 
-   It used to open "Seeds 3 and 7." -- two loop indices dressed as a ranking, printed at
-   the exact moment a visitor is trying to work out who to care about. The replacement is
-   the pair's LEAGUE POSITIONS, which are the same two small numbers and are earned:
-   "3rd v 9th" is a sentence about results.
-
-   It says nothing at all on matchday one, deliberately. Before anybody has played, every
-   position in the table is the draw order -- printing it would be the seed again, wearing
-   the word "position". BR.positionOf returns null until the first result, so the line
-   simply is not there, and .tvTape:empty is display:none. Zero lines is a legitimate
-   state and the column does not shift, because it is centred rather than stacked.
-
-   The second line is unchanged: __hmSess has been recording every captain pairing since
-   the page loaded, and it is the only other true thing this screen can say. ---- */
-function ord(n){
-  var s = ['th','st','nd','rd'], v = n % 100;
-  return n + (s[(v - 20) % 10] || s[v] || s[0]);
+   IT COLLAPSES WHEN THE TWO RECORDS MATCH, and that is the difference between a line that
+   reads written and one that reads generated. In a knockout the two sides of a semi-final
+   have by definition won the same number of matches, so the naive version printed "X has
+   won 2, scoring 4. Y has won 2, scoring 4." on every fixture past the first round -- the
+   same sentence twice, which is precisely the "weak execution" being fixed. When the wins
+   match, the wins are said once and only the goals are compared, which is also the more
+   interesting half. */
+function formOf(tm){
+  if (!tm) return null;
+  var r = BR.record(T.br, tm.id);
+  return r.played ? r : null;
 }
-function buildTape(A, B){
+function formLine(A, B){
+  var a = formOf(A), b = formOf(B);
+  if (!a || !b || (!a.won && !b.won)) return '';
+  if (a.won === b.won){
+    var n = a.won === 1 ? 'one' : a.won === 2 ? 'two' : String(a.won);
+    if (a.gf === b.gf)
+      return 'Both have won ' + n + ', scoring ' + a.gf + '.';
+    return 'Both have won ' + n + '. ' + (a.gf > b.gf ? A.name : B.name)
+         + ' has the goals, ' + Math.max(a.gf, b.gf) + ' to ' + Math.min(a.gf, b.gf) + '.';
+  }
+  var hi = a.won > b.won ? A : B, lo = a.won > b.won ? B : A;
+  var hr = a.won > b.won ? a : b, lr = a.won > b.won ? b : a;
+  return hi.name + ' has won ' + hr.won + ' to ' + lo.name + '\u2019s ' + lr.won + '.';
+}
+
+function buildTape(A, B, nm2){
   var p = el('p', 'tvTape');
-  try{
-    var pa = A && BR.positionOf(T.br, A.id), pb = B && BR.positionOf(T.br, B.id);
-    if (pa && pb) p.appendChild(document.createTextNode(ord(pa) + ' in the table v ' + ord(pb) + '.'));
-  }catch(_){}
+  function line(txt){
+    if (!txt) return;
+    if (p.childNodes.length) p.appendChild(el('br'));
+    p.appendChild(document.createTextNode(txt));
+  }
+  try{ if (nm2) line('First to ' + matchLength(nm2.round) + ', win by two. '
+                    + stakesLine(nm2.round)); }catch(_){}
+  try{ line(formLine(A, B)); }catch(_){}
   try{
     var ka = A && A.slots && A.slots[0], kb = B && B.slots && B.slots[0];
     if (ka != null && kb != null && window.__hmSessFlags){
-      var f = window.__hmSessFlags(ka, kb);
-      if (f && f.met){
-        /* Only if there is a line above to break FROM. The positions line is absent on
-           matchday one, and a leading <br> would open the tape with a blank line -- the
-           kind of defect that is invisible in source and obvious on a phone. */
+      var h = window.__hmSessFlags(ka, kb);
+      if (h && h.met){
+        /* THE COUNT COMES FROM __hmSess.pair DIRECTLY, because __hmSessFlags
+           (play-engine.js:2027, not this lane) returns met/revenge/lastWinner and does not
+           expose it -- and the count is the thing a broadcast head-to-head graphic leads
+           with. The key is built with the same expression __hmTourWin uses to WRITE it, so
+           the two cannot disagree; if the shape ever changes, `n` falls back to 1 and the
+           line degrades to "They have met before" rather than printing a wrong number. */
+        var n = 1;
+        try{ var pk = (ka < kb ? ka + '|' + kb : kb + '|' + ka);
+             var pr = window.__hmSess && window.__hmSess.pair && window.__hmSess.pair[pk];
+             if (pr && pr.count) n = pr.count | 0; }catch(_){}
+        var say = (n > 1) ? 'They have met ' + (n === 2 ? 'twice' : n + ' times') + '.'
+                          : 'They have met before.';
         if (p.childNodes.length) p.appendChild(el('br'));
-        var w = (f.lastWinner === ka) ? A : (f.lastWinner === kb) ? B : null;
-        if (w){ p.appendChild(document.createTextNode('They have met. '));
-                p.appendChild(el('em', null, w.name));
-                p.appendChild(document.createTextNode(' won.')); }
-        else p.appendChild(document.createTextNode('They have met before.'));
+        p.appendChild(document.createTextNode(say + ' '));
+        var w = (h.lastWinner === ka) ? A : (h.lastWinner === kb) ? B : null;
+        if (w){ p.appendChild(el('em', null, w.name));
+                p.appendChild(document.createTextNode(' won the last one.')); }
       }
     }
   }catch(_){}
   return p;
 }
 
-/* ---- THE FIXTURE LIST. Jayden on the board this replaces: "Schedule looks out of place
-   and confusing to navigate. Too much random unnecessary elements. Looks like a
-   muddled mess that doesn't do the design system."
+/* ---- ONE SIDE OF A FIXTURE, and it is the SAME object everywhere it appears:
+   the match-up's two captains and every row of every round pane are this function.
+   Building the bracket's rows a second way is how the two eventually disagree,
+   which is exactly what the league's separate table widget did.
 
-   All three complaints were the same object. The old rail was a dark painted
-   plane carrying printed TICKETS -- each one jittered half a degree off true,
-   grained, on stock, with a perforated stub, a four-character serial and a
-   rubber-stamped score that tore into place. Nine materials to say "Gus beat
-   Kip 2-1". Against a page whose every other surface is a hairline on white it
-   read as a different application, and the jitter in particular is why it read
-   as broken rather than as printed: nothing else on the site is off-axis, so a
-   row at 0.5deg looks like a rendering fault.
+   `big` is the match-up's rendering -- a larger face and the name at the panel's
+   one heading size. Everything else about it is identical, including which cells
+   exist, so the two read as the same object at two scales rather than as two
+   designs. ---- */
+function sideRow(tm, opts){
+  opts = opts || {};
+  var row = el('div', 'tvSide' + (opts.big ? ' tvSideBig' : '')
+                    + (opts.won ? ' tvWon' : '') + (opts.lost ? ' tvLost' : ''));
+  /* No colour stripe on a slot nobody has qualified for: a grey bar is a team
+     wearing grey, and an unplayed semi-final used to show four of them. */
+  var c = el('i', 'tvChipC');
+  if (tm) c.style.setProperty('--tcx', tm.col);
+  row.appendChild(c);
+  var fc = el('span', 'tvFaceC');
+  var cut = tm && tm.captain && (tm.captain.portrait || tm.captain.cut);
+  if (cut){ var im = el('img'); im.src = cut; im.alt = ''; im.draggable = false; fc.appendChild(im); }
+  row.appendChild(fc);
+  row.appendChild(el('span', 'tvNm', tm ? tm.name : '—'));
+  /* Archivo, tabular, on the numeral only -- the one place the broadcast face is
+     allowed outside the scoreboard, and the reason a column of scores lines up. An
+     unplayed tie prints nothing rather than a dash: an empty score column IS
+     "not yet", and a column of dashes says the same thing louder. */
+  if (opts.score !== undefined || opts.scoreSlot)
+    row.appendChild(el('span', 'tvSc bcNum',
+      opts.score === undefined ? '' : String(opts.score | 0)));
+  return row;
+}
 
-   What a visitor actually asks a schedule is "who am I playing, and what happens
-   next". So the rail answers exactly that and nothing else. A round is a heading
-   and a list. A fixture is two rows. A row is the team's colour, the captain's
-   face, the name, and the score once there is one. No serial, no stub, no stock,
-   no grain, no tear, no jitter. The broadcast register stays where it earns its
-   keep -- the scoreboard, which Jayden likes, and which still gets its paint,
-   its grain and its split-flap digits from __bcMat.
+/* ---- A ROUND, AS A PANE. At most half the field's fixtures -- four at eight
+   teams, four at twelve -- so its height is bounded by the format rather than by
+   hope, which is what lets this screen keep its promise that nothing scrolls.
 
-   The only ink that is not a hairline is the team colour, which is the one thing
-   here that is genuinely information.
-
-   IT NO LONGER HAS AN EMPTY STATE. Under the bracket, rounds two and three were four
-   rows of "—" until somebody qualified. A league knows all 18 fixtures on day one, so
-   every row has two real teams from the first paint -- .tvFxTbd survives only as the
-   guard for a team id that cannot be resolved, which is now a bug rather than a phase.
-   ---- */
-function buildDraw(into, nm2){
-  var _now = (nm2 && nm2.round !== undefined) ? nm2.round : -1;
-  var _nowIx = nm2 ? nm2.index : -1;
-  sections().forEach(function(sec){
-    var _ri = sec.r;
-    var rd = el('section', 'tvRd');
-    rd.appendChild(el('h3', 'tvRdH' + (_ri === _now ? ' tvRdNow' : ''), sec.label));
-    var list = el('ol', 'tvRdL');
-    sec.ms.forEach(function(m, _mi){
-      var decided = (m.sa !== undefined && m.sb !== undefined);
-      var isNext  = (_ri === _now && _mi === _nowIx);
-      var fx = el('li', 'tvFx' + (isNext ? ' tvFxNext' : '') + (decided ? ' tvFxDone' : ''));
-      /* One row per side, and the two rows are the same object -- which is what
-         makes a column of them scannable. The old ticket put the two teams
-         side by side with the score wedged between, so no two fixtures lined
-         their names up and the eye had to re-find the column on every row. */
-      [[m.a, m.sa], [m.b, m.sb]].forEach(function(pr){
-        var tm = teamById(pr[0]);
-        var won = (m.winner !== undefined && tm && m.winner === tm.id);
-        var lost = decided && tm && !won;
-        var row = el('div', 'tvFxT' + (tm ? '' : ' tvFxTbd')
-                                    + (won ? ' tvFxWon' : '') + (lost ? ' tvFxLost' : ''));
-        /* A slot nobody has qualified for yet gets no colour stripe: a grey bar
-           is a team wearing grey, and the semi-finals were showing four of them. */
-        var c = el('i', 'tvFxC');
-        if (tm) c.style.setProperty('--tcx', tm.col);
-        row.appendChild(c);
-        var fc = el('span', 'tvFxF');
-        var cut = tm && tm.captain && (tm.captain.portrait || tm.captain.cut);
-        if (cut){ var im = el('img'); im.src = cut; im.alt = ''; im.draggable = false; fc.appendChild(im); }
-        row.appendChild(fc);
-        row.appendChild(el('span', 'tvFxN', tm ? tm.name : '—'));
-        /* Archivo, tabular, on the numeral only -- the one place the broadcast
-           face is allowed outside the scoreboard, and the reason a column of
-           scores lines up. An unplayed fixture prints nothing rather than a
-           placeholder dash: an empty score column IS "not yet". */
-        row.appendChild(el('span', 'tvFxS bcNum', decided ? String(pr[1] | 0) : ''));
-        fx.appendChild(row);
-      });
-      list.appendChild(fx);
+   The fixture that is next is washed and rimmed, never elevated: it is the one
+   place the two halves of this screen say they are about the same subject. ---- */
+function buildRound(into, r, nm2){
+  var rd = T.br.rounds[r];
+  if (!rd) return;
+  var head = el('div', 'tvHead');
+  head.appendChild(el('p', 'tvEyebrow', rd.label));
+  into.appendChild(head);
+  var list = el('ol', 'tvTies');
+  rd.matches.forEach(function(m, i){
+    var decided = (m.winner !== undefined);
+    var isNext = !!(nm2 && nm2.round === r && nm2.index === i);
+    var tie = el('li', 'tvTie' + (isNext ? ' tvTieNext' : ''));
+    [[m.a, m.sa], [m.b, m.sb]].forEach(function(pr){
+      var tm = teamById(pr[0]);
+      var won = decided && tm && m.winner === tm.id;
+      tie.appendChild(sideRow(tm, { won: won, lost: decided && tm && !won,
+                                    score: decided ? pr[1] : undefined,
+                                    scoreSlot: true }));
     });
-    rd.appendChild(list);
-    into.appendChild(rd);
+    list.appendChild(tie);
   });
+  into.appendChild(list);
 }
 
-/* ---- THE TABLE. The screen's spine, and the thing the whole format change is for.
-   Seeds became standings, so this is where the number a visitor reads finally means
-   something: it is a consequence of results rather than of a loop index.
+/* ---- HOW THE FIELD WAS MADE, in the slot the 8/12 control used to hold.
+   The control is gone -- the field follows the roster now -- but the honesty it was standing
+   next to is not: if six of the eight captains are eggheads, the screen should say six, not
+   let a visitor assume the cup is full of heads they built. One quiet line, on until the
+   first result lands, then it is history and the round name has the row to itself.
 
-   IT IS ONE COMPONENT, DRAWN TWICE. The live table mid-season and the final table on
-   the champion screen are the same rows with the same arithmetic; the only difference
-   is that one of them has stopped moving. Building a second "final standings" widget
-   would guarantee they eventually disagree -- which is exactly what the old
-   standingsElim() did, inventing four hand-written words ("Champion", "Runner-up") for
-   ranks the bracket could not otherwise explain.
-
-   WHAT IS IN IT, AND WHAT IS NOT. Position, colour, face, name, P, GD, Pts.
-     * NO W/D/L. There are no draws in this engine (first to N, win by two), so D is
-       always 0 and W is exactly Pts/3. Three columns restating one column is the
-       "random unnecessary elements" note in numeric form.
-     * GD IS NOT DECORATION -- it is the tie-break, and it is on the table so the
-       ordering can be checked by eye rather than taken on trust. That is the whole
-       difference between this number and the seed it replaces.
-     * NO form guide, no goals-per-head, no rating. The Mario Kart rule: the ledger is
-       not a dashboard.
-
-   THE SHAPE COMES FROM THE FIELD. Two sub-columns reading downwards, so the row count
-   is ceil(N/2) and it is published to CSS as --tvStandRows. Hardcoding 6 there would
-   silently grow a third column the day FIELD stops being twelve -- the same bug the
-   hardcoded 4 caused when the field went from eight. ---- */
-function buildTable(into){
-  var rows = BR.table(T.br);
-  var grid = el('div', 'tvStandGrid');
-  grid.style.setProperty('--tvStandRows', String(Math.ceil(rows.length / 2)));
-  rows.forEach(function(t){
-    var tm = teamById(t.id);
-    var row = el('div', 'tvStandRow');
-    row.appendChild(el('span', 'tvStandRk bcNum', String(t.rank)));
-    var c = el('i', 'tvFxC'); if (tm) c.style.setProperty('--tcx', tm.col);
-    row.appendChild(c);
-    var fc = el('span', 'tvFxF');
-    var cut = tm && tm.captain && (tm.captain.portrait || tm.captain.cut);
-    if (cut){ var im = el('img'); im.src = cut; im.alt = ''; im.draggable = false; fc.appendChild(im); }
-    row.appendChild(fc);
-    row.appendChild(el('span', 'tvStandNm', tm ? tm.name : '—'));
-    /* Archivo, tabular -- the same numeral treatment the fixture scores take, and the
-       reason three columns of digits line up down twelve rows. */
-    row.appendChild(el('span', 'tvStandP bcNum', String(t.played)));
-    row.appendChild(el('span', 'tvStandGd bcNum', (t.gd > 0 ? '+' : '') + t.gd));
-    row.appendChild(el('span', 'tvStandPts bcNum', String(t.points)));
-    grid.appendChild(row);
-  });
-  into.appendChild(grid);
-  return grid;
+   It is a fragment rather than a sentence because it is a legend, not prose: "3 yours -
+   5 eggheads" reads at a glance in a 248px row, which "Three of your heads and five
+   eggheads" does not. ---- */
+function rosterLine(){
+  var r = T.roster; if (!r) return '';
+  var bits = [];
+  if (r.mine)  bits.push(r.mine + ' yours');
+  if (r.house) bits.push('Jayden');
+  if (r.eggs)  bits.push(r.eggs + ' egghead' + (r.eggs === 1 ? '' : 's'));
+  return bits.join(' \u00b7 ');
 }
-/* THE COLUMN KEY. It is built out of the table's own row, with the leading cells
-   present but empty, and laid on a copy of the table's own two-column grid -- so the
-   three letters sit over the three columns they name by construction rather than by a
-   second set of hand-tuned widths that would drift the first time a rung moved. One key
-   row per sub-column, because there are two sub-columns and each needs its own. */
-function tableKey(){
-  var g = el('div', 'tvKeyGrid');
-  g.setAttribute('aria-hidden', 'true');   // the rows themselves carry no <th> to label
-  for (var i = 0; i < 2; i++){
-    var r = el('div', 'tvStandRow tvKeyRow');
-    r.appendChild(el('span', 'tvStandRk', ''));
-    r.appendChild(el('i', 'tvFxC'));
-    r.appendChild(el('span', 'tvFxF'));
-    r.appendChild(el('span', 'tvStandNm', ''));
-    r.appendChild(el('span', 'tvStandP', 'P'));
-    r.appendChild(el('span', 'tvStandGd', 'GD'));
-    r.appendChild(el('span', 'tvStandPts', 'PTS'));
-    g.appendChild(r);
+
+/* ---- THE FINAL GETS THE POSTER, AND IT IS NOT THE WIPE COMING BACK.
+   Jayden wants "that finals poster design implemented into the UI of the final matchup".
+
+   READ THE CANCELLATION FIRST, because this is the feature that grew back once already. On
+   2026-08-04 `bcSting` drove a full-viewport skewed sweep in the cup's paint, on every
+   fixture: "The poster coming over the screen looks like a glitch more than something we
+   should be using." A screen-covering flash arriving unbidden between two still layouts
+   reads as a repaint fault. NOTHING BELOW ANIMATES, nothing covers the screen, and nothing
+   here can appear on a semi-final -- `isFinal` is `round === rounds.length - 1`, the same
+   expression that sets hmFinal, so the treatment and the gold ball turn on together.
+
+   THE SECOND HALF OF THAT CANCELLATION ALSO MATTERED and it is why this is a BANNER rather
+   than a print: the old poster COMPOSITED THE REAL HEADS into the artwork (there was a
+   per-asset head-placement table and an alpha probe to size them), so it was "a picture of
+   the two captains twelve inches above the two captains". images/poster-final.webp is the
+   backdrop on its own -- stylised, generic, nobody's face -- so used as art it duplicates
+   nothing. The two real captains are underneath it, photographic and unmistakable.
+
+   WHAT IT ACTUALLY IS: a bounded strip at the top of the pane, --r-lg (the cards-and-images
+   rung), object-fit:cover on the poster's own centre where the gold ball and the trophy are.
+   It is a still picture in a card, which is a thing this site already does everywhere.
+
+   IT IS DROPPED ON A SHORT VIEWPORT rather than shrunk. At 320x568 the pane has ~136px and
+   the two captains need 105 of them; a banner would take the match-up's own space, and the
+   two finalists are what the final is about. See tournament.css's height block -- the gold
+   eyebrow and the gold rim still run there, so the final still looks like the final. ---- */
+function isFinalRound(round){ return round === T.br.rounds.length - 1; }
+
+function buildNext(into, A2, B2, nm2){
+  /* The round's name and the field control share one line rather than taking two.
+     At 320x568 the pane has a measured 108px to spend and a row of its own is 44
+     of them -- see tournament.css's short-viewport block. The eyebrow flexes and
+     the control is hard right, which is the Lab's header row exactly. */
+  var head = el('div', 'tvHead');
+  var rd = nm2 ? T.br.rounds[nm2.round] : null;
+  var first = (BR.played(T.br) === 0);
+  /* THE ROUND TAKES ITS SHORT NAME WHEN IT IS SHARING THE LINE, and that is a
+     measured reduction rather than a preference. At 320 the panel's inner width is
+     248px; "QUARTER-FINAL" in --tr-caps is ~130 of it, and with the label and the
+     two buttons the row came to 272 -- so the "12" button was clipped by the
+     panel's own edge. "LAST 8" is 55, which brings the row to 213. It is the same
+     name its own tab is showing two lines above, so nothing is lost. */
+  var fin = !!(nm2 && isFinalRound(nm2.round));
+  var eb = el('p', 'tvEyebrow' + (fin ? ' tvEyebrowGold' : ''),
+              rd ? (first ? rd.short : rd.label) : '');
+  head.appendChild(eb);
+  if (first){ var rl = rosterLine();
+    if (rl) head.appendChild(el('span', 'tvOptL', rl)); }
+  into.appendChild(head);
+  /* The banner sits between the eyebrow and the two captains -- under the label that says
+     which match this is, above the two heads it is about. */
+  if (fin){
+    var b = el('div', 'tvPoster');
+    var im = el('img'); im.src = 'images/poster-final.webp'; im.alt = '';
+    im.draggable = false; im.decoding = 'async';
+    b.appendChild(im);
+    into.appendChild(b);
   }
-  return g;
+  var vs = el('div', 'tvVs');
+  vs.appendChild(sideRow(A2, { big: true }));
+  vs.appendChild(el('div', 'tvV', 'v.'));
+  vs.appendChild(sideRow(B2, { big: true }));
+  into.appendChild(vs);
+  into.appendChild(buildTape(A2, B2, nm2));
 }
 
-/* ---- THE FIXTURES SHEET. It used to be a phone-only copy of the rail, hidden above
-   760px on the grounds that opening a copy of what is already on screen is one of the
-   unnecessary elements. That argument no longer holds: the rail is the TABLE now, so on
-   every viewport this sheet is the only place the full fixture list lives. The chip is
-   visible at all widths and says "Fixtures", because that is what it opens.
+/* ---- THE DRAFT ORDER. This is what the whole tournament is FOR. Jayden: "after the cup
+   finishes can see clear number order to make sure everyone knows the draft order at the
+   end it can be another tab to make it more clean and optional to check out."
 
-   It is still the one surface allowed to scroll, and for the unchanged reason: it is
-   the only thing on screen when it is open. ---- */
-function ensureSheet(){
-  var s = document.getElementById('tvSheet');
-  if (s) return s;
-  var scrim = el('div','tvSheetScrim'); scrim.id = 'tvSheetScrim';
-  scrim.addEventListener('click', closeSheet);
-  document.body.appendChild(scrim);
-  s = el('div','tvSheetPanel'); s.id = 'tvSheet';
-  s.setAttribute('role','dialog'); s.setAttribute('aria-modal','true');
-  s.setAttribute('aria-label','The fixtures');
-  document.body.appendChild(s);
-  addEventListener('keydown', function(e){
-    if (e.key === 'Escape' && document.body.classList.contains('tvBoardOpen')) closeSheet(); });
-  return s;
+   So it is a TAB, it appears only when the cup is complete, and it is 1..N with no gaps --
+   a draft needs a number for every head, not a list of survivors. standings() sorts the
+   whole draw, so it already yields that.
+
+   EVERY POSITION SAYS WHERE IT CAME FROM, which is the difference between this and the seed.
+   The right-hand cell is the round the team went out in -- "Semi-final" -- because in a
+   knockout how far you got IS your result, and it is the fact the bracket actually
+   established. Inside a round the order is goal difference then goals scored, both counted
+   from matches that were played.
+
+   AND WHERE IT DID NOT COME FROM ANYTHING. Two teams that went out in the same round having
+   scored and conceded identically are separated by the draw, and nothing was earned either
+   way. Those rows carry a marker and the pane prints the key once at the foot. A draft order
+   that quietly presents a coin-toss as a ranking is the seed problem in the one place it
+   would actually cost somebody something. ---- */
+function buildDraft(into){
+  var rows = BR.standings(T.br);
+  var head = el('div', 'tvHead');
+  head.appendChild(el('p', 'tvEyebrow', 'Draft order'));
+  into.appendChild(head);
+  var list = el('ol', 'tvDraft');
+  /* THE ROW COUNT IS NOT WRITTEN IN THE STYLESHEET. It is ceil(N/2), set from the length
+     of the order just built, for the same reason the round names derive from the bracket:
+     six is what twelve heads happen to need today, and a hardcoded six grows a third and
+     fourth column the moment the field changes. That is not hypothetical -- it is exactly
+     what the league's hardcoded four did when the field went eight to twelve, and it hid
+     half a table silently. */
+  list.style.setProperty('--tvDraftRows', String(Math.ceil(rows.length / 2)));
+  var anyDrawn = false;
+  rows.forEach(function(row){
+    var tm = teamById(row.id);
+    var li = el('li', 'tvDraftRow' + (row.tiedFromDraw ? ' tvDrawn' : ''));
+    li.appendChild(el('span', 'tvDraftN bcNum', String(row.rank)));
+    var c = el('i', 'tvChipC'); if (tm) c.style.setProperty('--tcx', tm.col);
+    li.appendChild(c);
+    li.appendChild(el('span', 'tvNm', tm ? tm.name : '\u2014'));
+    /* WON IT, or the round it went out in. "Champion" rather than "Final", because losing
+       the final and winning it are the same round and opposite results. */
+    var out = row.out;
+    var where = (row.rank === 1) ? 'Champion'
+              : (T.br.rounds[out] ? T.br.rounds[out].label : '\u2014');
+    li.appendChild(el('span', 'tvDraftOut', where));
+    if (row.tiedFromDraw){ anyDrawn = true;
+      var d = el('span', 'tvDraftTie', '\u00b7');
+      d.setAttribute('title', 'Level on goal difference and goals -- separated by the draw');
+      li.appendChild(d); }
+    list.appendChild(li);
+  });
+  into.appendChild(list);
+  /* The key is printed only when there is something to key. */
+  if (anyDrawn)
+    into.appendChild(el('p', 'tvDraftKey',
+      '\u00b7 level on goals \u2014 separated by the draw, not earned'));
 }
-function openSheet(){
-  var s = ensureSheet(); s.innerHTML = '';
-  var hd = el('div','tvSheetHd');
-  /* The sheet is where the league's name lives on a phone: the strip drops it under
-     560px because it cannot carry the name, the matchday and two controls at once. */
-  hd.appendChild(el('h2','tvSheetTitle', (T.cup || 'League') + ' · the fixtures'));
-  var x = el('button','tvChip ' + CHIP,'Close'); x.type = 'button';
-  x.addEventListener('click', closeSheet); hd.appendChild(x);
-  s.appendChild(hd);
-  var board = el('div','tvSheetBoard');
-  buildDraw(board, BR.nextMatch(T.br));
-  s.appendChild(board);
-  document.body.classList.add('tvBoardOpen');
-  try{ x.focus(); }catch(_){}
-}
-function closeSheet(){
-  document.body.classList.remove('tvBoardOpen');
+
+/* ---- THE ENDING. The champion, crowned, and under it how everybody else's cup
+   finished -- "Out - Semi-final", which in a knockout is the whole truth about a
+   team and is a fact the competition actually established. There is no table,
+   because there was never a table.
+
+   It reuses sideRow() for the also-rans, so the ending is the same object as the
+   bracket and the match-up rather than a third drawing of a team. ---- */
+function buildChampion(into, champ2){
+  var wt = teamById(champ2);
+  into.appendChild((function(){ var h = el('div','tvHead');
+    h.appendChild(el('p','tvEyebrow','Champion')); return h; })());
+  var wrap = el('div', 'tvChampWrap');
+  var hh = el('div', 'tvChampHead');
+  var wcut = wt && wt.captain && (wt.captain.portrait || wt.captain.cut);
+  if (wcut){ var wi = el('img'); wi.src = wcut; wi.alt = ''; wi.draggable = false; hh.appendChild(wi); }
+  var crown = el('div', 'tvCrown');
+  crown.innerHTML = '<svg viewBox="0 0 48 34" aria-hidden="true">'
+    + '<path d="M4 30 L4 15 L13 22 L24 6 L35 22 L44 15 L44 30 Z" fill="#e8b53a" '
+    +   'stroke="#c9962a" stroke-width="1.2" stroke-linejoin="round"/>'
+    + '<circle cx="4" cy="13" r="3.4" fill="#f0c94e"/>'
+    + '<circle cx="24" cy="4" r="3.8" fill="#f0c94e"/>'
+    + '<circle cx="44" cy="13" r="3.4" fill="#f0c94e"/>'
+    + '<rect x="4" y="30" width="40" height="3.4" rx="1.4" fill="#d7a531"/></svg>';
+  hh.appendChild(crown); wrap.appendChild(hh);
+  into.appendChild(wrap);
+  into.appendChild(el('h2', 'tvChampNm', (wt ? wt.name : '—') + ' wins the ' + (T.cup || 'cup')));
 }
 
 function paint(){
   var h = ensureHost();
-  if (!T.live){
-    h.innerHTML = ''; h.hidden = true;
-    document.body.classList.remove('tvBoardOpen');
-    return;
-  }
+  if (!T.live){ h.innerHTML = ''; h.hidden = true; return; }
   h.hidden = false; h.innerHTML = '';
 
   var nm2    = BR.nextMatch(T.br);
   var champ2 = BR.champion(T.br);
   var done2  = (champ2 !== undefined);
-  var total  = T.br.rounds.length;
   var A2 = (nm2 && !done2) ? teamById(nm2.match.a) : null;
   var B2 = (nm2 && !done2) ? teamById(nm2.match.b) : null;
 
   try{ if (done2) window.__hmChampFx(teamById(champ2) && teamById(champ2).col);
        else       window.__hmChampFx(null); }catch(_){}
 
-  /* ---------- BAND A: the identity strip ----------
-     Cup, round, how far there is to go, and the way out. It used to also carry a
-     photographic trophy at 1.5em and a four-character fixture serial in Archivo.
-     Neither told anyone anything: the trophy is a 119x192 photograph shrunk into
-     a line of 12px text, and "APL-0102" is a prop. Both gone. */
-  var strip = el('header', 'tvStrip');
-  var sl = el('div', 'tvStripL');
-  sl.appendChild(el('span', 'tvCup', T.cup || 'League'));
-  sl.appendChild(el('span', 'tvSep', '·'));
-  sl.appendChild(el('span', 'tvRound',
-    done2 ? 'Champion' : (nm2 ? roundName(nm2.round, total) : 'Complete')));
-  strip.appendChild(sl);
+  /* ONE PANEL, and `.surface` is the shared library's -- same ground, same
+     hairline, same --r-xl as every other big surface on this site. No shadow: the
+     heads cast contact shadows because they stand on something, and chrome
+     separates with a hairline and translucency. */
+  var panel = el('div', 'tvPanel surface');
 
-  var sr = el('div', 'tvStripR');
-  if (nm2 && !done2) sr.appendChild(el('span', 'tvDist', distText()));
-  /* AT EVERY WIDTH NOW. It was phone-only, hidden above 760px because up there the
-     rail already showed the whole draw and this opened a copy of it. The rail is the
-     TABLE now, so the fixture list is not on screen at any width and this is the only
-     door to it. */
-  var boardBtn = el('button', 'tvChip tvChipDraw ' + CHIP); boardBtn.type = 'button';
-  boardBtn.setAttribute('aria-label', 'The fixtures');
-  boardBtn.appendChild(el('span', 'tvChipLbl', 'Fixtures'));
-  boardBtn.appendChild(el('span', 'tvChipLblSm', 'Fixtures'));
-  boardBtn.addEventListener('click', function(e){ e.stopPropagation(); openSheet(); });
-  sr.appendChild(boardBtn);
+  /* ---------- THE TABS ----------
+     `Next`, then one per round, LABELLED BY THE BRACKET. Nothing here counts
+     rounds or names them -- rd.short is "Last 8", "Last 4", "Final", or "Play-in"
+     when a field of twelve opens with one -- so a cup of eight and a cup of twelve
+     both print correct tabs with no branch.
 
-  /* §1.8: opening the Play menu is a hard no-op for the whole duration of a season.
-     On index.html that was a guard -- the rest of the portfolio was one section
-     down. Here the league IS the page, so the guard had become a trap. This
-     is the scoped replacement: it belongs to the league, so it can end the
-     season without ending the visit. Two-tap arm, because it is destructive and
-     it now sits next to a button people will actually press. */
-  var quit = el('button', 'tvChip ' + CHIP); quit.type = 'button';
-  quit.setAttribute('aria-label', 'Leave the league');
-  var qLbl = el('span', 'tvChipLbl', 'Leave the league');
-  /* The phone's copy of the same word. See tournament.css's .tvChipLblSm: under
-     560px the strip cannot carry the round name and two full-length buttons, so
-     the buttons shorten and the aria-label above keeps the whole phrase. */
-  var qLblSm = el('span', 'tvChipLblSm', 'Leave');
-  quit.appendChild(qLbl); quit.appendChild(qLblSm);
+     `.ctl--tab` and never `.ctl--tab .ctl--sm`: both write ::after for different
+     jobs -- --sm as a 44px hit pad (top:50%), --tab as the selected underline
+     (bottom:0) -- and together `top:50%` wins, drawing the underline through the
+     middle of its own label as a strikethrough. Measured on the league's first
+     build of this row; it looked exactly like text-decoration.
+
+     AND NOT `.ctl-group` EITHER, which was the first draft here and was wrong for
+     the same reason the thing it replaced was wrong: the group draws a container
+     rim, so the tab row came out as a bordered rounded box -- the exact pill this
+     pass exists to delete, rebuilt out of the shared library instead of by hand.
+     The Lab's tabs sit on the panel's own ground with nothing around them. The
+     hairline under the row is the only edge, and it belongs to the row rather than
+     boxing it. */
+  var tabs = el('div', 'tvTabs');
+  tabs.setAttribute('role', 'tablist');
+  tabs.setAttribute('aria-label', 'The cup');
+  function tab(key, label, aria){
+    var b = el('button', 'tvTab ctl ctl--tab', label); b.type = 'button';
+    b.setAttribute('role', 'tab');
+    b.setAttribute('aria-selected', view === key ? 'true' : 'false');
+    if (aria) b.setAttribute('aria-label', aria);
+    b.addEventListener('click', function(e){ e.stopPropagation(); view = key; paint(); });
+    tabs.appendChild(b);
+  }
+  /* "Cup", not "Champion", and it is a width rather than a wording preference: five
+     tabs share a 342px panel at 390, so a column is 62px and "Champion" is ~72 at the
+     control rung -- measured, it overran into "Play-in" beside it. The pane's own
+     eyebrow says CHAMPION in full, and the accessible name here does too. */
+  tab('next', done2 ? 'Cup' : 'Next', done2 ? 'The champion' : 'The next match');
+  T.br.rounds.forEach(function(rd, i){ tab(i, rd.short, rd.label); });
+  /* THE DRAFT ORDER IS THE LAST TAB AND ONLY EXISTS AT THE END. Before the cup is finished
+     there is no order to publish -- printing a provisional one would be the seed again --
+     so the tab is not there rather than there and empty. It is last because it is the thing
+     you go to once, after everything else has stopped moving. */
+  if (done2) tab('draft', 'Draft', 'The draft order');
+  panel.appendChild(tabs);
+
+  /* ---------- THE PANE ---------- */
+  var pane = el('div', 'tvPane');
+  if (view === 'draft' && done2){
+    buildDraft(pane);
+  } else if (view === 'next' || T.br.rounds[view] === undefined){
+    if (done2) buildChampion(pane, champ2);
+    else       buildNext(pane, A2, B2, nm2);
+  } else {
+    buildRound(pane, view, nm2);
+  }
+  panel.appendChild(pane);
+
+  /* ---------- THE FOOT ----------
+     The Gradient Maker's own: a small secondary, then the primary filling the rest
+     of the row. The primary is the full remaining width of a panel that is itself
+     centred, which is why there is no centring number anywhere in this file.
+
+     §1.8: opening the Play menu is a hard no-op for the duration of a cup. On
+     index.html that was a guard -- the rest of the portfolio was one section down.
+     Here the cup IS the page, so the guard had become a trap, and this is the
+     scoped replacement. Two-tap arm, because it is destructive and it sits next to
+     a button people will actually press. */
+  var foot = el('div', 'tvFoot');
+  var quit = el('button', 'tvQuit ctl ctl--secondary', 'Leave'); quit.type = 'button';
+  /* "Sure?" rather than "Tap again", and .tvQuit carries a min-width in the CSS,
+     because the armed label swap is a WIDTH change on the one element sitting left
+     of the primary -- so the primary slid sideways under the finger that had just
+     armed it. Two short words inside a fixed box move nothing, and the accessible
+     name carries the whole phrase in both states. */
+  quit.setAttribute('aria-label', 'Leave the cup');
   var armed = false, armT = 0;
-  /* The ARMED warning is written to BOTH spans, so the one thing on this strip
-     that must never be truncated is the one thing that reads identically at
-     every width. */
-  function say(full, short){ qLbl.textContent = full; qLblSm.textContent = short; }
   quit.addEventListener('click', function(e){
     e.stopPropagation();
     if (done2 || armed){ stop(); return; }
-    armed = true; say('Tap again to end', 'Tap again to end'); quit.classList.add('tvArmed');
+    armed = true; quit.textContent = 'Sure?'; quit.classList.add('tvArmed');
     clearTimeout(armT);
-    armT = setTimeout(function(){ armed = false; say('Leave the league', 'Leave');
+    armT = setTimeout(function(){ armed = false; quit.textContent = 'Leave';
       quit.classList.remove('tvArmed'); }, 3200);
   });
-  sr.appendChild(quit);
-  strip.appendChild(sr);
-  h.appendChild(strip);
+  foot.appendChild(quit);
 
-  /* ---------- BAND B: the two columns ---------- */
-  var body = el('div', 'tvBody' + (done2 ? ' tvDone' : ''));
-
-  var fix = el('section', 'tvFixture');
-  fix.setAttribute('aria-label', done2 ? 'Champion' : 'The next fixture');
-
-  if (done2){
-    /* The champion takes the left column and the finished table the right. */
-    var wt = teamById(champ2);
-    var wrap = el('div', 'tvChampWrap');
-    var hh = el('div', 'tvChampHead');
-    var wcut = wt && wt.captain && (wt.captain.portrait || wt.captain.cut);
-    if (wcut){ var wi = el('img'); wi.src = wcut; wi.alt = ''; wi.draggable = false; hh.appendChild(wi); }
-    var crown = el('div', 'tvCrown');
-    crown.innerHTML = '<svg viewBox="0 0 48 34" aria-hidden="true">'
-      + '<path d="M4 30 L4 15 L13 22 L24 6 L35 22 L44 15 L44 30 Z" fill="#e8b53a" '
-      +   'stroke="#c9962a" stroke-width="1.2" stroke-linejoin="round"/>'
-      + '<circle cx="4" cy="13" r="3.4" fill="#f0c94e"/>'
-      + '<circle cx="24" cy="4" r="3.8" fill="#f0c94e"/>'
-      + '<circle cx="44" cy="13" r="3.4" fill="#f0c94e"/>'
-      + '<rect x="4" y="30" width="40" height="3.4" rx="1.4" fill="#d7a531"/></svg>';
-    hh.appendChild(crown); wrap.appendChild(hh);
-    fix.classList.add('tvFixtureDone');   // one portrait over one line, not the two-track grid
-    fix.appendChild(wrap);
-    fix.appendChild(el('h2', 'tvChampNm', (wt ? wt.name : '—') + ' wins the league'));
-  } else {
-    /* ---- THE MATCH-UP. Two captains, one under the other, with the lowercase
-       `v.` between them -- the 1950s programme team-sheet grammar rather than a
-       giant angled VS, which is the one piece of cosplay this screen is most
-       likely to reach for.
-
-       The round is NOT repeated here. It is already the second thing band A
-       says, four lines above, and the duplicate was one of the elements that
-       made the column read as busier than it is. What is left is the two things
-       a visitor is here for -- who, and against whom -- plus the two true lines
-       this league can produce (where the pair stand, and whether they have met
-       before), and one button.
-
-       FLAT, deliberately: the face and the name text are appended straight to
-       .tvFixture rather than nested in a per-side wrapper, because .tvFixture is
-       a two-track grid and the tracks are what align the column. A wrapper
-       around each side would have made the sides two grid ITEMS, and the names
-       would have started on the wrapper's x instead of the shared one -- which
-       is the ragged edge this is fixing. ---- */
-    [A2, B2].forEach(function(tm, i){
-      if (i === 1) fix.appendChild(el('div', 'tvV', 'v.'));
-      var fw = el('span', 'tvFace');
-      var cut = tm && tm.captain && (tm.captain.portrait || tm.captain.cut);
-      if (cut){ var fi = el('img'); fi.src = cut; fi.alt = ''; fi.draggable = false; fw.appendChild(fi); }
-      fix.appendChild(fw);
-      var txt = el('span', 'tvSideT');
-      txt.appendChild(el('span', 'tvName', tm ? tm.name : '—'));
-      /* Colour as a flat bar under the name, never as a field behind the head:
-         a blend implies a winner, and a saturated panel behind a photographic
-         cut-out is the esports roster card this site is not. */
-      var bar = el('i', 'tvBar');
-      if (tm) bar.style.setProperty('--tcx', tm.col);
-      txt.appendChild(bar);
-      fix.appendChild(txt);
-    });
-    fix.appendChild(buildTape(A2, B2));
-
-    /* THE MATCH-UP SCREEN ALWAYS HAS ITS ONE ACTION. This used to be gated on
-       `T.phase === 'bracket'`, and phase is a variable that can be left behind:
-       any path that ends a fixture WITHOUT running through __hmTourWin -- the
-       engine stopping, a match abandoned, a result recorded twice -- leaves
-       phase at 'match', and the screen then shows the next fixture with NOTHING
-       TO PRESS and no way to continue the cup. Reproduced on the final while
-       driving a full bracket.
-
-       There is no condition worth testing here. The whole screen is
-       `display:none` under body.hmSoccer, so this code cannot run during a live
-       match; if the match-up screen is visible at all, the one thing it is for
-       is starting the match. An ungated button cannot get stuck. */
-    if (nm2){
-      var go = el('button', 'tvGo ' + GO, 'Kick off'); go.type = 'button';
-      go.addEventListener('click', function(e){
-        e.stopPropagation(); T.phase = 'match'; startFixture(nm2); });
-      fix.appendChild(go);
-    }
+  /* THE MATCH-UP SCREEN ALWAYS HAS ITS ONE ACTION, and it is never gated on
+     T.phase. phase is a variable that can be left behind: any path that ends a
+     fixture WITHOUT running through __hmTourWin -- the engine stopping, a match
+     abandoned, a result recorded twice -- left it at 'match', and the screen then
+     showed the next fixture with nothing to press and no way to continue the cup.
+     Reproduced on a final while driving a full bracket. The whole screen is
+     display:none under body.hmSoccer, so this code cannot run during a live match;
+     if it is visible at all, the one thing it is for is starting the match. */
+  if (nm2 && !done2){
+    var go = el('button', 'tvGo ctl ctl--primary', 'Kick off'); go.type = 'button';
+    go.addEventListener('click', function(e){
+      e.stopPropagation(); T.phase = 'match'; view = 'next'; startFixture(nm2); });
+    foot.appendChild(go);
+  } else if (done2){
+    var dn = el('button', 'tvGo ctl ctl--primary', 'Leave the cup'); dn.type = 'button';
+    dn.addEventListener('click', function(e){ e.stopPropagation(); stop(); });
+    foot.appendChild(dn);
+    /* One way out is enough on the ending: the primary IS the way out, so the
+       secondary beside it would be the same door twice. */
+    foot.removeChild(quit);
   }
-  body.appendChild(fix);
+  panel.appendChild(foot);
 
-  /* ---------- BAND B, right: the table ----------
-     The rail used to be the draw, because a bracket's interesting object is who plays
-     whom next. A league's interesting object is the table, so that is what stands here
-     -- live, and updated the instant a result lands, which is the whole feel of the
-     format: you look up after a match and you have moved.
-
-     The fixture list did not lose its home, it moved to the sheet behind the Fixtures
-     chip in band A. That is the honest trade: the table is the thing a visitor comes
-     back to between every match, the fixture list is the thing they consult once. */
-  var rail = el('aside', 'tvRail');
-  rail.setAttribute('aria-label', done2 ? 'Final table' : 'The table');
-  var hd2 = el('div', 'tvBoardHd', done2 ? 'Final table' : 'The table');
-  /* THE TIE-BREAK IS PRINTED, not just applied. A position nobody can explain is the
-     seed complaint in a new hat, so the rule that produced the order is on screen with
-     the order. It is the quietest line on the band -- --fs-micro, --c500 -- because it
-     is read once. tournament.css drops it below 640px, where the GD column beside it is
-     already carrying the same fact. */
-  hd2.appendChild(el('span', 'tvBoardRule', 'Three points a win · level on points, goal difference'));
-  rail.appendChild(hd2);
-  rail.appendChild(tableKey());
-  buildTable(rail);
-  body.appendChild(rail);
-
-  /* ---------- THE PHONE'S ONE-AT-A-TIME SWITCH ----------
-     Two columns cannot survive a phone, and the established answer on this screen is
-     reduction rather than stacking (stacking re-creates the scroll, which is the thing
-     that was fixed). Until now the reduction was "hide the rail" -- acceptable when the
-     rail was a draw you could re-open in a sheet, and NOT acceptable now that the rail
-     is the league itself. A phone that never shows the table has not been given the
-     feature.
-
-     So the reduction is in TIME rather than in content: band B shows one pane at a
-     time and these two tabs switch it. That is the Gradient Maker's own move -- thirty
-     controls, no room, five groups shown one at a time -- and it is the only shape that
-     fits twelve rows at 320x568, where band B is a measured 220px. Two sub-columns of
-     six at ~34px a row fit that with room; the same twelve rows underneath a match-up
-     do not fit it at all.
-
-     The tabs are the shared library's `.ctl--tab`, not a private segmented control, and
-     the pane is a class on .tvBody rather than a repaint -- so switching costs one class
-     write and never rebuilds twelve rows. They are display:none above 760px, where both
-     columns are on screen and a switch would be a control for nothing. */
-  if (!done2){
-    var panes = el('div', 'tvPanes ctl-group');
-    panes.setAttribute('role', 'tablist');
-    panes.setAttribute('aria-label', 'What band B shows');
-    [['fixture', 'Next match'], ['table', 'The table']].forEach(function(p){
-      /* `.ctl--tab`, NOT `.ctl--tab .ctl--sm`, and the two must never be combined.
-         Both modifiers write ::after -- the same pseudo-element -- for different
-         jobs: --sm uses it as a 44px hit pad (top:50%, translateY(-50%)), --tab uses
-         it as the selected underline (bottom:0, height:--focus-w). Together they
-         over-constrain, `top:50%` wins over `bottom:0`, and the underline is drawn
-         straight through the middle of the label as a strikethrough. Measured on the
-         first build of this row; it looked exactly like `text-decoration`. The full
-         --ctl-h rung is the right size for a tab anyway. */
-      var b = el('button', 'tvPane ctl ctl--tab', p[1]); b.type = 'button';
-      b.setAttribute('role', 'tab');
-      b.setAttribute('aria-selected', pane === p[0] ? 'true' : 'false');
-      b.addEventListener('click', function(e){
-        e.stopPropagation(); pane = p[0];
-        body.classList.toggle('tvPaneTable', pane === 'table');
-        [].forEach.call(panes.children, function(o, i){
-          o.setAttribute('aria-selected', (i === (pane === 'table' ? 1 : 0)) ? 'true' : 'false'); });
-      });
-      panes.appendChild(b);
-    });
-    body.insertBefore(panes, body.firstChild);
-    if (pane === 'table') body.classList.add('tvPaneTable');
-  }
-  h.appendChild(body);
+  h.appendChild(panel);
 }
 
 // ---------- entry ----------
 function start(){
   if (T.live) return;
   buildTeams(function(teams){
-    T.live = true; T.phase = 'table'; pane = 'fixture';
+    T.live = true; T.phase = 'board'; view = 'next';
     try{ var _pb=document.getElementById('gameBtn');
       if(_pb){_pb.setAttribute('aria-disabled','true');
-              _pb.setAttribute('title','Finish the season first');} }catch(_){}
-    T.cup = CUPS[Math.floor(Math.random() * CUPS.length)] + ' League';
-    var idKey=T.cup.replace(/ League$/,'');
+              _pb.setAttribute('title','Finish the cup first');} }catch(_){}
+    T.cup = CUPS[Math.floor(Math.random() * CUPS.length)] + ' Cup';
+    var idKey=T.cup.replace(/ Cup$/,'');
     T.id=CUP_ID[idKey]||CUP_ID['Apollo'];
     document.body.style.setProperty('--cupPaint',T.id.paint);
     document.body.style.setProperty('--cupStock',T.id.stock);
     document.body.style.setProperty('--cupSheen',T.id.sheen);
-    /* THE SEASON LENGTH IS CLAMPED TO WHAT THE FIELD CAN CARRY. The circle method can
-       only promise unrepeated pairings for N-1 matchdays, and the no-egg-art fallback
-       can field as few as two teams -- where SEASON=3 would ask two heads to play each
-       other three times and the core would (correctly) throw. Clamping here rather than
-       relaxing the core's guard keeps "no fixture repeats" a hard property. */
+    /* THE DRAW IS THE ONLY ORDERING, and it is random. There is no seed and there
+       must never be one again: it was `i + 1`, the index of a shuffled array,
+       printed as "Seeds 3 and 7" -- a loop counter wearing a ranking. A knockout
+       does not need one, because who meets whom IS the draw. */
     var ids = shuffled(teams.map(function(t){ return t.id; }));
-    T.br = BR.buildSeason(ids, Math.max(1, Math.min(SEASON, ids.length - 1)));
+    T.br = BR.buildCup(ids);
+    var bad = BR.check(T.br);
+    if (bad) { try { console.warn('[cup]', bad); } catch (_) {} }
     lastRound = -1;
     if(window.PlayViewportOwner) window.PlayViewportOwner.enter("tournament");
     document.body.classList.add('hmTour');
@@ -1451,13 +1690,16 @@ function start(){
     paint();
   });
 }
+/* `restart()` IS DELETED WITH THE CONTROL IT SERVED. It existed so the 8/12 buttons could
+   rebuild the cup, and the field is derived from the roster now -- there is nothing on this
+   screen that can change it, so there is nothing to rebuild. A visitor who wants a different
+   field builds another head, which is the whole point of the change. */
 function stop(){
   T.live = false; T.cur = null; T.phase = 'idle';
-  document.body.classList.remove('tvBoardOpen');
   try{ document.body.classList.remove('hmFinal'); }catch(_){}
   try{ var _pb2=document.getElementById('gameBtn');
     if(_pb2){_pb2.removeAttribute('aria-disabled');_pb2.removeAttribute('title');} }catch(_){}
-  try{ window.__hmChampFx(null); }catch(_){}   // the fall must not outlive the tournament
+  try{ window.__hmChampFx(null); }catch(_){}   // the fall must not outlive the cup
   bcGrainOff();   // the grain must not outlive the board either
   try{ document.body.style.removeProperty('--cupPaint');
        document.body.style.removeProperty('--cupStock');
@@ -1471,28 +1713,39 @@ function stop(){
 }
 window.__hmTourStart = start;
 window.__hmTourStop = stop;
-/* The table as data, for anyone who wants it without scraping the DOM (and for the test
-   harness, which has to assert the order rather than read it off a screen). It is live,
-   not final -- mid-season it is the current table, which is the honest answer to "what
-   are the standings". Returns [] when no season is running: a conditional global with
-   nothing to say. `seed` is gone from the row for the same reason it is gone from the
-   team -- `rank` is what replaced it, and it is earned. */
+/* THE CUP AS DATA, for anyone who wants it without scraping the DOM -- and for the
+   contracts, which have to assert the shape rather than read it off a screen.
+
+   It is `standings`, not a table: in a knockout the only honest ordering is how far
+   each team got, so every row carries the round it went out in and nothing it did
+   not earn. `seed` is gone for the same reason it is gone from the team object, and
+   `points`, `gd` and `played` are gone with the league that invented them. */
 window.__hmTourStandings = function(){
   if (!T.live || !T.br) return [];
-  return BR.table(T.br).map(function(t){
-    var tm = teamById(t.id);
-    return { rank: t.rank, id: t.id, name: tm ? tm.name : null,
-             played: t.played, won: t.won, lost: t.lost,
-             gf: t.gf, ga: t.ga, gd: t.gd, points: t.points,
+  return BR.standings(T.br).map(function(row){
+    var tm = teamById(row.id), out = BR.outAt(T.br, row.id);
+    return { rank: row.rank, id: row.id, name: tm ? tm.name : null,
+             outAt: out === undefined ? null : out,
+             outIn: out === undefined ? null : T.br.rounds[out].label,
+             played: row.record.played, won: row.record.won,
+             gf: row.record.gf, ga: row.record.ga, gd: row.record.gd,
+             tiedFromDraw: row.tiedFromDraw,
              colour: tm ? tm.colName : null };
   });
 };
-/* The season's shape and how far through it is -- one call, so a driver never has to
-   count fixtures by hand or guess at the matchday. */
-window.__hmTourSeason = function(){
+/* The cup's shape and how far through it is -- one call, so a driver never has to
+   count fixtures by hand or work out whether there is a play-in. */
+window.__hmTourCup = function(){
   if (!T.live || !T.br) return null;
-  return { teams: T.br.N, matchdays: T.br.rounds.length,
+  return { teams: T.br.N, bracket: T.br.M, playIn: !!T.br.playIn,
+           rounds: T.br.rounds.map(function(rd){
+             return { label: rd.label, short: rd.short, teams: rd.teams,
+                      playIn: !!rd.playIn, matches: rd.matches.length }; }),
            fixtures: BR.total(T.br), played: BR.played(T.br),
-           complete: BR.complete(T.br) };
+           remaining: BR.remaining(T.br), complete: BR.complete(T.br) };
 };
+/* The league's name for the same call, kept so a driver written against it does not
+   silently get `undefined` and assert nothing. It is a conditional global with a
+   knockout's answer. */
+window.__hmTourSeason = window.__hmTourCup;
 })();

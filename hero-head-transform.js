@@ -12,7 +12,7 @@
   var state={selected:false,active:false,x:0,y:0,scale:1,rotate:0,pointerId:null,operation:null,start:null,
    capture:null,frame:0,peekFrame:0,peekAnimating:false,pendingAnchor:null,pendingClamp:false,
    stamp:0,geomStamp:-1,geom:null,floating:false,floatFrame:0,ambient:false,base:null,metrics:null,
-   hovering:false,resumeTimer:0,floatShift:0,holdAt:0,lastFloatMs:0,loopReads:0,
+   hovering:false,resumeTimer:0,floatShift:0,holdAt:0,lastFloatMs:0,loopReads:0,refocusing:false,
    frameInset:null,rendered:{x:0,y:0,scale:1,rotate:0}};
   var content=hero.querySelector(".heroCopy");
   var peek=hero.querySelector(".heroCharacterPeek");
@@ -687,21 +687,22 @@
    paint();syncSelection();
    if(opening&&document.activeElement!==face)face.focus({preventScroll:true});
   }
-  /* Attention went somewhere else. The frame stays exactly where it is and
-     keeps tracking the head -- it is still describing the composition -- it
-     just stops presenting itself as something you can grab. No focus is moved
-     and nothing is preventDefault'ed, because the press that caused this is on
-     its way to a CTA and must arrive. */
-  function relax(){
-   if(!state.selected||!state.active)return;
-   if(state.pointerId!==null)return;
-   state.active=false;paint();
-  }
+  /* THE ONE-SHOT THAT STOPS DISMISS AND RE-ENTRY CHASING EACH OTHER.
+     deselect({restoreFocus:true}) puts focus back on the portrait so a keyboard
+     user is not dropped at the top of the document -- and focusing the portrait
+     is now itself a way IN (see the focus binding below). Without a guard,
+     Escape would hide the frame and immediately reopen it, forever. The flag is
+     cleared synchronously after the focus() call, so it can never leak into a
+     later, genuine focus. */
   function deselect(options){
    end();state.selected=false;state.active=false;
    face.setAttribute("aria-pressed","false");selection.hidden=true;
    paint();
-   if(options&&options.restoreFocus)face.focus({preventScroll:true});
+   if(options&&options.restoreFocus){
+    state.refocusing=true;
+    face.focus({preventScroll:true});
+    state.refocusing=false;
+   }
   }
   function beginMove(event){
    if(state.pointerId!==null)return;
@@ -1347,27 +1348,60 @@
    rotator.addEventListener("pointercancel",end);
    rotator.addEventListener("lostpointercapture",end);
   }
-  /* ── CLICKING AWAY RELAXES THE FRAME. IT DOES NOT DISMISS IT ─────────────
-     The canvas convention is dismiss-on-outside-pointerdown, and it was
-     deleted from here once already for good reason: the frame is not a
-     selection state a visitor discovers by clicking the head, it is the
-     composition, and taking it away on the first click destroys the idea
-     within seconds of arrival. That reasoning is unchanged.
-     What was missing is the middle state. A frame that looks identical whether
-     or not it is the thing under your hand is telling you something untrue --
-     which is what Jayden noticed. So an outside press moves it to IDLE: still
-     there, still welded to the head, visibly not the live control. Pressing the
-     head or its box brings it back.
-     IT LISTENS IN CAPTURE AND TOUCHES NOTHING. No preventDefault, no
-     stopPropagation, no focus change -- the press that relaxes the frame is on
-     its way to a CTA and has to arrive. Capture only so the look changes on the
-     same press rather than a frame later. */
+  /* ── CLICKING AWAY DISMISSES THE FRAME ──────────────────────────────────
+     THIS IS A REVERSAL, AND IT IS JAYDEN'S. He asked for the frame to be
+     permanent -- "it kinda adds to the structure and give that design look" --
+     and it was built that way twice: first as a frame nothing could dismiss,
+     then with a middle IDLE look for when the press went elsewhere. Today:
+     "i actually think i do prefer that the resize box can disappear if you
+     click off of it." So the canvas convention wins after all. The two earlier
+     arguments are not wrong, they were answering a question he has now answered
+     differently, and this comment exists so the next person does not restore
+     permanence as a bug fix.
+     THE IDLE STATE WENT WITH IT. relax() had exactly one caller -- this handler
+     -- and a middle state between "the live control" and "gone" has nothing to
+     describe once the outer state is gone. Deleting it beat keeping a
+     three-state machine with an unreachable middle.
+     WHAT DISMISSAL MUST NOT DO, in the order these have actually gone wrong:
+     - It must not fire mid-gesture. A drag, a resize or a rotate can wander far
+       outside the head, and its pointerdown landed INSIDE. state.pointerId is
+       non-null for the whole operation, so an unrelated second press cannot
+       pull the chrome out from under a live one.
+     - It must not fire on pointer-UP. This listens to pointerdown only, so a
+       drag that ends in the footer is a completed gesture, not a click-away.
+     - It must not swallow the press. No preventDefault, no stopPropagation, no
+       focus change: the press that dismisses the frame is on its way to a CTA
+       and has to arrive. Capture phase only so the frame goes on the same press
+       rather than a frame later.
+     GETTING BACK IN, all three doors, because dismissal is only safe if
+     re-entry is obvious:
+     - Press the head (or its frame): beginMove() selects before it drags, so
+       the same gesture that brings the frame back also starts moving the head.
+     - Enter or Space on the focused portrait: it is a role="button" with
+       aria-pressed, so this is the toggle its own semantics promise.
+     - FOCUS the portrait with the keyboard: see the binding below. */
   document.addEventListener("pointerdown",function(e){
-   if(!state.selected||!state.active)return;
+   if(!state.selected)return;
+   if(state.pointerId!==null)return;
    var node=e.target;
    if(node===face||(node&&node.closest&&(node.closest("#heroHeadSelection")||node.closest("#face"))))return;
-   relax();
+   deselect();
   },true);
+  /* ── THE FRAME IS THE PORTRAIT'S FOCUS INDICATOR ─────────────────────────
+     #face carries no :focus-visible ring of its own -- it never needed one,
+     because the frame was always on screen and the frame IS the indicator. Now
+     that a click elsewhere can take it away, a keyboard user could tab onto a
+     button-role portrait and be given nothing at all to look at, then press
+     arrow keys against an object with no visible state. So arriving on the
+     portrait re-opens the frame.
+     state.refocusing is what keeps Escape from being a no-op: see deselect().
+     A POINTER PRESS DOES NOT NEED THIS -- beginMove() has already selected by
+     the time focus lands -- so this is purely the keyboard's door, and select()
+     is idempotent when it is not. */
+  face.addEventListener("focus",function(){
+   if(state.refocusing||state.selected)return;
+   select();
+  });
   /* WHAT MAKES A PERMANENT FRAME READ AS DESIGN RATHER THAN AS A RENDERING
      BUG IS THAT THE HEAD MOVES. Static artwork inside a selection box looks
      broken; drifting artwork inside one looks like a tool. The float is

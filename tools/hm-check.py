@@ -107,11 +107,38 @@ for label, selector, declaration in (
     ('Play menu', 'body[data-theme-page="play"] .moodMenu', 'background-color:var(--theme-elevated)'),
     ('team setup', 'body[data-theme-page="play"] .pTeamIn', 'background-color:var(--theme-surface)'),
     ('match instructions', 'body[data-theme-page="play"] .hmCount', 'color:var(--theme-ink)'),
-    ('tournament panel', 'body[data-theme-page="play"] .tvSheetPanel', 'background-color:var(--theme-surface)'),
 ):
     expected = compact(':root[data-theme="dark"] ' + selector)
     assert expected in night_css and compact(declaration) in night_css[night_css.index(expected):], \
         f'{label}: missing dark Play adapter'
+
+# THE TOURNAMENT PANEL STOPPED NEEDING AN ADAPTER, WHICH IS THE BETTER OUTCOME.
+# This used to demand a dark rule for .tvSheetPanel. The remake deleted the
+# Fixtures sheet -- .tvSheetPanel exists in no file now -- and rebuilt the screen
+# as ONE panel, .tvPanel, carrying the shared library's .surface. .surface names
+# var(--theme-surface) at the declaration itself, so it is already #111318 in the
+# dark theme with no per-page override to forget. An adapter is what you write
+# when a component hard-codes a light colour; naming the token removes the need.
+#
+# So the assertion follows the mechanism that actually runs, and it is stricter
+# than the one it replaces: the panel must BE a .surface, and .surface must take
+# its ground from the token rather than a literal. Checking for a dark rule on a
+# class no one renders would pass forever while the screen turned black on black
+# -- which is the exact failure dark-legibility-contract exists to catch, and it
+# was reporting the same divergence from the other side.
+tournament_js = open(os.path.join(ROOT, 'play-tournament.js')).read()
+controls_css = compact(open(os.path.join(ROOT, 'controls.css')).read())
+assert re.search(r"el\(\s*['\"]div['\"]\s*,\s*['\"][^'\"]*\btvPanel\b[^'\"]*\bsurface\b",
+                 tournament_js), \
+    'the tournament panel must be built as a shared .surface (tvPanel + surface)'
+assert '.surface{' in controls_css, \
+    '.surface is missing from the shared control library'
+assert 'background:var(--surface-ground)' in controls_css, \
+    '.surface must take its ground from --surface-ground, not a literal'
+# and --surface-ground must lead to the theme, or the indirection is decorative
+assert '--surface-ground:var(--theme-surface' in compact(
+        open(os.path.join(ROOT, 'tokens.css')).read()), \
+    '--surface-ground must resolve to --theme-surface, or .surface cannot go dark'
 
 assert compact(':root[data-theme="dark"] body[data-theme-page="play"] .hmScore:has(.sbCard)::before') in night_css, \
     'scoreboard must have a localized Night backing light'

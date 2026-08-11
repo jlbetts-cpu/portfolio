@@ -173,23 +173,53 @@ body.catchReady #stageMorph{transform:scale(1.055)}
 .hint{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);font-size:var(--fs-caption);color:var(--c500);z-index:5;background:rgba(243,243,243,.7);padding:8px 12px;border-radius:4px;backdrop-filter:blur(4px)}
 .popcrumb{position:absolute;width:2.2%;height:2.2%;background:#e7ddc7;z-index:5;opacity:0;pointer-events:none;will-change:transform,opacity}
 .popbucket{position:absolute;left:50%;bottom:-24%;width:44%;height:auto;transform:translateX(-50%);transform-origin:50% 78%;z-index:8;opacity:0;pointer-events:none;will-change:transform,opacity;filter:url(#inkSm) drop-shadow(0 2px 2px rgba(0,0,0,.32))}.kernel{position:absolute;width:9%;height:auto;z-index:8;opacity:0;pointer-events:none;will-change:transform,opacity;filter:url(#inkSm)}.mouth{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;opacity:0;pointer-events:none;z-index:2;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat}
-/* THE BUCKET SITS ON THE SCENE'S FLOOR, NOT THE STAGE'S. It is a child of the
-   effects stage, which tracks the HEAD -- and the head hangs past the Hero's
-   lower edge, so a bucket pinned to the stage's bottom was landing 101px below
-   the floor at 1440 and 1280 and 73px below it at 390: mostly out of frame at
-   every width, which is what "doesn't look like it's in the right spot" was.
-   Horizontal tracking stays on the head, because the head is holding it. The
-   vertical anchor moves to the Hero's floor plus --hero-floor-inset, which is
-   the one line in this scene that props stand on. (The head's own contact
-   shadow used to share it; the head no longer stands on anything and the
-   shadow is gone, but the FLOOR is still where a dropped bucket lands.)
+/* THE BUCKET HANGS FROM THE CHIN, NOT FROM ANY FLOOR. Two passes anchored it to
+   a floor -- first the stage's, then the Hero's -- and both were answering the
+   wrong question. A floor says where a bucket that has been PUT DOWN belongs.
+   Nobody has put this one down: the head is holding it, and Jayden's note says
+   what that means -- "popcorn isn't near his chin, it's in front of his face,
+   which is wrong because the audience needs to see him chew."
+   THE FACE STAYING VISIBLE IS THE SPECIFICATION, and it is a statement about
+   the CHIN, which is the one landmark a floor cannot predict: the head floats,
+   is draggable and resizable, and grew to 275px with a negative resting depth,
+   so the gap between chin and floor is different at every width and in every
+   pose. Anchored to the Hero's floor the bucket measured, with the movie
+   running: 1440 -> covering the lowest 149.7px of the head, 390 -> 118.7px,
+   320 -> 116.0px. That is 52-54% of the head at every width -- the mouth, the
+   moustache and the chin, which is precisely the performance.
+   So the anchor is the chin itself -- and it now OVERLAPS it. Jayden, looking
+   at the previous pass: "popcorn is now too far it should be sitting right by
+   the chin covering just a little of the chin." A gap reads as two objects; a
+   small overlap reads as one being held in front of the other. hero-engine
+   publishes --movie-bucket-top per frame with that overlap already in it,
+   measured from the chin of the face currently on screen, and this rule simply
+   consumes it. The bucket may run past the Hero's lower edge;
+   .heroMovieEffectsClip crops it there, which is what a bucket held below the
+   frame line should look like.
+   --hero-chin-gap IS GONE. It was var(--sp-8), and 8px is exactly the kind of
+   fixed constant that is right at one head size and wrong at every other; the
+   overlap that replaced it is a share of the head, in hero-engine, next to the
+   measurement that makes it meaningful.
    A LEAN, NOT A PIN. Everything else in this scene has orientation -- the head
    rests tilted, the rim tracks the sun and swings as the head moves -- so a
    bucket locked to vertical read as pasted on. `rotate` is an INDEPENDENT
    property here on purpose: hero-engine writes .style.transform on every movie
    frame, so a rotate() inside transform would be overwritten, while the
    separate property composes with it and survives. The lean leans away from
-   the light, using the same signed --time-light-dir as the rim. */
+   the light, using the same signed --time-light-dir as the rim.
+   AND IT SUBTRACTS THE HEAD'S OWN ANGLE, because the layer around it is the
+   head's frame now and turns with it. Popcorn obeys gravity: a bucket that
+   rolled to -26deg because its owner tilted his head would be pouring itself
+   out. Subtracting --movie-head-rot leaves the bucket standing up with only its
+   own lean, which is exactly how it has always painted.
+   THE PIVOT IS THE RIM, and that is what makes the placement exact rather than
+   nearly right. `rotate` turns the box about transform-origin, so with the old
+   50% 78% the rim swung sideways by 0.7583 x height x sin(lean) -- 15px at 1440
+   at rest, and 28px once the head is turned far enough for the counter-rotation
+   above to be large. Pivoting on the rim itself makes the one point this rule
+   is trying to place invariant under its own lean, at any angle and any hour,
+   with no trigonometry anywhere. 2.17% is measured: the topmost opaque row of
+   bucket.webp within its own centre band. */
 /* AND THE CENTRING CANNOT LIVE IN THE TRANSFORM, because `rotate` is applied
    OUTSIDE it: the resolved matrix is translate -> rotate -> scale -> transform,
    so a translateX(-50%) inside the list is turned by the lean above. Measured
@@ -201,11 +231,16 @@ body.catchReady #stageMorph{transform:scale(1.055)}
    translateX(-50%) for this host to match; every other host keeps it. */
 #heroMovieEffectsStage .popbucket{
  left:0;right:0;margin-inline:auto;transform:none;
- bottom:calc(var(--movie-stage-overhang,0px) + var(--hero-floor-inset,12px));
- rotate:calc(var(--pop-tilt,-7deg) - var(--time-light-dir,0) * 5deg)
+ width:var(--movie-bucket-w,44%);
+ top:var(--movie-bucket-top,92%);bottom:auto;
+ transform-origin:50% var(--pop-rim,2.17%);
+ rotate:calc(var(--pop-tilt,-7deg) - var(--time-light-dir,0) * 5deg - var(--movie-head-rot,0deg))
 }
 .heroMovieEffectsClip{position:absolute;inset:0;z-index:4;overflow:clip;border-radius:inherit;corner-shape:inherit;pointer-events:none}
-.heroMovieEffectsStage{position:absolute;left:0;top:0;width:0;height:0;transform-origin:50% 50%;pointer-events:none;will-change:transform}
+/* transform-origin:0 0 because hero-engine writes this element's transform as a
+   bare matrix() basis measured off the stage's own corners -- an origin
+   anywhere else would offset the frame by the origin's own displacement. */
+.heroMovieEffectsStage{position:absolute;left:0;top:0;width:0;height:0;transform-origin:0 0;pointer-events:none;will-change:transform}
 .dlogo{border-radius:var(--r-2xs);position:absolute;width:21%;height:21%;opacity:0;backface-visibility:hidden;will-change:transform,left,top,opacity;filter:drop-shadow(0 3px 8px rgba(0,0,0,.22))}
 .dshadow{position:absolute;border-radius:50%;background:radial-gradient(ellipse 50% 50% at 50% 50%,rgba(8,8,8,.5),rgba(8,8,8,.3) 40%,rgba(8,8,8,.12) 62%,transparent 76%);transform:translate(-50%,-50%);z-index:-1;pointer-events:none;opacity:0;will-change:transform,left,top,width,height,opacity}
 .grain{position:absolute;top:0;left:0;right:0;height:165vh;z-index:60;pointer-events:none;background-image:url(images/overlay.webp);background-size:150px 150px;mix-blend-mode:overlay;opacity:.28;-webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 40%,transparent 58%);mask-image:linear-gradient(to bottom,#000 0%,#000 40%,transparent 58%)}
@@ -260,12 +295,21 @@ body.catchReady #stageMorph{transform:scale(1.055)}
 .reelFrame{position:relative;margin:0;width:min(1200px,calc(100vw - 80px),calc((100vh - 40px) * 16 / 9));aspect-ratio:16/9;border-radius:var(--rad,var(--r-md));corner-shape:var(--corner);overflow:hidden;background:var(--c600);transform:rotate(var(--rr,0deg)) scale(var(--rs,.55));transform-origin:top center;will-change:transform}
 .reelFrame.fine{cursor:none}.reelFrame{transition:transform 0s linear,width 0s}
 
-.reelVid{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
-.reelPh{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;background:var(--c600);color:var(--c100);text-align:center;padding:8px}
-.reelPh .l{font-family:var(--sans);font-weight:600;font-size:clamp(22px,3.4vw,46px);filter:url(#inkSm)}
-.reelPh .s{font-size:var(--fs-caption);letter-spacing:.01em;text-transform:none;opacity:.66}
-.reelCap{position:absolute;left:16px;bottom:13px;color:var(--c50);font-size:var(--fs-micro);letter-spacing:.01em;text-transform:none;opacity:0;transition:opacity var(--dur-enter) var(--ease-out);mix-blend-mode:difference}
-.reelFrame.big .reelCap{opacity:.9}
+/* THE VIDEO CARRIES ITS OWN CORNER. .reelFrame is rounded and clips with
+   overflow:hidden, which is enough for every ordinary child -- but a <video> is
+   promoted to its own compositing layer, and a composited layer is painted by
+   the GPU outside the parent's clip. The frame was correctly rounded the whole
+   time and the video sat square inside it. Inheriting the radius means the
+   corner is drawn on the element that actually paints, so it no longer depends
+   on the parent's clip winning against the compositor. */
+.reelVid{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;border-radius:inherit;corner-shape:inherit}
+/* .reelPh (a poster placeholder), .reelCap and .reelFrame.big .reelCap stood
+   here. NONE of the three elements exists in this document -- checked against
+   the live DOM at 1440, 390 and 320, not by reading the markup -- and .big is
+   only ever set by the pinned scroll-grow, which is retired. They were the
+   source of the off-grid literals in this block (left:16px, bottom:13px, an
+   8px gap and an 8px pad written as numbers rather than rungs); the honest fix
+   for spacing on rules that style nothing is to delete the rules. */
 .reelTap{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:3;display:none;align-items:center;justify-content:center;border:0;border-radius:4px;background:var(--c50);color:var(--c950);font-size:var(--fs-small);font-weight:400;white-space:nowrap;cursor:pointer;filter:url(#inkSm)}
 .reel.coarse .reelTap{display:flex}
 .reelTap .tri,.playCursor .tri{width:0;height:0;border-style:solid;border-width:7px 0 7px 12px;border-color:transparent transparent transparent var(--c950);margin-left:1px}
@@ -318,10 +362,11 @@ body.catchReady #stageMorph{transform:scale(1.055)}
    a control is DRAWN, the page owns where it SITS, and this control sits in a
    place only the overlay knows about. */
 .reelOverlay .reelClose{position:fixed;top:var(--sp-24);right:var(--sp-24);z-index:var(--layer-modal-control)}
-.reelOverlay .reelYtLink{position:fixed;left:50%;bottom:var(--sp-24);transform:translateX(-50%);z-index:var(--layer-modal-control);color:var(--i700);font-size:var(--fs-caption);letter-spacing:var(--tr-body);text-decoration:none}
-.reelYt{position:absolute;inset:0;width:100%;height:100%;border:0;z-index:1;pointer-events:none}
-.reelOverlayYt{width:min(92vw,calc(86vh * 16 / 9));aspect-ratio:16/9;background:#000;border:0;transform:scale(.82);transition:transform var(--dur-state-out) var(--ease-out)}
-.reelOverlay.on .reelOverlayYt{transform:scale(1);transition:transform var(--dur-reveal) var(--ease-out)}
+/* THE YOUTUBE PATH IS GONE AND ITS STYLING WENT WITH IT. .reelYtLink, .reelYt
+   and .reelOverlayYt had four rules between them and not one matching element
+   in the document; hero-engine still looks #reelOverlayYt up and gets null. The
+   player plays videos/reel.mp4 directly. Four fewer rules describing a surface
+   that cannot appear is four fewer things to keep on the system. */
 @media(max-width:760px){.reelTrack{height:auto}.reelStage{position:relative;height:auto;padding:8vh 0}}
 @media(prefers-reduced-motion:reduce){.reelFrame{transform:scale(.92)}}
 /* ===== Disco party easter egg ===== */
@@ -902,8 +947,7 @@ body.heroEmpathy .jbStick .jbNav{--nav-mat:var(--ctl-ground);--nav-rim:var(--ctl
 .csFrame,          /* 1200 x 600  case-study cover frame */
 .csImg,            /* 1200 x 600  its image */
 .cover,.cover img, /* 1103 x 460 */
-.reelOverlayVid,   /* 1110 x 624  the full-screen player */
-.reelOverlayYt{
+.reelOverlayVid{   /* 1354 x 761  the full-screen player, measured at 1440 */
   border-radius:var(--r-xl);corner-shape:var(--corner)}
 /* 200-899px -- sits INSIDE the column rather than filling it. */
 .moodMenu,         /*  196 wide   menu surface */
@@ -1701,8 +1745,8 @@ if(location.hash==="#about")location.replace("about.html");</script>
    <button class="jbHome ctl ctl--nav" id="logo" type="button" aria-label="Jayden Betts, home"><svg class="jbLogo" viewBox="0 0 30 30" aria-hidden="true"><path d="M1 26.3842C3.07605 22.5364 9.00761 17.1494 16.1255 26.3842C23.2434 35.619 14.1981 18.1678 16.1255 8.65665C18.0529 -0.854479 32.3186 -2.22723 28.2852 8.65665C24.2517 19.5405 18.6968 18.261 20.8493 13.2232C23.0018 8.1853 35.3661 26.1679 23.0066 27.4872"/></svg></button>
   </span>
   <span class="jbGrp jbGrpC">
-   <a class="ctl ctl--nav" data-nav-item="work" href="#cases" aria-label="Work" aria-current="page"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7m0 2a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v9a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2z"/><path d="M8 7v-2a2 2 0 0 1 2 -2h4a2 2 0 0 1 2 2v2"/><path d="M12 12l0 .01"/><path d="M3 13a20 20 0 0 0 18 0"/></svg><span class="jbLbl">Work</span></a>
-   <a class="ctl ctl--nav" data-nav-item="about" href="about.html" aria-label="About"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0"/><path d="M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2"/></svg><span class="jbLbl">About</span></a>
+   <a class="ctl ctl--nav" data-nav-item="work" href="#cases" aria-label="Work" aria-current="page"><svg class="gIco uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 12h.01"/><path d="M16 6V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><path d="M22 13a18.15 18.15 0 0 1-20 0"/><rect width="20" height="14" x="2" y="6" rx="2"/></svg><span class="jbLbl">Work</span></a>
+   <a class="ctl ctl--nav" data-nav-item="about" href="about.html" aria-label="About"><svg class="gIco uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/></svg><span class="jbLbl">About</span></a>
    <!-- PLAY -- ROUND 10.  A destination that reveals its extras on hover, and NO CARET.
         Jayden: "Play drop down is not same styling" and, on the carets, delete them --
         Play and Contact are plain nav items that navigate on click and open on hover.
@@ -1717,7 +1761,7 @@ if(location.hash==="#about")location.replace("about.html");</script>
         saved heads / Show on home, all four keeping the ids their scripts bind by. It is
         header.css's .jbDiscMenu now, the same panel Contact opens at the other end of the
         bar, so the two read as one system rather than as two different popups. -->
-   <a class="ctl ctl--nav" data-nav-item="games" href="play.html" aria-label="Play"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 6m0 2a2 2 0 0 1 2 -2h16a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-16a2 2 0 0 1 -2 -2z"/><path d="M6 12h4m-2 -2v4"/><path d="M15 11l0 .01"/><path d="M18 13l0 .01"/></svg><span class="jbLbl">Play</span></a>
+   <a class="ctl ctl--nav" data-nav-item="games" href="play.html" aria-label="Play"><svg class="gIco uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><line x1="6" x2="10" y1="11" y2="11"/><line x1="8" x2="8" y1="9" y2="13"/><line x1="15" x2="15.01" y1="12" y2="12"/><line x1="18" x2="18.01" y1="10" y2="10"/><path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258-.006-.051-.011-.1-.017-.151A4 4 0 0 0 17.32 5z"/></svg><span class="jbLbl">Play</span></a>
   </span>
   <span class="jbGrp jbGrpR">
    <!-- CONTACT -- the same split control as Play, at the other end of the bar
@@ -1728,8 +1772,8 @@ if(location.hash==="#about")location.replace("about.html");</script>
         never mean two things. header.js owns it on all nine pages.
         Socials in HIS order: LinkedIn, Instagram, email. -->
    <span class="jbDisc jbContact">
-    <a class="jbDiscGo ctl ctl--nav" data-nav-item="contact" aria-haspopup="true" aria-expanded="false" aria-controls="jbContactMenu" href="#contact" aria-label="Contact"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10z"/><path d="M3 7l9 6l9 -6"/></svg><span class="jbLbl">Contact</span></a>
-    <div class="jbDiscMenu" id="jbContactMenu"><a class="jbDiscTouch" href="#contact"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10z"/><path d="M3 7l9 6l9 -6"/></svg>Contact</a><div class="jbDiscSep jbDiscTouch" aria-hidden="true"></div><a href="https://www.linkedin.com/in/jaydenbetts" target="_blank" rel="noopener noreferrer"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 11l0 5"/><path d="M8 8l0 .01"/><path d="M12 16l0 -5"/><path d="M16 16v-3a2 2 0 0 0 -4 0"/><path d="M3 7a4 4 0 0 1 4 -4h10a4 4 0 0 1 4 4v10a4 4 0 0 1 -4 4h-10a4 4 0 0 1 -4 -4z"/></svg>LinkedIn</a><a href="https://www.instagram.com/jaydenleebetts" target="_blank" rel="noopener noreferrer"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4m0 4a4 4 0 0 1 4 -4h8a4 4 0 0 1 4 4v8a4 4 0 0 1 -4 4h-8a4 4 0 0 1 -4 -4z"/><path d="M12 12m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"/><path d="M16.5 7.5l0 .01"/></svg>Instagram</a><a href="mailto:jaydenlbetts@gmail.com"><svg class="gIco" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10z"/><path d="M3 7l9 6l9 -6"/></svg>Email</a></div>
+    <a class="jbDiscGo ctl ctl--nav" data-nav-item="contact" aria-haspopup="true" aria-expanded="false" aria-controls="jbContactMenu" href="#contact" aria-label="Contact"><svg class="gIco uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg><span class="jbLbl">Contact</span></a>
+    <div class="jbDiscMenu" id="jbContactMenu"><a class="jbDiscTouch" href="#contact"><svg class="gIco uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>Contact</a><div class="jbDiscSep jbDiscTouch" aria-hidden="true"></div><a href="https://www.linkedin.com/in/jaydenbetts" target="_blank" rel="noopener noreferrer"><svg class="gIco uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M8 11v5M8 8v.01M12 16v-5M16 16v-3a2 2 0 0 0-4 0"/><path d="M3 7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4v10a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4z"/></svg>LinkedIn</a><a href="https://www.instagram.com/jaydenleebetts" target="_blank" rel="noopener noreferrer"><svg class="gIco uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect width="16" height="16" x="4" y="4" rx="4"/><circle cx="12" cy="12" r="3"/><line x1="16.5" x2="16.51" y1="7.5" y2="7.5"/></svg>Instagram</a><a href="mailto:jaydenlbetts@gmail.com"><svg class="gIco uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>Email</a></div>
    </span>
   </span>
  </nav>
@@ -2042,10 +2086,21 @@ if(location.hash==="#about")location.replace("about.html");</script>
   var a=[],rawN=null;
   try{var raw=localStorage.getItem("hmCompanions");if(raw!==null){a=JSON.parse(raw)||[];rawN=a.length;}}catch(_){}
   if(rawN===null){try{var l=JSON.parse(localStorage.getItem("hmCompanion")||"null");if(l&&l.cut)a=[l];}catch(_){}}   // an emptied pit stays empty
+  /* A READ MUST NEVER DELETE. This filter used to chain a hard cap of eight onto
+     itself, and the line below then wrote the SHORTENED list back -- so loading this page, which
+     only wants to draw some ambient heads, destroyed the ninth. Measured: seed
+     eleven heads, load any page, eight remain. The cap now limits what THIS PAGE
+     USES and nothing more; anything above it stays on disk and comes back when a
+     slot frees. Only the builder's own save may drop a head, where the pit is on
+     screen and the oldest visibly retires.
+     AND THE KEY CARRIES THE PICTURE. Without d.cut.length, two DIFFERENT people
+     whose marks and eye boxes land on the same coordinates hash identically, and
+     the newer one is deleted as a duplicate of someone they have never met. */
   var seen={};a=a.filter(function(d){if(!d||!d.cut||d.cut.length<15000)return false;
-  var k2=JSON.stringify(d.marks||"m")+JSON.stringify((d.eyes||[]).map(function(e){return[e.x,e.y,e.w,e.h];}));
-  if(seen[d.cut]||seen[k2])return false;seen[d.cut]=1;seen[k2]=1;return true;}).slice(0,8);
+  var k2=d.cut.length+"|"+JSON.stringify(d.marks||"m")+JSON.stringify((d.eyes||[]).map(function(e){return[e.x,e.y,e.w,e.h];}));
+  if(seen[d.cut]||seen[k2])return false;seen[d.cut]=1;seen[k2]=1;return true;});
   if(rawN!==null&&rawN!==a.length){try{localStorage.setItem("hmCompanions",JSON.stringify(a));_hcBump();}catch(_){}}   // heal duplicates so one x is always one head
+  a=a.slice(0,(window.__HM_MAX_HEADS=window.__HM_MAX_HEADS||12));
   _hcCache=a;_hcCacheVer=_hcVer;
   return a.slice();}
  /* ── REMOVING A HEAD. The pattern is documented in full beside its CSS above;

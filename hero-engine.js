@@ -23,11 +23,26 @@ function headBoundsOf(img){
  var raw=(node&&node.getAttribute("data-head-bounds"))||HEAD_BOUNDS_FALLBACK;
  return raw.split(/\s+/).map(Number);
 }
+/* `chin` IS THE CHIN, AND data-head-bounds IS NOT.
+   The attribute above is the UNION of all nine images and its bottom edge,
+   0.9234, belongs to wink.webp -- the face with the longest jaw in the set. It
+   is the right rectangle for the selection frame, which must bound every face
+   the head can wear, and the WRONG one for anything that has to touch the chin
+   of the face on screen right now: on neutral it overshoots by 0.0246 of the
+   stage, which is where a third of the popcorn's misplacement came from.
+   So the chin is stated per FACE, alongside the eyes, and measured the same
+   way they were -- the lowest opaque row within +-8% of the artwork's own
+   horizontal centre, taken across each face's open/closed/browsup variants and
+   kept at the lowest of them, so a blink cannot move it. The variants agree to
+   0.0005 (0.14px at the resting size), so nothing jitters.
+   The values are checked back against the alpha by
+   tools/hero-head-transform-contract.py, for the same reason the attribute is:
+   a re-exported portrait must not be able to quietly move the chin. */
 const FACES={
- neutral:{browsup:"images/neutral_browsup.webp",img:"images/neutral.webp",closed:"images/neutral_closed.webp",eyes:[{x:0.3999,y:0.5176},{x:0.6018,y:0.5265}]},
- rest:{img:"images/rest.webp",closed:"images/rest_closed.webp",eyes:[{x:0.4,y:0.5169},{x:0.6041,y:0.5269}]},
- wink:{img:"images/wink.webp",closed:"images/wink_closed.webp",eyes:[{x:0.4,y:0.5169,ry:0.0172}]},
- smile:{img:"images/smile.webp",closed:"images/smile_closed.webp",eyes:[],noIris:true}
+ neutral:{browsup:"images/neutral_browsup.webp",img:"images/neutral.webp",closed:"images/neutral_closed.webp",chin:0.8988,eyes:[{x:0.3999,y:0.5176},{x:0.6018,y:0.5265}]},
+ rest:{img:"images/rest.webp",closed:"images/rest_closed.webp",chin:0.9085,eyes:[{x:0.4,y:0.5169},{x:0.6041,y:0.5269}]},
+ wink:{img:"images/wink.webp",closed:"images/wink_closed.webp",chin:0.9207,eyes:[{x:0.4,y:0.5169,ry:0.0172}]},
+ smile:{img:"images/smile.webp",closed:"images/smile_closed.webp",chin:0.8817,eyes:[],noIris:true}
 };
 /* ===== HOST MODE =====
    This file runs on TWO pages. index.html is the portfolio: it owns the cycling headline, the
@@ -1174,6 +1189,33 @@ function attachIdentity(wordEl){
 var RAIN_PHOTOS=["rain01.webp","rain02.webp","rain03.webp","rain04.webp","rain05.webp","rain06.webp","rain07.webp","rain08.webp","rain09.webp","rain10.webp","rain11.webp","rain12.webp","rain13.webp","rain14.webp","rain15.webp","rain16.webp","rain17.webp","rain18.webp"];
 /* ===== popcorn movie-watching mode (triggered by reel hover, alongside the 3D glasses) ===== */
 var BUCKET_CENTRE="translateX(-50%) ";
+/* ── THE BUCKET IS SIZED AND PLACED AS A SHARE OF THE HEAD ────────────────────
+   Every number here is a fraction of the stage's side, because the head is
+   dragged, scaled, rotated and swapped, and a pixel constant is right at
+   exactly one of those. --hero-chin-gap, a var(--sp-8) that used to hold the
+   bucket 8px BELOW the chin, is gone: Jayden asked for the rim to sit "right by
+   the chin covering just a little of the chin", so the rim rides ABOVE it.
+   MOVIE_CHIN_OVERLAP is that ride, as a share of the stage. The chin sits
+   0.899 down the artwork and the bottom of the lower lip 0.768, so the whole
+   chin is 0.131 of the stage: 0.04 covers just under a third of it and leaves
+   0.091 -- about 25px at 1440 -- of clear air under the mouth. THAT CLEARANCE
+   IS THE CONSTRAINT, in Jayden's words "the audience needs to see him chew",
+   and it is what stops this being retuned upward by feel.
+   MOVIE_BUCKET_SHARE is the bucket's width over the stage's side. It reads odd
+   because it is a MEASUREMENT, not a choice: the bucket was authored at 44% of
+   the effects layer, and the effects layer was the head's turned bounding box,
+   so at the resting -13.8deg it painted at 44% x 1.2186 = 53.6% of the stage.
+   That is the size on screen today and the size he has not complained about, so
+   it is stated directly now instead of emerging from a bug.
+   MOVIE_BUCKET_RIM is where the popcorn actually starts inside bucket.webp --
+   the topmost opaque row at its centre band is 2.17% down a 439x460 image, so
+   0.0217 x 460/439 = 0.02274 of the bucket's WIDTH. Without it the rim would
+   sit that far low, because the artwork's box is not the artwork.
+   MOVIE_KERNEL_DIP is how far below the rim a kernel is lifted from, i.e. just
+   inside the popcorn; 0.068 of the bucket's width reproduces the 10px it was
+   authored as, at the size it was authored at. */
+var MOVIE_BUCKET_SHARE=0.536,MOVIE_CHIN_OVERLAP=0.04,MOVIE_BUCKET_RIM=0.02274,
+    MOVIE_KERNEL_DIP=0.068,movieKernelStartY=0.84;
 var movieMode=false,movieTk0=0,movieEnding=false,movieEndTk=0,bucketEl=null,kernelEls=[],popcrumbEls=[],movieHair=false,hairTk0=0,MOVCYCLE=18;
 var heroPeek=document.querySelector(".heroCharacterPeek");
 var heroHeadTransform=document.getElementById("heroHeadTransform");
@@ -1218,24 +1260,92 @@ function enforceMovieSafeProjection(){
  var next=Math.max(0,current+safeTop-top);
  if(Math.abs(next-current)>.05)heroHeadTransform.style.setProperty("--hero-movie-guard-y",next.toFixed(2)+"px");
 }
+/* ── A BOUNDING BOX IS NOT A FRAME, AND THE HEAD IS NEVER LEVEL ──────────────
+   This function used to place the effects layer from stage.getBoundingClientRect().
+   That returns the AXIS-ALIGNED BOUNDING BOX of the stage, and the stage is
+   inside #heroHeadTransform, which carries --hero-head-rest-rotate: the head
+   rests at -13.8deg and the visitor can turn it anywhere from -180 to 180. A
+   square turned 13.8deg has a box 21.9% taller and wider than itself, so the
+   layer was a frame nearly a quarter too big, offset up and left, and NOT
+   rotated -- while every coordinate inside it (the chin, the kernel's start,
+   the arc's endpoint at the mouth, the bucket's 44% width) was authored as a
+   fraction of the STAGE, back when the head was level and the two agreed.
+   MEASURED ON THE SHIPPED BUILD, with the movie running and the head at rest:
+   --movie-chin-y landed 36.4px BELOW the real chin at 1440 and 28.0px at 390,
+   and the bucket's rim 48.8px / 39.3px below it -- a gap Jayden reported as
+   "too far", and read as 60px+ off a screenshot. Sideways was just as bad and
+   nobody had looked: the rim sat 47.5px LEFT of the chin at 1440 and, on a head
+   dragged and turned the way his screenshot shows one, 59.0px left at 320 --
+   far enough that the bucket's centre was off the left edge of the phone. The
+   8px --hero-chin-gap was never the number anyone was seeing.
+   THE FIX IS TO STOP GUESSING THE FRAME AND MEASURE IT. Three zero-size probes
+   pinned to the stage's own corners report where its local (0,0), (S,0) and
+   (0,S) actually land on screen, through the entire live chain -- the resting
+   tilt, the visitor's drag/scale/rotate, the idle float, .stagewrap's glide and
+   the movie's own per-frame pose. Two subtractions turn them into the exact
+   affine basis, which is written straight onto the layer as a matrix() with
+   transform-origin 0 0. The layer's local space is then the stage's layout
+   space, 0..S on both axes, which is the space every fraction in this file was
+   written in. Nothing downstream had to be re-authored; they were right all
+   along and were being read in the wrong frame.
+   It also DELETES work rather than adding it: the old code wrote
+   stage.style.transform twice per frame to neutralise the pose for one read,
+   forcing two synchronous style resolves. Three rects on 0x0 nodes replace it. */
+var movieFrameProbes=null;
+function ensureMovieFrameProbes(){
+ if(movieFrameProbes)return movieFrameProbes;
+ function probe(left,top){
+  var el=document.createElement("i");
+  el.className="movieFrameProbe";el.setAttribute("aria-hidden","true");
+  el.style.cssText="position:absolute;width:0;height:0;pointer-events:none;left:"+left+";top:"+top;
+  stage.appendChild(el);return el;
+ }
+ movieFrameProbes={o:probe("0","0"),x:probe("100%","0"),y:probe("0","100%")};
+ return movieFrameProbes;
+}
+/* The chin of the face ON SCREEN, not of the union of all nine. See FACES. */
+function movieChinFraction(){
+ var f=FACES[curFace];
+ return (f&&f.chin)||headBoundsOf()[3];
+}
 function syncMovieEffectsLayer(){
  if(!movieEffectsStage)return;
- var priorTransform=stage.style.transform;
- stage.style.transform="none";
- var stageRect=stage.getBoundingClientRect(),clipRect=movieEffectsStage.parentNode.getBoundingClientRect();
- stage.style.transform=priorTransform;
- movieEffectsStage.style.left=(stageRect.left-clipRect.left).toFixed(2)+"px";
- movieEffectsStage.style.top=(stageRect.top-clipRect.top).toFixed(2)+"px";
- movieEffectsStage.style.width=stageRect.width.toFixed(2)+"px";
- movieEffectsStage.style.height=stageRect.height.toFixed(2)+"px";
- // HOW FAR THE HEAD HANGS PAST THE SCENE'S FLOOR. The stage tracks the head,
- // and the head's resting composition sits well below the Hero's lower edge,
- // so anything anchored to the stage's bottom lands off-screen. Published so
- // the popcorn bucket can sit on the Hero's floor instead of the stage's.
- var heroBox=document.getElementById("main");
- if(heroBox)movieEffectsStage.style.setProperty("--movie-stage-overhang",
-  Math.max(0,stageRect.bottom-heroBox.getBoundingClientRect().bottom).toFixed(2)+"px");
- movieEffectsStage.style.transform=priorTransform;
+ var S=stage.offsetWidth;
+ if(!S)return;
+ var p=ensureMovieFrameProbes();
+ var clipRect=movieEffectsStage.parentNode.getBoundingClientRect();
+ var O=p.o.getBoundingClientRect(),X=p.x.getBoundingClientRect(),Y=p.y.getBoundingClientRect();
+ var ax=(X.left-O.left)/S,ay=(X.top-O.top)/S,bx=(Y.left-O.left)/S,by=(Y.top-O.top)/S;
+ movieEffectsStage.style.left=(O.left-clipRect.left).toFixed(2)+"px";
+ movieEffectsStage.style.top=(O.top-clipRect.top).toFixed(2)+"px";
+ movieEffectsStage.style.width=S.toFixed(2)+"px";
+ movieEffectsStage.style.height=S.toFixed(2)+"px";
+ movieEffectsStage.style.transform="matrix("+ax.toFixed(5)+","+ay.toFixed(5)+","
+  +bx.toFixed(5)+","+by.toFixed(5)+",0,0)";
+ /* WHERE THE CHIN IS, in the layer's own coordinates -- which are now the
+    stage's, so this is the plain product it always claimed to be. .face is
+    inset:0 in the stage and every face image is square, so there is no
+    letterboxing under object-fit:contain and the stage's side is the right
+    multiplier. */
+ var chinY=S*movieChinFraction();
+ var bucketW=S*MOVIE_BUCKET_SHARE;
+ /* The element's top, not the popcorn's: the artwork carries MOVIE_BUCKET_RIM
+    of transparency above the mound, so the box has to start that much higher
+    for the RIM to land MOVIE_CHIN_OVERLAP above the chin. */
+ var bucketTop=chinY-S*MOVIE_CHIN_OVERLAP-bucketW*MOVIE_BUCKET_RIM;
+ movieEffectsStage.style.setProperty("--movie-head-size",S.toFixed(2)+"px");
+ movieEffectsStage.style.setProperty("--movie-chin-y",chinY.toFixed(2)+"px");
+ movieEffectsStage.style.setProperty("--movie-bucket-w",bucketW.toFixed(2)+"px");
+ movieEffectsStage.style.setProperty("--movie-bucket-top",bucketTop.toFixed(2)+"px");
+ /* THE LAYER TURNS WITH THE HEAD NOW, AND THE BUCKET MUST NOT. Popcorn obeys
+    gravity: a bucket that rolled to -26deg because its owner tilted his head
+    would be pouring itself out. The lean it does have is its own, and tracks
+    the light like everything else in the scene, so the head's angle is
+    published for the stylesheet to subtract straight back off. */
+ movieEffectsStage.style.setProperty("--movie-head-rot",
+  (Math.atan2(ay,ax)*180/Math.PI).toFixed(3)+"deg");
+ /* THE KERNEL IS LIFTED OUT OF THE BUCKET, SO ITS START FOLLOWS THE BUCKET. */
+ movieKernelStartY=(bucketTop+bucketW*(MOVIE_BUCKET_RIM+MOVIE_KERNEL_DIP))/S;
 }
 /* ── THE EFFECTS LAYER IS NOT IN THE HEAD'S COORDINATE SPACE ───────────────
    #heroMovieEffectsStage lives in #heroMovieEffectsClip, a Hero-relative
@@ -1279,7 +1389,9 @@ window.addEventListener("heroheadtransform",function(){
 });
 function setMovieStageTransform(value){
  stage.style.transform=value;
- if(movieEffectsStage)movieEffectsStage.style.transform=value;
+ /* The layer no longer COPIES the stage's pose -- syncMovieEffectsLayer()
+    measures the composed result, of which this pose is one factor, so writing
+    it here as well would apply it twice. */
  enforceMovieSafeProjection();
  if(movieMode)syncMovieEffectsLayer();
  dispatchEvent(new CustomEvent("heroheadstagechange"));
@@ -1412,7 +1524,7 @@ function movieTick(){
    bucketEl.style.opacity="1";
    var c=(lt-3)%MOVCYCLE,ci=Math.floor((lt-3)/MOVCYCLE),side=(ci%2)?0.58:0.42,K=kernelEls[0];
    if(c===0){movieCrumbThis=Math.random()<0.38;movieLickThis=movieCrumbThis&&Math.random()<0.22;movieDropThis=Math.random()<0.22;movieGlanceThis=Math.random()<0.25;if(tongueEl){tongueEl.style.opacity="0";tongueEl.style.transform="scaleY(0)";}}
-   if(c<=4){var t=c/4,Sx=side,Sy=0.84,Px=0.49,Py=0.6,Ex=0.5,Ey=0.73;
+   if(c<=4){var t=c/4,Sx=side,Sy=movieKernelStartY,Px=0.49,Py=0.6,Ex=0.5,Ey=0.73;
      var x=(1-t)*(1-t)*Sx+2*(1-t)*t*Px+t*t*Ex,y=(1-t)*(1-t)*Sy+2*(1-t)*t*Py+t*t*Ey;
      setKernel(K,x,y,t*150,1);setMouth(0);
      var rk=Math.sin(Math.PI*(c/4));reach=(side<0.5?-1:1)*2.4*rk;
@@ -1811,34 +1923,37 @@ if(!HEADONLY){stage.style.opacity="0";requestAnimationFrame(function(){requestAn
  if(pc&&pc.parentNode!==document.body)document.body.appendChild(pc);
  var fine=window.matchMedia("(hover:hover) and (pointer:fine)").matches;
  frame.classList.toggle("fine",fine);reel.classList.toggle("coarse",!fine);
- var STEPS=8,MINS=1.0,reelFull=false,hovering=false,mx=0,my=0;
+ /* STEPS, MINS and reelFull went with the retired grow below -- STEPS had had no
+    reader at all for some time, and the other two only ever had one. */
+ var hovering=false,mx=0,my=0;
  addEventListener("pointermove",function(e){mx=e.clientX;my=e.clientY;if(fine&&hovering)evalCursor();},{passive:true});
    function place(){pc.style.setProperty("--px",mx+"px");pc.style.setProperty("--py",my+"px");}
    function evalCursor(){if(!fine)return;if(hovering){place();pc.classList.add("on");}else pc.classList.remove("on");}                                  // expansion snapped to a 14-step grid -> 8fps stop-motion feel
- function onScroll(){
-   return; /* pinned grow retired: the head-maker card lives below the reel now */
-   var vh=window.innerHeight,rect=reel.getBoundingClientRect();
-   // progress tied to the pinned phase: 0 when the stage first pins, 1 near the end of the track
-   var range=rect.height-vh;
-   var p=range>0?(-rect.top)/range:0;if(p<0)p=0;if(p>1)p=1;
-   // grow -> HOLD full -> release: video reaches full screen early and dwells there.
-   var GROW=0.34;                 // grows to full over first 34% of the pinned scroll
-   var g=p<GROW?(p/GROW):1;       // 0..1 during grow, then pinned at 1 (full) for the long hold
-   var e=g<0.5?2*g*g:1-Math.pow(-2*g+2,2)/2;
-   // once grown, snap to a TRUE fullscreen cover (fills whole viewport, no gaps) and hold there
-   var fh=frame.offsetHeight||675;var scaledH=fh*(MINS+(full-MINS)*e);
-   var wantFull=(g>=0.999)||(scaledH>=window.innerHeight*0.86);
-   if(wantFull!==frame.classList.contains("isFull"))frame.classList.toggle("isFull",wantFull);
-   if(wantFull){reel.style.setProperty("--reelMetaOp","0");return;}
-   var fw=frame.offsetWidth||1200;var full=window.innerWidth/fw;
-   frame.style.setProperty("--rs",(MINS+(full-MINS)*e).toFixed(4));
-   frame.style.setProperty("--rr","0deg");
-   frame.style.setProperty("--rad","4px");
-   var metaOp=p<=0.02?1:(p>=0.22?0:1-(p-0.02)/0.20);
-   reel.style.setProperty("--reelMetaOp",metaOp.toFixed(2));
-   frame.classList.toggle("big",p>0.45);
-   reelFull=(p>=1);evalCursor();
- }
+ /* ── THE PINNED SCROLL-GROW IS RETIRED, AND THIS IS ITS GRAVE ──────────────
+    This function's first statement was `return;` and thirty lines of live-looking
+    arithmetic sat behind it, unreachable. That is not a harmless leftover: it has
+    already cost one investigation. A reviewer found a real bug in it -- `var full`
+    was read four lines ABOVE its own declaration, so `scaledH` was NaN and the
+    `scaledH >= innerHeight*0.86` half of `wantFull` had never once fired -- and
+    filed it as "the second fullscreen trigger is dead". It was, and so was the
+    first, and so was every line around them.
+    MEASURED BEFORE DELETING, because a `return` at the top of a function is
+    exactly the kind of claim this project has been wrong about: scrolled the full
+    pinned range at 1440x900, 390x844 and 320x800, sampling every frame -- the
+    .isFull class was never once applied, --rs was never written, and the frame's
+    painted radius came from the stylesheet's own ladder (20px at 1440, 14px at
+    390/320) rather than from --rad.
+    SO THE FIX IS DELETION, NOT REORDERING. Moving `var full` above its use would
+    have brought a retired feature back to life -- at 1440x900 the snap would have
+    landed around e~0.73, i.e. two thirds of the way through a growth animation
+    that no longer exists -- which is a behaviour change dressed as a bug fix.
+    Note for whoever retired it: commit 54071fd's `--rad:(20/s)` correction lived
+    in here too and never ran either. If the grow ever comes back, both that fix
+    and the declaration order have to come back with it; git has them.
+    THE FUNCTION ITSELF STAYS. It has three callers -- the scroll listener, the
+    resize listener and index.html's tab `activate()` -- and an empty function is
+    a cheaper no-op than three call sites each learning it is gone. */
+ function onScroll(){}
  var raf=0;
  addEventListener("scroll",function(){if(!raf)raf=requestAnimationFrame(function(){raf=0;onScroll();});},{passive:true});
  window.__reelOnScroll=onScroll;addEventListener("resize",onScroll);onScroll();
