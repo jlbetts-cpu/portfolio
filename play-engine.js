@@ -456,6 +456,25 @@
  // one scale(1,-1) in front of the head's own rotation, with no sign juggling.
  var refl=document.createElement("div");refl.className="hmRefl";refl.setAttribute("aria-hidden","true");
  refl.style.cssText="position:absolute;left:0;top:0;pointer-events:none;width:"+HW+"px;height:"+HH+"px;background-image:url("+data.cut+")";
+ /* WHY THERE IS NO DEPTH-NORMALISING PROPERTY HERE, HAVING BRIEFLY SHIPPED ONE.
+    Measured at 1440, a little head's reflection is drawn 77.6px deep and the mini-Jayden's 117.5px --
+    ratio 1.500, exactly his size ratio, with depth/HH identical at 0.599 vs 0.605. So the rule the
+    code implements is "the same FRACTION of your own box", and the obvious reading is that a shared
+    floor should extinguish every image at a shared DEPTH. That was built, and it is wrong twice over.
+    First, it CAPS him -- it takes reflection away from the head that has it, where the standing
+    instruction is to loosen the tighter side and never tighten the looser one.
+    Second, and the reason the depth reading is a red herring: the mask percentages are fractions of
+    the BOX, and the two heads' ink does not start in the same place inside their boxes. A little
+    head's ink runs 0.058->0.938 of its box; bakeMiniCut draws his square portrait into a 5:6 frame
+    and seats it on the shared FOOT, so his runs 0.227->0.933 and a fifth of his box is empty above
+    his hair. One flat 74% cut therefore eats 20% of a little head and 3% of him: he keeps 95% of his
+    face where everyone else keeps 77%. "More of his reflection is shown" is more of the FACE, not
+    more pixels, and it is identical at any size -- so his 1.5x is not the cause and must not be
+    touched. The fix is to anchor the falloff between each head's own ink top and ink bottom, both of
+    which the pixel scan already produces per head (crownFrac and FOOT).
+    That analysis and its play.css half are written up in
+    docs/superpowers/specs/2026-08-11-refl-mask-handover.patch.md. The engine side is deliberately
+    NOT applied ahead of it, so there is one mechanism and one story rather than two half-built ones. */
  var _reflFoot=-1;   // the foot line the reflection is currently pivoting on; re-written when the pixel scan changes FOOT
  var orbOn=false,orbA=0,orbAV=0,orbH=0,orbVH=0,orbGoal=0,orbNext=0;   // THE LOBBY PLANET: this head's angle round the disc, its angular speed, its height above the surface and the radial speed of the hop. Entirely separate from x/y/vx/vy/floorY, which keep meaning exactly what they meant.
  // position is set INLINE, not left to play.css: index.html does not link play.css,
@@ -539,7 +558,42 @@
   if(im.nextSibling)root.insertBefore(mjClone,im.nextSibling);else root.appendChild(mjClone);
   mjBigFace=document.getElementById("face");mjBigW=bigStage.getBoundingClientRect().width||500;   // his rendered width, so we can scale his gaze translate to the mini
   // RE-AIM the team outline (soccer) + hurt flash: both are masked by data.cut stretched over the FULL root, which is calibrated for the little heads' `im`. The mini's visible face is the CLONE -- object-fit:contain of his SQUARE face in the top 83.333% of root -- so the stretched bake floated the ring off to the side. Replicate the clone's exact face box (top 83.3%, square source, contain) so the rim hugs him.
-  try{ringEl.style.display="none";hurtEl.style.display="none";mjClone.style.transform="translateY(27%)";}catch(_){}   // the mask-based ring/hurt never tracked his mirrored face -- his team ring is now a drop-shadow ON the rendered face itself (pixel-perfect through every flip and expression)   // MINI-JAYDEN: a gentle DOWN-nudge so his (bigger) face reads more level with the row instead of floating higher, without dropping his chin below the slab -- render-only, feet/shadow/physics unchanged
+  /* THE CROWN FOLLOWS THE FACE, BECAUSE ON HIM THE FACE IS NOT AT THE TOP OF THE BOX.
+     crownEl is positioned `top:-24%` against the ROOT box, which assumes the drawn head starts at the
+     box's top edge. For every bake that is true -- measured, a little head's face top and its root top
+     are the same pixel. The mini-Jayden is the only head whose face is a CLONE, and the clone carries
+     the down-nudge below, so his hair starts 0.225*HH lower: 43.74px at 1440. His crown was therefore
+     floating a clear 44px above his hair while everyone else's sat ON it.
+     His 1.5x size is NOT the bug and is not touched -- the offset is expressed as a fraction of HH, so
+     it is the same visual gap at any size. Both numbers are derived from _MJ_DROP so the nudge and the
+     crown cannot drift apart the way they just did: move the face and the crown moves with it.
+
+     ...AND THE NUDGE WAS ONLY HALF OF WHY HIS HAIR IS LOW, WHICH IS WHY THE CROWN STILL FLOATED.
+     The correction above counts the clone's translate and stops there, which assumes the portrait's
+     ink starts at the top of its own frame. It does not, twice over: #face is inset inside #stage,
+     and the cut itself carries transparent headroom above the hair (its data-head-bounds top term).
+     Measured on a settled frame at 1440, his DRAWN hair top sits 0.442 of HH below his box top
+     against the 0.225 this line was correcting for -- so the crown hung ~36px clear of his head
+     while a little head's crown base sits 3.4px off its own ink. A screenshot of the two side by
+     side is unambiguous.
+     BOTH remaining terms are MEASURED off the live portrait rather than written down -- the inset of
+     #face inside #stage, and the cut's own declared headroom -- so a re-framed stage or a re-cut face
+     moves the crown with it and this cannot go stale a third time. Anything missing or out of range
+     falls back to 0, which is exactly the behaviour this line had before.
+     His 1.5x size is still NOT the bug and is still untouched: every term here is a fraction, so the
+     crown sits in the same place on his head at any size. */
+  var _MJ_HB=0;   // where the drawn ink starts, as a fraction of the CLONE's own height
+  try{var _fEl=mjBigFace||document.getElementById("face");
+   var _sR=bigStage.getBoundingClientRect(),_fR=_fEl?_fEl.getBoundingClientRect():null,_hbT=0;
+   var _hbA=_fEl&&_fEl.getAttribute("data-head-bounds");
+   if(_hbA){var _hbP=String(_hbA).trim().split(/\s+/);
+    if(_hbP.length>1){var _hbV=parseFloat(_hbP[1]);
+     if(_hbV===_hbV&&_hbV>=0&&_hbV<0.6)_hbT=_hbV;}}
+   if(_fR&&_fR.height>0&&_sR.height>0)_MJ_HB=((_fR.top-_sR.top)+_hbT*_fR.height)/_sR.height;
+   if(!(_MJ_HB>=0&&_MJ_HB<0.6))_MJ_HB=0;}catch(_){}   // NaN-safe, and refuses a nonsense value rather than flinging the crown off-screen
+  var _MJ_DROP=0.27,_MJ_FACE=(_MJ_DROP+_MJ_HB)*(5/6);   // of the clone's own height, then as a fraction of HH (the clone is 83.333% of the root)
+  try{ringEl.style.display="none";hurtEl.style.display="none";mjClone.style.transform="translateY("+(_MJ_DROP*100)+"%)";
+   crownEl.style.top=(-24+_MJ_FACE*100).toFixed(3)+"%";}catch(_){}   // the mask-based ring/hurt never tracked his mirrored face -- his team ring is now a drop-shadow ON the rendered face itself (pixel-perfect through every flip and expression)   // MINI-JAYDEN: a gentle DOWN-nudge so his (bigger) face reads more level with the row instead of floating higher, without dropping his chin below the slab -- render-only, feet/shadow/physics unchanged
  }}catch(_){mjClone=null;}}
  var bar=document.createElement("div");bar.className="hmHp";bar.setAttribute("aria-hidden","true");
  var barFill=document.createElement("i");bar.appendChild(barFill);
@@ -1209,10 +1263,83 @@
      var fs9=Math.random()<0.5;x=fs9?WL+2:WR-2;y=floorY-(140+Math.random()*240);dir=fs9?1:-1;air=true;st="fall";surface=floorY;
      vx=dir*(360+Math.random()*240);vy=-(120+Math.random()*260);if(Math.random()<0.35)startFlip();}}
    if(S9&&S9.on&&soccerOn&&!killed){
-    if(S9.kickSeed&&S9.kickSeed!==soccerKickSeen){soccerKickSeen=S9.kickSeed;   // every goal & kickoff: leap back to your OWN half, a real restart -- red to the left, blue to the right
-     var half9=heroR.w*0.5,tx9=team===1?(M+Math.random()*(half9-HW-M*2)):(half9+M+Math.random()*(half9-HW-M*2));
-     if(!grabbed){var dxk=tx9-x;dir=dxk>0?1:-1;surface=floorY;st="fall";air=true;
-      var vyk=500+Math.random()*150,ttk=2*vyk/G;vy=-vyk;vx=dir*Math.max(-820,Math.min(820,dxk/ttk));sqT=0.12;sqyP=1.1;sqxP=1/1.1;gzx=dir*0.6;sacAt=now+500;}}
+    if(S9.kickSeed&&S9.kickSeed!==soccerKickSeen){soccerKickSeen=S9.kickSeed;
+     /* SET POSITIONS AT EVERY JUMP BALL. Jayden: "they should completely reset in set positions
+        so that the game feels even every jump ball." Both sides take the SAME ladder of marks,
+        reflected about the centre line -- red in its own half, blue in its. This is a KICKOFF
+        arrangement, not tactics: the instant S.phase goes back to "play" the scrum resumes
+        untouched, and nothing here (or in the mark-holding block below) spaces anyone out
+        during play.
+
+        ONE EXPRESSION, ONE SIGN TERM. _side carries the whole mirror, so the two halves cannot
+        drift apart the way the old right-hand SUPPORT clamp did (see that note further down).
+        The mark is a CENTRE; tx9 converts it to a left edge exactly once, at the very end.
+
+        AND THIS IS WHERE THEY WERE ALL BEING SENT RIGHT. The launch read
+        `vx = dir*Math.max(-820,Math.min(820,dxk/ttk))`. dxk/ttk is already signed and `dir` IS
+        that same sign, so the product is |dxk/ttk| -- always positive, always rightward. Every
+        head whose mark lay to its left was fired away from it at up to 820px/s, and the crowd
+        walked right one restart at a time until the left goal was the only one anybody could
+        score on. Measured at 1440x900, 900ms after each restart: 167 heads had moved right and
+        34 left (six heads), 155 against 10 (twelve heads), with BOTH teams' mean x sitting
+        right of the centre line -- red 908, blue 729, midline 720. The `dir*` is gone. `dir`
+        itself is untouched: it is still the facing, and it still feeds gzx. */
+     var _side=(team===1)?-1:1;                                   // which half is mine -- red left, blue right
+     var _rkK=function(s9k){var _r9=(S9.roles&&S9.roles[s9k])||"";return _r9==="keeper"?0:_r9==="defender"?1:2;};
+     var _mine=[],_n1=0,_n2=0;
+     for(var _q9=0;_q9<peers.length;_q9++){var _pv9=peers[_q9],_t9=(S9.teams&&S9.teams[_pv9.slot])||0;
+      if(_t9===1)_n1++;else if(_t9===2)_n2++;
+      if(_t9===team)_mine.push(_pv9.slot);}
+     _mine.sort(function(a,b){var _ra=_rkK(a),_rb=_rkK(b);return _ra!==_rb?_ra-_rb:a-b;});   // deepest role nearest its own net, then by slot: the same head takes the same mark every restart, so it reads as a line-up rather than a shuffle
+     var _rank=Math.max(0,_mine.indexOf(slot));
+     // ONE ladder, sized to the LARGER squad, so an odd roster still leaves every occupied mark
+     // facing an exactly reflected one instead of re-spacing both sides against each other.
+     var _slots=Math.max(1,_n1,_n2);
+     var _span=heroR.w*0.5-M-HW*0.5;                              // centre line -> the furthest a head CENTRE can legally stand
+     /* THE LADDER OPENS UP WHEN THE MARKS WOULD OVERLAP, AND ONLY THEN. The fixed 0.62 spread put
+        three marks 45.6px apart on a 390px pitch where a head is 64px wide, so the line-up spawned
+        already inside itself and pair separation immediately shoved heads across the centre line --
+        measured 5 of 35 mobile restarts with two-thirds of a side in the wrong half, against 0 of 19
+        at 1440. The step now widens toward one head-width when the geometry demands it, capped so the
+        shallowest mark never reaches the centre spot. At 1440 3-a-side the max() picks the ORIGINAL
+        0.31 unchanged, so the desktop line-up Jayden has already seen does not move a pixel. */
+     var _step=(_slots<2)?0:Math.max(0.62/(_slots-1),Math.min((0.84-0.10)/(_slots-1),(HW*0.95)/Math.max(1,_span)));
+     /* ...AND THE SHALLOWEST MARK HAS TO CLEAR THE CENTRE LINE BY HALF A HEAD, OR THE WIDER STEP
+        DOES NOT HELP. The 0.10 floor is a fraction of the half-pitch, and on a phone the half-pitch
+        is small: 0.10*123 = 12.3px from the centre spot, so the two innermost marks -- one per team,
+        mirrored -- were seeded 24.6px apart with 64px heads. They spawn already inside each other and
+        pair separation resolves the overlap by shoving one of them across the centre line, which is
+        exactly the failure the reset exists to remove. Measured at 390x844, six heads: 7 of 11
+        restarts still had two-thirds of a side in the wrong half AFTER the sign fix and the wider
+        step, against 0 of 12 at 1440.
+        The floor is now the geometry it has to satisfy -- a little over half a head-width, so a
+        mirrored pair of innermost marks is a clear head-width apart and nothing has to be shoved.
+        It is written once and mirrored by _side like every other term here, so it cannot drift.
+        At 1440 (HW 108, span 626) it evaluates to 0.100 and the desktop line-up Jayden has already
+        seen does not move a pixel; at 390 (HW 64, span 123) it lifts the innermost mark to 0.302. */
+     var _fMin=Math.max(0.10,Math.min(0.45,(HW*0.58)/Math.max(1,_span)));
+     var _frac=(_slots<2)?0.45:Math.max(_fMin,0.84-_rank*_step);   // 0 = the centre line, 1 = as deep as a head can stand
+     var _markC=heroR.w*0.5+_side*_frac*_span,tx9=_markC-HW/2;
+     try{if(S9.markSeed!==S9.kickSeed){S9.marks={};S9.markSeed=S9.kickSeed;}
+      S9.marks[slot]={x:_markC,i:_rank,team:team,n:_slots};}catch(_){}   // published so a contract can ASSERT the mirror rather than trust the comment above it
+     if(!grabbed){var dxk=tx9-x;dir=dxk>=0?1:-1;surface=floorY;st="fall";air=true;
+      /* Solve the arc for the DISTANCE instead of clamping it flat. 820px/s over a 0.42s hop
+         carries 347px, so a head conceding at the far end of a 1440px pitch landed short and
+         then had to walk -- which is the other half of why a restart never actually reset
+         anything. A longer trip now buys a taller leap, and that is the more watchable
+         restart as well as the more accurate one. */
+      var _dxa=Math.abs(dxk),vyk=Math.max(460,Math.min(1000,Math.sqrt(_dxa*G/1.6))),ttk=2*vyk/G;
+      vy=-vyk;vx=Math.max(-1150,Math.min(1150,dxk/ttk));sqT=0.12;sqyP=1.1;sqxP=1/1.1;gzx=dir*0.6;sacAt=now+500;
+      if(_dxa>heroR.w*0.28&&Math.random()<0.5)startFlip();}}
+    /* HOLD THE MARK UNTIL THE WHISTLE. One ballistic leap is at the mercy of whatever it hits on
+       the way over, so while the ball is still coming in a head that landed off its mark takes
+       one more short hop at it. Gated on S9.phase !== "play": it CANNOT run during the match,
+       which is the whole point -- this is a line-up, never a formation. */
+    if(S9.phase!=="play"&&S9.marks&&S9.marks[slot]&&!grabbed&&!air&&!perched&&st==="idle"&&now>=decideAt){
+     var _mk9=S9.marks[slot].x-HW/2,_dm9=_mk9-x;
+     if(Math.abs(_dm9)>HW*0.35){decideAt=now+200;dir=_dm9>=0?1:-1;surface=floorY;st="fall";air=true;
+      var _vk2=Math.max(340,Math.min(760,Math.sqrt(Math.abs(_dm9)*G/1.6))),_tk2=2*_vk2/G;
+      vy=-_vk2;vx=Math.max(-900,Math.min(900,_dm9/_tk2));sqT=0.11;sqyP=1.08;sqxP=1/1.08;gzx=dir*0.5;}}
     if(S9.postSeed&&S9.postSeed!==me.__postSeen){me.__postSeen=S9.postSeed;   // OFF THE WOODWORK: everyone near the ball feels it -- the shooter clutches, brows pop
      if(Math.abs((x+HW/2)-S9.ball.x)<220){brf=6;gzy=-0.5;sacAt=now+900;}else{brf=4;}}   // agony reads in the brows and eyes; the red hurt flash is DAMAGE language and soccer has no damage}
     if(S9.goalSeed&&S9.goalSeed!==goalSeen){goalSeen=S9.goalSeed;   // GOAL: just a natural little reaction, no scripted dance
@@ -2231,7 +2358,12 @@ function teams(){
      setTimeout(function(){if(!S.on)return;if(countEl)countEl.textContent="";bvy=30;S.phase="play";},560);},800);}})();}
   function dropIn(){S.kickSeed=(S.kickSeed||0)+1;   // after a goal: no countdown, the ball just drops back in as they return to their sides
    var _bh2=ballHome();bx=_bh2?_bh2.x:(XL+XR)/2;by=_bh2?_bh2.y:60;bsp=ballSpawnScale();_spawnY=by;_curveTo=(XL+XR)/2;_curving=true;_cvOn=false;bvx=(Math.random()*80-40);bvy=20;_deckT=0;S.phase="reset";
-   setTimeout(function(){if(S.on)S.phase="play";},650);}
+   // 650 -> 900ms. The set-position leap solves its own arc, and a head crossing most of a
+   // 1440px pitch is in the air for ~0.77s; at 650 the whistle went while half the side was
+   // still flying, so the line-up was never actually seen. This is the only dead time added
+   // anywhere in this pass, it is a quarter of a second, and the ball is visibly curving in
+   // to the centre spot throughout it.
+   setTimeout(function(){if(S.on)S.phase="play";},900);}
   function goalBurst(team,gx,gy){try{   // the ball bursts, and confetti erupts from the goal it went in
    if((window.__hmFx||0)>=2)return;window.__hmFx=(window.__hmFx||0)+1;
    var cv=document.createElement("canvas"),hr=hero.getBoundingClientRect();cv.width=innerWidth;cv.height=Math.round(hr.height);
@@ -2519,10 +2651,33 @@ function teams(){
      if(Math.abs(gx-bx)<300){lastShot=performance.now();BUS.emit('shot',{dir:dir});}
     }
     if(by>REST){   // meets the pitch
-     if(Math.abs(bvy)>50){var kg=Math.min(0.14,Math.abs(bvy)*0.00016);bsyP=1-kg;bsxP=1/(1-kg);bsT=0.12;bvy=-bvy*0.72;}else bvy=0;   // squash + bounce, e=0.72 (grass, not a superball)
+     if(Math.abs(bvy)>50){var kg=Math.min(0.14,Math.abs(bvy)*0.00016);bsyP=1-kg;bsxP=1/(1-kg);bsT=0.12;bvy=-bvy*0.72;
+      /* A SPIN-FED BOUNCE WAS BUILT HERE AND TAKEN BACK OUT, AND THE DESIGN SPEC AGREES IT SHOULD
+         BE. It read `var _surf=bw*(Math.PI/180)*BR; bvx+=(_surf-bvx)*0.16; bw*=0.82;` -- friction at
+         the contact driving the ball's horizontal speed toward the no-slip value its spin implies,
+         so a headed ball with backspin checks and kicks back. It is a real mechanism and the right
+         one eventually; the spec names it (SS8.4) and explicitly places it OUT of scope for this pass.
+         Measured, it also pushes the wrong way on the one thing this pass exists to move: with it,
+         the ball spent 45.0% of frames on the deck against 28.8% without, on otherwise identical
+         builds. It bleeds horizontal energy on every bounce, and a slower ball settles sooner.
+         Shipping it would have been a new physical mechanism arriving unmeasured alongside two
+         changes that ARE measured. It is a good next lever, on its own, with its own numbers. */
+      }else bvy=0;   // squash + bounce, e=0.72 (grass, not a superball)
      by=REST;if(_cvOn){bvx=0;_cvOn=false;}else bvx*=0.9;}
     var onGround=by>=REST-1;
-    if(onGround&&Math.abs(bvy)<70){var rf=Math.min(Math.abs(bvx),0.075*GRAV*dt);bvx-=(bvx>0?1:-1)*rf;}   // rolling resistance as a CONSTANT deceleration (mu_r*g, mu_r~0.075 for grass), not a made-up exponential -- the ball rolls, then slows honestly
+    /* ROLLING RESISTANCE IS THE CONSTANT THAT GENUINELY HAD TO SCALE, AND IT IS HORIZONTAL. The brief's
+       premise was that GRAV being absolute while HW and BR shrink holds the ball down worst on a
+       phone. Measured, the VERTICAL axis inverts that: a fixed launch speed under fixed g gives a
+       fixed 204px apex everywhere, and dividing by a SMALLER head makes the leap relatively bigger at
+       390 (2.66 head-heights vs 1.57 at 1440). Scaling GRAV down on mobile would make it float.
+       The pitch, though, shrinks 3.7x while the heads shrink only 1.7x -- so mu_r*g, an absolute
+       deceleration, stops the ball after 0.64 pitch-widths at 1440 and 2.37 pitch-widths at 390. The
+       ball never settles anywhere on a phone but inside a body. Scaling mu_r by the pitch makes the
+       ball come to rest in the same FRACTION of the pitch at every width, which is the scale
+       correction the brief was reaching for, applied on the axis that actually measured broken.
+       At 1440 the factor is exactly 1, so desktop rolling is byte-for-byte what it was. */
+    var _MUR=0.075*(1440/Math.max(320,XR-XL));
+    if(onGround&&Math.abs(bvy)<70){var rf=Math.min(Math.abs(bvx),_MUR*GRAV*dt);bvx-=(bvx>0?1:-1)*rf;}   // rolling resistance as a CONSTANT deceleration (mu_r*g, mu_r~0.075 for grass), not a made-up exponential -- the ball rolls, then slows honestly
     if(onGround&&Math.abs(bvx)<9&&Math.abs(bvy)<12){bvx=0;bvy=0;}   // and it settles fully -- no hover, no jitter
     if(onGround)_deckT+=dt;else if(by<REST-BR*0.6)_deckT=0;   // airborne by more than a ball-radius clears it;
     // a bobble of a few px on the bounce does NOT, or the timer would reset on every little hop and never fire
@@ -2537,7 +2692,21 @@ function teams(){
      // particle here on purpose: the soccer module never draws FX (it only calls __hmFX.clear), and
      // its ball coords are engine-space, not the viewport space burst() wants.
     }
-    if(by<BR+2){by=BR+2;if(Math.abs(bvy)>120){var kc0=Math.min(0.1,Math.abs(bvy)*0.00012);bsyP=1-kc0;bsxP=1/(1-kc0);bsT=0.11;}bvy=Math.abs(bvy)*0.72;}   // ceiling
+    /* THE ROOF. Asked for directly -- "make it feel like a game bouncing off the walls and roofs" --
+       and the honest answer to "does the arena have a ceiling to rebound off" is YES, at the top of
+       the arena, and it already rebounded at e=0.72. Measured on this build the ball reaches it 13-24
+       frames a run, so it is live, not theoretical. What it LACKED was consequence: it returned the
+       ball on exactly the line it arrived on, so a roof hit was invisible and cost the play nothing.
+       No new surface is invented here and nothing is drawn. Putting an invisible lid halfway up the
+       open arena was considered and rejected -- a ball rebounding off empty air reads as a glitch,
+       which is the one reading this page keeps refusing. The boundary stays where the arena's edge
+       actually is; it simply now behaves like a surface instead of a clamp: it throws the ball off
+       line, spins it, and broadcasts the same 'woodwork' moment the crossbar does, so every head
+       within 220px clutches its brows and the near-miss is legible rather than silent. */
+    if(by<BR+2){by=BR+2;if(Math.abs(bvy)>120){var kc0=Math.min(0.1,Math.abs(bvy)*0.00012);bsyP=1-kc0;bsxP=1/(1-kc0);bsT=0.11;}
+     if(Math.abs(bvy)>240){bvx+=(Math.random()<0.5?-1:1)*(90+Math.random()*90);bw+=(Math.random()*220-110);   // it comes down somewhere new, and spinning
+      S.postSeed=(S.postSeed||0)+1;try{BUS.emit('woodwork',{x:S.ball.x,y:S.ball.y});}catch(_){}}
+     bvy=Math.abs(bvy)*0.72;bvx=Math.max(-2200,Math.min(2200,bvx));}   // ceiling
     var inG=by>groundY-GH;
     var gt=groundY-GH,overL=(bx+BR>XL&&bx-BR<XL+44),overR=(bx+BR>XR-44&&bx-BR<XR);   // the crossbar
     if((overL||overR)&&bvy>0&&by+BR>=gt-2&&by-BR<gt&&by<gt){by=gt-BR-2;bvy=-Math.max(160,Math.abs(bvy)*0.7);S.postSeed=(S.postSeed||0)+1;BUS.emit('woodwork',{x:S.ball.x,y:S.ball.y});   // off the bar -- and the WOODWORK moment is broadcast so the heads can feel it
@@ -2551,6 +2720,35 @@ function teams(){
       bx+=nx*ov;by+=ny*ov;   // lift the ball clear of the body so it can never sink in and stutter
       var rvx=bvx-p.vx,rvy=bvy-p.vy,rel=rvx*nx+rvy*ny;
       if(rel<0){var jI=-(1.72)*rel;   // the ball is light: it takes the whole impulse (head velocity included), the head barely feels it
+       /* THE CONTACT LOFT WAS BUILT, MEASURED, AND TAKEN BACK OUT. Read this before adding one.
+          The design spec's headline change (SS5.1) was to replace this 0.26 with a geometry-derived,
+          state-dependent launch angle -- the Smash Bros. Sakurai angle. It was built three ways and
+          every one of them failed the constraint Jayden put above everything else: "I like the
+          randomness, I feel the aggression that is now, I don't want that to be ruined."
+
+          THE NUMBER THAT KILLED IT is the CLUMPING figure: what fraction of heads sit within a ball
+          radius of touching the ball at a typical moment. Measured at 1440x900, six heads, an rAF
+          sampler over ~4000 frames per configuration:
+
+            with a contact loft   6.56  6.64  6.78  7.07   (four builds: 13deg, 13deg+e.85, 30deg alone, 30deg+roof)
+            without one           9.23  9.48  9.99 10.94 12.92 14.14 15.41 15.98   (eight builds)
+
+          Twelve runs, two clean bands, no overlap: any loft on the contact costs roughly 45% of the
+          scrum, and head-to-ball contact falls with it (26.2% of frames -> 17.6%). Softening the
+          angle does not help -- 13deg costs the same as 30deg -- because the mechanism is not the
+          magnitude. Lifting the ball on contact takes it OUT OF REACH of the pile that is fighting
+          over it, and a pile with nothing to fight over disperses. The heads' rules had not changed
+          by a line in any of these builds; what changed was whether the ball was still there.
+
+          THE CONTROLS MATTER, because they say it is the loft and not the rest of this pass. The
+          kickoff sign fix alone measured 10.94 -- the scrum is untouched by it. The loft alone, with
+          the kickoff bug still fully present, measured 6.78. The two were separated deliberately.
+
+          So the ball's extra airtime has to come from somewhere that does not move the ball away
+          from the crowd: the ROOF now behaves like a surface (below), and restitution and a
+          spin-fed bounce are the named next levers -- both are pure ball physics, both keep the ball
+          in the same place horizontally while it is in the air, and neither is shipped here because
+          neither is measurably an improvement yet at this sample size. 0.26 stands. */
        var lx=nx,ly=ny-0.26,ll=Math.hypot(lx,ly)||1;lx/=ll;ly/=ll;   // LOFT: a head meets the ball with a
        // slightly upward contact normal, so a duel pops the ball UP instead of firing it flat. The
        // overlap resolution above still uses the true normal -- only the impulse is lofted.

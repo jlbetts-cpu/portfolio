@@ -2072,8 +2072,15 @@ GAZE_SAMPLER = """async ms => {
     await frame();
   }
   xs.sort((a, b) => a - b);
+  // The MEAN is the reading. Every sample is an integer -- Math.round() in
+  // updateIris() sees to that -- so a median is one of seven values and a
+  // single sample landing a pixel either way can swing it; averaged over a
+  // window the sub-pixel gaze underneath the rounding comes back out, which is
+  // what makes this readable at 320px wide, where the eyes only have about a
+  // pixel of horizontal travel to give.
   return {clean: clean && xs.length >= 20, samples: xs.length,
-          x: xs.length ? xs[xs.length >> 1] : null,
+          x: xs.length ? xs.reduce((total, v) => total + v, 0) / xs.length : null,
+          median: xs.length ? xs[xs.length >> 1] : null,
           spread: xs.length ? xs[xs.length - 1] - xs[0] : null};
 }"""
 
