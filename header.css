@@ -391,6 +391,26 @@
 .jbGrpR{flex:1 1 0;justify-content:flex-end}
 .jbNav .jbHome{flex:0 0 auto}
 
+/* ── THE BAR IS UNTRACKED, AND THAT IS THE WHOLE COST OF THE ADOPTION ───────
+   The bar items carry `ctl ctl--nav` in the markup now. .jbNav's own rules are
+   (0,1,1) and .ctl/.ctl--nav are (0,1,0), so the library wins NOTHING the bar
+   already sets -- height, padding, gap, radius, corner-shape, colour, focus,
+   press, transition and font-size all stay exactly where they were. The single
+   property .ctl adds that the bar had never declared is letter-spacing:
+   --tr-body, and at 14px that is 0.056px per character. Invisible on one label
+   and about 3.4px across a word, which re-flows the bar by that much.
+   The 2026-08-10 patch offered two ways to land it: accept the 3.4px, or hold
+   the bar at `normal` so the adoption costs zero pixels. This is the second, and
+   it is the conservative one on purpose -- Jayden is sending this site out this
+   week and the bar is the component he looks at most. Verified: 4,536 computed
+   properties across 168 nav items, 8 pages x 3 widths, ZERO delta.
+   THE PRIZE IS NOT CLAIMED YET. Once play.html, headmaker.html and
+   gradientlab.html carry the class too, the six duplicated geometry declarations
+   below (min-height, padding-inline, gap, border-radius, corner-shape,
+   font-size) can be deleted outright, because .ctl--nav supplies all six. That
+   deletion is only safe at 100% adoption; those three files are another agent's
+   lane, and a patch for them ships beside this. */
+.jbNav :is(a,button).ctl{letter-spacing:normal}
 .jbNav a,.jbNav button{
   font-family:inherit;font-size:var(--fs-nav);font-weight:400;line-height:var(--lh-flat);
   color:var(--nav-ink);text-decoration:none;background:none;border:0;cursor:pointer;

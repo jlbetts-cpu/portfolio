@@ -40,6 +40,48 @@
 .ctl--quiet{background:none;color:var(--ctl-ink);box-shadow:none}
 .ctl--quiet:hover,.ctl--quiet:focus-visible,.ctl--quiet[aria-current],
 .ctl--quiet[aria-selected="true"]{background:none;color:var(--ctl-ink-strong)}
+/* ── .ctl--on-dark ─────────────────────────────────────────────────────────
+   SPECIFIED 2026-08-09, NEVER BUILT. docs/superpowers/specs/2026-08-09-system-
+   conformance-audit.md:307 -- "controls.css: add .ctl--on-dark". Its named
+   consumer is .reelClose, the Close button on the full-screen video player,
+   which had been carrying the whole modifier privately in index.html.
+
+   WHAT A KIND IS ALLOWED TO VARY is four properties (control system §3.2), and
+   this changes exactly those four: ground, ink, rim and focus colour. Height,
+   padding, radius, tracking, transition and press all come from .ctl and are not
+   restated here -- that is the entire point of the modifier existing.
+
+   THE INK RAMP INVERTS. On a near-black ground --ctl-ink -> --i700 and
+   --ctl-ink-strong -> --c50; the rim takes the --rim-i* rungs rather than
+   --ctl-rim, which is tuned for paper.
+
+   AND THE FOCUS RING IS THE REASON THIS IS NOT COSMETIC. --ctl-focus resolves to
+   --theme-ink, which in light is #111214 -- 1.00:1 against a #121212 control and
+   ~1.1:1 against this scrim. The base ring survives on paper only because its
+   2px outline-offset lets the PAGE ground show through the gap; over a modal
+   scrim there is no page ground to borrow, so the indicator disappears exactly
+   where the audit said it would ("the moment a primary button lands on any dark
+   ground -- a reel overlay (#121212) ... the indicator disappears",
+   2026-08-08-component-adoption-audit.md:181).
+   So on this kind the ring is drawn in paper against the dark, not in ink:
+   --c50 on rgb(18,18,18) is 18.4:1. This is the ONE kind that has to override
+   --ctl-focus, and it overrides it by rebinding the token rather than by
+   restating the outline, so a future change to --focus-w or --sp-2 still reaches
+   it. Rebinding --ctl-focus is scoped to this control and is not the forbidden
+   "rebind --accent locally": --ctl-focus is a semantic alias, --accent is not.
+
+   STILL OPEN, and deliberately not attempted here: giving the BASE ring the
+   two-tone construction .ctl--range and .ctl--swatch already ship (controls.css
+   :244-275). That reaches every control on ten pages and would have to compose
+   with each modifier's own box-shadow list; it wants its own pass. */
+.ctl--on-dark{
+ --ctl-focus:var(--c50);
+ background:var(--mat-i3-solid);color:var(--i700);box-shadow:var(--rim-i1)
+}
+.ctl--on-dark:hover,.ctl--on-dark:focus-visible,
+.ctl--on-dark[aria-expanded="true"],.ctl--on-dark[aria-pressed="true"]{
+ background:var(--mat-i3-solid);color:var(--c50);box-shadow:var(--rim-i2)
+}
 .ctl--row{width:100%;justify-content:flex-start;text-align:left}
 .ctl--choice{padding-left:var(--sp-32)}
 .ctl--choice[aria-checked="true"]{color:var(--ctl-ink-strong);font-weight:600}

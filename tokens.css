@@ -167,6 +167,12 @@
     NOT mirrored arithmetically from the light rungs. */
  --mat-i1:rgba(18,18,18,.58);--mat-i2:rgba(18,18,18,.70);--mat-i3:rgba(18,18,18,.82);
  --mat-i3-solid:rgb(18,18,18);
+ /* i4 is the MODAL SCRIM rung, and it extends the ladder rather than starting a
+    second one. The reel overlay carried rgba(15,15,15,.92): the right density,
+    the wrong ink -- 15 where every other inverse material on this site is 18.
+    At 92% the 3/255 is not visible, so this is a rename, not a retune, and it
+    means the player's ground now moves with the ramp like everything else. */
+ --mat-i4:rgba(18,18,18,.92);
  --rim-i1:inset 0 0 0 1px rgba(253,253,253,.14);
  --rim-i2:inset 0 0 0 1px rgba(253,253,253,.22);
  --sh-i2:0 8px 28px rgba(0,0,0,.28);--sh-i3:0 12px 36px rgba(0,0,0,.36);
@@ -840,6 +846,26 @@
  --floating-control-inset:var(--surface-gutter);
  --layer-floating-control:90;
  --layer-skip-link:200;
+
+ /* THE MODAL RUNG, AND IT EXISTS BECAUSE A COMMENT HAD STOPPED BEING TRUE.
+    header.css:67 pins .jbStick at z-index 100 and justifies it with a list of
+    what still outranks the bar: "everything the site deliberately puts OVER the
+    header (the reel overlay at 130, the toasts at 200+) still wins."
+    The reel overlay was at 90. Both are <body> children, so the header simply
+    painted over the whole player -- and MEASURED, that put the header's contact
+    disc on top of the Close button: at 1280 it covered 57 of its 71px and at 390
+    elementFromPoint returned .jbDiscGo at all three sampled points, i.e. the
+    close control was 100% dead to a tap. At 1440 the nav ends at x=1320 and the
+    button starts at 1343, which is the only reason it has ever worked.
+    130 is not a new number -- it is the one header.css already documents. Naming
+    it makes the bar's own comment true again, and the next thing that needs to
+    sit over the header takes the rung instead of guessing. 131 is its control,
+    scoped inside the scrim's own stacking context.
+    (.csInfoCard 130 / .csCursor 131 in index.html do NOT collide: both live
+    inside .wrap, which is a z-index:62 stacking context, so their numbers are
+    only ever compared with each other.) */
+ --layer-modal:130;
+ --layer-modal-control:131;
 
  /* THE BUILDERS' PANEL. headmaker.html and gradientlab.html are the same
     archetype -- an artifact beside an inspector -- and each declared its own name
