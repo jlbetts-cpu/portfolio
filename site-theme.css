@@ -442,3 +442,64 @@ html{scrollbar-color:var(--theme-muted) var(--theme-page)}
  :focus-visible{outline-color:CanvasText;outline-style:solid}
  .jbDiscMenu,.specimenOutline,.specimen-outline{box-shadow:0 0 0 var(--hair-w) CanvasText inset}
 }
+
+/* ── THE COVERS CHANGE PICTURE WHEN THE HOUR DOES, AND THEY WERE CUTTING ──────
+   Jayden: "I notice it most prevalently in the thumbnails when the time
+   changes." Measured, at 33fps against the DOM rather than the rasteriser: the
+   cover's currentSrc goes from daytime-1200.webp to night-1200.webp between two
+   consecutive animation frames, and the recorded opacity across all 67 frames
+   is the single value "1". There is no transition to be slow -- there was never
+   a transition at all. time-aware-thumbnails.js set .src and the raster changed
+   on the next paint.
+
+   THIS IS A CROSS-FADE, NOT A SKELETON, and the distinction decides the whole
+   task. A skeleton stands in for content that is not there yet. Here the
+   picture IS there -- the controller decodes the incoming variant before it
+   commits, precisely so the swap cannot show a half-drawn image -- and a
+   fully-decoded picture replacing another fully-decoded picture wants the two
+   overlapped, not a grey box between them. Putting a skeleton here would insert
+   an absence that does not exist and make the change longer AND emptier.
+
+   WHY 640ms AND NOT A LADDER RUNG. hero-time.css:24 already settled this for
+   the scene: "an hour change is one continuous 640ms event", and :207 records
+   that anything landing on a different clock than the sky read as a pop. The
+   covers are part of that scene -- they change BECAUSE the hour did. So this
+   consumes --hero-time-duration rather than picking --dur-enter and quietly
+   desynchronising the covers from the sky by 140ms. The fallback is the
+   ladder's slowest rung, for any page that ever loads this file without
+   hero-time.css.
+
+   COMPOSITE-ONLY. opacity on an out-of-flow node, nothing else. The ghost is
+   position:absolute so it contributes no layout, which is why CLS does not
+   move; .csFrame's aspect-ratio had already reserved the box. */
+.csImgOut{
+ position:absolute;inset:0;width:100%;height:100%;
+ object-fit:cover;display:block;pointer-events:none;
+ border-radius:var(--r-xl);corner-shape:var(--corner);
+ opacity:1;
+ transition:opacity var(--hero-time-duration,var(--dur-enter)) var(--hero-time-ease,var(--ease-out));
+}
+.csImgOut[data-time-fade="out"]{opacity:0}
+
+/* A cover that genuinely was not there yet -- a lazy one the visitor has just
+   scrolled to -- arrives rather than swaps, so it gets the in-place rung and no
+   ghost. Only ever set by the controller on an image it has WATCHED fail the
+   already-fetched test, and cleared on load, on error, and by a timeout that
+   cannot be reached by a code path, so there is no state in which the markup's
+   own opacity:1 stays overridden. Absent JS this attribute never appears. */
+.csImg[data-time-arrive="pending"]{opacity:0}
+.csImg[data-time-arrive="in"]{
+ opacity:1;
+ transition:opacity var(--dur-reveal) var(--ease-out);
+}
+
+/* SUBSTITUTE, DO NOT STOP. Apple's guidance is that reduce means "swap the
+   animation for a cross-fade", not "delete the animation" -- and here the
+   animation IS a cross-fade already, with zero movement in it. Removing it
+   would restore the hard cut that prompted this work, which is the harsher
+   result for the person who asked for less motion. So the fade stays and only
+   its clock shortens, to the state rung. */
+@media(prefers-reduced-motion:reduce){
+ .csImgOut{transition-duration:var(--dur-state)}
+ .csImg[data-time-arrive="in"]{transition-duration:var(--dur-state)}
+}
