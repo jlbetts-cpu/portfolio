@@ -1,0 +1,66 @@
+Reflection depth should be a property of the floor, not of the head standing on it.
+Hand-off from the soccer-engine lane to whoever owns play.css. Apply with:
+
+    git apply docs/superpowers/patches/2026-08-11-play-css-reflection-depth.patch
+
+WHY. The falloff mask is written in percentages of the .hmRefl element, and that element
+is HH tall, so every head shows the same FRACTION of its own height. Measured at 1440 with
+a normal head and mini-Jayden in one frame: element heights 129.6px and 194.4px (ratio
+1.500, exactly his size ratio), drawn depths 77.6px and 117.5px, depth/HH 0.599 vs 0.605 --
+identical fractions, 1.5x the depth. That is why more of his reflection shows.
+
+It is the wrong law. The fade is the water giving out, and there is one waterline: the feet
+plane every head shares. A head being 1.5x taller does not make the water 1.5x clearer, so
+the image should die at the same depth below that one line for everybody. play-engine.js
+already sets --refl-k on each .hmRefl (1 for a normal head, 0.6667 for the 1.5x mini-Jayden);
+this patch is the half that consumes it.
+
+SAFE BY CONSTRUCTION. Every stop is calc(N% * var(--refl-k,1)) and the rule declares
+--refl-k:1, so a head with the property unset renders byte-for-byte what it renders today.
+Only mini-Jayden moves. Both the water mask and the lobby (body.pHubOn) mask are covered,
+including the @supports ripple variant, so the pitch and the polished floor stay consistent.
+
+VERIFY AFTER APPLYING: mini-Jayden's drawn reflection depth should land at ~77.6px, matching
+a normal head, instead of 117.5px -- and depth/HH should then differ between them (0.40 vs
+0.60), which is the point: shared depth, not shared fraction.
+--- a/play.css
++++ b/play.css
+@@ -562,22 +562,22 @@
+ 
+    The vertical compression that goes with all this is a scale factor in the engine, not here --
+    see REFL_PERSP in play-engine.js for the camera it is derived from. */
+-.hmRefl{position:absolute;left:0;top:0;z-index:1;pointer-events:none;opacity:0;
++.hmRefl{position:absolute;left:0;top:0;z-index:1;pointer-events:none;opacity:0;--refl-k:1;
+  transform-origin:50% 94%;will-change:transform,opacity;
+  background-repeat:no-repeat;background-size:100% 100%;
+  filter:saturate(.42) contrast(.72) brightness(1.06);
+- -webkit-mask-image:linear-gradient(to top,#000 0%,rgba(0,0,0,.78) 12%,rgba(0,0,0,.34) 34%,rgba(0,0,0,.12) 56%,transparent 74%);
+-         mask-image:linear-gradient(to top,#000 0%,rgba(0,0,0,.78) 12%,rgba(0,0,0,.34) 34%,rgba(0,0,0,.12) 56%,transparent 74%)}
++ -webkit-mask-image:linear-gradient(to top,#000 0%,rgba(0,0,0,.78) calc(12% * var(--refl-k,1)),rgba(0,0,0,.34) calc(34% * var(--refl-k,1)),rgba(0,0,0,.12) calc(56% * var(--refl-k,1)),transparent calc(74% * var(--refl-k,1)));
++         mask-image:linear-gradient(to top,#000 0%,rgba(0,0,0,.78) calc(12% * var(--refl-k,1)),rgba(0,0,0,.34) calc(34% * var(--refl-k,1)),rgba(0,0,0,.12) calc(56% * var(--refl-k,1)),transparent calc(74% * var(--refl-k,1)))}
+ /* The ripple layer is added only where the compositing keyword actually works. Without
+    mask-composite the two layers would default to `add` -- a UNION, which would undo the falloff and
+    make the reflection more solid rather than less. So the base rule above stands alone as the
+    fallback and this is purely additive. */
+ @supports ((mask-composite:intersect) or (-webkit-mask-composite:source-in)){
+  .hmRefl{
+-  -webkit-mask-image:linear-gradient(to top,#000 0%,rgba(0,0,0,.78) 12%,rgba(0,0,0,.34) 34%,rgba(0,0,0,.12) 56%,transparent 74%),
++  -webkit-mask-image:linear-gradient(to top,#000 0%,rgba(0,0,0,.78) calc(12% * var(--refl-k,1)),rgba(0,0,0,.34) calc(34% * var(--refl-k,1)),rgba(0,0,0,.12) calc(56% * var(--refl-k,1)),transparent calc(74% * var(--refl-k,1))),
+    repeating-linear-gradient(180deg,#000 0 9px,rgba(0,0,0,.42) 10px,rgba(0,0,0,.72) 12px,#000 16px);
+   -webkit-mask-composite:source-in;
+-  mask-image:linear-gradient(to top,#000 0%,rgba(0,0,0,.78) 12%,rgba(0,0,0,.34) 34%,rgba(0,0,0,.12) 56%,transparent 74%),
++  mask-image:linear-gradient(to top,#000 0%,rgba(0,0,0,.78) calc(12% * var(--refl-k,1)),rgba(0,0,0,.34) calc(34% * var(--refl-k,1)),rgba(0,0,0,.12) calc(56% * var(--refl-k,1)),transparent calc(74% * var(--refl-k,1))),
+    repeating-linear-gradient(180deg,#000 0 9px,rgba(0,0,0,.42) 10px,rgba(0,0,0,.72) 12px,#000 16px);
+   mask-composite:intersect}}
+ /* ============ THE LOBBY FLOOR IS REFLECTIVE TOO ============================================
+@@ -622,8 +622,8 @@
+    because they stand on something, and the reflection is now the second reading of that same fact. */
+ body.pHubOn .hmRefl{
+  filter:saturate(.72) contrast(.66) brightness(1.12);
+- -webkit-mask-image:linear-gradient(to top,#000 0%,rgba(0,0,0,.62) 8%,rgba(0,0,0,.24) 22%,rgba(0,0,0,.07) 38%,transparent 52%);
+-         mask-image:linear-gradient(to top,#000 0%,rgba(0,0,0,.62) 8%,rgba(0,0,0,.24) 22%,rgba(0,0,0,.07) 38%,transparent 52%);
++ -webkit-mask-image:linear-gradient(to top,#000 0%,rgba(0,0,0,.62) calc(8% * var(--refl-k,1)),rgba(0,0,0,.24) calc(22% * var(--refl-k,1)),rgba(0,0,0,.07) calc(38% * var(--refl-k,1)),transparent calc(52% * var(--refl-k,1)));
++         mask-image:linear-gradient(to top,#000 0%,rgba(0,0,0,.62) calc(8% * var(--refl-k,1)),rgba(0,0,0,.24) calc(22% * var(--refl-k,1)),rgba(0,0,0,.07) calc(38% * var(--refl-k,1)),transparent calc(52% * var(--refl-k,1)));
+  -webkit-mask-composite:source-over;mask-composite:add}
+ /* Reflections are the first thing to drop on a phone (research §5), where the full-screen arena also
+    puts the waterline on the viewport floor with nothing under it to reflect into. That call is kept
