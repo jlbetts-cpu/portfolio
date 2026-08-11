@@ -502,3 +502,113 @@ You have spent a year making things nobody asked you to make — a playable habi
 your own brain, a portfolio you keep rebuilding, a soccer match hidden inside it. That instinct is
 the thing most junior designers cannot demonstrate and the thing that posting is explicitly asking
 for. The rest of the market being empty is a fact about the market. This one is a fact about you.
+
+---
+
+## Sector sweeps that ran after the shortlist — checked 11 August 2026
+
+Three further sweeps enumerated full job inventories through employer ATS APIs rather than
+keyword search, so these are coverage claims, not samples. **All three came back nearly empty,
+and that is the finding.**
+
+### Finance / fintech — 13 companies, one role, and it is not product design
+
+**Bank of America — Experience Design (XD) I, Product Design** is the closest miss anywhere in
+this sweep and is worth a stretch application despite the years line:
+
+- Req 26024467, posted 07 Aug 2026. **San Francisco (315 Montgomery) is a listed location**,
+  alongside New York, Seattle, Boston, Charlotte, Pennington NJ.
+- <https://careers.bankofamerica.com/en-us/job-detail/26024467/experience-design-xd-i-product-design-bank-of-america-experience-design-multiple-locations>
+- Excluded on: *"3+ years of industry design experience in a role demonstrating multidisciplinary
+  product design, with a portfolio showcasing your proven expertise."*
+- **Salary published: $111,800–$137,600.** No graduation-year language.
+- **Why apply anyway:** "XD I" is BofA's *entry rung* and the requisition recurs. Your Head of UX
+  role since April 2026 is the argument against the 3-year line, and the pay band is public so
+  there is no guesswork.
+
+The only finance role that clears a 0–2 year bar is **Goldman Sachs — PWM Marketing Designer,
+Analyst, Miami** (<https://higher.gs.com/roles/179114>, 1–3 years, internships count, no grad-year
+gate) — but it is **marketing and presentation design, not product or UX**. Apply only if you would
+take that discipline.
+
+**The structural finding matters more than the listings.** JPMorgan's design ladder *starts* at
+Senior Associate — there is no plain Associate rung. Truist has no design roles at all. Intuit's
+lowest design title is Staff. Vanguard's floor is 5 years.
+
+> **In finance, the binding constraint is not the 2026-vs-2027 graduation gate — none of these
+> postings mention graduation year at all. It is that these firms do not open design roles below
+> three years.** Your Head of UX role is the lever here, not new-grad eligibility.
+
+### Retail / consumer / media — thin, and "Designer" usually means apparel
+
+**Target — UX Product Designer, Stores** was the strongest genuine entry-level fit found in any
+sweep — *"Relevant product design experience through professional work, internships, or equivalent
+experience"*, $75,400–$135,700, Minneapolis hybrid — **but its application window closed 12 Aug
+2026.** Check whether it has reposted before assuming it is gone.
+
+Still live and borderline: **Warner Bros. Discovery — Product Designer II, New Business (CNN)**,
+NY/Atlanta/DC, 2+ years, $83,993–$155,987. And **The Home Depot — UX Designer II**, Atlanta, where
+the *hard* floor is only "18 and legally permitted to work" and the 2–4 years sits in *preferred*
+with **a degree offered as an explicit alternative**.
+
+Of roughly twenty retail and media companies, **fourteen have zero open entry-level digital design
+roles.** The recurring trap: "Designer" at these companies overwhelmingly means apparel, graphic or
+store design.
+
+### Automotive / aerospace / healthcare — nothing
+
+Zero qualifying. GM wants 2+ years and industrial-design skills onsite in Michigan; Northrop
+requires an **active Secret clearance at time of application**; Boeing's degree list names
+engineering and cognitive psychology but not design. **Bay Area: nothing.**
+
+### One method note worth keeping
+
+Several listings that rank highly in search return **HTTP 200 and render "this page no longer
+exists" in JavaScript** — Walmart's design reqs and a TikTok graduate posting both do this. A link
+checker would report them healthy. Fetch and read the body, never trust a status code.
+
+### Consulting / agency — the best no-gate role found anywhere
+
+**Accenture (Accenture Song / Work & Co) — "Designer"** ⭐ **apply immediately**
+
+- <https://accenture.wd103.myworkdayjobs.com/en-US/AccentureCareers/job/Brooklyn-231-Front-St-Song/Designer_R00334677>
+- **Basic Qualifications, in full:** *"Portfolio or samples of work demonstrating digital product design."*
+  **No years-of-experience requirement anywhere in the posting.** No graduation-year language.
+  Across twelve consulting and agency firms this is the only role with no experience gate at all.
+- **Lists San Francisco (415 Mission), Mountain View, Walnut Creek, Sacramento, LA and Seattle**
+  among 45+ US offices. Work & Co is Accenture Song's product-design studio — genuine digital
+  product design, not marketing creative.
+- Pay is hourly and stated by state: California **$26.39–$77.88**.
+- ⚠️ **The risk, stated plainly:** the body says *"We anticipate this job posting will be posted
+  until 07/21/2026."* That date has passed. The requisition is still returned by Accenture's live
+  API and I re-fetched the page today — HTTP 200, no expiry markers, full job body. **Treat it as
+  open-but-aging and apply before researching anything else.**
+
+**BCG — AI Experience Designer, BCG X** — New York + Pittsburgh, 50% travel.
+<https://careers.bcg.com/global/en/job/57535/AI-Experience-Designer-United-States-BCG-X>
+*"1–4 years of professional experience designing digital products at scale"* — you are at the
+bottom of that band, and the level is explicitly **Associate**. No graduation-year gate; degree
+merely has to be completed before starting. **First-year base $122,400–$136,000.** Verified live.
+
+**Epsilon (Publicis) — Product Designer**, Irving TX / Chicago, 2+ years, $55,400–$102,800,
+updated today. <https://careers.publicisgroupe.com/jobs/165822?lang=en-us> Verified live.
+
+**Empty:** Deloitte Digital (all 919 US reqs crawled — zero product/UX design below Manager),
+PwC (all 466 — zero design titles), EY (only Senior), IDEO (every design title Senior or Lead),
+Huge (zero design roles), frog/Capgemini (all 532 — the one design title is mechanical
+engineering), Slalom (5+ years), Publicis Sapient (33 US reqs, none design).
+
+**Unresolved, not empty:** **McKinsey** and **IBM** are network-blocked from this environment.
+IBM in particular surfaced several plausible UX and Product Designer requisition IDs that could
+not be opened to confirm. Both need a browser session — **do not read their absence as "nothing
+open."**
+
+### A verification note that cuts both ways
+
+I check listings for "no longer available" strings before trusting them. On BCG and Publicis that
+heuristic **produced false positives**: BCG's match was a *hidden* `job-expired-view` element — hidden
+precisely because the job is not expired — and Publicis's were untriggered template strings while the
+page title read the real job. Both are live.
+
+So: a status code lies about dead jobs, and a keyword search lies about live ones. **Read the rendered
+body.**
