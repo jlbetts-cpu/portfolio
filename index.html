@@ -187,20 +187,39 @@ body.catchReady #stageMorph{transform:scale(1.055)}
    running: 1440 -> covering the lowest 149.7px of the head, 390 -> 118.7px,
    320 -> 116.0px. That is 52-54% of the head at every width -- the mouth, the
    moustache and the chin, which is precisely the performance.
-   So the anchor is the chin itself. --movie-chin-y is published per frame by
-   hero-engine's syncMovieEffectsLayer() from the LIVE data-head-bounds of the
-   face currently in #face, in the effects stage's own coordinates, and the
-   bucket's TOP hangs --hero-chin-gap below it. The bucket may now run past the
-   Hero's lower edge; .heroMovieEffectsClip crops it there, which is what a
-   bucket held below the frame line should look like and is exactly the
-   containment the design spec already asks for.
+   So the anchor is the chin itself -- and it now OVERLAPS it. Jayden, looking
+   at the previous pass: "popcorn is now too far it should be sitting right by
+   the chin covering just a little of the chin." A gap reads as two objects; a
+   small overlap reads as one being held in front of the other. hero-engine
+   publishes --movie-bucket-top per frame with that overlap already in it,
+   measured from the chin of the face currently on screen, and this rule simply
+   consumes it. The bucket may run past the Hero's lower edge;
+   .heroMovieEffectsClip crops it there, which is what a bucket held below the
+   frame line should look like.
+   --hero-chin-gap IS GONE. It was var(--sp-8), and 8px is exactly the kind of
+   fixed constant that is right at one head size and wrong at every other; the
+   overlap that replaced it is a share of the head, in hero-engine, next to the
+   measurement that makes it meaningful.
    A LEAN, NOT A PIN. Everything else in this scene has orientation -- the head
    rests tilted, the rim tracks the sun and swings as the head moves -- so a
    bucket locked to vertical read as pasted on. `rotate` is an INDEPENDENT
    property here on purpose: hero-engine writes .style.transform on every movie
    frame, so a rotate() inside transform would be overwritten, while the
    separate property composes with it and survives. The lean leans away from
-   the light, using the same signed --time-light-dir as the rim. */
+   the light, using the same signed --time-light-dir as the rim.
+   AND IT SUBTRACTS THE HEAD'S OWN ANGLE, because the layer around it is the
+   head's frame now and turns with it. Popcorn obeys gravity: a bucket that
+   rolled to -26deg because its owner tilted his head would be pouring itself
+   out. Subtracting --movie-head-rot leaves the bucket standing up with only its
+   own lean, which is exactly how it has always painted.
+   THE PIVOT IS THE RIM, and that is what makes the placement exact rather than
+   nearly right. `rotate` turns the box about transform-origin, so with the old
+   50% 78% the rim swung sideways by 0.7583 x height x sin(lean) -- 15px at 1440
+   at rest, and 28px once the head is turned far enough for the counter-rotation
+   above to be large. Pivoting on the rim itself makes the one point this rule
+   is trying to place invariant under its own lean, at any angle and any hour,
+   with no trigonometry anywhere. 2.17% is measured: the topmost opaque row of
+   bucket.webp within its own centre band. */
 /* AND THE CENTRING CANNOT LIVE IN THE TRANSFORM, because `rotate` is applied
    OUTSIDE it: the resolved matrix is translate -> rotate -> scale -> transform,
    so a translateX(-50%) inside the list is turned by the lean above. Measured
@@ -212,11 +231,16 @@ body.catchReady #stageMorph{transform:scale(1.055)}
    translateX(-50%) for this host to match; every other host keeps it. */
 #heroMovieEffectsStage .popbucket{
  left:0;right:0;margin-inline:auto;transform:none;
- top:calc(var(--movie-chin-y,92%) + var(--hero-chin-gap,8px));bottom:auto;
- rotate:calc(var(--pop-tilt,-7deg) - var(--time-light-dir,0) * 5deg)
+ width:var(--movie-bucket-w,44%);
+ top:var(--movie-bucket-top,92%);bottom:auto;
+ transform-origin:50% var(--pop-rim,2.17%);
+ rotate:calc(var(--pop-tilt,-7deg) - var(--time-light-dir,0) * 5deg - var(--movie-head-rot,0deg))
 }
 .heroMovieEffectsClip{position:absolute;inset:0;z-index:4;overflow:clip;border-radius:inherit;corner-shape:inherit;pointer-events:none}
-.heroMovieEffectsStage{position:absolute;left:0;top:0;width:0;height:0;transform-origin:50% 50%;pointer-events:none;will-change:transform;--hero-chin-gap:var(--sp-8)}
+/* transform-origin:0 0 because hero-engine writes this element's transform as a
+   bare matrix() basis measured off the stage's own corners -- an origin
+   anywhere else would offset the frame by the origin's own displacement. */
+.heroMovieEffectsStage{position:absolute;left:0;top:0;width:0;height:0;transform-origin:0 0;pointer-events:none;will-change:transform}
 .dlogo{border-radius:var(--r-2xs);position:absolute;width:21%;height:21%;opacity:0;backface-visibility:hidden;will-change:transform,left,top,opacity;filter:drop-shadow(0 3px 8px rgba(0,0,0,.22))}
 .dshadow{position:absolute;border-radius:50%;background:radial-gradient(ellipse 50% 50% at 50% 50%,rgba(8,8,8,.5),rgba(8,8,8,.3) 40%,rgba(8,8,8,.12) 62%,transparent 76%);transform:translate(-50%,-50%);z-index:-1;pointer-events:none;opacity:0;will-change:transform,left,top,width,height,opacity}
 .grain{position:absolute;top:0;left:0;right:0;height:165vh;z-index:60;pointer-events:none;background-image:url(images/overlay.webp);background-size:150px 150px;mix-blend-mode:overlay;opacity:.28;-webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 40%,transparent 58%);mask-image:linear-gradient(to bottom,#000 0%,#000 40%,transparent 58%)}
@@ -272,11 +296,13 @@ body.catchReady #stageMorph{transform:scale(1.055)}
 .reelFrame.fine{cursor:none}.reelFrame{transition:transform 0s linear,width 0s}
 
 .reelVid{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
-.reelPh{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;background:var(--c600);color:var(--c100);text-align:center;padding:8px}
-.reelPh .l{font-family:var(--sans);font-weight:600;font-size:clamp(22px,3.4vw,46px);filter:url(#inkSm)}
-.reelPh .s{font-size:var(--fs-caption);letter-spacing:.01em;text-transform:none;opacity:.66}
-.reelCap{position:absolute;left:16px;bottom:13px;color:var(--c50);font-size:var(--fs-micro);letter-spacing:.01em;text-transform:none;opacity:0;transition:opacity var(--dur-enter) var(--ease-out);mix-blend-mode:difference}
-.reelFrame.big .reelCap{opacity:.9}
+/* .reelPh (a poster placeholder), .reelCap and .reelFrame.big .reelCap stood
+   here. NONE of the three elements exists in this document -- checked against
+   the live DOM at 1440, 390 and 320, not by reading the markup -- and .big is
+   only ever set by the pinned scroll-grow, which is retired. They were the
+   source of the off-grid literals in this block (left:16px, bottom:13px, an
+   8px gap and an 8px pad written as numbers rather than rungs); the honest fix
+   for spacing on rules that style nothing is to delete the rules. */
 .reelTap{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:3;display:none;align-items:center;justify-content:center;border:0;border-radius:4px;background:var(--c50);color:var(--c950);font-size:var(--fs-small);font-weight:400;white-space:nowrap;cursor:pointer;filter:url(#inkSm)}
 .reel.coarse .reelTap{display:flex}
 .reelTap .tri,.playCursor .tri{width:0;height:0;border-style:solid;border-width:7px 0 7px 12px;border-color:transparent transparent transparent var(--c950);margin-left:1px}
@@ -329,10 +355,11 @@ body.catchReady #stageMorph{transform:scale(1.055)}
    a control is DRAWN, the page owns where it SITS, and this control sits in a
    place only the overlay knows about. */
 .reelOverlay .reelClose{position:fixed;top:var(--sp-24);right:var(--sp-24);z-index:var(--layer-modal-control)}
-.reelOverlay .reelYtLink{position:fixed;left:50%;bottom:var(--sp-24);transform:translateX(-50%);z-index:var(--layer-modal-control);color:var(--i700);font-size:var(--fs-caption);letter-spacing:var(--tr-body);text-decoration:none}
-.reelYt{position:absolute;inset:0;width:100%;height:100%;border:0;z-index:1;pointer-events:none}
-.reelOverlayYt{width:min(92vw,calc(86vh * 16 / 9));aspect-ratio:16/9;background:#000;border:0;transform:scale(.82);transition:transform var(--dur-state-out) var(--ease-out)}
-.reelOverlay.on .reelOverlayYt{transform:scale(1);transition:transform var(--dur-reveal) var(--ease-out)}
+/* THE YOUTUBE PATH IS GONE AND ITS STYLING WENT WITH IT. .reelYtLink, .reelYt
+   and .reelOverlayYt had four rules between them and not one matching element
+   in the document; hero-engine still looks #reelOverlayYt up and gets null. The
+   player plays videos/reel.mp4 directly. Four fewer rules describing a surface
+   that cannot appear is four fewer things to keep on the system. */
 @media(max-width:760px){.reelTrack{height:auto}.reelStage{position:relative;height:auto;padding:8vh 0}}
 @media(prefers-reduced-motion:reduce){.reelFrame{transform:scale(.92)}}
 /* ===== Disco party easter egg ===== */
@@ -913,8 +940,7 @@ body.heroEmpathy .jbStick .jbNav{--nav-mat:var(--ctl-ground);--nav-rim:var(--ctl
 .csFrame,          /* 1200 x 600  case-study cover frame */
 .csImg,            /* 1200 x 600  its image */
 .cover,.cover img, /* 1103 x 460 */
-.reelOverlayVid,   /* 1110 x 624  the full-screen player */
-.reelOverlayYt{
+.reelOverlayVid{   /* 1354 x 761  the full-screen player, measured at 1440 */
   border-radius:var(--r-xl);corner-shape:var(--corner)}
 /* 200-899px -- sits INSIDE the column rather than filling it. */
 .moodMenu,         /*  196 wide   menu surface */
