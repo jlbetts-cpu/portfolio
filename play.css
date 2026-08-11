@@ -827,7 +827,19 @@ body.playViewportOwned .siteFoot{display:none}
    800 loads a genuine instance and the browser synthesises nothing. It is also
    invisible to any at-rest census, including the 2026-08-09 audit's: .bcNum has
    zero nodes until a tournament is running. Third weight in the codebase, second
-   family, no synthesis, and deliberate. */
+   family, no synthesis, and deliberate.
+
+   2026-08-10 -- IT IS NOW ENFORCED RATHER THAN ASSERTED, because a paragraph is
+   not what stops a census re-reporting this next month. tools/play-screens-
+   contract.py starts a cup and checks the three facts the exception actually
+   rests on: that Archivo's @font-face declares a real `100 900` axis (so 800 is
+   an instance, not a faux-bold), that exactly ONE selector in one sheet names
+   the family, and that .bcNum has zero nodes once the cup ends. If the
+   broadcast register ever leaks past the scoreboard, the second of those fails
+   by name. Do not re-open this without reading that file -- and note it took
+   three attempts to write a CSSOM walk that could even SEE this rule: a nested
+   -rules recursion skips every style rule, and `style.fontFamily` reads back
+   empty because the value contains var(--sans). */
 .bcNum{font-family:'Archivo',var(--sans);font-variant-numeric:tabular-nums lining-nums;
   font-variation-settings:'wdth' 68;font-weight:800;letter-spacing:.01em}
 /* ---- MATERIALS. Two shadows one light (down-right, matching the head photos --

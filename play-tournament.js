@@ -260,12 +260,21 @@ function champConfetti(rgb){
                    + 'pointer-events:none;z-index:64';
   document.body.appendChild(cv);
   var g = cv.getContext('2d'), P = [], N = 190, dead = false, dpr = Math.min(2, devicePixelRatio || 1);
-  function size(){ cv.width = Math.round(innerWidth * dpr); cv.height = Math.round(innerHeight * dpr);
+  /* THE VIEWPORT IS READ ON RESIZE, NEVER IN THE FRAME. innerWidth/innerHeight
+     are layout-dependent: asking for either can flush pending style and layout,
+     and this loop asked four times a frame plus twice for every particle it
+     recycled -- with 190 confetti at 60fps that is hundreds of chances a second
+     to stall on a tree somebody else just dirtied. size() already runs on
+     `resize` and is already the one place this canvas learns how big it is, so
+     it is the honest place to cache them. The loop below now only writes. */
+  var W = 0, H = 0;
+  function size(){ W = innerWidth; H = innerHeight;
+                   cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
                    g.setTransform(dpr, 0, 0, dpr, 0, 0); }
   size();
   function seed(p, high){
-    p.x = Math.random() * innerWidth;
-    p.y = high ? -20 - Math.random() * innerHeight : -20 - Math.random() * 140;
+    p.x = Math.random() * W;
+    p.y = high ? -20 - Math.random() * H : -20 - Math.random() * 140;
     p.vy = 70 + Math.random() * 110;
     p.ph = Math.random() * 6.28; p.sw = 14 + Math.random() * 30; p.fq = 0.8 + Math.random() * 1.4;
     p.w = 5 + Math.random() * 5; p.h = 3 + Math.random() * 4;
@@ -278,8 +287,8 @@ function champConfetti(rgb){
   function frame(now){
     if (dead) return;
     var d = Math.min(0.05, (now - last) / 1000); last = now; t += d;
-    var ground = innerHeight - 4;
-    g.clearRect(0, 0, innerWidth, innerHeight);
+    var ground = H - 4;
+    g.clearRect(0, 0, W, H);
     for (var i = 0; i < P.length; i++){
       var p = P[i];
       if (p.landed){
@@ -808,6 +817,14 @@ function between(){
 // ---------- UI ----------
 var host = null;
 function el(tag, cls, txt){ var e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; }
+/* THE SHARED CONTROL CLASSES, named once so a chip cannot be built two ways.
+   controls.css owns the geometry, the material, the focus ring, the press scale
+   and the motion rungs for both of these; tournament.css adds placement and the
+   one state (.tvArmed) the library has no name for. `.ctl--sm` is the 36px rung
+   -- legal here because it ships its own 44px ::after hit pad, which is the
+   tokens rule for a control whose ink box is under the tap minimum. */
+var CHIP = 'ctl ctl--secondary ctl--sm';
+var GO   = 'ctl ctl--primary';
 
 /* ---- THE SCREEN. One fixed element, banded off svh.
 
@@ -1037,7 +1054,7 @@ function openSheet(){
   /* The sheet is where the cup's name lives on a phone: the strip drops it under
      560px because it cannot carry the name, the round and two controls at once. */
   hd.appendChild(el('h2','tvSheetTitle', (T.cup || 'Cup') + ' · the draw'));
-  var x = el('button','tvChip','Close'); x.type = 'button';
+  var x = el('button','tvChip ' + CHIP,'Close'); x.type = 'button';
   x.addEventListener('click', closeSheet); hd.appendChild(x);
   s.appendChild(hd);
   var board = el('div','tvSheetBoard');
@@ -1086,8 +1103,10 @@ function paint(){
   if (nm2 && !done2) sr.appendChild(el('span', 'tvDist', distText(nm2, total)));
   /* Phone only -- above 760px the rail already shows all three rounds, so this
      opens a copy of what is on screen. tournament.css hides it there. */
-  var boardBtn = el('button', 'tvChip tvChipDraw'); boardBtn.type = 'button';
+  var boardBtn = el('button', 'tvChip tvChipDraw ' + CHIP); boardBtn.type = 'button';
+  boardBtn.setAttribute('aria-label', 'The draw');
   boardBtn.appendChild(el('span', 'tvChipLbl', 'The draw'));
+  boardBtn.appendChild(el('span', 'tvChipLblSm', 'Draw'));
   boardBtn.addEventListener('click', function(e){ e.stopPropagation(); openSheet(); });
   sr.appendChild(boardBtn);
 
@@ -1097,16 +1116,25 @@ function paint(){
      is the scoped replacement: it belongs to the tournament, so it can end the
      cup without ending the visit. Two-tap arm, because it is destructive and
      it now sits next to a button people will actually press. */
-  var quit = el('button', 'tvChip'); quit.type = 'button';
-  var qLbl = el('span', 'tvChipLbl', done2 ? 'Leave the cup' : 'Leave the cup');
-  quit.appendChild(qLbl);
+  var quit = el('button', 'tvChip ' + CHIP); quit.type = 'button';
+  quit.setAttribute('aria-label', 'Leave the cup');
+  var qLbl = el('span', 'tvChipLbl', 'Leave the cup');
+  /* The phone's copy of the same word. See tournament.css's .tvChipLblSm: under
+     560px the strip cannot carry the round name and two full-length buttons, so
+     the buttons shorten and the aria-label above keeps the whole phrase. */
+  var qLblSm = el('span', 'tvChipLblSm', 'Leave');
+  quit.appendChild(qLbl); quit.appendChild(qLblSm);
   var armed = false, armT = 0;
+  /* The ARMED warning is written to BOTH spans, so the one thing on this strip
+     that must never be truncated is the one thing that reads identically at
+     every width. */
+  function say(full, short){ qLbl.textContent = full; qLblSm.textContent = short; }
   quit.addEventListener('click', function(e){
     e.stopPropagation();
     if (done2 || armed){ stop(); return; }
-    armed = true; qLbl.textContent = 'Tap again to end'; quit.classList.add('tvArmed');
+    armed = true; say('Tap again to end', 'Tap again to end'); quit.classList.add('tvArmed');
     clearTimeout(armT);
-    armT = setTimeout(function(){ armed = false; qLbl.textContent = 'Leave the cup';
+    armT = setTimeout(function(){ armed = false; say('Leave the cup', 'Leave');
       quit.classList.remove('tvArmed'); }, 3200);
   });
   sr.appendChild(quit);
@@ -1187,7 +1215,7 @@ function paint(){
        match; if the match-up screen is visible at all, the one thing it is for
        is starting the match. An ungated button cannot get stuck. */
     if (nm2){
-      var go = el('button', 'tvGo', 'Kick off'); go.type = 'button';
+      var go = el('button', 'tvGo ' + GO, 'Kick off'); go.type = 'button';
       go.addEventListener('click', function(e){
         e.stopPropagation(); T.phase = 'match'; startFixture(nm2); });
       fix.appendChild(go);
@@ -1202,7 +1230,14 @@ function paint(){
     rail.appendChild(el('div', 'tvBoardHd', 'Final standings'));
     var grid = el('div', 'tvStandGrid');
     var elimAt = standingsElim();
-    BR.standings(T.br).forEach(function(id, i){
+    var order = BR.standings(T.br);
+    /* THE TABLE'S SHAPE COMES FROM THE FIELD, not from a number in a stylesheet.
+       Two columns reading downwards, so the rows are half the teams rounded up.
+       tournament.css consumes this as --tvStandRows; hardcoding 4 there would
+       have silently grown a third column the day FIELD stopped being eight,
+       which is the exact class of bug the old `column-fill:auto` had. */
+    grid.style.setProperty('--tvStandRows', String(Math.ceil(order.length / 2)));
+    order.forEach(function(id, i){
       var tm = teamById(id);
       var row = el('div', 'tvStandRow');
       row.appendChild(el('span', 'tvStandRk', String(i + 1)));

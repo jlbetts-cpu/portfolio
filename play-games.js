@@ -460,6 +460,29 @@
      `undo` holds the one head most recently removed so its chip slot can offer it back. */
   var editing=false,undo=null,undoT=0;
   var TRASH='<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12"/><path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"/></svg>';
+  /* THE SHARED CONTROL CLASSES, named once. Everything this screen draws that a
+     finger or a keyboard can reach is now controls.css's, and the page block in
+     play.html keeps only what the library has no opinion about -- where a button
+     sits, and how big a picture of a head is.
+
+     WHY THE BAR IS THE 36px RUNG. Measured at 320x568 in edit mode, the old bar
+     was 320.8px of content in a 320px viewport: Shuffle's last two letters were
+     off the right edge of the phone. At rest it cleared by 0.9px, which is not a
+     margin, it is a collision that has not happened yet. `.ctl--sm` is the
+     library's compact rung -- 36px of ink carrying its own 44px ::after hit pad
+     -- and it is the SAME rung the tournament strip's chips take, so the two
+     screens this pass is joining now agree on what a secondary button is.
+     Start match keeps the full 44 rung: it is the one primary action.
+
+     THE CHIPS AND THE DELETE TAKE `.ctl` BARE, and that is not a class hung on a
+     picture to flatter a census. Three things the library has that they did not:
+     a press state (a tile that only reacted to HOVER gave a finger no
+     acknowledgement at all), one focus colour (the chip declared --accent in one
+     rule and --c950 in a later one, so its ring depended on which rule won), and
+     a real disabled appearance for `aria-disabled` -- which renderTray() already
+     sets on every chip in edit mode, and which nothing was drawing. */
+  var BTN  = 'ctl ctl--secondary ctl--sm';
+  var GO   = 'ctl ctl--primary';
   function realHeads(){return readAll();}   // storage only: placeholders are never editable
   /* The head leaves storage on the press and undo puts it back -- not a delete that waits
      on a timer, which is the version that loses work if the tab closes mid-countdown. */
@@ -550,10 +573,10 @@
   function mjCut(){if(_mjCut)return _mjCut;
    try{var d=window.__hmFillerData&&window.__hmFillerData();if(d&&d.cut)_mjCut=d.cut;}catch(_){}
    return _mjCut||"images/smile.webp";}
-  function mjChip(){var b=document.createElement("button");b.className="teamChip "+(sel[9001]===1?"red":"blue");b.type="button";b.title="Mini-Jayden — joins when the sides are uneven";b.setAttribute("aria-label","Mini-Jayden, switch his side");
+  function mjChip(){var b=document.createElement("button");b.className="teamChip ctl "+(sel[9001]===1?"red":"blue");b.type="button";b.title="Mini-Jayden — joins when the sides are uneven";b.setAttribute("aria-label","Mini-Jayden, switch his side");
    var im=document.createElement("img");im.src=mjCut();im.alt="";b.appendChild(im);
    return bindChip(b,9001);}
-  function chip(h,slot){var b=document.createElement("button");b.className="teamChip "+(sel[slot]===1?"red":"blue");b.type="button";b.setAttribute("aria-label","Switch this head to the other team");
+  function chip(h,slot){var b=document.createElement("button");b.className="teamChip ctl "+(sel[slot]===1?"red":"blue");b.type="button";b.setAttribute("aria-label","Switch this head to the other team");
    var im=document.createElement("img");im.src=h.cut;im.alt="";b.appendChild(im);
    return bindChip(b,slot);}
   function renderTray(){if(!tray){tray=host||document.body.appendChild(document.createElement("div"));
@@ -571,7 +594,7 @@
       bar is logo / Work / About / Play / Contact, with no Back control at all, and the
       envelope on the right is Contact's own icon with its label hidden at narrow widths.
       This button was the only back-looking thing on the page.) */
-   var cl=document.createElement("button");cl.className="pBtn pBtnBack";cl.type="button";cl.setAttribute("aria-label","Back to the games menu");
+   var cl=document.createElement("button");cl.className="pBtn pBtnBack "+BTN;cl.type="button";cl.setAttribute("aria-label","Back to the games menu");
    cl.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="M5 12l6 6"/><path d="M5 12l6 -6"/></svg>Back';
    cl.addEventListener("click",function(ev){ev.stopPropagation();closeTray();});
    hd.appendChild(cl);
@@ -579,13 +602,13 @@
    var hb=document.createElement("div");hb.className="pTeamActs";
    /* Shuffle earns a verb at this size. Randomising the sides is half the fun of the
       screen and a 15px icon was hiding it (research §1.5). */
-   var shuf=document.createElement("button");shuf.className="pBtn";shuf.type="button";shuf.setAttribute("aria-label","Shuffle the sides");
+   var shuf=document.createElement("button");shuf.className="pBtn "+BTN;shuf.type="button";shuf.setAttribute("aria-label","Shuffle the sides");
    shuf.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 3h5v5"/><path d="M4 20 21 3"/><path d="M21 16v5h-5"/><path d="M15 15l6 6"/><path d="M4 4l5 5"/></svg>Shuffle';
    shuf.addEventListener("click",function(ev){ev.stopPropagation();var a=shuffle(balanced(n));sel={};a.forEach(function(t,i){sel[i]=t;});sel[9001]=shortSide(n);syncGlobal();applyPreview();renderTray();});
    /* The toggle is hidden outright when the picker is showing placeholders: they are not
       in storage, so there is nothing for this mode to act on. */
    if(realHeads().length){
-    var ed=document.createElement("button");ed.className="pBtn pTeamEdit";ed.type="button";
+    var ed=document.createElement("button");ed.className="pBtn pTeamEdit "+BTN;ed.type="button";
     ed.setAttribute("aria-pressed",editing?"true":"false");
     ed.textContent=editing?"Done":"Edit";
     ed.setAttribute("aria-label",editing?"Finish removing heads":"Remove heads");
@@ -609,7 +632,7 @@
         .mhItem > .mhPick + .mhX shape index.html uses, for the same reason. */
      var tile=document.createElement("span");tile.className="teamTile";tile.appendChild(ch2);
      if(editing){
-      var db=document.createElement("button");db.className="teamDel";db.type="button";
+      var db=document.createElement("button");db.className="teamDel ctl";db.type="button";
       db.setAttribute("aria-label","Remove head "+(i+1)+" of "+n);
       db.innerHTML=TRASH;
       (function(ix){db.addEventListener("click",function(ev){ev.stopPropagation();ev.preventDefault();removeAt(ix);});})(i);
@@ -617,7 +640,7 @@
       ch2.setAttribute("aria-disabled","true");ch2.tabIndex=-1;   // not a visual-only lie
      }
      cc.appendChild(tile);}
-    if(undo&&undo.team===tm){var ub=document.createElement("button");ub.className="teamUndo";ub.type="button";
+    if(undo&&undo.team===tm){var ub=document.createElement("button");ub.className="teamUndo ctl ctl--secondary ctl--sm";ub.type="button";
      ub.textContent="Undo";ub.setAttribute("aria-label","Undo removing that head");
      ub.addEventListener("click",function(ev){ev.stopPropagation();undoRemove();});
      cc.appendChild(ub);}
@@ -636,7 +659,7 @@
    wrap.appendChild(cols);
    var ft=document.createElement("div");ft.className="pTeamFoot";
    var hint=document.createElement("div");hint.className="pTeamHint";hint.textContent=(mode==="lava"?"Teammates spare each other — until they're the last team":"Tap a head to switch its side, or drag it across");ft.appendChild(hint);
-   var start=document.createElement("button");start.className="pBtn pBtnGo";start.type="button";start.textContent=(mode==="lava"?"Start Floor is Lava":"Start match");
+   var start=document.createElement("button");start.className="pBtn pBtnGo "+GO;start.type="button";start.textContent=(mode==="lava"?"Start Floor is Lava":"Start match");
    start.addEventListener("click",function(ev){ev.stopPropagation();startWithTeams();});ft.appendChild(start);
    wrap.appendChild(ft);}
   /* THE STAGE MOVES WITH THE SCREEN. body.pTeamOn shrinks and lifts .hero (play.html's
