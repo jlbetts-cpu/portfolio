@@ -1209,10 +1209,69 @@
      var fs9=Math.random()<0.5;x=fs9?WL+2:WR-2;y=floorY-(140+Math.random()*240);dir=fs9?1:-1;air=true;st="fall";surface=floorY;
      vx=dir*(360+Math.random()*240);vy=-(120+Math.random()*260);if(Math.random()<0.35)startFlip();}}
    if(S9&&S9.on&&soccerOn&&!killed){
-    if(S9.kickSeed&&S9.kickSeed!==soccerKickSeen){soccerKickSeen=S9.kickSeed;   // every goal & kickoff: leap back to your OWN half, a real restart -- red to the left, blue to the right
-     var half9=heroR.w*0.5,tx9=team===1?(M+Math.random()*(half9-HW-M*2)):(half9+M+Math.random()*(half9-HW-M*2));
-     if(!grabbed){var dxk=tx9-x;dir=dxk>0?1:-1;surface=floorY;st="fall";air=true;
-      var vyk=500+Math.random()*150,ttk=2*vyk/G;vy=-vyk;vx=dir*Math.max(-820,Math.min(820,dxk/ttk));sqT=0.12;sqyP=1.1;sqxP=1/1.1;gzx=dir*0.6;sacAt=now+500;}}
+    if(S9.kickSeed&&S9.kickSeed!==soccerKickSeen){soccerKickSeen=S9.kickSeed;
+     /* SET POSITIONS AT EVERY JUMP BALL. Jayden: "they should completely reset in set positions
+        so that the game feels even every jump ball." Both sides take the SAME ladder of marks,
+        reflected about the centre line -- red in its own half, blue in its. This is a KICKOFF
+        arrangement, not tactics: the instant S.phase goes back to "play" the scrum resumes
+        untouched, and nothing here (or in the mark-holding block below) spaces anyone out
+        during play.
+
+        ONE EXPRESSION, ONE SIGN TERM. _side carries the whole mirror, so the two halves cannot
+        drift apart the way the old right-hand SUPPORT clamp did (see that note further down).
+        The mark is a CENTRE; tx9 converts it to a left edge exactly once, at the very end.
+
+        AND THIS IS WHERE THEY WERE ALL BEING SENT RIGHT. The launch read
+        `vx = dir*Math.max(-820,Math.min(820,dxk/ttk))`. dxk/ttk is already signed and `dir` IS
+        that same sign, so the product is |dxk/ttk| -- always positive, always rightward. Every
+        head whose mark lay to its left was fired away from it at up to 820px/s, and the crowd
+        walked right one restart at a time until the left goal was the only one anybody could
+        score on. Measured at 1440x900, 900ms after each restart: 167 heads had moved right and
+        34 left (six heads), 155 against 10 (twelve heads), with BOTH teams' mean x sitting
+        right of the centre line -- red 908, blue 729, midline 720. The `dir*` is gone. `dir`
+        itself is untouched: it is still the facing, and it still feeds gzx. */
+     var _side=(team===1)?-1:1;                                   // which half is mine -- red left, blue right
+     var _rkK=function(s9k){var _r9=(S9.roles&&S9.roles[s9k])||"";return _r9==="keeper"?0:_r9==="defender"?1:2;};
+     var _mine=[],_n1=0,_n2=0;
+     for(var _q9=0;_q9<peers.length;_q9++){var _pv9=peers[_q9],_t9=(S9.teams&&S9.teams[_pv9.slot])||0;
+      if(_t9===1)_n1++;else if(_t9===2)_n2++;
+      if(_t9===team)_mine.push(_pv9.slot);}
+     _mine.sort(function(a,b){var _ra=_rkK(a),_rb=_rkK(b);return _ra!==_rb?_ra-_rb:a-b;});   // deepest role nearest its own net, then by slot: the same head takes the same mark every restart, so it reads as a line-up rather than a shuffle
+     var _rank=Math.max(0,_mine.indexOf(slot));
+     // ONE ladder, sized to the LARGER squad, so an odd roster still leaves every occupied mark
+     // facing an exactly reflected one instead of re-spacing both sides against each other.
+     var _slots=Math.max(1,_n1,_n2);
+     var _span=heroR.w*0.5-M-HW*0.5;                              // centre line -> the furthest a head CENTRE can legally stand
+     /* THE LADDER OPENS UP WHEN THE MARKS WOULD OVERLAP, AND ONLY THEN. The fixed 0.62 spread put
+        three marks 45.6px apart on a 390px pitch where a head is 64px wide, so the line-up spawned
+        already inside itself and pair separation immediately shoved heads across the centre line --
+        measured 5 of 35 mobile restarts with two-thirds of a side in the wrong half, against 0 of 19
+        at 1440. The step now widens toward one head-width when the geometry demands it, capped so the
+        shallowest mark never reaches the centre spot. At 1440 3-a-side the max() picks the ORIGINAL
+        0.31 unchanged, so the desktop line-up Jayden has already seen does not move a pixel. */
+     var _step=(_slots<2)?0:Math.max(0.62/(_slots-1),Math.min((0.84-0.10)/(_slots-1),(HW*0.95)/Math.max(1,_span)));
+     var _frac=(_slots<2)?0.45:(0.84-_rank*_step);   // 0 = the centre line, 1 = as deep as a head can stand
+     var _markC=heroR.w*0.5+_side*_frac*_span,tx9=_markC-HW/2;
+     try{if(S9.markSeed!==S9.kickSeed){S9.marks={};S9.markSeed=S9.kickSeed;}
+      S9.marks[slot]={x:_markC,i:_rank,team:team,n:_slots};}catch(_){}   // published so a contract can ASSERT the mirror rather than trust the comment above it
+     if(!grabbed){var dxk=tx9-x;dir=dxk>=0?1:-1;surface=floorY;st="fall";air=true;
+      /* Solve the arc for the DISTANCE instead of clamping it flat. 820px/s over a 0.42s hop
+         carries 347px, so a head conceding at the far end of a 1440px pitch landed short and
+         then had to walk -- which is the other half of why a restart never actually reset
+         anything. A longer trip now buys a taller leap, and that is the more watchable
+         restart as well as the more accurate one. */
+      var _dxa=Math.abs(dxk),vyk=Math.max(460,Math.min(1000,Math.sqrt(_dxa*G/1.6))),ttk=2*vyk/G;
+      vy=-vyk;vx=Math.max(-1150,Math.min(1150,dxk/ttk));sqT=0.12;sqyP=1.1;sqxP=1/1.1;gzx=dir*0.6;sacAt=now+500;
+      if(_dxa>heroR.w*0.28&&Math.random()<0.5)startFlip();}}
+    /* HOLD THE MARK UNTIL THE WHISTLE. One ballistic leap is at the mercy of whatever it hits on
+       the way over, so while the ball is still coming in a head that landed off its mark takes
+       one more short hop at it. Gated on S9.phase !== "play": it CANNOT run during the match,
+       which is the whole point -- this is a line-up, never a formation. */
+    if(S9.phase!=="play"&&S9.marks&&S9.marks[slot]&&!grabbed&&!air&&!perched&&st==="idle"&&now>=decideAt){
+     var _mk9=S9.marks[slot].x-HW/2,_dm9=_mk9-x;
+     if(Math.abs(_dm9)>HW*0.35){decideAt=now+200;dir=_dm9>=0?1:-1;surface=floorY;st="fall";air=true;
+      var _vk2=Math.max(340,Math.min(760,Math.sqrt(Math.abs(_dm9)*G/1.6))),_tk2=2*_vk2/G;
+      vy=-_vk2;vx=Math.max(-900,Math.min(900,_dm9/_tk2));sqT=0.11;sqyP=1.08;sqxP=1/1.08;gzx=dir*0.5;}}
     if(S9.postSeed&&S9.postSeed!==me.__postSeen){me.__postSeen=S9.postSeed;   // OFF THE WOODWORK: everyone near the ball feels it -- the shooter clutches, brows pop
      if(Math.abs((x+HW/2)-S9.ball.x)<220){brf=6;gzy=-0.5;sacAt=now+900;}else{brf=4;}}   // agony reads in the brows and eyes; the red hurt flash is DAMAGE language and soccer has no damage}
     if(S9.goalSeed&&S9.goalSeed!==goalSeen){goalSeen=S9.goalSeed;   // GOAL: just a natural little reaction, no scripted dance
@@ -2231,7 +2290,12 @@ function teams(){
      setTimeout(function(){if(!S.on)return;if(countEl)countEl.textContent="";bvy=30;S.phase="play";},560);},800);}})();}
   function dropIn(){S.kickSeed=(S.kickSeed||0)+1;   // after a goal: no countdown, the ball just drops back in as they return to their sides
    var _bh2=ballHome();bx=_bh2?_bh2.x:(XL+XR)/2;by=_bh2?_bh2.y:60;bsp=ballSpawnScale();_spawnY=by;_curveTo=(XL+XR)/2;_curving=true;_cvOn=false;bvx=(Math.random()*80-40);bvy=20;_deckT=0;S.phase="reset";
-   setTimeout(function(){if(S.on)S.phase="play";},650);}
+   // 650 -> 900ms. The set-position leap solves its own arc, and a head crossing most of a
+   // 1440px pitch is in the air for ~0.77s; at 650 the whistle went while half the side was
+   // still flying, so the line-up was never actually seen. This is the only dead time added
+   // anywhere in this pass, it is a quarter of a second, and the ball is visibly curving in
+   // to the centre spot throughout it.
+   setTimeout(function(){if(S.on)S.phase="play";},900);}
   function goalBurst(team,gx,gy){try{   // the ball bursts, and confetti erupts from the goal it went in
    if((window.__hmFx||0)>=2)return;window.__hmFx=(window.__hmFx||0)+1;
    var cv=document.createElement("canvas"),hr=hero.getBoundingClientRect();cv.width=innerWidth;cv.height=Math.round(hr.height);
@@ -2519,10 +2583,31 @@ function teams(){
      if(Math.abs(gx-bx)<300){lastShot=performance.now();BUS.emit('shot',{dir:dir});}
     }
     if(by>REST){   // meets the pitch
-     if(Math.abs(bvy)>50){var kg=Math.min(0.14,Math.abs(bvy)*0.00016);bsyP=1-kg;bsxP=1/(1-kg);bsT=0.12;bvy=-bvy*0.72;}else bvy=0;   // squash + bounce, e=0.72 (grass, not a superball)
+     if(Math.abs(bvy)>50){var kg=Math.min(0.14,Math.abs(bvy)*0.00016);bsyP=1-kg;bsxP=1/(1-kg);bsT=0.12;bvy=-bvy*0.72;
+      /* SPIN NOW FEEDS BACK INTO THE BOUNCE, which is where the unpredictability comes from. The ball
+         already GAINS spin from an off-centre hit and already converges to roll-without-slip on the
+         deck, but the two never met: a spinning ball bounced as if it were not spinning, so every
+         rebound was a mirror of its approach and nothing ever came off the floor at a surprising
+         angle. Friction at the contact drives the ball's horizontal speed toward the no-slip value
+         its spin implies -- so a ball headed down with backspin now checks and kicks BACK, and one
+         with topspin skids on. Same physics as the roll convergence three lines below, applied in the
+         one frame where it changes the outcome. Cost is two multiplies per bounce. */
+      var _surf=bw*(Math.PI/180)*BR;bvx+=(_surf-bvx)*0.16;bw*=0.82;}else bvy=0;   // squash + bounce, e=0.72 (grass, not a superball)
      by=REST;if(_cvOn){bvx=0;_cvOn=false;}else bvx*=0.9;}
     var onGround=by>=REST-1;
-    if(onGround&&Math.abs(bvy)<70){var rf=Math.min(Math.abs(bvx),0.075*GRAV*dt);bvx-=(bvx>0?1:-1)*rf;}   // rolling resistance as a CONSTANT deceleration (mu_r*g, mu_r~0.075 for grass), not a made-up exponential -- the ball rolls, then slows honestly
+    /* ROLLING RESISTANCE IS THE CONSTANT THAT GENUINELY HAD TO SCALE, AND IT IS HORIZONTAL. The brief's
+       premise was that GRAV being absolute while HW and BR shrink holds the ball down worst on a
+       phone. Measured, the VERTICAL axis inverts that: a fixed launch speed under fixed g gives a
+       fixed 204px apex everywhere, and dividing by a SMALLER head makes the leap relatively bigger at
+       390 (2.66 head-heights vs 1.57 at 1440). Scaling GRAV down on mobile would make it float.
+       The pitch, though, shrinks 3.7x while the heads shrink only 1.7x -- so mu_r*g, an absolute
+       deceleration, stops the ball after 0.64 pitch-widths at 1440 and 2.37 pitch-widths at 390. The
+       ball never settles anywhere on a phone but inside a body. Scaling mu_r by the pitch makes the
+       ball come to rest in the same FRACTION of the pitch at every width, which is the scale
+       correction the brief was reaching for, applied on the axis that actually measured broken.
+       At 1440 the factor is exactly 1, so desktop rolling is byte-for-byte what it was. */
+    var _MUR=0.075*(1440/Math.max(320,XR-XL));
+    if(onGround&&Math.abs(bvy)<70){var rf=Math.min(Math.abs(bvx),_MUR*GRAV*dt);bvx-=(bvx>0?1:-1)*rf;}   // rolling resistance as a CONSTANT deceleration (mu_r*g, mu_r~0.075 for grass), not a made-up exponential -- the ball rolls, then slows honestly
     if(onGround&&Math.abs(bvx)<9&&Math.abs(bvy)<12){bvx=0;bvy=0;}   // and it settles fully -- no hover, no jitter
     if(onGround)_deckT+=dt;else if(by<REST-BR*0.6)_deckT=0;   // airborne by more than a ball-radius clears it;
     // a bobble of a few px on the bounce does NOT, or the timer would reset on every little hop and never fire
@@ -2537,7 +2622,21 @@ function teams(){
      // particle here on purpose: the soccer module never draws FX (it only calls __hmFX.clear), and
      // its ball coords are engine-space, not the viewport space burst() wants.
     }
-    if(by<BR+2){by=BR+2;if(Math.abs(bvy)>120){var kc0=Math.min(0.1,Math.abs(bvy)*0.00012);bsyP=1-kc0;bsxP=1/(1-kc0);bsT=0.11;}bvy=Math.abs(bvy)*0.72;}   // ceiling
+    /* THE ROOF. Asked for directly -- "make it feel like a game bouncing off the walls and roofs" --
+       and the honest answer to "does the arena have a ceiling to rebound off" is YES, at the top of
+       the arena, and it already rebounded at e=0.72. Measured on this build the ball reaches it 13-24
+       frames a run, so it is live, not theoretical. What it LACKED was consequence: it returned the
+       ball on exactly the line it arrived on, so a roof hit was invisible and cost the play nothing.
+       No new surface is invented here and nothing is drawn. Putting an invisible lid halfway up the
+       open arena was considered and rejected -- a ball rebounding off empty air reads as a glitch,
+       which is the one reading this page keeps refusing. The boundary stays where the arena's edge
+       actually is; it simply now behaves like a surface instead of a clamp: it throws the ball off
+       line, spins it, and broadcasts the same 'woodwork' moment the crossbar does, so every head
+       within 220px clutches its brows and the near-miss is legible rather than silent. */
+    if(by<BR+2){by=BR+2;if(Math.abs(bvy)>120){var kc0=Math.min(0.1,Math.abs(bvy)*0.00012);bsyP=1-kc0;bsxP=1/(1-kc0);bsT=0.11;}
+     if(Math.abs(bvy)>240){bvx+=(Math.random()<0.5?-1:1)*(90+Math.random()*90);bw+=(Math.random()*220-110);   // it comes down somewhere new, and spinning
+      S.postSeed=(S.postSeed||0)+1;try{BUS.emit('woodwork',{x:S.ball.x,y:S.ball.y});}catch(_){}}
+     bvy=Math.abs(bvy)*0.72;bvx=Math.max(-2200,Math.min(2200,bvx));}   // ceiling
     var inG=by>groundY-GH;
     var gt=groundY-GH,overL=(bx+BR>XL&&bx-BR<XL+44),overR=(bx+BR>XR-44&&bx-BR<XR);   // the crossbar
     if((overL||overR)&&bvy>0&&by+BR>=gt-2&&by-BR<gt&&by<gt){by=gt-BR-2;bvy=-Math.max(160,Math.abs(bvy)*0.7);S.postSeed=(S.postSeed||0)+1;BUS.emit('woodwork',{x:S.ball.x,y:S.ball.y});   // off the bar -- and the WOODWORK moment is broadcast so the heads can feel it
@@ -2551,9 +2650,45 @@ function teams(){
       bx+=nx*ov;by+=ny*ov;   // lift the ball clear of the body so it can never sink in and stutter
       var rvx=bvx-p.vx,rvy=bvy-p.vy,rel=rvx*nx+rvy*ny;
       if(rel<0){var jI=-(1.72)*rel;   // the ball is light: it takes the whole impulse (head velocity included), the head barely feels it
-       var lx=nx,ly=ny-0.26,ll=Math.hypot(lx,ly)||1;lx/=ll;ly/=ll;   // LOFT: a head meets the ball with a
-       // slightly upward contact normal, so a duel pops the ball UP instead of firing it flat. The
-       // overlap resolution above still uses the true normal -- only the impulse is lofted.
+       /* THE LOFT IS GEOMETRY, NOT A LITERAL -- and it is the one change that buys air without
+          touching a single decision any head makes. Jayden: "You are only affecting how the ball gets
+          airtime and how they play -- but I do like how they play." Nothing below reads a role, a
+          team, a target or a phase. The same head, in the same scramble, making the same choice,
+          simply sends the ball up instead of along.
+
+          WHY 0.26 WAS NEVER ENOUGH. A standing head meeting a resting ball has a contact normal
+          pointing BELOW horizontal -- ny = +0.327 at 1440, +0.277 at 390 -- because the ball's centre
+          sits lower than the head's collision centre. Subtracting a flat 0.26 leaves ly = +0.067,
+          i.e. the impulse still departs 4deg DOWNWARD. Every ground contact was a ground pass, and
+          the literal was 26% short of what desktop geometry needs and 6% short on mobile: it was
+          chosen against no particular geometry, so it could not scale with one.
+
+          THE FIX SOLVES FOR THE ANGLE INSTEAD. For a contact normal (nx,ny) the impulse leaves at
+          atan(-(ny-L)/|nx|), so L = ny + tan(theta)*|nx| GUARANTEES theta whatever the geometry --
+          which makes the launch angle identical at 1440 and 390 instead of drifting with head size.
+
+          AND IT IS STATE-DEPENDENT, WHICH IS WHAT PROTECTS THE SCRUM. This is Smash Bros.' Sakurai
+          angle (research SS8.5): flat for weak grounded contacts, ramping to a maximum with closing
+          speed, fixed higher once the ball is already up. A brush at rel < 260 still leaves LEVEL, so
+          the shuffling texture of a pile-up is untouched and only a real strike lifts. A single fixed
+          angle would have popped every incidental touch and turned the scrum into a fountain. */
+       /* THE ANGLES ARE TUNED AGAINST THE SCRUM, NOT AGAINST THE SPEC'S TABLE. Sakurai's own numbers
+          (34 grounded / 45 airborne) were tried first and measured: they lifted the ball so
+          completely that it spent 99.2% of play off the deck, every flight topped out on the arena
+          ceiling, and head-to-ball contact collapsed from 33.4% of frames to 7.1%. The heads' rules
+          had not changed by a line -- but the pile they form had thinned by four times, because the
+          ball was never within reach to be fought over. That is the exact failure Jayden named when
+          he said he likes how they play, so the strength is set by the CONTACT metrics holding, not
+          by the launch angle looking impressive on paper.
+          The airborne case matters most and is the least obvious: a fixed 45 on every aerial touch is
+          a positive feedback loop -- each contact relaunches the ball as steeply as the last, so it
+          never comes down at all. It is now barely above the grounded maximum. */
+       var _spd=Math.abs(rel),_ballUp=REST-by;
+       var _ang=(_ballUp>BR)?21:(18*Math.max(0,Math.min(1,(_spd-300)/700)));   // deg above horizontal
+       var _L=ny+Math.tan(_ang*Math.PI/180)*Math.abs(nx);
+       var lx=nx,ly=ny-_L,ll=Math.hypot(lx,ly)||1;
+       if(ll<0.05){lx=nx;ly=ny;ll=Math.hypot(lx,ly)||1;}   // DEGENERATE GUARD: a head stomping straight down (ny->1, nx->0) drives L->1 and collapses the vector. Fall back to the true normal so a diving header still SPIKES the ball -- that is a good moment, and it feeds the ground bounce.
+       lx/=ll;ly/=ll;   // the overlap resolution above still uses the true normal -- only the impulse is lofted.
        bvx+=lx*jI;bvy+=ly*jI;p.kx-=nx*jI*0.08;p.ky-=ny*jI*0.08;   // a small honest recoil into the head
        try{var _tt=window.__hmTour;if(_tt&&_tt.live){var _tm=(S.teams&&S.teams[p.slot])||0;
         S.touches=S.touches||[];
