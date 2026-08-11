@@ -644,8 +644,19 @@
    thing that matters after that is the origin. The origin is the logical
    head's own centre (written by hero-head-transform.js), which makes the head
    spin in place instead of swimming around the stage's corner while you drag. */
+/* THE HEAD IS ANCHORED TO THE HERO'S FLOOR, AND ON A PHONE THAT FLOOR MOVES.
+   The Hero is min-height:100dvh so the gradient never opens a gap when Safari's
+   chrome retracts -- but that makes the floor travel the chrome's full height
+   on every scroll, and a bottom-anchored head travels with it while the CENTRED
+   copy beside it moves half as far. The head slid against its own composition.
+   (100dvh - 100svh) is exactly that chrome slack: 0 while the chrome is shown,
+   growing to the chrome's height as it retracts. Adding it back to `bottom`
+   holds the head at a constant distance from the Hero's TOP, which is the edge
+   that never moves. The gradient keeps its dvh floor. Resting composition is
+   untouched -- on desktop, and on a phone at rest, the term evaluates to 0. */
 .heroHeadTransform{
- position:absolute;left:50%;top:auto;bottom:calc((var(--hero-peek-depth) * -1) + var(--hero-peek-offset));
+ position:absolute;left:50%;top:auto;
+ bottom:calc((var(--hero-peek-depth) * -1) + var(--hero-peek-offset) + (100dvh - 100svh));
  width:var(--hero-peek-width);max-width:none;z-index:2;
  transform-origin:var(--hero-head-origin-x) var(--hero-head-origin-y);
  transform:translate3d(calc(-50% + var(--hero-head-x)),calc(var(--hero-head-y) + var(--hero-movie-guard-y)),0)
