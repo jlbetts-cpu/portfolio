@@ -392,6 +392,17 @@ def colour_mass(image, colour, tol=34):
     return mass
 
 
+def colour_mass_total(image):
+    px = image.load()
+    W, H = image.size
+    return sum(px[x, y][3] / 255.0
+               for y in range(0, H, 2) for x in range(0, W, 2)) or 1.0
+
+
+def fmt_keep(k):
+    return "  n/a " if k is None else f"{100*k:5.1f}%"
+
+
 def holes(image):
     """Transparent pixels lying BETWEEN the silhouette's own left and right edge.
 
@@ -426,9 +437,11 @@ def holes(image):
 BASELINE = "fe42953"   # the last revision whose bake() was an oval crop and nothing
                        # else. Pinned to a sha rather than HEAD~1 so that this
                        # comparison keeps meaning something after the next commit.
-FRAMINGS = (None, 1.9)  # the zoom the page opens at, and head-fills-the-oval --
-                        # which is where the bald head appeared and the default
-                        # framing did not show it.
+FRAMINGS = (None, 1.4, 1.9, 2.6)
+# The zoom the page opens at, and three the sliders reach. 1.9 is head-fills-
+# the-oval, which is where the bald head appeared and where the default framing
+# showed nothing wrong at all; 2.6 is tight enough that the frame corners are
+# cheek, which is where the matte has to start refusing.
 
 
 def verdict(rows, base_rows, verbose=True):
@@ -440,16 +453,21 @@ def verdict(rows, base_rows, verbose=True):
         rim = rim_profile(cut)
         left = wall_left(cut, subject.info["wall"])
         was = wall_left(b[2], subject.info["wall"])
+        # Only judge retention of a part that is actually IN SHOT. At a tight
+        # framing the hair is two slivers beside the jaw, the ratio is then a
+        # handful of blend pixels, and asserting on it tests the noise rather
+        # than the matte.
         keep = {}
+        total = colour_mass_total(b[2])
         for part in ("hair", "skin"):
             had = colour_mass(b[2], subject.info[part])
             now = colour_mass(cut, subject.info[part])
-            keep[part] = (now / had) if had > 200 else 1.0
+            keep[part] = (now / had) if had > 0.03 * total else None
         gap = holes(cut)
         if verbose:
             print(f"{name:14s} {stats.get('matte','?'):>20s} {stats.get('ms',0):4.0f}ms"
                   f"  wall {100*was:5.1f}% -> {100*left:5.1f}%"
-                  f"   hair kept {100*keep['hair']:5.1f}%  skin kept {100*keep['skin']:5.1f}%"
+                  f"   hair {fmt_keep(keep['hair'])}  skin {fmt_keep(keep['skin'])}"
                   f"   holes {100*gap:4.1f}%"
                   f"   rim {rim['max'] if rim else 0:5.2f}x")
         if coherent and left > WALL_LIMIT:
@@ -459,7 +477,7 @@ def verdict(rows, base_rows, verbose=True):
             fails.append(f"{name}: a background the matte cannot handle was removed "
                          f"in patches, leaving {100*gap:.1f}% holes")
         for part, k in keep.items():
-            if k < KEEP_FLOOR:
+            if k is not None and k < KEEP_FLOOR:
                 fails.append(f"{name}: only {100*k:.1f}% of the subject's {part} "
                              f"survived the matte")
         if rim and rim["max"] > RIM_LIMIT:
