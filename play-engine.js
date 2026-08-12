@@ -413,6 +413,7 @@
  // Play holds its first viewport behind a readiness class. Initial saved/fallback heads therefore
  // start already seated; __noIntro keeps its existing falling entrance for later game spawns.
  var smileT=0,smiling=false;   // only the mini-Jayden has a second face to switch to (his real smile)
+ var _W9=false;try{_W9=/[?&]wraf=1/.test(location.search);}catch(_){}   // dev-only: publishes whether the keeper's leash is saturated this frame, for the bundle probe
  var hero=document.querySelector(".hero");if(!hero)return;
  if(getComputedStyle(hero).position==="static")hero.style.position="relative";
  var mob=innerWidth<=880;
@@ -1390,7 +1391,42 @@
      else if(role==="keeper"||(role==="defender"&&ballOnOurHalf)){   // GUARD: hang between the ball and my net, clear only from the goal side (never poke it back toward my own net)
       // MIRRORED. See the note on the SUPPORT clamp below -- same bug, same cause, same one-term fix.
       bxT=Math.max(M,Math.min(heroR.w-M,(ballX+ownGoalX*2)/3))-HW/2;
+      /* ===== THE KEEPER'S LEASH: DIAGNOSED, AND DELIBERATELY LEFT ALONE =====
+         Jayden: "the 'goalie' of the other team just stands there." He is right about what
+         he is seeing, and the cause is not an AI that stopped running -- it is this clamp
+         saturating. The line above puts the keeper a third of the way from its own net to
+         the ball, so its target only ever reaches 0.33 of the pitch even with the ball in
+         the far corner; the clamp below cuts that band to 0.11. Solve for when it binds and
+         the answer is "whenever the ball is past 44% of the pitch", which is most of a
+         match. MEASURED, over three 45-second eight-head matches at 1440x900 sampled at
+         10Hz (tools/soccer-bundle-probe.py): the clamp binds 71% of the frames. The keeper
+         is not stopping -- it is standing exactly where it is being told to stand on every
+         one of those frames, and a target that never changes is, from the stands,
+         indistinguishable from a head that has given up.
+         SO THE OBVIOUS FIX IS A LONGER LEASH, AND IT IS DISPROVED. It was tried at 0.15 and
+         0.20 and measured against the same three-match sample. The keeper stops looking
+         parked -- saturation 71% -> 55% -> 34% -- and the match gets quieter in a straight
+         line, because a keeper with more rope is simply a better goalkeeper and cuts play
+         out before it reaches the box:
+
+           leash          0.11        0.15        0.20
+           ball enters a goal area  13.8/min  11.1/min   7.1/min
+           of those, fast (shots)    8.9/min   7.6/min   4.9/min
+           goals per match              3.0       2.0       1.7
+           3+ in a goal area      2% of play  3%        12%, worst spell 0.8s -> 2.9s
+
+         At 0.20 it is emphatic: goals nearly halved and the bundling Jayden is complaining
+         about got six times more common and three and a half times longer. The keeper's
+         short leash is not a defect -- it is what keeps the goalmouth busy and the score
+         high, and this clamp is load-bearing for the thing he likes.
+         So the clamp below is EXACTLY as it shipped, to the byte. The leash was measured,
+         not adjusted; tools/soccer-bundle-probe.py --leash re-serves this file with the
+         number swapped, so the trade-off above can be re-derived without editing anything. What is NOT on the
+         table, whatever is decided about the leash: roles, zones, stations or formations.
+         Those have been rejected three times. */
+      var _kPre=bxT;   // ...so the probe can see whether the clamp below actually bit this frame
       if(role==="keeper")bxT=team===1?Math.min(bxT,heroR.w*0.11):Math.max(bxT,heroR.w*0.89-HW);
+      if(_W9&&role==="keeper")me.__kSat=(bxT!==_kPre)?1:0;
       if(ballHigh&&nearOwnGoal&&ballOnOurHalf)wantHigh=true;}   // spring up to block the high shot
      else{   // SUPPORT: push up toward their goal to receive the clear / pounce a rebound -- staying goal-side so a forward pass finds me
       var _small9=(window.__hmCrowd||4)<=4;   // small game: press much closer to the ball so the second head is in the mix too (more bumping, less hanging back)
@@ -2098,6 +2134,15 @@
   var S={on:false,seed:0,kickSeed:0,teams:{},target:5,cap:8,red:0,blue:0,ball:{x:0,y:0},phase:"idle",winner:0};
   window.__hmSoccer=S;
   var ball,ballSkin,goalL,goalR,goalShL,goalShR,board,sR,sB,countEl,W=0,H=0,groundY=0,BR=24,GH=150,OFF=0,XL=0,XR=0;
+  /* ===== DEV-ONLY: THE PITCH READING =====
+     Jayden: "there is still a lot of bundling up in the soccer mode lots of people in
+     the goal and the 'goalie' of the other team just stands there." Both halves of that
+     are claims about DURATION -- a pile that clears in a second and a pile that lasts
+     fifteen are the same picture in memory -- and neither can be answered without
+     sampling a running match. There is no hand crank here the way there is in the race,
+     so a probe has to drive one at real speed and read it; this is what it reads. Behind
+     ?wraf=1, so a real viewer pays one boolean test per frame and nothing else. */
+  var WRAF9=false;try{WRAF9=/[?&]wraf=1/.test(location.search);}catch(_){}
   var camBack,camFront,_camT=0;   // THE GOAL GRAMMAR camera: two transform-only wrappers (ball-shadow+goals+goal-shadows / ball only) so a punch never touches .hmScore -- see stagePunch() below
   var flapR=null,flapB=null;   // the split-flap instances mounted into .sR/.sB by paintBoard()
   var bx=0,by=0,bvx=0,bvy=0,kickCd={},running=false,last=performance.now(),scoreTeam=0,ballShadow,lastShot=0;
@@ -2835,6 +2880,9 @@ function teams(){
    else bw*=Math.pow(0.88,dt);
    spin+=bw*dt;
    S.ball.x=bx;S.ball.y=by;
+   if(WRAF9){S.ball.vx=bvx;S.ball.vy=bvy;S.geo={W:W,H:H,XL:XL,XR:XR,GH:GH,groundY:groundY,BR:BR,OFF:OFF};
+    S.players=peers.map(function(q){return {slot:q.slot,team:S.teams?S.teams[q.slot]:0,
+     role:S.roles?S.roles[q.slot]:"",x:q.x+q.HW/2,y:q.y+q.HH/2,hw:q.HW,hh:q.HH,elim:!!q.elim,kSat:q.__kSat|0};});}
    if(bsT>0)bsT-=dt;else{bsxP=1;bsyP=1;}
    var _bs=dt>0.02?Math.ceil(dt/0.02):1,_bd=dt/_bs;   // same sub-step guard for the ball, so a laggy frame can't balloon it either
    for(var _bi=0;_bi<_bs;_bi++){bsxv+=((bsxP-bsx)*1150-bsxv*62)*_bd;bsx+=bsxv*_bd;bsyv+=((bsyP-bsy)*1150-bsyv*62)*_bd;bsy+=bsyv*_bd;}
