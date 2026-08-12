@@ -58,7 +58,37 @@
 *{box-sizing:border-box;margin:0;padding:0}
 html{overflow-x:clip;scroll-behavior:smooth}
 body{background:var(--c50);color:var(--c950);font-family:var(--sans);-webkit-font-smoothing:antialiased;overflow-x:clip}
-img{display:block;max-width:100%}
+/* ── EVERY <img> NOW SHIPS ITS INTRINSIC width/height, AND THAT IS A LAYOUT FIX ─
+   Not one image on this page carried the attributes. Where a CSS aspect-ratio
+   already reserved the box (.cover, .photoRow, .photoPair, .stepShot, .shot.phone,
+   .buildStage) nothing changes -- those declarations still win and the attributes
+   are inert. Where nothing reserved it, the box was 0 until the bytes landed and
+   then snapped to full size, pushing everything below it down the page: .wide img
+   and .closeShot img (`width:100%;height:auto`, no ratio), .sketch img, and worst
+   of all .darlings img, which pins a height and leaves `width:auto` -- so three
+   lazy images in one flex row each went 0 -> full width as they arrived and shoved
+   their neighbours sideways, one after another, exactly where a reader is.
+   THIS IS THE MOST-LIKELY-TO-BITE DEFECT IN THE WHOLE PAGE for the reader Jayden
+   is worried about: someone opening a LinkedIn link on mobile data, where images
+   arrive seconds after the text and every unreserved box is a jump. On a warm
+   localhost it is invisible, which is why it survived this long -- run
+   tools/scroll-stability-probe.py --img-delay 900 to see it.
+   about.html already had this and says so at its .abShot rule: "without them a
+   lazy image is 0px tall until it arrives ... measured at 390 as heights
+   [349,0,0,0]". Same lesson, applied to the case studies.
+   NO CSS CHANGES WITH IT. `height` is `auto` by default, so an attribute pair
+   supplies a ratio and nothing else; every image renders at the size it already
+   did. Verified against a pristine `git archive HEAD` render at 390 and 1440. */
+img{display:block;max-width:100%;height:auto}   /* height:auto IS THE COMPANION TO THE ATTRIBUTES ABOVE, NOT A TIDY-UP.
+      `width`/`height` on an <img> are PRESENTATIONAL HINTS: they map to the
+      CSS width and height properties at UA-stylesheet weight. So an image
+      with no author height, shrunk by max-width:100%, would keep the
+      attribute's pixel height and stretch. Measured before this line:
+      cluster.html grew 2,984px at 320 and ucdavis 1,468px at 390. An author
+      `height:auto` outranks the hint and restores the ratio; every rule that
+      sets a real height (.cover img, .darlings img, .scrollbox .shot img)
+      is more specific than this and is untouched. Proved by
+      tools/render-diff.py: pixel-identical to the tree before the change. */
 *{-webkit-tap-highlight-color:transparent}
 .wrap{position:relative;z-index:2;max-width:1200px;margin:0 auto;padding:0 40px}
 
@@ -631,7 +661,7 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
    <section id="overview" class="hero">
     <h1 class="head rv" data-f="0.05" aria-label="Strata — 710 edits to learn where AI stops and design starts."><span class="eyebrow">Strata</span>710 edits to learn where AI stops and design starts.</h1>
 
-    <figure class="cover media media--full" id="cover"><img src="images/cs/strata-cover.webp" alt="Strata across four iOS screens on a pastoral hillside: the block tower, the day timeline, the plan grid, and the insights dashboard." loading="eager" decoding="async"></figure>
+    <figure class="cover media media--full" id="cover"><img src="images/cs/strata-cover.webp" width="1600" height="1189" alt="Strata across four iOS screens on a pastoral hillside: the block tower, the day timeline, the plan grid, and the insights dashboard." loading="eager" decoding="async"></figure>
 
     <dl class="facts">
      <div class="fact"><dt class="fk">Role</dt><dd class="fv">Designer &amp; builder</dd></div>
@@ -705,8 +735,8 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
    </section>
 
    <div class="photoPair media media--full">
-     <figure><img src="images/cs/photos/strata-1.webp" alt="Jayden writing on sticky notes at a desk, planning Strata" loading="lazy" decoding="async"><figcaption>Planning Strata, one sticky note at a time.</figcaption></figure>
-     <figure><img src="images/cs/photos/strata-2.webp" alt="A working collage: Apollo wordmark studies beside a squirrel photo and Strata&rsquo;s habit blocks" loading="lazy" decoding="async"><figcaption>Strata&rsquo;s blocks feeding Apollo&rsquo;s first sketches.</figcaption></figure>
+     <figure><img src="images/cs/photos/strata-1.webp" width="1200" height="1200" alt="Jayden writing on sticky notes at a desk, planning Strata" loading="lazy" decoding="async"><figcaption>Planning Strata, one sticky note at a time.</figcaption></figure>
+     <figure><img src="images/cs/photos/strata-2.webp" width="1200" height="1200" alt="A working collage: Apollo wordmark studies beside a squirrel photo and Strata&rsquo;s habit blocks" loading="lazy" decoding="async"><figcaption>Strata&rsquo;s blocks feeding Apollo&rsquo;s first sketches.</figcaption></figure>
     </div>
   </div>
  </div>
@@ -839,13 +869,21 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
   var rail=document.querySelector('.rail');
   var imgs=[].slice.call(document.querySelectorAll('.cover,.wide,.facts,.cmp,.scrollbox,.photoRow,.stepShot,.closeShot,.darlings'));
   if(!rail||!imgs.length||reduce)return;
+  /* THE RAIL IS `display:none` BELOW 881px -- see the @media block above -- and
+     this ran on phones anyway: a getBoundingClientRect on the hidden rail plus
+     one per full-bleed figure until a hit, inside a scroll-driven rAF, every
+     frame of every flick, to toggle a class on an element nobody can see. The
+     media query is the same one the stylesheet uses, so the guard cannot drift
+     from the rule it is guarding. Desktop behaviour is untouched. */
+  var railLive=matchMedia('(min-width:881px)');
   function hush(){
+   if(!railLive.matches)return;
    var rb=rail.getBoundingClientRect(),over=false;
    for(var i=0;i<imgs.length;i++){var b=imgs[i].getBoundingClientRect();if(b.top<rb.bottom&&b.bottom>rb.top){over=true;break;}}
    rail.classList.toggle('hush',over);
   }
   var ticking=false;
-  window.addEventListener('scroll',function(){if(!ticking){ticking=true;requestAnimationFrame(function(){hush();ticking=false;});}},{passive:true});
+  window.addEventListener('scroll',function(){if(!railLive.matches||ticking)return;ticking=true;requestAnimationFrame(function(){hush();ticking=false;});},{passive:true});
   window.addEventListener('resize',hush,{passive:true});
   hush();
  })();
@@ -854,7 +892,12 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
  (function(){
   var rail=document.querySelector('.rail'),role=document.querySelector('.ov')||document.querySelector('.role'),layout=document.querySelector('.layout');
   if(!rail||!role||!layout)return;
+  /* Same guard, same reason: below 881 the rail is display:none, and this fired
+     five times per load (immediately, on load, on fonts.ready, at 320ms and at
+     1100ms) forcing two layouts each time to position something invisible. */
+  var railLive=matchMedia('(min-width:881px)');
   function align(){
+   if(!railLive.matches)return;
    var off=role.getBoundingClientRect().top-layout.getBoundingClientRect().top-Math.round(window.innerHeight*0.5);
    rail.style.marginTop=Math.max(0,Math.round(off))+'px';
   }
@@ -939,12 +982,49 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
  });
 
  /* moving ink: reseed the turbulence on the 8fps house clock so the textured type "boils" exactly like the home-page headline */
+ /* ── THE BOIL HOLDS STILL WHILE YOU ARE MOVING, AND THAT IS THE WHOLE CHANGE ──
+    Jayden: "the experience of even scrolling on the home to feel choppy and all
+    over the place", reported from the LinkedIn link -- an in-app WKWebView on a
+    phone, which is plausibly how most recruiters will ever see this site.
+    WHAT THIS LOOP COSTS, because `seed` looks like a paint hint and is not.
+    It is an attribute of the two feTurbulence primitives that `filter:url(#inkBig)`
+    and `filter:url(#inkSm)` reference. Changing it INVALIDATES BOTH FILTERS, so
+    every element on the page carrying either -- the h1, every eyebrow, kicker,
+    caption, fact key, stat source, and both halves of every chapter-rail row --
+    re-runs a fractal-noise + displacement chain and repaints. Eight times a
+    second, from a bare setInterval, so the invalidation lands wherever it falls
+    inside the frame rather than at the top of one, and it never stops: hidden
+    tab, offscreen type, mid-flick, all the same.
+    THE TEXTURE IS THE CHARACTER. THE BOIL DURING A FLICK IS NOT. The
+    displacement is 1.1px on the big filter and 0.55px on the small one. Nobody
+    has ever seen half a pixel wander on type that is itself travelling past at
+    flick speed -- but everybody feels the frame it cost. So the ink still boils
+    on the same 8fps house clock, through the same seed sequence in the same
+    order, whenever the page is STILL. It holds its last seed while you scroll
+    and while the tab is hidden, and picks the sequence up again 180ms after you
+    stop. AT REST THIS IS BYTE-FOR-BYTE THE EFFECT THAT WAS HERE; nothing about
+    the look is subtracted, only the eight repaints a second nobody can see.
+    THE CLOCK STAYS A TIMER, THE WRITE MOVES INTO A FRAME. A permanent rAF loop
+    would keep the compositor awake for a page that is doing nothing; a 125ms
+    timer whose callback returns immediately costs nothing when suppressed. The
+    one attribute write is deferred into a single requestAnimationFrame so the
+    invalidation happens at the start of a frame rather than halfway through the
+    one the scroller is already using. */
  (function(){
   if(reduce)return;
   var tb=document.querySelector('#inkBig feTurbulence'),ts=document.querySelector('#inkSm feTurbulence');
   if(!tb&&!ts)return;
-  var SEEDS=[7,19,3,28,11,23,5,31],tk=0;
-  setInterval(function(){tk++;var s=SEEDS[tk%SEEDS.length];if(tb)tb.setAttribute('seed',s);if(ts)ts.setAttribute('seed',(s*2+5)%37);},125);
+  var SEEDS=[7,19,3,28,11,23,5,31],tk=0,quietUntil=0,pending=false;
+  addEventListener('scroll',function(){quietUntil=performance.now()+180;},{passive:true});
+  setInterval(function(){
+   if(pending||document.hidden||performance.now()<quietUntil)return;
+   pending=true;
+   requestAnimationFrame(function(){
+    pending=false;tk++;var s=SEEDS[tk%SEEDS.length];
+    if(tb)tb.setAttribute('seed',s);
+    if(ts)ts.setAttribute('seed',(s*2+5)%37);
+   });
+  },125);
  })();
 
  /* read time: a rough estimate from the page's prose so recruiters can gauge the commitment; recomputes from whatever copy exists, so it stays honest as the sections get written */
@@ -1121,8 +1201,11 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
  </script>
 <script>
 (function(){var rail=document.querySelector('.rail');if(!rail)return;var tick=false;
-function u(){var docH=document.documentElement.scrollHeight;var y=window.scrollY+window.innerHeight;var wasGone=rail.classList.contains('railGone');var nearEnd=wasGone?(y>docH-60):(y>docH-24);rail.classList.toggle('railGone',nearEnd);tick=false;}
-addEventListener('scroll',function(){if(!tick){requestAnimationFrame(u);tick=true;}},{passive:true});u();})();
+var railLive=matchMedia('(min-width:881px)');
+function u(){tick=false;if(!railLive.matches)return;var docH=document.documentElement.scrollHeight;var y=window.scrollY+window.innerHeight;var wasGone=rail.classList.contains('railGone');var nearEnd=wasGone?(y>docH-60):(y>docH-24);rail.classList.toggle('railGone',nearEnd);}
+/* documentElement.scrollHeight is a forced layout, and this took one every
+   scroll frame on a phone to fade a rail that is display:none there. */
+addEventListener('scroll',function(){if(!tick&&railLive.matches){requestAnimationFrame(u);tick=true;}},{passive:true});u();})();
 </script>
 <script>
 (function(){var p=document.getElementById('demoPhone');if(!p)return;var fr=document.getElementById('demoFrame'),po=document.getElementById('demoPoster'),pl=document.getElementById('demoPlay'),mu=document.getElementById('demoMute');var src=fr.getAttribute('data-src');

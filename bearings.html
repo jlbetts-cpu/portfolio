@@ -58,7 +58,37 @@
 *{box-sizing:border-box;margin:0;padding:0}
 html{overflow-x:clip;scroll-behavior:smooth}
 body{background:var(--c50);color:var(--c950);font-family:var(--sans);-webkit-font-smoothing:antialiased;overflow-x:clip}
-img{display:block;max-width:100%}
+/* ── EVERY <img> NOW SHIPS ITS INTRINSIC width/height, AND THAT IS A LAYOUT FIX ─
+   Not one image on this page carried the attributes. Where a CSS aspect-ratio
+   already reserved the box (.cover, .photoRow, .photoPair, .stepShot, .shot.phone,
+   .buildStage) nothing changes -- those declarations still win and the attributes
+   are inert. Where nothing reserved it, the box was 0 until the bytes landed and
+   then snapped to full size, pushing everything below it down the page: .wide img
+   and .closeShot img (`width:100%;height:auto`, no ratio), .sketch img, and worst
+   of all .darlings img, which pins a height and leaves `width:auto` -- so three
+   lazy images in one flex row each went 0 -> full width as they arrived and shoved
+   their neighbours sideways, one after another, exactly where a reader is.
+   THIS IS THE MOST-LIKELY-TO-BITE DEFECT IN THE WHOLE PAGE for the reader Jayden
+   is worried about: someone opening a LinkedIn link on mobile data, where images
+   arrive seconds after the text and every unreserved box is a jump. On a warm
+   localhost it is invisible, which is why it survived this long -- run
+   tools/scroll-stability-probe.py --img-delay 900 to see it.
+   about.html already had this and says so at its .abShot rule: "without them a
+   lazy image is 0px tall until it arrives ... measured at 390 as heights
+   [349,0,0,0]". Same lesson, applied to the case studies.
+   NO CSS CHANGES WITH IT. `height` is `auto` by default, so an attribute pair
+   supplies a ratio and nothing else; every image renders at the size it already
+   did. Verified against a pristine `git archive HEAD` render at 390 and 1440. */
+img{display:block;max-width:100%;height:auto}   /* height:auto IS THE COMPANION TO THE ATTRIBUTES ABOVE, NOT A TIDY-UP.
+      `width`/`height` on an <img> are PRESENTATIONAL HINTS: they map to the
+      CSS width and height properties at UA-stylesheet weight. So an image
+      with no author height, shrunk by max-width:100%, would keep the
+      attribute's pixel height and stretch. Measured before this line:
+      cluster.html grew 2,984px at 320 and ucdavis 1,468px at 390. An author
+      `height:auto` outranks the hint and restores the ratio; every rule that
+      sets a real height (.cover img, .darlings img, .scrollbox .shot img)
+      is more specific than this and is untouched. Proved by
+      tools/render-diff.py: pixel-identical to the tree before the change. */
 *{-webkit-tap-highlight-color:transparent}
 .wrap{position:relative;z-index:2;max-width:1200px;margin:0 auto;padding:0 40px}
 
@@ -602,7 +632,7 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
    <section id="overview" class="hero">
     <h1 class="head rv" data-f="0.05" aria-label="Bearings — Building the design system for a group road-trip planner."><span class="eyebrow">Bearings</span>Building the design system for a group road-trip planner.</h1>
 
-    <figure class="cover media media--full" id="cover"><img src="images/cs/bearings-cover.webp" alt="Bearings shown across four iOS screens on a wildflower meadow: planning a new trip with the bear mascot, choosing a route, the home feed of saved trips, and the live trip hub with map and crew activity"></figure>
+    <figure class="cover media media--full" id="cover"><img src="images/cs/bearings-cover.webp" width="1600" height="1189" alt="Bearings shown across four iOS screens on a wildflower meadow: planning a new trip with the bear mascot, choosing a route, the home feed of saved trips, and the live trip hub with map and crew activity"></figure>
 
     <dl class="facts">
      <div class="fact"><dt class="fk">Role</dt><dd class="fv">Product Designer</dd></div>
@@ -625,8 +655,8 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
 
     <figure class="photoFig">
      <div class="cmp cmpBoard media media--full" data-start="95">
-      <div class="cmpImg cmpAfter"><img src="images/cs/work-car.webp" alt="The project's design work, screens and prototypes, arranged into a car cruising over a mountain landscape." draggable="false"></div>
-      <div class="cmpImg cmpClip" style="clip-path:inset(0 5% 0 0)"><img src="images/cs/bearings-system.webp" alt="The Bearings visual identity board: the serif wordmark and its bear tracker, a three-ramp color system in grey, brown, and yellow with hex values, the type scale, Lucide icons, buttons, search, sliders, secondary and bottom navigation, hand-drawn bear illustrations, and the paper-map style." draggable="false"></div>
+      <div class="cmpImg cmpAfter"><img src="images/cs/work-car.webp" width="1600" height="916" alt="The project's design work, screens and prototypes, arranged into a car cruising over a mountain landscape." draggable="false"></div>
+      <div class="cmpImg cmpClip" style="clip-path:inset(0 5% 0 0)"><img src="images/cs/bearings-system.webp" width="1600" height="741" alt="The Bearings visual identity board: the serif wordmark and its bear tracker, a three-ramp color system in grey, brown, and yellow with hex values, the type scale, Lucide icons, buttons, search, sliders, secondary and bottom navigation, hand-drawn bear illustrations, and the paper-map style." draggable="false"></div>
       <button class="cmpHandle" type="button" role="slider" style="left:95%" aria-label="Slide to compare the visual identity system with the design work behind it" aria-valuemin="0" aria-valuemax="100" aria-valuenow="95">
        <span class="cmpLine" aria-hidden="true"></span>
        <span class="cmpKnob" aria-hidden="true"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 4 12 9 18"/><polyline points="15 6 20 12 15 18"/></svg></span>
@@ -658,9 +688,9 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
 
    <figure class="photoFig">
     <div class="photoRow">
-     <img src="images/cs/roadtrip-1.webp" alt="Palm trees and tall clouds over a California parking lot." draggable="false">
-     <img src="images/cs/roadtrip-2.webp" alt="A rope swing over a still mountain lake ringed by pine forest." draggable="false">
-     <img src="images/cs/roadtrip-3.webp" alt="A palm-lined street with a fresh green bike lane." draggable="false">
+     <img src="images/cs/roadtrip-1.webp" width="768" height="768" alt="Palm trees and tall clouds over a California parking lot." draggable="false">
+     <img src="images/cs/roadtrip-2.webp" width="768" height="768" alt="A rope swing over a still mountain lake ringed by pine forest." draggable="false">
+     <img src="images/cs/roadtrip-3.webp" width="768" height="768" alt="A palm-lined street with a fresh green bike lane." draggable="false">
     </div>
     <figcaption class="cap">A few aesthetic shots from my road trips.</figcaption>
    </figure>
@@ -674,7 +704,7 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
     <p class="secBody">She became Jasmine, our persona: 23, social, always up for a road trip and always the one organizing it. She wants trips worth remembering without carrying them alone, but watches the plan scatter across a Notes app and a group chat that never sync. What she needs is one place to build the trip and a way to pull her friends into it.</p>
     <p class="secBody">Jasmine set the brief. Bearings had to adapt to her from the first screen, hold the whole trip in one place, and leave real room for the group to shape it.</p>
     <p class="secBody">We moved from sketches to lo-fi to mid-fi, testing as we went. <strong>People kept looking for their group and their trip on the same screen, so we merged the two into a single shared hub</strong>.</p>
-    <div class="tv tvBoard collection" aria-label="Low and mid fidelity wireframes"><div class="tvTabs collection__tabs" role="tablist" aria-label="Low and mid fidelity wireframes"><button class="tvTab on ctl ctl--tab" type="button" role="tab" aria-selected="true">Lo-fi sketches</button><button class="tvTab ctl ctl--tab" type="button" role="tab" aria-selected="false">Lo-fi wireframes</button><button class="tvTab ctl ctl--tab" type="button" role="tab" aria-selected="false">Mid-fi</button></div><figure class="tvFrame collection__content media media--mockup"><img src="images/cs/lofi-sketches.webp" alt="Hand-drawn low-fidelity sketches of the onboarding, group, home, and trip itinerary screens." decoding="async"></figure><script type="application/json" class="tvItems">[{"src": "images/cs/lofi-sketches.webp", "alt": "Hand-drawn low-fidelity sketches of the onboarding, group, home, and trip itinerary screens.", "label": "Lo-fi sketches"}, {"src": "images/cs/lofi-wires.webp", "alt": "Low-fidelity digital wireframes of the Bearings flows.", "label": "Lo-fi wireframes"}, {"src": "images/cs/midfi.webp", "alt": "Mid-fidelity wireframes of the Bearings flows.", "label": "Mid-fi"}]</script></div>
+    <div class="tv tvBoard collection" aria-label="Low and mid fidelity wireframes"><div class="tvTabs collection__tabs" role="tablist" aria-label="Low and mid fidelity wireframes"><button class="tvTab on ctl ctl--tab" type="button" role="tab" aria-selected="true">Lo-fi sketches</button><button class="tvTab ctl ctl--tab" type="button" role="tab" aria-selected="false">Lo-fi wireframes</button><button class="tvTab ctl ctl--tab" type="button" role="tab" aria-selected="false">Mid-fi</button></div><figure class="tvFrame collection__content media media--mockup"><img src="images/cs/lofi-sketches.webp" width="882" height="900" alt="Hand-drawn low-fidelity sketches of the onboarding, group, home, and trip itinerary screens." decoding="async"></figure><script type="application/json" class="tvItems">[{"src": "images/cs/lofi-sketches.webp", "alt": "Hand-drawn low-fidelity sketches of the onboarding, group, home, and trip itinerary screens.", "label": "Lo-fi sketches"}, {"src": "images/cs/lofi-wires.webp", "alt": "Low-fidelity digital wireframes of the Bearings flows.", "label": "Lo-fi wireframes"}, {"src": "images/cs/midfi.webp", "alt": "Mid-fidelity wireframes of the Bearings flows.", "label": "Mid-fi"}]</script></div>
    </section>
    <section id="system" class="sec">
     <div class="kicker">Solution</div>
@@ -688,9 +718,9 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
      <p class="secBody">It&rsquo;s also how I fell for a paper-collage direction: hand-torn cars and characters with real texture and imperfection, buttons that felt handmade. I was attached to them. But the more I built, the more the app tipped childlike, away from the premium feel I was after. <strong>So I scrapped the style, characters and all</strong>, even though it stung.</p>
      <figure class="photoFig">
       <span class="scrapTag badge badge--dashed badge--block">Scrapped direction · not the final design</span><div class="darlings">
-       <img src="images/cs/darlings-board.webp" alt="The paper-collage character set: hand-cut cars, a motorcycle and scooter, and people and pet avatars with photo faces." loading="lazy" decoding="async">
-       <img src="images/cs/darlings-collage.webp" alt="The paper-collage direction in the Trips screen: a plush bear riding a hand-cut car carrying the crew, over the Painted Ladies." loading="lazy" decoding="async">
-       <img src="images/cs/darlings-feed.webp" alt="The collage direction shown in the trip feed before it was pulled back." loading="lazy" decoding="async">
+       <img src="images/cs/darlings-board.webp" width="1079" height="900" alt="The paper-collage character set: hand-cut cars, a motorcycle and scooter, and people and pet avatars with photo faces." loading="lazy" decoding="async">
+       <img src="images/cs/darlings-collage.webp" width="1074" height="980" alt="The paper-collage direction in the Trips screen: a plush bear riding a hand-cut car carrying the crew, over the Painted Ladies." loading="lazy" decoding="async">
+       <img src="images/cs/darlings-feed.webp" width="717" height="940" alt="The collage direction shown in the trip feed before it was pulled back." loading="lazy" decoding="async">
       </div>
       <figcaption class="cap">A paper-collage direction I fell for, then let go.</figcaption>
      </figure>
@@ -701,14 +731,14 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
      <h3 class="subHead">The feeling comes before the form.</h3>
      <p class="secBody">I saw the first screens as a chance to set the tone. Instead of dropping people into a form, I opened on real photos of friends on real road trips under one line, Roadtrips Made Together, so you feel what Bearings is for before you touch a field.</p>
      <p class="secBody">From there I kept it easy and intuitive: a few quick questions about how she travels, one at a time, each sharpening what Bearings suggests on the road. And I moved account creation to the very end on purpose, since asking someone to sign up before they&rsquo;ve felt the product is a well-documented way to lose them, and <strong>deferring it can lift completion by 10 to 30 percent</strong>. Jasmine explores first, and commits once she&rsquo;s already in.</p>
-     <div class="player" role="group" aria-label="Onboarding flow, one screen at a time"><div class="playerStage media media--mockup"><img src="images/cs/hifi/onboarding/onboarding-start-page.webp" alt="The Bearings welcome screen: Get Started under the line Roadtrips Made Together." decoding="async"></div><p class="playerCap"><strong class="playerStep">Welcome</strong><span class="playerNote">Get started, then allow location so nearby stops surface.</span></p><div class="playerBar carousel-toolbar" role="group" aria-label="Carousel controls"><button class="sbBtn ctl ctl--internal" type="button" data-dir="-1" aria-label="Previous screen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg></button><div class="playerTicks"></div><button class="sbBtn ctl ctl--internal" type="button" data-dir="1" aria-label="Next screen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 6 15 12 9 18"/></svg></button></div><script type="application/json" class="playerBeats">[{"src": "images/cs/hifi/onboarding/onboarding-start-page.webp", "alt": "The Bearings welcome screen: Get Started under the line Roadtrips Made Together.", "step": "Welcome", "note": "Get started, then allow location so nearby stops surface."}, {"src": "images/cs/hifi/onboarding/onboarding-2.webp", "alt": "Onboarding vehicle screen with sedan selected and a 2013 Honda Accord entered.", "step": "Your vehicle", "note": "Car details drive fuel stops and cost estimates later."}, {"src": "images/cs/hifi/onboarding/onboarding-7.webp", "alt": "Onboarding travel style screen with selectable cards for fastest route, scenic, and nature.", "step": "Travel style", "note": "Fastest, scenic, or nature tunes what Bearings suggests."}, {"src": "images/cs/hifi/onboarding/onboarding-9.webp", "alt": "Onboarding stop preferences screen with sliders for stop frequency, detour distance, and gas budget.", "step": "Stops", "note": "How often she stops, and how far she will stray, shapes the route."}, {"src": "images/cs/hifi/onboarding/onboarding-10-viewport.webp", "alt": "Onboarding needs and accessibility screen with lodging style and accessibility options selected.", "step": "Needs & lodging", "note": "Accessibility and lodging are asked once, not mid-trip."}, {"src": "images/cs/hifi/onboarding/new-account-1.webp", "alt": "The Bearings create-account screen filled with name, email, and password.", "step": "Create account", "note": "An account so trips save and the crew stays in sync."}, {"src": "images/cs/hifi/onboarding/home-screen-5.webp", "alt": "The Bearings home screen after onboarding with personalized scenic stop suggestions.", "step": "Home", "note": "By the home screen, Bearings already knows how she travels."}]</script></div>
+     <div class="player" role="group" aria-label="Onboarding flow, one screen at a time"><div class="playerStage media media--mockup"><img src="images/cs/hifi/onboarding/onboarding-start-page.webp" width="804" height="1748" alt="The Bearings welcome screen: Get Started under the line Roadtrips Made Together." decoding="async"></div><p class="playerCap"><strong class="playerStep">Welcome</strong><span class="playerNote">Get started, then allow location so nearby stops surface.</span></p><div class="playerBar carousel-toolbar" role="group" aria-label="Carousel controls"><button class="sbBtn ctl ctl--internal" type="button" data-dir="-1" aria-label="Previous screen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg></button><div class="playerTicks"></div><button class="sbBtn ctl ctl--internal" type="button" data-dir="1" aria-label="Next screen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 6 15 12 9 18"/></svg></button></div><script type="application/json" class="playerBeats">[{"src": "images/cs/hifi/onboarding/onboarding-start-page.webp", "alt": "The Bearings welcome screen: Get Started under the line Roadtrips Made Together.", "step": "Welcome", "note": "Get started, then allow location so nearby stops surface."}, {"src": "images/cs/hifi/onboarding/onboarding-2.webp", "alt": "Onboarding vehicle screen with sedan selected and a 2013 Honda Accord entered.", "step": "Your vehicle", "note": "Car details drive fuel stops and cost estimates later."}, {"src": "images/cs/hifi/onboarding/onboarding-7.webp", "alt": "Onboarding travel style screen with selectable cards for fastest route, scenic, and nature.", "step": "Travel style", "note": "Fastest, scenic, or nature tunes what Bearings suggests."}, {"src": "images/cs/hifi/onboarding/onboarding-9.webp", "alt": "Onboarding stop preferences screen with sliders for stop frequency, detour distance, and gas budget.", "step": "Stops", "note": "How often she stops, and how far she will stray, shapes the route."}, {"src": "images/cs/hifi/onboarding/onboarding-10-viewport.webp", "alt": "Onboarding needs and accessibility screen with lodging style and accessibility options selected.", "step": "Needs & lodging", "note": "Accessibility and lodging are asked once, not mid-trip."}, {"src": "images/cs/hifi/onboarding/new-account-1.webp", "alt": "The Bearings create-account screen filled with name, email, and password.", "step": "Create account", "note": "An account so trips save and the crew stays in sync."}, {"src": "images/cs/hifi/onboarding/home-screen-5.webp", "alt": "The Bearings home screen after onboarding with personalized scenic stop suggestions.", "step": "Home", "note": "By the home screen, Bearings already knows how she travels."}]</script></div>
     </div>
     <div class="subBlock">
      <div class="subKick">Create a trip</div>
      <h3 class="subHead">Five steps against eighteen hours.</h3>
      <p class="secBody">Planning eats eighteen hours because every decision lives in a different app, so I <strong>collapsed it into five clear steps</strong>. I put the most care into the paper map at the center, I wanted planning to feel playful but premium, like part of the trip instead of a chore. Yellow carries through the whole flow as the accent, never enough to overwhelm, just enough to feel unmistakably Bearings.</p>
      <p class="secBody">This screen is the whole case for Bearings, so it&rsquo;s the one I sweated most. The research kept telling me a group falls apart without a shared place, so I made the trip itself that place. The route sits up top where everyone can see it, and below it are the things groups actually fight over: where to eat becomes a quick poll, the bill splits itself as you go, and the itinerary bends the second plans change. The road trip games I added just because they&rsquo;d make me smile on a long drive.</p>
-    <div class="player" role="group" aria-label="Create-a-trip flow, one step at a time"><div class="playerStage media media--mockup"><img src="images/cs/hifi/createtripsflow/step-1-8.webp" alt="Step one: San Francisco to Los Angeles set on the paper map." decoding="async"></div><p class="playerCap"><strong class="playerStep">Step 1 · Where to?</strong><span class="playerNote">Start and end. Two fields, no tabs.</span></p><div class="playerBar carousel-toolbar" role="group" aria-label="Carousel controls"><button class="sbBtn ctl ctl--internal" type="button" data-dir="-1" aria-label="Previous screen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg></button><div class="playerTicks"></div><button class="sbBtn ctl ctl--internal" type="button" data-dir="1" aria-label="Next screen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 6 15 12 9 18"/></svg></button></div><script type="application/json" class="playerBeats">[{"src": "images/cs/hifi/createtripsflow/step-1-8.webp", "alt": "Step one: San Francisco to Los Angeles set on the paper map.", "step": "Step 1 · Where to?", "note": "Start and end. Two fields, no tabs."}, {"src": "images/cs/hifi/createtripsflow/step-2-6.webp", "alt": "Step two: May 6 to 9 picked on one shared calendar.", "step": "Step 2 · When?", "note": "One calendar replaces the group poll."}, {"src": "images/cs/hifi/createtripsflow/step-3-10.webp", "alt": "Step three: stops added with their detour cost shown in minutes.", "step": "Step 3 · Add stops", "note": "Detours priced in minutes, so the group debates with numbers."}, {"src": "images/cs/hifi/createtripsflow/step-4-6.webp", "alt": "Step four: Marge and Enoch join by iMessage with a 600 dollar budget set.", "step": "Step 4 · Who’s coming?", "note": "Crew in by iMessage, budget beside them."}, {"src": "images/cs/hifi/createtripsflow/step-5-6.webp", "alt": "Step five: the trip named and reviewed.", "step": "Step 5 · Name it", "note": "Lighthouse epic waterfall adventure. Go."}, {"src": "images/cs/hifi/createtripsflow/home-screen-main.webp", "alt": "The home screen with the new trip on top and past trips below.", "step": "Home", "note": "Current trip up top, past trips below, one yellow plus for the next."}, {"src": "images/cs/hifi/createtripsflow/trip-screen-main.webp", "alt": "The Bearings trip page: shared route map, a group vote on where to eat, and split expenses.", "step": "The trip page", "note": "Every trip lands here: one map, group votes, split costs."}]</script></div>
+    <div class="player" role="group" aria-label="Create-a-trip flow, one step at a time"><div class="playerStage media media--mockup"><img src="images/cs/hifi/createtripsflow/step-1-8.webp" width="804" height="1748" alt="Step one: San Francisco to Los Angeles set on the paper map." decoding="async"></div><p class="playerCap"><strong class="playerStep">Step 1 · Where to?</strong><span class="playerNote">Start and end. Two fields, no tabs.</span></p><div class="playerBar carousel-toolbar" role="group" aria-label="Carousel controls"><button class="sbBtn ctl ctl--internal" type="button" data-dir="-1" aria-label="Previous screen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg></button><div class="playerTicks"></div><button class="sbBtn ctl ctl--internal" type="button" data-dir="1" aria-label="Next screen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 6 15 12 9 18"/></svg></button></div><script type="application/json" class="playerBeats">[{"src": "images/cs/hifi/createtripsflow/step-1-8.webp", "alt": "Step one: San Francisco to Los Angeles set on the paper map.", "step": "Step 1 · Where to?", "note": "Start and end. Two fields, no tabs."}, {"src": "images/cs/hifi/createtripsflow/step-2-6.webp", "alt": "Step two: May 6 to 9 picked on one shared calendar.", "step": "Step 2 · When?", "note": "One calendar replaces the group poll."}, {"src": "images/cs/hifi/createtripsflow/step-3-10.webp", "alt": "Step three: stops added with their detour cost shown in minutes.", "step": "Step 3 · Add stops", "note": "Detours priced in minutes, so the group debates with numbers."}, {"src": "images/cs/hifi/createtripsflow/step-4-6.webp", "alt": "Step four: Marge and Enoch join by iMessage with a 600 dollar budget set.", "step": "Step 4 · Who’s coming?", "note": "Crew in by iMessage, budget beside them."}, {"src": "images/cs/hifi/createtripsflow/step-5-6.webp", "alt": "Step five: the trip named and reviewed.", "step": "Step 5 · Name it", "note": "Lighthouse epic waterfall adventure. Go."}, {"src": "images/cs/hifi/createtripsflow/home-screen-main.webp", "alt": "The home screen with the new trip on top and past trips below.", "step": "Home", "note": "Current trip up top, past trips below, one yellow plus for the next."}, {"src": "images/cs/hifi/createtripsflow/trip-screen-main.webp", "alt": "The Bearings trip page: shared route map, a group vote on where to eat, and split expenses.", "step": "The trip page", "note": "Every trip lands here: one map, group votes, split costs."}]</script></div>
     </div>
    </section>
    <section id="outcome" class="sec">
@@ -721,8 +751,8 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
    </section>
 
    <div class="photoPair media media--full">
-     <figure><img src="images/cs/photos/bearings-1.webp" alt="Jayden and friends at Bixby Bridge, Big Sur, on a road trip" loading="lazy" decoding="async"><figcaption>Friends on a road trip to Bixby Bridge.</figcaption></figure>
-     <figure><img src="images/cs/photos/bearings-mock.webp" alt="The Bearings app shown on a phone on a desk" loading="lazy" decoding="async"><figcaption>Bearings at home on a desk.</figcaption></figure>
+     <figure><img src="images/cs/photos/bearings-1.webp" width="1200" height="1200" alt="Jayden and friends at Bixby Bridge, Big Sur, on a road trip" loading="lazy" decoding="async"><figcaption>Friends on a road trip to Bixby Bridge.</figcaption></figure>
+     <figure><img src="images/cs/photos/bearings-mock.webp" width="1200" height="1200" alt="The Bearings app shown on a phone on a desk" loading="lazy" decoding="async"><figcaption>Bearings at home on a desk.</figcaption></figure>
     </div>
   </div>
  </div>
@@ -855,13 +885,21 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
   var rail=document.querySelector('.rail');
   var imgs=[].slice.call(document.querySelectorAll('.cover,.wide,.facts,.cmp,.scrollbox,.photoRow,.stepShot,.closeShot,.darlings'));
   if(!rail||!imgs.length||reduce)return;
+  /* THE RAIL IS `display:none` BELOW 881px -- see the @media block above -- and
+     this ran on phones anyway: a getBoundingClientRect on the hidden rail plus
+     one per full-bleed figure until a hit, inside a scroll-driven rAF, every
+     frame of every flick, to toggle a class on an element nobody can see. The
+     media query is the same one the stylesheet uses, so the guard cannot drift
+     from the rule it is guarding. Desktop behaviour is untouched. */
+  var railLive=matchMedia('(min-width:881px)');
   function hush(){
+   if(!railLive.matches)return;
    var rb=rail.getBoundingClientRect(),over=false;
    for(var i=0;i<imgs.length;i++){var b=imgs[i].getBoundingClientRect();if(b.top<rb.bottom&&b.bottom>rb.top){over=true;break;}}
    rail.classList.toggle('hush',over);
   }
   var ticking=false;
-  window.addEventListener('scroll',function(){if(!ticking){ticking=true;requestAnimationFrame(function(){hush();ticking=false;});}},{passive:true});
+  window.addEventListener('scroll',function(){if(!railLive.matches||ticking)return;ticking=true;requestAnimationFrame(function(){hush();ticking=false;});},{passive:true});
   window.addEventListener('resize',hush,{passive:true});
   hush();
  })();
@@ -870,7 +908,12 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
  (function(){
   var rail=document.querySelector('.rail'),role=document.querySelector('.ov')||document.querySelector('.role'),layout=document.querySelector('.layout');
   if(!rail||!role||!layout)return;
+  /* Same guard, same reason: below 881 the rail is display:none, and this fired
+     five times per load (immediately, on load, on fonts.ready, at 320ms and at
+     1100ms) forcing two layouts each time to position something invisible. */
+  var railLive=matchMedia('(min-width:881px)');
   function align(){
+   if(!railLive.matches)return;
    var off=role.getBoundingClientRect().top-layout.getBoundingClientRect().top-Math.round(window.innerHeight*0.5);
    rail.style.marginTop=Math.max(0,Math.round(off))+'px';
   }
@@ -955,12 +998,49 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
  });
 
  /* moving ink: reseed the turbulence on the 8fps house clock so the textured type "boils" exactly like the home-page headline */
+ /* ── THE BOIL HOLDS STILL WHILE YOU ARE MOVING, AND THAT IS THE WHOLE CHANGE ──
+    Jayden: "the experience of even scrolling on the home to feel choppy and all
+    over the place", reported from the LinkedIn link -- an in-app WKWebView on a
+    phone, which is plausibly how most recruiters will ever see this site.
+    WHAT THIS LOOP COSTS, because `seed` looks like a paint hint and is not.
+    It is an attribute of the two feTurbulence primitives that `filter:url(#inkBig)`
+    and `filter:url(#inkSm)` reference. Changing it INVALIDATES BOTH FILTERS, so
+    every element on the page carrying either -- the h1, every eyebrow, kicker,
+    caption, fact key, stat source, and both halves of every chapter-rail row --
+    re-runs a fractal-noise + displacement chain and repaints. Eight times a
+    second, from a bare setInterval, so the invalidation lands wherever it falls
+    inside the frame rather than at the top of one, and it never stops: hidden
+    tab, offscreen type, mid-flick, all the same.
+    THE TEXTURE IS THE CHARACTER. THE BOIL DURING A FLICK IS NOT. The
+    displacement is 1.1px on the big filter and 0.55px on the small one. Nobody
+    has ever seen half a pixel wander on type that is itself travelling past at
+    flick speed -- but everybody feels the frame it cost. So the ink still boils
+    on the same 8fps house clock, through the same seed sequence in the same
+    order, whenever the page is STILL. It holds its last seed while you scroll
+    and while the tab is hidden, and picks the sequence up again 180ms after you
+    stop. AT REST THIS IS BYTE-FOR-BYTE THE EFFECT THAT WAS HERE; nothing about
+    the look is subtracted, only the eight repaints a second nobody can see.
+    THE CLOCK STAYS A TIMER, THE WRITE MOVES INTO A FRAME. A permanent rAF loop
+    would keep the compositor awake for a page that is doing nothing; a 125ms
+    timer whose callback returns immediately costs nothing when suppressed. The
+    one attribute write is deferred into a single requestAnimationFrame so the
+    invalidation happens at the start of a frame rather than halfway through the
+    one the scroller is already using. */
  (function(){
   if(reduce)return;
   var tb=document.querySelector('#inkBig feTurbulence'),ts=document.querySelector('#inkSm feTurbulence');
   if(!tb&&!ts)return;
-  var SEEDS=[7,19,3,28,11,23,5,31],tk=0;
-  setInterval(function(){tk++;var s=SEEDS[tk%SEEDS.length];if(tb)tb.setAttribute('seed',s);if(ts)ts.setAttribute('seed',(s*2+5)%37);},125);
+  var SEEDS=[7,19,3,28,11,23,5,31],tk=0,quietUntil=0,pending=false;
+  addEventListener('scroll',function(){quietUntil=performance.now()+180;},{passive:true});
+  setInterval(function(){
+   if(pending||document.hidden||performance.now()<quietUntil)return;
+   pending=true;
+   requestAnimationFrame(function(){
+    pending=false;tk++;var s=SEEDS[tk%SEEDS.length];
+    if(tb)tb.setAttribute('seed',s);
+    if(ts)ts.setAttribute('seed',(s*2+5)%37);
+   });
+  },125);
  })();
 
  /* read time: a rough estimate from the page's prose so recruiters can gauge the commitment; recomputes from whatever copy exists, so it stays honest as the sections get written */
@@ -1137,8 +1217,11 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
  </script>
 <script>
 (function(){var rail=document.querySelector('.rail');if(!rail)return;var tick=false;
-function u(){var docH=document.documentElement.scrollHeight;var y=window.scrollY+window.innerHeight;var wasGone=rail.classList.contains('railGone');var nearEnd=wasGone?(y>docH-60):(y>docH-24);rail.classList.toggle('railGone',nearEnd);tick=false;}
-addEventListener('scroll',function(){if(!tick){requestAnimationFrame(u);tick=true;}},{passive:true});u();})();
+var railLive=matchMedia('(min-width:881px)');
+function u(){tick=false;if(!railLive.matches)return;var docH=document.documentElement.scrollHeight;var y=window.scrollY+window.innerHeight;var wasGone=rail.classList.contains('railGone');var nearEnd=wasGone?(y>docH-60):(y>docH-24);rail.classList.toggle('railGone',nearEnd);}
+/* documentElement.scrollHeight is a forced layout, and this took one every
+   scroll frame on a phone to fade a rail that is display:none there. */
+addEventListener('scroll',function(){if(!tick&&railLive.matches){requestAnimationFrame(u);tick=true;}},{passive:true});u();})();
 
 /* gallery paddles: prev/next controls with disabled ends; drag, swipe, and keyboard still work */
 (function(){
