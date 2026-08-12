@@ -611,6 +611,15 @@ img{display:block;max-width:100%}
      ═══════════════════════════════════════════════════════════════════════════ -->
 <main class="mkApp" id="main" tabindex="-1">
 
+ <!-- THE PAGE HAS TO SAY WHAT IT IS, even though its design shows no title. The
+      heading run here started at <h2> ("Frame", "Landmarks", "Pose"), which are
+      the panel's groups, not the page's subject -- so a screen reader met three
+      second-level headings under nothing, and a crawler found a document with no
+      stated topic. Visually hidden rather than drawn, because the tool opening
+      straight onto the stage is the design and a title above it would be the
+      first thing to cut. .qsr is the site's existing screen-reader-only utility. -->
+ <h1 class="qsr">Make your own head</h1>
+
  <div class="mkStageCol">
   <div class="mkStageBox">
    <div class="mkStage">

@@ -830,15 +830,27 @@ def rest_pose_contract():
     assert "#heroHeadTransform{--hero-head-rotate:var(--hero-head-rest-rotate)}" in time_css
 
     # ── SPECIFICITY IS A CORRECTNESS PROPERTY HERE ────────────────────────────
-    # controls.css links AFTER hero-time.css and declares its own
-    # .heroHeadTransform{transform:...}. A class selector in hero-time.css
-    # therefore reads perfectly and loses -- which is exactly what happened: the
-    # float and the entrance were composed into a transform that never won a
-    # declaration, so the selection frame drifted ~10px off a head that never
-    # moved. An ID is the fix and this is the guard.
-    assert html.index('href="hero-time.css') < html.index('href="controls.css'), \
-        "the ID selectors below exist because controls.css links later"
+    # Two files declare a transform for the same element: controls.css owns the
+    # position and hero-time.css composes the float and the entrance onto it. When
+    # a class in one loses to a class in the other, the float is read perfectly and
+    # dropped, and the selection frame drifts ~10px off a head that never moved.
+    # An ID wins on specificity, so it wins no matter which file links first, and
+    # that is the property worth asserting.
+    #
+    # THE LINK-ORDER ASSERTION THAT USED TO SIT HERE WAS FALSE FROM THE DAY IT WAS
+    # WRITTEN. It required hero-time.css to link before controls.css; index.html
+    # has always done the reverse -- controls at 1687, hero-time at 1689 -- and the
+    # comment above it asserted the reverse of that again. So it failed on every
+    # tree it was ever run against, including a pristine HEAD, and it taught
+    # everyone that this contract is "expected" to be red. A gate that has never
+    # once passed protects nothing and hides the assertions underneath it.
+    #
+    # Order is now recorded rather than demanded: if it flips, the ID still wins.
     assert ".heroHeadTransform{" in controls
+    assert "#heroHeadTransform{" in time_css, (
+        "hero-time.css must reach this element by ID. controls.css declares "
+        ".heroHeadTransform{transform:...} for the same node, and a class-vs-class "
+        "fight is decided by link order -- which no stylesheet should have to know.")
     assert "#heroHeadTransform{\n transform:translate3d(" in time_css, \
         "the float/entrance transform must out-specify controls.css"
     for term in ("var(--hero-head-float-x,0px)", "var(--hero-head-float-y,0px)",
@@ -942,10 +954,19 @@ def static_contract():
     frame_rule = css.split(".heroHeadFrame::before{", 1)[1].split("}", 1)[0]
     assert "rotate(var(--hero-head-rotate))" in frame_rule
     assert "transform-origin:50% 50%" in frame_rule
-    assert (
-        'faceImg.addEventListener("click",()=>{if(CALIB||eventLock)return;tapReact();});'
-        not in engine
-    )
+    # THE SAME UNPASSABLE SHAPE AS THE LINK-ORDER ASSERTION ABOVE, and a second
+    # copy of it lives in shared-surfaces-contract.py. It bans the tap-reaction
+    # binding outright -- but the fix that was actually shipped GUARDS the binding,
+    # and the guarded line contains this exact string:
+    #     if(!faceImg.closest(".heroHeadTransform"))faceImg.addEventListener("click",...)
+    # so the assertion went red the moment the bug was fixed correctly. What has to
+    # be true is that the reaction never fires for the portrait the transform owns,
+    # where a click is the drag and the selection, not that the code is absent.
+    for m in re.finditer(r'faceImg\.addEventListener\("click"', engine):
+        head = engine[max(0, m.start() - 60):m.start()]
+        assert 'closest(".heroHeadTransform")' in head, (
+            "unguarded tap reaction on the portrait at offset %d: inside "
+            ".heroHeadTransform the click belongs to drag and select" % m.start())
     for operation in (
         "pointerdown",
         "pointermove",

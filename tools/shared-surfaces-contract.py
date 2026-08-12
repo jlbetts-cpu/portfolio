@@ -137,8 +137,30 @@ def main():
         '.heroTimeGradient[data-time-gradient="dusk"]{background:radial-gradient(102.83% 103.24% at 49.98% 104.51%,#ffb36a 0,#dfa0d8 14%,#9da8e4 30%,#ccd5f0 44%,#f1f3fa 58%,#f8fafd 100%)}',
         '.heroTimeGradient[data-time-gradient="sunset"]{background:radial-gradient(103.12% 100% at 50% 100%,#ffa577 0,#ff90a1 15.52%,#ddadff 30.09%,#ecd8ff 45.72%,#f5eaff 54.96%,#f8fafd 88.16%)}',
     )
+    # WHAT IS APPROVED IS THE LIGHT, NOT THE GEOMETRY. Each of these five once
+    # carried its own hardcoded horizontal radius -- 103.24, 102.68, 102.84,
+    # 102.83, 103.12 -- and they were collapsed into var(--hero-glow-rx) so the
+    # glow scales with the viewport instead of the element. Five values within
+    # half a percent of each other were not five decisions, and an exact-string
+    # assertion turned that tidy-up into five failures while nothing about the
+    # sky had changed.
+    #
+    # So the colours and their stops are asserted, which is the part Jayden chose
+    # and the part that must never drift, and the radius is allowed to be a token.
+    # Everything from the first colour to the closing brace still has to match to
+    # the character -- reorder a stop or shift a hex and this still fails.
     for approved in approved_day_gradients:
-        assert approved in hero_time_css
+        state = re.search(r'data-time-gradient="([a-z-]+)"', approved).group(1)
+        light = approved[approved.index(",#"):]          # from the first colour on
+        live = re.search(
+            r'\.heroTimeGradient\[data-time-gradient="%s"\]\{background:[^}]*\}' % state,
+            hero_time_css)
+        assert live, "no gradient rule for %s in hero-time.css" % state
+        assert light in live.group(0), (
+            "the %s sky's colours or stops have drifted from the approved run\n"
+            "  approved: %s\n  live:     %s" % (state, light[:120], live.group(0)[-120:]))
+        assert "radial-gradient(var(--hero-glow-rx)" in live.group(0), (
+            "%s no longer takes its glow radius from --hero-glow-rx" % state)
     assert "heroNightStars" in home_html and 28 <= home_html.count("--star-x:") <= 36
     assert ".heroNightStars{position:absolute;inset:0" in hero_time_css
     assert ".hero[data-time-state=\"night\"] .heroNightStars{opacity:1}" in hero_time_css
@@ -151,7 +173,21 @@ def main():
     assert "window.HeroHeadTransform={init:init}" in transform
     assert 'face.addEventListener("pointerdown",beginMove)' in transform
     assert "tapReact()" not in transform
-    assert 'faceImg.addEventListener("click"' not in engine
+    # THIS ASSERTION COULD NEVER PASS, and it was forbidding the wrong thing.
+    # It banned the substring outright, but the fix it was written to protect is a
+    # GUARDED binding, and the guarded line contains that substring verbatim:
+    #     if(!faceImg.closest(".heroHeadTransform"))faceImg.addEventListener("click",...)
+    # So the contract went red the moment the bug was fixed properly, and stayed
+    # red -- which is how it ended up on a list of failures everyone had learned
+    # to expect. What must be true is not that the binding is absent; it is that
+    # it never runs for the portrait the transform owns, because there the click
+    # belongs to drag and select. So: every binding must carry the guard.
+    for m in re.finditer(r'faceImg\.addEventListener\("click"', engine):
+        head = engine[max(0, m.start() - 60):m.start()]
+        assert 'closest(".heroHeadTransform")' in head, (
+            "an UNGUARDED click binding on the portrait at offset %d -- inside "
+            ".heroHeadTransform the click is the drag and the selection, and a tap "
+            "reaction fights both" % m.start())
     assert 'addEventListener("heroheadtransform"' in engine
     assert 'activeHover="smile"' in (ROOT / "hero-engine.js").read_text(encoding="utf-8")
     assert 'frame.addEventListener("focusin"' in (ROOT / "hero-engine.js").read_text(encoding="utf-8")

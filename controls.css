@@ -468,6 +468,13 @@
  transition:opacity var(--dur-state) var(--ease-out),transform var(--sp-settle-dur) var(--sp-settle)
 }
 .ctl-menu .ctl{border-radius:var(--radius-control)}
+/* SCREEN-READER ONLY. Lived in play.css, which is loaded by exactly one page, so
+   any other page needing it had to invent its own -- and headmaker went without,
+   opening its heading run at <h2> with no <h1> above it. It belongs beside the
+   skip link: both exist so the page reads correctly to someone who cannot see it.
+   play.css still carries an identical copy; that one can go when this file is next
+   swept, and until then the two are the same declaration so neither can win wrong. */
+.qsr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
 .skipLink.ctl{
  position:fixed;top:var(--skip-inset);left:var(--skip-inset);z-index:var(--layer-skip-link);
  transform:translateY(var(--skip-hidden-offset));transition-property:color,background-color,box-shadow,transform
