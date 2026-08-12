@@ -1861,7 +1861,14 @@
    shOp=(shown&&!perched)?(orbH<4?0.36:Math.max(0.1,0.3-orbH/800)):0;
    shadow.style.transform="translate("+(_ofx-HW/2).toFixed(1)+"px,"+(_ofy-HW*0.11).toFixed(1)+"px) rotate("+_od.toFixed(1)+"deg) scale("+shScale.toFixed(3)+",1)";
   }else shadow.style.transform="translate("+(x+HW/2-HW/2*shScale+HW*0.06).toFixed(1)+"px,"+(shG-2+_ay).toFixed(1)+"px) scale("+shScale.toFixed(3)+",1)";
-  shadow.style.opacity=String(shOp);
+  /* THE RACE HAS NO FLOOR, SO shOp IS NOT THE LAST WORD. The suppression up in the
+     race branch set this to 0 and THIS line, further down the same frame, wrote it
+     straight back every time -- the same ordering bug that had the race mailbox
+     being read after the transform had already been written. A racer is in free
+     fall down a plinko board, touching nothing. The contact shadow exists on this
+     site precisely because a head is STANDING on something, so during a race there
+     is nothing for it to be information about. */
+  shadow.style.opacity=(window.__hmRaceOn&&me.raceX!=null)?"0":String(shOp);
   // THE REFLECTION. A jump is the test case that exposes all of it, because it is the one moment the
   // head stops touching the ground. Six claims, each of which has to hold on its own:
   //
@@ -1926,7 +1933,9 @@
    if(_reflFoot!==FOOT){_reflFoot=FOOT;refl.style.transformOrigin="50% "+(FOOT*100).toFixed(2)+"%";}   // FOOT arrives from an image onload, so it can change once after spawn
    var _wY=floorY+HH*FOOT+_ay;   // the FEET plane itself, not the shadow's drawn top edge -- the shadow is nudged 2px up so its ellipse sits under the chin, and inheriting that nudge would have floated every reflection 2px off the water
    refl.style.transform="translate("+_rx.toFixed(1)+"px,"+(_wY-HH*FOOT).toFixed(1)+"px) scale(1,-1) rotate("+rot.toFixed(1)+"deg) scale("+_rsx.toFixed(3)+","+(_rsy*shScale*REFL_PERSP).toFixed(3)+")";
-   refl.style.opacity=(shOp*REFL_K).toFixed(3);
+   /* The reflection is the shadow's mirror and leaves with it. shOp is still being
+      computed here for a floor the race does not have. */
+   refl.style.opacity=(window.__hmRaceOn&&me.raceX!=null)?"0":(shOp*REFL_K).toFixed(3);
   }else if(refl.style.opacity!=="0")refl.style.opacity="0";   // off the pitch this is one string compare per head per frame and nothing else
   if(crowdT>0.65&&!air&&!grabbed&&!perched){crowdT=0;   // squeezed too long: it hops out of the scrum
    air=true;st="fall";surface=floorY;dir=Math.random()<0.5?-1:1;
@@ -3147,8 +3156,14 @@ function teams(){
     var cuts=[];try{cuts=JSON.parse(localStorage.getItem("hmCompanions")||"[]")||[];}catch(_){}
     for(var i=0;i<list.length;i++){var row=document.createElement("div");row.className="hmRaceRow";row.style.order=i;
      var img=(list[i].slot!=null&&cuts[list[i].slot]&&cuts[list[i].slot].cut)?cuts[list[i].slot].cut:"images/neutral.webp";
-     var tt=(list[i].slot!=null&&window.__hmCareer)?window.__hmCareer.titles(list[i].slot):0;
-     row.innerHTML="<b>"+(i+1)+"</b><img alt='' src='"+img+"'>"+(tt>0?"<em style='font-size:9px;font-weight:600;font-style:normal;color:var(--c700)'>"+tt+"\u265B</em>":"");this.rows[list[i].key]=row;board.appendChild(row);}
+     /* NO CAREER COUNT ON THE RACE BOARD. Every chip carried a running tally of
+        everything that head had ever won -- a statistic about the past, printed
+        beside a position that changes every frame, in a 9px crowned superscript
+        nobody asked to read mid-race. Jayden: "idk why there is showing how many
+        of the marble game they won not important". The board answers one
+        question, which is who is where right now. CAREER still records the wins
+        and nothing else that reads it is touched. */
+     row.innerHTML="<b>"+(i+1)+"</b><img alt='' src='"+img+"'>";this.rows[list[i].key]=row;board.appendChild(row);}
     var endB=document.createElement("button");endB.className="hmRaceEnd ctl ctl--sm ctl--secondary";endB.type="button";endB.textContent="End";
     var self=this;endB.addEventListener("click",function(e){e.stopPropagation();if(self.endFn)self.endFn();});board.appendChild(endB);
     /* MEASURE THE RUNG PITCH ONCE, HERE, AND NEVER AGAIN. rank() used to take two
