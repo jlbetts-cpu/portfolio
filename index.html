@@ -596,6 +596,17 @@ body.heroEmpathy .jbStick .jbNav{--nav-mat:var(--ctl-ground);--nav-rim:var(--ctl
    Both gone. The rail and the panel are one surface now, and the active tab's
    own underline is what says which one you are on -- an affordance that already
    exists and does not need a rule drawn under the whole row to support it. */
+/* THE FIRST THUMBNAIL SQUARES OFF WHERE IT MEETS THE TABS. The rail and the
+   panel have touched since the gap came out -- measured 0.0px at 1440 and 390 --
+   but the top image kept a 20px radius on ALL FOUR corners, so the panel's white
+   showed through the two that butt against the tab row and the picture read as a
+   separate object sitting under a bar. Jayden: "the tabs on the home they still
+   dont connect to the first thumbnail on mobile and desktop." Only the top pair
+   is squared, and only on the first item, so every other cover keeps the radius
+   the ladder gives it. */
+.collection__content .csItem:first-child :is(.csImg,.cover,img){
+ border-top-left-radius:0;border-top-right-radius:0
+}
 .csTabs{display:flex;flex-wrap:wrap;align-items:flex-end;
  margin:0 auto;position:relative}
 .csTab{position:relative;background:none;border:0;padding:0 0 var(--sp-12);margin:0;font:inherit;font-family:var(--sans);font-weight:600;font-size:var(--fs-small);letter-spacing:.01em;text-transform:none;color:var(--c500);cursor:pointer;transition:color var(--dur-state-out) var(--ease-out);filter:url(#inkSm)}

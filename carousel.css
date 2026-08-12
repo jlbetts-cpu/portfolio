@@ -321,3 +321,29 @@
  box-sizing:border-box
 }
 .tv>.tvFrame{background:none;box-shadow:none}
+
+/* THE WHOLE CARD FITS ONE SCREEN, and the arrows leave the phone alone.
+   Jayden: "they should all be able to fit on the same screen scroll on both
+   mobile and desktop also the buttons need to need to be not visible on mobile
+   because swiping is so easy to do on mobile no need for that."
+
+   The stage was sized by WIDTH -- min(320px,62vw) -- and a phone mockup is about
+   2.16 times as tall as it is wide, so the picture alone ran past the viewport
+   on any short screen and the caption above it and the position below it went
+   with it. Capping the HEIGHT and letting the width follow keeps the three parts
+   of one object on one screen, which is the whole point of putting them in one
+   card. object-fit:contain so a mockup is never cropped to make it fit.
+
+   The arrows go on touch. A swipe is already the gesture, they were only ever
+   the pointer's way in, and two 44px targets flanking the picture on a 390px
+   screen cost more room than they earn. They stay for anything with a pointer,
+   and keyboard users keep the arrow keys either way. */
+.player>.playerStage{
+ max-height:var(--crsl-stage-max,none);
+ display:flex;justify-content:center
+}
+.player>.playerStage>img{max-height:100%;width:auto;object-fit:contain}
+@media(max-height:1000px){ .player{--crsl-stage-max:calc(100svh - 300px)} }
+@media(hover:none) and (pointer:coarse){
+ .crslNav{display:none}
+}
