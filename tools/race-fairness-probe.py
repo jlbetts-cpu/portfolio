@@ -58,6 +58,26 @@ Plus COMPLETION -- the share of seeds where all twelve crossed -- because there 
 a known wedging defect near the sliding gate and any obstacle change must not make
 it worse.
 
+AND THEN THE TWO READINGS THIS FILE GREW FOR THE SECOND PASS, because the contact
+tally above answered Jayden's first complaint and was blind to his next two.
+
+  CHUTE      the longest CLEAR STRAIGHT DROP anywhere in the course, in head
+             diameters. Every obstacle is rasterised into a 20px grid dilated by a
+             head radius, and each column's longest unbroken empty run is the free
+             fall available at that x. "There isnt enough obsticales anywhere else"
+             is this number, and it was 22.4 diameters -- 2225px of a 9106px descent
+             -- while the contact tally reported a flat, healthy 30 per lane. A tally
+             counts what a lane met; it cannot count what was not there.
+  LEADS      how many times FIRST PLACE actually changed hands, with a half-head of
+             hysteresis so two racers falling side by side do not score a thousand.
+             Reported as a distribution, plus DURABLE (changes where the new leader
+             held it a full second), QUIET (the longest stretch of a race with nobody
+             going past -- the procession detector, which a mean hides completely) and
+             DECIDED (how often the halfway leader wins).
+
+Both are behind the same ?wraf=1 dev flag: play-engine.js carries the lead-change
+counter, and chutes() in this file rasterises the course out of the live arrays.
+
     python3 tools/race-fairness-probe.py                  # 120 seeds
     python3 tools/race-fairness-probe.py --seeds 400
     python3 tools/race-fairness-probe.py --json out.json  # for a before/after diff
@@ -93,7 +113,8 @@ FIELD = 12
 VIEWPORT = (1440, 900)
 SIM_SECONDS = 70.0          # a hard ceiling on simulated race time; a normal race wraps well inside it
 BATCH = 10                  # seeds per evaluate() call: keeps any single blocking call short
-CONTRACT_SEEDS = 80         # enough that a lane mean is stable to ~0.5 obstacles; the gate runs in ~2 min
+CONTRACT_SEEDS = 160        # enough that a lane mean is stable to ~0.5 obstacles AND the fairness ratio,
+                            # which is a ratio of two noisy means, does not wobble across the threshold; ~4 min
 
 # ---------------------------------------------------------------------------
 # Synthetic heads. Copied in spirit from race-fidelity-contract.py: N tinted
@@ -134,6 +155,49 @@ async (n) => {
 RUN_BATCH = r"""
 (args) => {
   const [seeds, simSec] = args;
+  /* ===== THE CLEAR CHUTE: "there isn't enough obstacles anywhere else" as a number =====
+     Contact tallies say how much course a lane MET. They cannot say how much of the
+     descent is empty, because a racer that is knocked about meets the same peg field
+     twice and scores well while the rest of the drop is air.
+     So the course is rasterised. Every peg, segment, spinner blade and gate wall is
+     painted into a 20px grid, dilated by a head radius (an obstacle a head-radius away
+     is one the head cannot fall past). Then for each COLUMN of the course, the longest
+     unbroken run of empty cells is the longest straight drop available at that x --
+     the free fall. The headline is the worst column, because that is the line a lucky
+     racer finds and rides.
+     Read in head diameters, not pixels: a drop of 4 heads is a beat, a drop of 20 is
+     the race having stopped happening. The grid is deliberately coarse and its bias is
+     toward reporting MORE coverage than there is (boxes, not discs), so a chute it
+     does report is real. */
+  function chutes(course, pegs, segs, spins) {
+    const B = 20, hr = course.D * 0.46;
+    const y0 = course.H * 0.42, y1 = course.finishY;
+    const nb = Math.max(1, Math.ceil((y1 - y0) / B)), nc = Math.max(1, Math.ceil(course.CW / B));
+    const g = new Uint8Array(nb * nc);
+    const mark = (xa, xb, ya, yb) => {
+      let ca = Math.floor((xa - course.X0) / B), cb = Math.ceil((xb - course.X0) / B);
+      let ba = Math.floor((ya - y0) / B), bb2 = Math.ceil((yb - y0) / B);
+      if (ca < 0) ca = 0; if (cb > nc) cb = nc; if (ba < 0) ba = 0; if (bb2 > nb) bb2 = nb;
+      for (let b = ba; b < bb2; b++) for (let c = ca; c < cb; c++) g[b * nc + c] = 1;
+    };
+    for (const p of pegs) mark(p.x - p.r - hr, p.x + p.r + hr, p.y - p.r - hr, p.y + p.r + hr);
+    for (const w of spins) mark(w.cx - w.r - hr, w.cx + w.r + hr, w.cy - w.r - hr, w.cy + w.r + hr);
+    for (const s of segs) {                       // walked, not boxed: a 16deg ramp's bounding box is mostly air
+      const n = Math.max(2, Math.ceil(Math.hypot(s.x2 - s.x1, s.y2 - s.y1) / (B / 2)));
+      for (let i = 0; i <= n; i++) { const t = i / n, x = s.x1 + (s.x2 - s.x1) * t, y = s.y1 + (s.y2 - s.y1) * t;
+        mark(x - hr, x + hr, y - hr, y + hr); }
+    }
+    let worst = 0, per = [], covered = 0;
+    for (let c = 0; c < nc; c++) {
+      let run = 0, best = 0;
+      for (let b = 0; b < nb; b++) { if (g[b * nc + c]) { if (run > best) best = run; run = 0; covered++; } else run++; }
+      if (run > best) best = run;
+      per.push(best * B); if (best * B > worst) worst = best * B;
+    }
+    per.sort((a, b) => a - b);
+    return {max: worst, med: per[per.length >> 1], min: per[0],
+            cover: +(covered / (nb * nc)).toFixed(4), depth: Math.round(y1 - y0), D: +course.D.toFixed(1)};
+  }
   function mulberry32(a){ return function(){
     a |= 0; a = a + 0x6D2B79F5 | 0;
     let t = Math.imul(a ^ a >>> 15, 1 | a);
@@ -152,7 +216,10 @@ RUN_BATCH = r"""
       // outOrder -- so a tally read after a forced finish would be short a lane.
       // sim() stops the moment the race ends naturally, which is before we get here.
       rec = {seed: s, stepped: +stepped.toFixed(2), still: !!window.__hmRaceOn,
-             course: window.__race.course(), balls: window.__race.tally()};
+             course: window.__race.course(), balls: window.__race.tally(),
+             drama: window.__race.drama ? window.__race.drama() : null,
+             // read from the LIVE arrays, before the next seed's buildCourse() empties them
+             chute: chutes(window.__race.course(), window.__race.pegs, window.__race.segs, window.__race.spins)};
     } catch (e) {
       rec = {seed: s, err: String(e && e.message || e)};
     } finally {
@@ -174,19 +241,29 @@ RUN_BATCH = r"""
 # reasonable-looking version of the fix that measured worse than doing nothing.
 # ---------------------------------------------------------------------------
 INJECTIONS = {
-    # 1. THE FREE RIDE. The rail-anchored lattice put back the way it was: a fixed
-    #    pitch, clipped by an exclusion band that leaves a peg-free chute at each
-    #    rail. Measured FAIRNESS 0.64, rail lanes on 2.5 pegs against 13 in the middle.
+    # 1. THE FREE RIDE. The rail half-peg deleted, so the boundary of the lattice is a
+    #    gap on every row and a head knocked out to a rail drops through untouched. This
+    #    is the defect the previous pass fixed, expressed against the code that replaced
+    #    it: measured FAIRNESS 0.64, rail lanes on 2.5 pegs against 13 in the middle.
     "band": (
-        "    var k=Math.max(3,Math.floor(CW/pitch)),p2=CW/k;   // p2 >= pitch by construction, so anchoring the lattice to the rails never closes an interior gap\n    var R=Math.min(Math.max(pr*1.8,D*0.7),p2*0.36);   // the rail peg's radius: far enough to carry a head clear of the old dead lane, never so far that it closes the passage inboard\n    for(var r=0;r<rows;r++){var c;\n     if(r%2===0){pegs.push({x:X0,y:y+rnd(-3,3),r:R,rail:-1});pegs.push({x:W,y:y+rnd(-3,3),r:R,rail:1});   // WIDE row: the boundary is a peg ON each rail, so a rail-hugger is always met and always sent inward\n      for(c=1;c<k-1;c++)pegs.push({x:X0+p2*(c+0.5)+rnd(-3,3),y:y+rnd(-3,3),r:pr});}\n     else{for(c=1;c<k;c++)pegs.push({x:X0+p2*c+rnd(-3,3),y:y+rnd(-3,3),r:pr});}            // NARROW row: a full pitch of daylight at each rail, so the boundary is open -- peg over gap, gap over peg\n     y+=vs;}",
-        "    var edge=DM*1.28+pr;\n    for(var r=0;r<rows;r++){var off=(r%2)?pitch/2:0,n=Math.floor((CW-pitch*0.6)/pitch);\n     for(var c=0;c<=n;c++){var px=X0+pitch*0.55+off+c*pitch;if(px<X0+edge||px>W-edge)continue;pegs.push({x:px+rnd(-3,3),y:y+rnd(-3,3),r:pr});}\n     y+=vs;}",
+        "      if(py<finishY-SPRINT&&!inVoid(px,py)&&roomRail(px,py,L.R))pegs.push({x:px,y:py,r:L.R,rail:r2});}",
+        "      if(false)pegs.push({x:px,y:py,r:L.R,rail:r2});}",
     ),
     # 2. THE WEDGE. The boundary peg lifted off the rail onto the lattice's own
     #    half-pitch -- the version that reads as the tidy thing to do. It leaves a
     #    slot the width of a head, and the anti-stuck kick rate goes up ~20x.
     "wedge": (
-        "pegs.push({x:X0,y:y+rnd(-3,3),r:R,rail:-1});pegs.push({x:W,y:y+rnd(-3,3),r:R,rail:1});",
-        "pegs.push({x:X0+p2*0.5,y:y+rnd(-3,3),r:pr});pegs.push({x:W-p2*0.5,y:y+rnd(-3,3),r:pr});",
+        "for(r2=-1;r2<=1;r2+=2){px=(r2<0)?X0:W;py=yy+L.vs*0.5*hy+rnd(-3,3);",
+        "for(r2=-1;r2<=1;r2+=2){px=(r2<0)?X0+L.p2*0.5:W-L.p2*0.5;py=yy+L.vs*0.5*hy+rnd(-3,3);",
+    ),
+    # 3. THE HOLLOW COURSE. The backfill switched off, which is the course as it stood
+    #    before this pass: set pieces floating in air, a 22-head-diameter clear drop and
+    #    a third of the course within reach of anything. The lane contact tally barely
+    #    moves, which is exactly why this defect needed its own detector -- FAIRNESS and
+    #    FLOOR both stayed green through it for the whole of the previous pass.
+    "hollow": (
+        "   backfill();                  // ...and now",
+        "   if(false)backfill();         // ...and now",
     ),
 }
 
@@ -246,6 +323,41 @@ def contract(d, f):
     f.check(d["completion"] >= 0.25, "the race still resolves its field",
             "%.0f%% of races finish all 12 (was 36%%; needs >= 25%%)"
             % (100 * d["completion"]))
+    # -- "there isnt enough obsticales anywhere else" -------------------------
+    # The contact tally cannot see this one: it counts what a lane MET, and a course can
+    # score 30 obstacles a racer while a quarter of its depth is a single clear column.
+    # CHUTE is the longest straight drop available anywhere in the course, in head
+    # diameters. A working plinko board never lets a ball fall more than about 1.7
+    # diameters untouched inside its field; this course has set pieces to get past, so
+    # the bar is the worst SEED, not the reference.
+    f.check(d["chute_p95"] <= 17.0, "no long free fall anywhere on the course",
+            "longest clear drop, p95 of seeds = %.1f head diameters "
+            "(was 29.2 before the backfill; needs <= 17)" % d["chute_p95"])
+    f.check(d["cover_mean"] >= 0.42, "the course is furnished, not decorated",
+            "%.0f%% of the course is within a head-radius of an obstacle "
+            "(was 33%%; needs >= 42%%)" % (100 * d["cover_mean"]))
+    # -- "back in fourth whos in first ... allowing others to catch up" -------
+    # Counting lead changes needs hysteresis and a worst case; see digest(). The gate is
+    # on the DISTRIBUTION, because a healthy mean is compatible with a third of races
+    # being processions, and the procession is the thing being complained about.
+    f.check(d["lead_zero"] <= 0.02, "first place is contested in every race",
+            "%.0f%% of races never change leader at all (needs <= 2%%)"
+            % (100 * d["lead_zero"]))
+    f.check(d["durable_mean"] >= 3.0, "the lead actually changes hands",
+            "%.1f changes a race where the new leader held it a full second "
+            "(needs >= 3.0)" % d["durable_mean"])
+    # The gate is on the MEDIAN, not the p95. Measured both before and after, the worst
+    # 5% of races run 87-88% quiet either way: that tail is a race where one head gets
+    # clear at the first choke and the course never gets it back, and no layout tested
+    # here moved it. The median did move, 43% -> 39%, and it is the honest claim.
+    f.check(d["quiet_p50"] <= 0.45, "the typical race is not a procession",
+            "the longest stretch with nobody going past is %.0f%% of the median race "
+            "(was 43%%; needs <= 45%%).  p95 is %.0f%% and was 87%%"
+            % (100 * d["quiet_p50"], 100 * d["quiet_p95"]))
+    f.check(d["half_kept"] <= 0.45, "leading at halfway is not winning",
+            "%.0f%% of races are won by whoever led at the halfway depth "
+            "(needs <= 45%%; 100%% would be a procession, 8%% pure chance)"
+            % (100 * d["half_kept"]))
     # -- THE CHAOS IS THE POINT. These fail if the race got PREDICTABLE. ------
     f.check(d["spread"] >= 3.10, "finishing order is still a lottery",
             "stddev of finish rank within a lane = %.2f (uniform is %.2f; needs >= 3.10)"
@@ -336,6 +448,29 @@ def digest(records, field=FIELD):
         rk = rank_of(balls)
         finishers = [b for b in balls if b["fin"]]
         times = sorted(b["t"] / 1000.0 for b in finishers)
+        # -- THE DRAMA READING (see play-engine.js's drama()) --------------------
+        # `winner` is read back from the tally rather than from drama(): the engine's
+        # own `order[0]` is empty in a race nobody finished, and a race that stalled
+        # still has a leader worth asking about. A seed with nobody across the line
+        # contributes a lead-change count and no halfway verdict.
+        dr = r.get("drama") or {}
+        won = min(finishers, key=lambda b: b["t"])["i"] if finishers else None
+        half = dr.get("half", -1)
+        # REIGNS. A raw change count is not the thing a viewer feels: eight changes in
+        # the first four seconds followed by an eighteen-second procession is exactly
+        # the complaint, and its mean is identical to eight changes spread evenly.
+        # So the log is turned into reigns, and the reading that matters is the LONGEST
+        # ONE -- the longest stretch of the race during which nobody went past.
+        log, tEnd = dr.get("log") or [], (times[0] * 1000.0 if times else None)
+        reigns, durable, quiet, lastfrac, distinct = [], None, None, None, None
+        if log and tEnd and tEnd > 0:
+            marks = [e[0] for e in log] + [tEnd]
+            reigns = [marks[i + 1] - marks[i] for i in range(len(marks) - 1)]
+            reigns = [v for v in reigns if v >= 0]
+            durable = sum(1 for v in reigns[:-1] if v >= 1000)   # changes whose new leader actually held it for a second
+            quiet = max(reigns) / tEnd if reigns else None
+            lastfrac = log[-1][0] / tEnd if len(log) > 1 else 0.0
+            distinct = len({e[1] for e in log})
         per_race.append({
             "seed": r["seed"],
             "finished": len(finishers),
@@ -353,6 +488,18 @@ def digest(records, field=FIELD):
             "pegs": r["course"]["pegs"], "segs": r["course"]["segs"],
             "spins": r["course"]["spins"], "gates": r["course"]["gates"],
             "depth": r["course"]["finishY"],
+            "D": r["course"].get("D"), "DM": r["course"].get("DM"),
+            "leads": dr.get("changes"),
+            "half_kept": (None if (won is None or half is None or half < 0)
+                          else (half == won)),
+            "late": (None if not dr.get("log") or not times else
+                     sum(1 for e in dr["log"] if e[0] > 500 * times[0]) ),
+            "durable": durable, "quiet": quiet, "lastfrac": lastfrac, "distinct": distinct,
+            "chute": (r.get("chute") or {}).get("max"),
+            "chute_med": (r.get("chute") or {}).get("med"),
+            "cover": (r.get("chute") or {}).get("cover"),
+            "chuteD": (None if not r.get("chute") or not r["chute"].get("D")
+                       else r["chute"]["max"] / r["chute"]["D"]),
         })
         for b in balls:
             L = lanes[b["lane"]]
@@ -396,6 +543,15 @@ def digest(records, field=FIELD):
     durs = [p["wall"] for p in per_race]
     wins = [p["first"] for p in per_race if p["first"] is not None]
     gaps = [p["gap"] for p in per_race if p["gap"] is not None]
+    leads = [p["leads"] for p in per_race if p["leads"] is not None]
+    kept = [p["half_kept"] for p in per_race if p["half_kept"] is not None]
+    late = [p["late"] for p in per_race if p["late"] is not None]
+    dur_ch = [p["durable"] for p in per_race if p["durable"] is not None]
+    quiet = [p["quiet"] for p in per_race if p["quiet"] is not None]
+    dist_l = [p["distinct"] for p in per_race if p["distinct"] is not None]
+    chute = [p["chuteD"] for p in per_race if p["chuteD"] is not None]
+    chpx = [p["chute"] for p in per_race if p["chute"] is not None]
+    cover = [p["cover"] for p in per_race if p["cover"] is not None]
     return {
         "races": len(per_race), "dropped": bad, "field": field,
         "lanes": lane_rows,
@@ -415,6 +571,40 @@ def digest(records, field=FIELD):
         "win_mean": statistics.fmean(wins) if wins else 0.0,
         "win_p05": pct(wins, 5), "win_p50": pct(wins, 50), "win_p95": pct(wins, 95),
         "gap_mean": statistics.fmean(gaps) if gaps else 0.0,
+        # -- the lead-change distribution. Reported as a whole distribution and not a
+        # median, because "the median race has 4 lead changes" is compatible with a
+        # third of races having none at all, and a race with none is the procession.
+        "lead_mean": statistics.fmean(leads) if leads else 0.0,
+        "lead_p05": pct(leads, 5), "lead_p50": pct(leads, 50), "lead_p95": pct(leads, 95),
+        "lead_min": min(leads) if leads else 0,
+        "lead_zero": (statistics.fmean([1.0 if v == 0 else 0.0 for v in leads])
+                      if leads else 0.0),
+        "lead_hist": [sum(1 for v in leads if v == k) for k in range(0, 10)]
+                     + [sum(1 for v in leads if v >= 10)],
+        "late_mean": statistics.fmean(late) if late else 0.0,
+        "late_zero": (statistics.fmean([1.0 if v == 0 else 0.0 for v in late])
+                      if late else 0.0),
+        # DECIDED EARLY: the share of races where whoever led at the midpoint of the
+        # descent went on to win. 1.00 is a procession; 1/field is a coin with `field`
+        # sides, which no course with a leader worth having will reach.
+        "half_kept": statistics.fmean([1.0 if v else 0.0 for v in kept]) if kept else 0.0,
+        "half_n": len(kept),
+        # DURABLE changes (the new leader held it a second) and the LONGEST QUIET
+        # STRETCH as a fraction of the race -- the procession detector a mean hides.
+        "durable_mean": statistics.fmean(dur_ch) if dur_ch else 0.0,
+        "durable_p05": pct(dur_ch, 5), "durable_p50": pct(dur_ch, 50),
+        "durable_zero": (statistics.fmean([1.0 if v == 0 else 0.0 for v in dur_ch])
+                         if dur_ch else 0.0),
+        "quiet_mean": statistics.fmean(quiet) if quiet else 0.0,
+        "quiet_p50": pct(quiet, 50), "quiet_p95": pct(quiet, 95),
+        "leaders_mean": statistics.fmean(dist_l) if dist_l else 0.0,
+        "leaders_p05": pct(dist_l, 5),
+        # THE CLEAR CHUTE, in head diameters. See chutes() in RUN_BATCH.
+        "chute_mean": statistics.fmean(chute) if chute else 0.0,
+        "chute_p50": pct(chute, 50), "chute_p95": pct(chute, 95),
+        "chute_max": max(chute) if chute else 0.0,
+        "chute_px": statistics.fmean(chpx) if chpx else 0.0,
+        "cover_mean": statistics.fmean(cover) if cover else 0.0,
         "obstacles": {k: statistics.fmean([p[k] for p in per_race]) if per_race else 0.0
                       for k in ("pegs", "segs", "spins", "gates")},
         "depth": statistics.fmean([p["depth"] for p in per_race]) if per_race else 0.0,
@@ -455,6 +645,30 @@ def report(d, title="race fairness"):
     print("  RHO       %+.3f  Spearman(start lane, finish rank) -- 0 is a lottery"
           % d["rho"])
     print("  GAP       %.1fs  between first and last finisher" % d["gap_mean"])
+    print("\n  -- back and forth: is first place ever contested? --")
+    print("  LEADS     mean %.1f  p05 %.0f  p50 %.0f  p95 %.0f  worst %d   "
+          "(%.0f%% of races never change leader)"
+          % (d["lead_mean"], d["lead_p05"], d["lead_p50"], d["lead_p95"],
+             d["lead_min"], 100 * d["lead_zero"]))
+    print("            histogram 0..9,10+  %s" % " ".join("%d" % v for v in d["lead_hist"]))
+    print("  LATE      mean %.1f lead changes after the halfway clock   "
+          "(%.0f%% of races have none)" % (d["late_mean"], 100 * d["late_zero"]))
+    print("  DURABLE   mean %.1f  p05 %.0f  p50 %.0f   (%.0f%% of races have none: the "
+          "leader is never displaced for a whole second)"
+          % (d["durable_mean"], d["durable_p05"], d["durable_p50"], 100 * d["durable_zero"]))
+    print("  QUIET     the longest stretch with NO lead change is %.0f%% of the race "
+          "(p50 %.0f%%, p95 %.0f%%)"
+          % (100 * d["quiet_mean"], 100 * d["quiet_p50"], 100 * d["quiet_p95"]))
+    print("  LEADERS   %.1f different heads lead at some point  (p05 %.0f)"
+          % (d["leaders_mean"], d["leaders_p05"]))
+    print("  DECIDED   %.0f%% of races are won by whoever led at the halfway DEPTH  "
+          "(n=%d; 100%% is a procession)" % (100 * d["half_kept"], d["half_n"]))
+    print("\n  -- free fall: how much of the descent is nothing at all --")
+    print("  CHUTE     the longest clear straight drop is %.1f head diameters "
+          "(%.0fpx)  p50 %.1f  p95 %.1f  worst seed %.1f"
+          % (d["chute_mean"], d["chute_px"], d["chute_p50"], d["chute_p95"], d["chute_max"]))
+    print("  COVER     %.0f%% of the course's cells are within a head-radius of an obstacle"
+          % (100 * d["cover_mean"]))
     print("\n  course    %.0f pegs  %.0f segments  %.0f spinners  %.0f gates  "
           "%.0fpx to the line"
           % (d["obstacles"]["pegs"], d["obstacles"]["segs"], d["obstacles"]["spins"],
@@ -463,6 +677,11 @@ def report(d, title="race fairness"):
 
 def compare(a, b):
     print("\n=== BEFORE -> AFTER ===")
+    for d in (a, b):     # a digest written before the drama reading existed still diffs
+        for k in ("lead_mean", "lead_p05", "lead_zero", "late_mean", "half_kept",
+                  "durable_mean", "durable_zero", "quiet_p50", "quiet_p95",
+                  "leaders_mean", "chute_mean", "chute_p95", "cover_mean"):
+            d.setdefault(k, 0.0)
     rows = [
         ("fairness (min/max lane obstacles)", a["fairness"], b["fairness"], "%.3f", "up"),
         ("floor (p05 of leanest lane)", a["floor"], b["floor"], "%.1f", "up"),
@@ -476,6 +695,19 @@ def compare(a, b):
         ("duration p95 (s)", a["dur_p95"], b["dur_p95"], "%.1f", "up"),
         ("completion (all finish)", a["completion"], b["completion"], "%.2f", "up"),
         ("mean finishers", a["resolved"], b["resolved"], "%.2f", "up"),
+        ("lead changes, mean", a["lead_mean"], b["lead_mean"], "%.1f", "up"),
+        ("lead changes, p05", a["lead_p05"], b["lead_p05"], "%.1f", "up"),
+        ("races with NO lead change", a["lead_zero"], b["lead_zero"], "%.2f", "down"),
+        ("lead changes after halfway", a["late_mean"], b["late_mean"], "%.1f", "up"),
+        ("durable changes (held >=1s)", a["durable_mean"], b["durable_mean"], "%.1f", "up"),
+        ("races with NO durable change", a["durable_zero"], b["durable_zero"], "%.2f", "down"),
+        ("longest quiet stretch, p50", a["quiet_p50"], b["quiet_p50"], "%.2f", "down"),
+        ("longest quiet stretch, p95", a["quiet_p95"], b["quiet_p95"], "%.2f", "down"),
+        ("different heads that ever lead", a["leaders_mean"], b["leaders_mean"], "%.1f", "up"),
+        ("won by the halfway leader", a["half_kept"], b["half_kept"], "%.2f", "down"),
+        ("longest clear chute (head dia)", a["chute_mean"], b["chute_mean"], "%.1f", "down"),
+        ("longest clear chute, p95", a["chute_p95"], b["chute_p95"], "%.1f", "down"),
+        ("course cells near an obstacle", a["cover_mean"], b["cover_mean"], "%.3f", "up"),
         ("SPREAD of finish rank", a["spread"], b["spread"], "%.2f", "hold"),
         ("|RHO| lane vs rank", abs(a["rho"]), abs(b["rho"]), "%.3f", "down"),
         ("first-to-last gap (s)", a["gap_mean"], b["gap_mean"], "%.1f", "hold"),

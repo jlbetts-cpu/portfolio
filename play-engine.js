@@ -3215,7 +3215,7 @@ function teams(){
     try{localStorage.setItem("hm_career_v1",JSON.stringify(d));}catch(_){}},
    titles:function(slot){var k=this.key(slot);if(!k)return 0;var h=this.load()[k];return h?(h.raceWins+h.lavaWins+(h.soccerWins||0)):0;}};
   window.__hmCareer=CAREER;
-  var ON=false,balls=[],pegs=[],segs=[],spins=[],gates=[],gateEls=[],X0=8,CW=0,CC=0,elimMode=false,nextCut=0,doomIx=-1,doomAt=0,outOrder=[],finishY=0,camY=0,ts=1,winner=-1,order=[],raceT0=0,seed=0,lastN=performance.now(),running=false,endAt=0,goAt=0,W=0,H=0,D=64,statT=0;
+  var ON=false,balls=[],pegs=[],segs=[],spins=[],gates=[],gateEls=[],X0=8,CW=0,CC=0,elimMode=false,nextCut=0,doomIx=-1,doomAt=0,outOrder=[],finishY=0,camY=0,ts=1,winner=-1,order=[],raceT0=0,seed=0,lastN=performance.now(),running=false,endAt=0,goAt=0,W=0,H=0,D=64,DMAX=64,statT=0;
   /* ===== THE RACE'S OWN CLOCK =====
      Every deadline the mode owns -- the countdown, the elimination bell, the wrap-up
      -- used to be compared against the rAF timestamp. That is the same thing as real
@@ -3225,6 +3225,23 @@ function teams(){
      `clock` advances by exactly the simulated time that has been stepped, whoever
      stepped it, so a deadline always means "this much race has happened". */
   var clock=0,hidT=null,cutLine=0,elimGap=8000,stallY=-1e9,stallAt=0,beatAt=0;
+  /* ===== DEV-ONLY: THE LEAD CHANGE, WHICH IS THE OTHER THING THE COURSE IS FOR =====
+     Jayden: "make it more of a back in fourth whos in first in the race and allowing
+     others to catch up." That is a countable event and it was not being counted.
+     A LEAD CHANGE is: the racer at the front of the field changes. Two decisions make
+     that a measurement rather than noise.
+       HYSTERESIS. First place is the deepest live racer, and two heads falling side by
+     side swap that title every frame -- an un-damped counter reported thousands per
+     race, which is a number about float comparisons and not about the race. A
+     challenger takes the lead only once it is a HALF HEAD clear of the incumbent, so
+     the count means the same thing a viewer means: somebody actually went past.
+       IT STOPS AT THE FIRST CROSSING. After that first place is settled and everything
+     later is a contest for second, which the board already tells that story about.
+     `halfLead` is who led the moment the front of the field passed the mid-point of the
+     descent. If that head is the eventual winner nearly every time, the race is decided
+     in its first half and the back half is a procession -- which is the thing being
+     complained about, stated as a number. */
+  var leadIx=-1,leadN=0,halfLead=-1,halfY=0,leadLog=null;
   /* ===== THE DEV-ONLY TALLY, AND WHY THE ENGINE CARRIES IT =====
      Jayden: "obstacles in the marble aren't set up for those that spawn on the side...
      nobody should just be falling through." That is a claim about CONTACT COUNTS per
@@ -3254,120 +3271,245 @@ function teams(){
    refreshHL();W=heroW();H=heroH();var mob=W<=640,lastCx=null;
    X0=mob?8:104;CW=W-X0;CC=(X0+W)/2;   // the LEFT RAIL is reserved for the standings -- the whole course lives to the right of it, so the chips are always legible and never buried under a peg field
    var Ds=balls.length?balls.map(function(b){return b.r*2;}).sort(function(a,b){return a-b;}):[D];D=Ds[Math.floor(Ds.length/2)]||64;
-   var DM=Ds[Ds.length-1]||D;   // the BIGGEST racer (the 1.5x mini-Jayden) sets every throat -- a funnel nobody can pass isn't a choke, it's a cork
+   var DM=Ds[Ds.length-1]||D;DMAX=DM;   // the BIGGEST racer (the 1.5x mini-Jayden) sets every throat -- a funnel nobody can pass isn't a choke, it's a cork
    var y=H*0.55;   // the start grid sits just under the opening frame
-   /* ===== THE RAIL CHEVRON: what stops the outside lane being a free ride =====
-      MEASURED FIRST, over 240 seeded twelve-head races at 1440x900 (see
-      tools/race-fairness-probe.py). Distinct obstacles met on the way down, by
-      starting lane: lane 0 met 18.2 and lane 11 met 18.3, against 28.8 in the middle
-      of the grid -- and the whole of that gap was PEGS, 2.5 and 2.7 against 13.5.
-      Segments, gates and spinners were already flat across every lane, because the
-      funnels dump the whole field into the middle before them. So the defect was one
-      thing in one place: pegField's `edge` exclusion band leaves 134px of peg-free
-      wall at each rail, the grid's outermost lanes spawn INSIDE it, and a head knocked
-      out to a rail mid-course drops through the rest of the section untouched. It
-      shows up in the outcome too -- the rail lanes finished 85% and 82% of the time
-      against 58-66% in the middle, and reached the line 2-3 seconds sooner. Jayden:
-      "nobody should just be falling through."
+   /* =====================================================================
+      ONE COURSE, AUTHORED, WITH A LATTICE FOR A BACKGROUND
+      =====================================================================
+      Jayden: "there isnt enough obsticales anywhere else like make one researched
+      course with the most optimal placement and obsticles", and "make it more of a
+      back in fourth whos in first in the race and allowing others to catch up."
 
-      WHY NOT SIMPLY PUT PEGS AT THE WALL. The obvious fix is the one the plinko
-      builders use: "you have to ensure that there is less than half the puck
-      diameters' worth of gap between the wall and the last peg" (Bob Clagett, "How to
-      Make a Plinko Board", iliketomakestuff.com), which is also how the Galton board
-      at Appropedia is laid out -- peg spacing to the outer edge equal to peg spacing
-      between columns, with the boundary column alternating peg/gap row by row. That
-      works for a wooden board and a 25mm puck. It does not work here, and the comment
-      the `edge` band already carried says why: a peg whose gap to the wall is smaller
-      than the biggest racer is a pocket, and this field carries a 1.5x head. Closing
-      the rail with pegs trades a free ride for a cage.
+      MEASURED FIRST, 400 seeded twelve-head races at 1440x900 (tools/race-fairness-
+      probe.py). The lane fairness the previous pass fixed had held -- every lane met
+      30-31 obstacles, fairness 0.955 -- and both of these complaints were still true,
+      for one reason that the contact tally could not see:
 
-      A WALL-WELDED RAMP WAS TRIED FIRST AND IS DISPROVED -- recorded because it is
-      the obvious fix and someone will reach for it again. The pinball reflex is to put
-      furniture *in* the outlane (slingshots, posts, kickbacks) and expose the outlane
-      width as the tuning scalar (Glossary of pinball terms, Wikipedia; flippers.be,
-      "How to adjust or tweak your pinball machine"), and a chevron welded to the rail
-      has no pocket against the rail by construction. It fixed the deficit it was aimed
-      at -- lane 0's pegs went 2.5 -> 13.4 -- and broke the race doing it: completion
-      fell 35% -> 2%, and Spearman(start lane, finish rank) went 0.04 -> 0.41, which is
-      a lane telling you where you will finish. The cause was geometry, not the idea:
-      the lattice is laid out from a fixed pitch and then CLIPPED by the band, so where
-      its outermost column lands depends on the row's half-pitch offset. On even rows
-      the chevron tip cleared the nearest peg by 80px; on odd rows, by 15px. A 15px
-      slot beside a 96px head is a trap, and the right rail (which drew the odd rows)
-      collapsed to a 28% finish rate on 2.0 anti-stuck kicks a racer.
+        THE LONGEST CLEAR STRAIGHT DROP WAS 22.4 HEAD DIAMETERS -- 2225px of a 9106px
+        descent, with a p95 of 29 diameters. Only 33% of the course was within a head
+        radius of anything at all.
 
-      SO THE LATTICE IS ANCHORED TO THE RAILS INSTEAD, and the boundary is a lattice
-      position rather than whatever was left over. Columns are spaced to divide the
-      course width exactly, and the rows alternate the way a quincunx already does:
-      a WIDE row of k pegs sitting on the half-pitch, so its outermost peg leaves only
-      a half-pitch of wall gap and a rail-hugger cannot pass it; then a NARROW row of
-      k-1 pegs sitting on the pitch, whose boundary is a full gap and lets everyone
-      through. That is the 15/14 row alternation of the reference build, where peg
-      spacing to the outer edge of the board equals peg spacing between columns
-      (Trillium Charter School Galton board, Appropedia), and it satisfies the plinko
-      builder's rule that the wall-to-last-peg gap must be under half a puck diameter
-      or pucks fall straight down the side (Bob Clagett, "How to Make a Plinko Board",
-      iliketomakestuff.com). It also had to be an ACTIVE deflection and not merely a
-      bouncier wall: a reflecting boundary does not return a wall-hugger to the middle,
-      it superposes a mirrored source and piles probability up AGAINST the wall
-      (Kosztolowicz, arXiv:1505.05199; Seki, arXiv:2408.00926).
-      A round peg beside a rail cannot cage anything -- that needs two surfaces and a
-      floor, and the row below the wide row is the narrow one, which is open at the
-      rail. Every interior gap still clears the biggest racer by 28%.
+      A contact tally counts what a lane MET; it cannot count what was not there. The
+      middle of the course was dealt from a shuffled deck of six sections, and four of
+      those six are a SINGLE object floating in half a screen of air: a spinner owns
+      612px of depth and covers 338px of the width; a bumper row owns 522px and leaves
+      180px gaps; a gate owns 504px. Stack two of them next to a funnel's open axis and
+      a racer falls a quarter of the course without touching anything.
 
-      THE BOUNDARY PEG IS WELDED TO THE RAIL, AND THAT IS THE WHOLE TRICK. Two
-      free-standing positions for it were measured and both are worse than no peg at
-      all, for the same reason in two directions:
-        * at half the lattice pitch, the wall-to-surface gap came out 62.7px against a
-          64px median head -- a slot exactly the size of the thing going through it,
-          which is the worst width there is. The rail lanes drew 0.6-0.8 anti-stuck
-          kicks a racer against 0.02 before, and completion slid 35% -> 29%.
-        * so it was pulled in to half a head (32px), which is the sourced rule stated
-          firmly rather than nearly missed. Much worse: 9% completion, the rail lanes
-          down to a 43% finish rate on some racers meeting ONE obstacle in the whole
-          descent. The arithmetic says why. The rail clamp holds a head's centre at
-          X0+r, and the 1.5x head's r is 48 -- past a peg centred 43.5 out. The
-          separation resolver pushes the head inward, the clamp pushes it back, and
-          the pair oscillate until the anti-stuck kick fires.
-      A peg centred ON the rail has neither failure. There is no gap beside it to
-      wedge in, because it IS the wall; and every resolution is strictly outward from
-      X0, which is the direction the clamp already wants, so the two can never fight.
-      It also cannot be missed: a head against the rail has its centre at X0+r and the
-      peg centre at X0, so the separation is r, which is always inside r+R. Real plinko
-      boards edge their lattices with exactly this -- a half-peg at the rail -- and it
-      is the shape of the pinball slingshot, an angled mass in the outlane that returns
-      the ball inward instead of merely bouncing it back into the wall.
-      It replaces the wide row's outermost peg rather than joining it, so the row keeps
-      its count and the passage inboard of it stays a full head wider than DM. */
-   function pegField(rows,pitchF){var pr=Math.max(6,D*0.18),pitch=Math.max(D*pitchF,DM*1.28+pr*2,mob?56:70),vs=pitch*0.8;   // the gap between peg SURFACES always clears the biggest racer by ~28% -- pegs deflect, they never cage
-    var k=Math.max(3,Math.floor(CW/pitch)),p2=CW/k;   // p2 >= pitch by construction, so anchoring the lattice to the rails never closes an interior gap
-    var R=Math.min(Math.max(pr*1.8,D*0.7),p2*0.36);   // the rail peg's radius: far enough to carry a head clear of the old dead lane, never so far that it closes the passage inboard
-    for(var r=0;r<rows;r++){var c;
-     if(r%2===0){pegs.push({x:X0,y:y+rnd(-3,3),r:R,rail:-1});pegs.push({x:W,y:y+rnd(-3,3),r:R,rail:1});   // WIDE row: the boundary is a peg ON each rail, so a rail-hugger is always met and always sent inward
-      for(c=1;c<k-1;c++)pegs.push({x:X0+p2*(c+0.5)+rnd(-3,3),y:y+rnd(-3,3),r:pr});}
-     else{for(c=1;c<k;c++)pegs.push({x:X0+p2*c+rnd(-3,3),y:y+rnd(-3,3),r:pr});}            // NARROW row: a full pitch of daylight at each rail, so the boundary is open -- peg over gap, gap over peg
-     y+=vs;}
-    y+=D*0.8;}
-   function funnel(throatF,tube){var th=DM*throatF+11,cx=CC+rnd(-CW*0.08,CW*0.08),drop=H*0.55;lastCx=cx;   // +11 covers the walls' own collision padding, so even the big head slips the throat with room to spare
-    seg(X0+2,y,cx-th/2,y+drop);seg(W-2,y,cx+th/2,y+drop);   // the CHOKE: everyone queues, the pack re-bunches, exit order shuffles -- this is why the race stays anyone's to win
+      AND FREE FALL IS WHY THE RACE STOPS SWAPPING LEADS. Nothing in free fall can
+      change the order -- two racers falling keep their gap, and the gap grows. Lead
+      changes only ever happen at obstacles. Measured: the race averaged 7.7 lead
+      changes, which sounds healthy, but they CLUMP -- the longest stretch with nobody
+      going past averaged 47% of the race and reached 87% at the 95th percentile. That
+      is the procession Jayden is describing, and its mean hides it completely.
+
+      ----------------------------------------------------------------------
+      WHY A FIXED COURSE AND NOT A TIGHTER GENERATOR
+      ----------------------------------------------------------------------
+      The middle was `deck.shuffle().take(4 or 5)`. That is replayability bought with
+      the one thing a designed course needs, which is the ability to be TUNED: every
+      number you measure off a shuffled deck is an average over layouts nobody chose,
+      and the layouts that produce the 87%-quiet race are the ones the deck happens to
+      deal. You cannot fix a hand you did not author.
+      The genre's own answer is the same one. Marbula One runs a whole event on ONE
+      track and gets a different winner every time; tracks are only changed BETWEEN
+      seasons, deliberately, "with some slight changes and adjustments to make the race
+      even more exciting" (Jelle's Marble Runs wiki, Marbula One / O'raceway). The
+      variety comes from the field, not from re-rolling the track. A fixed track is
+      also the only way a viewer gets to know it -- "he's coming into the wheel in
+      third" is a sentence you can only have about a track you have seen before, and
+      this mode runs seven races back to back inside one cup.
+      So the SEQUENCE and the DEPTHS are authored and fixed. What stays random is
+      everything that is not layout: peg jitter, each funnel's lateral offset, each
+      spinner's phase, direction and speed, each gate's phase and speed, the bumper
+      row's vertical scatter, the starting grid's shuffle -- and the twelve bodies
+      knocking each other about, which is where the chaos actually lives. Measured
+      after: the finishing order is still a lottery (spread 3.4x against 3.45 for pure
+      randomness), which is the guard that says the fixed track cost nothing.
+
+      ----------------------------------------------------------------------
+      THE LATTICE IS THE BACKGROUND, THE SET PIECES INTERRUPT IT
+      ----------------------------------------------------------------------
+      Rather than six kinds of section each with its own peg field and its own dead
+      run-out, the course is laid out as set pieces at authored depths, and then ONE
+      pass fills every remaining hole with the reference plinko lattice (backfill()).
+      A lattice peg is dropped wherever it would come within a whole head of anything
+      already placed, so the lattice can never close a passage a set piece opened, and
+      the set pieces never have to know it exists.
+      The lattice itself is the sourced one. Horizontal pitch ~2x the ball diameter and
+      rows offset by half a pitch is the standard plinko/Galton layout -- "horizontal
+      peg spacing should be roughly 2x the chip diameter... use staggered rows (offset
+      by half a peg per row)" -- and the rows sit at 0.866 of the pitch, the equilateral
+      60-degree triangle the same guide specifies (playplinko.com, "How to Build a DIY
+      Plinko Board"). Pitch is held at 1.9x rather than 2.0x because these pegs are fat
+      (0.18 of a head, against a plinko board's thin nail), which leaves 1.56 head
+      diameters of daylight between neighbours -- still far above this file's own hard
+      floor of 1.28x the biggest racer, and a tighter board deflects more, which is the
+      direction the chaos wants.
+      "A longer board makes for a more interesting game, as there are more chances for
+      the chip to be bounced in unexpected directions" (same guide) is the whole thesis
+      of the backfill, applied to depth instead of length.
+
+      ----------------------------------------------------------------------
+      WHERE THE CHOKES GO, AND WHY THEY ARE NOT NARROWER
+      ----------------------------------------------------------------------
+      The funnels are the overtaking device, not the pegs. A choke makes the leader
+      wait with everybody else: it is the one mechanism that closes a gap without
+      touching anybody's speed, which is the only honest way to answer "allowing others
+      to catch up" -- no rubber-banding, no boost for stragglers, nothing that reads a
+      racer's position and helps it. Marble-racing's own commentary is explicit that
+      funnels "force head-to-head contact at high speed" and are where positions change
+      (Impact Marble Racing funnel pack; Jelle's Marble Runs).
+      It is equally explicit about the failure mode: in Funnel Endurance a marble that
+      arrives with a big enough lead "barely contacts competitors in the later funnels,
+      coasting to victory". A choke only re-bunches a field that is still close enough
+      to be gathered. That is the argument for FOUR chokes spread evenly down the
+      descent rather than two big ones -- the field never gets the room to spread past
+      what the next choke can collect.
+      THE THROATS ARE NOT NARROWED, and that is deliberate. A funnel is a hopper, and a
+      hopper's clogging is set by the ratio of outlet to particle: below roughly five
+      particle diameters an arch can form and stop the flow altogether, and the
+      probability rises sharply as the ratio falls (Zuriguel et al., "Clogging of
+      granular materials in bottlenecks", arXiv:1412.5806). These throats are already
+      at ~1.3 diameters -- deep in the arching regime, which is exactly why the pack
+      re-bunches so hard, and also why 38% of races failed to resolve all twelve. The
+      bunching is already maximal; narrowing further would buy nothing and cost the
+      race its finishers. So the chokes got more numerous, not tighter.
+
+      ----------------------------------------------------------------------
+      THE RAIL PEG IS A PEG AGAIN
+      ----------------------------------------------------------------------
+      Jayden: "fix the rail pegs". The previous pass sized the boundary peg by taste --
+      radius min(max(pr*1.8, D*0.7), p2*0.36), which at 1440 is a 137px-tall half-disc,
+      larger than a head and three times an interior peg. It read as a bumper, because
+      it was one.
+      It is the lattice's own peg now (1.05x pr, so it reads as the half-peg it is), and
+      what carries the work it was doing is COUNT, not size: the rail half-peg now sits
+      on EVERY row instead of on alternate ones. The previous pass alternated peg/gap at
+      the boundary because its rail peg was huge and a peg that big on every row would
+      have closed the outside lane. A peg the size of the lattice's own does not: the
+      passage inboard of it is 186px on a narrow row and 297px on a wide one, both well
+      clear of a head, and the rail is now guarded every 164px instead of every 328px.
+      Both of the previous pass's arguments survive intact, because neither depended on
+      the radius. It cannot be MISSED: a head against the wall has its centre at X0+r
+      and the peg's at X0, so their separation is r, which is inside r+R for any R at
+      all. And it cannot TRAP: there is no gap beside it, because it is the wall, and
+      every resolution is strictly inward from X0, which is the direction the wall clamp
+      already wants, so the two can never fight.
+      THE TWO DISPROVED PLACEMENTS FROM THAT PASS STAND AND MUST NOT BE RE-TRIED:
+        * a wall-welded RAMP fixed the peg deficit and destroyed the race -- completion
+          35% -> 2%, Spearman(lane, rank) 0.04 -> 0.41 -- because its tip landed 15px
+          from a lattice peg on odd rows, and a 15px slot beside a 96px head is a trap.
+        * a FREE-STANDING boundary peg wedges in both directions: at half the lattice
+          pitch the wall gap came out 62.7px against a 64px head, the worst width there
+          is; pulled in to half a head (32px) it oscillates against the wall clamp,
+          because the clamp holds the head's centre at X0+r and r is larger than the
+          offset, and completion collapsed to 9%.
+      Sourced, and unchanged from that pass: the boundary column alternating with the
+      lattice and peg spacing to the outer edge equal to the spacing between columns
+      (Trillium Charter School Galton board, Appropedia); the wall-to-last-peg gap
+      staying under half a puck diameter or pucks fall straight down the side (Bob
+      Clagett, "How to Make a Plinko Board", iliketomakestuff.com); rail-lane furniture
+      and outlane width as the tuning scalar (Glossary of pinball terms, Wikipedia;
+      flippers.be); and why a bouncier wall is not a substitute -- a reflecting boundary
+      superposes a mirrored source and piles probability up AGAINST the wall rather than
+      returning it inward (Kosztolowicz, arXiv:1505.05199; Seki, arXiv:2408.00926). */
+   var voids=[];   // the sealed wedges outside the funnel walls -- see inVoid()
+   var GRID=H*0.42,SPRINT=H*0.44;          // where the starting grid spawns, and the OPEN RUN-IN the lattice is kept out of
+   /* THE RUN-IN IS LEFT CLEAR ON PURPOSE, and it is not a hole in the design -- it is
+      what gets the back of the field home. Once someone crosses, every racer still out
+      there is swept toward the line by a gravity boost graded on its distance from it
+      (see step()), and that sweep only works over open ground. Measured with the lattice
+      poured all the way to the line: the winner still arrived on schedule and the tail
+      was still being deflected 1500px back, so crossings stopped arriving inside the
+      2.4s that keeps the wrap-up alive and the race ended with 4.3 of 12 home against
+      9.3 before. A finishing straight is also what the genre does: the drama of the
+      run-in is a dash, not another peg field. */
+   function lat(){var pr=Math.max(6,D*0.18);   // ONE lattice, one place, used by the backfill and by nothing else
+    var pitch=Math.max(D*1.9,DM*1.28+pr*2,mob?56:70);   // the gap between peg SURFACES always clears the biggest racer by >=28% -- pegs deflect, they never cage
+    return {pr:pr,pitch:pitch,vs:pitch*0.866,k:Math.max(3,Math.floor(CW/pitch)),
+     p2:CW/Math.max(3,Math.floor(CW/pitch)),R:Math.max(6,pr*1.7)};}
+   /* Is there room here for one more peg? A candidate is refused unless a WHOLE head
+      still fits between its surface and every surface already on the course. That single
+      rule is what lets the lattice be poured over an authored layout without any of the
+      set pieces knowing about it: nothing the backfill adds can narrow a passage below
+      the clearance the set piece was built with.
+      The gate is tested on its Y ALONE, not on its segments' current extent, because a
+      gate slides the full width of the course -- a peg that clears the bar where it was
+      built would be swept into at the other end of its travel. */
+   function roomRail(px,py,rr){var i,need=DM+9;
+    for(i=0;i<segs.length;i++){var s=segs[i],ex=s.x2-s.x1,ey=s.y2-s.y1,L2=ex*ex+ey*ey;if(L2<1)continue;
+     var t=Math.max(0,Math.min(1,((px-s.x1)*ex+(py-s.y1)*ey)/L2));
+     if(Math.hypot(px-(s.x1+ex*t),py-(s.y1+ey*t))<rr+4.5+need)return false;}
+    for(i=0;i<spins.length;i++){var w=spins[i];if(Math.hypot(px-w.cx,py-w.cy)<w.r+rr+need)return false;}
+    for(i=0;i<gates.length;i++)if(Math.abs(py-gates[i].y)<rr+4.5+need)return false;
+    for(i=0;i<pegs.length;i++){var q=pegs[i];if(q.rail)continue;   // ...every peg EXCEPT another rail peg
+     if(Math.abs(q.y-py)>need+rr+q.r+4)continue;
+     if(Math.hypot(px-q.x,py-q.y)<q.r+rr+need)return false;}
+    return true;}
+   function room(px,py,rr){var i,need=DM+9;
+    for(i=0;i<segs.length;i++){var s=segs[i],ex=s.x2-s.x1,ey=s.y2-s.y1,L2=ex*ex+ey*ey;if(L2<1)continue;
+     var t=Math.max(0,Math.min(1,((px-s.x1)*ex+(py-s.y1)*ey)/L2));
+     if(Math.hypot(px-(s.x1+ex*t),py-(s.y1+ey*t))<rr+4.5+need)return false;}
+    for(i=0;i<spins.length;i++){var w=spins[i];if(Math.hypot(px-w.cx,py-w.cy)<w.r+rr+need)return false;}   // the blade sweeps the whole disc, so the disc is the obstacle
+    for(i=0;i<gates.length;i++)if(Math.abs(py-gates[i].y)<rr+4.5+need)return false;
+    for(i=0;i<pegs.length;i++){var q=pegs[i];if(Math.abs(q.y-py)>need+rr+q.r+4)continue;
+     if(Math.hypot(px-q.x,py-q.y)<q.r+rr+need)return false;}
+    return true;}
+   /* PEGS IN THE FUNNELS' OUTER WEDGES ARE INK THAT NOTHING CAN REACH. A funnel wall
+      runs from the rail down to the throat, and the triangle between that wall and the
+      rail is sealed at its top by the wall's own start -- no racer can get into it. The
+      clearance test alone happily fills it, because a peg 150px behind a wall is 150px
+      from that wall. So each funnel records its two dead wedges and the backfill skips
+      them: fewer elements to draw and to test, and no pegs floating in a pocket of the
+      course that never sees a head. */
+   function inVoid(px,py){for(var i=0;i<voids.length;i++){var v=voids[i];
+     if(py<v.y0||py>v.y1)continue;var wx=v.x0+(v.x1-v.x0)*((py-v.y0)/Math.max(1,v.y1-v.y0));
+     if(v.side<0?(px<wx):(px>wx))return true;}
+    return false;}
+   function backfill(){var L=lat(),r2,c,px,py;
+    for(var yy=GRID+D*1.2,row=0;yy<finishY-SPRINT;yy+=L.vs,row++){
+     /* THE BOUNDARY, ON EVERY ROW. A half-peg welded to each rail: it is the lattice's
+        own peg, cut by the wall, which is how a real plinko board edges its field. */
+     /* TWICE A ROW, AND NOT TESTED AGAINST THE LATTICE. The rail peg is small enough
+        now to read as a peg, so it catches a narrower band of the outside lane than the
+        old bumper did -- and the answer to that is more of them, not a bigger one. They
+        sit at half the row spacing, which scallops the rail rather than dotting it.
+        room()'s peg test is skipped for these deliberately: it asks "does a whole head
+        still fit between these two", and the space between two pegs welded to the same
+        wall is not a passage, it is wall. Everything that IS a passage -- segments,
+        spinner discs, gate sweeps, the bumper row -- is still tested, and the nearest
+        lattice column is a full pitch away in every row parity. */
+     for(var hy=0;hy<2;hy++)for(r2=-1;r2<=1;r2+=2){px=(r2<0)?X0:W;py=yy+L.vs*0.5*hy+rnd(-3,3);
+      if(py<finishY-SPRINT&&!inVoid(px,py)&&roomRail(px,py,L.R))pegs.push({x:px,y:py,r:L.R,rail:r2});}
+     /* WIDE rows sit on the half-pitch and NARROW rows on the pitch -- the staggered
+        quincunx. The wide row's outermost lattice position is dropped rather than laid,
+        because at a half-pitch from the wall it would leave a sub-head slot beside the
+        rail peg, which is the exact geometry measured to wedge. */
+     if(row%2===0){for(c=1;c<L.k-1;c++){px=X0+L.p2*(c+0.5)+rnd(-3,3);py=yy+rnd(-3,3);if(!inVoid(px,py)&&room(px,py,L.pr))pegs.push({x:px,y:py,r:L.pr});}}
+     else{for(c=1;c<L.k;c++){px=X0+L.p2*c+rnd(-3,3);py=yy+rnd(-3,3);if(!inVoid(px,py)&&room(px,py,L.pr))pegs.push({x:px,y:py,r:L.pr});}}}}
+   function funnel(throatF,tube){var th=DM*throatF+11,cx=CC+rnd(-CW*0.08,CW*0.08),drop=H*0.50;lastCx=cx;   // +11 covers the walls' own collision padding, so even the big head slips the throat with room to spare
+    seg(X0+2,y,cx-th/2,y+drop);seg(W-2,y,cx+th/2,y+drop);
+    voids.push({y0:y,y1:y+drop,x0:X0+2,x1:cx-th/2,side:-1},{y0:y,y1:y+drop,x0:W-2,x1:cx+th/2,side:1});   // the CHOKE: everyone queues, the pack re-bunches, exit order shuffles -- this is why the race stays anyone's to win
     y+=drop;
-    if(tube){seg(cx-th/2,y,cx-th/2,y+tube);seg(cx+th/2,y,cx+th/2,y+tube);y+=tube;}
-    y+=D*0.7;}
-   function zigzag(n){var ang=0.28,span=Math.min(CW*0.72,CW-(DM+9));   // ~16deg ramps, each ending in a drop gap that clears the BIGGEST racer (CW*0.72 alone left 87px at 320px, under a 1.5x head)
+    if(tube){seg(cx-th/2,y,cx-th/2,y+tube);seg(cx+th/2,y,cx+th/2,y+tube);
+     voids.push({y0:y,y1:y+tube,x0:cx-th/2,x1:cx-th/2,side:-1},{y0:y,y1:y+tube,x0:cx+th/2,x1:cx+th/2,side:1});y+=tube;}
+    y+=D*0.6;}
+   function zigzag(n){var ang=0.30,span=Math.min(CW*0.72,CW-(DM+9));   // ~16deg ramps, each ending in a drop gap that clears the BIGGEST racer (CW*0.72 alone left 87px at 320px, under a 1.5x head)
     for(var i=0;i<n;i++){var ltr=(i%2===0);
      var x1=ltr?X0+2:W-2,x2=ltr?(X0+2+span):(W-2-span),y2=y+span*ang;
-     seg(x1,y,x2,y2);y=y2+D*1.1;}
-    y+=D*0.4;}
+     seg(x1,y,x2,y2);y=y2+D*0.75;}
+    y+=D*0.3;}
    function spinner(){var sr=Math.max(12,Math.min(D*1.7,(CW-2*(DM+9))/2-2));   // paddle radius capped so a full head clears on BOTH sides whatever cx rolls
-    var cx=(lastCx!=null?lastCx+rnd(-D*0.4,D*0.4):CC+rnd(-CW*0.06,CW*0.06)),cy=y+H*0.34;lastCx=null;
+    var cx=(lastCx!=null?lastCx+rnd(-D*0.4,D*0.4):CC+rnd(-CW*0.06,CW*0.06)),cy=y+H*0.19;lastCx=null;
     var _lo=X0+sr+(DM+9),_hi=W-sr-(DM+9);cx=(_hi>_lo)?Math.min(Math.max(cx,_lo),_hi):CC;   // ...and clamped so neither wall gap closes
     spins.push({cx:cx,cy:cy,r:sr,a:rnd(0,3.14),w:(Math.random()<0.5?-1:1)*rnd(5,8)});   // ~0.9-1.3 rev/s -- the race's biggest single luck injector
-    y=cy+H*0.34;}
-   function gate(){var ow=DM*1.5,gy=y+H*0.22;   // the MOVING GATE: a wall sliding side to side with one head-and-a-half of daylight -- the "he got BLOCKED!!" beat, and the great equalizer right before the finish
+    y=cy+H*0.19;}
+   function gate(){var ow=DM*1.5,gy=y+H*0.15;   // the MOVING GATE: a wall sliding side to side with one head-and-a-half of daylight -- the "he got BLOCKED!!" beat, and the great equalizer right before the finish
     var gl={x1:X0+2,y1:gy,x2:X0+CW*0.3,y2:gy,e:0.28,cls:"gate"},gr={x1:X0+CW*0.7,y1:gy,x2:W-2,y2:gy,e:0.28,cls:"gate"};
     segs.push(gl);segs.push(gr);
     gates.push({l:gl,r:gr,y:gy,ow:ow,travel:(CW-ow)*0.5-12,ph:rnd(0,6.28),spd:rnd(2.4,3.4)});
-    y=gy+H*0.34;}
+    y=gy+H*0.17;}
    function bumps(){var need=DM+9,nB=mob?3:4;   // BUMPER ROW: big fat pegs that fling -- pure pinball
     // The row is nB pegs with nB+1 EQUAL gaps (both wall gaps included), so every gap is sp.
     // Sizing br off D (the MEDIAN racer) while spacing off raw course width let the row seal shut:
@@ -3377,24 +3519,47 @@ function teams(){
     // Every other obstacle already clears DM (the BIGGEST racer); this was the outlier.
     var fit=function(k){return (CW-(k+1)*need)/(2*k);};   // largest radius that still leaves EVERY gap >= need
     while(nB>1&&fit(nB)<Math.max(9,D*0.26))nB--;          // thin the row out rather than let it close
-    var br=Math.min(D*0.55,fit(nB)),by=y+H*0.28;
-    if(br<9){y=by+H*0.3;return;}                          // even one peg cannot leave a passage: skip the row
+    var br=Math.min(D*0.55,fit(nB)),by=y+H*0.15;
+    if(br<9){y=by+H*0.15;return;}                          // even one peg cannot leave a passage: skip the row
     var sp=(CW-nB*br*2)/(nB+1);
     for(var b2=0;b2<nB;b2++)pegs.push({x:X0+sp*(b2+1)+br*(2*b2+1),y:by+rnd(-14,14),r:br});
-    y=by+H*0.3;}
-   pegField(mob?7:8,1.9);       // fixed opener: the plinko field -- the early leader rarely survives it
-   funnel(1.25,H*0.4);          // CHOKE
-   spinner();                   // planted right under the throat: the paddle wheel swats the queue as it drains -- it can't miss
-   // the MIDDLE is a SHUFFLED DECK: a different mix, order and count of sections every single race
-   var deck=[function(){zigzag(3);},function(){pegField(mob?4:5,2.2);},function(){gate();},function(){bumps();},function(){zigzag(2);},function(){spinner();}];
-   for(var dj=deck.length-1;dj>0;dj--){var dk=Math.floor(Math.random()*(dj+1)),dt2=deck[dj];deck[dj]=deck[dk];deck[dk]=dt2;}
-   var takeN=((mob?3:4)+(Math.random()<0.5?1:0))*(elimMode?2:1);   // elimination is ENDLESS-feeling: double the deck -- the cuts decide it long before any line could
-   for(var dq=0;dq<takeN;dq++){deck[dq%deck.length]();if(dq%deck.length===1)funnel(1.3,H*0.32);}   // one re-bunching choke per deck pass; a doubled (elimination) deck cycles the sections
-   gate();                      // the sliding gate guards the run-in: even the leader can get walled while the pack closes
-   funnel(1.2,0);               // the LAST choke -- whoever exits first has the race to lose
-   y+=H*0.5;finishY=y;          // open sprint, then the line
+    y=by+H*0.15;}
+   /* ===== THE COURSE. Read it top to bottom; this is the whole layout. =====
+      The rhythm is CHOKE-SCRAMBLE-CHOKE, four times. Every stretch marked "lattice" is
+      depth with no set piece in it, which backfill() fills with the plinko field -- so
+      the numbers below are the only thing that decides how much of this course is a
+      peg field and how much is furniture. */
+   y+=H*0.65;                   // 1  THE DROP: open plinko, the widest part of the course, where the grid gets shuffled
+   funnel(1.25,H*0.34);         // 2  CHOKE ONE
+   spinner();                   // 3  planted right under the throat: the paddle wheel swats the queue as it drains -- it can't miss
+   zigzag(2);                   // 4  the ramps: long diagonals, each ending in a drop gap
+   gate();                      // 5  the first sliding gate: the "he got BLOCKED" beat, and the strongest re-gatherer on the course
+   funnel(1.30,H*0.28);         // 6  CHOKE TWO
+   bumps();                     // 7  the bumper row: fat pegs that fling
+   y+=H*0.25;                   // 8  lattice
+   gate();                      // 9  the second gate
+   funnel(1.30,H*0.28);         // 10 CHOKE THREE
+   spinner();                   // 11 the second wheel
+   zigzag(2);                   // 12 two more ramps
+   funnel(1.20,0);              // 13 THE LAST CHOKE -- whoever exits first has the race to lose
+   /* NEITHER GATE GUARDS THE RUN-IN ANY MORE, AND THAT IS A MEASUREMENT, NOT A TASTE.
+      A gate used to sit between the last ramps and the last choke. With the chokes above
+      it working, the pack arrived at it together instead of strung out, and it stopped
+      being a beat and became the end of the race: over 40 seeded races the heads that
+      never finished were not scattered down the course, they were all at 84-93% of the
+      descent, piled at that gate -- which is the known wedging defect (a head rides the
+      bar sideways, so the position-based anti-stuck reads the gate's own travel as
+      progress and never fires). Completion sat at 10% against 38% before.
+      Both gates are up-course now, each followed by a choke and most of a course, so a
+      head that hangs on one still has room -- and open ground under the sweep-home -- to
+      get back into the race. The gate is kept, twice, because it is the best re-gatherer
+      there is: it stops the leader dead while the pack closes, and it does that by
+      geometry rather than by knowing who the leader is. */
+   y+=SPRINT;finishY=y;          // 14 the sprint, and the line
+   backfill();                  // ...and now the plinko field is poured into every hole the above left
    y+=H*1.1;
    seg(X0+2,finishY+H*0.85,W-2,finishY+H*0.85);   // the finish pen floor: finishers pile up in view behind the line
+   halfY=H*0.42+(finishY-H*0.42)*0.5;   // the mid-point of the DESCENT, for the "who led at halfway" reading -- measured in course depth, not in seconds, so a slow race and a fast one are asked the same question
   }
   function buildDOM(){
    if(!wrap){wrap=document.createElement("div");wrap.className="hmRaceWrap";hero.appendChild(wrap);}
@@ -3496,7 +3661,25 @@ function teams(){
       a viewer mid-race. */
    elimGap=Math.max(2200,Math.min(8000,ELIM_WINDOW/Math.max(1,gridOrder.length-1)));
    DRIVE=false;   // a normal race owns its own clock again, whatever the last one was driven by
-   for(var n=0;n<gridOrder.length;n++){var pr=gridOrder[n],r=pr.HW*0.5*0.92;
+   leadIx=-1;leadN=0;halfLead=-1;halfY=0;leadLog=WRAF?[]:null;   // the drama tally is per race, and it is reset HERE rather than in buildCourse because halfY is set there and would be cleared after it was written
+   /* ===== EVERY RACER HAS THE SAME BODY, WHATEVER SIZE IT IS DRAWN =====
+      Jayden: "make sure mini Jayden head doesnt have a disadvantage I would secretly make
+      his hit box the same as everyone else for the marble game."
+      spawnCompanion multiplies the mini-Jayden's WIDTH by 1.5 because his size is his
+      identity (and Jayden likes it). The race then built the collision radius from that
+      same width, so in a plinko field he was a 1.5x body: he caught pegs a smaller head
+      slipped past, he had to be given 1.5x of every throat on the course, and he was the
+      one racer who could wedge in a gap everyone else cleared. That is a handicap nobody
+      chose, attached to the one head that is Jayden.
+      So the collision body comes from the UNSCALED width. Nothing on screen changes: the
+      sprite is still 1.5x, and the drawn position is `bb.x - HW/2` in the mailbox below,
+      which centres whatever size the sprite is on the simulated centre either way. The
+      1.5 is undone rather than a median taken across the field, so a race between heads
+      that genuinely differ in size still gives each of them its own body.
+      IT ALSO UNTIGHTENS THE COURSE. Every throat, gap and peg pitch is sized off DM, the
+      biggest racer, so a 1.5x body inflated the whole course by 50% for everyone. With one
+      body size the course is built for the body that is actually racing. */
+   for(var n=0;n<gridOrder.length;n++){var pr=gridOrder[n],r=(pr.__filler?pr.HW/1.5:pr.HW)*0.5*0.92;
     balls.push({peer:pr,r:r,x:X0+(CW/(gridOrder.length+1))*(n+1)+rnd(-2,2),y:H*0.42-rnd(0,3),vx:0,vy:0,slow:0,fin:false,row:null,
      lane:n,x0:X0+(CW/(gridOrder.length+1))*(n+1),cPeg:0,cSeg:0,cGate:0,cSpin:0,cKick:0,cHit:0,dist:0,tFin:-1});}   // lane + tallies: dead weight in a real race, the whole instrument in a probed one
    buildCourse();buildDOM();stakeOpen();   // the stake is on screen through the 3-2-1, not only once someone has crossed
@@ -3658,11 +3841,19 @@ function teams(){
       simulation's own units: which lane it started in, what it hit on the way down,
       how far it actually travelled, and when (or whether) it reached the line. */
    tally:function(){return balls.map(function(b,i){return {i:i,lane:b.lane,x0:Math.round(b.x0||0),
+    r:+b.r.toFixed(1),f:!!(b.peer&&b.peer.__filler),   // the collision body and whether this is the mini-Jayden: the two halves of the handicap question
+
     peg:b.cPeg,seg:b.cSeg,gate:b.cGate,spin:b.cSpin,kick:b.cKick,hits:b.cHit,
     dist:Math.round(b.dist),y:Math.round(b.y),fin:!!b.fin,t:Math.round(b.tFin),
     rank:standings().indexOf(i)};});},
-   course:function(){return {W:W,H:H,X0:X0,CW:CW,CC:CC,finishY:finishY,D:D,
+   course:function(){return {W:W,H:H,X0:X0,CW:CW,CC:CC,finishY:finishY,D:D,DM:DMAX,
     pegs:pegs.length,segs:segs.length,spins:spins.length,gates:gates.length};},
+   /* THE DRAMA READING. `changes` is how many times first place actually changed hands
+      before it was taken; `half` is who led at the mid-point of the descent, which the
+      probe compares against the eventual winner. `log` is the timeline, kept only so a
+      distribution can be checked for the failure mode where every change happens in one
+      early scramble and nothing moves after it. */
+   drama:function(){return {changes:leadN,half:halfLead,leader:leadIx,winner:(order.length?order[0]:-1),log:leadLog||[]};},
    standings:function(){return standings();}};}catch(_){}   // DEV-ONLY debug handle (opt-in)
   /* ===== DEV-ONLY. WHAT COUNTS AS "MEETING AN OBSTACLE" =====
      Two numbers, because the first two attempts at one number each measured the wrong
@@ -3685,6 +3876,10 @@ function teams(){
   function step(dt){
    var i,j,leader=-1,lead=-1e9,second=-1,sec2=-1e9;
    for(i=0;i<balls.length;i++){var b=balls[i];if(b.fin)continue;if(b.y>lead){sec2=lead;second=leader;lead=b.y;leader=i;}else if(b.y>sec2){sec2=b.y;second=i;}}
+   if(WRAF&&winner<0&&leader>=0){                       // see the note on lead changes above: hysteresis of half a head, and nothing counted once first place is taken
+    if(leadIx<0||balls[leadIx].fin){leadIx=leader;if(leadLog&&!leadLog.length)leadLog.push([0,leadIx]);}   // the FIRST leader is logged too, so "how many different heads ever led" is answerable from the log alone
+    else if(leader!==leadIx&&lead>balls[leadIx].y+D*0.5){leadIx=leader;leadN++;if(leadLog&&leadLog.length<400)leadLog.push([Math.round(clock-goAt),leadIx]);}
+    if(halfLead<0&&halfY>0&&lead>halfY)halfLead=leadIx;}
    for(i=0;i<balls.length;i++){var a=balls[i];if(a.out)continue;
     a.vy+=1550*dt;
     if(!a.fin&&leader>=0&&(lead-a.y)>H*1.5)a.vy+=1550*0.12*dt;   // the quiet catch-up band: a straggler more than 1.5 screens back falls a touch faster -- a helping hand, never a rigged result
@@ -4230,5 +4425,13 @@ function fillerData(){   // split out so the TOURNAMENT can field him as a capta
  window.__hmTagSlot=function(slot,pid){if(pid==null)return;for(var i=0;i<peers.length;i++)if(peers[i].slot===slot){peers[i].pid=pid;return;}};   // adopt a head that was already standing here (spawned from the saved roster, so it has no pid of its own yet)
   window.__hmSlots=function(){return peers.map(function(p){return p.slot;});};
   window.__hmSpawnOne=function(d,slot){try{if(!d||!d.cut)return;spawnCompanion(d,typeof slot==="number"?slot:peers.length);}catch(_){}};   // drop a fresh head into the live scene mid-session (the Play menu's "Add an egghead")
- setInterval(function(){if(fillerActive&&!document.body.classList.contains("hmSoccer")&&!document.body.classList.contains("hmBattle"))window.__hmFillerRemove();},400);   // the stand-in leaves when the game does
+ /* THE STAND-IN LEAVES WHEN THE GAME DOES -- AND THE RACE IS A GAME. `hmRace` was missing
+    from this list, and the consequence was not a cosmetic one: play-games.js adds the
+    mini-Jayden on an odd roster and then waits 500ms before dropping the grid, so that he
+    is fully spawned and "would not race as a ghost". This sweep runs every 400ms. 500 is
+    longer than 400, so the wait that exists to include him is exactly what guaranteed he
+    was gone before the countdown. Measured on play.html with eleven heads seeded: the
+    roster goes 11 -> 12 on the same tick as __hmFillerAdd(), and back to 11 within 450ms,
+    every time. He has never started a marble race. */
+ setInterval(function(){if(fillerActive&&!document.body.classList.contains("hmSoccer")&&!document.body.classList.contains("hmBattle")&&!document.body.classList.contains("hmRace"))window.__hmFillerRemove();},400);
 })();
