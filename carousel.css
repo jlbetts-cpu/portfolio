@@ -1,0 +1,228 @@
+/* ============================================================================
+   carousel.css -- the one carousel on this site.
+
+   WHAT WAS WRONG.  Both stepped viewers put their controls in a row under the
+   image.  Measured with the image parked where you would read it (vertically
+   centred), the controls were off screen in 7 of the 9 carousels on the
+   case-study pages: the flow player's toolbar sat 25-127px BELOW the fold and
+   the tabbed viewer's tab rail sat 8-61px ABOVE it.  You had to scroll away from
+   the thing you were advancing in order to advance it.  That is the bug.
+
+   THE FIX IS PLACEMENT, NOT MORE CHROME.  The arrows are anchored to the IMAGE
+   rather than to the column and centred on it, so an arrow is beside the image
+   whenever the middle of the image is on screen.  One expression does that at
+   every viewport -- see --crsl-nav-x -- so there is no breakpoint to keep in
+   sync and no second layout to maintain.
+
+   NO NEW BUTTON.  Arrows are .ctl.ctl--icon, ticks are .ctl.ctl--tick, both out
+   of controls.css.  Nothing here paints a shadow: --rim-1 and --ctl-rim are
+   inset hairlines, which is how chrome separates on this site.
+
+   WHERE THIS CAME FROM.  Everything below the geometry was lifted verbatim out
+   of the four case-study pages, which each carried their own copy.  Rules that
+   controls.css deliberately overrides were NOT carried across -- this file loads
+   after controls.css, so moving them would have revived dead code and changed
+   the layout.  Dropped on those grounds, all previously losing on source order:
+     .player{max-width:680px}            controls.css sets max-width:none
+     .playerStage{width:min(320px,62vw)} controls.css sets width:100%
+     .tv.tvPhone .tvFrame{width:...}     same
+     .tv.tvBoard .tvFrame{max-width}     controls.css sets max-width:none
+     .playerBar{gap:16px}                controls.css sets gap:0
+     .tvTab:focus-visible{...}           .ctl:focus-visible already does this
+   The phone and board images keep width:100% only where controls.css does not
+   already win on specificity.
+
+   PAIRED WITH carousel.js.  Both are separate files only because controls.css
+   was in another pair of hands the night this was written; folding them in later
+   is a straight move.
+   ========================================================================== */
+
+
+/* ---------------------------------------------------------------------------
+   1. THE COLUMN
+   ------------------------------------------------------------------------- */
+.player,
+.tv{
+ margin:var(--sp-40-64) auto 0;
+ text-align:center;
+}
+
+.playerCap{
+ margin:var(--sp-16-24) auto 0;
+ max-width:420px;   /* the caption's measure, carried over unchanged */
+ font-size:var(--fs-small);
+ /* Reserving height on a BLOCK, deliberately. Making this a flex column also
+    works, but it shrink-wraps .playerStep and .playerNote to their content --
+    measured, the note went from 420px wide to 229px and rewrapped. A block
+    keeps the children full width and grows the reserve downward. */
+ min-height:var(--crsl-cap-h,0px);
+}
+.playerStep{
+ display:block;
+ font-family:var(--sans);
+ font-weight:600;
+ font-size:var(--fs-label);
+ letter-spacing:var(--tr-flat);
+ color:var(--c950);
+ filter:url(#inkSm);
+}
+.playerNote{
+ display:block;
+ margin-top:var(--sp-8);
+ font-family:var(--sans);
+ font-weight:400;
+ font-size:var(--fs-small);
+ line-height:var(--lh-note);
+ color:var(--c500);
+ text-wrap:pretty;
+}
+
+/* Only the offset. .carousel-toolbar in controls.css owns the bar's display,
+   alignment and gap -- re-declaring display:flex here turned the toolbar from an
+   inline-flex pill into a full-width row (measured, 412px -> 1120px). */
+.playerBar{margin-top:var(--sp-16-24)}
+.playerTicks{display:flex}
+
+.tvTabs{
+ flex-wrap:wrap;
+ justify-content:center;
+}
+
+
+/* ---------------------------------------------------------------------------
+   2. THE STAGE IS THE POSITIONING CONTEXT, AND THE SWIPE SURFACE.
+
+   touch-action:pan-y hands us the horizontal axis immediately instead of after
+   the browser has finished deciding the gesture was not a scroll.  It must not
+   become `none` -- the hero wants `none` because it owns both axes, but a
+   carousel that swallowed vertical movement would trap the page under a thumb.
+   ------------------------------------------------------------------------- */
+.playerStage,
+.tv .tvFrame{
+ position:relative;
+ touch-action:pan-y;
+}
+
+/* The drawn width of the image, which is what the arrows are placed against.
+   These mirror controls.css's own image rules through the same tokens, so if
+   --panel-w or the mockup inset moves, the arrows follow without an edit. */
+.playerStage,
+.tv.tvPhone .tvFrame{
+ --crsl-w:min(var(--panel-w),calc(100% - 2 * var(--media-mockup-inset)));
+}
+.tv.tvBoard .tvFrame{
+ --crsl-w:calc(100% - 2 * var(--media-mockup-inset));
+}
+
+
+/* ---------------------------------------------------------------------------
+   3. THE IMAGES
+   ------------------------------------------------------------------------- */
+.playerStage>img,
+.tv .tvFrame>img{
+ /* One transition list for all three properties.  A later `transition:`
+    shorthand REPLACES the list rather than adding to it, which has silently
+    deleted animations on this site before -- so translate, filter and opacity
+    are declared together, once. */
+ transition:translate var(--dur-state-out) var(--ease-out),
+            filter var(--scene-cut-duration) var(--scene-cut-ease),
+            opacity var(--scene-cut-duration) var(--scene-cut-ease);
+ translate:var(--crsl-drag,0px) 0;
+ /* A dragged image must not start a native image drag or a text selection. */
+ -webkit-user-drag:none;
+ user-select:none;
+ -webkit-user-select:none;
+}
+/* While a finger is down the image tracks it 1:1; the transition would lag it. */
+.crsl-dragging>img{transition:none}
+
+/* NO box-shadow here. The pages carry
+     .content :is(...,.playerStage,.tvFrame,...)>img{box-shadow:var(--rim-3)}
+   which used to win on source order. These selectors are more specific, so
+   restating --rim-1 quietly lightened every tabbed viewer's rim from .20 to .08.
+   The rim stays the pages' to set. */
+.playerStage>img,
+.tv.tvPhone .tvFrame>img{
+ aspect-ratio:720/1565;
+ object-fit:cover;
+ display:block;
+ border-radius:clamp(20px,2.6vw,32px);   /* the device corner, tuned by eye and
+                                            fluid with the mockup -- not a rung */
+}
+.playerStage>img{background:#000}
+.tv.tvPhone .tvFrame>img{background:#fff}
+
+.tv.tvBoard .tvFrame>img{
+ width:100%;
+ max-height:64vh;
+ object-fit:contain;
+ display:block;
+ background:var(--c50);
+ border-radius:var(--r-xl);
+}
+/* The board image stops being a big surface on a phone and drops a rung. The
+   pages carry this in their own "big surfaces" media rule with an identical
+   selector, so it used to win on source order alone; from this file the base
+   rule now comes later and would have held r-xl at 390. Restated here so the
+   radius ladder still lands. */
+@media(max-width:760px){
+ .tv.tvBoard .tvFrame>img{border-radius:var(--r-lg)}
+}
+
+/* The scene cut: the image dissolves, carousel.js swaps the source at the bottom
+   of it on `transitionend`, and it comes back. */
+.player.dev .playerStage>img,
+.tv.dev .tvFrame>img{
+ filter:blur(4px);
+ opacity:.7;
+}
+
+
+/* ---------------------------------------------------------------------------
+   4. THE ARROWS.
+
+   --crsl-nav-x is the whole responsive story in one line.  Read it as: "sit in
+   the gutter beside the image, unless there is no gutter, in which case hug the
+   stage edge."
+
+     calc(50% - var(--crsl-w)/2 ...)      the image's outer edge, because the
+                                          image is centred in the stage
+     ... - var(--gap-item) - var(--ctl-h) back off it by one gap plus the
+                                          arrow's own width
+     max(0px, ...)                        refuse to leave the stage when that
+                                          lands outside it
+
+   Measured: a clear 8px gap from 520px up (the gutter is 64px there and 380px at
+   1440), exact adjacency around 480px, and at 390px -- where the gutter is only
+   16px -- the arrow tucks against the stage edge and overlaps the image by 28px
+   of its 326px width, at the middle of the long edge, which on a phone mockup is
+   bezel and is where a thumb already is.
+   ------------------------------------------------------------------------- */
+.crslNav{
+ --crsl-nav-x:max(0px,calc(50% - var(--crsl-w) / 2 - var(--gap-item) - var(--ctl-h)));
+ position:absolute;
+ top:50%;
+ /* `translate`, not `transform`: .ctl:active owns transform for its press
+    scale, and a transform here would delete that press. */
+ translate:0 -50%;
+ z-index:2;
+}
+.crslNav--prev{inset-inline-start:var(--crsl-nav-x)}
+.crslNav--next{inset-inline-end:var(--crsl-nav-x)}
+.crslNav>svg{
+ width:var(--ico-md);
+ height:var(--ico-md);
+ pointer-events:none;
+}
+
+
+/* ---------------------------------------------------------------------------
+   5. REDUCED MOTION.  No dissolve, no drag follow.
+   ------------------------------------------------------------------------- */
+@media(prefers-reduced-motion:reduce){
+ .playerStage>img,
+ .tv .tvFrame>img{
+  transition:none;
+  translate:none;
+ }
+}
