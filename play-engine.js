@@ -3054,10 +3054,24 @@ function teams(){
       so it wins the tie on order without needing !important. */
    +"body.hmRace.playViewportOwned .hero{height:100%;min-height:100%;margin:0}"
    +".hmRaceWrap{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:2;opacity:0;transition:opacity var(--dur-reveal) var(--ease-out)}body.hmRace .hmRaceWrap{opacity:1}"
-   +".hmRacePeg{position:absolute;border-radius:50%;background:var(--c50);border:1px solid var(--c100)}"
-   +".hmRaceSeg{position:absolute;height:8px;border-radius:5px;background:var(--c50);border:1px solid rgba(22,22,28,.14);transform-origin:0 50%}"
-   +".hmRaceSeg.spin{border:2px solid #7b5fd0}.hmRaceSeg.gate{border:2px solid var(--c950)}"
-   +".hmRaceFin{position:absolute;height:16px;background:repeating-linear-gradient(90deg,#212121 0 14px,#FDFDFD 14px 28px);border-radius:3px;}"
+   +".hmRacePeg{position:absolute;border-radius:50%;background:var(--theme-ink,#111214)}"
+   +".hmRaceSeg{position:absolute;height:8px;border-radius:5px;background:var(--theme-ink,#111214);transform-origin:0 50%}"+".hmRaceSeg.gate{background:transparent;box-shadow:inset 0 0 0 2px var(--theme-ink,#111214)}"
+   /* ONE INK, AND THE FORM SAYS WHICH OBSTACLE IT IS. The course used to be
+      near-white with a hairline, so every peg and bar depended on its border to
+      exist at all -- and the two moving parts were told apart by COLOUR: spinners
+      purple, gates black. That is a palette doing a job shape should do, and it
+      put the only other colours on screen next to the one thing that has earned
+      colour, which is the racers themselves. They are photographs; the course is
+      chrome; on this site chrome is flat.
+      --theme-ink rather than a literal, because play.html opts into the dark
+      theme: #111214 on light, #F4F5F7 on dark. A hardcoded ink would have
+      vanished at night exactly as the white one nearly vanishes by day.
+      SOLID means fixed -- pegs, walls, and the spinner blades, which announce
+      themselves by rotating and need no second cue. OUTLINED means it slides out
+      from under you: only the gate, which is the one movement a viewer cannot
+      predict from looking. Two forms, one material, no borders holding shapes up. */
+   +""
+   +".hmRaceFin{position:absolute;height:16px;background:repeating-linear-gradient(90deg,var(--theme-ink,#111214) 0 14px,transparent 14px 28px);border-radius:3px;}"
    +".hmRaceBoard{position:absolute;left:var(--sp-12);top:50%;transform:translateY(-50%);z-index:49;display:none;flex-direction:column;gap:var(--sp-4);opacity:.72}body.hmRace .hmRaceBoard{display:flex}"   /* the standings live in the GUTTER, vertically centred at the screen's edge -- out of the course's hot centre, one glance away */
    +".hmRaceRow{display:flex;align-items:center;gap:var(--sp-8);background:rgba(253,253,253,.82);border:1px solid var(--c100);border-radius:var(--r-sm);padding:var(--sp-2) var(--sp-8) var(--sp-2) var(--sp-4);font-family:var(--sans);font-weight:600;font-size:var(--fs-caption);color:var(--c700);backdrop-filter:blur(4px);will-change:transform}"
    /* THE END CHIP IS A CONTROL AND IS NOW DRAWN AS ONE. It used to be a `.hmRaceRow` with
