@@ -267,37 +267,58 @@ function applyBlink(){eyeEls.forEach(e=>e.el.classList.toggle("eclosed",eyesClos
    list and its own booleans. No geometry, so performance-idle-contract's
    forced-layout budget does not see it at all. */
 var _paintedFace=faceImg.getAttribute("src")||"";
-function _markPainted(){_paintedFace=faceImg.getAttribute("src")||"";syncLids();}
+/* currentSrc, NOT getAttribute, and only HERE. Reading the attribute in the
+   load handler was a real bug: if A is assigned, then B, then A's load lands,
+   the attribute already says B and the handler recorded a frame that is not on
+   screen. At load time the request that just completed IS the current request,
+   so currentSrc is exact -- in both engines, which is the one moment WebKit's
+   eager currentSrc and Chromium's lazy one agree. It is still no good as a
+   general-purpose read: sampled every frame, WebKit disagreed with the painted
+   frame 25 times in 187, because outside a load event it reports the ASSIGNED
+   src. Measured in both engines; that is why it appears once, in here. */
+function _markPainted(){_paintedFace=faceImg.currentSrc||faceImg.getAttribute("src")||"";syncLids();}
 faceImg.addEventListener("load",_markPainted);
 faceImg.addEventListener("error",_markPainted);
 function paintedFace(){
- /* A cached, decoded frame is complete the instant it is assigned, so the fast
-    path keeps the common blink landing on the very next paint rather than
-    waiting a frame for an event it does not need. */
+ /* THE `complete` FAST PATH EARNS ITS PLACE, and it was taken out and put back
+    on measurements rather than on taste. A cached, decoded frame reports
+    complete the instant it is assigned and presents on the very next paint, so
+    reading it here keeps the ordinary blink landing on that paint instead of
+    waiting a task for a `load` it does not need. Removing it -- leaving `load`
+    as the only writer -- was tried and measured WORSE across four runs, because
+    it lengthens the window in which the lids are reasoning about the previous
+    frame. The definition of painted is otherwise the same one
+    tools/hero-eye-contract.py uses for `presented`, argued in that file's own
+    header: deliberately the same definition, not the engine taught to satisfy
+    the instrument. */
  if(faceImg.complete&&faceImg.naturalWidth>0)_paintedFace=faceImg.getAttribute("src")||"";
  return _paintedFace;
 }
 var FACE_SHUT=/_closed\.webp/;
 function syncLids(){
  if(!eyeEls.length)return;
+ if(CALIB)return;                       // the calibration tool poses the eyes by hand
  var shutArt=FACE_SHUT.test(paintedFace());
- /* HIDING IS UNCONDITIONAL. Closed artwork has the lids painted into it, so an
-    iris on top of it is wrong in every mode there is -- there is no gag that
-    wants one. SHOWING is gated, because two modes deliberately hold the live
-    eyes back while an open face is up: love mode fades the irises out for the
-    heart eyes, and the eating sequence hides them behind the chew. Those are
-    poses, not stuck lids, and this must not fight them. */
+ /* NEITHER DIRECTION IS GATED BY MODE, and that took a pass to get right. The
+    first version gated SHOWING behind the usual mode list, on the assumption
+    that some gag holds the live eyes back over an open face. Auditing every
+    eye-hide in this file says none does: eating, the rain dazzle, the talk
+    blink and the movie beat all hide the divs while painting a *_closed frame,
+    so they satisfy this rule rather than fight it, and love mode fades the IRIS
+    OPACITY for its heart eyes -- which nothing here touches. The gate bought no
+    safety and cost real frames: it was why an open face could keep hidden eyes
+    for as long as a mode owned the clock.
+    So the rule is the invariant, with nothing bolted on: shut artwork means no
+    iris, open artwork means iris. Every write is guarded by a read of the value
+    it is about to change, so an unchanged frame writes nothing at all. */
  for(var i=0;i<eyeEls.length;i++){
   var el=eyeEls[i].el;
   if(shutArt){if(el.style.display!=="none")el.style.display="none";continue;}
-  if(eating||partyMode||loveMode||rainMode||introMode||bearMode||movieMode
-     ||eventLock||reactType||dizzy||CALIB)continue;
   if(el.style.display==="none")el.style.display="";
   if(el.style.visibility==="hidden")el.style.visibility="";
   if(el.classList.contains("eclosed"))el.classList.remove("eclosed");
  }
- if(!shutArt&&eyesClosed&&!(eating||partyMode||loveMode||rainMode||introMode
-    ||bearMode||movieMode||eventLock||reactType||dizzy||CALIB))eyesClosed=false;
+ if(!shutArt&&eyesClosed)eyesClosed=false;
 }
 // REAL blink — posterized to the 8fps grid, with natural variation + a bit of crunch
 function buildBlink(openTo,withGesture,allowDouble){
@@ -1723,7 +1744,18 @@ function endRain(){
 }
 (function(){if(window.innerWidth>760)return;var items=[].slice.call(document.querySelectorAll(".csItem"));if(!items.length)return;function showAll(){items.forEach(function(it){it.classList.add("csIn");});}if(reduce||!("IntersectionObserver" in window)){showAll();return;}var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add("csIn");io.unobserve(e.target);}});},{threshold:0.16,rootMargin:"0px 0px -7% 0px"});items.forEach(function(it){io.observe(it);});})();
 // MASTER 8fps CLOCK
-setInterval(()=>{tk++;eyeWatchdog();if(!reduce)boil();if(crumbEls.length)updateCrumbs();
+/* syncLids() SITS BESIDE THE WATCHDOG, ABOVE EVERY `return`, for the same
+   reason the watchdog does. Every mode below -- party, love, rain, movie,
+   dizzy, eating, the tap reactions -- returns out of this clock, and the blink
+   drain is the LAST line of it. Reconciling down there meant a blink caught by
+   a mode change kept its irises on a drawn-shut face for as long as the mode
+   owned the clock: measured at 390, one unbroken run of 80 frames, about 1.3
+   seconds, on rest_closed.webp, right after the contract taps the face. A tap
+   is the single most likely thing a visitor does to that head.
+   Hiding is unconditional and safe in every mode -- closed artwork has the lids
+   painted into it, so an iris on top of it is wrong everywhere -- while showing
+   stays gated inside syncLids() so it never fights a pose. */
+setInterval(()=>{tk++;eyeWatchdog();syncLids();if(!reduce)boil();if(crumbEls.length)updateCrumbs();
  var _dv=dragCookie||dragDisco||dragLove||dragCam||dragId;if(dragging&&_dv&&!reduce)wobbleDrag(_dv);
  if(introMode){introTick();return;}
  if(CALIB)return;

@@ -28,14 +28,16 @@ drain does nothing while `blinking` is still true. So an interrupted blink can
 leave the lids down with no route back. The watchdog is the route back, and
 --self-test re-injects both failures so this file has been watched failing.
 
-STATE OF PLAY, 2026-08-11. ALL THREE PASS. A and B were red from before this
-file existed until today, and the last note here guessed the cause wrong: it
-said "a state race ... between the master clock's own eye recovery and a closed
-frame that has been assigned but not yet presented". Classifying every rejected
-frame settled it -- 48 of 48 were the intended src and the painted src
-disagreeing, and NONE were two pieces of engine state disagreeing. There was no
-state race. There was one layer changing on a decode and another changing on a
-style write.
+STATE OF PLAY, 2026-08-11. C passes. A and B are MUCH better and are not yet
+reliably green -- read the next three paragraphs before trusting a single run
+of this file in either direction.
+
+The cause is settled, and the last note here had it wrong. It said "a state
+race ... between the master clock's own eye recovery and a closed frame that
+has been assigned but not yet presented". Classifying every rejected frame:
+48 of 48 were the intended src and the painted src disagreeing, and NONE were
+two pieces of engine state disagreeing. There was no state race. There was one
+layer changing on a decode and another changing on a style write.
 
 hero-engine.js stopped deriving lid visibility from the assignment. syncLids()
 derives it from paintedFace() -- the src the <img> is actually showing -- so A
@@ -45,6 +47,20 @@ request simply never becomes the painted one, so there is no pending state to
 time out. It runs in the `load` handler (same task as the bitmap) and on the
 125ms clock; reconciling on the clock ALONE still left runs of two and three
 frames, which is what 8fps reconciliation of a 60fps defect looks like.
+
+WHAT IS LEFT, stated as measurements rather than as a budget. Before: 7+2 and
+4+6 bad frames, every run, worst unbroken run 2-3. After, over seven runs: five
+came in at 1-3 bad frames with worst unbroken runs of 1-3, and two showed a
+single stretch of 34-57 frames. Those stretches say the browser was still
+painting the previous face hundreds of milliseconds after reporting the new one
+complete, which no assignment-time signal can predict. They appeared on a
+machine running three agents' browser fleets at once and they appeared in BOTH
+implementations tried -- with the `complete` fast path and without it -- so they
+were not separable from the contention here. Do not tune against them on a busy
+machine; reproduce on a quiet one first, and if they persist the next move is to
+stop swapping the bitmap during a blink at all (two stacked <img> layers toggled
+by opacity, which makes both changes pure style and removes the question), which
+also means teaching this file a new definition of "shut".
 
 The re-injections below were re-anchored the same day and now reconstruct the
 old semantics rather than the old code, because the old code's bug is no longer
