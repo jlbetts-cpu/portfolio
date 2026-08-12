@@ -28,20 +28,27 @@ drain does nothing while `blinking` is still true. So an interrupted blink can
 leave the lids down with no route back. The watchdog is the route back, and
 --self-test re-injects both failures so this file has been watched failing.
 
-STATE OF PLAY, 2026-08-10. C passes. A and B do NOT yet, and the gap is older
-than this file: bisected against eaadf9d with this same instrument, the shipped
-build reported 5-23 frames of an open eye without an iris and 3-61 frames of an
-iris on a shut one per thirty-second run, worst unbroken runs of 4 to 28 frames.
-The current build is in the same band. Decoding the face frames in the warm-up
-closed the part of it that was decode latency; what remains is a state race
-between the master clock's own eye recovery and a closed frame that has been
-assigned but not yet presented, and it needs the blink state machine looked at
-rather than another guard bolted to a call site. A deferral was tried at each
-call site and measured WORSE -- an <img> whose src is reassigned mid-flight
-fires no load and no error for the abandoned request, so the pairing fell onto
-a timeout and produced unbroken runs of 8 to 17 frames of the same defect.
-This file is deliberately left asserting the true invariant rather than a
-budget, so the number it prints is the real distance still to travel.
+STATE OF PLAY, 2026-08-11. ALL THREE PASS. A and B were red from before this
+file existed until today, and the last note here guessed the cause wrong: it
+said "a state race ... between the master clock's own eye recovery and a closed
+frame that has been assigned but not yet presented". Classifying every rejected
+frame settled it -- 48 of 48 were the intended src and the painted src
+disagreeing, and NONE were two pieces of engine state disagreeing. There was no
+state race. There was one layer changing on a decode and another changing on a
+style write.
+
+hero-engine.js stopped deriving lid visibility from the assignment. syncLids()
+derives it from paintedFace() -- the src the <img> is actually showing -- so A
+and B hold by construction on every frame. It is not the deferral that was tried
+and measured worse: it waits for nothing, it is idempotent, and an abandoned
+request simply never becomes the painted one, so there is no pending state to
+time out. It runs in the `load` handler (same task as the bitmap) and on the
+125ms clock; reconciling on the clock ALONE still left runs of two and three
+frames, which is what 8fps reconciliation of a 60fps defect looks like.
+
+The re-injections below were re-anchored the same day and now reconstruct the
+old semantics rather than the old code, because the old code's bug is no longer
+reachable. Watched failing: 49-127 bad frames per run, worst run 120.
 
 Run:  python3 tools/hero-eye-contract.py
       python3 tools/hero-eye-contract.py --self-test
@@ -71,13 +78,34 @@ VIEWPORTS = ((1440, 900), (390, 844))
 #
 # DEAF: delete the watchdog's only call site. The engine still works; it simply
 # has no way home from a pose that stops being drained.
-UNPAIR = (
-    ' if(s.close){faceImg.src=FACES[curFace].closed;'
-    'eyeEls.forEach(e=>e.el.style.display="none");}',
+#
+# RE-ANCHORED 2026-08-11, and the re-injection now models a DIFFERENT bug,
+# because the old one is no longer a bug. UNPAIR used to delay the closed
+# artwork by 90ms and leave the lids pulled on assignment, which was the shipped
+# pairing. The engine no longer pairs that way: syncLids() derives lid
+# visibility from the frame that is PAINTED, so a late frame is simply a late
+# blink and produces no bad frame at all -- the old re-injection would now be
+# caught by nothing, and a self-test that cannot fail is worse than none.
+# So the pair below is split in two, and together they reconstruct the defect
+# exactly as it shipped:
+#   LATE     -- the closed frame arrives 90ms after it is asked for, which is
+#               precisely what an undecoded frame does on its own.
+#   ASSIGNED -- paintedFace() reports the src that was ASSIGNED rather than the
+#               one on screen, which is the old semantics in one line.
+# Either alone is survivable; together they are yesterday's engine.
+LATE = (
+    ' if(s.close){faceImg.src=FACES[curFace].closed;syncLids();}',
     ' if(s.close){var _late=FACES[curFace].closed;'
     'if(window.__REINJECT_UNPAIR)setTimeout(function(){faceImg.src=_late;},90);'
     'else faceImg.src=_late;'
-    'eyeEls.forEach(e=>e.el.style.display="none");}',
+    'syncLids();}',
+)
+ASSIGNED = (
+    ' if(faceImg.complete&&faceImg.naturalWidth>0)'
+    '_paintedFace=faceImg.getAttribute("src")||"";\n return _paintedFace;',
+    ' if(window.__REINJECT_UNPAIR)return faceImg.getAttribute("src")||"";\n'
+    ' if(faceImg.complete&&faceImg.naturalWidth>0)'
+    '_paintedFace=faceImg.getAttribute("src")||"";\n return _paintedFace;',
 )
 DEAF = ("setInterval(()=>{tk++;eyeWatchdog();", "setInterval(()=>{tk++;")
 
@@ -262,7 +290,7 @@ def check_no_permanent_pose(server, self_test):
 def anchors_present():
     """The re-injections have to still describe the shipped code."""
     body = (ROOT / "hero-engine.js").read_text(encoding="utf-8")
-    for old, _new in (UNPAIR, DEAF):
+    for old, _new in (LATE, ASSIGNED, DEAF):
         assert old in body, f"self-test anchor no longer in hero-engine.js: {old!r}"
     assert re.search(r"function eyeWatchdog\(\)", body), "the watchdog is gone"
 
@@ -273,7 +301,7 @@ def main():
     if self_test:
         print("SELF-TEST: re-injecting the unpaired swap and deafening the watchdog.")
         print("           Both checks below MUST fail.")
-        server = serve((UNPAIR, DEAF))
+        server = serve((LATE, ASSIGNED, DEAF))
     else:
         server = serve()
     try:

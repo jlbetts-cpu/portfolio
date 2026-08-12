@@ -1629,20 +1629,74 @@ html{scroll-padding-top:calc(var(--nav-h) + var(--sp-16-24))}
    invisible, whereas a gap is not. svh is declared first as the fallback for
    engines without dvh. The copy is centred, so a live height change moves it
    by half the chrome -- accepted, and only during the scroll that hides it. */
+/* THE PADDING IS HOISTED INTO TWO CUSTOM PROPERTIES because the stable row
+   below has to subtract exactly the padding that is in force, and there are
+   three forks of it (base, <=760, and the short-desktop one). A literal
+   repeated in four places is a drift waiting to happen; these two names are
+   the single source and every fork sets them rather than `padding` itself. */
+/* ── THE VIEWPORT UNITS NEED A FLOOR, AND IT IS NOT COSMETIC ─────────────────
+   MEASURED, on this page, by serving it with `svh`/`dvh`/`lvh` made
+   unparseable -- which is exactly what an engine that does not implement them
+   does, silently and per declaration. The Hero collapsed from 844px to 241.7,
+   the head jumped 561px up the page, the copy 301 and the whole Work section
+   602. That is not a subtle degradation, it is the page falling in on itself,
+   and it is a live risk: `svh`/`dvh` are Safari 15.4 and Chrome 108, and the
+   in-app WebView a recruiter opens this in from LinkedIn is whatever system
+   engine that phone shipped with. It has no fallback today.
+   `100vh` FIRST. It is the LARGEST viewport, so with chrome showing it
+   overflows a little -- the trade the note below rejects for the modern path,
+   and entirely the right one here, because the alternative is `auto`.
+   THE SVH VALUES MOVED INTO @supports RATHER THAN STACKING AS DECLARATIONS.
+   That is forced, not stylistic: a declaration whose var() is invalid at
+   computed-value time does NOT fall back to the previous declaration, it
+   computes to `unset`. So `padding:72px; padding:var(--broken)` gives 0, not
+   72. Only a feature query keeps the fallback reachable once a custom property
+   is in the chain, and every value below goes through one. */
 .hero{
+ --heroPadT:72px;
+ --heroPadB:calc(72px + env(safe-area-inset-bottom));
  position:relative;isolation:isolate;overflow:visible;
  display:grid;grid-template-columns:1fr;justify-items:center;align-content:center;
- min-height:100svh;min-height:100dvh;gap:0;
- padding:clamp(72px,12svh,112px) max(var(--sp-16-40),env(safe-area-inset-right)) calc(clamp(72px,12svh,112px) + env(safe-area-inset-bottom)) max(var(--sp-16-40),env(safe-area-inset-left));
+ min-height:100vh;gap:0;
+ padding:var(--heroPadT) max(var(--sp-16-40),env(safe-area-inset-right)) var(--heroPadB) max(var(--sp-16-40),env(safe-area-inset-left));
  border:0;box-shadow:none;border-radius:var(--surface-hero-radius);
  corner-shape:var(--corner);background:var(--c50)
+}
+@supports (height:1svh){
+ .hero{--heroPadT:clamp(72px,12svh,112px);
+  --heroPadB:calc(clamp(72px,12svh,112px) + env(safe-area-inset-bottom));
+  min-height:100svh}
+}
+@supports (height:1dvh){.hero{min-height:100dvh}}
+/* AND THE COPY STOPS MOVING TOO. The note above accepts that a live dvh change
+   moves the centred copy by half the chrome. It is not acceptable -- Jayden
+   reported the Hero "moving out of place on scroll", and 40.5px of drift at
+   390 is the copy's share of it, measured. The Hero keeps its dvh box so the
+   gradient still has no gap; what changes is that the copy is no longer
+   centred in that box. It is centred in a single row of the Hero's REST
+   height, pinned to the top edge, which is the edge that never moves. At rest
+   the row is exactly the content box, so the composition is identical to the
+   pixel -- verified at 390, 320 and 1440.
+   IT IS IN AN @supports BLOCK, and that is the whole degradation story. Both
+   declarations have to arrive together or neither: `align-content:start` with
+   no row to centre in would slam the headline against the top of the Hero on
+   any engine that cannot parse svh. Gated on the unit itself, an old WebView
+   simply keeps yesterday's centring. `auto` is the second minmax track so a
+   viewport too short for the copy grows the row instead of clipping it. */
+@supports (height:1svh){
+ .hero{align-content:start;
+  grid-template-rows:minmax(calc(100svh - var(--heroPadT) - var(--heroPadB)),auto)}
 }
 .heroAura{display:none}
 /* The Hero absorbed the bar's 88px of clearance when it went full-bleed, so
    dead-centre now sits ~44px lower than the authored composition and opens a
    hole between the copy and the head. The lift is increased by that much: the
    copy reads as centred in the space BELOW the floating bar, not in the box. */
-.heroCopy{display:flex;flex-direction:column;align-items:center;transform:translateY(clamp(-124px,-13svh,-92px));position:relative;z-index:3}
+/* -92px is the clamp's own upper bound, so on an engine with no svh the lift is
+   the shallowest one this rule was ever willing to apply, rather than none at
+   all -- `transform` is a real property, so the second declaration simply does
+   not parse and the first stands. */
+.heroCopy{display:flex;flex-direction:column;align-items:center;transform:translateY(-92px);transform:translateY(clamp(-124px,-13svh,-92px));position:relative;z-index:3}
 .heroCopy h1{order:1;margin:0 auto;max-width:min(14.4em,100%);font-size:var(--fs-heroline);
  line-height:1.06;letter-spacing:var(--tr-head);text-align:center;text-wrap:balance}
 .heroCtas{order:2;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;
@@ -1651,13 +1705,14 @@ html{scroll-padding-top:calc(var(--nav-h) + var(--sp-16-24))}
 .workCta svg,.moodFaceIco{width:var(--ico-sm);height:var(--ico-sm);fill:none;
  stroke:currentColor;stroke-width:var(--ico-stroke);stroke-linecap:round;stroke-linejoin:round}
 @media(max-width:760px){
- .hero{padding:calc(var(--sp-8) + var(--nav-h) + var(--sp-12)) max(var(--sp-16),env(safe-area-inset-right)) calc(var(--sp-48) + env(safe-area-inset-bottom)) max(var(--sp-16),env(safe-area-inset-left));border-radius:var(--surface-hero-radius)}
+ .hero{--heroPadT:calc(var(--sp-8) + var(--nav-h) + var(--sp-12));--heroPadB:calc(var(--sp-48) + env(safe-area-inset-bottom));
+  padding:var(--heroPadT) max(var(--sp-16),env(safe-area-inset-right)) var(--heroPadB) max(var(--sp-16),env(safe-area-inset-left));border-radius:var(--surface-hero-radius)}
  .heroCopy{transform:translateY(calc((var(--sp-14) + var(--sp-48)) * -1))}
  .heroCopy h1{font-size:clamp(28px,7.7vw,32px);max-width:13em}
  .heroCtas{margin-top:var(--sp-14)}
 }
 @media(max-height:720px) and (min-width:761px){
- .hero{padding-block:var(--sp-48)}
+ .hero{--heroPadT:var(--sp-48);--heroPadB:var(--sp-48);padding-block:var(--heroPadT) var(--heroPadB)}
  .heroCopy h1{font-size:clamp(30px,3.2vw,36px)}
  .heroCtas{margin-top:var(--sp-12)}
 }
@@ -1666,7 +1721,20 @@ html{scroll-padding-top:calc(var(--nav-h) + var(--sp-16-24))}
 }
 .cases{margin-top:var(--section-join-gap)}
 .csItem+.csItem{margin-top:var(--work-item-gap)}
-@media(max-width:760px){.hero{min-height:var(--hero-mobile-height)}}
+/* --hero-mobile-height is 100dvh (tokens.css). A custom property carrying a
+   unit the engine cannot parse is still a VALID custom property -- the token
+   stream parses fine -- so the failure only shows up here, where using it makes
+   `min-height` invalid at computed-value time and it computes to `auto`. That
+   is the collapse the note at the top of this block measured: 844px of Hero
+   becoming 241.7. And because this rule is later and more specific, it took the
+   base rule's 100vh floor down with it. The feature query is the fix that
+   works: on an engine without dvh this whole rule never applies and the plain
+   100vh stands. tokens.css should carry the same guard on the token itself --
+   patch handed over; this is the belt that does not need it to land. */
+@media(max-width:760px){.hero{min-height:100vh}}
+@supports (height:1dvh){
+ @media(max-width:760px){.hero{min-height:var(--hero-mobile-height)}}
+}
 </style>
 <!-- STYLESHEET ORDER, AND IT IS THE OTHER SIX PAGES' ORDER NOW.
      controls.css used to be linked FOURTH here and SECOND on about.html and all

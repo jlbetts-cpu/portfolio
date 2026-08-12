@@ -1422,8 +1422,42 @@
   addEventListener("heroheadstagechange",function(){state.stamp++;state.metrics=null;captureBase();syncSelection();});
   document.addEventListener("visibilitychange",function(){if(document.hidden)end();});
   addEventListener("blur",end);
-  addEventListener("resize",reclamp);
-  new ResizeObserver(reclamp).observe(hero);
+  /* ── A PHONE SCROLL IS A RESIZE, AND IT IS NOW A RESIZE THAT CHANGES NOTHING.
+     Retracting chrome grows the Hero, so the ResizeObserver on it fires
+     repeatedly through every scroll gesture, and `resize` fires on the window
+     alongside. reclamp() is not cheap: syncOrigin() and captureBase() each
+     neutralise a set of custom properties, force a synchronous layout inside
+     stillBody(), read three rects and put the properties back. That is a
+     forced-layout burst per scroll event, on the slowest device anyone views
+     this on -- and since controls.css re-anchored the head to a fixed-height
+     stage, a Hero HEIGHT change cannot move the head, so every one of those
+     bursts now recomputes a value that is arithmetically guaranteed identical.
+     THE GUARD IS A SHAPE KEY, NOT A HEIGHT COMPARISON, because "the Hero got
+     taller" is not the same question as "can the head have moved". Four things
+     can move it and they are all in the key: the Hero's WIDTH (the media query
+     that swaps --hero-peek-*, and the centring), the STAGE's height (100svh --
+     it survives a scroll but not a rotation, and not an Android keyboard, which
+     changes svh without changing width), and the wrapper's own layout box.
+     offsetWidth/offsetHeight rather than a rect, deliberately: the rect carries
+     the user's live scale and rotation, so it would fire a recapture on every
+     drag frame -- the opposite of the point.
+     Three reads to decide, against a burst of forced layouts to skip. If the
+     key ever misses something, the base goes stale and the head drifts on a
+     resize, which is precisely what hero-head-scroll-contract already fails
+     on -- it cycles the viewport 760 -> 844 -> 760, which moves svh, which
+     moves this key, so the skip is exercised and the recapture still is too. */
+  var lastShape="";
+  function shapeKey(){
+   return rectOf(hero).width.toFixed(2)+"|"+rectOf(peek).height.toFixed(2)
+    +"|"+wrap.offsetWidth+"|"+wrap.offsetHeight;
+  }
+  function reclampIfReshaped(){
+   var key=shapeKey();
+   if(key===lastShape)return;
+   lastShape=key;reclamp();
+  }
+  addEventListener("resize",reclampIfReshaped);
+  new ResizeObserver(reclampIfReshaped).observe(hero);
   new ResizeObserver(reclamp).observe(content);
   peek.addEventListener("transitionrun",beginPeekTransition);
   peek.addEventListener("transitioncancel",endPeekTransition);
