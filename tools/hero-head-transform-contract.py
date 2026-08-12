@@ -781,9 +781,16 @@ def rect_snapshot(page):
 
 
 def select_move_resize(page):
-    face = page.locator("#face")
-    box = face.bounding_box()
-    page.mouse.click(box["x"] + box["width"] * .5, box["y"] + box["height"] * .3)
+    # AIM AT THE HEAD, NOT AT ITS BOUNDING BOX. #face is a square that is always
+    # rotated, so bounding_box() is the TURNED box -- up to 22% larger than the
+    # artwork -- and a point 30% down its centre line is not necessarily on the
+    # head at all. At 1280x650 it lands on .heroCopy, which is genuinely outside
+    # the portrait: an outside press now dismisses the frame rather than merely
+    # relaxing it, so a mis-aim that used to be invisible fails here instead.
+    # getState().box is the rigid rectangle the clamp itself reasons about.
+    point = page.evaluate("""() => {const b=window.__heroHeadTransform.getState().box;
+        return {x:(b.left+b.right)/2, y:(b.top+b.bottom)/2};}""")
+    page.mouse.click(point["x"], point["y"])
     page.wait_for_function("!document.querySelector('#heroHeadSelection').hidden")
     frame = page.locator("#heroHeadSelection").bounding_box()
     page.mouse.move(frame["x"] + frame["width"] / 2, frame["y"] + frame["height"] / 2)
@@ -2027,16 +2034,19 @@ def task4_matrix(base_url):
             assert after_second["tab"] == before_second["tab"], (label, before_second, after_second)
             assert frame["y"] + frame["height"] <= hero["y"] + hero["height"] + .5, (label, frame, hero)
             assert not chrome_below_hero(page), label
-            # ── THE FRAME SURVIVES A TAP SOMEWHERE ELSE ───────────────────
-            # It used to dismiss on any outside pointerdown, which is the canvas
-            # convention and the wrong one here: the frame is the composition,
-            # not a selection state, and dismissing it on the first tap
-            # destroys the idea within seconds of arrival. What must NOT change
-            # is that the tap still reaches what it was aimed at -- a permanent
-            # overlay that eats a CTA would be far worse than one that hides.
+            # ── A TAP SOMEWHERE ELSE DISMISSES THE FRAME ──────────────────
+            # REVERSED, and the reversal is Jayden's: "i actually think i do
+            # prefer that the resize box can disappear if you click off of it."
+            # The frame was deliberately permanent before this, and the comment
+            # that stood here argued for it; keeping that argument next to an
+            # inverted assertion is how a settled decision gets restored as a
+            # bug fix. WHAT MUST NOT CHANGE is that the tap still reaches what
+            # it was aimed at -- chrome that eats a CTA is worse than either
+            # behaviour -- so the time menu still opens on the same tap.
             page.touchscreen.tap(time_button["x"] + time_button["width"] / 2,
                                  time_button["y"] + time_button["height"] / 2)
-            assert page.evaluate("window.__heroHeadTransform.getState().selected"), label
+            assert not page.evaluate("window.__heroHeadTransform.getState().selected"), label
+            assert page.locator("#face").get_attribute("aria-pressed") == "false", label
             assert page.locator("#heroTimeBtn").get_attribute("aria-expanded") == "true", label
             page.keyboard.press("Escape")
             page.locator("#cases").scroll_into_view_if_needed()
