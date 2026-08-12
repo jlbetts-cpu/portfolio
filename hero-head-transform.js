@@ -277,7 +277,31 @@
        live position, so the rim swings as the head moves and crosses over
        when it passes under the source. */
     lightX:(parseFloat(computedOf(hero).getPropertyValue("--time-light-x"))||50)/100,
-    lightY:(parseFloat(computedOf(hero).getPropertyValue("--time-light-y"))||84)/100
+    lightY:(parseFloat(computedOf(hero).getPropertyValue("--time-light-y"))||84)/100,
+    /* ── THE TWO SCALE BOUNDS, FOR THE REASON EVERY TOKEN ABOVE IS HERE ───────
+       The float loop was fixed and the GESTURE path was not. Measured with
+       getComputedStyle and getBoundingClientRect intercepted before any page
+       script ran and tallied per phase: a real 30-move resize drag forced 125
+       style resolutions, about 4.2 per pointermove, every one landing straight
+       after that same frame had written an inline style. Attributed by stack,
+       two of those four per move were scaleLimits() re-reading these two
+       :root constants on every move of every resize.
+       They are authored numbers in tokens.css that cannot change without a
+       stylesheet change or a resize, which is exactly the class of value this
+       cache already holds for --selection-air and --selection-handle-size, and
+       reclamp() already invalidates it on resize and on both ResizeObservers.
+       WHAT IS DELIBERATELY STILL READ LIVE, and it is not an oversight:
+       reachable()'s --hero-head-safe-gap and --hero-head-min-visible. Caching
+       those two as well was measured to take the remaining 2 reads per move,
+       and it broke hero-head-transform-contract's second-owner-move assertion
+       3 runs out of 3 (pristine 3/3 green) -- the head landed pinned at
+       x=45.795 and a second drag could not shift it. The cached and live values
+       were verified IDENTICAL in-page (gap 16, share .42), so the cause is not
+       the arithmetic but the ORDER: routing reachable() through metrics() fills
+       the cache at a different moment in the gesture. Not understood, so not
+       shipped. */
+    minScale:rootNumber("--hero-head-min-scale",.24),
+    maxScale:rootNumber("--hero-head-max-scale",2.2)
    };
    return state.metrics;
   }
@@ -748,7 +772,8 @@
    state.scale=next;state.pendingAnchor={anchor:anchor,corner:corner};render();
   }
   function scaleLimits(){
-   return {min:rootNumber("--hero-head-min-scale",.24),max:rootNumber("--hero-head-max-scale",2.2)};
+   var m=metrics();
+   return {min:m.minScale,max:m.maxScale};
   }
   function resize(event){
    if(state.operation!=="resize"||event.pointerId!==state.pointerId)return;

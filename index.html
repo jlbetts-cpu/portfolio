@@ -558,7 +558,24 @@ body.heroEmpathy .jbStick .jbNav{--nav-mat:var(--ctl-ground);--nav-rim:var(--ctl
 .cases{position:relative;z-index:62;margin-inline:auto;background:var(--c50);--work-stage-pad:0px}
 .caseInset{--case-inset:var(--sp-40);max-width:var(--page-max);margin:0 auto;padding:0 var(--case-inset)}
 /* tab bar: Instrument Sans, active = ink + underline, others muted; stepped like the rest of the site */
-.csTabs{display:flex;flex-wrap:wrap;gap:24px;align-items:flex-end;justify-content:flex-start;
+/* NO gap AND NO justify-content HERE. Both were declared -- 24px/flex-start in
+   this rule and 16px/center in the <=760 block below -- and NEITHER has ever
+   run: controls.css links after this stylesheet and sets .collection__tabs
+   {gap:var(--gap-item)} at equal specificity, so it wins at both sizes.
+   Jayden: "the tabs on the main page I noticed they look differnt on mobile
+   they have a space between either do space or not space on both". Measured
+   from the CSSOM and from the rendered boxes rather than from these rules: the
+   gap is 8px at 320, 390 AND 1440, in Chromium and WebKit, light and dark --
+   already identical at both sizes, which is the answer he asked for. The two
+   rules that claimed otherwise are removed rather than reconciled, because a
+   declaration that cannot win is how the next person concludes there is a
+   mobile/desktop difference and "fixes" one that is not there.
+   What DOES change with width is the tab CELL, not the space: .ctl--tab is
+   flex:1 1 0 in .cases.collection, so three tabs share the row and each cell
+   measures ~109px at 390 and ~389px at 1440. The labels are centred in those
+   cells, so they sit further apart on a desktop. That is a composition call --
+   stretch to fill, or hug the labels -- and it is Jayden's, not mine. */
+.csTabs{display:flex;flex-wrap:wrap;align-items:flex-end;
  margin:0 auto clamp(24px,3.2vh,40px);position:relative}.csTabs::before{content:"";position:absolute;inset-inline:var(--case-inset);bottom:0;height:1px;background:var(--c100)}
 .csTab{position:relative;background:none;border:0;padding:0 0 var(--sp-12);margin:0;font:inherit;font-family:var(--sans);font-weight:600;font-size:var(--fs-small);letter-spacing:.01em;text-transform:none;color:var(--c500);cursor:pointer;transition:color var(--dur-state-out) var(--ease-out);filter:url(#inkSm)}
 .csTab:hover{color:var(--c950)}
@@ -700,7 +717,7 @@ body.heroEmpathy .jbStick .jbNav{--nav-mat:var(--ctl-ground);--nav-rim:var(--ctl
    left edges. The row now stays on one line (Material calls this a scrollable tab bar
    when the labels exceed the width); padding-left absorbs the first tab's negative
    margin so the scroll origin cannot clip it. */
-.csTabs{gap:16px;flex-wrap:nowrap;justify-content:center}.csTabs .csTab{flex:0 0 auto;white-space:nowrap}
+.csTabs{flex-wrap:nowrap}.csTabs .csTab{white-space:nowrap}
  .csTrack{height:auto}
  .cases{--work-stage-pad:clamp(var(--sp-14),2vh,var(--sp-28))}
  .csStage{position:relative;height:auto;justify-content:flex-start;overflow:visible}
@@ -1697,6 +1714,36 @@ html{scroll-padding-top:calc(var(--nav-h) + var(--sp-16-24))}
    all -- `transform` is a real property, so the second declaration simply does
    not parse and the first stands. */
 .heroCopy{display:flex;flex-direction:column;align-items:center;transform:translateY(-92px);transform:translateY(clamp(-124px,-13svh,-92px));position:relative;z-index:3}
+/* ── THE HEADLINE IS NOT A HIT TARGET, AND THAT IS THE WHOLE OF THE DRAG BUG ──
+   Jayden: "when it is over the text or buttons it kinda doesnt let me drag or
+   resize". The head's pointer surfaces -- .heroCharacterPeek .stage and
+   #heroHeadSelection -- both sit at z-index 2 at Hero level, and .heroCopy is
+   3, so anywhere the portrait passed under the headline the HEADLINE won the
+   hit test and the drag never started. Confirmed with elementsFromPoint at the
+   head's own centre after moving it onto the h1.
+   Z-INDEX CANNOT FIX THIS, AND MEASUREMENT IS WHY. .heroCopy creates a stacking
+   context TWICE OVER -- z-index:3 above, and the translateY on the same rule --
+   so .heroCtas' z-index:8 is trapped inside it and resolves at 3 alongside the
+   h1. There is therefore NO z-index that is above the words and below the
+   buttons: they are the same layer. Raising the head to 5 does not put it
+   "over the words and still under .heroCtas", it puts it over the PRIMARY CTA
+   as well, which is a worse bug than the one being fixed. (It also drops the
+   portrait on top of its own resize handles, which live in a separate
+   Hero-level sibling at 2 -- measured as all four corners going dead.)
+   SO THE LEVER IS pointer-events, NOT PAINT ORDER. Nothing in .heroCopy is
+   interactive except .heroCtas: the cycling word that used to be draggable in
+   the headline is gone (hero-engine sets cycWord=null on this page), and #sub
+   is display:none. Marking the copy pointer-transparent lets the head -- still
+   at 2, still painted BEHIND the words, which is the composition Jayden chose
+   -- receive the press, while .heroCtas opts its whole subtree back in and so
+   keeps winning outright: the button that leads to the work cannot be swallowed
+   by a toy, at any z-index, in any engine. The single opt-in is deliberately
+   the CONTAINER and not `a,button,[role=button]`; the time menu, its rows and
+   any future control in that row inherit it without being enumerated.
+   The cost is that the h1 is no longer selectable text. It is a 2-3 line
+   display headline under an SVG ink filter, not prose. */
+.heroCopy{pointer-events:none}
+.heroCtas{pointer-events:auto}
 .heroCopy h1{order:1;margin:0 auto;max-width:min(14.4em,100%);font-size:var(--fs-heroline);
  line-height:1.06;letter-spacing:var(--tr-head);text-align:center;text-wrap:balance}
 .heroCtas{order:2;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;

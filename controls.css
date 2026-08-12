@@ -582,6 +582,25 @@
 .cases.collection .csFrame{border-radius:var(--radius-media)!important;box-shadow:var(--surface-rim)!important}
 .cases.collection .csFrame>img{border-radius:inherit!important;box-shadow:none!important}
 .cases.collection .collection__tabs>.ctl--tab{flex:1 1 0;min-width:0;padding-inline:var(--surface-inset)}
+/* ── THE TAB ROW SEPARATES WITH ITS HAIRLINE, NOT WITH A FILL ────────────────
+   Jayden, on a dark-mode screenshot of the home page: "i dont know why the tabs
+   have a differnt background color it should all be aligned with the design
+   system."
+   The colour was never a literal -- .collection__tabs takes --surface-ground and
+   flips with the theme correctly. The problem is that it is a FILL at all.
+   Measured against the section behind it: light 255,255,255 on 248,248,248;
+   dark 17,19,24 on 11,12,15. Both directions the row reads as a lighter band
+   floating on the page, which is elevation, and this site's rule is that chrome
+   separates with a HAIRLINE and translucency and never with a filled band.
+   The hairline is already there and already themed -- .csTabs::before, 1px,
+   measured rgb(230,230,230) light and rgba(255,255,255,.14) dark -- so the fill
+   was a second, louder answer to a question the line had already answered.
+   Removing it is the rule being applied, not relaxed.
+   SCOPED TO THE HOME PAGE'S WORK COLLECTION on purpose. .collection__tabs is
+   shared, and a tab strip that sits ON a media surface elsewhere may genuinely
+   need its own ground to stay legible; that is a separate judgement on a
+   separate screen and is not measured here. */
+.cases.collection .collection__tabs{background:transparent}
 .collection__tabs .csTabInk{display:none}
 .media{
  box-sizing:border-box;width:100%;overflow:hidden;border-radius:var(--radius-media);
@@ -659,15 +678,18 @@
    yesterday. The degradation is the old position, never a zero-height box.
    Rest is unchanged: at rest the Hero IS 100svh tall, so the box is the same
    box and every --hero-peek-* constant lands where Jayden placed it. */
-/* THE HEAD SITS ABOVE THE COPY AND BELOW THE PRIMARY ACTION. It was z-index 2,
-   under .heroCopy at 3 and .heroCtas at 8, so anywhere it overlapped a headline
-   or a button THEY took the touch -- "when it is over the text or buttons it
-   kinda doesnt let me drag or resize" -- and during the entrance it passed
-   BEHIND the button, which is the part that read as unintentional.
-   5 puts it over the words, which is what a draggable object has to be to be
-   draggable, and still under .heroCtas, because the one thing on this page that
-   must never be blocked by a toy is the button that goes to the work. The layer
-   itself keeps pointer-events:none; only the portrait inside it is a target. */
+/* THE HEAD STAYS AT 2, AND THE DRAG BUG IS FIXED SOMEWHERE ELSE. An earlier
+   pass raised this to 5 to beat .heroCopy's 3 -- "when it is over the text or
+   buttons it kinda doesnt let me drag or resize" -- on the reasoning that 5 was
+   still under .heroCtas at 8. THAT REASONING IS WRONG AND WAS MEASURED WRONG:
+   .heroCopy creates a stacking context (z-index:3 AND a translateY on the same
+   rule), so .heroCtas' 8 never reaches Hero level -- it resolves at 3, with the
+   h1. There is no z-index above the words and below the buttons, so 5 put the
+   portrait over the PRIMARY CTA too, and over its own resize handles, which are
+   a Hero-level sibling at 2 (all four corners measured dead).
+   The hit test is fixed with pointer-events on .heroCopy instead, in
+   index.html, where the stacking context is authored. The layer here keeps
+   pointer-events:none; only the portrait inside it is a target. */
 .heroCharacterPeek{
  position:absolute;inset:0;height:100svh;
  z-index:2;display:flex;justify-content:center;align-items:flex-end;
