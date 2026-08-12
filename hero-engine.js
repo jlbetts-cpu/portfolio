@@ -218,7 +218,7 @@ function setFace(name){
  eyesClosed=false;
  curFace=name;buildEyes(name);
  var open=PFX+FACES[name].img;
- if(faceImg.getAttribute("src")!==open)faceImg.src=open;
+ if(faceImg.getAttribute("src")!==open)setFaceSrc(open);
  /* buildEyes() has just made a fresh, VISIBLE pair, and the open artwork above
     may still be a decode away -- which is the iris-on-a-shut-face half of the
     defect, and the more visible half, because a drawn eyelid with a live iris
@@ -256,13 +256,16 @@ function applyBlink(){eyeEls.forEach(e=>e.el.classList.toggle("eclosed",eyesClos
    all the initial empty state) -- but WebKit updates it on ASSIGNMENT, 25
    disagreements in 187 frames and in both directions, which is the very bug
    this removes. Measured in both engines before it was trusted. */
-/* THE LOAD EVENT IS THE ONLY PLACE THIS CAN LAND ON TIME, and that was worth
-   measuring rather than assuming. The reconciler also runs on the master clock,
-   but that clock is 125ms -- the deliberate 8fps judder -- so reconciling only
-   there left up to seven 60fps frames of disagreement, and the contract duly
-   went on reporting unbroken runs of two and three. Reconciling in the load
-   handler puts the lid write in the SAME TASK as the bitmap becoming
-   available, so the two land on one paint.
+/* THE LOAD HANDLER IS ONE OF THREE PLACES THIS LANDS, AND IT IS THE LATEST OF
+   THEM. It used to be described here as the only place that could land on time,
+   and that was wrong in a way that cost two red gates: the load event is a
+   TASK, queued after the microtask in which `complete` flips, and instrumented
+   on this build it arrived up to 57.5ms -- three and a half frames -- after the
+   bitmap was already completely available. A paint can happen in that gap.
+   So the load handler stays (it is the only signal a genuinely slow network
+   gives) and setFaceSrc()'s microtask and lidFrame()'s per-frame pass sit in
+   front of it. The master clock's 125ms pass stays too, for the modes that own
+   the clock. All four are the same idempotent call.
    It costs nothing per frame: syncLids() reads inline style strings, a class
    list and its own booleans. No geometry, so performance-idle-contract's
    forced-layout budget does not see it at all. */
@@ -320,6 +323,48 @@ function syncLids(){
  }
  if(!shutArt&&eyesClosed)eyesClosed=false;
 }
+/* ── THE TWO CLOCKS ARE NOW THE SAME CLOCK ──────────────────────────────────
+   MEASURED, in pixels, on 2026-08-11, because this defect has been declared
+   fixed twice on the strength of a green run. Every face frame was re-encoded
+   with a unique solid patch stamped on the forehead, the irises were painted
+   flat green, and every COMPOSITED frame was pulled off the compositor with CDP
+   screencast and classified from its pixels alone -- no load event, no
+   attribute, nothing the engine believes. Over 1509 composited frames and 108
+   driven blinks the compositor painted ZERO open faces without an iris and ZERO
+   irises on a shut face. The same harness, with the ORIGINAL pairing put back
+   (lids pulled in the statement that ASKS for the closed artwork, artwork
+   arriving on a decode), painted 316 iris-less open frames in runs of five and
+   six -- ~90ms of blank-eyed stare per blink, which is exactly what Jayden
+   reported. tools/hero-eye-contract.py --pixels is that harness.
+   SO WHY CHANGE ANYTHING. Because "measured clean" is not "clean by
+   construction", and there was still a window nothing closed: syncLids() ran on
+   the 125ms clock, in the load handler, and at the call sites. An <img>'s
+   `complete` flips inside a MICROTASK queued by the src assignment, and its
+   `load` event is a TASK queued after that -- instrumented here, that task
+   arrived up to 57.5ms (three and a half frames) after the bitmap was already
+   completely available. Between those two moments the compositor is free to
+   paint the new artwork against lids nobody has reconciled yet.
+   The two lines below close it, and neither is a deferral:
+   setFaceSrc() reconciles in a microtask queued immediately after the one the
+   browser queues to update the image data, so the lid decision is made in the
+   same task-drain in which the bitmap becomes available -- both land on one
+   paint. It waits for nothing and holds no pending state; an abandoned request
+   simply never becomes the painted one.
+   lidFrame() reconciles once per animation frame, before that frame is painted,
+   which covers the case setFaceSrc cannot see: a genuinely asynchronous load
+   whose `complete` flips between frames. It costs nothing the profiler can
+   find -- syncLids() reads inline style strings, a class list and its own
+   booleans, and no geometry at all, so performance-idle-contract's
+   forced-layout budget does not see it. It cannot smooth the 8fps judder
+   either: it changes no transform and no artwork, only whether an already
+   decided lid state is on screen a frame earlier. */
+function setFaceSrc(url){
+ if(faceImg.getAttribute("src")===url)return;
+ faceImg.src=url;
+ if(typeof queueMicrotask==="function")queueMicrotask(syncLids);
+ else Promise.resolve().then(syncLids);
+}
+(function lidFrame(){syncLids();requestAnimationFrame(lidFrame);})();
 // REAL blink — posterized to the 8fps grid, with natural variation + a bit of crunch
 function buildBlink(openTo,withGesture,allowDouble){
  const deep=0.905+Math.random()*0.03, settle=deep+0.045, hold=(Math.random()<0.5?1:2), st=[];
@@ -337,7 +382,7 @@ function applyStep(s){
     the same statement, which is the pairing that could not hold: the style
     landed on the next paint and the bitmap landed on a decode. syncLids() puts
     them back together by driving both off the frame that is actually up. */
- if(s.close){faceImg.src=FACES[curFace].closed;syncLids();}
+ if(s.close){setFaceSrc(FACES[curFace].closed);syncLids();}
  else if(s.open){setFace(s.face);if(s.g)triggerGesture(s.face);}
  blinkSquash=s.sq;if(!blinkQ.length)blinking=false;
 }
@@ -365,7 +410,7 @@ function idleFidget(){
  setTimeout(idleFidget,4500+Math.random()*6500);
 }
 function tickFidget(){
- if(!fidget){fidgetGX+=(0-fidgetGX)*0.18;fidgetGY+=(0-fidgetGY)*0.18;fidgetROT+=(0-fidgetROT)*0.18;if(fidgetBrow&&!blinking){faceImg.src=PFX+FACES.neutral.img;fidgetBrow=false;}return;}
+ if(!fidget){fidgetGX+=(0-fidgetGX)*0.18;fidgetGY+=(0-fidgetGY)*0.18;fidgetROT+=(0-fidgetROT)*0.18;if(fidgetBrow&&!blinking){setFaceSrc(PFX+FACES.neutral.img);fidgetBrow=false;}return;}
  var p=(performance.now()-fidget.start)/fidget.dur,env=Math.sin(Math.max(0,Math.min(1,p))*Math.PI);   // ease in -> hold -> ease out
  var tgx=0,tgy=0,trot=0,brow=false;
  if(fidget.type==="glance"){tgx=fidget.dir*0.50*env;tgy=-0.05*env;trot=fidget.dir*1.1*env;}            // curious look to one side and back
@@ -380,8 +425,8 @@ function tickFidget(){
  else if(fidget.type==="word"||fidget.type==="corner"){try{var _tel=fidget.type==="word"?cycWord:document.querySelector(".jbPlay,.faceMoodCorner");if(_tel){var _er=_tel.getBoundingClientRect(),_sr2=stage.getBoundingClientRect();tgx=Math.max(-1,Math.min(1,((_er.left+_er.width/2)-(_sr2.left+_sr2.width*0.5))/(_sr2.width*0.8)))*0.85*env;tgy=Math.max(-1,Math.min(1,((_er.top+_er.height/2)-(_sr2.top+_sr2.height*0.42))/(_sr2.height*0.8)))*0.7*env;trot=tgx*2.2;}}catch(_){}}                                           // eyebrow raise
  fidgetGX+=(tgx-fidgetGX)*0.22;fidgetGY+=(tgy-fidgetGY)*0.22;fidgetROT+=(trot-fidgetROT)*0.22;
  var _browType=(fidget.type==="brow"||fidget.type==="rock"||fidget.type==="dtake");
- if(_browType&&!blinking&&(curFace==="neutral"||curFace==="rest")){if(brow&&!fidgetBrow){faceImg.src=PFX+FACES.neutral.browsup;fidgetBrow=true;}else if(!brow&&fidgetBrow){faceImg.src=PFX+FACES[curFace].img;fidgetBrow=false;}}
- if(p>=1){if(fidgetBrow&&!blinking){faceImg.src=PFX+FACES[(curFace==="neutral"||curFace==="rest")?curFace:"neutral"].img;}fidgetBrow=false;var _aft=fidget&&fidget.after;fidget=null;if(_aft)try{_aft();}catch(_){}}
+ if(_browType&&!blinking&&(curFace==="neutral"||curFace==="rest")){if(brow&&!fidgetBrow){setFaceSrc(PFX+FACES.neutral.browsup);fidgetBrow=true;}else if(!brow&&fidgetBrow){setFaceSrc(PFX+FACES[curFace].img);fidgetBrow=false;}}
+ if(p>=1){if(fidgetBrow&&!blinking){setFaceSrc(PFX+FACES[(curFace==="neutral"||curFace==="rest")?curFace:"neutral"].img);}fidgetBrow=false;var _aft=fidget&&fidget.after;fidget=null;if(_aft)try{_aft();}catch(_){}}
 }
 /* welcome beat: every so often in true idle, a brief soft smile — idle-animation research: living characters acknowledge you (breath, blinks, warmth); they never just stare */
 function idleWarm(){
@@ -527,7 +572,7 @@ window.addEventListener("load",function(){setTimeout(function(){var W=["images/n
 window.__faceWarm=W.map(function(src){var im=new Image();im.decoding="async";im.src=src;
  if(im.decode)im.decode().catch(function(){});return im;});},900);});
 /* eyebrow flash (Eibl-Eibesfeldt): a ~220ms brow raise that precedes warm expressions — anticipation, never a snap */
-function browFlash(cb){if(reduce||blinking||(curFace!=="neutral"&&curFace!=="rest")){if(cb)cb();return;}faceImg.src=PFX+FACES.neutral.browsup;setTimeout(function(){if(!blinking&&(curFace==="neutral"||curFace==="rest"))faceImg.src=PFX+FACES[curFace].img;if(cb)cb();},220);}
+function browFlash(cb){if(reduce||blinking||(curFace!=="neutral"&&curFace!=="rest")){if(cb)cb();return;}setFaceSrc(PFX+FACES.neutral.browsup);setTimeout(function(){if(!blinking&&(curFace==="neutral"||curFace==="rest"))setFaceSrc(PFX+FACES[curFace].img);if(cb)cb();},220);}
 /* mood exits come home through a blink, never a hard swap; sometimes he looks quietly pleased after */
 function settleFace(){var t=activeHover||holdFace||baseFace;
  if(reduce||t==="smile"||t==="wink"){setFace(t);return;}
@@ -935,7 +980,7 @@ function startParty(){try{document.body.classList.remove("catchReady");}catch(_)
  var _psy=window.scrollY||0;pCX=r0.left+r0.width/2;pHEADY=r0.top+_psy+r0.height*0.42;pHR=Math.round(r0.width*0.52);pBALLY=Math.max(54,Math.round(r0.top+_psy-r0.height*0.04));
  buildPartyDOM();layoutParty();document.body.classList.add("partyLock");
  setMouth(0);mouthimg.style.opacity="0";
- blinking=false;blinkQ=[];eyesClosed=false;setFace("neutral");faceImg.src=FACES.neutral.browsup;   // cancel any frozen mid-blink so the irises are open from frame 1
+ blinking=false;blinkQ=[];eyesClosed=false;setFace("neutral");setFaceSrc(FACES.neutral.browsup);   // cancel any frozen mid-blink so the irises are open from frame 1
  requestAnimationFrame(function(){if(partyEl)partyEl.classList.add("on");if(discoWrap)discoWrap.classList.add("on");});
  if(navigator.vibrate)navigator.vibrate([18,40,18,40,18]);
  if(!reduce){heroNavSurface(true);
@@ -949,7 +994,7 @@ function partyTick(sec){
  var b=tk-partyTk0,tx=0,ty=0,rot=0,sc=1,face="smile";
  var intro=sec<0.5,spin=(sec>=3.0&&sec<4.0),outro=sec>PARTY_DUR-0.55;
  if(intro){                                                  // look UP as the ball drops in
-  if(curFace!=="neutral")setFace("neutral");faceImg.src=FACES.neutral.browsup;
+  if(curFace!=="neutral")setFace("neutral");setFaceSrc(FACES.neutral.browsup);
   ty=Math.round(8-sec*30);rot=Math.sin(b*0.8)*2;sc=0.97;
   stage.style.transform="translate(0px,"+ty+"px) rotate("+rot.toFixed(1)+"deg) scale("+sc.toFixed(3)+")";updateShadow(0,ty,rot);return;}
  if(spin){                                                   // stepped 360 spin move (8fps)
@@ -963,7 +1008,7 @@ function partyTick(sec){
  var groove=["smile","smile","wink","smile","neutral","smile","wink","neutral"];
  face=outro?"smile":groove[Math.floor(b/2)%groove.length];
  if(face!==curFace)setFace(face);
- if(face==="neutral"&&Math.floor(b/2)%2===0)faceImg.src=FACES.neutral.browsup;   // brow accent
+ if(face==="neutral"&&Math.floor(b/2)%2===0)setFaceSrc(FACES.neutral.browsup);   // brow accent
  stage.style.transform="translate("+tx+"px,"+ty+"px) rotate("+rot.toFixed(1)+"deg) scale("+sc.toFixed(3)+")";updateShadow(tx,ty,rot);
 }
 function endParty(){
@@ -1136,8 +1181,8 @@ function eatTick(t){const cl=(v,a,b)=>Math.max(a,Math.min(b,v));const sp=speech.
  else{const k=cl((t-2.02)/0.68,0,1);if(t<2.3){closeEyes=true;mouth=0;ty=2;}                                                       // SAVOR: a beat with eyes closed...
    else if(t<3.0){if(curFace!=="smile"){setFace("smile");mouthimg.style.opacity="0";placeStache("smile");}if(!eatHopped){eatHopped=true;if(navigator.vibrate)navigator.vibrate([22,45,22,70]);}ty=-9*Math.sin(Math.PI*cl((t-2.3)/0.4,0,1));}else if(eatWillLick){var _hm=eatLick(t-3.0);ty=_hm.ty;rot=_hm.rot;sx=_hm.sx;sy=_hm.sy;}} // ...then a happy smile + hop
  if(t>=(eatWillLick?4.5:3.0)){finishEat();return;}
- if(t<2.3){if(curFace!=="neutral")setFace("neutral");if(closeEyes){faceImg.src=FACES.neutral.closed;eyeEls.forEach(e=>e.el.style.visibility="hidden");}
-   else{eyeEls.forEach(function(e){e.el.style.visibility="";e.el.style.display="";e.el.classList.remove("eclosed");});faceImg.src=(brow==="up"?FACES.neutral.browsup:PFX+FACES.neutral.img);
+ if(t<2.3){if(curFace!=="neutral")setFace("neutral");if(closeEyes){setFaceSrc(FACES.neutral.closed);eyeEls.forEach(e=>e.el.style.visibility="hidden");}
+   else{eyeEls.forEach(function(e){e.el.style.visibility="";e.el.style.display="";e.el.classList.remove("eclosed");});setFaceSrc((brow==="up"?FACES.neutral.browsup:PFX+FACES.neutral.img));
      eyeEls.forEach(e=>{const r=e.el.getBoundingClientRect();e.iris.style.transform="translate("+Math.round(talkGaze.x*r.width*TRAVEL)+"px,"+Math.round(talkGaze.y*r.height*TRAVEL)+"px)";});}
    setMouth(mouth);}
  stage.style.transform="translate(0px,"+Math.round(ty)+"px) rotate("+rot.toFixed(1)+"deg) scale("+sx.toFixed(3)+","+sy.toFixed(3)+")";updateShadow(0,ty,rot);}
@@ -1186,10 +1231,10 @@ function reactTick(){const t=(performance.now()-reactStart)/1000;
   const speaking=now<talkSpeakUntil;
   let op=0;if(speaking){const r=0.5+0.5*Math.sin(tk*0.95);op=r<0.34?0.2:(r<0.67?0.55:0.95);}  // posterized jaw openness
   setMouth(op);
-  if(talkBlink>0){talkBlink--;if(!talkClosed){faceImg.src=FACES.neutral.closed;eyeEls.forEach(e=>e.el.style.display="none");talkClosed=true;curBrow="x";}}
+  if(talkBlink>0){talkBlink--;if(!talkClosed){setFaceSrc(FACES.neutral.closed);eyeEls.forEach(e=>e.el.style.display="none");talkClosed=true;curBrow="x";}}
   else{ if(talkClosed){talkClosed=false;eyeEls.forEach(e=>e.el.style.display="");}
-   if(browFrames>0){browFrames--;if(curBrow!=="up"){faceImg.src=FACES.neutral.browsup;curBrow="up";}}   // brows raised on the word
-   else if(curBrow!=="down"){faceImg.src=PFX+FACES.neutral.img;curBrow="down";}                         // brows settle back
+   if(browFrames>0){browFrames--;if(curBrow!=="up"){setFaceSrc(FACES.neutral.browsup);curBrow="up";}}   // brows raised on the word
+   else if(curBrow!=="down"){setFaceSrc(PFX+FACES.neutral.img);curBrow="down";}                         // brows settle back
    const jx=Math.sin(tk*0.7)*0.04, jy=Math.cos(tk*0.9)*0.03;                                            // tiny live micro-saccade
    eyeEls.forEach(e=>{const r=e.el.getBoundingClientRect();
      e.iris.style.transform="translate("+Math.round((talkGaze.x+jx)*r.width*TRAVEL)+"px,"+Math.round((talkGaze.y+jy)*r.height*TRAVEL)+"px)";});
@@ -1717,7 +1762,7 @@ function startRain(){try{document.body.classList.remove("catchReady");}catch(_){
  rainHeadState="";blinking=false;blinkQ=[];eyesClosed=false;
  if(reduce){rainList.forEach(function(p){p.el.style.opacity="1";p.el.style.transform="translate(-50%,-50%) rotate("+p.rot.toFixed(1)+"deg)";});setFace("smile");setTimeout(endRain,2600);return;}
  setFace("neutral");
- faceImg.src=FACES.neutral.closed;for(var i=0;i<eyeEls.length;i++)eyeEls[i].el.style.display="none";rainHeadState="dazzle";   // brace for the flash
+ setFaceSrc(FACES.neutral.closed);for(var i=0;i<eyeEls.length;i++)eyeEls[i].el.style.display="none";rainHeadState="dazzle";   // brace for the flash
  camflash=document.createElement("div");camflash.id="camflash";document.body.appendChild(camflash);                          // the "snap"
 }
 function rainTick(){
@@ -1734,8 +1779,8 @@ function rainTick(){
   p.el.style.transform="translate(-50%,-50%) translateY("+yoff.toFixed(1)+"px) rotate("+rot.toFixed(2)+"deg) scale("+s.toFixed(3)+")";
  }
  if(lt<rainHoldStart){
-  if(lt<2){ if(rainHeadState!=="dazzle"){rainHeadState="dazzle";setFace("neutral");faceImg.src=FACES.neutral.closed;for(var i=0;i<eyeEls.length;i++)eyeEls[i].el.style.display="none";} }   // flash dazzles him -> squint
-  else { if(rainHeadState!=="watch"){rainHeadState="watch";faceImg.src=FACES.neutral.img;for(var i=0;i<eyeEls.length;i++)eyeEls[i].el.style.display="";}
+  if(lt<2){ if(rainHeadState!=="dazzle"){rainHeadState="dazzle";setFace("neutral");setFaceSrc(FACES.neutral.closed);for(var i=0;i<eyeEls.length;i++)eyeEls[i].el.style.display="none";} }   // flash dazzles him -> squint
+  else { if(rainHeadState!=="watch"){rainHeadState="watch";setFaceSrc(FACES.neutral.img);for(var i=0;i<eyeEls.length;i++)eyeEls[i].el.style.display="";}
    var tgt=null;for(var i=0;i<rainList.length;i++){if(Math.floor(rainList[i].o/rainPerTick)+2===lt-1){tgt=rainList[i];break;}}   // eyes snap to each newest photo (~1-tick saccade)
    if(tgt){gaze.x=Math.max(-1,Math.min(1,(tgt.cx-rainHr.cx)/(rainHr.w*0.85)));gaze.y=Math.max(-1,Math.min(1,(tgt.cy-rainHr.cy)/(rainHr.h*0.95)));}
    updateIris();
@@ -1925,8 +1970,8 @@ function wakeOpen(u){                                        // 0 shut -> 1 open
   for(var i=1;i<K.length;i++){if(u<=K[i][0]){var a=K[i-1],b=K[i],k=_ie(_ic((u-a[0])/((b[0]-a[0])||1),0,1));return a[1]+(b[1]-a[1])*k;}}
   return 1;
 }
-function introCloseEyes(){faceImg.src=PFX+FACES.neutral.closed;for(var i=0;i<eyeEls.length;i++)eyeEls[i].el.style.display="none";}
-function introOpenEyes(){faceImg.src=PFX+FACES.neutral.img;for(var i=0;i<eyeEls.length;i++){var e=eyeEls[i].el;e.style.display="";e.style.visibility="";e.classList.remove("eclosed");}}
+function introCloseEyes(){setFaceSrc(PFX+FACES.neutral.closed);for(var i=0;i<eyeEls.length;i++)eyeEls[i].el.style.display="none";}
+function introOpenEyes(){setFaceSrc(PFX+FACES.neutral.img);for(var i=0;i<eyeEls.length;i++){var e=eyeEls[i].el;e.style.display="";e.style.visibility="";e.classList.remove("eclosed");}}
 function introGaze(gx,gy){gaze.x=gx;gaze.y=gy;if(eyeEls.length&&typeof updateIris==="function")updateIris();}
 function startIntro(){
   var _seen=false;try{_seen=sessionStorage.getItem("introSeen")==="1";}catch(e){}
@@ -2001,7 +2046,7 @@ function introGreet(){            // reuse the name-click "talk" mechanism (spee
  talkBlink=0;talkBlinkAt=performance.now()+520;talkClosed=false;
 }
 function showEyes(on){for(var i=0;i<eyeEls.length;i++)eyeEls[i].el.style.display=on?"":"none";}
-function introSetFrame(f){if(introFrame===f)return;introFrame=f;faceImg.src=PFX+(f==="browsup"?FACES.neutral.browsup:(f==="closed"?FACES.neutral.closed:FACES.neutral.img));}
+function introSetFrame(f){if(introFrame===f)return;introFrame=f;setFaceSrc(PFX+(f==="browsup"?FACES.neutral.browsup:(f==="closed"?FACES.neutral.closed:FACES.neutral.img)));}
 function introTick(){
   var t=(performance.now()-introStart)/1000;
   var DEV=1.15,CMP=1.55,REV=2.30;                            // develop (blur->sharp) -> compose (counter tops, one calm blink) -> settle to his mark + headline lands
