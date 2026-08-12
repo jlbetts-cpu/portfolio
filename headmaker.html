@@ -955,17 +955,383 @@ rota.addEventListener("input",function(){pz.r=parseFloat(rota.value)||0;apply();
  window.__hmSyncCrop=sync;sync();})();
 document.getElementById("back2").addEventListener("click",function(){show(0);});
 
+/* ---------- TAKING THE PHOTOGRAPH OFF THE HEAD ----------------------------
+   WHAT WAS WRONG, MEASURED. `bake()` drew the photo and cut it with an oval
+   `destination-in`, and that was the whole cut. The oval is a head SHAPE, but a
+   real head is narrower than it everywhere below the cheekbones, so whatever
+   the visitor had behind them survived inside the cut -- and on the Play page's
+   near-black sky that surviving wall is a bright band tracing the silhouette.
+   That is the "white outline" Jayden could still see after the ten stock faces
+   in images/ were decontaminated: those ten are true hand-cut mattes (rest.webp
+   is 28% opaque), and every head baked here was an oval crop of a photograph.
+   Baked through the old path against a lit wall and read back, the band right
+   inside the oval edge measured 4.55x the luminance of the subject behind it,
+   and 24% of the cut's opaque area was background sitting in that edge band.
+
+   SO THERE ARE TWO DEFECTS AND THEY NEED EACH OTHER. Decontaminating the
+   anti-aliased rim -- the standard second half of a matte extraction, and what
+   this file had none of -- does nothing on its own here, because the colour it
+   pulls INTO the rim is the wall the rim is already made of. And a matte on its
+   own leaves the classic light fringe, because every pixel where hair blends
+   into wall carries some wall. Both run, in that order, and neither is much use
+   without the other.
+
+   NEITHER STEP EVER ERODES. Erosion eats hair, and hair is the part of these
+   cuts that reads as a photograph rather than a sticker;
+   tools/head-matte-decontaminate.py refused it for the ten stock faces for the
+   same reason. The matte's edge is soft because alpha falls off with COLOUR
+   DISTANCE, not because a mask was blurred and re-thresholded, so a strand two
+   pixels wide that does not look like the wall keeps every one of its pixels.
+   The decontamination only ever pulls a rim pixel DARKER, toward the subject.
+
+   AND IT REFUSES RATHER THAN GUESSES. A magic wand on a bookshelf leaves ragged
+   holes, which is worse than the clean oval it replaced. Four gates below have
+   to pass or the matte is discarded whole and the bake is exactly what it was
+   before -- no better, never worse. `bakeStats` records which happened.
+--------------------------------------------------------------------------- */
+var MATTE_IN=20,MATTE_OUT=42;        /* rgb distance: certainly background / arguably not */
+var MATTE_SEGS=24,MATTE_AGREE=0.55,MATTE_MIN_SEGS=8;
+/* THE REFERENCE DOES NOT DRIFT, AND THAT IS THE WHOLE REASON THIS WORKS.
+   An adaptive flood -- reference nudged 12% toward each pixel it accepts -- is
+   how this is normally written, and measured here it removed 86% of a frame:
+   the face, the hair and the shirt, leaving two eyes and a mouth floating in
+   the dark. The leak is not the step the reference takes, it is that the flood
+   can LOITER. The blurred ramp around a face is thousands of pixels long, the
+   flood runs along it freely because every pixel on it resembles the last, and
+   the reference drifts the whole way; capping the step at half a level per
+   pixel merely slows that down. So the reference stays exactly what its border
+   segment measured.
+   A GRADED WALL IS STILL FINE, because the anchors are not one colour: there
+   are twenty-four of them spaced around the border and they all seed the same
+   sweep, so every part of the background is reached first by the anchor
+   nearest it, and a lit wall's 32-level top-to-bottom ramp never has to be
+   crossed by any single reference. */
+/* AND THE ROOM BEHIND THEM HAS TO BE ONE OR TWO THINGS. A bookshelf is made of
+   blocks that are each perfectly uniform, so per-segment agreement happily
+   anchors on them and floods book by book -- measured, 34.4% of the frame came
+   out as holes in a room, which is worse than the clean oval it replaced.
+   THE SPREAD OF WHAT WAS REMOVED DOES NOT SEPARATE THEM, which is worth
+   recording because it is the obvious test and it was tried: a good matte
+   routinely removes a bright wall AND a dark shirt, because the frame's bottom
+   edge is shirt, and that pair is as bimodal as any bookshelf. What separates
+   them is how many DIFFERENT things the border found. Wall plus shirt is two
+   clusters; that bookshelf is seven. */
+var MATTE_CLUSTER=50,MATTE_TOP2=0.70;
+var MATTE_MAX_SHARE=0.88;            /* eating this much of the frame means it ate the person */
+var DECON_FULL=3,DECON_TAPER=5,DECON_BRIGHTER=8;   /* the depths measured on the stock faces */
+/* below this the subject and the background are too close for |C-B|/|F-B|
+   to be anything but noise, and the alpha it would produce is a guess */
+var DECON_UNMIX_MIN=60;
+/* what the last bake actually did, for a console when a visitor's photo comes
+   out wrong -- MUTATED, never reassigned, so the window reference cannot go
+   stale between bakes */
+var bakeStats=(window.__hmBakeStats={matte:"none",ms:0,anchors:0,kinds:0});
+
+/* THE BACKGROUND MODEL COMES FROM THE FRAME, NOT FROM THE OVAL'S RIM. Seeding
+   off the oval edge is the obvious move and it is wrong: at a normal framing
+   the top of that oval is full of HAIR, the hair is beautifully uniform, and
+   the flood happily anchors on it and shaves the person bald. The frame border
+   is outside the oval on every side, so at any framing where a head fits the
+   oval at all, the border is the room behind them. */
+function bgMatte(id){
+ var W=id.width,H=id.height,d=id.data,N=W*H,i,j,k,x,y;
+ var ex=[],ey=[],ix=[],iy=[];    /* the border ring, walked, with its inward normal */
+ for(x=0;x<W;x++){ex.push(x);ey.push(0);ix.push(0);iy.push(1);}
+ for(y=1;y<H;y++){ex.push(W-1);ey.push(y);ix.push(-1);iy.push(0);}
+ for(x=W-2;x>=0;x--){ex.push(x);ey.push(H-1);ix.push(0);iy.push(-1);}
+ for(y=H-2;y>=1;y--){ex.push(0);ey.push(y);ix.push(1);iy.push(0);}
+ var P=ex.length,seg=Math.floor(P/MATTE_SEGS);
+ var bg=new Uint8Array(N),dist=new Float32Array(N);
+ var rr=new Float32Array(N),rg=new Float32Array(N),rb=new Float32Array(N);
+ var q=new Int32Array(N),qh=0,qt=0;
+ function med(a){a.sort(function(p,r){return p-r;});return a[a.length>>1];}
+ /* THE FOUR CORNERS OF THE FRAME, as segment indices. Everything below turns
+    on them; see the corner rule at GATE 1c. */
+ function segOf(pos){var t=Math.floor(pos/seg);return t>=MATTE_SEGS?MATTE_SEGS-1:t;}
+ var CORNERS=[segOf(0),segOf(W-1),segOf(W+H-2),segOf(2*W+H-3)];
+
+ /* PASS ONE: what each segment of the border is, and whether it is one thing. */
+ var segR=[],segG=[],segB=[],segOK=[],anchored=0;
+ for(var s2=0;s2<MATTE_SEGS;s2++){
+  var lo=s2*seg,hi=(s2===MATTE_SEGS-1)?P:lo+seg,cr=[],cg=[],cb=[];
+  for(i=lo;i<hi;i+=2){var o=(ey[i]*W+ex[i])*4;cr.push(d[o]);cg.push(d[o+1]);cb.push(d[o+2]);}
+  segOK.push(false);segR.push(0);segG.push(0);segB.push(0);
+  if(cr.length<8)continue;
+  var mr=med(cr),mg=med(cg),mb=med(cb),agree=0;
+  for(i=0;i<cr.length;i++){var ar=cr[i]-mr,ag=cg[i]-mg,ab=cb[i]-mb;
+   if(ar*ar+ag*ag+ab*ab<=MATTE_OUT*MATTE_OUT)agree++;}
+  /* A SEGMENT THAT IS NOT MOSTLY ONE COLOUR IS NOT A BACKGROUND SEGMENT. A wall
+     agrees with itself; a bookshelf does not. */
+  if(agree/cr.length<MATTE_AGREE)continue;
+  segOK[s2]=true;segR[s2]=mr;segG[s2]=mg;segB[s2]=mb;anchored++;
+ }
+ if(anchored<MATTE_MIN_SEGS){bakeStats.matte="declined: room";return null;}   /* GATE 1 */
+
+ /* PASS TWO: the agreeing segments, clustered by colour. */
+ var cl=[],cn=[],cc=[],seg2cl=[];
+ for(s2=0;s2<MATTE_SEGS;s2++){seg2cl.push(-1);if(!segOK[s2])continue;
+  var hit=-1;
+  for(j=0;j<cl.length;j++){var lr=segR[s2]-cl[j][0],lg=segG[s2]-cl[j][1],lb=segB[s2]-cl[j][2];
+   if(lr*lr+lg*lg+lb*lb<=MATTE_CLUSTER*MATTE_CLUSTER){hit=j;break;}}
+  if(hit<0){hit=cl.length;cl.push([segR[s2],segG[s2],segB[s2]]);cn.push(0);cc.push(0);}
+  cn[hit]++;seg2cl[s2]=hit;
+  if(CORNERS.indexOf(s2)>=0)cc[hit]++;
+ }
+ bakeStats.anchors=anchored;bakeStats.kinds=cl.length;
+ var top=cn.slice().sort(function(a3,b3){return b3-a3;});
+ /* GATE 1b: two things behind a person is a wall and their shirt; seven is a
+    room, and a room cannot be flooded cleanly. */
+ if((top[0]+(top[1]||0))/anchored<MATTE_TOP2){bakeStats.matte="declined: busy";return null;}
+
+ /* GATE 1c -- THE CORNER RULE, AND IT IS THE ONE THAT KEEPS PEOPLE'S HAIR ON.
+    Being a uniform colour on the border does not make a thing background. At a
+    perfectly ordinary framing -- head filling the oval, zoom about 1.9 -- the
+    TOP of the frame is hair, hair is the most uniform thing in any portrait, it
+    anchored, and the flood ate every strand of it. The measured cut was a bald
+    head with a face on it, and every number this pass was being judged by got
+    BETTER as that happened: the wall was gone, there were no holes, and the
+    matte reported a confident 59% of the frame.
+    What is actually true of a background and not of a person is that it reaches
+    the CORNERS. A head fits a head-shaped oval, the oval does not reach the
+    corners of its own frame, and so the corners are the room -- and requiring
+    two of them, not one, means a shoulder or a shock of hair clipping a single
+    corner cannot promote itself to background. If nothing owns two corners, the
+    photograph is framed too tight to say what is behind them, and the honest
+    answer is to leave the cut exactly as it was. */
+ var qualified=0;
+ for(j=0;j<cl.length;j++)if(cc[j]>=2)qualified++;
+ if(!qualified){bakeStats.matte="declined: corners";return null;}
+
+ /* PASS THREE: seed, from the qualifying segments only. */
+ for(s2=0;s2<MATTE_SEGS;s2++){
+  var ci=seg2cl[s2];if(ci<0||cc[ci]<2)continue;
+  var lo2=s2*seg,hi2=(s2===MATTE_SEGS-1)?P:lo2+seg;
+  var nr=segR[s2],ng=segG[s2],nb=segB[s2];
+  for(i=lo2;i<hi2;i++)for(k=0;k<4;k++){        /* four deep, so a compression edge cannot orphan the ring */
+   var sx=ex[i]+ix[i]*k,sy=ey[i]+iy[i]*k;
+   if(sx<0||sy<0||sx>=W||sy>=H)continue;
+   j=sy*W+sx;if(bg[j])continue;
+   var p2=j*4,dr=d[p2]-nr,dg=d[p2+1]-ng,db=d[p2+2]-nb,dd=dr*dr+dg*dg+db*db;
+   if(dd>MATTE_OUT*MATTE_OUT)continue;
+   bg[j]=1;dist[j]=Math.sqrt(dd);rr[j]=nr;rg[j]=ng;rb[j]=nb;q[qt++]=j;}
+ }
+ if(!qt){bakeStats.matte="declined: nothing";return null;}
+
+ /* The sweep, outward from every qualifying seed at once. */
+ while(qh<qt){
+  i=q[qh++];var Rr=rr[i],Rg=rg[i],Rb=rb[i];
+  x=i%W;y=(i/W)|0;
+  for(k=0;k<4;k++){
+   var nx2=x+(k===0?-1:k===1?1:0),ny2=y+(k===2?-1:k===3?1:0);
+   if(nx2<0||ny2<0||nx2>=W||ny2>=H)continue;
+   j=ny2*W+nx2;if(bg[j])continue;
+   var q2=j*4,er=d[q2]-Rr,eg=d[q2+1]-Rg,eb=d[q2+2]-Rb,e2=er*er+eg*eg+eb*eb;
+   if(e2>MATTE_OUT*MATTE_OUT)continue;
+   bg[j]=1;dist[j]=Math.sqrt(e2);
+   rr[j]=Rr;rg[j]=Rg;rb[j]=Rb;
+   q[qt++]=j;}
+ }
+
+ /* GATE 2: THE FACE. If the flood reached the face the flood is eating the
+    subject, and at a very tight framing -- where the frame border itself is
+    cheek -- that is exactly what it would do.
+    THIS ELLIPSE IS THE FACE, NOT THE MIDDLE OF THE FRAME, and where it sits
+    has been wrong twice. Centred on the frame with half-axes 0.20 x 0.22 it
+    covered the neck and the gap either side of it, which at a normal framing is
+    WALL, and the guard tripped on all four test subjects and refused a matte it
+    should have made. Moved to 0.40 with a 0.15 half-height its APEX then sat at
+    0.25 of the frame, which is above the hairline rather than on the face, and
+    it refused every framing tighter than about 2.2x zoom for the same reason.
+    It runs 0.33 to 0.55 of the height now: the eye dots default to 0.42 and the
+    mouth mark lands near 0.62, so that is forehead to lip -- the part of the
+    frame that is the person at every framing which fits a head in the oval. */
+ var cx2=W/2,cy2=H*0.44,ax=W*0.16,ay=H*0.11;
+ for(y=Math.round(cy2-ay);y<=Math.round(cy2+ay);y+=2){
+  var ry2=(y-cy2)/ay,span=1-ry2*ry2;if(span<=0)continue;span=Math.sqrt(span)*ax;
+  for(x=Math.round(cx2-span);x<=Math.round(cx2+span);x+=2)
+   if(bg[y*W+x]){bakeStats.matte="declined: face@"+x+","+y;return null;}}
+ if(qt/N>MATTE_MAX_SHARE){bakeStats.matte="declined: ate";return null;}   /* GATE 3 */
+ if(qt/N<0.02){bakeStats.matte="declined: nothing";return null;}          /* GATE 4 */
+
+ /* Alpha falls off with colour distance, so the soft edge is the photograph's
+    own blur rather than a morphological operation. Nothing is thinned. */
+ for(i=0;i<N;i++)if(bg[i]){
+  var keep=(dist[i]-MATTE_IN)/(MATTE_OUT-MATTE_IN);
+  d[i*4+3]=keep<=0?0:(keep>=1?255:Math.round(255*keep));}
+
+ /* THE BAND, AND WHY THE MATTE ALONE IS NOT ENOUGH. A binary flood cannot
+    describe a hair that is thinner than a pixel. Measured on a strand two
+    source-pixels wide: after the lens blur and the bake's downscale it lands as
+    roughly a third hair and two thirds wall, sits 126 rgb from the wall -- far
+    outside the 42 the flood accepts -- and so survives the matte fully opaque,
+    carrying a colour that is mostly wall. Every one of those strands came out
+    as a WHITE GHOST of itself against the night sky. Erosion is the usual
+    answer and it is the one thing this must not do.
+    So the background colour that surrounded each of those pixels is kept, three
+    rings out, and handed to deconEdge, which can then unmix: a pixel that is a
+    third hair is given a third of the alpha and the hair's own colour, which is
+    what it physically is. That takes the strands from white to correct without
+    removing a single one of them. */
+ var band=new Uint8Array(N),bx=new Float32Array(N),by=new Float32Array(N),bz=new Float32Array(N);
+ var bq=new Int32Array(N),bh=0,bt=0;
+ for(i=0;i<N;i++)if(bg[i]){bq[bt++]=i;band[i]=255;bx[i]=rr[i];by[i]=rg[i];bz[i]=rb[i];}
+ while(bh<bt){i=bq[bh++];var ring=(band[i]===255)?0:band[i];
+  if(ring>=3)continue;
+  x=i%W;y=(i/W)|0;
+  for(k=0;k<4;k++){
+   var mx2=x+(k===0?-1:k===1?1:0),my2=y+(k===2?-1:k===3?1:0);
+   if(mx2<0||my2<0||mx2>=W||my2>=H)continue;
+   j=my2*W+mx2;if(bg[j]||band[j])continue;
+   band[j]=ring+1;bx[j]=bx[i];by[j]=by[i];bz[j]=bz[i];bq[bt++]=j;}}
+ for(i=0;i<N;i++)if(band[i]===255)band[i]=0;   /* the removed pixels are not band */
+ return{share:qt/N,band:band,br:bx,bg:by,bb:bz};
+}
+
+/* EDGE DECONTAMINATION, ported from tools/head-matte-decontaminate.py, which
+   is where the depths and the brighter-than gate below were measured. At the
+   alpha boundary the RGB is replaced with colour pulled from INWARD
+   neighbours, so the edge takes the subject's colour instead of the background
+   it was cut from. Alpha is never touched, so the silhouette -- and play-engine's
+   FOOT scan, which reads it -- does not move. */
+function deconEdge(id,matte){
+ var W=id.width,H=id.height,d=id.data,N=W*H,i,j,k,x,y;
+ var INF=0x3fffffff,depth=new Int32Array(N),q=new Int32Array(N),qh=0,qt=0;
+ /* depth 0 is FULLY TRANSPARENT, not "not fully opaque". Measuring from the
+    latter puts the whole two-pixel soft band at depth 0, the outer half then
+    has no neighbour deeper than itself, the sweep has nowhere to pull from,
+    and it stays exactly as contaminated as it started. */
+ for(i=0;i<N;i++){x=i%W;y=(i/W)|0;
+  if(d[i*4+3]===0||x===0||y===0||x===W-1||y===H-1){depth[i]=0;q[qt++]=i;}
+  else depth[i]=INF;}
+ while(qh<qt){i=q[qh++];var dp=depth[i]+1;x=i%W;y=(i/W)|0;
+  for(var dy=-1;dy<=1;dy++){var yy=y+dy;if(yy<0||yy>=H)continue;
+   for(var dx=-1;dx<=1;dx++){if(!dx&&!dy)continue;var xx=x+dx;if(xx<0||xx>=W)continue;
+    j=yy*W+xx;if(depth[j]>dp){depth[j]=dp;q[qt++]=j;}}}}
+
+ var settled=new Uint8Array(N),kr=new Float32Array(N),kg=new Float32Array(N),kb=new Float32Array(N);
+ var orig=null;
+ if(matte&&matte.band){orig=new Float32Array(N*3);
+  for(i=0;i<N;i++)if(matte.band[i]){orig[i*3]=d[i*4];orig[i*3+1]=d[i*4+1];orig[i*3+2]=d[i*4+2];}}
+ var order=new Int32Array(N),on=0,seen=new Uint8Array(N);
+ qh=0;qt=0;
+ for(i=0;i<N;i++)if(d[i*4+3]===255&&depth[i]>DECON_TAPER){
+  settled[i]=1;kr[i]=d[i*4];kg[i]=d[i*4+1];kb[i]=d[i*4+2];seen[i]=1;q[qt++]=i;}
+ if(!qt)return;   /* nothing clean enough to be a colour source: leave it alone */
+ /* THE SWEEP TRAVELS ALONG ALPHA, OUTWARD FROM THE CLEAN INTERIOR -- not by
+    depth ring, which looks equivalent and orphans every strand too thin to
+    hold a seed of its own. On the stock faces that was 46% of the pixels the
+    treatment set out to fix. */
+ while(qh<qt){i=q[qh++];x=i%W;y=(i/W)|0;
+  for(var ey2=-1;ey2<=1;ey2++){var y3=y+ey2;if(y3<0||y3>=H)continue;
+   for(var ex2=-1;ex2<=1;ex2++){if(!ex2&&!ey2)continue;var x3=x+ex2;if(x3<0||x3>=W)continue;
+    j=y3*W+x3;if(seen[j]||d[j*4+3]===0)continue;seen[j]=1;order[on++]=j;q[qt++]=j;}}}
+
+ /* fixed scratch, no allocation: this loop runs a couple of hundred thousand
+    times per bake and a per-pixel array is the difference between 40ms and a
+    visible stall */
+ var NB=[-1,0,1,0,0,-1,0,1,-1,-1,1,-1,-1,1,1,1];
+ var sJ=new Int32Array(8),sL=new Float64Array(8);
+ for(var oi=0;oi<on;oi++){
+  i=order[oi];x=i%W;y=(i/W)|0;var dpt=depth[i],n=0,deep=0;
+  for(k=0;k<8;k++){var mx=x+NB[k*2],my=y+NB[k*2+1];
+   if(mx<0||my<0||mx>=W||my>=H)continue;j=my*W+mx;if(!settled[j])continue;
+   if(depth[j]>dpt)deep++;
+   sJ[n]=j;sL[n]=0.2126*kr[j]+0.7152*kg[j]+0.0722*kb[j];n++;}
+  if(!n)continue;
+  /* neighbours strictly deeper are preferred where they exist, so colour flows
+     inward-out wherever the shape allows it; only a feature with no deeper
+     neighbour at all falls back to its siblings */
+  if(deep){var w2=0;for(k=0;k<n;k++)if(depth[sJ[k]]>dpt){sJ[w2]=sJ[k];sL[w2]=sL[k];w2++;}n=w2;}
+  for(k=1;k<n;k++){var vj=sJ[k],vl=sL[k],m2=k-1;      /* at most eight: insertion sort */
+   while(m2>=0&&sL[m2]>vl){sJ[m2+1]=sJ[m2];sL[m2+1]=sL[m2];m2--;}
+   sJ[m2+1]=vj;sL[m2+1]=vl;}
+  /* the DARKEST HALF of the settled neighbours: where clean hair and residue
+     are both in reach, the dark one is the hair */
+  var keepN=Math.max(1,(n+1)>>1),ar=0,ag=0,ab=0;
+  for(k=0;k<keepN;k++){var m3=sJ[k];ar+=kr[m3];ag+=kg[m3];ab+=kb[m3];}
+  kr[i]=ar/keepN;kg[i]=ag/keepN;kb[i]=ab/keepN;settled[i]=1;}
+
+ /* ISLANDS WITH NO INTERIOR AT ALL. The sweep above can only reach a pixel that
+    has a path through alpha back to a fully-opaque interior, and a wisp of hair
+    standing clear of the head has no such path -- the background the matte just
+    removed was the only thing joining it on. Measured, that was most of the
+    stray strands on the test subjects: they came out untouched, which is to say
+    white, because every one of the earlier passes skipped them.
+    There is no way to know what such a wisp is made of from its neighbours, so
+    it is asked what it is made of ITSELF: the darkest pixel of the island is
+    the point where the strand covers its own pixel most fully, and that is the
+    best estimate of the strand's colour available anywhere in the image. It is
+    an estimate and it is deliberately a conservative one -- a fine hair over a
+    lit wall really does photograph grey, and this will not invent a black one. */
+ for(i=0;i<N;i++){
+  if(d[i*4+3]===0||seen[i])continue;
+  var st9=on,dk=1e9,dr9=0,dg9=0,db9=0;
+  seen[i]=1;q[0]=i;qh=0;qt=1;order[on++]=i;
+  while(qh<qt){var ii=q[qh++],oo=ii*4;
+   var L9=0.2126*d[oo]+0.7152*d[oo+1]+0.0722*d[oo+2];
+   if(L9<dk){dk=L9;dr9=d[oo];dg9=d[oo+1];db9=d[oo+2];}
+   x=ii%W;y=(ii/W)|0;
+   for(var jy=-1;jy<=1;jy++){var y9=y+jy;if(y9<0||y9>=H)continue;
+    for(var jx=-1;jx<=1;jx++){if(!jx&&!jy)continue;var x9=x+jx;if(x9<0||x9>=W)continue;
+     j=y9*W+x9;if(seen[j]||d[j*4+3]===0)continue;seen[j]=1;order[on++]=j;q[qt++]=j;}}}
+  for(var z9=st9;z9<on;z9++){var zz=order[z9];kr[zz]=dr9;kg[zz]=dg9;kb[zz]=db9;settled[zz]=1;}}
+
+ var span2=Math.max(1,DECON_TAPER-DECON_FULL);
+ for(oi=0;oi<on;oi++){i=order[oi];if(!settled[i])continue;
+  var o2=i*4,dq=depth[i],w=(dq<=DECON_FULL)?1:Math.max(0,1-(dq-DECON_FULL)/span2);
+  if(w<=0)continue;
+  /* ONLY EVER PULL DOWN. A rim pixel darker than the colour flowing out to it
+     is the subject, not the background it was cut from, and nothing here may
+     lighten it -- which is why this cannot thin a hairline. */
+  var ex3=(0.2126*d[o2]+0.7152*d[o2+1]+0.0722*d[o2+2])-(0.2126*kr[i]+0.7152*kg[i]+0.0722*kb[i]);
+  w*=Math.max(0,Math.min(1,ex3/DECON_BRIGHTER));
+  if(w<=0)continue;
+  d[o2]=Math.round(d[o2]+(kr[i]-d[o2])*w);
+  d[o2+1]=Math.round(d[o2+1]+(kg[i]-d[o2+1])*w);
+  d[o2+2]=Math.round(d[o2+2]+(kb[i]-d[o2+2])*w);}
+
+ /* UNMIXING, which is the only honest way to keep a sub-pixel hair. C = aF +
+    (1-a)B: the background B is what the matte measured around this pixel, F is
+    the subject colour the sweep above just delivered, and a falls straight out
+    as |C-B| / |F-B|. It runs only inside the three-ring band the matte left,
+    only where F and B are far enough apart for the division to mean anything,
+    and it can only ever REDUCE alpha -- so a solid silhouette keeps its 255 and
+    nothing is thinned that was not already mostly background. Cs is the colour
+    BEFORE the loop above rewrote it, because the ratio has to be read off the
+    photograph rather than off the fix. */
+ if(matte&&matte.band){var bd=matte.band,BR=matte.br,BG=matte.bg,BB=matte.bb;
+  for(oi=0;oi<on;oi++){i=order[oi];
+   if(!bd[i]||!settled[i])continue;
+   var o6=i*4,al=d[o6+3];if(al===0)continue;
+   var fr6=kr[i]-BR[i],fg6=kg[i]-BG[i],fb6=kb[i]-BB[i];
+   var fd=Math.sqrt(fr6*fr6+fg6*fg6+fb6*fb6);
+   if(fd<DECON_UNMIX_MIN)continue;
+   var cr6=orig[i*3]-BR[i],cg6=orig[i*3+1]-BG[i],cb6=orig[i*3+2]-BB[i];
+   var cd=Math.sqrt(cr6*cr6+cg6*cg6+cb6*cb6),a6=cd/fd;
+   if(a6>=1)continue;                       /* already at least as solid as the subject */
+   var na=Math.round(al*a6);if(na<al)d[o6+3]=na;}}
+}
+
 /* bake: grayscale, oval mask, done on a canvas that mirrors the stage exactly */
 function bake(){
+ var t0=(window.performance&&performance.now)?performance.now():0;
  var s=stageSize(),k=BAKE_W/s.w,base=coverScale();
  var c=document.createElement("canvas");c.width=BAKE_W;c.height=BAKE_H;
- var x=c.getContext("2d");
+ var x=c.getContext("2d",{willReadFrequently:true});
  x.filter="contrast(1.05) saturate(1.02)";
  x.save();
  x.translate(BAKE_W/2,BAKE_H/2);x.rotate(pz.r*Math.PI/180);x.translate(-BAKE_W/2,-BAKE_H/2);   /* same pivot as the preview */
  x.transform(base*pz.s*k,0,0,base*pz.s*k,pz.x*k,pz.y*k);
  x.drawImage(photo,0,0);
  x.restore();x.filter="none";
+ /* the matte runs on the FULL FRAME, before the oval, because the oval is
+    where the evidence about the room is not */
+ bakeStats.matte="none";bakeStats.ms=0;bakeStats.anchors=0;bakeStats.kinds=0;
+ var matte=null;
+ try{var full=x.getImageData(0,0,BAKE_W,BAKE_H);matte=bgMatte(full);
+  if(matte){x.putImageData(full,0,0);bakeStats.matte=(matte.share*100).toFixed(1)+"% of frame";}
+
+ }catch(_m){bakeStats.matte="unavailable";}   /* a bake must never fail because a pixel pass did */
  x.globalCompositeOperation="destination-in";
  (function(){var cx=BAKE_W/2,cy=BAKE_H/2,rx=BAKE_W*0.40,ry=BAKE_H*0.44;
   x.beginPath();
@@ -977,6 +1343,10 @@ function bake(){
   x.bezierCurveTo(cx-rx*0.62,cy+ry*0.78,cx-rx*0.98,cy+ry*0.35,cx-rx,cy-ry*0.12);      /* left jaw */
   x.closePath();x.fill();})();
  x.globalCompositeOperation="source-over";
+ /* and the rim last, once the silhouette is final -- the oval's own
+    anti-aliased edge needs this every bit as much as the matte's does */
+ try{var cut=x.getImageData(0,0,BAKE_W,BAKE_H);deconEdge(cut,matte);x.putImageData(cut,0,0);}catch(_d){}
+ bakeStats.ms=((window.performance&&performance.now)?performance.now():0)-t0;
  return c;
 }
 var bakedCanvas=null;
