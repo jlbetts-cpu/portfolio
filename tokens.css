@@ -917,15 +917,43 @@
     scale whose logical box still fits inside 390 with the copy gutter. */
  --hero-head-max-scale:1.7;
  /* Was clamp(600px,100svh - 160px,680px): a phone Hero deliberately shorter
-    than the screen. Full-bleed retires that -- the Hero IS the screen now. */
- --hero-mobile-height:100dvh;
+    than the screen. Full-bleed retires that -- the Hero IS the screen now.
+
+    100vh FIRST, with the dvh value behind a feature query below. A custom
+    property holding a unit the engine cannot parse is still a perfectly VALID
+    custom property -- the token stream accepts anything -- so nothing fails
+    here. It fails at the USE site, where min-height:var(...) becomes invalid at
+    computed-value time and computes to `auto`. Measured by serving index.html
+    with svh/dvh made unparseable: the Hero collapsed 844px -> 241.7px, the
+    portrait jumped 561px up the page, the Work section 602px. That is not a
+    degradation, it is the page falling apart.
+
+    A second declaration cannot fix this the way it can on a real property:
+    invalid-at-computed-value-time falls back to `unset`, NEVER to the previous
+    declaration, so the usual stacked-fallback trick is silently useless here.
+    The feature query is the only construct that keeps the fallback reachable.
+
+    This matters because svh/dvh are Safari 15.4 and Chrome 108, and the in-app
+    WebView a recruiter opens this site in from a LinkedIn link is whatever
+    system engine that phone happens to ship. */
+ --hero-mobile-height:100vh;
  --work-item-gap:var(--sp-40);
  --work-meta-gap:var(--sp-12);
  --media-mockup-inset:var(--sp-16);
  --hero-peek-width:clamp(312px,calc(100vw - var(--sp-8)),520px);
  --hero-peek-depth:clamp(110px,calc(42vw - var(--sp-24)),140px);--hero-peek-offset:var(--sp-4);
  --hero-peek-lift:var(--sp-48)
-}}
+}
+
+/* THE dvh UPGRADE, GUARDED. Only engines that can actually parse dvh get it, so
+   the base 100vh above stays reachable everywhere else. dvh tracks the browser
+   chrome as it retracts, which is why the Hero uses it: the gradient never opens
+   a gap at the bottom of a phone. Where it is unsupported, 100vh is the right
+   answer anyway -- a fixed-chrome WebView has nothing to track. */
+@supports (height:100dvh){
+ :root{ --hero-mobile-height:100dvh }
+}
+}
 @media(max-width:340px){:root{
  --hero-peek-offset:var(--sp-2)
 }}
