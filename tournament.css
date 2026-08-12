@@ -146,6 +146,50 @@ body.hmSoccer .tvScreen{display:none}
 body.hmRace .tvScreen{display:none}
 
 /* ---------------------------------------------------------------------------
+   SIMULATING -- the panel keeps the screen, and the pitch is not painted
+   A simulated fixture is the real match on a hand-cranked clock, so the engine
+   does everything it always does: it adds body.hmSoccer, stands the two squads
+   up and runs the ball. At roughly thirty times speed that is a pitch of heads
+   flickering, a scoreboard spinning and a ball nobody can follow -- which reads
+   as a repaint fault, and this file has cancelled one thing already for looking
+   "like a glitch more than something we should be using".
+
+   So the two rules below are the whole of the presentation. The panel keeps the
+   screen it would otherwise have surrendered to the pitch, and the arena is not
+   painted while the crank turns.
+
+   visibility, NOT display, AND THAT IS LOAD-BEARING RATHER THAN A PREFERENCE.
+   `display:none` would collapse .hero, and the match is measured off it every
+   frame -- geo() reads the hero's own rect for the pitch width and the goal
+   mouths, and the head engine caches it too. A collapsed hero is a zero-width
+   pitch, which is not this match run quietly, it is a different match. Hidden
+   visibility keeps every rect exactly as it is and only skips the painting,
+   which is precisely the difference we are trying to make.
+
+   The trophy is the one thing the engine flies OUTSIDE .hero (it is appended to
+   the body so it can travel from the board to the winner), so it takes its own
+   line. The two confetti canvases are also body children and need no rule here:
+   they never get made, because the simulation spends the engine's own FX budget
+   before it starts. See play-tournament.js's CLOCK header.
+   --------------------------------------------------------------------------- */
+body.hmTourSim.hmSoccer .tvScreen,
+body.hmTourSim.hmRace   .tvScreen{display:flex}
+body.hmTourSim .hero{visibility:hidden}
+body.hmTourSim .hmTrophyFly{display:none}
+/* ---- AND THE PANEL HOLDS STILL WHILE IT FILLS IN. `.tvPanel` plays `tvArrive` on
+   every paint, which is right between fixtures -- one settle as the next match-up
+   arrives -- and wrong during a simulation, because paint() runs at every result and
+   a round is four of them a couple of seconds apart. Sampled at 30Hz through a
+   simulated round: 17% of frames were below 0.9 opacity and the panel reached 0.00
+   four times, which is a strobe on the one object the viewer is reading.
+   The screenshot is what caught this. Every geometric check passed -- the panel was
+   the right size in the right place the whole time -- because opacity is not a
+   layout property, and the measurement had nothing to say about it.
+   Only the entrance is suppressed. The pane's own content still changes underneath,
+   which is the movement that means something here. ---- */
+body.hmTourSim .tvPanel{animation:none}
+
+/* ---------------------------------------------------------------------------
    THE PANEL -- the object this screen did not have
    `.surface` supplies the ground, the hairline rim and --r-xl; only the geometry
    is this file's business. It is OPAQUE at the ground token's own alpha, which is
@@ -511,13 +555,59 @@ body.hmFinal .sBall{content:url(images/soccerball-gold.webp)}
    columns and the ninth row is the third row of the second column, so a rule
    there would point at nothing.
    --------------------------------------------------------------------------- */
-/* THE HAIRLINE COSTS NO HEIGHT, and that is why it is a border on the row and not a
-   spaced-out separator. Measured at 390x844: the twelve-row list already bleeds 7.8px
-   past its own box on the draft pane that ships, and 6px of padding above the ninth row
-   took this pane to 10.8 -- a new pane rendering worse than the one it is a copy of.
-   The rule is the row's top edge; the gap between rows is the separation. */
-.tvRaceOut{color:var(--theme-muted,var(--c500))}
-.tvRaceCut{border-top:var(--hair-w) solid var(--theme-rim,var(--c100))}
+/* ---- THE RUNNING ORDER: TWO COLUMNS AT EVERY SIZE, and that is arithmetic rather
+   than preference. This pane carries the WHOLE field -- twelve rows, because the race
+   path is the only path that has it -- and the single-column twelve-row list is
+   measured, in this file's own draft-pane note, to bleed 7.8px past its box at
+   390x844. It was that measurement which cut the old race pane down to the four who
+   went out; putting all twelve back needs a different answer, and it must not be a
+   scrollport (objected to four separate times).
+
+   Six rows in two columns is a little over half the height of twelve in one, which
+   clears the box at every size this screen runs at rather than only at tall ones. It
+   is also the reduction the file already sanctions for exactly this content: the draft
+   pane goes two-up below 640px of height, and its note explains the reading order --
+   a ranking is read DOWN, so the grid flows column-first and 1..6 is the left column.
+   The cost is name width, which ellipsis absorbs; the alternative cost was overflow,
+   which nothing absorbs. ---- */
+.tvOrder{
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  grid-template-rows:repeat(var(--tvDraftRows, 6), auto);
+  grid-auto-flow:column;column-gap:var(--sp-12);
+}
+/* ---- SOLID MEANS SETTLED. Jayden: "once someone is eliminated they are easily
+   solidified on the list while the others can move with wins and such."
+
+   ONE MATERIAL, AND FORM CARRIES THE DIFFERENCE -- no third colour, which is the
+   site's rule and also the only thing that could work here, because every row already
+   owns a colour: its team's. So the chip the row has always had is FILLED when the
+   position is settled and HOLLOW while it can still move. That is the race board's own
+   grammar (its leader's chip flips to solid ink) rather than a new one, and because
+   the fill is the team's colour a filled chip is still that team's chip.
+
+   The chip goes 3px -> 4px on this pane only, because a hairline inside a 3px bar is
+   two-thirds of its own width and reads as a slightly paler bar rather than as hollow.
+
+   THE NUMBER SAYS IT A SECOND WAY, on the cell that is actually provisional: a settled
+   row's position is ink at 600 because it is an answer, and a moving row's is muted at
+   400 because it is a reading that will change. Names stay full ink for everybody --
+   a team still playing is not less important than one that is out, and muting the
+   survivors would say exactly that. ---- */
+.tvOrder .tvChipC{flex:0 0 4px;width:4px}
+.tvOrder .tvFixed  .tvChipC{background:rgb(var(--tcx,117,117,117))}
+.tvOrder .tvMoving .tvChipC{
+  background:transparent;
+  box-shadow:inset 0 0 0 var(--hair-w) rgb(var(--tcx,117,117,117));
+}
+/* Both carry `.tvOrder` so they out-specify `.tvDraftRow:first-child`, which bolds the
+   top row on the draft pane because there it is the champion. Here the top row is
+   whoever is leading a cup that has not finished, and printing it like a result would
+   be the one thing this pane must not do. */
+.tvOrder .tvFixed  .tvDraftN{font-weight:600;color:var(--theme-ink,var(--c950))}
+.tvOrder .tvMoving .tvDraftN{font-weight:400;color:var(--theme-muted,var(--c500))}
+.tvOrder .tvDraftRow:first-child .tvNm{font-weight:400}
+.tvOrder .tvFixed .tvNm,
+.tvOrder .tvMoving .tvNm{color:var(--theme-ink,var(--c950))}
 
 /* ---------------------------------------------------------------------------
    THE FINAL -- the poster, and the gold that belongs to no team
@@ -587,6 +677,22 @@ body.hmFinal .tvPanel{
    delete -- so it borrows the library's own selected appearance rather than
    inventing an alert colour. */
 .tvQuit.tvArmed{
+  background:var(--ctl-ground-hover);color:var(--ctl-ink-strong);
+  box-shadow:var(--ctl-rim-strong);
+}
+/* SIMULATE, and it is the same fixed box for the same measured reason as Leave:
+   "Simulate" and "Stop" are different widths and this one ALSO sits directly beside
+   the primary, so a label swap would slide Kick off under the finger. 92px holds
+   "Simulate" at the --ctl-fs-sm rung with the library's own inline padding.
+
+   Leave (76) + Simulate (92) + two 8px gaps is 184, which at 320 leaves the primary
+   88px of a 248px row and at 360-and-under's wider inner 272 leaves 112. The primary
+   is still the widest thing in the row at every size, which is the requirement: Kick
+   off has to stay obviously the main action. */
+.tvSim{flex:0 0 auto;min-width:92px;justify-content:center}
+/* Running: it is now Stop, and it borrows the library's selected appearance exactly
+   as the armed Leave does rather than inventing a state colour. One material. */
+.tvSim.tvArmed{
   background:var(--ctl-ground-hover);color:var(--ctl-ink-strong);
   box-shadow:var(--ctl-rim-strong);
 }
@@ -693,6 +799,19 @@ body.hmFinal .tvPanel{
   :root{ --tvGutter:var(--sp-16) }
   .tvPanel{padding-inline:var(--sp-8)}
   .tvTabs{gap:0}
+  /* ---- THREE CONTROLS IN A 248px FOOT, and the two short words pay for the one that
+     has to stay readable. Measured at 320x568 with Simulate added: Leave 76 + Simulate
+     92 + two 8px gaps left the primary a 63.7px box, which is 31.7px of text inside the
+     library's 16px padding -- so "Kick off" wrapped onto two lines inside a 44px button
+     and "Start the race" overran the panel by 2px. Pristine, with two controls, had
+     neither problem, so this is the cost of the new button and it is the new button's
+     job to pay it.
+     64 and 72 still hold "Leave"/"Sure?" and "Simulate"/"Stop" without either label
+     touching its own edge, and they hand the primary 95.7px -- enough for "Kick off"
+     on one line. They stay FIXED boxes: the whole point of the min-width is that a
+     label swap must not move the primary under a finger. ---- */
+  .tvQuit{min-width:64px}
+  .tvSim{min-width:72px}
 }
 @media(max-width:760px){
   :root{ --tvGround:62svh }
@@ -774,8 +893,21 @@ body.hmFinal .tvPanel{
     grid-template-rows:repeat(var(--tvDraftRows, 6), auto);
     grid-auto-flow:column;column-gap:var(--sp-12)}
   .tvDraftOut{display:none}
-  /* The cut rule goes with the single column it described. The muting stays. */
-  .tvRaceCut{border-top:0}
+  /* `.tvRaceCut` and `.tvRaceOut` are gone with the pane that emitted them: the race
+     pane is a live running order now, not a list of the four who missed out, and it
+     carries its own two-column layout at every height rather than only here. */
+  /* ---- AND ITS HEADING ROW GOES, which is the last 20px the Order pane needs and the
+     cheapest 20px on it. Measured at 320x568: the pane has 136px, six rows at the
+     --tvRow floor plus their gaps are 124, and the eyebrow row plus the pane gap were
+     20 -- so the twelfth name sat 4px outside the list and pushed the panel past the
+     band it is allowed to occupy. Reduction, not a scrollport.
+     WHAT IS NOT LOST: the eyebrow said "RUNNING ORDER" and the tab that opened this
+     pane says "Order", one line above it and still on screen. The optional half of it
+     ("seeded by the race" / "N still in") is the same class of thing as the tape and
+     the race key, both of which this file already drops at a short height for costing
+     more than they carry. The rows themselves -- the information -- are untouched. */
+  .tvOrder ~ .tvDraftKey{margin-top:var(--sp-4)}
+  .tvPane:has(.tvOrder) > .tvHead{display:none}
   /* ---- AND THE RACE PANE'S KEY GOES, on the same rule the tape goes by at 700: at this
      height it costs, and it is the one line here whose fact is carried somewhere else.
      Measured at 320x568: the pane is 139px, the key takes 34 of them across two lines,

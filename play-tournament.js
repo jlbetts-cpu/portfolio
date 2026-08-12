@@ -225,9 +225,81 @@ function buildCup(teamIds, opts) {
     const ms = rounds[0].matches;
     for (let i = 0; i < ms.length; i++) { ms[i].a = ids[i]; ms[i].b = ids[ids.length - 1 - i]; }
   }
+  /* `seeds` is the field in SEED ORDER when a qualifier decided one -- seeds[0] is the
+     1 seed. It is carried rather than derived because nothing about a built bracket can
+     recover it (the draw is the fold of it, not the order itself), and check() needs it
+     to assert the property the seeding exists for. Absent on every unseeded path. */
   const br = { N: N, M: M, playIn: playIn > 0, draw: ids, direct: direct, rounds: rounds,
-               tail: (opts && opts.tail) ? opts.tail.slice() : [] };
+               tail: (opts && opts.tail) ? opts.tail.slice() : [],
+               seeds: (opts && opts.seeds) ? opts.seeds.slice() : null };
   return propagate(br);
+}
+
+/* ---- THE SEEDED DRAW. Jayden: "i think the race should determine the seed order coming
+   the tournament I would research into that".
+
+   THIS REVERSES A DECISION MADE TWICE, and the reasoning that was behind it has to be
+   satisfied rather than deleted. The eight who qualified used to be SHUFFLED before the
+   draw, on the grounds that handing a finishing order straight to buildCup() would print
+   a ranking the bracket then threw away -- the same "number that looks like a ranking"
+   this file has removed twice. That objection was about an ADVERTISED seed that did
+   nothing. It disappears the moment the seed genuinely decides who plays whom, which is
+   exactly what he is asking for, so the seed stops being a decoration and becomes the
+   structure. What must not come back is a number that claims more than it does.
+
+   STANDARD SEEDING, which is the ordering everybody already recognises: 1 v 8, 4 v 5,
+   2 v 7, 3 v 6 (Wikipedia, "Single-elimination tournament", which states the pairing as
+   highest against lowest, second-highest against second-lowest, and so on).
+
+   IT IS GENERATED, NOT TABULATED, by the standard recursion -- S(1) = [1], and each
+   doubling replaces every seed s with the pair (s, 2k+1-s):
+
+       [1] -> [1,2] -> [1,4,2,3] -> [1,8,4,5,2,7,3,6]
+
+   (the construction as given in Possibly Wrong, "Pretty-printing a single-elimination
+   tournament bracket", 2019). Written this way it is right at 4, 8, 16 and 32 without a
+   table to get wrong, which matters because ADVANCE is a constant somebody will change.
+
+   THE PROPERTY THIS BUYS is the whole reason to do it: seeds 1 and 2 land in opposite
+   halves and cannot meet before the final, none of the top four can meet before the
+   semi-final, and so on -- "the top two seeds could not possibly meet until the final
+   round" (Wikipedia, ibid.). check() asserts it rather than trusting this comment.
+
+   IT IS NOT UNCONTESTED, and the honest note is that Schwenk (American Mathematical
+   Monthly 107(2), 2000, "What Is the Correct Way to Seed a Knockout Tournament?") showed
+   standard seeding is not fairness-optimal -- it can make seed 2 likelier to win than
+   seed 1, since seed 1 always draws a 4/5 in the semi -- and proposed randomising within
+   cohorts instead. That is a real result about adversarial probability models and a
+   twelve-head cup between eggheads is not one; what standard seeding has that cohort
+   randomisation does not is that a viewer can look at the bracket and see why.
+
+   WHY THE FOLD RATHER THAN A NEW BUILDER. buildCup() lays its first round out by pairing
+   the outermost entries of `draw` inward (a = ids[i], b = ids[N-1-i]), and that fold is
+   shared with the play-in path. So the seeding is expressed as the arrangement of `draw`
+   that makes that existing fold produce the standard bracket, and buildCup is untouched.
+   At eight: draw = [1,4,2,3,6,7,5,8] folds to (1,8) (4,5) (2,7) (3,6). ---- */
+function seedSlots(M) {
+  var s = [1];
+  while (s.length < M) {
+    var n = s.length * 2, out = [];
+    for (var i = 0; i < s.length; i++) { out.push(s[i]); out.push(n + 1 - s[i]); }
+    s = out;
+  }
+  return s;
+}
+/* `order` is the finishing order, order[0] being the 1 seed. Returns the draw array.
+   A field that is not a power of two has no standard bracket -- buildCup would give it a
+   play-in, whose fold this arrangement does not describe -- so it is handed back
+   untouched rather than silently mis-seeded. On the race path M is ADVANCE and is 8. */
+function seedDraw(order) {
+  var M = order.length;
+  if (M < 2 || (M & (M - 1)) !== 0) return order.slice();
+  var s = seedSlots(M), ids = new Array(M);
+  for (var i = 0; i < M / 2; i++) {
+    ids[i] = order[s[i * 2] - 1];
+    ids[M - 1 - i] = order[s[i * 2 + 1] - 1];
+  }
+  return ids;
 }
 
 /* The first fixture still needing to be played, in board order, or null when the cup is
@@ -399,6 +471,36 @@ function check(br) {
     if (seenTail.has(id)) return 'team ' + id + ' appears twice in the tail';
     seenTail.add(id);
   }
+  /* ---- AND THE SEEDING DOES WHAT SEEDING IS FOR. This is the whole justification for
+     reversing the shuffle: if the bracket does not actually keep the top seeds apart then
+     the seed is decoration again, only now it is decoration that a race was run to earn.
+     A comment cannot hold that -- the fold, seedSlots() and ADVANCE are three separate
+     things a later edit could put out of step -- so it is asserted.
+
+     WHERE TWO TEAMS MEET, from the structure alone: in the first bracket round a team's
+     match index is its slot; every round after that halves it, so two teams meet in the
+     first round where their halved indices coincide. Seeds 1 and 2 must not coincide
+     until the last round, and no two of the top four before the round before it. ---- */
+  const seeds = br.seeds;
+  if (seeds && seeds.length >= 2 && !br.playIn) {
+    const ms = br.rounds[0].matches, at = new Map();
+    ms.forEach(function (m, i) { at.set(m.a, i); at.set(m.b, i); });
+    const last = br.rounds.length - 1;
+    const meet = function (x, y) {
+      let a = at.get(x), b = at.get(y), r = 0;
+      if (a === undefined || b === undefined) return -1;
+      while (a !== b) { a = Math.floor(a / 2); b = Math.floor(b / 2); r++; }
+      return r;
+    };
+    if (meet(seeds[0], seeds[1]) !== last)
+      return 'seeds 1 and 2 can meet in round ' + meet(seeds[0], seeds[1])
+           + ', not the final (' + last + ')';
+    const top = Math.min(4, seeds.length);
+    for (let i = 0; i < top; i++) for (let j = i + 1; j < top; j++)
+      if (meet(seeds[i], seeds[j]) < last - 1)
+        return 'seeds ' + (i + 1) + ' and ' + (j + 1) + ' can meet in round '
+             + meet(seeds[i], seeds[j]) + ', before the semi-final';
+  }
   return null;
 }
 
@@ -496,7 +598,8 @@ window.__hmBracket = { buildCup: buildCup, mainSize: mainSize, matchAt: matchAt,
   nextMatch: nextMatch, recordWinner: recordWinner, champion: champion, complete: complete,
   played: played, total: total, remaining: remaining, standings: standings, outAt: outAt,
   record: record,
-  roundLabel: roundLabel, roundShortLabel: roundShortLabel, check: check };
+  roundLabel: roundLabel, roundShortLabel: roundShortLabel, check: check,
+  seedSlots: seedSlots, seedDraw: seedDraw };
 })();
 
 
@@ -966,14 +1069,34 @@ function qualified(res){
   T.raceOrder = ranked.map(function(t){ return t.id; });
   clearSpawned(); benchAll();   // the racers come off before the first fixture casts, so
   // the two squads walk on to an empty ground and no slot is claimed twice
-  openCup(shuffled(T.raceOrder.slice(0, ADVANCE)), T.raceOrder.slice(ADVANCE));
+  /* ---- THE RACE SEEDS THE CUP, and the shuffle that used to be here is gone. Jayden:
+     "i think the race should determine the seed order coming the tournament". The eight
+     qualifiers go in as seeds 1..8 in the order they crossed, and seedDraw() arranges
+     them so the bracket is the standard one -- see its header for the construction, the
+     property it guarantees and the check() that asserts it.
+
+     THE SEED IS NOW LOAD-BEARING RATHER THAN PRINTED, which is what makes this different
+     from the ranking this file removed twice: it decides who plays whom. Winning the race
+     buys the 8 seed as a first opponent and a half of the draw with no other top-two
+     team in it. That is a real reward for a real result, and it is checkable on the
+     board -- which is the standard the old shuffle was protecting and this meets. ---- */
+  var qual = T.raceOrder.slice(0, ADVANCE);
+  T.seedOf = {};
+  qual.forEach(function(id, i){ T.seedOf[id] = i + 1; });
+  openCup(BR.seedDraw(qual), T.raceOrder.slice(ADVANCE), qual);
 }
 
 /* The cup opens the same way whether a race decided its field or not: one place that
    builds the bracket, checks it, casts fixture one and paints. Two paths into buildCup()
    was how the first draft ended up with the play-in casting and the raced field not. */
-function openCup(ids, tail){
-  T.br = BR.buildCup(ids, (tail && tail.length) ? { tail: tail } : null);
+function openCup(ids, tail, seeds){
+  var opts = null;
+  if ((tail && tail.length) || (seeds && seeds.length)){
+    opts = {};
+    if (tail && tail.length) opts.tail = tail;
+    if (seeds && seeds.length) opts.seeds = seeds;
+  }
+  T.br = BR.buildCup(ids, opts);
   var bad = BR.check(T.br);
   if (bad) { try { console.warn('[cup]', bad); } catch (_) {} }
   lastRound = -1;
@@ -1223,6 +1346,411 @@ function between(){
      they are already standing there when it settles in. */
   cast(nm);
   paint();
+}
+
+/* ===========================================================================
+   SIMULATING -- THE SAME MATCH, NOBODY WATCHING. Jayden: "for the tournment mode
+   there should be an option to simulate games so you dont have to watch everyone
+   if you dont want to."
+
+   THE ONE RULE, AND EVERYTHING ELSE FOLLOWS FROM IT: a simulated result is the
+   REAL MATCH, run fast, with nobody looking. It is never a dice roll. He uses this
+   screen to settle an actual fantasy draft, so if "Simulate" invented a scoreline
+   from Math.random then the bracket, the head-to-head count on the tape, the goal
+   difference inside standings() and the draft order would all be fiction, and the
+   one thing this screen is for would be the one thing it could not do.
+
+   HOW, given the soccer engine has no headless step. The race has one -- `__race.sim`
+   steps the world with `draw=false` and a whole race costs milliseconds (see
+   tools/race-fairness-probe.py). The match has nothing equivalent, and it could not
+   easily: the ball lives in one rAF loop, every player is a separate rAF closure in
+   another, and the phases (the 3-2-1, the drop-in after a goal, the whistle 5,400ms
+   after the winning goal) are setTimeout chains. There is no single tickWorld() to
+   call, and manufacturing one would be a rewrite of a file this lane does not own.
+
+   SO THE CLOCK IS CRANKED INSTEAD OF THE WORLD. requestAnimationFrame,
+   setTimeout and performance.now are swapped for a virtual clock that this module
+   advances by hand, exactly 1/60 of a second per frame -- which is the dt a
+   viewer's rAF hands those same loops. Every line of physics, every player's AI,
+   the goal detection, win-by-two and the engine's own first-to-N curve run
+   untouched and unaware. The ONLY difference between a simulated fixture and a
+   watched one is how much wall-clock time passes between two frames.
+
+   MEASURED, not asserted. 20 simulated first-round fixtures against 6 watched ones,
+   same field, same viewport, driven through the same Kick off button:
+
+                    match length (simulated seconds)      goals    went to
+                    mean   median   min    max            /match   deuce
+       watched      68.0   38.8     18.5   142.1          4.7      33%
+       simulated    50.5   45.0     14.5   116.8          5.0      35%
+
+   The two are the same distribution. (The watched arm ran at 51-60fps throughout,
+   so its wall seconds really are match seconds -- below ~20fps the loops' dt clamp
+   bites and that reading would have overstated the match.)
+
+   1/60 EXACTLY IS A CHOICE AND IT IS THE RACE PROBE'S CHOICE, for the reason
+   recorded there: "a finer step would integrate a DIFFERENT race". A watched frame's
+   dt wobbles around 1/60; a cranked one does not. Two runs of one seeded match
+   therefore diverge within seconds, which is why the table above compares
+   distributions and not scorelines -- there is no reproduction to check, and
+   claiming one would be the dishonest version of this measurement.
+
+   WHAT IS SUPPRESSED, AND WHY. `window.__hmFx` is the engine's own FX budget:
+   goalBurst and winConfetti both bail at their own guard when it is already spent.
+   Pinned high for the duration, neither confetti canvas is ever made.
+
+   THE REASON IS PRESENTATION, NOT SPEED, and the distinction matters because the
+   speed version of this claim is one I tried to make and could not support. Both
+   canvases are appended to the BODY at z-index 62 -- above this screen's panel at
+   47 -- so unlike everything else the match draws they are not covered by the
+   `body.hmTourSim .hero{visibility:hidden}` rule in tournament.css. Left alone they
+   would fire full-viewport confetti over the panel, once per goal, at thirty times
+   speed. That is the "looks like a glitch" failure this file has already cancelled
+   one feature for.
+
+   ON SPEED IT IS A WASH. A controlled A/B -- 16 fixtures, flag alternating inside
+   one browser session so machine drift hits both arms -- could not separate them:
+   cost per simulated second is dominated by match LENGTH (a 13s fixture ran at
+   28 ms/simulated-second, a 111s one at 135) and the two arms happened to draw
+   different lengths. An earlier cross-process comparison appeared to show
+   suppression making things WORSE, which is how the noise floor announced itself:
+   the first runs of any session cost three to four times the settled ones.
+   Not one line of physics is behind the flag either way, and the fidelity table
+   above was measured with it set.
+
+   THE PUMP YIELDS. A round is thousands of virtual frames and pumping them in one
+   synchronous burst would lock the tab for the whole of it, so the crank turns in
+   short chunks with a real frame between them -- which is also what lets the
+   bracket fill in while you watch, and what leaves Stop able to respond.
+   =========================================================================== */
+var CLOCK = (function(){
+  /* ---- THE CLOCK ONLY EVER GOES FORWARD, and `offset` is the whole reason this module
+     is not a bug factory.
+
+     A simulation spends minutes of match inside seconds of wall time, so when it ends
+     the virtual clock is far AHEAD of the real one. Simply putting performance.now()
+     back would step the page's clock backwards by that difference -- and the engine is
+     full of absolute deadlines taken off it: a head's next decision, the mouth and blink
+     timers, setHold, the hitstop's __hmFreeze, the shot cooldowns. Every one of those
+     would land minutes in the future, and the heads would stand there not deciding
+     anything for as long as the simulation had been worth. Restoring the clock honestly
+     is a worse bug than never restoring it.
+
+     So time is CONTINUOUS instead. When the crank stops, the gap it opened is kept as a
+     permanent offset and the page's clock carries on from where the simulation left it:
+     monotonic, never rewound, every stored deadline still meaning what it meant. rAF
+     timestamps carry the same offset, because the loops derive dt by differencing a rAF
+     timestamp against a value they took from performance.now() -- if only one of the two
+     were shifted, every loop on the page would compute one enormous or one negative dt
+     at the handover. ---- */
+  var installed = false, warped = false, vt = 0, offset = 0;
+  var rafQ = [], rafId = 1, timers = [], tid = 1;
+  var realRAF, realCAF, realST, realCT, realNow, perfObj;
+  function vnow(){ return warped ? vt : realNow() + offset; }
+
+  /* INSTALLED ONCE, LAZILY, AND LEFT IN PLACE -- which is a deliberate choice over
+     swapping the globals back afterwards. A timer armed during a simulation carries
+     an id minted by THIS module; if the real functions were restored underneath it,
+     a later clearTimeout(id) would hand that id to the browser, which would either
+     ignore it or -- worse -- cancel an unrelated real timer that happened to be
+     wearing the same small integer. Staying installed means every id keeps being
+     interpreted by the thing that issued it. The cost when idle is one boolean test
+     per call, and nothing is patched at all until the first press of Simulate. */
+  function install(){
+    if (installed) return; installed = true;
+    perfObj = window.performance;
+    realRAF = window.requestAnimationFrame.bind(window);
+    realCAF = window.cancelAnimationFrame.bind(window);
+    realST  = window.setTimeout.bind(window);
+    realCT  = window.clearTimeout.bind(window);
+    realNow = perfObj.now.bind(perfObj);
+
+    try{ perfObj.now = function(){ return vnow(); }; }catch(_){}
+    window.requestAnimationFrame = function(fn){
+      /* Unwarped, this is a pass-through that shifts the browser's timestamp onto the
+         page's clock. It stays installed for the life of the page for the same reason
+         the timer shim does -- see install()'s header. */
+      if (!warped) return realRAF(function(ts){ fn(ts + offset); });
+      var id = rafId++; rafQ.push({ id: id, fn: fn }); return id; };
+    window.cancelAnimationFrame = function(id){
+      if (!warped) return realCAF(id);
+      for (var i = 0; i < rafQ.length; i++) if (rafQ[i].id === id){ rafQ.splice(i, 1); return; } };
+    window.setTimeout = function(fn, ms){
+      if (!warped) return realST.apply(null, arguments);
+      var t = { id: 'v' + (tid++), at: vt + (+ms || 0), fn: fn,
+                args: Array.prototype.slice.call(arguments, 2), real: 0 };
+      timers.push(t); return t.id; };
+    window.clearTimeout = function(id){
+      if (typeof id === 'string' && id.charAt(0) === 'v'){
+        for (var i = 0; i < timers.length; i++) if (timers[i].id === id){
+          if (timers[i].real) realCT(timers[i].real);   // already handed back to the real clock
+          timers.splice(i, 1); return; }
+        return;
+      }
+      return realCT(id); };
+    /* setInterval is deliberately NOT patched. Nothing the match depends on is on
+       one -- the countdown, the drop-in and the whistle are all setTimeout -- and
+       the page's real intervals (the head engine's 500ms hero-box refresh, the
+       race's hidden-tab catch-up, which no-ops while the document is visible) are
+       cheap and harmless running at wall rate. Leaving them alone means there is no
+       repeating timer to hand back at the end, which is one whole class of leak
+       this module simply does not have. */
+  }
+
+  function fireDue(){
+    var guard = 0;
+    for(;;){
+      var best = -1;
+      for (var i = 0; i < timers.length; i++)
+        if (timers[i].at <= vt && (best < 0 || timers[i].at < timers[best].at)) best = i;
+      if (best < 0 || guard++ > 5000) return;
+      var t = timers[best]; timers.splice(best, 1);
+      try{ t.fn.apply(null, t.args); }catch(_){}
+    }
+  }
+
+  /* THE HANDOVER FRAME, and it is not politeness -- without it nothing moves at all.
+     Every loop on this page is currently parked in the BROWSER's rAF queue, not this
+     module's, and a loop only re-registers with the patched function the next time it
+     runs. Pumping never yields, so the queue would stay empty and a "simulated" match
+     would sit at 0-0 forever while the crank turned. Two real frames, then the world
+     is ours. */
+  function on(){
+    install();
+    if (warped) return Promise.resolve();
+    warped = true;
+    return new Promise(function(res){
+      realRAF(function(){ realRAF(function(){ vt = realNow() + offset; res(); }); }); });
+  }
+
+  /* GIVING THE CLOCK BACK. Every timer still pending is re-armed on the REAL clock
+     for whatever virtual time it had left, because the engine parks the things that
+     end a match on exactly these: stop a simulation between the winning goal and the
+     whistle and, without this, finish() never runs, the pitch never comes down and
+     the cup is wedged with no way out but Leave. The id is kept so a later
+     clearTimeout still finds it. */
+  function off(){
+    if (!warped) return;
+    /* The gap the simulation opened becomes permanent, and `warped` drops only after it
+       is banked -- everything below re-arms through the unwarped paths and must see the
+       new offset, or it would be scheduled against a clock that no longer exists. */
+    offset = vt - realNow();
+    warped = false;
+    var pendRaf = rafQ.slice(); rafQ.length = 0;
+    var pend = timers.slice(); timers.length = 0;
+    /* ---- PENDING FRAMES ARE HANDED BACK, NOT DROPPED, and dropping them was a real
+       defect rather than a tidiness point: every animation loop on this page re-registers
+       from inside its own callback, so at the instant the crank stops, the whole page --
+       the ball, every head, the scoreboard -- is sitting in this queue waiting for the
+       next frame. Clearing it would have stopped all of them permanently, and the page
+       would look alive only until the next thing that happened to restart a loop. ---- */
+    pendRaf.forEach(function(c){ try{ window.requestAnimationFrame(c.fn); }catch(_){} });
+    pend.forEach(function(t){
+      var wait = Math.max(0, t.at - vt);
+      t.real = realST(function(){
+        for (var i = 0; i < timers.length; i++) if (timers[i] === t){ timers.splice(i, 1); break; }
+        try{ t.fn.apply(null, t.args); }catch(_){}
+      }, wait);
+      timers.push(t);
+    });
+  }
+
+  function pump(n){
+    for (var i = 0; i < n; i++){
+      vt += 1000 / 60;   // the dt a viewer's rAF hands these same loops
+      fireDue();
+      var q = rafQ; rafQ = [];
+      for (var j = 0; j < q.length; j++){ try{ q[j].fn(vt); }catch(_){} }
+    }
+  }
+
+  /* A REAL frame, explicitly. The driver below needs one to schedule its next chunk
+     on, and it cannot use the global: while the crank is turning, the global is this
+     module's own queue, so a callback parked there would only ever be run by the very
+     pump it is supposed to schedule. That deadlocks at the first chunk. */
+  return { on: on, off: off, pump: pump,
+           frame: function(fn){ return installed ? realRAF(fn) : requestAnimationFrame(fn); },
+           active: function(){ return warped; },
+           /* REAL wall time, for the backstop that asks how long a human has been
+              waiting. Everything else on this page should be asking vnow(). */
+           now: function(){ return installed ? realNow() : (window.performance ? performance.now() : 0); } };
+})();
+
+/* ---- HOW MUCH CRANK PER REAL FRAME. 24 virtual frames is 0.4s of match, and it
+   measured 5-25ms of real work depending on how much is on the pitch -- about one
+   frame's budget, so the tab keeps painting and Stop keeps answering. Higher was
+   tested and is a false economy: the win is bounded by the DOM writes the head
+   loops do either way, and a chunk long enough to drop frames makes the bracket
+   filling in look like a hang rather than a run. */
+var SIM_CHUNK = 24;
+/* ---- TWO BACKSTOPS, AND THE FIRST ONE FIRES IN PRACTICE.
+
+   A MATCH MIGHT NOT END, and the cap is insurance rather than a diagnosis. One run
+   did show a semi-final apparently goalless for a very long time -- but the counters
+   were round-scoped at the time (see below), so that reading is contaminated and is
+   NOT offered here as evidence of an engine defect. With the accounting fixed, 34
+   simulated fixtures across both field sizes completed without a cap ever firing.
+   What is true regardless is that the crank REACHES the tail of the distribution in
+   seconds rather than in real minutes, so if a wedge exists this control is what
+   would meet it, and it needs an answer either way.
+
+   SIX MINUTES IS THE LINE, and it is drawn off measurement rather than taste: the
+   longest match seen anywhere in this work is 142 simulated seconds, so six minutes
+   is 2.5x past it and nothing legitimate should be near the cap.
+
+   AND WHEN IT FIRES, NOTHING IS INVENTED. The clock goes back and the wedged match
+   is simply LIVE, which is exactly the state pressing Kick off would have produced,
+   with the same End control to abandon it. Forcing a winner here would be the one
+   thing this whole module exists not to do: a fabricated scoreline would go into the
+   bracket, the head-to-head count and the draft order and could never be told from a
+   real one. A simulation that gives up honestly is worth more than one that lies.
+
+   BOTH CAPS ARE PER FIXTURE, and the first version of this got that wrong in a way
+   worth recording because it looked exactly like the defect it was meant to catch. The
+   counters ran for the whole ROUND while the numbers were reasoned about per MATCH, so
+   four ordinary quarter-finals -- four times a ~50s median, plus four countdowns and
+   four whistles -- sailed past a "generous" six minutes and reported a wedge on a round
+   in which nothing whatsoever was wrong. A cap that fires on healthy input is worse than
+   no cap: it had me hunting an engine bug that the third fixture did not have.
+
+   The real-time cap is the second failure and a different one: "this device cannot do
+   this fast enough to be worth doing", which is the honest reason to stop on a phone
+   that is struggling. And because a round is at most four fixtures, per-fixture caps
+   bound the round too -- with a whole-round backstop underneath them for the case where
+   each fixture is individually fine and the total is still not worth anyone's evening. */
+var SIM_MAX_SIM_MS = 6 * 60 * 1000;    // one fixture's match time
+var SIM_MAX_REAL_MS = 30 * 1000;       // one fixture's share of the viewer's patience
+var SIM_MAX_ROUND_MS = 120 * 1000;     // and the whole round's
+var sim = null;   // {round, stop, fx0, t0, vms} while a simulation is running
+
+function simRunning(){ return !!sim; }
+
+/* ---- WHAT "SIMULATE" SIMULATES: THE REST OF THIS ROUND. See the button in paint()
+   for why the round is the unit rather than one fixture or the whole cup. ---- */
+function simulateRound(){
+  if (sim) return;
+  var nm0 = BR.nextMatch(T.br);
+  if (!nm0) return;
+  sim = { round: nm0.round, stop: false, fx0: window.__hmFx,
+          t0: CLOCK.now(), t1: CLOCK.now(), vms: 0 };
+  window.__hmFx = 99;             // the engine's own FX budget -- see the header
+  view = nm0.round;               // the round's own pane, so the scores land where you can see them
+  /* THE CLASS BEFORE THE PAINT, or the very first rebuild still plays the entrance
+     animation the class exists to suppress -- one fade from zero, at the exact moment
+     the button was pressed. Sampling caught it as a single frame; it is the one frame
+     a viewer is guaranteed to be looking at. */
+  try{ document.body.classList.add('hmTourSim'); }catch(_){}
+  paint();
+  CLOCK.on().then(function(){ if (sim) step(); });
+}
+
+/* ---- AND THE QUALIFIER GETS THE SAME BUTTON, because it is the same complaint.
+   The marble race runs 16-20 seconds in front of a twelve-head cup and it is part of
+   the same flow; "you don't have to watch everyone" plainly covers the thing you have
+   to sit through before anyone has played at all.
+
+   IT IS THE REAL RACE, on the same terms as a fixture. This does not reach past
+   __hmRaceQualify to invent a finishing order -- it presses the same Start the race
+   the visitor would press and then turns the clock, so the course is generated the
+   same way, the same twelve heads fall down it and the same standings() decides who
+   crossed where. THE DEGRADATION LADDER IS THEREFORE COMPLETELY UNTOUCHED: a
+   simulated race that finishes complete lands on 'full', one that stalls lands on
+   'partial' and says so, and one that cannot resolve a team lands on 'skipped' and
+   falls back to the play-in. NEVER an invented placing -- there is nowhere in this
+   path that a placing could be invented, which is the point of doing it this way. ---- */
+function simulateRace(){
+  if (sim || !Q || Q.state !== 'ready') return;
+  sim = { round: -1, race: true, stop: false, fx0: window.__hmFx,
+          t0: CLOCK.now(), t1: CLOCK.now(), vms: 0 };
+  window.__hmFx = 99;
+  try{ document.body.classList.add('hmTourSim'); }catch(_){}
+  CLOCK.on().then(function(){
+    if (!sim) return;
+    runQualifier();   // the same call the button makes, on a clock that is being turned
+    step();
+  });
+}
+
+function simStop(){ if (sim) sim.stop = true; }
+
+/* THE STATE MACHINE IS ONE LINE OF IT: whenever the screen is sitting on a cast
+   fixture with no match live, press its Kick off for it. Everything else -- the
+   countdown, the goals, the whistle, __hmTourWin, the hold, between() casting the
+   next one -- is the cup running itself, exactly as it does for a viewer. */
+function step(){
+  if (!sim) return;
+  var S = window.__hmSoccer;
+  var done = false, why = '';
+  try{
+    CLOCK.pump(SIM_CHUNK);
+    sim.vms += SIM_CHUNK * 1000 / 60;   // this FIXTURE's match time; reset at each kick-off
+    if      (sim.stop)                  { done = true; why = 'stopped'; }
+    else if (sim.vms > SIM_MAX_SIM_MS)  { done = true; why = 'simcap'; }
+    else if (CLOCK.now() - sim.t1 > SIM_MAX_REAL_MS)  { done = true; why = 'realcap'; }
+    else if (CLOCK.now() - sim.t0 > SIM_MAX_ROUND_MS) { done = true; why = 'roundcap'; }
+    else if (sim.race){
+      /* The qualifier settles itself -- qualified() either opens the cup (Q goes
+         null) or drops to the skipped rung (Q.state changes). Either is the end of
+         the thing this simulation was asked to do. */
+      if (!Q || Q.state !== 'running'){ done = true; why = 'race'; }
+    } else {
+      var nm = BR.nextMatch(T.br);
+      if (!nm || nm.round !== sim.round){
+        /* ---- THE ROUND'S LAST RESULT IS NOT THE ROUND'S END, and stopping here was
+           a real bug rather than a tidiness point. __hmTourWin records the result at
+           the WINNING GOAL; the engine's whistle is 5,400ms after it and this file's
+           own hold is 5,600. Handing the clock back at the goal left both of those
+           to run at wall speed -- so hmTourSim came off while body.hmSoccer was still
+           on, the panel went away under `body.hmSoccer .tvScreen{display:none}`, and
+           the screen showed five and a half real seconds of a frozen pitch mid-
+           celebration before coming back. Cranking through it costs 14 more chunks.
+           T.phase leaves 'match' only when between() (or the champion path) has
+           repainted, so it is the honest test for "the screen is back". ---- */
+        if (!(S && S.on) && T.phase !== 'match'){ done = true; why = 'round'; }
+      }
+      else if (T.phase === 'table' && T.cur && !(S && S.on)
+               && T.cur.round === nm.round && T.cur.index === nm.index){
+        /* A NEW FIXTURE RESETS THE PER-FIXTURE CLOCKS. Without this the caps are the
+           round's, which is the bug recorded above the constants. */
+        sim.vms = 0; sim.t1 = CLOCK.now();
+        T.phase = 'match'; startFixture(nm);
+      }
+    }
+  }catch(err){ done = true; why = 'threw';
+    try{ console.warn('[cup] simulation threw', err); }catch(_){} }
+  if (done){ simEnd(why); return; }
+  CLOCK.frame(step);   // a REAL frame -- see CLOCK.frame for why the global would deadlock
+}
+
+/* ---- STOPPING, and it is the part that has to be right whatever went wrong.
+   A simulation can end four ways -- the round finished, Stop was pressed, a backstop
+   fired, or something threw -- and all four land here, because the one thing that
+   must always happen is that the clock goes back. A cup left running on a virtual
+   clock nobody is turning is a dead page. ---- */
+function simEnd(why){
+  if (!sim) return;
+  var was = sim; sim = null;
+  /* Only the two clean exits are silent. Everything else is a backstop or a throw,
+     which is a thing somebody debugging this screen needs to be told rather than
+     left to infer from a round that half ran -- the same reason check()'s findings
+     are warned rather than swallowed. */
+  if (why !== 'round' && why !== 'stopped' && why !== 'race'){
+    try{ console.warn('[cup] simulation stopped:', why,
+                      Math.round(was.vms / 1000) + 's simulated,',
+                      Math.round(CLOCK.now() - was.t0) + 'ms real'); }catch(_){}
+  }
+  try{ window.__hmFx = was.fx0 || 0; }catch(_){}
+  try{ CLOCK.off(); }catch(_){}
+  try{ document.body.classList.remove('hmTourSim'); }catch(_){}
+  /* Back to the match-up, because that is where the one action is. Staying on the
+     round pane after the last fixture of it would show a finished round and no way on. */
+  if (why === 'round' || why === 'stopped') view = 'next';
+  /* A race that was cranked and did not settle has to be put down, or __hmRaceOn stays
+     true with nothing driving it and the screen behind it never comes back. */
+  if (was.race && why !== 'race'){
+    try{ if (window.__hmRaceOn && window.__hmRaceEnd) window.__hmRaceEnd(); }catch(_){}
+  }
+  try{ paint(); }catch(_){}
 }
 
 // ---------- UI ----------
@@ -1744,11 +2272,22 @@ function buildDraft(into){
    The long sentence still exists, on the race pane, which has one list and no second key
    and can afford it. Both are built from T.race, so they cannot describe different
    races. ---- */
+/* ---- AND THE SEEDED CUP NEEDS DIFFERENT WORDS, because on that path the last-resort
+   separator is no longer a coin toss. standings() breaks a dead heat with the draw
+   index, and the draw is now the SEED ORDER the race produced -- so two teams level on
+   everything the bracket measured are split by where they finished a race they both ran.
+   That is earned, and calling it "separated by the draw, not earned" would be this
+   pane's first false statement. The marker still appears, because the number still was
+   not settled on the pitch; only the reason changes. ---- */
 function draftKey(drawn, racePart){
+  var seeded = !!(T.br && T.br.seeds && T.br.seeds.length);
+  var byWhat = seeded ? 'separated by the race' : 'separated by the draw';
   if (drawn && racePart)
-    return '\u00b7 not earned \u2014 separated by the draw, or not raced to the line';
+    return '\u00b7 not settled on the pitch \u2014 ' + byWhat
+         + ', or not raced to the line';
   if (racePart) return '\u00b7 not raced to the line \u2014 ranked by distance, not earned';
-  if (drawn)    return '\u00b7 level on goals \u2014 separated by the draw, not earned';
+  if (drawn)    return '\u00b7 level on goals \u2014 ' + byWhat
+         + (seeded ? '' : ', not earned');
   return '';
 }
 /* The race pane's own. It says the thing the draft pane's marker can only point at --
@@ -1796,27 +2335,64 @@ function raceKey(){
    scrollport -- the answer this file uses everywhere else, and the one Jayden has
    asked for four separate times. */
 function buildRace(into){
+  /* THE LIST IS standings(), NOT A STORED ORDER, and that is the mechanism rather than a
+     convenience. standings() already sorts the whole field by how far each team has got,
+     then goal difference, then goals -- which during a live cup is exactly "where does
+     everyone stand right now" -- and appends the race's non-qualifiers after it. Keeping
+     a second ordering in this pane is how the board and the draft order would eventually
+     disagree, which is the bug the draft pane's own header warns about. */
+  var rows = BR.standings(T.br);
+  var live = 0;
+  rows.forEach(function(r){ if (!settledRow(r)) live++; });
+
   var head = el('div', 'tvHead');
-  head.appendChild(el('p', 'tvEyebrow', 'Knocked out'));
-  head.appendChild(el('span', 'tvOptL', ADVANCE + ' went through'));
+  head.appendChild(el('p', 'tvEyebrow', 'Running order'));
+  /* Before a ball is kicked the order IS the race's, so the line says what put it there;
+     after that the interesting number is how many are left. One slot, two facts, and
+     never both at once. */
+  head.appendChild(el('span', 'tvOptL', BR.played(T.br) === 0
+    ? 'seeded by the race' : live + ' still in'));
   into.appendChild(head);
-  var outs = T.raceOrder.slice(ADVANCE);
-  var list = el('ol', 'tvDraft');
-  list.style.setProperty('--tvDraftRows', String(Math.max(1, outs.length)));
-  outs.forEach(function(id, i){
-    var tm = teamById(id);
-    var li = el('li', 'tvDraftRow tvRaceOut');
-    li.appendChild(el('span', 'tvDraftN bcNum', String(ADVANCE + i + 1)));
+
+  var list = el('ol', 'tvDraft tvOrder');
+  list.style.setProperty('--tvDraftRows', String(Math.ceil(rows.length / 2)));
+  rows.forEach(function(row){
+    var tm = teamById(row.id);
+    var fixed = settledRow(row);
+    var li = el('li', 'tvDraftRow ' + (fixed ? 'tvFixed' : 'tvMoving'));
+    li.appendChild(el('span', 'tvDraftN bcNum', String(row.rank)));
     var c = el('i', 'tvChipC'); if (tm) c.style.setProperty('--tcx', tm.col);
     li.appendChild(c);
     li.appendChild(el('span', 'tvNm', tm ? tm.name : '—'));
+    /* The accessible name carries what the fill says, because a hollow chip is not
+       readable by a screen reader and "settled" is the whole point of this pane. */
+    li.setAttribute('aria-label', (tm ? tm.name : 'unknown') + ', ' + ord(row.rank)
+      + (fixed ? ', settled' : ', still playing'));
     list.appendChild(li);
   });
   into.appendChild(list);
-  /* `.tvRaceKey` as well as `.tvDraftKey`: same object, but this one is reducible below
-     640px of height and the draft pane's is not. See the stylesheet for why. */
   var rk = raceKey();
   if (rk) into.appendChild(el('p', 'tvDraftKey tvRaceKey', rk));
+}
+
+/* ---- WHOSE POSITION CANNOT MOVE AGAIN, and it is a PROVABLE claim rather than a
+   presentational one, which is why this is a function and not a class name chosen at
+   the call site. Jayden: "once someone is eliminated they are easily solidified on the
+   list while the others can move with wins and such."
+
+   A row is fixed when the team is out -- knocked out of the cup, or never in it because
+   the race eliminated it. It is fixed because of how standings() sorts: the first key is
+   the deepest round a team reached, and every team still alive is in a round at least as
+   deep as any team already out and will only ever go deeper. So nobody still playing can
+   fall below somebody already eliminated, and two teams eliminated in the same round are
+   separated by goal difference and goals scored, both of which stopped changing when
+   they went out. The champion and runner-up head-swap at the end only reorders two teams
+   that were both in the final, so it cannot move anyone either.
+
+   That is the "layer of fantasy order goodness": the list resolves from the bottom up
+   while the cup runs, and a row that has gone solid has genuinely stopped moving. ---- */
+function settledRow(row){
+  return !!row.fromTail || BR.outAt(T.br, row.id) !== undefined;
 }
 
 /* ---- THE ENDING. The champion, crowned, and under it how everybody else's cup
@@ -1872,6 +2448,53 @@ function quitBtn(){
   return quit;
 }
 
+/* ---- THE SIMULATE CONTROL, AND WHY IT IS ONE BUTTON WITH A ROUND'S SCOPE.
+
+   The three obvious scopes are this fixture, this round, and the whole cup, and
+   shipping all three would be three buttons where the foot at 320px can carry one:
+   Leave is already there and the primary has to stay obviously the primary.
+
+   PER-FIXTURE WAS REJECTED because it makes the common case the laborious one.
+   His sentence is "so you dont have to watch everyone", and a control that needs
+   seven presses to get through a seven-fixture cup has not really answered it.
+
+   THE WHOLE CUP WAS REJECTED because it takes the final away. The final is the one
+   match anybody would actually want to watch -- it is the only one that gets the
+   gold ball, the poster and the trophy -- and a button that makes it unreachable
+   is a button fighting its own screen.
+
+   THE ROUND IS THE UNIT THIS SCREEN IS ALREADY BUILT ON. It is what the eyebrow
+   names, what each tab is, and what the fixture list is grouped by, so the scope
+   needs no explaining. It is three presses from an empty bracket to a champion at
+   either field size, it never costs more than four fixtures at once, and it stops
+   on the final's match-up with Kick off sitting right there. "Watch some, skip the
+   rest" and "skip the lot" are both reachable, and neither needed a second control.
+
+   IT IS SECONDARY AND IT LOOKS IT. `.ctl--secondary` beside a `.ctl--primary` that
+   still fills the rest of the row: Kick off remains the main thing, which is what
+   was asked for. The label does not change with the round -- a button that grows
+   from "Simulate" to "Simulate the quarter-final" would shove the primary sideways
+   under the finger reaching for it, which is the exact bug .tvQuit's min-width
+   exists to prevent. The round is named in the accessible name instead, where
+   length costs nothing. ---- */
+function simBtn(nm2){
+  var b = el('button', 'tvSim ctl ctl--secondary', simRunning() ? 'Stop' : 'Simulate');
+  b.type = 'button';
+  if (simRunning()){
+    b.classList.add('tvArmed');
+    b.setAttribute('aria-label', 'Stop simulating');
+  } else {
+    var rd = nm2 && T.br && T.br.rounds[nm2.round];
+    b.setAttribute('aria-label', rd ? ('Simulate the rest of the ' + rd.label.toLowerCase())
+                                    : 'Simulate the rest of the round');
+  }
+  b.addEventListener('click', function(e){
+    e.stopPropagation();
+    if (simRunning()) simStop(); else simulateRound();
+  });
+  return b;
+}
+
 /* ---- THE QUALIFYING SCREEN. The same panel, one pane short: no tab row, because there is
    no bracket yet and a row of one tab is a tab row pretending. What is left is the eyebrow,
    one sentence and the foot -- which is the smallest this screen has ever been, and that is
@@ -1915,17 +2538,41 @@ function paintQualify(h){
   panel.appendChild(pane);
 
   var foot = el('div', 'tvFoot');
-  foot.appendChild(quitBtn());
+  if (!simRunning()) foot.appendChild(quitBtn());
+  /* Only on the rung that has a race to skip. The 'skipped' pane's action is "open the
+     cup", which is instant and has nothing to sit through. */
+  if (state !== 'skipped'){
+    var sb = el('button', 'tvSim ctl ctl--secondary', simRunning() ? 'Stop' : 'Simulate');
+    sb.type = 'button';
+    if (simRunning()) sb.classList.add('tvArmed');
+    sb.setAttribute('aria-label', simRunning() ? 'Stop simulating'
+                                              : 'Run the qualifying race without watching it');
+    sb.addEventListener('click', function(e){
+      e.stopPropagation();
+      if (simRunning()) simStop(); else simulateRace();
+    });
+    foot.appendChild(sb);
+  }
+  /* ---- THE SHORT FORM AT 320, and it is the same reduction `roundShortLabel` already
+     makes for the same reason one row up: three controls cannot share a 248px foot
+     while one of them carries fourteen characters. Measured, "Start the race" overran
+     the panel there even after both secondaries gave up their width. "Start" is not
+     vague in place -- the eyebrow above it says QUALIFYING and the sentence between
+     them says "One marble race, all 12 heads" -- and 360 is where the panel stops
+     being able to hold the long form, not a phone-shaped guess. ---- */
+  var narrow = false; try{ narrow = innerWidth <= 360; }catch(_){}
   var go = el('button', 'tvGo ctl ctl--primary',
-              state === 'skipped' ? 'Open the cup' : 'Start the race');
+              state === 'skipped' ? 'Open the cup'
+              : simRunning() ? 'Simulating…'
+              : narrow ? 'Start' : 'Start the race');
   go.type = 'button';
-  go.disabled = (state === 'running');
+  go.disabled = (state === 'running') || simRunning();
   go.addEventListener('click', function(e){
     e.stopPropagation();
-    if (!Q) return;
+    if (!Q || simRunning()) return;
     if (Q.state === 'skipped'){
       var ids = Q.teams.map(function(t){ return t.id; });
-      Q = null; T.raceOrder = null;
+      Q = null; T.raceOrder = null; T.seedOf = null;
       clearSpawned(); benchAll();
       openCup(shuffled(ids), null);   // the twelve-team play-in, exactly as it already ships
       return;
@@ -1948,6 +2595,10 @@ function paint(){
   var nm2    = BR.nextMatch(T.br);
   var champ2 = BR.champion(T.br);
   var done2  = (champ2 !== undefined);
+  /* The Order tab is gone at the whistle (see the tab row), so anyone standing on it
+     is moved to the pane that answers the same question rather than being dropped
+     through the catch-all onto a champion screen with no tab selected. */
+  if (view === 'race' && done2) view = 'draft';
   var A2 = (nm2 && !done2) ? teamById(nm2.match.a) : null;
   var B2 = (nm2 && !done2) ? teamById(nm2.match.b) : null;
 
@@ -1999,8 +2650,18 @@ function paint(){
      conditional the Draft tab uses. It sits second because that is when it happened, and
      it is standing in the slot Play-in occupies on the other twelve-head path, so the tab
      count is unchanged at every field this screen can produce. */
-  var hasRace = !!(T.br.tail && T.br.tail.length && T.raceOrder && T.raceOrder.length);
-  if (hasRace) tab('race', 'Race', 'The qualifying race');
+  /* ---- AND IT STANDS DOWN WHEN THE CUP IS OVER, which is a subtraction the live
+     board earned. While the cup runs, this pane and the Draft pane answer different
+     questions -- "where does everyone stand, and who has stopped moving" against "here
+     is the final order and what put each row there". At the final whistle they are the
+     same twelve rows in the same sequence, and two tabs showing one list is exactly the
+     "too much random unnecessary elements" this screen has been cleaned of before. So
+     Order hands over to Draft rather than sitting beside it. It also means the race path
+     never carries more than five tabs, where the play-in path still reaches six -- so
+     the 320px tab arithmetic is unchanged at its worst case and better at this one. */
+  var hasRace = !!(T.br.tail && T.br.tail.length && T.raceOrder && T.raceOrder.length)
+                && !done2;
+  if (hasRace) tab('race', 'Order', 'The running order');
   T.br.rounds.forEach(function(rd, i){ tab(i, rd.short, rd.label); });
   /* THE DRAFT ORDER IS THE LAST TAB AND ONLY EXISTS AT THE END. Before the cup is finished
      there is no order to publish -- printing a provisional one would be the seed again --
@@ -2040,7 +2701,12 @@ function paint(){
      beside it would be the same door twice. It is therefore not built rather than built and
      removed -- which is what this did, and a control that exists for one statement is a
      control a listener can still be attached to. */
-  if (!done2) foot.appendChild(quitBtn());
+  /* Leave stands down while a simulation is running. It is the one destructive
+     control on the screen and its two-tap arm cannot survive a repaint every frame;
+     Stop is in the row beside it and takes one tap, so the way out is never more
+     than two presses away. */
+  if (!done2 && !simRunning()) foot.appendChild(quitBtn());
+  if (nm2 && !done2) foot.appendChild(simBtn(nm2));
 
   /* THE MATCH-UP SCREEN ALWAYS HAS ITS ONE ACTION, and it is never gated on
      T.phase. phase is a variable that can be left behind: any path that ends a
@@ -2051,9 +2717,15 @@ function paint(){
      display:none under body.hmSoccer, so this code cannot run during a live match;
      if it is visible at all, the one thing it is for is starting the match. */
   if (nm2 && !done2){
-    var go = el('button', 'tvGo ctl ctl--primary', 'Kick off'); go.type = 'button';
+    var go = el('button', 'tvGo ctl ctl--primary',
+                simRunning() ? 'Simulating…' : 'Kick off'); go.type = 'button';
+    /* Disabled rather than absent while the crank turns: the row must not change
+       shape under a finger, and the primary going missing mid-simulation is exactly
+       the kind of jump this screen was remade to stop doing. */
+    go.disabled = simRunning();
     go.addEventListener('click', function(e){
-      e.stopPropagation(); T.phase = 'match'; view = 'next'; startFixture(nm2); });
+      e.stopPropagation(); if (simRunning()) return;
+      T.phase = 'match'; view = 'next'; startFixture(nm2); });
     foot.appendChild(go);
   } else if (done2){
     var dn = el('button', 'tvGo ctl ctl--primary', 'Leave the cup'); dn.type = 'button';
@@ -2070,7 +2742,7 @@ function start(){
   if (T.live) return;
   buildTeams(function(teams){
     T.live = true; T.phase = 'board'; view = 'next';
-    T.br = null; T.race = null; T.raceOrder = null; Q = null;   // nothing survives the last cup
+    T.br = null; T.race = null; T.raceOrder = null; T.seedOf = null; Q = null;   // nothing survives the last cup
     try{ var _pb=document.getElementById('gameBtn');
       if(_pb){_pb.setAttribute('aria-disabled','true');
               _pb.setAttribute('title','Finish the cup first');} }catch(_){}
@@ -2112,7 +2784,7 @@ function stop(){
   /* T.live goes first and Q goes with it, so a qualifier settling after this call finds
      the cup gone and does nothing. __hmRaceEnd settles it as `aborted` and cannot settle
      twice, so ending the race here is safe whether or not one is running. */
-  Q = null; T.race = null; T.raceOrder = null;
+  Q = null; T.race = null; T.raceOrder = null; T.seedOf = null;
   try{ if (window.__hmRaceOn && window.__hmRaceEnd) window.__hmRaceEnd(); }catch(_){}
   try{ document.body.classList.remove('hmFinal'); }catch(_){}
   try{ var _pb2=document.getElementById('gameBtn');
