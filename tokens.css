@@ -65,7 +65,18 @@
   src:url(fonts/instrument-sans-latin-600-normal.woff2) format("woff2")}
 
 :root{--fs-statnum:clamp(34px,3.6vw,48px);--fs-pagehead-sm:clamp(30px,8.2vw,40px);--sp-8-16:16px;--sp-16-24:24px;--sp-16-32:32px;--sp-16-40:40px;--sp-16-56:56px;--sp-24-32:32px;--sp-24-40:40px;--sp-24-48:48px;--sp-32-48:48px;--sp-32-56:56px;--sp-32-64:64px;--sp-40-64:64px;--sp-40-72:72px;--sp-48-64:64px;--sp-48-72:72px;--sp-48-80:80px;--sp-56-96:96px;--sp-56-112:112px;--sp-64-168:168px;--sp-72-144:144px;--sp-80-152:152px;--c50:#FDFDFD;--c100:#E6E6E6;--c75:#F1F1F1;--c500:#757575;--c600:#6B6B6B;--c700:#525252;--c900:#212121;--c950:#121212;--yellow:#FED259;--accent:#121212;--accent-press:#212121;--accent-wash:#F1F1F1;--accent-dark:#FDFDFD;
- --sans:"Instrument Sans",-apple-system,system-ui,sans-serif;--fs-display:clamp(68px,12vw,168px);--fs-h1:clamp(28px,2.6vw,38px);--fs-pagehead:clamp(33px,3.9vw,52px);--fs-h2:clamp(26px,2.5vw,36px);--fs-h3:clamp(21px,2.4vw,32px);--fs-h4:clamp(19px,2.1vw,28px);--fs-h5:clamp(20px,1.7vw,24px);--fs-lead:clamp(15px,1.4vw,18px);--fs-prose:clamp(17px,1.39vw,20px);
+ --sans:"Instrument Sans",-apple-system,system-ui,sans-serif;--fs-display:clamp(68px,12vw,168px);--fs-h1:clamp(28px,2.6vw,38px);
+ /* THE PAGE TITLE HAS ITS OWN RUNG NOW. A case study's title and its section
+    headings were --fs-h1 and --fs-h2: 38 and 36 at the cap, a ratio of 1.06,
+    which is not a hierarchy, it is a rounding error. The title could not simply
+    take a bigger --fs-h1 because that token is doing two unrelated jobs -- the
+    five case-study titles, and the draggable word-ghosts on the home page plus
+    .hmMsg, which must not grow. So the ROLE gets named instead of the size
+    being borrowed. 48 against h2's 36 is 1.33, and 32 against 26 at the floor is
+    1.23; the fluid range is 1.5x, well inside the 2.5x ceiling this scale keeps.
+    It sits just under about.html's 52px greeting, which is the one headline on
+    the site allowed to be the largest. */
+ --fs-title:clamp(32px,3.6vw,48px);--fs-pagehead:clamp(33px,3.9vw,52px);--fs-h2:clamp(26px,2.5vw,36px);--fs-h3:clamp(21px,2.4vw,32px);--fs-h4:clamp(19px,2.1vw,28px);--fs-h5:clamp(20px,1.7vw,24px);--fs-lead:clamp(15px,1.4vw,18px);--fs-prose:clamp(17px,1.39vw,20px);
  /* THE MEASURE, NAMED ONCE. The five case studies set --fs-prose and
     --lh-prose on .secBody/.ovBody and then let the line run the full column:
     measured at 99, 101 and 107 characters, where readable prose is 45-75. The
