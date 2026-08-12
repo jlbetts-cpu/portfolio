@@ -175,8 +175,22 @@ function propagate(br) {
    as "Seeds 3 and 7", and it is the thing Jayden called out: a number that looks like a
    ranking and is a loop counter. A knockout does not need one. Who meets whom is the
    draw, the draw is random, and a random draw is an honest answer to "why these two?" in
-   a way that a fabricated ranking is not. */
-function buildCup(teamIds) {
+   a way that a fabricated ranking is not.
+
+   ---- opts.tail: PLACES THIS BRACKET DID NOT DECIDE ----------------------------------
+   The qualifying race (see the UI module) sends eight teams into a clean eight-team cup
+   and settles the remaining places itself. Those teams are not in the draw, play no
+   fixture and can win nothing, so they must not be in `rounds` -- but a draft order needs
+   a number for every head, so they cannot simply be dropped either.
+
+   `tail` is therefore EXOGENOUS: an ordered list of ids that standings() appends after
+   the bracket's own places and that nothing else in this core reads. br.N stays the
+   number of teams in the BRACKET, which is what keeps every round name, the fixture
+   count and the play-in arithmetic correct -- eight in, no play-in, quarter/semi/final.
+   check() refuses a tail that overlaps the draw, because a team counted twice would be
+   ranked twice. Callers that have no tail pass nothing and get exactly what they got
+   before. ---- */
+function buildCup(teamIds, opts) {
   const N = teamIds.length;
   if (N < 2) throw new Error('need at least 2 teams');
   const M = mainSize(N);
@@ -211,7 +225,8 @@ function buildCup(teamIds) {
     const ms = rounds[0].matches;
     for (let i = 0; i < ms.length; i++) { ms[i].a = ids[i]; ms[i].b = ids[ids.length - 1 - i]; }
   }
-  const br = { N: N, M: M, playIn: playIn > 0, draw: ids, direct: direct, rounds: rounds };
+  const br = { N: N, M: M, playIn: playIn > 0, draw: ids, direct: direct, rounds: rounds,
+               tail: (opts && opts.tail) ? opts.tail.slice() : [] };
   return propagate(br);
 }
 
@@ -304,13 +319,27 @@ function standings(br) {
   }
   /* Only the draw separated these two if they are level on every key above it. Computed
      against the row ABOVE, because that is the claim the number makes. */
-  return ids.map(function (id, i) {
+  const rows = ids.map(function (id, i) {
     const prev = i > 0 ? ids[i - 1] : null;
     const a = rec.get(id), b = prev ? rec.get(prev) : null;
-    return { id: id, rank: i + 1, out: deepest.get(id), record: a,
+    return { id: id, rank: i + 1, out: deepest.get(id), record: a, fromTail: false,
              tiedFromDraw: !!(b && deepest.get(prev) === deepest.get(id)
                               && b.gd === a.gd && b.gf === a.gf) };
   });
+  /* ---- AND THEN THE PLACES THIS BRACKET DID NOT DECIDE, in the order they were handed
+     in. They come after all of the bracket's, unconditionally, because everybody in the
+     cup outranks everybody who did not make it into it -- that is the whole statement the
+     qualifier makes, and it is the one thing about these rows that IS earned.
+
+     `out` is undefined and stays undefined: there is no round to name, so the UI prints
+     the provenance it actually has rather than borrowing a round's name for a team that
+     never played one. `record` is the real one, which for a team that played nothing is
+     all zeros -- computed rather than written, so it cannot drift from the bracket's. ---- */
+  (br.tail || []).forEach(function (id, i) {
+    rows.push({ id: id, rank: rows.length + 1, out: undefined, record: record(br, id),
+                fromTail: true, tiedFromDraw: false });
+  });
+  return rows;
 }
 
 /* WHICH ROUND KNOCKED A TEAM OUT, or undefined if it is still in. The ending screen says
@@ -360,6 +389,16 @@ function check(br) {
   if (entry.size !== br.N)
     return 'the field is ' + br.N + ' but ' + entry.size + ' teams enter the cup';
   for (const id of br.draw) if (!entry.has(id)) return 'team ' + id + ' never enters the cup';
+  /* THE TAIL MUST BE DISJOINT FROM THE BRACKET. A team in both would be ranked twice by
+     standings() -- once for how far it got and once for where it finished the race -- and
+     a draft order with a duplicate is worse than one with a gap, because the gap is
+     visible. Asserted rather than commented, for the same reason everything else here is. */
+  const tail = br.tail || [], seenTail = new Set(), inDraw = new Set(br.draw);
+  for (const id of tail) {
+    if (inDraw.has(id)) return 'team ' + id + ' is in the bracket and in the tail';
+    if (seenTail.has(id)) return 'team ' + id + ' appears twice in the tail';
+    seenTail.add(id);
+  }
   return null;
 }
 
@@ -616,17 +655,14 @@ function shade(c, amt){ return c.split(',').map(function(v){
    real cup rather than to a broken eight. ---- */
 function fieldFor(built){ return built > 8 ? 12 : 8; }
 var FIELD = 8;
-/* ---- AND IT IS CURRENTLY CAPPED UPSTREAM, WHICH IS NOT THIS LANE'S TO FIX.
-   play-engine.js:11 and play-games.js:49 both read hmCompanions, `.slice(0,8)`, and then
-   WRITE THE TRUNCATED LIST BACK ("heal stale duplicates once, physically"). Measured: seed
-   eleven heads, reload, and localStorage holds eight. So a ninth head is not ignored, it is
-   destroyed on the next load -- and the roster can never report more than 8, which means
-   fieldFor() can never return 12 from a real visitor's roster today.
-
-   The rule above is still the right rule and it is deliberately written to the ROSTER rather
-   than to the cap: the day those two slices become 12, twelve-head cups start happening with
-   no further edit here. The contract pins the boundary directly (8 -> 8, 9 -> 12) rather
-   than through the capped roster, so it cannot rot while it waits. ---- */
+/* ---- AND IT IS NO LONGER CAPPED UPSTREAM. This note used to say the opposite and it was
+   true when it was written: play-engine.js and play-games.js both read hmCompanions,
+   `.slice(0,8)` and WROTE THE TRUNCATED LIST BACK, so a ninth head was destroyed on the
+   next load and fieldFor() could never see more than eight. Both files now declare
+   `__HM_MAX_HEADS = 12` and cap without persisting -- "HEALING WRITES BACK. CAPPING DOES
+   NOT" -- so a twelve-head roster survives a reload and a twelve-team cup is reachable by
+   a real visitor. That is what makes the qualifying race below a feature rather than dead
+   code, and it is why the rule was written to the ROSTER rather than to the cap. ---- */
 window.__hmTourField = fieldFor;
 
 function readHeads(){ try { return JSON.parse(localStorage.getItem('hmCompanions') || '[]') || []; } catch (_) { return []; } }
@@ -768,6 +804,183 @@ function buildTeams(cb){
     }
   });
   if (pending === 0) finish();
+}
+
+/* ===========================================================================
+   THE QUALIFYING RACE. Jayden:
+
+     "what if tournament mode is more than just soccer because the top 8 should be
+      soccer but finding out the bottom 4 positions seems to be giving us problems...
+      if there 12 players there should be a marble race just to determine who will
+      make it to the knockout soccer tournament and who will not."
+
+   So: MORE THAN EIGHT HEADS AND THEY ALL RACE ONCE. The first eight enter a clean
+   eight-team knockout -- quarter, semi, final, seven fixtures, no play-in and no
+   phantom round -- and the rest take the places below it. It is one call to
+   window.__hmRaceQualify (play-engine.js), made once, after the roster is known and
+   before the cup is built, and never from a paint path.
+
+   IT REPLACES THE PLAY-IN ON THIS PATH RATHER THAN JOINING IT. The play-in exists
+   because twelve is not a power of two; the race answers the same arithmetic with a
+   real event instead of four extra fixtures, which is the thing he says was "giving
+   us problems". The play-in is still the code that runs when the race cannot -- see
+   the ladder -- so nothing was deleted, it was demoted to the fallback it is good at.
+
+   ---- THE DEGRADATION LADDER, AND IT IS THE POINT OF THIS BLOCK ----------------
+   Measured today, 3 runs in 6 complete. The remaining failures are diagnosed (a head
+   at rest above a sliding gate wall at one particular gap) and they are a physics
+   change in a game whose feel is guarded, so they are not fixed here. A partial or
+   an abandoned race is therefore the COMMON case, not the edge case, and this screen
+   is built for it:
+
+     1. finished AND complete            -> use the order. Every place was raced.
+     2. any other reason, but every team
+        still got a placing              -> use the PARTIAL order, and SAY SO, on the
+                                           race pane and on the draft pane.
+     3. a team could not be placed at
+        all, or busy / nofield / no race
+        module                           -> do not race. Fall straight back to the
+                                           twelve-team play-in bracket that already
+                                           ships, which needs nothing from the race.
+
+   NEVER INVENT A PLACING. Path 2 is honest because __hmRaceQualify ranks a racer who
+   did not cross by how far down the course it had got, which is a measurement; it
+   marks every one of them `finished:false` and counts them in `resolved`. What would
+   NOT be honest is filling a gap with a team the race never placed, so a single
+   unresolved team drops the whole thing to path 3. He uses this to decide a real
+   fantasy draft order; a fabricated position costs somebody something.
+
+   ---- WHY THE QUALIFIED EIGHT ARE SHUFFLED BEFORE THEY ARE DRAWN. The race decides
+   MEMBERSHIP -- "who will make it and who will not", which is the whole of the ask --
+   and it does not decide fixtures. Handing the finishing order to buildCup() straight
+   would pair 1st with 8th and 2nd with 7th, which is a seeded bracket: the same
+   "number that looks like a ranking" this file has removed twice, only earned this
+   time. Earned or not, nobody asked for it, and the draw being random is what makes
+   "why these two?" answerable. So the eight are shuffled, exactly as an eight-head
+   cup's are.
+   =========================================================================== */
+var ADVANCE = 8;          // how many the race sends into the knockout
+var QRACE_MS = 90000;     // the backstop. The mode's own stall detector gives up after
+// ~7s of no progress and its natural line race measures 35-38s at twelve, so this is a
+// last line under all of that rather than the thing that normally ends a race. Never 0.
+var Q = null;             // {state:'ready'|'running'|'skipped', teams:[]} while qualifying
+
+/* THE RACERS HAVE TO BE STANDING ON THE PLANET, because the race is run on live heads
+   and not on team records. This is cast()'s slot resolution with the squads left out:
+   a captain the visitor already has on the pitch keeps its slot (never cloned), anyone
+   else is spawned, and `taken` stops two identically dyed eggheads sharing one slot --
+   the bug that once logged a goal against the wrong team.
+
+   It also clears the bench. A benched head returns early out of the engine's per-frame
+   law before it ever reads me.raceX, so it would be a racer that never moves and never
+   appears; benchAll() puts the bench back the moment the cup opens. */
+function castQualifiers(teams){
+  var SLOT = 9400, taken = {};   // 9400, not cast()'s 9200: these heads are still standing
+  // when the first fixture is cast, and two spawns into one slot make the index lookup lie
+  T.spawnedCuts = T.spawnedCuts || [];
+  window.__hmBench = null;
+  teams.forEach(function(tm){
+    var p = tm.captain;
+    if (!p){ tm.__qslot = null; return; }
+    var slot = (window.__hmSlotForPid && p.__pid) ? window.__hmSlotForPid(p.__pid) : null;
+    if (slot != null && taken[slot]) slot = null;
+    if (slot == null && window.__hmSlotFor){
+      var s2 = window.__hmSlotFor(p.cut);
+      if (s2 != null && !taken[s2]) slot = s2;
+    }
+    if (slot == null){ slot = SLOT++;
+      var sp = { cut: p.cut, eyes: p.eyes || [], marks: p.marks || null,
+                 __noIntro: true, __pid: p.__pid };
+      if (p.__filler) sp.__filler = true;
+      if (p.__mirror) sp.__mirror = true;
+      try { window.__hmSpawnOne(sp, slot); T.spawnedCuts.push(p.cut); } catch (_) {}
+    }
+    try { if (window.__hmTagSlot && p.__pid) window.__hmTagSlot(slot, p.__pid); } catch (_) {}
+    taken[slot] = 1; tm.__qslot = slot;
+  });
+}
+
+/* JOINING THE RESULT BACK TO THE TEAMS, and `cut` leads because the seam says so: teams
+   are built from readHeads(), the race's `slot` is null for filler and placeholder heads,
+   and a slot is only ever this file's own bookkeeping. The slot it minted is the second
+   question, not the first. A row that answers to neither is simply not placed -- which is
+   what sends the whole thing down to path 3 rather than leaving a hole. */
+function rankTeams(teams, order){
+  if (!order || !order.length) return [];
+  var byCut = {}, bySlot = {}, i, tm, p;
+  for (i = 0; i < teams.length; i++){
+    tm = teams[i]; p = tm.captain;
+    if (p && p.cut && byCut[p.cut] === undefined) byCut[p.cut] = i;
+    if (tm.__qslot != null && bySlot[tm.__qslot] === undefined) bySlot[tm.__qslot] = i;
+  }
+  var used = {}, out = [];
+  for (i = 0; i < order.length; i++){
+    var row = order[i], ix;
+    ix = (row && row.cut != null && byCut[row.cut] !== undefined) ? byCut[row.cut] : undefined;
+    if (ix === undefined && row && row.slot != null && bySlot[row.slot] !== undefined)
+      ix = bySlot[row.slot];
+    if (ix === undefined || used[ix]) continue;
+    used[ix] = 1; out.push(teams[ix]);
+  }
+  return out;
+}
+
+/* ONE CALL, ONE SETTLEMENT. __hmRaceQualify hands the result back through BOTH a callback
+   and a promise, so `settled` is not defensive tidiness -- without it the ladder would run
+   twice and build two cups. Anything that throws (no race module at all, which is what a
+   host without play-engine.js's race block looks like) lands on path 3 rather than on the
+   floor. */
+function runQualifier(){
+  if (!Q || Q.state !== 'ready') return;
+  Q.state = 'running'; paint();
+  var slots = [];
+  Q.teams.forEach(function(tm){ if (tm.__qslot != null) slots.push(tm.__qslot); });
+  var settled = false;
+  function done(res){ if (settled) return; settled = true; qualified(res || null); }
+  try {
+    var r = window.__hmRaceQualify({ slots: slots, advance: ADVANCE, format: 'line',
+                                     timeout: QRACE_MS }, done);
+    if (r && typeof r.then === 'function') r.then(done, function(){ done(null); });
+  } catch (_) { done(null); }
+}
+
+function qualified(res){
+  if (!T.live || !Q) return;   // the cup was left while the race was still running
+  var teams = Q.teams;
+  var ranked = rankTeams(teams, res && res.order);
+  var whole  = (ranked.length === teams.length && teams.length > ADVANCE);
+  var mode = (whole && res && res.reason === 'finished' && res.complete) ? 'full'
+           : whole ? 'partial' : 'skipped';
+  T.race = { mode: mode, reason: (res && res.reason) || 'unavailable',
+             field: teams.length, advance: ADVANCE,
+             resolved: res ? (res.resolved | 0) : 0 };
+  if (mode === 'skipped'){
+    /* THE RACE DID NOT HAPPEN, AND THE SCREEN SAYS SO RATHER THAN QUIETLY CHANGING ITS
+       MIND. Falling straight through to a twelve-team bracket would leave a visitor who
+       had just pressed "Start the race" looking at a play-in with no explanation. The
+       pane it is already on stays put and takes one different sentence and one different
+       button; nothing new is drawn and nothing is timed. */
+    Q.state = 'skipped'; paint(); return;
+  }
+  Q = null;
+  T.raceOrder = ranked.map(function(t){ return t.id; });
+  clearSpawned(); benchAll();   // the racers come off before the first fixture casts, so
+  // the two squads walk on to an empty ground and no slot is claimed twice
+  openCup(shuffled(T.raceOrder.slice(0, ADVANCE)), T.raceOrder.slice(ADVANCE));
+}
+
+/* The cup opens the same way whether a race decided its field or not: one place that
+   builds the bracket, checks it, casts fixture one and paints. Two paths into buildCup()
+   was how the first draft ended up with the play-in casting and the raced field not. */
+function openCup(ids, tail){
+  T.br = BR.buildCup(ids, (tail && tail.length) ? { tail: tail } : null);
+  var bad = BR.check(T.br);
+  if (bad) { try { console.warn('[cup]', bad); } catch (_) {} }
+  lastRound = -1;
+  T.phase = 'table'; view = 'next';
+  var nm0 = BR.nextMatch(T.br);
+  if (nm0) cast(nm0);
+  paint();
 }
 
 /* Ending a match early left T.phase at 'match' with T.cur still set, so paint() rendered no
@@ -1472,7 +1685,7 @@ function buildDraft(into){
      what the league's hardcoded four did when the field went eight to twelve, and it hid
      half a table silently. */
   list.style.setProperty('--tvDraftRows', String(Math.ceil(rows.length / 2)));
-  var anyDrawn = false;
+  var anyDrawn = false, racePart = !!(T.race && T.race.mode === 'partial');
   rows.forEach(function(row){
     var tm = teamById(row.id);
     var li = el('li', 'tvDraftRow' + (row.tiedFromDraw ? ' tvDrawn' : ''));
@@ -1483,20 +1696,111 @@ function buildDraft(into){
     /* WON IT, or the round it went out in. "Champion" rather than "Final", because losing
        the final and winning it are the same round and opposite results. */
     var out = row.out;
+    /* "Race" IS A PROVENANCE, NOT A ROUND. These teams never played a fixture, so naming
+       one would be the first lie this pane has ever told. The race pane carries the whole
+       finishing order; this cell says which competition put the number here. */
     var where = (row.rank === 1) ? 'Champion'
+              : row.fromTail ? 'Race'
               : (T.br.rounds[out] ? T.br.rounds[out].label : '\u2014');
     li.appendChild(el('span', 'tvDraftOut', where));
-    if (row.tiedFromDraw){ anyDrawn = true;
+    /* ---- THE MARKER MEANS "THIS NUMBER WAS NOT EARNED", and it now has two causes
+       rather than one. A row separated from the one above it only by the draw was
+       always one. A row that came out of a race that never reached the line is the
+       other, and it is exactly the same claim about the number: it is a measurement
+       of where a head had got to, not a result it played for.
+
+       ONE MARKER AND ONE KEY, not two of each, and that is a MEASURED decision. See
+       draftKey() for the arithmetic; the short version is that a second key
+       paragraph costs 30px of a pane that is already 8px short at twelve rows, and
+       it bought a distinction the row's own provenance cell already draws -- "Race"
+       against a round's name. ---- */
+    var unearned = row.tiedFromDraw || (racePart && row.fromTail);
+    if (unearned){ anyDrawn = true;
       var d = el('span', 'tvDraftTie', '\u00b7');
-      d.setAttribute('title', 'Level on goal difference and goals -- separated by the draw');
+      d.setAttribute('title', row.tiedFromDraw
+        ? 'Level on goal difference and goals -- separated by the draw'
+        : 'The qualifying race did not reach the line -- ranked by how far this head got');
       li.appendChild(d); }
     list.appendChild(li);
   });
   into.appendChild(list);
   /* The key is printed only when there is something to key. */
-  if (anyDrawn)
-    into.appendChild(el('p', 'tvDraftKey',
-      '\u00b7 level on goals \u2014 separated by the draw, not earned'));
+  var key = draftKey(anyDrawn, racePart);
+  if (key) into.appendChild(el('p', 'tvDraftKey', key));
+}
+
+/* ---- THE KEY IS ONE LINE, ALWAYS, AND THAT IS ARITHMETIC RATHER THAN TASTE.
+   Measured at 390x844 with a twelve-row order: the pane has 290px, the list needs 255,
+   and the eyebrow, the gaps and ONE key line leave it 239 -- so the shipping twelve-team
+   play-in cup already over-runs its own box by 8px top and bottom. A second key paragraph
+   costs 14px of text, a 6px margin and a 10px pane gap; measured, it took that over-run
+   to 23px and the champion's row visibly collided with DRAFT ORDER above it. Nothing on
+   this screen scrolls, so the reduction has to come out of the text.
+
+   So the two facts share the line the pane already spends, because they are the same
+   fact -- this number was not earned -- with two causes. Which cause applies to which row
+   is not lost: the row's own provenance cell says "Race" or names a round.
+
+   The long sentence still exists, on the race pane, which has one list and no second key
+   and can afford it. Both are built from T.race, so they cannot describe different
+   races. ---- */
+function draftKey(drawn, racePart){
+  if (drawn && racePart)
+    return '\u00b7 not earned \u2014 separated by the draw, or not raced to the line';
+  if (racePart) return '\u00b7 not raced to the line \u2014 ranked by distance, not earned';
+  if (drawn)    return '\u00b7 level on goals \u2014 separated by the draw, not earned';
+  return '';
+}
+/* The race pane's own. It says the thing the draft pane's marker can only point at --
+   what the ranking IS, given it is not a finishing order -- and it is held to ONE LINE at
+   390 and above for the same measured reason the draft key is: this pane's list is the
+   draft pane's list, twelve rows deep, and it already bleeds without help. The first
+   draft of this ran to two lines and measured 18.3px of bleed against the draft pane's
+   7.8; that is a new pane rendering worse than the one it is a copy of. */
+function raceKey(){
+  var r = T.race;
+  if (!r || r.mode !== 'partial') return '';
+  return 'Places ' + (r.advance + 1) + '\u2013' + r.field
+       + ' are how far each head got, not where it crossed.';
+}
+
+/* ---- THE QUALIFYING RACE, AS A PANE. It is the answer to the question Jayden actually
+   asked -- who made it and who did not -- so once the race has run it must stay
+   readable, not vanish until the cup is over.
+
+   IT IS NOT A NEW WIDGET. It is the draft pane's own list: the same grid, the same row,
+   the same number cell, the same two-column reduction below 640. The only thing it adds
+   is which side of the cut a row is on, said twice over -- the eight that got in are ink
+   and the rest are muted, and where the layout is one column there is a hairline between
+   them. A count of eight would have been a third way of saying it.
+
+   AND IT COSTS THE TAB ROW NOTHING. On this path the bracket is a clean eight, so there
+   is no Play-in tab; Race takes the slot Play-in used to have and in the same place in
+   the order, because it happened at the same point in the competition. The finished cup
+   therefore carries the same six tabs a twelve-team play-in cup already carried, which
+   is the count the 360px block was measured against. ---- */
+function buildRace(into){
+  var head = el('div', 'tvHead');
+  head.appendChild(el('p', 'tvEyebrow', 'Qualifying race'));
+  head.appendChild(el('span', 'tvOptL', 'Top ' + ADVANCE + ' got in'));
+  into.appendChild(head);
+  var list = el('ol', 'tvDraft');
+  list.style.setProperty('--tvDraftRows', String(Math.ceil(T.raceOrder.length / 2)));
+  T.raceOrder.forEach(function(id, i){
+    var tm = teamById(id);
+    var li = el('li', 'tvDraftRow' + (i === ADVANCE ? ' tvRaceCut' : '')
+                                   + (i >= ADVANCE ? ' tvRaceOut' : ''));
+    li.appendChild(el('span', 'tvDraftN bcNum', String(i + 1)));
+    var c = el('i', 'tvChipC'); if (tm) c.style.setProperty('--tcx', tm.col);
+    li.appendChild(c);
+    li.appendChild(el('span', 'tvNm', tm ? tm.name : '—'));
+    list.appendChild(li);
+  });
+  into.appendChild(list);
+  /* `.tvRaceKey` as well as `.tvDraftKey`: same object, but this one is reducible below
+     640px of height and the draft pane's is not. See the stylesheet for why. */
+  var rk = raceKey();
+  if (rk) into.appendChild(el('p', 'tvDraftKey tvRaceKey', rk));
 }
 
 /* ---- THE ENDING. The champion, crowned, and under it how everybody else's cup
@@ -1527,10 +1831,97 @@ function buildChampion(into, champ2){
   into.appendChild(el('h2', 'tvChampNm', (wt ? wt.name : '—') + ' wins the ' + (T.cup || 'cup')));
 }
 
+/* THE WAY OUT, and it is one function because it is one control. It was written inline in
+   paint(); the qualifying screen is a second foot that needs the identical two-tap arm, and
+   two copies of a destructive control is exactly how a confirm step goes missing from one of
+   them.
+
+   "Sure?" rather than "Tap again", and .tvQuit carries a min-width in the CSS, because the
+   armed label swap is a WIDTH change on the one element sitting left of the primary -- so
+   the primary slid sideways under the finger that had just armed it. Two short words inside
+   a fixed box move nothing, and the accessible name carries the whole phrase in both
+   states. */
+function quitBtn(){
+  var quit = el('button', 'tvQuit ctl ctl--secondary', 'Leave'); quit.type = 'button';
+  quit.setAttribute('aria-label', 'Leave the cup');
+  var armed = false, armT = 0;
+  quit.addEventListener('click', function(e){
+    e.stopPropagation();
+    if (armed){ stop(); return; }
+    armed = true; quit.textContent = 'Sure?'; quit.classList.add('tvArmed');
+    clearTimeout(armT);
+    armT = setTimeout(function(){ armed = false; quit.textContent = 'Leave';
+      quit.classList.remove('tvArmed'); }, 3200);
+  });
+  return quit;
+}
+
+/* ---- THE QUALIFYING SCREEN. The same panel, one pane short: no tab row, because there is
+   no bracket yet and a row of one tab is a tab row pretending. What is left is the eyebrow,
+   one sentence and the foot -- which is the smallest this screen has ever been, and that is
+   the right shape for a step whose whole job is to say what is about to happen and give you
+   the button that starts it.
+
+   IT IS NOT AUTOMATIC, and that is deliberate. Every other thing that takes over this
+   viewport is started by pressing the primary; dropping a visitor into a forty-second race
+   they did not ask for would be the one place this screen surprises you.
+
+   THE SENTENCE IS NOT `.tvTape`. The tape is this screen's "see more that costs nothing"
+   and it is hidden below 700px of height -- correct for a form guide, wrong for the only
+   text that explains why twelve heads are about to roll down a hill. `.tvQual` is the same
+   type at the same colour and it survives, which it can afford to because this pane has
+   nothing else in it. ---- */
+function paintQualify(h){
+  var state = Q ? Q.state : 'skipped';
+  var teams = (Q && Q.teams) || T.teams || [];
+  var n = teams.length;
+  var panel = el('div', 'tvPanel surface');
+  var pane  = el('div', 'tvPane');
+
+  var head = el('div', 'tvHead');
+  head.appendChild(el('p', 'tvEyebrow', 'Qualifying'));
+  head.appendChild(el('span', 'tvOptL', n + ' heads · top ' + ADVANCE));
+  pane.appendChild(head);
+
+  pane.appendChild(el('p', 'tvQual', state === 'skipped'
+    ? 'The race could not run, so nobody is ranked by it. All ' + n
+      + ' heads are in the cup instead and it opens with a play-in, so every place is '
+      + 'decided on the pitch.'
+    : 'One marble race, all ' + n + ' heads. The first ' + ADVANCE
+      + ' go into the knockout; the rest take places ' + (ADVANCE + 1) + ' to ' + n
+      + ' in the draft order.'));
+  panel.appendChild(pane);
+
+  var foot = el('div', 'tvFoot');
+  foot.appendChild(quitBtn());
+  var go = el('button', 'tvGo ctl ctl--primary',
+              state === 'skipped' ? 'Open the cup' : 'Start the race');
+  go.type = 'button';
+  go.disabled = (state === 'running');
+  go.addEventListener('click', function(e){
+    e.stopPropagation();
+    if (!Q) return;
+    if (Q.state === 'skipped'){
+      var ids = Q.teams.map(function(t){ return t.id; });
+      Q = null; T.raceOrder = null;
+      clearSpawned(); benchAll();
+      openCup(shuffled(ids), null);   // the twelve-team play-in, exactly as it already ships
+      return;
+    }
+    runQualifier();
+  });
+  foot.appendChild(go);
+  panel.appendChild(foot);
+  h.appendChild(panel);
+}
+
 function paint(){
   var h = ensureHost();
   if (!T.live){ h.innerHTML = ''; h.hidden = true; return; }
   h.hidden = false; h.innerHTML = '';
+  /* NO BRACKET YET MEANS THE QUALIFIER OWNS THE SCREEN. It is an early return rather than a
+     branch further down because every line below this reads T.br. */
+  if (!T.br){ paintQualify(h); return; }
 
   var nm2    = BR.nextMatch(T.br);
   var champ2 = BR.champion(T.br);
@@ -1582,6 +1973,12 @@ function paint(){
      control rung -- measured, it overran into "Play-in" beside it. The pane's own
      eyebrow says CHAMPION in full, and the accessible name here does too. */
   tab('next', done2 ? 'Cup' : 'Next', done2 ? 'The champion' : 'The next match');
+  /* THE RACE TAB EXISTS WHEN A RACE DECIDED THE FIELD, and never otherwise -- the same
+     conditional the Draft tab uses. It sits second because that is when it happened, and
+     it is standing in the slot Play-in occupies on the other twelve-head path, so the tab
+     count is unchanged at every field this screen can produce. */
+  var hasRace = !!(T.br.tail && T.br.tail.length && T.raceOrder && T.raceOrder.length);
+  if (hasRace) tab('race', 'Race', 'The qualifying race');
   T.br.rounds.forEach(function(rd, i){ tab(i, rd.short, rd.label); });
   /* THE DRAFT ORDER IS THE LAST TAB AND ONLY EXISTS AT THE END. Before the cup is finished
      there is no order to publish -- printing a provisional one would be the seed again --
@@ -1594,6 +1991,10 @@ function paint(){
   var pane = el('div', 'tvPane');
   if (view === 'draft' && done2){
     buildDraft(pane);
+  } else if (view === 'race' && hasRace){
+    /* BEFORE the catch-all below, which claims any view that is not a round index -- and
+       'race' is not one. */
+    buildRace(pane);
   } else if (view === 'next' || T.br.rounds[view] === undefined){
     if (done2) buildChampion(pane, champ2);
     else       buildNext(pane, A2, B2, nm2);
@@ -1613,23 +2014,11 @@ function paint(){
      scoped replacement. Two-tap arm, because it is destructive and it sits next to
      a button people will actually press. */
   var foot = el('div', 'tvFoot');
-  var quit = el('button', 'tvQuit ctl ctl--secondary', 'Leave'); quit.type = 'button';
-  /* "Sure?" rather than "Tap again", and .tvQuit carries a min-width in the CSS,
-     because the armed label swap is a WIDTH change on the one element sitting left
-     of the primary -- so the primary slid sideways under the finger that had just
-     armed it. Two short words inside a fixed box move nothing, and the accessible
-     name carries the whole phrase in both states. */
-  quit.setAttribute('aria-label', 'Leave the cup');
-  var armed = false, armT = 0;
-  quit.addEventListener('click', function(e){
-    e.stopPropagation();
-    if (done2 || armed){ stop(); return; }
-    armed = true; quit.textContent = 'Sure?'; quit.classList.add('tvArmed');
-    clearTimeout(armT);
-    armT = setTimeout(function(){ armed = false; quit.textContent = 'Leave';
-      quit.classList.remove('tvArmed'); }, 3200);
-  });
-  foot.appendChild(quit);
+  /* One way out is enough on the ending: the primary IS the way out there, so the secondary
+     beside it would be the same door twice. It is therefore not built rather than built and
+     removed -- which is what this did, and a control that exists for one statement is a
+     control a listener can still be attached to. */
+  if (!done2) foot.appendChild(quitBtn());
 
   /* THE MATCH-UP SCREEN ALWAYS HAS ITS ONE ACTION, and it is never gated on
      T.phase. phase is a variable that can be left behind: any path that ends a
@@ -1648,9 +2037,6 @@ function paint(){
     var dn = el('button', 'tvGo ctl ctl--primary', 'Leave the cup'); dn.type = 'button';
     dn.addEventListener('click', function(e){ e.stopPropagation(); stop(); });
     foot.appendChild(dn);
-    /* One way out is enough on the ending: the primary IS the way out, so the
-       secondary beside it would be the same door twice. */
-    foot.removeChild(quit);
   }
   panel.appendChild(foot);
 
@@ -1662,6 +2048,7 @@ function start(){
   if (T.live) return;
   buildTeams(function(teams){
     T.live = true; T.phase = 'board'; view = 'next';
+    T.br = null; T.race = null; T.raceOrder = null; Q = null;   // nothing survives the last cup
     try{ var _pb=document.getElementById('gameBtn');
       if(_pb){_pb.setAttribute('aria-disabled','true');
               _pb.setAttribute('title','Finish the cup first');} }catch(_){}
@@ -1671,23 +2058,27 @@ function start(){
     document.body.style.setProperty('--cupPaint',T.id.paint);
     document.body.style.setProperty('--cupStock',T.id.stock);
     document.body.style.setProperty('--cupSheen',T.id.sheen);
+    if(window.PlayViewportOwner) window.PlayViewportOwner.enter("tournament");
+    document.body.classList.add('hmTour');
+    /* MORE THAN EIGHT AND THE FIELD IS QUALIFIED FOR, not drawn. The captains stand up
+       first -- the qualifying screen is a scene for the same reason the match-up is one --
+       and the race is started by a press, never from here. See the ladder above for what
+       happens when it does not finish, which is often. */
+    if (teams.length > ADVANCE){
+      Q = { state: 'ready', teams: teams };
+      T.phase = 'qualify';
+      castQualifiers(teams);
+      paint();
+      return;
+    }
+    benchAll();
     /* THE DRAW IS THE ONLY ORDERING, and it is random. There is no seed and there
        must never be one again: it was `i + 1`, the index of a shuffled array,
        printed as "Seeds 3 and 7" -- a loop counter wearing a ranking. A knockout
-       does not need one, because who meets whom IS the draw. */
-    var ids = shuffled(teams.map(function(t){ return t.id; }));
-    T.br = BR.buildCup(ids);
-    var bad = BR.check(T.br);
-    if (bad) { try { console.warn('[cup]', bad); } catch (_) {} }
-    lastRound = -1;
-    if(window.PlayViewportOwner) window.PlayViewportOwner.enter("tournament");
-    document.body.classList.add('hmTour');
-    benchAll();
-    /* Fixture one is cast the same way every other fixture is -- the first
-       match-up screen must not be the one screen with nobody standing on it. */
-    var nm0 = BR.nextMatch(T.br);
-    if (nm0) cast(nm0);
-    paint();
+       does not need one, because who meets whom IS the draw.
+       Fixture one is cast inside openCup() the same way every other fixture is -- the
+       first match-up screen must not be the one screen with nobody standing on it. */
+    openCup(shuffled(teams.map(function(t){ return t.id; })), null);
   });
 }
 /* `restart()` IS DELETED WITH THE CONTROL IT SERVED. It existed so the 8/12 buttons could
@@ -1696,6 +2087,11 @@ function start(){
    field builds another head, which is the whole point of the change. */
 function stop(){
   T.live = false; T.cur = null; T.phase = 'idle';
+  /* T.live goes first and Q goes with it, so a qualifier settling after this call finds
+     the cup gone and does nothing. __hmRaceEnd settles it as `aborted` and cannot settle
+     twice, so ending the race here is safe whether or not one is running. */
+  Q = null; T.race = null; T.raceOrder = null;
+  try{ if (window.__hmRaceOn && window.__hmRaceEnd) window.__hmRaceEnd(); }catch(_){}
   try{ document.body.classList.remove('hmFinal'); }catch(_){}
   try{ var _pb2=document.getElementById('gameBtn');
     if(_pb2){_pb2.removeAttribute('aria-disabled');_pb2.removeAttribute('title');} }catch(_){}
@@ -1726,18 +2122,37 @@ window.__hmTourStandings = function(){
     var tm = teamById(row.id), out = BR.outAt(T.br, row.id);
     return { rank: row.rank, id: row.id, name: tm ? tm.name : null,
              outAt: out === undefined ? null : out,
-             outIn: out === undefined ? null : T.br.rounds[out].label,
+             /* A race-derived row names the race, never a round: it played no fixture, so
+                there is no round it could honestly be said to have gone out in. */
+             outIn: row.fromTail ? 'Race'
+                  : (out === undefined ? null : T.br.rounds[out].label),
+             fromRace: !!row.fromTail,
              played: row.record.played, won: row.record.won,
              gf: row.record.gf, ga: row.record.ga, gd: row.record.gd,
              tiedFromDraw: row.tiedFromDraw,
              colour: tm ? tm.colName : null };
   });
 };
+/* WHAT THE QUALIFIER DID, for a driver that would otherwise have to infer it from the
+   screen. `mode` is which rung of the degradation ladder was taken -- 'full', 'partial' or
+   'skipped' -- and `reason` is __hmRaceQualify's own word for how the race ended. Null when
+   the field never needed one. Conditional global: consumers must guard. */
+window.__hmTourRace = function(){
+  if (!T.live || !T.race) return null;
+  var r = T.race;
+  return { mode: r.mode, reason: r.reason, field: r.field, advance: r.advance,
+           resolved: r.resolved,
+           order: (T.raceOrder || []).map(function(id){
+             var tm = teamById(id); return tm ? tm.name : null; }) };
+};
 /* The cup's shape and how far through it is -- one call, so a driver never has to
    count fixtures by hand or work out whether there is a play-in. */
 window.__hmTourCup = function(){
   if (!T.live || !T.br) return null;
   return { teams: T.br.N, bracket: T.br.M, playIn: !!T.br.playIn,
+           /* Places carried alongside the bracket rather than decided by it -- the
+              qualifying race's non-qualifiers. 0 on every other path. */
+           tail: (T.br.tail || []).length,
            rounds: T.br.rounds.map(function(rd){
              return { label: rd.label, short: rd.short, teams: rd.teams,
                       playIn: !!rd.playIn, matches: rd.matches.length }; }),

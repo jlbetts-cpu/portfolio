@@ -139,6 +139,11 @@
 .tvScreen[hidden]{display:none}
 /* The pitch owns the screen during a fixture. */
 body.hmSoccer .tvScreen{display:none}
+/* And the course owns it during the qualifying race, for the same reason and by the same
+   rule. The race paints wall-to-wall, puts its own standings board in the left rail (or
+   along the bottom on a phone) and carries its own End control, so a panel floating over
+   it would be a second interface for a screen that already has one. */
+body.hmRace .tvScreen{display:none}
 
 /* ---------------------------------------------------------------------------
    THE PANEL -- the object this screen did not have
@@ -405,6 +410,21 @@ body.hmFinal .sBall{content:url(images/soccerball-gold.webp)}
 .tvTape:empty{display:none}
 
 /* ---------------------------------------------------------------------------
+   THE QUALIFYING SCREEN'S ONE SENTENCE
+   Same type, same colour and same margin as the tape, and a DIFFERENT CLASS on
+   purpose: the tape is hidden below 700px of height because a form guide is the
+   one thing on a match-up a visitor did not come for, and this is the only text
+   that explains why twelve heads are about to roll down a hill. It can afford to
+   survive because the pane it is in holds nothing else -- an eyebrow and a
+   paragraph, against a budget that normally carries two --tvFace rows and a `v.`.
+   --------------------------------------------------------------------------- */
+.tvQual{
+  margin:0;flex:0 0 auto;
+  font-size:var(--fs-label);line-height:var(--lh-body);letter-spacing:var(--tr-body);
+  color:var(--theme-muted,var(--c500));
+}
+
+/* ---------------------------------------------------------------------------
    A ROUND PANE -- the bracket, one round at a time
    This is the Gradient Maker's answer to thirty controls and no room: show one
    group, let the visitor pick. It is what makes the whole fixture list reachable
@@ -478,6 +498,26 @@ body.hmFinal .sBall{content:url(images/soccerball-gold.webp)}
   font-size:var(--fs-micro);letter-spacing:var(--tr-body);
   color:var(--theme-muted,var(--c500));
 }
+
+/* ---------------------------------------------------------------------------
+   THE QUALIFYING RACE PANE -- and it IS the draft pane's list
+   It declares no grid, no row and no number cell of its own, because it is the
+   same object answering a different question and building it twice is how the
+   two eventually disagree. All it adds is which side of the cut a row is on,
+   said twice where there is room for two statements and once where there is
+   not: the ones who missed out are muted at every size, and the hairline above
+   the first of them exists only in the single-column layout, where "the row
+   above this one" is a true statement. Below 640 the list flows down two
+   columns and the ninth row is the third row of the second column, so a rule
+   there would point at nothing.
+   --------------------------------------------------------------------------- */
+/* THE HAIRLINE COSTS NO HEIGHT, and that is why it is a border on the row and not a
+   spaced-out separator. Measured at 390x844: the twelve-row list already bleeds 7.8px
+   past its own box on the draft pane that ships, and 6px of padding above the ninth row
+   took this pane to 10.8 -- a new pane rendering worse than the one it is a copy of.
+   The rule is the row's top edge; the gap between rows is the separation. */
+.tvRaceOut{color:var(--theme-muted,var(--c500))}
+.tvRaceCut{border-top:var(--hair-w) solid var(--theme-rim,var(--c100))}
 
 /* ---------------------------------------------------------------------------
    THE FINAL -- the poster, and the gold that belongs to no team
@@ -734,4 +774,16 @@ body.hmFinal .tvPanel{
     grid-template-rows:repeat(var(--tvDraftRows, 6), auto);
     grid-auto-flow:column;column-gap:var(--sp-12)}
   .tvDraftOut{display:none}
+  /* The cut rule goes with the single column it described. The muting stays. */
+  .tvRaceCut{border-top:0}
+  /* ---- AND THE RACE PANE'S KEY GOES, on the same rule the tape goes by at 700: at this
+     height it costs, and it is the one line here whose fact is carried somewhere else.
+     Measured at 320x568: the pane is 139px, the key takes 34 of them across two lines,
+     and without it the twelve rows bleed 4.5px instead of 23.4 -- which is better than
+     the draft pane this list is a copy of manages at the same size.
+     WHAT IS NOT LOST: the draft pane still marks every race-derived row with the
+     "not earned" dot and still prints its key, and the draft pane is the one this
+     screen exists to produce. The cut hairline is gone at this size too, but the four
+     who missed out are still muted, so the list still says where the line was. ---- */
+  .tvRaceKey{display:none}
 }
