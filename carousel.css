@@ -271,3 +271,53 @@
    were. Widening the dash turns a row of dots into a segmented bar: the same
    footprint, the same tap area, and one object instead of seven. */
 .player .ctl--tick::before{width:var(--sp-32)}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   ONE CARD, NOT A CARD WITH THINGS FLOATING ROUND IT.
+   Jayden: "i dont like how th elements look outside the box like they are
+   disconnected. the caption and the indicator".
+
+   Measured: .playerStage carried the whole card treatment -- a white ground, a
+   20px radius and a rim -- and ran 1120px wide, while .playerCap above it was
+   381px. So a narrow caption hovered over a wide box, and the ticks sat under
+   it, and neither belonged to the thing they describe. Moving the caption above
+   the stage earlier fixed the reading order and made the disconnection more
+   obvious, because it put the orphan at the top where the eye starts.
+
+   The surface moves up to .player, so the caption, the picture and the position
+   are one object with one ground and one rim. The stage keeps its geometry and
+   gives up its chrome -- it is the picture inside the card now, not a card of
+   its own. That is one box where there were three, which is the direction this
+   component has been going all night.
+   ───────────────────────────────────────────────────────────────────────────── */
+.player{
+ background:var(--surface-ground);
+ border-radius:var(--radius-media);
+ corner-shape:var(--corner);
+ box-shadow:var(--surface-rim);
+ padding:var(--surface-inset);
+ box-sizing:border-box
+}
+.player>.playerStage{
+ background:none;
+ box-shadow:none;
+ border-radius:0
+}
+.player>.playerCap{max-width:none}
+
+/* THE TABBED VIEWER TAKES THE SAME CARD. It is the other carousel on these pages
+   and it had the same disconnection: a kicker and a tab rail sitting outside the
+   frame they belong to. Its indicator stays LABELLED tabs rather than becoming
+   dots -- these are four named screens (Home, Camera, Feed, Find) and a dot
+   cannot say "Camera". That is why the tick work never appeared here, which is
+   what Jayden noticed as "no main indicator changes"; the right answer for named
+   screens is the label, and what was actually missing was the ground. */
+.tv{
+ background:var(--surface-ground);
+ border-radius:var(--radius-media);
+ corner-shape:var(--corner);
+ box-shadow:var(--surface-rim);
+ padding:var(--surface-inset);
+ box-sizing:border-box
+}
+.tv>.tvFrame{background:none;box-shadow:none}
