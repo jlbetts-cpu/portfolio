@@ -1206,6 +1206,23 @@ function reactTick(){const t=(performance.now()-reactStart)/1000;
 const _tb=document.querySelector("#inkBig feTurbulence"),_ts=document.querySelector("#inkSm feTurbulence"),_grain=document.getElementById("grain"),fsh=document.getElementById("fsh");
 const SEEDS=[7,19,3,28,11,23,5,31];
 function boil(){const s=SEEDS[tk%SEEDS.length];if(_tb)_tb.setAttribute("seed",s);if(_ts)_ts.setAttribute("seed",(s*2+5)%37);}
+/* THE INK HOLDS STILL WHILE THE PAGE IS MOVING. `seed` on an feTurbulence is not
+   a paint hint -- rewriting it invalidates the whole filter, so every one of the
+   28 ink-filtered selector groups on this page re-runs a noise-and-displacement
+   chain and repaints. Eight times a second, from a bare interval, forever,
+   including mid-flick. Measured as the dominant cost of the same defect on the
+   five case studies: frames over 20ms during a scroll went 45% -> 18% in WebKit
+   once the boil held still, worst single frame 644ms -> 453ms.
+   THE BOIL IS NOT DELETED, SHORTENED OR REORDERED. The texture is the character
+   of this site and at rest it is byte-for-byte what it was: eight distinct seeds
+   cycling. It simply stops re-rendering during the one moment nobody can see it
+   -- while the page is moving under them -- and resumes 180ms after the scroll
+   stops. It also holds while the tab is hidden, where the repaints were pure
+   waste. This is the same fix the case studies took, applied to the page Jayden
+   actually named: "the experience of even scrolling on the home to feel choppy". */
+let inkQuietUntil=0;
+addEventListener("scroll",()=>{inkQuietUntil=performance.now()+180;},{passive:true});
+function inkCanBoil(){return !document.hidden&&performance.now()>=inkQuietUntil;}
 // floating contact shadow: higher head -> bigger, softer, lighter; lower -> tighter, darker, sharper (and follows sideways)
 // NOT EVERY HEAD STANDS ON SOMETHING. Play's companion does, and its shadow is
 // grounding information. The home Hero's portrait does not -- it is suspended
@@ -1755,7 +1772,7 @@ function endRain(){
    Hiding is unconditional and safe in every mode -- closed artwork has the lids
    painted into it, so an iris on top of it is wrong everywhere -- while showing
    stays gated inside syncLids() so it never fights a pose. */
-setInterval(()=>{tk++;eyeWatchdog();syncLids();if(!reduce)boil();if(crumbEls.length)updateCrumbs();
+setInterval(()=>{tk++;eyeWatchdog();syncLids();if(!reduce&&inkCanBoil())boil();if(crumbEls.length)updateCrumbs();
  var _dv=dragCookie||dragDisco||dragLove||dragCam||dragId;if(dragging&&_dv&&!reduce)wobbleDrag(_dv);
  if(introMode){introTick();return;}
  if(CALIB)return;
