@@ -1779,18 +1779,34 @@ function raceKey(){
    the order, because it happened at the same point in the competition. The finished cup
    therefore carries the same six tabs a twelve-team play-in cup already carried, which
    is the count the 360px block was measured against. ---- */
+/* THE RACE ONLY DECIDES WHO IS OUT. Jayden: "race doesnt matter it should just be
+   placement so 12-9 should be shown but the 8-1 is decided with the tournement."
+   He is right, and the old pane made a claim the competition does not honour: the
+   eight who qualify are SHUFFLED into the draw, so printing them 1..8 in race
+   order implied a seeding that is thrown away one screen later. Only the places
+   the race actually awards are listed now -- 9th to 12th, in the order they went
+   out. The eight who got through are a COUNT, not a list, because their ranking
+   has not happened yet; that is what the rest of the cup is for.
+
+   IT ALSO FIXES THE CLIPPING, which is the same defect from the other side.
+   Twelve rows plus an eyebrow, a stake line and a footnote did not fit the pane
+   at the height this screen actually runs at: the eyebrow overlapped the first
+   row, the footnote overlapped the last two, and the twelfth name sat behind the
+   Kick off button. Four rows fit with room to spare. Reduction rather than a
+   scrollport -- the answer this file uses everywhere else, and the one Jayden has
+   asked for four separate times. */
 function buildRace(into){
   var head = el('div', 'tvHead');
-  head.appendChild(el('p', 'tvEyebrow', 'Qualifying race'));
-  head.appendChild(el('span', 'tvOptL', 'Top ' + ADVANCE + ' got in'));
+  head.appendChild(el('p', 'tvEyebrow', 'Knocked out'));
+  head.appendChild(el('span', 'tvOptL', ADVANCE + ' went through'));
   into.appendChild(head);
+  var outs = T.raceOrder.slice(ADVANCE);
   var list = el('ol', 'tvDraft');
-  list.style.setProperty('--tvDraftRows', String(Math.ceil(T.raceOrder.length / 2)));
-  T.raceOrder.forEach(function(id, i){
+  list.style.setProperty('--tvDraftRows', String(Math.max(1, outs.length)));
+  outs.forEach(function(id, i){
     var tm = teamById(id);
-    var li = el('li', 'tvDraftRow' + (i === ADVANCE ? ' tvRaceCut' : '')
-                                   + (i >= ADVANCE ? ' tvRaceOut' : ''));
-    li.appendChild(el('span', 'tvDraftN bcNum', String(i + 1)));
+    var li = el('li', 'tvDraftRow tvRaceOut');
+    li.appendChild(el('span', 'tvDraftN bcNum', String(ADVANCE + i + 1)));
     var c = el('i', 'tvChipC'); if (tm) c.style.setProperty('--tcx', tm.col);
     li.appendChild(c);
     li.appendChild(el('span', 'tvNm', tm ? tm.name : '—'));

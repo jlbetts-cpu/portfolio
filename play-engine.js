@@ -1801,13 +1801,27 @@
      banana spin and the disco stun, so all five are cleared here rather than one. */
   if(window.__hmRaceOn&&me.raceX!=null){x=me.raceX;y=me.raceY;if(!me.raceHide&&root.style.opacity==="0"){root.style.opacity="1";shown=true;}if(Math.abs(me.raceVX||0)>40)dir=(me.raceVX>=0)?1:-1;air=true;st="fall";vx=me.raceVX||0;vy=0;me.__inRace=true;grabbed=false;perched=false;
    flipA=0;flipV=0;wig=null;rotX=0;breathe=0;me.__spin=0;me.__disco=0;depthT=1;depth=1;   // one plane, no leftover rotation: every racer meets the grid in the same pose
+     /* NO CONTACT SHADOW IN THE RACE. A head casts one because it is STANDING on
+        something -- that is the whole reason this site allows the single shadow it
+        allows. A racer is in free fall down a plinko board, touching nothing, and
+        the ellipse was riding along underneath it as though a floor came too. It
+        is restored the moment the racer re-enters the lobby, where the head is on
+        the ground again and the shadow is information rather than decoration. */
+     if(shadow&&shadow.style.opacity!=="0")shadow.style.opacity="0";
+     if(refl&&refl.style.opacity!=="0")refl.style.opacity="0";
    lean=Math.max(-10,Math.min(10,(me.raceVX||0)*0.028));   // the ride's own lean, off THIS frame's mailbox rather than last frame's
    gzx=Math.max(-0.8,Math.min(0.8,(me.raceVX||0)/700));gzy=Math.max(-0.5,Math.min(0.6,(me.raceVY||0)/900));   // eyes track the ride: leaning into the turns, watching the drop
    if(me.raceHit&&now-me.raceHit<420){brf=Math.max(brf,5);if(now-me.raceHit<160){sqT=Math.max(sqT,0.1);sqyP=1.1;sqxP=1/1.1;}}   // a hard peg or paddle knock startles: brows pop + a little jolt-squash
    if(me.raceWin&&crownEl&&crownEl.style.opacity!=="1")crownEl.style.opacity="1";   // the WINNER is crowned the instant the line is crossed
    if(me.raceHide&&!me.__rHid){me.__rHid=true;root.style.transition="opacity var(--dur-state-out,240ms) cubic-bezier(.2,.8,.2,1)";root.style.opacity="0";if(shadow)shadow.style.opacity="0";}
    else if(!me.raceHide&&me.__rHid){me.__rHid=false;root.style.opacity="1";if(shadow)shadow.style.opacity="1";}}
-  else if(me.__inRace&&!window.__hmRaceOn){me.__inRace=false;me.raceX=null;surface=floorY;air=true;st="fall";vy=-(240+Math.random()*220);vx=(Math.random()*300-150);if(Math.random()<0.4)startFlip();
+  else if(me.__inRace&&!window.__hmRaceOn){me.__inRace=false;me.raceX=null;/* BACK ON THE GROUND, SO THE SHADOW COMES BACK. Unconditional, not gated on
+        __rHid: the race suppresses the shadow and the reflection on EVERY frame
+        for every racer, while __rHid only tracks the ones the race chose to hide.
+        Restoring inside that gate is how a head walks back into the lobby with no
+        shadow and a reflection stuck at zero -- stranded reflections have been a
+        real bug on this page before. */
+     if(shadow)shadow.style.opacity="1";if(refl)refl.style.opacity="1";surface=floorY;air=true;st="fall";vy=-(240+Math.random()*220);vx=(Math.random()*300-150);if(Math.random()<0.4)startFlip();
    y=Math.max(y,-HH);x=Math.max(WL,Math.min(WR,x));   // wherever the race left you, you re-enter from just above the frame -- never from deep space
    if(me.__rHid){me.__rHid=false;root.style.opacity="1";if(shadow)shadow.style.opacity="1";}
    root.style.transition="";
