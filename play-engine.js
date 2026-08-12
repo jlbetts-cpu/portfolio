@@ -3064,6 +3064,13 @@ function teams(){
    +"body.hmRace.playViewportOwned .hero{height:100%;min-height:100%;margin:0}"
    +".hmRaceWrap{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:2;opacity:0;transition:opacity var(--dur-reveal) var(--ease-out)}body.hmRace .hmRaceWrap{opacity:1}"
    +".hmRacePeg{position:absolute;border-radius:50%;background:var(--theme-ink,#111214)}"
+   /* THE RAIL PEG IS DRAWN AS THE HALF IT IS. It is centred ON the rail, so a full
+      disc would be half outside the course: at the right rail the wrap's overflow
+      clips it to a half anyway, but at the LEFT rail X0 is 104 and the other half
+      would sit in the gutter the standings live in, ink over the chips. Same shape
+      both sides, and the flat face reads as what it is -- part of the wall. */
+   +".hmRacePeg.railL{border-radius:0 100% 100% 0/0 50% 50% 0}"
+   +".hmRacePeg.railR{border-radius:100% 0 0 100%/50% 0 0 50%}"
    +".hmRaceSeg{position:absolute;height:8px;border-radius:5px;background:var(--theme-ink,#111214);transform-origin:0 50%}"+".hmRaceSeg.gate{background:transparent;box-shadow:inset 0 0 0 2px var(--theme-ink,#111214)}"
    /* ONE INK, AND THE FORM SAYS WHICH OBSTACLE IT IS. The course used to be
       near-white with a hairline, so every peg and bar depended on its border to
@@ -3218,6 +3225,24 @@ function teams(){
      `clock` advances by exactly the simulated time that has been stepped, whoever
      stepped it, so a deadline always means "this much race has happened". */
   var clock=0,hidT=null,cutLine=0,elimGap=8000,stallY=-1e9,stallAt=0,beatAt=0;
+  /* ===== THE DEV-ONLY TALLY, AND WHY THE ENGINE CARRIES IT =====
+     Jayden: "obstacles in the marble aren't set up for those that spawn on the side...
+     nobody should just be falling through." That is a claim about CONTACT COUNTS per
+     starting lane, and it cannot be answered by watching -- the course is regenerated
+     every race (`seed++`), so any one run is a single sample of a random layout.
+     Answering it needs the same race run a few hundred times with the contacts counted,
+     which needs two things the mode did not have: somewhere to put the count, and a way
+     to step the world faster than a viewer can watch it.
+     Both are behind `?wraf=1`, the same dev-only opt-in that already exposes __race, so
+     a real viewer pays a single boolean test per contact and nothing else. WRAF is read
+     once at load rather than per frame -- location.search does not change under us. */
+  var WRAF=false;try{WRAF=/[?&]wraf=1/.test(location.search);}catch(_){}
+  /* DRIVE latches when something outside is stepping the world by hand (the fairness
+     probe). rAF and the hidden-tab timer both stand down while it is set, because two
+     drivers on one clock book the same seconds twice -- the exact bug the comment on
+     visibilitychange below was written for. start() clears it, so a normal race that
+     follows a probed one is driven normally again. */
+  var DRIVE=false;
   var ELIM_WINDOW=34000;   // how much race an elimination bracket has to fit inside: the course takes ~40s to fall at twelve racers, measured
   var STALL_MS=6000;       // the front of the race gaining nothing for this long means the course is finished with us, whatever the standings say. The anti-stuck kick escalates over 2.7s, so this is comfortably longer than any legitimate jam.
   function heroW(){return innerWidth;}   // the COURSE spans the whole viewport, wall to wall -- the screen edges are the rails, so no head is ever pinned mid-air at an invisible wall with open space beyond it
@@ -3231,10 +3256,96 @@ function teams(){
    var Ds=balls.length?balls.map(function(b){return b.r*2;}).sort(function(a,b){return a-b;}):[D];D=Ds[Math.floor(Ds.length/2)]||64;
    var DM=Ds[Ds.length-1]||D;   // the BIGGEST racer (the 1.5x mini-Jayden) sets every throat -- a funnel nobody can pass isn't a choke, it's a cork
    var y=H*0.55;   // the start grid sits just under the opening frame
+   /* ===== THE RAIL CHEVRON: what stops the outside lane being a free ride =====
+      MEASURED FIRST, over 240 seeded twelve-head races at 1440x900 (see
+      tools/race-fairness-probe.py). Distinct obstacles met on the way down, by
+      starting lane: lane 0 met 18.2 and lane 11 met 18.3, against 28.8 in the middle
+      of the grid -- and the whole of that gap was PEGS, 2.5 and 2.7 against 13.5.
+      Segments, gates and spinners were already flat across every lane, because the
+      funnels dump the whole field into the middle before them. So the defect was one
+      thing in one place: pegField's `edge` exclusion band leaves 134px of peg-free
+      wall at each rail, the grid's outermost lanes spawn INSIDE it, and a head knocked
+      out to a rail mid-course drops through the rest of the section untouched. It
+      shows up in the outcome too -- the rail lanes finished 85% and 82% of the time
+      against 58-66% in the middle, and reached the line 2-3 seconds sooner. Jayden:
+      "nobody should just be falling through."
+
+      WHY NOT SIMPLY PUT PEGS AT THE WALL. The obvious fix is the one the plinko
+      builders use: "you have to ensure that there is less than half the puck
+      diameters' worth of gap between the wall and the last peg" (Bob Clagett, "How to
+      Make a Plinko Board", iliketomakestuff.com), which is also how the Galton board
+      at Appropedia is laid out -- peg spacing to the outer edge equal to peg spacing
+      between columns, with the boundary column alternating peg/gap row by row. That
+      works for a wooden board and a 25mm puck. It does not work here, and the comment
+      the `edge` band already carried says why: a peg whose gap to the wall is smaller
+      than the biggest racer is a pocket, and this field carries a 1.5x head. Closing
+      the rail with pegs trades a free ride for a cage.
+
+      A WALL-WELDED RAMP WAS TRIED FIRST AND IS DISPROVED -- recorded because it is
+      the obvious fix and someone will reach for it again. The pinball reflex is to put
+      furniture *in* the outlane (slingshots, posts, kickbacks) and expose the outlane
+      width as the tuning scalar (Glossary of pinball terms, Wikipedia; flippers.be,
+      "How to adjust or tweak your pinball machine"), and a chevron welded to the rail
+      has no pocket against the rail by construction. It fixed the deficit it was aimed
+      at -- lane 0's pegs went 2.5 -> 13.4 -- and broke the race doing it: completion
+      fell 35% -> 2%, and Spearman(start lane, finish rank) went 0.04 -> 0.41, which is
+      a lane telling you where you will finish. The cause was geometry, not the idea:
+      the lattice is laid out from a fixed pitch and then CLIPPED by the band, so where
+      its outermost column lands depends on the row's half-pitch offset. On even rows
+      the chevron tip cleared the nearest peg by 80px; on odd rows, by 15px. A 15px
+      slot beside a 96px head is a trap, and the right rail (which drew the odd rows)
+      collapsed to a 28% finish rate on 2.0 anti-stuck kicks a racer.
+
+      SO THE LATTICE IS ANCHORED TO THE RAILS INSTEAD, and the boundary is a lattice
+      position rather than whatever was left over. Columns are spaced to divide the
+      course width exactly, and the rows alternate the way a quincunx already does:
+      a WIDE row of k pegs sitting on the half-pitch, so its outermost peg leaves only
+      a half-pitch of wall gap and a rail-hugger cannot pass it; then a NARROW row of
+      k-1 pegs sitting on the pitch, whose boundary is a full gap and lets everyone
+      through. That is the 15/14 row alternation of the reference build, where peg
+      spacing to the outer edge of the board equals peg spacing between columns
+      (Trillium Charter School Galton board, Appropedia), and it satisfies the plinko
+      builder's rule that the wall-to-last-peg gap must be under half a puck diameter
+      or pucks fall straight down the side (Bob Clagett, "How to Make a Plinko Board",
+      iliketomakestuff.com). It also had to be an ACTIVE deflection and not merely a
+      bouncier wall: a reflecting boundary does not return a wall-hugger to the middle,
+      it superposes a mirrored source and piles probability up AGAINST the wall
+      (Kosztolowicz, arXiv:1505.05199; Seki, arXiv:2408.00926).
+      A round peg beside a rail cannot cage anything -- that needs two surfaces and a
+      floor, and the row below the wide row is the narrow one, which is open at the
+      rail. Every interior gap still clears the biggest racer by 28%.
+
+      THE BOUNDARY PEG IS WELDED TO THE RAIL, AND THAT IS THE WHOLE TRICK. Two
+      free-standing positions for it were measured and both are worse than no peg at
+      all, for the same reason in two directions:
+        * at half the lattice pitch, the wall-to-surface gap came out 62.7px against a
+          64px median head -- a slot exactly the size of the thing going through it,
+          which is the worst width there is. The rail lanes drew 0.6-0.8 anti-stuck
+          kicks a racer against 0.02 before, and completion slid 35% -> 29%.
+        * so it was pulled in to half a head (32px), which is the sourced rule stated
+          firmly rather than nearly missed. Much worse: 9% completion, the rail lanes
+          down to a 43% finish rate on some racers meeting ONE obstacle in the whole
+          descent. The arithmetic says why. The rail clamp holds a head's centre at
+          X0+r, and the 1.5x head's r is 48 -- past a peg centred 43.5 out. The
+          separation resolver pushes the head inward, the clamp pushes it back, and
+          the pair oscillate until the anti-stuck kick fires.
+      A peg centred ON the rail has neither failure. There is no gap beside it to
+      wedge in, because it IS the wall; and every resolution is strictly outward from
+      X0, which is the direction the clamp already wants, so the two can never fight.
+      It also cannot be missed: a head against the rail has its centre at X0+r and the
+      peg centre at X0, so the separation is r, which is always inside r+R. Real plinko
+      boards edge their lattices with exactly this -- a half-peg at the rail -- and it
+      is the shape of the pinball slingshot, an angled mass in the outlane that returns
+      the ball inward instead of merely bouncing it back into the wall.
+      It replaces the wide row's outermost peg rather than joining it, so the row keeps
+      its count and the passage inboard of it stays a full head wider than DM. */
    function pegField(rows,pitchF){var pr=Math.max(6,D*0.18),pitch=Math.max(D*pitchF,DM*1.28+pr*2,mob?56:70),vs=pitch*0.8;   // the gap between peg SURFACES always clears the biggest racer by ~28% -- pegs deflect, they never cage
-    var edge=DM*1.28+pr;   // outer columns keep a full head's clearance from the walls -- a peg too close to a wall makes a dead pocket that cages whoever lands in it
-    for(var r=0;r<rows;r++){var off=(r%2)?pitch/2:0,n=Math.floor((CW-pitch*0.6)/pitch);
-     for(var c=0;c<=n;c++){var px=X0+pitch*0.55+off+c*pitch;if(px<X0+edge||px>W-edge)continue;pegs.push({x:px+rnd(-3,3),y:y+rnd(-3,3),r:pr});}
+    var k=Math.max(3,Math.floor(CW/pitch)),p2=CW/k;   // p2 >= pitch by construction, so anchoring the lattice to the rails never closes an interior gap
+    var R=Math.min(Math.max(pr*1.8,D*0.7),p2*0.36);   // the rail peg's radius: far enough to carry a head clear of the old dead lane, never so far that it closes the passage inboard
+    for(var r=0;r<rows;r++){var c;
+     if(r%2===0){pegs.push({x:X0,y:y+rnd(-3,3),r:R,rail:-1});pegs.push({x:W,y:y+rnd(-3,3),r:R,rail:1});   // WIDE row: the boundary is a peg ON each rail, so a rail-hugger is always met and always sent inward
+      for(c=1;c<k-1;c++)pegs.push({x:X0+p2*(c+0.5)+rnd(-3,3),y:y+rnd(-3,3),r:pr});}
+     else{for(c=1;c<k;c++)pegs.push({x:X0+p2*c+rnd(-3,3),y:y+rnd(-3,3),r:pr});}            // NARROW row: a full pitch of daylight at each rail, so the boundary is open -- peg over gap, gap over peg
      y+=vs;}
     y+=D*0.8;}
    function funnel(throatF,tube){var th=DM*throatF+11,cx=CC+rnd(-CW*0.08,CW*0.08),drop=H*0.55;lastCx=cx;   // +11 covers the walls' own collision padding, so even the big head slips the throat with room to spare
@@ -3291,8 +3402,10 @@ function teams(){
    if(!world){world=document.createElement("div");world.style.cssText="position:absolute;left:0;top:0;width:100%;height:100%;will-change:transform";wrap.appendChild(world);}
    world.innerHTML="";spinEls.length=0;
    var i,frag=document.createDocumentFragment();
-   for(i=0;i<pegs.length;i++){var p=pegs[i],d=document.createElement("div");d.className="hmRacePeg";
-    d.style.cssText+="left:"+(p.x-p.r)+"px;top:"+(p.y-p.r)+"px;width:"+(p.r*2)+"px;height:"+(p.r*2)+"px";frag.appendChild(d);}
+   for(i=0;i<pegs.length;i++){var p=pegs[i],d=document.createElement("div");
+    d.className="hmRacePeg"+(p.rail?(p.rail<0?" railL":" railR"):"");
+    d.style.cssText+="left:"+(p.rail?(p.rail<0?p.x:p.x-p.r):(p.x-p.r))+"px;top:"+(p.y-p.r)+"px;"
+     +"width:"+(p.rail?p.r:p.r*2)+"px;height:"+(p.r*2)+"px";frag.appendChild(d);}
    gateEls.length=0;
    for(i=0;i<segs.length;i++){var s=segs[i],dx=s.x2-s.x1,dy=s.y2-s.y1,len=Math.hypot(dx,dy),a=Math.atan2(dy,dx);
     var e=document.createElement("div");e.className="hmRaceSeg"+(s.cls?" "+s.cls:"");
@@ -3382,8 +3495,10 @@ function teams(){
       -> 8s). Fixed at the start rather than recomputed, so the pace never drifts under
       a viewer mid-race. */
    elimGap=Math.max(2200,Math.min(8000,ELIM_WINDOW/Math.max(1,gridOrder.length-1)));
+   DRIVE=false;   // a normal race owns its own clock again, whatever the last one was driven by
    for(var n=0;n<gridOrder.length;n++){var pr=gridOrder[n],r=pr.HW*0.5*0.92;
-    balls.push({peer:pr,r:r,x:X0+(CW/(gridOrder.length+1))*(n+1)+rnd(-2,2),y:H*0.42-rnd(0,3),vx:0,vy:0,slow:0,fin:false,row:null});}
+    balls.push({peer:pr,r:r,x:X0+(CW/(gridOrder.length+1))*(n+1)+rnd(-2,2),y:H*0.42-rnd(0,3),vx:0,vy:0,slow:0,fin:false,row:null,
+     lane:n,x0:X0+(CW/(gridOrder.length+1))*(n+1),cPeg:0,cSeg:0,cGate:0,cSpin:0,cKick:0,cHit:0,dist:0,tFin:-1});}   // lane + tallies: dead weight in a real race, the whole instrument in a probed one
    buildCourse();buildDOM();stakeOpen();   // the stake is on screen through the 3-2-1, not only once someone has crossed
    goAt=clock+3200;raceT0=goAt;if(elimMode)nextCut=goAt+elimGap;
    var s=seed;bigText(3);if(elimMode)setTimeout(function(){if(s===seed&&ON&&cEl){cEl.classList.add("hmMsg");bigText("last one out\u2026");setTimeout(function(){if(s===seed){cEl.textContent="";cEl.classList.remove("hmMsg");}},1600);}},3400);   // the format card: the last head out, on the bell
@@ -3516,6 +3631,7 @@ function teams(){
    if(hidT)return;
    hidT=setInterval(function(){
     if(!ON){clearInterval(hidT);hidT=null;return;}
+    if(DRIVE)return;                            // a hand crank is on the clock: see simRun()
     if(!document.hidden)return;                 // the rAF loop has the clock while anyone is looking
     var n=performance.now(),el=(n-lastN)/1000;lastN=n;
     if(el<=0)return;
@@ -3525,7 +3641,47 @@ function teams(){
   try{document.addEventListener("visibilitychange",function(){
    if(!ON)return;lastN=performance.now();   // whichever driver takes over starts from now, so the handover never books the gap twice
    if(!document.hidden&&!running){running=true;requestAnimationFrame(loop);}});}catch(_){}
-  try{if(/[?&]wraf=1/.test(location.search))window.__race={balls:balls,segs:segs,pegs:pegs,spins:spins,st:function(){return {ts:ts,camY:camY,winner:winner,goAt:goAt,now:clock,running:running,finishY:finishY,elimMode:elimMode,elimGap:elimGap,cutLine:cutLine,pitch:BOARD.pitch,qOpen:!!QREQ};},standings:function(){return standings();}};}catch(_){}   // DEV-ONLY debug handle (opt-in)
+  /* THE HAND CRANK. `sim(sec)` steps the simulation with every DOM write skipped --
+     the same `draw=false` path the hidden tab already uses -- so a whole race runs
+     inside one synchronous call instead of twenty wall-clock seconds. That is what
+     makes a two-hundred-seed distribution affordable; a single run of a course that is
+     regenerated per race tells you nothing.
+     It returns how much race it actually stepped, which is less than asked whenever
+     the race ended first, and it latches DRIVE so rAF and the hidden-tab timer both
+     keep their hands off the clock while it works. */
+  function simRun(sec,h){var s=h||1/60,t=0,guard=0;DRIVE=true;   // 1/60 because that is what a viewer's rAF hands tickWorld: a finer step would integrate a DIFFERENT race and measure a course nobody runs
+   while(t<sec&&ON&&guard++<400000){tickWorld(s,false);t+=s;}
+   return t;}
+  try{if(WRAF)window.__race={balls:balls,segs:segs,pegs:pegs,spins:spins,gates:gates,sim:simRun,
+   st:function(){return {ts:ts,camY:camY,winner:winner,goAt:goAt,now:clock,running:running,finishY:finishY,elimMode:elimMode,elimGap:elimGap,cutLine:cutLine,pitch:BOARD.pitch,qOpen:!!QREQ};},
+   /* THE PROBE'S ONE READING. Everything a fairness question needs, per racer, in the
+      simulation's own units: which lane it started in, what it hit on the way down,
+      how far it actually travelled, and when (or whether) it reached the line. */
+   tally:function(){return balls.map(function(b,i){return {i:i,lane:b.lane,x0:Math.round(b.x0||0),
+    peg:b.cPeg,seg:b.cSeg,gate:b.cGate,spin:b.cSpin,kick:b.cKick,hits:b.cHit,
+    dist:Math.round(b.dist),y:Math.round(b.y),fin:!!b.fin,t:Math.round(b.tFin),
+    rank:standings().indexOf(i)};});},
+   course:function(){return {W:W,H:H,X0:X0,CW:CW,CC:CC,finishY:finishY,D:D,
+    pegs:pegs.length,segs:segs.length,spins:spins.length,gates:gates.length};},
+   standings:function(){return standings();}};}catch(_){}   // DEV-ONLY debug handle (opt-in)
+  /* ===== DEV-ONLY. WHAT COUNTS AS "MEETING AN OBSTACLE" =====
+     Two numbers, because the first two attempts at one number each measured the wrong
+     thing and said so loudly.
+       Counting every resolved frame made a single funnel wall score 750, because a
+     racer SLIDES down it -- one deflection, hundreds of frames.
+       Counting every unbroken touch fixed the walls and then made the sliding GATE
+     score 130 against four gate segments in the whole course, because a head resting
+     on a gate has its contact broken and remade by the gate's own travel. That is the
+     known wedging defect being counted as a hundred obstacles.
+       So the headline is DISTINCT OBSTACLES MET: each peg, segment, gate wall and
+     spinner blade counts once per racer per race, which is exactly the question --
+     how much course was in this lane's path. `hits` keeps the touch count alongside
+     it as texture, and the two disagreeing is itself informative.
+     Nothing counts after the line: a finisher bouncing round the pen did not have to
+     survive that. */
+  function tag(a,id,k){if(a.fin||a.__tc.indexOf(id)>=0)return;
+   a.__tc.push(id);if(a.__tp.indexOf(id)>=0)return;
+   a.cHit++;if(!a.__met[id]){a.__met[id]=1;a[k]++;}}
   function step(dt){
    var i,j,leader=-1,lead=-1e9,second=-1,sec2=-1e9;
    for(i=0;i<balls.length;i++){var b=balls[i];if(b.fin)continue;if(b.y>lead){sec2=lead;second=leader;lead=b.y;leader=i;}else if(b.y>sec2){sec2=b.y;second=i;}}
@@ -3549,12 +3705,21 @@ function teams(){
     if(!a.fin&&order.length>0){var _bk=Math.max(0,Math.min(1,(finishY-a.y)/(H*1.5)));   // how far from the LINE, not from the leader: a pack that is all together still needs sweeping home
      a.vy+=1550*((order.length>=(cutLine||1))?(0.9+0.9*_bk):(0.15+1.45*_bk))*dt;}
     var sp=Math.hypot(a.vx,a.vy),cap=H*2.5;if(sp>cap){a.vx*=cap/sp;a.vy*=cap/sp;}
+    if(WRAF&&!a.fin)a.dist+=sp*dt;   // path length, not depth: a head that is being knocked about covers more ground than one that free-falls the same drop
+    /* A CONTACT IS AN EVENT, NOT A FRAME. The first version of this tally incremented
+       inside the resolve branch, which fires on EVERY frame a racer is resting on or
+       sliding down a surface -- a funnel wall scored 750 while deflecting the head
+       exactly once. So each obstacle carries an id, the ids touched this frame are
+       kept, and only ids that were not touched LAST frame count. `__tp`/`__tc` are two
+       tiny arrays per racer per frame, allocated only under the dev flag. */
+    if(WRAF){a.__tp=a.__tc||[];a.__tc=[];a.__met=a.__met||{};}
     a.x+=a.vx*dt;a.y+=a.vy*dt;
     if(a.x<X0+a.r){a.x=X0+a.r;a.vx=Math.abs(a.vx)*0.3;}if(a.x>W-a.r){a.x=W-a.r;a.vx=-Math.abs(a.vx)*0.3;}
     // pegs: the clean left/right coin-flips
     for(j=0;j<pegs.length;j++){var p=pegs[j];if(Math.abs(p.y-a.y)>a.r+p.r+2)continue;var dx=a.x-p.x,dy=a.y-p.y,d=Math.hypot(dx,dy),rr=a.r+p.r;
      if(d>0.01&&d<rr){var nx=dx/d,ny=dy/d;a.x=p.x+nx*rr;a.y=p.y+ny*rr;
       var vn=a.vx*nx+a.vy*ny;if(vn<0){a.vx-=(1+0.65)*vn*nx;a.vy-=(1+0.65)*vn*ny;
+       if(WRAF)tag(a,"p"+j,"cPeg");   // the tally is "what it met ON THE WAY DOWN": a finisher rattling around the pen is not course it had to survive
        if(vn<-520){a.peer.raceHit=performance.now();if(window.__hmFX&&Math.random()<0.3)window.__hmFX.ring(a.x-HL,a.y-camY,{r0:4,r1:26,color:"131,131,131",width:2,life:0.28});}}}}
     // segments: ramps, funnel walls, tubes, pen floor
     for(j=0;j<segs.length;j++){var s=segs[j];if(a.y<Math.min(s.y1,s.y2)-a.r-4||a.y>Math.max(s.y1,s.y2)+a.r+4)continue;
@@ -3562,7 +3727,8 @@ function teams(){
      var t=Math.max(0,Math.min(1,((a.x-s.x1)*ex+(a.y-s.y1)*ey)/L2)),qx=s.x1+ex*t,qy=s.y1+ey*t;
      var ddx=a.x-qx,ddy=a.y-qy,dd=Math.hypot(ddx,ddy);
      if(dd>0.01&&dd<a.r+4.5){var nx2=ddx/dd,ny2=ddy/dd;a.x=qx+nx2*(a.r+4.5);a.y=qy+ny2*(a.r+4.5);
-      var vn2=a.vx*nx2+a.vy*ny2;if(vn2<0){a.vx-=(1+s.e)*vn2*nx2;a.vy-=(1+s.e)*vn2*ny2;a.vx*=0.995;a.vy*=0.995;}}}
+      var vn2=a.vx*nx2+a.vy*ny2;if(vn2<0){a.vx-=(1+s.e)*vn2*nx2;a.vy-=(1+s.e)*vn2*ny2;a.vx*=0.995;a.vy*=0.995;
+       if(WRAF)tag(a,"s"+j,(s.cls==="gate")?"cGate":"cSeg");}}}
     // spinner paddles: moving segments that SWAT
     for(j=0;j<spins.length;j++){var w=spins[j];if(Math.abs(a.y-w.cy)>w.r+a.r+8||Math.abs(a.x-w.cx)>w.r+a.r+8)continue;
      for(var k2=0;k2<2;k2++){var aa=w.a+k2*Math.PI/2,ca=Math.cos(aa),sa=Math.sin(aa);
@@ -3573,14 +3739,15 @@ function teams(){
        var rx=qx2-w.cx,ry=qy2-w.cy;var pvx=-w.w*ry,pvy=w.w*rx;   // paddle surface velocity at the contact point
        var rvx=a.vx-pvx,rvy=a.vy-pvy,vn3=rvx*nx3+rvy*ny3;
        if(vn3<0){a.vx-=(1+0.6)*vn3*nx3;a.vy-=(1+0.6)*vn3*ny3;
+        if(WRAF)tag(a,"w"+j+"."+k2,"cSpin");
         a.peer.raceHit=performance.now();if(window.__hmFX&&Math.random()<0.25)window.__hmFX.ring(a.x-HL,a.y-camY,{r0:5,r1:30,color:"123,95,208",width:2.5,life:0.3});}}}}
     // anti-stuck: POSITION-based, so even a jammed pile (micro-jittering in place with live velocities) gets shaken loose -- the chaos nudge every viral sim ships with
     if(a.px==null){a.px=a.x;a.py=a.y;}
     if(!a.fin){if(Math.hypot(a.x-a.px,a.y-a.py)>12){a.px=a.x;a.py=a.y;a.slow=0;a.nud=0;}
      else{a.slow+=dt;if(a.slow>0.9){a.slow=0;a.px=a.x;a.py=a.y;a.nud=(a.nud||0)+1;
-      if(a.nud>=3){a.nud=0;a.vx=(CC>a.x?1:-1)*rnd(520,680);a.vy=-rnd(160,260);}   // three nudges and still pinned -> a hard kick toward open course (out of any corner pocket), with a little pop up to clear the lip
+      if(a.nud>=3){a.nud=0;if(WRAF)a.cKick++;a.vx=(CC>a.x?1:-1)*rnd(520,680);a.vy=-rnd(160,260);}   // three nudges and still pinned -> a hard kick toward open course (out of any corner pocket), with a little pop up to clear the lip
       else{var m=rnd(300,460);a.vx+=(Math.random()<0.5?-1:1)*m*0.5;a.vy+=m;}}}}
-    if(!a.fin&&!elimMode&&a.y>finishY){a.fin=true;order.push(i);if(a.row){a.row.classList.add("fin");a.row.classList.add((cutLine&&order.length>cutLine)?"miss":"in");}
+    if(!a.fin&&!elimMode&&a.y>finishY){a.fin=true;if(WRAF)a.tFin=clock-goAt;order.push(i);if(a.row){a.row.classList.add("fin");a.row.classList.add((cutLine&&order.length>cutLine)?"miss":"in");}
      /* ONE AT A TIME. The pill names whoever just went in and what is being raced for
         next; a place with a contest still behind it also buys a short beat of slow
         motion, so the eye has somewhere to land before the next one arrives. No beat
@@ -3718,6 +3885,7 @@ function teams(){
   function loop(n){if(!ON){running=false;return;}
    requestAnimationFrame(loop);
    var raw=Math.min(0.05,Math.max(0.001,(n-lastN)/1000));lastN=n;
+   if(DRIVE)return;             // ...and so does the hand crank, for the same reason
    if(document.hidden)return;   // the hidden driver owns the clock while nobody is looking; taking a rAF here as well would book the same seconds twice
    tickWorld(raw,true);
   }
