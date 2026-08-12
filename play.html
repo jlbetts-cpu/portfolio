@@ -417,6 +417,37 @@
   line-height:var(--lh-tight);padding-bottom:.14em;font:inherit;letter-spacing:inherit;
   cursor:grab;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
  .cycw.grab{cursor:grabbing}
+ /* THE WORD SAYS IT CAN BE GRABBED. Dragging the mood word onto the head is the
+    best-hidden thing on this site -- until now the ONLY hint was `cursor:grab`
+    above, which does not exist on a phone, so a touch visitor had no way to
+    learn it short of guessing.
+
+    It borrows the vocabulary the Hero's portrait frame already owns rather than
+    inventing a second one: same --selection-ink, so the two read as one system.
+    The head's frame is a SOLID inset line and means "selected right now"; this
+    is DASHED and means "this can be picked up". Solid for state, dashed for
+    affordance -- which is also why it is not simply the same frame twice.
+
+    `outline` and not `border`, deliberately: this word sits inside a headline
+    and cycles through moods of different widths, and a border would reflow the
+    line every time it appeared. An outline is painted outside the box and moves
+    nothing. The offset is in `em` so it tracks the headline's fluid size.
+
+    Hover and focus-visible on a pointer device; on touch there is no hover to
+    give, so it stays faintly on -- that is the only surface where the cursor
+    was never going to help. It is suppressed while actually dragging, when the
+    ghost element takes over and the word itself goes to opacity 0. */
+ .cycw{
+  outline:var(--selection-line) dashed transparent;
+  outline-offset:.16em;
+  transition:outline-color var(--dur-state) var(--ease-out)
+ }
+ .cycw:hover,.cycw:focus-visible{outline-color:var(--selection-ink)}
+ .cycw.grab,.cycw.out{outline-color:transparent}
+ @media(hover:none){
+  .cycw{outline-color:color-mix(in srgb,var(--selection-ink) 42%,transparent)}
+ }
+ @media(prefers-reduced-motion:reduce){ .cycw{transition:none} }
  .cyc-ch{display:inline-block;white-space:pre}
  /* .in is the ENTRANCE ONLY and play-games.js strips it on animationend: a span left
     carrying an animation keeps a compositing layer forever, and on Safari that layer is

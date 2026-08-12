@@ -3040,10 +3040,10 @@ function teams(){
       so it wins the tie on order without needing !important. */
    +"body.hmRace.playViewportOwned .hero{height:100%;min-height:100%;margin:0}"
    +".hmRaceWrap{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:2;opacity:0;transition:opacity var(--dur-reveal) var(--ease-out)}body.hmRace .hmRaceWrap{opacity:1}"
-   +".hmRacePeg{position:absolute;border-radius:50%;background:var(--c50);border:1px solid var(--c100);box-shadow:0 2px 4px rgba(22,22,28,.12)}"
-   +".hmRaceSeg{position:absolute;height:8px;border-radius:5px;background:var(--c50);box-shadow:0 1px 2px rgba(22,22,28,.08);border:1px solid rgba(22,22,28,.14);transform-origin:0 50%}"
+   +".hmRacePeg{position:absolute;border-radius:50%;background:var(--c50);border:1px solid var(--c100)}"
+   +".hmRaceSeg{position:absolute;height:8px;border-radius:5px;background:var(--c50);border:1px solid rgba(22,22,28,.14);transform-origin:0 50%}"
    +".hmRaceSeg.spin{border:2px solid #7b5fd0}.hmRaceSeg.gate{border:2px solid var(--c950)}"
-   +".hmRaceFin{position:absolute;height:16px;background:repeating-linear-gradient(90deg,#212121 0 14px,#FDFDFD 14px 28px);border-radius:3px;box-shadow:0 4px 12px -3px rgba(22,22,28,.4)}"
+   +".hmRaceFin{position:absolute;height:16px;background:repeating-linear-gradient(90deg,#212121 0 14px,#FDFDFD 14px 28px);border-radius:3px;}"
    +".hmRaceBoard{position:absolute;left:var(--sp-12);top:50%;transform:translateY(-50%);z-index:49;display:none;flex-direction:column;gap:var(--sp-4);opacity:.72}body.hmRace .hmRaceBoard{display:flex}"   /* the standings live in the GUTTER, vertically centred at the screen's edge -- out of the course's hot centre, one glance away */
    +".hmRaceRow{display:flex;align-items:center;gap:var(--sp-8);background:rgba(253,253,253,.82);border:1px solid var(--c100);border-radius:var(--r-sm);padding:var(--sp-2) var(--sp-8) var(--sp-2) var(--sp-4);font-family:var(--sans);font-weight:600;font-size:var(--fs-caption);color:var(--c700);backdrop-filter:blur(4px);will-change:transform}"
    /* THE END CHIP IS A CONTROL AND IS NOW DRAWN AS ONE. It used to be a `.hmRaceRow` with
@@ -3071,7 +3071,7 @@ function teams(){
    +".hmRaceStake.beat{animation:hmStake var(--dur-state) var(--ease-out)}@keyframes hmStake{from{opacity:.45}to{opacity:1}}"
    +"@media(prefers-reduced-motion:reduce){.hmRaceStake.beat{animation:none}}"
    +".hmRaceRow img{width:20px;height:24px;object-fit:contain;display:block}.hmRaceRow b{font-weight:600;color:var(--c950);width:11px;text-align:center}"
-   +".hmRaceRow.fin{border-color:rgba(8,8,8,.55)}.hmRaceRow.fin::after{content:\"\\2713\";font-size:10px;line-height:1;color:var(--c700);margin-left:1px}.hmRaceRow.out{opacity:.45}.hmRaceRow.out img{filter:grayscale(1)}.hmRaceRow.out b{color:var(--c500)}.hmRaceRow.out::after{content:\"\\2715\";font-size:9px;line-height:1;color:var(--c500);margin-left:1px}"
+   +".hmRaceRow.fin{border-color:rgba(8,8,8,.55)}.hmRaceRow.fin::after{content:\"\\2713\";font-size:10px;line-height:1;color:var(--c700);margin-left:1px}.hmRaceRow.fin.in{background:var(--c950);border-color:var(--c950);color:var(--c50)}.hmRaceRow.fin.in b{color:var(--c50)}.hmRaceRow.fin.in::after{content:\"\\2713\";color:var(--c50)}.hmRaceRow.fin.miss{opacity:.5;border-color:var(--c100)}.hmRaceRow.fin.miss img{filter:grayscale(1)}.hmRaceRow.fin.miss b{color:var(--c500)}.hmRaceRow.fin.miss::after{content:\"\\2715\";color:var(--c500)}.hmRaceRow.out{opacity:.45}.hmRaceRow.out img{filter:grayscale(1)}.hmRaceRow.out b{color:var(--c500)}.hmRaceRow.out::after{content:\"\\2715\";font-size:9px;line-height:1;color:var(--c500);margin-left:1px}"
    +".hmRaceRow.top{background:var(--c950);border-color:var(--c950);color:var(--c50)}.hmRaceRow.top b{color:var(--c50)}.hmRaceRow.top::after{content:\"\\265B\";font-size:10px;line-height:1;color:var(--c50);margin-left:1px}"   /* the leader's chip flips to ink + a quiet crown -- being #1 should FEEL like something */
    +".hmRaceRow.doom{animation:hmDoom .5s steps(2,end) infinite}@keyframes hmDoom{50%{background:rgba(224,90,78,.3);border-color:rgba(224,90,78,.8)}}"
    /* THE QUALIFYING LINE. When the race is deciding who reaches a knockout, the one
@@ -3537,7 +3537,7 @@ function teams(){
      else{a.slow+=dt;if(a.slow>0.9){a.slow=0;a.px=a.x;a.py=a.y;a.nud=(a.nud||0)+1;
       if(a.nud>=3){a.nud=0;a.vx=(CC>a.x?1:-1)*rnd(520,680);a.vy=-rnd(160,260);}   // three nudges and still pinned -> a hard kick toward open course (out of any corner pocket), with a little pop up to clear the lip
       else{var m=rnd(300,460);a.vx+=(Math.random()<0.5?-1:1)*m*0.5;a.vy+=m;}}}}
-    if(!a.fin&&!elimMode&&a.y>finishY){a.fin=true;order.push(i);if(a.row){a.row.classList.add("fin");}
+    if(!a.fin&&!elimMode&&a.y>finishY){a.fin=true;order.push(i);if(a.row){a.row.classList.add("fin");a.row.classList.add((cutLine&&order.length>cutLine)?"miss":"in");}
      /* ONE AT A TIME. The pill names whoever just went in and what is being raced for
         next; a place with a contest still behind it also buys a short beat of slow
         motion, so the eye has somewhere to land before the next one arrives. No beat
@@ -3611,9 +3611,23 @@ function teams(){
      try{if(window.__hmCareer&&balls[wj].peer.slot!=null)window.__hmCareer.rec("raceWin",balls[wj].peer.slot);}catch(_){}
      ts=0.28;endAt=clock+5200;try{bigText("Winner!");stake(faceFor(balls[wj])+"<b>1st</b><span>last one standing</span>",true);}catch(_){}break;}}}}
    // camera: ride the leader with a soft spring, never backward, and stop at the pen
-   var leadY=-1e9;for(var c2=0;c2<balls.length;c2++)if(!balls[c2].out&&balls[c2].y>leadY)leadY=balls[c2].y;
-   var tgt=Math.max(camY,Math.min(leadY-H*0.42,finishY+H*0.9-H));
-   camY+=(tgt-camY)*Math.min(1,raw*4);
+   /* THE CAMERA HAS TO LEAVE THE WINNER. Two things pinned it at the finish the
+      moment first place crossed. The leader search skipped only `out` racers, and
+      a finisher is marked `fin`, never `out` -- so the winner stayed the leader
+      forever. And the target was wrapped in Math.max(camY,...), which forbade the
+      camera from EVER moving back up the course. Between them, second through
+      twelfth were decided off-screen, which is most of the race and all of the
+      part that decides who qualifies.
+      Now the leader is whoever is still RUNNING, and once somebody is in, the
+      camera is allowed back up to them -- on a slower spring than the chase, so
+      the return reads as the camera choosing where to look rather than snapping.
+      The no-backward rule still holds before the first finish, where it was doing
+      real work: it stops the view jittering with the lead swapping mid-pack. */
+   var leadY=-1e9,racing=0;
+   for(var c2=0;c2<balls.length;c2++){var bC=balls[c2];if(bC.out||bC.fin)continue;racing++;if(bC.y>leadY)leadY=bC.y;}
+   var tgt=camY;
+   if(racing){tgt=Math.min(leadY-H*0.42,finishY+H*0.9-H);if(!order.length)tgt=Math.max(camY,tgt);}
+   camY+=(tgt-camY)*Math.min(1,raw*(order.length?2.2:4));
    if(draw){
     if(world)world.style.transform="translateY("+(-camY).toFixed(1)+"px)";
     for(var sE=0;sE<spinEls.length;sE++){var se=spinEls[sE];se.el.style.transform="rotate("+((se.sp.a+se.k*Math.PI/2)*180/Math.PI).toFixed(1)+"deg)";}
