@@ -206,7 +206,7 @@ html{scrollbar-color:var(--theme-muted) var(--theme-page)}
  background-color:var(--theme-surface);
  box-shadow:inset 0 0 0 var(--hair-w) var(--theme-rim);
 }
-:root[data-theme="dark"] body[data-theme-page="case-study"] :is(.cmpKnob,.baGo,.baLabel,.scrapTag,.pair,.baFrame){
+:root[data-theme="dark"] body[data-theme-page="case-study"] :is(.cmpKnob,.baGo,.scrapTag,.pair,.baFrame){
  background-color:var(--theme-surface);color:var(--theme-ink-soft);
  border-color:var(--theme-rim);box-shadow:inset 0 0 0 var(--hair-w) var(--theme-rim);
 }
@@ -214,9 +214,6 @@ html{scrollbar-color:var(--theme-muted) var(--theme-page)}
 :root[data-theme="dark"] body[data-theme-page="case-study"] :is(.cmpKnob,.baGo):focus-visible{
  background-color:var(--theme-elevated);color:var(--theme-ink);
  border-color:var(--theme-rim-strong);
-}
-:root[data-theme="dark"] body[data-theme-page="case-study"] .baCol.isAfter .baLabel{
- background-color:var(--theme-focus);border-color:var(--theme-focus);color:var(--theme-page);box-shadow:none;
 }
 :root[data-theme="dark"] body[data-theme-page="case-study"] .seqTicks i{
  background-color:var(--theme-rim);

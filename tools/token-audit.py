@@ -108,11 +108,19 @@ SHIPPING_HTML = ['index.html', 'about.html', 'play.html', 'apollo.html',
 # it was simply never listed here, and 11 motion declarations sat outside the
 # motion count as a result. An audit that does not know about a stylesheet
 # reports a smaller number, not a better site.
+# carousel.css and carousel.js join on 2026-08-12, in the same commit that
+# created them. The carousel used to live inline in four case-study pages, all
+# of which ARE audited, so extracting it without listing it here would have
+# dropped 67 raw px, 8 raw hex and one warning out of the report while changing
+# nothing on the site -- the exact "an audit that does not know about a
+# stylesheet reports a smaller number, not a better site" failure described
+# above, in the one direction that looks like progress.
 SHIPPING_CSS = ['tokens.css', 'header.css', 'play.css',
                 'controls.css', 'site-theme.css', 'footer.css',
-                'builder-theme.css', 'tournament.css']
+                'builder-theme.css', 'tournament.css', 'carousel.css']
 SHIPPING_JS = ['header.js', 'hero-engine.js', 'play-engine.js', 'play-games.js',
-               'play-tournament.js', 'party.js', 'egghead-seed.js']
+               'play-tournament.js', 'party.js', 'egghead-seed.js',
+               'carousel.js']
 
 DEMO_FILES = ['specimen.html', 'header-prototype.html', 'accent-swatches.html',
               'button-system.html', 'orbs.html']

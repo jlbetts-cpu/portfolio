@@ -232,7 +232,10 @@ def check_portfolio_adapters():
     controls=(ROOT/"controls.css").read_text(encoding="utf-8")
     assert ".ctl--tab[aria-selected=\"true\"]" in controls and "color:var(--ctl-ink-strong)" in controls, "shared case-study tabs must consume semantic control ink"
     assert 'body[data-theme-page="case-study"] .tvTab.on' not in source, "migrated case-study tabs must not keep a competing theme adapter"
-    assert_semantic_rule(source,"Case-study comparison labels",('body[data-theme-page="case-study"]', '.baLabel'),"background-color:var(--theme-surface)")
+    # Before/After are captions, not badges: no chip in either theme, so what the
+    # dark adapter owes them is legible ink, not a surface to sit on.
+    assert_semantic_rule(source,"Case-study comparison labels",('body[data-theme-page="case-study"]', '.baLabel'),"color:var(--theme-muted)")
+    assert '.baCol.isAfter .baLabel' not in source, "the After label must not take a filled chip"
     assert_semantic_rule(source,"Case-study demo caption",('body[data-theme-page="case-study"]', '.demoLabel'),"color:var(--theme-muted)")
     # The cover boundary is width-independent, so it remains present when the
     # existing mobile sheet makes the cover full-width. An outer shadow keeps

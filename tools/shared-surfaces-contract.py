@@ -231,10 +231,31 @@ def main():
         assert "},250)" not in html and "}, 250)" not in html
         assert ".25s steps(2,end)" not in html
         if "playerBeats" in html or "tvItems" in html:
-            assert "transitionend" in html
+            # The carousel is ONE shared component now -- carousel.css plus
+            # carousel.js -- rather than four byte-identical copies of a per-page
+            # script. The page is no longer where the scene cut is written, so
+            # asserting "transitionend" against page HTML asserted the
+            # duplication rather than the behaviour; that moved to the file that
+            # owns it, below. What a page still has to prove is that it USES the
+            # shared component and keeps no private copy of the engine.
+            assert '<script src="carousel.js"' in html, name
+            assert "carousel.css" in assets, (name, parser.stylesheets)
+            assert assets.index("controls.css") < assets.index("carousel.css")
+            assert ".playerBeats'" not in html and '.playerBeats"' not in html, name
+            assert ".tvItems'" not in html and '.tvItems"' not in html, name
             assert "scene-swap-target" in html
         if "playerTicks" in html:
             assert "playerTick ctl ctl--tick" in html
+
+    # The scene cut lands on a transition ending, not on a guessed timer.
+    # Asserted once against the one implementation instead of five times against
+    # five copies of it. The swipe surface must yield the vertical axis: pan-y,
+    # never none, or a thumb on the carousel traps the page.
+    carousel_js = (ROOT / "carousel.js").read_text(encoding="utf-8")
+    carousel_css = (ROOT / "carousel.css").read_text(encoding="utf-8")
+    assert "addEventListener('transitionend'" in carousel_js
+    assert "scene-swap-target" in carousel_js
+    assert "touch-action:pan-y" in carousel_css
 
     assert ".demoPoster:hover .demoPlay{transform:scale" not in (ROOT / "strata.html").read_text(encoding="utf-8")
 
