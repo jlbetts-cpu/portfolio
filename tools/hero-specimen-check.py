@@ -459,7 +459,7 @@ reduced_chrome = re.search(r':root\[data-reduced-motion="reduce"\](.*?)\{(.*?)\}
 assert reduced_chrome and "transition:none!important" in reduced_chrome.group(2)
 # .footReach dropped off this list with the rest of the case-study footer; every
 # element hero-time.css still animates has to be in it or reduced-motion leaks.
-for reduced_target in (".cases", ".csTabs::before", ".csTabInk", ".csMeta", ".csName",
+for reduced_target in (".cases", ".csTabInk", ".csMeta", ".csName",
                        ".csYear", ".footIn"):
     assert reduced_target in reduced_chrome.group(1), reduced_target
 assert ".footReach" not in time_css, \
@@ -1016,7 +1016,19 @@ assert re.search(r'\.cases\s*\{[^}]*margin-top:var\(--section-join-gap\)', html,
     "the Hero-to-work join must come from --section-join-gap"
 assert "--section-join-gap:var(--sp-16)" in tokens_css, \
     "--section-join-gap must still resolve to the 16px rung"
-assert re.search(r'\.csTabs::before\s*\{[^}]*inset-inline:var\(--case-inset\)', html, re.S)
+# THE SEPARATOR UNDER THE TAB ROW IS GONE, AND ITS ABSENCE IS THE ASSERTION NOW.
+# This pinned a ::before that drew a 1px rule under the tabs in var(--c100) -- a
+# RAW RAMP VALUE that never went through the theme, so it read as a stray pale
+# line in dark mode and nowhere else. It also sat below a bottom margin of
+# clamp(24px,3.2vh,40px), which held the tab flap off the panel it belongs to.
+# Jayden, on both: "i dont like that the flap doesnt go far enough like i see it
+# gets cut off before touching the thumbnail" and "there is an extra line on the
+# bottom i think its supposed to be a sepereator but I dont like it".
+# The rail and the panel are one surface now, gap measured at 0.00px in both
+# themes, and the active tab's underline is what marks the selection. Asserting
+# the absence keeps a decorative rule from growing back the way it did before.
+assert not re.search(r'\.csTabs::before\s*\{', html, re.S), \
+    "the tab row must not draw its own separator -- the flap joins the panel"
 
 engine = hero_engine
 assert "aboutOpen" not in engine

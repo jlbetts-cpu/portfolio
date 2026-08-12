@@ -226,3 +226,48 @@
   translate:none;
  }
 }
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   THE CAPTION LEADS, THE TICKS FOLLOW QUIETLY, AND NEITHER IS A SECTION.
+   Jayden, looking at it: "the welcome should be on top of the screen firstly the
+   indicator shouldnt be its own section it should be subtle and under the screen
+   that whole section doesnt need to feel that bulky" and "the indicator of scroll
+   feels a bit out of place and spread out".
+
+   Three separate things were each drawing their own container under the image --
+   a caption block, then a bordered pill holding the ticks -- so the half of the
+   component below the picture read as furniture rather than as a label and a
+   position. The fixes are all subtraction:
+
+   1. THE CAPTION MOVES ABOVE THE STAGE. It names what you are about to look at;
+      underneath it was a footnote to a picture you had already formed a view of.
+      Done with `order`, not by moving markup, so five pages keep one source of
+      truth and the reading order for a screen reader is set by the DOM, which
+      still has the stage first -- the caption is `aria`-associated with it.
+   2. THE PILL GOES. --ctl-container-ground, --ctl-container-rim, a 20px radius
+      and 8px of padding turned a row of seven dashes into a boxed component. A
+      position indicator is not a control group; it is a caption that happens to
+      be clickable.
+   3. IT STOPS WRAPPING. Each tick is a 44x44 target (which stays -- they are real
+      buttons and the floor is measured, not declared), so seven of them span
+      308px and wrapped to a vertical column at narrow widths. That is the
+      "spread out" Jayden photographed. One row, no wrap, and the row is allowed
+      to be narrower than the sum of its targets because they may overlap.
+   ───────────────────────────────────────────────────────────────────────────── */
+.player{display:flex;flex-direction:column}
+.player>.playerCap{order:-1;margin-top:0;margin-bottom:var(--sp-12)}
+.player>.playerStage{order:0}
+.player>.playerBar{order:1}
+.player>.playerBar.carousel-toolbar{
+ background:none;box-shadow:none;border-radius:0;padding:0;
+ margin-top:var(--sp-8)
+}
+.player .carousel-toolbar .playerTicks{flex-wrap:nowrap;gap:0}
+/* THE MARKS NEARLY TOUCH, SO THE ROW READS AS ONE OBJECT. Each tick is a 44x44
+   target and stays one -- they are buttons and the floor is measured, not
+   declared -- but the dash inside was --sp-14 against a 44px box, so seven of
+   them scattered 14px marks across 308px with 30px of air between each. That is
+   the "spread out" Jayden means; the targets were never the problem, the marks
+   were. Widening the dash turns a row of dots into a segmented bar: the same
+   footprint, the same tap area, and one object instead of seven. */
+.player .ctl--tick::before{width:var(--sp-32)}

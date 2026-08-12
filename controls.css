@@ -519,7 +519,10 @@
 }
 .collection__tabs{
  box-sizing:border-box;display:flex;gap:var(--gap-item);padding:var(--surface-inset);
- margin:0;border-radius:0;background:var(--surface-ground);box-shadow:inset 0 calc(var(--hair-w) * -1) 0 var(--theme-rim)
+ margin:0;border-radius:0;background:var(--surface-ground);box-shadow:none  /* THE SECOND HAIRLINE. index.html drew one separator under this row and this
+     drew another inside it, so the flap ended in a doubled rule and then a gap
+     before the panel. The row is part of the panel, not a thing sitting on top
+     of it; the active tab's underline is the only line this component needs. */
 }
 .collection__content{box-sizing:border-box;border-radius:0;background:var(--surface-ground);box-shadow:none;overflow:hidden}
 /* ── .badge ────────────────────────────────────────────────────────────────

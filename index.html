@@ -310,7 +310,18 @@ body.catchReady #stageMorph{transform:scale(1.055)}
    source of the off-grid literals in this block (left:16px, bottom:13px, an
    8px gap and an 8px pad written as numbers rather than rungs); the honest fix
    for spacing on rules that style nothing is to delete the rules. */
-.reelTap{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:3;display:none;align-items:center;justify-content:center;border:0;border-radius:4px;background:var(--c50);color:var(--c950);font-size:var(--fs-small);font-weight:400;white-space:nowrap;cursor:pointer;filter:url(#inkSm)}
+/* THE PLAY BUTTON JOINS THE LIBRARY INSTEAD OF BEING PATCHED TOWARD IT. It was
+   `class="reelTap"` with no .ctl at all, and four separate rules further down
+   this file bolted the system back on one property at a time -- the control
+   radius, the 44px tap floor, box-sizing. Its ground was var(--c50) on
+   var(--c950): raw ramp values, and the exact INVERSE of --ctl-primary-ground
+   on --ctl-primary-ink, written out by hand rather than named.
+   It takes .ctl in the markup now, so geometry, focus ring and press come from
+   the one place that owns them. The ground stays light-on-dark, because a
+   solid pale button is what stays legible over an arbitrary video frame and
+   this is the only affordance a phone has here -- but it is the theme tokens
+   saying so now, not two numbers off the ramp. */
+.reelTap{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:3;display:none;align-items:center;justify-content:center;border:0;font-size:var(--fs-small);font-weight:400;white-space:nowrap;cursor:pointer;filter:url(#inkSm)}
 .reel.coarse .reelTap{display:flex}
 .reelTap .tri,.playCursor .tri{width:0;height:0;border-style:solid;border-width:7px 0 7px 12px;border-color:transparent transparent transparent var(--c950);margin-left:1px}
 .playCursor{position:fixed;left:0;top:0;z-index:90;pointer-events:none;transform:translate(var(--px,-300px),var(--py,-300px))}
@@ -575,8 +586,18 @@ body.heroEmpathy .jbStick .jbNav{--nav-mat:var(--ctl-ground);--nav-rim:var(--ctl
    measures ~109px at 390 and ~389px at 1440. The labels are centred in those
    cells, so they sit further apart on a desktop. That is a composition call --
    stretch to fill, or hug the labels -- and it is Jayden's, not mine. */
+/* THE TAB ROW IS A FLAP ON THE PANEL, SO IT HAS TO TOUCH IT. Two separate
+   things were holding it off. A bottom margin of clamp(24px,3.2vh,40px) left a
+   visible break between the tabs and the work below them -- Jayden: "the flap
+   doesnt go far enough like i see it gets cut off before touching the thumbnail
+   doesnt go seamisly into it" -- and a ::before painted a 1px separator in
+   var(--c100), a RAW RAMP VALUE that never went near the theme, which is why it
+   read as a stray pale line in dark mode and nowhere else.
+   Both gone. The rail and the panel are one surface now, and the active tab's
+   own underline is what says which one you are on -- an affordance that already
+   exists and does not need a rule drawn under the whole row to support it. */
 .csTabs{display:flex;flex-wrap:wrap;align-items:flex-end;
- margin:0 auto clamp(24px,3.2vh,40px);position:relative}.csTabs::before{content:"";position:absolute;inset-inline:var(--case-inset);bottom:0;height:1px;background:var(--c100)}
+ margin:0 auto;position:relative}
 .csTab{position:relative;background:none;border:0;padding:0 0 var(--sp-12);margin:0;font:inherit;font-family:var(--sans);font-weight:600;font-size:var(--fs-small);letter-spacing:.01em;text-transform:none;color:var(--c500);cursor:pointer;transition:color var(--dur-state-out) var(--ease-out);filter:url(#inkSm)}
 .csTab:hover{color:var(--c950)}
 .csTab.on{color:var(--c950)}
@@ -2045,7 +2066,7 @@ if(location.hash==="#about")location.replace("about.html");</script>
  </div>
 
  <div class="csPanel" data-panel="goodness" role="tabpanel" aria-label="Extras" hidden>
-  <section class="reel" id="reel"><div class="reelTrack"><div class="reelStage" id="reelStage"><figure class="reelFrame" id="reelFrame" role="button" tabindex="0" aria-label="Play intro video"><video class="reelVid" id="reelVid" muted loop playsinline preload="none" poster="images/reel_poster.webp"><source src="videos/reel.mp4" type="video/mp4"></video><span class="reelTap" id="reelTap" aria-hidden="true"><span class="tri"></span>Play video</span><div class="playCursor" id="playCursor" aria-hidden="true"><span class="pcInner"><span class="tri"></span>Play video</span></div></figure><div class="reelMeta"><span class="csName">Wired to fail</span><span class="csYear">2026</span></div></div></div></section>
+  <section class="reel" id="reel"><div class="reelTrack"><div class="reelStage" id="reelStage"><figure class="reelFrame" id="reelFrame" role="button" tabindex="0" aria-label="Play intro video"><video class="reelVid" id="reelVid" muted loop playsinline preload="none" poster="images/reel_poster.webp"><source src="videos/reel.mp4" type="video/mp4"></video><span class="reelTap ctl ctl--primary" id="reelTap" aria-hidden="true"><span class="tri"></span>Play video</span><div class="playCursor" id="playCursor" aria-hidden="true"><span class="pcInner"><span class="tri"></span>Play video</span></div></figure><div class="reelMeta"><span class="csName">Wired to fail</span><span class="csYear">2026</span></div></div></div></section>
   <!-- Task 5: the head-maker and Gradient Lab cards moved to the Play menu (play.html).
        They are makers, not case studies, and Extras is where the reel lives. -->
  </div>

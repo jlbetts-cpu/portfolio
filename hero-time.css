@@ -462,9 +462,7 @@
  transition:background-color var(--hero-time-duration) var(--hero-time-ease),
   color var(--hero-time-duration) var(--hero-time-ease)
 }
-:root.theme-ready .csTabs::before{
- transition:background-color var(--hero-time-duration) var(--hero-time-ease)
-}
+
 :root.theme-ready .csTabInk{
  transition:transform var(--dur-reveal) var(--ease-out),width var(--dur-reveal) var(--ease-out),
   background-color var(--hero-time-duration) var(--hero-time-ease)
@@ -483,8 +481,7 @@
 }
 :root[data-theme="dark"] .csName{color:var(--theme-ink)}
 :root[data-theme="dark"] .csYear{color:var(--theme-muted)}
-:root[data-reduced-motion="reduce"] :is(.cases,.csTabInk,.csTab,.csPanel,.csMeta,.csName,.csYear,.footIn),
-:root[data-reduced-motion="reduce"] .csTabs::before{transition:none!important;animation:none!important}
+:root[data-reduced-motion="reduce"] :is(.cases,.csTabInk,.csTab,.csPanel,.csMeta,.csName,.csYear,.footIn){transition:none!important;animation:none!important}
 
 /* The clip IS the Hero's box. It inherits the radius, so the light stops
    exactly on the curved bottom edge and squarely on the three that meet the
