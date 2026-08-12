@@ -189,6 +189,13 @@ def check_chrome_cycle(browser, port, width, height):
     context, page = open_page(browser, port, width, height)
     drag(page, -60, -150)
     start = page.evaluate(READ)
+    # A CUSTOM PROPERTY DOES NOT RESOLVE THROUGH getPropertyValue -- it hands
+    # back the specified token stream, so a clamp() comes out as the literal
+    # string "clamp(0px, calc(...), calc(...))" and parseFloat gives NaN. The
+    # only way to read the LENGTH is to make the engine compute it, so this
+    # measures a hidden probe whose height is the token.
+    DROP = "()=>{const d=document.createElement('div');d.style.cssText='position:absolute;visibility:hidden;height:var(--hero-head-crowd-drop,0px)';document.body.appendChild(d);const v=parseFloat(getComputedStyle(d).height)||0;d.remove();return v;}"
+    start_drop = page.evaluate(DROP)
     seen = []
     for tall in CHROME_CYCLE:
         page.set_viewport_size({"width": width, "height": tall})
@@ -196,7 +203,21 @@ def check_chrome_cycle(browser, port, width, height):
         page.evaluate("window.__heroHeadTransform.stopFloat()")
         page.wait_for_timeout(150)
         now = page.evaluate(READ)
-        expected = tall - height          # the Hero grows with the viewport
+        # THE FLOOR MOVES, AND SO DOES THE DELIBERATE CROWD DROP. This asserted
+        # drift == the layout delta, i.e. "the head's offset from the floor is
+        # constant". That was right until the offset stopped being constant on
+        # purpose: below a measured crossover in svh -- 760 at 390 in WebKit --
+        # the head was overlapping the CTA row, up to 52.8px into it, so
+        # --hero-head-crowd-drop now lowers it out of the way and is exactly 0px
+        # above that line. The contract reads the drop the page actually applied
+        # rather than widening its tolerance, so the invariants that matter are
+        # untouched: nothing moves horizontally, nothing accumulates, and the
+        # round trip still returns to zero. The composition itself was always
+        # "Jayden's to rule on", per this file's own docstring, and he has:
+        # "on mobile the box is behind the button on start it should be slightly
+        # lower so it doesnt interfer and look unintentional".
+        drop = page.evaluate(DROP)
+        expected = tall - height + (drop - start_drop)
         drift = [now["box"][i] - start["box"][i] for i in (0, 1)]
         seen.append((tall, round(drift[0], 2), round(drift[1], 2)))
         if now["state"][:2] != start["state"][:2]:
@@ -214,7 +235,7 @@ def check_chrome_cycle(browser, port, width, height):
                             f"{expected:+d}px the Hero's own floor moved -- the "
                             f"difference is a base captured through the idle pose")
     print(f"  {width} chrome cycle {CHROME_CYCLE}: box drift {seen} "
-          f"(expected {[t - height for t in CHROME_CYCLE]})")
+          f"(expected {[t - height for t in CHROME_CYCLE]} before the crowd drop)")
     context.close()
     return failures
 

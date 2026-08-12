@@ -139,6 +139,41 @@
     value, exactly as --hero-head-enter-y hands back the position. */
  --hero-head-enter-spin:9deg
 }
+/* THE HEAD CROWDS THE BUTTON ON A SHORT VIEWPORT, AND ONLY THERE. The head is
+   anchored to the Hero's floor at a fixed pixel offset, so it rises 1:1 as svh
+   shrinks; the copy is centred, so it rises half as fast. The clearance between
+   them is therefore linear in svh and reaches ZERO at svh 760 on WebKit and 727
+   on Chromium at 390, 747 at 320, and 823 at 1440 -- which is every phone with
+   its toolbars showing, and every laptop window under about 820. Measured at
+   390x664 in WebKit the selection box sits 52.8px INTO the CTA row with the
+   full 102.3px of the button inside the head's span. That is what Jayden saw as
+   'the box is behind the button on start'; the entrance was ruled out first --
+   sampled across the whole arrival, the closest approach differs from the
+   resting clearance by under 1px.
+   IT ENGAGES ONLY WHERE THE LAYOUT HAS ALREADY BROKEN. clamp()'s lower bound is
+   0px, so above the crossover the drop is exactly zero and every value Jayden
+   placed by hand stands untouched at 390x844 and 1440x900. The upper bound is
+   relational -- two thirds of the head's own floor clearance -- so it can never
+   push the head through the floor it is standing on.
+   svh, not dvh: the peek is height:100svh, and svh is specified not to change
+   during a scroll. Using dvh here would make a scroll move the head again,
+   which is the bug hero-head-stage-anchor-contract exists to prevent.
+   THE @supports GATE IS LOAD-BEARING. Where svh is unsupported the calc is
+   invalid at computed-value time, and an invalid substitution into `bottom`
+   takes the whole declaration to `auto` -- the head would leave the floor
+   entirely. Gated, the token is never defined and controls.css's 0px fallback
+   stands. */
+@supports (height:1svh){:root{
+ --hero-head-crowd-reach:506px;
+ --hero-head-crowd-rate:60.4svh;
+ --hero-head-crowd-drop:clamp(0px,
+   calc(var(--hero-head-crowd-reach) - var(--hero-head-crowd-rate)),
+   calc(((var(--hero-peek-depth) * -1) + var(--hero-peek-offset)) * .66))
+}}
+@media(max-width:760px){@supports (height:1svh){:root{
+ --hero-head-crowd-reach:388px;
+ --hero-head-crowd-rate:50svh
+}}}
 @media(max-width:760px){:root{
  --hero-peek-width:211px;
  /* -152 was read off the HUD at 390 and it puts the head OFF-SCREEN: at 211px

@@ -713,7 +713,13 @@
    the head's rendered position is identical to the pixel. */
 .heroHeadTransform{
  position:absolute;left:50%;top:auto;
- bottom:calc((var(--hero-peek-depth) * -1) + var(--hero-peek-offset));
+ /* --hero-head-crowd-drop is 0px at every viewport tall enough to hold the copy
+    and the head without them overlapping, so this is the authored arithmetic
+    unchanged there. Below that height it lowers the head out of the CTA row --
+    hero-time.css owns the value and the reasoning. The 0px fallback is
+    load-bearing: the token is only defined under @supports (height:1svh). */
+ bottom:calc((var(--hero-peek-depth) * -1) + var(--hero-peek-offset)
+             - var(--hero-head-crowd-drop,0px));
  width:var(--hero-peek-width);max-width:none;z-index:2;
  transform-origin:var(--hero-head-origin-x) var(--hero-head-origin-y);
  transform:translate3d(calc(-50% + var(--hero-head-x)),calc(var(--hero-head-y) + var(--hero-movie-guard-y)),0)
