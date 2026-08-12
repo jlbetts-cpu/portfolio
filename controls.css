@@ -659,6 +659,15 @@
    yesterday. The degradation is the old position, never a zero-height box.
    Rest is unchanged: at rest the Hero IS 100svh tall, so the box is the same
    box and every --hero-peek-* constant lands where Jayden placed it. */
+/* THE HEAD SITS ABOVE THE COPY AND BELOW THE PRIMARY ACTION. It was z-index 2,
+   under .heroCopy at 3 and .heroCtas at 8, so anywhere it overlapped a headline
+   or a button THEY took the touch -- "when it is over the text or buttons it
+   kinda doesnt let me drag or resize" -- and during the entrance it passed
+   BEHIND the button, which is the part that read as unintentional.
+   5 puts it over the words, which is what a draggable object has to be to be
+   draggable, and still under .heroCtas, because the one thing on this page that
+   must never be blocked by a toy is the button that goes to the work. The layer
+   itself keeps pointer-events:none; only the portrait inside it is a target. */
 .heroCharacterPeek{
  position:absolute;inset:0;height:100svh;
  z-index:2;display:flex;justify-content:center;align-items:flex-end;
@@ -687,7 +696,18 @@
  transform-origin:var(--hero-head-origin-x) var(--hero-head-origin-y);
  transform:translate3d(calc(-50% + var(--hero-head-x)),calc(var(--hero-head-y) + var(--hero-movie-guard-y)),0)
            rotate(var(--hero-head-rotate)) scale(var(--hero-head-scale));
- will-change:transform
+ will-change:transform;
+ /* touch-action:none IS THE MOBILE SMOOTHNESS FIX, not a tidy-up. Under the
+    default `auto` the browser holds every touch back to work out whether it is
+    a page scroll before it hands over a pointer event, so the opening moments
+    of a drag were swallowed and a gesture could still be stolen into a scroll
+    part-way through. That is what "moving the head and resizing experience is
+    still not the smoothest on mobile" is describing, and it cannot be fixed in
+    JS: the decision is made before the first pointermove arrives, and
+    preventDefault on a passive listener does nothing. The Play page's draggable
+    word already declares this; the head, the far more obvious drag target,
+    never did. */
+ touch-action:none
 }
 .heroHeadTransform .stagewrap{position:relative!important;width:100%!important;max-width:none;margin:0!important}
 /* The four --selection-* values are written by hero-head-transform.js at runtime.
