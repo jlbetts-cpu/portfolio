@@ -58,7 +58,37 @@
 *{box-sizing:border-box;margin:0;padding:0}
 html{overflow-x:clip;scroll-behavior:smooth}
 body{background:var(--c50);color:var(--c950);font-family:var(--sans);-webkit-font-smoothing:antialiased;overflow-x:clip}
-img{display:block;max-width:100%}
+/* ── EVERY <img> NOW SHIPS ITS INTRINSIC width/height, AND THAT IS A LAYOUT FIX ─
+   Not one image on this page carried the attributes. Where a CSS aspect-ratio
+   already reserved the box (.cover, .photoRow, .photoPair, .stepShot, .shot.phone,
+   .buildStage) nothing changes -- those declarations still win and the attributes
+   are inert. Where nothing reserved it, the box was 0 until the bytes landed and
+   then snapped to full size, pushing everything below it down the page: .wide img
+   and .closeShot img (`width:100%;height:auto`, no ratio), .sketch img, and worst
+   of all .darlings img, which pins a height and leaves `width:auto` -- so three
+   lazy images in one flex row each went 0 -> full width as they arrived and shoved
+   their neighbours sideways, one after another, exactly where a reader is.
+   THIS IS THE MOST-LIKELY-TO-BITE DEFECT IN THE WHOLE PAGE for the reader Jayden
+   is worried about: someone opening a LinkedIn link on mobile data, where images
+   arrive seconds after the text and every unreserved box is a jump. On a warm
+   localhost it is invisible, which is why it survived this long -- run
+   tools/scroll-stability-probe.py --img-delay 900 to see it.
+   about.html already had this and says so at its .abShot rule: "without them a
+   lazy image is 0px tall until it arrives ... measured at 390 as heights
+   [349,0,0,0]". Same lesson, applied to the case studies.
+   NO CSS CHANGES WITH IT. `height` is `auto` by default, so an attribute pair
+   supplies a ratio and nothing else; every image renders at the size it already
+   did. Verified against a pristine `git archive HEAD` render at 390 and 1440. */
+img{display:block;max-width:100%;height:auto}   /* height:auto IS THE COMPANION TO THE ATTRIBUTES ABOVE, NOT A TIDY-UP.
+      `width`/`height` on an <img> are PRESENTATIONAL HINTS: they map to the
+      CSS width and height properties at UA-stylesheet weight. So an image
+      with no author height, shrunk by max-width:100%, would keep the
+      attribute's pixel height and stretch. Measured before this line:
+      cluster.html grew 2,984px at 320 and ucdavis 1,468px at 390. An author
+      `height:auto` outranks the hint and restores the ratio; every rule that
+      sets a real height (.cover img, .darlings img, .scrollbox .shot img)
+      is more specific than this and is untouched. Proved by
+      tools/render-diff.py: pixel-identical to the tree before the change. */
 *{-webkit-tap-highlight-color:transparent}
 .wrap{position:relative;z-index:2;max-width:1200px;margin:0 auto;padding:0 40px}
 
@@ -627,7 +657,7 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
    <section id="overview" class="hero">
     <h1 class="head rv" data-f="0.05" aria-label="Apollo — An ADHD-native social app with no streaks, no counts, and no color."><span class="eyebrow">Apollo</span>An ADHD-native social app with no streaks, no counts, and no color.</h1>
 
-    <figure class="cover media media--full" id="cover"><img src="images/cs/apollo-cover.webp" alt="Apollo shown across four iOS screens: the camera, the feed of daily wins, a profile, and North." loading="eager" decoding="async"></figure>
+    <figure class="cover media media--full" id="cover"><img src="images/cs/apollo-cover.webp" width="1600" height="1189" alt="Apollo shown across four iOS screens: the camera, the feed of daily wins, a profile, and North." loading="eager" decoding="async"></figure>
 
     <dl class="facts">
      <div class="fact"><dt class="fk">Role</dt><dd class="fv">Founder &amp; product designer</dd></div>
@@ -665,7 +695,7 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
     <p class="secBody">I kept the camera restrained on purpose. Apollo is a close-friends app, and it has to breed authenticity throughout. A camera roll means uploading your most posed, best-angle shot, but a win is about the feeling, not the perfect frame. So you shoot in the moment, with rule-of-thirds guides and framing help so it still looks its best. The instant you log a win, you feel it: this photo is going to become something gorgeous, for you and the people watching.</p>
     <p class="secBody">The screens in these flows, the camera and the core app, began at a <strong>24-hour hackathon where I designed the first version of Apollo end to end in a single day</strong>. I&rsquo;ve kept pushing every one of them further since.</p>
     <p class="secBody">The camera is the screen I&rsquo;m proudest of. The latest pass makes capturing a win effortless, a couple taps and you&rsquo;re done.</p>
-    <figure class="photoFig"><div class="player" role="group" aria-label="Capturing a win, start to finish"><div class="playerKick">From the 24-hour hackathon</div><div class="playerStage media media--mockup"><img src="images/cs/apollo/setwin-12.webp" alt="Capturing a win in Apollo, step 1 of 5." decoding="async"></div><div class="playerBar carousel-toolbar" role="group" aria-label="Carousel controls"><button class="sbBtn ctl ctl--internal" type="button" data-dir="-1" aria-label="Previous screen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg></button><div class="playerTicks"></div><button class="sbBtn ctl ctl--internal" type="button" data-dir="1" aria-label="Next screen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 6 15 12 9 18"/></svg></button></div><script type="application/json" class="playerBeats">[{"src": "images/cs/apollo/setwin-12.webp", "alt": "Capturing a win in Apollo, step 1 of 5.", "step": "", "note": ""}, {"src": "images/cs/apollo/setwin-2.webp", "alt": "Capturing a win in Apollo, step 2 of 5.", "step": "", "note": ""}, {"src": "images/cs/apollo/setwin-6.webp", "alt": "Capturing a win in Apollo, step 3 of 5.", "step": "", "note": ""}, {"src": "images/cs/apollo/setwin-8.webp", "alt": "Capturing a win in Apollo, step 4 of 5.", "step": "", "note": ""}, {"src": "images/cs/apollo/setwin-9.webp", "alt": "Capturing a win in Apollo, step 5 of 5.", "step": "", "note": ""}]</script></div><figcaption class="cap">Capturing a win.</figcaption></figure>
+    <figure class="photoFig"><div class="player" role="group" aria-label="Capturing a win, start to finish"><div class="playerKick">From the 24-hour hackathon</div><div class="playerStage media media--mockup"><img src="images/cs/apollo/setwin-12.webp" width="720" height="1565" alt="Capturing a win in Apollo, step 1 of 5." decoding="async"></div><div class="playerBar carousel-toolbar" role="group" aria-label="Carousel controls"><button class="sbBtn ctl ctl--internal" type="button" data-dir="-1" aria-label="Previous screen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg></button><div class="playerTicks"></div><button class="sbBtn ctl ctl--internal" type="button" data-dir="1" aria-label="Next screen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 6 15 12 9 18"/></svg></button></div><script type="application/json" class="playerBeats">[{"src": "images/cs/apollo/setwin-12.webp", "alt": "Capturing a win in Apollo, step 1 of 5.", "step": "", "note": ""}, {"src": "images/cs/apollo/setwin-2.webp", "alt": "Capturing a win in Apollo, step 2 of 5.", "step": "", "note": ""}, {"src": "images/cs/apollo/setwin-6.webp", "alt": "Capturing a win in Apollo, step 3 of 5.", "step": "", "note": ""}, {"src": "images/cs/apollo/setwin-8.webp", "alt": "Capturing a win in Apollo, step 4 of 5.", "step": "", "note": ""}, {"src": "images/cs/apollo/setwin-9.webp", "alt": "Capturing a win in Apollo, step 5 of 5.", "step": "", "note": ""}]</script></div><figcaption class="cap">Capturing a win.</figcaption></figure>
    </section>
 
    <section id="north" class="sec">
@@ -680,7 +710,7 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
     <p class="secBody">Because I designed Apollo from the inside, the ADHD-native thinking lives in the design, not just the marketing. No follower counts, no leaderboards, nothing that turns showing up into a number you can lose or a ranking to climb.</p>
     <p class="secBody">From launch to profile, Apollo holds one calm, grayscale world, a <strong>deliberate ADHD decision</strong>. ADHD brains run on dysregulated dopamine, which leaves them most vulnerable to the bright, saturated colors, red most of all, that apps weaponize to trigger a hit and pull attention. So there&rsquo;s no red anywhere, and no color at all in the interface: the only color in Apollo is your own photos. <strong>Research on grayscale interfaces shows it measurably lowers compulsive screen use</strong>, and here it means nothing ever competes with the wins.</p>
     <p class="secBody">The dark, luxurious mood came out of experimentation. I was chasing the feeling of a place like Equinox, premium, quiet, considered, and the whole look grew out of the logo, which I designed first. The dark doesn&rsquo;t just help ADHD focus, it makes Apollo feel worth keeping.</p>
-    <figure class="photoFig"><div class="tv tvPhone collection" aria-label="The latest design"><div class="playerKick">Where it stands today</div><div class="tvTabs collection__tabs" role="tablist" aria-label="The latest design"><button class="tvTab on ctl ctl--tab" type="button" role="tab" aria-selected="true">Home</button><button class="tvTab ctl ctl--tab" type="button" role="tab" aria-selected="false">Camera</button><button class="tvTab ctl ctl--tab" type="button" role="tab" aria-selected="false">Feed</button><button class="tvTab ctl ctl--tab" type="button" role="tab" aria-selected="false">Find</button></div><figure class="tvFrame collection__content media media--mockup"><img src="images/cs/apollo/upd-3.webp" alt="The latest home: friends orbit the sunset countdown." decoding="async"></figure><script type="application/json" class="tvItems">[{"src": "images/cs/apollo/upd-3.webp", "alt": "The latest home: friends orbit the sunset countdown.", "label": "Home"}, {"src": "images/cs/apollo/upd-1.webp", "alt": "The latest camera: full-screen viewfinder with controls at the edges.", "label": "Camera"}, {"src": "images/cs/apollo/upd-2.webp", "alt": "The latest feed: mosaic posts from friends.", "label": "Feed"}, {"src": "images/cs/apollo/upd-4.webp", "alt": "The latest Find: search, requests, people, and albums in one hub.", "label": "Find"}]</script></div><figcaption class="cap">The latest design.</figcaption></figure>
+    <figure class="photoFig"><div class="tv tvPhone collection" aria-label="The latest design"><div class="playerKick">Where it stands today</div><div class="tvTabs collection__tabs" role="tablist" aria-label="The latest design"><button class="tvTab on ctl ctl--tab" type="button" role="tab" aria-selected="true">Home</button><button class="tvTab ctl ctl--tab" type="button" role="tab" aria-selected="false">Camera</button><button class="tvTab ctl ctl--tab" type="button" role="tab" aria-selected="false">Feed</button><button class="tvTab ctl ctl--tab" type="button" role="tab" aria-selected="false">Find</button></div><figure class="tvFrame collection__content media media--mockup"><img src="images/cs/apollo/upd-3.webp" width="720" height="1569" alt="The latest home: friends orbit the sunset countdown." decoding="async"></figure><script type="application/json" class="tvItems">[{"src": "images/cs/apollo/upd-3.webp", "alt": "The latest home: friends orbit the sunset countdown.", "label": "Home"}, {"src": "images/cs/apollo/upd-1.webp", "alt": "The latest camera: full-screen viewfinder with controls at the edges.", "label": "Camera"}, {"src": "images/cs/apollo/upd-2.webp", "alt": "The latest feed: mosaic posts from friends.", "label": "Feed"}, {"src": "images/cs/apollo/upd-4.webp", "alt": "The latest Find: search, requests, people, and albums in one hub.", "label": "Find"}]</script></div><figcaption class="cap">The latest design.</figcaption></figure>
    </section>
 
    <section id="screens" class="sec">
@@ -688,7 +718,7 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
     <h2 class="secHead">Refining the hackathon designs.</h2>
     
     <p class="secBody">All that thinking had to survive contact with a real screen. Here are three places where the redesign changed how Apollo feels to use, and why each matters.</p>
-    <div class="baStack"><div class="baBlock"><div class="baText"><div class="subKick">Redesign</div><h3 class="subHead">The feed</h3><p class="baBody">The old feed was always open, the all-day scroll every other app runs on. That&rsquo;s the trap: social feeds reward you on a <strong>variable schedule</strong>, so the brain keeps firing in anticipation and never settles, the loop that hits ADHD brains hardest. So wins stay locked until sunset, when everyone&rsquo;s unlock at once. Trading an unpredictable pull for one <strong>fixed daily moment</strong> turns checking into a ritual, not a compulsion.</p></div><div class="baGrid"><div class="baCol"><span class="baLabel badge badge--inked">Before</span><figure class="shot phone"><img src="images/cs/apollo/main-feed.webp" alt="The feed, before" loading="lazy" draggable="false"></figure><span class="baNote">The always-open feed: an all-day scroll.</span></div><div class="baCol isAfter"><span class="baLabel badge badge--inked">After</span><figure class="shot phone"><img src="images/cs/apollo/upd-feed.webp" alt="The feed, after" loading="lazy" draggable="false"></figure><span class="baNote">Wins unlock once, at sunset. Checking becomes a ritual.</span></div><span class="baGo" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="13 6 19 12 13 18"/></svg></span></div></div><div class="baBlock"><div class="baText"><div class="subKick">Redesign</div><h3 class="subHead">The camera</h3><p class="baBody">I gave the viewfinder the whole screen so capturing a win feels cinematic, not clerical. Flash and rotate move to the edges within thumb reach, so nothing competes with the shot when it matters.</p></div><div class="baGrid"><div class="baCol"><span class="baLabel badge badge--inked">Before</span><figure class="shot phone"><img src="images/cs/apollo/main-camera.webp" alt="The camera, before" loading="lazy" draggable="false"></figure><span class="baNote">The viewfinder shared the screen with chrome.</span></div><div class="baCol isAfter"><span class="baLabel badge badge--inked">After</span><figure class="shot phone"><img src="images/cs/apollo/upd-camera.webp" alt="The camera, after" loading="lazy" draggable="false"></figure><span class="baNote">Full-screen viewfinder, controls at the thumb edges.</span></div><span class="baGo" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="13 6 19 12 13 18"/></svg></span></div></div><div class="baBlock"><div class="baText"><div class="subKick">Redesign</div><h3 class="subHead">Connect becomes Find</h3><p class="baBody">Connect was a bare utility for adding people. Find does that and more: it surfaces albums of wins curated to you, opens friends&rsquo; profiles, handles requests, and puts settings one tap away. One hub instead of a single-purpose screen.</p></div><div class="baGrid"><div class="baCol"><span class="baLabel badge badge--inked">Before</span><figure class="shot phone"><img src="images/cs/apollo/main-friends.webp" alt="Connect becomes Find, before" loading="lazy" draggable="false"></figure><span class="baNote">Connect was a bare list for adding people.</span></div><div class="baCol isAfter"><span class="baLabel badge badge--inked">After</span><figure class="shot phone"><img src="images/cs/apollo/upd-friends.webp" alt="Connect becomes Find, after" loading="lazy" draggable="false"></figure><span class="baNote">One hub: albums, profiles, requests, and settings.</span></div><span class="baGo" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="13 6 19 12 13 18"/></svg></span></div></div></div></section>
+    <div class="baStack"><div class="baBlock"><div class="baText"><div class="subKick">Redesign</div><h3 class="subHead">The feed</h3><p class="baBody">The old feed was always open, the all-day scroll every other app runs on. That&rsquo;s the trap: social feeds reward you on a <strong>variable schedule</strong>, so the brain keeps firing in anticipation and never settles, the loop that hits ADHD brains hardest. So wins stay locked until sunset, when everyone&rsquo;s unlock at once. Trading an unpredictable pull for one <strong>fixed daily moment</strong> turns checking into a ritual, not a compulsion.</p></div><div class="baGrid"><div class="baCol"><span class="baLabel badge badge--inked">Before</span><figure class="shot phone"><img src="images/cs/apollo/main-feed.webp" width="720" height="1565" alt="The feed, before" loading="lazy" draggable="false"></figure><span class="baNote">The always-open feed: an all-day scroll.</span></div><div class="baCol isAfter"><span class="baLabel badge badge--inked">After</span><figure class="shot phone"><img src="images/cs/apollo/upd-feed.webp" width="720" height="1569" alt="The feed, after" loading="lazy" draggable="false"></figure><span class="baNote">Wins unlock once, at sunset. Checking becomes a ritual.</span></div><span class="baGo" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="13 6 19 12 13 18"/></svg></span></div></div><div class="baBlock"><div class="baText"><div class="subKick">Redesign</div><h3 class="subHead">The camera</h3><p class="baBody">I gave the viewfinder the whole screen so capturing a win feels cinematic, not clerical. Flash and rotate move to the edges within thumb reach, so nothing competes with the shot when it matters.</p></div><div class="baGrid"><div class="baCol"><span class="baLabel badge badge--inked">Before</span><figure class="shot phone"><img src="images/cs/apollo/main-camera.webp" width="720" height="1565" alt="The camera, before" loading="lazy" draggable="false"></figure><span class="baNote">The viewfinder shared the screen with chrome.</span></div><div class="baCol isAfter"><span class="baLabel badge badge--inked">After</span><figure class="shot phone"><img src="images/cs/apollo/upd-camera.webp" width="720" height="1565" alt="The camera, after" loading="lazy" draggable="false"></figure><span class="baNote">Full-screen viewfinder, controls at the thumb edges.</span></div><span class="baGo" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="13 6 19 12 13 18"/></svg></span></div></div><div class="baBlock"><div class="baText"><div class="subKick">Redesign</div><h3 class="subHead">Connect becomes Find</h3><p class="baBody">Connect was a bare utility for adding people. Find does that and more: it surfaces albums of wins curated to you, opens friends&rsquo; profiles, handles requests, and puts settings one tap away. One hub instead of a single-purpose screen.</p></div><div class="baGrid"><div class="baCol"><span class="baLabel badge badge--inked">Before</span><figure class="shot phone"><img src="images/cs/apollo/main-friends.webp" width="720" height="1565" alt="Connect becomes Find, before" loading="lazy" draggable="false"></figure><span class="baNote">Connect was a bare list for adding people.</span></div><div class="baCol isAfter"><span class="baLabel badge badge--inked">After</span><figure class="shot phone"><img src="images/cs/apollo/upd-friends.webp" width="720" height="1565" alt="Connect becomes Find, after" loading="lazy" draggable="false"></figure><span class="baNote">One hub: albums, profiles, requests, and settings.</span></div><span class="baGo" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="13 6 19 12 13 18"/></svg></span></div></div></div></section>
 
    
 
@@ -833,13 +863,21 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
   var rail=document.querySelector('.rail');
   var imgs=[].slice.call(document.querySelectorAll('.cover,.wide,.facts,.cmp,.scrollbox,.photoRow,.stepShot,.closeShot,.darlings'));
   if(!rail||!imgs.length||reduce)return;
+  /* THE RAIL IS `display:none` BELOW 881px -- see the @media block above -- and
+     this ran on phones anyway: a getBoundingClientRect on the hidden rail plus
+     one per full-bleed figure until a hit, inside a scroll-driven rAF, every
+     frame of every flick, to toggle a class on an element nobody can see. The
+     media query is the same one the stylesheet uses, so the guard cannot drift
+     from the rule it is guarding. Desktop behaviour is untouched. */
+  var railLive=matchMedia('(min-width:881px)');
   function hush(){
+   if(!railLive.matches)return;
    var rb=rail.getBoundingClientRect(),over=false;
    for(var i=0;i<imgs.length;i++){var b=imgs[i].getBoundingClientRect();if(b.top<rb.bottom&&b.bottom>rb.top){over=true;break;}}
    rail.classList.toggle('hush',over);
   }
   var ticking=false;
-  window.addEventListener('scroll',function(){if(!ticking){ticking=true;requestAnimationFrame(function(){hush();ticking=false;});}},{passive:true});
+  window.addEventListener('scroll',function(){if(!railLive.matches||ticking)return;ticking=true;requestAnimationFrame(function(){hush();ticking=false;});},{passive:true});
   window.addEventListener('resize',hush,{passive:true});
   hush();
  })();
@@ -848,7 +886,12 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
  (function(){
   var rail=document.querySelector('.rail'),role=document.querySelector('.ov')||document.querySelector('.role'),layout=document.querySelector('.layout');
   if(!rail||!role||!layout)return;
+  /* Same guard, same reason: below 881 the rail is display:none, and this fired
+     five times per load (immediately, on load, on fonts.ready, at 320ms and at
+     1100ms) forcing two layouts each time to position something invisible. */
+  var railLive=matchMedia('(min-width:881px)');
   function align(){
+   if(!railLive.matches)return;
    var off=role.getBoundingClientRect().top-layout.getBoundingClientRect().top-Math.round(window.innerHeight*0.5);
    rail.style.marginTop=Math.max(0,Math.round(off))+'px';
   }
@@ -933,12 +976,49 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
  });
 
  /* moving ink: reseed the turbulence on the 8fps house clock so the textured type "boils" exactly like the home-page headline */
+ /* ── THE BOIL HOLDS STILL WHILE YOU ARE MOVING, AND THAT IS THE WHOLE CHANGE ──
+    Jayden: "the experience of even scrolling on the home to feel choppy and all
+    over the place", reported from the LinkedIn link -- an in-app WKWebView on a
+    phone, which is plausibly how most recruiters will ever see this site.
+    WHAT THIS LOOP COSTS, because `seed` looks like a paint hint and is not.
+    It is an attribute of the two feTurbulence primitives that `filter:url(#inkBig)`
+    and `filter:url(#inkSm)` reference. Changing it INVALIDATES BOTH FILTERS, so
+    every element on the page carrying either -- the h1, every eyebrow, kicker,
+    caption, fact key, stat source, and both halves of every chapter-rail row --
+    re-runs a fractal-noise + displacement chain and repaints. Eight times a
+    second, from a bare setInterval, so the invalidation lands wherever it falls
+    inside the frame rather than at the top of one, and it never stops: hidden
+    tab, offscreen type, mid-flick, all the same.
+    THE TEXTURE IS THE CHARACTER. THE BOIL DURING A FLICK IS NOT. The
+    displacement is 1.1px on the big filter and 0.55px on the small one. Nobody
+    has ever seen half a pixel wander on type that is itself travelling past at
+    flick speed -- but everybody feels the frame it cost. So the ink still boils
+    on the same 8fps house clock, through the same seed sequence in the same
+    order, whenever the page is STILL. It holds its last seed while you scroll
+    and while the tab is hidden, and picks the sequence up again 180ms after you
+    stop. AT REST THIS IS BYTE-FOR-BYTE THE EFFECT THAT WAS HERE; nothing about
+    the look is subtracted, only the eight repaints a second nobody can see.
+    THE CLOCK STAYS A TIMER, THE WRITE MOVES INTO A FRAME. A permanent rAF loop
+    would keep the compositor awake for a page that is doing nothing; a 125ms
+    timer whose callback returns immediately costs nothing when suppressed. The
+    one attribute write is deferred into a single requestAnimationFrame so the
+    invalidation happens at the start of a frame rather than halfway through the
+    one the scroller is already using. */
  (function(){
   if(reduce)return;
   var tb=document.querySelector('#inkBig feTurbulence'),ts=document.querySelector('#inkSm feTurbulence');
   if(!tb&&!ts)return;
-  var SEEDS=[7,19,3,28,11,23,5,31],tk=0;
-  setInterval(function(){tk++;var s=SEEDS[tk%SEEDS.length];if(tb)tb.setAttribute('seed',s);if(ts)ts.setAttribute('seed',(s*2+5)%37);},125);
+  var SEEDS=[7,19,3,28,11,23,5,31],tk=0,quietUntil=0,pending=false;
+  addEventListener('scroll',function(){quietUntil=performance.now()+180;},{passive:true});
+  setInterval(function(){
+   if(pending||document.hidden||performance.now()<quietUntil)return;
+   pending=true;
+   requestAnimationFrame(function(){
+    pending=false;tk++;var s=SEEDS[tk%SEEDS.length];
+    if(tb)tb.setAttribute('seed',s);
+    if(ts)ts.setAttribute('seed',(s*2+5)%37);
+   });
+  },125);
  })();
 
  /* read time: a rough estimate from the page's prose so recruiters can gauge the commitment; recomputes from whatever copy exists, so it stays honest as the sections get written */
@@ -1112,8 +1192,11 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
  </script>
 <script>
 (function(){var rail=document.querySelector('.rail');if(!rail)return;var tick=false;
-function u(){var docH=document.documentElement.scrollHeight;var y=window.scrollY+window.innerHeight;var wasGone=rail.classList.contains('railGone');var nearEnd=wasGone?(y>docH-60):(y>docH-24);rail.classList.toggle('railGone',nearEnd);tick=false;}
-addEventListener('scroll',function(){if(!tick){requestAnimationFrame(u);tick=true;}},{passive:true});u();})();
+var railLive=matchMedia('(min-width:881px)');
+function u(){tick=false;if(!railLive.matches)return;var docH=document.documentElement.scrollHeight;var y=window.scrollY+window.innerHeight;var wasGone=rail.classList.contains('railGone');var nearEnd=wasGone?(y>docH-60):(y>docH-24);rail.classList.toggle('railGone',nearEnd);}
+/* documentElement.scrollHeight is a forced layout, and this took one every
+   scroll frame on a phone to fade a rail that is display:none there. */
+addEventListener('scroll',function(){if(!tick&&railLive.matches){requestAnimationFrame(u);tick=true;}},{passive:true});u();})();
 
 /* gallery paddles: prev/next controls with disabled ends; drag, swipe, and keyboard still work */
 (function(){

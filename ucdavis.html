@@ -58,7 +58,37 @@
 *{box-sizing:border-box;margin:0;padding:0}
 html{overflow-x:clip;scroll-behavior:smooth}
 body{background:var(--c50);color:var(--c950);font-family:var(--sans);-webkit-font-smoothing:antialiased;overflow-x:clip}
-img{display:block;max-width:100%}
+/* ── EVERY <img> NOW SHIPS ITS INTRINSIC width/height, AND THAT IS A LAYOUT FIX ─
+   Not one image on this page carried the attributes. Where a CSS aspect-ratio
+   already reserved the box (.cover, .photoRow, .photoPair, .stepShot, .shot.phone,
+   .buildStage) nothing changes -- those declarations still win and the attributes
+   are inert. Where nothing reserved it, the box was 0 until the bytes landed and
+   then snapped to full size, pushing everything below it down the page: .wide img
+   and .closeShot img (`width:100%;height:auto`, no ratio), .sketch img, and worst
+   of all .darlings img, which pins a height and leaves `width:auto` -- so three
+   lazy images in one flex row each went 0 -> full width as they arrived and shoved
+   their neighbours sideways, one after another, exactly where a reader is.
+   THIS IS THE MOST-LIKELY-TO-BITE DEFECT IN THE WHOLE PAGE for the reader Jayden
+   is worried about: someone opening a LinkedIn link on mobile data, where images
+   arrive seconds after the text and every unreserved box is a jump. On a warm
+   localhost it is invisible, which is why it survived this long -- run
+   tools/scroll-stability-probe.py --img-delay 900 to see it.
+   about.html already had this and says so at its .abShot rule: "without them a
+   lazy image is 0px tall until it arrives ... measured at 390 as heights
+   [349,0,0,0]". Same lesson, applied to the case studies.
+   NO CSS CHANGES WITH IT. `height` is `auto` by default, so an attribute pair
+   supplies a ratio and nothing else; every image renders at the size it already
+   did. Verified against a pristine `git archive HEAD` render at 390 and 1440. */
+img{display:block;max-width:100%;height:auto}   /* height:auto IS THE COMPANION TO THE ATTRIBUTES ABOVE, NOT A TIDY-UP.
+      `width`/`height` on an <img> are PRESENTATIONAL HINTS: they map to the
+      CSS width and height properties at UA-stylesheet weight. So an image
+      with no author height, shrunk by max-width:100%, would keep the
+      attribute's pixel height and stretch. Measured before this line:
+      cluster.html grew 2,984px at 320 and ucdavis 1,468px at 390. An author
+      `height:auto` outranks the hint and restores the ratio; every rule that
+      sets a real height (.cover img, .darlings img, .scrollbox .shot img)
+      is more specific than this and is untouched. Proved by
+      tools/render-diff.py: pixel-identical to the tree before the change. */
 *{-webkit-tap-highlight-color:transparent}
 .wrap{position:relative;z-index:2;max-width:1200px;margin:0 auto;padding:0 40px}
 
@@ -654,7 +684,7 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
    <section id="overview" class="hero">
     <h1 class="head rv" data-f="0.05" aria-label="UC Davis Rec — Putting the gym ID in Apple Wallet, and killing the login."><span class="eyebrow">UC Davis Rec</span>Putting the gym ID in Apple Wallet, and killing the login.</h1>
 
-    <figure class="cover media media--full" id="cover"><img src="images/cs/ucrec/cover.webp" alt="The redesigned UC Davis Recreation home screen: upcoming events, live hours, a Member ID, and customizable modules." loading="eager" decoding="async"></figure>
+    <figure class="cover media media--full" id="cover"><img src="images/cs/ucrec/cover.webp" width="1600" height="1188" alt="The redesigned UC Davis Recreation home screen: upcoming events, live hours, a Member ID, and customizable modules." loading="eager" decoding="async"></figure>
 
     <dl class="facts">
      <div class="fact"><dt class="fk">Role</dt><dd class="fv">Product designer</dd></div>
@@ -680,7 +710,7 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
     <div class="kicker">Problem</div>
     <h2 class="secHead">The app was a barrier, not a tool.</h2>
     <p class="secBody">I use the UC Davis Rec app when I forget my wallet, and every time it makes me log in again just to pull up the ID that gets me through the gym door. The rest is a wall of identical icons with no hierarchy, key things like hours and live gym capacity buried or missing, and a top-heavy layout that leaves half the screen empty. UC Davis wants this to be a hub for campus life. Right now it acts more like a barrier than a tool.</p>
-    <figure class="photoFig"><span class="scrapTag badge badge--dashed badge--block">The original app · before the redesign</span><div class="tv tvPhone collection" aria-label="The original app"><div class="tvTabs collection__tabs" role="tablist" aria-label="The original app"><button class="tvTab on ctl ctl--tab" type="button" role="tab" aria-selected="true">Home</button><button class="tvTab ctl ctl--tab" type="button" role="tab" aria-selected="false">Side menu</button><button class="tvTab ctl ctl--tab" type="button" role="tab" aria-selected="false">Member ID</button><button class="tvTab ctl ctl--tab" type="button" role="tab" aria-selected="false">The login</button></div><figure class="tvFrame collection__content media media--mockup"><img src="images/cs/ucrec/before-1.webp" alt="Original home: a flat grid of same-sized icons." decoding="async"></figure><script type="application/json" class="tvItems">[{"src": "images/cs/ucrec/before-1.webp", "alt": "Original home: a flat grid of same-sized icons.", "label": "Home"}, {"src": "images/cs/ucrec/before-2.webp", "alt": "Original side menu holding only notifications and accessibility.", "label": "Side menu"}, {"src": "images/cs/ucrec/before-3.webp", "alt": "Original Member ID screen: two login buttons before the barcode.", "label": "Member ID"}, {"src": "images/cs/ucrec/before-4.webp", "alt": "The CAS login form you hit every time.", "label": "The login"}]</script></div><figcaption class="cap">The original app: a flat grid of icons, everything the same weight, and the login you hit every time.</figcaption></figure>
+    <figure class="photoFig"><span class="scrapTag badge badge--dashed badge--block">The original app · before the redesign</span><div class="tv tvPhone collection" aria-label="The original app"><div class="tvTabs collection__tabs" role="tablist" aria-label="The original app"><button class="tvTab on ctl ctl--tab" type="button" role="tab" aria-selected="true">Home</button><button class="tvTab ctl ctl--tab" type="button" role="tab" aria-selected="false">Side menu</button><button class="tvTab ctl ctl--tab" type="button" role="tab" aria-selected="false">Member ID</button><button class="tvTab ctl ctl--tab" type="button" role="tab" aria-selected="false">The login</button></div><figure class="tvFrame collection__content media media--mockup"><img src="images/cs/ucrec/before-1.webp" width="460" height="1000" alt="Original home: a flat grid of same-sized icons." decoding="async"></figure><script type="application/json" class="tvItems">[{"src": "images/cs/ucrec/before-1.webp", "alt": "Original home: a flat grid of same-sized icons.", "label": "Home"}, {"src": "images/cs/ucrec/before-2.webp", "alt": "Original side menu holding only notifications and accessibility.", "label": "Side menu"}, {"src": "images/cs/ucrec/before-3.webp", "alt": "Original Member ID screen: two login buttons before the barcode.", "label": "Member ID"}, {"src": "images/cs/ucrec/before-4.webp", "alt": "The CAS login form you hit every time.", "label": "The login"}]</script></div><figcaption class="cap">The original app: a flat grid of icons, everything the same weight, and the login you hit every time.</figcaption></figure>
    </section>
 
    <section id="research" class="sec">
@@ -688,12 +718,12 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
     <h2 class="secHead">Students only opened it to scan in.</h2>
     <p class="secBody"><strong>I ran three interviews with students who use the app</strong>, and the pattern was immediate: <strong>everyone used it for one thing, scanning into the ARC, and almost nothing else</strong>. &ldquo;It&rsquo;s kinda confusing to navigate.&rdquo; &ldquo;I only use it to scan in.&rdquo; The friction wasn&rsquo;t just annoying, it hid everything else UC Rec offers behind icons no one taps.</p>
     <div class="qRow">
-     <blockquote class="pull"><img class="pullChar" src="images/cs/ucrec/char-1.webp" alt="" aria-hidden="true"><span class="pullBody">&ldquo;It&rsquo;s kinda confusing to navigate, sometimes it takes me a while scrolling through it.&rdquo;<span class="pullWho">Student, 2nd year</span></span></blockquote>
-     <blockquote class="pull"><img class="pullChar" src="images/cs/ucrec/char-2.webp" alt="" aria-hidden="true"><span class="pullBody">&ldquo;I just use the app for scanning into the ARC when I don&rsquo;t have my card.&rdquo;<span class="pullWho">Student, 3rd year</span></span></blockquote>
-     <blockquote class="pull"><img class="pullChar" src="images/cs/ucrec/char-3.webp" alt="" aria-hidden="true"><span class="pullBody">&ldquo;I only use it to scan in. It could use a format change.&rdquo;<span class="pullWho">Student, 1st year</span></span></blockquote>
+     <blockquote class="pull"><img class="pullChar" src="images/cs/ucrec/char-1.webp" width="98" height="300" alt="" aria-hidden="true"><span class="pullBody">&ldquo;It&rsquo;s kinda confusing to navigate, sometimes it takes me a while scrolling through it.&rdquo;<span class="pullWho">Student, 2nd year</span></span></blockquote>
+     <blockquote class="pull"><img class="pullChar" src="images/cs/ucrec/char-2.webp" width="96" height="300" alt="" aria-hidden="true"><span class="pullBody">&ldquo;I just use the app for scanning into the ARC when I don&rsquo;t have my card.&rdquo;<span class="pullWho">Student, 3rd year</span></span></blockquote>
+     <blockquote class="pull"><img class="pullChar" src="images/cs/ucrec/char-3.webp" width="94" height="300" alt="" aria-hidden="true"><span class="pullBody">&ldquo;I only use it to scan in. It could use a format change.&rdquo;<span class="pullWho">Student, 1st year</span></span></blockquote>
     </div>
     <p class="secBody">The friction between a student and the door was mine too. So I started sketching in low fidelity, blocking out a real hierarchy and a side menu before touching color or type.</p>
-    <figure class="photoFig"><div class="tv tvBoard collection" aria-label="Lo-fi sketches and wireframes"><div class="tvTabs collection__tabs" role="tablist" aria-label="Lo-fi sketches and wireframes"><button class="tvTab on ctl ctl--tab" type="button" role="tab" aria-selected="true">Sketches</button><button class="tvTab ctl ctl--tab" type="button" role="tab" aria-selected="false">Lo-fi home</button><button class="tvTab ctl ctl--tab" type="button" role="tab" aria-selected="false">Lo-fi side menu</button></div><figure class="tvFrame collection__content media media--mockup"><img src="images/cs/ucrec/sketches.webp" alt="Hand sketches of the home, side menu, and the Aggie ID in Apple Wallet." decoding="async"></figure><script type="application/json" class="tvItems">[{"src": "images/cs/ucrec/sketches.webp", "alt": "Hand sketches of the home, side menu, and the Aggie ID in Apple Wallet.", "label": "Sketches"}, {"src": "images/cs/ucrec/lofi-layout.webp", "alt": "Lo-fi wireframe of the home layout.", "label": "Lo-fi home"}, {"src": "images/cs/ucrec/lofi-sidebar.webp", "alt": "Lo-fi wireframe of the side menu.", "label": "Lo-fi side menu"}]</script></div><figcaption class="cap">From the first hand sketches into digital wireframes, home, side menu, and the Aggie ID in Wallet.</figcaption></figure>
+    <figure class="photoFig"><div class="tv tvBoard collection" aria-label="Lo-fi sketches and wireframes"><div class="tvTabs collection__tabs" role="tablist" aria-label="Lo-fi sketches and wireframes"><button class="tvTab on ctl ctl--tab" type="button" role="tab" aria-selected="true">Sketches</button><button class="tvTab ctl ctl--tab" type="button" role="tab" aria-selected="false">Lo-fi home</button><button class="tvTab ctl ctl--tab" type="button" role="tab" aria-selected="false">Lo-fi side menu</button></div><figure class="tvFrame collection__content media media--mockup"><img src="images/cs/ucrec/sketches.webp" width="1152" height="1500" alt="Hand sketches of the home, side menu, and the Aggie ID in Apple Wallet." decoding="async"></figure><script type="application/json" class="tvItems">[{"src": "images/cs/ucrec/sketches.webp", "alt": "Hand sketches of the home, side menu, and the Aggie ID in Apple Wallet.", "label": "Sketches"}, {"src": "images/cs/ucrec/lofi-layout.webp", "alt": "Lo-fi wireframe of the home layout.", "label": "Lo-fi home"}, {"src": "images/cs/ucrec/lofi-sidebar.webp", "alt": "Lo-fi wireframe of the side menu.", "label": "Lo-fi side menu"}]</script></div><figcaption class="cap">From the first hand sketches into digital wireframes, home, side menu, and the Aggie ID in Wallet.</figcaption></figure>
     
    </section>
 
@@ -701,8 +731,8 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
     <div class="kicker">The redesign</div>
     <h2 class="secHead">Built around what students actually use.</h2>
     <p class="secBody">I rebuilt the home screen around a clear hierarchy and modules students can cater to their own interests, instead of a grid of buttons most will never press. Events sit up top in a carousel, live gym capacity is right there (easy to add, since everyone already scans in), and the tabs no one used move into a side menu you pull up when needed.</p>
-    <figure class="photoFig"><div class="baGrid"><div class="baCol"><span class="baLabel badge badge--inked">Before</span><figure class="shot phone"><img src="images/cs/ucrec/before-1.webp" alt="The original home: a flat grid of icons behind a login." loading="lazy" decoding="async"></figure><span class="baNote">A flat grid of icons behind a login.</span></div><div class="baCol isAfter"><span class="baLabel badge badge--inked">After</span><figure class="shot phone"><img src="images/cs/ucrec/after-home.webp" alt="The redesigned home: hierarchy, events, live capacity, and the Member ID up top." loading="lazy" decoding="async"></figure><span class="baNote">Hierarchy: events, live capacity, and the Member ID up top.</span></div><span class="baGo" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="13 6 19 12 13 18"/></svg></span></div></figure>
-    <figure class="photoFig"><div class="baGrid"><div class="baCol"><span class="baLabel badge badge--inked">Before</span><figure class="shot phone"><img src="images/cs/ucrec/before-2.webp" alt="The original side menu, holding almost nothing." loading="lazy" decoding="async"></figure><span class="baNote">A side menu holding almost nothing.</span></div><div class="baCol isAfter"><span class="baLabel badge badge--inked">After</span><figure class="shot phone"><img src="images/cs/ucrec/after-sidebar.webp" alt="The redesigned side menu holding the less-used tabs." loading="lazy" decoding="async"></figure><span class="baNote">The rarely-used tabs, tucked where they belong.</span></div><span class="baGo" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="13 6 19 12 13 18"/></svg></span></div></figure>
+    <figure class="photoFig"><div class="baGrid"><div class="baCol"><span class="baLabel badge badge--inked">Before</span><figure class="shot phone"><img src="images/cs/ucrec/before-1.webp" width="460" height="1000" alt="The original home: a flat grid of icons behind a login." loading="lazy" decoding="async"></figure><span class="baNote">A flat grid of icons behind a login.</span></div><div class="baCol isAfter"><span class="baLabel badge badge--inked">After</span><figure class="shot phone"><img src="images/cs/ucrec/after-home.webp" width="460" height="1000" alt="The redesigned home: hierarchy, events, live capacity, and the Member ID up top." loading="lazy" decoding="async"></figure><span class="baNote">Hierarchy: events, live capacity, and the Member ID up top.</span></div><span class="baGo" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="13 6 19 12 13 18"/></svg></span></div></figure>
+    <figure class="photoFig"><div class="baGrid"><div class="baCol"><span class="baLabel badge badge--inked">Before</span><figure class="shot phone"><img src="images/cs/ucrec/before-2.webp" width="460" height="1000" alt="The original side menu, holding almost nothing." loading="lazy" decoding="async"></figure><span class="baNote">A side menu holding almost nothing.</span></div><div class="baCol isAfter"><span class="baLabel badge badge--inked">After</span><figure class="shot phone"><img src="images/cs/ucrec/after-sidebar.webp" width="460" height="1000" alt="The redesigned side menu holding the less-used tabs." loading="lazy" decoding="async"></figure><span class="baNote">The rarely-used tabs, tucked where they belong.</span></div><span class="baGo" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="13 6 19 12 13 18"/></svg></span></div></figure>
     <div class="subBlock">
      <div class="subKick">The idea I&rsquo;m proudest of</div>
      <h3 class="subHead">The gym ID lives in Apple Wallet.</h3>
@@ -712,7 +742,7 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
       <aside class="stat" aria-label="Mobile wallet finding"><div class="statNum" style="gap:0">84<span class="statUnit">%</span></div><p class="statCap">of Gen Z already use a mobile wallet, the thing this idea lives inside.</p></aside>
      </div>
      <p class="statSrc statRowSrc">Transmit Security &middot; LendingTree, 2025</p>
-     <figure class="photoFig"><div class="baGrid"><div class="baCol"><span class="baLabel badge badge--inked">Before</span><figure class="shot phone"><img src="images/cs/ucrec/scanner.webp" alt="Before: the Member ID barcode screen, reached only after a login." loading="lazy" decoding="async"></figure><span class="baNote">The ID sat behind a login, every single visit.</span></div><div class="baCol isAfter"><span class="baLabel badge badge--inked">After</span><figure class="shot phone"><img src="images/cs/ucrec/wallet.webp" alt="After: the Member ID in Apple Wallet, held near the reader." loading="lazy" decoding="async"></figure><span class="baNote">One tap in Apple Wallet, straight at the door.</span></div><span class="baGo" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="13 6 19 12 13 18"/></svg></span></div></figure>
+     <figure class="photoFig"><div class="baGrid"><div class="baCol"><span class="baLabel badge badge--inked">Before</span><figure class="shot phone"><img src="images/cs/ucrec/scanner.webp" width="552" height="1200" alt="Before: the Member ID barcode screen, reached only after a login." loading="lazy" decoding="async"></figure><span class="baNote">The ID sat behind a login, every single visit.</span></div><div class="baCol isAfter"><span class="baLabel badge badge--inked">After</span><figure class="shot phone"><img src="images/cs/ucrec/wallet.webp" width="460" height="1000" alt="After: the Member ID in Apple Wallet, held near the reader." loading="lazy" decoding="async"></figure><span class="baNote">One tap in Apple Wallet, straight at the door.</span></div><span class="baGo" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="13 6 19 12 13 18"/></svg></span></div></figure>
     </div>
    </section>
 
@@ -724,8 +754,8 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
    </section>
 
    <div class="photoPair media media--full">
-     <figure><img src="images/cs/photos/ucdavis-1.webp" alt="The redesigned UC Davis Member ID open in Apple Wallet on a phone held in hand" loading="lazy" decoding="async"><figcaption>The Member ID, living in Apple Wallet.</figcaption></figure>
-     <figure><img src="images/cs/photos/ucdavis-2.webp" alt="Jayden and a friend in a gym mirror selfie after a workout" loading="lazy" decoding="async"><figcaption>Post-workout, with a friend.</figcaption></figure>
+     <figure><img src="images/cs/photos/ucdavis-1.webp" width="1200" height="1200" alt="The redesigned UC Davis Member ID open in Apple Wallet on a phone held in hand" loading="lazy" decoding="async"><figcaption>The Member ID, living in Apple Wallet.</figcaption></figure>
+     <figure><img src="images/cs/photos/ucdavis-2.webp" width="1200" height="1200" alt="Jayden and a friend in a gym mirror selfie after a workout" loading="lazy" decoding="async"><figcaption>Post-workout, with a friend.</figcaption></figure>
     </div>
   </div>
  </div>
@@ -858,13 +888,21 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
   var rail=document.querySelector('.rail');
   var imgs=[].slice.call(document.querySelectorAll('.cover,.wide,.facts,.cmp,.scrollbox,.photoRow,.stepShot,.closeShot,.darlings'));
   if(!rail||!imgs.length||reduce)return;
+  /* THE RAIL IS `display:none` BELOW 881px -- see the @media block above -- and
+     this ran on phones anyway: a getBoundingClientRect on the hidden rail plus
+     one per full-bleed figure until a hit, inside a scroll-driven rAF, every
+     frame of every flick, to toggle a class on an element nobody can see. The
+     media query is the same one the stylesheet uses, so the guard cannot drift
+     from the rule it is guarding. Desktop behaviour is untouched. */
+  var railLive=matchMedia('(min-width:881px)');
   function hush(){
+   if(!railLive.matches)return;
    var rb=rail.getBoundingClientRect(),over=false;
    for(var i=0;i<imgs.length;i++){var b=imgs[i].getBoundingClientRect();if(b.top<rb.bottom&&b.bottom>rb.top){over=true;break;}}
    rail.classList.toggle('hush',over);
   }
   var ticking=false;
-  window.addEventListener('scroll',function(){if(!ticking){ticking=true;requestAnimationFrame(function(){hush();ticking=false;});}},{passive:true});
+  window.addEventListener('scroll',function(){if(!railLive.matches||ticking)return;ticking=true;requestAnimationFrame(function(){hush();ticking=false;});},{passive:true});
   window.addEventListener('resize',hush,{passive:true});
   hush();
  })();
@@ -873,7 +911,12 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
  (function(){
   var rail=document.querySelector('.rail'),role=document.querySelector('.ov')||document.querySelector('.role'),layout=document.querySelector('.layout');
   if(!rail||!role||!layout)return;
+  /* Same guard, same reason: below 881 the rail is display:none, and this fired
+     five times per load (immediately, on load, on fonts.ready, at 320ms and at
+     1100ms) forcing two layouts each time to position something invisible. */
+  var railLive=matchMedia('(min-width:881px)');
   function align(){
+   if(!railLive.matches)return;
    var off=role.getBoundingClientRect().top-layout.getBoundingClientRect().top-Math.round(window.innerHeight*0.5);
    rail.style.marginTop=Math.max(0,Math.round(off))+'px';
   }
@@ -958,12 +1001,49 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
  });
 
  /* moving ink: reseed the turbulence on the 8fps house clock so the textured type "boils" exactly like the home-page headline */
+ /* ── THE BOIL HOLDS STILL WHILE YOU ARE MOVING, AND THAT IS THE WHOLE CHANGE ──
+    Jayden: "the experience of even scrolling on the home to feel choppy and all
+    over the place", reported from the LinkedIn link -- an in-app WKWebView on a
+    phone, which is plausibly how most recruiters will ever see this site.
+    WHAT THIS LOOP COSTS, because `seed` looks like a paint hint and is not.
+    It is an attribute of the two feTurbulence primitives that `filter:url(#inkBig)`
+    and `filter:url(#inkSm)` reference. Changing it INVALIDATES BOTH FILTERS, so
+    every element on the page carrying either -- the h1, every eyebrow, kicker,
+    caption, fact key, stat source, and both halves of every chapter-rail row --
+    re-runs a fractal-noise + displacement chain and repaints. Eight times a
+    second, from a bare setInterval, so the invalidation lands wherever it falls
+    inside the frame rather than at the top of one, and it never stops: hidden
+    tab, offscreen type, mid-flick, all the same.
+    THE TEXTURE IS THE CHARACTER. THE BOIL DURING A FLICK IS NOT. The
+    displacement is 1.1px on the big filter and 0.55px on the small one. Nobody
+    has ever seen half a pixel wander on type that is itself travelling past at
+    flick speed -- but everybody feels the frame it cost. So the ink still boils
+    on the same 8fps house clock, through the same seed sequence in the same
+    order, whenever the page is STILL. It holds its last seed while you scroll
+    and while the tab is hidden, and picks the sequence up again 180ms after you
+    stop. AT REST THIS IS BYTE-FOR-BYTE THE EFFECT THAT WAS HERE; nothing about
+    the look is subtracted, only the eight repaints a second nobody can see.
+    THE CLOCK STAYS A TIMER, THE WRITE MOVES INTO A FRAME. A permanent rAF loop
+    would keep the compositor awake for a page that is doing nothing; a 125ms
+    timer whose callback returns immediately costs nothing when suppressed. The
+    one attribute write is deferred into a single requestAnimationFrame so the
+    invalidation happens at the start of a frame rather than halfway through the
+    one the scroller is already using. */
  (function(){
   if(reduce)return;
   var tb=document.querySelector('#inkBig feTurbulence'),ts=document.querySelector('#inkSm feTurbulence');
   if(!tb&&!ts)return;
-  var SEEDS=[7,19,3,28,11,23,5,31],tk=0;
-  setInterval(function(){tk++;var s=SEEDS[tk%SEEDS.length];if(tb)tb.setAttribute('seed',s);if(ts)ts.setAttribute('seed',(s*2+5)%37);},125);
+  var SEEDS=[7,19,3,28,11,23,5,31],tk=0,quietUntil=0,pending=false;
+  addEventListener('scroll',function(){quietUntil=performance.now()+180;},{passive:true});
+  setInterval(function(){
+   if(pending||document.hidden||performance.now()<quietUntil)return;
+   pending=true;
+   requestAnimationFrame(function(){
+    pending=false;tk++;var s=SEEDS[tk%SEEDS.length];
+    if(tb)tb.setAttribute('seed',s);
+    if(ts)ts.setAttribute('seed',(s*2+5)%37);
+   });
+  },125);
  })();
 
  /* read time: a rough estimate from the page's prose so recruiters can gauge the commitment; recomputes from whatever copy exists, so it stays honest as the sections get written */
@@ -1140,8 +1220,11 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
  </script>
 <script>
 (function(){var rail=document.querySelector('.rail');if(!rail)return;var tick=false;
-function u(){var docH=document.documentElement.scrollHeight;var y=window.scrollY+window.innerHeight;var wasGone=rail.classList.contains('railGone');var nearEnd=wasGone?(y>docH-60):(y>docH-24);rail.classList.toggle('railGone',nearEnd);tick=false;}
-addEventListener('scroll',function(){if(!tick){requestAnimationFrame(u);tick=true;}},{passive:true});u();})();
+var railLive=matchMedia('(min-width:881px)');
+function u(){tick=false;if(!railLive.matches)return;var docH=document.documentElement.scrollHeight;var y=window.scrollY+window.innerHeight;var wasGone=rail.classList.contains('railGone');var nearEnd=wasGone?(y>docH-60):(y>docH-24);rail.classList.toggle('railGone',nearEnd);}
+/* documentElement.scrollHeight is a forced layout, and this took one every
+   scroll frame on a phone to fade a rail that is display:none there. */
+addEventListener('scroll',function(){if(!tick&&railLive.matches){requestAnimationFrame(u);tick=true;}},{passive:true});u();})();
 
 /* gallery paddles: prev/next controls with disabled ends; drag, swipe, and keyboard still work */
 (function(){

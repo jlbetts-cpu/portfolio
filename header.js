@@ -334,3 +334,79 @@ addEventListener("resize", function(){
    #moodMenu), so hero-engine.js:1822-1901 still owns opening it, clamping it,
    the chevron and the mood dispatch. Nothing was left for this file to do. */
 })();
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   5 · HAPTICS.  A press should be felt, not just seen.
+
+   WHY IT LIVES HERE. Every page loads header.js, so the whole site gets this
+   from one file with no markup to add and nothing to remember on the next page.
+   It listens on `document` and reads the element under the pointer, so a control
+   built at runtime -- the tournament's tabs, a mood button, a race row -- is
+   covered the moment it exists. Nothing opts in.
+
+   WHAT THE PLATFORM ACTUALLY DOES, because this is mostly a compatibility
+   problem and not an animation one:
+     - Android Chrome/Firefox/Samsung: navigator.vibrate works.
+     - iOS: Safari historically never shipped the Vibration API. Reports in 2026
+       differ on whether it now works, and iOS 18.4 began requiring a user
+       gesture. So this NEVER assumes; it feature-detects, fires only from a real
+       gesture, and does nothing at all where unsupported.
+     - In-app WebViews (the LinkedIn browser, which is how a recruiter following
+       his profile link arrives) are more restricted still.
+   Nothing here changes behaviour when the API is missing. No polyfill: the ones
+   circulating are third-party code, and this site is his job hunt.
+
+   WHY POINTERDOWN AND NOT CLICK. A native tap is felt as the finger goes DOWN.
+   Firing on click puts the buzz after the release, which reads as lag rather
+   than as touch -- the same reason the press transition on .ctl is 100ms.
+
+   WHY IT IS SO SHORT. 8-14ms is at the floor of what the hardware will render,
+   which is the point: this is meant to be noticed only in the hand. His
+   governing rule on this project is that premium is subtraction, and an
+   over-buzzing site feels like a slot machine. Scrolls, hovers and drags get
+   nothing. Only a deliberate press.
+   ═══════════════════════════════════════════════════════════════════════════ */
+(function haptics(){
+ "use strict";
+ var nav = window.navigator;
+ if (!nav || typeof nav.vibrate !== "function") return;   // absent: do nothing, silently
+
+ /* Someone who has asked for less motion has asked for less of this too. Read
+    live rather than once, because the OS setting can change mid-session. */
+ var mq = window.matchMedia ? matchMedia("(prefers-reduced-motion:reduce)") : null;
+ function muted(){ return !!(mq && mq.matches); }
+
+ /* The vocabulary. Three weights, because a site needs fewer than it thinks. */
+ var TAP = 8,        // any control: tabs, nav, quiet buttons, chips
+     PRESS = 13,     // the primary action in a group -- kick off, play, submit
+     DONE = [10, 40, 22];   // something completed: a cup won, a head baked
+
+ function buzz(pattern){
+   if (muted()) return;
+   try { nav.vibrate(pattern); } catch (_) {}   // never let feedback break the action
+ }
+
+ /* WHAT COUNTS AS A CONTROL. Deliberately narrow. `.ctl` is the shared control
+    library, and the rest are the site's own interactive primitives. A bare <a>
+    inside prose is NOT included: following a link is not a button press, and
+    buzzing mid-sentence is exactly the cheapness this is trying to avoid. */
+ var CONTROL = ".ctl,button,[role=button],[role=tab],summary,input[type=checkbox],input[type=radio]";
+ var PRIMARY = ".ctl--primary,.pBtnGo,.tvGo,.moodGo,.reelTap";
+
+ document.addEventListener("pointerdown", function(e){
+   /* isTrusted keeps synthetic events out -- the contracts drive this site with
+      dispatched events, and a test run should not make the phone buzz. */
+   if (!e.isTrusted || e.button !== 0) return;
+   var el = e.target && e.target.closest ? e.target.closest(CONTROL) : null;
+   if (!el) return;
+   if (el.disabled || el.getAttribute("aria-disabled") === "true") return;
+   buzz(el.closest(PRIMARY) ? PRESS : TAP);
+ }, {passive:true, capture:true});
+
+ /* The completion note, for the moments that deserve one. Published rather than
+    wired to specific screens, so the tournament, the Maker and the games can
+    each say "this finished" without any of them knowing how it is expressed. */
+ window.__hmHaptic = function(kind){
+   buzz(kind === "done" ? DONE : kind === "press" ? PRESS : TAP);
+ };
+})();

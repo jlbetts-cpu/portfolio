@@ -468,6 +468,13 @@
  transition:opacity var(--dur-state) var(--ease-out),transform var(--sp-settle-dur) var(--sp-settle)
 }
 .ctl-menu .ctl{border-radius:var(--radius-control)}
+/* SCREEN-READER ONLY. Lived in play.css, which is loaded by exactly one page, so
+   any other page needing it had to invent its own -- and headmaker went without,
+   opening its heading run at <h2> with no <h1> above it. It belongs beside the
+   skip link: both exist so the page reads correctly to someone who cannot see it.
+   play.css still carries an identical copy; that one can go when this file is next
+   swept, and until then the two are the same declaration so neither can win wrong. */
+.qsr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
 .skipLink.ctl{
  position:fixed;top:var(--skip-inset);left:var(--skip-inset);z-index:var(--layer-skip-link);
  transform:translateY(var(--skip-hidden-offset));transition-property:color,background-color,box-shadow,transform
@@ -634,8 +641,27 @@
  display:block;contain:layout paint;transition:filter var(--scene-cut-duration) var(--scene-cut-ease),
  opacity var(--scene-cut-duration) var(--scene-cut-ease)
 }
+/* THE STAGE IS A FIXED BOX, AND THAT IS WHAT STOPS THE HEAD MOVING ON SCROLL.
+   The Hero is min-height:100dvh -- deliberate, so the gradient never opens a
+   gap when Safari's chrome retracts -- so the Hero's FLOOR travels the chrome's
+   full height on every scroll. Anything laid out from that floor travels with
+   it: measured at 390, the head moved 81px down while the centred copy moved
+   40.5, so the composition sheared by 40.5px every time you scrolled.
+   `height:100svh` re-parents the head to a box that CANNOT change. svh is the
+   small viewport -- defined with every dynamic toolbar EXPANDED -- and it is
+   the one viewport unit specified not to change during a scroll, in Safari and
+   in an in-app WebView alike. The head is bottom-anchored inside THIS box now,
+   not inside the Hero, so a Hero height change moves it by exactly zero.
+   `inset:0` IS STILL THERE ON PURPOSE. top + bottom + height is over-constrained
+   (CSS 2.1 10.6.4), so `bottom` is ignored and the height wins -- but on an
+   engine with no `svh` the height declaration is dropped at parse time and
+   top+bottom take over again, which is the behaviour this file shipped
+   yesterday. The degradation is the old position, never a zero-height box.
+   Rest is unchanged: at rest the Hero IS 100svh tall, so the box is the same
+   box and every --hero-peek-* constant lands where Jayden placed it. */
 .heroCharacterPeek{
- position:absolute;inset:0;z-index:2;display:flex;justify-content:center;align-items:flex-end;
+ position:absolute;inset:0;height:100svh;
+ z-index:2;display:flex;justify-content:center;align-items:flex-end;
  overflow:hidden;pointer-events:none;transition:transform var(--sp-settle-dur) var(--sp-settle)
 }
 .heroCharacterPeek.is-movie{transform:translateY(var(--hero-peek-active-offset,calc(var(--hero-peek-lift) * -1)))}
@@ -644,19 +670,19 @@
    thing that matters after that is the origin. The origin is the logical
    head's own centre (written by hero-head-transform.js), which makes the head
    spin in place instead of swimming around the stage's corner while you drag. */
-/* THE HEAD IS ANCHORED TO THE HERO'S FLOOR, AND ON A PHONE THAT FLOOR MOVES.
-   The Hero is min-height:100dvh so the gradient never opens a gap when Safari's
-   chrome retracts -- but that makes the floor travel the chrome's full height
-   on every scroll, and a bottom-anchored head travels with it while the CENTRED
-   copy beside it moves half as far. The head slid against its own composition.
-   (100dvh - 100svh) is exactly that chrome slack: 0 while the chrome is shown,
-   growing to the chrome's height as it retracts. Adding it back to `bottom`
-   holds the head at a constant distance from the Hero's TOP, which is the edge
-   that never moves. The gradient keeps its dvh floor. Resting composition is
-   untouched -- on desktop, and on a phone at rest, the term evaluates to 0. */
+/* THE HEAD IS ANCHORED TO THE STAGE'S FLOOR, AND THE STAGE NO LONGER MOVES.
+   `bottom` here used to carry a (100dvh - 100svh) correction -- the chrome
+   slack -- to hold the head still while the Hero grew underneath it. That term
+   was UNTESTABLE and it was wrong in the environment that matters most: in
+   headless Chromium and in LinkedIn's in-app WebView there is no retracting
+   chrome, so dvh == svh and the correction is permanently zero. A fix nothing
+   can observe failing is not a fix. The stage box above is fixed instead, so
+   this is plain arithmetic off a floor that stays put, and the acceptance test
+   is something a machine can actually run: change the Hero's height, assert
+   the head's rendered position is identical to the pixel. */
 .heroHeadTransform{
  position:absolute;left:50%;top:auto;
- bottom:calc((var(--hero-peek-depth) * -1) + var(--hero-peek-offset) + (100dvh - 100svh));
+ bottom:calc((var(--hero-peek-depth) * -1) + var(--hero-peek-offset));
  width:var(--hero-peek-width);max-width:none;z-index:2;
  transform-origin:var(--hero-head-origin-x) var(--hero-head-origin-y);
  transform:translate3d(calc(-50% + var(--hero-head-x)),calc(var(--hero-head-y) + var(--hero-movie-guard-y)),0)

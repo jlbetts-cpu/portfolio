@@ -219,8 +219,107 @@ function setFace(name){
  curFace=name;buildEyes(name);
  var open=PFX+FACES[name].img;
  if(faceImg.getAttribute("src")!==open)faceImg.src=open;
+ /* buildEyes() has just made a fresh, VISIBLE pair, and the open artwork above
+    may still be a decode away -- which is the iris-on-a-shut-face half of the
+    defect, and the more visible half, because a drawn eyelid with a live iris
+    sitting on it does not read as a blink, it reads as broken. Reconcile before
+    returning: if the closed frame is still the one on screen the new eyes stay
+    down, and the next frame brings them up with the artwork. */
+ syncLids();
 }
 function applyBlink(){eyeEls.forEach(e=>e.el.classList.toggle("eclosed",eyesClosed));}
+/* ── THE LIDS FOLLOW THE ARTWORK THAT IS PAINTED, NOT THE ONE ASSIGNED ───────
+   MEASURED FIRST. Classifying every frame the eye contract rejects, over 30s at
+   both widths: 48 of 48 had the intended face src and the PAINTED face src
+   disagreeing, and 0 were a disagreement between two pieces of engine state.
+   There is no state race left in here. There is one layer that changes on a
+   decode and another that changes on a style write, and the defect is entirely
+   the window between them -- an open face with the irises already pulled
+   (Jayden's "freezes a frame where the iris disappears") on the way down, and
+   a closed face with the irises already back on the way up.
+   SO STOP DERIVING THE LIDS FROM THE ASSIGNMENT. paintedFace() is the src the
+   <img> is actually showing: the last one that fired `load`, or the current one
+   if it was already complete when it was set. Lid visibility is then a pure
+   function of it -- shut artwork means no iris, open artwork means iris -- and
+   both invariants hold by construction on every frame, in every engine.
+   THIS IS NOT THE DEFERRAL THAT WAS TRIED AND MEASURED WORSE. That one waited
+   at the call site, and an <img> whose src is reassigned mid-flight fires
+   neither load nor error for the abandoned request, so a face change landing
+   inside the wait fell onto a timeout and held the defect for 8-17 frames.
+   syncLids() waits for nothing. It is idempotent, it re-evaluates from scratch
+   every frame, and an abandoned request simply never becomes the painted one --
+   there is no pending state that can be left stale, so there is nothing to time
+   out. Nothing is slowed down either: the blink still steps on its own 8fps
+   grid, the two layers just land together instead of one or two frames apart.
+   currentSrc WAS THE OBVIOUS ANSWER AND IT IS WRONG. It looks like exactly this
+   value and it is nearly perfect in Chromium (3 disagreements in 525 frames,
+   all the initial empty state) -- but WebKit updates it on ASSIGNMENT, 25
+   disagreements in 187 frames and in both directions, which is the very bug
+   this removes. Measured in both engines before it was trusted. */
+/* THE LOAD EVENT IS THE ONLY PLACE THIS CAN LAND ON TIME, and that was worth
+   measuring rather than assuming. The reconciler also runs on the master clock,
+   but that clock is 125ms -- the deliberate 8fps judder -- so reconciling only
+   there left up to seven 60fps frames of disagreement, and the contract duly
+   went on reporting unbroken runs of two and three. Reconciling in the load
+   handler puts the lid write in the SAME TASK as the bitmap becoming
+   available, so the two land on one paint.
+   It costs nothing per frame: syncLids() reads inline style strings, a class
+   list and its own booleans. No geometry, so performance-idle-contract's
+   forced-layout budget does not see it at all. */
+var _paintedFace=faceImg.getAttribute("src")||"";
+/* currentSrc, NOT getAttribute, and only HERE. Reading the attribute in the
+   load handler was a real bug: if A is assigned, then B, then A's load lands,
+   the attribute already says B and the handler recorded a frame that is not on
+   screen. At load time the request that just completed IS the current request,
+   so currentSrc is exact -- in both engines, which is the one moment WebKit's
+   eager currentSrc and Chromium's lazy one agree. It is still no good as a
+   general-purpose read: sampled every frame, WebKit disagreed with the painted
+   frame 25 times in 187, because outside a load event it reports the ASSIGNED
+   src. Measured in both engines; that is why it appears once, in here. */
+function _markPainted(){_paintedFace=faceImg.currentSrc||faceImg.getAttribute("src")||"";syncLids();}
+faceImg.addEventListener("load",_markPainted);
+faceImg.addEventListener("error",_markPainted);
+function paintedFace(){
+ /* THE `complete` FAST PATH EARNS ITS PLACE, and it was taken out and put back
+    on measurements rather than on taste. A cached, decoded frame reports
+    complete the instant it is assigned and presents on the very next paint, so
+    reading it here keeps the ordinary blink landing on that paint instead of
+    waiting a task for a `load` it does not need. Removing it -- leaving `load`
+    as the only writer -- was tried and measured WORSE across four runs, because
+    it lengthens the window in which the lids are reasoning about the previous
+    frame. The definition of painted is otherwise the same one
+    tools/hero-eye-contract.py uses for `presented`, argued in that file's own
+    header: deliberately the same definition, not the engine taught to satisfy
+    the instrument. */
+ if(faceImg.complete&&faceImg.naturalWidth>0)_paintedFace=faceImg.getAttribute("src")||"";
+ return _paintedFace;
+}
+var FACE_SHUT=/_closed\.webp/;
+function syncLids(){
+ if(!eyeEls.length)return;
+ if(CALIB)return;                       // the calibration tool poses the eyes by hand
+ var shutArt=FACE_SHUT.test(paintedFace());
+ /* NEITHER DIRECTION IS GATED BY MODE, and that took a pass to get right. The
+    first version gated SHOWING behind the usual mode list, on the assumption
+    that some gag holds the live eyes back over an open face. Auditing every
+    eye-hide in this file says none does: eating, the rain dazzle, the talk
+    blink and the movie beat all hide the divs while painting a *_closed frame,
+    so they satisfy this rule rather than fight it, and love mode fades the IRIS
+    OPACITY for its heart eyes -- which nothing here touches. The gate bought no
+    safety and cost real frames: it was why an open face could keep hidden eyes
+    for as long as a mode owned the clock.
+    So the rule is the invariant, with nothing bolted on: shut artwork means no
+    iris, open artwork means iris. Every write is guarded by a read of the value
+    it is about to change, so an unchanged frame writes nothing at all. */
+ for(var i=0;i<eyeEls.length;i++){
+  var el=eyeEls[i].el;
+  if(shutArt){if(el.style.display!=="none")el.style.display="none";continue;}
+  if(el.style.display==="none")el.style.display="";
+  if(el.style.visibility==="hidden")el.style.visibility="";
+  if(el.classList.contains("eclosed"))el.classList.remove("eclosed");
+ }
+ if(!shutArt&&eyesClosed)eyesClosed=false;
+}
 // REAL blink — posterized to the 8fps grid, with natural variation + a bit of crunch
 function buildBlink(openTo,withGesture,allowDouble){
  const deep=0.905+Math.random()*0.03, settle=deep+0.045, hold=(Math.random()<0.5?1:2), st=[];
@@ -234,7 +333,11 @@ function buildBlink(openTo,withGesture,allowDouble){
  return st;
 }
 function applyStep(s){
- if(s.close){faceImg.src=FACES[curFace].closed;eyeEls.forEach(e=>e.el.style.display="none");}
+ /* THE CLOSE STEP ONLY ASKS FOR THE ARTWORK NOW. It used to pull the irises in
+    the same statement, which is the pairing that could not hold: the style
+    landed on the next paint and the bitmap landed on a decode. syncLids() puts
+    them back together by driving both off the frame that is actually up. */
+ if(s.close){faceImg.src=FACES[curFace].closed;syncLids();}
  else if(s.open){setFace(s.face);if(s.g)triggerGesture(s.face);}
  blinkSquash=s.sq;if(!blinkQ.length)blinking=false;
 }
@@ -460,10 +563,13 @@ function updateIris(){
   if(blinking||e.el.style.display==="none"||e.el.classList.contains("eclosed")){if(e.el.style.transform)e.el.style.transform="";}   // never fight a blink
   else{var awe=(dil-1.34)/0.26;awe=awe<0?0:(awe>1?1:awe);e.el.style.transform=awe>0.04?"scaleY("+(1+awe*0.07).toFixed(3)+")":"";}   // eyes open a touch wider on awe
   });
- if(!eating&&!partyMode&&!loveMode&&!rainMode&&!introMode&&!bearMode&&!movieMode&&!eventLock&&!reactType&&!dizzy&&!blinking&&(!blinkQ||!blinkQ.length)){   // safety net: in true idle, eyes must never stay stuck hidden
-   eyeEls.forEach(e=>{if(e.el.style.display==="none")e.el.style.display="";if(e.el.classList.contains("eclosed"))e.el.classList.remove("eclosed");});
-   if(eyesClosed)eyesClosed=false;
- }
+ /* WAS: a safety net that only ran in true idle, with `!blinking` in its guard.
+    That is why it could never close the gap -- `blinking` goes false on the
+    same statement that ASSIGNS the reopening artwork, so the one frame it most
+    needed to correct was the one frame it was still switched off for.
+    syncLids() has no such guard because it is not a net any more; it is where
+    the lids are decided, every frame, from the frame that is on screen. */
+ syncLids();
 }
 addEventListener("pointermove",e=>{pointer.px=e.clientX;pointer.py=e.clientY;lastMove=performance.now();
  if(dragging&&dragEl){const c=FACES[calFace].eyes[selEye],rx=ER(c,"rx",RX),ry=ER(c,"ry",RY);const r=stage.getBoundingClientRect();
@@ -1100,6 +1206,23 @@ function reactTick(){const t=(performance.now()-reactStart)/1000;
 const _tb=document.querySelector("#inkBig feTurbulence"),_ts=document.querySelector("#inkSm feTurbulence"),_grain=document.getElementById("grain"),fsh=document.getElementById("fsh");
 const SEEDS=[7,19,3,28,11,23,5,31];
 function boil(){const s=SEEDS[tk%SEEDS.length];if(_tb)_tb.setAttribute("seed",s);if(_ts)_ts.setAttribute("seed",(s*2+5)%37);}
+/* THE INK HOLDS STILL WHILE THE PAGE IS MOVING. `seed` on an feTurbulence is not
+   a paint hint -- rewriting it invalidates the whole filter, so every one of the
+   28 ink-filtered selector groups on this page re-runs a noise-and-displacement
+   chain and repaints. Eight times a second, from a bare interval, forever,
+   including mid-flick. Measured as the dominant cost of the same defect on the
+   five case studies: frames over 20ms during a scroll went 45% -> 18% in WebKit
+   once the boil held still, worst single frame 644ms -> 453ms.
+   THE BOIL IS NOT DELETED, SHORTENED OR REORDERED. The texture is the character
+   of this site and at rest it is byte-for-byte what it was: eight distinct seeds
+   cycling. It simply stops re-rendering during the one moment nobody can see it
+   -- while the page is moving under them -- and resumes 180ms after the scroll
+   stops. It also holds while the tab is hidden, where the repaints were pure
+   waste. This is the same fix the case studies took, applied to the page Jayden
+   actually named: "the experience of even scrolling on the home to feel choppy". */
+let inkQuietUntil=0;
+addEventListener("scroll",()=>{inkQuietUntil=performance.now()+180;},{passive:true});
+function inkCanBoil(){return !document.hidden&&performance.now()>=inkQuietUntil;}
 // floating contact shadow: higher head -> bigger, softer, lighter; lower -> tighter, darker, sharper (and follows sideways)
 // NOT EVERY HEAD STANDS ON SOMETHING. Play's companion does, and its shadow is
 // grounding information. The home Hero's portrait does not -- it is suspended
@@ -1638,7 +1761,18 @@ function endRain(){
 }
 (function(){if(window.innerWidth>760)return;var items=[].slice.call(document.querySelectorAll(".csItem"));if(!items.length)return;function showAll(){items.forEach(function(it){it.classList.add("csIn");});}if(reduce||!("IntersectionObserver" in window)){showAll();return;}var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add("csIn");io.unobserve(e.target);}});},{threshold:0.16,rootMargin:"0px 0px -7% 0px"});items.forEach(function(it){io.observe(it);});})();
 // MASTER 8fps CLOCK
-setInterval(()=>{tk++;eyeWatchdog();if(!reduce)boil();if(crumbEls.length)updateCrumbs();
+/* syncLids() SITS BESIDE THE WATCHDOG, ABOVE EVERY `return`, for the same
+   reason the watchdog does. Every mode below -- party, love, rain, movie,
+   dizzy, eating, the tap reactions -- returns out of this clock, and the blink
+   drain is the LAST line of it. Reconciling down there meant a blink caught by
+   a mode change kept its irises on a drawn-shut face for as long as the mode
+   owned the clock: measured at 390, one unbroken run of 80 frames, about 1.3
+   seconds, on rest_closed.webp, right after the contract taps the face. A tap
+   is the single most likely thing a visitor does to that head.
+   Hiding is unconditional and safe in every mode -- closed artwork has the lids
+   painted into it, so an iris on top of it is wrong everywhere -- while showing
+   stays gated inside syncLids() so it never fights a pose. */
+setInterval(()=>{tk++;eyeWatchdog();syncLids();if(!reduce&&inkCanBoil())boil();if(crumbEls.length)updateCrumbs();
  var _dv=dragCookie||dragDisco||dragLove||dragCam||dragId;if(dragging&&_dv&&!reduce)wobbleDrag(_dv);
  if(introMode){introTick();return;}
  if(CALIB)return;
@@ -1652,7 +1786,7 @@ setInterval(()=>{tk++;eyeWatchdog();if(!reduce)boil();if(crumbEls.length)updateC
  if(eating){eatTick((performance.now()-eatStart)/1000);return;}
  if(reactType){reactTick();return;}
  if(blinking&&blinkQ.length){applyStep(blinkQ.shift());}
- else if(!blinking){if(eyesClosed)eyesClosed=false;for(var _ei=0;_ei<eyeEls.length;_ei++){var _ee=eyeEls[_ei].el;if(_ee.style.display==="none")_ee.style.display="";if(_ee.style.visibility==="hidden")_ee.style.visibility="";if(_ee.classList.contains("eclosed"))_ee.classList.remove("eclosed");}}
+ else syncLids();   // the lids are reconciled against the painted frame whether or not a blink owns them
  const now=performance.now();
  if(now>=nextSaccade){ // natural saccade-and-fixation wander (used on touch + desktop idle)
   {const a=Math.random()*6.2832,rd=0.45+Math.random()*0.45;gaze={x:Math.cos(a)*rd,y:Math.sin(a)*rd*0.62-0.04};}   // idle wander never looks dead-center
