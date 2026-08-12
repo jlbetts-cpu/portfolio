@@ -1887,9 +1887,15 @@ function paintQualify(h){
     ? 'The race could not run, so nobody is ranked by it. All ' + n
       + ' heads are in the cup instead and it opens with a play-in, so every place is '
       + 'decided on the pitch.'
+    /* NOT "the draft order", AND THAT IS A SCOPE CORRECTION RATHER THAN A WORDING ONE.
+       Jayden: "It shouldnt bring up draft order because this mode isnt only meant for
+       fantasy football." The race is a game mode in its own right that a fantasy draft
+       sometimes borrows; the screen that starts it has to speak the game's language --
+       who qualifies for the cup and who does not. The Draft tab on a FINISHED cup is a
+       different screen, it is the one place a draft order has actually been earned, and
+       it is untouched. */
     : 'One marble race, all ' + n + ' heads. The first ' + ADVANCE
-      + ' go into the knockout; the rest take places ' + (ADVANCE + 1) + ' to ' + n
-      + ' in the draft order.'));
+      + ' qualify for the cup. The other ' + (n - ADVANCE) + ' are out.'));
   panel.appendChild(pane);
 
   var foot = el('div', 'tvFoot');

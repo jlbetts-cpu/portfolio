@@ -1778,6 +1778,40 @@
    _od=orbA*57.2958;   // ORIENTATION FOLLOWS THE NORMAL: feet toward the centre, all the way round
    air=orbH>2;vx=0;vy=0;flipA=0;flipV=0;
    if(orbAV>0.02)dir=1;else if(orbAV<-0.02)dir=-1;}
+  /* ===== THE RACE MAILBOX, READ WHERE EVERY OTHER POSITIONAL OVERRIDE IS READ =====
+     This block used to sit ~100 lines BELOW the transform write, which meant the paint
+     ran on LAST frame's race position after this frame's free-fall integration had
+     already moved it: `x+=vx*DT; y+=vy*DT` and then the ceiling clamp. Measured over one
+     twelve-head race at 1440x900, worst case not median: the drawn head was 66px out
+     horizontally, and 159px out vertically -- a head swatted above the top of the course
+     window had its y clamped to CEIL and sat GLUED to the top edge while the simulation
+     had it well off-screen. Only 28% of frames were inside 2px; 6% were more than 40px
+     out. Reported as "heads are pushed to spots that they arent actually at", and it is
+     exactly that: the drawing and the simulation were a frame and a gravity step apart.
+     Read here -- beside podium, spectate and the lobby planet, the three other things
+     that own a head's position -- and the transform below is written from the mailbox
+     itself. race-fidelity-contract.py asserts the translation equals the mailbox.
+
+     IT ALSO RESETS THE SPIN. flipA/flipV are a somersault in flight, and NOTHING used to
+     clear them at the drop: a head that was mid-flip when the grid formed (the lobby
+     hops flip, and the tumble home at the END of a race flips 40% of the field) kept
+     integrating `flipA+=flipV*DT` all the way down the course, because the race sets
+     air=true. That is the "pre fired spinning from some of the players" -- and it starts
+     during the 3-2-1, before the race has even dropped. Same family as the wig, the
+     banana spin and the disco stun, so all five are cleared here rather than one. */
+  if(window.__hmRaceOn&&me.raceX!=null){x=me.raceX;y=me.raceY;if(!me.raceHide&&root.style.opacity==="0"){root.style.opacity="1";shown=true;}if(Math.abs(me.raceVX||0)>40)dir=(me.raceVX>=0)?1:-1;air=true;st="fall";vx=me.raceVX||0;vy=0;me.__inRace=true;grabbed=false;perched=false;
+   flipA=0;flipV=0;wig=null;rotX=0;breathe=0;me.__spin=0;me.__disco=0;depthT=1;depth=1;   // one plane, no leftover rotation: every racer meets the grid in the same pose
+   lean=Math.max(-10,Math.min(10,(me.raceVX||0)*0.028));   // the ride's own lean, off THIS frame's mailbox rather than last frame's
+   gzx=Math.max(-0.8,Math.min(0.8,(me.raceVX||0)/700));gzy=Math.max(-0.5,Math.min(0.6,(me.raceVY||0)/900));   // eyes track the ride: leaning into the turns, watching the drop
+   if(me.raceHit&&now-me.raceHit<420){brf=Math.max(brf,5);if(now-me.raceHit<160){sqT=Math.max(sqT,0.1);sqyP=1.1;sqxP=1/1.1;}}   // a hard peg or paddle knock startles: brows pop + a little jolt-squash
+   if(me.raceWin&&crownEl&&crownEl.style.opacity!=="1")crownEl.style.opacity="1";   // the WINNER is crowned the instant the line is crossed
+   if(me.raceHide&&!me.__rHid){me.__rHid=true;root.style.transition="opacity var(--dur-state-out,240ms) cubic-bezier(.2,.8,.2,1)";root.style.opacity="0";if(shadow)shadow.style.opacity="0";}
+   else if(!me.raceHide&&me.__rHid){me.__rHid=false;root.style.opacity="1";if(shadow)shadow.style.opacity="1";}}
+  else if(me.__inRace&&!window.__hmRaceOn){me.__inRace=false;me.raceX=null;surface=floorY;air=true;st="fall";vy=-(240+Math.random()*220);vx=(Math.random()*300-150);if(Math.random()<0.4)startFlip();
+   y=Math.max(y,-HH);x=Math.max(WL,Math.min(WR,x));   // wherever the race left you, you re-enter from just above the frame -- never from deep space
+   if(me.__rHid){me.__rHid=false;root.style.opacity="1";if(shadow)shadow.style.opacity="1";}
+   root.style.transition="";
+   if(me.raceWin){me.raceWin=false;smileT=Math.max(smileT||0,2.6);(function(ce){setTimeout(function(){try{ce.style.opacity="0";}catch(_){}},4600);})(crownEl);}}   // the champion tumbles home grinning, wears the crown a few beats more, then it fades
   var _spinR=(me.__spin&&now<me.__spin)?((now*0.75)%360):0;   // BANANA: slips into a dizzy spin
   var _discoR=(me.__disco&&now<me.__disco)?Math.sin(now*0.018)*16:0;   // DISCO STUN: forced to bust a move
   // THE PLANET, at render time only. arcY is the drop below the apex under THIS head's centre and
@@ -1889,17 +1923,6 @@
    for(var _su=0;_su<battlePlats.length;_su++){var _PS=battlePlats[_su];if(_PS.t>=window.__hmLavaY((_PS.l+_PS.r)/2)-2)continue;   // a submerged slab can't hold you
     if((x+HW/2)>_PS.l-2&&(x+HW/2)<_PS.r+2&&Math.abs(_fy2-_PS.t)<7){_sup2=true;break;}}
    if(!_sup2){air=true;st="fall";if(vy<0)vy=0;}}
-  if(window.__hmRaceOn&&me.raceX!=null){x=me.raceX;y=me.raceY;if(!me.raceHide&&root.style.opacity==="0"){root.style.opacity="1";shown=true;}if(Math.abs(me.raceVX||0)>40)dir=(me.raceVX>=0)?1:-1;air=true;st="fall";vx=me.raceVX||0;vy=0;me.__inRace=true;grabbed=false;perched=false;
-   gzx=Math.max(-0.8,Math.min(0.8,(me.raceVX||0)/700));gzy=Math.max(-0.5,Math.min(0.6,(me.raceVY||0)/900));   // eyes track the ride: leaning into the turns, watching the drop
-   if(me.raceHit&&now-me.raceHit<420){brf=Math.max(brf,5);if(now-me.raceHit<160){sqT=Math.max(sqT,0.1);sqyP=1.1;sqxP=1/1.1;}}   // a hard peg or paddle knock startles: brows pop + a little jolt-squash
-   if(me.raceWin&&crownEl&&crownEl.style.opacity!=="1")crownEl.style.opacity="1";   // the WINNER is crowned the instant the line is crossed
-   if(me.raceHide&&!me.__rHid){me.__rHid=true;root.style.transition="opacity .3s cubic-bezier(.2,.8,.2,1)";root.style.opacity="0";if(shadow)shadow.style.opacity="0";}
-   else if(!me.raceHide&&me.__rHid){me.__rHid=false;root.style.opacity="1";if(shadow)shadow.style.opacity="1";}}
-  else if(me.__inRace&&!window.__hmRaceOn){me.__inRace=false;me.raceX=null;surface=floorY;air=true;st="fall";vy=-(240+Math.random()*220);vx=(Math.random()*300-150);if(Math.random()<0.4)startFlip();
-   y=Math.max(y,-HH);x=Math.max(WL,Math.min(WR,x));   // wherever the race left you, you re-enter from just above the frame -- never from deep space
-   if(me.__rHid){me.__rHid=false;root.style.opacity="1";if(shadow)shadow.style.opacity="1";}
-   root.style.transition="";
-   if(me.raceWin){me.raceWin=false;smileT=Math.max(smileT||0,2.6);(function(ce){setTimeout(function(){try{ce.style.opacity="0";}catch(_){}},4600);})(crownEl);}}   // the champion tumbles home grinning, wears the crown a few beats more, then it fades
   if(!isFinite(x)||!isFinite(vx)||!isFinite(y)||!isFinite(vy)){   // NaN KILLSWITCH: one poisoned frame disabled every clamp and sent whole rounds into burning freefall -- self-heal on the spot and log the scene so the emitting path can be named
    try{(window.__wdgN=window.__wdgN||[]).push({t:Math.round(now/1000),slot:slot,x:x,y:y,vx:vx,vy:vy,st:st,aimX:(typeof aimX!=="undefined"?aimX:"?"),batt:!!battleOn});}catch(_){}
    var _hw9=(heroR&&heroR.w)||innerWidth||800;
@@ -3003,13 +3026,50 @@ function teams(){
   var hero=document.querySelector(".hero");if(!hero)return;
   var css=document.createElement("style");
   css.textContent="body.hmRace .stagewrap{opacity:0;pointer-events:none}body.hmRace .heroCopy>h1,body.hmRace .heroCopy>.sub,body.hmRace .heroCopy>.heroCtas{opacity:0!important;pointer-events:none!important}body.hmRace .heroCopy>.heroAvail{opacity:0!important;pointer-events:none!important}body.hmRace .moodMenu .moodItem:not(#endGame),body.hmRace .moodMenu .moodGo{opacity:.38;pointer-events:none}"
-   +".hmRaceWrap{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:2;opacity:0;transition:opacity .4s cubic-bezier(.2,.8,.2,1)}body.hmRace .hmRaceWrap{opacity:1}"
+   /* ===== THE RACE OWNS THE WHOLE SCREEN =====
+      `body.playViewportOwned .hero` is 60vh. That is right for the picker, the pitch and
+      the tournament band -- and wrong for a course you fall down. Measured before this
+      rule, at 1440x900: the hero box was 180 -> 720, so the race ran inside a 540px
+      letterbox with 180px of blank page above it and 180px below. .hmRaceWrap is
+      overflow:hidden and .hero is overflow:visible, so the COURSE was sliced off at the
+      band's edges -- the spinner paddle cut in half mid-stroke -- while the HEADS carried
+      on into the empty page, sliding over white with nothing under them. 320x568 was
+      worse: a 340px course, barely two heads deep. That is "parts of the screen are cut
+      off", and it is one declaration.
+      Scoped to body.hmRace, and this sheet is appended to <head> after play.html's own,
+      so it wins the tie on order without needing !important. */
+   +"body.hmRace.playViewportOwned .hero{height:100%;min-height:100%;margin:0}"
+   +".hmRaceWrap{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:2;opacity:0;transition:opacity var(--dur-reveal) var(--ease-out)}body.hmRace .hmRaceWrap{opacity:1}"
    +".hmRacePeg{position:absolute;border-radius:50%;background:var(--c50);border:1px solid var(--c100);box-shadow:0 2px 4px rgba(22,22,28,.12)}"
    +".hmRaceSeg{position:absolute;height:8px;border-radius:5px;background:var(--c50);box-shadow:0 1px 2px rgba(22,22,28,.08);border:1px solid rgba(22,22,28,.14);transform-origin:0 50%}"
    +".hmRaceSeg.spin{border:2px solid #7b5fd0}.hmRaceSeg.gate{border:2px solid var(--c950)}"
    +".hmRaceFin{position:absolute;height:16px;background:repeating-linear-gradient(90deg,#212121 0 14px,#FDFDFD 14px 28px);border-radius:3px;box-shadow:0 4px 12px -3px rgba(22,22,28,.4)}"
-   +".hmRaceBoard{position:absolute;left:14px;top:50%;transform:translateY(-50%);z-index:49;display:none;flex-direction:column;gap:4px;opacity:.72}body.hmRace .hmRaceBoard{display:flex}"   /* the standings live in the GUTTER, vertically centred at the screen's edge -- out of the course's hot centre, one glance away */
-   +".hmRaceRow{display:flex;align-items:center;gap:8px;background:rgba(253,253,253,.82);border:1px solid var(--c100);border-radius:4px;padding:3px 8px 3px 4px;font-family:var(--sans);font-weight:600;font-size:var(--fs-caption);color:var(--c700);backdrop-filter:blur(4px);will-change:transform}"
+   +".hmRaceBoard{position:absolute;left:var(--sp-12);top:50%;transform:translateY(-50%);z-index:49;display:none;flex-direction:column;gap:var(--sp-4);opacity:.72}body.hmRace .hmRaceBoard{display:flex}"   /* the standings live in the GUTTER, vertically centred at the screen's edge -- out of the course's hot centre, one glance away */
+   +".hmRaceRow{display:flex;align-items:center;gap:var(--sp-8);background:rgba(253,253,253,.82);border:1px solid var(--c100);border-radius:var(--r-sm);padding:var(--sp-2) var(--sp-8) var(--sp-2) var(--sp-4);font-family:var(--sans);font-weight:600;font-size:var(--fs-caption);color:var(--c700);backdrop-filter:blur(4px);will-change:transform}"
+   /* THE END CHIP IS A CONTROL AND IS NOW DRAWN AS ONE. It used to be a `.hmRaceRow` with
+      a red word in it: a 22px-tall target on a screen whose only other control is the
+      whole viewport. It is `.ctl .ctl--sm` now, which is a 36px box carrying the shared
+      library's 44px ::after pad -- the same object the tournament's own foot uses. */
+   +".hmRaceEnd{order:99;justify-content:center;color:#b3402e;will-change:transform}"
+   /* ===== THE STAKE. Two questions a viewer of a qualifying race must never have to
+      count rows to answer: what is at stake, and who just took a place. One pill, top
+      centre, in the standings' own translucent material -- hairline and blur, no
+      elevation. Before the drop it states the stake; from the first crossing it carries
+      the face and the ordinal of whoever just went in, and how many places are left.
+      It is the whole of the sequential-finish UI: no modal per finisher, no scrollport,
+      one line that changes. */
+   +".hmRaceStake{position:absolute;left:50%;top:var(--sp-16);transform:translateX(-50%);z-index:49;display:none;align-items:center;gap:var(--sp-8);box-sizing:border-box;max-width:calc(100% - var(--sp-24));background:rgba(253,253,253,.82);border:1px solid var(--c100);border-radius:var(--r-md);padding:var(--sp-6) var(--sp-12);backdrop-filter:blur(4px);font-family:var(--sans);font-weight:400;font-size:var(--fs-caption);letter-spacing:var(--tr-body);line-height:var(--lh-flat);color:var(--c700);white-space:nowrap;overflow:hidden;pointer-events:none}body.hmRace .hmRaceStake{display:flex}"
+   +".hmRaceStake img{width:18px;height:22px;object-fit:contain;display:block;flex:0 0 auto}"
+   +".hmRaceStake b{font-weight:600;color:var(--c950)}.hmRaceStake i{font-style:normal;font-weight:600;font-size:var(--fs-micro);letter-spacing:var(--tr-caps);text-transform:uppercase;color:var(--c500)}"
+   +".hmRaceStake em{font-style:normal;font-weight:400;color:var(--c500)}"
+   +".hmRaceStake span{min-width:0;overflow:hidden;text-overflow:ellipsis}"
+   /* THE SECOND CLAUSE IS DROPPED ON A PHONE RATHER THAN WRAPPED OR TRUNCATED. At 320 the
+      pill has 296px to live in and the long form measures past it; the first clause alone
+      -- the stake, or the ordinal and the place now being contested -- is the sentence
+      that has to survive. Reduction, which is what this screen kept failing to do. */
+   +"@media(max-width:640px){.hmRaceStake .hmStakeMore{display:none}}"
+   +".hmRaceStake.beat{animation:hmStake var(--dur-state) var(--ease-out)}@keyframes hmStake{from{opacity:.45}to{opacity:1}}"
+   +"@media(prefers-reduced-motion:reduce){.hmRaceStake.beat{animation:none}}"
    +".hmRaceRow img{width:20px;height:24px;object-fit:contain;display:block}.hmRaceRow b{font-weight:600;color:var(--c950);width:11px;text-align:center}"
    +".hmRaceRow.fin{border-color:rgba(8,8,8,.55)}.hmRaceRow.fin::after{content:\"\\2713\";font-size:10px;line-height:1;color:var(--c700);margin-left:1px}.hmRaceRow.out{opacity:.45}.hmRaceRow.out img{filter:grayscale(1)}.hmRaceRow.out b{color:var(--c500)}.hmRaceRow.out::after{content:\"\\2715\";font-size:9px;line-height:1;color:var(--c500);margin-left:1px}"
    +".hmRaceRow.top{background:var(--c950);border-color:var(--c950);color:var(--c50)}.hmRaceRow.top b{color:var(--c50)}.hmRaceRow.top::after{content:\"\\265B\";font-size:10px;line-height:1;color:var(--c50);margin-left:1px}"   /* the leader's chip flips to ink + a quiet crown -- being #1 should FEEL like something */
@@ -3022,9 +3082,27 @@ function teams(){
       fixed pitch, so anything that changed the spacing would put every glide below the
       line out by that much. */
    +".hmRaceRow.cut::before{content:\"\";position:absolute;left:-3px;right:-3px;top:-2.5px;height:var(--hair-w);background:var(--c400);border-radius:1px}.hmRaceRow{position:relative}"
-   +"@media(max-width:640px){.hmRaceBoard{left:0;right:0;top:auto;bottom:10px;transform:none;flex-direction:row;justify-content:center;flex-wrap:nowrap;gap:4px;padding:0 8px;opacity:.94}.hmRaceBoard .hmRaceRow{padding:3px 4px;font-size:var(--fs-micro);gap:0}.hmRaceBoard .hmRaceRow img{width:17px;height:20px}.hmRaceBoard .hmRaceRow b{display:none}.hmRaceBoard button.hmRaceRow{padding:3px 8px}}"   /* MOBILE STANDINGS. The board used to be display:none below 640 ("the race itself is the interface"),      but with no board and no positions a phone viewer cannot tell who is who or who is winning -- and      the vertical column cannot simply come back, because it lives in the LEFT RAIL that only exists on      desktop (X0 drops 104 -> 8 on mobile, so the course occupies the gutter). So: same chips, laid out      as a horizontal strip along the bottom, top three only. Bottom rather than top because the HUD      (count + End) already owns the top centre, and the camera rides the leader at ~42% height.
-      The cut hairline turns on its side with the strip: down the gap, not across it. */
-   +"@media(max-width:640px){.hmRaceRow.cut::before{left:-2.5px;right:auto;top:-3px;bottom:-3px;height:auto;width:1px}}";   /*
+   /* MOBILE STANDINGS. The board used to be display:none below 640 ("the race itself is the interface"),
+      but with no board and no positions a phone viewer cannot tell who is who or who is winning -- and
+      the vertical column cannot simply come back, because it lives in the LEFT RAIL that only exists on
+      desktop (X0 drops 104 -> 8 on mobile, so the course occupies the gutter). So: same chips, laid out
+      as a horizontal strip along the bottom. Bottom rather than top because the stake pill owns the top
+      centre and the camera rides the leader at ~42% height.
+
+      AND IT NOW FITS, WHICH IT DID NOT. Twelve fixed-width chips plus End on one nowrap
+      row measured 392px of content at 390 and at 320 -- so both ends of the strip were
+      sliced by the viewport and the End button, the only control on the screen, was off
+      it entirely. The chips SHRINK now (`flex:0 1 auto` + `min-width:0`, the image capped
+      by `max-width:100%` so the face scales instead of being cropped) and End does not,
+      so the row is inside the viewport by construction at any width and any field size.
+      Reduction, not a scrollport. */
+   +"@media(max-width:640px){.hmRaceBoard{left:0;right:0;top:auto;bottom:var(--sp-12);transform:none;flex-direction:row;align-items:center;justify-content:center;flex-wrap:nowrap;gap:var(--sp-2);padding:0 var(--sp-8);opacity:.94}"
+    +".hmRaceBoard .hmRaceRow{flex:0 1 auto;min-width:0;padding:var(--sp-2);font-size:var(--fs-micro);gap:0}"
+    +".hmRaceBoard .hmRaceRow img{width:auto;height:20px;max-width:100%}"
+    +".hmRaceBoard .hmRaceRow b{display:none}"
+    +".hmRaceBoard .hmRaceEnd{flex:0 0 auto;margin-inline-start:var(--sp-4)}}"
+   /* The cut hairline turns on its side with the strip: down the gap, not across it. */
+   +"@media(max-width:640px){.hmRaceRow.cut::before{left:-2px;right:auto;top:-2px;bottom:-2px;height:auto;width:var(--hair-w)}}";   /*
       Rank is applied with flex `order` (row.style.order = i), NOT DOM order -- so a :nth-child rule
       selects by DOM position and can hide the LEADER. Measured it doing exactly that: chips landed
       at x 116/226/171, i.e. DOM order 1,3,2. So no hiding: the whole field shows, the rank NUMBER is
@@ -3034,6 +3112,7 @@ function teams(){
   var wrap=null,world=null,board=null,cEl=null,spinEls=[],finEl=null;
   board=document.createElement("div");board.className="hmRaceBoard";gAdd(hero,board);
   cEl=document.createElement("div");cEl.className="hmCount";gAdd(hero,cEl);
+  var stakeEl=document.createElement("div");stakeEl.className="hmRaceStake";stakeEl.setAttribute("aria-live","polite");gAdd(hero,stakeEl);
   // ===== the SHARED STANDINGS: one gutter leaderboard for every ranked mode (race + lava) -- face chips, live FLIP shuffles on overtakes, ink chip + crown for #1, locked dark rows for the finished/fallen =====
   var BOARD={rows:{},endFn:null,
    build:function(list,endFn){this.rows={};this.endFn=endFn||null;board.innerHTML="";
@@ -3042,7 +3121,7 @@ function teams(){
      var img=(list[i].slot!=null&&cuts[list[i].slot]&&cuts[list[i].slot].cut)?cuts[list[i].slot].cut:"images/neutral.webp";
      var tt=(list[i].slot!=null&&window.__hmCareer)?window.__hmCareer.titles(list[i].slot):0;
      row.innerHTML="<b>"+(i+1)+"</b><img alt='' src='"+img+"'>"+(tt>0?"<em style='font-size:9px;font-weight:600;font-style:normal;color:var(--c700)'>"+tt+"\u265B</em>":"");this.rows[list[i].key]=row;board.appendChild(row);}
-    var endB=document.createElement("button");endB.className="hmRaceRow";endB.type="button";endB.style.cssText="cursor:pointer;order:99;justify-content:center;font-weight:600;color:#b3402e;border-color:var(--c100)";endB.textContent="End";
+    var endB=document.createElement("button");endB.className="hmRaceEnd ctl ctl--sm ctl--secondary";endB.type="button";endB.textContent="End";
     var self=this;endB.addEventListener("click",function(e){e.stopPropagation();if(self.endFn)self.endFn();});board.appendChild(endB);
     /* MEASURE THE RUNG PITCH ONCE, HERE, AND NEVER AGAIN. rank() used to take two
        getBoundingClientRect readings per chip on every re-rank: at twelve racers,
@@ -3095,7 +3174,7 @@ function teams(){
      so a race comes back from a hidden tab already over, or never over at all.
      `clock` advances by exactly the simulated time that has been stepped, whoever
      stepped it, so a deadline always means "this much race has happened". */
-  var clock=0,hidT=null,cutLine=0,elimGap=8000,stallY=-1e9,stallAt=0;
+  var clock=0,hidT=null,cutLine=0,elimGap=8000,stallY=-1e9,stallAt=0,beatAt=0;
   var ELIM_WINDOW=34000;   // how much race an elimination bracket has to fit inside: the course takes ~40s to fall at twelve racers, measured
   var STALL_MS=6000;       // the front of the race gaining nothing for this long means the course is finished with us, whatever the standings say. The anti-stuck kick escalates over 2.7s, so this is comfortably longer than any legitimate jam.
   function heroW(){return innerWidth;}   // the COURSE spans the whole viewport, wall to wall -- the screen edges are the rails, so no head is ever pinned mid-air at an invisible wall with open space beyond it
@@ -3186,6 +3265,39 @@ function teams(){
    BOARD.build(balls.map(function(bl,ix){return {key:String(ix),slot:(bl.peer?bl.peer.slot:null)};}),finish);
    for(i=0;i<balls.length;i++)balls[i].row=BOARD.rows[String(i)];}
   function bigText(t){if(!cEl)return;cEl.textContent=t;cEl.classList.remove("hmCountPulse");void cEl.offsetWidth;cEl.classList.add("hmCountPulse");}
+  /* ===== THE STAKE PILL: the whole of the sequential-finish UI =====
+     Jayden, watching the first race: "after someone finishes it should go to the next
+     person and then the next person", and "make it clear that top 8 qualify for the
+     cup". Both are the same missing sentence. The board answers "what is the order"; it
+     has never answered "what is this FOR" or "what just happened", and a viewer had to
+     count chips against a hairline to work out who was safe.
+     One pill, top centre, in the standings' own material. Before the drop it states the
+     stake. From the first crossing it carries the face and the ordinal of whoever just
+     went in, the place now being contested, and how many are left -- so the two
+     questions "who just finished" and "who is racing for the next spot" are both on
+     screen, always, in the game's own language and never in a draft's. */
+  function ord(n){var s=["th","st","nd","rd"],v=n%100;return n+(s[(v-20)%10]||s[v]||s[0]);}
+  function stake(html,beat){if(!stakeEl)return;stakeEl.innerHTML=html;
+   if(beat){stakeEl.classList.remove("beat");void stakeEl.offsetWidth;stakeEl.classList.add("beat");}}
+  function faceFor(b){try{var c=JSON.parse(localStorage.getItem("hmCompanions")||"[]")||[];
+   var sl=b&&b.peer?b.peer.slot:null,src=(sl!=null&&c[sl]&&c[sl].cut)?c[sl].cut:((b&&b.peer&&b.peer.cut)||"images/neutral.webp");
+   return "<img alt='' src='"+src+"'>";}catch(_){return "";}}
+  function stakeOpen(){
+   if(cutLine>0)stake("<i>Top "+cutLine+" qualify for the cup</i><em class='hmStakeMore'>"+balls.length+" heads · "+cutLine+" places</em>");
+   else if(elimMode)stake("<i>Last one out</i><em class='hmStakeMore'>"+balls.length+" heads · one survivor</em>");
+   else stake("<i>Marble race</i><em class='hmStakeMore'>"+balls.length+" heads · first across the line wins</em>");}
+  /* Called on EVERY crossing, not only the winner's. `k` is the place just taken. */
+  function stakeFinish(b,k){
+   var left=(cutLine>0)?cutLine-k:balls.length-k,nxt=k+1;
+   if(cutLine>0){
+    if(k<cutLine)stake(faceFor(b)+"<b>"+ord(k)+"</b><span>in · "+ord(nxt)+" is up for grabs</span><em class='hmStakeMore'>"+left+" place"+(left===1?"":"s")+" left</em>",true);
+    else if(k===cutLine)stake(faceFor(b)+"<b>"+ord(k)+"</b><span>in · all "+cutLine+" places taken</span>",true);
+    else stake(faceFor(b)+"<b>"+ord(k)+"</b><span>out</span>",true);
+   }else{
+    if(k===1)stake(faceFor(b)+"<b>1st</b><span>wins · "+ord(2)+" is up for grabs</span>",true);
+    else if(k<balls.length)stake(faceFor(b)+"<b>"+ord(k)+"</b><span>home · "+ord(nxt)+" is up for grabs</span>",true);
+    else stake(faceFor(b)+"<b>"+ord(k)+"</b><span>home · that is everyone</span>",true);
+   }}
   /* ===== ONE RANKING, USED BY THE BOARD AND BY THE QUALIFIER =====
      Finished heads in the order they crossed, then everyone still running deepest
      first, then the vacuumed ones in reverse (first out finishes last). The board
@@ -3210,7 +3322,7 @@ function teams(){
    if(rc.length<2)return false;
    if(window.PlayViewportOwner)window.PlayViewportOwner.enter("race");
    ON=true;window.__hmRaceOn=true;document.body.classList.add("hmRace");seed++;winner=-1;order.length=0;ts=1;camY=0;endAt=0;
-   clock=performance.now();stallY=-1e9;stallAt=0;
+   clock=performance.now();stallY=-1e9;stallAt=0;beatAt=0;
    cutLine=(opt.advance>0&&opt.advance<rc.length)?(opt.advance|0):0;   // the hairline sits ABOVE this rank index; 0 means the board shows no cut
    balls.length=0;
    var gridOrder=rc.slice();for(var g=gridOrder.length-1;g>0;g--){var j=Math.floor(Math.random()*(g+1)),tmp=gridOrder[g];gridOrder[g]=gridOrder[j];gridOrder[j]=tmp;}   // reshuffled grid every race: fair start, different neighbours
@@ -3229,7 +3341,7 @@ function teams(){
    elimGap=Math.max(2200,Math.min(8000,ELIM_WINDOW/Math.max(1,gridOrder.length-1)));
    for(var n=0;n<gridOrder.length;n++){var pr=gridOrder[n],r=pr.HW*0.5*0.92;
     balls.push({peer:pr,r:r,x:X0+(CW/(gridOrder.length+1))*(n+1)+rnd(-2,2),y:H*0.42-rnd(0,3),vx:0,vy:0,slow:0,fin:false,row:null});}
-   buildCourse();buildDOM();
+   buildCourse();buildDOM();stakeOpen();   // the stake is on screen through the 3-2-1, not only once someone has crossed
    goAt=clock+3200;raceT0=goAt;if(elimMode)nextCut=goAt+elimGap;
    var s=seed;bigText(3);if(elimMode)setTimeout(function(){if(s===seed&&ON&&cEl){cEl.classList.add("hmMsg");bigText("last one out\u2026");setTimeout(function(){if(s===seed){cEl.textContent="";cEl.classList.remove("hmMsg");}},1600);}},3400);   // the format card: the last head out, on the bell
    setTimeout(function(){if(s===seed&&ON)bigText(2);},800);setTimeout(function(){if(s===seed&&ON)bigText(1);},1600);
@@ -3249,6 +3361,7 @@ function teams(){
    try{for(var uz=0;uz<balls.length;uz++){var UB=balls[uz];if(!UB.fin&&!UB.out){UB.out=true;if(UB.row){UB.row.classList.remove("top");UB.row.classList.add("out");}}}}catch(_){}   // whoever was still mid-course when the wrap hit resolves as OUT -- the board never ends with limbo rows
    try{for(var pz=1;pz<=2&&pz<order.length;pz++){var pb=balls[order[pz]];if(pb&&pb.peer.slot!=null&&window.__hmCareer)window.__hmCareer.rec("podium",pb.peer.slot);}}catch(_){}
    if(cEl)cEl.textContent="";
+   if(stakeEl){stakeEl.innerHTML="";stakeEl.classList.remove("beat");}
    for(var i=0;i<balls.length;i++){var b=balls[i],pr=b.peer;pr.raceX=null;pr.raceY=null;}
    if(window.PlayViewportOwner)window.PlayViewportOwner.leave("race");}   // heads snap back to their own physics and tumble home
   window.__hmRaceStart=start;window.__hmRaceEnd=finish;
@@ -3376,7 +3489,22 @@ function teams(){
    for(i=0;i<balls.length;i++){var a=balls[i];if(a.out)continue;
     a.vy+=1550*dt;
     if(!a.fin&&leader>=0&&(lead-a.y)>H*1.5)a.vy+=1550*0.12*dt;   // the quiet catch-up band: a straggler more than 1.5 screens back falls a touch faster -- a helping hand, never a rigged result
-    if(!a.fin&&winner>=0)a.vy+=1550*0.9*dt;   // the winner's crossed -> everyone still on course sprints it home, so the final leaderboard is complete before the wrap-up
+    /* THE SPRINT HOME, GRADED BY HOW FAR BACK YOU ARE.
+       This was a flat +90% gravity on EVERYBODY the instant the winner crossed, and that
+       flatness is what made the finish read as a batch: the two heads fighting over 3rd
+       got the same shove as the head three screens behind them, so the whole field
+       arrived in one pile and the finishing ORDER -- the thing this format is actually
+       about -- happened too fast to watch.
+       Graded, the shove is gentle at the front, where there is still a contest, and
+       harder than the old flat one at the back, where there is not. That is not a
+       tidying-up: it is the same uniform downward push every racer already had, aimed at
+       the dead time instead of at the drama. MEASURED over six twelve-head qualifiers at
+       1440x900: the flat version resolved 9.2 of 12 on average and produced a complete
+       finishing order once in six; the first attempt at this (a flat 0.42 until the cut
+       filled) made it much worse -- 6.3 of 12 and never complete, which would hand the
+       qualifier unearned placings inside its own cut. Graded gets both. */
+    if(!a.fin&&order.length>0){var _bk=Math.max(0,Math.min(1,(finishY-a.y)/(H*1.5)));   // how far from the LINE, not from the leader: a pack that is all together still needs sweeping home
+     a.vy+=1550*((order.length>=(cutLine||1))?(0.9+0.9*_bk):(0.15+1.45*_bk))*dt;}
     var sp=Math.hypot(a.vx,a.vy),cap=H*2.5;if(sp>cap){a.vx*=cap/sp;a.vy*=cap/sp;}
     a.x+=a.vx*dt;a.y+=a.vy*dt;
     if(a.x<X0+a.r){a.x=X0+a.r;a.vx=Math.abs(a.vx)*0.3;}if(a.x>W-a.r){a.x=W-a.r;a.vx=-Math.abs(a.vx)*0.3;}
@@ -3410,6 +3538,16 @@ function teams(){
       if(a.nud>=3){a.nud=0;a.vx=(CC>a.x?1:-1)*rnd(520,680);a.vy=-rnd(160,260);}   // three nudges and still pinned -> a hard kick toward open course (out of any corner pocket), with a little pop up to clear the lip
       else{var m=rnd(300,460);a.vx+=(Math.random()<0.5?-1:1)*m*0.5;a.vy+=m;}}}}
     if(!a.fin&&!elimMode&&a.y>finishY){a.fin=true;order.push(i);if(a.row){a.row.classList.add("fin");}
+     /* ONE AT A TIME. The pill names whoever just went in and what is being raced for
+        next; a place with a contest still behind it also buys a short beat of slow
+        motion, so the eye has somewhere to land before the next one arrives. No beat
+        once the cut is filled -- the tail is a tidy-up, not a contest, and stuttering
+        through it would be dead time. And the wrap-up deadline follows the LAST
+        finisher rather than the first, so the qualifier's degradation ladder never
+        drops to `partial` just because the sequence took a moment to read. */
+     try{stakeFinish(a,order.length);}catch(_){}
+     if(cutLine&&order.length<cutLine)beatAt=clock+380;
+     endAt=Math.max(endAt||0,clock+2400);
      if(winner<0){winner=i;a.peer.raceWin=true;ts=0.28;endAt=clock+7600;try{if(window.__hmCareer&&a.peer.slot!=null)window.__hmCareer.rec("raceWin",a.peer.slot);}catch(_){}
       try{bigText("🏁");if(window.__hmFX){window.__hmFX.burst(a.x-HL,finishY-camY,{count:26,color:"224,90,78",speed:520,gravity:900,life:0.9,size:5,dir:-1.57,spread:0.9});window.__hmFX.burst(a.x-HL,finishY-camY,{count:26,color:"90,160,216",speed:520,gravity:900,life:0.9,size:5,dir:-1.57,spread:0.9});}}catch(_){}
       setTimeout(function(){if(ON)bigText("Winner!");},900);setTimeout(function(){if(ON&&cEl)cEl.textContent="";},2600);}}}
@@ -3434,8 +3572,15 @@ function teams(){
    // pack eventually falls past -- and once it did, this test stayed true forever and the
    // mode ran the rest of its bracket at 0.3x. Measured: ts pinned at 0.30 from t=46s to
    // the end of a 110-second race. A format with no line cannot have a photo finish.
-   if(winner<0&&!elimMode){var lead2=-1e9,sec3=-1e9;for(var q=0;q<balls.length;q++){if(balls[q].fin||balls[q].out)continue;if(balls[q].y>lead2){sec3=lead2;lead2=balls[q].y;}else if(balls[q].y>sec3)sec3=balls[q].y;}
-    var want=(lead2>finishY-H*0.9&&(lead2-sec3)<H*0.35)?0.3:1;ts+=(want-ts)*Math.min(1,raw*6);}
+   /* ...AND IT IS NOT ONLY THE WINNER'S. The test used to be gated on `winner<0`, so the
+      world held its breath for 1st place and for nothing after it -- which is the same
+      batch-finish failure the sprint boost had, expressed in time instead of gravity.
+      Every place has a contest and every contest gets the dip; `fin` racers are already
+      excluded from the leaders below, so once a place is taken the test simply moves on
+      to the next two heads. `beatAt` is the short hold a crossing buys (see step()). */
+   if(!elimMode){var lead2=-1e9,sec3=-1e9;for(var q=0;q<balls.length;q++){if(balls[q].fin||balls[q].out)continue;if(balls[q].y>lead2){sec3=lead2;lead2=balls[q].y;}else if(balls[q].y>sec3)sec3=balls[q].y;}
+    var want=(clock<beatAt)?0.42:((lead2>finishY-H*0.9&&(lead2-sec3)<H*0.35)?0.3:1);
+    ts+=(want-ts)*Math.min(1,raw*(want<ts?6:2.4));}
    else if(winner>=0)ts+=(1-ts)*Math.min(1,raw*2.2);
    else ts=1;
    var dt=raw*ts;
@@ -3457,13 +3602,14 @@ function teams(){
       if(curLast>=0&&curLast!==doomIx){var odr=balls[doomIx].row;if(odr)odr.classList.remove("doom");doomIx=curLast;}   // the bell takes whoever is ACTUALLY last when it rings -- a saved chip escaping mid-warning is half the fun
       var DB=balls[doomIx];
       if(DB&&!DB.out&&!DB.fin){DB.out=true;outOrder.push(doomIx);
+       try{var _lv=balls.length-outOrder.length-order.length;stake(faceFor(DB)+"<b>Out</b><span>"+_lv+" still in</span>",true);}catch(_){}   // the bell is this format's crossing: same pill, same beat
        try{if(window.__hmFX)window.__hmFX.burst(DB.x-HL,DB.y-camY,{count:14,color:"224,90,78",speed:420,gravity:600,life:0.6,size:4});}catch(_){}
        if(DB.row){DB.row.classList.remove("doom");}}
       doomIx=-1;nextCut=n+elimGap;}}
     else if(doomIx>=0){var dr2=balls[doomIx].row;if(dr2)dr2.classList.remove("doom");doomIx=-1;}
     if(liveN===1&&winner<0){for(var wj=0;wj<balls.length;wj++){if(!balls[wj].fin&&!balls[wj].out){winner=wj;balls[wj].fin=true;order.push(wj);balls[wj].peer.raceWin=true;if(balls[wj].row)balls[wj].row.classList.add("fin");
      try{if(window.__hmCareer&&balls[wj].peer.slot!=null)window.__hmCareer.rec("raceWin",balls[wj].peer.slot);}catch(_){}
-     ts=0.28;endAt=clock+5200;try{bigText("Winner!");}catch(_){}break;}}}}
+     ts=0.28;endAt=clock+5200;try{bigText("Winner!");stake(faceFor(balls[wj])+"<b>1st</b><span>last one standing</span>",true);}catch(_){}break;}}}}
    // camera: ride the leader with a soft spring, never backward, and stop at the pen
    var leadY=-1e9;for(var c2=0;c2<balls.length;c2++)if(!balls[c2].out&&balls[c2].y>leadY)leadY=balls[c2].y;
    var tgt=Math.max(camY,Math.min(leadY-H*0.42,finishY+H*0.9-H));
