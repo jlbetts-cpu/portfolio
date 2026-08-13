@@ -169,7 +169,7 @@ RUN_BATCH = r"""
      the race having stopped happening. The grid is deliberately coarse and its bias is
      toward reporting MORE coverage than there is (boxes, not discs), so a chute it
      does report is real. */
-  function chutes(course, pegs, segs, spins) {
+  function chutes(course, pegs, segs, spins, voids) {
     const B = 20, hr = course.D * 0.46;
     const y0 = course.H * 0.42, y1 = course.finishY;
     const nb = Math.max(1, Math.ceil((y1 - y0) / B)), nc = Math.max(1, Math.ceil(course.CW / B));
@@ -180,13 +180,39 @@ RUN_BATCH = r"""
       if (ca < 0) ca = 0; if (cb > nc) cb = nc; if (ba < 0) ba = 0; if (bb2 > nb) bb2 = nb;
       for (let b = ba; b < bb2; b++) for (let c = ca; c < cb; c++) g[b * nc + c] = 1;
     };
-    for (const p of pegs) mark(p.x - p.r - hr, p.x + p.r + hr, p.y - p.r - hr, p.y + p.r + hr);
+    // A SWEEPER OCCUPIES ITS WHOLE STROKE. Reading p.x alone would report a clear
+    // column either side of a peg that visits it twice a second, which is the reverse
+    // of the error this metric exists to catch.
+    for (const p of pegs) { const sw = p.mv ? p.mv.amp : 0;
+      mark(p.x - p.r - hr - sw, p.x + p.r + hr + sw, p.y - p.r - hr, p.y + p.r + hr); }
     for (const w of spins) mark(w.cx - w.r - hr, w.cx + w.r + hr, w.cy - w.r - hr, w.cy + w.r + hr);
     for (const s of segs) {                       // walked, not boxed: a 16deg ramp's bounding box is mostly air
       const n = Math.max(2, Math.ceil(Math.hypot(s.x2 - s.x1, s.y2 - s.y1) / (B / 2)));
       for (let i = 0; i <= n; i++) { const t = i / n, x = s.x1 + (s.x2 - s.x1) * t, y = s.y1 + (s.y2 - s.y1) * t;
         mark(x - hr, x + hr, y - hr, y + hr); }
     }
+    /* TWO NUMBERS, BECAUSE A CHUTE NOBODY CAN ENTER IS NOT A CHUTE. The triangle
+       outside a funnel wall is sealed at its top by the wall's own start against the
+       rail. It is 18% of this grid and no racer has ever been in one. Counting it as
+       free fall reported the course as emptier than any racer can find it -- measured
+       on the same seeds, worst RAW column 15.1 diameters against 10.9 reachable.
+       RAW is kept because every number this file has ever published for CHUTE was a raw
+       one, and a comparison that quietly changes its instrument is not a comparison.
+       REACHABLE is the one that describes a race. */
+    const gv = g.slice();
+    for (let b = 0; b < nb; b++) for (let c = 0; c < nc; c++) {
+      const yy = y0 + (b + 0.5) * B, xx = course.X0 + (c + 0.5) * B;
+      for (const v of (voids || [])) {
+        if (yy < v.y0 || yy > v.y1) continue;
+        const wx = v.x0 + (v.x1 - v.x0) * ((yy - v.y0) / Math.max(1, v.y1 - v.y0));
+        if (v.side < 0 ? (xx < wx) : (xx > wx)) { gv[b * nc + c] = 1; break; }
+      }
+    }
+    let vworst = 0;
+    for (let c = 0; c < nc; c++) { let run = 0, best = 0;
+      for (let b = 0; b < nb; b++) { if (gv[b * nc + c]) { if (run > best) best = run; run = 0; } else run++; }
+      if (run > best) best = run;
+      if (best * B > vworst) vworst = best * B; }
     let worst = 0, per = [], covered = 0;
     for (let c = 0; c < nc; c++) {
       let run = 0, best = 0;
@@ -195,7 +221,7 @@ RUN_BATCH = r"""
       per.push(best * B); if (best * B > worst) worst = best * B;
     }
     per.sort((a, b) => a - b);
-    return {max: worst, med: per[per.length >> 1], min: per[0],
+    return {max: worst, reach: vworst, med: per[per.length >> 1], min: per[0],
             cover: +(covered / (nb * nc)).toFixed(4), depth: Math.round(y1 - y0), D: +course.D.toFixed(1)};
   }
   function mulberry32(a){ return function(){
@@ -218,8 +244,13 @@ RUN_BATCH = r"""
       rec = {seed: s, stepped: +stepped.toFixed(2), still: !!window.__hmRaceOn,
              course: window.__race.course(), balls: window.__race.tally(),
              drama: window.__race.drama ? window.__race.drama() : null,
+             // REACH: per obstacle TYPE, how many were built and how many any racer
+             // touched. Read here, before __hmRaceEnd, for the same reason the tally is.
+             reach: window.__race.reach ? window.__race.reach() : null,
              // read from the LIVE arrays, before the next seed's buildCourse() empties them
-             chute: chutes(window.__race.course(), window.__race.pegs, window.__race.segs, window.__race.spins)};
+             chute: chutes(window.__race.course(), window.__race.pegs, window.__race.segs,
+                           window.__race.spins,
+                           window.__race.voids ? window.__race.voids() : [])};
     } catch (e) {
       rec = {seed: s, err: String(e && e.message || e)};
     } finally {
@@ -246,8 +277,28 @@ INJECTIONS = {
     #    is the defect the previous pass fixed, expressed against the code that replaced
     #    it: measured FAIRNESS 0.64, rail lanes on 2.5 pegs against 13 in the middle.
     "band": (
-        "      if(py<finishY-SPRINT&&!inVoid(px,py)&&roomRail(px,py,L.R))pegs.push({x:px,y:py,r:L.R,rail:r2});}",
+        "      if(py<finishY-SPRINT&&!inVoid(px,py)&&railLive(r2,py)&&roomRail(px,py,L.R))pegs.push({x:px,y:py,r:L.R,rail:r2});}",
         "      if(false)pegs.push({x:px,y:py,r:L.R,rail:r2});}",
+    ),
+    # 4. THE COURSE POURED ON A GRID AGAIN. The flow envelope switched off, so the
+    #    lattice goes back to being laid across the full width at every depth and the
+    #    rail is scalloped whether or not the field ever reaches it. This is the course
+    #    as Jayden found it -- "half of them arent even in the way of anything" -- and
+    #    it is invisible to every other detector here: measured, FAIRNESS, FLOOR, CHUTE
+    #    and COVER all stayed green while REACH read 55%.
+    "flat": (
+        "     for(var hy=0;hy<2;hy++)for(r2=-1;r2<=1;r2+=2){px=(r2<0)?X0:W;py=yy+L.vs*0.5*hy+rnd(-3,3);",
+        "     for(var hy=0;hy<2;hy++)for(r2=-1;r2<=1;r2+=2){px=(r2<0)?X0:W;py=yy+L.vs*0.5*hy+rnd(-3,3);"
+        "railLive=function(){return true;};inFlow=function(){return true;};",
+    ),
+    # 5. THE CHUTE CAP REMOVED. The envelope is the right rule for furnishing a course
+    #    and no rule at all for guarding one: with the cap pass gone, the columns the
+    #    field does not use are bare from top to bottom and a swatted racer free-falls
+    #    down one. REACH goes UP when this is injected, which is the whole reason the
+    #    two readings have to be gated together.
+    "nocap": (
+        "   capChutes(5.0);",
+        "   if(false)capChutes(5.0);",
     ),
     # 2. THE WEDGE. The boundary peg lifted off the rail onto the lattice's own
     #    half-pitch -- the version that reads as the tidy thing to do. It leaves a
@@ -333,6 +384,30 @@ def contract(d, f):
     f.check(d["chute_p95"] <= 17.0, "no long free fall anywhere on the course",
             "longest clear drop, p95 of seeds = %.1f head diameters "
             "(was 29.2 before the backfill; needs <= 17)" % d["chute_p95"])
+    # -- "half of them arent even in the way of anything or placed to actually be an
+    # obsticale" -- the reading this pass was built around. COVER says an obstacle is
+    # NEAR the course; REACH says a racer touched it. The previous pass reported COVER
+    # 33% -> 51% as a success against this exact sentence, which is why the gate is on
+    # REACH and why COVER alone is no longer allowed to answer for it.
+    f.check(d["reach_mean"] >= 0.68, "every obstacle is in somebody's way",
+            "%.0f%% of everything built is touched by some racer (was 55%%; needs >= 68%%)"
+            % (100 * d["reach_mean"]))
+    f.check(d["reach_min"] >= 0.55, "...even on the unluckiest layout",
+            "worst seed touches %.0f%% of its own course (needs >= 55%%)"
+            % (100 * d["reach_min"]))
+    # REACHABLE CHUTE: the raw CHUTE above counts the funnels' sealed outer wedges,
+    # which are 18% of the grid and which no racer can enter. This is the same reading
+    # with them painted out -- the free fall a racer can actually find.
+    # 14, not 13, and the difference is a thing that cannot be designed away. A funnel
+    # TUBE is two parallel walls one throat apart: nothing satisfies the clearance rule
+    # between them, so every pixel of tube is free fall by construction, and the same is
+    # true of the split's fast channel and of the run-in, which is deliberately clear so
+    # the sweep-home works. Those three account for the whole of the remaining number.
+    # It is still a real gate -- the build with the chute pass switched off reads far
+    # past it, and so does the one that pours the lattice on a grid again.
+    f.check(d.get("creach_p95", 0) <= 14.0, "no long free fall a racer can get to",
+            "worst reachable clear column, p95 of seeds = %.1f head diameters (needs <= 14)"
+            % d.get("creach_p95", 0))
     f.check(d["cover_mean"] >= 0.42, "the course is furnished, not decorated",
             "%.0f%% of the course is within a head-radius of an obstacle "
             "(was 33%%; needs >= 42%%)" % (100 * d["cover_mean"]))
@@ -495,7 +570,11 @@ def digest(records, field=FIELD):
             "late": (None if not dr.get("log") or not times else
                      sum(1 for e in dr["log"] if e[0] > 500 * times[0]) ),
             "durable": durable, "quiet": quiet, "lastfrac": lastfrac, "distinct": distinct,
+            "reach": r.get("reach"),
             "chute": (r.get("chute") or {}).get("max"),
+            "chuteR": (None if not r.get("chute") or not r["chute"].get("D")
+                       or r["chute"].get("reach") is None
+                       else r["chute"]["reach"] / r["chute"]["D"]),
             "chute_med": (r.get("chute") or {}).get("med"),
             "cover": (r.get("chute") or {}).get("cover"),
             "chuteD": (None if not r.get("chute") or not r["chute"].get("D")
@@ -549,7 +628,29 @@ def digest(records, field=FIELD):
     dur_ch = [p["durable"] for p in per_race if p["durable"] is not None]
     quiet = [p["quiet"] for p in per_race if p["quiet"] is not None]
     dist_l = [p["distinct"] for p in per_race if p["distinct"] is not None]
+    # -- REACH. "half of them arent even in the way of anything", as a number ---------
+    # Per seed: what share of everything the course BUILT did any of the twelve racers
+    # actually touch. Reported per type as well as overall, because a 60% headline that
+    # is 95% of the set pieces and 45% of a peg lattice is a lattice problem, and the
+    # aggregate hides which. Worst seed first: a mean here would hide the layout that
+    # deals half its furniture behind a wall.
+    reach_all, reach_kinds = [], {}
+    for p in per_race:
+        rc = p.get("reach")
+        if not rc:
+            continue
+        n = sum(v["n"] for v in rc.values())
+        h = sum(v["hit"] for v in rc.values())
+        if n:
+            reach_all.append(h / n)
+        for k, v in rc.items():
+            d = reach_kinds.setdefault(k, {"n": [], "hit": [], "frac": []})
+            d["n"].append(v["n"])
+            d["hit"].append(v["hit"])
+            if v["n"]:
+                d["frac"].append(v["hit"] / v["n"])
     chute = [p["chuteD"] for p in per_race if p["chuteD"] is not None]
+    chuteR = [p["chuteR"] for p in per_race if p.get("chuteR") is not None]
     chpx = [p["chute"] for p in per_race if p["chute"] is not None]
     cover = [p["cover"] for p in per_race if p["cover"] is not None]
     return {
@@ -605,6 +706,18 @@ def digest(records, field=FIELD):
         "chute_max": max(chute) if chute else 0.0,
         "chute_px": statistics.fmean(chpx) if chpx else 0.0,
         "cover_mean": statistics.fmean(cover) if cover else 0.0,
+        # REACHABLE chute: the same reading with the funnels' sealed wedges painted out.
+        "creach_mean": statistics.fmean(chuteR) if chuteR else 0.0,
+        "creach_p95": pct(chuteR, 95), "creach_max": max(chuteR) if chuteR else 0.0,
+        # REACH: the share of built obstacles that any racer contacted. See above.
+        "reach_mean": statistics.fmean(reach_all) if reach_all else 0.0,
+        "reach_p05": pct(reach_all, 5), "reach_p50": pct(reach_all, 50),
+        "reach_min": min(reach_all) if reach_all else 0.0,
+        "reach_kinds": {k: {"n": statistics.fmean(v["n"]),
+                            "hit": statistics.fmean(v["hit"]),
+                            "frac": statistics.fmean(v["frac"]) if v["frac"] else 0.0,
+                            "worst": min(v["frac"]) if v["frac"] else 0.0}
+                        for k, v in sorted(reach_kinds.items())},
         "obstacles": {k: statistics.fmean([p[k] for p in per_race]) if per_race else 0.0
                       for k in ("pegs", "segs", "spins", "gates")},
         "depth": statistics.fmean([p["depth"] for p in per_race]) if per_race else 0.0,
@@ -667,8 +780,20 @@ def report(d, title="race fairness"):
     print("  CHUTE     the longest clear straight drop is %.1f head diameters "
           "(%.0fpx)  p50 %.1f  p95 %.1f  worst seed %.1f"
           % (d["chute_mean"], d["chute_px"], d["chute_p50"], d["chute_p95"], d["chute_max"]))
+    print("  REACHABLE %.1f head diameters is the worst clear column a racer can actually"
+          "\n            GET to (p95 %.1f, WORST SEED %.1f) -- the funnels' sealed outer"
+          "\n            wedges painted out, because no racer has ever been in one"
+          % (d.get("creach_mean", 0), d.get("creach_p95", 0), d.get("creach_max", 0)))
     print("  COVER     %.0f%% of the course's cells are within a head-radius of an obstacle"
           % (100 * d["cover_mean"]))
+    print("\n  -- reach: is each obstacle actually IN THE WAY of anybody? --")
+    print("  REACH     %.0f%% of everything built was touched by some racer   "
+          "(p05 %.0f%%, p50 %.0f%%, worst seed %.0f%%)"
+          % (100 * d["reach_mean"], 100 * d["reach_p05"], 100 * d["reach_p50"],
+             100 * d["reach_min"]))
+    for k, v in d.get("reach_kinds", {}).items():
+        print("            %-6s %5.1f built  %5.1f touched  = %3.0f%%   (worst seed %3.0f%%)"
+              % (k, v["n"], v["hit"], 100 * v["frac"], 100 * v["worst"]))
     print("\n  course    %.0f pegs  %.0f segments  %.0f spinners  %.0f gates  "
           "%.0fpx to the line"
           % (d["obstacles"]["pegs"], d["obstacles"]["segs"], d["obstacles"]["spins"],
