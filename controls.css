@@ -515,7 +515,21 @@
 .cases.collection{
  width:calc(100% - (var(--surface-gutter) * 2));
  max-width:calc(var(--page-max) - (var(--surface-gutter) * 2));
- background:var(--surface-ground-muted)
+ /* NO GROUND AND NO RIM ON THE WORK COLLECTION. Jayden: "could you just remove
+    the background for the tabs and just have an underline on the selected tab we
+    use this type of thing in the case studies".
+    The tabs were already right -- the row is transparent and the selected tab
+    carries a 2px ink underline, which IS the case-study treatment. What he was
+    looking at is THIS: .collection gives every member --surface-ground and
+    --surface-rim at --r-xl, so the tab row sat on a raised card and the first
+    thumbnail butted into its top edge. The band was never the tabs.
+    Off, so the row is type on the page and the underline is the only mark. The
+    content pane keeps its own ground, so the thumbnails still have something to
+    sit against. It is the shadow rule too: chrome separates with a hairline and
+    translucency, and this needs neither -- the active tab says where you are.
+    Scoped to .cases so the other collections on this site are untouched. */
+ background:none;
+ box-shadow:none
 }
 .collection__tabs{
  box-sizing:border-box;display:flex;gap:var(--gap-item);padding:var(--surface-inset);
