@@ -754,6 +754,18 @@ def touch_drag(context, page, start, end):
         "type": "touchStart",
         "touchPoints": [{"x": start["x"], "y": start["y"], "id": 1}],
     })
+    # A HORIZONTAL LEAD-IN, BECAUSE touch-action IS pan-y NOW. The head no longer
+    # swallows a vertical swipe -- that WAS "the head resizes on scroll on mobile",
+    # measured at +0.70 of scale from a swipe up the NW handle with the page not
+    # moving at all. A gesture that opens straight up or straight down is a page
+    # scroll by design now. A drag that means the head opens sideways, which is
+    # what a finger does when it means to drag a thing, and the browser then keeps
+    # delivering the whole 2D path.
+    for step in range(1, 4):
+        client.send("Input.dispatchTouchEvent", {
+            "type": "touchMove",
+            "touchPoints": [{"x": start["x"] + 12 * step, "y": start["y"], "id": 1}],
+        })
     for step in range(1, 6):
         progress = step / 5
         client.send("Input.dispatchTouchEvent", {
@@ -1036,7 +1048,13 @@ def browser_contract(base_url):
             })"""
             )
             assert selected["pressed"] == "true" and not selected["hidden"], selected
-            assert selected["touchAction"] == "none", selected
+            # pan-y, NOT none. `none` here promised the browser that a vertical
+            # swipe starting on the head must never scroll the page -- over a
+            # 196x228pt box that is on screen from load, exactly where a thumb
+            # lands. That is the bug Jayden reported. What still has to be true
+            # is that the head declares an intent at all, and that a vertical
+            # swipe can reach the page.
+            assert "pan-y" in selected["touchAction"], selected
             assert len(selected["handles"]) == 4
             assert all(
                 h["width"] >= 44 and h["height"] >= 44 and h["tabIndex"] == 0
