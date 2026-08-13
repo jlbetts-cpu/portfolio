@@ -278,3 +278,52 @@
  width:min(320px, 62vw, calc(var(--crsl-room) * 0.46));
  margin-inline:auto
 }
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   A PHONE IS ALREADY A PHONE. Jayden, twice now: "why is the screen even in a
+   box anyway its a phone display it as one" and "why is there multiple border
+   none of which are the same roundness of the image".
+
+   Measured, and he is describing a real thing exactly: .playerStage was a WHITE
+   BOX -- ground, 20px radius, a rim and 32px of padding -- wrapped around an
+   image that already carries its OWN 32px radius. Two different curves, nested,
+   32px apart, so the eye reads three edges and none of them agree. The mockup
+   does not need a frame; it IS one, and 32px is the iPhone corner it is drawn
+   with.
+
+   So the stage gives up its chrome entirely and becomes pure geometry. What is
+   left on screen is the picture.
+
+   AND THE PHONE GETS BIGGER. It was capped at 320px and then again at 46% of the
+   room left after the caption and ticks, which landed it at 256px wide -- small
+   for the one thing the whole component exists to show. The box is gone, so the
+   32px of padding it was eating goes back into the picture, and both caps rise.
+   The arrows move with it: --crsl-nav-x is measured from --crsl-w, so they stay
+   outside the image by construction rather than by a number I would have to
+   maintain. They were overlapping it because the padded box, not the picture,
+   was the reference.
+   ───────────────────────────────────────────────────────────────────────────── */
+.player>.playerStage{
+ background:none;
+ box-shadow:none;
+ border-radius:0;
+ padding:0;
+ /* THE STAGE CARRIES THE ARROW ROOM, THE IMAGE DOES NOT. .crslNav is absolutely
+    positioned INSIDE the stage, and --crsl-nav-x floors at 0, so once the stage
+    was the same size as the picture the arrows had nowhere to go but on top of
+    it -- measured, all four overlapping by 20px. The stage is the picture plus a
+    44px control and a gap on each side; the image keeps the smaller number and
+    centres in it. The stage draws nothing, so its extra width is invisible. */
+ --crsl-img:min(400px, 74vw, calc(var(--crsl-room) * 0.58));
+ --crsl-w:var(--crsl-img);
+ width:min(100%, calc(var(--crsl-img) + 2 * (var(--ctl-h) + var(--gap-item))))
+}
+.player>.playerStage>img{max-width:var(--crsl-img);margin-inline:auto;display:block}
+
+/* --crsl-w HAD TO FOLLOW THE PICTURE, NOT THE OLD CAP. The arrows sit at
+   calc(50% - --crsl-w/2 - gap - 44px), which is exactly right as long as
+   --crsl-w IS the drawn width. It was min(--panel-w, ...) -- the value the stage
+   used before this pass -- so when the phone grew from 256px to 360px the arrows
+   stayed where the smaller picture used to end and the picture grew out under
+   them. Measured: all four overlapping. Pointing it at the stage's own width
+   makes it self-correcting; there is no second number to keep in step. */
