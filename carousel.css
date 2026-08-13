@@ -228,122 +228,53 @@
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
-   THE CAPTION LEADS, THE TICKS FOLLOW QUIETLY, AND NEITHER IS A SECTION.
-   Jayden, looking at it: "the welcome should be on top of the screen firstly the
-   indicator shouldnt be its own section it should be subtle and under the screen
-   that whole section doesnt need to feel that bulky" and "the indicator of scroll
-   feels a bit out of place and spread out".
+   WHAT JAYDEN ASKED FOR, AND NOTHING ELSE.
 
-   Three separate things were each drawing their own container under the image --
-   a caption block, then a bordered pill holding the ticks -- so the half of the
-   component below the picture read as furniture rather than as a label and a
-   position. The fixes are all subtraction:
+   Three passes before this one added a card round the player and capped the
+   stage with object-fit:contain. Both were wrong. .playerStage>img carries
+   background:#000, so the moment the element was wider than its picture the
+   black showed as bars, and the mockup ended up letterboxed inside a second
+   surface. His words: "why is the screen even in a box anyway its a phone
+   display it as one you really dont have to do that much the display does it
+   itself". A device mockup already reads as an object; wrapping it says the
+   same thing twice.
 
-   1. THE CAPTION MOVES ABOVE THE STAGE. It names what you are about to look at;
-      underneath it was a footnote to a picture you had already formed a view of.
-      Done with `order`, not by moving markup, so five pages keep one source of
-      truth and the reading order for a screen reader is set by the DOM, which
-      still has the stage first -- the caption is `aria`-associated with it.
-   2. THE PILL GOES. --ctl-container-ground, --ctl-container-rim, a 20px radius
-      and 8px of padding turned a row of seven dashes into a boxed component. A
-      position indicator is not a control group; it is a caption that happens to
-      be clickable.
-   3. IT STOPS WRAPPING. Each tick is a 44x44 target (which stays -- they are real
-      buttons and the floor is measured, not declared), so seven of them span
-      308px and wrapped to a vertical column at narrow widths. That is the
-      "spread out" Jayden photographed. One row, no wrap, and the row is allowed
-      to be narrower than the sum of its targets because they may overlap.
+   I shipped that having measured "card fits viewport: true" and "caption inside
+   card: true" and never looked at the result. Counting is not looking, which is
+   the one rule this project keeps writing contracts about.
+
+   So: the picture sits on the page as it always did. The caption moves above it,
+   because it names what you are about to see. The ticks lose their pill and the
+   marks widen so the row reads as one object rather than seven scattered dots.
+   The arrows go on touch, where a swipe is already the gesture. No card, no
+   height cap, no crop.
    ───────────────────────────────────────────────────────────────────────────── */
 .player{display:flex;flex-direction:column}
 .player>.playerCap{order:-1;margin-top:0;margin-bottom:var(--sp-12)}
 .player>.playerStage{order:0}
 .player>.playerBar{order:1}
 .player>.playerBar.carousel-toolbar{
- background:none;box-shadow:none;border-radius:0;padding:0;
- margin-top:var(--sp-8)
+ background:none;box-shadow:none;border-radius:0;padding:0;margin-top:var(--sp-8)
 }
 .player .carousel-toolbar .playerTicks{flex-wrap:nowrap;gap:0}
-/* THE MARKS NEARLY TOUCH, SO THE ROW READS AS ONE OBJECT. Each tick is a 44x44
-   target and stays one -- they are buttons and the floor is measured, not
-   declared -- but the dash inside was --sp-14 against a 44px box, so seven of
-   them scattered 14px marks across 308px with 30px of air between each. That is
-   the "spread out" Jayden means; the targets were never the problem, the marks
-   were. Widening the dash turns a row of dots into a segmented bar: the same
-   footprint, the same tap area, and one object instead of seven. */
 .player .ctl--tick::before{width:var(--sp-32)}
-
-/* ─────────────────────────────────────────────────────────────────────────────
-   ONE CARD, NOT A CARD WITH THINGS FLOATING ROUND IT.
-   Jayden: "i dont like how th elements look outside the box like they are
-   disconnected. the caption and the indicator".
-
-   Measured: .playerStage carried the whole card treatment -- a white ground, a
-   20px radius and a rim -- and ran 1120px wide, while .playerCap above it was
-   381px. So a narrow caption hovered over a wide box, and the ticks sat under
-   it, and neither belonged to the thing they describe. Moving the caption above
-   the stage earlier fixed the reading order and made the disconnection more
-   obvious, because it put the orphan at the top where the eye starts.
-
-   The surface moves up to .player, so the caption, the picture and the position
-   are one object with one ground and one rim. The stage keeps its geometry and
-   gives up its chrome -- it is the picture inside the card now, not a card of
-   its own. That is one box where there were three, which is the direction this
-   component has been going all night.
-   ───────────────────────────────────────────────────────────────────────────── */
-.player{
- background:var(--surface-ground);
- border-radius:var(--radius-media);
- corner-shape:var(--corner);
- box-shadow:var(--surface-rim);
- padding:var(--surface-inset);
- box-sizing:border-box
-}
+@media(hover:none) and (pointer:coarse){ .crslNav{display:none} }
+/* AND IT FITS THE SCREEN BY GETTING SMALLER, NOT BY BEING CROPPED. The stage was
+   sized on width alone -- min(320px,62vw) -- and the mockup is 720:1565, so a
+   320px stage is 696px tall before the caption above it and the ticks below.
+   On a short screen the three parts of one object could not be seen together.
+   Because the aspect ratio is fixed, capping the HEIGHT is the same as capping
+   the width: multiply the height left over by 720/1565 and take whichever is
+   smaller. The phone shrinks and stays a phone. The earlier attempt at this used
+   object-fit:contain instead, which letterboxed it against the img's own black
+   background -- the thing Jayden saw and called horrendous. Nothing is contained
+   and nothing is cropped here; only the box gets smaller. */
 .player>.playerStage{
- background:none;
- box-shadow:none;
- border-radius:0
-}
-.player>.playerCap{max-width:none}
-
-/* THE TABBED VIEWER TAKES THE SAME CARD. It is the other carousel on these pages
-   and it had the same disconnection: a kicker and a tab rail sitting outside the
-   frame they belong to. Its indicator stays LABELLED tabs rather than becoming
-   dots -- these are four named screens (Home, Camera, Feed, Find) and a dot
-   cannot say "Camera". That is why the tick work never appeared here, which is
-   what Jayden noticed as "no main indicator changes"; the right answer for named
-   screens is the label, and what was actually missing was the ground. */
-.tv{
- background:var(--surface-ground);
- border-radius:var(--radius-media);
- corner-shape:var(--corner);
- box-shadow:var(--surface-rim);
- padding:var(--surface-inset);
- box-sizing:border-box
-}
-.tv>.tvFrame{background:none;box-shadow:none}
-
-/* THE WHOLE CARD FITS ONE SCREEN, and the arrows leave the phone alone.
-   Jayden: "they should all be able to fit on the same screen scroll on both
-   mobile and desktop also the buttons need to need to be not visible on mobile
-   because swiping is so easy to do on mobile no need for that."
-
-   The stage was sized by WIDTH -- min(320px,62vw) -- and a phone mockup is about
-   2.16 times as tall as it is wide, so the picture alone ran past the viewport
-   on any short screen and the caption above it and the position below it went
-   with it. Capping the HEIGHT and letting the width follow keeps the three parts
-   of one object on one screen, which is the whole point of putting them in one
-   card. object-fit:contain so a mockup is never cropped to make it fit.
-
-   The arrows go on touch. A swipe is already the gesture, they were only ever
-   the pointer's way in, and two 44px targets flanking the picture on a 390px
-   screen cost more room than they earn. They stay for anything with a pointer,
-   and keyboard users keep the arrow keys either way. */
-.player>.playerStage{
- max-height:var(--crsl-stage-max,none);
- display:flex;justify-content:center
-}
-.player>.playerStage>img{max-height:100%;width:auto;object-fit:contain}
-@media(max-height:1000px){ .player{--crsl-stage-max:calc(100svh - 300px)} }
-@media(hover:none) and (pointer:coarse){
- .crslNav{display:none}
+ /* 150px is the caption, the tick row and the gaps between them, measured -- not
+    a guess. Reserving more than that shrank the phone on screens with room to
+    spare. margin-inline:auto because a narrowed stage is no longer the full
+    width of the player and would otherwise sit against the left edge. */
+ --crsl-room:calc(100svh - 150px);
+ width:min(320px, 62vw, calc(var(--crsl-room) * 0.46));
+ margin-inline:auto
 }
