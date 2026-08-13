@@ -728,17 +728,43 @@
  transform:translate3d(calc(-50% + var(--hero-head-x)),calc(var(--hero-head-y) + var(--hero-movie-guard-y)),0)
            rotate(var(--hero-head-rotate)) scale(var(--hero-head-scale));
  will-change:transform;
- /* touch-action:none IS THE MOBILE SMOOTHNESS FIX, not a tidy-up. Under the
-    default `auto` the browser holds every touch back to work out whether it is
-    a page scroll before it hands over a pointer event, so the opening moments
-    of a drag were swallowed and a gesture could still be stolen into a scroll
-    part-way through. That is what "moving the head and resizing experience is
-    still not the smoothest on mobile" is describing, and it cannot be fixed in
-    JS: the decision is made before the first pointermove arrives, and
-    preventDefault on a passive listener does nothing. The Play page's draggable
-    word already declares this; the head, the far more obvious drag target,
-    never did. */
- touch-action:none
+ /* ── pan-y, NOT none. THIS IS "THE HEAD RESIZES ON SCROLL ON MOBILE". ──────
+    touch-action:none was the mobile SMOOTHNESS fix: under the default `auto`
+    the browser holds every touch back to decide whether it is a page scroll
+    before it hands over a pointer event, so the opening moments of a drag were
+    swallowed and a gesture could still be stolen into a scroll part-way
+    through. That reasoning is still right for a DELIBERATE drag, and `none`
+    still cannot be replaced from JS -- the decision is made before the first
+    pointermove arrives, and preventDefault on a passive listener does nothing.
+    WHAT `none` ALSO DID was declare that a vertical swipe starting anywhere on
+    the head must never scroll the page. The frame is on screen from page load
+    (ambient() -- "the page arrives already selected"), so that promise is armed
+    before the visitor has touched anything, over a box measured 196 x 228pt in
+    the middle of the first screen at 402x714 -- exactly where a thumb lands.
+    MEASURED, with Chromium's own gesture pipeline (Input.synthesizeScrollGesture,
+    touch source), which obeys touch-action the way a finger does:
+      swipe up from the head's centre  -> scrollY 0.0 -> 0.0, head dy -275px
+      swipe up from the NW handle      -> scrollY 0.0 -> 0.0, head SCALE +0.70
+      swipe up from empty hero         -> scrollY 0.0 -> 259.0  (the control)
+    The second line is Jayden's bug verbatim: he swiped to scroll, the page
+    refused to move, and the head grew from 1.0 to its 1.7 ceiling. Confirmed on
+    real Mobile Safari (iPhone 17, iOS 26.3): a swipe from the head left
+    scrollY at 0 and dragged the portrait behind the headline.
+    RULED OUT FIRST, on the device, because "resizes on scroll" reads like a
+    viewport bug: --hero-peek-width 211px, --hero-head-scale 1, offsetWidth 211
+    and .heroCharacterPeek's height 714px are ALL constant across a real URL-bar
+    retraction (innerHeight 714 <-> 754, 3 window resizes, 3 visualViewport
+    resizes). The head's layout size does not depend on viewport height at all.
+    pan-y gives the page back the one gesture it must have. A drag that starts
+    with any horizontal component is still not a pan, so it still reaches the
+    head with full 2D freedom and full smoothness -- which is how a corner
+    resize is performed anyway, and how every carousel on the web already
+    behaves. The cost is honest and small: a PURELY vertical drag of the head on
+    a touchscreen now scrolls instead. pinch-zoom is listed back in explicitly
+    so the fix cannot cost a zoom (WCAG 1.4.4); the bare pan-y below it is the
+    fallback for an engine that cannot parse the keyword. */
+ touch-action:pan-y;
+ touch-action:pan-y pinch-zoom
 }
 .heroHeadTransform .stagewrap{position:relative!important;width:100%!important;max-width:none;margin:0!important}
 /* The four --selection-* values are written by hero-head-transform.js at runtime.
@@ -751,7 +777,11 @@
 .heroHeadSelection{
  position:absolute;left:var(--selection-x,0px);top:var(--selection-y,0px);
  width:var(--selection-w,0px);height:var(--selection-h,0px);z-index:6;
- pointer-events:auto;touch-action:none;cursor:move
+ /* pan-y for the reason spelled out on .heroHeadTransform: this box is the
+    pointer surface, so `none` here was most of the dead scroll region. */
+ pointer-events:auto;cursor:move;
+ touch-action:pan-y;
+ touch-action:pan-y pinch-zoom
 }
 /* The selection BOX stays the Hero-clamped bounding rect: it is the pointer
    surface, so it must never reach past the Hero into the work section. The
@@ -776,7 +806,12 @@
  position:absolute;left:var(--h-x,0px);top:var(--h-y,0px);
  width:var(--selection-hit-size);height:var(--selection-hit-size);
  margin:calc(var(--selection-hit-size) / -2) 0 0 calc(var(--selection-hit-size) / -2);
- border:0;padding:0;background:transparent;touch-action:none
+ /* The handles are the ones that RESIZE, so they are the ones Jayden's report
+    named. A corner drag is diagonal by nature and pan-y leaves it untouched;
+    only a dead-vertical pull on a dot is given back to the page. */
+ border:0;padding:0;background:transparent;
+ touch-action:pan-y;
+ touch-action:pan-y pinch-zoom
 }
 .heroHeadHandle::before,.heroHeadRotate::before{
  content:"";position:absolute;
@@ -795,7 +830,11 @@
  width:var(--selection-rotate-size);height:var(--selection-rotate-size);
  border-radius:var(--r-full)
 }
-.heroCharacterPeek .stage{pointer-events:auto;cursor:pointer;touch-action:none}
+/* The artwork itself, same rule, same reason: this is the surface a thumb
+   actually lands on when someone tries to scroll past the portrait. */
+.heroCharacterPeek .stage{pointer-events:auto;cursor:pointer;
+ touch-action:pan-y;
+ touch-action:pan-y pinch-zoom}
 #face:focus-visible{outline:var(--focus-w) solid var(--ctl-focus);outline-offset:var(--sp-2)}
 #face[data-pointer-focus]:focus-visible{outline:none}
 .heroHeadHandle:focus-visible::before,.heroHeadRotate:focus-visible::before{

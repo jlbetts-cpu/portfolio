@@ -841,6 +841,39 @@
    state.rotate=limitRotate(state.start.rotate+delta,event.shiftKey);
    state.pendingClamp=true;render();
   }
+  /* ── A CANCELLED GESTURE IS NOT A SMALL GESTURE ──────────────────────────
+     touch-action:pan-y (controls.css) hands a vertical swipe back to the page,
+     which is what fixes "the head resizes on scroll on mobile". But the
+     browser only reaches that verdict after it has already delivered the
+     opening pointermoves, so the head kept whatever those moves did to it and
+     a scroll left a permanent mark behind. Measured through Chromium's touch
+     gesture pipeline with pan-y in place: an upward scroll from the head's
+     centre still nudged it -23.1px, and one from the NW handle still grew it
+     +0.1158 of scale, on top of the page correctly scrolling 256px. That
+     residue is the reported bug in miniature, and shipping it would have made
+     the fix look like a tuning change rather than a fix.
+     pointercancel is the browser stating outright that the gesture was never
+     the head's, so the only honest answer is to put back exactly what
+     state.start already recorded at the press -- it holds the pre-gesture
+     x/y for a move, x/y/scale for a resize and the angle for a turn, so this
+     is a restore, not a re-derivation.
+     ONLY pointercancel REVERTS. pointerup, deselect(), blur and
+     visibilitychange all still commit through end(), because those gestures
+     WERE the head's and Jayden's placement has to survive them. */
+  function cancel(event){
+   if(state.pointerId===null)return;
+   if(event&&event.pointerId!==undefined&&event.pointerId!==state.pointerId)return;
+   var start=state.start,operation=state.operation;
+   if(start){
+    if(operation==="move"){state.x=start.x;state.y=start.y;}
+    else if(operation==="resize"){
+     state.x=start.x;state.y=start.y;state.scale=start.scale;state.pendingAnchor=null;
+    }
+    else if(operation==="rotate"){state.rotate=start.rotate;state.pendingClamp=false;}
+   }
+   end(event);
+   render();
+  }
   function end(event){
    if(state.pointerId!==null&&event&&event.pointerId!==undefined&&event.pointerId!==state.pointerId)return;
    var capture=state.capture,pointerId=state.pointerId;
@@ -1355,7 +1388,7 @@
   });
   [face,selection].forEach(function(node){
    node.addEventListener("pointermove",move);node.addEventListener("pointerup",end);
-   node.addEventListener("pointercancel",end);node.addEventListener("lostpointercapture",end);
+   node.addEventListener("pointercancel",cancel);node.addEventListener("lostpointercapture",end);
   });
   handles.forEach(function(handle){
    handle.addEventListener("pointerdown",function(event){
@@ -1363,14 +1396,14 @@
    });
    handle.addEventListener("pointermove",resize);
    handle.addEventListener("pointerup",end);
-   handle.addEventListener("pointercancel",end);
+   handle.addEventListener("pointercancel",cancel);
    handle.addEventListener("lostpointercapture",end);
   });
   if(rotator){
    rotator.addEventListener("pointerdown",function(event){beginRotate(event,rotator);});
    rotator.addEventListener("pointermove",turn);
    rotator.addEventListener("pointerup",end);
-   rotator.addEventListener("pointercancel",end);
+   rotator.addEventListener("pointercancel",cancel);
    rotator.addEventListener("lostpointercapture",end);
   }
   /* ── CLICKING AWAY DISMISSES THE FRAME ──────────────────────────────────
