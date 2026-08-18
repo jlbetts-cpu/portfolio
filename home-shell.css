@@ -192,3 +192,35 @@ body .hero.surface--hero{
 }
 
 }
+
+/* ── THE CARDS, ported back from the React rebuild. 2026-08-18, Jayden:
+   "see how you actually changed how the thumbnails look and operate, I need
+   that same care on the vanilla port." This is that card, exactly: hairline
+   border, 4px radius, 16/10 cover with a 500ms settle zoom on hover, caption
+   bar inside the card -- title left, year right, 13/12px. The old scroll-
+   stage presentation is retired the same way the reel's was (height:auto,
+   static stage; the !importants override the engine's inline writes, the
+   precedent the reel set at index:1032). DESKTOP SHELL ONLY -- this block
+   rides the same media query as the rest of the file. */
+@media (min-width:961px){
+.csPanel{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px}
+.csPanel .csItem{
+ border:1px solid var(--c100);border-radius:4px;overflow:hidden;
+ background:var(--theme-page,var(--c50));
+}
+.csPanel .csTrack{height:auto!important}
+.csPanel .csStage{position:static!important;height:auto!important}
+.csPanel .csStageInner{transform:none!important;position:static!important;height:auto!important}
+.csPanel .csFrame{margin:0;overflow:hidden;aspect-ratio:16/10;border-radius:0}
+.csPanel .csImg{
+ width:100%;height:100%;object-fit:cover;display:block;border-radius:0;
+ transition:transform 500ms var(--ease-out);
+}
+.csPanel .csItem:hover .csImg{transform:scale(1.02)}
+.csPanel .csMeta{
+ display:flex;align-items:baseline;justify-content:space-between;
+ padding:12px 16px;margin:0;width:auto;
+}
+.csPanel .csName{font-size:13px;font-weight:600;letter-spacing:.005em}
+.csPanel .csYear{font-size:12px;font-weight:400;color:var(--c500)}
+}
