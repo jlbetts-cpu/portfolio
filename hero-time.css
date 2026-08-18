@@ -1409,3 +1409,23 @@
  .hero,.heroCopy h1{background:Canvas;color:CanvasText}
  .hero{box-shadow:none}
 }
+
+
+/* ── THE MESH LAYER + THE ENTRANCE. 2026-08-18, see hero-mesh.js. ──────────
+   The canvas sits over the radial layers (its living version of the same
+   palette); the stars stay above it so night keeps its sky. The entrance:
+   html.jbHeroIntro holds the hero full-bleed and square before first paint,
+   and releasing the class settles min-height and the bottom radius on the
+   settle curve. Radius/min-height are the only animated properties; the
+   grid inside never reflows mid-flight because the copy is centered. */
+.heroMeshCanvas{position:absolute;inset:0;width:100%;height:100%;z-index:2;opacity:.9;
+ /* the mesh paints its base colour across the WHOLE frame (uCol[0] is the
+    shader's background), which for night would put ink text on near-black.
+    The radial layers solved this by living in the lower band; the mask gives
+    the canvas the same discipline and lets the page breathe above. */
+ -webkit-mask-image:linear-gradient(to top,#000 46%,transparent 82%);
+ mask-image:linear-gradient(to top,#000 46%,transparent 82%)}
+.heroNightStars{z-index:3}
+.surface--hero{transition:min-height 900ms var(--ease-out),border-radius 900ms var(--ease-out)}
+html.jbHeroIntro .surface--hero{min-height:100svh;border-radius:0}
+@media(prefers-reduced-motion:reduce){.surface--hero{transition:none}}

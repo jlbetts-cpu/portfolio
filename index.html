@@ -3,6 +3,10 @@
 <script src="site-theme.js"></script>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Jayden Betts</title>
+<script>/* the entrance: full-bleed gradient before first paint; hero-mesh.js
+releases it and hero-time.css transitions the settle. Reduced motion never
+gets the class. */
+if(!matchMedia("(prefers-reduced-motion: reduce)").matches)document.documentElement.className+=" jbHeroIntro";</script>
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="favicon-192.png">
 <link rel="icon" type="image/png" sizes="96x96" href="favicon-96.png">
@@ -2134,6 +2138,9 @@ if(location.hash==="#about")location.replace("about.html");</script>
 <script src="hero-engine.js"></script>
 <script src="hero-head-transform.js"></script>
 <script src="hero-time.js"></script>
+<script src="hero-time-presets.js"></script>
+<script src="fluid-mesh.js"></script>
+<script src="hero-mesh.js"></script>
 <script>
 (function(){
  var reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion:reduce)').matches;

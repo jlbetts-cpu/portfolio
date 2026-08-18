@@ -103,8 +103,23 @@ for prepaint_contract in (
 assert "heroTimeAutoState" not in html
 assert "heroTimeAutoState" not in time_controller
 assert html.index('href="header.css') < html.index('href="hero-time.css')
-assert 'src="fluid-mesh.js"' not in html, "FluidMesh belongs to Gradient Maker, not the Hero"
-assert '<script src="hero-time-presets.js"></script>' not in html
+# THESE TWO USED TO FORBID fluid-mesh.js AND hero-time-presets.js ON THE HOME
+# PAGE ("FluidMesh belongs to Gradient Maker, not the Hero"). That decision was
+# REVERSED by Jayden on 2026-08-18: "add the ACTUAL gradient there and change
+# it for the time of day, a merge of both." hero-mesh.js now mounts a FluidMesh
+# canvas in #heroTimeClip driven by the per-state presets, so the gate asserts
+# the new contract instead: the mesh chain loads in dependency order (presets
+# before engine before mount) AND the radial layers survive as the no-WebGL
+# fallback -- deleting them would make a lost context a white hole.
+for _script in ("hero-time-presets.js", "fluid-mesh.js", "hero-mesh.js"):
+    assert '<script src="%s"' % _script in html, \
+        "index.html must load %s for the time-of-day mesh hero" % _script
+assert (html.index('src="hero-time-presets.js"')
+        < html.index('src="fluid-mesh.js"')
+        < html.index('src="hero-mesh.js"')), \
+    "mesh scripts out of dependency order: presets, then engine, then mount"
+assert 'data-time-gradient="daytime"' in html, \
+    "the radial layers are the no-WebGL fallback; the mesh does not replace them"
 # THIS LINE USED TO FORBID hero-engine.js ON THE HOME PAGE, and it was never
 # satisfiable. index.html loads it at :1984 and always has; the engine's own
 # header says it owns the nav, the reel, the About takeover and the Play menu on
