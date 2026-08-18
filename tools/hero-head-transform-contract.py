@@ -540,12 +540,32 @@ def a_live_corner(page, prefer):
     return prefer if prefer in corners else corners[0]
 
 
+# ── A GESTURE IS NOT OVER UNTIL THE OBJECT HAS STOPPED ───────────────────────
+# The head rubber-bands past its bounds now and springs back, so for a few
+# hundred milliseconds after a release it is still travelling. Everything below
+# aims at a box it read a moment earlier, and a stale aim at a moving target is
+# how this file started reporting failures on working code: measured, the second
+# drag of the return-trip pair pressed the CENTRE of a box that had been read
+# while the head was still 47px above where it was going to stop, and that point
+# was under the floating nav -- so the press dismissed the frame instead of
+# grabbing it. The visitor never has that problem, because the visitor aims at
+# what is on screen rather than at a reading from 20ms ago.
+# So the wait is part of performing a drag, not a tolerance added to an
+# assertion: nothing here is weakened, it is just asked after the head has come
+# to rest. `settling` is absent on a build without the spring, and `!undefined`
+# is true, so this is a no-op against any earlier tree.
+def wait_for_rest(page):
+    page.wait_for_function(
+        "() => !window.__heroHeadTransform.getState().settling", timeout=4000)
+
+
 def drag_selection_to(page, x, y):
     box = page.locator("#heroHeadSelection").bounding_box()
     page.mouse.move(box["x"] + box["width"] * 0.5, box["y"] + box["height"] * 0.5)
     page.mouse.down()
     page.mouse.move(x, y, steps=5)
     page.mouse.up()
+    wait_for_rest(page)
 
 
 LEVEL_HEAD = """() => {

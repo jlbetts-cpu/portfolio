@@ -13,7 +13,29 @@
    capture:null,frame:0,peekFrame:0,peekAnimating:false,pendingAnchor:null,pendingClamp:false,
    stamp:0,geomStamp:-1,geom:null,floating:false,floatFrame:0,ambient:false,base:null,metrics:null,
    hovering:false,resumeTimer:0,floatShift:0,holdAt:0,lastFloatMs:0,loopReads:0,refocusing:false,
-   frameInset:null,rendered:{x:0,y:0,scale:1,rotate:0}};
+   frameInset:null,rendered:{x:0,y:0,scale:1,rotate:0},
+   /* ── THE DRIFT IS THE PHYSICS. state.x/y IS THE ARRANGEMENT. ─────────────
+      Two numbers describe the head's position now, and keeping them apart is
+      what lets the boundary be soft without making the clamp soft.
+        state.x/y  -- where the visitor has PUT the head. Always inside the
+                      reachable region, committed the instant they let go,
+                      and the only thing getState() and the clamp reason about.
+        state.drift -- how far the head currently is from that, because it is
+                      being stretched past a bound or is still flying to it.
+                      Springs to zero and is never a place the head lives.
+      This is the same shape as the float, which this file already documents as
+      "additive and separate from the visitor's transform" -- and it is why
+      rubber-banding could be added without touching a single clamp: the head
+      goes past the edge, the ARRANGEMENT never does.
+      vx/vy are the drift's own velocity in px/s, which is what carries the
+      finger's speed across the seam between dragging and animating. */
+   drift:{x:0,y:0,vx:0,vy:0},settleFrame:0,settleAt:0,settleResponse:0,
+   /* A short position history, not the last delta. One pointermove is noise --
+      a coalesced burst can put 60px in 2ms -- so the release speed is measured
+      across a window of moves. */
+   history:[],
+   /* The arrival's live presentation values, sampled while it is running. */
+   enterY:0,enterRot:0,enterFrame:0,enterUntil:0};
   var content=hero.querySelector(".heroCopy");
   var peek=hero.querySelector(".heroCharacterPeek");
   /* ── THE BOUNDS ARE THE ARTWORK'S, AND THEY WERE THE FACE'S ──────────────
@@ -301,9 +323,80 @@
        the cache at a different moment in the gesture. Not understood, so not
        shipped. */
     minScale:rootNumber("--hero-head-min-scale",.24),
-    maxScale:rootNumber("--hero-head-max-scale",2.2)
+    maxScale:rootNumber("--hero-head-max-scale",2.2),
+    /* ── THE FEEL CONSTANTS BELONG IN THE CACHE FOR THE REASON THE TWO ABOVE DO
+       rubberReach and rubberC are read on EVERY pointermove of every drag --
+       the exact position scaleLimits() was measured in, at 2 root reads per
+       move on a path that had just written an inline style. They are authored
+       numbers that cannot change without a stylesheet change or a resize, and
+       reclamp() already invalidates this cache on both. The settle constants
+       are read once per release and are here only to keep the set together. */
+    rubberShare:rootNumber("--hero-head-rubber-share",.25),
+    rubberC:rootNumber("--hero-head-rubber-constant",.55),
+    flingDecay:rootNumber("--hero-head-fling-decay",.99),
+    flingCap:rootNumber("--hero-head-fling-cap",3200),
+    /* Response, not duration -- a spring has no duration, its settle time
+       emerges from the parameters. Authored in ms because that is the unit
+       every other time value on this site is authored in, and divided here. */
+    settleResponse:rootNumber("--hero-head-settle-response",400)/1000,
+    returnResponse:rootNumber("--hero-head-return-response",300)/1000,
+    settleDamping:rootNumber("--hero-head-settle-damping",1)
    };
    return state.metrics;
+  }
+  /* ── THE BOUNDARY RESISTS, IT DOES NOT FREEZE ────────────────────────────
+     Jayden: "i dont like that you cant push the head past the boundary a
+     little bit like its starting position -- if you pull it out and try to put
+     it back you cant."
+     A hard clamp reads as the page having stopped responding, because the
+     finger keeps moving and nothing does. Real objects give, progressively,
+     and then pull back. This is Apple's rubber-band from Designing Fluid
+     Interfaces, unchanged:
+        f(over) = over * dim * c / (dim + c * |over|)
+     `dim` is the distance the give SATURATES at -- push forever and the head
+     ends up exactly --hero-head-rubber-reach past the bound and no further --
+     and `c` is Apple's 0.55. It is odd-symmetric, so the same function serves
+     all four sides, and f(0) = 0 exactly, so a head inside its bounds is
+     untouched by every line of this: the resting composition is inside on
+     every axis, which is asserted in the contract. */
+  function rubberband(over,dim,c){
+   if(!over||!dim)return 0;
+   return (over*dim*c)/(dim+c*Math.abs(over));
+  }
+  /* ── AND ITS INVERSE, WHICH IS NOT OPTIONAL ──────────────────────────────
+     The band is applied to the RAW overshoot -- how far past the bound the
+     finger is -- and what ends up on screen is the damped result. So a gesture
+     that begins on a head which is already stretched cannot anchor to what is
+     on screen: the next move would push that damped number through the band a
+     second time and the head would jump INWARD at the press. Measured before
+     this existed: grabbing 60ms into a band's return moved the head 17.6px on
+     the first pixel of finger travel, at 1440.
+     Solving g = over*dim*c/(dim + c|over|) for over gives
+        over = g*dim / (c*(dim - |g|))   (signed by g)
+     and |g| < dim always, because dim is exactly where the band saturates. At
+     g = 0 it returns 0, so a head inside its bounds anchors to itself and none
+     of this is reachable in the ordinary case. */
+  function unband(g,dim,c){
+   if(!g||!dim||!c)return 0;
+   var span=dim-Math.abs(g);
+   if(span<=0)return g;
+   return g*dim/(c*span);
+  }
+  /* ── WHERE A THROW IS GOING, THE WAY APPLE ACTUALLY COMPUTES IT ──────────
+     Not the textbook v^2/(2a). UIScrollView decelerates exponentially, and the
+     endpoint of an exponential decay from v with rate d is (v/1000)*d/(1-d) --
+     which is the form the Fluid Interfaces sample code ships and the one every
+     good sheet and carousel on the web copies.
+     THE RATE IS NOT APPLE'S 0.998, AND THAT IS DELIBERATE. 0.998 is a SCROLL
+     rate: it projects half a second of travel, ~1500px for a hard flick, which
+     is right for a list that is longer than the screen and absurd for an
+     object you are placing on a 900px stage. This head has no snap points to
+     choose between -- projection here decides one thing, whether the throw
+     reaches the boundary -- so the rate is authored separately and tuned by
+     eye against the only thing it can be judged against, which is the head. */
+  function project(v,decay){
+   if(!v||!decay||decay>=1)return 0;
+   return (v/1000)*decay/(1-decay);
   }
   function reachable(box){
    var h=usableRect();
@@ -316,6 +409,11 @@
   function writeTransform(){
    wrap.style.setProperty("--hero-head-x",state.x+"px");
    wrap.style.setProperty("--hero-head-y",state.y+"px");
+   /* Its own channel in the same translate, exactly like the float's: the
+      arrangement and the physics are added, never merged, so a stretch past
+      the edge can never become a position the visitor is held to. */
+   wrap.style.setProperty("--hero-head-drift-x",state.drift.x.toFixed(2)+"px");
+   wrap.style.setProperty("--hero-head-drift-y",state.drift.y.toFixed(2)+"px");
    wrap.style.setProperty("--hero-head-scale",String(state.scale));
    wrap.style.setProperty("--hero-head-rotate",state.rotate+"deg");
    hero.style.setProperty("--hero-head-scale",String(state.scale));
@@ -502,8 +600,13 @@
      everything else, or the local rectangle the frame draws and the clamp
      enforces gets captured mid-arrival and stays wrong for the life of the
      page. */
+  /* THE DRIFT IS PART OF WHAT HAS TO COME OFF, for the same reason the float
+     and the entrance are: it is live at exactly the moments a recapture can be
+     provoked -- a resize during a settle -- and a base captured through a
+     rubber-band would put the frame and the clamp permanently that far out. */
   var NEUTRAL=["--hero-head-x","--hero-head-y","--hero-head-scale","--hero-head-rotate",
    "--hero-head-float-x","--hero-head-float-y","--hero-head-float-rot",
+   "--hero-head-drift-x","--hero-head-drift-y",
    "--hero-head-enter-y","--hero-head-enter-rot"];
   function captureBase(){
    var saved=neutralise(NEUTRAL,function(name){
@@ -526,11 +629,28 @@
    if(!state.base)captureBase();
    var b=state.base,s=state.scale;
    var air=metrics().air;
-   var cx=b.left+b.width/2+state.x+cssNumber(wrap,"--hero-head-float-x");
-   var cy=b.top+b.height/2+state.y+cssNumber(wrap,"--hero-head-float-y");
+   /* ── THE FRAME IS WELDED TO THE HEAD, SO IT CARRIES EVERY CHANNEL THE HEAD
+      CARRIES. It had the arrangement and the float and neither of the other
+      two, and both omissions were visible.
+      THE DRIFT is new and would have been the same bug on day one: a head
+      stretched 50px past the boundary while its frame stayed at the bound is
+      the artboard illusion coming apart at exactly the moment attention is on
+      it.
+      THE ARRIVAL was already shipping. --hero-head-enter-y is keyframed rather
+      than written inline, so cssNumber() reads it as 0 and the frame drew the
+      SETTLED pose for the whole greeting. Measured at 1440: the box sits 70px
+      above the head for the 420ms before the head is even visible, and the
+      chin is still hanging out of the bottom edge 60ms into the rise. What is
+      on screen at 300ms is an empty selection box -- the exact "static artwork
+      inside a selection box looks broken" this file's own comment warns about,
+      inverted. Sampled from the live animation while it runs, so the frame
+      draws the PRESENTATION value and the two arrive as one object. */
+   var cx=b.left+b.width/2+state.x+state.drift.x+cssNumber(wrap,"--hero-head-float-x");
+   var cy=b.top+b.height/2+state.y+state.drift.y+state.enterY
+    +cssNumber(wrap,"--hero-head-float-y");
    return {cx:cx,cy:cy,
     w:Math.max(1,b.width*s+air*2),h:Math.max(1,b.height*s+air*2),
-    ang:state.rotate+cssNumber(wrap,"--hero-head-float-rot")};
+    ang:state.rotate+state.enterRot+cssNumber(wrap,"--hero-head-float-rot")};
   }
   function syncSelection(){
    if(!state.selected)return;
@@ -618,6 +738,14 @@
   }
   function render(){
    if(!state.frame)state.frame=requestAnimationFrame(flushRender);
+  }
+  /* The settle already runs inside an animation frame, so scheduling another
+     one would paint its physics a frame late -- 16ms of the head trailing its
+     own simulation, which is visible at the speeds a flick reaches. Any frame
+     already queued is dropped rather than left to fire on stale state. */
+  function renderNow(){
+   if(state.frame){cancelAnimationFrame(state.frame);state.frame=0;}
+   flushRender();
   }
   function followPeekTransition(){
    if(!state.peekAnimating){state.peekFrame=0;return;}
@@ -728,19 +856,198 @@
     state.refocusing=false;
    }
   }
+  /* ── VELOCITY IS MEASURED ACROSS A WINDOW, NEVER OFF THE LAST MOVE ───────
+     The final pointermove is the noisiest sample there is: browsers coalesce
+     moves to the frame clock, so the last one can carry 60px of travel or 2px
+     of jitter depending on where the release landed in the frame, and dividing
+     either by a 2ms gap invents a speed nothing on screen was doing. Apple
+     tracks a short history for exactly this reason and so does every velocity
+     tracker worth copying. The window is the last --hero-head-velocity-window
+     of samples; below two samples or the minimum span there is no evidence of
+     a speed and the honest answer is zero, which is also what a finger that
+     came to rest before lifting means. */
+  function sample(ms,x,y){
+   var h=state.history;
+   h.push({t:ms,x:x,y:y});
+   while(h.length>2&&ms-h[0].t>VELOCITY_WINDOW)h.shift();
+  }
+  var VELOCITY_WINDOW=110,VELOCITY_MIN_SPAN=24,VELOCITY_STALE=90;
+  function releaseVelocity(){
+   var h=state.history,m=metrics();
+   if(h.length<2)return {x:0,y:0};
+   var last=h[h.length-1],first=h[0];
+   var span=last.t-first.t;
+   if(span<VELOCITY_MIN_SPAN)return {x:0,y:0};
+   /* A finger that stopped and then lifted is a placement, not a throw. */
+   if(performance.now()-last.t>VELOCITY_STALE)return {x:0,y:0};
+   var vx=(last.x-first.x)/span*1000,vy=(last.y-first.y)/span*1000;
+   var speed=Math.sqrt(vx*vx+vy*vy);
+   if(speed>m.flingCap){vx*=m.flingCap/speed;vy*=m.flingCap/speed;}
+   return {x:vx,y:vy};
+  }
   function beginMove(event){
    if(state.pointerId!==null)return;
    if(event.button!==undefined&&event.button!==0)return;
    face.setAttribute("data-pointer-focus","");
-   select();event.preventDefault();stopFloat();state.pointerId=event.pointerId;state.operation="move";
-   state.start={clientX:event.clientX,clientY:event.clientY,x:state.x,y:state.y};
+   select();event.preventDefault();stopFloat();
+   /* ── GRABBING SOMETHING IN FLIGHT MUST NOT MOVE IT ───────────────────────
+      The single most important principle in the reference: an animation is
+      interruptible, and the new gesture starts from the PRESENTATION value,
+      never from the target. The presentation value here is the arrangement
+      plus whatever the drift has not yet given back, so that is what the drag
+      is anchored to. Nothing is committed at the press -- the first
+      pointermove re-derives the arrangement and the drift together from this
+      one number -- so the head does not shift by so much as a pixel between
+      the finger landing and the finger moving.
+      The spring is stopped rather than allowed to fight the finger, and its
+      velocity is dropped on purpose: from here the finger IS the velocity. */
+   stopSettle();
+   state.pointerId=event.pointerId;state.operation="move";
+   /* THE ANCHOR IS THE RAW POSITION, NOT THE PAINTED ONE, and the difference
+      is only ever non-zero while the head is stretched past a bound -- see
+      unband(). The painted position is the band's OUTPUT; anchoring to it and
+      then running the band again would damp it twice. restoreX/Y is the
+      pre-gesture pose kept verbatim for pointercancel, which must put back
+      exactly what was there rather than anything re-derived. */
+   var m=metrics();
+   var painted={x:state.x+state.drift.x,y:state.y+state.drift.y};
+   var seated=clampMove(painted.x,painted.y),seatedBox=transformedBox(seated.x,seated.y);
+   state.start={clientX:event.clientX,clientY:event.clientY,
+    x:seated.x+unband(painted.x-seated.x,seatedBox.width*m.rubberShare,m.rubberC),
+    y:seated.y+unband(painted.y-seated.y,seatedBox.height*m.rubberShare,m.rubberC),
+    restoreX:state.x,restoreY:state.y};
+   state.history=[];
+   sample(event.timeStamp||performance.now(),painted.x,painted.y);
    state.capture=event.currentTarget;state.capture.setPointerCapture(event.pointerId);
   }
   function move(event){
    if(state.operation!=="move"||event.pointerId!==state.pointerId)return;
-   var next=clampMove(state.start.x+event.clientX-state.start.clientX,
-                      state.start.y+event.clientY-state.start.clientY);
-   state.x=next.x;state.y=next.y;render();
+   var rawX=state.start.x+event.clientX-state.start.clientX;
+   var rawY=state.start.y+event.clientY-state.start.clientY;
+   /* THE CLAMP IS UNCHANGED AND STILL ABSOLUTE. What the visitor is held to is
+      still exactly what clampMove() says; the overshoot it refused is handed
+      to the rubber band and lives in the drift until they let go. Inside the
+      bounds the subtraction is zero on both axes and this is the old code. */
+   var next=clampMove(rawX,rawY),m=metrics();
+   state.x=next.x;state.y=next.y;
+   /* PER AXIS, INDEPENDENTLY, AND AGAINST THE HEAD'S OWN EXTENT ON THAT AXIS.
+      A single resistance on the 2D distance couples the two: push hard into
+      the left edge and vertical tracking would go soft with it, which is the
+      same reason the reference decomposes 2D motion into independent X and Y
+      springs. The dimension is the head's turned box, so the give follows the
+      visitor's own scale and rotation with no second rule -- arithmetic on
+      state.base, not a measurement, so this stays free on a per-move path. */
+   var box=transformedBox(next.x,next.y);
+   state.drift.x=rubberband(rawX-next.x,box.width*m.rubberShare,m.rubberC);
+   state.drift.y=rubberband(rawY-next.y,box.height*m.rubberShare,m.rubberC);
+   state.drift.vx=0;state.drift.vy=0;
+   sample(event.timeStamp||performance.now(),state.x+state.drift.x,state.y+state.drift.y);
+   render();
+  }
+  /* ── THE SPRING, AND WHY IT IS A SPRING ──────────────────────────────────
+     A fixed-duration curve cannot be interrupted usefully: re-target it and
+     the value jumps, grab it and there is nothing to hand the finger. A spring
+     has no duration -- its settle time emerges from response and damping --
+     and it carries a velocity, which is the whole of what makes the seam
+     between dragging and animating disappear.
+     Parameterised the way Apple parameterises it, in DAMPING RATIO and
+     RESPONSE rather than mass/stiffness/damping, because those two are the
+     ones a designer can reason about. Damping 1.0 is critically damped: it
+     reaches the target as fast as it can without ever crossing it. That is the
+     shipped value for Move/reposition in the reference's own table, and it is
+     the right one twice over here -- a bounce at the end of a rubber-band
+     return would be a second event where the physics says there is one, and a
+     bounce at the end of a throw would put the head somewhere the visitor did
+     not aim.
+     A CRITICALLY DAMPED SPRING STILL OVERSHOOTS ITS STARTING POINT when it is
+     handed velocity pointing away from the target, and never crosses the
+     target doing it. That is exactly the behaviour a stretched band has, and
+     it is where the flick's momentum actually goes.
+     Semi-implicit Euler, sub-stepped to 240Hz. Explicit integration of a stiff
+     spring at a 60Hz step is unstable at the responses this uses; sub-stepping
+     costs four multiplies a frame and removes the failure mode entirely. */
+  var SUBSTEP=1/240;
+  function settleStep(ms){
+   if(!state.settleFrame)return;
+   var m=metrics(),dt=(ms-state.settleAt)/1000;
+   state.settleAt=ms;
+   /* A backgrounded tab hands back one enormous frame. Capping the step keeps
+      the integration honest rather than teleporting the head. */
+   if(dt>.064)dt=.064;
+   if(dt>0){
+    var w=2*Math.PI/state.settleResponse,z=m.settleDamping;
+    var steps=Math.max(1,Math.ceil(dt/SUBSTEP)),h=dt/steps,d=state.drift,i;
+    for(i=0;i<steps;i++){
+     d.vx+=(-w*w*d.x-2*z*w*d.vx)*h;d.x+=d.vx*h;
+     d.vy+=(-w*w*d.y-2*z*w*d.vy)*h;d.y+=d.vy*h;
+    }
+    /* Sub-pixel and slow is arrived. Snapping both channels together is what
+       lets the loop stop rather than asymptote forever at 60fps. */
+    if(Math.abs(d.x)<.05&&Math.abs(d.vx)<4){d.x=0;d.vx=0;}
+    if(Math.abs(d.y)<.05&&Math.abs(d.vy)<4){d.y=0;d.vy=0;}
+   }
+   renderNow();
+   if(!state.drift.x&&!state.drift.y&&!state.drift.vx&&!state.drift.vy){
+    state.settleFrame=0;return;
+   }
+   state.settleFrame=requestAnimationFrame(settleStep);
+  }
+  function startSettle(response){
+   state.settleResponse=Math.max(.08,response);
+   state.settleAt=performance.now();
+   if(!state.settleFrame)state.settleFrame=requestAnimationFrame(settleStep);
+  }
+  function stopSettle(){
+   if(state.settleFrame)cancelAnimationFrame(state.settleFrame);
+   state.settleFrame=0;state.drift.vx=0;state.drift.vy=0;
+  }
+  function clearDrift(){
+   stopSettle();state.drift.x=0;state.drift.y=0;
+  }
+  /* ── LETTING GO ──────────────────────────────────────────────────────────
+     Three things happen at once and they have to happen in this order.
+     WHERE IT IS GOING is decided first, from the projection, and it is decided
+     against the SAME clamp every other path uses -- so a throw can no more
+     leave the reachable region than a drag can. When the projection lands
+     outside, the target is the bound, which is the one snap point this object
+     has; the reference's projection exists to choose a target, and here there
+     is only ever one to choose.
+     THE ARRANGEMENT IS COMMITTED IMMEDIATELY. state.x/y become the resting
+     place at the instant of release, not when the motion finishes, so
+     everything that reads the arrangement -- the clamp, getState(), the
+     contracts -- sees a settled answer straight away and the head being still
+     in flight is a fact about the pixels only.
+     THE DRIFT ABSORBS THE DIFFERENCE, and takes the finger's velocity with it,
+     which is the handoff: the first frame of the animation moves at exactly
+     the speed the last frame of the gesture did. Without it there is a visible
+     seam, and the seam is the thing that separates fluid from fine.
+     MOMENTUM IS OFF UNDER REDUCED MOTION AND THE RUBBER BAND IS NOT. They are
+     not the same kind of motion. The band only ever moves while a finger is
+     moving it and returns a bounded distance to a place the object already
+     was -- that is feedback, and the guidance is explicit that reduced motion
+     means a gentler equivalent rather than none. A throw is autonomous travel
+     of arbitrary distance that nobody asked for frame by frame, which is
+     precisely what the setting is about; the reduced equivalent of "the flick
+     throws it" is "the flick puts it where you let go", and the return still
+     happens, critically damped, with no overshoot in either mode. */
+  function releaseMove(thrown){
+   var m=metrics();
+   var px=state.x+state.drift.x,py=state.y+state.drift.y;
+   var stretched=state.drift.x||state.drift.y;
+   var v=thrown&&!prefersReducedMotion()?releaseVelocity():{x:0,y:0};
+   var target=clampMove(px+project(v.x,m.flingDecay),py+project(v.y,m.flingDecay));
+   state.x=target.x;state.y=target.y;
+   state.drift.x=px-target.x;state.drift.y=py-target.y;
+   state.drift.vx=v.x;state.drift.vy=v.y;
+   state.history=[];
+   if(!state.drift.x&&!state.drift.y&&!state.drift.vx&&!state.drift.vy){
+    stopSettle();render();return;
+   }
+   /* Coming back from past the edge is the snappier rung: the band is under
+      tension and a slow release reads as the head being reluctant. A throw
+      that is still travelling gets the longer one, which is the reference's
+      own move/reposition response. */
+   startSettle(stretched?m.returnResponse:m.settleResponse);
   }
   function beginResize(event,corner,node){
    if(state.pointerId!==null)return;
@@ -865,20 +1172,47 @@
    if(event&&event.pointerId!==undefined&&event.pointerId!==state.pointerId)return;
    var start=state.start,operation=state.operation;
    if(start){
-    if(operation==="move"){state.x=start.x;state.y=start.y;}
+    /* THE DRIFT GOES BACK TOO, AND IT SNAPS. A cancelled gesture was never the
+       head's, so the only honest answer is the pre-gesture pose exactly --
+       springing the band home would leave a visible flourish behind a scroll
+       that the head is supposed to have taken no part in. A cancel arrives in
+       the opening moves, before the finger has reached a bound, so there is in
+       practice nothing to snap: measured through the touch pipeline, the drift
+       at pointercancel is 0 on every pan-y scroll. */
+    clearDrift();
+    /* restoreX/Y, not start.x/y: start is the RAW anchor the band is applied
+       to, which is deliberately outside the bounds while the head is stretched.
+       The pose to put back is the one that was there, kept verbatim. */
+    if(operation==="move"){state.x=start.restoreX;state.y=start.restoreY;}
     else if(operation==="resize"){
      state.x=start.x;state.y=start.y;state.scale=start.scale;state.pendingAnchor=null;
     }
     else if(operation==="rotate"){state.rotate=start.rotate;state.pendingClamp=false;}
    }
+   /* The operation is dropped BEFORE end() so the release path does not run:
+      a cancelled move has nothing to settle and nothing to throw, and putting
+      it through releaseMove() would re-clamp a pose this function has just
+      restored verbatim. */
+   state.operation=null;
    end(event);
    render();
   }
   function end(event){
    if(state.pointerId!==null&&event&&event.pointerId!==undefined&&event.pointerId!==state.pointerId)return;
-   var capture=state.capture,pointerId=state.pointerId;
+   var capture=state.capture,pointerId=state.pointerId,operation=state.operation;
    state.pointerId=null;state.operation=null;state.start=null;state.capture=null;
    if(capture&&pointerId!==null&&capture.hasPointerCapture(pointerId))capture.releasePointerCapture(pointerId);
+   /* ── ONLY A REAL LIFT THROWS ─────────────────────────────────────────────
+      end() is four events wearing one name: pointerup, lostpointercapture,
+      window blur and a tab going hidden. Only the first is the visitor letting
+      go of something, and only the first has a velocity that means anything --
+      a blur mid-drag has a history that stopped an unknown time ago and would
+      hand a stale speed to the spring. The others still settle, because a head
+      left stretched past its bound by a tab switch must not stay there; they
+      just settle from rest.
+      Anything that was NOT a move -- a resize, a turn -- has no drift to give
+      back and no momentum to carry, so it is left exactly as it was. */
+   if(operation==="move")releaseMove(!!(event&&event.type==="pointerup"));
    releaseFloat();
   }
   /* HOME IS NOT 0 ON EVERY AXIS. x, y and scale rest at their neutral values
@@ -887,6 +1221,9 @@
      --hero-head-rest-rotate and this returns to it. Clearing the angle to 0
      here would put the head somewhere it has never been. */
   function reset(){
+   /* Home is a statement, not a journey: anything still in flight is dropped
+      rather than allowed to keep pulling against the pose being restored. */
+   clearDrift();
    state.x=0;state.y=0;state.scale=1;state.rotate=restRotate();
    state.pendingAnchor=null;state.pendingClamp=false;render();
   }
@@ -1158,8 +1495,11 @@
     if(performance.now()<=skyShiftUntil)refreshSkyWeights();
     else{skyShiftUntil=0;refreshSkyWeights();}
    }
-   var headX=b.left+b.width/2+state.x+fx;
-   var headY=b.top+b.height/2+state.y+fy;
+   /* The drift is where the head IS, and the light is a function of where the
+      head is -- so a head stretched past the edge is lit from the edge it has
+      been stretched to, not from the position it is about to return to. */
+   var headX=b.left+b.width/2+state.x+state.drift.x+fx;
+   var headY=b.top+b.height/2+state.y+state.drift.y+fy;
    /* ── THE SOURCE IS THE GRADIENT'S OWN FOCUS ──────────────────────────────
       --time-light-x/-y were authored per state, and five of the six were
       FICTION: they said sunrise came from 32% and sunset from 68%, while every
@@ -1313,6 +1653,70 @@
     if(!state.hovering&&state.pointerId===null)startFloat();
    },rootNumber("--hero-head-float-resume-delay",280));
   }
+  /* ── THE ARRIVAL IS AN ANIMATION SOMEBODY ELSE OWNS, SO IT IS SAMPLED ────
+     hero-time.css drives the greeting with a keyframe on --hero-head-enter-y
+     and --hero-head-enter-rot, and it should stay there: it is authored motion
+     with a hand-tuned spring curve, it runs before this module has been asked
+     for anything, and it must survive with no script at all. What this module
+     cannot do is pretend it is not happening -- the frame is welded to the
+     head and for the first second of every visit it was not.
+     SO THE PRESENTATION VALUE IS READ, WHICH IS THE WHOLE POINT. The reference
+     is unambiguous that an interrupted or tracked animation must be driven
+     from the live on-screen value rather than from where it is heading; the
+     live value is exactly what getComputedStyle returns here, because both
+     properties are registered with @property and therefore resolve.
+     IT IS ITS OWN LOOP, NOT A LINE IN THE FLOAT LOOP, and that is deliberate.
+     The float loop's invariant is that it reads nothing from the DOM, measured
+     and asserted by contract; putting two getComputedStyle calls a frame into
+     it would break the one thing standing between this page and the 219
+     root-reads-a-second it used to do. This loop lives for the length of the
+     greeting -- about a second, once, at page load -- and then stops for good.
+     THE WINDOW HAS TO COVER THE DELAY. The animation exists during its own
+     420ms delay with fill:both, so getAnimations() reports it running and the
+     box sits with the head where the head actually is, 64px low, instead of
+     waiting alone at the finish line. If the stylesheet never arms it -- no
+     theme-ready, reduced motion -- the arming window lapses and this stops
+     after a frame having changed nothing. */
+  function arrivalRunning(){
+   if(!wrap.getAnimations)return false;
+   var running=wrap.getAnimations();
+   for(var i=0;i<running.length;i++){
+    if(running[i].playState!=="finished"&&running[i].playState!=="idle")return true;
+   }
+   return false;
+  }
+  function sampleArrival(){
+   var live=computedOf(wrap);
+   state.enterY=parseFloat(live.getPropertyValue("--hero-head-enter-y"))||0;
+   state.enterRot=parseFloat(live.getPropertyValue("--hero-head-enter-rot"))||0;
+  }
+  function arrivalFrame(){
+   sampleArrival();
+   state.stamp++;syncSelection();
+   if(arrivalRunning()||performance.now()<state.enterUntil){
+    state.enterFrame=requestAnimationFrame(arrivalFrame);
+    return;
+   }
+   /* Landed. The offset resolves to zero by construction, but it is written
+      rather than assumed so a cancelled animation cannot strand the frame. */
+   state.enterFrame=0;state.enterY=0;state.enterRot=0;
+   state.stamp++;syncSelection();
+  }
+  /* SAMPLED ONCE, SYNCHRONOUSLY, BEFORE THE LOOP IS SCHEDULED. Waiting for the
+     first animation frame leaves a window in which the frame has already been
+     drawn -- ambient() syncs it during init -- while enterY is still zero and
+     the head is 64px below it. That window is one frame in the common case and
+     tens of milliseconds on a cold load with images decoding, and it produced
+     exactly the 66px separation this sampler exists to remove, intermittently,
+     which is the worst way for it to appear. Reading here costs one
+     getComputedStyle at init and closes it outright. */
+  function watchArrival(){
+   if(state.enterFrame||prefersReducedMotion())return;
+   state.enterUntil=performance.now()
+    +rootNumber("--hero-head-enter-delay",420)+120;
+   sampleArrival();
+   state.enterFrame=requestAnimationFrame(arrivalFrame);
+  }
   function prefersReducedMotion(){
    return matchMedia("(prefers-reduced-motion: reduce)").matches
     ||document.documentElement.getAttribute("data-reduced-motion")==="reduce";
@@ -1328,8 +1732,15 @@
       getBoundingClientRect() reading drifts by ~14px against the geometry the
       clamp enforces. A test that measures the silhouette is measuring the
       breathing; this lets it measure the invariant. */
+   /* `drift` is the OTHER half of where the head is: x/y is the arrangement,
+      drift is how far the physics currently has it from that. It is exposed so
+      a test can witness the rubber band and the throw -- which are invisible
+      in x/y by design, because the arrangement is committed the moment the
+      visitor lets go and never carries an illegal value. */
    return {selected:state.selected,active:state.active,loopReads:state.loopReads,
     x:state.x,y:state.y,scale:state.scale,rotate:state.rotate,
+    drift:{x:state.drift.x,y:state.drift.y,vx:state.drift.vx,vy:state.drift.vy},
+    settling:!!state.settleFrame,
     box:state.base?transformedBox(state.x,state.y):null};
   }
   function onKeydown(event){
@@ -1357,6 +1768,11 @@
      state.scale+way*(event.shiftKey?.08:.02)));
     applyScaleFromAnchor(next,oppositePoint(rect,name),name);
    }else{
+    /* A key press is a discrete, exact request. It starts from the arrangement
+       and it lands on it, so anything the spring is still unwinding is dropped
+       -- otherwise an arrow tapped during a settle would be added to a number
+       that is still moving and the step would not be the step. */
+    clearDrift();
     var nextMove=clampMove(state.x+dx,state.y+dy);
     state.x=nextMove.x;state.y=nextMove.y;render();
    }
@@ -1574,6 +1990,16 @@
   }
   new MutationObserver(relight)
    .observe(hero,{attributes:true,attributeFilter:["data-time-state"]});
+  /* ARMED BEFORE ambient(), NOT AFTER. ambient() draws the frame, and the frame
+     cannot be drawn correctly until the arrival's offset is known -- so the
+     order here is the difference between the box arriving on the head and the
+     box arriving where the head is going to be.
+     Armed at init at all because site-theme.js sets theme-ready synchronously
+     in the document head, so the greeting is already counting down its delay by
+     the time this runs. animationstart is a second door for any future ordering
+     where it is not. */
+  wrap.addEventListener("animationstart",watchArrival);
+  watchArrival();
   ambient();startFloat();
   if(document.readyState==="complete")recapture();
   else addEventListener("load",function(){recapture();render();});

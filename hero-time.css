@@ -137,7 +137,62 @@
     so PAST the tilt before settling on it, which is what a dropped object
     does. It resolves to 0 and hands the angle straight back to the rest
     value, exactly as --hero-head-enter-y hands back the position. */
- --hero-head-enter-spin:9deg
+ --hero-head-enter-spin:9deg;
+ /* ── THE BOUNDARY GIVES, THEN PULLS BACK ────────────────────────────────────
+    Jayden: "i dont like that you cant push the head past the boundary a little
+    bit like its starting position -- if you pull it out and try to put it back
+    you cant." A hard clamp reads as the page having stopped responding,
+    because the finger keeps moving and nothing on screen does.
+    THE SHARE IS THE SATURATION DISTANCE, AS A FRACTION OF THE HEAD ITSELF.
+    Apple's rubber band is over*dim*c/(dim + c*|over|): push forever and the
+    object ends up exactly `dim` past the bound and no further, so `dim` is the
+    entire answer to "how far is a little bit".
+    IT IS A SHARE OF THE HEAD, NOT A PIXEL COUNT, AND THAT IS THE CORRECTION.
+    A flat 120px was tried first and it is too much give at both ends: the
+    reachability clamp already stops with 42% of the head on stage, so 120px of
+    stretch on a 231px-wide box takes the whole thing off screen -- measured,
+    every one of the five handles off stage at full stretch, which is the head
+    briefly unreachable rather than "a little bit past". A quarter of the
+    object is a give you can see and never one you can lose the head in, it
+    scales with --hero-peek-width and with the visitor's own resize for free,
+    and it needs no breakpoint override. At a realistic hard push -- 100px past
+    the bound, which is about as far as a thumb has room for once the head is
+    already at the edge -- it gives 28px on desktop and 24px on a phone.
+    c IS APPLE'S 0.55 and is a token only so the pair can be reasoned about
+    together. At the saturation distance it has given 35% of it.
+    NONE OF THIS TOUCHES REST. f(0) = 0 exactly, and the resting composition is
+    inside its bounds on every axis, so --hero-peek-* land where Jayden put
+    them to the pixel -- asserted, not assumed. */
+ --hero-head-rubber-share:.25;
+ --hero-head-rubber-constant:.55;
+ /* ── HOW FAR A FLICK THROWS ──────────────────────────────────────────────────
+    The endpoint of an exponential deceleration from v is (v/1000)*d/(1-d).
+    APPLE'S OWN 0.998 IS A SCROLL RATE AND IT IS WRONG HERE: it projects half a
+    second of travel, about 1600px for a hard flick, which is right for a list
+    longer than the screen and absurd for an object being placed on a 900px
+    stage. .99 projects a tenth of a second -- a 2000px/s flick carries about
+    200px and settles -- which reads as a throw rather than as the head running
+    away. Lower it toward .97 for a shorter throw; .999 would be a page.
+    THE CAP IS A HUMAN LIMIT, not a safety valve. Fingers do not exceed about
+    3-4 m/s on a phone; anything above it is a coalesced event burst being
+    divided by a 2ms gap, and handing that to a spring is how an object leaves
+    the country. */
+ --hero-head-fling-decay:.99;
+ --hero-head-fling-cap:3200;
+ /* RESPONSE, NOT DURATION -- a spring has no duration, its settle time emerges
+    from these two. Damping 1.0 is critically damped: it reaches the target as
+    fast as it can and never crosses it, which is the reference's own shipped
+    value for move/reposition and the right one twice over here. A bounce at
+    the end of a rubber-band return would be a second event where the physics
+    says there is one, and a bounce at the end of a throw would put the head
+    somewhere nobody aimed. The return from past an edge takes the shorter
+    response: a band under tension that lets go slowly reads as reluctance.
+    THESE ARE SPRING RESPONSES AND MUST NOT BE FLATTENED ONTO THE DURATION
+    LADDER. They are the same class of value as --sp-bounce's curve and its
+    paired duration -- tuned against the object, meaningless apart from it. */
+ --hero-head-settle-response:400;
+ --hero-head-return-response:300;
+ --hero-head-settle-damping:1
 }
 /* THE HEAD CROWDS THE BUTTON ON A SHORT VIEWPORT, AND ONLY THERE. The head is
    anchored to the Hero's floor at a fixed pixel offset, so it rises 1:1 as svh
@@ -1083,10 +1138,22 @@
    cleanly" was not the handles, it was the frame tracking a motion the head
    was not performing. Same failure mode as left:50% and the z-index above --
    a class selector here reads correctly and loses. */
+/* ── A FOURTH CHANNEL, AND IT IS THE PHYSICS ─────────────────────────────────
+   --hero-head-drift-x/-y is how far the head currently is from where the
+   visitor put it, because it is being stretched past a boundary or is still
+   flying to a stop. It is ADDED, exactly like the float and the entrance, and
+   for the same reason all three are: the visitor's arrangement is one number
+   and nothing is allowed to overwrite it. That separation is what let the
+   boundary become soft without a single change to the clamp -- the head can go
+   past the edge; the ARRANGEMENT never does, so the reachability rule, the
+   contracts and reset() all still reason about exactly what they did before.
+   The 0px fallbacks are load-bearing in the same way the float's are: the
+   properties do not exist until the first script write, and an unresolvable
+   var() in a calc takes the whole transform to unset. */
 #heroHeadTransform{
  transform:translate3d(
-   calc(-50% + var(--hero-head-x) + var(--hero-head-float-x,0px)),
-   calc(var(--hero-head-y) + var(--hero-movie-guard-y) + var(--hero-head-float-y,0px) + var(--hero-head-enter-y,0px)),0)
+   calc(-50% + var(--hero-head-x) + var(--hero-head-drift-x,0px) + var(--hero-head-float-x,0px)),
+   calc(var(--hero-head-y) + var(--hero-head-drift-y,0px) + var(--hero-movie-guard-y) + var(--hero-head-float-y,0px) + var(--hero-head-enter-y,0px)),0)
   rotate(calc(var(--hero-head-rotate) + var(--hero-head-float-rot,0deg)
               + var(--hero-head-enter-rot,0deg)))
   scale(var(--hero-head-scale))
