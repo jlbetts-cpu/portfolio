@@ -166,7 +166,7 @@ def verify(page, route, route_name, width, mode):
     for control in data["controls"]:
         assert control["tag"] in ("BUTTON", "A") and control["h"] >= 43.5, (route, control)
         assert control["border"] == "0px", (route, control)
-    expected_outer_radius = "28px" if width == 1440 else "20px"
+    expected_outer_radius = "14px" if width == 1440 else "10px"  # 2026-08-18: the radius ladder compressed to the workspace's register (tokens.css, same size-class rule) when the portfolio and Lifeline merged onto one system; this asserts the NEW decision, not the old one
     expected_media_radius = "20px" if width == 1440 else "14px"
     for collection in data["collections"]:
         assert collection["outer"]["radius"] == expected_outer_radius, (route, collection)
