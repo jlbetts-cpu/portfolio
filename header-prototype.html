@@ -20,8 +20,8 @@
    an iframe does not.
    ═══════════════════════════════════════════════════════════════════════════ */
 
-@font-face{font-family:"Instrument Sans";src:url("fonts/instrument-sans-latin-400-normal.woff2") format("woff2");font-weight:400;font-display:swap}
-@font-face{font-family:"Instrument Sans";src:url("fonts/instrument-sans-latin-600-normal.woff2") format("woff2");font-weight:600;font-display:swap}
+@font-face{font-family:"Geist";src:url("fonts/geist-latin-400-normal.woff2") format("woff2");font-weight:400;font-display:swap}
+@font-face{font-family:"Geist";src:url("fonts/geist-latin-600-normal.woff2") format("woff2");font-weight:600;font-display:swap}
 
 /* ── PROPOSED ADDITIONS TO tokens.css ───────────────────────────────────────
    Every one of these is a GAP, not an invention: a rung the existing scale
@@ -57,7 +57,7 @@
 
   /* 5 · interaction washes. The materials ladder covers surfaces, not the
      hover/press tint that sits on top of them. */
-  --wash-1:rgba(18,18,18,.055); --wash-i1:rgba(253,253,253,.10);
+  --wash-1:rgba(9,11,36,.055); --wash-i1:rgba(253,253,253,.10);
 
   /* 6 · the ink ramp, mirroring --c700/--c100 on a dark ground.
      (--c50 #FDFDFD already serves as the strong ink, so it is reused.) */
@@ -67,8 +67,8 @@
      rgba(253,253,253,·) and --mat-scrim (.34) is a scrim, not a material —
      white 14px text on it fails contrast. Tuned so white ink clears 4.5:1
      over ANY ground including white, because the Lab's stage is user-set. */
-  --mat-i1:rgba(18,18,18,.58); --mat-i2:rgba(18,18,18,.70); --mat-i3:rgba(18,18,18,.82);
-  --mat-i3-solid:rgba(18,18,18,.92);
+  --mat-i1:rgba(9,11,36,.58); --mat-i2:rgba(9,11,36,.70); --mat-i3:rgba(9,11,36,.82);
+  --mat-i3-solid:rgba(9,11,36,.92);
   --rim-i1:inset 0 0 0 1px rgba(253,253,253,.14);
   --rim-i2:inset 0 0 0 1px rgba(253,253,253,.22);
   --sh-i2:0 8px 28px rgba(0,0,0,.28); --sh-i3:0 12px 36px rgba(0,0,0,.36);
@@ -425,9 +425,9 @@ body{margin:0;background:#EDEDEA;color:var(--c950);
 .doc{max-width:1240px;margin:0 auto;padding:40px 24px 120px}
 .masthead h1{font-size:var(--fs-h2);letter-spacing:var(--tr-head);line-height:1.1;margin:0 0 10px}
 .masthead p{max-width:76ch;color:var(--c700);margin:0 0 8px}
-code{font-family:ui-monospace,Menlo,monospace;font-size:.88em;background:rgba(18,18,18,.06);
+code{font-family:ui-monospace,Menlo,monospace;font-size:.88em;background:rgba(9,11,36,.06);
   padding:1px 5px;border-radius:var(--r-xs)}
-.rule{height:1px;background:rgba(18,18,18,.12);margin:34px 0 26px}
+.rule{height:1px;background:rgba(9,11,36,.12);margin:34px 0 26px}
 h2.sec{font-size:19px;letter-spacing:var(--tr-sub);margin:0 0 6px}
 p.dek{max-width:80ch;color:var(--c700);margin:0 0 18px;font-size:14.5px}
 .note{font-size:13px;line-height:1.6;color:var(--c700);margin:10px 2px 0;max-width:66ch}
@@ -483,7 +483,7 @@ p.dek{max-width:80ch;color:var(--c700);margin:0 0 18px;font-size:14.5px}
 .simArena{position:relative;height:100%;min-height:100%;background:var(--c50);overflow:hidden}
 .simArena .ball{position:absolute;border-radius:var(--r-full)}
 .simTurf{position:absolute;left:0;right:0;bottom:0;height:36%;
-  background:linear-gradient(180deg,rgba(18,18,18,.035),transparent)}
+  background:linear-gradient(180deg,rgba(9,11,36,.035),transparent)}
 .simLab{position:relative;height:100%;min-height:100%;overflow:hidden;
   background:
     radial-gradient(60% 70% at 22% 28%,#2E5BD0 0%,transparent 62%),
@@ -1067,7 +1067,7 @@ if(frame&&CTX[frame]){
   /* live lockup measurement */
   (function(){
     var ctx=document.createElement('canvas').getContext('2d');
-    function M(s,px,w){ctx.font=(w||600)+' '+px+'px "Instrument Sans"';var t=ctx.measureText(s);
+    function M(s,px,w){ctx.font=(w||600)+' '+px+'px "Geist"';var t=ctx.measureText(s);
       return{adv:+t.width.toFixed(2),left:+t.actualBoundingBoxLeft.toFixed(2),
              asc:+t.actualBoundingBoxAscent.toFixed(2),desc:+t.actualBoundingBoxDescent.toFixed(2)}}
     setTimeout(function(){

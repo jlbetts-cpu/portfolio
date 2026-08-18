@@ -28,7 +28,7 @@
    HOW THIS KEPT BREAKING.  2026-08-04.
 
    --sans has always been declared in this file, but the @font-face rules that
-   make "Instrument Sans" resolvable were copied into each page's own <style>.
+   make "Geist" resolvable were copied into each page's own <style>.
    Two pages never got the copy, and on both of them --sans silently fell
    through to the next name in the stack, -apple-system -- SF Pro on a Mac.
    Measured with document.fonts.check(), not by reading declarations:
@@ -54,18 +54,29 @@
    TWO WEIGHTS, 400 AND 600, and no third. That is the type system's rule, and
    the 500/700 woff2 files in fonts/ are deliberately not declared -- an
    undeclared weight synthesises rather than silently loading a face nobody
-   approved. "Instrument Sans Var" was declared on six pages and consumed on
+   approved. "Geist Var" was declared on six pages and consumed on
    NONE of them (only headmaker.html and specimen.html use that family, and both
    declare it themselves); those six dead declarations go with this pass.
    Archivo is NOT here: it is the tournament's numeral face, wanted by exactly
    two pages, and it stays declared where it is used. */
-@font-face{font-family:"Instrument Sans";font-style:normal;font-weight:400;font-display:swap;
-  src:url(fonts/instrument-sans-latin-400-normal.woff2) format("woff2")}
-@font-face{font-family:"Instrument Sans";font-style:normal;font-weight:600;font-display:swap;
-  src:url(fonts/instrument-sans-latin-600-normal.woff2) format("woff2")}
+/* ===========================================================================
+   THE TYPEFACE IS GEIST.  2026-08-18, Jayden, asked twice and confirmed against
+   the recorded "he rejected a typeface change explicitly": the portfolio now
+   shares one design system with his Lifeline workspace (/workspace/), and that
+   system's face is Geist. TWO WEIGHTS, 400 AND 600, unchanged as the rule; the
+   static files are from the geist npm package (Vercel), self-hosted like the
+   faces they replace. The Instrument Sans files stay in fonts/ because
+   specimen.html is a measured essay about that face and remains a lab artifact.
+   Tracking tokens below were tuned per-size, not per-face, and Geist's metrics
+   sit close enough that they carry over; specimen measurements do not.
+   =========================================================================== */
+@font-face{font-family:"Geist";font-style:normal;font-weight:400;font-display:swap;
+  src:url(fonts/geist-latin-400-normal.woff2) format("woff2")}
+@font-face{font-family:"Geist";font-style:normal;font-weight:600;font-display:swap;
+  src:url(fonts/geist-latin-600-normal.woff2) format("woff2")}
 
-:root{--fs-statnum:clamp(34px,3.6vw,48px);--fs-pagehead-sm:clamp(30px,8.2vw,40px);--sp-8-16:16px;--sp-16-24:24px;--sp-16-32:32px;--sp-16-40:40px;--sp-16-56:56px;--sp-24-32:32px;--sp-24-40:40px;--sp-24-48:48px;--sp-32-48:48px;--sp-32-56:56px;--sp-32-64:64px;--sp-40-64:64px;--sp-40-72:72px;--sp-48-64:64px;--sp-48-72:72px;--sp-48-80:80px;--sp-56-96:96px;--sp-56-112:112px;--sp-64-168:168px;--sp-72-144:144px;--sp-80-152:152px;--c50:#FDFDFD;--c100:#E6E6E6;--c75:#F1F1F1;--c500:#757575;--c600:#6B6B6B;--c700:#525252;--c900:#212121;--c950:#121212;--yellow:#FED259;--accent:#121212;--accent-press:#212121;--accent-wash:#F1F1F1;--accent-dark:#FDFDFD;
- --sans:"Instrument Sans",-apple-system,system-ui,sans-serif;--fs-display:clamp(68px,12vw,168px);--fs-h1:clamp(28px,2.6vw,38px);
+:root{--fs-statnum:clamp(34px,3.6vw,48px);--fs-pagehead-sm:clamp(30px,8.2vw,40px);--sp-8-16:16px;--sp-16-24:24px;--sp-16-32:32px;--sp-16-40:40px;--sp-16-56:56px;--sp-24-32:32px;--sp-24-40:40px;--sp-24-48:48px;--sp-32-48:48px;--sp-32-56:56px;--sp-32-64:64px;--sp-40-64:64px;--sp-40-72:72px;--sp-48-64:64px;--sp-48-72:72px;--sp-48-80:80px;--sp-56-96:96px;--sp-56-112:112px;--sp-64-168:168px;--sp-72-144:144px;--sp-80-152:152px;--c50:#FDFDFD;--c100:#e6e7e9;--c75:#f1f1f4;--c500:#848591;--c600:#6b6d7c;--c700:#535466;--c900:#22233a;--c950:#090b24;--yellow:#FED259;--accent:#090b24;--accent-press:#22233a;--accent-wash:#f1f1f4;--accent-dark:#FDFDFD;
+ --sans:"Geist",-apple-system,system-ui,sans-serif;--fs-display:clamp(68px,12vw,168px);--fs-h1:clamp(28px,2.6vw,38px);
  /* THE PAGE TITLE HAS ITS OWN RUNG NOW. A case study's title and its section
     headings were --fs-h1 and --fs-h2: 38 and 36 at the cap, a ratio of 1.06,
     which is not a hierarchy, it is a rounding error. The title could not simply
@@ -84,7 +95,7 @@
     alone and yields 52-68 -- it just had no name, so the pages that forgot it
     had nothing to forget. 680 rather than a ch value to match the measure
     already shipping beside it; one number, one meaning. */
- --fs-body:16px;--fs-small:15px;--fs-tab:clamp(17px,1.5vw,20px);--fs-label:13px;--fs-caption:12px;--fs-micro:11px;--lh-display:1.0;--lh-tight:1.08;--lh-body:1.5;--lh-prose:1.5;--lh-flat:1;--rail-w:clamp(85px,7vw,110px);--rail-gutter:var(--sp-24-40);--rail-gap:var(--sp-40-72);--r-hair:2px;--r-xs:6px;--r-sm:10px;--r-md:14px;--r-lg:20px;--r-xl:28px;--r-pill:999px;--r-full:50%;--corner:squircle;--ease-out:cubic-bezier(.2,.8,.2,1);--ease-out-dur:160ms;--sp-quick:linear(0, 0.0757, 0.2282, 0.3918, 0.5383, 0.6586, 0.7524, 0.8231, 0.8751, 0.9126, 0.9394, 0.9582, 0.9714, 0.9805, 0.9867, 0.991, 0.994, 0.9959, 0.9973, 1);--sp-quick-dur:300ms;--sp-settle:linear(0, 0.024, 0.0833, 0.1633, 0.2531, 0.3454, 0.4352, 0.5193, 0.5959, 0.6642, 0.724, 0.7755, 0.8194, 0.8562, 0.8867, 0.9118, 0.9322, 0.9486, 0.9616, 0.9719, 0.9799, 0.986, 0.9907, 0.9941, 0.9967, 1);--sp-settle-dur:360ms;--sp-pop:linear(0, 0.0435, 0.1463, 0.2761, 0.4118, 0.5401, 0.6536, 0.7493, 0.8265, 0.8866, 0.9316, 0.964, 0.9863, 1.0007, 1.0092, 1.0136, 1.0151, 1.0148, 1.0134, 1.0115, 1.0095, 1.0075, 1.0057, 1.0042, 1.0029, 1);--sp-pop-dur:640ms;--sp-bounce:linear(0, 0.0659, 0.222, 0.4163, 0.6109, 0.7819, 0.917, 1.0128, 1.072, 1.1007, 1.1065, 1.0972, 1.0794, 1.0584, 1.0379, 1.0203, 1.0066, 0.9972, 0.9915, 0.989, 0.9887, 0.9899, 0.9919, 0.9942, 0.9963, 1);--sp-bounce-dur:860ms;--sp-bounce-approx:cubic-bezier(.34,1.56,.64,1);--rim-1:inset 0 0 0 1px rgba(18,18,18,.08);--rim-2:inset 0 0 0 1px rgba(18,18,18,.14);--rim-top:inset 0 1px 0 rgba(255,255,255,.55);--mat-0:transparent;--mat-1:rgba(253,253,253,.72);--mat-2:rgba(253,253,253,.86);--mat-3:rgba(253,253,253,.96);--mat-scrim:rgba(18,18,18,.34);--blur-1:8px;--blur-2:14px;--blur-3:20px;--sh-1:0 1px 2px rgba(18,18,18,.05);--sh-2:0 2px 8px rgba(18,18,18,.06),0 1px 2px rgba(18,18,18,.04);--sh-3:0 8px 28px rgba(18,18,18,.10),0 2px 6px rgba(18,18,18,.05);--sh-hero:-12px 12px 48px rgba(18,18,18,.22);--lh-auto:clamp(0.95em, 0.91em + 10.25px, 1.6em);--tr-display:-.042em;--tr-hero:-.028em;--tr-head:-.020em;--tr-sub:-.015em;--tr-title:-.010em;--tr-body:-.004em;--tr-flat:0;--tr-caps:.045em;--tr-mark:-.008em;--gap-head-top:1.6em;--gap-head-bot:.42em;--gap-eyebrow:.55em;--gap-para:.75em;--pad-bar:5px;--gap-bar:2px;--tap-min:44px;}
+ --fs-body:16px;--fs-small:15px;--fs-tab:clamp(17px,1.5vw,20px);--fs-label:13px;--fs-caption:12px;--fs-micro:11px;--lh-display:1.0;--lh-tight:1.08;--lh-body:1.5;--lh-prose:1.5;--lh-flat:1;--rail-w:clamp(85px,7vw,110px);--rail-gutter:var(--sp-24-40);--rail-gap:var(--sp-40-72);--r-hair:2px;--r-xs:6px;--r-sm:10px;--r-md:14px;--r-lg:20px;--r-xl:28px;--r-pill:999px;--r-full:50%;--corner:squircle;--ease-out:cubic-bezier(.2,.8,.2,1);--ease-out-dur:160ms;--sp-quick:linear(0, 0.0757, 0.2282, 0.3918, 0.5383, 0.6586, 0.7524, 0.8231, 0.8751, 0.9126, 0.9394, 0.9582, 0.9714, 0.9805, 0.9867, 0.991, 0.994, 0.9959, 0.9973, 1);--sp-quick-dur:300ms;--sp-settle:linear(0, 0.024, 0.0833, 0.1633, 0.2531, 0.3454, 0.4352, 0.5193, 0.5959, 0.6642, 0.724, 0.7755, 0.8194, 0.8562, 0.8867, 0.9118, 0.9322, 0.9486, 0.9616, 0.9719, 0.9799, 0.986, 0.9907, 0.9941, 0.9967, 1);--sp-settle-dur:360ms;--sp-pop:linear(0, 0.0435, 0.1463, 0.2761, 0.4118, 0.5401, 0.6536, 0.7493, 0.8265, 0.8866, 0.9316, 0.964, 0.9863, 1.0007, 1.0092, 1.0136, 1.0151, 1.0148, 1.0134, 1.0115, 1.0095, 1.0075, 1.0057, 1.0042, 1.0029, 1);--sp-pop-dur:640ms;--sp-bounce:linear(0, 0.0659, 0.222, 0.4163, 0.6109, 0.7819, 0.917, 1.0128, 1.072, 1.1007, 1.1065, 1.0972, 1.0794, 1.0584, 1.0379, 1.0203, 1.0066, 0.9972, 0.9915, 0.989, 0.9887, 0.9899, 0.9919, 0.9942, 0.9963, 1);--sp-bounce-dur:860ms;--sp-bounce-approx:cubic-bezier(.34,1.56,.64,1);--rim-1:inset 0 0 0 1px rgba(9,11,36,.08);--rim-2:inset 0 0 0 1px rgba(9,11,36,.14);--rim-top:inset 0 1px 0 rgba(255,255,255,.55);--mat-0:transparent;--mat-1:rgba(253,253,253,.72);--mat-2:rgba(253,253,253,.86);--mat-3:rgba(253,253,253,.96);--mat-scrim:rgba(9,11,36,.34);--blur-1:8px;--blur-2:14px;--blur-3:20px;--sh-1:0 1px 2px rgba(9,11,36,.05);--sh-2:0 2px 8px rgba(9,11,36,.06),0 1px 2px rgba(9,11,36,.04);--sh-3:0 8px 28px rgba(9,11,36,.10),0 2px 6px rgba(9,11,36,.05);--sh-hero:-12px 12px 48px rgba(9,11,36,.22);--lh-auto:clamp(0.95em, 0.91em + 10.25px, 1.6em);--tr-display:-.042em;--tr-hero:-.028em;--tr-head:-.020em;--tr-sub:-.015em;--tr-title:-.010em;--tr-body:-.004em;--tr-flat:0;--tr-caps:.045em;--tr-mark:-.008em;--gap-head-top:1.6em;--gap-head-bot:.42em;--gap-eyebrow:.55em;--gap-para:.75em;--pad-bar:5px;--gap-bar:2px;--tap-min:44px;}
 @media(max-width:880px){:root{--sp-8-16:8px;--sp-16-24:16px;--sp-16-32:16px;--sp-16-40:16px;--sp-16-56:16px;--sp-24-32:24px;--sp-24-40:24px;--sp-24-48:24px;--sp-32-48:32px;--sp-32-56:32px;--sp-32-64:32px;--sp-40-64:40px;--sp-40-72:40px;--sp-48-64:48px;--sp-48-72:48px;--sp-48-80:48px;--sp-56-96:56px;--sp-56-112:56px;--sp-64-168:64px;--sp-72-144:72px;--sp-80-152:80px}}
 @media(max-width:760px){:root{--blur-1:0px;--blur-2:0px}}
 @media(prefers-reduced-motion:reduce){:root{--sp-quick-dur:1ms;--sp-settle-dur:1ms;--sp-pop-dur:1ms;--sp-bounce-dur:1ms}}
@@ -103,17 +114,17 @@
    across eight pages and five concurrent agents for no gain.
 
    WHY --accent-press IS LIGHTER THAN --accent, which looks backwards and is not.
-   --accent is #121212, the page's own ink; there is nothing darker to move to.
+   --accent is #090b24, the page's own ink; there is nothing darker to move to.
    Every consumer of the pair is either a DARK-FILLED control (.workCta,
    .abLinkPrimary, .pBtnGo) whose hover/press has to be visible against a
    near-black ground, or a text link going momentarily quiet on :active. Both
    want a lift, not a deepening -- the same direction Apple's filled buttons dim
-   on touch and Stripe's dark buttons lighten on hover. #212121 (--c900) is a
-   1.35:1 step off #121212: visible on a 200px button, invisible as a mistake.
+   on touch and Stripe's dark buttons lighten on hover. #22233a (--c900) is a
+   1.35:1 step off #090b24: visible on a 200px button, invisible as a mistake.
    White ink on it is 15.3:1, so nothing that was legible stops being legible.
 
    THE OTHER TWO:
-   --accent-wash is the site's existing light grey pill, --c75 #F1F1F1 -- the same
+   --accent-wash is the site's existing light grey pill, --c75 #f1f1f4 -- the same
    value header.css uses for --nav-hover-bg, so an interaction ground is one grey
    everywhere instead of two. It is a GROUND, never a boundary (1.13:1 against
    paper) and never text; that warning survives the colour change unchanged.
@@ -124,7 +135,7 @@
    FOCUS RINGS. This is the one place removing colour can genuinely hurt, so it
    was checked rather than assumed: every focus ring on the site already ships
    `2px solid var(--c950)` at a POSITIVE offset, and --accent's new value is the
-   same #121212. Measured against the paper it goes 5.59:1 -> 18.42:1 -- the four
+   same #090b24. Measured against the paper it goes 5.59:1 -> 18.42:1 -- the four
    rings that were written against var(--accent) (gradientlab x2, orbs, play's
    .teamChip) get MORE findable, not less. WCAG 1.4.11 wants 3:1; this clears it
    six times over. On a dark region a --c950 ring is invisible and must be
@@ -173,7 +184,7 @@
 
  /* 8 - interaction washes. The materials ladder covers surfaces, not the
     hover/press tint that sits on top of one. */
- --wash-1:rgba(18,18,18,.055);--wash-i1:rgba(253,253,253,.10);
+ --wash-1:rgba(9,11,36,.055);--wash-i1:rgba(253,253,253,.10);
 
  /* 9 - the ink ramp, mirroring --c700 / --c100 on a dark ground.
     (--c50 #FDFDFD already serves as the strong ink, so it is reused.) */
@@ -184,14 +195,14 @@
     white 14px text on it fails contrast. Tuned so white ink clears 4.5:1 over
     ANY ground including white, because gradientlab's stage colour is user-set;
     NOT mirrored arithmetically from the light rungs. */
- --mat-i1:rgba(18,18,18,.58);--mat-i2:rgba(18,18,18,.70);--mat-i3:rgba(18,18,18,.82);
+ --mat-i1:rgba(9,11,36,.58);--mat-i2:rgba(9,11,36,.70);--mat-i3:rgba(9,11,36,.82);
  --mat-i3-solid:rgb(18,18,18);
  /* i4 is the MODAL SCRIM rung, and it extends the ladder rather than starting a
     second one. The reel overlay carried rgba(15,15,15,.92): the right density,
     the wrong ink -- 15 where every other inverse material on this site is 18.
     At 92% the 3/255 is not visible, so this is a rename, not a retune, and it
     means the player's ground now moves with the ramp like everything else. */
- --mat-i4:rgba(18,18,18,.92);
+ --mat-i4:rgba(9,11,36,.92);
  --rim-i1:inset 0 0 0 1px rgba(253,253,253,.14);
  --rim-i2:inset 0 0 0 1px rgba(253,253,253,.22);
  --sh-i2:0 8px 28px rgba(0,0,0,.28);--sh-i3:0 12px 36px rgba(0,0,0,.36);
@@ -268,16 +279,22 @@
     silently inherit whatever colour their parent happens to have. Both predate
     this branch. Defined rather than deleted because five live declarations want
     them, and defining is strictly better than a silent inherit.
-    --c400 is #8F8F8F, one step lighter than --c500 (#757575), as proposed in
+    --c400 is #9d9da7, one step lighter than --c500 (#848591), as proposed in
     the audit.
-    --c800 is #383838, and it is a PERCEPTUAL midpoint, not an sRGB one: the
-    ramp jumps --c700 (#525252, L* 35) straight to --c900 (#212121, L* 12.6),
-    and the L* midpoint 23.8 is #383838. The naive sRGB average (#3A3A3A) sits
+    --c800 is #3a3c50, and it is a PERCEPTUAL midpoint, not an sRGB one: the
+    ramp jumps --c700 (#535466, L* 35) straight to --c900 (#22233a, L* 12.6),
+    and the L* midpoint 23.8 is #3a3c50. The naive sRGB average (#3A3A3A) sits
     visibly closer to --c700 because the transfer curve is not linear.
     FLAGGED FOR JAYDEN: these are the first two new rungs in his colour ramp
     and they are my values, not his. Nothing outside those five declarations
     consumes them, so changing them is one line each. */
- --c400:#8F8F8F;--c800:#383838;
+ --c400:#9d9da7;--c800:#3a3c50;
+ /* THE BRAND HUE, 2026-08-18. "Blue is dead" is half-repealed, deliberately:
+    interactions stay ink (the focus-ring contrast math above is untouched), and
+    Glacier #64a5dd appears only where identity lives -- text selection and the
+    /workspace/ app, which uses it as its gradient. It is NOT --accent and must
+    never be: a control written against --brand is the 2026-08-04 bug returning. */
+ --brand:#64a5dd;--brand-soft:#eef4fb;
 
  --sp-36:36px;--menu-w:216px;--menu-gap:10px;
     /* --ico-mark is the brand mark's box, and it is a STROKE-MATCH value, not a
@@ -787,7 +804,7 @@
  --hero-glow-rx:clamp(1060px,84vw,1720px);
  --hero-glow-rx-near:clamp(560px,44vw,900px);
  --hero-glow-rx-far:clamp(740px,58vw,1180px);
- --selection-ink:#0A84FF;
+ --selection-ink:#64a5dd;
  --selection-line:1px;
  /* A UNIFORM RING OF AIR, IN SCREEN PIXELS. A frame drawn tight against an
     irregular photographic cutout reads as cramped -- it traces a silhouette
@@ -1036,7 +1053,7 @@
     are the SVG's own unitless stroke-width, so they are not px values missing a
     unit. */
  --c0:#FFFFFF;
- --rim-3:inset 0 0 0 1px rgba(18,18,18,.20);
+ --rim-3:inset 0 0 0 1px rgba(9,11,36,.20);
  --ico-stroke-strong:2;
  --ico-mark-stroke:2;--ico-mark-stroke-strong:2.7;
 

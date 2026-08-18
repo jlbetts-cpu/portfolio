@@ -64,7 +64,7 @@
    measure with no JS and no per-page number. (headmaker.html already uses the
    same technique for its stage, so this is not a new idea in the codebase.)
    overflow-x:CLIP, not hidden: it is a guard for one failure only -- if
-   Instrument Sans does not load, the fallback's metrics are wider and a
+   Geist does not load, the fallback's metrics are wider and a
    nowrap display string would push the page sideways. clip does not create a
    scrollport, so "nothing scrolls that should not" still holds; hidden would. */
 .siteFoot{color:var(--theme-ink);container-type:inline-size;overflow-x:clip}
@@ -206,7 +206,7 @@
    exception to the no-shadows rule. Spending it on a footer devalues it.
 
    HOW THE FIT WORKS. --foot-mark-fit is a MEASURED FONT METRIC, not a design
-   value: "Jayden Betts" set in Instrument Sans 600 at --tr-display advances
+   value: "Jayden Betts" set in Geist 600 at --tr-display advances
    5.4739em, measured live off a Range over the text node at 1440. Dividing the
    container measure by it gives the size at which the run lands flush on both
    edges. It is unitless and scales with the string, the weight and the tracking

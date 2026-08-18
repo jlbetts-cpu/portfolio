@@ -90,12 +90,12 @@
    --ctl-rim, which is tuned for paper.
 
    AND THE FOCUS RING IS THE REASON THIS IS NOT COSMETIC. --ctl-focus resolves to
-   --theme-ink, which in light is #111214 -- 1.00:1 against a #121212 control and
+   --theme-ink, which in light is #111214 -- 1.00:1 against a #090b24 control and
    ~1.1:1 against this scrim. The base ring survives on paper only because its
    2px outline-offset lets the PAGE ground show through the gap; over a modal
    scrim there is no page ground to borrow, so the indicator disappears exactly
    where the audit said it would ("the moment a primary button lands on any dark
-   ground -- a reel overlay (#121212) ... the indicator disappears",
+   ground -- a reel overlay (#090b24) ... the indicator disappears",
    2026-08-08-component-adoption-audit.md:181).
    So on this kind the ring is drawn in paper against the dark, not in ink:
    --c50 on rgb(18,18,18) is 18.4:1. This is the ONE kind that has to override
@@ -553,7 +553,7 @@
    Both differences become modifiers rather than a second class.
 
    LINE-HEIGHT IS DELIBERATELY NOT DECLARED. The measured box is 34px, which is
-   8 + 8 padding + a `normal` line box on 13px Instrument Sans + 2 of rim.
+   8 + 8 padding + a `normal` line box on 13px Geist + 2 of rim.
    Setting --lh-flat here would make it 31px and silently reshape all 14. */
 .badge{
  display:inline-flex;align-items:center;box-sizing:border-box;

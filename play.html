@@ -18,8 +18,8 @@
      in CORS mode, so without crossorigin the preload is fetched twice and used once).
      Archivo is not preloaded, matching index.html: it is 90 KB and only the scoreboard
      numerals use it, which do not exist until a match is running. -->
-<link rel="preload" as="font" type="font/woff2" href="fonts/instrument-sans-latin-400-normal.woff2" crossorigin>
-<link rel="preload" as="font" type="font/woff2" href="fonts/instrument-sans-latin-600-normal.woff2" crossorigin>
+<link rel="preload" as="font" type="font/woff2" href="fonts/geist-latin-400-normal.woff2" crossorigin>
+<link rel="preload" as="font" type="font/woff2" href="fonts/geist-latin-600-normal.woff2" crossorigin>
 <!-- THE SHARED DESIGN TOKENS. Linked ahead of play.css so play.css's own :root can still
      override the two tokens this page legitimately binds differently (--accent is the
      live-match green here, not the site's interactive blue). Before this, play.css carried
@@ -615,12 +615,12 @@
  /* HOVER MOVES INK, RIM AND HEIGHT -- NEVER A FILL. The fill ban stands; what changed is
     that the answer now actually carries. Jayden: "the different modes need more of a hover
     effect, right now it's too subtle", and he was right -- measured, the old response was a
-    rim going .08 -> .14 alpha and a description going #757575 -> #525252. Both are
+    rim going .08 -> .14 alpha and a description going #848591 -> #535466. Both are
     half-steps you have to look for. Four things move now, and every one is composite-only
     or a colour, so nothing reflows:
       rim          --rim-1 .08  ->  --rim-3 .20   (2.5x the alpha, the ladder's own top rung)
-      description  --c500 #757575 -> --c950 #121212  (4.6:1 -> 17.4:1 on white)
-      icon         --c700 #525252 -> --c950 #121212, stroke 1.8 -> 2
+      description  --c500 #848591 -> --c950 #090b24  (4.6:1 -> 17.4:1 on white)
+      icon         --c700 #535466 -> --c950 #090b24, stroke 1.8 -> 2
       the card     0 -> translateY(-2px)
     The lift is the piece that makes it read as a card rather than as text changing colour,
     and with the rim stepping up at the same time it reads as the card coming forward rather
@@ -708,7 +708,7 @@
     and `background:var(--accent)` on the primary where the page's own View games
     button resolves --ctl-primary-ground through --theme-ink. Measured side by
     side at 390: View games was 15px/400/14px on rgb(17,18,20), Start match
-    15px/600/10px on #121212 and Kick off 16px/600/14px. Three primary buttons,
+    15px/600/10px on #090b24 and Kick off 16px/600/14px. Three primary buttons,
     one visit, three drawings.
 
     THE `.ctl` SUFFIX ON EVERY OVERRIDE BELOW IS LOAD-BEARING. READ THIS BEFORE
@@ -785,7 +785,7 @@
     job is to darken the head it will delete -- so deepening that scrim is the state change,
     not decoration. It is also carried verbatim from the shipped index/About pattern, where
     two different delete gestures would be worse than either. --mat-i1 is exactly the
-    rgba(18,18,18,.58) that pattern uses, so this is the same value named. */
+    rgba(9,11,36,.58) that pattern uses, so this is the same value named. */
  .pTeamCols[data-editing="true"] .teamDel:hover,
  .pTeamCols[data-editing="true"] .teamDel:focus-visible{background:var(--mat-i1)}
  /* while editing the chip underneath stops being a button -- one tile, one meaning. The
@@ -1013,6 +1013,7 @@
    <a data-nav-item="work" href="index.html#cases" aria-label="Work"><svg class="gIco uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 12h.01"/><path d="M16 6V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><path d="M22 13a18.15 18.15 0 0 1-20 0"/><rect width="20" height="14" x="2" y="6" rx="2"/></svg><span class="jbLbl">Work</span></a>
    <a data-nav-item="about" href="index.html#about" aria-label="About"><svg class="gIco uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/></svg><span class="jbLbl">About</span></a>
    <a data-nav-item="games" href="play.html" aria-label="Play" aria-current="page"><svg class="gIco uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><line x1="6" x2="10" y1="11" y2="11"/><line x1="8" x2="8" y1="9" y2="13"/><line x1="15" x2="15.01" y1="12" y2="12"/><line x1="18" x2="18.01" y1="10" y2="10"/><path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258-.006-.051-.011-.1-.017-.151A4 4 0 0 0 17.32 5z"/></svg><span class="jbLbl">Play</span></a>
+   <a data-nav-item="workspace" href="workspace/" aria-label="Workspace"><svg class="gIco uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M2 6h4"/><path d="M2 10h4"/><path d="M2 14h4"/><path d="M2 18h4"/><rect width="16" height="20" x="4" y="2" rx="2"/><path d="M16 2v20"/></svg><span class="jbLbl">Workspace</span></a>
   </span>
   <span class="jbGrp jbGrpR">
    <!-- CONTACT -- the same split control as Play, at the other end of the bar

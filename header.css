@@ -208,7 +208,7 @@
      It was --mat-3-solid, which tokens.css defines as --c50 -- the exact
      #FDFDFD of the page under it, so the bar's ground separated from the page at
      1.00:1 and the only thing drawing the component was a 1.31:1 hairline.
-     The first attempt went one rung DOWN the ramp to --c75 #F1F1F1 (1.10:1).
+     The first attempt went one rung DOWN the ramp to --c75 #f1f1f4 (1.10:1).
      Jayden's answer to that is the rule this now follows: "header should not be
      grey -- if anything it should be lighter than the background." So the bar
      goes UP, to --c0 #FFFFFF, a rung tokens.css did not have because the ramp
@@ -297,9 +297,9 @@
      --nav-active-bg keeps its name and changes its value, from --nav-accent-wash
      (oklch 94.7%, 1.03:1 against the bar, invisible) to a real grey.
      WHICH GREY, AND WHY THE LIGHTER ONE WON. It shipped for one round at --c100
-     #E6E6E6 (1.25:1 against the white bar). Jayden, on a screenshot of it: "I
+     #e6e7e9 (1.25:1 against the white bar). Jayden, on a screenshot of it: "I
      honestly like the About styling better than our style, ironically" -- the
-     lighter pill, not the mid-grey one. So it is --c75 #F1F1F1, 1.13:1.
+     lighter pill, not the mid-grey one. So it is --c75 #f1f1f4, 1.13:1.
      THAT ONLY WORKS BECAUSE THE PILL IS NOT CARRYING THE STATE ON ITS OWN, and
      the reason to say so is that the previous round's whole failure was one
      under-weight mark doing the job alone. Three things mark the lit item and
@@ -932,7 +932,7 @@
 .jbPlayMenu .moodHeads:empty,.moodHeads:empty{display:none}
 /* a rule BETWEEN groups, at the site's own hairline weight */
 /* --theme-rim, not --c100: the ramp is never rebound by the dark theme, so a
-   #E6E6E6 hairline was a near-white rule across a #111318 panel at night -- the
+   #e6e7e9 hairline was a near-white rule across a #111318 panel at night -- the
    one bright line in a menu whose every other edge is a translucent wash. */
 .jbDiscMenu .jbDiscSep{height:var(--hair-w);background:var(--theme-rim);
   margin:var(--sp-6) var(--sp-8);flex:0 0 auto}

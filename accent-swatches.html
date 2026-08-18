@@ -8,12 +8,12 @@
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
 <link rel="icon" href="favicon.ico" sizes="any">
 <style>
-@font-face{font-family:"Instrument Sans";font-style:normal;font-weight:400;font-display:swap;src:url(fonts/instrument-sans-latin-400-normal.woff2) format("woff2")}
-@font-face{font-family:"Instrument Sans";font-style:normal;font-weight:600;font-display:swap;src:url(fonts/instrument-sans-latin-600-normal.woff2) format("woff2")}
+@font-face{font-family:"Geist";font-style:normal;font-weight:400;font-display:swap;src:url(fonts/geist-latin-400-normal.woff2) format("woff2")}
+@font-face{font-family:"Geist";font-style:normal;font-weight:600;font-display:swap;src:url(fonts/geist-latin-600-normal.woff2) format("woff2")}
 
 :root{
   /* the site's real ramp, copied from tokens.css so this page sits on the actual paper */
-  --c50:#FDFDFD;--c75:#F1F1F1;--c100:#E6E6E6;--c500:#757575;--c600:#6B6B6B;--c700:#525252;--c900:#212121;--c950:#121212;
+  --c50:#FDFDFD;--c75:#f1f1f4;--c100:#e6e7e9;--c500:#848591;--c600:#6b6d7c;--c700:#535466;--c900:#22233a;--c950:#090b24;
   --live-deep:#0E6B3B;   /* today's --accent      */
   --live-bright:#17A45A; /* today's --accent-live */
 
@@ -28,7 +28,7 @@
   --ref-trung:#0072F5;
   --ref-trung-wash:#E0F0FF;
 
-  --sans:"Instrument Sans",-apple-system,system-ui,sans-serif;
+  --sans:"Geist",-apple-system,system-ui,sans-serif;
   --mono:ui-monospace,SFMono-Regular,Menlo,monospace;
 }
 @supports not (color:oklch(50% .1 200)){
@@ -81,7 +81,7 @@ code,.mono{font-family:var(--mono);font-size:12.5px;letter-spacing:0}
 .verdict{display:inline-block;margin:0 0 12px;font-size:10px;font-weight:600;letter-spacing:.045em;text-transform:uppercase;
    font-family:var(--sans);border-radius:999px;padding:3px 9px}
 .v-yes{background:#E8F3EC;color:#0E6B3B}
-.v-no{background:#F3F3F3;color:#6B6B6B}
+.v-no{background:#F3F3F3;color:#6b6d7c}
 .v-ask{background:#FFF4DF;color:#8A6100}
 
 /* the real back-link, as it exists on the five case studies */
@@ -148,7 +148,7 @@ code,.mono{font-family:var(--mono);font-size:12.5px;letter-spacing:0}
 table{border-collapse:collapse;width:100%;min-width:660px;font-size:14px}
 th,td{text-align:left;padding:11px 12px;border-bottom:1px solid var(--c100);vertical-align:middle}
 th{font-size:11px;font-weight:600;letter-spacing:.045em;text-transform:uppercase;color:var(--c500)}
-td.sw i{display:inline-block;width:22px;height:22px;border-radius:6px;vertical-align:middle;box-shadow:inset 0 0 0 1px rgba(18,18,18,.10)}
+td.sw i{display:inline-block;width:22px;height:22px;border-radius:6px;vertical-align:middle;box-shadow:inset 0 0 0 1px rgba(9,11,36,.10)}
 td .sample{font-size:16px;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px}
 td.num{font-family:var(--mono);font-size:13px;letter-spacing:0}
 
@@ -254,7 +254,7 @@ body.inframe .hide-in-frame{display:none}
     </div>
 
     <div class="panel onc75">
-      <p class="plabel">On #F1F1F1 (c75) — the hover/row background</p>
+      <p class="plabel">On #f1f1f4 (c75) — the hover/row background</p>
       <p class="prose" style="margin-bottom:10px">A <a class="plink is-hover" href="#3">hovered link</a> sitting on the c75 fill the site uses for hovered menu rows and the live result row.</p>
       <span class="cr" data-fg="var(--accent)" data-bg="var(--c75)" data-min="4.5" data-label="accent on c75"></span><br>
       <span class="cr" data-fg="var(--accent)" data-bg="var(--c100)" data-min="4.5" data-label="accent on c100"></span>

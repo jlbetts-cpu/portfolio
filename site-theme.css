@@ -27,7 +27,7 @@
  /* --theme-focus:#D9D7FF LEFT DELIBERATELY ALONE, and the reason is worth
     recording because the adoption audit called it stale.
     The case for stale: light's focus is light's ink (#111214), and the accent
-    migration made --accent ink (#121212), so dark's focus "should" be dark's ink.
+    migration made --accent ink (#090b24), so dark's focus "should" be dark's ink.
     The case against, which won: --theme-atmosphere is still rgba(103,99,228,.16)
     on the very next line, so the dark theme does deliberately keep a violet
     identity that light does not have -- and tools/site-theme-contract.py:162

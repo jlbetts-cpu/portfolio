@@ -492,12 +492,12 @@ body.hmFinal .sBall{content:url(images/soccerball-gold.webp)}
 /* The tie that is next -- the one the Next pane is about -- is marked so the two
    panes are visibly the same subject. A tinted wash and a hairline, no elevation. */
 /* MIXED OFF THE THEME'S OWN INK rather than taken from --wash-1, which is a fixed
-   rgba(18,18,18,.055) -- dark ink at 5.5%, and therefore invisible on a dark page. The
+   rgba(9,11,36,.055) -- dark ink at 5.5%, and therefore invisible on a dark page. The
    mix follows --theme-ink in both directions: a whisper of black on white, a whisper of
    white on black, one declaration, no list to join. */
 .tvTie.tvTieNext{
-  background:color-mix(in srgb, var(--theme-ink,#121212) 6%, transparent);
-  box-shadow:inset 0 0 0 var(--hair-w) var(--theme-rim,rgba(18,18,18,.08));
+  background:color-mix(in srgb, var(--theme-ink,#090b24) 6%, transparent);
+  box-shadow:inset 0 0 0 var(--hair-w) var(--theme-rim,rgba(9,11,36,.08));
 }
 
 /* ---------------------------------------------------------------------------
@@ -625,7 +625,7 @@ body.hmFinal .sBall{content:url(images/soccerball-gold.webp)}
    crop would be flames. */
 .tvPoster{
   flex:0 0 auto;overflow:hidden;border-radius:var(--r-lg);
-  box-shadow:inset 0 0 0 var(--hair-w) var(--theme-rim,rgba(18,18,18,.08));
+  box-shadow:inset 0 0 0 var(--hair-w) var(--theme-rim,rgba(9,11,36,.08));
   height:clamp(56px, 11svh, 104px);
 }
 .tvPoster img{

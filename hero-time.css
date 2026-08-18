@@ -1327,9 +1327,9 @@
 #heroHeadSelection{
  --selection-idle-alpha:clamp(.035,calc(.316 * var(--env-lum,1) - .083),.26);
  --selection-idle-ink:color-mix(in srgb,
-   var(--time-ink,#121212) calc(var(--selection-idle-alpha) * 100%),transparent);
+   var(--time-ink,#090b24) calc(var(--selection-idle-alpha) * 100%),transparent);
  --selection-idle-dot:color-mix(in srgb,
-   var(--time-ink,#121212) calc(var(--selection-idle-alpha) * 58%),transparent)
+   var(--time-ink,#090b24) calc(var(--selection-idle-alpha) * 58%),transparent)
 }
 #heroHeadSelection[data-selection="idle"]{
  --selection-ink:var(--selection-idle-ink);

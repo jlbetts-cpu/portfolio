@@ -1,0 +1,13 @@
+{
+  "name": "Jayden Betts",
+  "short_name": "jb",
+  "description": "Personal timeline, memory, mindset, books and kitchen — one life OS.",
+  "start_url": "/workspace/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
+  "icons": [
+    { "src": "/workspace/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/workspace/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

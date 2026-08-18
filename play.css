@@ -18,20 +18,20 @@
    html,body{overflow:hidden}, which already wins the cascade for both axes regardless). ---- */
 /* ---- THE WEBFONTS. This file carried 91 font-family:var(--sans) declarations and three
    font-family:'Archivo' declarations, and NOT ONE @font-face to load either family -- neither
-   here nor in play.html. --sans is "Instrument Sans",-apple-system,system-ui,sans-serif, so
+   here nor in play.html. --sans is "Geist",-apple-system,system-ui,sans-serif, so
    the named family never arrived and every word on the page silently fell through to
    -apple-system: SF Pro on a Mac, close enough to Instrument Sans to have been reported as
    fixed twice when it was not. .bcNum (the split-flap scoreboard numerals) was rendering in
    SF Pro too, and the Archivo/Instrument register split -- display face on numerals and
-   moments only, everything else Instrument 400/600 -- is a settled part of the broadcast
+   moments only, everything else Geist 400/600 -- is a settled part of the broadcast
    identity, not decoration.
    Copied verbatim from index.html:608-609. Instrument Sans Var is deliberately NOT copied:
    it exists on index.html for the two-line wordmark's font-stretch trick, and play.html has
    no wordmark. Preloads for the two Instrument faces live in play.html's own <head>, where a
    preload has to be; Archivo is not preloaded, matching index.html, because it is 90 KB and
    nothing shows a numeral until a match has started. ---- */
-@font-face{font-family:"Instrument Sans";font-style:normal;font-weight:400;font-display:swap;src:url(fonts/instrument-sans-latin-400-normal.woff2) format("woff2")}
-@font-face{font-family:"Instrument Sans";font-style:normal;font-weight:600;font-display:swap;src:url(fonts/instrument-sans-latin-600-normal.woff2) format("woff2")}
+@font-face{font-family:"Geist";font-style:normal;font-weight:400;font-display:swap;src:url(fonts/geist-latin-400-normal.woff2) format("woff2")}
+@font-face{font-family:"Geist";font-style:normal;font-weight:600;font-display:swap;src:url(fonts/geist-latin-600-normal.woff2) format("woff2")}
 @font-face{font-family:'Archivo';src:url('fonts/archivo-variable.woff2') format('woff2');
   font-weight:100 900;font-stretch:62% 125%;font-display:swap}
 /* ---- THE TOKEN BLOCK IS GONE FROM THIS FILE. It lived here as a hand-copied subset of
@@ -105,7 +105,7 @@ body{background:var(--c50);color:var(--c950);font-family:var(--sans);-webkit-fon
 .eye.eclosed .iris,.eye.eclosed .glint{opacity:0}
 /* belt and braces: a closed eye has no iris, whatever the lid is doing that frame */
 .eye[style*="display: none"] .iris,.eye[style*="display:none"] .iris{opacity:0}   /* hidden, not squashed: a bare scaleY leaves the iris as a hard dark slit across the face, which is the one thing a blink must never look like. visibility (not display) so nothing reflows. */
-.iris{position:absolute;border-radius:46%;background:repeating-conic-gradient(from 4deg,rgba(255,255,255,.045) 0deg 2deg,rgba(0,0,0,.24) 2deg 4.3deg),radial-gradient(circle at 50% 50%,#050505 0%,#080808 25%,#191919 39%,#121212 57%,#181818 72%,#0a0a0a 88%,#030303 100%),radial-gradient(circle at 38% 32%,#1e1e1e 0%,#0d0d0d 52%,#050505 100%);background-blend-mode:multiply,normal,normal}.iris::before{content:"";position:absolute;inset:0;border-radius:46%;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='44'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");background-size:20px 20px;-webkit-mask:radial-gradient(circle,#000 58%,transparent 90%);mask:radial-gradient(circle,#000 58%,transparent 90%);mix-blend-mode:soft-light;opacity:.45;pointer-events:none}.iris::after{content:"";position:absolute;inset:0;border-radius:46%;background:radial-gradient(circle at 68% 74%,rgba(244,244,244,.38) 0%,rgba(244,244,244,0) 14%);filter:blur(.4px);pointer-events:none}
+.iris{position:absolute;border-radius:46%;background:repeating-conic-gradient(from 4deg,rgba(255,255,255,.045) 0deg 2deg,rgba(0,0,0,.24) 2deg 4.3deg),radial-gradient(circle at 50% 50%,#050505 0%,#080808 25%,#191919 39%,#090b24 57%,#181818 72%,#0a0a0a 88%,#030303 100%),radial-gradient(circle at 38% 32%,#1e1e1e 0%,#0d0d0d 52%,#050505 100%);background-blend-mode:multiply,normal,normal}.iris::before{content:"";position:absolute;inset:0;border-radius:46%;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='44'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");background-size:20px 20px;-webkit-mask:radial-gradient(circle,#000 58%,transparent 90%);mask:radial-gradient(circle,#000 58%,transparent 90%);mix-blend-mode:soft-light;opacity:.45;pointer-events:none}.iris::after{content:"";position:absolute;inset:0;border-radius:46%;background:radial-gradient(circle at 68% 74%,rgba(244,244,244,.38) 0%,rgba(244,244,244,0) 14%);filter:blur(.4px);pointer-events:none}
 .pupil{position:absolute;left:50%;top:50%;width:55%;height:55%;border-radius:var(--r-full);background:radial-gradient(circle at 50% 50%,#000 0%,#000 58%,#060606 80%,rgba(6,6,6,0) 100%);transform:translate(-50%,-50%) scale(1);transform-origin:50% 50%;pointer-events:none;will-change:transform}
 .glint{position:absolute;left:32%;top:26%;width:20%;height:20%;border-radius:var(--r-full);z-index:4;pointer-events:none;background:radial-gradient(circle at 50% 50%,rgba(255,255,255,.98) 0%,rgba(252,252,252,.72) 24%,rgba(250,250,250,0) 60%)}
 .glint::after{content:"";position:absolute;left:128%;top:165%;width:46%;height:46%;border-radius:var(--r-full);background:radial-gradient(circle,rgba(250,250,250,.55) 0%,rgba(250,250,250,0) 68%)}
@@ -476,8 +476,8 @@ body.hmSoccer .hmPlanet,body.hmSoccer .hmSky,body.hmSoccer .hmWater{opacity:1}
 .hmPlanet::before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.10;
  mix-blend-mode:soft-light;background-blend-mode:overlay;
  background-image:
-  repeating-conic-gradient(rgba(18,18,18,.5) 0% 25%,rgba(253,253,253,.5) 0% 50%),
-  repeating-conic-gradient(rgba(18,18,18,.5) 0% 25%,rgba(253,253,253,.5) 0% 50%);
+  repeating-conic-gradient(rgba(9,11,36,.5) 0% 25%,rgba(253,253,253,.5) 0% 50%),
+  repeating-conic-gradient(rgba(9,11,36,.5) 0% 25%,rgba(253,253,253,.5) 0% 50%);
  background-size:3px 3px,5px 5px;
  -webkit-mask-image:linear-gradient(180deg,transparent 33%,#000 40%,transparent 74%);
          mask-image:linear-gradient(180deg,transparent 33%,#000 40%,transparent 74%)}
@@ -706,7 +706,7 @@ body.moodInCta .heroCtas:not(.in) .faceMoodCorner{opacity:0!important;visibility
 @media(prefers-reduced-motion:reduce){.hmCount.hmCountPulse{animation:none;opacity:1}}
 .hmHp{position:absolute;left:0;top:0;width:44px;height:4px;border-radius:var(--r-hair);background:rgba(8,8,8,.13);z-index:4;pointer-events:none;opacity:0;transition:opacity .3s var(--ease-out)}
 .hmHp i{display:block;height:100%;border-radius:var(--r-hair);background:var(--theme-ink);transition:width var(--dur-state) var(--ease-out),background-color .3s}
-/* ===== mood shortcut menu — triggers the head animations; sharp, Instrument Sans, 8fps stepped ===== */
+/* ===== mood shortcut menu — triggers the head animations; sharp, Geist, 8fps stepped ===== */
 .moodbar{position:relative;display:inline-block;z-index:45}
 @keyframes moodIn{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
 .moodBtn:not(.ctl){display:inline-flex;align-items:center;gap:var(--sp-8);background:var(--ctl-ground);border:1px solid var(--theme-rim);border-radius:var(--r-2xs);padding:var(--sp-8) var(--sp-16);line-height:var(--lh-flat);cursor:pointer;font-family:var(--sans);font-weight:400;font-size:var(--fs-body);color:var(--ctl-ink-strong);transition:border-color var(--dur-state) var(--ease-out),color var(--dur-state) var(--ease-out)}.moodBtn:not(.ctl):hover{border-color:var(--theme-rim-strong)}
@@ -818,7 +818,7 @@ body.playViewportOwned .siteFoot{display:none}
    the site. Leaderboards carry a face, a team dot, the rating and one number -- at 390px there is
    room for a name column plus about three numerics, and that is the whole budget. ---- */
 /* Broadcast digits: Archivo, tabular, condensed. The display face touches numerals
-   and moments ONLY -- names, labels and UI stay Instrument Sans 400/600.
+   and moments ONLY -- names, labels and UI stay Geist 400/600.
    THE 800 BELOW IS A REAL INSTANCE, NOT A SYNTHESIS, and it keeps being
    rediscovered as a two-weights violation. It is not one. The two-weights rule is
    about Instrument Sans, which ships as two static faces (see the @font-face pair
@@ -1119,13 +1119,13 @@ body.hmFinal .sbRound{color:#e8b347}
    THESE FOUR NOW READ --ctl-*, NOT THE RAW --c* RAMP, and that is the fix for
    the one measured contrast failure in Night. The --c* ramp is NOT rebound by
    the dark theme on this page -- only builder-theme.css rebinds it, and only
-   for the two builder pages -- so `color:var(--c700)` stayed #525252 at night
+   for the two builder pages -- so `color:var(--c700)` stayed #535466 at night
    and the End control inside .battleCount measured 2.50:1 against the
    #111318 it sits on (pixel-sampled, not composited: 4.5 needed). Every
    --ctl-* below resolves through --theme-*, so one declaration is now correct
    in all six time-of-day states instead of one being correct in five.
    The PRIMARY pair matters as much as the ink. --c950 on --c50 painted a
-   #121212 button on a #0B0C0F page at night: 1.05:1 of ground against ground,
+   #090b24 button on a #0B0C0F page at night: 1.05:1 of ground against ground,
    i.e. a primary action with no visible edge at all. --ctl-primary-ground
    inverts with the theme, which is what every other primary on the site
    already does. Its hover moves to --ctl-primary-ground-hover rather than
