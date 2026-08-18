@@ -231,7 +231,12 @@
    section, land in every screen-reader heading list, and say his name a fourth
    time after <title>, the JSON-LD Person and the mark's aria-label. */
 .footMark{
- --foot-mark-fit:5.4739;
+ /* 5.4739 was measured for Instrument Sans; Geist runs wider at the same
+    size and the mark clipped its final s off the right edge -- Jayden saw it:
+    "jayden betts isnt even fitting on the bottom". Re-measured 2026-08-18 in
+    Geist 600 at the shell's column width: mark 1147px in a 1054px measure,
+    ratio 1.0882, so the divisor grows by the same ratio (+0.4% air). */
+ --foot-mark-fit:5.9807;
  font-family:var(--sans);font-weight:600;
  font-size:calc(100cqw / var(--foot-mark-fit));
  line-height:var(--lh-display);letter-spacing:var(--tr-display);color:var(--theme-rim);

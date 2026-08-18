@@ -38,17 +38,78 @@ var POINTS=[
  {bx:.30,by:.80,ax:.23,ay:.17,fx:1.7,fy:2.1,ph:4.2,p2:0.8}
 ];
 var MESH_K=6.2,CREAM_W=.06;
+var HEAT=[1,.74,.55,1,.72,.70]; /* per-point weight the ASCII field reads */
+var RAMP=[" "," ","·",":","-","+","=","*","#"];
 
-/* base + mesh[0..2] high/pale + mesh[3..5] low/saturated, from each state's
-   authored radial stops in hero-time.css. */
+/* ── the palette generator, ported from lifeline/src/lib/palette.ts ────────
+   make() turns ONE brand hex into the six control-point colours + base via
+   HSL shades -- the exact recipe the workspace band uses (January Glacier is
+   make("#64a5dd") and daytime here is that call verbatim). Time-of-day is
+   one brand hue per state through the same recipe, which is precisely how
+   Lifeline does months. Night is hand-held darker: the formula's pale base
+   would glow in a dark room. */
+function hexRgb(hex){var n=parseInt(hex.slice(1),16);return[(n>>16)&255,(n>>8)&255,n&255];}
+function rgbHsl(c){
+ var r=c[0]/255,g2=c[1]/255,b=c[2]/255;
+ var mx=Math.max(r,g2,b),mn=Math.min(r,g2,b),l=(mx+mn)/2;
+ if(mx===mn)return[0,0,l];
+ var d=mx-mn,s=l>.5?d/(2-mx-mn):d/(mx+mn),h;
+ if(mx===r)h=((g2-b)/d+(g2<b?6:0))*60;
+ else if(mx===g2)h=((b-r)/d+2)*60;
+ else h=((r-g2)/d+4)*60;
+ return[h,s,l];
+}
+function hslRgb(c){
+ var h=c[0],s=c[1],l=c[2];
+ function f(n){var k=(n+h/30)%12;var a=s*Math.min(l,1-l);return l-a*Math.max(-1,Math.min(k-3,9-k,1));}
+ return[f(0)*255,f(8)*255,f(4)*255];
+}
+function shade(hex,dl,ds){
+ var h=rgbHsl(hexRgb(hex));
+ return hslRgb([h[0],Math.max(0,Math.min(1,h[1]+(ds||0))),Math.max(0,Math.min(1,h[2]+dl))]);
+}
+function rgbHex(c){
+ var out="#";
+ for(var i=0;i<3;i++){var v=Math.round(Math.max(0,Math.min(255,c[i]))).toString(16);out+=v.length===1?"0"+v:v;}
+ return out;
+}
+function make(brand){
+ return{
+  base:rgbHex(shade(brand,.44,-.20)),
+  mesh:[
+   brand,
+   rgbHex(shade(brand,.13,.02)),
+   rgbHex(shade(brand,.30,-.06)),
+   rgbHex(shade(brand,-.14,.10)),
+   rgbHex(shade(brand,.19,0)),
+   rgbHex(shade(brand,.07,.04))
+  ]
+ };
+}
 var PALETTES={
- "pre-dawn":{base:"#f8fafd",mesh:["#eadcff","#dac0ff","#eadcff","#486ffd","#7f81f3","#c489ff"]},
- sunrise:{base:"#f8fafd",mesh:["#fff1dc","#ffd79b","#fff1dc","#cb83ff","#ff90b9","#ffc977"]},
- daytime:{base:"#f8fafd",mesh:["#d9ebff","#b4d8ff","#d9ebff","#0071c1","#60a8e2","#4d9fdd"]},
- dusk:{base:"#f8fafd",mesh:["#f1f3fa","#ccd5f0","#f1f3fa","#ffb36a","#dfa0d8","#9da8e4"]},
- sunset:{base:"#f8fafd",mesh:["#f5eaff","#ecd8ff","#f5eaff","#ffa577","#ff90a1","#ddadff"]},
- night:{base:"#060a13",mesh:["#0a1530","#16224a","#0a1530","#1d4a93","#5d509b","#2c5bb0"]}
+ "pre-dawn":make("#7a82e0"),
+ sunrise:make("#ec9d57"),
+ daytime:make("#64a5dd"), /* January Glacier -- the workspace band, verbatim */
+ dusk:make("#9d82d8"),
+ sunset:make("#ee7b4f"),
+ night:{base:"#0a1428",mesh:["#1d4a93","#2c5bb0","#16224a","#0f1b3d","#243d7a","#1a2f61"]}
 };
+
+/* the ASCII field reads the SAME control points as the gradient */
+function warmth(nx,ny,t){
+ var num=0,den=CREAM_W;
+ for(var i=0;i<POINTS.length;i++){
+  var p=POINTS[i];
+  var dx=nx-(p.bx+p.ax*Math.sin(t*p.fx+p.ph));
+  var dy=ny-(p.by+p.ay*Math.cos(t*p.fy+p.p2));
+  var wt=Math.exp(-(dx*dx+dy*dy)*MESH_K);
+  num+=wt*HEAT[i];den+=wt;
+ }
+ return num/den;
+}
+
+var GRAIN="data:image/svg+xml,"+encodeURIComponent(
+ "<svg xmlns='http://www.w3.org/2000/svg' width='150' height='150'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='1.0' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='100%' height='100%' filter='url(#n)'/></svg>");
 
 function vec3(hex){
  var n=parseInt(hex.slice(1),16);
@@ -217,6 +278,78 @@ function boot(){
   requestAnimationFrame(render);
  }
  if(!reduce)requestAnimationFrame(render);
+
+ /* ── the ASCII field, ported from HeroBackdrop -- same control points, white
+    glyphs churning where the gradient is hot, screen-blended over it ─────── */
+ var ascii=document.createElement("canvas");
+ ascii.className="heroAsciiCanvas";
+ ascii.setAttribute("aria-hidden","true");
+ clip.appendChild(ascii);
+ var ctx2=ascii.getContext("2d");
+ if(ctx2){
+  var CELL=21,aW=0,aH=0,cols=0,rows=0,phase=null;
+  var buildAscii=function(){
+   var rc=clip.getBoundingClientRect();
+   aW=Math.ceil(rc.width);aH=Math.ceil(rc.height);
+   var dpr=Math.min(window.devicePixelRatio||1,2);
+   ascii.width=aW*dpr;ascii.height=aH*dpr;
+   ctx2.setTransform(dpr,0,0,dpr,0,0);
+   ctx2.textAlign="center";ctx2.textBaseline="middle";
+   ctx2.font='12px "Geist",ui-sans-serif,system-ui,sans-serif';
+   cols=Math.ceil(aW/CELL)+1;rows=Math.ceil(aH/CELL)+1;
+   phase=new Float32Array(cols*rows);
+   for(var i=0;i<phase.length;i++)phase[i]=Math.random()*Math.PI*2;
+  };
+  var asciiFrame=function(ms){
+   var tRaw=reduce?6:ms/1000;
+   var t=tRaw*.10;
+   ctx2.clearRect(0,0,aW,aH);
+   for(var r=0;r<rows;r++){
+    var cy=r*CELL+CELL/2;
+    for(var c=0;c<cols;c++){
+     var cx=c*CELL+CELL/2;
+     var nx=cx/aW,nyc=cy/aH;
+     var ph=phase[r*cols+c];
+     var n=warmth(nx,nyc,t);
+     if(n<0)n=0;else if(n>1)n=1;
+     var mInfl=0,pushX=0,pushY=0;
+     if(ma>.01){
+      var dxm=nx-mx,dym=nyc-my;
+      var dm=Math.sqrt(dxm*dxm+dym*dym);
+      mInfl=Math.max(0,1-dm/.36)*ma;
+      if(mInfl>0&&dm>.0001){var pk=mInfl*7;pushX=(dxm/dm)*pk;pushY=(dym/dm)*pk;}
+     }
+     var nn=Math.min(1,n+mInfl*.4);
+     var churn=nn+.17*Math.sin(tRaw*1.1+ph);
+     var gi=(Math.max(0,Math.min(1,churn))*RAMP.length)|0;
+     if(gi>=RAMP.length)gi=RAMP.length-1;
+     var ch=RAMP[gi];
+     if(ch===" ")continue;
+     var twinkle=.5+.5*Math.sin(tRaw*1.3+ph*1.3);
+     var a=(.11+.62*nn)*twinkle;
+     if(a<.02)continue;
+     var wob=reduce?0:1;
+     var x=cx+pushX+wob*2.2*Math.sin(tRaw*.9+ph);
+     var y=cy+pushY+wob*2.2*Math.cos(tRaw*.8+ph*1.2);
+     ctx2.fillStyle="rgba(255,255,255,"+a.toFixed(3)+")";
+     ctx2.fillText(ch,x,y);
+    }
+   }
+  };
+  var asciiLoop=function(ms){asciiFrame(ms);requestAnimationFrame(asciiLoop);};
+  buildAscii();
+  if(reduce)asciiFrame(0);else requestAnimationFrame(asciiLoop);
+  window.addEventListener("resize",function(){
+   clearTimeout(rt);rt=setTimeout(function(){resize();buildAscii();if(reduce){draw(12,.5,.5,0);asciiFrame(0);}},130);
+  });
+ }
+
+ /* ── the grain, same recipe as the band's soft-light turbulence ─────────── */
+ var grain=document.createElement("div");
+ grain.className="heroGrainLayer";
+ grain.setAttribute("aria-hidden","true");
+ grain.style.backgroundImage='url("'+GRAIN+'")';
+ clip.appendChild(grain);
 
  new MutationObserver(function(){
   var state=hero.getAttribute("data-time-state");

@@ -1418,13 +1418,19 @@
    and releasing the class settles min-height and the bottom radius on the
    settle curve. Radius/min-height are the only animated properties; the
    grid inside never reflows mid-flight because the copy is centered. */
-.heroMeshCanvas{position:absolute;inset:0;width:100%;height:100%;z-index:2;
- /* the mesh paints its base colour across the WHOLE frame (uCol[0] is the
-    shader's background), which for night would put ink text on near-black.
-    The radial layers solved this by living in the lower band; the mask gives
-    the canvas the same discipline and lets the page breathe above. */
- -webkit-mask-image:linear-gradient(to top,#000 46%,transparent 82%);
- mask-image:linear-gradient(to top,#000 46%,transparent 82%)}
+.heroMeshCanvas{position:absolute;inset:0;width:100%;height:100%;z-index:2}
+.heroAsciiCanvas{position:absolute;inset:0;width:100%;height:100%;z-index:3;mix-blend-mode:screen;pointer-events:none}
+.heroGrainLayer{position:absolute;inset:0;z-index:4;mix-blend-mode:soft-light;opacity:.5;background-size:150px 150px;pointer-events:none}
+/* MOBILE ONLY: the small-screen hero keeps ink text over the gradient, so the
+   three layers fade out under it. On desktop the band is opaque with white
+   type and home-shell.css removes the mask. The palettes went saturated on
+   2026-08-18 (the Lifeline make() recipe), so the fade clears EARLIER than it
+   did for the pale set -- transparent by 62% keeps the top 38% page-clean. */
+@media (max-width:960px){
+ .heroMeshCanvas,.heroAsciiCanvas,.heroGrainLayer{
+  -webkit-mask-image:linear-gradient(to top,#000 40%,transparent 62%);
+  mask-image:linear-gradient(to top,#000 40%,transparent 62%)}
+}
 .heroNightStars{z-index:3}
 .surface--hero{transition:min-height 900ms var(--ease-out),border-radius 900ms var(--ease-out)}
 html.jbHeroIntro .surface--hero{min-height:100svh;border-radius:0}
