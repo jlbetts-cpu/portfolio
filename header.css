@@ -1153,3 +1153,45 @@
   .jbNav .jbHome{padding:0 var(--sp-6)}
   .jbBack{padding:0 var(--sp-8)}
 }
+
+/* ===========================================================================
+   THE RAIL.  2026-08-18, the workspace merge, part three. Jayden: "what if we
+   design the Portfolio into the workspace -- I am a fan of the side panel."
+   So on desktop the bar becomes the workspace's left rail: the SAME markup,
+   the same items, the same disclosure menus and the same travelling .jbInk
+   (it measures live rects, so it slides vertically without a line of JS
+   changing) -- re-laid as a fixed 272px column. This is a LAYOUT layer, not a
+   second header: below 881px nothing here applies and the bar ships exactly
+   as it did this morning. play.html and gradientlab.html ship
+   <html class="jbShrunk"> and are excluded -- a game wants the full width.
+   header.js adds html.jbRail on qualifying pages and html.jbRailClosed when
+   collapsed (persisted, localStorage "jbRail").
+   =========================================================================== */
+@media (min-width:881px){
+ html.jbRail body{padding-left:272px;
+   transition:padding-left var(--sp-settle-dur) var(--ease-out)}
+ html.jbRail .jbStick{position:fixed;left:0;top:0;bottom:0;width:272px;height:100dvh;
+   padding:0;transition:transform var(--sp-settle-dur) var(--ease-out)}
+ html.jbRail .jbStick.isFixed{right:auto}
+ html.jbRail .jbNav{flex-direction:column;align-items:stretch;justify-content:flex-start;
+   height:100%;max-width:none;min-height:0;border-right:var(--hair-w) solid var(--c100);
+   border-radius:0;padding:var(--sp-16) var(--sp-12);gap:var(--sp-4)}
+ html.jbRail .jbGrpL{flex:0 0 auto;justify-content:flex-start;
+   padding:var(--sp-4) var(--sp-4) var(--sp-16)}
+ html.jbRail .jbGrpC{flex:0 0 auto;flex-direction:column;align-items:stretch;gap:var(--sp-4)}
+ html.jbRail .jbGrpR{flex:0 0 auto;margin-top:auto;flex-direction:column;align-items:stretch}
+ html.jbRail .jbGrpC .ctl--nav,html.jbRail .jbGrpR .ctl--nav{width:100%;justify-content:flex-start}
+ /* disclosure panels open SIDEWAYS from a rail, not downward */
+ html.jbRail .jbDiscMenu{top:auto;bottom:0;right:auto;left:calc(100% + var(--menu-gap))}
+ html.jbRail .jbPlay .jbDiscMenu{left:calc(100% + var(--menu-gap))}
+ /* collapsed: the rail leaves, the page takes the room, the mark stays */
+ html.jbRail.jbRailClosed body{padding-left:0}
+ html.jbRail.jbRailClosed .jbStick{transform:translateX(-100%)}
+ .jbRailExpand{display:none;position:fixed;top:var(--sp-16);left:var(--sp-16);z-index:120;
+   width:var(--tap-min);height:var(--tap-min);align-items:center;justify-content:center;
+   background:var(--ctl-ground);border:var(--hair-w) solid var(--c100);
+   border-radius:var(--ctl-r);color:var(--ctl-ink-strong);cursor:pointer;
+   transition:background var(--dur-state) var(--ease-out)}
+ .jbRailExpand:hover{background:var(--ctl-ground-hover)}
+ html.jbRail.jbRailClosed .jbRailExpand{display:inline-flex}
+}
