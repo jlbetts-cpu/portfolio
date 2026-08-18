@@ -106,18 +106,20 @@ assert html.index('href="header.css') < html.index('href="hero-time.css')
 # THESE TWO USED TO FORBID fluid-mesh.js AND hero-time-presets.js ON THE HOME
 # PAGE ("FluidMesh belongs to Gradient Maker, not the Hero"). That decision was
 # REVERSED by Jayden on 2026-08-18: "add the ACTUAL gradient there and change
-# it for the time of day, a merge of both." hero-mesh.js now mounts a FluidMesh
-# canvas in #heroTimeClip driven by the per-state presets, so the gate asserts
-# the new contract instead: the mesh chain loads in dependency order (presets
-# before engine before mount) AND the radial layers survive as the no-WebGL
-# fallback -- deleting them would make a lost context a white hole.
-for _script in ("hero-time-presets.js", "fluid-mesh.js", "hero-mesh.js"):
-    assert '<script src="%s"' % _script in html, \
-        "index.html must load %s for the time-of-day mesh hero" % _script
-assert (html.index('src="hero-time-presets.js"')
-        < html.index('src="fluid-mesh.js"')
-        < html.index('src="hero-mesh.js"')), \
-    "mesh scripts out of dependency order: presets, then engine, then mount"
+# it for the time of day, a merge of both." A first pass mounted FluidMesh with
+# the time presets; he looked and said "that is not the same gradient... blurry
+# and not premium", so the second pass ported the Lifeline band's own shader
+# verbatim into hero-mesh.js (self-contained, palettes embedded) and the
+# FluidMesh/presets includes came back out. FluidMesh still belongs to the
+# Gradient Maker; hero-mesh.js belongs to the Hero. The gate asserts that:
+# the Lifeline shader mounts after hero-time.js (it reads data-time-state the
+# controller writes) AND the radial layers survive as the no-WebGL fallback --
+# deleting them would make a lost context a white hole.
+assert 'src="fluid-mesh.js"' not in html, "FluidMesh belongs to Gradient Maker, not the Hero"
+assert '<script src="hero-mesh.js"' in html, \
+    "index.html must load hero-mesh.js, the time-of-day Lifeline-gradient hero"
+assert html.index('src="hero-time.js"') < html.index('src="hero-mesh.js"'), \
+    "hero-mesh.js reads state hero-time.js publishes; it must load after it"
 assert 'data-time-gradient="daytime"' in html, \
     "the radial layers are the no-WebGL fallback; the mesh does not replace them"
 # THIS LINE USED TO FORBID hero-engine.js ON THE HOME PAGE, and it was never

@@ -1418,7 +1418,7 @@
    and releasing the class settles min-height and the bottom radius on the
    settle curve. Radius/min-height are the only animated properties; the
    grid inside never reflows mid-flight because the copy is centered. */
-.heroMeshCanvas{position:absolute;inset:0;width:100%;height:100%;z-index:2;opacity:.9;
+.heroMeshCanvas{position:absolute;inset:0;width:100%;height:100%;z-index:2;
  /* the mesh paints its base colour across the WHOLE frame (uCol[0] is the
     shader's background), which for night would put ink text on near-black.
     The radial layers solved this by living in the lower band; the mask gives
