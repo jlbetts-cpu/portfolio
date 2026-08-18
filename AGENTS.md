@@ -80,6 +80,28 @@ picture, not chrome.
 
 ---
 
+
+## 3.5 The Apple design reference
+
+`docs/apple-design.md` is the craft reference Jayden brought in on 2026-08-12 to
+polish this site against. Read it before touching anything gesture-driven,
+anything that animates, translucent chrome, or type.
+
+It is reasoning, not a stylesheet to copy, and **section 3 of this file wins
+wherever they disagree.** Two specific collisions to be clear about:
+
+- It advises defaulting to the system font. This site uses Instrument Sans at two
+  weights and that is settled. Its advice on SIZE-SPECIFIC tracking and leading
+  does apply.
+- It is generous with translucent material and shadow. The shadow rule here is
+  absolute: the companion heads cast a contact shadow, nothing else does.
+
+Where it agrees with what already ships, do not "fix" it: the spring `linear()`
+curves (`--sp-bounce` / `--sp-pop` / `--sp-settle`), the duration ladder, press
+feedback on `:active`, and the reduced-motion handling are all already the thing
+it describes.
+
+
 ## 4. Decisions he has settled — do not reopen
 
 - **The case-study covers stay.** They are a deliberate series: different
