@@ -49,7 +49,7 @@
 /* The ball DROPS in rather than fading on the spot -- it is hanging from somewhere. */
 #discoWrap{position:absolute;z-index:64;pointer-events:none;opacity:0;
  transform:translate(-50%,-140%) scale(.82);
- transition:opacity .7s cubic-bezier(.2,.8,.2,1),transform .95s cubic-bezier(.22,1.15,.32,1)}
+ transition:opacity .7s cubic-bezier(.22,1,.36,1),transform .95s cubic-bezier(.22,1.15,.32,1)}
 #discoWrap:not(.on){transition:opacity .38s cubic-bezier(.3,0,.8,.15),transform .5s cubic-bezier(.3,0,.8,.15)}
 #discoWrap.on{transform:translate(-50%,-50%) scale(1)}
 #discoWrap.on{opacity:1}

@@ -460,7 +460,7 @@
  // custom properties, so play.css (or a dark block on body, or index.html) can rebind --head-shadow
  // and this picks it up. With neither property defined the fallbacks are the old 8,8,8 / .26 exactly,
  // so index.html -- which loads this same file -- renders byte-for-byte what it rendered before.
- shadow.style.cssText="position:absolute;left:0;top:0;width:"+HW+"px;height:"+(HW*0.22)+"px;border-radius:50%;background:radial-gradient(ellipse at center,rgba(var(--head-shadow,8,8,8),var(--head-shadow-a,.26)),rgba(var(--head-shadow,8,8,8),0) 70%);pointer-events:none;z-index:2;opacity:0;transition:opacity .5s cubic-bezier(.2,.8,.2,1);will-change:transform";
+ shadow.style.cssText="position:absolute;left:0;top:0;width:"+HW+"px;height:"+(HW*0.22)+"px;border-radius:50%;background:radial-gradient(ellipse at center,rgba(var(--head-shadow,8,8,8),var(--head-shadow-a,.26)),rgba(var(--head-shadow,8,8,8),0) 70%);pointer-events:none;z-index:2;opacity:0;transition:opacity .5s cubic-bezier(.22,1,.36,1);will-change:transform";
  // THE REFLECTION. One silhouette div per head, on the SAME source the face rig already uses
  // (data.cut) -- not a clone of the head. The head is a rig (cut-out layers, two eyes with their
  // ::before/::after iris stacks, brows, mouth, crown, HP bar); cloning it would double the DOM and
@@ -1140,7 +1140,7 @@
    x=bootTotal===1?heroR.w/2-HW/2:heroR.w/2-HW/2-bootSpan/2+(slot%bootTotal)*(bootSpan/(bootTotal-1));
    x=Math.max(WL,Math.min(WR,x));y=floorY;surface=floorY;dir=(slot%2)?-1:1;air=false;st="idle";vx=0;vy=0;
    root.style.transition="none";shadow.style.transition="none";root.style.opacity="1";root.style.filter="none";shadow.style.opacity="1";root.setAttribute("data-hm-boot-ready","true");
-   requestAnimationFrame(function(){root.style.transition="opacity .5s steps(4,end),filter .5s steps(4,end)";shadow.style.transition="opacity .5s cubic-bezier(.2,.8,.2,1)";});}
+   requestAnimationFrame(function(){root.style.transition="opacity .5s steps(4,end),filter .5s steps(4,end)";shadow.style.transition="opacity .5s cubic-bezier(.22,1,.36,1)";});}
   if(first&&noIntro){ // the mid-game stand-in drops straight in -- no waiting on the (hidden) big head's intro
    first=false;shown=true;survey();var flf=Math.random()<0.5;
    x=flf?WL+2:WR-2;y=floorY-(150+Math.random()*160);surface=floorY;dir=flf?1:-1;air=true;st="fall";
@@ -1849,7 +1849,7 @@
    gzx=Math.max(-0.8,Math.min(0.8,(me.raceVX||0)/700));gzy=Math.max(-0.5,Math.min(0.6,(me.raceVY||0)/900));   // eyes track the ride: leaning into the turns, watching the drop
    if(me.raceHit&&now-me.raceHit<420){brf=Math.max(brf,5);if(now-me.raceHit<160){sqT=Math.max(sqT,0.1);sqyP=1.1;sqxP=1/1.1;}}   // a hard peg or paddle knock startles: brows pop + a little jolt-squash
    if(me.raceWin&&crownEl&&crownEl.style.opacity!=="1")crownEl.style.opacity="1";   // the WINNER is crowned the instant the line is crossed
-   if(me.raceHide&&!me.__rHid){me.__rHid=true;root.style.transition="opacity var(--dur-state-out,240ms) cubic-bezier(.2,.8,.2,1)";root.style.opacity="0";if(shadow)shadow.style.opacity="0";}
+   if(me.raceHide&&!me.__rHid){me.__rHid=true;root.style.transition="opacity var(--dur-state-out,240ms) cubic-bezier(.22,1,.36,1)";root.style.opacity="0";if(shadow)shadow.style.opacity="0";}
    else if(!me.raceHide&&me.__rHid){me.__rHid=false;root.style.opacity="1";if(shadow)shadow.style.opacity="1";}}
   else if(me.__inRace&&!window.__hmRaceOn){me.__inRace=false;me.raceX=null;/* BACK ON THE GROUND, SO THE SHADOW COMES BACK. Unconditional, not gated on
         __rHid: the race suppresses the shadow and the reflection on EVERY frame
@@ -3259,7 +3259,7 @@ function teams(){
      var d=((at[k]==null?nxt[k]:at[k])-nxt[k])*this.pitch;
      if(r.style.transform)r.style.transform="";
      if(Math.abs(d)>2&&r.animate)try{r.animate([{transform:this.axis+"("+d.toFixed(1)+"px)"},{transform:"none"}],
-      {duration:380,easing:"cubic-bezier(.2,.8,.2,1)"});}catch(_){}}
+      {duration:380,easing:"cubic-bezier(.22,1,.36,1)"});}catch(_){}}
     this.at=nxt;}};
   window.__hmBoard=BOARD;
   // ===== CAREER: the tiniest season system that makes favorites real (Jelle's insight: records create rooting) =====
@@ -4799,7 +4799,7 @@ function teams(){
  (function platforms(){   // the arena is an ENDLESS RECYCLING LADDER: rungs scroll down as the crowd climbs, and any rung swallowed by the lava is rebuilt above the highest one -- an infinite tower that never runs out and never repeats
   var hero=document.querySelector(".hero");if(!hero)return;
   function mob(){return innerWidth<=768;}
-  var MAXP=20,els=[];for(var e=0;e<MAXP;e++){var d=document.createElement("div");d.className="hmPlat arrived";d.style.transition="opacity .5s cubic-bezier(.2,.8,.2,1)";gAdd(hero,d);els.push(d);}
+  var MAXP=20,els=[];for(var e=0;e<MAXP;e++){var d=document.createElement("div");d.className="hmPlat arrived";d.style.transition="opacity .5s cubic-bezier(.22,1,.36,1)";gAdd(hero,d);els.push(d);}
   var SL=[],rowN=0;   // slabs live in SCREEN space: {el,l,w,y,kind,mv,crumbAt,dead}
   function hw(){return innerWidth;}   // the ladder spans the WHOLE viewport -- the entire screen is the arena, edge to edge, not just the hero box
   function ox(){return Math.round(-hero.getBoundingClientRect().left);}

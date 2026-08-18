@@ -400,7 +400,7 @@ html{scrollbar-color:var(--theme-muted) var(--theme-page)}
 }
 /* .facts arrives once per view -> --dur-enter. The knob is a control changing
    its own shadow on focus/hover -> --dur-state. Both were writing the ladder's
-   own numbers as literals, and both wrote cubic-bezier(.2,.8,.2,1) longhand for
+   own numbers as literals, and both wrote cubic-bezier(.22,1,.36,1) longhand for
    what --ease-out already is. Values unchanged at 500ms; the knob moves 200 ->
    160 so it matches every other control's hover-in on the site. */
 .theme-ready body[data-theme-page="case-study"] .facts{

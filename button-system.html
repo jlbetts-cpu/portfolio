@@ -439,10 +439,10 @@ durations, 15 distinct easings</b>. On controls specifically: 171 declarations, 
 
 <h3>The two curves that are used side by side and are not the same curve</h3>
 <p class="note"><code>ease-out</code> is <code>cubic-bezier(0,0,.58,1)</code>. The house curve is
-<code>cubic-bezier(.2,.8,.2,1)</code>. At a quarter of the way through, the house curve has
+<code>cubic-bezier(.22,1,.36,1)</code>. At a quarter of the way through, the house curve has
 covered <b>77%</b> of the distance and <code>ease-out</code> has covered <b>38%</b>. In the mood
 menu today, <code>.moodItem</code> runs <code>.1s ease-out</code> and <code>.moodGo</code> — the row
-immediately below it — runs <code>160ms cubic-bezier(.2,.8,.2,1)</code>. Two adjacent rows of one
+immediately below it — runs <code>160ms cubic-bezier(.22,1,.36,1)</code>. Two adjacent rows of one
 menu, two curves, two durations.</p>
 <div id="curveWrap"></div>
 
@@ -752,7 +752,7 @@ var BASE = [
   ['duration, in',        '--dur-state',    tok('--dur-state'),    '.1 · .12 · .14 · .15 · .16 · .18 · .2 · .25 · .3 · .5s'],
   ['duration, out',       '--dur-state-out', tok('--dur-state-out'), 'always identical to the in-duration'],
   ['duration, press',     '--dur-press',    tok('--dur-press'),    'not separated from the state duration anywhere'],
-  ['easing',              '--ease-out',     tok('--ease-out'),     'cubic-bezier(.2,.8,.2,1) · ease-out · ease · linear · 11 more'],
+  ['easing',              '--ease-out',     tok('--ease-out'),     'cubic-bezier(.22,1,.36,1) · ease-out · ease · linear · 11 more'],
   ['disabled',            '--ctl-disabled-o', tok('--ctl-disabled-o'), '.28 · .38']
 ];
 var tb = document.querySelector('#baseTbl tbody');

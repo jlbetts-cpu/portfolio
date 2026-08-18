@@ -161,7 +161,7 @@ function advanceCycle(){clearTimeout(cycTimer);if(cycHold||dragging||eating||!cy
  try{if(!reduce){var _nat=nw.getBoundingClientRect().width;
   if(Math.abs(_prevW-_nat)>1){
    nw.style.transition="none";nw.style.minWidth=_prevW+"px";void nw.offsetWidth;
-   nw.style.transition="min-width .45s cubic-bezier(.2,.8,.2,1)";nw.style.minWidth=_nat+"px";
+   nw.style.transition="min-width .45s cubic-bezier(.22,1,.36,1)";nw.style.minWidth=_nat+"px";
    setTimeout(function(){nw.style.minWidth="";nw.style.transition="";},520);}}}catch(_){}try{if(window.__wordNotice)window.__wordNotice();}catch(_){}   // new word enters char-by-char with its personality; he may glance at it
  nextCycle();}
 

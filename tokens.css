@@ -75,8 +75,8 @@
 @font-face{font-family:"Geist";font-style:normal;font-weight:600;font-display:swap;
   src:url(fonts/geist-latin-600-normal.woff2) format("woff2")}
 
-:root{--fs-statnum:clamp(34px,3.6vw,48px);--fs-pagehead-sm:clamp(30px,8.2vw,40px);--sp-8-16:16px;--sp-16-24:24px;--sp-16-32:32px;--sp-16-40:40px;--sp-16-56:56px;--sp-24-32:32px;--sp-24-40:40px;--sp-24-48:48px;--sp-32-48:48px;--sp-32-56:56px;--sp-32-64:64px;--sp-40-64:64px;--sp-40-72:72px;--sp-48-64:64px;--sp-48-72:72px;--sp-48-80:80px;--sp-56-96:96px;--sp-56-112:112px;--sp-64-168:168px;--sp-72-144:144px;--sp-80-152:152px;--c50:#FDFDFD;--c100:#e6e7e9;--c75:#f1f1f4;--c500:#848591;--c600:#6b6d7c;--c700:#535466;--c900:#22233a;--c950:#090b24;--yellow:#FED259;--accent:#090b24;--accent-press:#22233a;--accent-wash:#f1f1f4;--accent-dark:#FDFDFD;
- --sans:"Geist",-apple-system,system-ui,sans-serif;--fs-display:clamp(68px,12vw,168px);--fs-h1:clamp(28px,2.6vw,38px);
+:root{--fs-statnum:clamp(30px,3.1vw,40px);--fs-pagehead-sm:clamp(27px,7.2vw,35px);--sp-8-16:16px;--sp-16-24:24px;--sp-16-32:32px;--sp-16-40:40px;--sp-16-56:56px;--sp-24-32:32px;--sp-24-40:40px;--sp-24-48:48px;--sp-32-48:48px;--sp-32-56:56px;--sp-32-64:64px;--sp-40-64:64px;--sp-40-72:72px;--sp-48-64:56px;--sp-48-72:64px;--sp-48-80:64px;--sp-56-96:80px;--sp-56-112:88px;--sp-64-168:120px;--sp-72-144:104px;--sp-80-152:112px;--c50:#FDFDFD;--c100:#e6e7e9;--c75:#f1f1f4;--c500:#848591;--c600:#6b6d7c;--c700:#535466;--c900:#22233a;--c950:#090b24;--yellow:#FED259;--accent:#090b24;--accent-press:#22233a;--accent-wash:#f1f1f4;--accent-dark:#FDFDFD;
+ --sans:"Geist",-apple-system,system-ui,sans-serif;--fs-display:clamp(68px,12vw,168px);--fs-h1:clamp(25px,2.3vw,33px);
  /* THE PAGE TITLE HAS ITS OWN RUNG NOW. A case study's title and its section
     headings were --fs-h1 and --fs-h2: 38 and 36 at the cap, a ratio of 1.06,
     which is not a hierarchy, it is a rounding error. The title could not simply
@@ -87,7 +87,18 @@
     1.23; the fluid range is 1.5x, well inside the 2.5x ceiling this scale keeps.
     It sits just under about.html's 52px greeting, which is the one headline on
     the site allowed to be the largest. */
- --fs-title:clamp(32px,3.6vw,48px);--fs-pagehead:clamp(33px,3.9vw,52px);--fs-h2:clamp(26px,2.5vw,36px);--fs-h3:clamp(21px,2.4vw,32px);--fs-h4:clamp(19px,2.1vw,28px);--fs-h5:clamp(20px,1.7vw,24px);--fs-lead:clamp(15px,1.4vw,18px);--fs-prose:clamp(17px,1.39vw,20px);
+ /* THE FEEL PASS, 2026-08-18, same merge as the face and the ladder: Jayden's
+    note was that the refresh read as a recolour -- "font, spacing, margins are
+    the exact same". So the VALUES moved to the workspace's register while every
+    NAME and role kept its meaning: the type scale compresses ~15% (display is
+    his hero and did not move), tracking takes the SF-derived table Lifeline
+    ships, --tr-caps drops .045 -> .020 so eyebrows whisper, the responsive
+    spacing ladder's top end compresses ~22% (fixed rungs untouched -- control
+    geometry is a11y, not rhythm), and --ease-out becomes the settle curve
+    cubic-bezier(.22,1,.36,1) -- a harder brake, the single most feelable line
+    in this pass. The springs, the About dissolve and the sky cross-fade are
+    the hand-tuned exceptions and did not move. */
+ --fs-title:clamp(29px,3.1vw,40px);--fs-pagehead:clamp(30px,3.4vw,44px);--fs-h2:clamp(23px,2.2vw,30px);--fs-h3:clamp(19px,2.0vw,26px);--fs-h4:clamp(18px,1.8vw,23px);--fs-h5:clamp(17px,1.5vw,20px);--fs-lead:clamp(14px,1.3vw,16px);--fs-prose:clamp(16px,1.25vw,18px);
  /* THE MEASURE, NAMED ONCE. The five case studies set --fs-prose and
     --lh-prose on .secBody/.ovBody and then let the line run the full column:
     measured at 99, 101 and 107 characters, where readable prose is 45-75. The
@@ -95,7 +106,7 @@
     alone and yields 52-68 -- it just had no name, so the pages that forgot it
     had nothing to forget. 680 rather than a ch value to match the measure
     already shipping beside it; one number, one meaning. */
- --fs-body:16px;--fs-small:15px;--fs-tab:clamp(17px,1.5vw,20px);--fs-label:13px;--fs-caption:12px;--fs-micro:11px;--lh-display:1.0;--lh-tight:1.08;--lh-body:1.5;--lh-prose:1.5;--lh-flat:1;--rail-w:clamp(85px,7vw,110px);--rail-gutter:var(--sp-24-40);--rail-gap:var(--sp-40-72);--r-hair:2px;--r-xs:4px;--r-sm:6px;--r-md:8px;--r-lg:10px;--r-xl:14px;--r-pill:999px;--r-full:50%;--corner:squircle;--ease-out:cubic-bezier(.2,.8,.2,1);--ease-out-dur:160ms;--sp-quick:linear(0, 0.0757, 0.2282, 0.3918, 0.5383, 0.6586, 0.7524, 0.8231, 0.8751, 0.9126, 0.9394, 0.9582, 0.9714, 0.9805, 0.9867, 0.991, 0.994, 0.9959, 0.9973, 1);--sp-quick-dur:300ms;--sp-settle:linear(0, 0.024, 0.0833, 0.1633, 0.2531, 0.3454, 0.4352, 0.5193, 0.5959, 0.6642, 0.724, 0.7755, 0.8194, 0.8562, 0.8867, 0.9118, 0.9322, 0.9486, 0.9616, 0.9719, 0.9799, 0.986, 0.9907, 0.9941, 0.9967, 1);--sp-settle-dur:360ms;--sp-pop:linear(0, 0.0435, 0.1463, 0.2761, 0.4118, 0.5401, 0.6536, 0.7493, 0.8265, 0.8866, 0.9316, 0.964, 0.9863, 1.0007, 1.0092, 1.0136, 1.0151, 1.0148, 1.0134, 1.0115, 1.0095, 1.0075, 1.0057, 1.0042, 1.0029, 1);--sp-pop-dur:640ms;--sp-bounce:linear(0, 0.0659, 0.222, 0.4163, 0.6109, 0.7819, 0.917, 1.0128, 1.072, 1.1007, 1.1065, 1.0972, 1.0794, 1.0584, 1.0379, 1.0203, 1.0066, 0.9972, 0.9915, 0.989, 0.9887, 0.9899, 0.9919, 0.9942, 0.9963, 1);--sp-bounce-dur:860ms;--sp-bounce-approx:cubic-bezier(.34,1.56,.64,1);--rim-1:inset 0 0 0 1px rgba(9,11,36,.08);--rim-2:inset 0 0 0 1px rgba(9,11,36,.14);--rim-top:inset 0 1px 0 rgba(255,255,255,.55);--mat-0:transparent;--mat-1:rgba(253,253,253,.72);--mat-2:rgba(253,253,253,.86);--mat-3:rgba(253,253,253,.96);--mat-scrim:rgba(9,11,36,.34);--blur-1:8px;--blur-2:14px;--blur-3:20px;--sh-1:0 1px 2px rgba(9,11,36,.05);--sh-2:0 2px 8px rgba(9,11,36,.06),0 1px 2px rgba(9,11,36,.04);--sh-3:0 8px 28px rgba(9,11,36,.10),0 2px 6px rgba(9,11,36,.05);--sh-hero:-12px 12px 48px rgba(9,11,36,.22);--lh-auto:clamp(0.95em, 0.91em + 10.25px, 1.6em);--tr-display:-.042em;--tr-hero:-.028em;--tr-head:-.020em;--tr-sub:-.015em;--tr-title:-.010em;--tr-body:-.004em;--tr-flat:0;--tr-caps:.045em;--tr-mark:-.008em;--gap-head-top:1.6em;--gap-head-bot:.42em;--gap-eyebrow:.55em;--gap-para:.75em;--pad-bar:5px;--gap-bar:2px;--tap-min:44px;}
+ --fs-body:15px;--fs-small:13px;--fs-tab:clamp(15px,1.35vw,17px);--fs-label:12px;--fs-caption:11px;--fs-micro:11px;--lh-display:1.0;--lh-tight:1.08;--lh-body:1.5;--lh-prose:1.5;--lh-flat:1;--rail-w:clamp(85px,7vw,110px);--rail-gutter:var(--sp-24-40);--rail-gap:var(--sp-40-72);--r-hair:2px;--r-xs:4px;--r-sm:6px;--r-md:8px;--r-lg:10px;--r-xl:14px;--r-pill:999px;--r-full:50%;--corner:squircle;--ease-out:cubic-bezier(.22,1,.36,1);--ease-out-dur:160ms;--sp-quick:linear(0, 0.0757, 0.2282, 0.3918, 0.5383, 0.6586, 0.7524, 0.8231, 0.8751, 0.9126, 0.9394, 0.9582, 0.9714, 0.9805, 0.9867, 0.991, 0.994, 0.9959, 0.9973, 1);--sp-quick-dur:300ms;--sp-settle:linear(0, 0.024, 0.0833, 0.1633, 0.2531, 0.3454, 0.4352, 0.5193, 0.5959, 0.6642, 0.724, 0.7755, 0.8194, 0.8562, 0.8867, 0.9118, 0.9322, 0.9486, 0.9616, 0.9719, 0.9799, 0.986, 0.9907, 0.9941, 0.9967, 1);--sp-settle-dur:360ms;--sp-pop:linear(0, 0.0435, 0.1463, 0.2761, 0.4118, 0.5401, 0.6536, 0.7493, 0.8265, 0.8866, 0.9316, 0.964, 0.9863, 1.0007, 1.0092, 1.0136, 1.0151, 1.0148, 1.0134, 1.0115, 1.0095, 1.0075, 1.0057, 1.0042, 1.0029, 1);--sp-pop-dur:640ms;--sp-bounce:linear(0, 0.0659, 0.222, 0.4163, 0.6109, 0.7819, 0.917, 1.0128, 1.072, 1.1007, 1.1065, 1.0972, 1.0794, 1.0584, 1.0379, 1.0203, 1.0066, 0.9972, 0.9915, 0.989, 0.9887, 0.9899, 0.9919, 0.9942, 0.9963, 1);--sp-bounce-dur:860ms;--sp-bounce-approx:cubic-bezier(.34,1.56,.64,1);--rim-1:inset 0 0 0 1px rgba(9,11,36,.08);--rim-2:inset 0 0 0 1px rgba(9,11,36,.14);--rim-top:inset 0 1px 0 rgba(255,255,255,.55);--mat-0:transparent;--mat-1:rgba(253,253,253,.72);--mat-2:rgba(253,253,253,.86);--mat-3:rgba(253,253,253,.96);--mat-scrim:rgba(9,11,36,.34);--blur-1:8px;--blur-2:14px;--blur-3:20px;--sh-1:0 1px 2px rgba(9,11,36,.05);--sh-2:0 2px 8px rgba(9,11,36,.06),0 1px 2px rgba(9,11,36,.04);--sh-3:0 8px 28px rgba(9,11,36,.10),0 2px 6px rgba(9,11,36,.05);--sh-hero:-12px 12px 48px rgba(9,11,36,.22);--lh-auto:clamp(0.95em, 0.91em + 10.25px, 1.6em);--tr-display:-.033em;--tr-hero:-.030em;--tr-head:-.027em;--tr-sub:-.021em;--tr-title:-.011em;--tr-body:-.006em;--tr-flat:0;--tr-caps:.020em;--tr-mark:-.008em;--gap-head-top:1.6em;--gap-head-bot:.42em;--gap-eyebrow:.55em;--gap-para:.75em;--pad-bar:5px;--gap-bar:2px;--tap-min:44px;}
 @media(max-width:880px){:root{--sp-8-16:8px;--sp-16-24:16px;--sp-16-32:16px;--sp-16-40:16px;--sp-16-56:16px;--sp-24-32:24px;--sp-24-40:24px;--sp-24-48:24px;--sp-32-48:32px;--sp-32-56:32px;--sp-32-64:32px;--sp-40-64:40px;--sp-40-72:40px;--sp-48-64:48px;--sp-48-72:48px;--sp-48-80:48px;--sp-56-96:56px;--sp-56-112:56px;--sp-64-168:64px;--sp-72-144:72px;--sp-80-152:80px}}
 @media(max-width:760px){:root{--blur-1:0px;--blur-2:0px}}
 @media(prefers-reduced-motion:reduce){:root{--sp-quick-dur:1ms;--sp-settle-dur:1ms;--sp-pop-dur:1ms;--sp-bounce-dur:1ms}}
@@ -172,7 +183,7 @@
 
  /* 5 - type. 14px was missing between --fs-small (15) and --fs-label (13);
     the wordmark's size is a brand constant and deserves a name. */
- --fs-nav:14px;--fs-mark:17px;
+ --fs-nav:13px;--fs-mark:15px;
 
  /* 6 - motion. --ease-out-dur (160ms) was the fastest rung and
     --sp-settle-dur (360ms) the slowest short one. A press needs faster; the
@@ -449,7 +460,7 @@
    It is reported in docs/superpowers/specs/2026-08-09-system-conformance-audit.md
    instead.
    =========================================================================== */
-:root{--fs-hero:clamp(38px,4.7vw,60px);--fs-heroline:var(--fs-pagehead-sm)}
+:root{--fs-hero:clamp(33px,4.1vw,50px);--fs-heroline:var(--fs-pagehead-sm)}
 
 /* ===========================================================================
    THE LADDER'S VALUES CHANGED 2026-08-18; THE RULE DID NOT. The size-class
