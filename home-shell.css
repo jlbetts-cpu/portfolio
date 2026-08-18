@@ -1,78 +1,115 @@
 /* ============================================================================
    home-shell.css -- the workspace shell, on the portfolio.  2026-08-18.
 
-   Jayden: "I think i want to make the main portfolio be encorporated in the
-   side menu design. the h1 should sit in the gradient while the case studies
-   sit below, shortening the hero to the size that lines up with the side
-   menu. place the head in the correct spot. make sure the footer comes over
-   and everything looks clean."
+   Second pass, to the workspace's OWN numbers after Jayden: "still not the
+   same as the lifeline workspace in sizing and spacing and not collapsible."
+   Everything dimensional below is read straight out of app-shell.tsx and
+   styles.css, not approximated: 272px open rail, px-4 (16px) blocks, logo
+   row pt-5 pb-1 with an h-8 button, nav items 9px 12px at 13px/500 with
+   4px radius and a 4px stack gap, ink pill when active, hairline dividers,
+   collapse to zero width in 360ms on the settle curve with the inner panel
+   fading, and the collapsed mark fixed at top 20px / left 16px.
 
-   The geometry is the workspace's own: a fixed white sidebar, the gradient
-   as a flush BAND at the top of the content column, the band's bottom edge
-   landing exactly on the sidebar's section divider (--band-h carries that
-   line, the same trick app-shell.tsx plays with the Timeline), the h1 white
-   INSIDE the band like "August 2026", content below on a shared gutter.
+   The band's height is not authored here: shell.js measures the sidebar's
+   top block and publishes --band-h, so the band floor and the divider are
+   one line at every viewport -- the workspace's own trick. The 236px
+   fallback only exists for the instant before the script runs.
+
+   The head's spot is four AUTHORED variables (--hero-peek-*), the same
+   knobs hero-time.css built the composition on. Nothing here touches the
+   engine.
 
    DESKTOP ONLY. Under 961px nothing in this file exists and the page is
-   exactly what it was -- pill bar, tall hero, masked gradient. The pill bar
-   itself is hidden here, not removed: header.js keeps running for the pages
-   that still use it, and the mobile shell needs its markup intact.
+   exactly what it was.  Markup comes from shell.js -- one source, every
+   page.
    ========================================================================== */
 
 @media (min-width:961px){
 
 :root{
- --side-w:288px;
- --band-h:408px;
+ --side-w:272px;
+ --band-h:236px; /* fallback; shell.js publishes the measured value */
  --content-gutter:64px;
 }
 
-/* ── the sidebar ─────────────────────────────────────────────────────────── */
+/* ── the rail ────────────────────────────────────────────────────────────── */
 .jbSide{
  position:fixed;inset:0 auto 0 0;width:var(--side-w);z-index:80;
- display:flex;flex-direction:column;justify-content:space-between;
  background:var(--theme-page,var(--c50));
  border-right:1px solid var(--c100);
- box-sizing:border-box;
+ overflow:hidden;
+ transition:width var(--dur-reveal) var(--ease-out);
 }
-.jbSideTop{
- height:var(--band-h);box-sizing:border-box;
- padding:28px 20px 0;
- border-bottom:1px solid var(--c100);
- display:flex;flex-direction:column;gap:32px;
+html.jbSideClosed .jbSide{width:0;border-right-color:transparent}
+.jbSideInner{
+ width:var(--side-w);height:100%;
+ display:flex;flex-direction:column;
+ opacity:1;
+ transition:opacity 280ms var(--ease-out);
 }
-.jbSideLogo{display:inline-flex;width:44px;height:44px;align-items:center;color:var(--c950)}
-.jbSideLogo svg{width:30px;height:30px;fill:currentColor}
-.jbSideNav{display:flex;flex-direction:column;gap:6px}
+html.jbSideClosed .jbSideInner{opacity:0}
+html.jbSideClosed body{padding-left:0}
+
+/* ── top block: logo + nav; its height IS --band-h ───────────────────────── */
+.jbSideTop{border-bottom:1px solid var(--c100)}
+.jbSideLogoRow{padding:20px 16px 4px}
+.jbSideLogoBtn{
+ position:relative;display:inline-flex;align-items:center;
+ height:32px;padding:0 12px;border:0;background:none;cursor:pointer;
+ color:var(--c950);
+}
+.jbSideMark{width:26px;height:26px;fill:currentColor;
+ transition:opacity 300ms var(--ease-out),transform 300ms var(--ease-out)}
+.jbSidePanelIco{
+ position:absolute;left:12px;top:50%;translate:0 -50%;
+ width:24px;height:24px;opacity:0;transform:scale(.9);
+ transition:opacity 300ms var(--ease-out),transform 300ms var(--ease-out);
+}
+.jbSideLogoBtn:hover .jbSideMark{opacity:0;transform:scale(.9)}
+.jbSideLogoBtn:hover .jbSidePanelIco{opacity:1;transform:scale(1)}
+.jbSideNav{padding:8px 16px 20px;display:flex;flex-direction:column;gap:4px}
 .jbSideBottom{
- padding:20px;display:flex;flex-direction:column;gap:6px;
- border-top:1px solid var(--c100);
+ margin-top:auto;border-top:1px solid var(--c100);
+ padding:16px;display:flex;flex-direction:column;gap:4px;
 }
+
+/* ── the item, to the workspace's numbers ────────────────────────────────── */
 .jbSideItem{
- display:flex;align-items:center;gap:12px;
- min-height:44px;padding:0 14px;box-sizing:border-box;
- border-radius:var(--r-md);
- font-family:var(--sans);font-weight:400;font-size:var(--fs-small);
- letter-spacing:var(--tr-flat);
- color:var(--c700);text-decoration:none;
+ display:flex;align-items:center;gap:10px;
+ padding:9px 12px;border-radius:4px;
+ font-family:var(--sans);font-weight:500;font-size:13px;letter-spacing:.005em;
+ color:var(--c950);text-decoration:none;
  transition:background var(--dur-state) var(--ease-out),color var(--dur-state) var(--ease-out);
 }
-.jbSideItem:hover{background:var(--c100);color:var(--c950)}
-.jbSideItem:active{transition-duration:var(--dur-press)}
-.jbSideItem.is-active{background:var(--c950);color:var(--c50);font-weight:600}
-.jbSideItem .uiIcon{width:18px;height:18px;flex:0 0 auto}
-.jbSideItem:focus-visible{outline:2px solid var(--c950);outline-offset:2px}
+.jbSideItem:hover{background:var(--c100)}
+.jbSideItem.is-active{background:var(--c950);color:#fff}
+.jbSideItem.is-active:hover{background:var(--c950)}
+.jbSideItem .uiIcon{width:16px;height:16px;flex:0 0 auto}
+.jbSideItem:focus-visible{outline:2px solid var(--c950);outline-offset:-2px}
+
+/* ── collapsed: the mark stays put and reopens ───────────────────────────── */
+.jbSideExpand{
+ position:fixed;top:20px;left:16px;z-index:81;
+ display:none;align-items:center;height:32px;padding:0 12px;
+ border:0;background:none;cursor:pointer;color:var(--c950);
+}
+html.jbSideClosed .jbSideExpand{display:inline-flex}
+.jbSideExpand .jbSideMark{width:26px;height:26px;fill:currentColor;
+ transition:opacity 300ms var(--ease-out),transform 300ms var(--ease-out)}
+.jbSideExpand .jbSidePanelIco{
+ position:absolute;left:12px;top:50%;translate:0 -50%;
+ width:24px;height:24px;opacity:0;transform:scale(.9);
+ transition:opacity 300ms var(--ease-out),transform 300ms var(--ease-out);
+}
+.jbSideExpand:hover .jbSideMark{opacity:0;transform:scale(.9)}
+.jbSideExpand:hover .jbSidePanelIco{opacity:1;transform:scale(1)}
+.jbSideExpand.on-band{color:#fff;filter:drop-shadow(0 1px 6px rgba(9,11,36,.35))}
 
 /* ── the column ──────────────────────────────────────────────────────────── */
-body{padding-left:var(--side-w)}
+body{padding-left:var(--side-w);transition:padding-left var(--dur-reveal) var(--ease-out)}
 .jbStick{display:none}
 
-/* ── the band ────────────────────────────────────────────────────────────── */
-/* The hero stops being a viewport and becomes the workspace band: flush,
-   square, exactly --band-h tall so its floor lands on the sidebar divider.
-   The entrance still arrives full-screen (html.jbHeroIntro) and settles INTO
-   the band -- a much longer travel than before, which is the transition
-   Jayden asked for in the first place. */
+/* ── the band (home only -- the section exists only there) ───────────────── */
 .surface--hero{
  display:block;position:relative;
  margin:0;width:100%;max-width:none;
@@ -84,6 +121,7 @@ html.jbHeroIntro .surface--hero{height:100svh}
 @media (prefers-reduced-motion:reduce){.surface--hero{transition:none}}
 .heroTimeSpill{display:none}
 .scrollCue{display:none}
+.wrap{margin-top:0}
 
 /* the band is opaque and the type on it is white, so the mobile text-guard
    mask has no job here */
@@ -96,57 +134,55 @@ html.jbHeroIntro .surface--hero{height:100svh}
 /* ── the type sits IN the gradient, like "August 2026" ───────────────────── */
 .surface--hero .heroCopy{
  display:block;position:absolute;
- left:0;right:0;bottom:36px;
+ left:0;right:0;bottom:24px;
  padding:0 var(--content-gutter);
  z-index:3;text-align:left;
+ /* the old centred hero lifted the copy ~100px with a translate (index
+    inline :1754); measured here: copy landed at y16 instead of the band
+    floor. The band anchors with bottom alone. */
+ transform:none;
 }
 .heroKick{
- margin:0 0 8px;
- font-family:var(--sans);font-weight:600;font-size:var(--fs-label);
- letter-spacing:var(--tr-caps);text-transform:none;
+ margin:0 0 6px;
+ font-family:var(--sans);font-weight:600;font-size:12px;
+ letter-spacing:.01em;
  color:rgba(255,255,255,.82);
 }
 .surface--hero h1{
- margin:0;max-width:17em;
- font-size:clamp(34px,3.2vw,48px);
+ margin:0;max-width:20em;
+ font-size:clamp(28px,2.6vw,40px);
  letter-spacing:var(--tr-display);
  color:#fff;text-align:left;
 }
 .surface--hero .sub{display:none}
+/* "view work button i think we just remove" -- so it is gone; the sun stays,
+   it IS the band's control */
+.surface--hero .workCta{display:none}
 .surface--hero .heroCtas{
  position:absolute;right:var(--content-gutter);bottom:0;
  display:flex;align-items:center;gap:10px;margin:0;
 }
 
-/* ── the head, on the band's floor ───────────────────────────────────────── */
-/* Right of centre, standing a little proud of the band's bottom edge so it
-   reads as IN FRONT of the band, not printed on it. All of its behaviour
-   (drag, blink, gaze, moods) is hero-engine's and untouched; this is only
-   its parking spot. NO shadow: the hero portrait never casts one (§3).
-   POSITIONED ON THE PEEK WRAPPER, not .stagewrap: controls.css:783 pins
-   `.heroHeadTransform .stagewrap{position:relative!important;width:100%
-   !important}` for the transform system, so the stage must stay untouched
-   and its WRAPPER carries the parking spot. */
-/* The peek and the transform wrapper were both AUTHORED for the tall hero
-   (a 100svh support layer with the head absolute at its old coordinates).
-   The band re-authors both boxes: the peek becomes the band, and the
-   wrapper's home moves right-of-centre on the band's floor. The engine's
-   resting pose (rotation, origin math, idle float) composes on top exactly
-   as before -- only the parking spot is new. */
+/* ── the head, standing on the band's floor ──────────────────────────────── */
+/* Four authored variables, the same knobs the composition was built on:
+   width, horizontal shift off centre, and depth/offset which sum to how far
+   the chin hangs past the floor. bottom = -depth + offset, so pinning offset
+   to depth-26px reads as: the head stands 26px proud of the band's edge,
+   whatever the depth arithmetic does at other viewports. NO shadow (§3). */
+body .hero.surface--hero{
+ /* body-prefixed: the authored peek vars live on state-qualified selectors
+    that outweigh a bare class pair -- measured, bottom resolved -81px with
+    the plain selector. Setting BOTH depth and offset pins the arithmetic:
+    bottom = -depth + offset = -26px, chin 26px proud of the floor. */
+ --hero-peek-width:clamp(170px,15vw,215px);
+ --hero-peek-shift-x:220px;
+ --hero-peek-depth:26px;
+ --hero-peek-offset:0px;
+}
 .surface--hero .heroCharacterPeek{
  position:absolute;top:0;left:0;right:0;height:var(--band-h);
  bottom:auto;z-index:4;padding:0;overflow:visible;
 }
-/* THE PARKING SPOT IS AN AUTHORED VARIABLE, not a box to fight over.
-   hero-time.css:587 lays the head at calc(50% + --hero-peek-shift-x) through
-   an ID selector precisely so nobody outguns it by accident; the authored
-   -241px put the head left-of-centre under the old centred type. The type
-   now lives bottom-left IN the band, so the head moves right-of-centre --
-   same engine, same float, same drag, new shift. */
-.surface--hero{--hero-peek-shift-x:180px}
-/* the old shell tucked the page 72px under the translucent pill bar; there is
-   no pill bar in this shell and the band must start at the very top edge */
-.wrap{margin-top:0}
 
 /* ── content below the band shares one gutter ────────────────────────────── */
 .cases,.featured,.siteFoot{
