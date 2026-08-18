@@ -141,9 +141,9 @@ img{display:block;max-width:100%;height:auto}   /* height:auto IS THE COMPANION 
    this was the only blue value left computing anywhere on the site. */
 .chap{display:grid;grid-template-columns:28px minmax(0,1fr);align-items:center;column-gap:16px;height:14px;text-decoration:none;outline-offset:4px;position:relative;color:var(--c500)}
 .chap::after{content:"";position:absolute;top:50%;left:0;right:0;height:var(--tap-min);transform:translateY(-50%)}
-.tick{grid-column:1;grid-row:1;justify-self:start;width:28px;height:2px;transform-origin:left center;transform:scaleX(.5714);background:var(--c500);opacity:.4;transition:opacity var(--ease-out-dur) var(--ease-out),background var(--ease-out-dur) var(--ease-out),transform var(--sp-quick-dur) var(--sp-quick);filter:url(#inkSm)}
+.tick{grid-column:1;grid-row:1;justify-self:start;width:28px;height:2px;transform-origin:left center;transform:scaleX(.5714);background:var(--c500);opacity:.4;transition:opacity var(--ease-out-dur) var(--ease-out),background var(--ease-out-dur) var(--ease-out),transform var(--sp-quick-dur) var(--sp-quick);}
 .chap[aria-current="true"] .tick{background:var(--c950);opacity:1;transform:scaleX(1)}
-.clabel{grid-column:2;grid-row:1;justify-self:start;text-align:left;font-family:var(--sans);font-weight:400;font-size:var(--fs-small);letter-spacing:var(--tr-body);color:var(--c500);white-space:nowrap;opacity:0;transform:translateX(-4px);transition:opacity var(--ease-out-dur) var(--ease-out),transform var(--ease-out-dur) var(--ease-out),color var(--ease-out-dur) var(--ease-out);filter:url(#inkSm)}
+.clabel{grid-column:2;grid-row:1;justify-self:start;text-align:left;font-family:var(--sans);font-weight:400;font-size:var(--fs-small);letter-spacing:var(--tr-body);color:var(--c500);white-space:nowrap;opacity:0;transform:translateX(-4px);transition:opacity var(--ease-out-dur) var(--ease-out),transform var(--ease-out-dur) var(--ease-out),color var(--ease-out-dur) var(--ease-out);}
 .chap[aria-current="true"] .clabel{color:var(--c950);font-weight:600}
 .rail:hover .clabel,.rail:focus-within .clabel{opacity:1;transform:none}
 .chap:hover .clabel,.chap:focus-visible .clabel{color:var(--accent)}
@@ -177,15 +177,15 @@ img{display:block;max-width:100%;height:auto}   /* height:auto IS THE COMPANION 
 .cmp img{box-shadow:var(--rim-1)}
 .cmpYellow .cmpLine{background:var(--yellow)}
 .cmpYellow .cmpKnob{background:var(--yellow);color:var(--c950)}
-.cap{margin:16px 0 0;font-family:var(--sans);font-weight:400;font-size:var(--fs-small);line-height:var(--lh-body);color:var(--c500);max-width:680px;text-wrap:pretty;filter:url(#inkSm)}
+.cap{margin:16px 0 0;font-family:var(--sans);font-weight:400;font-size:var(--fs-small);line-height:var(--lh-body);color:var(--c500);max-width:680px;text-wrap:pretty;}
 
 .hero{padding:0;scroll-margin-top:calc(var(--nav-h) + var(--sp-16-24))}
 /* --lh-body, so this label resolves to the same 13/19.5 as about.html's
    .abLabel. It was inheriting whatever its parent happened to set (14.56px
    measured) -- one role, two leadings, on pages that sit next to each other. */
-.eyebrow{font-family:var(--sans);font-weight:600;font-size:var(--fs-label);line-height:var(--lh-body);letter-spacing:var(--tr-flat);text-transform:none;color:var(--c500);filter:url(#inkSm)}
+.eyebrow{font-family:var(--sans);font-weight:600;font-size:var(--fs-label);line-height:var(--lh-body);letter-spacing:var(--tr-flat);text-transform:none;color:var(--c500);}
 .head .eyebrow{display:block;margin:0 0 var(--sp-8-16)}
-.head{font-family:var(--sans);font-weight:600;font-size:var(--fs-title);line-height:var(--lh-head);letter-spacing:var(--tr-head);color:var(--c950);margin:16px 0 0;filter:url(#inkBig);text-wrap:balance}
+.head{font-family:var(--sans);font-weight:600;font-size:var(--fs-title);line-height:var(--lh-head);letter-spacing:var(--tr-head);color:var(--c950);margin:16px 0 0;text-wrap:balance}
 .head .hl{display:block}
 .lede{font-family:var(--sans);font-weight:400;font-size:var(--fs-prose);line-height:var(--lh-prose);color:var(--c700);margin:var(--sp-24-32) 0 0;text-wrap:pretty}
 
@@ -199,7 +199,7 @@ img{display:block;max-width:100%;height:auto}   /* height:auto IS THE COMPANION 
 /* project facts — a full-width band under the cover so the header's weight spreads across the measure instead of stacking on the left */
 .facts{width:100%;max-width:none;display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));column-gap:var(--sp-16-32);row-gap:var(--sp-16-32);margin:var(--sp-24-32) 0 0;border-top:1px solid var(--c100);border-bottom:1px solid var(--c100);padding:var(--sp-16-24) 0}
 .fact{min-width:0}
-.fk{display:block;font-family:var(--sans);font-weight:600;font-size:var(--fs-label);letter-spacing:var(--tr-flat);text-transform:none;color:var(--c500);filter:url(#inkSm);margin:0 0 var(--sp-8-16)}
+.fk{display:block;font-family:var(--sans);font-weight:600;font-size:var(--fs-label);letter-spacing:var(--tr-flat);text-transform:none;color:var(--c500);margin:0 0 var(--sp-8-16)}
 .fv{font-family:var(--sans);font-weight:400;font-size:var(--fs-body);line-height:var(--lh-note);color:var(--c950);margin:0;text-wrap:pretty}
 .fvsub{display:block;font-weight:400;font-size:var(--fs-small);line-height:var(--lh-note);color:var(--c500);margin-top:4px}
 
@@ -209,13 +209,13 @@ img{display:block;max-width:100%;height:auto}   /* height:auto IS THE COMPANION 
 
 /* my role */
 .role{margin:var(--sp-40-64) 0 0}
-.rlabel{display:block;font-family:var(--sans);font-weight:600;font-size:var(--fs-label);letter-spacing:var(--tr-flat);text-transform:none;color:var(--c500);margin:0 0 var(--sp-16-24);filter:url(#inkSm)}
+.rlabel{display:block;font-family:var(--sans);font-weight:600;font-size:var(--fs-label);letter-spacing:var(--tr-flat);text-transform:none;color:var(--c500);margin:0 0 var(--sp-16-24);}
 .roleHead{font-family:var(--sans);font-weight:600;font-size:var(--fs-h2);line-height:var(--lh-tight);letter-spacing:var(--tr-sub);color:var(--c950);margin:0 0 var(--sp-16-24);text-wrap:balance}
 .role p{font-family:var(--sans);font-weight:400;font-size:var(--fs-prose);line-height:var(--lh-prose);color:var(--c950);text-wrap:pretty}
 
 /* scaffolded chapters — structure so the rail works end to end; copy drafted next */
 .sec{padding-top:var(--sp-72-144);scroll-margin-top:calc(var(--nav-h) + var(--sp-16-24))}
-.kicker{font-family:var(--sans);font-weight:600;font-size:var(--fs-label);letter-spacing:var(--tr-flat);text-transform:none;color:var(--c500);filter:url(#inkSm)}
+.kicker{font-family:var(--sans);font-weight:600;font-size:var(--fs-label);letter-spacing:var(--tr-flat);text-transform:none;color:var(--c500);}
 .secHead{font-family:var(--sans);font-weight:600;font-size:var(--fs-h2);line-height:var(--lh-tight);letter-spacing:var(--tr-sub);color:var(--c950);margin:var(--gap-head-top) 0 var(--gap-head-bot);text-wrap:balance}
 .secBody{font-family:var(--sans);font-weight:400;font-size:var(--fs-prose);line-height:var(--lh-prose);color:var(--c700);margin:16px 0 0;text-wrap:pretty}
 /* pulled stat — clean editorial callout (no ink; texture stays on the hero title only) */
@@ -223,7 +223,7 @@ img{display:block;max-width:100%;height:auto}   /* height:auto IS THE COMPANION 
 .statNum{font-family:var(--sans);font-weight:400;font-size:var(--fs-statnum);line-height:var(--lh-flat);letter-spacing:var(--tr-head);color:var(--c950);margin:0;display:flex;align-items:baseline;gap:.16em}
 .statUnit{font-size:.36em;font-weight:400;letter-spacing:0;color:var(--c500)}
 .statCap{font-family:var(--sans);font-weight:400;font-size:var(--fs-prose);line-height:var(--lh-prose);color:var(--c700);margin:16px 0 0;text-wrap:pretty}
-.statSrc{font-family:var(--sans);font-weight:400;font-size:var(--fs-small);letter-spacing:0;color:var(--c500);margin:16px 0 0;filter:url(#inkSm)}
+.statSrc{font-family:var(--sans);font-weight:400;font-size:var(--fs-small);letter-spacing:0;color:var(--c500);margin:16px 0 0;}
 .statRow{margin:var(--sp-32-48) 0 0}
 .statRow .stat{margin:0}
 .statRow .stat + .stat{margin-top:var(--sp-16-32)}
@@ -239,9 +239,9 @@ img{display:block;max-width:100%;height:auto}   /* height:auto IS THE COMPANION 
 .shot{flex:0 0 auto;scroll-snap-align:start;margin:0}
 .shot:last-child{scroll-snap-align:end}
 .shot img{width:clamp(300px,38vw,420px);height:clamp(300px,38vw,420px);object-fit:contain;display:block;background:var(--c50);box-shadow:var(--rim-1);pointer-events:none;-webkit-user-drag:none}
-.shotCap{margin:var(--sp-8-16) 0 0;font-family:var(--sans);font-weight:600;font-size:var(--fs-label);letter-spacing:var(--tr-flat);text-transform:none;color:var(--c500);filter:url(#inkSm)}
+.shotCap{margin:var(--sp-8-16) 0 0;font-family:var(--sans);font-weight:600;font-size:var(--fs-label);letter-spacing:var(--tr-flat);text-transform:none;color:var(--c500);}
 .hmw{margin:var(--sp-40-64) 0 0}
-.hmwLabel{font-family:var(--sans);font-weight:600;font-size:var(--fs-label);letter-spacing:var(--tr-flat);text-transform:none;color:var(--c500);filter:url(#inkSm);margin:0 0 var(--sp-16-24)}
+.hmwLabel{font-family:var(--sans);font-weight:600;font-size:var(--fs-label);letter-spacing:var(--tr-flat);text-transform:none;color:var(--c500);margin:0 0 var(--sp-16-24)}
 .hmwQ{font-family:var(--sans);font-weight:400;font-size:var(--fs-h2);line-height:var(--lh-head);letter-spacing:-.015em;color:var(--c950);margin:0;max-width:860px;text-wrap:balance}
 .scaffold{color:var(--c500)}
 /* THE SITE FOOTER LIVES IN footer.css NOW -- the whole component: the grid, the
@@ -319,7 +319,7 @@ img{display:block;max-width:100%;height:auto}   /* height:auto IS THE COMPANION 
 .buildStage figure:hover img,.buildStage figure:focus-visible img{box-shadow:var(--rim-1)}
 /* ===== the system: onboarding gallery + the five-step build — one hero screen per step, the reasoning beside it ===== */
 .subBlock{margin:clamp(64px,8.5vh,96px) 0 0}
-.subKick{font-family:var(--sans);font-weight:600;font-size:var(--fs-label);letter-spacing:var(--tr-flat);text-transform:none;color:var(--c500);filter:url(#inkSm);margin:0}
+.subKick{font-family:var(--sans);font-weight:600;font-size:var(--fs-label);letter-spacing:var(--tr-flat);text-transform:none;color:var(--c500);margin:0}
 .subHead{font-family:var(--sans);font-weight:600;font-size:var(--fs-h3);line-height:var(--lh-tight);letter-spacing:var(--tr-sub);color:var(--c950);margin:var(--sp-16-24) 0 var(--sp-16-24);text-wrap:balance}
 /* onboarding shots are portrait phones: sized so the gallery browses, the steps read */
 .shot.phone{width:calc((100% - 72px)/3)}
@@ -502,7 +502,7 @@ img{display:block;max-width:100%;height:auto}   /* height:auto IS THE COMPANION 
    After half took a filled dark fill on top of that, so the pair read as one
    quiet label and one shouted one. They are identical now -- same size, same
    weight, same colour, no box on either -- and the words tell them apart. */
-.baLabel{display:block;font-family:var(--sans);font-size:var(--fs-label);font-weight:600;letter-spacing:var(--tr-flat);color:var(--c500);text-align:center;filter:url(#inkSm)}.baGo{position:absolute;left:50%;top:56%;transform:translate(-50%,-50%);width:38px;height:38px;border-radius:50%;background:var(--c50);box-shadow:var(--rim-1);display:grid;place-items:center;color:var(--c700);z-index:2}.baGo svg{width:16px;height:16px}.baNote{display:block;max-width:270px;margin:0 auto;font-family:var(--sans);font-size:var(--fs-small);line-height:var(--lh-note);text-align:center;color:var(--c500);text-wrap:pretty}.baCol.isAfter .baNote{color:var(--c950);font-weight:400}@media(max-width:880px){.baGo{display:none}.baGrid{column-gap:16px}}@media(max-width:880px){}/* only the placement is local now; the skin is .badge badge--dashed badge--block. The
+.baLabel{display:block;font-family:var(--sans);font-size:var(--fs-label);font-weight:600;letter-spacing:var(--tr-flat);color:var(--c500);text-align:center;}.baGo{position:absolute;left:50%;top:56%;transform:translate(-50%,-50%);width:38px;height:38px;border-radius:50%;background:var(--c50);box-shadow:var(--rim-1);display:grid;place-items:center;color:var(--c700);z-index:2}.baGo svg{width:16px;height:16px}.baNote{display:block;max-width:270px;margin:0 auto;font-family:var(--sans);font-size:var(--fs-small);line-height:var(--lh-note);text-align:center;color:var(--c500);text-wrap:pretty}.baCol.isAfter .baNote{color:var(--c950);font-weight:400}@media(max-width:880px){.baGo{display:none}.baGrid{column-gap:16px}}@media(max-width:880px){}/* only the placement is local now; the skin is .badge badge--dashed badge--block. The
    negative bottom margin pulls it over the figure below, which is why it is stacked. */
 .scrapTag{margin:var(--sp-40-64) auto calc(-1*var(--sp-24-32));position:relative;z-index:2}/* ---- SKIP LINK: WCAG 2.4.1 Bypass Blocks (Level A). Technique G1 requires a link that is
    the FIRST focusable element and moves focus to the main content -- so it sits before the

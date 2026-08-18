@@ -569,7 +569,7 @@
 .badge--dashed{border-style:dashed}
 .badge--block{display:table}
 /* the case studies put the ink texture on chrome text; the tags do not carry it. */
-.badge--inked{filter:url(#inkSm)}
+.badge--inked{}
 /* the inverted half of a before/after pair. */
 .badge--strong{background:var(--badge-ground-strong);border-color:var(--badge-ground-strong);color:var(--badge-ink-strong)}
 
