@@ -102,14 +102,23 @@
    happens to load after this file. min-width completes the 44 x 44 box that a
    22px mark alone would not fill. */
 .footBrand{min-width:var(--ctl-h);justify-content:flex-start;--ctl-pad:0;color:var(--ctl-ink-strong)}
+/* THE MARK IS A FILLED GLYPH NOW, NOT AN OPEN PATH. The old rule was
+   fill:none + stroke, which is right for a drawn line and wrong for a letterform:
+   applied to the outlined `jb` it would trace the glyph's OUTLINE as a fat rule
+   rather than filling it. Fill and stroke both take currentColor, so the mark
+   inverts on the dark theme for free and no colour is invented. The hover answer
+   survives -- it still thickens rather than lighting a ground, which is the
+   header's answer too and the reason the two read as one mark. */
 .footLogo{
+ --mark-ink:.8;--mark-ink-strong:1.5;
  width:var(--ico-mark);height:var(--ico-mark);flex:0 0 var(--ico-mark);
- fill:none;stroke:currentColor;stroke-width:var(--ico-mark-stroke);stroke-linecap:round;
+ fill:currentColor;stroke:currentColor;stroke-width:var(--mark-ink);
+ stroke-linecap:round;stroke-linejoin:round;
  transition:stroke-width var(--dur-state) var(--ease-out)
 }
 /* The header's mark answers a pointer by thickening its stroke, not by lighting
    a ground. Same mark, same answer. */
-.footBrand:hover .footLogo,.footBrand:focus-visible .footLogo{stroke-width:var(--ico-mark-stroke-strong)}
+.footBrand:hover .footLogo,.footBrand:focus-visible .footLogo{stroke-width:var(--mark-ink-strong)}
 
 /* THE STATUS LINE. --fs-lead is the rung above body and below a heading, which
    is the rank this sentence has: it is the loudest thing in the footer without
