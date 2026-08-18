@@ -1017,46 +1017,67 @@
    ORDER IS HIS: LinkedIn, Instagram, email -- which is NOT the order the old
    markup shipped (mail first). Left as he gave it. */
 
-/* ── THE MARK — images/logo.svg, and the wordmark is retired ────────────────
-   Jayden: "use the logo.svg as the logo -- we can put it where the back button
-   is so it's not just empty space", and, asked, it REPLACES the wordmark rather
-   than joining it.  That retires the whole single-line-lockup problem: a 100px
-   text object in a row of 18px items was a placement problem no amount of
-   tracking was going to solve, and a square mark simply does not have it.
+/* ── THE MARK — a lowercase "jb" in Molle, drawn as outlines ────────────────
+   Jayden: "for the logo I want it to be changed to just a lowercase jb in molle
+   font ... make sure it reads like a logo though and works small and big sizes".
+   It replaced an abstract stroked squiggle; it still sits where the back button
+   is, and it still replaces the wordmark rather than joining it, so the
+   single-line-lockup problem stays retired.
 
-   HIS FILE, INLINED, SO IT OBEYS THE ICON SYSTEM.  The drawing is his 30-unit
-   viewBox and his path, unchanged.  What changes is in CSS: the file's own
-   stroke="black" and width/height="30" are overridden here rather than edited
-   out of his art, because a mark that is coloured a second way is exactly the
-   "icons need to be the same color" defect this pass just fixed on two menu
-   items.  stroke:currentColor means the mark darkens with its control on hover
-   like every other glyph in the bar, and inverts on the ink surface for free.
+   OUTLINES, NOT TEXT IN A WEBFONT.  The path is Molle's `j` and `b` glyph
+   contours extracted with fontTools at build time and fitted to the same 30-unit
+   viewBox the old mark used, so every box rule below is untouched.  Setting this
+   as live text would mean either a Google Fonts request -- this site self-hosts
+   and makes none -- or a mark that flashes and reflows while a font loads, and a
+   favicon cannot reference a webfont at all.  Outlines make Molle a build-time
+   input.  Regenerate with tools/build-jb-mark.py.  Molle is SIL OFL 1.1, which
+   permits both the outlining and the use.
 
-   THE SIZE IS THE STROKE MATCH, and it is measured rather than picked.  The path
-   is stroke-width 2 in a 30-unit box, so its effective weight is 2 * (size/30):
-   1.20px at 18, 1.47px at 22, 1.60px at 24.  The nav icons render 1.5px.  22px
-   therefore matches by GEOMETRY, with no stroke override at all -- and a brand
-   mark being four pixels larger than a nav icon is right anyway.
-   NB non-scaling-stroke is deliberately NOT set here: it would pin the stroke to
-   a device pixel value and throw away the size/weight relationship above. */
+   FILLED, NOT STROKED, and that is the whole reason this block changed.  The old
+   mark was an open path wearing --ico-mark-stroke; a letterform is a closed
+   contour, and stroking it traces its outline instead of drawing it.  Those two
+   tokens are still correct for what they name and are left alone -- this rule
+   simply stops using them and states its own weights below.
+
+   THE SIZE IS UNCHANGED at --ico-mark 22px, but the old justification for it is
+   not: it was a stroke match (stroke 2 in a 30-unit box = 1.47px at 22, against
+   the nav icons' 1.5).  A filled script has no single stroke weight -- measured
+   on the rendered glyph, its stems run ~2.6px and its thinnest joins ~1.1px at
+   22px.  22px stays because a brand mark being four pixels larger than a nav
+   icon is right, and because the measured stem sits just above the icon set
+   rather than shouting over it.
+
+   MOLLE HAS ONE WEIGHT AND ONE STYLE.  Checked: the TTF's OS/2 usWeightClass is
+   400, post.italicAngle is -22, and Google's API only resolves `ital@1`.  So the
+   mark cannot be made heavier by picking a face.  --mark-ink is a same-colour
+   stroke on top of the fill -- a true optical embolden, not a second colour --
+   and it exists because the thinnest joins measure 1.1px at 22px, which reads
+   thin next to 400-weight text.  0.8 in a 30-unit box is +0.59px at 22px.  The
+   favicons carry the same idea on a ramp: more embolden and more tracking as the
+   size falls.  See tools/build-jb-mark.py. */
 /* !important is the wrong tool and this is the right one: (0,2,0) with every
    box property NAMED, so a host page's `nav a{padding:...}` cannot half-win.
    play.css was doing exactly that -- the mark's centre measured 76 there
    against 68 on the other eight. */
 .jbNav .jbHome{padding:0 var(--sp-8);margin:0;min-width:var(--tap-min);
   justify-content:center;flex:0 0 auto}
-.jbLogo{width:var(--ico-mark);height:var(--ico-mark);flex:0 0 var(--ico-mark);
-  display:block;fill:none;stroke:currentColor;stroke-width:var(--ico-mark-stroke);
+/* The two weights are declared here rather than in tokens.css because they are
+   this mark's optical embolden and nothing else in the site has one; --ico-mark-
+   stroke/-strong remain the tokens for stroked glyphs. */
+.jbLogo{--mark-ink:.8;--mark-ink-strong:1.5;
+  width:var(--ico-mark);height:var(--ico-mark);flex:0 0 var(--ico-mark);
+  display:block;fill:currentColor;stroke:currentColor;stroke-width:var(--mark-ink);
   stroke-linecap:round;stroke-linejoin:round;
   transition:stroke-width var(--hover-out-dur) var(--ease-out)}
 /* THE MARK OBEYS THE ROUND-11 RULE TOO: whenever an item's ink changes, its
-   glyph's stroke changes with it. The mark is the one control left whose hover
-   is ink rather than a pill, so it is also the one place a stroke has to move on
-   hover. --ico-mark-stroke-strong is 2.7 rather than --ico-stroke-strong's 2
-   because this drawing is NOT non-scaling-stroke -- 2.7*(22/30) = 1.98px, which
-   is --ico-stroke-strong rendered. Nothing about the box changes, so the mark
-   does not grow and the bar does not reflow. */
-.jbNav .jbHome:hover .jbLogo{stroke-width:var(--ico-mark-stroke-strong);
+   glyph's weight changes with it. The mark is the one control left whose hover
+   is ink rather than a pill, so it is also the one place a weight has to move on
+   hover. 1.5 in a 30-unit box is +1.10px at 22px: a +0.51px step, which is the same step
+   the stroked glyphs take between --ico-stroke and --ico-stroke-strong. Nothing
+   about the box changes, so the mark does not grow and the bar does not reflow.
+   The embolden is currentColor, so the dark theme inherits it for free -- the
+   mark has never had a colour of its own and still does not. */
+.jbNav .jbHome:hover .jbLogo{stroke-width:var(--mark-ink-strong);
   transition:stroke-width var(--ease-out-dur) var(--ease-out)}
 /* the mark never wears the active pill: on home it is aria-current="page"
    because it is where you are, and a lit brand would be the loudest object in
