@@ -224,3 +224,29 @@ body .hero.surface--hero{
 .csPanel .csName{font-size:13px;font-weight:600;letter-spacing:.005em}
 .csPanel .csYear{font-size:12px;font-weight:400;color:var(--c500)}
 }
+
+/* ── THE TAB ROW AND THE REEL, same rebuild. 2026-08-18, Jayden: "not just
+   the cards, I want everything remade." The Featured/Case Studies/Extras
+   SPLIT stays (his settled call, section 4) -- the chrome becomes the
+   workspace segmented control: 13/500 text, 9x12 padding, 4px radius, ink
+   pill when active, left-aligned on the shared gutter. The travelling ink
+   underline retires; the pill IS the state. The reel takes the card frame:
+   hairline + 4px, meta row inside the same 13/12 voice. Desktop shell only. */
+@media (min-width:961px){
+.csTabs{
+ justify-content:flex-start;gap:4px;margin-left:var(--content-gutter);
+ padding:24px 0 20px;
+}
+.csTab{
+ font-family:var(--sans);font-weight:500;font-size:13px;letter-spacing:.005em;
+ padding:9px 12px;border-radius:4px;color:var(--c700);
+ background:none;border:0;min-height:0;
+ transition:background var(--dur-state) var(--ease-out),color var(--dur-state) var(--ease-out);
+}
+.csTab:hover{background:var(--c100);color:var(--c950)}
+.csTab.on{background:var(--c950);color:#fff;font-weight:600}
+.csTabInk{display:none}
+.reelFrame{border:1px solid var(--c100);border-radius:4px!important}
+.reelMeta .csName{font-size:13px;font-weight:600;letter-spacing:.005em}
+.reelMeta .csYear{font-size:12px;font-weight:400;color:var(--c500)}
+}
