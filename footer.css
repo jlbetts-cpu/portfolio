@@ -231,10 +231,8 @@
    section, land in every screen-reader heading list, and say his name a fourth
    time after <title>, the JSON-LD Person and the mark's aria-label. */
 .footMark{
- /* 5.4739 was measured for Instrument Sans; Geist runs ~8.8% wider and the
-    mark clipped its final s (Jayden: "the footer needs a fix" -- second time,
-    the restore rolled the constant back). Re-measured in Geist 600:
-    mark 1147px in a 1054px measure, ratio 1.0882 -> 5.9807 (+0.4% air). */
+ /* 5.4739 was Instrument Sans; Geist runs ~8.8% wider and clipped the final
+    s. Re-measured: 5.9807 (mark 1147px in a 1054px measure). */
  --foot-mark-fit:5.9807;
  font-family:var(--sans);font-weight:600;
  font-size:calc(100cqw / var(--foot-mark-fit));

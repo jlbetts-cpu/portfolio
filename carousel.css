@@ -64,9 +64,7 @@
  font-size:var(--fs-label);
  letter-spacing:var(--tr-flat);
  color:var(--c950);
- /* filter:url(#inkSm) removed 2026-08-18 with the site-wide de-texture pass
-    ("take out the texture on the text") -- this was the one text element that
-    still carried the ink displacement. */
+ /* filter:url(#inkSm) removed with the site-wide de-texture pass */
 }
 .playerNote{
  display:block;
