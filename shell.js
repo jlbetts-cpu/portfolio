@@ -91,11 +91,22 @@ function freshCovers(){
   })(imgs[i]);
  }
 }
+/* the sun wears its state name, like the React control ("Daytime") */
+var STATE_LABEL={"pre-dawn":"Pre-dawn",sunrise:"Sunrise",daytime:"Daytime",dusk:"Dusk",sunset:"Sunset",night:"Night",off:"Off"};
+function labelSun(){
+ var btn=document.querySelector(".heroTimeBtn");
+ if(!btn)return;
+ var lbl=btn.querySelector(".jbTimeLbl");
+ if(!lbl){lbl=document.createElement("span");lbl.className="jbTimeLbl";btn.appendChild(lbl);}
+ lbl.textContent=STATE_LABEL[coverState()]||"Daytime";
+}
+
 function watchCovers(){
  freshCovers();
+ labelSun();
  var hero=document.querySelector(".surface--hero");
  if(hero&&window.MutationObserver){
-  new MutationObserver(freshCovers).observe(hero,{attributes:true,attributeFilter:["data-time-state"]});
+  new MutationObserver(function(){freshCovers();labelSun();}).observe(hero,{attributes:true,attributeFilter:["data-time-state"]});
  }
 }
 

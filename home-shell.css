@@ -41,7 +41,7 @@
    its gone." The pill bar floats over the band exactly as it floated over
    the old hero. The injected mark retires; the bar carries the logo. */
 .jbHomeMark{display:none}
-.jbStick{z-index:60}
+.jbStick{position:sticky;top:0;z-index:60}
 
 /* ── THE HEADER REBUILD (non-home pages) ─────────────────────────────────
    His notes: "the header needs a redesign... the contact looks funny maybe
@@ -59,8 +59,9 @@
  /* z above the sections that FOLLOW in the DOM, so the time-of-day menu
     opens over the tabs and cards instead of behind them -- measured broken
     by Jayden. The band's own layers stack inside this context unchanged. */
- z-index:40; /* 20 lost to the tab row's own stacking where the open time
-    menu crosses it -- measured: "Extras" bled through the menu card */
+ z-index:30; /* above the tab row (menu over cards: measured) but UNDER the
+    sticky pill bar (60) -- "the header being behind scroll" was the band
+    outranking it */
  margin:0;width:100%;max-width:none;
  min-height:0;height:var(--band-h);
  padding:0;border-radius:0;
@@ -129,7 +130,12 @@
  position:static;display:flex;align-items:center;gap:10px;
  order:-1;margin:0 auto 0 0; /* time left, tabs cluster right */
 }
-.cases .heroTimeBtn{--ctl-ground:transparent;--ctl-rim:transparent;color:var(--c500)}
+.cases .heroTimeBtn{
+ --ctl-ground:transparent;--ctl-rim:transparent;color:var(--c500);
+ width:auto;gap:6px;padding:0 6px;
+ font-family:var(--sans);font-weight:500;font-size:13px;letter-spacing:.005em;
+}
+.cases .jbTimeLbl{white-space:nowrap}
 .cases .heroTimeBtn:hover{color:var(--c950)}
 .cases .heroTimeMenu{z-index:50}
 
@@ -145,7 +151,7 @@ body .hero.surface--hero{
     the plain selector. Setting BOTH depth and offset pins the arithmetic:
     bottom = -depth + offset = -26px, chin 26px proud of the floor. */
  --hero-peek-width:clamp(170px,15vw,215px);
- --hero-peek-shift-x:300px; /* clear of the one-line h1's tail and the sun */
+ --hero-peek-shift-x:180px; /* clear of the h1's tail AND the tab row's corner below */
  --hero-peek-depth:26px;
  --hero-peek-offset:0px;
 }
@@ -175,9 +181,12 @@ body .hero.surface--hero{
    precedent the reel set at index:1032). DESKTOP SHELL ONLY -- this block
    rides the same media query as the rest of the file. */
 @media (min-width:961px){
-/* .on because the tab switcher's own .csPanel.on{display:block} outranks a
-   bare class -- measured: columns applied, display lost. */
-.csPanel.on{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px}
+/* "the thumbnails used to be margin to margin they looked so good that
+   way" -- so they are again: ONE column, the full measure, the cover at its
+   natural aspect with no crop. Bearings-vs-apollo could not sit level in a
+   two-column grid because each card carried its own stage-era offsets;
+   a single column retires the question. */
+.csPanel.on{display:grid;grid-template-columns:1fr;gap:48px}
 .csPanel .csItem{
  border:1px solid var(--c100);border-radius:4px;overflow:hidden;
  background:var(--theme-page,var(--c50));
@@ -190,20 +199,13 @@ body .hero.surface--hero{
 .csPanel .csTrack,.csPanel .csStage,.csPanel .csStageInner{display:contents}
 .csPanel .csImg{opacity:1!important;transform:none!important}
 .csPanel .csGo{display:block}
-.csPanel .csFrame{margin:0;overflow:hidden;aspect-ratio:4/3;border-radius:0}
+.csPanel .csFrame{margin:0;overflow:hidden;aspect-ratio:auto;border-radius:0}
 .csPanel .csImg{
- /* static, not absolute: with the stage wrappers dissolved to display:
-    contents, the absolutely-positioned image DECODED real pixels but
-    PAINTED the frame's grey (drawImage sampled the hillside; the screen
-    showed nothing -- one card per load, alternating). In normal flow inside
-    the aspect-ratio frame the paint path is boring and correct. */
+ /* static + NATURAL: full measure, the whole poster, nothing cropped --
+    the old covers' presentation. (Static also dodges the decoded-but-
+    unpainted ghost the absolute path hit; history in git.) */
  position:static;
- width:100%;height:100%;object-fit:cover;display:block;border-radius:0;
- /* the time-of-day variants are posters with generous SKY; a centred 16/10
-    crop showed bearings as a field of grey-blue nothing (LOOKED at, chased
-    as a paint bug first). 68% aims the crop at the artwork band -- the
-    phones and the meadow -- on every variant. */
- object-position:50% 68%;
+ width:100%;height:auto;object-fit:unset;display:block;border-radius:0;
  transition:transform 500ms var(--ease-out);
 }
 .csPanel .csItem:hover .csImg{transform:scale(1.02)}
