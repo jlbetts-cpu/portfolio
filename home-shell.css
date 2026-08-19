@@ -37,13 +37,11 @@
    asked for." The home page's header is invisible -- just the mark over the
    band (shell.js injects .jbHomeMark). Every other page keeps the pill bar,
    REDESIGNED below. */
-body[data-nav="home"] .jbStick{display:none}
-.jbHomeMark{
- position:absolute;top:20px;left:24px;z-index:41;
- display:inline-flex;width:44px;height:44px;align-items:center;
- color:#fff;filter:drop-shadow(0 1px 6px rgba(9,11,36,.35));
-}
-.jbHomeMark svg{width:28px;height:28px;fill:currentColor}
+/* the top menu STAYS on home -- "where is the old header... the top menu
+   its gone." The pill bar floats over the band exactly as it floated over
+   the old hero. The injected mark retires; the bar carries the logo. */
+.jbHomeMark{display:none}
+.jbStick{z-index:60}
 
 /* ── THE HEADER REBUILD (non-home pages) ─────────────────────────────────
    His notes: "the header needs a redesign... the contact looks funny maybe
@@ -151,10 +149,12 @@ body .hero.surface--hero{
  --hero-peek-depth:26px;
  --hero-peek-offset:0px;
 }
-/* "just remove the head from the hero" -- the engine and its pages keep it;
-   the band does not. */
-.surface--hero .heroCharacterPeek{display:none}
-.surface--hero .heroHeadSelection{display:none!important}
+/* THE HEAD IS BACK -- "where is the old header with the head." It stands
+   on the band floor right-of-centre via the authored peek vars above. */
+.surface--hero .heroCharacterPeek{
+ position:absolute;top:0;left:0;right:0;height:var(--band-h);
+ bottom:auto;z-index:4;padding:0;overflow:visible;
+}
 
 /* ── content on Lifeline's own grid: max-w-6xl centred, px-10 ────────────── */
 .cases,.featured,.siteFoot{
