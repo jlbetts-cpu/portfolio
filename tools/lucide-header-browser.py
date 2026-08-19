@@ -86,7 +86,13 @@ def verify_page(browser, base_url, route, viewport, theme):
     page.on("requestfailed", lambda request: failed.append(request.url))
     page.goto(f"{base_url}/{route}", wait_until="domcontentloaded")
     page.wait_for_selector(".jbNav")
-    page.wait_for_function("document.querySelectorAll('.jbNav svg.uiIcon').length >= 8")
+    # FIVE, NOT EIGHT.  2026-08-19: the Contact disclosure is deleted, and with it
+    # the panel's three brand rows, the touch destination row's mail glyph and the
+    # chevron -- five of the eight this used to count. What is left is exactly the
+    # four nav items plus Contact, and a route with a Back arrow adds one more.
+    # The number is asserted below per control by SHAPE, which is the assertion
+    # that matters; this wait only has to know when header.js has finished.
+    page.wait_for_function("document.querySelectorAll('.jbNav svg.uiIcon').length >= 4")
 
     if page.evaluate("Boolean(window.SiteTheme)"):
         page.evaluate("mode => window.SiteTheme.setMode(mode, {persist:false})", theme)
@@ -102,18 +108,30 @@ def verify_page(browser, base_url, route, viewport, theme):
     if back.count():
         assert icon_shapes(page, ".jbNav .jbBack") == SPRITE_SHAPES["lucide-arrow-left"]
 
-    menu = page.locator(".jbContact .jbDiscMenu")
-    assert icon_shapes(page, '.jbContact .jbDiscMenu a[href*="linkedin"]') == SPRITE_SHAPES["brand-linkedin"]
-    assert icon_shapes(page, '.jbContact .jbDiscMenu a[href*="instagram"]') == SPRITE_SHAPES["brand-instagram"]
-    assert icon_shapes(page, '.jbContact .jbDiscMenu a[href^="mailto:"]') == SPRITE_SHAPES["lucide-mail"]
-
-    contact = page.locator(".jbContact > .jbDiscGo")
-    chevrons = contact.locator("svg.jbDiscChevron")
-    assert chevrons.count() == 1, (route, chevrons.count())
-    assert normalise(chevrons.inner_html()) == SPRITE_SHAPES["lucide-chevron-down"]
-    assert chevrons.get_attribute("aria-hidden") == "true"
-    assert chevrons.get_attribute("focusable") == "false"
+    # ── CONTACT IS A BUTTON THAT GOES TO HIS INBOX.  2026-08-19 ─────────────
+    # What stood here asserted the disclosure: three brand rows inside
+    # .jbDiscMenu, a chevron on .jbDiscGo, and (further down) focus-opens /
+    # Escape-closes. Jayden's call is that Contact stops being a nav item that
+    # reveals three links on hover and becomes a noticeable, non-primary button
+    # straight to his email; the three links are unchanged in the footer, on
+    # every page, in the same order.
+    # THE OLD ASSERTIONS ARE REPLACED RATHER THAN DELETED, because "the panel is
+    # gone" is only half a contract -- the half that matters is that nothing was
+    # left behind. aria-expanded on a link with nothing to expand is a lie a
+    # screen reader reads out loud, and a chevron is a promise the control cannot
+    # keep, so both are asserted ABSENT here and the file, the handler and the
+    # markup all have to agree for that to hold.
+    contact = page.locator('.jbNav [data-nav-item="contact"]')
+    assert contact.count() == 1, (route, contact.count())
     assert contact.get_attribute("aria-label") == "Contact"
+    href = contact.get_attribute("href") or ""
+    assert href.startswith("mailto:"), (route, href)
+    for dead in ("aria-haspopup", "aria-expanded", "aria-controls"):
+        assert contact.get_attribute(dead) is None, (route, dead)
+    assert page.locator(".jbNav .jbDisc, .jbNav .jbDiscMenu, .jbNav .jbDiscChevron").count() == 0, route
+    assert page.locator("#jbContactMenu").count() == 0, route
+    # it is the library's secondary kind, not a button rebuilt in the bar
+    assert "ctl--secondary" in (contact.get_attribute("class") or ""), route
 
     metrics = page.evaluate(
         """
@@ -123,7 +141,8 @@ def verify_page(browser, base_url, route, viewport, theme):
           const logo = document.querySelector('.jbNav .jbLogo');
           const rect = nav.getBoundingClientRect();
           const ir = ico.getBoundingClientRect();
-          const painted = ico.getBBox();
+          let painted = {width: 0, height: 0};
+          try { painted = ico.getBBox(); } catch (e) {}   // getBBox throws on display:none
           return {
             overflow: document.documentElement.scrollWidth - innerWidth,
             navHeight: rect.height,
@@ -136,17 +155,55 @@ def verify_page(browser, base_url, route, viewport, theme):
               '.jbNav svg.uiIcon :is(path,rect,circle,line)').length,
             useElements: document.querySelectorAll('.jbNav svg.uiIcon use').length,
             iconHidden: ico.getAttribute('aria-hidden'),
-            iconFocusable: ico.getAttribute('focusable')
+            iconFocusable: ico.getAttribute('focusable'),
+            iconDisplay: getComputedStyle(ico).display,
+            litIconDisplay: (() => {
+              const lit = nav.querySelector('[aria-current]:not(.jbHome) .uiIcon');
+              return lit ? getComputedStyle(lit).display : null;
+            })(),
+            unlitIconDisplay: (() => {
+              const un = nav.querySelector(
+                '[data-nav-item]:not([aria-current]) .uiIcon');
+              return un ? getComputedStyle(un).display : null;
+            })(),
+            /* THE BOX IS MEASURED ON AN UNLIT ITEM, not on Work. Work carries
+               aria-current on index.html, and below 640 the lit item is the one
+               that drops its glyph -- so the old fixed `ico` probe measured the
+               one icon the design deliberately hides and read 0x0. */
+            unlitIcon: (() => {
+              const un = nav.querySelector(
+                '[data-nav-item]:not([aria-current]) .uiIcon');
+              if (!un) return null;
+              const r = un.getBoundingClientRect();
+              let p = {width: 0, height: 0};
+              try { p = un.getBBox(); } catch (e) {}
+              return {w: r.width, h: r.height, pw: p.width, ph: p.height};
+            })()
           };
         }
         """
     )
     assert metrics["overflow"] <= 0, (route, label, metrics)
     assert metrics["navHeight"] == 52, (route, label, metrics)
-    expected_size = 16 if width <= 640 else 18
-    assert metrics["iconWidth"] == expected_size, (route, label, metrics)
-    assert metrics["iconHeight"] == expected_size, (route, label, metrics)
-    assert metrics["paintedWidth"] > 0 and metrics["paintedHeight"] > 0, (route, label, metrics)
+    # ── WHERE THE GLYPHS ARE, AND WHERE THEY ARE NOT.  2026-08-19 ───────────
+    # This used to assert an 18px box on the desktop bar and a 16px one below
+    # 640. The 18px half is gone by design: above 640 the nav is type alone,
+    # because five glyphs beside five words repeat what the words already say and
+    # give the eye ten objects to sort instead of five. Below 640 the labels do
+    # not fit (header.css §6) and the glyph IS the item, so the 16px box is still
+    # the contract -- and the LIT item drops its glyph there instead of carrying
+    # both, so the current page is the only WORD in the row.
+    # Written as an either/or rather than deleted: a build that puts the icons
+    # back on desktop, or takes them off mobile, fails here in both directions.
+    if width <= 640:
+        un = metrics["unlitIcon"]
+        assert un, (route, label, metrics)
+        assert un["w"] == 16 and un["h"] == 16, (route, label, metrics)
+        assert un["pw"] > 0 and un["ph"] > 0, (route, label, metrics)
+        assert metrics["unlitIconDisplay"] not in (None, "none"), (route, label, metrics)
+        assert metrics["litIconDisplay"] in (None, "none"), (route, label, metrics)
+    else:
+        assert metrics["iconDisplay"] == "none", (route, label, metrics)
     # THIS ASSERTION IS INVERTED, and the inversion is the fix.
     # It used to be `inlineUtilityPaths == 0` -- the header was required to carry
     # NO inline shapes, because every glyph had to come through the sprite. That
@@ -164,15 +221,15 @@ def verify_page(browser, base_url, route, viewport, theme):
     if page.locator(".jbLogo").count():
         assert metrics["logoPathCount"] == 1, (route, metrics)
 
-    # The existing disclosure behavior remains the contract: focus opens it,
-    # Escape closes it and returns focus without changing the accessible name.
+    # FOCUSING CONTACT OPENS NOTHING, which is the replacement for the
+    # focus-opens/Escape-closes pair this used to drive. It is a real assertion
+    # and not a formality: header.js's whole .jbDisc block was deleted with the
+    # markup, and a listener left bound to markup that no longer ships is the
+    # defect rather than the leftover -- this is what would catch it coming back.
     contact.focus()
-    page.wait_for_function("document.querySelector('.jbContact').classList.contains('open')")
-    assert contact.get_attribute("aria-expanded") == "true"
-    assert menu.evaluate("node => getComputedStyle(node).visibility") == "visible"
-    contact.press("Escape")
-    page.wait_for_function("!document.querySelector('.jbContact').classList.contains('open')")
-    assert contact.get_attribute("aria-expanded") == "false"
+    page.wait_for_timeout(240)          # longer than the panel's old open delay
+    assert page.evaluate("document.querySelectorAll('.jbNav .open').length") == 0, route
+    assert contact.get_attribute("aria-expanded") is None, route
 
     assert not errors, (route, label, theme, errors)
     assert not failed, (route, label, theme, failed)
@@ -190,9 +247,12 @@ def main():
             response = browser.new_page().request.get(f"{base_url}/ui-icons.svg")
             assert response.ok, response.status
             sprite = response.text()
-            required = set(EXPECTED.values()) | {
-                "lucide-arrow-left", "lucide-chevron-down", "brand-linkedin", "brand-instagram"
-            }
+            # ui-icons.svg stays the source of truth for the shapes the header
+            # DRAWS. The chevron and the two brand marks left that list with the
+            # Contact panel -- the sprite may still carry them for other
+            # consumers, but requiring them here would pin drawings this
+            # component no longer has any way to show.
+            required = set(EXPECTED.values()) | {"lucide-arrow-left"}
             for symbol in required:
                 assert sprite.count(f'id="{symbol}"') == 1, symbol
                 body = re.search(rf'<symbol id="{re.escape(symbol)}"[^>]*>(.*?)</symbol>',
@@ -212,11 +272,21 @@ def main():
             blocked.route("**/ui-icons.svg",
                           lambda route: (sprite_requests.append(route.request.url),
                                          route.abort()))
+            # AT 390, BECAUSE THAT IS WHERE THE GLYPHS ARE DRAWN.  2026-08-19.
+            # The nav's icons come off above 640px -- five glyphs beside five
+            # words is the repetition the structure pass removed -- so on a
+            # desktop viewport getBBox() would be reading elements the design
+            # deliberately does not paint, and "renders empty" would be true and
+            # meaningless. The question this test exists to answer ("does a
+            # header glyph still draw with the sprite blocked") is only askable
+            # where a header glyph draws.
+            blocked.set_viewport_size({"width": 390, "height": 844})
             blocked.goto(f"{base_url}/about.html", wait_until="load")
             blocked.wait_for_function(
-                "document.querySelectorAll('.jbNav svg.uiIcon').length >= 8")
+                "document.querySelectorAll('.jbNav svg.uiIcon').length >= 4")
             drawn = blocked.evaluate("""
                 () => Array.from(document.querySelectorAll('.jbNav svg.uiIcon'))
+                        .filter(s => getComputedStyle(s).display !== 'none')
                         .map(s => { try { const b = s.getBBox();
                                           return Math.round(b.width * b.height); }
                                     catch (e) { return 0; } })""")

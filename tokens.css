@@ -1074,6 +1074,51 @@
     are the SVG's own unitless stroke-width, so they are not px values missing a
     unit. */
  --c0:#FFFFFF;
+
+ /* ── 17b · THE STRUCTURAL RULE.  A NAME FOR THE GRID, NOT FOR AN OBJECT ─────
+    Jayden, comparing the workspace with the home page: "something I really like
+    in the workspace ... is structure -- everything felt like it was intentionally
+    on a grid that is connected ... the header for instance instead of a pill we
+    can do a line across the bottom, lines separating sections."
+    COUNTED BEFORE ANY OF THIS WAS WRITTEN: the workspace build draws 24 structural
+    borders (14 border-t, 10 border-b, all on its one --border:#e5e6e9).
+    tokens.css, header.css and controls.css between them drew ZERO. The site had
+    exactly one -- footer.css's `.footTop{border-top:... var(--theme-rim)}` -- and
+    every other separation on the page was space alone. That is why the home page
+    reads as things placed near each other rather than as a system.
+
+    WHY IT IS NOT --theme-rim, WHICH IS THE OBVIOUS OBJECTION. --theme-rim edges
+    OBJECTS: buttons, cards, panels, the material a control is made of. A rule
+    across the page is not an object's edge, it is the grid the objects sit on,
+    and the two want different things from the dark theme. Measured contrast
+    against the page each is drawn on:
+        --theme-rim   light rgba(17,18,20,.12) on #FDFDFD -> #E1E2E3, 1.25:1
+                      dark  rgba(255,255,255,.14) on #0B0C0F -> #2D2E31, 1.43:1
+        --rule        light rgba(9,11,36,.10)  on #FDFDFD -> #E5E5E7, 1.24:1
+                      dark  rgba(255,255,255,.10) on #0B0C0F -> #232326, 1.25:1
+    An object rim may legitimately be louder at night -- a raised surface catches
+    light along its edge, which is what --rim-top is for. A rule that crosses the
+    whole viewport may not: at .14 it is the brightest thing on a night page and
+    the grid starts shouting over the work. --rule holds ONE weight in both
+    themes (1.24 vs 1.25, a 1% spread against --theme-rim's 15%), which is the
+    measurable reason the name exists rather than a semantic one.
+    The light value is also, by arithmetic rather than by copying, the workspace's
+    own line: #E5E5E7 against its #e5e6e9.
+
+    HOW MANY LINES. As few as carry the grid, and every one of them has to name
+    what it separates or it comes out again -- this file's governing rule is that
+    premium is subtraction, and a page full of rules is Stripe's look without
+    Stripe's discipline. As shipped there are THREE on the home page:
+      1. the header's floor          chrome | page          (header.css)
+      2. the work section's top rule  hero   | the work      (index.html)
+      3. the footer's top rule        page   | footer        (footer.css, already
+                                                              there; it moves on to
+                                                              this token when its
+                                                              owner next touches it)
+    Nothing else got one. The tab row's indicator is a travelling underline, not a
+    rule, because it marks a selection rather than a boundary. */
+ --rule-w:var(--hair-w);
+ --rule:rgba(9,11,36,.10);
  --rim-3:inset 0 0 0 1px rgba(9,11,36,.20);
  --ico-stroke-strong:2;
  --ico-mark-stroke:2;--ico-mark-stroke-strong:2.7;
@@ -1141,3 +1186,8 @@ html{scroll-padding-top:calc(var(--nav-h) + var(--sp-16-24))}   /* 76px >=881, 6
 .gIco{stroke:currentColor;fill:none;stroke-width:1.5;
       vector-effect:non-scaling-stroke;
       stroke-linecap:round;stroke-linejoin:round}
+
+/* THE STRUCTURAL RULE AT NIGHT.  Declared here rather than in site-theme.css so
+   the token and its two values stay in one file -- (0,2,0) beats the :root block
+   above it, so link order between the two stylesheets cannot decide this. */
+:root[data-theme="dark"]{--rule:rgba(255,255,255,.10)}

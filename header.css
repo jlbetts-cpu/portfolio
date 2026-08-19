@@ -134,9 +134,95 @@
    The wrapper's height is identical in both states, so --nav-h, the five case
    studies' rail offsets and every scroll-margin-top stay valid. Nothing with
    text in it moves: the transition is on a padding-box with one child. */
-:root.jbShrunk .jbStick{padding-block:var(--sp-14) var(--sp-6)}
+/* ROUND 13 SCOPES THIS TO .isFixed, and the scoping is the point rather than a
+   caveat. "Detaching from the page edge" is a thing a FLOATING PILL does: it
+   needs to say it is above the page because nothing else in its drawing does.
+   The seven document pages no longer have a floating pill -- they have a band
+   with a floor (see §0b) -- and a band cannot detach from an edge it IS. Three
+   pages still float: play.html, headmaker.html and gradientlab.html ship
+   .isFixed over a full-viewport stage, and they keep the whole of the old
+   behaviour, including the static <html class="jbShrunk"> two of them carry.
+   The wrapper's height is identical in both states either way, so --nav-h, the
+   case studies' rail offsets and every scroll-margin-top stay valid. */
+:root.jbShrunk .jbStick.isFixed{padding-block:var(--sp-14) var(--sp-6)}
 @media(prefers-reduced-motion:no-preference){
-  .jbStick{transition:padding-block var(--ease-out-dur) var(--ease-out)}
+  .jbStick.isFixed{transition:padding-block var(--ease-out-dur) var(--ease-out)}
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   0b · THE FLOOR.  THE BAR IS A BAND ON THE SEVEN DOCUMENT PAGES.
+   (index, about and the five case studies. play, headmaker and gradientlab are
+   .isFixed over a full-viewport stage and keep the floating pill -- the
+   pointer-events note below is why the split is drawn exactly there.)
+
+   Jayden: "something I really like in the workspace ... is structure --
+   everything felt like it was intentionally on a grid that is connected ... like
+   think of sites like stripe, that structure is what makes it so clean. The
+   header for instance, instead of a pill we can do a line across the bottom,
+   lines separating sections. Adding structure I feel like will add a whole lot
+   more depth."
+
+   WHAT WAS ACTUALLY WRONG, counted rather than felt: this file, controls.css
+   and tokens.css drew ZERO structural rules between them. The site had exactly
+   one, footer.css's `.footTop{border-top}`, and every other separation on the
+   page was space alone. A pill floating in the middle of a page separates
+   itself from nothing -- it is an object, and an object cannot be a boundary.
+   A band with a floor is a boundary, and it is the same line the footer already
+   draws, which is what makes the two read as one grid.
+
+   THE ARITHMETIC ALREADY AGREED AND NOBODY HAD DRAWN IT. Measured on
+   index.html at 1440 before this change, every major box already sat on the
+   same column: .jbNav 120->1320, #cases 120->1320, .csFrame 120->1320,
+   .footTop 120->1320. At 390 all four are 16->374. The grid was real and
+   invisible. The floor is full-bleed and the CONTENT stays on that column, so
+   the two lines the page now draws below the bar (the work section's rule and
+   the footer's) share their edges with the nav's own -- which is the whole of
+   "on a grid that is connected".
+
+   WHY THE GROUND MOVES FROM .jbNav TO .jbStick RATHER THAN BEING ADDED TWICE.
+   The material argument in §1 is unchanged and still governs the value: opaque,
+   --ctl-ground, never grey, "if anything it should be lighter than the
+   background". What changes is only the BOX it is painted on. Painting it on
+   both would have put a 1200px white rectangle inside a 1440px white band, and
+   the seam between them would show wherever the two grounds are not identical
+   -- which is exactly what --nav-mat's [data-surface="ink"] fork does.
+
+   pointer-events:auto is not tidiness. .jbStick is pointer-events:none so
+   play.html's pitch, headmaker's canvas and gradientlab's stage stay clickable
+   under a floating bar; a band that is opaque across the viewport must not pass
+   clicks through to whatever it is covering. It is scoped the same way the
+   ground is, so the three stage pages keep the pass-through the exception
+   exists for -- and THAT is why the split is drawn at .isFixed rather than page
+   by page: a bar over a document sits on a floor, a bar over a stage floats
+   above it, and the markup already declares which is which.
+
+   NO SHADOW, and the rule is absolute: the companion heads cast a contact
+   shadow because they stand on something. Chrome separates with a hairline.
+   The floor is a hairline, drawn in --rule (tokens.css §17b), which holds the
+   same 1.24:1 in both themes -- an object rim would be 1.43:1 at night and the
+   grid would shout over the work.
+   ═══════════════════════════════════════════════════════════════════════════ */
+/* THE SURFACE FORK HAD TO COME UP WITH THE GROUND, and this is the one place
+   the move is not free. --nav-mat is declared ON .jbNav, and custom properties
+   inherit downward, so the wrapper cannot read its own child's value. The only
+   fork that actually differs is [data-surface="ink"] -- hero-engine.js flips the
+   bar to ink for the length of the Delight disco (heroNavSurface) and
+   gradientlab ships it statically -- and :has() is how a parent reads it. Every
+   other fork in this file (:root.jbShrunk, the dark theme, body.heroEmpathy)
+   resolves to --ctl-ground, which is the default below, so none of them need a
+   second rule up here. */
+.jbStick:not(.isFixed){
+  background:var(--ctl-ground);
+  box-shadow:0 var(--rule-w) 0 var(--rule);
+  pointer-events:auto;
+}
+.jbStick:not(.isFixed):has(>.jbNav[data-surface="ink"]){background:var(--mat-i3-solid)}
+/* the bar keeps its layout job and gives up its skin: no ground of its own, no
+   rim, no radius. Everything else about it -- the three zones, the item states,
+   the travelling pill, the focus ring -- is untouched. (0,3,0) against the
+   component's own (0,1,0), so no !important and no reordering. */
+.jbStick:not(.isFixed) .jbNav{
+  background:none;box-shadow:none;border-radius:0;
 }
 /* The 1px probe header.js drops at the top of the document and watches with one
    IntersectionObserver. It replaces v1's unthrottled scroll listener -- the only
@@ -669,6 +755,136 @@
   stroke-width:1.75;vector-effect:non-scaling-stroke;
   stroke-linecap:round;stroke-linejoin:round}
 
+/* ═══════════════════════════════════════════════════════════════════════════
+   1b · THE COLLAPSED BAR.  header.js §3a owns the switch; this is what it looks
+   like, and the whole of it is four properties that can interpolate.
+
+   THE MARK AND THE WRAPPER DO NOT MOVE. .jbStick keeps its height, its padding
+   and its position in both states -- only its SKIN goes -- so --nav-h stays
+   honest, .wrap's -72px pull-up stays honest, and the finger stays on the
+   control it pressed. What is left is a 72px strip of the page with the mark in
+   it.
+
+   ENTER AND EXIT ARE NOT SYMMETRICAL, which is this site's rule and not
+   apple-design.md's: things leave faster than they arrive. Opening rides
+   --sp-settle at its own bound 360ms -- a critically damped spring, no overshoot,
+   which is the reference's default for anything a momentum gesture did NOT
+   precede. Closing takes --dur-move 280ms on --ease-out. Both are rungs; neither
+   is a number invented here, and --sp-settle is used at the duration it is bound
+   to, which the design rules require.
+
+   THE ITEMS RETRACT UPWARD, 4px, toward the edge the bar is folding into.
+   apple-design.md §8: the in-between frames should point at the outcome. 4px is
+   --sp-4 and it is deliberately tiny -- the collapse is carried by opacity, and a
+   travel large enough to read as a slide would make a 72px strip look like it
+   was throwing its contents off the top of the screen.
+
+   visibility IS THE ONLY NON-INTERPOLATING PROPERTY HERE and it is handled the
+   way the retired Contact panel handled it: delayed to the end of the exit,
+   immediate on the entrance. It is what takes the collapsed nav out of the tab
+   order; display:none would do that too and would hard-swap, which is the one
+   thing §3 of the reference forbids. */
+.jbGrpC,.jbGrpR{
+  transition:opacity var(--sp-settle-dur) var(--sp-settle),
+             transform var(--sp-settle-dur) var(--sp-settle),
+             visibility 0s
+}
+:root.jbNavShut .jbGrpC,:root.jbNavShut .jbGrpR{
+  opacity:0;visibility:hidden;transform:translateY(calc(var(--sp-4) * -1));
+  transition:opacity var(--dur-move) var(--ease-out),
+             transform var(--dur-move) var(--ease-out),
+             visibility 0s var(--dur-move)
+}
+/* THE TRAVELLING PILL GOES WITH THEM, and it needs its own line because it is
+   not inside either zone -- header.js appends .jbInk to .jbNav so it can travel
+   BETWEEN the zones' items, which is exactly why a collapse of the zones leaves
+   it behind. Measured before this rule: a grey pill sitting alone in an
+   otherwise empty strip. It already owns an opacity transition (§ the indicator,
+   below), so this is the value and not a second timing. */
+:root.jbNavShut .jbInk{opacity:0 !important}
+/* THE !important IS THE RIGHT TOOL HERE AND IT IS THE ONLY ONE THAT WORKS.
+   header.js's placeInk() writes `ink.style.opacity = "1"` as an INLINE style,
+   because the pill has to be parked silently on first paint before it is allowed
+   to travel. A stylesheet rule cannot outrank an inline declaration by
+   specificity at any length -- measured: the pill stayed fully drawn in a
+   collapsed bar at 390 with a (0,3,0) selector -- and `!important` in a
+   stylesheet beating a non-important inline style is exactly the case the
+   cascade defines it for. The alternative was rewriting placeInk to toggle a
+   class, which would have cost the silent first placement to save one keyword. */
+/* the band and its floor go with them. box-shadow interpolates colour-to-colour,
+   so the floor fades rather than being switched off -- a hairline that vanishes
+   between two frames is the "glitch" note this project has already had once. */
+.jbStick:not(.isFixed){
+  transition:background-color var(--sp-settle-dur) var(--sp-settle),
+             box-shadow var(--sp-settle-dur) var(--sp-settle)
+}
+:root.jbNavShut .jbStick:not(.isFixed){
+  background:transparent;box-shadow:0 var(--rule-w) 0 transparent;
+  /* AND IT STOPS SWALLOWING CLICKS. §0b turns pointer-events on because an
+     opaque band across the viewport must not pass taps through to what it is
+     covering; a collapsed band covers nothing, and the 72px it occupies on
+     index.html is exactly where the draggable head can be. The mark keeps its
+     own events from .jbStick>* above. */
+  pointer-events:none;
+  transition:background-color var(--dur-move) var(--ease-out),
+             box-shadow var(--dur-move) var(--ease-out)
+}
+/* THE MARK SAYS WHICH STATE IT IS IN WITHOUT A GLYPH. Collapsed, it keeps the
+   ink hover it always had and takes the nav's own resting grey, so a closed bar
+   reads as quiet rather than as a bar that failed to draw. No chevron: the whole
+   point of this control is that it is the logo, and hanging a caret off a brand
+   mark is what the Contact disclosure was just deleted for. */
+@media(prefers-reduced-motion:reduce){
+  .jbGrpC,.jbGrpR,:root.jbNavShut .jbGrpC,:root.jbNavShut .jbGrpR,
+  .jbStick:not(.isFixed),:root.jbNavShut .jbStick:not(.isFixed){transition-duration:0s}
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   2b · CONTACT IS A BUTTON, AND THE NAV IS TYPE.  ROUND 13.
+
+   CONTACT.  Jayden asked for a Contact that is noticeable but is NOT the primary
+   action -- the hero's "View work" is that, and a bar with two primaries has
+   none. .ctl--secondary is exactly that kind in this system: --ctl-ground fill
+   plus a --ctl-rim hairline, which is the same treatment the sun button beside
+   "View work" already wears. It is the library's kind, taken whole, not a
+   private button built here.
+
+   THE TWO RULES BELOW ARE A SPECIFICITY BRIDGE AND NOT A REIMPLEMENTATION, and
+   the difference matters because this file has been burned by the other thing
+   (.reelTap grew four rules bolting the system on property by property). The bar
+   declares `.jbNav a,.jbNav button{background:none;...}` at (0,1,1), which beats
+   .ctl--secondary's (0,1,0) and strips the fill the modifier exists to supply.
+   So these restate the modifier's OWN TOKENS at (0,2,0) -- the same two names,
+   nothing new -- and every other property (height, padding, radius, tracking,
+   press, focus, transition) still comes from .ctl and the bar untouched.
+   Hover needs no bridge: --nav-hover-bg and --ctl-ground-hover both resolve to
+   --theme-elevated, so the bar's own (0,3,1) hover rule already lands the right
+   colour. Verified rather than assumed -- if those two ever diverge this button
+   is where it will show.
+
+   THE ICONS COME OFF THE DESKTOP NAV. Jayden's instinct in this round is
+   structure, and a row of five glyphs beside five words is the opposite of it:
+   the glyphs repeat what the words already say and give the eye ten objects to
+   sort instead of five. Type alone on a floored band is the Stripe reading he
+   asked for. They stay at <=640px, where they are not decoration but the whole
+   control -- the labels are gone there because they do not fit (§6), so the
+   glyph IS the item.
+   AND ON A PHONE THE LIT ITEM DROPS ITS GLYPH RATHER THAN KEEPING BOTH. The
+   mobile rule already gives the current page its word back; carrying the icon
+   too made the lit item the only two-part object in a row of single glyphs, and
+   the word alone is the stronger you-are-here. Every item keeps its aria-label
+   at every width, so nothing changes for a screen reader in either direction.
+   The mark and the Back arrow are excluded from all of this: neither is a nav
+   item, and neither has a word to fall back to. */
+.jbNav .jbContactBtn{background:var(--ctl-ground);box-shadow:var(--ctl-rim)}
+.jbNav .jbContactBtn:focus-visible{box-shadow:var(--ctl-rim-strong)}
+@media(min-width:641px){
+  .jbNav [data-nav-item] .gIco{display:none}
+}
+@media(max-width:640px){
+  .jbNav [aria-current]:not(.jbHome) .gIco{display:none}
+}
+
 /* A quiet disclosure cue inside the existing Contact box. Absolute placement
    keeps the control's width, padding, radius, and 44px target unchanged. */
 .jbNav .jbDiscGo{position:relative}
@@ -1172,6 +1388,14 @@
    the theme's page colour so it is invisible until content actually reaches
    it. pointer-events:none — it is light, not a surface.
    =========================================================================== */
-.jbStick::before{content:"";position:absolute;left:0;right:0;top:0;height:calc(100% + var(--sp-16));
+/* ROUND 13 DELETES IT ON THE SEVEN BANDED PAGES, which is the whole of what
+   this was for. The fade existed because the bar floated with a gap above it and
+   page text scrolled straight through that gap into the pill. A band has no gap:
+   the bar's own opaque ground now runs the full width of the viewport and the
+   floor is where the page starts. The fade is kept for .isFixed, where a pill
+   still floats over a stage. Deleting rather than keeping it everywhere is the
+   subtraction rule being applied -- a gradient whose job has been taken over by
+   a ground is a second answer to a question that already has one. */
+.jbStick.isFixed::before{content:"";position:absolute;left:0;right:0;top:0;height:calc(100% + var(--sp-16));
   background:linear-gradient(to bottom,var(--theme-page,var(--c50)) 55%,transparent);
   pointer-events:none;z-index:-1}

@@ -78,9 +78,10 @@ var ICONS={
  "lucide-gamepad-2":'<line x1="6" x2="10" y1="11" y2="11"/><line x1="8" x2="8" y1="9" y2="13"/><line x1="15" x2="15.01" y1="12" y2="12"/><line x1="18" x2="18.01" y1="10" y2="10"/><path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258-.006-.051-.011-.1-.017-.151A4 4 0 0 0 17.32 5z"/>',
  "lucide-mail":'<rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>',
  "lucide-arrow-left":'<path d="m12 19-7-7 7-7"/><path d="M19 12H5"/>',
- "lucide-chevron-down":'<path d="m6 9 6 6 6-6"/>',
- "brand-linkedin":'<path d="M8 11v5M8 8v.01M12 16v-5M16 16v-3a2 2 0 0 0-4 0"/><path d="M3 7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4v10a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4z"/>',
- "brand-instagram":'<rect width="16" height="16" x="4" y="4" rx="4"/><circle cx="12" cy="12" r="3"/><line x1="16.5" x2="16.51" y1="7.5" y2="7.5"/>'
+ /* chevron-down, brand-linkedin and brand-instagram were deleted with the
+    Contact panel: the header has no disclosure and no social row, and an icon
+    table that carries drawings nothing asks for is how a table stops being
+    read. The footer's markup carries its own. */
 };
 
 function lucideIcon(symbol,extraClass){
@@ -112,16 +113,10 @@ Object.keys(navSymbols).forEach(function(key){
 [].forEach.call(nav.querySelectorAll(".jbBack"),function(control){
   replaceIcon(control,"lucide-arrow-left");
 });
-[].forEach.call(nav.querySelectorAll(".jbContact .jbDiscMenu a"),function(control){
-  var href=(control.getAttribute("href")||"").toLowerCase();
-  var symbol=href.indexOf("linkedin")>-1?"brand-linkedin":
-             href.indexOf("instagram")>-1?"brand-instagram":"lucide-mail";
-  replaceIcon(control,symbol);
-});
-var contactGo=nav.querySelector(".jbContact>.jbDiscGo");
-if(contactGo&&!contactGo.querySelector(".jbDiscChevron")){
-  contactGo.appendChild(lucideIcon("lucide-chevron-down","jbDiscChevron"));
-}
+/* The panel's own three rows and the chevron used to be upgraded here. Both
+   loops are deleted with the panel (§3): the brand glyphs live in the footer's
+   markup, and a chevron on a control that discloses nothing is a promise the
+   control cannot keep. */
 
 /* ── 1 · THE ONE THING THAT HAPPENS ON SCROLL ──────────────────────────────
    A 1px probe at the top of the document, watched once. Out of view => the page
@@ -163,109 +158,97 @@ if(stick && !stick.classList.contains("isFixed") && typeof IntersectionObserver 
    that did not unload the document) -- that is the honest cost of the route, and it
    is worth it for a state that cannot desynchronise. */
 
-/* ── 3 · THE DISCLOSURES ───────────────────────────────────────────────────
-   ROUND 10.  Both carets are deleted, so a .jbDisc is a plain nav item with a
-   panel attached.  Three routes in, and only two of them exist:
+/* ── 3 · THE DISCLOSURES ARE GONE, AND THIS IS THEIR HEADSTONE ─────────────
+   ROUND 13.  Contact was the last .jbDisc on the site -- Play's went to the mood
+   dock in round 10 -- and Jayden's call is that Contact should be a button that
+   goes straight to his inbox rather than a nav item that reveals three links on
+   hover. The three links have not been lost: the footer carries LinkedIn,
+   Instagram and Email in the same order on every page, which is where the panel's
+   own round-10 note already said the destination lived.
 
-     MOUSE     hovering the wrapper opens it after OPEN_DELAY and closes it
-               after CLOSE_DELAY. Both delays matter. The open delay is what
-               stops the menu springing at you when the pointer merely crosses
-               the item on its way somewhere else -- the same abruptness he
-               objected to once already. The close delay is what lets you cross
-               the gap between the label and the panel without it vanishing.
-               Gated on (hover:hover) and (pointer:fine): on touch, mouseenter
-               fires on tap and would open and close in one gesture.
-     KEYBOARD  focus entering the wrapper opens it, focus leaving closes it, so
-               Tab still walks label -> panel links in DOM order and Escape
-               still closes and returns focus to the label. This survives the
-               caret's deletion only because the wrapper, not the button, was
-               always what was being watched.
-     TOUCH     GONE.  There is no hover and no focus-before-activate on a phone,
-               so tapping the label navigates and the panel never opens. That is
-               the deliberate cost of removing the carets; what it strands is in
-               the round-10 report, not papered over here.
+   ALL OF IT WENT, not just the markup. Deleted here: the mouse open/close delays
+   and their timers, the focusin/focusout pair with its deferred activeElement
+   check, the Escape handler, the touch first-tap-opens branch, the .jbDiscTouch
+   pruning, and the document-level outside-click listener -- ONE PER .jbDisc, so
+   the site ends this change with one fewer document click listener on all nine
+   pages. Deleted with them: the chevron injection above (§0) and the .jbDiscMenu
+   icon-rewrite loop, both of which now have nothing to find.
 
-   aria-expanded moved from the caret to the .jbDiscGo link. It is valid there --
-   role=link supports it -- and it is the only element left that owns the panel.
+   A LISTENER LEFT BOUND TO MARKUP THAT NO LONGER SHIPS IS THE DEFECT, NOT A
+   LEFTOVER. This loop was written to feature-detect off the DOM, so leaving it
+   would have been silent and free -- and that is exactly why it would still be
+   here in a year, with a reader assuming a disclosure exists somewhere because
+   the code that drives one does.
 
-   The MOOD DOCK (#moodbar) is deliberately excluded: it is not a disclosure any
-   more, it is four always-visible buttons under the head, and hero-engine.js
-   still owns its dispatch. It carries no .jbDisc class, so it is not in this
-   list at all -- the id check is kept as a belt-and-braces guard because that
-   file also toggles a class named "open" on it. */
-var DISC_OPEN_DELAY  = 120;   /* pointer must dwell before the panel commits */
-var DISC_CLOSE_DELAY = 260;   /* forgiving enough to cross the gap to the panel */
+   THE aria-* ATTRIBUTES WENT WITH IT, in the markup of all nine pages:
+   aria-haspopup, aria-expanded and aria-controls, plus the #jbContactMenu the
+   last of those pointed at. aria-expanded on a link with nothing to expand is
+   not a leftover either; it is a lie a screen reader reads out loud. */
 
-[].forEach.call(nav.querySelectorAll(".jbDisc"), function(wrap){
-  if(wrap.id === "moodbar") return;                 /* hero-engine's, not ours */
-  var go   = wrap.querySelector(".jbDiscGo");
-  var menu = wrap.querySelector(".jbDiscMenu");
-  if(!go || !menu) return;
-  var openT = 0, closeT = 0;
+/* ── 3a · THE MARK IS THE NAV'S OWN SWITCH ─────────────────────────────────
+   Jayden: "for the logo I want it to act as a collapsible instead of what it
+   does now on all the pages -- it will do a clean animation. Also make sure you
+   are using the apple.md for updating the animations."
 
-  function open(){
-    clearTimeout(openT); clearTimeout(closeT);
-    wrap.classList.add("open"); go.setAttribute("aria-expanded","true");
+   WHAT IT COLLAPSES, AND WHY THAT AND NOT SOMETHING ELSE. It collapses the two
+   zones that are not the mark -- the tab cluster and Contact -- AND the bar's
+   own band and floor with them. Three readings were on the table:
+     · hide only the items    -> a full-width white band with one glyph in it,
+                                 which looks broken rather than collapsed
+     · shrink the bar's height -> --nav-h feeds .wrap's -72px pull-up, the five
+                                 case studies' rail offsets and every
+                                 scroll-margin-top, so the whole page would jump
+     · give the page its top back, which is this one
+   Collapsed, the strip is 72px of nothing with the mark in it, so index.html's
+   sky, play.html's pitch and gradientlab's canvas run to the top of the window
+   and the chrome is genuinely out of the way. THE MARK DOES NOT MOVE: the
+   wrapper keeps its height and its padding in both states, so the control the
+   finger is on is byte-identical before and after, which is the one thing a
+   toggle must never get wrong.
+
+   WHAT IT REPLACES. On index.html the mark was a <button> that did nothing at
+   all in this file (hero-engine.js winks the head at it, and that still works --
+   the two listeners do not know about each other). On about.html and play.html
+   it was an <a href="index.html">, i.e. "go home" on a page that already carries
+   "Work -> index.html" in the same bar, so nothing is stranded. The five case
+   studies and headmaker/gradientlab carry a Back arrow in that slot and no mark
+   at all, so they have no switch -- the collapsible exists exactly where the
+   logo does.
+
+   IT COMMITS ON CLICK, NOT ON POINTERDOWN, AND THE TABS DO THE OPPOSITE.
+   apple-design.md asks for both and they are not in conflict: §1 wants the
+   RESPONSE on press (that is .ctl:active's scale, which already fires on
+   pointerdown and is untouched here), and §10 wants a tap COMMITTED on release
+   so it can be cancelled by dragging away. A disclosure is a tap. A segmented
+   control is not -- its selection tracks the finger from the moment it lands,
+   which is why index.html's tab row activates on pointerdown and this does not.
+
+   INTERRUPTIBILITY IS THE POINT (apple-design.md §3, "the single most important
+   principle"). Every property that moves here is a CSS TRANSITION on opacity,
+   transform, background-color and box-shadow, and a transition re-targets from
+   the PRESENTATION value by construction: grab the mark 80ms into a collapse and
+   the bar expands from the 40%-faded state it had actually reached, not from
+   zero. That is why none of this is a @keyframes animation, which would restart
+   from its own 0% frame and jump. Nothing is locked out while it plays -- there
+   is no in-flight flag here, and there deliberately is not one.
+   `visibility` is the one property that cannot interpolate, so it is delayed on
+   the way out and immediate on the way in (header.css) -- the same construction
+   the Contact panel used, kept because it is the only way to take a hidden nav
+   out of the tab order without display:none, which would hard-swap. */
+if(home && home.tagName === "BUTTON"){
+  var navOpen = true;
+  function setNavOpen(open){
+    navOpen = !!open;
+    root.classList.toggle("jbNavShut", !navOpen);
+    home.setAttribute("aria-expanded", navOpen ? "true" : "false");
   }
-  function close(){
-    clearTimeout(openT); clearTimeout(closeT);
-    wrap.classList.remove("open"); go.setAttribute("aria-expanded","false");
-  }
-  function isOpen(){ return wrap.classList.contains("open"); }
-
-  /* keyboard: reaching any part of the control opens it, leaving closes it.
-     focusout fires before focusin on the new target, so the check is deferred
-     one tick -- otherwise tabbing from the label INTO the panel closes it. */
-  wrap.addEventListener("focusin", open);
-  wrap.addEventListener("focusout", function(){
-    setTimeout(function(){ if(!wrap.contains(document.activeElement)) close(); }, 0);
+  home.addEventListener("click", function(){ setNavOpen(!navOpen); });
+  /* Escape re-opens it rather than closing it, because closed is the state a
+     visitor can get stuck in: the nav is the way out of every page. */
+  document.addEventListener("keydown", function(e){
+    if(e.key === "Escape" && !navOpen) setNavOpen(true);
   });
-  wrap.addEventListener("keydown", function(e){
-    if(e.key !== "Escape" || !isOpen()) return;
-    e.stopPropagation(); close(); go.focus();
-  });
-
-  /* TOUCH: the first tap OPENS, it does not navigate. There is no hover on a
-     phone and there is no caret any more, so a trigger that navigated on tap
-     would make its own panel unreachable. The destination is not lost -- the
-     panel's first row (.jbDiscTouch, display:none anywhere hover exists) is a
-     real <a href> to the same URL. Standard for a nav item that is both a place
-     and a group, and it adds no glyph to the bar.
-     Bound on (hover:none) rather than on a width, because the thing that
-     decides this is the input device and not the viewport. */
-  /* Belt and braces on the destination row. It is display:none outside
-     (hover:none) in CSS, but a stale stylesheet would leave a second "Play" and
-     a second "Contact" visible in the panel -- which is exactly what Jayden saw.
-     Where the trigger itself navigates, the row has no job, so it is removed
-     from the DOM rather than merely hidden. */
-  if(!(window.matchMedia && matchMedia("(hover:none)").matches)){
-    [].forEach.call(menu.querySelectorAll(".jbDiscTouch"), function(el){ el.remove(); });
-  }
-
-  if(window.matchMedia && matchMedia("(hover:none)").matches){
-    go.addEventListener("click", function(e){
-      if(isOpen()) return;             /* open already: let the row you tapped act */
-      e.preventDefault(); open();
-    });
-  }
-
-  if(window.matchMedia && matchMedia("(hover:hover) and (pointer:fine)").matches){
-    wrap.addEventListener("mouseenter", function(){
-      clearTimeout(closeT);
-      if(!isOpen()) openT = setTimeout(open, DISC_OPEN_DELAY);
-    });
-    wrap.addEventListener("mouseleave", function(){
-      clearTimeout(openT);
-      closeT = setTimeout(function(){
-        if(!wrap.matches(":hover") && !wrap.contains(document.activeElement)) close();
-      }, DISC_CLOSE_DELAY);
-    });
-  }
-
-  document.addEventListener("click", function(e){
-    if(isOpen() && !wrap.contains(e.target)) close();
-  });
-});
+}
 
 /* ── 3b · THE TRAVELLING ACTIVE INDICATOR ──────────────────────────────────
    ONE element moved by transform, not a background on each item -- which is the

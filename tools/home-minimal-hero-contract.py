@@ -96,6 +96,31 @@ def static_contract():
     assert '<h1 id="h1">SF product designer. iOS, B2C and design systems.</h1>' in hero
 
 
+# WHAT THIS PROBE ASSERTS, AND WHY IT STOPPED NAMING .jbNav.  2026-08-19.
+# The behaviour under test is unchanged and is real: the header must sit on an
+# OPAQUE ground, so a headline scrolling under it cannot ghost through. What
+# changed is which box paints that ground. The bar used to be a floating pill and
+# painted its own; it is a full-bleed band with a floor now (header.css §0b) and
+# the ground is on .jbStick, so `getComputedStyle('.jbNav').backgroundColor`
+# started returning rgba(0,0,0,0) and the gate failed a page that is MORE opaque
+# than the one it was written against.
+# Reading one fixed selector was the weakness. This walks UP from the nav's own
+# label box to the first ancestor that actually paints something, which is what
+# "is there an opaque ground behind this text" really means -- and it keeps
+# failing if the ground is deleted anywhere in that chain, which is the bug worth
+# catching. Verified to fail: forcing .jbStick and .jbNav both transparent makes
+# it return rgba(0,0,0,0) and the assertion below trips.
+PAINTED_GROUND = """['.jbNav','#heroTimeBtn'].map(function(selector){
+  var node = document.querySelector(selector);
+  while(node){
+    var c = getComputedStyle(node).backgroundColor;
+    if(c && c !== 'transparent' && !/,\\s*0\\)$/.test(c)) return c;
+    node = node.parentElement;
+  }
+  return 'rgba(0, 0, 0, 0)';
+})"""
+
+
 def browser_contract(base_url):
     SHOTS.mkdir(parents=True, exist_ok=True)
     with sync_playwright() as playwright:
@@ -226,7 +251,7 @@ def browser_contract(base_url):
             page.wait_for_timeout(700)
             off_geometry = page.locator("#main").bounding_box()
             off_surfaces = page.evaluate(
-                """['.jbNav','#heroTimeBtn'].map(selector => getComputedStyle(document.querySelector(selector)).backgroundColor)"""
+                PAINTED_GROUND
             )
             assert all(not color.startswith("rgba(") or not color.endswith(", 0)") for color in off_surfaces), off_surfaces
             assert not page.evaluate("document.documentElement.scrollWidth > document.documentElement.clientWidth")
@@ -242,7 +267,7 @@ def browser_contract(base_url):
             page.wait_for_timeout(700)
             night_geometry = page.locator("#main").bounding_box()
             night_surfaces = page.evaluate(
-                """['.jbNav','#heroTimeBtn'].map(selector => getComputedStyle(document.querySelector(selector)).backgroundColor)"""
+                PAINTED_GROUND
             )
             assert all(not color.startswith("rgba(") or not color.endswith(", 0)") for color in night_surfaces), night_surfaces
             assert not page.evaluate("document.documentElement.scrollWidth > document.documentElement.clientWidth")

@@ -529,7 +529,15 @@
     translucency, and this needs neither -- the active tab says where you are.
     Scoped to .cases so the other collections on this site are untouched. */
  background:none;
- box-shadow:none
+ box-shadow:none;
+ /* AND NO RADIUS, WHICH IS WHAT LETS THE SECTION RULE BE A STRAIGHT LINE.
+    With the ground and the rim both off, --radius-container was doing exactly one
+    thing: clipping. Its 28px arcs are what forced the content pane's
+    padding-bottom compensation, and the moment the work section gained a rule
+    along its top edge (index.html, .csTabs) those same arcs would have bent the
+    line's last 28px at each end into a curve -- the .tvTab.on swoosh bug, in a
+    new place. A box with no fill and no edge has no corners to round. */
+ border-radius:0
 }
 .collection__tabs{
  box-sizing:border-box;display:flex;gap:var(--gap-item);padding:var(--surface-inset);
@@ -598,7 +606,52 @@
 .collection .tvFrame{border-radius:0!important;box-shadow:none!important}
 .cases.collection .csFrame{border-radius:var(--radius-media)!important;box-shadow:var(--surface-rim)!important}
 .cases.collection .csFrame>img{border-radius:inherit!important;box-shadow:none!important}
-.cases.collection .collection__tabs>.ctl--tab{flex:1 1 0;min-width:0;padding-inline:var(--surface-inset)}
+/* ── THE TAB ROW IS A SEGMENTED CONTROL, NOT THREE LINKS.  2026-08-19 ───────
+   Jayden: "featured, case studies, Extras tabs need to be remade -- they feel
+   too large, too not like tabs, too not apple with the way they are interacted
+   with."
+
+   MEASURED BEFORE, index.html at 1440: `flex:1 1 0` gave each tab a 389.3px cell
+   in a 1200px row, every label 16px at weight 600, and NO indicator on screen at
+   all -- index.html's per-tab underline and this file's travelling one had each
+   been switched off with a display:none, so the selected tab differed from its
+   neighbours by ink alone. Three 389px cells of centred bold type is not a tab
+   row; it is a headline set three times.
+
+   FOUR CHANGES AND THEY ARE ALL SUBTRACTION EXCEPT THE LAST.
+   · The cells stop stretching. A tab hugs its label, so the three sit together
+     as one object with the row's empty space AFTER them, which is what makes a
+     group read as a group.
+   · They start on the column's own left edge. .csTabs, .csFrame, .jbNav and
+     .footTop all live on 120->1320 at 1440 and 16->374 at 390; the row was the
+     one thing inset 8px off it by --surface-inset, and a control row that starts
+     8px inboard of the picture under it is the exact "nothing is on a grid" tell.
+   · The type drops from 16px/600 to --fs-nav 14px, and only the SELECTED tab is
+     600. That is the bar's own metric for an item in a horizontal row of
+     controls, so the tab row and the nav row now agree.
+   · The one addition is the indicator, revived below.
+   The 44px target is untouched: .ctl's min-height still governs, and the labels
+   only lost padding they did not need. */
+.cases.collection .collection__tabs>.ctl--tab{
+  flex:0 0 auto;min-width:0;padding-inline:var(--sp-12);font-size:var(--fs-nav)
+}
+/* the first label's ink starts ON the column edge rather than one padding step
+   inboard of it. Free to do because these tabs take no hover ground (below), so
+   there is no fill to look lopsided against the missing padding. */
+.cases.collection .collection__tabs>.ctl--tab:first-child{padding-inline-start:0}
+.cases.collection .collection__tabs{
+  padding-inline:0;gap:var(--sp-2);justify-content:flex-start;align-items:center;
+  /* THE AIR AROUND THE ROW, and it has to be declared here rather than in
+     index.html: `.collection__tabs{padding:var(--surface-inset)}` above is a
+     SHORTHAND at (0,1,0) in a file that links after index.html's own <style>, so
+     a padding-block written there loses the tie and never runs.
+     16 above, 8 below. Above, because the section's rule is drawn on this box's
+     top edge and a line 8px off its own labels reads as their underline rather
+     than as the section's opening. Below, because the travelling indicator sits
+     at the row's baseline and the first cover butts it -- 8px is what keeps the
+     selected tab, the line and the top of the picture one vertical stack. */
+  padding-block:var(--sp-16) var(--sp-8)
+}
 /* ── THE TAB ROW SEPARATES WITH ITS HAIRLINE, NOT WITH A FILL ────────────────
    Jayden, on a dark-mode screenshot of the home page: "i dont know why the tabs
    have a differnt background color it should all be aligned with the design
@@ -618,7 +671,28 @@
    need its own ground to stay legible; that is a separate judgement on a
    separate screen and is not measured here. */
 .cases.collection .collection__tabs{background:transparent}
-.collection__tabs .csTabInk{display:none}
+/* ── THE INDICATOR TRAVELS, AND IT IS THE ONE THAT WAS ALREADY BUILT ────────
+   Two marks shipped and both were switched off. This turns the RIGHT one back
+   on and leaves the other dead, because they cannot both be right: the .ctl--tab
+   pseudo is a per-tab underline that can only appear and disappear, and .csTabInk
+   is a single element index.html already measures and moves with a transform.
+   apple-design.md is unambiguous about which one a selection wants -- it should
+   MOVE rather than cut -- and only one of the two can move. It is the same
+   construction the nav bar's .jbInk uses, so the site has one travelling-indicator
+   pattern rather than two.
+   THE SWOOSH BUG CANNOT HAPPEN HERE for the same reason it cannot happen in the
+   bar: this is a separate box, not a border-bottom on a radiused element, so the
+   radius has nothing to bend. */
+.collection__tabs .csTabInk{display:block}
+.cases.collection .collection__tabs>.ctl--tab::after{content:none}
+/* NO HOVER GROUND ON A CONTENT TAB, and this is the site's existing rule rather
+   than a new one. header.css states it in as many words: "the site at TWO hover
+   languages -- the pill on nav tabs, ink-and-weight everywhere else, which is
+   what the content tabs and prose links already do". The base .ctl--tab rule
+   above was the third language, and it is the one that has to go: a fill under a
+   tab in a row whose selected member is marked by a LINE makes hover louder than
+   selection on the axis that matters. */
+.cases.collection .collection__tabs>.ctl--tab:hover:not([aria-selected="true"]){background:none}
 .media{
  box-sizing:border-box;width:100%;overflow:hidden;border-radius:var(--radius-media);
  corner-shape:var(--corner);background:var(--surface-ground);box-shadow:var(--surface-rim)

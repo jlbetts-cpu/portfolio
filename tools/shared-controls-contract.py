@@ -44,10 +44,18 @@ def compact(value):
     return re.sub(r"\s+", "", value)
 
 
-def rule(source, selector):
-    match = re.search(re.escape(selector) + r"\s*\{([^}]*)\}", source, re.S)
-    assert match, selector
-    return compact(match.group(1))
+def rule(source, selector, occurrence=0):
+    # ANCHORED AT A RULE BOUNDARY, 2026-08-19, because the unanchored version read
+    # the wrong block and reported a false failure. header.css gained
+    # `.jbStick:not(.isFixed) .jbNav{...}` ABOVE the component's own `.jbNav{...}`,
+    # and a bare substring search for ".jbNav{" found the descendant rule first --
+    # so the gate asserted against a three-declaration override and said the
+    # header had lost its material. The selector must START a rule (i.e. follow a
+    # `}`, a `/`-comment close, or the top of the file) for the match to count.
+    pattern = r"(?:^|[}\n])\s*" + re.escape(selector) + r"\s*\{([^}]*)\}"
+    matches = list(re.finditer(pattern, source, re.S))
+    assert len(matches) > occurrence, (selector, len(matches))
+    return compact(matches[occurrence].group(1))
 
 
 def main():

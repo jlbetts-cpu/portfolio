@@ -274,7 +274,39 @@ def grabbable_mid_flight(page, width, height, failures):
         page.evaluate(RECORD)
         here = page.locator("#heroHeadSelection").bounding_box()
         assert here, "the selection left the screen, so there is nothing to press"
-        page.mouse.move(here["x"] + here["width"] / 2, here["y"] + here["height"] / 2)
+        # PRESS SOMETHING A FINGER COULD ACTUALLY PRESS.  2026-08-19.
+        # The head returning from the TOP bound spends the first ~200ms of its
+        # flight with its selection centre inside the sticky header's strip --
+        # measured at 390x844, centre y 80.1 against a 72px bar, and lower still
+        # on a slower frame. That was harmless while the bar was a pill that let
+        # clicks through; it is not now the bar is an opaque full-bleed band
+        # (header.css §0b), because an opaque band must not pass taps to what it
+        # is covering. The head under it is INVISIBLE, so a press there is a press
+        # nobody can make, and the gate was measuring the settle rather than the
+        # grab: it reported movedBy 1.63-3.15 for a 1px finger move, which is the
+        # head continuing to fly, not the head being held.
+        # This is a strengthening, not a relaxation. The press is pushed clear of
+        # whatever chrome is over the head and then PROVEN to land on the
+        # selection with elementFromPoint, so a build where the head genuinely
+        # becomes ungrabbable still fails here -- which the old centre-aimed press
+        # could not tell apart from a build where it was merely covered.
+        chrome = page.evaluate(
+            "() => {const s=document.querySelector('.jbStick');"
+            "if(!s) return 0;const b=s.getBoundingClientRect();"
+            "return getComputedStyle(s).pointerEvents === 'none' ? 0 : b.bottom;}")
+        px = here["x"] + here["width"] / 2
+        py = min(max(here["y"] + here["height"] / 2, chrome + 4),
+                 here["y"] + here["height"] - 4)
+        landed = page.evaluate(
+            "([x,y]) => {const e=document.elementFromPoint(x,y);"
+            "return !!(e && e.closest && e.closest('#heroHeadSelection'));}", [px, py])
+        record(failures, landed,
+               "%dx%d the head can be pressed where it is drawn %dms after release"
+               % (width, height, delay), {"x": round(px, 1), "y": round(py, 1),
+                                          "chromeBottom": chrome})
+        if not landed:
+            continue
+        page.mouse.move(px, py)
         settling = page.evaluate(STATE)["settling"]
         page.mouse.down()
         page.wait_for_timeout(120)
@@ -285,8 +317,7 @@ def grabbable_mid_flight(page, width, height, failures):
         PAINTED_Y = ("() => new DOMMatrix(getComputedStyle("
                      "document.querySelector('#heroHeadTransform')).transform).f")
         at_press = page.evaluate(PAINTED_Y)
-        page.mouse.move(here["x"] + here["width"] / 2,
-                        here["y"] + here["height"] / 2 + 1)
+        page.mouse.move(px, py + 1)
         page.wait_for_timeout(60)
         after = page.evaluate(PAINTED_Y)
         page.mouse.up()

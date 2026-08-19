@@ -91,7 +91,8 @@ html.softScrolling{scroll-behavior:auto}
 *{box-sizing:border-box;margin:0;padding:0}
 @media(max-width:760px){
  .moodBtn{padding:12px 16px;font-size:var(--fs-body)}
- .csTab{font-size:var(--fs-small)}
+ /* the tab's size is controls.css's (--fs-nav, .cases.collection scope): one
+    declaration, not one here and one there. */
 }
 html{overflow-x:clip}
 body{background:var(--c50);color:var(--c950);font-family:var(--sans);-webkit-font-smoothing:antialiased;overflow-x:clip}
@@ -609,14 +610,56 @@ body.heroEmpathy .jbStick .jbNav{--nav-mat:var(--ctl-ground);--nav-rim:var(--ctl
 .collection__content .csItem:first-child :is(.csImg,.cover,img){
  border-top-left-radius:0;border-top-right-radius:0
 }
-.csTabs{display:flex;flex-wrap:wrap;align-items:flex-end;
- margin:0 auto;position:relative}
-.csTab{position:relative;background:none;border:0;padding:0 0 var(--sp-12);margin:0;font:inherit;font-family:var(--sans);font-weight:600;font-size:var(--fs-small);letter-spacing:.01em;text-transform:none;color:var(--c500);cursor:pointer;transition:color var(--dur-state-out) var(--ease-out);}
+/* ── THE WORK SECTION'S RULE.  ONE LINE, AND IT NAMES WHAT IT SEPARATES ─────
+   Jayden: "the header, for instance, instead of a pill we can do a line across
+   the bottom -- lines separating sections. Adding structure I feel like will add
+   a whole lot more depth."
+   THIS IS THE SECOND OF THREE LINES ON THE PAGE and the only new one below the
+   bar. Header floor = chrome | page. THIS = hero | the work. Footer top rule =
+   page | footer (footer.css already draws it). Nothing else got one, and the
+   test each candidate had to pass was whether it could name two things it stands
+   between; a rule under the tab row failed it -- the cover butts that edge, so
+   the line would have been drawn on top of a photograph and separated the tabs
+   from nothing.
+   IT SPANS THE COLUMN, NOT THE VIEWPORT, and that is the half that makes it read
+   as a grid rather than as decoration. Measured at 1440 it runs 120 -> 1320:
+   the same two x values as the nav's contents above it, the first cover below
+   it and the footer's rule at the end of the page. At 390 all four are 16 -> 374.
+   A rule that stops short of the content it introduces announces that nothing is
+   on a grid; this one shares both edges with three other things.
+   IT IS A HAIRLINE. The companion heads cast the only shadow on this site. */
+.csTabs{display:flex;flex-wrap:wrap;align-items:center;
+ margin:0 auto;position:relative;
+ border-top:var(--rule-w) solid var(--rule)}
+/* THE ROW'S BLOCK PADDING IS controls.css's, and a copy here would be dead.
+   .collection__tabs{padding:var(--surface-inset)} is a SHORTHAND at (0,1,0) in a
+   file that links after this one, so a `padding-block` written here loses the tie
+   and never runs -- the same class of unwinnable declaration this stylesheet
+   already removed once from the tab row's gap. The air above the rule and below
+   the labels is set in controls.css, in the .cases.collection scope, where it
+   can win. */
+/* ── THE TAB ITSELF ────────────────────────────────────────────────────────
+   Geometry, size and the hug are controls.css's (.cases.collection scope); what
+   is left here is the ink and the weight. REST IS 400, SELECTED IS 600 -- the
+   row used to set 600 on all three, which is why "too large" was as much about
+   weight as about the 389px cells. Hover moves ink only, which is the site's
+   language for everything that is not a nav tab. */
+.csTab{position:relative;background:none;border:0;margin:0;font:inherit;font-family:var(--sans);font-weight:400;letter-spacing:var(--tr-body);text-transform:none;color:var(--c500);cursor:pointer;transition:color var(--dur-state-out) var(--ease-out);}
 .csTab:hover{color:var(--c950)}
-.csTab.on{color:var(--c950)}
-.csTab::after{display:none}
-.csTab.on::after{transform:scaleX(1)}
-.csTabInk{position:absolute;bottom:0;left:0;height:var(--focus-w);width:0;background:var(--c950);transform:translate(0,0);transition:transform var(--dur-reveal) var(--ease-out),width var(--dur-reveal) var(--ease-out);pointer-events:none}
+.csTab.on{color:var(--c950);font-weight:600}
+/* ── THE TRAVELLING UNDERLINE ──────────────────────────────────────────────
+   It moves on --sp-settle, the site's own critically-damped spring curve, at its
+   bound 360ms -- a rung, not a new duration. apple-design.md's rule for a
+   selection is that it should travel rather than cut, and that the travel must be
+   interruptible: a CSS transition on transform/width re-targets from the
+   PRESENTATION value by construction, so a second tab picked mid-slide is picked
+   up from wherever the line has actually reached rather than jumping to the old
+   target first. `width` is not compositor-friendly, and it is 2px tall and moves
+   once per click, which is the trade being made knowingly.
+   It sits at the row's baseline -- bottom:0 -- so the selected tab, the line and
+   the top edge of the cover under it are one vertical stack. */
+.csTabInk{position:absolute;bottom:0;left:0;height:var(--focus-w);width:0;background:var(--c950);transform:translate(0,0);transition:transform var(--sp-settle-dur) var(--sp-settle),width var(--sp-settle-dur) var(--sp-settle);pointer-events:none}
+@media(prefers-reduced-motion:reduce){.csTabInk{transition:none}}
 /* panels: only the active one occupies flow */
 .csPanel{display:none}
 .csPanel.on{display:block;animation:csPanelIn .42s var(--ease-out)}
@@ -1024,7 +1067,8 @@ body.heroEmpathy .jbStick .jbNav{--nav-mat:var(--ctl-ground);--nav-rim:var(--ctl
 .aboutCta{border:1px solid var(--c100);border-radius:4px;background:var(--c50);color:var(--c950);padding:8px 16px;font-family:var(--sans);font-weight:400;font-size:var(--fs-body);line-height:1;transition:border-color var(--dur-state) var(--ease-out),color var(--dur-state) var(--ease-out)}.moodItem{display:flex;align-items:center;gap:12px;width:100%;padding:8px 12px;border-radius:4px;font-family:var(--sans);font-weight:400;font-size:var(--fs-body);color:var(--c950);background:none;border:0;cursor:pointer;text-align:left;transition:background-color var(--dur-state) var(--ease-out),color var(--dur-state) var(--ease-out)}.moodIco{position:relative;display:inline-block;width:18px;height:18px;flex:0 0 18px;font-size:18px}.moodMenu .moodIco{width:18px!important;height:18px!important;flex:0 0 18px!important;margin:0!important;transform:none!important;vertical-align:middle!important}
 .moodMenu .moodIco::before,.moodMenu .moodIco::after{background-size:contain!important;background-position:center!important}
 /* heads and the "Show on home" switch are ONE group, not two -- no rule between them */
-.moodMenu .mhBar{border-top:0;padding-top:0}.faceMoodCorner{position:absolute;right:-14px;bottom:clamp(40px,10vw,108px);z-index:46}.faceMoodCorner .moodBtn{padding:8px 12px 8px 16px;border-radius:4px;background:var(--c50);border:1px solid var(--c100);display:inline-flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;font-family:var(--sans);font-weight:400;font-size:var(--fs-body);color:var(--c950);line-height:1;white-space:nowrap;opacity:1;transition:border-color var(--dur-state) var(--ease-out),color var(--dur-state) var(--ease-out)}.faceMoodCorner .moodBtn:hover{border-color:var(--c500);color:var(--c950)}.faceMoodCorner .moodLbl{position:static;width:auto;height:auto;overflow:visible;clip:auto;white-space:nowrap}.faceMoodIco{width:20px;height:20px;display:block;color:var(--c700);transition:color var(--dur-state)}.faceMoodCorner .moodBtn:hover .faceMoodIco{color:var(--c950)}.faceMoodCorner .moodMenu{position:absolute;width:212px;min-width:0;background:var(--c50);border:1px solid var(--c100);border-radius:4px;padding:8px;top:auto;bottom:calc(100% + 12px);left:auto;right:0;transform:translateY(6px);opacity:0;visibility:hidden;transition:opacity var(--dur-state) var(--ease-out),transform var(--dur-state) var(--ease-out),visibility 0s var(--dur-state)}.faceMoodCorner .moodbar.open .moodMenu{opacity:1;visibility:visible;transition:opacity var(--dur-state) var(--ease-out),transform var(--dur-state) var(--ease-out)}.faceMoodCorner .moodbar.open .moodMenu{transform:translateY(0)!important}@media(max-width:768px){.csTab{padding-top:8px;padding-bottom:16px}}/* the <=768 copy of the inline-link target stood here; it is unconditional now */.reelMeta{width:min(1200px,calc(100vw - 80px));display:flex;align-items:baseline;justify-content:space-between;gap:24px;margin-top:12px;opacity:var(--reelMetaOp,1);transition:opacity var(--dur-state) var(--ease-out);will-change:opacity}.reelMeta .csName{}.reelMeta .csYear{}.reelFrame.isFull{position:fixed;inset:0;width:100vw;height:100vh;max-width:none;aspect-ratio:auto;transform:none!important;border-radius:0;margin:0;z-index:40;transition:width var(--dur-state) var(--ease-out),height var(--dur-state) var(--ease-out)}@media(max-width:760px){.faceMoodCorner{right:-11px!important;left:auto;bottom:auto;top:100%;transform:translateY(16px)}body.moodInCta .faceMoodCorner .moodMenu,.faceMoodCorner .moodMenu{top:calc(100% + 10px)!important;bottom:auto!important;left:auto!important;right:0!important;width:min(220px,calc(100vw - 28px))!important;max-height:min(370px,68vh)!important;overflow-y:auto;-webkit-overflow-scrolling:touch;margin-left:0}.faceMoodCorner .moodLbl{opacity:1!important;transform:none!important}body.moodInCta .faceMoodCorner .moodCar{opacity:1!important;transform:rotate(180deg)!important;transition:transform .32s cubic-bezier(.34,1.4,.5,1),color var(--dur-state) var(--ease-out)}.faceMoodCorner .moodBtn{border-color:var(--c100)!important;background:var(--c50)!important}}.faceMoodCorner .moodBtn:hover .moodCar,.faceMoodCorner .moodbar.open .moodCar{color:var(--c700)}@media(min-width:761px){.faceMoodCorner .moodBtn{position:relative;border-color:transparent;background:transparent;transition:border-color var(--dur-enter) cubic-bezier(.22,.61,.36,1),background-color var(--dur-enter) cubic-bezier(.22,.61,.36,1)}.faceMoodCorner .moodLbl,.faceMoodCorner .moodCar{opacity:0;transform:translateY(4px) scale(.985);transition:opacity .28s cubic-bezier(.22,.61,.36,1),transform .28s cubic-bezier(.22,.61,.36,1)}body.moodNear .faceMoodCorner .moodBtn,.faceMoodCorner:hover .moodBtn,.moodbar.open .moodBtn{border-color:var(--c100);background:var(--c50)}body.moodNear .faceMoodCorner .moodLbl,.faceMoodCorner:hover .moodLbl,.moodbar.open .moodLbl,body.moodNear .faceMoodCorner .moodCar,.faceMoodCorner:hover .moodCar,.moodbar.open .moodCar{opacity:1;transform:translateY(0) scale(1);transition:opacity var(--dur-enter) cubic-bezier(.22,.61,.36,1) .12s,transform .55s cubic-bezier(.22,.61,.36,1) .12s}}@media(max-width:760px){.faceMoodCorner{opacity:1!important;visibility:visible!important}}.moodMenu .moodItem:hover{color:var(--c950)}.moodSep{height:1px;background:var(--c100);margin:8px 4px 8px}.moodGo{display:flex;align-items:center;gap:12px;width:100%;padding:12px 16px;border:0;border-radius:4px;background:none;color:var(--c950);font-family:var(--sans);font-weight:400;font-size:var(--fs-small);line-height:var(--lh-head);text-decoration:none;transition:background-color var(--dur-state) var(--ease-out)}.moodMenu .moodGo{color:var(--c950)}
+.moodMenu .mhBar{border-top:0;padding-top:0}.faceMoodCorner{position:absolute;right:-14px;bottom:clamp(40px,10vw,108px);z-index:46}.faceMoodCorner .moodBtn{padding:8px 12px 8px 16px;border-radius:4px;background:var(--c50);border:1px solid var(--c100);display:inline-flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;font-family:var(--sans);font-weight:400;font-size:var(--fs-body);color:var(--c950);line-height:1;white-space:nowrap;opacity:1;transition:border-color var(--dur-state) var(--ease-out),color var(--dur-state) var(--ease-out)}.faceMoodCorner .moodBtn:hover{border-color:var(--c500);color:var(--c950)}.faceMoodCorner .moodLbl{position:static;width:auto;height:auto;overflow:visible;clip:auto;white-space:nowrap}.faceMoodIco{width:20px;height:20px;display:block;color:var(--c700);transition:color var(--dur-state)}.faceMoodCorner .moodBtn:hover .faceMoodIco{color:var(--c950)}.faceMoodCorner .moodMenu{position:absolute;width:212px;min-width:0;background:var(--c50);border:1px solid var(--c100);border-radius:4px;padding:8px;top:auto;bottom:calc(100% + 12px);left:auto;right:0;transform:translateY(6px);opacity:0;visibility:hidden;transition:opacity var(--dur-state) var(--ease-out),transform var(--dur-state) var(--ease-out),visibility 0s var(--dur-state)}.faceMoodCorner .moodbar.open .moodMenu{opacity:1;visibility:visible;transition:opacity var(--dur-state) var(--ease-out),transform var(--dur-state) var(--ease-out)}.faceMoodCorner .moodbar.open .moodMenu{transform:translateY(0)!important}/* the <=768 padding fork is gone with the row's padding-bottom: the tab is a
+   44px control at every width now and its block padding comes from .ctl. *//* the <=768 copy of the inline-link target stood here; it is unconditional now */.reelMeta{width:min(1200px,calc(100vw - 80px));display:flex;align-items:baseline;justify-content:space-between;gap:24px;margin-top:12px;opacity:var(--reelMetaOp,1);transition:opacity var(--dur-state) var(--ease-out);will-change:opacity}.reelMeta .csName{}.reelMeta .csYear{}.reelFrame.isFull{position:fixed;inset:0;width:100vw;height:100vh;max-width:none;aspect-ratio:auto;transform:none!important;border-radius:0;margin:0;z-index:40;transition:width var(--dur-state) var(--ease-out),height var(--dur-state) var(--ease-out)}@media(max-width:760px){.faceMoodCorner{right:-11px!important;left:auto;bottom:auto;top:100%;transform:translateY(16px)}body.moodInCta .faceMoodCorner .moodMenu,.faceMoodCorner .moodMenu{top:calc(100% + 10px)!important;bottom:auto!important;left:auto!important;right:0!important;width:min(220px,calc(100vw - 28px))!important;max-height:min(370px,68vh)!important;overflow-y:auto;-webkit-overflow-scrolling:touch;margin-left:0}.faceMoodCorner .moodLbl{opacity:1!important;transform:none!important}body.moodInCta .faceMoodCorner .moodCar{opacity:1!important;transform:rotate(180deg)!important;transition:transform .32s cubic-bezier(.34,1.4,.5,1),color var(--dur-state) var(--ease-out)}.faceMoodCorner .moodBtn{border-color:var(--c100)!important;background:var(--c50)!important}}.faceMoodCorner .moodBtn:hover .moodCar,.faceMoodCorner .moodbar.open .moodCar{color:var(--c700)}@media(min-width:761px){.faceMoodCorner .moodBtn{position:relative;border-color:transparent;background:transparent;transition:border-color var(--dur-enter) cubic-bezier(.22,.61,.36,1),background-color var(--dur-enter) cubic-bezier(.22,.61,.36,1)}.faceMoodCorner .moodLbl,.faceMoodCorner .moodCar{opacity:0;transform:translateY(4px) scale(.985);transition:opacity .28s cubic-bezier(.22,.61,.36,1),transform .28s cubic-bezier(.22,.61,.36,1)}body.moodNear .faceMoodCorner .moodBtn,.faceMoodCorner:hover .moodBtn,.moodbar.open .moodBtn{border-color:var(--c100);background:var(--c50)}body.moodNear .faceMoodCorner .moodLbl,.faceMoodCorner:hover .moodLbl,.moodbar.open .moodLbl,body.moodNear .faceMoodCorner .moodCar,.faceMoodCorner:hover .moodCar,.moodbar.open .moodCar{opacity:1;transform:translateY(0) scale(1);transition:opacity var(--dur-enter) cubic-bezier(.22,.61,.36,1) .12s,transform .55s cubic-bezier(.22,.61,.36,1) .12s}}@media(max-width:760px){.faceMoodCorner{opacity:1!important;visibility:visible!important}}.moodMenu .moodItem:hover{color:var(--c950)}.moodSep{height:1px;background:var(--c100);margin:8px 4px 8px}.moodGo{display:flex;align-items:center;gap:12px;width:100%;padding:12px 16px;border:0;border-radius:4px;background:none;color:var(--c950);font-family:var(--sans);font-weight:400;font-size:var(--fs-small);line-height:var(--lh-head);text-decoration:none;transition:background-color var(--dur-state) var(--ease-out)}.moodMenu .moodGo{color:var(--c950)}
 .moodGo:hover,.moodGo:focus-visible{color:var(--c950)}.moodGo svg{flex:0 0 18px;width:18px;height:18px;color:currentColor}.aboutCta:hover{border-color:var(--c500);color:var(--c950)}body.moodNear .faceMoodCorner .moodBtn:hover,.faceMoodCorner .moodBtn:hover,.moodbar.open .moodBtn{border-color:var(--c500)!important;color:var(--c950)}@media(min-width:761px){body.moodTeach .faceMoodCorner{opacity:1;visibility:visible;transition:opacity var(--dur-enter) var(--ease-out)}body.moodTeach .faceMoodCorner .moodBtn{border-color:var(--c100);background:var(--c50)}body.moodTeach .faceMoodCorner .moodLbl,body.moodTeach .faceMoodCorner .moodCar{opacity:1;transform:translateX(0)}}.cycw{position:relative}@media(hover:none),(pointer:coarse){}@media(max-width:760px){.faceMoodCorner .moodBtn{min-height:44px}}.csTab{-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}.moodBtn,.aboutCta,.talk,.heroBack,.back{-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}/* keyboard-only focus ring (never triggers on mouse click) */.talk:focus-visible,.aboutCta:focus-visible,.moodBtn:focus-visible,.faceMoodCorner .moodBtn:focus-visible,.moodMenu .moodItem:focus-visible,.csTab:focus-visible,.footIn:focus-visible,.back:focus-visible,.heroBack:focus-visible{outline:2px solid var(--c950);outline-offset:3px;border-radius:var(--r-md)}.talk:focus:not(:focus-visible),.aboutCta:focus:not(:focus-visible),.moodBtn:focus:not(:focus-visible),.faceMoodCorner .moodBtn:focus:not(:focus-visible),.moodMenu .moodItem:focus:not(:focus-visible),.csTab:focus:not(:focus-visible){outline:none}.talk{opacity:1}.reelTrack{height:auto!important}.reelStage{position:static!important}.reelFrame{transform:none!important;border-radius:4px!important;overflow:hidden}/* ---- CENTERED HERO: the type sits over the head on one axis ---- */.hero{grid-template-columns:1fr;justify-items:center;align-content:start;--heroTitleTop:var(--sp-16-40);padding-top:var(--heroTitleTop);min-height:calc(100vh - 68px)}
 /* THE NAME AND AVAILABILITY LINE. Two traps here are recorded rather than
    rediscovered, because the version of this rule that was cut in 704892f hit
@@ -1936,10 +1980,10 @@ if(location.hash==="#about")location.replace("about.html");</script>
 <div class="jbStick">
  <nav class="jbNav ctl-group" aria-label="Primary" data-surface="paper">
   <span class="jbGrp jbGrpL">
-   <button class="jbHome ctl ctl--nav" id="logo" type="button" aria-label="Jayden Betts, home"><svg class="jbLogo" viewBox="0 0 30 30" aria-hidden="true"><path d="M9.38 6.33Q8.81 5.88 8.81 5.22Q8.81 4.56 9.02 4.11Q9.23 3.66 9.64 3.34Q10.5 2.65 12.08 2.65Q13.59 2.65 14.07 3.87Q14.22 4.22 14.22 4.65Q14.22 5.08 13.87 5.48Q13.53 5.88 13.01 6.16Q12.49 6.45 11.89 6.6Q11.29 6.76 10.82 6.76Q10.36 6.76 10.01 6.65Q9.66 6.54 9.38 6.33ZM6.68 20.73Q6.26 22.35 5.92 23.6Q5.57 24.85 5.15 25.72Q4.73 26.58 4.16 27.03Q3.58 27.48 2.86 27.48Q2.15 27.48 1.71 27.32Q1.27 27.16 0.93 26.92Q0.24 26.43 0 25.82Q1.03 25 5.29 16.53Q7.69 11.74 8.78 9.81Q9.23 9.01 9.95 9.01Q10.36 9.01 10.89 9.28Q8.94 13.14 7.63 17.43Q10.21 16.98 12.48 15.01Q13.18 14.4 13.62 13.74Q14.22 13.7 14.22 14.23Q14.22 14.44 13.89 15.23Q13.57 16.01 12.77 17.03Q11.98 18.05 10.99 18.81Q9.06 20.31 6.68 20.73ZM19.4 10.16Q21.18 9.11 22.86 9.11Q25.54 9.11 26.23 11.15Q26.45 11.78 26.45 12.71Q26.45 14.72 24.96 16.86Q26.21 16.68 27.37 15.87Q28.54 15.05 29.4 13.74Q30 13.7 30 14.23Q30 14.44 29.87 14.75Q27.35 20.86 17.63 20.86H17.6Q15.81 20.86 14.64 19.81Q13.37 18.66 13.37 16.59Q13.37 14.05 18.01 7.39Q19.97 4.55 21.37 2.96Q21.75 2.52 22.4 2.52Q23.12 2.52 23.45 3.05Q20.72 7.33 19.4 10.16ZM18.04 13.83Q17.86 14.67 17.86 15.24Q17.86 15.81 18.21 16.2Q18.55 16.59 19.1 16.59Q19.66 16.59 20.23 16.4Q20.8 16.21 21.34 15.88Q21.88 15.54 22.37 15.1Q22.86 14.66 23.24 14.14Q24.03 13.02 24.03 12.03Q24.03 11.39 23.71 11.06Q23.18 10.5 22.53 10.5Q21.87 10.5 21.19 10.78Q20.52 11.05 19.92 11.51Q18.63 12.48 18.04 13.83Z"/></svg></button>
+   <button class="jbHome ctl ctl--nav" id="logo" type="button" aria-label="Jayden Betts" aria-expanded="true" aria-controls="jbNavMid jbNavEnd"><svg class="jbLogo" viewBox="0 0 30 30" aria-hidden="true"><path d="M9.38 6.33Q8.81 5.88 8.81 5.22Q8.81 4.56 9.02 4.11Q9.23 3.66 9.64 3.34Q10.5 2.65 12.08 2.65Q13.59 2.65 14.07 3.87Q14.22 4.22 14.22 4.65Q14.22 5.08 13.87 5.48Q13.53 5.88 13.01 6.16Q12.49 6.45 11.89 6.6Q11.29 6.76 10.82 6.76Q10.36 6.76 10.01 6.65Q9.66 6.54 9.38 6.33ZM6.68 20.73Q6.26 22.35 5.92 23.6Q5.57 24.85 5.15 25.72Q4.73 26.58 4.16 27.03Q3.58 27.48 2.86 27.48Q2.15 27.48 1.71 27.32Q1.27 27.16 0.93 26.92Q0.24 26.43 0 25.82Q1.03 25 5.29 16.53Q7.69 11.74 8.78 9.81Q9.23 9.01 9.95 9.01Q10.36 9.01 10.89 9.28Q8.94 13.14 7.63 17.43Q10.21 16.98 12.48 15.01Q13.18 14.4 13.62 13.74Q14.22 13.7 14.22 14.23Q14.22 14.44 13.89 15.23Q13.57 16.01 12.77 17.03Q11.98 18.05 10.99 18.81Q9.06 20.31 6.68 20.73ZM19.4 10.16Q21.18 9.11 22.86 9.11Q25.54 9.11 26.23 11.15Q26.45 11.78 26.45 12.71Q26.45 14.72 24.96 16.86Q26.21 16.68 27.37 15.87Q28.54 15.05 29.4 13.74Q30 13.7 30 14.23Q30 14.44 29.87 14.75Q27.35 20.86 17.63 20.86H17.6Q15.81 20.86 14.64 19.81Q13.37 18.66 13.37 16.59Q13.37 14.05 18.01 7.39Q19.97 4.55 21.37 2.96Q21.75 2.52 22.4 2.52Q23.12 2.52 23.45 3.05Q20.72 7.33 19.4 10.16ZM18.04 13.83Q17.86 14.67 17.86 15.24Q17.86 15.81 18.21 16.2Q18.55 16.59 19.1 16.59Q19.66 16.59 20.23 16.4Q20.8 16.21 21.34 15.88Q21.88 15.54 22.37 15.1Q22.86 14.66 23.24 14.14Q24.03 13.02 24.03 12.03Q24.03 11.39 23.71 11.06Q23.18 10.5 22.53 10.5Q21.87 10.5 21.19 10.78Q20.52 11.05 19.92 11.51Q18.63 12.48 18.04 13.83Z"/></svg></button>
   </span>
-  <span class="jbGrp jbGrpC">
-   <a class="ctl ctl--nav" data-nav-item="work" href="#cases" aria-label="Work" aria-current="page"><svg class="gIco uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 12h.01"/><path d="M16 6V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><path d="M22 13a18.15 18.15 0 0 1-20 0"/><rect width="20" height="14" x="2" y="6" rx="2"/></svg><span class="jbLbl">Work</span></a>
+  <span class="jbGrp jbGrpC" id="jbNavMid">
+   <a class="ctl ctl--nav" data-nav-item="work" href="index.html" aria-label="Work" aria-current="page"><svg class="gIco uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 12h.01"/><path d="M16 6V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><path d="M22 13a18.15 18.15 0 0 1-20 0"/><rect width="20" height="14" x="2" y="6" rx="2"/></svg><span class="jbLbl">Work</span></a>
    <a class="ctl ctl--nav" data-nav-item="about" href="about.html" aria-label="About"><svg class="gIco uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/></svg><span class="jbLbl">About</span></a>
    <!-- PLAY -- ROUND 10.  A destination that reveals its extras on hover, and NO CARET.
         Jayden: "Play drop down is not same styling" and, on the carets, delete them --
@@ -1958,18 +2002,20 @@ if(location.hash==="#about")location.replace("about.html");</script>
    <a class="ctl ctl--nav" data-nav-item="games" href="play.html" aria-label="Play"><svg class="gIco uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><line x1="6" x2="10" y1="11" y2="11"/><line x1="8" x2="8" y1="9" y2="13"/><line x1="15" x2="15.01" y1="12" y2="12"/><line x1="18" x2="18.01" y1="10" y2="10"/><path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258-.006-.051-.011-.1-.017-.151A4 4 0 0 0 17.32 5z"/></svg><span class="jbLbl">Play</span></a>
    <a class="ctl ctl--nav" data-nav-item="workspace" href="workspace/" aria-label="Workspace"><svg class="gIco uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M2 6h4"/><path d="M2 10h4"/><path d="M2 14h4"/><path d="M2 18h4"/><rect width="16" height="20" x="4" y="2" rx="2"/><path d="M16 2v20"/></svg><span class="jbLbl">Workspace</span></a>
   </span>
-  <span class="jbGrp jbGrpR">
-   <!-- CONTACT -- the same split control as Play, at the other end of the bar
-        (Jayden: "Contact should go to the right, and then it should act like the Play
-        button where it shows other options on hover -- like the various socials").
-        The label navigates, the caret discloses, and the caret is a real button with
-        aria-expanded and its own 44x44 -- because touch has no hover and a tap must
-        never mean two things. header.js owns it on all nine pages.
-        Socials in HIS order: LinkedIn, Instagram, email. -->
-   <span class="jbDisc jbContact">
-    <a class="jbDiscGo ctl ctl--nav" data-nav-item="contact" aria-haspopup="true" aria-expanded="false" aria-controls="jbContactMenu" href="#contact" aria-label="Contact"><svg class="gIco uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg><span class="jbLbl">Contact</span></a>
-    <div class="jbDiscMenu" id="jbContactMenu"><a class="jbDiscTouch" href="#contact"><svg class="gIco uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>Contact</a><div class="jbDiscSep jbDiscTouch" aria-hidden="true"></div><a href="https://www.linkedin.com/in/jaydenbetts" target="_blank" rel="noopener noreferrer"><svg class="gIco uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M8 11v5M8 8v.01M12 16v-5M16 16v-3a2 2 0 0 0-4 0"/><path d="M3 7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4v10a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4z"/></svg>LinkedIn</a><a href="https://www.instagram.com/jaydenleebetts" target="_blank" rel="noopener noreferrer"><svg class="gIco uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect width="16" height="16" x="4" y="4" rx="4"/><circle cx="12" cy="12" r="3"/><line x1="16.5" x2="16.51" y1="7.5" y2="7.5"/></svg>Instagram</a><a href="mailto:jaydenlbetts@gmail.com"><svg class="gIco uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>Email</a></div>
-   </span>
+  <span class="jbGrp jbGrpR" id="jbNavEnd">
+   <!-- CONTACT -- a button to his inbox, and NOT the primary action.  2026-08-19.
+        Jayden asked for a Contact that is noticeable but does not compete with the
+        hero's "View work"; .ctl--secondary is that kind in this system, and it is
+        the same treatment as the sun button beside it.
+        WHAT WENT WITH THE DROPDOWN: the .jbDisc wrapper, #jbContactMenu and its
+        three rows, aria-haspopup / aria-expanded / aria-controls, the chevron, and
+        header.js's whole disclosure block -- a listener bound to markup that no
+        longer ships is the defect, not the leftover, and aria-expanded on a link
+        with nothing to expand is a lie a screen reader reads out loud.
+        The three destinations are not lost: the footer carries LinkedIn, Instagram
+        and Email in the same order on every page, which is where the panel's own
+        round-10 note already said the fallback lived. -->
+   <a class="jbContactBtn ctl ctl--nav ctl--secondary" data-nav-item="contact" href="mailto:jaydenlbetts@gmail.com" aria-label="Contact"><svg class="gIco uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg><span class="jbLbl">Contact</span></a>
   </span>
  </nav>
 </div>
@@ -2056,12 +2102,33 @@ if(location.hash==="#about")location.replace("about.html");</script>
  </nav>
  <div class="collection__content">
 
+ <!-- THE COVERS SHIP IN THE SKY THE PAGE ACTUALLY OPENS IN.  2026-08-19.
+      MEASURED, 1440, cold: the home page pulled bearings-cover.webp (263.7 KB)
+      AND variants/time/bearings/daytime-1200.webp (218.3 KB), then apollo-cover
+      .webp (166.0 KB) AND variants/time/apollo/daytime-1200.webp (164.4 KB).
+      currentSrc after settle was the VARIANT in every case, so 429.7 KB of the
+      page's 2.64 MB was fetched, decoded and thrown away -- on the critical
+      path, with fetchpriority="high" on the largest of them. That is the single
+      largest cause of the "feels a bit on the laggy side" note.
+      THE MARKUP WAS SHIPPING A SOURCE THE PAGE NEVER SHOWS. The originals are
+      the "off" state -- the sky-less covers a visitor sees only if they turn
+      time-of-day off -- while site-theme-state.js:DEFAULT_MODE is "daytime", so
+      an unvisited page ALWAYS swapped. src/srcset/sizes below are now byte-for-
+      byte what TimeAwareThumbnails.sourceFor(project,"daytime") returns, which
+      is what makes this one fetch and not two: crossFade() short-circuits on
+      `previous===descriptor.src` and commit() re-sets identical attributes, so
+      the browser has nothing new to ask for. A visitor who has CHOSEN another
+      hour still swaps once -- that is the honest remaining cost, and it is a
+      returning visitor with a warm cache rather than the first-load path.
+      THE ORIGINALS ARE NOT ORPHANED and must not be deleted: they are the "off"
+      state in time-aware-thumbnails.js:ORIGINALS, and the five case studies use
+      them as their og:image, their preload and their own hero cover. -->
  <div class="csPanel on" data-panel="cs" role="tabpanel" aria-label="Featured">
   <article class="csItem" data-slug="bearings">
    <div class="csTrack">
     <div class="csStage">
      <div class="csStageInner">
-      <a class="csGo" href="bearings.html" aria-label="View the Bearings case study"><figure class="csFrame"><img class="csImg" data-time-thumbnail="bearings" src="images/cs/bearings-cover.webp" alt="Bearings — a group road-trip planner shown across four iOS screens over a wildflower meadow" loading="eager" fetchpriority="high" decoding="async"></figure></a>
+      <a class="csGo" href="bearings.html" aria-label="View the Bearings case study"><figure class="csFrame"><img class="csImg" data-time-thumbnail="bearings" src="images/cs/variants/time/bearings/daytime-1200.webp" srcset="images/cs/variants/time/bearings/daytime-1200.webp 1200w, images/cs/variants/time/bearings/daytime-2400.webp 2400w" sizes="(max-width: 760px) calc(100vw - 48px), (max-width: 1280px) calc(100vw - 80px), 1200px" alt="Bearings — a group road-trip planner shown across four iOS screens over a wildflower meadow" loading="eager" fetchpriority="high" decoding="async"></figure></a>
       <div class="csMeta"><span class="csName">Bearings</span><span class="csYear">2026</span></div>
      </div>
     </div>
@@ -2072,7 +2139,7 @@ if(location.hash==="#about")location.replace("about.html");</script>
    <div class="csTrack">
     <div class="csStage">
      <div class="csStageInner">
-      <a class="csGo" href="apollo.html" aria-label="View the Apollo case study"><figure class="csFrame"><img class="csImg" data-time-thumbnail="apollo" src="images/cs/apollo-cover.webp" alt="Apollo — a social app for celebrating wins, shown across four iOS screens over rolling hills" loading="lazy" decoding="async"></figure></a>
+      <a class="csGo" href="apollo.html" aria-label="View the Apollo case study"><figure class="csFrame"><img class="csImg" data-time-thumbnail="apollo" src="images/cs/variants/time/apollo/daytime-1200.webp" srcset="images/cs/variants/time/apollo/daytime-1200.webp 1200w, images/cs/variants/time/apollo/daytime-2400.webp 2400w" sizes="(max-width: 760px) calc(100vw - 48px), (max-width: 1280px) calc(100vw - 80px), 1200px" alt="Apollo — a social app for celebrating wins, shown across four iOS screens over rolling hills" loading="lazy" decoding="async"></figure></a>
       <div class="csMeta"><span class="csName">Apollo</span><span class="csYear">2026</span></div>
      </div>
     </div>
@@ -2086,7 +2153,7 @@ if(location.hash==="#about")location.replace("about.html");</script>
    <div class="csTrack">
     <div class="csStage">
      <div class="csStageInner">
-      <a class="csGo" href="bearings.html" aria-label="View the Bearings case study"><figure class="csFrame"><img class="csImg" data-time-thumbnail="bearings" src="images/cs/bearings-cover.webp" alt="Bearings — a group road-trip planner shown across four iOS screens over a wildflower meadow" loading="lazy" decoding="async"></figure></a>
+      <a class="csGo" href="bearings.html" aria-label="View the Bearings case study"><figure class="csFrame"><img class="csImg" data-time-thumbnail="bearings" src="images/cs/variants/time/bearings/daytime-1200.webp" srcset="images/cs/variants/time/bearings/daytime-1200.webp 1200w, images/cs/variants/time/bearings/daytime-2400.webp 2400w" sizes="(max-width: 760px) calc(100vw - 48px), (max-width: 1280px) calc(100vw - 80px), 1200px" alt="Bearings — a group road-trip planner shown across four iOS screens over a wildflower meadow" loading="lazy" decoding="async"></figure></a>
       <div class="csMeta"><span class="csName">Bearings</span><span class="csYear">2026</span></div>
      </div>
     </div>
@@ -2096,7 +2163,7 @@ if(location.hash==="#about")location.replace("about.html");</script>
    <div class="csTrack">
     <div class="csStage">
      <div class="csStageInner">
-      <a class="csGo" href="apollo.html" aria-label="View the Apollo case study"><figure class="csFrame"><img class="csImg" data-time-thumbnail="apollo" src="images/cs/apollo-cover.webp" alt="Apollo — a social app for celebrating wins, shown across four iOS screens over rolling hills" loading="lazy" decoding="async"></figure></a>
+      <a class="csGo" href="apollo.html" aria-label="View the Apollo case study"><figure class="csFrame"><img class="csImg" data-time-thumbnail="apollo" src="images/cs/variants/time/apollo/daytime-1200.webp" srcset="images/cs/variants/time/apollo/daytime-1200.webp 1200w, images/cs/variants/time/apollo/daytime-2400.webp 2400w" sizes="(max-width: 760px) calc(100vw - 48px), (max-width: 1280px) calc(100vw - 80px), 1200px" alt="Apollo — a social app for celebrating wins, shown across four iOS screens over rolling hills" loading="lazy" decoding="async"></figure></a>
       <div class="csMeta"><span class="csName">Apollo</span><span class="csYear">2026</span></div>
      </div>
     </div>
@@ -2106,7 +2173,7 @@ if(location.hash==="#about")location.replace("about.html");</script>
    <div class="csTrack">
     <div class="csStage">
      <div class="csStageInner">
-      <a class="csGo" href="ucdavis.html" aria-label="View the UC Davis Rec Redesign case study"><figure class="csFrame"><img class="csImg" src="images/cs/ucrec/cover.webp" alt="UC Davis Rec app redesign — the redesigned home screen with events, live hours, and a Member ID" loading="lazy" decoding="async"></figure></a>
+      <a class="csGo" href="ucdavis.html" aria-label="View the UC Davis Rec Redesign case study"><figure class="csFrame"><img class="csImg" src="images/cs/variants/time/ucrec/daytime-1200.webp" srcset="images/cs/variants/time/ucrec/daytime-1200.webp 1200w, images/cs/variants/time/ucrec/daytime-2400.webp 2400w" sizes="(max-width: 760px) calc(100vw - 48px), (max-width: 1280px) calc(100vw - 80px), 1200px" alt="UC Davis Rec app redesign — the redesigned home screen with events, live hours, and a Member ID" loading="lazy" decoding="async"></figure></a>
       <div class="csMeta"><span class="csName">UC Davis Rec Redesign</span><span class="csYear">2026</span></div>
      </div>
     </div>
@@ -2116,7 +2183,7 @@ if(location.hash==="#about")location.replace("about.html");</script>
    <div class="csTrack">
     <div class="csStage">
      <div class="csStageInner">
-      <a class="csGo" href="strata.html" aria-label="View the Strata &middot; Lovable case study"><figure class="csFrame"><img class="csImg" src="images/cs/strata-cover.webp" alt="Strata — a gamified habit builder shown across three iOS screens over a green field" loading="lazy" decoding="async"></figure></a>
+      <a class="csGo" href="strata.html" aria-label="View the Strata &middot; Lovable case study"><figure class="csFrame"><img class="csImg" src="images/cs/variants/time/strata/daytime-1200.webp" srcset="images/cs/variants/time/strata/daytime-1200.webp 1200w, images/cs/variants/time/strata/daytime-2400.webp 2400w" sizes="(max-width: 760px) calc(100vw - 48px), (max-width: 1280px) calc(100vw - 80px), 1200px" alt="Strata — a gamified habit builder shown across three iOS screens over a green field" loading="lazy" decoding="async"></figure></a>
       <div class="csMeta"><span class="csName">Strata</span><span class="csYear">2025</span></div>
      </div>
     </div>
@@ -2126,7 +2193,7 @@ if(location.hash==="#about")location.replace("about.html");</script>
    <div class="csTrack">
     <div class="csStage">
      <div class="csStageInner">
-      <a class="csGo" href="cluster.html" aria-label="View the Cluster case study"><figure class="csFrame"><img class="csImg" src="images/cs/cluster/cluster-cover.webp" alt="Cluster — a campus interest-and-clubs social app, shown across three iOS screens over a forest" loading="lazy" decoding="async"></figure></a>
+      <a class="csGo" href="cluster.html" aria-label="View the Cluster case study"><figure class="csFrame"><img class="csImg" src="images/cs/variants/time/cluster/daytime-1200.webp" srcset="images/cs/variants/time/cluster/daytime-1200.webp 1200w, images/cs/variants/time/cluster/daytime-2400.webp 2400w" sizes="(max-width: 760px) calc(100vw - 48px), (max-width: 1280px) calc(100vw - 80px), 1200px" alt="Cluster — a campus interest-and-clubs social app, shown across three iOS screens over a forest" loading="lazy" decoding="async"></figure></a>
       <div class="csMeta"><span class="csName">Cluster</span><span class="csYear">2024</span></div>
      </div>
     </div>
@@ -2136,7 +2203,7 @@ if(location.hash==="#about")location.replace("about.html");</script>
    <div class="csTrack">
     <div class="csStage">
      <div class="csStageInner">
-      <figure class="csFrame"><img class="csImg" src="images/cs/r3shore.webp" alt="R3SHORE, an AI-native staffing platform for American hardware manufacturing" loading="lazy" decoding="async"></figure>
+      <figure class="csFrame"><img class="csImg" src="images/cs/variants/time/r3shore/daytime-1200.webp" srcset="images/cs/variants/time/r3shore/daytime-1200.webp 1200w, images/cs/variants/time/r3shore/daytime-2400.webp 2400w" sizes="(max-width: 760px) calc(100vw - 48px), (max-width: 1280px) calc(100vw - 80px), 1200px" alt="R3SHORE, an AI-native staffing platform for American hardware manufacturing" loading="lazy" decoding="async"></figure>
       <div class="csMeta"><span class="csName">R3SHORE</span><span class="csYear">In progress</span></div>
      </div>
     </div>
@@ -2839,7 +2906,24 @@ if(location.hash==="#about")location.replace("about.html");</script>
    var tb=document.querySelector('.csTabs');
    if(tb){ var rb=tb.getBoundingClientRect(); if(rb.top<0){ tb.scrollIntoView({block:'start',behavior:reduce?'auto':'smooth'}); } }
  }
- tabs.forEach(function(t){ t.addEventListener('click',function(){ activate(t.dataset.tab); }); });
+ /* RESPOND ON POINTER-DOWN, NOT ON RELEASE.  apple-design.md §1: "the moment lag
+    appears, the feeling of directness falls off a cliff ... respond on
+    pointer-down, not on release." A tab that waits for touch-up is ~80-150ms of
+    dead time on every switch, and it is dead time the user's finger is already
+    committed through. The press feedback (.ctl:active scale) was already on
+    pointerdown; the panel was not, so half the control answered.
+    THE CLICK LISTENER STAYS AND IS NOT A DUPLICATE. Enter and Space on a focused
+    tab fire click with NO pointerdown, so removing it would make the row
+    keyboard-dead. The guard is a timestamp rather than preventDefault: a
+    pointerdown that has just activated swallows the click that follows it, and
+    anything else -- keyboard, an assistive click, a synthetic one from a
+    contract -- still gets through. isTrusted is deliberately NOT checked here:
+    unlike the haptics, a test driving this row should switch the panel. */
+ var tabDownAt=0;
+ tabs.forEach(function(t){
+   t.addEventListener('pointerdown',function(e){ if(e.button)return; tabDownAt=Date.now(); activate(t.dataset.tab); });
+   t.addEventListener('click',function(){ if(Date.now()-tabDownAt<700)return; activate(t.dataset.tab); });
+ });
  moveTabInk(false); setTimeout(function(){moveTabInk(false);},300);
  window.addEventListener('resize',function(){moveTabInk(false);});
  (function(){
