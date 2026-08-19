@@ -524,7 +524,7 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
 
 
 /* MEDIA BOUNDARY — one specimen rim at the outer visible edge. */
-.wide::after,.cover::after,.cmp::after{border-radius:inherit;box-shadow:var(--rim-3)}
+.wide::after,.cover::after,.cmp::after{border-radius:inherit;corner-shape:inherit;box-shadow:var(--rim-3)}
 .wide>img,.cover>img,.cmpImg>img,.cmpImg>video{box-shadow:none}
 .content :is(.closeShot,.darlings,.photoRow,.shot,.shot.phone,.buildStage,.stepShot,.photoPair,
     .playerStage,.tvFrame,.baPhone,.sketch)>img,
@@ -566,6 +566,63 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
   border-radius:var(--r-lg);corner-shape:var(--corner)}
  .photoPair figure,.photoPair img{border-radius:var(--r-sm);corner-shape:var(--corner)}
 }
+
+/* ── ONE CURVE, NOT TWO ──────────────────────────────────────────────────────
+   Jayden, on the Apollo cover: "in the case studies I notice the top image the
+   outline doesnt match the photo it looks like its for something else."
+
+   He is describing a real thing, and it was on all five covers at both widths.
+   MEASURED, frame vs photograph, same rect to the pixel:
+       1440   .cover 20px squircle   ·   .cover img 28px squircle   (8px apart)
+        390   .cover 14px squircle   ·   .cover img 20px squircle   (6px apart)
+   Two concentric curves, and the frame's --surface-ground showing white in the
+   crescent between them, plus BOTH of the frame's hairlines (--surface-rim on
+   .media and --rim-3 on .cover::after) tracing the outer one. So the outline
+   really was "for something else": it is the frame's corner, and the photograph
+   never reaches it.
+
+   THE CAUSE IS SOURCE ORDER, NOT A WRONG NUMBER. The size-class sweep above
+   names `.cover, .cover img` together on purpose, so the frame and its
+   photograph were authored to agree. But .cover also carries `media`, and
+   controls.css -- which links AFTER this block -- sets
+   `.media{border-radius:var(--radius-media)}` at equal specificity (0,1,0), so
+   it wins on the FRAME and cannot touch `.cover img` (0,1,1). The sweep lost one
+   leg and kept the other. This is the trap CLAUDE.md names: controls.css links
+   after the inline styles, so fix it where it lives.
+
+   THE FIX IS `inherit`, NOT A SECOND NUMBER. Whatever the frame computes, the
+   photograph now matches -- at 1440, at 390, and across the 20px -> 14px step in
+   --radius-media that made a frame and an image agree at one width and disagree
+   at another. There is no value here to keep in sync, which is why the defect
+   could exist at all. controls.css already uses exactly this idiom on the home
+   page's .csFrame>img.
+
+   AND THIS IS A SUBTRACTION, NOT A REPAINT. An inset box-shadow paints on its
+   own element's background, BENEATH that element's children. Once the photograph
+   covers the frame exactly, .media's --surface-rim and the white ground both
+   disappear behind it on their own, and what is left is the one deliberate
+   hairline .cover::after was always meant to be: "MEDIA BOUNDARY -- one specimen
+   rim at the outer visible edge". Nothing was added to achieve that. */
+.cover>img{border-radius:inherit;corner-shape:var(--corner)}
+
+/* ── AND THE RIM WAS A THIRD CURVE, WHICH IS THE ONE HE ACTUALLY SAW ─────────
+   Fixing the radius above left the outline still disagreeing with the photo, so
+   I looked instead of stopping at the table. MEASURED, all five covers at 1440:
+       .cover        20px / squircle
+       .cover img    20px / squircle   (after the fix above)
+       .cover::after 20px / ROUND
+   Same radius, DIFFERENT CORNER SHAPE. `border-radius:inherit` on the pseudo
+   picked up the 20px correctly, but corner-shape is NOT an inherited property
+   and was never declared here, so it fell all the way to its `round` initial
+   value. A squircle is fuller than a round corner at equal radius -- it bulges
+   toward the corner point -- so the rim tracked a curve visibly INSIDE the
+   photograph's edge and separated from it exactly at the corners. That is the
+   outline that "looks like its for something else": a plain rounded rectangle
+   drawn over a squircle photograph.
+   `corner-shape:inherit` is now on the rule itself, beside the border-radius it
+   was always supposed to travel with. Same fix for .wide::after and .cmp::after,
+   which shared the declaration and the defect -- bearings' .cmp measured round
+   over a squircle board too. */
 </style>
 <link rel="stylesheet" href="controls.css?v=20260806-shared-surfaces">
 <link rel="stylesheet" href="carousel.css?v=20260806-shared-surfaces">

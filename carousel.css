@@ -257,7 +257,86 @@
  background:none;box-shadow:none;border-radius:0;padding:0;margin-top:var(--sp-8)
 }
 .player .carousel-toolbar .playerTicks{flex-wrap:nowrap;gap:0}
-.player .ctl--tick::before{width:var(--sp-32)}
+/* ── THE INDICATOR IS A PAGE CONTROL, NOT A CONTROL BAR ──────────────────────
+   Jayden: "the indicators on the case studies they look too bulky to spread out
+   makes them not look like apple would have made them."
+
+   He has now said both halves of this, two days apart, and both were right about
+   different things. The mark used to be 14px in a 44px box and the row read
+   "spread out"; I widened the mark to 32px and the row read BULKY. Neither pass
+   questioned the 44px box, and the box is the whole problem:
+
+     MEASURED, bearings' 7-step row at 390
+       row 308.00px   ·   picture 288.59px   ->   107% of the thing it indexes
+       ink 7 x 32px = 224px, abutting at gap:0, so it read as one solid bar
+     at 1440: row 308px against a 360px picture -> 86%
+
+   An indicator wider than its own picture is not an indicator. And seven 44px
+   targets span 308px whatever you draw inside them, so no amount of redrawing
+   the mark could have fixed either complaint. The pitch had to come down.
+
+   A TARGET AND A MARK ARE DIFFERENT OBJECTS. Apple's page control draws a ~7pt
+   dot on a ~16pt pitch and never gives each dot its own 44pt of row. So the mark
+   becomes a dot -- 6px, round, the quietest statement of "there are seven of
+   these and you are on the fourth" -- and the box shrinks to the pitch.
+
+     AFTER, same measurements
+       7-step row 196.00px  ->  68% of the picture at 390, 54% at 1440
+       5-step row 140.00px  ->  49% / 39%
+       ink 7 x 6px = 42px, down from 224px: 81% less ink under the picture
+
+   WHY THE TARGETS TILE INSTEAD OF OVERLAPPING. Overlapping 44px boxes on a 28px
+   pitch does measure 44x44 per tick, and it is a lie: the neighbours cover all
+   but a 12px strip around each dot, so a tap 8px off a 6px dot selects the wrong
+   step. That is a hit box whose centre is not where anyone aims -- the exact
+   defect this project has already shipped once, on two selection handles painted
+   outside their own hit area. Honest tiling is better than a compliant number.
+
+   SO THIS IS A DELIBERATE, NAMED EXCEPTION TO THE 44px RULE, and the second one
+   on the site. The first -- inline prose links at ~41-47px -- exists because a
+   taller target reaches into the adjacent LINE. This one exists because a wider
+   target reaches into the adjacent CONTROL. Same reasoning, same shape of
+   trade. The height keeps the full 44px, because nothing sits above or below the
+   row to collide with, so only the axis that actually costs something gives way:
+
+     target 28 x 44 (was 44 x 44)   ·   WCAG 2.5.8 AA floor is 24 x 24, cleared
+                                        by 4px in the narrow axis
+   Flagged to Jayden rather than buried -- it is his rule and his call, and it is
+   one number to put back if he wants the 44 more than he wants the quiet. */
+.player .ctl--tick{width:var(--sp-28);min-width:var(--sp-28);flex:0 0 var(--sp-28)}
+.player .ctl--tick::before{
+ width:var(--sp-6);height:var(--sp-6);border-radius:var(--r-full);
+ /* ── AND THE UNSELECTED DOTS HAD TO BECOME VISIBLE AT NIGHT ─────────────────
+    controls.css paints the mark with --theme-rim. That token IS themed -- it is
+    a dark ink at 12% on paper and a WHITE one at 14% at night -- so the fault is
+    not a missing dark case; it is that a hairline alpha is not a mark alpha.
+    MEASURED, composited against the page ground it actually sits on:
+        light  rgba(17,18,20,.12)  -> (225,225,225) on (253,253,253)  1.29:1
+        night  rgba(255,255,255,.14) -> ( 45, 46, 49) on ( 11, 12, 15)  1.44:1
+    Correct for the 1px inset rim the token is named for, and far too faint for
+    something the reader has to count. It survived at 32x2 because a long dash
+    carries a faint colour further than a 6px dot does; shrinking the mark is
+    what makes it indefensible, so it is fixed here rather than shipped.
+        light  --c500 (132,133,145) on (253,253,253)  3.59:1
+        night  --c500 (132,133,145) on ( 11, 12, 15)  5.35:1
+    and the current dot stays --ctl-ink-strong: 18.43:1 light, 17.93:1 night.
+    --c500 is the ink the caption directly above already uses (.playerNote), so
+    the dots settle at the same quiet weight as the note rather than inventing a
+    third voice, and it flips with the theme: 3.59:1 light, 5.35:1 night. The
+    current dot keeps --ctl-ink-strong, so the two states stay far apart. */
+ background:var(--c500)
+}
+/* THE SELECTED STATE HAD TO BE RESTATED, AND THE MEASUREMENT IS WHY.
+   controls.css sets it with `.ctl--tick[aria-pressed="true"]::before` -- one
+   class plus one attribute, (0,2,0). The rule above is `.player .ctl--tick`,
+   two classes, ALSO (0,2,0), and carousel.css links after controls.css, so it
+   won the tie and repainted the current dot --c500 along with the other six.
+   Measured immediately after the change: current rgb(132,133,145), inactive
+   rgb(132,133,145) -- an indicator that no longer indicated anything, on all
+   four viewport/theme combinations. It read as a plausible row of dots, which is
+   exactly why this gets a measurement and not a glance. */
+.player .ctl--tick[aria-pressed="true"]::before,
+.player .ctl--tick.on::before{background:var(--ctl-ink-strong)}
 @media(hover:none) and (pointer:coarse){ .crslNav{display:none} }
 /* AND IT FITS THE SCREEN BY GETTING SMALLER, NOT BY BEING CROPPED. The stage was
    sized on width alone -- min(320px,62vw) -- and the mockup is 720:1565, so a
