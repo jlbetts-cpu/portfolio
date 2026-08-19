@@ -11,14 +11,24 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="jb" />
     <title>Jayden Betts</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&family=Molle:ital@1&display=swap"
-      rel="stylesheet"
-    />
     <script type="module" crossorigin src="/workspace/assets/index-Bjpj2J7U.js"></script>
     <link rel="stylesheet" crossorigin href="/workspace/assets/index-CwRnhAPG.css">
+  
+    <style>
+      /* SELF-HOSTED, LIKE EVERY OTHER PAGE ON THIS SITE. This page was the only
+         one making third-party font requests -- two preconnects and a
+         render-blocking stylesheet from Google -- which delays first text and
+         sends a visitor's IP and referrer to Google before anything is drawn.
+         Molle was in that request and is used NOWHERE in this page's CSS: zero
+         hits. It is simply not fetched now.
+         Geist is the variable file the rest of the site already ships, so it
+         costs nothing extra here; Geist Mono is used by this page and was the
+         only family that had to be added. */
+      @font-face{font-family:"Geist";src:url("/fonts/geist-variable.woff2") format("woff2-variations");
+        font-weight:100 900;font-style:normal;font-display:swap}
+      @font-face{font-family:"Geist Mono";src:url("/fonts/geist-mono-latin-variable.woff2") format("woff2-variations");
+        font-weight:100 900;font-style:normal;font-display:swap}
+    </style>
   </head>
   <body>
     <div id="root"></div>
