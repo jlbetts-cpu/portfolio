@@ -256,9 +256,16 @@ function boot(){
  }
  resize();
  var rt=0;
- window.addEventListener("resize",function(){
-  clearTimeout(rt);rt=setTimeout(resize,130);
- });
+ /* THE SQUISH, named by Jayden: the entrance settles the band 100svh->236px
+    and the sidebar collapse changes its width, and neither fires a window
+    resize -- so both canvases kept their intro-sized buffers and the browser
+    stretched them to fit. A ResizeObserver on the clip itself hears every
+    geometry change the band can make; the window listener stays only as the
+    no-RO fallback. buildAscii is wired in below once it exists. */
+ var relayout=function(){resize();};
+ function scheduleRelayout(){clearTimeout(rt);rt=setTimeout(function(){relayout();},130);}
+ if(window.ResizeObserver)new ResizeObserver(scheduleRelayout).observe(clip);
+ else window.addEventListener("resize",scheduleRelayout);
 
  /* the ripple follows the pointer, as on the Lifeline band */
  var tgt={x:.5,y:.5,a:0};
@@ -339,9 +346,9 @@ function boot(){
   var asciiLoop=function(ms){asciiFrame(ms);requestAnimationFrame(asciiLoop);};
   buildAscii();
   if(reduce)asciiFrame(0);else requestAnimationFrame(asciiLoop);
-  window.addEventListener("resize",function(){
-   clearTimeout(rt);rt=setTimeout(function(){resize();buildAscii();if(reduce){draw(12,.5,.5,0);asciiFrame(0);}},130);
-  });
+  /* join the clip's ResizeObserver relayout: both canvases rebuild from the
+     same geometry change, so neither can squish alone */
+  relayout=function(){resize();buildAscii();if(reduce){draw(12,.5,.5,0);asciiFrame(0);}};
  }
 
  /* ── the grain, same recipe as the band's soft-light turbulence ─────────── */

@@ -112,6 +112,11 @@ body{padding-left:var(--side-w);transition:padding-left var(--dur-reveal) var(--
 /* ── the band (home only -- the section exists only there) ───────────────── */
 .surface--hero{
  display:block;position:relative;
+ /* z above the sections that FOLLOW in the DOM, so the time-of-day menu
+    opens over the tabs and cards instead of behind them -- measured broken
+    by Jayden. The band's own layers stack inside this context unchanged. */
+ z-index:40; /* 20 lost to the tab row's own stacking where the open time
+    menu crosses it -- measured: "Extras" bled through the menu card */
  margin:0;width:100%;max-width:none;
  min-height:0;height:var(--band-h);
  padding:0;border-radius:0;
@@ -134,32 +139,40 @@ html.jbHeroIntro .surface--hero{height:100svh}
 /* ── the type sits IN the gradient, like "August 2026" ───────────────────── */
 .surface--hero .heroCopy{
  display:block;position:absolute;
- left:0;right:0;bottom:24px;
- padding:0 var(--content-gutter);
+ left:0;right:0;bottom:20px;
+ max-width:1152px;margin-inline:auto;
+ padding:0 40px;
  z-index:3;text-align:left;
  /* the old centred hero lifted the copy ~100px with a translate (index
     inline :1754); measured here: copy landed at y16 instead of the band
     floor. The band anchors with bottom alone. */
  transform:none;
 }
-.heroKick{
- margin:0 0 6px;
- font-family:var(--sans);font-weight:600;font-size:12px;
- letter-spacing:.01em;
- color:rgba(255,255,255,.82);
-}
+/* the kicker retires: at the band's Lifeline height a two-block copy stack
+   climbed into the PALE upper sky and the white h1 vanished into it
+   (LOOKED at, twice -- entrance suspected first, wrongly). One line, sized
+   like "August 2026", sitting in the saturated lower water. The name
+   already lives in the mark and the footer. */
+.heroKick{display:none}
+/* the char-by-char reveal rides the OLD hero's intro handshakes and goes
+   flaky in the band (LOOKED at across four loads: present, absent, present,
+   absent). The band has its own entrance -- the full-screen settle -- so the
+   chars are simply always on here. Mobile keeps the authored reveal. */
+.surface--hero h1 .ch{opacity:1!important;filter:none!important;transform:none!important;transition:none!important}
 .surface--hero h1{
- margin:0;max-width:20em;
- font-size:clamp(28px,2.6vw,40px);
+ margin:0;max-width:none;white-space:nowrap;
+ font-size:clamp(24px,2.1vw,34px);
  letter-spacing:var(--tr-display);
  color:#fff;text-align:left;
+ text-shadow:0 1px 12px rgba(9,11,36,.18);
 }
 .surface--hero .sub{display:none}
 /* "view work button i think we just remove" -- so it is gone; the sun stays,
    it IS the band's control */
 .surface--hero .workCta{display:none}
 .surface--hero .heroCtas{
- position:absolute;right:var(--content-gutter);bottom:0;
+ position:absolute;bottom:0;
+ right:max(40px,calc((100% - 1152px)/2 + 40px));
  display:flex;align-items:center;gap:10px;margin:0;
 }
 
@@ -175,7 +188,7 @@ body .hero.surface--hero{
     the plain selector. Setting BOTH depth and offset pins the arithmetic:
     bottom = -depth + offset = -26px, chin 26px proud of the floor. */
  --hero-peek-width:clamp(170px,15vw,215px);
- --hero-peek-shift-x:220px;
+ --hero-peek-shift-x:300px; /* clear of the one-line h1's tail and the sun */
  --hero-peek-depth:26px;
  --hero-peek-offset:0px;
 }
@@ -184,10 +197,10 @@ body .hero.surface--hero{
  bottom:auto;z-index:4;padding:0;overflow:visible;
 }
 
-/* ── content below the band shares one gutter ────────────────────────────── */
+/* ── content on Lifeline's own grid: max-w-6xl centred, px-10 ────────────── */
 .cases,.featured,.siteFoot{
- padding-left:var(--content-gutter);
- padding-right:var(--content-gutter);
+ max-width:1152px;margin-inline:auto;
+ padding-left:40px;padding-right:40px;
  box-sizing:border-box;
 }
 
@@ -203,17 +216,35 @@ body .hero.surface--hero{
    precedent the reel set at index:1032). DESKTOP SHELL ONLY -- this block
    rides the same media query as the rest of the file. */
 @media (min-width:961px){
-.csPanel{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px}
+/* .on because the tab switcher's own .csPanel.on{display:block} outranks a
+   bare class -- measured: columns applied, display lost. */
+.csPanel.on{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px}
 .csPanel .csItem{
  border:1px solid var(--c100);border-radius:4px;overflow:hidden;
  background:var(--theme-page,var(--c50));
 }
-.csPanel .csTrack{height:auto!important}
-.csPanel .csStage{position:static!important;height:auto!important}
-.csPanel .csStageInner{transform:none!important;position:static!important;height:auto!important}
+/* the scroll-stage wrappers dissolve entirely -- height:auto still left one
+   giant empty frame (LOOKED at): the engine's absolute children kept their
+   authored boxes. display:contents removes the boxes from layout and the
+   engine's inline transforms write into the void. The image is forced
+   visible past any scroll-driven inline opacity. */
+.csPanel .csTrack,.csPanel .csStage,.csPanel .csStageInner{display:contents}
+.csPanel .csImg{opacity:1!important;transform:none!important}
+.csPanel .csGo{display:block}
 .csPanel .csFrame{margin:0;overflow:hidden;aspect-ratio:16/10;border-radius:0}
 .csPanel .csImg{
+ /* static, not absolute: with the stage wrappers dissolved to display:
+    contents, the absolutely-positioned image DECODED real pixels but
+    PAINTED the frame's grey (drawImage sampled the hillside; the screen
+    showed nothing -- one card per load, alternating). In normal flow inside
+    the aspect-ratio frame the paint path is boring and correct. */
+ position:static;
  width:100%;height:100%;object-fit:cover;display:block;border-radius:0;
+ /* the time-of-day variants are posters with generous SKY; a centred 16/10
+    crop showed bearings as a field of grey-blue nothing (LOOKED at, chased
+    as a paint bug first). 68% aims the crop at the artwork band -- the
+    phones and the meadow -- on every variant. */
+ object-position:50% 68%;
  transition:transform 500ms var(--ease-out);
 }
 .csPanel .csItem:hover .csImg{transform:scale(1.02)}
@@ -233,18 +264,22 @@ body .hero.surface--hero{
    underline retires; the pill IS the state. The reel takes the card frame:
    hairline + 4px, meta row inside the same 13/12 voice. Desktop shell only. */
 @media (min-width:961px){
-.csTabs{
- justify-content:flex-start;gap:4px;margin-left:var(--content-gutter);
- padding:24px 0 20px;
+/* Lifeline's own words on its Month/Year switcher: "quiet text, not a
+   CTA" -- Jayden flagged the ink pill as false hierarchy, and he is right:
+   the dark pill belongs to the sidebar's ACTIVE PAGE, nothing else. */
+.cases .csTabs{
+ display:flex;max-width:1152px;margin-inline:auto;box-sizing:border-box;
+ justify-content:flex-end;gap:10px;width:auto;
+ padding:28px 40px 16px;
 }
 .csTab{
- font-family:var(--sans);font-weight:500;font-size:13px;letter-spacing:.005em;
- padding:9px 12px;border-radius:4px;color:var(--c700);
+ font-family:var(--sans);font-weight:400;font-size:13px;letter-spacing:.005em;
+ padding:0;border-radius:0;color:var(--c500);
  background:none;border:0;min-height:0;
- transition:background var(--dur-state) var(--ease-out),color var(--dur-state) var(--ease-out);
+ transition:color var(--dur-state) var(--ease-out);
 }
-.csTab:hover{background:var(--c100);color:var(--c950)}
-.csTab.on{background:var(--c950);color:#fff;font-weight:600}
+.csTab:hover{background:none;color:var(--c950)}
+.csTab.on{background:none;color:var(--c950);font-weight:500}
 .csTabInk{display:none}
 .reelFrame{border:1px solid var(--c100);border-radius:4px!important}
 .reelMeta .csName{font-size:13px;font-weight:600;letter-spacing:.005em}

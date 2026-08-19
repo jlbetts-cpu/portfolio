@@ -108,4 +108,56 @@ function syncBand(){
 window.addEventListener("scroll",syncBand,{passive:true});
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",syncBand);
 else syncBand();
+
+/* THE ALTERNATING GREY CARD, finally run to ground: the time-thumbnail
+   engine choreographs its swap with a ghost overlay, an arrival-opacity mark
+   (site-theme.css:476) and srcset rewrites -- all authored for the
+   scroll-stage layout, and in the card grid one cover per load ended
+   decoded-but-unpainted. Chased as a paint bug, a placeholder file, an art
+   crop and a stacking bug first; the transcript of dead ends lives in
+   home-shell.css. In the shell the cards get FRESH images: same time-of-day
+   awareness (the variant for the current state, re-pointed when the state
+   changes), none of the choreography. The engine keeps the mobile page,
+   whose layout it was written for. */
+var VARIANT_BASE="images/cs/variants/time/";
+var ORIGINALS={
+ bearings:"images/cs/bearings-cover.webp",
+ apollo:"images/cs/apollo-cover.webp",
+ cluster:"images/cs/cluster/cluster-cover.webp",
+ strata:"images/cs/strata-cover.webp",
+ ucrec:"images/cs/ucrec/cover.webp"
+};
+function coverState(){
+ var hero=document.querySelector(".surface--hero");
+ var st=hero&&hero.getAttribute("data-time-state");
+ return (st&&st!=="off")?st:"daytime";
+}
+function freshCovers(){
+ var state=coverState();
+ var imgs=document.querySelectorAll(".csPanel .csImg");
+ for(var i=0;i<imgs.length;i++){
+  (function(old){
+   var item=old.closest?old.closest(".csItem"):null;
+   var slug=item&&item.getAttribute("data-slug");
+   if(!slug)return;
+   var im=old.__jbFresh?old:document.createElement("img");
+   im.className="csImg";
+   im.alt=old.alt||"";
+   im.decoding="async";
+   im.__jbFresh=true;
+   im.onerror=function(){if(ORIGINALS[slug])im.src=ORIGINALS[slug];im.onerror=null;};
+   im.src=VARIANT_BASE+slug+"/"+state+"-1200.webp";
+   if(im!==old&&old.parentNode)old.parentNode.replaceChild(im,old);
+  })(imgs[i]);
+ }
+}
+function watchCovers(){
+ freshCovers();
+ var hero=document.querySelector(".surface--hero");
+ if(hero&&window.MutationObserver){
+  new MutationObserver(freshCovers).observe(hero,{attributes:true,attributeFilter:["data-time-state"]});
+ }
+}
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",function(){setTimeout(watchCovers,60);});
+else setTimeout(watchCovers,60);
 })();
