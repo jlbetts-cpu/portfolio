@@ -47,8 +47,12 @@ look at first.
 
 ## 3. The design system, in short
 
-- **Instrument Sans, two weights only: 400 and 600.** He rejected a typeface
-  change explicitly. Leading and tracking are the levers.
+- **Geist, two weights: 400 and 600.** The site ran on Instrument Sans for most
+  of its life and he DID reject a typeface change more than once -- then changed
+  it himself on 2026-08-12, in `a82c0d9` and `047f2a4`. Geist is the decision
+  now. What survives from the old rule is the shape of it: two weights only, and
+  leading and tracking are the levers, not the family. Do not propose a third
+  weight and do not propose another family.
 - **Radius by size class**: `--r-xl` 28 for the biggest surfaces, `--r-lg` 20 for
   cards and images, `--r-md` 14 for controls. Something that becomes the
   *environment* leaves the ladder rather than taking a compromise rung.
@@ -90,9 +94,9 @@ anything that animates, translucent chrome, or type.
 It is reasoning, not a stylesheet to copy, and **section 3 of this file wins
 wherever they disagree.** Two specific collisions to be clear about:
 
-- It advises defaulting to the system font. This site uses Instrument Sans at two
-  weights and that is settled. Its advice on SIZE-SPECIFIC tracking and leading
-  does apply.
+- It advises defaulting to the system font. This site uses Geist at two weights
+  and that is settled. Its advice on SIZE-SPECIFIC tracking and leading does
+  apply.
 - It is generous with translucent material and shadow. The shadow rule here is
   absolute: the companion heads cast a contact shadow, nothing else does.
 
@@ -243,8 +247,11 @@ that cannot fail is worse than none.
   restore after. This code path has already destroyed heads (a read path wrote a
   capped list back) and corrupted them (photographic eye layers leaking between
   subjects). Walking to step 4 in the Maker auto-saves.
-- **Never use `mcp__claude-in-chrome__*`.** It drives his real browser and that
-  live storage. Read, never write.
+- `mcp__claude-in-chrome__*` is ALLOWED. It was banned here because it drives
+  his real browser and therefore his real `hmCompanions`; he lifted that on
+  2026-08-12. The storage rule above still stands on its own -- snapshot before
+  anything that could write, restore after -- and it is the rule that was doing
+  the actual work.
 - **Stage only your own files**: `git commit -- <paths>`. Never `-a`, never
   `add -A`. Several agents work this tree at once.
 - Never serve `images/earth-map-src.jpg` (2.5 MB) raw.

@@ -7,18 +7,18 @@
    SPECIMEN — standalone, no dependencies, no build step.
    Left column  = OLD (what the site does today)
    Right column = NEW (what the token spec proposes)
-   Typeface is Instrument Sans on BOTH sides. It is not changing.
+   Typeface is Geist on BOTH sides. Changed 2026-08-12; it was Instrument Sans.
    ═══════════════════════════════════════════════════════════════════ */
 
-@font-face{font-family:"Instrument Sans Var";src:url("fonts/instrument-sans-variable.woff2") format("woff2-variations");font-weight:400 700;font-stretch:75% 100%;font-display:block}
-@font-face{font-family:"Instrument Sans";font-style:normal;font-weight:400;font-display:block;src:url(fonts/instrument-sans-latin-400-normal.woff2) format("woff2")}
-@font-face{font-family:"Instrument Sans";font-style:normal;font-weight:600;font-display:block;src:url(fonts/instrument-sans-latin-600-normal.woff2) format("woff2")}
+@font-face{font-family:"Geist Var";src:url("fonts/geist-variable.woff2") format("woff2-variations");font-weight:400 700;font-stretch:75% 100%;font-display:block}
+@font-face{font-family:"Geist";font-style:normal;font-weight:400;font-display:block;src:url(fonts/geist-latin-400-normal.woff2) format("woff2")}
+@font-face{font-family:"Geist";font-style:normal;font-weight:600;font-display:block;src:url(fonts/geist-latin-600-normal.woff2) format("woff2")}
 
 :root{
   /* site palette */
   --c50:#FDFDFD;--c75:#F1F1F1;--c100:#E6E6E6;--c500:#757575;--c600:#6B6B6B;
   --c700:#525252;--c900:#212121;--c950:#121212;--accent:#121212;--accent-live:#17A45A;   /* --accent is INK site-wide since 2026-08-04; see tokens.css */
-  --sans:"Instrument Sans",-apple-system,system-ui,sans-serif;
+  --sans:"Geist",-apple-system,system-ui,sans-serif;
   --old:#B4462A;                       /* specimen-only: marks the OLD column */
 
   /* ── PROPOSED: radius ── */
@@ -282,7 +282,7 @@ h2.sec em{font-style:normal;color:var(--c500);font-weight:400}
    backdrop-filter:blur(var(--blur-2))}
 
 /* ── 10. the lockup ──────────────────────────────────────────── */
-.logo{font-family:"Instrument Sans Var",var(--sans);font-weight:600;
+.logo{font-family:"Geist Var",var(--sans);font-weight:600;
       display:flex;flex-direction:column;align-items:center;
       text-align:center;width:fit-content}
 .logo.caps{text-transform:uppercase}
@@ -485,7 +485,7 @@ h2.sec em{font-style:normal;color:var(--c500);font-weight:400}
     <b>Right is what the token spec proposes.</b> The red/green tag in each header
     tells you which is which; on a narrow screen they stack, old on top.
     <br><br>
-    <b>The typeface is Instrument Sans on both sides.</b> It is not changing —
+    <b>The typeface is Geist on both sides.</b> It changed on 2026-08-12 and was Instrument Sans before that —
     §5 of the spec is a leading, tracking and spacing pass on the face already in use.
     Nothing needs downloading.
   </p>
@@ -1064,7 +1064,7 @@ h2.sec em{font-style:normal;color:var(--c500);font-weight:400}
           </div>
         </div>
         <p class="n"><b>Tracking:</b> <code>.08em</code> was a <i>capitals</i> value — tall narrow
-        caps need opening. Lowercase does not, and Instrument Sans is already loosely spaced
+        caps need opening. Lowercase does not, and Geist is already loosely spaced
         for its x-height (<code>n</code> advance = 1.175× x-height, vs ~1.08 for a face like
         Inter). So the sign flips: <b>−.008em</b>, not +.10em.
         <br><br><b>font-stretch:</b> gone entirely. One line means there is nothing to
@@ -1148,7 +1148,7 @@ h2.sec em{font-style:normal;color:var(--c500);font-weight:400}
 <section>
   <h2 class="sec">12. Tracking <em>— everything closes up, small caps open up</em></h2>
   <p class="dek">
-    Measured off the woff2: Instrument Sans has an <b>0.72&nbsp;em cap height</b> (tall), an
+    Measured off the woff2: Geist has a <b>0.710&nbsp;em cap height</b> and a <b>0.530&nbsp;em x-height</b>, an
     <b>0.51&nbsp;em x-height</b> (low), and an <code>n</code> advance of 1.175× its x-height
     — versus ~1.08 for a face like Inter. It is <b>spaced for UI</b>. That means it runs
     slack at display sizes and its tall caps run cramped at label sizes, so the ladder is
