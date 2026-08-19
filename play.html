@@ -469,8 +469,7 @@
     in play-games.js. It is the only affordance the gesture gets, because the headline
     spec is explicit that a hint line under the h1 is not allowed to pay for this. */
 
- /* THE GHOST. position:fixed on <body>
- with translate(-50%,-50%), which is what lets the
+ /* THE GHOST. position:fixed on <body> with translate(-50%,-50%), which is what lets the
     rig write left/top straight from clientX/clientY and have the word centred under the
     finger. Its type is copied off the real word at pickup rather than named here, so it
     cannot drift out of step at a breakpoint the way the original's var(--fs-h1) did
@@ -985,12 +984,10 @@
 </style>
 <link rel="stylesheet" href="header.css?v=20260806-shared-surfaces">
 <link rel="stylesheet" href="footer.css?v=20260806-shared-surfaces">
-<link rel="stylesheet" href="home-shell.css">
 <link rel="stylesheet" href="controls.css?v=20260806-shared-surfaces">
 <link rel="stylesheet" href="site-theme.css?v=20260806-shared-surfaces">
 <script src="header.js" defer></script>
 </head><body class="hmFull playBooting" data-nav="games" data-theme-page="play">
-<script src="shell.js"></script>
 <a class="skipLink ctl ctl--secondary" id="playSkip" href="#games">Skip to games</a>
 <!-- FIX ROUND 2 (Task 2): filter defs SHARED with index.html:2316-2318, copied verbatim, not moved -- index.html keeps its own copies. Must be inlined here, not linked: Safari does not support filters referenced from an external or data: URL (see index.html's own comment on tHeadEdge). #tHeadEdge is unused on play.html today but Task 4's tournament head edges need it. -->
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><!-- Cut-out edge stroke. NOT a drop-shadow stack: CSS filter functions CHAIN, each taking the previous one's output, so N shadows compound to about (N/pi)*r rather than r -- 8 at 1px measures ~2.5px, and 24 hangs the compositor outright. Worse, a stack outlines every hair strand separately and turns a photographic head into a spiky halo. Threshold the alpha FIRST so wispy strands collapse into one silhouette, dilate that, subtract to leave a ring, and flood it. One clean line, hair keeps its softness. Must be inline in this document: Safari does not support filters referenced from an external or data: URL. --><filter id="tHeadEdge" x="-25%" y="-25%" width="150%" height="150%" color-interpolation-filters="sRGB"><feGaussianBlur in="SourceAlpha" stdDeviation="1.6" result="b"/><feComponentTransfer in="b" result="sil"><feFuncA type="linear" slope="20" intercept="-13.5"/></feComponentTransfer><feMorphology in="sil" operator="dilate" radius="1" result="f"/><feComposite in="f" in2="sil" operator="out" result="r"/><feFlood flood-color="#FDFDFD" result="c"/><feComposite in="c" in2="r" operator="in" result="st"/><feMerge><feMergeNode in="st"/><feMergeNode in="SourceGraphic"/></feMerge></filter></svg>
