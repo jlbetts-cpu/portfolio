@@ -1,0 +1,272 @@
+/* ============================================================================
+   home-shell.css -- the workspace shell, on the portfolio.  2026-08-18.
+
+   Second pass, to the workspace's OWN numbers after Jayden: "still not the
+   same as the lifeline workspace in sizing and spacing and not collapsible."
+   Everything dimensional below is read straight out of app-shell.tsx and
+   styles.css, not approximated: 272px open rail, px-4 (16px) blocks, logo
+   row pt-5 pb-1 with an h-8 button, nav items 9px 12px at 13px/500 with
+   4px radius and a 4px stack gap, ink pill when active, hairline dividers,
+   collapse to zero width in 360ms on the settle curve with the inner panel
+   fading, and the collapsed mark fixed at top 20px / left 16px.
+
+   The band's height is not authored here: shell.js measures the sidebar's
+   top block and publishes --band-h, so the band floor and the divider are
+   one line at every viewport -- the workspace's own trick. The 236px
+   fallback only exists for the instant before the script runs.
+
+   The head's spot is four AUTHORED variables (--hero-peek-*), the same
+   knobs hero-time.css built the composition on. Nothing here touches the
+   engine.
+
+   DESKTOP ONLY. Under 961px nothing in this file exists and the page is
+   exactly what it was.  Markup comes from shell.js -- one source, every
+   page.
+   ========================================================================== */
+
+@media (min-width:961px){
+
+:root{
+ --side-w:272px;
+ --band-h:236px; /* fallback; shell.js publishes the measured value */
+ --content-gutter:64px;
+}
+
+/* ── the column ── */
+/* NO SIDEBAR. Jayden: "you added the side bar back which is not what I
+   asked for." The home page's header is invisible -- just the mark over the
+   band (shell.js injects .jbHomeMark). Every other page keeps the pill bar,
+   REDESIGNED below. */
+body[data-nav="home"] .jbStick{display:none}
+.jbHomeMark{
+ position:absolute;top:20px;left:24px;z-index:41;
+ display:inline-flex;width:44px;height:44px;align-items:center;
+ color:#fff;filter:drop-shadow(0 1px 6px rgba(9,11,36,.35));
+}
+.jbHomeMark svg{width:28px;height:28px;fill:currentColor}
+
+/* ── THE HEADER REBUILD (non-home pages) ─────────────────────────────────
+   His notes: "the header needs a redesign... the contact looks funny maybe
+   just have it be a mail icon with a drop down" and the React nav's weight.
+   The labels take 13px/500/.005em (the React feel); Contact collapses to
+   its mail icon + chevron -- the existing disclosure menu already carries
+   Email/LinkedIn/Instagram, so the dropdown he asked for is the one that
+   was always there, now led by the icon alone. */
+.jbNav .jbLbl{font-weight:500;font-size:13px;letter-spacing:.005em}
+.jbDiscGo[data-nav-item="contact"] .jbLbl{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* ── the band (home only -- the section exists only there) ───────────────── */
+.surface--hero{
+ display:block;position:relative;
+ /* z above the sections that FOLLOW in the DOM, so the time-of-day menu
+    opens over the tabs and cards instead of behind them -- measured broken
+    by Jayden. The band's own layers stack inside this context unchanged. */
+ z-index:40; /* 20 lost to the tab row's own stacking where the open time
+    menu crosses it -- measured: "Extras" bled through the menu card */
+ margin:0;width:100%;max-width:none;
+ min-height:0;height:var(--band-h);
+ padding:0;border-radius:0;
+ transition:height 900ms var(--ease-out),min-height 900ms var(--ease-out),border-radius 900ms var(--ease-out);
+}
+@media (prefers-reduced-motion:reduce){.surface--hero{transition:none}}
+.heroTimeSpill{display:none}
+.scrollCue{display:none}
+.wrap{margin-top:0}
+
+/* THE LEGIBILITY SCRIM (see 12c7fda): ink-tinted gradient under the type. */
+.surface--hero::after{
+ content:"";position:absolute;inset:0;z-index:2;pointer-events:none;
+ background:linear-gradient(to top,rgba(9,11,36,.32),rgba(9,11,36,.12) 42%,transparent 68%);
+}
+
+/* the band is opaque and the type on it is white, so the mobile text-guard
+   mask has no job here */
+.surface--hero .heroMeshCanvas,
+.surface--hero .heroAsciiCanvas,
+.surface--hero .heroGrainLayer{
+ -webkit-mask-image:none;mask-image:none;
+}
+
+/* ── the type sits IN the gradient, like "August 2026" ───────────────────── */
+.surface--hero .heroCopy{
+ display:block;position:absolute;
+ left:0;right:0;bottom:20px;
+ max-width:1152px;margin-inline:auto;
+ padding:0 40px;
+ z-index:3;text-align:left;
+ /* the old centred hero lifted the copy ~100px with a translate (index
+    inline :1754); measured here: copy landed at y16 instead of the band
+    floor. The band anchors with bottom alone. */
+ transform:none;
+}
+/* the kicker is back -- the React home he chose carries it ("Jayden Betts ·
+   Open to full-time roles."), and the legibility scrim that arrived after
+   the original retirement is what makes the two-line stack safe now. */
+.heroKick{
+ display:block;margin:0 0 6px;
+ font-family:var(--sans);font-weight:600;font-size:12px;letter-spacing:.01em;
+ color:rgba(255,255,255,.82);
+}
+/* the char-by-char reveal rides the OLD hero's intro handshakes and goes
+   flaky in the band (LOOKED at across four loads: present, absent, present,
+   absent). The band has its own entrance -- the full-screen settle -- so the
+   chars are simply always on here. Mobile keeps the authored reveal. */
+.surface--hero h1 .ch{opacity:1!important;filter:none!important;transform:none!important;transition:none!important}
+.surface--hero h1{
+ margin:0;max-width:none;white-space:nowrap;
+ font-size:clamp(24px,2.1vw,34px);
+ letter-spacing:var(--tr-display);
+ color:#fff;text-align:left;
+ text-shadow:0 1px 12px rgba(9,11,36,.18);
+}
+.surface--hero .sub{display:none}
+/* "view work button i think we just remove" -- so it is gone; the sun stays,
+   it IS the band's control */
+.surface--hero .workCta,.cases .workCta{display:none!important} /* followed the ctas when they moved rows */
+/* "I would move the button off the gradient" -- the time control drops
+   below the band into the control row, left side, opposite the right-hand
+   view switcher: the React composition he chose. The band's z keeps the
+   open menu above the cards. */
+.cases .heroCtas{
+ position:static;display:flex;align-items:center;gap:10px;
+ order:-1;margin:0 auto 0 0; /* time left, tabs cluster right */
+}
+.cases .heroTimeBtn{--ctl-ground:transparent;--ctl-rim:transparent;color:var(--c500)}
+.cases .heroTimeBtn:hover{color:var(--c950)}
+.cases .heroTimeMenu{z-index:50}
+
+/* ── the head, standing on the band's floor ──────────────────────────────── */
+/* Four authored variables, the same knobs the composition was built on:
+   width, horizontal shift off centre, and depth/offset which sum to how far
+   the chin hangs past the floor. bottom = -depth + offset, so pinning offset
+   to depth-26px reads as: the head stands 26px proud of the band's edge,
+   whatever the depth arithmetic does at other viewports. NO shadow (§3). */
+body .hero.surface--hero{
+ /* body-prefixed: the authored peek vars live on state-qualified selectors
+    that outweigh a bare class pair -- measured, bottom resolved -81px with
+    the plain selector. Setting BOTH depth and offset pins the arithmetic:
+    bottom = -depth + offset = -26px, chin 26px proud of the floor. */
+ --hero-peek-width:clamp(170px,15vw,215px);
+ --hero-peek-shift-x:300px; /* clear of the one-line h1's tail and the sun */
+ --hero-peek-depth:26px;
+ --hero-peek-offset:0px;
+}
+/* "just remove the head from the hero" -- the engine and its pages keep it;
+   the band does not. */
+.surface--hero .heroCharacterPeek{display:none}
+.surface--hero .heroHeadSelection{display:none!important}
+
+/* ── content on Lifeline's own grid: max-w-6xl centred, px-10 ────────────── */
+.cases,.featured,.siteFoot{
+ max-width:1152px;margin-inline:auto;
+ padding-left:40px;padding-right:40px;
+ box-sizing:border-box;
+}
+
+}
+
+/* ── THE CARDS, ported back from the React rebuild. 2026-08-18, Jayden:
+   "see how you actually changed how the thumbnails look and operate, I need
+   that same care on the vanilla port." This is that card, exactly: hairline
+   border, 4px radius, 16/10 cover with a 500ms settle zoom on hover, caption
+   bar inside the card -- title left, year right, 13/12px. The old scroll-
+   stage presentation is retired the same way the reel's was (height:auto,
+   static stage; the !importants override the engine's inline writes, the
+   precedent the reel set at index:1032). DESKTOP SHELL ONLY -- this block
+   rides the same media query as the rest of the file. */
+@media (min-width:961px){
+/* .on because the tab switcher's own .csPanel.on{display:block} outranks a
+   bare class -- measured: columns applied, display lost. */
+.csPanel.on{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px}
+.csPanel .csItem{
+ border:1px solid var(--c100);border-radius:4px;overflow:hidden;
+ background:var(--theme-page,var(--c50));
+}
+/* the scroll-stage wrappers dissolve entirely -- height:auto still left one
+   giant empty frame (LOOKED at): the engine's absolute children kept their
+   authored boxes. display:contents removes the boxes from layout and the
+   engine's inline transforms write into the void. The image is forced
+   visible past any scroll-driven inline opacity. */
+.csPanel .csTrack,.csPanel .csStage,.csPanel .csStageInner{display:contents}
+.csPanel .csImg{opacity:1!important;transform:none!important}
+.csPanel .csGo{display:block}
+.csPanel .csFrame{margin:0;overflow:hidden;aspect-ratio:4/3;border-radius:0}
+.csPanel .csImg{
+ /* static, not absolute: with the stage wrappers dissolved to display:
+    contents, the absolutely-positioned image DECODED real pixels but
+    PAINTED the frame's grey (drawImage sampled the hillside; the screen
+    showed nothing -- one card per load, alternating). In normal flow inside
+    the aspect-ratio frame the paint path is boring and correct. */
+ position:static;
+ width:100%;height:100%;object-fit:cover;display:block;border-radius:0;
+ /* the time-of-day variants are posters with generous SKY; a centred 16/10
+    crop showed bearings as a field of grey-blue nothing (LOOKED at, chased
+    as a paint bug first). 68% aims the crop at the artwork band -- the
+    phones and the meadow -- on every variant. */
+ object-position:50% 68%;
+ transition:transform 500ms var(--ease-out);
+}
+.csPanel .csItem:hover .csImg{transform:scale(1.02)}
+.csPanel .csMeta{
+ display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-rows:auto auto;
+ column-gap:16px;row-gap:2px;align-items:baseline;
+ padding:12px 16px;margin:0;width:auto;text-align:left;
+}
+.csPanel .csName{grid-column:1;grid-row:1}
+.csPanel .csYear{grid-column:2;grid-row:1;justify-self:end}
+.csPanel .csLine{grid-column:1 / -1;grid-row:2;font-family:var(--sans);font-weight:400;font-size:13px;color:var(--c500);letter-spacing:.005em}
+.csPanel .csName{font-size:13px;font-weight:600;letter-spacing:.005em}
+.csPanel .csYear{font-size:12px;font-weight:400;color:var(--c500)}
+}
+
+/* ── THE TAB ROW AND THE REEL, same rebuild. 2026-08-18, Jayden: "not just
+   the cards, I want everything remade." The Featured/Case Studies/Extras
+   SPLIT stays (his settled call, section 4) -- the chrome becomes the
+   workspace segmented control: 13/500 text, 9x12 padding, 4px radius, ink
+   pill when active, left-aligned on the shared gutter. The travelling ink
+   underline retires; the pill IS the state. The reel takes the card frame:
+   hairline + 4px, meta row inside the same 13/12 voice. Desktop shell only. */
+@media (min-width:961px){
+/* Lifeline's own words on its Month/Year switcher: "quiet text, not a
+   CTA" -- Jayden flagged the ink pill as false hierarchy, and he is right:
+   the dark pill belongs to the sidebar's ACTIVE PAGE, nothing else. */
+/* element+classes so the collection's own tab grid cannot spread them
+   again (measured: they sat thirds-apart under the plain selector) */
+.cases nav.csTabs{
+ display:flex!important;align-items:center;box-sizing:border-box;
+ justify-content:flex-end!important;gap:12px!important;width:auto;
+ padding:20px 40px 16px;
+}
+/* Featured retires at the CSS layer too: the tab engine rebuilds its row
+   after DOMContentLoaded and resurrected the button (LOOKED at). */
+.csTab[data-tab="cs"]{display:none!important}
+.csTabInk{display:none!important}
+/* the buttons carried the spread themselves: flex:1 1 0 stretched each tab
+   to a 473px third (measured) */
+.cases .csTab{flex:0 0 auto!important;width:auto!important}
+.csTab{
+ font-family:var(--sans);font-weight:400;font-size:13px;letter-spacing:.005em;
+ padding:0;border-radius:0;color:var(--c500);
+ background:none;border:0;min-height:0;
+ transition:color var(--dur-state) var(--ease-out);
+}
+.csTab:hover{background:none;color:var(--c950)}
+.csTab.on{background:none;color:var(--c950);font-weight:500}
+.csTabInk{display:none}
+.reelFrame{border:1px solid var(--c100);border-radius:4px!important}
+.reelMeta .csName{font-size:13px;font-weight:600;letter-spacing:.005em}
+.reelMeta .csYear{font-size:12px;font-weight:400;color:var(--c500)}
+}
+
+/* the black "Play video" pill is a coarse-pointer affordance; Jayden saw it
+   glitch onto desktop. Stated as a pointer truth rather than a class guess. */
+@media (hover:hover) and (pointer:fine){.reelTap{display:none!important}}
+
+/* ── cross-page: the section indicators, tightened ───────────────────────
+   Jayden: "the indicators on the case studies look too spread out." The
+   chapters rail ran gap:--sp-30; one rung down reads as a single
+   instrument instead of scattered marks. Labels take the React nav weight. */
+@media (min-width:961px){
+.chapters{gap:var(--sp-20)!important}
+.chap{font-weight:500;font-size:13px;letter-spacing:.005em}
+}
