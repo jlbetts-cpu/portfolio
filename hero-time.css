@@ -589,6 +589,52 @@
 .heroNightStars i.is-bright{--star-visible:.78;width:var(--star-bright-size);height:var(--star-bright-size);box-shadow:0 0 var(--star-glow-size) rgba(205,220,255,.32)}
 .hero[data-time-state="night"] .heroNightStars{opacity:1}
 @keyframes heroStarTwinkle{from{opacity:calc(var(--star-visible) * .84)}to{opacity:var(--star-visible)}}
+
+/* ── THE GLYPH FIELD ─────────────────────────────────────────────────────────
+   Ported from the ASCII band on the Workspace app. That version is a full-bleed
+   field of white glyphs screened over a mid-blue mesh, and it works there
+   because the band is ONE colour of one lightness. This sky is six, running
+   from #f8fafd at the top of sunrise to #060a13 at the top of night, so a
+   single white field would be invisible on five of them and the only thing on
+   screen on the sixth.
+   TWO DECISIONS MAKE IT ONE TREATMENT ACROSS SIX SKIES.
+
+   1. THE FIELD LIVES WHERE THE LIGHT IS. Every one of the six gradients puts
+      its focal point at 50% / ~104% -- bottom centre, off the floor -- and
+      fades to the page colour by 60%. So the glyph density is multiplied by an
+      ellipse anchored on that same point. Above it the field is not dimmed, it
+      is NOT DRAWN: nothing paints on the flat page white at the top, where a
+      texture would read as dirt on the page rather than grain in the sky. It
+      also means the count the loop pays for scales with the lit area, not the
+      viewport.
+   2. THE INK IS THE SKY'S OPPOSITE. On the five light skies the glyphs are the
+      site's ink, so they read as a weave subtracted from the light -- the same
+      "premium is subtraction" the rest of this page is built on. Night is the
+      one state where subtracting from a #060a13 sky subtracts nothing, so
+      there and only there the field is light, at the starfield's own #f4f7ff.
+      It is not --accent and it never rebinds it: the ink is a fixed literal
+      here, per state, exactly like the per-state rim colours above.
+   The strengths are a ceiling on the glyph alpha and they are NOT uniform.
+   Measured mean sky luminance under the ellipse: daytime .42, pre-dawn .55,
+   dusk .62, sunset .63, sunrise .69, night .04. Ink on a .69 sky needs more
+   alpha to reach the same dL* than ink on a .42 one, which is why sunrise
+   carries the largest of the five and daytime the smallest.
+   THE VALUES ARE READ ONCE PER HOUR CHANGE, NOT PER FRAME. hero-time.js reads
+   them in applySnapshot and tweens the pair itself on the sky's own 640ms
+   curve. A getComputedStyle inside the draw loop would be 60 forced style
+   recalcs a second on the page performance-idle-contract measures at 56. */
+.heroTimeAscii{
+ position:absolute;inset:0;z-index:2;width:100%;height:100%;
+ pointer-events:none;opacity:1
+}
+.hero[data-time-state]{--ascii-ink:18 18 18;--ascii-strength:0}
+.hero[data-time-state="off"]{--ascii-strength:0}
+.hero[data-time-state="daytime"]{--ascii-strength:.30}
+.hero[data-time-state="pre-dawn"]{--ascii-strength:.34}
+.hero[data-time-state="dusk"]{--ascii-strength:.38}
+.hero[data-time-state="sunset"]{--ascii-strength:.38}
+.hero[data-time-state="sunrise"]{--ascii-strength:.42}
+.hero[data-time-state="night"]{--ascii-ink:244 247 255;--ascii-strength:.52}
 .hero[data-time-state="pre-dawn"] .heroTimeGradient[data-time-gradient="pre-dawn"]{opacity:1}
 .hero[data-time-state="sunrise"] .heroTimeGradient[data-time-gradient="sunrise"]{opacity:1}
 .hero[data-time-state="daytime"] .heroTimeGradient[data-time-gradient="daytime"]{opacity:1}
