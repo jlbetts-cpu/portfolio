@@ -128,6 +128,17 @@ html.jbHeroIntro .surface--hero{height:100svh}
 .scrollCue{display:none}
 .wrap{margin-top:0}
 
+/* THE LEGIBILITY SCRIM. Jayden: "the legibility on the gradient needs a bit
+   of work for the text." White type on the light water states (daytime,
+   sunrise) sat on near-white sky. The fix is the platform's own: a quiet
+   ink-tinted gradient rising from the floor, under the type, over the sky --
+   the iOS lock-screen treatment. One scrim serves every palette because it
+   tints toward the system ink rather than any hue. */
+.surface--hero::after{
+ content:"";position:absolute;inset:0;z-index:2;pointer-events:none;
+ background:linear-gradient(to top,rgba(9,11,36,.32),rgba(9,11,36,.12) 42%,transparent 68%);
+}
+
 /* the band is opaque and the type on it is white, so the mobile text-guard
    mask has no job here */
 .surface--hero .heroMeshCanvas,
