@@ -1052,7 +1052,10 @@
    mark cannot be made heavier by picking a face.  --mark-ink is a same-colour
    stroke on top of the fill -- a true optical embolden, not a second colour --
    and it exists because the thinnest joins measure 1.1px at 22px, which reads
-   thin next to 400-weight text.  0.8 in a 30-unit box is +0.59px at 22px.  The
+   thin next to 400-weight text.  0.8 in a 30-unit box was +0.59px at 22px, and Jayden asked for it stronger
+     still: 1.35 is +0.99px, which is where the thinnest joins stop reading thin
+     beside 400-weight Geist without the b's counter starting to close. Hover
+     moves to 1.9 so the response stays legible from the new resting weight.  The
    favicons carry the same idea on a ramp: more embolden and more tracking as the
    size falls.  See tools/build-jb-mark.py. */
 /* !important is the wrong tool and this is the right one: (0,2,0) with every
@@ -1064,7 +1067,12 @@
 /* The two weights are declared here rather than in tokens.css because they are
    this mark's optical embolden and nothing else in the site has one; --ico-mark-
    stroke/-strong remain the tokens for stroked glyphs. */
-.jbLogo{--mark-ink:.8;--mark-ink-strong:1.5;
+/* THE MARK IS INK, NOT NAV GREY. It sits inside .ctl--nav, so it inherited the
+   muted colour every nav ITEM takes at rest -- measured rgb(104,107,115)
+   against ink text beside it. A brand mark is not a nav item waiting to be
+   chosen; it is the one thing on the bar that is always current. Half of
+   'weak' was the colour, not the weight. */
+.jbLogo{--mark-ink:1.35;--mark-ink-strong:1.9;color:var(--theme-ink,var(--c950));
   width:var(--ico-mark);height:var(--ico-mark);flex:0 0 var(--ico-mark);
   display:block;fill:currentColor;stroke:currentColor;stroke-width:var(--mark-ink);
   stroke-linecap:round;stroke-linejoin:round;
