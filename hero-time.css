@@ -547,6 +547,88 @@
  position:absolute;inset:0;
  z-index:0;overflow:hidden;border-radius:inherit;corner-shape:inherit;pointer-events:none
 }
+/* ── THE SKY BREATHES ────────────────────────────────────────────────────────
+   Jayden: "add more visual interest to the gradient with movement -- look at
+   how other premium gradients use movement."
+
+   WHAT THE REFERENCES ACTUALLY DO, and the one that matters most is his own.
+   Stripe's hero is WebGL: fractal Brownian motion over Simplex noise, and the
+   movement comes from WARPING THE COORDINATE SPACE the colours are sampled in,
+   not from moving the colours. Every reproduction of it says the same thing.
+   That is the whole technique and it is why those fields read as one continuous
+   surface rather than as shapes sliding past each other.
+   THE WORKSPACE APP ALREADY SHIPS ONE, and it is the closest reference there
+   is, because it is his: assets/index-Bjpj2J7U.js carries a Stripe-lineage
+   fragment shader over the same six blobs the glyph field uses. Its two motion
+   terms, read out of the source rather than guessed:
+       uvb = (uv - .5) * (1 + .05*sin(t*.40)) + .5      +/-5%, period 15.7s
+       breath = 1 + .13*sin(t*.45)                      +/-13%, period 14.0s
+   The first is a scale breath about the centre. That one survives the port to
+   CSS exactly; the domain warp does not, and pretending otherwise would mean
+   animating `background`, which repaints the largest surface on the page every
+   frame. The craft consensus for ambient background motion is 8-20s periods,
+   which is where both of those sit.
+
+   SO: THE BUNDLE'S AMPLITUDE, AT ROUGHLY TWICE ITS PERIOD. 6% and 5% are the
+   same number to within a look; 29s and 43s are slower than the band's 15.7
+   because that band is a 200px strip in an app and this is the full first
+   screen of a portfolio with an h1 and a draggable head on top of it. They are
+   both prime, so the pair does not return to its start for 21 minutes -- there
+   is no loop to catch, which is the difference between weather and a
+   screensaver. The craft consensus for ambient background motion is 8-20s
+   periods; this is deliberately outside it, on the slow side.
+   THE MOVEMENT IS ALSO WHAT MAKES THE GLYPH FIELD READ. That is the real reason
+   it is here rather than a decoration on top of one: the field is a canvas on a
+   FIXED grid and the sky moves underneath it, so the two are in relative
+   motion, and a static texture that reads as noise reads as a surface the
+   moment the thing behind it moves and it does not.
+   Fastest term: 6% of a 900px Hero over 14.5s is 3.7px a second, which is under
+   the perception threshold section 11 of the Apple reference is about. Measured
+   the other way round, on the pixels rather than on the geometry: over 14
+   seconds a sky pixel changes by a median of 2 levels out of 255, p95 8, worst
+   12. You do not see it move. You see that it is not the same as it was.
+
+   IT IS `scale` AND `translate`, NOT `transform`, and that is the mechanism
+   rather than a style preference: they are separate animatable properties, so
+   two animations with different periods compose instead of the second one
+   replacing the first. One element, one composited layer, zero main-thread
+   work -- which is the answer to the other constraint, that the head's spring
+   has about 1.7ms of margin while it resolves. Measured: the glyph field's own
+   p50 draw time is unchanged with this running, because none of it is on the
+   main thread. It does not need to yield to the head, and it does not.
+
+   THE MARGINS ARE WHY THE BASE SCALE IS 1.05 AND NOT 1. transform-origin is the
+   bottom centre, so the focal point the six gradients are all authored around
+   (50% / ~104%) stays where Jayden put it and the bottom edge never lifts off
+   the Hero's floor. At the smallest scale in the cycle that leaves 2.5% of slack
+   at each side and 5% above, and the wander is capped under both: +/-1.6% across
+   and .2% to 2.0% DOWN only. Downward-only is not fussiness -- the bottom margin
+   is zero by construction, and a single frame of upward drift would show the
+   page through the bottom of the sky. Sampled every 120ms across a 46s window,
+   the worst slack on any edge was left -80.3, right -79.6, top -97.2, bottom
+   -18.0 px, all negative, meaning covered with room in every direction. */
+.heroTimeDrift{position:absolute;inset:0;transform-origin:50% 100%;
+ scale:1.05;translate:0 .2%;
+ animation:heroSkyBreath 29s var(--sky-drift-ease) infinite,
+           heroSkyWander 43s var(--sky-drift-ease) infinite}
+/* Nothing to breathe under: Off is the state where the page itself is the
+   point, so the layer stops being animated rather than animating six
+   transparent children. */
+.hero[data-time-state="off"] .heroTimeDrift{animation:none}
+/* Sine, not the default ease. A cubic-bezier ease-in-out between two extremes
+   is what a sin() looks like, and it is the same shape both references use. */
+:root{--sky-drift-ease:cubic-bezier(.37,0,.63,1)}
+@keyframes heroSkyBreath{0%,100%{scale:1.05}50%{scale:1.11}}
+@keyframes heroSkyWander{
+ /* .2% and not 0: at the bottom of the wander the sky's own bottom edge is
+    exactly flush with the clip's, and "exactly flush" is where sub-pixel
+    rounding puts a hairline of page colour under a full-bleed sky. 1.8px of
+    overhang costs nothing and cannot be seen. */
+ 0%,100%{translate:0 .2%}
+ 25%{translate:-1.6% .7%}
+ 50%{translate:.4% 2.0%}
+ 75%{translate:1.6% .9%}
+}
 .heroTimeGradient{position:absolute;inset:0;opacity:0;filter:none;mix-blend-mode:normal}
 .heroTimeGradient::after{
  content:"";position:absolute;inset:0;pointer-events:none;
@@ -607,18 +689,50 @@
       texture would read as dirt on the page rather than grain in the sky. It
       also means the count the loop pays for scales with the lit area, not the
       viewport.
-   2. THE INK IS THE SKY'S OPPOSITE. On the five light skies the glyphs are the
-      site's ink, so they read as a weave subtracted from the light -- the same
-      "premium is subtraction" the rest of this page is built on. Night is the
-      one state where subtracting from a #060a13 sky subtracts nothing, so
-      there and only there the field is light, at the starfield's own #f4f7ff.
+   2. THE GLYPHS ARE THE PAGE, NOT THE TYPE. Jayden: "make ascii the background
+      color." They are --theme-page's own near-white, 253 253 253, on every
+      sky -- which is what the Workspace original does (rgba(255,255,255,a) over
+      a saturated band) and it is a different picture from the one this port
+      shipped with. Ink glyphs sit ON the sky; ground glyphs sit IN it. The
+      first pass read as specks of dirt scattered over approved artwork, most
+      obviously on sunrise where a .30-alpha ink dot on a #ffc977 band is just a
+      dark speck. The same dot in page-white reads as light catching a surface,
+      which is the thing the band is a picture OF.
+      Night keeps 244 247 255 and was NOT changed. That value is the starfield's
+      own #f4f7ff and it is within two levels of the dark theme's --theme-ink
+      (#F4F5F7) -- it was already the ground colour of the theme it is drawn in,
+      so "make ascii the background color" was already true there. Rebinding it
+      to 253 253 253 would have moved it off the starfield it shares a sky with
+      for no gain anyone can see.
       It is not --accent and it never rebinds it: the ink is a fixed literal
       here, per state, exactly like the per-state rim colours above.
-   The strengths are a ceiling on the glyph alpha and they are NOT uniform.
-   Measured mean sky luminance under the ellipse: daytime .42, pre-dawn .55,
-   dusk .62, sunset .63, sunrise .69, night .04. Ink on a .69 sky needs more
-   alpha to reach the same dL* than ink on a .42 one, which is why sunrise
-   carries the largest of the five and daytime the smallest.
+   THE STRENGTHS ARE ALL HIGHER, AND THEY ARE HIGHER FOR TWO SEPARATE REASONS.
+   1. LIGHT-ON-LIGHT IS NOT DARK-ON-LIGHT. A ground glyph's whole available
+      contrast is (.976 - L_sky); an ink glyph's was L_sky itself. Measured mean
+      sky luminance where glyphs actually land: daytime .57, sunset .54, sunrise
+      .63, pre-dawn .47, dusk .49, night .02. So the flip costs the brightest
+      skies the most -- sunrise has .35 of headroom where daytime has .41 -- and
+      the shipped ink numbers could not be carried across in either direction.
+   2. HE SAID IT WAS TOO FAINT. "make sure it's more visible." The first
+      ground pass matched the ink field's peak dL and was still hard to see,
+      because a dark speck on a pale sky is easier to find than a pale mark on
+      a bright one at the same delta. Swept .50/.70/.90/1.10 on sunrise and
+      .37/.55/.70/.85 on daytime, rendered at device scale 2 and LOOKED at.
+      .90 and .70 are where each stops being a suggestion. Past those the
+      blanks in the ramp start closing and it becomes a screen of characters.
+        state      shipped(ink)  now(ground)   peak dL now   coverage now
+        pre-dawn       .34           .70          .141          .0037
+        sunrise        .42           .90          .157          .0053
+        daytime        .30           .70          .135          .0036
+        dusk           .38           .78          .156          .0037
+        sunset         .38           .76          .155          .0049
+        night          .52           .64          .108          .0050
+      Night moved least on purpose. It was already the sky that read, it is the
+      only one with real stars to share the frame with, and it is the one state
+      where the glyphs have the whole range to themselves.
+      All six sit inside hero-ascii-field-contract's [.035, .300] peak-dL band
+      and its [.0012, .0120] coverage band, which are the two-sided limits for
+      "a frame nobody can see" and "dirt on approved artwork".
    THE VALUES ARE READ ONCE PER HOUR CHANGE, NOT PER FRAME. hero-time.js reads
    them in applySnapshot and tweens the pair itself on the sky's own 640ms
    curve. A getComputedStyle inside the draw loop would be 60 forced style
@@ -627,14 +741,14 @@
  position:absolute;inset:0;z-index:2;width:100%;height:100%;
  pointer-events:none;opacity:1
 }
-.hero[data-time-state]{--ascii-ink:18 18 18;--ascii-strength:0}
+.hero[data-time-state]{--ascii-ink:253 253 253;--ascii-strength:0}
 .hero[data-time-state="off"]{--ascii-strength:0}
-.hero[data-time-state="daytime"]{--ascii-strength:.30}
-.hero[data-time-state="pre-dawn"]{--ascii-strength:.34}
-.hero[data-time-state="dusk"]{--ascii-strength:.38}
-.hero[data-time-state="sunset"]{--ascii-strength:.38}
-.hero[data-time-state="sunrise"]{--ascii-strength:.42}
-.hero[data-time-state="night"]{--ascii-ink:244 247 255;--ascii-strength:.52}
+.hero[data-time-state="daytime"]{--ascii-strength:.70}
+.hero[data-time-state="pre-dawn"]{--ascii-strength:.70}
+.hero[data-time-state="dusk"]{--ascii-strength:.78}
+.hero[data-time-state="sunset"]{--ascii-strength:.76}
+.hero[data-time-state="sunrise"]{--ascii-strength:.90}
+.hero[data-time-state="night"]{--ascii-ink:244 247 255;--ascii-strength:.64}
 .hero[data-time-state="pre-dawn"] .heroTimeGradient[data-time-gradient="pre-dawn"]{opacity:1}
 .hero[data-time-state="sunrise"] .heroTimeGradient[data-time-gradient="sunrise"]{opacity:1}
 .hero[data-time-state="daytime"] .heroTimeGradient[data-time-gradient="daytime"]{opacity:1}
@@ -1028,6 +1142,21 @@
 
 
 .heroCopy h1{position:relative;z-index:3;color:var(--time-ink);transition:color var(--hero-time-duration) var(--hero-time-ease)}
+/* THE NAME AND AVAILABILITY LINE TAKES ITS INK FROM THE CLOCK, not from the
+   page. Its layout, size and leading are in index.html with the rest of the
+   Hero copy; only the colour is here, next to the h1's, because only the colour
+   is a time-of-day decision -- --theme-muted resolves #686b73 under the five
+   light skies and #A7ABB4 at night, because data-theme follows the hour.
+   The transition is the same 640ms curve the headline above it uses: an hour
+   change has to be ONE event. A caption that snapped to its new grey while the
+   headline drifted is the "the settings changed" reading this whole file exists
+   to avoid, and it is the same class of bug as the unregistered custom
+   properties at the top -- one channel finishing on frame one.
+   z-index 3 to match the h1: .heroCopy sits above the sky and the drift layer,
+   and a caption that the glyph field could paint over is a caption nobody
+   asked for. */
+.heroCred{position:relative;z-index:3;color:var(--theme-muted,var(--c700));
+ transition:color var(--hero-time-duration) var(--hero-time-ease)}
 .heroPortraitTintDefs{position:absolute;width:0;height:0;overflow:hidden;pointer-events:none}
 /* ── THE FORM SHADOW. NOT A CAST SHADOW, AND THE DIFFERENCE IS THE WHOLE RULE ─
    A CAST shadow is the dark shape an object throws ONTO A SURFACE. There is no
@@ -1438,7 +1567,12 @@
 }
 
 @media(prefers-reduced-motion:reduce){
- .hero,.heroTimeSpill,.heroTimeClip,.heroTimeGradient,.heroTimePortraitCast,
+ /* .heroTimeDrift is named here and not left to inherit: section 14 of the
+    Apple reference calls out "full-viewport moving backgrounds" and "slow
+    looping oscillations" by name, and this is both. Static sky under reduce --
+    and `animation:none` leaves the base `scale:1.04` in place, so the reduced
+    picture is the same composition standing still rather than a different one. */
+ .hero,.heroTimeSpill,.heroTimeClip,.heroTimeDrift,.heroTimeGradient,.heroTimePortraitCast,
  .heroTimePortraitLit,.heroCopy h1{transition:none!important;animation:none!important}
  /* NAMED SEPARATELY, because a shadow-tree box does not inherit its host's
     transition. controls.css already stops the selection ELEMENTS, and the
