@@ -316,6 +316,31 @@ def validate_page(page, source, canonical):
         if phrase in block:
             failures.append("legacy footer copy remains: %r" % phrase)
 
+    # 3b. THE BAND. The wordmark is a knockout in a painted surface now, and the
+    #     surface is two canvases the component paints into. A page that keeps
+    #     the <div class="footMark"> and loses the wrapper still renders a
+    #     wordmark -- in the page's own ground colour, on the page's own ground,
+    #     i.e. invisible. That is the failure mode worth a check of its own.
+    for needle, why in (
+        ('<div class="footBand">', "the band wrapper"),
+        ('<canvas class="footBandField"', "the mesh and glyph canvas"),
+        ('<canvas class="footBandMark"', "the knockout canvas"),
+    ):
+        if needle not in block:
+            failures.append("the footer is missing %s (%s)" % (why, needle))
+    if 'src="footer-band.js"' not in source:
+        failures.append("the page does not load footer-band.js; the band will not paint")
+
+    # AND THE COUPLING THE BAND DEPENDS ON. footer.css pulls the band down by
+    # exactly this value so the painted floor reaches the bottom of the document.
+    # If a page stops declaring it, that page gets a gap and the other seven do
+    # not -- the exact shape of drift this whole tool exists to stop.
+    if "padding-bottom:var(--sp-32-64)" not in re.sub(r"\s+", "", source):
+        failures.append(
+            "this page no longer sets .siteFoot padding-bottom:var(--sp-32-64); "
+            "footer.css cancels exactly that value to seat the band on the page bottom"
+        )
+
     # 4. The page may own placement only. Any footer type, colour, grid or state
     #    rule left in a page <style> block is the drift this tool exists to stop.
     #
@@ -386,9 +411,30 @@ def validate_footer_css():
         # the hairline at the top and the wordmark at the bottom. --fs-display
         # deliberately does NOT appear here: capping at the scale's top rung put
         # the ink 280px short of the right edge at 1440, which is the defect.
-        # --theme-rim keeps it on the time-of-day theme AND makes it literally
-        # the hairline's colour.
-        ".footMark": ["100cqw", "var(--foot-mark-fit)", "var(--theme-rim)"],
+        #
+        # --theme-rim WAS PINNED HERE AND IS NOT ANY MORE, 2026-08-19. The old
+        # assertion was a real decision, not an accident: the wordmark was the
+        # hairline's colour, so one --theme-* value bracketed the component top
+        # and bottom. Jayden replaced the premise. He asked for the wordmark to
+        # sit in a full-bleed gradient band "in the middle background color but
+        # with some inner shadow so it has some depth and looks like its encased
+        # in the gradient" -- which makes the letterforms a KNOCKOUT, and a
+        # knockout is only a knockout while its fill is the page's own ground.
+        # So --theme-page replaces --theme-rim: same shape of assertion, same
+        # protection against a hard-coded colour, and it now pins the property
+        # that makes the effect work rather than one that would paint a
+        # rim-coloured smudge on a dark band. The band brackets the component now.
+        # This was updated with its reasoning rather than relaxed; see section 7
+        # of CLAUDE.md.
+        ".footMark": ["100cqw", "var(--foot-mark-fit)", "var(--theme-page)"],
+        # THE BAND IS FULL BLEED AND IT IS THE LAST THING ON THE PAGE. Both are
+        # one declaration each and both fail silently and differently per page if
+        # they go: .siteFoot is at most the page measure wide, so without the
+        # 100vw + calc(50% - 50vw) pair the band stops at 1200px on the six pages
+        # whose footer sits inside .wrap and runs edge to edge on the two whose
+        # footer is a <body> child. tools/footer-band-contract.py measures the
+        # painted result; this catches the source.
+        ".footBand": ["100vw", "calc(50% - 50vw)", "var(--sp-32-64)", "overflow:clip"],
     }
     for selector, needles in required.items():
         match = re.search(re.escape(selector) + r"\s*\{([^}]*)\}", source, re.S)
@@ -398,6 +444,18 @@ def validate_footer_css():
         for needle in needles:
             if needle not in match.group(1):
                 failures.append("%s does not resolve %s" % (selector, needle))
+    # THE ONE PLACE THIS COMPONENT MAY REACH INTO A PAGE, NAMED SO IT CANNOT ROT.
+    # .footBand cancels the page's own padding-bottom with a negative margin, so
+    # that a full-bleed painted floor is not left with 64px of page ground under
+    # it. That only works while every page declares exactly that value, so the
+    # coupling is checked here rather than trusted -- the day a page changes it,
+    # this says so instead of leaving one page with a gap nobody screenshotted.
+    if "margin-bottom:calc(var(--sp-32-64) * -1)" not in re.sub(r"\s+", " ", source):
+        failures.append(
+            ".footBand no longer cancels the page's padding-bottom; the band will "
+            "not reach the bottom of the document"
+        )
+
     # No cast shadow anywhere on this chrome: separation is a hairline.
     for rule in re.findall(r"box-shadow\s*:\s*([^;}]*)", source):
         if "inset" not in rule and rule.strip() not in {"none"}:
