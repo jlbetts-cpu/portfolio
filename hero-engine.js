@@ -121,6 +121,13 @@ function buildHeadline(){h1.textContent="";
  cycWord=null;}
 function revealAll(){const chs=[...h1.querySelectorAll(".ch")];chs.forEach((c,i)=>{c.style.transitionDelay=(i*0.03)+"s";c.classList.add("show");});
  var _av0=document.getElementById("heroAvail");if(_av0)setTimeout(function(){_av0.classList.add("in");},reduce?0:100);   // the eyebrow fades in FIRST, just before the headline
+ /* THE CLAIM LANDS BETWEEN THE HEADLINE AND THE BUTTONS. One --dur-move beat
+    after the last character finishes (not after it STARTS -- _ctaT below adds
+    560 to the last delay and never accounts for the character's own duration,
+    which is why the gap it reads like is not the gap it is). */
+ var _cr=document.querySelector(".heroCred");
+ if(_cr){if(reduce){_cr.classList.add("in");}else{var _crT=chs.length*0.03*1000+500;
+  setTimeout(function(){_cr.classList.add("in");},_crT);}}
  var _hc=document.querySelector(".heroCtas");                                          // CTAs enter after the headline lands (the eyebrow already came in first)
  if(_hc){if(reduce){_hc.classList.add("in");}else{var _ctaT=(chs.length*0.03+0.12)*1000+560;setTimeout(function(){_hc.classList.add("in");},_ctaT);}}
  const sub=document.getElementById("sub");const base=chs.length*0.06+0.2;[...sub.querySelectorAll(".l")].forEach((l,i)=>l.style.transitionDelay=(base+i*0.011)+"s");sub.classList.add("show");}

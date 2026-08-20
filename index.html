@@ -324,9 +324,19 @@ body.catchReady #stageMorph{transform:scale(1.055)}
    solid pale button is what stays legible over an arbitrary video frame and
    this is the only affordance a phone has here -- but it is the theme tokens
    saying so now, not two numbers off the ramp. */
-.reelTap{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:3;display:none;align-items:center;justify-content:center;border:0;font-size:var(--fs-small);font-weight:400;white-space:nowrap;cursor:pointer;}
-.reel.coarse .reelTap{display:flex}
-.reelTap .tri,.playCursor .tri{width:0;height:0;border-style:solid;border-width:7px 0 7px 12px;border-color:transparent transparent transparent var(--c950);margin-left:1px}
+/* .reelTap's headstone, 2026-08-20. Jayden: "remove the black play video
+   button from the video." It was an aria-hidden <span> inside #reelFrame, and
+   the FIGURE is the actual control -- role="button", tabindex=0, aria-label
+   "Play intro video", with the click and Enter/Space handlers on it
+   (hero-engine.js:2159-2163). So this was decoration over a button, and nothing
+   is stranded by its removal.
+   IT WAS ALSO BROKEN. `display:none` here plus a `.reel.coarse` reveal
+   was meant to make it phone-only, but .ctl{display:inline-flex} in controls.css
+   is the same (0,1,0) weight in a file that links LATER -- the trap this
+   stylesheet has now hit four times -- so it drew on desktop too, on top of the
+   .playCursor that follows the pointer saying the same two words. Its triangle
+   was --c950 #090b24 on the button's #111214: a contrast ratio of 1.03:1. */
+.playCursor .tri{width:0;height:0;border-style:solid;border-width:7px 0 7px 12px;border-color:transparent transparent transparent var(--c950);margin-left:1px}
 .playCursor{position:fixed;left:0;top:0;z-index:90;pointer-events:none;transform:translate(var(--px,-300px),var(--py,-300px))}
 .pcInner{display:flex;align-items:center;border-radius:4px;background:var(--c50);color:var(--c950);font-size:var(--fs-small);font-weight:400;white-space:nowrap;transform:translate(-50%,-50%) scale(0);transform-origin:center;opacity:0;transition:opacity var(--dur-state-out) var(--ease-out),transform var(--dur-reveal) var(--ease-out)}
 .playCursor.on .pcInner{opacity:1;transform:translate(-50%,-50%) scale(1)}
@@ -504,9 +514,9 @@ body.heroEmpathy .jbStick .jbNav{--nav-mat:var(--ctl-ground);--nav-rim:var(--ctl
    and takes --r-md, the two toasts are inline marks and take --r-2xs.
    .reelTap additionally takes --tap-min. It measured 43px, and on a phone it is
    the ONLY affordance the video has -- see the touch note by .reel.coarse. */
-.reelTap,.pcInner,.vcInner{
+.pcInner,.vcInner{
   gap:var(--sp-8);padding:var(--sp-12) var(--sp-20) var(--sp-12) var(--sp-16)}
-.reelTap{min-height:var(--tap-min);box-sizing:border-box}
+
 .vcArr{display:inline-flex;align-items:center;color:var(--c950)}
 .csHint{display:inline-flex;align-items:center;gap:8px;margin-top:8px;opacity:0;pointer-events:none;}
 .csHint .dhl{font-family:var(--sans);font-size:clamp(9px,0.95vw,12px);letter-spacing:.22em;text-transform:none;font-weight:600;color:var(--c500);line-height:1}
@@ -836,12 +846,18 @@ body.heroEmpathy .jbStick .jbNav{--nav-mat:var(--ctl-ground);--nav-rim:var(--ctl
 .moodbar.open .moodItem:nth-child(3){transition-delay:.13s,.13s,0s}
 .moodbar.open .moodItem:nth-child(4){transition-delay:.18s,.18s,0s}
 
-@media(prefers-reduced-motion:reduce){.heroCtas>*{opacity:1!important;transform:none!important;animation:none!important}.moodMenu,.moodCar{width:12px;height:12px;display:inline-block;flex:0 0 auto;color:var(--c500);transition:transform var(--dur-state) var(--ease-out),color var(--dur-state) var(--ease-out)}}
+@media(prefers-reduced-motion:reduce){.heroCtas>*,.heroCred{opacity:1!important;transform:none!important;animation:none!important;transition:none!important}.moodMenu,.moodCar{width:12px;height:12px;display:inline-block;flex:0 0 auto;color:var(--c500);transition:transform var(--dur-state) var(--ease-out),color var(--dur-state) var(--ease-out)}}
 .heroCtas{display:flex;align-items:center;gap:12px;margin-top:32px;flex-wrap:wrap}
-.heroCtas>*{opacity:0;transform:translateY(9px) scale(.97)}
-.heroCtas.in>*{opacity:1;transform:none;animation:ctaIn var(--dur-enter) var(--ease-out) both}
-.heroCtas.in>*:nth-child(2){animation-delay:.125s}.heroCtas.in>*:nth-child(3){animation-delay:.25s}
-@keyframes ctaIn{0%{opacity:0;transform:translateY(12px) scale(.9)}25%{opacity:.6;transform:translateY(2px) scale(1.04)}50%{opacity:1;transform:translateY(-2px) scale(1.02)}75%{opacity:1;transform:translateY(1px) scale(.995)}100%{opacity:1;transform:translateY(0) scale(1)}}
+.heroCtas>*{opacity:0;transform:translateY(9px) scale(.97);
+ transition:opacity var(--dur-enter) var(--ease-out),transform var(--dur-enter) var(--ease-out)}
+.heroCtas.in>*{opacity:1;transform:none}
+.heroCtas.in>*:nth-child(2){transition-delay:.125s}.heroCtas.in>*:nth-child(3){transition-delay:.25s}
+/* ctaIn's headstone. It was a six-stop keyframe with a 1.04 overshoot, and a
+   keyframe restarts from its own 0% and cannot be interrupted -- which is what
+   made the override above look survivable and is what apple-design.md §3 calls
+   the single most important principle. A transition re-targets from the
+   PRESENTATION value, so a button caught mid-entrance carries on from where it
+   actually is. Same rung (--dur-enter), same stagger, now interruptible. */
 /* PRIMARY. The border was `1px solid var(--accent)` on a `var(--accent)` ground --
    a border the same colour as its own fill, which is 2px of box doing nothing but
    putting this control 2px off every other one. Dropped per the control system
@@ -1060,7 +1076,7 @@ body.heroEmpathy .jbStick .jbNav{--nav-mat:var(--ctl-ground);--nav-rim:var(--ctl
    at a raw 4px: .reelTap is a button, so it takes the control radius; .csYear,
    .vcInner and .pcInner are a numeral chip and two toasts -- small inline marks,
    which is the one place --r-2xs is still the right rung. */
-.reelTap{border-radius:var(--r-md);corner-shape:var(--corner)}
+
 .csYear,.vcInner,.pcInner{border-radius:var(--r-2xs);corner-shape:var(--corner)}
 .csItem.wip{cursor:default}
 .csItem.wip .csImg{filter:none}
@@ -1103,13 +1119,28 @@ body.heroEmpathy .jbStick .jbNav{--nav-mat:var(--ctl-ground);--nav-rim:var(--ctl
    anywhere -- so that declaration was invalid at computed-value time and
    resolved to `unset`, which for max-width is `none`. It never did anything.
    It also would not need to: this is one short line, not a paragraph. */
+/* IT WAS THE ONE STATIC THING IN A MOVING HERO. Jayden, 2026-08-20: "open to
+   full time roles doesnt have an animation at all" and "it kinda looks out of
+   place". Measured: opacity 1, animation-name none, and its only transition was
+   hero-time.css:1180's 640ms sky cross-fade on COLOUR -- so while the headline
+   cascaded and the buttons rose, this line was simply already there.
+   IT DOES NOT TAKE THE EYEBROW'S SLOT. revealAll() still carries a step for
+   #heroAvail, which was deleted (header.css:1321 is its headstone) and now
+   resolves to null on every load; this line inherited that markup position but
+   not its timing. The eyebrow sat ABOVE the headline and led; this sits BELOW
+   it, so it follows -- read order is headline, then claim, then buttons.
+   --dur-reveal, one --dur-move beat after the headline settles and one before
+   the CTAs, so the fold reads as three beats and not two plus a straggler. */
 .heroCred{
  order:1;
+ opacity:0;transform:translateY(6px);
+ transition:opacity var(--dur-reveal) var(--ease-out),transform var(--dur-reveal) var(--ease-out);
  margin:var(--sp-8) 0 0;
  font-family:var(--sans);font-weight:400;
  font-size:var(--fs-body);line-height:var(--lh-note);letter-spacing:var(--tr-body);
  text-wrap:pretty
 }
+.heroCred.in{opacity:1;transform:none}
 /* THE COLOUR IS NOT HERE, and that is not an oversight -- see hero-time.css.
    It is the hour's, it wants the sky's own 640ms curve, and --hero-time-duration
    / --hero-time-ease are declared in that file. Naming them from this block is
@@ -1874,7 +1905,15 @@ html{scroll-padding-top:calc(var(--nav-h) + var(--sp-16-24))}
  line-height:1.06;letter-spacing:var(--tr-head);text-align:center;text-wrap:balance}
 .heroCtas{order:2;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;
  gap:var(--sp-8);margin-top:var(--sp-16);position:relative;z-index:8}
-.heroCtas>*{opacity:1;transform:none}
+/* THE `opacity:1;transform:none` THAT STOOD HERE WAS THE BLACKOUT.
+   Jayden: "I noticed the buttons are there on first load but they dont do
+   there animation till after." Measured: it is (0,1,0), the same weight as
+   :841's hidden state, and later in this same sheet -- so it won, the buttons
+   painted SOLID at 107ms, and then `.in` landed at 2131ms and restarted the
+   entrance from opacity 0. The button vanished and dropped 12px, blacked out
+   for 202ms; the time button for 334ms. It was not animating late, it was
+   being un-drawn. Nothing is lost by deleting it: :842 carries the settled
+   state and :839's reduced-motion block already forces opacity 1. */
 .workCta svg,.moodFaceIco{width:var(--ico-sm);height:var(--ico-sm);fill:none;
  stroke:currentColor;stroke-width:var(--ico-stroke);stroke-linecap:round;stroke-linejoin:round}
 @media(max-width:760px){
@@ -2229,7 +2268,7 @@ if(location.hash==="#about")location.replace("about.html");</script>
  </div>
 
  <div class="csPanel" data-panel="goodness" role="tabpanel" aria-label="Extras" hidden>
-  <section class="reel" id="reel"><div class="reelTrack"><div class="reelStage" id="reelStage"><figure class="reelFrame" id="reelFrame" role="button" tabindex="0" aria-label="Play intro video"><video class="reelVid" id="reelVid" muted loop playsinline preload="none" poster="images/reel_poster.webp"><source src="videos/reel.mp4" type="video/mp4"></video><span class="reelTap ctl ctl--primary" id="reelTap" aria-hidden="true"><span class="tri"></span>Play video</span><div class="playCursor" id="playCursor" aria-hidden="true"><span class="pcInner"><span class="tri"></span>Play video</span></div></figure><div class="reelMeta"><span class="csName">Wired to fail</span><span class="csYear">2026</span></div></div></div></section>
+  <section class="reel" id="reel"><div class="reelTrack"><div class="reelStage" id="reelStage"><figure class="reelFrame" id="reelFrame" role="button" tabindex="0" aria-label="Play intro video"><video class="reelVid" id="reelVid" muted loop playsinline preload="none" poster="images/reel_poster.webp"><source src="videos/reel.mp4" type="video/mp4"></video><div class="playCursor" id="playCursor" aria-hidden="true"><span class="pcInner"><span class="tri"></span>Play video</span></div></figure><div class="reelMeta"><span class="csName">Wired to fail</span><span class="csYear">2026</span></div></div></div></section>
   <!-- Task 5: the head-maker and Gradient Lab cards moved to the Play menu (play.html).
        They are makers, not case studies, and Extras is where the reel lives. -->
  </div>
@@ -2274,7 +2313,7 @@ if(location.hash==="#about")location.replace("about.html");</script>
     </div>
    </nav>
   </div>
-  <div class="footBand"><canvas class="footBandField" aria-hidden="true"></canvas><canvas class="footBandMark" aria-hidden="true"></canvas><div class="footMark" aria-hidden="true">Jayden Betts</div></div>
+  <div class="footBand"><canvas class="footBandField" aria-hidden="true"></canvas></div>
  </footer>
 <div class="reelOverlay" id="reelOverlay" aria-hidden="true"><button class="reelClose ctl ctl--on-dark" id="reelClose" type="button" aria-label="Close trailer">Close</button><video class="reelOverlayVid" id="reelOverlayVid" controls playsinline preload="metadata" poster="images/reel_poster.webp"><source src="videos/reel.mp4" type="video/mp4"></video></div>
 <div class="viewCursor" id="viewCursor" aria-hidden="true"><span class="vcInner"><span class="vcArr"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="square" stroke-linejoin="miter"><path d="M12 20V5M5 12l7-7 7 7"/></svg></span>View case study</span></div>

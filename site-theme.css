@@ -110,10 +110,6 @@ html{scrollbar-color:var(--theme-muted) var(--theme-page)}
 :root[data-theme="dark"] body[data-theme-page="home"] .vcArr{color:var(--theme-focus)}
 :root[data-theme="dark"] body[data-theme-page="home"] .csGo:focus-visible{outline-color:var(--theme-focus)}
 :root[data-theme="dark"] body[data-theme-page="home"] .csBackveil{background-color:var(--theme-page)}
-:root[data-theme="dark"] body[data-theme-page="home"] .reelTap{
- background-color:var(--theme-surface);color:var(--theme-ink);
- box-shadow:inset 0 0 0 var(--hair-w) var(--theme-rim);
-}
 :root[data-theme="dark"] body[data-theme-page="home"] .siteFoot{color:var(--theme-ink)}
 
 /* About uses the same hierarchy as the editorial case studies while keeping the
@@ -391,7 +387,7 @@ html{scrollbar-color:var(--theme-muted) var(--theme-page)}
 }
 
 /* Theme changes transition as one system only after synchronous bootstrap. */
-.theme-ready body[data-theme-page="home"] :is(.cases,.csInfoRow,.csName,.csYear,.csInfoLabel,.csInfoVal,.reelTap),
+.theme-ready body[data-theme-page="home"] :is(.cases,.csInfoRow,.csName,.csYear,.csInfoLabel,.csInfoVal),
 .theme-ready body[data-theme-page="about"] :is(.abTitle,.abBody h2,.abBody p,.abFactK,.abFactV),
 .theme-ready body[data-theme-page="case-study"] :is(.head,.roleHead,.secHead,.hmwQ,.subHead,.statNum,.fv,.ovBody,.role p,.lede,.secBody,.statCap,.cap,.eyebrow,.kicker,.fk,.rlabel,.statSrc,.csReach,.demoLabel,.scrollbox,.baGo,.baLabel,.scrapTag,.pair,.baFrame){
  transition-property:color,background-color,border-color,box-shadow,text-decoration-color;

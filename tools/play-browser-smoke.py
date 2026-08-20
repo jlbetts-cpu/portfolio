@@ -272,7 +272,23 @@ def run_layout(browser, base_url, width, height, reduced=False):
             canonical: ['moodbar','moodBtn','moodMenu'].map(id => document.querySelectorAll('#'+id).length),
             gameIds: ['gamebar','gameBtn','gameMenu'].every(id => !!document.getElementById(id)),
             statusHidden: !!document.querySelector('#qdots[aria-live] [aria-hidden="true"]')
-            ,surfaces: ['.jbNav','#moodBtn'].map(selector => getComputedStyle(document.querySelector(selector)).backgroundColor)
+            ,surfaces: ['#moodBtn'].map(selector => getComputedStyle(document.querySelector(selector)).backgroundColor)
+            /* THE BAR'S GROUND MOVED OFF .jbNav. On the band pages header.css
+               §0b gives the nav its skin back and puts the opaque ground on
+               .jbStick -- so reading .jbNav alone now reports rgba(0,0,0,0) and
+               says "transparent header" about a header that is solid white.
+               play.html joined those pages on 2026-08-20. What has to stay true
+               is that the BAR is opaque, wherever the ground lives, so this
+               reads whichever of the two carries it. */
+            ,barGround: (() => {
+              for (const sel of ['.jbStick', '.jbNav']) {
+                const node = document.querySelector(sel);
+                if (!node) continue;
+                const bg = getComputedStyle(node).backgroundColor;
+                if (!(bg.startsWith('rgba(') && bg.endsWith(', 0)'))) return sel + ' ' + bg;
+              }
+              return null;
+            })()
           };
         }
         """
@@ -292,6 +308,8 @@ def run_layout(browser, base_url, width, height, reduced=False):
     assert data["stage"]["left"] >= -1 and data["stage"]["right"] <= width + 1, data
     assert not data["statusHidden"], data
     assert all(not color.startswith("rgba(") or not color.endswith(", 0)") for color in data["surfaces"]), data
+    # and the bar is opaque somewhere -- content must not ghost through it
+    assert data["barGround"], data
     if width <= 390:
         # ---- ONE COLUMN UNDER 560px, AND IT IS THE SAME INSTRUCTION, NOT A REVERSAL.
         # "Two on top, two on the bottom, so we can make them bigger" was measured at

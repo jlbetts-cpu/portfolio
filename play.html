@@ -60,7 +60,18 @@
     selector either way), so it won the cascade by source order and silently shadowed it. */
  /* HOME HERO, UNFORKED. The page begins below the 72px fixed header, then uses the
     canonical Home grid, type rhythm, controls and responsive portrait sizing. */
- .playViewport{position:relative;height:100svh;min-height:100svh;padding-top:var(--bar-h);box-sizing:border-box}
+ /* THE BAR IS IN THE FLOW NOW, SO THE STAGE MUST NOT RESERVE ITS HEIGHT TWICE.
+    This padding existed to clear a FIXED bar that took no space. play.html
+    joined the band pages on 2026-08-20 (Jayden: "the play screen still has a
+    pill"), and a sticky bar occupies 72px of flow -- so the stage started at 72
+    and then pushed its own content down another 72. Measured: hero top 144
+    against every other page's 72, and because box-sizing is border-box the
+    100svh box ran to 972 in a 900 viewport, 72px past the fold. That is the
+    "text and heads isnt balance and sitting all in the screen" note. The height
+    now subtracts the bar instead, which is the same arithmetic the padding was
+    doing, moved to the side of the box that is not already accounted for. */
+ .playViewport{position:relative;height:calc(100svh - var(--bar-h));
+   min-height:calc(100svh - var(--bar-h));box-sizing:border-box}
  .playBooting .playViewport{visibility:hidden}
  .wrap{position:relative;z-index:62;width:100%;max-width:none;margin:0;padding:0}
  .hero{position:relative;isolation:isolate;overflow:hidden;display:grid;grid-template-columns:1fr;height:auto;box-sizing:border-box;
@@ -125,7 +136,15 @@
  .heroCopy h1>.pLine{display:block}
  .heroCtas{order:3;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;
   gap:var(--sp-8);margin-top:var(--sp-16);position:relative;z-index:8}
- .heroCtas>*{opacity:1;transform:none}
+ /* THE SAME BLACKOUT index.html HAD, AND FOUR TIMES LONGER. This rule is
+    (0,1,0) and beats the hidden state, so the CTAs painted solid on the first
+    frame; then .isIn landed at 235ms and cycIn's `both` fill held them at 0%
+    through a 624ms animation-delay before starting. Measured: 829ms with the
+    primary CTA erased AFTER the visitor had already seen it (mood button 879ms;
+    at 390 it ran 478 -> 1307ms). Deleting it lets the row enter from hidden,
+    which is what :577 was always written for. The reduced-motion escape at :580
+    already forces opacity 1, so nothing depends on this as a fallback. */
+ .heroCtas>*{opacity:0;transform:translateY(9px) scale(.97)}
  .heroMood{position:relative;z-index:12;display:inline-flex}
  .heroMood .moodLbl{font:inherit}
  .heroMood .moodCar{width:var(--ico-xs);height:var(--ico-xs);fill:none;stroke:currentColor;stroke-width:var(--ico-stroke);stroke-linecap:round;stroke-linejoin:round;transition:transform var(--sp-settle-dur) var(--ease-out)}
@@ -255,7 +274,8 @@
     is already 0 here (the clamp bottoms out below 788px of viewport), so this is
     paying for the line and nothing else. */
  @media(max-height:720px) and (min-width:761px){.hero{padding-top:var(--sp-16)}.heroCopy h1{font-size:clamp(30px,3.2vw,36px)}.heroCtas{margin-top:var(--sp-12)}.hero .stagewrap{width:min(420px,42vw);margin-top:var(--sp-6)}}
- @media(prefers-reduced-motion:reduce){.heroMood .moodMenu,.heroMood .moodCar,.heroCtas>*{transition:none!important;animation:none!important}}
+ @media(prefers-reduced-motion:reduce){.heroMood .moodMenu,.heroMood .moodCar,.heroCtas>*{transition:none!important;animation:none!important}
+  .heroCtas>*{opacity:1!important;transform:none!important}}
 
  /* ==========================================================================
     THE PLAY HUB. Everything below is new for the games-menu pass and lives in
@@ -1153,7 +1173,7 @@
     </div>
    </nav>
   </div>
-  <div class="footBand"><canvas class="footBandField" aria-hidden="true"></canvas><canvas class="footBandMark" aria-hidden="true"></canvas><div class="footMark" aria-hidden="true">Jayden Betts</div></div>
+  <div class="footBand"><canvas class="footBandField" aria-hidden="true"></canvas></div>
  </footer>
 <!-- The team screen's shell is built by play-games.js (it owns the chips, the drag, the
      shuffle and the live __hmTeamPreview channel); this is only the mount point, so the

@@ -45,6 +45,19 @@ def asset_name(href):
     return href.split("?", 1)[0] if href else href
 
 
+def rule_block(css, selector):
+    """The declarations of one rule, comments stripped, or "" if it is absent.
+
+    Written here rather than imported so this contract stays standalone -- it is
+    the only thing in tools/ that reads hero-time.css for shape rather than for
+    a substring, and a shared helper would make two files move together for no
+    reason.
+    """
+    stripped = re.sub(r"/\*.*?\*/", "", css, flags=re.S)
+    hit = re.search(re.escape(selector) + r"\s*\{([^}]*)\}", stripped)
+    return hit.group(1) if hit else ""
+
+
 def main():
     tokens = (ROOT / "tokens.css").read_text(encoding="utf-8")
     controls = (ROOT / "controls.css").read_text(encoding="utf-8")
@@ -126,7 +139,25 @@ def main():
     hero_time_js = (ROOT / "hero-time.js").read_text(encoding="utf-8")
     assert "opensAbove" not in hero_time_css and "opensAbove" not in hero_time_js
     assert "overflow-y:auto" in controls
-    assert ".hero::after" not in hero_time_css
+    # ── .hero::after MAY EXIST; IT MAY NOT BE A RIM. ───────────────────────
+    # This was a blunt `".hero::after" not in hero_time_css`, and what it was
+    # actually built to stop is what 422a90b deleted: an inset:0 overlay at
+    # z-index 10 carrying `box-shadow:var(--time-rim)`, i.e. an ELEVATION on the
+    # Hero. The companion heads cast the only shadow on this site, so that rule
+    # had to go and this assertion kept it gone.
+    # The selector came back on 2026-08-20 for the opposite kind of thing: a 1px
+    # border-bottom that draws the gradient's own bottom edge, because Jayden
+    # asked for the work section's rule to "do the whole bottom of the gradient
+    # instead" and an inset box-shadow could not paint there (the sky is a child
+    # and covers it). A hairline boundary is not a rim, so the assertion is
+    # narrowed to the property that carries the defect rather than to the
+    # selector that happened to carry it once.
+    after = rule_block(hero_time_css, ".hero::after")
+    if after:
+        assert "box-shadow" not in after, \
+            ("the Hero has taken an elevation back on ::after; chrome separates "
+             "with a hairline and only the heads cast a shadow", after)
+        assert "--time-rim" not in after, after
     assert ".skipLink{" not in home_html and ".skipLink:focus" not in home_html
     assert ".skipLink.ctl:focus-visible" in controls
     assert ".skipLink.ctl:focus{" not in controls

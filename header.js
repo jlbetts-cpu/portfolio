@@ -372,7 +372,7 @@ addEventListener("resize", function(){
     inside prose is NOT included: following a link is not a button press, and
     buzzing mid-sentence is exactly the cheapness this is trying to avoid. */
  var CONTROL = ".ctl,button,[role=button],[role=tab],summary,input[type=checkbox],input[type=radio]";
- var PRIMARY = ".ctl--primary,.pBtnGo,.tvGo,.moodGo,.reelTap";
+ var PRIMARY = ".ctl--primary,.pBtnGo,.tvGo,.moodGo";
 
  document.addEventListener("pointerdown", function(e){
    /* isTrusted keeps synthetic events out -- the contracts drive this site with
