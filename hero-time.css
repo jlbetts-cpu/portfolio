@@ -607,6 +607,28 @@
    page through the bottom of the sky. Sampled every 120ms across a 46s window,
    the worst slack on any edge was left -80.3, right -79.6, top -97.2, bottom
    -18.0 px, all negative, meaning covered with room in every direction. */
+/* ── THE GRADIENT DRAWS ITS OWN BOTTOM EDGE ─────────────────────────────────
+   Jayden, 2026-08-20: "there is a random line above the tabs which should do the
+   whole bottom of the gradient instead."
+   He is right about why it read as random. The rule was on .csTabs' TOP edge and
+   stopped at the column -- 120 -> 1320 at 1440 -- while the surface it claimed to
+   bound is full-bleed 0 -> 1440. A boundary that does not share the edges of the
+   thing it bounds is decoration.
+   A PSEUDO-ELEMENT AND NOT AN INSET SHADOW, measured. `box-shadow:inset` on .hero
+   resolved live and painted NOTHING: an inset shadow draws above the element's
+   own background but BELOW its children, and the sky is a child (z-index 0). The
+   pixels proved it -- the last gradient row at the edge read 230/188/119 against
+   the page's 253 at three x positions, with no darkened row between them.
+   So it is a layer of its own, above the sky and below the copy, carrying the
+   edge as a border-bottom on a box that repeats the Hero's radius. That is what
+   lets the line FOLLOW the two 28px bottom corners instead of running straight
+   through them and out into the page -- and corner-shape is restated rather than
+   inherited, because corner-shape does not inherit the way border-radius does. */
+.hero::after{
+ content:"";position:absolute;inset:0;z-index:1;pointer-events:none;
+ border-bottom:var(--rule-w) solid var(--rule);
+ border-radius:var(--surface-hero-radius);corner-shape:var(--corner)
+}
 .heroTimeDrift{position:absolute;inset:0;transform-origin:50% 100%;
  scale:1.05;translate:0 .2%;
  animation:heroSkyBreath 29s var(--sky-drift-ease) infinite,

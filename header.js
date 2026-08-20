@@ -235,20 +235,18 @@ if(stick && !stick.classList.contains("isFixed") && typeof IntersectionObserver 
    the way out and immediate on the way in (header.css) -- the same construction
    the Contact panel used, kept because it is the only way to take a hidden nav
    out of the tab order without display:none, which would hard-swap. */
-if(home && home.tagName === "BUTTON"){
-  var navOpen = true;
-  function setNavOpen(open){
-    navOpen = !!open;
-    root.classList.toggle("jbNavShut", !navOpen);
-    home.setAttribute("aria-expanded", navOpen ? "true" : "false");
-  }
-  home.addEventListener("click", function(){ setNavOpen(!navOpen); });
-  /* Escape re-opens it rather than closing it, because closed is the state a
-     visitor can get stuck in: the nav is the way out of every page. */
-  document.addEventListener("keydown", function(e){
-    if(e.key === "Escape" && !navOpen) setNavOpen(true);
-  });
-}
+/* AND ITS HEADSTONE, 2026-08-20. Jayden: "i thought about it and i dont like
+   that the header is collapsable." He asked for this control four days ago and
+   has reversed it after living with it, which is his call and the reason the
+   reasoning above is kept rather than deleted -- if it ever comes back, the
+   three readings that were weighed are the expensive part, not the listener.
+   WHAT GOES WITH IT: :root.jbNavShut (header.css), and aria-expanded /
+   aria-controls on the mark in index, about and play. The mark stays a <button>
+   on index.html because hero-engine.js:1853 winks the head at #logo and that is
+   a separate listener that never knew about this one. On about and play it is
+   now a button with no behaviour, which is why they get their ARIA stripped:
+   aria-expanded on a control that expands nothing is a lie a screen reader
+   reads out loud -- the same note §3 above makes about the Contact disclosure. */
 
 /* ── 3b · THE TRAVELLING ACTIVE INDICATOR ──────────────────────────────────
    ONE element moved by transform, not a background on each item -- which is the

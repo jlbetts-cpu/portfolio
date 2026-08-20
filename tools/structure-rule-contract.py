@@ -67,7 +67,8 @@ class QuietServer(ThreadingHTTPServer):
 # permits.
 RULE_BUDGET = 5
 
-OWNED = ("tokens.css", "header.css", "controls.css", "index.html")
+OWNED = ("tokens.css", "header.css", "controls.css", "index.html",
+         "hero-time.css")
 
 
 def compact(value):
@@ -111,10 +112,31 @@ def static_contract(sources):
     assert "background:var(--ctl-ground)" in band, \
         ("the band has lost its opaque ground; content will ghost through it", band)
 
-    # 3 ── THE WORK SECTION HAS ITS OPENING RULE.
+    # 3 ── THE HERO CLOSES ITSELF.  ROUND 14 MOVED THIS LINE.
+    # It was `border-top` on .csTabs -- the work section's opening rule, stopping
+    # at the column (120 -> 1320 at 1440) while the surface it bounded ran
+    # full-bleed 0 -> 1440.  Jayden, 2026-08-20: "there is a random line above the
+    # tabs which should do the whole bottom of the gradient instead."  He is
+    # describing the defect this file's own §3 names -- a rule that does not share
+    # the edges of what it separates -- so the fix is the boundary moving to the
+    # edge it bounds, not the assertion being relaxed.  The count is unchanged:
+    # still three lines, still hero | the work.
+    # IT IS A PSEUDO-ELEMENT because an inset box-shadow measured as nothing: it
+    # paints above .hero's background but BELOW its children, and the sky is a
+    # child.  Asserted in hero-time.css, which is where it has to live -- three
+    # files write .hero's box-shadow and that one links last.
+    hero_edge = rule_block(sources["hero-time.css"], ".hero::after")
+    assert "border-bottom:var(--rule-w)solidvar(--rule)" in hero_edge, \
+        ("the hero has lost its bottom edge", hero_edge)
+    assert "border-radius:var(--surface-hero-radius)" in hero_edge, \
+        ("the edge no longer follows the hero's bottom corners", hero_edge)
+    # corner-shape does NOT inherit the way border-radius does, so it is restated
+    # or the line runs straight through a squircle corner.
+    assert "corner-shape:" in hero_edge, \
+        ("the edge does not restate corner-shape", hero_edge)
     tabs = rule_block(index, ".csTabs")
-    assert "border-top:var(--rule-w)solidvar(--rule)" in tabs, \
-        ("the work section has lost its rule", tabs)
+    assert "border-top:" not in tabs, \
+        ("the tab row has taken a rule back; the boundary is the hero's", tabs)
 
     # 4 ── AND THERE ARE STILL ONLY A FEW.  Every var(--rule) reference in the
     # files this lane owns is one line on the page (or one half of one, in the
@@ -153,8 +175,10 @@ MEASURE = """() => {
     cover: box('.csFrame'),
     foot:  box('.footTop'),
     stick: box('.jbStick'),
+    heroEdgeW: getComputedStyle(document.querySelector('.hero'),'::after').borderBottomWidth,
+    heroEdgeC: getComputedStyle(document.querySelector('.hero'),'::after').borderBottomColor,
+    hero:      box('.hero'),
     tabsBorder: getComputedStyle(document.querySelector('.csTabs')).borderTopWidth,
-    tabsColor:  getComputedStyle(document.querySelector('.csTabs')).borderTopColor,
     floor:      getComputedStyle(document.querySelector('.jbStick')).boxShadow,
     viewport:   innerWidth
   };
@@ -185,8 +209,14 @@ def browser_contract(base_url):
                 assert abs(m["tabs"]["l"] - m[name]["l"]) <= 0.5, (width, name, m)
                 assert abs(m["tabs"]["r"] - m[name]["r"]) <= 0.5, (width, name, m)
 
-            assert m["tabsBorder"] == "1px", (width, m)
-            assert not m["tabsColor"].endswith(", 0)"), (width, m)
+            # THE HERO'S EDGE IS FULL-BLEED, like the header's floor and unlike a
+            # section rule -- it is the boundary OF that surface, so it shares
+            # that surface's extents rather than the column's.
+            assert m["hero"]["l"] <= 0.5 and m["hero"]["r"] >= width - 0.5, (width, m)
+            assert m["heroEdgeW"] == "1px", (width, m)
+            assert not m["heroEdgeC"].endswith(", 0)"), (width, m)
+            # and the row it came off does not draw one again
+            assert m["tabsBorder"] in ("0px", ""), (width, m)
             assert m["floor"] not in ("none", ""), (width, m)
             # no blur, no spread: `0px 1px 0px 0px` is the whole of it
             assert re.search(r"0px 1px 0px 0px", m["floor"]), (width, m)
@@ -210,6 +240,10 @@ INJECTIONS = {
     "rule-stops-short": ("controls.css",
                          "  padding-inline:0;gap:var(--sp-2);",
                          "  padding-inline:0;margin-inline:12px;gap:var(--sp-2);"),
+    # the boundary itself, at its new home
+    "no-hero-edge": ("hero-time.css",
+                     "border-bottom:var(--rule-w) solid var(--rule);",
+                     "border-bottom:0;"),
     "carpet": ("controls.css",
                ".collection__tabs .csTabInk{display:block}",
                ".collection__tabs .csTabInk{display:block}"

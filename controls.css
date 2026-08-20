@@ -645,12 +645,22 @@
      index.html: `.collection__tabs{padding:var(--surface-inset)}` above is a
      SHORTHAND at (0,1,0) in a file that links after index.html's own <style>, so
      a padding-block written there loses the tie and never runs.
-     16 above, 8 below. Above, because the section's rule is drawn on this box's
-     top edge and a line 8px off its own labels reads as their underline rather
-     than as the section's opening. Below, because the travelling indicator sits
-     at the row's baseline and the first cover butts it -- 8px is what keeps the
-     selected tab, the line and the top of the picture one vertical stack. */
-  padding-block:var(--sp-16) var(--sp-8)
+     16 above, 24 below. The 8 below was written when the section's rule sat on
+     this box's TOP edge: the row was then the opening of the section and the
+     cover butting the travelling indicator made tab, line and picture one
+     vertical stack. That rule has moved to the hero's own bottom edge (see
+     index.html, "THE WORK SECTION'S RULE MOVED TO THE GRADIENT'S OWN EDGE"), so
+     the row is no longer an opening -- it is a control sitting between the
+     gradient and the work, and at 8 it had nothing under it.
+     Jayden: "the tabs are a bit awkward ... the spacing below it is a bit non
+     existant."
+     THE AIR IS A MARGIN AND NOT THIS PADDING, measured the hard way: raising
+     padding-block-end from 8 to 24 moved the underline down WITH the row -- the
+     indicator is positioned at the row's baseline, so the gap to the cover
+     stayed at 26px and only the labels drifted off their own line. The space he
+     wants is between the ROW and the work, so it goes after the box. */
+  padding-block:var(--sp-16) var(--sp-8);
+  margin-block-end:var(--sp-16)
 }
 /* ── THE TAB ROW SEPARATES WITH ITS HAIRLINE, NOT WITH A FILL ────────────────
    Jayden, on a dark-mode screenshot of the home page: "i dont know why the tabs

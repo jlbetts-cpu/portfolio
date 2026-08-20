@@ -789,19 +789,12 @@
              transform var(--sp-settle-dur) var(--sp-settle),
              visibility 0s
 }
-:root.jbNavShut .jbGrpC,:root.jbNavShut .jbGrpR{
-  opacity:0;visibility:hidden;transform:translateY(calc(var(--sp-4) * -1));
-  transition:opacity var(--dur-move) var(--ease-out),
-             transform var(--dur-move) var(--ease-out),
-             visibility 0s var(--dur-move)
-}
 /* THE TRAVELLING PILL GOES WITH THEM, and it needs its own line because it is
    not inside either zone -- header.js appends .jbInk to .jbNav so it can travel
    BETWEEN the zones' items, which is exactly why a collapse of the zones leaves
    it behind. Measured before this rule: a grey pill sitting alone in an
    otherwise empty strip. It already owns an opacity transition (§ the indicator,
    below), so this is the value and not a second timing. */
-:root.jbNavShut .jbInk{opacity:0 !important}
 /* THE !important IS THE RIGHT TOOL HERE AND IT IS THE ONLY ONE THAT WORKS.
    header.js's placeInk() writes `ink.style.opacity = "1"` as an INLINE style,
    because the pill has to be parked silently on first paint before it is allowed
@@ -818,25 +811,14 @@
   transition:background-color var(--sp-settle-dur) var(--sp-settle),
              box-shadow var(--sp-settle-dur) var(--sp-settle)
 }
-:root.jbNavShut .jbStick:not(.isFixed){
-  background:transparent;box-shadow:0 var(--rule-w) 0 transparent;
-  /* AND IT STOPS SWALLOWING CLICKS. §0b turns pointer-events on because an
-     opaque band across the viewport must not pass taps through to what it is
-     covering; a collapsed band covers nothing, and the 72px it occupies on
-     index.html is exactly where the draggable head can be. The mark keeps its
-     own events from .jbStick>* above. */
-  pointer-events:none;
-  transition:background-color var(--dur-move) var(--ease-out),
-             box-shadow var(--dur-move) var(--ease-out)
-}
 /* THE MARK SAYS WHICH STATE IT IS IN WITHOUT A GLYPH. Collapsed, it keeps the
    ink hover it always had and takes the nav's own resting grey, so a closed bar
    reads as quiet rather than as a bar that failed to draw. No chevron: the whole
    point of this control is that it is the logo, and hanging a caret off a brand
    mark is what the Contact disclosure was just deleted for. */
 @media(prefers-reduced-motion:reduce){
-  .jbGrpC,.jbGrpR,:root.jbNavShut .jbGrpC,:root.jbNavShut .jbGrpR,
-  .jbStick:not(.isFixed),:root.jbNavShut .jbStick:not(.isFixed){transition-duration:0s}
+  .jbGrpC,.jbGrpR,
+  .jbStick:not(.isFixed){transition-duration:0s}
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -1288,7 +1270,25 @@
    against ink text beside it. A brand mark is not a nav item waiting to be
    chosen; it is the one thing on the bar that is always current. Half of
    'weak' was the colour, not the weight. */
-.jbLogo{--mark-ink:1.35;--mark-ink-strong:1.9;color:var(--theme-ink,var(--c950));
+/* ROUND 14 TAKES THE EMBOLDEN OFF, and it reverses a call Jayden made himself.
+   2026-08-20: "i like the logo for the workspace better its less thick."
+   The two marks were measured against Molle's own outlines (upm 2048) and they
+   are the SAME optical size -- the site's path fitted to a 30-box at 22px works
+   out at 20.08px against the workspace's live 20px text, a ratio of 0.996. Scale
+   was never the difference. The difference is this stroke: 1.35 in a 30-unit box
+   is +0.99px at 22px, roughly DOUBLING joins that measure 1.1px, and the
+   workspace draws live Molle with no stroke at all. So rest goes to 0 -- the raw
+   outline, which is the thing he prefers -- and hover keeps a step because the
+   round-11 rule still holds (when an item's ink moves, its weight moves), just a
+   +0.37px one instead of +1.39.
+   THE FAVICON RAMP IS NOT TOUCHED. tools/build-jb-mark.py measured raw outlines
+   at 16px with a thinnest join of 0.80px, "collapsing into one grey blob"; the
+   embolden earns its place there and this is only the 22px header mark.
+   STILL SLIGHTLY WIDER THAN THE WORKSPACE'S: the path bakes DISPLAY_TRACK 120
+   (=0.0586em) where the workspace sets 0.03em. Tracking is baked into the
+   outline, so matching it means re-running build-jb-mark.py at ~61 -- a separate
+   change, and one that regenerates the favicons too. */
+.jbLogo{--mark-ink:0;--mark-ink-strong:.5;color:var(--theme-ink,var(--c950));
   width:var(--ico-mark);height:var(--ico-mark);flex:0 0 var(--ico-mark);
   display:block;fill:currentColor;stroke:currentColor;stroke-width:var(--mark-ink);
   stroke-linecap:round;stroke-linejoin:round;
