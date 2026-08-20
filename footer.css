@@ -56,25 +56,26 @@
    neither is a format signal and copying either would have invented one.
    ════════════════════════════════════════════════════════════════════════════ */
 
-/* THE FOOTER IS ITS OWN MEASURE. container-type:inline-size makes 100cqw mean
-   "the footer's content width" on every page that carries one -- on index.html
-   .siteFoot holds the page gutter itself, on about.html and the five case
-   studies it sits inside .wrap which has already applied it, and the content box
-   is the page measure either way. That is what lets .footMark below fit the
-   measure with no JS and no per-page number. (headmaker.html already uses the
-   same technique for its stage, so this is not a new idea in the codebase.)
-   THE overflow-x:clip GUARD MOVED DOWN TO .footBand, and it had to. It was
-   here for one failure only -- if Geist does not load, the fallback's metrics
-   are wider and a nowrap display string would push the page sideways -- and the
-   nowrap string now lives inside .footBand, which clips it. Leaving the clip
-   here as well would have been fatal rather than redundant: .siteFoot is at most
-   the page measure wide on every page, so a clip on it cuts the full-bleed band
-   off at 1200px on the six pages whose footer sits inside .wrap, and not at all
-   on the two whose footer is a <body> child. The page would have had a band that
-   was a different width on different pages and looked correct on the one anybody
-   screenshotted. The overflow the band creates cannot scroll the page either
-   way: html and body both carry overflow-x:clip on all eight pages. */
-.siteFoot{color:var(--theme-ink);container-type:inline-size}
+/* THE INLINE-SIZE CONTAINER IS GONE WITH THE WORDMARK. It was here for exactly
+   one consumer: .footMark was sized calc(100cqw / --foot-mark-fit) so his name
+   fitted the footer's measure with no JS and no per-page number. That was the
+   only cqw on this site, and deleting the wordmark left container-type declaring
+   a containment context nothing queried -- which is not free, because
+   container-type:inline-size also applies layout, style and inline-size
+   containment. A dead declaration with live side effects is worse than a dead
+   one, so it went. PROVEN, not assumed: document-absolute rects for .siteFoot,
+   .footTop, .footId, .footNav, .footCol, .footBrand, .footStatus, .footCopy,
+   .footList and .footBand, plus scrollWidth and scrollHeight, are byte-identical
+   with and without it on index, about, apollo and play at 1440, 900 and 390.
+   NO overflow-x:clip HERE, AND THAT MUST STAY TRUE. .siteFoot is at most the
+   page measure wide on every page, so a clip on it cuts the full-bleed band off
+   at 1200px on the six pages whose footer sits inside .wrap and not at all on
+   the two whose footer is a <body> child -- a band that is a different width on
+   different pages and looks correct on the one anybody screenshots.
+   footer-band-contract asserts the absence. The band's own overflow cannot
+   scroll the page either way: html and body both carry overflow-x:clip on all
+   eight pages. */
+.siteFoot{color:var(--theme-ink)}
 
 /* THE HAIRLINE SITS ON .footTop, NOT ON .siteFoot. index.html's footer is a
    child of <body> and carries the page gutter itself; on about.html and the
@@ -190,53 +191,34 @@
    signal in the column started meaning two different things. Ink alone carries
    hover -- which is also what Stripe, Linear, Apple and Vercel all do. */
 
-/* ── The closing wordmark: the plinth the footer stands on ────────────────── */
-/* JAYDEN'S COMPLAINT, AND THE ANSWER. He asked for the big name to go, reversed
-   within minutes, and said why: "keep the big Jayden Betts, but I would make it
-   feel more cohesive -- right now it just feels like it's there, not even
-   pertaining to anything." That is not a size note and not a placement note.
-   Sized by --fs-display it set 919px of ink into a 1200px measure, so its right
-   edge landed 280px short of the column above it and matched no other edge on
-   the page. It was ATTACHED TO NOTHING, and it read as decoration.
-   THE FIX IS AN EDGE, NOT A SIZE. The wordmark now spans the footer's measure
-   exactly: its left edge is the identity mark's left edge and its right edge is
-   the Contact column's right edge, so both verticals that bound the footer run
-   through it. Everything above stands on it. It is the same colour as the
-   hairline that opens the footer (--theme-rim), so the component is bracketed
-   top and bottom by one value -- and because that value is a --theme-* token it
-   takes the time-of-day tint with everything else on this branch, which is the
-   second direction the brief offered, had for free.
-   The third -- a companion head standing on the wordmark -- was rejected: it
-   answers "this element is decorative" by adding a second decorative element,
-   it needs the head rig on all seven pages including five case studies that
-   load none of it, and the heads' contact shadows are the one sanctioned
-   exception to the no-shadows rule. Spending it on a footer devalues it.
+/* ── THE WORDMARK IS GONE, AND THIS IS WHAT IT WAS FOR ───────────────────────
+   Jayden, 2026-08-20: "i would prefer if the footer matched with the time of
+   day and the insert shadow wasnt that much it just feels too strong right now
+   I think we should remove the name and make it like half the height so its
+   just a nice ending to the site in a beautiful way."
 
-   HOW THE FIT WORKS. --foot-mark-fit is a MEASURED FONT METRIC, not a design
-   value: "Jayden Betts" set in Geist 600 at --tr-display advances
-   5.4739em, measured live off a Range over the text node at 1440. Dividing the
-   container measure by it gives the size at which the run lands flush on both
-   edges. It is unitless and scales with the string, the weight and the tracking
-   -- change any of those three and this number is re-measured, which is why it
-   is named and commented and not inlined.
-   NO CLAMP AND NO --fs-display CEILING, DELIBERATELY. Capping at the scale's top
-   rung (168px) would put the ink back at 919px in a 1200px measure at 1440 --
-   i.e. it would restore the exact defect this rule exists to remove. The
-   wordmark is not text on the type scale; like --rail-w it is a LAYOUT-DERIVED
-   dimension, and its real ceiling is the measure: .wrap tops out at 1200, so
-   the size tops out with it at ~218px and stops. --fs-display stays the
-   authority for display TYPE, which this is not.
-   THE OPTICAL TRIM IS GONE, and its own reasoning is why. It was a -.029em top
-   margin cancelling the ascender space the line box carries above the cap line,
-   so that .footTop's specified 64px was the 64px you saw. That argument only
-   holds while the thing below the gap is TYPE, whose top edge is wherever the
-   ink starts. Below the gap now is the band, whose top edge is an edge: it is
-   painted, it is exactly where it is declared, and there is nothing optical to
-   trim. Keeping the trim would have pulled a painted surface 5.8px up into a
-   gap that was already right.
-   Decorative and marked so: an <h2> reading "Jayden Betts" would invent a
-   section, land in every screen-reader heading list, and say his name a fourth
-   time after <title>, the JSON-LD Person and the mark's aria-label. */
+   So `Jayden Betts` in 200px of knocked-out Geist, the thing the last three
+   passes of this file were built around, is deleted. What went with it, and why
+   each one is a DELETION rather than a smaller number:
+     --foot-mark-fit / --foot-mark-cap  measured font metrics (5.9807 advance,
+       .146em of ascender slack). They existed to fit and to centre one string.
+       No string, nothing to fit.
+     the padding-block measured off the ink  the band's height was the wordmark's
+       height plus that padding. It has an explicit height now; see below.
+     --foot-band-inset*  the inner shadow. It shaded the INSIDE of the
+       letterforms and nothing else -- source-atop clipped it to them. With the
+       letters gone it has nothing to shade, so "the shadow is too strong" is
+       answered by removing it rather than by tuning it down. Premium is
+       subtraction, and this is the case where the two readings agree.
+     100cqw and the container it resolved against  the fit was the only cqw on
+       this site.
+   The alignment argument the old essay made -- the mark's left edge and the
+   Contact column's right edge both running through the wordmark -- died with
+   the wordmark and could not be rescued: the band is full bleed, so it has no
+   verticals to align to anything. What closes the footer now is a surface, and
+   a surface does not need to be attached to the grid to belong to the page.
+   His name still ships three times where it is READ rather than decorative:
+   <title>, the JSON-LD Person, and the identity mark's aria-label. */
 
 /* ── THE BAND ─────────────────────────────────────────────────────────────────
    Jayden: "instead of a Jayden Betts on the bottom could we add the same
@@ -245,11 +227,12 @@
    having a Jayden Betts in the middle background color but with some inner
    shadow so it has some depth and looks like its encased in the gradient."
 
-   So the wordmark stops being ink on the page and becomes a hole in a surface.
-   The band is the Workspace's warped metaball mesh with its glyph field over
-   the top, painted by footer-band.js into two canvases; the CSS here is the
-   ground it paints on, the geometry it measures, and the whole picture if that
-   file never runs.
+   That is the request the band was built for, and half of it is now spent: the
+   wordmark it was a ground FOR is deleted (see above). What survives is the half
+   he named as the thing he wanted -- the Workspace's warped metaball mesh with
+   its glyph field over the top, end to end on every page -- painted by
+   footer-band.js into one canvas. The CSS here is the ground it paints on, the
+   box it measures, and the whole picture if that file never runs.
 
    FULL BLEED, AND THAT IS THE LADDER BEING FOLLOWED RATHER THAN BROKEN. The
    radius ladder governs objects -- --r-xl 28 for the biggest surfaces -- and the
@@ -262,39 +245,67 @@
    one of them -- six carry the footer inside .wrap (margin:0 auto), two set
    max-width + margin-inline:auto on .siteFoot itself. 50% of a centred box plus
    50vw lands on the viewport edge either way, and no page needs a rule.
-
-   THE MARK STAYS ON THE MEASURE WHILE THE BAND LEAVES IT. 100cqw still resolves
-   against .siteFoot, so the wordmark's two verticals are still the identity
-   mark's left edge and the Contact column's right edge -- the alignment that
-   was the whole answer to "it just feels like it's there". The environment
-   bleeds; the content stays on the grid. */
+ */
 /* ── THE PALETTE, AND WHY IT IS NOT A SET OF HEXES ─────────────────────────
    Every tone is a mix of the two colours the theme already publishes, so the
    band has no colour of its own to keep in sync and no second dark-mode table.
-   The two directions are not symmetrical and cannot be, because the knockout
-   only works while the band and the page are on opposite sides of each other:
-     LIGHT  the page is #fdfdfd, so the band walks 58-98% of the way to ink and
-            the letters are cut out bright. Measured on the painted band at
-            1440, letterform against the band beside it: 17.1:1. It is a black
-            band with his name in cream, which is the Workspace band's own
-            relationship and the loudest thing this footer has ever had in it.
+   The two directions are not symmetrical and cannot be, because the band has to
+   READ AS A SURFACE against the page it ends, and the page moves:
+     LIGHT  the page is #fdfdfd, so the band walks 58-98% of the way to ink. It
+            is a dark floor under a cream page -- the Workspace band's own
+            relationship, and the strongest single move in this footer.
      DARK   the page is #0B0C0F and there is nothing below it to walk to, so the
             band LIFTS off the page instead -- 80-94% page, 6-20% ink. Measured
-            the same way, that lands at 1.44:1, which is quiet, and quiet is
-            what it should be: the wordmark it replaces was --theme-rim, i.e.
-            rgba(255,255,255,.14) composited on near-black, which measures
-            1.42:1. The night band is not a new bright surface at the bottom of
-            a night page -- it is the same whisper, in a different shape.
+            band against page ground, that lands at 1.44:1, which is quiet, and
+            quiet is what it should be. The night band is not a new bright
+            surface at the bottom of a night page; it is a whisper of one.
+   THE ARGUMENT SURVIVED THE WORDMARK, and it is worth saying why, because the
+   numbers above were originally justified by the knockout -- the letters were
+   only cut out while band and page sat on opposite sides of each other. The
+   letters are gone and the two directions still hold, on the simpler ground that
+   a floor you cannot distinguish from the room is not a floor. The 17.1:1 and
+   1.42:1 figures that measured LETTERFORM against band went with the letters.
    --foot-band-strength IS THE KILL SWITCH, one line, exactly like the Hero
    field's --ascii-strength: set it to 0 and footer-band.js stops the loop and
    clears the glyph layer. A plain number on purpose -- a custom property comes
    back as its specified token stream, so a clamp() here would arrive as a string
    and parseFloat would hand back NaN. */
 .footBand{
- --foot-band-base:color-mix(in srgb,var(--theme-ink) 98%,var(--theme-page));
- --foot-band-tone-1:color-mix(in srgb,var(--theme-ink) 93%,var(--theme-page));
- --foot-band-tone-2:color-mix(in srgb,var(--theme-ink) 58%,var(--theme-page));
- --foot-band-tone-3:color-mix(in srgb,var(--theme-ink) 96%,var(--theme-page));
+ /* ── THE HOUR'S LIGHT ────────────────────────────────────────────────────────
+    Jayden: "i would prefer if the footer matched with the time of day."
+    Every tone below is still a mix of the two colours the theme already
+    publishes, so the band still has no colour of its own to keep in sync and
+    still needs no second dark-mode table. What the hour adds is ONE HUE mixed
+    into those tones -- the same per-state light the hero lights its scene with,
+    state for state, listed under the palette block further down.
+    IT CANNOT BE var(--time-cast) ITSELF, and that is worth saying so nobody
+    "fixes" it into one. --time-cast is declared on .hero[data-time-state], so it
+    does not inherit anywhere near a footer -- and on the six pages that have no
+    hero it does not exist at all. The hues are therefore restated here, keyed
+    off data-theme-state, which site-theme.js writes on <html> on every page.
+    TWO AMOUNTS, NOT ONE, BECAUSE THE BAND IS NOT ONE THING. An hour changes the
+    LIGHT in a scene, not the ground under it. So the drifting light in this mesh
+    -- tone 2, the pale one -- takes most of the cast and the deep tones take a
+    trace. Mixed evenly the band stops being ink and becomes a coloured surface,
+    which is a second hero at the bottom of the page rather than the quiet ending
+    he asked for. Measured at 1440 in sunset: tone 2 moves rgb(117,117,117) ->
+    rgb(136,126,120), and the three deep tones move by under 6 levels each.
+    "OFF" ZEROES THE AMOUNTS RATHER THAN SETTING THE HUE TRANSPARENT. Mixing a
+    colour toward transparent leaves its channels alone and drags its ALPHA down
+    instead, so the fallback gradient would paint at 95% over the page ground for
+    no reason anybody could see in the source. hero-time.css met the same trap at
+    its own "off" state and answered it the same way. */
+ --foot-band-cast:#7f8792;
+ --foot-band-cast-deep:7%;
+ --foot-band-cast-lit:20%;
+ --foot-band-base:color-mix(in srgb,var(--foot-band-cast) var(--foot-band-cast-deep),
+  color-mix(in srgb,var(--theme-ink) 98%,var(--theme-page)));
+ --foot-band-tone-1:color-mix(in srgb,var(--foot-band-cast) var(--foot-band-cast-deep),
+  color-mix(in srgb,var(--theme-ink) 93%,var(--theme-page)));
+ --foot-band-tone-2:color-mix(in srgb,var(--foot-band-cast) var(--foot-band-cast-lit),
+  color-mix(in srgb,var(--theme-ink) 58%,var(--theme-page)));
+ --foot-band-tone-3:color-mix(in srgb,var(--foot-band-cast) var(--foot-band-cast-deep),
+  color-mix(in srgb,var(--theme-ink) 96%,var(--theme-page)));
  --foot-band-glyph:var(--theme-page);
  /* THE SPREAD IS WIDE BECAUSE THE MIX NARROWS IT. Six gaussians share every
     sample, so the mixed colour sits near the mean of whichever tones reach it
@@ -302,49 +313,25 @@
     range was 14 levels -- flat black, measured, and flat black on screen. 93 to
     58 is what it takes for the drifting light to be a thing you can see; the
     band's actual painted range at 1440 is a third of the nominal one. */
- --foot-band-inset:#000;--foot-band-inset-alpha:.58;
- /* THE DEPTH, in em of the wordmark so it re-derives at every width. Blur and
-    offset are a pair and have to be read as one: the offset is what makes the
-    shadow DIRECTIONAL -- light from above, dark at the top inside edge -- and
-    the blur is how soft that edge is. Blur much larger than the offset stops
-    reading as a light direction and starts reading as a letter that is simply
-    out of focus, which is what .052/.020 did on the first pass. Swept at 1:1 on
-    the real band: .006/.008 is invisible, .020/.014 and above go soft, and the
-    offset has to EXCEED the blur or the shading wraps every edge equally and
-    reads as a halo rather than as a light source. --inset-rise is
-    the counter-light on the opposite lip, and it is small on purpose: it is
-    there to say the letter has a floor, not to add a second highlight. */
- --foot-band-inset-blur:.016;--foot-band-inset-offset:.022;
- /* Nothing in light: the letterforms are already --theme-page, and a white lip
-    on a white letter is a pass nobody sees. Dark inverts the pair -- see below. */
- --foot-band-inset-rise:0;
  --foot-band-strength:1;
  position:relative;isolation:isolate;
  width:100vw;max-width:100vw;margin-inline:calc(50% - 50vw);
- /* 5.4739 was Instrument Sans; Geist runs ~8.8% wider and clipped the final s.
-    Re-measured: 5.9807 (mark 1147px in a 1054px measure). It is declared HERE,
-    on the band, and inherited by .footMark rather than written twice: the band
-    needs it too, because the em on this element is the wordmark's size and that
-    is what lets the padding below scale with the type instead of needing a
-    breakpoint. Two copies of a measured constant is how a measured constant
-    stops being one. */
- --foot-mark-fit:5.9807;
- font-size:calc(100cqw / var(--foot-mark-fit));
- /* THE PADDING IS MEASURED OFF THE INK, NOT OFF THE LINE BOX, and the difference
-    is 29px at 1440. Geist's content area is 1.30em (ascent 1.005 + descent .295)
-    against a --lh-display line box of 1.0, so the half-leading is NEGATIVE: the
-    ink hangs out of its own box at both ends, and the cap line still sits .146em
-    BELOW the box top because the ascender reserve is taller than any capital in
-    this string. Padding the box symmetrically therefore paints 55px of ground
-    above the J and 21px below the y -- measured, and visibly bottom-heavy.
-    --foot-mark-cap is that slack, taken off the font's own bounding box at
-    200.6px rather than guessed, and .footMark pulls it back so that the padding
-    below IS the padding above. Being in em it re-derives at every width.
-    max(), so the band does not collapse to a 3-glyph strip on a phone: at 390
-    the wordmark is ~60px and .14em would be 8px of ground. --sp-16 is the floor
-    and the em term takes over at about 800. */
- --foot-mark-cap:.146em;
- padding-block:max(var(--sp-16),.14em);
+ /* HALF THE HEIGHT, AND THE FIRST HEIGHT THIS BAND HAS EVER DECLARED.
+    Jayden: "make it like half the height so its just a nice ending to the site".
+    It used to have no height rule at all -- .footMark was sized 100cqw over a
+    measured font advance and the band was whatever that came to plus padding,
+    which measured 227.5px at 1440 and 83.1px at 390. With the wordmark deleted
+    that mechanism is gone and an undeclared height would be ZERO: the two
+    canvases are inset:0 and take the box, they do not make it. So the size
+    becomes a design value for the first time, and it is written the way the rest
+    of this file writes fluid ones.
+    THE CLAMP ENDS ARE THE MEASUREMENT, HALVED: 227.5 -> 114 and 83.1 -> 42. 8vw
+    is the line through both (114/1440 = 7.9%, 42/390 = 10.8%), so the ends bind
+    at the two widths that were measured and the vw term does the work between
+    525px and 1425px -- which is the whole phone-to-laptop range and no
+    breakpoint. Not a --sp rung: the spacing ladder tops out at 80 and this is a
+    surface dimension, not a gap. */
+ height:clamp(42px,8vw,114px);
  /* THE FALLBACK GROUND, and it is the whole band with JS off. Three stops off
     the same palette the canvas mixes, so the no-script picture is the still
     frame of the animated one rather than a different design. */
@@ -356,78 +343,31 @@
     All eight pages end their .siteFoot with padding-bottom:var(--sp-32-64) --
     which was right while the last thing in the footer was TYPE and wanted air
     beneath it, and is wrong now that it is a painted floor: 64px of cream below
-    a full-bleed black band reads as the page having stopped short. Cancelling it
-    from here rather than asking eight pages to change it is a coupling and it is
+    a full-bleed band reads as the page having stopped short. Cancelling it from
+    here rather than asking eight pages to change it is a coupling and it is
     named as one: footer-consistency-check asserts that every page still declares
     exactly this value, so the day one of them stops, this line fails loudly
     instead of leaving one page with a 64px gap nobody screenshotted.
-    The guard that used to live on .siteFoot: if Geist does not load, the
-    fallback's metrics are wider and this nowrap string would push the page
-    sideways. clip does not create a scrollport, so "nothing scrolls that should
-    not" still holds; hidden would. */
+    overflow:clip stays now that there is no nowrap string to contain, and it is
+    doing a different job: the band is 100vw inside a centred box, and clip keeps
+    a sub-pixel rounding on that calc from becoming a scrollport. clip cannot
+    create one; hidden would. */
  margin-bottom:calc(var(--sp-32-64) * -1);
  overflow:clip
 }
-/* Both canvases cover the band and share its coordinate space, which is what
-   lets footer-band.js register the knockout against the DOM text with one
-   subtraction instead of a second measurement. Neither takes the pointer: the
-   cursor field listens on window and maps into a rect banked on resize. */
-.footBandField,.footBandMark{
+/* ONE CANVAS NOW, WHERE THERE WERE TWO. The second was .footBandMark -- his
+   name, knocked out of the band with an inner shadow inside every letterform --
+   and it went with the name. What is left is the field: the warped metaball mesh
+   with the glyph layer over it, which is the part he singled out as the thing he
+   liked ("the same gradient found on the workspace with the nice water physics
+   and ascii animations end to end").
+   It covers the band and takes no pointer: the cursor field listens on window
+   and maps into a rect banked on resize. z-index is gone with the second layer;
+   a lone child of an isolated box has nothing to sort against. */
+.footBandField{
  position:absolute;inset:0;display:block;width:100%;height:100%;
  pointer-events:none
 }
-.footBandField{z-index:0}
-.footBandMark{z-index:1}
-
-/* HOW THE FIT WORKS. --foot-mark-fit is a MEASURED FONT METRIC, not a design
-   value: "Jayden Betts" set in Geist 600 at --tr-display advances 5.9807em,
-   measured live off a Range over the text node at 1440. Dividing the container
-   measure by it gives the size at which the run lands flush on both edges. It is
-   unitless and scales with the string, the weight and the tracking -- change any
-   of those three and this number is re-measured, which is why it is named and
-   commented and not inlined. (footer-band.js re-derives the same number with
-   measureText at paint time, so the canvas is exact; this constant is what
-   reserves the height and what draws the mark if that file never runs.)
-   NO CLAMP AND NO --fs-display CEILING, DELIBERATELY. Capping at the scale's top
-   rung (168px) would put the ink 280px short of the right edge at 1440 -- the
-   exact defect this rule exists to remove. The wordmark is not text on the type
-   scale; like --rail-w it is a LAYOUT-DERIVED dimension, and its real ceiling is
-   the measure: .wrap tops out at 1200, so the size tops out with it at ~200px.
-   THE COLOUR IS THE PAGE'S OWN GROUND, which is what "in the middle background
-   color" asks for: filled with --theme-page over a band that is not, the
-   letterforms read as cut through it, and a theme change moves both ends of that
-   relationship at once with no value to keep in sync. --theme-rim is gone from
-   here and it is worth saying why, because it was load-bearing: the wordmark was
-   the hairline's colour so the footer was bracketed top and bottom by one value.
-   The band now brackets it, and a rim-coloured wordmark on a dark band is a
-   smudge. footer-consistency-check was updated with that reasoning rather than
-   relaxed. */
-.footMark{
- position:relative;z-index:1;
- width:100cqw;margin:calc(var(--foot-mark-cap,0em) * -1) auto 0;
- font-family:var(--sans);font-weight:600;
- font-size:calc(100cqw / var(--foot-mark-fit));
- line-height:var(--lh-display);letter-spacing:var(--tr-display);color:var(--theme-page);
- white-space:nowrap;
- -webkit-user-select:none;user-select:none
-}
-/* ONCE THE CANVAS OWNS THE MARK THE DOM TEXT STANDS DOWN. It is not display:none
-   -- it is still what gives the band its height, and it is still the element
-   footer-band.js measures the fit and the baseline against. visibility:hidden
-   would work too and is worse: the two would then disagree about the mark by a
-   whole repaint whenever the font arrived late. Transparent text over an
-   identical canvas knockout is invisible either way and never flashes. */
-.footBand.is-marked .footMark{color:transparent}
-/* AND THE ONE LINE THAT MAKES THIS FILE SAFE TO LAND ON ITS OWN. The markup for
-   the band lives in eight page files this component does not own, so footer.css
-   and that patch are two commits and there is a window between them. In that
-   window a wordmark filled with --theme-page sits directly on --theme-page and
-   is not "quiet", it is GONE. This selector matches only while the band is
-   absent -- once the wrapper is there the mark is no longer a child of .siteFoot
-   -- and it puts the wordmark back to the light grey it has always been.
-   footer-consistency-check fails loudly for the whole of that window; this is so
-   the failure is a red gate rather than a blank strip at the bottom of the site. */
-.siteFoot > .footMark{color:var(--theme-rim)}
 
 /* The dark band lifts off the page instead of sinking into it; see the palette
    note above. The glyphs go to --theme-muted rather than --theme-ink because on
@@ -438,15 +378,58 @@
  --foot-band-tone-1:color-mix(in srgb,var(--theme-page) 90%,var(--theme-ink));
  --foot-band-tone-2:color-mix(in srgb,var(--theme-page) 80%,var(--theme-ink));
  --foot-band-tone-3:color-mix(in srgb,var(--theme-page) 92%,var(--theme-ink));
- --foot-band-glyph:var(--theme-muted);
- /* AND THE TWO HALVES OF THE INNER SHADOW SWAP OVER, which is the same lighting
-    statement and not a second one. In light the letter is near-white and the
-    dark top edge is the readable half; in dark the letter is #0B0C0F and black
-    on black says nothing, so the readable half is the LIT lower lip -- still the
-    lip facing the light, still lit from above. The dark half stays in at a third
-    the strength because the band is not black either and it still does work
-    where a tone happens to be pale. */
- --foot-band-inset-alpha:.22;--foot-band-inset-rise:.26
+ --foot-band-glyph:var(--theme-muted)
+}
+
+/* ── THE HOUR ────────────────────────────────────────────────────────────────
+   One hue per state, and they are the hero's own --time-cast values, copied
+   state for state rather than referenced: --time-cast lives on
+   .hero[data-time-state], which no footer is inside and six of these eight pages
+   do not have at all. The attribute keyed here is the one site-theme.js writes
+   on <html> on every page, so the band tracks the clock everywhere the footer
+   ships and not just on the home page.
+   THE HEX IN THE COMMENT IS THE HERO'S; THE HEX IN THE RULE IS THAT COLOUR AT
+   THIS BAND'S EXPOSURE, and the difference is one transform applied identically
+   to all six: hue and chroma kept exactly, LIGHTNESS normalised to OKLab L=0.62.
+   It is not a taste edit and it is reversible from the comment.
+   WHY IT WAS NEEDED, measured. The authored casts sit at L .77 to .96 -- they
+   are lights in a sky, and the brightest of them (#eaf2ff, daytime) is very
+   nearly white. Mixed straight into a band whose tones sit near ink, what they
+   deliver is mostly LIGHTNESS and barely any hue: at 16% the painted band went
+   from a mean of 56 in "off" to 73 in daytime and 77 in sunset -- a near-black
+   floor turning mid-grey -- while sunset and pre-dawn stayed within 10 levels of
+   each other. The band was announcing the time by getting brighter, which is a
+   different and worse idea than matching it, and on the largest surface on the
+   page it is the abrupt-brightness problem section 14 of the Apple reference
+   names. Normalised, every state lands at the same weight and differs only in
+   colour temperature -- which is what "matched with the time of day" means and
+   is also why the amounts could then go UP without the band swinging.
+   DAYTIME IS THE QUIET POLE and that is correct rather than a miss: midday light
+   is white, so once its lightness is removed there is almost no chroma left
+   (.0195 against sunset's .1023). It reads as a cool neutral, which is what
+   midday is. "off" is quieter still -- see below.
+   THESE LAND AFTER THE DARK RULE ON PURPOSE. Both selectors are (0,2,1), so
+   source order decides, and only "night" is ever data-theme="dark" -- the dark
+   rule above supplies that state's tone FORMULAS and this block supplies the hue
+   they are cast with. Reversed, night would take daytime's light.
+   NIGHT TAKES LESS OF IT, and that is the same reasoning the palette block makes
+   about the two directions not being symmetrical. The light band spans 58-98% of
+   the way to ink, so 16% of a cast is a small share of a wide range; the dark
+   band spans 6-20% and the same 16% is most of what it has. Measured, 16% moved
+   night's tone 2 rgb(56,57,60) -> rgb(72,76,91), which is a blue surface at the
+   bottom of a night page. 10% keeps it a tint of the same whisper.
+   AND THEY ALL CROSS-FADE FOR FREE. footer-band.js re-reads this palette through
+   a probe on every SiteTheme change and walks it over --theme-duration; nothing
+   here has to know that, which is exactly why the hue is a token and not a
+   number in the renderer. */
+:root[data-theme-state="off"] .footBand{--foot-band-cast-deep:0%;--foot-band-cast-lit:0%}
+:root[data-theme-state="pre-dawn"] .footBand{--foot-band-cast:#6d81cc}  /* #9ab0ff */
+:root[data-theme-state="sunrise"] .footBand{--foot-band-cast:#b7734c}  /* #ffb58c */
+:root[data-theme-state="daytime"] .footBand{--foot-band-cast:#7f8792}  /* #eaf2ff */
+:root[data-theme-state="dusk"]    .footBand{--foot-band-cast:#8a7eaa}  /* #c8bceb */
+:root[data-theme-state="sunset"]  .footBand{--foot-band-cast:#b7734c}  /* #ffb58c */
+:root[data-theme-state="night"]   .footBand{
+ --foot-band-cast:#6d81cc;--foot-band-cast-deep:5%;--foot-band-cast-lit:13%  /* #9ab0ff */
 }
 
 /* ── Night ───────────────────────────────────────────────────────────────── */
@@ -456,7 +439,7 @@
    travel at the theme's own pace. The links are left out on purpose -- .ctl
    already owns their transition, and a 400ms colour on hover would feel stuck. */
 .theme-ready .siteFoot,.theme-ready .footStatus,.theme-ready .footCopy,
-.theme-ready .footHead,.theme-ready .footMark{
+.theme-ready .footHead{
  transition:color var(--theme-duration) var(--ease-out)
 }
 .theme-ready .footTop{transition:border-color var(--theme-duration) var(--ease-out)}
@@ -500,21 +483,20 @@
    everything else in this component rather than getting a rule of its own. */
 @media(prefers-reduced-motion:reduce){
  .theme-ready .siteFoot,.theme-ready .footStatus,.theme-ready .footCopy,
- .theme-ready .footHead,.theme-ready .footMark,.theme-ready .footTop,
+ .theme-ready .footHead,.theme-ready .footTop,
  .theme-ready .footBand,.footLogo{transition-duration:1ms}
 }
 
 @media(forced-colors:active){
  .footTop{border-top-color:CanvasText}
- /* FORCED COLOURS TAKES THE BAND AWAY, and that is the correct answer rather
-    than a shortcut. A canvas is an image as far as forced-colors is concerned:
-    the user's chosen ground would sit behind a painted mesh the mode exists to
-    remove, and a knockout whose fill is forced to Canvas over a canvas that is
-    NOT forced would erase his name completely. So the band stops being a
-    surface and the wordmark goes back to being text on the page ground. */
- .footBand{background:none;padding-block:0}
- .footBandField,.footBandMark,.footBand.is-marked .footMark{display:none}
- .footBand.is-marked .footMark{display:block;color:GrayText}
- .footMark{color:GrayText}
+ /* FORCED COLOURS TAKES THE BAND AWAY ENTIRELY, and with the wordmark gone that
+    is now the whole answer instead of half of one. A canvas is an image as far
+    as forced-colors is concerned, so the user's chosen ground would sit behind a
+    painted mesh the mode exists to remove. The old rule emptied the band and
+    kept it, because there was CONTENT inside it that had to survive -- his name.
+    There is none now, so the band is removed rather than blanked, and the page
+    ends on the footer's own ground with its padding-bottom intact: the negative
+    margin that cancelled it is on .footBand and goes away with it. */
+ .footBand{display:none}
 }
 

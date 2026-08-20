@@ -4,10 +4,22 @@
    animations end to end ... and then having a Jayden Betts in the middle
    background color but with some inner shadow so it has some depth and looks
    like its encased in the gradient."
+   And, 2026-08-20: "i would prefer if the footer matched with the time of day
+   and the insert shadow wasnt that much it just feels too strong right now I
+   think we should remove the name and make it like half the height so its just
+   a nice ending to the site in a beautiful way."
 
-   So the closing wordmark stops being ink on white and becomes a full-bleed
-   band: the Workspace's warped metaball mesh, its glyph field over the top, and
-   his name knocked through both in the page's own ground colour.
+   The second note spends half of the first. What this file paints now is the
+   half he asked to keep: a full-bleed band of the Workspace's warped metaball
+   mesh with its glyph field over the top, end to end on every page, at half the
+   height and tinted by the hour. The wordmark, the knockout and the inner shadow
+   that shaded it are gone -- and gone rather than turned down, because the
+   shadow existed only to shade the inside of letterforms that no longer exist.
+   There is now NO SHADOW OF ANY KIND in this file. The site's most absolute
+   rule is that the companion heads cast a contact shadow and nothing else does;
+   the inner shadow was a sanctioned exception Jayden asked for by name, and with
+   the letters deleted the exception is spent and the rule is simply whole again.
+   footer-band-contract asserts the absence on both contexts, not just the field.
 
    THIS IS THE THIRD COPY OF THE WORKSPACE'S FIELD AND THE FIRST SHARED ONE.
    The original is React, in workspace/assets/index-Bjpj2J7U.js. The second is
@@ -31,26 +43,19 @@
    from the DOM" discipline all come from the Hero's port, which learned them the
    expensive way; see the comment block above the field in index.html.
 
-   THE THREE LAYERS, AND WHY THE MARK IS A SECOND CANVAS.
-     1  .footBandField   the mesh and the glyphs. Redrawn on the 30fps clock.
-     2  .footBandMark    his name, filled with the page's ground colour, with a
-                         real inner shadow inside every letterform. STATIC --
-                         it changes on resize and on a theme change and never on
-                         a frame -- so the compositor blends it for free and the
-                         loop never touches it.
-     3  .footMark        the DOM text. Invisible once layer 2 is live. It still
-                         owns the METRICS (footer.css sizes it at 100cqw over a
-                         measured font advance) and it is what you see if this
-                         file never runs, so the band degrades to a flat
-                         gradient with a flat knockout rather than to nothing.
-
-   THE INNER SHADOW IS NOT A CAST SHADOW, and the distinction is the site's most
-   absolute rule. Nothing here is lifted off the page: the shadow is drawn INSIDE
-   the letterforms, is composited source-atop so it cannot escape them, and is
-   translucent black -- so what you actually see inside the letter's top edge is
-   the band's own gradient, darkened. That is "encased in the gradient" read
-   literally. There is no box-shadow, no drop-shadow and no elevation anywhere in
-   this file or in the rules it turns on.
+   ONE LAYER NOW, WHERE THERE WERE THREE.
+     .footBandField   the mesh and the glyphs, redrawn on the 30fps clock.
+   The two that went were .footBandMark -- his name knocked out of the band with
+   an inner shadow inside every letterform -- and .footMark, the DOM text that
+   carried the band's height and the metrics that canvas was measured against.
+   That second dependency is why footer.css now declares a height: the band used
+   to be as tall as the wordmark plus its padding, and with no wordmark an
+   undeclared height is zero, because this canvas is inset:0 and takes the box
+   rather than making it.
+   WHAT THE DEGRADED PICTURE IS, with this file blocked or broken: .footBand's
+   own three-stop CSS gradient, off the same palette mixed here, at the same
+   height and with the same time-of-day tint. The band goes still, not missing --
+   which is the same answer it gave before, minus a wordmark.
 
    THE KILL SWITCH IS --foot-band-strength, exactly like the Hero's
    --ascii-strength: set it to 0 on .footBand and the loop stops, the field
@@ -65,13 +70,10 @@
  var band = document.querySelector(".footBand");
  if (!band) return;
  var fieldCv = band.querySelector(".footBandField");
- var markCv = band.querySelector(".footBandMark");
- var mark = band.querySelector(".footMark");
- if (!fieldCv || !markCv || !mark) return;
+ if (!fieldCv) return;
  if (typeof fieldCv.getContext !== "function") return;
  var fx = fieldCv.getContext("2d");
- var mx = markCv.getContext("2d");
- if (!fx || !mx) return;
+ if (!fx) return;
 
  /* ── WORKSPACE: the glyph field ──────────────────────────────────────────── */
  var CELL = 21;                 /* the bundle's cell pitch, in CSS px */
@@ -126,9 +128,6 @@
                                    a compromise: the fastest term here moves a
                                    glyph about 2px per SECOND. */
  var ACT_RISE = 160 / 3, ACT_FALL = 500 / 3;   /* 95% of the way is 3 time constants */
- /* The inner shadow, in em of the mark. Both are read from CSS so the depth is a
-    design value living with the palette rather than a literal in here. */
- var insetBlur = .020, insetOff = .014, riseAlpha = .10;
 
  /* ── state. Nothing below is read from the DOM inside the loop ───────────── */
  var boxW = 0, boxH = 0, ratio = 1;
@@ -139,7 +138,7 @@
  var visible = false, hidden = false, running = 0, lastDraw = 0;
  var timeBase = 0, pausedAt = 0;
  var strength = 1;
- /* THE PALETTE IS ELEVEN NUMBERS AND THEY ALL CROSS-FADE. A theme change on this
+ /* THE PALETTE CROSS-FADES, IT DOES NOT SNAP. A theme change on this
     site takes --theme-duration and every other colour in the footer travels with
     it; a full-bleed band that SNAPPED between two grounds in the middle of that
     is the "abrupt brightness jump" section 14 of the Apple reference names, on
@@ -149,13 +148,11 @@
     a drawn frame and there is no reason to allocate there. */
  var PAL_N = 12;
  var palFrom = new Float32Array(PAL_N), palTo = new Float32Array(PAL_N), pal = new Float32Array(PAL_N);
- var palStart = 0, palDur = 0, palHave = false, markPaint = 0;
+ var palStart = 0, palDur = 0, palHave = false;
  var base = [14, 15, 18], tones = [[27, 30, 36], [42, 46, 54], [18, 20, 25]];
- var glyphInk = [244, 245, 247], insetInk = "rgba(0,0,0,.55)", pageInk = "#fdfdfd";
- var insetShade = [0, 0, 0], insetAlpha = .58;
+ var glyphInk = [244, 245, 247];
  var drawMs = 0, worstMs = 0, drawn = 0, glyphs = 0, samples = 0, jitterSum = 0;
  var times = [];
- var fontReady = false, markLive = false;
  var clock = (window.performance && window.performance.now)
   ? function () { return window.performance.now(); }
   : function () { return Date.now(); };
@@ -236,14 +233,35 @@
  probe.style.cssText = "position:absolute;width:0;height:0;overflow:hidden;pointer-events:none";
  band.appendChild(probe);
 
+ /* AND IT COMES BACK IN TWO SERIALISATIONS, NOT ONE. This cost a whole pass and
+    it is the exact shape of bug this project keeps meeting: the CSS read
+    correctly and did nothing.
+    A resolved colour is `rgb(r g b)` with 0-255 channels while it stays in the
+    legacy sRGB lane. Nest one color-mix inside another -- which is what the
+    time-of-day cast does, casting a tone that is itself a mix of ink and page --
+    and Chrome serialises the computed value as `color(srgb r g b)` with 0-1
+    FLOATS instead. The old regex here matched `rgba?\(` only, so every tone
+    missed, every read fell through to the fallback, and the renderer painted the
+    hard-coded constants at the top of this file on every page and in every
+    state. Nothing errored. The band still looked like a band -- it was the
+    palette from before the tokens existed -- and only a per-state hue comparison
+    could see it: the tokens said sunset was warm and the painted band was blue.
+    So both forms are parsed, and the float form is scaled. Do not "simplify"
+    this back to one branch. */
  function readColour(expr, fallback) {
   probe.style.color = "";
   probe.style.color = expr;
-  var got = window.getComputedStyle(probe).color;
-  var m = /rgba?\(([^)]+)\)/.exec(got || "");
+  var got = String(window.getComputedStyle(probe).color || "");
+  var m = /rgba?\(([^)]+)\)/.exec(got);
+  var scale = 1;
+  if (!m) {
+   m = /color\(\s*srgb\s+([^)]+)\)/.exec(got);
+   scale = 255;
+  }
   if (!m) return fallback;
   var parts = m[1].split(/[\s,\/]+/);
-  var out = [parseFloat(parts[0]), parseFloat(parts[1]), parseFloat(parts[2])];
+  var out = [parseFloat(parts[0]) * scale, parseFloat(parts[1]) * scale,
+             parseFloat(parts[2]) * scale];
   if (!isFinite(out[0]) || !isFinite(out[1]) || !isFinite(out[2])) return fallback;
   return out;
  }
@@ -282,18 +300,15 @@
   var t2 = readColour("var(--foot-band-tone-2)", tones[1]);
   var t3 = readColour("var(--foot-band-tone-3)", tones[2]);
   var gl = readColour("var(--foot-band-glyph)", glyphInk);
-  var pg = readColour("var(--theme-page)", [253, 253, 253]);
-  var alpha = parseFloat(style.getPropertyValue("--foot-band-inset-alpha"));
-  if (!isFinite(alpha)) alpha = .55;
-  insetShade = readColour("var(--foot-band-inset)", [0, 0, 0]);
   var i, src = [b0[0], b0[1], b0[2], t1[0], t1[1], t1[2], t2[0], t2[1], t2[2],
                 gl[0], gl[1], gl[2]];
   for (i = 0; i < PAL_N; i++) palFrom[i] = palHave ? pal[i] : src[i];
   for (i = 0; i < PAL_N; i++) palTo[i] = src[i];
-  /* tone 3, the page ground and the inset alpha ride along in the same walk */
-  tone3To = t3; pageTo = pg; alphaTo = alpha;
-  if (!palHave) { tone3From = t3; pageFrom = pg; alphaFrom = alpha; }
-  else { tone3From = tone3.slice(); pageFrom = pageRgb.slice(); alphaFrom = insetAlpha; }
+  /* tone 3 rides along in the same walk. It sits outside the flat array only
+     because PAL_N was sized before it existed; the tween is the same tween. */
+  tone3To = t3;
+  if (!palHave) tone3From = t3;
+  else tone3From = tone3.slice();
   palStart = clock();
   palDur = (instant || !palHave || reduced()) ? 0 : themeDuration();
   palHave = true;
@@ -304,17 +319,9 @@
      samples at 25% of --theme-duration precisely because that is invisible in a
      before/after screenshot and obvious in a sampled one. */
   if (palDur <= 0) settlePalette(palStart + 1);
-  var bl = parseFloat(style.getPropertyValue("--foot-band-inset-blur"));
-  var of = parseFloat(style.getPropertyValue("--foot-band-inset-offset"));
-  var ri = parseFloat(style.getPropertyValue("--foot-band-inset-rise"));
-  if (isFinite(bl)) insetBlur = bl;
-  if (isFinite(of)) insetOff = of;
-  if (isFinite(ri)) riseAlpha = ri;
  }
 
  var tone3 = [18, 20, 25], tone3From = tone3.slice(), tone3To = tone3.slice();
- var pageRgb = [253, 253, 253], pageFrom = pageRgb.slice(), pageTo = pageRgb.slice();
- var alphaFrom = .58, alphaTo = .58;
 
  function settlePalette(now) {
   var k = palDur > 0 ? (now - palStart) / palDur : 1;
@@ -324,16 +331,9 @@
   for (i = 0; i < PAL_N; i++) pal[i] = palFrom[i] + (palTo[i] - palFrom[i]) * e;
   base = [pal[0], pal[1], pal[2]];
   tones = [[pal[3], pal[4], pal[5]], [pal[6], pal[7], pal[8]], tone3];
-  for (i = 0; i < 3; i++) {
-   tone3[i] = tone3From[i] + (tone3To[i] - tone3From[i]) * e;
-   pageRgb[i] = pageFrom[i] + (pageTo[i] - pageFrom[i]) * e;
-  }
+  for (i = 0; i < 3; i++) tone3[i] = tone3From[i] + (tone3To[i] - tone3From[i]) * e;
   tones[2] = tone3;
   glyphInk = [pal[9], pal[10], pal[11]];
-  insetAlpha = alphaFrom + (alphaTo - alphaFrom) * e;
-  pageInk = "rgb(" + (pageRgb[0] | 0) + "," + (pageRgb[1] | 0) + "," + (pageRgb[2] | 0) + ")";
-  insetInk = "rgba(" + (insetShade[0] | 0) + "," + (insetShade[1] | 0) + "," +
-             (insetShade[2] | 0) + "," + insetAlpha.toFixed(3) + ")";
   if (done) palDur = 0;
   return done;
  }
@@ -347,9 +347,6 @@
   fx.textAlign = "center";
   fx.textBaseline = "middle";
   fx.font = '12px "Geist", ui-sans-serif, system-ui, sans-serif';
-  markCv.width = fieldCv.width;
-  markCv.height = fieldCv.height;
-  mx.setTransform(ratio, 0, 0, ratio, 0, 0);
 
   cols = Math.ceil(boxW / CELL) + 1;
   rows = Math.ceil(boxH / CELL) + 1;
@@ -513,146 +510,6 @@
   drawGlyphs(seconds);
  }
 
- /* ── the mark: a knockout with a real inner shadow ────────────────────────
-    THE LETTERFORMS ARE THE PAGE'S OWN GROUND COLOUR, which is what he asked for
-    -- "a Jayden Betts in the middle background color". Because the fill is
-    literally --theme-page it reads as a hole cut through the band, and it
-    follows a theme change with no colour matching of any kind.
-
-    THE INNER SHADOW IS THE CANONICAL CANVAS RECIPE, and it is the reason this
-    layer is a canvas at all: text cannot take an inset box-shadow, and the two
-    CSS routes both fail on the same thing -- a background-clip:text gradient
-    shades by HEIGHT, so at 200px it puts a convincing shadow on the J and the
-    B and none at all on the e, the a and the o, whose tops are at x-height.
-    A shadow that only lands on two of twelve letters is worse than none. So:
-      1. the inverse of the type (a filled rect with the letters punched out)
-      2. the letters, filled with the page ground
-      3. the inverse drawn back over them, blurred and offset DOWN, composited
-         source-atop -- which clips it to the letters, so the only thing that
-         survives is the soft dark the surrounding surface casts into the top
-         inside edge of every letterform, whatever shape that letter is.
-    Offset down, because the light on this site comes from above; a recess lit
-    from above is dark at its top edge and open at its bottom. */
- function buildMark() {
-  if (!boxW || !boxH) return;
-  /* THE MARK LAYER IS BUILT IN DEVICE PIXELS, with the transform left at
-     identity, because shadowBlur and shadowOffsetY are NOT in the current
-     transform's coordinate space -- they are canvas units. Under a
-     setTransform(dpr) they silently mean half what they say on a 2x screen,
-     which is the sort of thing that reads as "the shadow is a bit weak" and
-     never as a bug. Everything below is therefore multiplied by ratio once, in
-     one place, and the field layer keeps its scaled transform because it draws
-     no shadows at all. */
-  mx.setTransform(1, 0, 0, 1, 0, 0);
-  mx.clearRect(0, 0, markCv.width, markCv.height);
-  markLive = false;
-  band.classList.remove("is-marked");
-  if (!fontReady) return;
-
-  var cs = window.getComputedStyle(mark);
-  var rect = mark.getBoundingClientRect();
-  var target = mark.clientWidth;
-  if (!target) return;
-  var weight = cs.fontWeight || "600";
-  var family = cs.fontFamily || '"Geist", sans-serif';
-  var tracking = parseFloat(cs.letterSpacing);
-  var declared = parseFloat(cs.fontSize) || 100;
-  if (!isFinite(tracking)) tracking = 0;
-  var trackEm = declared ? tracking / declared : 0;
-  var spacing = "letterSpacing" in mx;
-
-  /* THE FIT IS RE-DERIVED HERE RATHER THAN TRUSTED. footer.css sizes the DOM
-     text at 100cqw over --foot-mark-fit, a font advance measured by hand off a
-     Range at 1440 -- 5.9807 for Geist 600 at --tr-display. It is right, and it
-     is also a constant that goes stale the moment the string, the weight or the
-     tracking changes. measureText answers the same question exactly, at this
-     width, in this font, so the canvas asks it: set the type at a reference
-     size, read the advance, and scale. The CSS constant stays the authority for
-     the height this band RESERVES and for what you see if this file never runs. */
-  var REF = 200;
-  function setFont(ctx, size) {
-   if (spacing) ctx.letterSpacing = (trackEm * size).toFixed(3) + "px";
-   ctx.font = weight + " " + size + 'px ' + family;
-  }
-  setFont(mx, REF);
-  var advance = mx.measureText("Jayden Betts").width;
-  if (!(advance > 0)) return;
-  var size = REF * (target * ratio / advance);   /* device px */
-  setFont(mx, size);
-
-  /* The baseline the DOM text would have used, from the font's own metrics:
-     CSS puts half the leading above the content area, so the baseline sits at
-     (lineHeight - (ascent + descent)) / 2 + ascent below the line box top.
-     Geist's content area is 1.30em against a --lh-display line box of 1.0, so
-     that half-leading is NEGATIVE here and the ink overflows the box at both
-     ends -- which is exactly why the band's padding is measured off the ink and
-     not off the line box. */
-  var m = mx.measureText("Jayden Betts");
-  var asc = m.fontBoundingBoxAscent, desc = m.fontBoundingBoxDescent;
-  if (!isFinite(asc) || !isFinite(desc) || asc <= 0) { asc = size * 1.005; desc = size * .295; }
-  var lineH = (rect.height || size / ratio) * ratio;
-  var left = (rect.left - originX) * ratio;
-  var top = (rect.top - originY) * ratio;
-  var baseline = top + (lineH - (asc + desc)) / 2 + asc;
-
-  var blur = size * insetBlur, off = size * insetOff;
-  var inv = document.createElement("canvas");
-  inv.width = markCv.width; inv.height = markCv.height;
-  var ic = inv.getContext("2d");
-  if (!ic) return;
-  /* The plate is the whole canvas, not a strip around the line box. Geist's ink
-     overflows a --lh-display line box at both ends, so a strip sized off the box
-     needs a padding term nobody would ever check again; the full rect cannot be
-     too small and costs one fill. */
-  ic.fillStyle = "#000";
-  ic.fillRect(0, 0, inv.width, inv.height);
-  ic.globalCompositeOperation = "destination-out";
-  ic.textAlign = "left";
-  ic.textBaseline = "alphabetic";
-  setFont(ic, size);
-  ic.fillStyle = "#000";
-  ic.fillText("Jayden Betts", left, baseline);
-
-  mx.textAlign = "left";
-  mx.textBaseline = "alphabetic";
-  mx.globalCompositeOperation = "source-over";
-  mx.fillStyle = pageInk;
-  mx.fillText("Jayden Betts", left, baseline);
-  /* THE PLATE IS DRAWN OFF-CANVAS AND ONLY ITS SHADOW COMES BACK. Shifting the
-     image by -far and the shadow by +far lands the shadow exactly where the
-     plate would have been while the plate's own body falls outside the canvas.
-     Without that, the plate's opaque black sits on every antialiased glyph edge;
-     source-atop weights it by the edge's partial alpha and the result is a hard
-     dark fringe right round every letter -- an outline, which is a different
-     claim from depth and a much cheaper-looking one. */
-  var far = inv.width * 2;
-  mx.globalCompositeOperation = "source-atop";
-  mx.shadowColor = insetInk;
-  mx.shadowBlur = blur;
-  mx.shadowOffsetX = far;
-  mx.shadowOffsetY = off;
-  mx.drawImage(inv, -far, 0);
-  /* AND THE COUNTER-LIGHT, which is what turns a dark top edge from a smudge
-     into a floor. A recess lit from above is shaded where the surface overhangs
-     it and CATCHES that light on the lip opposite, so the same plate is cast
-     back up: same blur, offset the other way, in the page's own colour at a
-     tenth the strength. It is the second half of one lighting statement, not a
-     second effect, which is why it shares the blur and inverts only the sign. */
-  if (riseAlpha > 0) {
-   mx.shadowColor = "rgba(255,255,255," + riseAlpha + ")";
-   mx.shadowBlur = blur;
-   mx.shadowOffsetY = -off;
-   mx.drawImage(inv, -far, 0);
-  }
-  mx.shadowColor = "rgba(0,0,0,0)";
-  mx.shadowBlur = 0;
-  mx.shadowOffsetX = 0;
-  mx.shadowOffsetY = 0;
-  mx.globalCompositeOperation = "source-over";
-  markLive = true;
-  band.classList.add("is-marked");
- }
-
  /* ── the loop ────────────────────────────────────────────────────────────── */
  /* REPAINT IS NOT THE SAME CALL AS THE STILL FRAME, and conflating them put a
     t=6 frame on screen for one tick every time the band was resized or the theme
@@ -689,15 +546,11 @@
   }
   if (now - lastDraw >= FRAME_MS) {
    lastDraw = now;
-   /* The mark layer is static EXCEPT while the palette is walking, because the
-      letterforms are the page ground and the page ground is one of the things
-      moving. Rebuilt every other drawn frame -- six repaints across a 400ms
-      theme change, which is under a millisecond each and invisible, against
-      twelve that would be exactly as invisible and cost twice. */
-   if (palDur > 0) {
-    var settled = settlePalette(now);
-    if (settled || (markPaint = (markPaint + 1) & 1) === 0) buildMark();
-   }
+   /* THE PALETTE IS ADVANCED ON THE DRAWN FRAME, not on a timer of its own, so
+      the ground the mesh is mixed from and the mesh itself are always the same
+      instant. settlePalette clears palDur when it lands, which is what the
+      contract reads to prove a tween was scheduled rather than snapped. */
+   if (palDur > 0) settlePalette(now);
    var t0 = clock();
    draw((now - timeBase) / 1000);
    drawMs = clock() - t0;
@@ -729,17 +582,20 @@
   if (w === boxW && h === boxH && ratio === Math.min(window.devicePixelRatio || 1, 2)) return;
   boxW = w; boxH = h;
   measure();
-  buildMark();
   if (visible && !hidden) { repaint(); start(); }
  }
 
  /* THE BORDER BOX, NOT contentRect, AND THIS ONE COST A WHOLE SCREENSHOT. The
-    canvases are inset:0 / 100%x100%, so they cover the band's PADDING box;
-    contentRect is the CONTENT box and excludes the band's padding-block. Sizing
-    a 249px-tall canvas element's backing store to the 201px content box does not
-    error, it does not clip, and it does not look like a bug in the numbers -- it
-    stretches the whole picture vertically by 1.24 and reads as a soft focus on
-    the wordmark. Counting said "fits: true"; looking said the type was blurred.  */
+    canvas is inset:0 / 100%x100%, so it covers the band's PADDING box;
+    contentRect is the CONTENT box and excluded the band's padding-block. Sizing
+    a 249px-tall canvas element's backing store to the 201px content box did not
+    error, did not clip, and did not look like a bug in the numbers -- it
+    stretched the whole picture vertically by 1.24 and read as a soft focus on
+    the wordmark. Counting said "fits: true"; looking said the type was blurred.
+    THE BAND HAS NO PADDING TODAY, so the two boxes happen to agree and this
+    looks like a difference that stopped mattering. It is not: the band's height
+    is a declared clamp, the day anything puts padding back the two diverge
+    silently again, and borderBoxSize is right either way. Kept deliberately. */
  if (typeof ResizeObserver === "function") {
   new ResizeObserver(function (entries) {
    var e = entries[0];
@@ -801,7 +657,6 @@
 
  function retarget(instant) {
   readPalette(instant === true);
-  buildMark();
   if (visible && !hidden) { repaint(); start(); }
  }
 
@@ -813,25 +668,19 @@
  readPalette(true);
  resized(band.clientWidth, band.clientHeight);
 
- /* The mark cannot be drawn before Geist has loaded: canvas text falls back to
-    the system face silently and the fit is then measured against the wrong font,
-    which lands the wordmark short of both edges. So the knockout waits, and the
-    DOM text carries the band until it arrives. */
- function fontsIn() { fontReady = true; buildMark(); }
- if (document.fonts && typeof document.fonts.load === "function") {
-  try {
-   document.fonts.load('600 200px "Geist"', "Jayden Betts").then(fontsIn, fontsIn);
-  } catch (err) { fontsIn(); }
-  if (document.fonts.ready && typeof document.fonts.ready.then === "function") {
-   document.fonts.ready.then(fontsIn, fontsIn);
-  }
- } else { fontsIn(); }
+ /* NO FONT GATE ANY MORE, and it is worth recording that this is a deletion and
+    not an oversight. The gate existed for the knockout only: canvas text falls
+    back to the system face silently, so a fit measured before Geist arrived
+    landed the wordmark short of both edges. The field never waited for it and
+    still does not -- its ramp is nine punctuation glyphs at 12px, whose advance
+    the layout does not depend on, because each one is drawn centred in its own
+    21px cell rather than laid out in a run. */
 
  window.FooterBand = {
   /* Exposed so a contract -- and a designer sweeping the inset by eye -- can
      repaint the knockout after changing a custom property, without a reload. */
   rebuild: function () {
-   readPalette(true); measure(); buildMark();
+   readPalette(true); measure();
    if (visible && !hidden) { repaint(); start(); }
   },
   /* One deterministic frame at a named clock time. The band's whole picture is a
@@ -845,12 +694,12 @@
     w: boxW, h: boxH, cols: cols, rows: rows, cell: CELL,
     mesh: meshW + "x" + meshH, samples: samples, glyphs: glyphs,
     running: !!running, visible: visible, strength: strength,
-    act: act, markLive: markLive, fontReady: fontReady,
+    act: act,
     /* The live palette, so a contract can watch the theme cross-fade without
        screenshotting it. A screenshot takes long enough in a headless browser
        that a 400ms tween is over before the pixels come back, and a test that
        cannot see the middle of a transition reports every transition as a snap. */
-    pageInk: pageInk, glyph: [glyphInk[0] | 0, glyphInk[1] | 0, glyphInk[2] | 0],
+    glyph: [glyphInk[0] | 0, glyphInk[1] | 0, glyphInk[2] | 0],
     /* palDur is the tween that was SCHEDULED, in ms. It is the deterministic
        form of "the band cross-fades rather than snapping": a snap is palDur 0,
        and it can be read the instant the theme changes without waiting for a

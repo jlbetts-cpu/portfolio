@@ -15,18 +15,45 @@ component's own numbers:
     pages whose footer sits inside .wrap and not at all on the two whose footer
     is a <body> child. Six pages would have had a band that stopped short, and
     the page anybody screenshots first is one of the two that looked right.
-  * the inner shadow is composited source-atop so it cannot leave the letters.
-    Drop that one word and it becomes a drop shadow on the largest surface on
-    the site -- and the shadow rule here is absolute: the companion heads cast a
-    contact shadow and nothing else does. An inset shadow inside a letterform is
-    a different claim and Jayden asked for it; an escaped one is the rule broken.
+  * a per-state colour rule that reads perfectly and reaches no pixels. The band
+    reads its palette through a probe element, and the probe's regex matched
+    `rgb(...)` only. Nesting one color-mix inside another -- which is what the
+    time-of-day cast does -- makes Chrome serialise the computed value as
+    `color(srgb ...)` with 0-1 floats instead, so every tone missed, fell through
+    to the renderer's hard-coded fallback constants, and the band painted the
+    same picture in all seven states. Nothing errored and the band still looked
+    like a band. Only comparing two states' pixels could see it.
   * under reduced motion the original multiplies the per-glyph jitter by zero.
     Frozen at t=6 the same term is a fixed offset and the field reads as grain;
     zeroed, every glyph snaps to the 21px cell and the still frame is a lattice
     you can count rows and columns in. Both are "static" to a diff of two frames.
 
+WHAT THIS PROTECTS NOW, AND WHAT IT USED TO. Jayden, 2026-08-20: "i would
+prefer if the footer matched with the time of day and the insert shadow wasnt
+that much it just feels too strong right now I think we should remove the name
+and make it like half the height so its just a nice ending to the site in a
+beautiful way."
+
+So the assertions about the WORDMARK are gone -- the knockout, its inner shading,
+and the "nothing outside the letterform is darkened" half of the shadow rule.
+They were not relaxed and they were not deleted to make something pass: the thing
+they described does not exist any more, and a contract that still demanded a
+knockout would have been asserting the bug. Each one was replaced by the
+assertion that protects what the band IS now, which is a strictly larger claim in
+two places:
+  * the shadow rule used to be "the inner shadow must not escape the letterform",
+    a sanctioned exception Jayden asked for by name. With the letters gone the
+    exception is spent, so the rule is simply whole: NO shadow, on ANY context,
+    anywhere in footer-band.js. That is checked in the source rather than in the
+    pixels, because there is no longer a shape it could be measured against.
+  * where there was one assertion that the band differs from the page ground,
+    there are now three: it is a surface and not the ground, it carries painted
+    VARIATION rather than a flat fill, and it tracks the clock.
+And two new ones with no ancestor: the band is half the height it was (measured
+227.5 -> 114 at 1440 and 83.1 -> 42 at 390), and it carries NO wordmark.
+
 So: real pages, real pixels, real reduced-motion, and a --self-test that puts
-each of those four back and requires the contract to catch it.
+each defect back and requires the contract to catch it.
 
     python3 tools/footer-band-contract.py
     python3 tools/footer-band-contract.py --self-test
@@ -109,6 +136,23 @@ def serve():
     return httpd
 
 
+def source_of(name):
+    """The file as the BROWSER is seeing it on this run, not as it is on disk.
+
+    check_scripts asserts things about footer-band.js's and footer.css's source,
+    and it used to read them straight off the filesystem -- which meant no
+    injection could ever reach it, because --self-test patches the response the
+    server hands out and never touches the tree. Every static assertion in this
+    contract was therefore unfalsifiable, and one of them (no shadow on the field
+    context) was found MISSED the first time an injection was pointed at it. The
+    patch is applied here too, so a source check fails in the self-test for the
+    same reason it would fail in a real run."""
+    src = (ROOT / name).read_text(encoding="utf-8")
+    if Quiet.patch and Quiet.patch[0] == name:
+        src = src.replace(Quiet.patch[1], Quiet.patch[2])
+    return src
+
+
 def png(shot):
     return Image.open(io.BytesIO(shot)).convert("RGB")
 
@@ -125,14 +169,15 @@ def band_box(page):
       const b=document.querySelector('.footBand');
       if(!b) return null;
       const r=b.getBoundingClientRect();
-      const f=b.querySelector('.footBandField'), m=b.querySelector('.footBandMark');
+      const f=b.querySelector('.footBandField');
       return {l:r.left, t:r.top, w:r.width, h:r.height, bottom:r.bottom,
               vw:document.documentElement.clientWidth,
               docH:document.documentElement.scrollHeight,
               pageBottom:r.bottom+scrollY,
               dpr:Math.min(devicePixelRatio||1,2),
               padW:b.clientWidth, padH:b.clientHeight,
-              fw:f?f.width:0, fh:f?f.height:0, mw:m?m.width:0, mh:m?m.height:0};
+              fw:f?f.width:0, fh:f?f.height:0,
+              marks:document.querySelectorAll('.footMark,.footBandMark').length};
     }""")
 
 
@@ -156,7 +201,7 @@ def check_bleed(page, name, fails):
     # canvas that "fitted". What you get is the whole picture stretched, and at
     # 249 against 201 that is 1.24x: the wordmark reads as out of focus and
     # every other number on this page still passes.
-    for label, cw, ch in (("field", box["fw"], box["fh"]), ("mark", box["mw"], box["mh"])):
+    for label, cw, ch in (("field", box["fw"], box["fh"]),):
         want_w, want_h = box["padW"] * box["dpr"], box["padH"] * box["dpr"]
         if abs(cw - want_w) > 2 or abs(ch - want_h) > 2:
             fails.append("%s: the %s canvas is %dx%d device px for a %.0fx%.0f box at dpr %g "
@@ -164,6 +209,15 @@ def check_bleed(page, name, fails):
                          "(%.3fx vertically)"
                          % (name, label, cw, ch, want_w, want_h, box["dpr"],
                             (want_h / ch) if ch else 0))
+    # THE WORDMARK IS GONE AND MUST STAY GONE. Jayden asked for the name off the
+    # bottom of the site; a page that gets its .footMark back would render a
+    # 200px string with no rule left to size or colour it. Checked per page,
+    # because the footer markup lives in eight files this component does not own
+    # and every previous drift in it was one page edited alone.
+    if box["marks"]:
+        fails.append("%s: the footer still carries %d wordmark element(s) "
+                     "(.footMark / .footBandMark). Jayden asked for the name to go."
+                     % (name, box["marks"]))
     if abs(box["pageBottom"] - box["docH"]) > 1.5:
         fails.append("%s: band is not the last thing on the page -- %.1fpx of page ground "
                      "below it (the page's padding-bottom is not being cancelled)"
@@ -184,97 +238,148 @@ def sample(page, box, xs, ys):
     return im, out
 
 
-def check_knockout(page, name, fails):
-    """The letterforms are the PAGE's ground colour and the band is not, which is
-    what makes the wordmark read as cut through it rather than printed on it."""
+def check_surface(page, name, fails):
+    """THREE CLAIMS WHERE THERE USED TO BE ONE, and they are what is left of the
+    knockout check once there is nothing knocked out.
+
+    The old test walked a row through the x-height looking for a run of pixels at
+    the PAGE's ground colour -- the letterforms -- and, having found them, checked
+    that the band beside them was a different colour. Both halves went with the
+    wordmark. What survives is the half that was never about the type: a band
+    that is the same colour as the page it ends is not a floor, it is a gap.
+    Added to it, the two things the old check could take for granted because a
+    knockout implies them:
+      * the band carries painted VARIATION. A flat fill passes "differs from the
+        ground" perfectly while meaning the mesh died -- which is exactly what a
+        palette that failed to reach the renderer looks like from one screenshot.
+      * no run of page-ground pixels anywhere across it. That is the wordmark
+        check in the pixels rather than in the DOM, and it also catches a
+        knockout coming back by some other route."""
     ground = page.evaluate("""()=>{
       const c=getComputedStyle(document.documentElement).backgroundColor;
-      const m=/rgba?\\(([^)]+)\\)/.exec(c); if(!m) return null;
-      const p=m[1].split(/[\\s,\\/]+/).map(Number); return [p[0],p[1],p[2]];
+      const m=/rgba?\(([^)]+)\)/.exec(c); if(!m) return null;
+      const p=m[1].split(/[\s,\/]+/).map(Number); return [p[0],p[1],p[2]];
     }""")
     el = page.query_selector(".footBand")
     im = png(el.screenshot())
     W, H = im.size
-    # The thickest ink in "Jayden Betts" is the B's stem. Walk the row through
-    # the x-height and take the longest run that is within 12 of the page ground.
+    px = list(im.getdata())
+
+    def near(q, r, tol):
+        return all(abs(q[i] - r[i]) <= tol for i in range(3))
+
+    def lum(q):
+        return .299 * q[0] + .587 * q[1] + .114 * q[2]
+
+    # 1. a surface, not the page ground
+    edge = im.getpixel((int(W * 0.02), int(H * 0.5)))
+    if near(edge, ground, 24):
+        fails.append("%s: the band is the same colour as the page ground; it reads as "
+                     "the page stopping rather than as a floor under it" % name)
+
+    # 2. painted variation. Sampled as the spread of row means down the band --
+    #    the mesh's own gradient runs corner to corner, so a live band always has
+    #    one, and a flat fill or a dead renderer has none. 2.0 is well under the
+    #    real thing (measured 12-30 across the seven states at 1440) and well
+    #    over any dithering noise.
+    rows = []
+    for y in range(H):
+        r = px[y * W:(y + 1) * W]
+        rows.append(sum(lum(q) for q in r) / len(r))
+    spread = max(rows) - min(rows)
+    if spread < 2.0:
+        fails.append("%s: the band is flat -- its row means span %.2f levels top to "
+                     "bottom, so the mesh is not painting and what is on screen is a "
+                     "fill" % (name, spread))
+
+    # 3. no knockout, i.e. no wordmark in the pixels
     y = int(H * 0.55)
     row = [im.getpixel((x, y)) for x in range(W)]
-
-    def near(p, q, tol):
-        return all(abs(p[i] - q[i]) <= tol for i in range(3))
-
     runs, start = [], None
-    for x, p in enumerate(row):
-        hit = near(p, ground, 14)
+    for x, q in enumerate(row):
+        hit = near(q, ground, 14)
         if hit and start is None:
             start = x
         elif not hit and start is not None:
             runs.append((start, x)); start = None
     if start is not None:
         runs.append((start, W))
-    runs = [r for r in runs if r[1] - r[0] >= 6]
-    if not runs:
-        fails.append("%s: no run of page-ground pixels across the wordmark -- the "
-                     "letterforms are not the knockout" % name)
-        return None
-    longest = max(runs, key=lambda r: r[1] - r[0])
-    # and the band itself must NOT be the page ground, or "knockout" means nothing
-    edge = im.getpixel((int(W * 0.02), int(H * 0.5)))
-    if near(edge, ground, 24):
-        fails.append("%s: the band is the same colour as the page ground; there is "
-                     "nothing for the wordmark to be cut out of" % name)
-    return longest, y, im, ground
+    longest = max((r[1] - r[0] for r in runs), default=0)
+    if longest >= 6:
+        fails.append("%s: a %dpx run of page-ground pixels crosses the band -- "
+                     "something is being knocked out of it again" % (name, longest))
 
 
-def check_inset(page, name, fails):
-    """The depth is INSIDE the type. Two halves, and both matter:
-       - inside the letterform, the top edge must be shaded against its middle
-       - immediately OUTSIDE it, nothing may be darkened at all
-    The second half is the shadow rule. An inner shadow that has escaped its
-    letterform is a cast shadow, and on this site only the companion heads cast
-    one."""
-    got = check_knockout(page, name, fails)
-    if not got:
+# HALF THE HEIGHT, WHICH IS THE ONE THING HE GAVE A NUMBER FOR: "make it like
+# half the height". Measured on the shipped band the day before the change,
+# 227.52px at 1440 and 83.13px at 390; the clamp's ends are those halved.
+# BOTH WIDTHS, BECAUSE ONE WOULD NOT CATCH IT. The size is
+# clamp(42px,8vw,114px), so 1440 pins the ceiling and 390 pins the floor and a
+# regression in either end is invisible from the other. The tolerance is 1.5px
+# for sub-pixel layout, not for slack: this is a declared height, not a measured
+# one, and it should land exactly.
+BAND_H = {1440: 114.0, 390: 42.0}
+
+
+def check_height(page, width, name, fails):
+    box = band_box(page)
+    if not box:
+        fails.append("%s: no .footBand at %dpx" % (name, width))
         return
-    (x0, x1), _y, im, ground = got
-    W, H = im.size
-    x = (x0 + x1) // 2
-    col = [im.getpixel((x, yy)) for yy in range(H)]
+    want = BAND_H[width]
+    if abs(box["h"] - want) > 1.5:
+        fails.append("%s at %dpx: the band is %.1fpx tall, wanted %.1f. It was %.1f "
+                     "before Jayden asked for half of it."
+                     % (name, width, box["h"], want, want * 2))
 
-    def lum(p):
-        return .299 * p[0] + .587 * p[1] + .114 * p[2]
 
-    def near(p, q, tol):
-        return all(abs(p[i] - q[i]) <= tol for i in range(3))
+def check_hour(page, fails):
+    """THE BAND TRACKS THE CLOCK, AND THIS IS CHECKED IN PIXELS BECAUSE THE CSS
+    PASSING PROVED NOTHING. Jayden: "i would prefer if the footer matched with the
+    time of day."
 
-    ink = [yy for yy, p in enumerate(col) if near(p, ground, 26)]
-    if len(ink) < 20:
-        fails.append("%s: could not find the letterform's vertical extent" % name)
-        return
-    top, bot = ink[0], ink[-1]
-    mid = (top + bot) // 2
-    inner_top = lum(col[min(bot, top + max(2, (bot - top) // 12))])
-    centre = lum(col[mid])
-    light = lum(ground) > 128
-    delta = (centre - inner_top) if light else (inner_top - centre)
-    if delta < 4:
-        fails.append("%s: no inset shading inside the letterform (top edge vs centre "
-                     "differs by %.1f, needs 4). The wordmark is flat." % (name, delta))
+    The tint is seven `:root[data-theme-state=...] .footBand` rules setting one
+    hue token, and the first cut of them was completely correct and completely
+    inert: footer-band.js reads its palette through a probe, whose regex matched
+    `rgb(...)`, and nesting the cast's color-mix inside the tone's made Chrome
+    return `color(srgb ...)` instead. Every tone fell through to a hard-coded
+    fallback and all seven states painted identically. The computed custom
+    properties differed per state the whole time.
 
-    # ── and nothing outside it. Compare a band pixel two glyph-heights above the
-    #    letter against one at the same height far from any ink: an escaped
-    #    shadow darkens the first and not the second.
-    span = max(6, (bot - top) // 8)
-    above = top - span
-    if above >= 0:
-        near_ink = lum(im.getpixel((x, above)))
-        # the same row, at the far left where the wordmark never reaches
-        away = lum(im.getpixel((int(W * 0.012), above)))
-        if near_ink < away - 10:
-            fails.append("%s: the band is %.1f darker just above the wordmark than it is "
-                         "away from it -- the inner shadow has escaped the letterform "
-                         "and is casting. Nothing on this site casts a shadow except "
-                         "the companion heads." % (name, away - near_ink))
+    So what is asserted is the PAINTED MEAN, and specifically its RED MINUS BLUE:
+    the states are a colour-temperature ladder, and r-b is what a temperature
+    ladder moves. Measured at 1440 on about.html: sunset +12.9, sunrise +12.8,
+    off -3.4, daytime -5.8, night -5.3, dusk -7.8, pre-dawn -16.7. The gate is
+    that the warmest state is at least 12 levels warmer than the coldest, which
+    is a third of the real 29.6 -- enough headroom for the mesh's own drift
+    between frames, and nowhere near what a dead palette (0.0) reaches."""
+    el = page.query_selector(".footBand")
+
+    def warmth(state):
+        page.evaluate("(s)=>window.SiteTheme.setMode(s)", state)
+        page.wait_for_timeout(1100)          # --theme-duration is 400; this settles
+        im = png(el.screenshot())
+        px = list(im.getdata())
+        n = len(px)
+        r = sum(q[0] for q in px) / n
+        b = sum(q[2] for q in px) / n
+        return r - b
+
+    warm = warmth("sunset")
+    cold = warmth("pre-dawn")
+    if warm - cold < 12:
+        fails.append("the band paints the same warmth at sunset (%.1f) and pre-dawn "
+                     "(%.1f); the time-of-day cast is %.1f levels wide and needs 12. "
+                     "The per-state CSS can be perfect and still not reach the "
+                     "renderer -- see the probe's two serialisations."
+                     % (warm, cold, warm - cold))
+    # and "off" must be the untinted band rather than a state of its own
+    off = warmth("off")
+    if off > warm - 6:
+        fails.append("with time-of-day off the band is as warm as sunset (%.1f vs "
+                     "%.1f); the cast amounts are not being zeroed" % (off, warm))
+    page.evaluate("()=>window.SiteTheme.setMode('daytime')")
+    page.wait_for_timeout(900)
 
 
 def check_reduced(page, base, prefix, fails):
@@ -430,7 +535,7 @@ def check_theme_walk(page, fails):
       const r = getComputedStyle(document.documentElement)
                   .getPropertyValue('--theme-duration');
       const want = /ms/.test(r) ? parseFloat(r) : parseFloat(r) * 1000;
-      return {dur: p.palDur, want: want, ink: p.pageInk};
+      return {dur: p.palDur, want: want};
     }""")
     if walk["dur"] <= 1:
         fails.append("the band scheduled a %.0fms palette tween on a theme change; it is "
@@ -455,16 +560,31 @@ def check_scripts(prefix, fails):
             fails.append("%s does not load footer-band.js" % (prefix + name))
         if 'class="footBand"' not in src:
             fails.append("%s has no .footBand in its footer markup" % (prefix + name))
-    # And the field context must never be handed a shadow. The mark layer draws
-    # one, inside the type; the layer that paints the whole band must not.
-    js = (ROOT / "footer-band.js").read_text(encoding="utf-8")
-    for bad in re.findall(r"\bfx\.shadow\w*", js):
-        fails.append("footer-band.js sets %s on the FIELD context; only the mark "
-                     "layer may carry a shadow, and only inside the type" % bad)
-    if "source-atop" not in js:
-        fails.append("footer-band.js no longer composites the inner shadow source-atop; "
-                     "nothing is clipping it to the letterforms")
-    css = (ROOT / "footer.css").read_text(encoding="utf-8")
+        if 'class="footBandMark"' in src or 'class="footMark"' in src:
+            fails.append("%s still carries a wordmark element in its footer" % (prefix + name))
+    # ── AND NOW THE SHADOW RULE, WHOLE ──────────────────────────────────────
+    # This used to be two assertions that pulled against each other: no shadow on
+    # the FIELD context, and a source-atop composite on the MARK context so the
+    # inner shadow could not escape the letterforms. That was the shape of the
+    # rule while Jayden's inner shadow was a sanctioned exception to it -- he
+    # asked for it by name, "some inner shadow so it has some depth".
+    # He has now asked for it to go ("the insert shadow wasnt that much it just
+    # feels too strong"), and the letters it shaded went with it, so the
+    # exception is spent and the site's absolute rule applies with nothing carved
+    # out of it: the companion heads cast a contact shadow and NOTHING else does.
+    # A single assertion replaces both, and it is strictly stronger -- it binds
+    # every context in the file, not just the one that was known to be dangerous.
+    # It is a source check because there is no longer a shape to measure a shadow
+    # against: an escaped shadow used to be visible as darkening beside a
+    # letterform, and a band with no ink in it has no beside.
+    js = source_of("footer-band.js")
+    for bad in sorted(set(re.findall(r"\b\w+\.shadow(?:Color|Blur|OffsetX|OffsetY)\b", js))):
+        fails.append("footer-band.js sets %s. Nothing this file paints may carry a "
+                     "shadow of any kind: the companion heads cast a contact shadow "
+                     "and nothing else on this site does, and the one exception -- "
+                     "the wordmark's inner shading -- was deleted with the wordmark."
+                     % bad)
+    css = source_of("footer.css")
     if "overflow-x:clip" in re.search(r"(?m)^\.siteFoot\s*\{([^}]*)\}", css).group(1):
         fails.append(".siteFoot clips overflow again; the full-bleed band is cut off at "
                      "the page measure on the six pages whose footer sits in .wrap")
@@ -505,8 +625,10 @@ def _drive(base, prefix, fails):
             for name in PAGES:
                 open_page(page, base, name, prefix)
                 check_bleed(page, name, fails)
+                check_height(page, 1440, name, fails)
             open_page(page, base, "about.html", prefix)
-            check_inset(page, "about.html", fails)
+            check_surface(page, "about.html", fails)
+            check_hour(page, fails)
             check_observer(page, base, prefix, fails)
             open_page(page, base, "about.html", prefix)
             STATS.clear()
@@ -514,6 +636,21 @@ def _drive(base, prefix, fails):
             check_kill_switch(page, fails)
             check_theme_walk(page, fails)
             ctx.close()
+
+            # THE PHONE, FOR THE HEIGHT ONLY. clamp(42px,8vw,114px) pins its
+            # ceiling at 1440 and its floor at 390, so a regression in one end is
+            # completely invisible from the other -- and 390 is the width the old
+            # band was 83px at, i.e. the one Jayden was looking at when he said
+            # "half". The band is checked on both pages that frame it: index has
+            # the hero above it, about does not.
+            pctx = br.new_context(device_scale_factor=2, viewport={"width": 390, "height": 844})
+            ppage = pctx.new_page()
+            ppage.on("pageerror", lambda e: fails.append("page error at 390: %s" % e))
+            for name in ("index.html", "about.html"):
+                open_page(ppage, base, name, prefix)
+                check_height(ppage, 390, name, fails)
+                check_surface(ppage, name, fails)
+            pctx.close()
 
             rctx = br.new_context(device_scale_factor=2, viewport={"width": 1440, "height": 900},
                                   reduced_motion="reduce")
@@ -529,14 +666,47 @@ def _drive(base, prefix, fails):
 # that cannot fail is worse than no contract, so a green run here is the only
 # reason to believe a green run above.
 INJECTIONS = [
-    ("the canvas sized from contentRect, not the border box (the 1.24x stretch)",
+    # THE contentRect INJECTION RETIRED, AND WAS REPLACED RATHER THAN DROPPED.
+    # It used to swap borderBoxSize for contentRect and produce the 1.24x
+    # vertical stretch described at the top of this file. That defect is
+    # unreachable today: the band's padding-block went with the wordmark, so the
+    # content box and the border box are the same box and the injection is a
+    # no-op -- it was found MISSED, which is the correct answer for an injection
+    # that no longer injects anything. The ASSERTION it exercised is still live
+    # and still the one that caught a stretched picture no number complained
+    # about, so it is exercised by a defect that IS reachable: dropping the
+    # device-pixel-ratio term, which gives a 1x bitmap on a 2x screen. Same
+    # check, same failure mode (a scaled picture, nothing errors), reachable
+    # today. The borderBoxSize read stays as it is; see the note above it.
+    ("the canvas bitmap not scaled to the device pixel ratio (a soft picture)",
      "footer-band.js",
-     "if (bs && bs.length) { w = bs[0].inlineSize; h = bs[0].blockSize; }",
-     "if (e.contentRect) { w = e.contentRect.width; h = e.contentRect.height; }"),
-    ("the inner shadow no longer clipped to the letterforms (it becomes a cast shadow)",
+     "fieldCv.width = Math.max(1, Math.round(boxW * ratio));",
+     "fieldCv.width = Math.max(1, Math.round(boxW));"),
+    # WHY THIS ONE REPLACED THE source-atop INJECTION. That one re-broke the
+    # composite that kept the inner shadow inside the letterforms; there is no
+    # inner shadow and no letterform now, so the needle no longer exists in the
+    # file. What replaces it re-breaks the rule the old one was a special case
+    # of: it puts a shadow back on the context that paints the whole band.
+    ("a shadow on the field context (the shadow rule, which now has no exception)",
      "footer-band.js",
-     'mx.globalCompositeOperation = "source-atop";\n  mx.shadowColor = insetInk;',
-     'mx.globalCompositeOperation = "source-over";\n  mx.shadowColor = insetInk;'),
+     "  fx.clearRect(0, 0, boxW, boxH);\n  glyphs = 0;",
+     '  fx.clearRect(0, 0, boxW, boxH);\n  fx.shadowBlur = 4;\n  glyphs = 0;'),
+    # THE DEFECT THAT COST THIS PASS. The per-state rules were correct and the
+    # renderer never saw them, because a nested color-mix serialises as
+    # color(srgb ...) and the probe only parsed rgb(...). Re-injected by taking
+    # the second branch back out.
+    ("the palette probe blind to color(srgb ...) -- every state paints alike",
+     "footer-band.js",
+     '   m = /color\\(\\s*srgb\\s+([^)]+)\\)/.exec(got);\n   scale = 255;',
+     "   m = null;"),
+    ("the time-of-day cast flattened to one hue for every state",
+     "footer.css",
+     ':root[data-theme-state="sunset"]  .footBand{--foot-band-cast:#b7734c}',
+     ':root[data-theme-state="sunset"]  .footBand{--foot-band-cast:#6d81cc}'),
+    ("the band back at its old height (Jayden asked for half)",
+     "footer.css",
+     "height:clamp(42px,8vw,114px);",
+     "height:clamp(84px,16vw,228px);"),
     ("the reduced-motion jitter zeroed instead of frozen (the countable lattice)",
      "footer-band.js",
      "ox = 2.2 * Math.sin(seconds * .9 + h);\n    oy = 2.2 * Math.cos(seconds * .8 + h * 1.2);",
@@ -584,9 +754,10 @@ def main():
             print("FAIL  " + f)
         print("\nSTATUS=FAIL  %d problem(s)" % len(fails))
         return 1
-    print("STATUS=PASS  the band bleeds edge to edge on %d pages, the wordmark is a "
-          "knockout with its shading inside the type, reduced motion is one frozen "
-          "frame, and the loop stops off screen." % len(PAGES))
+    print("STATUS=PASS  the band bleeds edge to edge on %d pages at half its old "
+          "height (114 at 1440, 42 at 390), carries no wordmark and no shadow, "
+          "tracks the clock in the pixels, cross-fades rather than snapping, is one "
+          "frozen frame under reduced motion, and stops off screen." % len(PAGES))
     return 0
 
 

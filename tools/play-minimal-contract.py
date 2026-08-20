@@ -269,6 +269,19 @@ for dead in (".footReach{", ".footIn{", ".footMark{", "max-width:56ch"):
 site_foot = HTML[HTML.index(".siteFoot{"):]
 site_foot = site_foot[: site_foot.index("}")]
 assert "text-align" not in site_foot, ".siteFoot must not set text-align"
-assert '<div class="footMark" aria-hidden="true">Jayden Betts</div>' in HTML
+# 2026-08-20: THIS ASSERTION IS INVERTED, NOT DELETED. It read "play.html still
+# carries the closing wordmark", which was here because play.html was the last
+# page onto the shared footer and the wordmark was the piece most likely to be
+# left off. Jayden then asked for the name to come off the site entirely -- "we
+# should remove the name and make it like half the height so its just a nice
+# ending to the site in a beautiful way" -- so the risk this guarded reversed
+# direction: the failure now is the wordmark coming BACK on one page, which is
+# exactly the per-page drift .footMark{ above is watched for. Same element, same
+# page, opposite sign. (Section 7 of CLAUDE.md: a gate that blocks a fix is
+# updated with its reasoning, never relaxed.)
+assert 'class="footMark"' not in HTML, "play.html still carries the closing wordmark"
+assert 'class="footBandMark"' not in HTML, "play.html still carries the knockout canvas"
+# and the band it ends on is still there, still one canvas.
+assert '<div class="footBand"><canvas class="footBandField" aria-hidden="true"></canvas></div>' in HTML
 
 print("play minimal contract: PASS")

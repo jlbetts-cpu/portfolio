@@ -301,7 +301,16 @@ def check_shared_theme_transitions():
     # a footer class at all -- see tools/footer-consistency-check.py) are gone
     # from it deliberately. .footIn is still themed, by site-theme.css under
     # .content, which is where a prose link belongs.
-    assert ".theme-ready.siteFoot,.theme-ready.footStatus,.theme-ready.footCopy,.theme-ready.footHead,.theme-ready.footMark{transition:colorvar(--theme-duration)" in compact_footer, "footer.css: ready-state semantic footer transition is missing"
+    # 2026-08-20: .footMark left this list because it left the site. Jayden asked
+    # for the closing wordmark to go ("we should remove the name"), so the element
+    # this clause named no longer exists on any page and the assertion could only
+    # have been satisfied by a dead selector. The list is still every ink-bearing
+    # part of the footer, which is the property being protected -- what changed is
+    # how many parts there are. The band is deliberately NOT in it: its colours
+    # are canvas, not CSS ink, and footer-band.js walks them over the same
+    # --theme-duration by reading the palette on a SiteTheme change.
+    # tools/footer-band-contract.py asserts that walk in the renderer.
+    assert ".theme-ready.siteFoot,.theme-ready.footStatus,.theme-ready.footCopy,.theme-ready.footHead{transition:colorvar(--theme-duration)" in compact_footer, "footer.css: ready-state semantic footer transition is missing"
     violations=nav_color_transition_violations(header)
     assert not violations, f"header.css: nav color transitions must be theme-ready ({'; '.join(violations)})"
 
