@@ -143,7 +143,7 @@ def verify(page, route, route_name, width, mode):
           atmosphere:metric(one('.heroTimeClip')),
           tabs:metric(one('.collection__tabs')),frame:metric(one('.csFrame')),
           copy:metric(one('.heroCopy')),ctas:metric(one('.heroCtas')),
-          primary:metric(one('#workBtn')),time:metric(one('#heroTimeBtn')),
+          time:metric(one('#heroTimeBtn')),
           skip:metric(one('.skipLink')),heroAfter:{shadow:css(one('.surface--hero'),'::after').boxShadow,
             border:css(one('.surface--hero'),'::after').borderTopWidth},
           peek:(()=>{const p=one('.heroCharacterPeek'),w=one('.heroCharacterPeek .stagewrap'),s=one('#stage'),f=one('#face'),h=box(one('.surface--hero')),

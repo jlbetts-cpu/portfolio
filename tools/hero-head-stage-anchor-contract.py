@@ -127,11 +127,13 @@ def check(browser, port, width, height, delta):
 
     before = page.evaluate(READ)
     target = before["heroH"] + delta
-    if width <= 760:
-        page.evaluate("h=>document.documentElement.style"
-                      ".setProperty('--hero-mobile-height',h+'px')", target)
-    else:
-        page.evaluate("h=>document.querySelector('.hero').style.height=h+'px'", target)
+    # ONE DRIVER, BOTH WIDTHS. The Hero's height is --heroBox now (2026-08-20,
+    # when the fold was cut from 100vh so the tab row is reachable without
+    # crossing dead gradient), and it is the same token at every width -- so the
+    # old fork, which wrote --hero-mobile-height under 760 and an inline height
+    # above it, was driving two things that no longer exist. Setting the box is
+    # also closer to what a real viewport change does than pinning a height.
+    page.evaluate("h=>document.documentElement.style.setProperty('--heroBox',h+'px')", target)
     page.wait_for_timeout(350)
     after = page.evaluate(READ)
     ctx.close()

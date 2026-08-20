@@ -49,7 +49,7 @@
 <meta name="twitter:image:alt" content="Strata, a gamified habit builder designed by Jayden Betts">
 <link rel="preload" as="font" type="font/woff2" href="fonts/geist-latin-400-normal.woff2" crossorigin><link rel="preload" as="font" type="font/woff2" href="fonts/geist-latin-600-normal.woff2" crossorigin>
 <link rel="preload" as="image" href="images/cs/strata-cover.webp" fetchpriority="high">
-<link rel="stylesheet" href="tokens.css?v=a9af10a400">
+<link rel="stylesheet" href="tokens.css?v=0d4908abb4">
 <style>
 /* THE FACES MOVED TO tokens.css (2026-08-04) -- declared once for all ten pages
    instead of copied into nine of them and missed on two (about.html and
@@ -189,11 +189,22 @@ img{display:block;max-width:100%;height:auto}   /* height:auto IS THE COMPANION 
 .head .hl{display:block}
 .lede{font-family:var(--sans);font-weight:400;font-size:var(--fs-prose);line-height:var(--lh-prose);color:var(--c700);margin:var(--sp-24-32) 0 0;text-wrap:pretty}
 
-.cover{position:relative;aspect-ratio:12/5;overflow:hidden;background:var(--c100);margin-top:var(--sp-24-32);width:100%;transform:scale(.985);opacity:0}
+.cover{position:relative;aspect-ratio:12/5;overflow:hidden;background:var(--c100);margin-top:var(--sp-24-32);width:100%;transform:scale(.985) translateY(8px);opacity:0;transition:opacity var(--dur-enter) var(--ease-out),transform var(--dur-enter) var(--ease-out)}
 .cover img{width:100%;height:100%;object-fit:cover;box-shadow:var(--rim-1)}
 .cover::after{content:"";position:absolute;inset:0;box-shadow:var(--rim-1);border-radius:inherit;pointer-events:none}
-.cover.in{animation:coverIn .7s var(--ease-out) forwards}
-@keyframes coverIn{0%{opacity:0;transform:scale(.985) translateY(8px)}26%{opacity:1}82%{transform:scale(1.002) translateY(0)}100%{opacity:1;transform:scale(1) translateY(0)}}
+/* THE FOLD WAS EMPTY FOR MOST OF A SECOND. Measured 2026-08-20: first paint
+   at 64-148ms and the cover not starting until 836-921ms, so the lower 60%
+   of the opening screen was blank white on all five case studies -- the
+   first thing a recruiter sees. The sequence was 280/760/1080/1240 with a
+   700ms keyframe: none of those are rungs on the motion ladder, and the
+   gaps were 480/320/160, decelerating for no reason anyone chose.
+   It is 280/560/840/1120 now -- four even --dur-move beats -- and the
+   cover's own move is --dur-enter. A TRANSITION, not a keyframe: a
+   keyframe restarts from its own 0% and cannot be interrupted, which is
+   what apple-design.md section 3 calls the single most important
+   principle. The 26%/82% stops were an overshoot --ease-out already
+   expresses. */
+.cover.in{opacity:1;transform:scale(1) translateY(0)}
 
 /* at a glance — spec list */
 /* project facts — a full-width band under the cover so the header's weight spreads across the measure instead of stacking on the left */
@@ -405,7 +416,7 @@ img{display:block;max-width:100%;height:auto}   /* height:auto IS THE COMPANION 
 @media(prefers-reduced-motion:reduce){
  html{scroll-behavior:auto}
  .emerge{display:none}
- .cover{opacity:1;transform:none;animation:none}
+ .cover{opacity:1;transform:none;animation:none;transition:none}
  .rv .abw{opacity:1!important;filter:none!important;transform:none!important;transition:none}
  .facts{opacity:1!important;transform:none!important;transition:none}
  .dv,.photoRow.dv>img,.step.dv .stepShot,.step.dv .stepText{opacity:1!important;transform:none!important;filter:none!important;transition:none;will-change:auto!important}
@@ -652,11 +663,11 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
    which shared the declaration and the defect -- bearings' .cmp measured round
    over a squircle board too. */
 </style>
-<link rel="stylesheet" href="controls.css?v=a9af10a400">
+<link rel="stylesheet" href="controls.css?v=0d4908abb4">
 <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Jayden Betts","item":"https://jaydenbetts.design/"},{"@type":"ListItem","position":2,"name":"Strata Case Study","item":"https://jaydenbetts.design/strata.html"}]},{"@type":"CreativeWork","@id":"https://jaydenbetts.design/strata.html#work","url":"https://jaydenbetts.design/strata.html","name":"Strata: A Product Design Case Study by Jayden Betts","description":"Strata is a gamified habit builder where your wins stack up into a tower of colourful blocks, playable right on the page. A product design case study by Jayden Betts.","image":"https://jaydenbetts.design/images/cs/strata-cover.webp","author":{"@type":"Person","@id":"https://jaydenbetts.design/#person","name":"Jayden Betts","alternateName":"Jayden Lee Betts","url":"https://jaydenbetts.design/","sameAs":["https://www.linkedin.com/in/jaydenbetts","https://www.instagram.com/jaydenleebetts"]},"genre":"Product Design","inLanguage":"en"}]}</script>
-<link rel="stylesheet" href="header.css?v=a9af10a400">
-<link rel="stylesheet" href="footer.css?v=a9af10a400">
-<link rel="stylesheet" href="site-theme.css?v=a9af10a400">
+<link rel="stylesheet" href="header.css?v=0d4908abb4">
+<link rel="stylesheet" href="footer.css?v=0d4908abb4">
+<link rel="stylesheet" href="site-theme.css?v=0d4908abb4">
 <script src="header.js" defer></script>
 <script src="footer-band.js" defer></script>
 </head>
@@ -896,9 +907,9 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
   if(em){ requestAnimationFrame(function(){requestAnimationFrame(function(){em.classList.add('clear');});}); setTimeout(function(){em.style.display='none';},900); }
   /* orchestrated arrival out of the white: the title writes out, then the cover lands */
   setTimeout(function(){reveal(head);},280);
-  setTimeout(function(){if(cover)cover.classList.add('in');},760);
-  setTimeout(function(){if(glance)glance.classList.add('shown');},1080);
-  setTimeout(function(){role.forEach(function(el,i){setTimeout(function(){reveal(el);},i*140);});},1240);
+  setTimeout(function(){if(cover)cover.classList.add('in');},560);
+  setTimeout(function(){if(glance)glance.classList.add('shown');},840);
+  setTimeout(function(){role.forEach(function(el,i){setTimeout(function(){reveal(el);},i*140);});},1120);
  }
 
  /* hand back to the work rail so it emerges from white on return */

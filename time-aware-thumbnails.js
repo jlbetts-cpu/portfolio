@@ -12,8 +12,17 @@
    window:root
   });
  }
- if(root.document.readyState==="loading")root.document.addEventListener("DOMContentLoaded",start,{once:true});
- else start();
+ /* IT NO LONGER WAITS FOR THE WHOLE DOCUMENT. index.html now loads this
+    immediately after the last cover, so every element it touches is parsed by
+    the time it runs -- waiting for DOMContentLoaded there would re-introduce
+    the 721ms gap this move exists to close, because the wait was never about
+    THIS script being ready, it was about the covers being parsed.
+    THE READY BRANCH IS KEPT for every other caller: any page that loads this
+    from <head>, and the tests that do, still get the old behaviour. The guard
+    is "are the covers here yet", asked directly, instead of "has the whole
+    document finished", used as a proxy for it. */
+ if(root.document.querySelector(".csImg")||root.document.readyState!=="loading")start();
+ else root.document.addEventListener("DOMContentLoaded",start,{once:true});
 })(typeof window!=="undefined"?window:null,function(){
  "use strict";
 

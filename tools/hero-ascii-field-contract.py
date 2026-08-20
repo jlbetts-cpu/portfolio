@@ -476,7 +476,7 @@ def check_stacking(page, failures, verbose):
       const cs = getComputedStyle(c);
       const face = document.getElementById('face').getBoundingClientRect();
       const hit = document.elementFromPoint(face.x + face.width/2, face.y + face.height/2);
-      const cta = document.querySelector('.heroCtas .ctl--primary').getBoundingClientRect();
+      const cta = document.querySelector('#heroTimeBtn').getBoundingClientRect();
       const ctaHit = document.elementFromPoint(cta.x + cta.width/2, cta.y + cta.height/2);
       return {inClip: clip.contains(c), pe: cs.pointerEvents, pos: cs.position,
               z: cs.zIndex, aria: c.getAttribute('aria-hidden'),

@@ -65,7 +65,9 @@ def main():
         assert "controls.css" in assets, (name, parsed.stylesheets)
         assert assets.index("tokens.css") < assets.index("controls.css")
 
-        assert {"ctl", "ctl--primary"} <= classes(by_id(parsed, "workBtn"))
+        # index.html's #workBtn was removed on 2026-08-20 by request. play.html
+        # still ships one and is still checked by its own contract; this loop
+        # runs over the shared pages, so the clause cannot live here any more.
         assert {"ctl", "ctl--secondary"} <= classes(
             next(attrs for tag, attrs in parsed.elements if tag == "a" and "skipLink" in classes(attrs))
         )

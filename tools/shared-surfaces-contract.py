@@ -11,7 +11,20 @@ CASES = ("bearings.html", "apollo.html", "cluster.html", "strata.html", "ucdavis
 SHARED_ASSETS = {
     "tokens.css", "controls.css", "header.css", "footer.css", "site-theme.css", "hero-time.css",
 }
-SHARED_VERSION = "v=20260806-shared-surfaces"
+# THE TOKEN IS DERIVED, SO THIS CANNOT BE A LITERAL ANY MORE. It was
+# "v=20260806-shared-surfaces" and it pinned a string that had not moved since 6
+# August while every file it versions changed on the 19th and 20th -- which is
+# exactly the staleness tools/asset-token-contract.py was written to make
+# impossible. What THIS contract cares about is that every shared stylesheet on
+# every page carries the SAME token, not what the token says; the value's
+# correctness is asset-token-contract's job. So it is read from the tree.
+def _shared_version():
+    hrefs = re.findall(r'\.css\?(v=[A-Za-z0-9._-]+)', (ROOT / "index.html").read_text(encoding="utf-8"))
+    assert hrefs, "index.html carries no versioned stylesheet at all"
+    return hrefs[0]
+
+
+SHARED_VERSION = _shared_version()
 
 
 class PageParser(HTMLParser):

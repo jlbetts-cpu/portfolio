@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en"><head><script src="site-theme-state.js"></script>
+<html lang="en" data-hero-headline="center" data-hero-ink="auto"><head><script src="site-theme-state.js"></script>
 <script src="site-theme.js"></script>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Jayden Betts</title>
@@ -50,7 +50,7 @@
      page alone, so the ink-surface nav lost its top highlight here and nowhere
      else. Linked BEFORE this page's <style>, so anything the page still declares
      for itself continues to win. -->
-<link rel="stylesheet" href="tokens.css?v=a9af10a400">
+<link rel="stylesheet" href="tokens.css?v=0d4908abb4">
 <style>
 html{scroll-behavior:smooth}
 html.softScrolling{scroll-behavior:auto}
@@ -851,6 +851,16 @@ body.heroEmpathy .jbStick .jbNav{--nav-mat:var(--ctl-ground);--nav-rim:var(--ctl
 .heroCtas>*{opacity:0;transform:translateY(9px) scale(.97);
  transition:opacity var(--dur-enter) var(--ease-out),transform var(--dur-enter) var(--ease-out)}
 .heroCtas.in>*{opacity:1;transform:none}
+/* THE STAGGER RE-INDEXES, AND IT HAD TO BE LOOKED AT WHEN "View work" WENT.
+   These delays are positional, so deleting the first child promotes whatever
+   was second into the 0ms slot. Two things follow and both were checked:
+   the time control now arrives with the headline's beat instead of 125ms
+   behind it -- correct, it is the only control in the row and there is nothing
+   left for it to be second to -- and the script#heroTimePrepaint element that
+   used to be the third child would have inherited the 250ms slot, so it was
+   moved out of .heroCtas entirely rather than left as an invisible element
+   holding a place in a visible rhythm. The rules stay because they are the
+   row's rhythm, not this button's: a second control lands on 125ms. */
 .heroCtas.in>*:nth-child(2){transition-delay:.125s}.heroCtas.in>*:nth-child(3){transition-delay:.25s}
 /* ctaIn's headstone. It was a six-stop keyframe with a 1.04 overshoot, and a
    keyframe restarts from its own 0% and cannot be interrupted -- which is what
@@ -1203,7 +1213,10 @@ body.heroEmpathy .jbStick .jbNav{--nav-mat:var(--ctl-ground);--nav-rim:var(--ctl
    call, made after seeing it rendered. svh is kept: unprefixed vh maps to the LARGE viewport per
    CSS Values 4, so 100vh overflows under a mobile URL bar. Mobile is untouched and still shows
    285px of the next section. ---- */
-@media(min-width:761px){.hero{min-height:calc(100svh - 68px)}}
+/* DELETED 2026-08-20: the desktop `min-height:calc(100svh - 68px)` that stood
+   here. It lost to the full-bleed .hero block below -- same specificity, later
+   in the same sheet -- so the Hero rendered as the whole viewport and the note
+   above describes a compromise that never shipped. --heroReveal replaces it. */
 /* ---- 12. The h1 ran to FOUR lines at 390 and 360 (123px, ~25% of the mobile hero) but only
    THREE at 430 -- which is why it looks fine on a Pro Max and cramped on everything narrower.
    Measured line counts: 28px -> 4 lines at 360/390, 3 at 430; 26px -> 3 at 390 but still 4 at
@@ -1826,22 +1839,60 @@ html{scroll-padding-top:calc(var(--nav-h) + var(--sp-16-24))}
    computes to `unset`. So `padding:72px; padding:var(--broken)` gives 0, not
    72. Only a feature query keeps the fallback reachable once a custom property
    is in the chain, and every value below goes through one. */
+/* == THE HERO IS NO LONGER THE WHOLE VIEWPORT, AND THERE IS ONE NAME FOR IT ==
+   Jayden, 2026-08-20: "make the hero smaller like take up less space to see the
+   tabs and case study below". MEASURED BEFORE: the Hero was exactly the
+   viewport at every width, so the tab row sat 16px BELOW the fold and the first
+   cover 100px below that, and a visitor scrolling toward the work crossed 251px
+   of empty sky above the headline and 133px below the head to get there. That
+   dead band is what he screenshotted.
+   THIS REOPENS A DECISION HE MADE THE OTHER WAY, deliberately. The rule that
+   used to stand at :1206 gave the Hero the first screen minus 68px, with a note
+   saying he had looked at the peek and did not want the tabs on screen. It had
+   been DEAD for several commits -- same specificity as this block, earlier in
+   the same sheet -- so what actually shipped was neither its value nor its
+   reasoning. He has now asked for the opposite outright; the reveal below is
+   the value that is really in force, and the dead rule is gone.
+   THREE NAMES, BECAUSE THE HERO HAS THREE HEIGHTS AND THEY ARE NOT THE SAME.
+     --heroReveal  how much of the next section shows above the fold. svh, so
+                   it does not breathe with the URL bar.
+     --heroBox     the painted box. dvh, so the gradient never opens a gap when
+                   phone chrome retracts. -> min-height.
+     --heroRow     the stable row the copy is centred in, and the head's stage.
+                   svh, so neither moves during a scroll. Keeping this separate
+                   from --heroBox is the whole of the drift note further down;
+                   folding them into one name would undo it.
+   THEY LIVE ON :root, NOT ON .hero, because hero-time.css derives the head's
+   floor clearance from --heroReveal in a :root rule, and a custom property
+   declared on .hero cannot be seen by a declaration on an ancestor. */
+:root{--heroReveal:0px;--heroBox:100vh;--heroRow:100vh}
+@supports (height:1svh){:root{
+ /* THE REVEAL IS A SHARE OF THE SLACK, NOT A SHARE OF THE VIEWPORT, and that
+    is the whole of the short-laptop case. The Hero's content -- copy 164px,
+    gap, head 333px -- is about 520px on a desktop and does not shrink with the
+    window, so a flat percentage takes 1440x900 to a comfortable 702 and
+    1280x650 to 520, which is less than the content it has to hold. Measured at
+    650 the head already rests 25px off the floor with the crowd-drop
+    saturated: there is nothing left to give and the correct reveal is zero.
+    Subtracting the content before taking the share says exactly that. */
+ --heroReveal:clamp(0px,calc((100svh - 680px) * .9),240px);
+ --heroBox:calc(100svh - var(--heroReveal));
+ --heroRow:calc(100svh - var(--heroReveal))}}
+@supports (height:1dvh){:root{--heroBox:calc(100dvh - var(--heroReveal))}}
 .hero{
  --heroPadT:72px;
  --heroPadB:calc(72px + env(safe-area-inset-bottom));
  position:relative;isolation:isolate;overflow:visible;
  display:grid;grid-template-columns:1fr;justify-items:center;align-content:center;
- min-height:100vh;gap:0;
+ min-height:var(--heroBox);gap:0;
  padding:var(--heroPadT) max(var(--sp-16-40),env(safe-area-inset-right)) var(--heroPadB) max(var(--sp-16-40),env(safe-area-inset-left));
  border:0;box-shadow:none;border-radius:var(--surface-hero-radius);
  corner-shape:var(--corner);background:var(--c50)
 }
 @supports (height:1svh){
  .hero{--heroPadT:clamp(72px,12svh,112px);
-  --heroPadB:calc(clamp(72px,12svh,112px) + env(safe-area-inset-bottom));
-  min-height:100svh}
+  --heroPadB:calc(clamp(72px,12svh,112px) + env(safe-area-inset-bottom))}
 }
-@supports (height:1dvh){.hero{min-height:100dvh}}
 /* AND THE COPY STOPS MOVING TOO. The note above accepts that a live dvh change
    moves the centred copy by half the chrome. It is not acceptable -- Jayden
    reported the Hero "moving out of place on scroll", and 40.5px of drift at
@@ -1859,7 +1910,7 @@ html{scroll-padding-top:calc(var(--nav-h) + var(--sp-16-24))}
    viewport too short for the copy grows the row instead of clipping it. */
 @supports (height:1svh){
  .hero{align-content:start;
-  grid-template-rows:minmax(calc(100svh - var(--heroPadT) - var(--heroPadB)),auto)}
+  grid-template-rows:minmax(calc(var(--heroRow) - var(--heroPadT) - var(--heroPadB)),auto)}
 }
 .heroAura{display:none}
 /* The Hero absorbed the bar's 88px of clearance when it went full-bleed, so
@@ -1914,8 +1965,11 @@ html{scroll-padding-top:calc(var(--nav-h) + var(--sp-16-24))}
    for 202ms; the time button for 334ms. It was not animating late, it was
    being un-drawn. Nothing is lost by deleting it: :842 carries the settled
    state and :839's reduced-motion block already forces opacity 1. */
-.workCta svg,.moodFaceIco{width:var(--ico-sm);height:var(--ico-sm);fill:none;
- stroke:currentColor;stroke-width:var(--ico-stroke);stroke-linecap:round;stroke-linejoin:round}
+/* DELETED 2026-08-20: `.workCta svg,.moodFaceIco{...}`. Both selectors are dead
+   on this page now -- .workCta left with "View work" and .moodFaceIco with the
+   mood bar. The whole rule goes rather than half a selector list, because
+   deleting one name out of a comma list leaves a dangling comma that eats the
+   NEXT rule. controls.css keeps .workCta for play.html, which still has one. */
 @media(max-width:760px){
  .hero{--heroPadT:calc(var(--sp-8) + var(--nav-h) + var(--sp-12));--heroPadB:calc(var(--sp-48) + env(safe-area-inset-bottom));
   padding:var(--heroPadT) max(var(--sp-16),env(safe-area-inset-right)) var(--heroPadB) max(var(--sp-16),env(safe-area-inset-left));border-radius:var(--surface-hero-radius)}
@@ -1943,6 +1997,65 @@ html{scroll-padding-top:calc(var(--nav-h) + var(--sp-16-24))}
 @media(prefers-reduced-motion:reduce){
  .heroCtas>*{transition:none!important;animation:none!important}
 }
+/* ══ HEADLINE PLACEMENT: TWO TREATMENTS, ONE ATTRIBUTE ═══════════════════════
+   Jayden, 2026-08-20, asked for this as RESEARCH: "where the text should be
+   placed whether it be like the timeline in the workspace left aligned at the
+   bottom or in the middle like it is now". Section 4 of CLAUDE.md says the
+   hero h1 is his alone and must not be restyled without asking. He has asked;
+   this is the sanctioned study, and both answers ship so he can flip one
+   attribute rather than wait for another pass.
+
+     <html data-hero-headline="center">   the composition that shipped (default)
+     <html data-hero-headline="corner">   the Workspace's Timeline band
+
+   WHAT "corner" IS COPIED FROM, literally, out of
+   /Users/jaydenbetts/Desktop/Reshore/lifeline/src/tabs/timeline.tsx:105 --
+   `h-full flex flex-col justify-end pb-5` inside `max-w-6xl mx-auto px-4`, with
+   an 11px sentence-case eyebrow directly ABOVE a 600-weight headline at
+   -0.03em, white, with NO scrim of any kind over a live gradient. So: bottom
+   of the band, left of the measure, eyebrow first, nothing behind the type.
+   THE HEAD HAS TO MOVE FOR IT, and that is the honest cost of the treatment.
+   The portrait rests at --hero-peek-shift-x -241px, which is bottom-LEFT --
+   exactly the corner the Workspace parks its type in. Left as it is the two
+   occupy the same box. The variant mirrors the shift so the head takes the
+   right of the frame and the type the left; nothing else about the head
+   changes, and "center" leaves the resting composition Jayden placed
+   completely untouched. */
+:root[data-hero-headline="corner"] .heroCopy{
+ align-self:end;justify-self:stretch;align-items:flex-start;text-align:left;
+ /* The measure is the WORK SECTION'S measure, so the headline's left edge and
+    the "Featured" tab's left edge are the same vertical line -- 120px at 1440,
+    16px at 390, both measured. That line is the only thing making a
+    bottom-left headline read as structure rather than as a stray caption. */
+ width:min(1200px,100%);margin-inline:auto;transform:none
+}
+:root[data-hero-headline="corner"] .heroCopy h1{margin:0;text-align:left;max-width:min(11.5em,100%)}
+/* The eyebrow goes ABOVE, which is the reference's order and the reason the
+   pair reads as one object. order:0 beats .heroCred's own order:1. */
+:root[data-hero-headline="corner"] .heroCred{order:0;margin:0 0 var(--sp-4)}
+:root[data-hero-headline="corner"] .heroCtas{justify-content:flex-start;margin-top:var(--sp-16)}
+/* The band's own bottom offset. The reference sits 20px off the floor of a
+   176-208px band; the same PROPORTION on a 702px Hero is about 40px, and the
+   Hero's 108px of block padding was leaving 108. Only the bottom moves: the
+   row is measured off both, and shortening the top would drag the head. */
+:root[data-hero-headline="corner"] .hero{--heroPadB:calc(var(--sp-40) + env(safe-area-inset-bottom));
+ --hero-peek-shift-x:241px}
+/* ── AND ON A PHONE THE TREATMENT DOES NOT SURVIVE INTACT ────────────────────
+   LOOKED AT, not inferred: at 390 the headline's box is 358px wide and the head
+   is 211px of it, so "type left, head right" has 147px for a three-line
+   display headline. Screenshotted, the portrait lands ON the words -- the
+   contrast probe reads 1.01:1 across the middle of the h1, and that is the
+   head, not the sky. The Workspace can park its type bottom-left because
+   nothing else is in the band.
+   SO THE PHONE KEEPS THE STACK and takes only the half of the treatment that
+   fits: left alignment and the eyebrow above. The head stays exactly where
+   Jayden put it and the copy stays in the row it is centred in -- align-self
+   and the transform are handed straight back. */
+@media(max-width:760px){:root[data-hero-headline="corner"] .heroCopy{
+  align-self:auto;transform:translateY(calc((var(--sp-14) + var(--sp-48) + var(--sp-8)) * -1))}
+ :root[data-hero-headline="corner"] .hero{--heroPadB:calc(var(--sp-48) + env(safe-area-inset-bottom));
+  --hero-peek-shift-x:-74px}}
+
 .cases{margin-top:var(--section-join-gap)}
 .csItem+.csItem{margin-top:var(--work-item-gap)}
 /* --hero-mobile-height is 100dvh (tokens.css). A custom property carrying a
@@ -1955,9 +2068,16 @@ html{scroll-padding-top:calc(var(--nav-h) + var(--sp-16-24))}
    works: on an engine without dvh this whole rule never applies and the plain
    100vh stands. tokens.css should carry the same guard on the token itself --
    patch handed over; this is the belt that does not need it to land. */
-@media(max-width:760px){.hero{min-height:100vh}}
+@media(max-width:760px){:root{--heroReveal:0px;--heroBox:100vh;--heroRow:100vh}}
+@supports (height:1svh){@media(max-width:760px){:root{
+ /* A phone has more slack than a laptop -- the head is 211px wide here, not
+    275 -- but less absolute room, so the share is gentler and the ceiling
+    lower. 390x844 reveals 123px and 320x800 reveals 99px: the 68px tab row
+    clears the fold at both, which is the thing he asked for. */
+ --heroReveal:clamp(0px,calc((100svh - 620px) * .78),196px);
+ --heroRow:calc(100svh - var(--heroReveal))}}}
 @supports (height:1dvh){
- @media(max-width:760px){.hero{min-height:var(--hero-mobile-height)}}
+ @media(max-width:760px){:root{--heroBox:calc(var(--hero-mobile-height) - var(--heroReveal))}}
 }
 </style>
 <!-- STYLESHEET ORDER, AND IT IS THE OTHER SIX PAGES' ORDER NOW.
@@ -1976,11 +2096,11 @@ html{scroll-padding-top:calc(var(--nav-h) + var(--sp-16-24))}
      move: 24,600 computed properties over 820 elements at 1440 and 390, and the
      only differences are the nav icons going back to the 18px they have always
      drawn at. -->
-<link rel="stylesheet" href="controls.css?v=a9af10a400">
-<link rel="stylesheet" href="header.css?v=a9af10a400">
-<link rel="stylesheet" href="hero-time.css?v=a9af10a400">
-<link rel="stylesheet" href="footer.css?v=a9af10a400">
-<link rel="stylesheet" href="site-theme.css?v=a9af10a400">
+<link rel="stylesheet" href="controls.css?v=0d4908abb4">
+<link rel="stylesheet" href="header.css?v=0d4908abb4">
+<link rel="stylesheet" href="hero-time.css?v=0d4908abb4">
+<link rel="stylesheet" href="footer.css?v=0d4908abb4">
+<link rel="stylesheet" href="site-theme.css?v=0d4908abb4">
 <script>/* THE OLD OVERLAY'S URL STILL RESOLVES. index.html#about was the only address
    About ever had, and it is linked from play.html and the other sub-pages, and sits in
    anyone's history. Redirected before first paint (replace(), so it leaves no entry to
@@ -1988,7 +2108,6 @@ html{scroll-padding-top:calc(var(--nav-h) + var(--sp-16-24))}
 if(location.hash==="#about")location.replace("about.html");</script>
 <script src="header.js" defer></script>
 <script src="footer-band.js" defer></script>
-<script src="time-aware-thumbnails.js" defer></script>
 </head>
 <body data-nav="home" data-theme-page="home">
 <a class="skipLink ctl ctl--secondary" href="#main">Skip to content</a>
@@ -2112,8 +2231,17 @@ if(location.hash==="#about")location.replace("about.html");</script>
         30px, measured -- and the duplication argument is the one he has now
         overruled, which is his call to make. -->
    <p class="heroCred">Open to full-time roles.</p>
+   <!-- "View work" IS GONE, ON JAYDEN'S INSTRUCTION (2026-08-20): "removing the
+        view work button and just having the text". The row is not empty -- the
+        time-of-day control stays, and it is the only thing in it now.
+        NOTHING IS LOST AT THE LINK LEVEL: the button's whole job was to reach
+        #cases, and with --heroReveal in force the tab row and the top of the
+        first cover are already on screen at 1440x900, 390x844 and 320x800 --
+        the destination is visible rather than promised. The skip link, the
+        nav's own Work item and #cases itself all still address it.
+        hero-engine.js:1872 binds the soft-scroll to it behind `if(_wbtn)`, so
+        it degrades on its own and needs no change. -->
    <div class="heroCtas">
-   <a class="workCta ctl ctl--primary" id="workBtn" href="#cases"><span>View work</span></a>
     <div class="heroTime" id="heroTime">
      <button class="heroTimeBtn ctl ctl--secondary ctl--icon" id="heroTimeBtn" type="button" aria-label="Time of day" aria-haspopup="menu" aria-expanded="false" aria-controls="heroTimeMenu"><svg class="heroTimeIcon uiIcon" id="heroTimeIcon" viewBox="0 0 24 24" aria-hidden="true"><g data-hero-time-icon="pre-dawn"><use href="ui-icons.svg#lucide-moon-star"/></g><g data-hero-time-icon="sunrise"><use href="ui-icons.svg#lucide-sunrise"/></g><g data-hero-time-icon="daytime"><use href="ui-icons.svg#lucide-sun"/></g><g data-hero-time-icon="dusk"><use href="ui-icons.svg#lucide-cloud-sun"/></g><g data-hero-time-icon="sunset"><use href="ui-icons.svg#lucide-sunset"/></g><g data-hero-time-icon="night"><use href="ui-icons.svg#lucide-moon"/></g><g data-hero-time-icon="off"><use href="ui-icons.svg#lucide-circle-off"/></g></svg></button>
      <div class="heroTimeMenu ctl-menu" id="heroTimeMenu" role="menu" aria-label="Choose time of day">
@@ -2127,8 +2255,8 @@ if(location.hash==="#about")location.replace("about.html");</script>
       <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="false" data-time-mode="night"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true"><use href="ui-icons.svg#lucide-moon"/></svg>Night</button>
      </div>
     </div>
-    <script id="heroTimePrepaint">(function(){var r=document.documentElement,h=document.getElementById("main"),m=r.getAttribute("data-theme-mode")||"auto",s=r.getAttribute("data-theme-state")||"off",q=r.getAttribute("data-reduced-motion")||"no-preference",i=document.getElementById("heroTimeIcon"),n=document.querySelectorAll('#heroTimeMenu [role="menuitemradio"]');h.setAttribute("data-time-mode",m);h.setAttribute("data-time-state",s);h.setAttribute("data-reduced-motion",q);i.setAttribute("data-icon",s);n.forEach(function(x){x.setAttribute("aria-checked",x.getAttribute("data-time-mode")===m?"true":"false");});})();</script>
    </div>
+   <script id="heroTimePrepaint">(function(){var r=document.documentElement,h=document.getElementById("main"),m=r.getAttribute("data-theme-mode")||"auto",s=r.getAttribute("data-theme-state")||"off",q=r.getAttribute("data-reduced-motion")||"no-preference",i=document.getElementById("heroTimeIcon"),n=document.querySelectorAll('#heroTimeMenu [role="menuitemradio"]');h.setAttribute("data-time-mode",m);h.setAttribute("data-time-state",s);h.setAttribute("data-reduced-motion",q);i.setAttribute("data-icon",s);n.forEach(function(x){x.setAttribute("aria-checked",x.getAttribute("data-time-mode")===m?"true":"false");});})();</script>
   </div>
   <div class="heroTimeSupport heroCharacterPeek"><div class="heroHeadTransform" id="heroHeadTransform"><div class="stagewrap"><div class="queueDots" id="qdots" role="status" aria-live="polite"><span class="qsr"></span><i></i><i></i><i></i></div><div id="stageMorph"><div class="stage" id="stage"><img class="face" id="face" alt="Jayden Betts" draggable="false" role="button" tabindex="0" aria-pressed="false" aria-label="Select and reposition animated portrait" data-head-bounds="0.1933 0.0616 0.8484 0.9234"><img id="heroTimePortraitCast" class="heroTimePortraitCast" alt="" aria-hidden="true"><img class="tongue" id="tongue" src="images/tongue.webp" alt="" aria-hidden="true">
 <svg class="glasses" id="glasses" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><defs><pattern id="glCard" patternUnits="userSpaceOnUse" width="100" height="100"><image href="images/glass_frame_tex.webp" x="0" y="0" width="100" height="100" preserveAspectRatio="xMidYMid slice"/></pattern><linearGradient id="glSheen" x1="0" y1="0" x2="0.62" y2="1"><stop offset="0" stop-color="#fff" stop-opacity="0.5"/><stop offset="0.4" stop-color="#fff" stop-opacity="0.06"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient><mask id="glMask" maskUnits="userSpaceOnUse" x="0" y="0" width="100" height="100"><rect x="28" y="45.3" width="44" height="13.2" rx="2.4" fill="#fff"/><polygon points="28,47.2 26,48 26,50.4 28,51.2" fill="#fff"/><polygon points="72,47.2 74,48 74,50.4 72,51.2" fill="#fff"/><rect x="32.5" y="47.3" width="13" height="9.2" rx="1.8" fill="#000"/><rect x="54.5" y="47.3" width="13" height="9.2" rx="1.8" fill="#000"/><path d="M46.7 58.6 Q50 54.3 53.3 58.6 Z" fill="#000"/></mask></defs><rect class="gl-red" x="32.5" y="47.3" width="13" height="9.2" rx="1.8"/><rect class="gl-cyan" x="54.5" y="47.3" width="13" height="9.2" rx="1.8"/><rect class="gl-plast" x="32.5" y="47.3" width="13" height="9.2" rx="1.8" fill="url(#glSheen)"/><rect class="gl-plast" x="54.5" y="47.3" width="13" height="9.2" rx="1.8" fill="url(#glSheen)"/><rect x="0" y="0" width="100" height="100" fill="url(#glCard)" mask="url(#glMask)"/></svg></div></div>
@@ -2264,6 +2392,23 @@ if(location.hash==="#about")location.replace("about.html");</script>
     </div>
    </div>
   </article>
+<!-- ── THE COVER SWAP RUNS HERE, NOT IN <head>, AND NOT DEFERRED ────────────
+     The markup hard-codes the DAYTIME plate so a first-time visitor -- who
+     defaults to daytime -- gets the right picture with zero work. Anyone who
+     has touched the time control has a state in sessionStorage, and for them
+     this script swaps the plate. Deferred from <head> it could not run until
+     DOMContentLoaded, measured at 1062ms, though the file itself had finished
+     downloading at 341ms: a 721ms wait while 274KB of HTML parsed.
+     What that cost, measured at DPR 2 with the state set to night: the bright
+     daytime cover painted onto an already-dark page and sat there 250-660ms
+     before dimming, and 1,100.9 KB of plates were fetched, painted and thrown
+     away -- index went 2,728.6 KB to 3,604.1 KB, +32%. Jayden: "i notice some
+     older assets load in before the newer ones."
+     PLACED AFTER THE LAST COVER so it is parser-blocking only for markup that
+     is already parsed -- the covers exist when it runs, which is the thing the
+     DOMContentLoaded wait was buying. That is why the guard below can be
+     relaxed at the same time; the two changes are one change. -->
+<script src="time-aware-thumbnails.js"></script>
 
  </div>
 

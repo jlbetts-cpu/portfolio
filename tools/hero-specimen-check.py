@@ -56,7 +56,9 @@ for node_id in (
 ):
     assert f'id="{node_id}"' in html, node_id
 assert re.search(r'id="heroTimeBtn"[^>]+aria-controls="heroTimeMenu"', html)
-assert html.index('id="workBtn"') < html.index('id="heroTimeBtn"') < html.index('class="heroTimeSupport')
+# The ordering term used to start at #workBtn, which no longer exists. The h1
+# is the right anchor anyway: it is what the row follows.
+assert html.index('id="h1"') < html.index('id="heroTimeBtn"') < html.index('class="heroTimeSupport')
 assert html.count('data-time-mode="') == 8
 assert html.index('id="heroTimeSpill"') < html.index('id="main"')
 assert html.index('id="heroTimeClip"') < html.index('class="heroCopy"')
@@ -324,8 +326,22 @@ assert re.search(r'--ico-stroke:\s*[\d.]+', tokens_css), "--ico-stroke must be d
 # now, consumed by the drop-shadow chain on #face. So the absence is asserted on
 # the SELECTOR, and the token is asserted to still be feeding the thing that
 # actually uses it -- which the old line could not tell apart.
-assert not re.search(r'\.hero::after\s*\{', time_css), \
-    "the Hero is full-bleed and paints no rim; .hero::after must stay gone"
+# ── .hero::after MAY EXIST; IT MAY NOT PAINT A RIM. ────────────────────────
+# Narrowed 2026-08-20, the same way shared-surfaces-contract's twin was. What
+# the Hero must not have is the ELEVATION this note describes above -- an
+# inset:0 overlay at z-index 10 carrying box-shadow:var(--time-rim). The
+# selector came back for the opposite kind of thing: a 1px border-bottom that
+# draws the gradient's own bottom edge, because Jayden asked for the work
+# section's rule to "do the whole bottom of the gradient instead" and an inset
+# box-shadow could not paint there (the sky is a child and covers it). So the
+# assertion follows the property that carries the defect, not the selector that
+# once carried it.
+_hero_after = re.search(r'\.hero::after\s*\{([^}]*)\}', time_css)
+if _hero_after:
+    assert "box-shadow" not in _hero_after.group(1), \
+        "the Hero has taken an elevation back on ::after; only the heads cast a shadow"
+    assert "--time-rim" not in _hero_after.group(1), \
+        "the Hero's rim is back on ::after"
 assert "box-shadow:none" in re.search(r'\.hero\s*\{.*?\}', time_css, re.S).group(0), \
     "a full-bleed Hero must not carry a box-shadow"
 assert "--time-rim" in time_css and "var(--time-rim)" in re.search(
@@ -922,9 +938,12 @@ for state, approved_light in approved_skies.items():
 
 assert 'class="jbDisc jbPlay"' not in html
 assert re.search(r'<a[^>]+data-nav-item="games"[^>]+href="play\.html"', html)
-assert re.search(r'<a[^>]+id="workBtn"[^>]+href="#cases"', html)
-work_control = re.search(r'<a[^>]+id="workBtn".*?</a>', html, re.S)
-assert work_control and "<svg" not in work_control.group(0)
+# THE "View work" CTA IS GONE, 2026-08-20, and its absence is now the
+# assertion. Jayden: "removing the view work button and just having the text".
+# The row keeps the time-of-day control, so it is not an empty row -- that is
+# asserted in home-minimal-hero-contract. Inverted rather than deleted, because
+# a deleted assertion cannot tell a later sweep that the button was a decision.
+assert 'id="workBtn"' not in html, "the View work CTA is back; it was removed by request"
 assert 'id="moodbar"' not in html and 'class="heroMood' not in html
 assert html.index('id="h1"') < html.index('id="heroTimeBtn"') < html.index('class="heroTimeSupport')
 assert '<h1 id="h1">SF product designer. iOS, B2C and design systems.</h1>' in html
@@ -959,13 +978,36 @@ assert "var(--rim-3)" not in hero_page_rule
 # Asserted as the chain, which is what must not break: a floor that always
 # resolves, and each better unit behind its own @supports. Pinning either literal
 # would go stale again the next time the unit ladder moves.
-assert "min-height:100vh" in hero_page_rule, \
+# THE CHAIN MOVED INTO A TOKEN ON 2026-08-20, when the fold was cut from full
+# height so the tab row is reachable without crossing dead gradient. The rule
+# now says `min-height:var(--heroBox)`, and the fallback lives where the token
+# is declared. The DANGER above is unchanged and is the reason this is still
+# asserted structurally rather than deleted: a custom property carrying a unit
+# the engine cannot parse is still a valid property, and the failure only shows
+# at computed-value time, where min-height falls back to `auto` -- measured
+# once at 844px of Hero collapsing to 241.7.
+# So what must hold is: a plain-vh floor declared in a :root rule that every
+# engine resolves, the box consumed through that token, and each better unit
+# gated behind its own @supports.
+assert "min-height:var(--heroBox)" in hero_page_rule, \
+    "the Hero no longer takes its height from --heroBox"
+assert re.search(r':root\{[^}]*--heroBox:\s*100vh', html), \
     "the Hero needs a viewport-height floor that every engine can resolve"
 for _unit in ("svh", "dvh"):
-    assert re.search(
-        r'@supports \(height:1%s\)\s*\{[^@]*?\.hero\{[^}]*min-height:100%s' % (_unit, _unit),
-        html, re.S), \
-        "100%s must be gated on @supports; ungated it can compute min-height to auto" % _unit
+    assert re.search(r'@supports\s*\(height:1' + _unit + r'\)', html), \
+        "%s must stay behind its own @supports, not sit in the fallback" % _unit
+# THE GATED UNIT IS NOW SPENT ON THE TOKEN, NOT ON .hero DIRECTLY. Same
+# guarantee, one indirection later: inside each @supports the better unit is
+# written into --heroBox (and --heroRow for svh), and .hero consumes the token.
+# Asserted as "the unit appears inside its own @supports and lands on a hero
+# token", which is what stops it reaching computed-value time ungated.
+for _unit, _token in (("svh", "--heroRow"), ("dvh", "--heroBox")):
+    _block = re.search(r'@supports \(height:1%s\)\s*\{(.*?)\}\}' % _unit, html, re.S)
+    assert _block, "100%s is not gated on an @supports block at all" % _unit
+    assert "100%s" % _unit in _block.group(1), \
+        "the @supports(%s) block does not actually use %s" % (_unit, _unit)
+    assert _token in _block.group(1) or "--heroBox" in _block.group(1), \
+        "100%s is gated but does not reach the Hero's box token" % _unit
 assert not re.search(r'min-height:calc\(100[sd]?vh - \d+px\)', hero_page_rule), \
     "the Hero is full-bleed: the rule that owns its box no longer subtracts the bar's clearance"
 # (index.html still carries three EARLIER .hero rules with `min-height:calc(100vh
@@ -1006,7 +1048,22 @@ assert 'class="heroTimeSupport heroCharacterPeek"' in html, \
     "the support wrapper is the head's host on Home"
 assert not re.search(r'\.heroTimeSupport\s*\{[^}]*display:none', html, re.S), \
     "the Hero's head must not be hidden on Home"
-assert re.search(r'\.heroCtas>\*\s*\{[^}]*opacity:1;[^}]*transform:none', html, re.S)
+# ── THIS ASSERTION WAS PINNING THE BUG. ────────────────────────────────────
+# It demanded `.heroCtas>*{opacity:1;transform:none}` at base level. That rule
+# sat later in the sheet than the hidden state at equal (0,1,0) weight, so it
+# won -- the buttons painted SOLID at 107ms, and when `.in` landed at 2131ms the
+# entrance restarted them from zero. Measured 202ms of blackout on the primary
+# and 334ms on the time control, after the visitor had already seen them.
+# Jayden: "the buttons are there on first load but they dont do there animation
+# till after." The rule was deleted on 2026-08-20 and this assertion had to
+# follow, or the gate would have demanded the defect back.
+# WHAT ACTUALLY HAS TO HOLD is that the row ENDS UP visible by two independent
+# routes: the settled state the entrance transitions into, and a reduced-motion
+# escape that does not depend on the entrance running at all.
+assert re.search(r'\.heroCtas\.in>\*\s*\{[^}]*opacity:1[^}]*transform:none', html, re.S), \
+    "the CTA row has no settled state to transition into"
+assert re.search(r'prefers-reduced-motion:reduce\)\{[^@]*\.heroCtas>\*[^{]*\{[^}]*opacity:1!important', html, re.S), \
+    "reduced motion must show the CTA row without waiting for an entrance"
 assert re.search(r'#loveScene\s*\{[^}]*z-index:\s*64', html, re.S)
 # The join between the Hero and the work collection was a literal var(--sp-16)
 # inside the phone fork. It is --section-join-gap now and applies at every width,
