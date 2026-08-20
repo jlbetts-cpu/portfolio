@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" class="jbShrunk">
+<html lang="en">
 <head>
 <script src="site-theme-state.js"></script>
 <script src="site-theme.js"></script>
@@ -261,7 +261,25 @@
     min-height:0;overflow-y:auto;overscroll-behavior:contain}
   .tabPanel[hidden]{display:none}
 
-  .row{display:flex;align-items:center;gap:var(--sp-12);min-height:var(--tap-min)}
+  /* ── THE THREE SELECTS SHARE BOTH EDGES ────────────────────────────────────
+     Measured 2026-08-20: Preset's select was 176px wide against Form's and
+     Shape's 232 -- a 56px stagger down the right edge of a three-row stack, at
+     both viewports. Nobody authored that; it is what flex does when ONE row has
+     a trailing button and the others do not. The select takes the remainder, and
+     the remainder is 56px smaller exactly on the row that also has to hold the
+     bookmark.
+     A GRID, so the button column exists on every row whether or not that row
+     fills it. Jayden's whole structure note is that things should look
+     "intentionally on a grid that is connected" -- three controls that stop at
+     three different x values is the opposite, and it is the kind of defect that
+     measures fine per-row and reads wrong as a stack. The column is the icon
+     button's own footprint (--tap-min) plus the gap, so nothing moves except the
+     two rows that were previously over-long. */
+  .row{display:grid;grid-template-columns:var(--lbl-w) minmax(0,1fr) auto;
+    align-items:center;gap:var(--sp-12);min-height:var(--tap-min)}
+  .row:has(>select.field--flex):not(:has(>button)){
+    grid-template-columns:var(--lbl-w) minmax(0,1fr) var(--tap-min)}
+  .row:has(>select.field--flex):not(:has(>button))::after{content:"";display:block}
   .row>label{flex:0 0 var(--lbl-w);min-width:0;font-size:var(--fs-label);color:var(--c700);
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .row>output{flex:0 0 var(--sp-28);text-align:right;font-size:var(--fs-caption);
@@ -405,7 +423,7 @@
      .superpowers/sdd/2026-08-02-play-page/header-report.md
      Nothing lights up here: the Maker is noindex and is not in the nav, so
      forcing an active item would be a lie. -->
-<div class="jbStick isFixed">
+<div class="jbStick">
  <!-- LIGHT SURFACE, and the reason is structural rather than a preference.
       header.css:306 chose ink here on one argument: "gradientlab's stage is
       whatever colour the user dials in", so a light bar could vanish over a pale

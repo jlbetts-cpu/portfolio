@@ -44,7 +44,10 @@
 <meta name="twitter:description" content="Turn a photo of your face into a floating cutout head with living eyes, the same treatment as the one on my homepage. Everything happens in your browser.">
 <meta name="twitter:image" content="https://jaydenbetts.design/images/og/jayden-betts-portfolio.jpg">
 <meta name="twitter:image:alt" content="Jayden Betts as a child with his sister">
-<link rel="preload" as="font" type="font/woff2" href="fonts/geist-variable.woff2" crossorigin><link rel="preload" as="font" type="font/woff2" href="fonts/geist-latin-400-normal.woff2" crossorigin><link rel="preload" as="font" type="font/woff2" href="fonts/geist-latin-600-normal.woff2" crossorigin>
+<!-- geist-variable.woff2 was preloaded here and never used: this page declares no
+     "Geist Var" @font-face (only specimen.html does), so the browser fetched
+     69,652 B and dropped it. Measured 2026-08-20: 11% of headmaker's transfer,
+     in the first wave, competing with the two faces the page actually renders. --><link rel="preload" as="font" type="font/woff2" href="fonts/geist-latin-400-normal.woff2" crossorigin><link rel="preload" as="font" type="font/woff2" href="fonts/geist-latin-600-normal.woff2" crossorigin>
 <!-- THE SHARED DESIGN TOKENS. Everything geometric on this page resolves through
      them; this file's own <style> declares no colour ramp, no type scale and no
      spacing rung of its own. -->
@@ -556,7 +559,7 @@ img{display:block;max-width:100%}
      .superpowers/sdd/2026-08-02-play-page/header-report.md
      The lockup, Home and About all go to index.html; Games names this page's
      own URL, so it is the site's only aria-current="page". -->
- <div class="jbStick isFixed">
+ <div class="jbStick">
   <nav class="jbNav" aria-label="Primary" data-surface="paper">
    <!-- BACK *REPLACES* THE MARK, ON THE LEFT, AND GOES TO play.html. Jayden,
         twice: "the back button should just replace the logo" and "why is the
