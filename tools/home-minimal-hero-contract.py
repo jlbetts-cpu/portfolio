@@ -27,7 +27,9 @@ ROOT = Path(__file__).resolve().parents[1]
 SHOTS = Path("/tmp/home-minimal-hero-contract")
 VIEWPORTS = ((1280, 900), (1440, 900), (390, 844), (320, 800))
 PROFILES = ("empty", "returning")
-TAP_TARGETS = ("workBtn", "heroTimeBtn")
+# "View work" was deleted on 2026-08-20 (see static_contract). The row
+# still has to hold a 44px target; it just has one instead of two.
+TAP_TARGETS = ("heroTimeBtn",)
 
 
 class QuietHandler(SimpleHTTPRequestHandler):
@@ -81,8 +83,25 @@ def static_contract():
     end = html.index("</section>", start) + len("</section>")
     hero = html[start:end]
 
-    assert 'id="workBtn"' in hero and 'href="#cases"' in hero
+    # ── "View work" IS GONE, AND THIS LINE USED TO DEMAND IT ─────────────────
+    # 2026-08-20, Jayden: "removing the view work button and just having the
+    # text". Inverted rather than deleted, because the failure mode worth
+    # blocking is it coming BACK by accident -- hero-engine.js still binds a
+    # click handler to the id behind an `if`, and play.html still ships one,
+    # so the name is alive elsewhere in the tree and could be pasted back.
+    assert 'id="workBtn"' not in hero, "the View work CTA is deleted, not hidden"
+    assert 'class="workCta' not in hero
+    # The row is not empty and must not become empty: the time control is what
+    # is left in it, and it is the only way to reach the six skies.
     assert 'id="heroTimeBtn"' in hero and 'id="heroTimeMenu"' in hero
+    # The reveal is the whole of the shrink. Named here so deleting the token
+    # fails statically instead of only showing up as a geometry drift.
+    assert "--heroReveal:clamp(" in html
+    assert "min-height:var(--heroBox)" in html
+    # The smooth path to the work section used to be JS, bound to the button
+    # that is now gone. What is left is the native one, and it is the reason
+    # the deletion costs nothing -- so it is pinned here.
+    assert "html{scroll-behavior:smooth}" in html
     assert 'id="moodbar"' not in hero
     assert 'id="moodBtn"' not in hero
     assert 'id="moodMenu"' not in hero
@@ -209,6 +228,12 @@ def browser_contract(base_url):
                     title: {top: title.top, bottom: title.bottom},
                     ctas: {top: ctas.top, bottom: ctas.bottom},
                     casesTop: cases.top,
+                    // The tab row is the thing Jayden asked to be able to see.
+                    // Measured off the live element, not derived from the
+                    // Hero's height plus a gap -- a derived number cannot
+                    // notice the join gap changing underneath it.
+                    tabsBottom: (document.querySelector('.collection__tabs')
+                      || document.querySelector('.csTabs')).getBoundingClientRect().bottom,
                   };
                 }
                 """.replace("__TAP_TARGETS__", json.dumps(list(TAP_TARGETS)))
@@ -235,11 +260,25 @@ def browser_contract(base_url):
             undersized = [t for t in state["targets"]
                           if t["width"] < TAP_MIN - TOL or t["height"] < TAP_MIN - TOL]
             assert not undersized, (undersized, state)
-            # The approved Hero owns the opening viewport. Moving the portrait to Play must
-            # not collapse Home into a short banner at any responsive width.
-            # Full-bleed: the Hero is the viewport, top and bottom flush.
-            assert abs(state["hero"]["height"] - height) <= .5, state
+            # ── THE HERO IS NO LONGER THE VIEWPORT, AND THAT IS THE POINT ────
+            # This asserted `hero.height == viewport` to the half-pixel. That
+            # was right while the Hero was full-bleed on all four edges; on
+            # 2026-08-20 Jayden asked for the opposite -- "make the hero
+            # smaller like take up less space to see the tabs and case study
+            # below" -- so the equality is now asserting the bug.
+            # WHAT REPLACES IT IS THE BEHAVIOUR, NOT THE NUMBER. index.html's
+            # --heroReveal is a clamp over svh and mirroring its arithmetic
+            # here would only pin a value he is expected to retune. The two
+            # things that must stay true whatever he tunes it to are that the
+            # Hero never grows past the viewport (it would scroll) and never
+            # collapses to a banner, plus -- on any viewport with the room --
+            # that the tab row he asked to see is actually on screen.
+            assert state["hero"]["height"] <= height + .5, state
+            assert state["hero"]["height"] >= height * .68, state
             assert abs(state["hero"]["top"]) <= .5, state
+            if height >= 780:
+                assert state["tabsBottom"] <= height, (
+                    "the tab row must clear the fold without a scroll", height, state)
             assert state["title"]["top"] >= state["hero"]["top"], state
             assert state["title"]["top"] <= state["hero"]["top"] + state["hero"]["height"] * 0.38, state
             assert state["ctas"]["bottom"] <= state["hero"]["bottom"], state
@@ -284,23 +323,29 @@ def browser_contract(base_url):
             if profile == "returning" and width in (1280, 390):
                 page.evaluate("window.scrollTo(0, 0); history.replaceState(null, '', location.pathname)")
                 page.wait_for_timeout(200)
-                # SAMPLED IN THE PAGE, ON ITS OWN FRAMES. This used to poll
-                # scrollY over CDP with page.evaluate() every 50ms, and that
-                # does not measure what it means to measure: one round-trip
-                # costs more than the interval it is trying to sample at, so
-                # the first reading routinely lands after an 840px scroll has
-                # already finished and a perfectly smooth scroll reads as an
-                # instant jump. It reported a jump on the pre-full-bleed build
-                # too, so it was not detecting a regression -- it was
-                # detecting its own latency. Sampling on requestAnimationFrame
-                # inside the page removes the round-trip from the loop
-                # entirely and records what actually rendered.
+                # ── THE DRIVER CHANGED; THE PROPERTY DID NOT ─────────────────
+                # This used to click #workBtn, whose handler in hero-engine.js
+                # called window.__softScroll -- a JS rAF tween that turned the
+                # native smooth scroll off (html.softScrolling) while it ran.
+                # The button was deleted on 2026-08-20 and NOTHING on this page
+                # calls __softScroll any more: the only other caller is bound to
+                # #talk, which lives on about.html. So the JS path is not
+                # "failing", it is unreachable, and a gate that kept driving it
+                # would be testing a control the page does not have.
+                # THE PROPERTY UNDER TEST IS UNCHANGED -- reaching the work
+                # section is a travel, not a jump -- and the native path that
+                # index.html:55 declares now carries it alone. Driven through
+                # the anchor a visitor actually has, and sampled on the page's
+                # own frames for the same latency reason the old note gives.
+                assert page.evaluate(
+                    "getComputedStyle(document.documentElement).scrollBehavior"
+                ) == "smooth", "the native smooth path is the only one left"
                 trace = page.evaluate(
                     """async () => {
                       const trace = []; let stop = false;
                       (function tick(){ trace.push(Math.round(scrollY));
                         if (!stop) requestAnimationFrame(tick); })();
-                      document.querySelector('#workBtn').click();
+                      location.hash = '#cases';
                       await new Promise(r => setTimeout(r, 1500));
                       stop = true;
                       return {trace, final: Math.round(scrollY)};
@@ -316,6 +361,82 @@ def browser_contract(base_url):
         browser.close()
 
 
+# ── THE SELF-TEST RE-INJECTS THE BUG, IT DOES NOT SIMULATE IT ───────────────
+# A detector nobody has watched fail is one nobody should trust. The bug this
+# file now blocks is "the Hero eats the whole first screen again", so the
+# injection is the one line that causes it: --heroReveal forced to 0. It is
+# served, not written to disk -- the tree is shared with other agents and a
+# contract that edits index.html to test itself is a contract that can leave it
+# edited. The handler rewrites index.html in flight and everything else, CSS
+# included, is served untouched.
+INJECTIONS = {
+    # revert the shrink: the Hero is the viewport again and the tab row falls
+    # back under the fold. Must trip the tabsBottom assertion at 1440x900.
+    "full-height-hero": (
+        "--heroReveal:clamp(0px,calc((100svh - 680px) * .9),240px)",
+        "--heroReveal:0px",
+    ),
+    # put "View work" back. Must trip the static contract.
+    "cta-returns": (
+        '<div class="heroCtas">\n    <div class="heroTime" id="heroTime">',
+        '<div class="heroCtas">\n   <a class="workCta ctl ctl--primary" id="workBtn"'
+        ' href="#cases"><span>View work</span></a>\n    <div class="heroTime" id="heroTime">',
+    ),
+}
+
+
+def injected_handler(find, replace):
+    class Injector(QuietHandler):
+        def send_head(self):
+            if self.path.split("?")[0] not in ("/index.html", "/"):
+                return super().send_head()
+            body = (ROOT / "index.html").read_text(encoding="utf-8")
+            assert find in body, ("the injection no longer matches the file; "
+                                 "an injection that cannot fail is worse than none", find)
+            body = body.replace(find, replace).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            from io import BytesIO
+            return BytesIO(body)
+    return Injector
+
+
+def self_test():
+    ok = True
+    for name, (find, replace) in INJECTIONS.items():
+        if name == "cta-returns":
+            # static only -- it never reaches a browser
+            html = (ROOT / "index.html").read_text(encoding="utf-8")
+            assert find in html, (name, "injection stale")
+            broken = html.replace(find, replace)
+            try:
+                start = broken.index('<section class="hero surface surface--hero" id="main"')
+                hero = broken[start:broken.index("</section>", start)]
+                assert 'id="workBtn"' not in hero
+            except AssertionError:
+                print(f"  {name}: correctly detected")
+                continue
+            print(f"  {name}: NOT DETECTED"); ok = False
+            continue
+        server = ThreadingHTTPServer(
+            ("127.0.0.1", 0), partial(injected_handler(find, replace), directory=str(ROOT))
+        )
+        Thread(target=server.serve_forever, daemon=True).start()
+        try:
+            browser_contract(f"http://127.0.0.1:{server.server_port}")
+        except AssertionError as failure:
+            print(f"  {name}: correctly detected -> {str(failure)[:90]}")
+        else:
+            print(f"  {name}: NOT DETECTED"); ok = False
+        finally:
+            server.shutdown(); server.server_close()
+    if not ok:
+        raise SystemExit("self-test: an injected bug went undetected")
+    print("Home minimal hero self-test: OK")
+
+
 def main():
     static_contract()
     server = ThreadingHTTPServer(("127.0.0.1", 0), partial(QuietHandler, directory=str(ROOT)))
@@ -329,4 +450,8 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    import sys
+    if "--self-test" in sys.argv:
+        self_test()
+    else:
+        main()

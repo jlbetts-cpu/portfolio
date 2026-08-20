@@ -25,13 +25,28 @@ RHYTHM_VIEWPORTS = (
 
 
 def expected_hero_height(width, height):
-    # FULL-BLEED, ALL FOUR EDGES. The Hero used to be a card: desktop reserved
-    # 88px for the bar above it plus a gap below, and mobile was deliberately
-    # shorter than the screen. Both of those subtractions ARE the gap Jayden
-    # asked us to remove -- the bar floats over the Hero now, so the Hero is
-    # the viewport. 100dvh is what makes this exact on a phone; svh would
-    # reopen the gap the moment browser chrome retracts.
-    return height
+    # ── THE HERO GIVES A SLICE BACK, AND THIS FUNCTION HAD TO CHANGE ─────────
+    # It returned `height` -- the Hero IS the viewport -- which was correct
+    # from the full-bleed pass until 2026-08-20, when Jayden asked for the
+    # opposite: "make the hero smaller like take up less space to see the tabs
+    # and case study below". index.html now subtracts --heroReveal.
+    # THIS MIRRORS THE CLAMP RATHER THAN READING IT, deliberately. A custom
+    # property does not resolve through getPropertyValue -- a clamp() comes
+    # back as the token stream and parseFloat gives NaN -- so the only way to
+    # read the real number in a browser is to measure a probe, and a probe of
+    # the Hero's height is the very thing under test. Mirroring means the two
+    # have to be edited together, which for a composition value he is expected
+    # to retune by eye is the right cost: the alternative is a gate that
+    # cannot tell a deliberate retune from the Hero silently collapsing.
+    # THE FLOOR AT ZERO IS THE SHORT-LAPTOP CASE and it is load-bearing: at
+    # 1280x650 the head already rests 25px off the floor with the crowd-drop
+    # saturated, so the reveal is zero there and the Hero is still the whole
+    # 650px. A gate that expected a constant fraction would fail that width.
+    if width <= 760:
+        reveal = min(max(0.0, (height - 620) * .78), 196)
+    else:
+        reveal = min(max(0.0, (height - 680) * .9), 240)
+    return height - reveal
 
 class Quiet(SimpleHTTPRequestHandler):
     def log_message(self, _format, *_args):
@@ -46,7 +61,20 @@ def static_contract():
     assert ".cases{margin-top:var(--section-join-gap)}" in html
     assert ".csItem+.csItem{margin-top:var(--work-item-gap)}" in html
     assert "--hero-mobile-height:" in tokens
-    assert "@media(max-width:760px){.hero{min-height:var(--hero-mobile-height)}}" in html
+    # ── THE BELT MOVED ONTO --heroBox, AND IT IS STILL A BELT ────────────────
+    # This pinned `@media(max-width:760px){.hero{min-height:var(--hero-mobile-height)}}`.
+    # index.html now routes every one of the Hero's heights through --heroBox,
+    # so the phone fork writes the TOKEN and min-height reads the name. The
+    # property being protected is unchanged and is the reason the fork exists at
+    # all: --hero-mobile-height is 100dvh, and on an engine that cannot parse
+    # dvh the substitution is invalid at computed-value time and min-height
+    # computes to `auto` -- the 844 -> 241.7 collapse. So the @supports gate is
+    # asserted too, which the old line never did.
+    assert "@media(max-width:760px){:root{--heroBox:calc(var(--hero-mobile-height) - var(--heroReveal))}}" in html
+    assert "@supports (height:1dvh){\n @media(max-width:760px){:root{--heroBox:" in html
+    assert "min-height:var(--heroBox)" in html
+    # and the plain-vh floor that stands when dvh is unavailable
+    assert "@media(max-width:760px){:root{--heroReveal:0px;--heroBox:100vh;--heroRow:100vh}}" in html
     hero_time = (ROOT / "hero-time.css").read_text(encoding="utf-8")
     controls = (ROOT / "controls.css").read_text(encoding="utf-8")
     assert ".surface--hero{" in controls and "box-shadow:none" in controls.split(".surface--hero{", 1)[1].split("}", 1)[0]
@@ -93,11 +121,22 @@ def browser_contract(base_url):
               const lineCount = characters.length
                 ? new Set(characters.map(node => node.offsetTop)).size
                 : Math.round(headline.getBoundingClientRect().height / parseFloat(getComputedStyle(headline).lineHeight));
-              const controls = [...document.querySelectorAll('.heroCtas > .workCta,#heroTimeBtn')].map(node => {
-                const r = node.getBoundingClientRect(); return {width:r.width,height:r.height};
-              });
+              // ── THIS LIST COULD GO EMPTY AND PASS, AND ALMOST DID ───────
+              // It read '.heroCtas > .workCta,#heroTimeBtn'. "View work" was
+              // deleted on 2026-08-20 and the tap-floor assertion below is an
+              // all() over this array -- all([]) is True, so a row that had
+              // lost BOTH its controls would have sailed through. The selector
+              // is narrowed to what is actually there and the count is
+              // asserted, so the gate fails when the row empties instead of
+              // congratulating it.
+              const controls = [...document.querySelectorAll('.heroCtas > *')]
+                .filter(node => node.offsetParent !== null || node.getClientRects().length)
+                .map(node => { const r = node.getBoundingClientRect();
+                  return {cls:node.className || node.tagName, width:r.width, height:r.height}; });
               return {
                 hero: box('.hero'), cases: box('.cases'), itemGap: b.top - a.bottom,
+                tabsBottom: (document.querySelector('.collection__tabs')
+                  || document.querySelector('.csTabs')).getBoundingClientRect().bottom,
                 overflow: document.documentElement.scrollWidth > innerWidth,
                 heroShadow: heroStyle.boxShadow,
                 mobile: {
@@ -108,6 +147,13 @@ def browser_contract(base_url):
               };
             }""")
             assert not state["overflow"], (width, state)
+            # THE WHOLE POINT OF THE SHRINK, ASSERTED AS BEHAVIOUR. Above 780px
+            # of viewport there is room for the tab row to clear the fold, and
+            # Jayden asked for it in those words. Below that the reveal is zero
+            # by design and there is nothing to assert.
+            if height >= 780:
+                assert state["tabsBottom"] <= height, (
+                    "the tab row must clear the fold without a scroll", width, height, state)
             assert state["heroShadow"] == "none", state
             assert 15.5 <= state["cases"]["top"] - state["hero"]["bottom"] <= 16.5, state
             expected_gap = 40 if width <= 760 else 64
@@ -121,6 +167,7 @@ def browser_contract(base_url):
                 assert state["mobile"]["copy"]["top"] >= state["hero"]["top"], state
                 assert state["mobile"]["ctas"]["bottom"] <= state["hero"]["bottom"], state
                 assert state["mobile"]["peek"]["top"] >= state["hero"]["top"], state
+                assert state["mobile"]["controls"], ("the CTA row has no controls left", state)
                 assert all(control["width"] >= 43.5 and control["height"] >= 43.5 for control in state["mobile"]["controls"]), state
                 if width <= 420:
                     # ── THE HEAD IS SMALLER, AND THAT IS JAYDEN'S CALL ────
@@ -181,6 +228,65 @@ def browser_contract(base_url):
             page.close()
         browser.close()
 
+# ── SELF-TEST ────────────────────────────────────────────────────────────────
+# Two injections, one per assertion this pass added or changed. Both are served
+# in flight rather than written: several agents share this worktree and a
+# contract that edits index.html to test itself is one that can leave it edited.
+INJECTIONS = {
+    # the shrink reverted. expected_hero_height and tabsBottom must both trip.
+    "full-height-hero": ("--heroReveal:clamp(0px,calc((100svh - 680px) * .9),240px)",
+                         "--heroReveal:0px"),
+    # the CTA row emptied. Before this pass all([]) was True and let it through.
+    # INJECTED INLINE, NOT AS A RULE. The first attempt appended
+    # `.heroCtas>*{display:none}` to that rule in index.html's <style> and it
+    # did NOT trip the gate: controls.css and hero-time.css link after that
+    # block, so their equal-specificity display on the row's children wins --
+    # the same link-order trap the site's own notes keep pointing at. An
+    # injection that cannot fail is worse than none, so it moved to the one
+    # place nothing in a stylesheet can outrank.
+    "empty-cta-row": ('<div class="heroCtas">',
+                      '<div class="heroCtas" style="display:none">'),
+}
+
+
+def injected_handler(find, replace):
+    class Injector(Quiet):
+        def send_head(self):
+            if self.path.split("?")[0] not in ("/index.html", "/"):
+                return super().send_head()
+            body = (ROOT / "index.html").read_text(encoding="utf-8")
+            assert find in body, ("injection stale; an injection that cannot fail "
+                                  "is worse than none", find)
+            body = body.replace(find, replace).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            from io import BytesIO
+            return BytesIO(body)
+    return Injector
+
+
+def self_test():
+    ARTIFACTS.mkdir(parents=True, exist_ok=True)
+    ok = True
+    for name, (find, replace) in INJECTIONS.items():
+        server = ThreadingHTTPServer(
+            ("127.0.0.1", 0), partial(injected_handler(find, replace), directory=str(ROOT)))
+        Thread(target=server.serve_forever, daemon=True).start()
+        try:
+            browser_contract(f"http://127.0.0.1:{server.server_port}")
+        except AssertionError as failure:
+            print(f"  {name}: correctly detected -> {str(failure)[:90]}")
+        else:
+            print(f"  {name}: NOT DETECTED"); ok = False
+        finally:
+            server.shutdown(); server.server_close()
+    if not ok:
+        raise SystemExit("self-test: an injected bug went undetected")
+    print("Hero entrance rhythm self-test: OK")
+
+
 def main():
     static_contract()
     ARTIFACTS.mkdir(parents=True, exist_ok=True)
@@ -193,4 +299,8 @@ def main():
     print("Hero entrance rhythm: OK")
 
 if __name__ == "__main__":
-    main()
+    import sys
+    if "--self-test" in sys.argv:
+        self_test()
+    else:
+        main()

@@ -122,7 +122,18 @@
     the 42% the reachability clamp requires -- so the resting position was
     ILLEGAL under its own clamp and settled at y=-13.8px instead of 0. Nothing
     hangs below the floor now, so the share is 100% at any size. */
- --hero-peek-depth:-155px;
+ /* + HALF THE REVEAL, AND HALF IS THE WHOLE POINT. index.html now takes
+    --heroReveal off the Hero's height so the tab row clears the fold. The head
+    is anchored to the stage's floor and so rises by the FULL reveal; the copy
+    is centred in the row and rises by HALF of it. Left alone that closes the
+    gap between the CTA row and the crown of the head by --heroReveal/2 -- 88px
+    at 1440x900, measured, which is more than the 19px that was there. Giving
+    the head back half the reveal makes both rise at the same rate, so every
+    vertical relationship inside the composition is preserved to the pixel and
+    the only thing that changes is how much sky is under the chin. It stays
+    negative at every reveal this file can produce (240px max -> -35px), so the
+    head is still suspended clear of the floor and still casts no shadow. */
+ --hero-peek-depth:calc(-155px + var(--heroReveal,0px) * .5);
  /* The resting pose is ROTATED. Everything else about rest is layout, but a
     rotation has nowhere to live except the transform, so this is the one
     resting value the transform owns: reset() returns here, not to 0deg, and
@@ -238,7 +249,7 @@
     call -- Jayden placed the desktop rest deliberately and should retune this
     one by eye; the constraint is only that shift-x >= -89.5 keeps it on screen. */
  --hero-peek-shift-x:-74px;
- --hero-peek-depth:-129px
+ --hero-peek-depth:calc(-129px + var(--heroReveal,0px) * .5)
 }}
 /* --theme-duration is NOT overridden here. It was :root:root{--theme-duration:
    var(--hero-time-duration)}, which made index run chrome transitions at 640ms
@@ -689,6 +700,23 @@
 /* An ID because controls.css links AFTER this file and owns left:50% at equal
    specificity -- a class selector here would read correctly and do nothing. */
 #heroHeadTransform{left:calc(50% + var(--hero-peek-shift-x,0px))}
+/* THE STAGE IS THE HERO'S HEIGHT, NOT THE VIEWPORT'S. controls.css declares
+   `.heroCharacterPeek{position:absolute;inset:0;height:100svh}` -- top, bottom
+   and height are all non-auto, so `bottom` is the one that is dropped and the
+   stage is 100svh tall measured from the Hero's TOP. That was identical to the
+   Hero while the Hero was the viewport. It is not any more: with --heroReveal
+   at 176px the stage would hang 176px past the Hero's floor, the head would
+   rest on a floor that is not the one you can see, and .hero{overflow:visible}
+   would paint it over the tab row.
+   IT IS svh AND NOT dvh ON PURPOSE -- --heroRow is the svh name of the pair --
+   because controls.css's own note is that this box must not move during a
+   scroll or the head moves with it. Rewriting `height` rather than clearing it
+   to `auto` keeps that promise; `auto` would hand the stage to the Hero's dvh
+   box and put the URL bar back in the head's position.
+   IT IS HERE AND NOT IN index.html BECAUSE OF LINK ORDER: controls.css loads
+   after that page's <style>, so an equal-specificity rule there reads
+   correctly and does nothing. This file loads after controls.css. */
+@supports (height:1svh){.heroCharacterPeek{height:var(--heroRow)}}
 .heroNightStars i{--star-visible:clamp(.34,var(--star-alpha),.72);position:absolute;left:var(--star-x);top:var(--star-y);width:var(--hair-w);height:var(--hair-w);border-radius:var(--r-full);background:#f4f7ff;animation:heroStarTwinkle calc(var(--star-twinkle-duration) * var(--star-rate)) var(--star-twinkle-ease) var(--star-delay) infinite alternate}
 .heroNightStars i.is-bright{--star-visible:.78;width:var(--star-bright-size);height:var(--star-bright-size);box-shadow:0 0 var(--star-glow-size) rgba(205,220,255,.32)}
 .hero[data-time-state="night"] .heroNightStars{opacity:1}
@@ -1163,7 +1191,28 @@
 }
 
 
-.heroCopy h1{position:relative;z-index:3;color:var(--time-ink);transition:color var(--hero-time-duration) var(--hero-time-ease)}
+/* == HEADLINE INK: THE HOUR'S ANSWER, OR ONE HE PINS ========================
+   Jayden, 2026-08-20, asked whether the headline "should be white or black".
+   The default is neither: --time-ink is already the hour's answer -- ink
+   (--c950 #090b24) on the five light skies and paper (--c50 #f4f5f7) on night
+   -- and the swap rides the sky's own 640ms curve so the two never disagree
+   for a frame. MEASURED against the real pixels behind the type, sampled at
+   nine points inside the h1's own box at every one of the six states, the
+   numbers are in the handover; the short version is that a PINNED colour fails
+   at one end or the other and the adaptive one never drops below 4.5:1.
+   Both pinned answers ship anyway, because he asked for them and a token he
+   can flip is cheaper than another pass:
+     <html data-hero-ink="auto">    the hour decides            (default)
+     <html data-hero-ink="ink">     always #090b24
+     <html data-hero-ink="white">   always paper, Workspace-style
+   The fallback in the var() is the load-bearing half: --hero-headline-ink is
+   only ever DECLARED under an explicit attribute, so "auto" is not a third
+   value to keep in sync, it is the absence of one. */
+.heroCopy h1{position:relative;z-index:3;color:var(--hero-headline-ink,var(--time-ink));transition:color var(--hero-time-duration) var(--hero-time-ease)}
+:root[data-hero-ink="ink"] .hero{--hero-headline-ink:var(--c950)}
+/* The eyebrow follows the headline or the pair stops reading as one object.
+   .85 alpha is the reference's own value, timeline.tsx:108. */
+:root[data-hero-ink="white"] .hero{--hero-headline-ink:var(--c50);--hero-cred-ink:rgba(255,255,255,.85)}
 /* THE NAME AND AVAILABILITY LINE TAKES ITS INK FROM THE CLOCK, not from the
    page. Its layout, size and leading are in index.html with the rest of the
    Hero copy; only the colour is here, next to the h1's, because only the colour
@@ -1177,7 +1226,7 @@
    z-index 3 to match the h1: .heroCopy sits above the sky and the drift layer,
    and a caption that the glyph field could paint over is a caption nobody
    asked for. */
-.heroCred{position:relative;z-index:3;color:var(--theme-muted,var(--c700));
+.heroCred{position:relative;z-index:3;color:var(--hero-cred-ink,var(--theme-muted,var(--c700)));
  transition:color var(--hero-time-duration) var(--hero-time-ease)}
 .heroPortraitTintDefs{position:absolute;width:0;height:0;overflow:hidden;pointer-events:none}
 /* ── THE FORM SHADOW. NOT A CAST SHADOW, AND THE DIFFERENCE IS THE WHOLE RULE ─
@@ -1208,6 +1257,17 @@
    NO EDGE, STILL. Light has no edge and neither does its absence -- the ramp
    reaches zero at 92% and the last third of it is under .1, so there is nowhere
    the shading can be seen to stop. If you can see where it ends, it is wrong. */
+/* THE NECK FADE WAS TRIED HERE AND REVERTED THE SAME HOUR, 2026-08-20.
+   The suggestion was to melt a "harsh neck cutout" into the sky with a gradient
+   mask on #stage. Looked at, the premise does not hold for this asset: the
+   portrait has NO neck. It is already cut at the jaw with a clean feathered
+   edge, which is why it reads as a floating head rather than a bust.
+   So the mask had nothing to dissolve except the head itself -- captured at
+   1440 it ate the chin and the beard, which is strictly worse than the edge it
+   was sent to fix. Jayden landed in the same place independently: "I like the
+   idea of the head being a floating head ... with no neck."
+   If a future pass wants to soften the bottom edge, the thing to check first is
+   whether there is anything below the jaw to fade. There is not. */
 .heroTimePortraitCast{
  position:absolute;inset:0;z-index:2;width:100%;height:100%;object-fit:contain;
  display:block;visibility:visible;pointer-events:none;background:none;border:0;outline:0;
