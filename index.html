@@ -1876,7 +1876,19 @@ html{scroll-padding-top:calc(var(--nav-h) + var(--sp-16-24))}
 @media(max-width:760px){
  .hero{--heroPadT:calc(var(--sp-8) + var(--nav-h) + var(--sp-12));--heroPadB:calc(var(--sp-48) + env(safe-area-inset-bottom));
   padding:var(--heroPadT) max(var(--sp-16),env(safe-area-inset-right)) var(--heroPadB) max(var(--sp-16),env(safe-area-inset-left));border-radius:var(--surface-hero-radius)}
- .heroCopy{transform:translateY(calc((var(--sp-14) + var(--sp-48)) * -1))}
+ /* THE STATUS LINE HAS TO BE PAID FOR, AND THE HEAD IS WHO PAYS. .heroCred
+    costs 30px and this column is centred, so adding it pushed the CTA row down
+    14px -- which at 320 walked #heroTimeBtn onto the ne resize handle's dot.
+    Measured: the dot sits at y438 and the button's bottom edge landed at y438,
+    so four of the five sampled points on a handle you can SEE returned the
+    button. Not hypothetical -- origin/main passes the same probe and HEAD did
+    not. The handle cannot be raised over the copy instead: hero-time.css:1430
+    is the headstone for that attempt, where z-index 6 made the time menu
+    unclickable. So the column gives back 8 of the 14.8 and not 14 because the
+    clearance needed is 4px (the failing samples are the dot's centre and its
+    top edge, 3.5px up) and 8 leaves double that without moving the headline
+    further than the added line already did. */
+ .heroCopy{transform:translateY(calc((var(--sp-14) + var(--sp-48) + var(--sp-8)) * -1))}
  .heroCopy h1{font-size:clamp(28px,7.7vw,32px);max-width:13em}
  .heroCtas{margin-top:var(--sp-14)}
 }
