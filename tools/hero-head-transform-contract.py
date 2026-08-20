@@ -848,6 +848,271 @@ def select_move_resize(page):
     return page.evaluate("window.__heroHeadTransform.getState()")
 
 
+# ── THE HEAD TRAVELS, AND IT NEVER TRAVELS OUT OF REACH ──────────────────────
+# Jayden: "maybe it can be floating around the hero instead of just floating in
+# one spot maybe bouncing and floating like the dvd symbol". So the float now
+# carries the portrait across the Hero and turns at the edges, and there are
+# exactly three things that can go wrong with that, all three of which this
+# file already has precedent for:
+#
+#   IT DOES NOT ACTUALLY GO ANYWHERE. A bounded drift with a bug in its bounds
+#     is a head that pins itself at the first wall and sits there looking
+#     broken, which measures as "floating" and looks like nothing.
+#   IT GOES SOMEWHERE IT CANNOT BE REACHED. This is the expensive one and it is
+#     the reason usableRect() exists: the Hero runs up behind an opaque bar, and
+#     a handle parked under it cannot be pressed at all -- the contract caught
+#     exactly that once, with elementFromPoint returning NAV.jbNav where a
+#     corner handle should have been. A travel bounded by the raw Hero rather
+#     than the reachable region would walk the head straight back into it, and
+#     it would do so a minute after load, which is the worst possible time for a
+#     bug to appear because nobody is watching by then.
+#   IT TRAVELS UNDER REDUCED MOTION. The bob is feedback-shaped and small; a
+#     portrait crossing the screen on its own is autonomous travel of arbitrary
+#     distance that nobody asked for frame by frame, which is precisely what the
+#     setting is about. releaseMove()'s comment already draws that line for the
+#     throw; this is the same line.
+#
+# SAMPLED FROM THE MODULE'S OWN NUMBERS, NOT FROM PIXELS. getBoundingClientRect
+# on the portrait reads hero-engine's idle breathing, worth ~14px, which is
+# larger than several of the tolerances here; getState() exposes travel and
+# travelBounds for the same reason it exposes drift and box.
+TRAVEL_SAMPLE = """() => {
+  const s = window.__heroHeadTransform.getState();
+  const hero = document.querySelector('#main').getBoundingClientRect();
+  const bar = document.querySelector('.jbStick .jbNav')
+    || document.querySelector('.jbStick');
+  const wrap = document.querySelector('#heroHeadTransform');
+  const num = n => parseFloat(wrap.style.getPropertyValue(n)) || 0;
+  // THE REACHABLE REGION, RESTATED FROM THE PAGE rather than from the module,
+  // so this witnesses the rule instead of quoting it back.
+  let ceiling = 0;
+  if (bar) {
+    const b = bar.getBoundingClientRect();
+    if (b.bottom > hero.top && b.top < hero.bottom && b.width > 0)
+      ceiling = Math.min(b.bottom, hero.bottom) - hero.top;
+  }
+  const gap = parseFloat(getComputedStyle(document.querySelector('#main'))
+    .getPropertyValue('--hero-head-safe-gap')) || 0;
+  const share = parseFloat(getComputedStyle(document.documentElement)
+    .getPropertyValue('--hero-head-min-visible')) || 0.42;
+  // Where the head's rigid box actually is, travel and bob included.
+  const box = s.box, fx = num('--hero-head-float-x'), fy = num('--hero-head-float-y');
+  const live = {left: box.left + fx, right: box.right + fx,
+                top: box.top + fy, bottom: box.bottom + fy,
+                width: box.width, height: box.height};
+  const needX = Math.min(Math.max(live.width * share, gap), hero.width);
+  const needY = Math.min(Math.max(live.height * share, gap), hero.height - ceiling);
+  const sel = document.querySelector('#heroHeadSelection').getBoundingClientRect();
+  const dots = [...document.querySelectorAll('.heroHeadHandle,.heroHeadRotate')]
+    .map(n => {
+      const st = getComputedStyle(n, '::before'), r = n.getBoundingClientRect();
+      return {x: r.left + parseFloat(st.left) - hero.left,
+              y: r.top + parseFloat(st.top) - hero.top,
+              off: n.hasAttribute('data-off')};
+    });
+  return {
+    t: performance.now(), travel: s.travel, bounds: s.travelBounds,
+    x: s.x, y: s.y, ceiling: ceiling, heroW: hero.width, heroH: hero.height,
+    // reachable(): a share of the head inside the Hero MINUS the opaque bar
+    reachable: live.right >= needX && live.left <= hero.width - needX
+      && live.bottom >= ceiling + needY && live.top <= hero.height - needY,
+    dark: dots.filter(d => d.off).length,
+    // HOW FAR PAST EACH EDGE THE FURTHEST DRAWN DOT IS, and zero when it is
+    // inside. NOT the selection element's own rect: syncSelection() clamps that
+    // to the Hero on all four sides by construction, so an assertion built on
+    // it is true whatever the head does -- a dead test of the exact kind this
+    // file's own header warns about. The DOTS are the thing that can leave.
+    out: {l: Math.max(0, -Math.min(...dots.map(d => d.x))),
+          r: Math.max(0, Math.max(...dots.map(d => d.x)) - hero.width),
+          t: Math.max(0, -Math.min(...dots.map(d => d.y))),
+          b: Math.max(0, Math.max(...dots.map(d => d.y)) - hero.height)},
+    dotBox: {l: Math.min(...dots.map(d => d.x)), r: Math.max(...dots.map(d => d.x)),
+             t: Math.min(...dots.map(d => d.y)), b: Math.max(...dots.map(d => d.y))}
+  };
+}"""
+
+
+def sample_travel(page, seconds, every=0.1):
+    """Sample the drift densely enough to see a turn happen, not just its ends."""
+    rows = []
+    for _ in range(int(seconds / every)):
+        rows.append(page.evaluate(TRAVEL_SAMPLE))
+        page.wait_for_timeout(int(every * 1000))
+    return rows
+
+
+def travel_speed_override(page, speed, sweep_ms):
+    """Crank the drift so a whole journey fits inside a test.
+
+    THE TOKENS ARE THE LEVER, AND THAT IS THE POINT. The shipped speed crosses
+    a 1440 Hero in about a minute, so a test run at the shipped tuning can
+    witness that the head moves and roughly how fast, and cannot witness what
+    happens at the far wall without spending a minute per viewport getting
+    there. Every other number the drift uses is already read from a custom
+    property through the same cache, so raising two of them and invalidating
+    the cache exercises the SHIPPED code path at a speed a test can watch --
+    as opposed to re-injecting a fast variant, which would be testing a
+    different program. The bounds, the turn and the clamp are untouched.
+    """
+    page.evaluate(
+        """([speed, sweep]) => {
+          const root = document.documentElement.style;
+          root.setProperty('--hero-head-travel-speed-x', speed);
+          root.setProperty('--hero-head-travel-speed-y', speed);
+          root.setProperty('--hero-head-travel-sweep', sweep);
+          window.__heroHeadTransform.reclamp();
+        }""",
+        [str(speed), str(sweep_ms)],
+    )
+
+
+def resting_envelope(page):
+    """How far outside the Hero the drawn dots reach with the drift switched off.
+
+    THE BASELINE IS THE RESTING POSE, NOT ZERO, AND THAT IS A FINDING RATHER
+    THAN A CONCESSION. At 320x800 the shipped composition already puts the nw
+    dot 13.4px off the left edge of the Hero, which makes that handle dark at
+    rest -- measured on the build BEFORE the drift existed, so it is not the
+    drift's doing and demanding zero here would be asserting a bug the site does
+    not have a fix for yet. What the drift must not do is make it worse, and
+    that is exactly what this baseline turns into a testable statement.
+
+    THE BOB HAS TO BE RUNNING WHILE THIS IS TAKEN, or the baseline is a still
+    frame and the comparison is off by up to 12px of sinusoid. Stopping the
+    float would stop both; setting the travel speed to zero stops the journey
+    and leaves the bob alone, which is the pose being described. The window is
+    long enough to cover the two fast harmonics (3.7s and 5.9s).
+    """
+    travel_speed_override(page, 0, 14000)
+    page.evaluate("window.__heroHeadTransform.reset()")
+    page.wait_for_timeout(80)
+    rows = sample_travel(page, 7, 0.2)
+    worst = {side: max(r["out"][side] for r in rows) for side in ("l", "r", "t", "b")}
+    return {"out": worst, "dark": max(r["dark"] for r in rows), "samples": len(rows)}
+
+
+def assert_travels(page, label, failures):
+    """The drift crosses the Hero, turns softly, and never leaves the region."""
+    # THE POINTER GOES TO A CORNER FIRST. The float freezes while the pointer is
+    # over the head or its frame -- that is what makes a 44px handle a still
+    # target -- so a test that leaves the mouse where its last gesture ended is
+    # measuring a head that is deliberately not moving.
+    page.mouse.move(2, 2)
+    page.wait_for_timeout(500)
+    rest = resting_envelope(page)
+    travel_speed_override(page, 22, 14000)
+    page.wait_for_timeout(200)
+
+    # ── 1. AT THE SHIPPED TUNING IT MOVES, AND IT MOVES SLOWLY ──────────────
+    # Both halves are the requirement. "Slow" is not decoration here: the note
+    # was "like the dvd symbol" on a portfolio, and a portrait crossing a hero
+    # at screensaver speed is a gag. The ceiling is generous -- four times the
+    # authored 22px/s -- because what it is there to catch is somebody reaching
+    # for the speed token to make a demo read better.
+    shipped = sample_travel(page, 8, 0.25)
+    moved = max(abs(shipped[-1]["travel"]["x"] - shipped[0]["travel"]["x"]),
+                abs(shipped[-1]["travel"]["y"] - shipped[0]["travel"]["y"]))
+    span = max(shipped[0]["bounds"]["maxX"] - shipped[0]["bounds"]["minX"],
+               shipped[0]["bounds"]["maxY"] - shipped[0]["bounds"]["minY"])
+    seconds = (shipped[-1]["t"] - shipped[0]["t"]) / 1000
+    # Against the FIELD as well as an absolute floor: at 320 the field is 126px
+    # wide and the head cannot cover 60px of it without turning inside the
+    # window, so demanding a flat distance would fail on a correct build.
+    want = min(60, span * 0.35)
+    record(failures, moved >= want,
+           f"{label} the head travels at the shipped tuning",
+           {"moved": round(moved, 1), "want": round(want, 1), "field": round(span, 1)})
+    record(failures, moved / max(seconds, 0.001) <= 88,
+           f"{label} the travel stays slow",
+           {"px_per_second": round(moved / max(seconds, 0.001), 1)})
+
+    # ── 2. CRANKED, IT REACHES BOTH WALLS AND COMES BACK ────────────────────
+    # 20s AND 200ms, WHICH IS NOT AN ARBITRARY PAIR. At 120px/s the widest field
+    # this site has -- 1179px at 1440x900 -- is crossed in 9.8s, so a window of
+    # 20 covers going out to one wall and all the way back to the other with
+    # margin. The interval is the cost: TRAVEL_SAMPLE resolves five pseudo-
+    # elements and several rects, and at 100ms it added roughly five minutes per
+    # viewport to a gate that has to run serially with twenty-nine others. A
+    # turn spans about 1.8s, which is nine samples at 200ms -- still several
+    # samples of evidence per reflection, which is what the assertions read.
+    travel_speed_override(page, 120, 1500)
+    rows = sample_travel(page, 20, 0.2)
+    travel_speed_override(page, 22, 14000)
+    xs = [r["travel"]["x"] for r in rows]
+    ys = [r["travel"]["y"] for r in rows]
+    bounds = rows[0]["bounds"]
+
+    def turns(values):
+        steps = [b - a for a, b in zip(values, values[1:])]
+        steps = [v for v in steps if abs(v) > 0.25]
+        return sum(1 for a, b in zip(steps, steps[1:]) if a * b < 0)
+
+    record(failures, turns(xs) + turns(ys) >= 2,
+           f"{label} the drift reflects rather than pinning at a wall",
+           {"x_turns": turns(xs), "y_turns": turns(ys)})
+    # It gets all the way there. A drift that turned early every time would
+    # shrink its own field a little on each pass and end up hovering in the
+    # middle, which is the failure that looks most like success.
+    reachX = (max(xs) - min(xs)) / max(1e-6, bounds["maxX"] - bounds["minX"])
+    reachY = (max(ys) - min(ys)) / max(1e-6, bounds["maxY"] - bounds["minY"])
+    record(failures, max(reachX, reachY) >= 0.9,
+           f"{label} the drift uses its whole field",
+           {"x_share": round(reachX, 3), "y_share": round(reachY, 3)})
+
+    # ── 3. AND NEVER LEAVES THE REACHABLE REGION WHILE IT DOES ──────────────
+    # This is the assertion the whole helper exists for. Three statements, and
+    # they are not the same statement: the reachability rule the clamp enforces,
+    # the selection staying on the stage, and no handle going dark. A build that
+    # bounced off the raw Hero would pass the first and fail the other two,
+    # which is precisely the bug worth catching -- handles that are welded,
+    # correctly, to a corner nobody can press.
+    unreachable = [r for r in rows if not r["reachable"]]
+    record(failures, not unreachable,
+           f"{label} the drift stayed inside the reachable region",
+           {"samples": len(rows), "bad": len(unreachable),
+            "first": unreachable[0] if unreachable else None})
+    # THE JOURNEY COSTS NO REACH. Per side, against the resting envelope, with
+    # 1.5px of slack for the bob landing on a different phase than the baseline
+    # sampled. A drift bounded by reachability alone -- the obvious one-line-
+    # shorter implementation -- sails the leading corners off the stage and
+    # fails here by hundreds of pixels, which is what --self-test proves.
+    worst = {side: max(r["out"][side] for r in rows) for side in ("l", "r", "t", "b")}
+    slipped = {side: round(worst[side] - rest["out"][side], 1)
+               for side in worst if worst[side] > rest["out"][side] + 1.5}
+    record(failures, not slipped,
+           f"{label} the drift pushed no dot further off the Hero than rest does",
+           {"resting": {k: round(v, 1) for k, v in rest["out"].items()},
+            "drifting": {k: round(v, 1) for k, v in worst.items()},
+            "slipped": slipped})
+    dark = max(r["dark"] for r in rows)
+    record(failures, dark <= rest["dark"],
+           f"{label} the drift darkened no handle that rest leaves live",
+           {"resting_dark": rest["dark"], "worst_while_drifting": dark,
+            "samples": len(rows)})
+    # Above the bar is the specific place a handle dies -- the Hero runs up
+    # behind an opaque nav -- so it is stated on its own rather than folded into
+    # the four-sided comparison, where a generous left edge could hide it.
+    ceiling = rows[0]["ceiling"]
+    highest = min(r["dotBox"]["t"] for r in rows)
+    record(failures, highest >= -rest["out"]["t"] - 1.5,
+           f"{label} no handle drifted off the top of the Hero",
+           {"highest_dot": round(highest, 1), "bar_underside": round(ceiling, 1),
+            "resting_top_overhang": round(rest["out"]["t"], 1)})
+    return rows
+
+
+def assert_still_under_reduce(page, label, failures, seconds=12):
+    """Under reduce the head does not travel at all -- not slowly, not at all."""
+    page.mouse.move(2, 2)
+    first = page.evaluate(TRAVEL_SAMPLE)
+    page.wait_for_timeout(int(seconds * 1000))
+    last = page.evaluate(TRAVEL_SAMPLE)
+    record(failures,
+           first["travel"] == {"x": 0, "y": 0} and last["travel"] == {"x": 0, "y": 0},
+           f"{label} reduced motion pins the travel",
+           {"first": first["travel"], "last": last["travel"], "seconds": seconds})
+
+
 def rest_pose_contract():
     """The resting pose is authored in one file and has to be consumed.
 
@@ -1081,6 +1346,15 @@ def browser_contract(base_url):
                 for h in selected["handles"]
             ), selected
             assert_handle_hits(page, "default")
+            # THE DRIFT IS OFF HERE, AND THIS BLOCK PROVES IT. Every context in
+            # this loop is reduced_motion="reduce", which is also what makes the
+            # settle detector below able to converge at all: it wants two reads
+            # 100ms apart agreeing to half a pixel, and a head crossing the Hero
+            # never gives it one. That is a property of the fixture, so it is
+            # asserted rather than assumed -- if the travel ever started running
+            # under reduce, the next forty assertions in this loop would start
+            # failing for reasons that have nothing to do with what they test.
+            assert_still_under_reduce(page, f"{label} reduce", failures, 8)
             # SNAPSHOT ONLY ONCE THE LAYOUT HAS STOPPED MOVING. This is the
             # rectangle every later assertion is compared against, and it used
             # to be grabbed the instant the head was first clicked -- while the
@@ -1882,6 +2156,13 @@ def browser_contract(base_url):
                 "typeof introMode !== 'undefined' && !introMode && !eventLock",
                 timeout=15_000,
             )
+            # THE ONLY CONTEXT IN THIS FILE WITH MOTION ON, so the drift is
+            # asserted here. It runs BEFORE startMovie() because the movie moves
+            # the head on its own schedule, and a test that cannot tell its own
+            # subject from the thing driving it is not measuring anything.
+            assert_travels(page, label, failures)
+            page.evaluate("window.__heroHeadTransform.reset()")
+            page.wait_for_timeout(60)
             page.evaluate("startMovie()")
             page.wait_for_timeout(700)
             face = page.locator("#face")
@@ -2169,6 +2450,13 @@ def task4_matrix(base_url):
             # counts every DOM read it makes and totals the ones that happen
             # inside a float frame; at rest that total must not move. Anyone who
             # puts a read back breaks this instead of the machine.
+            # THE DRIFT RUNS INSIDE THIS FRAME, so this now covers it as well,
+            # and it is the reason travelBounds() is arithmetic on state.base
+            # rather than the getBoundingClientRect() it would be natural to
+            # write: the bounds move with scale, rotation and the arrangement,
+            # every one of which is already a number this module holds. The
+            # gap, the share and the headline's lower edge are cached beside
+            # --selection-air and invalidated by the same reclamp().
             page.wait_for_timeout(900)
             reads_before = page.evaluate("window.__heroHeadTransform.getState().loopReads")
             page.wait_for_timeout(1200)
@@ -2183,12 +2471,35 @@ def task4_matrix(base_url):
             # either side is comfortably inside that radius and far enough out
             # to peg the gaze at full deflection, which is what makes the two
             # readings separate by more than the rounding.
+            # THE GAZE POINT IS CHOSEN RELATIVE TO THE HEAD, SO THE HEAD HAS TO
+            # HOLD STILL WHILE IT IS USED. settled_gaze() retries for up to
+            # eight windows with the pointer pinned, and __curNear is true only
+            # within stage.width * 1.4 of the eyes -- so a head that travels
+            # away during those retries walks out of its own test. The float is
+            # stopped for the reading, which is what every other measurement in
+            # this file already does: the subject here is the gaze, not the
+            # drift, and the drift has its own assertions above.
+            #
+            # THIS IS NOT THE FIX FOR THE FAILURE BELOW, AND SAYING SO MATTERS.
+            # On 2026-08-20 settled_gaze() started reporting "the eyes never
+            # held still long enough to read" at 1440 with clean:false after
+            # 7-13 samples. It is tempting to read that as the drift's doing.
+            # It is not: bisected by routing the PRE-DRIFT hero-head-transform.js
+            # into the same page, the same viewport and the same helper, it
+            # fails identically -- 0 clean windows out of 4 on both sides, with
+            # __curNear true, blinking false and two irises present the whole
+            # time. So the window is being broken by something in the engine
+            # swapping the irises out under it, on this tree, independent of
+            # anything this file's drift does. Stopping the float here is still
+            # right, and it is not what that failure is.
+            page.evaluate("window.__heroHeadTransform.stopFloat()")
             stage = page.locator("#stage").bounding_box()
             gaze_cx = stage["x"] + stage["width"] / 2
             gaze_y = min(height - 4, max(4, stage["y"] + stage["height"] * .42))
             gaze_a = settled_gaze(page, max(4, gaze_cx - stage["width"]), gaze_y, label)
             gaze_b = settled_gaze(page, min(width - 4, gaze_cx + stage["width"]), gaze_y, label)
             assert gaze_b["x"] - gaze_a["x"] >= 1, (label, gaze_a, gaze_b)
+            page.evaluate("window.__heroHeadTransform.startFloat()")
             blink = page.evaluate(BLINK_TO_NEUTRAL)
             assert blink["ok"], (label, blink)
             page.wait_for_function("document.querySelectorAll('#stage .iris').length >= 2")
@@ -2492,6 +2803,71 @@ SELF_TEST_INJECT = """   var ex=parseFloat(selection.style.getPropertyValue("--s
    point={x:cx,y:cy};"""
 
 
+# ── PROVING THE TRAVEL DETECTOR CAN FAIL ─────────────────────────────────────
+# The drift's assertions are worth exactly as much as their ability to reject
+# the build somebody would have written instead, and there is one obvious such
+# build: bound the journey by the reachability rule alone. It is the rule the
+# clamp already uses, it is one line shorter, and it is wrong -- reachability
+# says 42% of the head must stay inside, which lets the leading corners sail off
+# the stage, and a corner off the stage is a handle that is hidden and dead. The
+# frame, not the head's box, is what has to stay on the Hero.
+# It also drops the headline's lower edge, so the injected build walks the
+# portrait up over the h1 as well. Both are the same mistake -- bounding the
+# wrong rectangle -- and the run is expected to FAIL on the on-stage and
+# handle-live assertions. If it passes, they are not detecting anything.
+TRAVEL_SELF_TEST_SITE = """   return {
+    minX:Math.min(0,Math.max(needX-box.width-box.left,bobX-(cx-fw/2))),
+    maxX:Math.max(0,Math.min(m.heroW-needX-box.left,m.heroW-bobX-fw/2-cx)),
+    minY:Math.min(0,Math.max(m.ceiling+needY-box.height-box.top,
+     m.travelFloor+bobY-(cy-fh/2))),
+    maxY:Math.max(0,Math.min(m.heroH-needY-box.top,m.heroH-bobY-fh/2-cy))};"""
+TRAVEL_SELF_TEST_INJECT = """   return {
+    minX:needX-box.width-box.left,
+    maxX:m.heroW-needX-box.left,
+    minY:m.ceiling+needY-box.height-box.top,
+    maxY:m.heroH-needY-box.top};"""
+
+
+def travel_self_test(browser, base_url, source):
+    """Bound the drift by reachability alone and require assert_travels() to reject it."""
+    if TRAVEL_SELF_TEST_SITE not in source:
+        raise SystemExit(
+            "--self-test cannot find travelBounds() in hero-head-transform.js; "
+            "update TRAVEL_SELF_TEST_SITE to match it rather than letting the "
+            "self-test pass blind."
+        )
+    broken = source.replace(TRAVEL_SELF_TEST_SITE, TRAVEL_SELF_TEST_INJECT, 1)
+    for width, height in ((1440, 900), (390, 844)):
+        context = browser.new_context(viewport={"width": width, "height": height})
+        context.add_init_script("try{sessionStorage.setItem('introSeen','1')}catch(e){}")
+        context.route(
+            "**/hero-head-transform.js*",
+            lambda route: route.fulfill(
+                status=200, content_type="application/javascript", body=broken
+            ),
+        )
+        page = context.new_page()
+        page.goto(f"{base_url}/index.html?head-transform=1", wait_until="load")
+        page.wait_for_function(
+            "typeof introMode !== 'undefined' && !introMode && !eventLock",
+            timeout=15_000,
+        )
+        caught = []
+        assert_travels(page, f"self-test {width}", caught)
+        context.close()
+        wanted = [f for f in caught
+                  if "further off the Hero" in f or "darkened no handle" in f
+                  or "off the top" in f]
+        if not wanted:
+            raise SystemExit(
+                f"--self-test FAILED at {width}x{height}: a drift bounded by "
+                "reachability alone was accepted. The travel assertions are not "
+                f"detecting anything. Recorded: {caught!r}"
+            )
+        print(f"self-test {width}x{height}: the travel assertions rejected the "
+              f"reachability-only bound, as they must ({len(wanted)} of them)")
+
+
 def self_test(base_url):
     """Re-inject the clamp and require assert_handle_hits() to reject it."""
     source = (ROOT / "hero-head-transform.js").read_text(encoding="utf-8")
@@ -2529,9 +2905,10 @@ def self_test(base_url):
                     "clamp was accepted. The rigidity assertion is not detecting "
                     "anything and every green run of this file is noise."
                 )
+            travel_self_test(browser, base_url, source)
         finally:
             browser.close()
-    print("Hero head transform self-test: OK (the detector fails when it should)")
+    print("Hero head transform self-test: OK (the detectors fail when they should)")
 
 
 def main():

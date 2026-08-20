@@ -30,6 +30,25 @@
       vx/vy are the drift's own velocity in px/s, which is what carries the
       finger's speed across the seam between dragging and animating. */
    drift:{x:0,y:0,vx:0,vy:0},settleFrame:0,settleAt:0,settleResponse:0,
+   /* ── THE TRAVEL IS A THIRD CHANNEL, AND IT IS NOT A FOURTH IDEA ──────────
+      Jayden: "maybe it can be floating around the hero instead of just
+      floating in one spot maybe bouncing and floating like the dvd symbol".
+      So the head now goes somewhere, and where it goes is kept apart from the
+      other two numbers for exactly the reason they are kept apart from each
+      other:
+        state.x/y   -- where the VISITOR put the head. The only thing the clamp
+                       and getState() reason about, and still committed the
+                       instant they let go.
+        state.drift -- how far the physics currently has it from that.
+        state.travel -- how far the AMBIENT motion has carried it from that.
+      travel is additive and rides the float's own CSS channel, so the frame,
+      the handles and the lighting all follow it with no new wiring: every one
+      of them already sums --hero-head-float-x/-y.
+      dir is the CURRENT signed direction on that axis and tgt is the one it is
+      heading for. They are separate because a screensaver reverses in one
+      frame and a portrait must not: dir eases toward tgt, which is the whole
+      of what makes the reflection read as a turn rather than a ping-pong. */
+   travel:{x:0,y:0,dirX:1,dirY:1,tgtX:1,tgtY:1,at:0},
    /* A short position history, not the last delta. One pointermove is noise --
       a coalesced burst can put 60px in 2ms -- so the release speed is measured
       across a window of moves. */
@@ -324,6 +343,60 @@
        shipped. */
     minScale:rootNumber("--hero-head-min-scale",.24),
     maxScale:rootNumber("--hero-head-max-scale",2.2),
+    /* ── WHAT THE TRAVEL NEEDS, IN THE ONE PLACE THE LOOP IS ALLOWED TO READ
+       Every value the DVD drift needs is here for the reason --selection-air
+       and the two scale bounds are: it runs 60 times a second forever, and the
+       one invariant this file enforces with a counter is that it reads nothing.
+       travelSpeed is in px/SECOND, not a period, because constant speed is the
+       whole of what "like the dvd symbol" means -- a period would make a wide
+       screen travel faster than a narrow one, which is a screensaver nobody
+       has ever seen. The numbers are slow on purpose: 22px/s crosses a 1440
+       Hero in about a minute, which is motion you notice having happened
+       rather than motion you watch.
+       travelTurn is the time constant of the reversal. dir eases toward its
+       target with a first-order lag, so the head decelerates, stops and comes
+       back over roughly 3x this -- a soft turn, not a bounce, and no squash.
+       THE GAP AND THE SHARE ARE READ HERE AND reachable() STILL READS THEM
+       LIVE. That is not an oversight and it must not be "tidied": the essay on
+       minScale above records that routing reachable() through this cache broke
+       the second-owner-move assertion 3 runs out of 3, with the cached and live
+       values verified identical, so the cause was the ORDER the cache fills in
+       during a gesture and not the arithmetic. These two entries are read by
+       travelBounds() alone, on a path with no gesture on it, so they cannot
+       reach that failure. */
+    travelSpeedX:rootNumber("--hero-head-travel-speed-x",22),
+    travelSpeedY:rootNumber("--hero-head-travel-speed-y",13),
+    travelTurn:rootNumber("--hero-head-travel-turn",900)/1000,
+    /* ── A CONSTANT SPEED IS THE IDEA. A TWITCH IS NOT. ─────────────────────
+       Constant speed is what makes it read as a screensaver rather than a
+       pendulum, and on a wide Hero it is the whole of the rule. On a SHORT
+       field it stops being motion at all: measured at 1280x650, where the
+       headline leaves the head 37px of vertical room, 13px/s is a reflection
+       every 1.4 seconds -- 25 of them in a minute, which on screen is not a
+       journey but a vibration, and it lands on top of a bob that is already
+       oscillating. So no axis is allowed to cross its own field faster than
+       once per travelSweep. It binds only where the field is too small for the
+       speed to mean anything, which is exactly where constant speed stops
+       describing anything worth seeing; the 1440 Hero's horizontal field is
+       1179px and never comes near it. */
+    travelSweep:rootNumber("--hero-head-travel-sweep",14000)/1000,
+    travelGap:parseFloat(computedOf(hero).getPropertyValue("--hero-head-safe-gap"))||0,
+    travelShare:rootNumber("--hero-head-min-visible",.42),
+    /* ── THE CEILING OF THE TRAVEL IS THE HEADLINE, NOT THE BAR ─────────────
+       usableRect() is the right bound for REACHABILITY -- a handle under the
+       opaque nav cannot be pressed -- and it is not a bound on taste. Measured
+       at 1440x900: the head's box rests at y 461-734 and .heroCopy occupies
+       251-415, so a travel field bounded only by the bar's underside at y=60
+       lets the portrait climb 400px and sit squarely on top of the h1. Premium
+       is subtraction; a face driving through the headline is the opposite.
+       So the field's floor is the copy's lower edge, and the head wanders the
+       band of empty sky beneath it -- full width, and whatever height is left.
+       It is measured rather than authored so it follows a reflowed headline,
+       and .heroCopy already has a ResizeObserver on it calling reclamp(), which
+       is what invalidates this cache. Where the band is shorter than the head
+       the arithmetic below simply yields no vertical travel rather than a
+       negative one. */
+    travelFloor:content?rectOf(content).bottom-h.top:u.top-h.top,
     /* ── THE FEEL CONSTANTS BELONG IN THE CACHE FOR THE REASON THE TWO ABOVE DO
        rubberReach and rubberC are read on EVERY pointermove of every drag --
        the exact position scaleLimits() was measured in, at 2 root reads per
@@ -889,7 +962,7 @@
    if(state.pointerId!==null)return;
    if(event.button!==undefined&&event.button!==0)return;
    face.setAttribute("data-pointer-focus","");
-   select();event.preventDefault();stopFloat();
+   select();event.preventDefault();stopFloat();commitTravel();
    /* ── GRABBING SOMETHING IN FLIGHT MUST NOT MOVE IT ───────────────────────
       The single most important principle in the reference: an animation is
       interruptible, and the new gesture starts from the PRESENTATION value,
@@ -1052,7 +1125,7 @@
   function beginResize(event,corner,node){
    if(state.pointerId!==null)return;
    if(event.button!==undefined&&event.button!==0)return;
-   event.preventDefault();event.stopPropagation();select();stopFloat();
+   event.preventDefault();event.stopPropagation();select();stopFloat();commitTravel();
    var r=geom(),opposite={
     nw:{x:r.right,y:r.bottom},ne:{x:r.left,y:r.bottom},
     sw:{x:r.right,y:r.top},se:{x:r.left,y:r.top}
@@ -1133,7 +1206,7 @@
   function beginRotate(event,node){
    if(state.pointerId!==null)return;
    if(event.button!==undefined&&event.button!==0)return;
-   event.preventDefault();event.stopPropagation();select();stopFloat();
+   event.preventDefault();event.stopPropagation();select();stopFloat();commitTravel();
    var u=geom(),centre={x:(u.left+u.right)/2,y:(u.top+u.bottom)/2};
    state.pointerId=event.pointerId;state.operation="rotate";
    state.start={centre:centre,angle:pointerAngle(centre,event.clientX,event.clientY),
@@ -1223,7 +1296,7 @@
   function reset(){
    /* Home is a statement, not a journey: anything still in flight is dropped
       rather than allowed to keep pulling against the pose being restored. */
-   clearDrift();
+   clearDrift();clearTravel();
    state.x=0;state.y=0;state.scale=1;state.rotate=restRotate();
    state.pendingAnchor=null;state.pendingClamp=false;render();
   }
@@ -1236,6 +1309,133 @@
      collapses the whole artboard illusion.
      Three slow sinusoids plus one faster harmonic on Y. They are summed, not
      switched, so the path is quasi-periodic and never obviously loops. */
+  /* ── WHERE THE TRAVEL IS ALLOWED TO GO, AS ARITHMETIC ────────────────────
+     Two rectangles, intersected, and then widened so that the resting pose is
+     always inside. They are two different requirements and collapsing them
+     would break one or the other.
+       REACHABLE -- the same rule clampMove() enforces, restated on cached
+         numbers: a share of the head stays inside the Hero minus the opaque
+         bar. This is the hard one. Because state.x/y is always clamp-legal,
+         the reachable low bound is always <= 0 and the high bound always >= 0,
+         which is what guarantees that committing a travel offset into the
+         arrangement (see commitTravel) can never produce an illegal pose.
+       ON STAGE -- the whole SELECTION FRAME, air included, stays inside the
+         Hero. Not the head's box: the frame is bigger by --selection-air, and
+         a handle whose corner leaves the Hero is hidden and unpressable by
+         design (see the essay on axis/place). Bounding the head's box alone
+         would therefore kill the two leading handles at every extreme of the
+         travel -- welded, correctly, to a corner nobody can reach. Bounding
+         the frame keeps all five live for the whole journey.
+     The frame's turned bounding box is computed the same way syncSelection()
+     computes it, from the same rigid local rect, so the two cannot disagree.
+     THE WIDENING IS NOT A FUDGE. Math.min(...,0) and Math.max(...,0) only ever
+     RELAX a bound toward zero, and zero is the resting offset -- so the head
+     can always at least stay where it is. Where the band is too short to hold
+     the frame the axis yields an empty range and the head simply does not
+     travel on it, which is the honest answer at 1280x650. */
+  function travelBounds(){
+   var m=metrics(),b=state.base,s=state.scale;
+   var box=transformedBox(state.x,state.y);
+   var cx=box.left+box.width/2,cy=box.top+box.height/2;
+   var cos=Math.abs(Math.cos(radians())),sin=Math.abs(Math.sin(radians()));
+   var fw0=b.width*s+m.air*2,fh0=b.height*s+m.air*2;
+   var fw=fw0*cos+fh0*sin,fh=fw0*sin+fh0*cos;
+   var needX=Math.min(Math.max(box.width*m.travelShare,m.travelGap),m.heroW);
+   var needY=Math.min(Math.max(box.height*m.travelShare,m.travelGap),m.heroH-m.ceiling);
+   /* THE BOB IS STILL RIDING ON TOP, SO THE STAGE BOUND HAS TO LEAVE ROOM FOR
+      IT. The travel is bounded, the sinusoids are not -- they are added to the
+      same channel afterwards and can carry the frame another few pixels past
+      whatever this allows. Measured at 1440 before this inset: the frame's top
+      edge reached 407.3 against a floor of 415, and the bottom corners would
+      have crossed the Hero's own edge at the extreme of the downward journey,
+      which is two handles going dark for a reason nothing on screen explains.
+      The amplitudes are already in the cache, so their sum is the exact reach
+      and no margin has to be invented. */
+   var bobX=m.xAmp,bobY=m.yAmp+m.y2Amp;
+   return {
+    minX:Math.min(0,Math.max(needX-box.width-box.left,bobX-(cx-fw/2))),
+    maxX:Math.max(0,Math.min(m.heroW-needX-box.left,m.heroW-bobX-fw/2-cx)),
+    minY:Math.min(0,Math.max(m.ceiling+needY-box.height-box.top,
+     m.travelFloor+bobY-(cy-fh/2))),
+    maxY:Math.max(0,Math.min(m.heroH-needY-box.top,m.heroH-bobY-fh/2-cy))};
+  }
+  /* ── THE REVERSAL, AND WHY IT STARTS BEFORE THE WALL ─────────────────────
+     A soft turn takes time, and time is distance. Easing dir from +1 to -1
+     with a first-order lag of time constant tau carries the head a further
+     (1 - ln2) * speed * tau past the point the turn began -- that is the exact
+     integral, not a tuned guess -- so the turn is triggered exactly that far
+     short of the bound and the head arrives at the wall with zero speed and
+     touches it rather than crossing it or stopping visibly short.
+     The clamp on the next line is a safety net, not the mechanism. It matters
+     because the bounds are recomputed every frame from live scale, rotation
+     and arrangement: resize the head while it is out at an extreme and the
+     wall moves inward under it, and the only correct answer is to be put back
+     on the legal side at once rather than to spend a second easing there.
+     A GESTURE HAS PRIORITY OVER THE DRIFT, WHICH IS WHY THIS IS ONLY EVER
+     CALLED FROM THE FLOAT LOOP. stopFloat() runs on pointerenter and on every
+     press, so the head stops travelling before the visitor has finished
+     reaching for it -- the same rule that already made the handles a still
+     target -- and resumes 280ms after they leave. */
+  var TURN_OVERSHOOT=1-Math.LN2;
+  function advanceTravel(ms){
+   var t=state.travel;
+   /* No base means no geometry, and capturing one here would be a DOM read
+      inside the loop. It is captured at init and on every resize. */
+   if(!state.base){t.at=ms;return;}
+   var dt=t.at?(ms-t.at)/1000:0;
+   t.at=ms;
+   if(dt<=0)return;
+   /* A backgrounded tab hands back one enormous frame; the same cap the
+      settle spring uses keeps the head from teleporting across the Hero. */
+   if(dt>.064)dt=.064;
+   var m=metrics(),b=travelBounds(),tau=m.travelTurn;
+   var ease=1-Math.exp(-dt/tau);
+   var spanX=b.maxX-b.minX,spanY=b.maxY-b.minY;
+   /* The sweep floor, applied per axis and per frame -- the field changes with
+      scale, rotation and wherever the visitor last put the head, so this is
+      not a constant that could be folded into the token. */
+   var vx=Math.min(m.travelSpeedX,spanX/m.travelSweep);
+   var vy=Math.min(m.travelSpeedY,spanY/m.travelSweep);
+   var markX=Math.min(TURN_OVERSHOOT*vx*tau,spanX*.45);
+   var markY=Math.min(TURN_OVERSHOOT*vy*tau,spanY*.45);
+   if(t.tgtX>0&&t.x>=b.maxX-markX)t.tgtX=-1;
+   else if(t.tgtX<0&&t.x<=b.minX+markX)t.tgtX=1;
+   if(t.tgtY>0&&t.y>=b.maxY-markY)t.tgtY=-1;
+   else if(t.tgtY<0&&t.y<=b.minY+markY)t.tgtY=1;
+   t.dirX+=(t.tgtX-t.dirX)*ease;t.dirY+=(t.tgtY-t.dirY)*ease;
+   t.x+=vx*t.dirX*dt;t.y+=vy*t.dirY*dt;
+   if(t.x>b.maxX)t.x=b.maxX;else if(t.x<b.minX)t.x=b.minX;
+   if(t.y>b.maxY)t.y=b.maxY;else if(t.y<b.minY)t.y=b.minY;
+  }
+  /* ── THE HAND TAKES THE HEAD OFF THE DRIFT, NOT OUT OF IT ────────────────
+     The travel is additive, so the clamp -- which reasons about state.x/y
+     alone -- does not know about it. That is harmless at the float's own +-5px
+     and is not harmless at the +-570px this travels: grab the head at the far
+     left of its journey and the clamp would happily let you drag state.x to
+     its own left bound while the travel held the pixels another half-screen
+     further out, which is the head disappearing off the stage in your hand.
+     So a gesture COMMITS the travel first. state.x/y absorbs the offset, the
+     travel goes to zero and the float channel is rewritten in the same call,
+     which moves nothing on screen by construction -- the two changes cancel to
+     the pixel -- and leaves the clamp reasoning about where the head actually
+     is. The commit is always legal because travelBounds() is a subset of the
+     clamp's own legal range; see the essay there.
+     On release the travel resumes from zero against the new arrangement, so
+     the head carries on drifting from wherever it was put rather than snapping
+     back to a journey it was on a minute ago. */
+  function commitTravel(){
+   var t=state.travel;
+   if(!t.x&&!t.y)return;
+   state.x+=t.x;state.y+=t.y;
+   t.x=0;t.y=0;
+   if(state.lastFloatMs)writeFloat(state.lastFloatMs-state.floatShift);
+   writeTransform();
+  }
+  function clearTravel(){
+   var t=state.travel;
+   t.x=0;t.y=0;t.dirX=1;t.dirY=1;t.tgtX=1;t.tgtY=1;
+   if(state.lastFloatMs)writeFloat(state.lastFloatMs-state.floatShift);
+  }
   function floatAt(ms){
    var m=metrics(),t=ms/1000,tau=Math.PI*2;
    var y=m.yAmp*Math.sin(tau*t/m.yPer)+m.y2Amp*Math.sin(tau*t/m.y2Per+1.7);
@@ -1243,11 +1443,19 @@
    var r=m.rAmp*Math.sin(tau*t/m.rPer+2.4);
    return {x:x,y:y,rot:r};
   }
+  /* THE BOB RIDES THE TRAVEL, IT IS NOT REPLACED BY IT. The three sinusoids
+     above are what makes the head feel suspended rather than conveyed; the
+     travel is where that suspension is happening. They are summed into the one
+     channel so everything already welded to the float -- the selection frame,
+     the five handles, the environment lighting -- follows both with no second
+     mechanism, and updateLight() in particular now sees the head genuinely
+     crossing the sky, which is what it was written to describe. */
   function writeFloat(ms){
-   var f=floatAt(ms);
-   updateLight(f.x,f.y,f.rot);
-   wrap.style.setProperty("--hero-head-float-x",f.x.toFixed(2)+"px");
-   wrap.style.setProperty("--hero-head-float-y",f.y.toFixed(2)+"px");
+   var f=floatAt(ms),t=state.travel;
+   var fx=f.x+t.x,fy=f.y+t.y;
+   updateLight(fx,fy,f.rot);
+   wrap.style.setProperty("--hero-head-float-x",fx.toFixed(2)+"px");
+   wrap.style.setProperty("--hero-head-float-y",fy.toFixed(2)+"px");
    wrap.style.setProperty("--hero-head-float-rot",f.rot.toFixed(3)+"deg");
   }
   /* ── THE HEAD CASTS NOTHING, SO NOTHING HERE WRITES A SHADOW ─────────────
@@ -1604,10 +1812,15 @@
       grows by exactly the number of reads somebody put back. getState() exposes
       it and the contract fails on any growth at rest. */
    var readsBefore=domReads;
-   /* The float is a pure function of absolute time, so resuming after a pause
-      would snap to wherever the sine had travelled meanwhile. The elapsed
-      paused time is subtracted instead, which makes the motion continue from
-      exactly the offset it was frozen at -- no jump when the cursor leaves. */
+   /* THE TRAVEL IS INTEGRATED, NOT EVALUATED, so it takes the RAW clock: its
+      state is where it got to, and a pause is simply frames that never
+      happened. That is why it needs no floatShift of its own -- stopFloat()
+      drops t.at, so the first frame back measures dt from itself and the head
+      resumes from exactly the offset it was frozen at.
+      The bob below is the opposite: a pure function of absolute time, which
+      would snap to wherever the sine had travelled during the pause. The
+      elapsed paused time is subtracted for it, and only for it. */
+   advanceTravel(ms);
    writeFloat(ms-state.floatShift);
    /* The head has physically moved, so every cached measurement is stale and
       the chrome has to be re-derived from the new rect, in THIS frame. */
@@ -1628,6 +1841,10 @@
   function stopFloat(){
    if(state.floating&&!state.holdAt)state.holdAt=performance.now();
    state.floating=false;
+   /* The travel integrates real dt, so a resume that measured from the last
+      frame BEFORE the pause would hand it the whole pause as one step. Zeroed
+      here so the first frame back measures from itself and moves nothing. */
+   state.travel.at=0;
    if(state.floatFrame)cancelAnimationFrame(state.floatFrame);
    state.floatFrame=0;
   }
@@ -1737,9 +1954,15 @@
       a test can witness the rubber band and the throw -- which are invisible
       in x/y by design, because the arrangement is committed the moment the
       visitor lets go and never carries an illegal value. */
+   /* `travel` is the THIRD half of where the head is, and it is invisible in
+      x/y for the same reason the drift is: the arrangement is what the visitor
+      put there, and the ambient journey is not an arrangement. A test that
+      wants to witness the drift crossing the Hero has to read it here. */
    return {selected:state.selected,active:state.active,loopReads:state.loopReads,
     x:state.x,y:state.y,scale:state.scale,rotate:state.rotate,
     drift:{x:state.drift.x,y:state.drift.y,vx:state.drift.vx,vy:state.drift.vy},
+    travel:{x:state.travel.x,y:state.travel.y},
+    travelBounds:state.base?travelBounds():null,
     settling:!!state.settleFrame,
     box:state.base?transformedBox(state.x,state.y):null};
   }
@@ -1754,6 +1977,12 @@
    var dx=event.key==="ArrowLeft"?-step:event.key==="ArrowRight"?step:0;
    var dy=event.key==="ArrowUp"?-step:event.key==="ArrowDown"?step:0;
    event.preventDefault();
+   /* A KEY PRESS IS A GESTURE TOO. It is exact and discrete, and every branch
+      below reasons about state.x/y -- so the ambient journey is folded into the
+      arrangement first, exactly as a press does, or "move it four pixels left"
+      would be four pixels from a number that is not where the head is. Nothing
+      moves on screen; see commitTravel(). */
+   commitTravel();
    if(spinner){
     var direction=(event.key==="ArrowLeft"||event.key==="ArrowUp")?-1:1;
     var turnStep=event.shiftKey?rootNumber("--hero-head-rotate-step-large",15)
@@ -2003,6 +2232,25 @@
   ambient();startFloat();
   if(document.readyState==="complete")recapture();
   else addEventListener("load",function(){recapture();render();});
+  /* ── THE SETTING CAN CHANGE WHILE THE PAGE IS OPEN ───────────────────────
+     startFloat() has always refused to start under reduce, and that was enough
+     while the float was a +-9px bob: the only way to arrive at reduce was to
+     load with it on. site-theme.js follows the media query live, so it can flip
+     mid-visit -- and what is being refused now is a portrait crossing the whole
+     Hero, which is exactly the autonomous travel the setting is about. A loop
+     already running never re-read the answer, because re-reading it per frame
+     is a DOM read and the one invariant this file enforces with a counter is
+     that the loop makes none. An observer costs nothing until the attribute
+     actually moves, and the head stops where a reduced-motion visitor would
+     have had it all along: home. */
+  new MutationObserver(function(){
+   if(!prefersReducedMotion()){
+    if(state.ambient||state.selected)startFloat();
+    return;
+   }
+   stopFloat();clearTravel();state.stamp++;syncSelection();
+  }).observe(document.documentElement,
+   {attributes:true,attributeFilter:["data-reduced-motion"]});
   /* A tab in the background gets no frames, so the float would resume from a
      clock that jumped. Stopping and restarting keeps it continuous. */
   document.addEventListener("visibilitychange",function(){
