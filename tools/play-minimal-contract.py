@@ -284,4 +284,80 @@ assert 'class="footBandMark"' not in HTML, "play.html still carries the knockout
 # and the band it ends on is still there, still one canvas.
 assert '<div class="footBand"><canvas class="footBandField" aria-hidden="true"></canvas></div>' in HTML
 
+# ══ THE COLUMN, THE RAILS AND THE WALLS ═══════════════════════════════════════════
+# Added 2026-08-20 with the Stripe-style margin rails. Three of these guard bugs that
+# were actually hit while building it, which is the only reason they are here.
+
+# 1 ── ONE EXPRESSION FOR THE COLUMN. The rails, the walls and the card band must all
+# resolve from --col-max / --col-inset. A second hand-written copy of the arithmetic is
+# how the rails and the content drift apart, and the drift is invisible in a diff.
+assert "--col-max:calc(var(--page-max) - var(--sp-40) * 2)" in LIVE, \
+    "play.html no longer defines the column width in one place"
+assert "--col-inset:max(var(--play-gutter),calc((100% - var(--col-max)) / 2))" in LIVE, \
+    "play.html no longer defines the column inset in one place"
+assert ".pCards{pointer-events:auto;width:100%;max-width:var(--col-max)" in LIVE, \
+    "the games band has stopped taking its width from --col-max"
+for side in ("left:var(--col-inset);border-left:var(--rule-w) solid var(--rule)",
+             "right:var(--col-inset);border-right:var(--rule-w) solid var(--rule)"):
+    assert side in LIVE, ("a margin rail is gone", side)
+
+# 2 ── THE PHONE GUTTER IS THE SITE'S GUTTER. play.css used to push --play-gutter to 24
+# below 640px while the header stayed at 16, so on a phone the page's own nav sat 8px
+# outside the page's own content. With rails drawn, that gap is a visible break in the
+# grid. Measured after the fix at 390: .jbNav, .pCards and .footTop are all 16 -> 374,
+# which is index.html's column at the same width.
+assert "@media(max-width:640px){:root{--play-gutter" not in re.sub(r"\s+", "", CSS), \
+    "play.css has taken back a phone gutter that is not the site's column"
+assert "padding:var(--sp-24) var(--play-gutter) 0" in LIVE, \
+    "the hero's own gutter has drifted off the column"
+
+# 3 ── THE WALLS EXIST AND ARE NOT SWITCHED OFF BY body.hmFull. Jayden, 2026-08-20:
+# "they can leave and come back like jump out the side behind the gutter wall but they
+# shouldnt be on top, the gutter walls should be clean." Paint order alone is NOT
+# enough -- --rule is 10% ink and a hairline at 10% over a saturated egghead cannot be
+# seen, so the wall is an opaque mask at z-index 5 (above the heads at 1-4, below
+# .heroCtas at 8). The hmFull clause is called out by name because play.html's <body>
+# ships with that class ON: listing it in the hide selector switched the walls off on
+# the only page that has them, and the symptom was a live rule computing display:none.
+assert ".hero::before{content:\"\";position:absolute;inset:0;z-index:5" in LIVE, \
+    "the gutter walls are gone; heads will paint across the rails"
+assert "--wall-w:calc(var(--col-inset) + var(--rule-w))" in LIVE, \
+    "the wall no longer covers the rail's own pixel column"
+hide = re.search(r"([^{}]*)\.hero::before[^{]*\{display:none\}", LIVE)
+assert hide, "nothing turns the walls off during a game"
+hide_sel = LIVE[LIVE.index("body.playViewportOwned .hero::before"):]
+hide_sel = hide_sel[: hide_sel.index("{display:none}")]
+assert "hmFull" not in hide_sel, \
+    "body.hmFull is in the wall's hide selector, and play.html's body ships with it: " \
+    "the walls will be off at rest"
+for game in ("hmSoccer", "hmRace", "hmTour", "hmBattle", "pTeamOn"):
+    assert game in hide_sel, \
+        (game + " can run with a gutter wall up; a pitch has no column and clipping "
+         "a match at an invisible wall is exactly the tidying CLAUDE.md section 5 forbids")
+
+# 4 ── THE DOORS ARE CELLS, NOT CARDS. The 2x2 grid's internal cross is the grid GAP
+# over a --rule ground -- one declaration that re-forms itself when the phone block
+# drops to a single column. A per-cell border version needs :nth-child() arithmetic
+# rewritten at every breakpoint and is how a carpet of rules arrives.
+assert "gap:var(--rule-w);background:var(--rule)" in LIVE, \
+    "the games grid has lost its hairline seams"
+assert "border-block:var(--rule-w) solid var(--rule)" in LIVE, \
+    "the games band no longer closes itself top and bottom"
+pcard = LIVE[LIVE.index(" .pCard{"):]
+pcard = pcard[: pcard.index("}")]
+assert "box-shadow:none" in pcard and "border-radius:0" in pcard, \
+    ("a card rim or radius is back; the doors are cells flush to the rails now", pcard)
+assert "background:var(--theme-page" in pcard, \
+    ("a cell must carry the page's own ground so the seams are the only marks", pcard)
+
+# 5 ── THE DASHED GRAB BOX IS GONE AND FOCUS IS NOT. Jayden, 2026-08-20: "could you
+# remove the drag box hint it looks kinda bad especially on mobile." It had to sit
+# faintly ON at rest to work on touch, which is what put a dashed rectangle around one
+# word of a display headline. Removing the focus ring with it would leave a keyboard
+# visitor with an invisible stop, so the ring is asserted separately.
+assert "dashed" not in LIVE[LIVE.index(".cycw{"): LIVE.index(".cyc-ch{")], \
+    "the dashed grab hint is back on the mood word"
+assert ".cycw:focus-visible{outline:var(--focus-w) solid var(--c950)" in LIVE, \
+    "the mood word has no visible keyboard focus"
+
 print("play minimal contract: PASS")

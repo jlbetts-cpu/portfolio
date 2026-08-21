@@ -61,7 +61,7 @@
      in flight with the stylesheet rather than one round trip behind it. -->
 <link rel="preload" as="font" type="font/woff2" href="fonts/geist-latin-400-normal.woff2" crossorigin>
 <link rel="preload" as="font" type="font/woff2" href="fonts/geist-latin-600-normal.woff2" crossorigin>
-<link rel="stylesheet" href="tokens.css?v=0d4908abb4">
+<link rel="stylesheet" href="tokens.css?v=f1089b23fe">
 <style>
 /* ===========================================================================
    ABOUT -- a real page, not an overlay.
@@ -108,13 +108,31 @@ body{background:var(--c50);color:var(--c950);font-family:var(--sans);-webkit-fon
    prose against the head; here they hold it against the photographs, which is
    the same measure problem with a different object on the right. */
 .abGrid{display:grid;grid-template-columns:minmax(0,1fr) clamp(340px,40vw,520px);
- gap:var(--sp-48-80);align-items:start;padding-top:var(--sp-16-24)}
+ gap:var(--sp-48-80);align-items:start;
+
+/* THE INSET BELOW THE BAND IS THE SITE'S, NOT THIS PAGE'S. --sp-16-24 put the h1
+   16px under the band's bottom edge on a phone and 24 on a desktop -- the
+   TIGHTEST of the nine pages, against headmaker's 84/88 and the case studies'
+   48/56, a 5.4x spread across a site whose bar is identical on every page.
+   Jayden: "spacing on phone feels a bit odd ... some parts dont feel connected
+   ... or just too much space." One rung now: --sp-32-48, 32 on a phone and 48
+   from 881 up, the same value the case studies and both tool pages now take.
+   Here it is a rung UP -- 35px of h1 was landing 16px under a hairline. */
+ padding-top:var(--sp-32-48)}
 .abBody{padding-bottom:clamp(46px,8vw,130px)}
 .abBody .abSec{margin-bottom:var(--sp-48-72)}
 .abBody .abSec:last-child{margin-bottom:0}
 .abBody h2{font-family:var(--sans);font-weight:600;font-size:var(--fs-h2);line-height:var(--lh-tight);letter-spacing:var(--tr-sub);color:var(--c950);margin:0 0 var(--sp-16);filter:url(#inkBig)}
 .abBody p{font-family:var(--sans);font-weight:400;font-size:var(--fs-prose);line-height:var(--lh-prose);color:var(--c950);margin:0;max-width:44ch;text-wrap:pretty}
-.abBody p+p{margin-top:var(--sp-32-48)}
+/* PARAGRAPH TO PARAGRAPH WAS TWICE THE HEADING'S OWN GAP, and that inversion is
+   what "some parts dont feel connected" looks like inside a section. Measured at
+   390: .abBody h2 sits --sp-16 (16px) above its first paragraph, and p+p was
+   --sp-32-48 -- 32 on a phone, 48 on a desktop. So two paragraphs of one thought
+   stood twice as far apart as the heading stood from the thought it introduces,
+   and at 1440 three times. Rebound to --sp-24-32: 24 on a phone, exactly one
+   24px line pitch, and 32 up. Still clearly more than the 16 above, so the
+   heading still owns its first paragraph -- the order is just right way round. */
+.abBody p+p{margin-top:var(--sp-24-32)}
 .abBody .abSec.abConnect{max-width:520px}
 /* .abBody p IS (0,1,1) AND THIS WAS (0,1,0), so every rule they share was decided
    by the prose rule and not this one: "At a glance" and "Get in touch" measured
@@ -385,6 +403,14 @@ body{background:var(--c50);color:var(--c950);font-family:var(--sans);-webkit-fon
  .abGrid{row-gap:var(--sp-48-72)}
  .abBody .abSec{margin-bottom:0}
  .abBody .abSec:last-child{margin-bottom:0}
+ /* AND THE TITLE'S OWN MARGIN GOES WITH THEM, which it should have done in the
+    same pass that zeroed the sections'. display:contents makes .abTitle a grid
+    ITEM, so the row-gap already separates it -- its margin-bottom was added on
+    top. Measured at 390: 24 (--sp-24-40) + 48 (row-gap) = 72px between "Hello,
+    I'm Jayden Betts." and the lede that answers it, the LARGEST gap on the page,
+    joining the two blocks with the most to do with each other, while every other
+    join on the page was 48. This is a deletion, not a retune: one rhythm now. */
+ .abTitle{margin-bottom:0}
  .abTitle                    {order:1}
  .abBody .abSec.abLede       {order:2}
  .abShot:nth-child(3)        {order:3}   /* Clay Self Portrait in Blender */
@@ -445,10 +471,10 @@ body{background:var(--c50);color:var(--c950);font-family:var(--sans);-webkit-fon
      .ctl--quiet.ctl--row, so it needs it -- and it should have had it anyway.
      It loads BEFORE header.css, the same order the five case studies use, so
      header.css keeps the last word on .jbDiscMenu exactly as it does there. -->
-<link rel="stylesheet" href="controls.css?v=0d4908abb4">
-<link rel="stylesheet" href="header.css?v=0d4908abb4">
-<link rel="stylesheet" href="footer.css?v=0d4908abb4">
-<link rel="stylesheet" href="site-theme.css?v=0d4908abb4">
+<link rel="stylesheet" href="controls.css?v=f1089b23fe">
+<link rel="stylesheet" href="header.css?v=f1089b23fe">
+<link rel="stylesheet" href="footer.css?v=f1089b23fe">
+<link rel="stylesheet" href="site-theme.css?v=f1089b23fe">
 <script src="header.js" defer></script>
 <script src="footer-band.js" defer></script>
 </head>

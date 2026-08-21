@@ -90,14 +90,17 @@
    nav (8+52 = 16+44 = 60). That alignment was right and is kept. ---- */
 :root{--play-gutter:var(--sp-16-24);--play-top:var(--sp-16)}
 @media(max-width:760px){:root{--play-top:calc(var(--nav-h) + var(--sp-20))}}
-/* 24, not 12. THE PHONE HALF OF THE MARGIN FIX (the other half is .pCards' max-width in
-   play.html). Above ~1280 the mode row's inset is set by centring and this value never bites;
-   below it the gutter IS the margin, and at 390 this was putting the four doors 12px from the
-   glass while index.html's nav sits at 16 and gradientlab.html's main -- the page that settled
-   the site standard -- sits at 24. 12 was the odd one out on the one width where the margin is
-   most visible, because there is nothing else on the row to compare it against.
-   This also moves .pTeam, which takes the same token and was 12 for the same wrong reason. */
-@media(max-width:640px){:root{--play-gutter:var(--sp-24)}}
+/* THE 24px PHONE OVERRIDE IS GONE, AND ITS OWN REASONING IS WHY. It was written to fix a
+   12px gutter and it picked 24 off gradientlab.html because "there is nothing else on the row
+   to compare it against". On 2026-08-20 there is: the margin rails draw the column, so the
+   comparison is unavoidable and it was failing. MEASURED at 390 before this line came out --
+   .jbNav 16 -> 374, .pCards 24 -> 366, .footTop 24 -> 366: the play page's own header sat 8px
+   OUTSIDE its own content, on one page, at the width where a margin is most visible. Measured
+   on index.html at the same width, .jbNav, .csTabs, .csFrame and .footTop are all 16 -> 374.
+   16 is the site's column and --play-gutter already resolves to it (--sp-16-24 is 16 below
+   880px), which is exactly what this token's own comment above says it is for: "--play-gutter
+   IS the header's gutter, tracked at every width". Deleting the override is the fix.
+   This also moves .pTeam back onto the column, which takes the same token. */
 
 body{background:var(--c50);color:var(--c950);font-family:var(--sans);-webkit-font-smoothing:antialiased;overflow-x:clip}
 .eye{position:absolute;border-radius:var(--r-full);overflow:hidden;z-index:3;pointer-events:none;transition:transform .08s steps(2);filter:url(#inkEye)}

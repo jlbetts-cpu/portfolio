@@ -50,7 +50,7 @@
      page alone, so the ink-surface nav lost its top highlight here and nowhere
      else. Linked BEFORE this page's <style>, so anything the page still declares
      for itself continues to win. -->
-<link rel="stylesheet" href="tokens.css?v=0d4908abb4">
+<link rel="stylesheet" href="tokens.css?v=f1089b23fe">
 <style>
 html{scroll-behavior:smooth}
 html.softScrolling{scroll-behavior:auto}
@@ -87,7 +87,57 @@ html.softScrolling{scroll-behavior:auto}
                     so); kept because play.css defines the same name for the same
                     purpose, and deleting one half of a pair from one file is how
                     the pair stops matching. */
-:root{--fs-hero:clamp(33px,4.1vw,50px);--fs-heroline:var(--fs-pagehead-sm);--accent-live:#17A45A}
+:root{--fs-hero:clamp(33px,4.1vw,50px);
+ /* ── THE HOME HERO'S HEADLINE STEPS UP A RUNG. HE ASKED FOR IT. ────────────
+    Jayden, 2026-08-20: "i feel like the hero would significantly benifit from
+    the h1 text being bigger ... but defiently do research to make sure."
+    Section 4 of CLAUDE.md says this h1 is his alone and must not be restyled
+    without asking. He has asked, and the research is why the number is this
+    number and not a nudge.
+    WHAT SHIPPED WAS AN OUTLIER AND THE MEASUREMENT IS OTHER PEOPLE'S SITES.
+    Driven in a real Chromium at 1440x900 and read off getComputedStyle, the
+    display-hero cohort runs:
+        vercel.com (GEIST, the same family)   64px / lh 1.00 / -.06em
+        davidhoang.com (VP Design, Atlassian) 96px / lh 1.21 / -.03em
+        adhamdannaway.com (product designer)  82px / lh 1.10 / -.06em
+        linear.app                            64px / lh 1.00 / -.022em
+        figma.com                             56px / lh 1.00 / -.022em
+        stripe.com                            48px / lh 1.15 / -.02em
+    Median 64, floor 48. This h1 was 35, which is under every one of them --
+    and Vercel's own setting of Geist is the most transferable number on that
+    list. On phones the same cohort lands 38-51px, which is .53-.75 of its own
+    desktop size.
+    IT DOES NOT GO TO 64, AND THE REASON IS THE SENTENCE. "SF product designer.
+    iOS, B2C and design systems." is 49 characters against David Hoang's 38, so
+    the same size sets far more line. At 50 (--fs-hero) it takes three lines at
+    390 and four at 320; at 44 it holds TWO at 1440, 1280, 390 and 320 alike.
+    Measured, all four rungs, at all four viewports.
+    IT IS A RUNG AND NOT A NUMBER, AND THAT IS HIS SECOND INSTRUCTION.
+    Jayden, same day, after seeing a literal clamp(35px,3.34vw,48px) here:
+    "maybe the text is to big for the h1 now maybe before was better and
+    tokenized." He is right on both counts -- 48 was a literal wearing a clamp,
+    and it was a step past what the sentence carries. --fs-pagehead is the
+    existing rung one above --fs-pagehead-sm, and the four candidates rendered
+    side by side were:
+        --fs-pagehead-sm  35 / 28.1 / 27      what shipped   2 lines, 2, 3
+        --fs-title        40 / 29   / 29                     2, 2, 3
+        --fs-pagehead     44 / 30   / 30      THIS           2, 2, 3
+        --fs-hero         50 / 33   / 33                     2, 3, 4
+    (1440 / 390 / 320.) --fs-hero is named for "an h1 that is the only thing on
+    the screen" and would be the obvious pick if the sentence were shorter; it
+    is not, and a third line on a phone is the fold this pass is trying to buy
+    back.
+    ONE ALIAS REPLACES THREE DECLARATIONS. The two media-query font-size
+    overrides below this went with it -- the phone's clamp(28px,7.7vw,32px) and
+    the short-window clamp(30px,3.2vw,36px). --fs-pagehead's own floor is 30,
+    which is what the phone rule was computing anyway (30.03 at 390), and the
+    short-window rule was a WART: it set 36 while the 1440 base set 35, so a
+    narrower window got a bigger headline. Deleting both is the subtraction; the
+    fluid rung already does what they were doing by hand.
+    IT IS DECLARED HERE AND NOT IN tokens.css because --fs-heroline is shared
+    with play.css, whose h1 is a different sentence in a different box. */
+ --fs-heroline:var(--fs-pagehead);
+ --accent-live:#17A45A}
 *{box-sizing:border-box;margin:0;padding:0}
 @media(max-width:760px){
  .moodBtn{padding:12px 16px;font-size:var(--fs-body)}
@@ -687,11 +737,27 @@ body.heroEmpathy .jbStick .jbNav{--nav-mat:var(--ctl-ground);--nav-rim:var(--ctl
 .csItem.csIn .csFrame{opacity:1;transform:none}
 .csImg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
 .csItem:has(.soon) .csImg{filter:grayscale(1)}
-.csMeta{display:flex;align-items:baseline;justify-content:space-between;gap:var(--sp-24);margin:0;opacity:0;transform:translateY(var(--sp-14));transition:opacity var(--enter-dur) var(--ease-out) var(--enter-stagger),transform var(--enter-dur) var(--ease-out) var(--enter-stagger);will-change:transform,opacity}
+.csMeta{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:0 var(--sp-24);margin:0;opacity:0;transform:translateY(var(--sp-14));transition:opacity var(--enter-dur) var(--ease-out) var(--enter-stagger),transform var(--enter-dur) var(--ease-out) var(--enter-stagger);will-change:transform,opacity}
 .csItem.csIn .csMeta{opacity:1;transform:none}
 .csName{font-family:var(--sans);font-weight:600;font-size:var(--work-title-size);letter-spacing:var(--tr-head);color:var(--c950);}
 .csName .soon{font-weight:600;font-size:.62em;letter-spacing:var(--tr-flat);color:var(--c500);margin-left:.5em;vertical-align:baseline}
 .csYear{font-family:var(--sans);font-weight:600;font-size:var(--work-year-size);letter-spacing:var(--tr-title);color:var(--c500);font-variant-numeric:tabular-nums;}.csItem.wip .csYear{border:var(--hair-w) dashed var(--c100);border-radius:var(--r-2xs);padding:var(--sp-8) var(--sp-16);font-size:var(--fs-label);color:var(--c700);line-height:var(--lh-flat);filter:none;align-self:center}
+/* ── THE ONE LINE THAT SAYS WHAT HAPPENED ───────────────────────────────────
+   Every portfolio guide for 2026 says the same thing and the reason is the
+   clock: a recruiter working through 40 portfolios gives each one 10-15
+   seconds, so a thumbnail that says "Bearings 2026" spends that budget on a
+   name. What earns it is the outcome.
+   EVERY WORD IS HIS OWN. These are lifted from each case study's "at a glance"
+   facts -- the award, the team size, the duration, the shipped artefact -- and
+   not one number is invented. A fabricated metric on a job-hunting portfolio is
+   a lie he would have to defend in an interview.
+   IT IS A CAPTION, NOT A THIRD TITLE: --fs-small at 400 in the muted ink, on
+   its own row under the name, so the row still reads name-then-year across and
+   the line sits beneath them rather than competing. */
+.csImpact{flex:1 0 100%;order:3;margin-top:var(--sp-4);
+ font-family:var(--sans);font-weight:400;font-size:var(--fs-small);
+ line-height:var(--lh-note);letter-spacing:var(--tr-body);
+ color:var(--theme-muted,var(--c700));text-wrap:pretty}
 /* cursor-following case-study reader (desktop hover only) */
 .csCursor{position:fixed;top:0;left:0;width:0;height:0;z-index:131;pointer-events:none;opacity:0;transition:opacity var(--dur-state) var(--ease-out)}
 .csCursor.on{opacity:1}
@@ -1867,25 +1933,92 @@ html{scroll-padding-top:calc(var(--nav-h) + var(--sp-16-24))}
    declared on .hero cannot be seen by a declaration on an ancestor. */
 :root{--heroReveal:0px;--heroBox:100vh;--heroRow:100vh}
 @supports (height:1svh){:root{
- /* THE REVEAL IS A SHARE OF THE SLACK, NOT A SHARE OF THE VIEWPORT, and that
-    is the whole of the short-laptop case. The Hero's content -- copy 164px,
-    gap, head 333px -- is about 520px on a desktop and does not shrink with the
-    window, so a flat percentage takes 1440x900 to a comfortable 702 and
-    1280x650 to 520, which is less than the content it has to hold. Measured at
-    650 the head already rests 25px off the floor with the crowd-drop
-    saturated: there is nothing left to give and the correct reveal is zero.
-    Subtracting the content before taking the share says exactly that. */
- --heroReveal:clamp(0px,calc((100svh - 680px) * .9),240px);
+ /* ── THE REVEAL IS ALL THE SLACK NOW, NOT .9 OF IT ─────────────────────────
+    Jayden, 2026-08-20: "i think the hero should be a bit smaller still like
+    start kinda around where the time button ends". The button is the corner
+    control now (index.html:~1979), so its lower edge IS the Hero's floor minus
+    --heroRailB, and the sentence resolves to "the Hero ends where the control
+    ends" -- which is what the number below makes true.
+    THE SHAPE WAS ALREADY RIGHT AND THE FACTOR WAS THE COMPROMISE. `(svh - K)
+    * .9` says "give back nine tenths of whatever is left over", so the Hero
+    kept a tenth of every extra pixel of window and grew with the monitor. The
+    whole point of a content constant is that the composition does not depend on
+    the window, so the factor is 1: the Hero is K tall, or the viewport if the
+    viewport is shorter than K. Every relationship inside it -- the copy's
+    centre, the head's crown, the sky's focal point -- then holds still from a
+    650px window to a 1600px one instead of drifting.
+    650 IS MEASURED, NOT CHOSEN. At 1440 the head's rotated bounding box is
+    334.88px (275px square at -13.8deg), the copy is 104px now that the control
+    has left it, and the copy is centred in the row and lifted -117px. Solving
+    for the floor: the gap over the head's crown and the clearance under its
+    chin sum to H/2 - 269.88, so a 24px floor clearance and a 31px gap under the
+    eyebrow need H = 650. Below that the head is standing in the tab row or
+    parked on the eyebrow. THIS IS THE LIMIT WITHOUT MOVING THE HEADLINE OR THE
+    HEAD -- both of which are Jayden's, and going further is a question for him,
+    not a tuning pass. The other 90px he could have are in hero-head-transform
+    .js's travel ceiling; see the handover note there.
+    THE CAP IS A SAFETY VALVE, NOT A COMPOSITION. It only binds above a 1150px
+    viewport and exists so a misreported svh cannot subtract the whole Hero. */
+ /* ── 650 -> 560, AND THE RESEARCH IS WHY IT IS A NUMBER AND NOT A NUDGE ────
+    Jayden, 2026-08-20: "the hero reducing in size a little more so you can see
+    at least the top of the mockups. but defiently do research to make sure."
+    MEASURED FIRST, AT 1440x900. The Hero was 650 -- 72% of the fold -- the tab
+    row landed at 666 and the first cover's top edge at 750, so 150px of it was
+    on screen in a 900px window and NOTHING was on screen in an 800px one,
+    which is what a laptop with browser chrome actually is.
+    WHAT THE EVIDENCE SAYS, and it is eye-tracking rather than conversion data
+    -- there is no credible A/B test showing a 100vh hero converts worse, and
+    this note does not claim one:
+      - NN/g, The Illusion of Completeness: "when using large banners,
+        carousels, or videos in the hero space, ensure that additional content
+        peeks above the fold to lead users to scroll further." It names a hero
+        graphic that FILLS the fold as the first cause of a false bottom.
+      - NN/g, The Fold Manifesto (57,453 fixations): the 100px just above the
+        fold is viewed 102% more than the 100px just below it, and "users do
+        scroll, but only if what's above the fold is promising enough."
+      - NN/g, Scrolling and Attention (130,000+ fixations, 120 participants):
+        57% of viewing time is above the fold and 42% is in the top fifth of
+        the page.
+      - Measured on davidhoang.com at 1440x900, which is the closest peer:
+        hero 144->715, so 571px = 63% of the fold, with 185px of the next
+        section showing under it.
+    560 IS 62% OF A 900px FOLD, which is that number, and it puts the first
+    cover's top edge at 660 -- 240px of it above the fold at 900 and 140px at
+    800. The tab row comes with it at 576.
+    IT DOES NOT GO FURTHER, and the limit is arithmetic rather than nerve: the
+    distance from the Hero's floor to the first cover is a fixed 100px of tab
+    row and section join, so a 650-tall WINDOW cannot show any cover at all
+    without a Hero under 484 -- reported rather than taken, because 484 is not
+    "a little more". */
+ --heroReveal:clamp(0px,calc(100svh - 560px),500px);
  --heroBox:calc(100svh - var(--heroReveal));
  --heroRow:calc(100svh - var(--heroReveal))}}
 @supports (height:1dvh){:root{--heroBox:calc(100dvh - var(--heroReveal))}}
 .hero{
  --heroPadT:72px;
  --heroPadB:calc(72px + env(safe-area-inset-bottom));
+ /* The corner control's own inset off the Hero's floor. It is NOT --heroPadB:
+    the block padding is the row the copy is centred in and is 108px at 1440,
+    which would park a 44px control a third of the way up the sky. 24px is the
+    inset the Hero's bottom corners can carry -- the surface radius is 28px
+    (--r-xl), so a smaller inset would put the button's corner outside the
+    curve it sits in. */
+ --heroRailB:calc(var(--sp-24) + env(safe-area-inset-bottom));
+ /* THE GUTTER IS A TOKEN BECAUSE TWO THINGS NOW READ IT. The padding below is
+    one; the corner rail is the other, and it CANNOT just say `left:0`. An
+    absolutely positioned box is laid out against its container's PADDING box --
+    the one that INCLUDES the padding -- so `left:0` is the Hero's border edge,
+    not its gutter. Measured before this token existed: the rail landed on
+    120..1320 at 1440 (correct, but only because min(1200px,100%) centred inside
+    1440) and on 0..390 at 390, where the tab row is 16..374. Reading the same
+    value both places is what makes the two edges the same line at every width
+    instead of at the two where the arithmetic happens to agree. */
+ --heroPadL:max(var(--sp-16-40),env(safe-area-inset-left));
+ --heroPadR:max(var(--sp-16-40),env(safe-area-inset-right));
  position:relative;isolation:isolate;overflow:visible;
  display:grid;grid-template-columns:1fr;justify-items:center;align-content:center;
  min-height:var(--heroBox);gap:0;
- padding:var(--heroPadT) max(var(--sp-16-40),env(safe-area-inset-right)) var(--heroPadB) max(var(--sp-16-40),env(safe-area-inset-left));
+ padding:var(--heroPadT) var(--heroPadR) var(--heroPadB) var(--heroPadL);
  border:0;box-shadow:none;border-radius:var(--surface-hero-radius);
  corner-shape:var(--corner);background:var(--c50)
 }
@@ -1921,7 +2054,37 @@ html{scroll-padding-top:calc(var(--nav-h) + var(--sp-16-24))}
    the shallowest one this rule was ever willing to apply, rather than none at
    all -- `transform` is a real property, so the second declaration simply does
    not parse and the first stands. */
-.heroCopy{display:flex;flex-direction:column;align-items:center;transform:translateY(-92px);transform:translateY(clamp(-124px,-13svh,-92px));position:relative;z-index:3}
+/* ── THE COPY IS CENTRED IN THE HERO NOW, AND THE LIFT IS GONE ──────────────
+   Jayden, 2026-08-20: "the h1 text I feel like should be in the middle of the
+   hero."
+   THIS RETIRES A LIFT THAT HAD OUTLIVED ITS ARGUMENT, and the argument is
+   worth keeping because it was right at the time. It read
+   translateY(clamp(-124px,-13svh,-92px)), and the reasoning was: the Hero
+   absorbed the floating bar's 88px of clearance when it went full-bleed, so
+   dead-centre sits ~44px below the authored composition -- and, in the words
+   of the note that stood here, "opens a hole between the copy and the head".
+   THE HEAD IS WHAT CHANGED. That sentence describes a head that RESTED low in
+   the sky, where the only way to close the gap was to bring the type down
+   toward it. The head travels the whole field now (hero-head-transform.js),
+   and .heroCopy carries mix-blend-mode:difference so the crossing is the
+   feature rather than the collision. There is no hole to close, and centring
+   the headline puts it IN the travel path, which is the one place the blend
+   can ever pay off.
+   IT IS justify-content AND NOT A TRANSFORM, and that is the whole mechanism.
+   The Hero is a grid whose single row is the full content box, so .heroCopy is
+   stretched to it; the flex column then decided WHERE in that box its children
+   sat, and the default is flex-start -- the copy was pinned to the top of the
+   box and the negative transform was pulling it further up from there.
+   Centring the flex column puts the copy's box centre on the content box's
+   centre, which at 1440x900 is 108..452 of a 560px Hero: 280, the Hero's own
+   middle to the pixel, with no second number to keep in sync.
+   THE 44px THE OLD NOTE COUNTED IS STILL REAL and is deliberately not paid
+   back. The bar floats over the Hero's top 88px, so the visually clear band is
+   88..560 and its centre is 324. Sitting at 280 puts the headline 44px above
+   that, which is where a display headline belongs -- optical centre for type
+   is above geometric centre, not below it. Paying it back would drop the
+   headline onto the time control's rail. */
+.heroCopy{display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;z-index:3}
 /* ── THE HEADLINE IS NOT A HIT TARGET, AND THAT IS THE WHOLE OF THE DRAG BUG ──
    Jayden: "when it is over the text or buttons it kinda doesnt let me drag or
    resize". The head's pointer surfaces -- .heroCharacterPeek .stage and
@@ -1938,24 +2101,75 @@ html{scroll-padding-top:calc(var(--nav-h) + var(--sp-16-24))}
    as well, which is a worse bug than the one being fixed. (It also drops the
    portrait on top of its own resize handles, which live in a separate
    Hero-level sibling at 2 -- measured as all four corners going dead.)
-   SO THE LEVER IS pointer-events, NOT PAINT ORDER. Nothing in .heroCopy is
-   interactive except .heroCtas: the cycling word that used to be draggable in
-   the headline is gone (hero-engine sets cycWord=null on this page), and #sub
-   is display:none. Marking the copy pointer-transparent lets the head -- still
-   at 2, still painted BEHIND the words, which is the composition Jayden chose
-   -- receive the press, while .heroCtas opts its whole subtree back in and so
-   keeps winning outright: the button that leads to the work cannot be swallowed
-   by a toy, at any z-index, in any engine. The single opt-in is deliberately
-   the CONTAINER and not `a,button,[role=button]`; the time menu, its rows and
-   any future control in that row inherit it without being enumerated.
+   SO THE LEVER IS pointer-events, NOT PAINT ORDER. NOTHING in .heroCopy is
+   interactive any more -- the cycling word that used to be draggable in the
+   headline is gone (hero-engine sets cycWord=null on this page), #sub is
+   display:none, and the time control moved out of the copy entirely on
+   2026-08-20. Marking the copy pointer-transparent lets the head -- still at 2,
+   still painted BEHIND the words, which is the composition Jayden chose --
+   receive the press anywhere under the type.
+   THE `.heroCtas{pointer-events:auto}` OPT-IN THAT STOOD HERE IS GONE WITH IT,
+   and its deletion is not a tidy-up: the row is no longer a descendant of
+   .heroCopy, so the rule had nothing left to opt back in. The control's own
+   opt-in now lives on the rail below, where the rail is transparent to the
+   pointer and only the 44px button is not -- which is the same guarantee one
+   layer lower down, and it costs the travelling head 0px of draggable sky
+   instead of the rail's full width.
    The cost is that the h1 is no longer selectable text. It is a 2-3 line
    display headline under an SVG ink filter, not prose. */
 .heroCopy{pointer-events:none}
-.heroCtas{pointer-events:auto}
-.heroCopy h1{order:1;margin:0 auto;max-width:min(14.4em,100%);font-size:var(--fs-heroline);
- line-height:1.06;letter-spacing:var(--tr-head);text-align:center;text-wrap:balance}
-.heroCtas{order:2;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;
- gap:var(--sp-8);margin-top:var(--sp-16);position:relative;z-index:8}
+/* ── TRACKING AND MEASURE MOVE WITH THE SIZE, BECAUSE THEY ARE THE SAME
+   DECISION. Section 3.5 of CLAUDE.md keeps the Apple reference's SIZE-SPECIFIC
+   advice even where the typeface is settled, and every source agrees on the
+   direction: Material 3's own table runs leading 1.50 -> 1.12 and tracking
+   +0.5 -> -0.25 as the role climbs from body to displayLarge, Carbon's fluid
+   display rungs go negative (-0.64px, -0.96px) only at the top breakpoints,
+   and Refactoring UI states it outright -- taller leading for small text,
+   shorter for large. So the rung goes down one: --tr-head (-.027em) is the
+   heading rung and --tr-hero (-.030em) is the one above it, which is also
+   inside the -.02 .. -.06em band the six measured heroes occupy.
+   LEADING STAYS AT 1.06 AND THAT IS THE POINT, NOT AN OVERSIGHT. It is already
+   below --lh-tight (1.08) and inside the 1.00-1.21 band every display hero
+   measured sits in; growing the size is a reason to hold it, never to loosen
+   it. Vercel sets Geist at 64/1.00.
+   THE MEASURE TIGHTENS SO THE LINE COUNT DOES NOT CHANGE. 14.4em at 35px was
+   504px; 14.4em at 48px is 691px, which lets the balancer take a third line
+   at 1440. 11.6em holds it to two at every width from 761 up -- measured, not
+   assumed -- and 11.6em at 48px is 557px, which is still inside the 1200px
+   page measure by a wide margin. */
+.heroCopy h1{order:1;margin:0 auto;max-width:min(11.6em,100%);font-size:var(--fs-heroline);
+ line-height:1.06;letter-spacing:var(--tr-hero);text-align:center;text-wrap:balance}
+/* ── THE TIME CONTROL'S RAIL: THE HERO'S BOTTOM-RIGHT, ON THE PAGE'S COLUMN ──
+   Jayden: "put the button for day change in the bottom right corner of the hero
+   using the grid".
+   THE COLUMN IS MEASURED, NOT INVENTED. Every other band on this page runs
+   120..1320 at 1440 and 16..374 at 390: the nav's contents, the tab row, the
+   first cover, the footer rule. All of them are `min(1200px,100%)` centred
+   inside their section's inline padding, and that is literally the declaration
+   below. An absolutely positioned child is laid out against its container's
+   PADDING box, so `left:0;right:0` already starts at the Hero's own inline
+   padding -- 40px at 1440, 16px at 390 -- and min(1200px,100%) + margin-inline
+   :auto puts the right edge on 1320 and 374 without a second number existing.
+   THE RAIL IS POINTER-TRANSPARENT AND THE BUTTON IS NOT. The rail spans the
+   whole column and sits above the head; left solid it would be a 1200px-wide
+   dead strip across the sky the head now travels through. `pointer-events:none`
+   on the rail with `auto` on its children costs the head exactly the 44px the
+   control needs and nothing else.
+   z-index 4, NOT 8. Eight was a number chosen inside .heroCopy's stacking
+   context, where it resolved to 3 anyway (the essay above). Out here it is a
+   real Hero-level layer, and the only thing it has to beat is the head at 2. */
+.heroCtas{position:absolute;left:var(--heroPadL);right:var(--heroPadR);bottom:var(--heroRailB);
+ /* left AND right set with width:auto makes the box span the gutter; max-width
+    then caps it at the page measure and the auto inline margins split what is
+    left, which is the same centring every other band on the page gets. Setting
+    a `width` here instead would over-constrain the box and drop `right`.
+    margin-block:0 is not decoration. :850 still carries `margin-top:32px` from
+    the centred-stack era, earlier in this sheet at the same specificity, and on
+    an absolutely positioned box with top:auto it is a live 32px push. */
+ max-width:1200px;margin-inline:auto;margin-block:0;
+ display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;
+ gap:var(--sp-8);z-index:4;pointer-events:none}
+.heroCtas>*{pointer-events:auto}
 /* THE `opacity:1;transform:none` THAT STOOD HERE WAS THE BLACKOUT.
    Jayden: "I noticed the buttons are there on first load but they dont do
    there animation till after." Measured: it is (0,1,0), the same weight as
@@ -1972,7 +2186,10 @@ html{scroll-padding-top:calc(var(--nav-h) + var(--sp-16-24))}
    NEXT rule. controls.css keeps .workCta for play.html, which still has one. */
 @media(max-width:760px){
  .hero{--heroPadT:calc(var(--sp-8) + var(--nav-h) + var(--sp-12));--heroPadB:calc(var(--sp-48) + env(safe-area-inset-bottom));
-  padding:var(--heroPadT) max(var(--sp-16),env(safe-area-inset-right)) var(--heroPadB) max(var(--sp-16),env(safe-area-inset-left));border-radius:var(--surface-hero-radius)}
+  --heroPadL:max(var(--sp-16),env(safe-area-inset-left));
+  --heroPadR:max(var(--sp-16),env(safe-area-inset-right));
+  --heroRailB:calc(var(--sp-16) + env(safe-area-inset-bottom));
+  padding:var(--heroPadT) var(--heroPadR) var(--heroPadB) var(--heroPadL);border-radius:var(--surface-hero-radius)}
  /* THE STATUS LINE HAS TO BE PAID FOR, AND THE HEAD IS WHO PAYS. .heroCred
     costs 30px and this column is centred, so adding it pushed the CTA row down
     14px -- which at 320 walked #heroTimeBtn onto the ne resize handle's dot.
@@ -1985,14 +2202,33 @@ html{scroll-padding-top:calc(var(--nav-h) + var(--sp-16-24))}
     clearance needed is 4px (the failing samples are the dot's centre and its
     top edge, 3.5px up) and 8 leaves double that without moving the headline
     further than the added line already did. */
- .heroCopy{transform:translateY(calc((var(--sp-14) + var(--sp-48) + var(--sp-8)) * -1))}
- .heroCopy h1{font-size:clamp(28px,7.7vw,32px);max-width:13em}
- .heroCtas{margin-top:var(--sp-14)}
+ /* DELETED 2026-08-20 with the desktop lift above: the phone's own
+    translateY(-70px). The essay it carried was about paying for .heroCred out
+    of the head's room so #heroTimeBtn would not walk onto the ne resize
+    handle's dot at 320 -- and the control left the copy for the Hero's
+    bottom-right rail in the same day's work, so there is nothing left in this
+    column for the lift to move out of the handle's way. `justify-content
+    :center` above governs both widths; verified at 390 and 320 that the
+    control's box and the handle's dot no longer share a row. */
+ /* DELETED 2026-08-20: `.heroCopy h1{font-size:clamp(28px,7.7vw,32px);
+    max-width:13em}`. Both halves were computing what the shared rung already
+    computes. --fs-pagehead's floor is 30 and this rule's clamp resolved 30.03
+    at 390 and 28 at 320 -- a third of a pixel apart at one width and smaller at
+    the other -- and the 13em measure never bound, because the column is 358px
+    at 390 and 288 at 320 and `min(11.6em,100%)` is already the narrower of the
+    two there. The six measured display heroes set .53-.75 of their own desktop
+    size on a phone; 30/44 is .68, inside that band without a rule to say so. */
+ /* the rail is at the Hero's floor now, not under the eyebrow: it takes an
+    inset, not a margin. */
 }
 @media(max-height:720px) and (min-width:761px){
  .hero{--heroPadT:var(--sp-48);--heroPadB:var(--sp-48);padding-block:var(--heroPadT) var(--heroPadB)}
- .heroCopy h1{font-size:clamp(30px,3.2vw,36px)}
- .heroCtas{margin-top:var(--sp-12)}
+ /* DELETED 2026-08-20: `.heroCopy h1{font-size:clamp(30px,3.2vw,36px)}`. It
+    was a wart, not a safeguard -- 3.2vw capped at 36 made a 1280x650 window set
+    a BIGGER headline than a 1440x900 one set at the 35px base, which is the
+    opposite of what a short-window rule is for. The shared rung sets 43.5 at
+    1280 and holds two lines in a 560px Hero there; measured, with the copy
+    centred, and the block clears the tab row. */
 }
 @media(prefers-reduced-motion:reduce){
  .heroCtas>*{transition:none!important;animation:none!important}
@@ -2033,7 +2269,9 @@ html{scroll-padding-top:calc(var(--nav-h) + var(--sp-16-24))}
 /* The eyebrow goes ABOVE, which is the reference's order and the reason the
    pair reads as one object. order:0 beats .heroCred's own order:1. */
 :root[data-hero-headline="corner"] .heroCred{order:0;margin:0 0 var(--sp-4)}
-:root[data-hero-headline="corner"] .heroCtas{justify-content:flex-start;margin-top:var(--sp-16)}
+/* DELETED 2026-08-20 with the move to the corner rail: the time control is no
+   longer part of the headline block, so the "corner" headline treatment has
+   nothing to say about where it sits. It is bottom-right in both treatments. */
 /* The band's own bottom offset. The reference sits 20px off the floor of a
    176-208px band; the same PROPORTION on a 702px Hero is about 40px, and the
    Hero's 108px of block padding was leaving 108. Only the bottom moves: the
@@ -2070,11 +2308,13 @@ html{scroll-padding-top:calc(var(--nav-h) + var(--sp-16-24))}
    patch handed over; this is the belt that does not need it to land. */
 @media(max-width:760px){:root{--heroReveal:0px;--heroBox:100vh;--heroRow:100vh}}
 @supports (height:1svh){@media(max-width:760px){:root{
- /* A phone has more slack than a laptop -- the head is 211px wide here, not
-    275 -- but less absolute room, so the share is gentler and the ceiling
-    lower. 390x844 reveals 123px and 320x800 reveals 99px: the 68px tab row
-    clears the fold at both, which is the thing he asked for. */
- --heroReveal:clamp(0px,calc((100svh - 620px) * .78),196px);
+ /* SAME ARITHMETIC, SMALLER PARTS. The head is 211px wide here and not 275, so
+    its rotated box is 256.96px; the copy is 93.4px at 390. With the phone's own
+    -70px lift the two gaps sum to H/2 - 210.68 - C, and 570 is where a 20px
+    floor clearance and a 31px gap under the eyebrow both land. 390x844 and
+    320x800 both reveal enough for the 68px tab row AND the top of the first
+    cover, which is more than the .78 share used to give. */
+ --heroReveal:clamp(0px,calc(100svh - 570px),400px);
  --heroRow:calc(100svh - var(--heroReveal))}}}
 @supports (height:1dvh){
  @media(max-width:760px){:root{--heroBox:calc(var(--hero-mobile-height) - var(--heroReveal))}}
@@ -2096,11 +2336,11 @@ html{scroll-padding-top:calc(var(--nav-h) + var(--sp-16-24))}
      move: 24,600 computed properties over 820 elements at 1440 and 390, and the
      only differences are the nav icons going back to the 18px they have always
      drawn at. -->
-<link rel="stylesheet" href="controls.css?v=0d4908abb4">
-<link rel="stylesheet" href="header.css?v=0d4908abb4">
-<link rel="stylesheet" href="hero-time.css?v=0d4908abb4">
-<link rel="stylesheet" href="footer.css?v=0d4908abb4">
-<link rel="stylesheet" href="site-theme.css?v=0d4908abb4">
+<link rel="stylesheet" href="controls.css?v=f1089b23fe">
+<link rel="stylesheet" href="header.css?v=f1089b23fe">
+<link rel="stylesheet" href="hero-time.css?v=f1089b23fe">
+<link rel="stylesheet" href="footer.css?v=f1089b23fe">
+<link rel="stylesheet" href="site-theme.css?v=f1089b23fe">
 <script>/* THE OLD OVERLAY'S URL STILL RESOLVES. index.html#about was the only address
    About ever had, and it is linked from play.html and the other sub-pages, and sits in
    anyone's history. Redirected before first paint (replace(), so it leaves no entry to
@@ -2232,8 +2472,10 @@ if(location.hash==="#about")location.replace("about.html");</script>
         overruled, which is his call to make. -->
    <p class="heroCred">Open to full-time roles.</p>
    <!-- "View work" IS GONE, ON JAYDEN'S INSTRUCTION (2026-08-20): "removing the
-        view work button and just having the text". The row is not empty -- the
-        time-of-day control stays, and it is the only thing in it now.
+        view work button and just having the text". The row that held it is not
+        empty and is not here any more either: the time-of-day control was the
+        only thing left in it, and it moved to the Hero's bottom-right corner
+        the same day. The copy is the headline and the eyebrow, and nothing else.
         NOTHING IS LOST AT THE LINK LEVEL: the button's whole job was to reach
         #cases, and with --heroReveal in force the tab row and the top of the
         first cover are already on screen at 1440x900, 390x844 and 320x800 --
@@ -2241,23 +2483,45 @@ if(location.hash==="#about")location.replace("about.html");</script>
         nav's own Work item and #cases itself all still address it.
         hero-engine.js:1872 binds the soft-scroll to it behind `if(_wbtn)`, so
         it degrades on its own and needs no change. -->
-   <div class="heroCtas">
-    <div class="heroTime" id="heroTime">
-     <button class="heroTimeBtn ctl ctl--secondary ctl--icon" id="heroTimeBtn" type="button" aria-label="Time of day" aria-haspopup="menu" aria-expanded="false" aria-controls="heroTimeMenu"><svg class="heroTimeIcon uiIcon" id="heroTimeIcon" viewBox="0 0 24 24" aria-hidden="true"><g data-hero-time-icon="pre-dawn"><use href="ui-icons.svg#lucide-moon-star"/></g><g data-hero-time-icon="sunrise"><use href="ui-icons.svg#lucide-sunrise"/></g><g data-hero-time-icon="daytime"><use href="ui-icons.svg#lucide-sun"/></g><g data-hero-time-icon="dusk"><use href="ui-icons.svg#lucide-cloud-sun"/></g><g data-hero-time-icon="sunset"><use href="ui-icons.svg#lucide-sunset"/></g><g data-hero-time-icon="night"><use href="ui-icons.svg#lucide-moon"/></g><g data-hero-time-icon="off"><use href="ui-icons.svg#lucide-circle-off"/></g></svg></button>
-     <div class="heroTimeMenu ctl-menu" id="heroTimeMenu" role="menu" aria-label="Choose time of day">
-      <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="true" data-time-mode="auto"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true"><use href="ui-icons.svg#lucide-rotate-ccw"/></svg>Automatic</button>
-      <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="false" data-time-mode="off"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true"><use href="ui-icons.svg#lucide-circle-off"/></svg>Off</button>
-      <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="false" data-time-mode="pre-dawn"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true"><use href="ui-icons.svg#lucide-moon-star"/></svg>Pre-dawn</button>
-      <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="false" data-time-mode="sunrise"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true"><use href="ui-icons.svg#lucide-sunrise"/></svg>Sunrise</button>
-      <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="false" data-time-mode="daytime"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true"><use href="ui-icons.svg#lucide-sun"/></svg>Daytime</button>
-      <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="false" data-time-mode="dusk"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true"><use href="ui-icons.svg#lucide-cloud-sun"/></svg>Dusk</button>
-      <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="false" data-time-mode="sunset"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true"><use href="ui-icons.svg#lucide-sunset"/></svg>Sunset</button>
-      <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="false" data-time-mode="night"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true"><use href="ui-icons.svg#lucide-moon"/></svg>Night</button>
-     </div>
+  </div>
+
+  <!-- ── THE TIME CONTROL LEAVES THE CENTRED STACK AND TAKES THE PAGE'S GRID ──
+       Jayden, 2026-08-20: "put the button for day change in the bottom right
+       corner of the hero using the grid".
+       THE GRID IS NOT INVENTED HERE, IT IS THE ONE EVERY OTHER BAND ALREADY
+       USES. Measured on this page: the nav's contents, the Featured/Case
+       Studies tab row, the first cover and the footer rule all run 120..1320 at
+       1440 and 16..374 at 390. That line is `width:min(1200px,100%)` inside the
+       section's own inline padding, and .heroCtas below is positioned off the
+       Hero's PADDING box -- which is what an absolutely positioned child is
+       positioned against -- so `left:0;right:0` plus the same width and
+       `margin-inline:auto` lands on that column without a single new number.
+       IT MOVES OUT OF .heroCopy, NOT JUST DOWN. Three things depend on that:
+       the copy is now h1 + eyebrow only, so it is 60px shorter and the head's
+       travel field (floored on .heroCopy's lower edge, hero-head-transform.js)
+       gains that height back; the copy carries mix-blend-mode:difference now
+       and a CONTROL must not be blended, only type; and .heroCopy is
+       pointer-events:none, so a control living inside it needed the opt-in that
+       is deleted below.
+       .heroCtas KEEPS ITS CLASS because hero-engine.js reveals the row by
+       querySelector(".heroCtas") and adds .in -- the entrance is unchanged and
+       that file needs no edit. -->
+  <div class="heroCtas">
+   <div class="heroTime" id="heroTime">
+    <button class="heroTimeBtn ctl ctl--quiet ctl--icon" id="heroTimeBtn" type="button" aria-label="Time of day" aria-haspopup="menu" aria-expanded="false" aria-controls="heroTimeMenu"><svg class="heroTimeIcon uiIcon" id="heroTimeIcon" viewBox="0 0 24 24" aria-hidden="true"><g data-hero-time-icon="pre-dawn"><use href="ui-icons.svg#lucide-moon-star"/></g><g data-hero-time-icon="sunrise"><use href="ui-icons.svg#lucide-sunrise"/></g><g data-hero-time-icon="daytime"><use href="ui-icons.svg#lucide-sun"/></g><g data-hero-time-icon="dusk"><use href="ui-icons.svg#lucide-cloud-sun"/></g><g data-hero-time-icon="sunset"><use href="ui-icons.svg#lucide-sunset"/></g><g data-hero-time-icon="night"><use href="ui-icons.svg#lucide-moon"/></g><g data-hero-time-icon="off"><use href="ui-icons.svg#lucide-circle-off"/></g></svg></button>
+    <div class="heroTimeMenu ctl-menu" id="heroTimeMenu" role="menu" aria-label="Choose time of day">
+     <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="true" data-time-mode="auto"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true"><use href="ui-icons.svg#lucide-rotate-ccw"/></svg>Automatic</button>
+     <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="false" data-time-mode="off"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true"><use href="ui-icons.svg#lucide-circle-off"/></svg>Off</button>
+     <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="false" data-time-mode="pre-dawn"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true"><use href="ui-icons.svg#lucide-moon-star"/></svg>Pre-dawn</button>
+     <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="false" data-time-mode="sunrise"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true"><use href="ui-icons.svg#lucide-sunrise"/></svg>Sunrise</button>
+     <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="false" data-time-mode="daytime"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true"><use href="ui-icons.svg#lucide-sun"/></svg>Daytime</button>
+     <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="false" data-time-mode="dusk"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true"><use href="ui-icons.svg#lucide-cloud-sun"/></svg>Dusk</button>
+     <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="false" data-time-mode="sunset"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true"><use href="ui-icons.svg#lucide-sunset"/></svg>Sunset</button>
+     <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="false" data-time-mode="night"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true"><use href="ui-icons.svg#lucide-moon"/></svg>Night</button>
     </div>
    </div>
-   <script id="heroTimePrepaint">(function(){var r=document.documentElement,h=document.getElementById("main"),m=r.getAttribute("data-theme-mode")||"auto",s=r.getAttribute("data-theme-state")||"off",q=r.getAttribute("data-reduced-motion")||"no-preference",i=document.getElementById("heroTimeIcon"),n=document.querySelectorAll('#heroTimeMenu [role="menuitemradio"]');h.setAttribute("data-time-mode",m);h.setAttribute("data-time-state",s);h.setAttribute("data-reduced-motion",q);i.setAttribute("data-icon",s);n.forEach(function(x){x.setAttribute("aria-checked",x.getAttribute("data-time-mode")===m?"true":"false");});})();</script>
   </div>
+  <script id="heroTimePrepaint">(function(){var r=document.documentElement,h=document.getElementById("main"),m=r.getAttribute("data-theme-mode")||"auto",s=r.getAttribute("data-theme-state")||"off",q=r.getAttribute("data-reduced-motion")||"no-preference",i=document.getElementById("heroTimeIcon"),n=document.querySelectorAll('#heroTimeMenu [role="menuitemradio"]');h.setAttribute("data-time-mode",m);h.setAttribute("data-time-state",s);h.setAttribute("data-reduced-motion",q);i.setAttribute("data-icon",s);n.forEach(function(x){x.setAttribute("aria-checked",x.getAttribute("data-time-mode")===m?"true":"false");});})();</script>
   <div class="heroTimeSupport heroCharacterPeek"><div class="heroHeadTransform" id="heroHeadTransform"><div class="stagewrap"><div class="queueDots" id="qdots" role="status" aria-live="polite"><span class="qsr"></span><i></i><i></i><i></i></div><div id="stageMorph"><div class="stage" id="stage"><img class="face" id="face" alt="Jayden Betts" draggable="false" role="button" tabindex="0" aria-pressed="false" aria-label="Select and reposition animated portrait" data-head-bounds="0.1933 0.0616 0.8484 0.9234"><img id="heroTimePortraitCast" class="heroTimePortraitCast" alt="" aria-hidden="true"><img class="tongue" id="tongue" src="images/tongue.webp" alt="" aria-hidden="true">
 <svg class="glasses" id="glasses" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><defs><pattern id="glCard" patternUnits="userSpaceOnUse" width="100" height="100"><image href="images/glass_frame_tex.webp" x="0" y="0" width="100" height="100" preserveAspectRatio="xMidYMid slice"/></pattern><linearGradient id="glSheen" x1="0" y1="0" x2="0.62" y2="1"><stop offset="0" stop-color="#fff" stop-opacity="0.5"/><stop offset="0.4" stop-color="#fff" stop-opacity="0.06"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient><mask id="glMask" maskUnits="userSpaceOnUse" x="0" y="0" width="100" height="100"><rect x="28" y="45.3" width="44" height="13.2" rx="2.4" fill="#fff"/><polygon points="28,47.2 26,48 26,50.4 28,51.2" fill="#fff"/><polygon points="72,47.2 74,48 74,50.4 72,51.2" fill="#fff"/><rect x="32.5" y="47.3" width="13" height="9.2" rx="1.8" fill="#000"/><rect x="54.5" y="47.3" width="13" height="9.2" rx="1.8" fill="#000"/><path d="M46.7 58.6 Q50 54.3 53.3 58.6 Z" fill="#000"/></mask></defs><rect class="gl-red" x="32.5" y="47.3" width="13" height="9.2" rx="1.8"/><rect class="gl-cyan" x="54.5" y="47.3" width="13" height="9.2" rx="1.8"/><rect class="gl-plast" x="32.5" y="47.3" width="13" height="9.2" rx="1.8" fill="url(#glSheen)"/><rect class="gl-plast" x="54.5" y="47.3" width="13" height="9.2" rx="1.8" fill="url(#glSheen)"/><rect x="0" y="0" width="100" height="100" fill="url(#glCard)" mask="url(#glMask)"/></svg></div></div>
 </div></div></div>
@@ -2312,7 +2576,7 @@ if(location.hash==="#about")location.replace("about.html");</script>
     <div class="csStage">
      <div class="csStageInner">
       <a class="csGo" href="bearings.html" aria-label="View the Bearings case study"><figure class="csFrame"><img class="csImg" data-time-thumbnail="bearings" src="images/cs/variants/time/bearings/daytime-1200.webp" srcset="images/cs/variants/time/bearings/daytime-1200.webp 1200w, images/cs/variants/time/bearings/daytime-2400.webp 2400w" sizes="(max-width: 760px) calc(100vw - 48px), (max-width: 1280px) calc(100vw - 80px), 1200px" alt="Bearings — a group road-trip planner shown across four iOS screens over a wildflower meadow" loading="eager" fetchpriority="high" decoding="async"></figure></a>
-      <div class="csMeta"><span class="csName">Bearings</span><span class="csYear">2026</span></div>
+      <div class="csMeta"><span class="csName">Bearings</span><span class="csYear">2026</span><span class="csImpact">Audience Choice Award &middot; 5 weeks with 4 designers</span></div>
      </div>
     </div>
    </div>
@@ -2323,7 +2587,7 @@ if(location.hash==="#about")location.replace("about.html");</script>
     <div class="csStage">
      <div class="csStageInner">
       <a class="csGo" href="apollo.html" aria-label="View the Apollo case study"><figure class="csFrame"><img class="csImg" data-time-thumbnail="apollo" src="images/cs/variants/time/apollo/daytime-1200.webp" srcset="images/cs/variants/time/apollo/daytime-1200.webp 1200w, images/cs/variants/time/apollo/daytime-2400.webp 2400w" sizes="(max-width: 760px) calc(100vw - 48px), (max-width: 1280px) calc(100vw - 80px), 1200px" alt="Apollo — a social app for celebrating wins, shown across four iOS screens over rolling hills" loading="lazy" decoding="async"></figure></a>
-      <div class="csMeta"><span class="csName">Apollo</span><span class="csYear">2026</span></div>
+      <div class="csMeta"><span class="csName">Apollo</span><span class="csYear">2026</span><span class="csImpact">58 screens, designed solo, from a one-day hackathon</span></div>
      </div>
     </div>
    </div>
@@ -2337,7 +2601,7 @@ if(location.hash==="#about")location.replace("about.html");</script>
     <div class="csStage">
      <div class="csStageInner">
       <a class="csGo" href="bearings.html" aria-label="View the Bearings case study"><figure class="csFrame"><img class="csImg" data-time-thumbnail="bearings" src="images/cs/variants/time/bearings/daytime-1200.webp" srcset="images/cs/variants/time/bearings/daytime-1200.webp 1200w, images/cs/variants/time/bearings/daytime-2400.webp 2400w" sizes="(max-width: 760px) calc(100vw - 48px), (max-width: 1280px) calc(100vw - 80px), 1200px" alt="Bearings — a group road-trip planner shown across four iOS screens over a wildflower meadow" loading="lazy" decoding="async"></figure></a>
-      <div class="csMeta"><span class="csName">Bearings</span><span class="csYear">2026</span></div>
+      <div class="csMeta"><span class="csName">Bearings</span><span class="csYear">2026</span><span class="csImpact">Audience Choice Award &middot; 5 weeks with 4 designers</span></div>
      </div>
     </div>
    </div>
@@ -2347,7 +2611,7 @@ if(location.hash==="#about")location.replace("about.html");</script>
     <div class="csStage">
      <div class="csStageInner">
       <a class="csGo" href="apollo.html" aria-label="View the Apollo case study"><figure class="csFrame"><img class="csImg" data-time-thumbnail="apollo" src="images/cs/variants/time/apollo/daytime-1200.webp" srcset="images/cs/variants/time/apollo/daytime-1200.webp 1200w, images/cs/variants/time/apollo/daytime-2400.webp 2400w" sizes="(max-width: 760px) calc(100vw - 48px), (max-width: 1280px) calc(100vw - 80px), 1200px" alt="Apollo — a social app for celebrating wins, shown across four iOS screens over rolling hills" loading="lazy" decoding="async"></figure></a>
-      <div class="csMeta"><span class="csName">Apollo</span><span class="csYear">2026</span></div>
+      <div class="csMeta"><span class="csName">Apollo</span><span class="csYear">2026</span><span class="csImpact">58 screens, designed solo, from a one-day hackathon</span></div>
      </div>
     </div>
    </div>
@@ -2357,7 +2621,7 @@ if(location.hash==="#about")location.replace("about.html");</script>
     <div class="csStage">
      <div class="csStageInner">
       <a class="csGo" href="ucdavis.html" aria-label="View the UC Davis Rec Redesign case study"><figure class="csFrame"><img class="csImg" src="images/cs/variants/time/ucrec/daytime-1200.webp" srcset="images/cs/variants/time/ucrec/daytime-1200.webp 1200w, images/cs/variants/time/ucrec/daytime-2400.webp 2400w" sizes="(max-width: 760px) calc(100vw - 48px), (max-width: 1280px) calc(100vw - 80px), 1200px" alt="UC Davis Rec app redesign — the redesigned home screen with events, live hours, and a Member ID" loading="lazy" decoding="async"></figure></a>
-      <div class="csMeta"><span class="csName">UC Davis Rec Redesign</span><span class="csYear">2026</span></div>
+      <div class="csMeta"><span class="csName">UC Davis Rec Redesign</span><span class="csYear">2026</span><span class="csImpact">Member ID in Apple Wallet &middot; designed in 3 days</span></div>
      </div>
     </div>
    </div>
@@ -2367,7 +2631,7 @@ if(location.hash==="#about")location.replace("about.html");</script>
     <div class="csStage">
      <div class="csStageInner">
       <a class="csGo" href="strata.html" aria-label="View the Strata &middot; Lovable case study"><figure class="csFrame"><img class="csImg" src="images/cs/variants/time/strata/daytime-1200.webp" srcset="images/cs/variants/time/strata/daytime-1200.webp 1200w, images/cs/variants/time/strata/daytime-2400.webp 2400w" sizes="(max-width: 760px) calc(100vw - 48px), (max-width: 1280px) calc(100vw - 80px), 1200px" alt="Strata — a gamified habit builder shown across three iOS screens over a green field" loading="lazy" decoding="async"></figure></a>
-      <div class="csMeta"><span class="csName">Strata</span><span class="csYear">2025</span></div>
+      <div class="csMeta"><span class="csName">Strata</span><span class="csYear">2025</span><span class="csImpact">Designed and built solo &mdash; playable on this page</span></div>
      </div>
     </div>
    </div>
@@ -2377,7 +2641,7 @@ if(location.hash==="#about")location.replace("about.html");</script>
     <div class="csStage">
      <div class="csStageInner">
       <a class="csGo" href="cluster.html" aria-label="View the Cluster case study"><figure class="csFrame"><img class="csImg" src="images/cs/variants/time/cluster/daytime-1200.webp" srcset="images/cs/variants/time/cluster/daytime-1200.webp 1200w, images/cs/variants/time/cluster/daytime-2400.webp 2400w" sizes="(max-width: 760px) calc(100vw - 48px), (max-width: 1280px) calc(100vw - 80px), 1200px" alt="Cluster — a campus interest-and-clubs social app, shown across three iOS screens over a forest" loading="lazy" decoding="async"></figure></a>
-      <div class="csMeta"><span class="csName">Cluster</span><span class="csYear">2024</span></div>
+      <div class="csMeta"><span class="csName">Cluster</span><span class="csYear">2024</span><span class="csImpact">Most Innovative &middot; 5 weeks with 3 designers</span></div>
      </div>
     </div>
    </div>
@@ -2387,7 +2651,7 @@ if(location.hash==="#about")location.replace("about.html");</script>
     <div class="csStage">
      <div class="csStageInner">
       <figure class="csFrame"><img class="csImg" src="images/cs/variants/time/r3shore/daytime-1200.webp" srcset="images/cs/variants/time/r3shore/daytime-1200.webp 1200w, images/cs/variants/time/r3shore/daytime-2400.webp 2400w" sizes="(max-width: 760px) calc(100vw - 48px), (max-width: 1280px) calc(100vw - 80px), 1200px" alt="R3SHORE, an AI-native staffing platform for American hardware manufacturing" loading="lazy" decoding="async"></figure>
-      <div class="csMeta"><span class="csName">R3SHORE</span><span class="csYear">In progress</span></div>
+      <div class="csMeta"><span class="csName">R3SHORE</span><span class="csYear">In progress</span><span class="csImpact">In progress</span></div>
      </div>
     </div>
    </div>

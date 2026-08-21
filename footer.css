@@ -93,10 +93,33 @@
    Both tracks are minmax(0,Nfr) and therefore sized by the GRID, not by their
    contents, which is what lets a row go bold under the pointer without shoving
    the column beside it. */
+/* ── AND IT RUNS THE WHOLE WIDTH, 2026-08-20 ────────────────────────────────
+   Jayden: "the footer line should be all the way across not just a line that
+   cuts out the gutters."
+   THE BORDER COULD NOT DO THAT, and the note above says why: no element in this
+   footer is full-bleed on every page. Measured at 1440 -- .siteFoot is 80..1360
+   on index (a <body> child carrying its own gutter), 120..1320 on about and
+   160..1280 on the case studies (inside .wrap, already guttered). A border on
+   any of them draws a different length per page, which is the exact defect that
+   put the line on the content box in the first place.
+   SO THE LINE LEAVES THE BOX. A pseudo-element centred on the viewport at 100vw
+   is the same length on all eight pages regardless of which gutter its host
+   happens to carry. That is only safe because <html> computes overflow-x:clip
+   here -- verified, not assumed -- so 100vw cannot open a horizontal scrollbar.
+   IT MATCHES THE HERO'S EDGE, WHICH IS THE POINT. The Hero's bottom rule went
+   full-bleed on the same reasoning earlier today: a boundary belongs to the
+   edge of the surface it bounds, and both of these separate FULL-WIDTH things
+   -- the page from the footer, the sky from the work. The two rules that stop
+   at the column are the ones introducing column content. Same token as the
+   Hero's edge, --rule, so they are one line drawn twice and not two greys. */
 .footTop{
+ position:relative;
  display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:var(--sp-48-80);
- align-items:start;padding-block:var(--sp-48-80) var(--sp-32-64);
- border-top:var(--hair-w) solid var(--theme-rim)
+ align-items:start;padding-block:var(--sp-48-80) var(--sp-32-64)
+}
+.footTop::before{
+ content:"";position:absolute;top:0;left:50%;transform:translateX(-50%);
+ width:100vw;height:var(--rule-w);background:var(--rule);pointer-events:none
 }
 
 /* ── The identity block ───────────────────────────────────────────────────── */
@@ -246,77 +269,129 @@
    max-width + margin-inline:auto on .siteFoot itself. 50% of a centred box plus
    50vw lands on the viewport edge either way, and no page needs a rule.
  */
-/* ── THE PALETTE, AND WHY IT IS NOT A SET OF HEXES ─────────────────────────
-   Every tone is a mix of the two colours the theme already publishes, so the
-   band has no colour of its own to keep in sync and no second dark-mode table.
-   The two directions are not symmetrical and cannot be, because the band has to
-   READ AS A SURFACE against the page it ends, and the page moves:
-     LIGHT  the page is #fdfdfd, so the band walks 58-98% of the way to ink. It
-            is a dark floor under a cream page -- the Workspace band's own
-            relationship, and the strongest single move in this footer.
-     DARK   the page is #0B0C0F and there is nothing below it to walk to, so the
-            band LIFTS off the page instead -- 80-94% page, 6-20% ink. Measured
-            band against page ground, that lands at 1.44:1, which is quiet, and
-            quiet is what it should be. The night band is not a new bright
-            surface at the bottom of a night page; it is a whisper of one.
-   THE ARGUMENT SURVIVED THE WORDMARK, and it is worth saying why, because the
-   numbers above were originally justified by the knockout -- the letters were
-   only cut out while band and page sat on opposite sides of each other. The
-   letters are gone and the two directions still hold, on the simpler ground that
-   a floor you cannot distinguish from the room is not a floor. The 17.1:1 and
-   1.42:1 figures that measured LETTERFORM against band went with the letters.
+/* ── THE PALETTE: THE BAND IS THE HOUR'S SKY, NOT INK WITH A TINT IN IT ─────
+   Jayden, 2026-08-20: "also the footer is dark for some reason not the right
+   colour for any of the time of day."
+   He is right, and the mechanism was in the construction rather than in the
+   hues. Every tone used to be built as a near-INK ground -- 58% to 98% of the
+   way from the page to --theme-ink -- with the hour's light mixed into it at 5
+   to 20%. A strip that is 93% ink is a dark strip whatever you mix into it, so
+   the clock could only ever move the band's TEMPERATURE and never its
+   lightness. Measured on that build at 1440, painted mean luma: daytime 67.9,
+   sunset 62.6, night 41.1, off 60.5 -- 27 levels between the brightest hour and
+   the darkest, on a page whose daytime sky is nearly white. The band announced
+   the hour by changing colour slightly inside a black rectangle.
+   WHAT IT IS NOW: TWO STOPS OFF THE HERO'S OWN SKY, per state. --foot-band-sky
+   -low and -high are a deep stop and a pale stop taken from the same radial
+   gradient .heroTimeGradient paints for that hour, and the four tones are
+   positions BETWEEN them. So daytime is a bright blue sky, night is a night
+   sky, and the difference between two hours is the difference between two
+   skies rather than a 5% tint of one.
+   THE DEPTH THEY ARE TAKEN FROM IS THE DEPTH THE HERO'S OWN GLYPH FIELD LIVES
+   AT, and that is the whole reason the numbers can be trusted rather than
+   argued about. hero-time.css measured the mean sky luminance where its glyphs
+   actually land -- daytime .57, sunrise .63, sunset .54, dusk .49, pre-dawn
+   .47, night .02 -- and shipped page-white glyphs over it at a strength Jayden
+   signed off on. Aiming this band at the same slice means the glyph layer here
+   inherits a treatment that has already been looked at on a real screen. It is
+   also why the ORDER of the states is not a taste call: sunrise is the
+   brightest hour and night is the darkest because that is what the Hero says.
+   STILL A QUIET ENDING, WHICH IS THE OTHER HALF OF THE BRIEF -- "just a nice
+   ending to the site in a beautiful way". Three things keep it one:
+     * --foot-band-veil. Every tone is pulled back toward --theme-page before it
+       is painted. It is the single knob for how much the band asserts itself,
+       and it is the reason the stops can be honest sky colours rather than
+       pre-diluted ones.
+     * the stops are authored at 1/1.34 of their chroma, because the renderer
+       applies SATURATE 1.34 to every mixed sample. Authoring the hero's own
+       chroma here would land the band a third more saturated than the sky it is
+       quoting -- a second hero at the bottom of the page.
+     * the band is still HALF HEIGHT, has no wordmark, no rim and no shadow.
+   IT IS A FLOOR AND NOT A GAP, and it no longer needs to be dark to be one. The
+   old note argued the band had to walk most of the way to ink or it would be
+   indistinguishable from the page. What actually makes it a surface is that it
+   is a different COLOUR, and at every hour it now is: the palest state (off,
+   painted mean 195) still sits ~58 levels under a #fdfdfd page and carries a
+   hue the page does not have. footer-band-contract asserts that separation in
+   the pixels, at the band's own edge, in all seven states.
+   NO SECOND DARK-MODE TABLE, STILL. Only "night" is ever data-theme="dark"
+   (site-theme-state.js:50), so the night STATE carries the night sky and the
+   dark rule below is a pre-attribute fallback, not a parallel palette.
    --foot-band-strength IS THE KILL SWITCH, one line, exactly like the Hero
    field's --ascii-strength: set it to 0 and footer-band.js stops the loop and
    clears the glyph layer. A plain number on purpose -- a custom property comes
    back as its specified token stream, so a clamp() here would arrive as a string
    and parseFloat would hand back NaN. */
 .footBand{
- /* ── THE HOUR'S LIGHT ────────────────────────────────────────────────────────
-    Jayden: "i would prefer if the footer matched with the time of day."
-    Every tone below is still a mix of the two colours the theme already
-    publishes, so the band still has no colour of its own to keep in sync and
-    still needs no second dark-mode table. What the hour adds is ONE HUE mixed
-    into those tones -- the same per-state light the hero lights its scene with,
-    state for state, listed under the palette block further down.
-    IT CANNOT BE var(--time-cast) ITSELF, and that is worth saying so nobody
-    "fixes" it into one. --time-cast is declared on .hero[data-time-state], so it
-    does not inherit anywhere near a footer -- and on the six pages that have no
-    hero it does not exist at all. The hues are therefore restated here, keyed
-    off data-theme-state, which site-theme.js writes on <html> on every page.
-    TWO AMOUNTS, NOT ONE, BECAUSE THE BAND IS NOT ONE THING. An hour changes the
-    LIGHT in a scene, not the ground under it. So the drifting light in this mesh
-    -- tone 2, the pale one -- takes most of the cast and the deep tones take a
-    trace. Mixed evenly the band stops being ink and becomes a coloured surface,
-    which is a second hero at the bottom of the page rather than the quiet ending
-    he asked for. Measured at 1440 in sunset: tone 2 moves rgb(117,117,117) ->
-    rgb(136,126,120), and the three deep tones move by under 6 levels each.
-    "OFF" ZEROES THE AMOUNTS RATHER THAN SETTING THE HUE TRANSPARENT. Mixing a
-    colour toward transparent leaves its channels alone and drags its ALPHA down
-    instead, so the fallback gradient would paint at 95% over the page ground for
-    no reason anybody could see in the source. hero-time.css met the same trap at
-    its own "off" state and answered it the same way. */
- --foot-band-cast:#7f8792;
- --foot-band-cast-deep:7%;
- --foot-band-cast-lit:20%;
- --foot-band-base:color-mix(in srgb,var(--foot-band-cast) var(--foot-band-cast-deep),
-  color-mix(in srgb,var(--theme-ink) 98%,var(--theme-page)));
- --foot-band-tone-1:color-mix(in srgb,var(--foot-band-cast) var(--foot-band-cast-deep),
-  color-mix(in srgb,var(--theme-ink) 93%,var(--theme-page)));
- --foot-band-tone-2:color-mix(in srgb,var(--foot-band-cast) var(--foot-band-cast-lit),
-  color-mix(in srgb,var(--theme-ink) 58%,var(--theme-page)));
- --foot-band-tone-3:color-mix(in srgb,var(--foot-band-cast) var(--foot-band-cast-deep),
-  color-mix(in srgb,var(--theme-ink) 96%,var(--theme-page)));
+ /* ── THE HOUR'S SKY ─────────────────────────────────────────────────────────
+    Two stops, overridden per state further down, and this pair is the "off"
+    one: a hueless grey, because "off" is not an hour.
+    THEY CANNOT BE var(--time-cast) OR THE GRADIENT ITSELF, and that is worth
+    saying so nobody "fixes" it into one. Both live on .hero[data-time-state],
+    which no footer is inside, and six of the eight pages that carry this band
+    have no hero at all. The stops are therefore restated here, keyed off
+    data-theme-state, which site-theme.js writes on <html> on every page. The
+    hero stop each one is derived from is named in the comment beside it. */
+ --foot-band-sky-low:#84868a;
+ --foot-band-sky-high:#d9dadd;
+ /* HOW MUCH PAGE SHOWS THROUGH THE SKY. 0% is an honest sky swatch; 100% is no
+    band at all. It is declared per direction rather than once because the two
+    directions are not symmetrical: a light page has somewhere to pull a tone
+    back TO, and a night page's --theme-page is #0B0C0F, so veiling night is
+    subtraction from something that is already nearly nothing. */
+ --foot-band-veil:8%;
+ /* ── THE FOUR TONES ARE FOUR DEPTHS IN ONE SKY ──────────────────────────────
+    Not four colours. Each is a position between the two stops, so a state can
+    be retuned by moving its sky and nothing here has to move with it.
+      base    the deepest, and the mesh's floor weight (.06) rather than a blob;
+              it is written as a 100% mix rather than as the stop itself so that
+              all four tones read as one axis and a tone that leaves it is one
+              edit visible in the diff
+      tone-3  a deep mid
+      tone-1  the ground the field mostly sits on
+      tone-2  the drifting light, and the only pale one
+    THE SPREAD IS WIDE BECAUSE THE MIX NARROWS IT. Six gaussians share every
+    sample, so the mixed colour sits near the mean of whichever tones reach it:
+    the nominal 4%-to-84% span between tone-2 and tone-3 paints a band whose
+    actual row-to-row range is about a third of it. Narrow this and the drifting
+    light stops being something you can see, which is what "flat black" looked
+    like the first time and would look like "flat blue" now.
+    THE OUTER MIX IS WHAT MAKES THESE SERIALISE AS color(srgb ...) rather than
+    rgb(...). That is not incidental: footer-band.js reads the palette through a
+    probe and its regex has to parse both forms. It does; do not collapse this
+    to a single mix and do not simplify that regex. */
+ --foot-band-base:color-mix(in srgb,var(--theme-page) var(--foot-band-veil),
+  color-mix(in srgb,var(--foot-band-sky-low) 100%,var(--foot-band-sky-high)));
+ --foot-band-tone-1:color-mix(in srgb,var(--theme-page) var(--foot-band-veil),
+  color-mix(in srgb,var(--foot-band-sky-low) 62%,var(--foot-band-sky-high)));
+ --foot-band-tone-2:color-mix(in srgb,var(--theme-page) var(--foot-band-veil),
+  color-mix(in srgb,var(--foot-band-sky-low) 4%,var(--foot-band-sky-high)));
+ --foot-band-tone-3:color-mix(in srgb,var(--theme-page) var(--foot-band-veil),
+  color-mix(in srgb,var(--foot-band-sky-low) 84%,var(--foot-band-sky-high)));
+ /* THE GLYPHS ARE THE PAGE, NOT INK -- the Hero's call, and it survives the
+    band getting brighter. hero-time.css: "ink glyphs sit ON the sky; ground
+    glyphs sit IN it", and a dark speck on a lit band is dirt on the artwork.
+    IT SURVIVES BECAUSE THE BAND WAS AIMED AT A SKY THE HERO ALREADY PROVED.
+    The alpha law's ceiling is .73, so the available delta is .73*(glyph - band)
+    and the brightest hour is the one that can run out of it. Measured on the
+    shipped band across both pages and both widths, the painted peak runs 91-93
+    at night down to 36-45 at sunrise -- and the Hero's own approved field peaks
+    at about 35 over its palest sky, so even the tightest state here is at or
+    above a picture Jayden has already signed off on. Measured on the band,
+    peak painted dL by state, all seven: see footer-band-contract's check_hour,
+    which measures it as the difference between the band and the same frame with
+    --foot-band-strength:0, and fails BOTH ways -- too faint to find, and dense
+    enough to read as a screen of characters. If a state is ever retuned brighter
+    than its glyphs can carry, that gate is what says so.
+    Night is the one state that inverts, and it inverted before this change for
+    the same reason it does now: on a band that dark, page-white at .73 would be
+    the brightest thing on a night page. --theme-muted, set with the night sky
+    below. */
  --foot-band-glyph:var(--theme-page);
- /* THE SPREAD IS WIDE BECAUSE THE MIX NARROWS IT. Six gaussians share every
-    sample, so the mixed colour sits near the mean of whichever tones reach it
-    and a palette spanning 92-82% of the way to ink painted a band whose whole
-    range was 14 levels -- flat black, measured, and flat black on screen. 93 to
-    58 is what it takes for the drifting light to be a thing you can see; the
-    band's actual painted range at 1440 is a third of the nominal one. */
  --foot-band-strength:1;
  position:relative;isolation:isolate;
  width:100vw;max-width:100vw;margin-inline:calc(50% - 50vw);
- /* HALF THE HEIGHT, AND THE FIRST HEIGHT THIS BAND HAS EVER DECLARED.
+ /* TWO ENDS, TWO DERIVATIONS, AND THE FIRST HEIGHT THIS BAND EVER DECLARED.
     Jayden: "make it like half the height so its just a nice ending to the site".
     It used to have no height rule at all -- .footMark was sized 100cqw over a
     measured font advance and the band was whatever that came to plus padding,
@@ -325,13 +400,43 @@
     canvases are inset:0 and take the box, they do not make it. So the size
     becomes a design value for the first time, and it is written the way the rest
     of this file writes fluid ones.
-    THE CLAMP ENDS ARE THE MEASUREMENT, HALVED: 227.5 -> 114 and 83.1 -> 42. 8vw
-    is the line through both (114/1440 = 7.9%, 42/390 = 10.8%), so the ends bind
-    at the two widths that were measured and the vw term does the work between
-    525px and 1425px -- which is the whole phone-to-laptop range and no
-    breakpoint. Not a --sp rung: the spacing ladder tops out at 80 and this is a
-    surface dimension, not a gap. */
- height:clamp(42px,8vw,114px);
+    THE DESKTOP END IS THE MEASUREMENT, HALVED: 227.5 -> 114. That is his number
+    and it does not move.
+    ── AND THE PHONE END IS NOT, 2026-08-20 ───────────────────────────────────
+    Jayden, later the same day: "the footer is too small on ios", under the
+    umbrella instruction that "the mobile experience doesnt really match up with
+    the desktop which is defiently not good because im advertising myself as an
+    ios guy and it looks worse on ios."
+    THE FIRST CUT HALVED BOTH ENDS -- 227.5 -> 114 and 83.1 -> 42 -- on a single
+    8vw line through the pair. Halving is the right operation on a desktop band
+    and the wrong one on a phone, because WHAT MAKES THIS A FLOOR IS FIXED IN
+    PIXELS AND DOES NOT SCALE WITH THE VIEWPORT. footer-band.js lays the glyph
+    field on a 21px cell (CELL, line 79) at every width, so 114px is 5.4 rows of
+    it and 42px is 2.0 -- and both of those two are clipped by the band's own
+    edges. The phone was not getting a smaller picture, it was getting a crop of
+    the same one. Measured on about.html: the band was 9.0% of the footer's
+    height at 390 against 25.0% at 1440.
+    63px IS THREE CELLS, AND THE RANGE IT SITS IN IS BOUNDED BY HIS OWN TWO
+    INSTRUCTIONS. It has to be clearly more than 42 ("too small on ios") and
+    clearly less than the 83.1 he asked to halve ("make it like half the
+    height"). The midpoint of 42 and 83.1 is 62.6; three full 21px rows is 63.
+    So the artwork's grain and the range he drew agree on the same number, and
+    the band is still 12.9% of the footer at 390 against 25.0% at 1440 -- a
+    quieter ending on the phone than on the desktop, which is what "just a nice
+    ending" asked for. LOOKED AT, not only counted: at 42 the field is two
+    half-rows and reads as a sliver of noise; at 63 the mesh's drifting light has
+    somewhere to drift.
+    THE TERM BETWEEN THEM IS THE LINE THROUGH BOTH ENDS, which is what 8vw was
+    when both ends were halves of one measurement. 63 at 390 and 114 at 1440 do
+    not pass through the origin, so the line needs its intercept written out:
+    slope (114-63)/(1440-390) = 4.857vw, intercept 63 - 4.857% x 390 = 44.1px.
+    Verified computed, not assumed -- 63.0 at 320 and 360 (the floor), 63.05 at
+    390, 81.4 at 768, 106.3 at 1280, 114.0 at 1440 and above. The floor now binds
+    only below ~390 and the ceiling from ~1437, so every width between a phone
+    and a laptop moves, and there is still no breakpoint.
+    Not a --sp rung: the spacing ladder tops out at 80 and this is a surface
+    dimension, not a gap. */
+ height:clamp(63px,4.86vw + 44.1px,114px);
  /* THE FALLBACK GROUND, and it is the whole band with JS off. Three stops off
     the same palette the canvas mixes, so the no-script picture is the still
     frame of the animated one rather than a different design. */
@@ -369,67 +474,80 @@
  pointer-events:none
 }
 
-/* The dark band lifts off the page instead of sinking into it; see the palette
-   note above. The glyphs go to --theme-muted rather than --theme-ink because on
-   a band that is itself only 10-26% of the way to ink, page-white marks at the
-   alpha law's .73 ceiling are the brightest thing on a night page. */
+/* THE DARK FALLBACK, AND IT IS ONLY A FALLBACK NOW. Only "night" is ever
+   data-theme="dark" (site-theme-state.js:50), so the night SKY is authored with
+   the other six states below and this rule exists for the frames before
+   site-theme.js has written data-theme-state -- without it a dark page would
+   paint the hueless "off" grey for a frame, which is a light band flashing on a
+   night page. Same stops as night, no veil (there is nothing under #0B0C0F to
+   pull back to), and the glyph inverted for the reason given at the token. */
 :root[data-theme="dark"] .footBand{
- --foot-band-base:color-mix(in srgb,var(--theme-page) 94%,var(--theme-ink));
- --foot-band-tone-1:color-mix(in srgb,var(--theme-page) 90%,var(--theme-ink));
- --foot-band-tone-2:color-mix(in srgb,var(--theme-page) 80%,var(--theme-ink));
- --foot-band-tone-3:color-mix(in srgb,var(--theme-page) 92%,var(--theme-ink));
+ --foot-band-sky-low:#090c13;
+ --foot-band-sky-high:#393557;
+ --foot-band-veil:0%;
  --foot-band-glyph:var(--theme-muted)
 }
 
 /* ── THE HOUR ────────────────────────────────────────────────────────────────
-   One hue per state, and they are the hero's own --time-cast values, copied
-   state for state rather than referenced: --time-cast lives on
-   .hero[data-time-state], which no footer is inside and six of these eight pages
-   do not have at all. The attribute keyed here is the one site-theme.js writes
-   on <html> on every page, so the band tracks the clock everywhere the footer
-   ships and not just on the home page.
-   THE HEX IN THE COMMENT IS THE HERO'S; THE HEX IN THE RULE IS THAT COLOUR AT
-   THIS BAND'S EXPOSURE, and the difference is one transform applied identically
-   to all six: hue and chroma kept exactly, LIGHTNESS normalised to OKLab L=0.62.
-   It is not a taste edit and it is reversible from the comment.
-   WHY IT WAS NEEDED, measured. The authored casts sit at L .77 to .96 -- they
-   are lights in a sky, and the brightest of them (#eaf2ff, daytime) is very
-   nearly white. Mixed straight into a band whose tones sit near ink, what they
-   deliver is mostly LIGHTNESS and barely any hue: at 16% the painted band went
-   from a mean of 56 in "off" to 73 in daytime and 77 in sunset -- a near-black
-   floor turning mid-grey -- while sunset and pre-dawn stayed within 10 levels of
-   each other. The band was announcing the time by getting brighter, which is a
-   different and worse idea than matching it, and on the largest surface on the
-   page it is the abrupt-brightness problem section 14 of the Apple reference
-   names. Normalised, every state lands at the same weight and differs only in
-   colour temperature -- which is what "matched with the time of day" means and
-   is also why the amounts could then go UP without the band swinging.
-   DAYTIME IS THE QUIET POLE and that is correct rather than a miss: midday light
-   is white, so once its lightness is removed there is almost no chroma left
-   (.0195 against sunset's .1023). It reads as a cool neutral, which is what
-   midday is. "off" is quieter still -- see below.
-   THESE LAND AFTER THE DARK RULE ON PURPOSE. Both selectors are (0,2,1), so
-   source order decides, and only "night" is ever data-theme="dark" -- the dark
-   rule above supplies that state's tone FORMULAS and this block supplies the hue
-   they are cast with. Reversed, night would take daytime's light.
-   NIGHT TAKES LESS OF IT, and that is the same reasoning the palette block makes
-   about the two directions not being symmetrical. The light band spans 58-98% of
-   the way to ink, so 16% of a cast is a small share of a wide range; the dark
-   band spans 6-20% and the same 16% is most of what it has. Measured, 16% moved
-   night's tone 2 rgb(56,57,60) -> rgb(72,76,91), which is a blue surface at the
-   bottom of a night page. 10% keeps it a tint of the same whisper.
-   AND THEY ALL CROSS-FADE FOR FREE. footer-band.js re-reads this palette through
-   a probe on every SiteTheme change and walks it over --theme-duration; nothing
-   here has to know that, which is exactly why the hue is a token and not a
-   number in the renderer. */
-:root[data-theme-state="off"] .footBand{--foot-band-cast-deep:0%;--foot-band-cast-lit:0%}
-:root[data-theme-state="pre-dawn"] .footBand{--foot-band-cast:#6d81cc}  /* #9ab0ff */
-:root[data-theme-state="sunrise"] .footBand{--foot-band-cast:#b7734c}  /* #ffb58c */
-:root[data-theme-state="daytime"] .footBand{--foot-band-cast:#7f8792}  /* #eaf2ff */
-:root[data-theme-state="dusk"]    .footBand{--foot-band-cast:#8a7eaa}  /* #c8bceb */
-:root[data-theme-state="sunset"]  .footBand{--foot-band-cast:#b7734c}  /* #ffb58c */
-:root[data-theme-state="night"]   .footBand{
- --foot-band-cast:#6d81cc;--foot-band-cast-deep:5%;--foot-band-cast-lit:13%  /* #9ab0ff */
+   Two stops per state, and they are read off the hero's own sky: each pair is
+   taken from .heroTimeGradient's radial for that hour, at the depth where the
+   Hero's glyph field lives -- roughly its 10% and 35% stops, the lit low sky
+   rather than the near-white top or the saturated core. The hero stop each one
+   descends from is in the comment beside it, so every value here is checkable
+   against hero-time.css rather than being a colour somebody liked.
+   TWO TRANSFORMS ARE APPLIED TO EACH, IDENTICALLY, and neither is a taste edit:
+     1. LIGHTNESS is set to this band's target for that hour, keeping hue and
+        chroma. The Hero's stops are positions in a 900px sky; a 114px band that
+        quoted both ends of one would be a stripe, so the pair is re-spread to
+        the ~110-level span the mesh needs to show its drifting light.
+     2. CHROMA is divided by 1.34, because footer-band.js applies SATURATE 1.34
+        to every mixed sample. Skip that and the band paints a third more
+        saturated than the sky it is quoting.
+   THE LADDER, painted mean luma, which is the thing Jayden was looking at:
+     sunrise 194 . daytime 179 . sunset 171 . dusk 155 . pre-dawn 140 . night 35,
+     with off at 176 as a hueless neutral. Read at 1440 on about.html; the mesh
+     drifts, so any single reading carries about +/-10 and the contract's window
+     is +/-28 rather than a pin.
+   That order is the Hero's, not a preference: hero-time.css measured its own
+   mean sky luminance per state at .63/.57/.54/.49/.47/.02 and this is the same
+   sequence. Before this change the same seven states painted 57-68 and 41 --
+   which is why he said the footer was dark and not the right colour for any
+   time of day. It was one colour, seven times.
+   "OFF" IS HUELESS RATHER THAN DARK. It is not an hour, so it gets no sky: a
+   pale neutral floor, which is the quietest thing the band can be while still
+   being a floor. The old build answered the same question by zeroing the cast
+   amounts and leaving a near-ink strip; a state that means "no time of day"
+   should not be the most dramatic band on the site.
+   NIGHT'S PAIR IS THE ONE THAT IS NOT A GRADIENT STOP. .heroTimeGradient's
+   night is three layers, so the deep stop is its linear base (#060a13) and the
+   pale stop is what the near glow actually composites to over it
+   (rgba(93,80,155,.58) over #11162b = rgb(61,56,108)) -- the colour you can see
+   at the bottom of that sky, not one of the numbers written in it.
+   AND THEY ALL CROSS-FADE FOR FREE. footer-band.js re-reads this palette
+   through a probe on every SiteTheme change and walks it over --theme-duration;
+   nothing here has to know that, which is exactly why the sky is a pair of
+   tokens and not a number in the renderer. */
+/* "off" STAYS DARK, AND THAT IS JAYDEN'S CALL, 2026-08-20: "keep off dark".
+   The argument for the pale grey was that "off" is not an hour, so it should
+   not be the most dramatic band on the site. He overruled it, and he is the one
+   who looks at this page every day. What survives from that argument is the
+   HUELESSNESS -- off gets no sky and no chroma, it is the ink end of the same
+   ladder every other state sits on, so it still reads as "no time of day"
+   rather than as a seventh hour. Derived from --theme-ink's neighbourhood, not
+   from a hero stop, because there is no hour to be faithful to. */
+:root[data-theme-state="off"]      .footBand{--foot-band-sky-low:#131417;--foot-band-sky-high:#3a3c40;--foot-band-veil:0%}
+:root[data-theme-state="pre-dawn"] .footBand{--foot-band-sky-low:#50517d;--foot-band-sky-high:#c9b9df}  /* #7f81f3 . #dac0ff */
+:root[data-theme-state="sunrise"]  .footBand{--foot-band-sky-low:#bd8a6d;--foot-band-sky-high:#fbecd7}  /* #ffc977 . #ffd79b */
+:root[data-theme-state="daytime"]  .footBand{--foot-band-sky-low:#5a86a9;--foot-band-sky-high:#ddeaf9}  /* #60a8e2 . #b4d8ff */
+:root[data-theme-state="dusk"]     .footBand{--foot-band-sky-low:#5e627d;--foot-band-sky-high:#cbd2e6}  /* #9da8e4 . #ccd5f0 */
+:root[data-theme-state="sunset"]   .footBand{--foot-band-sky-low:#956b55;--foot-band-sky-high:#e7d8f5}  /* #ffa577 . #ecd8ff */
+:root[data-theme-state="night"]    .footBand{
+ --foot-band-sky-low:#090c13;--foot-band-sky-high:#393557;  /* #060a13 . the near glow */
+ /* NO VEIL, and it is the asymmetry the palette note names rather than an
+    omission: --theme-page is #0B0C0F here, so veiling a night sky toward it
+    takes away the little light the band has. */
+ --foot-band-veil:0%;
+ --foot-band-glyph:var(--theme-muted)
 }
 
 /* ── Night ───────────────────────────────────────────────────────────────── */

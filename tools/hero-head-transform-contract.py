@@ -235,7 +235,19 @@ def assert_handle_hits(page, label):
             // definition, and a dot pressed against the window edge whose
             // 10px circle overhangs it is not a broken handle.
             const points=[[0,0],[-size/2+.5,0],[size/2-.5,0],[0,-size/2+.5],[0,size/2-.5]];
-            const hits=points.map(([dx,dy])=>{
+            // A DOT WITH NO LOCATION IS A DEAD HANDLE, NOT A CRASH. The dot's
+            // position is read back through getComputedStyle on the ::before,
+            // and `left` there is calc(50% + var(--h-dx)) -- so if --h-dx is
+            // ever written as something the cascade cannot resolve, or the
+            // selection is display:none when this runs, the declaration falls
+            // back to `auto` and parseFloat gives NaN. Passing that to
+            // elementFromPoint throws "The provided double value is
+            // non-finite", which killed the whole gate with a stack trace in
+            // Playwright's plumbing and no mention of the head at all -- half a
+            // day of bisecting to find out WHICH handle. It is a real failure
+            // and it now reads as one, with the numbers that name it.
+            const finite=Number.isFinite(dot.x)&&Number.isFinite(dot.y);
+            const hits=!finite?[false]:points.map(([dx,dy])=>{
               const px=dot.x+dx,py=dot.y+dy;
               if(px<0||py<0||px>=innerWidth||py>=innerHeight)return null;
               const node=document.elementFromPoint(px,py);
@@ -252,7 +264,10 @@ def assert_handle_hits(page, label):
               Math.min(rect.bottom,heroRect.bottom)-Math.max(rect.top,heroRect.top));
             const style=getComputedStyle(handle);
             return {
-              label, corner, hits, angle,
+              label, corner, hits, angle, finite,
+              dot:{x:dot.x,y:dot.y},
+              beforeLeft:before.left,beforeTop:before.top,
+              selectionHidden:selection.hidden,
               selectedIntersection:intersectionWidth*intersectionHeight,
               heroIntersection:heroIntersectionWidth*heroIntersectionHeight,
               area:rect.width*rect.height,
@@ -280,6 +295,20 @@ def assert_handle_hits(page, label):
         }""",
         label,
     )
+    # ── A DISMISSED FRAME IS NOT A FAILING HANDLE ──────────────────────────
+    # #heroHeadSelection is display:none when the frame has been dismissed, and
+    # a ::before inside a display:none subtree keeps its COMPUTED value: `left`
+    # stays calc(50% + var(--h-dx)) with the percentage unresolved, so every
+    # number below is read off a rectangle that is 0x0 at the document origin
+    # and parseFloat returns NaN for any handle whose dot is offset. That threw
+    # out of elementFromPoint with "The provided double value is non-finite" --
+    # a stack trace inside Playwright's plumbing that named neither the head nor
+    # the handle, and cost most of a day to trace to a frame that had simply
+    # been closed. Say THAT instead: every assertion under it is about where a
+    # handle is drawn, and none of them mean anything while nothing is drawn.
+    assert not any(handle["selectionHidden"] for handle in handles), (
+        label, "the selection frame was dismissed before this measurement -- "
+        "something took the press that was meant for the head", handles[:1])
     live = [handle for handle in handles if not handle["off"]]
     for handle in live:
         HIT_TALLY["total"] += len(handle["hits"])
@@ -559,9 +588,83 @@ def wait_for_rest(page):
         "() => !window.__heroHeadTransform.getState().settling", timeout=4000)
 
 
-def drag_selection_to(page, x, y):
+GRIP = """box => {
+  // A FINGER IS NOT A POINT, so neither is this. Chromium applies touch
+  // adjustment on a mobile context: a touch that lands on a plain div within
+  // about a finger's width of a real button is DELIVERED TO THE BUTTON.
+  // Measured at 390x844 with the head parked by the corner time control:
+  // elementFromPoint(324,518) returns heroHeadSelection and the pointerdown
+  // from the very same coordinate arrives at heroTimeBtn. A single-point test
+  // therefore passes while the press it predicts goes somewhere else -- and
+  // the frame is dismissed, which is what this whole helper exists to avoid.
+  // So a candidate has to clear a radius, not a pixel.
+  const inHead=n=>!!(n&&n.closest&&(n.closest('#heroHeadSelection')||n.closest('#face')));
+  const reach=16, probes=[[0,0],[-reach,0],[reach,0],[0,-reach],[0,reach]];
+  const spots=[];
+  for (const fy of [.5,.35,.65,.25,.75]) for (const fx of [.5,.35,.65,.25,.75]) spots.push([fx,fy]);
+  for (const [fx,fy] of spots) {
+    const x=box.x+box.width*fx, y=box.y+box.height*fy;
+    if (x<0||y<0||x>=innerWidth||y>=innerHeight) continue;
+    if (!inHead(document.elementFromPoint(x,y))) continue;
+    const clear=probes.every(([dx,dy])=>{
+      const px=x+dx, py=y+dy;
+      if (px<0||py<0||px>=innerWidth||py>=innerHeight) return true;
+      const node=document.elementFromPoint(px,py);
+      // Anything that is not the head and not inert page background is a thing
+      // a finger could be snapped to.
+      return inHead(node) || !(node&&node.closest&&node.closest('a,button,[role="button"],input,select'));
+    });
+    if (clear) return {x,y};
+  }
+  return null;
+}"""
+
+
+def grip_point(page):
+    """Somewhere on the frame that the head will actually receive a press.
+
+    The Hero has two opaque things sitting over the selection at opposite
+    corners -- the floating nav across the top, and the corner time control at
+    the bottom right, which index.html states outright "cannot be swallowed by a
+    toy, at any z-index". Park the head against either and a fixed fraction of
+    the box is a press on that chrome instead, which dismisses the frame; the
+    drag then never happens and every rect the next assertion reads is 0x0.
+    Both of those are correct product behaviour, so the test asks the page where
+    it may press rather than hunting for a fraction that misses both.
+    """
     box = page.locator("#heroHeadSelection").bounding_box()
-    page.mouse.move(box["x"] + box["width"] * 0.5, box["y"] + box["height"] * 0.5)
+    assert box, "the selection frame is not on screen -- something dismissed it"
+    grip = page.evaluate(GRIP, box)
+    assert grip, ("no point on the selection frame is pressable -- every one is "
+                  "covered by something opaque", box)
+    return grip
+
+
+def drag_selection_to(page, x, y):
+    """Grab the frame and put it somewhere, without pressing whatever is on top.
+
+    NOT THE CENTRE, AND THE REASON IS A REAL RULE RATHER THAN A FLAKE. The
+    corner time control sits at the Hero's bottom-right and index.html states
+    outright that it "cannot be swallowed by a toy, at any z-index" -- so with
+    the head parked down there, the selection's own centre is over the control.
+    Measured at 390x844: the centre lands at (346,524) and elementsFromPoint
+    returns heroTimeIcon / heroTimeBtn / heroTime. That press dismisses the
+    frame instead of grabbing it, the drag never happens, and every rect the
+    next assertion reads is 0x0 -- which surfaced as a non-finite value out of
+    elementFromPoint, a stack trace inside Playwright's plumbing that named
+    neither the head nor the handle.
+    AND THE POINT IS CHOSEN BY ASKING, NOT BY PICKING A NICER FRACTION. The
+    first fix here was a flat quarter in from the top-left, which clears the
+    corner control -- and then lands under the OPAQUE NAV the moment the head
+    has been dragged to the top of the Hero, because the selection box is
+    clipped to the Hero and the Hero runs up behind the bar. Two opaque things
+    at opposite corners is enough to say the rule out loud instead of hunting
+    for a fraction that misses both: press somewhere the head actually receives
+    the press. elementFromPoint answers that in one call and stays true when the
+    next piece of chrome moves.
+    """
+    grip = grip_point(page)
+    page.mouse.move(grip["x"], grip["y"])
     page.mouse.down()
     page.mouse.move(x, y, steps=5)
     page.mouse.up()
@@ -733,13 +836,48 @@ def assert_frame_welded(sample, label):
     rigid, selection, air = sample["rigid"], sample["selection"], sample["air"]
     hero, ceiling = sample["hero"], sample["ceiling"]
     angle = math.radians(sample.get("angle", sample["state"]["rotate"]))
-    ring = air * (abs(math.cos(angle)) + abs(math.sin(angle)))
+    # ── THE BOX IS TURNED ONCE, AT THE ANGLE THE CHROME WAS HANDED ──────────
+    # getState().box is the clamp's rectangle and it is turned by state.rotate
+    # ALONE, because the clamp reasons about the arrangement and not about
+    # whatever the head is doing this instant. The chrome is turned by the sum
+    # -- rest plus float plus the travel's bank -- so the two are boxes of the
+    # same body at different angles, and adding a ring to one to predict the
+    # other is only near-enough while the difference is a fraction of a degree.
+    # It was: the bob alone is +-0.7deg, which is 1.6px of half-width at 1440
+    # and fits inside the 2.5px tolerance, so the approximation held by luck.
+    # The bank is +-2.6deg and it does not: measured at 1440 in the movie
+    # matrix, expected 456.7 against an actual 460.5, and the frame was
+    # perfectly welded -- the sample's own independently-computed `visible`
+    # agreed with the live selection box to 0.007px.
+    # So the local rectangle is recovered from the turned one and turned again
+    # at the right angle, which is the arithmetic syncSelection() itself does.
+    # Inverting W = w|cos| + h|sin| / H = w|sin| + h|cos| needs cos(2*theta0),
+    # which is 0.886 at the resting -13.8deg and only degenerate at 45deg,
+    # where the ring form is still the better answer.
+    c0 = abs(math.cos(math.radians(sample["state"]["rotate"])))
+    s0 = abs(math.sin(math.radians(sample["state"]["rotate"])))
+    det = c0 * c0 - s0 * s0
+    cos, sin = abs(math.cos(angle)), abs(math.sin(angle))
+    exact = abs(det) > 0.1 and rigid.get("width") and rigid.get("height")
+    if exact:
+        local_w = (rigid["width"] * c0 - rigid["height"] * s0) / det + air * 2
+        local_h = (rigid["height"] * c0 - rigid["width"] * s0) / det + air * 2
+        half_w = (local_w * cos + local_h * sin) / 2
+        half_h = (local_w * sin + local_h * cos) / 2
+        centre = {"left": (rigid["left"] + rigid["right"]) / 2,
+                  "top": (rigid["top"] + rigid["bottom"]) / 2}
+        turned = {"left": centre["left"] - half_w, "right": centre["left"] + half_w,
+                  "top": centre["top"] - half_h, "bottom": centre["top"] + half_h}
+    else:
+        ring = air * (cos + sin)
+        turned = {side: rigid[side] + (-ring if side in ("left", "top") else ring)
+                  for side in ("left", "right", "top", "bottom")}
     for near, far, low, high in (
         ("left", "right", hero["left"], hero["right"]),
         ("top", "bottom", ceiling, hero["bottom"]),
     ):
-        expected_near = max(rigid[near] - ring, low)
-        expected_far = min(rigid[far] + ring, high)
+        expected_near = max(turned[near], low)
+        expected_far = min(turned[far], high)
         # One animation frame of float may separate the two reads.
         assert abs(selection[near] - expected_near) <= 2.5, (
             label, near, expected_near, selection[near], sample)
@@ -910,8 +1048,24 @@ TRAVEL_SAMPLE = """() => {
               y: r.top + parseFloat(st.top) - hero.top,
               off: n.hasAttribute('data-off')};
     });
+  const sel2 = document.querySelector('#heroHeadSelection');
   return {
     t: performance.now(), travel: s.travel, bounds: s.travelBounds,
+    // THE LEAN, AND THE TWO NUMBERS THAT SAY IT IS NOT DRAWN TWICE.
+    // rot is the whole of what the head adds to its authored resting angle --
+    // the bob and the travel's bank share one channel on purpose -- and
+    // frameRot is the angle the CHROME was handed. They are read together so
+    // "the head leans" and "the frame leans with it" are one sample rather
+    // than two tests that could pass in different states.
+    rot: parseFloat(wrap.style.getPropertyValue('--hero-head-float-rot')) || 0,
+    frameRot: parseFloat(sel2.style.getPropertyValue('--hero-head-rotate')) || 0,
+    headRot: s.rotate,
+    bobAmp: parseFloat(getComputedStyle(document.documentElement)
+      .getPropertyValue('--hero-head-float-rot-amp')) || 0.7,
+    // The reversal's own time constant, so the lean's speed limit below is
+    // derived from the tuning rather than being a number somebody picked.
+    turn: (parseFloat(getComputedStyle(document.documentElement)
+      .getPropertyValue('--hero-head-travel-turn')) || 900) / 1000,
     x: s.x, y: s.y, ceiling: ceiling, heroW: hero.width, heroH: hero.height,
     // reachable(): a share of the head inside the Hero MINUS the opaque bar
     reachable: live.right >= needX && live.left <= hero.width - needX
@@ -1009,9 +1163,24 @@ def assert_travels(page, label, failures):
     # at screensaver speed is a gag. The ceiling is generous -- four times the
     # authored 22px/s -- because what it is there to catch is somebody reaching
     # for the speed token to make a demo read better.
+    # ── DISTANCE TRAVELLED, NOT DISPLACEMENT ───────────────────────────────
+    # It was |last - first|, and that measures the wrong thing the moment a
+    # reversal falls inside the window: a head that goes out 90px and comes
+    # back 60 reads as 30. That used to be rare because the resting offset sat
+    # near the middle of the field; it is not rare now that the ceiling is the
+    # nav's underside, which puts rest close to the BOTTOM of the vertical
+    # field -- measured at 320x800, rest is 17px below the top wall and 234px
+    # above the bottom one, so the first turn happens about two seconds in and
+    # an 8s window always contains one. The head covered 56.2px of a 251.6px
+    # field and was reported as failing to travel.
+    # Path length is what "it goes somewhere" actually means, it is what the
+    # speed assertion below wants anyway, and it is STRICTER against the failure
+    # this pair exists to catch: a head pinned at a wall has a path length of 0
+    # however the window is sliced.
     shipped = sample_travel(page, 8, 0.25)
-    moved = max(abs(shipped[-1]["travel"]["x"] - shipped[0]["travel"]["x"]),
-                abs(shipped[-1]["travel"]["y"] - shipped[0]["travel"]["y"]))
+    moved = max(sum(abs(b["travel"][axis] - a["travel"][axis])
+                    for a, b in zip(shipped, shipped[1:]))
+                for axis in ("x", "y"))
     span = max(shipped[0]["bounds"]["maxX"] - shipped[0]["bounds"]["minX"],
                shipped[0]["bounds"]["maxY"] - shipped[0]["bounds"]["minY"])
     seconds = (shipped[-1]["t"] - shipped[0]["t"]) / 1000
@@ -1098,6 +1267,69 @@ def assert_travels(page, label, failures):
            f"{label} no handle drifted off the top of the Hero",
            {"highest_dot": round(highest, 1), "bar_underside": round(ceiling, 1),
             "resting_top_overhang": round(rest["out"]["t"], 1)})
+
+    # ── 4. AND IT LEANS THE WAY IT IS GOING ────────────────────────────────
+    # Jayden: "the rotation doesnt seem to change so Id want that to change to
+    # kinda go in the direction of where he is going so if hes going right a
+    # tilt to the right and if hes going left a tilt to the left".
+    # Four statements, and each one is a different way for this to be wrong:
+    #   IT DOES NOT FOLLOW THE DIRECTION. A lean driven by a clock rather than
+    #     by the heading looks identical in a still and is the obvious wrong
+    #     implementation, so the correlation is against the head's own measured
+    #     velocity rather than against time.
+    #   IT IS NOT THERE, OR IT IS A CARTOON. A bank under the bob's own +-0.7deg
+    #     cannot be told from the bob; one over a few degrees is a portrait
+    #     rocking on a job application. Both ends are asserted.
+    #   IT SNAPS AT THE WALL. The reversal is a 0.9s first-order lag and the
+    #     lean follows it, so the angle has a SPEED LIMIT: a sign flip would put
+    #     the whole swing into one frame, an eased turn spends about two seconds
+    #     on it. Stated as degrees per second and NOT as degrees per sample,
+    #     which is the trap this walked into first: sample_travel() asks for
+    #     200ms and gets what the page can give it, and index.html is
+    #     raster-bound -- the same slowness that broke settled_gaze. Measured
+    #     per frame with a sampler that does no round trips, a true 200ms window
+    #     carries 0.52-0.80deg at these three widths; the contract's own
+    #     "200ms" samples land ~1500ms apart under load and carry 2.5-3.9deg,
+    #     which failed a per-sample threshold while the head was easing
+    #     perfectly. The limit is two full swings per turn constant -- 2-3x the
+    #     measured peak at every width, and a snap of the swing inside even the
+    #     fastest sample interval is 20deg/s or more, so it still bites.
+    #   THE FRAME COMES OFF THE HEAD. The lean rides the float's angle channel
+    #     precisely so the chrome follows with no second mechanism; if anything
+    #     ever drives the head's angle without going through it, the frame is
+    #     left behind and every handle with it. Asserted every sample, not once.
+    rots = [r["rot"] for r in rows]
+    vel = [(b["travel"]["x"] - a["travel"]["x"]) / max(1e-6, (b["t"] - a["t"]) / 1000)
+           for a, b in zip(rows, rows[1:])]
+    paired = list(zip(vel, rots[1:]))
+    mv = sum(v for v, _ in paired) / len(paired)
+    mr = sum(r for _, r in paired) / len(paired)
+    cov = sum((v - mv) * (r - mr) for v, r in paired)
+    sv = math.sqrt(sum((v - mv) ** 2 for v, _ in paired))
+    sr = math.sqrt(sum((r - mr) ** 2 for _, r in paired))
+    corr = cov / sv / sr if sv and sr else 0.0
+    swing = max(rots) - min(rots)
+    turn = rows[0]["turn"] or 0.9
+    steps = [(abs(b["rot"] - a["rot"]), (b["t"] - a["t"]) / 1000)
+             for a, b in zip(rows, rows[1:]) if b["t"] > a["t"]]
+    peak = max(step / gap for step, gap in steps)
+    interval = sum(gap for _, gap in steps) / len(steps)
+    record(failures, corr >= 0.5,
+           f"{label} the head leans the way it is travelling",
+           {"corr": round(corr, 3), "samples": len(paired),
+            "rot_range": [round(min(rots), 2), round(max(rots), 2)]})
+    record(failures, 2.0 <= swing <= 8.0,
+           f"{label} the lean is legible and still subtle",
+           {"swing_deg": round(swing, 2), "bob_amp": rows[0]["bobAmp"]})
+    record(failures, peak <= 2 * swing / turn,
+           f"{label} the lean eases through the reversal rather than snapping",
+           {"peak_deg_per_s": round(peak, 2), "limit": round(2 * swing / turn, 2),
+            "swing_deg": round(swing, 2), "turn_s": turn,
+            "mean_sample_ms": round(interval * 1000)})
+    welded = max(abs(r["frameRot"] - (r["headRot"] + r["rot"])) for r in rows)
+    record(failures, welded <= 0.01,
+           f"{label} the frame carries the same angle as the head",
+           {"worst_deg": round(welded, 4), "samples": len(rows)})
     return rows
 
 
@@ -1111,6 +1343,16 @@ def assert_still_under_reduce(page, label, failures, seconds=12):
            first["travel"] == {"x": 0, "y": 0} and last["travel"] == {"x": 0, "y": 0},
            f"{label} reduced motion pins the travel",
            {"first": first["travel"], "last": last["travel"], "seconds": seconds})
+    # AND THE LEAN GOES WITH IT. The bank is a fact about a journey that is not
+    # happening, so under reduce the only thing left on the angle channel is the
+    # bob, frozen at whatever phase it stopped in -- which is why this is
+    # asserted against the bob's own authored amplitude rather than against
+    # zero. Without it the head sits permanently a couple of degrees off the
+    # pose hero-time.css authored, for the one visitor who asked for less.
+    lean = max(abs(first["rot"]), abs(last["rot"]))
+    record(failures, lean <= first["bobAmp"] + 0.05,
+           f"{label} reduced motion drops the travel's lean",
+           {"worst_deg": round(lean, 3), "bob_amp": first["bobAmp"]})
 
 
 def rest_pose_contract():
@@ -2336,12 +2578,12 @@ def task4_matrix(base_url):
                 before["time"], before["expanded"], before["tab"]), (label, before, after)
             hero = page.locator("#main").bounding_box()
             assert not chrome_below_hero(page), (label, "first drag chrome leaked")
-            frame = page.locator("#heroHeadSelection").bounding_box()
+            grip = grip_point(page)
             before_second = page.evaluate("""() => ({scrollY,
               tab:document.querySelector('.csTab[aria-selected="true"]').dataset.tab})""")
-            touch_drag(context, page,
-                       {"x": frame["x"] + frame["width"] / 2,
-                        "y": frame["y"] + frame["height"] / 2},
+            # The frame's centre is under the corner time control once the head
+            # has been dragged down there -- see grip_point().
+            touch_drag(context, page, {"x": grip["x"], "y": grip["y"]},
                        {"x": width / 2, "y": hero["y"] + hero["height"] + 30})
             page.wait_for_timeout(60)
             frame = page.locator("#heroHeadSelection").bounding_box()
@@ -2414,8 +2656,24 @@ def task4_matrix(base_url):
                 boxes:[...document.querySelectorAll('.heroHeadHandle,.heroHeadRotate')].map(n=>{const r=n.getBoundingClientRect();return[r.width,r.height];})};
             }""")
             assert forced["matches"] and forced["active"], (label, forced)
-            assert forced["frameOutline"] != "none" and forced["handleOutline"] != "none", (label, forced)
-            assert forced["frameAdjust"] == "auto" and forced["handleAdjust"] == "auto", (label, forced)
+            # ── THE FRAME IS NOT PAINTED ANY MORE, SO IT MUST NOT COME BACK ────
+            # This demanded a Highlight outline on the rim and the five dots,
+            # because a frame repainted as system colours is how a high-contrast
+            # user sees a selection at all. The frame's PAINT has since been
+            # deleted -- hero-time.css scopes the rim, the dots and their
+            # backgrounds away by ID, and its forced-colors block deletes them
+            # there too, with the reasoning written down at that rule: bringing
+            # the wireframe back under forced colours would put it over the
+            # photograph for exactly the users least able to read the two
+            # together. That is a decision, not a regression, so the assertion
+            # is inverted rather than dropped: it still fails if anyone repaints
+            # the box, which is the thing that would now be wrong.
+            # WHAT DOES NOT CHANGE is everything below -- the targets are still
+            # 44px, still focusable, still in the same place as in normal
+            # colours. The control survives; only its picture is gone.
+            assert forced["frameOutline"] == "none" and forced["handleOutline"] == "none", (
+                label, "the selection frame is painted under forced colours -- "
+                "hero-time.css deletes it there on purpose", forced)
             assert all(w >= 44 and h >= 44 for w, h in forced["boxes"]), (label, forced)
             forced_geometry = page.locator("#heroHeadSelection").bounding_box()
             assert all(abs(forced_geometry[key] - normal_geometry[key]) <= 1
@@ -2605,14 +2863,36 @@ def document_width(page):
 # through it, because both drive the eyes for reasons that have nothing to do
 # with the cursor; and the assertion is DIRECTION, which is the thing this test
 # means and the thing seven quantised values can still carry.
-GAZE_WINDOW_MS = 700
+# ── AND THE WINDOW IS COUNTED IN FRAMES, NOT IN MILLISECONDS ─────────────────
+# `xs.length >= 20` inside a 700ms wall-clock window is an unwritten assertion
+# that the page renders at 28.6fps, and index.html does not: measured at
+# 1440x900 it holds about 16.5fps, raster-bound -- 11,073ms of RasterTask
+# against 0.16s of script in a 4s window. So the window closed with 16 to 24
+# samples and the reading was thrown away for a reason that has nothing to do
+# with the eyes. In the captured failing windows there were ZERO guard
+# rejections: two irises, blinking false, fidget null, __curNear true, and the
+# iris m41 constant throughout. The test was failing on frame rate.
+# A frame count is what this test actually means -- a run of consecutive frames
+# with nothing but the cursor driving the eyes -- and on a slow page it should
+# get LONGER rather than weaker, which is exactly what counting frames does.
+# THE IDLE CHECK IS THE PRICE OF THAT, and it is not optional. updateIris()
+# stops following the pointer IDLE_MS after the last pointer event and falls
+# back to an idle wander silently, so a frame-counted window on a 10fps page
+# can outlive the follow and return a wander as a gaze. `followed` reports it
+# instead, and settled_gaze retries with a fresh pointer move.
+# 32 RATHER THAN 20 because the assertion downstream is a direction with a
+# `>= 1` floor, and at 320px -- where the eyes have about a pixel of horizontal
+# travel to give -- one run in six came back with a margin of 0.6. More frames
+# is more of the sub-pixel gaze coming back out from under Math.round().
+GAZE_WINDOW_FRAMES = 32
 
-GAZE_SAMPLER = """async ms => {
+GAZE_SAMPLER = """async frames => {
   const frame = () => new Promise(resolve => requestAnimationFrame(resolve));
   const xs = [];
-  let clean = true;
+  let clean = true, followed = true;
   const started = performance.now();
-  while (performance.now() - started < ms) {
+  while (clean && xs.length < frames) {
+    if (performance.now() - lastMove >= IDLE_MS) { followed = false; break; }
     const iris = document.querySelector('#stage .iris');
     if (!iris || blinking || fidget || !window.__curNear) clean = false;
     else xs.push(new DOMMatrixReadOnly(getComputedStyle(iris).transform).m41);
@@ -2625,7 +2905,8 @@ GAZE_SAMPLER = """async ms => {
   // window the sub-pixel gaze underneath the rounding comes back out, which is
   // what makes this readable at 320px wide, where the eyes only have about a
   // pixel of horizontal travel to give.
-  return {clean: clean && xs.length >= 20, samples: xs.length,
+  return {clean: clean && followed && xs.length >= frames, followed: followed,
+          samples: xs.length, took: Math.round(performance.now() - started),
           x: xs.length ? xs.reduce((total, v) => total + v, 0) / xs.length : null,
           median: xs.length ? xs[xs.length >> 1] : null,
           spread: xs.length ? xs[xs.length - 1] - xs[0] : null};
@@ -2645,7 +2926,7 @@ def settled_gaze(page, x, y, label):
     reading = None
     for _ in range(8):
         page.mouse.move(x, y)
-        reading = page.evaluate(GAZE_SAMPLER, GAZE_WINDOW_MS)
+        reading = page.evaluate(GAZE_SAMPLER, GAZE_WINDOW_FRAMES)
         if reading["clean"]:
             return reading
     raise AssertionError((label, "the eyes never held still long enough to read", reading))
@@ -2828,6 +3109,55 @@ TRAVEL_SELF_TEST_INJECT = """   return {
     maxY:m.heroH-needY-box.top};"""
 
 
+# ── AND THE SECOND RE-INJECTION: A HEAD THAT TRAVELS WITHOUT LEANING ────────
+# This is the exact build that shipped this morning, and Jayden's note about it
+# is the reason the lean exists -- "the rotation doesnt seem to change". It is
+# also the failure mode a lean can silently regress INTO: the bank rides the bob
+# on one channel, so anything that stops writing it leaves a head that still
+# moves, still floats and still passes every other assertion in this file.
+BANK_SELF_TEST_SITE = "   t.rot+=(want-t.rot)*(1-Math.exp(-dt/(tau/3)));"
+BANK_SELF_TEST_INJECT = "   t.rot=0;"
+
+
+def bank_self_test(browser, base_url, source):
+    """Take the lean out and require assert_travels() to notice."""
+    if BANK_SELF_TEST_SITE not in source:
+        raise SystemExit(
+            "--self-test cannot find the bank in hero-head-transform.js; update "
+            "BANK_SELF_TEST_SITE to match it rather than letting the self-test "
+            "pass blind."
+        )
+    broken = source.replace(BANK_SELF_TEST_SITE, BANK_SELF_TEST_INJECT, 1)
+    for width, height in ((1440, 900), (390, 844)):
+        context = browser.new_context(viewport={"width": width, "height": height})
+        context.add_init_script("try{sessionStorage.setItem('introSeen','1')}catch(e){}")
+        context.route(
+            "**/hero-head-transform.js*",
+            lambda route: route.fulfill(
+                status=200, content_type="application/javascript", body=broken
+            ),
+        )
+        page = context.new_page()
+        page.goto(f"{base_url}/index.html?head-transform=1", wait_until="load")
+        page.wait_for_function(
+            "typeof introMode !== 'undefined' && !introMode && !eventLock",
+            timeout=15_000,
+        )
+        caught = []
+        assert_travels(page, f"self-test bank {width}", caught)
+        context.close()
+        wanted = [f for f in caught
+                  if "leans the way it is travelling" in f or "legible and still subtle" in f]
+        if not wanted:
+            raise SystemExit(
+                f"--self-test FAILED at {width}x{height}: a head that travels "
+                "without leaning was accepted. The lean assertions are not "
+                f"detecting anything. Recorded: {caught!r}"
+            )
+        print(f"self-test {width}x{height}: the lean assertions rejected a head "
+              f"that travels level, as they must ({len(wanted)} of them)")
+
+
 def travel_self_test(browser, base_url, source):
     """Bound the drift by reachability alone and require assert_travels() to reject it."""
     if TRAVEL_SELF_TEST_SITE not in source:
@@ -2906,6 +3236,7 @@ def self_test(base_url):
                     "anything and every green run of this file is noise."
                 )
             travel_self_test(browser, base_url, source)
+            bank_self_test(browser, base_url, source)
         finally:
             browser.close()
     print("Hero head transform self-test: OK (the detectors fail when they should)")

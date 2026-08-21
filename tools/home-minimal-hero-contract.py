@@ -55,9 +55,13 @@ def wait_for_tap_targets_at_rest(page):
 
     So the wait is on the thing the measurement actually needs, which is that
     nothing between the control and the page is SCALING it. Translation is
-    allowed through deliberately -- .heroCopy carries a permanent
-    translateY(-117px) that will never settle to identity, and a translation
-    cannot change a width or a height anyway, which is all this file asserts.
+    allowed through deliberately -- a translation cannot change a width or a
+    height anyway, which is all this file asserts. It used to be REQUIRED to be
+    allowed, because .heroCopy carried a permanent translateY(-117px) that
+    could never settle to identity; that lift was retired on 2026-08-20 when
+    Jayden asked for the headline in the middle of the Hero, and .heroCopy now
+    centres with justify-content and has no transform at all. The allowance
+    stays because the entrance keyframes still translate.
     On the mobile widths, where the entrance is switched off, the condition is
     already true on the first poll and nothing is waited for.
     """
@@ -226,7 +230,26 @@ def browser_contract(base_url):
                     }),
                     hero: {top: hero.top, bottom: hero.bottom, height: hero.height},
                     title: {top: title.top, bottom: title.bottom},
-                    ctas: {top: ctas.top, bottom: ctas.bottom},
+                    ctas: {top: ctas.top, bottom: ctas.bottom,
+                           left: ctas.left, right: ctas.right},
+                    // The corner control and the column it is supposed to share
+                    // with the tab row -- see the grid assertion below.
+                    timeBtn: (() => {
+                      const b = document.getElementById('heroTimeBtn');
+                      if (!b) return null;
+                      const r = b.getBoundingClientRect();
+                      return {top: r.top, bottom: r.bottom, left: r.left, right: r.right};
+                    })(),
+                    tabsBox: (() => {
+                      const t = document.querySelector('.collection__tabs .csTab');
+                      if (!t) return null;
+                      const r = t.getBoundingClientRect();
+                      return {left: r.left, right: r.right};
+                    })(),
+                    coverLeft: (() => {
+                      const c = document.querySelector('#cases .csItem');
+                      return c ? c.getBoundingClientRect().left : null;
+                    })(),
                     casesTop: cases.top,
                     // The tab row is the thing Jayden asked to be able to see.
                     // Measured off the live element, not derived from the
@@ -274,14 +297,82 @@ def browser_contract(base_url):
             # collapses to a banner, plus -- on any viewport with the room --
             # that the tab row he asked to see is actually on screen.
             assert state["hero"]["height"] <= height + .5, state
-            assert state["hero"]["height"] >= height * .68, state
+            # ── THE FLOOR IS PIXELS NOW, BECAUSE THE HERO IS SIZED IN PIXELS ─
+            # `>= height * .68` was a share of the viewport, and it failed on
+            # 2026-08-20 at 390x844 with a 570px Hero -- 0.675, three
+            # thousandths under -- for a change Jayden asked for outright:
+            # "i think the hero should be a bit smaller still". A share was the
+            # right shape while --heroReveal took .9 of the leftover slack and
+            # the Hero still grew with the window. It takes ALL the slack now,
+            # so the Hero is its content's height (650 desktop, 570 phone) and
+            # its share of the viewport is whatever the visitor's monitor makes
+            # it -- 0.72 at 900, 0.54 at 1200. Asserting a share would fail on a
+            # tall screen for being correct.
+            # WHAT THE LINE WAS FOR SURVIVES: "never collapses to a banner".
+            # 520px is that, in the unit the Hero is authored in -- below it the
+            # 335px head and the 104px copy cannot both stand up -- and it is
+            # bounded by the viewport so a genuinely short window still passes.
+            assert state["hero"]["height"] >= min(height, 520), state
             assert abs(state["hero"]["top"]) <= .5, state
             if height >= 780:
                 assert state["tabsBottom"] <= height, (
                     "the tab row must clear the fold without a scroll", height, state)
             assert state["title"]["top"] >= state["hero"]["top"], state
-            assert state["title"]["top"] <= state["hero"]["top"] + state["hero"]["height"] * 0.38, state
+            # ── THE HEADLINE IS CENTRED NOW, NOT PARKED IN THE TOP THIRD ────
+            # This read `<= hero.top + hero.height * 0.38` and it failed on
+            # 2026-08-20 at 219 against a ceiling of 212.8. The 0.38 was a
+            # faithful description of a composition .heroCopy no longer has:
+            # the copy was pinned to the top of the Hero's row and pulled up
+            # another 92-124px by a negative transform, so its box genuinely
+            # lived in the top third.
+            # JAYDEN ASKED FOR THE OPPOSITE: "the h1 text I feel like should be
+            # in the middle of the hero." A ceiling at 0.38 of the height is a
+            # ceiling that forbids the middle, so it is rewritten rather than
+            # loosened -- CLAUDE.md section 7, a gate protecting a decision
+            # rather than a behaviour.
+            # WHAT IS WORTH GUARDING IS THAT IT IS STILL A COMPOSITION. Two
+            # ways this breaks and neither is subtle: the copy loses its
+            # centring and slams against the Hero's ceiling (it is stretched to
+            # a full-height grid row, so flex-start puts it at the very top), or
+            # something drops it onto the corner control's rail at the floor. So
+            # the headline's own CENTRE is asserted to sit in the middle band of
+            # the Hero, generously: 0.30 to 0.62 of the height. At 1440x900 it
+            # measures 0.47 and at 390x844 0.52.
+            title_mid = (state["title"]["top"] + state["title"]["bottom"]) / 2
+            title_share = (title_mid - state["hero"]["top"]) / state["hero"]["height"]
+            assert 0.30 <= title_share <= 0.62, (title_share, state)
             assert state["ctas"]["bottom"] <= state["hero"]["bottom"], state
+            # ── THE CORNER CONTROL, AND THE COLUMN IT STANDS IN ──────────────
+            # Jayden, 2026-08-20: "put the button for day change in the bottom
+            # right corner of the hero using the grid". Three things have to
+            # hold and each fails differently, so each is its own line.
+            # (1) IT IS IN THE BOTTOM HALF. The whole point is that it left the
+            #     centred copy stack; a regression that puts it back would still
+            #     satisfy every other assertion in this file.
+            # (2) IT IS ON THE PAGE'S COLUMN. The tab row's first tab and the
+            #     first cover share a left edge -- 120 at 1440, 16 at 390 -- and
+            #     the rail's right edge has to be the column's right edge, which
+            #     is what "using the grid" means. Measured against the LIVE tab
+            #     row rather than against a literal, so it follows the page.
+            #     1px of tolerance for sub-pixel layout, not for a different
+            #     inset: the failure mode this catches is `left:0`, which is off
+            #     by 16px at 390 and by 0 at 1440 -- it passed at one width and
+            #     not the other, which is exactly why the check is relational.
+            # (3) IT IS INSIDE THE HERO. A corner control that has slipped past
+            #     the Hero's floor is over the work section.
+            btn = state["timeBtn"]
+            assert btn, "the Hero must keep its time-of-day control"
+            assert btn["top"] > state["hero"]["top"] + state["hero"]["height"] * .5, (
+                "the time control belongs in the Hero's bottom half, not the copy stack", state)
+            assert btn["bottom"] <= state["hero"]["bottom"], state
+            if state["tabsBox"]:
+                assert abs(state["ctas"]["left"] - state["tabsBox"]["left"]) <= 1, (
+                    "the rail's left edge must be the page column's", state)
+                assert abs(btn["right"] - state["ctas"]["right"]) <= 1, (
+                    "the control sits at the right end of the rail", state)
+            if state["coverLeft"] is not None:
+                assert abs(state["ctas"]["left"] - state["coverLeft"]) <= 1, (
+                    "the rail and the first cover share a left edge", state)
             assert state["casesTop"] - state["hero"]["bottom"] <= 160, state
             initial_geometry = state["hero"]
 
@@ -369,18 +460,46 @@ def browser_contract(base_url):
 # contract that edits index.html to test itself is a contract that can leave it
 # edited. The handler rewrites index.html in flight and everything else, CSS
 # included, is served untouched.
+# EVERY `find` HERE IS A LIVE STRING OUT OF index.html AND THAT IS THE WHOLE
+# POINT OF injected_handler()'s assert: an injection whose needle has drifted
+# out of the file silently stops re-injecting the bug, and a detector nobody has
+# watched fail is one nobody should trust. Both of the original two had drifted
+# by 2026-08-20 -- the reveal expression was retuned and the rail's markup
+# re-indented when it left .heroCopy -- and the self-test was failing with an
+# ERR_EMPTY_RESPONSE rather than a message, because the assert fires inside the
+# server thread. If that is what you are looking at, re-read the needles first.
 INJECTIONS = {
     # revert the shrink: the Hero is the viewport again and the tab row falls
     # back under the fold. Must trip the tabsBottom assertion at 1440x900.
     "full-height-hero": (
-        "--heroReveal:clamp(0px,calc((100svh - 680px) * .9),240px)",
+        "--heroReveal:clamp(0px,calc(100svh - 560px),500px)",
         "--heroReveal:0px",
+    ),
+    # collapse the Hero to a banner. Must trip the 520px floor.
+    "banner-hero": (
+        "--heroReveal:clamp(0px,calc(100svh - 560px),500px)",
+        "--heroReveal:clamp(0px,calc(100svh - 300px),900px)",
+    ),
+    # take the rail off the page column and back to the Hero's border edge --
+    # which is `left:0`, the exact mistake this cost a round trip on, because an
+    # absolutely positioned box is laid out against the PADDING box. It is
+    # correct at 1440 by coincidence and 16px out at 390, so it must trip the
+    # relational column assertion and not the desktop one.
+    "rail-off-grid": (
+        ".heroCtas{position:absolute;left:var(--heroPadL);right:var(--heroPadR)",
+        ".heroCtas{position:absolute;left:0;right:0",
+    ),
+    # put the control back in the top half, where the centred copy stack had it.
+    # Must trip the bottom-half assertion.
+    "control-back-up-top": (
+        "bottom:var(--heroRailB);\n /* left AND right set",
+        "top:var(--heroRailB);\n /* left AND right set",
     ),
     # put "View work" back. Must trip the static contract.
     "cta-returns": (
-        '<div class="heroCtas">\n    <div class="heroTime" id="heroTime">',
+        '<div class="heroCtas">\n   <div class="heroTime" id="heroTime">',
         '<div class="heroCtas">\n   <a class="workCta ctl ctl--primary" id="workBtn"'
-        ' href="#cases"><span>View work</span></a>\n    <div class="heroTime" id="heroTime">',
+        ' href="#cases"><span>View work</span></a>\n   <div class="heroTime" id="heroTime">',
     ),
 }
 

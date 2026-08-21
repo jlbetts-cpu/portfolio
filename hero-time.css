@@ -122,24 +122,59 @@
     the 42% the reachability clamp requires -- so the resting position was
     ILLEGAL under its own clamp and settled at y=-13.8px instead of 0. Nothing
     hangs below the floor now, so the share is 100% at any size. */
- /* + HALF THE REVEAL, AND HALF IS THE WHOLE POINT. index.html now takes
-    --heroReveal off the Hero's height so the tab row clears the fold. The head
-    is anchored to the stage's floor and so rises by the FULL reveal; the copy
-    is centred in the row and rises by HALF of it. Left alone that closes the
-    gap between the CTA row and the crown of the head by --heroReveal/2 -- 88px
-    at 1440x900, measured, which is more than the 19px that was there. Giving
-    the head back half the reveal makes both rise at the same rate, so every
-    vertical relationship inside the composition is preserved to the pixel and
-    the only thing that changes is how much sky is under the chin. It stays
-    negative at every reveal this file can produce (240px max -> -35px), so the
-    head is still suspended clear of the floor and still casts no shadow. */
- --hero-peek-depth:calc(-155px + var(--heroReveal,0px) * .5);
+ /* ── A CONSTANT, AND THE HALF-REVEAL TERM IS WHY IT HAD TO BECOME ONE ──────
+    This read `-155px + --heroReveal * .5`, and that term was correct for the
+    reveal it was written against: the reveal took .9 of the leftover slack, so
+    the Hero still grew with the window, the copy (centred) rose at half that
+    rate, and giving the head back half kept every vertical relationship fixed.
+    IT IS WRONG FOR A CONTENT-SIZED HERO, AND MEASURABLY SO. index.html's reveal
+    is now `100svh - 650px` -- all of the slack -- so --heroReveal is unbounded
+    in the window height while the Hero is not. Carrying half of it into the
+    floor offset means the offset falls 1px for every 2px of extra monitor: at a
+    1080px window the reveal is 430 and the old expression resolves to +44px,
+    which is a head standing 44px BELOW the floor it is drawn on, clipped by
+    .heroCharacterPeek's own overflow. A constant is not a simplification here,
+    it is the only value that keeps a constant-height Hero constant.
+    46px IS THE FLOOR CLEARANCE, MEASURED. The head's box bottom sits at
+    -depth + --hero-peek-offset (8px) = 54px off the stage floor, and its
+    ROTATED bounding box reaches 29.94px past that at -13.8deg, so what you see
+    under the chin is 24px. Still negative, so the head is still suspended and
+    still casts no shadow -- the rule that matters here is unchanged. */
+ --hero-peek-depth:-46px;
  /* The resting pose is ROTATED. Everything else about rest is layout, but a
     rotation has nowhere to live except the transform, so this is the one
     resting value the transform owns: reset() returns here, not to 0deg, and
     the entrance lands here. A rotated box is wider than the head it holds, so
-    the clamp has to stay legal at this angle -- see the contract. */
- --hero-head-rest-rotate:-13.8deg;
+    the clamp has to stay legal at this angle -- see the contract.
+    ── -13.8 -> 0 ON 2026-08-20 ────────────────────────────────────────────
+    Jayden asked first for "more subtle ... almost upright but not quite", and
+    then, on seeing the question put plainly: "lets make resting tilt 0".
+    THE HEAD IS ONLY LEVEL WHEN IT IS STANDING STILL, which is why 0 is a
+    composition and not the absence of one. --hero-head-travel-bank leans the
+    head into its direction of travel and measures a -3.29..+3.23deg swing with
+    a 0.90 correlation to velocity, so the resting angle being 0 does not make
+    the head level -- it makes the ONLY tilt a report of which way it is going.
+    That is exactly what he asked the bank for ("if hes going right a tilt to
+    the right and if hes going left a tilt to the left"), and it reads better
+    standing alone than it did as a wobble added to a fixed lean.
+    THE BANK IS NOT RETUNED IN THE SAME PASS, deliberately. It is tempting to
+    open it up now that it is carrying the whole angle, and the two measured
+    bounds still hold from both sides: 2.6 was the SMALLEST value where the
+    lean is legible at all against the bob's own 0.7deg, and the LARGEST where
+    the two extremes still read as the same composition leaning. Moving the
+    rest angle and the swing on the same day would leave nobody able to say
+    which one he was reacting to. Looked at travelling left and travelling
+    right at 1440 and 390 with the rest at 0, the direction is legible.
+    WHAT THIS CHANGES BELOW THE HEAD: --hero-peek-depth's note measures the
+    rotated bounding box reaching 29.94px past the box bottom at -13.8deg. At
+    0 the box is its own square, so the chin sits HIGHER and the floor
+    clearance grows rather than shrinks. Still suspended, still no shadow --
+    the rule that matters here is unchanged and moves further from its edge,
+    not closer.
+    AND IT SQUARES THE SELECTION FRAME AT REST, which is why the always-on
+    dots further down this file can be quiet: five handles axis-aligned to the
+    viewport while the head is still, turning only while it travels. */
+ --hero-head-rest-rotate:0deg;
  /* HOW MUCH STRAIGHTER THE HEAD ARRIVES. The entrance starts this far back
     toward level and turns INTO the tilt as it lands, so the arrival is one
     motion -- rise, turn, settle -- rather than a level head that snaps over
@@ -230,14 +265,29 @@
    entirely. Gated, the token is never defined and controls.css's 0px fallback
    stands. */
 @supports (height:1svh){:root{
- --hero-head-crowd-reach:506px;
+ /* RETUNED 2026-08-20, TWICE OVER, AND BOTH REASONS ARE ARITHMETIC.
+    (1) The copy is 60px shorter -- the time control left it for the corner rail
+    -- so its lower edge is 30px higher and the crossover where the head starts
+    crowding it moved with it. (2) The floor offset above is a constant now, so
+    the head no longer rises as the window shrinks and the crossover is a
+    property of the HERO's height, not the window's. Solving the same two gaps:
+    the clearance under the chin and the gap over the crown sum to H/2 - 269.88,
+    and the gap reaches zero at H = 588. 355 = 60.4 * 5.88 is that height
+    expressed in the units this pair is written in.
+    THE CEILING CAME DOWN FROM .66 TO .44 FOR A SEPARATE REASON: the offset it
+    is a share OF fell from 163px to 54px, so .66 of it is 35.6px of drop
+    against 24px of clearance -- the cure would push the head through the floor.
+    .44 caps the drop at 23.8px, which is the clearance and not a pixel more. */
+ --hero-head-crowd-reach:355px;
  --hero-head-crowd-rate:60.4svh;
  --hero-head-crowd-drop:clamp(0px,
    calc(var(--hero-head-crowd-reach) - var(--hero-head-crowd-rate)),
-   calc(((var(--hero-peek-depth) * -1) + var(--hero-peek-offset)) * .66))
+   calc(((var(--hero-peek-depth) * -1) + var(--hero-peek-offset)) * .44))
 }}
 @media(max-width:760px){@supports (height:1svh){:root{
- --hero-head-crowd-reach:388px;
+ /* Same solve on the phone's parts: the two gaps sum to H/2 - 210.68 - C and
+    reach zero at H = 507, and 253 = 50 * 5.07. */
+ --hero-head-crowd-reach:253px;
  --hero-head-crowd-rate:50svh
 }}}
 @media(max-width:760px){:root{
@@ -249,7 +299,10 @@
     call -- Jayden placed the desktop rest deliberately and should retune this
     one by eye; the constraint is only that shift-x >= -89.5 keeps it on screen. */
  --hero-peek-shift-x:-74px;
- --hero-peek-depth:calc(-129px + var(--heroReveal,0px) * .5)
+ /* A constant for the reason the desktop one is (see above); 35px puts the
+    box's bottom 39px off the stage floor and its rotated bounding box 20px,
+    against a 256.96px box (211px square at -13.8deg). */
+ --hero-peek-depth:-35px
 }}
 /* --theme-duration is NOT overridden here. It was :root:root{--theme-duration:
    var(--hero-time-duration)}, which made index run chrome transitions at 640ms
@@ -640,10 +693,53 @@
  border-bottom:var(--rule-w) solid var(--rule);
  border-radius:var(--surface-hero-radius);corner-shape:var(--corner)
 }
+/* ── THE RATE IS THE FOOTER'S NOW. THE COLOURS AND THE FORM ARE NOT. ────────
+   Jayden, 2026-08-20: "for the top gradient I like the colors keep the colors
+   and form that but I do like the footers movement of the gradient better I
+   like the look of that one also."
+   SO ONLY THE CLOCK MOVED. Every per-state block below -- the stops, the
+   angles, the capped --hero-glow-rx, the six focal cores -- is untouched, and
+   this rule is still one scale and one translate on one layer. What changed is
+   the two periods, and they are lifted out of footer-band.js rather than
+   guessed:
+       ZOOM_RATE  .40 rad/s  ->  2*pi/.40 = 15.71s   ->  heroSkyBreath
+       BREATH_RATE .45 rad/s ->  2*pi/.45 = 13.96s   ->  heroSkyWander
+   The two used to be 29s and 43s, so the sky's whole vocabulary was about twice
+   as slow as the surface he is comparing it to. That is the difference he is
+   describing: at 29s a full-viewport gradient changes about a percent a second
+   and reads as still, and the footer at 14s reads as weather.
+   THE FOLD IS THE ONE THING THAT DID NOT COME WITH IT, AND IT IS A BUDGET, NOT
+   A TASTE. The footer does not scale a picture -- it samples a metaball field
+   at a point displaced by two octaves of fbm, per mesh cell, per frame, and
+   that domain warp is what makes the blobs stretch and fold instead of slide.
+   MEASURED, on this page, by growing the REAL band to the Hero's box and
+   letting its own ResizeObserver re-measure (1440x900, device scale 2):
+       band at its shipped 114px      18.8 fps   (23.8 with its canvas off)
+       band grown to the Hero's 650   4.7 fps
+       band back at 114px             19.8 fps
+   The Hero fold runs 24.4 fps as it stands. A mesh over it costs about twenty
+   of those twenty-four frames, because the sample count goes with AREA and the
+   Hero is 5.7x the band. There is no version of "no lag" that survives that,
+   so the mesh is not ported and this note is the reason rather than an
+   omission.
+   THE AMPLITUDE IS HELD BACK ON PURPOSE, and it is the same arithmetic. The
+   footer's zoom is +/-5% of its sample domain, which on a 114px band moves an
+   edge about 6px; the same 5% on a 650px Hero moves 33px, and 72px across at
+   1440. Period is what reads as ALIVE; excursion at this size reads as the page
+   sliding. So the breath opens from 1.05..1.11 to 1.05..1.13 -- a 7.6% ratio
+   against the footer's 10.5% -- and the wander's percentages do not move at
+   all, because they are the coverage proof above and not a taste.
+   COVERAGE STILL HOLDS AND THE PROOF IS UNCHANGED BY THIS EDIT. The floor of
+   the breath is still 1.05, which at transform-origin 50% 100% is 2.5% of
+   overhang at each side and 5% above; the wander is still capped under both at
+   +/-1.6% across and .2%..2.0% DOWN. Raising the CEILING of a scale only ever
+   adds overhang. The two oscillators are now near enough in period to beat
+   slowly (129s), and the worst case they can reach together is still max
+   wander at min scale, which is the case the numbers above were solved for. */
 .heroTimeDrift{position:absolute;inset:0;transform-origin:50% 100%;
  scale:1.05;translate:0 .2%;
- animation:heroSkyBreath 29s var(--sky-drift-ease) infinite,
-           heroSkyWander 43s var(--sky-drift-ease) infinite}
+ animation:heroSkyBreath 15.71s var(--sky-drift-ease) infinite,
+           heroSkyWander 13.96s var(--sky-drift-ease) infinite}
 /* Nothing to breathe under: Off is the state where the page itself is the
    point, so the layer stops being animated rather than animating six
    transparent children. */
@@ -651,7 +747,7 @@
 /* Sine, not the default ease. A cubic-bezier ease-in-out between two extremes
    is what a sin() looks like, and it is the same shape both references use. */
 :root{--sky-drift-ease:cubic-bezier(.37,0,.63,1)}
-@keyframes heroSkyBreath{0%,100%{scale:1.05}50%{scale:1.11}}
+@keyframes heroSkyBreath{0%,100%{scale:1.05}50%{scale:1.13}}
 @keyframes heroSkyWander{
  /* .2% and not 0: at the bottom of the wander the sky's own bottom edge is
     exactly flush with the clip's, and "exactly flush" is where sub-pixel
@@ -1210,6 +1306,76 @@
    value to keep in sync, it is the absence of one. */
 .heroCopy h1{position:relative;z-index:3;color:var(--hero-headline-ink,var(--time-ink));transition:color var(--hero-time-duration) var(--hero-time-ease)}
 :root[data-hero-ink="ink"] .hero{--hero-headline-ink:var(--c950)}
+
+/* ══ THE COPY IS A HOLE IN THE SKY ═══════════════════════════════════════════
+   Jayden, 2026-08-20: "the text interacts with the head passing it like maybe
+   if the head is passing through it that part of the text turns white and
+   inverts the part of the head hovering over it ... the inverted text is a good
+   idea but feel free to research other methods."
+   THE BUG UNDERNEATH THE REQUEST IS REAL AND IS WHY THIS IS NOT DECORATION.
+   The head passes BEHIND the words -- his composition, index.html:~1930 -- so
+   when it drifts under the headline the h1 paints #090b24 over 260px of black
+   hair. Measured on that overlap: 1.06:1. The type does not "look wrong" there,
+   it disappears.
+   ONE DECLARATION DOES IT, AND IT IS THE COMPOSITOR'S: the copy blends by
+   DIFFERENCE and its ink is paper. Every glyph pixel then draws 255 minus
+   whatever is behind it -- black on the pale skies, white on the hair, and it
+   crosses the boundary per-pixel with no boundary to keep in sync.
+   IT COSTS THE AUTHORED INK ALMOST NOTHING, WHICH IS THE MEASUREMENT THAT MADE
+   IT SHIPPABLE. Sampled at the h1's own centre in all six states with the head
+   moved away: the five daylight skies land on 248-253 and invert to 7, against
+   an authored --c950 of 9; night lands on 7 and inverts to 248, against an
+   authored --c50 of 253. Two to five levels, on a display headline. The
+   contrast against the sky runs 17.0:1 - 20.6:1 across the six, where the
+   authored ink ran ~18:1 -- so the adaptive colour this file already argued for
+   is reproduced, for free, by a rule that ALSO handles the head.
+   WHAT ELSE WAS TRIED, AND WHY EACH LOST
+   - difference on the HEAD instead of the copy: the head is over sky 95% of
+     the time, so it would spend its life inverted and read as normal only where
+     it crossed the type. Backwards.
+   - backdrop-filter:invert() on the type: a backdrop filter is clipped to the
+     element's BOX, not to its glyphs, so it inverts a 504x74 rectangle of sky.
+     That reads as a rendering fault, not an interaction. It also cannot see the
+     head at all -- a backdrop filter only sees what is painted BELOW it, and
+     the fix has to work with the head below the copy, which it is.
+   - a duplicated headline clipped to the head's live box: the most controllable
+     option and the one that cannot be built from here. The head's position is
+     published as --hero-head-float-x/-y, but they are written onto
+     #heroHeadTransform, and a stylesheet cannot read a custom property off an
+     element that is not an ancestor. Reaching them means a per-frame
+     getComputedStyle -- 60 forced style recalcs a second against a page whose
+     performance-idle-contract measures 56fps -- or an edit to
+     hero-head-transform.js, which this agent does not own.
+   - mix-blend-mode:exclusion: for a pure-white source, exclusion is
+     a + b - 2ab with a = 1, which is 1 - b. Algebraically identical to
+     difference here. It buys nothing and costs a reader a minute.
+   IT MUST BE ON .heroCopy AND NOT ON THE h1, and that is not a preference.
+   .heroCopy carries `transform:translateY(...)` and `z-index:3`, so it creates
+   a stacking context, and a stacking context is an isolation boundary for
+   blending. A mix-blend-mode on the h1 inside it would blend against .heroCopy's
+   own (empty, transparent) group and simply render white. Verified from the
+   CSSOM, not by eye.
+   THE PINNED-INK VARIANTS OPT OUT. data-hero-ink="ink" and "white" exist so
+   Jayden can see one literal colour; blending them would make the attribute a
+   lie. "auto" is still the absence of an attribute, so the blend is the
+   default and the two forks turn it off. */
+.heroCopy{mix-blend-mode:difference}
+:root[data-hero-ink="ink"] .heroCopy,
+:root[data-hero-ink="white"] .heroCopy{mix-blend-mode:normal}
+/* Paper, not --c50. #f4f5f7 would invert the sky to 7,5,2 offset by the 11
+   levels it is short of white, which shows up as a faint warm cast on night --
+   the one state where the glyphs are the bright thing. The literal is the
+   blend's operand, not a colour anybody chose to look at. */
+:root:not([data-hero-ink="ink"]):not([data-hero-ink="white"]) .heroCopy h1{color:#fff}
+/* The eyebrow keeps its distance from the headline the only way it can under a
+   difference blend: with alpha. At .72 the composite is (1-a)*Cb + a*(1-Cb), so
+   over the daylight skies it lands on ~#4a4a4a against the h1's ~#070502 -- the
+   same "quieter than the headline, still legible" relationship --theme-muted
+   was giving -- and over the head's hair it goes light with the headline
+   instead of sinking into it. */
+:root:not([data-hero-ink="ink"]):not([data-hero-ink="white"]) .heroCopy .heroCred{
+ color:rgba(255,255,255,.72)
+}
 /* The eyebrow follows the headline or the pair stops reading as one object.
    .85 alpha is the reference's own value, timeline.tsx:108. */
 :root[data-hero-ink="white"] .hero{--hero-headline-ink:var(--c50);--hero-cred-ink:rgba(255,255,255,.85)}
@@ -1525,96 +1691,199 @@
    could not reach the time menu. Verified live from the CSSOM, not by eye. */
 #heroHeadSelection{z-index:2}
 
-/* ── THE FRAME IS ALWAYS THERE, IN TWO STATES ────────────────────────────────
-   Jayden: "I know I said I want the resize block to be there all the time and I
-   still do, but I think when you click off of it it should have a very subtle
-   version of it, like that the user can tell it's not activated -- in
-   greyscale."
-   ACTIVE is the blue frame with its handles: the live control, while the head
-   is the thing under your hand. IDLE is the same geometry in the page's own
-   ink at low strength: still structural, still welded to the head, plainly not
-   something you are currently holding. hero-head-transform.js writes
-   data-selection; `hidden` is a third thing entirely and still belongs to
-   Escape.
-   IT MUST NOT READ AS BROKEN OR HALF-LOADED, and there are three separate
-   reasons it does not. The GEOMETRY is identical -- same box, same five dots,
-   same hairline -- so nothing appears to have failed to draw; only the colour
-   changes. The HEAD KEEPS FLOATING, and a frame tracking a moving object
-   frame-for-frame is the one thing a rendering artefact never does. And the
-   change is a TRANSITION on the motion ladder, not a swap: --dur-state-out
-   letting go, the faster --dur-state coming back, which is the same asymmetry
-   every control on this site uses for hover.
-   BARELY THERE IS A DISTANCE, NOT A COLOUR, AND THAT IS WHY THE FIRST VERSION
-   OF THIS FAILED. Jayden: "lowkey the grey resize box -- I was thinking even
-   more subtle, like you can barely tell it's there, but still it's there."
-   The first attempt was one grey at one alpha, chosen against the daytime sky.
-   Measured over the frame's own pixels at 1440, diffing the drawn frame against
-   the same frame hidden: the six daylight skies landed at contrast 1.22-1.23
-   and dL* 7.3-7.7, and NIGHT landed at 2.47 and dL* 25.1. Three times the
-   perceptual step, from a declaration that never changed. A fixed alpha over a
-   near-black backdrop is not the same subtlety as the same alpha over a
-   near-white one, and no amount of picking a better grey fixes that, because
-   the backdrop changes seven times.
-   SO IT IS PEGGED TO THE SKY IT SITS ON. --env-lum is already the composited
-   sky sampled where the head is, written per frame for the lighting -- the same
-   number the exposure and the ambient fill read. Reusing it means the frame
-   keeps a roughly constant perceptual distance from its own backdrop, it
-   follows a sky cross-fade rather than stepping at the end of one, and a
-   retuned gradient retunes the frame with it. One source, exactly as the rim
-   and the shading colour share one.
-   The fit is linear in --env-lum and deliberately shallow: about .21 alpha on
-   a bright sky, about .06 at night, which brings every state to dL* ~4-5. The
-   clamp is not decoration -- --env-lum carries a .35 floor so a head dragged
-   into a dead corner cannot take the frame to zero with it, and "gone" is the
-   one thing this must never be. Jayden keeps the frame because it "adds to the
-   structure and gives that design look"; invisible would be a different bug
-   from too loud, not a success.
-   THE HANDLES GO QUIETER STILL, AND THEY STAY. Absent was the other option and
-   it is the wrong one: four corner dots are what make a rectangle read as a
-   SELECTION rather than as a border, and the border on its own is the design
-   look he asked for minus the reason it is there. So they keep the geometry and
-   lose everything else -- no fill at all, and their outline at 58% of the
-   frame's own alpha, which puts them below the line in every state. Active they
-   are solid chips you can take hold of; idle they are the faintest thing in the
-   picture.
-   They are also out of the tab order (in the JS, with the attribute), so the
-   keyboard agrees with the picture. What does NOT change is hit-testing:
-   pressing a handle, the box or the head still selects, because "clicking the
-   head brings it back" has to be true from every point in the chrome. */
-#heroHeadSelection{
- --selection-idle-alpha:clamp(.035,calc(.316 * var(--env-lum,1) - .083),.26);
- --selection-idle-ink:color-mix(in srgb,
-   var(--time-ink,#090b24) calc(var(--selection-idle-alpha) * 100%),transparent);
- --selection-idle-dot:color-mix(in srgb,
-   var(--time-ink,#090b24) calc(var(--selection-idle-alpha) * 58%),transparent)
-}
-#heroHeadSelection[data-selection="idle"]{
- --selection-ink:var(--selection-idle-ink);
- cursor:pointer
-}
-#heroHeadSelection[data-selection="idle"] .heroHeadHandle::before,
-#heroHeadSelection[data-selection="idle"] .heroHeadRotate::before{
- background:transparent;
- box-shadow:inset 0 0 0 var(--selection-line) var(--selection-idle-dot)
-}
-/* ONE RUNG, AND THE UNHURRIED ONE. --dur-reveal is the ladder's "appear or
-   dismiss IN PLACE" duration, which is exactly what this is -- nothing travels
-   and nothing arrives, a line changes weight. It is also 2.25x the state rung
-   the first version used, because a quick swap draws the eye to the one element
-   whose whole purpose is to stop drawing it. No in/out asymmetry: that
-   convention belongs to hover, where the pointer's arrival is the event. Here
-   the event is elsewhere on the page, and a fade that is slower one way reads
-   as the frame having an opinion about it.
-   Declared on the pseudo-elements because that is where the colour lives; a
-   shadow-tree box does not inherit its host's transition. */
-#heroHeadSelection .heroHeadFrame::before,
+/* ── THE FRAME IS GONE. THE CONTROL IS NOT. ─────────────────────────────────
+   Jayden, 2026-08-20: "the drag box on the head I think we should just get rid
+   of it."
+   THIS REVERSES HIS OWN EARLIER CALL AND THAT IS WHY THE ESSAY IS WORTH
+   READING BEFORE RE-ADDING ANYTHING. What stood here was ~60 lines arguing the
+   frame into existence twice over: "I know I said I want the resize block to be
+   there all the time and I still do", then "even more subtle, like you can
+   barely tell it's there, but still it's there" -- which produced a frame
+   pegged to --env-lum so it kept a constant perceptual distance from a sky that
+   changes seven times, measured to dL* ~4-5 in every state. The tuning was not
+   wrong; the object was. He has now asked for it gone outright, and "gone" is
+   the one answer that essay explicitly ruled out. All of it goes with the
+   frame: the --selection-idle-* ramp, the idle dot recolour and the
+   --dur-reveal cross-fade on the pseudo-elements had no other consumer.
+   WHAT IS DELETED IS PAINT, AND ONLY PAINT. Every capability survives, and each
+   one is load-bearing for a different reason:
+     - #heroHeadSelection keeps its box, its `cursor:move` and its
+       pointer-events, so dragging the head by the area AROUND it still works.
+     - the five handles keep their 44px targets, their pointer handlers and
+       their place in the DOM, so resize and rotate still work by pointer.
+     - they keep `tabindex` and :focus-visible, so resize and rotate still work
+       by keyboard -- and the ring is the one mark in here that must still
+       DRAW, because a control you can reach with Tab and cannot see when you
+       get there is worse than one with no ring at all.
+   THE FOCUS RING IS WHY THE HANDLES ARE EMPTIED RATHER THAN HIDDEN. controls
+   .css hangs the ring on `.heroHeadHandle:focus-visible::before`, so a
+   `display:none` on that pseudo would take the ring with it; hero-time.css:1494
+   already records the same trap one step further on, where a visibility:hidden
+   handle could not hold focus at all and Shift+Arrow simply stopped resizing
+   mid-gesture. So the pseudo keeps its box and loses its two paint
+   declarations, which is exactly the mark and nothing else.
+   IT IS SCOPED BY ID, DELIBERATELY. controls.css links BEFORE this file, but
+   the rules being overridden are (0,2,0) and (0,2,1); an ID puts these at
+   (1,1,0) and (1,1,1), which wins on weight rather than on link order -- so
+   this keeps working if the two files ever swap places. */
+/* ── AND IT IS BACK, SIMPLE, AND THAT REVERSES THE DELETION ABOVE ───────────
+   Jayden, 2026-08-20, after the deletion the essay above records: "remake the
+   resizing and rotate box around the head make it simple and easy to use and
+   use our tokens and design system."
+   SO THE ESSAY ABOVE IS HISTORY AND THIS IS THE LIVE RULE. It is left in place
+   because it holds the two facts that still govern: what was deleted was PAINT
+   only, and the focus ring is why the pseudo-elements were emptied rather than
+   hidden. Both still apply here.
+   WHAT IS DIFFERENT FROM THE THING HE ASKED TO REMOVE, in order of how much
+   each matters:
+   1. THERE IS NO BOX. The artboard rectangle is not redrawn. He named that
+      object -- "the drag box" -- and the four corner dots plus the rotator
+      already say resize and rotate on their own; the rectangle between them
+      was the part that made it read as a screenshot of a design tool. So
+      .heroHeadFrame::before keeps NO paint at all and only the five controls
+      draw. That is the subtraction, and it is the whole of the redesign.
+   2. IT IS ON, ALWAYS, AND THE QUIET COMES FROM THE DRAWING RATHER THAN FROM
+      AN OPACITY. Jayden, 2026-08-20: "I want the resize box visible at all
+      times on the head ... make sure the resize box components are always
+      there sometimes they disapear for me." That is the third time he has
+      asked for permanence in this file -- "I know I said I want the resize
+      block to be there all the time and I still do" is the first -- and it
+      settles a question this rule got wrong on its first pass.
+      WHAT THE FIRST PASS SHIPPED AND WHY IT WAS WRONG: a rest opacity of .34
+      resolving to 1 on hover, focus and press, argued from the head now
+      travelling continuously -- a fully drawn frame welded to a permanently
+      moving object reading as "something is selected" when nothing is. It is a
+      real observation and it is not his. He has answered it, and a control
+      that fades to a third of itself is exactly the thing he means by "they
+      disappear". So there is ONE state, and the whole two-state apparatus is
+      deleted rather than pinned at 1 -- a variable with one value is a second
+      place for this to go wrong.
+      THE QUIET IS STILL REAL, and it is the drawing that carries it: an 8px
+      dot, a hairline, and the hour's own ink. Nothing here uses opacity to
+      apologise for something too loud to leave on.
+   3. EVERY VALUE IS A TOKEN, and the two that could not be are named here
+      rather than left to look like oversights:
+      - THE INK IS --time-ink, NOT --selection-ink. A single fixed grey cannot
+        survive six skies running #f8fafd to #060a13, which is what the deleted
+        --selection-idle-* ramp existed to solve. --time-ink is the hour's own
+        answer and already flips with it (--c950 on the five light states,
+        --c50 at night), so the dot is dark on a pale sky and pale on a dark
+        one for free, with no second ramp to keep in sync. tokens.css's
+        --selection-ink is #64a5dd, and blue is dead on this site.
+      - THE FILL IS --time-base, the sky's own ground, so the dot is a hole in
+        the sky with a hairline around it rather than a chip sitting on it.
+        The pair flips together, which is what makes one rule cover all six.
+      - THE RADIUS CANNOT BE --r-md AND THE REASON IS ARITHMETIC. The ladder's
+        control rung is 14px and these dots are 8px square; a 14px radius on an
+        8px box is a circle with three unused pixels, which is not "the control
+        rung", it is the ladder failing to describe an object this small.
+        --r-hair (2px) is the rung that describes an 8px square, and the
+        rotator keeps --r-full because ROUND is the thing that says "this one
+        turns" rather than resizes -- a shape distinction, not a radius one.
+        IT IS --r-hair AND NOT --r-xs, AND THAT IS A SCREENSHOT, NOT A
+        PREFERENCE. --r-xs is 4px; half of an 8px box is 4px, so --r-xs on
+        these dots draws a perfect CIRCLE and the corner handles became
+        indistinguishable from the rotator -- the one distinction in point 3
+        above, deleted by the rung one step too high. Looked at at night, where
+        the dots are palest and the difference is easiest to see.
+   4. NO SHADOW, AND THAT IS THE SITE'S ONE ABSOLUTE. The heads cast the only
+      shadow here because they stand on something. This is chrome: it separates
+      with a hairline (--hair-w) and translucency, never elevation. The
+      box-shadow below is an INSET at hairline width, which is a border drawn
+      where a border would change the box; it is not elevation.
+   5. THE 44px TARGET IS UNTOUCHED. --selection-hit-size is --tap-min and the
+      button IS the target; --selection-handle-size is the DOT inside it. That
+      separation is controls.css's and it is what lets the mark be 8px while
+      the thing you press is 44. Nothing here writes width or height.
+   THE MOTION IS THE LADDER'S, AND IT IS NOT SYMMETRICAL. --dur-state in,
+   --dur-state-out back, which is the site's "things leave faster than they
+   arrive" the right way round for chrome that is answering a pointer. */
+#heroHeadSelection{--sel-ink:var(--time-ink)}
+#heroHeadSelection .heroHeadFrame::before{background:transparent;box-shadow:none}
 #heroHeadSelection .heroHeadHandle::before,
 #heroHeadSelection .heroHeadRotate::before{
- transition:box-shadow var(--dur-reveal) var(--ease-out),
-  background-color var(--dur-reveal) var(--ease-out)
+ background:var(--time-base);
+ border-radius:var(--r-hair);
+ box-shadow:inset 0 0 0 var(--hair-w) var(--sel-ink);
+ opacity:1
 }
+#heroHeadSelection .heroHeadRotate::before{border-radius:var(--r-full)}
+/* DELETED, SAME DAY IT WAS WRITTEN: the :hover / :focus-within / :active
+   block that took the dots from --sel-rest to --sel-live, and the
+   :root[data-head-frame="always"] fork that existed to turn it off. Jayden
+   asked for permanent; a state machine with one reachable state is not a
+   simpler control, it is the same control with a way to break.
+   ONE FINDING IS WORTH KEEPING OUT OF THAT DELETION, because it is the kind
+   that reads correctly and does nothing: the obvious selector for "being
+   used" is [data-selection="active"], and hero-head-transform.js writes that
+   attribute in the RESTING frame -- `active` there means the portrait is
+   SELECTED, which it permanently is. Measured live from the CSSOM, the rest
+   opacity came back 1 while the stylesheet said .34, because the "resolved"
+   rule was matching every frame. Anyone reintroducing a rest state must not
+   hang it on that attribute. hero-specimen-check asserts it. */
+/* A dot that has left the stage still must not paint, and [data-off] above
+   sets opacity:0 on the same pseudo-element. Restating it AFTER the rules that
+   give the dots an opacity is what keeps it winning -- it is (1,2,1) against
+   this block's (1,2,1), so it is link order inside one file that decides, and
+   the safe order is "the thing that hides it, last". */
+#heroHeadSelection .heroHeadHandle[data-off]::before,
+#heroHeadSelection .heroHeadRotate[data-off]::before{opacity:0}
+/* --selection-air is NOT touched: it is the padding the POINTER box carries
+   around the head, and travelBounds() reads it to keep the drifting head clear
+   of the Hero's edges. It stopped being visible; it never was geometry the
+   frame owned.
+   NEITHER IS THE CURSOR, and it is the last thing left that tells you the box
+   is there. hero-head-transform.js still writes data-selection, controls.css
+   still gives the box `cursor:move`, and idle still has to say `pointer`:
+   move means "this is under your hand and will follow it", pointer means "press
+   this and it will be". With no frame to look at, the cursor IS the affordance,
+   so it is the one signal that had to survive the deletion rather than go with
+   it. */
+#heroHeadSelection[data-selection="idle"]{cursor:pointer}
 
 .heroTime{position:relative;z-index:12;display:inline-flex}
+/* ── THE TIME CONTROL SITS IN THE SKY, NOT ON IT ─────────────────────────────
+   Jayden, 2026-08-20: "the time of day button should feel more blended in."
+   It was .ctl--secondary.ctl--icon, which is an OPAQUE PAPER CHIP with a rim --
+   #ffffff on a sky that runs from #f8fafd to #060a13. On the daytime gradient
+   at the Hero's bottom-right that is a 1.9:1 step of pure white against a
+   saturated blue, and once the control moved to the corner it was the only
+   opaque object in 650px of painted weather.
+   THE VARIANT IS THE FIX, NOT A PRIVATE RESTYLE. .ctl--quiet already means
+   exactly "no ground, no rim, the colour carries the state" -- it is what every
+   row inside this control's own menu uses. Swapping the variant in the markup
+   is one class, and it takes the geometry, the 44px floor, the press scale, the
+   focus ring and the disabled treatment with it untouched.
+   WHAT THE VARIANT CANNOT KNOW IS WHICH SKY IT IS STANDING IN. .ctl--quiet
+   binds --ctl-ink, which is the PAGE's ink and is dark in both themes; the
+   Hero's ink flips with the hour and is already solved -- --time-ink is
+   --c950 for the five daylight skies and --c50 for night, the same token the
+   headline reads. So the only thing declared here is colour, on the variant
+   whose whole contract is colour.
+   62% IS MEASURED, NOT A TASTE. Rendered at device scale 2 with the head hidden
+   and the icon's own peak stroke pixel read against the sky inside its 44px
+   box, in all six states: full-strength --time-ink lands at 13.3:1 - 17.8:1,
+   which is a control shouting on a photograph. 62% brings the resting icon to
+   4.9:1 - 11.7:1 -- the floor is dusk at 4.87 and daytime at 5.11, both well
+   clear of the 3:1 WCAG 1.4.11 asks of a graphical control, and the ceiling is
+   sunrise at 11.65 where the sky under the corner is nearly white. Hover, focus
+   and the open menu take it back to full strength, so reaching for it is what
+   makes it solid -- the same "quiet until touched" the nav's own Play item
+   uses. IT IS A FLOOR AND NOT A TARGET: going quieter is a legibility question
+   to re-measure, not a number to nudge.
+   THE OPEN STATE GETS ITS GROUND BACK, AND THE LIBRARY DOES THAT BY ITSELF --
+   verified, not assumed. .ctl--quiet's state selector lists :hover,
+   :focus-visible, [aria-current] and [aria-selected] but NOT [aria-expanded],
+   so `.ctl--icon[aria-expanded="true"]` still wins on weight and paints the
+   ground and the strong rim while the menu is open. Hover and focus stay
+   colour-only, which is .ctl--quiet's whole contract. Nothing here declares any
+   of it; it is recorded because it looks like an accident and is not one, and
+   because adding [aria-expanded] to that list in controls.css would silently
+   flatten this control's open state. */
+#heroTimeBtn{color:color-mix(in srgb,var(--time-ink) 62%,transparent)}
+#heroTimeBtn:hover,#heroTimeBtn:focus-visible,#heroTimeBtn[aria-expanded="true"]{
+ color:var(--time-ink)
+}
 .heroTimeIcon{
  width:var(--ico-md);height:var(--ico-md);fill:none;stroke:currentColor;
  stroke-width:var(--ico-stroke);stroke-linecap:round;stroke-linejoin:round
@@ -1632,11 +1901,29 @@
 .heroTimeIcon[data-icon="night"] [data-hero-time-icon="night"],
 .heroTimeIcon[data-icon="off"] [data-hero-time-icon="off"]{display:inline}
 
+/* ── IT OPENS UPWARD NOW, AND ONLY `bottom` MAY BE SET ──────────────────────
+   The control moved to the Hero's bottom-right corner on 2026-08-20, so a menu
+   hung off `top:calc(100% + 8px)` opened 8px below a button whose own lower
+   edge is 24px off the Hero's floor: 340px of menu entirely inside the work
+   section, over the tab row.
+   THE FIRST FIX WAS `top:auto;bottom:...` IN A LATER RULE AND IT COLLAPSED THE
+   MENU TO 16px. Two reasons, and both are worth writing down. The rule was
+   later in the FILE but earlier than this one, so `top` was never overridden at
+   all -- and with `top` and `bottom` both resolving on a box whose containing
+   block is the 44px button, height:auto is solved as 44 - 52 - 52, clamps to 0,
+   and what renders is the menu's own 8px of padding twice over. Measured live:
+   the box came back 634..650 with every item inside it. So the fix belongs HERE,
+   in the declaration that owns the anchor, not layered over it.
+   right:0 was already correct and stays: the control's right edge is the page
+   column's right edge, so the menu's is too. */
 .heroTimeMenu{
- position:absolute;top:calc(100% + var(--sp-8));right:0;left:auto;z-index:30;
- /* Time is last on every centered flex line. Even alone its right edge is
-    50vw + 22px, so 50vw + 6px leaves the required 16px left gutter. */
- width:min(var(--menu-w),calc(50vw + var(--sp-6)));
+ position:absolute;top:auto;bottom:calc(100% + var(--sp-8));right:0;left:auto;z-index:30;
+ /* The 50vw cap that stood here was justified by "Time is last on every
+    centered flex line" -- it was measuring from the middle of the Hero because
+    that is where the control used to be. It is on the page's right column now
+    with the whole measure to its left, so the only bound left is the viewport's
+    own gutter, which the next line already was. */
+ width:var(--menu-w);
  max-width:calc(100vw - (var(--sp-16) * 2))
 }
 .heroTimeMenu small{
@@ -1645,7 +1932,7 @@
 
 @media(max-width:760px){
  :root{--hero-time-duration:420ms}
- .heroTimeMenu{width:min(var(--menu-w),calc(50vw + var(--sp-6)));max-width:calc(100vw - (var(--sp-16) * 2))}
+ .heroTimeMenu{width:var(--menu-w);max-width:calc(100vw - (var(--sp-16) * 2))}
 }
 
 @media(prefers-reduced-motion:reduce){
@@ -1668,6 +1955,21 @@
 
 @media(forced-colors:active){
  .heroTimeSpill,.heroTimeClip,.heroTimePortraitCast,.heroTimePortraitLit,.heroAura{display:none}
- .hero,.heroCopy h1{background:Canvas;color:CanvasText}
+ /* THE BLEND HAS TO GO FIRST, BEFORE THE COLOUR IS WORTH DECLARING. Forced
+    colours repaint the ink as CanvasText and take the sky away entirely (the
+    line above), so a difference blend would be computing 255 minus Canvas --
+    the system's own background -- and the headline would render as its exact
+    photographic negative in a mode chosen by people who need the system's
+    contrast and nothing else. Normal blending, system ink, no argument. The
+    eyebrow is named with it: it was rgba white, which is invisible on Canvas. */
+ .heroCopy{mix-blend-mode:normal}
+ .hero,.heroCopy h1,.heroCopy .heroCred{background:Canvas;color:CanvasText}
  .hero{box-shadow:none}
+ /* The selection frame is deleted in this file; controls.css's forced-colors
+    block still repaints its rim and its five dots as Highlight outlines, which
+    would bring the whole box back for exactly the users least able to read a
+    photograph with a wireframe over it. Same deletion, same reasoning. */
+ #heroHeadSelection .heroHeadFrame::before,
+ #heroHeadSelection .heroHeadHandle::before,
+ #heroHeadSelection .heroHeadRotate::before{outline:none}
 }

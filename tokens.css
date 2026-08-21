@@ -794,7 +794,19 @@
     a notch of page colour. The BOTTOM edge is the only one that terminates
     inside the page, so it is the only one that gets a corner. Jayden picked
     this directly: sharp bottom edge, curved bottom corners, no fade. */
- --surface-hero-radius:0 0 var(--r-xl) var(--r-xl);
+ /* ROUND 15, 2026-08-20: "on both version the bottom of the hero shouldnt be
+    curved should go straight across."
+    This reverses the note directly above, which is his own earlier call and is
+    kept because it is the argument, not the answer: the top and sides have
+    nothing to round against, the bottom is the only edge that terminates inside
+    the page, so it was the only one given a corner. What changed is what that
+    corner now does. The Hero is no longer a floating card -- it is the page's
+    top band, it carries the structural hairline along its own bottom edge, and
+    that rule is what the tab row and the first cover align to. A rounded corner
+    makes a full-bleed boundary stop 28px early at both ends and read as a
+    card's lip instead of a section's edge. Straight across is the same
+    instruction as the rule itself. */
+ --surface-hero-radius:0;
  --surface-hero-pad:var(--sp-16-40);
  --surface-pad:var(--sp-32);
  --surface-inset:var(--sp-8);
@@ -963,7 +975,7 @@
 @media(max-width:760px){:root{
  --surface-pad:var(--sp-16);--surface-gutter:var(--sp-16);
  --radius-container:var(--r-lg);--radius-media:var(--r-md);
- --surface-hero-radius:0 0 var(--r-lg) var(--r-lg);
+ --surface-hero-radius:0;  /* straight across on the phone too -- see above */
  --surface-hero-pad:var(--sp-16);
  /* The phone Hero is already narrower than the authored box, so the cap that
     protects the desktop focus would only shrink the glow further here. */

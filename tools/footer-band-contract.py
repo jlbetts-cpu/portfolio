@@ -49,8 +49,23 @@ two places:
   * where there was one assertion that the band differs from the page ground,
     there are now three: it is a surface and not the ground, it carries painted
     VARIATION rather than a flat fill, and it tracks the clock.
-And two new ones with no ancestor: the band is half the height it was (measured
-227.5 -> 114 at 1440 and 83.1 -> 42 at 390), and it carries NO wordmark.
+And two new ones with no ancestor: the band is half the height it was on the
+desktop (measured 227.5 -> 114 at 1440), and it carries NO wordmark.
+
+THE PHONE END IS GATED SEPARATELY AND FOR A DIFFERENT REASON, 2026-08-20.
+Jayden, later the same day: "the footer is too small on ios". The first cut
+halved both ends of the clamp -- 227.5 -> 114 at 1440 and 83.1 -> 42 at 390 --
+and halving is the wrong operation on the phone end, because what makes this a
+floor is fixed in pixels: footer-band.js lays the glyph field on a 21px cell at
+every width, so 114px is 5.4 rows of it and 42px was 2.0, both of them clipped.
+The phone was getting a crop of the picture rather than a smaller one. So there
+are now TWO height assertions with different jobs:
+  * check_height pins the numbers, 114 at 1440 and 63 at 390 and 320.
+  * check_grain pins the REASON, in the field's own unit: the band must be at
+    least three whole cells tall wherever it is measured. That is the assertion
+    that survives a change to the clamp's shape, and it is the one that fails if
+    somebody puts the phone floor back to 42 by any route -- including by
+    growing CELL, which check_height cannot see at all.
 
 So: real pages, real pixels, real reduced-motion, and a --self-test that puts
 each defect back and requires the contract to catch it.
@@ -116,7 +131,15 @@ class Quiet(SimpleHTTPRequestHandler):
                 self.send_error(500, "self-test needle not found: %r" % self.patch[1])
                 return
             body = src.replace(self.patch[1], self.patch[2]).encode("utf-8")
-            ctype = "text/css" if name.endswith(".css") else "application/javascript"
+            # THE HTML BRANCH IS NOT DECORATION. Until 2026-08-20 every injection
+            # here targeted footer.css or footer-band.js, so the else-branch was
+            # always right by accident. The cross-page check has to be injected
+            # into a PAGE (a change to footer.css moves all eight together and a
+            # spread cannot see it), and a page served as application/javascript
+            # renders as a blank document -- which fails the run for the wrong
+            # reason and reads as the injection being caught.
+            ctype = ({".css": "text/css", ".html": "text/html; charset=utf-8"}
+                     .get(name[name.rfind("."):], "application/javascript"))
             self.send_response(200)
             self.send_header("Content-Type", ctype)
             self.send_header("Content-Length", str(len(body)))
@@ -130,8 +153,22 @@ class Quiet(SimpleHTTPRequestHandler):
         pass
 
 
+class QuietServer(ThreadingHTTPServer):
+    """A gate nobody reads is a gate nobody trusts, and this one started printing
+    a socketserver traceback per run once the cross-page check began loading all
+    eight pages: Chromium aborts in-flight subresource requests when it navigates
+    away, and the handler thread's write lands on a closed socket. It is not a
+    failure -- the run's exit code was never affected -- but a BrokenPipeError
+    stack above a PASS reads exactly like one, which is how a real failure gets
+    scrolled past. Swallowed here rather than anywhere near an assertion."""
+
+    def handle_error(self, request, client_address):
+        if not isinstance(sys.exc_info()[1], (BrokenPipeError, ConnectionResetError)):
+            ThreadingHTTPServer.handle_error(self, request, client_address)
+
+
 def serve():
-    httpd = ThreadingHTTPServer(("127.0.0.1", PORT), partial(Quiet, directory=str(ROOT)))
+    httpd = QuietServer(("127.0.0.1", PORT), partial(Quiet, directory=str(ROOT)))
     Thread(target=httpd.serve_forever, daemon=True).start()
     return httpd
 
@@ -310,15 +347,28 @@ def check_surface(page, name, fails):
                      "something is being knocked out of it again" % (name, longest))
 
 
-# HALF THE HEIGHT, WHICH IS THE ONE THING HE GAVE A NUMBER FOR: "make it like
-# half the height". Measured on the shipped band the day before the change,
-# 227.52px at 1440 and 83.13px at 390; the clamp's ends are those halved.
-# BOTH WIDTHS, BECAUSE ONE WOULD NOT CATCH IT. The size is
-# clamp(42px,8vw,114px), so 1440 pins the ceiling and 390 pins the floor and a
-# regression in either end is invisible from the other. The tolerance is 1.5px
-# for sub-pixel layout, not for slack: this is a declared height, not a measured
-# one, and it should land exactly.
-BAND_H = {1440: 114.0, 390: 42.0}
+# HALF THE HEIGHT ON THE DESKTOP, WHICH IS THE ONE THING HE GAVE A NUMBER FOR:
+# "make it like half the height". Measured on the shipped band the day before
+# that change, 227.52px at 1440 and 83.13px at 390.
+# THE DESKTOP END IS THAT MEASUREMENT HALVED. THE PHONE END IS NOT, and the
+# module docstring says why -- "the footer is too small on ios", and the field's
+# 21px cell does not scale, so 42px was two clipped rows of a picture that gets
+# 5.4 at 1440. 63px is three whole cells, and it is bounded on both sides by his
+# own two instructions: clearly more than the 42 he called too small, clearly
+# less than the 83.1 he asked to halve. The midpoint of those two is 62.6.
+# THREE WIDTHS, BECAUSE ONE WOULD NOT CATCH IT. The size is
+# clamp(63px,4.86vw + 44.1px,114px), so 1440 pins the ceiling, 390 sits on the
+# floor's own knee and 320 is well inside it -- and a regression in one end is
+# invisible from the other. 320 is here because the floor is now the interesting
+# end: it is the width an iPhone SE in landscape-free portrait actually reports,
+# and the one where a vw-only rule would collapse.
+# The tolerance is 1.5px for sub-pixel layout, not for slack: this is a declared
+# height, not a measured one, and it should land exactly.
+BAND_H = {1440: 114.0, 390: 63.0, 320: 63.0}
+# What the band measured at each width BEFORE Jayden asked for half, so the
+# failure message can name the real number instead of doubling the wanted one --
+# which stopped being true the moment the two ends stopped being one operation.
+BAND_H_PRE_HALF = {1440: 227.5, 390: 83.1, 320: 83.1}
 
 
 def check_height(page, width, name, fails):
@@ -329,55 +379,256 @@ def check_height(page, width, name, fails):
     want = BAND_H[width]
     if abs(box["h"] - want) > 1.5:
         fails.append("%s at %dpx: the band is %.1fpx tall, wanted %.1f. It was %.1f "
-                     "before Jayden asked for half of it."
-                     % (name, width, box["h"], want, want * 2))
+                     "before Jayden asked for half of it, and 42.0 on the phone for the "
+                     "few hours between that and \"the footer is too small on ios\"."
+                     % (name, width, box["h"], want, BAND_H_PRE_HALF[width]))
+
+
+# THREE WHOLE CELLS, WHICH IS THE REASON BEHIND THE NUMBER RATHER THAN THE
+# NUMBER. footer-band.js draws the glyph field on a fixed 21px cell (CELL, line
+# 79) at every viewport width, so the band's height is really a count of rows of
+# the picture: 114px is 5.4 of them and the 42px the phone briefly shipped was
+# 2.0, both clipped by the band's own edges. That is what "too small on ios"
+# looked like -- not a smaller picture, a crop of the same one.
+# THIS IS THE ASSERTION THAT SURVIVES A RETUNE. check_height pins 63 and 114 and
+# would have to be edited by anyone who moves the clamp for a good reason; this
+# one says the thing that must stay true however the clamp is written, and it is
+# the only one of the two that can see CELL growing underneath it.
+# Read from the renderer's own probe rather than from a constant here, so the
+# contract cannot drift from the file it is about.
+MIN_CELL_ROWS = 3
+
+
+# ── ONE FOOTER, EIGHT PAGES, AND THE PHONE IS WHERE THAT STOPS BEING TRUE ────
+# footer-consistency-check proves the MARKUP is byte-identical and that
+# footer.css owns the component. Neither of those can see a page's own
+# stylesheet reaching in and changing the geometry, because nothing in the
+# footer's source has to change for it to happen -- and a TYPE selector in a
+# page's phone media query is the way it happens. Found 2026-08-20 while
+# measuring the phone footer: index.html carries
+#     @media(max-width:760px){ ... nav{gap:16px;padding:24px 0 0} ... }
+# aimed at its header, and <nav class="footNav"> matches it too. Measured at
+# 390: .footNav takes padding-top 24, so index.html's footer is 449.1px against
+# the 425.1 the other seven pages measure -- the site's most important page
+# ending 24px differently from every other one, on the phone only, with nothing
+# wrong in the footer's own source and nothing visible at 1440.
+# WHY THE HEIGHT AND NOT A BOX DIFF. One number per page is enough to catch a
+# rule reaching in (every leak of this kind moves it), it is cheap, and it does
+# not turn a legitimate per-page decision into a failure.
+# THE WAIVER IS LOUD AND DATED ON PURPOSE. index.html is not this component's
+# file, so the fix is handed over rather than applied. The tool prints the waiver
+# on every green run so it cannot sit here unnoticed; delete the entry the day
+# the patch lands and this check starts protecting all eight pages.
+FOOT_TOP_WAIVED = {
+    "index.html": (449.1, "index.html:327 has a bare `nav{gap:16px;padding:24px 0 0}` "
+                          "inside @media(max-width:760px), aimed at .jbNav. Scope it "
+                          "to .jbNav (proven: .jbNav and .csTabs compute identically "
+                          "with and without it at 390, 760 and 1440) and delete this "
+                          "entry."),
+}
+FOOT_TOP_TOL = 1.5
+WAIVED_SEEN = []
+
+
+def check_one_footer(page, name, want, fails):
+    """The footTop's height at 390, which is the same number on every page that
+    has not been reached into."""
+    h = page.evaluate("()=>{const t=document.querySelector('.footTop');"
+                      "return t?t.getBoundingClientRect().height:null;}")
+    if h is None:
+        fails.append("%s: no .footTop at 390" % name)
+        return None
+    if name in FOOT_TOP_WAIVED:
+        known, why = FOOT_TOP_WAIVED[name]
+        if abs(h - known) <= FOOT_TOP_TOL:
+            WAIVED_SEEN.append("%s: .footTop is %.1fpx at 390 against %.1f on the other "
+                               "pages. %s" % (name, h, want, why))
+            return None
+        fails.append("%s: .footTop is %.1fpx at 390; the waiver in this file expects "
+                     "%.1f and the other pages measure %.1f. Either the leak was fixed "
+                     "-- delete the waiver -- or it changed shape."
+                     % (name, h, known, want))
+        return None
+    if abs(h - want) > FOOT_TOP_TOL:
+        fails.append("%s: .footTop is %.1fpx at 390 against %.1f on about.html. The "
+                     "footer's markup and its own CSS are identical on every page, so "
+                     "a different height means this page's own stylesheet is reaching "
+                     "into the component -- which is invisible at 1440 and invisible "
+                     "in the source." % (name, h, want))
+    return h
+
+
+def check_grain(page, name, fails):
+    probe = page.evaluate("()=>window.FooterBand&&window.FooterBand.probe"
+                          "?window.FooterBand.probe():null")
+    if not probe:
+        fails.append("%s: footer-band.js is not running, so the band's grain cannot "
+                     "be measured" % name)
+        return
+    cell, h = probe["cell"], probe["h"]
+    if h < cell * MIN_CELL_ROWS:
+        fails.append("%s: the band is %dpx on a %dpx cell -- %.1f rows of the glyph "
+                     "field, and %d whole rows is the floor. At 2.0 rows (the 42px the "
+                     "phone shipped for a few hours on 2026-08-20) both rows are clipped "
+                     "by the band's edges and it reads as a sliver of noise rather than "
+                     "as a floor." % (name, h, cell, h / float(cell), MIN_CELL_ROWS))
+
+
+# THE SEVEN STATES, AND WHAT EACH ONE HAS TO BE. Read as painted mean luma at
+# 1440 on about.html. The ladder is the Hero's own -- hero-time.css measured the
+# mean sky luminance where its glyph field lands at .63/.57/.54/.49/.47/.02 for
+# sunrise/daytime/sunset/dusk/pre-dawn/night, and the band quotes that sky, so
+# this is the same sequence and not a taste call. "off" is not an hour and sits
+# outside the ladder as a hueless neutral.
+# "off" IS DARK, AND IT IS DARK BY INSTRUCTION. The first pass at this made it a
+# pale grey on the argument that a state meaning "no time of day" should not be
+# the most dramatic band on the site. Jayden overruled it the same day -- "keep
+# off dark" -- and he is the one who looks at this page. So the value below is
+# his, and what survives from the argument is the HUELESSNESS, asserted
+# separately: off carries no sky and no chroma, which is what keeps it reading
+# as the absence of an hour rather than as a seventh one.
+# THE FLOOR AND CEILING ARE GENEROUS ON PURPOSE. These are not pinned values --
+# the palette is meant to be tunable by eye and a +/-28 window leaves room for
+# that. What they pin is the SHAPE: a lit hour is light and night is dark.
+BAND_LUMA = {"off": 40, "pre-dawn": 140, "sunrise": 194, "daytime": 179,
+             "dusk": 155, "sunset": 171, "night": 35}
+LUMA_TOL = 28
 
 
 def check_hour(page, fails):
-    """THE BAND TRACKS THE CLOCK, AND THIS IS CHECKED IN PIXELS BECAUSE THE CSS
-    PASSING PROVED NOTHING. Jayden: "i would prefer if the footer matched with the
-    time of day."
+    """THE BAND IS THE HOUR'S SKY, AND EVERY CLAIM HERE IS MADE IN PIXELS.
 
-    The tint is seven `:root[data-theme-state=...] .footBand` rules setting one
-    hue token, and the first cut of them was completely correct and completely
-    inert: footer-band.js reads its palette through a probe, whose regex matched
-    `rgb(...)`, and nesting the cast's color-mix inside the tone's made Chrome
-    return `color(srgb ...)` instead. Every tone fell through to a hard-coded
-    fallback and all seven states painted identically. The computed custom
-    properties differed per state the whole time.
+    Jayden, 2026-08-20: "also the footer is dark for some reason not the right
+    color for any of the time of day."
 
-    So what is asserted is the PAINTED MEAN, and specifically its RED MINUS BLUE:
-    the states are a colour-temperature ladder, and r-b is what a temperature
-    ladder moves. Measured at 1440 on about.html: sunset +12.9, sunrise +12.8,
-    off -3.4, daytime -5.8, night -5.3, dusk -7.8, pre-dawn -16.7. The gate is
-    that the warmest state is at least 12 levels warmer than the coldest, which
-    is a third of the real 29.6 -- enough headroom for the mesh's own drift
-    between frames, and nowhere near what a dead palette (0.0) reaches."""
+    WHAT THIS CHECK USED TO BE, and why it passed on the build he was
+    complaining about. It asserted one thing: that the painted mean's RED MINUS
+    BLUE was at least 12 levels wider between sunset and pre-dawn than a dead
+    palette would be. That was the right assertion for the mechanism of the day
+    -- a hue mixed 5-20% into a near-ink ground, where the only thing the clock
+    could move WAS the temperature -- and it stayed green while all seven states
+    painted between 41 and 68 luma on a page whose daytime sky is nearly white.
+    A gate that measures the only axis a feature can move cannot tell you the
+    feature is built on the wrong axis.
+    SO THE LADDER IS ASSERTED TOO, and it is the assertion that would have
+    failed then: each state's painted LIGHTNESS, against the hero sky it quotes.
+    Before the change the seven states spanned 27 levels; they span 159 now.
+    FOUR THINGS, ONE PASS, because a state costs a 1.1s settle:
+      1. the ladder -- each state within LUMA_TOL of its sky.
+      2. the temperature spread, which is the old assertion, kept.
+      3. the band is still a FLOOR in every state. It used to be a floor by
+         being dark; it is one now by being a different colour, and the palest
+         hour is the one that can quietly stop being one.
+      4. the glyphs still read on it. This is the cost of a brighter band and it
+         is the thing that would have gone wrong silently: the field is drawn in
+         --theme-page at an alpha ceiling of .73, so the lighter the ground, the
+         less delta there is to spend. Measured as the painted difference
+         between the band and the same frame with --foot-band-strength:0, which
+         is the glyphs' own contribution and nothing else.
+    THE FRAME IS PINNED WITH frameAt(6). The mesh drifts, so two screenshots of
+    "the band" are two different pictures; the same t is the same picture, which
+    is what makes the strength-0 diff a measurement rather than a subtraction of
+    two moments."""
     el = page.query_selector(".footBand")
+    ground = page.evaluate("""()=>{
+      const c=getComputedStyle(document.documentElement).backgroundColor;
+      const m=/rgba?\(([^)]+)\)/.exec(c); if(!m) return null;
+      const p=m[1].split(/[\s,\/]+/).map(Number); return [p[0],p[1],p[2]];
+    }""")
 
-    def warmth(state):
+    def lum(q):
+        return .299 * q[0] + .587 * q[1] + .114 * q[2]
+
+    read = {}
+    for state in BAND_LUMA:
         page.evaluate("(s)=>window.SiteTheme.setMode(s)", state)
         page.wait_for_timeout(1100)          # --theme-duration is 400; this settles
-        im = png(el.screenshot())
-        px = list(im.getdata())
-        n = len(px)
-        r = sum(q[0] for q in px) / n
-        b = sum(q[2] for q in px) / n
-        return r - b
+        # the page ground moves with the theme (night is the dark one)
+        ground = page.evaluate("""()=>{
+          const c=getComputedStyle(document.documentElement).backgroundColor;
+          const m=/rgba?\(([^)]+)\)/.exec(c);
+          const p=m[1].split(/[\s,\/]+/).map(Number); return [p[0],p[1],p[2]];
+        }""")
+        page.evaluate("()=>window.FooterBand.frameAt(6)")
+        lit = list(png(el.screenshot()).getdata())
+        page.evaluate("""()=>{const b=document.querySelector('.footBand');
+          b.style.setProperty('--foot-band-strength','0');
+          window.FooterBand.frameAt(6);}""")
+        bare = list(png(el.screenshot()).getdata())
+        page.evaluate("""()=>{const b=document.querySelector('.footBand');
+          b.style.removeProperty('--foot-band-strength');
+          window.FooterBand.frameAt(6);}""")
+        n = len(lit)
+        mean = [sum(q[i] for q in lit) / n for i in range(3)]
+        # THE PALEST PIXEL, NOT THE MEAN, for the floor test: a band whose mean
+        # is comfortably under the page can still have its lit corner sitting on
+        # top of it. p99 rather than the maximum, because one antialiased glyph
+        # edge is not a surface.
+        pale = sorted(bare, key=lum)[int(n * .99)]
+        d = sorted(abs(lum(lit[i]) - lum(bare[i])) for i in range(n))
+        read[state] = {"mean": mean, "lum": lum(mean),
+                       "rb": mean[0] - mean[2],
+                       "gap": max(abs(pale[i] - ground[i]) for i in range(3)),
+                       "peak": d[int(n * .999)]}
 
-    warm = warmth("sunset")
-    cold = warmth("pre-dawn")
+    # 1. THE LADDER
+    for state, want in BAND_LUMA.items():
+        got = read[state]["lum"]
+        if abs(got - want) > LUMA_TOL:
+            fails.append("the %r band paints at luma %.1f, wanted %.0f +/-%d. The band "
+                         "is a slice of that hour's hero sky, so its lightness is the "
+                         "hour -- this is the check that stayed green while every state "
+                         "painted 41-68 and Jayden said the footer was dark and not the "
+                         "right colour for any time of day."
+                         % (state, got, want, LUMA_TOL))
+    span = max(r["lum"] for r in read.values()) - min(r["lum"] for r in read.values())
+    if span < 100:
+        fails.append("the seven states span %.0f levels of painted lightness; the old "
+                     "ink-ground band spanned 27 and that is the defect this replaced. "
+                     "100 is the floor." % span)
+
+    # 2. TEMPERATURE, the original assertion, unchanged in substance. r-b is what
+    #    a colour-temperature ladder moves, and 12 is a third of what the states
+    #    actually reach -- enough headroom for the mesh's drift between frames
+    #    and nowhere near what a dead palette (0.0) gets to.
+    warm, cold = read["sunset"]["rb"], read["pre-dawn"]["rb"]
     if warm - cold < 12:
         fails.append("the band paints the same warmth at sunset (%.1f) and pre-dawn "
-                     "(%.1f); the time-of-day cast is %.1f levels wide and needs 12. "
+                     "(%.1f); the time-of-day spread is %.1f levels wide and needs 12. "
                      "The per-state CSS can be perfect and still not reach the "
                      "renderer -- see the probe's two serialisations."
                      % (warm, cold, warm - cold))
-    # and "off" must be the untinted band rather than a state of its own
-    off = warmth("off")
-    if off > warm - 6:
-        fails.append("with time-of-day off the band is as warm as sunset (%.1f vs "
-                     "%.1f); the cast amounts are not being zeroed" % (off, warm))
+    if read["off"]["rb"] > warm - 6:
+        fails.append("with time-of-day off the band is as warm as sunset (%.1f vs %.1f); "
+                     "'off' is not an hour and must carry no hue"
+                     % (read["off"]["rb"], warm))
+
+    # 3. STILL A FLOOR. 20 rather than the 24 check_surface uses at the band's
+    #    dark edge, because this samples the LIT corner -- the one place the band
+    #    is closest to the page it ends.
+    for state, r in read.items():
+        if r["gap"] < 20:
+            fails.append("in %r the band's lit corner comes within %d levels of the page "
+                         "ground; a floor you cannot distinguish from the room is not a "
+                         "floor" % (state, r["gap"]))
+
+    # 4. THE GLYPHS STILL READ. Two-sided, like hero-ascii-field-contract's own
+    #    dL band: under the floor is a texture nobody can see, over the ceiling
+    #    is a screen of characters rather than grain in a sky. The floor is set
+    #    at 24 because the Hero's approved field peaks at ~35 over its palest
+    #    sky and 24 is comfortably under it; the ceiling at 150 is just over what
+    #    night reaches (91) plus the old near-ink band's 130.
+    for state, r in read.items():
+        if r["peak"] < 24:
+            fails.append("in %r the glyph field peaks at %.1f levels over its own ground; "
+                         "the band got brighter than its ink can carry and the field has "
+                         "gone invisible. --foot-band-glyph has to move with the sky."
+                         % (state, r["peak"]))
+        elif r["peak"] > 150:
+            fails.append("in %r the glyph field peaks at %.1f levels over its own ground; "
+                         "that is not grain in a sky, it is a screen of characters on top "
+                         "of one" % (state, r["peak"]))
+
     page.evaluate("()=>window.SiteTheme.setMode('daytime')")
     page.wait_for_timeout(900)
 
@@ -628,6 +879,7 @@ def _drive(base, prefix, fails):
                 check_height(page, 1440, name, fails)
             open_page(page, base, "about.html", prefix)
             check_surface(page, "about.html", fails)
+            check_grain(page, "about.html at 1440", fails)
             check_hour(page, fails)
             check_observer(page, base, prefix, fails)
             open_page(page, base, "about.html", prefix)
@@ -637,20 +889,43 @@ def _drive(base, prefix, fails):
             check_theme_walk(page, fails)
             ctx.close()
 
-            # THE PHONE, FOR THE HEIGHT ONLY. clamp(42px,8vw,114px) pins its
-            # ceiling at 1440 and its floor at 390, so a regression in one end is
-            # completely invisible from the other -- and 390 is the width the old
-            # band was 83px at, i.e. the one Jayden was looking at when he said
-            # "half". The band is checked on both pages that frame it: index has
-            # the hero above it, about does not.
-            pctx = br.new_context(device_scale_factor=2, viewport={"width": 390, "height": 844})
-            ppage = pctx.new_page()
-            ppage.on("pageerror", lambda e: fails.append("page error at 390: %s" % e))
-            for name in ("index.html", "about.html"):
-                open_page(ppage, base, name, prefix)
-                check_height(ppage, 390, name, fails)
-                check_surface(ppage, name, fails)
-            pctx.close()
+            # THE PHONE, AND IT IS NOW THE END THAT MOVES. The clamp pins its
+            # ceiling at 1440 and its floor at and below 390, so a regression in
+            # one end is completely invisible from the other -- and 390 is the
+            # width the band was 83px at when Jayden said "half" and 42px at when
+            # he said "too small on ios". Both of his sentences are about this
+            # width, so both numbers are checked here.
+            # TWO PHONE WIDTHS, NOT ONE. 320 is inside the clamp's floor and 390
+            # sits on its knee (63.05 computed), so a rule that lost its floor
+            # and went back to a bare vw would still measure 63 at 390 and
+            # collapse to 59.6 at 320. One width cannot see that.
+            # The band is checked on both pages that frame it: index has the hero
+            # above it, about does not.
+            for pw_ in (390, 320):
+                pctx = br.new_context(device_scale_factor=2,
+                                      viewport={"width": pw_, "height": 844})
+                ppage = pctx.new_page()
+                ppage.on("pageerror",
+                         lambda e, _w=pw_: fails.append("page error at %d: %s" % (_w, e)))
+                for name in ("index.html", "about.html"):
+                    open_page(ppage, base, name, prefix)
+                    check_height(ppage, pw_, name, fails)
+                    check_surface(ppage, name, fails)
+                    check_grain(ppage, "%s at %d" % (name, pw_), fails)
+                # ONE FOOTER ON EIGHT PAGES, MEASURED AT 390 ONLY. This is the
+                # width where a page's own phone media query can reach into the
+                # component, and the one where nobody was looking. about.html is
+                # the reference because it is the plainest host: a footer inside
+                # .wrap with no hero above it and no page-level rule touching it.
+                if pw_ == 390:
+                    open_page(ppage, base, "about.html", prefix)
+                    ref = ppage.evaluate("()=>document.querySelector('.footTop')"
+                                         ".getBoundingClientRect().height")
+                    del WAIVED_SEEN[:]
+                    for name in PAGES:
+                        open_page(ppage, base, name, prefix)
+                        check_one_footer(ppage, name, ref, fails)
+                pctx.close()
 
             rctx = br.new_context(device_scale_factor=2, viewport={"width": 1440, "height": 900},
                                   reduced_motion="reduce")
@@ -699,14 +974,50 @@ INJECTIONS = [
      "footer-band.js",
      '   m = /color\\(\\s*srgb\\s+([^)]+)\\)/.exec(got);\n   scale = 255;',
      "   m = null;"),
-    ("the time-of-day cast flattened to one hue for every state",
+    ("the time-of-day sky flattened to one hue for every state",
      "footer.css",
-     ':root[data-theme-state="sunset"]  .footBand{--foot-band-cast:#b7734c}',
-     ':root[data-theme-state="sunset"]  .footBand{--foot-band-cast:#6d81cc}'),
+     ':root[data-theme-state="sunset"]   .footBand{--foot-band-sky-low:#956b55;--foot-band-sky-high:#e7d8f5}',
+     ':root[data-theme-state="sunset"]   .footBand{--foot-band-sky-low:#50517d;--foot-band-sky-high:#c9b9df}'),
+    # THE DEFECT JAYDEN REPORTED ON 2026-08-20, re-injected exactly: the tones
+    # rebuilt as walks toward --theme-ink with the hour mixed in as a tint. That
+    # is a dark strip in every state by construction, and the contract that
+    # shipped with it could not see it -- it only measured red-minus-blue.
+    ("the band rebuilt on ink rather than on the hour's sky (the dark strip)",
+     "footer.css",
+     " --foot-band-tone-1:color-mix(in srgb,var(--theme-page) var(--foot-band-veil),\n"
+     "  color-mix(in srgb,var(--foot-band-sky-low) 62%,var(--foot-band-sky-high)));",
+     " --foot-band-tone-1:color-mix(in srgb,var(--foot-band-sky-low) 7%,\n"
+     "  color-mix(in srgb,var(--theme-ink) 93%,var(--theme-page)));"),
+    # THE COST OF A BRIGHTER BAND, and the one that would have gone wrong in
+    # silence: page-white glyphs have less delta to spend the lighter the ground
+    # gets. Injected as an ink that is nearly the ground it is drawn on.
+    ("the glyph ink left too close to the ground it is drawn on (an invisible field)",
+     "footer.css",
+     " --foot-band-glyph:var(--theme-page);",
+     " --foot-band-glyph:#c9cbd0;"),
     ("the band back at its old height (Jayden asked for half)",
      "footer.css",
-     "height:clamp(42px,8vw,114px);",
-     "height:clamp(84px,16vw,228px);"),
+     "height:clamp(63px,4.86vw + 44.1px,114px);",
+     "height:clamp(126px,9.72vw + 88.2px,228px);"),
+    # THE OTHER DIRECTION, AND THE ONE THAT ACTUALLY HAPPENED. On 2026-08-20 the
+    # phone floor was 42px -- half of the 83.1 the band measured at 390 -- and
+    # Jayden's answer was "the footer is too small on ios". This puts that floor
+    # back. It is a SEPARATE injection from the one above and not a variant of
+    # it, because the two failures look nothing alike from a desktop screenshot:
+    # this one leaves 1440 pixel-for-pixel correct and only the phone wrong,
+    # which is exactly how it shipped in the first place.
+    ("the phone floor back at 42px (the sliver Jayden called too small on ios)",
+     "footer.css",
+     "height:clamp(63px,4.86vw + 44.1px,114px);",
+     "height:clamp(42px,4.86vw + 44.1px,114px);"),
+    # AND THE SAME DEFECT ARRIVING BY THE OTHER ROUTE. A bare vw term keeps the
+    # ceiling and every desktop number, measures 63.0 at 390 -- so check_height
+    # at 390 stays green -- and collapses below it. Only 320 and check_grain see
+    # this one, which is the whole reason both exist.
+    ("the clamp's floor dropped for a bare vw (correct at 390, a sliver at 320)",
+     "footer.css",
+     "height:clamp(63px,4.86vw + 44.1px,114px);",
+     "height:min(4.86vw + 44.1px,114px);"),
     ("the reduced-motion jitter zeroed instead of frozen (the countable lattice)",
      "footer-band.js",
      "ox = 2.2 * Math.sin(seconds * .9 + h);\n    oy = 2.2 * Math.cos(seconds * .8 + h * 1.2);",
@@ -719,6 +1030,18 @@ INJECTIONS = [
      "footer-band.js",
      "if (palDur <= 0) settlePalette(palStart + 1);",
      "settlePalette(palStart + palDur + 1);"),
+    # ONE PAGE'S OWN STYLESHEET REACHING INTO THE COMPONENT. This is the defect
+    # found on index.html at 390 on 2026-08-20, re-injected on a page that does
+    # not have it: a type selector in a page's phone media query landing on the
+    # footer's <nav>. It has to be injected into a PAGE and not into footer.css,
+    # because a change to footer.css moves all eight pages together and a
+    # cross-page comparison is blind to that by construction -- which is exactly
+    # why check_one_footer measures a spread and not a value.
+    ("one page's own CSS reaching into the footer at 390 (invisible at 1440)",
+     "apollo.html",
+     ".siteFoot{margin-top:var(--sp-80-152);padding-bottom:var(--sp-32-64)}",
+     ".siteFoot{margin-top:var(--sp-80-152);padding-bottom:var(--sp-32-64)}"
+     "@media(max-width:760px){nav{padding:24px 0 0}}"),
     ("the loop left running while the band is off screen",
      "footer-band.js",
      ' }, { rootMargin: "120px 0px" }).observe(band);',
@@ -726,15 +1049,35 @@ INJECTIONS = [
 ]
 
 
-def self_test(prefix):
-    print("SELF-TEST -- each injection must be caught\n")
+def self_test(prefix, only=""):
+    """--only is a SUBSTRING FILTER, not a way to declare a partial run green.
+    One injection costs a full drive of eight pages, so the whole list is about
+    an hour and the honest answer to "is my new injection reachable?" was
+    previously to wait for it or to skip the question. It prints what it skipped
+    so a filtered run can never be mistaken for the full one."""
+    picked = [i for i in INJECTIONS if not only or only.lower() in i[0].lower()]
+    if only:
+        print("SELF-TEST -- FILTERED to %d of %d injections on %r; this is NOT a "
+              "full run\n" % (len(picked), len(INJECTIONS), only))
+        if not picked:
+            print("  no injection label matches %r" % only)
+            return False
+    else:
+        print("SELF-TEST -- each injection must be caught\n")
     ok = True
-    for label, target, needle, replacement in INJECTIONS:
+    for label, target, needle, replacement in picked:
         fails = run(prefix, patch=(target, needle, replacement), quiet=True)
         caught = bool(fails)
         print("  %s  %s" % ("CAUGHT " if caught else "MISSED ", label))
-        if caught:
-            print("            -> %s" % fails[0])
+        # EVERY FAILURE, NOT JUST THE FIRST. An injection caught by a check other
+        # than the one it was written for reads as green here and leaves the
+        # intended assertion unproven -- which is the "a gate must be able to
+        # fail" problem one level down. Printing the whole list is what makes
+        # that visible: the 2026-08-20 sky pass added a glyph-legibility check
+        # that fires on the reduced-motion jitter injection too, and only the
+        # full list shows that check_reduced still fires on it as well.
+        for line in fails:
+            print("            -> %s" % line)
         ok = ok and caught
     return ok
 
@@ -742,12 +1085,15 @@ def self_test(prefix):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--self-test", action="store_true")
+    ap.add_argument("--only", default="",
+                    help="run only the injections whose label contains this "
+                         "substring. A filtered run is not a full run and says so.")
     ap.add_argument("--prefix", default="",
                     help="page filename prefix, for proving the markup patch "
                          "before it is applied to the shipping pages")
     args = ap.parse_args()
     if args.self_test:
-        return 0 if self_test(args.prefix) else 1
+        return 0 if self_test(args.prefix, args.only) else 1
     fails = run(args.prefix)
     if fails:
         for f in fails:
@@ -755,9 +1101,14 @@ def main():
         print("\nSTATUS=FAIL  %d problem(s)" % len(fails))
         return 1
     print("STATUS=PASS  the band bleeds edge to edge on %d pages at half its old "
-          "height (114 at 1440, 42 at 390), carries no wordmark and no shadow, "
-          "tracks the clock in the pixels, cross-fades rather than snapping, is one "
+          "desktop height and three whole cells of its own field on a phone "
+          "(114 at 1440, 63 at 390 and 320), carries no wordmark and no shadow, "
+          "paints each hour's own sky in the pixels -- lightness and temperature, "
+          "159 levels of ladder against the old 27 -- stays a floor and stays "
+          "legible in all seven states, cross-fades rather than snapping, is one "
           "frozen frame under reduced motion, and stops off screen." % len(PAGES))
+    for line in WAIVED_SEEN:
+        print("  WAIVED: " + line)
     return 0
 
 

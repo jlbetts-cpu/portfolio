@@ -51,7 +51,7 @@
 <!-- THE SHARED DESIGN TOKENS. Everything geometric on this page resolves through
      them; this file's own <style> declares no colour ramp, no type scale and no
      spacing rung of its own. -->
-<link rel="stylesheet" href="tokens.css?v=0d4908abb4">
+<link rel="stylesheet" href="tokens.css?v=f1089b23fe">
 <style>
 /* ═══════════════════════════════════════════════════════════════════════════
    HEAD MAKER — A BUILDER, NOT A CASE STUDY.
@@ -137,12 +137,46 @@ img{display:block;max-width:100%}
    The top inset derives from --bar-h so it cannot drift if the bar's own
    padding changes, and it is what makes the artifact a CARD INSET BELOW the
    bar rather than a surface running under it.
+
+   THE TOP INSET IS NOW THE SITE'S TOP INSET TOO, and this is a change of
+   decision, not a retune. --bar-h is the band; what follows the band was chosen
+   per page and the nine pages disagreed by 5.4x. Measured from the band's bottom
+   edge (72px) to the first thing that paints, before this pass:
+     about 16 / 24   case studies 48 / 56   headmaker 84 / 88   gradientlab 78 / 88
+   at 390 / 1440. Jayden: "spacing on phone feels a bit odd ... some parts dont
+   feel connected ... or just too much space." That spread IS the concrete form
+   of it -- the same bar sitting on eight different amounts of air.
+   ONE RUNG NOW, --sp-32-48: 32 on a phone, 48 from 881 up. No new token; the
+   responsive ladder already carried the value. On this page it BUYS the artifact
+   52px of stage on a phone, because the frame is 100svh and every pixel above
+   the card comes out of the head.
+
+   THE BAND IS IN THE FLOW, AND --bar-h WAS RESERVING IT A SECOND TIME.
+   Measured at 390x844 and 1440x900, both tool pages: .jbStick computes
+   position:sticky with className exactly "jbStick" -- header.css's comment says
+   these pages "ship .isFixed" and the markup does not carry it -- so the wrapper
+   occupies its full 72px of FLOW and the app box starts at y=72. On top of that
+   the app reserved --bar-h (14+52+6 = the same 72) inside its own padding-top,
+   and then asked for height:100svh. Two consequences, both measured:
+     1. documentElement.scrollHeight 916 in an 844 viewport. A page whose entire
+        premise is one viewport, scrolling by exactly the height of the bar, with
+        the bottom of the inspector under the fold. Jayden has objected to
+        unwanted scroll four separate times.
+     2. 84px of air between the band's hairline and the card at 390, against the
+        case studies' 48 and about's 16.
+   THE HEIGHT NOW SUBTRACTS THE BAND AND THE PADDING NO LONGER ADDS IT. Same
+   token on both sides, so they cannot drift apart. After: scrollHeight == the
+   viewport at both sizes, and the card gains 36px of visible height on a phone.
+   IF .jbStick EVER GAINS .isFixed the wrapper leaves the flow and this inverts --
+   the height must go back to a bare 100svh and --bar-h back into padding-top.
+   tools/structure-rule-contract.py asserts scrollHeight == innerHeight on both
+   pages so that regression cannot land quietly.
    ─────────────────────────────────────────────────────────────────────────── */
 .mkApp{
  display:grid;grid-template-columns:minmax(0,1fr) var(--panel-w);
- gap:var(--sp-24);height:100svh;
+ gap:var(--sp-24);height:calc(100svh - var(--bar-h));
  max-width:var(--page-max);margin-inline:auto;
- padding:calc(var(--bar-h) + var(--sp-16)) var(--sp-40) var(--sp-24);
+ padding:var(--sp-32-48) var(--sp-40) var(--sp-24);
  padding-inline:max(var(--sp-40),env(safe-area-inset-left)) max(var(--sp-40),env(safe-area-inset-right));
  padding-bottom:calc(var(--sp-24) + env(safe-area-inset-bottom));
 }
@@ -436,8 +470,11 @@ img{display:block;max-width:100%}
    surface on this page is a solid ground with a hairline.
    ─────────────────────────────────────────────────────────────────────────── */
 @media(max-width:880px){
+ /* padding-top is NOT restated here any more. It used to fork to --bar-h + 12;
+    --sp-32-48 forks itself at 880, to the same 32 every other page now takes
+    below that width, so a second declaration here could only disagree with it. */
  .mkApp{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr) auto;
-  gap:var(--sp-16);padding-top:calc(var(--bar-h) + var(--sp-12));
+  gap:var(--sp-16);
   padding-bottom:calc(var(--sp-16) + env(safe-area-inset-bottom))}
  .mkStageCol{padding:var(--sp-16);gap:var(--sp-8)}
  .mkPanel{gap:var(--sp-12);padding:var(--sp-12)}
@@ -476,9 +513,15 @@ img{display:block;max-width:100%}
     After: panel 353, head 250x300. */
  .mkApp:not([data-step="1"]) .hmPitSec{display:none}
 }
-/* the gutter forks to --sp-24 at 760, which is where the rest of the site's does */
+/* THE GUTTER FORKS TO --sp-16 AT 760, and the comment that used to sit here said
+   --sp-24 "because that is where the rest of the site's does". That stopped being
+   true: about.html and the five case studies both fork .wrap to padding-inline:16
+   at 760, and the bar's own --bar-gutter is --sp-16-40, i.e. 16 below 881.
+   Measured at 390 before: this page's content ran 24..366 while the bar ran
+   16..374 -- an 8px disagreement on both sides, on the one page where the card's
+   edge is the loudest line on the screen. 16 puts them on one column. */
 @media(max-width:760px){
- .mkApp{padding-inline:max(var(--sp-24),env(safe-area-inset-left)) max(var(--sp-24),env(safe-area-inset-right))}
+ .mkApp{padding-inline:max(var(--sp-16),env(safe-area-inset-left)) max(var(--sp-16),env(safe-area-inset-right))}
 }
 /* the <=420 fork of --lbl-w that used to sit here is in tokens.css:521 now,
    with the token itself */
@@ -499,7 +542,7 @@ img{display:block;max-width:100%}
    laptop or phone height is touched. Same rule, same threshold, same reasoning
    as gradientlab.html. */
 @media(max-height:560px){
- .mkApp{height:auto;min-height:100svh;grid-template-rows:auto auto}
+ .mkApp{height:auto;min-height:calc(100svh - var(--bar-h));grid-template-rows:auto auto}
  .mkStageCol{min-height:40svh}
 }
 
@@ -538,11 +581,11 @@ img{display:block;max-width:100%}
      2026-08-08. See the headstone in §3 above. Loaded AFTER the page block, the
      order index/play/about/apollo already use, so the library wins any tie and
      what is left above can only position a control, never redraw one. -->
-<link rel="stylesheet" href="controls.css?v=0d4908abb4">
-<link rel="stylesheet" href="header.css?v=0d4908abb4">
-<link rel="stylesheet" href="footer.css?v=0d4908abb4">
+<link rel="stylesheet" href="controls.css?v=f1089b23fe">
+<link rel="stylesheet" href="header.css?v=f1089b23fe">
+<link rel="stylesheet" href="footer.css?v=f1089b23fe">
 <link rel="stylesheet" href="builder-theme.css">
-<link rel="stylesheet" href="site-theme.css?v=0d4908abb4">
+<link rel="stylesheet" href="site-theme.css?v=f1089b23fe">
 <script src="header.js" defer></script>
 </head>
 <body data-nav="games" data-theme-page="headmaker">

@@ -438,7 +438,19 @@ def validate_footer_css():
     source = read("footer.css")
     failures = []
     required = {
-        ".footTop": ["border-top", "var(--hair-w)", "var(--theme-rim)", "grid-template-columns"],
+        # THE RULE LEFT THE BOX, 2026-08-20. Jayden: "the footer line should be
+        # all the way across not just a line that cuts out the gutters." No
+        # element here is full-bleed on every page -- .siteFoot measures
+        # 80..1360 on index, 120..1320 on about, 160..1280 on the case studies --
+        # so a border could not be one length everywhere, which is the very
+        # defect that put it on the content box originally. It is a 100vw
+        # pseudo-element now, centred on the viewport, on the same --rule token
+        # the Hero's bottom edge uses so the two are one line drawn twice.
+        # The BOX is still asserted here; the LINE is asserted on ::before, and
+        # structure-rule-contract measures its painted width against the
+        # viewport at two widths.
+        ".footTop": ["position:relative", "grid-template-columns"],
+        ".footTop::before": ["100vw", "var(--rule-w)", "var(--rule)"],
         ".footStatus": ["var(--fs-lead)", "var(--theme-ink)"],
         # heading and link share one size; the heading is senior by weight and ink.
         ".footHead": ["var(--ctl-fs)", "var(--theme-ink)"],
@@ -459,19 +471,26 @@ def validate_footer_css():
         #     line box was its height. Lose this and the band computes 0 and
         #     disappears, because the field canvas is inset:0 and takes the box
         #     rather than making it.
-        #   --foot-band-cast   the time-of-day hue. Lose the per-state rules and
-        #     every hour paints the same band, which is exactly what it looked
-        #     like while the renderer's probe could not parse the tones at all.
-        #     tools/footer-band-contract.py measures the painted result; this
-        #     catches the source.
-        # var(--foot-band-cast-lit) and -deep are the needles rather than
-        # --foot-band-cast, and the difference is the whole assertion: the plain
-        # name matches its own DECLARATION, so a tone that stopped mixing the cast
-        # in would still have satisfied it. The two amounts only appear inside a
-        # color-mix, so they are present exactly while the cast reaches a tone.
+        #   --foot-band-sky-*  the hour's sky. THE MECHANISM CHANGED ON
+        #     2026-08-20 AND SO DID THIS SLOT. It used to name --foot-band-cast
+        #     and its two amounts, which were a HUE mixed 5-20% into a ground
+        #     that was 58-98% of the way to --theme-ink. Jayden: "also the footer
+        #     is dark for some reason not the right color for any of the time of
+        #     day." He was right and the fault was structural: a strip that is
+        #     93% ink is dark whatever you mix into it, so the clock could move
+        #     the band's temperature and never its lightness (painted mean luma
+        #     was 41-68 across all seven states). The tones are now positions
+        #     between two stops of the hero's own sky for that hour, so the
+        #     needles are the stops and the veil.
+        # PRESENCE ONLY HERE; each tone is checked one by one below. The old slot
+        # could get away with a rule-wide needle because --foot-band-cast-lit
+        # appeared in exactly one tone, so its absence WAS that tone's absence.
+        # Four tones now share the same two stops, so a rule-wide needle passes
+        # while three of the four still consume them -- which is a tone that has
+        # quietly stopped being sky, and it is the one that would show, because
+        # tone 2 is the drifting light.
         ".footBand": ["100vw", "calc(50% - 50vw)", "var(--sp-32-64)", "overflow:clip",
-                      "height:clamp(", "var(--foot-band-cast)",
-                      "var(--foot-band-cast-lit)", "var(--foot-band-cast-deep)"],
+                      "height:clamp("],
     }
     for selector, needles in required.items():
         match = re.search(re.escape(selector) + r"\s*\{([^}]*)\}", source, re.S)
@@ -481,6 +500,28 @@ def validate_footer_css():
         for needle in needles:
             if needle not in match.group(1):
                 failures.append("%s does not resolve %s" % (selector, needle))
+    # EVERY TONE IS SKY, ONE AT A TIME. The band's four tones are four depths in
+    # one hour's sky, and any one of them can be replaced by a literal without a
+    # thing on the page erroring -- it just stops tracking the clock in whichever
+    # part of the mesh that tone paints. tone-2 is the one that would show first
+    # (it is the drifting light) and the one an optimiser would reach for.
+    band_rule = re.search(r"\.footBand\s*\{([^}]*)\}", source, re.S)
+    if band_rule:
+        body = band_rule.group(1)
+        for tone in ("base", "tone-1", "tone-2", "tone-3"):
+            decl = re.search(r"--foot-band-%s\s*:(.*?);" % re.escape(tone), body, re.S)
+            if not decl:
+                failures.append(".footBand declares no --foot-band-%s" % tone)
+                continue
+            value = decl.group(1)
+            for needed in ("var(--foot-band-sky-low)", "var(--foot-band-sky-high)",
+                           "var(--foot-band-veil)"):
+                if needed not in value:
+                    failures.append(
+                        "--foot-band-%s does not resolve %s; that tone has stopped being "
+                        "the hour's sky and will paint the same colour at every hour"
+                        % (tone, needed))
+
     # THE ONE PLACE THIS COMPONENT MAY REACH INTO A PAGE, NAMED SO IT CANNOT ROT.
     # .footBand cancels the page's own padding-bottom with a negative margin, so
     # that a full-bleed painted floor is not left with 64px of page ground under
@@ -507,14 +548,23 @@ def validate_footer_css():
     # to the base cast -- which looks like the feature working, because six of the
     # seven still tint. The base rule carries daytime's hue as its default, so
     # that is the one an omission would be wearing.
-    # THE HUES ARE CHECKED FOR SPREAD, NOT FOR VALUES. Pinning the seven hexes
-    # would freeze a design decision that is meant to be tunable by eye; what may
-    # not drift is that they are a LADDER. sunrise and sunset share a hue and so
-    # do pre-dawn and night, which is the hero's own table, so four distinct hues
-    # is the real number and the floor is set there.
+    # THE SKIES ARE CHECKED FOR SPREAD AND FOR DEPTH, NOT FOR VALUES. Pinning the
+    # fourteen hexes would freeze a design decision that is meant to be tunable
+    # by eye; what may not drift is what makes the feature a feature.
+    #   * six distinct sky PAIRS. Under the old cast mechanism sunrise and sunset
+    #     shared a hue and so did pre-dawn and night, so the floor was four. The
+    #     sky pairs are taken from six different hero gradients and no two of
+    #     them are the same picture, so the floor is six.
+    #   * every pair is a DEPTH, low darker than high by enough for the mesh to
+    #     show its drifting light. A pair whose two stops converge paints a flat
+    #     band -- the "flat black" failure the palette note describes, wearing a
+    #     new colour. 40 luma levels is well under the ~110 authored and well
+    #     over anything that reads as flat.
+    # The painted result is footer-band-contract's job; this catches the source,
+    # where both of those are one edit away from being silently untrue.
     THEME_STATES = ["off", "pre-dawn", "sunrise", "daytime", "dusk", "sunset", "night"]
     bare = re.sub(r"/\*.*?\*/", "", source, flags=re.S)
-    hues = set()
+    skies = set()
     for state in THEME_STATES:
         rule = re.search(
             r':root\[data-theme-state="%s"\]\s*\.footBand\s*\{([^}]*)\}'
@@ -526,26 +576,49 @@ def validate_footer_css():
             )
             continue
         body = re.sub(r"\s+", "", rule.group(1))
-        if state == "off":
-            # "off" is the one state that must NOT tint: mixing toward a hue at
-            # all would give the untimed site a colour it never asked for.
-            if "--foot-band-cast-deep:0%" not in body or "--foot-band-cast-lit:0%" not in body:
-                failures.append(
-                    "the 'off' state does not zero both cast amounts; with time-of-day "
-                    "turned off the band would still be tinted"
-                )
+        pair = []
+        for stop in ("low", "high"):
+            found = re.search(r"--foot-band-sky-%s:(#[0-9a-fA-F]{6})" % stop, body)
+            if not found:
+                failures.append("the %r state's .footBand rule names no "
+                                "--foot-band-sky-%s stop; that hour falls back to the "
+                                "hueless 'off' grey and stops matching the time of day"
+                                % (state, stop))
+            else:
+                pair.append(found.group(1).lower())
+        if len(pair) != 2:
             continue
-        found = re.search(r"--foot-band-cast:(#[0-9a-fA-F]{3,8})", body)
-        if not found:
-            failures.append("the %r state's .footBand rule names no --foot-band-cast hue" % state)
-        else:
-            hues.add(found.group(1).lower())
-    if hues and len(hues) < 4:
+        if state == "off":
+            # "OFF" IS NOT AN HOUR, SO IT GETS NO SKY. A hue here would give the
+            # untimed site a colour it never asked for. Checked as chroma rather
+            # than as r==g==b: a neutral may carry a couple of levels of cool
+            # cast without being a colour, and 10 is well inside "grey" and well
+            # under any of the six skies (the flattest, daytime's high, is 23).
+            for hexed in pair:
+                ch = [int(hexed[1:][i:i + 2], 16) for i in (0, 2, 4)]
+                if max(ch) - min(ch) > 10:
+                    failures.append(
+                        "the 'off' state's sky stop %s spans %d levels of chroma; "
+                        "with time-of-day turned off the band would carry an hour's "
+                        "hue" % (hexed, max(ch) - min(ch))
+                    )
+            continue
+        skies.add(tuple(pair))
+        lo, hi = [[int(h[1:][i:i + 2], 16) for i in (0, 2, 4)] for h in pair]
+        def luma(c):
+            return .299 * c[0] + .587 * c[1] + .114 * c[2]
+        depth = luma(hi) - luma(lo)
+        if depth < 40:
+            failures.append(
+                "the %r state's sky is %.0f luma levels deep (%s -> %s); the mesh mixes "
+                "six gaussians into every sample, so a pair this close paints a flat "
+                "band and the drifting light stops being visible" % (state, depth, pair[0], pair[1])
+            )
+    if skies and len(skies) < 6:
         failures.append(
-            "the time-of-day casts collapse to %d distinct hue(s) across six states "
-            "(%s); sunrise/sunset and pre-dawn/night share one each, so four is the "
-            "real floor and fewer means the ladder has been flattened"
-            % (len(hues), ", ".join(sorted(hues)))
+            "the time-of-day skies collapse to %d distinct pair(s) across six states; "
+            "each is taken from a different hero gradient, so six is the floor and "
+            "fewer means two hours are painting the same band" % len(skies)
         )
 
     # THE INLINE-SIZE CONTAINER ASSERTION IS GONE, AND SO IS THE CONTAINER.
@@ -647,19 +720,35 @@ INJECTIONS = [
      '<canvas class="footBandField" aria-hidden="true"></canvas>'
      '<canvas class="footBandMark" aria-hidden="true"></canvas></div>'),
     ("the band's height rule dropped (the band computes 0 and vanishes)",
-     "footer.css", " height:clamp(42px,8vw,114px);", " "),
-    ("the time-of-day cast dropped from the band's lit tone",
+     "footer.css", " height:clamp(63px,4.86vw + 44.1px,114px);", " "),
+    ("the hour's sky dropped from the band's lit tone (the tones stop being sky)",
      "footer.css",
-     "color-mix(in srgb,var(--foot-band-cast) var(--foot-band-cast-lit),",
-     "color-mix(in srgb,transparent 0%,"),
-    ("one hour left without a rule (it silently wears daytime's hue)",
+     " --foot-band-tone-2:color-mix(in srgb,var(--theme-page) var(--foot-band-veil),\n"
+     "  color-mix(in srgb,var(--foot-band-sky-low) 4%,var(--foot-band-sky-high)));",
+     " --foot-band-tone-2:#c9ccd2;"),
+    ("one hour left without a rule (it silently wears the hueless 'off' grey)",
      "footer.css",
-     ':root[data-theme-state="dusk"]    .footBand{--foot-band-cast:#8a7eaa}  /* #c8bceb */',
+     ':root[data-theme-state="dusk"]     .footBand{--foot-band-sky-low:#5e627d;--foot-band-sky-high:#cbd2e6}  /* #9da8e4 . #ccd5f0 */',
      ""),
-    ("the 'off' state tinted like the rest (the untimed site gets a colour)",
+    # THIS NEEDLE WENT STALE AND TOOK THE REST OF THE LIST WITH IT. "keep off
+    # dark" (2026-08-20) rewrote the off rule to a hueless ink pair with no veil,
+    # and this injection still carried the pale-grey pair it replaced -- so the
+    # self-test raised on injection 6 and the seven after it never ran. A stale
+    # needle is not a passing injection and it is not a failing one either; it is
+    # a gate that stopped being able to fail without saying so. Re-pointed at the
+    # rule that ships, and the ASSERTION is unchanged: off carries no hue.
+    ("the 'off' state given an hour's hue (the untimed site gets a colour)",
      "footer.css",
-     ':root[data-theme-state="off"] .footBand{--foot-band-cast-deep:0%;--foot-band-cast-lit:0%}',
-     ':root[data-theme-state="off"] .footBand{--foot-band-cast:#8a7eaa}'),
+     ':root[data-theme-state="off"]      .footBand{--foot-band-sky-low:#131417;--foot-band-sky-high:#3a3c40;--foot-band-veil:0%}',
+     ':root[data-theme-state="off"]      .footBand{--foot-band-sky-low:#956b55;--foot-band-sky-high:#e7d8f5;--foot-band-veil:0%}'),
+    ("two hours given the same sky (the ladder flattened)",
+     "footer.css",
+     ':root[data-theme-state="sunrise"]  .footBand{--foot-band-sky-low:#bd8a6d;--foot-band-sky-high:#fbecd7}  /* #ffc977 . #ffd79b */',
+     ':root[data-theme-state="sunrise"]  .footBand{--foot-band-sky-low:#956b55;--foot-band-sky-high:#e7d8f5}'),
+    ("a state's sky collapsed to one depth (a flat band, the old 'flat black')",
+     "footer.css",
+     ':root[data-theme-state="daytime"]  .footBand{--foot-band-sky-low:#5a86a9;--foot-band-sky-high:#ddeaf9}  /* #60a8e2 . #b4d8ff */',
+     ':root[data-theme-state="daytime"]  .footBand{--foot-band-sky-low:#5a86a9;--foot-band-sky-high:#6a93b4}'),
     ("the full bleed lost (the band stops at the page measure on six of eight pages)",
      "footer.css",
      " width:100vw;max-width:100vw;margin-inline:calc(50% - 50vw);",

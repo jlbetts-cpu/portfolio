@@ -33,7 +33,7 @@
      below reads a shared token. What is still true is the load order -- tokens first,
      page after, so a page-local geometry constant can be built out of a token.
      See .superpowers/sdd/2026-08-02-play-page/play-tokens-report.md §1. -->
-<link rel="stylesheet" href="tokens.css?v=0d4908abb4">
+<link rel="stylesheet" href="tokens.css?v=f1089b23fe">
 <style>
   /* THE @font-face PAIR THAT USED TO SIT HERE IS GONE, and deleting it is the
      point rather than a tidy-up. tokens.css:62 now declares both weights for the
@@ -89,11 +89,40 @@
      -- AND the bar itself, capped at --bar-open 1200 and centred -- resolves to
      120 on a 1440 screen. Measured on index.html at 1440: .wrap 120, .jbNav 120.
      Now: 120 / 120 / 120 here too. Top inset derives from --bar-h so it cannot
-     drift if the bar's own padding changes. */
+     drift if the bar's own padding changes.
+
+     WHAT FOLLOWS THE BAND IS NOW THE SITE'S VALUE TOO. --bar-h is the band; the
+     inset below it was chosen per page and the nine pages disagreed by 5.4x.
+     Measured band-bottom (72px) to first paint before this pass: about 16 / 24,
+     case studies 48 / 56, headmaker 84 / 88, this page 78 / 88, at 390 / 1440.
+     Jayden: "spacing on phone feels a bit odd ... or just too much space."
+     One rung now, --sp-32-48 -- 32 on a phone, 48 from 881 up. No new token.
+     On a 100svh frame the pixels it returns on a phone all go to the orb.
+
+   THE BAND IS IN THE FLOW, AND --bar-h WAS RESERVING IT A SECOND TIME.
+   Measured at 390x844 and 1440x900, both tool pages: .jbStick computes
+   position:sticky with className exactly "jbStick" -- header.css's comment says
+   these pages "ship .isFixed" and the markup does not carry it -- so the wrapper
+   occupies its full 72px of FLOW and the lab box starts at y=72. On top of that
+   the app reserved --bar-h (14+52+6 = the same 72) inside its own padding-top,
+   and then asked for height:100svh. Two consequences, both measured:
+     1. documentElement.scrollHeight 916 in an 844 viewport. A page whose entire
+        premise is one viewport, scrolling by exactly the height of the bar, with
+        the bottom of the inspector under the fold. Jayden has objected to
+        unwanted scroll four separate times.
+     2. 84px of air between the band's hairline and the card at 390, against the
+        case studies' 48 and about's 16.
+   THE HEIGHT NOW SUBTRACTS THE BAND AND THE PADDING NO LONGER ADDS IT. Same
+   token on both sides, so they cannot drift apart. After: scrollHeight == the
+   viewport at both sizes, and the card gains 36px of visible height on a phone.
+   IF .jbStick EVER GAINS .isFixed the wrapper leaves the flow and this inverts --
+   the height must go back to a bare 100svh and --bar-h back into padding-top.
+   tools/structure-rule-contract.py asserts scrollHeight == innerHeight on both
+   pages so that regression cannot land quietly. */
   .lab{display:grid;grid-template-columns:minmax(0,1fr) var(--panel-w);
-    gap:var(--sp-24);height:100svh;
+    gap:var(--sp-24);height:calc(100svh - var(--bar-h));
     max-width:var(--page-max);margin-inline:auto;
-    padding:calc(var(--bar-h) + var(--sp-16)) var(--sp-40) var(--sp-24)}
+    padding:var(--sp-32-48) var(--sp-40) var(--sp-24)}
 
   /* ══ THE STAGE ═══════════════════════════════════════════════════════════
      GROUND MODE. What the orb is judged against — not the orb itself and not
@@ -367,14 +396,23 @@
     .lab{grid-template-columns:minmax(0,1fr);
       grid-template-rows:minmax(0,.38fr) minmax(0,1fr);
       gap:var(--sp-16);
-      padding:calc(var(--bar-h) + var(--sp-12)) var(--sp-40) var(--sp-16)}
+      /* the top inset is NOT restated: --sp-32-48 forks itself at 880 to the
+         same 32 every page now takes below that width, so a second declaration
+         here could only disagree with it. */
+      padding:var(--sp-32-48) var(--sp-40) var(--sp-16)}
     /* .38fr is not a guess: it is the smallest inspector that holds the FATTEST
        group (Look, at 355px when Silk exposes Bend/Fold/Sheen) at 390 x 844 with
        room to spare, and every pixel not spent on it goes to the artifact. */
     .panel{gap:var(--sp-8);padding:var(--sp-12)}
   }
+  /* THE GUTTER FORKS TO --sp-16 AT 760. The line above says it forks to --sp-24
+     "because that is where the rest of the site's does"; that stopped being true.
+     about.html and the five case studies fork .wrap to padding-inline:16 at 760,
+     and the bar's own --bar-gutter is --sp-16-40 -- 16 below 881. Measured at 390
+     before: this page's stage card ran 24..366 against the bar's 16..374, an 8px
+     disagreement on both sides of the one card the page is about. */
   @media(max-width:760px){
-    .lab{padding-left:var(--sp-24);padding-right:var(--sp-24)}
+    .lab{padding-left:var(--sp-16);padding-right:var(--sp-16)}
   }
   /* THE 420 BLOCK IS GONE, both halves of it.
      --lbl-w's fork to 72px moved to tokens.css:521 with the token itself, so the
@@ -396,7 +434,7 @@
      scrollWidth 320 in a 320 viewport, no two-dimensional scrolling. Nothing
      between 560 and any real laptop height is touched. */
   @media(max-height:560px){
-    .lab{height:auto;min-height:100svh;grid-template-rows:auto auto}
+    .lab{height:auto;min-height:calc(100svh - var(--bar-h));grid-template-rows:auto auto}
     .stage{min-height:40svh}
     .tabPanel{overflow-y:visible}
   }
@@ -410,11 +448,11 @@
      is gone; this link is what replaces it. Loaded AFTER the page block, which is
      the order index/play/about/apollo already use, so the library wins any tie
      and what is left above can only position a control, never redraw one. -->
-<link rel="stylesheet" href="controls.css?v=0d4908abb4">
-<link rel="stylesheet" href="header.css?v=0d4908abb4">
-<link rel="stylesheet" href="footer.css?v=0d4908abb4">
+<link rel="stylesheet" href="controls.css?v=f1089b23fe">
+<link rel="stylesheet" href="header.css?v=f1089b23fe">
+<link rel="stylesheet" href="footer.css?v=f1089b23fe">
 <link rel="stylesheet" href="builder-theme.css">
-<link rel="stylesheet" href="site-theme.css?v=0d4908abb4">
+<link rel="stylesheet" href="site-theme.css?v=f1089b23fe">
 <script src="header.js" defer></script>
 </head>
 <body data-theme-page="gradientlab">

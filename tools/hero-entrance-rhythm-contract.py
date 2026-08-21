@@ -39,13 +39,44 @@ def expected_hero_height(width, height):
     # to retune by eye is the right cost: the alternative is a gate that
     # cannot tell a deliberate retune from the Hero silently collapsing.
     # THE FLOOR AT ZERO IS THE SHORT-LAPTOP CASE and it is load-bearing: at
-    # 1280x650 the head already rests 25px off the floor with the crowd-drop
-    # saturated, so the reveal is zero there and the Hero is still the whole
-    # 650px. A gate that expected a constant fraction would fail that width.
+    # 1280x650 the reveal is zero and the Hero is still the whole 650px. A gate
+    # that expected a constant fraction would fail that width.
+    # ── RETUNED 2026-08-20 WITH THE CLAMP IT MIRRORS ────────────────────────
+    # EDITED by the hero-corner-control pass, which does not own this file --
+    # flagged in its report, and this is the edit the paragraph above says has
+    # to happen together with index.html's.
+    # Jayden: "i think the hero should be a bit smaller still like start kinda
+    # around where the time button ends". Two things changed in the clamp.
+    # THE FACTOR IS 1, NOT .9/.78. `(svh - K) * .9` keeps a tenth of every extra
+    # pixel of window, so the Hero still grew with the monitor. Taking all the
+    # slack makes the Hero its content's height -- K, or the viewport if the
+    # viewport is shorter -- so the composition holds still from a 650px window
+    # to a 1600px one. Everything inside it is solved against that constant.
+    # THE CONSTANT IS 560 NOW, AND THE MODEL THAT SET 650 IS RETIRED.
+    # It used to be solved from the resting composition: the head's rotated box
+    # is 334.88px, the copy was 104px once the time control left it for the
+    # corner rail, and the two gaps summed to H/2 - 269.88, so a 24px floor
+    # clearance and a 31px gap under the eyebrow landed on 650. Every term in
+    # that solve has since stopped being true -- the head TRAVELS the whole
+    # field rather than resting under the copy, and the copy is centred in the
+    # Hero rather than lifted above it, so there is no "gap under the eyebrow"
+    # to solve for.
+    # WHAT REPLACES IT IS THE FOLD BUDGET, which is what Jayden actually asked
+    # for on 2026-08-20 ("the hero reducing in size a little more so you can
+    # see at least the top of the mockups"). 560 is 62% of a 900px fold, which
+    # is where the closest measured peer sits (davidhoang.com, 571 of 900 =
+    # 63%, with 185px of the next section showing), and it is what NN/g's
+    # illusion-of-completeness work asks for: content peeking above the fold
+    # rather than a hero graphic filling it. It puts the first cover's top edge
+    # at 660 -- 240px above the fold at 900 and 140px at 800.
+    # The phone's 570 is unchanged: its own solve still holds and 390x844
+    # already revealed the tab row and the cover top.
+    # THE CAPS ARE SAFETY VALVES. They only bind above a 1150px viewport and
+    # exist so a misreported svh cannot subtract the whole Hero.
     if width <= 760:
-        reveal = min(max(0.0, (height - 620) * .78), 196)
+        reveal = min(max(0.0, height - 570), 400)
     else:
-        reveal = min(max(0.0, (height - 680) * .9), 240)
+        reveal = min(max(0.0, height - 560), 500)
     return height - reveal
 
 class Quiet(SimpleHTTPRequestHandler):
@@ -180,9 +211,53 @@ def browser_contract(base_url):
                     # dominating the phone, not a re-derivation of the value.
                     head_ratio = state["mobile"]["peek"]["width"] * PORTRAIT_ART_WIDTH_RATIO / state["mobile"]["innerWidth"]
                     assert .30 <= head_ratio <= .48, (head_ratio, state)
+                    # ── THE HEAD IS MEASURED AGAINST THE COPY NOW, NOT THE
+                    #    CTA ROW, BECAUSE THE ROW IS UNDERNEATH IT ─────────
+                    # EDITED 2026-08-20 by the hero-corner-control pass, which
+                    # does not own this file -- flagged in its report.
+                    # This read `visible_head_top - ctas.bottom`, which was the
+                    # right pair while .heroCtas was the last line of the
+                    # centred copy stack. Jayden asked for the control in the
+                    # Hero's bottom-right corner, so the rail is now 44px at the
+                    # FLOOR -- at 390 it measures 510..554 against a head whose
+                    # ink starts at 333, and the subtraction returns -221. The
+                    # gate was still able to fail; it had stopped being able to
+                    # pass.
+                    # THE THING IT GUARDS IS UNCHANGED: the head must not crowd
+                    # the type above it. That type is .heroCopy's lower edge --
+                    # the same edge hero-head-transform.js floors the travel
+                    # field on and the same one --hero-head-crowd-drop is solved
+                    # against -- so the pair is now the head and the copy, and
+                    # the band is the one that was already measured for it.
+                    # ── AND THE BAND BETWEEN THEM IS GONE, DELIBERATELY ───
+                    # EDITED AGAIN 2026-08-20, same day, by the hero-fold pass.
+                    # `24 <= head_gap <= 96` failed at -0.26 once the copy was
+                    # centred in the Hero, and the negative number is the
+                    # feature rather than the regression.
+                    # THE PAIR IT GUARDED HAS STOPPED BEING A PAIR. The floor
+                    # of 24 encoded "the head must not crowd the type above
+                    # it", which was true while the head RESTED below the copy
+                    # and its travel field was floored on .heroCopy's lower
+                    # edge. Neither holds: the head travels the whole field up
+                    # to the bar's underside, and .heroCopy carries
+                    # mix-blend-mode:difference precisely so the crossing is
+                    # legible -- Jayden asked for it ("if the head is passing
+                    # through it that part of the text turns white and inverts
+                    # the part of the head hovering over it"). A minimum gap is
+                    # now a rule that the feature must never happen, and with
+                    # the headline centred the head passes through it on most
+                    # frames.
+                    # WHAT REPLACES IT IS THE THING THAT WOULD ACTUALLY BE
+                    # WRONG: the head sitting so high that it covers the
+                    # headline instead of crossing it. Measured off the ART's
+                    # top edge, not the box's, and against the copy's TOP: the
+                    # head's ink must never begin above the headline's first
+                    # line, or the portrait is a lid on the type rather than a
+                    # thing moving behind it.
                     visible_head_top = state["mobile"]["peek"]["top"] + state["mobile"]["peek"]["height"] * PORTRAIT_ART_TOP_RATIO
-                    head_gap = visible_head_top - state["mobile"]["ctas"]["bottom"]
-                    assert 24 <= head_gap <= 96, state
+                    head_gap = visible_head_top - state["mobile"]["copy"]["top"]
+                    assert head_gap >= 0, (
+                        "the head crosses the copy, it does not cap it", head_gap, state)
                     # ── THE HEAD NO LONGER MEETS THE FLOOR ────────────────
                     # This asserted a CROP: 62-67% of the portrait above the
                     # Hero's lower edge, with the rest hanging past it. That was
@@ -234,7 +309,13 @@ def browser_contract(base_url):
 # contract that edits index.html to test itself is one that can leave it edited.
 INJECTIONS = {
     # the shrink reverted. expected_hero_height and tabsBottom must both trip.
-    "full-height-hero": ("--heroReveal:clamp(0px,calc((100svh - 680px) * .9),240px)",
+    # THE NEEDLE WAS STALE AND THE SYMPTOM WAS NOT A MESSAGE. It still read
+    # `calc((100svh - 680px) * .9)`, which index.html stopped carrying two
+    # retunes ago, so `assert find in html` fired INSIDE the server thread and
+    # Playwright reported ERR_EMPTY_RESPONSE instead of an assertion. If that is
+    # what you are looking at, re-read the needle before the contract --
+    # home-minimal-hero-contract.py carries the same headstone.
+    "full-height-hero": ("--heroReveal:clamp(0px,calc(100svh - 560px),500px)",
                          "--heroReveal:0px"),
     # the CTA row emptied. Before this pass all([]) was True and let it through.
     # INJECTED INLINE, NOT AS A RULE. The first attempt appended

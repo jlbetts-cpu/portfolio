@@ -47,8 +47,22 @@
       dir is the CURRENT signed direction on that axis and tgt is the one it is
       heading for. They are separate because a screensaver reverses in one
       frame and a portrait must not: dir eases toward tgt, which is the whole
-      of what makes the reflection read as a turn rather than a ping-pong. */
-   travel:{x:0,y:0,dirX:1,dirY:1,tgtX:1,tgtY:1,at:0},
+      of what makes the reflection read as a turn rather than a ping-pong.
+      rot is the BANK, and it belongs to the travel rather than to the bob for
+      the same reason x and y do: it is a fact about where the head is going.
+      Jayden: "the rotation doesnt seem to change so Id want that to change to
+      kinda go in the direction of where he is going". It rides the float's own
+      angle channel, so the frame and all five handles follow it with no new
+      wiring -- every one of them already sums --hero-head-float-rot, and the
+      contract's weld assertion reads that same summed angle back.
+      dirX AND dirY START AT 0, NOT AT 1. They are the eased direction, so
+      starting them at the target means the head leaves the entrance already at
+      full speed and, now, already at full bank -- a 2.6deg step onto the pose
+      hero-time.css just spent a second landing. From 0 the first second of the
+      page is the head leaning into its journey as it picks it up, which is the
+      same first-order lag every reversal uses and costs nothing but the
+      initial value. */
+   travel:{x:0,y:0,rot:0,dirX:0,dirY:0,tgtX:1,tgtY:1,at:0},
    /* A short position history, not the last delta. One pointermove is noise --
       a coalesced burst can put 60px in 2ms -- so the release speed is measured
       across a window of moves. */
@@ -380,23 +394,44 @@
        describing anything worth seeing; the 1440 Hero's horizontal field is
        1179px and never comes near it. */
     travelSweep:rootNumber("--hero-head-travel-sweep",14000)/1000,
+    /* ── HOW FAR IT LEANS, AND WHY IT IS THIS SMALL ────────────────────────
+       The bank is added to a resting -13.8deg on a photographic portrait, and
+       the eye reads a face's angle better than it reads anything else on this
+       page. Looked at on screen at 1440 and at 390: 2.6deg is the largest
+       value where the two extremes still read as the same composition leaning,
+       and the smallest where the lean is legible at all against the bob's own
+       0.7deg. The full swing between travelling left and travelling right is
+       therefore 5.2deg, spread over the 0.9s reversal, which is a bank rather
+       than a tick. */
+    travelBank:rootNumber("--hero-head-travel-bank",2.6),
     travelGap:parseFloat(computedOf(hero).getPropertyValue("--hero-head-safe-gap"))||0,
     travelShare:rootNumber("--hero-head-min-visible",.42),
-    /* ── THE CEILING OF THE TRAVEL IS THE HEADLINE, NOT THE BAR ─────────────
-       usableRect() is the right bound for REACHABILITY -- a handle under the
-       opaque nav cannot be pressed -- and it is not a bound on taste. Measured
-       at 1440x900: the head's box rests at y 461-734 and .heroCopy occupies
-       251-415, so a travel field bounded only by the bar's underside at y=60
-       lets the portrait climb 400px and sit squarely on top of the h1. Premium
-       is subtraction; a face driving through the headline is the opposite.
-       So the field's floor is the copy's lower edge, and the head wanders the
-       band of empty sky beneath it -- full width, and whatever height is left.
-       It is measured rather than authored so it follows a reflowed headline,
-       and .heroCopy already has a ResizeObserver on it calling reclamp(), which
-       is what invalidates this cache. Where the band is shorter than the head
-       the arithmetic below simply yields no vertical travel rather than a
-       negative one. */
-    travelFloor:content?rectOf(content).bottom-h.top:u.top-h.top,
+    /* ── THE CEILING OF THE TRAVEL IS THE BAR, AND THAT IS A REVERSAL ───────
+       IT WAS THE HEADLINE, and the argument for that is kept here because it
+       was right about the picture and wrong about the plan. Measured at
+       1440x900: the head's box rested at y 461-734 and .heroCopy at 251-415, so
+       a field bounded only by the bar's underside lets the portrait climb 400px
+       and sit squarely on the h1 -- and a face driving through the headline is
+       the opposite of premium. So the field was floored on the copy's lower
+       edge and the head wandered the band of empty sky beneath it.
+       WHAT CHANGED IS THE HEADLINE, NOT THE TASTE. Jayden, 2026-08-20: "the
+       text interacts with the head passing it ... if the head is passing
+       through it that part of the text turns white and inverts". .heroCopy
+       carries mix-blend-mode:difference now, so the crossing is the FEATURE --
+       and with the field floored below the copy the head could never reach it
+       under its own power. The band of empty sky was hiding the one thing the
+       blend exists to show.
+       THE BAR'S UNDERSIDE IS STILL THE HARD LIMIT and always was: the Hero runs
+       up behind an opaque nav at z-index 100, and a handle parked under it
+       cannot be pressed at all -- the contract has caught exactly that, with
+       elementFromPoint returning NAV.jbNav where a corner handle should have
+       been. That is reachability, not taste, and it does not move. So the two
+       bounds collapse to one number, which is what this now is; the whole
+       selection frame staying on the stage is enforced separately below and is
+       what actually stops a leading corner going dark at the top of the climb.
+       .heroCopy keeps its ResizeObserver -- a reflowed headline still changes
+       the layout this cache is derived from. */
+    travelFloor:u.top-h.top,
     /* ── THE FEEL CONSTANTS BELONG IN THE CACHE FOR THE REASON THE TWO ABOVE DO
        rubberReach and rubberC are read on EVERY pointermove of every drag --
        the exact position scaleLimits() was measured in, at 2 root reads per
@@ -479,6 +514,38 @@
     x:Math.min(Math.max(box.width*share,gap),h.width),
     y:Math.min(Math.max(box.height*share,gap),h.height)};
   }
+  /* ── THE PUBLISHED MIRROR: WHERE THE HEAD IS, READABLE FROM ANYWHERE ─────
+     Everything above writes to #heroHeadTransform, and a custom property is
+     only visible to that element and its descendants. .heroCopy is a SIBLING,
+     so nothing in the headline can know where the head is -- which is the whole
+     of what blocked "the text interacts with the head passing it ... that part
+     of the text turns white". The alternative was a getComputedStyle from the
+     copy once a frame: a forced style resolve per frame on a page this file
+     already spent an audit getting down to zero reads a frame, and it is
+     raster-bound at ~16.5fps before anyone adds to it.
+     These are WRITES, on a path that is already writing, to a second element.
+     They read nothing -- cssNumber() is an INLINE-style lookup, not a computed
+     one, so it forces no style resolution and does not go through the counted
+     helpers -- and the loop's own reads-nothing invariant is unchanged and
+     still measured by loopReads.
+     THEY ARE A MIRROR, NOT A MOVE, AND NOT A DUPLICATE TO BE TIDIED AWAY. The
+     wrap's own properties stay exactly as they were, because the wrap's
+     transform is built from them and its inline value wins over the inherited
+     one anyway. What is different here is the SHAPE: the wrap carries four
+     separate channels that only its own transform knows how to sum, and this
+     carries the ANSWER -- one x, one y, one scale, one angle, which is exactly
+     what it takes to place a copy of the head's silhouette over the real one.
+     The transform-origin is mirrored in syncOrigin() for the same reason: a
+     copy turned about a different point is not a copy. */
+  function publish(fx,fy,fr){
+   var root=document.documentElement.style;
+   root.setProperty("--hero-head-live-x",(state.x+state.drift.x+fx).toFixed(2)+"px");
+   root.setProperty("--hero-head-live-y",
+    (state.y+state.drift.y+state.enterY+fy).toFixed(2)+"px");
+   root.setProperty("--hero-head-live-scale",String(state.scale));
+   root.setProperty("--hero-head-live-rot",
+    (state.rotate+state.enterRot+fr).toFixed(3)+"deg");
+  }
   function writeTransform(){
    wrap.style.setProperty("--hero-head-x",state.x+"px");
    wrap.style.setProperty("--hero-head-y",state.y+"px");
@@ -490,8 +557,10 @@
    wrap.style.setProperty("--hero-head-scale",String(state.scale));
    wrap.style.setProperty("--hero-head-rotate",state.rotate+"deg");
    hero.style.setProperty("--hero-head-scale",String(state.scale));
-   updateLight(cssNumber(wrap,"--hero-head-float-x"),cssNumber(wrap,"--hero-head-float-y"),
-    cssNumber(wrap,"--hero-head-float-rot"));
+   var fx=cssNumber(wrap,"--hero-head-float-x"),fy=cssNumber(wrap,"--hero-head-float-y"),
+    fr=cssNumber(wrap,"--hero-head-float-rot");
+   updateLight(fx,fy,fr);
+   publish(fx,fy,fr);
    state.rendered={x:state.x,y:state.y,scale:state.scale,rotate:state.rotate};
    state.stamp++;
   }
@@ -515,10 +584,16 @@
    });
    var u=measured.u,w=measured.w;
    if(!w.width||!w.height)return;
-   wrap.style.setProperty("--hero-head-origin-x",
-    (((u.left+u.right)/2-w.left)/w.width*100)+"%");
-   wrap.style.setProperty("--hero-head-origin-y",
-    (((u.top+u.bottom)/2-w.top)/w.height*100)+"%");
+   var ox=((u.left+u.right)/2-w.left)/w.width*100;
+   var oy=((u.top+u.bottom)/2-w.top)/w.height*100;
+   wrap.style.setProperty("--hero-head-origin-x",ox+"%");
+   wrap.style.setProperty("--hero-head-origin-y",oy+"%");
+   /* Mirrored for the reason publish() exists: a copy of the head turned about
+      a different point is not a copy. Written here rather than per frame
+      because it is a layout constant -- this runs at init, on resize and on a
+      stage change, never inside a gesture or a float frame. */
+   document.documentElement.style.setProperty("--hero-head-live-origin-x",ox+"%");
+   document.documentElement.style.setProperty("--hero-head-live-origin-y",oy+"%");
   }
   /* WHERE THE DOT IS ACTUALLY DRAWN, kept as a number rather than re-measured.
      controls.css draws the visible square at --h-dx/--h-dy off the hit box's
@@ -962,7 +1037,7 @@
    if(state.pointerId!==null)return;
    if(event.button!==undefined&&event.button!==0)return;
    face.setAttribute("data-pointer-focus","");
-   select();event.preventDefault();stopFloat();commitTravel();
+   select();event.preventDefault();stopFloat();var carried=commitTravel();
    /* ── GRABBING SOMETHING IN FLIGHT MUST NOT MOVE IT ───────────────────────
       The single most important principle in the reference: an animation is
       interruptible, and the new gesture starts from the PRESENTATION value,
@@ -985,7 +1060,7 @@
    var m=metrics();
    var painted={x:state.x+state.drift.x,y:state.y+state.drift.y};
    var seated=clampMove(painted.x,painted.y),seatedBox=transformedBox(seated.x,seated.y);
-   state.start={clientX:event.clientX,clientY:event.clientY,
+   state.start={travel:carried,clientX:event.clientX,clientY:event.clientY,
     x:seated.x+unband(painted.x-seated.x,seatedBox.width*m.rubberShare,m.rubberC),
     y:seated.y+unband(painted.y-seated.y,seatedBox.height*m.rubberShare,m.rubberC),
     restoreX:state.x,restoreY:state.y};
@@ -1125,14 +1200,16 @@
   function beginResize(event,corner,node){
    if(state.pointerId!==null)return;
    if(event.button!==undefined&&event.button!==0)return;
-   event.preventDefault();event.stopPropagation();select();stopFloat();commitTravel();
+   event.preventDefault();event.stopPropagation();select();stopFloat();
+   var carried=commitTravel();
    var r=geom(),opposite={
     nw:{x:r.right,y:r.bottom},ne:{x:r.left,y:r.bottom},
     sw:{x:r.right,y:r.top},se:{x:r.left,y:r.top}
    }[corner];
    var drag=cornerPoint(r,corner);
    state.pointerId=event.pointerId;state.operation="resize";
-   state.start={corner:corner,anchor:opposite,rect:r,x:state.x,y:state.y,scale:state.scale,
+   state.start={travel:carried,corner:corner,anchor:opposite,rect:r,
+    x:state.x,y:state.y,scale:state.scale,
     pointerOffset:{x:drag.x-event.clientX,y:drag.y-event.clientY}};
    state.capture=node||event.currentTarget;state.capture.setPointerCapture(event.pointerId);
   }
@@ -1206,11 +1283,12 @@
   function beginRotate(event,node){
    if(state.pointerId!==null)return;
    if(event.button!==undefined&&event.button!==0)return;
-   event.preventDefault();event.stopPropagation();select();stopFloat();commitTravel();
+   event.preventDefault();event.stopPropagation();select();stopFloat();
+   var carried=commitTravel();
    var u=geom(),centre={x:(u.left+u.right)/2,y:(u.top+u.bottom)/2};
    state.pointerId=event.pointerId;state.operation="rotate";
-   state.start={centre:centre,angle:pointerAngle(centre,event.clientX,event.clientY),
-    rotate:state.rotate};
+   state.start={travel:carried,centre:centre,
+    angle:pointerAngle(centre,event.clientX,event.clientY),rotate:state.rotate};
    state.capture=node||event.currentTarget;state.capture.setPointerCapture(event.pointerId);
   }
   function turn(event){
@@ -1261,6 +1339,12 @@
      state.x=start.x;state.y=start.y;state.scale=start.scale;state.pendingAnchor=null;
     }
     else if(operation==="rotate"){state.rotate=start.rotate;state.pendingClamp=false;}
+    /* LAST, AND FOR ALL THREE OPERATIONS. Every begin* commits the ambient
+       journey into the arrangement before it records the pose above, so each of
+       those restores hands back a number that still contains it; this is what
+       takes it out again. A rotate does not restore x/y at all, which is why
+       this cannot live inside the branches. */
+    uncommitTravel(start.travel);
    }
    /* The operation is dropped BEFORE end() so the release path does not run:
       a cancelled move has nothing to settle and nothing to throw, and putting
@@ -1333,13 +1417,38 @@
      can always at least stay where it is. Where the band is too short to hold
      the frame the axis yields an empty range and the head simply does not
      travel on it, which is the honest answer at 1280x650. */
+  /* THE BIGGEST THE FRAME GETS ACROSS THE ANGLES IT IS ABOUT TO CARRY.
+     A turned rectangle's bounding box is a function of its angle, and the angle
+     the head is at when this is evaluated is not the angle it will be at when
+     it arrives at the wall: the bob is +-0.7deg and the bank is +-2.6deg, and
+     both are still to come. state.rotate alone was therefore describing a frame
+     slightly smaller than the one that gets drawn, and the difference lands
+     exactly where it is least affordable -- on the leading corner at the far
+     end of the journey. Measured at 1440 with the bank in and this widening
+     out: the drawn dots reached 1.6px further off the left edge than the
+     resting pose does, and one handle went dark for it. Both are assertions in
+     hero-head-transform-contract, and both are what a dot going quietly
+     unpressable looks like from the outside.
+     Evaluated at the two extremes and the middle rather than solved: the
+     extent is piecewise-sinusoidal in the angle and over a 3.3deg window the
+     maximum is at an endpoint, so three cosines a frame -- no DOM reads --
+     buy a bound that is right instead of nearly right. */
+  function turnedExtent(w,h,ang,lean){
+   var bw=0,bh=0,i,t,c,s2,W,H;
+   for(i=-1;i<2;i++){
+    t=ang+i*lean;c=Math.abs(Math.cos(t));s2=Math.abs(Math.sin(t));
+    W=w*c+h*s2;H=w*s2+h*c;
+    if(W>bw)bw=W;if(H>bh)bh=H;
+   }
+   return {w:bw,h:bh};
+  }
   function travelBounds(){
    var m=metrics(),b=state.base,s=state.scale;
    var box=transformedBox(state.x,state.y);
    var cx=box.left+box.width/2,cy=box.top+box.height/2;
-   var cos=Math.abs(Math.cos(radians())),sin=Math.abs(Math.sin(radians()));
    var fw0=b.width*s+m.air*2,fh0=b.height*s+m.air*2;
-   var fw=fw0*cos+fh0*sin,fh=fw0*sin+fh0*cos;
+   var lean=(m.travelBank+m.rAmp)*Math.PI/180;
+   var ext=turnedExtent(fw0,fh0,radians(),lean),fw=ext.w,fh=ext.h;
    var needX=Math.min(Math.max(box.width*m.travelShare,m.travelGap),m.heroW);
    var needY=Math.min(Math.max(box.height*m.travelShare,m.travelGap),m.heroH-m.ceiling);
    /* THE BOB IS STILL RIDING ON TOP, SO THE STAGE BOUND HAS TO LEAVE ROOM FOR
@@ -1404,6 +1513,36 @@
    else if(t.tgtY<0&&t.y<=b.minY+markY)t.tgtY=1;
    t.dirX+=(t.tgtX-t.dirX)*ease;t.dirY+=(t.tgtY-t.dirY)*ease;
    t.x+=vx*t.dirX*dt;t.y+=vy*t.dirY*dt;
+   /* ── THE LEAN IS THE DIRECTION, NOT A SECOND ANIMATION ───────────────────
+      dirX is already the eased, signed heading -- it is what the reversal
+      spends 0.9s turning over -- so the bank is that number scaled, and it
+      inherits the exact easing the turn has without a spring, a timer or a
+      second state to keep in sync. Going right it leans right; the turn at the
+      wall carries the lean through level and over, which is the banking a
+      reversal wants and is impossible to get from a sign test.
+      SCALED BY THE SPEED THAT IS ACTUALLY BEING USED, because the sweep floor
+      above can cut vx to a crawl on a short field and a head leaning hard into
+      a journey it is not making would be a lie. Where an axis has no room at
+      all -- spanX 0, so vx 0 -- the bank is 0 and the head keeps the angle
+      hero-time.css authored, which is the honest answer.
+      Y IS DELIBERATELY NOT IN THIS. He asked for left and right, a portrait has
+      no natural pitch, and adding one would put the head on a second axis of
+      rotation nobody asked to see. */
+   var want=m.travelSpeedX?m.travelBank*t.dirX*Math.min(1,vx/m.travelSpeedX):0;
+   /* AND IT IS FOLLOWED, NOT ASSIGNED. dirX eases, so the target eases with it
+      and assigning it looked identical for the whole of an ordinary journey --
+      but the SPEED is in the target too, and speed is not continuous: it is a
+      token, it is floored by travelSweep against a field that changes with the
+      head's scale, and it is zero whenever an axis has no room. Every one of
+      those transitions put the whole lean into a single frame. Measured with
+      the field cranked at 390x844: 3.22deg of a 5.54deg swing in one 200ms
+      sample -- a tick, which is exactly what the reversal was written to avoid,
+      arriving from a direction nobody was watching.
+      A THIRD OF THE TURN'S TIME CONSTANT, so the lean still belongs to the
+      heading rather than trailing it: the reversal takes about 2s and the lean
+      is inside 0.3s of wherever the heading has got to, which reads as banking
+      into the turn and cannot step. */
+   t.rot+=(want-t.rot)*(1-Math.exp(-dt/(tau/3)));
    if(t.x>b.maxX)t.x=b.maxX;else if(t.x<b.minX)t.x=b.minX;
    if(t.y>b.maxY)t.y=b.maxY;else if(t.y<b.minY)t.y=b.minY;
   }
@@ -1423,17 +1562,52 @@
      On release the travel resumes from zero against the new arrangement, so
      the head carries on drifting from wherever it was put rather than snapping
      back to a journey it was on a minute ago. */
+  /* ── AND IT REPORTS WHAT IT FOLDED IN, BECAUSE A CANCELLED GESTURE HAS TO
+     PUT IT BACK. This was the travel's own version of the bug the pointercancel
+     revert already fixes for the drag: a scroll on a phone reaches the head as
+     a pointerdown, the press commits the journey into the arrangement, and the
+     browser then cancels the gesture -- but cancel() restores state.start,
+     which was recorded AFTER the commit, so the offset stayed. Measured at
+     402x714 through Chromium's touch gesture pipeline, every one of the six
+     probe points did it: scrollY 0 -> 257 correctly, and the head's arrangement
+     +5.11px x and +1.28px y that nothing on screen accounted for, once per
+     swipe, accumulating for as long as he keeps scrolling.
+     Nothing MOVES at the instant of either the commit or its undo -- both are a
+     pair of changes that cancel to the pixel -- so what this is protecting is
+     the arrangement, which is what every clamp, the travel's own bounds and
+     hero-head-scroll-gesture-contract all reason about. Returning the offset
+     rather than stashing it in state keeps it with the gesture that took it:
+     state.start already holds the pre-gesture pose for exactly this, and it is
+     the thing cancel() is written to restore. */
   function commitTravel(){
    var t=state.travel;
-   if(!t.x&&!t.y)return;
+   if(!t.x&&!t.y)return null;
+   var carried={x:t.x,y:t.y};
    state.x+=t.x;state.y+=t.y;
    t.x=0;t.y=0;
    if(state.lastFloatMs)writeFloat(state.lastFloatMs-state.floatShift);
    writeTransform();
+   return carried;
   }
+  /* The exact inverse, and it is only ever reached from pointercancel: the
+     arrangement gives the offset back, the travel takes it back, and the head
+     carries on the journey it was on from the offset it was at rather than
+     restarting it from wherever the scroll left it. */
+  function uncommitTravel(carried){
+   if(!carried)return;
+   state.x-=carried.x;state.y-=carried.y;
+   state.travel.x+=carried.x;state.travel.y+=carried.y;
+   if(state.lastFloatMs)writeFloat(state.lastFloatMs-state.floatShift);
+  }
+  /* THE LEAN IS PART OF THE JOURNEY, SO IT GOES WHEN THE JOURNEY DOES. reset()
+     and reduced motion both come through here, and both mean "the head is at
+     home": home is --hero-head-rest-rotate, not the rest angle plus whichever
+     way it happened to be heading. Zeroed with the offsets and written out in
+     the same call, so a reduced-motion visitor gets the authored pose exactly
+     and the frame is re-synced by the callers that need it. */
   function clearTravel(){
    var t=state.travel;
-   t.x=0;t.y=0;t.dirX=1;t.dirY=1;t.tgtX=1;t.tgtY=1;
+   t.x=0;t.y=0;t.rot=0;t.dirX=0;t.dirY=0;t.tgtX=1;t.tgtY=1;
    if(state.lastFloatMs)writeFloat(state.lastFloatMs-state.floatShift);
   }
   function floatAt(ms){
@@ -1452,11 +1626,18 @@
      crossing the sky, which is what it was written to describe. */
   function writeFloat(ms){
    var f=floatAt(ms),t=state.travel;
-   var fx=f.x+t.x,fy=f.y+t.y;
-   updateLight(fx,fy,f.rot);
+   var fx=f.x+t.x,fy=f.y+t.y,fr=f.rot+t.rot;
+   updateLight(fx,fy,fr);
    wrap.style.setProperty("--hero-head-float-x",fx.toFixed(2)+"px");
    wrap.style.setProperty("--hero-head-float-y",fy.toFixed(2)+"px");
-   wrap.style.setProperty("--hero-head-float-rot",f.rot.toFixed(3)+"deg");
+   /* THE BANK GOES DOWN THE SAME CHANNEL AS THE BOB, and that is the whole of
+      what welds it to the chrome: frameGeometry() sums this one property into
+      the frame's angle and syncSelection() hands that angle to the handles, so
+      a head that leans and a frame that does not is not a state this can
+      reach. The light takes the summed angle too -- the head really is turned
+      that far, and the rim is a function of how it is turned. */
+   wrap.style.setProperty("--hero-head-float-rot",fr.toFixed(3)+"deg");
+   publish(fx,fy,fr);
   }
   /* ── THE HEAD CASTS NOTHING, SO NOTHING HERE WRITES A SHADOW ─────────────
      There was a wrapper around hero-engine's updateShadow() here. It existed

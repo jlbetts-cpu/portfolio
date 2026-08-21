@@ -26,7 +26,7 @@
      a hand-copied subset of the token block plus a second flagged "top-up" block at its
      foot; both are gone -- tokens.css is the one source now. See
      .superpowers/sdd/2026-08-02-play-page/play-tokens-report.md §1. -->
-<link rel="stylesheet" href="tokens.css?v=0d4908abb4">
+<link rel="stylesheet" href="tokens.css?v=f1089b23fe">
 <link rel="stylesheet" href="play.css">
 <!-- THE TOURNAMENT SCREEN. Its own sheet, after play.css so that where the two touch the
      same element source order settles it without an !important. The tournament styles that
@@ -76,7 +76,7 @@
  .wrap{position:relative;z-index:62;width:100%;max-width:none;margin:0;padding:0}
  .hero{position:relative;isolation:isolate;overflow:hidden;display:grid;grid-template-columns:1fr;height:auto;box-sizing:border-box;
   justify-items:center;align-content:start;min-height:calc(100svh - var(--bar-h));gap:0;
-  padding:var(--sp-24) var(--sp-16-24) 0;border:0;box-shadow:none;
+  padding:var(--sp-24) var(--play-gutter) 0;border:0;box-shadow:none;
  border-radius:0;corner-shape:initial;background:var(--theme-page,var(--c50))}
  body[data-theme-page="play"] .hero::after{display:none}
  /* THE AURA IS GONE, ELEMENT AND ALL. Jayden: "Subtle gradient behind the head
@@ -265,7 +265,7 @@
  body.playViewportOwned .jbStick{visibility:hidden;pointer-events:none}
  body.pTeamOn .hero{height:52vh;margin:6vh auto auto}
  @media(max-width:880px){.hero{min-height:auto;padding-bottom:var(--sp-24)}.hero .stagewrap{width:min(64vw,calc((100svh - 322px - var(--play-hero-lead)) * .86),500px)}}
- @media(max-width:760px){.hero,body.pHubOn.hmFull .hero{height:auto;min-height:calc(100svh - var(--bar-h));padding:var(--sp-20) var(--sp-12)}.heroCopy h1{max-width:12.5em}.heroCtas{margin-top:var(--sp-14)}.heroMood .moodMenu{left:auto;right:0;width:min(var(--menu-w),calc(100vw - var(--sp-48)))}.hero .stagewrap{width:min(88vw,calc((100svh - 334px - var(--play-hero-lead)) * .86),430px);margin-top:var(--sp-8)}}
+ @media(max-width:760px){.hero,body.pHubOn.hmFull .hero{height:auto;min-height:calc(100svh - var(--bar-h));padding:var(--sp-20) var(--play-gutter)}.heroCopy h1{max-width:12.5em}.heroCtas{margin-top:var(--sp-14)}.heroMood .moodMenu{left:auto;right:0;width:min(var(--menu-w),calc(100vw - var(--sp-48)))}.hero .stagewrap{width:min(88vw,calc((100svh - 334px - var(--play-hero-lead)) * .86),430px);margin-top:var(--sp-8)}}
  @media(max-width:360px){.hero{padding-inline:var(--sp-8)}.heroCtas{gap:var(--sp-8)}.hero .stagewrap{width:min(90vw,calc((100svh - 352px - var(--play-hero-lead)) * .84),400px)}}
  /* The one breakpoint whose portrait is sized by a LITERAL rather than by the svh
     budget, so it cannot absorb the mood clause's extra line on its own. Measured at
@@ -335,6 +335,115 @@
     ========================================================================== */
  :root{--head-edge:var(--c50)}
 
+ /* ══ THE MARGIN RAILS ═══════════════════════════════════════════════════════════
+    Jayden, 2026-08-20: "lets do the stripe method under the header with lines on the
+    left and right showing the margins ... look at the workspace for guidance how they
+    did it."
+
+    WHAT THE WORKSPACE ACTUALLY DOES, read rather than guessed. Its structure is not a
+    border on a card; it is a REAL 1px element that runs the whole height of the app --
+    src/components/app-shell.tsx:190, the "Pulley rail": a `w-px` div filled with
+    `bg-border`, sitting in flow between the sidebar column and the content column. And
+    its horizontal lines are made to land on the same pixel rows across it on purpose --
+    src/styles.css:365, "the band's bottom line lands on the SAME pixel row as the
+    divider under Workspace -- the horizontal lines connect across the app." So the
+    device is: continuous vertical lines at the column's edges, and every horizontal line
+    terminating ON them. That is what is built here.
+
+    THE RAILS SIT ON THE COLUMN THIS SITE ALREADY HAS. Not an invented inset: measured on
+    index.html at four widths, .jbNav, .csTabs, .csFrame and .footTop all resolve to
+    120 -> 1320 at 1440, 40 -> 1240 at 1280 and 16 -> 374 at 390. --col-max is the one
+    expression that produces those numbers (it is what .pCards' max-width already was),
+    so the rails and the content cannot drift apart -- change one and both move.
+
+    BOTH LINES ARE DRAWN INSIDE THE COLUMN. The left rail's border occupies [120,121) and
+    the right rail's [1319,1320), so the pair is symmetric about the column and the
+    rail's own rect shares an edge with the content's: rail-left.left == column.left and
+    rail-right.right == column.right, which is the thing the structure contract measures.
+
+    THEY RUN FROM THE HEADER'S FLOOR TO THE GAMES BAND'S BOTTOM RULE, and both ends are a
+    corner rather than a stop. The first version ran them all the way down to .footTop's
+    own rule, 112px below the last card. Measured that way it was perfect -- rail bottom
+    1228.38, footer rule top 1228.38 -- and on screen it was wrong: the 112px of empty
+    railed page under the grid read as an EMPTY FIFTH CELL, at 1440 and at 390 both. That
+    is the whole "counting is not looking" trap, caught by opening the PNG. So .pCol ends
+    where the band ends; the footer keeps its own rule as the page's sign-off, outside the
+    column, exactly as it is on every other page. A rail that stopped in mid-air would be
+    the defect tools/structure-rule-contract.py's own section 3 names -- this one stops on
+    a perpendicular line, which is a corner.
+
+    Z-INDEX 63, AND IT HAS TO BE. .hero carries `isolation:isolate` inside .wrap, which is
+    z-index 62 -- so the arena and everything in it paint as one opaque layer, and a rail
+    below 62 is simply invisible for the whole first screen. 63 is the first value that
+    clears it. pointer-events stay off, so nothing on this page becomes undraggable.
+
+    THEY GO WHEN A GAME TAKES THE VIEWPORT, on the same flag .siteFoot uses
+    (play.css:744). A margin rail is a statement about a page's column; a full-screen
+    pitch has no column. ══════════════════════════════════════════════════════════════ */
+ :root{--col-max:calc(var(--page-max) - var(--sp-40) * 2)}
+ /* ONE EXPRESSION FOR THE COLUMN'S INSET, used by the rails and by the walls below, so a
+    rail and the wall it caps can never drift apart. The percentage resolves against the
+    same reference in both places -- .pCol's own width for `left`/`right`, and .hero's
+    padding box for `background-size`, which is the full viewport-content width because
+    .hero carries no border. NOT 100vw: a classic scrollbar makes 100vw wider than the
+    content box and would push both lines half a scrollbar off the column. */
+ :root{--col-inset:max(var(--play-gutter),calc((100% - var(--col-max)) / 2))}
+ .pCol{position:relative}
+ .pCol::before,.pCol::after{content:"";position:absolute;top:0;bottom:0;width:0;
+  z-index:63;pointer-events:none}
+ .pCol::before{left:var(--col-inset);border-left:var(--rule-w) solid var(--rule)}
+ .pCol::after{right:var(--col-inset);border-right:var(--rule-w) solid var(--rule)}
+ body.playViewportOwned .pCol::before,body.playViewportOwned .pCol::after{display:none}
+
+ /* ══ THE GUTTER WALLS ═══════════════════════════════════════════════════════════════
+    Jayden, 2026-08-20: "make sure the heads dont go past the line -- you can make it so
+    they can leave and come back like jump out the side behind the gutter wall but they
+    shouldnt be on top, the gutter walls should be clean."
+
+    PAINT ORDER ALONE DOES NOT DO IT, and that was the first attempt. The rails are
+    z-index 63 and the whole arena is z-index 62, so a head already passed UNDER the
+    line -- and it still looked broken, because --rule is rgba(9,11,36,.10): ten percent
+    ink over a saturated teal egghead is invisible. Measured by parking a real lobby head
+    on the left rail at 1440 and 390 and reading the PNG back: 116 and 69 rows of the
+    rail had a head behind them, and the line could not be seen across any of them. A
+    line you cannot see is a broken line, whatever its z-index says.
+
+    SO THE GUTTER IS A REAL WALL. This paints the two margins in the page's own ground,
+    ABOVE the heads and BELOW the copy, so a head that wanders out of the column is cut
+    off at the rail and slides away behind it -- which is exactly the "jump out the side
+    behind the gutter wall" he described, and it is why this is a mask and not a bounds
+    clamp: the head still goes, it just is not seen doing it.
+
+    Z-INDEX 5 IS MEASURED, NOT PICKED. Inside .hero (which is `isolation:isolate`, so this
+    is a closed ladder): .hmRefl 1, .hmShadow 2 and .hmLavaGlow 1, the lobby heads 3,
+    .hmHp 4 -- then .heroCtas 8, .heroMood 12. 5 is the only gap, and it is the gap
+    between "the crowd" and "the page's own copy". The wall must never reach the copy.
+
+    IT IS ONE ELEMENT AND TWO GRADIENTS rather than two elements: .hero's children are
+    enumerated by the engine in several places and this must not become one of them.
+    --rule-w is added to the width so the wall covers the rail's own pixel column too --
+    without it the line's single pixel would be the one place a head still showed through,
+    and it would be the pixel that matters.
+
+    AND IT IS GONE IN EVERY GAME. Soccer, the race, the battle, the tournament and the
+    team picker all take the viewport, and a pitch has no column -- clipping a match at
+    an invisible wall would be making the game tidier, which CLAUDE.md section 5 forbids
+    outright. Same flag the rails use, plus the game classes by name so a state that
+    forgets to claim the viewport still cannot get a wall.
+    ═════════════════════════════════════════════════════════════════════════════════ */
+ .hero::before{content:"";position:absolute;inset:0;z-index:5;pointer-events:none;
+  --wall-w:calc(var(--col-inset) + var(--rule-w));
+  background:
+   linear-gradient(var(--theme-page,var(--c50)),var(--theme-page,var(--c50))) 0 0/var(--wall-w) 100% no-repeat,
+   linear-gradient(var(--theme-page,var(--c50)),var(--theme-page,var(--c50))) 100% 0/var(--wall-w) 100% no-repeat}
+ /* NOT body.hmFull -- play.html's <body> ships with that class ON at rest (line ~1181),
+    so listing it here switched the walls off on the one page that wants them. It cost a
+    debug pass: the rule was live, z-index 5 was right, and getComputedStyle said
+    `display:none`. The game states below are the real ones. */
+ body.playViewportOwned .hero::before,body.pTeamOn .hero::before,
+ body.hmSoccer .hero::before,body.hmBattle .hero::before,
+ body.hmRace .hero::before,body.hmTour .hero::before{display:none}
+
  /* The games are a real below-Hero section. It starts one 16px step after the first screen,
     stays in normal flow, and only fades while a full-screen game surface owns the viewport. */
  .pHub{position:relative;z-index:40;width:100%;box-sizing:border-box;padding:var(--sp-16) var(--play-gutter) 0;
@@ -353,9 +462,13 @@
   max-width:var(--page-max);margin-inline:auto;
   padding-inline:var(--sp-40);padding-bottom:var(--sp-32-64)
  }
- /* 24, not the 16 the other pages use: .pHub's own phone gutter is 24, and the
-    hairline has to land on the card grid directly above it. */
- @media(max-width:760px){.siteFoot{padding-inline:var(--sp-24)}}
+ /* 16, WHICH IS NOW THE SAME THING index.html:990 SAYS. This read 24 for exactly one
+    reason -- ".pHub's own phone gutter is 24, and the hairline has to land on the card
+    grid directly above it" -- and that reason has just been removed: --play-gutter is
+    back on the site's 16 (play.css), so following the hub still means following the
+    column, and the footer's rule, the card grid and the nav now share one pair of x
+    values at every width. */
+ @media(max-width:760px){.siteFoot{padding-inline:var(--sp-16)}}
 
  /* The legacy launcher is behavior-only. The visible Hero mood control owns the canonical IDs. */
  #gamebar{display:none}
@@ -445,36 +558,41 @@
   line-height:var(--lh-tight);padding-bottom:.14em;font:inherit;letter-spacing:inherit;
   cursor:grab;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
  .cycw.grab{cursor:grabbing}
- /* THE WORD SAYS IT CAN BE GRABBED. Dragging the mood word onto the head is the
-    best-hidden thing on this site -- until now the ONLY hint was `cursor:grab`
-    above, which does not exist on a phone, so a touch visitor had no way to
-    learn it short of guessing.
+ /* ---- HEADSTONE: THE DASHED GRAB BOX. Removed 2026-08-20 on Jayden's call --
+    "could you remove the drag box hint it looks kinda bad especially on mobile."
+    He is right about where it hurt most: on a phone there is no hover, so the
+    rule below had to leave the outline FAINTLY ON AT REST, which put a small
+    dashed rectangle around one word of a display headline permanently. A hint
+    that has to be permanent to work is a hint that costs more than it earns,
+    and premium is subtraction.
 
-    It borrows the vocabulary the Hero's portrait frame already owns rather than
-    inventing a second one: same --selection-ink, so the two read as one system.
-    The head's frame is a SOLID inset line and means "selected right now"; this
-    is DASHED and means "this can be picked up". Solid for state, dashed for
-    affordance -- which is also why it is not simply the same frame twice.
+    WHAT IT WAS SOLVING, so nobody re-adds it without knowing: dragging the mood
+    word onto the head is the best-hidden interaction on this site, and the only
+    other thing announcing it is `cursor:grab` above, which does not exist on
+    touch. It was `outline` and not `border` on purpose -- the word cycles
+    through moods of different widths inside a headline, and a border would
+    reflow the line every time it appeared. It was DASHED to separate
+    "can be picked up" from the portrait frame's SOLID "selected right now",
+    both on --selection-ink so the two read as one system. If a future pass
+    wants the affordance back, it must not be a resting box.
 
-    `outline` and not `border`, deliberately: this word sits inside a headline
-    and cycles through moods of different widths, and a border would reflow the
-    line every time it appeared. An outline is painted outside the box and moves
-    nothing. The offset is in `em` so it tracks the headline's fluid size.
+    WHAT IS LEFT, AND WHAT IS NOT. The glyph that stands where the word's full
+    stop should be is still there and still marks the word as special, and the
+    press state below is the site's own control feedback, so a touch visitor who
+    puts a finger on the word gets an answer. But nothing now says "pick me up"
+    BEFORE the first touch on a phone: the interaction is undiscoverable there
+    and that is a real, accepted cost of this removal, not an oversight.
 
-    Hover and focus-visible on a pointer device; on touch there is no hover to
-    give, so it stays faintly on -- that is the only surface where the cursor
-    was never going to help. It is suppressed while actually dragging, when the
-    ghost element takes over and the word itself goes to opacity 0. */
- .cycw{
-  outline:var(--selection-line) dashed transparent;
-  outline-offset:.16em;
-  transition:outline-color var(--dur-state) var(--ease-out)
- }
- .cycw:hover,.cycw:focus-visible{outline-color:var(--selection-ink)}
- .cycw.grab,.cycw.out{outline-color:transparent}
- @media(hover:none){
-  .cycw{outline-color:color-mix(in srgb,var(--selection-ink) 42%,transparent)}
- }
+    THE FOCUS RING STAYS, and it is now the site's ordinary ring rather than the
+    dashed hint wearing focus's hat -- 2px solid --c950, the same ring every
+    other focusable thing on this site draws, at the same em-tracked offset the
+    outline already used. Without it a keyboard visitor tabs into an invisible
+    stop. It is a :focus-visible ring, so it never shows for a pointer or a
+    touch, which is the whole of what he was objecting to. ---- */
+ .cycw{transition:transform var(--dur-press) var(--ease-out)}
+ .cycw:focus-visible{outline:var(--focus-w) solid var(--c950);outline-offset:.16em}
+ /* not while the ghost has taken over: the word itself is at opacity 0 then. */
+ .cycw:active:not(.grab):not(.out){transform:scale(var(--press-scale))}
  @media(prefers-reduced-motion:reduce){ .cycw{transition:none} }
  .cyc-ch{display:inline-block;white-space:pre}
  /* .in is the ENTRANCE ONLY and play-games.js strips it on animationend: a span left
@@ -622,15 +740,60 @@
     was wrapping to two lines inside a 291px card and now sits comfortably on one or two
     inside 594; grid-auto-rows:1fr still holds all four to a single height, which was the
     original reason that property is there. */
- .pCards{pointer-events:auto;width:100%;max-width:calc(var(--page-max) - var(--sp-40) * 2);margin:0 auto;
-  display:grid;grid-template-columns:repeat(2,1fr);grid-auto-rows:1fr;gap:var(--sp-12)}
+ /* ══ THE FOUR DOORS ARE CELLS NOW, NOT CARDS ═══════════════════════════════════════
+    Jayden, 2026-08-20: "restructuring the menu to also fit that structured site look at
+    the workspace for guidance how they did it."
+
+    WHAT THE WORKSPACE DOES. src/tabs/timeline.tsx:208 -- every calendar cell is
+    `border-r border-border last:border-r-0` with NO gap between them: one continuous
+    block whose divisions are hairlines, not four objects with air around them. Its
+    hover is `hover:bg-neutral-50`, a ground, because a flush cell has no rim to move.
+    That is the whole idea and it is reproduced here rather than approximated.
+
+    THIS IS SUBTRACTION, WHICH IS WHY IT IS ALLOWED TO BE THIS BIG A CHANGE. Out go the
+    12px gap, the white ground, the --rim-1/--rim-3 rims, the radius and the hover lift.
+    In come three hairlines. The four doors stop being four floating rectangles sitting
+    NEAR the column and become the column's own content, flush to the rails on both
+    sides -- which is the difference Jayden is describing when he says the workspace felt
+    "intentionally on a grid that is connected".
+
+    THE INTERNAL CROSS IS THE GRID'S GAP, not four border declarations. `gap:var(--rule-w)`
+    over `background:var(--rule)` lets the container show through a 1px seam, so the 2x2's
+    vertical and horizontal dividers are ONE declaration and they re-form themselves for
+    free when the phone block drops to a single column. A border-per-cell version needs
+    :nth-child() arithmetic that has to be rewritten at every breakpoint, and it is how a
+    carpet of rules arrives.
+
+    THE BAND CLOSES ITSELF top and bottom, and those two lines land exactly on the rails --
+    same x values, so the block has four real corners. That is the workspace's
+    "the horizontal lines connect across the app", src/styles.css:365.
+
+    HOVER IS A GROUND NOW, AND THE FILL BAN IT REVERSES WAS WRITTEN ABOUT A DIFFERENT
+    OBJECT. "HOVER MOVES INK, RIM AND HEIGHT -- NEVER A FILL" was the answer for a raised
+    white card on paper, where a fill would have been a second material. A cell in a flush
+    grid has no rim to move and cannot lift without tearing the grid it belongs to, so the
+    rim and the translateY are gone and there is nothing left to carry the response --
+    and Jayden's complaint that started that whole rule was that the hover was "too
+    subtle". --ctl-ground-hover is the site's ONE interaction ground (--c75 #f1f1f4, the
+    same grey header.css uses for --nav-hover-bg, tokens.css:139), so this is the control
+    library's own hover, not a colour invented for this page. The ink and icon steps that
+    were measured into the old rule are kept exactly as they were.
+
+    PRESS IS A DEEPER GROUND, NOT A SCALE. --press-scale-lg pulled the card away from the
+    page, which is right for an object and wrong for a cell -- at 100ms it would tear a
+    1px seam open and shut. One step deeper on the same ramp is the same information.
+    ═══════════════════════════════════════════════════════════════════════════════════ */
+ .pCards{pointer-events:auto;width:100%;max-width:var(--col-max);margin:0 auto;
+  display:grid;grid-template-columns:repeat(2,1fr);grid-auto-rows:1fr;
+  gap:var(--rule-w);background:var(--rule);
+  border-block:var(--rule-w) solid var(--rule)}
  .pCard{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:var(--sp-6);
   min-height:var(--tap-min);padding:var(--sp-16) var(--sp-20) var(--sp-20);
-  border:0;border-radius:var(--r-md);background:var(--c0);box-shadow:var(--rim-1);
+  border:0;border-radius:0;background:var(--theme-page,var(--c50));box-shadow:none;
   font-family:var(--sans);color:var(--c950);text-align:left;text-decoration:none;cursor:pointer;
   /* one closed transition set, hover-OUT here and the shorter hover-IN on :hover -- the
      control system's rule, so these breathe at the same rate as the nav */
-  transition-property:color,background-color,box-shadow,transform;
+  transition-property:color,background-color;
   transition-timing-function:var(--ease-out);transition-duration:var(--hover-out-dur)}
  /* HOVER MOVES INK, RIM AND HEIGHT -- NEVER A FILL. The fill ban stands; what changed is
     that the answer now actually carries. Jayden: "the different modes need more of a hover
@@ -650,16 +813,19 @@
     ONE DURATION, 240ms, IN AND OUT. The hover-in used to snap at 160ms while the exit took
     240ms; Jayden has called an animation abrupt twice, so the asymmetry is gone and both
     directions take the slower rung on --ease-out. */
- .pCard:hover{box-shadow:var(--rim-3);transform:translateY(-2px)}
+ .pCard:hover{background:var(--ctl-ground-hover)}
  .pCard:hover .pCardD{color:var(--c950)}
  .pCard:hover .gIco{color:var(--c950);stroke-width:var(--ico-stroke-strong)}
- /* --press-scale-lg, not --press-scale: the ladder's rule is that boxes over ~200px take the
-    gentler rung. Press is scale, never translateY. */
- /* declared after :hover so a press beats the lift: the card drops back to the page and
-    scales, which is the whole point of a press. --press-scale-lg because the ladder's rule
-    is that boxes over ~200px take the gentler rung. */
- .pCard:active{transform:scale(var(--press-scale-lg));transition-duration:var(--press-dur)}
- .pCard:focus-visible{outline:var(--focus-w) solid var(--c950);outline-offset:var(--sp-2)}
+ /* declared after :hover so a press beats the hover ground: one step deeper on the same
+    ramp (--c100 #e6e7e9 against --c75 #f1f1f4), on the press rung. */
+ .pCard:active{background:var(--c100);transition-duration:var(--press-dur)}
+ /* THE RING TURNS INWARD. Every focus ring on this site is 2px solid --c950 at a POSITIVE
+    offset, and that is right for an object with air around it -- here it would be drawn
+    on top of the neighbouring cell and across the seam they share. Negative offset keeps
+    the ring inside the cell it belongs to, which is what the workspace does for the same
+    reason (`focus-visible:-outline-offset-2`, timeline.tsx:209). Colour and width are
+    unchanged, so the ring is still the site's ring. */
+ .pCard:focus-visible{outline:var(--focus-w) solid var(--c950);outline-offset:calc(var(--sp-2) * -1)}
  .pCard:focus:not(:focus-visible){outline:none}
  .pCard[aria-disabled="true"]{opacity:.38;cursor:default;pointer-events:none}
  .pCard .gIco{width:var(--ico-md);height:var(--ico-md);flex:0 0 var(--ico-md);color:var(--c700);stroke-width:var(--ico-stroke)}
@@ -912,12 +1078,20 @@
     --blur-1/2 are already 0 below 760px, and nothing here asks for a backdrop-filter at
     any width. ---- */
  @media(max-width:760px){
-  /* env(safe-area-inset-bottom): a phone's home indicator / browser chrome sits over the
-     bottom of a position:fixed layer, and the cards are the bottom of this one. The fallback
-     keeps it exactly --sp-16 everywhere that has no inset. */
-  .pHub{padding-top:var(--sp-16);padding-bottom:calc(var(--sp-16) + env(safe-area-inset-bottom,0px))}
+  /* THE BOTTOM PADDING IS GONE, and its own comment is why: it read "a phone's home
+     indicator / browser chrome sits over the bottom of a position:fixed layer, and the
+     cards are the bottom of this one". .pHub is not a fixed layer any more and the cards
+     are not the bottom of the page -- .siteFoot is, and it already ends with
+     padding-bottom:var(--sp-32-64) plus footer.css's own safe-area handling. What the
+     16px was still doing was pushing .pCol's bottom edge 16px below the band's bottom
+     rule, so the margin rails overshot the corner they are supposed to terminate on. The
+     gap from the last card to the footer's rule goes 96 -> 80 on a phone, which is
+     --sp-80-152's own phone rung rather than that rung plus a stray step. */
+  .pHub{padding-top:var(--sp-16);padding-bottom:0}
   .pTeam{padding-bottom:calc(var(--sp-24-32) + env(safe-area-inset-bottom,0px))}
-  .pCards{grid-template-columns:1fr 1fr;gap:var(--sp-8)}
+  /* grid-template-columns only: the gap is the seam now and it is the same 1px at every
+     width, so there is nothing left for this rule to re-declare. */
+  .pCards{grid-template-columns:1fr 1fr}
   /* THE CARD KEEPS ITS OWN PADDING RUNG, one step down from the desktop's 16/20/20
      rather than two. The old 10/12 is what a 167px card needed and it is what made a
      360px card read as a list row -- and 10 is the only value in this block that was
@@ -1002,10 +1176,10 @@
     of discovering it in a screenshot. ---- */
  #tHeadEdge feFlood{flood-color:var(--head-edge)}
 </style>
-<link rel="stylesheet" href="header.css?v=0d4908abb4">
-<link rel="stylesheet" href="footer.css?v=0d4908abb4">
-<link rel="stylesheet" href="controls.css?v=0d4908abb4">
-<link rel="stylesheet" href="site-theme.css?v=0d4908abb4">
+<link rel="stylesheet" href="header.css?v=f1089b23fe">
+<link rel="stylesheet" href="footer.css?v=f1089b23fe">
+<link rel="stylesheet" href="controls.css?v=f1089b23fe">
+<link rel="stylesheet" href="site-theme.css?v=f1089b23fe">
 <script src="header.js" defer></script>
 <script src="footer-band.js" defer></script>
 </head><body class="hmFull playBooting" data-nav="games" data-theme-page="play">
@@ -1057,6 +1231,12 @@
      hero-engine mood performances. The copy is Play-specific, but there is no parallel
      portrait implementation. During a game this same #playArena becomes the measured
      physics field; CSS hides only the page furniture and preserves the engine node. -->
+<!-- THE COLUMN, MADE VISIBLE. Everything between the header's floor and the footer's
+     rule lives inside .pCol, which draws the two vertical margin rails as its own
+     ::before/::after. It is a wrapper and nothing else -- no z-index, no transform, no
+     stacking context -- so .wrap (62), .pHub (40) and every absolutely-positioned engine
+     node keep the containing block and the paint order they already had. -->
+<div class="pCol">
 <div class="playViewport">
  <div class="wrap">
   <main class="hero" id="playArena" tabindex="-1">
@@ -1146,6 +1326,7 @@
   </a>
  </nav>
 </section>
+</div><!-- /.pCol -- the rails end here, on the footer's own rule -->
  <footer class="siteFoot" id="contact" role="contentinfo">
   <div class="footTop">
    <div class="footId">

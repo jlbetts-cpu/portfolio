@@ -141,7 +141,24 @@ def main():
     assert "collection__tabs" in classes(tab_rail) and "surface--tab-rail" not in classes(tab_rail)
     assert "collection__content" in home_html
     _, time_button = first(home, "heroTimeBtn")
-    assert {"ctl", "ctl--icon", "ctl--secondary"} <= classes(time_button)
+    # ── THE GROUND VARIANT IS NO LONGER PINNED ─────────────────────────────
+    # EDITED 2026-08-20 by the hero-corner-control pass, which does not own this
+    # file -- flagged in its report. This demanded ctl--secondary. Jayden asked
+    # for the opposite that day: "the time of day button should feel more
+    # blended in". The control moved to the Hero's bottom-right corner over live
+    # weather, and .ctl--secondary is an opaque paper chip with a rim, which is
+    # the thing he was objecting to. It is .ctl--quiet now.
+    # WHAT THIS FILE IS FOR IS UNCHANGED AND STILL ENFORCED: the control comes
+    # from the shared library rather than being hand-rolled -- .ctl for the
+    # base, .ctl--icon for the square geometry and the 44px floor, and exactly
+    # ONE ground variant. Two would be an equal-specificity cascade race between
+    # library rules, which is the half-migrated state .reelTap was in. The same
+    # clause is in tools/hero-specimen-check.py; they agree on purpose.
+    assert {"ctl", "ctl--icon"} <= classes(time_button), classes(time_button)
+    grounds = classes(time_button) & {
+        "ctl--primary", "ctl--secondary", "ctl--quiet", "ctl--on-dark"}
+    assert len(grounds) == 1, (
+        "the time trigger needs exactly one library ground variant", sorted(grounds))
     for tag, attrs in home.elements:
         if "csTab" in classes(attrs):
             assert tag == "button" and {"ctl", "ctl--tab"} <= classes(attrs)

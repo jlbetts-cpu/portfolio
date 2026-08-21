@@ -242,8 +242,23 @@ time_control = re.search(r'<button [^>]*id="heroTimeBtn"[^>]*>.*?</button>', htm
 assert time_control, "the time trigger must be a <button> carrying id=heroTimeBtn"
 _trigger_classes = set(
     re.search(r'class="([^"]*)"', time_control.group(0)).group(1).split())
-assert {"heroTimeBtn", "ctl", "ctl--secondary", "ctl--icon"} <= _trigger_classes, \
+# THE VARIANT IS NO LONGER PINNED, AND THE REASON IS A DECISION, NOT A RELAX.
+# This demanded ctl--secondary. Jayden, 2026-08-20: "the time of day button
+# should feel more blended in" -- the control moved to the Hero's bottom-right
+# corner over live weather, and .ctl--secondary is an opaque paper chip with a
+# rim, which is the thing he was objecting to. It is .ctl--quiet now.
+# WHAT THIS LINE IS ACTUALLY FOR is unchanged and is still enforced: the trigger
+# must be BUILT FROM THE LIBRARY rather than hand-rolled, which means .ctl for
+# the base, .ctl--icon for the square geometry and the 44px floor, and exactly
+# ONE of the library's ground variants -- two would be a silent cascade race
+# between equal-specificity rules, which is how .reelTap ended up half-migrated.
+# So the assertion is "one of", and it still fails on a button with a private
+# class, on a button with no variant at all, and on a button carrying two.
+assert {"heroTimeBtn", "ctl", "ctl--icon"} <= _trigger_classes, \
     "the time trigger must be built from the control library: %s" % sorted(_trigger_classes)
+_grounds = _trigger_classes & {"ctl--primary", "ctl--secondary", "ctl--quiet", "ctl--on-dark"}
+assert len(_grounds) == 1, \
+    "the time trigger needs exactly one library ground variant, found %s" % sorted(_grounds)
 assert 'aria-label="Time of day"' in time_control.group(0)
 assert 'aria-haspopup="menu"' in time_control.group(0)
 assert 'aria-expanded="false"' in time_control.group(0)
@@ -549,17 +564,42 @@ assert "body[data-time-state]" not in time_css
 
 menu_rule = re.search(r'\.heroTimeMenu\s*\{.*?\}', time_css, re.S)
 assert menu_rule and "right:0" in menu_rule.group(0)
-assert "width:min(var(--menu-w),calc(50vw + var(--sp-6)))" in menu_rule.group(0)
+# THE 50vw CAP IS GONE WITH THE REASON FOR IT. It was justified in the source as
+# "Time is last on every centered flex line. Even alone its right edge is
+# 50vw + 22px" -- an arithmetic that measured from the middle of the Hero
+# because the trigger used to live in the centred CTA stack. The trigger is on
+# the page's right column now with the whole measure to its left, so the cap
+# bound nothing on a desktop and truncated the menu to 201px at 390. The
+# viewport gutter below is the bound that is still real and is still asserted.
+assert "width:var(--menu-w)" in menu_rule.group(0), \
+    "the time menu takes the library's menu width"
 assert "max-width:calc(100vw - (var(--sp-16) * 2))" in menu_rule.group(0)
-assert re.search(r'\.heroCtas\s*\{[^}]*justify-content:center;[^}]*flex-wrap:wrap', html, re.S)
 # The CSS half of the flip that positionMenu() replaced. `.heroTime.opensAbove`
 # is gone from the stylesheet on purpose -- a menu that flips above its trigger
 # covers the control you just pressed -- so this required a rule that no longer
 # exists. The menu is anchored BELOW the trigger unconditionally now and fits by
 # capping its own height, so that anchor is what is asserted, plus the absence of
 # any bottom-anchored fork sneaking back in.
-assert "top:calc(100% + var(--sp-8))" in menu_rule.group(0) and "left:auto" in menu_rule.group(0), \
-    "the time menu hangs below its trigger, right-aligned"
+# ── AND ON 2026-08-20 THE ANCHOR FLIPPED, BECAUSE THE TRIGGER MOVED ─────────
+# "a menu that flips above its trigger covers the control you just pressed" was
+# right while the trigger sat in the middle of the Hero with 400px of sky below
+# it. Jayden then asked for the control in the Hero's bottom-right corner, where
+# its lower edge is 24px off the Hero's floor -- so `top:calc(100% + 8px)` put
+# 258px of menu over the tab row and the first cover. It opens UPWARD now, and
+# unconditionally: there is no fork, no positionMenu() flip and no class, which
+# is the property the paragraph above actually cared about.
+# BOTH OFFSETS MAY NOT RESOLVE AT ONCE, and that is asserted rather than
+# implied. A .ctl-menu is height:auto inside a 44px trigger, so `top` and
+# `bottom` both resolving solves the height as 44 - 52 - 52, clamps it to zero
+# and renders the menu's padding twice over -- measured live at 634..650 with
+# all eight items inside it. `top:auto` in the same declaration is the fix, and
+# a later rule cannot supply it: it has to be here, where the anchor is owned.
+assert "bottom:calc(100% + var(--sp-8))" in menu_rule.group(0) and "left:auto" in menu_rule.group(0), \
+    "the time menu hangs above its trigger, right-aligned"
+assert "top:auto" in menu_rule.group(0), \
+    "top and bottom both resolving collapses a height:auto menu to its own padding"
+assert "top:calc(100%" not in menu_rule.group(0), \
+    "a resolved top would over-constrain the menu box"
 assert "opensAbove" not in time_css, "the flip was replaced by positionMenu(); it must not come back"
 
 off_state = re.search(r'\.hero\[data-time-state="off"\]\s*\{.*?\}', time_css, re.S)
@@ -885,7 +925,17 @@ assert not re.search(r'\.jbNav', time_css), \
     "the header is header.css's; hero-time.css must not carry nav rules"
 assert not re.search(r'--nav-(?:mat|rim|hover-bg|active-bg)\s*:', time_css), \
     "hero-time.css must not set header material tokens"
-assert "backdrop-filter" not in time_css, \
+# ── THE DECLARATION, NOT THE WORD ──────────────────────────────────────────
+# This read `"backdrop-filter" not in time_css` and fired on 2026-08-20 against
+# a COMMENT: the essay for the copy's difference blend names backdrop-filter as
+# one of the candidates it rejected, and explains that a backdrop filter is
+# clipped to the element's box rather than to its glyphs. A gate that cannot
+# tell a rejected option from a shipped one turns writing down why something
+# lost into a build failure, which is the fastest way to stop anyone writing it
+# down. Comments are stripped and the assertion is on the declaration -- which
+# is what the rule was always about, and which still fails on a real one.
+_time_css_code = re.sub(r"/\*.*?\*/", "", time_css, flags=re.S)
+assert not re.search(r"backdrop-filter\s*:", _time_css_code), \
     "the Hero's chrome separates with hairlines and translucency, not with blur"
 
 # ── WHAT IS APPROVED IS THE LIGHT, NOT THE GEOMETRY ─────────────────────────
@@ -1019,26 +1069,9 @@ assert 'id="cursorGlow"' not in html
 assert ".cursorGlow" not in html
 hero_aura_rule = re.search(r'\.heroAura\s*\{.*?\}', html, re.S)
 assert hero_aura_rule and "var(--accent)" not in hero_aura_rule.group(0)
-# The copy's lift was clamp(-80px,-8svh,-48px) and is clamp(-124px,-13svh,-92px):
-# the Hero absorbed the bar's 88px of clearance when it went full-bleed, so
-# dead-centre sits ~44px below the authored composition and opens a hole between
-# the copy and the head. The numbers are Jayden's composition and he retunes them
-# by eye -- pinning them is what made this line rot. The SHAPE cannot be retuned
-# and is what actually breaks: a viewport-relative lift, clamped at both ends, in
-# the negative direction, with the bounds the right way round. A sign flip or a
-# swapped clamp is a broken hero; -124 instead of -80 is a design decision.
-# index.html carries several .heroCopy rules across its responsive forks -- the
-# first is `display:contents` from the centred-hero block -- so the one that
-# owns the lift has to be picked by content, not by position.
-copy_rule = next((m.group(0) for m in re.finditer(r'\.heroCopy\s*\{[^}]*\}', html, re.S)
-                  if "translateY(clamp(" in m.group(0)), None)
-assert copy_rule, ".heroCopy must own the copy's lift"
-lift = re.search(r'transform:translateY\(clamp\((-?[\d.]+)px,(-?[\d.]+)svh,(-?[\d.]+)px\)\)',
-                 copy_rule)
-assert lift, "the copy's lift must stay a clamped svh expression: %s" % copy_rule[:160]
-lift_min, lift_pref, lift_max = (float(v) for v in lift.groups())
-assert lift_min < 0 and lift_pref < 0 and lift_max < 0, "the copy lifts, it does not drop"
-assert lift_min < lift_max, "clamp bounds are the wrong way round: the lift cannot resolve"
+# The copy's centring moved into hero_2026_08_20_contract() below, because
+# the self-test only drives that function and an assertion the self-test
+# cannot reach is one nobody has watched fail.
 # .heroTimeSupport WAS display:none!important -- for the one release when the
 # character hero lived on Play and Home showed only a sky. The head came back and
 # the class is now the wrapper around #heroHeadTransform, the stage and #face, so
@@ -1162,4 +1195,303 @@ assert 'activeHover="smile"' not in case_enter.group(0)
 case_leave = re.search(r"function leave\(f\)\{.*?\}\n", html, re.S)
 assert case_leave and "caughtMovie" not in case_leave.group(0)
 
+
+# ══ THE 2026-08-20 HERO: A CORNER CONTROL, A BLENDED COPY, NO DRAG BOX ═══════
+# These four clauses are a FUNCTION rather than four more module-level asserts,
+# and the reason is the rule in CLAUDE.md section 7: every contract should have
+# a --self-test that re-injects the bug, and an injection that cannot fail is
+# worse than none. This file is a straight-line script with ~200 asserts against
+# two files it reads once, so there is nothing to inject INTO. Taking the two
+# sources as arguments makes the clauses runnable against a mutated copy, which
+# is what the self-test at the bottom does.
+def hero_2026_08_20_contract(html, time_css):
+    """The copy blends, the frame is gone, and the control is in the corner."""
+    code = re.sub(r"/\*.*?\*/", "", time_css, flags=re.S)
+
+    # ── 1. THE COPY IS A HOLE IN THE SKY ───────────────────────────────────
+    # Jayden: "if the head is passing through it that part of the text turns
+    # white and inverts the part of the head hovering over it". The head passes
+    # BEHIND the words, so without this the h1 paints #090b24 over black hair at
+    # 1.06:1 -- the type does not look wrong there, it disappears.
+    # IT IS ASSERTED ON .heroCopy AND NOT ON THE h1 ON PURPOSE. .heroCopy
+    # carries a transform and a z-index, so it creates a stacking context, and a
+    # stacking context is an isolation boundary for blending: mix-blend-mode on
+    # the h1 INSIDE it would blend against an empty transparent group and render
+    # pure white. "Move it to the h1 where the colour is" is the tidy-looking
+    # change that silently breaks this, so the selector is the assertion.
+    assert re.search(r"\.heroCopy\{[^}]*mix-blend-mode:difference", code), \
+        "the Hero copy must blend with the sky and the head, on .heroCopy itself"
+    assert not re.search(r"\.heroCopy h1\{[^}]*mix-blend-mode", code), \
+        "a blend on the h1 is isolated by .heroCopy's own stacking context"
+    # The operand. Difference against a paper source is 255 minus the backdrop;
+    # any other colour makes it 255 minus the backdrop MINUS that colour, which
+    # is a cast rather than an inversion.
+    assert re.search(r"\.heroCopy h1\{color:#fff\}", code), \
+        "the blend's operand is paper; --c50 would put an 11-level cast on night"
+    # ── 2. AND IT DEGRADES ─────────────────────────────────────────────────
+    # Forced colours repaints the ink as CanvasText and removes the sky, so a
+    # difference blend would compute 255 minus the system's own Canvas and hand
+    # the exact photographic negative to the users least able to absorb it.
+    forced = re.search(r"@media\(forced-colors:active\)\{(.*?)\n\}", time_css, re.S)
+    assert forced, "hero-time.css must keep a forced-colors fork"
+    assert "mix-blend-mode:normal" in forced.group(1), \
+        "the copy's blend must be switched off under forced colours"
+    # The pinned-ink study still has to show a literal colour or the attribute
+    # is a lie -- both forks opt out.
+    for fork in ("ink", "white"):
+        assert re.search(r':root\[data-hero-ink="%s"\] \.heroCopy' % fork, code), \
+            "data-hero-ink=%s must turn the blend off" % fork
+
+    # ── THE LIFT IS GONE, AND THIS ASSERTION IS ITS REPLACEMENT ─────────────────
+    # WHAT STOOD HERE required .heroCopy to own a transform:translateY(clamp(Npx,
+    # Nsvh,Npx)) with all three bounds negative and the right way round. It was a
+    # good assertion about a composition that no longer exists, and it is recorded
+    # rather than deleted because the reasoning still explains the geometry: the
+    # Hero absorbed the floating bar's 88px of clearance when it went full-bleed,
+    # so dead-centre sat ~44px below the authored composition and opened a hole
+    # between the copy and the head.
+    # IT IS NOT BEING RELAXED TO MAKE SOMETHING PASS. Jayden, 2026-08-20: "the h1
+    # text I feel like should be in the middle of the hero." A rule that requires a
+    # NEGATIVE lift cannot coexist with a request for the headline to be centred,
+    # so this is the CLAUDE.md section 7 case -- a gate protecting a decision that
+    # has changed rather than a behaviour -- and the fix is to assert the new
+    # invariant, not to drop the line.
+    # WHAT ACTUALLY BREAKS NOW. The Hero is a grid whose single row is the full
+    # content box, so .heroCopy is STRETCHED to it and a flex column's default
+    # justify-content:flex-start pins the copy to the top of a 560px box. That is
+    # the failure this guards: losing the centring does not nudge the headline, it
+    # slams it against the Hero's ceiling. So the assertion is that the rule which
+    # owns .heroCopy's flex column also centres it, and that nothing has quietly
+    # reintroduced a transform on it -- a transform would be a second opinion about
+    # where the middle is.
+    copy_rule = next((m.group(0) for m in re.finditer(r'\.heroCopy\s*\{[^}]*\}', html, re.S)
+                      if "flex-direction:column" in m.group(0)), None)
+    assert copy_rule, ".heroCopy must own the copy's flex column"
+    assert "justify-content:center" in copy_rule, \
+        "the copy is centred in the Hero's row, not pinned to its top: %s" % copy_rule[:160]
+    assert "transform:" not in copy_rule, \
+        "a transform on .heroCopy is a second opinion about the middle: %s" % copy_rule[:160]
+
+    # ── 3. THE DRAG BOX IS BACK, SIMPLE, AND EVERY WORD OF THAT IS ASSERTED ─
+    # WHAT THIS USED TO SAY, and it was right for one day: "the drag box on the
+    # head I think we should just get rid of it", so the three ::before rules
+    # had to paint NOTHING. Jayden reversed it the same week -- "remake the
+    # resizing and rotate box around the head make it simple and easy to use
+    # and use our tokens and design system" -- so an assertion demanding
+    # `background:transparent;box-shadow:none` is now demanding the absence of
+    # a control he asked for. This is the CLAUDE.md section 7 case and the line
+    # is rewritten rather than relaxed.
+    # THE ONE THING THAT DID NOT CHANGE is why the paint was emptied rather
+    # than hidden: display:none or visibility:hidden on a handle takes its 44px
+    # target and its focus with it, and hero-time.css:1494 is the headstone for
+    # the last time that happened -- Shift+Arrow stopped resizing mid-gesture
+    # because the element the browser was focusing had vanished.
+    frame = re.search(r"#heroHeadSelection \.heroHeadFrame::before\{([^}]*)\}", code)
+    assert frame, "the frame rectangle needs a rule of its own"
+    assert "box-shadow:none" in frame.group(1), \
+        "the artboard rectangle is the object he named; the dots are the control"
+    dots = re.search(
+        r"#heroHeadSelection \.heroHeadHandle::before,\s*"
+        r"#heroHeadSelection \.heroHeadRotate::before\{([^}]*)\}", code)
+    assert dots, "the five dots are painted in one place"
+    # HAIRLINE AND TRANSLUCENCY, NEVER ELEVATION -- the site's one absolute.
+    # An inset box-shadow is a border drawn where a border would change the
+    # box; a shadow without `inset` is elevation and the heads own that.
+    assert "inset" in dots.group(1) and "var(--hair-w)" in dots.group(1), \
+        "the dot separates with a hairline: %s" % dots.group(1)
+    assert not re.search(r"box-shadow:(?![^;]*inset)", dots.group(1)), \
+        "chrome casts no shadow on this site: %s" % dots.group(1)
+    # A FIXED GREY CANNOT SURVIVE SIX SKIES running #f8fafd to #060a13. The ink
+    # and the fill both have to come from the hour, and --time-* is the pair
+    # that already flips with it. --selection-ink is #64a5dd and blue is dead.
+    assert "var(--time-base)" in dots.group(1), "the dot is a hole in the sky, not a chip on it"
+    assert "var(--sel-ink)" in dots.group(1) or "var(--time-ink)" in dots.group(1), \
+        "the dot's ink is the hour's: %s" % dots.group(1)
+    assert "#64a5dd" not in code and "var(--selection-ink)" not in dots.group(1), \
+        "blue is dead on this site"
+    # IT IS ON, ALWAYS. Jayden: "I want the resize box visible at all times on
+    # the head ... make sure the resize box components are always there
+    # sometimes they disapear for me." So the dots are opaque unconditionally,
+    # and NOTHING may reduce them except [data-off] -- which is the case where
+    # a corner has left the stage and there is nowhere honest to draw a dot.
+    assert re.search(r"opacity:1", dots.group(1)), \
+        "the dots are on at all times: %s" % dots.group(1)
+    for m in re.finditer(r"([^{}]*heroHeadHandle::before[^{]*)\{([^}]*)\}", code):
+        sel, body = m.group(1), m.group(2)
+        dim = re.search(r"opacity:\s*([\d.]+)", body)
+        if dim and float(dim.group(1)) < 1:
+            assert "[data-off]" in sel, \
+                "only a handle that has left the stage may stop drawing: %s" % sel.strip()[:120]
+    # A rest state hung on data-selection is the bug this pass hit and it reads
+    # correctly in a diff: hero-head-transform.js writes data-selection
+    # "active" in the RESTING frame, because `active` there means the portrait
+    # is SELECTED, which it permanently is. Measured live from the CSSOM the
+    # "resolved" rule matched every frame and the quiet state never existed.
+    assert 'data-selection="active"' not in code, \
+        "data-selection is 'active' at rest; it cannot gate the frame's paint"
+    for banned in (r"\.heroHeadHandle\{[^}]*display:none", r"\.heroHeadRotate\{[^}]*display:none",
+                   r"\.heroHeadHandle\{[^}]*visibility:hidden",
+                   r"\.heroHeadSelection\{[^}]*display:none",
+                   r"#heroHeadSelection\{[^}]*display:none"):
+        assert not re.search(banned, code), \
+            "the box stopped being drawn, not being usable: %s" % banned
+    # The markup keeps all five, or there is nothing to operate by keyboard.
+    assert len(re.findall(r'class="heroHeadHandle"', html)) == 4, \
+        "four corner handles, however they are painted"
+    assert 'class="heroHeadRotate"' in html
+    # The cursor still carries the affordance before you are near enough for
+    # the dots to resolve, so idle must still declare it.
+    assert re.search(r'#heroHeadSelection\[data-selection="idle"\]\{[^}]*cursor:pointer', code), \
+        "the cursor is the affordance at a distance"
+
+    # ── 4. THE CONTROL IS IN THE CORNER, ON THE PAGE'S COLUMN ──────────────
+    # Jayden: "put the button for day change in the bottom right corner of the
+    # hero using the grid". The runtime column check is in
+    # home-minimal-hero-contract.py, where it can be measured against the live
+    # tab row. What is structural, and what this file owns, is that the control
+    # is NOT in the centred copy any more -- the copy's height is what the
+    # Hero's own height was solved against, and what the head's travel field is
+    # floored on.
+    hero_section = html[html.index('<section class="hero surface surface--hero"'):]
+    hero_section = hero_section[:hero_section.index("</section>")]
+    copy = hero_section[hero_section.index('<div class="heroCopy">'):]
+    copy = copy[:copy.index("\n  </div>")]
+    assert 'class="heroCtas"' not in copy, \
+        "the time control left the centred copy for the corner rail"
+    assert 'id="heroTime"' not in copy, \
+        "the time control left the centred copy for the corner rail"
+    assert 'class="heroCtas"' in hero_section, "the rail is still in the Hero"
+    # The rail is positioned off the Hero's GUTTER and not its border edge. An
+    # absolutely positioned box is laid out against the padding box -- the one
+    # that INCLUDES the padding -- so `left:0` is 16px off the column at 390 and
+    # exactly right at 1440, which is a bug that passes at one width.
+    rail = re.search(r"\.heroCtas\{position:absolute;([^}]*)\}", html)
+    assert rail, "the rail must be the thing that is positioned"
+    assert "left:var(--heroPadL)" in rail.group(1) and "right:var(--heroPadR)" in rail.group(1), \
+        "the rail spans the Hero's own gutter, not its border edge: %s" % rail.group(1)
+    assert "max-width:1200px" in rail.group(1) and "margin-inline:auto" in rail.group(1), \
+        "and is capped and centred on the page measure"
+    assert "pointer-events:none" in rail.group(1), \
+        "a 1200px solid rail across the sky is a dead strip the head travels through"
+    # ── 5. THE HEAD'S FLOOR OFFSET IS A CONSTANT ───────────────────────────
+    # --heroReveal absorbs ALL the slack now, so it is unbounded in the window
+    # height while the Hero is not. A `--heroReveal * .5` term in the floor
+    # offset therefore falls 1px per 2px of extra monitor and goes POSITIVE at a
+    # 1080px window -- a head standing 44px below the floor it is drawn on,
+    # clipped by .heroCharacterPeek's overflow. Measured before it was fixed.
+    depth = re.search(r"--hero-peek-depth:([^;}]*)", code)
+    assert depth, "the head still needs a floor offset"
+    assert "--heroReveal" not in code[code.index("--hero-peek-depth"):
+                                      code.index("--hero-peek-depth") + 400] \
+        or "--heroReveal" not in depth.group(1), \
+        "a reveal term in the floor offset puts the head under the floor on a tall window"
+    for m in re.finditer(r"--hero-peek-depth:([^;}]*)", code):
+        assert "--heroReveal" not in m.group(1), \
+            "the floor offset must be a constant: %s" % m.group(1)
+        assert m.group(1).strip().startswith("-"), \
+            "the head is suspended, not standing: %s" % m.group(1)
+
+
+hero_2026_08_20_contract(html, time_css)
+
 print("hero specimen structure: OK")
+
+
+# ── THE SELF-TEST, AND IT ONLY COVERS WHAT IT CAN HONESTLY COVER ────────────
+# Each entry mutates one of the two sources the way the bug it guards actually
+# arrives, and the clause has to raise. Anything that does not raise is printed
+# as NOT DETECTED and exits non-zero -- a gate that cannot fail is the failure.
+_INJECT = {
+    # the blend moved to the h1, where .heroCopy's stacking context isolates it
+    "blend-on-the-h1": ("css",
+        ".heroCopy{mix-blend-mode:difference}",
+        ".heroCopy h1{mix-blend-mode:difference}"),
+    # the blend deleted outright: the head goes back to 1.06:1 under the type
+    "blend-deleted": ("css",
+        ".heroCopy{mix-blend-mode:difference}", ".heroCopy{isolation:auto}"),
+    # the operand drifts to the ink token and puts a cast on night
+    "operand-not-paper": ("css",
+        ".heroCopy h1{color:#fff}", ".heroCopy h1{color:var(--c50)}"),
+    # the degradation is dropped and forced colours gets a negative
+    "forced-colors-blends": ("css",
+        " .heroCopy{mix-blend-mode:normal}\n .hero,.heroCopy h1",
+        " .hero,.heroCopy h1"),
+    # the artboard rectangle comes back -- the object he named and asked to lose
+    "frame-rectangle-repainted": ("css",
+        "#heroHeadSelection .heroHeadFrame::before{background:transparent;box-shadow:none}",
+        "#heroHeadSelection .heroHeadFrame::before{background:transparent;"
+        "box-shadow:inset 0 0 0 1px var(--time-ink)}"),
+    # the dot takes a drop shadow: elevation on chrome, the site's one absolute
+    "dot-casts-a-shadow": ("css",
+        " box-shadow:inset 0 0 0 var(--hair-w) var(--sel-ink);",
+        " box-shadow:0 2px 8px rgba(9,11,36,.2);"),
+    # the ink drifts back to the token's blue, which dies on the night sky
+    "dot-ink-goes-blue": ("css",
+        "#heroHeadSelection{--sel-ink:var(--time-ink)}",
+        "#heroHeadSelection{--sel-ink:#64a5dd}"),
+    # the dots go quiet at rest, which is what he means by "they disappear"
+    "dots-fade-at-rest": ("css",
+        " box-shadow:inset 0 0 0 var(--hair-w) var(--sel-ink);\n opacity:1\n}",
+        " box-shadow:inset 0 0 0 var(--hair-w) var(--sel-ink);\n opacity:.34\n}"),
+    # ...or are gated on data-selection, which is "active" in the resting frame
+    "paint-gated-on-a-permanent-state": ("css",
+        "#heroHeadSelection{--sel-ink:var(--time-ink)}",
+        '#heroHeadSelection{--sel-ink:var(--time-ink)}\n'
+        '#heroHeadSelection[data-selection="active"] .heroHeadHandle::before{opacity:.2}'),
+    # the headline slams to the top of the Hero: losing the centring does not
+    # nudge it, because .heroCopy is stretched to a full-height grid row
+    "copy-pinned-to-the-top": ("html",
+        ".heroCopy{display:flex;flex-direction:column;align-items:center;justify-content:center;",
+        ".heroCopy{display:flex;flex-direction:column;align-items:center;"),
+    # ...or a transform comes back and gives the middle a second opinion
+    "copy-lifted-again": ("html",
+        "align-items:center;justify-content:center;position:relative;z-index:3}",
+        "align-items:center;justify-content:center;transform:translateY(-92px);"
+        "position:relative;z-index:3}"),
+    # the tidy-looking way to hide a handle, which takes its focus with it
+    "handles-hidden": ("css",
+        "#heroHeadSelection[data-selection=\"idle\"]{cursor:pointer}",
+        ".heroHeadHandle{display:none}"),
+    # the rail goes back to the border edge -- right at 1440, 16px out at 390
+    "rail-off-grid": ("html",
+        ".heroCtas{position:absolute;left:var(--heroPadL);right:var(--heroPadR)",
+        ".heroCtas{position:absolute;left:0;right:0"),
+    # the rail becomes a 1200px dead strip across the travelling head
+    "rail-eats-the-sky": ("html",
+        "z-index:4;pointer-events:none}", "z-index:4}"),
+    # the control is put back in the centred copy stack, which is what shortens
+    # the copy back to 164px and re-floors the head's travel field on it
+    "control-back-in-copy": ("html",
+        '<p class="heroCred">Open to full-time roles.</p>',
+        '<p class="heroCred">Open to full-time roles.</p>'
+        '<div class="heroCtas"><div class="heroTime" id="heroTime"></div></div>'),
+    # the half-reveal term comes back and the head sinks on a tall window
+    "reveal-term-in-depth": ("css",
+        "--hero-peek-depth:-46px",
+        "--hero-peek-depth:calc(-155px + var(--heroReveal,0px) * .5)"),
+}
+
+
+def _self_test():
+    ok = True
+    for name, (which, find, replace) in _INJECT.items():
+        src_html, src_css = html, time_css
+        if which == "css":
+            assert find in time_css, (name, "injection stale: %r" % find)
+            src_css = time_css.replace(find, replace, 1)
+        else:
+            assert find in html, (name, "injection stale: %r" % find)
+            src_html = html.replace(find, replace, 1)
+        try:
+            hero_2026_08_20_contract(src_html, src_css)
+        except (AssertionError, ValueError) as failure:
+            print("  %s: correctly detected -> %s" % (name, str(failure)[:80]))
+        else:
+            print("  %s: NOT DETECTED" % name); ok = False
+    if not ok:
+        raise SystemExit("self-test: an injected bug went undetected")
+    print("hero specimen self-test: OK")
+
+
+if "--self-test" in __import__("sys").argv:
+    _self_test()

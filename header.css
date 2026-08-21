@@ -863,9 +863,9 @@
 @media(min-width:641px){
   .jbNav [data-nav-item] .gIco{display:none}
 }
-@media(max-width:640px){
-  .jbNav [aria-current]:not(.jbHome) .gIco{display:none}
-}
+/* The lit item's glyph used to be hidden here because the rule above handed it
+   a word instead. That word is gone (see round 15), so hiding the glyph would
+   leave the current page as the one item with nothing in it at all. */
 
 /* A quiet disclosure cue inside the existing Contact box. Absolute placement
    keeps the control's width, padding, radius, and 44px target unchanged. */
@@ -1371,11 +1371,50 @@
   .jbNav a,.jbNav button{font-size:var(--fs-label);padding:0 var(--sp-8);
     min-width:var(--tap-min);justify-content:center}
   .jbNav .jbLbl{display:none}
-  /* (0,3,1) beats the (0,1,1) rule above -- the lit item keeps its word. */
-  .jbNav [aria-current]:not(.jbHome) .jbLbl{display:inline}
-  .jbNav [aria-current]:not(.jbHome){min-width:0;padding:0 var(--sp-10)}
+  /* ROUND 15, 2026-08-20. Jayden: "the mail icon works but I think the rest
+     should be just text instead of the icons or just icons." Mixed was the
+     complaint, and the mix was here: every item a glyph EXCEPT the current one,
+     which got its word back, so the row read as four icons and one label.
+     ALL ICONS, NOT ALL TEXT, AND THE NUMBER DECIDES IT. Measured at the nav's
+     own font (Geist 600 12px): Work 31, About 35, Play 25, Workspace 65, plus
+     20px of padding each, 8px gaps, the 44px mark and the 44px Contact = 356px
+     of nav. The bar has 358px at 390 -- two pixels of slack -- and 288px at
+     320, where it is 68px short. All-text does not fit the phone, so the
+     uniform treatment is the glyphs, which is what §6 above already says.
+     WHICH ITEM IS CURRENT IS STILL ANSWERED: the travelling indicator marks it,
+     aria-current is on it, and every item keeps its aria-label at every width.
+     The word was never the only signal, it was a second one. */
+  /* THIS SIZED THE LIT ITEM FOR A WORD, and the word is gone (round 15). It
+     dropped min-width to 0 and widened the padding, which was right when the
+     current page rendered "Work" and wrong the moment it renders a 16px glyph
+     like every other item: measured 36x38 with 1 of 5 sampled tap points
+     landing on it, against 44x38 and 5 of 5 for its neighbours. 44px minimum
+     targets are measured on this site, not declared, so the lit item goes back
+     to the same box as the rest -- there is nothing left about it that needs a
+     different one. */
+  .jbNav [aria-current]:not(.jbHome){min-width:var(--tap-min);padding:0 var(--sp-8)}
   .jbNav .jbHome{padding:0 var(--sp-6)}
   .jbBack{padding:0 var(--sp-8)}
+}
+
+/* ── 320 HAS NO SLACK LEFT, AND THE ARITHMETIC SAYS SO ──────────────────────
+   Five 44px targets plus the 44px mark is 264px; the bar is 288px inside the
+   page's own 16px gutters at 320. Four --sp-8 gaps want 32 and only 24 are
+   there, so Contact overlapped Workspace by 6px -- measured -- which is why a
+   tap near Workspace's right edge landed on Contact (3 of 5 sampled points).
+   IT WAS 2px FROM OVERLAPPING BEFORE TODAY, and this round spent them: the lit
+   item used to be 36px wide because it rendered a word, and giving it the same
+   44px box as every other glyph added the 8.
+   THE GAP GIVES WAY, NOT THE TARGET. 44px is measured on this site rather than
+   declared, so shrinking the items is not available; the gutters are shared
+   with the tab row, the first cover and the footer's rule, so moving those
+   breaks the column the structural rule aligns to. --sp-4 here restores 16px
+   and leaves 8 spare. The audit that raised these gaps to --sp-8 was measuring
+   390, where they stay -- this is scoped to the one width that cannot afford
+   them. */
+@media(max-width:360px){
+  .jbNav{gap:var(--sp-4)}
+  .jbGrp{gap:var(--sp-4)}
 }
 
 
