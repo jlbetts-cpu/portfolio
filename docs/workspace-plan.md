@@ -118,6 +118,36 @@ instinct the portfolio borrowed for play's margin rails.
 
 ---
 
+## 1.5 The standing constraint: legible at a glance
+
+Jayden, 2026-08-20: *"Make sure the interface stays minimal I need it to look and
+function with ease anyone should be able to understand what each page does."*
+
+**This outranks every feature in this document.** Anything below that cannot be
+built while satisfying it should be built smaller, or not built.
+
+The test to apply, per surface, before committing: **a person who has never seen
+this app opens this tab — can they say what it is for, without a tooltip, a
+tour, or a label explaining the label?** If the answer needs a sentence of
+explanation, the surface is wrong, not the explanation.
+
+What that means in practice here:
+- **One job per tab.** Today is for starting. Areas is for seeing what has gone
+  cold. Week is for the three anchors and the backlog. Timeline is for his
+  record. Memory is for professional reference. If a tab needs two sentences to
+  describe, it is two tabs or it is one tab with something in it that belongs
+  elsewhere.
+- **A surface with nothing to say stays silent.** Phase 3 established this and it
+  is now the rule: no empty sparklines (five pale bands read as a failed skeleton
+  loader), no column of zeros on a fresh install, no "0" in a corner on an empty
+  morning.
+- **Every number on screen must be one the app measured**, and must be readable
+  without knowing how it was computed.
+- **Premium is subtraction** — his most repeated instruction, and every phase so
+  far has deleted something after looking at screenshots rather than at numbers.
+- **No new vocabulary.** The words on screen should be his: areas, sessions,
+  anchors, backlog. Not "streaks", "scores", "adherence", "compliance".
+
 ## 2. The rhythm: cues, not clocks
 
 Store every recurring practice as a **cue → action pair with a size**, never a
