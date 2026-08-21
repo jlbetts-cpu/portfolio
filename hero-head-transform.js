@@ -286,6 +286,77 @@
    return {left:h.left,top:top,right:h.right,bottom:h.bottom,
     width:h.right-h.left,height:Math.max(0,h.bottom-top)};
   }
+  /* ── AND NEITHER IS THE CORNER THE TIME CONTROL OWNS ─────────────────────
+     The same rule as the bar above, one CORNER instead of one band, and it is
+     here for the same reason: #heroTimeBtn moved into the Hero's bottom-right
+     rail, index.html says outright that it "cannot be swallowed by a toy, at
+     any z-index", and that is correct product behaviour -- so the head can be
+     parked somewhere its own handles cannot be pressed, which is the visible-
+     and-dead handle this component has already shipped once.
+     MEASURED, at 390x844, before this existed: drag the head to the bottom
+     right at minimum scale and the clamp keeps only --hero-head-safe-gap of the
+     box on stage, the visible frame collapses to 19.5x18.2 in exactly the
+     corner the control occupies, four handles ride off stage, and the one that
+     survives draws its dot at (370.9,551.8) where elementFromPoint returns
+     heroTimeBtn on every sampled point. 3.3% of the frame was clear of the
+     control's touch halo at 1x and 0.0% once the head's default size came down.
+     A BAND WOULD NOT DO, AND THAT IS THE WHOLE DIFFICULTY. The bar spans the
+     Hero, so subtracting it from the top leaves a rectangle and every axis
+     bound stays a single number. This control is 43px wide in a 390px Hero:
+     taking its whole column away costs the head 15% of the stage, and taking
+     its whole row away cannot even be stated -- the resting composition's frame
+     already hangs 27.6px BELOW the control's upper edge at every width
+     measured, so a row bound would forbid the pose the page ships with. So the
+     reserve is the corner itself, carried out to the Hero's own right and lower
+     edges, because the 16px of gutter beside the button and the 8px beneath it
+     are not somewhere a selection frame can live. clampMove() resolves it the
+     way a window meets a dock -- out on whichever axis is nearer -- and
+     travelBounds() bounds the journey to the side of it the arrangement is
+     already on.
+     INFLATED BY HALF A TARGET, AND THAT IS NOT A FUDGE FACTOR. The dots are
+     drawn ON the frame's corners and each carries a --selection-hit-size target
+     centred on itself, so a frame that merely touched this rectangle would hand
+     the control half of that target. Half the target is exactly the distance at
+     which no handle can overlap the control, and it is the same number place()
+     already uses to decide a handle has left the stage. Two earlier attempts
+     reserved the control's own box, and then its box plus that half-target,
+     against the HEAD's box -- both still failed, because the dots are drawn
+     outside the head by --selection-air and the frame is what carries them.
+     THE ROW'S OWN RECT FOR THE TOP EDGE, THE CHILDREN'S FOR THE LEFT. The rail
+     is .heroCtas and its children carry the entrance's translateY(9px); a
+     transform does not move the row's own box, so reading the top edge from the
+     row is right whether or not the entrance has landed, and the scale(.97) the
+     same keyframe carries moves a 43px button's left edge by 0.66px, which is
+     inside the reserve by a factor of thirty.
+     THE REACH IS PASSED IN, NOT READ HERE. --selection-hit-size is
+     var(--tap-min), and a custom property read back through
+     getPropertyValue() returns the specified token stream -- so parseFloat
+     gives NaN and a bound built on it puts every handle dot at 0,0. metrics()
+     already resolves that number off the handle's own measured box; this takes
+     its answer rather than asking the question a second way. */
+  function blockRect(reach){
+   var rail=hero.querySelector(".heroCtas");
+   if(!rail)return null;
+   var h=rectOf(hero),row=rectOf(rail);
+   if(!row.width||!row.height)return null;
+   if(row.bottom<=h.top||row.top>=h.bottom)return null;
+   var kids=rail.children,left=Infinity,i,r;
+   for(i=0;i<kids.length;i++){
+    r=rectOf(kids[i]);
+    if(r.width&&r.height&&r.left<left)left=r.left;
+   }
+   if(left===Infinity)return null;
+   return {left:left-h.left-reach,top:row.top-h.top-reach,
+    right:h.width,bottom:h.height};
+  }
+  /* HOW MUCH BIGGER THE FRAME IS THAN THE BOX, ON EVERY SIDE. The frame is the
+     head's local rect grown by --selection-air BEFORE it is turned, so its
+     turned bounding box is the head's turned bounding box grown by
+     air*(|cos|+|sin|) -- one scalar, exact at every angle, and the same
+     arithmetic syncSelection() and the contract's weld check both do. */
+  function frameRing(air){
+   return air*(Math.abs(Math.cos(radians()))+Math.abs(Math.sin(radians())));
+  }
   /* ── EVERYTHING THE FLOAT LOOP NEEDS, READ ONCE ──────────────────────────
      The loop runs forever on the landing page, so anything it does per frame
      it does about 60 times a second for as long as the tab is open. It was
@@ -307,11 +378,19 @@
    if(state.metrics)return state.metrics;
    var h=rectOf(hero),u=usableRect();
    var hitNode=handles[0]||rotator;
+   var hit=(hitNode?rectOf(hitNode).width:0)
+     ||rootNumber("--selection-hit-size",44)||44;
    state.metrics={
     heroW:h.width,heroH:h.height,ceiling:u.top-h.top,
     air:rootNumber("--selection-air",0),
-    hit:(hitNode?rectOf(hitNode).width:0)
-      ||rootNumber("--selection-hit-size",44)||44,
+    hit:hit,
+    /* THE CORNER THE TIME CONTROL OWNS, IN THE SAME CACHE AND FOR THE SAME
+       REASON `ceiling` IS. It is two getBoundingClientRects, it cannot change
+       without a resize or a reflow, and reclamp() already invalidates this on
+       resize and on both ResizeObservers -- so the clamp reads it on a
+       pointermove for free and the float loop keeps its reads-nothing
+       invariant. See blockRect() for what it is and why it is a corner. */
+    block:blockRect(hit/2),
     /* THE DOT'S OWN SIZE BELONGS HERE, WITH EVERY OTHER TOKEN THE LOOP NEEDS.
        It was being read inside place(), which runs once per handle per frame --
        five root reads a frame for a number that cannot change without a
@@ -954,6 +1033,34 @@
    var minTop=top+need.y-box.height,maxTop=bottom-need.y;
    var wantLeft=Math.min(Math.max(box.left,minLeft),maxLeft);
    var wantTop=Math.min(Math.max(box.top,minTop),maxTop);
+   /* ── AND OUT OF THE CORNER THE CONTROL OWNS ──────────────────────────────
+      THE FRAME, NOT THE BOX, and that is the whole of why two earlier attempts
+      at this failed. The corner dots are drawn on the FRAME's corners, which
+      are --selection-air outside the head's box before the turn; clearing the
+      head's box leaves the dots inside the control. The travel bounds have
+      reasoned about the frame rather than the head for the stage edges since
+      the day the leading handles went dark; this is the same statement made
+      about the one piece of chrome that sits inside the stage.
+      ONE AXIS, THE NEARER ONE, WHICH IS WHAT A WINDOW MEETING A DOCK DOES. The
+      reserve is a corner rather than a band, so there are exactly two ways out
+      of it -- left of it or above it -- and picking the shorter of the two is
+      the only choice that never moves the head further than it has to. Neither
+      escape can fight the reachability bound above: both run toward the middle
+      of the stage, and the guards are here so that an over-constrained Hero
+      degrades to the best available position instead of to an illegal one. */
+   var m=metrics(),block=m.block;
+   if(block){
+    var ring=frameRing(m.air);
+    var fL=wantLeft-ring,fT=wantTop-ring;
+    var fR=wantLeft+box.width+ring,fB=wantTop+box.height+ring;
+    if(fR>block.left&&fB>block.top&&fL<block.right&&fT<block.bottom){
+     var goLeft=fR-block.left,goUp=fB-block.top;
+     var canLeft=wantLeft-goLeft>=minLeft,canUp=wantTop-goUp>=minTop;
+     if(canLeft&&(goLeft<=goUp||!canUp))wantLeft-=goLeft;
+     else if(canUp)wantTop-=goUp;
+     else wantLeft=Math.max(minLeft,wantLeft-goLeft);
+    }
+   }
    return {x:x+(wantLeft-box.left),y:y+(wantTop-box.top)};
   }
   /* ── THE FRAME HAS TWO LOOKS AND THREE STATES, AND THEY ARE NOT THE SAME AXIS
@@ -1461,12 +1568,45 @@
       The amplitudes are already in the cache, so their sum is the exact reach
       and no margin has to be invented. */
    var bobX=m.xAmp,bobY=m.yAmp+m.y2Amp;
+   var maxX=Math.min(m.heroW-needX-box.left,m.heroW-bobX-fw/2-cx);
+   var maxY=Math.min(m.heroH-needY-box.top,m.heroH-bobY-fh/2-cy);
+   /* ── AND CLEAR OF THE CORNER CONTROL, ON THE SIDE OF IT THE HEAD IS ON ───
+      THE THIRD REQUIREMENT, and it is the one the ON STAGE bound above cannot
+      express. That bound keeps the whole frame inside the Hero, which is why
+      the leading handles survive the journey -- and the Hero contains an opaque
+      44px control in its lower right corner that the frame is free to walk
+      straight onto. Measured before this existed, exactly: the reachable set of
+      the se dot intersected #heroTimeBtn at EVERY scale and at all three
+      viewports the contract drives, so the drift alone would have re-created
+      the dead handle a minute after load, with nobody watching.
+      A FIELD IS A RECTANGLE AND A HOLE IS NOT, so the field is bounded to one
+      side of the hole rather than around it. The arrangement is already clear
+      of the corner -- clampMove() guarantees it -- so it lies left of the
+      reserve, above it, or both, and bounding the journey to the side it is
+      already on needs no new decision and cannot flip mid-journey: this is
+      evaluated on the ARRANGEMENT, which the travel does not change.
+      NEITHER SIDE HOLDING IS NOT A CASE THAT CAN ARISE, and it is handled
+      anyway, by applying both -- which yields an empty range on both axes and
+      therefore no travel toward the corner at all. That is what keeps a
+      rounding difference between this frame (widened for the bank, three
+      cosines up) and the clamp's (turned at the resting angle alone) from
+      silently reading as "the head is above it, so let it go right".
+      THE BOB COMES OFF, LIKE EVERY OTHER BOUND HERE. The sinusoids ride on top
+      of the travel and are not bounded by it, so the amplitudes are subtracted
+      rather than a margin invented. */
+   var blk=m.block;
+   if(blk){
+    var fR=cx+fw/2,fB=cy+fh/2;
+    if(fR<=blk.left)maxX=Math.min(maxX,blk.left-fR-bobX);
+    else if(fB<=blk.top)maxY=Math.min(maxY,blk.top-fB-bobY);
+    else{maxX=Math.min(maxX,blk.left-fR-bobX);maxY=Math.min(maxY,blk.top-fB-bobY);}
+   }
    return {
     minX:Math.min(0,Math.max(needX-box.width-box.left,bobX-(cx-fw/2))),
-    maxX:Math.max(0,Math.min(m.heroW-needX-box.left,m.heroW-bobX-fw/2-cx)),
+    maxX:Math.max(0,maxX),
     minY:Math.min(0,Math.max(m.ceiling+needY-box.height-box.top,
      m.travelFloor+bobY-(cy-fh/2))),
-    maxY:Math.max(0,Math.min(m.heroH-needY-box.top,m.heroH-bobY-fh/2-cy))};
+    maxY:Math.max(0,maxY)};
   }
   /* ── THE REVERSAL, AND WHY IT STARTS BEFORE THE WALL ─────────────────────
      A soft turn takes time, and time is distance. Easing dir from +1 to -1

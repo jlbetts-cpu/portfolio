@@ -1862,14 +1862,34 @@ def browser_contract(base_url):
                 legality,
             )
             # The assertion above is only meaningful if the box it measured is
-            # genuinely the turned one: a level box would pass it for free.
+            # the one the clamp enforces AT THE RESTING ANGLE, which is what
+            # this checks.
+            # IT USED TO DEMAND A TURNED BOX OUTRIGHT, and that was right for as
+            # long as the head rested at -13.8deg: a level reading would have
+            # passed the legality check for free, by the ~20% a turned bounding
+            # box adds on each axis. --hero-head-rest-rotate is 0deg since the
+            # head went upright (hero-time.css:190), so "turned" and "level" are
+            # the same rectangle BY DESIGN now, and demanding they differ is
+            # asserting a pose the site no longer ships -- one of the two
+            # failures this file was carrying before the corner-control work.
+            # WHAT HAS TO HOLD EITHER WAY is that the measurement agrees with
+            # the angle: identical within rounding at 0deg, and larger on BOTH
+            # axes at any angle the token might carry again. So this still fails
+            # if the legality check above is ever handed a level box while the
+            # head rests turned, which is the only thing it was ever protecting.
+            turned = abs(rest_rotate(page)) > .01
             record(
                 failures,
                 abs(legality["rotate"] - rest_rotate(page)) <= .01
-                and legality["turnedWidth"] > legality["levelWidth"] + 1
-                and legality["turnedHeight"] > legality["levelHeight"] + 1,
-                f"{label} rest is measured rotated, not level",
-                legality,
+                and (
+                    legality["turnedWidth"] > legality["levelWidth"] + 1
+                    and legality["turnedHeight"] > legality["levelHeight"] + 1
+                    if turned else
+                    abs(legality["turnedWidth"] - legality["levelWidth"]) <= .5
+                    and abs(legality["turnedHeight"] - legality["levelHeight"]) <= .5
+                ),
+                f"{label} rest is measured at the resting angle",
+                dict(legality, restRotate=rest_rotate(page)),
             )
             # NEGATIVE DEPTH MEANS THE HEAD CLEARS THE FLOOR. It used to hang
             # past it, which is why there was a shadow on that floor at all.
@@ -2415,9 +2435,20 @@ def browser_contract(base_url):
             page.mouse.up()
             page.wait_for_timeout(50)
             # Outward along the head's own diagonal; see select_move_resize.
+            # AND ON A CORNER THAT IS ACTUALLY THERE. This block pressed `se`
+            # because `se` is the tidy choice, and live_corners()'s own essay
+            # already says why that stops testing anything: the resting
+            # composition hangs below the Hero's floor, so at 1440 the se corner
+            # is off stage at rest, its handle is hidden and inert by design,
+            # and the press meant to grow the head landed on nothing. Measured
+            # both ways -- with the corner reserve in and with it routed out --
+            # the dot reported data-off and the scale stayed exactly 1, so this
+            # was failing for a reason that has nothing to do with the movie:
+            # the second of the two failures this file was already carrying.
+            movie_corner = a_live_corner(page, "se")
             movie_before = logical_head_rect(page)
-            movie_anchor = opposite_point(movie_before, "se")
-            handle = drawn_dot(page, "se")
+            movie_anchor = opposite_point(movie_before, movie_corner)
+            handle = drawn_dot(page, movie_corner)
             mvx, mvy = handle["x"] - movie_anchor["x"], handle["y"] - movie_anchor["y"]
             movie_span = math.hypot(mvx, mvy) or 1
             page.mouse.move(handle["x"], handle["y"])
@@ -2595,21 +2626,34 @@ def task4_matrix(base_url):
             assert after_second["tab"] == before_second["tab"], (label, before_second, after_second)
             assert frame["y"] + frame["height"] <= hero["y"] + hero["height"] + .5, (label, frame, hero)
             assert not chrome_below_hero(page), label
-            # ── A TAP SOMEWHERE ELSE DISMISSES THE FRAME ──────────────────
-            # REVERSED, and the reversal is Jayden's: "i actually think i do
-            # prefer that the resize box can disappear if you click off of it."
-            # The frame was deliberately permanent before this, and the comment
-            # that stood here argued for it; keeping that argument next to an
-            # inverted assertion is how a settled decision gets restored as a
-            # bug fix. WHAT MUST NOT CHANGE is that the tap still reaches what
-            # it was aimed at -- chrome that eats a CTA is worse than either
-            # behaviour -- so the time menu still opens on the same tap.
+            # ── A TAP SOMEWHERE ELSE LEAVES THE FRAME ALONE ───────────────
+            # REVERSED BACK, third turn, and it is his every time. This block
+            # asserted that the tap DISMISSED the frame, on the strength of "i
+            # actually think i do prefer that the resize box can disappear if
+            # you click off of it" -- and later the same day: "the resize box
+            # shouldnt go away on click." hero-head-transform.js carries both
+            # arguments and the reason permanence won: the head is the toy on
+            # this page, the frame IS the invitation, and a frame you can lose
+            # by clicking anywhere is one most visitors lose in the first second
+            # and never find again. The ambient click-away caller is gone from
+            # the module, so this was asserting a behaviour the site does not
+            # have -- one of the failures this file was carrying before the
+            # corner-control work, and the reason it is inverted rather than
+            # deleted: what has to be true is the OPPOSITE, not nothing.
+            # WHAT MUST NOT CHANGE, in either direction, is that the tap still
+            # reaches what it was aimed at. Chrome that eats a CTA is worse than
+            # either behaviour, and the head has just been dragged down into
+            # that corner -- so the time menu still opens on the same tap, and
+            # that assertion is untouched.
             page.touchscreen.tap(time_button["x"] + time_button["width"] / 2,
                                  time_button["y"] + time_button["height"] / 2)
-            assert not page.evaluate("window.__heroHeadTransform.getState().selected"), label
-            assert page.locator("#face").get_attribute("aria-pressed") == "false", label
+            assert page.evaluate("window.__heroHeadTransform.getState().selected"), label
+            assert page.locator("#face").get_attribute("aria-pressed") == "true", label
             assert page.locator("#heroTimeBtn").get_attribute("aria-expanded") == "true", label
+            # ESCAPE IS THE ONLY DOOR OUT NOW, so it is the one this uses to put
+            # the page back before the tab test below.
             page.keyboard.press("Escape")
+            assert not page.evaluate("window.__heroHeadTransform.getState().selected"), label
             page.locator("#cases").scroll_into_view_if_needed()
             tab = page.locator('.csTab[data-tab="goodness"]')
             tab_box = tab.bounding_box()
@@ -3096,17 +3140,44 @@ SELF_TEST_INJECT = """   var ex=parseFloat(selection.style.getPropertyValue("--s
 # portrait up over the h1 as well. Both are the same mistake -- bounding the
 # wrong rectangle -- and the run is expected to FAIL on the on-stage and
 # handle-live assertions. If it passes, they are not detecting anything.
+# THE SITE MOVED WHEN THE CORNER RESERVE LANDED, and this file said so rather
+# than passing blind -- travelBounds() now names maxX and maxY before it returns
+# them, so the old literal no longer matched and --self-test exited with "update
+# TRAVEL_SELF_TEST_SITE to match it". That is the guard working. The injection
+# below is unchanged in what it does: it replaces every widened bound with the
+# reachability rule alone, which now also drops the corner reserve, so it is a
+# strictly stronger re-injection than it was.
 TRAVEL_SELF_TEST_SITE = """   return {
     minX:Math.min(0,Math.max(needX-box.width-box.left,bobX-(cx-fw/2))),
-    maxX:Math.max(0,Math.min(m.heroW-needX-box.left,m.heroW-bobX-fw/2-cx)),
+    maxX:Math.max(0,maxX),
     minY:Math.min(0,Math.max(m.ceiling+needY-box.height-box.top,
      m.travelFloor+bobY-(cy-fh/2))),
-    maxY:Math.max(0,Math.min(m.heroH-needY-box.top,m.heroH-bobY-fh/2-cy))};"""
+    maxY:Math.max(0,maxY)};"""
 TRAVEL_SELF_TEST_INJECT = """   return {
     minX:needX-box.width-box.left,
     maxX:m.heroW-needX-box.left,
     minY:m.ceiling+needY-box.height-box.top,
     maxY:m.heroH-needY-box.top};"""
+
+
+# ── AND THE THIRD RE-INJECTION: THE HEAD PARKED UNDER THE CORNER CONTROL ─────
+# The defect this reserve exists to stop is a handle that is DRAWN and DEAD, and
+# it is the second time this component has shipped one. Measured at 390x844 on
+# the build before the reserve: the head at minimum scale dragged into the
+# bottom-right corner leaves a 19.5x18.2 visible frame sitting inside
+# #heroTimeBtn, four handles ride off stage, and every sampled point of the one
+# that survives returns the button from elementFromPoint. 3.3% of the frame was
+# clear of the control's 16px touch halo; at the head's current default size it
+# was 0.0%.
+# TAKING THE RESERVE OUT IS A ONE-WORD EDIT, which is exactly why it needs a
+# detector: metrics() caches blockRect()'s answer under one name, and `block:
+# null` is what a tidy-up that did not understand it would leave behind.
+# EITHER FAILURE COUNTS, and both are the same defect seen from opposite ends:
+# assert_handle_hits() rejects the dot that lands on the button, and grip_point()
+# rejects a frame with no pressable point left on it -- which is what the
+# unreserved build actually did first, before the handle assertion was reached.
+CORNER_SELF_TEST_SITE = "    block:blockRect(hit/2),"
+CORNER_SELF_TEST_INJECT = "    block:null,"
 
 
 # ── AND THE SECOND RE-INJECTION: A HEAD THAT TRAVELS WITHOUT LEANING ────────
@@ -3198,6 +3269,57 @@ def travel_self_test(browser, base_url, source):
               f"reachability-only bound, as they must ({len(wanted)} of them)")
 
 
+def corner_self_test(browser, base_url, source):
+    """Take the corner reserve out and require the handle assertions to notice."""
+    if CORNER_SELF_TEST_SITE not in source:
+        raise SystemExit(
+            "--self-test cannot find the corner reserve in metrics(); update "
+            "CORNER_SELF_TEST_SITE to match it rather than letting the "
+            "self-test pass blind."
+        )
+    broken = source.replace(CORNER_SELF_TEST_SITE, CORNER_SELF_TEST_INJECT, 1)
+    # 1440 IS NOT IN THIS LIST AND THAT IS A MEASUREMENT, NOT AN OVERSIGHT. The
+    # control sits 163px in from a 1440 Hero's right edge, so the head parked at
+    # the far corner there lands past it rather than on it -- 100% of the frame
+    # clear of the halo even unreserved. The defect is a phone-width one, which
+    # is where it was found.
+    for width, height in ((390, 844), (320, 800)):
+        context = browser.new_context(viewport={"width": width, "height": height})
+        context.add_init_script("try{sessionStorage.setItem('introSeen','1')}catch(e){}")
+        context.route(
+            "**/hero-head-transform.js*",
+            lambda route: route.fulfill(
+                status=200, content_type="application/javascript", body=broken
+            ),
+        )
+        page = context.new_page()
+        page.goto(f"{base_url}/index.html?head-transform=1", wait_until="load")
+        page.wait_for_function(
+            "typeof introMode !== 'undefined' && !introMode && !eventLock",
+            timeout=15_000,
+        )
+        page.evaluate("window.__heroHeadTransform.stopFloat()")
+        # Minimum scale, then into the corner -- the pose the defect lives at.
+        scale_to_limit(page, "Left")
+        page.evaluate("window.__heroHeadTransform.stopFloat()")
+        caught = None
+        try:
+            drag_selection_to(page, width + 1000, height + 1000)
+            assert_handle_hits(page, f"self-test corner {width}")
+        except AssertionError as failure:
+            caught = str(failure)
+        context.close()
+        if caught is None:
+            raise SystemExit(
+                f"--self-test FAILED at {width}x{height}: the head was parked "
+                "under the corner control with the reserve removed and every "
+                "handle assertion accepted it. The dead-handle detectors are "
+                "not detecting anything."
+            )
+        print(f"self-test {width}x{height}: the handle assertions rejected the "
+              f"head parked under the corner control, as they must")
+
+
 def self_test(base_url):
     """Re-inject the clamp and require assert_handle_hits() to reject it."""
     source = (ROOT / "hero-head-transform.js").read_text(encoding="utf-8")
@@ -3237,6 +3359,7 @@ def self_test(base_url):
                 )
             travel_self_test(browser, base_url, source)
             bank_self_test(browser, base_url, source)
+            corner_self_test(browser, base_url, source)
         finally:
             browser.close()
     print("Hero head transform self-test: OK (the detectors fail when they should)")
