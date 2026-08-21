@@ -1014,13 +1014,23 @@
  --hero-peek-lift:var(--sp-48)
 }
 
-/* THE dvh UPGRADE, GUARDED. Only engines that can actually parse dvh get it, so
-   the base 100vh above stays reachable everywhere else. dvh tracks the browser
-   chrome as it retracts, which is why the Hero uses it: the gradient never opens
-   a gap at the bottom of a phone. Where it is unsupported, 100vh is the right
-   answer anyway -- a fixed-chrome WebView has nothing to track. */
-@supports (height:100dvh){
- :root{ --hero-mobile-height:100dvh }
+/* THE UPGRADE IS svh NOW, NOT dvh, AND THE GUARD IS THE SAME. Only engines that
+   can parse it get it, so the base 100vh above stays reachable everywhere else
+   -- that floor is not cosmetic, it is what stops a Hero collapsing to 241.7px
+   in a WebView that cannot parse the unit.
+   IT WAS dvh, AND THE REASON WAS GOOD: dvh tracks the browser chrome as it
+   retracts, so the gradient never opened a gap at the bottom of a phone. The
+   cost was that EVERY pixel of retracting chrome re-solved the Hero's height,
+   and with it the centred copy and the head's travel field. Jayden, 2026-08-20:
+   "the mobile version the hero is a bit unpredictable on scroll like it will
+   move and change size still ... non of that stuff should move anyways."
+   svh is the SMALLEST viewport and it does not move, so the phone Hero is now
+   a fixed box. What appears below it when the chrome retracts is the tab row
+   and the first cover, which is the reveal he asked for rather than a gap.
+   index.html carries the same change for the desktop box and the full
+   argument. */
+@supports (height:100svh){
+ :root{ --hero-mobile-height:100svh }
 }
 }
 @media(max-width:340px){:root{

@@ -1043,15 +1043,28 @@ assert "min-height:var(--heroBox)" in hero_page_rule, \
     "the Hero no longer takes its height from --heroBox"
 assert re.search(r':root\{[^}]*--heroBox:\s*100vh', html), \
     "the Hero needs a viewport-height floor that every engine can resolve"
-for _unit in ("svh", "dvh"):
+# dvh IS GONE FROM THE HERO, 2026-08-20, AND THIS LIST FOLLOWS IT. The Hero's
+# box was calc(100dvh - ...) so the sky tracked the retracting address bar and
+# never opened a gap at the bottom of a phone. The cost was that every pixel of
+# chrome re-solved the box, the centred copy and the head's travel field:
+# "the mobile version the hero is a bit unpredictable on scroll like it will
+# move and change size still ... non of that stuff should move anyways."
+# svh is the smallest viewport and does not move, so both tokens take it.
+# WHAT THIS ASSERTION PROTECTS IS UNCHANGED, and it is not the unit -- it is
+# that a unit an engine cannot parse must never be reachable ungated. Ungated,
+# it fails at computed-value time and min-height falls back to auto, which
+# collapsed this Hero from 844px to 241.7 once.
+for _unit in ("svh",):
     assert re.search(r'@supports\s*\(height:1' + _unit + r'\)', html), \
         "%s must stay behind its own @supports, not sit in the fallback" % _unit
+assert not re.search(r'--heroBox:\s*calc\(100dvh', html), \
+    "the Hero's box is back on dvh -- it tracks the address bar and moves the head"
 # THE GATED UNIT IS NOW SPENT ON THE TOKEN, NOT ON .hero DIRECTLY. Same
 # guarantee, one indirection later: inside each @supports the better unit is
 # written into --heroBox (and --heroRow for svh), and .hero consumes the token.
 # Asserted as "the unit appears inside its own @supports and lands on a hero
 # token", which is what stops it reaching computed-value time ungated.
-for _unit, _token in (("svh", "--heroRow"), ("dvh", "--heroBox")):
+for _unit, _token in (("svh", "--heroRow"),):
     _block = re.search(r'@supports \(height:1%s\)\s*\{(.*?)\}\}' % _unit, html, re.S)
     assert _block, "100%s is not gated on an @supports block at all" % _unit
     assert "100%s" % _unit in _block.group(1), \

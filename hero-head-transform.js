@@ -2264,13 +2264,23 @@
      - Enter or Space on the focused portrait: it is a role="button" with
        aria-pressed, so this is the toggle its own semantics promise.
      - FOCUS the portrait with the keyboard: see the binding below. */
-  document.addEventListener("pointerdown",function(e){
-   if(!state.selected)return;
-   if(state.pointerId!==null)return;
-   var node=e.target;
-   if(node===face||(node&&node.closest&&(node.closest("#heroHeadSelection")||node.closest("#face"))))return;
-   deselect();
-  },true);
+  /* ── AND THE CLICK-AWAY IS GONE AGAIN. THIRD TURN, HIS EVERY TIME. ────────
+     2026-08-20, later the same day as the note above: "the resize box shouldnt
+     go away on click." So the frame is permanent once more -- the position the
+     note above was written to protect against being "restored as a bug fix",
+     which is worth stating plainly rather than quietly reverting: this is not a
+     fix, it is the instruction changing for the third time, and the argument on
+     both sides is already written down above.
+     WHAT MADE THE CANVAS CONVENTION WORTH TRYING was that a permanent frame
+     looks like a design tool left open. What beats it here is that the head is
+     the toy on this page: the frame IS the invitation, and a frame you can lose
+     by clicking anywhere is one most visitors will lose in the first second and
+     never find again. He has now landed on permanence twice out of three.
+     ESCAPE STILL WORKS, and it is deliberately the only door out. It is
+     explicit, it is reversible with one press on the portrait, and it keeps the
+     keyboard path whole -- a control that can be focused must be escapable.
+     KEEPING deselect() ITSELF: Escape calls it, and so does the reduced-motion
+     path. Only the ambient click-away caller is removed. */
   /* ── THE FRAME IS THE PORTRAIT'S FOCUS INDICATOR ─────────────────────────
      #face carries no :focus-visible ring of its own -- it never needed one,
      because the frame was always on screen and the frame IS the indicator. Now
@@ -2331,9 +2341,29 @@
      on -- it cycles the viewport 760 -> 844 -> 760, which moves svh, which
      moves this key, so the skip is exercised and the recapture still is too. */
   var lastShape="";
+  /* ── ON A PHONE, HEIGHT IS NOT A RESHAPE. IT IS THE URL BAR. ──────────────
+     Jayden, 2026-08-20: "the mobile version the hero is a bit unpredictable on
+     scroll like it will move and change size still which kinda ruins the
+     experience and non of that stuff should move anyways."
+     Scrolling iOS Safari retracts the address bar, which cycles the viewport
+     (the note this replaces measured 760 -> 844 -> 760 and treated it as a
+     shape change worth re-clamping). Every one of those cycles re-ran
+     reclamp(), which re-derives the head's placement and its scale -- so the
+     head crept and resized while the page was merely being read, with nothing
+     on screen to explain it. It is invisible to every gate in tools/ because
+     headless Chromium has no browser chrome, so svh and dvh are identical
+     there and the cycle never happens. That blind spot has now hidden three
+     separate bugs in this component.
+     WIDTH IS THE HONEST SIGNAL. A real reshape on a phone -- rotation, split
+     view, a font-size change -- moves the width. The address bar never does.
+     So on a coarse pointer the key carries width only, and the head holds its
+     ground through a scroll. On a mouse, where a drag of the window corner
+     genuinely is a height change worth answering, the full key stays. */
+  var coarse=matchMedia("(pointer:coarse)");
   function shapeKey(){
-   return rectOf(hero).width.toFixed(2)+"|"+rectOf(peek).height.toFixed(2)
-    +"|"+wrap.offsetWidth+"|"+wrap.offsetHeight;
+   var w=rectOf(hero).width.toFixed(2)+"|"+wrap.offsetWidth;
+   if(coarse.matches)return w;
+   return w+"|"+rectOf(peek).height.toFixed(2)+"|"+wrap.offsetHeight;
   }
   function reclampIfReshaped(){
    var key=shapeKey();

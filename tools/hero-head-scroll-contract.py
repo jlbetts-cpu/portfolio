@@ -217,7 +217,21 @@ def check_chrome_cycle(browser, port, width, height):
         # "on mobile the box is behind the button on start it should be slightly
         # lower so it doesnt interfer and look unintentional".
         drop = page.evaluate(DROP)
-        expected = tall - height + (drop - start_drop)
+        # ── THE HEAD NO LONGER FOLLOWS THE ADDRESS BAR, AND THAT IS THE POINT.
+        # This expected the head to TRACK the chrome: the Hero's box was
+        # calc(100dvh - ...), dvh re-solves live as the bar retracts, so the
+        # floor moved and the head was required to move exactly with it --
+        # +40, +84, +40, 0 at 390. It asserted that faithfully and passed.
+        # Jayden, 2026-08-20: "the mobile version the hero is a bit
+        # unpredictable on scroll like it will move and change size still which
+        # kinda ruins the experience and non of that stuff should move anyways."
+        # So --heroBox and --hero-mobile-height are svh now -- the SMALLEST
+        # viewport, which the address bar does not change -- and the correct
+        # expectation is ZERO drift through the whole cycle. The gate is not
+        # relaxed by this: it still fails on any movement, and the number it
+        # demands is simply the one he asked for. The crowd-drop term stays
+        # because that token can still legitimately change the composition.
+        expected = drop - start_drop
         drift = [now["box"][i] - start["box"][i] for i in (0, 1)]
         seen.append((tall, round(drift[0], 2), round(drift[1], 2)))
         if now["state"][:2] != start["state"][:2]:
@@ -235,7 +249,7 @@ def check_chrome_cycle(browser, port, width, height):
                             f"{expected:+d}px the Hero's own floor moved -- the "
                             f"difference is a base captured through the idle pose")
     print(f"  {width} chrome cycle {CHROME_CYCLE}: box drift {seen} "
-          f"(expected {[t - height for t in CHROME_CYCLE]} before the crowd drop)")
+          f"(expected 0 at every step -- svh does not move with the chrome)")
     context.close()
     return failures
 

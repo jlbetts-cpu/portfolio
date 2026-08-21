@@ -761,7 +761,22 @@
 .heroTimeGradient{position:absolute;inset:0;opacity:0;filter:none;mix-blend-mode:normal}
 .heroTimeGradient::after{
  content:"";position:absolute;inset:0;pointer-events:none;
- background:linear-gradient(180deg,var(--theme-page) 0%,var(--theme-page) 10%,transparent 28%)
+ /* THE VEIL GIVES GROUND, 2026-08-20: "i feel like the gradient should fill
+    the hero a bit more."
+    It painted the page's own colour solid over the top TENTH of the Hero and
+    did not clear until 28% -- so on a 650px fold the sky did not begin until
+    182px down, and better than a quarter of the box he is looking at was flat
+    cream with a gradient underneath it that never showed. It arrived in a
+    general "refine hero" pass with no stated reason, and the two things it
+    could have been protecting are both handled elsewhere now: the nav sits on
+    its own opaque band with a hairline floor, and the headline takes its colour
+    from --time-ink, which is measured per state rather than assuming a pale
+    backdrop.
+    WHAT IT STILL DOES, and why it is not simply deleted: the sky's own top edge
+    is a hard stop against the header, and a hard stop there reads as a second
+    band rather than as one surface. A short fade keeps the join soft. 0 -> 12%
+    is that join and nothing more. */
+ background:linear-gradient(180deg,var(--theme-page) 0%,transparent 12%)
 }
 /* RETUNED ON ONE AXIS ONLY, because only one axis changed.
    HORIZONTAL: a capped LENGTH instead of ~103% of the box. At 1200 the number

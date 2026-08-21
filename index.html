@@ -50,7 +50,7 @@
      page alone, so the ink-surface nav lost its top highlight here and nowhere
      else. Linked BEFORE this page's <style>, so anything the page still declares
      for itself continues to win. -->
-<link rel="stylesheet" href="tokens.css?v=f1089b23fe">
+<link rel="stylesheet" href="tokens.css?v=75cf570c82">
 <style>
 html{scroll-behavior:smooth}
 html.softScrolling{scroll-behavior:auto}
@@ -1993,7 +1993,27 @@ html{scroll-padding-top:calc(var(--nav-h) + var(--sp-16-24))}
  --heroReveal:clamp(0px,calc(100svh - 560px),500px);
  --heroBox:calc(100svh - var(--heroReveal));
  --heroRow:calc(100svh - var(--heroReveal))}}
-@supports (height:1dvh){:root{--heroBox:calc(100dvh - var(--heroReveal))}}
+/* ── dvh IS GONE, AND THE NOTE ABOVE IS THE ARGUMENT IT LOST. ───────────────
+   That note chose 100dvh so the gradient could never open a gap when the phone
+   chrome retracts, and signed off the cost in its own words: "the copy is
+   centred, so a live height change moves it by half the chrome -- accepted,
+   and only during the scroll that hides it."
+   HE HAS UN-ACCEPTED IT, 2026-08-20: "the mobile version the hero is a bit
+   unpredictable on scroll like it will move and change size still which kinda
+   ruins the experience and non of that stuff should move anyways."
+   dvh tracks the address bar LIVE, so every pixel of chrome that slid away
+   re-solved this box, and with it the Hero's min-height, the centred copy, and
+   -- because the head's travel field is derived from the Hero's rect -- the
+   head's position and the scale it is clamped to. Nothing on screen explained
+   any of it, which is what made it read as unpredictable rather than as
+   motion. It is also invisible to every gate in tools/: headless Chromium has
+   no browser chrome, so dvh, svh and lvh are all the same number there.
+   svh IS THE SMALLEST VIEWPORT AND IT DOES NOT MOVE. The gap that argument
+   feared is no longer a gap: the Hero now ends on a hard square edge with the
+   structural rule along it, and what shows below when the chrome retracts is
+   the tab row and the first cover -- which is the reveal he asked for twice
+   ("making the hero smaller like take up less space to see the tabs and case
+   study below"). The old note's own fallback line is now the whole answer. */
 .hero{
  --heroPadT:72px;
  --heroPadB:calc(72px + env(safe-area-inset-bottom));
@@ -2336,11 +2356,11 @@ html{scroll-padding-top:calc(var(--nav-h) + var(--sp-16-24))}
      move: 24,600 computed properties over 820 elements at 1440 and 390, and the
      only differences are the nav icons going back to the 18px they have always
      drawn at. -->
-<link rel="stylesheet" href="controls.css?v=f1089b23fe">
-<link rel="stylesheet" href="header.css?v=f1089b23fe">
-<link rel="stylesheet" href="hero-time.css?v=f1089b23fe">
-<link rel="stylesheet" href="footer.css?v=f1089b23fe">
-<link rel="stylesheet" href="site-theme.css?v=f1089b23fe">
+<link rel="stylesheet" href="controls.css?v=75cf570c82">
+<link rel="stylesheet" href="header.css?v=75cf570c82">
+<link rel="stylesheet" href="hero-time.css?v=75cf570c82">
+<link rel="stylesheet" href="footer.css?v=75cf570c82">
+<link rel="stylesheet" href="site-theme.css?v=75cf570c82">
 <script>/* THE OLD OVERLAY'S URL STILL RESOLVES. index.html#about was the only address
    About ever had, and it is linked from play.html and the other sub-pages, and sits in
    anyone's history. Redirected before first paint (replace(), so it leaves no entry to
