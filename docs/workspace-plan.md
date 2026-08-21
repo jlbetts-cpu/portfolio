@@ -191,6 +191,14 @@ studies, N = 19,951, **d+ ≈ 0.40**, larger when progress is physically recorde
 (Harkin et al. 2016, *Psych. Bulletin* 142(2), 198–229). That argues for **one
 visible log, not eight scoreboards.**
 
+> **This section argued both sides and Phase 3 had to settle it.** "One visible
+> log, not eight scoreboards" sits two paragraphs from "eight sparklines".
+> Resolution as built: eight rows exist, but a row with nothing to say stays
+> SILENT — no sparkline on an area with no history (five pale bands read on
+> screen as a failed skeleton loader), and no count on an area never started (a
+> fresh install opened on a column of eight zeros). One log when there is one
+> thing to report; eight only once eight are real.
+
 **Fix the cadence bug before anything else here.** Until `possible` comes from a
 habit's own cadence, every non-daily practice is a permanent failure on screen.
 
@@ -280,8 +288,15 @@ Premium is subtraction, and this is where it applies:
    (then it is load-bearing and stays) or the 21.6 MB goes.
 7. **Six `shadow-2xl` sheets** and **the third font weight.**
 
-Nav afterwards: **Today · Week · Areas · Memory · Settings.** Two forward-facing,
-one aggregate, one professional, one config.
+Nav afterwards: **Today · Week · Areas · Timeline · Memory · Settings.**
+
+> **CORRECTED 2026-08-20, and it was a dangerous error.** This line originally
+> read *Today · Week · Areas · Memory · Settings* — with no Timeline. Timeline
+> owns the `days` store, which is where his journals, moods and photos actually
+> live, and §6's own cut list never cuts it. As written, the nav would have
+> removed the only way to read his own writing while leaving the data on disk.
+> Caught during Phase 3 by an agent reading the cut list against the nav rather
+> than implementing the nav faithfully. Timeline stays.
 
 ---
 
