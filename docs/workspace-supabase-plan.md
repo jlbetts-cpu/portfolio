@@ -1,3 +1,12 @@
+> **SUPERSEDED 2026-08-20 by `docs/workspace-plan.md`.**
+> That document was written from the real source at `~/Desktop/Reshore/lifeline`;
+> this one was written from the minified bundle. The reasoning here still holds
+> and §5 (export twice, dry-run, count, then LOOK) should be kept verbatim, but
+> several specifics are wrong — the bucket name, the storage paths, the DDL
+> types, the RLS policy count, and the magic-link redirect. See §6 of the new
+> plan for the corrections, and do not run this one's DDL against the shipped
+> schema.
+
 # Supabase for the workspace app — plan
 
 Written 2026-08-20 from **static analysis only** of the compiled bundle at
