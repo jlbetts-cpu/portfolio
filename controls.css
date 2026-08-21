@@ -796,7 +796,25 @@
  z-index:2;display:flex;justify-content:center;align-items:flex-end;
  overflow:hidden;pointer-events:none;transition:transform var(--sp-settle-dur) var(--sp-settle)
 }
-.heroCharacterPeek.is-movie{transform:translateY(var(--hero-peek-active-offset,calc(var(--hero-peek-lift) * -1)))}
+/* ── THE PEEK DOES NOT MOVE DURING A MOVIE, AND THAT IS THE FIX ─────────────
+   This rule translated the peek by --hero-peek-active-offset, falling back to
+   --hero-peek-lift. The peek is the head's own crop (overflow:hidden, inset:0
+   of the Hero), so the translate took the crop with it: driven up its authored
+   64px at 1440x900 the head's chin was sliced off at y=494 instead of at the
+   Hero's floor at 560. A lift here can only ever crop the head, never lift it.
+   The movie's vertical fit moved INSIDE the crop, onto --hero-movie-guard-y in
+   the wrapper rule below, where moving the head does not move the box that
+   contains it. hero-engine.js's movieCompositionFit() carries the reasoning and
+   the measurements; .is-movie survives as the state flag it also is. */
+/* ── AND THE FIT EASES IN CSS, WHICH IS WHY THE PROPERTY IS REGISTERED ───────
+   An UNREGISTERED custom property does not interpolate, it snaps -- so without
+   the @property below the head would jump its full lift (75px at 1440) in one
+   frame on the way in, and drop it again the instant the performance ends,
+   which is where removeProperty() leaves it. Registered as a <length> it
+   animates, so the engine writes a target and the spring does the rest: the
+   same --sp-settle the peek's own transform used, at the same duration, so the
+   movie still arrives and leaves with the motion it was authored with. */
+@property --hero-movie-guard-y{syntax:"<length>";inherits:false;initial-value:0px}
 /* Transform order is translate -> rotate -> scale. Translate has to come first
    because it is the position; rotate and a UNIFORM scale commute, so the only
    thing that matters after that is the origin. The origin is the logical
@@ -825,6 +843,11 @@
  transform-origin:var(--hero-head-origin-x) var(--hero-head-origin-y);
  transform:translate3d(calc(-50% + var(--hero-head-x)),calc(var(--hero-head-y) + var(--hero-movie-guard-y)),0)
            rotate(var(--hero-head-rotate)) scale(var(--hero-head-scale));
+ /* ONE property, named. A `transition:transform ...` here would be a promise
+    the drag cannot keep -- --hero-head-x/y are written per pointer frame and
+    must land instantly -- and a bare shorthand would also swallow whatever any
+    later rule wants to transition on this element. Only the movie's fit eases. */
+ transition:--hero-movie-guard-y var(--sp-settle-dur) var(--sp-settle);
  will-change:transform;
  /* ── pan-y, NOT none. THIS IS "THE HEAD RESIZES ON SCROLL ON MOBILE". ──────
     touch-action:none was the mobile SMOOTHNESS fix: under the default `auto`

@@ -1394,46 +1394,122 @@ var MOVIE_BUCKET_SHARE=0.536,MOVIE_CHIN_OVERLAP=0.04,MOVIE_BUCKET_RIM=0.02274,
 var movieMode=false,movieTk0=0,movieEnding=false,movieEndTk=0,bucketEl=null,kernelEls=[],popcrumbEls=[],movieHair=false,hairTk0=0,MOVCYCLE=18;
 var heroPeek=document.querySelector(".heroCharacterPeek");
 var heroHeadTransform=document.getElementById("heroHeadTransform");
+/* ── A LIFT ON THE PEEK CANNOT LIFT THE HEAD; IT CAN ONLY CROP IT ───────────
+   This function used to write --hero-peek-active-offset, which .heroCharacterPeek
+   .is-movie fed into a translateY, and --hero-peek-lift (64px desktop / 48px
+   phone) was the distance it wanted to travel. THE PEEK IS THE HEAD'S OWN CROP
+   -- overflow:hidden, inset:0 of the Hero -- so translating it takes the crop
+   with it. MEASURED at 1440x900 by driving the peek up its authored 64px: the
+   head's chin was sliced off at y=494 instead of at the Hero's floor at 560,
+   and what stayed on screen was a face ending at the moustache. The lift was
+   never lifting anything; on the shipped build it resolved to +7.5px DOWNWARD
+   and quietly gave the props 7.5px of the work section to paint into.
+   So the peek does not move during a movie at all, and the composition's whole
+   vertical fit is one number written INSIDE the crop, on the head's own
+   wrapper, where moving the head does not move the box that contains it. */
 function setMoviePeek(on){
  if(!heroPeek)return;
- if(on){
-  var hero=document.getElementById("main"),copy=hero&&hero.querySelector(".heroCopy");
-  if(hero&&copy&&faceImg){
-   var faceRect=faceImg.getBoundingClientRect(),stageRect=stage.getBoundingClientRect();
-   var headBounds=headBoundsOf();
-   var headTop=faceRect.top+faceRect.height*headBounds[1];
-   var selection=document.getElementById("heroHeadSelection");
-   if(selection&&!selection.hidden)headTop=selection.getBoundingClientRect().top;
-   var style=getComputedStyle(hero),safeTop=copy.getBoundingClientRect().bottom+
-    (parseFloat(style.getPropertyValue("--hero-head-safe-gap"))||0);
-   var desired=parseFloat(style.getPropertyValue("--hero-peek-lift"))||0;
-   /* Movie poses briefly scale the stage to 1.04 and bob it upward. Reserve that
-      projection travel before lifting the peek, so the visible head never enters copy. */
-   var projectionReserve=Math.max(4,(stageRect.top+stageRect.height/2-headTop)*0.04+3);
-   var available=Math.max(0,headTop-safeTop);
-   var lift=Math.min(desired,Math.max(0,available-projectionReserve));
-   var guard=Math.max(0,projectionReserve-available);
-   if(hero.getBoundingClientRect().height<640){lift=0;guard=projectionReserve;}
-   heroPeek.style.setProperty("--hero-peek-active-offset",(guard-lift).toFixed(2)+"px");
-  }
-  heroPeek.classList.add("is-movie");
- }else{
-  heroPeek.classList.remove("is-movie");
-  heroPeek.style.removeProperty("--hero-peek-active-offset");
- }
+ if(on)heroPeek.classList.add("is-movie");
+ else heroPeek.classList.remove("is-movie");
 }
-function enforceMovieSafeProjection(){
- if(!movieMode||!heroHeadTransform)return;
+/* ── THE MOVIE IS HEAD PLUS BUCKET, AND IT IS THE BUCKET THAT HAS TO FIT ─────
+   What stood here pushed the head DOWN until its crown cleared .heroCopy's
+   lower edge plus --hero-head-safe-gap, on the reasoning that "the visible head
+   never enters copy". BOTH HALVES OF THAT ARE NOW WRONG.
+   THE RULE IT ENFORCED HAS BEEN REVERSED BY JAYDEN HIMSELF. .heroCopy carries
+   mix-blend-mode:difference precisely so the head can cross the type -- "if the
+   head is passing through it that part of the text turns white and inverts the
+   part of the head hovering over it" -- and tools/hero-entrance-rhythm-contract
+   .py retired its own minimum-gap clause for the same reason on 2026-08-20. The
+   surviving rule is the one that would actually be wrong: the head's INK must
+   never begin above the headline's FIRST LINE, or the portrait is a lid on the
+   type rather than a thing moving behind it. That is the clamp below.
+   AND IT WAS AIMED AT THE WRONG EDGE. The Hero is 560px tall since the fold
+   pass; the head rests with its chin about 50px off the floor; the bucket hangs
+   ~123px past the chin. Pushing the head down 47-62px to satisfy a rule that no
+   longer exists put the chin ON the floor: measured on the shipped build, with
+   the movie running and the head in its default arrangement, the bucket painted
+   0.9px above the Hero's lower edge at 1440 and 15% of it was on screen; in the
+   contract's own dragged-and-resized state its TOP edge landed 22.4px BELOW the
+   floor and not one pixel of it was visible. Jayden: "the popcorn bucket
+   animation should work on the movie please fix."
+   SO THE ONE NUMBER IS A LIFT, NOT A GUARD, and it is solved rather than tuned:
+   raise the head by exactly as much as the bucket's foot overhangs the Hero's
+   floor line, and no further than the headline rule allows. Both terms are
+   measured off live rects every frame, so it re-solves itself when the head is
+   dragged, resized, swapped for a taller face, or when the fold moves again --
+   and the fold has moved four times in a day. --hero-floor-inset is the token
+   hero-time.css already declared for exactly this ("the Hero's floor is still a
+   line props stand on, so the popcorn bucket keeps an inset off it under a name
+   that says so") and had no consumer until now.
+   THE SIGN IS THE ONLY THING THAT CHANGED ABOUT THE CHANNEL. --hero-movie-guard-y
+   still guards the movie composition against the Hero's edges; it just guards
+   the edge that was actually being crossed. It eases in and out in CSS, off the
+   registered @property in controls.css, so nothing here has to run a spring. */
+var MOVIE_BUCKET_ASPECT=460/439;   /* bucket.webp is 439x460 */
+var movieFootExtra=0;
+function movieCompositionFit(){
+ if(!movieMode||!heroHeadTransform||!faceImg)return;
  var hero=document.getElementById("main"),copy=hero&&hero.querySelector(".heroCopy");
- if(!hero||!copy||!faceImg)return;
+ var clip=movieEffectsStage&&movieEffectsStage.parentNode;
+ if(!hero||!copy||!clip)return;
  var faceRect=faceImg.getBoundingClientRect();
+ if(!faceRect.height)return;
  var headBounds=headBoundsOf();
- var top=faceRect.top+faceRect.height*headBounds[1];
- var style=getComputedStyle(hero),safeTop=copy.getBoundingClientRect().bottom+
-  (parseFloat(style.getPropertyValue("--hero-head-safe-gap"))||0);
+ /* TWO VALUES, AND CONFLATING THEM INFLATES THE LIFT. The inline value is the
+    TARGET; what the rects were actually drawn with is the spring's current
+    value, and for --sp-settle-dur after every write those differ by most of the
+    lift. Un-lifting a measured rect by the target rather than by the applied
+    value therefore reports the bucket as hanging the whole spring's travel
+    lower than it does, and the high-water mark below took that reading as
+    gospel: measured at 390x844 the bucket settled 36px clear of a floor line it
+    was asked to stand 12px off. The computed value is the animated one -- the
+    @property registration in controls.css is what makes it a real length rather
+    than a token stream -- so it is the one every measurement is un-lifted by.
+    The inline target is only ever compared against, never measured with. */
+ var applied=parseFloat(getComputedStyle(heroHeadTransform).getPropertyValue("--hero-movie-guard-y"))||0;
  var current=parseFloat(heroHeadTransform.style.getPropertyValue("--hero-movie-guard-y"))||0;
- var next=Math.max(0,current+safeTop-top);
- if(Math.abs(next-current)>.05)heroHeadTransform.style.setProperty("--hero-movie-guard-y",next.toFixed(2)+"px");
+ /* Everything is measured in the head's UNLIFTED frame, so the target is a
+    fixed function of the geometry rather than of its own last answer. */
+ var crown=faceRect.top+faceRect.height*headBounds[1]-applied;
+ var chin=faceRect.top+faceRect.height*movieChinFraction()-applied;
+ /* THE DERIVED FOOT, PLUS WHAT THE PERFORMANCE ADDS TO IT ───────────────────
+    The derivation is the three constants the stylesheet places the bucket with:
+    it hangs (share x aspect - overlap) of the head's side below the chin. It is
+    exact for a bucket standing upright and still, and this bucket is neither.
+    IT LEANS: `rotate` on .popbucket is --pop-tilt minus the light's direction
+    minus the head's own angle, so the lowest painted corner swings below the
+    box by half the width times sin of that angle. AND IT IS POSED: the movie
+    writes the stage a squash, a bob and a shake on every frame, and the bucket
+    rides all three. Aiming the bare derivation at the floor line left the
+    corner 4.2px over it at 1440 and 5.8px at 1280.
+    SO THE EXTRA IS MEASURED AND KEPT AT ITS HIGH-WATER MARK, as a share of the
+    head's side. Chasing the live rect instead was tried and is worse, and the
+    reason is a clock: the spring in controls.css takes --sp-settle-dur to
+    arrive and the poses cycle faster than that, so the head is always chasing
+    the last pose and the bucket dips under the fold on the way -- measured at
+    320x800, 19 frames of a performance over the line, worst 13.9px. A
+    high-water mark settles within about a second on the deepest pose the
+    performance has, and then stops moving. It is a FRACTION rather than a
+    pixel count so that it survives the visitor resizing the head, and it is
+    cleared when a performance starts so a big head's allowance is not still
+    lifting a small one. No trigonometry appears anywhere. */
+ var foot=chin+faceRect.width*(MOVIE_BUCKET_SHARE*MOVIE_BUCKET_ASPECT-MOVIE_CHIN_OVERLAP);
+ if(bucketEl&&faceRect.width){
+  var drawn=bucketEl.getBoundingClientRect();
+  if(drawn.height)movieFootExtra=Math.max(movieFootExtra,(drawn.bottom-applied-foot)/faceRect.width);
+ }
+ foot+=movieFootExtra*faceRect.width;
+ var inset=parseFloat(getComputedStyle(hero).getPropertyValue("--hero-floor-inset"))||0;
+ var need=Math.max(0,foot-(clip.getBoundingClientRect().bottom-inset));
+ var allowed=Math.max(0,crown-copy.getBoundingClientRect().top);
+ var next=-Math.min(need,allowed);
+ /* HALF A PIXEL, NOT A TWENTIETH. The target now rides the bucket's own rect,
+    which the movie's poses wobble by a few pixels every frame, and every write
+    restarts the 360ms spring in controls.css. A 0.05px threshold rewrote it on
+    every frame of the performance for motion nobody can see; half a pixel lets
+    the spring settle between poses and still tracks a drag instantly. */
+ if(Math.abs(next-current)>.5)heroHeadTransform.style.setProperty("--hero-movie-guard-y",next.toFixed(2)+"px");
 }
 /* ── A BOUNDING BOX IS NOT A FRAME, AND THE HEAD IS NEVER LEVEL ──────────────
    This function used to place the effects layer from stage.getBoundingClientRect().
@@ -1540,10 +1616,9 @@ function syncMovieEffectsLayer(){
    and neither on X, which is why the failure reads as "same size, same x,
    wrong y". The idle float, which hero-head-transform.js writes to
    --hero-head-float-* on its own animation frame and which never dispatches
-   the event. And --hero-movie-guard-y, which enforceMovieSafeProjection()
-   re-integrates on every 125ms tick of the engine loop below, and which climbs
-   to ~83px at 1280x650 because the Hero is short enough there that the head
-   has to be pushed clear of the copy. Together: 3-5px of drift on a settled
+   the event. And --hero-movie-guard-y, which movieCompositionFit()
+   re-solves on every frame of the loop below, and which was climbing
+   to ~83px at 1280x650 while it was still a downward guard. Together: 3-5px of drift on a settled
    movie, and the full height of the guard -- 83px, the whole distance between
    the resting head and the movie head -- on any run where the peek's 360ms ran
    out before the guard had finished ramping. The Hero's lighting composites
@@ -1554,20 +1629,25 @@ function syncMovieEffectsLayer(){
 var movieSyncFrame=0;
 function movieSyncLoop(){
  if(!movieMode){movieSyncFrame=0;return;}
+ /* The fit rides the same clock as the layer: the head floats, drifts and can
+    be dragged mid-performance, so the geometry it is solved from moves every
+    frame. Solving it BEFORE the layer is synced puts the props on the head's
+    settled position rather than one frame behind it. */
+ movieCompositionFit();
  syncMovieEffectsLayer();
  movieSyncFrame=requestAnimationFrame(movieSyncLoop);
 }
 function startMovieSync(){if(!movieSyncFrame)movieSyncFrame=requestAnimationFrame(movieSyncLoop);}
 function stopMovieSync(){if(movieSyncFrame)cancelAnimationFrame(movieSyncFrame);movieSyncFrame=0;}
 window.addEventListener("heroheadtransform",function(){
- if(movieMode){enforceMovieSafeProjection();syncMovieEffectsLayer();}
+ if(movieMode){movieCompositionFit();syncMovieEffectsLayer();}
 });
 function setMovieStageTransform(value){
  stage.style.transform=value;
  /* The layer no longer COPIES the stage's pose -- syncMovieEffectsLayer()
     measures the composed result, of which this pose is one factor, so writing
     it here as well would apply it twice. */
- enforceMovieSafeProjection();
+ movieCompositionFit();
  if(movieMode)syncMovieEffectsLayer();
  dispatchEvent(new CustomEvent("heroheadstagechange"));
 }
@@ -1616,6 +1696,7 @@ function startMovie(word){
  setMoviePeek(true);
  ensureMovieEls();
  syncMovieEffectsLayer();
+ movieFootExtra=0;
  movieMode=true;startMovieSync();movieEnding=false;movieHair=false;movieTk0=tk;eventLock=true;clearTimeout(cycTimer);cycHold=true;if(cycWord){var mw=makePlainCycWord(word||"Motion.");cycWord.replaceWith(mw);cycWord=mw;}
  setFace("neutral");mouthimg.src=FACES.rest.img;mouthimg.style.opacity="0";setMouth(0);
  for(var i=0;i<kernelEls.length;i++)kernelEls[i].style.opacity="0";

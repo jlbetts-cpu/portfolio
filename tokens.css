@@ -821,7 +821,15 @@
  --hero-peek-width:520px;
  --hero-peek-depth:calc(190px + var(--sp-16));
  --hero-peek-offset:var(--sp-8);
- --hero-peek-lift:var(--sp-64);
+ /* --hero-peek-lift IS DELETED, NOT ZEROED. It was how far .heroCharacterPeek
+    rose during a movie -- 64px here, 48px on a phone -- and the peek is the
+    head's own crop, so the translate it fed took the crop with it: driven up
+    its full 64px at 1440x900 the chin was sliced off at y=494 rather than at
+    the Hero's floor at 560. It could never lift the head, only crop it, and on
+    the shipped build it resolved to 7.5px DOWNWARD. The movie's vertical fit
+    is solved per frame inside the crop now, against the bucket's foot and the
+    headline's first line; see hero-engine.js's movieCompositionFit(). A knob
+    left at zero is something the next person finds and turns back on. */
  /* NO BLEED AND NO BOTTOM FADE. A bleed token and a downward mask existed so
     the light could fall into the work section; Jayden rejected that outright
     ("I liked when it was sharp"). The gradient now stops dead on the Hero's
@@ -1010,8 +1018,8 @@
  --work-meta-gap:var(--sp-12);
  --media-mockup-inset:var(--sp-16);
  --hero-peek-width:clamp(312px,calc(100vw - var(--sp-8)),520px);
- --hero-peek-depth:clamp(110px,calc(42vw - var(--sp-24)),140px);--hero-peek-offset:var(--sp-4);
- --hero-peek-lift:var(--sp-48)
+ --hero-peek-depth:clamp(110px,calc(42vw - var(--sp-24)),140px);--hero-peek-offset:var(--sp-4)
+ /* the phone's --hero-peek-lift went with the desktop one; see the note above */
 }
 
 /* THE UPGRADE IS svh NOW, NOT dvh, AND THE GUARD IS THE SAME. Only engines that

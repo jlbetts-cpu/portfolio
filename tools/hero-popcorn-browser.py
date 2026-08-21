@@ -87,7 +87,24 @@ def inspect_frame(page):
           }
 
           const near = (a, b) => Math.abs(a - b) <= 0.5;
+          // ── WHERE THE BUCKET ACTUALLY IS, NOT JUST WHETHER IT LEAKS ──────
+          // Everything above this line asks whether a prop paints OUTSIDE the
+          // Hero, and the answer stayed "no" for the entire time the bucket was
+          // being destroyed: the crop was working perfectly and it was cropping
+          // away the whole prop. On 2026-08-21, with the movie running and the
+          // head in its default arrangement, 15% of the bucket was on screen at
+          // 1440 and its top edge sat 22.4px BELOW the Hero's floor once the
+          // head had been dragged. Not one assertion in this file could see it.
+          // So the containment question is asked from both sides now.
+          const bucketBox = bucket &&
+            Number.parseFloat(getComputedStyle(bucket).opacity) > 0.5 ? rect(bucket) : null;
+          const bucketBelowHero = bucketBox ? bucketBox.bottom - heroRect.bottom : null;
+          const bucketVisible = bucketBox
+            ? (Math.min(bucketBox.bottom, heroRect.bottom) -
+               Math.max(bucketBox.top, heroRect.top)) / bucketBox.height
+            : null;
           return {
+            bucketBelowHero, bucketVisible,
             heroOverflow: getComputedStyle(hero).overflow,
             peekOverflow: getComputedStyle(document.querySelector('.heroCharacterPeek')).overflow,
             clipOverflow: clip && getComputedStyle(clip).overflow,
@@ -108,6 +125,8 @@ def inspect_frame(page):
             leaking,
             stageTransform: getComputedStyle(stage).transform,
             hostTransform: host && getComputedStyle(host).transform,
+            stageRect: rect(stage),
+            hostRect: host && rect(host),
             bucketAboveFace,
             heroScrollTop: hero.scrollTop,
             horizontalOverflow: document.documentElement.scrollWidth > document.documentElement.clientWidth,
@@ -169,10 +188,50 @@ def run_viewport(browser, base_url, label, width, height):
     assert first["counts"] == {"bucket": 1, "kernels": 7, "crumbs": 12}, first
     assert set(first["parents"]) == {"heroMovieEffectsStage"}, first
     assert all(not sample["leaking"] for sample in samples), samples
-    assert all(sample["stageTransform"] == sample["hostTransform"] for sample in samples), samples
+    # ── THE LAYER IS NOT A COPY OF THE STAGE'S TRANSFORM ANY MORE ───────────
+    # This compared the two matrices as strings and it has been red at HEAD, on
+    # a tree with no popcorn work in it, since the layer stopped copying the
+    # pose: syncMovieEffectsLayer() measures the stage's real basis from three
+    # probes now -- the resting angle, the visitor's arrangement, the idle
+    # float, .stagewrap's glide AND the movie's pose, all of it -- and writes
+    # that. So the stage reads matrix(1,0,0,1,0,0.8) while the host correctly
+    # reads matrix(0.99948,0.0323,-0.0323,0.99948,0,0), and the equality can
+    # only pass on a build where the layer has gone back to being wrong. The
+    # engine's own essay says so in as many words: "the layer no longer COPIES
+    # the stage's pose ... writing it here as well would apply it twice."
+    # WHAT IT MEANT IS STILL WORTH ASSERTING, so it is asserted directly: the
+    # props' coordinate space and the stage must land on the same rectangle.
+    # That is a claim about where things are drawn rather than about how the
+    # matrix was spelled, and it is the same weld tools/hero-head-transform
+    # -contract.py holds the layer to.
+    for sample in samples:
+        assert all(abs(sample["stageRect"][edge] - sample["hostRect"][edge]) <= 2
+                   for edge in ("left", "top", "right", "bottom")), (label, sample)
     assert any(sample["bucketAboveFace"] is True for sample in samples), samples
     assert all(sample["heroScrollTop"] == 0 for sample in samples), samples
     assert all(not sample["horizontalOverflow"] for sample in samples), samples
+    # ── THE BUCKET IS IN THE FRAME, AND THAT IS WHAT "IT WORKS" MEANS ────────
+    # Jayden, 2026-08-21: "the popcorn bucket animation should work on the
+    # movie please fix". A bucket that is cropped to a smear of popcorn at the
+    # fold is not a bucket being held below the frame line, it is the prop
+    # missing -- and the kernels fly OUT of it, so a cropped bucket takes the
+    # rest of the performance's legibility with it.
+    # THE SAMPLES ARE SPLIT BECAUSE THE ENTRANCE IS MOTION, NOT A STATE. The
+    # composition's fit springs in over --sp-settle-dur while the bucket is
+    # still fading up, so for the first few frames the prop is genuinely rising
+    # into the frame and asserting containment there would be asserting that the
+    # entrance does not happen. Everything after it is the performance, and the
+    # performance has to hold: every chew, bob, squash and shake, at every
+    # viewport, with the head where the visitor found it.
+    settled = [sample for sample in samples[5:] if sample["bucketBelowHero"] is not None]
+    assert len(settled) >= 8, (label, len(settled), samples)
+    worst = max(sample["bucketBelowHero"] for sample in settled)
+    assert worst <= 0, (
+        f"{label}: the popcorn bucket hangs {worst:.1f}px below the Hero's floor "
+        "and is cropped away there", settled)
+    least = min(sample["bucketVisible"] for sample in settled)
+    assert least >= 0.999, (
+        f"{label}: only {least:.0%} of the popcorn bucket is inside the Hero", settled)
 
     page.screenshot(path=str(SHOTS / f"{label}-contained.png"), full_page=False)
     assert not errors, errors

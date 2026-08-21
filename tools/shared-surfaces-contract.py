@@ -88,7 +88,16 @@ def main():
         "--surface-radius", "--surface-radius-compact", "--surface-hero-radius",
         "--surface-hero-pad", "--surface-pad",
         "--surface-inset", "--surface-gutter", "--surface-gap",
-        "--hero-peek-width", "--hero-peek-depth", "--hero-peek-offset", "--hero-peek-lift",
+        # --hero-peek-lift IS GONE FROM THIS LIST BECAUSE IT IS GONE FROM THE
+        # SITE, 2026-08-21. It was the distance .heroCharacterPeek rose during a
+        # movie, and the peek is the head's own crop -- the translate it fed
+        # moved the crop with it, so driven up its authored 64px at 1440x900 the
+        # chin was cut off at y=494 instead of at the Hero's floor at 560. It
+        # could only ever crop the head. The movie's vertical fit is solved per
+        # frame on --hero-movie-guard-y instead, inside the crop; see
+        # hero-engine.js's movieCompositionFit(). Asserting the token still
+        # exists would be asserting the dead knob.
+        "--hero-peek-width", "--hero-peek-depth", "--hero-peek-offset",
         "--media-mockup-inset", "--scene-cut-duration", "--scene-cut-ease",
         "--star-twinkle-duration", "--star-twinkle-ease", "--star-bright-size", "--star-glow-size",
         "--menu-viewport-gutter",
