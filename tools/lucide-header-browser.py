@@ -18,8 +18,15 @@ VIEWPORTS = (
     ("mobile-320", 320, 800, True),
 )
 THEMES = ("off", "night")
+# ── "work" BECAME "home".  2026-08-21 ──────────────────────────────────────
+# Jayden: "can we make the work tab and turn into the home with a home icon".
+# The key here is the data-nav-item attribute, so the rename has to land in this
+# dict or every route fails on a missing selector rather than on a wrong glyph.
+# The pin is still on the DRAWING, not the mechanism -- lucide-house has to exist
+# in ui-icons.svg and the header has to inline that exact shape -- which is the
+# property that made this file worth keeping when the sprite fetch was removed.
 EXPECTED = {
-    "work": "lucide-briefcase-business",
+    "home": "lucide-house",
     "about": "lucide-user-round",
     "games": "lucide-gamepad-2",
     "contact": "lucide-mail",
@@ -137,7 +144,7 @@ def verify_page(browser, base_url, route, viewport, theme):
         """
         () => {
           const nav = document.querySelector('.jbNav');
-          const ico = document.querySelector('.jbNav [data-nav-item="work"] .uiIcon');
+          const ico = document.querySelector('.jbNav [data-nav-item="home"] .uiIcon');
           const logo = document.querySelector('.jbNav .jbLogo');
           const rect = nav.getBoundingClientRect();
           const ir = ico.getBoundingClientRect();
@@ -167,9 +174,12 @@ def verify_page(browser, base_url, route, viewport, theme):
               return un ? getComputedStyle(un).display : null;
             })(),
             /* THE BOX IS MEASURED ON AN UNLIT ITEM, not on Work. Work carries
-               aria-current on index.html, and below 640 the lit item is the one
-               that drops its glyph -- so the old fixed `ico` probe measured the
-               one icon the design deliberately hides and read 0x0. */
+               aria-current on index.html (the item is Home as of 2026-08-21),
+               and under the round-14 rule the lit item was the one that dropped
+               its glyph -- so the old fixed `ico` probe measured the one icon
+               the design deliberately hid and read 0x0. Round 15 gave that
+               glyph back; the unlit probe is kept because it is the one that
+               works whichever way that rule goes. */
             unlitIcon: (() => {
               const un = nav.querySelector(
                 '[data-nav-item]:not([aria-current]) .uiIcon');
@@ -191,8 +201,9 @@ def verify_page(browser, base_url, route, viewport, theme):
     # because five glyphs beside five words repeat what the words already say and
     # give the eye ten objects to sort instead of five. Below 640 the labels do
     # not fit (header.css §6) and the glyph IS the item, so the 16px box is still
-    # the contract -- and the LIT item drops its glyph there instead of carrying
-    # both, so the current page is the only WORD in the row.
+    # the contract. (The clause that used to follow -- "and the LIT item drops
+    # its glyph there instead of carrying both" -- described round 14 and was
+    # reversed by round 15; see the assertion below.)
     # Written as an either/or rather than deleted: a build that puts the icons
     # back on desktop, or takes them off mobile, fails here in both directions.
     if width <= 640:
@@ -201,7 +212,24 @@ def verify_page(browser, base_url, route, viewport, theme):
         assert un["w"] == 16 and un["h"] == 16, (route, label, metrics)
         assert un["pw"] > 0 and un["ph"] > 0, (route, label, metrics)
         assert metrics["unlitIconDisplay"] not in (None, "none"), (route, label, metrics)
-        assert metrics["litIconDisplay"] in (None, "none"), (route, label, metrics)
+        # ── THIS ASSERTION WAS PINNING A DECISION THAT HAD ALREADY BEEN
+        # REVERSED, and it was failing on main before 2026-08-21 touched it.
+        # It demanded the LIT item hide its glyph, which was correct while the
+        # mobile rule handed the current page its WORD back instead. Round 15
+        # (header.css §6, 2026-08-20) took that word away -- Jayden: "the rest
+        # should be just text instead of the icons or just icons" -- so the row
+        # is now uniformly glyphs, and hiding the lit one would leave the
+        # current page as the only item with nothing in it at all. header.css
+        # says exactly that in the note above `.jbNav .jbContactBtn`.
+        # It is INVERTED rather than deleted, so it still fails in both
+        # directions: a build that hides the lit glyph again, or one that lets
+        # the lit item drop out of the row, is caught here.
+        # A case study lights NOTHING as of 2026-08-21: the first item is Home,
+        # and a case study is not the home page, so aria-current came off it.
+        # `None` here means "no lit item on this route", which is a legal state
+        # and not the state this guards against.
+        if metrics["litIconDisplay"] is not None:
+            assert metrics["litIconDisplay"] != "none", (route, label, metrics)
     else:
         assert metrics["iconDisplay"] == "none", (route, label, metrics)
     # THIS ASSERTION IS INVERTED, and the inversion is the fix.

@@ -1381,6 +1381,12 @@
      of nav. The bar has 358px at 390 -- two pixels of slack -- and 288px at
      320, where it is 68px short. All-text does not fit the phone, so the
      uniform treatment is the glyphs, which is what §6 above already says.
+     RE-MEASURED 2026-08-21, WHEN Work BECAME Home: "Home" is 33.3px against
+     "Work"'s 30.6, so the all-text bar is 358.7px against the same 358 and the
+     two pixels of slack are now a 0.7px overflow. The decision does not change
+     -- it only stops being marginal -- and nothing below 640 renders a label
+     anyway, so this is the arithmetic staying honest rather than a new
+     constraint. Home ships lucide-house; the glyph is what the phone shows.
      WHICH ITEM IS CURRENT IS STILL ANSWERED: the travelling indicator marks it,
      aria-current is on it, and every item keeps its aria-label at every width.
      The word was never the only signal, it was a second one. */

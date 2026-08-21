@@ -73,7 +73,14 @@ var SVG_NS="http://www.w3.org/2000/svg";
    than half-done: with the fetch gone the swap is now synchronous inside this
    deferred script -- one frame, never blank -- instead of a hole. */
 var ICONS={
- "lucide-briefcase-business":'<path d="M12 12h.01"/><path d="M16 6V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><path d="M22 13a18.15 18.15 0 0 1-20 0"/><rect width="20" height="14" x="2" y="6" rx="2"/>',
+ /* A HOUSE, NOT A BRIEFCASE.  2026-08-21. Jayden: "can we make the work tab
+    and turn into the home with a home icon". The first item was Work and is now
+    Home on all ten routes, pointing at index.html rather than index.html#cases.
+    The old drawing is deleted rather than kept beside this one: nothing asks for
+    it any more, and an icon table carrying shapes nothing shows is how a table
+    stops being read -- the same note the chevron got below. ui-icons.svg carries
+    lucide-house, so the sprite is still the source of truth for this shape. */
+ "lucide-house":'<path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
  "lucide-user-round":'<circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/>',
  "lucide-gamepad-2":'<line x1="6" x2="10" y1="11" y2="11"/><line x1="8" x2="8" y1="9" y2="13"/><line x1="15" x2="15.01" y1="12" y2="12"/><line x1="18" x2="18.01" y1="10" y2="10"/><path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258-.006-.051-.011-.1-.017-.151A4 4 0 0 0 17.32 5z"/>',
  "lucide-mail":'<rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>',
@@ -103,7 +110,7 @@ function replaceIcon(control,symbol){
   if(old)old.replaceWith(lucideIcon(symbol));
 }
 
-var navSymbols={work:"lucide-briefcase-business",about:"lucide-user-round",
+var navSymbols={home:"lucide-house",about:"lucide-user-round",
   games:"lucide-gamepad-2",contact:"lucide-mail"};
 Object.keys(navSymbols).forEach(function(key){
   [].forEach.call(nav.querySelectorAll('[data-nav-item="'+key+'"]'),function(control){

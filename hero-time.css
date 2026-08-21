@@ -108,9 +108,22 @@
     in tools/hero-head-transform-contract.py rather than reasoned about: the
     resting position stays legal under the reachability clamp (a bigger head
     needs a bigger share inside the Hero), and the entrance still lands exactly
-    on rest. The phone value below is deliberately NOT scaled with it -- see
-    the note there; growing it re-clips the face off the left edge. */
- --hero-peek-width:275px;
+    on rest. */
+ /* AND 275 -> 235 ON 2026-08-21: "I also think the head should be a bit smaller
+    default." -14.5%, which is the same one step back down, and the number is
+    the size he had already lived with before the +17% rather than an invented
+    one. THE REASON IT READS DIFFERENTLY NOW IS THE TRAVEL. When 275 was chosen
+    the head sat still; it drifts across the Hero since a7259ab, and at 275 the
+    crown crosses the FIRST headline line -- looked at, at 1440: the head
+    occludes the S of "SF" and most of "B2C" at rest, top edge 231 against an h1
+    top of 218.5. At 235 the head's top is 272 and the crown clears the first
+    line entirely, so the headline the last commit went to the trouble of making
+    legible stays legible while the head travels past it.
+    LOOKED AT, NOT COUNTED: four candidates rendered at 1440 and 390 (275 / 248
+    / 234 / 220 and 211 / 190 / 180 / 169) and the PNGs opened. 220 reads
+    stranded in a 1440 Hero; 248 still crowds the second line. The phone follows
+    at the SAME ratio for once -- see the note below. */
+ --hero-peek-width:235px;
  --hero-peek-shift-x:-241px;
  /* NEGATIVE DEPTH, AND THAT IS THE POINT. Depth is how far the head hangs
     PAST the Hero's floor, so a negative value lifts it clear of the floor
@@ -291,7 +304,21 @@
  --hero-head-crowd-rate:50svh
 }}}
 @media(max-width:760px){:root{
- --hero-peek-width:211px;
+ /* 211 -> 180, the same -14.5% as the desktop above, on the same request.
+    THE "NOT SCALED WITH IT" NOTE ABOVE WAS ABOUT GROWING, and it still stands:
+    a wider head at 390 re-clips the face off the left edge, which is why the
+    +17% stopped at the desktop. Shrinking runs the other way and buys gutter --
+    measured at 390, the head's left edge moves 15.5 -> 31.0px, and its rotated
+    bounding box (211 square at -13.8deg was 256.96) comes down with it, so the
+    clearance --hero-peek-depth was solved for only gets bigger.
+    WHAT IT FIXES ON THE PHONE, looked at rather than measured: at 211 the NW
+    and NE handles sit ON "Open to full-time roles." and the crown crosses it.
+    At 180 the whole frame clears the line. An earlier pass today tried 92% here
+    and kept 100% because the head read LOST against the headline -- that was a
+    judgement about 194px with a 275px desktop still in place; with both coming
+    down together the head is still 46% of the viewport's width and the thing it
+    stops covering is his own subhead. */
+ --hero-peek-width:180px;
  /* -152 was read off the HUD at 390 and it puts the head OFF-SCREEN: at 211px
     wide the centre lands at x=43, so the left edge is -62.5 and about a quarter
     of the face is sliced by the screen. -74 seats it with a 16px gutter, which
