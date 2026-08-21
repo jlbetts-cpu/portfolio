@@ -364,7 +364,10 @@ def check_surface(page, name, fails):
 # and the one where a vw-only rule would collapse.
 # The tolerance is 1.5px for sub-pixel layout, not for slack: this is a declared
 # height, not a measured one, and it should land exactly.
-BAND_H = {1440: 114.0, 390: 63.0, 320: 63.0}
+# Raised ~21% on 2026-08-20 -- "a little bit bigger ... a bit to small height
+# wise". Still roughly half the pre-halving band, which is the point: it is the
+# page's closing note, not a second hero.
+BAND_H = {1440: 137.0, 390: 76.0, 320: 76.0}
 # What the band measured at each width BEFORE Jayden asked for half, so the
 # failure message can name the real number instead of doubling the wanted one --
 # which stopped being true the moment the two ends stopped being one operation.

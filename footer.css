@@ -436,7 +436,18 @@
     and a laptop moves, and there is still no breakpoint.
     Not a --sp rung: the spacing ladder tops out at 80 and this is a surface
     dimension, not a gap. */
- height:clamp(63px,4.86vw + 44.1px,114px);
+ /* UP ABOUT A FIFTH, 2026-08-20: "could you make the footer gradient just a
+    little bit bigger right now it looks a bit to small height wise."
+    Same shape, both ends moved together so the slope stays gentle and there is
+    still no breakpoint: 76 at 320/360, 76.1 at 390, 97.6 at 768, 127.1 at 1280,
+    137 at 1440 and above. Computed, not derived on paper.
+    A LITTLE means a little -- this is +20.6% and it is deliberately not more.
+    The band is the page's closing note, not a second hero, and it was halved
+    from 227.5 an hour ago because at that size it WAS one. The glyph field is
+    26px per row, so this buys 5.3 rows at 1440 against 4.4 and 2.9 at 390
+    against 2.4 -- enough that the mesh reads as a field rather than as a strip,
+    which is the actual complaint. */
+ height:clamp(76px,5.81vw + 53.34px,137px);
  /* THE FALLBACK GROUND, and it is the whole band with JS off. Three stops off
     the same palette the canvas mixes, so the no-script picture is the still
     frame of the animated one rather than a different design. */
