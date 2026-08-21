@@ -276,14 +276,34 @@ Behav. Med.* 52(5)); fixed generic pings habituate to zero.
 
 Premium is subtraction, and this is where it applies:
 
-1. **Kitchen — the whole tab.** Without a key it is a pantry list and an empty
-   grocery list; with one it is a Sonnet call he will run twice. Keep the protein
-   check-off as one habit inside the Gym area. Clearest subtraction in the app.
-2. **Museum** — dead source, already tree-shaken. Delete the files.
-3. **Eleven month palettes** — `paletteFor()` ignores its argument.
-4. **Memory → Polish.**
-5. **Books demoted, not cut** — fold into the Reading area as a session type. It
-   is a real practice and it already feeds Memory.
+> **KITCHEN IS NOT CUT. REVERSED BY JAYDEN, 2026-08-20:** *"instead of removing
+> kitchen I think maybe a rework like it should do the same with the api but add
+> to it making it useful without api. Like the books sections is also useless
+> without api just make them useful on top of the api so I can use it daily but I
+> do think eating right is an important part of any day."*
+>
+> He is right and this section was wrong. The rule he set is "every tab must have
+> a purpose without an API key" — and the correct response to a tab that fails it
+> is to give it a keyless core, not to delete it. Deleting was the lazy reading.
+> Eating is a daily practice, which makes Kitchen a candidate for the same
+> treatment the rest of the app is getting: an AREA with SESSIONS and a HABIT,
+> with the model as a layer on top rather than the load-bearing wall.
+> The same applies to Books, for the same reason and by the same instruction.
+
+1. **Kitchen — REWORKED, NOT CUT.** Keyless core: his own saved meals with their
+   protein values, a manual pantry, a grocery list he can build himself, and the
+   protein target he already tracks per day. The Sonnet fridge-photo plan stays,
+   layered ON TOP of that — it fills the same structures rather than being the
+   only way to fill them. Ties into the existing protein check-off on the day
+   sheet so the daily practice is one thing, not two.
+2. **Books — REWORKED, NOT DEMOTED.** Keyless core: the shelf, progress, and his
+   own notes and quotes, with reading recorded as SESSIONS against the Reading
+   area (which is one of his eight). The Socratic partner stays as the layer on
+   top. Quotes still flow to Memory.
+3. **Museum** — dead source, already tree-shaken, imported by zero files. Delete.
+4. **Eleven month palettes** — `paletteFor()` ignores its argument.
+5. **Memory → Polish.** A Sonnet call that rewrites a deterministic file can only
+   add drift.
 6. **Local AI toggle as it stands** — either it becomes Memory's retrieval engine
    (then it is load-bearing and stays) or the 21.6 MB goes.
 7. **Six `shadow-2xl` sheets** and **the third font weight.**
