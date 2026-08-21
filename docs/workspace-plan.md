@@ -157,9 +157,22 @@ expressed as a **range**. Habits *and* sessions belong to exactly one. His eight
 reading, communication, gym, product design, friendships, applications, acting,
 modeling.
 
-**Kill the per-habit streak. Show area weight instead:** for each area, the
-last-28-days *share of days touched*, plus a "last touched" date. Eight
+**Kill the per-habit streak. Show area weight instead:** for each area,
+**sessions per week over the last 8 weeks**, plus a "last touched" date. Eight
 sparklines. No consecutive counters, no zeros shouting at him.
+
+> **Corrected 2026-08-21, in Phase 3.** This paragraph originally said
+> "last-28-days share of days touched". That was a second unit for an idea that
+> already had one: the `areas` store shipped in Phase 1 holds
+> `weeklyTarget: {min, max}` in SESSIONS PER WEEK, and the chips Phase 2 draws
+> count sessions this week. Two units for one measure is how a number comes to
+> mean different things on two screens, and a target expressed as a weekly
+> range cannot be compared against a 28-day percentage without inventing a
+> conversion. **Sessions per week wins** — it is what the database keeps, what
+> a finished session increments, and what a range is written in. "Days touched"
+> also silently discards the second session of a day, which is real work.
+> The sparkline is therefore sessions per week across recent weeks, with the
+> target range drawn into it as a band, plus a last-touched DATE.
 
 The evidence cuts both ways, and neither way is what the internet says:
 - **Pro-streak is real:** an RCT with **60,000 students** found streak
@@ -294,8 +307,8 @@ The workflow element. Depends on Phase 1 only. **This is the phase that changes
 his day**, so it should land before anything cosmetic.
 
 ### Phase 3 — Areas + Week
-Sparklines (28-day share, last-touched), the three anchors, the pull-from-backlog
-menu. Needs Phase 2 to have produced data.
+Sparklines (sessions per week over 8 weeks, last-touched), the three anchors,
+the pull-from-backlog menu. Needs Phase 2 to have produced data.
 
 ### Phase 4 — Memory rework
 Tags/area, Work context, `embed()` aimed at memory items, "pull reference" from a
