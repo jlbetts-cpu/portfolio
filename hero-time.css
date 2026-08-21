@@ -1855,6 +1855,24 @@
    so it is the one signal that had to survive the deletion rather than go with
    it. */
 #heroHeadSelection[data-selection="idle"]{cursor:pointer}
+/* ── AND THE IDLE DOTS DROP TO THE HAIRLINE'S OWN INK ────────────────────────
+   Jayden, 2026-08-20: "could you make the resize boxes when you arent clicked
+   on less obvious right now it black outline maybe use the same color as the
+   faint line outlines."
+   The ring is --sel-ink, which is --time-ink -- the adaptive headline ink, so
+   in five of the six skies it is very close to black. That weight is right when
+   the head is the thing you are working on and too loud when it is just sitting
+   there, which is most of the time now that the frame no longer disappears.
+   --rule IS THE SAME INK AS EVERY OTHER BOUNDARY ON THE PAGE: 10% of the ink,
+   the value the header's floor, the Hero's bottom edge and play's margin rails
+   all draw with. Naming it here rather than inventing a fainter grey is the
+   whole point -- the resting frame becomes another hairline in the same system,
+   and it goes dark again the moment you touch it, which is what makes the
+   change in state legible rather than decorative.
+   THE DOT'S FILL STAYS --time-base. The ring is what carries the weight; a dot
+   that also lost its ground would disappear against a pale sky instead of
+   quieting down. */
+#heroHeadSelection[data-selection="idle"]{--sel-ink:var(--rule)}
 
 .heroTime{position:relative;z-index:12;display:inline-flex}
 /* ── THE TIME CONTROL SITS IN THE SKY, NOT ON IT ─────────────────────────────
