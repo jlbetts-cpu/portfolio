@@ -26,7 +26,7 @@
      a hand-copied subset of the token block plus a second flagged "top-up" block at its
      foot; both are gone -- tokens.css is the one source now. See
      .superpowers/sdd/2026-08-02-play-page/play-tokens-report.md §1. -->
-<link rel="stylesheet" href="tokens.css?v=10e02e90e0">
+<link rel="stylesheet" href="tokens.css?v=c7ac5b9c20">
 <link rel="stylesheet" href="play.css">
 <!-- THE TOURNAMENT SCREEN. Its own sheet, after play.css so that where the two touch the
      same element source order settles it without an !important. The tournament styles that
@@ -883,6 +883,16 @@
     padding, no second type scale, no second hover, no rule of its own. Everything that
     makes it read as part of the band is the band's. See the markup for why exactly one
     cell spans and why it is this one. */
+ /* NOTHING SPANS ANY MORE.  2026-08-27.  Jayden: "why is the yowmings league its own
+    line when there is a space right there."
+    The span was fine while the menu held SEVEN cards -- one wide row plus three pairs.
+    Removing the draft board left six, and six is one wide row plus two pairs plus a
+    single, so Workspace sat alone at the left with an empty half-cell beside it and
+    the wide card above it had a whole line to itself. Six equal cells are three clean
+    pairs with no hole anywhere, which is what he is looking at.
+    The rule is kept, unused, because the count is what decides this: put a seventh
+    card back and the wide cell becomes right again. Re-add pCardWide to the markup if
+    that day comes -- do not re-derive it. */
  .pCardWide{grid-column:1/-1}
  /* THE MEASURE ONLY EXISTS BECAUSE THE CELL IS TWICE AS WIDE, so it only exists where that
     is true. Below 560 the grid is one column, the wide cell is the SAME width as every
@@ -1242,12 +1252,11 @@
     of discovering it in a screenshot. ---- */
  #tHeadEdge feFlood{flood-color:var(--head-edge)}
 </style>
-<link rel="stylesheet" href="header.css?v=10e02e90e0">
-<link rel="stylesheet" href="footer.css?v=10e02e90e0">
-<link rel="stylesheet" href="controls.css?v=10e02e90e0">
-<link rel="stylesheet" href="site-theme.css?v=10e02e90e0">
+<link rel="stylesheet" href="header.css?v=c7ac5b9c20">
+<link rel="stylesheet" href="footer.css?v=c7ac5b9c20">
+<link rel="stylesheet" href="controls.css?v=c7ac5b9c20">
+<link rel="stylesheet" href="site-theme.css?v=c7ac5b9c20">
 <script src="header.js" defer></script>
-<script src="footer-band.js" defer></script>
 </head><body class="hmFull playBooting" data-nav="games" data-theme-page="play">
 <a class="skipLink ctl ctl--secondary" id="playSkip" href="#games">Skip to games</a>
 <!-- FIX ROUND 2 (Task 2): filter defs SHARED with index.html:2316-2318, copied verbatim, not moved -- index.html keeps its own copies. Must be inlined here, not linked: Safari does not support filters referenced from an external or data: URL (see index.html's own comment on tHeadEdge). #tHeadEdge is unused on play.html today but Task 4's tournament head edges need it. -->
@@ -1406,7 +1415,7 @@
        Nothing is labelled. A visitor reads pairs down the column and the sorting is
        obvious; that is what "premium is subtraction" buys you when it works.
        ═══════════════════════════════════════════════════════════════════════════════ -->
-  <button class="pCard pCardWide" id="pcYow" type="button">
+  <button class="pCard" id="pcYow" type="button">
    <svg class="gIco" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 3a6 6 0 0 1 4 4c0 6.075 -7.925 14 -14 14a6 6 0 0 1 -4 -4c0 -6.075 7.925 -14 14 -14z"/><path d="M12 8l4 4"/><path d="M10 10l4 4"/><path d="M8 12l4 4"/></svg>
    <span class="pCardT">Yowmings League</span>
    <span class="pCardD">Goalposts and a football. A marble race seeds the cup, and the last screen is your draft order.</span>
@@ -1486,7 +1495,7 @@
     </div>
    </nav>
   </div>
-  <div class="footBand"><canvas class="footBandField" aria-hidden="true"></canvas></div>
+  <div class="footBand"></div>
  </footer>
 <!-- The team screen's shell is built by play-games.js (it owns the chips, the drag, the
      shuffle and the live __hmTeamPreview channel); this is only the mount point, so the

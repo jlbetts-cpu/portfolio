@@ -61,7 +61,7 @@
      in flight with the stylesheet rather than one round trip behind it. -->
 <link rel="preload" as="font" type="font/woff2" href="fonts/geist-latin-400-normal.woff2" crossorigin>
 <link rel="preload" as="font" type="font/woff2" href="fonts/geist-latin-600-normal.woff2" crossorigin>
-<link rel="stylesheet" href="tokens.css?v=10e02e90e0">
+<link rel="stylesheet" href="tokens.css?v=c7ac5b9c20">
 <style>
 /* ===========================================================================
    ABOUT -- a real page, not an overlay.
@@ -588,12 +588,11 @@ body{background:var(--c50);color:var(--c950);font-family:var(--sans);-webkit-fon
      .ctl--quiet.ctl--row, so it needs it -- and it should have had it anyway.
      It loads BEFORE header.css, the same order the five case studies use, so
      header.css keeps the last word on .jbDiscMenu exactly as it does there. -->
-<link rel="stylesheet" href="controls.css?v=10e02e90e0">
-<link rel="stylesheet" href="header.css?v=10e02e90e0">
-<link rel="stylesheet" href="footer.css?v=10e02e90e0">
-<link rel="stylesheet" href="site-theme.css?v=10e02e90e0">
+<link rel="stylesheet" href="controls.css?v=c7ac5b9c20">
+<link rel="stylesheet" href="header.css?v=c7ac5b9c20">
+<link rel="stylesheet" href="footer.css?v=c7ac5b9c20">
+<link rel="stylesheet" href="site-theme.css?v=c7ac5b9c20">
 <script src="header.js" defer></script>
-<script src="footer-band.js" defer></script>
 </head>
 <body data-nav="about" data-theme-page="about">
 <a class="skipLink ctl ctl--secondary" href="#main">Skip to content</a>
@@ -796,7 +795,7 @@ body{background:var(--c50);color:var(--c950);font-family:var(--sans);-webkit-fon
     </div>
    </nav>
   </div>
-  <div class="footBand"><canvas class="footBandField" aria-hidden="true"></canvas></div>
+  <div class="footBand"></div>
  </footer>
 </div>
 <script>

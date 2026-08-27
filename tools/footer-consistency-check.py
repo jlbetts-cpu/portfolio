@@ -361,11 +361,15 @@ def validate_page(page, source, canonical):
     #     mesh should be, which reads as "a bit plain" rather than as broken.
     for needle, why in (
         ('<div class="footBand">', "the band wrapper"),
-        ('<canvas class="footBandField"', "the mesh and glyph canvas"),
+        # THE CANVAS IS NO LONGER ONE OF THESE.  2026-08-27. .footBandField held
+        # the metaball mesh and the glyph layer and both left with the ASCII
+        # treatment. The WRAPPER stays required, and it is the one that matters:
+        # the band's sky is CSS on .footBand, so a page missing the wrapper has
+        # no band at all, which is the failure this loop exists to catch.
     ):
         if needle not in block:
             failures.append("the footer is missing %s (%s)" % (why, needle))
-    if 'src="footer-band.js"' not in source:
+    if False:  # footer-band.js is deleted; nothing to require. See above.
         failures.append("the page does not load footer-band.js; the band will not paint")
 
     # AND THE COUPLING THE BAND DEPENDS ON. footer.css pulls the band down by
@@ -709,16 +713,18 @@ def collect():
 # run cannot leave the tree broken, which is the same discipline
 # footer-band-contract.py's patching server uses.
 INJECTIONS = [
+    # THE ANCHOR THESE TWO PATCHED AGAINST IS GONE, so they are re-anchored on
+    # the band wrapper's own closing tag rather than deleted -- the bug each one
+    # injects (the wordmark coming back, a second canvas coming back) is still a
+    # bug and the self-test still has to be able to fail on it.
     ("the closing wordmark back in the markup (Jayden asked for it to go)",
      "about.html",
-     '<canvas class="footBandField" aria-hidden="true"></canvas></div>',
-     '<canvas class="footBandField" aria-hidden="true"></canvas>'
-     '<div class="footMark" aria-hidden="true">Jayden Betts</div></div>'),
-    ("the knockout canvas back in the markup (footer-band.js no longer looks for it)",
+     '<div class="footBand"></div>',
+     '<div class="footBand"><div class="footMark" aria-hidden="true">Jayden Betts</div></div>'),
+    ("a canvas back in the band (there is no script left to paint one)",
      "about.html",
-     '<canvas class="footBandField" aria-hidden="true"></canvas></div>',
-     '<canvas class="footBandField" aria-hidden="true"></canvas>'
-     '<canvas class="footBandMark" aria-hidden="true"></canvas></div>'),
+     '<div class="footBand"></div>',
+     '<div class="footBand"><canvas class="footBandMark" aria-hidden="true"></canvas></div>'),
     ("the band's height rule dropped (the band computes 0 and vanishes)",
      "footer.css", " height:clamp(63px,4.86vw + 44.1px,114px);", " "),
     ("the hour's sky dropped from the band's lit tone (the tones stop being sky)",

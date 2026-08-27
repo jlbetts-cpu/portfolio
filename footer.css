@@ -322,6 +322,8 @@
    clears the glyph layer. A plain number on purpose -- a custom property comes
    back as its specified token stream, so a clamp() here would arrive as a string
    and parseFloat would hand back NaN. */
+@property --foot-band-sky-low{syntax:"<color>";inherits:true;initial-value:#84868a}
+@property --foot-band-sky-high{syntax:"<color>";inherits:true;initial-value:#d9dadd}
 .footBand{
  /* ── THE HOUR'S SKY ─────────────────────────────────────────────────────────
     Two stops, overridden per state further down, and this pair is the "off"
@@ -332,8 +334,21 @@
     have no hero at all. The stops are therefore restated here, keyed off
     data-theme-state, which site-theme.js writes on <html> on every page. The
     hero stop each one is derived from is named in the comment beside it. */
+ /* ── THE CROSS-FADE IS CSS'S NOW, AND IT HAS TO BE.  2026-08-27 ────────────
+    footer-band.js tweened this palette itself, on --theme-duration, and it was
+    the ONLY thing making the band cross-fade between hours. Deleting the canvas
+    took that with it and left the sky snapping while every other colour in the
+    footer still travelled -- exactly the regression footer-band-contract's
+    theme-walk check was written to catch, and it caught it.
+    Registering the two stops is what makes the transition below possible at
+    all: an unregistered custom property has no type, so it cannot interpolate
+    and `transition` on it is a no-op that fails silently. The four tones are
+    color-mix() OF these two, so they follow for free -- substitution happens at
+    computed-value time on every frame of the tween. */
  --foot-band-sky-low:#84868a;
  --foot-band-sky-high:#d9dadd;
+ transition:--foot-band-sky-low var(--theme-duration,400ms) var(--ease-out),
+            --foot-band-sky-high var(--theme-duration,400ms) var(--ease-out);
  /* HOW MUCH PAGE SHOWS THROUGH THE SKY. 0% is an honest sky swatch; 100% is no
     band at all. It is declared per direction rather than once because the two
     directions are not symmetrical: a light page has somewhere to pull a tone
@@ -471,19 +486,16 @@
  margin-bottom:calc(var(--sp-32-64) * -1);
  overflow:clip
 }
-/* ONE CANVAS NOW, WHERE THERE WERE TWO. The second was .footBandMark -- his
-   name, knocked out of the band with an inner shadow inside every letterform --
-   and it went with the name. What is left is the field: the warped metaball mesh
-   with the glyph layer over it, which is the part he singled out as the thing he
-   liked ("the same gradient found on the workspace with the nice water physics
-   and ascii animations end to end").
-   It covers the band and takes no pointer: the cursor field listens on window
-   and maps into a rect banked on resize. z-index is gone with the second layer;
-   a lone child of an isolated box has nothing to sort against. */
-.footBandField{
- position:absolute;inset:0;display:block;width:100%;height:100%;
- pointer-events:none
-}
+/* NO CANVAS AT ALL NOW, WHERE THERE WERE TWO.  2026-08-27.
+   The first to go was .footBandMark -- his name knocked out of the band -- and
+   it left with the name itself. The second was .footBandField, the metaball
+   mesh with the glyph layer over it, and it leaves now: "Im thinking of
+   removing the ascii gradient on the footer as well. lowkey think it might
+   look cleaner without it," decided in the same breath as the hero's clouds.
+   WHAT STAYS IS THE SKY, and it was always the CSS below rather than the
+   canvas: --foot-band-sky-low/-high per data-theme-state, the veil, and the
+   four tones. footer-band.js only ever painted INTO the canvas; deleting it
+   cannot change a colour on this band. */
 
 /* THE DARK FALLBACK, AND IT IS ONLY A FALLBACK NOW. Only "night" is ever
    data-theme="dark" (site-theme-state.js:50), so the night SKY is authored with
