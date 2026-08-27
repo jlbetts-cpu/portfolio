@@ -718,6 +718,63 @@ img{display:block;max-width:100%;height:auto}   /* height:auto IS THE COMPANION 
    unveiled #090c13 would be a black slab in the middle of white paper. The veil
    above holds it to a deep blue-grey the phone still stands out against. */
 :root[data-theme-state="night"]    .content :is(.playerStage,.tv.tvPhone .tvFrame){--mock-sky-low:#090c13;--mock-sky-mid:#1e2338;--mock-sky-high:#393557}
+
+/* ── THE MOCKUP IS ONE PICTURE AND ONE LINE.  2026-08-27 ─────────────────────
+   Jayden, with https://trungvo.xyz/pillar open beside this: "the mockup
+   containers are not good they have too much information dont need the on top
+   descriptions side arrows need to fit better might be too large spacing is off
+   and not minimal things are over complicated for no reason ... less design is
+   more design. should literally be a simple visual article showing my work."
+   COUNTED BEFORE TOUCHING IT. Around ONE phone there were SIX pieces of chrome:
+   the kick ("From the 24-hour hackathon"), the step ("Nothing chosen yet"), the
+   note ("The camera opens first and asks what the shot is for."), two 44px
+   arrow chips, the tick row, and the figcaption ("Capturing a win."). The
+   reference carries ONE caption per image and nothing else. Six to two is the
+   whole change and everything below is a consequence of it.
+   THE CAPTION GOES ABOVE, which is where the reference puts it and where
+   carousel.css already puts .playerCap with order:-1. */
+.content .playerKick,
+.content .playerCap{display:none}
+.content .photoFig{display:flex;flex-direction:column}
+/* WIDTH BACK. .player carries auto inline margins, and a flex item with auto
+   margins on the cross axis does NOT stretch -- turning the figure into a flex
+   column silently collapsed the ground from the full 1200 column to 400px, the
+   phone's own width. Measured, not guessed: the ground had just been widened to
+   margin-to-margin one commit earlier and this quietly undid it. */
+.content .photoFig>.player{width:100%}
+/* The caption reads as the line that introduces the picture, so it sits at the
+   column's left edge like every other line of the article rather than centred
+   under a phone -- centred, it was an orphan floating over a 1200px box. */
+.content .photoFig>figcaption.cap{order:-1;max-width:none;margin:0 0 var(--sp-12);text-align:left}
+
+/* THE ARROWS KEEP THEIR TARGET AND LOSE THEIR CHIP. 44px is the site's tap
+   floor and is not negotiable -- measured, not declared -- so the BOX stays 44
+   and only the paint goes. What he was looking at was a white rounded card on
+   the sky at every step; what is left is the chevron. */
+.content .crslNav.ctl--icon{
+ background:none;box-shadow:none;border:0;
+ color:var(--c600);
+}
+.content .crslNav.ctl--icon:hover{background:none;color:var(--c950)}
+
+/* THE GROUND STOPS BEING A ROOM. It was padding-block var(--sp-24-40) on a box
+   that is now the full column, so the phone sat in a large empty field -- the
+   "spacing is off" half of it. */
+.content :is(.playerStage,.tv.tvPhone .tvFrame){padding-block:var(--sp-16-24)}
+
+/* ── IT HAS TO READ AS AN IPHONE.  His words: "needs to be a clear iphone there
+   needs to be border on the screen."  The reference does NOT frame its phones,
+   and this is one of the places he and it disagree -- he wins, as always.
+   The screenshots already include the status bar, so the picture IS the screen;
+   what was missing was the device around it. A dark bezel and a device corner
+   is the whole of it. NOT A SHADOW: the companion heads cast the only shadow on
+   this site, and a phone lying on a sky is not standing on anything. */
+.content :is(.playerStage,.tv .tvFrame,.shot.phone,.baPhone)>img{
+ border:5px solid #0f1116;
+ border-radius:30px;
+ background:#0f1116;
+}
+
 @media(prefers-reduced-motion:reduce){
  .content :is(.playerStage,.tv.tvPhone .tvFrame){transition:none}
 }
