@@ -5100,8 +5100,14 @@ function teams(){
       the return reads as the camera choosing where to look rather than snapping.
       The no-backward rule still holds before the first finish, where it was doing
       real work: it stops the view jittering with the lead swapping mid-pack. */
-   var leadY=-1e9,racing=0;
-   for(var c2=0;c2<balls.length;c2++){var bC=balls[c2];if(bC.out||bC.fin)continue;racing++;if(bC.y>leadY)leadY=bC.y;}
+   var leadY=-1e9,racing=0,sumY=0;
+   for(var c2=0;c2<balls.length;c2++){var bC=balls[c2];if(bC.out||bC.fin)continue;racing++;sumY+=bC.y;if(bC.y>leadY)leadY=bC.y;}
+   /* THE FIELD'S OWN DEPTH, kept beside the leader's because the two answer different
+      questions. leadY is where to point the CAMERA -- the deepest head, and it must stay
+      the deepest head. fieldY is whether this RACE IS STILL GIVING GROUND, and the stall
+      detector below asks that one. See the note on it for why the leader turned out to be
+      the wrong head to ask. */
+   var fieldY=racing?sumY/racing:-1e9;
    var tgt=camY;
    if(racing){tgt=Math.min(leadY-H*0.42,finishY+H*0.9-H);if(!order.length)tgt=Math.max(camY,tgt);}
    camY+=(tgt-camY)*Math.min(1,raw*(order.length?2.2:4));
@@ -5167,8 +5173,33 @@ function teams(){
        front that actually exists now. A race whose remaining field has genuinely stopped
        still trips STALL_MS six seconds later, unchanged, because leadY then stops beating
        its own new mark. ===== */
-    if(racing!==stallN){stallN=racing;stallY=leadY;stallAt=n;}
-    if(leadY>stallY+24){stallY=leadY;stallAt=n;
+    /* ===== AND THE LEADER CAN PARK, WHICH IS THE REST OF "SOME OF THEM NEVER CROSS".
+       Re-basing on the live count fixed the leader GOING HOME. It does nothing for the
+       leader STOPPING, and that is the failure that was left: over 200 seeded races, 3 did
+       not resolve -- and in all three it was not one straggler but ALL TWELVE, wrapped up at
+       18.8s, 27.6s and 31.0s with the field spread from 46% to 92% of the descent and every
+       single non-finisher carrying nud=0.
+
+       The mechanism is that stallY is a high-water mark of the DEEPEST head. Nobody behind
+       the leader can advance it -- it is a max -- so when the deepest head settles on a flat
+       gate bar (y=5602 and y=3666, gy-54, the resting places already documented above), the
+       mark freezes with eleven racers still descending behind it, and STALL_MS wraps the
+       race six seconds later. The course had a third of its length left to give.
+
+       So the detector reads the FIELD's mean depth instead of the leader's. That is the
+       question it was always trying to ask -- "is this race still giving ground" -- asked of
+       the race rather than of one head who may be sitting on a shelf. Eleven racers
+       descending move the mean easily past +24; a bounce does not, because a mean over the
+       live field averages them out.
+
+       IT STILL CANNOT RUN FOREVER, which is the property that makes this safe rather than a
+       hostage: when the whole field genuinely stops, the mean stops, and STALL_MS wraps it
+       on exactly the same clause, untouched. The re-base on a shrinking field is still
+       needed and still here -- a mean jumps when a finisher leaves it. Nothing about the
+       course, the pegs, the gates or the physics moves, so this buys completion without
+       buying order: measured over the same 200 seeds below. ===== */
+    if(racing!==stallN){stallN=racing;stallY=fieldY;stallAt=n;}
+    if(fieldY>stallY+24){stallY=fieldY;stallAt=n;
      if(endAt)endAt=Math.max(endAt,n+2500);}
     else{if(!stallAt)stallAt=n;
      if(n-stallAt>STALL_MS){stallAt=n;
