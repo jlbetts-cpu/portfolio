@@ -172,7 +172,38 @@ function advanceCycle(){clearTimeout(cycTimer);if(cycHold||dragging||eating||!cy
    setTimeout(function(){nw.style.minWidth="";nw.style.transition="";},520);}}}catch(_){}try{if(window.__wordNotice)window.__wordNotice();}catch(_){}   // new word enters char-by-char with its personality; he may glance at it
  nextCycle();}
 
+/* ── THE EYES' GEOMETRY, MEASURED ONCE PER LAYOUT ───────────────────────────
+   Each eye's centre and box, as FRACTIONS of the stage's own rect. Read on the
+   first frame after an invalidation and then not again, which is what takes
+   updateIris() from five forced-layout reads a frame to one. Invalidated by
+   buildEyes() (the divs are recreated per face) and by resize; nothing else can
+   change an eye's position relative to the stage, because every one of them is
+   authored in percentages of it.
+   The rect passed in is only a guard against running before layout exists. */
+var _eyeGeo=null;
+function invalidateEyeGeo(){_eyeGeo=null;}
+function eyeGeo(sr){
+ if(_eyeGeo)return _eyeGeo;
+ if(!eyeEls.length)return null;
+ /* OFFSET BOXES, NOT RECTS, AND THAT IS THE PART WORTH READING TWICE. offsetLeft
+    and offsetWidth are the LAYOUT box and are measured against the offsetParent,
+    which is the stage -- so they are already the fraction this wants, and they
+    are blind to every transform in the chain. A getBoundingClientRect() here
+    would bake in whatever scale, rotation or scaleY(1.07) "awe" happened to be
+    applied on the frame the cache was built, and keep it until the next
+    rebuild. This cannot: the numbers are the same whatever the head is doing. */
+ var sw=stage.offsetWidth||1,sh=stage.offsetHeight||1;
+ _eyeGeo=eyeEls.map(function(e){
+  return {cxf:(e.el.offsetLeft+e.el.offsetWidth/2)/sw,
+          wf:e.el.offsetWidth/sw,
+          hf:e.el.offsetHeight/sh};
+ });
+ return _eyeGeo;
+}
+addEventListener("resize",invalidateEyeGeo,{passive:true});
+
 function buildEyes(name){
+ invalidateEyeGeo();
  eyeEls.forEach(e=>e.el.remove());eyeEls=[];
  (FACES[name].eyes||[]).forEach((c,idx)=>{
   const rx=ER(c,"rx",RX),ry=ER(c,"ry",RY);
@@ -371,7 +402,22 @@ function setFaceSrc(url){
  if(typeof queueMicrotask==="function")queueMicrotask(syncLids);
  else Promise.resolve().then(syncLids);
 }
-(function lidFrame(){syncLids();requestAnimationFrame(lidFrame);})();
+/* ── lidFrame IS DELETED, AND THIS IS ITS HEADSTONE.  2026-08-26 ───────────
+   It was `(function lidFrame(){syncLids();requestAnimationFrame(lidFrame);})();`
+   -- a third permanent rAF loop on the landing page, with no guard and no stop
+   condition, beside the head's float loop and the ASCII field's. Profiled on a
+   real M2, index.html burned about half a core at idle with three loops running
+   forever.
+   IT WAS ALSO REDUNDANT, WHICH IS WHY IT COULD SIMPLY GO. The main tick already
+   calls syncLids() every frame, and updateIris() calls it again at the end of
+   its own. The one thing lidFrame covered that the tick did not was the three
+   early returns at the top of the tick -- dizzy, eating and reactType -- which
+   bail before the reconciliation. So the reconciliation MOVED ABOVE those
+   returns instead: syncLids() now runs exactly once per frame in every state,
+   which is what this loop was for, from the loop that was already running.
+   Its own note argued it "costs nothing the profiler can find", and on JS
+   self-time that was true -- the cost of a permanent rAF loop is that the page
+   never idles, which is not a number syncLids() appears in. */
 // REAL blink — posterized to the 8fps grid, with natural variation + a bit of crunch
 function buildBlink(openTo,withGesture,allowDouble){
  const deep=0.905+Math.random()*0.03, settle=deep+0.045, hold=(Math.random()<0.5?1:2), st=[];
@@ -598,7 +644,25 @@ function updateIris(){
  var dil=irisDil+hip; if(dil<0.74)dil=0.74; if(dil>1.66)dil=1.66;
  if(reduce){microSacTX=0;microSacTY=0;}else if(now>=microSacNext){microSacTX=(Math.random()*2-1)*0.12;microSacTY=(Math.random()*2-1)*0.085;microSacNext=now+340+Math.random()*1200;}  // tiny dart, hold, re-dart
  microSacX+=(microSacTX-microSacX)*0.42;microSacY+=(microSacTY-microSacY)*0.42;
+ /* ── ONE LAYOUT READ PER FRAME, AND IT HAPPENS BEFORE ANY WRITE ────────────
+    Profiled on a real M2: JS self-time on this page was ~6% and Blink layout /
+    style was 29%, at 57 forced-layout reads per second. They were all here.
+    This function wrote an iris transform and then read the NEXT eye's
+    getBoundingClientRect() and offsetWidth/offsetHeight inside the same loop --
+    a read after a write, which forces a synchronous layout, once per eye per
+    frame on top of the stage rect above.
+    THE EYES ARE MEASURED ONCE AND KEPT AS FRACTIONS OF THE STAGE. They are
+    positioned in percentages of it and are rebuilt whenever the face changes,
+    so their box relative to the stage is constant between rebuilds; only the
+    stage's own rect has to be live. eyeGeo() below reads them once and is
+    invalidated by buildEyes() and by resize -- and a small stage ROTATION is
+    the one thing a fraction of an axis-aligned box gets slightly wrong, which
+    is harmless here: ecx is used only for the SIGN of (ecx - scx), and ow/oh
+    scale an iris travel of a few pixels.
+    So the per-frame read budget is exactly one getBoundingClientRect, taken
+    here, with every write below it. */
  var sr=stage.getBoundingClientRect(),scx=sr.left+sr.width*0.5,scy=sr.top+sr.height*0.42;
+ var _geo=eyeGeo(sr);
  window.__curNear=Math.hypot(pointer.px-scx,pointer.py-scy)<sr.width*1.4;   // the cursor is company only up close
  const useCursor=!reduce&&HOVER&&(now-lastMove<IDLE_MS)&&!bearMode&&window.__curNear;   // reduced-motion: the gaze stops chasing the pointer
  var gnx,gny;                                                            // ONE gaze direction, taken from between the eyes -> both eyes look parallel (no cross-eye)
@@ -606,10 +670,11 @@ function updateIris(){
  else{gnx=gaze.x;gny=gaze.y;}
  var _fid=(!eventLock&&!reactType&&!dizzy&&!eating&&!partyMode&&!loveMode&&!rainMode&&!bearMode&&!movieMode&&!introMode&&!dragging&&!blinking);
  gnx+=microSacX+(_fid?fidgetGX:0);gny+=microSacY+(_fid?fidgetGY:0);
- eyeEls.forEach(e=>{const r=e.el.getBoundingClientRect();var ecx=r.left+r.width/2;
+ eyeEls.forEach((e,gi)=>{const g=(_geo&&_geo[gi])||null;
+  var ecx=g?sr.left+sr.width*g.cxf:scx;
   var nx=gnx+(ecx<scx?-EYE_OUT:EYE_OUT),ny=gny;                          // temporal bias so the forward gaze reads parallel
   ny=Math.max(-1,Math.min(1.12,ny+((bearMode||movieMode)?0:scrollPull*0.85)));   // scroll strain tugs gaze down — but not while a gag drives the eyes
-  var ow=e.el.offsetWidth||r.width,oh=e.el.offsetHeight||r.height;const tx=Math.round(nx*ow*TRAVEL),ty=Math.round(ny*oh*TRAVEL);e.iris.style.transform="translate("+tx+"px,"+ty+"px)";
+  var ow=g?g.wf*sr.width:0,oh=g?g.hf*sr.height:0;const tx=Math.round(nx*ow*TRAVEL),ty=Math.round(ny*oh*TRAVEL);e.iris.style.transform="translate("+tx+"px,"+ty+"px)";
   if(e.glint)e.glint.style.transform="translate("+Math.round(tx*0.62)+"px,"+Math.round(ty*0.62)+"px)";  // catchlight follows the iris (with slight parallax) so it always sits on the dark iris and never washes out
   if(e.pupil)e.pupil.style.transform="translate(-50%,-50%) scale("+dil.toFixed(3)+")";
   if(blinking||e.el.style.display==="none"||e.el.classList.contains("eclosed")){if(e.el.style.transform)e.el.style.transform="";}   // never fight a blink
@@ -626,7 +691,7 @@ function updateIris(){
 addEventListener("pointermove",e=>{pointer.px=e.clientX;pointer.py=e.clientY;lastMove=performance.now();
  if(dragging&&dragEl){const c=FACES[calFace].eyes[selEye],rx=ER(c,"rx",RX),ry=ER(c,"ry",RY);const r=stage.getBoundingClientRect();
   let x=(e.clientX-r.left)/r.width,y=(e.clientY-r.top)/r.height;x=Math.max(0,Math.min(1,x));y=Math.max(0,Math.min(1,y));
-  c.x=+x.toFixed(4);c.y=+y.toFixed(4);dragEl.style.left=((x-rx)*100)+"%";dragEl.style.top=((y-ry)*100)+"%";renderCal();}});
+  c.x=+x.toFixed(4);c.y=+y.toFixed(4);dragEl.style.left=((x-rx)*100)+"%";dragEl.style.top=((y-ry)*100)+"%";invalidateEyeGeo();renderCal();}});
 addEventListener("pointerup",()=>{dragging=false;dragEl=null;});
 
 function startDizzy(){if(navigator.vibrate)navigator.vibrate([35,55,25,90,20,70]);
@@ -1915,11 +1980,17 @@ setInterval(()=>{tk++;eyeWatchdog();syncLids();if(!reduce&&inkCanBoil())boil();i
  if(loveMode){loveTick((performance.now()-loveStart)/1000);return;}
  if(rainMode){rainTick();return;}
  if(movieMode){movieTick();return;}
+ /* THE LIDS ARE RECONCILED FIRST, IN EVERY STATE. This used to sit below the
+    three early returns, so dizzy, eating and reactType frames skipped it and a
+    separate always-on rAF loop existed to cover them (see lidFrame's headstone
+    above). One call, before anything can return, replaces that loop. syncLids()
+    is idempotent and reads no geometry, so running it ahead of a blink step
+    rather than instead of one is exactly what the deleted loop was doing. */
+ syncLids();
  if(dizzy){dizzyTick();return;}
  if(eating){eatTick((performance.now()-eatStart)/1000);return;}
  if(reactType){reactTick();return;}
  if(blinking&&blinkQ.length){applyStep(blinkQ.shift());}
- else syncLids();   // the lids are reconciled against the painted frame whether or not a blink owns them
  const now=performance.now();
  if(now>=nextSaccade){ // natural saccade-and-fixation wander (used on touch + desktop idle)
   {const a=Math.random()*6.2832,rd=0.45+Math.random()*0.45;gaze={x:Math.cos(a)*rd,y:Math.sin(a)*rd*0.62-0.04};}   // idle wander never looks dead-center
