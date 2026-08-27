@@ -2785,7 +2785,21 @@ function teams(){
       4-4, which is untrue under win-by-two. */
    (function(){var c=goalCall();if(c)setTimeout(function(){if(S.on&&!S.winner)bigCall(c.t,c.ms);},1300);})();
 
-   S.phase="reset";bvx=0;bvy=0;setTimeout(function(){if(S.on){ballInTitle(false);ball.style.opacity="1";if(ballShadow)ballShadow.style.opacity="0.28";dropIn();}},700);}   // otherwise it re-appears for the next kickoff
+   /* ---- 700 -> 450ms, AND IT IS THE ONLY GENUINELY DEAD STRETCH IN A MATCH. Measured,
+      10 matches, cranked so the box's load could not touch it: 21.7s of every match is not
+      play, and it splits reset 11.4s · win 5.4s · countdown 3.0s · the goal burst 2.0s.
+      Almost all of that is doing work. The drop-in's 900ms was measured once already and is
+      load-bearing -- a head crossing the pitch is airborne ~0.77s and at 650 the whistle went
+      while half the side was still flying. The win celebration IS the drama and it is the
+      same 5.4s the tournament's 5,600ms hold is waiting for. The countdown is paid once.
+
+      THIS window is the exception: the ball is at opacity 0 and parked in the title, the
+      score has already ticked, and the drop-in has not started -- nothing is beginning, the
+      confetti is only settling. Cut to 450 rather than to nothing, because a goal still has
+      to land: the burst, the flash and the score change all read inside it, and stripping the
+      beat entirely is what would make scoring feel cheap. Worth ~2.4s a match, ~17s a cup --
+      small, and honestly the whole of what dead time had left to give. ---- */
+   S.phase="reset";bvx=0;bvy=0;setTimeout(function(){if(S.on){ballInTitle(false);ball.style.opacity="1";if(ballShadow)ballShadow.style.opacity="0.28";dropIn();}},450);}   // otherwise it re-appears for the next kickoff
   function win(team){BUS.emit('fulltime',{winner:team,red:S.red,blue:S.blue});S.winner=team;S.phase="win";board2();if(board)board.classList.add("won");
    /* THE CELEBRATION. They do not just hop where they stand -- they RUN TO EACH OTHER first,
       the way a team does after a goal, and only bounce together once they have gathered.
