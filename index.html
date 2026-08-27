@@ -2987,8 +2987,8 @@ if(location.hash==="#about")location.replace("about.html");</script>
 
  /* WHAT ONE TILE HOLDS. cells() is pure: same arguments, same grid, forever,
     and it is the only place a character or an alpha is decided. */
- function cells(band,chunk){
-  var pitch=band.pitch,cols=Math.ceil(band.w/pitch)+1,rows=Math.ceil(band.h/pitch)+1;
+ function cells(band,chunk,pitchOverride){
+  var pitch=pitchOverride||band.pitch,cols=Math.ceil(band.w/pitch)+1,rows=Math.ceil(band.h/pitch)+1;
   var seed=band.seed,x0=chunk*band.w,grid=[],r,j;
   /* THE FEATURE SIZE FOLLOWS THE SCREEN, WITH A FLOOR, AND THAT IS THE PHONE'S
      FIX. A tile is one viewport wide and the noise is measured in CSS px, so
@@ -3031,7 +3031,109 @@ if(location.hash==="#about")location.replace("about.html");</script>
     edge, and it is the reason this does not need -- and must not have -- a
     filter:blur, which would be a per-frame convolution over the largest
     surface on the page and would sand the characters back into a smear. */
+ /* ── THE SECOND PAINTER.  2026-08-27 ──────────────────────────────────────
+    Jayden asked for the realistic clouds "too", as an alternative to swap
+    between, having earlier swapped the css-tricks SVG approach out FOR this
+    ASCII field. So this is not a second cloud system. It is a second PAINTER
+    over the same cells() field, and that distinction is the whole reason it is
+    affordable:
+
+      -- the drift is a CSS animation and always was, so this inherits it
+      -- a tile still repaints once per PERIOD on animationiteration, never per
+         frame, so the frame cost of soft clouds is the same zero
+      -- the chunk sequence that makes the sky never repeat is untouched
+      -- masking, the time-of-day tint and the wrap are all upstream of here
+
+    A parallel SVG implementation would have had to re-earn every one of those
+    and would have run its own animation beside the one already running.
+
+    HOW IT DRAWS. cells() is sampled at a finer pitch -- same noise, same
+    clouds, more samples -- into an alpha mask ONE PIXEL PER CELL, which is
+    then upscaled with smoothing. The browser's bilinear filter is what makes
+    the edge soft, and it is free. That is three canvas operations per repaint
+    against the ASCII painter's thousands of fillText calls.
+
+    The vertical gradient at the end is the thing that stops it reading as fog:
+    a cloud is lit on its crown and shadowed on its flat underside, and one
+    source-atop gradient buys that for one fillRect. */
+ function drawSoft(band,tile,chunk){
+  var dpr=band.dpr,w=Math.round(band.w*dpr),h=Math.round(band.h*dpr);
+  if(w<2||h<2)return;
+  var c=tile.canvas;
+  if(c.width!==w||c.height!==h){c.width=w;c.height=h;}
+  var ctx=c.getContext('2d');
+  ctx.setTransform(1,0,0,1,0,0);
+  ctx.clearRect(0,0,w,h);
+
+  var sp=band.softPitch,grid=cells(band,chunk,sp);
+  var rows=grid.length,cols=rows?grid[0].length:0;
+  if(!cols)return;
+
+  /* THE MASK IS ONE PIXEL PER CELL and is reused between repaints -- allocating
+     a canvas per draw is what would make this show up in memory. */
+  var off=band.softCanvas||(band.softCanvas=document.createElement('canvas'));
+  if(off.width!==cols||off.height!==rows){off.width=cols;off.height=rows;}
+  var octx=off.getContext('2d'),img=octx.createImageData(cols,rows),d=img.data;
+  var ink=band.ink,r,j,v,i;
+  for(r=0;r<rows;r++){
+   var row=grid[r];
+   for(j=0;j<cols;j++){
+    /* THE CURVE IS WHAT MAKES IT A CLOUD AND NOT FOG.  cells() ramps its
+       density with smooth() so the ASCII ramp has eight legible steps, and
+       that same gentle ramp upscaled and blurred is a haze with no edge --
+       looked at, the first build read as mist over the whole hero. Cutting
+       everything under SOFT_CUT gives back the clear sky between clouds, and
+       smoothstepping what is left puts a dense core inside a fast edge. */
+    v=row[j];i=(r*cols+j)*4;
+    d[i]=255;d[i+1]=255;d[i+2]=255;
+    if(v<=SOFT_CUT){d[i+3]=0;continue;}
+    var t=(v-SOFT_CUT)/(1-SOFT_CUT);
+    t=t*t*(3-2*t);
+    d[i+3]=Math.min(255,(t*ink*SOFT_GAIN*255)|0);
+   }
+  }
+  octx.putImageData(img,0,0);
+
+  /* Source cell j's centre lands at (j+.5)*sp when the mask is drawn at width
+     cols*sp, which is exactly where the ASCII painter puts the same cell. The
+     two painters therefore draw the same cloud in the same place. */
+  ctx.imageSmoothingEnabled=true;
+  if(ctx.imageSmoothingQuality)ctx.imageSmoothingQuality='high';
+  if(band.softBlur>0)ctx.filter='blur('+(band.softBlur*dpr).toFixed(2)+'px)';
+  ctx.drawImage(off,0,0,cols,rows,0,0,cols*sp*dpr,rows*sp*dpr);
+  ctx.filter='none';
+
+  ctx.globalCompositeOperation='source-atop';
+  var g=ctx.createLinearGradient(0,0,0,h);
+  g.addColorStop(0,'rgba(255,255,255,.34)');
+  g.addColorStop(.52,'rgba(255,255,255,0)');
+  g.addColorStop(1,'rgba(146,162,194,.30)');
+  ctx.fillStyle=g;ctx.fillRect(0,0,w,h);
+  ctx.globalCompositeOperation='source-over';
+
+  tile.chunk=chunk;
+ }
+
+ /* STYLE is read once and swapped by hand; it is not a media query and not a
+    preference. ASCII stays the default because that is what he chose and what
+    ships. ?clouds=soft and __heroCloudStyle('soft') are how he looks at the
+    other one. */
+ /* Tuned by looking, at both viewports and at noon and dusk. CUT is where the
+    clear sky starts -- under .30 the clouds merge into one band; over .40 they
+    break into scraps. GAIN is body: the ASCII ink of .4 is per-character and
+    far too thin once it is a filled shape. */
+ var SOFT_CUT=.34,SOFT_GAIN=1.75;
+
+ var STYLE='ascii';
+ try{var q=String(location.search).match(/[?&]clouds=(ascii|soft)/);if(q)STYLE=q[1];}catch(e){}
+ if(host.getAttribute('data-cloud')==='soft')STYLE='soft';
+
  function draw(band,tile,chunk){
+  if(STYLE==='soft')return drawSoft(band,tile,chunk);
+  return drawAscii(band,tile,chunk);
+ }
+
+ function drawAscii(band,tile,chunk){
   var dpr=band.dpr,w=Math.round(band.w*dpr),h=Math.round(band.h*dpr);
   if(w<2||h<2)return;
   var c=tile.canvas;
@@ -3091,6 +3193,16 @@ if(location.hash==="#about")location.replace("about.html");</script>
    pitch:num('--cloud-pitch',11),glyph:num('--cloud-glyph',10),
    rampMax:Math.min(RAMP.length-1,num('--cloud-ramp-max',7)),
    ink:num('--cloud-ink',.4),
+   /* THE SOFT PAINTER'S TWO NUMBERS.  The pitch is finer than the glyph
+      pitch because nothing here has to be legible as a character -- same
+      noise, same clouds, more samples -- and the blur is depth of field:
+      the far band is the one the eye should not be able to focus on.
+      Both are read the same way as everything else above, ONCE, out of a
+      plain number so getPropertyValue returns something parseFloat can
+      read. Bands arrive far, mid, near in markup order. */
+   softPitch:num('--cloud-soft-pitch',6),
+   softBlur:num('--cloud-soft-blur',[1.1,.7,.35][bi]||.7),
+   softCanvas:null,
    w:0,h:0,dpr:1,tiles:[]};
   [].forEach.call(node.querySelectorAll('.heroCloudTile'),function(canvas,i){
    band.tiles.push({canvas:canvas,anim:null,periodMs:1,chunk:null,index:i});
@@ -3160,6 +3272,13 @@ if(location.hash==="#about")location.replace("about.html");</script>
  if(window.ResizeObserver)new ResizeObserver(onResize).observe(host);
 
  window.__heroClouds={
+  /* THE SWAP.  Repaints every tile in place: the drift animation is never
+     touched, so the clouds carry on from exactly where they were and the
+     two painters can be compared on the same sky rather than on two runs. */
+  style:function(next){
+   if(next!==undefined){STYLE=(next==='soft')?'soft':'ascii';redrawAll();}
+   return STYLE;
+  },
   sample:function(bi,chunk){
    var band=bands[bi];
    return cells(band,chunk).map(function(row){
