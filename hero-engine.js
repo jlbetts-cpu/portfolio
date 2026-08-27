@@ -62,7 +62,7 @@ const WINK_LINGER=300,SMILE_LINGER=350,IDLE_MS=2500;
 const HOVER=matchMedia("(hover: hover) and (pointer: fine)").matches;
 const WORDS=["hunger.","delight.","love.","empathy."];
 const WORD_STYLE=["hungry","party","love","collab"]; // each cycling word animates by its meaning (Identity/Soul retired with the Identity mood)
-/* THE HEADLINE, SETTLED. Jayden: "SF product designer. iOS, B2C and design systems."
+/* THE HEADLINE, SETTLED. Jayden: "SF product designer. iOS, B2C, and design systems."
    Two sentences, lowercase "product", both full stops -- set exactly as he wrote it.
    docs/superpowers/specs/2026-08-03-hero-headline.md carries the analysis; the number
    that decided it is 49 characters wrapping to TWO lines at 40px/1280 against the old
@@ -74,7 +74,16 @@ const WORD_STYLE=["hungry","party","love","collab"]; // each cycling word animat
    as mood names.
    SUBTXT stood here: a plain-text mirror of the headline with no reader anywhere in
    the repo. Deleted rather than updated to match the new words. */
-const STATIC=["SF","product","designer.","iOS,","B2C","and","design","systems."];
+/* ── TWO LINES, AND THE BREAK IS AUTHORED.  2026-08-27 ────────────────────────
+   Jayden: "can it be two lines one SF product designer and then iOS, B2C and
+   design systems and missing a comma."
+   So the array is two arrays. Line one is the role and line two is the
+   specialism, and the split is a BLOCK rather than a happy accident of the
+   measure -- at 1440 the old single string already fell that way, and it would
+   have re-flowed at the next width or the next time the type moved. The serial
+   comma is his too, and it makes this line agree with about.html, which has
+   read "I focus on iOS, B2C, and design systems" all along. */
+const STATIC=[["SF","product","designer."],["iOS,","B2C,","and","design","systems."]];
 const reduce=window.matchMedia("(prefers-reduced-motion:reduce)").matches;
 const stage=document.getElementById("stage"),faceImg=document.getElementById("face"),h1=document.getElementById("h1");
 const movieEffectsStage=document.getElementById("heroMovieEffectsStage");
@@ -116,8 +125,18 @@ function buildHeadline(){h1.textContent="";
     cycWord stays null. Every consumer -- cycle(), moodHoldWord(), revealCycWord(),
     showIdentity() -- already guards on it, which was written when the word first
     became optional and is why this is a deletion rather than a rewrite. */
- STATIC.forEach(function(w,i){h1.appendChild(makeWord(w));
-  if(i<STATIC.length-1)h1.appendChild(document.createTextNode(" "));});
+ /* TWO BLOCKS, NOT A <br>, and index.html:181 carries the measurement: a
+    forced break switches text-wrap:balance off for the whole h1, and the phone
+    then sets the second line with "systems." alone under it. Two blocks let the
+    balancer work inside each one. The space between them is deliberate --
+    textContent is what a screen reader and every string assertion read, and
+    "designer.iOS," is not the sentence. */
+ STATIC.forEach(function(line,li){
+  var box=document.createElement("span");box.className="hLine";
+  line.forEach(function(w,i){box.appendChild(makeWord(w));
+   if(i<line.length-1)box.appendChild(document.createTextNode(" "));});
+  h1.appendChild(box);
+  if(li<STATIC.length-1)h1.appendChild(document.createTextNode(" "));});
  cycWord=null;}
 function revealAll(){const chs=[...h1.querySelectorAll(".ch")];chs.forEach((c,i)=>{c.style.transitionDelay=(i*0.03)+"s";c.classList.add("show");});
  var _av0=document.getElementById("heroAvail");if(_av0)setTimeout(function(){_av0.classList.add("in");},reduce?0:100);   // the eyebrow fades in FIRST, just before the headline

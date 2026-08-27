@@ -1108,7 +1108,11 @@ assert 'id="moodbar"' not in html and 'class="heroMood' not in html
 # Hero. Kept as a second copy because this half of the file is the DOM-order
 # section and a reader here should not have to go looking.
 assert html.index('id="heroTimeBtn"') < html.index('id="h1"') < html.index('class="heroTimeSupport')
-assert '<h1 id="h1">SF product designer. iOS, B2C and design systems.</h1>' in html
+# Two lines and a serial comma, 2026-08-27, and both are Jayden's own words:
+# "can it be two lines one SF product designer and then iOS, B2C and design
+# systems and missing a comma." The break is two blocks rather than a <br>
+# so text-wrap:balance keeps working inside the second line on a phone.
+assert '<h1 id="h1"><span class="hLine">SF product designer.</span> <span class="hLine">iOS, B2C, and design systems.</span></h1>' in html
 
 # ── THE HERO WENT FULL-BLEED, WHICH RETIRED ITS RIM AND ITS 88px ────────────
 # Two assertions here described a Hero that sat inside the page as a card: a

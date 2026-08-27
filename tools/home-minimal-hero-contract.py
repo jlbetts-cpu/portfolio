@@ -135,7 +135,15 @@ def static_contract():
     assert 'id="heroTimePortraitCast"' in hero
     assert '<script src="play-engine.js"></script>' not in html
     assert 's.src="play-engine.js"' not in html
-    assert '<h1 id="h1">SF product designer. iOS, B2C and design systems.</h1>' in hero
+    # ── TWO LINES AND A SERIAL COMMA.  2026-08-27 ──────────────────────────
+    # Jayden: "can it be two lines one SF product designer and then iOS, B2C
+    # and design systems and missing a comma." The break is authored as two
+    # blocks rather than left to the measure -- a coincidence of the current
+    # width would re-flow at the next one -- and the comma makes this line
+    # agree with about.html, which has read "iOS, B2C, and design systems"
+    # all along. The exact-string assertion stays exact: this h1 is his and
+    # nothing may edit it without him.
+    assert '<h1 id="h1"><span class="hLine">SF product designer.</span> <span class="hLine">iOS, B2C, and design systems.</span></h1>' in hero
 
 
 # WHAT THIS PROBE ASSERTS, AND WHY IT STOPPED NAMING .jbNav.  2026-08-19.
@@ -307,7 +315,7 @@ def browser_contract(base_url):
                 }
                 """.replace("__TAP_TARGETS__", json.dumps(list(TAP_TARGETS)))
             )
-            assert state["headline"] == "SF product designer. iOS, B2C and design systems.", state
+            assert state["headline"] == "SF product designer. iOS, B2C, and design systems.", state
             assert state["moodControls"] == 0, state
             assert state["focusableMoodControls"] == 0, state
             assert state["headScripts"] == 1, state
@@ -537,8 +545,8 @@ INJECTIONS = {
     ),
     # put the status line back under the h1. Must trip the static contract.
     "status-line-returns": (
-        '<h1 id="h1">SF product designer. iOS, B2C and design systems.</h1>',
-        '<h1 id="h1">SF product designer. iOS, B2C and design systems.</h1>'
+        '<h1 id="h1"><span class="hLine">SF product designer.</span> <span class="hLine">iOS, B2C, and design systems.</span></h1>',
+        '<h1 id="h1"><span class="hLine">SF product designer.</span> <span class="hLine">iOS, B2C, and design systems.</span></h1>'
         '<p class="heroCred">Open to full-time roles.</p>',
     ),
 }
