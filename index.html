@@ -50,7 +50,7 @@
      page alone, so the ink-surface nav lost its top highlight here and nowhere
      else. Linked BEFORE this page's <style>, so anything the page still declares
      for itself continues to win. -->
-<link rel="stylesheet" href="tokens.css?v=99ded98629">
+<link rel="stylesheet" href="tokens.css?v=f42259c454">
 <style>
 html{scroll-behavior:smooth}
 html.softScrolling{scroll-behavior:auto}
@@ -78,16 +78,31 @@ html.softScrolling{scroll-behavior:auto}
    has no accent rule, .csTab.on is ink, and --accent is neither emerald nor a
    highlight. tokens.css documents the token now, once.
 
-   THE THREE THAT STAY ARE GENUINELY LOCAL -- no definition in tokens.css, one or
-   two consumers each, all on this page:
-     --fs-hero      the bare h1 rung (h1{} below)
-     --fs-heroline  the hero headline's mobile rung
+   ── AND TWO OF THE THREE HAVE SINCE GONE.  2026-08-27 ──────────────────────
+   --fs-hero was defined here and consumed only by a bare `h1{}` rule that never
+   matches a visible element on this page (docs/house-style.md 10c measured it);
+   tokens.css:463 has carried the same declaration since 2026-08-09, so nothing
+   is lost by deleting the copy that nothing reads.
+   --fs-heroline went for a sharper reason: this file redefined it as
+   var(--fs-pagehead) while tokens.css defines it as var(--fs-pagehead-sm), and
+   tools/token-audit.py reports exactly that -- "same token, different values,
+   different files", its only error. The fork is not a mistake on either side.
+   play.html's hero is a different sentence in a different box and deleted its
+   own copy to sit on the tokens.css rung; this hero stepped UP a rung on
+   Jayden's instruction, and the essay below is the research for it. Two pages
+   wanting two sizes is a reason to stop calling them the same name, not a
+   reason to make one of them wrong. So --fs-heroline stays a single definition
+   in tokens.css, at the size Play actually renders, and the rule below names
+   --fs-pagehead directly -- which is the rung the essay chose, said out loud
+   instead of through an alias.
+   THE ONE THAT STAYS IS GENUINELY LOCAL -- no definition in tokens.css, one
+   consumer, on this page:
      --accent-live  the tournament's "happening now" green. It has NO consumer on
                     this page today (both references to it are comments saying
                     so); kept because play.css defines the same name for the same
                     purpose, and deleting one half of a pair from one file is how
                     the pair stops matching. */
-:root{--fs-hero:clamp(33px,4.1vw,50px);
+:root{
  /* ── THE HOME HERO'S HEADLINE STEPS UP A RUNG. HE ASKED FOR IT. ────────────
     Jayden, 2026-08-20: "i feel like the hero would significantly benifit from
     the h1 text being bigger ... but defiently do research to make sure."
@@ -134,9 +149,9 @@ html.softScrolling{scroll-behavior:auto}
     short-window rule was a WART: it set 36 while the 1440 base set 35, so a
     narrower window got a bigger headline. Deleting both is the subtraction; the
     fluid rung already does what they were doing by hand.
-    IT IS DECLARED HERE AND NOT IN tokens.css because --fs-heroline is shared
-    with play.css, whose h1 is a different sentence in a different box. */
- --fs-heroline:var(--fs-pagehead);
+    IT IS NAMED ON THE RULE AND NOT ALIASED THROUGH --fs-heroline, because
+    --fs-heroline is Play's rung and Play's h1 is a different sentence in a
+    different box -- see the headstone at the top of this block. */
  --accent-live:#17A45A}
 *{box-sizing:border-box;margin:0;padding:0}
 @media(max-width:760px){
@@ -1246,7 +1261,7 @@ body.heroEmpathy .jbStick .jbNav{--nav-mat:var(--ctl-ground);--nav-rim:var(--ctl
    The two edges are 32px apart in what you actually see. Tying the measure to the
    head would be worse than the 4px: the head is sized off viewport HEIGHT
    (calc((100svh - 248px)*.95)), so the headline would re-wrap on a vertical resize. */
-.heroCopy h1{order:2;font-size:var(--fs-heroline);line-height:1.06;
+.heroCopy h1{order:2;font-size:var(--fs-pagehead);line-height:1.06;
  max-width:min(13.2em,100%);margin:0 auto;text-align:center}.hero .stagewrap{order:3;width:min(clamp(260px,calc((100svh - 248px) * .95),620px),62vw);height:auto;aspect-ratio:1 / .97;margin:calc(var(--sp-8-16) * -1) auto 0}@media(max-width:760px){.hero{--heroTitleTop:24px;padding-top:var(--heroTitleTop);min-height:auto}.hero .stagewrap{width:min(clamp(200px,calc((100svh - 200px) * .9),460px),90vw)}}/* ---- PLAY now lives in the nav: always visible, reads as a nav link ---- */body nav .faceMoodCorner{position:relative;right:auto;left:auto;top:auto;bottom:auto;transform:none;z-index:60}body nav .faceMoodCorner .moodBtn{font-family:var(--sans);font-weight:400;font-size:var(--fs-small);color:var(--c700);background:none;border:0;padding:0;line-height:1;opacity:1;gap:4px;white-space:nowrap;min-height:0}body nav .faceMoodCorner .moodBtn:hover{color:var(--c950);background:none;border-color:transparent}body nav .faceMoodCorner .moodLbl,body nav .faceMoodCorner .moodCar{opacity:1;transform:none}body nav .faceMoodCorner .moodCar{width:11px;height:11px;color:var(--c700)}body nav .faceMoodCorner .moodMenu{top:calc(100% + 14px);bottom:auto;left:auto;right:0}@media(max-width:640px){body nav .faceMoodCorner{margin-left:auto}}@media(max-width:760px){body nav .faceMoodCorner{position:relative!important;right:auto!important;left:auto!important;top:auto!important;bottom:auto!important;transform:none!important}body nav .faceMoodCorner .moodBtn{border-color:transparent!important;background:none!important;min-height:44px}}/* ---- availability line, now in the footer ---- *//* ---- CENTRED WORDMARK: equal-basis outer groups make the middle item truly centred, regardless of how wide each link group is ---- */.navGroup{display:flex;align-items:center;gap:var(--sp-16-24);flex:1 1 0;min-width:0}.navR{justify-content:flex-end}.navL .navLink.navFirst{margin-left:0}.navL{justify-content:flex-start}/* ---- Small heads pass BEHIND the big head. Occlusion reads as depth; an invisible exclusion wall reads as a bug. Sources: eye-region occlusion measurably degrades face identification (Or et al. 2023) and the brow band is load-bearing (Sadr et al. 2003), so the face is the one thing worth never covering. ---- */.stagewrap #stageMorph{z-index:3}nav .logo{flex:0 0 auto}@media(max-width:640px){.navGroup{flex:0 0 auto}.navL{display:none}nav .logo{margin-right:auto}}/* .navGroup keeps its flex box when About opens -- dissolving it was what pulled the wordmark off centre *//* ---- Scroll cue: 74px of clear space below the chin, so it never fights the head ---- */.scrollCue{position:absolute;left:50%;bottom:18px;transform:translateX(-50%);z-index:4;display:flex;align-items:center;justify-content:center;width:44px;height:44px;color:var(--c500);text-decoration:none;opacity:0;transition:opacity var(--dur-enter) var(--ease-out),color var(--dur-state) var(--ease-out)}.scrollCue.in{opacity:1}.scrollCue:hover,.scrollCue:focus-visible{color:var(--c950)}.scrollCue svg{animation:cueBob 2.6s cubic-bezier(.4,0,.6,1) infinite}@keyframes cueBob{0%,100%{transform:translateY(-3px)}50%{transform:translateY(3px)}}body.scrolled .scrollCue{opacity:0;pointer-events:none}@media(prefers-reduced-motion:reduce){.scrollCue svg{animation:none}}@media(max-width:760px){.scrollCue{bottom:10px}}/* ---- MOBILE WORDMARK: back to the two-line stack. It was unstacked while the brand was
    LEAD-aligned (M3: "Don't wrap text in a small app bar", and one line was only ~123px of a
    342px bar). Now that it is centred, Jayden wants the stack back -- and centred + stacked is a
@@ -1297,7 +1312,7 @@ body.heroEmpathy .jbStick .jbNav{--nav-mat:var(--ctl-ground);--nav-rim:var(--ctl
    Measured line counts: 28px -> 4 lines at 360/390, 3 at 430; 26px -> 3 at 390 but still 4 at
    360; 24px -> 3 everywhere. One fluid rule instead of two breakpoints: 6.7vw lands on 24.1px
    at 360 and 26.1px at 390, and clamps back to the normal size from ~418px up. ---- */
-@media(max-width:760px){.heroCopy h1{font-size:var(--fs-heroline)}}
+@media(max-width:760px){.heroCopy h1{font-size:var(--fs-pagehead)}}
 /* ---- MOBILE HEADER, take two: Jayden looked at brand-left and wants the wordmark CENTRED,
    burger left, Play right. His call, and he has now seen both.
    Real three-zone grid, not another auto-margin hack. minmax(0,1fr) NOT 1fr: a bare fr is
@@ -2166,7 +2181,7 @@ html{scroll-padding-top:calc(var(--nav-h) + var(--sp-16-24))}
    at 1440. 11.6em holds it to two at every width from 761 up -- measured, not
    assumed -- and 11.6em at 48px is 557px, which is still inside the 1200px
    page measure by a wide margin. */
-.heroCopy h1{order:1;margin:0 auto;max-width:min(11.6em,100%);font-size:var(--fs-heroline);
+.heroCopy h1{order:1;margin:0 auto;max-width:min(11.6em,100%);font-size:var(--fs-pagehead);
  line-height:1.06;letter-spacing:var(--tr-hero);text-align:center;text-wrap:balance}
 /* ── THE TIME CONTROL'S RAIL: THE HERO'S BOTTOM-RIGHT, ON THE PAGE'S COLUMN ──
    Jayden: "put the button for day change in the bottom right corner of the hero
@@ -2354,11 +2369,11 @@ html{scroll-padding-top:calc(var(--nav-h) + var(--sp-16-24))}
      move: 24,600 computed properties over 820 elements at 1440 and 390, and the
      only differences are the nav icons going back to the 18px they have always
      drawn at. -->
-<link rel="stylesheet" href="controls.css?v=99ded98629">
-<link rel="stylesheet" href="header.css?v=99ded98629">
-<link rel="stylesheet" href="hero-time.css?v=99ded98629">
-<link rel="stylesheet" href="footer.css?v=99ded98629">
-<link rel="stylesheet" href="site-theme.css?v=99ded98629">
+<link rel="stylesheet" href="controls.css?v=f42259c454">
+<link rel="stylesheet" href="header.css?v=f42259c454">
+<link rel="stylesheet" href="hero-time.css?v=f42259c454">
+<link rel="stylesheet" href="footer.css?v=f42259c454">
+<link rel="stylesheet" href="site-theme.css?v=f42259c454">
 <script>/* THE OLD OVERLAY'S URL STILL RESOLVES. index.html#about was the only address
    About ever had, and it is linked from play.html and the other sub-pages, and sits in
    anyone's history. Redirected before first paint (replace(), so it leaves no entry to

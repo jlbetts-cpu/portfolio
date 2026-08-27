@@ -150,24 +150,35 @@ def main():
     assert "collection__tabs" in classes(tab_rail) and "surface--tab-rail" not in classes(tab_rail)
     assert "collection__content" in home_html
     _, time_button = first(home, "heroTimeBtn")
-    # ── THE GROUND VARIANT IS NO LONGER PINNED ─────────────────────────────
-    # EDITED 2026-08-20 by the hero-corner-control pass, which does not own this
-    # file -- flagged in its report. This demanded ctl--secondary. Jayden asked
-    # for the opposite that day: "the time of day button should feel more
-    # blended in". The control moved to the Hero's bottom-right corner over live
-    # weather, and .ctl--secondary is an opaque paper chip with a rim, which is
-    # the thing he was objecting to. It is .ctl--quiet now.
+    # ── THE TIME TRIGGER IS A BAR ITEM NOW, NOT AN ICON CHIP.  2026-08-27 ───
+    # This demanded ctl--icon and exactly one ground variant, and both were
+    # right while the control stood in the Hero's bottom-right rail: .ctl--icon
+    # is a square button with a ground and a rim, and nothing else out there was
+    # going to give it one. Jayden moved it into the header -- "the time of day
+    # button should be in the header since it affects all the pages" -- and in
+    # the bar it is one of six items and must be drawn by the variant the other
+    # five are: .ctl--nav, which carries the 38px ink box, the pill radius and
+    # the ::after that takes the target to 44 (docs/house-style.md 5). All ten
+    # shipping pages carry `ctl ctl--nav` and no ground variant at all, because
+    # the bar owns its items' ground -- rest none, hover and [aria-expanded] on
+    # --nav-hover-bg. Demanding ctl--icon here would be asserting the bug: a
+    # second control geometry in a bar whose whole point is one. Demanding a
+    # ground variant would be asserting a seventh item drawn by a different rule
+    # than the other six.
     # WHAT THIS FILE IS FOR IS UNCHANGED AND STILL ENFORCED: the control comes
-    # from the shared library rather than being hand-rolled -- .ctl for the
-    # base, .ctl--icon for the square geometry and the 44px floor, and exactly
-    # ONE ground variant. Two would be an equal-specificity cascade race between
-    # library rules, which is the half-migrated state .reelTap was in. The same
-    # clause is in tools/hero-specimen-check.py; they agree on purpose.
-    assert {"ctl", "ctl--icon"} <= classes(time_button), classes(time_button)
+    # from the shared library rather than being hand-rolled, and it carries at
+    # most one ground -- two would be an equal-specificity cascade race between
+    # library rules, which is the half-migrated state .reelTap was in.
+    # tools/hero-specimen-check.py and tools/shared-controls-contract.py were
+    # brought to this on 2026-08-26 and say the same thing; the three agree on
+    # purpose, and this file was the one left behind.
+    assert {"ctl", "ctl--nav"} <= classes(time_button), classes(time_button)
+    assert "ctl--icon" not in classes(time_button), (
+        "the bar has one item geometry", sorted(classes(time_button)))
     grounds = classes(time_button) & {
         "ctl--primary", "ctl--secondary", "ctl--quiet", "ctl--on-dark"}
-    assert len(grounds) == 1, (
-        "the time trigger needs exactly one library ground variant", sorted(grounds))
+    assert len(grounds) <= 1, (
+        "the time trigger may name at most one library ground variant", sorted(grounds))
     for tag, attrs in home.elements:
         if "csTab" in classes(attrs):
             assert tag == "button" and {"ctl", "ctl--tab"} <= classes(attrs)
