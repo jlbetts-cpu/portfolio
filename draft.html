@@ -7,21 +7,41 @@
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
 <link rel="apple-touch-icon" sizes="180x180" href="favicon-180.png">
 <link rel="icon" href="favicon.ico" sizes="any">
-<meta name="description" content="A 2026 redraft PPR board for a 12-team league: the top three picks at every draft slot in every round, built RB-first with no early quarterback, checked against live ADP so nothing is a reach.">
+<meta name="description" content="A 2026 redraft PPR board for a 12-team league. Pick the seat you draft from and it names three players a round and why each one, checked against live Sleeper ADP.">
 <meta name="robots" content="noindex,follow">
 <link rel="preload" as="font" type="font/woff2" href="fonts/geist-latin-400-normal.woff2" crossorigin>
 <link rel="preload" as="font" type="font/woff2" href="fonts/geist-latin-600-normal.woff2" crossorigin>
 
 <!-- The shipped system, linked not copied. tokens.css owns the ramps, the type
-     scale, the radius ladder and the motion rungs; controls.css owns .ctl and
-     every variant of it; site-theme.css owns the light/dark semantic layer.
-     This page's own <style> comes LAST so that where it and controls.css meet at
-     equal specificity, the page wins -- index.html has the opposite order and
-     that ordering has cost this project real hours. -->
-<link rel="stylesheet" href="tokens.css?v=b7996e2715">
-<link rel="stylesheet" href="controls.css?v=b7996e2715">
-<link rel="stylesheet" href="site-theme.css?v=b7996e2715">
+     scale, the radius ladder and the motion rungs. This page's <style> comes
+     BEFORE controls/header/footer, which is the order about.html and the five
+     case studies use, so the shared layers keep the last word on the chrome.
+     Nothing below re-styles a .ctl: the selected pill is .ctl--primary and the
+     resting one .ctl--quiet, swapped in script. The private tab rules this page
+     used to carry are gone with the bar they belonged to. -->
+<link rel="stylesheet" href="tokens.css?v=99ded98629">
 <style>
+/* ═══════════════════════════════════════════════════════════════════════════
+   THE 2026 DRAFT BOARD.
+
+   Jayden, after using it: "so much information on the screen at once so much
+   text that isnt necessary ... the only info I need to know is why each player
+   is selected ... selecting the pick should be on the top it shouldnt show all
+   at once thats over stimulating."
+
+   So the page answers ONE question at a time. The slot is the first decision and
+   it is the first control. After it there is exactly one round on screen, three
+   players in it, and a sentence under each saying why him here. Every number
+   that used to sit under a name -- projection, ceiling, floor, ADP, bye, the
+   Sleeper/FFC gap, tier, age, playoff schedule, O-line, opportunity, the
+   historical base rate, the source link -- is still here and still exact. It is
+   one tap away on the row instead of resident on the page.
+
+   WHAT LEFT THE PAGE ENTIRELY: nothing. The four-paragraph thesis, the four
+   stat tiles, the fifteen round notes and the six-paragraph sourcing appendix
+   are all verbatim inside two <details>. What left is their PERMANENT RESIDENCY.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
 /* ═══════════════════════════════════════════════════════════════════════════
    POSITION COLOUR — the one place on this site new hues are justified.
 
@@ -45,9 +65,18 @@
  --pos-qb:#9351A4;--pos-k:#7059A6;--pos-def:#5F6D7D;
  /* The site has no measure token -- the 680px one was proposed and reverted,
     because case-study prose runs the full column. That decision is about case
-    studies; a thesis paragraph on a data page still wants a readable line, so
+    studies; the appendix prose on a data page still wants a readable line, so
     this page names its own rather than reaching for one that does not exist. */
  --db-measure:680px;
+ /* THE COLUMN THE TOOL ITSELF RUNS IN. The board used to be a three-across grid
+    inside the full 1280 page measure, so each reason sat on a ~380px line. With
+    one round on screen the same paragraph inherited the whole 1200px column and
+    became a single unreadable line -- caught on a 1440 screenshot, not by any
+    measurement, which is the only way that class of defect is ever caught. */
+ /* 800 is measured: prev 44 + fifteen 44px round targets + fourteen 2px gaps +
+    next 44 = 784, so the whole round strip fits without clipping at desktop and
+    starts scrolling exactly where the page gutter takes the room away. */
+ --db-col:800px;
 }
 :root[data-theme="dark"]{
  --pos-rb:#31B97A;--pos-wr:#6C9AD8;--pos-te:#D2872B;
@@ -56,165 +85,163 @@
 .p-RB{--pc:var(--pos-rb)}.p-WR{--pc:var(--pos-wr)}.p-TE{--pc:var(--pos-te)}
 .p-QB{--pc:var(--pos-qb)}.p-K{--pc:var(--pos-k)}.p-DEF{--pc:var(--pos-def)}
 
-*{box-sizing:border-box}
-html{-webkit-text-size-adjust:100%;font-family:var(--sans)}
-/* Two weights, 400 and 600. The UA default for <b>/<strong> is 700, and the
-   audit found four of them in the footer running at it. */
+*{box-sizing:border-box;margin:0;padding:0}
+/* overflow-x:clip is load-bearing, not tidiness: footer.css draws the footer's
+   hairline as a 100vw pseudo-element centred on the viewport, which is only
+   safe on a document that clips. Every page carrying .siteFoot declares it. */
+html{-webkit-text-size-adjust:100%;font-family:var(--sans);overflow-x:clip}
+/* Two weights, 400 and 600. The UA default for <b>/<strong> is 700. */
 b,strong{font-weight:600}
-body{margin:0;font-family:var(--sans);font-size:var(--fs-body);line-height:var(--lh-body);
+body{font-family:var(--sans);font-size:var(--fs-body);line-height:var(--lh-body);
  letter-spacing:var(--tr-body);font-weight:400;
- background:var(--theme-page);color:var(--theme-ink);
+ background:var(--theme-page);color:var(--theme-ink);overflow-x:clip;
  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
 
-/* The shared column, the same 1280/40 index.html uses. */
-.wrap{max-width:var(--page-max);margin:0 auto;padding-inline:var(--sp-40)}
-@media(max-width:880px){.wrap{padding-inline:var(--sp-24)}}
+/* The shared column, the same 1280/40 the rest of the site uses. */
+.wrap{position:relative;max-width:var(--page-max);margin:0 auto;padding-inline:var(--sp-40)}
+@media(max-width:760px){.wrap{padding-inline:var(--sp-24)}}
+@media(max-width:400px){.wrap{padding-inline:var(--sp-16)}}
+.siteFoot{margin-top:var(--sp-56-96);padding-bottom:var(--sp-32-64);scroll-margin-top:80px}
 
-/* ── masthead ─────────────────────────────────────────────────────────────── */
-.dbNav{padding-block:var(--sp-24) 0}
-.dbHead{padding-block:var(--sp-40-72) var(--sp-32)}
+/* ── masthead ─────────────────────────────────────────────────────────────
+   Four lines, and the fourth is a control. The page used to open with an
+   eyebrow, a headline, a three-line dek, a league line, four paragraphs of
+   thesis and four stat tiles before a single player's name -- 106 words on the
+   first screen at 1440 and not one recommendation. */
+.dbCol{max-width:var(--db-col)}
+.dbHead{padding-block:var(--sp-32) var(--sp-24)}
 .dbEyebrow{font-size:var(--fs-label);font-weight:600;letter-spacing:var(--tr-caps);
- text-transform:uppercase;color:var(--theme-muted);margin:0 0 var(--sp-12)}
-.dbHead h1{margin:0;font-size:var(--fs-pagehead);font-weight:600;
+ text-transform:uppercase;color:var(--theme-muted);margin-bottom:var(--sp-10)}
+.dbHeadRow{display:flex;align-items:center;justify-content:space-between;
+ gap:var(--sp-16);flex-wrap:wrap}
+.dbHead h1{font-size:var(--fs-pagehead-sm);font-weight:600;
  line-height:var(--lh-tight);letter-spacing:var(--tr-head)}
-.dbDek{margin:var(--sp-16) 0 0;max-width:var(--db-measure);
- font-size:var(--fs-lead);line-height:var(--lh-body);color:var(--theme-ink-soft)}
-.dbLeague{margin:var(--sp-20) 0 0;font-size:var(--fs-label);letter-spacing:var(--tr-caps);
- text-transform:uppercase;color:var(--theme-muted)}
+.dbDek{margin-top:var(--sp-8);max-width:var(--db-measure);color:var(--theme-ink-soft)}
 
-/* ── the thesis, and the four numbers that carry it ───────────────────────── */
-.dbThesis{padding-block:var(--sp-32) var(--sp-40);border-top:var(--hair-w) solid var(--rule)}
-.dbThesis p{margin:0 0 var(--sp-16);max-width:var(--db-measure);
- line-height:var(--lh-prose);color:var(--theme-ink-soft)}
-.dbThesis p:last-of-type{margin-bottom:0}
-.dbThesis b{color:var(--theme-ink)}
-.dbStats{display:grid;grid-template-columns:repeat(4,1fr);gap:0;
- margin-top:var(--sp-32);border-top:var(--hair-w) solid var(--rule)}
-.dbStat{padding:var(--sp-20) var(--sp-24) var(--sp-4) 0}
-.dbStat+.dbStat{border-left:var(--hair-w) solid var(--rule);padding-left:var(--sp-24)}
-.dbStat .n{display:block;font-size:var(--fs-h3);font-weight:600;
- line-height:var(--lh-tight);letter-spacing:var(--tr-sub);font-variant-numeric:tabular-nums}
-.dbStat .l{display:block;margin-top:var(--sp-8);font-size:var(--fs-caption);
- line-height:var(--lh-note);color:var(--theme-muted)}
-@media(max-width:880px){.dbStats{grid-template-columns:repeat(2,1fr)}
- .dbStat:nth-child(3){border-left:0;padding-left:0}
- .dbStat:nth-child(n+3){border-top:var(--hair-w) solid var(--rule)}}
+/* ── the slot, which is the first decision ────────────────────────────────
+   A GRID, NOT A SCROLLER. Twelve seats is a closed set and the whole point of
+   the control is that you find yours; a horizontal track hides four of them
+   behind an edge at 390 and six at 320. It reflows 12 / 6 / 4 instead, so every
+   seat is on screen at every width this site is tested at. */
+.dbSlotSect{padding-bottom:var(--sp-24);border-bottom:var(--hair-w) solid var(--rule)}
+.dbLbl{font-size:var(--fs-label);font-weight:600;letter-spacing:var(--tr-caps);
+ text-transform:uppercase;color:var(--theme-muted);margin-bottom:var(--sp-10)}
+.dbSlots{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:var(--sp-4)}
+@media(max-width:760px){.dbSlots{grid-template-columns:repeat(6,1fr)}}
+@media(max-width:380px){.dbSlots{grid-template-columns:repeat(4,1fr)}}
+/* padding only -- the control keeps its own height, radius, ink and press. A
+   44px box with 16px of side padding cannot hold "12" in a 45px grid cell. */
+.dbSlots>.ctl{padding-inline:var(--sp-4);font-variant-numeric:tabular-nums}
 
-/* ── the bar. Translucent, content scrolls under it, hairline at the seam. ─── */
-.dbBar{position:sticky;top:0;z-index:20;
- background:var(--theme-material);backdrop-filter:blur(var(--blur-2)) saturate(180%);
- -webkit-backdrop-filter:blur(var(--blur-2)) saturate(180%);
- border-bottom:var(--hair-w) solid var(--rule)}
-.dbBarIn{display:flex;flex-direction:column;gap:var(--sp-2);padding-block:var(--sp-8)}
-.dbRow{display:flex;align-items:center;gap:var(--sp-12);min-width:0}
-.dbRowLbl{flex:0 0 auto;font-size:var(--fs-caption);font-weight:600;
- letter-spacing:var(--tr-caps);text-transform:uppercase;color:var(--theme-muted);
- width:var(--sp-48)}
-.dbScroll{display:flex;gap:var(--sp-2);overflow-x:auto;scrollbar-width:none;
- scroll-snap-type:x proximity;padding-block:var(--sp-2);min-width:0}
-.dbScroll::-webkit-scrollbar{display:none}
-/* Scroll edge, not a hard divider: the row fades out where it runs off the
-   right rather than ending on a rule. Removed once the row fits. */
-/* NOT on the View row. That row holds two items, never overflows, and the fade
-   was eating the right-hand edge of the selected pill at 390 -- caught on a
-   screenshot, not by any measurement. */
-@media(max-width:900px){
- .dbScroll:not(#tabsM){-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 32px),transparent);
-           mask-image:linear-gradient(90deg,#000 calc(100% - 32px),transparent)}
-}
-.dbScroll>.ctl{scroll-snap-align:center;flex:0 0 auto;font-variant-numeric:tabular-nums}
-.dbScroll>.ctl[aria-selected="true"]{background:var(--ctl-primary-ground);
- color:var(--ctl-primary-ink);font-weight:600}
-@media(max-width:640px){.dbRowLbl{display:none}}
-/* tokens.css:111 zeroes --blur-1/--blur-2 below 760px, so on a phone the bar
-   would be an 86%-alpha panel with NO blur behind it and the round note read
-   straight through the tabs. Measured on a 390 shot before this rule existed.
-   Below the blur cutoff the bar stops pretending to be a material and just
-   becomes the page. */
-@media(max-width:760px){
- .dbBar{background:var(--theme-page);backdrop-filter:none;-webkit-backdrop-filter:none}
+/* the state before a seat is chosen: one sentence, no board. */
+.dbAsk{padding-block:var(--sp-24) var(--sp-48);color:var(--theme-ink-soft);max-width:var(--db-measure)}
+
+/* ── the round, one at a time ─────────────────────────────────────────────
+   The arrows are the draft-day control -- one thumb, one round forward. The
+   track beside them is for jumping, and it is the only thing on this page that
+   scrolls sideways, because fifteen 44px targets cannot fit 320px and a round
+   number is not something you need to see all of at once. */
+.dbRoundNav{display:flex;align-items:center;gap:var(--sp-4);
+ padding-block:var(--sp-12);border-bottom:var(--hair-w) solid var(--rule)}
+.dbTrack{display:flex;gap:var(--sp-2);overflow-x:auto;scrollbar-width:none;
+ scroll-snap-type:x proximity;min-width:0;flex:0 1 auto}
+.dbTrack::-webkit-scrollbar{display:none}
+ /* measured, not declared: --ctl-pad on a two-digit label gives a 41px box and
+    a round number is a target you hit with a thumb at a table. */
+.dbTrack>.ctl{scroll-snap-align:center;flex:0 0 auto;font-variant-numeric:tabular-nums;
+ min-width:var(--tap-min);padding-inline:var(--sp-8)}
+/* RIGHT EDGE ONLY, and that is not laziness. A symmetric fade erases the LEFT
+   end of the strip, where the selected round sits at rounds 1-3 -- at 390 it
+   rendered the black "1" pill as a gradient into nothing. Seen on a screenshot;
+   no measurement would have said anything was wrong. The strip only ever runs
+   off to the right, so that is the only edge that needs telling. */
+@media(max-width:820px){
+ .dbTrack{-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 28px),transparent);
+          mask-image:linear-gradient(90deg,#000 calc(100% - 28px),transparent)}
 }
 
-/* ── round header ─────────────────────────────────────────────────────────── */
-/* The bar is sticky, so anything scrolled to must clear it. Three rows of
-   pills plus the hairline measures ~120px; --sp-40-72 covers it at both ends. */
-.dbRound{padding-block:var(--sp-40) var(--sp-24);scroll-margin-top:var(--sp-40-72)}
-.dbRoundTop{display:flex;align-items:baseline;gap:var(--sp-12);flex-wrap:wrap}
-.dbRound h2{margin:0;font-size:var(--fs-h2);font-weight:600;
- line-height:var(--lh-tight);letter-spacing:var(--tr-sub)}
-.dbRange{font-size:var(--fs-label);letter-spacing:var(--tr-caps);text-transform:uppercase;
+/* ── the answer ───────────────────────────────────────────────────────────── */
+.dbBoard{padding-block:var(--sp-24)}
+.dbCtx{display:flex;align-items:baseline;gap:var(--sp-8) var(--sp-16);flex-wrap:wrap;
+ margin-bottom:var(--sp-16)}
+.dbCtx h2{font-size:var(--fs-h3);font-weight:600;line-height:var(--lh-tight);
+ letter-spacing:var(--tr-sub);font-variant-numeric:tabular-nums}
+.dbCtx .at{font-size:var(--fs-label);letter-spacing:var(--tr-caps);text-transform:uppercase;
  color:var(--theme-muted);font-variant-numeric:tabular-nums}
-.dbNote{margin:var(--sp-12) 0 0;max-width:var(--db-measure);
- line-height:var(--lh-prose);color:var(--theme-ink-soft)}
 
-/* the roster strip — only when one slot is isolated */
-.dbHave{margin-top:var(--sp-20);padding-top:var(--sp-16);border-top:var(--hair-w) solid var(--rule);
- display:flex;flex-wrap:wrap;align-items:baseline;gap:var(--sp-8) var(--sp-16)}
+/* what you already hold. It is context for "why him here" -- the quota is half
+   the reason the model says what it says -- so it stays at rest, on one line. */
+.dbHave{display:flex;flex-wrap:wrap;align-items:baseline;gap:var(--sp-6) var(--sp-16);
+ margin-bottom:var(--sp-16);font-size:var(--fs-label);color:var(--theme-ink-soft)}
 .dbHave .k{font-size:var(--fs-caption);font-weight:600;letter-spacing:var(--tr-caps);
- text-transform:uppercase;color:var(--theme-muted);margin-right:var(--sp-4)}
-/* Was white-space:nowrap, which at 390 clipped the longest group -- two names
-   were simply gone off the right edge. Groups wrap; the coloured position tag
-   at the head of each is what keeps them legible as groups. */
-.dbHave .h{font-size:var(--fs-label);color:var(--theme-ink-soft)}
-@media(max-width:720px){.dbHave .h{flex:1 1 100%}}
+ text-transform:uppercase;color:var(--theme-muted)}
 .dbHave .h i{font-style:normal;font-weight:600;color:var(--pc)}
-
-/* ── the board ────────────────────────────────────────────────────────────── */
-.dbGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--sp-16);
- padding-bottom:var(--sp-56-96)}
-@media(max-width:1080px){.dbGrid{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:720px){.dbGrid{grid-template-columns:1fr}}
+@media(max-width:720px){.dbHave .h{flex:1 1 100%}}
 
 .dbCard{border:var(--hair-w) solid var(--rule);border-radius:var(--r-lg);corner-shape:var(--corner);
- background:var(--theme-surface);overflow:hidden;scroll-margin-top:var(--sp-40-72);
- transition:border-color var(--dur-state-out) var(--ease-out)}
-/* In slot mode the round tabs point at one of the fifteen. It is marked by the
-   hairline going to full ink -- no fill, no glow, and certainly no shadow. */
-.dbCard.is-here{border-color:var(--theme-ink)}
-.dbCardTop{display:flex;align-items:baseline;justify-content:space-between;
- gap:var(--sp-8);padding:var(--sp-14) var(--sp-16)}
-.dbSlot{font-size:var(--fs-small);font-weight:600;letter-spacing:var(--tr-title);
- font-variant-numeric:tabular-nums}
-.dbOverall{font-size:var(--fs-caption);color:var(--theme-muted);
- font-variant-numeric:tabular-nums;letter-spacing:var(--tr-caps);text-transform:uppercase}
+ background:var(--theme-surface);overflow:hidden}
 
 /* a pick. The whole row is the target; 44px is measured, not declared. */
 .dbPick{display:block;width:100%;border:0;background:none;text-align:left;
- padding:var(--sp-12) var(--sp-16);border-top:var(--hair-w) solid var(--rule);
+ padding:var(--sp-14) var(--sp-16);border-top:var(--hair-w) solid var(--rule);
  font:inherit;color:inherit;cursor:pointer;position:relative;
  -webkit-tap-highlight-color:transparent;
  transition:background-color var(--dur-state-out) var(--ease-out)}
+.dbCard>.dbPick:first-child,.dbPool>.dbPick:first-child{border-top:0}
 .dbPick:hover,.dbPick:focus-visible{background:var(--ctl-ground-hover)}
 .dbPick:focus-visible{outline:var(--focus-w) solid var(--ctl-focus);outline-offset:calc(var(--focus-w) * -1)}
 .dbPick:active{transition-duration:var(--dur-press)}
 .dbPickHd{display:flex;align-items:baseline;gap:var(--sp-8)}
-.dbRank{flex:0 0 auto;width:12px;font-size:var(--fs-caption);color:var(--theme-muted);
+.dbRank{flex:0 0 auto;width:var(--sp-12);font-size:var(--fs-caption);color:var(--theme-muted);
  font-variant-numeric:tabular-nums}
-.dbName{flex:1 1 auto;min-width:0;font-size:var(--fs-small);font-weight:600;
+.dbName{flex:0 1 auto;min-width:0;font-size:var(--fs-small);font-weight:600;
  letter-spacing:var(--tr-title);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .dbPos{flex:0 0 auto;font-size:var(--fs-caption);font-weight:600;
  letter-spacing:var(--tr-caps);color:var(--pc)}
 .dbTeam{flex:0 0 auto;font-size:var(--fs-caption);color:var(--theme-muted);
  letter-spacing:var(--tr-caps)}
-.dbMeta{display:flex;flex-wrap:wrap;gap:var(--sp-2) var(--sp-12);margin:var(--sp-4) 0 0 var(--sp-20);
- font-size:var(--fs-caption);color:var(--theme-muted);font-variant-numeric:tabular-nums}
-.dbMeta>span{white-space:nowrap}
-.dbMeta em{font-style:normal;color:var(--theme-ink-soft)}
-.dbFlag{font-weight:600;color:var(--theme-ink)}
+/* An injury flag stays at rest and nothing else does. It is not a statistic --
+   it changes whether you take the man at all, and a note you have to open to
+   find is a note that arrives after the pick. */
+.dbFlag{flex:0 0 auto;font-size:var(--fs-caption);font-weight:600;
+ letter-spacing:var(--tr-caps);text-transform:uppercase;color:var(--theme-ink)}
 
-/* the reasoning, one level deeper. grid-rows 0fr→1fr animates to auto height. */
+/* THE REASON, WHICH IS THE PRODUCT. It is the only prose on a resting row. */
+ /* THE REASON RUNS AT BODY SIZE. It was --fs-label, 12px, which is the size
+    this page uses for things you glance at. He reads this one: "the only info I
+    need to know is why each player is selected." The measure is capped so it
+    breaks at ~75 characters instead of running the width of the card. */
+.dbWhyLine{display:block;margin:var(--sp-6) 0 0 var(--sp-20);max-width:56ch;
+ font-size:var(--fs-body);line-height:var(--lh-body);color:var(--theme-ink-soft)}
+/* "projection only" is an honesty tag, not decoration: 132 of the 540 rows have
+   no report behind them and say so without being opened. */
+.dbKind{font-size:var(--fs-caption);font-weight:600;letter-spacing:var(--tr-caps);
+ text-transform:uppercase;color:var(--theme-muted);white-space:nowrap}
+.dbWhyLine .dbKind{margin-left:var(--sp-6)}
+
+/* everything else, one level deeper. grid-rows 0fr→1fr animates to auto height. */
 .dbWhy{display:grid;grid-template-rows:0fr;margin-left:var(--sp-20);
  transition:grid-template-rows var(--dur-reveal) var(--ease-out)}
 .dbPick[aria-expanded="true"] .dbWhy{grid-template-rows:1fr}
 .dbWhyIn{overflow:hidden;min-height:0}
-.dbWhy p{margin:var(--sp-10) 0 0;font-size:var(--fs-label);line-height:var(--lh-note);
- color:var(--theme-ink-soft);white-space:normal}
+/* A <span>, not a <p>: this lives inside a <button>, whose content model is
+   phrasing content only. The old markup put a paragraph in there -- browsers
+   cope, the parser does not have to. */
+.dbWhy .dbTxt{display:block;margin-top:var(--sp-10);font-size:var(--fs-body);
+ line-height:var(--lh-body);color:var(--theme-ink-soft);white-space:normal}
+.dbMeta,.dbFacts{display:flex;flex-wrap:wrap;gap:var(--sp-2) var(--sp-12);
+ margin-top:var(--sp-8);font-size:var(--fs-caption);color:var(--theme-muted);
+ font-variant-numeric:tabular-nums}
+.dbMeta>span,.dbFacts>span{white-space:nowrap}
+.dbMeta em,.dbFacts em{font-style:normal;color:var(--theme-ink-soft)}
+.dbBase{display:block;margin-top:var(--sp-8);font-size:var(--fs-caption);
+ line-height:var(--lh-note);color:var(--theme-muted);white-space:normal}
+.dbBase b{font-weight:600;color:var(--theme-ink-soft)}
 .dbSrc{display:block;margin-top:var(--sp-8);font-size:var(--fs-caption);
  color:var(--theme-muted);white-space:normal}
 .dbSrc a{color:inherit;text-decoration:underline;text-underline-offset:2px;
  text-decoration-color:var(--rule)}
 .dbSrc a:hover{color:var(--theme-ink)}
-.dbKind{font-weight:600;letter-spacing:var(--tr-caps);text-transform:uppercase}
 
 /* a pool row is two targets: the row records the pick, the button opens the
    reasoning. The hairline between rows moves to the wrapper so the pair reads
@@ -230,26 +257,55 @@ body{margin:0;font-family:var(--sans);font-size:var(--fs-body);line-height:var(-
 .dbInfo:hover,.dbInfo:focus-visible{background:var(--ctl-ground-hover);color:var(--theme-ink)}
 .dbInfo:focus-visible{outline:var(--focus-w) solid var(--ctl-focus);outline-offset:calc(var(--focus-w) * -1)}
 
-/* ── footer ───────────────────────────────────────────────────────────────── */
-.dbFoot{border-top:var(--hair-w) solid var(--rule);padding-block:var(--sp-32) var(--sp-56-96)}
-.dbFoot h2{margin:0 0 var(--sp-12);font-size:var(--fs-label);font-weight:600;
+/* ── the two disclosures ──────────────────────────────────────────────────
+   Everything the page used to say out loud. Closed, they are one line each; the
+   methodology summary is written so that the honest sentence -- this model is
+   not trained -- is true and readable WITHOUT opening it. */
+.dbMore{border-top:var(--hair-w) solid var(--rule)}
+.dbMore>summary{display:flex;align-items:center;gap:var(--sp-8);min-height:var(--tap-min);
+ padding-block:var(--sp-8);list-style:none;cursor:pointer;
+ font-size:var(--fs-label);line-height:var(--lh-note);color:var(--theme-muted);
+ transition:color var(--dur-state-out) var(--ease-out)}
+.dbMore>summary::-webkit-details-marker{display:none}
+.dbMore>summary:hover{color:var(--theme-ink)}
+.dbMore>summary:focus-visible{outline:var(--focus-w) solid var(--ctl-focus);outline-offset:var(--sp-2)}
+.dbMore>summary::before{content:"";flex:0 0 auto;width:7px;height:7px;
+ border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;
+ transform:rotate(-45deg) translate(-1px,-1px);
+ transition:transform var(--dur-state) var(--ease-out)}
+.dbMore[open]>summary::before{transform:rotate(45deg) translate(-2px,-2px)}
+.dbMoreIn{padding-block:var(--sp-8) var(--sp-32);max-width:var(--db-measure)}
+.dbMoreIn p{margin-bottom:var(--sp-12);font-size:var(--fs-label);
+ line-height:var(--lh-prose);color:var(--theme-ink-soft)}
+.dbMoreIn p:last-child{margin-bottom:0}
+.dbMoreIn h3{margin:var(--sp-24) 0 var(--sp-10);font-size:var(--fs-caption);font-weight:600;
  letter-spacing:var(--tr-caps);text-transform:uppercase;color:var(--theme-muted)}
-.dbFoot p{margin:0 0 var(--sp-12);max-width:var(--db-measure);
- font-size:var(--fs-label);line-height:var(--lh-note);color:var(--theme-muted)}
-.dbFoot a{color:var(--theme-ink-soft);text-decoration:underline;text-underline-offset:2px;
+.dbMoreIn a{color:var(--theme-ink-soft);text-decoration:underline;text-underline-offset:2px;
  text-decoration-color:var(--rule)}
-.dbFoot a:hover{color:var(--theme-ink)}
+.dbMoreIn a:hover{color:var(--theme-ink)}
+.dbFigs{display:grid;grid-template-columns:repeat(4,1fr);margin:var(--sp-20) 0;
+ border-top:var(--hair-w) solid var(--rule)}
+.dbFig{padding:var(--sp-16) var(--sp-16) 0 0}
+.dbFig+.dbFig{border-left:var(--hair-w) solid var(--rule);padding-left:var(--sp-16)}
+.dbFig .n{display:block;font-size:var(--fs-lead);font-weight:600;line-height:var(--lh-tight);
+ letter-spacing:var(--tr-sub);font-variant-numeric:tabular-nums}
+.dbFig .l{display:block;margin-top:var(--sp-6);font-size:var(--fs-caption);
+ line-height:var(--lh-note);color:var(--theme-muted)}
+@media(max-width:720px){.dbFigs{grid-template-columns:repeat(2,1fr)}
+ .dbFig:nth-child(3){border-left:0;padding-left:0}
+ .dbFig:nth-child(n+3){border-top:var(--hair-w) solid var(--rule)}}
 
 /* ── live draft ───────────────────────────────────────────────────────────
    One rule governs this whole mode: it has to be usable one-handed, at a
    table, under time pressure. So it is ONE tap per pick -- you tap whoever
    just came off the board, and the app works out from the snake whose pick
    that was and whether it was yours. No second control, no "mine/theirs"
-   choice to get wrong at pick 94. */
-.dbLive{padding-block:var(--sp-32) var(--sp-24);scroll-margin-top:var(--sp-40-72)}
+   choice to get wrong at pick 94. It reads the SAME slot control at the top of
+   the page the board does; there is no second place to say where you sit. */
+.dbLive{padding-block:var(--sp-24) var(--sp-40)}
 .dbClock{display:flex;align-items:baseline;gap:var(--sp-12);flex-wrap:wrap;
  padding-bottom:var(--sp-16);border-bottom:var(--hair-w) solid var(--rule)}
-.dbClock h2{margin:0;font-size:var(--fs-h2);font-weight:600;
+.dbClock h2{font-size:var(--fs-h3);font-weight:600;
  line-height:var(--lh-tight);letter-spacing:var(--tr-sub);font-variant-numeric:tabular-nums}
 .dbClock .sub{font-size:var(--fs-label);letter-spacing:var(--tr-caps);
  text-transform:uppercase;color:var(--theme-muted);font-variant-numeric:tabular-nums}
@@ -268,123 +324,165 @@ body{margin:0;font-family:var(--sans);font-size:var(--fs-body);line-height:var(-
  text-transform:uppercase;color:var(--theme-muted);margin-right:var(--sp-6)}
 
 .dbSect{margin-top:var(--sp-32)}
-.dbSect>h3{margin:0 0 var(--sp-12);font-size:var(--fs-caption);font-weight:600;
+.dbSect>h3{margin-bottom:var(--sp-12);font-size:var(--fs-caption);font-weight:600;
  letter-spacing:var(--tr-caps);text-transform:uppercase;color:var(--theme-muted)}
 .dbTools{display:flex;gap:var(--sp-8);align-items:center;margin-bottom:var(--sp-12)}
 .dbTools .field{flex:1 1 auto;min-width:0}
 .dbPool{border:var(--hair-w) solid var(--rule);border-radius:var(--r-lg);
  corner-shape:var(--corner);background:var(--theme-surface);overflow:hidden}
-.dbPool .dbPick:first-child{border-top:0}
 .dbEmpty{padding:var(--sp-24) var(--sp-16);font-size:var(--fs-label);color:var(--theme-muted)}
-
 /* the recommendation block, when it is your turn */
 .dbRecs{border:var(--hair-w) solid var(--theme-ink);border-radius:var(--r-lg);
  corner-shape:var(--corner);background:var(--theme-surface);overflow:hidden}
-.dbRecs .dbPick:first-child{border-top:0}
-
-/* the extra facts that only exist on the expanded row */
-.dbFacts{display:flex;flex-wrap:wrap;gap:var(--sp-2) var(--sp-12);margin-top:var(--sp-8);
- font-size:var(--fs-caption);color:var(--theme-muted);font-variant-numeric:tabular-nums}
-.dbFacts>span{white-space:nowrap}
-.dbFacts em{font-style:normal;color:var(--theme-ink-soft)}
-.dbBase{display:block;margin-top:var(--sp-8);font-size:var(--fs-caption);
- line-height:var(--lh-note);color:var(--theme-muted);white-space:normal}
-.dbBase b{font-weight:600;color:var(--theme-ink-soft)}
+.dbRecs>.dbPick:first-child{border-top:0}
 
 @media(prefers-reduced-motion:reduce){
- .dbWhy{transition:none}
+ .dbWhy,.dbMore>summary::before{transition:none}
  .ctl:active{transform:none}
 }
-@media(prefers-reduced-transparency:reduce){
- .dbBar{background:var(--theme-page);backdrop-filter:none;-webkit-backdrop-filter:none}
-}
 @media(prefers-contrast:more){
- .dbCard{border-color:var(--theme-rim-strong)}
+ .dbCard,.dbPool{border-color:var(--theme-rim-strong)}
 }
 </style>
+<link rel="stylesheet" href="controls.css?v=99ded98629">
+<link rel="stylesheet" href="header.css?v=99ded98629">
+<link rel="stylesheet" href="footer.css?v=99ded98629">
+<link rel="stylesheet" href="site-theme.css?v=99ded98629">
+<script src="header.js" defer></script>
+<script src="footer-band.js" defer></script>
 </head>
-<body>
+<body data-nav="games" data-theme-page="draft">
+<a class="skipLink ctl ctl--secondary" href="#main">Skip to content</a>
 
-<div class="wrap dbNav">
-  <a class="ctl ctl--quiet ctl--nav" href="index.html" style="padding-inline:0">← Jayden Betts</a>
+<!-- THE HEADER, IDENTICAL TO THE OTHER NINE PAGES. Copied byte for byte from
+     about.html, which is the current reference: the mark in the leading slot
+     (this is not a case study, so no back arrow), the three destinations, and
+     the time-of-day control beside Contact. Two attributes differ and both are
+     per-page facts rather than divergence -- About loses aria-current because
+     this is not About's URL, and Play carries aria-current="true" because the
+     board is a thing you reach from Play, which is exactly what headmaker.html
+     does with the same relationship. -->
+<div class="jbStick">
+ <nav class="jbNav" aria-label="Primary" data-surface="paper">
+  <span class="jbGrp jbGrpL">
+   <button class="jbHome ctl ctl--nav" id="logo" type="button" aria-label="Jayden Betts"><svg class="jbLogo" viewBox="0 0 30 30" aria-hidden="true"><path d="M9.38 6.33Q8.81 5.88 8.81 5.22Q8.81 4.56 9.02 4.11Q9.23 3.66 9.64 3.34Q10.5 2.65 12.08 2.65Q13.59 2.65 14.07 3.87Q14.22 4.22 14.22 4.65Q14.22 5.08 13.87 5.48Q13.53 5.88 13.01 6.16Q12.49 6.45 11.89 6.6Q11.29 6.76 10.82 6.76Q10.36 6.76 10.01 6.65Q9.66 6.54 9.38 6.33ZM6.68 20.73Q6.26 22.35 5.92 23.6Q5.57 24.85 5.15 25.72Q4.73 26.58 4.16 27.03Q3.58 27.48 2.86 27.48Q2.15 27.48 1.71 27.32Q1.27 27.16 0.93 26.92Q0.24 26.43 0 25.82Q1.03 25 5.29 16.53Q7.69 11.74 8.78 9.81Q9.23 9.01 9.95 9.01Q10.36 9.01 10.89 9.28Q8.94 13.14 7.63 17.43Q10.21 16.98 12.48 15.01Q13.18 14.4 13.62 13.74Q14.22 13.7 14.22 14.23Q14.22 14.44 13.89 15.23Q13.57 16.01 12.77 17.03Q11.98 18.05 10.99 18.81Q9.06 20.31 6.68 20.73ZM19.4 10.16Q21.18 9.11 22.86 9.11Q25.54 9.11 26.23 11.15Q26.45 11.78 26.45 12.71Q26.45 14.72 24.96 16.86Q26.21 16.68 27.37 15.87Q28.54 15.05 29.4 13.74Q30 13.7 30 14.23Q30 14.44 29.87 14.75Q27.35 20.86 17.63 20.86H17.6Q15.81 20.86 14.64 19.81Q13.37 18.66 13.37 16.59Q13.37 14.05 18.01 7.39Q19.97 4.55 21.37 2.96Q21.75 2.52 22.4 2.52Q23.12 2.52 23.45 3.05Q20.72 7.33 19.4 10.16ZM18.04 13.83Q17.86 14.67 17.86 15.24Q17.86 15.81 18.21 16.2Q18.55 16.59 19.1 16.59Q19.66 16.59 20.23 16.4Q20.8 16.21 21.34 15.88Q21.88 15.54 22.37 15.1Q22.86 14.66 23.24 14.14Q24.03 13.02 24.03 12.03Q24.03 11.39 23.71 11.06Q23.18 10.5 22.53 10.5Q21.87 10.5 21.19 10.78Q20.52 11.05 19.92 11.51Q18.63 12.48 18.04 13.83Z"/></svg></button>
+  </span>
+  <span class="jbGrp jbGrpC" id="jbNavMid">
+   <a class="ctl ctl--nav" data-nav-item="home" href="index.html" aria-label="Home"><svg class="gIco uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span class="jbLbl">Home</span></a>
+   <a class="ctl ctl--nav" data-nav-item="about" href="about.html" aria-label="About"><svg class="gIco uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/></svg><span class="jbLbl">About</span></a>
+   <a class="ctl ctl--nav" data-nav-item="games" href="play.html" aria-label="Play" aria-current="true"><svg class="gIco uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><line x1="6" x2="10" y1="11" y2="11"/><line x1="8" x2="8" y1="9" y2="13"/><line x1="15" x2="15.01" y1="12" y2="12"/><line x1="18" x2="18.01" y1="10" y2="10"/><path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258-.006-.051-.011-.1-.017-.151A4 4 0 0 0 17.32 5z"/></svg><span class="jbLbl">Play</span></a>
+   <!-- WORKSPACE LEFT THE BAR, 2026-08-26. Jayden: "for workspace instead of
+        being a whole tab please add it to the play page as well I feel like that
+        makes more sense." It is his own tool rather than a case study, and Play
+        is where the things he built live; play.html carries it as a card now.
+        /workspace/ is untouched and still reachable. It was also the widest
+        label in the bar (98px at 1440, 44 as a glyph on a phone), and the bar
+        needed exactly that back: the time-of-day switch had just taken the
+        seventh slot, which at 320 does not exist. -->
+  </span>
+  <span class="jbGrp jbGrpR" id="jbNavEnd">
+   <!-- ── THE TIME OF DAY, IN THE CHROME THAT THE STATE ACTUALLY REACHES ──────
+        Jayden, 2026-08-26: "the time of day button should be in the header since
+        it affects all the pages." It writes data-theme-mode / data-theme-state on
+        <html>; every page reads them. It used to live in index.html's Hero rail.
+        THE GLYPH IS CHOSEN IN CSS, NOT BY SCRIPT. site-theme.js is a blocking
+        <script> in <head>, so :root carries data-theme-state before this markup is
+        parsed, and header.css shows the matching <g> off it. No first-paint hole
+        and nothing to fetch -- the paths are inline for the same reason header.js
+        inlines the nav's: an external <use> renders nothing until its document
+        resolves, which is the blank-glyph bug this bar has already had once.
+        header.js owns opening it, the roulette of aria-checked, and the keyboard.
+        WHY IT IS ON THIS SIDE AND NOT AMONG THE TABS. Jayden: "I feel like the
+        time of day should be sorta on the contact side of the screen like maybe
+        right to the left I dont think it should sit right in the middle thats
+        for sure with the other main options." The centred zone is DESTINATIONS
+        -- places you can go. Contact is an ACTION. This is a utility that
+        changes how the site looks, so sitting it between Home and Play said it
+        was a fourth place to go. Beside Contact it joins the things that DO
+        something, and the pair balances the mark on the left.
+        NO DIVIDER BETWEEN THEM, and it is not an omission: the two are already
+        distinguishable by kind. Contact is .ctl--secondary -- a paper chip with
+        a rim, the loudest thing in the bar after the mark -- and this is a bare
+        .ctl--nav glyph, so the quieter one reads as attached to the louder one
+        rather than as its equal. A rule between two adjacent controls is the one
+        separator this site does not use anywhere else. -->
+   <div class="heroTime" id="heroTime">
+    <button class="heroTimeBtn ctl ctl--nav" id="heroTimeBtn" type="button" aria-label="Time of day" aria-haspopup="menu" aria-expanded="false" aria-controls="heroTimeMenu"><svg class="heroTimeIcon uiIcon" id="heroTimeIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><g data-hero-time-icon="pre-dawn"><path d="M18 5h4"/><path d="M20 3v4"/><path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"/></g><g data-hero-time-icon="sunrise"><path d="M12 2v8"/><path d="m4.93 10.93 1.41 1.41"/><path d="M2 18h2"/><path d="M20 18h2"/><path d="m19.07 10.93-1.41 1.41"/><path d="M22 22H2"/><path d="m8 6 4-4 4 4"/><path d="M16 18a4 4 0 0 0-8 0"/></g><g data-hero-time-icon="daytime"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></g><g data-hero-time-icon="dusk"><path d="M12 2v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="M20 12h2"/><path d="m19.07 4.93-1.41 1.41"/><path d="M15.947 12.65a4 4 0 0 0-5.925-4.128"/><path d="M13 22H7a5 5 0 1 1 4.9-6H13a3 3 0 0 1 0 6Z"/></g><g data-hero-time-icon="sunset"><path d="M12 10V2"/><path d="m4.93 10.93 1.41 1.41"/><path d="M2 18h2"/><path d="M20 18h2"/><path d="m19.07 10.93-1.41 1.41"/><path d="M22 22H2"/><path d="m16 6-4 4-4-4"/><path d="M16 18a4 4 0 0 0-8 0"/></g><g data-hero-time-icon="night"><path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"/></g><g data-hero-time-icon="off"><path d="m2 2 20 20"/><path d="M8.35 2.69A10 10 0 0 1 21.3 15.65"/><path d="M19.08 19.08A10 10 0 1 1 4.92 4.92"/></g></svg></button>
+    <div class="heroTimeMenu ctl-menu" id="heroTimeMenu" role="menu" aria-label="Choose time of day">
+     <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="false" data-time-mode="auto"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Automatic</button>
+     <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="false" data-time-mode="off"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m2 2 20 20"/><path d="M8.35 2.69A10 10 0 0 1 21.3 15.65"/><path d="M19.08 19.08A10 10 0 1 1 4.92 4.92"/></svg>Off</button>
+     <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="false" data-time-mode="pre-dawn"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M18 5h4"/><path d="M20 3v4"/><path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"/></svg>Pre-dawn</button>
+     <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="false" data-time-mode="sunrise"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2v8"/><path d="m4.93 10.93 1.41 1.41"/><path d="M2 18h2"/><path d="M20 18h2"/><path d="m19.07 10.93-1.41 1.41"/><path d="M22 22H2"/><path d="m8 6 4-4 4 4"/><path d="M16 18a4 4 0 0 0-8 0"/></svg>Sunrise</button>
+     <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="false" data-time-mode="daytime"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>Daytime</button>
+     <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="false" data-time-mode="dusk"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="M20 12h2"/><path d="m19.07 4.93-1.41 1.41"/><path d="M15.947 12.65a4 4 0 0 0-5.925-4.128"/><path d="M13 22H7a5 5 0 1 1 4.9-6H13a3 3 0 0 1 0 6Z"/></svg>Dusk</button>
+     <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="false" data-time-mode="sunset"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 10V2"/><path d="m4.93 10.93 1.41 1.41"/><path d="M2 18h2"/><path d="M20 18h2"/><path d="m19.07 10.93-1.41 1.41"/><path d="M22 22H2"/><path d="m16 6-4 4-4-4"/><path d="M16 18a4 4 0 0 0-8 0"/></svg>Sunset</button>
+     <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="false" data-time-mode="night"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"/></svg>Night</button>
+    </div>
+   </div>
+   <a class="jbContactBtn ctl ctl--nav ctl--secondary" data-nav-item="contact" href="mailto:jaydenlbetts@gmail.com" aria-label="Contact"><svg class="gIco uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg><span class="jbLbl">Contact</span></a>
+  </span>
+ </nav>
 </div>
+<div class="wrap">
+<main class="dbCol" id="main" tabindex="-1">
 
-<header class="wrap dbHead">
-  <p class="dbEyebrow">2026 redraft · PPR · updated 26 August</p>
-  <h1>Every slot, every round, three picks deep.</h1>
-  <p class="dbDek">Twelve draft positions simulated pick by pick against live Sleeper ADP — the platform you actually draft on.
-    Find the cell you are on the clock for and it names the three players worth
-    taking, why, and what it costs you to be wrong.</p>
-  <p class="dbLeague">12 teams · QB1 RB2 WR2 TE1 FLEX2 K1 DEF1 · 15 rounds · 180 picks</p>
-</header>
-
-<section class="wrap dbThesis">
-  <p><b>No quarterback before round eight.</b> Not a preference — a margin.
-    On this year's projections the best quarterback in football is worth
-    <b>+4.8 pts/gm</b> over the one still sitting on the board in round thirteen.
-    The best running back is worth <b>+13.4</b> over his. Last season Drake Maye
-    finished QB2 at 21.1 pts/gm and Trevor Lawrence QB5 at 19.9, both from well
-    outside the early rounds. Where a big name's ADP lands inside a round below,
-    the round note says plainly why we are passing.</p>
-  <p><b>Running back at every slot, not just the good ones.</b> Backs decay
-    roughly twice as fast as receivers: RB13–RB24 average 13.6 pts/gm and
-    RB25–RB36 average 10.5, a 3.1-point step, where the same move at receiver
-    costs 1.8. The model weights running back 1.20× and holds a hard floor —
-    two backs by round four, three by six, four by eight — at all twelve slots.</p>
-  <p><b>Nothing here is a reach.</b> Every pick is checked against Sleeper's own
-    12-team PPR ADP. Where Sleeper and Fantasy Football Calculator disagree by
-    more than a round the row says so, because knowing a player goes fifteen picks
-    earlier on the platform you are sitting in front of is the whole edge. In rounds one to six no recommendation is more than half a
-    round ahead of its ADP; later, where a reach costs nothing, the number of
-    picks you are jumping is printed on the row.</p>
-  <p><b>What the model is, plainly.</b> It is a transparent scoring model, not a
-    trained one. Nothing here learned anything from data: a player's score is his
-    projected points above the replacement at his position, weighted 1.14&times; if
-    he is a back, plus a nudge for a quota you have not filled, plus a payment for
-    ceiling from round ten, plus a small prior from historical hit rates, minus
-    penalties for an injury flag and for a man who will still be there next round.
-    Every number that moves a pick is printed on that pick's row, which is the
-    point &mdash; you can see why it said what it said and overrule it at the table.</p>
-  <div class="dbStats">
-    <div class="dbStat"><span class="n">+13.4</span><span class="l">RB1's edge per game over a replacement back. The best QB's edge over a round-13 QB is +4.8.</span></div>
-    <div class="dbStat"><span class="n">3.1 vs 1.8</span><span class="l">Points per game lost stepping from the RB13–24 tier to RB25–36, against the same step at receiver.</span></div>
-    <div class="dbStat"><span class="n">46.3–52.5</span><span class="l">Top-three RB projection across all twelve slots. Six backs at every one of them.</span></div>
-    <div class="dbStat"><span class="n">0</span><span class="l">Picks in rounds one to six taken more than half a round ahead of ADP.</span></div>
-  </div>
-</section>
-
-<nav class="dbBar" aria-label="Board filters">
-  <div class="wrap dbBarIn">
-    <div class="dbRow">
-      <span class="dbRowLbl" id="lblM">View</span>
-      <div class="dbScroll" id="tabsM" role="tablist" aria-labelledby="lblM"></div>
+  <header class="dbHead">
+    <p class="dbEyebrow">2026 redraft · PPR · 12 teams · updated 26 August</p>
+    <div class="dbHeadRow">
+      <h1>Draft board</h1>
+      <!-- ONE button, not a two-pill tablist with a "View" label. The label was
+           naming a choice the two pills already made obvious, and the unselected
+           pill was a control sitting there doing nothing. -->
+      <button class="ctl ctl--secondary ctl--nav" id="modeBtn" type="button">Live draft</button>
     </div>
-    <div class="dbRow" id="rowR">
-      <span class="dbRowLbl" id="lblR">Round</span>
-      <div class="dbScroll" id="tabsR" role="tablist" aria-labelledby="lblR"></div>
-    </div>
-    <div class="dbRow" id="rowS">
-      <span class="dbRowLbl" id="lblS">Slot</span>
-      <div class="dbScroll" id="tabsS" role="tablist" aria-labelledby="lblS"></div>
-    </div>
-  </div>
-</nav>
+    <p class="dbDek">Three players worth taking at your seat, every round, and why each one.</p>
+  </header>
 
-<main>
-  <div id="boardView">
-    <section class="wrap dbRound" id="roundHd"></section>
-    <div class="wrap"><div class="dbGrid" id="grid"></div></div>
+  <!-- ═══ 1. THE SLOT. The first decision, and now the first control. ═══════
+       It used to be the third row of a sticky bar under a headline, a dek, a
+       league line, four paragraphs and four stat tiles. Both modes read it:
+       there is no second place to say where you sit. -->
+  <section class="dbSlotSect" aria-labelledby="slotLbl">
+    <h2 class="dbLbl" id="slotLbl">Your slot</h2>
+    <div class="dbSlots" id="tabsS" role="tablist" aria-labelledby="slotLbl"></div>
+  </section>
+
+  <p class="dbAsk" id="ask" hidden>Pick the seat you are drafting from. Everything below answers it.</p>
+
+  <div id="boardView" hidden>
+    <div class="dbRoundNav">
+      <button class="ctl ctl--icon" id="prevR" type="button" aria-label="Previous round">
+        <svg class="uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m15 18-6-6 6-6"/></svg>
+      </button>
+      <div class="dbTrack" id="tabsR" role="tablist" aria-label="Round"></div>
+      <button class="ctl ctl--icon" id="nextR" type="button" aria-label="Next round">
+        <svg class="uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m9 18 6-6-6-6"/></svg>
+      </button>
+    </div>
+    <section class="dbBoard">
+      <div class="dbCtx" id="ctx" aria-live="polite"></div>
+      <div class="dbHave" id="have" hidden></div>
+      <div class="dbCard" id="card"></div>
+      <!-- The round's strategy note. Kept word for word, closed by default: he
+           reads the board, not an essay per round. -->
+      <details class="dbMore" id="noteWrap" style="margin-top:var(--sp-24)">
+        <summary id="noteSum"></summary>
+        <div class="dbMoreIn"><p id="noteBody"></p></div>
+      </details>
+    </section>
   </div>
+
   <div id="liveView" hidden>
-    <section class="wrap dbLive">
-      <div class="dbClock" id="clock"></div>
+    <section class="dbLive">
+      <div class="dbClock" id="clock" aria-live="polite"></div>
       <div class="dbReads" id="reads"></div>
+      <div class="dbHave" id="liveHave" style="margin-top:var(--sp-16)" hidden></div>
       <div class="dbSect" id="recSect" hidden>
         <h3>On the clock — take one of these</h3>
         <div class="dbRecs" id="recs"></div>
       </div>
       <div class="dbSect">
-        <h3>Best available — tap whoever just came off the board</h3>
+        <h3>Tap whoever just came off the board</h3>
         <div class="dbTools">
           <input class="field" id="poolQ" type="search" placeholder="Filter by name, position or team"
                  autocomplete="off" spellcheck="false" aria-label="Filter the available players">
@@ -395,66 +493,144 @@ body{margin:0;font-family:var(--sans);font-size:var(--fs-body);line-height:var(-
       </div>
     </section>
   </div>
+
+  <!-- ═══ THE APPENDIX ═════════════════════════════════════════════════════
+       Everything the page used to state on arrival: the four-paragraph thesis,
+       the four figures, and the six paragraphs of sourcing that were the page
+       footer. Not one word is cut. The summary line carries the only claim that
+       has to be true without opening anything -- that nothing here is trained --
+       so the honesty survives the collapse. -->
+  <details class="dbMore" style="margin-top:var(--sp-32)">
+    <summary>A transparent scoring model, not a trained one — how it picks, and every source behind it</summary>
+    <div class="dbMoreIn">
+      <p><b>What the model is, plainly.</b> Nothing here learned anything from data: a
+        player's score is his projected points above the replacement at his position,
+        weighted 1.14&times; if he is a back, plus a nudge for a quota you have not filled,
+        plus a payment for ceiling from round ten, plus a small prior from historical hit
+        rates, minus penalties for an injury flag and for a man who will still be there
+        next round. Every number that moves a pick is printed on that pick's row, which is
+        the point &mdash; you can see why it said what it said and overrule it at the table.</p>
+      <p><b>No quarterback before round eight.</b> Not a preference — a margin.
+        On this year's projections the best quarterback in football is worth
+        <b>+4.8 pts/gm</b> over the one still sitting on the board in round thirteen.
+        The best running back is worth <b>+13.4</b> over his. Last season Drake Maye
+        finished QB2 at 21.1 pts/gm and Trevor Lawrence QB5 at 19.9, both from well
+        outside the early rounds.</p>
+      <p><b>Running back at every slot, not just the good ones.</b> Backs decay
+        roughly twice as fast as receivers: RB13–RB24 average 13.6 pts/gm and
+        RB25–RB36 average 10.5, a 3.1-point step, where the same move at receiver
+        costs 1.8. The model weights running back 1.20× and holds a hard floor —
+        two backs by round four, three by six, four by eight — at all twelve slots.</p>
+      <p><b>Nothing here is a reach.</b> Every pick is checked against Sleeper's own
+        12-team PPR ADP. Where Sleeper and Fantasy Football Calculator disagree by
+        more than a round the row says so, because knowing a player goes fifteen picks
+        earlier on the platform you are sitting in front of is the whole edge. In rounds
+        one to six no recommendation is more than half a round ahead of its ADP; later,
+        where a reach costs nothing, the number of picks you are jumping is printed on the row.</p>
+      <div class="dbFigs">
+        <div class="dbFig"><span class="n">+13.4</span><span class="l">RB1's edge per game over a replacement back. The best QB's edge over a round-13 QB is +4.8.</span></div>
+        <div class="dbFig"><span class="n">3.1 vs 1.8</span><span class="l">Points per game lost stepping from the RB13–24 tier to RB25–36, against the same step at receiver.</span></div>
+        <div class="dbFig"><span class="n">46.3–52.5</span><span class="l">Top-three RB projection across all twelve slots. Six backs at every one of them.</span></div>
+        <div class="dbFig"><span class="n">0</span><span class="l">Picks in rounds one to six taken more than half a round ahead of ADP.</span></div>
+      </div>
+
+      <h3>Where this comes from</h3>
+      <p><b>ADP:</b> Sleeper 12-team PPR redraft, read from
+        <a href="https://www.draftsharks.com/adp/ppr/sleeper/12" rel="noopener">Draft Sharks</a>
+        on 26 August 2026 — the platform and format you actually draft in.
+        <a href="https://fantasyfootballcalculator.com/adp/ppr" rel="noopener">Fantasy Football
+        Calculator</a> (7,830 mocks, 19–26 Aug) and
+        <a href="https://www.sharpfootballanalysis.com/fantasy/fantasy-football-adp-half-ppr-underdog-best-ball/" rel="noopener">Underdog
+        best ball</a> are carried as second opinions; open any row to see all three.
+        <b>Projections, ceilings and floors:</b> WalterPicks 2026 redraft PPR, 26 August 2026.</p>
+      <p><b>Historical base rates.</b> Hit rates by round are FFPC drafts 2016–2024, nine seasons
+        (<a href="https://www.fftradingroom.com/1063/How-to-Win-Your-2025-Fantasy-Football-Draft:-Positional-Hit-Rates-by-Round" rel="noopener">Fantasy
+        Trading Room</a>); bust rates are PPR 2013–2014, a short two-season sample
+        (<a href="https://www.playerprofiler.com/article/bust-rates/" rel="noopener">PlayerProfiler</a>);
+        the quarterback bands are 2009–2011
+        (<a href="https://www.pff.com/news/fantasy-adp-value-study-quarterbacks" rel="noopener">PFF</a>);
+        the rounds 3–6 running-back dead zone is 2015–2020 best ball
+        (<a href="https://www.playerprofiler.com/article/rb-dead-zone-game-theory/" rel="noopener">via
+        PlayerProfiler</a>). They are printed on the row, including where they argue against the pick.</p>
+      <p><b>Team context.</b> Weeks 15–17 opponents are the real 2026 schedule from
+        <a href="https://www.nfl.com/schedules/2026/by-week/week-15" rel="noopener">NFL.com</a>,
+        cross-checked game-for-game against FantasyPros. Playoff strength of schedule is
+        <a href="https://www.sharpfootballanalysis.com/fantasy/strength-of-schedule-fantasy-football/" rel="noopener">Sharp
+        Football</a>, 23 August. Offensive lines are
+        <a href="https://www.pff.com/news/nfl-offensive-line-rankings-2026" rel="noopener">PFF</a> and Sharp,
+        kept separate rather than averaged because where they disagree they disagree hard.</p>
+      <p><b>2025 opportunity.</b> Targets, target share, snap share and red-zone work
+        for 113 of the players here, read from FantasyPros' 2025 tables (weeks 1&ndash;18;
+        the red-zone rushing report is weeks 1&ndash;17 by their own label). Usage predicts
+        next season better than last season's points do &mdash; but it is <b>shown, not
+        scored</b>: the projection already has last year's usage inside it, and feeding
+        these numbers back into the model would count the same evidence twice.</p>
+      <p><b>What is missing, and why.</b> <b>No routes run or yards per route run</b> &mdash;
+        that data sits behind PFF+, Pro Football Reference is behind a bot check, and the
+        ten public figures that do exist mix in the postseason, so they are not here.
+        <b>No receiver or tight-end playoff strength of schedule</b> &mdash; Sharp publishes
+        passing and rushing only and no other readable 32-team table exists, so those
+        positions carry nothing rather than a guess. <b>No opportunity data for rookies</b>,
+        which is correct: they have no NFL usage to report. The &ldquo;same backfield&rdquo;
+        line is <b>not a depth chart</b> &mdash; ordering backs by projection produced one
+        that contradicted the beat reporting, so it claims only who shares a backfield.</p>
+      <p><b>On the notes.</b> A note marked <span class="dbKind">report</span> or
+        <span class="dbKind">stat</span> is something written on the page it links to; open the link
+        and read it. A note marked <span class="dbKind">projection only</span> is derived from the
+        WalterPicks numbers and nothing else — there is no report behind it and it is not pretending
+        there is. 408 of the 540 recommendations on the board carry a report or a statistic; the other
+        132 say plainly that they do not. Camp news moves fast: check the injury flags against your own
+        beat writers on draft day.</p>
+    </div>
+  </details>
+
 </main>
 
-<footer class="wrap dbFoot">
-  <h2>Where this comes from</h2>
-  <p><b>ADP:</b> Sleeper 12-team PPR redraft, read from
-    <a href="https://www.draftsharks.com/adp/ppr/sleeper/12" rel="noopener">Draft Sharks</a>
-    on 26 August 2026 — the platform and format you actually draft in.
-    <a href="https://fantasyfootballcalculator.com/adp/ppr" rel="noopener">Fantasy Football
-    Calculator</a> (7,830 mocks, 19–26 Aug) and
-    <a href="https://www.sharpfootballanalysis.com/fantasy/fantasy-football-adp-half-ppr-underdog-best-ball/" rel="noopener">Underdog
-    best ball</a> are carried as second opinions; open any row to see all three.
-    <b>Projections, ceilings and floors:</b> WalterPicks 2026 redraft PPR, 26 August 2026.</p>
-  <p><b>Historical base rates.</b> Hit rates by round are FFPC drafts 2016–2024, nine seasons
-    (<a href="https://www.fftradingroom.com/1063/How-to-Win-Your-2025-Fantasy-Football-Draft:-Positional-Hit-Rates-by-Round" rel="noopener">Fantasy
-    Trading Room</a>); bust rates are PPR 2013–2014, a short two-season sample
-    (<a href="https://www.playerprofiler.com/article/bust-rates/" rel="noopener">PlayerProfiler</a>);
-    the quarterback bands are 2009–2011
-    (<a href="https://www.pff.com/news/fantasy-adp-value-study-quarterbacks" rel="noopener">PFF</a>);
-    the rounds 3–6 running-back dead zone is 2015–2020 best ball
-    (<a href="https://www.playerprofiler.com/article/rb-dead-zone-game-theory/" rel="noopener">via
-    PlayerProfiler</a>). They are printed on the row, including where they argue against the pick.</p>
-  <p><b>Team context.</b> Weeks 15–17 opponents are the real 2026 schedule from
-    <a href="https://www.nfl.com/schedules/2026/by-week/week-15" rel="noopener">NFL.com</a>,
-    cross-checked game-for-game against FantasyPros. Playoff strength of schedule is
-    <a href="https://www.sharpfootballanalysis.com/fantasy/strength-of-schedule-fantasy-football/" rel="noopener">Sharp
-    Football</a>, 23 August. Offensive lines are
-    <a href="https://www.pff.com/news/nfl-offensive-line-rankings-2026" rel="noopener">PFF</a> and Sharp,
-    kept separate rather than averaged because where they disagree they disagree hard.</p>
-  <p><b>2025 opportunity.</b> Targets, target share, snap share and red-zone work
-    for 113 of the players here, read from FantasyPros' 2025 tables (weeks 1&ndash;18;
-    the red-zone rushing report is weeks 1&ndash;17 by their own label). Usage predicts
-    next season better than last season's points do &mdash; but it is <b>shown, not
-    scored</b>: the projection already has last year's usage inside it, and feeding
-    these numbers back into the model would count the same evidence twice.</p>
-  <p><b>What is missing, and why.</b> <b>No routes run or yards per route run</b> &mdash;
-    that data sits behind PFF+, Pro Football Reference is behind a bot check, and the
-    ten public figures that do exist mix in the postseason, so they are not here.
-    <b>No receiver or tight-end playoff strength of schedule</b> &mdash; Sharp publishes
-    passing and rushing only and no other readable 32-team table exists, so those
-    positions carry nothing rather than a guess. <b>No opportunity data for rookies</b>,
-    which is correct: they have no NFL usage to report. The &ldquo;same backfield&rdquo;
-    line is <b>not a depth chart</b> &mdash; ordering backs by projection produced one
-    that contradicted the beat reporting, so it claims only who shares a backfield.</p>
-  <p><b>On the notes.</b> A note marked <span class="dbKind">report</span> or
-    <span class="dbKind">stat</span> is something written on the page it links to; open the link
-    and read it. A note marked <span class="dbKind">projection only</span> is derived from the
-    WalterPicks numbers and nothing else — there is no report behind it and it is not pretending
-    there is. 408 of the 540 recommendations on the board carry a report or a statistic; the other 132 say plainly that they do not.
-    Camp news moves fast: check the injury flags against your own beat writers on draft day.</p>
-</footer>
+<footer class="siteFoot" id="contact" role="contentinfo">
+  <div class="footTop">
+   <div class="footId">
+    <a class="footBrand ctl ctl--quiet" href="index.html" aria-label="Jayden Betts, home"><svg class="footLogo" viewBox="0 0 30 30" aria-hidden="true"><path d="M9.38 6.33Q8.81 5.88 8.81 5.22Q8.81 4.56 9.02 4.11Q9.23 3.66 9.64 3.34Q10.5 2.65 12.08 2.65Q13.59 2.65 14.07 3.87Q14.22 4.22 14.22 4.65Q14.22 5.08 13.87 5.48Q13.53 5.88 13.01 6.16Q12.49 6.45 11.89 6.6Q11.29 6.76 10.82 6.76Q10.36 6.76 10.01 6.65Q9.66 6.54 9.38 6.33ZM6.68 20.73Q6.26 22.35 5.92 23.6Q5.57 24.85 5.15 25.72Q4.73 26.58 4.16 27.03Q3.58 27.48 2.86 27.48Q2.15 27.48 1.71 27.32Q1.27 27.16 0.93 26.92Q0.24 26.43 0 25.82Q1.03 25 5.29 16.53Q7.69 11.74 8.78 9.81Q9.23 9.01 9.95 9.01Q10.36 9.01 10.89 9.28Q8.94 13.14 7.63 17.43Q10.21 16.98 12.48 15.01Q13.18 14.4 13.62 13.74Q14.22 13.7 14.22 14.23Q14.22 14.44 13.89 15.23Q13.57 16.01 12.77 17.03Q11.98 18.05 10.99 18.81Q9.06 20.31 6.68 20.73ZM19.4 10.16Q21.18 9.11 22.86 9.11Q25.54 9.11 26.23 11.15Q26.45 11.78 26.45 12.71Q26.45 14.72 24.96 16.86Q26.21 16.68 27.37 15.87Q28.54 15.05 29.4 13.74Q30 13.7 30 14.23Q30 14.44 29.87 14.75Q27.35 20.86 17.63 20.86H17.6Q15.81 20.86 14.64 19.81Q13.37 18.66 13.37 16.59Q13.37 14.05 18.01 7.39Q19.97 4.55 21.37 2.96Q21.75 2.52 22.4 2.52Q23.12 2.52 23.45 3.05Q20.72 7.33 19.4 10.16ZM18.04 13.83Q17.86 14.67 17.86 15.24Q17.86 15.81 18.21 16.2Q18.55 16.59 19.1 16.59Q19.66 16.59 20.23 16.4Q20.8 16.21 21.34 15.88Q21.88 15.54 22.37 15.1Q22.86 14.66 23.24 14.14Q24.03 13.02 24.03 12.03Q24.03 11.39 23.71 11.06Q23.18 10.5 22.53 10.5Q21.87 10.5 21.19 10.78Q20.52 11.05 19.92 11.51Q18.63 12.48 18.04 13.83Z"/></svg></a>
+    <!-- 2026-08-26, his words exactly, full stop included. It replaces "Open to
+        full-time roles." -- which the Hero already says on index.html and the About
+        page said a third time in its facts block. Three copies of one fact is what
+        was actually wrong with it; the availability now lives in ONE place (the
+        Hero's status line) and the footer says something only he would say. -->
+    <p class="footStatus">Fear of living an ordinary life.</p>
+    <p class="footCopy">&copy; 2026 Jayden Betts</p>
+   </div>
+   <nav class="footNav" aria-label="Footer">
+    <div class="footCol">
+     <h2 class="footHead" id="footMenu">Menu</h2>
+     <ul class="footList" aria-labelledby="footMenu">
+      <li><a class="footLink ctl ctl--quiet ctl--row" href="index.html#cases">Work</a></li>
+      <li><a class="footLink ctl ctl--quiet ctl--row" href="about.html">About</a></li>
+      <li><a class="footLink ctl ctl--quiet ctl--row" href="play.html">Play</a></li>
+      <li><a class="footLink ctl ctl--quiet ctl--row" href="Jayden-Betts-Resume.pdf" target="_blank" rel="noopener noreferrer" aria-label="Jayden Betts résumé (PDF, opens in a new tab)">Résumé</a></li>
+     </ul>
+    </div>
+    <div class="footCol">
+     <h2 class="footHead" id="footContact">Contact</h2>
+     <ul class="footList" aria-labelledby="footContact">
+      <li><a class="footLink ctl ctl--quiet ctl--row" href="https://www.linkedin.com/in/jaydenbetts" target="_blank" rel="noopener noreferrer">LinkedIn</a></li>
+      <li><a class="footLink ctl ctl--quiet ctl--row" href="https://www.instagram.com/jaydenleebetts" target="_blank" rel="noopener noreferrer">Instagram</a></li>
+      <li><a class="footLink ctl ctl--quiet ctl--row" href="mailto:jaydenlbetts@gmail.com">Email</a></li>
+     </ul>
+    </div>
+   </nav>
+  </div>
+  <div class="footBand"><canvas class="footBandField" aria-hidden="true"></canvas></div>
+ </footer>
+</div>
 
 <script src="draft-data.js"></script>
 <script>
 (function(){
 "use strict";
-var D = window.__DRAFT__, P = D.P, B = D.B, N = D.N, M = D.M, BR = D.BR, S = D.S;
+var D = window.__DRAFT__, P = D.P, B = D.B, N = D.N, M = D.M, BR = D.BR;
 var TEAMS = 12, ROUNDS = 15;
 
 /* ═══ THE MODEL ═══════════════════════════════════════════════════════════
-   This is the whole thing, and it is deliberately small enough to read.
+   Unchanged, and still deliberately small enough to read.
 
    Score a player = his projected points per game above the replacement player
    at his position, times 1.14 if he is a running back, plus a nudge for any
@@ -464,7 +640,7 @@ var TEAMS = 12, ROUNDS = 15;
    there at your next pick. Then refuse anything more than the round's allowance
    ahead of its ADP, refuse a quarterback before round eight, and take the top
    of what is left. That is it. No training, no weights learned from data, no
-   black box — every number that moves a pick is visible on the row.
+   black box — every number that moves a pick is one tap away on the row.
    ════════════════════════════════════════════════════════════════════════ */
 function slackFor(rnd){ return M.slack[Math.min(rnd, ROUNDS) - 1]; }
 
@@ -548,21 +724,28 @@ function slotOnClock(n){
   var r = roundOf(n), i = n - (r - 1) * TEAMS;
   return r % 2 ? i : TEAMS - i + 1;
 }
-function pickNoFor(slot, rnd){ return (rnd - 1) * TEAMS + (rnd % 2 ? slot : TEAMS - slot + 1); }
+function pickNoFor(slot2, rnd){ return (rnd - 1) * TEAMS + (rnd % 2 ? slot2 : TEAMS - slot2 + 1); }
 function pickLabel(rnd, n){ var i = ((n - 1) % TEAMS) + 1; return rnd + '.' + (i < 10 ? '0' : '') + i; }
 
-/* ═══ state ═══════════════════════════════════════════════════════════════ */
+/* ═══ state ═══════════════════════════════════════════════════════════════
+   ONE slot, read by both modes. It used to be two -- `slot` for the board and
+   `live.slot` for the draft -- which meant the page could be looking at slot 4
+   and drafting from slot 9 with nothing on screen saying so. */
 var mode = 'board', round = 1, slot = 0;
-var live = { slot: 1, taken: [] };
+var taken = [];
 try{
   var st = JSON.parse(localStorage.getItem('jb.draft') || '{}');
   if(st.mode) mode = st.mode;
   if(st.round >= 1 && st.round <= ROUNDS) round = st.round;
-  if(st.slot >= 0 && st.slot <= TEAMS) slot = st.slot;
-  if(st.live && st.live.taken) live = st.live;
+  if(st.slot >= 1 && st.slot <= TEAMS) slot = st.slot;
+  /* migration off the two-slot shape: a saved live seat is a real answer to
+     "where do you sit" and is not thrown away because the key moved. */
+  if(!slot && st.live && st.live.slot >= 1 && st.live.slot <= TEAMS) slot = st.live.slot;
+  if(st.taken) taken = st.taken;
+  else if(st.live && st.live.taken) taken = st.live.taken;
 }catch(e){}
 function save(){ try{
-  localStorage.setItem('jb.draft', JSON.stringify({ mode: mode, round: round, slot: slot, live: live }));
+  localStorage.setItem('jb.draft', JSON.stringify({ mode: mode, round: round, slot: slot, taken: taken }));
 }catch(e){} }
 
 function esc(t){ return String(t).replace(/[&<>"]/g, function(c){
@@ -574,7 +757,16 @@ function pct(x){ return Math.round(x * 100) + '%'; }
    comparison the number exists to make. */
 function pct1(x){ return (x * 100).toFixed(1) + '%'; }
 
-/* ═══ one pick row, shared by both views ══════════════════════════════════ */
+/* ═══ one pick row, shared by both views ══════════════════════════════════
+   WHAT IS AT REST: the rank, the name, the position, the team, an injury flag
+   if he has one, and the sentence saying why him here. That is the whole of it.
+   WHAT IS ONE TAP DEEPER: the projection, ceiling and floor, ADP and bye, the
+   Sleeper/FFC/Underdog spread, positional rank and tier, age, playoff schedule,
+   O-line, weeks 15-17, the same backfield, 2025 opportunity, the historical base
+   rate for the round -- including where it argues against the pick -- and the
+   link to whatever was written about him.
+   In the LIVE POOL the reason moves down with the rest: twenty-five rows whose
+   job is "which of these just got taken" is a list you scan, not read. */
 function pickRow(pi, rank, rnd, n, onTap){
   var p = P[pi], gap = n ? Math.max(0, p.a - n) : 0;
   var kind = p.k === 'model' ? 'projection only' : (p.k === 'stat' ? 'stat' : 'report');
@@ -589,12 +781,10 @@ function pickRow(pi, rank, rnd, n, onTap){
         '<span>' + p.fl.toFixed(1) + ' floor</span>') +
      '<span>ADP ' + p.a + '</span>' +
      '<span>bye ' + p.by + '</span>';
-  if(p.rk)                                     meta += '<span class="dbFlag">injury flag</span>';
-  else if(p.f != null && Math.abs(p.f - p.a) >= 12) meta += '<span>' +
+  if(p.f != null && Math.abs(p.f - p.a) >= 12) meta += '<span>' +
       (p.f > p.a ? 'Sleeper takes him ' + (p.f - p.a) + ' earlier' : 'Sleeper waits ' + (p.a - p.f) + ' longer') + '</span>';
-  else if(gap >= 5)                            meta += '<span>+' + gap + ' vs ADP</span>';
+  else if(gap >= 5) meta += '<span>+' + gap + ' vs ADP</span>';
 
-  /* facts that only exist once you open the row */
   var facts = '<span>' + p.p + (p.pk == null ? '' : p.pk) +
               (p.ti ? ' · tier ' + p.ti : '') + '</span>';
   if(p.ag) facts += '<span>age <em>' + p.ag + '</em></span>';
@@ -618,8 +808,7 @@ function pickRow(pi, rank, rnd, n, onTap){
     if(o.tsh != null) bits.push('<b>' + o.tsh + '%</b> target share');
     if(o.rz20 != null) bits.push('<b>' + o.rz20 + '</b> carries inside the 20' +
       (o.rz5 != null ? ', <b>' + o.rz5 + '</b> inside the 5' : ''));
-    if(o.rzt != null && o.rz20 == null) bits.push('<b>' + o.rzt + '</b> red-zone targets');
-    else if(o.rzt != null) bits.push('<b>' + o.rzt + '</b> red-zone targets');
+    if(o.rzt != null) bits.push('<b>' + o.rzt + '</b> red-zone targets');
     if(bits.length) opp = '<span class="dbBase">2025 opportunity: ' + bits.join(' · ') +
       (o.g != null ? ' in <b>' + o.g + '</b> games' : '') + '. Usage is more stable year to year than points are — this is shown, not scored.</span>';
   }
@@ -638,31 +827,44 @@ function pickRow(pi, rank, rnd, n, onTap){
         ' for receivers at the same cost (' + BR.dead.sample + '). This board takes them anyway, by choice.';
   }
 
+  var why = '<span class="dbTxt">' + esc(p.no) + '</span>' +
+    '<span class="dbSrc"><span class="dbKind">' + kind + '</span>' +
+      (p.sr ? ' · <a href="' + esc(p.sr) + '" rel="noopener nofollow" target="_blank">' +
+               esc(host(p.sr)) + '</a>' + (p.dt ? ' · ' + esc(p.dt) : '') : '') + '</span>';
+
   var b2 = document.createElement('button');
   b2.className = 'dbPick p-' + p.p;
   b2.type = 'button';
   b2.setAttribute('aria-expanded', 'false');
   b2.innerHTML =
     '<span class="dbPickHd">' +
-      (rank ? '<span class="dbRank">' + rank + '</span>' : '<span class="dbRank"></span>') +
+      '<span class="dbRank">' + (rank ? rank : '') + '</span>' +
       '<span class="dbName">' + esc(p.n) + '</span>' +
       '<span class="dbPos">' + p.p + '</span>' +
       '<span class="dbTeam">' + p.t + '</span>' +
+      (p.rk ? '<span class="dbFlag">injury</span>' : '') +
     '</span>' +
-    '<span class="dbMeta">' + meta + '</span>' +
+    (onTap ? '' :
+      '<span class="dbWhyLine">' + esc(p.no) +
+        (p.k === 'model' ? '<span class="dbKind">projection only</span>' : '') + '</span>') +
     '<span class="dbWhy"><span class="dbWhyIn">' +
-      '<p>' + esc(p.no) + '</p>' +
-      '<span class="dbSrc"><span class="dbKind">' + kind + '</span>' +
-        (p.sr ? ' · <a href="' + esc(p.sr) + '" rel="noopener nofollow" target="_blank">' +
-                 esc(host(p.sr)) + '</a>' + (p.dt ? ' · ' + esc(p.dt) : '') : '') + '</span>' +
+      (onTap ? why : '') +
+      '<span class="dbMeta">' + meta + '</span>' +
       '<span class="dbFacts">' + facts + '</span>' +
       opp +
       (base ? '<span class="dbBase">' + base + '</span>' : '') +
+      (onTap ? '' : '<span class="dbSrc"><span class="dbKind">' + kind + '</span>' +
+        (p.sr ? ' · <a href="' + esc(p.sr) + '" rel="noopener nofollow" target="_blank">' +
+                 esc(host(p.sr)) + '</a>' + (p.dt ? ' · ' + esc(p.dt) : '') : '') + '</span>') +
     '</span></span>';
   function toggle(){
     b2.setAttribute('aria-expanded', b2.getAttribute('aria-expanded') === 'true' ? 'false' : 'true');
   }
-  if(!onTap){ b2.addEventListener('click', toggle); return b2; }
+  if(!onTap){
+    b2.setAttribute('aria-label', p.n + ', ' + p.p + ' ' + p.t + '. Show the numbers behind this pick.');
+    b2.addEventListener('click', toggle);
+    return b2;
+  }
 
   /* In the pool the row's job is to RECORD A PICK -- one tap, which is the
      whole point of the mode. Reading the reasoning therefore needs its own
@@ -671,6 +873,7 @@ function pickRow(pi, rank, rnd, n, onTap){
      button is 44 wide inside it. */
   b2.addEventListener('click', function(){ onTap(pi); });
   b2.title = 'Mark taken';
+  b2.setAttribute('aria-label', 'Mark ' + p.n + ' taken');
   var wrap = document.createElement('div');
   wrap.className = 'dbPoolRow';
   var info = document.createElement('button');
@@ -683,10 +886,14 @@ function pickRow(pi, rank, rnd, n, onTap){
   return wrap;
 }
 
-/* ═══ the bar ═════════════════════════════════════════════════════════════ */
+/* ═══ the two controls ════════════════════════════════════════════════════
+   Neither of them re-styles a .ctl. The selected pill IS .ctl--primary and the
+   resting one IS .ctl--quiet, which is what the library already draws; the
+   private `[aria-selected]` rule this page used to carry is gone. */
 function tab(txt, on, fn, label){
   var b = document.createElement('button');
-  b.className = 'ctl ctl--nav'; b.type = 'button'; b.role = 'tab';
+  b.className = 'ctl ' + (on ? 'ctl--primary' : 'ctl--quiet');
+  b.type = 'button'; b.role = 'tab';
   b.setAttribute('aria-selected', on ? 'true' : 'false');
   b.tabIndex = on ? 0 : -1;
   b.textContent = txt;
@@ -704,57 +911,42 @@ function arrowKeys(box){
     t[j].focus(); t[j].click();
   });
 }
-function bar(){
-  var tm = document.getElementById('tabsM'); tm.textContent = '';
-  tm.appendChild(tab('Board', mode === 'board', function(){ mode = 'board'; save(); render(); }));
-  tm.appendChild(tab('Live draft', mode === 'live', function(){ mode = 'live'; save(); render(); }));
-
-  document.getElementById('rowR').hidden = mode === 'live';
-  document.getElementById('rowS').hidden = false;
-  document.getElementById('lblS').textContent = mode === 'live' ? 'You' : 'Slot';
-
-  var tr = document.getElementById('tabsR'); tr.textContent = '';
-  for(var r = 1; r <= ROUNDS; r++)(function(r){
-    tr.appendChild(tab(String(r), r === round, function(){
-      round = r; save(); render();
-      if(slot){ var c = document.getElementById('c' + r);
-        if(c) c.scrollIntoView({ block:'center',
-          behavior: matchMedia('(prefers-reduced-motion:reduce)').matches ? 'auto' : 'smooth' }); }
-    }, 'Round ' + r));
-  })(r);
-
+function slotBar(){
   var ts = document.getElementById('tabsS'); ts.textContent = '';
-  if(mode === 'board')
-    ts.appendChild(tab('All', slot === 0, function(){ slot = 0; save(); render(); }, 'All twelve slots'));
   for(var i = 1; i <= TEAMS; i++)(function(i){
-    var on = mode === 'live' ? i === live.slot : i === slot;
-    ts.appendChild(tab(String(i), on, function(){
-      if(mode === 'live'){ live.slot = i; } else { slot = i; }
-      save(); render();
-    }, (mode === 'live' ? 'You draft from slot ' : 'Draft slot ') + i));
+    ts.appendChild(tab(String(i), i === slot, function(){
+      slot = i; save(); render();
+    }, 'You draft from slot ' + i));
   })(i);
 }
-
-/* ═══ board view ══════════════════════════════════════════════════════════ */
-function card(s2, rnd){
-  rnd = rnd || round;
-  var cell = B[s2 - 1][rnd - 1], n = pickNoFor(s2, rnd);
-  var el = document.createElement('div');
-  el.className = 'dbCard' + (slot && rnd === round ? ' is-here' : '');
-  el.id = 'c' + rnd;
-  var top = document.createElement('div');
-  top.className = 'dbCardTop';
-  top.innerHTML = '<span class="dbSlot">' + pickLabel(rnd, n) + '</span>' +
-                  '<span class="dbOverall">Slot ' + s2 + ' · overall ' + n + '</span>';
-  el.appendChild(top);
-  for(var i = 0; i < cell.length; i++) el.appendChild(pickRow(cell[i][0], i + 1, rnd, n, null));
-  return el;
+function roundBar(){
+  var tr = document.getElementById('tabsR'); tr.textContent = '';
+  for(var r = 1; r <= ROUNDS; r++)(function(r){
+    tr.appendChild(tab(String(r), r === round, function(){ goRound(r); }, 'Round ' + r));
+  })(r);
+  document.getElementById('prevR').disabled = round <= 1;
+  document.getElementById('nextR').disabled = round >= ROUNDS;
 }
-function haveStrip(s2, label, ids){
+function goRound(r){
+  r = Math.max(1, Math.min(ROUNDS, r));
+  if(r === round) return;
+  round = r; save(); render();
+  var on = document.querySelector('#tabsR [aria-selected="true"]');
+  if(on && on.scrollIntoView) on.scrollIntoView({ block: 'nearest', inline: 'center',
+    behavior: matchMedia('(prefers-reduced-motion:reduce)').matches ? 'auto' : 'smooth' });
+}
+
+/* ═══ what you already hold ═══════════════════════════════════════════════
+   Half of "why him here" is the quota: three backs by round six is the reason
+   the sixth pick is a back. So the roster stays at rest, one line, above the
+   card -- and in board mode it is now CUMULATIVE to the round you are looking
+   at rather than the finished fifteen-round team, which was answering a
+   question you had not asked yet. */
+function haveStrip(el, label, ids){
   var order = ['QB','RB','WR','TE','K','DEF'], by = {}, i;
   for(i = 0; i < ids.length; i++){
     var p = P[ids[i]];
-    (by[p.p] = by[p.p] || []).push(esc(p.n) + ' <span style="opacity:.6">' + p.t + '</span>');
+    (by[p.p] = by[p.p] || []).push(esc(p.n));
   }
   var out = '';
   for(i = 0; i < order.length; i++){
@@ -762,38 +954,41 @@ function haveStrip(s2, label, ids){
     out += '<span class="h p-' + order[i] + '"><i>' + order[i] + by[order[i]].length + '</i> ' +
            by[order[i]].join(', ') + '</span>';
   }
-  return out ? '<div class="dbHave"><span class="k">' + label + '</span>' + out + '</div>' : '';
+  el.hidden = !out;
+  el.innerHTML = out ? '<span class="k">' + label + '</span>' + out : '';
 }
+
+/* ═══ board view — ONE round, at ONE slot ═════════════════════════════════ */
 function renderBoard(){
-  var lo = (round - 1) * TEAMS + 1, hi = round * TEAMS;
-  var hd = document.getElementById('roundHd');
-  var planned = [];
-  if(slot) for(var r = 1; r <= ROUNDS; r++) planned.push(B[slot - 1][r - 1][0][0]);
-  hd.innerHTML = slot
-    ? '<div class="dbRoundTop"><h2>Slot ' + slot + '</h2>' +
-        '<span class="dbRange">All fifteen rounds · first pick ' + pickNoFor(slot, 1) + '</span></div>' +
-      '<p class="dbNote"><b>Round ' + round + '.</b> ' + N[round] + '</p>' +
-      haveStrip(slot, 'Ends with', planned)
-    : '<div class="dbRoundTop"><h2>Round ' + round + '</h2>' +
-        '<span class="dbRange">Overall ' + lo + '–' + hi + '</span></div>' +
-      '<p class="dbNote">' + N[round] + '</p>';
-  var g = document.getElementById('grid'); g.textContent = '';
-  if(slot){ for(var r2 = 1; r2 <= ROUNDS; r2++) g.appendChild(card(slot, r2)); }
-  else for(var s2 = 1; s2 <= TEAMS; s2++) g.appendChild(card(s2));
+  var n = pickNoFor(slot, round), cell = B[slot - 1][round - 1], i;
+  document.getElementById('ctx').innerHTML =
+    '<h2>Round ' + round + '</h2>' +
+    '<span class="at">Your pick ' + pickLabel(round, n) + ' · overall ' + n + ' of 180</span>';
+
+  var had = [];
+  for(i = 1; i < round; i++) had.push(B[slot - 1][i - 1][0][0]);
+  haveStrip(document.getElementById('have'), 'You already have', had);
+
+  var card = document.getElementById('card'); card.textContent = '';
+  for(i = 0; i < cell.length; i++) card.appendChild(pickRow(cell[i][0], i + 1, round, n, null));
+
+  document.getElementById('noteSum').textContent = 'Why round ' + round + ' looks like this';
+  document.getElementById('noteBody').textContent = N[round];
+  document.getElementById('noteWrap').open = false;
 }
 
 /* ═══ live view ═══════════════════════════════════════════════════════════ */
 function liveState(){
   var gone = {}, counts = {}, mine = [], i;
-  for(i = 0; i < live.taken.length; i++){
-    gone[live.taken[i]] = 1;
-    if(slotOnClock(i + 1) === live.slot){
-      mine.push(live.taken[i]);
-      var pos = P[live.taken[i]].p;
+  for(i = 0; i < taken.length; i++){
+    gone[taken[i]] = 1;
+    if(slotOnClock(i + 1) === slot){
+      mine.push(taken[i]);
+      var pos = P[taken[i]].p;
       counts[pos] = (counts[pos] || 0) + 1;
     }
   }
-  return { gone: gone, counts: counts, mine: mine, n: live.taken.length + 1 };
+  return { gone: gone, counts: counts, mine: mine, n: taken.length + 1 };
 }
 /* how many are left at each position before the next real drop-off, which is
    the number that answers "can I wait?" better than any rank does */
@@ -816,7 +1011,7 @@ function depth(gone){
 /* if the room is running a position, the calculus changes -- and in live mode
    this is measured off real picks rather than guessed */
 function runOn(){
-  var last = live.taken.slice(-6), c = {}, out = null;
+  var last = taken.slice(-6), c = {}, out = null;
   for(var i = 0; i < last.length; i++){ var q = P[last[i]].p; c[q] = (c[q] || 0) + 1; }
   Object.keys(c).forEach(function(k){
     if(c[k] >= 3 && (k === 'RB' || k === 'WR' || k === 'TE' || k === 'QB'))
@@ -838,15 +1033,15 @@ function byeClash(mine){
 }
 function renderLive(){
   var st = liveState(), n = st.n, rnd = roundOf(n), onClock = slotOnClock(n);
-  var mineTurn = onClock === live.slot, done = n > TEAMS * ROUNDS;
+  var mineTurn = onClock === slot, done = n > TEAMS * ROUNDS;
 
   var clock = document.getElementById('clock');
   clock.className = 'dbClock' + (mineTurn && !done ? ' is-you' : '');
   if(done){
-    clock.innerHTML = '<h2>Draft complete</h2><span class="sub">' + live.taken.length + ' picks recorded</span>';
+    clock.innerHTML = '<h2>Draft complete</h2><span class="sub">' + taken.length + ' picks recorded</span>';
   } else {
     var away = 0, k = n;
-    while(slotOnClock(k) !== live.slot && k <= TEAMS * ROUNDS){ k++; away++; }
+    while(slotOnClock(k) !== slot && k <= TEAMS * ROUNDS){ k++; away++; }
     clock.innerHTML = '<h2>' + (mineTurn ? "You're up — " + pickLabel(rnd, n) : pickLabel(rnd, n)) + '</h2>' +
       '<span class="sub">Overall ' + n + ' · round ' + rnd + ' · ' +
       (mineTurn ? 'your pick' : 'slot ' + onClock + ' on the clock · ' + away + ' until you') + '</span>';
@@ -857,6 +1052,7 @@ function renderLive(){
   var r = runOn(); if(r) reads.push(r);
   var bc = byeClash(st.mine); if(bc) reads.push(bc);
   document.getElementById('reads').innerHTML = reads.join('') || '<span class="k">No picks recorded yet</span>';
+  haveStrip(document.getElementById('liveHave'), 'Your team', st.mine);
 
   var recSect = document.getElementById('recSect');
   recSect.hidden = !mineTurn || done;
@@ -882,35 +1078,52 @@ function renderLive(){
   if(!avail.length) pool.innerHTML = '<div class="dbEmpty">Nobody left matching that.</div>';
   for(i2 = 0; i2 < Math.min(avail.length, 25); i2++)
     pool.appendChild(pickRow(avail[i2], 0, rnd, n, takePlayer));
-
-  var hd2 = document.getElementById('roundHd');
-  hd2.innerHTML = st.mine.length ? haveStrip(live.slot, 'Your team', st.mine) : '';
 }
 function takePlayer(pi){
-  if(live.taken.length >= TEAMS * ROUNDS) return;
-  live.taken.push(pi); save(); render();
+  if(taken.length >= TEAMS * ROUNDS) return;
+  taken.push(pi); save(); render();
 }
 
-/* ═══ render ══════════════════════════════════════════════════════════════ */
+/* ═══ render ══════════════════════════════════════════════════════════════
+   The gate at the top is the whole redesign in four lines: with no seat chosen
+   there is no board, because which seat you sit in is the question everything
+   below is an answer to. */
 function render(){
-  bar();
-  document.getElementById('boardView').hidden = mode !== 'board';
-  document.getElementById('liveView').hidden = mode !== 'live';
-  if(mode === 'board'){ renderBoard(); document.title = (slot ? 'Slot ' + slot : 'Round ' + round) + ' — 2026 Draft Board'; }
-  else { renderLive(); document.title = 'Live draft — 2026 Draft Board'; }
+  slotBar();
+  var chosen = slot >= 1;
+  document.getElementById('ask').hidden = chosen;
+  /* one decision at a time: the mode switch is meaningless until there is a
+     seat for it to be a mode OF, and a control that does nothing is worse than
+     no control. */
+  document.getElementById('modeBtn').hidden = !chosen;
+  document.getElementById('boardView').hidden = !chosen || mode !== 'board';
+  document.getElementById('liveView').hidden = !chosen || mode !== 'live';
+  document.getElementById('modeBtn').textContent = mode === 'live' ? 'Board' : 'Live draft';
+  if(!chosen){ document.title = '2026 Draft Board — Jayden Betts'; return; }
+  if(mode === 'board'){
+    roundBar(); renderBoard();
+    document.title = 'Slot ' + slot + ', round ' + round + ' — 2026 Draft Board';
+  } else {
+    renderLive();
+    document.title = 'Live draft, slot ' + slot + ' — 2026 Draft Board';
+  }
 }
-document.getElementById('poolQ').addEventListener('input', function(){ if(mode === 'live') renderLive(); });
+document.getElementById('modeBtn').addEventListener('click', function(){
+  mode = mode === 'live' ? 'board' : 'live'; save(); render();
+});
+document.getElementById('prevR').addEventListener('click', function(){ goRound(round - 1); });
+document.getElementById('nextR').addEventListener('click', function(){ goRound(round + 1); });
+document.getElementById('poolQ').addEventListener('input', function(){ if(mode === 'live' && slot) renderLive(); });
 document.getElementById('undo').addEventListener('click', function(){
-  live.taken.pop(); save(); render();
+  taken.pop(); save(); render();
 });
 document.getElementById('reset').addEventListener('click', function(){
-  if(!live.taken.length || confirm('Clear all ' + live.taken.length + ' recorded picks?')){
-    live.taken = []; save(); render();
+  if(!taken.length || confirm('Clear all ' + taken.length + ' recorded picks?')){
+    taken = []; save(); render();
   }
 });
-arrowKeys(document.getElementById('tabsM'));
-arrowKeys(document.getElementById('tabsR'));
 arrowKeys(document.getElementById('tabsS'));
+arrowKeys(document.getElementById('tabsR'));
 render();
 })();
 </script>
