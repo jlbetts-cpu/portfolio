@@ -811,13 +811,45 @@
    "--hero-head-float-x","--hero-head-float-y","--hero-head-float-rot",
    "--hero-head-drift-x","--hero-head-drift-y",
    "--hero-head-enter-y","--hero-head-enter-rot"];
+  /* ── AND THE MOVIE'S LIFT COMES OFF TOO, ARITHMETICALLY.  2026-08-27 ─────
+     Jayden: "the popcorn hover animation on the extras screen makes the head
+     get pushed down outside the box after its done."
+     IT IS THE SAME CLASS OF FAULT copyClearanceDrop() already carries a note
+     about, one level down. --hero-movie-guard-y rides the same translate as
+     everything in NEUTRAL and it is written by hero-engine's
+     movieCompositionFit() while the performance runs -- so a recapture taken
+     during a movie came back with the whole lift baked into state.base, and
+     state.base is what travelBounds() measures the field from. The field's
+     floor is `heroH - bobY - fh/2 - cy`, so a base 160px too HIGH is a field
+     160px too DEEP, and the drift walks straight down into room that does not
+     exist. It does not come back, because nothing recaptures afterwards.
+     MEASURED, 1440x900, one hover of the reel and then left alone: with the
+     lift in the base --hero-head-float-y ran 5.7 -> 175px and the portrait's
+     lower edge finished 157px BELOW the Hero's floor, with its selection frame
+     still drawn up on the headline and empty. With the guard pinned to 0px for
+     the whole performance -- the control -- the same channel stayed inside
+     [-8, +22] and the head never left the box. Four hover cycles saturate at
+     that same 175 rather than running away further, which is the field's own
+     bound doing its job around the wrong base.
+     IT IS SUBTRACTED, NOT NEUTRALISED, and that is not tidiness. The property
+     is registered in controls.css and TRANSITIONED there, which is what lets
+     the movie's fit ease instead of snapping. Writing 0px into it and putting
+     it back inside one capture is two style changes on an animatable property
+     in the middle of a performance -- it would restart the ease from wherever
+     the read happened to land. The computed value is the presentation value
+     while the transition runs, so one subtraction gets the resting top exactly
+     and touches nothing.
+     THE TRANSIENT STAYS TRANSIENT, which is the rule this restores: the movie
+     may move the head as far as it likes, and none of it may reach the resting
+     arrangement the field, the frame and the clamp are all solved against. */
   function captureBase(){
    var saved=neutralise(NEUTRAL,function(name){
     return name==="--hero-head-scale"?"1":/rot/.test(name)?"0deg":"0px";
    });
+   var guard=parseFloat(computedOf(wrap).getPropertyValue("--hero-movie-guard-y"))||0;
    stillBody(function(){
     var u=logicalRaw(),h=rectOf(hero);
-    state.base={left:u.left-h.left,top:u.top-h.top,width:u.width,height:u.height};
+    state.base={left:u.left-h.left,top:u.top-h.top-guard,width:u.width,height:u.height};
    });
    restore(saved);
   }
@@ -2305,25 +2337,21 @@
    var ang=restRotate()*Math.PI/180;
    var lean=(m.travelBank+m.rAmp)*Math.PI/180;
    var fh=turnedExtent(b.width+m.air*2,b.height+m.air*2,ang,lean).h;
-   /* ── THE MOVIE'S LIFT COMES OFF, AND LEAVING IT ON WAS A RUNAWAY ─────────
-      captureBase() neutralises every --hero-head-* channel before it measures,
-      and --hero-movie-guard-y is a transform channel it does not know about:
-      it rides the same translate in hero-time.css and it is written by
-      hero-engine's movieCompositionFit(). recapture() runs when the peek stops
-      travelling, which during a performance is exactly while that guard is
-      ramping -- so state.base came back with the whole lift baked into it.
-      MEASURED, 1440x900, drop applied and this term missing: the head lifts,
-      the base reads high, the solve asks for a matching drop, the drop pushes
-      the head down, the fit lifts further to keep the bucket off the Hero's
-      floor, and the two chase each other -- --hero-movie-guard-y went -136 ->
-      -1921px in 4.2 seconds and was still climbing, with hero-head-transform-
-      contract's `movie projection` assertion failing at whichever viewport it
-      reached first. With the drop reverted the same guard settles at -57px.
-      The @property registration in controls.css is what makes this a real
-      length rather than a token stream, so it reads back as a number; it is
-      exactly 0 outside a performance, which is every other call. */
-   var cy=b.top+b.height/2
-    -(parseFloat(computedOf(wrap).getPropertyValue("--hero-movie-guard-y"))||0);
+   /* ── THE MOVIE'S LIFT USED TO COME OFF HERE, AND NOW IT NEVER GOES ON ────
+      This term subtracted --hero-movie-guard-y from the centre, because
+      captureBase() did not know about that channel and state.base came back
+      with the movie's whole lift baked in. Leaving it on was a runaway: the
+      head lifts, the base reads high, the solve asks for a matching drop, the
+      drop pushes the head down, the fit lifts further to keep the bucket off
+      the Hero's floor -- --hero-movie-guard-y went -136 -> -1921px in 4.2
+      seconds and was still climbing.
+      THE SUBTRACTION MOVED UP ONE LEVEL, to captureBase() itself, because the
+      base was corrupt for every other reader too and this only ever cleaned it
+      for this one solve. travelBounds() was the reader that showed it: see the
+      note there. b.top is the resting top now, so a second subtraction here
+      would be a double count and would put the drop 150px out during a
+      performance. */
+   var cy=b.top+b.height/2;
    var bobY=m.yAmp+m.y2Amp;
    var need=m.travelFloor+bobY-(cy-fh/2);
    var room=m.heroH-bobY-fh/2-cy;

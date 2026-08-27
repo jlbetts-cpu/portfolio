@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Browser regression for Hero popcorn containment and menu reachability."""
 
+import sys
 from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -262,6 +263,17 @@ def run_reduced_motion(browser, base_url):
     face = page.locator("#face")
     box = face.bounding_box()
     page.mouse.click(box["x"] + box["width"] / 2, box["y"] + box["height"] * .3)
+    # ── THE CLICK SELECTS. IT DOES NOT FOCUS, AND IT HAS NOT FOR A WHILE ─────
+    # This pressed ArrowRight straight after the click and asserted the head had
+    # moved. onKeydown() bails unless the event's target is the head, a handle
+    # or the spinner -- and a pointer press deliberately leaves focus where it
+    # was, so the key went to <body> and nothing moved. Measured on a clean
+    # tree: activeElement is "" after the click and state.x stays 0; focus the
+    # head first and the same press lands the authored 4px step. So the
+    # assertion was right and its SETUP was stale, which is the shape of gate
+    # this file's own notes warn about. A keyboard visitor tabs to the head
+    # before nudging it; this now does the same.
+    face.focus()
     page.keyboard.press("ArrowRight")
     handle = page.locator('.heroHeadHandle[data-corner="se"]')
     handle.focus()
@@ -275,6 +287,122 @@ def run_reduced_motion(browser, base_url):
     context.close()
 
 
+# ── THE MOVIE IS A PERFORMANCE, AND A PERFORMANCE LEAVES NOTHING BEHIND ──────
+# Jayden, 2026-08-27: "the popcorn hover animation on the extras screen makes
+# the head get pushed down outside the box after its done."
+# WHY THIS FILE HAD NOTHING TO SAY ABOUT IT. Every assertion above is about the
+# performance WHILE IT RUNS -- where the bucket is, what is cropping it, whether
+# the props leak. The defect was entirely in what the performance left behind,
+# so the gate was green through the whole of it.
+# WHAT IS MEASURED. The portrait's lower edge against the Hero's, before the
+# hover and eight seconds after the pointer has left. The head wanders sideways
+# for the life of the page, so only the vertical is compared; the horizontal is
+# the feature.
+#   measured at 1280x900, one hover:   before -4px      after  +157px
+#   with the residue fixed:            before -4px      after    -3px
+# 40 is a ceiling with room for the bob (yAmp + y2Amp is 12px) and a resize
+# step, and the live defect misses it by four times over.
+RESIDUE_CEILING = 40
+
+
+def head_foot(page):
+    return page.evaluate(
+        """() => {
+          const hero = document.getElementById('main').getBoundingClientRect();
+          const face = document.getElementById('face').getBoundingClientRect();
+          const wrap = getComputedStyle(document.getElementById('heroHeadTransform'));
+          return {foot: face.bottom - hero.bottom,
+                  drop: wrap.getPropertyValue('--hero-head-copy-drop').trim(),
+                  floatY: parseFloat(wrap.getPropertyValue('--hero-head-float-y')) || 0};
+        }"""
+    )
+
+
+def run_residue(browser, base_url, mutation=None):
+    print("checking movie residue")
+    context = browser.new_context(viewport={"width": 1280, "height": 900})
+    context.add_init_script(
+        """
+        try{sessionStorage.setItem('introSeen','1')}catch(e){}
+        const nativeMatchMedia = window.matchMedia.bind(window);
+        window.matchMedia = query => {
+          const result = nativeMatchMedia(query);
+          if (query === '(hover:hover) and (pointer:fine)') {
+            Object.defineProperty(result, 'matches', {value: true});
+          }
+          return result;
+        };
+        """
+    )
+    if mutation is not None:
+        context.route("**/hero-head-transform.js*",
+                      lambda route, request=None, body=mutation: route.fulfill(
+                          status=200, content_type="text/javascript", body=body))
+    page = context.new_page()
+    page.goto(base_url + "/index.html", wait_until="load")
+    page.wait_for_timeout(2500)
+    before = head_foot(page)
+    page.locator('.csTab[data-tab="goodness"]').click()
+    page.wait_for_timeout(700)
+    reel = page.locator("#reelFrame").bounding_box()
+    # A REAL POINTER, moved in steps. The reel arms the movie on pointerenter,
+    # and a synthetic dispatchEvent does not behave like a real one here.
+    page.mouse.move(reel["x"] + reel["width"] / 2, reel["y"] + 60, steps=10)
+    page.wait_for_timeout(6000)
+    during = head_foot(page)
+    page.mouse.move(20, 300, steps=10)
+    page.wait_for_timeout(8000)
+    after = head_foot(page)
+    page.screenshot(path=str(SHOTS / "movie-residue-after.png"),
+                    clip={"x": 0, "y": 0, "width": 1280, "height": 620})
+    context.close()
+    print(f"  head foot vs Hero floor: before {before['foot']:.1f}px, "
+          f"during {during['foot']:.1f}px, after {after['foot']:.1f}px; "
+          f"copy-drop {before['drop']} -> {after['drop']}")
+    failures = []
+    if abs(after["foot"] - before["foot"]) > RESIDUE_CEILING:
+        failures.append(
+            "the movie left the head %.1fpx from where it found it (ceiling %d): "
+            "before %.1f, after %.1f"
+            % (after["foot"] - before["foot"], RESIDUE_CEILING,
+               before["foot"], after["foot"]))
+    if after["drop"] != before["drop"]:
+        failures.append("the movie moved the resting composition: "
+                        f"--hero-head-copy-drop {before['drop']} -> {after['drop']}")
+    # THE LIFT ITSELF STILL HAS TO HAPPEN, or this passes on a build where the
+    # movie does nothing at all -- which is the same size of diff and the wrong
+    # one. The composition lifts the head to keep the bucket off the floor.
+    if during["foot"] > before["foot"] - 40:
+        failures.append("the movie never lifted the head: during %.1f vs before %.1f"
+                        % (during["foot"], before["foot"]))
+    return failures
+
+
+def self_test(browser, base_url):
+    """Re-inject the residue and require the assertion above to reject it.
+
+    The injection is the one token that caused it: captureBase() subtracts
+    --hero-movie-guard-y so the movie's transient lift never reaches
+    state.base. Put the lift back into the base and travelBounds() gains a
+    field 150px deeper than the Hero, which is what walked the head out of the
+    box and did not walk it back.
+    """
+    source = (ROOT / "hero-head-transform.js").read_text(encoding="utf-8")
+    site = 'state.base={left:u.left-h.left,top:u.top-h.top-guard,'
+    if site not in source:
+        raise SystemExit(
+            "--self-test cannot find captureBase()'s guard subtraction in "
+            "hero-head-transform.js; update the injection to match it rather "
+            "than letting the self-test pass blind.")
+    broken = source.replace(site, 'state.base={left:u.left-h.left,top:u.top-h.top,', 1)
+    failures = run_residue(browser, base_url, mutation=broken)
+    if not any("from where it found it" in f for f in failures):
+        raise SystemExit("--self-test FAILED: with the movie's lift baked back "
+                         f"into the base the gate still passed. Recorded: {failures!r}")
+    print("self-test: the contract rejected the movie's residue, as it must")
+    print("Hero popcorn self-test: OK (the detector fails when it should)")
+
+
 def main():
     SHOTS.mkdir(parents=True, exist_ok=True)
     handler = partial(QuietHandler, directory=str(ROOT))
@@ -284,10 +412,18 @@ def main():
     try:
         with sync_playwright() as playwright:
             browser = playwright.chromium.launch()
+            if "--self-test" in sys.argv:
+                self_test(browser, base_url)
+                browser.close()
+                return
             for viewport in VIEWPORTS:
                 run_viewport(browser, base_url, *viewport)
             run_reduced_motion(browser, base_url)
+            failures = run_residue(browser, base_url)
             browser.close()
+            if failures:
+                print("\n".join("FAIL " + f for f in failures))
+                raise SystemExit(1)
     finally:
         server.shutdown()
         server.server_close()
