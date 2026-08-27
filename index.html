@@ -3145,7 +3145,16 @@ if(location.hash==="#about")location.replace("about.html");</script>
     far too thin once it is a filled shape. */
  var SOFT_CUT=.34,SOFT_GAIN=1.75;
 
- var STYLE='ascii';
+ /* THE SOFT PAINTER IS THE DEFAULT NOW.  2026-08-27.
+    He asked for realistic clouds, replaced them with ASCII himself, had the
+    ASCII made airier, looked at the two side by side and settled it: "i
+    actually think i dont like the ascii clouds at all." So soft ships.
+    ?clouds=ascii still reaches the other painter. It is kept rather than
+    deleted because this decision has now reversed three times and the painter
+    costs nothing while it is not selected -- draw() never calls it. If he says
+    the ASCII is dead for good, drawAscii, RAMP, glyphOf, the dither and the
+    stagger go together, and so does half of hero-cloud-field-contract. */
+ var STYLE='soft';
  try{var q=String(location.search).match(/[?&]clouds=(ascii|soft)/);if(q)STYLE=q[1];}catch(e){}
  if(host.getAttribute('data-cloud')==='soft')STYLE='soft';
 
