@@ -49,7 +49,7 @@
 <meta name="twitter:image:alt" content="Cluster, a campus club-discovery app designed by Jayden Betts">
 <link rel="preload" as="font" type="font/woff2" href="fonts/geist-latin-400-normal.woff2" crossorigin><link rel="preload" as="font" type="font/woff2" href="fonts/geist-latin-600-normal.woff2" crossorigin>
 <link rel="preload" as="image" href="images/cs/variants/time/cluster/daytime-1200.webp" imagesrcset="images/cs/variants/time/cluster/daytime-1200.webp 1200w, images/cs/variants/time/cluster/daytime-2400.webp 2400w" imagesizes="(max-width: 760px) calc(100vw - 48px), (max-width: 1280px) calc(100vw - 80px), 1200px" fetchpriority="high">
-<link rel="stylesheet" href="tokens.css?v=99ded98629">
+<link rel="stylesheet" href="tokens.css?v=98d7b6f74e">
 <style>
 /* THE FACES MOVED TO tokens.css (2026-08-04) -- declared once for all ten pages
    instead of copied into nine of them and missed on two (about.html and
@@ -186,7 +186,18 @@ img{display:block;max-width:100%;height:auto}   /* height:auto IS THE COMPANION 
    measured) -- one role, two leadings, on pages that sit next to each other. */
 .eyebrow{font-family:var(--sans);font-weight:600;font-size:var(--fs-label);line-height:var(--lh-body);letter-spacing:var(--tr-flat);text-transform:none;color:var(--c500);}
 .head .eyebrow{display:block;margin:0 0 var(--sp-8-16)}
-.head{font-family:var(--sans);font-weight:600;font-size:var(--fs-title);line-height:var(--lh-head);letter-spacing:var(--tr-head);color:var(--c950);margin:16px 0 0;text-wrap:balance}
+/* THE PAGE TITLE IS HOME'S, AT HOME'S SIZE AND HOME'S SETTING.  2026-08-27.
+   docs/house-style.md §11 case-studies-3: "The h1 is 40 where home's is 44 and
+   About's is 44." --fs-title (clamp 29..40) was a fourth page-head size across
+   five page types. It takes --fs-pagehead now -- the same token About uses -- so
+   home, About and the five case studies open at one pitch, and the setting is
+   home's tuned pair rather than a near-miss: 1.06 literal (a hand-tuned value,
+   not to be flattened onto a rung) and --tr-hero -.030em against the old
+   --lh-head 1.2 / --tr-head -.027em.
+   THE 760px FORK WENT WITH IT. It swapped in --fs-pagehead-sm below 760, so the
+   title was set from two different tokens depending on width; --fs-pagehead's own
+   clamp already lands at 30 on a phone, which is where home's headline lands. */
+.head{font-family:var(--sans);font-weight:600;font-size:var(--fs-pagehead);line-height:1.06;letter-spacing:var(--tr-hero);color:var(--c950);margin:16px 0 0;text-wrap:balance}
 .head .hl{display:block}
 .lede{font-family:var(--sans);font-weight:400;font-size:var(--fs-prose);line-height:var(--lh-prose);color:var(--c700);margin:var(--sp-24-32) 0 0;text-wrap:pretty}
 
@@ -225,15 +236,44 @@ img{display:block;max-width:100%;height:auto}   /* height:auto IS THE COMPANION 
 .roleHead{font-family:var(--sans);font-weight:600;font-size:var(--fs-h2);line-height:var(--lh-tight);letter-spacing:var(--tr-sub);color:var(--c950);margin:0 0 var(--sp-16-24);text-wrap:balance}
 .role p{font-family:var(--sans);font-weight:400;font-size:var(--fs-prose);line-height:var(--lh-prose);color:var(--c950);text-wrap:pretty}
 
-/* scaffolded chapters — structure so the rail works end to end; copy drafted next */
-.sec{padding-top:var(--sp-72-144);scroll-margin-top:calc(var(--nav-h) + var(--sp-16-24))}
+/* SECTION RHYTHM IS HOME'S 64 NOW, NOT 104.  2026-08-27.
+   docs/house-style.md §2: home moves in 8/16/24 inside a component, 40/64
+   between components and 112 for the one break before the footer, and it never
+   uses 104 at all. --sp-72-144 resolved to 104 desktop / 72 phone here, which
+   is what made the case studies read airier than the page they hang off.
+   --sp-40-64 is 64 and 40 -- home's between-component gap at BOTH widths, so
+   the phone fork below (--sp-56-96, 56) is deleted rather than retuned. */
+.sec{padding-top:var(--sp-40-64);scroll-margin-top:calc(var(--nav-h) + var(--sp-16-24))}
 .kicker{font-family:var(--sans);font-weight:600;font-size:var(--fs-label);letter-spacing:var(--tr-flat);text-transform:none;color:var(--c500);}
-.secHead{font-family:var(--sans);font-weight:600;font-size:var(--fs-h2);line-height:var(--lh-tight);letter-spacing:var(--tr-sub);color:var(--c950);margin:var(--gap-head-top) 0 var(--gap-head-bot);text-wrap:balance}
-.secBody{font-family:var(--sans);font-weight:400;font-size:var(--fs-prose);line-height:var(--lh-prose);color:var(--c700);margin:16px 0 0;text-wrap:pretty}
+/* ── FIVE HEADING SIZES BECOME THREE.  2026-08-27 ──────────────────────────
+   docs/house-style.md §11 case-studies-3 names this as "the single biggest
+   reason they do not feel like home": .head 40 · .secHead 30 · .subHead 26 ·
+   .secBody 18 · .eyebrow 12, plus .statNum at 40/400, against home's six sizes
+   total. The ladder is now the one About took in the same pass:
+     44/600  .head, .statNum at 400   26/600  .secHead
+     18/600  .subHead                 18/400  .secBody
+     15/400  captions, notes, sources 12/600  .eyebrow, kicker, labels
+   Six sizes, home's count, and .subHead is separated from body by WEIGHT rather
+   than by a fourth size -- home's own device (13px tabs 400/600, .csName 18/600
+   over .csImpact 15/400). Leading and tracking stay on the site's curve:
+   --lh-head 1.2 for large type that wraps, tracking monotonic in size at
+   -.030 / -.021 / -.027(18-600) / -.011(18-400). */
+.secHead{font-family:var(--sans);font-weight:600;font-size:var(--fs-h3);line-height:var(--lh-head);letter-spacing:var(--tr-sub);color:var(--c950);margin:var(--gap-head-top) 0 var(--gap-head-bot);text-wrap:balance}
+/* TRACKING, which this role did not have. Same finding as About's body copy:
+   every 15px-and-up role on home carries a negative rung and the case studies'
+   18px prose carried `normal`. --tr-title is -0.198px at 18 and keeps the
+   ladder monotonic in size. The MEASURE is untouched and stays the full column
+   -- Jayden reverted a 680px measure here once and said so. */
+.secBody{font-family:var(--sans);font-weight:400;font-size:var(--fs-prose);line-height:var(--lh-prose);letter-spacing:var(--tr-title);color:var(--c700);margin:16px 0 0;text-wrap:pretty}
 /* pulled stat — clean editorial callout (no ink; texture stays on the hero title only) */
 .stat{margin:var(--sp-32-48) 0;max-width:540px}
-.statNum{font-family:var(--sans);font-weight:400;font-size:var(--fs-statnum);line-height:var(--lh-flat);letter-spacing:var(--tr-head);color:var(--c950);margin:0;display:flex;align-items:baseline;gap:.16em}
-.statUnit{font-size:.36em;font-weight:400;letter-spacing:0;color:var(--c500)}
+/* THE BIG NUMBER JOINS THE TITLE'S RUNG INSTEAD OF OWNING ONE. --fs-statnum
+   (clamp 30..40) was a seventh size carrying one role. It takes --fs-pagehead
+   now and stays at weight 400, so the number and the page title are one size
+   told apart by weight -- exactly how home tells a resting tab from a selected
+   one. --fs-statnum has no consumer left on these pages. */
+.statNum{font-family:var(--sans);font-weight:400;font-size:var(--fs-pagehead);line-height:var(--lh-flat);letter-spacing:var(--tr-hero);color:var(--c950);margin:0;display:flex;align-items:baseline;gap:.16em}
+.statUnit{font-size:var(--fs-small);font-weight:400;letter-spacing:var(--tr-body);color:var(--c500)}
 .statCap{font-family:var(--sans);font-weight:400;font-size:var(--fs-prose);line-height:var(--lh-prose);color:var(--c700);margin:16px 0 0;text-wrap:pretty}
 .statSrc{font-family:var(--sans);font-weight:400;font-size:var(--fs-small);letter-spacing:0;color:var(--c500);margin:16px 0 0;}
 .statRow{margin:var(--sp-32-48) 0 0}
@@ -332,7 +372,7 @@ img{display:block;max-width:100%;height:auto}   /* height:auto IS THE COMPANION 
 /* ===== the system: onboarding gallery + the five-step build — one hero screen per step, the reasoning beside it ===== */
 .subBlock{margin:clamp(64px,8.5vh,96px) 0 0}
 .subKick{font-family:var(--sans);font-weight:600;font-size:var(--fs-label);letter-spacing:var(--tr-flat);text-transform:none;color:var(--c500);margin:0}
-.subHead{font-family:var(--sans);font-weight:600;font-size:var(--fs-h3);line-height:var(--lh-tight);letter-spacing:var(--tr-sub);color:var(--c950);margin:var(--sp-16-24) 0 var(--sp-16-24);text-wrap:balance}
+.subHead{font-family:var(--sans);font-weight:600;font-size:var(--fs-lead);line-height:var(--lh-head);letter-spacing:var(--tr-head);color:var(--c950);margin:var(--sp-16-24) 0 var(--sp-16-24);text-wrap:balance}
 /* onboarding shots are portrait phones: sized so the gallery browses, the steps read */
 .shot.phone{width:calc((100% - 72px)/3)}
 .shot.phone img{width:100%;height:auto;aspect-ratio:804/1748;object-fit:contain;background:#fff;border-radius:clamp(20px,2.6vw,32px);box-shadow:var(--rim-1)}
@@ -403,12 +443,11 @@ img{display:block;max-width:100%;height:auto}   /* height:auto IS THE COMPANION 
  .buildStage{display:none}
  .step,.step.payoff{grid-template-columns:1fr;row-gap:var(--sp-16-24)}
  .stepShot{width:min(62vw,300px)}
- .sec{min-height:0;padding-top:var(--sp-56-96)}
+ .sec{min-height:0}
 }
 @media(max-width:760px){
  .wrap{padding:0 24px}
  .cover{aspect-ratio:4/3}
- .head{font-size:var(--fs-pagehead-sm);line-height:var(--lh-head)}
  .shot img{width:clamp(220px,70vw,300px);height:clamp(220px,70vw,300px)}
  .shot.phone{width:calc(clamp(340px,52vh,440px)*.46)}
  .shot.phone img{width:100%;height:auto}
@@ -484,25 +523,8 @@ img{display:block;max-width:100%;height:auto}   /* height:auto IS THE COMPANION 
    the pair reads as one decision rather than as two things that got missed:
    .shot.phone img here, and .demoFrame / .demoPoster on strata.html, which is a
    live phone demo in an iframe at clamp(22px,2.4vw,30px). */
-.shot.phone img{border-radius:clamp(20px,2.6vw,32px)}.videoFrame,.cmpBoard{overflow:hidden}.scrollbox{overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain}/* refined thin carousel scrollbar (palette-matched) */.scrollbox{scrollbar-width:thin;scrollbar-color:var(--c100) transparent}.scrollbox::-webkit-scrollbar{height:8px}.scrollbox::-webkit-scrollbar-track{background:transparent;margin:0 4px}.scrollbox::-webkit-scrollbar-thumb{background:var(--c100);border-radius:99px;border:2px solid transparent;background-clip:padding-box}.scrollbox::-webkit-scrollbar-thumb:hover{background:var(--c500);background-clip:padding-box}.secBody strong,.ovBody strong,.ov strong,.rv strong,.role strong,.lede strong{font-weight:600;color:var(--c950)}@media(max-width:899px){.rail{display:none}}/* THE RAIL COMES IN-FLOW UP TO 1579, NOT 1360, AND THE NUMBER IS DERIVED.
-   The rail is position:absolute;right:100% of .layout above this band, so it
-   lives in whatever margin is left of the content. Once .wrap is 1280 (above)
-   that margin is 120px at 1440 and the rail is --rail-w (100.8 at 1440) plus
-   --rail-gutter (40) = 140.8 wide: measured at 1440 with the absolute rail, the
-   ticks landed at x=-20.8 and painted half off the window. The threshold is
-   where the rail genuinely clears the site's own 40px gutter:
-     (v - 1280)/2 + 40 - --rail-gutter - --rail-w >= 40,  --rail-w capped at 110
-     -> v >= 1580.  At exactly 1580 the ticks sit at x=40. So: in-flow to 1579.
-   WHAT THIS BUYS AT 1440 is the alignment header.css §0b's note calls "THE
-   ACCEPTED COST" of moving the bar to a universal column -- "on a case study the
-   bar no longer lands on the chapter rail's left edge". In-flow, it does again:
-   rail 120..220.8, .jbNav 120..1320, both left edges on one x. Before this pass
-   the rail sat at 19.2 -- 19px off the window edge, aligned with nothing.
-   THE PROSE COLUMN IS NOT CAPPED and no measure is added: .content is still
-   minmax(0,1fr) running the full remaining column, which at 1440 is 260.8..1320
-   -- the same layout this page already shipped at every width from 900 to 1360,
-   extended, not a new one. */
-.content :is(.cap,.csReach){margin-inline:auto}.scrollbox:focus-visible{outline:2px solid var(--c950);outline-offset:3px}.scrollbox{scrollbar-width:none}.scrollbox::-webkit-scrollbar{display:none}.sbNav{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}@media(max-width:880px){.sbNav{display:none}}@media(prefers-reduced-motion:reduce){}.cap{text-align:center}.footIn:focus-visible,.chap:focus-visible{outline:2px solid var(--c950);outline-offset:3px;border-radius:var(--r-xs)}@media(max-width:880px){.subBlock{margin-top:56px}}.sec>.stat:last-child{margin-bottom:0}@media(max-width:880px){}/* ---- SKIP LINK: WCAG 2.4.1 Bypass Blocks (Level A). Technique G1 requires a link that is
+.shot.phone img{border-radius:clamp(20px,2.6vw,32px)}.videoFrame,.cmpBoard{overflow:hidden}.scrollbox{overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain}/* refined thin carousel scrollbar (palette-matched) */.scrollbox{scrollbar-width:thin;scrollbar-color:var(--c100) transparent}.scrollbox::-webkit-scrollbar{height:8px}.scrollbox::-webkit-scrollbar-track{background:transparent;margin:0 4px}.scrollbox::-webkit-scrollbar-thumb{background:var(--c100);border-radius:99px;border:2px solid transparent;background-clip:padding-box}.scrollbox::-webkit-scrollbar-thumb:hover{background:var(--c500);background-clip:padding-box}.secBody strong,.ovBody strong,.ov strong,.rv strong,.role strong,.lede strong{font-weight:600;color:var(--c950)}
+.content :is(.cap,.csReach){margin-inline:auto}.scrollbox:focus-visible{outline:2px solid var(--c950);outline-offset:3px}.scrollbox{scrollbar-width:none}.scrollbox::-webkit-scrollbar{display:none}.sbNav{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}@media(max-width:880px){.sbNav{display:none}}@media(prefers-reduced-motion:reduce){}.cap{text-align:center}.footIn:focus-visible{outline:2px solid var(--c950);outline-offset:3px;border-radius:var(--r-xs)}@media(max-width:880px){.subBlock{margin-top:56px}}.sec>.stat:last-child{margin-bottom:0}@media(max-width:880px){}/* ---- SKIP LINK: WCAG 2.4.1 Bypass Blocks (Level A). Technique G1 requires a link that is
    the FIRST focusable element and moves focus to the main content -- so it sits before the
    nav in DOM order. Parked off-screen by transform (not display:none, which would take it
    out of the tab order entirely) and slid in on focus. ---- */
@@ -653,13 +675,54 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
    was always supposed to travel with. Same fix for .wide::after and .cmp::after,
    which shared the declaration and the defect -- bearings' .cmp measured round
    over a squircle board too. */
+
+/* ═══ THE MEDIA TABS JOIN THE HOUSE TAB.  2026-08-27 ═════════════════════════
+   docs/house-style.md §11 case-studies-1 calls this "the loudest divergence",
+   and it is the complaint Jayden already had fixed one page over: "i dont know
+   why the tabs have a differnt background color it should all be aligned with
+   the design system."
+   MEASURED BEFORE, at 1440: the row ran 120..1320 on a WHITE ground
+   (rgb(255,255,255)) with padding:8, gap:8, and its tabs were 16px against
+   home's 13, padding-inline 16, and they still took the base .ctl--tab GREY
+   HOVER FILL -- because every one of home's corrections is scoped
+   `.cases.collection`, a selector these pages do not match. So the fix that
+   landed on home never reached here.
+   WHY IT IS WRITTEN IN THE PAGE AND AT THIS SPECIFICITY. controls.css links
+   AFTER this <style> block, so an equal-specificity rule here loses the tie and
+   silently does nothing (CLAUDE.md §6, and §10b of the house style is the live
+   proof of it). `.tv.collection .tvTabs.collection__tabs` is (0,4,0) against the
+   base rule's (0,1,0), and the hover selector below is (0,7,0) against (0,3,0),
+   so both win on weight rather than on order. controls.css is not touched.
+   WHAT IS NOT COPIED FROM HOME: the centring stays. This row sits above a phone
+   mockup that is itself centred in the column, so it is centred on the object it
+   controls; home's row opens a left-aligned section. And the per-tab ::after
+   underline stays, because unlike home there is no .csTabInk here -- it is the
+   only selection mark this row has, and removing it would leave none. */
+.tv.collection .tvTabs.collection__tabs{
+  background:transparent;
+  padding:var(--sp-8) 0 var(--sp-16);
+  gap:var(--sp-2)
+}
+.tv.collection .tvTabs.collection__tabs>.tvTab.ctl--tab{
+  font-size:var(--fs-nav);
+  letter-spacing:var(--tr-body);
+  padding-inline:var(--sp-12)
+}
+/* NO HOVER GROUND ON A CONTENT TAB -- header.css's own words: "the pill on nav
+   tabs, ink-and-weight everywhere else, which is what the content tabs and prose
+   links already do". A fill under a tab whose selected member is marked by a LINE
+   makes hover louder than selection on the axis that matters. */
+.tv.collection .tvTabs.collection__tabs>.tvTab.ctl--tab:hover:not([aria-selected="true"]),
+.tv.collection .tvTabs.collection__tabs>.tvTab.ctl--tab:focus-visible:not([aria-selected="true"]){
+  background:none;color:var(--ctl-ink-strong)
+}
 </style>
-<link rel="stylesheet" href="controls.css?v=99ded98629">
-<link rel="stylesheet" href="carousel.css?v=99ded98629">
+<link rel="stylesheet" href="controls.css?v=98d7b6f74e">
+<link rel="stylesheet" href="carousel.css?v=98d7b6f74e">
 <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Jayden Betts","item":"https://jaydenbetts.design/"},{"@type":"ListItem","position":2,"name":"Cluster Case Study","item":"https://jaydenbetts.design/cluster.html"}]},{"@type":"CreativeWork","@id":"https://jaydenbetts.design/cluster.html#work","url":"https://jaydenbetts.design/cluster.html","name":"Cluster: A Product Design Case Study by Jayden Betts","description":"Cluster is a campus app that helps students discover the clubs they would never stumble on, among 800+ at UC Davis. A product design case study by Jayden Betts.","image":"https://jaydenbetts.design/images/cs/cluster.webp","author":{"@type":"Person","@id":"https://jaydenbetts.design/#person","name":"Jayden Betts","alternateName":"Jayden Lee Betts","url":"https://jaydenbetts.design/","sameAs":["https://www.linkedin.com/in/jaydenbetts","https://www.instagram.com/jaydenleebetts"]},"genre":"Product Design","inLanguage":"en"}]}</script>
-<link rel="stylesheet" href="header.css?v=99ded98629">
-<link rel="stylesheet" href="footer.css?v=99ded98629">
-<link rel="stylesheet" href="site-theme.css?v=99ded98629">
+<link rel="stylesheet" href="header.css?v=98d7b6f74e">
+<link rel="stylesheet" href="footer.css?v=98d7b6f74e">
+<link rel="stylesheet" href="site-theme.css?v=98d7b6f74e">
 <script src="header.js" defer></script>
 <script src="footer-band.js" defer></script>
 </head>
@@ -942,51 +1005,7 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
   b.addEventListener('click',function(){try{sessionStorage.setItem('csReturn','1');}catch(e){}});
  });
 
- /* a margin-to-margin image runs under the indicator's lane: fade the indicator while they overlap, restore it on the far side */
- (function(){
-  var rail=document.querySelector('.rail');
-  var imgs=[].slice.call(document.querySelectorAll('.cover,.wide,.facts,.cmp,.scrollbox,.photoRow,.stepShot,.closeShot,.darlings'));
-  if(!rail||!imgs.length||reduce)return;
-  /* THE RAIL IS `display:none` BELOW 881px -- see the @media block above -- and
-     this ran on phones anyway: a getBoundingClientRect on the hidden rail plus
-     one per full-bleed figure until a hit, inside a scroll-driven rAF, every
-     frame of every flick, to toggle a class on an element nobody can see. The
-     media query is the same one the stylesheet uses, so the guard cannot drift
-     from the rule it is guarding. Desktop behaviour is untouched. */
-  var railLive=matchMedia('(min-width:881px)');
-  function hush(){
-   if(!railLive.matches)return;
-   var rb=rail.getBoundingClientRect(),over=false;
-   for(var i=0;i<imgs.length;i++){var b=imgs[i].getBoundingClientRect();if(b.top<rb.bottom&&b.bottom>rb.top){over=true;break;}}
-   rail.classList.toggle('hush',over);
-  }
-  var ticking=false;
-  window.addEventListener('scroll',function(){if(!railLive.matches||ticking)return;ticking=true;requestAnimationFrame(function(){hush();ticking=false;});},{passive:true});
-  window.addEventListener('resize',hush,{passive:true});
-  hush();
- })();
 
- /* the chapter rail begins at the My role block, so the indicator only appears once the hero cover is behind you; recomputed on resize/load/font-settle since the cover height scales with viewport width */
- (function(){
-  var rail=document.querySelector('.rail'),role=document.querySelector('.ov')||document.querySelector('.role'),layout=document.querySelector('.layout');
-  if(!rail||!role||!layout)return;
-  /* Same guard, same reason: below 881 the rail is display:none, and this fired
-     five times per load (immediately, on load, on fonts.ready, at 320ms and at
-     1100ms) forcing two layouts each time to position something invisible. */
-  var railLive=matchMedia('(min-width:881px)');
-  function align(){
-   if(!railLive.matches)return;
-   var off=role.getBoundingClientRect().top-layout.getBoundingClientRect().top-Math.round(window.innerHeight*0.5);
-   rail.style.marginTop=Math.max(0,Math.round(off))+'px';
-  }
-  align();
-  window.addEventListener('resize',align,{passive:true});
-  window.addEventListener('load',align);
-  if(document.fonts&&document.fonts.ready){document.fonts.ready.then(align);}
-  var cov=document.querySelector('.cover img');
-  if(cov&&!cov.complete){cov.addEventListener('load',align);}
-  setTimeout(align,320);setTimeout(align,1100);
- })();
 
  /* comparison sliders: grab and drag the handle to wipe between two layers. pointer capture keeps mouse/touch tracking 1:1 with a grab offset so it never jumps; drag only starts on the handle (never the image); full keyboard control; each slider reads its own start position from data-start */
  [].slice.call(document.querySelectorAll('.cmp')).forEach(function(cmp){
@@ -1068,7 +1087,7 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
     It is an attribute of the two feTurbulence primitives that `filter:url(#inkBig)`
     and `filter:url(#inkSm)` reference. Changing it INVALIDATES BOTH FILTERS, so
     every element on the page carrying either -- the h1, every eyebrow, kicker,
-    caption, fact key, stat source, and both halves of every chapter-rail row --
+    caption, fact key and stat source --
     re-runs a fractal-noise + displacement chain and repaints. Eight times a
     second, from a bare setInterval, so the invalidation lands wherever it falls
     inside the frame rather than at the top of one, and it never stops: hidden
