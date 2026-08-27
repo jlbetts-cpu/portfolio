@@ -2200,9 +2200,15 @@
      UCB is the crossbar's height above the pitch and UPH the posts' height above the
      crossbar; together they are the aperture. Both are derived in geo() from the arena and
      the head size, never hard-coded, because a phone's pitch is half a desktop's and a
-     fixed bar would be either unreachable or unmissable. UPW is the aperture's width, and
-     YKICK the horizontal speed that separates a kick from a drift. ===== */
-  var YOW=false,UCB=0,UPH=0,UPW=0,YKICK=600;
+     fixed bar would be either unreachable or unmissable. UPW is the aperture's DEPTH -- the
+     gap the ball has to travel between the near post and the far one, which is what makes a
+     score a traversal rather than a moment. ===== */
+  var YOW=false,UCB=0,UPH=0,UPW=0;
+  /* YTHRU is the whole scoring rule now: -1 the ball is through the LEFT end's near post
+     and still inside its window, +1 the right end's, 0 it is not through anything. _pbx/_pby
+     are last frame's ball centre, which is what makes the crossing a SWEPT test rather than a
+     sample -- see the note at the predicate itself. */
+  var YTHRU=0,_pbx=0,_pby=0;
   /* ===== DEV-ONLY: THE PITCH READING =====
      Jayden: "there is still a lot of bundling up in the soccer mode lots of people in
      the goal and the 'goalie' of the other team just stands there." Both halves of that
@@ -2619,14 +2625,14 @@ function teams(){
    }catch(_){} return side===1?RED:BLUE; }
    window.__hmTeamRGB=teamRGB;   // THE GOAL GRAMMAR's particle burst reuses this exact source instead of its own copy, so team colours can never drift apart between the pitch and the goal-mouth particles
   function kickoffCountdown(){S.kickSeed=(S.kickSeed||0)+1;BUS.emit('kickoff',{seed:S.kickSeed});   // the match opener: everyone to their half, then 3-2-1
-   var _bh=ballHome();bx=_bh?_bh.x:(XL+XR)/2;by=_bh?_bh.y:70;bsp=ballSpawnScale();_spawnY=by;_curveTo=(XL+XR)/2;_curving=true;_cvOn=false;bvx=0;bvy=0;_deckT=0;_cfx=bx;_cfy=by;_cfT=0;S.phase="count";
+   var _bh=ballHome();bx=_bh?_bh.x:(XL+XR)/2;by=_bh?_bh.y:70;bsp=ballSpawnScale();_spawnY=by;_curveTo=(XL+XR)/2;_curving=true;_cvOn=false;bvx=0;bvy=0;_deckT=0;_cfx=bx;_cfy=by;_cfT=0;_pbx=bx;_pby=by;YTHRU=0;S.phase="count";
    var n=3;showCount(n);
    (function tick(){if(!S.on)return;
     if(n>1){n--;setTimeout(function(){showCount(n);tick();},800);}
     else{setTimeout(function(){if(!S.on)return;showCount("GO");
      setTimeout(function(){if(!S.on)return;if(countEl)countEl.textContent="";bvy=30;S.phase="play";},560);},800);}})();}
   function dropIn(){S.kickSeed=(S.kickSeed||0)+1;   // after a goal: no countdown, the ball just drops back in as they return to their sides
-   var _bh2=ballHome();bx=_bh2?_bh2.x:(XL+XR)/2;by=_bh2?_bh2.y:60;bsp=ballSpawnScale();_spawnY=by;_curveTo=(XL+XR)/2;_curving=true;_cvOn=false;bvx=(Math.random()*80-40);bvy=20;_deckT=0;_cfx=bx;_cfy=by;_cfT=0;S.phase="reset";
+   var _bh2=ballHome();bx=_bh2?_bh2.x:(XL+XR)/2;by=_bh2?_bh2.y:60;bsp=ballSpawnScale();_spawnY=by;_curveTo=(XL+XR)/2;_curving=true;_cvOn=false;bvx=(Math.random()*80-40);bvy=20;_deckT=0;_cfx=bx;_cfy=by;_cfT=0;_pbx=bx;_pby=by;YTHRU=0;S.phase="reset";
    // 650 -> 900ms. The set-position leap solves its own arc, and a head crossing most of a
    // 1440px pitch is in the air for ~0.77s; at 650 the whistle went while half the side was
    // still flying, so the line-up was never actually seen. This is the only dead time added
@@ -2699,7 +2705,7 @@ function teams(){
    kickoffCountdown();
    if(!running){running=true;requestAnimationFrame(loop);}}
   window.__hmSoccerStart=start;window.__hmSoccerEnd=finish;
-  function netCatch(team){if(S.phase!=="play")return;S.phase="scoring";scoreTeam=team;
+  function netCatch(team){if(S.phase!=="play")return;S.phase="scoring";scoreTeam=team;YTHRU=0;
    goalBurst(team,bx,by);   // BANG -- it explodes the instant it crosses the line
    ball.style.opacity="0";if(ballShadow)ballShadow.style.opacity="0";bvx=0;bvy=0;bw=0;ballInTitle(true);   // and it's gone, never spinning around inside the net
    var g=team===1?goalR:goalL;g.classList.remove("hmGoalHit");void g.offsetWidth;g.classList.add("hmGoalHit");
@@ -2924,7 +2930,7 @@ function teams(){
          _tf=Math.max(0.04,(-bvy+Math.sqrt(Math.max(0,bvy*bvy+2*GRAV*_dy)))/GRAV),
          _dx=_curveTo-bx;
      bvx=2*_dx/_tf;_cvA=-bvx/_tf;_cvS=bvx>=0?1:-1;_cvOn=Math.abs(_dx)>0.5;}   // no drag fudge needed: the solve is exact
-    bx+=bvx*dt;by+=bvy*dt;
+    _pbx=bx;_pby=by;bx+=bvx*dt;by+=bvy*dt;   // the segment this frame sweeps: the League's post plane is crossed, not sampled
     var sp=Math.abs(bvx);
     if(sp>900 && performance.now()-lastShot>1000){
      var dir=bvx>0?1:-1, gx=dir>0?XR:XL;
@@ -3027,18 +3033,44 @@ function teams(){
         the post tops is wide. Both were goals in soccer and neither is one here, which is
         why this reads as football rather than as soccer with a repaint.
 
-        AND IT HAS TO BE KICKED THROUGH, NOT DRIFT THROUGH. Height alone made this a
-        score-fest -- measured, 9.0 goals/min against soccer's 3.3 -- and the reason was the
-        ball CLIMBING THE WALL FACE: once the bar stopped being solid from underneath (see
-        below) a ball popped up in a corner rose through the aperture at |bvx| near zero and
-        counted. A field goal is a KICK through the plane, so the plane asks for one. YKICK
-        is a seventh of the ball\'s own speed cap and roughly what a single head\'s contact
-        imparts, so a struck ball clears it and a wall-hugger does not. This is not
-        difficulty bolted on after the fact -- it is the missing half of "through the
-        posts". */
+        AND IT HAS TO BE KICKED THROUGH, NOT DRIFT THROUGH -- BUT THAT IS A TRAVERSAL AND NOT
+        A SPEED, AND READING IT AS A SPEED WAS THE BUG. Height alone made this a score-fest
+        -- measured, 9.0 goals/min against soccer\'s 3.3 -- because a ball popped up in a
+        corner CLIMBS THE WALL FACE and rises through the aperture without ever passing a
+        post. The first answer to that was |bvx|>600 read at the far post, and it is the
+        wrong instrument: it asks how fast the ball is at the END of the traverse, and a
+        struck ball bleeds speed to drag (0.78/s) and to every head it touches on the way in.
+
+        Jayden: "the football looks like its in the goal posts but it doesnt score." He is
+        describing a real event, and it is the commonest one at this end of the pitch.
+        Measured over 15 minutes of clock-cranked League play at 1440x900: 103 balls swept in
+        through the near post between the crossbar and the post tops, and 57 of them were
+        never awarded. Of those, 32 travelled the whole aperture and finished with the ball
+        on the glass, above the bar, unmistakably in -- and 32 of 32 were refused by that one
+        clause, at a median 315px/s. It was not a near miss being read strictly; it was a
+        completed field goal being thrown away because the ball had slowed down.
+
+        So the question is asked where it is decided. The ball is ARMED the frame it sweeps
+        through the NEAR post\'s plane heading into the end at aperture height, and disarmed
+        the instant it leaves that window -- back out past the near post, under the bar, or
+        over the tops. A goal is an armed ball reaching the far post. That is "through the
+        uprights" as a referee reads it, and it kills the wall-climber outright instead of
+        statistically: a ball rising inside the posts\' own footprint never crossed a post
+        plane, so it cannot be armed, and no speed gate is needed to say so.
+
+        THE CROSSING IS SWEPT, NOT SAMPLED. At the 2200px/s cap the ball covers 37px in a
+        frame against a 72px aperture, so a discrete "is it between the posts now" test drops
+        exactly the shots most worth awarding. The near-post plane is crossed between last
+        frame\'s centre and this one\'s, and the height is interpolated at the crossing so a
+        diagonal shot is judged where it actually passed the post rather than a frame late. */
      overL=(bx+BR>XL&&bx-BR<XL+UPW);overR=(bx+BR>XR-UPW&&bx-BR<XR);
      gt=groundY-UCB;                                    // the crossbar\'s plane
-     inG=(by<gt)&&(by>gt-UPH)&&(Math.abs(bvx)>YKICK);   // over the bar, under the tops, and going somewhere
+     var _npL=XL+UPW,_npR=XR-UPW,_tc,_yc;               // the two near-post planes -- where the drawn upright is
+     if(_pbx>_npL&&bx<=_npL){_tc=(_pbx-_npL)/Math.max(1e-6,_pbx-bx);_yc=_pby+(by-_pby)*_tc;if(_yc<gt&&_yc>gt-UPH)YTHRU=-1;}
+     else if(_pbx<_npR&&bx>=_npR){_tc=(_npR-_pbx)/Math.max(1e-6,bx-_pbx);_yc=_pby+(by-_pby)*_tc;if(_yc<gt&&_yc>gt-UPH)YTHRU=1;}
+     if(YTHRU<0&&(bx>_npL||by>=gt||by<=gt-UPH))YTHRU=0;   // it came back out, dropped under the bar, or went over the tops
+     if(YTHRU>0&&(bx<_npR||by>=gt||by<=gt-UPH))YTHRU=0;
+     inG=(by<gt)&&(by>gt-UPH)&&(YTHRU!==0);   // over the bar, under the tops, and it got there BY GOING THROUGH THE POSTS
      /* THE DOINK, FROM ABOVE ONLY -- AND THAT IS MEASURED, NOT LAZY. It was solid on both
         faces for one build and the underside was a TRAP: the confinement pop (CONF_MAX,
         ~1090px/s straight up) is the engine\'s own way out of a scrum, and within UPW of the
@@ -3182,7 +3214,7 @@ function teams(){
    else bw*=Math.pow(0.88,dt);
    spin+=bw*dt;
    S.ball.x=bx;S.ball.y=by;
-   if(WRAF9){S.ball.vx=bvx;S.ball.vy=bvy;S.geo={W:W,H:H,XL:XL,XR:XR,GH:GH,groundY:groundY,BR:BR,OFF:OFF,yow:YOW,UCB:UCB,UPH:UPH,UPW:UPW};
+   if(WRAF9){S.ball.vx=bvx;S.ball.vy=bvy;S.geo={W:W,H:H,XL:XL,XR:XR,GH:GH,groundY:groundY,BR:BR,OFF:OFF,yow:YOW,UCB:UCB,UPH:UPH,UPW:UPW,thru:YTHRU};
     S.players=peers.map(function(q){return {slot:q.slot,team:S.teams?S.teams[q.slot]:0,
      role:S.roles?S.roles[q.slot]:"",x:q.x+q.HW/2,y:q.y+q.HH/2,hw:q.HW,hh:q.HH,elim:!!q.elim,kSat:q.__kSat|0,
      gr:!!q.ground,vy:q.vy||0};});}

@@ -14,8 +14,11 @@ So this asserts the SEAMS rather than the appearance:
   1. ONE ENGINE.        __hmYowStart and __hmTourStart are two names on one start(), and the
                         engine's mode flag is read once at kickoff, not sampled per frame.
   2. THE OBJECTIVE.     Soccer scores below the crossbar, the League above it -- and the
-                        League additionally requires the ball to be TRAVELLING through, which
-                        is the line that stopped it being a score-fest (9.0 -> 5.0 goals/min).
+                        League additionally requires the ball to have TRAVERSED the aperture:
+                        a swept crossing of the near-post plane arms it, leaving that window
+                        disarms it, and reaching the far post scores. That is what stops the
+                        wall-climber (which made it a 9.0 goals/min score-fest) WITHOUT the
+                        instantaneous speed gate that used to refuse completed field goals.
   3. NO KEEPER.         The role is not handed out in this mode, and the leash it owns is
                         therefore never reached. The clamp itself must be untouched: the
                         expression is asserted verbatim, because "do not lengthen the keeper's
@@ -82,13 +85,40 @@ def read_once(src):
     return len(assigns) == 3 and "YOW=!!window.__hmYowLeague;S.yow=YOW;" in src
 
 
-@check("objective-is-inverted-and-needs-a-kick", "engine",
-       "inG=(by<gt)&&(by>gt-UPH)&&(Math.abs(bvx)>YKICK);",
-       "inG=(by<gt)&&(by>gt-UPH);")
+@check("objective-is-inverted-and-is-a-traversal", "engine",
+       "inG=(by<gt)&&(by>gt-UPH)&&(YTHRU!==0);",
+       "inG=(by<gt)&&(by>gt-UPH)&&(Math.abs(bvx)>600);")
 def objective(src):
-    """Above the bar, under the tops, AND travelling -- and soccer's own test unchanged."""
-    return ("inG=(by<gt)&&(by>gt-UPH)&&(Math.abs(bvx)>YKICK);" in src
-            and "inG=by>groundY-GH;" in src)
+    """Above the bar, under the tops, and it got there BY GOING THROUGH THE POSTS.
+
+    WHAT CHANGED AND WHY THIS ASSERTION MOVED. This used to pin
+    `inG=(by<gt)&&(by>gt-UPH)&&(Math.abs(bvx)>YKICK)` -- the ball's instantaneous horizontal
+    speed at the far post. That clause was written to kill the wall-climber (a ball popped up
+    in a corner rising through the aperture without passing a post) and it did, statistically.
+    It also threw away completed field goals: measured over 15 minutes of clock-cranked League
+    play, 103 balls swept in through the near post at aperture height and 57 were never
+    awarded, and of the 32 that reached the far post with the ball on the glass, 32 of 32 were
+    refused by that clause alone at a median 315px/s. Jayden saw it directly -- "the football
+    looks like its in the goal posts but it doesnt score".
+
+    So the gate now asserts the mechanism that replaced it, and the INJECTION is the old
+    clause: putting the speed gate back must fail this check, because it is the bug.
+
+      * the near-post plane is crossed with a SWEPT test between frames, not sampled -- at the
+        2200px/s cap the ball covers 37px against a 72px aperture,
+      * the height is interpolated at the crossing,
+      * the latch is cleared the moment the ball leaves that window at either end,
+      * and soccer's own test is byte-for-byte what it was.
+    """
+    return ("inG=(by<gt)&&(by>gt-UPH)&&(YTHRU!==0);" in src
+            and "inG=by>groundY-GH;" in src
+            and "_pbx=bx;_pby=by;bx+=bvx*dt;by+=bvy*dt;" in src
+            and "if(_pbx>_npL&&bx<=_npL)" in src and "else if(_pbx<_npR&&bx>=_npR)" in src
+            and "_yc=_pby+(by-_pby)*_tc" in src
+            and "if(YTHRU<0&&(bx>_npL||by>=gt||by<=gt-UPH))YTHRU=0;" in src
+            and "if(YTHRU>0&&(bx<_npR||by>=gt||by<=gt-UPH))YTHRU=0;" in src
+            # and no speed gate came back in under another name
+            and "YKICK" not in src)
 
 
 @check("no-keeper-and-the-leash-is-untouched", "engine",
