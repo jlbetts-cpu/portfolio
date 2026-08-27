@@ -632,15 +632,42 @@
    · The one addition is the indicator, revived below.
    The 44px target is untouched: .ctl's min-height still governs, and the labels
    only lost padding they did not need. */
+/* ── AND NOW THE BOX AND THE RHYTHM ARE THE BAR'S TOO.  2026-08-27 ──────────
+   Jayden: "the tabs i think we should style them the same as the header."
+   The block above brought the COLOUR half of that and docs/house-style.md 9
+   measured what was left: seven properties, all of them box-and-rhythm rather
+   than colour. Six are here, one is the hover below, and one -- the header's
+   18px Lucide icons -- is deliberately not taken, because the tabs have no
+   icons and should not gain any.
+     letter-spacing  -.006em -> normal   (header.css:545 sets none)
+     ink box height  44px    -> 38px     (--ctl-h-nav)
+     inline padding  12px    -> 16px     (--ctl-pad-nav)
+     item gap        2px     -> 8px      (--gap-item)
+     radius          14px    -> pill + squircle, which is what the bar draws
+     first item      flush   -> the same 16px as the rest
+   THE 44px TARGET IS UNTOUCHED AND SHRINKING THE INK BOX IS THEREFORE FREE.
+   index.html's .csTab::before is already a transparent --tap-min expander
+   centred on the ink box -- the identical technique .ctl--nav::after uses one
+   file up -- so the pressable rectangle does not move when the painted one
+   does. Measured after: 44px on every tab at 1440, 390 and 320.
+   THE FLUSH FIRST ITEM IS THE ONE REAL TRADE AND IT IS PAID ON PURPOSE. It put
+   "Featured"'s INK on 120 -- the page column, and the left edge of the cover
+   below it -- and it was allowed precisely because the row took no hover
+   ground. The row takes one now, and an asymmetric pill reads as a mistake. So
+   the row aligns its BOX on the column and its ink one padding step inboard,
+   at 136, which is exactly what the bar does: .jbNav's box is on 120 and the
+   wordmark's ink is on 126. Measured, 1440: the row grows 233.7 -> 281.7 wide,
+   and at 320 it is 281.7 in 288 of available column, 6.3px of slack.
+   NOT TAKEN: the header's <640px drop to --fs-nav-sm. The bar goes to 12px to
+   fit five items and a mark inside 288; this row has three and fits at 13. */
 .cases.collection .collection__tabs>.ctl--tab{
-  flex:0 0 auto;min-width:0;padding-inline:var(--sp-12);font-size:var(--fs-nav)
+  flex:0 0 auto;min-width:0;font-size:var(--fs-nav);
+  min-height:var(--ctl-h-nav);padding-inline:var(--ctl-pad-nav);
+  border-radius:var(--r-pill);corner-shape:var(--corner);letter-spacing:normal
 }
-/* the first label's ink starts ON the column edge rather than one padding step
-   inboard of it. Free to do because these tabs take no hover ground (below), so
-   there is no fill to look lopsided against the missing padding. */
-.cases.collection .collection__tabs>.ctl--tab:first-child{padding-inline-start:0}
+.cases.collection .collection__tabs>.ctl--tab:first-child{padding-inline-start:var(--ctl-pad-nav)}
 .cases.collection .collection__tabs{
-  padding-inline:0;gap:var(--sp-2);justify-content:flex-start;align-items:center;
+  padding-inline:0;gap:var(--gap-item);justify-content:flex-start;align-items:center;
   /* THE AIR AROUND THE ROW, and it has to be declared here rather than in
      index.html: `.collection__tabs{padding:var(--surface-inset)}` above is a
      SHORTHAND at (0,1,0) in a file that links after index.html's own <style>, so
@@ -695,14 +722,30 @@
    radius has nothing to bend. */
 .collection__tabs .csTabInk{display:block}
 .cases.collection .collection__tabs>.ctl--tab::after{content:none}
-/* NO HOVER GROUND ON A CONTENT TAB, and this is the site's existing rule rather
-   than a new one. header.css states it in as many words: "the site at TWO hover
-   languages -- the pill on nav tabs, ink-and-weight everywhere else, which is
-   what the content tabs and prose links already do". The base .ctl--tab rule
-   above was the third language, and it is the one that has to go: a fill under a
-   tab in a row whose selected member is marked by a LINE makes hover louder than
-   selection on the axis that matters. */
-.cases.collection .collection__tabs>.ctl--tab:hover:not([aria-selected="true"]){background:none}
+/* ── THE HOVER IS THE BAR'S PILL, WHICH REVERSES THE NOTE THAT STOOD HERE ───
+   2026-08-27. That note said "NO HOVER GROUND ON A CONTENT TAB", quoting
+   header.css: "the site at TWO hover languages -- the pill on nav tabs,
+   ink-and-weight everywhere else, which is what the content tabs and prose
+   links already do". The quote is still right and it is the reason this
+   changes rather than the reason it should not: Jayden has asked for this row
+   to BE a nav tab ("the tabs i think we should style them the same as the
+   header"), so it moves from the second language into the first. It is not a
+   third language being invented -- it is the same declaration the bar makes,
+   through the same token.
+   THE OBJECTION IN THAT NOTE IS ANSWERED BY THE HEADER ITSELF: a fill under a
+   tab whose selected member is marked by a LINE could make hover louder than
+   selection. The bar has run exactly that pairing since the travelling .jbInk
+   landed -- pill on hover, ink plus weight plus a moving underline on selection
+   -- and the reason it reads is that the two marks are on different channels.
+   The selected tab is excluded from the pill, so the two never stack.
+   --theme-elevated with a --c75 fallback is --nav-hover-bg's own definition,
+   read here rather than re-derived, so a theme that moves the bar's hover moves
+   this row's with it. The transition is --dur-state, the rung the bar uses. */
+.cases.collection .collection__tabs>.ctl--tab:hover:not([aria-selected="true"]),
+.cases.collection .collection__tabs>.ctl--tab:focus-visible:not([aria-selected="true"]){
+  background:var(--theme-elevated,var(--c75));color:var(--ctl-ink-strong);font-weight:600;
+  transition:background-color var(--dur-state) var(--ease-out)
+}
 .media{
  box-sizing:border-box;width:100%;overflow:hidden;border-radius:var(--radius-media);
  corner-shape:var(--corner);background:var(--surface-ground);box-shadow:var(--surface-rim)
