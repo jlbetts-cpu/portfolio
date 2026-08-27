@@ -49,7 +49,7 @@
 <meta name="twitter:image:alt" content="Strata, a gamified habit builder designed by Jayden Betts">
 <link rel="preload" as="font" type="font/woff2" href="fonts/geist-latin-400-normal.woff2" crossorigin><link rel="preload" as="font" type="font/woff2" href="fonts/geist-latin-600-normal.woff2" crossorigin>
 <link rel="preload" as="image" href="images/cs/variants/time/strata/daytime-1200.webp" imagesrcset="images/cs/variants/time/strata/daytime-1200.webp 1200w, images/cs/variants/time/strata/daytime-2400.webp 2400w" imagesizes="(max-width: 760px) calc(100vw - 48px), (max-width: 1280px) calc(100vw - 80px), 1200px" fetchpriority="high">
-<link rel="stylesheet" href="tokens.css?v=6e1a5b1dd0">
+<link rel="stylesheet" href="tokens.css?v=10e02e90e0">
 <style>
 /* THE FACES MOVED TO tokens.css (2026-08-04) -- declared once for all ten pages
    instead of copied into nine of them and missed on two (about.html and
@@ -151,8 +151,8 @@ img{display:block;max-width:100%;height:auto}   /* height:auto IS THE COMPANION 
    where the rail was display:none: the headings, in order, down one column. */
 
 /* content tiers: text holds a readable measure on a strong left edge; the cover runs margin to margin */
-.wide{position:relative;overflow:hidden;background:var(--c100);margin:var(--sp-40-64) 0 0;width:100%}
-.closeShot{display:block;margin:var(--sp-48-80) 0 0;width:100%}
+.wide{position:relative;overflow:hidden;background:var(--c100);margin:var(--sp-24-40) 0 0;width:100%}
+.closeShot{display:block;margin:var(--sp-24-40) 0 0;width:100%}
 .closeShot img{width:100%;height:auto;display:block;background:var(--c100);box-shadow:var(--rim-1)}
 .darlings{display:flex;flex-wrap:wrap;justify-content:flex-start;align-items:flex-start;gap:16px;width:100%}
 .darlings img{height:clamp(200px,28vh,285px);width:auto;max-width:100%;display:block;background:var(--c50);border-radius:var(--r-lg);corner-shape:var(--corner);box-shadow:var(--rim-1)}
@@ -162,7 +162,7 @@ img{display:block;max-width:100%;height:auto}   /* height:auto IS THE COMPANION 
 .wide::after{content:"";position:absolute;inset:0;box-shadow:var(--rim-1);border-radius:inherit;pointer-events:none}
 
 /* full-bleed process photo / comparison slider with a caption underneath */
-.photoFig{margin:var(--sp-40-64) 0 0}
+.photoFig{margin:var(--sp-24-40) 0 0}
 .cmp{position:relative;overflow:hidden;aspect-ratio:16/9;background:var(--c100);width:100%;user-select:none;-webkit-user-select:none}
 .cmpImg{position:absolute;inset:0}
 .cmpImg img,.cmpImg video{width:100%;height:100%;object-fit:cover;object-position:center;display:block;pointer-events:none;-webkit-user-drag:none;user-select:none}
@@ -185,7 +185,7 @@ img{display:block;max-width:100%;height:auto}   /* height:auto IS THE COMPANION 
    .abLabel. It was inheriting whatever its parent happened to set (14.56px
    measured) -- one role, two leadings, on pages that sit next to each other. */
 .eyebrow{font-family:var(--sans);font-weight:600;font-size:var(--fs-label);line-height:var(--lh-body);letter-spacing:var(--tr-flat);text-transform:none;color:var(--c500);}
-.head .eyebrow{display:block;margin:0 0 var(--sp-8-16)}
+.head .eyebrow{display:block;margin:0 0 var(--sp-8)}
 /* THE PAGE TITLE IS HOME'S, AT HOME'S SIZE AND HOME'S SETTING.  2026-08-27.
    docs/house-style.md §11 case-studies-3: "The h1 is 40 where home's is 44 and
    About's is 44." --fs-title (clamp 29..40) was a fourth page-head size across
@@ -201,7 +201,7 @@ img{display:block;max-width:100%;height:auto}   /* height:auto IS THE COMPANION 
 .head .hl{display:block}
 .lede{font-family:var(--sans);font-weight:400;font-size:var(--fs-prose);line-height:var(--lh-prose);color:var(--c700);margin:var(--sp-24-32) 0 0;text-wrap:pretty}
 
-.cover{position:relative;aspect-ratio:12/5;overflow:hidden;background:var(--c100);margin-top:var(--sp-24-32);width:100%;transform:scale(.985) translateY(8px);opacity:0;transition:opacity var(--dur-enter) var(--ease-out),transform var(--dur-enter) var(--ease-out)}
+.cover{position:relative;aspect-ratio:12/5;overflow:hidden;background:var(--c100);margin-top:var(--sp-16-24);width:100%;transform:scale(.985) translateY(8px);opacity:0;transition:opacity var(--dur-enter) var(--ease-out),transform var(--dur-enter) var(--ease-out)}
 .cover img{width:100%;height:100%;object-fit:cover;box-shadow:var(--rim-1)}
 .cover::after{content:"";position:absolute;inset:0;box-shadow:var(--rim-1);border-radius:inherit;pointer-events:none}
 /* THE FOLD WAS EMPTY FOR MOST OF A SECOND. Measured 2026-08-20: first paint
@@ -220,20 +220,20 @@ img{display:block;max-width:100%;height:auto}   /* height:auto IS THE COMPANION 
 
 /* at a glance — spec list */
 /* project facts — a full-width band under the cover so the header's weight spreads across the measure instead of stacking on the left */
-.facts{width:100%;max-width:none;display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));column-gap:var(--sp-16-32);row-gap:var(--sp-16-32);margin:var(--sp-24-32) 0 0;border-top:1px solid var(--c100);border-bottom:1px solid var(--c100);padding:var(--sp-16-24) 0}
+.facts{width:100%;max-width:none;display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));column-gap:var(--sp-16-32);row-gap:var(--sp-16-32);margin:var(--sp-24-40) 0 0;border-top:1px solid var(--c100);border-bottom:1px solid var(--c100);padding:var(--sp-16-24) 0}
 .fact{min-width:0}
-.fk{display:block;font-family:var(--sans);font-weight:600;font-size:var(--fs-label);letter-spacing:var(--tr-flat);text-transform:none;color:var(--c500);margin:0 0 var(--sp-8-16)}
+.fk{display:block;font-family:var(--sans);font-weight:600;font-size:var(--fs-label);letter-spacing:var(--tr-flat);text-transform:none;color:var(--c500);margin:0 0 var(--sp-8)}
 .fv{font-family:var(--sans);font-weight:400;font-size:var(--fs-body);line-height:var(--lh-note);color:var(--c950);margin:0;text-wrap:pretty}
 .fvsub{display:block;font-weight:400;font-size:var(--fs-small);line-height:var(--lh-note);color:var(--c500);margin-top:4px}
 
 /* overview — a couple of orienting sentences before the role block */
-.ov{margin:var(--sp-40-64) 0 0}
+.ov{margin:var(--sp-24-40) 0 0}
 .ovBody{font-family:var(--sans);font-weight:400;font-size:var(--fs-prose);line-height:var(--lh-prose);color:var(--c950);text-wrap:pretty}
 
 /* my role */
-.role{margin:var(--sp-40-64) 0 0}
-.rlabel{display:block;font-family:var(--sans);font-weight:600;font-size:var(--fs-label);letter-spacing:var(--tr-flat);text-transform:none;color:var(--c500);margin:0 0 var(--sp-16-24);}
-.roleHead{font-family:var(--sans);font-weight:600;font-size:var(--fs-h2);line-height:var(--lh-tight);letter-spacing:var(--tr-sub);color:var(--c950);margin:0 0 var(--sp-16-24);text-wrap:balance}
+.role{margin:var(--sp-24-40) 0 0}
+.rlabel{display:block;font-family:var(--sans);font-weight:600;font-size:var(--fs-label);letter-spacing:var(--tr-flat);text-transform:none;color:var(--c500);margin:0 0 var(--sp-8);}
+.roleHead{font-family:var(--sans);font-weight:600;font-size:var(--fs-h3);line-height:var(--lh-head);letter-spacing:var(--tr-sub);color:var(--c950);margin:0 0 16px;text-wrap:balance}
 .role p{font-family:var(--sans);font-weight:400;font-size:var(--fs-prose);line-height:var(--lh-prose);color:var(--c950);text-wrap:pretty}
 
 /* SECTION RHYTHM IS HOME'S 64 NOW, NOT 104.  2026-08-27.
@@ -243,6 +243,31 @@ img{display:block;max-width:100%;height:auto}   /* height:auto IS THE COMPANION 
    is what made the case studies read airier than the page they hang off.
    --sp-40-64 is 64 and 40 -- home's between-component gap at BOTH widths, so
    the phone fork below (--sp-56-96, 56) is deleted rather than retuned. */
+/* ── THE GAP IS SIZED FOR WHAT IT SEPARATES.  2026-08-27 ────────────────────
+   Jayden: "the case study spacing also feels weird ... when its only text on
+   the screen it looks odd ... fix spacing to just feel like a clean paragraph".
+   MEASURED DOWN BEARINGS AT 1440 BEFORE THIS: 16 (para to para) · 24 (subhead
+   to body) · 32 (cover to facts) · 42 (kicker to its own heading) · 48 (body to
+   a stat) · 64 (section to section, and text to a carousel) · 76 (section body
+   to a subsection). Seven values that did not map onto anything: a LABEL sat 42
+   from the heading it labels, and a SUBSECTION sat 76 from its parent -- twelve
+   more than the gap between two whole sections. That is what "blocks with holes
+   between them" is, and it is worst in the Problem -> Onboarding stretch, which
+   is 1,554px of text with no picture in it.
+   THE LADDER NOW, and every rung is one home already uses (house-style §2):
+      8   a label rides on the thing it labels   .kicker/.subKick/.rlabel/.fk/.eyebrow
+     16   a heading binds to its first paragraph, and paragraph to paragraph
+     24   text to a pulled stat, and the stat back to text (both sides, so a
+          callout reads as one object rather than as a break)
+     40   text to media, media to text, and a subsection break  --sp-24-40
+     64   section to section                                    --sp-40-64
+    112   the last block to the footer                          --sp-80-152
+   Monotonic in what it separates, and the biggest in-section gap (40) is now
+   SMALLER than the between-section gap (64), which is the relationship that was
+   inverted. On a phone the tokens fork to 8/16/16/24/40/80 on their own.
+   DO NOT FLATTEN THESE INTO ONE VALUE. The complaint was uniformity, not size:
+   gaps that are all nearly equal are what makes a text-only screen read as
+   stranded islands. */
 .sec{padding-top:var(--sp-40-64);scroll-margin-top:calc(var(--nav-h) + var(--sp-16-24))}
 .kicker{font-family:var(--sans);font-weight:600;font-size:var(--fs-label);letter-spacing:var(--tr-flat);text-transform:none;color:var(--c500);}
 /* ── FIVE HEADING SIZES BECOME THREE.  2026-08-27 ──────────────────────────
@@ -258,7 +283,7 @@ img{display:block;max-width:100%;height:auto}   /* height:auto IS THE COMPANION 
    over .csImpact 15/400). Leading and tracking stay on the site's curve:
    --lh-head 1.2 for large type that wraps, tracking monotonic in size at
    -.030 / -.021 / -.027(18-600) / -.011(18-400). */
-.secHead{font-family:var(--sans);font-weight:600;font-size:var(--fs-h3);line-height:var(--lh-head);letter-spacing:var(--tr-sub);color:var(--c950);margin:var(--gap-head-top) 0 var(--gap-head-bot);text-wrap:balance}
+.secHead{font-family:var(--sans);font-weight:600;font-size:var(--fs-h3);line-height:var(--lh-head);letter-spacing:var(--tr-sub);color:var(--c950);margin:var(--sp-8) 0 16px;text-wrap:balance}
 /* TRACKING, which this role did not have. Same finding as About's body copy:
    every 15px-and-up role on home carries a negative rung and the case studies'
    18px prose carried `normal`. --tr-title is -0.198px at 18 and keeps the
@@ -266,7 +291,7 @@ img{display:block;max-width:100%;height:auto}   /* height:auto IS THE COMPANION 
    -- Jayden reverted a 680px measure here once and said so. */
 .secBody{font-family:var(--sans);font-weight:400;font-size:var(--fs-prose);line-height:var(--lh-prose);letter-spacing:var(--tr-title);color:var(--c700);margin:16px 0 0;text-wrap:pretty}
 /* pulled stat — clean editorial callout (no ink; texture stays on the hero title only) */
-.stat{margin:var(--sp-32-48) 0;max-width:540px}
+.stat{margin:var(--sp-16-24) 0;max-width:540px}
 /* THE BIG NUMBER JOINS THE TITLE'S RUNG INSTEAD OF OWNING ONE. --fs-statnum
    (clamp 30..40) was a seventh size carrying one role. It takes --fs-pagehead
    now and stays at weight 400, so the number and the page title are one size
@@ -276,25 +301,26 @@ img{display:block;max-width:100%;height:auto}   /* height:auto IS THE COMPANION 
 .statUnit{font-size:var(--fs-small);font-weight:400;letter-spacing:var(--tr-body);color:var(--c500)}
 .statCap{font-family:var(--sans);font-weight:400;font-size:var(--fs-prose);line-height:var(--lh-prose);color:var(--c700);margin:16px 0 0;text-wrap:pretty}
 .statSrc{font-family:var(--sans);font-weight:400;font-size:var(--fs-small);letter-spacing:0;color:var(--c500);margin:16px 0 0;}
-.statRow{margin:var(--sp-32-48) 0 0}
+.statRow{margin:var(--sp-16-24) 0}
 .statRow .stat{margin:0}
-.statRow .stat + .stat{margin-top:var(--sp-16-32)}
+.statRow .stat + .stat{margin-top:var(--sp-16-24)}
 .statRowSrc{margin:16px 0 0}
+.statRow:has(+.statRowSrc){margin-bottom:0}   /* the source line belongs to the stat above it: 16, not the callout's own 24 */
 .photoRow{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--sp-8-16);width:100%}
 .photoRow img{width:100%;aspect-ratio:1;object-fit:cover;object-position:center;display:block;background:var(--c100);box-shadow:var(--rim-1)}
 .photoRow img:nth-child(1){object-position:center bottom}
 .photoRow img:nth-child(2){object-position:center top}
 .photoRow img:nth-child(3){object-position:center 82%}
 /* lo-fi / mid-fi process gallery: full-bleed horizontal scroll-through, drag or swipe */
-.scrollbox{display:flex;gap:var(--sp-24-32);overflow-x:auto;overflow-y:hidden;scroll-snap-type:none;scroll-padding-inline:var(--sp-24-32);margin:var(--sp-40-64) 0 0;width:100%;padding:var(--sp-24-32);background:var(--c50);box-shadow:var(--rim-1);cursor:grab;-webkit-overflow-scrolling:touch}
+.scrollbox{display:flex;gap:var(--sp-24-32);overflow-x:auto;overflow-y:hidden;scroll-snap-type:none;scroll-padding-inline:var(--sp-24-32);margin:var(--sp-24-40) 0 0;width:100%;padding:var(--sp-24-32);background:var(--c50);box-shadow:var(--rim-1);cursor:grab;-webkit-overflow-scrolling:touch}
 .scrollbox.dragging{cursor:grabbing;scroll-snap-type:none}
 .shot{flex:0 0 auto;scroll-snap-align:start;margin:0}
 .shot:last-child{scroll-snap-align:end}
 .shot img{width:clamp(300px,38vw,420px);height:clamp(300px,38vw,420px);object-fit:contain;display:block;background:var(--c50);box-shadow:var(--rim-1);pointer-events:none;-webkit-user-drag:none}
 .shotCap{margin:var(--sp-8-16) 0 0;font-family:var(--sans);font-weight:600;font-size:var(--fs-label);letter-spacing:var(--tr-flat);text-transform:none;color:var(--c500);}
-.hmw{margin:var(--sp-40-64) 0 0}
-.hmwLabel{font-family:var(--sans);font-weight:600;font-size:var(--fs-label);letter-spacing:var(--tr-flat);text-transform:none;color:var(--c500);margin:0 0 var(--sp-16-24)}
-.hmwQ{font-family:var(--sans);font-weight:400;font-size:var(--fs-h2);line-height:var(--lh-head);letter-spacing:-.015em;color:var(--c950);margin:0;max-width:860px;text-wrap:balance}
+.hmw{margin:var(--sp-24-40) 0 0}
+.hmwLabel{font-family:var(--sans);font-weight:600;font-size:var(--fs-label);letter-spacing:var(--tr-flat);text-transform:none;color:var(--c500);margin:0 0 var(--sp-8)}
+.hmwQ{font-family:var(--sans);font-weight:400;font-size:var(--fs-h3);line-height:var(--lh-head);letter-spacing:-.015em;color:var(--c950);margin:0;max-width:860px;text-wrap:balance}
 .scaffold{color:var(--c500)}
 /* THE SITE FOOTER LIVES IN footer.css NOW -- the whole component: the grid, the
    hairline, the type, the ink, the states, the night theme and the phone stack.
@@ -370,7 +396,7 @@ img{display:block;max-width:100%;height:auto}   /* height:auto IS THE COMPANION 
 .buildStage img{width:100%;height:auto;aspect-ratio:804/1748;display:block;background:#fff;box-shadow:var(--rim-1);transition:box-shadow var(--dur-state-out) var(--ease-out)}
 .buildStage figure:hover img,.buildStage figure:focus-visible img{box-shadow:var(--rim-1)}
 /* ===== the system: onboarding gallery + the five-step build — one hero screen per step, the reasoning beside it ===== */
-.subBlock{margin:clamp(64px,8.5vh,96px) 0 0}
+.subBlock{margin:var(--sp-24-40) 0 0}
 .subKick{font-family:var(--sans);font-weight:600;font-size:var(--fs-label);letter-spacing:var(--tr-flat);text-transform:none;color:var(--c500);margin:0}
 /* .subHead TAKES THE BODY'S OWN RUNG AND IS TOLD APART BY WEIGHT AND INK.
    --fs-lead was tried first and was wrong at the small end: --fs-lead is
@@ -381,7 +407,7 @@ img{display:block;max-width:100%;height:auto}   /* height:auto IS THE COMPANION 
    at 1440, 16/600 over 16/400 at 390. Weight and ink are the whole mark, which
    is home's own device -- its tab row separates resting from selected with
    nothing but --theme-muted/400 against --theme-ink/600. */
-.subHead{font-family:var(--sans);font-weight:600;font-size:var(--fs-prose);line-height:var(--lh-head);letter-spacing:var(--tr-head);color:var(--c950);margin:var(--sp-16-24) 0 var(--sp-16-24);text-wrap:balance}
+.subHead{font-family:var(--sans);font-weight:600;font-size:var(--fs-prose);line-height:var(--lh-head);letter-spacing:var(--tr-head);color:var(--c950);margin:var(--sp-8) 0 16px;text-wrap:balance}
 /* onboarding shots are portrait phones: sized so the gallery browses, the steps read */
 .shot.phone{width:calc((100% - 72px)/3)}
 .shot.phone img{width:100%;height:auto;aspect-ratio:804/1748;object-fit:contain;background:#fff;border-radius:clamp(20px,2.6vw,32px);box-shadow:var(--rim-1)}
@@ -390,7 +416,7 @@ img{display:block;max-width:100%;height:auto}   /* height:auto IS THE COMPANION 
 .step{display:grid;grid-template-columns:minmax(0,1fr) clamp(220px,24vw,300px);column-gap:var(--sp-32-56);align-items:center;margin:var(--sp-32-48) 0 0;width:100%}
 .stepShot{margin:0}
 .stepShot img{width:100%;height:auto;aspect-ratio:804/1748;display:block;background:#fff;box-shadow:var(--rim-1)}
-.stepHead{font-family:var(--sans);font-weight:400;font-size:var(--fs-h5);line-height:var(--lh-head);letter-spacing:-.01em;color:var(--c950);margin:var(--sp-8-16) 0 0;text-wrap:pretty}
+.stepHead{font-family:var(--sans);font-weight:600;font-size:var(--fs-prose);line-height:var(--lh-head);letter-spacing:var(--tr-head);color:var(--c950);margin:var(--sp-8-16) 0 0;text-wrap:pretty}
 .step .secBody{margin-top:var(--sp-8-16)}
 /* the payoff screen sits a size up: the whole section has been building to it */
 .step.payoff{grid-template-columns:minmax(0,1fr) clamp(250px,27vw,330px);margin-top:var(--sp-48-72)}
@@ -485,7 +511,7 @@ img{display:block;max-width:100%;height:auto}   /* height:auto IS THE COMPANION 
 
 
 @media (prefers-reduced-motion:reduce){}
-.demoWrap{margin:var(--sp-40-64) 0 0}
+.demoWrap{margin:var(--sp-24-40) 0 0}
 .demoLabel{font-family:var(--sans);font-size:var(--fs-label);font-weight:600;letter-spacing:var(--tr-flat);text-transform:none;color:var(--c500);margin:0 auto 16px;max-width:680px}
 /* ── 30px IS NOT OFF THE LADDER, IT IS A PICTURE OF A PHONE ──────────────────
    clamp(22px,2.4vw,30px) here and on .demoFrame is the DEVICE's corner, drawn to
@@ -502,7 +528,7 @@ img{display:block;max-width:100%;height:auto}   /* height:auto IS THE COMPANION 
 .demoPhone{display:block;margin-inline:auto;width:min(380px,86vw);aspect-ratio:390/844;border-radius:clamp(22px,2.4vw,30px);overflow:hidden;background:var(--c50);box-shadow:var(--rim-1);position:relative}
 .demoFrame{width:100%;height:100%;border:0;display:block;border-radius:clamp(22px,2.4vw,30px)}
 @media(max-width:880px){.demoPhone{width:min(340px,84vw)}}
-.videoWrap{margin:var(--sp-40-64) 0 0}
+.videoWrap{margin:var(--sp-24-40) 0 0}
 .videoFrame{position:relative;width:100%;aspect-ratio:16/9;overflow:hidden;box-shadow:var(--rim-1);background:var(--c100)}
 .videoFrame iframe{position:absolute;inset:0;width:100%;height:100%;border:0;display:block}
 .demoPoster{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;background:var(--c950);cursor:pointer;z-index:2;border-radius:inherit}
@@ -510,14 +536,14 @@ img{display:block;max-width:100%;height:auto}   /* height:auto IS THE COMPANION 
 .demoPlay{width:66px;height:66px;border-radius:var(--r-md);corner-shape:var(--corner);border:0;background:var(--c50);color:var(--c950);display:grid;place-items:center;cursor:pointer;transition:transform var(--dur-state) var(--ease-out)}
 .demoPoster:hover .demoPlay{color:var(--c950)}
 .demoPlay svg{width:26px;height:26px;margin-left:4px}
-.demoPosterLabel{font-family:var(--sans);font-size:var(--fs-caption);font-weight:600;letter-spacing:var(--tr-flat);text-transform:none;color:var(--c50)}
-.demoMute{position:absolute;top:12px;right:12px;z-index:3;display:none;align-items:center;gap:4px;padding:8px 16px 8px 8px;border-radius:var(--r-md);corner-shape:var(--corner);border:0;background:var(--c950);color:var(--c50);font-family:var(--sans);font-size:var(--fs-caption);font-weight:600;letter-spacing:var(--tr-flat);cursor:pointer;box-shadow:inset 0 0 0 1px rgba(243,243,243,.25)}
+.demoPosterLabel{font-family:var(--sans);font-size:var(--fs-label);font-weight:600;letter-spacing:var(--tr-flat);text-transform:none;color:var(--c50)}
+.demoMute{position:absolute;top:12px;right:12px;z-index:3;display:none;align-items:center;gap:4px;padding:8px 16px 8px 8px;border-radius:var(--r-md);corner-shape:var(--corner);border:0;background:var(--c950);color:var(--c50);font-family:var(--sans);font-size:var(--fs-label);font-weight:600;letter-spacing:var(--tr-flat);cursor:pointer;box-shadow:inset 0 0 0 1px rgba(243,243,243,.25)}
 .demoMute.show{display:inline-flex}
 .demoMute svg{width:14px;height:14px}
-.photoPair{display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-8-16);margin:var(--sp-48-80) 0 0;width:100%}
+.photoPair{display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-8-16);margin:var(--sp-24-40) 0 0;width:100%}
 .photoPair figure{margin:0}
 .photoPair img{width:100%;aspect-ratio:1/1;object-fit:cover;display:block;box-shadow:var(--rim-1);background:var(--c100)}
-.photoPair figcaption{margin-top:var(--sp-8-16);font-family:var(--sans);font-size:var(--fs-label);line-height:var(--lh-note);color:var(--c500)}
+.photoPair figcaption{margin-top:var(--sp-8-16);font-family:var(--sans);font-size:var(--fs-small);line-height:var(--lh-note);color:var(--c500)}
 
 /* --- 4px corner softening pass --- */
 .workCta,.heroBack,.abLink,.abLinkPrimary,.abBack,.moodMenu button,.moodMenu a,.reelClose{border-radius:var(--r-md)!important;corner-shape:var(--corner)}
@@ -532,7 +558,7 @@ img{display:block;max-width:100%;height:auto}   /* height:auto IS THE COMPANION 
 .csImg,.cover,.cover img,.shot img,.photoFig img,.photoPair figure,.photoPair img,.stat,.reelOverlayVid,.reelOverlayYt{border-radius:var(--r-lg);corner-shape:var(--corner)}
 .talk{border-radius:var(--r-md)!important;corner-shape:var(--corner)}
 .workcard{border-radius:var(--r-xl) var(--r-xl) 0 0!important}
-/* horizontal-scroll affordance */.sbWrap{position:relative}.sbWrap::after{content:none}.sbMore{position:absolute;right:14px;top:-30px;display:inline-flex;align-items:center;gap:4px;font-family:var(--sans);font-size:var(--fs-caption);font-weight:600;color:var(--c500);letter-spacing:var(--tr-flat);opacity:0;transform:translateY(4px);transition:opacity .3s var(--ease-out),transform .3s var(--ease-out);pointer-events:none;z-index:3}.sbWrap.canScroll .sbMore{opacity:1;transform:none}.sbWrap.atEnd .sbMore{opacity:0}.sbMore svg{width:14px;height:14px}@media(prefers-reduced-motion:reduce){.sbWrap::after,.sbMore{transition:none}}.shot.phone img{border-radius:clamp(20px,2.6vw,32px);background:#000;object-fit:cover;aspect-ratio:720/1565}@media(max-width:768px){.footIn{display:inline-block;padding-top:8px;padding-bottom:8px;margin-top:-8px;margin-bottom:-8px}}/* ── RADIUS BY SIZE CLASS ── Jayden, 2026-08-04: "I thought we were doing 28
+/* horizontal-scroll affordance */.sbWrap{position:relative}.sbWrap::after{content:none}.sbMore{position:absolute;right:14px;top:-30px;display:inline-flex;align-items:center;gap:4px;font-family:var(--sans);font-size:var(--fs-label);font-weight:600;color:var(--c500);letter-spacing:var(--tr-flat);opacity:0;transform:translateY(4px);transition:opacity .3s var(--ease-out),transform .3s var(--ease-out);pointer-events:none;z-index:3}.sbWrap.canScroll .sbMore{opacity:1;transform:none}.sbWrap.atEnd .sbMore{opacity:0}.sbMore svg{width:14px;height:14px}@media(prefers-reduced-motion:reduce){.sbWrap::after,.sbMore{transition:none}}.shot.phone img{border-radius:clamp(20px,2.6vw,32px);background:#000;object-fit:cover;aspect-ratio:720/1565}@media(max-width:768px){.footIn{display:inline-block;padding-top:8px;padding-bottom:8px;margin-top:-8px;margin-bottom:-8px}}/* ── RADIUS BY SIZE CLASS ── Jayden, 2026-08-04: "I thought we were doing 28
    squircle for everything -- when did we decide on 20?" The rule and the
    measured 900px boundary live in tokens.css beside the ladder. Short form:
    BIGGEST SURFACES 28 · CARDS AND IMAGES 20 · CONTROLS 14.
@@ -562,7 +588,7 @@ img{display:block;max-width:100%;height:auto}   /* height:auto IS THE COMPANION 
    .shot.phone img here, and .demoFrame / .demoPoster on strata.html, which is a
    live phone demo in an iframe at clamp(22px,2.4vw,30px). */
 .shot.phone img{border-radius:clamp(20px,2.6vw,32px)}.videoFrame,.cmpBoard{overflow:hidden}.scrollbox{overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain}/* refined thin carousel scrollbar (palette-matched) */.scrollbox{scrollbar-width:thin;scrollbar-color:var(--c100) transparent}.scrollbox::-webkit-scrollbar{height:8px}.scrollbox::-webkit-scrollbar-track{background:transparent;margin:0 4px}.scrollbox::-webkit-scrollbar-thumb{background:var(--c100);border-radius:99px;border:2px solid transparent;background-clip:padding-box}.scrollbox::-webkit-scrollbar-thumb:hover{background:var(--c500);background-clip:padding-box}.secBody strong,.ovBody strong,.ov strong,.rv strong,.role strong,.lede strong{font-weight:600;color:var(--c950)}
-.content :is(.cap,.csReach){margin-inline:auto}.scrollbox:focus-visible{outline:2px solid var(--c950);outline-offset:3px}.scrollbox{scrollbar-width:none}.scrollbox::-webkit-scrollbar{display:none}.sbNav{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}@media(max-width:880px){.sbNav{display:none}}@media(prefers-reduced-motion:reduce){}.cap{text-align:center}.footIn:focus-visible{outline:2px solid var(--c950);outline-offset:3px;border-radius:var(--r-xs)}@media(max-width:880px){.subBlock{margin-top:56px}}.sec>.stat:last-child{margin-bottom:0}/* ---- SKIP LINK: WCAG 2.4.1 Bypass Blocks (Level A). Technique G1 requires a link that is
+.content :is(.cap,.csReach){margin-inline:auto}.scrollbox:focus-visible{outline:2px solid var(--c950);outline-offset:3px}.scrollbox{scrollbar-width:none}.scrollbox::-webkit-scrollbar{display:none}.sbNav{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}@media(max-width:880px){.sbNav{display:none}}@media(prefers-reduced-motion:reduce){}.cap{text-align:center}.footIn:focus-visible{outline:2px solid var(--c950);outline-offset:3px;border-radius:var(--r-xs)}@media(max-width:880px){.subBlock{margin-top:var(--sp-24-40)}}.sec>:last-child{margin-bottom:0}/* a callout carries 24 on BOTH sides now so it reads as one object; the last child of a section must not push that 24 into the 64 section break *//* ---- SKIP LINK: WCAG 2.4.1 Bypass Blocks (Level A). Technique G1 requires a link that is
    the FIRST focusable element and moves focus to the main content -- so it sits before the
    nav in DOM order. Parked off-screen by transform (not display:none, which would take it
    out of the tab order entirely) and slid in on focus. ---- */
@@ -714,11 +740,11 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
    which shared the declaration and the defect -- bearings' .cmp measured round
    over a squircle board too. */
 </style>
-<link rel="stylesheet" href="controls.css?v=6e1a5b1dd0">
+<link rel="stylesheet" href="controls.css?v=10e02e90e0">
 <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Jayden Betts","item":"https://jaydenbetts.design/"},{"@type":"ListItem","position":2,"name":"Strata Case Study","item":"https://jaydenbetts.design/strata.html"}]},{"@type":"CreativeWork","@id":"https://jaydenbetts.design/strata.html#work","url":"https://jaydenbetts.design/strata.html","name":"Strata: A Product Design Case Study by Jayden Betts","description":"Strata is a gamified habit builder where your wins stack up into a tower of colourful blocks, playable right on the page. A product design case study by Jayden Betts.","image":"https://jaydenbetts.design/images/cs/strata-cover.webp","author":{"@type":"Person","@id":"https://jaydenbetts.design/#person","name":"Jayden Betts","alternateName":"Jayden Lee Betts","url":"https://jaydenbetts.design/","sameAs":["https://www.linkedin.com/in/jaydenbetts","https://www.instagram.com/jaydenleebetts"]},"genre":"Product Design","inLanguage":"en"}]}</script>
-<link rel="stylesheet" href="header.css?v=6e1a5b1dd0">
-<link rel="stylesheet" href="footer.css?v=6e1a5b1dd0">
-<link rel="stylesheet" href="site-theme.css?v=6e1a5b1dd0">
+<link rel="stylesheet" href="header.css?v=10e02e90e0">
+<link rel="stylesheet" href="footer.css?v=10e02e90e0">
+<link rel="stylesheet" href="site-theme.css?v=10e02e90e0">
 <script src="header.js" defer></script>
 <script src="footer-band.js" defer></script>
 </head>
