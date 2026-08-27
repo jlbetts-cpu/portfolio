@@ -120,8 +120,35 @@ def assert_seated(page, expected=1):
             # THE SPREAD TEST ONLY MEANS ANYTHING FOR A CROWD. It existed to catch five
             # placeholders piling up in one spot on a phone; with one head the span is 0
             # by definition, so asserting it would be asserting nothing and failing.
-            centers = sorted((item["left"] + item["right"]) / 2 for item in visible)
-            assert centers[-1] - centers[0] >= page.viewport_size["width"] * .55, visible
+            # ── AND IT IS THE WIDEST SPAN IN A WINDOW, NOT THE ONE IN A FRAME ─────
+            # 2026-08-27: the heads WALK once they are seated, so a single sample is
+            # a sample of the walk's phase. Measured at 390x844 with five placeholders,
+            # a failing frame had centres at 110.3, 163.1, 218.4, 269.3 and 320.5 --
+            # a span of 210.2 against a threshold of 214.5, four pixels short, on a
+            # crowd that was plainly spread across the phone. The next run passed the
+            # same assertion and failed a hundred lines later.
+            # SAMPLING A WINDOW IS STRICTER THAN RELAXING THE NUMBER, which is the
+            # other way this could have been made to stop flaking. The threshold is
+            # untouched at 55% of the viewport; what changes is that the crowd gets a
+            # second of walking to show its widest arrangement. A crowd that really
+            # piled up in one spot has no such second -- five heads on top of each
+            # other stay on top of each other -- so the pile-up this exists to catch
+            # still fails it.
+            def spread():
+                rows = page.evaluate(
+                    """() => Array.from(document.querySelectorAll('#playArena [data-hm-boot-ready]'))
+                         .map(node => {const r = node.getBoundingClientRect();
+                                       return (r.left + r.right) / 2;})"""
+                )
+                return max(rows) - min(rows) if len(rows) > 1 else 0
+
+            widest = spread()
+            for _ in range(10):
+                if widest >= page.viewport_size["width"] * .55:
+                    break
+                page.wait_for_timeout(100)
+                widest = max(widest, spread())
+            assert widest >= page.viewport_size["width"] * .55, (widest, visible)
         else:
             # What is worth asserting about ONE head is that the whole of it is on screen.
             # This is strictly stronger than the right>0 / left<width test above, which only
@@ -423,8 +450,37 @@ def run_soccer_entry(browser, base_url, viewport, mode, picker):
     context, page, errors = new_page(browser, base_url, viewport, mode=mode, placeholders=MATCH_CROWD)
     assert_seated(page, MATCH_CROWD)
     assert page.locator("#heroTimeClip,#heroTimeBtn,#heroTimeMenu,[data-time-gradient],#heroTimePortraitCast").count() == 0
-    expected_theme = "dark" if mode == "night" else "light"
-    page.wait_for_function("theme => document.documentElement.dataset.theme === theme", arg=expected_theme)
+    # ── NIGHT IS AN HOUR, NOT A THEME.  2026-08-26 ──────────────────────────
+    # This waited for data-theme to become "dark" at the night hour, and as of
+    # today that value never occurs: Jayden -- "im not sure I like the dark mode
+    # for night i think we just keep it light" -- so site-theme-state.js's
+    # themeForState() returns "light" at every hour and nothing else writes the
+    # attribute. The wait timed out at 30s and took the whole soccer entry with
+    # it. This gate was not wrong when it was written; it is pinning a decision
+    # that has been reversed.
+    # WHAT IT WAS REALLY CHECKING is that the hour reached the document before
+    # the match is driven -- otherwise a state change lands mid-run and the
+    # measurements below are taken against a page still settling. That question
+    # has an answer that still varies: data-theme-STATE, which is "night" at the
+    # night hour and "daytime" otherwise, and is the attribute the sky, the
+    # footer band and the case-study covers all key off now.
+    # BOTH ARE ASSERTED, so the gate still fails if the theme path breaks: the
+    # state must arrive, AND the theme must be light at every hour -- which is
+    # the new decision stated as something that can fail. A dark theme coming
+    # back trips the second wait instead of satisfying the first.
+    # AND THE STATE IS THE MODE, NOT "daytime". 2026-08-27: the first version of
+    # this said `"night" if mode == "night" else "daytime"` and timed out on the
+    # OTHER half of the matrix -- main() drives "off" and "night", and "off" is
+    # itself one of site-theme-state's MODES, so it passes straight through and
+    # the document reads data-theme-state="off". Measured on play.html with each
+    # mode seeded into sessionStorage: off -> "off", night -> "night". The
+    # identity is not general -- "auto" resolves to whatever hour it is, which
+    # came back "sunrise" -- so it is written as an explicit pair rather than as
+    # a rule, and a third mode added to main() has to state its own answer here.
+    expected_state = {"off": "off", "night": "night"}[mode]
+    page.wait_for_function("state => document.documentElement.dataset.themeState === state",
+                           arg=expected_state)
+    page.wait_for_function("() => document.documentElement.dataset.theme === 'light'")
     page.locator("#workBtn").click()
     page.wait_for_timeout(850)
     prelaunch = page.evaluate("""() => {const h=getComputedStyle(document.querySelector('.jbStick')),f=getComputedStyle(document.querySelector('.siteFoot'));return {x:scrollX,y:scrollY,header:{visibility:h.visibility,pointerEvents:h.pointerEvents},footer:f.display}}""")
@@ -506,9 +562,34 @@ def run_picker_and_tournament_ownership(browser, base_url):
     context.close()
 
 
+# TWO HEADS, NOT THE LOBBY'S ONE.  2026-08-27.
+# This ran on the default lobby, and the race leg below could not start at all:
+# play-engine.js's start() collects every live, un-eliminated peer and returns
+# false on `rc.length < 2`, so __hmRaceStart() was a no-op and the wait for
+# data-play-viewport-owners="race" timed out at 30s. It was not wrong when it
+# was written -- the lobby seated five -- and it went stale when Jayden cut it
+# to one ("can we only show one coloured egghead, not all of them"), the same
+# decision MATCH_CROWD exists to work around for the soccer runs.
+# THE ONE-HEAD PATH IS NOT BROKEN, WHICH IS WHY THIS IS THE FIX AND NOT A BUG
+# REPORT: play-games.js's #raceGo handler adds the mini-Jayden filler on an odd
+# field before it calls start(), so a visitor with one head races two. This
+# function deliberately skips that handler to isolate the viewport reversal, so
+# it has to bring its own field.
+# THE FIELD IS MATCH_CROWD AND NOT start()'s BARE MINIMUM OF TWO, and that is a
+# measurement too: assert_seated()'s phone spread test is authored for a crowd --
+# 55% of the viewport between the outermost centres -- and two seated heads
+# cannot reliably span that, measured at 193.9 against 214.5. Five can and do,
+# which is what every soccer run in this file already demonstrates. One constant
+# for "enough heads for a game to be a game" is also one fewer number to keep in
+# sync. Every assertion in this function is about the HEADER, THE FOOTER, SCROLL
+# AND FOCUS coming back; none of them reads the size of the field.
+RACE_FIELD = MATCH_CROWD
+
+
 def run_battle_and_race_reversals(browser, base_url):
-    context, page, errors = new_page(browser, base_url, (390, 844), mode="off")
-    assert_seated(page)
+    context, page, errors = new_page(browser, base_url, (390, 844), mode="off",
+                                     placeholders=RACE_FIELD)
+    assert_seated(page, RACE_FIELD)
     page.locator("#workBtn").click()
     page.wait_for_timeout(850)
 
