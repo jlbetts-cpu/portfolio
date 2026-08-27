@@ -2208,7 +2208,7 @@
      and still inside its window, +1 the right end's, 0 it is not through anything. _pbx/_pby
      are last frame's ball centre, which is what makes the crossing a SWEPT test rather than a
      sample -- see the note at the predicate itself. */
-  var YTHRU=0,_pbx=0,_pby=0;
+  var YTHRU=0,_pbx=0,_pby=0,_ythP=0;
   /* ===== DEV-ONLY: THE PITCH READING =====
      Jayden: "there is still a lot of bundling up in the soccer mode lots of people in
      the goal and the 'goalie' of the other team just stands there." Both halves of that
@@ -2625,14 +2625,14 @@ function teams(){
    }catch(_){} return side===1?RED:BLUE; }
    window.__hmTeamRGB=teamRGB;   // THE GOAL GRAMMAR's particle burst reuses this exact source instead of its own copy, so team colours can never drift apart between the pitch and the goal-mouth particles
   function kickoffCountdown(){S.kickSeed=(S.kickSeed||0)+1;BUS.emit('kickoff',{seed:S.kickSeed});   // the match opener: everyone to their half, then 3-2-1
-   var _bh=ballHome();bx=_bh?_bh.x:(XL+XR)/2;by=_bh?_bh.y:70;bsp=ballSpawnScale();_spawnY=by;_curveTo=(XL+XR)/2;_curving=true;_cvOn=false;bvx=0;bvy=0;_deckT=0;_cfx=bx;_cfy=by;_cfT=0;_pbx=bx;_pby=by;YTHRU=0;S.phase="count";
+   var _bh=ballHome();bx=_bh?_bh.x:(XL+XR)/2;by=_bh?_bh.y:70;bsp=ballSpawnScale();_spawnY=by;_curveTo=(XL+XR)/2;_curving=true;_cvOn=false;bvx=0;bvy=0;_deckT=0;_cfx=bx;_cfy=by;_cfT=0;_pbx=bx;_pby=by;YTHRU=0;_ythP=0;if(goalL){goalL.classList.remove("hmThru");goalR.classList.remove("hmThru");}if(ball)ball.classList.remove("hmBehind");S.phase="count";
    var n=3;showCount(n);
    (function tick(){if(!S.on)return;
     if(n>1){n--;setTimeout(function(){showCount(n);tick();},800);}
     else{setTimeout(function(){if(!S.on)return;showCount("GO");
      setTimeout(function(){if(!S.on)return;if(countEl)countEl.textContent="";bvy=30;S.phase="play";},560);},800);}})();}
   function dropIn(){S.kickSeed=(S.kickSeed||0)+1;   // after a goal: no countdown, the ball just drops back in as they return to their sides
-   var _bh2=ballHome();bx=_bh2?_bh2.x:(XL+XR)/2;by=_bh2?_bh2.y:60;bsp=ballSpawnScale();_spawnY=by;_curveTo=(XL+XR)/2;_curving=true;_cvOn=false;bvx=(Math.random()*80-40);bvy=20;_deckT=0;_cfx=bx;_cfy=by;_cfT=0;_pbx=bx;_pby=by;YTHRU=0;S.phase="reset";
+   var _bh2=ballHome();bx=_bh2?_bh2.x:(XL+XR)/2;by=_bh2?_bh2.y:60;bsp=ballSpawnScale();_spawnY=by;_curveTo=(XL+XR)/2;_curving=true;_cvOn=false;bvx=(Math.random()*80-40);bvy=20;_deckT=0;_cfx=bx;_cfy=by;_cfT=0;_pbx=bx;_pby=by;YTHRU=0;_ythP=0;if(goalL){goalL.classList.remove("hmThru");goalR.classList.remove("hmThru");}if(ball)ball.classList.remove("hmBehind");S.phase="reset";
    // 650 -> 900ms. The set-position leap solves its own arc, and a head crossing most of a
    // 1440px pitch is in the air for ~0.77s; at 650 the whistle went while half the side was
    // still flying, so the line-up was never actually seen. This is the only dead time added
@@ -2705,7 +2705,7 @@ function teams(){
    kickoffCountdown();
    if(!running){running=true;requestAnimationFrame(loop);}}
   window.__hmSoccerStart=start;window.__hmSoccerEnd=finish;
-  function netCatch(team){if(S.phase!=="play")return;S.phase="scoring";scoreTeam=team;YTHRU=0;
+  function netCatch(team){if(S.phase!=="play")return;S.phase="scoring";scoreTeam=team;YTHRU=0;_ythP=0;if(goalL){goalL.classList.remove("hmThru");goalR.classList.remove("hmThru");}if(ball)ball.classList.remove("hmBehind");
    goalBurst(team,bx,by);   // BANG -- it explodes the instant it crosses the line
    ball.style.opacity="0";if(ballShadow)ballShadow.style.opacity="0";bvx=0;bvy=0;bw=0;ballInTitle(true);   // and it's gone, never spinning around inside the net
    var g=team===1?goalR:goalL;g.classList.remove("hmGoalHit");void g.offsetWidth;g.classList.add("hmGoalHit");
@@ -2882,6 +2882,11 @@ function teams(){
       below: playing a bracket out to a champion never calls stop(), so a class left on
       would hand the next casual kickabout a football and a set of uprights. */
    YOW=false;S.yow=false;document.body.classList.remove("hmYow");
+   /* The through-read goes with the mode. Kept off the line above on purpose: that exact
+      string is pinned verbatim by tools/play-yowmings-contract.py, because "the mode comes
+      off at the whistle" is the assertion and an edit through the middle of it is how a
+      pinned line stops meaning what it says. */
+   YTHRU=0;_ythP=0;goalL.classList.remove("hmThru");goalR.classList.remove("hmThru");ball.classList.remove("hmBehind");
    /* The gold must not outlive the final. Clearing it only in stop() was not enough: playing
       the bracket out to a champion never calls stop(), so the class stuck and the next casual
       kickabout got the final's ball. Every match ends here, so this is the one honest place. */
@@ -3071,6 +3076,32 @@ function teams(){
      if(YTHRU<0&&(bx>_npL||by>=gt||by<=gt-UPH))YTHRU=0;   // it came back out, dropped under the bar, or went over the tops
      if(YTHRU>0&&(bx<_npR||by>=gt||by<=gt-UPH))YTHRU=0;
      inG=(by<gt)&&(by>gt-UPH)&&(YTHRU!==0);   // over the bar, under the tops, and it got there BY GOING THROUGH THE POSTS
+     /* ===== AND THE VIEWER HAS TO BE ABLE TO SEE IT. Jayden, watching a live cup: "i cant
+        tell if its going through or not." That is not a scoring complaint, it is a DEPTH
+        one, and he is right -- the posts are drawn near-and-far across the aperture, but
+        the ball paints at z:48 over everything, so a ball in FRONT of the posts, one
+        BETWEEN them and one at the back of the net were three identical pictures. With no
+        depth information a correctly refused goal reads as a bug and a correct one reads
+        as arbitrary.
+
+        OCCLUSION IS THE ANSWER AND IT IS FREE, because the truth is already computed. The
+        frame the ball passes the near post it is BEHIND the near post, so it paints behind
+        it -- .hmBehind drops the ball under the goal's own z:2. It costs no new element and
+        no new material; it is the one cue that says "past that upright" without a caption.
+        (It also drops under the heads at z:3, which is correct and almost never visible:
+        the aperture starts 160px up and a head is 96px tall, so they barely overlap.)
+
+        THE UPRIGHTS ALSO LIGHT WHILE IT IS THROUGH, which is the live half of the same
+        answer. The far post sits in shade so the pair reads as depth; while the ball is
+        between them both go to full gold, and they go out the instant the ball drops under
+        the bar or clears the tops. So the predicate is on screen: the viewer sees the
+        window arm and disarm, rather than only finding out afterwards from the scoreboard.
+        One class toggle each, guarded on a CHANGE, so a frame where nothing happens costs
+        one integer compare. ===== */
+     if(YTHRU!==_ythP){_ythP=YTHRU;
+      if(goalL)goalL.classList.toggle("hmThru",YTHRU<0);
+      if(goalR)goalR.classList.toggle("hmThru",YTHRU>0);
+      if(ball)ball.classList.toggle("hmBehind",YTHRU!==0);}
      /* THE DOINK, FROM ABOVE ONLY -- AND THAT IS MEASURED, NOT LAZY. It was solid on both
         faces for one build and the underside was a TRAP: the confinement pop (CONF_MAX,
         ~1090px/s straight up) is the engine\'s own way out of a scrum, and within UPW of the

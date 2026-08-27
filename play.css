@@ -378,7 +378,7 @@ body.hmSoccer .moodMenu .moodItem:not(#endGame),body.hmSoccer .moodMenu .moodGo{
    is not derived, and it is 4px of drawing outside a scoring plane the ball is tested
    against by its centre. */
 .hmUpStem,.hmUpBar,.hmUpPost{display:none}
-body.hmYow{--yp:224,154,16;--yp-far:150,100,14}
+body.hmYow{--yp:224,154,16;--yp-far:150,100,14;--yp-lit:255,196,52}
 body.hmYow .hmGoal{background:none;border-radius:0;box-shadow:none;color:rgb(var(--tc1,224,90,78));
  --upW:8px;--upBarH:10px;--stemW:12px}
 body.hmYow .hmGoalB{color:rgb(var(--tc2,90,160,216))}
@@ -410,6 +410,26 @@ body.hmYow .hmGoalR .hmUpPostN{right:0}
 body.hmYow .hmGoalB .hmUpPostF{right:0}
 body.hmYow .hmGoalB .hmUpPostN{left:0}
 body.hmYow .hmUpPostF{--memb:rgb(var(--yp-far));width:calc(var(--upW) - 2px)}
+/* ===== THE BALL IS THROUGH, AND YOU CAN SEE THAT IT IS =====
+   Jayden, watching a cup: "i cant tell if its going through or not." The uprights are
+   drawn near-and-far across the aperture, so the whole picture depends on knowing which
+   side of them the ball is on -- and the ball painted at z:48 over everything, so in
+   front, between and at the back of the net were three identical frames.
+
+   .hmBehind is the honest cue: the moment the ball passes the near post it goes UNDER the
+   goal's own z:2, because that is where it is. No new element, no new material, and it is
+   the one thing that reads as depth without a caption.
+
+   .hmThru is the live half. The far post sits in shade so the pair reads as distance;
+   while the ball is between them both go to full gold, and they drop back the instant it
+   falls under the bar or clears the tops. The predicate is on screen: you watch the window
+   arm and disarm instead of learning the answer from the scoreboard afterwards. It is a
+   colour on bars that are already there -- the same lever the woodwork flash uses, and
+   still nothing on this page is casting anything. ===== */
+body.hmYow .hmBall.hmBehind{z-index:1}
+body.hmYow .hmGoal.hmThru .hmUpPost,body.hmYow .hmGoal.hmThru .hmUpBar,
+body.hmYow .hmGoal.hmThru .hmUpStem{--memb:rgb(var(--yp-lit));
+ transition:background-color var(--dur-press) var(--ease-out)}
 body.hmYow .hmGoal.hmGoalHit{animation:none}
 body.hmYow .hmGoal.hmGoalHit .hmUpBar,body.hmYow .hmGoal.hmGoalHit .hmUpPost{
  animation:hmUpHit .55s cubic-bezier(.2,.9,.3,1)}
