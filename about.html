@@ -61,7 +61,7 @@
      in flight with the stylesheet rather than one round trip behind it. -->
 <link rel="preload" as="font" type="font/woff2" href="fonts/geist-latin-400-normal.woff2" crossorigin>
 <link rel="preload" as="font" type="font/woff2" href="fonts/geist-latin-600-normal.woff2" crossorigin>
-<link rel="stylesheet" href="tokens.css?v=6e1a5b1dd0">
+<link rel="stylesheet" href="tokens.css?v=99a5372764">
 <style>
 /* ===========================================================================
    ABOUT -- a real page, not an overlay.
@@ -107,13 +107,29 @@ body{background:var(--c50);color:var(--c950);font-family:var(--sans);-webkit-fon
    the tuned one and the one the site's largest rung is measured on, so it is
    copied here rather than re-derived. 1.06 is a LITERAL on purpose: it is one
    of the hand-tuned values §0 of that document says not to flatten onto a rung. */
-.abTitle{font-family:var(--sans);font-weight:600;font-size:var(--fs-pagehead);
- line-height:1.06;letter-spacing:var(--tr-hero);color:var(--c950);
- margin:0;max-width:24ch;text-wrap:balance;filter:url(#inkBig)}
-/* THE HEAD SPANS THE COLUMN. Both children of .abGrid, so the title and the facts
-   run 120 -> 1320 at 1440 -- the same content column the home page and the five
-   case studies use -- and the two-column reading layout begins under them. */
-.abHead{grid-column:1/-1}
+/* THE h1 IS THE LEDE, AND IT IS SET AS PROSE BECAUSE IT IS PROSE.  2026-08-27.
+   These are the values the previous pass measured onto .abIntro and Jayden kept
+   -- "the intro is right" -- carried over unchanged so that promoting the
+   paragraph to h1 changes the DOCUMENT and not the page. Nothing was re-derived:
+     26px  --fs-h3, one rung under --fs-h2 30 and one over --fs-prose 18
+     1.2   --lh-head, tokens.css's rung for large type that wraps, and on the
+           site's own leading curve between 44's 1.06 and 18's 1.45
+     -.021 --tr-sub, between the 44px hero's -.030 and the 18px prose's -.011,
+           so tracking stays monotonic in size (docs/apple-design.md §15)
+     400   the page has two weights and this is the reading one. A 45-word
+           sentence set in 600 would be a wall.
+   NO ink FILTER, deliberately. .abTitle carried filter:url(#inkBig) when it was
+   a 44px headline -- a 1.1px displacement plus grain, which is a texture you can
+   only see on display type. At 26px over five lines it is noise on body copy,
+   and it would make the h1 look different from the paragraph directly under it
+   for no reason a reader could name. #inkBig has no consumer left on this page;
+   it is left defined rather than deleted so the sibling filters keep their ids.
+   MARGIN, NOT A GAP: --sp-24-32 is the same rung .abBody p+p takes, because that
+   is exactly the join -- the lede and "I founded Apollo" are two paragraphs of
+   one thought, and the h1 must not open a bigger hole than a paragraph break. */
+.abBody .abTitle{font-family:var(--sans);font-weight:400;font-size:var(--fs-h3);
+ line-height:var(--lh-head);letter-spacing:var(--tr-sub);color:var(--c950);
+ margin:0 0 var(--sp-24-32);max-width:none;text-wrap:pretty}
 
 /* THE TWO COLUMNS are the overlay's own -- minmax(0,1fr) beside
    clamp(340px,40vw,520px) at a clamp(32px,5vw,80px) gap. Those numbers held the
@@ -140,22 +156,48 @@ body{background:var(--c50);color:var(--c950);font-family:var(--sans);-webkit-fon
    the site's, owned by the footer. */
 .abBody .abSec{margin-bottom:var(--sp-48-72)}
 .abBody .abSec:last-child{margin-bottom:0}
-/* ── THE SECTION HEADINGS ARE GONE AND THE INTRO IS THE LEDE.  2026-08-27 ────
-   Jayden: "can you make the about even less text and minimal." Three h2s went:
-   "I design products end to end (and I built a few of my own).", "Design has
-   always been my playground." and "My best ideas come from real life." Each one
-   is a sentence that would sit unchanged on any other designer's About page,
-   which is the test this pass was given, and each one introduced a passage that
-   already introduces itself in two lines.
-   WHAT REPLACES THEM IS NOT A SMALLER HEADING, it is the paragraph he wrote.
-   The 30px --fs-h2 rung leaves the page with it; the intro takes --fs-h3 (26 at
-   1440) so the page reads h1 44 -> lede 26 -> prose 18 -> caption 15 -> label 12.
-   Five sizes, one fewer than home's six, and every step on the scale.
-   LEADING AND TRACKING FOLLOW THE SITE'S OWN CURVE rather than being picked:
-   --lh-head (1.2) is tokens.css's rung for "large type that wraps", and --tr-sub
-   (-.021em) sits between the 44px hero's -.030 and the 18px prose's -.011, so
-   tracking stays monotonic in size the way docs/apple-design.md §15 asks. */
-.abBody .abIntro{font-size:var(--fs-h3);line-height:var(--lh-head);letter-spacing:var(--tr-sub)}
+/* ── TWO OF THE THREE HEADINGS COME BACK.  2026-08-27, second pass ──────────
+   Jayden, after reading the cut: "Too much was cut -- put some back."
+   The cut took all three h2s on the argument that each would sit unchanged on
+   another designer's About page. That test was right about ONE of them and
+   wrong about what headings are for. "I design products end to end (and I built
+   a few of my own)." stays cut: the lede directly above it already says what he
+   designs, in his own words, so it was a caption on a sentence. The other two
+   come back verbatim -- "Design has always been my playground." and "My best
+   ideas come from real life." -- because without them the column is four
+   paragraphs of one size at one gap and there is nowhere for a skimming eye to
+   land. He skims. That is the defect he was reacting to, and space alone cannot
+   fix it: every gap on this page is already the same 64.
+
+   THEY COME BACK AS WEIGHT, NOT AS A NEW SIZE, and that is the whole design.
+   The h1 is now the lede at 26 (--fs-h3). A section head has to be smaller than
+   it and bigger than the 18px prose, and the only rung in that gap is --fs-h4
+   at 23 -- 1.13 off the h1, close enough that a 600-weight 23 would out-shout
+   the 400-weight 26 above it and the page would read as though it had two
+   titles. So the heading takes the PROSE RUNG at 600 -- 18/600 at 1440, which is
+   the site's own title size (docs/house-style.md §3: home's cover titles are
+   18/600, and the footer's column heads are 15/600 against 15/400 links and read
+   as heads at a glance).
+   IT IS --fs-prose AND NOT --fs-lead, AND THAT WAS A REAL BUG FOR ONE PASS.
+   The two are the same 18 at 1440 and are NOT the same on a phone: --fs-lead
+   floors at 15 and --fs-prose at 16, so at 390 and 320 the heading measured 15px
+   against 16px body copy -- a section head SMALLER than the paragraph under it.
+   Caught by opening the phone screenshot, not by the desktop one, which was
+   correct at both sizes. A weight-only heading has to sit on the same rung as
+   its prose at EVERY width or the device stops working.
+   Ladder now: 26/400 lede · 18/600 head · 18/400 prose · 15 caption · 12 label.
+   Four sizes, two weights, and one fewer size than before this pass.
+   TRACKING IS THE PROSE'S, NOT HOME'S. house-style gives home's 18/600 as
+   --tr-head (-.027em), but home's 18 is a title in a column of 15px type. Here
+   the heading and the paragraph it introduces are the SAME SIZE, so they take
+   the same tracking (--tr-title, -.011em) or the pair would visibly disagree --
+   and the page's ladder stays monotonic: 26 -.021 · 18 -.011 · 15 -.006.
+   --sp-16 BELOW, against --sp-24-32 between paragraphs, so the heading is
+   closer to the passage it owns than that passage's own paragraphs are to each
+   other. Above it is the section's --sp-48-72. */
+.abBody h2{font-family:var(--sans);font-weight:600;font-size:var(--fs-prose);
+ line-height:var(--lh-head);letter-spacing:var(--tr-title);color:var(--c950);
+ margin:0 0 var(--sp-16)}
 /* PROSE TRACKING WAS THE PAGE'S ONE `normal`. docs/house-style.md §11 About-2:
    every 15px-and-up role on home carries a negative rung and About's 18px body
    carried none. --tr-title (-.011em, -0.198px at 18) keeps the ladder monotonic:
@@ -463,18 +505,14 @@ body{background:var(--c50);color:var(--c950);font-family:var(--sans);-webkit-fon
    before the lazy image lands -- the [349,0,0,0] collapse this layout was built
    to avoid cannot come back through a reorder. ══════════════════════════════ */
 @media(max-width:880px){
- .abHead,.abBody,.abShots,.abStack{display:contents}
+ /* .abHead IS GONE FROM THIS LIST because the element is gone: the page's h1 is
+    the lede paragraph now and lives inside .abSec.abLede, so there is no
+    full-width header row to flatten and no .abTitle{margin-bottom:0} to write --
+    its margin is a paragraph margin inside a section and is correct as authored. */
+ .abBody,.abShots,.abStack{display:contents}
  .abGrid{row-gap:var(--sp-48-72)}
  .abBody .abSec{margin-bottom:0}
  .abBody .abSec:last-child{margin-bottom:0}
- /* AND THE TITLE'S OWN MARGIN GOES WITH THEM, which it should have done in the
-    same pass that zeroed the sections'. display:contents makes .abTitle a grid
-    ITEM, so the row-gap already separates it -- its margin-bottom was added on
-    top. Measured at 390: 24 (--sp-24-40) + 48 (row-gap) = 72px between "Hello,
-    I'm Jayden Betts." and the lede that answers it, the LARGEST gap on the page,
-    joining the two blocks with the most to do with each other, while every other
-    join on the page was 48. This is a deletion, not a retune: one rhythm now. */
- .abTitle{margin-bottom:0}
  /* .abFacts is deleted (see its headstone in the markup), so the order list
     closes up rather than leaving a number nothing claims -- a gap in an explicit
     order list is exactly how the next reader concludes an item is missing. The
@@ -489,14 +527,23 @@ body{background:var(--c50);color:var(--c950);font-family:var(--sans);-webkit-fon
     and the "one proposal, flagged rather than slipped in" note above is spent.
     Order is still photograph-then-passage -- the picture introduces the words --
     no two figures are ever adjacent, and "Get in touch" is still last. */
- .abTitle                    {order:1}
- .abShot:nth-child(1)        {order:2}   /* B.A. Design, UC Davis        -> the lede's "2026 UC Davis Design graduate" */
- .abBody .abSec.abLede       {order:3}
- .abShot:nth-child(2)        {order:4}   /* My sister Jolee              -> the greeting-card passage below it */
- .abBody .abSec.abPlay       {order:5}
- .abShot:nth-child(3)        {order:6}   /* Self-portrait in Blender     -> "that childhood obsession with building" */
- .abBody .abSec.abThen       {order:7}
- .abShot:nth-child(4)        {order:8}   /* Off the clock                -> the sign-off */
+ /* THE INTERLEAVE INVERTS: PASSAGE FIRST, THEN ITS PHOTOGRAPH.  2026-08-27.
+    It used to be photograph-then-passage, because the page opened on a 44px
+    headline and a picture under it introduced what followed. The headline is
+    gone and Jayden's instruction is "lead with the paragraph" -- so on a phone
+    the first thing on the page has to be the lede, not the graduation shot.
+    Flipping ONE pair would have left the page with no rule at all, so the whole
+    list flips and every figure now follows the words it illustrates. Nothing
+    else about it changes: no two figures are ever adjacent, all four sit on
+    their own authored [data-photo] anchor, and "Get in touch" is still last. */
+ .abBody .abSec.abLede       {order:1}
+ .abShot:nth-child(1)        {order:2}   /* B.A. Design, UC Davis     <- the lede's "2026 UC Davis Design graduate" */
+ .abBody .abSec.abPlay       {order:3}
+ .abShot:nth-child(2)        {order:4}   /* My sister Jolee           <- the greeting-card passage above it */
+ .abBody .abSec.abThen       {order:5}
+ .abShot:nth-child(3)        {order:6}   /* Self-portrait in Blender  <- "that childhood obsession with building" */
+ .abBody .abSec.abLife       {order:7}
+ .abShot:nth-child(4)        {order:8}   /* Off the clock             <- "coffee with friends, the gym, trails" */
  .abBody .abSec.abConnect    {order:9}
 }
 
@@ -550,10 +597,10 @@ body{background:var(--c50);color:var(--c950);font-family:var(--sans);-webkit-fon
      .ctl--quiet.ctl--row, so it needs it -- and it should have had it anyway.
      It loads BEFORE header.css, the same order the five case studies use, so
      header.css keeps the last word on .jbDiscMenu exactly as it does there. -->
-<link rel="stylesheet" href="controls.css?v=6e1a5b1dd0">
-<link rel="stylesheet" href="header.css?v=6e1a5b1dd0">
-<link rel="stylesheet" href="footer.css?v=6e1a5b1dd0">
-<link rel="stylesheet" href="site-theme.css?v=6e1a5b1dd0">
+<link rel="stylesheet" href="controls.css?v=99a5372764">
+<link rel="stylesheet" href="header.css?v=99a5372764">
+<link rel="stylesheet" href="footer.css?v=99a5372764">
+<link rel="stylesheet" href="site-theme.css?v=99a5372764">
 <script src="header.js" defer></script>
 <script src="footer-band.js" defer></script>
 </head>
@@ -633,61 +680,83 @@ body{background:var(--c50);color:var(--c950);font-family:var(--sans);-webkit-fon
 
 <div class="wrap">
  <main class="abGrid" id="main" tabindex="-1">
-  <header class="abHead">
-   <h1 class="abTitle">Hello, I&rsquo;m Jayden Betts.</h1>
-   <!-- ── THE "AT A GLANCE" FACTS ARE GONE, AND THIS IS THEIR HEADSTONE ──────
-        Jayden, 2026-08-26: "'At a glance' is unimportant -- the information is
-        already visible below." He is right, and it is checkable rather than a
-        matter of taste. Three of its four rows were the lede paragraph in
-        shorthand, word for word:
-          Based in  San Francisco, CA            -> "I am a San Francisco-based
-                                                     product designer"
-          Focus     iOS - B2C - design systems   -> "I focus on iOS, B2C, and
-                                                     design systems"
-          Education B.A. Design, UC Davis        -> "a recent UC Davis Design
-                                                     graduate", and it is now the
-                                                     graduation photograph's caption
-        THE FOURTH ROW IS FLAGGED, NOT SMUGGLED AWAY. "Status: open to full-time
-        opportunities" was the one fact nothing else on this page carried, and
-        the footer's copy of it changed to "Fear of living an ordinary life." in
-        the same pass. The availability now lives in exactly one place on the
-        site -- the Hero's status line on index.html -- which is the point: it
-        was said three times and is now said once.
-        ITS [data-photo="0"] ANCHOR MOVED TO THE LEDE HEADING rather than being
-        dropped. The scroll driver pairs a passage with a photograph, and the
-        graduation shot belongs with "recent UC Davis Design graduate"; without
-        an anchor the first photograph would have had no passage at all. See the
-        driver's own note for why that anchor could never fire from here. -->
-  </header>
-  <!-- ── WHAT THIS SECOND CUT TOOK, AND WHY EACH ONE WENT ────────────────────
-       Jayden, 2026-08-27: "can you make the about even less text and minimal."
-       The test applied: a sentence that would sit unchanged on another
-       designer's About page is not earning its place here.
+  <!-- ── NO GREETING, AND NO SEPARATE PAGE TITLE.  2026-08-27 ────────────────
+       Jayden, having read the last cut: "I also dont think im a fan of the hello
+       im Jayden Betts on the top" -- and, asked what should lead instead,
+       "Remove it; lead with the paragraph."
+       "Hello, I'm Jayden Betts." said in a 44px headline exactly what the first
+       four words of the paragraph under it already said, on a page whose header
+       already marks About and whose <title> already carries his name. It was the
+       greeting, not the h1, that he objected to -- so THE PARAGRAPH IS THE h1
+       now. Not a hidden heading and not an invented one: the first thing on the
+       page is the first thing announced, it is his own sentence unaltered, and
+       it carries the two phrases anyone searching for him types ("San
+       Francisco-based product designer", "2026 UC Davis Design graduate").
+       seo-contract wants exactly one h1 per page and this is it.
+       WHAT THIS COSTS: About's 44px rung goes with the greeting, so the page now
+       opens at 26 (--fs-h3) and its largest type is a 400 weight. That is the
+       trade for leading on a paragraph -- 45 words set at 44 would be seven
+       lines of headline -- and it is why the section heads below are weight, not
+       size (see .abBody h2).
 
-       GONE -- three headings. "I design products end to end (and I built a few
-         of my own)." / "Design has always been my playground." / "My best ideas
-         come from real life." All three are generic, and the paragraph under
-         each one already says the specific version of it.
-       GONE -- "Off the clock: coffee with friends, the gym, trails, and drawing
-         animals. The latest is usually on Instagram and LinkedIn." Its content
-         is the fourth PHOTOGRAPH'S caption, word for word, and its two links are
-         the second and third buttons in "Get in touch" directly below it. This
-         is the "At a glance" argument again: it was said twice, it is said once.
-       GONE -- "Inspired by accessible design," (the intro already claims
+       ── THE "AT A GLANCE" FACTS ARE GONE, AND THIS IS THEIR HEADSTONE ────────
+       Jayden, 2026-08-26: "'At a glance' is unimportant -- the information is
+       already visible below." Three of its four rows were the lede paragraph in
+       shorthand, word for word:
+         Based in  San Francisco, CA           -> "I am a San Francisco-based
+                                                   product designer"
+         Focus     iOS - B2C - design systems  -> "I focus on iOS, B2C, and
+                                                   design systems"
+         Education B.A. Design, UC Davis       -> "2026 UC Davis Design
+                                                   graduate", and it is now the
+                                                   graduation photograph's caption
+       THE FOURTH ROW WAS FLAGGED, NOT SMUGGLED AWAY. "Status: open to full-time
+       opportunities" was the one fact nothing else here carried; it survives as
+       .abAvail in "Get in touch", one line above the email button. -->
+  <!-- ── WHAT THE CUT TOOK, WHAT WENT BACK, AND WHY EACH ────────────────────
+       Two instructions, four days apart, and the second one corrects the first.
+       2026-08-27, before: "can you make the about even less text and minimal."
+       2026-08-27, after reading it: "Too much was cut -- put some back."
+       252 words -> 193 -> the count below. This is the settled state.
+
+       STILL CUT -- "I design products end to end (and I built a few of my own)."
+         The lede is now the h1 and sits four lines above where this heading was.
+         It already says what he designs, specifically, in his own sentence. A
+         heading whose job is to introduce the paragraph that introduces it is
+         the one of the three that really was filler.
+       STILL CUT -- "The latest is usually on Instagram and LinkedIn." Those two
+         links are the second and third BUTTONS in "Get in touch" directly below,
+         at 44px targets. That duplication is checkable, not a matter of taste.
+       STILL CUT -- "Inspired by accessible design," (the lede already claims
          accessible experiences) and "to work out what my family wanted" (process
          narration about a greeting-card business he ran at ten).
-       KEPT VERBATIM, both his words and not to be reworded: the intro paragraph
-         below, and "Little did I know, that childhood obsession...".
 
-       FOUR TEXT BLOCKS FOR FOUR PHOTOGRAPHS. "Little did I know..." became a
-       section of its own rather than the second paragraph of the one above it.
-       That is not a rhythm preference: the phone layout interleaves one figure
-       between consecutive sections (see the order list in the CSS), so three
-       blocks and four figures would have put two photographs side by side, or
-       the last one after the sign-off -- the two things that layout exists to
-       prevent. The sentence also lands better after a beat than after 32px. -->
+       BACK -- "Design has always been my playground." and "My best ideas come
+         from real life.", verbatim. The cut's own argument against them was that
+         they would sit unchanged on another designer's page. That is a test for
+         SENTENCES; a heading is not there to say something new, it is there to
+         give the eye somewhere to land, and with all three gone the column was
+         four paragraphs at one size with one gap between them. He skims. See
+         .abBody h2 in the CSS for why they came back as weight and not as size.
+       BACK -- "Off the clock: coffee with friends, the gym, trails, and drawing
+         animals." The cut called it a copy of the fourth photograph's caption.
+         It was, word for word -- so THE CAPTION gave way instead: it now reads
+         "Off the clock" and names the picture, and the sentence carries the
+         four things, in his voice, in prose. A caption is not a sentence about
+         who somebody is, and the page lost its only warm line to save four
+         words. The duplication is gone in the cheaper direction.
+
+       FIVE TEXT BLOCKS, FOUR PHOTOGRAPHS. "Little did I know..." stays a section
+       of its own rather than a second paragraph, and .abLife is new. Both are
+       load-bearing for the phone layout, which interleaves one figure between
+       consecutive sections (see the order list in the CSS): fewer blocks than
+       figures puts two photographs side by side or strands one after the
+       sign-off, the two things that layout exists to prevent.
+       KEPT VERBATIM, his words and not to be reworded, tightened or split: the
+       lede, "Little did I know, that childhood obsession...", and both
+       headings. -->
   <div class="abBody">
-   <section class="abSec abLede"><p class="abIntro" data-photo="0">I am a San Francisco-based product designer and 2026 UC Davis Design graduate with an entrepreneurial spirit. A maker at heart, I focus on iOS, B2C, and design systems, loving the challenge of creating playful, accessible experiences that tickle your brain.</p><p>I founded Apollo, an iOS app helping neurodivergent students track and celebrate their wins.</p></section><section class="abSec abPlay"><p data-photo="1">At 10 I built my first company, a greeting card business, and designed the whole thing in Wix &mdash; &ldquo;onboarding flows&rdquo; and all. Then I built a second site so my three-year-old sister could sell her art too.</p></section><section class="abSec abThen"><p data-photo="2">Little did I know, that childhood obsession with building, scaling, and playing would entirely shape the product designer I am today.</p></section><section class="abSec abConnect" id="getInTouch" data-photo="3"><p class="abLabel">Get in touch</p><p class="abAvail">Open to full-time roles.</p><div class="abLinkRow"><a class="abLink ctl ctl--primary" href="mailto:jaydenlbetts@gmail.com?subject=Let%27s%20work%20together" aria-label="Email Jayden Betts"><svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M3 4.5h18c.55 0 1 .45 1 1v13c0 .55-.45 1-1 1H3c-.55 0-1-.45-1-1v-13c0-.55.45-1 1-1Zm1.4 1.5L12 11.6 19.6 6H4.4ZM20 7.4l-7.4 5.5a1 1 0 0 1-1.2 0L4 7.4V18h16V7.4Z"/></svg>Email<span class="abLinkArrow" aria-hidden="true">↗</span></a><a class="abLink ctl ctl--secondary" href="https://www.linkedin.com/in/jaydenbetts" target="_blank" rel="noopener noreferrer" aria-label="Jayden Betts on LinkedIn — opens in a new tab"><svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.34V9h3.42v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29zM5.34 7.43a2.06 2.06 0 1 1 0-4.13 2.06 2.06 0 0 1 0 4.13zM7.12 20.45H3.55V9h3.57v11.45zM22.22 0H1.77C.8 0 0 .78 0 1.74v20.52C0 23.22.8 24 1.77 24h20.45c.98 0 1.78-.78 1.78-1.74V1.74C24 .78 23.2 0 22.22 0z"/></svg>LinkedIn<span class="abLinkArrow" aria-hidden="true">↗</span></a><a class="abLink ctl ctl--secondary" href="https://www.instagram.com/jaydenleebetts" target="_blank" rel="noopener noreferrer" aria-label="Jayden Betts on Instagram — opens in a new tab"><svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>Instagram<span class="abLinkArrow" aria-hidden="true">↗</span></a><a class="abLink ctl ctl--secondary" href="Jayden-Betts-Resume.pdf" target="_blank" rel="noopener noreferrer" aria-label="Jayden Betts résumé (PDF, opens in a new tab)"><svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M6 2h8l4 4v16H6V2Zm7.5 1.5V7H17l-3.5-3.5ZM8.5 11h7v1.5h-7V11Zm0 3.4h7v1.5h-7v-1.5Zm0 3.4h4.5v1.5H8.5v-1.5Z"/></svg>Résumé<span class="abLinkArrow" aria-hidden="true">↗</span></a></div></section>
+   <section class="abSec abLede"><h1 class="abTitle" data-photo="0">I am a San Francisco-based product designer and 2026 UC Davis Design graduate with an entrepreneurial spirit. A maker at heart, I focus on iOS, B2C, and design systems, loving the challenge of creating playful, accessible experiences that tickle your brain.</h1><p>I founded Apollo, an iOS app helping neurodivergent students track and celebrate their wins.</p></section><section class="abSec abPlay"><h2 data-photo="1">Design has always been my playground.</h2><p>At 10 I built my first company, a greeting card business, and designed the whole thing in Wix &mdash; &ldquo;onboarding flows&rdquo; and all. Then I built a second site so my three-year-old sister could sell her art too.</p></section><section class="abSec abThen"><p data-photo="2">Little did I know, that childhood obsession with building, scaling, and playing would entirely shape the product designer I am today.</p></section><section class="abSec abLife"><h2 data-photo="3">My best ideas come from real life.</h2><p>Off the clock: coffee with friends, the gym, trails, and drawing animals.</p></section><section class="abSec abConnect" id="getInTouch"><p class="abLabel">Get in touch</p><p class="abAvail">Open to full-time roles.</p><div class="abLinkRow"><a class="abLink ctl ctl--primary" href="mailto:jaydenlbetts@gmail.com?subject=Let%27s%20work%20together" aria-label="Email Jayden Betts"><svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M3 4.5h18c.55 0 1 .45 1 1v13c0 .55-.45 1-1 1H3c-.55 0-1-.45-1-1v-13c0-.55.45-1 1-1Zm1.4 1.5L12 11.6 19.6 6H4.4ZM20 7.4l-7.4 5.5a1 1 0 0 1-1.2 0L4 7.4V18h16V7.4Z"/></svg>Email<span class="abLinkArrow" aria-hidden="true">↗</span></a><a class="abLink ctl ctl--secondary" href="https://www.linkedin.com/in/jaydenbetts" target="_blank" rel="noopener noreferrer" aria-label="Jayden Betts on LinkedIn — opens in a new tab"><svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.34V9h3.42v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29zM5.34 7.43a2.06 2.06 0 1 1 0-4.13 2.06 2.06 0 0 1 0 4.13zM7.12 20.45H3.55V9h3.57v11.45zM22.22 0H1.77C.8 0 0 .78 0 1.74v20.52C0 23.22.8 24 1.77 24h20.45c.98 0 1.78-.78 1.78-1.74V1.74C24 .78 23.2 0 22.22 0z"/></svg>LinkedIn<span class="abLinkArrow" aria-hidden="true">↗</span></a><a class="abLink ctl ctl--secondary" href="https://www.instagram.com/jaydenleebetts" target="_blank" rel="noopener noreferrer" aria-label="Jayden Betts on Instagram — opens in a new tab"><svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>Instagram<span class="abLinkArrow" aria-hidden="true">↗</span></a><a class="abLink ctl ctl--secondary" href="Jayden-Betts-Resume.pdf" target="_blank" rel="noopener noreferrer" aria-label="Jayden Betts résumé (PDF, opens in a new tab)"><svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M6 2h8l4 4v16H6V2Zm7.5 1.5V7H17l-3.5-3.5ZM8.5 11h7v1.5h-7V11Zm0 3.4h7v1.5h-7v-1.5Zm0 3.4h4.5v1.5H8.5v-1.5Z"/></svg>Résumé<span class="abLinkArrow" aria-hidden="true">↗</span></a></div></section>
   </div>
   <div class="abShots" id="abShots">
    <div class="abStack" id="abStack" role="button" tabindex="0"
@@ -695,7 +764,7 @@ body{background:var(--c50);color:var(--c950);font-family:var(--sans);-webkit-fon
     <figure class="abShot on"><img src="images/about/jayden-betts-graduation.webp" alt="Jayden Betts at his UC Davis graduation in a gold honor stole" width="982" height="1002"><figcaption>B.A. Design, UC Davis</figcaption></figure>
     <figure class="abShot"><img src="images/about/jayden-betts-and-sister.webp" alt="Jayden Betts as a kid with his younger sister Jolee" loading="lazy" width="980" height="1000"><figcaption>My sister Jolee, my first client</figcaption></figure>
     <figure class="abShot"><img src="images/about/jayden-betts-blender-clay.webp" alt="A clay-style 3D self-portrait Jayden modeled in Blender" loading="lazy" width="1000" height="563"><figcaption>Self-portrait, modeled in Blender</figcaption></figure>
-    <figure class="abShot"><img src="images/about/jayden-betts-life-grid.webp" alt="A four-panel grid of Jayden Betts off the clock: iced matcha, hiking a trail, a charcoal otter drawing, and a selfie" loading="lazy" width="984" height="1004"><figcaption>Off the clock: coffee, trails, gym, drawing</figcaption></figure>
+    <figure class="abShot"><img src="images/about/jayden-betts-life-grid.webp" alt="A four-panel grid of Jayden Betts off the clock: iced matcha, hiking a trail, a charcoal otter drawing, and a selfie" loading="lazy" width="984" height="1004"><figcaption>Off the clock</figcaption></figure>
    </div>
    <div class="amsBar">
     <span class="amsDots" id="amsDots" aria-hidden="true"><i class="on"></i><i></i><i></i><i></i></span>
@@ -836,46 +905,71 @@ body{background:var(--c50);color:var(--c950);font-family:var(--sans);-webkit-fon
     could change the answer, and the arithmetic decides. The reads are four
     getBoundingClientRects on a callback that fires a handful of times per page,
     not per frame. */
+ /* ── THE READING LINE MOVES WITH THE SCROLL, AND THAT IS THE THIRD FIX ─────
+    2026-08-27, second pass, and it is the same complaint arriving a third way:
+    "scrolling back to the top of About never returns to the graduation photo."
+    WHAT BROKE IT THIS TIME. The line was a FIXED innerHeight*0.55 -- 495px down
+    a 900px window -- and an anchor claimed the photograph once its top had
+    passed it. That is only ever right on a page taller than the window. Putting
+    two section headings back made the prose column shorter than the fix that
+    preceded it assumed and moved the second anchor to y=457: measured at 1440
+    x900, scrollY 0, BOTH the h1 (120) and "Design has always been my
+    playground." (457) were already above 495, so pick() answered 1 and the page
+    LOADED on the graduation shot and swapped to the sister photograph before
+    anyone had scrolled. Screenshotted, not inferred.
+    IT IS NOT A NUMBER TO RETUNE. Any fixed line inside the window is wrong on
+    this page for a reason no value fixes: the whole prose column now fits in one
+    viewport (1662px document, 762px of scroll), so at rest the reader can SEE
+    every passage and several anchors are above any line you pick. A smaller
+    fraction only moves the failure to a taller window -- 0.35 breaks again at
+    1400px of viewport height.
+    THE LINE IS NOW SCROLL PROGRESS: it sits at the TOP of the window when the
+    page is at the top and at the BOTTOM when the page is at the bottom, and
+    sweeps between. In document terms it travels from y=0 to y=scrollHeight, so
+    every passage gets a share of the scroll no matter how the two heights
+    compare. At scrollY 0 no anchor has been passed and the answer is the first
+    photograph, by arithmetic and not by a special case. Still total, still
+    monotonic in scroll, and still four rect reads.
+    THE OBSERVER HAD TO GO WITH IT, and this is the honest cost. An
+    IntersectionObserver reports crossings of a FIXED root edge; the answer now
+    changes when an anchor crosses a MOVING line, which is not an event it can
+    see. So this is a scroll listener again -- passive, and gated behind one
+    requestAnimationFrame so a burst of scroll events collapses into one read per
+    frame. It is NOT the always-on rAF loop the observer replaced: nothing is
+    scheduled while the page is still. */
  var desktop=matchMedia("(min-width:881px)");
- var io=null,ancs=null;
+ var ancs=null,bound=false,rafId=0;
  function pick(){
-  var edge=window.innerHeight*0.55,best=0,k,n;
+  if(!ancs)return;
+  var doc=document.documentElement;
+  var max=Math.max(1,doc.scrollHeight-window.innerHeight);
+  var y=Math.min(Math.max(window.pageYOffset||doc.scrollTop||0,0),max);
+  var line=window.innerHeight*(y/max),best=0,k,n;
   for(k=0;k<ancs.length;k++){
-   if(ancs[k].getBoundingClientRect().top>edge)break;
+   if(ancs[k].getBoundingClientRect().top>line)break;
    n=parseInt(ancs[k].getAttribute("data-photo"),10);
    if(!isNaN(n)&&n>=0&&n<shots.length)best=n;
   }
   go(best);
  }
+ function onScroll(){if(rafId)return;rafId=requestAnimationFrame(function(){rafId=0;pick();});}
  function bindScroll(){
-  if(io||!desktop.matches||!("IntersectionObserver" in window))return;
+  if(bound||!desktop.matches)return;
   ancs=[].slice.call(document.querySelectorAll(".abGrid [data-photo]"));
   if(!ancs.length)return;
-  /* ── THE ROOT IS THE ANSWER'S OWN BOUNDARY, NOT THE WHOLE VIEWPORT ─────────
-     2026-08-27, and this is the SECOND half of the bug above. The arithmetic
-     was made total and correct in that pass; what stayed wrong is WHEN it runs.
-     pick()'s answer changes at exactly one line -- innerHeight*0.55, the `edge`
-     it compares every anchor's top against. Observing the FULL viewport wakes
-     on crossings of the viewport's top and bottom edges instead, which is a
-     different set of moments; it only looked right because on a long page an
-     anchor crossing 0.55 usually has a sibling crossing an edge in the same
-     scroll, and that coincidence carried the callback.
-     THE SECOND CUT REMOVED THE COINCIDENCE. About is 1607px tall at 1440 now
-     against 1934 before, so the whole prose column fits inside one viewport:
-     scroll to the bottom and back and NOT ONE anchor ever leaves the viewport,
-     no crossing is reported, pick() is never called, and the photograph stays on
-     whichever one it reached. Measured before this line: back at scrollY 0 the
-     stack was still on photo 3 and the caption still read "Off the clock" --
-     Jayden's original complaint, arriving again by a different route.
-     rootMargin 0/0/-45%/0 makes the observation root end ON the 0.55 line, so an
-     anchor's top crossing it IS an intersection change in both directions and
-     the callback fires exactly when the answer can differ. Still one observer,
-     still no rAF, still no scroll listener. */
-  io=new IntersectionObserver(pick,{threshold:0,rootMargin:"0px 0px -45% 0px"});
-  ancs.forEach(function(a){io.observe(a);});
+  bound=true;
+  window.addEventListener("scroll",onScroll,{passive:true});
+  window.addEventListener("resize",onScroll);
   clearInterval(timer);   /* scroll is the driver now */
+  pick();                 /* and it answers at rest, not only on the first move */
  }
- function unbindScroll(){if(io){io.disconnect();io=null;}}
+ function unbindScroll(){
+  if(!bound)return;
+  bound=false;
+  window.removeEventListener("scroll",onScroll);
+  window.removeEventListener("resize",onScroll);
+  if(rafId){cancelAnimationFrame(rafId);rafId=0;}
+ }
  if(!reduce&&!desktop.matches)timer=setInterval(function(){if(!paused&&!document.hidden)next();},4800);
  bindScroll();
  /* MOBILE: the photographs are in the flow, so nothing swaps -- each one just
