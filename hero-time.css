@@ -964,60 +964,67 @@
    them in applySnapshot and tweens the pair itself on the sky's own 640ms
    curve. A getComputedStyle inside the draw loop would be 60 forced style
    recalcs a second on the page performance-idle-contract measures at 56. */
-/* ── AND THE GLYPH FIELD IS WEATHER NOW.  2026-08-27 ─────────────────────────
-   Jayden asked for drifting clouds in place of the ASCII field. Everything the
-   essay above worked out about WHERE a texture may live in this sky still
-   holds -- it is the same picture with a different mark -- so the two rules it
-   arrived at are carried over rather than re-derived: the texture lives only
-   where the light is, and above that it is not dimmed, it is NOT DRAWN.
+/* ── THE WEATHER IS MADE OF CHARACTERS.  2026-08-27, second pass ─────────────
+   Jayden: "the clouds i think to match the rest of the site i think they should
+   be ascii but make sure to make the clouds as realistic as possible with layer
+   of them with some blur and also the cloud patterns need to always look
+   differnt not the same."
+   THIS IS A SYNTHESIS AND NOT A REVERT. The glyph field that stood here until
+   this morning was a canvas redrawn at 30fps over the whole Hero; the clouds
+   that replaced it were three gradient tiles translated by a CSS animation.
+   What survives from the clouds is everything they got right -- the three
+   bands, their positions, their periods, the measured mask, the per-state
+   opacity on the sky's own 640ms clock, the footer running at the same speed.
+   What survives from the field is the MARK. The pixels are punctuation again,
+   and the ramp is the footer band's own -- "  ·:-+=*#", nine steps with two
+   blanks -- so the top of the page and the bottom of it are made of the same
+   weather rather than merely moving at the same rate.
 
-   THREE LAYERS, TRANSFORM ONLY, AND NOTHING ELSE PER FRAME. Each band is one
-   composited element carrying a handful of radial-gradients. The browser
-   rasterises that once and then the only thing that changes for the life of the
-   page is a translate, which is compositor work: no script, no style recalc, no
-   layout, no repaint. That is the whole reason this is cheaper than the thing
-   it replaces, and it is why the shapes are gradients and not an feTurbulence --
-   an animated SVG filter re-rasterises on the CPU every frame, which is the
-   measured 50%-of-a-core failure this page has already had once.
-   MEASURED, 1440x900, daytime, 8s idle windows through CDP Performance:
-                              cpu     recalc/frame   script
-     with the glyph field    33.2%       1.49        24.4 ms/s
-     with the field removed  30.7%       1.01         4.4 ms/s
-     with these clouds        -- see the commit; the field's own share is the
-   2.5 points and the half-a-recalc-per-frame between those two rows, and a
-   transform-only layer has to come in under it or it does not ship.
+   THE PATTERN NEVER REPEATS, AND THAT IS THE REQUIREMENT THAT SET THE
+   ARCHITECTURE. The gradient clouds were seamless BY CONSTRUCTION: a tile two
+   Hero-widths wide, translated by exactly one tile, three prime periods so the
+   three bands coincide only every 92 days. That solves SEAMS. It does not give
+   VARIETY -- the same two clouds came back every 149 seconds and the only thing
+   that changed was which other band they were next to. He asked for the
+   opposite, so the tile is gone.
+   Each band is now TWO tiles half a period out of phase, each one Hero wide,
+   each sliding from +100% to -100% and wrapping. A tile wraps only when it is
+   completely off the right-hand edge, and at that instant -- and at no other --
+   it is redrawn from the NEXT chunk of a coordinate that only ever advances.
+   Chunk n is drawn at world-x n*(one Hero width), sampled out of value-noise
+   fbm, so the sky the visitor sees at minute 40 is a stretch of weather that
+   has never been on the screen before and will not be again. At 1440 that is a
+   fresh screenful every 96, 70 and 53 seconds on the three bands, and the world
+   coordinate is exact for 447 million of them.
 
-   THE LOOP IS SEAMLESS BY CONSTRUCTION AND NOT BY EYE. Each band is 400% of
-   the Hero wide and carries a tile 50% of that -- two Hero widths -- repeated
-   twice across it. The animation translates it by exactly -50%, which is
-   exactly one tile, so the frame it ends on is the frame it started on, to the
-   pixel, and there is no seam to find. Every puff is kept inside 8%..92% of its
-   own tile so nothing is clipped at the tile edge, which is the one way a
-   repeat-x background CAN show a hard vertical line.
-   AND THE THREE PERIODS ARE PRIME AND UNEQUAL -- 271s, 197s, 149s. The sky
-   returns to an arrangement it has held before only when all three coincide,
-   which is 271*197*149 seconds: 92 days. Within a band the visual period is two
-   screen widths of travel rather than one, which is what the two-Hero-wide tile
-   buys.
+   IT COSTS LESS PER FRAME THAN THE GRADIENT CLOUDS DID, WHICH IS THE PART THAT
+   HAD TO BE PROVED. Between wraps there is no script at all: six promoted
+   layers, one linear translate each, no style recalculation, no layout, no
+   repaint. The only work is one canvas redraw per tile per half-period -- three
+   redraws per hundred seconds across the whole sky, each of them off-screen.
+   That is why this is a canvas of characters and not an feTurbulence, and not a
+   filter, and not a <pre> whose text is rewritten: an animated SVG filter
+   re-rasterises on the CPU every frame, which is the measured 50%-of-a-core
+   failure this page has already had once.
+   AND IT IS WHY THERE IS NO filter:blur ANYWHERE IN IT. The brief asked for
+   blur; a blur on a text layer is a per-frame convolution over the largest
+   surface on the page, and it would sand off the crispness that makes a
+   character read as a character. The blur here is done the way ASCII does it --
+   the far band takes a WIDER cell pitch than its glyphs need, a smaller glyph,
+   a lighter cap on the ramp and a third of the ink, so it resolves less and
+   reads as further away. The near band is tight, big and bright. Per glyph the
+   alpha rides the same density the character does, so an edge is a light mark
+   at low ink and a core is a heavy one at full ink: the falloff is continuous
+   even though the alphabet has seven steps.
 
-   THE MASK IS STATIC AND IT IS MEASURED, NOT GUESSED. Rendered at device scale
-   and read back per state, with the head, the copy and the bar hidden, the
-   highest row of each sky that still differs from the flat page colour by more
-   than two levels on one channel:
-       state      1440x900   390x844
-       dusk         0.0%       3.4%
-       sunset       5.7%       5.8%
-       sunrise      9.8%      10.2%
-       night       25.4%      25.7%   (its own linear gradient runs full height)
-       pre-dawn    30.5%      30.3%
-       daytime     32.0%      32.3%   <- the tightest, and therefore the bound
-       off         no sky at all
-   So the clouds begin below daytime's own edge and ramp in over the next sixth
-   of the box: nothing paints on the flat page white at the top, on any hour.
-   They fade out again before the floor, because the bottom of this sky is where
-   the portrait stands and a cloud crossing the chin is not weather, it is
-   clutter. One shape for all six is what "static mask" means and it is what
-   keeps the layer rasterised once; the HOUR is carried by opacity instead. */
+   THE MASK AND THE PER-STATE OPACITY ARE THE CLOUD PASS'S, UNCHANGED, and the
+   measurement behind them is still the one in the commit: rendered per state
+   with the chrome out of the frame, the highest row of each sky that still
+   differs from flat page colour is daytime's 32%, which is the tightest of the
+   six, so the weather begins below it and ramps in over the next sixth of the
+   box. Nothing paints on the flat page white at the top, on any hour. It fades
+   out again before the floor, because the bottom of this sky is where the
+   portrait stands and a cloud crossing the chin is clutter. */
 :root{
  --cloud-mask:linear-gradient(180deg,
    rgba(0,0,0,0) 0%,rgba(0,0,0,0) 35%,#000 48%,#000 86%,rgba(0,0,0,0) 97%)
@@ -1031,93 +1038,73 @@
     a different one would read as two things happening rather than one. */
  transition:opacity var(--hero-time-duration) var(--hero-time-ease)
 }
-.heroCloud{
- position:absolute;left:0;width:400%;
- background-repeat:repeat-x;background-size:50% 100%;
- /* The layer is promoted once and then only ever translated. */
+/* A BAND IS A WINDOW, NOT A PICTURE. It holds the two tiles and nothing else;
+   it never moves and it never paints. */
+.heroCloud{position:absolute;left:0;width:100%;pointer-events:none}
+/* ── THE TWO TILES ──────────────────────────────────────────────────────────
+   Each is one Hero wide and travels 2 Hero widths per period, so at every
+   instant the pair covers the window with one of them straddling an edge.
+   The travel is EXACTLY the same 2:1 the gradient tiles had, so the three
+   periods below still mean the pixel speeds the footer band was tuned against.
+   A tile is at +100% -- entirely off the right edge -- for exactly the instant
+   its animation restarts, which is the instant the renderer gives it its next
+   chunk of world. There is nothing to see there and nothing to hide.
+   THE BASE TRANSFORMS ARE THE PAIR'S t=0 POSITIONS, AND THAT IS WHAT MAKES THE
+   FIELD SURVIVE `animation:none`. Every probe that wants a still frame -- this
+   file's own reduced-motion block, and every gate that freezes the sky to
+   diff it -- writes exactly that, and with one shared base of +100% both tiles
+   fell off the right-hand edge and the whole field measured as absent. So the
+   first tile rests at 0 and carries the half-period delay, the second rests at
+   +100% and carries none: stop the animation at any moment and what is left is
+   the arrangement the page loads with, one tile covering the window and one
+   waiting off-stage. */
+.heroCloudTile{
+ position:absolute;inset:0;width:100%;height:100%;
+ /* contained so a redraw cannot reach the document's layout */
+ contain:strict;
  will-change:transform;transform:translate3d(0,0,0);
  animation:heroCloudDrift var(--cloud-period) linear infinite
+  calc(var(--cloud-period) / -2)
+}
+.heroCloudTile+.heroCloudTile{
+ transform:translate3d(100%,0,0);animation-delay:0s
 }
 @keyframes heroCloudDrift{
- from{transform:translate3d(0,0,0)}
- to{transform:translate3d(-50%,0,0)}
+ from{transform:translate3d(100%,0,0)}
+ to{transform:translate3d(-100%,0,0)}
 }
 /* ── THE THREE BANDS ────────────────────────────────────────────────────────
-   Higher is smaller, fainter and slower; lower is bigger, softer and faster.
-   That is perspective and it is the only reason the three read as one sky
-   rather than as three stripes. Two or three layers was the brief -- "sparse,
-   slow, soft ... not a sky full of cumulus" -- and three is what gives the
-   parallax; two reads as a pattern.
-   Every puff's alpha is its share of --cloud-strength below, so the per-state
-   opacity is the only thing an hour changes. */
-/* ── ONE CLOUD IS FOUR ELLIPSES ON A FLAT BASE ──────────────────────────────
-   Three crowns of falling size and one wide, shallow ellipse under them. That
-   shape -- lumpy on top, level underneath -- is what separates a cloud from a
-   smear, and a smear is exactly what the first pass produced: single soft
-   ellipses at .40 alpha with a falloff starting at zero read as haze on the
-   sky rather than as anything standing in it.
-   THE CORE IS SOLID TO 52% AND ONLY THEN FALLS OFF. A gradient that starts
-   fading at the centre has no edge anywhere, and an edge is the whole of what
-   makes the eye call something a cloud. The four overlap, so the built-up peak
-   is roughly twice one puff's alpha and the rim is one puff's.
-   THE RADII ARE LENGTHS, NOT PERCENTAGES, AND THAT IS THE VIEWPORT FIX. A
-   percentage radius is a share of the TILE, which is two viewport widths wide
-   and one band tall -- so the same declaration draws a 264x98 lozenge at 1440
-   and a round puff at 390. --p is a clamped viewport unit per band, every
-   radius and every vertical position is a multiple of it, and only the
-   horizontal PLACEMENT stays a percentage, because that is the one thing that
-   should spread with the tile.
-   TWO CLOUDS PER TILE, AND THE TILE IS TWO SCREENS WIDE, so a viewer sees about
-   one cloud per band per screen. "Sparse, slow, soft" was the brief. Every
-   cloud sits at least 2.6*--p inside its tile's edges so nothing is clipped at
-   the repeat and no vertical seam can exist. */
+   Higher is smaller, fainter, coarser and slower; lower is bigger, brighter,
+   tighter and faster. That is perspective, and with characters it is also
+   RESOLUTION: --cloud-pitch is the cell the field is sampled on, and a far band
+   sampled every 13px out of a 9px glyph is a picture with holes in it, which is
+   what distance looks like when you cannot blur.
+   Two of these numbers are the only ones worth touching by eye and they are
+   here rather than in the script for that reason. --cloud-ramp-max is the
+   index of the heaviest character a band may reach in "  ·:-+=*#": 5 is '+',
+   7 is '*', 8 is '#'. --cloud-ink is the alpha the densest cell is drawn at,
+   before --cloud-strength multiplies the whole layer for the hour.
+   THE PERIODS ARE THE CLOUD PASS'S AND THEY ARE PRIME. 271, 197 and 149 give
+   10.6, 14.6 and 19.3 px/s at 1440, which is the band footer-band.js's .034
+   drift was set into so the top of the page and the bottom read as one system.
+   They stay prime because the three bands' wrap instants should not line up:
+   a shared factor would put all three redraws on the same frame. */
 .heroCloud--far{
- top:40%;height:20%;--cloud-period:271s;--p:clamp(19px,1.95vw,29px);
- background-image:
-  radial-gradient(calc(1.12 * var(--p)) calc(0.73 * var(--p)) at calc(15% - 1.33*var(--p)) calc(1.95*var(--p)),rgba(255,255,255,0.260) 0,rgba(255,255,255,0.260) 52%,rgba(255,255,255,0) 100%),
-  radial-gradient(calc(1.59 * var(--p)) calc(1.12 * var(--p)) at calc(15%) calc(1.60*var(--p)),rgba(255,255,255,0.260) 0,rgba(255,255,255,0.260) 52%,rgba(255,255,255,0) 100%),
-  radial-gradient(calc(1.03 * var(--p)) calc(0.69 * var(--p)) at calc(15% + 1.39*var(--p)) calc(1.98*var(--p)),rgba(255,255,255,0.260) 0,rgba(255,255,255,0.260) 52%,rgba(255,255,255,0) 100%),
-  radial-gradient(calc(2.24 * var(--p)) calc(0.47 * var(--p)) at calc(15% + 0.09*var(--p)) calc(2.21*var(--p)),rgba(255,255,255,0.224) 0,rgba(255,255,255,0.224) 52%,rgba(255,255,255,0) 100%),
-  radial-gradient(calc(1.30 * var(--p)) calc(0.85 * var(--p)) at calc(48% + 1.55*var(--p)) calc(2.05*var(--p)),rgba(255,255,255,0.260) 0,rgba(255,255,255,0.260) 52%,rgba(255,255,255,0) 100%),
-  radial-gradient(calc(1.85 * var(--p)) calc(1.30 * var(--p)) at calc(48%) calc(1.65*var(--p)),rgba(255,255,255,0.260) 0,rgba(255,255,255,0.260) 52%,rgba(255,255,255,0) 100%),
-  radial-gradient(calc(1.20 * var(--p)) calc(0.80 * var(--p)) at calc(48% - 1.62*var(--p)) calc(2.09*var(--p)),rgba(255,255,255,0.260) 0,rgba(255,255,255,0.260) 52%,rgba(255,255,255,0) 100%),
-  radial-gradient(calc(2.60 * var(--p)) calc(0.55 * var(--p)) at calc(48% - 0.10*var(--p)) calc(2.35*var(--p)),rgba(255,255,255,0.224) 0,rgba(255,255,255,0.224) 52%,rgba(255,255,255,0) 100%),
-  radial-gradient(calc(1.01 * var(--p)) calc(0.66 * var(--p)) at calc(80% - 1.21*var(--p)) calc(1.95*var(--p)),rgba(255,255,255,0.260) 0,rgba(255,255,255,0.260) 52%,rgba(255,255,255,0) 100%),
-  radial-gradient(calc(1.44 * var(--p)) calc(1.01 * var(--p)) at calc(80%) calc(1.64*var(--p)),rgba(255,255,255,0.260) 0,rgba(255,255,255,0.260) 52%,rgba(255,255,255,0) 100%),
-  radial-gradient(calc(0.94 * var(--p)) calc(0.62 * var(--p)) at calc(80% + 1.26*var(--p)) calc(1.99*var(--p)),rgba(255,255,255,0.260) 0,rgba(255,255,255,0.260) 52%,rgba(255,255,255,0) 100%),
-  radial-gradient(calc(2.03 * var(--p)) calc(0.43 * var(--p)) at calc(80% + 0.08*var(--p)) calc(2.19*var(--p)),rgba(255,255,255,0.224) 0,rgba(255,255,255,0.224) 52%,rgba(255,255,255,0) 100%)
+ top:40%;height:24%;--cloud-period:271s;
+ --cloud-pitch:13;--cloud-glyph:9;--cloud-ramp-max:5;--cloud-ink:.50
 }
 .heroCloud--mid{
- top:50%;height:24%;--cloud-period:197s;--p:clamp(25px,2.55vw,38px);
- background-image:
-  radial-gradient(calc(1.30 * var(--p)) calc(0.85 * var(--p)) at calc(24% - 1.55*var(--p)) calc(2.20*var(--p)),rgba(255,255,255,0.300) 0,rgba(255,255,255,0.300) 52%,rgba(255,255,255,0) 100%),
-  radial-gradient(calc(1.85 * var(--p)) calc(1.30 * var(--p)) at calc(24%) calc(1.80*var(--p)),rgba(255,255,255,0.300) 0,rgba(255,255,255,0.300) 52%,rgba(255,255,255,0) 100%),
-  radial-gradient(calc(1.20 * var(--p)) calc(0.80 * var(--p)) at calc(24% + 1.62*var(--p)) calc(2.24*var(--p)),rgba(255,255,255,0.300) 0,rgba(255,255,255,0.300) 52%,rgba(255,255,255,0) 100%),
-  radial-gradient(calc(2.60 * var(--p)) calc(0.55 * var(--p)) at calc(24% + 0.10*var(--p)) calc(2.50*var(--p)),rgba(255,255,255,0.258) 0,rgba(255,255,255,0.258) 52%,rgba(255,255,255,0) 100%),
-  radial-gradient(calc(1.09 * var(--p)) calc(0.71 * var(--p)) at calc(59% + 1.30*var(--p)) calc(2.11*var(--p)),rgba(255,255,255,0.300) 0,rgba(255,255,255,0.300) 52%,rgba(255,255,255,0) 100%),
-  radial-gradient(calc(1.55 * var(--p)) calc(1.09 * var(--p)) at calc(59%) calc(1.78*var(--p)),rgba(255,255,255,0.300) 0,rgba(255,255,255,0.300) 52%,rgba(255,255,255,0) 100%),
-  radial-gradient(calc(1.01 * var(--p)) calc(0.67 * var(--p)) at calc(59% - 1.36*var(--p)) calc(2.15*var(--p)),rgba(255,255,255,0.300) 0,rgba(255,255,255,0.300) 52%,rgba(255,255,255,0) 100%),
-  radial-gradient(calc(2.18 * var(--p)) calc(0.46 * var(--p)) at calc(59% - 0.08*var(--p)) calc(2.36*var(--p)),rgba(255,255,255,0.258) 0,rgba(255,255,255,0.258) 52%,rgba(255,255,255,0) 100%),
-  radial-gradient(calc(1.38 * var(--p)) calc(0.90 * var(--p)) at calc(88% - 1.64*var(--p)) calc(2.21*var(--p)),rgba(255,255,255,0.300) 0,rgba(255,255,255,0.300) 52%,rgba(255,255,255,0) 100%),
-  radial-gradient(calc(1.96 * var(--p)) calc(1.38 * var(--p)) at calc(88%) calc(1.78*var(--p)),rgba(255,255,255,0.300) 0,rgba(255,255,255,0.300) 52%,rgba(255,255,255,0) 100%),
-  radial-gradient(calc(1.27 * var(--p)) calc(0.85 * var(--p)) at calc(88% + 1.72*var(--p)) calc(2.25*var(--p)),rgba(255,255,255,0.300) 0,rgba(255,255,255,0.300) 52%,rgba(255,255,255,0) 100%),
-  radial-gradient(calc(2.76 * var(--p)) calc(0.58 * var(--p)) at calc(88% + 0.11*var(--p)) calc(2.53*var(--p)),rgba(255,255,255,0.258) 0,rgba(255,255,255,0.258) 52%,rgba(255,255,255,0) 100%)
+ top:48%;height:30%;--cloud-period:197s;
+ --cloud-pitch:11;--cloud-glyph:10;--cloud-ramp-max:7;--cloud-ink:.68
 }
 .heroCloud--near{
- top:60%;height:28%;--cloud-period:149s;--p:clamp(30px,3.10vw,47px);
- background-image:
-  radial-gradient(calc(1.30 * var(--p)) calc(0.85 * var(--p)) at calc(33% + 1.55*var(--p)) calc(2.25*var(--p)),rgba(255,255,255,0.340) 0,rgba(255,255,255,0.340) 52%,rgba(255,255,255,0) 100%),
-  radial-gradient(calc(1.85 * var(--p)) calc(1.30 * var(--p)) at calc(33%) calc(1.85*var(--p)),rgba(255,255,255,0.340) 0,rgba(255,255,255,0.340) 52%,rgba(255,255,255,0) 100%),
-  radial-gradient(calc(1.20 * var(--p)) calc(0.80 * var(--p)) at calc(33% - 1.62*var(--p)) calc(2.29*var(--p)),rgba(255,255,255,0.340) 0,rgba(255,255,255,0.340) 52%,rgba(255,255,255,0) 100%),
-  radial-gradient(calc(2.60 * var(--p)) calc(0.55 * var(--p)) at calc(33% - 0.10*var(--p)) calc(2.55*var(--p)),rgba(255,255,255,0.292) 0,rgba(255,255,255,0.292) 52%,rgba(255,255,255,0) 100%),
-  radial-gradient(calc(1.46 * var(--p)) calc(0.95 * var(--p)) at calc(69% - 1.74*var(--p)) calc(2.27*var(--p)),rgba(255,255,255,0.340) 0,rgba(255,255,255,0.340) 52%,rgba(255,255,255,0) 100%),
-  radial-gradient(calc(2.07 * var(--p)) calc(1.46 * var(--p)) at calc(69%) calc(1.82*var(--p)),rgba(255,255,255,0.340) 0,rgba(255,255,255,0.340) 52%,rgba(255,255,255,0) 100%),
-  radial-gradient(calc(1.34 * var(--p)) calc(0.90 * var(--p)) at calc(69% + 1.81*var(--p)) calc(2.31*var(--p)),rgba(255,255,255,0.340) 0,rgba(255,255,255,0.340) 52%,rgba(255,255,255,0) 100%),
-  radial-gradient(calc(2.91 * var(--p)) calc(0.62 * var(--p)) at calc(69% + 0.11*var(--p)) calc(2.60*var(--p)),rgba(255,255,255,0.292) 0,rgba(255,255,255,0.292) 52%,rgba(255,255,255,0) 100%)
+ top:58%;height:32%;--cloud-period:149s;
+ --cloud-pitch:9;--cloud-glyph:10.5;--cloud-ramp-max:8;--cloud-ink:.84
 }
 /* ── HOW MUCH WEATHER EACH HOUR HAS ─────────────────────────────────────────
-   One number per state, on the same shape of table the glyph field used, and
-   for the same reason: the mark is one treatment and the HOUR is what varies.
+   One number per state, on the same shape of table the glyph field used and the
+   gradient clouds kept, and for the same reason: the mark is one treatment and
+   the HOUR is what varies.
    off is 0 because there is no sky to be weather in -- the clouds are not
    dimmed there, the layer is transparent and nothing composites.
    night is near-invisible on purpose. Cloud at night is the absence of stars,
@@ -1128,30 +1115,26 @@
    mark on a pale blue sky is the easiest of the six to overdo.
    THE NUMBERS ARE NOT THE PICTURE AND THAT IS WHY THEY ARE NOT EVEN. What each
    one buys depends on the sky it is multiplied into, so they were set from the
-   RENDERED result rather than chosen as a ramp. Peak change a cloud makes to
-   the pixels under it, out of 765, measured at 1440x900 / 390x844 with the
-   portrait and the chrome out of the frame and every animation frozen:
-     pre-dawn  .82 -> 55/58    sunrise .86 -> 78/83    daytime .80 -> 62/63
-     dusk      .60 -> 59/68    sunset  .82 -> 57/59    night   .05 -> 17/19
-   pre-dawn needed nearly twice sunrise's number to land in the same place: it
-   is the flattest and least saturated of the six and a white mark has almost
-   no room to be brighter than it. Night needed a SIXTEENTH of it, and that is
-   the same arithmetic seen from the other end -- white on a near-black sky is
-   all contrast, so .14 read as a pale smear over the starfield at 46/765,
-   three quarters of daytime's mark. .05 puts it where cloud at night belongs:
-   findable if you look for it, and not competing with a star. */
+   RENDERED result rather than chosen as a ramp; the table of what each one
+   measures is in tools/hero-cloud-field-contract.py, which fails on both ends
+   of it. */
 .hero[data-time-state]{--cloud-strength:0}
 .hero[data-time-state="off"]{--cloud-strength:0}
-.hero[data-time-state="pre-dawn"]{--cloud-strength:.82}
-.hero[data-time-state="sunrise"]{--cloud-strength:.86}
-.hero[data-time-state="daytime"]{--cloud-strength:.80}
-.hero[data-time-state="dusk"]{--cloud-strength:.60}
-.hero[data-time-state="sunset"]{--cloud-strength:.82}
+.hero[data-time-state="pre-dawn"]{--cloud-strength:.92}
+.hero[data-time-state="sunrise"]{--cloud-strength:.92}
+.hero[data-time-state="daytime"]{--cloud-strength:.90}
+.hero[data-time-state="dusk"]{--cloud-strength:.74}
+.hero[data-time-state="sunset"]{--cloud-strength:.92}
 .hero[data-time-state="night"]{--cloud-strength:.05}
 /* REDUCED MOTION GETS THE STILL SKY, NOT AN EMPTY ONE -- the same answer the
-   glyph field gave. A full-width surface in slow lateral motion is exactly what
-   section 14 of the Apple reference names; the picture is not. */
-@media(prefers-reduced-motion:reduce){.heroCloud{animation:none}}
+   glyph field and the gradient clouds both gave. A full-width surface in slow
+   lateral motion is exactly what section 14 of the Apple reference names; the
+   picture is not.
+   ONE LINE IS ENOUGH BECAUSE THE BASE TRANSFORMS ALREADY HOLD THE PAIR APART:
+   the first tile rests over the window and the second rests off the right-hand
+   edge, so stopping the animation leaves the loaded frame rather than two
+   tiles printed on top of each other. */
+@media(prefers-reduced-motion:reduce){.heroCloudTile{animation:none}}
 .hero[data-time-state="pre-dawn"] .heroTimeGradient[data-time-gradient="pre-dawn"]{opacity:1}
 .hero[data-time-state="sunrise"] .heroTimeGradient[data-time-gradient="sunrise"]{opacity:1}
 .hero[data-time-state="daytime"] .heroTimeGradient[data-time-gradient="daytime"]{opacity:1}

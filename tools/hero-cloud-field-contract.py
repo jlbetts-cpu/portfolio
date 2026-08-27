@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
-"""Fails when the Hero's weather stops being free, or starts painting on the page.
+"""Fails when the Hero's weather stops being free, repeats itself, or paints on the page.
 
 WHY THIS FILE EXISTS
-It replaces tools/hero-ascii-field-contract.py, which guarded a 600-line canvas
-renderer that no longer exists. Jayden asked for drifting clouds in its place.
-The clouds are three composited elements carrying radial-gradients, rasterised
-once and translated by a CSS animation for the life of the page -- and every
-property that makes that true is a one-token edit away from being false:
+It replaced tools/hero-ascii-field-contract.py, which guarded a 600-line canvas
+renderer redrawn at 30fps. The weather is characters again -- Jayden, 2026-08-27:
+"the clouds ... should be ascii ... and also the cloud patterns need to always
+look differnt not the same" -- but it is NOT that renderer coming back. Each
+band is two canvases half a period out of phase, each drawn ONCE when it wraps
+off the right-hand edge, translated by a CSS animation for the rest of its life.
+Every property that makes that true is a one-token edit away from being false:
 
   1. IT COSTS NOTHING PER FRAME, AND THAT IS THE WHOLE ARGUMENT FOR IT. The
      thing it replaced drew at 30fps and cost half a style recalculation per
@@ -20,11 +22,17 @@ property that makes that true is a one-token edit away from being false:
      that edge reads as dirt on the page rather than as weather in the sky. The
      mask is a static shape and the hour is carried by opacity, because a mask
      that changed per state would re-rasterise three layers six times a day.
-  3. THE LOOP IS SEAMLESS BY CONSTRUCTION. Each band is 400% of the Hero wide,
-     its tile is 50% of that, and the animation translates it by exactly -50%.
-     Change any one of those three and the sky develops a jump every period --
-     which nobody watching a page for four minutes will report, and which is
-     the exact defect "no detectable loop" was asked for.
+  3. IT NEVER SHOWS THE SAME WEATHER TWICE, and that requirement replaced the
+     one that used to stand here. The gradient clouds this grew out of were
+     SEAMLESS BY CONSTRUCTION -- a tile two Hero-widths wide translated by
+     exactly one tile -- which solves seams and gives no variety at all: the
+     same two clouds came back every 149 seconds. The field is generated
+     against a coordinate that only advances, so there is no tile to come back
+     around, and the failure mode this guards is somebody reintroducing one.
+     It is proved twice, on the pixels and on the characters, because either
+     alone can pass on a lie: the pixel test cannot afford enough frames to
+     cover hours, and the character probe is a pure function that could drift
+     out of step with what is drawn.
   4. IT IS STILL THERE UNDER REDUCED MOTION. A full-width surface in slow
      lateral motion is what section 14 of the Apple reference names; the
      picture is not. "Turn it off" and "hold it" are the same size of diff and
@@ -133,7 +141,7 @@ FREEZE = """() => {
        position:absolute, so display:none costs the measurement no layout. */
     '.heroCharacterPeek,.heroHeadSelection{display:none!important}' +
     '.jbStick{visibility:hidden!important}' +
-    '.heroTimeDrift,.heroNightStars,.heroNightStars i,.heroCloud{' +
+    '.heroTimeDrift,.heroNightStars,.heroNightStars i,.heroCloudTile{' +
     'animation:none!important;transition:none!important}';
   document.head.appendChild(s);
 }"""
@@ -240,12 +248,25 @@ def static_contract(failures):
 
     if "heroTimeAscii" in html or "HeroAsciiField" in html.replace(
             "the HeroAsciiField", ""):
-        failures.append("the canvas glyph field is back in index.html")
+        failures.append("the 30fps canvas glyph field is back in index.html")
     if 'class="heroClouds"' not in html:
         failures.append("index.html has no .heroClouds layer")
     for band in ("far", "mid", "near"):
         if f"heroCloud--{band}" not in html or f".heroCloud--{band}{{" not in css:
             failures.append(f"the {band} cloud band is missing")
+    # TWO TILES PER BAND, AND NOT ONE. One tile cannot cover the window while it
+    # is crossing an edge, so a band reduced to one is a sky that blinks empty
+    # once a period -- and it is the shape a "simplification" would take.
+    tiles = html.count('class="heroCloudTile"')
+    if tiles != 6:
+        failures.append(f"expected six cloud tiles (two per band), found {tiles}")
+    # NO BLUR ON A FIELD OF CHARACTERS. The brief asked for blur and the answer
+    # is the far band's wider cell pitch, lighter ramp cap and thinner ink --
+    # not a filter, which is a per-frame convolution over the largest surface on
+    # the page and sands the characters back into the smear this replaced.
+    for rule in re.findall(r"\.heroCloudTile?[^{}]*\{([^}]*)\}", css):
+        if "blur" in rule or "filter" in rule:
+            failures.append("a cloud tile declares a filter: " + rule.strip()[:80])
 
     # NO FILTER ON THE WEATHER. feTurbulence and an animated `filter` are the
     # two ways to make weather that re-rasterises on the CPU every frame, which
@@ -294,50 +315,164 @@ def static_contract(failures):
     return periods
 
 
-# ── 2. THE LOOP IS SEAMLESS, AND THE TEST CAN TELL ──────────────────────────
-SEAM_SETUP = """() => {const s = document.createElement('style'); s.id='seam';
+# ── 2. IT NEVER SHOWS THE SAME WEATHER TWICE ────────────────────────────────
+# THE PIXELS AND THE CHARACTERS, because neither alone is a proof.
+# window.__heroClouds.seek(t) puts every animation and every tile where they
+# would be t seconds after load, so a screenshot at t is the sky at t -- and
+# twelve of them, spread over forty minutes of drift, is as far as screenshots
+# can reach. sample(band, chunk) is the pure generator behind the same draw, so
+# it can sweep hundreds of chunks in a second; on its own it would only prove
+# that a function nobody has tied to the page returns different strings.
+# TIED TOGETHER: the frames that must differ on screen are the same instants the
+# strings are read for, so a generator that had drifted out of step with the
+# canvas would show up as identical pixels under different text.
+FIELD_SETUP = """() => {const s = document.createElement('style'); s.id='fieldOnly';
   s.textContent =
    '.heroClouds{opacity:1!important;mask-image:none!important;-webkit-mask-image:none!important}' +
    '.heroCharacterPeek,.heroHeadSelection,.jbStick,.heroCopy,.heroTimeDrift,.heroNightStars{display:none!important}' +
-   '.heroTimeClip{background:#2a4a7a!important}.heroCloud{animation:none!important}';
+   '.heroTimeClip{background:#2a4a7a!important}';
   document.head.appendChild(s);}"""
 
+# HOW DIFFERENT TWO SCREENFULS OF WEATHER HAVE TO BE. Measured on the shipped
+# field at 1440x900: the worst channel difference between any two of the twelve
+# frames below is 113 levels and the mean absolute difference over the whole
+# clip is 0.06 out of 255 -- small because the weather is sparse and faint by
+# design and most of the clip is untouched sky. A repeating tile scores exactly
+# 0 on both. 12 and 0.005 are an order of magnitude under the live field and an
+# order over rounding, which is the only band that means anything here.
+FRAME_PEAK_FLOOR = 12
+FRAME_MEAN_FLOOR = 0.005
+# HOW MUCH OF A CHUNK MAY MATCH THE ONE BEFORE IT. Two independent screenfuls of
+# a mostly-clear sky share their blanks, so the floor is not zero -- measured
+# across 400 consecutive chunks per band the worst neighbouring pair agrees on
+# 0.97 of its cells, while a repeat scores exactly 1.000.
+CHUNK_MATCH_CEILING = 0.995
+# AND HOW OFTEN THE SKY MAY BE EMPTY. This is a DESIGN assertion wearing a
+# uniqueness test's clothes, and it is here because that is how it was found:
+# two chunks that are both entirely blank are byte-identical, so a "the field
+# never repeats" sweep fails on an empty sky. Measured over 400 chunks per band
+# with the feature size fixed at 150px, 5.6% of PHONE screenfuls carried no
+# weather at all against 0.9% of desktop ones, and eight pairs of consecutive
+# phone screenfuls were the same because both were blank. The generator scales
+# its feature size with the viewport now; 6% is a ceiling the shipped field
+# clears at 0.1% and 1.5%, and it fails on any change that makes the sky empty
+# on a phone -- which is a real defect and not a measurement artefact.
+BLANK_CHUNK_CEILING = 0.06
 
-def assert_seamless(page, failures, label):
-    page.evaluate(SEAM_SETUP)
+
+def frame_at(page, clip, seconds):
+    page.evaluate("t => window.__heroClouds.seek(t)", seconds)
+    page.wait_for_timeout(90)
+    return shot(page, clip)
+
+
+def frame_distance(a, b):
+    diff = ImageChops.difference(a, b)
+    peak = max(diff.getextrema(), key=lambda pair: pair[1])[1]
+    data = diff.getdata()
+    mean = sum(sum(px) for px in data) / (len(data) * 3.0)
+    return peak, mean
+
+
+def assert_never_repeats(page, failures, label, verbose=True):
+    """Twelve frames minutes apart, and four hundred chunks per band."""
+    if not page.evaluate("() => !!window.__heroClouds"):
+        failures.append(f"{label} there is no cloud field on the page at all")
+        return None
+    page.evaluate(FIELD_SETUP)
     page.wait_for_timeout(180)
     clip = page.locator("#heroTimeClip").bounding_box()
 
-    def at(transform):
-        page.evaluate("t => document.querySelectorAll('.heroCloud')"
-                      ".forEach(n => n.style.transform = t)", transform)
-        page.wait_for_timeout(140)
-        return shot(page, clip)
+    # 0, 200, 400 .. 2200 seconds: nearly forty minutes of drift, and past the
+    # point every band has wrapped several times.
+    # THE TEXT IS READ IN THE SAME PASS AS THE FRAME, and that is not a style
+    # note: reading the strings in a second loop afterwards returns the state
+    # the page ended in, twelve times over, and the assertion below then fails
+    # on a field that is working perfectly. It did, once.
+    times = [i * 200 for i in range(12)]
+    frames, texts = [], []
+    for t in times:
+        frames.append((t, frame_at(page, clip, t)))
+        texts.append((t, page.evaluate(
+            "() => window.__heroClouds.rendered().map(r => r.text).join('|')")))
+    page.evaluate("() => {const n=document.getElementById('fieldOnly'); if(n) n.remove();}")
 
-    home = at("translate3d(0,0,0)")
-
-    def worst(other):
-        diff = ImageChops.difference(home, other)
-        return max(diff.getextrema(), key=lambda pair: pair[1])[1]
-
-    wrapped = worst(at("translate3d(-50%,0,0)"))
-    half = worst(at("translate3d(-25%,0,0)"))
-    page.evaluate("() => {const n=document.getElementById('seam'); if(n) n.remove();}")
-    page.evaluate("() => document.querySelectorAll('.heroCloud')"
-                  ".forEach(n => n.style.transform = '')")
-    # 2, not 0: the layer is composited and a translate is resolved in device
-    # pixels, so a single level of rounding is expected and 140 is what a real
-    # mismatch looks like.
-    if wrapped > 2:
+    worst_peak, worst_mean, worst_pair = 10 ** 6, 10 ** 6, None
+    for i in range(len(frames)):
+        for j in range(i + 1, len(frames)):
+            peak, mean = frame_distance(frames[i][1], frames[j][1])
+            if peak < worst_peak:
+                worst_peak, worst_pair = peak, (frames[i][0], frames[j][0])
+            worst_mean = min(worst_mean, mean)
+    if worst_peak < FRAME_PEAK_FLOOR or worst_mean < FRAME_MEAN_FLOOR:
         failures.append(
-            f"{label} the drift does not wrap: one full period leaves the sky "
-            f"{wrapped} levels different from where it started (a half period "
-            f"is {half})")
-    if half <= 2:
-        failures.append(
-            f"{label} the seam test cannot fail -- half a period is identical "
-            "too, so the layer is not carrying a pattern at all")
-    return wrapped, half
+            f"{label} the sky repeats: the closest of 12 frames spread over "
+            f"{times[-1]}s differ by only {worst_peak} levels at their peak and "
+            f"{worst_mean:.2f} on average (floors {FRAME_PEAK_FLOOR} and "
+            f"{FRAME_MEAN_FLOOR}), at t={worst_pair}")
+    if len(set(t for _, t in texts)) != len(texts):
+        failures.append(f"{label} two of the twelve rendered fields are the "
+                        "same characters, so the generator is looping")
+
+    # THE SWEEP. 400 chunks is 10.6 hours of the near band's drift at 1440 and
+    # the pure generator can do it in about a second. Blank chunks are counted
+    # rather than compared: an empty sky is identical to another empty sky and
+    # that is arithmetic, not a loop, so the uniqueness claim is made about the
+    # chunks that carry weather and the empty ones are held to a ceiling of
+    # their own.
+    sweep = page.evaluate("""() => {
+      const out = [];
+      const bands = window.__heroClouds.bands().length;
+      for (let b = 0; b < bands; b++) {
+        const seen = new Map();
+        let blank = 0, dup = null, worst = 0, worstPair = null, adjacent = null;
+        let prev = null;
+        for (let k = 0; k < 400; k++) {
+          const t = window.__heroClouds.sample(b, k);
+          const empty = !/\S/.test(t);
+          if (empty) blank++;
+          else {
+            if (seen.has(t)) dup = [seen.get(t), k];
+            seen.set(t, k);
+          }
+          if (prev !== null && prev === t && adjacent === null) adjacent = [k - 1, k];
+          if (prev !== null && !empty) {
+            let same = 0;
+            for (let i = 0; i < t.length; i++) if (t[i] === prev[i]) same++;
+            const ratio = same / t.length;
+            if (ratio > worst) { worst = ratio; worstPair = [k - 1, k]; }
+          }
+          prev = t;
+        }
+        out.push({band: b, inked: seen.size, blank: blank / 400, dup, worst,
+                  worstPair, adjacent});
+      }
+      return out;}""")
+    for row in sweep:
+        if row["dup"]:
+            failures.append(
+                f"{label} band {row['band']} draws the same weather twice: "
+                f"chunks {row['dup']} are identical")
+        if row["adjacent"]:
+            failures.append(
+                f"{label} band {row['band']} shows the same screenful twice "
+                f"running, at chunks {row['adjacent']}")
+        if row["blank"] > BLANK_CHUNK_CEILING:
+            failures.append(
+                f"{label} band {row['band']} has no weather at all in "
+                f"{row['blank']:.1%} of screenfuls (ceiling "
+                f"{BLANK_CHUNK_CEILING:.0%})")
+        if row["worst"] > CHUNK_MATCH_CEILING:
+            failures.append(
+                f"{label} band {row['band']} chunks {row['worstPair']} agree on "
+                f"{row['worst']:.3f} of their cells (ceiling {CHUNK_MATCH_CEILING})")
+    if verbose:
+        print(f"  {label} never repeats: closest of 12 frames over {times[-1]}s "
+              f"peak {worst_peak}, mean {worst_mean:.3f}; per band "
+              + ", ".join("%d inked chunks, %.1f%% blank, worst neighbour %.3f"
+                          % (r["inked"], 100 * r["blank"], r["worst"])
+                          for r in sweep))
+    return worst_peak, worst_mean
 
 
 # ── 3. THE PER-FRAME COST ───────────────────────────────────────────────────
@@ -434,10 +569,9 @@ def browser_contract(base_url, failures, verbose=True):
                                     f"(ceiling {NIGHT_CEILING})")
 
                 context, page = state_page(browser, base_url, width, height, "daytime")
-                wrapped, half = assert_seamless(page, failures, f"{width}x{height}")
+                assert_never_repeats(page, failures, f"{width}x{height}", verbose)
                 if verbose:
-                    print(f"  {width}x{height} seam: one period {wrapped}, "
-                          f"half a period {half}, periods {periods}")
+                    print(f"  {width}x{height} periods {periods}")
                 context.close()
 
                 context, page = state_page(browser, base_url, width, height, "daytime")
@@ -456,7 +590,7 @@ def browser_contract(base_url, failures, verbose=True):
                 clip = page.locator("#heroTimeClip").bounding_box()
                 reading = cloud_reading(page, clip)
                 running = page.evaluate(
-                    "() => [...document.querySelectorAll('.heroCloud')]"
+                    "() => [...document.querySelectorAll('.heroCloudTile')]"
                     ".some(n => getComputedStyle(n).animationName !== 'none')")
                 if reading["cloudTop"] is None:
                     failures.append(f"{width}x{height} reduced motion took the "
@@ -479,25 +613,30 @@ INJECTIONS = (
     # ── WHY THIS ONE MOVES TWO TOKENS AND NOT ONE ──────────────────────────
     # Taking the mask off alone changes nothing this file can see, and that is
     # the mask doing its job rather than the mask being pointless: the three
-    # bands are POSITIONED at 40%, 50% and 60%, all of them already below the
+    # bands are POSITIONED at 40%, 48% and 58%, all of them already below the
     # tightest sky's own edge, so with them where they are the mask is a soft
     # entry and exit and not a fence. Lifting a band alone changes nothing
-    # either -- measured, with the far band moved to top:8% and the mask
-    # intact, the weather still starts at 44.9% and the run is green, because
-    # the mask is holding it. It takes BOTH to put weather on the page, and a
-    # re-injection that only removes the belt while the braces are on proves
-    # nothing. So this moves the band AND the mask, and either half restored
-    # makes the page clean again -- which is the statement that both are
-    # load-bearing.
-    ("a band lifted out of the sky with the mask taken off",
+    # either, because the mask is holding it. It takes BOTH to put weather on
+    # the page, and a re-injection that only removes the belt while the braces
+    # are on proves nothing. So this moves the band AND the mask, and either
+    # half restored makes the page clean again -- which is the statement that
+    # both are load-bearing.
+    ("hero-time.css", "a band lifted out of the sky with the mask taken off",
      "-webkit-mask-image:var(--cloud-mask);mask-image:var(--cloud-mask);",
      "-webkit-mask-image:none;mask-image:none;",
      ("painting on the page", "onto flat page colour")),
-    ("a tile that no longer matches the travel",
-     "background-repeat:repeat-x;background-size:50% 100%;",
-     "background-repeat:repeat-x;background-size:37% 100%;",
-     ("does not wrap",)),
-    ("the weather turned down to nothing",
+    # ── AND THIS ONE IS THE WHOLE POINT OF THE REWRITE ─────────────────────
+    # x0 is the tile's place in a world coordinate that only advances. Drop it
+    # and every tile draws chunk 0 forever: the field becomes exactly the
+    # repeating tile the gradient clouds were, which is the thing Jayden asked
+    # to be rid of and the thing a later "simplification" would reach for.
+    # It is one token, in the one line that makes the sky weather rather than
+    # wallpaper.
+    ("index.html", "a field that stops advancing, so the tile comes back round",
+     "var nx=(x0+j*pitch)/featW;",
+     "var nx=(0*x0+j*pitch)/featW;",
+     ("the sky repeats", "draws the same weather twice")),
+    ("hero-time.css", "the weather turned down to nothing",
      '.hero[data-time-state="daytime"]{--cloud-strength:',
      '.hero[data-time-state="daytime"]{--cloud-strength:0;--dead:',
      ("no weather at all", "cannot be seen")),
@@ -505,16 +644,24 @@ INJECTIONS = (
 
 
 def self_test(base_url_factory):
-    source = (ROOT / "hero-time.css").read_text(encoding="utf-8")
-    for name, site, inject, wanted in INJECTIONS:
+    """Re-inject each defect into the file that actually carries it.
+
+    Two of the three live in hero-time.css and one lives in index.html -- the
+    generator's world coordinate -- so the route is chosen per injection rather
+    than hard-wired to the stylesheet. An injection served to the wrong file is
+    a self-test that cannot fail, which is worse than none.
+    """
+    types = {"hero-time.css": "text/css", "index.html": "text/html"}
+    for target, name, site, inject, wanted in INJECTIONS:
+        source = (ROOT / target).read_text(encoding="utf-8")
         if site not in source:
             raise SystemExit(
-                f"--self-test cannot find the site for '{name}' in hero-time.css; "
+                f"--self-test cannot find the site for '{name}' in {target}; "
                 "update INJECTIONS to match it rather than letting the self-test "
                 "pass blind.")
         broken = source.replace(site, inject, 1)
         if "lifted out of the sky" in name:
-            broken = broken.replace(" top:40%;height:20%;", " top:8%;height:20%;", 1)
+            broken = broken.replace(" top:40%;height:24%;", " top:8%;height:24%;", 1)
         failures = []
         with sync_playwright() as pw:
             browser = pw.chromium.launch()
@@ -525,14 +672,16 @@ def self_test(base_url_factory):
                                                             "height": height})
                     context.add_init_script(
                         "try{sessionStorage.setItem('jbHeroTimeMode','daytime')}catch(e){}")
-                    context.route("**/hero-time.css*",
-                                  lambda route, req=None, body=broken: route.fulfill(
-                                      status=200, content_type="text/css", body=body))
+                    context.route(
+                        "**/" + target + "*",
+                        lambda route, req=None, body=broken, kind=types[target]:
+                        route.fulfill(status=200, content_type=kind, body=body))
                     page = context.new_page()
                     page.goto(base_url + "/index.html", wait_until="load")
                     page.wait_for_timeout(2200)
-                    if "does not wrap" in wanted:
-                        assert_seamless(page, failures, f"{width}x{height}")
+                    if "the sky repeats" in wanted:
+                        assert_never_repeats(page, failures, f"{width}x{height}",
+                                             verbose=False)
                     else:
                         page.evaluate(FREEZE)
                         page.wait_for_timeout(150)

@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import re
 from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -109,9 +110,23 @@ def static_contract():
     hero_time = (ROOT / "hero-time.css").read_text(encoding="utf-8")
     controls = (ROOT / "controls.css").read_text(encoding="utf-8")
     assert ".surface--hero{" in controls and "box-shadow:none" in controls.split(".surface--hero{", 1)[1].split("}", 1)[0]
+    # ── THE SEAM IS A JOIN NOW, NOT A VEIL, AND THE OLD NUMBERS WERE STALE ──
+    # This demanded `var(--theme-page) 10%` and `transparent 28%`. Neither has
+    # been in the file since d82259a: the veil was cut back to a 0 -> 12% fade
+    # when the bar became its own opaque band with a hairline floor, and
+    # hero-time.css:838 carries the reasoning ("a hard stop there reads as a
+    # second band rather than as one surface. A short fade keeps the join
+    # soft"). The gate was red on a clean tree and was asserting a decision that
+    # had been reversed, which is the failure mode CLAUDE.md section 7 lists.
+    # WHAT IS STILL WORTH ASSERTING is the shape rather than the stop: the seam
+    # starts on the page's own colour at 0% and has reached transparent inside
+    # the top third of the Hero. That fails on a veil that grows back over the
+    # sky and on a seam deleted outright, and it does not fail every time the
+    # join is retuned by a few percent.
     seam = hero_time.split(".heroTimeGradient::after{", 1)[1].split("}", 1)[0]
-    assert "var(--theme-page) 0%" in seam and "var(--theme-page) 10%" in seam
-    assert "transparent 28%" in seam
+    assert "var(--theme-page) 0%" in seam, seam
+    stop = re.search(r"transparent (\d+)%", seam)
+    assert stop and 5 <= int(stop.group(1)) <= 33, seam
 
 def browser_contract(base_url):
     with sync_playwright() as p:
@@ -160,10 +175,16 @@ def browser_contract(base_url):
               // is narrowed to what is actually there and the count is
               // asserted, so the gate fails when the row empties instead of
               // congratulating it.
-              const controls = [...document.querySelectorAll('.heroCtas > *')]
-                .filter(node => node.offsetParent !== null || node.getClientRects().length)
-                .map(node => { const r = node.getBoundingClientRect();
-                  return {cls:node.className || node.tagName, width:r.width, height:r.height}; });
+              // ── AND THEN THE ROW ITSELF WENT.  2026-08-26 ──────────────
+              // .heroCtas is deleted, with a headstone at index.html:949 and
+              // the reasoning at :2605 -- it held exactly one control and the
+              // time-of-day trigger moved to the Hero's bottom-right corner.
+              // This gate went red on a clean tree the moment it did, because
+              // box('.heroCtas') dereferences null. What is left to assert is
+              // the deletion itself: if a row comes back, every measurement
+              // below that used to be taken against it has to be re-derived
+              // deliberately rather than silently, so this fails loudly.
+              const ctaRow = document.querySelector('.heroCtas');
               return {
                 hero: box('.hero'), cases: box('.cases'), itemGap: b.top - a.bottom,
                 tabsBottom: (document.querySelector('.collection__tabs')
@@ -172,8 +193,8 @@ def browser_contract(base_url):
                 heroShadow: heroStyle.boxShadow,
                 mobile: {
                   innerWidth: hero.getBoundingClientRect().width - parseFloat(heroStyle.paddingLeft) - parseFloat(heroStyle.paddingRight),
-                  lineCount, copy: box('.heroCopy'), ctas: box('.heroCtas'),
-                  peek: levelBox('.heroCharacterPeek .stagewrap'), controls
+                  lineCount, copy: box('.heroCopy'), ctaRow: !!ctaRow,
+                  peek: levelBox('.heroCharacterPeek .stagewrap')
                 }
               };
             }""")
@@ -196,10 +217,14 @@ def browser_contract(base_url):
             if width <= 760:
                 assert state["mobile"]["lineCount"] <= 3, state
                 assert state["mobile"]["copy"]["top"] >= state["hero"]["top"], state
-                assert state["mobile"]["ctas"]["bottom"] <= state["hero"]["bottom"], state
+                assert state["mobile"]["copy"]["bottom"] <= state["hero"]["bottom"], state
                 assert state["mobile"]["peek"]["top"] >= state["hero"]["top"], state
-                assert state["mobile"]["controls"], ("the CTA row has no controls left", state)
-                assert all(control["width"] >= 43.5 and control["height"] >= 43.5 for control in state["mobile"]["controls"]), state
+                assert not state["mobile"]["ctaRow"], (
+                    "the CTA row is back in the Hero -- it was deleted on "
+                    "2026-08-26 (index.html:949) and this gate's phone "
+                    "measurements were re-aimed at .heroCopy's lower edge "
+                    "because of it. Re-derive them before re-enabling it.",
+                    state)
                 if width <= 420:
                     # ── THE HEAD IS SMALLER, AND THAT IS JAYDEN'S CALL ────
                     # The old band (.60-.72) described a 336px portrait filling
@@ -277,7 +302,18 @@ def browser_contract(base_url):
                     page.wait_for_timeout(700)
                     page.screenshot(path=str(ARTIFACTS / f"home-{width}-{height}-{capture}.png"), full_page=False)
             page.evaluate("document.querySelectorAll('.jbStick,.heroCopy').forEach(el => el.style.visibility = 'hidden')")
-            for theme in ("off", "pre-dawn", "sunrise", "daytime", "dusk", "sunset", "night"):
+            # ── NIGHT IS NOT IN THIS LIST, AND THAT IS THE SKY'S DESIGN ────
+            # Every other state's gradient fades out before the Hero's top edge
+            # -- daytime stops lowest, at 32% -- so the top row is the page's
+            # own colour and this assertion means "nothing paints above the
+            # sky". Night's gradient RUNS FULL HEIGHT, by design and measured:
+            # tools/hero-cloud-field-contract.py records its sky beginning at
+            # row 0 at both viewports while the other five begin at 5.7% to 32%.
+            # Sampled two rows in, night reads 150,151,155 against a page of
+            # 253 -- a hundred levels, not a rounding error, and it is the
+            # picture Jayden approved. Asserting page colour there was
+            # asserting that one of the six states does not exist.
+            for theme in ("off", "pre-dawn", "sunrise", "daytime", "dusk", "sunset"):
                 page.evaluate("state => window.SiteTheme.setMode(state,{persist:false})", theme)
                 page.wait_for_function("state => document.querySelector('#main').dataset.timeState === state", arg=theme)
                 page.wait_for_timeout(700)
@@ -294,10 +330,26 @@ def browser_contract(base_url):
                     int(hero["x"] + hero["width"] * .75),
                     int(hero["x"] + hero["width"] - 3),
                 )
+                # ── THE TOLERANCE IS A CHANNEL SUM NOW, AND IT MOVED WITH
+                #    THE VEIL ────────────────────────────────────────────────
+                # This asked for every channel to be inside 2 of --theme-page.
+                # It went red on a clean tree when the seam was cut back from a
+                # 0 -> 28% veil to a 0 -> 12% join (d82259a): the sample is two
+                # rows into a 560px Hero, which is 0.36% down a fade that is now
+                # three times steeper, so the sky shows through by three levels
+                # on one channel. Pre-dawn at mid-width read 250,251,253 against
+                # 253,253,253 -- a channel SUM of 5.
+                # 6 IS NOT A LOOSENING, IT IS THE SITE'S OWN DEFINITION OF
+                # "this pixel is still flat page colour":
+                # tools/hero-cloud-field-contract.py's sky_top() uses the same
+                # number to decide where each sky begins, and it is the number
+                # every measurement of the mask's placement was taken with. Two
+                # gates disagreeing about what page colour is, is how the veil
+                # change came to read as a regression.
                 for x in xs:
                     actual = image.getpixel((x, y))
                     hit = page.evaluate("([x,y]) => { const el = document.elementFromPoint(x,y); return el && `${el.tagName}.${el.className}`; }", [x, y])
-                    assert max(abs(actual[i] - expected[i]) for i in range(3)) <= 2, (
+                    assert sum(abs(actual[i] - expected[i]) for i in range(3)) <= 6, (
                         width, height, theme, x, hero, hit, actual, expected
                     )
             page.close()
@@ -317,16 +369,15 @@ INJECTIONS = {
     # home-minimal-hero-contract.py carries the same headstone.
     "full-height-hero": ("--heroReveal:clamp(0px,calc(100svh - 560px),500px)",
                          "--heroReveal:0px"),
-    # the CTA row emptied. Before this pass all([]) was True and let it through.
-    # INJECTED INLINE, NOT AS A RULE. The first attempt appended
-    # `.heroCtas>*{display:none}` to that rule in index.html's <style> and it
-    # did NOT trip the gate: controls.css and hero-time.css link after that
-    # block, so their equal-specificity display on the row's children wins --
-    # the same link-order trap the site's own notes keep pointing at. An
-    # injection that cannot fail is worse than none, so it moved to the one
-    # place nothing in a stylesheet can outrank.
-    "empty-cta-row": ('<div class="heroCtas">',
-                      '<div class="heroCtas" style="display:none">'),
+    # the CTA row back in the Hero. It replaces "empty-cta-row", whose needle
+    # was `<div class="heroCtas">` -- deleted on 2026-08-26 (index.html:949), so
+    # the injection could no longer be found and the assertion it aimed at could
+    # no longer be reached. The phone measurements were re-aimed at .heroCopy's
+    # lower edge when the row went, and this is what makes putting one back a
+    # loud failure rather than a silent change of what is being measured.
+    "cta-row-returns": ('<div class="heroCopy">',
+                        '<div class="heroCtas"><button type="button">x</button></div>'
+                        '<div class="heroCopy">'),
 }
 
 
