@@ -109,7 +109,7 @@ img{display:block;max-width:100%;height:auto}   /* height:auto IS THE COMPANION 
    with nothing binding them, which is why it never read as a bar. Gone with it:
    .back, .talk and .navTitle (the page names itself in its own h1). */
 
-/* left-aligned content on the page margin; a slim section indicator floats in the right margin */
+/* left-aligned content on the page margin; the chapter list floats in the left margin */
 
 /* THE INSET BELOW THE BAND IS THE SITE'S, NOT THIS PAGE'S. --sp-48-64 resolved
    to 48 on a phone and 56 from 881 up. That was fine on its own and wrong as one
@@ -126,7 +126,7 @@ img{display:block;max-width:100%;height:auto}   /* height:auto IS THE COMPANION 
 .rail{position:absolute;right:100%;top:0;bottom:0;width:var(--rail-w);margin-right:var(--rail-gutter);z-index:3;pointer-events:none}
 .rail.railGone .chapters{opacity:0;pointer-events:none}
 
-/* section indicator: subtle uniform chapter ticks, the current one emphasized; hovering the rail reveals the labels */
+/* the chapter list: the section you are in is the bold one. No ticks -- see below. */
 .chapters{display:flex;flex-direction:column;align-items:flex-start;gap:var(--sp-30);padding:0;pointer-events:auto;position:sticky;top:50vh;transform:translateY(-50%);transition:opacity .4s ease}
 /* HEADER V2 (2026-08-03): the rail's sticky offset now knows the bar is there.
    MEASURED FIRST, because the adoption list's claim did not reproduce: at
@@ -160,15 +160,37 @@ img{display:block;max-width:100%;height:auto}   /* height:auto IS THE COMPANION 
    background and .clabel sets its own ink; the first currentColor anyone puts
    inside a rail link would come out browser-blue. With the accent gone to ink
    this was the only blue value left computing anywhere on the site. */
-.chap{display:grid;grid-template-columns:28px minmax(0,1fr);align-items:center;column-gap:16px;height:14px;text-decoration:none;outline-offset:4px;position:relative;color:var(--c500)}
+/* ── THE TICKS ARE GONE, AND THE WORDS TAKE THEIR PLACE.  2026-08-26 ────────
+   Jayden: "i keep thinking I dont think i like the indicators i think just
+   removing them and making sure everything lives up to the minimizim and apple
+   aestetic." He has been circling these for two days, so they are removed
+   rather than restyled a fourth time.
+   WHAT THE RAIL ACTUALLY WAS: a column of five 28x2 dashes, .4 opacity, with the
+   chapter NAMES at opacity:0 until the pointer entered the rail. So at rest the
+   only section navigation on a case study was five grey dashes -- a legend with
+   no key -- and reading it required discovering that hovering did something.
+   THE ANSWER IS THE ONE THE NAV REACHED THIS MORNING. The header's lit item
+   dropped its grey pill the same day, on the same argument: the weight change
+   already says where you are, so the decoration beside it is a second, weaker
+   copy of one signal. Here the decoration was the ONLY signal and the real one
+   was hidden, which is the same mistake with the halves swapped. The labels are
+   always on now -- --c500 at 400, --c950 at 600 for the section you are in --
+   and nothing else is drawn. Five words instead of five dashes plus five words
+   you have to go looking for.
+   THE TARGETS DO NOT MOVE. The ::after expander still takes each 14px row to
+   --tap-min, and .chapters keeps --sp-30 so the 44px targets TILE exactly at a
+   14 + 30 pitch -- that arithmetic is unchanged and is why the gap is not a
+   round number. The grid loses its first column (28px tick + 16px gutter), so
+   the rail's ink starts 44px further left inside the same --rail-w; the rail's
+   own box, the sticky centring and the railGone fade are untouched.
+   colour ON .chap IS STILL LOAD-BEARING: without it the anchor computes the
+   UA's -webkit-link blue, and with .tick gone .clabel's own ink is the only
+   thing that was hiding it. */
+.chap{display:block;height:14px;text-decoration:none;outline-offset:4px;position:relative;color:var(--c500)}
 .chap::after{content:"";position:absolute;top:50%;left:0;right:0;height:var(--tap-min);transform:translateY(-50%)}
-.tick{grid-column:1;grid-row:1;justify-self:start;width:28px;height:2px;transform-origin:left center;transform:scaleX(.5714);background:var(--c500);opacity:.4;transition:opacity var(--ease-out-dur) var(--ease-out),background var(--ease-out-dur) var(--ease-out),transform var(--sp-quick-dur) var(--sp-quick);}
-.chap[aria-current="true"] .tick{background:var(--c950);opacity:1;transform:scaleX(1)}
-.clabel{grid-column:2;grid-row:1;justify-self:start;text-align:left;font-family:var(--sans);font-weight:400;font-size:var(--fs-small);letter-spacing:var(--tr-body);color:var(--c500);white-space:nowrap;opacity:0;transform:translateX(-4px);transition:opacity var(--ease-out-dur) var(--ease-out),transform var(--ease-out-dur) var(--ease-out),color var(--ease-out-dur) var(--ease-out);}
+.clabel{display:block;text-align:left;font-family:var(--sans);font-weight:400;font-size:var(--fs-small);letter-spacing:var(--tr-body);line-height:14px;color:var(--c500);white-space:nowrap;transition:color var(--ease-out-dur) var(--ease-out)}
 .chap[aria-current="true"] .clabel{color:var(--c950);font-weight:600}
-.rail:hover .clabel,.rail:focus-within .clabel{opacity:1;transform:none}
-.chap:hover .clabel,.chap:focus-visible .clabel{color:var(--accent)}
-.chap:hover .tick{opacity:.75}
+.chap:hover .clabel,.chap:focus-visible .clabel{color:var(--c950)}
 
 /* content tiers: text holds a readable measure on a strong left edge; the cover runs margin to margin */
 .wide{position:relative;overflow:hidden;background:var(--c100);margin:var(--sp-40-64) 0 0;width:100%}
@@ -711,8 +733,15 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
     <a class="backlink ctl ctl--nav" data-nav-item="home" href="index.html" aria-label="Home"><svg class="gIco uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span class="jbLbl">Home</span></a>
     <a class="backlink ctl ctl--nav" data-nav-item="about" href="index.html#about" aria-label="About"><svg class="gIco uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/></svg><span class="jbLbl">About</span></a>
     <a class="ctl ctl--nav" data-nav-item="games" href="play.html" aria-label="Play"><svg class="gIco uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><line x1="6" x2="10" y1="11" y2="11"/><line x1="8" x2="8" y1="9" y2="13"/><line x1="15" x2="15.01" y1="12" y2="12"/><line x1="18" x2="18.01" y1="10" y2="10"/><path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258-.006-.051-.011-.1-.017-.151A4 4 0 0 0 17.32 5z"/></svg><span class="jbLbl">Play</span></a>
-   <a class="ctl ctl--nav" data-nav-item="workspace" href="workspace/" aria-label="Workspace"><svg class="gIco uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M2 6h4"/><path d="M2 10h4"/><path d="M2 14h4"/><path d="M2 18h4"/><rect width="16" height="20" x="4" y="2" rx="2"/><path d="M16 2v20"/></svg><span class="jbLbl">Workspace</span></a>
-    <!-- ── THE TIME OF DAY, IN THE CHROME THAT THE STATE ACTUALLY REACHES ──────
+   <!-- WORKSPACE LEFT THE BAR, 2026-08-26. Jayden: "for workspace instead of
+        being a whole tab please add it to the play page as well I feel like that
+        makes more sense." It is his own tool rather than a case study, and Play
+        is where the things he built live; play.html carries it as a card now.
+        /workspace/ is untouched and still reachable. It was also the widest
+        label in the bar (98px at 1440, 44 as a glyph on a phone), and the bar
+        needed exactly that back: the time-of-day switch had just taken the
+        seventh slot, which at 320 does not exist. -->
+   <!-- ── THE TIME OF DAY, IN THE CHROME THAT THE STATE ACTUALLY REACHES ──────
          Jayden, 2026-08-26: "the time of day button should be in the header since
          it affects all the pages." It writes data-theme-mode / data-theme-state on
          <html>; every page reads them. It used to live in index.html's Hero rail.
@@ -759,11 +788,11 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
  <div class="layout" id="main" tabindex="-1">
   <aside class="rail" aria-label="Sections">
    <nav class="chapters" aria-label="Chapters">
-    <a href="#overview" class="chap" aria-current="true"><span class="clabel">Overview</span><span class="tick" aria-hidden="true"></span></a>
-    <a href="#problem" class="chap"><span class="clabel">Problem</span><span class="tick" aria-hidden="true"></span></a>
-    <a href="#research" class="chap"><span class="clabel">Research</span><span class="tick" aria-hidden="true"></span></a>
-    <a href="#system" class="chap"><span class="clabel">Solution</span><span class="tick" aria-hidden="true"></span></a>
-    <a href="#outcome" class="chap"><span class="clabel">Outcome</span><span class="tick" aria-hidden="true"></span></a>
+    <a href="#overview" class="chap" aria-current="true"><span class="clabel">Overview</span></a>
+    <a href="#problem" class="chap"><span class="clabel">Problem</span></a>
+    <a href="#research" class="chap"><span class="clabel">Research</span></a>
+    <a href="#system" class="chap"><span class="clabel">Solution</span></a>
+    <a href="#outcome" class="chap"><span class="clabel">Outcome</span></a>
    </nav>
   </aside>
 
@@ -871,7 +900,12 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
   <div class="footTop">
    <div class="footId">
     <a class="footBrand ctl ctl--quiet" href="index.html" aria-label="Jayden Betts, home"><svg class="footLogo" viewBox="0 0 30 30" aria-hidden="true"><path d="M9.38 6.33Q8.81 5.88 8.81 5.22Q8.81 4.56 9.02 4.11Q9.23 3.66 9.64 3.34Q10.5 2.65 12.08 2.65Q13.59 2.65 14.07 3.87Q14.22 4.22 14.22 4.65Q14.22 5.08 13.87 5.48Q13.53 5.88 13.01 6.16Q12.49 6.45 11.89 6.6Q11.29 6.76 10.82 6.76Q10.36 6.76 10.01 6.65Q9.66 6.54 9.38 6.33ZM6.68 20.73Q6.26 22.35 5.92 23.6Q5.57 24.85 5.15 25.72Q4.73 26.58 4.16 27.03Q3.58 27.48 2.86 27.48Q2.15 27.48 1.71 27.32Q1.27 27.16 0.93 26.92Q0.24 26.43 0 25.82Q1.03 25 5.29 16.53Q7.69 11.74 8.78 9.81Q9.23 9.01 9.95 9.01Q10.36 9.01 10.89 9.28Q8.94 13.14 7.63 17.43Q10.21 16.98 12.48 15.01Q13.18 14.4 13.62 13.74Q14.22 13.7 14.22 14.23Q14.22 14.44 13.89 15.23Q13.57 16.01 12.77 17.03Q11.98 18.05 10.99 18.81Q9.06 20.31 6.68 20.73ZM19.4 10.16Q21.18 9.11 22.86 9.11Q25.54 9.11 26.23 11.15Q26.45 11.78 26.45 12.71Q26.45 14.72 24.96 16.86Q26.21 16.68 27.37 15.87Q28.54 15.05 29.4 13.74Q30 13.7 30 14.23Q30 14.44 29.87 14.75Q27.35 20.86 17.63 20.86H17.6Q15.81 20.86 14.64 19.81Q13.37 18.66 13.37 16.59Q13.37 14.05 18.01 7.39Q19.97 4.55 21.37 2.96Q21.75 2.52 22.4 2.52Q23.12 2.52 23.45 3.05Q20.72 7.33 19.4 10.16ZM18.04 13.83Q17.86 14.67 17.86 15.24Q17.86 15.81 18.21 16.2Q18.55 16.59 19.1 16.59Q19.66 16.59 20.23 16.4Q20.8 16.21 21.34 15.88Q21.88 15.54 22.37 15.1Q22.86 14.66 23.24 14.14Q24.03 13.02 24.03 12.03Q24.03 11.39 23.71 11.06Q23.18 10.5 22.53 10.5Q21.87 10.5 21.19 10.78Q20.52 11.05 19.92 11.51Q18.63 12.48 18.04 13.83Z"/></svg></a>
-    <p class="footStatus">Open to full-time roles.</p>
+    <!-- 2026-08-26, his words exactly, full stop included. It replaces "Open to
+        full-time roles." -- which the Hero already says on index.html and the About
+        page said a third time in its facts block. Three copies of one fact is what
+        was actually wrong with it; the availability now lives in ONE place (the
+        Hero's status line) and the footer says something only he would say. -->
+    <p class="footStatus">Fear of living an ordinary life.</p>
     <p class="footCopy">&copy; 2026 Jayden Betts</p>
    </div>
    <nav class="footNav" aria-label="Footer">

@@ -1531,33 +1531,18 @@
 @media(max-width:360px){
   .jbNav{gap:var(--sp-4)}
   .jbGrp{gap:var(--sp-4)}
-  /* ── 320 CANNOT HOLD A SEVENTH ITEM, AND THIS IS THE ONE THAT GIVES ────────
-     The time-of-day switch joined the bar on 2026-08-26 and the arithmetic at
-     320 does not survive it. The bar is 288px inside the page's own 16px
-     gutters. Seven 44px targets are 308 before a single gap, and six --sp-4
-     gaps want 24 more: 332 against 288, forty-four over. Nothing recovers that.
-       - the targets cannot shrink: 44px is measured on this site, not declared,
-         and 6px of overlap here is what made a tap near Workspace's right edge
-         land on Contact (3 of 5 sampled points) the last time it was tried;
-       - the gaps are already at their floor -- --sp-8 was cut to --sp-4 at this
-         width for exactly this reason, and 0 still leaves it 20px short;
-       - the gutters are shared with the tab row, the first cover and the
-         footer's rule, so moving them breaks the column the structural rule
-         aligns to.
-     SO ONE ITEM LEAVES, AND WORKSPACE IS THE LEAST COSTLY. It is the only
-     destination in the bar that is not part of the portfolio's argument -- it is
-     his own tool, a separate installable app at /workspace/, not a case study,
-     not the games and not a way to reach him. Everything else in the bar earns
-     its 44px at 320: the mark, Home, About, Play, Contact, and the switch that
-     is the whole point of this change. Measured after: 6 x 44 + 5 x 4 = 284
-     against 288, which is the same 4px of slack the bar shipped with yesterday.
-     IT IS A WIDTH, NOT A DELETION. Workspace is in the bar at 361px and above,
-     where it fits, and this is scoped to the one width that cannot afford it.
-     FLAGGED FOR JAYDEN: this is my call, not his. If Workspace has to be on a
-     320px phone, the item that leaves instead has to be one of the other six.
-     aria-hidden rides with display:none so a screen reader is not offered a
-     link the layout has taken away. */
-  .jbNav [data-nav-item="workspace"]{display:none}
+  /* THE SEVENTH-ITEM PROBLEM SOLVED ITSELF, AND THIS IS ITS HEADSTONE.
+     For about an hour on 2026-08-26 this block hid Workspace below 360, because
+     the time-of-day switch had made the bar seven items and 320 has room for
+     six: the bar is 288px inside the page's own 16px gutters, seven 44px targets
+     are 308 before a single gap, and six --sp-4 gaps want 24 more -- 332 against
+     288. The targets cannot shrink (44px is measured here, not declared), the
+     gaps were already at their floor, and the gutters are shared with the tab
+     row, the first cover and the footer's rule.
+     Jayden removed Workspace from the bar outright in the same hour, for his own
+     reason -- it belongs on Play with the other things he built -- so the bar is
+     six items again and nothing needs hiding at any width. The arithmetic is
+     kept because it is the constraint any future seventh item runs into. */
 }
 
 
