@@ -19,7 +19,7 @@
      Nothing below re-styles a .ctl: the selected pill is .ctl--primary and the
      resting one .ctl--quiet, swapped in script. The private tab rules this page
      used to carry are gone with the bar they belonged to. -->
-<link rel="stylesheet" href="tokens.css?v=99ded98629">
+<link rel="stylesheet" href="tokens.css?v=98d7b6f74e">
 <style>
 /* ═══════════════════════════════════════════════════════════════════════════
    THE 2026 DRAFT BOARD.
@@ -68,15 +68,14 @@
     studies; the appendix prose on a data page still wants a readable line, so
     this page names its own rather than reaching for one that does not exist. */
  --db-measure:680px;
- /* THE COLUMN THE TOOL ITSELF RUNS IN. The board used to be a three-across grid
-    inside the full 1280 page measure, so each reason sat on a ~380px line. With
-    one round on screen the same paragraph inherited the whole 1200px column and
-    became a single unreadable line -- caught on a 1440 screenshot, not by any
-    measurement, which is the only way that class of defect is ever caught. */
- /* 800 is measured: prev 44 + fifteen 44px round targets + fourteen 2px gaps +
-    next 44 = 784, so the whole round strip fits without clipping at desktop and
-    starts scrolling exactly where the page gutter takes the room away. */
- --db-col:800px;
+ /* THE REASON'S MEASURE, AND THE ONLY MEASURE ON THE PAGE. With one round on
+    screen the reason paragraph inherited the whole 1200px column and became a
+    single unreadable line. The answer is NOT to narrow the page -- an 800px
+    column left-aligned in a 1200px wrap left 400px of dead page beside chrome
+    that ran past it, which is the "random line" geometry docs/house-style.md
+    §1 is written against. The page is on the column now and the row is two
+    columns inside it: who, then why. */
+ --db-why:62ch;
 }
 :root[data-theme="dark"]{
  --pos-rb:#31B97A;--pos-wr:#6C9AD8;--pos-te:#D2872B;
@@ -92,26 +91,38 @@
 html{-webkit-text-size-adjust:100%;font-family:var(--sans);overflow-x:clip}
 /* Two weights, 400 and 600. The UA default for <b>/<strong> is 700. */
 b,strong{font-weight:600}
-body{font-family:var(--sans);font-size:var(--fs-body);line-height:var(--lh-body);
- letter-spacing:var(--tr-body);font-weight:400;
+/* NO font-size ON <body>. This page was the only one on the site that set one,
+   and .jbNav inherited it -- the shared header computed 15px here against 16px
+   on the other eight pages. The page's prose size belongs to the page's content,
+   so it is declared on <main> and the chrome is left alone. */
+body{font-family:var(--sans);font-weight:400;
  background:var(--theme-page);color:var(--theme-ink);overflow-x:clip;
  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+main{font-size:var(--fs-body);line-height:var(--lh-body);letter-spacing:var(--tr-body)}
 
 /* The shared column, the same 1280/40 the rest of the site uses. */
-.wrap{position:relative;max-width:var(--page-max);margin:0 auto;padding-inline:var(--sp-40)}
-@media(max-width:760px){.wrap{padding-inline:var(--sp-24)}}
-@media(max-width:400px){.wrap{padding-inline:var(--sp-16)}}
-.siteFoot{margin-top:var(--sp-56-96);padding-bottom:var(--sp-32-64);scroll-margin-top:80px}
+/* --surface-gutter is 40 above 760 and 16 below it, which is the column home
+   measures at 120..1320 / 16..374 / 16..304. It was 40 / 24 / 16 here, so the
+   phone gutter was 8px off the rest of the site at 390. */
+.wrap{position:relative;max-width:var(--page-max);margin:0 auto;
+ padding-inline:var(--surface-gutter)}
+.siteFoot{margin-top:var(--sp-56-112);padding-bottom:var(--sp-32-64);scroll-margin-top:80px}
 
 /* ── masthead ─────────────────────────────────────────────────────────────
    Four lines, and the fourth is a control. The page used to open with an
    eyebrow, a headline, a three-line dek, a league line, four paragraphs of
    thesis and four stat tiles before a single player's name -- 106 words on the
    first screen at 1440 and not one recommendation. */
-.dbCol{max-width:var(--db-col)}
-.dbHead{padding-block:var(--sp-32) var(--sp-24)}
-.dbEyebrow{font-size:var(--fs-label);font-weight:600;letter-spacing:var(--tr-caps);
- text-transform:uppercase;color:var(--theme-muted);margin-bottom:var(--sp-10)}
+/* ── TYPE ──────────────────────────────────────────────────────────────────
+   docs/house-style.md §3: home carries the whole page on six sizes and has no
+   uppercase type anywhere. This page had twenty elements of running prose at
+   12px, four more at 11px, and was the only page on the site setting
+   text-transform. It runs on 35 · 18 · 15 · 13 · 11 now -- 15 for anything you
+   read, 13 for anything you glance at, and 11 kept for exactly the role home
+   keeps it for: a short 600-weight label with positive tracking. Nothing is
+   uppercase; weight and ink do the work the capitals were doing. */
+.dbHead{padding-block:var(--sp-40) var(--sp-24)}
+.dbEyebrow{font-size:var(--fs-nav);color:var(--theme-muted);margin-bottom:var(--sp-8)}
 .dbHeadRow{display:flex;align-items:center;justify-content:space-between;
  gap:var(--sp-16);flex-wrap:wrap}
 .dbHead h1{font-size:var(--fs-pagehead-sm);font-weight:600;
@@ -124,9 +135,9 @@ body{font-family:var(--sans);font-size:var(--fs-body);line-height:var(--lh-body)
    behind an edge at 390 and six at 320. It reflows 12 / 6 / 4 instead, so every
    seat is on screen at every width this site is tested at. */
 .dbSlotSect{padding-bottom:var(--sp-24);border-bottom:var(--hair-w) solid var(--rule)}
-.dbLbl{font-size:var(--fs-label);font-weight:600;letter-spacing:var(--tr-caps);
- text-transform:uppercase;color:var(--theme-muted);margin-bottom:var(--sp-10)}
-.dbSlots{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:var(--sp-4)}
+.dbLbl{font-size:var(--fs-nav);font-weight:600;color:var(--theme-ink);
+ margin-bottom:var(--sp-8)}
+.dbSlots{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:var(--gap-item)}
 @media(max-width:760px){.dbSlots{grid-template-columns:repeat(6,1fr)}}
 @media(max-width:380px){.dbSlots{grid-template-columns:repeat(4,1fr)}}
 /* padding only -- the control keeps its own height, radius, ink and press. A
@@ -134,54 +145,75 @@ body{font-family:var(--sans);font-size:var(--fs-body);line-height:var(--lh-body)
 .dbSlots>.ctl{padding-inline:var(--sp-4);font-variant-numeric:tabular-nums}
 
 /* the state before a seat is chosen: one sentence, no board. */
-.dbAsk{padding-block:var(--sp-24) var(--sp-48);color:var(--theme-ink-soft);max-width:var(--db-measure)}
+.dbAsk{padding-block:var(--sp-24) var(--sp-64);color:var(--theme-ink-soft);max-width:var(--db-measure)}
 
 /* ── the round, one at a time ─────────────────────────────────────────────
    The arrows are the draft-day control -- one thumb, one round forward. The
    track beside them is for jumping, and it is the only thing on this page that
    scrolls sideways, because fifteen 44px targets cannot fit 320px and a round
    number is not something you need to see all of at once. */
-.dbRoundNav{display:flex;align-items:center;gap:var(--sp-4);
+.dbRoundNav{display:flex;align-items:center;gap:var(--sp-8);
  padding-block:var(--sp-12);border-bottom:var(--hair-w) solid var(--rule)}
+/* THE ARROWS ARE A PHONE CONTROL AND ONLY A PHONE CONTROL. Above 820 all
+   fifteen rounds are on screen and one tap away, so a pair of steppers beside
+   them is a control that repeats what the row already offers -- and pinning the
+   forward one to the right edge left it floating 400px from the strip. They
+   stay below 820, where the strip scrolls and stepping one round with a thumb
+   is the whole interaction. Keyboard loses nothing: the row is a tablist and
+   answers the arrow keys at every width. */
+@media(min-width:821px){.dbRoundNav>.ctl--icon{display:none}}
+/* flex:1 so the arrows bookend the column: previous on the left edge, next on
+   the right, the strip between them. At 0 1 auto the row stopped at 900 and
+   left 400px of empty page beside a hairline that ran the full column. */
 .dbTrack{display:flex;gap:var(--sp-2);overflow-x:auto;scrollbar-width:none;
- scroll-snap-type:x proximity;min-width:0;flex:0 1 auto}
+ scroll-snap-type:x proximity;min-width:0;flex:1 1 auto}
 .dbTrack::-webkit-scrollbar{display:none}
  /* measured, not declared: --ctl-pad on a two-digit label gives a 41px box and
     a round number is a target you hit with a thumb at a table. */
 .dbTrack>.ctl{scroll-snap-align:center;flex:0 0 auto;font-variant-numeric:tabular-nums;
  min-width:var(--tap-min);padding-inline:var(--sp-8)}
-/* RIGHT EDGE ONLY, and that is not laziness. A symmetric fade erases the LEFT
-   end of the strip, where the selected round sits at rounds 1-3 -- at 390 it
-   rendered the black "1" pill as a gradient into nothing. Seen on a screenshot;
-   no measurement would have said anything was wrong. The strip only ever runs
-   off to the right, so that is the only edge that needs telling. */
+/* BOTH EDGES FADE, AND THE PADDING IS WHAT MAKES THAT SAFE. A symmetric fade on
+   its own erased the LEFT end of the strip, where the selected round sits at
+   rounds 1-3 -- at 390 it rendered the black "1" pill as a gradient into
+   nothing. A right-only fade then left a half-cut "1" sitting at the left edge
+   once the strip scrolled, which reads as a rendering fault rather than as more
+   content. Both were seen on a screenshot; neither would have shown up in a
+   measurement. The 28px of scroll padding matches the fade, so at either end of
+   the travel the first and last pill clear the gradient completely and the fade
+   only ever eats empty track. */
 @media(max-width:820px){
- .dbTrack{-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 28px),transparent);
-          mask-image:linear-gradient(90deg,#000 calc(100% - 28px),transparent)}
+ .dbTrack{padding-inline:28px;
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 28px,#000 calc(100% - 28px),transparent);
+          mask-image:linear-gradient(90deg,transparent,#000 28px,#000 calc(100% - 28px),transparent)}
 }
 
 /* ── the answer ───────────────────────────────────────────────────────────── */
-.dbBoard{padding-block:var(--sp-24)}
+.dbBoard{padding-block:var(--sp-24) var(--sp-40)}
 .dbCtx{display:flex;align-items:baseline;gap:var(--sp-8) var(--sp-16);flex-wrap:wrap;
  margin-bottom:var(--sp-16)}
-.dbCtx h2{font-size:var(--fs-h3);font-weight:600;line-height:var(--lh-tight);
- letter-spacing:var(--tr-sub);font-variant-numeric:tabular-nums}
-.dbCtx .at{font-size:var(--fs-label);letter-spacing:var(--tr-caps);text-transform:uppercase;
- color:var(--theme-muted);font-variant-numeric:tabular-nums}
+.dbCtx h2{font-size:var(--fs-lead);font-weight:600;line-height:var(--lh-tight);
+ letter-spacing:var(--tr-head);font-variant-numeric:tabular-nums}
+.dbCtx .at{font-size:var(--fs-nav);color:var(--theme-muted);
+ font-variant-numeric:tabular-nums}
 
 /* what you already hold. It is context for "why him here" -- the quota is half
    the reason the model says what it says -- so it stays at rest, on one line. */
-.dbHave{display:flex;flex-wrap:wrap;align-items:baseline;gap:var(--sp-6) var(--sp-16);
- margin-bottom:var(--sp-16);font-size:var(--fs-label);color:var(--theme-ink-soft)}
-.dbHave .k{font-size:var(--fs-caption);font-weight:600;letter-spacing:var(--tr-caps);
- text-transform:uppercase;color:var(--theme-muted)}
+.dbHave{display:flex;flex-wrap:wrap;align-items:baseline;gap:var(--sp-8) var(--sp-16);
+ margin-bottom:var(--sp-16);font-size:var(--fs-nav);color:var(--theme-ink-soft)}
+.dbHave .k{font-weight:600;color:var(--theme-ink)}
 .dbHave .h i{font-style:normal;font-weight:600;color:var(--pc)}
 @media(max-width:720px){.dbHave .h{flex:1 1 100%}}
 
 .dbCard{border:var(--hair-w) solid var(--rule);border-radius:var(--r-lg);corner-shape:var(--corner);
  background:var(--theme-surface);overflow:hidden}
 
-/* a pick. The whole row is the target; 44px is measured, not declared. */
+/* A PICK, AND WHAT THE COLUMN IS FOR.
+   On the column the row is two columns: WHO on the left, WHY on the right. That
+   is the honest use of 1200px for this content -- the alternative was an 800px
+   page with 400px of nothing beside it, or a reason paragraph running the whole
+   width, and both of those are worse than a table that reads across. Below 900
+   it stacks back to name-over-reason, which is the phone layout unchanged.
+   The whole row is the target; 44px is measured, not declared. */
 .dbPick{display:block;width:100%;border:0;background:none;text-align:left;
  padding:var(--sp-14) var(--sp-16);border-top:var(--hair-w) solid var(--rule);
  font:inherit;color:inherit;cursor:pointer;position:relative;
@@ -192,36 +224,48 @@ body{font-family:var(--sans);font-size:var(--fs-body);line-height:var(--lh-body)
 .dbPick:focus-visible{outline:var(--focus-w) solid var(--ctl-focus);outline-offset:calc(var(--focus-w) * -1)}
 .dbPick:active{transition-duration:var(--dur-press)}
 .dbPickHd{display:flex;align-items:baseline;gap:var(--sp-8)}
-.dbRank{flex:0 0 auto;width:var(--sp-12);font-size:var(--fs-caption);color:var(--theme-muted);
+.dbRank{flex:0 0 auto;width:var(--sp-12);font-size:var(--fs-nav);color:var(--theme-muted);
  font-variant-numeric:tabular-nums}
 .dbName{flex:0 1 auto;min-width:0;font-size:var(--fs-small);font-weight:600;
  letter-spacing:var(--tr-title);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* The one 11px role, and it is home's role for 11px exactly: a short
+   600-weight label at +.01em. Both of these are two- and three-letter
+   abbreviations, never prose. */
 .dbPos{flex:0 0 auto;font-size:var(--fs-caption);font-weight:600;
- letter-spacing:var(--tr-caps);color:var(--pc)}
-.dbTeam{flex:0 0 auto;font-size:var(--fs-caption);color:var(--theme-muted);
- letter-spacing:var(--tr-caps)}
+ letter-spacing:.01em;color:var(--pc)}
+.dbTeam{flex:0 0 auto;font-size:var(--fs-caption);font-weight:600;
+ letter-spacing:.01em;color:var(--theme-muted)}
 /* An injury flag stays at rest and nothing else does. It is not a statistic --
    it changes whether you take the man at all, and a note you have to open to
    find is a note that arrives after the pick. */
 .dbFlag{flex:0 0 auto;font-size:var(--fs-caption);font-weight:600;
- letter-spacing:var(--tr-caps);text-transform:uppercase;color:var(--theme-ink)}
+ letter-spacing:.01em;color:var(--theme-ink)}
 
-/* THE REASON, WHICH IS THE PRODUCT. It is the only prose on a resting row. */
- /* THE REASON RUNS AT BODY SIZE. It was --fs-label, 12px, which is the size
-    this page uses for things you glance at. He reads this one: "the only info I
-    need to know is why each player is selected." The measure is capped so it
-    breaks at ~75 characters instead of running the width of the card. */
-.dbWhyLine{display:block;margin:var(--sp-6) 0 0 var(--sp-20);max-width:56ch;
+/* THE REASON, WHICH IS THE PRODUCT. It is the only prose on a resting row, and
+   it runs at body size: 15px, the size home sets running text at. It was 12px,
+   which is the size this page uses for things you glance at, and he reads this
+   one -- "the only info I need to know is why each player is selected." */
+.dbWhyLine{display:block;margin:var(--sp-8) 0 0 var(--sp-20);max-width:var(--db-why);
  font-size:var(--fs-body);line-height:var(--lh-body);color:var(--theme-ink-soft)}
 /* "projection only" is an honesty tag, not decoration: 132 of the 540 rows have
    no report behind them and say so without being opened. */
-.dbKind{font-size:var(--fs-caption);font-weight:600;letter-spacing:var(--tr-caps);
- text-transform:uppercase;color:var(--theme-muted);white-space:nowrap}
+.dbKind{font-size:var(--fs-caption);font-weight:600;letter-spacing:.01em;
+ color:var(--theme-muted);white-space:nowrap}
 .dbWhyLine .dbKind{margin-left:var(--sp-6)}
 
 /* everything else, one level deeper. grid-rows 0fr→1fr animates to auto height. */
 .dbWhy{display:grid;grid-template-rows:0fr;margin-left:var(--sp-20);
  transition:grid-template-rows var(--dur-reveal) var(--ease-out)}
+@media(min-width:900px){
+ .dbPick{display:grid;grid-template-columns:minmax(0,296px) minmax(0,1fr);
+  column-gap:var(--sp-24)}
+ .dbPickHd{grid-column:1}
+ .dbWhyLine{grid-column:2;margin:0}
+ .dbWhy{grid-column:2;margin-left:0}
+ /* a pool row carries no reason at rest, so its open panel takes the second
+    column on the same line rather than opening under an empty one. */
+ .dbPoolRow .dbWhy{grid-row:1}
+}
 .dbPick[aria-expanded="true"] .dbWhy{grid-template-rows:1fr}
 .dbWhyIn{overflow:hidden;min-height:0}
 /* A <span>, not a <p>: this lives inside a <button>, whose content model is
@@ -229,15 +273,15 @@ body{font-family:var(--sans);font-size:var(--fs-body);line-height:var(--lh-body)
    cope, the parser does not have to. */
 .dbWhy .dbTxt{display:block;margin-top:var(--sp-10);font-size:var(--fs-body);
  line-height:var(--lh-body);color:var(--theme-ink-soft);white-space:normal}
-.dbMeta,.dbFacts{display:flex;flex-wrap:wrap;gap:var(--sp-2) var(--sp-12);
- margin-top:var(--sp-8);font-size:var(--fs-caption);color:var(--theme-muted);
+.dbMeta,.dbFacts{display:flex;flex-wrap:wrap;gap:var(--sp-4) var(--sp-16);
+ margin-top:var(--sp-8);font-size:var(--fs-nav);color:var(--theme-muted);
  font-variant-numeric:tabular-nums}
 .dbMeta>span,.dbFacts>span{white-space:nowrap}
 .dbMeta em,.dbFacts em{font-style:normal;color:var(--theme-ink-soft)}
-.dbBase{display:block;margin-top:var(--sp-8);font-size:var(--fs-caption);
- line-height:var(--lh-note);color:var(--theme-muted);white-space:normal}
+.dbBase{display:block;margin-top:var(--sp-8);font-size:var(--fs-nav);
+ line-height:var(--lh-body);color:var(--theme-muted);white-space:normal}
 .dbBase b{font-weight:600;color:var(--theme-ink-soft)}
-.dbSrc{display:block;margin-top:var(--sp-8);font-size:var(--fs-caption);
+.dbSrc{display:block;margin-top:var(--sp-8);font-size:var(--fs-nav);
  color:var(--theme-muted);white-space:normal}
 .dbSrc a{color:inherit;text-decoration:underline;text-underline-offset:2px;
  text-decoration-color:var(--rule)}
@@ -250,8 +294,8 @@ body{font-family:var(--sans);font-size:var(--fs-body);line-height:var(--lh-body)
 .dbPoolRow:first-child{border-top:0}
 .dbPoolRow>.dbPick{flex:1 1 auto;min-width:0;border-top:0}
 .dbInfo{flex:0 0 auto;width:var(--sp-48);border:0;border-left:var(--hair-w) solid var(--rule);
- background:none;font:inherit;font-size:var(--fs-caption);letter-spacing:var(--tr-caps);
- text-transform:uppercase;color:var(--theme-muted);cursor:pointer;
+ background:none;font:inherit;font-size:var(--fs-nav);
+ color:var(--theme-muted);cursor:pointer;
  -webkit-tap-highlight-color:transparent;
  transition:background-color var(--dur-state-out) var(--ease-out)}
 .dbInfo:hover,.dbInfo:focus-visible{background:var(--ctl-ground-hover);color:var(--theme-ink)}
@@ -264,7 +308,7 @@ body{font-family:var(--sans);font-size:var(--fs-body);line-height:var(--lh-body)
 .dbMore{border-top:var(--hair-w) solid var(--rule)}
 .dbMore>summary{display:flex;align-items:center;gap:var(--sp-8);min-height:var(--tap-min);
  padding-block:var(--sp-8);list-style:none;cursor:pointer;
- font-size:var(--fs-label);line-height:var(--lh-note);color:var(--theme-muted);
+ font-size:var(--fs-body);line-height:var(--lh-body);color:var(--theme-muted);
  transition:color var(--dur-state-out) var(--ease-out)}
 .dbMore>summary::-webkit-details-marker{display:none}
 .dbMore>summary:hover{color:var(--theme-ink)}
@@ -274,23 +318,28 @@ body{font-family:var(--sans);font-size:var(--fs-body);line-height:var(--lh-body)
  transform:rotate(-45deg) translate(-1px,-1px);
  transition:transform var(--dur-state) var(--ease-out)}
 .dbMore[open]>summary::before{transform:rotate(45deg) translate(-2px,-2px)}
-.dbMoreIn{padding-block:var(--sp-8) var(--sp-32);max-width:var(--db-measure)}
-.dbMoreIn p{margin-bottom:var(--sp-12);font-size:var(--fs-label);
+/* THE MEASURE IS ON THE PROSE, NOT ON THE BLOCK. It was on .dbMoreIn, which
+   squeezed the four figures into 680px and turned the fourth into a column of
+   two-word lines. Paragraphs get a measure; a row of figures gets the column,
+   the same split home uses. */
+.dbMoreIn{padding-block:var(--sp-8) var(--sp-40)}
+.dbMoreIn p,.dbMoreIn h3{max-width:var(--db-measure)}
+.dbMoreIn p{margin-bottom:var(--sp-16);font-size:var(--fs-body);
  line-height:var(--lh-prose);color:var(--theme-ink-soft)}
 .dbMoreIn p:last-child{margin-bottom:0}
-.dbMoreIn h3{margin:var(--sp-24) 0 var(--sp-10);font-size:var(--fs-caption);font-weight:600;
- letter-spacing:var(--tr-caps);text-transform:uppercase;color:var(--theme-muted)}
+.dbMoreIn h3{margin:var(--sp-24) 0 var(--sp-8);font-size:var(--fs-body);font-weight:600;
+ color:var(--theme-ink)}
 .dbMoreIn a{color:var(--theme-ink-soft);text-decoration:underline;text-underline-offset:2px;
  text-decoration-color:var(--rule)}
 .dbMoreIn a:hover{color:var(--theme-ink)}
-.dbFigs{display:grid;grid-template-columns:repeat(4,1fr);margin:var(--sp-20) 0;
+.dbFigs{display:grid;grid-template-columns:repeat(4,1fr);margin:var(--sp-24) 0;
  border-top:var(--hair-w) solid var(--rule)}
-.dbFig{padding:var(--sp-16) var(--sp-16) 0 0}
-.dbFig+.dbFig{border-left:var(--hair-w) solid var(--rule);padding-left:var(--sp-16)}
+.dbFig{padding:var(--sp-16) var(--sp-24) 0 0}
+.dbFig+.dbFig{border-left:var(--hair-w) solid var(--rule);padding-left:var(--sp-24)}
 .dbFig .n{display:block;font-size:var(--fs-lead);font-weight:600;line-height:var(--lh-tight);
  letter-spacing:var(--tr-sub);font-variant-numeric:tabular-nums}
-.dbFig .l{display:block;margin-top:var(--sp-6);font-size:var(--fs-caption);
- line-height:var(--lh-note);color:var(--theme-muted)}
+.dbFig .l{display:block;margin-top:var(--sp-8);font-size:var(--fs-nav);
+ line-height:var(--lh-body);color:var(--theme-muted)}
 @media(max-width:720px){.dbFigs{grid-template-columns:repeat(2,1fr)}
  .dbFig:nth-child(3){border-left:0;padding-left:0}
  .dbFig:nth-child(n+3){border-top:var(--hair-w) solid var(--rule)}}
@@ -302,13 +351,13 @@ body{font-family:var(--sans);font-size:var(--fs-body);line-height:var(--lh-body)
    that was and whether it was yours. No second control, no "mine/theirs"
    choice to get wrong at pick 94. It reads the SAME slot control at the top of
    the page the board does; there is no second place to say where you sit. */
-.dbLive{padding-block:var(--sp-24) var(--sp-40)}
+.dbLive{padding-block:var(--sp-24) var(--sp-64)}
 .dbClock{display:flex;align-items:baseline;gap:var(--sp-12);flex-wrap:wrap;
  padding-bottom:var(--sp-16);border-bottom:var(--hair-w) solid var(--rule)}
-.dbClock h2{font-size:var(--fs-h3);font-weight:600;
- line-height:var(--lh-tight);letter-spacing:var(--tr-sub);font-variant-numeric:tabular-nums}
-.dbClock .sub{font-size:var(--fs-label);letter-spacing:var(--tr-caps);
- text-transform:uppercase;color:var(--theme-muted);font-variant-numeric:tabular-nums}
+.dbClock h2{font-size:var(--fs-lead);font-weight:600;
+ line-height:var(--lh-tight);letter-spacing:var(--tr-head);font-variant-numeric:tabular-nums}
+.dbClock .sub{font-size:var(--fs-nav);color:var(--theme-muted);
+ font-variant-numeric:tabular-nums}
 /* No colour here. Green is the running-back token and it means that and
    nothing else; "your turn" is signalled by the ink border on the
    recommendations block below, which is a stronger cue anyway. */
@@ -317,20 +366,19 @@ body{font-family:var(--sans);font-size:var(--fs-body);line-height:var(--lh-body)
 /* the read-outs. Facts, in a row, on hairlines -- not tiles, not a dashboard. */
 .dbReads{display:flex;flex-wrap:wrap;gap:var(--sp-8) var(--sp-24);
  padding:var(--sp-16) 0;border-bottom:var(--hair-w) solid var(--rule);
- font-size:var(--fs-label);color:var(--theme-ink-soft)}
+ font-size:var(--fs-nav);color:var(--theme-ink-soft)}
 .dbReads b{font-weight:600;color:var(--theme-ink);font-variant-numeric:tabular-nums}
 .dbReads .warn{font-weight:600;color:var(--theme-ink)}
-.dbReads .k{font-size:var(--fs-caption);letter-spacing:var(--tr-caps);
- text-transform:uppercase;color:var(--theme-muted);margin-right:var(--sp-6)}
+.dbReads .k{font-weight:600;color:var(--theme-ink);margin-right:var(--sp-6)}
 
-.dbSect{margin-top:var(--sp-32)}
-.dbSect>h3{margin-bottom:var(--sp-12);font-size:var(--fs-caption);font-weight:600;
- letter-spacing:var(--tr-caps);text-transform:uppercase;color:var(--theme-muted)}
+.dbSect{margin-top:var(--sp-40)}
+.dbSect>h3{margin-bottom:var(--sp-12);font-size:var(--fs-nav);font-weight:600;
+ color:var(--theme-ink)}
 .dbTools{display:flex;gap:var(--sp-8);align-items:center;margin-bottom:var(--sp-12)}
 .dbTools .field{flex:1 1 auto;min-width:0}
 .dbPool{border:var(--hair-w) solid var(--rule);border-radius:var(--r-lg);
  corner-shape:var(--corner);background:var(--theme-surface);overflow:hidden}
-.dbEmpty{padding:var(--sp-24) var(--sp-16);font-size:var(--fs-label);color:var(--theme-muted)}
+.dbEmpty{padding:var(--sp-24) var(--sp-16);color:var(--theme-muted)}
 /* the recommendation block, when it is your turn */
 .dbRecs{border:var(--hair-w) solid var(--theme-ink);border-radius:var(--r-lg);
  corner-shape:var(--corner);background:var(--theme-surface);overflow:hidden}
@@ -344,10 +392,10 @@ body{font-family:var(--sans);font-size:var(--fs-body);line-height:var(--lh-body)
  .dbCard,.dbPool{border-color:var(--theme-rim-strong)}
 }
 </style>
-<link rel="stylesheet" href="controls.css?v=99ded98629">
-<link rel="stylesheet" href="header.css?v=99ded98629">
-<link rel="stylesheet" href="footer.css?v=99ded98629">
-<link rel="stylesheet" href="site-theme.css?v=99ded98629">
+<link rel="stylesheet" href="controls.css?v=98d7b6f74e">
+<link rel="stylesheet" href="header.css?v=98d7b6f74e">
+<link rel="stylesheet" href="footer.css?v=98d7b6f74e">
+<link rel="stylesheet" href="site-theme.css?v=98d7b6f74e">
 <script src="header.js" defer></script>
 <script src="footer-band.js" defer></script>
 </head>
@@ -424,7 +472,7 @@ body{font-family:var(--sans);font-size:var(--fs-body);line-height:var(--lh-body)
  </nav>
 </div>
 <div class="wrap">
-<main class="dbCol" id="main" tabindex="-1">
+<main id="main" tabindex="-1">
 
   <header class="dbHead">
     <p class="dbEyebrow">2026 redraft · PPR · 12 teams · updated 26 August</p>
@@ -500,7 +548,7 @@ body{font-family:var(--sans);font-size:var(--fs-body);line-height:var(--lh-body)
        footer. Not one word is cut. The summary line carries the only claim that
        has to be true without opening anything -- that nothing here is trained --
        so the honesty survives the collapse. -->
-  <details class="dbMore" style="margin-top:var(--sp-32)">
+  <details class="dbMore" style="margin-top:var(--sp-40)">
     <summary>A transparent scoring model, not a trained one — how it picks, and every source behind it</summary>
     <div class="dbMoreIn">
       <p><b>What the model is, plainly.</b> Nothing here learned anything from data: a
