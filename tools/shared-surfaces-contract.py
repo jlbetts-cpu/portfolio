@@ -245,7 +245,58 @@ def main():
     assert "heroNightStars" in home_html and 28 <= home_html.count("--star-x:") <= 36
     assert ".heroNightStars{position:absolute;inset:0" in hero_time_css
     assert ".hero[data-time-state=\"night\"] .heroNightStars{opacity:1}" in hero_time_css
-    assert ".heroNightStars i{opacity:clamp(.34,var(--star-alpha),.72);animation:none!important}" in hero_time_css
+    # ── THE REDUCED-MOTION STARS, ASSERTED AS PROPERTIES AND NOT AS A STRING ──
+    # 2026-08-27. This pinned the rule's whole declaration block character for
+    # character:
+    #     .heroNightStars i{opacity:clamp(.34,var(--star-alpha),.72);animation:none!important}
+    # and it failed the moment a `scale:1` was added beside them -- on a change
+    # that made the guard STRONGER, not weaker, because the shimmer grew a
+    # second animation on `scale` and stopping `animation` alone would have left
+    # the last frame of it applied. A gate that cannot tell "this rule gained a
+    # declaration" from "this rule lost its guard" is not testing the guard. It
+    # is the same failure the gradient block above already has a headstone for,
+    # thirty lines up.
+    # WHAT MUST BE TRUE, stated directly: under prefers-reduced-motion the stars
+    # do not animate, they are still THERE at their authored brightness, and
+    # nothing about them is transformed away. Extra declarations are allowed;
+    # losing any of these is not.
+    # Comments come off first: this file's own gradient headstone was written
+    # after an assertion matched prose describing a rule instead of the rule.
+    css_only = re.sub(r"/\*.*?\*/", " ", hero_time_css, flags=re.S)
+    guards = [m for m in re.finditer(r"\.heroNightStars i\{([^}]*)\}", css_only)
+              if "animation:none!important" in m.group(1)]
+    assert len(guards) == 1, (
+        "expected exactly one .heroNightStars i rule that stops the animations, "
+        f"found {len(guards)}")
+    # It has to be the REDUCED-MOTION one and not a rule that stops the shimmer
+    # for everybody: the last @media opened before it must be that query.
+    opened = [m for m in re.finditer(r"@media\(([^)]*)\)\{", css_only)
+              if m.start() < guards[0].start()]
+    assert opened and "prefers-reduced-motion:reduce" in opened[-1].group(1), (
+        "the star guard is not inside @media(prefers-reduced-motion:reduce) -- "
+        "it stops the shimmer for everybody")
+    guard = guards[0].group(1)
+    assert "animation:none!important" in guard, (
+        "reduced motion no longer stops the star animations: " + guard)
+    assert "opacity:clamp(.34,var(--star-alpha),.72)" in guard, (
+        "reduced motion no longer holds the stars at their authored brightness "
+        "-- a starfield that vanishes is a different picture from a still one: "
+        + guard)
+    assert "scale:1" in guard, (
+        "the shimmer's scale is not reset under reduced motion, so the stars "
+        "keep whatever size the last frame of it left them at: " + guard)
+    # ── AND THE SHIMMER ITSELF IS NIGHT-SCOPED ────────────────────────────────
+    # It used to sit on the base rule, so 32 animations ran all day behind a
+    # layer at opacity:0. Measured: 40 running animations in daylight before,
+    # 8 after. The selector is the whole of that fix, so the selector is what is
+    # asserted.
+    assert re.search(r'\.hero\[data-time-state="night"\] \.heroNightStars i\{\s*\n?\s*animation:',
+                     hero_time_css), (
+        "the star twinkle is not scoped to night -- it will run all day behind "
+        "a starfield at opacity:0")
+    base_star = re.search(r"\n\.heroNightStars i\{([^}]*)\}", hero_time_css)
+    assert base_star and "animation:" not in base_star.group(1), (
+        "the base .heroNightStars i rule carries an animation again")
     browser_contract = (ROOT / "tools/shared-surfaces-browser.py").read_text(encoding="utf-8")
     assert "const iris=document.querySelector('#stage .iris')" in browser_contract, "brittle live-eye lookup"
     assert "iris ? getComputedStyle(iris).transform : null" in browser_contract, "brittle live-eye lookup"

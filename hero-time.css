@@ -894,10 +894,87 @@
    after that page's <style>, so an equal-specificity rule there reads
    correctly and does nothing. This file loads after controls.css. */
 @supports (height:1svh){.heroCharacterPeek{height:var(--heroRow)}}
-.heroNightStars i{--star-visible:clamp(.34,var(--star-alpha),.72);position:absolute;left:var(--star-x);top:var(--star-y);width:var(--hair-w);height:var(--hair-w);border-radius:var(--r-full);background:#f4f7ff;animation:heroStarTwinkle calc(var(--star-twinkle-duration) * var(--star-rate)) var(--star-twinkle-ease) var(--star-delay) infinite alternate}
+.heroNightStars i{--star-visible:clamp(.34,var(--star-alpha),.72);position:absolute;left:var(--star-x);top:var(--star-y);width:var(--hair-w);height:var(--hair-w);border-radius:var(--r-full);background:#f4f7ff;opacity:var(--star-visible)}
 .heroNightStars i.is-bright{--star-visible:.78;width:var(--star-bright-size);height:var(--star-bright-size);box-shadow:0 0 var(--star-glow-size) rgba(205,220,255,.32)}
 .hero[data-time-state="night"] .heroNightStars{opacity:1}
-@keyframes heroStarTwinkle{from{opacity:calc(var(--star-visible) * .84)}to{opacity:var(--star-visible)}}
+/* ── THE SHIMMER RUNS AT NIGHT AND ONLY AT NIGHT.  2026-08-27 ────────────────
+   The twinkle used to be on the base rule, so all 32 stars animated for the
+   whole day behind a layer at opacity:0 -- thirty-two compositor animations
+   painting nothing, for the fifteen hours of the clock that are not night. The
+   selector is the whole fix and it pays for everything below it.
+   AND IT IS TWO PERIODS PER STAR NOW, NOT ONE. A single ±16% opacity swing at
+   one shared 7s base gave every star the same rhythm at slightly different
+   speeds, which is what "one twinkle animation across all of them" reads as. A
+   real night sky reads as DEPTH: different brightnesses, different rhythms, and
+   nothing doing the same thing at the same time. So brightness and size beat
+   against each other on two independent, incommensurate periods, and both are
+   per-star: opacity on 4.4..15.7s, scale on 9.5..22.6s, with the dip depth and
+   the shrink varied per star as well.
+   MEASURED ON THE MARKUP: 64 periods, all 64 distinct, the closest pair 3.5ms
+   apart -- they would take an hour to visibly beat, and their delays differ
+   anyway. Nothing here is random at runtime; the values are hashed off the
+   star's index so they are stable, reviewable and identical on every load.
+   OPACITY AND scale, WHICH IS THE COST ARGUMENT. Both are compositor
+   properties on a 1px box. Nothing here reaches the main thread. */
+.hero[data-time-state="night"] .heroNightStars i{
+ animation:
+  heroStarTwinkle calc(var(--star-twinkle-duration) * var(--star-rate)) var(--star-twinkle-ease) var(--star-delay) infinite alternate,
+  heroStarBreathe calc(var(--star-twinkle-duration) * var(--star-rate2,1.6)) var(--star-twinkle-ease) var(--star-delay2,-3s) infinite alternate
+}
+@keyframes heroStarTwinkle{from{opacity:calc(var(--star-visible) * var(--star-swing,.84))}to{opacity:var(--star-visible)}}
+@keyframes heroStarBreathe{from{scale:var(--star-shrink,.82)}to{scale:1.12}}
+/* ── AND OCCASIONALLY SOMETHING CROSSES IT ───────────────────────────────────
+   Jayden: "I want the night hero to do more like the stars shimmer and shooting
+   stars occationally."
+   "OCCASIONALLY" IS THE SPECIFICATION AND IT IS DOING MOST OF THE WORK. If a
+   visitor can predict the next one it is too frequent, and if it announces
+   itself it is a screensaver. Three streaks, two flights each per cycle, on
+   three prime periods -- 149s, 181s, 223s -- so the sky delivers one about
+   every 30 seconds on average and the ORDER of the six paths does not come
+   round again for 69 days. Each flight is 0.55% of its own period: 0.82s,
+   1.00s and 1.23s. Small, fast, gone.
+   NO SCHEDULER, AND THAT IS THE COST RULE. A rAF loop deciding each frame
+   whether to spawn one would cost more than the whole feature is worth. This is
+   three elements, `opacity` and `translate` only, both compositor properties,
+   asleep for 99.4% of every cycle -- the animation is running the whole time
+   but it is interpolating nothing while every keyframe around it holds the same
+   value.
+   THEY CANNOT REACH THE HEADLINE, AND THAT IS GEOMETRY RATHER THAN CARE. Every
+   path lives between 18% and 40% of the Hero's height; the headline's box
+   starts at 42% at 1440 and 44% at 390, and the bar's opaque floor is at 13%.
+   tools/hero-cloud-field-contract.py drives the animation and asserts the gap.
+   NIGHT ONLY, and pre-dawn was considered and rejected: the starfield has never
+   been shown there because that sky is pale from 18% down, and a white streak
+   on it is a scratch rather than a meteor. They live inside .heroNightStars, so
+   "night only" is the same one line that already governs the stars. */
+.heroMeteor{
+ position:absolute;left:var(--m-x);top:var(--m-y);
+ --m-len:clamp(46px,5.4vw,78px);--m-run:clamp(150px,17vw,245px);
+ --m-drop:calc(var(--m-run) * var(--m-slope));
+ width:var(--m-len);height:var(--hair-w);border-radius:var(--r-full);
+ /* The head is the leading end and the tail falls off behind it. One gradient,
+    no glow: the bright stars carry the only soft light in this sky. */
+ background:linear-gradient(90deg,rgba(244,247,255,0) 0,rgba(244,247,255,.55) 62%,rgba(255,255,255,.95) 100%);
+ transform-origin:100% 50%;rotate:var(--m-rot);opacity:0;
+ will-change:opacity,translate
+}
+.hero[data-time-state="night"] .heroMeteor{
+ animation:heroMeteorFall var(--m-period) linear var(--m-delay) infinite
+}
+/* Two flights per cycle from two different anchors, so three elements give six
+   paths. The translate returns to 0 in the 0.05% after each flight, at opacity
+   0, which is what lets one set of keyframes serve both. */
+@keyframes heroMeteorFall{
+ 0%,48.55%{opacity:0;translate:0 0}
+ 48.60%{opacity:0;translate:var(--m-a-x) var(--m-a-y)}
+ 48.75%{opacity:var(--m-peak)}
+ 49.15%{opacity:0;translate:calc(var(--m-a-x) + var(--m-run)) calc(var(--m-a-y) + var(--m-drop))}
+ 49.20%,98.55%{opacity:0;translate:0 0}
+ 98.60%{opacity:0;translate:var(--m-b-x) var(--m-b-y)}
+ 98.75%{opacity:var(--m-peak)}
+ 99.15%{opacity:0;translate:calc(var(--m-b-x) + var(--m-run)) calc(var(--m-b-y) + var(--m-drop))}
+ 99.20%,100%{opacity:0;translate:0 0}
+}
 
 /* ── THE GLYPH FIELD ─────────────────────────────────────────────────────────
    Ported from the ASCII band on the Workspace app. That version is a full-bleed
@@ -2172,7 +2249,13 @@
  #heroHeadSelection .heroHeadFrame::before,
  #heroHeadSelection .heroHeadHandle::before,
  #heroHeadSelection .heroHeadRotate::before{transition:none!important}
- .heroNightStars i{opacity:clamp(.34,var(--star-alpha),.72);animation:none!important}
+ .heroNightStars i{opacity:clamp(.34,var(--star-alpha),.72);scale:1;animation:none!important}
+ /* THE SHOOTING STARS GO ENTIRELY, and that is the one place this file
+    does not hold the picture. A still starfield is still a night sky; a
+    meteor frozen mid-flight is a white scratch across it with no reading
+    at all, and section 14 of the Apple reference is about exactly the
+    kind of fast, unannounced motion this is. */
+ .heroMeteor{display:none!important}
 }
 
 @media(forced-colors:active){

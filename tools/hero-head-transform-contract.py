@@ -1301,12 +1301,36 @@ def assert_travels(page, label, failures):
     # MEASURED AFTER, 122 samples over 30s at each of 1440x900, 1280x650,
     # 761x844, 390x844 and 320x800: 0.0% at every width, for the chrome and for
     # the silhouette both.
+    # ── IT CARRIES SLACK, BECAUSE THIS GATE'S OWN CRANK OVERSHOOTS ─────────
+    # 2026-08-27. This asked for zero overlap of two boxes and it flips at
+    # random, on an unchanged page. The cause is in this file: the block above
+    # raises the drift to 120x so a whole journey fits in twenty seconds, and at
+    # that speed the integrator steps past its own bound by however far one
+    # frame carries it before the clamp reflects it. How far that is depends on
+    # frame pacing, which depends on what else is running.
+    # MEASURED, 160 cranked samples per run, 1440x900, the drawn chrome's
+    # highest point against a copy whose lower edge is 326.63:
+    #     same build, two runs back to back    323.59  and  327.78
+    #     i.e. 3.03px over the line, and 1.16px clear of it
+    #     five other runs across two builds     325.06 .. 327.41
+    # A 4px spread with no edit between them. AND AT THE SHIPPED SPEED IT DOES
+    # NOT HAPPEN AT ALL: 300 samples over 60s of real drift, twice, gave zero
+    # crossings and margins of 0.00 and 0.28px -- the composition is authored to
+    # TOUCH the copy's lower edge (copyClearanceDrop() solves for exactly zero
+    # clearance and stops inside a 0.5px dead band), so touching is the designed
+    # state and only crossing is the defect.
+    # 4px IS STILL A REAL TEST and not a shrug: the defect this was written for
+    # put the head's own box across the h1 on 46.7% of frames with a worst
+    # penetration of 24px, and --self-test's injection reproduces that scale.
+    # What it no longer does is report the sampler.
+    CROSS_SLACK = 4.0
     crossed = [r for r in rows if r["copy"]
                and min(r["chrome"]["r"], r["copy"]["r"]) > max(r["chrome"]["l"], r["copy"]["l"])
-               and min(r["chrome"]["b"], r["copy"]["b"]) > max(r["chrome"]["t"], r["copy"]["t"])]
+               and min(r["chrome"]["b"], r["copy"]["b"])
+               - max(r["chrome"]["t"], r["copy"]["t"]) > CROSS_SLACK]
     record(failures, not crossed,
            f"{label} the drift never carried the head or its frame onto the copy",
-           {"samples": len(rows), "crossings": len(crossed),
+           {"samples": len(rows), "crossings": len(crossed), "slack": CROSS_SLACK,
             "first": {"chrome": crossed[0]["chrome"], "copy": crossed[0]["copy"]}
             if crossed else None})
 
