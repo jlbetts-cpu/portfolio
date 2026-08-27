@@ -88,10 +88,24 @@ class QuietServer(ThreadingHTTPServer):
 # single reference, and `border-block` draws two. So this is a budget on
 # DECLARATIONS, which is the thing a sweep adds carelessly, not on painted
 # lines. The painted count is what the browser pass measures at two widths.
-RULE_BUDGET = 9
+# ROUND 16, 2026-08-27: THE FIVE CASE STUDIES JOIN THE COUNT, AND THE BUDGET
+# MOVES WITH THEM.  Jayden, quoting trungvo.xyz/expresso: "for desktop the subtle
+# line breaks between sections, extremely clean structure with no spacing issues."
+# Each case study now draws one `.content>.sec{border-top:...}` -- ONE declaration
+# per page, N-1 painted lines, exactly the many-lines-from-one-occurrence case
+# the note above already describes.  Five pages, five occurrences, 9 -> 14.
+# THE REASON THEY ARE ADDED RATHER THAN LEFT OUT is the lesson of round 15,
+# written directly above: OWNED did not include play.html, six structural lines
+# landed uncounted, and the contract still printed a pass.  The case studies were
+# the next such blind spot -- they held ZERO var(--rule) references before this
+# round, so the cap has never seen them, and the first line to arrive there would
+# have arrived the same way play's did.
+RULE_BUDGET = 14
 
 OWNED = ("tokens.css", "header.css", "controls.css", "index.html",
-         "hero-time.css", "play.html", "play.css")
+         "hero-time.css", "play.html", "play.css",
+         "apollo.html", "bearings.html", "cluster.html", "strata.html",
+         "ucdavis.html")
 
 
 def compact(value):

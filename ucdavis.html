@@ -178,7 +178,26 @@ img{display:block;max-width:100%;height:auto}   /* height:auto IS THE COMPANION 
 .cmp img{box-shadow:var(--rim-1)}
 .cmpYellow .cmpLine{background:var(--yellow)}
 .cmpYellow .cmpKnob{background:var(--yellow);color:var(--c950)}
-.cap{margin:16px 0 0;font-family:var(--sans);font-weight:400;font-size:var(--fs-small);line-height:var(--lh-body);color:var(--c500);max-width:680px;text-wrap:pretty;}
+/* ── FOUR TYPE SIZES IN THE BODY.  2026-08-27 ─────────────────────────────
+   Jayden, on trungvo.xyz/expresso: "very few size variety in the text and no
+   different paragraph variety."
+   THE COUNT WAS SIX AND TWO OF THEM WERE THE SAME NUMBER. --fs-body and
+   --fs-small are both 15px -- one rung wearing two names -- and between them
+   they carried nine roles. The rungs are now:
+     44/30  --fs-pagehead   .head, .statNum        the page's own voice
+     26/19  --fs-h3         .secHead               a section names itself
+     18/16  --fs-prose      every paragraph, .subHead and .fv
+     12     --fs-label      every label, caption, note and source
+   Nothing new was invented: --fs-body and --fs-small simply have no consumer
+   left, and eight rules that carried a size for a class no longer in any of the
+   five pages' markup were deleted outright (.roleHead .hmwQ .hmwLabel .lede
+   .stepHead .shotCap .shotNote .fvsub).
+   THE CAPTION INK MOVED WITH THE SIZE, and that is not cosmetic. --c500
+   (#848591) on --c50 is 3.5:1 -- it failed AA for body text at 15px and 12px
+   would have made it worse to read. --c600 (#6b6d7c) is 4.9:1 and passes.
+   Only the roles that DROPPED to 12 take it; the 15px roles that were already
+   --c500 elsewhere are untouched. */
+.cap{margin:16px 0 0;font-family:var(--sans);font-weight:400;font-size:var(--fs-label);line-height:var(--lh-body);color:var(--c600);max-width:680px;text-wrap:pretty;}
 
 /* ── THE OVERVIEW IS A LEDE, ABOVE THE COVER.  2026-08-27 ──────────────────
    Jayden: "need to just make two short pararagraphs before photos there
@@ -220,7 +239,6 @@ img{display:block;max-width:100%;height:auto}   /* height:auto IS THE COMPANION 
    clamp already lands at 30 on a phone, which is where home's headline lands. */
 .head{font-family:var(--sans);font-weight:600;font-size:var(--fs-pagehead);line-height:1.06;letter-spacing:var(--tr-hero);color:var(--c950);margin:16px 0 0;text-wrap:balance}
 .head .hl{display:block}
-.lede{font-family:var(--sans);font-weight:400;font-size:var(--fs-prose);line-height:var(--lh-prose);color:var(--c700);margin:var(--sp-24-32) 0 0;text-wrap:pretty}
 
 .cover{position:relative;aspect-ratio:12/5;overflow:hidden;background:var(--c100);margin-top:var(--sp-16);width:100%;transform:scale(.985) translateY(8px);opacity:0;transition:opacity var(--dur-enter) var(--ease-out),transform var(--dur-enter) var(--ease-out)}
 .cover img{width:100%;height:100%;object-fit:cover;box-shadow:var(--rim-1)}
@@ -244,8 +262,7 @@ img{display:block;max-width:100%;height:auto}   /* height:auto IS THE COMPANION 
 .facts{width:100%;max-width:none;display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));column-gap:var(--sp-16-32);row-gap:var(--sp-16);margin:var(--sp-24-40) 0 0;border-top:1px solid var(--c100);border-bottom:1px solid var(--c100);padding:var(--sp-16) 0}
 .fact{min-width:0}
 .fk{display:block;font-family:var(--sans);font-weight:600;font-size:var(--fs-label);letter-spacing:var(--tr-flat);text-transform:none;color:var(--c500);margin:0 0 var(--sp-8)}
-.fv{font-family:var(--sans);font-weight:400;font-size:var(--fs-body);line-height:var(--lh-note);color:var(--c950);margin:0;text-wrap:pretty}
-.fvsub{display:block;font-weight:400;font-size:var(--fs-small);line-height:var(--lh-note);color:var(--c500);margin-top:4px}
+.fv{font-family:var(--sans);font-weight:400;font-size:var(--fs-prose);line-height:var(--lh-note);color:var(--c950);margin:0;text-wrap:pretty}
 /* ── THE FACTS BAND IS ONE LINE PER FACT ON A PHONE.  2026-08-27 ───────────
    Stacked label-over-value it stood ~229px at 390 -- the single tallest block
    of text on the opening screen, and the reason the cover had left the top of
@@ -265,7 +282,6 @@ img{display:block;max-width:100%;height:auto}   /* height:auto IS THE COMPANION 
 /* my role */
 .role{margin:var(--sp-24-40) 0 0}
 .rlabel{display:block;font-family:var(--sans);font-weight:600;font-size:var(--fs-label);letter-spacing:var(--tr-flat);text-transform:none;color:var(--c500);margin:0 0 var(--sp-8);}
-.roleHead{font-family:var(--sans);font-weight:600;font-size:var(--fs-h3);line-height:var(--lh-head);letter-spacing:var(--tr-sub);color:var(--c950);margin:0 0 16px;text-wrap:balance}
 .role p{font-family:var(--sans);font-weight:400;font-size:var(--fs-prose);line-height:var(--lh-prose);color:var(--c950);text-wrap:pretty}
 
 /* SECTION RHYTHM IS HOME'S 64 NOW, NOT 104.  2026-08-27.
@@ -301,6 +317,30 @@ img{display:block;max-width:100%;height:auto}   /* height:auto IS THE COMPANION 
    gaps that are all nearly equal are what makes a text-only screen read as
    stranded islands. */
 .sec{padding-top:var(--sp-40-64);scroll-margin-top:calc(var(--nav-h) + var(--sp-16-24))}
+/* ── THE SECTION BREAK IS A LINE ON DESKTOP.  2026-08-27 ───────────────────
+   Jayden, on trungvo.xyz/expresso: "for desktop the subtle line breaks between
+   sections, extremely clean structure with no spacing issues."
+   ONE DECLARATION, N-1 LINES, AND IT MAKES THE LADDER SHORTER RATHER THAN
+   LONGER. A section break was 64px of empty page. It is 40 - hairline - 40 now,
+   so the gap that separates sections is the SAME RUNG (--sp-24-40) as the gap
+   between text and a picture, and the line does the separating that 64px of
+   nothing was doing. Measured rungs in the article at 1440 go from 8/16/40/64/112
+   to 8/16/40/112 -- four, and the one that left is the one this line replaces.
+   WHERE IT IS SUPPRESSED, and why each: the FIRST section after the hero, because
+   the facts band already draws its own bottom border and two hairlines 80px apart
+   is the double-rule; and every width below 881, because a phone has no room to
+   spend 80px on a break and the reference Jayden is quoting draws these on
+   desktop only. Nothing is suppressed near the footer: the footer's own rule sits
+   112px below the last block and no section rule can reach it.
+   --rule, not --c100: this is a STRUCTURAL line between two bands of the page,
+   which is the token's whole job, and it is themed for night. It is the case
+   studies' first use of --rule; tools/structure-rule-contract.py counts
+   occurrences of it in OWNED files and these five pages join that list in the
+   same commit rather than adding lines the cap cannot see. */
+@media(min-width:881px){
+ .content>.sec{border-top:var(--rule-w) solid var(--rule);margin-top:var(--sp-24-40);padding-top:var(--sp-24-40)}
+ .content>.hero+.sec{border-top:0}
+}
 .kicker{font-family:var(--sans);font-weight:600;font-size:var(--fs-label);letter-spacing:var(--tr-flat);text-transform:none;color:var(--c500);}
 /* ── FIVE HEADING SIZES BECOME THREE.  2026-08-27 ──────────────────────────
    docs/house-style.md §11 case-studies-3 names this as "the single biggest
@@ -349,8 +389,8 @@ img{display:block;max-width:100%;height:auto}   /* height:auto IS THE COMPANION 
    ON the sentence's baseline. --lh-flat means the 44px run grows the FIRST line
    box only; every line after it keeps the paragraph's 1.5. */
 .statNum{font-family:var(--sans);font-weight:400;font-size:var(--fs-pagehead);line-height:var(--lh-flat);letter-spacing:var(--tr-hero);color:var(--c950);display:inline-flex;align-items:baseline;gap:.16em;margin-right:.24em}
-.statUnit{font-size:var(--fs-small);font-weight:400;letter-spacing:var(--tr-body);color:var(--c500)}
-.statSrc{font-size:var(--fs-small);letter-spacing:0;color:var(--c500)}
+.statUnit{font-size:var(--fs-label);font-weight:400;letter-spacing:var(--tr-flat);color:var(--c600)}
+.statSrc{font-size:var(--fs-label);letter-spacing:var(--tr-flat);color:var(--c600)}
 .photoRow{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--sp-8-16);width:100%}
 .photoRow img{width:100%;aspect-ratio:1;object-fit:cover;object-position:center;display:block;background:var(--c100);box-shadow:var(--rim-1)}
 .photoRow img:nth-child(1){object-position:center bottom}
@@ -362,10 +402,7 @@ img{display:block;max-width:100%;height:auto}   /* height:auto IS THE COMPANION 
 .shot{flex:0 0 auto;scroll-snap-align:start;margin:0}
 .shot:last-child{scroll-snap-align:end}
 .shot img{width:clamp(300px,38vw,420px);height:clamp(300px,38vw,420px);object-fit:contain;display:block;background:var(--c50);box-shadow:var(--rim-1);pointer-events:none;-webkit-user-drag:none}
-.shotCap{margin:var(--sp-8-16) 0 0;font-family:var(--sans);font-weight:600;font-size:var(--fs-label);letter-spacing:var(--tr-flat);text-transform:none;color:var(--c500);}
 .hmw{margin:var(--sp-24-40) 0 0}
-.hmwLabel{font-family:var(--sans);font-weight:600;font-size:var(--fs-label);letter-spacing:var(--tr-flat);text-transform:none;color:var(--c500);margin:0 0 var(--sp-8)}
-.hmwQ{font-family:var(--sans);font-weight:400;font-size:var(--fs-h3);line-height:var(--lh-head);letter-spacing:-.015em;color:var(--c950);margin:0;max-width:860px;text-wrap:balance}
 .scaffold{color:var(--c500)}
 /* THE SITE FOOTER LIVES IN footer.css NOW -- the whole component: the grid, the
    hairline, the type, the ink, the states, the night theme and the phone stack.
@@ -456,12 +493,10 @@ img{display:block;max-width:100%;height:auto}   /* height:auto IS THE COMPANION 
 /* onboarding shots are portrait phones: sized so the gallery browses, the steps read */
 .shot.phone{width:calc((100% - 72px)/3)}
 .shot.phone img{width:100%;height:auto;aspect-ratio:804/1748;object-fit:contain;background:#fff;border-radius:clamp(20px,2.6vw,32px);box-shadow:var(--rim-1)}
-.shotNote{display:block;margin:8px 0 0;font-family:var(--sans);font-weight:400;font-size:var(--fs-small);line-height:var(--lh-note);letter-spacing:0;text-transform:none;color:var(--c500);text-wrap:pretty;filter:none}
 /* the five-step build: screen on the grid line, the why beside it */
 .step{display:grid;grid-template-columns:minmax(0,1fr) clamp(220px,24vw,300px);column-gap:var(--sp-32-56);align-items:center;margin:var(--sp-32-48) 0 0;width:100%}
 .stepShot{margin:0}
 .stepShot img{width:100%;height:auto;aspect-ratio:804/1748;display:block;background:#fff;box-shadow:var(--rim-1)}
-.stepHead{font-family:var(--sans);font-weight:600;font-size:var(--fs-prose);line-height:var(--lh-head);letter-spacing:var(--tr-head);color:var(--c950);margin:var(--sp-8-16) 0 0;text-wrap:pretty}
 .step .secBody{margin-top:var(--sp-8-16)}
 /* the payoff screen sits a size up: the whole section has been building to it */
 .step.payoff{grid-template-columns:minmax(0,1fr) clamp(250px,27vw,330px);margin-top:var(--sp-48-72)}
@@ -585,7 +620,76 @@ img{display:block;max-width:100%;height:auto}   /* height:auto IS THE COMPANION 
 .photoPair{display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-8-16);margin:var(--sp-24-40) 0 0;width:100%}
 .photoPair figure{margin:0}
 .photoPair img{width:100%;aspect-ratio:1/1;object-fit:cover;display:block;box-shadow:var(--rim-1);background:var(--c100)}
-.photoPair figcaption{margin-top:var(--sp-8-16);font-family:var(--sans);font-size:var(--fs-small);line-height:var(--lh-note);color:var(--c500)}
+.photoPair figcaption{margin-top:var(--sp-8-16);font-family:var(--sans);font-size:var(--fs-label);line-height:var(--lh-note);color:var(--c600)}
+/* carousel.css sets .playerNote at --fs-small and links AFTER this block, so the
+   one caption role the case studies do not own was the last 15px on the page.
+   .content raises the specificity rather than touching a shared component that
+   play.html does not use but headmaker might. */
+.content .playerNote{font-size:var(--fs-label);color:var(--c600)}
+
+/* ── THE MOCKUP STANDS ON A GROUND, AND THE GROUND KEEPS THE HOUR.  2026-08-27 ─
+   Jayden: "some of the mockups we can structure better ... so it doesn't make
+   the page feel so skinny when they are on the screen", and "in containers with
+   a background ... using the time of day gradient system to make a clean
+   backdrop for the phone mockups that change depending on time of day settings."
+   THE SKINNY READING IS ARITHMETIC, NOT TASTE. The column is 1200px at 1440 and
+   a phone in a tabbed viewer draws at min(--panel-w, 100% - 2 x inset) -- ~360px
+   here -- so a single centred mockup covered 30% of the column and 70% of the
+   band was empty page. The phone does not grow (it is a phone); the GROUND fills
+   the column, so the block reads as one wide object.
+   NO UNSPLASH PLATE. He offered either; the gradient wins on three counts and
+   the first is his own rule about performance: a photograph would be one more
+   network request per mockup on the pages where a 1,100 KB double fetch was just
+   killed, the gradient is zero bytes; the stops below are the FOOTER BAND'S OWN
+   per-hour table (footer.css:549-560) rather than a seventh palette, so a phone
+   ground, the sky and the band are one system; and only the gradient can do the
+   half of his sentence a photograph cannot -- change with the setting.
+   IT IS A GROUND, NOT A CARD. No shadow: the companion heads cast the only
+   shadow on this site. It separates with --rim-1, the quiet object
+   hairline, and with the gradient itself. The phone keeps its own rim.
+   IT CROSS-FADES ON EXACTLY THE COVER'S CLOCK. An unregistered custom property
+   cannot interpolate, so a gradient keyed on data-theme-state would SNAP while
+   the cover above it dissolved -- the out-of-sync change he has complained about
+   before. --mock-sky-low/-high are registered with @property, so the gradient
+   interpolates, and the duration is the same expression site-theme.css gives the
+   cover ghost: var(--hero-time-duration, var(--dur-enter)). Whatever resolves,
+   both move together and neither can drift from the other. */
+@property --mock-sky-low{syntax:"<color>";inherits:true;initial-value:transparent}
+@property --mock-sky-high{syntax:"<color>";inherits:true;initial-value:transparent}
+.content :is(.playerStage,.tv.tvPhone .tvFrame){
+ --mock-sky-low:#5a86a9;--mock-sky-high:#ddeaf9;      /* daytime, the default state */
+ background:
+   linear-gradient(180deg,rgba(253,253,253,.42),rgba(253,253,253,.62)),
+   linear-gradient(180deg,var(--mock-sky-high),var(--mock-sky-low));
+ border-radius:var(--r-lg);corner-shape:var(--corner);
+ padding-block:var(--sp-24-40);
+ box-shadow:var(--rim-1);   /* --rim-1, not --rule: this edges an OBJECT. --rule is for a line that crosses the page, and tools/structure-rule-contract.py counts its occurrences for exactly that reason. */
+ /* named once and used twice, so the two stops cannot drift from each other or
+    from the cover. hero-time.css is not linked on a case study, so today both
+    fall back to --dur-enter -- the same value site-theme.css's .csImgOut ghost
+    resolves to. Written as the fallback pair rather than as --dur-enter so that
+    if the sky's own clock ever reaches these pages the ground moves with it. */
+ --mock-fade:var(--hero-time-duration,var(--dur-enter));
+ --mock-fade-ease:var(--hero-time-ease,var(--ease-out));
+ transition:--mock-sky-low var(--mock-fade) var(--mock-fade-ease),
+            --mock-sky-high var(--mock-fade) var(--mock-fade-ease);
+}
+:root[data-theme-state="off"]      .content :is(.playerStage,.tv.tvPhone .tvFrame){--mock-sky-low:#e9eaec;--mock-sky-high:#f6f7f8}
+:root[data-theme-state="pre-dawn"] .content :is(.playerStage,.tv.tvPhone .tvFrame){--mock-sky-low:#50517d;--mock-sky-high:#c9b9df}
+:root[data-theme-state="sunrise"]  .content :is(.playerStage,.tv.tvPhone .tvFrame){--mock-sky-low:#bd8a6d;--mock-sky-high:#fbecd7}
+:root[data-theme-state="daytime"]  .content :is(.playerStage,.tv.tvPhone .tvFrame){--mock-sky-low:#5a86a9;--mock-sky-high:#ddeaf9}
+:root[data-theme-state="dusk"]     .content :is(.playerStage,.tv.tvPhone .tvFrame){--mock-sky-low:#5e627d;--mock-sky-high:#cbd2e6}
+:root[data-theme-state="sunset"]   .content :is(.playerStage,.tv.tvPhone .tvFrame){--mock-sky-low:#956b55;--mock-sky-high:#e7d8f5}
+/* NIGHT KEEPS THE VEIL, and that is the one place this table departs from the
+   footer band's. The band sits on a dark page and veiling it toward --theme-page
+   would take away the little light it has; this ground sits on a LIGHT page
+   (night is an hour here, not a dark theme -- site-theme-state.js), so an
+   unveiled #090c13 would be a black slab in the middle of white paper. The veil
+   above holds it to a deep blue-grey the phone still stands out against. */
+:root[data-theme-state="night"]    .content :is(.playerStage,.tv.tvPhone .tvFrame){--mock-sky-low:#090c13;--mock-sky-high:#393557}
+@media(prefers-reduced-motion:reduce){
+ .content :is(.playerStage,.tv.tvPhone .tvFrame){transition:none}
+}
 
 /* --- 4px corner softening pass --- */
 .workCta,.heroBack,.abLink,.abLinkPrimary,.abBack,.moodMenu button,.moodMenu a,.reelClose{border-radius:var(--r-md)!important;corner-shape:var(--corner)}
@@ -636,7 +740,7 @@ img{display:block;max-width:100%;height:auto}   /* height:auto IS THE COMPANION 
    After half took a filled dark fill on top of that, so the pair read as one
    quiet label and one shouted one. They are identical now -- same size, same
    weight, same colour, no box on either -- and the words tell them apart. */
-.baLabel{display:block;font-family:var(--sans);font-size:var(--fs-label);font-weight:600;letter-spacing:var(--tr-flat);color:var(--c500);text-align:center;}.baGo{position:absolute;left:50%;top:56%;transform:translate(-50%,-50%);width:38px;height:38px;border-radius:50%;background:var(--c50);box-shadow:var(--rim-1);display:grid;place-items:center;color:var(--c700);z-index:2}.baGo svg{width:16px;height:16px}.baNote{display:block;max-width:270px;margin:0 auto;font-family:var(--sans);font-size:var(--fs-small);line-height:var(--lh-note);text-align:center;color:var(--c500);text-wrap:pretty}.baCol.isAfter .baNote{color:var(--c950);font-weight:400}@media(max-width:880px){.baGo{display:none}.baGrid{column-gap:16px}}@media(max-width:880px){}/* only the placement is local now; the skin is .badge badge--dashed badge--block. The
+.baLabel{display:block;font-family:var(--sans);font-size:var(--fs-label);font-weight:600;letter-spacing:var(--tr-flat);color:var(--c500);text-align:center;}.baGo{position:absolute;left:50%;top:56%;transform:translate(-50%,-50%);width:38px;height:38px;border-radius:50%;background:var(--c50);box-shadow:var(--rim-1);display:grid;place-items:center;color:var(--c700);z-index:2}.baGo svg{width:16px;height:16px}.baNote{display:block;max-width:270px;margin:0 auto;font-family:var(--sans);font-size:var(--fs-label);line-height:var(--lh-note);text-align:center;color:var(--c600);text-wrap:pretty}.baCol.isAfter .baNote{color:var(--c950);font-weight:400}@media(max-width:880px){.baGo{display:none}.baGrid{column-gap:16px}}@media(max-width:880px){}/* only the placement is local now; the skin is .badge badge--dashed badge--block. The
    negative bottom margin pulls it over the figure below, which is why it is stacked. */
 .scrapTag{margin:var(--sp-24-40) auto calc(-1*var(--sp-24-32));position:relative;z-index:2}/* 64 -> 40: this margin COLLAPSES with .photoFig's own, so it was the one setting the text-to-media gap in #problem and it was the only 64 left inside a section *//* ---- SKIP LINK: WCAG 2.4.1 Bypass Blocks (Level A). Technique G1 requires a link that is
    the FIRST focusable element and moves focus to the main content -- so it sits before the
@@ -954,6 +1058,45 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
    </span>
   </nav>
  </div>
+<!-- ══ THE CASE-STUDY SKELETON.  2026-08-27 ═══════════════════════════════════
+     Jayden, on trungvo.xyz/expresso: "all the case studies have a certain
+     structure that I admire." All five of these pages are now one shape, and
+     this is it. If you are adding to a case study, put the new thing on a rung
+     of this skeleton or change the skeleton on all five -- do not grow a sixth
+     shape here.
+
+       section.hero
+         h1.head        span.eyebrow (the project) + the sentence
+         div.ov         TWO SENTENCES, and CSS order puts them above the cover
+         figure.cover   the time-aware plate, 12/5
+         dl.facts       Role / Team / Timeline / [one project-specific] / Year
+         div.role       ONLY where the work was shared and the split matters
+                        (bearings). A solo project says it in .facts and the
+                        lede; a "My role" block there is the facts restated.
+
+       section.sec  x 3-5, each opened by a hairline on desktop (the first
+                    after the hero is suppressed -- .facts draws its own edge)
+         div.kicker     Problem / Research / Solution / Outcome, 12px
+         h2.secHead     the section's claim as a sentence, 26px
+         p.secBody      ONE OR TWO paragraphs, never more before something to
+                        look at.  A number belongs INSIDE its sentence
+                        (p.stat), not on a line of its own.
+         <a visual>     figure.photoFig wrapping .player / .tv / .baGrid /
+                        .photoRow / .darlings / .cmp, or a bare .photoPair.
+                        Every section that runs a screen of prose has one; the
+                        viewport-step check in the previous commit is what
+                        proves it.
+         div.subBlock   a named sub-decision: subKick + subHead + prose + its
+                        own visual.  Same rule about paragraph count.
+
+       div.photoPair    the closing two photographs, where they exist
+       footer.siteFoot  footer.css, identical on all nine pages
+
+     THE ONE DELIBERATE DEVIATION, so nobody "fixes" it: apollo's opening
+     section carries two claims (the problem and the research) because splitting
+     them left 1,349px of prose between the cover and the first mockup. The
+     second claim leads its own paragraph in bold instead of taking a heading.
+     ══════════════════════════════════════════════════════════════════════ -->
 <div class="wrap">
 
  <div class="layout" id="main" tabindex="-1">
