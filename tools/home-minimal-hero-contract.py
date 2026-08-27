@@ -14,6 +14,7 @@ targets, and the Hero owning the opening viewport -- which is now the WHOLE
 viewport, because the Hero is full-bleed on all four edges.
 """
 
+import re
 import json
 from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
@@ -95,9 +96,27 @@ def static_contract():
     # so the name is alive elsewhere in the tree and could be pasted back.
     assert 'id="workBtn"' not in hero, "the View work CTA is deleted, not hidden"
     assert 'class="workCta' not in hero
-    # The row is not empty and must not become empty: the time control is what
-    # is left in it, and it is the only way to reach the six skies.
-    assert 'id="heroTimeBtn"' in hero and 'id="heroTimeMenu"' in hero
+    # ── THE ROW IS GONE, AND SO IS THE CONTROL THAT WAS THE LAST THING IN IT ─
+    # 2026-08-26. Jayden: "the time of day button should be in the header since
+    # it affects all the pages." The control writes data-theme-mode / -state on
+    # <html>, which every page reads, and it existed on this one; it is a nav
+    # item now. .heroCtas held nothing else, so an empty absolutely-positioned
+    # row went with it -- it still answered getBoundingClientRect() and
+    # hero-head-transform.js reserved the corner it occupied.
+    # INVERTED RATHER THAN DELETED, the same way "View work" above was: the
+    # failure worth blocking is the control coming BACK into the Hero, which
+    # would put two triggers for one state on one page.
+    assert 'id="heroTimeBtn"' not in hero, "the time control lives in the header"
+    assert 'id="heroTimeMenu"' not in hero
+    assert 'class="heroCtas"' not in hero, "the rail went with the control"
+    # ...and it must be in the BAR, on this page like every other. Read from the
+    # whole document rather than the Hero, which is where it now is not.
+    assert re.search(r'<nav class="jbNav.*?id="heroTimeBtn".*?</nav>', html, re.S), \
+        "the time control must ship inside the nav"
+    # THE STATUS LINE IS GONE TOO, and this is the third time that slot has been
+    # cleared -- see index.html's headstone for the two before it. Pinned as an
+    # absence for the same reason: it is a line that keeps being pasted back.
+    assert 'class="heroCred"' not in hero, "the status line lives on About now"
     # The reveal is the whole of the shrink. Named here so deleting the token
     # fails statically instead of only showing up as a geometry drift.
     assert "--heroReveal:clamp(" in html
@@ -193,7 +212,6 @@ def browser_contract(base_url):
                 () => {
                   const hero = document.getElementById('main').getBoundingClientRect();
                   const title = document.getElementById('h1').getBoundingClientRect();
-                  const ctas = document.querySelector('.heroCtas').getBoundingClientRect();
                   const cases = document.getElementById('cases').getBoundingClientRect();
                   const visible = id => {
                     const node = document.getElementById(id);
@@ -203,6 +221,13 @@ def browser_contract(base_url):
                     headline: document.getElementById('h1').innerText.replace(/\\s+/g, ' ').trim(),
                     moodControls: document.querySelectorAll('#moodbar,#moodBtn,#moodMenu,[data-mood]').length,
                     portraitVisible: visible('face') || visible('heroTimePortraitCast') || visible('stage'),
+                    // The status line, counted rather than asserted statically:
+                    // this file's --self-test injects into the SERVED html, so a
+                    // fact only the static pass reads is a fact an injection
+                    // cannot trip -- and an injection that cannot fail is worse
+                    // than none. Counted in the Hero specifically: the line's
+                    // failure mode is coming back under the h1.
+                    heroCreds: document.querySelectorAll('#main .heroCred').length,
                     focusableMoodControls: [...document.querySelectorAll('[data-mood],#moodBtn,#moodMenu button')]
                       .filter(node => node.tabIndex >= 0).length,
                     headScripts: document.querySelectorAll('script[src$="hero-engine.js"],script[src$="play-engine.js"]').length,
@@ -221,24 +246,45 @@ def browser_contract(base_url):
                     // layoutWidth/layoutHeight ride along so a future failure says
                     // WHICH of the two it is: a control that really is too small,
                     // or a control caught inside a transform again.
+                    // ── THE TARGET IS THE TARGET, NOT THE INK BOX.  2026-08-26
+                    // heroTimeBtn is a bar item now (.ctl--nav), and the bar's
+                    // items are 38px of ink with the last 6px of target supplied
+                    // by `.ctl--nav::after`, which is a transparent box grown to
+                    // --tap-min and centred on the control. That is the site's
+                    // own pattern -- header.css uses it on every nav item and
+                    // index.html on a 30px tab -- and measuring only the element
+                    // reports 44x38 for a control that really does take a 44x44
+                    // press. So the ::after's own height is read and unioned in.
+                    // It is a UNION and not a replacement: a control with no
+                    // ::after still reports its own box and still fails.
                     targets: __TAP_TARGETS__.map(id => {
                       const node = document.getElementById(id);
                       const box = node.getBoundingClientRect();
-                      return {id, width: box.width, height: box.height,
+                      const cs = getComputedStyle(node, '::after');
+                      const ah = parseFloat(cs.height) || 0, aw = parseFloat(cs.width) || 0;
+                      const has = cs.content && cs.content !== 'none';
+                      return {id,
+                              width: Math.max(box.width, has ? aw : 0),
+                              height: Math.max(box.height, has ? ah : 0),
+                              inkWidth: box.width, inkHeight: box.height,
                               layoutWidth: node.offsetWidth, layoutHeight: node.offsetHeight,
                               transform: getComputedStyle(node).transform};
                     }),
                     hero: {top: hero.top, bottom: hero.bottom, height: hero.height},
                     title: {top: title.top, bottom: title.bottom},
-                    ctas: {top: ctas.top, bottom: ctas.bottom,
-                           left: ctas.left, right: ctas.right},
                     // The corner control and the column it is supposed to share
                     // with the tab row -- see the grid assertion below.
+                    // The control is in the BAR now. What is asserted about it
+                    // here is that it is not in the Hero -- its position inside
+                    // the bar is header.css's business and the shared-controls
+                    // contract's.
                     timeBtn: (() => {
                       const b = document.getElementById('heroTimeBtn');
                       if (!b) return null;
                       const r = b.getBoundingClientRect();
-                      return {top: r.top, bottom: r.bottom, left: r.left, right: r.right};
+                      const nav = b.closest('.jbNav');
+                      return {top: r.top, bottom: r.bottom, left: r.left, right: r.right,
+                              inNav: !!nav};
                     })(),
                     tabsBox: (() => {
                       const t = document.querySelector('.collection__tabs .csTab');
@@ -341,38 +387,30 @@ def browser_contract(base_url):
             title_mid = (state["title"]["top"] + state["title"]["bottom"]) / 2
             title_share = (title_mid - state["hero"]["top"]) / state["hero"]["height"]
             assert 0.30 <= title_share <= 0.62, (title_share, state)
-            assert state["ctas"]["bottom"] <= state["hero"]["bottom"], state
-            # ── THE CORNER CONTROL, AND THE COLUMN IT STANDS IN ──────────────
-            # Jayden, 2026-08-20: "put the button for day change in the bottom
-            # right corner of the hero using the grid". Three things have to
-            # hold and each fails differently, so each is its own line.
-            # (1) IT IS IN THE BOTTOM HALF. The whole point is that it left the
-            #     centred copy stack; a regression that puts it back would still
-            #     satisfy every other assertion in this file.
-            # (2) IT IS ON THE PAGE'S COLUMN. The tab row's first tab and the
-            #     first cover share a left edge -- 120 at 1440, 16 at 390 -- and
-            #     the rail's right edge has to be the column's right edge, which
-            #     is what "using the grid" means. Measured against the LIVE tab
-            #     row rather than against a literal, so it follows the page.
-            #     1px of tolerance for sub-pixel layout, not for a different
-            #     inset: the failure mode this catches is `left:0`, which is off
-            #     by 16px at 390 and by 0 at 1440 -- it passed at one width and
-            #     not the other, which is exactly why the check is relational.
-            # (3) IT IS INSIDE THE HERO. A corner control that has slipped past
-            #     the Hero's floor is over the work section.
+            # ── THE CONTROL LEFT THE HERO FOR THE HEADER.  2026-08-26 ────────
+            # Jayden: "the time of day button should be in the header since it
+            # affects all the pages." What stood here was three assertions about
+            # the Hero's bottom-right rail -- that the control was in the bottom
+            # half, on the page's column, and inside the Hero -- and every one of
+            # them is now a statement about a place it is not. They are replaced
+            # rather than deleted, and the replacement is the same shape: the
+            # failure worth blocking is the control coming BACK into the Hero,
+            # which would put two triggers for one site-wide state on one page.
+            # The rail's own column assertions go with the rail; the bar's column
+            # is asserted by structure-rule-contract on all eight pages, which is
+            # a stronger version of the same check than this file was making.
+            assert state["heroCreds"] == 0, (
+                "the status line lives on About now -- see index.html's headstone", state)
             btn = state["timeBtn"]
-            assert btn, "the Hero must keep its time-of-day control"
-            assert btn["top"] > state["hero"]["top"] + state["hero"]["height"] * .5, (
-                "the time control belongs in the Hero's bottom half, not the copy stack", state)
-            assert btn["bottom"] <= state["hero"]["bottom"], state
-            if state["tabsBox"]:
-                assert abs(state["ctas"]["left"] - state["tabsBox"]["left"]) <= 1, (
-                    "the rail's left edge must be the page column's", state)
-                assert abs(btn["right"] - state["ctas"]["right"]) <= 1, (
-                    "the control sits at the right end of the rail", state)
-            if state["coverLeft"] is not None:
-                assert abs(state["ctas"]["left"] - state["coverLeft"]) <= 1, (
-                    "the rail and the first cover share a left edge", state)
+            assert btn, "the time-of-day control must exist on this page"
+            assert btn["inNav"], "the time control belongs to the bar, not the Hero"
+            # NOT `btn.bottom <= hero.top`: the Hero runs UP BEHIND the floating
+            # bar on this page, so hero.top is 0 and the bar sits at 15..53 --
+            # inside the Hero's box and above its content, which is the design.
+            # The honest statement is that it is above the headline, i.e. in the
+            # chrome rather than in the composition.
+            assert btn["bottom"] <= state["title"]["top"], (
+                "the control must sit in the bar, above the headline", state)
             assert state["casesTop"] - state["hero"]["bottom"] <= 160, state
             initial_geometry = state["hero"]
 
@@ -480,26 +518,28 @@ INJECTIONS = {
         "--heroReveal:clamp(0px,calc(100svh - 560px),500px)",
         "--heroReveal:clamp(0px,calc(100svh - 300px),900px)",
     ),
-    # take the rail off the page column and back to the Hero's border edge --
-    # which is `left:0`, the exact mistake this cost a round trip on, because an
-    # absolutely positioned box is laid out against the PADDING box. It is
-    # correct at 1440 by coincidence and 16px out at 390, so it must trip the
-    # relational column assertion and not the desktop one.
-    "rail-off-grid": (
-        ".heroCtas{position:absolute;left:var(--heroPadL);right:var(--heroPadR)",
-        ".heroCtas{position:absolute;left:0;right:0",
+    # THE THREE RAIL INJECTIONS ARE REPLACED, NOT DROPPED.  2026-08-26. They
+    # re-injected a rail and a corner control that no longer exist, so they could
+    # not fail -- and an injection that cannot fail is worse than none. The two
+    # below inject the two ways this change could actually be undone.
+    #
+    # put the control back inside the Hero. Must trip the static contract's
+    # absence assertion, which is the one guarding "one trigger per state".
+    # It cannot be injected as a SECOND #heroTimeBtn: getElementById returns the
+    # first, and the nav is parsed before the Hero, so the probe would keep
+    # reading the real one and the injection would pass. Moving the real control
+    # down into the Hero's composition is the same regression stated in a way the
+    # browser can see -- it trips the "above the headline" assertion.
+    "control-back-in-hero": (
+        '<div class="heroTimeSpill" id="heroTimeSpill" aria-hidden="true"></div>',
+        '<div class="heroTimeSpill" id="heroTimeSpill" aria-hidden="true"></div>'
+        '<style>#heroTimeBtn{position:fixed;top:400px;left:400px}</style>',
     ),
-    # put the control back in the top half, where the centred copy stack had it.
-    # Must trip the bottom-half assertion.
-    "control-back-up-top": (
-        "bottom:var(--heroRailB);\n /* left AND right set",
-        "top:var(--heroRailB);\n /* left AND right set",
-    ),
-    # put "View work" back. Must trip the static contract.
-    "cta-returns": (
-        '<div class="heroCtas">\n   <div class="heroTime" id="heroTime">',
-        '<div class="heroCtas">\n   <a class="workCta ctl ctl--primary" id="workBtn"'
-        ' href="#cases"><span>View work</span></a>\n   <div class="heroTime" id="heroTime">',
+    # put the status line back under the h1. Must trip the static contract.
+    "status-line-returns": (
+        '<h1 id="h1">SF product designer. iOS, B2C and design systems.</h1>',
+        '<h1 id="h1">SF product designer. iOS, B2C and design systems.</h1>'
+        '<p class="heroCred">Open to full-time roles.</p>',
     ),
 }
 

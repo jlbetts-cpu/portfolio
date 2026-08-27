@@ -195,7 +195,6 @@ h1{font-weight:600;font-size:var(--fs-hero);line-height:var(--lh-tight);letter-s
 .sub.show{opacity:1}.sub.show .l{opacity:1;filter:blur(0);transform:none}
 .stagewrap{position:relative;top:clamp(-8px,0vh,8px);justify-self:center;width:clamp(380px,44vw,560px);max-width:100%;isolation:isolate;z-index:2}
 /* (retired) the mood menu now lives in the CTA row, so the big head no longer lifts above the heads -- heads always stay in front */
-.heroCtas .workCta,.heroCtas .aboutCta{position:relative;z-index:2}   /* occluders: the little head can pass behind these */
 #stageMorph{position:relative;width:100%;transform-origin:center center}
 #stageMorph{transition:transform var(--dur-state) var(--ease-out)}
 body.catchReady #stageMorph{transform:scale(1.055)}
@@ -335,7 +334,6 @@ body.catchReady #stageMorph{transform:scale(1.055)}
  .aboutCta,.moodBtn{min-height:46px;padding-top:12px;padding-bottom:12px}
  .moodItem{display:flex;align-items:center;gap:12px;width:100%;padding:8px 12px;border-radius:4px;font-family:var(--sans);font-weight:400;font-size:var(--fs-body);color:var(--c950);background:none;border:0;cursor:pointer;text-align:left;transition:background-color var(--dur-state) var(--ease-out),color var(--dur-state) var(--ease-out)}
 
- .heroCtas{row-gap:12px;column-gap:12px}
  .aboutCta,.moodBtn{padding-left:8px;padding-right:8px}
  .amsDots i{width:9px;height:9px}
 }
@@ -525,11 +523,10 @@ body.partyLock{overflow:hidden}
 .stagewrap{transition:opacity var(--dur-enter) var(--ease-out)}
 
 /* a game is on: the hero copy steps aside so the pitch is clear, then returns when it ends */
-.heroCopy>h1,.heroCopy>.sub,.heroCopy>.heroCtas{transition:opacity .45s var(--ease-out)}
+.heroCopy>h1,.heroCopy>.sub{transition:opacity .45s var(--ease-out)}
 
    /* the availability line rides with the rest of the hero copy during a game -- but the Play-a-mood / End-game control stays reachable */
 /* --- "Play a mood" relocated into the hero CTA row (moodInCta) --- */
-body.moodInCta .heroCtas{align-items:center}
 body.moodInCta .faceMoodCorner{position:relative;right:auto;left:auto;top:auto;bottom:auto;transform:none;z-index:auto;display:inline-flex}   /* z-index:auto (not a stacking context) so the little heads (z3) pass IN FRONT of the button, while the open menu can still float above them */
 body.moodInCta .faceMoodCorner .moodBtn{position:relative;border:1px solid var(--c100)!important;background:var(--c50)!important;color:var(--c950);font-weight:400;font-size:var(--fs-body);padding:8px 16px;border-radius:4px!important;opacity:1!important}
 body.moodInCta .faceMoodCorner .moodBtn:hover{border-color:var(--c500)!important;color:var(--c950)}
@@ -537,7 +534,6 @@ body.moodInCta .faceMoodCorner .moodLbl{opacity:1!important;transform:none!impor
 body.moodInCta .faceMoodCorner .moodCar{opacity:1!important;transform:rotate(0deg)!important;transition:transform .32s cubic-bezier(.34,1.4,.5,1),color var(--dur-state) var(--ease-out)}   /* menu opens UP in the CTA -> caret points up when closed */
    /* ...and flips to point down when the menu is open */
 body.moodInCta .faceMoodCorner .moodMenu{bottom:calc(100% + 12px)!important;top:auto!important;left:0!important;right:auto!important;z-index:60!important}
-body.moodInCta .heroCtas:not(.in) .faceMoodCorner{opacity:0!important;visibility:hidden!important;pointer-events:none!important}   /* stay hidden through the intro until the CTA row reveals -- !important so it wins over the mobile force-visible rule too, keeping Play in lockstep with "View my work" on every viewport */
 @media(max-width:760px){body.moodInCta .faceMoodCorner{position:relative!important;right:auto!important;left:auto!important;top:auto!important;bottom:auto!important;transform:none!important}}   
 
 .camDot::before{content:"";position:absolute;inset:0;background:center/contain no-repeat;background-image:url(images/cam.webp);animation:camSnap 2.8s steps(1,end) infinite;transform-origin:50% 70%}
@@ -934,22 +930,23 @@ body.heroEmpathy .jbStick .jbNav{--nav-mat:var(--ctl-ground);--nav-rim:var(--ctl
 .moodbar.open .moodItem:nth-child(3){transition-delay:.13s,.13s,0s}
 .moodbar.open .moodItem:nth-child(4){transition-delay:.18s,.18s,0s}
 
-@media(prefers-reduced-motion:reduce){.heroCtas>*{opacity:1!important;transform:none!important;animation:none!important;transition:none!important}.moodMenu,.moodCar{width:12px;height:12px;display:inline-block;flex:0 0 auto;color:var(--c500);transition:transform var(--dur-state) var(--ease-out),color var(--dur-state) var(--ease-out)}}
-.heroCtas{display:flex;align-items:center;gap:12px;margin-top:32px;flex-wrap:wrap}
-.heroCtas>*{opacity:0;transform:translateY(9px) scale(.97);
- transition:opacity var(--dur-enter) var(--ease-out),transform var(--dur-enter) var(--ease-out)}
-.heroCtas.in>*{opacity:1;transform:none}
-/* THE STAGGER RE-INDEXES, AND IT HAD TO BE LOOKED AT WHEN "View work" WENT.
-   These delays are positional, so deleting the first child promotes whatever
-   was second into the 0ms slot. Two things follow and both were checked:
-   the time control now arrives with the headline's beat instead of 125ms
-   behind it -- correct, it is the only control in the row and there is nothing
-   left for it to be second to -- and the script#heroTimePrepaint element that
-   used to be the third child would have inherited the 250ms slot, so it was
-   moved out of .heroCtas entirely rather than left as an invisible element
-   holding a place in a visible rhythm. The rules stay because they are the
-   row's rhythm, not this button's: a second control lands on 125ms. */
-.heroCtas.in>*:nth-child(2){transition-delay:.125s}.heroCtas.in>*:nth-child(3){transition-delay:.25s}
+@media(prefers-reduced-motion:reduce){.moodMenu,.moodCar{width:12px;height:12px;display:inline-block;flex:0 0 auto;color:var(--c500);transition:transform var(--dur-state) var(--ease-out),color var(--dur-state) var(--ease-out)}}
+/* ── .heroCtas IS DELETED, AND THIS IS ITS HEADSTONE.  2026-08-26 ───────────
+   The Hero's bottom-right rail. It held exactly one child -- the time-of-day
+   control -- and that control moved into the site header, where the state it
+   writes actually reaches ("the time of day button should be in the header
+   since it affects all the pages"). An empty absolutely-positioned row is not
+   free: it still answers getBoundingClientRect(), and hero-head-transform.js
+   reserved the corner it occupied so a drag handle could not die under the
+   control, which with the control gone was 43px of empty sky the head was being
+   told to avoid. So the row went, and its reserve went with it.
+   WHAT WENT HERE: the flex row, the three-beat entrance and its nth-child
+   delays, the reduced-motion fork, the phone display:none, the pointer-events
+   opt-in, the z-index occluder pair for the little head, and both
+   body.moodInCta rules -- the mood dock left this page for play.html in an
+   earlier round and those two were already only reachable through a class
+   nothing sets. hero-engine.js still reveals the row behind `if(!hc)return`, so
+   it is null-safe and needs no edit. */
 /* ctaIn's headstone. It was a six-stop keyframe with a 1.04 overshoot, and a
    keyframe restarts from its own 0% and cannot be interrupted -- which is what
    made the override above look survivable and is what apple-design.md §3 calls
@@ -1250,7 +1247,7 @@ body.heroEmpathy .jbStick .jbNav{--nav-mat:var(--ctl-ground);--nav-rim:var(--ctl
    head would be worse than the 4px: the head is sized off viewport HEIGHT
    (calc((100svh - 248px)*.95)), so the headline would re-wrap on a vertical resize. */
 .heroCopy h1{order:2;font-size:var(--fs-heroline);line-height:1.06;
- max-width:min(13.2em,100%);margin:0 auto;text-align:center}.heroCtas{display:none}.hero .stagewrap{order:3;width:min(clamp(260px,calc((100svh - 248px) * .95),620px),62vw);height:auto;aspect-ratio:1 / .97;margin:calc(var(--sp-8-16) * -1) auto 0}@media(max-width:760px){.hero{--heroTitleTop:24px;padding-top:var(--heroTitleTop);min-height:auto}.hero .stagewrap{width:min(clamp(200px,calc((100svh - 200px) * .9),460px),90vw)}}/* ---- PLAY now lives in the nav: always visible, reads as a nav link ---- */body nav .faceMoodCorner{position:relative;right:auto;left:auto;top:auto;bottom:auto;transform:none;z-index:60}body nav .faceMoodCorner .moodBtn{font-family:var(--sans);font-weight:400;font-size:var(--fs-small);color:var(--c700);background:none;border:0;padding:0;line-height:1;opacity:1;gap:4px;white-space:nowrap;min-height:0}body nav .faceMoodCorner .moodBtn:hover{color:var(--c950);background:none;border-color:transparent}body nav .faceMoodCorner .moodLbl,body nav .faceMoodCorner .moodCar{opacity:1;transform:none}body nav .faceMoodCorner .moodCar{width:11px;height:11px;color:var(--c700)}body nav .faceMoodCorner .moodMenu{top:calc(100% + 14px);bottom:auto;left:auto;right:0}@media(max-width:640px){body nav .faceMoodCorner{margin-left:auto}}@media(max-width:760px){body nav .faceMoodCorner{position:relative!important;right:auto!important;left:auto!important;top:auto!important;bottom:auto!important;transform:none!important}body nav .faceMoodCorner .moodBtn{border-color:transparent!important;background:none!important;min-height:44px}}/* ---- availability line, now in the footer ---- *//* ---- CENTRED WORDMARK: equal-basis outer groups make the middle item truly centred, regardless of how wide each link group is ---- */.navGroup{display:flex;align-items:center;gap:var(--sp-16-24);flex:1 1 0;min-width:0}.navR{justify-content:flex-end}.navL .navLink.navFirst{margin-left:0}.navL{justify-content:flex-start}/* ---- Small heads pass BEHIND the big head. Occlusion reads as depth; an invisible exclusion wall reads as a bug. Sources: eye-region occlusion measurably degrades face identification (Or et al. 2023) and the brow band is load-bearing (Sadr et al. 2003), so the face is the one thing worth never covering. ---- */.stagewrap #stageMorph{z-index:3}nav .logo{flex:0 0 auto}@media(max-width:640px){.navGroup{flex:0 0 auto}.navL{display:none}nav .logo{margin-right:auto}}/* .navGroup keeps its flex box when About opens -- dissolving it was what pulled the wordmark off centre *//* ---- Scroll cue: 74px of clear space below the chin, so it never fights the head ---- */.scrollCue{position:absolute;left:50%;bottom:18px;transform:translateX(-50%);z-index:4;display:flex;align-items:center;justify-content:center;width:44px;height:44px;color:var(--c500);text-decoration:none;opacity:0;transition:opacity var(--dur-enter) var(--ease-out),color var(--dur-state) var(--ease-out)}.scrollCue.in{opacity:1}.scrollCue:hover,.scrollCue:focus-visible{color:var(--c950)}.scrollCue svg{animation:cueBob 2.6s cubic-bezier(.4,0,.6,1) infinite}@keyframes cueBob{0%,100%{transform:translateY(-3px)}50%{transform:translateY(3px)}}body.scrolled .scrollCue{opacity:0;pointer-events:none}@media(prefers-reduced-motion:reduce){.scrollCue svg{animation:none}}@media(max-width:760px){.scrollCue{bottom:10px}}/* ---- MOBILE WORDMARK: back to the two-line stack. It was unstacked while the brand was
+ max-width:min(13.2em,100%);margin:0 auto;text-align:center}.hero .stagewrap{order:3;width:min(clamp(260px,calc((100svh - 248px) * .95),620px),62vw);height:auto;aspect-ratio:1 / .97;margin:calc(var(--sp-8-16) * -1) auto 0}@media(max-width:760px){.hero{--heroTitleTop:24px;padding-top:var(--heroTitleTop);min-height:auto}.hero .stagewrap{width:min(clamp(200px,calc((100svh - 200px) * .9),460px),90vw)}}/* ---- PLAY now lives in the nav: always visible, reads as a nav link ---- */body nav .faceMoodCorner{position:relative;right:auto;left:auto;top:auto;bottom:auto;transform:none;z-index:60}body nav .faceMoodCorner .moodBtn{font-family:var(--sans);font-weight:400;font-size:var(--fs-small);color:var(--c700);background:none;border:0;padding:0;line-height:1;opacity:1;gap:4px;white-space:nowrap;min-height:0}body nav .faceMoodCorner .moodBtn:hover{color:var(--c950);background:none;border-color:transparent}body nav .faceMoodCorner .moodLbl,body nav .faceMoodCorner .moodCar{opacity:1;transform:none}body nav .faceMoodCorner .moodCar{width:11px;height:11px;color:var(--c700)}body nav .faceMoodCorner .moodMenu{top:calc(100% + 14px);bottom:auto;left:auto;right:0}@media(max-width:640px){body nav .faceMoodCorner{margin-left:auto}}@media(max-width:760px){body nav .faceMoodCorner{position:relative!important;right:auto!important;left:auto!important;top:auto!important;bottom:auto!important;transform:none!important}body nav .faceMoodCorner .moodBtn{border-color:transparent!important;background:none!important;min-height:44px}}/* ---- availability line, now in the footer ---- *//* ---- CENTRED WORDMARK: equal-basis outer groups make the middle item truly centred, regardless of how wide each link group is ---- */.navGroup{display:flex;align-items:center;gap:var(--sp-16-24);flex:1 1 0;min-width:0}.navR{justify-content:flex-end}.navL .navLink.navFirst{margin-left:0}.navL{justify-content:flex-start}/* ---- Small heads pass BEHIND the big head. Occlusion reads as depth; an invisible exclusion wall reads as a bug. Sources: eye-region occlusion measurably degrades face identification (Or et al. 2023) and the brow band is load-bearing (Sadr et al. 2003), so the face is the one thing worth never covering. ---- */.stagewrap #stageMorph{z-index:3}nav .logo{flex:0 0 auto}@media(max-width:640px){.navGroup{flex:0 0 auto}.navL{display:none}nav .logo{margin-right:auto}}/* .navGroup keeps its flex box when About opens -- dissolving it was what pulled the wordmark off centre *//* ---- Scroll cue: 74px of clear space below the chin, so it never fights the head ---- */.scrollCue{position:absolute;left:50%;bottom:18px;transform:translateX(-50%);z-index:4;display:flex;align-items:center;justify-content:center;width:44px;height:44px;color:var(--c500);text-decoration:none;opacity:0;transition:opacity var(--dur-enter) var(--ease-out),color var(--dur-state) var(--ease-out)}.scrollCue.in{opacity:1}.scrollCue:hover,.scrollCue:focus-visible{color:var(--c950)}.scrollCue svg{animation:cueBob 2.6s cubic-bezier(.4,0,.6,1) infinite}@keyframes cueBob{0%,100%{transform:translateY(-3px)}50%{transform:translateY(3px)}}body.scrolled .scrollCue{opacity:0;pointer-events:none}@media(prefers-reduced-motion:reduce){.scrollCue svg{animation:none}}@media(max-width:760px){.scrollCue{bottom:10px}}/* ---- MOBILE WORDMARK: back to the two-line stack. It was unstacked while the brand was
    LEAD-aligned (M3: "Don't wrap text in a small app bar", and one line was only ~123px of a
    342px bar). Now that it is centred, Jayden wants the stack back -- and centred + stacked is a
    different object than left + wrapped: it reads as a lockup, not as a headline that ran out of
@@ -2190,18 +2187,9 @@ html{scroll-padding-top:calc(var(--nav-h) + var(--sp-16-24))}
    z-index 4, NOT 8. Eight was a number chosen inside .heroCopy's stacking
    context, where it resolved to 3 anyway (the essay above). Out here it is a
    real Hero-level layer, and the only thing it has to beat is the head at 2. */
-.heroCtas{position:absolute;left:var(--heroPadL);right:var(--heroPadR);bottom:var(--heroRailB);
- /* left AND right set with width:auto makes the box span the gutter; max-width
-    then caps it at the page measure and the auto inline margins split what is
-    left, which is the same centring every other band on the page gets. Setting
-    a `width` here instead would over-constrain the box and drop `right`.
-    margin-block:0 is not decoration. :850 still carries `margin-top:32px` from
-    the centred-stack era, earlier in this sheet at the same specificity, and on
-    an absolutely positioned box with top:auto it is a live 32px push. */
- max-width:1200px;margin-inline:auto;margin-block:0;
+/* the rail's own positioning is deleted with it -- see the headstone above. */
  display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;
  gap:var(--sp-8);z-index:4;pointer-events:none}
-.heroCtas>*{pointer-events:auto}
 /* THE `opacity:1;transform:none` THAT STOOD HERE WAS THE BLACKOUT.
    Jayden: "I noticed the buttons are there on first load but they dont do
    there animation till after." Measured: it is (0,1,0), the same weight as
@@ -2263,7 +2251,6 @@ html{scroll-padding-top:calc(var(--nav-h) + var(--sp-16-24))}
     centred, and the block clears the tab row. */
 }
 @media(prefers-reduced-motion:reduce){
- .heroCtas>*{transition:none!important;animation:none!important}
 }
 /* ══ HEADLINE PLACEMENT: TWO TREATMENTS, ONE ATTRIBUTE ═══════════════════════
    Jayden, 2026-08-20, asked for this as RESEARCH: "where the text should be
@@ -2487,7 +2474,7 @@ if(location.hash==="#about")location.replace("about.html");</script>
      <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="false" data-time-mode="off"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m2 2 20 20"/><path d="M8.35 2.69A10 10 0 0 1 21.3 15.65"/><path d="M19.08 19.08A10 10 0 1 1 4.92 4.92"/></svg>Off</button>
      <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="false" data-time-mode="pre-dawn"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M18 5h4"/><path d="M20 3v4"/><path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"/></svg>Pre-dawn</button>
      <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="false" data-time-mode="sunrise"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2v8"/><path d="m4.93 10.93 1.41 1.41"/><path d="M2 18h2"/><path d="M20 18h2"/><path d="m19.07 10.93-1.41 1.41"/><path d="M22 22H2"/><path d="m8 6 4-4 4 4"/><path d="M16 18a4 4 0 0 0-8 0"/></svg>Sunrise</button>
-     <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="false" data-time-mode="daytime"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>Daytime</button>
+     <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="true" data-time-mode="daytime"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>Daytime</button>
      <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="false" data-time-mode="dusk"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="M20 12h2"/><path d="m19.07 4.93-1.41 1.41"/><path d="M15.947 12.65a4 4 0 0 0-5.925-4.128"/><path d="M13 22H7a5 5 0 1 1 4.9-6H13a3 3 0 0 1 0 6Z"/></svg>Dusk</button>
      <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="false" data-time-mode="sunset"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 10V2"/><path d="m4.93 10.93 1.41 1.41"/><path d="M2 18h2"/><path d="M20 18h2"/><path d="m19.07 10.93-1.41 1.41"/><path d="M22 22H2"/><path d="m16 6-4 4-4-4"/><path d="M16 18a4 4 0 0 0-8 0"/></svg>Sunset</button>
      <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="false" data-time-mode="night"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"/></svg>Night</button>

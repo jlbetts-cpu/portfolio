@@ -58,6 +58,15 @@ def rule(source, selector, occurrence=0):
     return compact(matches[occurrence].group(1))
 
 
+# Every page that ships the shared bar. play.html is in the list because the two
+# clauses that name it below are about what it must NOT contain; it is skipped by
+# the loop that asserts the time control, because that control is another lane's
+# to add there and this gate must not fail on a file it cannot fix.
+SHARED_PAGES = ("index.html", "about.html", "apollo.html", "bearings.html",
+                "cluster.html", "strata.html", "ucdavis.html",
+                "headmaker.html", "gradientlab.html", "play.html")
+
+
 def main():
     for name in ("index.html", "play.html"):
         parsed = page(name)
@@ -75,9 +84,30 @@ def main():
         nav = next(attrs for tag, attrs in parsed.elements if tag == "nav" and "jbNav" in classes(attrs))
         assert "ctl-group" in classes(nav)
 
+    # THE TIME TRIGGER IS A BAR ITEM NOW, NOT AN ICON CHIP.  2026-08-26.
+    # This asserted ctl--icon, which was correct while the control stood in the
+    # Hero's bottom-right rail: .ctl--icon is a square button with a ground and a
+    # rim. Jayden moved it into the header ("the time of day button should be in
+    # the header since it affects all the pages"), where it is one of the bar's
+    # own items and must be drawn by the same variant they are -- .ctl--nav, which
+    # carries the 38px ink box, the pill radius and the ::after that takes the
+    # target to 44. Asserting ctl--icon here would now be asserting the bug: it
+    # would demand a second control geometry in a bar whose whole point is one.
+    # WHAT IS STILL ASSERTED IS THE THING THAT MATTERS -- that the trigger and its
+    # menu come from the shared library rather than being rebuilt privately -- and
+    # it is asserted on EVERY page that ships the bar rather than on index.html
+    # alone, because the control is site-wide now and a page that forgot the
+    # classes is exactly what this gate exists to catch.
+    for name in SHARED_PAGES:
+        if name == "play.html":
+            continue          # another lane's file; see the play_ids note below
+        doc = page(name)
+        trigger = by_id(doc, "heroTimeBtn")
+        assert trigger is not None, name
+        assert {"ctl", "ctl--nav"} <= classes(trigger), name
+        assert "ctl--icon" not in classes(trigger), (name, "the bar has one item geometry")
+        assert {"ctl-menu"} <= classes(by_id(doc, "heroTimeMenu")), name
     home = page("index.html")
-    assert {"ctl", "ctl--icon"} <= classes(by_id(home, "heroTimeBtn"))
-    assert {"ctl-menu"} <= classes(by_id(home, "heroTimeMenu"))
 
     play = page("play.html")
     assert {"ctl", "ctl--secondary"} <= classes(by_id(play, "moodBtn"))

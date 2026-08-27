@@ -56,9 +56,20 @@ for node_id in (
 ):
     assert f'id="{node_id}"' in html, node_id
 assert re.search(r'id="heroTimeBtn"[^>]+aria-controls="heroTimeMenu"', html)
-# The ordering term used to start at #workBtn, which no longer exists. The h1
-# is the right anchor anyway: it is what the row follows.
-assert html.index('id="h1"') < html.index('id="heroTimeBtn"') < html.index('class="heroTimeSupport')
+# ── THE CONTROL IS ABOVE THE HEADLINE NOW, NOT BETWEEN IT AND THE HEAD ──────
+# 2026-08-26. Jayden: "the time of day button should be in the header since it
+# affects all the pages." It was in the Hero's bottom-right rail, so document
+# order ran h1 -> trigger -> portrait; it is in the nav now, which is parsed
+# before the Hero, so the ordering INVERTS at the first term. The relationship
+# worth pinning is unchanged in kind -- the trigger has a fixed place in the
+# document, and the portrait follows the copy -- so both halves are still stated,
+# with the first one turned round rather than dropped.
+assert html.index('id="heroTimeBtn"') < html.index('id="h1"') < html.index('class="heroTimeSupport')
+# ...and it is inside the bar, which is the actual claim. A trigger that drifted
+# back into the Hero would satisfy the ordering above by accident.
+_nav = re.search(r'<nav class="jbNav.*?</nav>', html, re.S)
+assert _nav and 'id="heroTimeBtn"' in _nav.group(0), \
+    "the time trigger must ship inside <nav class=jbNav>"
 assert html.count('data-time-mode="') == 8
 assert html.index('id="heroTimeSpill"') < html.index('id="main"')
 assert html.index('id="heroTimeClip"') < html.index('class="heroCopy"')
@@ -92,16 +103,33 @@ assert re.search(EMPATHY_BAR, _play_css, re.S), \
 assert not re.search(r'<section class="hero"[^>]+data-time-state="daytime"', html)
 assert not re.search(r'id="heroTimeIcon"[^>]+data-icon="daytime"', html)
 prepaint = re.search(r'<script id="heroTimePrepaint">(.*?)</script>', html, re.S)
-assert prepaint, "the complete root snapshot must reach Home controls during parsing"
+assert prepaint, "the Hero's own mirror of the root state must be written during parsing"
+# ── THE PREPAINT NO LONGER OWNS THE CONTROL, AND THAT IS THE FIX NOT A LOSS ──
+# It used to write data-icon onto the trigger's <svg> and aria-checked onto the
+# eight menu rows, and this list demanded both. Neither is its job any more:
+# the glyph is chosen in CSS off :root[data-theme-state] (header.css 3c), which
+# is right in the FIRST paint and right on all nine pages rather than on the one
+# page that carries this script; aria-checked is written by header.js, which
+# every page loads. Demanding "heroTimeIcon" here would now be demanding that a
+# site-wide control be driven from one page's inline script.
+# WHAT IT STILL OWNS is the only thing that was ever specific to this page: the
+# Hero's own copy of the three root attributes, which hero-time.css keys the sky
+# off and which must be on the element before the first frame.
 for prepaint_contract in (
-    "data-theme-mode",
-    "data-theme-state",
+    "data-time-mode",
+    "data-time-state",
     "data-reduced-motion",
-    "heroTimeIcon",
-    "menuitemradio",
-    "aria-checked",
 ):
     assert prepaint_contract in prepaint.group(1), prepaint_contract
+assert "heroTimeIcon" not in prepaint.group(1), \
+    "the trigger's glyph is CSS's now -- see header.css 3c"
+# The glyph table is what replaced it, and it must cover every state the model
+# can publish, including "off" and the no-JavaScript fallback.
+_header_css = Path("header.css").read_text(encoding="utf-8")
+for _state in ("pre-dawn", "sunrise", "daytime", "dusk", "sunset", "night", "off"):
+    assert f':root[data-theme-state="{_state}"] .heroTimeIcon>[data-hero-time-icon="{_state}"]' in _header_css, _state
+assert ':root:not([data-theme-state]) .heroTimeIcon>[data-hero-time-icon="daytime"]' in _header_css, \
+    "a page with JavaScript off must still draw a glyph"
 assert "heroTimeAutoState" not in html
 assert "heroTimeAutoState" not in time_controller
 assert html.index('href="header.css') < html.index('href="hero-time.css')
@@ -171,10 +199,20 @@ for movie_stage_contract in (
 ):
     assert movie_stage_contract in movie_stage_rule.group(0), movie_stage_contract
 
-for controller_contract in (
+# ── ONE LIST BECAME TWO, BECAUSE THE CONTROL LEFT THIS FILE  (2026-08-26) ────
+# Jayden: "the time of day button should be in the header since it affects all
+# the pages." hero-time.js kept what is genuinely the Hero's -- the sky
+# cross-fade, the night spill's removal, the portrait's cast and lit layers --
+# and header.js took the trigger, the menu, the keyboard and aria-checked,
+# because header.js is on all nine pages and hero-time.js is on one.
+# ASSERTING THE WHOLE LIST AGAINST hero-time.js WOULD NOW BE ASSERTING THE BUG:
+# it would demand that a site-wide control be driven from the one page that
+# happens to own the sky. So the list is split along the same seam the code was,
+# and the header half is asserted against header.js -- which is the stronger
+# check, because it is the file every page loads.
+for scene_contract in (
     "window.SiteTheme",
     "siteTheme.subscribe",
-    "siteTheme.setMode",
     "captureScene",
     "transitionScene",
     "clearSceneAnimations",
@@ -183,14 +221,34 @@ for controller_contract in (
     "jbthemesettle",
     "MutationObserver",
     "attributeFilter:[\"src\",\"srcset\",\"sizes\"]",
+):
+    assert scene_contract in time_controller, scene_contract
+_header_js = Path("header.js").read_text(encoding="utf-8")
+for control_contract in (
+    "window.SiteTheme",
+    "siteTheme.subscribe",
+    "siteTheme.setMode",
     "ArrowDown",
     "ArrowUp",
     "Home",
     "End",
     "Escape",
     "aria-checked",
+    "aria-expanded",
+    "menuitemradio",
 ):
-    assert controller_contract in time_controller, controller_contract
+    assert control_contract in _header_js, control_contract
+# And the two must not both bind it. Two files opening one menu is the defect
+# this split exists to make impossible, and it is one grep to prove.
+# Matched in CODE form, not as a bare substring: hero-time.js keeps a headstone
+# naming the ids it used to own, and a gate that cannot tell a comment from a
+# call would either fail on the explanation or force the explanation out.
+for control_contract in ('getElementById("heroTimeBtn")',
+                         'getElementById("heroTimeMenu")',
+                         'getElementById("heroTimeIcon")',
+                         'setAttribute("aria-expanded"'):
+    assert control_contract not in time_controller, \
+        (control_contract, "hero-time.js must not touch the control any more")
 # ── THE MENU NO LONGER FLIPS, IT FITS  (was: "opensAbove") ───────────────────
 # This required the string `opensAbove` in hero-time.js. That symbol exists in
 # no source file on this tree, and shared-surfaces-contract.py -- which is green
@@ -205,16 +263,26 @@ for controller_contract in (
 # is asserted as a mechanism rather than as a class name: the gutter token must
 # be read, the height must be capped, and the whole thing must be recomputed on
 # resize or the cap is a one-shot measurement of a window that has since changed.
+# The mechanism moved to header.js with the control; the assertions follow it.
 for menu_fit_contract in (
-    "function positionMenu()",
+    "timePosition",
     '"--menu-viewport-gutter"',
-    'menu.style.setProperty("max-height"',
-    'window.addEventListener("resize",positionMenu)',
-    'window.removeEventListener("resize",positionMenu)',
+    'setProperty("max-height"',
+    'addEventListener("resize", timePosition',
 ):
-    assert menu_fit_contract in time_controller, menu_fit_contract
-assert "opensAbove" not in time_controller, \
-    "the menu flip was replaced by positionMenu(); it must not come back"
+    assert menu_fit_contract in _header_js, menu_fit_contract
+assert "opensAbove" not in _header_js and "opensAbove" not in time_controller, \
+    "the menu flip was replaced by a fit-and-shift; it must not come back"
+# ── AND IT OPENS DOWNWARD, WHICH IS A STYLESHEET FACT ────────────────────────
+# The 44 - 52 - 52 collapse -- top and bottom both resolving on the trigger, so
+# height:auto clamps to 0 and the menu renders as 16px of its own padding -- has
+# cost this component a round trip once. It can only be prevented in the rule
+# that owns the anchor, so that is where it is asserted.
+_menu_rule = re.search(r'\.jbNav \.heroTimeMenu\s*\{[^}]*\}', _header_css, re.S)
+assert _menu_rule, "header.css must own the time menu's anchor"
+assert "top:calc(100% + var(--menu-gap))" in _menu_rule.group(0)
+assert "bottom:auto" in _menu_rule.group(0), \
+    "top AND bottom both resolving on a 44px trigger solves height as 44-52-52"
 for forbidden_owner_contract in (
     "jbHeroTimeMode",
     "sessionStorage",
@@ -254,11 +322,23 @@ _trigger_classes = set(
 # between equal-specificity rules, which is how .reelTap ended up half-migrated.
 # So the assertion is "one of", and it still fails on a button with a private
 # class, on a button with no variant at all, and on a button carrying two.
-assert {"heroTimeBtn", "ctl", "ctl--icon"} <= _trigger_classes, \
+# ctl--icon was the square chip it wore in the Hero's rail. In the bar it is a
+# bar item and must be drawn by the bar's variant -- see shared-controls-contract,
+# which asserts the same thing on every page that ships the header.
+assert {"heroTimeBtn", "ctl", "ctl--nav"} <= _trigger_classes, \
     "the time trigger must be built from the control library: %s" % sorted(_trigger_classes)
+# AT MOST one, not exactly one.  2026-08-26: in the Hero's rail the trigger had
+# to name a ground variant because nothing else was going to give it one. In the
+# bar it must NOT: the bar owns its items' ground -- rest is none, hover and
+# [aria-expanded] take --nav-hover-bg -- and the five items beside it carry
+# `ctl ctl--nav` and nothing more. A trigger carrying .ctl--quiet here would be
+# a seventh item drawn by a different rule than the other six, which is the
+# inconsistency the move was made to fix. What the assertion still catches, and
+# it is the failure that actually happened once, is TWO grounds: an
+# equal-specificity cascade race between library variants.
 _grounds = _trigger_classes & {"ctl--primary", "ctl--secondary", "ctl--quiet", "ctl--on-dark"}
-assert len(_grounds) == 1, \
-    "the time trigger needs exactly one library ground variant, found %s" % sorted(_grounds)
+assert len(_grounds) <= 1, \
+    "the time trigger may name at most one library ground variant, found %s" % sorted(_grounds)
 assert 'aria-label="Time of day"' in time_control.group(0)
 assert 'aria-haspopup="menu"' in time_control.group(0)
 assert 'aria-expanded="false"' in time_control.group(0)
@@ -278,54 +358,79 @@ icon_symbols = {
     "sunset": "lucide-sunset",
     "night": "lucide-moon",
 }
+# ── THE GLYPHS ARE INLINE NOW, AND THE SPRITE IS STILL THE SOURCE ───────────
+# These asserted `href="ui-icons.svg#..."` on all fifteen drawings. That was an
+# EXTERNAL <use>, which renders nothing until its document resolves -- the
+# blank-glyph hole header.js already inlined the nav's eight symbols to close,
+# for exactly the reason Jayden reported ("sometimes the icons don't load in
+# properly in the header"). With the control in the bar on all nine pages the
+# same hole would have opened nine times, so the paths are inline in the markup.
+# WHAT IS ASSERTED INSTEAD is the pair of facts the href was standing in for:
+# the sprite still CARRIES each symbol (it is the source of truth, and a symbol
+# quietly deleted from it is still a defect), and the inline copy is not empty.
+# The two are not compared byte-for-byte on purpose: the sprite stores a
+# <symbol> wrapper the markup does not, so a literal comparison would fail on a
+# difference that is not one.
+_sprite = Path("ui-icons.svg").read_text(encoding="utf-8")
 for mode, symbol_id in icon_symbols.items():
-    assert f'id="{symbol_id}"' in Path("ui-icons.svg").read_text(encoding="utf-8"), symbol_id
+    assert f'id="{symbol_id}"' in _sprite, symbol_id
     item = re.search(rf'<button[^>]+data-time-mode="{mode}"[^>]*>(.*?)</button>', html, re.S)
     assert item and 'class="heroTimeOptionIcon uiIcon"' in item.group(1), mode
     assert 'aria-hidden="true"' in item.group(1), mode
-    assert f'href="ui-icons.svg#{symbol_id}"' in item.group(1), mode
+    assert re.search(r'<(path|circle|line|rect)\b', item.group(1)), (mode, "no drawing")
+    assert "ui-icons.svg#" not in item.group(1), (mode, "an external <use> renders nothing until it resolves")
 for state, symbol_id in ((key, value) for key, value in icon_symbols.items() if key != "auto"):
     trigger_glyph = re.search(rf'<g data-hero-time-icon="{state}">(.*?)</g>', html, re.S)
-    assert trigger_glyph and f'href="ui-icons.svg#{symbol_id}"' in trigger_glyph.group(1), state
+    assert trigger_glyph, state
+    assert re.search(r'<(path|circle|line|rect)\b', trigger_glyph.group(1)), state
+    assert "ui-icons.svg#" not in trigger_glyph.group(1), state
 assert "heroTimeGlyph" not in html
 
-# ── THE 44px TARGET MOVED TO THE LIBRARY, AND THAT IS THE POINT ─────────────
-# This looked for a `.heroTimeBtn{...}` rule in hero-time.css carrying four
-# copies of var(--tap-min). There is no `.heroTimeBtn` rule in hero-time.css at
-# all any more: the trigger takes .ctl--icon, and controls.css sizes every icon
-# control off --ctl-h once. Re-adding a private rule here to satisfy the old
-# line would have been the regression -- a second owner of the tap target is
-# exactly what the control library was built to remove.
-# So what is asserted is the CHAIN that keeps the target at 44: the shared rule
-# sizes on --ctl-h, --ctl-h resolves to --tap-min, and --tap-min is 44px. Any
-# link breaking still fails, and it now also fails if hero-time.css starts
-# competing for the trigger's box again.
+# ── THE 44px TARGET AND THE GLYPH GEOMETRY BOTH LIVE IN THE BAR NOW ─────────
+# This block asserted the chain through .ctl--icon in controls.css and the two
+# icon rules in hero-time.css. Both moved on 2026-08-26 with the control:
+#   - the trigger is `.ctl.ctl--nav`, so its 38px ink box comes from
+#     `.ctl--nav` and the last 6px of target from `.ctl--nav::after`, which is
+#     the same construction every other item in the bar uses;
+#   - .heroTimeIcon and .heroTimeOptionIcon are drawn by header.css, beside the
+#     nav's own .gIco rule, because hero-time.css is loaded by ONE page and the
+#     control ships on nine.
+# ASSERTING THE OLD CHAIN WOULD BE ASSERTING TWO GEOMETRIES IN ONE BAR. What is
+# asserted instead is the same shape of claim against the file that now owns it,
+# plus the two absences that would mean an owner had come back.
 assert not re.search(r'\.heroTimeBtn\s*\{', time_css), \
-    "the time trigger's box belongs to .ctl--icon in controls.css, not to hero-time.css"
+    "the trigger's box belongs to .ctl--nav, not to hero-time.css"
+assert not re.search(r'\.heroTimeIcon\s*\{', time_css), \
+    "the trigger's glyph belongs to header.css, not to hero-time.css"
 controls_css = Path("controls.css").read_text(encoding="utf-8")
-# findall, not search: `.ctl--icon` also appears in grouped selectors above the
-# sizing rule, and a bare search matches the first of those and reads the wrong
-# declarations.
-icon_ctl_rule = next((body for body in
-                      re.findall(r'\.ctl--icon\s*\{([^}]*)\}', controls_css)
-                      if "width:var(--ctl-h)" in body), None)
-assert icon_ctl_rule, ".ctl--icon must size every icon control off --ctl-h"
-for target_rule in ("width:var(--ctl-h)", "height:var(--ctl-h)", "min-width:var(--ctl-h)"):
-    assert target_rule in icon_ctl_rule, target_rule
+nav_ctl_rule = next((body for body in
+                     re.findall(r'\.ctl--nav\s*\{([^}]*)\}', controls_css)
+                     if "min-height:var(--ctl-h-nav)" in body), None)
+assert nav_ctl_rule, ".ctl--nav must size every bar item off --ctl-h-nav"
+# THE INK BOX IS 38 AND THE TARGET IS 44, and it is the ::after that closes the
+# gap. A bar item whose expander was deleted would still LOOK right and would
+# fail Jayden's "44px measured, not declared" rule, so it is named.
+nav_after = re.search(r'\.ctl--nav::after\s*\{([^}]*)\}', controls_css)
+assert nav_after and "height:var(--tap-min)" in nav_after.group(1), \
+    "the bar item's 44px target is the ::after expander"
 tokens_css = Path("tokens.css").read_text(encoding="utf-8")
-assert "--ctl-h:var(--tap-min)" in tokens_css, "--ctl-h must resolve to the tap floor"
 assert "--tap-min:44px" in tokens_css, "the tap floor must stay 44px"
-# stroke-width was pinned at the literal 1.75 and the icon pack was moved onto
-# --ico-stroke, which is the same decision expressed once for every icon on the
-# site instead of twice here. The literal is what drifted; what must not is that
-# both hero icons take the SAME token as everything else and keep round joins.
-for icon_class in ("heroTimeIcon", "heroTimeOptionIcon"):
-    icon_rule = re.search(rf'\.{icon_class}\s*\{{.*?\}}', time_css, re.S)
-    assert icon_rule, icon_class
-    for icon_contract in ("stroke-width:var(--ico-stroke)", "stroke-linecap:round",
-                          "stroke-linejoin:round", "width:var(--ico-md)"):
-        assert icon_contract in icon_rule.group(0), f"{icon_class}: {icon_contract}"
-assert re.search(r'--ico-stroke:\s*[\d.]+', tokens_css), "--ico-stroke must be defined"
+# The glyphs take the bar's own box and the bar's own stroke, in one rule with
+# the nav's icons -- which is the point: one geometry, not two.
+# NOT `[^}]*`: this rule carries a comment that itself contains a `}`
+# (`.gIco{color:var(--c700)}`), so a naive body match stops inside the prose and
+# reads five declarations short. The rule is taken as the span from its selector
+# to the first `}` at the END of a line, which is how this file is written.
+_i = _header_css.index(".jbNav .gIco,.jbNav .heroTimeIcon{")
+_shared_glyph = re.match(r'.*?\}\n', _header_css[_i:], re.S)
+assert _shared_glyph, "the trigger's glyph must share the nav icons' rule"
+for icon_contract in ("width:var(--ico-md)", "stroke-linecap:round", "stroke-linejoin:round"):
+    assert icon_contract in _shared_glyph.group(0), icon_contract
+_j = _header_css.index(".jbNav .heroTimeOptionIcon{")
+_option_glyph = re.match(r'.*?\}\n', _header_css[_j:], re.S)
+assert _option_glyph, "the menu rows' glyphs must be drawn by header.css"
+for icon_contract in ("width:var(--ico-md)", "stroke-linecap:round", "stroke-linejoin:round"):
+    assert icon_contract in _option_glyph.group(0), icon_contract
 
 # ── THE HERO HAS NO RIM TO PAINT ABOVE ANYTHING ─────────────────────────────
 # This required a `.hero::after` overlay carrying box-shadow:var(--time-rim),
@@ -562,45 +667,23 @@ assert any("--hero-time-duration:420ms" in block for block in _mobile_blocks), \
     "the hour must cross-fade faster on a phone"
 assert "body[data-time-state]" not in time_css
 
-menu_rule = re.search(r'\.heroTimeMenu\s*\{.*?\}', time_css, re.S)
-assert menu_rule and "right:0" in menu_rule.group(0)
-# THE 50vw CAP IS GONE WITH THE REASON FOR IT. It was justified in the source as
-# "Time is last on every centered flex line. Even alone its right edge is
-# 50vw + 22px" -- an arithmetic that measured from the middle of the Hero
-# because the trigger used to live in the centred CTA stack. The trigger is on
-# the page's right column now with the whole measure to its left, so the cap
-# bound nothing on a desktop and truncated the menu to 201px at 390. The
-# viewport gutter below is the bound that is still real and is still asserted.
-assert "width:var(--menu-w)" in menu_rule.group(0), \
-    "the time menu takes the library's menu width"
-assert "max-width:calc(100vw - (var(--sp-16) * 2))" in menu_rule.group(0)
-# The CSS half of the flip that positionMenu() replaced. `.heroTime.opensAbove`
-# is gone from the stylesheet on purpose -- a menu that flips above its trigger
-# covers the control you just pressed -- so this required a rule that no longer
-# exists. The menu is anchored BELOW the trigger unconditionally now and fits by
-# capping its own height, so that anchor is what is asserted, plus the absence of
-# any bottom-anchored fork sneaking back in.
-# ── AND ON 2026-08-20 THE ANCHOR FLIPPED, BECAUSE THE TRIGGER MOVED ─────────
-# "a menu that flips above its trigger covers the control you just pressed" was
-# right while the trigger sat in the middle of the Hero with 400px of sky below
-# it. Jayden then asked for the control in the Hero's bottom-right corner, where
-# its lower edge is 24px off the Hero's floor -- so `top:calc(100% + 8px)` put
-# 258px of menu over the tab row and the first cover. It opens UPWARD now, and
-# unconditionally: there is no fork, no positionMenu() flip and no class, which
-# is the property the paragraph above actually cared about.
-# BOTH OFFSETS MAY NOT RESOLVE AT ONCE, and that is asserted rather than
-# implied. A .ctl-menu is height:auto inside a 44px trigger, so `top` and
-# `bottom` both resolving solves the height as 44 - 52 - 52, clamps it to zero
-# and renders the menu's padding twice over -- measured live at 634..650 with
-# all eight items inside it. `top:auto` in the same declaration is the fix, and
-# a later rule cannot supply it: it has to be here, where the anchor is owned.
-assert "bottom:calc(100% + var(--sp-8))" in menu_rule.group(0) and "left:auto" in menu_rule.group(0), \
-    "the time menu hangs above its trigger, right-aligned"
-assert "top:auto" in menu_rule.group(0), \
-    "top and bottom both resolving collapses a height:auto menu to its own padding"
-assert "top:calc(100%" not in menu_rule.group(0), \
-    "a resolved top would over-constrain the menu box"
-assert "opensAbove" not in time_css, "the flip was replaced by positionMenu(); it must not come back"
+# ── THE MENU'S RULE LEFT THIS FILE WITH THE CONTROL.  2026-08-26 ────────────
+# Everything in this block was about `.heroTimeMenu` in hero-time.css: its
+# width, its viewport cap and -- the expensive part -- the anchor. hero-time.css
+# is loaded by one page; the control ships on nine, so the rule is header.css's
+# now and asserting it here would be asserting that eight pages get no menu.
+# THE ANCHOR ALSO FLIPPED BACK, and the paragraph it flipped away from was
+# right the first time: from a bar at the top of the window, down is the only
+# direction with room. What does NOT change is the trap, so it is re-asserted
+# against the new owner rather than dropped -- `top` and `bottom` both resolving
+# on a 44px trigger solves a height:auto menu as 44 - 52 - 52, clamps it to
+# zero, and renders the menu's own 8px of padding twice over. Measured live at
+# 634..650 with all eight items inside it. That assertion lives with the rule
+# that owns the anchor (a later rule cannot supply it), which is header.css --
+# see the menu-anchor block further up this file, where it is checked.
+assert not re.search(r'\.heroTimeMenu\s*\{', time_css), \
+    "the time menu belongs to header.css now; hero-time.css must not compete for it"
+assert "opensAbove" not in time_css, "the flip was replaced by a fit-and-shift; it must not come back"
 
 off_state = re.search(r'\.hero\[data-time-state="off"\]\s*\{.*?\}', time_css, re.S)
 assert off_state and "--time-secondary-hover-border:var(--c500)" in off_state.group(0)
@@ -789,8 +872,33 @@ for state in active_states:
     assert abs(state_materials[state]["y"] - sky_y) <= 1.0, (
         "%s: the light stands at y=%s%% but its sky is bright at y=%s%%"
         % (state, state_materials[state]["y"], sky_y))
-# Night is the deepest modelling and the dimmest exposure; nothing may be flat.
-assert state_materials["night"]["shade"] == max(m["shade"] for m in state_materials.values())
+# ── NIGHT IS THE DIMMEST HOUR. IT IS NO LONGER THE DEEPEST SHADE ────────────
+# This asserted that night carried the largest --time-shade of any state, and on
+# 2026-08-26 that assertion WAS the bug Jayden reported: "too dark, can barely
+# see him he feels in shadow." Measured on rendered pixels, a 19x19 grid inside
+# the head's authored alpha box: night's median relative luminance was .010
+# against .353-.514 for the other five, and 1.05:1 against its own sky -- five
+# hundredths of a contrast point from not being drawn. It was carrying the
+# deepest shading AND the lowest exposure, which is one darkening applied twice.
+# --time-shade came back into the daylight band (.54-.62) and the exposure did
+# the work instead.
+# WHAT THE LINE WAS PROTECTING IS STILL PROTECTED, and more precisely: night is
+# still the dimmest hour, which is what "night" means and is a claim about
+# EXPOSURE, not about the shading layer. So that is what is asserted, off the
+# authored values, and it fails the moment night stops being the darkest scene.
+_exposures = {}
+for _state in active_states:
+    _m = re.search(rf'\.hero\[data-time-state="{_state}"\]\s*\{{[^}}]*--time-exposure:\s*([\d.]+)',
+                   time_css, re.S)
+    assert _m, ("%s: every hour must name its exposure" % _state)
+    _exposures[_state] = float(_m.group(1))
+assert _exposures["night"] == min(_exposures.values()), \
+    ("night must be the dimmest hour", _exposures)
+# ...and it may not be dark to the point of invisibility again. The five daylight
+# hours run .93-1.08; a night more than a third under the darkest of them is the
+# state this gate failed to catch the first time.
+assert _exposures["night"] >= min(v for k, v in _exposures.items() if k != "night") * 0.66, \
+    ("night is dark, not absent -- see hero-time.css for the rendered measurement", _exposures)
 for state in active_states:
     assert 0 < state_materials[state]["shade"] <= 1, state
     assert 0 < state_materials[state]["glow"] <= 1, state
@@ -995,7 +1103,11 @@ assert re.search(r'<a[^>]+data-nav-item="games"[^>]+href="play\.html"', html)
 # a deleted assertion cannot tell a later sweep that the button was a decision.
 assert 'id="workBtn"' not in html, "the View work CTA is back; it was removed by request"
 assert 'id="moodbar"' not in html and 'class="heroMood' not in html
-assert html.index('id="h1"') < html.index('id="heroTimeBtn"') < html.index('class="heroTimeSupport')
+# The same ordering as the one stated near the top of this file, and inverted
+# for the same reason: the trigger is in the bar, which is parsed before the
+# Hero. Kept as a second copy because this half of the file is the DOM-order
+# section and a reader here should not have to go looking.
+assert html.index('id="heroTimeBtn"') < html.index('id="h1"') < html.index('class="heroTimeSupport')
 assert '<h1 id="h1">SF product designer. iOS, B2C and design systems.</h1>' in html
 
 # ── THE HERO WENT FULL-BLEED, WHICH RETIRED ITS RIM AND ITS 88px ────────────
@@ -1106,10 +1218,23 @@ assert not re.search(r'\.heroTimeSupport\s*\{[^}]*display:none', html, re.S), \
 # WHAT ACTUALLY HAS TO HOLD is that the row ENDS UP visible by two independent
 # routes: the settled state the entrance transitions into, and a reduced-motion
 # escape that does not depend on the entrance running at all.
-assert re.search(r'\.heroCtas\.in>\*\s*\{[^}]*opacity:1[^}]*transform:none', html, re.S), \
-    "the CTA row has no settled state to transition into"
-assert re.search(r'prefers-reduced-motion:reduce\)\{[^@]*\.heroCtas>\*[^{]*\{[^}]*opacity:1!important', html, re.S), \
-    "reduced motion must show the CTA row without waiting for an entrance"
+# ── AND THEN THE ROW ITSELF WENT.  2026-08-26 ───────────────────────────────
+# The two assertions above were about .heroCtas ending up visible by two routes.
+# There is no row: it held exactly one child, the time-of-day control, which
+# moved into the site header, and an empty absolutely-positioned box is not free
+# -- it still answers getBoundingClientRect(), and the head's travel field was
+# reserving the corner it occupied. Demanding a settled state for a row that
+# does not ship would be demanding the row back.
+# INVERTED, the way this file inverts every other deletion: the failure worth
+# blocking now is the rail returning as an empty box, which is exactly how it
+# would come back -- someone restores the markup without the control in it.
+assert 'class="heroCtas"' not in html, "the Hero's rail is deleted, not emptied"
+# Comments stripped first: the headstones that explain the deletion quote the
+# rules they are the headstone FOR, and a gate that cannot tell a comment from a
+# declaration would force the explanation out of the file to stay green.
+_html_no_comments = re.sub(r"/\*.*?\*/", "", re.sub(r"<!--.*?-->", "", html, flags=re.S), flags=re.S)
+assert not re.search(r'\.heroCtas\s*[,{]', _html_no_comments), \
+    "the rail's rules go with the rail; dead CSS is how it comes back"
 assert re.search(r'#loveScene\s*\{[^}]*z-index:\s*64', html, re.S)
 # The join between the Hero and the work collection was a literal var(--sp-16)
 # inside the phone fork. It is --section-join-gap now and applies at every width,
@@ -1357,35 +1482,35 @@ def hero_2026_08_20_contract(html, time_css):
     assert re.search(r'#heroHeadSelection\[data-selection="idle"\]\{[^}]*cursor:pointer', code), \
         "the cursor is the affordance at a distance"
 
-    # ── 4. THE CONTROL IS IN THE CORNER, ON THE PAGE'S COLUMN ──────────────
-    # Jayden: "put the button for day change in the bottom right corner of the
-    # hero using the grid". The runtime column check is in
-    # home-minimal-hero-contract.py, where it can be measured against the live
-    # tab row. What is structural, and what this file owns, is that the control
-    # is NOT in the centred copy any more -- the copy's height is what the
-    # Hero's own height was solved against, and what the head's travel field is
-    # floored on.
+    # ── 4. THE CONTROL IS OUT OF THE HERO ALTOGETHER, AND SO IS ITS RAIL ───
+    # This section asserted the control into the Hero's bottom-right corner and
+    # the rail into the Hero. 2026-08-26, Jayden: "the time of day button should
+    # be in the header since it affects all the pages." It writes a state every
+    # page reads and existed on one, which is the inconsistency; it is a nav
+    # item now. .heroCtas held nothing but that control, so an empty absolutely
+    # positioned row went with it -- it still answered getBoundingClientRect()
+    # and hero-head-transform.js reserved the corner it occupied, which is 43px
+    # of empty sky the head was being told to avoid.
+    # THE STRUCTURAL CLAIM THIS FILE OWNS IS UNCHANGED IN KIND: the Hero's copy
+    # is the thing the Hero's height was solved against and the thing the head's
+    # travel field is floored on, so what must be true is that no control has
+    # crept back into it -- and now, that none has crept back into the Hero at
+    # all. The rail's own column checks go with the rail; the BAR's column is
+    # asserted by structure-rule-contract on eight pages, which is the same
+    # check made stronger.
     hero_section = html[html.index('<section class="hero surface surface--hero"'):]
     hero_section = hero_section[:hero_section.index("</section>")]
     copy = hero_section[hero_section.index('<div class="heroCopy">'):]
     copy = copy[:copy.index("\n  </div>")]
-    assert 'class="heroCtas"' not in copy, \
-        "the time control left the centred copy for the corner rail"
-    assert 'id="heroTime"' not in copy, \
-        "the time control left the centred copy for the corner rail"
-    assert 'class="heroCtas"' in hero_section, "the rail is still in the Hero"
-    # The rail is positioned off the Hero's GUTTER and not its border edge. An
-    # absolutely positioned box is laid out against the padding box -- the one
-    # that INCLUDES the padding -- so `left:0` is 16px off the column at 390 and
-    # exactly right at 1440, which is a bug that passes at one width.
-    rail = re.search(r"\.heroCtas\{position:absolute;([^}]*)\}", html)
-    assert rail, "the rail must be the thing that is positioned"
-    assert "left:var(--heroPadL)" in rail.group(1) and "right:var(--heroPadR)" in rail.group(1), \
-        "the rail spans the Hero's own gutter, not its border edge: %s" % rail.group(1)
-    assert "max-width:1200px" in rail.group(1) and "margin-inline:auto" in rail.group(1), \
-        "and is capped and centred on the page measure"
-    assert "pointer-events:none" in rail.group(1), \
-        "a 1200px solid rail across the sky is a dead strip the head travels through"
+    for gone in ('class="heroCtas"', 'id="heroTime"', 'id="heroTimeBtn"', 'class="heroCred"'):
+        assert gone not in copy, ("the centred copy is an h1 and nothing else: %s" % gone)
+        assert gone not in hero_section, ("the Hero carries no controls: %s" % gone)
+    assert not re.search(r"\.heroCtas\{position:absolute", html), \
+        "the rail was deleted, not hidden"
+    # THE HEADLINE IS THE ONLY THING IN THE COPY. Stated positively so the block
+    # cannot quietly become empty either -- an h1 that stopped shipping would
+    # satisfy every absence above.
+    assert '<h1 id="h1">' in copy, "the copy block is the headline"
     # ── 5. THE HEAD'S FLOOR OFFSET IS A CONSTANT ───────────────────────────
     # --heroReveal absorbs ALL the slack now, so it is unbounded in the window
     # height while the Hero is not. A `--heroReveal * .5` term in the floor
