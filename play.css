@@ -340,50 +340,86 @@ body.hmSoccer .moodMenu .moodItem:not(#endGame),body.hmSoccer .moodMenu .moodGo{
 .hmGoal.hmGoalHit{animation:hmNet .55s cubic-bezier(.2,.9,.3,1)}
 /* ===== THE YOWMINGS LEAGUE: UPRIGHTS, AND A BALL THAT IS NOT A SPHERE =====
    The engine draws the same two goal elements it always did (play-engine.js's dom(), which
-   now hangs four empty bars inside each one); `body.hmYow` decides which of the two
-   graphics is painted. Nothing here is a second goal, a second ball or a second camera.
+   hangs four empty bars inside each one); `body.hmYow` decides which of the two graphics is
+   painted. Nothing here is a second goal, a second ball or a second camera.
 
-   FOUR HAIRLINES AND NOTHING ELSE. The picture in this mode is the heads, the football and
-   the gap between the posts -- so the posts are the thinnest thing that can still be aimed
-   at, and everything the soccer net carries to look like a net (the woven 45deg pair, the
-   two inset falls that give it depth, the glow on the post) comes OFF rather than being
-   restyled. That is the subtraction, and it is why the aperture reads at a glance.
+   THIS BLOCK USED TO SAY "FOUR HAIRLINES AND NOTHING ELSE", and it over-subtracted. Jayden,
+   after playing a cup: "the goal posts right now look a bit flat and uninspired." He is
+   right, and the screenshot says why: at 5px, 45% opacity and the team's own red, the far
+   post vanished against the pitch and what survived was a bright line, a stub and a stick.
+   The defining object of the mode read as two lines.
 
-   NO SHADOW, ANYWHERE. The soccer goal's hit flash is a box-shadow and its post carries a
-   glow; both are elevation on chrome and neither survives here. The League's woodwork
-   moment is a COLOUR change on the bars that were struck -- same 550ms, same curve, same
-   gold, no new material. The ground shadow under the goal is turned off in layout() for
-   the same reason: only the companion heads stand on something.
+   FOUR THINGS FIX IT, AND NONE OF THEM IS AN ELEVATION.
 
-   THE DEPTH CUE IS ONE NUMBER. A side-on pitch cannot show two posts side by side, so the
-   pair is drawn as near and far across the aperture's width and the far one is simply
-   dimmer. That is the whole perspective budget, and it is enough. */
+   1. SECTION. The members go 5px -> 8/9/12 and get fully round ends, so they read as pipe
+      rather than as rule. The inner gap stays honest: 72 - 8 - 8 = 56px against a 48px
+      ball, which is the snug aperture the mode was built for.
+   2. FORM, FROM A CYLINDER. One gradient ACROSS each member -- highlight on the lit side,
+      a fall on the other. That is what makes a tube a tube, and it is shading on the object
+      itself, not a shadow cast onto anything. The heads still own the only contact shadow
+      on this site.
+   3. THE COLOUR OF A GOALPOST. Uprights, crossbar and column are goalpost gold, because
+      that colour is most of what makes the silhouette read as football at a glance, and
+      because a flat vermilion line next to a photographed leather ball never belonged to
+      the same picture. The far post is the same gold in shade -- darker, not fainter, so
+      depth comes from value and the post is still THERE at the wall.
+   4. THE TEAM OWNS THE PAD. Real posts are padded at the base in the home team's colour, so
+      that is where red and blue go: a chunky collar on the bottom of the column. It keeps
+      the two ends instantly tellable apart, and it buys the proportion back -- the aperture
+      is 100px and the column is 160px, which is upside down for a goalpost, but a column
+      that is 60% bare and 40% pad reads as a 96px post on a foot, against 100px of upright.
+      That is the honest lever: the bar height and the window are the GAME (they decide what
+      is scoreable), so the drawing is what changes, never the geometry underneath it.
+
+   THE APERTURE IS STILL EXACTLY WHERE A GOAL COUNTS. --upBar is set inline by layout() from
+   the same UCB/UPH the scoring predicate uses, and every member is placed off it, so the
+   stylesheet cannot drift from the arithmetic. The crossbar overhangs the posts by half a
+   post so it reads as a beam they stand on; that overhang is the only px in this block that
+   is not derived, and it is 4px of drawing outside a scoring plane the ball is tested
+   against by its centre. */
 .hmUpStem,.hmUpBar,.hmUpPost{display:none}
-body.hmYow .hmGoal{background:none;border-radius:0;box-shadow:none;color:rgb(var(--tc1,224,90,78))}
+body.hmYow{--yp:224,154,16;--yp-far:150,100,14}
+body.hmYow .hmGoal{background:none;border-radius:0;box-shadow:none;color:rgb(var(--tc1,224,90,78));
+ --upW:8px;--upBarH:10px;--stemW:12px}
 body.hmYow .hmGoalB{color:rgb(var(--tc2,90,160,216))}
 body.hmYow .hmGoal::before,body.hmYow .hmGoal::after{display:none}
 body.hmYow .hmUpStem,body.hmYow .hmUpBar,body.hmYow .hmUpPost{
- display:block;position:absolute;background-color:currentColor;border-radius:var(--r-2xs)}
-/* --upBar is set inline by layout(): how far below the element's own top the crossbar sits.
-   One number, and all four bars are placed off it, so the stylesheet can never disagree
-   with the arithmetic that decides where a score actually counts. */
-body.hmYow .hmUpBar{left:0;right:0;top:var(--upBar);height:5px;margin-top:-2.5px}
-body.hmYow .hmUpPost{top:0;height:var(--upBar);width:5px}
-body.hmYow .hmUpStem{top:var(--upBar);bottom:0;width:5px;left:50%;margin-left:-2.5px;opacity:.5}
+ display:block;position:absolute;--memb:rgb(var(--yp));background-color:var(--memb);
+ border-radius:3px}
+/* The cylinder. Across the member, never along it: a bar lit down one edge is round, a bar
+   lit at one end is a tube pointing at the camera. */
+body.hmYow .hmUpPost,body.hmYow .hmUpStem{
+ background-image:linear-gradient(90deg,rgba(255,255,255,.34),rgba(255,255,255,0) 52%,rgba(24,14,0,.20))}
+body.hmYow .hmUpBar{
+ background-image:linear-gradient(180deg,rgba(255,255,255,.34),rgba(255,255,255,0) 52%,rgba(24,14,0,.20))}
+body.hmYow .hmUpBar{left:calc(var(--upW) / -2);right:calc(var(--upW) / -2);top:var(--upBar);
+ height:var(--upBarH);margin-top:calc(var(--upBarH) / -2)}
+body.hmYow .hmUpPost{top:0;height:calc(var(--upBar) + var(--upBarH) / 2);width:var(--upW)}
+body.hmYow .hmUpStem{top:var(--upBar);bottom:0;width:var(--stemW);left:50%;
+ margin-left:calc(var(--stemW) / -2)}
+/* THE PAD. A pseudo-element rather than a fifth bar, because the engine's dom() owns how
+   many children a goal has and this is a property of the column, not a new part. */
+body.hmYow .hmUpStem::after{content:"";position:absolute;left:50%;bottom:0;
+ width:calc(var(--stemW) * 2.3);height:44%;transform:translateX(-50%);
+ border-radius:5px 5px 3px 3px;background-color:currentColor;
+ background-image:linear-gradient(90deg,rgba(255,255,255,.26),rgba(255,255,255,0) 50%,rgba(0,0,0,.14))}
 /* Near post = the field side, far post = flush to the wall. Mirrored per end, because the
    wall the aperture hangs on is on the opposite side at each. */
 body.hmYow .hmGoalR .hmUpPostF{left:0}
 body.hmYow .hmGoalR .hmUpPostN{right:0}
 body.hmYow .hmGoalB .hmUpPostF{right:0}
 body.hmYow .hmGoalB .hmUpPostN{left:0}
-body.hmYow .hmUpPostF{opacity:.45}
+body.hmYow .hmUpPostF{--memb:rgb(var(--yp-far));width:calc(var(--upW) - 2px)}
 body.hmYow .hmGoal.hmGoalHit{animation:none}
 body.hmYow .hmGoal.hmGoalHit .hmUpBar,body.hmYow .hmGoal.hmGoalHit .hmUpPost{
  animation:hmUpHit .55s cubic-bezier(.2,.9,.3,1)}
-@keyframes hmUpHit{0%{background-color:currentColor}28%{background-color:rgb(232,181,74)}100%{background-color:currentColor}}
-@media(max-width:880px){body.hmYow .hmUpBar{height:4px;margin-top:-2px}
- body.hmYow .hmUpPost,body.hmYow .hmUpStem{width:4px}
- body.hmYow .hmUpStem{margin-left:-2px}}
+/* The woodwork moment used to flash gold on a red bar. Gold is the bar's own colour now, so
+   the strike floods it with the TEAM whose posts were hit -- same 550ms, same curve, same
+   two colours already on screen, no new material. --memb carries each member's rest colour
+   so the far post returns to its shade rather than to the near post's. */
+@keyframes hmUpHit{0%{background-color:var(--memb)}28%{background-color:currentColor}
+ 100%{background-color:var(--memb)}}
+@media(max-width:880px){body.hmYow .hmGoal{--upW:6px;--upBarH:7px;--stemW:9px}}
 /* THE BALL. --ballSkin is already the seam the gold final uses, so the football is a token
    swap and not a branch in the engine. The class is DOUBLED on purpose: tournament.css
    links after this file and sets `body.hmFinal{--ballSkin:...gold}` at the same
