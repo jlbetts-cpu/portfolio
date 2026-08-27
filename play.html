@@ -76,7 +76,18 @@
  .wrap{position:relative;z-index:62;width:100%;max-width:none;margin:0;padding:0}
  .hero{position:relative;isolation:isolate;overflow:hidden;display:grid;grid-template-columns:1fr;height:auto;box-sizing:border-box;
   justify-items:center;align-content:start;min-height:calc(100svh - var(--bar-h));gap:0;
-  padding:var(--sp-24) var(--play-gutter) 0;border:0;box-shadow:none;
+  /* ===== ON THE COLUMN, NOT ON A GUTTER OF ITS OWN. docs/house-style.md §11 measured
+     this page holding two columns at once: the hero and the hub sat on --play-gutter (24
+     at 1440) while .pCards, the footer's inner content and the margin rails all sat on
+     120..1320. A page that disagrees with itself about where its column is cannot read as
+     clean however well each half is spaced.
+     --col-inset is already exactly the house column -- max(gutter, (100% - --col-max)/2)
+     gives 120 at 1440 and 16 at 390 and 320, which is §1's table to the pixel -- and it
+     was already drawing the rails. Now it sets the content edge too, so the rail, the
+     cards, the hero copy and the footer are one line. Only the CONTENT box moves: the
+     hero's border box is still 0..viewport, so the pitch, the crowd's floor and the
+     smoke test's hero bounds are all untouched. ===== */
+  padding:var(--sp-24) var(--col-inset) 0;border:0;box-shadow:none;
  border-radius:0;corner-shape:initial;background:var(--theme-page,var(--c50))}
  body[data-theme-page="play"] .hero::after{display:none}
  /* THE AURA IS GONE, ELEMENT AND ALL. Jayden: "Subtle gradient behind the head
@@ -265,7 +276,7 @@
  body.playViewportOwned .jbStick{visibility:hidden;pointer-events:none}
  body.pTeamOn .hero{height:52vh;margin:6vh auto auto}
  @media(max-width:880px){.hero{min-height:auto;padding-bottom:var(--sp-24)}.hero .stagewrap{width:min(64vw,calc((100svh - 322px - var(--play-hero-lead)) * .86),500px)}}
- @media(max-width:760px){.hero,body.pHubOn.hmFull .hero{height:auto;min-height:calc(100svh - var(--bar-h));padding:var(--sp-20) var(--play-gutter)}.heroCopy h1{max-width:12.5em}.heroCtas{margin-top:var(--sp-14)}.heroMood .moodMenu{left:auto;right:0;width:min(var(--menu-w),calc(100vw - var(--sp-48)))}.hero .stagewrap{width:min(88vw,calc((100svh - 334px - var(--play-hero-lead)) * .86),430px);margin-top:var(--sp-8)}}
+ @media(max-width:760px){.hero,body.pHubOn.hmFull .hero{height:auto;min-height:calc(100svh - var(--bar-h));padding:var(--sp-20) var(--col-inset)}.heroCopy h1{max-width:12.5em}.heroCtas{margin-top:var(--sp-14)}.heroMood .moodMenu{left:auto;right:0;width:min(var(--menu-w),calc(100vw - var(--sp-48)))}.hero .stagewrap{width:min(88vw,calc((100svh - 334px - var(--play-hero-lead)) * .86),430px);margin-top:var(--sp-8)}}
  @media(max-width:360px){.hero{padding-inline:var(--sp-8)}.heroCtas{gap:var(--sp-8)}.hero .stagewrap{width:min(90vw,calc((100svh - 352px - var(--play-hero-lead)) * .84),400px)}}
  /* The one breakpoint whose portrait is sized by a LITERAL rather than by the svh
     budget, so it cannot absorb the mood clause's extra line on its own. Measured at
@@ -446,7 +457,7 @@
 
  /* The games are a real below-Hero section. It starts one 16px step after the first screen,
     stays in normal flow, and only fades while a full-screen game surface owns the viewport. */
- .pHub{position:relative;z-index:40;width:100%;box-sizing:border-box;padding:var(--sp-16) var(--play-gutter) 0;
+ .pHub{position:relative;z-index:40;width:100%;box-sizing:border-box;padding:var(--sp-16) var(--col-inset) 0;
   pointer-events:none;opacity:0;visibility:hidden;scroll-margin-top:calc(var(--bar-h) + var(--sp-8));
   transition:opacity var(--sp-settle-dur) var(--sp-settle),visibility 0s linear var(--sp-settle-dur)}
  body.pHubOn .pHub{pointer-events:auto;opacity:1;visibility:visible;transition-delay:0s,0s}
@@ -788,7 +799,10 @@
   gap:var(--rule-w);background:var(--rule);
   border-block:var(--rule-w) solid var(--rule)}
  .pCard{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:var(--sp-6);
-  min-height:var(--tap-min);padding:var(--sp-16) var(--sp-20) var(--sp-20);
+  /* 16 / 24 / 24, not 16 / 20 / 20. §2 measured the rungs home actually moves in -- 8, 16
+     and 24 inside a component -- and 20 is not one of them; it appears nowhere on the home
+     page at any size. The phone block below is already on 12 / 16 / 16, which are. */
+  min-height:var(--tap-min);padding:var(--sp-16) var(--sp-24) var(--sp-24);
   border:0;border-radius:0;background:var(--theme-page,var(--c50));box-shadow:none;
   font-family:var(--sans);color:var(--c950);text-align:left;text-decoration:none;cursor:pointer;
   /* one closed transition set, hover-OUT here and the shorter hover-IN on :hover -- the
@@ -830,7 +844,12 @@
  .pCard[aria-disabled="true"]{opacity:.38;cursor:default;pointer-events:none}
  .pCard .gIco{width:var(--ico-md);height:var(--ico-md);flex:0 0 var(--ico-md);color:var(--c700);stroke-width:var(--ico-stroke)}
  .pCardT{font-weight:600;font-size:var(--fs-body);line-height:var(--lh-tight);letter-spacing:var(--tr-title)}
- .pCardD{font-weight:400;font-size:var(--fs-caption);line-height:var(--lh-body);letter-spacing:var(--tr-body);color:var(--c500)}
+ /* 12px, not 11. §3 lists the six sizes that carry the whole home page -- 44 · 18 · 15 ·
+    13 · 12 · 11 -- and its 11 is a 600-weight LABEL at +.01em tracking (.csInfoLabel). An
+    11px 400-weight BODY rung does not exist on home; 12/400 does, and it is .footCopy,
+    which is the same job this line does: a quiet second line under a name. Tracking goes
+    to normal with it, because that is what home sets at 12. */
+ .pCardD{font-weight:400;font-size:var(--fs-label);line-height:var(--lh-body);letter-spacing:normal;color:var(--c500)}
  /* THE WIDE CELL IS THE SAME CELL. One span declaration and one measure -- no second
     padding, no second type scale, no second hover, no rule of its own. Everything that
     makes it read as part of the band is the band's. See the markup for why exactly one

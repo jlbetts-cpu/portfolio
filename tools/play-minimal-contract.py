@@ -323,7 +323,13 @@ for side in ("left:var(--col-inset);border-left:var(--rule-w) solid var(--rule)"
 # which is index.html's column at the same width.
 assert "@media(max-width:640px){:root{--play-gutter" not in re.sub(r"\s+", "", CSS), \
     "play.css has taken back a phone gutter that is not the site's column"
-assert "padding:var(--sp-24) var(--play-gutter) 0" in LIVE, \
+# 2026-08-27: THIS ASSERTION NOW PINS THE THING ITS OWN MESSAGE ASKED FOR. It read
+# --play-gutter, which is 24 at 1440 -- and the column at 1440 is 120, so "the hero's own
+# gutter has drifted off the column" was true of the value being pinned.
+# docs/house-style.md §11 measured it: the page held a 24px gutter and a 120px gutter at
+# once. --col-inset is the column by construction (max(gutter, (100% - --col-max)/2)) and
+# was already drawing the rails, so the hero's content edge and the rail are now one line.
+assert "padding:var(--sp-24) var(--col-inset) 0" in LIVE, \
     "the hero's own gutter has drifted off the column"
 
 # 3 ── THE WALLS EXIST AND ARE NOT SWITCHED OFF BY body.hmFull. Jayden, 2026-08-20:
