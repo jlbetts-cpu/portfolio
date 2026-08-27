@@ -629,12 +629,39 @@ img{display:block;max-width:100%;height:auto}   /* height:auto IS THE COMPANION 
    cover ghost: var(--hero-time-duration, var(--dur-enter)). Whatever resolves,
    both move together and neither can drift from the other. */
 @property --mock-sky-low{syntax:"<color>";inherits:true;initial-value:transparent}
+@property --mock-sky-mid{syntax:"<color>";inherits:true;initial-value:transparent}
 @property --mock-sky-high{syntax:"<color>";inherits:true;initial-value:transparent}
 .content :is(.playerStage,.tv.tvPhone .tvFrame){
- --mock-sky-low:#5a86a9;--mock-sky-high:#ddeaf9;      /* daytime, the default state */
+ /* ── IT IS THE SKY'S SHAPE NOW, NOT A TWO-STOP RAMP.  2026-08-27 ──────────
+    Jayden: "make sure that like its actually the gradient ... we dont have a
+    flat gradient". He was right and it measured: the ground was
+    linear-gradient(180deg,#ddeaf9,#5a86a9) under a white scrim at .42-.62,
+    which is two muted stops with most of their difference washed out. The
+    hero's daytime sky is a RADIAL from below the bottom edge with five stops
+    -- #0071c1, #60a8e2, #b4d8ff, #d9ebff, #f8fafd -- and the reason it reads
+    as depth rather than as a ramp is that the saturated core sits OFF the box
+    and you only ever see the falloff.
+    So this takes the same construction and the same colours: a radial centred
+    below the ground's bottom edge, three registered stops sampled from the
+    hero's own, and the scrim cut from .42/.62 to .16/.30 because it was the
+    scrim doing most of the flattening.
+    IT STILL DOES NOT MOVE -- he asked for that too. There is no animation
+    here; the radial is static and only its COLOURS interpolate, which is what
+    keeps an hour change in step with the cover instead of snapping. */
+ --mock-sky-low:#0071c1;--mock-sky-mid:#8cc6ee;--mock-sky-high:#dceeff; /* daytime, the default state */
  background:
-   linear-gradient(180deg,rgba(253,253,253,.42),rgba(253,253,253,.62)),
-   linear-gradient(180deg,var(--mock-sky-high),var(--mock-sky-low));
+   linear-gradient(180deg,rgba(253,253,253,.16),rgba(253,253,253,.30)),
+   radial-gradient(126% 138% at 50% 132%,
+     var(--mock-sky-low) 0%,
+     var(--mock-sky-mid) 30%,
+     var(--mock-sky-high) 58%,
+     var(--c50) 100%);
+ /* MARGIN TO MARGIN. It was 504px inside a 1200px column -- a card hugging the
+    phone rather than a ground the phone stands on, which is what he saw:
+    "shouldnt the box be like margin to margin". The image keeps its own width
+    and centres; only the GROUND spans the column. */
+ width:100%;
+ display:flex;align-items:center;justify-content:center;
  border-radius:var(--r-lg);corner-shape:var(--corner);
  padding-block:var(--sp-24-40);
  box-shadow:var(--rim-1);   /* --rim-1, not --rule: this edges an OBJECT. --rule is for a line that crosses the page, and tools/structure-rule-contract.py counts its occurrences for exactly that reason. */
@@ -646,21 +673,22 @@ img{display:block;max-width:100%;height:auto}   /* height:auto IS THE COMPANION 
  --mock-fade:var(--hero-time-duration,var(--dur-enter));
  --mock-fade-ease:var(--hero-time-ease,var(--ease-out));
  transition:--mock-sky-low var(--mock-fade) var(--mock-fade-ease),
+            --mock-sky-mid var(--mock-fade) var(--mock-fade-ease),
             --mock-sky-high var(--mock-fade) var(--mock-fade-ease);
 }
-:root[data-theme-state="off"]      .content :is(.playerStage,.tv.tvPhone .tvFrame){--mock-sky-low:#e9eaec;--mock-sky-high:#f6f7f8}
-:root[data-theme-state="pre-dawn"] .content :is(.playerStage,.tv.tvPhone .tvFrame){--mock-sky-low:#50517d;--mock-sky-high:#c9b9df}
-:root[data-theme-state="sunrise"]  .content :is(.playerStage,.tv.tvPhone .tvFrame){--mock-sky-low:#bd8a6d;--mock-sky-high:#fbecd7}
-:root[data-theme-state="daytime"]  .content :is(.playerStage,.tv.tvPhone .tvFrame){--mock-sky-low:#5a86a9;--mock-sky-high:#ddeaf9}
-:root[data-theme-state="dusk"]     .content :is(.playerStage,.tv.tvPhone .tvFrame){--mock-sky-low:#5e627d;--mock-sky-high:#cbd2e6}
-:root[data-theme-state="sunset"]   .content :is(.playerStage,.tv.tvPhone .tvFrame){--mock-sky-low:#956b55;--mock-sky-high:#e7d8f5}
+:root[data-theme-state="off"]      .content :is(.playerStage,.tv.tvPhone .tvFrame){--mock-sky-low:#e9eaec;--mock-sky-mid:#f1f2f3;--mock-sky-high:#f6f7f8}
+:root[data-theme-state="pre-dawn"] .content :is(.playerStage,.tv.tvPhone .tvFrame){--mock-sky-low:#486ffd;--mock-sky-mid:#c489ff;--mock-sky-high:#eadcff}
+:root[data-theme-state="sunrise"]  .content :is(.playerStage,.tv.tvPhone .tvFrame){--mock-sky-low:#cb83ff;--mock-sky-mid:#ffc977;--mock-sky-high:#fff1dc}
+:root[data-theme-state="daytime"]  .content :is(.playerStage,.tv.tvPhone .tvFrame){--mock-sky-low:#0071c1;--mock-sky-mid:#8cc6ee;--mock-sky-high:#dceeff}
+:root[data-theme-state="dusk"]     .content :is(.playerStage,.tv.tvPhone .tvFrame){--mock-sky-low:#ffb36a;--mock-sky-mid:#9da8e4;--mock-sky-high:#ccd5f0}
+:root[data-theme-state="sunset"]   .content :is(.playerStage,.tv.tvPhone .tvFrame){--mock-sky-low:#ffa577;--mock-sky-mid:#ddadff;--mock-sky-high:#ecd8ff}
 /* NIGHT KEEPS THE VEIL, and that is the one place this table departs from the
    footer band's. The band sits on a dark page and veiling it toward --theme-page
    would take away the little light it has; this ground sits on a LIGHT page
    (night is an hour here, not a dark theme -- site-theme-state.js), so an
    unveiled #090c13 would be a black slab in the middle of white paper. The veil
    above holds it to a deep blue-grey the phone still stands out against. */
-:root[data-theme-state="night"]    .content :is(.playerStage,.tv.tvPhone .tvFrame){--mock-sky-low:#090c13;--mock-sky-high:#393557}
+:root[data-theme-state="night"]    .content :is(.playerStage,.tv.tvPhone .tvFrame){--mock-sky-low:#090c13;--mock-sky-mid:#1e2338;--mock-sky-high:#393557}
 @media(prefers-reduced-motion:reduce){
  .content :is(.playerStage,.tv.tvPhone .tvFrame){transition:none}
 }
