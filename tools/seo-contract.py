@@ -174,8 +174,22 @@ def audit(pages_text, sitemap_text, robots_text):
                 fails.append(f"{tag}: og:url ({ogu}) != canonical ({canon})")
 
         # --- headings ---
-        body = re.sub(r"<(script|style)\b.*?</\1>", "", text, flags=re.S | re.I)
-        body = re.sub(r"<!--.*?-->", "", body, flags=re.S)
+        # ── COMMENTS COME OFF FIRST, AND THE ORDER WAS THE BUG.  2026-08-27 ──
+        # This stripped scripts and styles and THEN comments, and on 2026-08-27
+        # it reported "no <h1> -- the page states no subject" on all nine
+        # shipping pages at once. Every one of them has an h1. What it was
+        # actually finding is prose: the case studies carry a comment reading
+        # "<script> in <head>, so :root carries data-theme-state before this
+        # markup is parsed", and a mention of an opening tag inside a comment
+        # opens a block the first pass then closes at the next REAL </script> --
+        # swallowing 10,863 characters of apollo.html, the h1 among them.
+        # Nine simultaneous failures on nine files nobody had touched is what a
+        # gate failing on working code looks like from the outside, and this
+        # file is full of essays that name tags, so it would have happened again
+        # the next time somebody wrote one. Comments are not markup; taking them
+        # off first is the order that matches what a parser does.
+        body = re.sub(r"<!--.*?-->", "", text, flags=re.S)
+        body = re.sub(r"<(script|style)\b.*?</\1>", "", body, flags=re.S | re.I)
         n_h1 = len(re.findall(r"<h1\b", body, re.I))
         if n_h1 == 0:
             fails.append(f"{tag}: no <h1> -- the page states no subject")

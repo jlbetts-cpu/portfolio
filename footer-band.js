@@ -441,7 +441,22 @@
 
  /* ── the glyphs ──────────────────────────────────────────────────────────── */
  function drawGlyphs(seconds) {
-  var drift = seconds * .1;
+  /* ── THE BAND'S WEATHER RUNS AT THE HERO'S SPEED NOW.  2026-08-27 ─────────
+     The Hero's glyph field became drifting clouds (hero-time.css), and the two
+     surfaces are meant to read as the same afternoon. They did not: measured
+     off the numbers rather than by eye, the fastest blob above carries a peak
+     lateral rate of ax * (fx * rate) * W = .20 * (2.3 * .1) * W = .046W per
+     second, which is 46px/s at 1440. The Hero's three cloud bands cross two
+     screen widths in 271s, 197s and 149s -- 10.6, 14.6 and 19.3px/s at the same
+     width. The band's weather was moving between two and four times faster than
+     the sky's, and that is exactly the difference between "one day" and "two
+     places".
+     .034 puts the fastest blob at 15.6px/s, inside the clouds' own 10.6..19.3
+     band and near its middle. NOTHING ELSE SLOWS: the per-glyph twinkle is
+     .17*sin(seconds*1.1 + h) below, on `seconds` and not on this, so the field
+     still shimmers at the rate it always has. What changes is the weather, not
+     the water. */
+  var drift = seconds * .034;
   var head = "rgba(" + (glyphInk[0] | 0) + "," + (glyphInk[1] | 0) + "," + (glyphInk[2] | 0) + ",";
   var row, col, cy, cx, px, py, g, b, h, ix, glyph, wob, alpha, jx, jy;
   var infl, dx, dy, dist, push, ox, oy;
