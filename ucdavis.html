@@ -180,7 +180,28 @@ img{display:block;max-width:100%;height:auto}   /* height:auto IS THE COMPANION 
 .cmpYellow .cmpKnob{background:var(--yellow);color:var(--c950)}
 .cap{margin:16px 0 0;font-family:var(--sans);font-weight:400;font-size:var(--fs-small);line-height:var(--lh-body);color:var(--c500);max-width:680px;text-wrap:pretty;}
 
-.hero{padding:0;scroll-margin-top:calc(var(--nav-h) + var(--sp-16-24))}
+/* ── THE OVERVIEW IS A LEDE, ABOVE THE COVER.  2026-08-27 ──────────────────
+   Jayden: "need to just make two short pararagraphs before photos there
+   shouldnt be one point where there is only text on the screen with no visual."
+   THE OPENING WAS THE WORST OFFENDER AND IT WAS THE SAME ON ALL FIVE PAGES.
+   Title -> cover -> facts band -> Overview -> (My role) -> first section put
+   every page's at-a-glance text BELOW its one picture, so by the time a reader
+   had scrolled past the cover there was nothing left to look at for a full
+   screen. Measured at 390 before this: 478px of scroll on Cluster, 353 on UC
+   Davis, 938 on Apollo in which no image had 120px on screen.
+   Reading order now: title, two sentences, THE PICTURE, then the facts band.
+   That is his rhythm exactly, and it moves the cover ~110px (1440) / ~158px
+   (390) further down the document, which is 158px of the hole closed for free
+   on every page.
+   IT IS ORDER, NOT MARKUP. The <div class="ov"> stays where it is in the source
+   -- after the cover and the facts -- so the document order a screen reader and
+   the JSON-LD both walk is unchanged, and .hero simply lays its children out in
+   the order a sighted reader should meet them. h1 -2, overview -1, everything
+   else 0 in source order.
+   The joins are both on the 16 rung: title -> lede 16, lede -> cover 16. */
+.hero{padding:0;scroll-margin-top:calc(var(--nav-h) + var(--sp-16-24));display:flex;flex-direction:column}
+.hero>.head{order:-2}
+.hero>.ov{order:-1;margin-top:var(--sp-16)}
 /* --lh-body, so this label resolves to the same 13/19.5 as about.html's
    .abLabel. It was inheriting whatever its parent happened to set (14.56px
    measured) -- one role, two leadings, on pages that sit next to each other. */
@@ -201,7 +222,7 @@ img{display:block;max-width:100%;height:auto}   /* height:auto IS THE COMPANION 
 .head .hl{display:block}
 .lede{font-family:var(--sans);font-weight:400;font-size:var(--fs-prose);line-height:var(--lh-prose);color:var(--c700);margin:var(--sp-24-32) 0 0;text-wrap:pretty}
 
-.cover{position:relative;aspect-ratio:12/5;overflow:hidden;background:var(--c100);margin-top:var(--sp-16-24);width:100%;transform:scale(.985) translateY(8px);opacity:0;transition:opacity var(--dur-enter) var(--ease-out),transform var(--dur-enter) var(--ease-out)}
+.cover{position:relative;aspect-ratio:12/5;overflow:hidden;background:var(--c100);margin-top:var(--sp-16);width:100%;transform:scale(.985) translateY(8px);opacity:0;transition:opacity var(--dur-enter) var(--ease-out),transform var(--dur-enter) var(--ease-out)}
 .cover img{width:100%;height:100%;object-fit:cover;box-shadow:var(--rim-1)}
 .cover::after{content:"";position:absolute;inset:0;box-shadow:var(--rim-1);border-radius:inherit;pointer-events:none}
 /* THE FOLD WAS EMPTY FOR MOST OF A SECOND. Measured 2026-08-20: first paint
@@ -220,11 +241,22 @@ img{display:block;max-width:100%;height:auto}   /* height:auto IS THE COMPANION 
 
 /* at a glance — spec list */
 /* project facts — a full-width band under the cover so the header's weight spreads across the measure instead of stacking on the left */
-.facts{width:100%;max-width:none;display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));column-gap:var(--sp-16-32);row-gap:var(--sp-16-32);margin:var(--sp-24-40) 0 0;border-top:1px solid var(--c100);border-bottom:1px solid var(--c100);padding:var(--sp-16-24) 0}
+.facts{width:100%;max-width:none;display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));column-gap:var(--sp-16-32);row-gap:var(--sp-16);margin:var(--sp-24-40) 0 0;border-top:1px solid var(--c100);border-bottom:1px solid var(--c100);padding:var(--sp-16) 0}
 .fact{min-width:0}
 .fk{display:block;font-family:var(--sans);font-weight:600;font-size:var(--fs-label);letter-spacing:var(--tr-flat);text-transform:none;color:var(--c500);margin:0 0 var(--sp-8)}
 .fv{font-family:var(--sans);font-weight:400;font-size:var(--fs-body);line-height:var(--lh-note);color:var(--c950);margin:0;text-wrap:pretty}
 .fvsub{display:block;font-weight:400;font-size:var(--fs-small);line-height:var(--lh-note);color:var(--c500);margin-top:4px}
+/* ── THE FACTS BAND IS ONE LINE PER FACT ON A PHONE.  2026-08-27 ───────────
+   Stacked label-over-value it stood ~229px at 390 -- the single tallest block
+   of text on the opening screen, and the reason the cover had left the top of
+   the window before the first section arrived. Label and value share a line
+   below 881 and it measures ~150px. Nothing changes at 881 and up, where the
+   band has the width to run five columns. */
+@media(max-width:880px){
+ .fact{display:flex;align-items:baseline;gap:var(--sp-8);min-width:0}
+ .fk{margin:0;flex:0 0 auto}
+ .fv{min-width:0}
+}
 
 /* overview — a couple of orienting sentences before the role block */
 .ov{margin:var(--sp-24-40) 0 0}
@@ -290,22 +322,35 @@ img{display:block;max-width:100%;height:auto}   /* height:auto IS THE COMPANION 
    ladder monotonic in size. The MEASURE is untouched and stays the full column
    -- Jayden reverted a 680px measure here once and said so. */
 .secBody{font-family:var(--sans);font-weight:400;font-size:var(--fs-prose);line-height:var(--lh-prose);letter-spacing:var(--tr-title);color:var(--c700);margin:16px 0 0;text-wrap:pretty}
-/* pulled stat — clean editorial callout (no ink; texture stays on the hero title only) */
-.stat{margin:var(--sp-16-24) 0;max-width:540px}
+/* ── THE NUMBER READS INSIDE ITS SENTENCE, NOT ACROSS THE COLUMN.  2026-08-27 ─
+   Jayden: "the analytics taking up a whole new line makes it look cluttered".
+   The callout was THREE stacked blocks -- a 44px number alone on its line, a
+   paragraph under it, a source line under that -- fenced off by 24 above and 24
+   below. Measured on Bearings at 1440 it stood 214px tall and it broke the
+   reading column twice inside one section.
+   IT IS ONE PARAGRAPH NOW.  The number is an inline run inside the sentence it
+   supports: still the largest thing on its line, no longer the owner of the
+   line, and the source follows the sentence in --c500 instead of taking a third
+   block.
+   AND IT IS WHAT RETIRES THE 24 RUNG.  A stat that reads as evidence inside the
+   argument takes the paragraph's own 16, not a gap that existed for this one
+   object; --sp-16-24 had no other consumer in the article flow except the cover
+   and the facts band, both moved to --sp-16 in the same pass. The article's
+   vertical gaps are 8 / 16 / 40 / 64 / 112 at 1440 and 8 / 16 / 24 / 40 / 80 on
+   a phone -- five rungs, down from seven.
+   .statRow, .statCap and .statRowSrc have no consumer left. */
+.stat{font-family:var(--sans);font-weight:400;font-size:var(--fs-prose);line-height:var(--lh-prose);letter-spacing:var(--tr-title);color:var(--c700);margin:16px 0 0;text-wrap:pretty}
 /* THE BIG NUMBER JOINS THE TITLE'S RUNG INSTEAD OF OWNING ONE. --fs-statnum
    (clamp 30..40) was a seventh size carrying one role. It takes --fs-pagehead
    now and stays at weight 400, so the number and the page title are one size
    told apart by weight -- exactly how home tells a resting tab from a selected
    one. --fs-statnum has no consumer left on these pages. */
-.statNum{font-family:var(--sans);font-weight:400;font-size:var(--fs-pagehead);line-height:var(--lh-flat);letter-spacing:var(--tr-hero);color:var(--c950);margin:0;display:flex;align-items:baseline;gap:.16em}
+/* inline-flex, so the number keeps its own baseline-aligned unit and still sits
+   ON the sentence's baseline. --lh-flat means the 44px run grows the FIRST line
+   box only; every line after it keeps the paragraph's 1.5. */
+.statNum{font-family:var(--sans);font-weight:400;font-size:var(--fs-pagehead);line-height:var(--lh-flat);letter-spacing:var(--tr-hero);color:var(--c950);display:inline-flex;align-items:baseline;gap:.16em;margin-right:.24em}
 .statUnit{font-size:var(--fs-small);font-weight:400;letter-spacing:var(--tr-body);color:var(--c500)}
-.statCap{font-family:var(--sans);font-weight:400;font-size:var(--fs-prose);line-height:var(--lh-prose);color:var(--c700);margin:16px 0 0;text-wrap:pretty}
-.statSrc{font-family:var(--sans);font-weight:400;font-size:var(--fs-small);letter-spacing:0;color:var(--c500);margin:16px 0 0;}
-.statRow{margin:var(--sp-16-24) 0}
-.statRow .stat{margin:0}
-.statRow .stat + .stat{margin-top:var(--sp-16-24)}
-.statRowSrc{margin:16px 0 0}
-.statRow:has(+.statRowSrc){margin-bottom:0}   /* the source line belongs to the stat above it: 16, not the callout's own 24 */
+.statSrc{font-size:var(--fs-small);letter-spacing:0;color:var(--c500)}
 .photoRow{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--sp-8-16);width:100%}
 .photoRow img{width:100%;aspect-ratio:1;object-fit:cover;object-position:center;display:block;background:var(--c100);box-shadow:var(--rim-1)}
 .photoRow img:nth-child(1){object-position:center bottom}
@@ -511,9 +556,10 @@ img{display:block;max-width:100%;height:auto}   /* height:auto IS THE COMPANION 
 
 
 @media (prefers-reduced-motion:reduce){}
-.qRow{display:flex;flex-wrap:wrap;gap:var(--sp-16-32);margin:var(--sp-16-24) 0}
+.qRow{display:flex;flex-wrap:wrap;gap:var(--sp-16-32);margin:var(--sp-16) 0 0}
 .pull{flex:1 1 230px;display:flex;gap:var(--sp-8-16);align-items:center;margin:0}
 .pullChar{height:clamp(80px,7.5vw,108px);width:auto;flex:0 0 auto}
+@media(max-width:880px){.pullChar{height:132px}}  /* the cut-out students are the only picture in this section; at 80px three of them still read as text */
 .pullBody{font-family:var(--sans);font-weight:400;font-size:var(--fs-prose);line-height:var(--lh-note);color:var(--c950)}
 .pullWho{display:block;margin-top:8px;font-size:var(--fs-label);font-weight:600;color:var(--c500);text-transform:none;letter-spacing:var(--tr-flat)}
 .sketch{margin:var(--sp-24-40) auto 0;max-width:600px}
@@ -551,7 +597,7 @@ img{display:block;max-width:100%;height:auto}   /* height:auto IS THE COMPANION 
    here and it never won a declaration -- the later sweep names the same
    elements, so every rule in it was dead. Proved from the CSSOM, not by
    reading: .cover computed 20px with both rules matching. */
-.csImg,.cover,.cover img,.shot img,.photoFig img,.photoPair figure,.photoPair img,.stat,.reelOverlayVid,.reelOverlayYt{border-radius:var(--r-lg);corner-shape:var(--corner)}
+.csImg,.cover,.cover img,.shot img,.photoFig img,.photoPair figure,.photoPair img,.reelOverlayVid,.reelOverlayYt{border-radius:var(--r-lg);corner-shape:var(--corner)}
 .talk{border-radius:var(--r-md)!important;corner-shape:var(--corner)}
 .workcard{border-radius:var(--r-xl) var(--r-xl) 0 0!important}
 /* horizontal-scroll affordance */.sbWrap{position:relative}.sbWrap::after{content:none}.sbMore{position:absolute;right:14px;top:-30px;display:inline-flex;align-items:center;gap:4px;font-family:var(--sans);font-size:var(--fs-label);font-weight:600;color:var(--c500);letter-spacing:var(--tr-flat);opacity:0;transform:translateY(4px);transition:opacity .3s var(--ease-out),transform .3s var(--ease-out);pointer-events:none;z-index:3}.sbWrap.canScroll .sbMore{opacity:1;transform:none}.sbWrap.atEnd .sbMore{opacity:0}.sbMore svg{width:14px;height:14px}@media(prefers-reduced-motion:reduce){.sbWrap::after,.sbMore{transition:none}}.shot.phone img{border-radius:clamp(20px,2.6vw,32px);background:#000;object-fit:cover;aspect-ratio:720/1565}@media(max-width:768px){.footIn{display:inline-block;padding-top:8px;padding-bottom:8px;margin-top:-8px;margin-bottom:-8px}}/* ── RADIUS BY SIZE CLASS ── Jayden, 2026-08-04: "I thought we were doing 28
@@ -584,7 +630,7 @@ img{display:block;max-width:100%;height:auto}   /* height:auto IS THE COMPANION 
    .shot.phone img here, and .demoFrame / .demoPoster on strata.html, which is a
    live phone demo in an iframe at clamp(22px,2.4vw,30px). */
 .shot.phone img{border-radius:clamp(20px,2.6vw,32px)}.videoFrame,.cmpBoard{overflow:hidden}.scrollbox{overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain}/* refined thin carousel scrollbar (palette-matched) */.scrollbox{scrollbar-width:thin;scrollbar-color:var(--c100) transparent}.scrollbox::-webkit-scrollbar{height:8px}.scrollbox::-webkit-scrollbar-track{background:transparent;margin:0 4px}.scrollbox::-webkit-scrollbar-thumb{background:var(--c100);border-radius:99px;border:2px solid transparent;background-clip:padding-box}.scrollbox::-webkit-scrollbar-thumb:hover{background:var(--c500);background-clip:padding-box}.secBody strong,.ovBody strong,.ov strong,.rv strong,.role strong,.lede strong{font-weight:600;color:var(--c950)}@media(max-width:560px){.pair{display:flex;width:100%}.pair .shot.phone{flex:1 1 0;min-width:0}.pair .shot.phone img{width:100%}}
-.content :is(.cap,.csReach){margin-inline:auto}.scrollbox:focus-visible{outline:2px solid var(--c950);outline-offset:3px}.scrollbox{scrollbar-width:none}.scrollbox::-webkit-scrollbar{display:none}.sbNav{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}@media(max-width:880px){.sbNav{display:none}}@media(prefers-reduced-motion:reduce){}.cap{text-align:center}.footIn:focus-visible{outline:2px solid var(--c950);outline-offset:3px;border-radius:var(--r-xs)}@media(max-width:880px){.subBlock{margin-top:var(--sp-24-40)}}.sec>:last-child{margin-bottom:0}/* a callout carries 24 on BOTH sides now so it reads as one object; the last child of a section must not push that 24 into the 64 section break *//* before/after pairs: same labeled component as Apollo */.baGrid{position:relative;display:grid;grid-template-columns:repeat(2,minmax(0,270px));justify-content:center;column-gap:clamp(40px,4.5vw,64px);row-gap:16px;align-items:start;margin:var(--sp-24-40) 0 0}.baCol{display:flex;flex-direction:column;align-items:center;gap:16px}.baCol .shot.phone{width:100%;margin:0}.baCol .shot.phone img{width:100%;height:auto;aspect-ratio:460/1000;object-fit:cover;display:block;border-radius:clamp(20px,2.6vw,32px);box-shadow:var(--rim-1);background:#fff}/* the inverted half of the pair, mapped onto the library variant's tokens rather
+.content :is(.cap,.csReach){margin-inline:auto}.scrollbox:focus-visible{outline:2px solid var(--c950);outline-offset:3px}.scrollbox{scrollbar-width:none}.scrollbox::-webkit-scrollbar{display:none}.sbNav{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}@media(max-width:880px){.sbNav{display:none}}@media(prefers-reduced-motion:reduce){}.cap{text-align:center}.footIn:focus-visible{outline:2px solid var(--c950);outline-offset:3px;border-radius:var(--r-xs)}@media(max-width:880px){.subBlock{margin-top:var(--sp-24-40)}}.sec>:last-child{margin-bottom:0}/* nothing in a section may push its own bottom margin into the 64 section break *//* before/after pairs: same labeled component as Apollo */.baGrid{position:relative;display:grid;grid-template-columns:repeat(2,minmax(0,270px));justify-content:center;column-gap:clamp(40px,4.5vw,64px);row-gap:16px;align-items:start;margin:var(--sp-24-40) 0 0}.baCol{display:flex;flex-direction:column;align-items:center;gap:16px}.baCol .shot.phone{width:100%;margin:0}.baCol .shot.phone img{width:100%;height:auto;aspect-ratio:460/1000;object-fit:cover;display:block;border-radius:clamp(20px,2.6vw,32px);box-shadow:var(--rim-1);background:#fff}/* the inverted half of the pair, mapped onto the library variant's tokens rather
    than redrawing it: .isAfter is structural, so it cannot be a class on the span. */
 /* Before and After are CAPTIONS, not badges. They were a bordered chip, and the
    After half took a filled dark fill on top of that, so the pair read as one
@@ -951,14 +997,14 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
 
     <div class="ov">
      <span class="rlabel">Overview</span>
-     <p class="ovBody rv" data-f="0.011">The UC Davis Recreation app should be the easiest way into the gym. Instead it was a barrier: a wall of identical icons behind a login you hit every time. <strong>Over three days I rebuilt it around the one thing students open it for</strong>, and moved the gym ID into Apple Wallet.</p>
+     <p class="ovBody rv" data-f="0.011">The UC Davis Recreation app should be the easiest way into the gym; I use it, and it frustrated me. <strong>Over three days I rebuilt it around the one thing students open it for</strong>, and moved the gym ID into Apple Wallet.</p>
     </div>
 
-    <div class="role">
-     <span class="rlabel">My role</span>
-     <h2 class="roleHead rv" data-f="0.03">A project I built for myself.</h2>
-     <p class="rv" data-f="0.011">A personal project, so all of it is mine: the interviews, the visual design, and the Wallet idea. I use this app, and it frustrated me.</p>
-    </div>
+    <!-- "MY ROLE" WENT.  2026-08-27. Jayden: "dont have to explain ever small
+         thing about the process." On a solo project the block was the facts band
+         restated in a 26px heading: Role / Team / Timeline are three rows above
+         it and the Overview says "I rebuilt it". Its one original line, "I use
+         this app, and it frustrated me", is in the Overview now. -->
    </section>
 
    <section id="problem" class="sec">
@@ -990,10 +1036,7 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
      <div class="subKick">The idea I&rsquo;m proudest of</div>
      <h3 class="subHead">The gym ID lives in Apple Wallet.</h3>
      <p class="secBody">Instead of logging in every time, <strong>I moved the Member ID into Apple Wallet</strong>. Hold your phone near the reader and you&rsquo;re in, as fast as Apple Pay. No login to fight, no password for the app to store.</p>
-     <div class="statRow">
-      <aside class="stat" aria-label="Login friction finding"><div class="statNum" style="gap:0">92<span class="statUnit">%</span></div><p class="statCap">of people would abandon an app rather than reset a forgotten password.</p></aside>
-</div>
-     <p class="statSrc statRowSrc">Transmit Security, 2025</p>
+     <p class="stat"><span class="statNum" style="gap:0">92<span class="statUnit">%</span></span>of people would abandon an app rather than reset a forgotten password. <span class="statSrc">Transmit Security, 2025</span></p>
      <figure class="photoFig"><div class="baGrid"><div class="baCol"><span class="baLabel">Before</span><figure class="shot phone"><img src="images/cs/ucrec/scanner.webp" width="552" height="1200" alt="Before: the Member ID barcode screen, reached only after a login." loading="lazy" decoding="async"></figure><span class="baNote">The ID sat behind a login, every single visit.</span></div><div class="baCol isAfter"><span class="baLabel">After</span><figure class="shot phone"><img src="images/cs/ucrec/wallet.webp" width="460" height="1000" alt="After: the Member ID in Apple Wallet, held near the reader." loading="lazy" decoding="async"></figure><span class="baNote">One tap in Apple Wallet, straight at the door.</span></div><span class="baGo" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="13 6 19 12 13 18"/></svg></span></div></figure>
     </div>
    </section>
@@ -1243,7 +1286,7 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
  (function(){
   var rt=document.getElementById('readTime'),content=document.querySelector('.content');
   if(!rt||!content)return;
-  var read=content.querySelectorAll('.secBody,.secHead,.ovBody,.subHead,.cap,.statCap');
+  var read=content.querySelectorAll('.secBody,.secHead,.ovBody,.subHead,.cap,.stat');
   var txt=[].map.call(read,function(e){return e.textContent||'';}).join(' ').replace(/\s+/g,' ').trim();
   var words=txt?txt.split(' ').length:0;
   var imgs=document.querySelectorAll('.content img').length,isec=0;for(var k=0;k<imgs;k++)isec+=Math.max(3,12-k);rt.textContent=Math.ceil(words/215+isec/60)+' min';
@@ -1350,12 +1393,12 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
  (function(){
   if(!('IntersectionObserver' in window))return;
   var SEL='#problem .kicker,#problem .secHead,#problem .secBody,#problem .stat,#problem .hmw,'+
-          '#research .kicker,#research .secHead,#research .secBody,#research .statRow,#research .statSrc,'+
+          '#research .kicker,#research .secHead,#research .secBody,#research .stat,'+
           '.photoRow,.photoRow + .cap,#research .scrollbox,.cmp,.cmp + .cap,'+
           '#system .kicker,#system .secHead,#system .secBody,#system .subKick,#system .subHead,#system .scrollbox,#system .step';
   var els=[].slice.call(document.querySelectorAll(SEL)).concat([].slice.call(document.querySelectorAll('.player,.tv')));
   if(!els.length)return;
-  var INK=/(^|\s)(kicker|statSrc|cap|subKick)(\s|$)/;
+  var INK=/(^|\s)(kicker|cap|subKick)(\s|$)/;
   els.forEach(function(el){
     el.classList.add('dv');
     if(!INK.test(el.className) && !el.classList.contains('photoRow') && !el.classList.contains('step')) el.classList.add('dvb');   // blur-develop for prose/stats/imagery; inked labels rise clean
@@ -1389,7 +1432,7 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
       el.classList.add('shown');
       if(el.classList.contains('scrollbox'))[].slice.call(el.querySelectorAll('img[loading="lazy"]')).forEach(function(im){im.removeAttribute('loading');});
       
-      if(el.classList.contains('stat')||el.classList.contains('statRow')){
+      if(el.classList.contains('stat')){
         [].slice.call(el.querySelectorAll('.sn')).forEach(function(sn){sn.textContent='0';setTimeout(function(){tickNum(sn);},150);});
       }
       setTimeout(function(){if(el.classList.contains('dvb'))el.style.filter='none';el.style.willChange='auto';el.style.transitionDelay='';
