@@ -18,9 +18,9 @@
      This page's own <style> comes LAST so that where it and controls.css meet at
      equal specificity, the page wins -- index.html has the opposite order and
      that ordering has cost this project real hours. -->
-<link rel="stylesheet" href="tokens.css?v=65279febd9">
-<link rel="stylesheet" href="controls.css?v=65279febd9">
-<link rel="stylesheet" href="site-theme.css?v=65279febd9">
+<link rel="stylesheet" href="tokens.css?v=b7996e2715">
+<link rel="stylesheet" href="controls.css?v=b7996e2715">
+<link rel="stylesheet" href="site-theme.css?v=b7996e2715">
 <style>
 /* ═══════════════════════════════════════════════════════════════════════════
    POSITION COLOUR — the one place on this site new hues are justified.
@@ -115,8 +115,11 @@ body{margin:0;font-family:var(--sans);font-size:var(--fs-body);line-height:var(-
 .dbScroll::-webkit-scrollbar{display:none}
 /* Scroll edge, not a hard divider: the row fades out where it runs off the
    right rather than ending on a rule. Removed once the row fits. */
+/* NOT on the View row. That row holds two items, never overflows, and the fade
+   was eating the right-hand edge of the selected pill at 390 -- caught on a
+   screenshot, not by any measurement. */
 @media(max-width:900px){
- .dbScroll{-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 32px),transparent);
+ .dbScroll:not(#tabsM){-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 32px),transparent);
            mask-image:linear-gradient(90deg,#000 calc(100% - 32px),transparent)}
 }
 .dbScroll>.ctl{scroll-snap-align:center;flex:0 0 auto;font-variant-numeric:tabular-nums}
@@ -133,7 +136,9 @@ body{margin:0;font-family:var(--sans);font-size:var(--fs-body);line-height:var(-
 }
 
 /* ── round header ─────────────────────────────────────────────────────────── */
-.dbRound{padding-block:var(--sp-40) var(--sp-24)}
+/* The bar is sticky, so anything scrolled to must clear it. Three rows of
+   pills plus the hairline measures ~120px; --sp-40-72 covers it at both ends. */
+.dbRound{padding-block:var(--sp-40) var(--sp-24);scroll-margin-top:var(--sp-40-72)}
 .dbRoundTop{display:flex;align-items:baseline;gap:var(--sp-12);flex-wrap:wrap}
 .dbRound h2{margin:0;font-size:var(--fs-h2);font-weight:600;
  line-height:var(--lh-tight);letter-spacing:var(--tr-sub)}
@@ -161,7 +166,7 @@ body{margin:0;font-family:var(--sans);font-size:var(--fs-body);line-height:var(-
 @media(max-width:720px){.dbGrid{grid-template-columns:1fr}}
 
 .dbCard{border:var(--hair-w) solid var(--rule);border-radius:var(--r-lg);corner-shape:var(--corner);
- background:var(--theme-surface);overflow:hidden;
+ background:var(--theme-surface);overflow:hidden;scroll-margin-top:var(--sp-40-72);
  transition:border-color var(--dur-state-out) var(--ease-out)}
 /* In slot mode the round tabs point at one of the fifteen. It is marked by the
    hairline going to full ink -- no fill, no glow, and certainly no shadow. */
@@ -211,6 +216,20 @@ body{margin:0;font-family:var(--sans);font-size:var(--fs-body);line-height:var(-
 .dbSrc a:hover{color:var(--theme-ink)}
 .dbKind{font-weight:600;letter-spacing:var(--tr-caps);text-transform:uppercase}
 
+/* a pool row is two targets: the row records the pick, the button opens the
+   reasoning. The hairline between rows moves to the wrapper so the pair reads
+   as one row rather than two controls. */
+.dbPoolRow{display:flex;align-items:stretch;border-top:var(--hair-w) solid var(--rule)}
+.dbPoolRow:first-child{border-top:0}
+.dbPoolRow>.dbPick{flex:1 1 auto;min-width:0;border-top:0}
+.dbInfo{flex:0 0 auto;width:var(--sp-48);border:0;border-left:var(--hair-w) solid var(--rule);
+ background:none;font:inherit;font-size:var(--fs-caption);letter-spacing:var(--tr-caps);
+ text-transform:uppercase;color:var(--theme-muted);cursor:pointer;
+ -webkit-tap-highlight-color:transparent;
+ transition:background-color var(--dur-state-out) var(--ease-out)}
+.dbInfo:hover,.dbInfo:focus-visible{background:var(--ctl-ground-hover);color:var(--theme-ink)}
+.dbInfo:focus-visible{outline:var(--focus-w) solid var(--ctl-focus);outline-offset:calc(var(--focus-w) * -1)}
+
 /* ── footer ───────────────────────────────────────────────────────────────── */
 .dbFoot{border-top:var(--hair-w) solid var(--rule);padding-block:var(--sp-32) var(--sp-56-96)}
 .dbFoot h2{margin:0 0 var(--sp-12);font-size:var(--fs-label);font-weight:600;
@@ -220,6 +239,57 @@ body{margin:0;font-family:var(--sans);font-size:var(--fs-body);line-height:var(-
 .dbFoot a{color:var(--theme-ink-soft);text-decoration:underline;text-underline-offset:2px;
  text-decoration-color:var(--rule)}
 .dbFoot a:hover{color:var(--theme-ink)}
+
+/* ── live draft ───────────────────────────────────────────────────────────
+   One rule governs this whole mode: it has to be usable one-handed, at a
+   table, under time pressure. So it is ONE tap per pick -- you tap whoever
+   just came off the board, and the app works out from the snake whose pick
+   that was and whether it was yours. No second control, no "mine/theirs"
+   choice to get wrong at pick 94. */
+.dbLive{padding-block:var(--sp-32) var(--sp-24);scroll-margin-top:var(--sp-40-72)}
+.dbClock{display:flex;align-items:baseline;gap:var(--sp-12);flex-wrap:wrap;
+ padding-bottom:var(--sp-16);border-bottom:var(--hair-w) solid var(--rule)}
+.dbClock h2{margin:0;font-size:var(--fs-h2);font-weight:600;
+ line-height:var(--lh-tight);letter-spacing:var(--tr-sub);font-variant-numeric:tabular-nums}
+.dbClock .sub{font-size:var(--fs-label);letter-spacing:var(--tr-caps);
+ text-transform:uppercase;color:var(--theme-muted);font-variant-numeric:tabular-nums}
+/* No colour here. Green is the running-back token and it means that and
+   nothing else; "your turn" is signalled by the ink border on the
+   recommendations block below, which is a stronger cue anyway. */
+.dbClock.is-you .sub{color:var(--theme-ink);font-weight:600}
+
+/* the read-outs. Facts, in a row, on hairlines -- not tiles, not a dashboard. */
+.dbReads{display:flex;flex-wrap:wrap;gap:var(--sp-8) var(--sp-24);
+ padding:var(--sp-16) 0;border-bottom:var(--hair-w) solid var(--rule);
+ font-size:var(--fs-label);color:var(--theme-ink-soft)}
+.dbReads b{font-weight:600;color:var(--theme-ink);font-variant-numeric:tabular-nums}
+.dbReads .warn{font-weight:600;color:var(--theme-ink)}
+.dbReads .k{font-size:var(--fs-caption);letter-spacing:var(--tr-caps);
+ text-transform:uppercase;color:var(--theme-muted);margin-right:var(--sp-6)}
+
+.dbSect{margin-top:var(--sp-32)}
+.dbSect>h3{margin:0 0 var(--sp-12);font-size:var(--fs-caption);font-weight:600;
+ letter-spacing:var(--tr-caps);text-transform:uppercase;color:var(--theme-muted)}
+.dbTools{display:flex;gap:var(--sp-8);align-items:center;margin-bottom:var(--sp-12)}
+.dbTools .field{flex:1 1 auto;min-width:0}
+.dbPool{border:var(--hair-w) solid var(--rule);border-radius:var(--r-lg);
+ corner-shape:var(--corner);background:var(--theme-surface);overflow:hidden}
+.dbPool .dbPick:first-child{border-top:0}
+.dbEmpty{padding:var(--sp-24) var(--sp-16);font-size:var(--fs-label);color:var(--theme-muted)}
+
+/* the recommendation block, when it is your turn */
+.dbRecs{border:var(--hair-w) solid var(--theme-ink);border-radius:var(--r-lg);
+ corner-shape:var(--corner);background:var(--theme-surface);overflow:hidden}
+.dbRecs .dbPick:first-child{border-top:0}
+
+/* the extra facts that only exist on the expanded row */
+.dbFacts{display:flex;flex-wrap:wrap;gap:var(--sp-2) var(--sp-12);margin-top:var(--sp-8);
+ font-size:var(--fs-caption);color:var(--theme-muted);font-variant-numeric:tabular-nums}
+.dbFacts>span{white-space:nowrap}
+.dbFacts em{font-style:normal;color:var(--theme-ink-soft)}
+.dbBase{display:block;margin-top:var(--sp-8);font-size:var(--fs-caption);
+ line-height:var(--lh-note);color:var(--theme-muted);white-space:normal}
+.dbBase b{font-weight:600;color:var(--theme-ink-soft)}
 
 @media(prefers-reduced-motion:reduce){
  .dbWhy{transition:none}
@@ -242,7 +312,7 @@ body{margin:0;font-family:var(--sans);font-size:var(--fs-body);line-height:var(-
 <header class="wrap dbHead">
   <p class="dbEyebrow">2026 redraft · PPR · updated 26 August</p>
   <h1>Every slot, every round, three picks deep.</h1>
-  <p class="dbDek">Twelve draft positions simulated pick by pick against live August ADP.
+  <p class="dbDek">Twelve draft positions simulated pick by pick against live Sleeper ADP — the platform you actually draft on.
     Find the cell you are on the clock for and it names the three players worth
     taking, why, and what it costs you to be wrong.</p>
   <p class="dbLeague">12 teams · QB1 RB2 WR2 TE1 FLEX2 K1 DEF1 · 15 rounds · 180 picks</p>
@@ -261,15 +331,24 @@ body{margin:0;font-family:var(--sans);font-size:var(--fs-body);line-height:var(-
     RB25–RB36 average 10.5, a 3.1-point step, where the same move at receiver
     costs 1.8. The model weights running back 1.20× and holds a hard floor —
     two backs by round four, three by six, four by eight — at all twelve slots.</p>
-  <p><b>Nothing here is a reach.</b> Every pick is checked against Fantasy
-    Football Calculator's 12-team PPR ADP, taken from 7,830 mock drafts between
-    19 and 26 August. In rounds one to six no recommendation is more than half a
+  <p><b>Nothing here is a reach.</b> Every pick is checked against Sleeper's own
+    12-team PPR ADP. Where Sleeper and Fantasy Football Calculator disagree by
+    more than a round the row says so, because knowing a player goes fifteen picks
+    earlier on the platform you are sitting in front of is the whole edge. In rounds one to six no recommendation is more than half a
     round ahead of its ADP; later, where a reach costs nothing, the number of
     picks you are jumping is printed on the row.</p>
+  <p><b>What the model is, plainly.</b> It is a transparent scoring model, not a
+    trained one. Nothing here learned anything from data: a player's score is his
+    projected points above the replacement at his position, weighted 1.14&times; if
+    he is a back, plus a nudge for a quota you have not filled, plus a payment for
+    ceiling from round ten, plus a small prior from historical hit rates, minus
+    penalties for an injury flag and for a man who will still be there next round.
+    Every number that moves a pick is printed on that pick's row, which is the
+    point &mdash; you can see why it said what it said and overrule it at the table.</p>
   <div class="dbStats">
     <div class="dbStat"><span class="n">+13.4</span><span class="l">RB1's edge per game over a replacement back. The best QB's edge over a round-13 QB is +4.8.</span></div>
     <div class="dbStat"><span class="n">3.1 vs 1.8</span><span class="l">Points per game lost stepping from the RB13–24 tier to RB25–36, against the same step at receiver.</span></div>
-    <div class="dbStat"><span class="n">49.5–53.7</span><span class="l">Top-three RB projection across all twelve slots. A 4.2-point spread from pick 1.01 to 1.12.</span></div>
+    <div class="dbStat"><span class="n">46.3–52.5</span><span class="l">Top-three RB projection across all twelve slots. Six backs at every one of them.</span></div>
     <div class="dbStat"><span class="n">0</span><span class="l">Picks in rounds one to six taken more than half a round ahead of ADP.</span></div>
   </div>
 </section>
@@ -277,10 +356,14 @@ body{margin:0;font-family:var(--sans);font-size:var(--fs-body);line-height:var(-
 <nav class="dbBar" aria-label="Board filters">
   <div class="wrap dbBarIn">
     <div class="dbRow">
+      <span class="dbRowLbl" id="lblM">View</span>
+      <div class="dbScroll" id="tabsM" role="tablist" aria-labelledby="lblM"></div>
+    </div>
+    <div class="dbRow" id="rowR">
       <span class="dbRowLbl" id="lblR">Round</span>
       <div class="dbScroll" id="tabsR" role="tablist" aria-labelledby="lblR"></div>
     </div>
-    <div class="dbRow">
+    <div class="dbRow" id="rowS">
       <span class="dbRowLbl" id="lblS">Slot</span>
       <div class="dbScroll" id="tabsS" role="tablist" aria-labelledby="lblS"></div>
     </div>
@@ -288,61 +371,322 @@ body{margin:0;font-family:var(--sans);font-size:var(--fs-body);line-height:var(-
 </nav>
 
 <main>
-  <section class="wrap dbRound" id="roundHd"></section>
-  <div class="wrap"><div class="dbGrid" id="grid"></div></div>
+  <div id="boardView">
+    <section class="wrap dbRound" id="roundHd"></section>
+    <div class="wrap"><div class="dbGrid" id="grid"></div></div>
+  </div>
+  <div id="liveView" hidden>
+    <section class="wrap dbLive">
+      <div class="dbClock" id="clock"></div>
+      <div class="dbReads" id="reads"></div>
+      <div class="dbSect" id="recSect" hidden>
+        <h3>On the clock — take one of these</h3>
+        <div class="dbRecs" id="recs"></div>
+      </div>
+      <div class="dbSect">
+        <h3>Best available — tap whoever just came off the board</h3>
+        <div class="dbTools">
+          <input class="field" id="poolQ" type="search" placeholder="Filter by name, position or team"
+                 autocomplete="off" spellcheck="false" aria-label="Filter the available players">
+          <button class="ctl ctl--secondary ctl--nav" id="undo" type="button">Undo</button>
+          <button class="ctl ctl--quiet ctl--nav" id="reset" type="button">Reset</button>
+        </div>
+        <div class="dbPool" id="pool"></div>
+      </div>
+    </section>
+  </div>
 </main>
 
 <footer class="wrap dbFoot">
   <h2>Where this comes from</h2>
-  <p><b>Projections, ceilings and floors:</b> WalterPicks 2026 redraft PPR
-    rankings, 26 August 2026 — the same file every points-per-game, ceiling and
-    floor number on this page is read from.
-    <b>ADP:</b> <a href="https://fantasyfootballcalculator.com/adp/ppr" rel="noopener">Fantasy
-    Football Calculator</a> 12-team PPR, 7,830 mock drafts, 19–26 August 2026, with
+  <p><b>ADP:</b> Sleeper 12-team PPR redraft, read from
+    <a href="https://www.draftsharks.com/adp/ppr/sleeper/12" rel="noopener">Draft Sharks</a>
+    on 26 August 2026 — the platform and format you actually draft in.
+    <a href="https://fantasyfootballcalculator.com/adp/ppr" rel="noopener">Fantasy Football
+    Calculator</a> (7,830 mocks, 19–26 Aug) and
     <a href="https://www.sharpfootballanalysis.com/fantasy/fantasy-football-adp-half-ppr-underdog-best-ball/" rel="noopener">Underdog
-    best-ball ADP</a> as the second market read. Both are printed on every row so
-    you can see where the two markets disagree.</p>
-  <p><b>How the picks are chosen.</b> Eleven simulated opponents draft strictly by
-    ADP. At each of your picks the model scores what is left on value over
-    replacement — RB38, WR34, QB13, TE13 for this roster — weights running back
-    1.20×, adds an urgency term for any positional floor still unmet, refuses a
-    pick more than half a round ahead of ADP in rounds one to six, and from round
-    ten onward pays for the gap between a player's projection and his ceiling
-    rather than for his floor. From round eleven it prefers a player with an
-    actual report behind him over one with only a projection.</p>
+    best ball</a> are carried as second opinions; open any row to see all three.
+    <b>Projections, ceilings and floors:</b> WalterPicks 2026 redraft PPR, 26 August 2026.</p>
+  <p><b>Historical base rates.</b> Hit rates by round are FFPC drafts 2016–2024, nine seasons
+    (<a href="https://www.fftradingroom.com/1063/How-to-Win-Your-2025-Fantasy-Football-Draft:-Positional-Hit-Rates-by-Round" rel="noopener">Fantasy
+    Trading Room</a>); bust rates are PPR 2013–2014, a short two-season sample
+    (<a href="https://www.playerprofiler.com/article/bust-rates/" rel="noopener">PlayerProfiler</a>);
+    the quarterback bands are 2009–2011
+    (<a href="https://www.pff.com/news/fantasy-adp-value-study-quarterbacks" rel="noopener">PFF</a>);
+    the rounds 3–6 running-back dead zone is 2015–2020 best ball
+    (<a href="https://www.playerprofiler.com/article/rb-dead-zone-game-theory/" rel="noopener">via
+    PlayerProfiler</a>). They are printed on the row, including where they argue against the pick.</p>
+  <p><b>Team context.</b> Weeks 15–17 opponents are the real 2026 schedule from
+    <a href="https://www.nfl.com/schedules/2026/by-week/week-15" rel="noopener">NFL.com</a>,
+    cross-checked game-for-game against FantasyPros. Playoff strength of schedule is
+    <a href="https://www.sharpfootballanalysis.com/fantasy/strength-of-schedule-fantasy-football/" rel="noopener">Sharp
+    Football</a>, 23 August. Offensive lines are
+    <a href="https://www.pff.com/news/nfl-offensive-line-rankings-2026" rel="noopener">PFF</a> and Sharp,
+    kept separate rather than averaged because where they disagree they disagree hard.</p>
+  <p><b>2025 opportunity.</b> Targets, target share, snap share and red-zone work
+    for 113 of the players here, read from FantasyPros' 2025 tables (weeks 1&ndash;18;
+    the red-zone rushing report is weeks 1&ndash;17 by their own label). Usage predicts
+    next season better than last season's points do &mdash; but it is <b>shown, not
+    scored</b>: the projection already has last year's usage inside it, and feeding
+    these numbers back into the model would count the same evidence twice.</p>
+  <p><b>What is missing, and why.</b> <b>No routes run or yards per route run</b> &mdash;
+    that data sits behind PFF+, Pro Football Reference is behind a bot check, and the
+    ten public figures that do exist mix in the postseason, so they are not here.
+    <b>No receiver or tight-end playoff strength of schedule</b> &mdash; Sharp publishes
+    passing and rushing only and no other readable 32-team table exists, so those
+    positions carry nothing rather than a guess. <b>No opportunity data for rookies</b>,
+    which is correct: they have no NFL usage to report. The &ldquo;same backfield&rdquo;
+    line is <b>not a depth chart</b> &mdash; ordering backs by projection produced one
+    that contradicted the beat reporting, so it claims only who shares a backfield.</p>
   <p><b>On the notes.</b> A note marked <span class="dbKind">report</span> or
-    <span class="dbKind">stat</span> is something written on the page it links to;
-    open the link and read it. A note marked <span class="dbKind">projection only</span>
-    is derived from the WalterPicks numbers and nothing else — there is no camp
-    report behind it and it is not pretending there is. Camp news moves fast:
-    check the injury flags against your own beat writers on draft day.</p>
+    <span class="dbKind">stat</span> is something written on the page it links to; open the link
+    and read it. A note marked <span class="dbKind">projection only</span> is derived from the
+    WalterPicks numbers and nothing else — there is no report behind it and it is not pretending
+    there is. 408 of the 540 recommendations on the board carry a report or a statistic; the other 132 say plainly that they do not.
+    Camp news moves fast: check the injury flags against your own beat writers on draft day.</p>
 </footer>
 
 <script src="draft-data.js"></script>
 <script>
 (function(){
 "use strict";
-var D = window.__DRAFT__, P = D.P, B = D.B, N = D.N;
-var NAME=0,POS=1,TEAM=2,BYE=3,PROJ=4,CEIL=5,FLOOR=6,FFC=7,UD=8,VOR=9,PRANK=10,
-    NOTE=11,SRC=12,DATE=13,KIND=14,RISK=15;
+var D = window.__DRAFT__, P = D.P, B = D.B, N = D.N, M = D.M, BR = D.BR, S = D.S;
+var TEAMS = 12, ROUNDS = 15;
 
-var round = 1, slot = 0;            /* slot 0 = all twelve */
+/* ═══ THE MODEL ═══════════════════════════════════════════════════════════
+   This is the whole thing, and it is deliberately small enough to read.
+
+   Score a player = his projected points per game above the replacement player
+   at his position, times 1.14 if he is a running back, plus a nudge for any
+   positional quota you have not met yet, plus — from round ten — a payment for
+   the distance between his projection and his ceiling, plus a small historical
+   prior, minus penalties for an injury flag and for a man who will still be
+   there at your next pick. Then refuse anything more than the round's allowance
+   ahead of its ADP, refuse a quarterback before round eight, and take the top
+   of what is left. That is it. No training, no weights learned from data, no
+   black box — every number that moves a pick is visible on the row.
+   ════════════════════════════════════════════════════════════════════════ */
+function slackFor(rnd){ return M.slack[Math.min(rnd, ROUNDS) - 1]; }
+
+function forcedNow(counts, rnd){
+  var out = [];
+  for(var i = 0; i < M.floors.length; i++){
+    var f = M.floors[i], need = f[2] - (counts[f[1]] || 0);
+    if(need > 0 && (f[0] - rnd + 1) <= need) out.push(f[1]);
+  }
+  return out;
+}
+function eligible(pi, counts, rnd, n, strict){
+  var p = P[pi], pos = p.p;
+  if((counts[pos] || 0) >= M.caps[pos]) return false;
+  if(pos === 'QB' && rnd < M.qbUnlock) return false;
+  if((pos === 'K' || pos === 'DEF') && rnd < M.kdefUnlock) return false;
+  if(p.pr == null || p.a == null) return false;
+  if(strict){
+    if(p.a - n > slackFor(rnd)) return false;
+    var f = forcedNow(counts, rnd);
+    if(f.length && f.indexOf(pos) < 0) return false;
+  }
+  return true;
+}
+function baseHit(pos, rnd){
+  var m = BR.hit[pos]; return m && m[String(rnd)] != null ? m[String(rnd)] : null;
+}
+function baseBust(pos, rnd){
+  var a = BR.bust[pos]; if(!a) return null;
+  for(var i = 0; i < a.length; i++)
+    if(rnd >= a[i][0][0] && rnd <= a[i][0][1]) return a[i][1];
+  return null;
+}
+function score(pi, counts, rnd, nextPick){
+  var p = P[pi], pos = p.p;
+  var s = p.v * (pos === 'RB' ? M.rbw : 1);
+  var urg = 0;
+  for(var i = 0; i < M.floors.length; i++){
+    var f = M.floors[i];
+    if(f[1] !== pos || rnd > f[0]) continue;
+    var need = f[2] - (counts[pos] || 0);
+    if(need > 0) urg = Math.max(urg, need / Math.max(1, f[0] - rnd + 1));
+  }
+  s += 6 * urg;
+  if(rnd >= 10) s += 0.55 * (p.ce - p.pr);
+  if(rnd >= 11 && p.k === 'report') s += 2;
+  if(p.rk) s -= 3;
+  var h = baseHit(pos, rnd); if(h != null) s += 3 * (h - 0.35);
+  var b = baseBust(pos, rnd); if(b != null) s -= 2 * (b - 0.40);
+  if(nextPick && p.a > nextPick + 6) s -= 2.5;
+  if((counts[pos] || 0) >= M.caps[pos] - 1 && (pos === 'RB' || pos === 'WR' || pos === 'TE')) s -= 3;
+  return s;
+}
+/* Solve one pick against a REAL remaining pool. The static board and the live
+   assistant both come through here, which is why they cannot disagree. */
+function solve(gone, counts, rnd, n, want){
+  var i, cands = [];
+  for(i = 0; i < P.length; i++)
+    if(!gone[i] && eligible(i, counts, rnd, n, true)) cands.push(i);
+  if(cands.length < (want || 3)){
+    /* The fallback drops the REACH GUARD, never a mandatory position. Dropping
+       both filled round fifteen with receivers at picks 179 and 180 -- where
+       every defence inside the window is already gone -- and left two slots
+       with no defence, which is not a legal roster. Reaching in the last round
+       costs nothing; going without a starter costs the week. */
+    var must = forcedNow(counts, rnd), loose = [];
+    for(i = 0; i < P.length; i++)
+      if(!gone[i] && cands.indexOf(i) < 0 && eligible(i, counts, rnd, n, false) &&
+         (!must.length || must.indexOf(P[i].p) >= 0)) loose.push(i);
+    loose.sort(function(a, b){ return P[a].a - P[b].a; });
+    cands = cands.concat(loose.slice(0, (want || 3) - cands.length));
+  }
+  var np = rnd < ROUNDS ? pickNoFor(slotOnClock(n), rnd + 1) : null;
+  cands.sort(function(a, b){ return score(b, counts, rnd, np) - score(a, counts, rnd, np); });
+  return cands.slice(0, want || 3);
+}
+
+/* ═══ snake arithmetic ════════════════════════════════════════════════════ */
+function roundOf(n){ return Math.ceil(n / TEAMS); }
+function slotOnClock(n){
+  var r = roundOf(n), i = n - (r - 1) * TEAMS;
+  return r % 2 ? i : TEAMS - i + 1;
+}
+function pickNoFor(slot, rnd){ return (rnd - 1) * TEAMS + (rnd % 2 ? slot : TEAMS - slot + 1); }
+function pickLabel(rnd, n){ var i = ((n - 1) % TEAMS) + 1; return rnd + '.' + (i < 10 ? '0' : '') + i; }
+
+/* ═══ state ═══════════════════════════════════════════════════════════════ */
+var mode = 'board', round = 1, slot = 0;
+var live = { slot: 1, taken: [] };
 try{
-  var r = +localStorage.getItem('jb.draft.round'); if(r>=1&&r<=15) round = r;
-  var s = +localStorage.getItem('jb.draft.slot');  if(s>=0&&s<=12)  slot  = s;
+  var st = JSON.parse(localStorage.getItem('jb.draft') || '{}');
+  if(st.mode) mode = st.mode;
+  if(st.round >= 1 && st.round <= ROUNDS) round = st.round;
+  if(st.slot >= 0 && st.slot <= TEAMS) slot = st.slot;
+  if(st.live && st.live.taken) live = st.live;
 }catch(e){}
+function save(){ try{
+  localStorage.setItem('jb.draft', JSON.stringify({ mode: mode, round: round, slot: slot, live: live }));
+}catch(e){} }
 
-function esc(s){ return String(s).replace(/[&<>"]/g,function(c){
-  return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
-function pickLabel(rnd,n){ return rnd + '.' + (((n-1)%12)+1 < 10 ? '0' : '') + (((n-1)%12)+1); }
-function overallOf(s,r){ return (r-1)*12 + (r%2 ? s : 13-s); }
-function host(u){ try{ return u.split('/')[2].replace(/^www\./,''); }catch(e){ return 'source'; } }
+function esc(t){ return String(t).replace(/[&<>"]/g, function(c){
+  return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]; }); }
+function host(u){ try{ return u.split('/')[2].replace(/^www\./, ''); }catch(e){ return 'source'; } }
+function pct(x){ return Math.round(x * 100) + '%'; }
+/* The dead-zone win rates are 7.7-8.1 against 8.5-9.4. Rounded to whole
+   numbers they read "8%-8% against 9%-9%", which throws away the entire
+   comparison the number exists to make. */
+function pct1(x){ return (x * 100).toFixed(1) + '%'; }
 
-/* ── the bar ─────────────────────────────────────────────────────────────── */
-function tab(txt,on,fn,label){
+/* ═══ one pick row, shared by both views ══════════════════════════════════ */
+function pickRow(pi, rank, rnd, n, onTap){
+  var p = P[pi], gap = n ? Math.max(0, p.a - n) : 0;
+  var kind = p.k === 'model' ? 'projection only' : (p.k === 'stat' ? 'stat' : 'report');
+  /* A handful of men carry NO WalterPicks projection. The solver never ranks
+     them -- but the pool has to list them anyway, because if you cannot record
+     a player who actually came off the board your pick count desyncs and every
+     recommendation after it is wrong. So they render, saying what they are. */
+  var meta = (p.pr == null
+      ? '<span><em>no projection</em></span>'
+      : '<span><em>' + p.pr.toFixed(1) + '</em> pts/gm</span>' +
+        '<span>' + p.ce.toFixed(1) + ' ceiling</span>' +
+        '<span>' + p.fl.toFixed(1) + ' floor</span>') +
+     '<span>ADP ' + p.a + '</span>' +
+     '<span>bye ' + p.by + '</span>';
+  if(p.rk)                                     meta += '<span class="dbFlag">injury flag</span>';
+  else if(p.f != null && Math.abs(p.f - p.a) >= 12) meta += '<span>' +
+      (p.f > p.a ? 'Sleeper takes him ' + (p.f - p.a) + ' earlier' : 'Sleeper waits ' + (p.a - p.f) + ' longer') + '</span>';
+  else if(gap >= 5)                            meta += '<span>+' + gap + ' vs ADP</span>';
+
+  /* facts that only exist once you open the row */
+  var facts = '<span>' + p.p + (p.pk == null ? '' : p.pk) +
+              (p.ti ? ' · tier ' + p.ti : '') + '</span>';
+  if(p.ag) facts += '<span>age <em>' + p.ag + '</em></span>';
+  if(p.so) facts += '<span>playoff SoS <em>' + p.so + '/32</em></span>';
+  if(p.ol && (p.p === 'RB' || p.p === 'QB'))
+    facts += '<span>O-line <em>' + p.ol[0] + '</em> PFF / <em>' + p.ol[1] + '</em> Sharp</span>';
+  if(p.pw) facts += '<span>wk15–17 ' + p.pw.join(', ') + '</span>';
+  if(p.f != null) facts += '<span>ADP ' + p.a + ' Sleeper / ' + p.f + ' FFC' + (p.u != null ? ' / ' + p.u + ' UD' : '') + '</span>';
+  if(p.m && p.m.length) facts += '<span>same backfield: ' + p.m.map(function(x){ return esc(P[x].n); }).join(', ') + '</span>';
+
+  /* 2025 opportunity. Shown, never scored -- the projection already has last
+     year's usage inside it, and feeding these back in would count the same
+     evidence twice. Rookies carry nothing here, which is correct: they have no
+     NFL usage to report and a guess would be worse than a blank. */
+  var opp = '';
+  if(p.op){
+    var o = p.op, bits = [];
+    if(o.tch != null) bits.push('<b>' + o.tch + '</b> touches');
+    if(o.snp != null) bits.push('<b>' + o.snp + '%</b> of snaps');
+    if(o.tgt != null) bits.push('<b>' + o.tgt + '</b> targets');
+    if(o.tsh != null) bits.push('<b>' + o.tsh + '%</b> target share');
+    if(o.rz20 != null) bits.push('<b>' + o.rz20 + '</b> carries inside the 20' +
+      (o.rz5 != null ? ', <b>' + o.rz5 + '</b> inside the 5' : ''));
+    if(o.rzt != null && o.rz20 == null) bits.push('<b>' + o.rzt + '</b> red-zone targets');
+    else if(o.rzt != null) bits.push('<b>' + o.rzt + '</b> red-zone targets');
+    if(bits.length) opp = '<span class="dbBase">2025 opportunity: ' + bits.join(' · ') +
+      (o.g != null ? ' in <b>' + o.g + '</b> games' : '') + '. Usage is more stable year to year than points are — this is shown, not scored.</span>';
+  }
+
+  /* the historical prior, shown wherever there is a real number for it */
+  var base = '';
+  if(rnd){
+    var h = baseHit(p.p, rnd), b = baseBust(p.p, rnd);
+    if(h != null) base += 'Round-' + rnd + ' ' + p.p + 's have returned a top-12 season <b>' +
+      pct(h) + '</b> of the time (' + BR.hitSample + '). ';
+    if(b != null) base += 'Bust rate at this cost <b>' + pct(b) + '</b> (' + BR.bustSample + '). ';
+    if(p.p === 'RB' && rnd >= BR.dead.rounds[0] && rnd <= BR.dead.rounds[1])
+      base += '<b>Against the base rate:</b> backs drafted in rounds ' + BR.dead.rounds[0] + '–' +
+        BR.dead.rounds[1] + ' have won at ' + pct1(BR.dead.rb_win[0]) + '–' + pct1(BR.dead.rb_win[1]) +
+        ' against ' + pct1(BR.dead.wr_win[0]) + '–' + pct1(BR.dead.wr_win[1]) +
+        ' for receivers at the same cost (' + BR.dead.sample + '). This board takes them anyway, by choice.';
+  }
+
+  var b2 = document.createElement('button');
+  b2.className = 'dbPick p-' + p.p;
+  b2.type = 'button';
+  b2.setAttribute('aria-expanded', 'false');
+  b2.innerHTML =
+    '<span class="dbPickHd">' +
+      (rank ? '<span class="dbRank">' + rank + '</span>' : '<span class="dbRank"></span>') +
+      '<span class="dbName">' + esc(p.n) + '</span>' +
+      '<span class="dbPos">' + p.p + '</span>' +
+      '<span class="dbTeam">' + p.t + '</span>' +
+    '</span>' +
+    '<span class="dbMeta">' + meta + '</span>' +
+    '<span class="dbWhy"><span class="dbWhyIn">' +
+      '<p>' + esc(p.no) + '</p>' +
+      '<span class="dbSrc"><span class="dbKind">' + kind + '</span>' +
+        (p.sr ? ' · <a href="' + esc(p.sr) + '" rel="noopener nofollow" target="_blank">' +
+                 esc(host(p.sr)) + '</a>' + (p.dt ? ' · ' + esc(p.dt) : '') : '') + '</span>' +
+      '<span class="dbFacts">' + facts + '</span>' +
+      opp +
+      (base ? '<span class="dbBase">' + base + '</span>' : '') +
+    '</span></span>';
+  function toggle(){
+    b2.setAttribute('aria-expanded', b2.getAttribute('aria-expanded') === 'true' ? 'false' : 'true');
+  }
+  if(!onTap){ b2.addEventListener('click', toggle); return b2; }
+
+  /* In the pool the row's job is to RECORD A PICK -- one tap, which is the
+     whole point of the mode. Reading the reasoning therefore needs its own
+     target rather than stealing that tap or hiding behind a modifier key.
+     Both targets are measured, not declared: the row is 68px and the info
+     button is 44 wide inside it. */
+  b2.addEventListener('click', function(){ onTap(pi); });
+  b2.title = 'Mark taken';
+  var wrap = document.createElement('div');
+  wrap.className = 'dbPoolRow';
+  var info = document.createElement('button');
+  info.className = 'dbInfo';
+  info.type = 'button';
+  info.setAttribute('aria-label', 'Why ' + p.n + '?');
+  info.textContent = 'why';
+  info.addEventListener('click', toggle);
+  wrap.appendChild(b2); wrap.appendChild(info);
+  return wrap;
+}
+
+/* ═══ the bar ═════════════════════════════════════════════════════════════ */
+function tab(txt, on, fn, label){
   var b = document.createElement('button');
-  b.className = 'ctl ctl--nav';
-  b.type = 'button'; b.role = 'tab';
+  b.className = 'ctl ctl--nav'; b.type = 'button'; b.role = 'tab';
   b.setAttribute('aria-selected', on ? 'true' : 'false');
   b.tabIndex = on ? 0 : -1;
   b.textContent = txt;
@@ -353,7 +697,7 @@ function tab(txt,on,fn,label){
 function arrowKeys(box){
   box.addEventListener('keydown', function(e){
     if(e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
-    var t = [].slice.call(box.children), i = t.indexOf(document.activeElement);
+    var t = [].slice.call(box.querySelectorAll('.ctl')), i = t.indexOf(document.activeElement);
     if(i < 0) return;
     e.preventDefault();
     var j = (i + (e.key === 'ArrowRight' ? 1 : -1) + t.length) % t.length;
@@ -361,83 +705,56 @@ function arrowKeys(box){
   });
 }
 function bar(){
+  var tm = document.getElementById('tabsM'); tm.textContent = '';
+  tm.appendChild(tab('Board', mode === 'board', function(){ mode = 'board'; save(); render(); }));
+  tm.appendChild(tab('Live draft', mode === 'live', function(){ mode = 'live'; save(); render(); }));
+
+  document.getElementById('rowR').hidden = mode === 'live';
+  document.getElementById('rowS').hidden = false;
+  document.getElementById('lblS').textContent = mode === 'live' ? 'You' : 'Slot';
+
   var tr = document.getElementById('tabsR'); tr.textContent = '';
-  for(var r = 1; r <= 15; r++)(function(r){
+  for(var r = 1; r <= ROUNDS; r++)(function(r){
     tr.appendChild(tab(String(r), r === round, function(){
       round = r; save(); render();
       if(slot){ var c = document.getElementById('c' + r);
-        if(c) c.scrollIntoView({block:'center',
-          behavior: matchMedia('(prefers-reduced-motion:reduce)').matches ? 'auto' : 'smooth'}); }
+        if(c) c.scrollIntoView({ block:'center',
+          behavior: matchMedia('(prefers-reduced-motion:reduce)').matches ? 'auto' : 'smooth' }); }
     }, 'Round ' + r));
   })(r);
-  var ts = document.getElementById('tabsS'); ts.textContent = '';
-  ts.appendChild(tab('All', slot === 0, function(){ slot = 0; save(); render(); },
-                     'All twelve slots'));
-  for(var s = 1; s <= 12; s++)(function(s){
-    ts.appendChild(tab(String(s), s === slot, function(){ slot = s; save(); render(); },
-                       'Draft slot ' + s));
-  })(s);
-}
-function save(){ try{
-  localStorage.setItem('jb.draft.round', round);
-  localStorage.setItem('jb.draft.slot', slot);
-}catch(e){} }
 
-/* ── a card ──────────────────────────────────────────────────────────────── */
-function card(s, rnd){
+  var ts = document.getElementById('tabsS'); ts.textContent = '';
+  if(mode === 'board')
+    ts.appendChild(tab('All', slot === 0, function(){ slot = 0; save(); render(); }, 'All twelve slots'));
+  for(var i = 1; i <= TEAMS; i++)(function(i){
+    var on = mode === 'live' ? i === live.slot : i === slot;
+    ts.appendChild(tab(String(i), on, function(){
+      if(mode === 'live'){ live.slot = i; } else { slot = i; }
+      save(); render();
+    }, (mode === 'live' ? 'You draft from slot ' : 'Draft slot ') + i));
+  })(i);
+}
+
+/* ═══ board view ══════════════════════════════════════════════════════════ */
+function card(s2, rnd){
   rnd = rnd || round;
-  var cell = B[s-1][rnd-1], n = overallOf(s, rnd);
+  var cell = B[s2 - 1][rnd - 1], n = pickNoFor(s2, rnd);
   var el = document.createElement('div');
   el.className = 'dbCard' + (slot && rnd === round ? ' is-here' : '');
   el.id = 'c' + rnd;
-  var h = '<div class="dbCardTop"><span class="dbSlot">' + pickLabel(rnd, n) +
-          '</span><span class="dbOverall">Slot ' + s + ' · overall ' + n + '</span></div>';
-  for(var i = 0; i < cell.length; i++){
-    var p = P[cell[i][0]], gap = cell[i][1];
-    var kind = p[KIND] === 'model' ? 'projection only'
-             : p[KIND] === 'stat'  ? 'stat' : 'report';
-    var meta = '<span><em>' + p[PROJ].toFixed(1) + '</em> pts/gm</span>' +
-               '<span>' + p[CEIL].toFixed(1) + ' ceiling</span>' +
-               '<span>' + p[FLOOR].toFixed(1) + ' floor</span>' +
-               '<span>ADP ' + p[FFC] + '</span>';
-    if(p[RISK])                                        meta += '<span class="dbFlag">injury flag</span>';
-    else if(p[UD] && Math.abs(p[FFC] - p[UD]) >= 25)   meta += '<span>markets split</span>';
-    else if(gap >= 5)                                  meta += '<span>+' + gap + ' vs ADP</span>';
-    h += '<button class="dbPick p-' + p[POS] + '" type="button" aria-expanded="false">' +
-           '<span class="dbPickHd">' +
-             '<span class="dbRank">' + (i + 1) + '</span>' +
-             '<span class="dbName">' + esc(p[NAME]) + '</span>' +
-             '<span class="dbPos">' + p[POS] + '</span>' +
-             '<span class="dbTeam">' + p[TEAM] + '</span>' +
-           '</span>' +
-           '<span class="dbMeta">' + meta + '</span>' +
-           '<span class="dbWhy"><span class="dbWhyIn">' +
-             '<p>' + esc(p[NOTE]) + '</p>' +
-             '<span class="dbSrc"><span class="dbKind">' + kind + '</span>' +
-               (p[SRC] ? ' · <a href="' + esc(p[SRC]) + '" rel="noopener nofollow" target="_blank">' +
-                          esc(host(p[SRC])) + '</a>' + (p[DATE] ? ' · ' + esc(p[DATE]) : '') : '') +
-             '</span>' +
-             '<span class="dbSrc">' + p[POS] + p[PRANK] + ' by WalterPicks projection · bye ' + p[BYE] +
-               ' · ADP ' + p[FFC] + ' on Fantasy Football Calculator' +
-               (p[UD] ? ', ' + p[UD] + ' on Underdog' : '') + '</span>' +
-           '</span></span>' +
-         '</button>';
-  }
-  el.innerHTML = h;
-  [].forEach.call(el.querySelectorAll('.dbPick'), function(b){
-    b.addEventListener('click', function(){
-      b.setAttribute('aria-expanded', b.getAttribute('aria-expanded') === 'true' ? 'false' : 'true');
-    });
-  });
+  var top = document.createElement('div');
+  top.className = 'dbCardTop';
+  top.innerHTML = '<span class="dbSlot">' + pickLabel(rnd, n) + '</span>' +
+                  '<span class="dbOverall">Slot ' + s2 + ' · overall ' + n + '</span>';
+  el.appendChild(top);
+  for(var i = 0; i < cell.length; i++) el.appendChild(pickRow(cell[i][0], i + 1, rnd, n, null));
   return el;
 }
-
-/* ── what the plan already has you holding, when one slot is isolated ─────── */
-function haveStrip(s){
-  var order = ['QB','RB','WR','TE','K','DEF'], by = {}, i, p;
-  for(i = 0; i < 15; i++){
-    p = P[B[s-1][i][0][0]];
-    (by[p[POS]] = by[p[POS]] || []).push(p[NAME] + ' <span style="opacity:.6">' + p[TEAM] + '</span>');
+function haveStrip(s2, label, ids){
+  var order = ['QB','RB','WR','TE','K','DEF'], by = {}, i;
+  for(i = 0; i < ids.length; i++){
+    var p = P[ids[i]];
+    (by[p.p] = by[p.p] || []).push(esc(p.n) + ' <span style="opacity:.6">' + p.t + '</span>');
   }
   var out = '';
   for(i = 0; i < order.length; i++){
@@ -445,27 +762,153 @@ function haveStrip(s){
     out += '<span class="h p-' + order[i] + '"><i>' + order[i] + by[order[i]].length + '</i> ' +
            by[order[i]].join(', ') + '</span>';
   }
-  return out ? '<div class="dbHave"><span class="k">Ends with</span>' + out + '</div>' : '';
+  return out ? '<div class="dbHave"><span class="k">' + label + '</span>' + out + '</div>' : '';
 }
-
-/* ── render ──────────────────────────────────────────────────────────────── */
-function render(){
-  bar();
-  var lo = (round - 1) * 12 + 1, hi = round * 12;
+function renderBoard(){
+  var lo = (round - 1) * TEAMS + 1, hi = round * TEAMS;
   var hd = document.getElementById('roundHd');
+  var planned = [];
+  if(slot) for(var r = 1; r <= ROUNDS; r++) planned.push(B[slot - 1][r - 1][0][0]);
   hd.innerHTML = slot
     ? '<div class="dbRoundTop"><h2>Slot ' + slot + '</h2>' +
-        '<span class="dbRange">All fifteen rounds · first pick ' + overallOf(slot,1) + '</span></div>' +
+        '<span class="dbRange">All fifteen rounds · first pick ' + pickNoFor(slot, 1) + '</span></div>' +
       '<p class="dbNote"><b>Round ' + round + '.</b> ' + N[round] + '</p>' +
-      haveStrip(slot)
+      haveStrip(slot, 'Ends with', planned)
     : '<div class="dbRoundTop"><h2>Round ' + round + '</h2>' +
         '<span class="dbRange">Overall ' + lo + '–' + hi + '</span></div>' +
       '<p class="dbNote">' + N[round] + '</p>';
   var g = document.getElementById('grid'); g.textContent = '';
-  if(slot){ for(var r = 1; r <= 15; r++) g.appendChild(card(slot, r)); }
-  else for(var s = 1; s <= 12; s++) g.appendChild(card(s));
-  document.title = (slot ? 'Slot ' + slot : 'Round ' + round) + ' — 2026 Draft Board';
+  if(slot){ for(var r2 = 1; r2 <= ROUNDS; r2++) g.appendChild(card(slot, r2)); }
+  else for(var s2 = 1; s2 <= TEAMS; s2++) g.appendChild(card(s2));
 }
+
+/* ═══ live view ═══════════════════════════════════════════════════════════ */
+function liveState(){
+  var gone = {}, counts = {}, mine = [], i;
+  for(i = 0; i < live.taken.length; i++){
+    gone[live.taken[i]] = 1;
+    if(slotOnClock(i + 1) === live.slot){
+      mine.push(live.taken[i]);
+      var pos = P[live.taken[i]].p;
+      counts[pos] = (counts[pos] || 0) + 1;
+    }
+  }
+  return { gone: gone, counts: counts, mine: mine, n: live.taken.length + 1 };
+}
+/* how many are left at each position before the next real drop-off, which is
+   the number that answers "can I wait?" better than any rank does */
+function depth(gone){
+  var best = {}, out = [];
+  for(var i = 0; i < P.length; i++){
+    var p = P[i];
+    if(gone[i] || p.pr == null || p.ti == null) continue;
+    if(!best[p.p] || p.pr > best[p.p].pr) best[p.p] = p;
+  }
+  ['RB','WR','TE','QB'].forEach(function(pos){
+    if(!best[pos]) return;
+    var t = best[pos].ti, n = 0;
+    for(var i = 0; i < P.length; i++)
+      if(!gone[i] && P[i].p === pos && P[i].ti === t) n++;
+    out.push('<span><span class="k">' + pos + '</span><b>' + n + '</b> before the drop</span>');
+  });
+  return out.join('');
+}
+/* if the room is running a position, the calculus changes -- and in live mode
+   this is measured off real picks rather than guessed */
+function runOn(){
+  var last = live.taken.slice(-6), c = {}, out = null;
+  for(var i = 0; i < last.length; i++){ var q = P[last[i]].p; c[q] = (c[q] || 0) + 1; }
+  Object.keys(c).forEach(function(k){
+    if(c[k] >= 3 && (k === 'RB' || k === 'WR' || k === 'TE' || k === 'QB'))
+      out = '<span class="warn">' + c[k] + ' of the last ' + last.length + ' picks were ' + k + 's — the room is running ' + k + '.</span>';
+  });
+  return out;
+}
+function byeClash(mine){
+  var c = {}, out = [];
+  for(var i = 0; i < mine.length; i++){
+    var p = P[mine[i]];
+    if(p.p === 'K' || p.p === 'DEF' || !p.by) continue;
+    (c[p.by] = c[p.by] || []).push(p.p);
+  }
+  Object.keys(c).forEach(function(w){
+    if(c[w].length >= 4) out.push('<span class="warn">' + c[w].length + ' of your starters are on bye in week ' + w + '.</span>');
+  });
+  return out.join(' ');
+}
+function renderLive(){
+  var st = liveState(), n = st.n, rnd = roundOf(n), onClock = slotOnClock(n);
+  var mineTurn = onClock === live.slot, done = n > TEAMS * ROUNDS;
+
+  var clock = document.getElementById('clock');
+  clock.className = 'dbClock' + (mineTurn && !done ? ' is-you' : '');
+  if(done){
+    clock.innerHTML = '<h2>Draft complete</h2><span class="sub">' + live.taken.length + ' picks recorded</span>';
+  } else {
+    var away = 0, k = n;
+    while(slotOnClock(k) !== live.slot && k <= TEAMS * ROUNDS){ k++; away++; }
+    clock.innerHTML = '<h2>' + (mineTurn ? "You're up — " + pickLabel(rnd, n) : pickLabel(rnd, n)) + '</h2>' +
+      '<span class="sub">Overall ' + n + ' · round ' + rnd + ' · ' +
+      (mineTurn ? 'your pick' : 'slot ' + onClock + ' on the clock · ' + away + ' until you') + '</span>';
+  }
+
+  var reads = [];
+  var d = depth(st.gone); if(d) reads.push(d);
+  var r = runOn(); if(r) reads.push(r);
+  var bc = byeClash(st.mine); if(bc) reads.push(bc);
+  document.getElementById('reads').innerHTML = reads.join('') || '<span class="k">No picks recorded yet</span>';
+
+  var recSect = document.getElementById('recSect');
+  recSect.hidden = !mineTurn || done;
+  if(mineTurn && !done){
+    var recs = document.getElementById('recs'); recs.textContent = '';
+    var top = solve(st.gone, st.counts, rnd, n, 3);
+    for(var i = 0; i < top.length; i++) recs.appendChild(pickRow(top[i], i + 1, rnd, n, null));
+    if(!top.length) recs.innerHTML = '<div class="dbEmpty">Nothing left that fits the rules.</div>';
+  }
+
+  var q = (document.getElementById('poolQ').value || '').trim().toLowerCase();
+  var pool = document.getElementById('pool'); pool.textContent = '';
+  var avail = [], i2;
+  for(i2 = 0; i2 < P.length; i2++){
+    if(st.gone[i2] || P[i2].a == null) continue;
+    if(q){
+      var p2 = P[i2];
+      if((p2.n + ' ' + p2.p + ' ' + p2.t).toLowerCase().indexOf(q) < 0) continue;
+    }
+    avail.push(i2);
+  }
+  avail.sort(function(a, b){ return P[a].a - P[b].a; });
+  if(!avail.length) pool.innerHTML = '<div class="dbEmpty">Nobody left matching that.</div>';
+  for(i2 = 0; i2 < Math.min(avail.length, 25); i2++)
+    pool.appendChild(pickRow(avail[i2], 0, rnd, n, takePlayer));
+
+  var hd2 = document.getElementById('roundHd');
+  hd2.innerHTML = st.mine.length ? haveStrip(live.slot, 'Your team', st.mine) : '';
+}
+function takePlayer(pi){
+  if(live.taken.length >= TEAMS * ROUNDS) return;
+  live.taken.push(pi); save(); render();
+}
+
+/* ═══ render ══════════════════════════════════════════════════════════════ */
+function render(){
+  bar();
+  document.getElementById('boardView').hidden = mode !== 'board';
+  document.getElementById('liveView').hidden = mode !== 'live';
+  if(mode === 'board'){ renderBoard(); document.title = (slot ? 'Slot ' + slot : 'Round ' + round) + ' — 2026 Draft Board'; }
+  else { renderLive(); document.title = 'Live draft — 2026 Draft Board'; }
+}
+document.getElementById('poolQ').addEventListener('input', function(){ if(mode === 'live') renderLive(); });
+document.getElementById('undo').addEventListener('click', function(){
+  live.taken.pop(); save(); render();
+});
+document.getElementById('reset').addEventListener('click', function(){
+  if(!live.taken.length || confirm('Clear all ' + live.taken.length + ' recorded picks?')){
+    live.taken = []; save(); render();
+  }
+});
+arrowKeys(document.getElementById('tabsM'));
 arrowKeys(document.getElementById('tabsR'));
 arrowKeys(document.getElementById('tabsS'));
 render();
