@@ -837,8 +837,33 @@
     unchanged there. Below that height it lowers the head out of the CTA row --
     hero-time.css owns the value and the reasoning. The 0px fallback is
     load-bearing: the token is only defined under @supports (height:1svh). */
+ /* ── AND --hero-head-copy-drop IS THE HEADLINE'S CLEARANCE.  2026-08-27 ─────
+    Jayden, twice: "the head shouldnt float over the text anymore but go around
+    if it can just to keep readability."
+    IT IS AUTHORED IN LAYOUT AND NOT IN THE TRAVEL, and that distinction is the
+    whole fix. travelBounds() is relative to the CURRENT arrangement, so a
+    bound there can only stop the head CLIMBING onto the copy -- and the
+    resting composition already put the selection frame's top rule and its two
+    upper dots 11.5px inside the h1's box at 1440. Measured before: the head's
+    own box crossed the h1 on 46.7% of 122 samples over 30s and the frame on
+    26.2%, with a worst penetration of 24px, because the field's floor could
+    only hold the head where it already was. Bounding travel harder cannot
+    reach that; hero-head-transform.js's own headstone records a push being
+    tried and running away by 875px on a dragged head.
+    So the RESTING composition moves, which is where the resting composition
+    has always been expressed -- reset() says so in as many words ("the whole
+    resting composition is expressed in LAYOUT"), state.x/y stay 0, and every
+    layer keyed off the stage moves with the head instead of sliding out of
+    register behind it.
+    THE VALUE IS MEASURED, NOT AUTHORED: hero-head-transform.js solves it from
+    the copy's own lower edge and the turned frame's own upper edge, so a
+    reflowed headline or a different width re-derives it, and it is capped at
+    the field's remaining room so it can never push the chin through the Hero's
+    floor. It is exactly 0 wherever the frame already clears the copy, which is
+    both phone widths. */
  bottom:calc((var(--hero-peek-depth) * -1) + var(--hero-peek-offset)
-             - var(--hero-head-crowd-drop,0px));
+             - var(--hero-head-crowd-drop,0px)
+             - var(--hero-head-copy-drop,0px));
  width:var(--hero-peek-width);max-width:none;z-index:2;
  transform-origin:var(--hero-head-origin-x) var(--hero-head-origin-y);
  transform:translate3d(calc(-50% + var(--hero-head-x)),calc(var(--hero-head-y) + var(--hero-movie-guard-y)),0)

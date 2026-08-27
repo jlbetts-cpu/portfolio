@@ -1081,7 +1081,31 @@ TRAVEL_SAMPLE = """() => {
           t: Math.max(0, -Math.min(...dots.map(d => d.y))),
           b: Math.max(0, Math.max(...dots.map(d => d.y)) - hero.height)},
     dotBox: {l: Math.min(...dots.map(d => d.x)), r: Math.max(...dots.map(d => d.x)),
-             t: Math.min(...dots.map(d => d.y)), b: Math.max(...dots.map(d => d.y))}
+             t: Math.min(...dots.map(d => d.y)), b: Math.max(...dots.map(d => d.y))},
+    // ── THE COPY, AND EVERYTHING A READER SEES CROSS IT ────────────────────
+    // Jayden, twice: "the head shouldnt float over the text anymore but go
+    // around if it can just to keep readability."
+    // `chrome` is the union of the drawn outline and the FIVE DRAWN DOTS, at
+    // their real sizes -- not the selection element's own rect, which
+    // syncSelection() clamps to the Hero by construction and which is
+    // therefore true whatever the head does. The rotate dot is in the union
+    // for a specific reason: it is drawn ABOVE the frame's top edge, so it is
+    // the piece of chrome that reaches the words first and a bound stated on
+    // the outline alone would let it through.
+    copy: (() => {const c = document.querySelector('.heroCopy');
+      if (!c) return null; const r = c.getBoundingClientRect();
+      return {l: r.left - hero.left, r: r.right - hero.left,
+              t: r.top - hero.top, b: r.bottom - hero.top};})(),
+    chrome: (() => {const f = document.querySelector('.heroHeadFrame').getBoundingClientRect();
+      const boxes = [...document.querySelectorAll('.heroHeadHandle,.heroHeadRotate')].map(n => {
+        const st = getComputedStyle(n, '::before'), r = n.getBoundingClientRect();
+        const x = r.left + parseFloat(st.left), y = r.top + parseFloat(st.top);
+        const w = parseFloat(st.width) || 8, h = parseFloat(st.height) || 8;
+        return {l: x - w / 2, r: x + w / 2, t: y - h / 2, b: y + h / 2};});
+      return {l: Math.min(f.left, ...boxes.map(b => b.l)) - hero.left,
+              r: Math.max(f.right, ...boxes.map(b => b.r)) - hero.left,
+              t: Math.min(f.top, ...boxes.map(b => b.t)) - hero.top,
+              b: Math.max(f.bottom, ...boxes.map(b => b.b)) - hero.top};})()
   };
 }"""
 
@@ -1258,6 +1282,34 @@ def assert_travels(page, label, failures):
            f"{label} the drift darkened no handle that rest leaves live",
            {"resting_dark": rest["dark"], "worst_while_drifting": dark,
             "samples": len(rows)})
+    # ── AND IT NEVER CROSSES THE HEADLINE.  2026-08-27 ─────────────────────
+    # Jayden, twice, and checked once: "the head shouldnt float over the text
+    # anymore but go around if it can just to keep readability."
+    # THIS FILE USED TO ASSERT THE OPPOSITE and the reversal is his. On
+    # 2026-08-20 the copy-bottom ceiling was deleted on purpose -- .heroCopy had
+    # just taken mix-blend-mode:difference and the crossing was the FEATURE --
+    # and the note at the drag assertion below still records that. Having lived
+    # with it he wants it gone. The blend stays, because a head he DRAGS onto
+    # the words still inverts them; what stops is the head doing it unasked.
+    # IT IS THE WHOLE CHROME AGAINST THE WHOLE COPY BLOCK, both as boxes. The
+    # portrait's own silhouette was never the thing crossing at 1440 -- measured
+    # over 122 samples on the build before the fix, the head's box crossed the
+    # h1 on 46.7% of frames and the drawn frame on 26.2%, and what a reader
+    # actually saw was the outline's top rule and the two upper dots dragged
+    # through "systems." A rule stated on the artwork alone would have called
+    # that build clean.
+    # MEASURED AFTER, 122 samples over 30s at each of 1440x900, 1280x650,
+    # 761x844, 390x844 and 320x800: 0.0% at every width, for the chrome and for
+    # the silhouette both.
+    crossed = [r for r in rows if r["copy"]
+               and min(r["chrome"]["r"], r["copy"]["r"]) > max(r["chrome"]["l"], r["copy"]["l"])
+               and min(r["chrome"]["b"], r["copy"]["b"]) > max(r["chrome"]["t"], r["copy"]["t"])]
+    record(failures, not crossed,
+           f"{label} the drift never carried the head or its frame onto the copy",
+           {"samples": len(rows), "crossings": len(crossed),
+            "first": {"chrome": crossed[0]["chrome"], "copy": crossed[0]["copy"]}
+            if crossed else None})
+
     # Above the bar is the specific place a handle dies -- the Hero runs up
     # behind an opaque nav -- so it is stated on its own rather than folded into
     # the four-sided comparison, where a generous left edge could hide it.
@@ -1661,11 +1713,15 @@ def browser_contract(base_url):
             )
             page.mouse.up()
             moved = page.locator("#heroHeadSelection").bounding_box()
-            # The copy-bottom ceiling is GONE on purpose: the head may now rise
-            # behind the headline, which stays legible because .heroCopy paints
-            # above it in z-order rather than because the head is forbidden to
-            # go there. The selection chrome is still Hero-bound, which is what
-            # keeps it out of the work section.
+            # THE COPY IS NOT ASSERTED HERE, AND THAT IS DELIBERATE. This is a
+            # DRAG: the arrangement is whatever the visitor put there, and a
+            # head dragged onto the words is the one crossing Jayden asked to
+            # keep ("if the head is passing through it that part of the text
+            # turns white and inverts", 2026-08-20). What he reversed on
+            # 2026-08-26 is the head doing it under its own power, which is the
+            # DRIFT -- asserted in assert_travels(), against the whole chrome.
+            # The selection chrome is still Hero-bound, which is what keeps it
+            # out of the work section.
             assert moved["y"] >= hero["y"] - .5, (moved, hero, protected)
             assert moved["x"] >= hero["x"]
             assert moved["x"] + moved["width"] <= hero["x"] + hero["width"]
@@ -2967,8 +3023,27 @@ def settled_gaze(page, x, y, label):
     followed IDLE_MS after the last pointer event, and the fallback is silent,
     which is the exact failure this helper exists to stop.
     """
+    # ── THE EYES ARE NOT ALWAYS THERE, AND THAT IS WHAT THIS WAS FAILING ON ──
+    # 2026-08-27. This helper had been failing at (1440, 900, 'performances')
+    # with samples:0, took:12 and clean:false on all eight attempts, and the
+    # note above guessed it was "something in the engine swapping the irises out
+    # under it". It is exactly that, and it is by design: several faces are
+    # _closed frames with the eyes painted INTO the artwork, and buildEyes()
+    # makes no .iris elements for those. Sampled at 250ms on the same URL and
+    # viewport, #stage held ZERO irises for the first ~1.3s after the intro
+    # released and two thereafter.
+    # THE OLD RETRY COULD NOT WAIT THAT OUT. GAZE_SAMPLER aborts on its first
+    # frame when there is no iris, so eight attempts cost about 100ms in total
+    # and every one of them landed inside the same eyeless stretch. Waiting for
+    # the eyes to EXIST is a precondition of reading them, the same way
+    # requestBlink() has one (see below); it is not a weakening of anything.
+    # The window, its guards and the direction assertion downstream are
+    # untouched -- a build whose eyes stop following the cursor still fails,
+    # which is what --self-test proves by taking eyeGeo()'s box away.
     reading = None
     for _ in range(8):
+        page.wait_for_function(
+            "document.querySelectorAll('#stage .iris').length >= 2", timeout=10_000)
         page.mouse.move(x, y)
         reading = page.evaluate(GAZE_SAMPLER, GAZE_WINDOW_FRAMES)
         if reading["clean"]:
@@ -3176,8 +3251,25 @@ TRAVEL_SELF_TEST_INJECT = """   return {
 # assert_handle_hits() rejects the dot that lands on the button, and grip_point()
 # rejects a frame with no pressable point left on it -- which is what the
 # unreserved build actually did first, before the handle assertion was reached.
-CORNER_SELF_TEST_SITE = "    block:blockRect(hit/2),"
-CORNER_SELF_TEST_INJECT = "    block:null,"
+# ── THE CORNER RESERVE'S SELF-TEST IS DEAD, AND THIS REPLACES IT ────────────
+# CORNER_SELF_TEST_SITE was `    block:blockRect(hit/2),` and its injection was
+# `    block:null,`. metrics().block does not exist any more: Jayden moved the
+# time control out of the Hero's bottom-right corner and into the site header
+# ("the button for day change ... should be in the header since it affects all
+# the pages"), and hero-head-transform.js's headstone above usableRect() records
+# the reserve, the guarded branch in clampMove() and the two-axis cap going with
+# it. So the injection stopped matching and --self-test exited with "update
+# CORNER_SELF_TEST_SITE to match it rather than letting the self-test pass
+# blind" -- which is the guard doing its job, and a standing failure until
+# somebody either restores a control to that corner or writes this.
+# WHAT REPLACES IT IS THE DEFECT THAT IS ACTUALLY LIVE. The handle assertions it
+# fed are untouched and still run in the main pass; what is gone is a way to
+# re-inject a bug the page can no longer have. The bug the page CAN have, and
+# had until 2026-08-27, is the head drifting across the headline -- and it is
+# the same shape of one-line edit: the clearance is solved in exactly one place
+# and returning false from it puts the whole regression back.
+COPY_SELF_TEST_SITE = "   if(Math.abs(next-current)<.5)return false;"
+COPY_SELF_TEST_INJECT = "   if(true)return false;"
 
 
 # ── AND THE SECOND RE-INJECTION: A HEAD THAT TRAVELS WITHOUT LEANING ────────
@@ -3269,21 +3361,86 @@ def travel_self_test(browser, base_url, source):
               f"reachability-only bound, as they must ({len(wanted)} of them)")
 
 
-def corner_self_test(browser, base_url, source):
-    """Take the corner reserve out and require the handle assertions to notice."""
-    if CORNER_SELF_TEST_SITE not in source:
+# ── AND THE FOURTH RE-INJECTION: EYES THAT HAVE STOPPED FOLLOWING ───────────
+# The gaze assertion in task4_matrix caught a real regression on 2026-08-27 and
+# it is worth proving it can do that again. eyeGeo() caches the eye's own offset
+# box and updateIris() spends it as `nx * ow * TRAVEL`, so a zero box is irises
+# pinned to translate(0,0) -- the eyes quietly stop following the cursor while
+# every other assertion in this file still passes. That is what shipped: the
+# cache could be filled on a frame where the eye element was display:none behind
+# a lid, and nothing invalidated it when the lid came back up.
+# THE INJECTION IS THE SYMPTOM, NOT THE RACE. Re-injecting the timing would make
+# a self-test that passes or fails depending on when a blink lands; zeroing the
+# box outright is the same end state, deterministically, which is what a
+# detector-of-the-detector wants.
+EYE_SELF_TEST_SITE = "          ow:e.el.offsetWidth,"
+EYE_SELF_TEST_INJECT = "          ow:0,"
+
+
+def eye_travel_self_test(browser, base_url):
+    """Zero the iris travel and require the gaze reading to lose its direction."""
+    source = (ROOT / "hero-engine.js").read_text(encoding="utf-8")
+    if EYE_SELF_TEST_SITE not in source:
         raise SystemExit(
-            "--self-test cannot find the corner reserve in metrics(); update "
-            "CORNER_SELF_TEST_SITE to match it rather than letting the "
-            "self-test pass blind."
+            "--self-test cannot find the eye's offset box in eyeGeo(); update "
+            "EYE_SELF_TEST_SITE to match it rather than letting the self-test "
+            "pass blind."
         )
-    broken = source.replace(CORNER_SELF_TEST_SITE, CORNER_SELF_TEST_INJECT, 1)
-    # 1440 IS NOT IN THIS LIST AND THAT IS A MEASUREMENT, NOT AN OVERSIGHT. The
-    # control sits 163px in from a 1440 Hero's right edge, so the head parked at
-    # the far corner there lands past it rather than on it -- 100% of the frame
-    # clear of the halo even unreserved. The defect is a phone-width one, which
-    # is where it was found.
-    for width, height in ((390, 844), (320, 800)):
+    broken = source.replace(EYE_SELF_TEST_SITE, EYE_SELF_TEST_INJECT, 1)
+    width, height = 1440, 900
+    context = browser.new_context(viewport={"width": width, "height": height})
+    context.add_init_script("try{sessionStorage.setItem('introSeen','1')}catch(e){}")
+    context.route(
+        "**/hero-engine.js*",
+        lambda route: route.fulfill(
+            status=200, content_type="application/javascript", body=broken
+        ),
+    )
+    page = context.new_page()
+    page.goto(f"{base_url}/index.html?head-transform-performances=1", wait_until="load")
+    page.wait_for_function(
+        "typeof introMode !== 'undefined' && !introMode && !eventLock", timeout=15_000)
+    page.wait_for_selector("#stage .iris")
+    page.evaluate("window.__heroHeadTransform.stopFloat()")
+    stage = page.locator("#stage").bounding_box()
+    gaze_cx = stage["x"] + stage["width"] / 2
+    gaze_y = min(height - 4, max(4, stage["y"] + stage["height"] * .42))
+    label = (width, height, "self-test eyes")
+    caught = None
+    try:
+        left = settled_gaze(page, max(4, gaze_cx - stage["width"]), gaze_y, label)
+        right = settled_gaze(page, min(width - 4, gaze_cx + stage["width"]), gaze_y, label)
+        if right["x"] - left["x"] < 1:
+            caught = {"left": left, "right": right}
+    except AssertionError as failure:
+        caught = str(failure)
+    context.close()
+    if caught is None:
+        raise SystemExit(
+            f"--self-test FAILED at {width}x{height}: the irises were given a "
+            "zero travel and the gaze assertion still read a direction. The "
+            "eye-tracking detector is not detecting anything."
+        )
+    print(f"self-test {width}x{height}: the gaze assertion rejected irises that "
+          f"cannot travel, as it must")
+
+
+def copy_clearance_self_test(browser, base_url, source):
+    """Take the headline's clearance out and require the drift to notice."""
+    if COPY_SELF_TEST_SITE not in source:
+        raise SystemExit(
+            "--self-test cannot find copyClearanceDrop()'s commit in "
+            "hero-head-transform.js; update COPY_SELF_TEST_SITE to match it "
+            "rather than letting the self-test pass blind."
+        )
+    broken = source.replace(COPY_SELF_TEST_SITE, COPY_SELF_TEST_INJECT, 1)
+    # 1440 AND 1280 ONLY, AND THAT IS A MEASUREMENT. Both phone widths already
+    # clear the copy by 70px or more at rest with no clearance applied at all --
+    # the Hero is taller relative to a one-line-shorter headline there, and the
+    # solve returns 0 on those widths on the shipped build too. Injecting the
+    # regression at 390 would therefore prove nothing: there is nothing to
+    # remove. The defect is a desktop one, which is where he found it.
+    for width, height in ((1440, 900), (1280, 650)):
         context = browser.new_context(viewport={"width": width, "height": height})
         context.add_init_script("try{sessionStorage.setItem('introSeen','1')}catch(e){}")
         context.route(
@@ -3298,26 +3455,19 @@ def corner_self_test(browser, base_url, source):
             "typeof introMode !== 'undefined' && !introMode && !eventLock",
             timeout=15_000,
         )
-        page.evaluate("window.__heroHeadTransform.stopFloat()")
-        # Minimum scale, then into the corner -- the pose the defect lives at.
-        scale_to_limit(page, "Left")
-        page.evaluate("window.__heroHeadTransform.stopFloat()")
-        caught = None
-        try:
-            drag_selection_to(page, width + 1000, height + 1000)
-            assert_handle_hits(page, f"self-test corner {width}")
-        except AssertionError as failure:
-            caught = str(failure)
+        caught = []
+        assert_travels(page, f"self-test copy {width}", caught)
         context.close()
-        if caught is None:
+        wanted = [f for f in caught if "onto the copy" in f]
+        if not wanted:
             raise SystemExit(
-                f"--self-test FAILED at {width}x{height}: the head was parked "
-                "under the corner control with the reserve removed and every "
-                "handle assertion accepted it. The dead-handle detectors are "
-                "not detecting anything."
+                f"--self-test FAILED at {width}x{height}: the head was left to "
+                "drift across the headline and the travel assertions accepted "
+                f"it. The copy-clearance detector is not detecting anything. "
+                f"Recorded: {caught!r}"
             )
-        print(f"self-test {width}x{height}: the handle assertions rejected the "
-              f"head parked under the corner control, as they must")
+        print(f"self-test {width}x{height}: the copy assertion rejected a head "
+              f"drifting over the headline, as it must")
 
 
 def self_test(base_url):
@@ -3359,7 +3509,8 @@ def self_test(base_url):
                 )
             travel_self_test(browser, base_url, source)
             bank_self_test(browser, base_url, source)
-            corner_self_test(browser, base_url, source)
+            copy_clearance_self_test(browser, base_url, source)
+            eye_travel_self_test(browser, base_url)
         finally:
             browser.close()
     print("Hero head transform self-test: OK (the detectors fail when they should)")

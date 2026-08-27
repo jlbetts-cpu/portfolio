@@ -209,11 +209,33 @@ function eyeGeo(sr){
     bias, ecx < scx). Both are transform-blind, which is the whole reason the
     cache is legal. */
  var sw=stage.offsetWidth||1;
- _eyeGeo=eyeEls.map(function(e){
+ var geo=eyeEls.map(function(e){
   return {cxf:(e.el.offsetLeft+e.el.offsetWidth/2)/sw,
           ow:e.el.offsetWidth,
           oh:e.el.offsetHeight};
  });
+ /* ── A ZERO BOX IS NOT A MEASUREMENT, IT IS A SHUT EYE.  2026-08-27 ────────
+    The eye element is display:none while a lid is down, so offsetWidth and
+    offsetHeight are 0 on those frames -- and this cache is invalidated only by
+    buildEyes() and by resize, neither of which fires when a blink REOPENS. So
+    a first read that landed inside a blink stored {ow:0, oh:0} and kept it,
+    and updateIris()'s travel is `nx * ow * TRAVEL`: the irises were pinned to
+    translate(0,0) until the next face change, which is the eyes silently
+    giving up following the cursor.
+    MEASURED at 1440x900 on ?head-transform-performances=1, sampling the cache
+    and the live boxes together: at 3.0s the cache read ow 0 / oh 0 while both
+    eye elements measured 15 x 8 and display:block, and the iris transform was
+    the identity matrix at BOTH ends of a full-width pointer sweep -- gaze x 0,
+    spread 0, over 32 clean frames each side. hero-head-transform-contract's
+    task4 gaze assertion is exactly that reading.
+    THE GUARD IS "DO NOT STORE IT", NOT "DO NOT RETURN IT". The frame being
+    measured is one where the eye is not on screen, so its own travel does not
+    matter; what matters is that the NEXT frame measures again instead of
+    inheriting a zero forever. The pre-cache code read offsetWidth live every
+    frame and was self-correcting for this reason; the cache has to keep that
+    property rather than trade it for the layout read it saves. */
+ for(var i=0;i<geo.length;i++)if(!geo[i].ow||!geo[i].oh)return geo;
+ _eyeGeo=geo;
  return _eyeGeo;
 }
 addEventListener("resize",invalidateEyeGeo,{passive:true});
@@ -1997,17 +2019,28 @@ setInterval(()=>{tk++;eyeWatchdog();syncLids();if(!reduce&&inkCanBoil())boil();i
  if(loveMode){loveTick((performance.now()-loveStart)/1000);return;}
  if(rainMode){rainTick();return;}
  if(movieMode){movieTick();return;}
- /* THE LIDS ARE RECONCILED FIRST, IN EVERY STATE. This used to sit below the
-    three early returns, so dizzy, eating and reactType frames skipped it and a
-    separate always-on rAF loop existed to cover them (see lidFrame's headstone
-    above). One call, before anything can return, replaces that loop. syncLids()
-    is idempotent and reads no geometry, so running it ahead of a blink step
-    rather than instead of one is exactly what the deleted loop was doing. */
- syncLids();
- if(dizzy){dizzyTick();return;}
- if(eating){eatTick((performance.now()-eatStart)/1000);return;}
- if(reactType){reactTick();return;}
+ /* ── THE LIDS ARE RECONCILED IN EVERY STATE, AND NOT ON A BLINK FRAME ──────
+    lidFrame() was a third permanent rAF loop calling syncLids() (see its
+    headstone above). The tick already called it, but BELOW the three early
+    returns, so dizzy, eating and reactType frames skipped it -- that gap is the
+    only thing the loop was covering, and the three calls below close it from
+    the loop that is already running.
+    I FIRST WROTE THIS AS ONE CALL AT THE TOP, ABOVE THE RETURNS, AND IT BROKE
+    THE BLINK. The line below is `if(blinking && blinkQ.length) applyStep(...)
+    ELSE syncLids()`, and that `else` is load-bearing: on a frame where a blink
+    step is being applied, the step IS the lid decision, and reconciling against
+    the previously painted frame first fights it. Measured -- with syncLids()
+    hoisted above the returns, hero-head-transform-contract's settled_gaze()
+    could not find a single clean 32-frame window at 1440 (samples:0, first
+    frame rejected, eight retries), and the same tree with only this hoist
+    reverted passes the whole contract. So the gap is filled where it actually
+    exists, in the three branches that return, and the blink path is left
+    byte-identical to what it was. */
+ if(dizzy){syncLids();dizzyTick();return;}
+ if(eating){syncLids();eatTick((performance.now()-eatStart)/1000);return;}
+ if(reactType){syncLids();reactTick();return;}
  if(blinking&&blinkQ.length){applyStep(blinkQ.shift());}
+ else syncLids();   // the lids are reconciled against the painted frame whether or not a blink owns them
  const now=performance.now();
  if(now>=nextSaccade){ // natural saccade-and-fixation wander (used on touch + desktop idle)
   {const a=Math.random()*6.2832,rd=0.45+Math.random()*0.45;gaze={x:Math.cos(a)*rd,y:Math.sin(a)*rd*0.62-0.04};}   // idle wander never looks dead-center

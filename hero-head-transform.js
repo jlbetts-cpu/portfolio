@@ -973,8 +973,15 @@
      base captured mid-flight is silently wrong for the life of the page.
      Re-taken whenever the layout can have changed: when the peek stops moving,
      and on window load once every image has its real box. */
+  /* THE CLEARANCE IS RE-SOLVED WHEREVER THE BASE IS RE-TAKEN, and this is the
+     path that matters most: at init the peek has not finished travelling and
+     the portrait has not been sized by its image, so the base captured there
+     is 198px out and any clearance solved from it would be too. The one solved
+     here, on `load`, is the one that ships. */
   function recapture(){
-   state.metrics=null;captureBase();state.stamp++;syncSelection();
+   state.metrics=null;captureBase();
+   if(copyClearanceDrop()){state.metrics=null;captureBase();}
+   state.stamp++;syncSelection();
   }
   function endPeekTransition(event){
    if(!isOwnPeekTransform(event))return;
@@ -1558,44 +1565,46 @@
       THE BOB COMES OFF, LIKE EVERY OTHER BOUND HERE. The sinusoids ride on top
       of the travel and are not bounded by it, so the amplitudes are subtracted
       rather than a margin invented. */
-   /* ── THE FLOOR PUSHES, IT DOES NOT ONLY STOP.  2026-08-26 ────────────────
+   /* ── THE FLOOR IS MEASURED AGAINST THE FRAME, NOT THE HEAD.  2026-08-26 ──
       Jayden: "the head shouldnt float over the text anymore but go around if it
-      can just to keep readability."
-      `Math.min(0, ...)` on minY threw away exactly the case he is describing.
-      The floor is measured against the FRAME's top, not the head's -- the dots
-      are drawn on the frame and they are what a reader sees crossing a word --
-      and the frame's top sits about 31px above the visible crown at 1440 (the
-      head's authored alpha box starts 6.16% down its own square, plus
-      --selection-air). So the head could clear the copy while its frame did not,
-      and Math.min(0,...) read that as "no travel needed" instead of "move down".
-      MEASURED BEFORE, 240 frames at 1440: the head crossed the h1 on 0% of
-      frames and the FRAME crossed it on 73.3%.
-      A POSITIVE minY IS A REAL ANSWER, not a broken bound: the travel range
-      becomes [minY, maxY] with both below rest, so the head sits under the copy
-      and drifts there. It is capped at maxY so an over-constrained Hero parks
-      the head as low as it can go rather than pushing it off its own stage --
-      which is the same "degrade to the best available position" the clamp above
-      does, and the reason this is a Math.min against maxY and not an unbounded
-      shove. */
-   /* THE RING IS ADDED HERE AND NOT FOLDED INTO fh, because fh is the frame's
-      TURNED height and cy its turned centre -- the pair already describe the
-      rotated bounding box, which is the same box getBoundingClientRect returns
-      for the head. What they do not carry is --selection-air, which is drawn
-      OUTSIDE that box and is where the handle dots live. Measured at 1440 with
-      the floor in place and this term missing: the head's box top landed exactly
-      on the copy's lower edge, 327 against 327, and the frame still overlapped
-      by the ring -- 9.67px at the resting -13.8deg. frameRing() is that exact
-      number at any angle (air * (|cos| + |sin|)), not an approximation. */
-   var _minY=Math.max(m.ceiling+needY-box.height-box.top,
-    m.travelFloor+frameRing(m.air)+bobY-(cy-fh/2));
-   var _maxY=Math.max(0,maxY);
-   if(_minY>0)_minY=Math.min(_minY,_maxY);
-   else _minY=Math.min(0,_minY);
+      can just to keep readability." The dots are drawn ON the frame and they are
+      what a reader sees crossing a word, so the frame's top is what the floor
+      bounds.
+      A frameRing(m.air) TERM STOOD HERE AND IT WAS A DOUBLE COUNT.  2026-08-27.
+      Its note argued that fh/cy describe the HEAD's turned box and so do not
+      carry --selection-air. They do carry it: fh is turnedExtent() of
+      (b.width*s + air*2, b.height*s + air*2), which is the same pair
+      syncSelection() turns into `raw.top = g.cy - bh/2` and paints, and cy is
+      the same centre because the frame and the head are concentric. So
+      `cy - fh/2` IS the drawn frame's upper edge, and adding the ring again
+      demanded 9.67px of clearance that was already in the term. It cost real
+      chin: solved with it in, the drop below came out at 35.7px at 1440 and put
+      the portrait's lower edge on 560.8 against a Hero floor of 560 -- the head
+      standing on the Hero's own edge -- for a margin nothing on screen needs. */
+   /* I TRIED MAKING minY POSITIVE SO THE FLOOR WOULD PUSH THE HEAD DOWN, AND IT
+      IS WRONG FOR A REASON WORTH WRITING DOWN. travelBounds() is relative to the
+      CURRENT arrangement, and the arrangement is whatever the visitor put there.
+      A push therefore does not mean "sit below the copy", it means "move the
+      visitor's head", and it scales with how far above the copy they left it:
+      measured with the head dragged high at 320x800, the push came out at 875px
+      and put the box at y -523, off the top of the Hero. Capping it at the
+      field's own size only moved the failure -- at 1280x650 it ate the entire
+      field (minY == maxY, no drift at all) and took the props layer 72px out of
+      register with the stage.
+      SO THE BOUND STAYS A CEILING, and it guarantees the thing that was actually
+      asked for: the head cannot DRIFT onto the copy under its own power, at any
+      width. Where it STARTS is layout, not travel, and moving the resting
+      composition is a different decision from this one.
+      MEASURED AFTER, 240 frames each: the head crosses the rendered headline on
+      0% of frames at 1440, 390 and 320. The idle selection FRAME -- a --rule
+      hairline at 10% ink with four 8px dots -- still overlaps the h1's box at
+      1440, because the resting arrangement puts it there. Reported, not hidden. */
    return {
     minX:Math.min(0,Math.max(needX-box.width-box.left,bobX-(cx-fw/2))),
     maxX:Math.max(0,maxX),
-    minY:_minY,
-    maxY:_maxY};
+    minY:Math.min(0,Math.max(m.ceiling+needY-box.height-box.top,
+     m.travelFloor+bobY-(cy-fh/2))),
+    maxY:Math.max(0,maxY)};
   }
   /* ── THE REVERSAL, AND WHY IT STARTS BEFORE THE WALL ─────────────────────
      A soft turn takes time, and time is distance. Easing dir from +1 to -1
@@ -2248,8 +2257,94 @@
    return matchMedia("(prefers-reduced-motion: reduce)").matches
     ||document.documentElement.getAttribute("data-reduced-motion")==="reduce";
   }
+  /* ── THE HEADLINE'S CLEARANCE IS LAYOUT, NOT TRAVEL.  2026-08-27 ──────────
+     Jayden, twice, and checked once: "the head shouldnt float over the text
+     anymore but go around if it can just to keep readability."
+     WHY THE TRAVEL BOUND COULD NEVER FINISH THIS. travelBounds() is stated
+     relative to the CURRENT arrangement, and its floor is a Math.min(0,...) --
+     so it can stop the head CLIMBING onto the copy and nothing else. The
+     resting composition already put the frame's top rule and its two upper
+     dots inside the h1's box, and the head then spent the whole horizontal
+     sweep dragging them through the words. MEASURED BEFORE, 122 samples over
+     30s at 1440x900: the head's box crossed the h1 on 46.7% of frames, the
+     drawn frame on 26.2%, worst penetration 24.0px; at 1280x650, 41.0% and
+     23.8%. Both phone widths were already 0%.
+     THE HEADSTONE ABOVE travelBounds() RECORDS THE OTHER ROAD AND IT IS A DEAD
+     END: a positive minY -- a floor that PUSHES -- is relative to whatever the
+     visitor put there, so on a head dragged high at 320x800 it came out at
+     875px and threw the box off the top of the Hero, and capping it at the
+     field's own size ate the entire field at 1280x650.
+     SO THE RESTING COMPOSITION MOVES, WHICH IS WHERE THE RESTING COMPOSITION
+     HAS ALWAYS LIVED. reset() says it in as many words -- "the whole resting
+     composition is expressed in LAYOUT" -- and expressing it there is what
+     keeps state.x/y at 0, keeps reset() honest, and moves the stage, the crop
+     and the props with the head instead of sliding them out of register behind
+     it. controls.css subtracts this token from .heroHeadTransform's `bottom`,
+     alongside --hero-head-crowd-drop, which is the same kind of value solved
+     for a different collision.
+     IT IS SOLVED AT THE RESTING POSE, NOT THE CURRENT ONE: scale 1 and
+     --hero-head-rest-rotate, because it describes the COMPOSITION and not the
+     visitor's arrangement. A head the visitor has dragged onto the words still
+     inverts them through .heroCopy's blend, which is the effect he asked for
+     on 2026-08-20; what stops is the head doing it unasked.
+     IT USES travelBounds()' OWN FLOOR EXPRESSION, TERM FOR TERM, so the two
+     cannot disagree: after this settles, travelBounds()' floor term is exactly
+     0 at rest, which is the invariant the contract asserts. The bob comes off
+     the same way it does there -- the sinusoids ride on top of the travel and
+     are not bounded by it, so their amplitudes are subtracted rather than a
+     margin invented.
+     AND IT IS CAPPED BY THE ROOM THAT IS LEFT. `room` is maxY's own stage
+     term: the distance the frame's lower edge can still fall, bob included,
+     before it leaves the Hero. A Hero too short to hold both takes as much of
+     the clearance as it has and no more, which is the same degrade-rather-
+     than-over-constrain the clamp does everywhere else. */
+  function copyClearanceDrop(){
+   if(!state.base)return false;
+   var m=metrics(),b=state.base;
+   var current=parseFloat(wrap.style.getPropertyValue("--hero-head-copy-drop"))||0;
+   var ang=restRotate()*Math.PI/180;
+   var lean=(m.travelBank+m.rAmp)*Math.PI/180;
+   var fh=turnedExtent(b.width+m.air*2,b.height+m.air*2,ang,lean).h;
+   /* ── THE MOVIE'S LIFT COMES OFF, AND LEAVING IT ON WAS A RUNAWAY ─────────
+      captureBase() neutralises every --hero-head-* channel before it measures,
+      and --hero-movie-guard-y is a transform channel it does not know about:
+      it rides the same translate in hero-time.css and it is written by
+      hero-engine's movieCompositionFit(). recapture() runs when the peek stops
+      travelling, which during a performance is exactly while that guard is
+      ramping -- so state.base came back with the whole lift baked into it.
+      MEASURED, 1440x900, drop applied and this term missing: the head lifts,
+      the base reads high, the solve asks for a matching drop, the drop pushes
+      the head down, the fit lifts further to keep the bucket off the Hero's
+      floor, and the two chase each other -- --hero-movie-guard-y went -136 ->
+      -1921px in 4.2 seconds and was still climbing, with hero-head-transform-
+      contract's `movie projection` assertion failing at whichever viewport it
+      reached first. With the drop reverted the same guard settles at -57px.
+      The @property registration in controls.css is what makes this a real
+      length rather than a token stream, so it reads back as a number; it is
+      exactly 0 outside a performance, which is every other call. */
+   var cy=b.top+b.height/2
+    -(parseFloat(computedOf(wrap).getPropertyValue("--hero-movie-guard-y"))||0);
+   var bobY=m.yAmp+m.y2Amp;
+   var need=m.travelFloor+bobY-(cy-fh/2);
+   var room=m.heroH-bobY-fh/2-cy;
+   var next=current+Math.max(-current,Math.min(need,Math.max(0,room)));
+   if(Math.abs(next-current)<.5)return false;
+   /* Written on the wrapper and not on :root: it is one element's own layout,
+      and an inline custom property here survives captureBase()'s neutralising
+      pass -- which is required, because the base has to be measured WITH the
+      drop applied or the next solve would chase its own tail. */
+   wrap.style.setProperty("--hero-head-copy-drop",next.toFixed(2)+"px");
+   return true;
+  }
   function reclamp(){
    state.stamp++;state.metrics=null;syncOrigin();captureBase();
+   /* ONE re-capture, never a loop. `bottom` is a pure vertical translation of
+      this element, so a drop of d moves state.base.top by exactly d and
+      changes nothing else the solve reads -- the copy's edge, the Hero's
+      height and the frame's own extents are all independent of it. The solve
+      is therefore exact in one step and the second captureBase() is a
+      re-measure for the clamp below, not an iteration. */
+   if(copyClearanceDrop())captureBase();
    var next=clampMove(state.x,state.y);state.x=next.x;state.y=next.y;render();
   }
   function getState(){
@@ -2442,7 +2537,7 @@
      .heroCopy in z-order and does not preventDefault on anything outside its
      own handles. */
   document.addEventListener("keydown",onKeydown);
-  addEventListener("heroheadstagechange",function(){state.stamp++;state.metrics=null;captureBase();syncSelection();});
+  addEventListener("heroheadstagechange",function(){state.stamp++;state.metrics=null;captureBase();if(copyClearanceDrop()){state.metrics=null;captureBase();}syncSelection();});
   document.addEventListener("visibilitychange",function(){if(document.hidden)end();});
   addEventListener("blur",end);
   /* ── A PHONE SCROLL IS A RESIZE, AND IT IS NOW A RESIZE THAT CHANGES NOTHING.
@@ -2514,6 +2609,12 @@
   state.rotate=restRotate();
   writeTransform();
   syncOrigin();captureBase();
+  /* Solved once here so the first painted frame is already clear of the
+     headline, and again on `load` (recapture) once the images have their real
+     boxes -- the value from this first pass is a guess against an unsized
+     portrait, and a head that jumps down 14px a beat after arrival is worse
+     than one that arrives where it belongs. */
+  if(copyClearanceDrop()){state.metrics=null;captureBase();}
   /* THE PAGE ARRIVES ALREADY SELECTED. This is the concept, not a leftover
      hover state: the Hero is an artboard caught mid-edit. It is opened without
      taking focus -- stealing focus on load would hijack the keyboard and drag
