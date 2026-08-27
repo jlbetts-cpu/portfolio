@@ -64,7 +64,22 @@ assert ".pLede{" in HTML and "font-size:var(--fs-heroline)" in HTML
 assert not re.search(r"\.pLede[^{]*\{[^}]*font-size:[^;}]*;[^}]*font-size:", HTML)
 assert '<section class="pHub" id="games"' in HTML
 assert HTML.index('class="hero" id="playArena"') < HTML.index('id="games"')
-assert parser.card_ids == ["pcHead", "pcExped", "pcTour", "pcGrad"]
+# 2026-08-26: SIX DOORS. The Yowmings League is the tournament re-aimed at a fantasy
+# football draft (uprights instead of goals, a football instead of a ball) and the Workspace
+# moved here off the top nav -- Jayden: "instead of being a whole tab please add it to the
+# play page as well I feel like that makes more sense." This assertion was protecting "these
+# are the doors, and this is their order", which is a real decision and still is; what
+# changed is that there are six. It stays an EXACT list rather than a subset check, so a
+# seventh door arriving unannounced still fails here.
+assert parser.card_ids == ["pcYow", "pcExped", "pcTour", "pcHead", "pcGrad", "pcWork", "pcDraft"]
+# TWO COLUMNS AND AN ODD COUNT LEAVES A HOLE, and a hole in this flush grid is not white
+# space -- it is the container's --rule ground showing through as a solid block. Exactly one
+# cell must span when the count is odd, and none may when it is even. Asserted as the
+# arithmetic rather than as a fixed number of doors, so it keeps holding as doors come and go.
+wide = HTML.count('class="pCard pCardWide"')
+assert wide == (len(parser.card_ids) % 2), \
+    f"{len(parser.card_ids)} doors need {len(parser.card_ids) % 2} spanning cell(s), found {wide}"
+assert wide == 0 or '.pCardWide{grid-column:1/-1}' in HTML
 for fragment in (
     "Upload a photo of your face and cut it out on a new page. It comes back and joins the crowd.",
     "Split the heads into two teams and watch them play soccer. You pick the teams first.",

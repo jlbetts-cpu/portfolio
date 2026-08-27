@@ -153,8 +153,10 @@ function propagate(br) {
     const src = br.direct.concat(pi.map(function (m) { return m.winner; }));
     for (let i = 0; i < ms.length; i++) {
       const m = ms[i], kept = m.winner;
-      m.a = src[i];
-      m.b = src[src.length - 1 - i];
+      /* A placement match appended to this round is fed by LOSERS and must not be folded --
+         the fold would hand it the same two entrants a championship slot already has. */
+      if (m.feed) { m.a = feedOf(br, m.feed[0]); m.b = feedOf(br, m.feed[1]); }
+      else { m.a = src[i]; m.b = src[src.length - 1 - i]; }
       m.winner = (kept !== undefined && (kept === m.a || kept === m.b)) ? kept : undefined;
     }
   }
@@ -162,8 +164,11 @@ function propagate(br) {
     const prev = br.rounds[r - 1].matches, ms = br.rounds[r].matches;
     for (let i = 0; i < ms.length; i++) {
       const m = ms[i], kept = m.winner;
-      m.a = prev[i * 2].winner;           // undefined => nobody has qualified yet
-      m.b = prev[i * 2 + 1].winner;
+      if (m.feed) { m.a = feedOf(br, m.feed[0]); m.b = feedOf(br, m.feed[1]); }
+      else {
+        m.a = prev[i * 2].winner;         // undefined => nobody has qualified yet
+        m.b = prev[i * 2 + 1].winner;
+      }
       m.winner = (kept !== undefined && (kept === m.a || kept === m.b)) ? kept : undefined;
     }
   }
@@ -190,6 +195,117 @@ function propagate(br) {
    check() refuses a tail that overlaps the draw, because a team counted twice would be
    ranked twice. Callers that have no tail pass nothing and get exactly what they got
    before. ---- */
+/* ===========================================================================
+   THE PLACEMENT BRACKET. Jayden: "for the fantasy tournment the games need to
+   specifically say what draft position they are playing for. Like loser gets '6' pick
+   for instance."
+
+   THAT SENTENCE CANNOT BE SATISFIED BY A LABEL, and working out why is the whole of this
+   block. A knockout resolves exactly two places. Everybody else shares an EXIT ROUND: four
+   teams all lost in the quarters, and the bracket has no opinion at all about which of them
+   picks fifth and which picks eighth. standings() ordered them by goal difference, which is
+   a reasonable tie-break and is not a result -- so a label reading "loser takes the 1.06"
+   on a quarter-final would have been a lie about a number nobody had played for. He settles
+   a real draft with this. A screen that invents four of its twelve answers is worse than no
+   screen.
+
+   SO THE LOSERS KEEP PLAYING. Every place in the field is decided by a match, which is the
+   ordinary full-placement bracket that wrestling, judo and every esports LAN uses: the
+   quarter-final losers play their own four-team bracket for 5th to 8th, the semi-final
+   losers play for 3rd, and where there is a play-in its four losers play for 9th to 12th.
+   Eight heads go from 7 fixtures to 12, twelve go from 11 to 20. That is the cost and it
+   buys the thing the mode exists for -- every fixture has a slot on it, and at the end the
+   order is read off results rather than off a sort.
+
+   THIS REOPENS A CLOSED DECISION, AND SAYS SO. matchAt()'s note above records that the
+   third-place playoff was removed because "nothing asked for it" and Jayden's "too much
+   random unnecessary elements" was aimed at a group whose winner goes on to nothing. Both
+   were true of the SOCCER cup and remain true of it: none of this is built there. It is
+   gated on opts.place, which only the Yowmings League passes, and in the League the third
+   place match's winner goes on to the 1.03, which is the opposite of nothing.
+
+   THE FEED IS EXPLICIT because a consolation match is fed by a LOSER and propagate()'s
+   positional fold cannot express that. A placement match carries `feed`, two {r, i, s}
+   descriptors, and propagate() honours it where it exists and falls through to the fold
+   where it does not -- so the championship path is byte-for-byte the bracket that already
+   shipped.
+
+   EVERY MATCH ALSO CARRIES ITS STAKE, as `wp` and `lp`: the range of draft slots still
+   reachable by its winner and by its loser. A terminal match has both collapsed to one slot
+   and carries `place`. That is what the screen prints, so the sentence on a fixture is
+   derived from the bracket rather than written next to it, and the two cannot disagree.
+   =========================================================================== */
+function feedOf(br, f) {
+  const s = br.rounds[f.r].matches[f.i];
+  if (s.winner === undefined) return undefined;
+  return f.s === 'w' ? s.winner : (s.winner === s.a ? s.b : s.a);
+}
+/* `con` MARKS A MATCH THAT IS PLAYED BUT NOT WATCHED. Jayden: "I like the idea of
+   consolation rounds but I dont want those games to be played more of just a simulation so
+   the storytelling can be good like focusing on making it short but enjoyable."
+
+   So it is a rendering decision and NOT a scoring one. A con match runs through the same
+   clock-cranked Simulate the visitor can press on any fixture -- the real engine, the real
+   physics, the real ball -- with drawing skipped. It is a played game that nobody sat
+   through, which is exactly what he asked for and is why the slot it settles is still
+   earned. Every placement match carries it; the championship path never does. */
+function pmatch(feed, wp, lp, place) {
+  return { a: undefined, b: undefined, sa: undefined, sb: undefined, winner: undefined,
+           feed: feed, wp: wp, lp: lp, place: place, con: true };
+}
+/* A four-team placement bracket for places P..P+3, fed by four losers. The two semis pair
+   the OUTERMOST losers against each other (0 v 3, 1 v 2), which is the same fold the main
+   draw uses -- so where the field was seeded, the consolation bracket inherits the seeding
+   instead of scrambling it, and the 5 seed does not meet the 8 seed twice in a row. */
+function place4(br, src, P, semiR, finR) {
+  const sm = br.rounds[semiR].matches, fm = br.rounds[finR].matches, i0 = sm.length;
+  sm.push(pmatch([{ r: src[0].r, i: src[0].i, s: 'l' }, { r: src[3].r, i: src[3].i, s: 'l' }],
+                 [P, P + 1], [P + 2, P + 3]));
+  sm.push(pmatch([{ r: src[1].r, i: src[1].i, s: 'l' }, { r: src[2].r, i: src[2].i, s: 'l' }],
+                 [P, P + 1], [P + 2, P + 3]));
+  fm.push(pmatch([{ r: semiR, i: i0, s: 'w' }, { r: semiR, i: i0 + 1, s: 'w' }],
+                 [P, P], [P + 1, P + 1], P));
+  fm.push(pmatch([{ r: semiR, i: i0, s: 'l' }, { r: semiR, i: i0 + 1, s: 'l' }],
+                 [P + 2, P + 2], [P + 3, P + 3], P + 2));
+}
+function addPlacement(br) {
+  const first = br.playIn ? 1 : 0, last = br.rounds.length - 1;
+  /* THE STAKE OF EVERY CHAMPIONSHIP MATCH IS ARITHMETIC, not a table: a round contesting
+     `teams` places sends its winners into the top half of them and its losers into the
+     bottom half. Correct at every M by construction. */
+  for (let r = first; r <= last; r++) {
+    const teams = br.rounds[r].teams, half = teams / 2;
+    br.rounds[r].matches.forEach(function (m) { m.wp = [1, half]; m.lp = [half + 1, teams]; });
+  }
+  if (br.playIn)
+    br.rounds[0].matches.forEach(function (m) { m.wp = [1, br.M]; m.lp = [br.M + 1, br.N]; });
+  br.rounds[last].matches[0].place = 1;
+  // 3rd, from the two championship semi-finals. Pushed FIRST so the final round reads
+  // Final, third, fifth, seventh -- which is also the order they are worth watching in.
+  if (last - 1 >= first)
+    br.rounds[last].matches.push(pmatch(
+      [{ r: last - 1, i: 0, s: 'l' }, { r: last - 1, i: 1, s: 'l' }], [3, 3], [4, 4], 3));
+  // 5th-8th, from the four quarter-final losers
+  if (br.M >= 8)
+    place4(br, [{ r: first, i: 0 }, { r: first, i: 1 }, { r: first, i: 2 }, { r: first, i: 3 }],
+           5, first + 1, last);
+  /* 9th-12th, from the play-in's losers. Four of them get the same four-team bracket; two
+     get a single match. One or three losers is only reachable on the no-egg-art fallback,
+     where the field is however many real heads exist -- those places are left unplayed and
+     standings() marks them as unearned rather than pretending a match decided them. */
+  if (br.playIn) {
+    const pin = br.rounds[0].matches;
+    if (pin.length === 4)
+      place4(br, [{ r: 0, i: 0 }, { r: 0, i: 1 }, { r: 0, i: 2 }, { r: 0, i: 3 }],
+             br.M + 1, first, first + 1);
+    else if (pin.length === 2)
+      br.rounds[first].matches.push(pmatch(
+        [{ r: 0, i: 0, s: 'l' }, { r: 0, i: 1, s: 'l' }],
+        [br.M + 1, br.M + 1], [br.M + 2, br.M + 2], br.M + 1));
+  }
+  return br;
+}
+
 function buildCup(teamIds, opts) {
   const N = teamIds.length;
   if (N < 2) throw new Error('need at least 2 teams');
@@ -231,7 +347,9 @@ function buildCup(teamIds, opts) {
      to assert the property the seeding exists for. Absent on every unseeded path. */
   const br = { N: N, M: M, playIn: playIn > 0, draw: ids, direct: direct, rounds: rounds,
                tail: (opts && opts.tail) ? opts.tail.slice() : [],
-               seeds: (opts && opts.seeds) ? opts.seeds.slice() : null };
+               seeds: (opts && opts.seeds) ? opts.seeds.slice() : null,
+               place: !!(opts && opts.place) };
+  if (br.place) addPlacement(br);
   return propagate(br);
 }
 
@@ -318,7 +436,18 @@ function nextMatch(br) {
 }
 
 function champion(br) { return br.rounds[br.rounds.length - 1].matches[0].winner; }
-function complete(br) { return champion(br) !== undefined; }
+/* ===== A PLACEMENT CUP IS NOT DONE WHEN THE FINAL IS. The Final sits at index 0 of the
+   last round, so nextMatch() reaches it BEFORE the third-place, fifth-place and
+   seventh-place matches beside it -- and champion() is satisfied the moment it is played.
+   Left as it was, the champion screen arrived with four slots of the draft order still
+   unplayed, and the order he acts on carried four "nobody earned this" markers. In a
+   knockout "the champion is known" and "the cup is over" are the same statement; in a
+   placement bracket they are not, and this is the one every caller means. */
+function complete(br) {
+  if (br.place) { for (const rd of br.rounds) for (const m of rd.matches)
+    if (m.winner === undefined) return false; return true; }
+  return champion(br) !== undefined;
+}
 function played(br) { let n = 0; br.rounds.forEach(function (rd) {
   rd.matches.forEach(function (m) { if (m.winner !== undefined) n++; }); }); return n; }
 function total(br) { let n = 0; br.rounds.forEach(function (rd) { n += rd.matches.length; });
@@ -365,7 +494,52 @@ function record(br, id) {
    `tiedFromDraw` is published rather than hidden. The UI must not print a number as if it
    were earned when it was not, so the row that is separated from the one above it ONLY by
    the draw says so. ---- */
-function standings(br) {
+/* ---- THE ORDER IS READ OFF THE RESULTS, NOT SORTED OUT OF THEM. In a placement bracket
+   every slot has a match that decided it, so there is nothing here to rank: walk the
+   matches that carry a `place`, hand the winner that slot and the loser the next one, and
+   the draft order IS the bracket. `earned` is true on every row that came from a played
+   match, which in a full field is all of them.
+
+   THE FALLBACK EXISTS FOR ONE PATH AND SAYS SO. A play-in of one or three -- reachable only
+   when there is no egg art and the field is however many real heads exist -- leaves those
+   losers without a bracket of their own. They keep the knockout's ordering, they are placed
+   after everyone a match placed, and `earned:false` makes the screen mark them. A draft
+   order that quietly presents an unplayed slot as a won one is the exact lie this file has
+   been cleaned of twice. ---- */
+function placedStandings(br) {
+  const place = new Map(), rec = new Map();
+  br.draw.forEach(function (id) { rec.set(id, record(br, id)); });
+  br.rounds.forEach(function (rd) {
+    rd.matches.forEach(function (m) {
+      if (m.place === undefined || m.winner === undefined) return;
+      const lo = (m.winner === m.a) ? m.b : m.a;
+      place.set(m.winner, m.place);
+      if (lo !== undefined) place.set(lo, m.place + 1);
+    });
+  });
+  const placed = br.draw.filter(function (id) { return place.has(id); })
+                        .sort(function (x, y) { return place.get(x) - place.get(y); });
+  const rest = knockoutOrder(br).order.filter(function (id) { return !place.has(id); });
+  const ids = placed.concat(rest);
+  const rows = ids.map(function (id, i) {
+    return { id: id, rank: i + 1, out: undefined, record: rec.get(id), fromTail: false,
+             earned: place.has(id), tiedFromDraw: !place.has(id) };
+  });
+  (br.tail || []).forEach(function (id) {
+    rows.push({ id: id, rank: rows.length + 1, out: undefined, record: record(br, id),
+                fromTail: true, earned: false, tiedFromDraw: false });
+  });
+  return rows;
+}
+
+/* THE KNOCKOUT'S OWN ORDERING, LIFTED OUT OF standings() SO THERE IS ONE COPY OF IT.
+   Deepest round reached, then goal difference, then goals scored, then the draw -- byte for
+   byte the sort that shipped, and still the whole answer for the soccer cup. It is a
+   function now because the placement bracket's fallback needs the same order for the
+   handful of teams no match could place, and two copies of a tie-break is two tie-breaks
+   waiting to disagree. The maps come back with it because standings() needs `deepest` for
+   the round it prints and `rec` for the row. */
+function knockoutOrder(br) {
   const deepest = new Map(), drawn = new Map(), rec = new Map();
   br.draw.forEach(function (id, i) {
     deepest.set(id, -1); drawn.set(id, i); rec.set(id, record(br, id)); });
@@ -382,6 +556,12 @@ function standings(br) {
     return (deepest.get(y) - deepest.get(x))
         || (ry.gd - rx.gd) || (ry.gf - rx.gf) || (drawn.get(x) - drawn.get(y));
   });
+  return { order: order, deepest: deepest, rec: rec };
+}
+
+function standings(br) {
+  if (br.place) return placedStandings(br);
+  const ko = knockoutOrder(br), deepest = ko.deepest, rec = ko.rec, order = ko.order;
   const fin = br.rounds[br.rounds.length - 1].matches[0], ch = fin.winner;
   let ids = order;
   if (ch !== undefined) {
@@ -465,6 +645,34 @@ function check(br) {
      standings() -- once for how far it got and once for where it finished the race -- and
      a draft order with a duplicate is worse than one with a gap, because the gap is
      visible. Asserted rather than commented, for the same reason everything else here is. */
+  /* ===== THE PLACEMENT INVARIANTS. "Eliminated" now means "has taken a slot", not "has
+     lost a match", so the thing that must be asserted changed shape with it -- and it is
+     asserted rather than assumed, for the same reason the two above are. A draft order with
+     a duplicate slot is worse than one with a gap, because the gap is visible.
+       * no two matches may settle the same place
+       * the places settled must run 1, 3, 5, ... with no hole, or a slot exists that
+         nothing can ever fill
+       * a team may not be handed two slots
+     The seeding invariant below is untouched and still asserts that seeds 1 and 2 can only
+     meet in the final: the consolation bracket is fed entirely by losers, so no seed can
+     reach it while it is still on the championship path, and the property is unaffected. */
+  if (br.place) {
+    const slots = new Set(), owner = new Map();
+    for (const rd of br.rounds) for (const m of rd.matches) {
+      if (m.place === undefined) continue;
+      if (slots.has(m.place)) return 'two matches settle place ' + m.place;
+      slots.add(m.place);
+      if (m.winner === undefined) continue;
+      const lo = (m.winner === m.a) ? m.b : m.a;
+      for (const t of [m.winner, lo]) {
+        if (t === undefined) continue;
+        if (owner.has(t)) return 'team ' + t + ' is placed twice';
+        owner.set(t, m.place);
+      }
+    }
+    for (let p = 1; p <= Math.max(0, ...slots); p += 2)
+      if (!slots.has(p) && p <= br.M) return 'no match settles place ' + p;
+  }
   const tail = br.tail || [], seenTail = new Set(), inDraw = new Set(br.draw);
   for (const id of tail) {
     if (inDraw.has(id)) return 'team ' + id + ' is in the bracket and in the tail';
@@ -698,6 +906,10 @@ var CUP_ID={
   'UC Davis':{paint:'#3b3c20',stock:'#f2eddd',sheen:'rgba(255,240,204,.30)',pfx:'UCD',tex:1},
   'Reshore': {paint:'#34302a',stock:'#f1ede3',sheen:'rgba(240,224,200,.30)',pfx:'RSH',tex:2},
   'B2B':     {paint:'#2b2b31',stock:'#eeece6',sheen:'rgba(220,224,238,.30)',pfx:'B2B',tex:0},
+  /* The League is not one of the eight case-study cups -- it is a named competition of its
+     own, so it carries its own materials rather than borrowing Apollo's by falling through
+     the lookup. Turf and chalk: the one place in this file where the identity is literal. */
+  'Yowmings':{paint:'#1d2a22',stock:'#f2efe4',sheen:'rgba(214,238,216,.30)',pfx:'YOW',tex:1},
   'Blender': {paint:'#31262b',stock:'#f3ece2',sheen:'rgba(246,214,222,.30)',pfx:'BLN',tex:1}
 };
 
@@ -963,6 +1175,15 @@ function buildTeams(cb){
    cup's are.
    =========================================================================== */
 var ADVANCE = 8;          // how many the race sends into the knockout
+/* ---- AND HOW MANY IT SENDS THROUGH FOR A GIVEN FIELD. Soccer's cup only ever races when
+   there are more heads than places, so ADVANCE was a constant and this was arithmetic
+   nobody had to do. The Yowmings League races EVERY time -- see start() for why -- and with
+   eight heads there are exactly eight places, so the race stops eliminating anybody and
+   becomes pure seeding. One expression covers both: you cannot advance more than the field.
+   Everything downstream (`whole`, the tail, seedDraw) reads this rather than the constant,
+   so a race with nobody to eliminate is a normal race with an empty tail and not a special
+   case. ---- */
+function advFor(n){ return Math.min(ADVANCE, n); }
 var QRACE_MS = 90000;     // the backstop. The mode's own stall detector gives up after
 // ~7s of no progress and its natural line race measures 35-38s at twelve, so this is a
 // last line under all of that rather than the thing that normally ends a race. Never 0.
@@ -1041,7 +1262,7 @@ function runQualifier(){
   var settled = false;
   function done(res){ if (settled) return; settled = true; qualified(res || null); }
   try {
-    var r = window.__hmRaceQualify({ slots: slots, advance: ADVANCE, format: 'line',
+    var r = window.__hmRaceQualify({ slots: slots, advance: advFor(Q.teams.length), format: 'line',
                                      timeout: QRACE_MS }, done);
     if (r && typeof r.then === 'function') r.then(done, function(){ done(null); });
   } catch (_) { done(null); }
@@ -1051,11 +1272,17 @@ function qualified(res){
   if (!T.live || !Q) return;   // the cup was left while the race was still running
   var teams = Q.teams;
   var ranked = rankTeams(teams, res && res.order);
-  var whole  = (ranked.length === teams.length && teams.length > ADVANCE);
+  var advN = advFor(teams.length);
+  /* WAS `teams.length > ADVANCE`, and that was the same statement while a race could only
+     ever happen with a surplus. It cannot mean that any more: a League of eight races all
+     eight for eight places, and `>` would have called a complete, finished, fully ranked
+     race 'skipped' and thrown its result away. What `whole` has always been asking is
+     "did every head get a place out of this", so it asks exactly that. */
+  var whole  = (ranked.length === teams.length && teams.length >= advN);
   var mode = (whole && res && res.reason === 'finished' && res.complete) ? 'full'
            : whole ? 'partial' : 'skipped';
   T.race = { mode: mode, reason: (res && res.reason) || 'unavailable',
-             field: teams.length, advance: ADVANCE,
+             field: teams.length, advance: advN,
              resolved: res ? (res.resolved | 0) : 0 };
   if (mode === 'skipped'){
     /* THE RACE DID NOT HAPPEN, AND THE SCREEN SAYS SO RATHER THAN QUIETLY CHANGING ITS
@@ -1080,10 +1307,11 @@ function qualified(res){
      buys the 8 seed as a first opponent and a half of the draw with no other top-two
      team in it. That is a real reward for a real result, and it is checkable on the
      board -- which is the standard the old shuffle was protecting and this meets. ---- */
-  var qual = T.raceOrder.slice(0, ADVANCE);
+  var advQ = advFor(T.raceOrder.length);
+  var qual = T.raceOrder.slice(0, advQ);
   T.seedOf = {};
   qual.forEach(function(id, i){ T.seedOf[id] = i + 1; });
-  openCup(BR.seedDraw(qual), T.raceOrder.slice(ADVANCE), qual);
+  openCup(BR.seedDraw(qual), T.raceOrder.slice(advQ), qual);
 }
 
 /* The cup opens the same way whether a race decided its field or not: one place that
@@ -1091,10 +1319,16 @@ function qualified(res){
    was how the first draft ended up with the play-in casting and the raced field not. */
 function openCup(ids, tail, seeds){
   var opts = null;
-  if ((tail && tail.length) || (seeds && seeds.length)){
+  if ((tail && tail.length) || (seeds && seeds.length) || T.yow){
     opts = {};
     if (tail && tail.length) opts.tail = tail;
     if (seeds && seeds.length) opts.seeds = seeds;
+    /* ONLY THE LEAGUE PLACES EVERYBODY. The soccer cup is a knockout and Jayden has
+       defended that twice -- "I still did like the one game elimination format" -- so it
+       keeps its seven fixtures and its exit-round ordering. The League needs a slot for
+       every head because a draft does, which is a different question with a different
+       right answer. One flag, one bracket builder, no second cup. */
+    if (T.yow) opts.place = true;
   }
   T.br = BR.buildCup(ids, opts);
   var bad = BR.check(T.br);
@@ -1631,8 +1865,8 @@ function simulateRound(){
   if (sim) return;
   var nm0 = BR.nextMatch(T.br);
   if (!nm0) return;
-  sim = { round: nm0.round, stop: false, fx0: window.__hmFx,
-          t0: CLOCK.now(), t1: CLOCK.now(), vms: 0 };
+  sim = { round: nm0.round, stop: false, fx0: window.__hmFx, told: conTold(),
+          t0: CLOCK.now(), t1: CLOCK.now(), vms: 0, wall0: Date.now() };
   window.__hmFx = 99;             // the engine's own FX budget -- see the header
   view = nm0.round;               // the round's own pane, so the scores land where you can see them
   /* THE CLASS BEFORE THE PAINT, or the very first rebuild still plays the entrance
@@ -1660,8 +1894,8 @@ function simulateRound(){
    path that a placing could be invented, which is the point of doing it this way. ---- */
 function simulateRace(){
   if (sim || !Q || Q.state !== 'ready') return;
-  sim = { round: -1, race: true, stop: false, fx0: window.__hmFx,
-          t0: CLOCK.now(), t1: CLOCK.now(), vms: 0 };
+  sim = { round: -1, race: true, stop: false, fx0: window.__hmFx, told: conTold(),
+          t0: CLOCK.now(), t1: CLOCK.now(), vms: 0, wall0: Date.now() };
   window.__hmFx = 99;
   try{ document.body.classList.add('hmTourSim'); }catch(_){}
   CLOCK.on().then(function(){
@@ -1671,6 +1905,40 @@ function simulateRace(){
   });
 }
 
+/* ---- THE CONSOLATION SET RUNS ITSELF. Jayden: "I dont want those games to be played more
+   of just a simulation so the storytelling can be good like focusing on making it short but
+   enjoyable."
+
+   THIS IS simulateRound() WITH A DIFFERENT STOPPING RULE and nothing else. It presses the
+   same Kick off the visitor would press, on the same cranked clock, through the same
+   step() -- so a consolation slot is settled by the real engine, the real physics and the
+   real ball, with drawing skipped. It is a played match nobody sat through, never a dice
+   roll, which is the only reason the slot it decides is worth anything to him.
+
+   IT STOPS ON THE MATCH, NOT ON THE ROUND, because a round holds both kinds: the Last 4
+   pane carries two championship semi-finals AND the two 5-8 semi-finals under them. The
+   drain runs until the next fixture is one somebody is meant to watch. ---- */
+function simulateConsolation(){
+  if (sim) return false;
+  var nm0 = BR.nextMatch(T.br);
+  if (!nm0 || !nm0.match.con) return false;
+  sim = { round: nm0.round, con: true, stop: false, fx0: window.__hmFx, told: conTold(),
+          t0: CLOCK.now(), t1: CLOCK.now(), vms: 0, wall0: Date.now() };
+  window.__hmFx = 99;
+  view = 'next';
+  try{ document.body.classList.add('hmTourSim'); }catch(_){}
+  paint();
+  CLOCK.on().then(function(){ if (sim) step(); });
+  return true;
+}
+/* The set of consolation results already settled, so a drain can tell the difference
+   between "this was decided just now" and "this was decided two rounds ago". */
+function conTold(){
+  var seen = {};
+  if (T.br) T.br.rounds.forEach(function(rd, r){ rd.matches.forEach(function(m, i){
+    if (m.con && m.winner !== undefined) seen[r + ':' + i] = 1; }); });
+  return seen;
+}
 function simStop(){ if (sim) sim.stop = true; }
 
 /* THE STATE MACHINE IS ONE LINE OF IT: whenever the screen is sitting on a cast
@@ -1682,8 +1950,18 @@ function step(){
   var S = window.__hmSoccer;
   var done = false, why = '';
   try{
-    CLOCK.pump(SIM_CHUNK);
-    sim.vms += SIM_CHUNK * 1000 / 60;   // this FIXTURE's match time; reset at each kick-off
+    /* ===== A DRAIN CRANKS HARDER, AND THE NOTE ABOVE SIM_CHUNK IS WHY IT CAN.
+       That note rejects a bigger chunk for a WATCHED simulation on the grounds that "a
+       chunk long enough to drop frames makes the bracket filling in look like a hang
+       rather than a run" -- which is a statement about somebody looking at it. Nobody is
+       looking at a consolation drain: it is the case the note did not have. Measured
+       before this, two consolation fixtures took 62 SECONDS of real time to resolve, which
+       is a wait and not the reveal Jayden asked for ("short but enjoyable").
+       Four times the crank, only while sim.con is set. Every cap, every backstop and the
+       watched path are untouched. ===== */
+    var chunk = sim.con ? SIM_CHUNK * 4 : SIM_CHUNK;
+    CLOCK.pump(chunk);
+    sim.vms += chunk * 1000 / 60;   // this FIXTURE's match time; reset at each kick-off
     if      (sim.stop)                  { done = true; why = 'stopped'; }
     else if (sim.vms > SIM_MAX_SIM_MS)  { done = true; why = 'simcap'; }
     else if (CLOCK.now() - sim.t1 > SIM_MAX_REAL_MS)  { done = true; why = 'realcap'; }
@@ -1695,7 +1973,9 @@ function step(){
       if (!Q || Q.state !== 'running'){ done = true; why = 'race'; }
     } else {
       var nm = BR.nextMatch(T.br);
-      if (!nm || nm.round !== sim.round){
+      /* A drain ends when the next fixture is one to WATCH; a round simulation ends when
+         the round does. Same driver, same caps, same hand-back. */
+      if (!nm || (sim.con ? !nm.match.con : nm.round !== sim.round)){
         /* ---- THE ROUND'S LAST RESULT IS NOT THE ROUND'S END, and stopping here was
            a real bug rather than a tidiness point. __hmTourWin records the result at
            the WINNING GOAL; the engine's whistle is 5,400ms after it and this file's
@@ -1710,6 +1990,7 @@ function step(){
       }
       else if (T.phase === 'table' && T.cur && !(S && S.on)
                && T.cur.round === nm.round && T.cur.index === nm.index){
+        if (sim.con) sim.round = nm.round;   // a drain may run past a round boundary
         /* A NEW FIXTURE RESETS THE PER-FIXTURE CLOCKS. Without this the caps are the
            round's, which is the bug recorded above the constants. */
         sim.vms = 0; sim.t1 = CLOCK.now();
@@ -1749,6 +2030,34 @@ function simEnd(why){
      true with nothing driving it and the screen behind it never comes back. */
   if (was.race && why !== 'race'){
     try{ if (window.__hmRaceOn && window.__hmRaceEnd) window.__hmRaceEnd(); }catch(_){}
+  }
+  /* ===== WHAT THE DRAIN SETTLED, TURNED INTO SENTENCES. `was.told` is the snapshot taken
+     when the drain started, so this is exactly the matches THIS drain decided and not the
+     whole history -- the next championship match-up shows what just happened below it and
+     nothing older.
+     AND IT COUNTS ITS OWN FAILURES. A drain that resolves nothing means a consolation
+     fixture the simulation could not get through; two of those and paint() stops draining
+     and hands the fixture back as an ordinary one with a Kick off on it, rather than
+     re-entering forever. ===== */
+  /* ANY simulation can settle a consolation match, not just a drain: pressing Simulate on
+     a round plays the placement fixtures sitting under it in the same pass. So the story is
+     built from what CHANGED rather than from which button was pressed -- `told` is the
+     snapshot every sim takes when it starts, and the difference is the set of matches this
+     one decided. Keying it on the drain was why a round-simulated consolation set was
+     played and then never mentioned. */
+  if (T.yow && T.br){
+    /* WALL TIME, NOT CLOCK TIME. CLOCK.now() is the VIRTUAL clock while a simulation is
+       running, so t0..now across a drain measures SIMULATED seconds -- it reported 100.6s
+       for two matches that took a couple of seconds to resolve. The number this wants to
+       be is how long the reveal made somebody wait. */
+    var told = was.told || {}, lines = [],
+        secs = Math.round((Date.now() - (was.wall0 || Date.now())) / 100) / 10;
+    try{
+      T.br.rounds.forEach(function(rd, r){ rd.matches.forEach(function(m, i){
+        if (m.con && m.winner !== undefined && !told[r + ':' + i]) lines.push(toldLine(m)); }); });
+    }catch(_){}
+    if (lines.length){ T.story = lines; T.storySecs = secs; }
+    if (was.con) T.conFail = lines.length ? 0 : ((T.conFail | 0) + 1);
   }
   try{ paint(); }catch(_){}
 }
@@ -2165,6 +2474,78 @@ function rosterLine(){
    a second decision. Beside the captains the picture costs the pane no height of its own
    until it is taller than they are, so at 320x568 it simply narrows to their height instead
    of disappearing. Measured, the pane got SHORTER at every size -- see tournament.css. ---- */
+/* ===========================================================================
+   THE DRAFT'S OWN LANGUAGE. Jayden: "research into the language of it."
+
+   SOURCED, not paraphrased. A slot is written ROUND DOT PICK -- 1.01 through 1.12 -- and
+   drafters say "the 1.01", "I've got the 1.06", "picking sixth" and "first overall"
+   (FantasyPros, RotoWire, FTN, Fantasy Life all use the notation in running prose). THE
+   TURN is the last pick of a round, and it matters because a snake draft reverses: in a
+   twelve-team league the 1.12 is followed immediately by the 2.01, so that manager takes
+   two picks back to back with nobody able to cut in between (Yahoo Sports, DraftKings
+   Network, Athlon). That is why the 1.01 is not unarguably the best seat, and it is why
+   the last slot in this field gets named rather than treated as the booby prize.
+
+   "The wheel" was checked and is NOT used here. It turns up as a synonym for the turn in
+   some rooms, but it did not appear in any of the glossaries searched, and a term half the
+   audience reads as something else is worse than the term everybody knows. The turn is the
+   one that is unambiguous.
+
+   The vocabulary lives in these three functions so the fixture screen, the consolation
+   story and the draft order all speak with one voice and cannot drift apart.
+   =========================================================================== */
+function slot(n){ return '1.' + (n < 10 ? '0' : '') + n; }
+var ORD = ['', 'first', 'second', 'third', 'fourth', 'fifth', 'sixth',
+           'seventh', 'eighth', 'ninth', 'tenth', 'eleventh', 'twelfth'];
+function ordWord(n){ return ORD[n] || (n + 'th'); }
+/* WHAT THIS FIXTURE IS FOR, read off the bracket rather than written beside it. `wp`/`lp`
+   are the slot ranges still reachable by the winner and the loser, stamped by
+   addPlacement(); a terminal match has both collapsed to one number. */
+function stakeOf(m){
+  if (!m || !m.wp) return '';
+  var N = T.br ? T.br.N : 12, w = m.wp, l = m.lp;
+  /* ---- THE SHORT FORM AT 360, and it is the same reduction roundShortLabel and the
+     qualifying screen's "Start" already make, for the same measured reason. At 320 the
+     pane is 248px wide and the FINAL's pane -- which also carries the still poster -- has
+     139px of height; the long sentence wraps to two lines there and took the content to
+     143. Four pixels, and the contract says nothing on this screen scrolls.
+     The verbs are what go. "Winner 1.01 · loser 1.02" is the same two facts in the
+     notation a drafter reads anyway, and it is one line at 248px. Nothing is dropped --
+     dropping it would have cost the small phone the one sentence this mode was asked
+     for. ---- */
+  var tight = false; try{ tight = innerWidth <= 360; }catch(_){}
+  if (w[0] === w[1] && l[0] === l[1]){
+    if (tight) return 'Winner ' + slot(w[0]) + ' \u00b7 loser ' + slot(l[0])
+                    + (l[0] === N ? ' (the turn)' : '');
+    if (w[0] === 1)
+      return 'Winner takes the ' + slot(1) + ', first overall \u00b7 loser the ' + slot(2) + '.';
+    return 'Winner takes the ' + slot(w[0]) + ' \u00b7 loser the ' + slot(l[0])
+         + (l[0] === N ? ', and the turn.' : '.');
+  }
+  if (tight) return 'Winner ' + slot(w[0]) + '\u2013' + slot(w[1])
+                  + ' \u00b7 loser ' + slot(l[0]) + '\u2013' + slot(l[1]);
+  return 'Winner picks ' + slot(w[0]) + '\u2013' + slot(w[1])
+       + ' \u00b7 loser ' + slot(l[0]) + '\u2013' + slot(l[1]) + '.';
+}
+/* ONE LINE FOR A MATCH NOBODY WATCHED. The result has to be TOLD rather than shown, so it
+   carries the two things a drafter would actually say out loud: who beat whom, and which
+   seat that bought. Short enough to read a whole consolation round in a couple of seconds,
+   which is the brief -- "short but enjoyable" -- and it is not a score table. */
+function toldLine(m){
+  var N = T.br ? T.br.N : 12;
+  var wA = (m.winner === m.a), w = teamById(wA ? m.a : m.b), l = teamById(wA ? m.b : m.a);
+  var ws = wA ? m.sa : m.sb, ls = wA ? m.sb : m.sa;
+  var wn = w ? w.name : '\u2014', ln = l ? l.name : '\u2014';
+  var head = wn + ' ' + (ws | 0) + '\u2013' + (ls | 0) + ' ' + ln;
+  if (m.place !== undefined){
+    var lp = m.place + 1;
+    return head + ' \u2014 the ' + slot(m.place) + '. ' + ln + ' '
+         + (lp === N ? 'takes the turn at ' + slot(lp) : 'picks ' + ordWord(lp)) + '.';
+  }
+  return head + ' \u2014 ' + wn + ' plays for the ' + slot(m.wp[0]) + ', '
+       + ln + ' for the ' + slot(m.lp[0]) + '.';
+}
+
 function isFinalRound(round){ return round === T.br.rounds.length - 1; }
 
 function buildNext(into, A2, B2, nm2){
@@ -2188,6 +2569,17 @@ function buildNext(into, A2, B2, nm2){
   if (first){ var rl = rosterLine();
     if (rl) head.appendChild(el('span', 'tvOptL', rl)); }
   into.appendChild(head);
+  /* ===== THE STAKE, AND IT IS ONE LINE OF TYPE. Jayden: "the games need to specifically
+     say what draft position they are playing for. Like loser gets '6' pick for instance."
+     It sits directly under the round's name because that is the sentence that answers
+     "why does this match matter", and it is derived from the bracket (stakeOf reads the
+     match's own wp/lp) so it cannot say one thing while the draw does another.
+     .tvQual is the pane's existing body line -- the same type, size and colour the
+     qualifying screen uses. No new class, no new chrome, nothing to style. ===== */
+  if (T.yow && nm2){
+    var st = stakeOf(nm2.match || BR.matchAt(T.br, nm2.round, nm2.index));
+    if (st) into.appendChild(el('p', 'tvQual', st));
+  }
   var vs = el('div', 'tvVs');
   vs.appendChild(sideRow(A2, { big: true }));
   vs.appendChild(el('div', 'tvV', 'v.'));
@@ -2210,7 +2602,66 @@ function buildNext(into, A2, B2, nm2){
   } else {
     into.appendChild(vs);
   }
-  into.appendChild(buildTape(A2, B2, nm2));
+  /* ===== THE STORY TAKES THE TAPE'S SLOT, IT DOES NOT ADD A ROW. Appended under the tape
+     it overflowed: this pane's height is bounded and the two lines went behind the footer's
+     own buttons -- the capsule trap, and play-screens-contract asserts that nothing here
+     scrolls. The pane has room for exactly one block of small type between the captains and
+     the foot, so the two of them share it.
+
+     AND THE SWAP IS THE RIGHT WAY ROUND. The tape is a form guide -- "both have won two,
+     scoring 8" -- which is flavour about a match that has not happened. The story is the
+     result of a match that HAS, and it carries two draft slots he is going to act on. When
+     there is one to tell it is the more valuable use of the same six lines of space, and
+     when there is not, the tape has it back.
+
+     The match-up screen only ever holds two of these: the consolation set that lands with
+     the final -- third, fifth and seventh place -- arrives when there is no next fixture at
+     all, so its three lines go to the champion screen, which has the room. ===== */
+  /* The swap is conditional on the story actually rendering: buildStory() declines on a
+     short viewport, and a pane that dropped the tape for a story that never arrived would
+     be a row emptier than the one that shipped. */
+  var told9 = false;
+  if (T.yow && T.story && T.story.length){
+    var before9 = into.childNodes.length;
+    buildStory(into);
+    told9 = into.childNodes.length > before9;
+  }
+  if (!told9) into.appendChild(buildTape(A2, B2, nm2));
+}
+
+/* ---- THE CONSOLATION SET, TOLD. These matches were played for real and nobody watched
+   them, so the only thing that can carry them is the sentence. One line each, in the voice
+   a drafter would use -- "Milo 3-1 Gus - the 1.05. Gus picks sixth." -- under a quiet
+   eyebrow, and gone again as soon as the next set lands.
+   It is type on the pane's own ground: .tvEyebrow and .tvQual, both already there, no rule
+   and no box. A stranger reads two facts a line and needs no legend for either. ---- */
+/* ===== AND IT IS DROPPED ON A SHORT VIEWPORT, WHICH IS ARITHMETIC RATHER THAN TASTE.
+   Measured at 320x568 with the real pane: the panel has 139px of pane to spend, and two
+   story lines took it to 231 -- 92px over, because at 248px of inner width each sentence
+   wraps to three lines. One line would still overrun. The stake line above fits at every
+   size and stays; this does not fit at this one and goes.
+
+   NOTHING IS LOST, and that is what makes it a drop rather than a truncation. The Draft tab
+   carries the whole order, 1 through 12, with the slot beside every name, and that is the
+   screen he actually acts on -- the story is the telling, not the record. 640px of height
+   is tournament.css's own short-viewport threshold, matched rather than invented, so this
+   turns off exactly where the stylesheet already starts shedding rows. ===== */
+function buildStory(into){
+  if (!T.yow || !T.story || !T.story.length) return;
+  var shortVp = false; try{ shortVp = innerHeight <= 640; }catch(_){}
+  if (shortVp) return;
+  into.appendChild(el('p', 'tvEyebrow', 'Below the line'));
+  /* ONE PARAGRAPH, NOT N. The pane is a flex column with a gap, so a line per element pays
+     that gap between every pair -- and on the FINAL, which also carries the poster, that
+     was measured at 294px of content in a 289px pane. Five pixels, but the contract says
+     nothing on this screen scrolls and five is enough to make it. The report is one thing
+     anyway; <br> between its lines is what it always should have been. */
+  var pEl = el('p', 'tvQual');
+  T.story.forEach(function(line, i){
+    if (i) pEl.appendChild(document.createElement('br'));
+    pEl.appendChild(document.createTextNode(line));
+  });
+  into.appendChild(pEl);
 }
 
 /* ---- THE DRAFT ORDER. This is what the whole tournament is FOR. Jayden: "after the cup
@@ -2259,7 +2710,15 @@ function buildDraft(into){
     /* "Race" IS A PROVENANCE, NOT A ROUND. These teams never played a fixture, so naming
        one would be the first lie this pane has ever told. The race pane carries the whole
        finishing order; this cell says which competition put the number here. */
-    var where = (row.rank === 1) ? 'Champion'
+    /* ===== IN THE LEAGUE THE RIGHT-HAND CELL IS THE SLOT ITSELF, and that is a change of
+       fact rather than of wording. A knockout's honest answer is the round you went out in,
+       because that is all it established. A placement bracket establishes the SEAT: every
+       row here was won in a match played for that exact pick, so printing "Quarter-final"
+       would name the round a team stopped being in the championship half and say nothing
+       about the number beside it. The rank and the slot are the two notations a drafter
+       already uses for one fact, side by side, which is why this needs no legend. ===== */
+    var where = T.yow ? slot(row.rank)
+              : (row.rank === 1) ? 'Champion'
               : row.fromTail ? 'Race'
               : (T.br.rounds[out] ? T.br.rounds[out].label : '\u2014');
     li.appendChild(el('span', 'tvDraftOut', where));
@@ -2453,6 +2912,10 @@ function buildChampion(into, champ2){
   hh.appendChild(crown); wrap.appendChild(hh);
   into.appendChild(wrap);
   into.appendChild(el('h2', 'tvChampNm', (wt ? wt.name : '—') + ' wins the ' + (T.cup || 'cup')));
+  /* The last consolation set lands at the same moment the final does, so the champion
+     screen carries it too -- otherwise the bottom of the draft order is settled by matches
+     whose result is never said out loud anywhere. */
+  buildStory(into);
 }
 
 /* THE WAY OUT, and it is one function because it is one control. It was written inline in
@@ -2551,13 +3014,21 @@ function paintQualify(h){
 
   var head = el('div', 'tvHead');
   head.appendChild(el('p', 'tvEyebrow', 'Qualifying'));
-  head.appendChild(el('span', 'tvOptL', n + ' heads · top ' + ADVANCE));
+  var advP = advFor(n), cut = n - advP;
+  head.appendChild(el('span', 'tvOptL', cut ? (n + ' heads · top ' + advP) : (n + ' heads · for seeding')));
   pane.appendChild(head);
 
   pane.appendChild(el('p', 'tvQual', state === 'skipped'
-    ? 'The race could not run, so nobody is ranked by it. All ' + n
-      + ' heads are in the cup instead and it opens with a play-in, so every place is '
-      + 'decided on the pitch.'
+    /* THE PLAY-IN CLAUSE IS CONDITIONAL NOW, and it has to be. openCup() below builds a
+       bracket from whatever ids it is handed: twelve gives a play-in, eight does not. The
+       sentence promised one unconditionally, which was true while a race only ever happened
+       with a surplus and became a quiet lie the moment the League started racing a field of
+       eight. Both halves of the fallback are the same otherwise -- the race did not run, the
+       draw decides instead. */
+    ? ('The race could not run, so nobody is ranked by it. All ' + n
+      + ' heads are in the cup instead'
+      + (n > ADVANCE ? ' and it opens with a play-in, so every place is decided on the pitch.'
+                     : ', drawn at random, so every place is decided on the pitch.'))
     /* NOT "the draft order", AND THAT IS A SCOPE CORRECTION RATHER THAN A WORDING ONE.
        Jayden: "It shouldnt bring up draft order because this mode isnt only meant for
        fantasy football." The race is a game mode in its own right that a fantasy draft
@@ -2565,8 +3036,15 @@ function paintQualify(h){
        who qualifies for the cup and who does not. The Draft tab on a FINISHED cup is a
        different screen, it is the one place a draft order has actually been earned, and
        it is untouched. */
-    : 'One marble race, all ' + n + ' heads. The first ' + ADVANCE
-      + ' qualify for the cup. The other ' + (n - ADVANCE) + ' are out.'));
+    /* NOBODY IS OUT WHEN THERE IS NOTHING TO CUT, and the sentence says so rather than
+       printing "the other 0 are out" -- which is the kind of quietly wrong number this
+       screen has been cleaned of twice. With a field the size of the bracket the race is
+       still the whole reason to watch: it decides who meets whom, and in the League it is
+       the first roll of the dice the draft order is built out of. */
+    : cut ? ('One marble race, all ' + n + ' heads. The first ' + advP
+      + ' qualify for the cup. The other ' + cut + ' are out.')
+    : ('One marble race, all ' + n + ' heads. Where you finish is your seed, and the seed '
+      + 'decides who you meet. Nobody goes out down the hill.')));
   panel.appendChild(pane);
 
   var foot = el('div', 'tvFoot');
@@ -2624,9 +3102,42 @@ function paint(){
      branch further down because every line below this reads T.br. */
   if (!T.br){ paintQualify(h); return; }
 
+  /* ===== A CONSOLATION FIXTURE IS NEVER SHOWN, IT IS DRAINED. The next thing on the sheet
+     is either a match to watch or one to resolve, and if it is the latter the screen does
+     not stop for it -- simulateConsolation() takes the clock, plays it for real with
+     drawing skipped, and paints the story when it lands. Guarded three ways so this can
+     never become a loop: it does nothing while a simulation is already running, nothing
+     while a match is live, and it gives up after two failed drains and lets the fixture be
+     kicked off by hand rather than retrying forever. ===== */
+  if ((T.conFail | 0) < 3){
+    var nmc = BR.nextMatch(T.br);
+    if (nmc && nmc.match.con){
+      var free = !sim && T.phase !== 'match' && !(window.__hmSoccer && window.__hmSoccer.on);
+      if (free && simulateConsolation()) return;
+      /* NOT FREE YET IS NOT THE SAME AS CANNOT. The engine holds body.hmSoccer through its
+         own 5,400ms whistle and this file holds T.phase through a 5,600ms celebration, so
+         the first paint after a watched fixture always lands while both are still true.
+         Giving up there is what left the 5-8 bracket unplayed and put four "nobody earned
+         this" markers in a draft order. So it comes back and asks again rather than
+         treating a busy moment as a failure -- and the counter only advances on a drain
+         that genuinely resolved nothing (see simEnd), so a real stall still stops. */
+      if (!free && !T.conRetry){
+        T.conRetry = setTimeout(function(){ T.conRetry = null;
+          try{ if (T.live) paint(); }catch(_){} }, 450);
+      }
+    }
+  }
   var nm2    = BR.nextMatch(T.br);
   var champ2 = BR.champion(T.br);
-  var done2  = (champ2 !== undefined);
+  /* ===== "THE CHAMPION IS KNOWN" IS NOT "THE CUP IS OVER" IN A PLACEMENT BRACKET, and
+     reading the first as the second was the last real bug in this mode. The Final sits at
+     index 0 of the last round, so champion() is satisfied the moment it is played -- with
+     the third, fifth and seventh place matches still unplayed beside it. This screen then
+     went straight to the champion pane, the drain never got another paint to fire on, and
+     the cup ended 9 fixtures out of 12 with four slots of the draft order undecided.
+     BR.complete() is the honest test and it is identical to the old expression on a
+     knockout, so the soccer cup does not notice. ===== */
+  var done2  = BR.complete(T.br);
   /* The Order tab is gone at the whistle (see the tab row), so anyone standing on it
      is moved to the pane that answers the same question rather than being dropped
      through the catch-all onto a champion screen with no tab selected. */
@@ -2770,16 +3281,45 @@ function paint(){
 }
 
 // ---------- entry ----------
-function start(){
+/* ---- THE YOWMINGS LEAGUE IS THIS TOURNAMENT, WITH TWO THINGS DIFFERENT.
+   Jayden: "literally the tournement mode but better catered to the fantasy football draft
+   ... using the football and calling it the Yowmings league ... pretty much the exact same".
+
+   So it is one argument, not a second file. The bracket, the seeding, the match lengths,
+   Simulate, the standings, the Draft tab and every screen in this file are shared code on a
+   shared path; `yow` sets the competition's name and identity, and it sets the flag
+   play-engine.js reads at kickoff to play the match with uprights and a football.
+
+   THE RACE ALWAYS RUNS. It is the second difference and it is the answer to "make draft
+   order feel super random and fun": the marble race is the most genuinely random thing on
+   this site, every head is in it, and its finishing order is the SEED order the whole cup
+   is built on. Soccer's cup only races when there are more heads than places; the League
+   races at eight as well, where it eliminates nobody and purely decides who meets whom.
+   Nothing about it is theatre -- it is the real race, run on the real heads, and the number
+   it produces is load-bearing all the way to the last row of the draft order.
+
+   THE POSTERS ARE NOT HERE, AND THAT IS DELIBERATE. They were asked for on 2026-08-26
+   ("bring back the posters") and withdrawn the same day, in the same conversation: "you are
+   right just remove the posters make it clean." The 2026-08-04 cancellation therefore
+   stands unamended -- see the note above bcJitter. This headstone exists so the next reader
+   does not find the request in the log and restore a feature as a missing one. The soccer
+   FINAL's still poster (buildNext, `fin`) is a different thing and is untouched. ---- */
+function start(yow){
   if (T.live) return;
   buildTeams(function(teams){
     T.live = true; T.phase = 'board'; view = 'next';
     T.br = null; T.race = null; T.raceOrder = null; T.seedOf = null; Q = null;   // nothing survives the last cup
+    T.story = null; T.conFail = 0;
+    try{ if (T.conRetry){ clearTimeout(T.conRetry); T.conRetry = null; } }catch(_){}
     try{ var _pb=document.getElementById('gameBtn');
       if(_pb){_pb.setAttribute('aria-disabled','true');
               _pb.setAttribute('title','Finish the cup first');} }catch(_){}
-    T.cup = CUPS[Math.floor(Math.random() * CUPS.length)] + ' Cup';
-    var idKey=T.cup.replace(/ Cup$/,'');
+    T.yow = !!yow;
+    /* The engine reads this at kickoff and at no other time, so it is set before the first
+       fixture can cast and cleared in stop() -- see play-engine.js's start(). */
+    try{ window.__hmYowLeague = T.yow; }catch(_){}
+    T.cup = T.yow ? 'Yowmings League' : (CUPS[Math.floor(Math.random() * CUPS.length)] + ' Cup');
+    var idKey=T.yow ? 'Yowmings' : T.cup.replace(/ Cup$/,'');
     T.id=CUP_ID[idKey]||CUP_ID['Apollo'];
     document.body.style.setProperty('--cupPaint',T.id.paint);
     document.body.style.setProperty('--cupStock',T.id.stock);
@@ -2790,7 +3330,7 @@ function start(){
        first -- the qualifying screen is a scene for the same reason the match-up is one --
        and the race is started by a press, never from here. See the ladder above for what
        happens when it does not finish, which is often. */
-    if (teams.length > ADVANCE){
+    if (teams.length > ADVANCE || (T.yow && teams.length >= 2)){
       Q = { state: 'ready', teams: teams };
       T.phase = 'qualify';
       castQualifiers(teams);
@@ -2816,7 +3356,12 @@ function stop(){
   /* T.live goes first and Q goes with it, so a qualifier settling after this call finds
      the cup gone and does nothing. __hmRaceEnd settles it as `aborted` and cannot settle
      twice, so ending the race here is safe whether or not one is running. */
-  Q = null; T.race = null; T.raceOrder = null; T.seedOf = null;
+  Q = null; T.race = null; T.raceOrder = null; T.seedOf = null; T.yow = false;
+  T.story = null; T.conFail = 0;
+  /* The retry is the one thing in this file that can outlive the cup: a timer scheduled by
+     the drain, fired 450ms later into a screen that has gone. */
+  try{ if (T.conRetry){ clearTimeout(T.conRetry); T.conRetry = null; } }catch(_){}
+  try{ window.__hmYowLeague = false; }catch(_){}
   try{ if (window.__hmRaceOn && window.__hmRaceEnd) window.__hmRaceEnd(); }catch(_){}
   try{ document.body.classList.remove('hmFinal'); }catch(_){}
   try{ var _pb2=document.getElementById('gameBtn');
@@ -2833,7 +3378,11 @@ function stop(){
   clearSpawned(); paint();
   if(window.PlayViewportOwner) window.PlayViewportOwner.leave("tournament");
 }
-window.__hmTourStart = start;
+window.__hmTourStart = function(){ return start(false); };
+/* The League gets its own name on the launcher rather than a truthy argument at the call
+   site: one door, one global, and a driver (or a contract) can start either competition
+   without knowing that they share a function. */
+window.__hmYowStart   = function(){ return start(true); };
 window.__hmTourStop = stop;
 /* THE CUP AS DATA, for anyone who wants it without scraping the DOM -- and for the
    contracts, which have to assert the shape rather than read it off a screen.

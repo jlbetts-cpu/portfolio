@@ -26,7 +26,7 @@
      a hand-copied subset of the token block plus a second flagged "top-up" block at its
      foot; both are gone -- tokens.css is the one source now. See
      .superpowers/sdd/2026-08-02-play-page/play-tokens-report.md §1. -->
-<link rel="stylesheet" href="tokens.css?v=65279febd9">
+<link rel="stylesheet" href="tokens.css?v=99ded98629">
 <link rel="stylesheet" href="play.css">
 <!-- THE TOURNAMENT SCREEN. Its own sheet, after play.css so that where the two touch the
      same element source order settles it without an !important. The tournament styles that
@@ -831,6 +831,24 @@
  .pCard .gIco{width:var(--ico-md);height:var(--ico-md);flex:0 0 var(--ico-md);color:var(--c700);stroke-width:var(--ico-stroke)}
  .pCardT{font-weight:600;font-size:var(--fs-body);line-height:var(--lh-tight);letter-spacing:var(--tr-title)}
  .pCardD{font-weight:400;font-size:var(--fs-caption);line-height:var(--lh-body);letter-spacing:var(--tr-body);color:var(--c500)}
+ /* THE WIDE CELL IS THE SAME CELL. One span declaration and one measure -- no second
+    padding, no second type scale, no second hover, no rule of its own. Everything that
+    makes it read as part of the band is the band's. See the markup for why exactly one
+    cell spans and why it is this one. */
+ .pCardWide{grid-column:1/-1}
+ /* THE MEASURE ONLY EXISTS BECAUSE THE CELL IS TWICE AS WIDE, so it only exists where that
+    is true. Below 560 the grid is one column, the wide cell is the SAME width as every
+    other, and the cap bound anyway -- measured at 390 the cell is 322px inside its padding
+    and 52ch is ~260, which wrapped this description onto three lines where its neighbours
+    take one. The rule belongs in the two-column world it was written for. */
+ @media(min-width:561px){ .pCardWide .pCardD{max-width:52ch} }
+ /* THE WIDE CELL IS THE SAME CELL. One span declaration and one measure -- no second
+    padding, no second type scale, no second hover, no rule of its own. Everything that
+    makes it read as part of the band is the band's, which is the point: it is a door in
+    the same grid, and the only thing it does differently is take both columns because
+    five doors cannot sit in two. At one column (the phone block below) the span is a
+    no-op and it is simply the first row. */
+
 
  /* ---- THE HOVER PREVIEW IS REMOVED, AND IT IS A DELETION RATHER THAN A DEFERRAL.
     The mechanism shipped complete -- a lazy <img data-prev>, a .ready gate on the load
@@ -1176,10 +1194,10 @@
     of discovering it in a screenshot. ---- */
  #tHeadEdge feFlood{flood-color:var(--head-edge)}
 </style>
-<link rel="stylesheet" href="header.css?v=65279febd9">
-<link rel="stylesheet" href="footer.css?v=65279febd9">
-<link rel="stylesheet" href="controls.css?v=65279febd9">
-<link rel="stylesheet" href="site-theme.css?v=65279febd9">
+<link rel="stylesheet" href="header.css?v=99ded98629">
+<link rel="stylesheet" href="footer.css?v=99ded98629">
+<link rel="stylesheet" href="controls.css?v=99ded98629">
+<link rel="stylesheet" href="site-theme.css?v=99ded98629">
 <script src="header.js" defer></script>
 <script src="footer-band.js" defer></script>
 </head><body class="hmFull playBooting" data-nav="games" data-theme-page="play">
@@ -1296,11 +1314,32 @@
       "still building" reads as momentum. The full stop in the middle is load-bearing too -- at
       display size the two clauses run together into one breathless sentence without it. -->
  <nav class="pCards" aria-label="Games">
-  <a class="pCard" id="pcHead" href="headmaker.html?from=play">
-   <svg class="gIco" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0"/><path d="M16 19h6"/><path d="M19 16v6"/><path d="M6 21v-2a4 4 0 0 1 4 -4h4"/></svg>
-   <span class="pCardT">Add your head</span>
-   <span class="pCardD">Upload a photo of your face and cut it out on a new page. It comes back and joins the crowd.</span>
-  </a>
+  <!-- ═══════════════════════════════════════════════════════════════════════════════
+       SEVEN DOORS, ONE SPAN, AND THREE PAIRS. The count decided the span and the KINDS
+       decided the order, and neither is decoration.
+
+       THE SPAN IS ARITHMETIC. Two columns and an odd number of cells leaves a hole, and a
+       hole in a flush grid is not white space -- the container's --rule ground shows
+       through it as a solid block. Something has to take a whole row. It is the League:
+       the newest thing here, and the one Jayden actually uses, since it settles a real
+       fantasy draft. (This reverses a note that stood while there were six; six divided and
+       the span had nothing to fix. Seven does not.)
+
+       THE ORDER IS THE ONLY GROUPING, because a heading or a divider here would be exactly
+       the chrome this page has had removed from it twice. Play now holds three different
+       kinds of thing and the rows say so by proximity alone:
+           the League          -- the new one, alone
+           match / tournament  -- the other two games
+           head / gradient     -- the two makers, both of which leave the page
+           workspace / board   -- the two that are simply his
+       Nothing is labelled. A visitor reads pairs down the column and the sorting is
+       obvious; that is what "premium is subtraction" buys you when it works.
+       ═══════════════════════════════════════════════════════════════════════════════ -->
+  <button class="pCard pCardWide" id="pcYow" type="button">
+   <svg class="gIco" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 3a6 6 0 0 1 4 4c0 6.075 -7.925 14 -14 14a6 6 0 0 1 -4 -4c0 -6.075 7.925 -14 14 -14z"/><path d="M12 8l4 4"/><path d="M10 10l4 4"/><path d="M8 12l4 4"/></svg>
+   <span class="pCardT">Yowmings League</span>
+   <span class="pCardD">Goalposts and a football. A marble race seeds the cup, and the last screen is your draft order.</span>
+  </button>
   <button class="pCard" id="pcExped" type="button">
    <svg class="gIco" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"/><path d="M12 7l4.76 3.45l-1.76 5.55h-6l-1.76 -5.55l4.76 -3.45"/><path d="M12 7v-4m3 13l2.5 3m-.74 -8.55l3.74 -1.45m-11.44 7.05l-2.56 2.95m.74 -8.55l-3.74 -1.45"/></svg>
    <span class="pCardT">Play a match</span>
@@ -1319,10 +1358,41 @@
         and one command in two menus must read identically. -->
    <span class="pCardD">Eight heads knock each other out, one match at a time. Lose and you are gone. Add four more if you like.</span>
   </button>
+  <a class="pCard" id="pcHead" href="headmaker.html?from=play">
+   <svg class="gIco" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0"/><path d="M16 19h6"/><path d="M19 16v6"/><path d="M6 21v-2a4 4 0 0 1 4 -4h4"/></svg>
+   <span class="pCardT">Add your head</span>
+   <span class="pCardD">Upload a photo of your face and cut it out on a new page. It comes back and joins the crowd.</span>
+  </a>
   <a class="pCard" id="pcGrad" href="gradientlab.html?from=play">
    <svg class="gIco" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3m0 2a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v14a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2z"/><path d="M3 15l6 -6l4 4l3 -3l5 5"/><path d="M8.5 8.5m-1.5 0a1.5 1.5 0 1 0 3 0a1.5 1.5 0 1 0 -3 0"/></svg>
    <span class="pCardT">Make a gradient</span>
    <span class="pCardD">Dial a planet of coloured light on a new page, and leave with the image and the code.</span>
+  </a>
+  <!-- ===== THE WORKSPACE IS A DOOR, NOT A TAB.
+       Jayden: "for workspace instead of being a whole tab please add it to the play page as
+       well I feel like that makes more sense." It is his own reading and it is the right
+       one: Play is where the things he built live, and the workspace is one of those. It
+       also buys back the room the nav had run out of -- an all-text nav measures 356px
+       against 358 available at 390 -- which is what the time-of-day control moving into
+       that bar needs.
+
+       IT IS THE SAME CELL AS EVERY OTHER. No badge, no accent, no second treatment, and it
+       is not a game so it makes no claim to be one. The description is the app's own
+       sentence about itself, nouns and all, plus the navigational fact its two maker
+       neighbours already carry: this one leaves the page. ===== -->
+  <a class="pCard" id="pcWork" href="/workspace/">
+   <svg class="gIco" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h6v8h-6z"/><path d="M4 16h6v4h-6z"/><path d="M14 12h6v8h-6z"/><path d="M14 4h6v4h-6z"/></svg>
+   <span class="pCardT">Workspace</span>
+   <span class="pCardD">The app I run my life on: timeline, memory, mindset, books and kitchen. It opens on a new page.</span>
+  </a>
+  <!-- Its pair, and the reason both are here: Jayden built the board today and there was no
+       way to click to it from anywhere on the site -- "making sure its actually connected to
+       the play like you can access the page." The title is the board's own h1, shortened to
+       the length its five neighbours run to; the sentence is what it is for, in his words. -->
+  <a class="pCard" id="pcDraft" href="draft.html">
+   <svg class="gIco" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 6h9"/><path d="M11 12h9"/><path d="M12 18h8"/><path d="M4 16a2 2 0 1 1 4 0c0 .591 -.5 1 -1 1.5l-3 2.5h4"/><path d="M6 10v-6l-2 2"/></svg>
+   <span class="pCardT">Draft board</span>
+   <span class="pCardD">Every slot, every round, three picks deep. The board I take to my 12-team PPR draft.</span>
   </a>
  </nav>
 </section>

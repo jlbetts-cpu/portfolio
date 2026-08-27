@@ -294,7 +294,10 @@ def run_layout(browser, base_url, width, height, reduced=False):
         """
     )
     assert data["heroes"] == 1 and data["mains"] == 1, data
-    assert data["cards"] == ["pcHead", "pcExped", "pcTour", "pcGrad"], data
+    # 2026-08-26: six doors -- the Yowmings League first, the Workspace last, none of them
+    # spanning. See the same assertion in play-minimal-contract.py for why this stays an
+    # exact list, and why an ODD count is the failure it is really guarding against.
+    assert data["cards"] == ["pcYow", "pcExped", "pcTour", "pcHead", "pcGrad", "pcWork", "pcDraft"], data
     assert data["canonical"] == [1, 1, 1] and data["gameIds"], data
     assert abs(data["header"]["top"]) <= 1 and abs(data["header"]["height"] - 72) <= 1, data
     assert abs(data["navTop"] - 8) <= 1, data

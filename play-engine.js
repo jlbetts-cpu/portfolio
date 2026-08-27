@@ -1387,7 +1387,22 @@
       if(!myGS){bxT=(leadX-atk*(HW*0.5+34))-HW/2;overBall=Math.abs(ballX-myX)<HW+56;}   // loop behind the ball, vaulting clean over it
       else bxT=leadX-HW/2;   // already behind it: drive straight through toward their goal
       if(ballHigh&&nearOwnGoal){wantHigh=true;bxT=(ballX-atk*(HW*0.3))-HW/2;}   // a high ball at my own net: LEAP to head it clear
-      else if(ballHigh&&myGS&&Math.abs(ballX-myX)<HW*2.4){wantHigh=true;bxT=leadX-HW/2;}}   // an airborne ball I'm already behind: VOLLEY it forward toward their net -- aerial shots + bank-offs, soccer's electric bit
+      else if(ballHigh&&myGS&&Math.abs(ballX-myX)<HW*2.4){wantHigh=true;bxT=leadX-HW/2;}
+      /* ===== IN RANGE OF THE POSTS: HIT IT UP =====
+         The League\'s target is ABOVE the crossbar, so a head that drives the ball flat at
+         the wall has done nothing. This is the ONE line of AI the mode adds, and it adds no
+         new behaviour: `wantHigh` is the existing flag that turns the existing charge into
+         the existing 940+ leap -- the same one that already fires for a high ball at your
+         own net. All that changes is WHEN a head decides the ball is worth going up for,
+         and the answer is "once you are in kicking range of their posts".
+
+         WHAT IT IS NOT. It moves nobody, spaces nobody, and assigns no station: it is read
+         off the BALL\'s x and this head\'s own side of it, exactly like every other branch
+         here. The chaser was already the head with the best angle and is still that head;
+         it now leaves the ground when it strikes. The contact loft is untouched at 0.26 --
+         that number was measured, costs 45% of the scrum when raised, and raising it here
+         would have been the lazy way to get the same lift for a much worse game. ===== */
+      if(S9.yow&&myGS&&((atk>0)?(ballX>heroR.w*0.58):(ballX<heroR.w*0.42)))wantHigh=true;}   // an airborne ball I'm already behind: VOLLEY it forward toward their net -- aerial shots + bank-offs, soccer's electric bit
      else if(role==="keeper"||(role==="defender"&&ballOnOurHalf)){   // GUARD: hang between the ball and my net, clear only from the goal side (never poke it back toward my own net)
       // MIRRORED. See the note on the SUPPORT clamp below -- same bug, same cause, same one-term fix.
       bxT=Math.max(M,Math.min(heroR.w-M,(ballX+ownGoalX*2)/3))-HW/2;
@@ -2167,6 +2182,27 @@
   var S={on:false,seed:0,kickSeed:0,teams:{},target:5,cap:8,red:0,blue:0,ball:{x:0,y:0},phase:"idle",winner:0};
   window.__hmSoccer=S;
   var ball,ballSkin,goalL,goalR,goalShL,goalShR,board,sR,sB,countEl,W=0,H=0,groundY=0,BR=24,GH=150,OFF=0,XL=0,XR=0;
+  /* ===== THE YOWMINGS LEAGUE: ONE ENGINE, A DIFFERENT OBJECTIVE =====
+     Jayden: "pretty much the exact same but just more catered to fantasy football".
+     Taken literally, and that is the whole design. There is no second engine, no second
+     AI, no second ball loop and no second set of tuning constants. YOW is a boolean read
+     once at start(), and every line it touches below answers ONE question: WHERE DOES A
+     SCORE HAPPEN. The scrum, the contact loft (0.26 -- measured, do not touch), the
+     sideways squirt that unburied the ball, the 1.6s confinement timer, the roof, the
+     restitution and the leap-for-a-ball-overhead all run byte-identical.
+
+     THE OBJECTIVE IS INVERTED, NOT MOVED. Soccer scores in the band BELOW the crossbar
+     (`by > groundY-GH`); the League scores in the band ABOVE it, between the crossbar and
+     the tops of the posts, and only when the ball is actually travelling through. Same
+     wall plane, same netCatch(), same handful of lines -- so a mode difference that could
+     have been a fork is a comparison operator.
+
+     UCB is the crossbar's height above the pitch and UPH the posts' height above the
+     crossbar; together they are the aperture. Both are derived in geo() from the arena and
+     the head size, never hard-coded, because a phone's pitch is half a desktop's and a
+     fixed bar would be either unreachable or unmissable. UPW is the aperture's width, and
+     YKICK the horizontal speed that separates a kick from a drift. ===== */
+  var YOW=false,UCB=0,UPH=0,UPW=0,YKICK=600;
   /* ===== DEV-ONLY: THE PITCH READING =====
      Jayden: "there is still a lot of bundling up in the soccer mode lots of people in
      the goal and the 'goalie' of the other team just stands there." Both halves of that
@@ -2204,8 +2240,19 @@
    // goals chase him across the screen as he fades out.
    else if(S.on&&_gyLock==null)_gyLock=groundY;   // inside the owned arena, __hmFeetY is the shared source of truth and refreshes this latch after a live viewport reversal; outside it, the big head cannot drag the pitch around mid-match
    if(groundY>H-16)groundY=H-16;
+   /* THE APERTURE, DERIVED. The crossbar has to be over a standing head and under a
+      leaping one, or the mode is either unblockable or unscoreable: a head leaps at
+      vy 940..1500 against G=2600, a rise of 170..433px, and it is HH tall before it
+      leaves the ground. So the bar is pinned to the head (1.9 head-heights) and the
+      window above it to 2.6 more, then both are clamped into whatever vertical room the
+      arena actually has -- a 900px desktop and a 390px phone get the same PROPORTIONS of
+      a contested target rather than the same pixels. */
+   var _spanU=Math.max(120,groundY-32),_hhU=(innerWidth<=880?64:96);
+   UCB=Math.round(Math.max(110,Math.min(_spanU*0.34,_hhU*2.5)));
+   UPH=Math.round(Math.max(100,Math.min(_spanU*0.21,_hhU*1.35)));
    var nBR=innerWidth<=880?16:24;   // the heads shrink on mobile (96->64), so the ball shrinks with them (48->32) to keep the player:ball ratio honest
-   BR=nBR;   // was gated on nBR!==BR, but dom() calls geo() BEFORE it creates the ball: BR flipped
+   BR=nBR;UPW=BR*3;   // the aperture is three ball radii wide, so a 48px ball flies through a 72px gap -- snug, which is the whole picture this mode is for
+   // was gated on nBR!==BR, but dom() calls geo() BEFORE it creates the ball: BR flipped
    // 24->16 while `ball` was still null, and every later geo() then saw nBR===BR and skipped the
    // resize forever. So on a phone the ball was PAINTED at its 48px CSS default while its physics
    // radius was 16 -- 1.5x too big, and translate(bx-BR) on a 48px box put its centre at bx+8,
@@ -2236,6 +2283,15 @@
    goalShR=document.createElement("div");goalShR.className="hmGoalShadow";camBack.appendChild(goalShR);
    goalL=document.createElement("div");goalL.className="hmGoal hmGoalR";camBack.appendChild(goalL);   // left goal is RED\u2019s to defend
    goalR=document.createElement("div");goalR.className="hmGoal hmGoalB";camBack.appendChild(goalR);
+   /* THE UPRIGHTS RIDE INSIDE THE GOAL, they are not a second pair of elements. Everything
+      that already knows how to show, hide, move, tint and flash a goal -- start()'s opacity,
+      layout()'s transform, netCatch()'s .hmGoalHit, the camera wrapper -- keeps working
+      unchanged, and body.hmYow decides which of the two graphics is painted. Four hairline
+      bars: the stem up to the crossbar, the crossbar, and the two posts (near and far, the
+      far one dimmer, which is the only depth cue a side-on pitch can honestly give). */
+   ["hmUpStem","hmUpBar","hmUpPost hmUpPostF","hmUpPost hmUpPostN"].forEach(function(cn){
+    var e0=document.createElement("div");e0.className=cn;goalL.appendChild(e0);
+    var e1=document.createElement("div");e1.className=cn;goalR.appendChild(e1);});
    board=document.createElement("div");board.className="hmScore";
    // Scoreboard structure taken from the SportyBlocks kit: an inner card holding a team row,
    // an asymmetric VS divider and a second team row, sitting on a footer ledge. Their crest
@@ -2354,6 +2410,25 @@
    var _gl=0,_gr=0;
    // No .toFixed() anywhere here, deliberately: these four lines never formatted their y before, and
    // `v + 0` is the identity on a float, so at SAG=0 they emit the same characters they always did.
+   if(YOW){
+    /* THE UPRIGHTS ARE SIZED FROM THE NUMBERS, NOT MEASURED OFF THE ELEMENT. Soccer reads
+       GH back out of the DOM because its net is a fixed CSS box; the aperture is derived
+       per-arena in geo(), so here the arithmetic is the source and the element follows it.
+       --upBar is how far below the element's own top the crossbar sits, which is UPH by
+       construction, and it is the ONE number the stylesheet needs to draw all four bars. */
+    GH=UCB+UPH;
+    [goalL,goalR].forEach(function(g0){g0.style.width=UPW+"px";g0.style.height=GH+"px";
+      g0.style.setProperty("--upBar",UPH+"px");});
+    goalL.style.transform="translate("+XL+"px,"+(groundY-GH+_gl)+"px)";
+    goalR.style.transform="translate("+(XR-UPW)+"px,"+(groundY-GH+_gr)+"px)";
+    /* AND THEY CAST NOTHING. A 60px blur under a 5px pole was never going to read, and the
+       site's rule is that only the companion heads stand on something. Subtraction. */
+    if(goalShL)goalShL.style.opacity="0";if(goalShR)goalShR.style.opacity="0";
+    return;}
+   /* Coming back from a League match the two goals still carry its inline sizing, and
+      offsetHeight would then read the aperture instead of the net. Hand the box back to the
+      stylesheet before measuring it. */
+   [goalL,goalR].forEach(function(g1){if(g1.style.width){g1.style.width="";g1.style.height="";g1.style.removeProperty("--upBar");}});
    GH=goalL.offsetHeight||150;
    goalL.style.transform="translate("+XL+"px,"+(groundY-GH+_gl)+"px)";
    goalR.style.transform="translate("+(XR-42)+"px,"+(groundY-GH+_gr)+"px)";
@@ -2410,7 +2485,17 @@ function teams(){
     if(mem.length<=2){mem.forEach(function(s2){S.roles[s2]="attacker";});return;}   // a small side: everyone chases, nobody hangs back by the net (that reads as "standing around")
     if(mem.length===3){S.roles[mem[0]]="defender";S.roles[mem[1]]="attacker";S.roles[mem[2]]="attacker";return;}
     var nd=mem.length>=5?2:1;
-    mem.forEach(function(s2,i){S.roles[s2]=(i===0)?"keeper":(i<=nd)?"defender":"attacker";});});}
+    /* ===== THE LEAGUE HAS NO KEEPER, AND THAT IS A DELETION, NOT A TACTIC =====
+       A keeper exists to stand in a mouth. The aperture is UCB above the pitch -- over a
+       standing head by construction -- so a keeper in this mode is a head pinned near its
+       own wall by a leash it cannot use, which is precisely the "the goalie of the other
+       team just stands there" reading that has been complained about once already. The
+       leash itself is NOT touched, lengthened or re-tuned: the role that owns it simply is
+       not handed out, so the clamp is never reached -- the probe reports it pinned 0% of
+       frames in this mode and 76% in soccer, which is how you can tell nothing moved. One
+       fewer head hanging back means one more in the scrum, which is the direction this
+       game is supposed to go. ===== */
+    mem.forEach(function(s2,i){S.roles[s2]=(i===0)?(YOW?"defender":"keeper"):(i<=nd)?"defender":"attacker";});});}
   /* Repaints the two team rows from the CURRENT fixture. Called on every kickoff, not just
      when the board is created, so match two shows match two's players. Re-queries sR/sB
      afterwards: rewriting the inner HTML replaces the very elements board2() writes into, so
@@ -2581,7 +2666,14 @@ function teams(){
    try{dispatchEvent(new Event("resize"));}catch(_){}
    geo();
   }
-  function start(){if(S.on)return;_gyLock=null;syncSoccerArena();if(!ball)dom();layout();teams();
+  function start(){if(S.on)return;_gyLock=null;
+   /* THE MODE IS READ ONCE, HERE, AND NOWHERE ELSE. A flag sampled per frame is a flag that
+      can change mid-match; the launcher sets __hmYowLeague before it calls this and the
+      match is that mode from kickoff to whistle. The body class goes on BEFORE the arena is
+      synced so geo()/layout() measure against the stylesheet that is actually going to paint. */
+   YOW=!!window.__hmYowLeague;S.yow=YOW;
+   try{document.body.classList.toggle("hmYow",YOW);}catch(_){}
+   syncSoccerArena();if(!ball)dom();layout();teams();
    /* THE MATCH GETS LONGER AS THE CUP GETS SHORTER. Every fixture was first-to-5 with
       win-by-two, so eight players meant seven matches of identical length and the whole thing
       dragged -- and the final felt exactly like a quarter-final. Early rounds are first to 3
@@ -2780,6 +2872,10 @@ function teams(){
  
    if(ball){_gyLock=null;ballInTitle(true);ball.style.opacity="0";goalL.style.opacity="0";goalR.style.opacity="0";board.style.opacity="0";if(ballShadow)ballShadow.style.opacity="0";if(goalShL){goalShL.style.opacity="0";goalShR.style.opacity="0";}}
    if(countEl)countEl.textContent="";document.body.classList.remove("hmSoccer");
+   /* The League comes off at the whistle for the same reason hmFinal does, three lines
+      below: playing a bracket out to a champion never calls stop(), so a class left on
+      would hand the next casual kickabout a football and a set of uprights. */
+   YOW=false;S.yow=false;document.body.classList.remove("hmYow");
    /* The gold must not outlive the final. Clearing it only in stop() was not enough: playing
       the bracket out to a champion never calls stop(), so the class stuck and the next casual
       kickabout got the final's ball. Every match ends here, so this is the one honest place. */
@@ -2918,13 +3014,75 @@ function teams(){
      if(Math.abs(bvy)>240){bvx+=(Math.random()<0.5?-1:1)*(90+Math.random()*90);bw+=(Math.random()*220-110);   // it comes down somewhere new, and spinning
       S.postSeed=(S.postSeed||0)+1;try{BUS.emit('woodwork',{x:S.ball.x,y:S.ball.y});}catch(_){}}
      bvy=Math.abs(bvy)*0.72;bvx=Math.max(-2200,Math.min(2200,bvx));}   // ceiling
-    var inG=by>groundY-GH;
-    var gt=groundY-GH,overL=(bx+BR>XL&&bx-BR<XL+44),overR=(bx+BR>XR-44&&bx-BR<XR);   // the crossbar
+    var inG,gt,overL,overR;
+    if(YOW){
+     /* ===== SCORING, INVERTED. THIS IS THE WHOLE MODE. =====
+        `inG` is the only thing the two wall tests below ask, and in soccer it means "the
+        ball is in the mouth". Here it means "the ball went through the uprights": above the
+        crossbar, below the tops of the posts, and travelling. Everything downstream --
+        netCatch, the burst, the scoreboard, the celebration, the tournament's result -- is
+        untouched, because the question it answers has the same shape.
+
+        A ball that reaches the wall UNDER the bar is a drive that never got up. A ball over
+        the post tops is wide. Both were goals in soccer and neither is one here, which is
+        why this reads as football rather than as soccer with a repaint.
+
+        AND IT HAS TO BE KICKED THROUGH, NOT DRIFT THROUGH. Height alone made this a
+        score-fest -- measured, 9.0 goals/min against soccer's 3.3 -- and the reason was the
+        ball CLIMBING THE WALL FACE: once the bar stopped being solid from underneath (see
+        below) a ball popped up in a corner rose through the aperture at |bvx| near zero and
+        counted. A field goal is a KICK through the plane, so the plane asks for one. YKICK
+        is a seventh of the ball\'s own speed cap and roughly what a single head\'s contact
+        imparts, so a struck ball clears it and a wall-hugger does not. This is not
+        difficulty bolted on after the fact -- it is the missing half of "through the
+        posts". */
+     overL=(bx+BR>XL&&bx-BR<XL+UPW);overR=(bx+BR>XR-UPW&&bx-BR<XR);
+     gt=groundY-UCB;                                    // the crossbar\'s plane
+     inG=(by<gt)&&(by>gt-UPH)&&(Math.abs(bvx)>YKICK);   // over the bar, under the tops, and going somewhere
+     /* THE DOINK, FROM ABOVE ONLY -- AND THAT IS MEASURED, NOT LAZY. It was solid on both
+        faces for one build and the underside was a TRAP: the confinement pop (CONF_MAX,
+        ~1090px/s straight up) is the engine\'s own way out of a scrum, and within UPW of the
+        wall it fired the ball into the bar\'s underside, which knocked it back down into the
+        same scrum, which popped it again. Measured against soccer over four matches each,
+        the ball inside one 70px circle went 4.3% -> 13.7% of play and the worst episode
+        3.15s -> 4.88s, with all four of the worst at 1-3% and 99% across the pitch, 13-19%
+        up -- the foot of the wall, directly under the bar. That is the exact defect 668ad73
+        was written to remove, re-created by one line of mine, so the line came out.
+
+        What is left is not a compromise. A ball rising inside the posts\' own footprint is a
+        ball going UP THROUGH THE UPRIGHTS -- the escape valve and the objective turn out to
+        be the same event, which is why the mode is named after it. It broadcasts the same
+        \'woodwork\' the soccer bar does, so every head within 220px clutches its brows; no
+        new event, no new reaction. */
+     if((overL||overR)&&bvy>0&&by+BR>=gt-2&&by-BR<gt&&by<gt){by=gt-BR-2;bvy=-Math.max(160,Math.abs(bvy)*0.7);S.postSeed=(S.postSeed||0)+1;BUS.emit('woodwork',{x:S.ball.x,y:S.ball.y});
+      bvx+=(overL?1:-1)*(150+Math.random()*70);bvx=Math.max(-2200,Math.min(2200,bvx));
+      var kcU=Math.min(0.1,Math.abs(bvy)*0.00015);bsyP=1-kcU;bsxP=1/(1-kcU);bsT=0.11;}
+    }else{
+    inG=by>groundY-GH;
+    gt=groundY-GH;overL=(bx+BR>XL&&bx-BR<XL+44);overR=(bx+BR>XR-44&&bx-BR<XR);   // the crossbar
     if((overL||overR)&&bvy>0&&by+BR>=gt-2&&by-BR<gt&&by<gt){by=gt-BR-2;bvy=-Math.max(160,Math.abs(bvy)*0.7);S.postSeed=(S.postSeed||0)+1;BUS.emit('woodwork',{x:S.ball.x,y:S.ball.y});   // off the bar -- and the WOODWORK moment is broadcast so the heads can feel it
      bvx+=(overL?1:-1)*(150+Math.random()*70);bvx=Math.max(-2200,Math.min(2200,bvx));
      var kc1=Math.min(0.1,Math.abs(bvy)*0.00015);bsyP=1-kc1;bsxP=1/(1-kc1);bsT=0.11;}
-    if(bx<XL+BR){if(inG)return netCatch(2);bx=XL+BR;if(Math.abs(bvx)>120){var kw=Math.min(0.12,Math.abs(bvx)*0.00014);bsxP=1-kw;bsyP=1/(1-kw);bsT=0.12;}bvx=Math.abs(bvx)*0.82;bw=-bw*0.6;}   // wall reverses the spin too
-    if(bx>XR-BR){if(inG)return netCatch(1);bx=XR-BR;if(Math.abs(bvx)>120){var kw2=Math.min(0.12,Math.abs(bvx)*0.00014);bsxP=1-kw2;bsyP=1/(1-kw2);bsT=0.12;}bvx=-Math.abs(bvx)*0.82;bw=-bw*0.6;}
+    }
+    /* ===== THE FOOT OF THE UPRIGHT IS A KICKER, AND IT IS WHY THE CORNER IS NOT A GRAVE =====
+       Soccer\'s end wall does not have this problem, because in soccer the low band at the
+       wall IS the goal: the ball crosses it and leaves play. The League scores overhead, so
+       the whole bottom of that wall is dead surface, and a scrum that arrives there has
+       nowhere to send the ball -- measured, the ball sat inside one 70px circle 6.2% of play
+       with a 5.13s worst episode, all four of the worst at 2% and 98% across the pitch.
+
+       The fix is at the SURFACE rather than in anybody\'s head: below the bar the wall is the
+       padded base of the goalpost, and a ball driven into it comes off UP and BACK. It is a
+       ramp, not a plane. Purely the ball\'s own contact -- nothing is told to disperse, no
+       head is moved, no leash is touched -- and the pile follows the ball out, which is the
+       distinction this file already draws between chaos that resolves and chaos that stops.
+       It also turns the corner from the worst place on the pitch into the most useful: what
+       comes off the base is a high ball back into the field, which is exactly what somebody
+       then has to strike at the posts. ===== */
+    if(bx<XL+BR){if(inG)return netCatch(2);bx=XL+BR;
+     if(YOW&&by>gt&&bvx<-90){bvy=-Math.max(430,Math.abs(bvx)*0.6);bw+=(Math.random()*300-150);}if(Math.abs(bvx)>120){var kw=Math.min(0.12,Math.abs(bvx)*0.00014);bsxP=1-kw;bsyP=1/(1-kw);bsT=0.12;}bvx=Math.abs(bvx)*0.82;bw=-bw*0.6;}   // wall reverses the spin too
+    if(bx>XR-BR){if(inG)return netCatch(1);bx=XR-BR;
+     if(YOW&&by>gt&&bvx>90){bvy=-Math.max(430,Math.abs(bvx)*0.6);bw+=(Math.random()*300-150);}   /* the mirror of the left base -- see its note */ if(Math.abs(bvx)>120){var kw2=Math.min(0.12,Math.abs(bvx)*0.00014);bsxP=1-kw2;bsyP=1/(1-kw2);bsT=0.12;}bvx=-Math.abs(bvx)*0.82;bw=-bw*0.6;}
     for(var pi=0;pi<peers.length;pi++){var p=peers[pi];if(p.elim||p.__bench)continue;   // heads bounce the ball with their BODY -- pure elastic momentum, the same collision they use on each other
      var hx=p.x+p.HW/2,hy=p.y+p.HH*0.55,dx=bx-hx,dy=by-hy,d=Math.hypot(dx,dy),rr=p.HW*0.5+BR;
      if(d>0.1&&d<rr){var nx=dx/d,ny=dy/d,ov=rr-d;
@@ -3015,7 +3173,7 @@ function teams(){
     // than skidding away flat, which is what made play read as a ground tug-of-war   // the pitch is SOLID: a head jumping onto the ball can't drive it under -- it squeezes out (sideways + a small pop up), never through the plane
     if(by<BR+2)by=BR+2;   // and never through the ceiling either
     bvx=Math.max(-2200,Math.min(2200,bvx));bvy=Math.max(-1900,Math.min(1400,bvy));
-    var nearGoal=(by>groundY-GH)&&((bx<95&&bvx<-60)||(bx>W-95&&bvx>60));
+    var nearGoal=(YOW?inG:(by>groundY-GH))&&((bx<95&&bvx<-60)||(bx>W-95&&bvx>60));   // the gasp fires at whatever "this is on target" means in this mode
     if(nearGoal&&now>(gaspAt||0)){gaspAt=now+1600;
      try{if(typeof busyNow==="function"&&!busyNow()){setHold("rest",650);showFace("rest");if(typeof browFlash==="function")browFlash();}}catch(_){}}
    }
@@ -3024,7 +3182,7 @@ function teams(){
    else bw*=Math.pow(0.88,dt);
    spin+=bw*dt;
    S.ball.x=bx;S.ball.y=by;
-   if(WRAF9){S.ball.vx=bvx;S.ball.vy=bvy;S.geo={W:W,H:H,XL:XL,XR:XR,GH:GH,groundY:groundY,BR:BR,OFF:OFF};
+   if(WRAF9){S.ball.vx=bvx;S.ball.vy=bvy;S.geo={W:W,H:H,XL:XL,XR:XR,GH:GH,groundY:groundY,BR:BR,OFF:OFF,yow:YOW,UCB:UCB,UPH:UPH,UPW:UPW};
     S.players=peers.map(function(q){return {slot:q.slot,team:S.teams?S.teams[q.slot]:0,
      role:S.roles?S.roles[q.slot]:"",x:q.x+q.HW/2,y:q.y+q.HH/2,hw:q.HW,hh:q.HH,elim:!!q.elim,kSat:q.__kSat|0,
      gr:!!q.ground,vy:q.vy||0};});}
@@ -3424,7 +3582,7 @@ function teams(){
      so a race comes back from a hidden tab already over, or never over at all.
      `clock` advances by exactly the simulated time that has been stepped, whoever
      stepped it, so a deadline always means "this much race has happened". */
-  var clock=0,hidT=null,cutLine=0,elimGap=8000,stallY=-1e9,stallAt=0,beatAt=0;
+  var clock=0,hidT=null,cutLine=0,elimGap=8000,stallY=-1e9,stallAt=0,beatAt=0,stallN=-1;
   /* ===== DEV-ONLY: THE LEAD CHANGE, WHICH IS THE OTHER THING THE COURSE IS FOR =====
      Jayden: "make it more of a back in fourth whos in first in the race and allowing
      others to catch up." That is a countable event and it was not being counted.
@@ -4115,6 +4273,29 @@ function teams(){
       strung out and it stopped being a beat and became the end of the race: over 40
       seeded races every head that failed to finish was at 84-93% of the descent, piled
       at that gate, and completion sat at 10% against 38%. */
+   /* ---- THE FLAT BAR IS A KNOWN TRAP, AND IT IS DELIBERATELY LEFT ALONE. ----
+      Measured with tools/play-race-stall-probe.py: racers sit at y=3666 and y=5602 -- the
+      same two numbers in every seed, for five to eleven seconds at a time -- drifting
+      sideways with y not moving a pixel. Those are gy-54 for the two gates, and 54 is the
+      racer's radius plus the contact skin. A bar with y1===y2 is a perfectly flat shelf, so
+      gravity resolves entirely into the surface normal and a racer that settles has nothing
+      left to move it; and because the bar's inner end slides, the displacement anti-stuck
+      reads movement and never fires. That is CLAUDE.md's `nud=0` note, word for word.
+
+      IT WAS FIXED, MEASURED, AND TAKEN BACK OUT. Tilting both bars into ramps that feed the
+      opening removes the resting state completely, and over 120 seeded races it was WORSE
+      on three of the four numbers that matter:
+
+                        flat bar      ramped bar
+        COMPLETE        100%          99%
+        CHUTE           12.5 diam     14.1 diam     (the ramp's envelope evicts backfill pegs)
+        |RHO|           0.004         0.044
+        SPREAD          3.31          3.36
+
+      The parking was never what stopped racers finishing -- the ending rule was, and that is
+      fixed where it lives (see the stall re-base below). With every racer home, an
+      eleven-second wrestle with a sliding bar is a thing that happened to somebody in a
+      chaos race, not a defect. Do not re-tilt these without re-reading CHUTE. ---- */
    function gate(){var ow=DM*1.5,gy=y+H*0.15;
     var gl={x1:X0+2,y1:gy,x2:X0+CW*0.3,y2:gy,e:0.28,cls:"gate"},gr={x1:X0+CW*0.7,y1:gy,x2:W-2,y2:gy,e:0.28,cls:"gate"};
     segs.push(gl);segs.push(gr);
@@ -4405,7 +4586,7 @@ function teams(){
    if(rc.length<2)return false;
    if(window.PlayViewportOwner)window.PlayViewportOwner.enter("race");
    ON=true;window.__hmRaceOn=true;document.body.classList.add("hmRace");seed++;winner=-1;order.length=0;ts=1;camY=0;endAt=0;
-   clock=performance.now();stallY=-1e9;stallAt=0;beatAt=0;
+   clock=performance.now();stallY=-1e9;stallAt=0;beatAt=0;stallN=-1;
    cutLine=(opt.advance>0&&opt.advance<rc.length)?(opt.advance|0):0;   // the hairline sits ABOVE this rank index; 0 means the board shows no cut
    balls.length=0;
    var gridOrder=rc.slice();for(var g=gridOrder.length-1;g>0;g--){var j=Math.floor(Math.random()*(g+1)),tmp=gridOrder[g];gridOrder[g]=gridOrder[j];gridOrder[j]=tmp;}   // reshuffled grid every race: fair start, different neighbours
@@ -4619,7 +4800,7 @@ function teams(){
     r:+b.r.toFixed(1),f:!!(b.peer&&b.peer.__filler),   // the collision body and whether this is the mini-Jayden: the two halves of the handicap question
 
     peg:b.cPeg,seg:b.cSeg,gate:b.cGate,spin:b.cSpin,kick:b.cKick,hits:b.cHit,
-    dist:Math.round(b.dist),y:Math.round(b.y),fin:!!b.fin,t:Math.round(b.tFin),
+    dist:Math.round(b.dist),x:Math.round(b.x),y:Math.round(b.y),nud:b.nud|0,fin:!!b.fin,t:Math.round(b.tFin),
     rank:standings().indexOf(i)};});},
    course:function(){return {W:W,H:H,X0:X0,CW:CW,CC:CC,finishY:finishY,D:D,DM:DMAX,
     pegs:pegs.length,segs:segs.length,spins:spins.length,gates:gates.length};},
@@ -4873,7 +5054,45 @@ function teams(){
       waiting out a timer over a still picture. Everywhere else it wraps the race up on
       the standings as they stand. */
    if(ON&&n>=goAt+1000){
-    if(leadY>stallY+24){stallY=leadY;stallAt=n;}
+    /* ===== AND IT WAITS FOR ANYONE STILL RACING =====
+       The geometry fix above stopped racers PARKING on the gate bars, and the trajectories
+       then showed the other half of "some of them never cross the line": the race was
+       hanging up on them. The wrap-up is a rolling window off the last CROSSING -- 7.6s
+       when the winner lands, then 3s after each finisher -- and a field strung out over a
+       third of the course cannot get home inside three seconds. Measured on one seed: the
+       race was called at t=35.0s with SEVEN of twelve racers between 60% and 93% of the
+       descent, every one of them still gaining 300-800px every two seconds. Nobody was
+       stuck. They were abandoned.
+
+       So progress at the BACK extends the deadline, exactly as a crossing does. leadY is
+       already the deepest head that is neither finished nor out, so as the leaders go home
+       it falls back onto the tail on its own -- this reads the number the stall detector
+       was already keeping and asks the other question of it.
+
+       IT CANNOT RUN FOREVER, and that is why this is safe rather than a hostage. The very
+       next branch is STALL_MS: six seconds with the tail gaining nothing wraps the race up
+       on the standings as they stand, and that clause is untouched. So the race now ends
+       when the course has stopped giving, which is the honest condition, instead of when a
+       stopwatch started by somebody else's finish runs out. The qualifier's own QRACE_MS
+       backstop still sits over all of it. ===== */
+    /* ===== THE FRONT OF THE RACE CHANGES IDENTITY EVERY TIME SOMEBODY GOES HOME =====
+       stallY is a HIGH-WATER MARK of leadY, and leadY is the deepest head that is neither
+       finished nor out. The moment the winner crosses, the deepest LIVE head is whoever is
+       next -- thousands of pixels further up the hill -- so `leadY > stallY+24` became
+       unsatisfiable for the rest of the race. From the winner's crossing on, the stall
+       clock ran continuously no matter how fast the tail was descending, and STALL_MS then
+       wrapped the race up six seconds later with the field still on the course. That is the
+       whole of "some of them never cross the line": nobody was stuck, the race stopped
+       asking.
+
+       So the mark is re-based whenever the live field shrinks. It is the same question the
+       detector always asked -- "is the front of this race gaining ground" -- asked of the
+       front that actually exists now. A race whose remaining field has genuinely stopped
+       still trips STALL_MS six seconds later, unchanged, because leadY then stops beating
+       its own new mark. ===== */
+    if(racing!==stallN){stallN=racing;stallY=leadY;stallAt=n;}
+    if(leadY>stallY+24){stallY=leadY;stallAt=n;
+     if(endAt)endAt=Math.max(endAt,n+2500);}
     else{if(!stallAt)stallAt=n;
      if(n-stallAt>STALL_MS){stallAt=n;
       if(elimMode&&winner<0)nextCut=Math.min(nextCut,n);

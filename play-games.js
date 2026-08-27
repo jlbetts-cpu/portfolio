@@ -194,6 +194,10 @@
   if(ex)ex.setAttribute("aria-disabled",few?"true":"false");
   var tr=document.getElementById("pcTour");
   if(tr)tr.setAttribute("aria-disabled","false");
+  /* The League is the cup with a different objective and it fields the same dyed eggheads,
+     so it is ungated for exactly the reason Tournament is: it works on an empty planet. */
+  var yw=document.getElementById("pcYow");
+  if(yw)yw.setAttribute("aria-disabled","false");
   }
  /* ---- THE CROWD STRIP IS GONE, THE CAPABILITY IS NOT.
     It rendered a row of head thumbnails with a per-head remove and an "Add an egghead"
@@ -411,6 +415,12 @@
   try{if(window.__hmTourStart)window.__hmTourStart();}catch(_){}closeMenuBar();battleGate();}   // the tournament builds its own squads, so no mini-Jayden top-up here
  if(tg)tg.addEventListener("click",startTour);
  var pcT=document.getElementById("pcTour");if(pcT)pcT.addEventListener("click",startTour);   // the hub card and the menu row are ONE launcher, not two copies of one
+ /* THE LEAGUE IS THE SAME DOOR WITH THE OTHER GLOBAL. play-tournament.js exposes
+    __hmTourStart and __hmYowStart as two names on one start(); nothing here knows they
+    share a function, and nothing here knows what a football is. */
+ var pcY=document.getElementById("pcYow");
+ if(pcY)pcY.addEventListener("click",function(){if(gameOn())return;
+  try{if(window.__hmYowStart)window.__hmYowStart();}catch(_){}closeMenuBar();battleGate();});
 
  /* ---- THE HOVER PREVIEW'S LOADER IS REMOVED WITH THE PANEL IT FED. See play.html for
     the argument; the short version is that images/preview/ never existed, `.ready` is
