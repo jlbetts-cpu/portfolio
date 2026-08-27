@@ -255,67 +255,153 @@ if(stick && !stick.classList.contains("isFixed") && typeof IntersectionObserver 
    aria-expanded on a control that expands nothing is a lie a screen reader
    reads out loud -- the same note §3 above makes about the Contact disclosure. */
 
-/* ── 3b · THE TRAVELLING ACTIVE INDICATOR ──────────────────────────────────
-   ONE element moved by transform, not a background on each item -- which is the
-   whole reason it can travel at all, and also why it costs no layout: width and
-   translate are both composited, and it is the only animated thing in the bar.
+/* ── 3b · THE TRAVELLING ACTIVE INDICATOR IS GONE, AND THIS IS ITS HEADSTONE.
+   Jayden, 2026-08-26: "the grey box behind the text should only show on hover
+   not selected the bolding of the letters is enough to show its selected."
+   The lit item marked itself twice -- with this pill and with an ink/weight/
+   stroke change -- and the pill was the weaker marker by a factor of six
+   (--c100 at 1.25:1 against the bar, versus --c700 -> --c950 at 7.8:1 -> 16.6:1
+   with the glyph's stroke going 1.75 -> 2). The strong one stays; the redundant
+   one goes, and hover gets the ground to itself. header.css records the full
+   reasoning, including why the phone -- which has no labels to embolden -- did
+   not need a special case.
+   WHAT LEAVES WITH IT, and this is the part worth having in the diff: the
+   element, placeInk()'s two live getBoundingClientRects, a MutationObserver on
+   the whole nav subtree, a document.fonts.ready callback and a rAF-coalesced
+   resize listener. All nine pages end this change with one fewer resize
+   listener and one fewer MutationObserver, and the bar does no measurement at
+   all any more. Its honest limit -- "it can only slide between two states that
+   exist in the same document" -- was already down to zero such transitions once
+   About became its own page, so the travel it existed for had no callers left.
 
-   ITS HONEST LIMIT, stated rather than discovered later: it can only slide
-   between two states that exist in the SAME document. Work <-> About on
-   index.html is a real transition (the About overlay is an in-page takeover, so
-   nothing unloads). Every other move in this bar is a navigation: the new page
-   paints with the indicator already parked under its own item. So the rule is
-   "measure on load, park silently; move with motion only when the lit item
-   changes while the page is alive", and that is what the `armed` flag below is.
+   ── 3c · THE TIME-OF-DAY SWITCH ───────────────────────────────────────────
+   Jayden, 2026-08-26: "the time of day button should be in the header since it
+   affects all the pages."
 
-   It is scoped to .jbNav and never spans pages -- there is no view transition
-   and no cross-document state. Reduced motion gets the same element with no
-   travel, because parking it instantly is exactly the reduced-motion answer. */
-var ink = document.createElement("span");
-ink.className = "jbInk"; ink.setAttribute("aria-hidden","true");
-nav.appendChild(ink);
-var armed = false;
+   WHY THIS FILE AND NOT hero-time.js. The control writes a SITE-WIDE state --
+   data-theme-mode / data-theme-state on <html>, which the footer band and the
+   case-study covers both read -- but it lived in index.html's Hero rail and was
+   driven by hero-time.js, which no other page loads. header.js is on all nine
+   pages, so the control's behaviour follows the control into the chrome.
+   hero-time.js keeps what is genuinely the Hero's: the sky cross-fade, the
+   night spill and the portrait cast. It no longer touches the button, the menu
+   or the icon, so the two files cannot both bind the same trigger.
 
-/* ROUND 11: the indicator is a GREY PILL the size of the lit item's ink box --
-   Jayden's "the grey should be on the pill around the activated tab". So it
-   takes the item's whole rect, width and height, and header.css gives it the
-   item's own --r-pill. Nothing about the measurement changed; what changed is
-   the value it paints, which was a 1.03:1 wash and is now --c100.
-   THE LIT ITEM IS BOLD as of this round, so its box is a few px wider than its
-   unlit neighbours. Measuring the live rect on every call rather than caching
-   one is what keeps the pill fitted after fonts land and after the About overlay
-   swaps which item is lit -- both already covered by the callers below. */
-function placeInk(){
-  var lit = nav.querySelector('[aria-current]:not(.jbHome)');
-  if(!lit){ ink.style.opacity = "0"; return; }
-  var n = nav.getBoundingClientRect(), b = lit.getBoundingClientRect();
-  if(!b.width){ ink.style.opacity = "0"; return; }
-  ink.style.width  = b.width + "px";
-  ink.style.height = b.height + "px";
-  ink.style.transform = "translate(" + (b.left - n.left) + "px," + (b.top - n.top) + "px)";
-  ink.style.opacity = "1";
-  /* the first placement is a measurement, not a move: arm travel only after it */
-  if(!armed){ armed = true; requestAnimationFrame(function(){ nav.classList.add("jbInkOn"); }); }
-}
-placeInk();
-/* fonts land after first paint and the lit item changes width when they do */
-if(document.fonts && document.fonts.ready) document.fonts.ready.then(placeInk);
-new MutationObserver(placeInk).observe(nav,{subtree:true,attributes:true,
-  attributeFilter:["aria-current","hidden"]});
-/* ONE PLACEMENT PER FRAME, NOT ONE PER EVENT. placeInk() reads two live rects
-   and then writes four style properties, so running it on every resize event --
-   which a window drag emits faster than frames arrive -- was a read-after-write
-   against the nav on every tick of the drag. The pill is only ever SEEN once a
-   frame, so measuring it more often than that buys nothing; coalescing to a
-   frame keeps the last size, which is the only one that gets painted. */
-var inkRaf = 0;
-addEventListener("resize", function(){
-  if(inkRaf) return;
-  inkRaf = requestAnimationFrame(function(){
-    inkRaf = 0;
-    nav.classList.remove("jbInkOn"); armed = false; placeInk();
+   THE GLYPH IS NOT SET HERE. header.css picks the hour's <g> off
+   :root[data-theme-state], which site-theme.js -- a blocking script in <head> --
+   has already written before this markup is parsed. That is why there is no
+   first-paint hole on the eight pages that do not load hero-time.js, and why
+   this file has no icon code at all.
+
+   FEATURE-DETECTED LIKE EVERYTHING ELSE IN THIS FILE: a page without the
+   control, or without SiteTheme, binds nothing. */
+var timeWrap = nav.querySelector(".heroTime");
+var timeBtn  = document.getElementById("heroTimeBtn");
+var timeMenu = document.getElementById("heroTimeMenu");
+if(timeWrap && timeBtn && timeMenu && window.SiteTheme){
+ var siteTheme = window.SiteTheme;
+ var timeItems = [].slice.call(timeMenu.querySelectorAll('[role="menuitemradio"]'));
+
+ var timeClose = function(returnFocus){
+  timeWrap.classList.remove("open");
+  timeMenu.style.removeProperty("transform");
+  timeMenu.style.removeProperty("max-height");
+  timeBtn.setAttribute("aria-expanded","false");
+  if(returnFocus)timeBtn.focus();
+ };
+
+ /* THE MENU HANGS DOWNWARD NOW, AND THIS FUNCTION FINALLY AGREES WITH ITS CSS.
+    It always computed `innerHeight - trigger.bottom`, which is the room BELOW
+    the trigger -- correct for a bar at the top of the window and meaningless
+    for the Hero's bottom-right corner, where the stylesheet had flipped the
+    anchor to `bottom:calc(100% + 8px)` and this measurement was quietly capping
+    the height against the wrong side. Nothing here changed; the anchor moved
+    back under it.
+    The horizontal shift is a clamp, not a flip: at 320 a 216px panel hung off a
+    trigger 16px from the right edge would run 0..232 and fit, but the same
+    panel on a narrower future zone would not, so the shift stays. */
+ var timePosition = function(){
+  var gutter = parseFloat(getComputedStyle(root).getPropertyValue("--menu-viewport-gutter")) || 0;
+  timeMenu.style.removeProperty("transform");
+  timeMenu.style.removeProperty("max-height");
+  var b = timeBtn.getBoundingClientRect();
+  timeMenu.style.setProperty("max-height", Math.max(0, window.innerHeight - b.bottom - gutter) + "px");
+  var r = timeMenu.getBoundingClientRect();
+  var shift = Math.max(gutter - r.left, Math.min(window.innerWidth - gutter - r.right, 0));
+  if(shift !== 0) timeMenu.style.setProperty("transform","translateX(" + shift + "px)");
+ };
+
+ var timeOpen = function(focusItem){
+  timeWrap.classList.add("open");
+  timeBtn.setAttribute("aria-expanded","true");
+  timePosition();
+  if(focusItem){
+   var selected = timeItems.filter(function(item){
+    return item.getAttribute("aria-checked") === "true";})[0];
+   (selected || timeItems[0]).focus();
+  }
+ };
+
+ var timeMove = function(offset){
+  var index = timeItems.indexOf(document.activeElement);
+  if(index < 0) index = 0;
+  timeItems[(index + offset + timeItems.length) % timeItems.length].focus();
+ };
+
+ var timeChoose = function(item){
+  siteTheme.setMode(item.getAttribute("data-time-mode"));
+  timeClose(true);
+ };
+
+ timeBtn.addEventListener("click", function(){
+  if(timeWrap.classList.contains("open")) timeClose(false); else timeOpen(true);
+ });
+ timeBtn.addEventListener("keydown", function(event){
+  if(event.key === "ArrowDown" || event.key === "ArrowUp"){
+   event.preventDefault();
+   if(!timeWrap.classList.contains("open")) timeOpen(false);
+   (event.key === "ArrowDown" ? timeItems[0] : timeItems[timeItems.length - 1]).focus();
+  }else if(event.key === "Escape" && timeWrap.classList.contains("open")){
+   event.preventDefault(); timeClose(true);
+  }
+ });
+ timeMenu.addEventListener("click", function(event){
+  var item = event.target.closest('[role="menuitemradio"]');
+  if(item && timeMenu.contains(item)) timeChoose(item);
+ });
+ timeMenu.addEventListener("keydown", function(event){
+  if(event.key === "ArrowDown" || event.key === "ArrowUp"){
+   event.preventDefault(); timeMove(event.key === "ArrowDown" ? 1 : -1);
+  }else if(event.key === "Home" || event.key === "End"){
+   event.preventDefault(); timeItems[event.key === "Home" ? 0 : timeItems.length - 1].focus();
+  }else if(event.key === "Enter" || event.key === " " || event.key === "Spacebar"){
+   var item = event.target.closest('[role="menuitemradio"]');
+   if(item && timeMenu.contains(item)){ event.preventDefault(); timeChoose(item); }
+  }else if(event.key === "Escape"){
+   event.preventDefault(); timeClose(true);
+  }
+ });
+ document.addEventListener("pointerdown", function(event){
+  if(timeWrap.classList.contains("open") && !timeWrap.contains(event.target)) timeClose(false);
+ });
+ addEventListener("resize", timePosition, {passive:true});
+
+ /* aria-checked is the one part of the control's state a stylesheet cannot
+    write, so it is mirrored from the published snapshot rather than set on
+    click -- which keeps it right when the hour rolls over under an "Automatic"
+    choice, and on a page where something else changed the mode. */
+ siteTheme.subscribe(function(snapshot){
+  timeItems.forEach(function(item){
+   item.setAttribute("aria-checked",
+    item.getAttribute("data-time-mode") === snapshot.mode ? "true" : "false");
   });
-}, {passive:true});
+ });
+ var first = siteTheme.getSnapshot();
+ if(first) timeItems.forEach(function(item){
+  item.setAttribute("aria-checked",
+   item.getAttribute("data-time-mode") === first.mode ? "true" : "false");
+ });
+}
 
 /* ── 4 · THE MOOD DOCK is not wired here, and that is deliberate. It moved out
    of the header as the same element it always was (#moodbar / #moodBtn /

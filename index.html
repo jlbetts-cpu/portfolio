@@ -50,7 +50,7 @@
      page alone, so the ink-surface nav lost its top highlight here and nowhere
      else. Linked BEFORE this page's <style>, so anything the page still declares
      for itself continues to win. -->
-<link rel="stylesheet" href="tokens.css?v=65279febd9">
+<link rel="stylesheet" href="tokens.css?v=b7996e2715">
 <style>
 html{scroll-behavior:smooth}
 html.softScrolling{scroll-behavior:auto}
@@ -2356,11 +2356,11 @@ html{scroll-padding-top:calc(var(--nav-h) + var(--sp-16-24))}
      move: 24,600 computed properties over 820 elements at 1440 and 390, and the
      only differences are the nav icons going back to the 18px they have always
      drawn at. -->
-<link rel="stylesheet" href="controls.css?v=65279febd9">
-<link rel="stylesheet" href="header.css?v=65279febd9">
-<link rel="stylesheet" href="hero-time.css?v=65279febd9">
-<link rel="stylesheet" href="footer.css?v=65279febd9">
-<link rel="stylesheet" href="site-theme.css?v=65279febd9">
+<link rel="stylesheet" href="controls.css?v=b7996e2715">
+<link rel="stylesheet" href="header.css?v=b7996e2715">
+<link rel="stylesheet" href="hero-time.css?v=b7996e2715">
+<link rel="stylesheet" href="footer.css?v=b7996e2715">
+<link rel="stylesheet" href="site-theme.css?v=b7996e2715">
 <script>/* THE OLD OVERLAY'S URL STILL RESOLVES. index.html#about was the only address
    About ever had, and it is linked from play.html and the other sub-pages, and sits in
    anyone's history. Redirected before first paint (replace(), so it leaves no entry to
@@ -2435,6 +2435,30 @@ if(location.hash==="#about")location.replace("about.html");</script>
         bar, so the two read as one system rather than as two different popups. -->
    <a class="ctl ctl--nav" data-nav-item="games" href="play.html" aria-label="Play"><svg class="gIco uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><line x1="6" x2="10" y1="11" y2="11"/><line x1="8" x2="8" y1="9" y2="13"/><line x1="15" x2="15.01" y1="12" y2="12"/><line x1="18" x2="18.01" y1="10" y2="10"/><path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258-.006-.051-.011-.1-.017-.151A4 4 0 0 0 17.32 5z"/></svg><span class="jbLbl">Play</span></a>
    <a class="ctl ctl--nav" data-nav-item="workspace" href="workspace/" aria-label="Workspace"><svg class="gIco uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M2 6h4"/><path d="M2 10h4"/><path d="M2 14h4"/><path d="M2 18h4"/><rect width="16" height="20" x="4" y="2" rx="2"/><path d="M16 2v20"/></svg><span class="jbLbl">Workspace</span></a>
+   <!-- ── THE TIME OF DAY, IN THE CHROME THAT THE STATE ACTUALLY REACHES ──────
+        Jayden, 2026-08-26: "the time of day button should be in the header since
+        it affects all the pages." It writes data-theme-mode / data-theme-state on
+        <html>; every page reads them. It used to live in index.html's Hero rail.
+        THE GLYPH IS CHOSEN IN CSS, NOT BY SCRIPT. site-theme.js is a blocking
+        <script> in <head>, so :root carries data-theme-state before this markup is
+        parsed, and header.css shows the matching <g> off it. No first-paint hole
+        and nothing to fetch -- the paths are inline for the same reason header.js
+        inlines the nav's: an external <use> renders nothing until its document
+        resolves, which is the blank-glyph bug this bar has already had once.
+        header.js owns opening it, the roulette of aria-checked, and the keyboard. -->
+   <div class="heroTime" id="heroTime">
+    <button class="heroTimeBtn ctl ctl--nav" id="heroTimeBtn" type="button" aria-label="Time of day" aria-haspopup="menu" aria-expanded="false" aria-controls="heroTimeMenu"><svg class="heroTimeIcon uiIcon" id="heroTimeIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><g data-hero-time-icon="pre-dawn"><path d="M18 5h4"/><path d="M20 3v4"/><path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"/></g><g data-hero-time-icon="sunrise"><path d="M12 2v8"/><path d="m4.93 10.93 1.41 1.41"/><path d="M2 18h2"/><path d="M20 18h2"/><path d="m19.07 10.93-1.41 1.41"/><path d="M22 22H2"/><path d="m8 6 4-4 4 4"/><path d="M16 18a4 4 0 0 0-8 0"/></g><g data-hero-time-icon="daytime"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></g><g data-hero-time-icon="dusk"><path d="M12 2v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="M20 12h2"/><path d="m19.07 4.93-1.41 1.41"/><path d="M15.947 12.65a4 4 0 0 0-5.925-4.128"/><path d="M13 22H7a5 5 0 1 1 4.9-6H13a3 3 0 0 1 0 6Z"/></g><g data-hero-time-icon="sunset"><path d="M12 10V2"/><path d="m4.93 10.93 1.41 1.41"/><path d="M2 18h2"/><path d="M20 18h2"/><path d="m19.07 10.93-1.41 1.41"/><path d="M22 22H2"/><path d="m16 6-4 4-4-4"/><path d="M16 18a4 4 0 0 0-8 0"/></g><g data-hero-time-icon="night"><path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"/></g><g data-hero-time-icon="off"><path d="m2 2 20 20"/><path d="M8.35 2.69A10 10 0 0 1 21.3 15.65"/><path d="M19.08 19.08A10 10 0 1 1 4.92 4.92"/></g></svg></button>
+    <div class="heroTimeMenu ctl-menu" id="heroTimeMenu" role="menu" aria-label="Choose time of day">
+     <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="false" data-time-mode="auto"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Automatic</button>
+     <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="false" data-time-mode="off"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m2 2 20 20"/><path d="M8.35 2.69A10 10 0 0 1 21.3 15.65"/><path d="M19.08 19.08A10 10 0 1 1 4.92 4.92"/></svg>Off</button>
+     <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="false" data-time-mode="pre-dawn"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M18 5h4"/><path d="M20 3v4"/><path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"/></svg>Pre-dawn</button>
+     <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="false" data-time-mode="sunrise"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2v8"/><path d="m4.93 10.93 1.41 1.41"/><path d="M2 18h2"/><path d="M20 18h2"/><path d="m19.07 10.93-1.41 1.41"/><path d="M22 22H2"/><path d="m8 6 4-4 4 4"/><path d="M16 18a4 4 0 0 0-8 0"/></svg>Sunrise</button>
+     <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="false" data-time-mode="daytime"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>Daytime</button>
+     <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="false" data-time-mode="dusk"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="M20 12h2"/><path d="m19.07 4.93-1.41 1.41"/><path d="M15.947 12.65a4 4 0 0 0-5.925-4.128"/><path d="M13 22H7a5 5 0 1 1 4.9-6H13a3 3 0 0 1 0 6Z"/></svg>Dusk</button>
+     <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="false" data-time-mode="sunset"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 10V2"/><path d="m4.93 10.93 1.41 1.41"/><path d="M2 18h2"/><path d="M20 18h2"/><path d="m19.07 10.93-1.41 1.41"/><path d="M22 22H2"/><path d="m16 6-4 4-4-4"/><path d="M16 18a4 4 0 0 0-8 0"/></svg>Sunset</button>
+     <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="false" data-time-mode="night"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"/></svg>Night</button>
+    </div>
+   </div>
   </span>
   <span class="jbGrp jbGrpR" id="jbNavEnd">
    <!-- CONTACT -- a button to his inbox, and NOT the primary action.  2026-08-19.
@@ -2505,43 +2529,37 @@ if(location.hash==="#about")location.replace("about.html");</script>
         it degrades on its own and needs no change. -->
   </div>
 
-  <!-- ── THE TIME CONTROL LEAVES THE CENTRED STACK AND TAKES THE PAGE'S GRID ──
-       Jayden, 2026-08-20: "put the button for day change in the bottom right
-       corner of the hero using the grid".
-       THE GRID IS NOT INVENTED HERE, IT IS THE ONE EVERY OTHER BAND ALREADY
-       USES. Measured on this page: the nav's contents, the Featured/Case
-       Studies tab row, the first cover and the footer rule all run 120..1320 at
-       1440 and 16..374 at 390. That line is `width:min(1200px,100%)` inside the
-       section's own inline padding, and .heroCtas below is positioned off the
-       Hero's PADDING box -- which is what an absolutely positioned child is
-       positioned against -- so `left:0;right:0` plus the same width and
-       `margin-inline:auto` lands on that column without a single new number.
-       IT MOVES OUT OF .heroCopy, NOT JUST DOWN. Three things depend on that:
-       the copy is now h1 + eyebrow only, so it is 60px shorter and the head's
-       travel field (floored on .heroCopy's lower edge, hero-head-transform.js)
-       gains that height back; the copy carries mix-blend-mode:difference now
-       and a CONTROL must not be blended, only type; and .heroCopy is
-       pointer-events:none, so a control living inside it needed the opt-in that
-       is deleted below.
-       .heroCtas KEEPS ITS CLASS because hero-engine.js reveals the row by
-       querySelector(".heroCtas") and adds .in -- the entrance is unchanged and
-       that file needs no edit. -->
-  <div class="heroCtas">
-   <div class="heroTime" id="heroTime">
-    <button class="heroTimeBtn ctl ctl--quiet ctl--icon" id="heroTimeBtn" type="button" aria-label="Time of day" aria-haspopup="menu" aria-expanded="false" aria-controls="heroTimeMenu"><svg class="heroTimeIcon uiIcon" id="heroTimeIcon" viewBox="0 0 24 24" aria-hidden="true"><g data-hero-time-icon="pre-dawn"><use href="ui-icons.svg#lucide-moon-star"/></g><g data-hero-time-icon="sunrise"><use href="ui-icons.svg#lucide-sunrise"/></g><g data-hero-time-icon="daytime"><use href="ui-icons.svg#lucide-sun"/></g><g data-hero-time-icon="dusk"><use href="ui-icons.svg#lucide-cloud-sun"/></g><g data-hero-time-icon="sunset"><use href="ui-icons.svg#lucide-sunset"/></g><g data-hero-time-icon="night"><use href="ui-icons.svg#lucide-moon"/></g><g data-hero-time-icon="off"><use href="ui-icons.svg#lucide-circle-off"/></g></svg></button>
-    <div class="heroTimeMenu ctl-menu" id="heroTimeMenu" role="menu" aria-label="Choose time of day">
-     <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="true" data-time-mode="auto"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true"><use href="ui-icons.svg#lucide-rotate-ccw"/></svg>Automatic</button>
-     <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="false" data-time-mode="off"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true"><use href="ui-icons.svg#lucide-circle-off"/></svg>Off</button>
-     <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="false" data-time-mode="pre-dawn"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true"><use href="ui-icons.svg#lucide-moon-star"/></svg>Pre-dawn</button>
-     <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="false" data-time-mode="sunrise"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true"><use href="ui-icons.svg#lucide-sunrise"/></svg>Sunrise</button>
-     <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="false" data-time-mode="daytime"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true"><use href="ui-icons.svg#lucide-sun"/></svg>Daytime</button>
-     <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="false" data-time-mode="dusk"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true"><use href="ui-icons.svg#lucide-cloud-sun"/></svg>Dusk</button>
-     <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="false" data-time-mode="sunset"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true"><use href="ui-icons.svg#lucide-sunset"/></svg>Sunset</button>
-     <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="false" data-time-mode="night"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true"><use href="ui-icons.svg#lucide-moon"/></svg>Night</button>
-    </div>
-   </div>
-  </div>
-  <script id="heroTimePrepaint">(function(){var r=document.documentElement,h=document.getElementById("main"),m=r.getAttribute("data-theme-mode")||"auto",s=r.getAttribute("data-theme-state")||"off",q=r.getAttribute("data-reduced-motion")||"no-preference",i=document.getElementById("heroTimeIcon"),n=document.querySelectorAll('#heroTimeMenu [role="menuitemradio"]');h.setAttribute("data-time-mode",m);h.setAttribute("data-time-state",s);h.setAttribute("data-reduced-motion",q);i.setAttribute("data-icon",s);n.forEach(function(x){x.setAttribute("aria-checked",x.getAttribute("data-time-mode")===m?"true":"false");});})();</script>
+  <!-- ── THE TIME CONTROL LEFT THE HERO FOR THE HEADER, AND THE RAIL WENT WITH IT ──
+       Jayden, 2026-08-26: "the time of day button should be in the header since
+       it affects all the pages." He is right and it was a real inconsistency:
+       the control writes data-theme-mode / data-theme-state on <html>, which
+       EVERY page reads -- the footer band takes its colour from it and the five
+       case-study covers swap their twelve time variants on it -- while the
+       control itself only existed on this one page, in the Hero's bottom-right
+       rail. A site-wide state belongs in the site-wide chrome.
+       IT IS THE SAME ELEMENT, MOVED. #heroTime / #heroTimeBtn / #heroTimeMenu
+       keep their ids and their markup; they are now the second-to-last item in
+       the nav's trailing zone on all nine pages, and header.js drives them
+       there instead of hero-time.js. hero-time.js keeps what is actually the
+       Hero's: the sky cross-fade, the spill and the portrait cast.
+       .heroCtas GOES WITH IT rather than being left empty. It held exactly one
+       child -- the time control -- so an empty absolutely-positioned row is a
+       box with nothing in it: it still answers getBoundingClientRect(), and
+       hero-head-transform.js's blockRect() reserved the corner it occupied so a
+       drag handle could not land under the control. With the control in the
+       header that reserve is 43px of empty sky the head is told to avoid, which
+       is worse than no reserve at all. hero-engine.js's abShowCtas() is
+       null-guarded (`if(!hc)return`) and needs no edit. -->
+  <!-- THE HERO'S OWN MIRROR OF THE ROOT STATE, BEFORE FIRST PAINT. site-theme.js
+       is a blocking <script> in <head>, so :root already carries data-theme-mode
+       / -state / data-reduced-motion by the time this runs; hero-time.css keys
+       the sky off .hero's copies of them, so they have to be on the element too
+       or the first frame paints the wrong weather.
+       IT NO LONGER TOUCHES THE CONTROL. The trigger's glyph is chosen in CSS off
+       :root[data-theme-state] (header.css) -- no script, no blank frame, and it
+       is right on all nine pages rather than on the one that carries this
+       block -- and header.js writes aria-checked on the menu rows. -->
+  <script id="heroTimePrepaint">(function(){var r=document.documentElement,h=document.getElementById("main");h.setAttribute("data-time-mode",r.getAttribute("data-theme-mode")||"auto");h.setAttribute("data-time-state",r.getAttribute("data-theme-state")||"off");h.setAttribute("data-reduced-motion",r.getAttribute("data-reduced-motion")||"no-preference");})();</script>
   <div class="heroTimeSupport heroCharacterPeek"><div class="heroHeadTransform" id="heroHeadTransform"><div class="stagewrap"><div class="queueDots" id="qdots" role="status" aria-live="polite"><span class="qsr"></span><i></i><i></i><i></i></div><div id="stageMorph"><div class="stage" id="stage"><img class="face" id="face" alt="Jayden Betts" draggable="false" role="button" tabindex="0" aria-pressed="false" aria-label="Select and reposition animated portrait" data-head-bounds="0.1933 0.0616 0.8484 0.9234"><img id="heroTimePortraitCast" class="heroTimePortraitCast" alt="" aria-hidden="true"><img class="tongue" id="tongue" src="images/tongue.webp" alt="" aria-hidden="true">
 <svg class="glasses" id="glasses" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><defs><pattern id="glCard" patternUnits="userSpaceOnUse" width="100" height="100"><image href="images/glass_frame_tex.webp" x="0" y="0" width="100" height="100" preserveAspectRatio="xMidYMid slice"/></pattern><linearGradient id="glSheen" x1="0" y1="0" x2="0.62" y2="1"><stop offset="0" stop-color="#fff" stop-opacity="0.5"/><stop offset="0.4" stop-color="#fff" stop-opacity="0.06"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient><mask id="glMask" maskUnits="userSpaceOnUse" x="0" y="0" width="100" height="100"><rect x="28" y="45.3" width="44" height="13.2" rx="2.4" fill="#fff"/><polygon points="28,47.2 26,48 26,50.4 28,51.2" fill="#fff"/><polygon points="72,47.2 74,48 74,50.4 72,51.2" fill="#fff"/><rect x="32.5" y="47.3" width="13" height="9.2" rx="1.8" fill="#000"/><rect x="54.5" y="47.3" width="13" height="9.2" rx="1.8" fill="#000"/><path d="M46.7 58.6 Q50 54.3 53.3 58.6 Z" fill="#000"/></mask></defs><rect class="gl-red" x="32.5" y="47.3" width="13" height="9.2" rx="1.8"/><rect class="gl-cyan" x="54.5" y="47.3" width="13" height="9.2" rx="1.8"/><rect class="gl-plast" x="32.5" y="47.3" width="13" height="9.2" rx="1.8" fill="url(#glSheen)"/><rect class="gl-plast" x="54.5" y="47.3" width="13" height="9.2" rx="1.8" fill="url(#glSheen)"/><rect x="0" y="0" width="100" height="100" fill="url(#glCard)" mask="url(#glMask)"/></svg></div></div>
 </div></div></div>

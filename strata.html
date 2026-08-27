@@ -49,7 +49,7 @@
 <meta name="twitter:image:alt" content="Strata, a gamified habit builder designed by Jayden Betts">
 <link rel="preload" as="font" type="font/woff2" href="fonts/geist-latin-400-normal.woff2" crossorigin><link rel="preload" as="font" type="font/woff2" href="fonts/geist-latin-600-normal.woff2" crossorigin>
 <link rel="preload" as="image" href="images/cs/strata-cover.webp" fetchpriority="high">
-<link rel="stylesheet" href="tokens.css?v=65279febd9">
+<link rel="stylesheet" href="tokens.css?v=b7996e2715">
 <style>
 /* THE FACES MOVED TO tokens.css (2026-08-04) -- declared once for all ten pages
    instead of copied into nine of them and missed on two (about.html and
@@ -704,11 +704,11 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
    which shared the declaration and the defect -- bearings' .cmp measured round
    over a squircle board too. */
 </style>
-<link rel="stylesheet" href="controls.css?v=65279febd9">
+<link rel="stylesheet" href="controls.css?v=b7996e2715">
 <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Jayden Betts","item":"https://jaydenbetts.design/"},{"@type":"ListItem","position":2,"name":"Strata Case Study","item":"https://jaydenbetts.design/strata.html"}]},{"@type":"CreativeWork","@id":"https://jaydenbetts.design/strata.html#work","url":"https://jaydenbetts.design/strata.html","name":"Strata: A Product Design Case Study by Jayden Betts","description":"Strata is a gamified habit builder where your wins stack up into a tower of colourful blocks, playable right on the page. A product design case study by Jayden Betts.","image":"https://jaydenbetts.design/images/cs/strata-cover.webp","author":{"@type":"Person","@id":"https://jaydenbetts.design/#person","name":"Jayden Betts","alternateName":"Jayden Lee Betts","url":"https://jaydenbetts.design/","sameAs":["https://www.linkedin.com/in/jaydenbetts","https://www.instagram.com/jaydenleebetts"]},"genre":"Product Design","inLanguage":"en"}]}</script>
-<link rel="stylesheet" href="header.css?v=65279febd9">
-<link rel="stylesheet" href="footer.css?v=65279febd9">
-<link rel="stylesheet" href="site-theme.css?v=65279febd9">
+<link rel="stylesheet" href="header.css?v=b7996e2715">
+<link rel="stylesheet" href="footer.css?v=b7996e2715">
+<link rel="stylesheet" href="site-theme.css?v=b7996e2715">
 <script src="header.js" defer></script>
 <script src="footer-band.js" defer></script>
 </head>
@@ -739,6 +739,30 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
     <a class="backlink ctl ctl--nav" data-nav-item="about" href="index.html#about" aria-label="About"><svg class="gIco uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/></svg><span class="jbLbl">About</span></a>
     <a class="ctl ctl--nav" data-nav-item="games" href="play.html" aria-label="Play"><svg class="gIco uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><line x1="6" x2="10" y1="11" y2="11"/><line x1="8" x2="8" y1="9" y2="13"/><line x1="15" x2="15.01" y1="12" y2="12"/><line x1="18" x2="18.01" y1="10" y2="10"/><path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258-.006-.051-.011-.1-.017-.151A4 4 0 0 0 17.32 5z"/></svg><span class="jbLbl">Play</span></a>
    <a class="ctl ctl--nav" data-nav-item="workspace" href="workspace/" aria-label="Workspace"><svg class="gIco uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M2 6h4"/><path d="M2 10h4"/><path d="M2 14h4"/><path d="M2 18h4"/><rect width="16" height="20" x="4" y="2" rx="2"/><path d="M16 2v20"/></svg><span class="jbLbl">Workspace</span></a>
+    <!-- ── THE TIME OF DAY, IN THE CHROME THAT THE STATE ACTUALLY REACHES ──────
+         Jayden, 2026-08-26: "the time of day button should be in the header since
+         it affects all the pages." It writes data-theme-mode / data-theme-state on
+         <html>; every page reads them. It used to live in index.html's Hero rail.
+         THE GLYPH IS CHOSEN IN CSS, NOT BY SCRIPT. site-theme.js is a blocking
+         <script> in <head>, so :root carries data-theme-state before this markup is
+         parsed, and header.css shows the matching <g> off it. No first-paint hole
+         and nothing to fetch -- the paths are inline for the same reason header.js
+         inlines the nav's: an external <use> renders nothing until its document
+         resolves, which is the blank-glyph bug this bar has already had once.
+         header.js owns opening it, the roulette of aria-checked, and the keyboard. -->
+    <div class="heroTime" id="heroTime">
+     <button class="heroTimeBtn ctl ctl--nav" id="heroTimeBtn" type="button" aria-label="Time of day" aria-haspopup="menu" aria-expanded="false" aria-controls="heroTimeMenu"><svg class="heroTimeIcon uiIcon" id="heroTimeIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><g data-hero-time-icon="pre-dawn"><path d="M18 5h4"/><path d="M20 3v4"/><path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"/></g><g data-hero-time-icon="sunrise"><path d="M12 2v8"/><path d="m4.93 10.93 1.41 1.41"/><path d="M2 18h2"/><path d="M20 18h2"/><path d="m19.07 10.93-1.41 1.41"/><path d="M22 22H2"/><path d="m8 6 4-4 4 4"/><path d="M16 18a4 4 0 0 0-8 0"/></g><g data-hero-time-icon="daytime"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></g><g data-hero-time-icon="dusk"><path d="M12 2v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="M20 12h2"/><path d="m19.07 4.93-1.41 1.41"/><path d="M15.947 12.65a4 4 0 0 0-5.925-4.128"/><path d="M13 22H7a5 5 0 1 1 4.9-6H13a3 3 0 0 1 0 6Z"/></g><g data-hero-time-icon="sunset"><path d="M12 10V2"/><path d="m4.93 10.93 1.41 1.41"/><path d="M2 18h2"/><path d="M20 18h2"/><path d="m19.07 10.93-1.41 1.41"/><path d="M22 22H2"/><path d="m16 6-4 4-4-4"/><path d="M16 18a4 4 0 0 0-8 0"/></g><g data-hero-time-icon="night"><path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"/></g><g data-hero-time-icon="off"><path d="m2 2 20 20"/><path d="M8.35 2.69A10 10 0 0 1 21.3 15.65"/><path d="M19.08 19.08A10 10 0 1 1 4.92 4.92"/></g></svg></button>
+     <div class="heroTimeMenu ctl-menu" id="heroTimeMenu" role="menu" aria-label="Choose time of day">
+      <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="false" data-time-mode="auto"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Automatic</button>
+      <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="false" data-time-mode="off"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m2 2 20 20"/><path d="M8.35 2.69A10 10 0 0 1 21.3 15.65"/><path d="M19.08 19.08A10 10 0 1 1 4.92 4.92"/></svg>Off</button>
+      <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="false" data-time-mode="pre-dawn"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M18 5h4"/><path d="M20 3v4"/><path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"/></svg>Pre-dawn</button>
+      <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="false" data-time-mode="sunrise"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2v8"/><path d="m4.93 10.93 1.41 1.41"/><path d="M2 18h2"/><path d="M20 18h2"/><path d="m19.07 10.93-1.41 1.41"/><path d="M22 22H2"/><path d="m8 6 4-4 4 4"/><path d="M16 18a4 4 0 0 0-8 0"/></svg>Sunrise</button>
+      <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="false" data-time-mode="daytime"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>Daytime</button>
+      <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="false" data-time-mode="dusk"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="M20 12h2"/><path d="m19.07 4.93-1.41 1.41"/><path d="M15.947 12.65a4 4 0 0 0-5.925-4.128"/><path d="M13 22H7a5 5 0 1 1 4.9-6H13a3 3 0 0 1 0 6Z"/></svg>Dusk</button>
+      <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="false" data-time-mode="sunset"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 10V2"/><path d="m4.93 10.93 1.41 1.41"/><path d="M2 18h2"/><path d="M20 18h2"/><path d="m19.07 10.93-1.41 1.41"/><path d="M22 22H2"/><path d="m16 6-4 4-4-4"/><path d="M16 18a4 4 0 0 0-8 0"/></svg>Sunset</button>
+      <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="false" data-time-mode="night"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"/></svg>Night</button>
+     </div>
+    </div>
    </span>
    <span class="jbGrp jbGrpR" id="jbNavEnd">
     <!-- CONTACT -- a button to his inbox, and NOT the primary action.  2026-08-19.
@@ -786,7 +810,7 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
 
     <div class="ov">
      <span class="rlabel">Overview</span>
-     <p class="ovBody rv" data-f="0.011">Strata is a gamified habit builder. Instead of a checklist, your wins stack up as colorful blocks, Tetris meets Minecraft, until the month becomes a tower you built one habit at a time. I designed and built it end to end in Lovable, then rebuilt it natively in Xcode. It is a case about interaction, sound, and where AI belongs in a designer&rsquo;s process, and it is playable right here on the page.</p>
+     <p class="ovBody rv" data-f="0.011">Strata is a gamified habit builder. Instead of a checklist, your wins stack up as colorful blocks, Tetris meets Minecraft, until the month becomes a tower you built one habit at a time. I designed and built it end to end in Lovable, then rebuilt it natively in Xcode.</p>
     </div>
    </section>
 
@@ -800,28 +824,28 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
      </div>
      <button class="demoMute ctl ctl--secondary ctl--media-large" id="demoMute" type="button" aria-label="Mute and stop the demo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H2v6h4l5 4V5z"/><line x1="22" y1="9" x2="16" y2="15"/><line x1="16" y1="9" x2="22" y2="15"/></svg>Mute</button>
     </div>
-    <figcaption class="cap">The real Strata, live and playable, this is the Lovable build. Stack a block, hear it land, add a photo, everything here works.</figcaption>
+    <figcaption class="cap">The real Strata, the Lovable build. Stack a block, hear it land, add a photo, everything here works.</figcaption>
    </figure>
 
    <section id="problem" class="sec">
     <div class="kicker">Problem</div>
     <h2 class="secHead">The assignment stopped at a pitch. Strata didn&rsquo;t.</h2>
-    <p class="secBody">Strata started in an entrepreneurship class where the assignment was to pitch a product. <strong>I did not want to stop at slides, so I built the thing.</strong> The problem came from my own life: some habits stick effortlessly, I can always get to the gym, but picking up a guitar or reading is a real struggle to start.</p>
+    <p class="secBody">The assignment in my entrepreneurship class was to pitch a product. <strong>I did not want to stop at slides, so I built the thing.</strong> The problem came from my own life: some habits stick effortlessly, but picking up a guitar or reading is a real struggle to start.</p>
    </section>
 
    <section id="research" class="sec">
     <div class="kicker">The build</div>
     <h2 class="secHead">710 edits to get it right.</h2>
-    <p class="secBody">Building Strata taught me <strong>the hard part is not the code, it is the direction</strong>. I was a director in the chair, giving orders for a vision only I could see, and the more specific I got, the better it came out. The 710 edits were not repairs, they were iterations, and that fluency, steering AI toward the thing in your head, was a skill I did not have when I started.</p>
+    <p class="secBody"><strong>The hard part was not the code, it was the direction.</strong> The 710 edits were not repairs, they were iterations: the more specific I got, the better it came out.</p>
     <div class="subBlock">
-     <div class="subKick">What I learned</div>
+     <div class="subKick">Where AI stops</div>
      <h3 class="subHead">AI is a tool, not a replacement.</h3>
-     <p class="secBody"><strong>AI is a tool for bringing my designs to life, not a replacement for doing the design.</strong> Everything about how Strata looks and feels, the color system, the way a block lands, the little tower dance, was mine. AI let me build it into a real, playable product far faster than I could alone, but the work comes out best when I am designing it, not typing prompts about how things should look. That line is the most valuable thing I walked away with.</p>
+     <p class="secBody"><strong>AI is a tool for bringing my designs to life, not a replacement for doing the design.</strong> Everything about how Strata looks and feels, the color system, the way a block lands, the little tower dance, was mine. AI only got it playable far faster than I could alone.</p>
     </div>
     <div class="subBlock">
      <div class="subKick">The native build</div>
      <h3 class="subHead">Then, a native rebuild in Xcode.</h3>
-     <p class="secBody">Lovable got me to a playable product, but my goal was always a proper iOS app. So <strong>I taught myself to code it in Xcode</strong> and rebuilt Strata as a native experience, most of it over spring break in a coffee shop near home.</p>
+     <p class="secBody">Lovable got me to a playable product, but my goal was always a proper iOS app. So <strong>I taught myself to code it in Xcode</strong> and rebuilt Strata as a native experience.</p>
     </div>
    </section>
 
@@ -836,14 +860,14 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
     <p class="statSrc statRowSrc">amplifAI &middot; habit-formation research</p>
     <figure class="videoWrap">
      <div class="videoFrame media media--full"><iframe src="https://www.youtube.com/embed/WB-E80T90WI?playsinline=1&rel=0" title="Strata product showcase" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div>
-     <figcaption class="cap">The full walkthrough with sound on: the stacking, the blocks, and the tower dance in motion.</figcaption>
+     <figcaption class="cap">The full walkthrough, with sound on.</figcaption>
     </figure>
    </section>
 
    <section id="outcome" class="sec">
     <div class="kicker">Outcome</div>
     <h2 class="secHead">Finishing Strata is what led to Apollo.</h2>
-    <p class="secBody">And here is the honest part. After months of work, I realized that even done well, Strata was not the best product I could make: <strong>the gamified-habit space is completely saturated</strong>, and one more block-stacking tracker was never going to win. Seeing that is what led me to <a class="footIn" href="apollo.html">Apollo</a>. Strata taught me I could build almost anything I could describe, and that knowing what is worth building is the harder, more valuable skill.</p>
+    <p class="secBody">After months of work I realized that even done well, Strata was not the best product I could make: <strong>the gamified-habit space is completely saturated</strong>, and one more block-stacking tracker was never going to win. Seeing that is what led me to <a class="footIn" href="apollo.html">Apollo</a>.</p>
    </section>
 
    <div class="photoPair media media--full">

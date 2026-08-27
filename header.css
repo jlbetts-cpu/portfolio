@@ -495,9 +495,32 @@
    So: the mark sits at the leading edge on all nine pages, Back appears after it
    on five, Contact sits on the trailing edge on nine, and Work/About/Play stay
    put.  Nothing has to be reserved and nothing has to be tuned per page. */
-.jbGrpL{flex:1 1 0;justify-content:flex-start}
+/* ── THE EQUAL-BASIS TRICK NEEDS A FLOOR, AND 2026-08-26 IS WHEN IT FOUND OUT ─
+   `flex:1 1 0` on the two outer zones is what makes the middle one TRULY
+   centred rather than centred-on-average: both sides start from a basis of zero
+   and grow by the same amount, so the centre lands on the bar's midpoint
+   whatever each side happens to contain. That is Jayden's own requirement --
+   "mathematically balanced and consistent on every page" -- and it is untouched.
+   WHAT IT HAS NO ANSWER FOR is a zone whose CONTENT is wider than its equal
+   share. `.jbGrp` carries min-width:0, so such a zone was allowed to compute
+   narrower than the boxes inside it, and its children -- all `flex:0 0 auto` --
+   simply drew outside it. Measured the day the time switch joined the bar: at
+   390 the trailing zone's 96px of content against a 71px share put the switch
+   23px ON TOP of Workspace, and at 320 the mark and Home overlapped by 4. Both
+   are the defect this component has already shipped once, when Contact
+   overlapped Workspace by 6px and a tap near Workspace's right edge landed on
+   Contact 3 times in 5.
+   min-width:max-content IS THE FLOOR, and it degrades in the right direction: a
+   zone can never be smaller than what is in it, so nothing can overlap at any
+   width or with any future item; the growth above that floor is still equal, so
+   the centre stays exactly centred right up to the width where centring and
+   not-overlapping stop being simultaneously possible, and past that it slides
+   rather than collides. `max-content` and not `min-content`: the zones are rows
+   of unwrappable 44px controls, so the two are the same number here, and
+   max-content is the one that stays right if a label is ever allowed to wrap. */
+.jbGrpL{flex:1 1 0;justify-content:flex-start;min-width:max-content}
 .jbGrpC{flex:0 0 auto;justify-content:center}
-.jbGrpR{flex:1 1 0;justify-content:flex-end}
+.jbGrpR{flex:1 1 0;justify-content:flex-end;min-width:max-content}
 .jbNav .jbHome{flex:0 0 auto}
 
 /* ── THE BAR IS UNTRACKED, AND THAT IS THE WHOLE COST OF THE ADOPTION ───────
@@ -554,7 +577,7 @@
 }
 /* Theme-colour motion starts only after the synchronous root state commits.
    Background and press transitions above stay interaction-specific. */
-.theme-ready .jbNav :is(a,button,.jbDiscGo){
+.theme-ready .jbNav :is(a,button){
   transition:color var(--theme-duration,400ms) var(--ease-out),
              background-color var(--hover-out-dur) var(--ease-out),
              transform var(--press-dur) var(--ease-out);
@@ -646,9 +669,8 @@
    the bar shimmering as the pointer crosses it.
    The focus ring is unaffected: a --focus-w --nav-focus outline at --sp-2
    offset, drawn OUTSIDE the box, on the same silhouette. */
-.jbGrp>:is(a,button):not(.jbHome):hover,
-.jbGrp>.jbDisc:hover>.jbDiscGo,
-.jbGrp>.jbDisc:focus-within>.jbDiscGo{
+.jbGrp>:is(a,button):not(.jbHome):is(:hover,:focus-visible),
+.jbGrp>.heroTime>.heroTimeBtn:is(:hover,:focus-visible,[aria-expanded="true"]){
   background-color:var(--nav-hover-bg);
   /* the other two axes. :not([aria-current]) is on the ink/weight pair only, not
      on the pill: the lit item already wears the pill, so re-declaring it is a
@@ -663,14 +685,12 @@
 /* This follows the direct-nav hover rule above and adds a class to every
    selector, so a theme switch keeps its colour motion in every hover/focus
    state without changing the interaction-specific background timing. */
-.theme-ready .jbGrp>:is(a,button):not(.jbHome):hover,
-.theme-ready .jbGrp>.jbDisc:hover>.jbDiscGo,
-.theme-ready .jbGrp>.jbDisc:focus-within>.jbDiscGo{
+.theme-ready .jbGrp>:is(a,button):not(.jbHome):is(:hover,:focus-visible),
+.theme-ready .jbGrp>.heroTime>.heroTimeBtn:is(:hover,:focus-visible,[aria-expanded="true"]){
   transition:color var(--theme-duration,400ms) var(--ease-out),
              background-color var(--ease-out-dur) var(--ease-out)}
-.jbGrp>:is(a,button):not(.jbHome,[aria-current]):hover,
-.jbGrp>.jbDisc:hover>.jbDiscGo:not([aria-current]),
-.jbGrp>.jbDisc:focus-within>.jbDiscGo:not([aria-current]){
+.jbGrp>:is(a,button):not(.jbHome,[aria-current]):is(:hover,:focus-visible),
+.jbGrp>.heroTime>.heroTimeBtn:is(:hover,:focus-visible,[aria-expanded="true"]){
   color:var(--nav-ink-strong);font-weight:600}
 /* THE GLYPH COMES WITH THE LABEL. Ink already travelled -- .jbNav .gIco is
    color:inherit -- so the stroke is the only half that was standing still.
@@ -679,9 +699,8 @@
    both states and the label does not shift when the weight changes. Same value
    the lit item uses (--ico-stroke-strong 2, the system's own next rung, and
    measures 1.98px against Instrument Sans's 400->600 stem step of x1.32). */
-.jbGrp>:is(a,button):not(.jbHome,[aria-current]):hover .gIco,
-.jbGrp>.jbDisc:hover>.jbDiscGo:not([aria-current]) .gIco,
-.jbGrp>.jbDisc:focus-within>.jbDiscGo:not([aria-current]) .gIco{
+.jbGrp>:is(a,button):not(.jbHome,[aria-current]):is(:hover,:focus-visible) .gIco,
+.jbGrp>.heroTime>.heroTimeBtn:is(:hover,:focus-visible,[aria-expanded="true"]) .heroTimeIcon{
   stroke-width:var(--ico-stroke-strong);
   transition:stroke-width var(--ease-out-dur) var(--ease-out)}
 /* THE MARK KEEPS THE OLD INK-ONLY HOVER. It is a brand object, not a tab: a
@@ -736,7 +755,7 @@
    `.jbNav .gIco` is (0,2,0), so it wins that without an !important.
    Alignment is centre, not baseline: a 14px label in a 38px box baseline-aligned
    against an 18px square sits the square 2-3px low. */
-.jbNav .gIco{width:var(--ico-md);height:var(--ico-md);flex:0 0 var(--ico-md);display:block;
+.jbNav .gIco,.jbNav .heroTimeIcon{width:var(--ico-md);height:var(--ico-md);flex:0 0 var(--ico-md);display:block;
   /* color:inherit is load-bearing, not tidiness. index.html declares
      .gIco{color:var(--c700)} for its own game rows; inside the bar that made
      every icon --c700 while the mark -- which has no such rule -- was --c500,
@@ -1059,11 +1078,10 @@
   transition:color var(--theme-duration,400ms) var(--ease-out),
              font-weight var(--hover-out-dur) var(--ease-out);
 }
-@media(prefers-reduced-motion:reduce){.theme-ready .jbNav :is(a,button,.jbDiscGo){transition-duration:0ms}}
+@media(prefers-reduced-motion:reduce){.theme-ready .jbNav :is(a,button){transition-duration:0ms}}
 @media(prefers-reduced-motion:reduce){
   .theme-ready .jbGrp>:is(a,button):not(.jbHome):hover,
-  .theme-ready .jbGrp>.jbDisc:hover>.jbDiscGo,
-  .theme-ready .jbGrp>.jbDisc:focus-within>.jbDiscGo{transition-duration:0ms}
+  .theme-ready .jbGrp>.heroTime>.heroTimeBtn{transition-duration:0ms}
 }
 .jbNav .jbDiscMenu :is(a,button) .gIco{
   transition:stroke-width var(--hover-out-dur) var(--ease-out)}
@@ -1155,35 +1173,120 @@
   .jbNav .jbDiscMenu .jbDiscTouch[href]{color:var(--nav-ink-strong);font-weight:600}
 }
 
-/* ── THE TRAVELLING ACTIVE INDICATOR ────────────────────────────────────────
-   ONE element, moved by transform. Not a background-color on each item: a
-   background cannot travel, and per-item fills are what made "which one is lit"
-   a paint in five places instead of one object in one.
-   ROUND 11 KEEPS THE ELEMENT AND FIXES ITS VALUE. It carried --nav-accent-wash
-   -- oklch(94.7%) -- which measures 1.03:1 against the bar's ground, so the one
-   element whose entire job was saying "you are here" was three hundredths of a
-   contrast point away from not being drawn at all. It is now --c100 on white:
-   1.25:1, and a shape rather than a rumour. Jayden's words: "the grey should be
-   on the pill around the activated tab."
-   THE RADIUS IS THE ITEM'S OWN --r-pill, which is why the swoosh bug cannot
-   happen here: .tvTab.on drew its mark as a border-bottom on a radiused box and
-   the radius bent the line into a curve. This is not a border on the item, it is
-   a separate box the same shape as the item, so the radius is doing the thing
-   radii do.
-   It sits UNDER the labels (z-index 0 against their position:relative). Its
-   ink/weight half stays on the item, so active still differs from hover on three
-   axes -- ground (pill vs none), weight (600 vs 400), and the mark hover draws
-   that active does not (the accent underline).
-   header.js measures it; the only thing declared here is how it moves. No travel
-   until .jbInkOn is set on the second frame, so the first paint parks it
-   silently rather than sliding it in from the origin. */
-.jbInk{position:absolute;left:0;top:0;z-index:0;pointer-events:none;opacity:0;
-  border-radius:var(--r-pill);corner-shape:var(--corner);
-  background:var(--nav-active-bg)}
-.jbNav.jbInkOn .jbInk{transition:transform var(--nav-slide-dur) var(--ease-out),
-  width var(--nav-slide-dur) var(--ease-out),
-  opacity var(--ease-out-dur) var(--ease-out)}
-@media(prefers-reduced-motion:reduce){.jbNav.jbInkOn .jbInk{transition:none}}
+/* ── THE GREY PILL IS A HOVER STATE, AND ONLY A HOVER STATE.  Round 16 ──────
+   Jayden, 2026-08-26: "the grey box behind the text should only show on hover
+   not selected the bolding of the letters is enough to show its selected."
+   He is right, and the measurement says so louder than the taste does. The lit
+   item was carrying TWO markers: --nav-active-bg, which is --c100 and measures
+   1.25:1 against the bar, and the ink/weight pair, which takes it from --c700
+   at 7.8:1 to --c950 at 16.6:1 at weight 600 with a heavier glyph stroke. The
+   pill was the WEAKER of the two by a factor of six, and it was the one doing
+   the duplicating: a visitor reading "you are here" reads the black bold word,
+   not the 1.25:1 rectangle behind it. Removing it leaves the strong signal
+   alone and gives hover the ground to itself, so the two states stop looking
+   like versions of each other.
+
+   WHAT WENT: .jbInk, .jbInkOn and their reduced-motion fork here; the element,
+   its placeInk() measurement, its MutationObserver and its rAF-coalesced resize
+   handler in header.js -- about forty lines, one fewer resize listener and one
+   fewer MutationObserver on all nine pages. --nav-active-bg keeps its name and
+   its value because the phone still consumes it (below) and because a token
+   deleted from tokens.css is a change to another lane's file.
+
+   THE PHONE IS NOT A SPECIAL CASE, AND THAT WAS CHECKED RATHER THAN ASSUMED.
+   Below 640 the labels drop and there is no "bolding of the letters" left to
+   carry the state -- which is exactly the argument for keeping a pill there.
+   It does not survive the numbers: the glyph's own ink still travels --c700 ->
+   --c950 and its stroke 1.75 -> 2, so the current item is the one BLACK glyph
+   in a row of grey ones, at a 2.1x contrast step, against a pill at 1.25:1.
+   The strong marker is the one that survived; the weak one is the one that was
+   only ever legible because it was a rectangle. Looked at, at 320 and 390, not
+   just measured.
+
+   THE ONE THING THAT MUST NOT GO WITH IT is the focus ring: it is an outline at
+   --sp-2 offset drawn OUTSIDE the box (§1 above), it is untouched here, and the
+   hover ground now also answers :focus-visible so a keyboard user sees the same
+   state a pointer user does rather than a ring alone. */
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   3c · THE TIME-OF-DAY SWITCH.  It sets a SITE-WIDE state, so it lives in the
+   site-wide chrome.  2026-08-26, Jayden: "the time of day button should be in
+   the header since it affects all the pages."
+   It writes data-theme-mode / data-theme-state on <html>; the footer band takes
+   its colour from them and the five case-study covers swap twelve time variants
+   on them. It used to exist on index.html alone, in the Hero's bottom-right
+   rail, which is the inconsistency he is naming. Markup: the nav's trailing
+   zone on all nine pages, before Contact. Behaviour: header.js. hero-time.css
+   keeps only what is genuinely the Hero's -- the sky, the spill and the cast.
+
+   IT IS A NAV ITEM, NOT A NEW KIND. `.ctl.ctl--nav` gives it the bar's 38px ink
+   box, --r-pill with the same corner-shape, the ::after that takes the target to
+   44, the press scale and the focus ring, and §1's state block above now names
+   it so it takes the same hover ground as Home, About, Play and Workspace. The
+   ONE thing it adds is [aria-expanded="true"] in that state set: an open menu
+   has to keep its trigger lit while the pointer is down in the panel, which
+   hover alone cannot do.
+   THE WRAPPER IS THE MENU'S CONTAINING BLOCK and nothing else -- no padding, no
+   ground, no box of its own -- so the trigger is the only thing that paints. */
+.jbNav .heroTime{position:relative;display:inline-flex;align-items:center;flex:0 0 auto}
+.jbNav .heroTimeBtn{flex:0 0 auto;min-width:var(--tap-min);justify-content:center;
+  padding:0 var(--sp-8)}
+
+/* ── THE GLYPH IS CHOSEN BY CSS, AND THAT IS WHY THERE IS NO FLASH ──────────
+   site-theme.js is a BLOCKING <script> in every page's <head>, so :root already
+   carries data-theme-state before the nav markup is parsed. Selecting the hour's
+   <g> off the root means the correct glyph is in the very first paint, on all
+   nine pages, with no script and nothing to fetch. What it replaces is a
+   deferred script writing data-icon onto the <svg> after paint -- which on the
+   eight pages that do not load hero-time.js would have been no icon at all.
+   The `:not([data-theme-state])` leg is the no-JavaScript case: without it every
+   <g> stays display:none and the button renders empty. Daytime is the same
+   default site-theme-state.js falls back to, so the two agree. */
+.heroTimeIcon>[data-hero-time-icon]{display:none}
+:root[data-theme-state="pre-dawn"] .heroTimeIcon>[data-hero-time-icon="pre-dawn"],
+:root[data-theme-state="sunrise"] .heroTimeIcon>[data-hero-time-icon="sunrise"],
+:root[data-theme-state="daytime"] .heroTimeIcon>[data-hero-time-icon="daytime"],
+:root[data-theme-state="dusk"] .heroTimeIcon>[data-hero-time-icon="dusk"],
+:root[data-theme-state="sunset"] .heroTimeIcon>[data-hero-time-icon="sunset"],
+:root[data-theme-state="night"] .heroTimeIcon>[data-hero-time-icon="night"],
+:root[data-theme-state="off"] .heroTimeIcon>[data-hero-time-icon="off"],
+:root:not([data-theme-state]) .heroTimeIcon>[data-hero-time-icon="daytime"]{display:block}
+
+/* ── IT OPENS DOWNWARD NOW, AND ONLY `top` MAY BE SET ───────────────────────
+   In the Hero's bottom-right rail this menu opened UPWARD, off
+   `top:auto;bottom:calc(100% + var(--sp-8))`. From a bar at the top of the
+   window, down is the only direction with room. THE TRAP IS NAMED BECAUSE THIS
+   COMPONENT HAS ALREADY PAID FOR IT ONCE: with `top` AND `bottom` both resolved
+   on a box whose containing block is the 44px trigger, height:auto solves as
+   44 - 52 - 52, clamps to 0, and what renders is the menu's own 8px of padding
+   twice over -- a 16px sliver. So `bottom:auto` is declared here, in the same
+   rule that owns the anchor, rather than left to be overridden somewhere later
+   in the file where it would never win.
+   right:0 hangs it off the trigger's right edge, which is the edge the bar is
+   running out of at every width; header.js's positionMenu() shifts it back
+   inside the viewport gutter if that is still not enough and caps its height at
+   the space actually below the trigger. */
+.jbNav .heroTimeMenu{position:absolute;top:calc(100% + var(--menu-gap));bottom:auto;
+  right:0;left:auto;z-index:40;width:var(--menu-w);
+  max-width:calc(100vw - (var(--menu-viewport-gutter) * 2))}
+/* The rows are .ctl--row/.ctl--choice from the library and are drawn by it. The
+   two rules here are the ones the BAR would otherwise impose on them: `.jbNav a,
+   .jbNav button` (and its <=640 fork) centres every button in this component and
+   floors it at 44px wide, which is right for a bar item and wrong for a menu row
+   -- it centred the labels and stretched nothing. Same construction, and same
+   reason, as the panel rule further down. */
+.jbNav .ctl-menu :is(a,button){justify-content:flex-start;min-width:0;
+  min-height:var(--ctl-h);padding-inline:var(--ctl-pad)}
+/* THE CHECK'S GUTTER, RESTORED AT A WEIGHT THAT SURVIVES THE RULE ABOVE.
+   .ctl--choice reserves --sp-32 of left padding for the tick it draws at
+   left:--sp-10, and the rule above -- which has to be (0,2,1) to beat
+   `.jbNav a,.jbNav button` -- was flattening it back to --ctl-pad. Measured:
+   the tick landed ON the row's own hour glyph. (0,3,1) puts the gutter back
+   without weakening the reset it rides on. */
+.jbNav .ctl-menu :is(a,button).ctl--choice{padding-left:var(--sp-32)}
+.jbNav .heroTimeOptionIcon{width:var(--ico-md);height:var(--ico-md);flex:0 0 var(--ico-md);
+  display:block;color:inherit;stroke:currentColor;fill:none;stroke-width:1.75;
+  vector-effect:non-scaling-stroke;stroke-linecap:round;stroke-linejoin:round}
 
 /* ── THE SOCIALS, BACK IN THE BAR AND ON THE RIGHT (Jayden's order) ─────────
    "and then on the right side would be the social icons: LinkedIn, Instagram
@@ -1399,6 +1502,13 @@
      to the same box as the rest -- there is nothing left about it that needs a
      different one. */
   .jbNav [aria-current]:not(.jbHome){min-width:var(--tap-min);padding:0 var(--sp-8)}
+  /* The switch is a bar item at this width like every other: one glyph in a
+     44px box, no label, --ico-md already stepped to 16 by the rule at the head
+     of this block. Its MENU is not -- it is a column of rows with words in
+     them, and `.jbNav a,.jbNav button` above would centre and floor every one
+     of them. The exclusion is declared once, at (0,2,1), beside the control
+     itself in section 3c rather than repeated here. */
+  .jbNav .heroTimeMenu{max-width:calc(100vw - (var(--menu-viewport-gutter) * 2))}
   .jbNav .jbHome{padding:0 var(--sp-6)}
   .jbBack{padding:0 var(--sp-8)}
 }
@@ -1421,6 +1531,33 @@
 @media(max-width:360px){
   .jbNav{gap:var(--sp-4)}
   .jbGrp{gap:var(--sp-4)}
+  /* ── 320 CANNOT HOLD A SEVENTH ITEM, AND THIS IS THE ONE THAT GIVES ────────
+     The time-of-day switch joined the bar on 2026-08-26 and the arithmetic at
+     320 does not survive it. The bar is 288px inside the page's own 16px
+     gutters. Seven 44px targets are 308 before a single gap, and six --sp-4
+     gaps want 24 more: 332 against 288, forty-four over. Nothing recovers that.
+       - the targets cannot shrink: 44px is measured on this site, not declared,
+         and 6px of overlap here is what made a tap near Workspace's right edge
+         land on Contact (3 of 5 sampled points) the last time it was tried;
+       - the gaps are already at their floor -- --sp-8 was cut to --sp-4 at this
+         width for exactly this reason, and 0 still leaves it 20px short;
+       - the gutters are shared with the tab row, the first cover and the
+         footer's rule, so moving them breaks the column the structural rule
+         aligns to.
+     SO ONE ITEM LEAVES, AND WORKSPACE IS THE LEAST COSTLY. It is the only
+     destination in the bar that is not part of the portfolio's argument -- it is
+     his own tool, a separate installable app at /workspace/, not a case study,
+     not the games and not a way to reach him. Everything else in the bar earns
+     its 44px at 320: the mark, Home, About, Play, Contact, and the switch that
+     is the whole point of this change. Measured after: 6 x 44 + 5 x 4 = 284
+     against 288, which is the same 4px of slack the bar shipped with yesterday.
+     IT IS A WIDTH, NOT A DELETION. Workspace is in the bar at 361px and above,
+     where it fits, and this is scoped to the one width that cannot afford it.
+     FLAGGED FOR JAYDEN: this is my call, not his. If Workspace has to be on a
+     320px phone, the item that leaves instead has to be one of the other six.
+     aria-hidden rides with display:none so a screen reader is not offered a
+     link the layout has taken away. */
+  .jbNav [data-nav-item="workspace"]{display:none}
 }
 
 

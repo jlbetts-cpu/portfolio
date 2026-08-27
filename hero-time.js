@@ -4,14 +4,24 @@
  var siteTheme=window.SiteTheme;
  var root=document.documentElement;
  var hero=document.querySelector(".hero");
- var control=document.getElementById("heroTime");
- var button=document.getElementById("heroTimeBtn");
- var menu=document.getElementById("heroTimeMenu");
- var icon=document.getElementById("heroTimeIcon");
+ /* ── THE CONTROL LEFT THIS FILE FOR header.js, 2026-08-26 ──────────────────
+    Jayden: "the time of day button should be in the header since it affects all
+    the pages." #heroTime / #heroTimeBtn / #heroTimeMenu / #heroTimeIcon are the
+    same elements with the same ids, in the nav's trailing zone now, and
+    header.js -- which every page loads -- owns opening them, the keyboard, the
+    outside-click and aria-checked. header.css picks the trigger's glyph off
+    :root[data-theme-state], so nothing writes data-icon any more.
+    WHAT IS LEFT HERE IS THE ONLY PART THAT WAS EVER THE HERO'S: the sky
+    cross-fade, the night spill and the portrait's cast and lit layers. None of
+    it exists on the other eight pages, which is why this file is still the one
+    that does it and why it is still loaded by index.html alone.
+    THE GUARD BELOW LOSES THE CONTROL'S FOUR ELEMENTS WITH IT. Leaving them in
+    would have made this file bail on any page where the nav is missing -- and
+    would have made two files bind the same button on this one. */
  var spill=document.getElementById("heroTimeSpill");
  var face=document.getElementById("face");
  var portrait=document.getElementById("heroTimePortraitCast");
- if(!siteTheme||!root||!hero||!control||!button||!menu||!icon||!spill||!face||!portrait)return;
+ if(!siteTheme||!root||!hero||!spill||!face||!portrait)return;
 
  /* ── THE LIT SIDE NEEDS A BOX OF ITS OWN, AND IT IS BUILT HERE ──────────────
     One element can carry one blend mode, and light and shadow are two: the
@@ -38,7 +48,6 @@
   if(portrait.parentNode)portrait.parentNode.insertBefore(glow,portrait.nextSibling);
  }
 
- var items=[].slice.call(menu.querySelectorAll('[role="menuitemradio"]'));
  var gradients=[].slice.call(hero.querySelectorAll(".heroTimeGradient"));
  var sceneAnimations=[];
  var current=null;
@@ -209,10 +218,6 @@
   current=snapshot;
   hero.setAttribute("data-time-mode",snapshot.mode);
   hero.setAttribute("data-time-state",snapshot.state);
-  items.forEach(function(item){
-   item.setAttribute("aria-checked",item.getAttribute("data-time-mode")===snapshot.mode?"true":"false");
-  });
-  icon.setAttribute("data-icon",snapshot.state);
   transitionScene(from,snapshot.state,initial);
  }
 
@@ -247,110 +252,16 @@
 
  function onFaceLoad(){syncPortraitSource(true);}
 
- function closeMenu(returnFocus){
-  control.classList.remove("open");
-  menu.style.removeProperty("transform");
-  menu.style.removeProperty("max-height");
-  button.setAttribute("aria-expanded","false");
-  if(returnFocus)button.focus();
- }
-
- function positionMenu(){
-  var viewportGutter=parseFloat(getComputedStyle(root).getPropertyValue("--menu-viewport-gutter"))||0;
-  menu.style.removeProperty("transform");
-  menu.style.removeProperty("max-height");
-  var buttonRect=button.getBoundingClientRect();
-  var available=Math.max(0,window.innerHeight-buttonRect.bottom-viewportGutter);
-  menu.style.setProperty("max-height",available+"px");
-  var rect=menu.getBoundingClientRect();
-  var minimumShift=viewportGutter-rect.left;
-  var maximumShift=window.innerWidth-viewportGutter-rect.right;
-  var shift=Math.max(minimumShift,Math.min(maximumShift,0));
-  if(shift!==0)menu.style.setProperty("transform","translateX("+shift+"px)");
- }
-
- function openMenu(focusItem){
-  control.classList.add("open");
-  button.setAttribute("aria-expanded","true");
-  positionMenu();
-  if(focusItem){
-   var selected=items.filter(function(item){return item.getAttribute("aria-checked")==="true";})[0];
-   (selected||items[0]).focus();
-  }
- }
-
- function toggleMenu(){
-  if(control.classList.contains("open"))closeMenu(false);
-  else openMenu(true);
- }
-
- function moveFocus(offset){
-  var index=items.indexOf(document.activeElement);
-  if(index<0)index=items.findIndex(function(item){return item.getAttribute("aria-checked")==="true";});
-  if(index<0)index=0;
-  items[(index+offset+items.length)%items.length].focus();
- }
-
- function choose(item){
-  siteTheme.setMode(item.getAttribute("data-time-mode"));
-  closeMenu(true);
- }
-
- function onButtonKeydown(event){
-  if(event.key==="ArrowDown"||event.key==="ArrowUp"){
-   event.preventDefault();
-   if(!control.classList.contains("open"))openMenu(false);
-   (event.key==="ArrowDown"?items[0]:items[items.length-1]).focus();
-  }else if(event.key==="Escape"&&control.classList.contains("open")){
-   event.preventDefault();closeMenu(true);
-  }
- }
-
- function onMenuKeydown(event){
-  if(event.key==="ArrowDown"||event.key==="ArrowUp"){
-   event.preventDefault();moveFocus(event.key==="ArrowDown"?1:-1);
-  }else if(event.key==="Home"||event.key==="End"){
-   event.preventDefault();items[event.key==="Home"?0:items.length-1].focus();
-  }else if(event.key==="Enter"||event.key===" "||event.key==="Spacebar"){
-   var item=event.target.closest('[role="menuitemradio"]');
-   if(item&&menu.contains(item)){event.preventDefault();choose(item);}
-  }else if(event.key==="Escape"){
-   event.preventDefault();closeMenu(true);
-  }
- }
-
- function onMenuClick(event){
-  var item=event.target.closest('[role="menuitemradio"]');
-  if(item&&menu.contains(item))choose(item);
- }
-
- function onOutsidePointerdown(event){
-  if(control.classList.contains("open")&&!control.contains(event.target))closeMenu(false);
- }
-
  function destroy(){
   if(destroyed)return;
   destroyed=true;
   unsubscribe();
-  button.removeEventListener("click",toggleMenu);
-  button.removeEventListener("keydown",onButtonKeydown);
-  menu.removeEventListener("click",onMenuClick);
-  menu.removeEventListener("keydown",onMenuKeydown);
-  document.removeEventListener("pointerdown",onOutsidePointerdown);
-  window.removeEventListener("resize",positionMenu);
   window.removeEventListener("jbthemesettle",settleScene);
   face.removeEventListener("load",onFaceLoad);
   if(portraitObserver)portraitObserver.disconnect();
   clearSceneAnimations();
-  closeMenu(false);
  }
 
- button.addEventListener("click",toggleMenu);
- button.addEventListener("keydown",onButtonKeydown);
- menu.addEventListener("click",onMenuClick);
- menu.addEventListener("keydown",onMenuKeydown);
- document.addEventListener("pointerdown",onOutsidePointerdown);
- window.addEventListener("resize",positionMenu);
  window.addEventListener("jbthemesettle",settleScene);
  face.addEventListener("load",onFaceLoad);
  if(typeof MutationObserver==="function"){

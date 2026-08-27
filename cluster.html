@@ -49,7 +49,7 @@
 <meta name="twitter:image:alt" content="Cluster, a campus club-discovery app designed by Jayden Betts">
 <link rel="preload" as="font" type="font/woff2" href="fonts/geist-latin-400-normal.woff2" crossorigin><link rel="preload" as="font" type="font/woff2" href="fonts/geist-latin-600-normal.woff2" crossorigin>
 <link rel="preload" as="image" href="images/cs/cluster/cluster-cover.webp" fetchpriority="high">
-<link rel="stylesheet" href="tokens.css?v=65279febd9">
+<link rel="stylesheet" href="tokens.css?v=b7996e2715">
 <style>
 /* THE FACES MOVED TO tokens.css (2026-08-04) -- declared once for all ten pages
    instead of copied into nine of them and missed on two (about.html and
@@ -675,12 +675,12 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
    which shared the declaration and the defect -- bearings' .cmp measured round
    over a squircle board too. */
 </style>
-<link rel="stylesheet" href="controls.css?v=65279febd9">
-<link rel="stylesheet" href="carousel.css?v=65279febd9">
+<link rel="stylesheet" href="controls.css?v=b7996e2715">
+<link rel="stylesheet" href="carousel.css?v=b7996e2715">
 <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Jayden Betts","item":"https://jaydenbetts.design/"},{"@type":"ListItem","position":2,"name":"Cluster Case Study","item":"https://jaydenbetts.design/cluster.html"}]},{"@type":"CreativeWork","@id":"https://jaydenbetts.design/cluster.html#work","url":"https://jaydenbetts.design/cluster.html","name":"Cluster: A Product Design Case Study by Jayden Betts","description":"Cluster is a campus app that helps students discover the clubs they would never stumble on, among 800+ at UC Davis. A product design case study by Jayden Betts.","image":"https://jaydenbetts.design/images/cs/cluster.webp","author":{"@type":"Person","@id":"https://jaydenbetts.design/#person","name":"Jayden Betts","alternateName":"Jayden Lee Betts","url":"https://jaydenbetts.design/","sameAs":["https://www.linkedin.com/in/jaydenbetts","https://www.instagram.com/jaydenleebetts"]},"genre":"Product Design","inLanguage":"en"}]}</script>
-<link rel="stylesheet" href="header.css?v=65279febd9">
-<link rel="stylesheet" href="footer.css?v=65279febd9">
-<link rel="stylesheet" href="site-theme.css?v=65279febd9">
+<link rel="stylesheet" href="header.css?v=b7996e2715">
+<link rel="stylesheet" href="footer.css?v=b7996e2715">
+<link rel="stylesheet" href="site-theme.css?v=b7996e2715">
 <script src="header.js" defer></script>
 <script src="footer-band.js" defer></script>
 </head>
@@ -711,6 +711,30 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
     <a class="backlink ctl ctl--nav" data-nav-item="about" href="index.html#about" aria-label="About"><svg class="gIco uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/></svg><span class="jbLbl">About</span></a>
     <a class="ctl ctl--nav" data-nav-item="games" href="play.html" aria-label="Play"><svg class="gIco uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><line x1="6" x2="10" y1="11" y2="11"/><line x1="8" x2="8" y1="9" y2="13"/><line x1="15" x2="15.01" y1="12" y2="12"/><line x1="18" x2="18.01" y1="10" y2="10"/><path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258-.006-.051-.011-.1-.017-.151A4 4 0 0 0 17.32 5z"/></svg><span class="jbLbl">Play</span></a>
    <a class="ctl ctl--nav" data-nav-item="workspace" href="workspace/" aria-label="Workspace"><svg class="gIco uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M2 6h4"/><path d="M2 10h4"/><path d="M2 14h4"/><path d="M2 18h4"/><rect width="16" height="20" x="4" y="2" rx="2"/><path d="M16 2v20"/></svg><span class="jbLbl">Workspace</span></a>
+    <!-- ── THE TIME OF DAY, IN THE CHROME THAT THE STATE ACTUALLY REACHES ──────
+         Jayden, 2026-08-26: "the time of day button should be in the header since
+         it affects all the pages." It writes data-theme-mode / data-theme-state on
+         <html>; every page reads them. It used to live in index.html's Hero rail.
+         THE GLYPH IS CHOSEN IN CSS, NOT BY SCRIPT. site-theme.js is a blocking
+         <script> in <head>, so :root carries data-theme-state before this markup is
+         parsed, and header.css shows the matching <g> off it. No first-paint hole
+         and nothing to fetch -- the paths are inline for the same reason header.js
+         inlines the nav's: an external <use> renders nothing until its document
+         resolves, which is the blank-glyph bug this bar has already had once.
+         header.js owns opening it, the roulette of aria-checked, and the keyboard. -->
+    <div class="heroTime" id="heroTime">
+     <button class="heroTimeBtn ctl ctl--nav" id="heroTimeBtn" type="button" aria-label="Time of day" aria-haspopup="menu" aria-expanded="false" aria-controls="heroTimeMenu"><svg class="heroTimeIcon uiIcon" id="heroTimeIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><g data-hero-time-icon="pre-dawn"><path d="M18 5h4"/><path d="M20 3v4"/><path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"/></g><g data-hero-time-icon="sunrise"><path d="M12 2v8"/><path d="m4.93 10.93 1.41 1.41"/><path d="M2 18h2"/><path d="M20 18h2"/><path d="m19.07 10.93-1.41 1.41"/><path d="M22 22H2"/><path d="m8 6 4-4 4 4"/><path d="M16 18a4 4 0 0 0-8 0"/></g><g data-hero-time-icon="daytime"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></g><g data-hero-time-icon="dusk"><path d="M12 2v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="M20 12h2"/><path d="m19.07 4.93-1.41 1.41"/><path d="M15.947 12.65a4 4 0 0 0-5.925-4.128"/><path d="M13 22H7a5 5 0 1 1 4.9-6H13a3 3 0 0 1 0 6Z"/></g><g data-hero-time-icon="sunset"><path d="M12 10V2"/><path d="m4.93 10.93 1.41 1.41"/><path d="M2 18h2"/><path d="M20 18h2"/><path d="m19.07 10.93-1.41 1.41"/><path d="M22 22H2"/><path d="m16 6-4 4-4-4"/><path d="M16 18a4 4 0 0 0-8 0"/></g><g data-hero-time-icon="night"><path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"/></g><g data-hero-time-icon="off"><path d="m2 2 20 20"/><path d="M8.35 2.69A10 10 0 0 1 21.3 15.65"/><path d="M19.08 19.08A10 10 0 1 1 4.92 4.92"/></g></svg></button>
+     <div class="heroTimeMenu ctl-menu" id="heroTimeMenu" role="menu" aria-label="Choose time of day">
+      <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="false" data-time-mode="auto"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Automatic</button>
+      <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="false" data-time-mode="off"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m2 2 20 20"/><path d="M8.35 2.69A10 10 0 0 1 21.3 15.65"/><path d="M19.08 19.08A10 10 0 1 1 4.92 4.92"/></svg>Off</button>
+      <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="false" data-time-mode="pre-dawn"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M18 5h4"/><path d="M20 3v4"/><path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"/></svg>Pre-dawn</button>
+      <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="false" data-time-mode="sunrise"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2v8"/><path d="m4.93 10.93 1.41 1.41"/><path d="M2 18h2"/><path d="M20 18h2"/><path d="m19.07 10.93-1.41 1.41"/><path d="M22 22H2"/><path d="m8 6 4-4 4 4"/><path d="M16 18a4 4 0 0 0-8 0"/></svg>Sunrise</button>
+      <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="false" data-time-mode="daytime"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>Daytime</button>
+      <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="false" data-time-mode="dusk"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="M20 12h2"/><path d="m19.07 4.93-1.41 1.41"/><path d="M15.947 12.65a4 4 0 0 0-5.925-4.128"/><path d="M13 22H7a5 5 0 1 1 4.9-6H13a3 3 0 0 1 0 6Z"/></svg>Dusk</button>
+      <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="false" data-time-mode="sunset"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 10V2"/><path d="m4.93 10.93 1.41 1.41"/><path d="M2 18h2"/><path d="M20 18h2"/><path d="m19.07 10.93-1.41 1.41"/><path d="M22 22H2"/><path d="m16 6-4 4-4-4"/><path d="M16 18a4 4 0 0 0-8 0"/></svg>Sunset</button>
+      <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="false" data-time-mode="night"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"/></svg>Night</button>
+     </div>
+    </div>
    </span>
    <span class="jbGrp jbGrpR" id="jbNavEnd">
     <!-- CONTACT -- a button to his inbox, and NOT the primary action.  2026-08-19.
@@ -758,35 +782,35 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
 
     <div class="ov">
      <span class="rlabel">Overview</span>
-     <p class="ovBody rv" data-f="0.011">Cluster is a campus app that helps students find clubs they would never stumble on. My first full design project: five weeks, a brand-new tool, a team of three. It is the one that made me fall in love with product design.</p>
+     <p class="ovBody rv" data-f="0.011">Cluster is a campus app that helps students find clubs they would never stumble on. My first full design project: five weeks, a brand-new tool, a team of three.</p>
     </div>
    </section>
 
    <section id="problem" class="sec">
     <div class="kicker">Problem</div>
     <h2 class="secHead">More than 800 clubs, and no way to find them.</h2>
-    <p class="secBody"><strong>UC Davis is home to more than 800 student clubs</strong>, but the ones that are not already big are invisible unless you catch the once-a-year club fair. I was a transfer that quarter, new to campus and looking for my people. <strong>Every transfer I talked to said the same thing: no idea how many clubs existed, or how to find the niche ones they would actually love.</strong></p>
+    <p class="secBody"><strong>UC Davis is home to more than 800 student clubs</strong>, but the ones that are not already big are invisible unless you catch the once-a-year club fair. I was a transfer that quarter. <strong>Every transfer I talked to said the same thing: no idea how many clubs existed, or how to find the niche ones they would actually love.</strong></p>
    </section>
 
    <section id="research" class="sec">
     <div class="kicker">The build</div>
     <h2 class="secHead">A first real project, learned in five weeks.</h2>
-    <p class="secBody">I came to Davis as a communications major and found design through a fellowship built for total beginners. <strong>I designed every screen of Cluster in five weeks while teaching myself Figma from zero.</strong> My title was product designer, but I took the lead the whole way, and that visit to LinkedIn&rsquo;s headquarters at the end of the program is the moment I knew this was the work I wanted.</p>
+    <p class="secBody">I came to Davis as a communications major and found design through a fellowship built for total beginners. <strong>I designed every screen of Cluster in five weeks while teaching myself Figma from zero.</strong> My title was product designer, but I took the lead the whole way.</p>
     
    </section>
 
    <section id="system" class="sec">
     <div class="kicker">The concept</div>
     <h2 class="secHead">A home where every club can be found.</h2>
-    <p class="secBody">Cluster gives every club a place to show up. <strong>The Discover feed is catered to your interests</strong>, but sometimes you would rather browse by mood, so Sports, Dance, Design and more each get their own feed. Club profiles gather a club&rsquo;s articles and events in one place, so you feel what being a member is really like, and messaging makes it social, because finding your people should feel like college, not a database.</p>
-    <figure class="photoFig"><div class="tv tvPhone collection" role="group" aria-label="The finished Cluster app"><div class="tvTabs collection__tabs" role="tablist" aria-label="The finished Cluster app"><button class="tvTab on ctl ctl--tab" type="button" role="tab" aria-selected="true">Discover</button><button class="tvTab ctl ctl--tab" type="button" role="tab" aria-selected="false">Sports</button><button class="tvTab ctl ctl--tab" type="button" role="tab" aria-selected="false">Club profile</button><button class="tvTab ctl ctl--tab" type="button" role="tab" aria-selected="false">Messages</button><button class="tvTab ctl ctl--tab" type="button" role="tab" aria-selected="false">Post</button></div><figure class="tvFrame collection__content media media--mockup"><img class="scene-swap-target" src="images/cs/cluster/hifi-discover.webp" width="700" height="1518" alt="The Discover feed." decoding="async"></figure><script type="application/json" class="tvItems">[{"src": "images/cs/cluster/hifi-discover.webp", "alt": "The Discover feed.", "label": "Discover"}, {"src": "images/cs/cluster/hifi-sports.webp", "alt": "The Sports feed.", "label": "Sports"}, {"src": "images/cs/cluster/hifi-club.webp", "alt": "A club profile.", "label": "Club profile"}, {"src": "images/cs/cluster/hifi-messages.webp", "alt": "Messaging.", "label": "Messages"}, {"src": "images/cs/cluster/hifi-post.webp", "alt": "Posting an article.", "label": "Post"}]</script></div><figcaption class="cap">The finished app: catered discovery, feeds you can browse by mood, club profiles, and a social layer to tie it together.</figcaption></figure>
+    <p class="secBody">Cluster gives every club a place to show up. <strong>The Discover feed is catered to your interests</strong>, and Sports, Dance, Design and more each get their own feed when you would rather browse by mood. Club profiles gather a club&rsquo;s articles and events in one place, so you feel what being a member is really like, and messaging makes it social.</p>
+    <figure class="photoFig"><div class="tv tvPhone collection" role="group" aria-label="The finished Cluster app"><div class="tvTabs collection__tabs" role="tablist" aria-label="The finished Cluster app"><button class="tvTab on ctl ctl--tab" type="button" role="tab" aria-selected="true">Discover</button><button class="tvTab ctl ctl--tab" type="button" role="tab" aria-selected="false">Sports</button><button class="tvTab ctl ctl--tab" type="button" role="tab" aria-selected="false">Club profile</button><button class="tvTab ctl ctl--tab" type="button" role="tab" aria-selected="false">Messages</button><button class="tvTab ctl ctl--tab" type="button" role="tab" aria-selected="false">Post</button></div><figure class="tvFrame collection__content media media--mockup"><img class="scene-swap-target" src="images/cs/cluster/hifi-discover.webp" width="700" height="1518" alt="The Discover feed." decoding="async"></figure><script type="application/json" class="tvItems">[{"src": "images/cs/cluster/hifi-discover.webp", "alt": "The Discover feed.", "label": "Discover"}, {"src": "images/cs/cluster/hifi-sports.webp", "alt": "The Sports feed.", "label": "Sports"}, {"src": "images/cs/cluster/hifi-club.webp", "alt": "A club profile.", "label": "Club profile"}, {"src": "images/cs/cluster/hifi-messages.webp", "alt": "Messaging.", "label": "Messages"}, {"src": "images/cs/cluster/hifi-post.webp", "alt": "Posting an article.", "label": "Post"}]</script></div><figcaption class="cap">The finished app.</figcaption></figure>
    </section>
 
    <section id="outcome" class="sec">
     <div class="kicker">Outcome</div>
     <h2 class="secHead">Most Innovative, and the reason design stuck.</h2>
     <p class="secBody"><strong>Our team won Most Innovative.</strong> Looking back from 2026 there is plenty I would change: cut the messaging, tighten the spacing and typography, lean on <strong>the kind of design system I now use religiously</strong> (Cluster had none, I did not know where to start yet).</p>
-    <p class="secBody">There is a footnote, too. In 2026 <strong>a friend shipped an app called tapin that does almost exactly what Cluster set out to do</strong>, and I helped him polish the UI over coffee, my name is in one of its App Store screenshots. Cluster never shipped, but it is the reason I went all in on design, and that drive runs straight through <a class="footIn" href="bearings.html">Bearings</a>, <a class="footIn" href="apollo.html">Apollo</a>, and <a class="footIn" href="strata.html">Strata</a>.</p>
+    <p class="secBody">In 2026 <strong>a friend shipped an app called tapin that does almost exactly what Cluster set out to do</strong>, and I helped him polish the UI. Cluster never shipped, but it is the reason I went all in on design, and that drive runs straight through <a class="footIn" href="bearings.html">Bearings</a>, <a class="footIn" href="apollo.html">Apollo</a>, and <a class="footIn" href="strata.html">Strata</a>.</p>
    </section>
 
    <div class="photoPair media media--full">

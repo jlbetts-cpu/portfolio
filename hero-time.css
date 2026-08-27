@@ -1901,98 +1901,29 @@
    quieting down. */
 #heroHeadSelection[data-selection="idle"]{--sel-ink:var(--rule)}
 
-.heroTime{position:relative;z-index:12;display:inline-flex}
-/* ── THE TIME CONTROL SITS IN THE SKY, NOT ON IT ─────────────────────────────
-   Jayden, 2026-08-20: "the time of day button should feel more blended in."
-   It was .ctl--secondary.ctl--icon, which is an OPAQUE PAPER CHIP with a rim --
-   #ffffff on a sky that runs from #f8fafd to #060a13. On the daytime gradient
-   at the Hero's bottom-right that is a 1.9:1 step of pure white against a
-   saturated blue, and once the control moved to the corner it was the only
-   opaque object in 650px of painted weather.
-   THE VARIANT IS THE FIX, NOT A PRIVATE RESTYLE. .ctl--quiet already means
-   exactly "no ground, no rim, the colour carries the state" -- it is what every
-   row inside this control's own menu uses. Swapping the variant in the markup
-   is one class, and it takes the geometry, the 44px floor, the press scale, the
-   focus ring and the disabled treatment with it untouched.
-   WHAT THE VARIANT CANNOT KNOW IS WHICH SKY IT IS STANDING IN. .ctl--quiet
-   binds --ctl-ink, which is the PAGE's ink and is dark in both themes; the
-   Hero's ink flips with the hour and is already solved -- --time-ink is
-   --c950 for the five daylight skies and --c50 for night, the same token the
-   headline reads. So the only thing declared here is colour, on the variant
-   whose whole contract is colour.
-   62% IS MEASURED, NOT A TASTE. Rendered at device scale 2 with the head hidden
-   and the icon's own peak stroke pixel read against the sky inside its 44px
-   box, in all six states: full-strength --time-ink lands at 13.3:1 - 17.8:1,
-   which is a control shouting on a photograph. 62% brings the resting icon to
-   4.9:1 - 11.7:1 -- the floor is dusk at 4.87 and daytime at 5.11, both well
-   clear of the 3:1 WCAG 1.4.11 asks of a graphical control, and the ceiling is
-   sunrise at 11.65 where the sky under the corner is nearly white. Hover, focus
-   and the open menu take it back to full strength, so reaching for it is what
-   makes it solid -- the same "quiet until touched" the nav's own Play item
-   uses. IT IS A FLOOR AND NOT A TARGET: going quieter is a legibility question
-   to re-measure, not a number to nudge.
-   THE OPEN STATE GETS ITS GROUND BACK, AND THE LIBRARY DOES THAT BY ITSELF --
-   verified, not assumed. .ctl--quiet's state selector lists :hover,
-   :focus-visible, [aria-current] and [aria-selected] but NOT [aria-expanded],
-   so `.ctl--icon[aria-expanded="true"]` still wins on weight and paints the
-   ground and the strong rim while the menu is open. Hover and focus stay
-   colour-only, which is .ctl--quiet's whole contract. Nothing here declares any
-   of it; it is recorded because it looks like an accident and is not one, and
-   because adding [aria-expanded] to that list in controls.css would silently
-   flatten this control's open state. */
-#heroTimeBtn{color:color-mix(in srgb,var(--time-ink) 62%,transparent)}
-#heroTimeBtn:hover,#heroTimeBtn:focus-visible,#heroTimeBtn[aria-expanded="true"]{
- color:var(--time-ink)
-}
-.heroTimeIcon{
- width:var(--ico-md);height:var(--ico-md);fill:none;stroke:currentColor;
- stroke-width:var(--ico-stroke);stroke-linecap:round;stroke-linejoin:round
-}
-.heroTimeOptionIcon{
- width:var(--ico-md);height:var(--ico-md);flex:0 0 var(--ico-md);fill:none;
- stroke:currentColor;stroke-width:var(--ico-stroke);stroke-linecap:round;stroke-linejoin:round
-}
-.heroTimeIcon [data-hero-time-icon]{display:none}
-.heroTimeIcon[data-icon="pre-dawn"] [data-hero-time-icon="pre-dawn"],
-.heroTimeIcon[data-icon="sunrise"] [data-hero-time-icon="sunrise"],
-.heroTimeIcon[data-icon="daytime"] [data-hero-time-icon="daytime"],
-.heroTimeIcon[data-icon="dusk"] [data-hero-time-icon="dusk"],
-.heroTimeIcon[data-icon="sunset"] [data-hero-time-icon="sunset"],
-.heroTimeIcon[data-icon="night"] [data-hero-time-icon="night"],
-.heroTimeIcon[data-icon="off"] [data-hero-time-icon="off"]{display:inline}
-
-/* ── IT OPENS UPWARD NOW, AND ONLY `bottom` MAY BE SET ──────────────────────
-   The control moved to the Hero's bottom-right corner on 2026-08-20, so a menu
-   hung off `top:calc(100% + 8px)` opened 8px below a button whose own lower
-   edge is 24px off the Hero's floor: 340px of menu entirely inside the work
-   section, over the tab row.
-   THE FIRST FIX WAS `top:auto;bottom:...` IN A LATER RULE AND IT COLLAPSED THE
-   MENU TO 16px. Two reasons, and both are worth writing down. The rule was
-   later in the FILE but earlier than this one, so `top` was never overridden at
-   all -- and with `top` and `bottom` both resolving on a box whose containing
-   block is the 44px button, height:auto is solved as 44 - 52 - 52, clamps to 0,
-   and what renders is the menu's own 8px of padding twice over. Measured live:
-   the box came back 634..650 with every item inside it. So the fix belongs HERE,
-   in the declaration that owns the anchor, not layered over it.
-   right:0 was already correct and stays: the control's right edge is the page
-   column's right edge, so the menu's is too. */
-.heroTimeMenu{
- position:absolute;top:auto;bottom:calc(100% + var(--sp-8));right:0;left:auto;z-index:30;
- /* The 50vw cap that stood here was justified by "Time is last on every
-    centered flex line" -- it was measuring from the middle of the Hero because
-    that is where the control used to be. It is on the page's right column now
-    with the whole measure to its left, so the only bound left is the viewport's
-    own gutter, which the next line already was. */
- width:var(--menu-w);
- max-width:calc(100vw - (var(--sp-16) * 2))
-}
-.heroTimeMenu small{
- margin-left:auto;color:var(--ctl-ink);font:inherit;font-size:var(--fs-caption);font-weight:400
-}
+/* ── THE CONTROL IS NOT IN THE SKY ANY MORE, AND ITS SKIN WENT WITH IT ──────
+   2026-08-26. Jayden: "the time of day button should be in the header since it
+   affects all the pages." Everything that stood here -- .heroTime's box,
+   #heroTimeBtn's 62%-of---time-ink resting colour, .heroTimeIcon /
+   .heroTimeOptionIcon's geometry, the icon's data-icon state table and
+   .heroTimeMenu's upward anchor -- described a control standing on a painted
+   sky in the Hero's bottom-right corner. It is a nav item now, drawn by
+   header.css §3c from `.ctl.ctl--nav` like every other item in the bar.
+   THE 62% IS NOT A LOSS, IT IS A QUESTION THAT STOPPED BEING ASKED. It existed
+   because the control's ground was six different skies running #f8fafd to
+   #060a13, so its ink had to be measured against all of them. In the bar the
+   ground is the bar, --nav-ink is the answer the other six items already use,
+   and a seventh item with a private colour is the inconsistency this move is
+   fixing. The measurement is kept in git rather than re-run.
+   THE UPWARD MENU GOES FOR THE SAME REASON, and the 44 - 52 - 52 trap it
+   documented is restated in header.css §3c on the rule that owns the new
+   anchor, because that is the only place it can be got wrong again.
+   WHAT STAYS IN THIS FILE is everything above and below: the sky, the drift,
+   the stars, the night spill and the portrait's cast and lit layers. Those are
+   the Hero's, and index.html is still the only page that loads them. */
 
 @media(max-width:760px){
  :root{--hero-time-duration:420ms}
- .heroTimeMenu{width:var(--menu-w);max-width:calc(100vw - (var(--sp-16) * 2))}
 }
 
 @media(prefers-reduced-motion:reduce){

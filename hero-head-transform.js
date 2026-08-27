@@ -286,69 +286,27 @@
    return {left:h.left,top:top,right:h.right,bottom:h.bottom,
     width:h.right-h.left,height:Math.max(0,h.bottom-top)};
   }
-  /* ── AND NEITHER IS THE CORNER THE TIME CONTROL OWNS ─────────────────────
-     The same rule as the bar above, one CORNER instead of one band, and it is
-     here for the same reason: #heroTimeBtn moved into the Hero's bottom-right
-     rail, index.html says outright that it "cannot be swallowed by a toy, at
-     any z-index", and that is correct product behaviour -- so the head can be
-     parked somewhere its own handles cannot be pressed, which is the visible-
-     and-dead handle this component has already shipped once.
-     MEASURED, at 390x844, before this existed: drag the head to the bottom
-     right at minimum scale and the clamp keeps only --hero-head-safe-gap of the
-     box on stage, the visible frame collapses to 19.5x18.2 in exactly the
-     corner the control occupies, four handles ride off stage, and the one that
-     survives draws its dot at (370.9,551.8) where elementFromPoint returns
-     heroTimeBtn on every sampled point. 3.3% of the frame was clear of the
-     control's touch halo at 1x and 0.0% once the head's default size came down.
-     A BAND WOULD NOT DO, AND THAT IS THE WHOLE DIFFICULTY. The bar spans the
-     Hero, so subtracting it from the top leaves a rectangle and every axis
-     bound stays a single number. This control is 43px wide in a 390px Hero:
-     taking its whole column away costs the head 15% of the stage, and taking
-     its whole row away cannot even be stated -- the resting composition's frame
-     already hangs 27.6px BELOW the control's upper edge at every width
-     measured, so a row bound would forbid the pose the page ships with. So the
-     reserve is the corner itself, carried out to the Hero's own right and lower
-     edges, because the 16px of gutter beside the button and the 8px beneath it
-     are not somewhere a selection frame can live. clampMove() resolves it the
-     way a window meets a dock -- out on whichever axis is nearer -- and
-     travelBounds() bounds the journey to the side of it the arrangement is
-     already on.
-     INFLATED BY HALF A TARGET, AND THAT IS NOT A FUDGE FACTOR. The dots are
-     drawn ON the frame's corners and each carries a --selection-hit-size target
-     centred on itself, so a frame that merely touched this rectangle would hand
-     the control half of that target. Half the target is exactly the distance at
-     which no handle can overlap the control, and it is the same number place()
-     already uses to decide a handle has left the stage. Two earlier attempts
-     reserved the control's own box, and then its box plus that half-target,
-     against the HEAD's box -- both still failed, because the dots are drawn
-     outside the head by --selection-air and the frame is what carries them.
-     THE ROW'S OWN RECT FOR THE TOP EDGE, THE CHILDREN'S FOR THE LEFT. The rail
-     is .heroCtas and its children carry the entrance's translateY(9px); a
-     transform does not move the row's own box, so reading the top edge from the
-     row is right whether or not the entrance has landed, and the scale(.97) the
-     same keyframe carries moves a 43px button's left edge by 0.66px, which is
-     inside the reserve by a factor of thirty.
-     THE REACH IS PASSED IN, NOT READ HERE. --selection-hit-size is
-     var(--tap-min), and a custom property read back through
-     getPropertyValue() returns the specified token stream -- so parseFloat
-     gives NaN and a bound built on it puts every handle dot at 0,0. metrics()
-     already resolves that number off the handle's own measured box; this takes
-     its answer rather than asking the question a second way. */
-  function blockRect(reach){
-   var rail=hero.querySelector(".heroCtas");
-   if(!rail)return null;
-   var h=rectOf(hero),row=rectOf(rail);
-   if(!row.width||!row.height)return null;
-   if(row.bottom<=h.top||row.top>=h.bottom)return null;
-   var kids=rail.children,left=Infinity,i,r;
-   for(i=0;i<kids.length;i++){
-    r=rectOf(kids[i]);
-    if(r.width&&r.height&&r.left<left)left=r.left;
-   }
-   if(left===Infinity)return null;
-   return {left:left-h.left-reach,top:row.top-h.top-reach,
-    right:h.width,bottom:h.height};
-  }
+  /* ── THE CORNER THE TIME CONTROL OWNED IS RELEASED.  2026-08-26 ──────────
+     blockRect() reserved the Hero's bottom-right corner -- .heroCtas' leading
+     edge out to the Hero's own right and lower edges, inflated by half a tap
+     target -- so a selection handle could not be dragged under #heroTimeBtn and
+     die there. Jayden moved that control into the site header ("the time of day
+     button should be in the header since it affects all the pages"), .heroCtas
+     went with it, and the reserve stopped describing anything: what it fenced
+     off is now 43px of empty sky, and a head that keeps avoiding empty space
+     reads as a bug rather than as care.
+     THE REASONING IS KEPT IN GIT, NOT HERE, because the shape of the answer was
+     the expensive part and it is worth re-reading if a control ever comes back
+     to that corner: the reserve was a CORNER and not a band (a band could not
+     even be stated -- the resting composition hangs 27.6px below the control's
+     upper edge at every width measured), it was inflated by half a target
+     because the dots are drawn ON the frame and each carries its own 44px hit
+     area, and clampMove() resolved it the way a window meets a dock, out on
+     whichever axis was nearer. Two earlier attempts reserved the HEAD's box
+     instead of the FRAME's and both failed.
+     WHAT WENT WITH IT: metrics().block, the guarded branch in clampMove() and
+     the two-axis cap in travelBounds(). The float loop's reads-nothing
+     invariant is unaffected -- this was cached, not read per frame. */
   /* HOW MUCH BIGGER THE FRAME IS THAN THE BOX, ON EVERY SIDE. The frame is the
      head's local rect grown by --selection-air BEFORE it is turned, so its
      turned bounding box is the head's turned bounding box grown by
@@ -384,13 +342,6 @@
     heroW:h.width,heroH:h.height,ceiling:u.top-h.top,
     air:rootNumber("--selection-air",0),
     hit:hit,
-    /* THE CORNER THE TIME CONTROL OWNS, IN THE SAME CACHE AND FOR THE SAME
-       REASON `ceiling` IS. It is two getBoundingClientRects, it cannot change
-       without a resize or a reflow, and reclamp() already invalidates this on
-       resize and on both ResizeObservers -- so the clamp reads it on a
-       pointermove for free and the float loop keeps its reads-nothing
-       invariant. See blockRect() for what it is and why it is a corner. */
-    block:blockRect(hit/2),
     /* THE DOT'S OWN SIZE BELONGS HERE, WITH EVERY OTHER TOKEN THE LOOP NEEDS.
        It was being read inside place(), which runs once per handle per frame --
        five root reads a frame for a number that cannot change without a
@@ -510,7 +461,32 @@
        what actually stops a leading corner going dark at the top of the climb.
        .heroCopy keeps its ResizeObserver -- a reflowed headline still changes
        the layout this cache is derived from. */
-    travelFloor:u.top-h.top,
+    /* ── AND THAT REVERSAL IS ITSELF REVERSED.  2026-08-26 ─────────────────
+       Jayden, having lived with the crossing: the head is not to pass through
+       the copy any more. So the floor goes back to the headline's lower edge,
+       which is where it was before 2026-08-20, and the band of empty sky under
+       the copy is the head's field again. The blend on .heroCopy is NOT removed
+       with it -- a head DRAGGED onto the words still inverts them, which is the
+       effect he liked; what stops is the head driving through the headline on
+       its own, unasked, which is the part that read as an accident.
+       THE BAR IS STILL THE HARD LIMIT UNDERNEATH IT, and this is a max() of the
+       two rather than a replacement: the Hero runs up behind an opaque nav at
+       z-index 100 and a handle parked under it cannot be pressed at all. At
+       every width measured the copy's lower edge is BELOW the bar's underside,
+       so the copy is what binds; the bar leg is what keeps the number honest if
+       a future headline is short enough for that to stop being true.
+       IT DEGRADES RATHER THAN OVER-CONSTRAINS: travelBounds() already resolves
+       an impossible field to zero travel through its own Math.min(0,...) /
+       Math.max(0,...) guards, so a viewport with no band left under the copy
+       parks the head instead of putting it somewhere illegal. Measured after
+       the change at 1440x900, 390x844 and 320x800 -- see the contract. */
+    travelFloor:(function(){
+     var copy=hero.querySelector(".heroCopy");
+     var bar=u.top-h.top;
+     if(!copy)return bar;
+     var c=rectOf(copy);
+     return c.height?Math.max(bar,c.bottom-h.top):bar;
+    })(),
     /* ── THE FEEL CONSTANTS BELONG IN THE CACHE FOR THE REASON THE TWO ABOVE DO
        rubberReach and rubberC are read on EVERY pointermove of every drag --
        the exact position scaleLimits() was measured in, at 2 root reads per
@@ -1048,19 +1024,7 @@
       escape can fight the reachability bound above: both run toward the middle
       of the stage, and the guards are here so that an over-constrained Hero
       degrades to the best available position instead of to an illegal one. */
-   var m=metrics(),block=m.block;
-   if(block){
-    var ring=frameRing(m.air);
-    var fL=wantLeft-ring,fT=wantTop-ring;
-    var fR=wantLeft+box.width+ring,fB=wantTop+box.height+ring;
-    if(fR>block.left&&fB>block.top&&fL<block.right&&fT<block.bottom){
-     var goLeft=fR-block.left,goUp=fB-block.top;
-     var canLeft=wantLeft-goLeft>=minLeft,canUp=wantTop-goUp>=minTop;
-     if(canLeft&&(goLeft<=goUp||!canUp))wantLeft-=goLeft;
-     else if(canUp)wantTop-=goUp;
-     else wantLeft=Math.max(minLeft,wantLeft-goLeft);
-    }
-   }
+   var m=metrics();
    return {x:x+(wantLeft-box.left),y:y+(wantTop-box.top)};
   }
   /* ── THE FRAME HAS TWO LOOKS AND THREE STATES, AND THEY ARE NOT THE SAME AXIS
@@ -1594,13 +1558,6 @@
       THE BOB COMES OFF, LIKE EVERY OTHER BOUND HERE. The sinusoids ride on top
       of the travel and are not bounded by it, so the amplitudes are subtracted
       rather than a margin invented. */
-   var blk=m.block;
-   if(blk){
-    var fR=cx+fw/2,fB=cy+fh/2;
-    if(fR<=blk.left)maxX=Math.min(maxX,blk.left-fR-bobX);
-    else if(fB<=blk.top)maxY=Math.min(maxY,blk.top-fB-bobY);
-    else{maxX=Math.min(maxX,blk.left-fR-bobX);maxY=Math.min(maxY,blk.top-fB-bobY);}
-   }
    return {
     minX:Math.min(0,Math.max(needX-box.width-box.left,bobX-(cx-fw/2))),
     maxX:Math.max(0,maxX),
