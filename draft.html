@@ -506,10 +506,17 @@ body{font-family:var(--sans);font-size:var(--fs-body);line-height:var(--lh-body)
       <p><b>What the model is, plainly.</b> Nothing here learned anything from data: a
         player's score is his projected points above the replacement at his position,
         weighted 1.14&times; if he is a back, plus a nudge for a quota you have not filled,
-        plus a payment for ceiling from round ten, plus a small prior from historical hit
-        rates, minus penalties for an injury flag and for a man who will still be there
+        minus a charge for the distance down to his floor before round ten and plus a payment
+        for the distance up to his ceiling from round ten on, plus a small prior from historical
+        hit rates, minus penalties for an injury flag and for a man who will still be there
         next round. Every number that moves a pick is printed on that pick's row, which is
         the point &mdash; you can see why it said what it said and overrule it at the table.</p>
+      <p><b>Early you pay for the floor, late you pay for the ceiling.</b> Both halves use
+        the same coefficient, 0.55, so the rule cannot disagree with itself. Until this pass
+        only the ceiling half existed: the floor was printed on every row and never scored,
+        which meant that through nine of the fifteen rounds two men with the same projection
+        ranked identically however far apart their bad weeks were. Where a projection sits
+        high inside its own band, the model now says so in the only currency it has.</p>
       <p><b>No quarterback before round eight.</b> Not a preference — a margin.
         On this year's projections the best quarterback in football is worth
         <b>+4.8 pts/gm</b> over the one still sitting on the board in round thirteen.
@@ -521,16 +528,21 @@ body{font-family:var(--sans);font-size:var(--fs-body);line-height:var(--lh-body)
         RB25–RB36 average 10.5, a 3.1-point step, where the same move at receiver
         costs 1.8. The model weights running back 1.20× and holds a hard floor —
         two backs by round four, three by six, four by eight — at all twelve slots.</p>
-      <p><b>Nothing here is a reach.</b> Every pick is checked against Sleeper's own
-        12-team PPR ADP. Where Sleeper and Fantasy Football Calculator disagree by
-        more than a round the row says so, because knowing a player goes fifteen picks
-        earlier on the platform you are sitting in front of is the whole edge. In rounds
-        one to six no recommendation is more than half a round ahead of its ADP; later,
-        where a reach costs nothing, the number of picks you are jumping is printed on the row.</p>
+      <p><b>Almost nothing here is a reach, and the exceptions say so.</b> Every pick is
+        checked against Sleeper's own 12-team PPR ADP. Where Sleeper and Fantasy Football
+        Calculator disagree by more than a round the row says so, because knowing a player
+        goes fifteen picks earlier on the platform you are sitting in front of is the whole
+        edge. In rounds one to six, <b>212 of the 216</b> recommendations are inside half a
+        round of their ADP. The four that are not are all receivers, all exactly seven picks
+        ahead, and all the same situation: filling a starting slot the quota demanded left
+        fewer than three men inside the window, and going without a starter costs more than
+        seven picks does. Each of the four prints the number on its row. Later, where a reach
+        costs nothing, the number of picks you are jumping is printed on the row as well.</p>
       <div class="dbFigs">
         <div class="dbFig"><span class="n">+13.4</span><span class="l">RB1's edge per game over a replacement back. The best QB's edge over a round-13 QB is +4.8.</span></div>
         <div class="dbFig"><span class="n">3.1 vs 1.8</span><span class="l">Points per game lost stepping from the RB13–24 tier to RB25–36, against the same step at receiver.</span></div>
-        <div class="dbFig"><span class="n">46.3–52.5</span><span class="l">Top-three RB projection across all twelve slots. Six backs at every one of them.</span></div>
+        <div class="dbFig"><span class="n">45.8–52.5</span><span class="l">Top-three RB projection across all twelve slots. Six backs at every one of them.</span></div>
+        <div class="dbFig"><span class="n">212 of 216</span><span class="l">Recommendations in rounds one to six inside half a round of their ADP. The other four are receivers a quota forced, each seven ahead, each saying so.</span></div>
       </div>
 
       <h3>Where this comes from</h3>
@@ -629,13 +641,13 @@ var D = window.__DRAFT__, P = D.P, B = D.B, N = D.N, M = D.M, BR = D.BR;
 var TEAMS = 12, ROUNDS = 15;
 
 /* ═══ THE MODEL ═══════════════════════════════════════════════════════════
-   Unchanged, and still deliberately small enough to read.
+   Still deliberately small enough to read.
 
    Score a player = his projected points per game above the replacement player
    at his position, times 1.14 if he is a running back, plus a nudge for any
-   positional quota you have not met yet, plus — from round ten — a payment for
-   the distance between his projection and his ceiling, plus a small historical
-   prior, minus penalties for an injury flag and for a man who will still be
+   positional quota you have not met yet, minus — before round ten — a charge for
+   the distance down to his floor, plus — from round ten — a payment for the
+   distance up to his ceiling, plus a small historical prior, minus penalties for an injury flag and for a man who will still be
    there at your next pick. Then refuse anything more than the round's allowance
    ahead of its ADP, refuse a quarterback before round eight, and take the top
    of what is left. That is it. No training, no weights learned from data, no
@@ -684,7 +696,27 @@ function score(pi, counts, rnd, nextPick){
     if(need > 0) urg = Math.max(urg, need / Math.max(1, f[0] - rnd + 1));
   }
   s += 6 * urg;
+  /* ── THE BAND, BOTH ENDS OF IT ────────────────────────────────────────
+     From round ten it pays for the distance up to the ceiling: by then a man
+     who cannot win you a week is no use. Before round ten it now CHARGES for
+     the distance down to the floor, which is the same rule read the other way
+     -- early you are buying a starter and what he does on his bad weeks is
+     the thing you are actually paying for.
+     THE MODEL HAD ONLY THE UPSIDE HALF. `fl` was printed on every row and
+     never scored, so in nine of fifteen rounds two men with the same
+     projection ranked identically no matter how far apart their floors were.
+     Jayden, on Jeremiyah Love in round two: "im not really big on jerimiah in
+     the secound I feel like that is his ceiling not projected." He is right
+     and it is measurable -- Love's 15.0 sits 62% of the way from his own floor
+     to his own ceiling, against a median of 45% for the top twenty-four backs,
+     and his 4.8-point drop to the floor is the fifth widest of them.
+     0.55 IS NOT A FITTED NUMBER. It is the coefficient already on the line
+     above, used again so the two halves of one rule cannot disagree. Nothing
+     here is trained and this is not the place to start pretending otherwise:
+     if it is wrong it is wrong in a direction you can read off the row, which
+     prints the floor it is charging against. */
   if(rnd >= 10) s += 0.55 * (p.ce - p.pr);
+  else s -= 0.55 * (p.pr - p.fl);
   if(rnd >= 11 && p.k === 'report') s += 2;
   if(p.rk) s -= 3;
   var h = baseHit(pos, rnd); if(h != null) s += 3 * (h - 0.35);
@@ -713,7 +745,16 @@ function solve(gone, counts, rnd, n, want){
     cands = cands.concat(loose.slice(0, (want || 3) - cands.length));
   }
   var np = rnd < ROUNDS ? pickNoFor(slotOnClock(n), rnd + 1) : null;
-  cands.sort(function(a, b){ return score(b, counts, rnd, np) - score(a, counts, rnd, np); });
+  /* AT EQUAL SCORE, TAKE THE MAN THE ROOM WANTS FIRST. Hampton and Chase
+     Brown carry the same 7.5 above replacement, the same position and the same
+     tier, so rounds one and two were deciding between them on array order --
+     which is alphabetical, and which is why the live solver and the stored
+     board disagreed on eleven cells. Lower ADP wins: he is the one who will
+     not be there when it comes round again. */
+  cands.sort(function(a, b){
+    var d = score(b, counts, rnd, np) - score(a, counts, rnd, np);
+    return d || (P[a].a - P[b].a);
+  });
   return cands.slice(0, want || 3);
 }
 
