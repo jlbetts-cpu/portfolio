@@ -19,7 +19,7 @@
      Nothing below re-styles a .ctl: the selected pill is .ctl--primary and the
      resting one .ctl--quiet, swapped in script. The private tab rules this page
      used to carry are gone with the bar they belonged to. -->
-<link rel="stylesheet" href="tokens.css?v=98d7b6f74e">
+<link rel="stylesheet" href="tokens.css?v=99a5372764">
 <style>
 /* ═══════════════════════════════════════════════════════════════════════════
    THE 2026 DRAFT BOARD.
@@ -344,6 +344,43 @@ main{font-size:var(--fs-body);line-height:var(--lh-body);letter-spacing:var(--tr
  .dbFig:nth-child(3){border-left:0;padding-left:0}
  .dbFig:nth-child(n+3){border-top:var(--hair-w) solid var(--rule)}}
 
+/* ── the thumb on the scale, said out loud ────────────────────────────────
+   Four players Jayden asked for by name. The rule is that you can SEE the
+   preference: it is a sentence on the row, in the same ink and the same size as
+   the rest of the row's prose, and it names the man the board wanted instead.
+   No badge, no colour, no ground -- a coloured chip would read as a rating, and
+   this is not a rating, it is him. */
+.dbAsked{display:block;margin:var(--sp-6) 0 0 var(--sp-20);max-width:var(--db-why);
+ font-size:var(--fs-nav);line-height:var(--lh-body);color:var(--theme-muted)}
+.dbAsked b{font-weight:600;color:var(--theme-ink-soft)}
+/* inside an opened panel it is already indented by the panel */
+.dbWhyIn .dbAsked{margin-left:0}
+@media(min-width:900px){.dbAsked{grid-column:2;margin-left:0}}
+
+/* ── the twelve seats, ranked ─────────────────────────────────────────────
+   Hairlines and tabular figures, which is how the rest of this page draws a
+   list of numbers. No bars: the whole finding is that the seats are inside each
+   other's noise, and a bar chart would draw exactly the difference the sentence
+   under it says not to believe. */
+.dbTable{margin-top:var(--sp-16);border-top:var(--hair-w) solid var(--rule);
+ font-size:var(--fs-nav);font-variant-numeric:tabular-nums;max-width:var(--db-measure)}
+.dbTable .r{display:flex;align-items:baseline;gap:var(--sp-12);padding-block:var(--sp-8);
+ border-bottom:var(--hair-w) solid var(--rule);color:var(--theme-muted)}
+.dbTable .r.is-you{color:var(--theme-ink)}
+.dbTable .r.is-you .s{font-weight:600}
+.dbTable .r .i{flex:0 0 var(--sp-20)}
+.dbTable .r .p{margin-left:auto;font-weight:600;color:var(--theme-ink-soft)}
+.dbTable .r.is-you .p{color:var(--theme-ink)}
+/* one name-list per line, wrapping, at the size the page glances at */
+.dbNames{display:block;margin-top:var(--sp-8);font-size:var(--fs-nav);
+ line-height:var(--lh-body);color:var(--theme-muted);max-width:var(--db-measure)}
+.dbNames b{font-weight:600;color:var(--theme-ink-soft)}
+/* the reverse control. A real .ctl, quiet, on its own line under the four. */
+.dbPrefRow{display:flex;align-items:flex-start;gap:var(--sp-16);margin-top:var(--sp-16)}
+.dbPrefRow .dbNames{margin-top:0;flex:0 1 auto}
+.dbPrefRow .ctl{flex:none}
+@media(max-width:600px){.dbPrefRow{flex-direction:column;gap:var(--sp-8)}}
+
 /* ── live draft ───────────────────────────────────────────────────────────
    One rule governs this whole mode: it has to be usable one-handed, at a
    table, under time pressure. So it is ONE tap per pick -- you tap whoever
@@ -392,10 +429,10 @@ main{font-size:var(--fs-body);line-height:var(--lh-body);letter-spacing:var(--tr
  .dbCard,.dbPool{border-color:var(--theme-rim-strong)}
 }
 </style>
-<link rel="stylesheet" href="controls.css?v=98d7b6f74e">
-<link rel="stylesheet" href="header.css?v=98d7b6f74e">
-<link rel="stylesheet" href="footer.css?v=98d7b6f74e">
-<link rel="stylesheet" href="site-theme.css?v=98d7b6f74e">
+<link rel="stylesheet" href="controls.css?v=99a5372764">
+<link rel="stylesheet" href="header.css?v=99a5372764">
+<link rel="stylesheet" href="footer.css?v=99a5372764">
+<link rel="stylesheet" href="site-theme.css?v=99a5372764">
 <script src="header.js" defer></script>
 <script src="footer-band.js" defer></script>
 </head>
@@ -517,6 +554,29 @@ main{font-size:var(--fs-body);line-height:var(--lh-body);letter-spacing:var(--tr
         <summary id="noteSum"></summary>
         <div class="dbMoreIn"><p id="noteBody"></p></div>
       </details>
+
+      <!-- ═══ THE FINISHED TEAM ═════════════════════════════════════════════
+           "at the end can you show the projected best drafted teams and what
+           there projected fantasy score would be for the season also I care
+           about trade value so names I can trade if they dont turn out."
+           Two things, one block, and CLOSED: they are the end of the draft, not
+           the round on screen. The summary line carries the two numbers he
+           asked for so neither needs opening; the method that makes the season
+           total, and the sentence saying the twelve seats are inside each
+           other's noise, are one tap down with the table they qualify. -->
+      <details class="dbMore" id="teamWrap" style="margin-top:var(--sp-8)">
+        <summary id="teamSum"></summary>
+        <div class="dbMoreIn" id="teamBody"></div>
+      </details>
+
+      <!-- ═══ THE FOUR ══════════════════════════════════════════════════════
+           A named preference, not a nudge inside score(). Closed it says where
+           each of the four lands at this seat; open it says what each one cost
+           and carries the control that takes them all back out. -->
+      <details class="dbMore" id="prefWrap">
+        <summary id="prefSum"></summary>
+        <div class="dbMoreIn" id="prefBody"></div>
+      </details>
     </section>
   </div>
 
@@ -571,26 +631,34 @@ main{font-size:var(--fs-body);line-height:var(--lh-body);letter-spacing:var(--tr
         The best running back is worth <b>+13.4</b> over his. Last season Drake Maye
         finished QB2 at 21.1 pts/gm and Trevor Lawrence QB5 at 19.9, both from well
         outside the early rounds.</p>
-      <p><b>Running back at every slot, not just the good ones.</b> Backs decay
+      <p><b>Running back at every slot — four of them, not six.</b> Backs decay
         roughly twice as fast as receivers: RB13–RB24 average 13.6 pts/gm and
-        RB25–RB36 average 10.5, a 3.1-point step, where the same move at receiver
-        costs 1.8. The model weights running back 1.20× and holds a hard floor —
-        two backs by round four, three by six, four by eight — at all twelve slots.</p>
+        RB25–RB36 average 10.5, a 3.0-point step, where the same move at receiver
+        costs 1.8. That is why the model weights running back 1.14× and holds a hard
+        floor — two backs by round four, three by six, <b>four by eight</b> — at all
+        twelve slots. The floor used to run to six, and the sixth back was dead weight:
+        on the 17-week starting lineup below, the fourth back starts about <b>two</b>
+        weeks a season, the fifth <b>one</b>, and the sixth <b>none at all</b>. Capping
+        the position at five turned three bench backs into a sixth and seventh receiver,
+        left the top-three-back projection exactly where it was (<b>45.8–52.5</b> across
+        the twelve seats, unmoved), and lifted the weakest seat’s two starting receivers
+        from 25.1 to 26.0 pts/gm. Strong at back was never the same thing as many backs.</p>
       <p><b>Almost nothing here is a reach, and the exceptions say so.</b> Every pick is
         checked against Sleeper's own 12-team PPR ADP. Where Sleeper and Fantasy Football
         Calculator disagree by more than a round the row says so, because knowing a player
         goes fifteen picks earlier on the platform you are sitting in front of is the whole
-        edge. In rounds one to six, <b>212 of the 216</b> recommendations are inside half a
-        round of their ADP. The four that are not are all receivers, all exactly seven picks
-        ahead, and all the same situation: filling a starting slot the quota demanded left
-        fewer than three men inside the window, and going without a starter costs more than
-        seven picks does. Each of the four prints the number on its row. Later, where a reach
+        edge. In rounds one to six, <b>all 216</b> recommendations are inside half a round
+        of their ADP. Put all four of your names back in and two of them are not: Carnell
+        Tate and Christian Watson at slot 11, each exactly seven picks ahead, both the same
+        situation — filling a starting slot the quota demanded left fewer than three men
+        inside the window, and going without a starter costs more than seven picks does.
+        Both print the number on the row. Later, where a reach
         costs nothing, the number of picks you are jumping is printed on the row as well.</p>
       <div class="dbFigs">
         <div class="dbFig"><span class="n">+13.4</span><span class="l">RB1's edge per game over a replacement back. The best QB's edge over a round-13 QB is +4.8.</span></div>
-        <div class="dbFig"><span class="n">3.1 vs 1.8</span><span class="l">Points per game lost stepping from the RB13–24 tier to RB25–36, against the same step at receiver.</span></div>
-        <div class="dbFig"><span class="n">45.8–52.5</span><span class="l">Top-three RB projection across all twelve slots. Six backs at every one of them.</span></div>
-        <div class="dbFig"><span class="n">212 of 216</span><span class="l">Recommendations in rounds one to six inside half a round of their ADP. The other four are receivers a quota forced, each seven ahead, each saying so.</span></div>
+        <div class="dbFig"><span class="n">3.0 vs 1.8</span><span class="l">Points per game lost stepping from the RB13–24 tier to RB25–36, against the same step at receiver.</span></div>
+        <div class="dbFig"><span class="n">45.8–52.5</span><span class="l">Top-three RB projection across all twelve slots, unmoved by the cap. Four or five backs at every seat now, and six or seven receivers.</span></div>
+        <div class="dbFig"><span class="n">216 of 216</span><span class="l">Recommendations in rounds one to six inside half a round of their ADP. With all four of your names in it is 214: two receivers at slot 11, each seven ahead, each saying so on its row.</span></div>
       </div>
 
       <h3>Where this comes from</h3>
@@ -688,6 +756,61 @@ main{font-size:var(--fs-body);line-height:var(--lh-body);letter-spacing:var(--tr
 var D = window.__DRAFT__, P = D.P, B = D.B, N = D.N, M = D.M, BR = D.BR;
 var TEAMS = 12, ROUNDS = 15;
 
+/* ═══ THE THUMB ON THE SCALE, AND WHY IT IS NOT INSIDE score() ════════════
+   Jayden: "parker washington and stribling going in and my favorite player is
+   bucky so if he can fit in anywhere id be happy i am aware of the risks im
+   also really high on achane this year."
+
+   NOTHING BELOW TOUCHES THE SCORING. If four names were quietly worth a few
+   points each, every recommendation on the page would become a blend of
+   evidence and affection with no way to tell which was which -- and the one
+   promise this page makes is that you can see why it said what it said and
+   overrule it. So the preference is a SORT KEY, not a score: among the
+   candidates the guards have ALREADY allowed, a name on this list goes first.
+   The reach guard, the position caps, the quota and no-quarterback-before-eight
+   refuse these four exactly as they refuse anybody else, which is why Achane
+   cannot be had from seats one to five and Bucky cannot be had from one to six:
+   the guard will not reach that far, and the page says so rather than bending.
+   Every number on their rows is the number the model computed without them.
+
+   Resolved by NAME. draft-data.js is generated and its array order is not a
+   stable identifier; a name that is not in the pool is simply absent. */
+var PREF_NAMES = ["De'Von Achane", "Bucky Irving", "Parker Washington", "De'Zhaun Stribling"];
+var PREF = {}, PREF_IDS = [];
+(function(){
+  for(var i = 0; i < P.length; i++)
+    if(PREF_NAMES.indexOf(P[i].n) >= 0){ PREF[i] = 1; PREF_IDS.push(i); }
+  PREF_IDS.sort(function(a, b){ return P[a].a - P[b].a; });
+})();
+/* ── ONE SWITCH WAS THE WRONG SHAPE, AND THE MEASUREMENT SAYS WHY ──────
+   The four used to be one boolean: all in or all out. That hid the fact
+   that they do not cost the same thing. Re-running every seat with each
+   name taken out on its own:
+
+     De'Von Achane       round one    0 at seats 1-5 and 11-12, 32-48 at 6-10
+     Bucky Irving        round four   0 at seats 1-6 and 12,     15-25 at 7-11
+     Parker Washington   round six    0 everywhere but seat 3,   9 there
+     De'Zhaun Stribling  round twelve 0 at every seat
+
+   Achane in round one is most of "the teams look weak at receiver": from
+   seat 6 he goes ahead of Jaxon Smith-Njigba (19.3 against his 16.0), CeeDee
+   Lamb (18.5), Justin Jefferson (18.3) or A.J. Brown (19.0), and the receiver
+   corps never recovers, because round one is the only place those men exist.
+   Bucky Irving in round four is the rest of it: at seats 7-11 he goes ahead
+   of Travis Etienne (15.5 against his 13.2), which is the round-four reach.
+   Stribling in round twelve costs nothing at any seat.
+   So the preference is now FOUR switches, each with its own price printed
+   beside it, and the price is a re-run of the seat rather than an estimate.
+   Still nothing inside score(); still a sort key. */
+var prefOut = {};
+function prefLive(pi){ return PREF[pi] && !prefOut[P[pi].n] ? 1 : 0; }
+function prefKey(){
+  var k = [], i;
+  for(i = 0; i < PREF_IDS.length; i++) if(prefLive(PREF_IDS[i])) k.push(PREF_IDS[i]);
+  return k.join(',');
+}
+function anyPref(){ return prefKey() !== ''; }
+
 /* ═══ THE MODEL ═══════════════════════════════════════════════════════════
    Still deliberately small enough to read.
 
@@ -775,7 +898,8 @@ function score(pi, counts, rnd, nextPick){
 }
 /* Solve one pick against a REAL remaining pool. The static board and the live
    assistant both come through here, which is why they cannot disagree. */
-function solve(gone, counts, rnd, n, want){
+function solve(gone, counts, rnd, n, want, usePref){
+  var pf = usePref === undefined ? anyPref() : usePref;
   var i, cands = [];
   for(i = 0; i < P.length; i++)
     if(!gone[i] && eligible(i, counts, rnd, n, true)) cands.push(i);
@@ -799,7 +923,14 @@ function solve(gone, counts, rnd, n, want){
      which is alphabetical, and which is why the live solver and the stored
      board disagreed on eleven cells. Lower ADP wins: he is the one who will
      not be there when it comes round again. */
+  /* THE PREFERENCE, AND THE ONLY LINE IT OCCUPIES. It sorts; it does not
+     score. Everything above this -- eligibility, the reach guard, the quota,
+     the caps -- has already run and is untouched. */
   cands.sort(function(a, b){
+    if(pf){
+      var pa = prefLive(a), pb = prefLive(b);
+      if(pa !== pb) return pb - pa;
+    }
     var d = score(b, counts, rnd, np) - score(a, counts, rnd, np);
     return d || (P[a].a - P[b].a);
   });
@@ -814,6 +945,133 @@ function slotOnClock(n){
 }
 function pickNoFor(slot2, rnd){ return (rnd - 1) * TEAMS + (rnd % 2 ? slot2 : TEAMS - slot2 + 1); }
 function pickLabel(rnd, n){ var i = ((n - 1) % TEAMS) + 1; return rnd + '.' + (i < 10 ? '0' : '') + i; }
+
+/* ═══ THE BOARD, BUILT THE WAY THE COMMITTED ONE WAS ══════════════════════
+   `B` in draft-data.js is fifteen rounds per seat, generated offline. This is
+   the machine that generated it: for one seat, the other eleven teams take
+   best-available by Sleeper ADP and you take the model's first name. Run
+   against the shipped score() it reproduces 539 of the 540 committed
+   recommendations, including the four rounds-1-to-6 receivers the appendix
+   names and their exact seven picks of reach. The single difference is slot
+   10's round-FIFTEEN defence, where the room's pointer runs off the end of the
+   ADP list and this version consumes one name more than the original did.
+   B still renders when the preference is off, so "what the board would have
+   done" is the committed board itself and not a re-derivation of it. This runs
+   the seat WITH the four in, and supplies each preferred row's counterfactual:
+   the man the board wanted at that exact pick. */
+var ADP_ORDER = (function(){
+  var o = [], i;
+  for(i = 0; i < P.length; i++) if(P[i].a != null) o.push(i);
+  o.sort(function(a, b){ return P[a].a - P[b].a || a - b; });
+  return o;
+})();
+var mockCache = {};
+function mock(seat, usePref){
+  var key = seat + (usePref ? 'p' + prefKey() : 'e');
+  if(mockCache[key]) return mockCache[key];
+  var gone = {}, counts = {}, ptr = 0, cells = [], mine = [], n, r, top, alt;
+  for(n = 1; n <= TEAMS * ROUNDS; n++){
+    r = roundOf(n);
+    if(slotOnClock(n) === seat){
+      top = solve(gone, counts, r, n, 3, usePref);
+      alt = null;
+      if(usePref && top.length && prefLive(top[0])){
+        alt = solve(gone, counts, r, n, 1, false)[0];
+        if(alt === top[0]) alt = null;
+      }
+      cells.push({ r: r, n: n, top: top, alt: alt == null ? null : alt });
+      if(!top.length) continue;
+      gone[top[0]] = 1; mine.push(top[0]);
+      counts[P[top[0]].p] = (counts[P[top[0]].p] || 0) + 1;
+    } else {
+      while(ptr < ADP_ORDER.length && gone[ADP_ORDER[ptr]]) ptr++;
+      if(ptr < ADP_ORDER.length){ gone[ADP_ORDER[ptr]] = 1; ptr++; }
+    }
+  }
+  return (mockCache[key] = { cells: cells, mine: mine });
+}
+/* the seat as it will actually be drafted: the committed board with the four
+   out, the re-run board with them in. */
+function seatCells(seat){
+  if(anyPref()) return mock(seat, true).cells;
+  var out = [], r;
+  for(r = 1; r <= ROUNDS; r++)
+    out.push({ r: r, n: pickNoFor(seat, r), top: B[seat - 1][r - 1].map(function(e){ return e[0]; }), alt: null });
+  return out;
+}
+function seatRoster(seat){
+  var c = seatCells(seat), out = [], i;
+  for(i = 0; i < c.length; i++) if(c[i].top.length) out.push(c[i].top[0]);
+  return out;
+}
+
+/* ═══ WHAT THE FINISHED TEAM SCORES ═══════════════════════════════════════
+   THE METHOD, WHICH IS PRINTED BESIDE THE NUMBER. A season total with an
+   unstated method is exactly the figure you would act on and should not.
+
+   LINEUP: Sleeper's default 12-team roster — QB, RB, RB, WR, WR, TE, FLEX,
+   K, DEF. This is NOT in the data; it is the platform default for this format,
+   and the page says so on the line above the number so it can be checked
+   against the real league settings in one look.
+   WEEKS: all 17, starters only — never best-ball. Each week the highest
+   projection fills each slot and the flex takes the best back, receiver or
+   tight end left over.
+   BYES: a man on his bye does not play and the best rostered replacement
+   starts. If there is nobody behind him the slot scores NOTHING, which is why
+   every seat loses exactly four starter-weeks a season: the one quarterback,
+   the one tight end, the one kicker and the one defence each have a bye and no
+   cover. In a real league you stream those; this arithmetic cannot.
+   NOT MODELLED: injury, suspension, waivers, trades, or a week where you
+   started the right man. It is projected points per game, added up. */
+var LINEUP = ['QB','RB','RB','WR','WR','TE','FLEX','K','DEF'];
+function seasonPts(ids, field){
+  field = field || 'pr';
+  var total = 0, holes = 0, wk, s, k, i, p, best, want, used;
+  for(wk = 1; wk <= 17; wk++){
+    used = {};
+    for(s = 0; s < LINEUP.length; s++){
+      want = LINEUP[s]; best = -1;
+      for(k = 0; k < ids.length; k++){
+        i = ids[k]; p = P[i];
+        if(used[i] || p[field] == null || String(p.by) === String(wk)) continue;
+        if(want === 'FLEX' ? (p.p !== 'RB' && p.p !== 'WR' && p.p !== 'TE') : p.p !== want) continue;
+        if(best < 0 || p[field] > P[best][field]) best = i;
+      }
+      if(best < 0){ holes++; continue; }
+      used[best] = 1; total += P[best][field];
+    }
+  }
+  return { pts: total, holes: holes };
+}
+
+/* ═══ TRADE VALUE, WHICH IS A PROXY AND SAYS SO ═══════════════════════════
+   "i care about trade value so names I can trade if they dont turn out."
+
+   THERE IS NO TRADE-VALUE NUMBER IN THIS DATA AND NONE IS INVENTED HERE.
+   What the data does hold is the price the room paid: Sleeper ADP, the same
+   figure already printed on every row. A man the room spent a top-six-round
+   pick on has been valued out loud by eleven other people, so he stays movable
+   through a bad month on his name alone; a man the room let fall past round
+   nine is a man only this board likes, and if he does not hit there is no bid
+   to answer. The two edges are round boundaries, not fitted numbers: 72 is six
+   rounds, the same window the reach guard already treats as the early draft,
+   and 108 is nine.
+   Age, 2025 usage and the FFC/Underdog spread all argue round the edges of
+   this and are all on the row already. They are deliberately NOT folded in:
+   the moment they are, this stops being a fact you can check in one column and
+   becomes an index nobody can argue with. Kickers and defences carry nothing —
+   nobody trades for either. */
+function liquidity(p){
+  if(!p || p.p === 'K' || p.p === 'DEF' || p.a == null) return null;
+  if(p.a <= 72) return 'liquid';
+  if(p.a > 108) return 'thin';
+  return 'steady';
+}
+var LIQ_WHY = {
+  liquid: 'the room spends a top-six-round pick on him, so somebody else has already priced him.',
+  steady: 'a middle-round price — a name that goes into a deal, not the one that carries it.',
+  thin: 'the room lets him fall past round nine, so if he does not turn out there is no bid to answer.'
+};
 
 /* ═══ state ═══════════════════════════════════════════════════════════════
    ONE slot, read by both modes. It used to be two -- `slot` for the board and
@@ -831,9 +1089,14 @@ try{
   if(!slot && st.live && st.live.slot >= 1 && st.live.slot <= TEAMS) slot = st.live.slot;
   if(st.taken) taken = st.taken;
   else if(st.live && st.live.taken) taken = st.live.taken;
+  /* the four default to IN -- he asked for them. Only an explicit false turns
+     them off, so a saved state written before they existed still gets them. */
+  if(st.pref === false) for(var pn = 0; pn < PREF_NAMES.length; pn++) prefOut[PREF_NAMES[pn]] = 1;
+  if(st.prefOut) for(var po = 0; po < st.prefOut.length; po++) prefOut[st.prefOut[po]] = 1;
 }catch(e){}
 function save(){ try{
-  localStorage.setItem('jb.draft', JSON.stringify({ mode: mode, round: round, slot: slot, taken: taken }));
+  localStorage.setItem('jb.draft', JSON.stringify({ mode: mode, round: round, slot: slot,
+    taken: taken, prefOut: Object.keys(prefOut) }));
 }catch(e){} }
 
 function esc(t){ return String(t).replace(/[&<>"]/g, function(c){
@@ -855,7 +1118,7 @@ function pct1(x){ return (x * 100).toFixed(1) + '%'; }
    link to whatever was written about him.
    In the LIVE POOL the reason moves down with the rest: twenty-five rows whose
    job is "which of these just got taken" is a list you scan, not read. */
-function pickRow(pi, rank, rnd, n, onTap){
+function pickRow(pi, rank, rnd, n, onTap, alt){
   var p = P[pi], gap = n ? Math.max(0, p.a - n) : 0;
   var kind = p.k === 'model' ? 'projection only' : (p.k === 'stat' ? 'stat' : 'report');
   /* A handful of men carry NO WalterPicks projection. The solver never ranks
@@ -915,6 +1178,20 @@ function pickRow(pi, rank, rnd, n, onTap){
         ' for receivers at the same cost (' + BR.dead.sample + '). This board takes them anyway, by choice.';
   }
 
+  /* TRADE VALUE, one line, one tap deep, and it never touches the pick. It is
+     a different question from "is he good" and it is answered from one column
+     of the row above it. */
+  var liq = liquidity(p), trade = '';
+  if(liq) trade = '<span class="dbBase">Trade value <b>' + liq + '</b> — ' + LIQ_WHY[liq] +
+    ' A proxy from Sleeper ADP alone, not a rating.</span>';
+
+  /* THE PREFERENCE, SAID ON THE ROW. Plain words, the man it moved aside
+     named, and the evidence beside it unchanged. */
+  var asked = '';
+  if(prefLive(pi)) asked = '<span class="dbAsked"><b>You asked for him.</b>' +
+    (alt != null ? ' Without that the board takes ' + esc(P[alt].n) + ' here.'
+                 : ' The board had him next anyway.') + '</span>';
+
   var why = '<span class="dbTxt">' + esc(p.no) + '</span>' +
     '<span class="dbSrc"><span class="dbKind">' + kind + '</span>' +
       (p.sr ? ' · <a href="' + esc(p.sr) + '" rel="noopener nofollow" target="_blank">' +
@@ -935,10 +1212,12 @@ function pickRow(pi, rank, rnd, n, onTap){
     (onTap ? '' :
       '<span class="dbWhyLine">' + esc(p.no) +
         (p.k === 'model' ? '<span class="dbKind">projection only</span>' : '') + '</span>') +
+    (onTap ? '' : asked) +
     '<span class="dbWhy"><span class="dbWhyIn">' +
-      (onTap ? why : '') +
+      (onTap ? why + asked : '') +
       '<span class="dbMeta">' + meta + '</span>' +
       '<span class="dbFacts">' + facts + '</span>' +
+      trade +
       opp +
       (base ? '<span class="dbBase">' + base + '</span>' : '') +
       (onTap ? '' : '<span class="dbSrc"><span class="dbKind">' + kind + '</span>' +
@@ -1048,21 +1327,214 @@ function haveStrip(el, label, ids){
 
 /* ═══ board view — ONE round, at ONE slot ═════════════════════════════════ */
 function renderBoard(){
-  var n = pickNoFor(slot, round), cell = B[slot - 1][round - 1], i;
+  var cells = seatCells(slot), cell = cells[round - 1], n = cell.n, i;
   document.getElementById('ctx').innerHTML =
     '<h2>Round ' + round + '</h2>' +
     '<span class="at">Your pick ' + pickLabel(round, n) + ' · overall ' + n + ' of 180</span>';
 
   var had = [];
-  for(i = 1; i < round; i++) had.push(B[slot - 1][i - 1][0][0]);
+  for(i = 0; i < round - 1; i++) if(cells[i].top.length) had.push(cells[i].top[0]);
   haveStrip(document.getElementById('have'), 'You already have', had);
 
   var card = document.getElementById('card'); card.textContent = '';
-  for(i = 0; i < cell.length; i++) card.appendChild(pickRow(cell[i][0], i + 1, round, n, null));
+  for(i = 0; i < cell.top.length; i++)
+    card.appendChild(pickRow(cell.top[i], i + 1, round, n, null, i === 0 ? cell.alt : null));
 
   document.getElementById('noteSum').textContent = 'Why round ' + round + ' looks like this';
   document.getElementById('noteBody').textContent = N[round];
   document.getElementById('noteWrap').open = false;
+  renderTeam(cells);
+  renderPrefs(cells);
+}
+
+/* ═══ the finished team ═══════════════════════════════════════════════════ */
+function num(x){ return Math.round(x).toLocaleString('en-US'); }
+function nameList(ids){
+  return ids.map(function(i){ return esc(P[i].n); }).join(', ');
+}
+function renderTeam(cells){
+  var mine = [], i;
+  for(i = 0; i < cells.length; i++) if(cells[i].top.length) mine.push(cells[i].top[0]);
+
+  var here = seasonPts(mine), band = seasonPts(mine, 'ce').pts - seasonPts(mine, 'fl').pts;
+
+  /* THE ELEVEN OTHER SEATS ARE THE MODEL'S OWN BOARD; YOUR SEAT IS YOURS.
+     They do not have your four in — nobody else's board does — so they are the
+     committed board and yours is the one on screen. Ranking every seat on the
+     committed board and then printing your with-the-four total beside the rank,
+     which is what this did, says "1,930 is 5th" when 1,930 was never the number
+     that was ranked. The rank now belongs to the number above it. */
+  var all = [], s, committed = 0;
+  for(s = 1; s <= TEAMS; s++){
+    var r = [];
+    for(i = 0; i < ROUNDS; i++) r.push(B[s - 1][i][0][0]);
+    var cp = seasonPts(r).pts;
+    if(s === slot) committed = cp;
+    all.push({ slot: s, pts: s === slot ? here.pts : cp });
+  }
+  var sorted = all.slice().sort(function(a, b){ return b.pts - a.pts; });
+  var yourRank = 0;
+  for(i = 0; i < sorted.length; i++) if(sorted[i].slot === slot) yourRank = i + 1;
+  var top = sorted[0].pts, bot = sorted[sorted.length - 1].pts, tight = 0;
+  for(i = 0; i < sorted.length; i++) if(sorted[i].pts >= top * 0.99) tight++;
+
+  var liq = [], thin = [];
+  for(i = 0; i < mine.length; i++){
+    var L = liquidity(P[mine[i]]);
+    if(L === 'liquid') liq.push(mine[i]);
+    else if(L === 'thin') thin.push(mine[i]);
+  }
+
+  document.getElementById('teamSum').innerHTML =
+    'Your finished team projects <b>' + num(here.pts) + '</b> for the season — ' +
+    yourRank + (yourRank === 1 ? 'st' : yourRank === 2 ? 'nd' : yourRank === 3 ? 'rd' : 'th') +
+    ' of twelve · <b>' + liq.length + '</b> names you could move';
+
+  var rows = '';
+  for(i = 0; i < sorted.length; i++)
+    rows += '<div class="r' + (sorted[i].slot === slot ? ' is-you' : '') + '">' +
+      '<span class="i">' + (i + 1) + '</span>' +
+      '<span class="s">Slot ' + sorted[i].slot + (sorted[i].slot === slot ? ' · your seat' : '') + '</span>' +
+      '<span class="p">' + num(sorted[i].pts) + '</span></div>';
+
+  document.getElementById('teamBody').innerHTML =
+    '<p><b>The method, because the number is worthless without it.</b> Starters only, never ' +
+      'best-ball: <b>QB, RB, RB, WR, WR, TE, FLEX, K, DEF</b>, which is Sleeper’s default for ' +
+      'this format — check it against your league before you use any of this. All <b>17</b> weeks. ' +
+      'Every man plays every week except his own bye; on a bye the best rostered replacement starts, ' +
+      'and where there is nobody behind him the slot scores nothing. That happens <b>' + here.holes +
+      '</b> times a season at every seat — the single quarterback, tight end, kicker and defence each ' +
+      'have one bye and no cover, and in a real league you stream them. No injuries, no waivers, no ' +
+      'trades, no week where you started the right man. It is projected points per game, added up.</p>' +
+    '<p><b>The ranking is inside the noise and you should read it that way.</b> The twelve seats ' +
+      'span <b>' + num(top - bot) + '</b> points, ' + ((top - bot) / bot * 100).toFixed(1) + '% ' +
+      'of the smallest. The distance from this roster’s own floors to its own ceilings is <b>' +
+      num(band) + '</b> — ' + Math.round(band / Math.max(1, top - bot)) + ' times the whole spread, ' +
+      'which is the honest scale of it. <b>' + tight + '</b> of the twelve are inside one per cent of ' +
+      'the leader; read those as one seat and not as a ranking. ' +
+      (yourRank <= tight
+        ? 'Yours is one of them.'
+        : 'Yours is not, and the gap to that group is <b>' + num(sorted[tight - 1].pts - here.pts) +
+          '</b> points.') + '</p>' +
+    '<div class="dbTable">' + rows + '</div>' +
+    (anyPref() && Math.round(here.pts) !== Math.round(committed)
+      ? '<span class="dbNames">The other eleven rows are the model\u2019s own board \u2014 nobody ' +
+        'else\u2019s seat has your four in it. Yours is the board on screen: <b>' + num(here.pts) +
+        '</b> with them, <b>' + num(committed) + '</b> without, ' +
+        (here.pts < committed ? num(committed - here.pts) + ' fewer' : num(here.pts - committed) + ' more') +
+        '. Each name\u2019s share of that is under \u201cyour four players\u201d below.</span>' : '') +
+    '<h3>Names you could move</h3>' +
+    '<p>Not a rating and not a number — a proxy, and one column of it: <b>what the room paid</b>. ' +
+      'A player the other eleven spend a top-six-round pick on has been valued out loud by somebody ' +
+      'else, so his name still carries through a bad month. A player they let fall past round nine is ' +
+      'a player only this board likes, and if he does not turn out there is no bid to answer. Age, ' +
+      '2025 usage and the FFC/Underdog spread argue round the edges of this and are all on his row; ' +
+      'they are kept out of it on purpose, because folded together they stop being facts you can ' +
+      'check. Kickers and defences are left out: nobody trades for either.</p>' +
+    '<span class="dbNames"><b>Movable</b> — ' + (liq.length ? nameList(liq) : 'nobody at this seat') + '.</span>' +
+    '<span class="dbNames"><b>Only this board likes them</b> — ' +
+      (thin.length ? nameList(thin) : 'nobody at this seat') + '.</span>';
+}
+
+/* ═══ WHY A PREFERRED MAN IS NOT ON THIS SEAT'S TEAM ══════════════════════
+   Never "he did not fit". The rule that refused him has a name and a number,
+   and this replays the seat to find which one it was at the last pick he was
+   still on the board for. If a preference is going to be overruled, the thing
+   overruling it has to be legible or the preference was not really honoured. */
+function whyNot(seat, pi){
+  var p = P[pi], gone = {}, counts = {}, ptr = 0, n, r, lastLive = null, reason = null;
+  for(n = 1; n <= TEAMS * ROUNDS; n++){
+    r = roundOf(n);
+    if(slotOnClock(n) === seat){
+      if(!gone[pi]){
+        lastLive = n;
+        if((counts[p.p] || 0) >= M.caps[p.p]) reason = 'your ' + M.caps[p.p] + ' ' + p.p +
+          ' places were full by pick ' + n;
+        else if(p.a - n > slackFor(r)) reason = 'at your pick ' + n + ' he was still ' + (p.a - n) +
+          ' picks ahead of where the room takes him, and round ' + r + ' allows ' + slackFor(r);
+        else{
+          var f = forcedNow(counts, r);
+          reason = f.length && f.indexOf(p.p) < 0
+            ? 'at your pick ' + n + ' the quota had to have a ' + f[0] + ' and he is a ' + p.p
+            : 'he was available at your pick ' + n;
+        }
+      }
+      var top = solve(gone, counts, r, n, 1, true);
+      if(!top.length) continue;
+      gone[top[0]] = 1; counts[P[top[0]].p] = (counts[P[top[0]].p] || 0) + 1;
+    } else {
+      while(ptr < ADP_ORDER.length && gone[ADP_ORDER[ptr]]) ptr++;
+      if(ptr < ADP_ORDER.length){ gone[ADP_ORDER[ptr]] = 1; ptr++; }
+    }
+  }
+  if(lastLive == null) return 'the room takes him at ' + p.a + ', before this seat picks at all.';
+  return 'not at this seat. The room drafts him at ' + p.a + ' and ' + reason +
+    '; by your next pick he is gone. The board does not bend the guard for him.';
+}
+
+/* ═══ the four, each with its own price and its own switch ══════════
+   THE PRICE IS A RE-RUN, NOT AN ESTIMATE. For each name still in, the seat is
+   solved again with only that one taken out and the two season totals are
+   subtracted. That is why the number can be zero, and why Stribling's is:
+   in round twelve there is nothing behind him worth a point. */
+function prefCost(seat, pi){
+  var nm = P[pi].n;
+  if(prefOut[nm]) return null;
+  var withHim = seasonPts(seatRoster(seat)).pts;
+  prefOut[nm] = 1;
+  var without = seasonPts(seatRoster(seat)).pts;
+  delete prefOut[nm];
+  return without - withHim;   /* positive = what he costs you */
+}
+function renderPrefs(cells){
+  var i, j, lines = '', sum = [], live = 0;
+  for(i = 0; i < PREF_IDS.length; i++){
+    var pi = PREF_IDS[i], p = P[pi], nm = p.n, out = !!prefOut[nm], at = null;
+    if(!out) live++;
+    for(j = 0; j < cells.length; j++) if(cells[j].top.length && cells[j].top[0] === pi) at = cells[j];
+    sum.push(esc(nm.split(' ').slice(-1)[0]) + ' ' + (out ? 'out' : at ? 'round ' + at.r : '\u2014'));
+
+    var body;
+    if(out){
+      body = 'out of the board. Every other number on the page is the model on its own.';
+    } else if(at){
+      var c = prefCost(slot, pi);
+      body = 'round ' + at.r + ', pick ' + pickLabel(at.r, at.n) +
+        ', where the room drafts him at ' + p.a + '. ' +
+        (at.alt != null ? 'The board wanted <b>' + esc(P[at.alt].n) + '</b> there' : 'The board had him first anyway') +
+        (c == null || c < 0.5
+          ? ', and taking him costs this seat nothing over a season.'
+          : ', and taking him costs this seat <b>' + num(c) + '</b> points over a season.');
+    } else {
+      body = whyNot(slot, pi);
+    }
+    lines += '<div class="dbPrefRow"><span class="dbNames"><b>' + esc(nm) + '</b> \u2014 ' + body + '</span>' +
+      (at || out
+        ? '<button class="ctl ctl--quiet" type="button" data-pref="' + esc(nm) + '">' +
+          (out ? 'Put him back' : 'Take him out') + '</button>'
+        : '') + '</div>';
+  }
+  document.getElementById('prefSum').innerHTML = live
+    ? 'Your four players: ' + sum.join(' \u00b7 ')
+    : 'All four are out \u2014 the board below is the model on its own';
+  document.getElementById('prefBody').innerHTML =
+    '<p><b>Named, not hidden, and priced one at a time.</b> Achane, Irving, Washington and Stribling are ' +
+      'not worth extra points to the model and nothing on their rows has been touched: every projection, ' +
+      'floor, ceiling, base rate and ADP beside them is the number the model computed without them. All ' +
+      'that happens is that among the players the rules already allow at a pick, one of these four goes ' +
+      'first \u2014 and the row says so and names the man it moved aside. What is new is the bill. Each ' +
+      'name carries what it costs this seat over a season, measured by solving the seat again without ' +
+      'him, and each one has its own switch, because they do not cost the same thing: Achane in round ' +
+      'one is most of it and Stribling in round twelve is free. The reach guard, the position caps, the ' +
+      'quota and no-quarterback-before-round-eight still refuse them exactly as they refuse anybody ' +
+      'else, which is why two of them cannot be had from some seats at all.</p>' + lines;
+  var btns = document.getElementById('prefBody').querySelectorAll('button[data-pref]');
+  for(i = 0; i < btns.length; i++) btns[i].addEventListener('click', function(){
+    var w = document.getElementById('prefWrap').open, nm = this.getAttribute('data-pref');
+    if(prefOut[nm]) delete prefOut[nm]; else prefOut[nm] = 1;
+    save(); render();
+    document.getElementById('prefWrap').open = w;
+  });
 }
 
 /* ═══ live view ═══════════════════════════════════════════════════════════ */
@@ -1146,8 +1618,13 @@ function renderLive(){
   recSect.hidden = !mineTurn || done;
   if(mineTurn && !done){
     var recs = document.getElementById('recs'); recs.textContent = '';
-    var top = solve(st.gone, st.counts, rnd, n, 3);
-    for(var i = 0; i < top.length; i++) recs.appendChild(pickRow(top[i], i + 1, rnd, n, null));
+    var top = solve(st.gone, st.counts, rnd, n, 3), alt = null;
+    if(top.length && prefLive(top[0])){
+      alt = solve(st.gone, st.counts, rnd, n, 1, false)[0];
+      if(alt === top[0]) alt = null;
+    }
+    for(var i = 0; i < top.length; i++)
+      recs.appendChild(pickRow(top[i], i + 1, rnd, n, null, i === 0 ? alt : null));
     if(!top.length) recs.innerHTML = '<div class="dbEmpty">Nothing left that fits the rules.</div>';
   }
 
