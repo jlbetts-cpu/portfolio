@@ -1558,12 +1558,44 @@
       THE BOB COMES OFF, LIKE EVERY OTHER BOUND HERE. The sinusoids ride on top
       of the travel and are not bounded by it, so the amplitudes are subtracted
       rather than a margin invented. */
+   /* ── THE FLOOR PUSHES, IT DOES NOT ONLY STOP.  2026-08-26 ────────────────
+      Jayden: "the head shouldnt float over the text anymore but go around if it
+      can just to keep readability."
+      `Math.min(0, ...)` on minY threw away exactly the case he is describing.
+      The floor is measured against the FRAME's top, not the head's -- the dots
+      are drawn on the frame and they are what a reader sees crossing a word --
+      and the frame's top sits about 31px above the visible crown at 1440 (the
+      head's authored alpha box starts 6.16% down its own square, plus
+      --selection-air). So the head could clear the copy while its frame did not,
+      and Math.min(0,...) read that as "no travel needed" instead of "move down".
+      MEASURED BEFORE, 240 frames at 1440: the head crossed the h1 on 0% of
+      frames and the FRAME crossed it on 73.3%.
+      A POSITIVE minY IS A REAL ANSWER, not a broken bound: the travel range
+      becomes [minY, maxY] with both below rest, so the head sits under the copy
+      and drifts there. It is capped at maxY so an over-constrained Hero parks
+      the head as low as it can go rather than pushing it off its own stage --
+      which is the same "degrade to the best available position" the clamp above
+      does, and the reason this is a Math.min against maxY and not an unbounded
+      shove. */
+   /* THE RING IS ADDED HERE AND NOT FOLDED INTO fh, because fh is the frame's
+      TURNED height and cy its turned centre -- the pair already describe the
+      rotated bounding box, which is the same box getBoundingClientRect returns
+      for the head. What they do not carry is --selection-air, which is drawn
+      OUTSIDE that box and is where the handle dots live. Measured at 1440 with
+      the floor in place and this term missing: the head's box top landed exactly
+      on the copy's lower edge, 327 against 327, and the frame still overlapped
+      by the ring -- 9.67px at the resting -13.8deg. frameRing() is that exact
+      number at any angle (air * (|cos| + |sin|)), not an approximation. */
+   var _minY=Math.max(m.ceiling+needY-box.height-box.top,
+    m.travelFloor+frameRing(m.air)+bobY-(cy-fh/2));
+   var _maxY=Math.max(0,maxY);
+   if(_minY>0)_minY=Math.min(_minY,_maxY);
+   else _minY=Math.min(0,_minY);
    return {
     minX:Math.min(0,Math.max(needX-box.width-box.left,bobX-(cx-fw/2))),
     maxX:Math.max(0,maxX),
-    minY:Math.min(0,Math.max(m.ceiling+needY-box.height-box.top,
-     m.travelFloor+bobY-(cy-fh/2))),
-    maxY:Math.max(0,maxY)};
+    minY:_minY,
+    maxY:_maxY};
   }
   /* ── THE REVERSAL, AND WHY IT STARTS BEFORE THE WALL ─────────────────────
      A soft turn takes time, and time is distance. Easing dir from +1 to -1

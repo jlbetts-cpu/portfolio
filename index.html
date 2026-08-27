@@ -50,7 +50,7 @@
      page alone, so the ink-surface nav lost its top highlight here and nowhere
      else. Linked BEFORE this page's <style>, so anything the page still declares
      for itself continues to win. -->
-<link rel="stylesheet" href="tokens.css?v=4b33804991">
+<link rel="stylesheet" href="tokens.css?v=99ded98629">
 <style>
 html{scroll-behavior:smooth}
 html.softScrolling{scroll-behavior:auto}
@@ -934,7 +934,7 @@ body.heroEmpathy .jbStick .jbNav{--nav-mat:var(--ctl-ground);--nav-rim:var(--ctl
 .moodbar.open .moodItem:nth-child(3){transition-delay:.13s,.13s,0s}
 .moodbar.open .moodItem:nth-child(4){transition-delay:.18s,.18s,0s}
 
-@media(prefers-reduced-motion:reduce){.heroCtas>*,.heroCred{opacity:1!important;transform:none!important;animation:none!important;transition:none!important}.moodMenu,.moodCar{width:12px;height:12px;display:inline-block;flex:0 0 auto;color:var(--c500);transition:transform var(--dur-state) var(--ease-out),color var(--dur-state) var(--ease-out)}}
+@media(prefers-reduced-motion:reduce){.heroCtas>*{opacity:1!important;transform:none!important;animation:none!important;transition:none!important}.moodMenu,.moodCar{width:12px;height:12px;display:inline-block;flex:0 0 auto;color:var(--c500);transition:transform var(--dur-state) var(--ease-out),color var(--dur-state) var(--ease-out)}}
 .heroCtas{display:flex;align-items:center;gap:12px;margin-top:32px;flex-wrap:wrap}
 .heroCtas>*{opacity:0;transform:translateY(9px) scale(.97);
  transition:opacity var(--dur-enter) var(--ease-out),transform var(--dur-enter) var(--ease-out)}
@@ -1229,16 +1229,6 @@ body.heroEmpathy .jbStick .jbNav{--nav-mat:var(--ctl-ground);--nav-rim:var(--ctl
    it, so it follows -- read order is headline, then claim, then buttons.
    --dur-reveal, one --dur-move beat after the headline settles and one before
    the CTAs, so the fold reads as three beats and not two plus a straggler. */
-.heroCred{
- order:1;
- opacity:0;transform:translateY(6px);
- transition:opacity var(--dur-reveal) var(--ease-out),transform var(--dur-reveal) var(--ease-out);
- margin:var(--sp-8) 0 0;
- font-family:var(--sans);font-weight:400;
- font-size:var(--fs-body);line-height:var(--lh-note);letter-spacing:var(--tr-body);
- text-wrap:pretty
-}
-.heroCred.in{opacity:1;transform:none}
 /* THE COLOUR IS NOT HERE, and that is not an oversight -- see hero-time.css.
    It is the hour's, it wants the sky's own 640ms curve, and --hero-time-duration
    / --hero-time-ease are declared in that file. Naming them from this block is
@@ -2308,9 +2298,8 @@ html{scroll-padding-top:calc(var(--nav-h) + var(--sp-16-24))}
  width:min(1200px,100%);margin-inline:auto;transform:none
 }
 :root[data-hero-headline="corner"] .heroCopy h1{margin:0;text-align:left;max-width:min(11.5em,100%)}
-/* The eyebrow goes ABOVE, which is the reference's order and the reason the
-   pair reads as one object. order:0 beats .heroCred's own order:1. */
-:root[data-hero-headline="corner"] .heroCred{order:0;margin:0 0 var(--sp-4)}
+/* the eyebrow's own order rule went with .heroCred: the corner headline is one
+   object again -- an h1 and nothing else. */
 /* DELETED 2026-08-20 with the move to the corner rail: the time control is no
    longer part of the headline block, so the "corner" headline treatment has
    nothing to say about where it sits. It is bottom-right in both treatments. */
@@ -2378,11 +2367,11 @@ html{scroll-padding-top:calc(var(--nav-h) + var(--sp-16-24))}
      move: 24,600 computed properties over 820 elements at 1440 and 390, and the
      only differences are the nav icons going back to the 18px they have always
      drawn at. -->
-<link rel="stylesheet" href="controls.css?v=4b33804991">
-<link rel="stylesheet" href="header.css?v=4b33804991">
-<link rel="stylesheet" href="hero-time.css?v=4b33804991">
-<link rel="stylesheet" href="footer.css?v=4b33804991">
-<link rel="stylesheet" href="site-theme.css?v=4b33804991">
+<link rel="stylesheet" href="controls.css?v=99ded98629">
+<link rel="stylesheet" href="header.css?v=99ded98629">
+<link rel="stylesheet" href="hero-time.css?v=99ded98629">
+<link rel="stylesheet" href="footer.css?v=99ded98629">
+<link rel="stylesheet" href="site-theme.css?v=99ded98629">
 <script>/* THE OLD OVERLAY'S URL STILL RESOLVES. index.html#about was the only address
    About ever had, and it is linked from play.html and the other sub-pages, and sits in
    anyone's history. Redirected before first paint (replace(), so it leaves no entry to
@@ -2557,7 +2546,33 @@ if(location.hash==="#about")location.replace("about.html");</script>
         that it cost about 35px of the head's vertical budget. This one costs
         30px, measured -- and the duplication argument is the one he has now
         overruled, which is his call to make. -->
-   <p class="heroCred">Open to full-time roles.</p>
+   <!-- ── THE STATUS LINE IS GONE, AND THIS TIME IT IS A DECISION ─────────────
+        2026-08-26. Jayden, for the fourth time in two days: "did the Open to
+        full-time roles. update ever start in the hero because it still looks out
+        of place and doesnt look any differnt."
+        IT IS NOT A SPACING PROBLEM, WHICH IS WHY TWO SPACING PASSES FAILED. The
+        line was 15px/400 muted grey, 8px under the h1 and 16px above the row
+        below, measuring 156.3px against the row's 154.9 -- so the eye grouped it
+        with the CONTROL rather than with the headline, and it was the only muted
+        grey on the fold. It read as an afterthought because structurally it was
+        one: an orphan clause between a headline and a control, belonging to
+        neither.
+        THIS SLOT HAS NOW BEEN CLEARED THREE TIMES and the note above records the
+        first two -- a .heroCred claim about how he works (07f2b59 -> 704892f,
+        "the hero says it once") and before that the .heroAvail capsule, which
+        lost its capsule, lost its dot, moved to the footer, came back, moved
+        again and was deleted outright. Three different sentences in one slot,
+        each removed for the same reason, is the slot failing rather than the
+        sentences.
+        THE FACT IS NOT LOST, IT IS MOVED TO WHERE IT IS ACTED ON: About's "Get
+        in touch" block, one line above the email button. That is the difference
+        between a badge and an answer -- a recruiter reads it at the moment they
+        are deciding whether to write to him, instead of three seconds into the
+        landing page. It is stated ONCE on the site now; the footer's copy became
+        "Fear of living an ordinary life." in the same pass, on his instruction,
+        and About's facts block went with the duplication it was part of.
+        WHAT THE HEAD GETS BACK: 30px of vertical budget, measured, which is the
+        cost the note further up already recorded this line charging it. -->
    <!-- "View work" IS GONE, ON JAYDEN'S INSTRUCTION (2026-08-20): "removing the
         view work button and just having the text". The row that held it is not
         empty and is not here any more either: the time-of-day control was the
@@ -3492,10 +3507,43 @@ if(location.hash==="#about")location.replace("about.html");</script>
   var vR=card.querySelector('[data-f=role]'),vP=card.querySelector('[data-f=problem]'),vS=card.querySelector('[data-f=solution]');
   var active=null,mx=0,my=0,cardX=0,cardY=0,running=false;
   function slugOf(f){var d=f.closest&&f.closest('[data-slug]');if(d)return d.getAttribute('data-slug').toLowerCase();var i=f.querySelector('img');if(!i)return null;var m=/\/cs\/([a-z0-9]+)\.webp/i.exec(i.getAttribute('src')||'');return m?m[1].toLowerCase():null;}
-  function anchor(){var cw=card.offsetWidth||286,ch=card.offsetHeight||200,off=22,tx=mx+off,ty=my+off; if(tx+cw>window.innerWidth-14)tx=mx-off-cw; if(tx<14)tx=14; if(ty+ch>window.innerHeight-14)ty=window.innerHeight-14-ch; if(ty<14)ty=14; return [tx,ty];}
-  function follow(){ if(!active){running=false;return;} cur.style.transform='translate('+mx+'px,'+my+'px)'; var a=anchor(); cardX+=(a[0]-cardX)*0.26; cardY+=(a[1]-cardY)*0.26; card.style.transform='translate('+cardX.toFixed(1)+'px,'+cardY.toFixed(1)+'px)'; requestAnimationFrame(follow); }
-  function onMove(e){mx=e.clientX;my=e.clientY;if(vc){vc.style.setProperty('--px',e.clientX+'px');vc.style.setProperty('--py',e.clientY+'px');}}
-  function enter(f,e){var slug=slugOf(f),info=slug&&CSINFO[slug];if(!info)return;active=f;mx=e.clientX;my=e.clientY;vR.textContent=info.role;vP.textContent=info.problem;vS.textContent=info.solution;var a=anchor();cardX=a[0];cardY=a[1];card.style.transform='translate('+cardX.toFixed(1)+'px,'+cardY.toFixed(1)+'px)';cur.style.transform='translate('+mx+'px,'+my+'px)';if(!RM)f.style.cursor='none';card.classList.add('on');if(!RM){cur.classList.add('on');}if(!running){running=true;requestAnimationFrame(follow);}}
+  /* ── THE DOT GLITCHED BECAUSE IT WAS DRAWN A FRAME LATE, ON A FORCED LAYOUT ─
+     Jayden, 2026-08-26: "the dot thing that replaces the mouse in the case study
+     thumbnails it glitches a lot a lot." Reproduced and measured before touching
+     it -- 1440x900, pointer traversed across a cover for 60 steps:
+       2.678 layout READS per frame while hovering
+       (offsetWidth 558 and offsetHeight 558 across 559 frames -- exactly one
+        each, every frame, from anchor() being called inside follow())
+     TWO SEPARATE FAULTS, and they compounded.
+     ONE: anchor() read card.offsetWidth and card.offsetHeight on EVERY FRAME,
+     immediately after the previous frame had written card.style.transform. A
+     read after a write is a forced synchronous layout, and this page is already
+     contended. The card's size cannot change while the pointer moves -- it
+     changes when its TEXT changes, which happens once per enter() -- so it is
+     measured there and on resize, and the loop reads nothing at all.
+     TWO, AND THIS IS THE ONE THAT LOOKED LIKE A GLITCH: the cursor itself was
+     positioned inside the rAF loop rather than in the pointer event. So the dot
+     was always at least one frame behind the pointer, and enter() sets
+     `cursor:none` on the frame -- the real cursor is hidden, so there is nothing
+     under the finger to hide the lag. On a page rendering at 16fps that is 60ms
+     of visible swim. apple-design.md 2: "touch and content should move
+     together", 1:1, in the event. The dot is written in onMove now and the loop
+     no longer touches it.
+     THE CARD KEEPS THE LOOP AND KEEPS ITS EASING. Its 0.26 lag is deliberate --
+     it is a panel following the pointer, not the pointer -- and it is the only
+     thing left in follow(). */
+  var cardW=286,cardH=200;
+  function measureCard(){cardW=card.offsetWidth||286;cardH=card.offsetHeight||200;}
+  function anchor(){var cw=cardW,ch=cardH,off=22,tx=mx+off,ty=my+off; if(tx+cw>window.innerWidth-14)tx=mx-off-cw; if(tx<14)tx=14; if(ty+ch>window.innerHeight-14)ty=window.innerHeight-14-ch; if(ty<14)ty=14; return [tx,ty];}
+  function follow(){ if(!active){running=false;return;} var a=anchor(); cardX+=(a[0]-cardX)*0.26; cardY+=(a[1]-cardY)*0.26; card.style.transform='translate('+cardX.toFixed(1)+'px,'+cardY.toFixed(1)+'px)'; requestAnimationFrame(follow); }
+  function onMove(e){mx=e.clientX;my=e.clientY;
+   /* 1:1 with the pointer, in the event that carries it. No rAF between them. */
+   cur.style.transform='translate('+mx+'px,'+my+'px)';
+   if(vc){vc.style.setProperty('--px',e.clientX+'px');vc.style.setProperty('--py',e.clientY+'px');}}
+  window.addEventListener('resize',function(){if(active)measureCard();},{passive:true});
+  function enter(f,e){var slug=slugOf(f),info=slug&&CSINFO[slug];if(!info)return;active=f;mx=e.clientX;my=e.clientY;vR.textContent=info.role;vP.textContent=info.problem;vS.textContent=info.solution;
+   /* the one measurement, taken where the size can actually have changed */
+   measureCard();var a=anchor();cardX=a[0];cardY=a[1];card.style.transform='translate('+cardX.toFixed(1)+'px,'+cardY.toFixed(1)+'px)';cur.style.transform='translate('+mx+'px,'+my+'px)';if(!RM)f.style.cursor='none';card.classList.add('on');if(!RM){cur.classList.add('on');}if(!running){running=true;requestAnimationFrame(follow);}}
   function leave(f){if(active!==f)return;active=null;card.classList.remove('on');cur.classList.remove('on');if(vc)vc.classList.remove('on');f.style.cursor='';}
   [].slice.call(document.querySelectorAll('.csFrame')).forEach(function(f){f.addEventListener('pointerenter',function(e){enter(f,e);});f.addEventListener('pointermove',onMove);f.addEventListener('pointerleave',function(){leave(f);});});function cardClear(){if(active){leave(active);}}document.addEventListener('mouseleave',cardClear);window.addEventListener('blur',cardClear);window.addEventListener('mouseout',function(e){if(!e.relatedTarget&&!e.toElement){cardClear();}});
  })();

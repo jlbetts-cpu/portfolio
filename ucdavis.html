@@ -49,7 +49,7 @@
 <meta name="twitter:image:alt" content="The UC Davis Rec app redesign by Jayden Betts, shown across iOS screens">
 <link rel="preload" as="font" type="font/woff2" href="fonts/geist-latin-400-normal.woff2" crossorigin><link rel="preload" as="font" type="font/woff2" href="fonts/geist-latin-600-normal.woff2" crossorigin>
 <link rel="preload" as="image" href="images/cs/variants/time/ucrec/daytime-1200.webp" imagesrcset="images/cs/variants/time/ucrec/daytime-1200.webp 1200w, images/cs/variants/time/ucrec/daytime-2400.webp 2400w" imagesizes="(max-width: 760px) calc(100vw - 48px), (max-width: 1280px) calc(100vw - 80px), 1200px" fetchpriority="high">
-<link rel="stylesheet" href="tokens.css?v=4b33804991">
+<link rel="stylesheet" href="tokens.css?v=99ded98629">
 <style>
 /* THE FACES MOVED TO tokens.css (2026-08-04) -- declared once for all ten pages
    instead of copied into nine of them and missed on two (about.html and
@@ -123,74 +123,32 @@ img{display:block;max-width:100%;height:auto}   /* height:auto IS THE COMPANION 
    pill. No new token; the responsive ladder already carried the value. */
 .layout{display:block;margin-top:var(--sp-32-48);position:relative}
 .content{min-width:0}
-.rail{position:absolute;right:100%;top:0;bottom:0;width:var(--rail-w);margin-right:var(--rail-gutter);z-index:3;pointer-events:none}
-.rail.railGone .chapters{opacity:0;pointer-events:none}
-
-/* the chapter list: the section you are in is the bold one. No ticks -- see below. */
-.chapters{display:flex;flex-direction:column;align-items:flex-start;gap:var(--sp-30);padding:0;pointer-events:auto;position:sticky;top:50vh;transform:translateY(-50%);transition:opacity .4s ease}
-/* HEADER V2 (2026-08-03): the rail's sticky offset now knows the bar is there.
-   MEASURED FIRST, because the adoption list's claim did not reproduce: at
-   1280x800 the computed top is 400px (50vh) and the rail rests at y=333 against
-   the bar's bottom edge at y=60 -- 273px of clearance at every scroll position,
-   not the 0px the list reported. The collision is real but conditional: the
-   centred rest position is `50vh - half the list`, so it slides under the 52px
-   bar once half the viewport is shorter than half the chapter list. Below 640px
-   of height the rail stops centring and pins to the offset the adoption list
-   called for instead. Same token as every scroll-margin-top on this page. */
-@media(max-height:640px){.chapters{top:calc(var(--nav-h) + var(--sp-16-24));transform:none}}
-/* THE RAIL'S LINKS WERE 89.6 x 14 AND ARE NOW 89.6 x 44 OF TARGET.
-   Geometry audit 3.2, class BROKEN: this is the section jump-list on the left of
-   every case study and it asked for a 14px-tall landing on five to six links --
-   under Jayden's 44px bar, and under WCAG 2.5.8's 24x24 as well. Desktop only,
-   which is the one width where it is visible.
-   THE INK BOX STAYS 14px. Growing the visible row to 44 would make the rail
-   220px of chrome beside the prose; the fix is the site's own pattern -- the one
-   header.css uses on a 38px nav item and index.html on a 30px tab -- a
-   transparent ::after grown to --tap-min and centred on the box.
-   THE GAP HAD TO MOVE WITH IT, and that is the part an expander alone does not
-   solve. At gap:16 the pitch is 30px, so two 44px hit areas would overlap by
-   14px and each link would swallow part of the one below it. --sp-30 makes the
-   pitch exactly 14 + 30 = 44, so the targets TILE: every pixel of the rail
-   belongs to exactly one link and none belongs to two. The rail grows from 134px
-   to 190px at five links, which the sticky column has room for. */
-/* color IS LOAD-BEARING HERE even though nothing in this rule paints text.
-   Measured on the rendered page: .chap and its .tick computed rgb(0,0,238) --
-   the UA's default -webkit-link blue, inherited because the anchor never set a
-   colour of its own. It is invisible today only because .tick paints a
-   background and .clabel sets its own ink; the first currentColor anyone puts
-   inside a rail link would come out browser-blue. With the accent gone to ink
-   this was the only blue value left computing anywhere on the site. */
-/* ── THE TICKS ARE GONE, AND THE WORDS TAKE THEIR PLACE.  2026-08-26 ────────
-   Jayden: "i keep thinking I dont think i like the indicators i think just
-   removing them and making sure everything lives up to the minimizim and apple
-   aestetic." He has been circling these for two days, so they are removed
-   rather than restyled a fourth time.
-   WHAT THE RAIL ACTUALLY WAS: a column of five 28x2 dashes, .4 opacity, with the
-   chapter NAMES at opacity:0 until the pointer entered the rail. So at rest the
-   only section navigation on a case study was five grey dashes -- a legend with
-   no key -- and reading it required discovering that hovering did something.
-   THE ANSWER IS THE ONE THE NAV REACHED THIS MORNING. The header's lit item
-   dropped its grey pill the same day, on the same argument: the weight change
-   already says where you are, so the decoration beside it is a second, weaker
-   copy of one signal. Here the decoration was the ONLY signal and the real one
-   was hidden, which is the same mistake with the halves swapped. The labels are
-   always on now -- --c500 at 400, --c950 at 600 for the section you are in --
-   and nothing else is drawn. Five words instead of five dashes plus five words
-   you have to go looking for.
-   THE TARGETS DO NOT MOVE. The ::after expander still takes each 14px row to
-   --tap-min, and .chapters keeps --sp-30 so the 44px targets TILE exactly at a
-   14 + 30 pitch -- that arithmetic is unchanged and is why the gap is not a
-   round number. The grid loses its first column (28px tick + 16px gutter), so
-   the rail's ink starts 44px further left inside the same --rail-w; the rail's
-   own box, the sticky centring and the railGone fade are untouched.
-   colour ON .chap IS STILL LOAD-BEARING: without it the anchor computes the
-   UA's -webkit-link blue, and with .tick gone .clabel's own ink is the only
-   thing that was hiding it. */
-.chap{display:block;height:14px;text-decoration:none;outline-offset:4px;position:relative;color:var(--c500)}
-.chap::after{content:"";position:absolute;top:50%;left:0;right:0;height:var(--tap-min);transform:translateY(-50%)}
-.clabel{display:block;text-align:left;font-family:var(--sans);font-weight:400;font-size:var(--fs-small);letter-spacing:var(--tr-body);line-height:14px;color:var(--c500);white-space:nowrap;transition:color var(--ease-out-dur) var(--ease-out)}
-.chap[aria-current="true"] .clabel{color:var(--c950);font-weight:600}
-.chap:hover .clabel,.chap:focus-visible .clabel{color:var(--c950)}
+/* ── THE CHAPTER RAIL IS GONE, ALL OF IT.  2026-08-26 ───────────────────────
+   Jayden: "when i said remove the indicator i meant like the whole thing not
+   just the pegs I just felt like it made it look right aligned heavy I didnt
+   like that." An earlier pass today converted it -- dropped the five 28x2 ticks
+   and left the labels -- which was answering a smaller question than he asked.
+   HIS REASON IS COMPOSITIONAL AND IT MEASURES. The rail was a grid column:
+   `grid-template-columns: var(--rail-w) minmax(0,1fr)` with --rail-gutter
+   between them, so at 1440 the content ran 261..1320 while the nav, the footer
+   and the page's own structural rule all ran 120..1320. The prose sat 141px
+   right of the column every other band on the page aligns to -- that is exactly
+   "right aligned heavy", and it was a 141px imbalance, not a feeling.
+   THE GUTTER GOES WITH THE RAIL. .layout is display:block at every width now,
+   so the content column IS the page column: measured after, 120..1320 at 1440,
+   on the same x as the bar above it and the footer below it.
+   WHAT WENT: .rail, .railGone, .chapters, .chap, .clabel and their media forks;
+   the <aside> in the markup; the IntersectionObserver scrollspy that kept
+   aria-current on five links; and the scroll listener that faded the rail near
+   the end of the document -- which was calling documentElement.scrollHeight, a
+   forced layout, on a rAF per scroll frame. Two fewer observers and one fewer
+   scroll listener on each of the five pages.
+   NAVIGABILITY, ASKED RATHER THAN ASSUMED: the rail was the only thing that
+   used the section ids, and nothing else linked to them -- no table of contents,
+   no in-page anchors in the prose, no deep links in the sitemap. The sections
+   keep their ids so an existing #problem link still lands. What a reader has
+   instead is the thing the page was already relying on at every width below 881,
+   where the rail was display:none: the headings, in order, down one column. */
 
 /* content tiers: text holds a readable measure on a strong left edge; the cover runs margin to margin */
 .wide{position:relative;overflow:hidden;background:var(--c100);margin:var(--sp-40-64) 0 0;width:100%}
@@ -431,7 +389,6 @@ img{display:block;max-width:100%;height:auto}   /* height:auto IS THE COMPANION 
  /* .layout's margin-top is NOT restated here. It used to repeat --sp-48-64,
     which resolved to the same value on both sides of this breakpoint and so
     could only ever drift away from the rule above; --sp-32-48 forks itself. */
- .rail{display:none}
  .cover{width:100%}
  .wide{width:100%}
  .closeShot{width:100%}
@@ -570,7 +527,7 @@ img{display:block;max-width:100%;height:auto}   /* height:auto IS THE COMPANION 
    minmax(0,1fr) running the full remaining column, which at 1440 is 260.8..1320
    -- the same layout this page already shipped at every width from 900 to 1360,
    extended, not a new one. */
-@media(min-width:900px) and (max-width:1579px){.layout{display:grid;grid-template-columns:var(--rail-w) minmax(0,1fr);column-gap:var(--rail-gutter)}.rail{position:static;margin-right:0}}.content :is(.cap,.csReach){margin-inline:auto}.scrollbox:focus-visible{outline:2px solid var(--c950);outline-offset:3px}.scrollbox{scrollbar-width:none}.scrollbox::-webkit-scrollbar{display:none}.sbNav{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}@media(max-width:880px){.sbNav{display:none}}@media(prefers-reduced-motion:reduce){}.cap{text-align:center}.footIn:focus-visible,.chap:focus-visible{outline:2px solid var(--c950);outline-offset:3px;border-radius:var(--r-xs)}@media(max-width:880px){.subBlock{margin-top:56px}}.sec>.stat:last-child{margin-bottom:0}/* before/after pairs: same labeled component as Apollo */.baGrid{position:relative;display:grid;grid-template-columns:repeat(2,minmax(0,270px));justify-content:center;column-gap:clamp(40px,4.5vw,64px);row-gap:16px;align-items:start;margin:var(--sp-40-64) 0 0}.baCol{display:flex;flex-direction:column;align-items:center;gap:16px}.baCol .shot.phone{width:100%;margin:0}.baCol .shot.phone img{width:100%;height:auto;aspect-ratio:460/1000;object-fit:cover;display:block;border-radius:clamp(20px,2.6vw,32px);box-shadow:var(--rim-1);background:#fff}/* the inverted half of the pair, mapped onto the library variant's tokens rather
+.content :is(.cap,.csReach){margin-inline:auto}.scrollbox:focus-visible{outline:2px solid var(--c950);outline-offset:3px}.scrollbox{scrollbar-width:none}.scrollbox::-webkit-scrollbar{display:none}.sbNav{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}@media(max-width:880px){.sbNav{display:none}}@media(prefers-reduced-motion:reduce){}.cap{text-align:center}.footIn:focus-visible,.chap:focus-visible{outline:2px solid var(--c950);outline-offset:3px;border-radius:var(--r-xs)}@media(max-width:880px){.subBlock{margin-top:56px}}.sec>.stat:last-child{margin-bottom:0}/* before/after pairs: same labeled component as Apollo */.baGrid{position:relative;display:grid;grid-template-columns:repeat(2,minmax(0,270px));justify-content:center;column-gap:clamp(40px,4.5vw,64px);row-gap:16px;align-items:start;margin:var(--sp-40-64) 0 0}.baCol{display:flex;flex-direction:column;align-items:center;gap:16px}.baCol .shot.phone{width:100%;margin:0}.baCol .shot.phone img{width:100%;height:auto;aspect-ratio:460/1000;object-fit:cover;display:block;border-radius:clamp(20px,2.6vw,32px);box-shadow:var(--rim-1);background:#fff}/* the inverted half of the pair, mapped onto the library variant's tokens rather
    than redrawing it: .isAfter is structural, so it cannot be a class on the span. */
 /* Before and After are CAPTIONS, not badges. They were a bordered chip, and the
    After half took a filled dark fill on top of that, so the pair read as one
@@ -754,12 +711,12 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
    which shared the declaration and the defect -- bearings' .cmp measured round
    over a squircle board too. */
 </style>
-<link rel="stylesheet" href="controls.css?v=4b33804991">
-<link rel="stylesheet" href="carousel.css?v=4b33804991">
+<link rel="stylesheet" href="controls.css?v=99ded98629">
+<link rel="stylesheet" href="carousel.css?v=99ded98629">
 <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Jayden Betts","item":"https://jaydenbetts.design/"},{"@type":"ListItem","position":2,"name":"UC Davis Rec Redesign Case Study","item":"https://jaydenbetts.design/ucdavis.html"}]},{"@type":"CreativeWork","@id":"https://jaydenbetts.design/ucdavis.html#work","url":"https://jaydenbetts.design/ucdavis.html","name":"UC Davis Rec Redesign: A Product Design Case Study by Jayden Betts","description":"The UC Davis Rec app rebuilt around a real hierarchy, with the member ID moved into Apple Wallet. A product design case study by Jayden Betts.","image":"https://jaydenbetts.design/images/cs/ucrec/cover.webp","author":{"@type":"Person","@id":"https://jaydenbetts.design/#person","name":"Jayden Betts","alternateName":"Jayden Lee Betts","url":"https://jaydenbetts.design/","sameAs":["https://www.linkedin.com/in/jaydenbetts","https://www.instagram.com/jaydenleebetts"]},"genre":"Product Design","inLanguage":"en"}]}</script>
-<link rel="stylesheet" href="header.css?v=4b33804991">
-<link rel="stylesheet" href="footer.css?v=4b33804991">
-<link rel="stylesheet" href="site-theme.css?v=4b33804991">
+<link rel="stylesheet" href="header.css?v=99ded98629">
+<link rel="stylesheet" href="footer.css?v=99ded98629">
+<link rel="stylesheet" href="site-theme.css?v=99ded98629">
 <script src="header.js" defer></script>
 <script src="footer-band.js" defer></script>
 </head>
@@ -856,16 +813,6 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
 <div class="wrap">
 
  <div class="layout" id="main" tabindex="-1">
-  <aside class="rail" aria-label="Sections">
-   <nav class="chapters" aria-label="Chapters">
-    <a href="#overview" class="chap" aria-current="true"><span class="clabel">Overview</span></a>
-    <a href="#problem" class="chap"><span class="clabel">Problem</span></a>
-    <a href="#research" class="chap"><span class="clabel">Research</span></a>
-    <a href="#system" class="chap"><span class="clabel">Solution</span></a>
-    <a href="#outcome" class="chap"><span class="clabel">Outcome</span></a>
-   </nav>
-  </aside>
-
   <div class="content">
    <section id="overview" class="hero">
     <h1 class="head rv" data-f="0.05" aria-label="UC Davis Rec — Putting the gym ID in Apple Wallet, and killing the login."><span class="eyebrow">UC Davis Rec</span>Putting the gym ID in Apple Wallet, and killing the login.</h1>
@@ -1075,23 +1022,6 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
  [].slice.call(document.querySelectorAll('.backlink')).forEach(function(b){
   b.addEventListener('click',function(){try{sessionStorage.setItem('csReturn','1');}catch(e){}});
  });
-
- /* chapter rail scrollspy: mark the section nearest the viewport centre as current */
- var chaps=[].slice.call(document.querySelectorAll('.chap'));
- if(chaps.length && 'IntersectionObserver' in window){
-  var cmap={};
-  chaps.forEach(function(a){cmap[a.getAttribute('href').slice(1)]=a;});
-  var spy=new IntersectionObserver(function(entries){
-   entries.forEach(function(e){
-    if(e.isIntersecting){
-     var a=cmap[e.target.id];
-     if(a){chaps.forEach(function(x){x.removeAttribute('aria-current');});a.setAttribute('aria-current','true');}
-    }
-   });
-  },{rootMargin:'-45% 0px -45% 0px',threshold:0});
-  [].slice.call(document.querySelectorAll('.content section[id]')).forEach(function(s){spy.observe(s);});
-  chaps.forEach(function(a){a.addEventListener('click',function(){chaps.forEach(function(x){x.removeAttribute('aria-current');});a.setAttribute('aria-current','true');});});
- }
 
  /* a margin-to-margin image runs under the indicator's lane: fade the indicator while they overlap, restore it on the far side */
  (function(){
@@ -1429,12 +1359,6 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
  b.addEventListener('click',function(){scrollTo({top:0,behavior:r?'auto':'smooth'});var h=document.querySelector('h1');if(h){h.setAttribute('tabindex','-1');h.focus({preventScroll:true});}});})();
  </script>
 <script>
-(function(){var rail=document.querySelector('.rail');if(!rail)return;var tick=false;
-var railLive=matchMedia('(min-width:881px)');
-function u(){tick=false;if(!railLive.matches)return;var docH=document.documentElement.scrollHeight;var y=window.scrollY+window.innerHeight;var wasGone=rail.classList.contains('railGone');var nearEnd=wasGone?(y>docH-60):(y>docH-24);rail.classList.toggle('railGone',nearEnd);}
-/* documentElement.scrollHeight is a forced layout, and this took one every
-   scroll frame on a phone to fade a rail that is display:none there. */
-addEventListener('scroll',function(){if(!tick&&railLive.matches){requestAnimationFrame(u);tick=true;}},{passive:true});u();})();
 
 /* gallery paddles: prev/next controls with disabled ends; drag, swipe, and keyboard still work */
 (function(){
