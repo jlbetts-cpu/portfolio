@@ -118,6 +118,32 @@ instinct the portfolio borrowed for play's margin rails.
 
 ---
 
+## 1.4 REVERSED 2026-08-21: no seeds, no onboarding, Habits is Todo
+
+Jayden, after seeing the first-run screen he had asked for: *"I dont like the
+onboarding just remove and also remove the preset categories looks silly make it
+a clean layout where they can easily add there own things no suggestions or
+anythign like that. also turn habits into todo and on top add a clean pompodoro
+timer in our style."*
+
+**Everything below that describes seeded areas, suggested anchors or a first-run
+screen is superseded by this.** The app now invents nothing: an empty database
+stays empty, and the person adds their own. `anyone-proof` was INVERTED to prove
+exactly that.
+
+- The eight suggested areas: gone. The first-run screen: deleted, not flagged off.
+- His three week anchors (Gym x3, Weekly review, Ship something) went with them.
+  They were a CONSTANT, never records, so no data was lost -- but Week reads
+  "Nothing anchored" until he adds his own, and that is the one absence he may
+  notice.
+- **Habits is now Todo**: the habits survive whole as *Repeating* rows with their
+  cue, cadence and area; the grid, the mood row and the two adherence charts were
+  deleted because Timeline already draws those same `habitLog` records three
+  ways; Goals moved to Memory; the backlog became Tasks; the Stack Builder went
+  (a model inventing your habits is the suggestion he asked to be rid of).
+- A pomodoro sits at the top of Todo, built on the existing session runner rather
+  than a second timer, so a block that runs is logged as a session like any other.
+
 ## 1.5 The standing constraint: legible at a glance
 
 Jayden, 2026-08-20: *"Make sure the interface stays minimal I need it to look and
@@ -260,6 +286,31 @@ read from**:
 - **Cut "Polish."** A Sonnet call that rewrites a deterministic file can only add
   drift.
 
+> **Built 2026-08-21, Phase 4, with four corrections to this section.**
+>
+> 1. **"⌘K becomes design-reference search that works with no API key" was
+>    true but incomplete.** Aiming the embedder at Memory is necessary and not
+>    sufficient: `embed()` returns null unless Local AI is switched on in
+>    Settings, so a user who never opens Settings had no search at all. Search
+>    is therefore TWO paths merged — a word search over title, tags and body
+>    that needs no model, plus the on-device model when it is on. The model
+>    narrows nothing when it is off.
+> 2. **The on-device model had never loaded without a GPU.** `local-ai.ts` did
+>    `try { device: "webgpu" } catch { plain }` and the catch was dead: by the
+>    retry onnxruntime is already initialised with a webgpu backend and fails
+>    identically. Measured headless: 25.7s then `unavailable`. It probes
+>    `navigator.gpu.requestAdapter()` first now — 2.6s to ready. §6.6's "either
+>    it becomes Memory's retrieval engine or the 21.6 MB goes" could not have
+>    been decided honestly before this was fixed.
+> 3. **Tags/area/embeddings needed NO new store and NO version bump.** They are
+>    optional fields on `memory` records, read with defaults. A migration would
+>    have had to rewrite every record to add an empty `tags: []`, and those
+>    records hold his real Blobs.
+> 4. **The Work context did not need a fourth store either.** `pitch`,
+>    `case-study` and `company` are kinds in `memory`, so one store is one
+>    thing for the embedder to index, one thing for memory.md to compile, and
+>    one thing for §6's cut list to reason about.
+
 ---
 
 ## 5. The workflow element
@@ -378,6 +429,18 @@ the pull-from-backlog menu. Needs Phase 2 to have produced data.
 ### Phase 4 — Memory rework
 Tags/area, Work context, `embed()` aimed at memory items, "pull reference" from a
 session. Needs Phases 1 and 2.
+
+> **Landed. Two things beyond the brief, both because they were in the way.**
+> The **weekly review** (§1's second no-key violation) now counts the week out
+> of `sessions` and runs with no key; it moved to Week, where the anchor that
+> names it already lives, and it reads MONDAY-TO-NOW rather than a rolling 7
+> days — a rolling window on a screen whose every other number is
+> Monday-anchored is the same unit collision §3 had to settle. It also carried
+> the day-sheet bug Phase 3 fixed: `getDay()` then `saveDay()` with a gap in
+> the middle, on the store his writing lives in.
+>
+> **Only ⌘K search and the Kitchen remained as no-key violations after this;
+> Kitchen was fixed the same day by the session doing Phase 5.**
 
 ### Phase 5 — the cuts
 After Phase 4, so Kitchen's protein check-off has somewhere to live first.
