@@ -883,6 +883,28 @@ body.heroEmpathy .jbStick .jbNav{--nav-mat:var(--ctl-ground);--nav-rim:var(--ctl
  .csMeta{opacity:0;transform:translateY(var(--sp-14));transition:opacity var(--enter-dur) var(--ease-out) var(--enter-stagger),transform var(--enter-dur) var(--ease-out) var(--enter-stagger)}
  .csItem.csIn .csMeta{opacity:1;transform:none}
 }
+/* ── THE COVER IS TALLER ON A PHONE, AND IT IS A CROP DECISION ──────────────
+   Jayden, 2026-08-26: "on mobile shouldnt the thumbnails be a bit taller or am
+   i trippin for them to be able to see." He is not tripping. Measured at 390:
+   the frame is 358 x 179 and the plate inside it holds FOUR phone mockups, so
+   each phone renders about 76px wide -- nothing in any of them is legible and
+   the card reads as texture.
+   THE PLATE IS EXACTLY 2:1 (1200 x 600), WHICH IS WHY THIS IS A CROP AND NOT A
+   REVEAL. object-fit:cover at 2/1 was already showing the whole picture, so a
+   taller frame cannot uncover more of it -- it scales the plate up and takes the
+   difference off the sides. That is the trade, stated: at 8/5 the frame goes
+   179 -> 224px (+25%), everything inside is 25% bigger, and the two outer phones
+   lose about a tenth of their width each. Looked at, at 390 and 320, against
+   17/10 (+18%, too little to be worth the crop) and 3/2 (+34%, the outer phones
+   read as cut off and the phone bodies start losing their bottoms). 8/5 is the
+   last rung where it still reads as four phones.
+   +25% IS THE TOP OF HIS OWN "slightly" BAND rather than an overshoot: the
+   defect being fixed is legibility, and 18% did not fix it.
+   SCOPED TO <=760, so the desktop composition -- where four phones at 1200px
+   wide are already legible -- does not move. */
+@media(max-width:760px){
+ .csFrame{aspect-ratio:8/5}
+}
 @media(prefers-reduced-motion:reduce){
  .csFrame{border-radius:var(--radius-media);opacity:1!important;transform:none!important;transition:none!important}
  .csMeta{opacity:1!important;transform:none!important;transition:none!important}

@@ -123,7 +123,22 @@
     / 234 / 220 and 211 / 190 / 180 / 169) and the PNGs opened. 220 reads
     stranded in a 1440 Hero; 248 still crowds the second line. The phone follows
     at the SAME ratio for once -- see the note below. */
- --hero-peek-width:235px;
+ /* AND 235 -> 201 ON 2026-08-26: "can you make the floating head a bit smaller
+    by default just so its a little less loud." -14.5%, deliberately the SAME
+    step as the 275 -> 235 above rather than a new size of step -- that one was
+    his and he called it right, so this is the second rung of the same ladder.
+    "LESS LOUD" IS A COMPOSITION NOTE, NOT A SIZE ONE, and the composition moved
+    under it today: the time control left the Hero's bottom-right rail for the
+    header, so the rail is gone and the head is the only object left in the
+    lower two-thirds of the picture. At 235 it was the subject; at 201 it is an
+    element in it, which is what he is asking for.
+    LOOKED AT, NOT COUNTED: 235 / 212 / 201 / 190 rendered at 1440 and 390 and
+    the PNGs opened. 190 reads stranded in a 1440 Hero -- the same failure 220
+    had at the last step -- and 212 is close enough to 235 that the change would
+    not be worth making. The phone follows at the same ratio, 180 -> 154, for the
+    reason the note below already gives: shrinking buys gutter rather than
+    spending it. */
+ --hero-peek-width:201px;
  --hero-peek-shift-x:-241px;
  /* NEGATIVE DEPTH, AND THAT IS THE POINT. Depth is how far the head hangs
     PAST the Hero's floor, so a negative value lifts it clear of the floor
@@ -318,7 +333,11 @@
     judgement about 194px with a 275px desktop still in place; with both coming
     down together the head is still 46% of the viewport's width and the thing it
     stops covering is his own subhead. */
- --hero-peek-width:180px;
+ /* 180 -> 154 on 2026-08-26, the same -14.5% as the desktop above and on the
+    same request. Measured at 390 after: the head's left edge moves 31.0 ->
+    44.0px, so the gutter grows again and the clip fix --hero-peek-shift-x was
+    solved for gets more headroom, not less. */
+ --hero-peek-width:154px;
  /* -152 was read off the HUD at 390 and it puts the head OFF-SCREEN: at 211px
     wide the centre lands at x=43, so the left edge is -62.5 and about a quarter
     of the face is sliced by the screen. -74 seats it with a 16px gutter, which

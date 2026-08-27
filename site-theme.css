@@ -462,6 +462,11 @@ html{scrollbar-color:var(--theme-muted) var(--theme-page)}
  transition:opacity var(--hero-time-duration,var(--dur-enter)) var(--hero-time-ease,var(--ease-out));
 }
 .csImgOut[data-time-fade="out"]{opacity:0}
+/* THE GHOST TAKES ITS FRAME'S OWN RADIUS. --r-xl above is the HOME cover's, and
+   as of 2026-08-26 the five case-study heroes use this same cross-fade inside
+   figure.cover, which is a different rung. Scoped rather than changed, so the
+   home covers keep the value they were drawn with. */
+.cover>.csImgOut{border-radius:inherit}
 
 /* A cover that genuinely was not there yet -- a lazy one the visitor has just
    scrolled to -- arrives rather than swaps, so it gets the in-place rung and no

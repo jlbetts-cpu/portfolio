@@ -48,7 +48,7 @@
 <meta name="twitter:image" content="https://jaydenbetts.design/images/cs/apollo.webp">
 <meta name="twitter:image:alt" content="Apollo, a social app for capturing daily wins, designed by Jayden Betts">
 <link rel="preload" as="font" type="font/woff2" href="fonts/geist-latin-400-normal.woff2" crossorigin><link rel="preload" as="font" type="font/woff2" href="fonts/geist-latin-600-normal.woff2" crossorigin>
-<link rel="preload" as="image" href="images/cs/apollo-cover.webp" fetchpriority="high">
+<link rel="preload" as="image" href="images/cs/variants/time/apollo/daytime-1200.webp" imagesrcset="images/cs/variants/time/apollo/daytime-1200.webp 1200w, images/cs/variants/time/apollo/daytime-2400.webp 2400w" imagesizes="(max-width: 760px) calc(100vw - 48px), (max-width: 1280px) calc(100vw - 80px), 1200px" fetchpriority="high">
 <link rel="stylesheet" href="tokens.css?v=4b33804991">
 <style>
 /* THE FACES MOVED TO tokens.css (2026-08-04) -- declared once for all ten pages
@@ -843,7 +843,31 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
    <section id="overview" class="hero">
     <h1 class="head rv" data-f="0.05" aria-label="Apollo — An ADHD-native social app with no streaks, no counts, and no color."><span class="eyebrow">Apollo</span>An ADHD-native social app with no streaks, no counts, and no color.</h1>
 
-    <figure class="cover media media--full" id="cover"><img src="images/cs/apollo-cover.webp" width="1600" height="1189" alt="Apollo shown across four iOS screens: the camera, the feed of daily wins, a profile, and North." loading="eager" decoding="async"></figure>
+    <!-- ── THE HERO TAKES THE HOUR, LIKE THE COVER ON THE HOME PAGE ───────────
+         Jayden, 2026-08-26: "for in the case studies the thumbnail changing time
+         of day doesnt go into there it should change as well for the mockup
+         images especially since we made it already." He is right and it was a
+         real seam: index.html swapped each cover to its time variant and this
+         page showed the FLAT original, so clicking a cover changed the picture
+         underneath you.
+         IT IS THE SAME MECHANISM, NOT A SECOND ONE. data-time-thumbnail is
+         time-aware-thumbnails.js's own explicit opt-in -- the home covers use
+         the same attribute -- so this page gets the preload, the decode-before-
+         commit and the cross-fade for free, and there is one swapper on the site
+         to fix rather than two.
+         THE MARKUP SHIPS THE daytime PLATE, WHICH IS WHY THERE IS ONE FETCH AND
+         NOT TWO. site-theme-state.js's DEFAULT_MODE is "daytime", so an unvisited
+         page resolves to exactly these bytes: crossFade() short-circuits on
+         `previous===descriptor.src` and commit() re-sets identical attributes,
+         so the browser has nothing new to ask for. The <link rel=preload> above
+         was moved onto the same plate in the same pass -- a preload pointing at
+         the old original was the other half of the double fetch.
+         THE ORIGINAL IS NOT ORPHANED: it is still the "off" state in
+         time-aware-thumbnails.js:ORIGINALS. The og:image is a THIRD file
+         (images/cs/<project>.webp) and is deliberately not time-aware -- a
+         social preview must not depend on the visitor's clock. -->
+    <figure class="cover media media--full" id="cover"><img data-time-thumbnail="apollo" src="images/cs/variants/time/apollo/daytime-1200.webp" srcset="images/cs/variants/time/apollo/daytime-1200.webp 1200w, images/cs/variants/time/apollo/daytime-2400.webp 2400w" sizes="(max-width: 760px) calc(100vw - 48px), (max-width: 1280px) calc(100vw - 80px), 1200px" width="1600" height="1189" alt="Apollo shown across four iOS screens: the camera, the feed of daily wins, a profile, and North." loading="eager" decoding="async"></figure>
+    <script src="time-aware-thumbnails.js"></script>
 
     <dl class="facts">
      <div class="fact"><dt class="fk">Role</dt><dd class="fv">Founder &amp; product designer</dd></div>
