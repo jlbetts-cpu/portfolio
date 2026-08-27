@@ -372,7 +372,16 @@ img{display:block;max-width:100%;height:auto}   /* height:auto IS THE COMPANION 
 /* ===== the system: onboarding gallery + the five-step build — one hero screen per step, the reasoning beside it ===== */
 .subBlock{margin:clamp(64px,8.5vh,96px) 0 0}
 .subKick{font-family:var(--sans);font-weight:600;font-size:var(--fs-label);letter-spacing:var(--tr-flat);text-transform:none;color:var(--c500);margin:0}
-.subHead{font-family:var(--sans);font-weight:600;font-size:var(--fs-lead);line-height:var(--lh-head);letter-spacing:var(--tr-head);color:var(--c950);margin:var(--sp-16-24) 0 var(--sp-16-24);text-wrap:balance}
+/* .subHead TAKES THE BODY'S OWN RUNG AND IS TOLD APART BY WEIGHT AND INK.
+   --fs-lead was tried first and was wrong at the small end: --fs-lead is
+   clamp(15,1.4vw,18) and --fs-prose is clamp(16,1.25vw,18), so they agree at 18
+   on a desktop and diverge on a phone -- measured at 390, the subhead computed
+   15px against a 16px paragraph, a heading SMALLER than the copy under it.
+   --fs-prose holds the relationship at every width: 18/600 ink over 18/400 grey
+   at 1440, 16/600 over 16/400 at 390. Weight and ink are the whole mark, which
+   is home's own device -- its tab row separates resting from selected with
+   nothing but --theme-muted/400 against --theme-ink/600. */
+.subHead{font-family:var(--sans);font-weight:600;font-size:var(--fs-prose);line-height:var(--lh-head);letter-spacing:var(--tr-head);color:var(--c950);margin:var(--sp-16-24) 0 var(--sp-16-24);text-wrap:balance}
 /* onboarding shots are portrait phones: sized so the gallery browses, the steps read */
 .shot.phone{width:calc((100% - 72px)/3)}
 .shot.phone img{width:100%;height:auto;aspect-ratio:804/1748;object-fit:contain;background:#fff;border-radius:clamp(20px,2.6vw,32px);box-shadow:var(--rim-1)}
@@ -916,27 +925,27 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
 
     <div class="ov">
      <span class="rlabel">Overview</span>
-     <p class="ovBody rv" data-f="0.011">The UC Davis Recreation app should be the easiest way to get into the gym. Instead it was a barrier: a wall of identical icons that made you log in every single time. <strong>Over three days I redesigned it around the one thing students actually open it for</strong>, and moved the gym ID into Apple Wallet.</p>
+     <p class="ovBody rv" data-f="0.011">The UC Davis Recreation app should be the easiest way into the gym. Instead it was a barrier: a wall of identical icons behind a login you hit every time. <strong>Over three days I rebuilt it around the one thing students open it for</strong>, and moved the gym ID into Apple Wallet.</p>
     </div>
 
     <div class="role">
      <span class="rlabel">My role</span>
      <h2 class="roleHead rv" data-f="0.03">A project I built for myself.</h2>
-     <p class="rv" data-f="0.011">A personal project, so every part of it is mine: the interviews, the visual design, and the Wallet idea. I did it because I use this app, and it frustrated me.</p>
+     <p class="rv" data-f="0.011">A personal project, so all of it is mine: the interviews, the visual design, and the Wallet idea. I use this app, and it frustrated me.</p>
     </div>
    </section>
 
    <section id="problem" class="sec">
     <div class="kicker">Problem</div>
     <h2 class="secHead">The app was a barrier, not a tool.</h2>
-    <p class="secBody">The login stands between you and the ID that gets you through the gym door. The rest is a wall of identical icons with no hierarchy, and hours and live capacity buried or missing. UC Davis wants this to be a hub for campus life; it acts like a turnstile.</p>
+    <p class="secBody">The login stands between you and the ID that gets you through the gym door, and the rest is identical icons with no hierarchy. UC Davis wants a hub for campus life; it acts like a turnstile.</p>
     <figure class="photoFig"><span class="scrapTag badge badge--dashed badge--block">The original app · before the redesign</span><div class="tv tvPhone collection" role="group" aria-label="The original app"><div class="tvTabs collection__tabs" role="tablist" aria-label="The original app"><button class="tvTab on ctl ctl--tab" type="button" role="tab" aria-selected="true">Home</button><button class="tvTab ctl ctl--tab" type="button" role="tab" aria-selected="false">Side menu</button><button class="tvTab ctl ctl--tab" type="button" role="tab" aria-selected="false">Member ID</button><button class="tvTab ctl ctl--tab" type="button" role="tab" aria-selected="false">The login</button></div><figure class="tvFrame collection__content media media--mockup"><img class="scene-swap-target" src="images/cs/ucrec/before-1.webp" width="460" height="1000" alt="Original home: a flat grid of same-sized icons." decoding="async"></figure><script type="application/json" class="tvItems">[{"src": "images/cs/ucrec/before-1.webp", "alt": "Original home: a flat grid of same-sized icons.", "label": "Home"}, {"src": "images/cs/ucrec/before-2.webp", "alt": "Original side menu holding only notifications and accessibility.", "label": "Side menu"}, {"src": "images/cs/ucrec/before-3.webp", "alt": "Original Member ID screen: two login buttons before the barcode.", "label": "Member ID"}, {"src": "images/cs/ucrec/before-4.webp", "alt": "The CAS login form you hit every time.", "label": "The login"}]</script></div><figcaption class="cap">A flat grid of icons, everything the same weight.</figcaption></figure>
    </section>
 
    <section id="research" class="sec">
     <div class="kicker">Research &amp; ideation</div>
     <h2 class="secHead">Students only opened it to scan in.</h2>
-    <p class="secBody"><strong>I ran three interviews with students who use the app</strong>, and the pattern was immediate: <strong>everyone used it for one thing, scanning into the ARC, and almost nothing else.</strong> The friction hid everything else UC Rec offers behind icons no one taps.</p>
+    <p class="secBody"><strong>I ran three interviews with students who use the app</strong>, and the pattern was immediate: <strong>everyone used it for one thing, scanning into the ARC.</strong> The friction hid everything else UC Rec offers.</p>
     <div class="qRow">
      <blockquote class="pull"><img class="pullChar" src="images/cs/ucrec/char-1.webp" width="98" height="300" alt="" aria-hidden="true"><span class="pullBody">&ldquo;It&rsquo;s kinda confusing to navigate, sometimes it takes me a while scrolling through it.&rdquo;<span class="pullWho">Student, 2nd year</span></span></blockquote>
      <blockquote class="pull"><img class="pullChar" src="images/cs/ucrec/char-2.webp" width="96" height="300" alt="" aria-hidden="true"><span class="pullBody">&ldquo;I just use the app for scanning into the ARC when I don&rsquo;t have my card.&rdquo;<span class="pullWho">Student, 3rd year</span></span></blockquote>
@@ -948,18 +957,17 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
    <section id="system" class="sec">
     <div class="kicker">The redesign</div>
     <h2 class="secHead">Built around what students actually use.</h2>
-    <p class="secBody">I rebuilt the home screen around a clear hierarchy and modules students can cater to themselves, instead of a grid of buttons most will never press. <strong>Live gym capacity was easy to add</strong>, since everyone already scans in, and the tabs no one used move into a side menu.</p>
+    <p class="secBody">I rebuilt the home screen around a clear hierarchy and modules students cater to themselves, instead of a grid of buttons most will never press. <strong>Live gym capacity was easy to add</strong>, since everyone already scans in, and the tabs no one used move into a side menu.</p>
     <figure class="photoFig"><div class="baGrid"><div class="baCol"><span class="baLabel">Before</span><figure class="shot phone"><img src="images/cs/ucrec/before-1.webp" width="460" height="1000" alt="The original home: a flat grid of icons behind a login." loading="lazy" decoding="async"></figure><span class="baNote">A flat grid of icons behind a login.</span></div><div class="baCol isAfter"><span class="baLabel">After</span><figure class="shot phone"><img src="images/cs/ucrec/after-home.webp" width="460" height="1000" alt="The redesigned home: hierarchy, events, live capacity, and the Member ID up top." loading="lazy" decoding="async"></figure><span class="baNote">Hierarchy: events, live capacity, and the Member ID up top.</span></div><span class="baGo" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="13 6 19 12 13 18"/></svg></span></div></figure>
     <figure class="photoFig"><div class="baGrid"><div class="baCol"><span class="baLabel">Before</span><figure class="shot phone"><img src="images/cs/ucrec/before-2.webp" width="460" height="1000" alt="The original side menu, holding almost nothing." loading="lazy" decoding="async"></figure><span class="baNote">A side menu holding almost nothing.</span></div><div class="baCol isAfter"><span class="baLabel">After</span><figure class="shot phone"><img src="images/cs/ucrec/after-sidebar.webp" width="460" height="1000" alt="The redesigned side menu holding the less-used tabs." loading="lazy" decoding="async"></figure><span class="baNote">The rarely-used tabs, tucked where they belong.</span></div><span class="baGo" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="13 6 19 12 13 18"/></svg></span></div></figure>
     <div class="subBlock">
      <div class="subKick">The idea I&rsquo;m proudest of</div>
      <h3 class="subHead">The gym ID lives in Apple Wallet.</h3>
-     <p class="secBody">Instead of logging in every time, <strong>I moved the Member ID into Apple Wallet</strong>. Hold your phone near the reader and you&rsquo;re in, as fast as Apple Pay. No login to fight, no password for the app to store: the barcode lives where students already keep the things they trust.</p>
+     <p class="secBody">Instead of logging in every time, <strong>I moved the Member ID into Apple Wallet</strong>. Hold your phone near the reader and you&rsquo;re in, as fast as Apple Pay. No login to fight, no password for the app to store.</p>
      <div class="statRow">
       <aside class="stat" aria-label="Login friction finding"><div class="statNum" style="gap:0">92<span class="statUnit">%</span></div><p class="statCap">of people would abandon an app rather than reset a forgotten password.</p></aside>
-      <aside class="stat" aria-label="Mobile wallet finding"><div class="statNum" style="gap:0">84<span class="statUnit">%</span></div><p class="statCap">of Gen Z already use a mobile wallet, the thing this idea lives inside.</p></aside>
-     </div>
-     <p class="statSrc statRowSrc">Transmit Security &middot; LendingTree, 2025</p>
+</div>
+     <p class="statSrc statRowSrc">Transmit Security, 2025</p>
      <figure class="photoFig"><div class="baGrid"><div class="baCol"><span class="baLabel">Before</span><figure class="shot phone"><img src="images/cs/ucrec/scanner.webp" width="552" height="1200" alt="Before: the Member ID barcode screen, reached only after a login." loading="lazy" decoding="async"></figure><span class="baNote">The ID sat behind a login, every single visit.</span></div><div class="baCol isAfter"><span class="baLabel">After</span><figure class="shot phone"><img src="images/cs/ucrec/wallet.webp" width="460" height="1000" alt="After: the Member ID in Apple Wallet, held near the reader." loading="lazy" decoding="async"></figure><span class="baNote">One tap in Apple Wallet, straight at the door.</span></div><span class="baGo" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="13 6 19 12 13 18"/></svg></span></div></figure>
     </div>
    </section>
@@ -967,7 +975,7 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
    <section id="outcome" class="sec">
     <div class="kicker">Outcome</div>
     <h2 class="secHead">Three days of design opened a door.</h2>
-    <p class="secBody">Three days <strong>forced me to prioritize</strong>: kill the login friction and connect students to resources, rather than polish every deep screen. With more time I&rsquo;d design the Aquatics and Equestrian screens and pitch the ARC on making the Wallet integration real.</p>
+    <p class="secBody">Three days <strong>forced me to prioritize</strong>: kill the login friction rather than polish every deep screen. With more time I&rsquo;d design the Aquatics and Equestrian screens and pitch the ARC on making the Wallet integration real.</p>
     <p class="secBody">I submitted it to the Design Interactive cohort on campus. <strong>It landed me an interview, and a spot in the program</strong>, where I went on to design <a class="footIn" href="bearings.html">Bearings</a>.</p>
    </section>
 

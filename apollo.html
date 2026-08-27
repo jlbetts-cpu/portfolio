@@ -372,7 +372,16 @@ img{display:block;max-width:100%;height:auto}   /* height:auto IS THE COMPANION 
 /* ===== the system: onboarding gallery + the five-step build — one hero screen per step, the reasoning beside it ===== */
 .subBlock{margin:clamp(64px,8.5vh,96px) 0 0}
 .subKick{font-family:var(--sans);font-weight:600;font-size:var(--fs-label);letter-spacing:var(--tr-flat);text-transform:none;color:var(--c500);margin:0}
-.subHead{font-family:var(--sans);font-weight:600;font-size:var(--fs-lead);line-height:var(--lh-head);letter-spacing:var(--tr-head);color:var(--c950);margin:var(--sp-16-24) 0 var(--sp-16-24);text-wrap:balance}
+/* .subHead TAKES THE BODY'S OWN RUNG AND IS TOLD APART BY WEIGHT AND INK.
+   --fs-lead was tried first and was wrong at the small end: --fs-lead is
+   clamp(15,1.4vw,18) and --fs-prose is clamp(16,1.25vw,18), so they agree at 18
+   on a desktop and diverge on a phone -- measured at 390, the subhead computed
+   15px against a 16px paragraph, a heading SMALLER than the copy under it.
+   --fs-prose holds the relationship at every width: 18/600 ink over 18/400 grey
+   at 1440, 16/600 over 16/400 at 390. Weight and ink are the whole mark, which
+   is home's own device -- its tab row separates resting from selected with
+   nothing but --theme-muted/400 against --theme-ink/600. */
+.subHead{font-family:var(--sans);font-weight:600;font-size:var(--fs-prose);line-height:var(--lh-head);letter-spacing:var(--tr-head);color:var(--c950);margin:var(--sp-16-24) 0 var(--sp-16-24);text-wrap:balance}
 /* onboarding shots are portrait phones: sized so the gallery browses, the steps read */
 .shot.phone{width:calc((100% - 72px)/3)}
 .shot.phone img{width:100%;height:auto;aspect-ratio:720/1565;object-fit:cover;background:#000;border-radius:clamp(20px,2.6vw,32px);display:block}
@@ -888,22 +897,21 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
 
     <div class="ov">
      <span class="rlabel">Overview</span>
-     <p class="ovBody rv" data-f="0.011">Apollo is a social app that makes the invisible visible. You capture your daily wins, big or small, and they become a gorgeous post your close friends witness. It is designed from the ground up for the way ADHD brains actually work: no streaks, no shame, no doomscroll.</p>
+     <p class="ovBody rv" data-f="0.011">You capture a daily win, big or small, and it becomes a post your close friends witness. Apollo is built for the way ADHD brains actually work: no streaks, no shame, no doomscroll.</p>
     </div>
    </section>
 
    <section id="problem" class="sec">
     <div class="kicker">Problem</div>
     <h2 class="secHead">Small wins are the whole game.</h2>
-    <p class="secBody">Apollo grew straight out of <a class="footIn" href="strata.html">Strata</a>, aimed at winning instead of habits. <strong>A Harvard study by Teresa Amabile, built on nearly 12,000 daily diaries</strong>, found the single biggest driver of motivation in a day is making progress, even a small step.</p>
-    <p class="secBody">I have ADHD, and Apollo is built for the part I find hardest: the middle, where the reward feels furthest away.</p>
+    <p class="secBody">Apollo grew straight out of <a class="footIn" href="strata.html">Strata</a>, aimed at winning instead of habits. <strong>I have ADHD</strong>, and it is built for the part I find hardest: the middle, where the reward feels furthest away.</p>
     <aside class="stat" aria-label="ADHD cost"><div class="statNum">$14,092</div><p class="statCap">is what adult ADHD costs one person every year in lost productivity, missed work, and healthcare. Not a niche.</p><p class="statSrc">Schein et al., 2021</p></aside>
    </section>
 
    <section id="research" class="sec">
     <div class="kicker">Research &amp; ideation</div>
     <h2 class="secHead">Everyone wanted it to be social.</h2>
-    <p class="secBody">While building <a class="footIn" href="strata.html">Strata</a>, <strong>I ran 30 user interviews</strong>, and one request kept surfacing: a social layer, a way to stack wins together. Apollo is that layer, made only for your wins.</p>
+    <p class="secBody">While building <a class="footIn" href="strata.html">Strata</a>, <strong>I ran 30 user interviews</strong>, and one request kept surfacing: a social layer, a way to stack wins together.</p>
     <p class="secBody">The bet is that <strong>witnessing beats willpower</strong>: when you watch your friends show up, showing up becomes contagious. No streak counter can do that.</p>
     <aside class="stat" aria-label="Goal-sharing research"><div class="statNum" style="gap:0">76<span class="statUnit">%</span></div><p class="statCap">of goals get finished by people who write them down and send weekly progress to a friend, versus 43% who keep them to themselves.</p><p class="statSrc">Matthews, Dominican University</p></aside>
    </section>
@@ -920,12 +928,12 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
          head only had to stop overreaching. Past tense scopes it to the flow
          underneath and the principle survives intact. -->
     <h2 class="secHead">The first camera captured the feeling, not the angle.</h2>
-    <p class="secBody"><strong>I kept the camera restrained on purpose.</strong> A camera roll means uploading your most posed, best-angle shot, but a win is about the feeling, not the perfect frame. So you shoot in the moment, with framing guides so it still looks its best.</p>
+    <p class="secBody"><strong>I kept the camera restrained on purpose.</strong> A camera roll means posting your most posed shot, but a win is about the feeling, not the frame. So you shoot in the moment, with framing guides.</p>
     <figure class="photoFig"><div class="player" role="group" aria-label="Capturing a win, start to finish"><div class="playerKick">From the 24-hour hackathon</div><div class="playerStage media media--mockup"><img class="scene-swap-target" src="images/cs/apollo/setwin-12.webp" width="720" height="1565" alt="Capturing a win in Apollo, step 1 of 5." decoding="async"></div><p class="playerCap"><strong class="playerStep">Nothing chosen yet</strong><span class="playerNote">The camera opens first and asks what the shot is for.</span></p><div class="playerBar carousel-toolbar" role="group" aria-label="Carousel controls"><div class="playerTicks"><button class="playerTick ctl ctl--tick" type="button" aria-label="Show step 1 of 5" aria-pressed="true"></button><button class="playerTick ctl ctl--tick" type="button" aria-label="Show step 2 of 5" aria-pressed="false"></button><button class="playerTick ctl ctl--tick" type="button" aria-label="Show step 3 of 5" aria-pressed="false"></button><button class="playerTick ctl ctl--tick" type="button" aria-label="Show step 4 of 5" aria-pressed="false"></button><button class="playerTick ctl ctl--tick" type="button" aria-label="Show step 5 of 5" aria-pressed="false"></button></div></div><script type="application/json" class="playerBeats">[{"src": "images/cs/apollo/setwin-12.webp", "alt": "Capturing a win in Apollo, step 1 of 5.", "step": "Nothing chosen yet", "note": "The camera opens first and asks what the shot is for."}, {"src": "images/cs/apollo/setwin-2.webp", "alt": "Capturing a win in Apollo, step 2 of 5.", "step": "Name it", "note": "A new win takes a title and nothing else."}, {"src": "images/cs/apollo/setwin-6.webp", "alt": "Capturing a win in Apollo, step 3 of 5.", "step": "Or pick one you keep", "note": "One-time, custom, or daily with a streak already running."}, {"src": "images/cs/apollo/setwin-8.webp", "alt": "Capturing a win in Apollo, step 4 of 5.", "step": "Now it knows", "note": "The same camera, shooting for Matcha Run."}, {"src": "images/cs/apollo/setwin-9.webp", "alt": "Capturing a win in Apollo, step 5 of 5.", "step": "Keep it, or go again", "note": "Captured for the win, with a private note only you see."}]</script></div><figcaption class="cap">Capturing a win.</figcaption></figure>
     <div class="subBlock">
      <div class="subKick">North</div>
      <h3 class="subHead">North gives. It never nags.</h3>
-     <p class="secBody">North is a small AI companion that reflects back a pattern it noticed in your wins. <strong>I brought in a friend studying psychology</strong> to shape its voice so it encourages rather than nags, and it never pretends to be human: people trust an assistant more when it is honest about being a tool.</p>
+     <p class="secBody">North is a small AI companion that reflects back a pattern it noticed in your wins. <strong>I brought in a friend studying psychology</strong> to shape its voice so it encourages rather than nags, and it never pretends to be human.</p>
     </div>
    </section>
 
@@ -933,7 +941,7 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
     <div class="kicker">Designed for ADHD</div>
     <h2 class="secHead">Designed for the way ADHD brains work.</h2>
     <p class="secBody">No follower counts, no leaderboards, nothing that turns showing up into a number you can lose.</p>
-    <p class="secBody">Apollo holds one calm, grayscale world, a <strong>deliberate ADHD decision</strong>. ADHD brains run on dysregulated dopamine, which leaves them most vulnerable to the bright, saturated colors apps weaponize to trigger a hit. So there is no red anywhere and no color in the interface at all: the only color in Apollo is your own photos. <strong>Research on grayscale interfaces shows it measurably lowers compulsive screen use</strong>.</p>
+    <p class="secBody">Apollo holds one calm, grayscale world, a <strong>deliberate ADHD decision</strong>. Dysregulated dopamine leaves ADHD brains most vulnerable to the saturated color apps use to trigger a hit, so there is no red anywhere and no color in the interface at all. <strong>The only color in Apollo is your own photos.</strong></p>
     <figure class="photoFig"><div class="tv tvPhone collection" role="group" aria-label="The latest design"><div class="playerKick">Where it stands today</div><div class="tvTabs collection__tabs" role="tablist" aria-label="The latest design"><button class="tvTab on ctl ctl--tab" type="button" role="tab" aria-selected="true">Home</button><button class="tvTab ctl ctl--tab" type="button" role="tab" aria-selected="false">Camera</button><button class="tvTab ctl ctl--tab" type="button" role="tab" aria-selected="false">Feed</button><button class="tvTab ctl ctl--tab" type="button" role="tab" aria-selected="false">Find</button></div><figure class="tvFrame collection__content media media--mockup"><img class="scene-swap-target" src="images/cs/apollo/upd-3.webp" width="720" height="1569" alt="The latest home: friends orbit the sunset countdown." decoding="async"></figure><script type="application/json" class="tvItems">[{"src": "images/cs/apollo/upd-3.webp", "alt": "The latest home: friends orbit the sunset countdown.", "label": "Home"}, {"src": "images/cs/apollo/upd-1.webp", "alt": "The latest camera: full-screen viewfinder with controls at the edges.", "label": "Camera"}, {"src": "images/cs/apollo/upd-2.webp", "alt": "The latest feed: mosaic posts from friends.", "label": "Feed"}, {"src": "images/cs/apollo/upd-4.webp", "alt": "The latest Find: search, requests, people, and albums in one hub.", "label": "Find"}]</script></div><figcaption class="cap">The latest design.</figcaption></figure>
    </section>
 

@@ -372,7 +372,16 @@ img{display:block;max-width:100%;height:auto}   /* height:auto IS THE COMPANION 
 /* ===== the system: onboarding gallery + the five-step build — one hero screen per step, the reasoning beside it ===== */
 .subBlock{margin:clamp(64px,8.5vh,96px) 0 0}
 .subKick{font-family:var(--sans);font-weight:600;font-size:var(--fs-label);letter-spacing:var(--tr-flat);text-transform:none;color:var(--c500);margin:0}
-.subHead{font-family:var(--sans);font-weight:600;font-size:var(--fs-lead);line-height:var(--lh-head);letter-spacing:var(--tr-head);color:var(--c950);margin:var(--sp-16-24) 0 var(--sp-16-24);text-wrap:balance}
+/* .subHead TAKES THE BODY'S OWN RUNG AND IS TOLD APART BY WEIGHT AND INK.
+   --fs-lead was tried first and was wrong at the small end: --fs-lead is
+   clamp(15,1.4vw,18) and --fs-prose is clamp(16,1.25vw,18), so they agree at 18
+   on a desktop and diverge on a phone -- measured at 390, the subhead computed
+   15px against a 16px paragraph, a heading SMALLER than the copy under it.
+   --fs-prose holds the relationship at every width: 18/600 ink over 18/400 grey
+   at 1440, 16/600 over 16/400 at 390. Weight and ink are the whole mark, which
+   is home's own device -- its tab row separates resting from selected with
+   nothing but --theme-muted/400 against --theme-ink/600. */
+.subHead{font-family:var(--sans);font-weight:600;font-size:var(--fs-prose);line-height:var(--lh-head);letter-spacing:var(--tr-head);color:var(--c950);margin:var(--sp-16-24) 0 var(--sp-16-24);text-wrap:balance}
 /* onboarding shots are portrait phones: sized so the gallery browses, the steps read */
 .shot.phone{width:calc((100% - 72px)/3)}
 .shot.phone img{width:100%;height:auto;aspect-ratio:804/1748;object-fit:contain;background:#fff;border-radius:clamp(20px,2.6vw,32px);box-shadow:var(--rim-1)}
@@ -846,7 +855,7 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
 
     <div class="ov">
      <span class="rlabel">Overview</span>
-     <p class="ovBody rv" data-f="0.011">Strata is a gamified habit builder. Instead of a checklist, your wins stack up as colorful blocks, Tetris meets Minecraft, until the month becomes a tower you built one habit at a time. I designed and built it end to end in Lovable, then rebuilt it natively in Xcode.</p>
+     <p class="ovBody rv" data-f="0.011">Strata is a gamified habit builder: your wins stack up as colorful blocks, Tetris meets Minecraft, until the month becomes a tower you built one habit at a time. I designed and built it end to end in Lovable, then rebuilt it natively in Xcode.</p>
     </div>
    </section>
 
@@ -866,7 +875,7 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
    <section id="problem" class="sec">
     <div class="kicker">Problem</div>
     <h2 class="secHead">The assignment stopped at a pitch. Strata didn&rsquo;t.</h2>
-    <p class="secBody">The assignment in my entrepreneurship class was to pitch a product. <strong>I did not want to stop at slides, so I built the thing.</strong> The problem came from my own life: some habits stick effortlessly, but picking up a guitar or reading is a real struggle to start.</p>
+    <p class="secBody">The assignment in my entrepreneurship class was to pitch a product. <strong>I did not want to stop at slides, so I built the thing.</strong> The problem was my own: some habits stick effortlessly, picking up a guitar never does.</p>
    </section>
 
    <section id="research" class="sec">
@@ -876,24 +885,23 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
     <div class="subBlock">
      <div class="subKick">Where AI stops</div>
      <h3 class="subHead">AI is a tool, not a replacement.</h3>
-     <p class="secBody"><strong>AI is a tool for bringing my designs to life, not a replacement for doing the design.</strong> Everything about how Strata looks and feels, the color system, the way a block lands, the little tower dance, was mine. AI only got it playable far faster than I could alone.</p>
+     <p class="secBody"><strong>AI is a tool for bringing my designs to life, not a replacement for doing the design.</strong> The color system, the way a block lands, the tower dance: all mine. AI only got it playable faster than I could alone.</p>
     </div>
     <div class="subBlock">
      <div class="subKick">The native build</div>
      <h3 class="subHead">Then, a native rebuild in Xcode.</h3>
-     <p class="secBody">Lovable got me to a playable product, but my goal was always a proper iOS app. So <strong>I taught myself to code it in Xcode</strong> and rebuilt Strata as a native experience.</p>
+     <p class="secBody">Lovable got me to a playable product, but my goal was a proper iOS app, so <strong>I taught myself Xcode</strong> and rebuilt Strata natively.</p>
     </div>
    </section>
 
    <section id="system" class="sec">
     <div class="kicker">Interaction &amp; sound</div>
     <h2 class="secHead">Finish your day, and the tower dances.</h2>
-    <p class="secBody">Every block lands with a sound, and you earn XP as your tower climbs. <strong>The interaction I am proudest of is the payoff: finish every habit for the day and the whole tower breaks into a dance.</strong> That is the whole thesis, turning the friction of habits into something you look forward to.</p>
+    <p class="secBody">Every block lands with a sound, and you earn XP as your tower climbs. <strong>The interaction I am proudest of is the payoff: finish every habit for the day and the whole tower breaks into a dance.</strong> That is the thesis, turning friction into something you look forward to.</p>
     <div class="statRow">
      <aside class="stat" aria-label="Gamification finding"><div class="statNum" style="gap:0">150<span class="statUnit">%</span></div><p class="statCap">the lift in engagement a real game layer can add over a plain interface.</p></aside>
-     <aside class="stat" aria-label="Habit finding"><div class="statNum" style="gap:0">66<span class="statUnit">&nbsp;days</span></div><p class="statCap">the average time a new habit takes to stick, long enough that it has to stay fun.</p></aside>
-    </div>
-    <p class="statSrc statRowSrc">amplifAI &middot; habit-formation research</p>
+</div>
+    <p class="statSrc statRowSrc">amplifAI</p>
     <figure class="videoWrap">
      <div class="videoFrame media media--full"><iframe src="https://www.youtube.com/embed/WB-E80T90WI?playsinline=1&rel=0" title="Strata product showcase" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div>
      <figcaption class="cap">The full walkthrough, with sound on.</figcaption>
@@ -903,7 +911,7 @@ a svg,button svg,[role=button] svg,.moodIco svg,.cmpKnob svg,.baGo svg{
    <section id="outcome" class="sec">
     <div class="kicker">Outcome</div>
     <h2 class="secHead">Finishing Strata is what led to Apollo.</h2>
-    <p class="secBody">After months of work I realized that even done well, Strata was not the best product I could make: <strong>the gamified-habit space is completely saturated</strong>, and one more block-stacking tracker was never going to win. Seeing that is what led me to <a class="footIn" href="apollo.html">Apollo</a>.</p>
+    <p class="secBody">After months of work I saw that even done well, Strata was not the best product I could make: <strong>the gamified-habit space is saturated</strong>, and one more block-stacking tracker was never going to win. Seeing that is what led me to <a class="footIn" href="apollo.html">Apollo</a>.</p>
    </section>
 
    <div class="photoPair media media--full">
