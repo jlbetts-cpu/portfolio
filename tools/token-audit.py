@@ -97,14 +97,12 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # facts were related: nothing below its header was checked by anything.
 SHIPPING_HTML = ['index.html', 'about.html', 'play.html', 'apollo.html',
                  'bearings.html', 'cluster.html', 'strata.html', 'ucdavis.html',
-                 'headmaker.html', 'gradientlab.html',
-                 # draft.html, added 2026-08-26 with the page itself. It is a real
-                 # shipping page, not a demo: it links tokens.css / controls.css /
-                 # site-theme.css rather than copying them, and it declares seven
-                 # tokens of its own (six position colours plus a measure). A gate
-                 # that cannot see the newest page cannot protect it, which is the
-                 # only reason this list is being touched.
-                 'draft.html']
+                 'headmaker.html', 'gradientlab.html']
+# draft.html was here from 2026-08-26 and is GONE as of 2026-08-27, with the
+# page and draft-data.js: "lets remove the draft guide actually i dont think i
+# want it on the site." Its seven tokens went with it, so the audit's raw-px
+# and undefined-token counts drop by that page's share -- if you are comparing
+# this run against a number written down before today, that is why.
 # controls.css and site-theme.css are the two files that GOVERN the rest of the
 # site's controls and colour, and until 2026-08-08 neither was audited -- the
 # library sat outside its own gate. footer.css and builder-theme.css join them
