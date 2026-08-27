@@ -1464,7 +1464,40 @@
       var vyb9=(wantHigh?(940+Math.random()*80):(overBall?720:(ballClose?440:360)))+Math.min(560,ballUp*0.72)+Math.random()*90,ttb9=2*vyb9/G;   // wantHigh = a real leap to block / head a high ball
       vy=-vyb9*(_lit?1.09:1);vx=dir*Math.min(_lit?900:800,Math.max(120,Math.abs(ddb9)/ttb9)*(_lit?1.12:1));sqT=0.12;sqyP=1.1;sqxP=1/1.1;   // on fire: a touch quicker, a touch springier -- visible in play, never a scripted rescue
       if(vyb9>780&&Math.random()<0.5)startFlip();}   // RAW ballistic leap at the ball -- fast, committed, explosive contact (this is soccer's electric charm; no mid-air easing) + a somersault off the big challenges for extra air
-     else{gzx=(ballX>myX)?0.6:-0.6;gzy=0.1;sacAt=now+700;}}}}catch(_){}
+     /* ===== THE VERTICAL CONTEST: THE HEAD THAT IS ALREADY THERE =====
+        Jayden: "the ball bouncing in the air is intresting heads jumping up for it is
+        intresting", in the same breath as "no players seem to be standing still".
+
+        Those are ONE branch, and this is it. Every head on this pitch moves by leaping at a
+        LATERAL target, so the only thing that ever puts one in the air is having somewhere
+        else to be. A head whose target is already under its feet -- which is what
+        |ddb9| <= HW*0.4 means -- fell through to a gaze and stood there. Including, and this
+        is the part that reads worst, a head standing directly underneath a ball dropping out
+        of the sky. It watched it come down.
+
+        So: if the ball is overhead and within a head-width, GO UP FOR IT. That is the same
+        raw ballistic leap the branch above uses, with the lateral term taken out because
+        there is no lateral distance to cover -- it is not a new behaviour, it is the existing
+        one reaching a case it could not express.
+
+        WHAT IT IS NOT. It moves nobody. It assigns nothing. It is available to every head on
+        the pitch regardless of role or side, it triggers on the ball's position and nothing
+        else, and two heads standing together both take it -- which is an aerial duel, not a
+        formation. Nothing here spaces anyone out, and the scrum is not consulted.
+
+        THE WINDOW IS BOUNDED AT BOTH ENDS. Below HH*0.5 the ball is at chest height and the
+        body collision already has it, so a jump would be a hop for no reason; above HH*3
+        nothing reachable is up there and heads would pogo at a ball crossing the roof. */
+     else{
+      var _ovH=floorY-ballY,_ovX=Math.abs(ballX-myX);
+      if(_ovX<HW*0.95&&_ovH>HH*0.5&&_ovH<HH*3.0){
+       dir=(ballX>myX)?1:-1;gzx=dir*0.5;gzy=-0.7;sacAt=now+620;   // eyes go UP -- he is watching the ball, not the pitch
+       surface=floorY;st="fall";air=true;
+       var _upV=700+Math.min(620,_ovH*0.86)+Math.random()*110;
+       vy=-_upV;vx=dir*Math.min(220,_ovX*2.2);   // straight up, with only enough drift to meet the ball
+       sqT=0.12;sqyP=1.12;sqxP=1/1.12;
+       if(_upV>1150&&Math.random()<0.35)startFlip();}   // a big spring gets a somersault, same as the lateral charge
+      else{gzx=(ballX>myX)?0.6:-0.6;gzy=0.1;sacAt=now+700;}}}}}catch(_){}
   if(battleOn&&!elim&&!celebrated){var alive9=0,inb9=0;
    for(var a9=0;a9<peers.length;a9++){if(peers[a9].inB){inb9++;if(!peers[a9].elim&&!peers[a9].__sinking)alive9++;}}   // a sinking head is already out -> the winner is crowned as the last rival melts
    if(inb9>=2&&alive9===1){celebrated=true;try{if(window.__hmLavaOn&&window.__hmCareer&&slot!=null)window.__hmCareer.rec("lavaWin",slot);}catch(_){}   // LAST HEAD STANDING: crown the winner right where he stands (soccer-style, no podium), a victory leap + confetti, then everyone streams back
@@ -2260,6 +2293,50 @@
   function ballInTitle(on){if(!board)return;board.classList.toggle("ballOut",!on);
    if(on)board.classList.remove("ballFell");}
   var _spawnY=null,_curveTo=0,_curving=false,_cvOn=false,_cvA=0,_cvS=1;
+  /* ===== THE CONFINEMENT TIMER: THE BALL IS NOT SLOW, IT IS TRAPPED =====
+     Jayden: "no players seem to be standing still or any breaking or ball getting stuck or
+     lame tug of wars ... the ball bouncing in the air is intresting."
+
+     DECK_MAX below catches a DIFFERENT defect and both are needed. Its own note says the
+     ball it was built for "travelled 701px" -- a ball being shuffled the length of the pitch
+     along the floor. This one catches the opposite: a ball going nowhere at all.
+
+     AND IT IS NOT THE SAME QUESTION AS "IS THE BALL MOVING", which is the reason this went
+     unmeasured for so long. tools/soccer-bundle-probe.py asked whether the ball was under
+     90px/s and whether 3+ heads were in a goal area, and both answered no wedge -- correctly,
+     for what they asked. tools/soccer-flow-probe.py cranks the clock and samples every frame,
+     and asks the question Jayden actually asked: how long does the ball spend inside one small
+     circle? Measured over 38 minutes of simulated play, eight heads, 1440x900:
+
+       ball inside one 70px circle    46.4% of all play
+       episodes over 2s              257
+       p90 episode                   5.97s
+       WORST EPISODE                 58.45s
+       where                         13% and 90% across the pitch, 5% up -- both goalmouths, on the deck
+
+     A minute of the ball being batted between bodies inside a circle smaller than one head is
+     the "lame tug of war" verbatim, and the per-frame numbers cannot see it: the ball is being
+     struck constantly, so its speed is fine and every "is it still" run is under 0.9s. The
+     scrum is churning; the ball is imprisoned in it.
+
+     DECK_MAX CANNOT FIRE HERE, and that is arithmetic rather than a guess. Its reset is
+     `by<REST-BR*0.6` -- a 14px hop clears it -- and a head impulse pops the ball far higher
+     than that many times a second. So the one mechanism built to break a stalemate is held
+     down by the stalemate itself.
+
+     WHY THIS IS NOT THE TIDINESS THAT KEEPS GETTING REJECTED. Nothing here touches a head.
+     No separation, no roles, no zones, no stations, no leash -- the pile is not asked to
+     disperse and does not. The BALL leaves, upward and sideways, and the pile follows it,
+     which is the same pile doing the same thing somewhere it can resolve. It is the exact
+     distinction this file already draws: chaos that RESOLVES is the product, chaos that STOPS
+     is dead time.
+
+     AND THE ESCAPE IS VERTICAL ON PURPOSE, because that is the second half of what he asked
+     for. The ball leaves over the heads, so what follows is a contested drop rather than
+     another floor scrap. ---- */
+  var _cfx=0,_cfy=0,_cfT=0,_cfPops=0;
+  var CONF_MAX=1.6;   // seconds inside the circle before the ball is let out. Sits well under the
+  // 5.97s p90 of the measured episodes and well over anything that reads as a real contest.
   var _deckT=0,DECK_MAX=2.6;   // seconds the ball may spend CONTINUOUSLY on the deck before it gets
   // squirted back into the air. Measured first: over a 75s match the ball was on the ground 58.7s
   // of it (78%), in episodes of 17.7s, 6.9s, 6.2s, 5.9s, 5.8s, 5.1s, 4.2s... The longest one
@@ -2457,14 +2534,14 @@ function teams(){
    }catch(_){} return side===1?RED:BLUE; }
    window.__hmTeamRGB=teamRGB;   // THE GOAL GRAMMAR's particle burst reuses this exact source instead of its own copy, so team colours can never drift apart between the pitch and the goal-mouth particles
   function kickoffCountdown(){S.kickSeed=(S.kickSeed||0)+1;BUS.emit('kickoff',{seed:S.kickSeed});   // the match opener: everyone to their half, then 3-2-1
-   var _bh=ballHome();bx=_bh?_bh.x:(XL+XR)/2;by=_bh?_bh.y:70;bsp=ballSpawnScale();_spawnY=by;_curveTo=(XL+XR)/2;_curving=true;_cvOn=false;bvx=0;bvy=0;_deckT=0;S.phase="count";
+   var _bh=ballHome();bx=_bh?_bh.x:(XL+XR)/2;by=_bh?_bh.y:70;bsp=ballSpawnScale();_spawnY=by;_curveTo=(XL+XR)/2;_curving=true;_cvOn=false;bvx=0;bvy=0;_deckT=0;_cfx=bx;_cfy=by;_cfT=0;S.phase="count";
    var n=3;showCount(n);
    (function tick(){if(!S.on)return;
     if(n>1){n--;setTimeout(function(){showCount(n);tick();},800);}
     else{setTimeout(function(){if(!S.on)return;showCount("GO");
      setTimeout(function(){if(!S.on)return;if(countEl)countEl.textContent="";bvy=30;S.phase="play";},560);},800);}})();}
   function dropIn(){S.kickSeed=(S.kickSeed||0)+1;   // after a goal: no countdown, the ball just drops back in as they return to their sides
-   var _bh2=ballHome();bx=_bh2?_bh2.x:(XL+XR)/2;by=_bh2?_bh2.y:60;bsp=ballSpawnScale();_spawnY=by;_curveTo=(XL+XR)/2;_curving=true;_cvOn=false;bvx=(Math.random()*80-40);bvy=20;_deckT=0;S.phase="reset";
+   var _bh2=ballHome();bx=_bh2?_bh2.x:(XL+XR)/2;by=_bh2?_bh2.y:60;bsp=ballSpawnScale();_spawnY=by;_curveTo=(XL+XR)/2;_curving=true;_cvOn=false;bvx=(Math.random()*80-40);bvy=20;_deckT=0;_cfx=bx;_cfy=by;_cfT=0;S.phase="reset";
    // 650 -> 900ms. The set-position leap solves its own arc, and a head crossing most of a
    // 1440px pitch is in the air for ~0.77s; at 650 the whistle went while half the side was
    // still flying, so the line-up was never actually seen. This is the only dead time added
@@ -2788,6 +2865,33 @@ function teams(){
     if(onGround&&Math.abs(bvx)<9&&Math.abs(bvy)<12){bvx=0;bvy=0;}   // and it settles fully -- no hover, no jitter
     if(onGround)_deckT+=dt;else if(by<REST-BR*0.6)_deckT=0;   // airborne by more than a ball-radius clears it;
     // a bobble of a few px on the bounce does NOT, or the timer would reset on every little hop and never fire
+    /* THE CONFINEMENT POP -- see the CONF_MAX note above for the measurement that put it here.
+       The anchor is a single point rather than a ring buffer: the ball either escapes the
+       circle, which re-anchors and clears the clock, or it does not, which is the whole
+       finding. O(1) per frame, no allocation.
+       The radius is BR*3, so it scales with the ball and therefore with the heads -- 72px at
+       1440 where a head is 96 wide, 48px at 390 where a head is 64. A circle smaller than one
+       head means "the ball has not got past the body in front of it". */
+    var _cfR=BR*3;
+    if(Math.abs(bx-_cfx)>_cfR||Math.abs(by-_cfy)>_cfR){_cfx=bx;_cfy=by;_cfT=0;}
+    else _cfT+=dt;
+    if(_cfT>CONF_MAX){
+     _cfT=0;_cfx=bx;_cfy=by;_deckT=0;_cfPops++;
+     /* OUT AND UP. The vertical component is the larger one deliberately: it has to clear the
+        heads standing over it, and a ball that leaves flat just arrives at the next body.
+        ~230-290px of rise at GRAV 2600 (v^2/2g), which is two to three head-heights. */
+     bvy=-(1090+Math.random()*140);
+     /* AND OUT OF THE CIRCLE, toward whichever side of the pitch has more room -- which is
+        geometry, not a tactic: it is where the ball is, not where anybody is standing. Aiming
+        it back into the shorter side is how a pop lands straight back in the same pile, and a
+        pop that re-forms the stalemate is worse than none. */
+     var _mid=(XL+XR)/2,_out=(bx<_mid)?1:-1;
+     bvx=_out*(360+Math.random()*300)+bvx*0.25;   // keeps a quarter of whatever it had, so the
+     // escape still carries the direction play was going rather than reading as a reset
+     bw+=(Math.random()*420-210);   // and it comes down spinning, so the first touch is unpredictable
+     var _cfk=0.13;bsyP=1-_cfk;bsxP=1/(1-_cfk);bsT=0.14;   // the same squash a hard bounce uses
+     if(WRAF9)S.cfPops=_cfPops;
+    }
     if(_deckT>DECK_MAX){   // SCRAMBLE POP: too long on the floor, put it back in the air
      _deckT=0;
      bvy=-(860+Math.random()*180);   // ~150-215px of clearance at GRAV 2600 (v^2/2g) -- over the heads, not silly
@@ -2824,7 +2928,47 @@ function teams(){
     for(var pi=0;pi<peers.length;pi++){var p=peers[pi];if(p.elim||p.__bench)continue;   // heads bounce the ball with their BODY -- pure elastic momentum, the same collision they use on each other
      var hx=p.x+p.HW/2,hy=p.y+p.HH*0.55,dx=bx-hx,dy=by-hy,d=Math.hypot(dx,dy),rr=p.HW*0.5+BR;
      if(d>0.1&&d<rr){var nx=dx/d,ny=dy/d,ov=rr-d;
-      bx+=nx*ov;by+=ny*ov;   // lift the ball clear of the body so it can never sink in and stutter
+      /* ===== THE BALL SQUIRTS OUT FROM UNDER A BODY. THIS IS THE WEDGE. =====
+         Measured with tools/soccer-flow-probe.py, which cranks the clock and samples every
+         frame: over 38 minutes of simulated play the ball spent 46.4% of it inside a single
+         70px circle, and the worst episode ran 58.45 SECONDS. Dumping the frames of one of
+         them showed the mechanism exactly, and it is not what "the ball is slow" suggests:
+
+           by = 477.3 on every single frame, and REST is 477.3
+           heads directly above the ball, mean 3.02
+           |bvx| mean 152, max 1252 -- it is being struck hard and constantly
+
+         THE BALL IS BURIED. Three heads stand on top of it, this resolution pushes it DOWN
+         along their normals, the pitch stops it, and the clamp forty lines below puts it back
+         on REST. Every frame. It is struck at 1250px/s and does not move, because the only
+         direction the contact will give it is into the floor.
+
+         AND THE VERTICAL COMPONENT IS SIMPLY DISCARDED WHEN THAT HAPPENS, which is the actual
+         defect: a resolution that cannot be applied is not a resolution, and the overlap it was
+         supposed to clear is still there on the next frame, forever.
+
+         So when the floor blocks it, the blocked component goes SIDEWAYS instead of being
+         thrown away -- which is both correct contact resolution against a constrained axis and
+         what a ball squeezed between the ground and a body actually does. It is pure ball
+         physics: no head is told anything, nobody is moved, nobody is spaced out, and the pile
+         is not asked to disperse. The pile stays exactly where it is; the ball stops being
+         underneath it.
+
+         A HEAD DEAD OVERHEAD HAS NO SIDE, so it takes the one with more pitch on it. That is
+         geometry off the ball's own position, not a tactic -- nothing here reads where anybody
+         is standing. */
+      var _pX=nx*ov,_pY=ny*ov;
+      if(_pY>0&&by>=REST-1){
+       var _sx=(nx>0.2)?1:((nx<-0.2)?-1:((bx<(XL+XR)/2)?1:-1));
+       bx+=_sx*_pY;   // the blocked half of the push, turned through ninety degrees
+       /* and it LEAVES, rather than being walked out a pixel at a time. Without a velocity
+          term the ball is merely repositioned and the same three bodies close over it on the
+          next frame; the displacement is what frees it and this is what gets it clear. Scaled
+          by the overlap, so a graze costs nothing and being properly sat on fires it out. */
+       bvx+=_sx*Math.min(520,_pY*26);
+       _pY=0;
+      }
+      bx+=_pX;by+=_pY;   // lift the ball clear of the body so it can never sink in and stutter
       var rvx=bvx-p.vx,rvy=bvy-p.vy,rel=rvx*nx+rvy*ny;
       if(rel<0){var jI=-(1.72)*rel;   // the ball is light: it takes the whole impulse (head velocity included), the head barely feels it
        /* THE CONTACT LOFT WAS BUILT, MEASURED, AND TAKEN BACK OUT. Read this before adding one.
@@ -2882,7 +3026,8 @@ function teams(){
    S.ball.x=bx;S.ball.y=by;
    if(WRAF9){S.ball.vx=bvx;S.ball.vy=bvy;S.geo={W:W,H:H,XL:XL,XR:XR,GH:GH,groundY:groundY,BR:BR,OFF:OFF};
     S.players=peers.map(function(q){return {slot:q.slot,team:S.teams?S.teams[q.slot]:0,
-     role:S.roles?S.roles[q.slot]:"",x:q.x+q.HW/2,y:q.y+q.HH/2,hw:q.HW,hh:q.HH,elim:!!q.elim,kSat:q.__kSat|0};});}
+     role:S.roles?S.roles[q.slot]:"",x:q.x+q.HW/2,y:q.y+q.HH/2,hw:q.HW,hh:q.HH,elim:!!q.elim,kSat:q.__kSat|0,
+     gr:!!q.ground,vy:q.vy||0};});}
    if(bsT>0)bsT-=dt;else{bsxP=1;bsyP=1;}
    var _bs=dt>0.02?Math.ceil(dt/0.02):1,_bd=dt/_bs;   // same sub-step guard for the ball, so a laggy frame can't balloon it either
    for(var _bi=0;_bi<_bs;_bi++){bsxv+=((bsxP-bsx)*1150-bsxv*62)*_bd;bsx+=bsxv*_bd;bsyv+=((bsyP-bsy)*1150-bsyv*62)*_bd;bsy+=bsyv*_bd;}

@@ -2133,14 +2133,38 @@ function rosterLine(){
    backdrop on its own -- stylised, generic, nobody's face -- so used as art it duplicates
    nothing. The two real captains are underneath it, photographic and unmistakable.
 
-   WHAT IT ACTUALLY IS: a bounded strip at the top of the pane, --r-lg (the cards-and-images
-   rung), object-fit:cover on the poster's own centre where the gold ball and the trophy are.
-   It is a still picture in a card, which is a thing this site already does everywhere.
+   WHAT IT ACTUALLY IS: a still picture in a card, --r-lg (the cards-and-images rung),
+   standing to the right of the two captains. It is a thing this site already does everywhere.
 
-   IT IS DROPPED ON A SHORT VIEWPORT rather than shrunk. At 320x568 the pane has ~136px and
-   the two captains need 105 of them; a banner would take the match-up's own space, and the
-   two finalists are what the final is about. See tournament.css's height block -- the gold
-   eyebrow and the gold rim still run there, so the final still looks like the final. ---- */
+   ---- IT WAS A BAND ACROSS THE TOP AND THAT WAS THE BUG. Jayden, looking at the screen:
+   "the finals matchup screen doesnt look good the poster isint even showing and it looks
+   really bad and not balanced." The poster was in the DOM, the file returned 200 and the
+   image decoded -- so "isn't even showing" was not a load failure and chasing one would
+   have found nothing. It is a CROP failure, and the arithmetic is decisive.
+
+   images/poster-final.webp is 1000x1295: two heads facing each other over a gold ball, a
+   trophy and flames, composed VERTICALLY. The band was 388x99 -- an aperture of 3.9:1 --
+   and cover fitted the width, so what reached the screen was 255 source pixels of the
+   1295. EIGHTY PERCENT OF THE PICTURE WAS OUTSIDE THE FRAME, both heads included. What was
+   left was an unreadable gold smear, and he is right that it is not the poster showing.
+   Re-aiming object-position could not fix it either: the subject the crop has to contain
+   -- both faces down to the ball -- is 470 source pixels, which is 2.1:1, and at 388 wide
+   that is a 182px band the pane's height budget does not have.
+
+   SO THE APERTURE TAKES THE PICTURE'S OWN PROPORTIONS, 1000/1295, and the whole artwork is
+   inside the frame at every size. That is the subtraction: the band is gone rather than
+   re-tuned, and the thing left behind is the picture itself.
+
+   AND IT BALANCES THE PANE FOR FREE, because a portrait card is exactly the shape of the
+   space the match-up was leaving empty. The heavy full-width saturated band sat on top of a
+   sparse left-hugging column; side by side, the two halves of the row hold each other up.
+   The captains' column is untouched -- its single left edge was a deliberate fix ("the old
+   column had THREE left edges for five elements") and nothing here reopens it.
+
+   IT NO LONGER HAS TO BE DROPPED ON A SHORT VIEWPORT, and that is a consequence rather than
+   a second decision. Beside the captains the picture costs the pane no height of its own
+   until it is taller than they are, so at 320x568 it simply narrows to their height instead
+   of disappearing. Measured, the pane got SHORTER at every size -- see tournament.css. ---- */
 function isFinalRound(round){ return round === T.br.rounds.length - 1; }
 
 function buildNext(into, A2, B2, nm2){
@@ -2164,20 +2188,28 @@ function buildNext(into, A2, B2, nm2){
   if (first){ var rl = rosterLine();
     if (rl) head.appendChild(el('span', 'tvOptL', rl)); }
   into.appendChild(head);
-  /* The banner sits between the eyebrow and the two captains -- under the label that says
-     which match this is, above the two heads it is about. */
-  if (fin){
-    var b = el('div', 'tvPoster');
-    var im = el('img'); im.src = 'images/poster-final.webp'; im.alt = '';
-    im.draggable = false; im.decoding = 'async';
-    b.appendChild(im);
-    into.appendChild(b);
-  }
   var vs = el('div', 'tvVs');
   vs.appendChild(sideRow(A2, { big: true }));
   vs.appendChild(el('div', 'tvV', 'v.'));
   vs.appendChild(sideRow(B2, { big: true }));
-  into.appendChild(vs);
+  /* THE POSTER STANDS BESIDE THE TWO CAPTAINS, and that is one change fixing two
+     complaints -- see the note above buildNext for why the band it replaces could not
+     work. The captains keep their own column and their single left edge exactly as they
+     had it; the picture takes the empty half of the row that was making the pane read
+     left-heavy. Nothing about the non-final match-up is touched: `fin` gates the wrapper,
+     so every other round emits the same `.tvVs` straight into the pane it always did. */
+  if (fin){
+    var meet = el('div', 'tvMeet');
+    meet.appendChild(vs);
+    var b = el('div', 'tvPoster');
+    var im = el('img'); im.src = 'images/poster-final.webp'; im.alt = '';
+    im.draggable = false; im.decoding = 'async';
+    b.appendChild(im);
+    meet.appendChild(b);
+    into.appendChild(meet);
+  } else {
+    into.appendChild(vs);
+  }
   into.appendChild(buildTape(A2, B2, nm2));
 }
 

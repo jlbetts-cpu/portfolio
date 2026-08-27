@@ -620,18 +620,50 @@ body.hmFinal .sBall{content:url(images/soccerball-gold.webp)}
    sweep, not a flash, not a layer over the layout. The 2026-08-04 cancellation was a
    full-viewport skewed wipe on every fixture; nothing here moves, and it exists on
    one fixture only. --r-lg is the cards-and-images rung.
-   object-position sits at 52% down the artwork, which is where the gold ball and the
-   trophy are in a 1000x1295 poster -- a top crop would be two foreheads and a bottom
-   crop would be flames. */
+
+   ---- THE APERTURE IS THE ARTWORK'S OWN RATIO, and that is the whole fix. This rule
+   used to draw a 388x99 band across the top of the pane -- an aperture of 3.9:1 over a
+   1000x1295 portrait -- so cover fitted the width and 80% of the picture's height fell
+   outside the frame, both heads included. Jayden: "the poster isint even showing". It
+   was showing; there was simply nothing recognisable left inside it. See the note above
+   buildNext in play-tournament.js for the arithmetic, and for why re-aiming
+   object-position could not rescue it either.
+
+   1000/1295 IS WRITTEN AS THE DIVISION IT IS rather than reduced to a decimal, so the
+   aperture and the file can never drift: replace the artwork and this is the one number
+   to move. One custom property drives both axes for the same reason -- a media query
+   that set a height without the matching width would silently start cropping again,
+   which is the defect this rule exists to have fixed. And nothing here needs
+   `aspect-ratio`: the width is derived, so an engine without it still frames the
+   picture correctly rather than collapsing the card to nothing. ---- */
 .tvPoster{
+  --tvPosterH:clamp(124px, 20svh, 168px);
   flex:0 0 auto;overflow:hidden;border-radius:var(--r-lg);
   box-shadow:inset 0 0 0 var(--hair-w) var(--theme-rim,rgba(9,11,36,.08));
-  height:clamp(56px, 11svh, 104px);
+  height:var(--tvPosterH);
+  width:calc(var(--tvPosterH) * 1000 / 1295);
 }
+/* cover rather than contain, dead centre: at the aperture's own ratio cover crops a
+   fraction of a pixel, and it is the one of the two that cannot letterbox if a future
+   artwork arrives a few pixels off the ratio above. */
 .tvPoster img{
   display:block;width:100%;height:100%;
-  object-fit:cover;object-position:50% 52%;
+  object-fit:cover;object-position:50% 50%;
 }
+/* ---- THE ROW THE FINAL'S MATCH-UP BECOMES: two captains on the left, the picture on
+   the right, centred against each other. It exists only on the final -- buildNext emits
+   this wrapper under `fin` and nothing else -- so every other round's match-up is the
+   same `.tvVs` in the same place it has always been.
+
+   `min-width:0` on the column is load-bearing: a flex item's automatic minimum size is
+   its content, so without it a long team name refuses to ellipsise and pushes the
+   picture off the panel instead. The picture is the item that may NOT shrink -- it is a
+   fixed frame at a fixed ratio, and a squeezed one would be the cropping bug arriving
+   again by another route. ---- */
+.tvMeet{
+  flex:0 0 auto;display:flex;align-items:center;gap:var(--sp-16);
+}
+.tvMeet .tvVs{flex:1 1 auto;min-width:0}
 /* The round's own name, in the cup's gold. --fs-micro and caps as every eyebrow is:
    it is the same object, wearing the one colour that means "final". */
 .tvEyebrowGold{color:var(--gold-ink)}
@@ -841,8 +873,11 @@ body.hmFinal .tvPanel{
      on top of that, so it was the only pane that overflowed, and it did so where
      nothing else did. The picture gives up its height before the two captains or
      the head-to-head line do, which is the order this file already uses: air
-     first, pictures last, information never. It is hidden outright below 640. */
-  .tvPoster{height:clamp(44px, 7svh, 72px)}
+     first, pictures last, information never.
+
+     IT IS NO LONGER HIDDEN OUTRIGHT BELOW 640, and that follows from the shape rather
+     than from a change of mind -- see the block down there for the measurement. */
+  .tvPoster{--tvPosterH:clamp(104px, 16svh, 132px)}
 }
 /* ---- 640 AND UNDER, WHERE THE ARITHMETIC ACTUALLY RUNS OUT, and the first build
    of this file overflowed here by a measured 9px: at 320x568 the band is 264, the
@@ -880,12 +915,21 @@ body.hmFinal .tvPanel{
   .tvTies{grid-template-columns:repeat(2,minmax(0,1fr));column-gap:var(--sp-12)}
   .tvTie .tvFaceC{display:none}
   .tvTie{padding-inline:var(--sp-6);margin-inline:calc(var(--sp-6) * -1)}
-  /* THE POSTER GOES, THE GOLD STAYS. At 320x568 the pane has a measured ~136px and the
-     two captains need 105 of them, so a banner would come out of the match-up's own
-     space -- and the two finalists are what the final is about. The gold eyebrow and the
-     gold rim cost nothing and still say which match this is. Reduction in the order the
-     information deserves, which is the same order every other rung here uses. */
-  .tvPoster{display:none}
+  /* ---- THE POSTER STAYS DOWN HERE NOW, AND THAT IS ARITHMETIC RATHER THAN A REVERSAL.
+     It used to be `display:none`, and the reasoning was right for the shape it had: "at
+     320x568 the pane has a measured ~136px and the two captains need 105 of them, so a
+     banner would come out of the match-up's own space" -- and the two finalists are what
+     the final is about. A BAND ACROSS THE TOP spends its whole height on top of theirs,
+     so at this size it could only ever be paid for out of them.
+
+     Beside them it costs the pane nothing until it is taller than they are. Two --tvFace
+     rows at this height's 34px floor plus the `v.` is ~100px, so a 96px picture sits
+     inside the row the captains already occupy and the pane's height is unchanged to the
+     pixel. The picture gives up SIZE instead of existence, which is the order this file
+     uses everywhere else. Reduction, still -- it just no longer has to reach subtraction. */
+  .tvPoster{--tvPosterH:clamp(84px, 13svh, 96px)}
+  /* and the row tightens with everything else at this height */
+  .tvMeet{gap:var(--sp-8)}
   /* Twelve draft rows in 136px is 11.3 a row, which is not a row. Two columns of six is
      the same move the round panes make, and a draft order is read down a column, so the
      grid flows down-then-across rather than across-then-down. */
