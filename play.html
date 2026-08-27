@@ -26,7 +26,7 @@
      a hand-copied subset of the token block plus a second flagged "top-up" block at its
      foot; both are gone -- tokens.css is the one source now. See
      .superpowers/sdd/2026-08-02-play-page/play-tokens-report.md §1. -->
-<link rel="stylesheet" href="tokens.css?v=6e1a5b1dd0">
+<link rel="stylesheet" href="tokens.css?v=85afffa329">
 <link rel="stylesheet" href="play.css">
 <!-- THE TOURNAMENT SCREEN. Its own sheet, after play.css so that where the two touch the
      same element source order settles it without an !important. The tournament styles that
@@ -372,16 +372,18 @@
     rail's own rect shares an edge with the content's: rail-left.left == column.left and
     rail-right.right == column.right, which is the thing the structure contract measures.
 
-    THEY RUN FROM THE HEADER'S FLOOR TO THE GAMES BAND'S BOTTOM RULE, and both ends are a
-    corner rather than a stop. The first version ran them all the way down to .footTop's
-    own rule, 112px below the last card. Measured that way it was perfect -- rail bottom
-    1228.38, footer rule top 1228.38 -- and on screen it was wrong: the 112px of empty
-    railed page under the grid read as an EMPTY FIFTH CELL, at 1440 and at 390 both. That
-    is the whole "counting is not looking" trap, caught by opening the PNG. So .pCol ends
-    where the band ends; the footer keeps its own rule as the page's sign-off, outside the
-    column, exactly as it is on every other page. A rail that stopped in mid-air would be
-    the defect tools/structure-rule-contract.py's own section 3 names -- this one stops on
-    a perpendicular line, which is a corner.
+    THEY RUN FROM THE HEADER'S FLOOR TO THE FOOTER'S RULE, and both ends are a corner
+    rather than a stop. That was true of the first version too, and it was wrong then for
+    a reason that has since been removed: back then 112px of EMPTY railed page sat between
+    the last card and the footer's line, and it read as an empty fifth cell at 1440 and at
+    390 both -- measured perfect (rail bottom 1228.38, footer rule top 1228.38) and wrong
+    on screen, which is the whole "counting is not looking" trap. The answer then was to
+    pull the rails up to the band's own bottom rule. The answer now is that the VOID is
+    gone (see the games band below): the band ends on the footer's rule, so there is no
+    empty span left to read as a cell, and the rails can end where the page does. A rail
+    that stopped in mid-air would be the defect tools/structure-rule-contract.py's own
+    section 3 names -- this one stops on a perpendicular full-bleed line, exactly the way
+    it starts on one.
 
     Z-INDEX 63, AND IT HAS TO BE. .hero carries `isolation:isolate` inside .wrap, which is
     z-index 62 -- so the arena and everything in it paint as one opaque layer, and a rail
@@ -467,9 +469,16 @@
  /* The shared sign-off, in Play's normal flow below the original viewport.
     The whole component lives in footer.css; the page owns placement only.
     play.css keeps hiding it while a game owns the viewport -- that rule keys
-    on .siteFoot itself, so the markup change does not reach it. */
+    on .siteFoot itself, so the markup change does not reach it.
+    MARGIN-TOP IS 0, AND THAT IS THE SEAM, NOT AN OVERSIGHT. It read var(--sp-80-152)
+    -- 112 at 1440, 80 at 390 -- and that span was the void the games band's note
+    describes: an empty railed strip between the band's own closing rule and the
+    footer's. The footer's rule is the band's closing rule now, so the two blocks meet
+    on it. The footer is not cramped by this: .footTop still opens with its own
+    var(--sp-48-80) below the line, which is the 64px §2 measures on home between the
+    footer's rule and the footer's content. */
  .siteFoot{
-  scroll-margin-top:80px;margin-top:var(--sp-80-152);
+  scroll-margin-top:80px;margin-top:0;
   max-width:var(--page-max);margin-inline:auto;
   padding-inline:var(--sp-40);padding-bottom:var(--sp-32-64)
  }
@@ -775,8 +784,28 @@
     :nth-child() arithmetic that has to be rewritten at every breakpoint, and it is how a
     carpet of rules arrives.
 
-    THE BAND CLOSES ITSELF top and bottom, and those two lines land exactly on the rails --
-    same x values, so the block has four real corners. That is the workspace's
+    THE BAND OPENS ON A RULE AND CLOSES ON THE FOOTER'S. It used to draw both edges
+    itself (`border-block`), and 112px below that second line the footer drew its own --
+    two parallel horizontals of different lengths with a void between them, which is
+    what Jayden was looking at on 2026-08-27: "the point where the menu ends and the
+    footer begins it should be connected like everything else on that page."
+
+    So there is one line there now instead of two, and it is the footer's, because the
+    footer's is the one that is settled: it is full-bleed by his own instruction from
+    2026-08-20 -- "the footer line should be all the way across not just a line that
+    cuts out the gutters" -- and it is the page's floor in the same way the header's
+    is its ceiling. The band ends ON it, the rails terminate ON it, and the last card
+    row meets the footer the way two cards meet each other: on a hairline, with nothing
+    between them.
+
+    TWO OTHER SHAPES WERE BUILT AND LOOKED AT FIRST, and both were worse on screen.
+    Running the rails down through the 112px with the band still closing itself is the
+    EMPTY FIFTH CELL the rail note above already records being rejected once. Running
+    them down with the band's bottom rule removed is worse again: the grid's internal
+    vertical seam stops in mid-air at the last row while the rails carry on, so the
+    cells bleed into a railed void. The void is the problem in both, so the void goes.
+
+    Every horizontal on this page still lands on the two rails, which is the workspace's
     "the horizontal lines connect across the app", src/styles.css:365.
 
     HOVER IS A GROUND NOW, AND THE FILL BAN IT REVERSES WAS WRITTEN ABOUT A DIFFERENT
@@ -797,7 +826,7 @@
  .pCards{pointer-events:auto;width:100%;max-width:var(--col-max);margin:0 auto;
   display:grid;grid-template-columns:repeat(2,1fr);grid-auto-rows:1fr;
   gap:var(--rule-w);background:var(--rule);
-  border-block:var(--rule-w) solid var(--rule)}
+  border-block-start:var(--rule-w) solid var(--rule)}
  .pCard{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:var(--sp-6);
   /* 16 / 24 / 24, not 16 / 20 / 20. §2 measured the rungs home actually moves in -- 8, 16
      and 24 inside a component -- and 20 is not one of them; it appears nowhere on the home
@@ -1120,10 +1149,10 @@
      cards are the bottom of this one". .pHub is not a fixed layer any more and the cards
      are not the bottom of the page -- .siteFoot is, and it already ends with
      padding-bottom:var(--sp-32-64) plus footer.css's own safe-area handling. What the
-     16px was still doing was pushing .pCol's bottom edge 16px below the band's bottom
-     rule, so the margin rails overshot the corner they are supposed to terminate on. The
-     gap from the last card to the footer's rule goes 96 -> 80 on a phone, which is
-     --sp-80-152's own phone rung rather than that rung plus a stray step. */
+     16px was still doing was pushing .pCol's bottom edge 16px below the rule the margin
+     rails terminate on, so they overshot the corner. (The 96 -> 80 this sentence used to
+     quote was the gap from the last card to the footer's rule; there is no gap there any
+     more -- see .siteFoot's margin-top note above.) */
   .pHub{padding-top:var(--sp-16);padding-bottom:0}
   .pTeam{padding-bottom:calc(var(--sp-24-32) + env(safe-area-inset-bottom,0px))}
   /* grid-template-columns only: the gap is the seam now and it is the same 1px at every
@@ -1213,10 +1242,10 @@
     of discovering it in a screenshot. ---- */
  #tHeadEdge feFlood{flood-color:var(--head-edge)}
 </style>
-<link rel="stylesheet" href="header.css?v=6e1a5b1dd0">
-<link rel="stylesheet" href="footer.css?v=6e1a5b1dd0">
-<link rel="stylesheet" href="controls.css?v=6e1a5b1dd0">
-<link rel="stylesheet" href="site-theme.css?v=6e1a5b1dd0">
+<link rel="stylesheet" href="header.css?v=85afffa329">
+<link rel="stylesheet" href="footer.css?v=85afffa329">
+<link rel="stylesheet" href="controls.css?v=85afffa329">
+<link rel="stylesheet" href="site-theme.css?v=85afffa329">
 <script src="header.js" defer></script>
 <script src="footer-band.js" defer></script>
 </head><body class="hmFull playBooting" data-nav="games" data-theme-page="play">
@@ -1245,7 +1274,11 @@
    <a data-nav-item="home" href="index.html" aria-label="Home"><svg class="gIco uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span class="jbLbl">Home</span></a>
    <a data-nav-item="about" href="index.html#about" aria-label="About"><svg class="gIco uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/></svg><span class="jbLbl">About</span></a>
    <a data-nav-item="games" href="play.html" aria-label="Play" aria-current="page"><svg class="gIco uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><line x1="6" x2="10" y1="11" y2="11"/><line x1="8" x2="8" y1="9" y2="13"/><line x1="15" x2="15.01" y1="12" y2="12"/><line x1="18" x2="18.01" y1="10" y2="10"/><path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258-.006-.051-.011-.1-.017-.151A4 4 0 0 0 17.32 5z"/></svg><span class="jbLbl">Play</span></a>
-   <a data-nav-item="workspace" href="workspace/" aria-label="Workspace"><svg class="gIco uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M2 6h4"/><path d="M2 10h4"/><path d="M2 14h4"/><path d="M2 18h4"/><rect width="16" height="20" x="4" y="2" rx="2"/><path d="M16 2v20"/></svg><span class="jbLbl">Workspace</span></a>
+   <!-- WORKSPACE LEFT THE BAR, 2026-08-26, and this page was the one that missed the
+        memo -- every other page dropped it that day and Play kept it, which is exactly
+        the page it makes least sense on. Jayden, 2026-08-27: "why when im on the play
+        screen workspace is in the header." It is his own tool rather than a case study,
+        and it lives as a CARD in the games grid below. /workspace/ is untouched. -->
   </span>
   <span class="jbGrp jbGrpR" id="jbNavEnd">
    <!-- CONTACT -- a button to his inbox, and NOT the primary action.  2026-08-19.
@@ -1260,6 +1293,25 @@
         The three destinations are not lost: the footer carries LinkedIn, Instagram
         and Email in the same order on every page, which is where the panel's own
         round-10 note already said the fallback lived. -->
+   <!-- THE TIME OF DAY, the same control every other page carries, in the same slot:
+        the utilities side, immediately left of Contact. The centred zone is DESTINATIONS;
+        this changes how the site looks, so it belongs with the things that DO something.
+        It needs nothing new -- header.css, site-theme.css, site-theme.js and header.js are
+        already linked above, and site-theme.js is blocking in <head> so :root carries
+        data-theme-state before this markup parses and the glyph is chosen in CSS. -->
+   <div class="heroTime" id="heroTime">
+    <button class="heroTimeBtn ctl ctl--nav" id="heroTimeBtn" type="button" aria-label="Time of day" aria-haspopup="menu" aria-expanded="false" aria-controls="heroTimeMenu"><svg class="heroTimeIcon uiIcon" id="heroTimeIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><g data-hero-time-icon="pre-dawn"><path d="M18 5h4"/><path d="M20 3v4"/><path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"/></g><g data-hero-time-icon="sunrise"><path d="M12 2v8"/><path d="m4.93 10.93 1.41 1.41"/><path d="M2 18h2"/><path d="M20 18h2"/><path d="m19.07 10.93-1.41 1.41"/><path d="M22 22H2"/><path d="m8 6 4-4 4 4"/><path d="M16 18a4 4 0 0 0-8 0"/></g><g data-hero-time-icon="daytime"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></g><g data-hero-time-icon="dusk"><path d="M12 2v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="M20 12h2"/><path d="m19.07 4.93-1.41 1.41"/><path d="M15.947 12.65a4 4 0 0 0-5.925-4.128"/><path d="M13 22H7a5 5 0 1 1 4.9-6H13a3 3 0 0 1 0 6Z"/></g><g data-hero-time-icon="sunset"><path d="M12 10V2"/><path d="m4.93 10.93 1.41 1.41"/><path d="M2 18h2"/><path d="M20 18h2"/><path d="m19.07 10.93-1.41 1.41"/><path d="M22 22H2"/><path d="m16 6-4 4-4-4"/><path d="M16 18a4 4 0 0 0-8 0"/></g><g data-hero-time-icon="night"><path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"/></g><g data-hero-time-icon="off"><path d="m2 2 20 20"/><path d="M8.35 2.69A10 10 0 0 1 21.3 15.65"/><path d="M19.08 19.08A10 10 0 1 1 4.92 4.92"/></g></svg></button>
+    <div class="heroTimeMenu ctl-menu" id="heroTimeMenu" role="menu" aria-label="Choose time of day">
+     <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="false" data-time-mode="auto"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Automatic</button>
+     <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="false" data-time-mode="off"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m2 2 20 20"/><path d="M8.35 2.69A10 10 0 0 1 21.3 15.65"/><path d="M19.08 19.08A10 10 0 1 1 4.92 4.92"/></svg>Off</button>
+     <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="false" data-time-mode="pre-dawn"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M18 5h4"/><path d="M20 3v4"/><path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"/></svg>Pre-dawn</button>
+     <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="false" data-time-mode="sunrise"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2v8"/><path d="m4.93 10.93 1.41 1.41"/><path d="M2 18h2"/><path d="M20 18h2"/><path d="m19.07 10.93-1.41 1.41"/><path d="M22 22H2"/><path d="m8 6 4-4 4 4"/><path d="M16 18a4 4 0 0 0-8 0"/></svg>Sunrise</button>
+     <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="true" data-time-mode="daytime"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>Daytime</button>
+     <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="false" data-time-mode="dusk"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="M20 12h2"/><path d="m19.07 4.93-1.41 1.41"/><path d="M15.947 12.65a4 4 0 0 0-5.925-4.128"/><path d="M13 22H7a5 5 0 1 1 4.9-6H13a3 3 0 0 1 0 6Z"/></svg>Dusk</button>
+     <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="false" data-time-mode="sunset"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 10V2"/><path d="m4.93 10.93 1.41 1.41"/><path d="M2 18h2"/><path d="M20 18h2"/><path d="m19.07 10.93-1.41 1.41"/><path d="M22 22H2"/><path d="m16 6-4 4-4-4"/><path d="M16 18a4 4 0 0 0-8 0"/></svg>Sunset</button>
+     <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="false" data-time-mode="night"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"/></svg>Night</button>
+    </div>
+   </div>
    <a class="jbContactBtn ctl ctl--nav ctl--secondary" data-nav-item="contact" href="mailto:jaydenlbetts@gmail.com" aria-label="Contact"><svg class="gIco uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg><span class="jbLbl">Contact</span></a>
   </span>
  </nav>
@@ -1415,7 +1467,7 @@
   </a>
  </nav>
 </section>
-</div><!-- /.pCol -- the rails end here, on the footer's own rule -->
+</div><!-- /.pCol -- the rails end here, ON the footer's own rule, which is also the games band's closing line -->
  <footer class="siteFoot" id="contact" role="contentinfo">
   <div class="footTop">
    <div class="footId">

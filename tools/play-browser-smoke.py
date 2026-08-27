@@ -286,7 +286,12 @@ def run_layout(browser, base_url, width, height, reduced=False):
             columns: getComputedStyle(document.querySelector('.pCards')).gridTemplateColumns.split(' ').length,
             header: {top:header.top,height:header.height}, navTop: nav.top,
             hero: {top:hero.top,left:hero.left,right:hero.right,bottom:hero.bottom,height:hero.height},
-            localTimeNodes: document.querySelectorAll('#heroTimeClip,#heroTimeBtn,#heroTimeMenu,[data-time-gradient],#heroTimePortraitCast').length,
+            /* Nodes OUTSIDE the nav only. The time-of-day control is a header control on
+               every page since 2026-08-26; what this has always been guarding is a LOCAL
+               day-cycle UI growing back inside the Play hero. See the assertion below. */
+            localTimeNodes: Array.from(document.querySelectorAll('#heroTimeClip,#heroTimeBtn,#heroTimeMenu,[data-time-gradient],#heroTimePortraitCast')).filter(n => !n.closest('.jbNav')).length,
+            headerTimeNodes: document.querySelectorAll('.jbNav .jbGrpR #heroTime, .jbNav .jbGrpR #heroTimeBtn, .jbNav .jbGrpR #heroTimeMenu').length,
+            navItems: Array.from(document.querySelectorAll('.jbNav [data-nav-item]')).map(n => n.dataset.navItem),
             gamesGap: cards.top - hero.bottom,
             h1Cta: ctas.top - h1.bottom,
             ctaStage: stage.top - ctas.bottom,
@@ -329,7 +334,17 @@ def run_layout(browser, base_url, width, height, reduced=False):
     assert abs(data["header"]["top"]) <= 1 and abs(data["header"]["height"] - 72) <= 1, data
     assert abs(data["navTop"] - 8) <= 1, data
     assert abs(data["hero"]["top"] - 72) <= 1, data
+    # THE HERO HAS NO DAY-CYCLE UI OF ITS OWN, AND THE HEADER HAS THE SITE'S. This used to
+    # be one assertion counting the nodes anywhere on the page, and it was correct while the
+    # control lived in index.html's hero rail. It moved into the bar on 2026-08-26 -- "the
+    # time of day button should be in the header since it affects all the pages" -- and Play
+    # was the page that never got it, so an unsplit count would have blocked the fix rather
+    # than protected anything. Both halves are asserted now.
     assert data["localTimeNodes"] == 0, data
+    assert data["headerTimeNodes"] == 3, data
+    # ... and Workspace is not a destination any more; it is the #pcWork card in the grid,
+    # asserted by name above. Play was the last page still carrying it in the bar.
+    assert data["navItems"] == ["home", "about", "games", "contact"], data
     assert abs(data["hero"]["left"]) <= 1 and abs(data["hero"]["right"] - width) <= 1, data
     assert abs(data["hero"]["bottom"] - height) <= 2, data
     assert 14 <= data["gamesGap"] <= 18, data
@@ -449,7 +464,14 @@ The lobby's real default (1) is still exercised by every layout and theme run in
 def run_soccer_entry(browser, base_url, viewport, mode, picker):
     context, page, errors = new_page(browser, base_url, viewport, mode=mode, placeholders=MATCH_CROWD)
     assert_seated(page, MATCH_CROWD)
-    assert page.locator("#heroTimeClip,#heroTimeBtn,#heroTimeMenu,[data-time-gradient],#heroTimePortraitCast").count() == 0
+    # Same split as run_layout's: the Play HERO carries no local day-cycle UI, while the
+    # site's one control lives in the bar on every page since 2026-08-26. `:not(.jbNav *)`
+    # is the whole difference -- an unqualified count here would fail on the header control
+    # that this page was missing, which is a gate blocking a fix rather than catching one.
+    assert page.locator("#heroTimeClip:not(.jbNav *),#heroTimeBtn:not(.jbNav *),"
+                        "#heroTimeMenu:not(.jbNav *),[data-time-gradient],"
+                        "#heroTimePortraitCast").count() == 0
+    assert page.locator(".jbNav .jbGrpR #heroTimeBtn").count() == 1
     # ── NIGHT IS AN HOUR, NOT A THEME.  2026-08-26 ──────────────────────────
     # This waited for data-theme to become "dark" at the night hour, and as of
     # today that value never occurs: Jayden -- "im not sure I like the dark mode

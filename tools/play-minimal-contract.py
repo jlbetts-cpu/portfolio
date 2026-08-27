@@ -207,8 +207,27 @@ assert 'id="moodBtn"' in HTML and 'aria-controls="moodMenu"' in HTML
 assert HTML.count('data-mood=') == 4
 for artwork in ("camDot", "cookieDot", "discoDot", "heartDot"):
     assert artwork in HTML
-assert 'id="heroTime"' not in HTML and 'id="heroTimeBtn"' not in HTML and 'id="heroTimeMenu"' not in HTML
+# THE TIME OF DAY IS IN THE HEADER NOW, AND THIS ASSERTION WAS INVERTED RATHER THAN
+# DELETED. It read `'id="heroTime"' not in HTML`, and it was right when it was written:
+# the control lived in index.html's HERO RAIL and the Play lobby deliberately had no
+# local copy. On 2026-08-26 it moved into the site header on every page -- Jayden: "the
+# time of day button should be in the header since it affects all the pages" -- and
+# play.html was the one page that never got it, alongside being the one page still
+# carrying Workspace in the bar (2026-08-27: "why when im on the play screen workspace
+# is in the header"). So a gate that would have BLOCKED the fix now asserts it: the
+# control exists exactly once, it is inside the nav's utilities group, and the hero
+# still has no local day-cycle UI of its own.
+_end = LIVE.index('id="jbNavEnd"')
+_grp = LIVE[_end:LIVE.index("</span>", _end)]
+assert LIVE.count('id="heroTime"') == 1 and LIVE.count('id="heroTimeBtn"') == 1
+assert 'id="heroTime"' in _grp and 'id="heroTimeBtn"' in _grp and 'id="heroTimeMenu"' in _grp
+assert LIVE.index('id="heroTime"') < LIVE.index('id="jbContactBtn"' if 'id="jbContactBtn"' in LIVE else 'data-nav-item="contact"')
 assert 'data-time-gradient=' not in HTML and 'id="heroTimePortraitCast"' not in HTML
+# WORKSPACE IS A CARD, NOT A TAB, and the bar must not grow it back. Same shape as the
+# rule above: the destinations are home/about/games/contact on every page, and the
+# Workspace door lives in the games grid (#pcWork, asserted with its siblings above).
+assert 'data-nav-item="workspace"' not in LIVE
+assert 'id="pcWork"' in LIVE
 assert 'id="face" src="images/neutral.webp"' in HTML
 assert 'id="heroMovieEffectsStage"' in HTML
 assert 'src="hero-time-presets.js"' not in HTML and 'src="hero-time.js"' not in HTML
@@ -362,8 +381,25 @@ for game in ("hmSoccer", "hmRace", "hmTour", "hmBattle", "pTeamOn"):
 # rewritten at every breakpoint and is how a carpet of rules arrives.
 assert "gap:var(--rule-w);background:var(--rule)" in LIVE, \
     "the games grid has lost its hairline seams"
-assert "border-block:var(--rule-w) solid var(--rule)" in LIVE, \
-    "the games band no longer closes itself top and bottom"
+# THE BAND OPENS ON ITS OWN RULE AND CLOSES ON THE FOOTER'S, and this assertion moved
+# with that. It read `border-block`, i.e. the band drew both edges -- and 112px below
+# the second one the footer drew its own, so the seam was two parallel horizontals of
+# different lengths with an empty railed void between them. Jayden, 2026-08-27: "the
+# point where the menu ends and the footer begins it should be connected like everything
+# else on that page." One line there now, and it is the footer's, because the footer's
+# is the settled one (full-bleed by his own 2026-08-20 call). So what is asserted is the
+# pair that makes the join real: the band draws a TOP rule only, and .siteFoot carries no
+# margin above it, or the void comes straight back.
+assert "border-block-start:var(--rule-w) solid var(--rule)" in LIVE, \
+    "the games band has lost the rule it opens on"
+assert "border-block:var(--rule-w) solid var(--rule)" not in LIVE, \
+    ("the band is closing itself again; with the footer's rule 112px below that is the "
+     "doubled line and the empty railed void Jayden asked to have joined up")
+_foot = LIVE[LIVE.index(" .siteFoot{"):]
+_foot = _foot[: _foot.index("}")]
+assert "margin-top:0" in _foot, \
+    ("a gap is back between the games band and the footer's rule; the band closes ON "
+     "that rule, so any margin here re-opens the void", _foot)
 pcard = LIVE[LIVE.index(" .pCard{"):]
 pcard = pcard[: pcard.index("}")]
 assert "box-shadow:none" in pcard and "border-radius:0" in pcard, \
