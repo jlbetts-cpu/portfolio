@@ -235,7 +235,20 @@ def browser_contract(base_url):
                     # widths; it is a guard against the head drifting back to
                     # dominating the phone, not a re-derivation of the value.
                     head_ratio = state["mobile"]["peek"]["width"] * PORTRAIT_ART_WIDTH_RATIO / state["mobile"]["innerWidth"]
-                    assert .30 <= head_ratio <= .48, (head_ratio, state)
+                    # FLOOR LOWERED 2026-08-27. The note above says it outright:
+                    # this is "a guard against the head drifting back to
+                    # dominating the phone", and .30 was just the authored 211px
+                    # bracketed at the time. He has since asked for the head
+                    # smaller twice -- "a bit smaller by default just so its a
+                    # little less loud" -- so the phone head measures .256 and it
+                    # is the FLOOR that fails, not the guard. .20 keeps the
+                    # assertion biting in the direction it was built for and
+                    # still catches the head collapsing to nothing. If he asks
+                    # for smaller a third time, re-read this instead of lowering
+                    # it again by reflex: below about .20 the portrait stops
+                    # being a subject and becomes a detail, which is a
+                    # composition decision rather than a bounds change.
+                    assert .20 <= head_ratio <= .48, (head_ratio, state)
                     # ── THE HEAD IS MEASURED AGAINST THE COPY NOW, NOT THE
                     #    CTA ROW, BECAUSE THE ROW IS UNDERNEATH IT ─────────
                     # EDITED 2026-08-20 by the hero-corner-control pass, which
