@@ -85,41 +85,30 @@ body{background:var(--c50);color:var(--c950);font-family:var(--sans);-webkit-fon
 .wrap{position:relative;z-index:62;max-width:1280px;margin:0 auto;padding:0 40px}
 .siteFoot{scroll-margin-top:80px}
 
-/* ═══ THE GREETING IS THE PAGE'S HEADING AGAIN.  2026-08-27, third pass ═══════
-   Jayden, having read the second: "the about page fix I dont like how differnt
-   sized the opening paragraph is and i miss a lot of the old text could you go
-   back to the hello im jayden betts version."
-   The last two passes cut the page twice (252 -> 193 -> 210 words) and then
-   promoted his intro PARAGRAPH to the h1 at 26px to give the page a subject.
-   That is what he is looking at: a 26px block of running prose sitting on top of
-   an 18px column, so the opening paragraph is a different size from every other
-   paragraph on the page for a reason a reader cannot see. Restoring the greeting
-   as the h1 fixes it by construction -- the title is a title again and the intro
-   goes back to body size with the rest of the prose.
-   COPY RESTORED FROM a4bfb47, the last commit that had BOTH the greeting and the
-   full body. Only two things did not come back with it: the "At a glance" facts
-   (he called them unimportant duplication on 2026-08-26 and that stands, with
-   "Open to full-time roles." surviving as .abAvail) and "recent UC Davis Design
-   graduate", which the cut had already sharpened to "2026".
-
-   THE h1 IS SET LIKE HOME'S, NOT NEAR IT. docs/house-style.md §11-3: both pages
-   run 44/600 and set it two different ways -- About at --lh-tight 1.08 / --tr-head
-   -.027em, home at a hand-tuned 1.06 / --tr-hero -.030em. Home's is the tuned one
-   and the rung the site's largest size is measured on, so it is copied rather
-   than re-derived. 1.06 is a LITERAL on purpose: §0 of that document lists it as
-   hand-tuned and not to be flattened onto a rung.
-   NO ink FILTER. #inkBig has had no consumer on this page since the last pass and
-   it does not get one back: it is a 1.1px displacement plus grain, and the last
-   thing this page needs is one more reason for the top block to look unlike the
-   rest. The filter is left defined so its sibling ids keep their numbering. */
-.abTitle{font-family:var(--sans);font-weight:600;font-size:var(--fs-pagehead);
- line-height:1.06;letter-spacing:var(--tr-hero);color:var(--c950);
- margin:0;max-width:none;text-wrap:balance}
-/* THE HEAD SPANS THE COLUMN, so the title runs 120..1320 at 1440 -- the site's
-   content column -- and the two-column reading layout begins under it. Its gap
-   to the body is the GRID'S OWN row-gap (--sp-48-80, 64 desktop / 48 phone), not
-   a margin: one number for that join instead of two that can disagree. */
-.abHead{grid-column:1/-1}
+/* ═══ THE GREETING IS OFF THE SCREEN, AND THE h1 STAYS.  2026-08-27, 4th ══
+   Jayden: "I dont think the Hello, I'm Jayden Betts. is necessary." So the
+   page no longer draws a greeting -- but it still needs one h1 for structure
+   and search, and the ONE thing that must not happen is the third pass'
+   answer, promoting his intro paragraph to a visible heading: "I dont like how
+   differnt sized the opening paragraph is." The h1 is therefore his name and
+   role, clipped out of the picture. It lives inside .abSec.abLede, not in a
+   header of its own, so it takes no grid row and the layout has no invisible
+   64px gap to explain.
+   CLIP, NOT display:none. A hidden heading is still a heading; a display:none
+   one is not read at all and would leave the page with no stated subject. This
+   is the standard clip-rect recipe -- 1px box, inset clip-path, no wrap -- and
+   it is the only visually-hidden thing on the page, which is why it is written
+   here rather than made a shared utility nothing else uses.
+   WHAT THE REMOVAL COSTS THE TOP OF THE PAGE: nothing that needed adding back.
+   The header row was 44px of h1 plus the grid's 64px row-gap; with it gone the
+   first section and the photograph BOTH start at .abGrid's own --sp-32-48
+   inset, 48px under the bar at 1440 -- which is exactly where the sticky column
+   parks (see .abShots). The page opens with its two columns starting on one
+   line and the photograph already at rest, instead of 108px above it.
+   NO ink FILTER, unchanged: #inkBig has no consumer on this page and does not
+   get one back. It is left defined so its sibling ids keep their numbering. */
+.abTitle{position:absolute;width:1px;height:1px;margin:-1px;padding:0;border:0;
+ overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 
 /* THE TWO COLUMNS are the overlay's own -- minmax(0,1fr) beside
    clamp(340px,40vw,520px) at a clamp(32px,5vw,80px) gap. Those numbers held the
@@ -135,7 +124,9 @@ body{background:var(--c50);color:var(--c950);font-family:var(--sans);-webkit-fon
    Jayden: "spacing on phone feels a bit odd ... some parts dont feel connected
    ... or just too much space." One rung now: --sp-32-48, 32 on a phone and 48
    from 881 up, the same value the case studies and both tool pages now take.
-   Here it is a rung UP -- 35px of h1 was landing 16px under a hairline. */
+   Here it is a rung UP. It is also now the ONLY thing setting the top of the
+   page: with the header row gone this inset is what puts the first section
+   heading and the photograph on the same line, 48px under the bar at 1440. */
  padding-top:var(--sp-32-48)}
 /* .abBody's padding-bottom IS GONE, and it was a second footer gap. Measured at
    1440 before this pass: clamp(46px,8vw,130px) resolved to 115.2px UNDER the last
@@ -162,20 +153,19 @@ body{background:var(--c50);color:var(--c950);font-family:var(--sans);-webkit-fon
    reads continuously. Inert on a phone: below 881 .abSec's margins are zeroed
    and the sister photograph sits between the two anyway. */
 .abBody .abSec.abPlay{margin-bottom:var(--sp-24)}
-/* ── THE SECTION HEADS ARE A SIZE AGAIN, BECAUSE THE h1 IS BACK ────────────
-   The last pass had to set them as WEIGHT ONLY (18/600 against 18/400 prose)
-   because the page's h1 was the intro paragraph at 26 -- a heading any bigger
-   than 18 would have out-shouted the title above it. With "Hello, I'm Jayden
-   Betts." back at 44 there is room for a real step, and the page gets the thing
-   Jayden has now complained about twice: somewhere for a skimming eye to land.
-   --fs-h3 (26 at 1440, 19 at 320). 44/26 is a 1.69 step -- unambiguous at a
-   glance -- and 26/18 leaves the heading clearly above its own prose. Nothing is
-   invented: both rungs are the scale's, and the page's ladder is
-     44 h1 · 26 h2 · 18 prose · 15 caption · 12 hint
-   which is five sizes and two weights, the same shape home runs on six.
+/* ── THE SECTION HEADS ARE THE PAGE'S LARGEST TYPE NOW ─────────────────────
+   With the greeting clipped there is no 44 above them, so --fs-h3 (26 at 1440,
+   19 at 320) is the biggest thing a reader sees and the page's only landing
+   place for a skimming eye -- which is the thing Jayden has complained about
+   twice. It is NOT raised to fill the gap the h1 left: 26/18 is already a clear
+   step over its own prose, and the alternative he explicitly rejected was a
+   bigger opening block ("I dont like how differnt sized the opening paragraph
+   is"). Nothing is invented; the rung is the scale's, and the page's ladder is
+     26 h2 · 18 prose · 15 caption · 12 hint
+   which is four sizes and two weights.
    TRACKING STAYS MONOTONIC IN SIZE (docs/apple-design.md §15, house-style §3):
-   44 -.030 (--tr-hero) · 26 -.021 (--tr-sub) · 18 -.011 (--tr-title) ·
-   15 0 (--tr-flat). LEADING TRACKS IT INVERSELY: 1.06 · 1.2 (--lh-head) · 1.5.
+   26 -.021 (--tr-sub) · 18 -.011 (--tr-title) · 15 -.006.
+   LEADING TRACKS IT INVERSELY: 1.2 (--lh-head) · 1.5 (--lh-prose).
    --sp-16 BELOW the heading against --sp-24 between paragraphs, so a heading is
    closer to the passage it owns than that passage's paragraphs are to each
    other. Above it is the section's own 64/40. */
@@ -296,8 +286,10 @@ body{background:var(--c50);color:var(--c950);font-family:var(--sans);-webkit-fon
    = 100, so the photograph came to rest 28px under a hairline it had just slid
    past. The offset was counting the nav's ink box and forgetting the band's own
    padding. Now it is the WHOLE bar plus the same --sp-32-48 inset the page's own
-   content takes below it: 120, a 48px gap. The stuck photograph parks on the
-   line the h1 starts on. Inert below 881 -- .abShots goes position:static. */
+   content takes below it: 120, a 48px gap. That is the same line .abGrid's own
+   padding-top puts the prose on, so with the greeting gone the photograph is
+   already parked at scrollY 0 and does not travel before it stops.
+   Inert below 881 -- .abShots goes position:static. */
 .abShots{position:sticky;top:calc(var(--sp-8) + var(--nav-h) + var(--sp-12) + var(--sp-32-48))}
 /* NO BACKGROUND ON THE FRAME. It was --c100, the same grey the letterboxing showed.
    Every shot is object-fit:cover so the frame is always filled and nothing can show
@@ -493,10 +485,10 @@ body{background:var(--c50);color:var(--c950);font-family:var(--sans);-webkit-fon
    to avoid cannot come back through a reorder. ══════════════════════════════ */
 @media(max-width:880px){
  /* .abHead IS GONE FROM THIS LIST because the element is gone: the page's h1 is
-    the lede paragraph now and lives inside .abSec.abLede, so there is no
-    full-width header row to flatten and no .abTitle{margin-bottom:0} to write --
-    its margin is a paragraph margin inside a section and is correct as authored. */
- .abHead,.abBody,.abShots,.abStack{display:contents}
+    clipped and lives inside .abSec.abLede, so there is no full-width header row
+    to flatten and nothing of it to order -- an absolutely positioned element is
+    not a grid item and takes no place in the list below. */
+ .abBody,.abShots,.abStack{display:contents}
  .abGrid{row-gap:var(--sp-40-64)}
  .abBody .abSec{margin-bottom:0}
  .abBody .abSec:last-child{margin-bottom:0}
@@ -529,22 +521,21 @@ body{background:var(--c50);color:var(--c950);font-family:var(--sans);-webkit-fon
     list flips and every figure now follows the words it illustrates. Nothing
     else about it changes: no two figures are ever adjacent, all four sit on
     their own authored [data-photo] anchor, and "Get in touch" is still last. */
- /* THE GREETING LEADS ON A PHONE TOO. The last pass' note ("the headline is
-    gone and Jayden's instruction is lead with the paragraph") is spent -- the
-    headline is back and it is the first thing on the page at every width.
-    Everything below it keeps the rule that pass established: PASSAGE FIRST,
+ /* THE LEDE LEADS AGAIN, because there is no longer a greeting to lead. This
+    is the last pass' list with the (now clipped) title's row taken out and every
+    number closed up -- a gap in an explicit order list is how the next reader
+    concludes an item is missing. The rule it keeps is unchanged: PASSAGE FIRST,
     THEN ITS PHOTOGRAPH, every figure on its own authored [data-photo] anchor,
     no two figures ever adjacent, and "Get in touch" last. */
- .abTitle                    {order:1}
- .abBody .abSec.abLede       {order:2}
- .abShot:nth-child(1)        {order:3}   /* B.A. Design, UC Davis     <- the lede's "2026 UC Davis Design graduate" */
- .abBody .abSec.abPlay       {order:4}
- .abShot:nth-child(2)        {order:5}   /* My sister Jolee           <- the greeting-card passage above it */
- .abBody .abSec.abThen       {order:6}
- .abShot:nth-child(3)        {order:7}   /* Self-portrait in Blender  <- "I was always making" */
- .abBody .abSec.abLife       {order:8}
- .abShot:nth-child(4)        {order:9}   /* Off the clock             <- "coffee, the gym, hiking, drawing animals" */
- .abBody .abSec.abConnect    {order:10}
+ .abBody .abSec.abLede       {order:1}
+ .abShot:nth-child(1)        {order:2}   /* B.A. Design, UC Davis     <- the lede's "2026 UC Davis Design graduate" */
+ .abBody .abSec.abPlay       {order:3}
+ .abShot:nth-child(2)        {order:4}   /* My sister Jolee           <- the greeting-card passage above it */
+ .abBody .abSec.abThen       {order:5}
+ .abShot:nth-child(3)        {order:6}   /* Self-portrait in Blender  <- "I was always making" */
+ .abBody .abSec.abLife       {order:7}
+ .abShot:nth-child(4)        {order:8}   /* Off the clock             <- "coffee, the gym, hiking, drawing animals" */
+ .abBody .abSec.abConnect    {order:9}
 }
 
 
@@ -713,11 +704,19 @@ body{background:var(--c50);color:var(--c950);font-family:var(--sans);-webkit-fon
 
        KEPT VERBATIM, his words, not to be reworded, tightened or split: every
        paragraph below and all four headings. -->
-  <header class="abHead">
-   <h1 class="abTitle">Hello, I&rsquo;m Jayden Betts.</h1>
-  </header>
   <div class="abBody">
    <section class="abSec abLede">
+    <!-- THE GREETING IS GONE FROM THE SCREEN.  2026-08-27, fourth pass.
+         Jayden: "I dont think the Hello, I'm Jayden Betts. is necessary."
+         The h1 STAYS in the markup because the page still has to state its
+         subject (tools/seo-contract.py: zero h1 is a page with no subject) --
+         it is just no longer drawn. It is clipped, not display:none, so screen
+         readers and search engines still get it.
+         WHAT IT IS NOT: the intro paragraph promoted back to the heading. That
+         was the third pass' mistake and he named it exactly -- "I dont like how
+         differnt sized the opening paragraph is". Every paragraph on this page
+         is 18px body copy and the opening one is no exception. -->
+    <h1 class="abTitle">Jayden Betts &mdash; product designer</h1>
     <h2 data-photo="0">I design products end to end (and I built a few of my own).</h2>
     <p>I am a San Francisco-based product designer and 2026 UC Davis Design graduate with an entrepreneurial spirit. A maker at heart, I focus on iOS, B2C, and design systems, loving the challenge of creating playful, accessible experiences that tickle your brain.</p>
     <p>Inspired by accessible design, I founded Apollo, an iOS app helping neurodivergent students track and celebrate their wins.</p>
