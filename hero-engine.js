@@ -192,11 +192,27 @@ function eyeGeo(sr){
     would bake in whatever scale, rotation or scaleY(1.07) "awe" happened to be
     applied on the frame the cache was built, and keep it until the next
     rebuild. This cannot: the numbers are the same whatever the head is doing. */
- var sw=stage.offsetWidth||1,sh=stage.offsetHeight||1;
+ /* ── THE BOX IS ABSOLUTE, THE CENTRE IS A FRACTION, AND THE DIFFERENCE IS A BUG
+    I SHIPPED FOR TEN MINUTES. The first version stored the eye's WIDTH as a
+    fraction of the stage too and multiplied it back by the stage's live RECT --
+    which is the rendered width, i.e. the layout width times whatever scale the
+    head is wearing. The old code read e.el.offsetWidth, which is the LAYOUT
+    width and carries no scale, so the iris travel silently became travel x
+    scale: measured at 1440 with the stage rect at 209 against its layout box,
+    the irises moved 1-2px instead of the 6-8px they had, and the contract's
+    gaze reading came back too small to have a direction. The head is often
+    scaled, so this was wrong on most frames rather than at an edge.
+    So the two are stored differently ON PURPOSE: offsetWidth/offsetHeight
+    absolute, because that is exactly what the travel is a share of and it is
+    what the old code used; the CENTRE as a fraction, because it is compared
+    against the stage's live rect and only its SIGN is consumed (the temporal
+    bias, ecx < scx). Both are transform-blind, which is the whole reason the
+    cache is legal. */
+ var sw=stage.offsetWidth||1;
  _eyeGeo=eyeEls.map(function(e){
   return {cxf:(e.el.offsetLeft+e.el.offsetWidth/2)/sw,
-          wf:e.el.offsetWidth/sw,
-          hf:e.el.offsetHeight/sh};
+          ow:e.el.offsetWidth,
+          oh:e.el.offsetHeight};
  });
  return _eyeGeo;
 }
@@ -657,8 +673,9 @@ function updateIris(){
     stage's own rect has to be live. eyeGeo() below reads them once and is
     invalidated by buildEyes() and by resize -- and a small stage ROTATION is
     the one thing a fraction of an axis-aligned box gets slightly wrong, which
-    is harmless here: ecx is used only for the SIGN of (ecx - scx), and ow/oh
-    scale an iris travel of a few pixels.
+    is harmless here: ecx is used only for the SIGN of (ecx - scx). The eye's
+    own box is stored absolute rather than as a fraction -- see eyeGeo() for the
+    ten minutes that cost.
     So the per-frame read budget is exactly one getBoundingClientRect, taken
     here, with every write below it. */
  var sr=stage.getBoundingClientRect(),scx=sr.left+sr.width*0.5,scy=sr.top+sr.height*0.42;
@@ -674,7 +691,7 @@ function updateIris(){
   var ecx=g?sr.left+sr.width*g.cxf:scx;
   var nx=gnx+(ecx<scx?-EYE_OUT:EYE_OUT),ny=gny;                          // temporal bias so the forward gaze reads parallel
   ny=Math.max(-1,Math.min(1.12,ny+((bearMode||movieMode)?0:scrollPull*0.85)));   // scroll strain tugs gaze down — but not while a gag drives the eyes
-  var ow=g?g.wf*sr.width:0,oh=g?g.hf*sr.height:0;const tx=Math.round(nx*ow*TRAVEL),ty=Math.round(ny*oh*TRAVEL);e.iris.style.transform="translate("+tx+"px,"+ty+"px)";
+  var ow=g?g.ow:0,oh=g?g.oh:0;const tx=Math.round(nx*ow*TRAVEL),ty=Math.round(ny*oh*TRAVEL);e.iris.style.transform="translate("+tx+"px,"+ty+"px)";
   if(e.glint)e.glint.style.transform="translate("+Math.round(tx*0.62)+"px,"+Math.round(ty*0.62)+"px)";  // catchlight follows the iris (with slight parallax) so it always sits on the dark iris and never washes out
   if(e.pupil)e.pupil.style.transform="translate(-50%,-50%) scale("+dil.toFixed(3)+")";
   if(blinking||e.el.style.display==="none"||e.el.classList.contains("eclosed")){if(e.el.style.transform)e.el.style.transform="";}   // never fight a blink
