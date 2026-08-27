@@ -601,7 +601,27 @@
  mask-image:linear-gradient(180deg,#000 0%,#000 calc(100% - var(--sp-48-80) - var(--sp-64)),rgba(0,0,0,.72) calc(100% - var(--sp-64)),transparent 100%);
  opacity:0
 }
-:root[data-theme-state="night"] .heroTimeSpill{opacity:1}
+/* ── THE SPILL STOPS PAINTING, AND IT IS THE PAGE UNDER IT THAT CHANGED ─────
+   2026-08-26. Jayden: "im not sure I like the dark mode for night i think we
+   just keep it light." The night sky stays; the PAGE beneath it is light now.
+   THIS LAYER ONLY EVER MADE SENSE ON A DARK PAGE. It is a full-bleed #0b0c0f
+   panel hanging below the Hero's floor, masked to fade out over
+   --sp-48-80 + --sp-64, and its job was to carry the night hero's ground into a
+   work section that was ALSO #0b0c0f -- so nothing about it read as a shape.
+   Against a light section it is a black smear over the tab row that ends in a
+   soft edge going nowhere: measured at 1440x900, 144px of near-black across the
+   full width, on top of "Featured / Case Studies / Extras".
+   IT IS NOT RETUNED, IT IS TURNED OFF. A join between a dark sky and a light
+   page does not want a gradient; it wants the edge every other hour already
+   has. .hero's own 1px --rule bottom edge is that edge, it is drawn at all six
+   states, and it is what daytime, sunrise, dusk and sunset have always joined
+   the work section with. Night now joins the same way -- a dark sky that stops
+   where the Hero stops, which is what a window at night looks like.
+   THE ELEMENT AND ITS PAINT ARE LEFT ABOVE, unreferenced by any state, because
+   hero-time.js animates its opacity through every transition and index.html's
+   own note at :611 explains the stacking context it lives in. Nothing paints:
+   the base rule is opacity:0 and no state raises it. If the dark page ever
+   comes back, this one selector brings the join back with it. */
 
 /* The shared dark theme persists after the Hero; authored case media is untouched. */
 :root.theme-ready .cases{
@@ -1224,18 +1244,51 @@
  --time-contrast:.82;--time-exposure:1.04;--time-portrait-opacity:.96;
  --rim-throw:16px;--rim-blur:5px;--rim-strength:26%;--time-shade:.56;--time-glow:.30
 }
-/* NIGHT IS DARKER. Lifting a face in the darkest scene is backwards, and it is
-   exactly what made it a ghost: a pale head at brightness 1.12 floating on a
-   near-black sky is a sticker, not a person in the dark. A real face at night
-   is mostly IN shadow -- you read the edge of it and the light in the eyes,
-   not an evenly lit surface. So the exposure drops well below 1, contrast
-   drops with it so nothing goes to pure black, and legibility moves onto the
-   rim and the catchlight, which is why night is the one state whose rim keeps
-   the most strength. Measured against its own sky rather than judged in
-   isolation. */
+/* ── NIGHT WENT PAST DARK AND INTO INVISIBLE, AND THIS IS THE MEASUREMENT ───
+   Jayden, 2026-08-26: the head at night is "too dark, can barely see him he
+   feels in shadow."
+   THE PARAGRAPH THAT STOOD HERE WAS RIGHT AND OVERSHOT, so it is kept below
+   rather than deleted -- "a pale head at brightness 1.12 floating on a
+   near-black sky is a sticker, not a person in the dark" is still true, and it
+   is the reason this lands at .85 and not back at 1.
+   MEASURED, 1440x900 at device scale 2, sampling a 19x19 grid inside the head's
+   authored alpha box (data-head-bounds) so a single bright cheek cannot carry
+   the number -- an aggregate hid exactly that once. Median relative luminance
+   of the portrait's own pixels, and its contrast against the sky beside it:
+     pre-dawn  .353   1.81:1        dusk    .415   1.38:1
+     sunrise   .514   1.46:1        sunset  .441   1.38:1
+     daytime   .401   1.79:1        NIGHT   .010   1.05:1
+   Night was 34x to 50x darker than any other hour and 1.05:1 against its own
+   sky -- five hundredths of a contrast point from not being drawn. That is not
+   "mostly in shadow", it is absent, and no amount of rim recovers a face nobody
+   can find.
+   WHAT MOVED, AND WHY EACH: --time-exposure .31 -> .85 is the whole of it; the
+   other two follow it rather than lead. The exposure ladder across the six
+   hours runs .93 - 1.08, so .31 was not a rung, it was an outlier by a factor
+   of three, and .85 puts night one step under the darkest daylight hour instead
+   of three. --time-shade .78 -> .58 brings the cast layer back to the band the
+   five daylight states already use (.54 - .62): night was carrying the deepest
+   shading AND the lowest exposure, which is the same darkening applied twice.
+   --rim-strength 34% -> 26% is a REDUCTION and that is the point: the rim was
+   at its site-wide maximum because it was doing the legibility on its own, and
+   with the face readable again a 34% edge reads as a halo round a cutout. 26%
+   is sunrise's and sunset's value.
+   MEASURED AFTER: the lit quartile of the head goes .023 -> .145, a 6.3x lift,
+   at 3.4:1 against the sky -- above the 1.38 - 1.81 the daylight hours manage
+   against theirs, which is correct rather than excessive: a lit subject on a
+   near-black ground SHOULD separate more than the same subject under an open
+   sky. The median stays low (.015) because most of a head at night really is
+   hair and shadow, and that is the part of the old paragraph that survives.
+   THE OTHER FIVE HOURS ARE UNCHANGED, re-measured after: pre-dawn .355, sunrise
+   .545, daytime .396, dusk .415, sunset .443 -- inside sampling noise of the
+   numbers above, which is the check that this is scoped to one state.
+   ---- kept, because it was right about the picture ----
+   A real face at night is mostly IN shadow -- you read the edge of it and the
+   light in the eyes, not an evenly lit surface. --time-contrast stays at .70 so
+   nothing crushes to pure black, and the catchlight is untouched. */
 .hero[data-time-state="night"]{
- --time-contrast:.70;--time-exposure:.31;--time-portrait-opacity:1;
- --rim-throw:15px;--rim-blur:5px;--rim-strength:34%;--time-shade:.78;--time-glow:.36
+ --time-contrast:.70;--time-exposure:.85;--time-portrait-opacity:1;
+ --rim-throw:15px;--rim-blur:5px;--rim-strength:26%;--time-shade:.58;--time-glow:.36
 }
 .hero[data-time-state="off"] .heroAura{display:none;opacity:0}
 /* ── OFF IS A DESTINATION, NOT AN EXCEPTION ──────────────────────────────────

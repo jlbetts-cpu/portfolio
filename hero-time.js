@@ -18,10 +18,19 @@
     THE GUARD BELOW LOSES THE CONTROL'S FOUR ELEMENTS WITH IT. Leaving them in
     would have made this file bail on any page where the nav is missing -- and
     would have made two files bind the same button on this one. */
- var spill=document.getElementById("heroTimeSpill");
+ /* ── THE NIGHT SPILL IS NO LONGER PART OF THE SCENE.  2026-08-26 ───────────
+    #heroTimeSpill is a full-bleed near-black panel hanging below the Hero's
+    floor, and its whole job was to carry the night hero's ground into a work
+    section that was ALSO near-black. The site stays light at every hour now, so
+    against a light section it painted 144px of black smear across the tab row --
+    the shape it existed to prevent. CSS stopped raising it first; this file was
+    still pinning opacity:1 on it inline through targetScene(), which is why the
+    smear survived the stylesheet change. Both halves had to go.
+    THE ELEMENT AND ITS PAINT ARE LEFT IN PLACE, unreferenced -- see the
+    headstone on its rule in hero-time.css. Nothing here reads or writes it.*/
  var face=document.getElementById("face");
  var portrait=document.getElementById("heroTimePortraitCast");
- if(!siteTheme||!root||!hero||!spill||!face||!portrait)return;
+ if(!siteTheme||!root||!hero||!face||!portrait)return;
 
  /* ── THE LIT SIDE NEEDS A BOX OF ITS OWN, AND IT IS BUILT HERE ──────────────
     One element can carry one blend mode, and light and shadow are two: the
@@ -71,7 +80,6 @@
  function captureScene(){
   return {
    gradients:gradients.map(function(layer){var style=computed(layer);return style?number(style.opacity):0;}),
-   spill:(function(){var style=computed(spill);return style?number(style.opacity):0;})(),
    portrait:(function(){
     var style=computed(portrait);
     return {opacity:style?number(style.opacity):0};
@@ -89,7 +97,6 @@
    layer.style.removeProperty("opacity");
    layer.style.removeProperty("z-index");
   });
-  spill.style.removeProperty("opacity");
   portrait.style.removeProperty("opacity");
  }
 
@@ -126,7 +133,6 @@
  function targetScene(state){
   return {
    gradients:gradients.map(function(layer){return layer.getAttribute("data-time-gradient")===state?1:0;}),
-   spill:state==="night"?1:0,
    portrait:{opacity:state==="off"?0:shadeNow()}
   };
  }
@@ -160,7 +166,6 @@
     which is the only moment it can be stale. */
  function writeFinalScene(target){
   gradients.forEach(function(layer,index){layer.style.setProperty("opacity",target.gradients[index]);});
-  spill.style.setProperty("opacity",target.spill);
   portrait.style.setProperty("opacity",target.portrait.opacity);
  }
 
@@ -203,7 +208,6 @@
    if(index===incoming)layer.style.setProperty("z-index","1");
    runSceneAnimation(layer,[{opacity:from.gradients[index]},{opacity:settled}],options);
   });
-  runSceneAnimation(spill,[{opacity:from.spill},{opacity:target.spill}],options);
   runSceneAnimation(portrait,[
    {opacity:from.portrait.opacity},{opacity:target.portrait.opacity}
   ],options);

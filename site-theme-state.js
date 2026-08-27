@@ -46,8 +46,30 @@
   return normalized==="auto"?resolveAutomatic(date):normalized;
  }
 
+ /* ── NIGHT IS AN HOUR, NOT A THEME.  2026-08-26 ────────────────────────────
+    Jayden: "im not sure I like the dark mode for night i think we just keep it
+    light." So this returns "light" at every hour, and it is the ONLY change
+    needed to say that: `data-theme` is the single switch every dark rule on the
+    site hangs off, and nothing else writes it.
+    WHAT IS BEING REMOVED IS THE INVERSION, NOT THE HOUR. The night SKY is
+    untouched -- hero-time.css authors it off .hero[data-time-state="night"] --
+    and so is the footer band, whose night stops are in its own per-state table
+    keyed on :root[data-theme-state="night"]. The head's night lighting reads
+    the same attribute. So night still looks like night: a near-black sky above
+    a light page, which is what a window at night actually looks like.
+    THE FUNCTION STAYS, AND SO DOES ITS CALLER. resolveSnapshot() still publishes
+    a `theme`, every consumer still reads it, and one edit here brings the dark
+    path back if he changes his mind -- which is why this is a constant return
+    rather than the function and its field being deleted. The dark tables in
+    site-theme.css, builder-theme.css, footer.css, header.css and tokens.css are
+    now unreachable; they are left in place with headstones rather than swept in
+    the same pass, because three of those files belong to other lanes and a
+    hundred deleted selectors is not a change anyone can review beside this one.
+    THE ONE THING THAT WOULD BRING IT BACK BY ACCIDENT is a second writer of
+    data-theme. There is none: site-theme.js:apply() is the only one, and it
+    takes this value. */
  function themeForState(state){
-  return state==="night"?"dark":"light";
+  return "light";
  }
 
  function resolveSnapshot(mode,date){

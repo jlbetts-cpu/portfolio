@@ -33,7 +33,7 @@
      below reads a shared token. What is still true is the load order -- tokens first,
      page after, so a page-local geometry constant can be built out of a token.
      See .superpowers/sdd/2026-08-02-play-page/play-tokens-report.md §1. -->
-<link rel="stylesheet" href="tokens.css?v=b7996e2715">
+<link rel="stylesheet" href="tokens.css?v=4b33804991">
 <style>
   /* THE @font-face PAIR THAT USED TO SIT HERE IS GONE, and deleting it is the
      point rather than a tidy-up. tokens.css:62 now declares both weights for the
@@ -448,11 +448,11 @@
      is gone; this link is what replaces it. Loaded AFTER the page block, which is
      the order index/play/about/apollo already use, so the library wins any tie
      and what is left above can only position a control, never redraw one. -->
-<link rel="stylesheet" href="controls.css?v=b7996e2715">
-<link rel="stylesheet" href="header.css?v=b7996e2715">
-<link rel="stylesheet" href="footer.css?v=b7996e2715">
+<link rel="stylesheet" href="controls.css?v=4b33804991">
+<link rel="stylesheet" href="header.css?v=4b33804991">
+<link rel="stylesheet" href="footer.css?v=4b33804991">
 <link rel="stylesheet" href="builder-theme.css">
-<link rel="stylesheet" href="site-theme.css?v=b7996e2715">
+<link rel="stylesheet" href="site-theme.css?v=4b33804991">
 <script src="header.js" defer></script>
 </head>
 <body data-theme-page="gradientlab">
@@ -519,6 +519,8 @@
         label in the bar (98px at 1440, 44 as a glyph on a phone), and the bar
         needed exactly that back: the time-of-day switch had just taken the
         seventh slot, which at 320 does not exist. -->
+  </span>
+  <span class="jbGrp jbGrpR" id="jbNavEnd">
    <!-- ── THE TIME OF DAY, IN THE CHROME THAT THE STATE ACTUALLY REACHES ──────
         Jayden, 2026-08-26: "the time of day button should be in the header since
         it affects all the pages." It writes data-theme-mode / data-theme-state on
@@ -529,7 +531,21 @@
         and nothing to fetch -- the paths are inline for the same reason header.js
         inlines the nav's: an external <use> renders nothing until its document
         resolves, which is the blank-glyph bug this bar has already had once.
-        header.js owns opening it, the roulette of aria-checked, and the keyboard. -->
+        header.js owns opening it, the roulette of aria-checked, and the keyboard.
+        WHY IT IS ON THIS SIDE AND NOT AMONG THE TABS. Jayden: "I feel like the
+        time of day should be sorta on the contact side of the screen like maybe
+        right to the left I dont think it should sit right in the middle thats
+        for sure with the other main options." The centred zone is DESTINATIONS
+        -- places you can go. Contact is an ACTION. This is a utility that
+        changes how the site looks, so sitting it between Home and Play said it
+        was a fourth place to go. Beside Contact it joins the things that DO
+        something, and the pair balances the mark on the left.
+        NO DIVIDER BETWEEN THEM, and it is not an omission: the two are already
+        distinguishable by kind. Contact is .ctl--secondary -- a paper chip with
+        a rim, the loudest thing in the bar after the mark -- and this is a bare
+        .ctl--nav glyph, so the quieter one reads as attached to the louder one
+        rather than as its equal. A rule between two adjacent controls is the one
+        separator this site does not use anywhere else. -->
    <div class="heroTime" id="heroTime">
     <button class="heroTimeBtn ctl ctl--nav" id="heroTimeBtn" type="button" aria-label="Time of day" aria-haspopup="menu" aria-expanded="false" aria-controls="heroTimeMenu"><svg class="heroTimeIcon uiIcon" id="heroTimeIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><g data-hero-time-icon="pre-dawn"><path d="M18 5h4"/><path d="M20 3v4"/><path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"/></g><g data-hero-time-icon="sunrise"><path d="M12 2v8"/><path d="m4.93 10.93 1.41 1.41"/><path d="M2 18h2"/><path d="M20 18h2"/><path d="m19.07 10.93-1.41 1.41"/><path d="M22 22H2"/><path d="m8 6 4-4 4 4"/><path d="M16 18a4 4 0 0 0-8 0"/></g><g data-hero-time-icon="daytime"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></g><g data-hero-time-icon="dusk"><path d="M12 2v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="M20 12h2"/><path d="m19.07 4.93-1.41 1.41"/><path d="M15.947 12.65a4 4 0 0 0-5.925-4.128"/><path d="M13 22H7a5 5 0 1 1 4.9-6H13a3 3 0 0 1 0 6Z"/></g><g data-hero-time-icon="sunset"><path d="M12 10V2"/><path d="m4.93 10.93 1.41 1.41"/><path d="M2 18h2"/><path d="M20 18h2"/><path d="m19.07 10.93-1.41 1.41"/><path d="M22 22H2"/><path d="m16 6-4 4-4-4"/><path d="M16 18a4 4 0 0 0-8 0"/></g><g data-hero-time-icon="night"><path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"/></g><g data-hero-time-icon="off"><path d="m2 2 20 20"/><path d="M8.35 2.69A10 10 0 0 1 21.3 15.65"/><path d="M19.08 19.08A10 10 0 1 1 4.92 4.92"/></g></svg></button>
     <div class="heroTimeMenu ctl-menu" id="heroTimeMenu" role="menu" aria-label="Choose time of day">
@@ -543,8 +559,6 @@
      <button class="ctl ctl--quiet ctl--row ctl--choice" type="button" role="menuitemradio" aria-checked="false" data-time-mode="night"><svg class="heroTimeOptionIcon uiIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"/></svg>Night</button>
     </div>
    </div>
-  </span>
-  <span class="jbGrp jbGrpR" id="jbNavEnd">
    <!-- CONTACT -- a button to his inbox, and NOT the primary action.  2026-08-19.
         Jayden asked for a Contact that is noticeable but does not compete with the
         hero's "View work"; .ctl--secondary is that kind in this system, and it is
