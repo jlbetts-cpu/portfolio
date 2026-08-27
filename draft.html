@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en"><head><script src="site-theme-state.js"></script>
+<script src="site-theme.js"></script>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>2026 Draft Board — Jayden Betts</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="apple-touch-icon" sizes="180x180" href="favicon-180.png">
+<link rel="icon" href="favicon.ico" sizes="any">
+<meta name="description" content="A 2026 redraft PPR board for a 12-team league: the top three picks at every draft slot in every round, built RB-first with no early quarterback, checked against live ADP so nothing is a reach.">
+<meta name="robots" content="noindex,follow">
+<link rel="preload" as="font" type="font/woff2" href="fonts/geist-latin-400-normal.woff2" crossorigin>
+<link rel="preload" as="font" type="font/woff2" href="fonts/geist-latin-600-normal.woff2" crossorigin>
+
+<!-- The shipped system, linked not copied. tokens.css owns the ramps, the type
+     scale, the radius ladder and the motion rungs; controls.css owns .ctl and
+     every variant of it; site-theme.css owns the light/dark semantic layer.
+     This page's own <style> comes LAST so that where it and controls.css meet at
+     equal specificity, the page wins -- index.html has the opposite order and
+     that ordering has cost this project real hours. -->
+<link rel="stylesheet" href="tokens.css?v=65279febd9">
+<link rel="stylesheet" href="controls.css?v=65279febd9">
+<link rel="stylesheet" href="site-theme.css?v=65279febd9">
+<style>
+/* ═══════════════════════════════════════════════════════════════════════════
+   POSITION COLOUR — the one place on this site new hues are justified.
+
+   Six of them, one per position, and they are the ONLY colour on the page.
+   Every value below was solved for a contrast ratio, not picked by eye:
+   the light set clears 5.2:1 against both #FDFDFD (--theme-page) and #FFFFFF
+   (--theme-surface); the dark set clears 6.0:1 against #0B0C0F, #111318 and
+   #171A21. They are used on the position abbreviation and nowhere else, so a
+   round scans as one colour column rather than thirty-six coloured badges.
+
+              light      on page   on card  |  dark       on page   on card
+     RB     #207A50       5.28      5.21    |  #31B97A      7.20      6.92
+     WR     #316BB7       5.36      5.27    |  #6C9AD8      6.25      6.01
+     TE     #945F1E       5.35      5.27    |  #D2872B      6.24      6.00
+     QB     #9351A4       5.31      5.22    |  #B887C4      6.29      6.05
+     K      #7059A6       5.73      5.63    |  #9F90C3      6.25      6.01
+     DEF    #5F6D7D       5.29      5.20    |  #8C99A8      6.24      6.00
+   ═══════════════════════════════════════════════════════════════════════════ */
+:root{
+ --pos-rb:#207A50;--pos-wr:#316BB7;--pos-te:#945F1E;
+ --pos-qb:#9351A4;--pos-k:#7059A6;--pos-def:#5F6D7D;
+ /* The site has no measure token -- the 680px one was proposed and reverted,
+    because case-study prose runs the full column. That decision is about case
+    studies; a thesis paragraph on a data page still wants a readable line, so
+    this page names its own rather than reaching for one that does not exist. */
+ --db-measure:680px;
+}
+:root[data-theme="dark"]{
+ --pos-rb:#31B97A;--pos-wr:#6C9AD8;--pos-te:#D2872B;
+ --pos-qb:#B887C4;--pos-k:#9F90C3;--pos-def:#8C99A8;
+}
+.p-RB{--pc:var(--pos-rb)}.p-WR{--pc:var(--pos-wr)}.p-TE{--pc:var(--pos-te)}
+.p-QB{--pc:var(--pos-qb)}.p-K{--pc:var(--pos-k)}.p-DEF{--pc:var(--pos-def)}
+
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;font-family:var(--sans)}
+/* Two weights, 400 and 600. The UA default for <b>/<strong> is 700, and the
+   audit found four of them in the footer running at it. */
+b,strong{font-weight:600}
+body{margin:0;font-family:var(--sans);font-size:var(--fs-body);line-height:var(--lh-body);
+ letter-spacing:var(--tr-body);font-weight:400;
+ background:var(--theme-page);color:var(--theme-ink);
+ -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+
+/* The shared column, the same 1280/40 index.html uses. */
+.wrap{max-width:var(--page-max);margin:0 auto;padding-inline:var(--sp-40)}
+@media(max-width:880px){.wrap{padding-inline:var(--sp-24)}}
+
+/* ── masthead ─────────────────────────────────────────────────────────────── */
+.dbNav{padding-block:var(--sp-24) 0}
+.dbHead{padding-block:var(--sp-40-72) var(--sp-32)}
+.dbEyebrow{font-size:var(--fs-label);font-weight:600;letter-spacing:var(--tr-caps);
+ text-transform:uppercase;color:var(--theme-muted);margin:0 0 var(--sp-12)}
+.dbHead h1{margin:0;font-size:var(--fs-pagehead);font-weight:600;
+ line-height:var(--lh-tight);letter-spacing:var(--tr-head)}
+.dbDek{margin:var(--sp-16) 0 0;max-width:var(--db-measure);
+ font-size:var(--fs-lead);line-height:var(--lh-body);color:var(--theme-ink-soft)}
+.dbLeague{margin:var(--sp-20) 0 0;font-size:var(--fs-label);letter-spacing:var(--tr-caps);
+ text-transform:uppercase;color:var(--theme-muted)}
+
+/* ── the thesis, and the four numbers that carry it ───────────────────────── */
+.dbThesis{padding-block:var(--sp-32) var(--sp-40);border-top:var(--hair-w) solid var(--rule)}
+.dbThesis p{margin:0 0 var(--sp-16);max-width:var(--db-measure);
+ line-height:var(--lh-prose);color:var(--theme-ink-soft)}
+.dbThesis p:last-of-type{margin-bottom:0}
+.dbThesis b{color:var(--theme-ink)}
+.dbStats{display:grid;grid-template-columns:repeat(4,1fr);gap:0;
+ margin-top:var(--sp-32);border-top:var(--hair-w) solid var(--rule)}
+.dbStat{padding:var(--sp-20) var(--sp-24) var(--sp-4) 0}
+.dbStat+.dbStat{border-left:var(--hair-w) solid var(--rule);padding-left:var(--sp-24)}
+.dbStat .n{display:block;font-size:var(--fs-h3);font-weight:600;
+ line-height:var(--lh-tight);letter-spacing:var(--tr-sub);font-variant-numeric:tabular-nums}
+.dbStat .l{display:block;margin-top:var(--sp-8);font-size:var(--fs-caption);
+ line-height:var(--lh-note);color:var(--theme-muted)}
+@media(max-width:880px){.dbStats{grid-template-columns:repeat(2,1fr)}
+ .dbStat:nth-child(3){border-left:0;padding-left:0}
+ .dbStat:nth-child(n+3){border-top:var(--hair-w) solid var(--rule)}}
+
+/* ── the bar. Translucent, content scrolls under it, hairline at the seam. ─── */
+.dbBar{position:sticky;top:0;z-index:20;
+ background:var(--theme-material);backdrop-filter:blur(var(--blur-2)) saturate(180%);
+ -webkit-backdrop-filter:blur(var(--blur-2)) saturate(180%);
+ border-bottom:var(--hair-w) solid var(--rule)}
+.dbBarIn{display:flex;flex-direction:column;gap:var(--sp-2);padding-block:var(--sp-8)}
+.dbRow{display:flex;align-items:center;gap:var(--sp-12);min-width:0}
+.dbRowLbl{flex:0 0 auto;font-size:var(--fs-caption);font-weight:600;
+ letter-spacing:var(--tr-caps);text-transform:uppercase;color:var(--theme-muted);
+ width:var(--sp-48)}
+.dbScroll{display:flex;gap:var(--sp-2);overflow-x:auto;scrollbar-width:none;
+ scroll-snap-type:x proximity;padding-block:var(--sp-2);min-width:0}
+.dbScroll::-webkit-scrollbar{display:none}
+/* Scroll edge, not a hard divider: the row fades out where it runs off the
+   right rather than ending on a rule. Removed once the row fits. */
+@media(max-width:900px){
+ .dbScroll{-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 32px),transparent);
+           mask-image:linear-gradient(90deg,#000 calc(100% - 32px),transparent)}
+}
+.dbScroll>.ctl{scroll-snap-align:center;flex:0 0 auto;font-variant-numeric:tabular-nums}
+.dbScroll>.ctl[aria-selected="true"]{background:var(--ctl-primary-ground);
+ color:var(--ctl-primary-ink);font-weight:600}
+@media(max-width:640px){.dbRowLbl{display:none}}
+/* tokens.css:111 zeroes --blur-1/--blur-2 below 760px, so on a phone the bar
+   would be an 86%-alpha panel with NO blur behind it and the round note read
+   straight through the tabs. Measured on a 390 shot before this rule existed.
+   Below the blur cutoff the bar stops pretending to be a material and just
+   becomes the page. */
+@media(max-width:760px){
+ .dbBar{background:var(--theme-page);backdrop-filter:none;-webkit-backdrop-filter:none}
+}
+
+/* ── round header ─────────────────────────────────────────────────────────── */
+.dbRound{padding-block:var(--sp-40) var(--sp-24)}
+.dbRoundTop{display:flex;align-items:baseline;gap:var(--sp-12);flex-wrap:wrap}
+.dbRound h2{margin:0;font-size:var(--fs-h2);font-weight:600;
+ line-height:var(--lh-tight);letter-spacing:var(--tr-sub)}
+.dbRange{font-size:var(--fs-label);letter-spacing:var(--tr-caps);text-transform:uppercase;
+ color:var(--theme-muted);font-variant-numeric:tabular-nums}
+.dbNote{margin:var(--sp-12) 0 0;max-width:var(--db-measure);
+ line-height:var(--lh-prose);color:var(--theme-ink-soft)}
+
+/* the roster strip — only when one slot is isolated */
+.dbHave{margin-top:var(--sp-20);padding-top:var(--sp-16);border-top:var(--hair-w) solid var(--rule);
+ display:flex;flex-wrap:wrap;align-items:baseline;gap:var(--sp-8) var(--sp-16)}
+.dbHave .k{font-size:var(--fs-caption);font-weight:600;letter-spacing:var(--tr-caps);
+ text-transform:uppercase;color:var(--theme-muted);margin-right:var(--sp-4)}
+/* Was white-space:nowrap, which at 390 clipped the longest group -- two names
+   were simply gone off the right edge. Groups wrap; the coloured position tag
+   at the head of each is what keeps them legible as groups. */
+.dbHave .h{font-size:var(--fs-label);color:var(--theme-ink-soft)}
+@media(max-width:720px){.dbHave .h{flex:1 1 100%}}
+.dbHave .h i{font-style:normal;font-weight:600;color:var(--pc)}
+
+/* ── the board ────────────────────────────────────────────────────────────── */
+.dbGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--sp-16);
+ padding-bottom:var(--sp-56-96)}
+@media(max-width:1080px){.dbGrid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:720px){.dbGrid{grid-template-columns:1fr}}
+
+.dbCard{border:var(--hair-w) solid var(--rule);border-radius:var(--r-lg);corner-shape:var(--corner);
+ background:var(--theme-surface);overflow:hidden;
+ transition:border-color var(--dur-state-out) var(--ease-out)}
+/* In slot mode the round tabs point at one of the fifteen. It is marked by the
+   hairline going to full ink -- no fill, no glow, and certainly no shadow. */
+.dbCard.is-here{border-color:var(--theme-ink)}
+.dbCardTop{display:flex;align-items:baseline;justify-content:space-between;
+ gap:var(--sp-8);padding:var(--sp-14) var(--sp-16)}
+.dbSlot{font-size:var(--fs-small);font-weight:600;letter-spacing:var(--tr-title);
+ font-variant-numeric:tabular-nums}
+.dbOverall{font-size:var(--fs-caption);color:var(--theme-muted);
+ font-variant-numeric:tabular-nums;letter-spacing:var(--tr-caps);text-transform:uppercase}
+
+/* a pick. The whole row is the target; 44px is measured, not declared. */
+.dbPick{display:block;width:100%;border:0;background:none;text-align:left;
+ padding:var(--sp-12) var(--sp-16);border-top:var(--hair-w) solid var(--rule);
+ font:inherit;color:inherit;cursor:pointer;position:relative;
+ -webkit-tap-highlight-color:transparent;
+ transition:background-color var(--dur-state-out) var(--ease-out)}
+.dbPick:hover,.dbPick:focus-visible{background:var(--ctl-ground-hover)}
+.dbPick:focus-visible{outline:var(--focus-w) solid var(--ctl-focus);outline-offset:calc(var(--focus-w) * -1)}
+.dbPick:active{transition-duration:var(--dur-press)}
+.dbPickHd{display:flex;align-items:baseline;gap:var(--sp-8)}
+.dbRank{flex:0 0 auto;width:12px;font-size:var(--fs-caption);color:var(--theme-muted);
+ font-variant-numeric:tabular-nums}
+.dbName{flex:1 1 auto;min-width:0;font-size:var(--fs-small);font-weight:600;
+ letter-spacing:var(--tr-title);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dbPos{flex:0 0 auto;font-size:var(--fs-caption);font-weight:600;
+ letter-spacing:var(--tr-caps);color:var(--pc)}
+.dbTeam{flex:0 0 auto;font-size:var(--fs-caption);color:var(--theme-muted);
+ letter-spacing:var(--tr-caps)}
+.dbMeta{display:flex;flex-wrap:wrap;gap:var(--sp-2) var(--sp-12);margin:var(--sp-4) 0 0 var(--sp-20);
+ font-size:var(--fs-caption);color:var(--theme-muted);font-variant-numeric:tabular-nums}
+.dbMeta>span{white-space:nowrap}
+.dbMeta em{font-style:normal;color:var(--theme-ink-soft)}
+.dbFlag{font-weight:600;color:var(--theme-ink)}
+
+/* the reasoning, one level deeper. grid-rows 0fr→1fr animates to auto height. */
+.dbWhy{display:grid;grid-template-rows:0fr;margin-left:var(--sp-20);
+ transition:grid-template-rows var(--dur-reveal) var(--ease-out)}
+.dbPick[aria-expanded="true"] .dbWhy{grid-template-rows:1fr}
+.dbWhyIn{overflow:hidden;min-height:0}
+.dbWhy p{margin:var(--sp-10) 0 0;font-size:var(--fs-label);line-height:var(--lh-note);
+ color:var(--theme-ink-soft);white-space:normal}
+.dbSrc{display:block;margin-top:var(--sp-8);font-size:var(--fs-caption);
+ color:var(--theme-muted);white-space:normal}
+.dbSrc a{color:inherit;text-decoration:underline;text-underline-offset:2px;
+ text-decoration-color:var(--rule)}
+.dbSrc a:hover{color:var(--theme-ink)}
+.dbKind{font-weight:600;letter-spacing:var(--tr-caps);text-transform:uppercase}
+
+/* ── footer ───────────────────────────────────────────────────────────────── */
+.dbFoot{border-top:var(--hair-w) solid var(--rule);padding-block:var(--sp-32) var(--sp-56-96)}
+.dbFoot h2{margin:0 0 var(--sp-12);font-size:var(--fs-label);font-weight:600;
+ letter-spacing:var(--tr-caps);text-transform:uppercase;color:var(--theme-muted)}
+.dbFoot p{margin:0 0 var(--sp-12);max-width:var(--db-measure);
+ font-size:var(--fs-label);line-height:var(--lh-note);color:var(--theme-muted)}
+.dbFoot a{color:var(--theme-ink-soft);text-decoration:underline;text-underline-offset:2px;
+ text-decoration-color:var(--rule)}
+.dbFoot a:hover{color:var(--theme-ink)}
+
+@media(prefers-reduced-motion:reduce){
+ .dbWhy{transition:none}
+ .ctl:active{transform:none}
+}
+@media(prefers-reduced-transparency:reduce){
+ .dbBar{background:var(--theme-page);backdrop-filter:none;-webkit-backdrop-filter:none}
+}
+@media(prefers-contrast:more){
+ .dbCard{border-color:var(--theme-rim-strong)}
+}
+</style>
+</head>
+<body>
+
+<div class="wrap dbNav">
+  <a class="ctl ctl--quiet ctl--nav" href="index.html" style="padding-inline:0">← Jayden Betts</a>
+</div>
+
+<header class="wrap dbHead">
+  <p class="dbEyebrow">2026 redraft · PPR · updated 26 August</p>
+  <h1>Every slot, every round, three picks deep.</h1>
+  <p class="dbDek">Twelve draft positions simulated pick by pick against live August ADP.
+    Find the cell you are on the clock for and it names the three players worth
+    taking, why, and what it costs you to be wrong.</p>
+  <p class="dbLeague">12 teams · QB1 RB2 WR2 TE1 FLEX2 K1 DEF1 · 15 rounds · 180 picks</p>
+</header>
+
+<section class="wrap dbThesis">
+  <p><b>No quarterback before round eight.</b> Not a preference — a margin.
+    On this year's projections the best quarterback in football is worth
+    <b>+4.8 pts/gm</b> over the one still sitting on the board in round thirteen.
+    The best running back is worth <b>+13.4</b> over his. Last season Drake Maye
+    finished QB2 at 21.1 pts/gm and Trevor Lawrence QB5 at 19.9, both from well
+    outside the early rounds. Where a big name's ADP lands inside a round below,
+    the round note says plainly why we are passing.</p>
+  <p><b>Running back at every slot, not just the good ones.</b> Backs decay
+    roughly twice as fast as receivers: RB13–RB24 average 13.6 pts/gm and
+    RB25–RB36 average 10.5, a 3.1-point step, where the same move at receiver
+    costs 1.8. The model weights running back 1.20× and holds a hard floor —
+    two backs by round four, three by six, four by eight — at all twelve slots.</p>
+  <p><b>Nothing here is a reach.</b> Every pick is checked against Fantasy
+    Football Calculator's 12-team PPR ADP, taken from 7,830 mock drafts between
+    19 and 26 August. In rounds one to six no recommendation is more than half a
+    round ahead of its ADP; later, where a reach costs nothing, the number of
+    picks you are jumping is printed on the row.</p>
+  <div class="dbStats">
+    <div class="dbStat"><span class="n">+13.4</span><span class="l">RB1's edge per game over a replacement back. The best QB's edge over a round-13 QB is +4.8.</span></div>
+    <div class="dbStat"><span class="n">3.1 vs 1.8</span><span class="l">Points per game lost stepping from the RB13–24 tier to RB25–36, against the same step at receiver.</span></div>
+    <div class="dbStat"><span class="n">49.5–53.7</span><span class="l">Top-three RB projection across all twelve slots. A 4.2-point spread from pick 1.01 to 1.12.</span></div>
+    <div class="dbStat"><span class="n">0</span><span class="l">Picks in rounds one to six taken more than half a round ahead of ADP.</span></div>
+  </div>
+</section>
+
+<nav class="dbBar" aria-label="Board filters">
+  <div class="wrap dbBarIn">
+    <div class="dbRow">
+      <span class="dbRowLbl" id="lblR">Round</span>
+      <div class="dbScroll" id="tabsR" role="tablist" aria-labelledby="lblR"></div>
+    </div>
+    <div class="dbRow">
+      <span class="dbRowLbl" id="lblS">Slot</span>
+      <div class="dbScroll" id="tabsS" role="tablist" aria-labelledby="lblS"></div>
+    </div>
+  </div>
+</nav>
+
+<main>
+  <section class="wrap dbRound" id="roundHd"></section>
+  <div class="wrap"><div class="dbGrid" id="grid"></div></div>
+</main>
+
+<footer class="wrap dbFoot">
+  <h2>Where this comes from</h2>
+  <p><b>Projections, ceilings and floors:</b> WalterPicks 2026 redraft PPR
+    rankings, 26 August 2026 — the same file every points-per-game, ceiling and
+    floor number on this page is read from.
+    <b>ADP:</b> <a href="https://fantasyfootballcalculator.com/adp/ppr" rel="noopener">Fantasy
+    Football Calculator</a> 12-team PPR, 7,830 mock drafts, 19–26 August 2026, with
+    <a href="https://www.sharpfootballanalysis.com/fantasy/fantasy-football-adp-half-ppr-underdog-best-ball/" rel="noopener">Underdog
+    best-ball ADP</a> as the second market read. Both are printed on every row so
+    you can see where the two markets disagree.</p>
+  <p><b>How the picks are chosen.</b> Eleven simulated opponents draft strictly by
+    ADP. At each of your picks the model scores what is left on value over
+    replacement — RB38, WR34, QB13, TE13 for this roster — weights running back
+    1.20×, adds an urgency term for any positional floor still unmet, refuses a
+    pick more than half a round ahead of ADP in rounds one to six, and from round
+    ten onward pays for the gap between a player's projection and his ceiling
+    rather than for his floor. From round eleven it prefers a player with an
+    actual report behind him over one with only a projection.</p>
+  <p><b>On the notes.</b> A note marked <span class="dbKind">report</span> or
+    <span class="dbKind">stat</span> is something written on the page it links to;
+    open the link and read it. A note marked <span class="dbKind">projection only</span>
+    is derived from the WalterPicks numbers and nothing else — there is no camp
+    report behind it and it is not pretending there is. Camp news moves fast:
+    check the injury flags against your own beat writers on draft day.</p>
+</footer>
+
+<script src="draft-data.js"></script>
+<script>
+(function(){
+"use strict";
+var D = window.__DRAFT__, P = D.P, B = D.B, N = D.N;
+var NAME=0,POS=1,TEAM=2,BYE=3,PROJ=4,CEIL=5,FLOOR=6,FFC=7,UD=8,VOR=9,PRANK=10,
+    NOTE=11,SRC=12,DATE=13,KIND=14,RISK=15;
+
+var round = 1, slot = 0;            /* slot 0 = all twelve */
+try{
+  var r = +localStorage.getItem('jb.draft.round'); if(r>=1&&r<=15) round = r;
+  var s = +localStorage.getItem('jb.draft.slot');  if(s>=0&&s<=12)  slot  = s;
+}catch(e){}
+
+function esc(s){ return String(s).replace(/[&<>"]/g,function(c){
+  return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+function pickLabel(rnd,n){ return rnd + '.' + (((n-1)%12)+1 < 10 ? '0' : '') + (((n-1)%12)+1); }
+function overallOf(s,r){ return (r-1)*12 + (r%2 ? s : 13-s); }
+function host(u){ try{ return u.split('/')[2].replace(/^www\./,''); }catch(e){ return 'source'; } }
+
+/* ── the bar ─────────────────────────────────────────────────────────────── */
+function tab(txt,on,fn,label){
+  var b = document.createElement('button');
+  b.className = 'ctl ctl--nav';
+  b.type = 'button'; b.role = 'tab';
+  b.setAttribute('aria-selected', on ? 'true' : 'false');
+  b.tabIndex = on ? 0 : -1;
+  b.textContent = txt;
+  if(label) b.setAttribute('aria-label', label);
+  b.addEventListener('click', fn);
+  return b;
+}
+function arrowKeys(box){
+  box.addEventListener('keydown', function(e){
+    if(e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+    var t = [].slice.call(box.children), i = t.indexOf(document.activeElement);
+    if(i < 0) return;
+    e.preventDefault();
+    var j = (i + (e.key === 'ArrowRight' ? 1 : -1) + t.length) % t.length;
+    t[j].focus(); t[j].click();
+  });
+}
+function bar(){
+  var tr = document.getElementById('tabsR'); tr.textContent = '';
+  for(var r = 1; r <= 15; r++)(function(r){
+    tr.appendChild(tab(String(r), r === round, function(){
+      round = r; save(); render();
+      if(slot){ var c = document.getElementById('c' + r);
+        if(c) c.scrollIntoView({block:'center',
+          behavior: matchMedia('(prefers-reduced-motion:reduce)').matches ? 'auto' : 'smooth'}); }
+    }, 'Round ' + r));
+  })(r);
+  var ts = document.getElementById('tabsS'); ts.textContent = '';
+  ts.appendChild(tab('All', slot === 0, function(){ slot = 0; save(); render(); },
+                     'All twelve slots'));
+  for(var s = 1; s <= 12; s++)(function(s){
+    ts.appendChild(tab(String(s), s === slot, function(){ slot = s; save(); render(); },
+                       'Draft slot ' + s));
+  })(s);
+}
+function save(){ try{
+  localStorage.setItem('jb.draft.round', round);
+  localStorage.setItem('jb.draft.slot', slot);
+}catch(e){} }
+
+/* ── a card ──────────────────────────────────────────────────────────────── */
+function card(s, rnd){
+  rnd = rnd || round;
+  var cell = B[s-1][rnd-1], n = overallOf(s, rnd);
+  var el = document.createElement('div');
+  el.className = 'dbCard' + (slot && rnd === round ? ' is-here' : '');
+  el.id = 'c' + rnd;
+  var h = '<div class="dbCardTop"><span class="dbSlot">' + pickLabel(rnd, n) +
+          '</span><span class="dbOverall">Slot ' + s + ' · overall ' + n + '</span></div>';
+  for(var i = 0; i < cell.length; i++){
+    var p = P[cell[i][0]], gap = cell[i][1];
+    var kind = p[KIND] === 'model' ? 'projection only'
+             : p[KIND] === 'stat'  ? 'stat' : 'report';
+    var meta = '<span><em>' + p[PROJ].toFixed(1) + '</em> pts/gm</span>' +
+               '<span>' + p[CEIL].toFixed(1) + ' ceiling</span>' +
+               '<span>' + p[FLOOR].toFixed(1) + ' floor</span>' +
+               '<span>ADP ' + p[FFC] + '</span>';
+    if(p[RISK])                                        meta += '<span class="dbFlag">injury flag</span>';
+    else if(p[UD] && Math.abs(p[FFC] - p[UD]) >= 25)   meta += '<span>markets split</span>';
+    else if(gap >= 5)                                  meta += '<span>+' + gap + ' vs ADP</span>';
+    h += '<button class="dbPick p-' + p[POS] + '" type="button" aria-expanded="false">' +
+           '<span class="dbPickHd">' +
+             '<span class="dbRank">' + (i + 1) + '</span>' +
+             '<span class="dbName">' + esc(p[NAME]) + '</span>' +
+             '<span class="dbPos">' + p[POS] + '</span>' +
+             '<span class="dbTeam">' + p[TEAM] + '</span>' +
+           '</span>' +
+           '<span class="dbMeta">' + meta + '</span>' +
+           '<span class="dbWhy"><span class="dbWhyIn">' +
+             '<p>' + esc(p[NOTE]) + '</p>' +
+             '<span class="dbSrc"><span class="dbKind">' + kind + '</span>' +
+               (p[SRC] ? ' · <a href="' + esc(p[SRC]) + '" rel="noopener nofollow" target="_blank">' +
+                          esc(host(p[SRC])) + '</a>' + (p[DATE] ? ' · ' + esc(p[DATE]) : '') : '') +
+             '</span>' +
+             '<span class="dbSrc">' + p[POS] + p[PRANK] + ' by WalterPicks projection · bye ' + p[BYE] +
+               ' · ADP ' + p[FFC] + ' on Fantasy Football Calculator' +
+               (p[UD] ? ', ' + p[UD] + ' on Underdog' : '') + '</span>' +
+           '</span></span>' +
+         '</button>';
+  }
+  el.innerHTML = h;
+  [].forEach.call(el.querySelectorAll('.dbPick'), function(b){
+    b.addEventListener('click', function(){
+      b.setAttribute('aria-expanded', b.getAttribute('aria-expanded') === 'true' ? 'false' : 'true');
+    });
+  });
+  return el;
+}
+
+/* ── what the plan already has you holding, when one slot is isolated ─────── */
+function haveStrip(s){
+  var order = ['QB','RB','WR','TE','K','DEF'], by = {}, i, p;
+  for(i = 0; i < 15; i++){
+    p = P[B[s-1][i][0][0]];
+    (by[p[POS]] = by[p[POS]] || []).push(p[NAME] + ' <span style="opacity:.6">' + p[TEAM] + '</span>');
+  }
+  var out = '';
+  for(i = 0; i < order.length; i++){
+    if(!by[order[i]]) continue;
+    out += '<span class="h p-' + order[i] + '"><i>' + order[i] + by[order[i]].length + '</i> ' +
+           by[order[i]].join(', ') + '</span>';
+  }
+  return out ? '<div class="dbHave"><span class="k">Ends with</span>' + out + '</div>' : '';
+}
+
+/* ── render ──────────────────────────────────────────────────────────────── */
+function render(){
+  bar();
+  var lo = (round - 1) * 12 + 1, hi = round * 12;
+  var hd = document.getElementById('roundHd');
+  hd.innerHTML = slot
+    ? '<div class="dbRoundTop"><h2>Slot ' + slot + '</h2>' +
+        '<span class="dbRange">All fifteen rounds · first pick ' + overallOf(slot,1) + '</span></div>' +
+      '<p class="dbNote"><b>Round ' + round + '.</b> ' + N[round] + '</p>' +
+      haveStrip(slot)
+    : '<div class="dbRoundTop"><h2>Round ' + round + '</h2>' +
+        '<span class="dbRange">Overall ' + lo + '–' + hi + '</span></div>' +
+      '<p class="dbNote">' + N[round] + '</p>';
+  var g = document.getElementById('grid'); g.textContent = '';
+  if(slot){ for(var r = 1; r <= 15; r++) g.appendChild(card(slot, r)); }
+  else for(var s = 1; s <= 12; s++) g.appendChild(card(s));
+  document.title = (slot ? 'Slot ' + slot : 'Round ' + round) + ' — 2026 Draft Board';
+}
+arrowKeys(document.getElementById('tabsR'));
+arrowKeys(document.getElementById('tabsS'));
+render();
+})();
+</script>
+</body>
+</html>
