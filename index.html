@@ -2975,7 +2975,27 @@ if(location.hash==="#about")location.replace("about.html");</script>
     closes the gaps between clouds into one continuous band -- looked at, that
     stops reading as weather and starts reading as a texture swatch.
     Every one of these was tuned by looking, at both viewports and every hour. */
- var COV_LO=.36,COV_HI=.62,   /* below COV_LO the sky is simply clear */
+ var AIR_FLOOR=.10,AIR_KNEE=.95,
+                                 /* the dither's ramp: under FLOOR a cell never
+                                    draws, over KNEE it always does. FLOOR is
+                                    what opens sky BETWEEN clouds -- it is the
+                                    ASCII equivalent of the soft painter's cut,
+                                    and without it the faintest cells still put
+                                    a '.' everywhere and the band reads as one
+                                    continuous wash however much the rim is
+                                    thinned. */
+     /* COV_LO WAS .36 AND THE DITHER IS WHY IT MOVED.  2026-08-27.
+        The table above was measured when every candidate cell got a mark, and
+        under that painter .36 was the lowest setting whose gaps still read as
+        gaps -- lower "closes the gaps between clouds into one continuous band".
+        THAT IS NO LONGER WHAT MAKES THE GAPS. The dither does, inside the
+        cloud, so coverage and openness are now separate controls where they
+        used to be the same one. Thinning to 8.7% ink pushed blank screenfuls
+        at 390 from 1.5% to 4.0% and hero-cloud-field-contract caught it
+        honestly: two consecutive phone chunks agreed on 0.997 of their cells,
+        because both were nearly empty. Lowering coverage puts the candidates
+        back without putting the wash back. */
+     COV_LO=.30,COV_HI=.62,   /* below COV_LO the sky is simply clear */
      BASE=.92,WOB=.04,           /* where the flat bottom sits, and its wander */
      THICK_MIN=.48,THICK_VAR=.50,/* how deep a cloud is, as a share of its band */
      CREST=.34,TOP=.42,FOOT=.28, /* the crown's wander, its fade, the base's */
@@ -2983,7 +3003,8 @@ if(location.hash==="#about")location.replace("about.html");</script>
                                     that reaches the last character in the ramp */
      FEAT_W=150,FEAT_H=100,      /* the noise's feature size, in CSS px */
      FEAT_W_MIN=78,              /* ...and its floor once the screen is narrow */
-     JIT=.22;                    /* the lattice-breaking nudge, in cells */
+     JIT=.22,                   /* the lattice-breaking nudge, in cells */
+     STAGGER=.7;                 /* ...and the per-column one that breaks rows */
 
  /* WHAT ONE TILE HOLDS. cells() is pure: same arguments, same grid, forever,
     and it is the only place a character or an alpha is decided. */
@@ -3150,6 +3171,23 @@ if(location.hash==="#about")location.replace("about.html");</script>
    for(j=0;j<row.length;j++){
     v=row[j];
     if(v<=0)continue;
+    /* ── AIRINESS IS A DITHER, NOT A DENSITY.  2026-08-27 ──────────────────
+       Jayden, looking at this beside the soft painter: "i would like the
+       ascii if it had the same airyness as an actual cloud right now it
+       still feels static."
+       WHAT WAS ACTUALLY WRONG, zoomed in at dpr 3: every cell above the
+       threshold got a character, so 18.7% of the grid was inked in an even
+       wash with no edge anywhere. The eye then reads the strongest thing
+       present, which is the LATTICE -- rows of marks at a fixed pitch. That
+       is a halftone screen, and a halftone screen does not move even while
+       it is drifting. Hence "static".
+       A cloud thins at its edges by having FEWER droplets, not smaller ones.
+       So the edge is thinned by dropping cells, on the same deterministic
+       world hash the nudge already uses -- a cell keeps its decision when
+       the tile is redrawn, so nothing flickers and nothing has to be stored.
+       smooth(0,AIR_KNEE,v) leaves the core solid and scatters the rim, which
+       breaks the rows exactly where they were most visible. */
+    if(hash(wx0+j,r+53)>smooth(AIR_FLOOR,AIR_KNEE,v))continue;
     g=glyphOf(band,v);
     if(g===" ")continue;
     ctx.fillStyle=head+((band.ink*(.34+.66*v)).toFixed(3))+')';
@@ -3159,8 +3197,17 @@ if(location.hash==="#about")location.replace("about.html");</script>
        of static, deterministic nudge -- hashed off the WORLD column so a cell
        keeps its nudge when the tile is redrawn -- is enough to stop that and
        costs two hashes on a cell that was going to be drawn anyway. */
+    /* THE COLUMN STAGGER IS WHAT KILLS THE ROWS.  The per-cell nudge above
+       is independent noise, so it moves every mark a little and leaves the
+       row's AVERAGE height exactly where it was -- zoomed in, the dense core
+       still read as straight horizontal runs of = and +. Offsetting the whole
+       COLUMN by a hashed fraction of a cell moves a row's marks out of line
+       with each other instead, which is the alignment the eye was picking up.
+       Hashed off the world column, like everything else here, so a column
+       keeps its offset as the sky drifts. */
     ctx.fillText(g,(j+.5+(hash(wx0+j,r+91)-.5)*JIT)*pitch,
-                   cy+(hash(wx0+j,r+7)-.5)*JIT*pitch);
+                   cy+(hash(wx0+j,r+7)-.5)*JIT*pitch
+                     +(hash(wx0+j,17)-.5)*STAGGER*pitch);
    }
   }
   tile.chunk=chunk;
@@ -3279,10 +3326,19 @@ if(location.hash==="#about")location.replace("about.html");</script>
    if(next!==undefined){STYLE=(next==='soft')?'soft':'ascii';redrawAll();}
    return STYLE;
   },
+  /* THE PROBE CARRIES THE DITHER, because the moment it stopped doing so it
+     would be describing a sky that is not on the screen -- and the contract
+     that reads it would be asserting the field rather than the picture. The
+     arithmetic below is the same line drawAscii() runs, not a copy of its
+     intent. */
   sample:function(bi,chunk){
-   var band=bands[bi];
-   return cells(band,chunk).map(function(row){
-    return row.map(function(v){return glyphOf(band,v);}).join("");
+   var band=bands[bi],wx0=Math.round(chunk*band.w/band.pitch);
+   return cells(band,chunk).map(function(row,r){
+    return row.map(function(v,j){
+     if(v<=0)return" ";
+     if(hash(wx0+j,r+53)>smooth(AIR_FLOOR,AIR_KNEE,v))return" ";
+     return glyphOf(band,v);
+    }).join("");
    }).join("\n");
   },
   rendered:function(){
