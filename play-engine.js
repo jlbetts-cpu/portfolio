@@ -2509,6 +2509,48 @@
      It sits where the board used to and is aria-hidden: the fixture screen has
      already said this in a heading, so a screen reader would hear it twice. */
   var stakeEl=null;
+  /* ══ THE LEAGUE HEADER IS BUILT, NOT POSITIONED.  2026-08-27 ══════════════
+     "where is the header with the logo why isnt the matchup and what round is
+     it built into it with an end button on the right and what round on the
+     right and matchup in the middle and logo on the left."
+     Four times in this pass I tried to place these with position:fixed and
+     four times a transformed ancestor silently re-anchored them -- .hmRaceBoard,
+     .hmScore, .battleCount, and finally .sbCard's fraction-of-a-degree tilt.
+     Each time the fix worked for one element and moved the problem to the next.
+     THE ANSWER IS TO STOP POSITIONING AROUND THE HEADER AND PUT THEM IN IT.
+     The site's own nav already has the three slots he is describing --
+     .jbGrpL (logo), .jbGrpC (centre), .jbGrpR (right) -- so the matchup goes
+     in the centre group and the round and End go in the right group, and they
+     inherit the header's own alignment instead of being told coordinates.
+     Nothing is cloned: the real nodes move, and they move back when the cup
+     ends, so the engine keeps updating the same elements it always did. */
+  var hdrHome=null;
+  function headerBuild(on){
+   try{
+    var navC=document.querySelector(".jbGrpC"), navR=document.querySelector(".jbGrpR");
+    if(!navC||!navR||!board) return;
+    var row=board.querySelector(".sbRow")||board.querySelector(".sbCard");
+    var rnd=board.querySelector(".sbRound");
+    var end=board.querySelector(".hmScoreEnd");
+    if(on){
+     if(!hdrHome){
+      hdrHome={row:row&&row.parentNode, rowNext:row&&row.nextSibling,
+               rnd:rnd&&rnd.parentNode, rndNext:rnd&&rnd.nextSibling,
+               end:end&&end.parentNode, endNext:end&&end.nextSibling};
+     }
+     if(row&&row.parentNode!==navC){ row.classList.add("hmHdrMatch"); navC.appendChild(row); }
+     if(rnd&&rnd.parentNode!==navR){ rnd.classList.add("hmHdrRound"); navR.insertBefore(rnd,navR.firstChild); }
+     if(end&&end.parentNode!==navR){ end.classList.add("hmHdrEnd"); navR.appendChild(end); }
+     document.body.classList.add("hmYowHdr");
+    }else if(hdrHome){
+     if(row&&hdrHome.row){ row.classList.remove("hmHdrMatch"); hdrHome.row.insertBefore(row,hdrHome.rowNext||null); }
+     if(rnd&&hdrHome.rnd){ rnd.classList.remove("hmHdrRound"); hdrHome.rnd.insertBefore(rnd,hdrHome.rndNext||null); }
+     if(end&&hdrHome.end){ end.classList.remove("hmHdrEnd"); hdrHome.end.insertBefore(end,hdrHome.endNext||null); }
+     hdrHome=null;
+     document.body.classList.remove("hmYowHdr");
+    }
+   }catch(_){}
+  }
   function syncStake(){
    try{
     var txt = YOW ? (window.__hmStakeNow||"") : "";
@@ -2520,6 +2562,19 @@
      h.appendChild(stakeEl);
     }
     if(stakeEl.textContent!==txt) stakeEl.textContent=txt;
+    /* THE PICK RIDES WITH THE ROUND, on the right of the header, rather than
+       as a second floating line in the middle where the matchup goes. One
+       element, one line: "Quarter-final · 1.01". */
+    try{
+      var _rd=board&&board.querySelector(".sbRound");
+      if(_rd&&YOW){
+        var _base=(_rd.getAttribute("data-round")||_rd.textContent||"").split(" \u00b7 ")[0];
+        if(_base&&!_rd.getAttribute("data-round")) _rd.setAttribute("data-round",_base);
+        var _pick=(txt.match(/1\.\d\d/)||[])[0];
+        var _want=_pick?(_base+" \u00b7 "+_pick):_base;
+        if(_rd.textContent!==_want) _rd.textContent=_want;
+      }
+    }catch(_){}
    }catch(_){}
   }
   function syncRefl(){
@@ -3173,6 +3228,7 @@ function teams(){
    ballInTitle(false);ball.style.opacity="1";goalL.style.opacity="1";goalR.style.opacity="1";board.style.opacity="1";if(ballShadow)ballShadow.style.opacity="0.28";if(goalShL){goalShL.style.opacity="1";goalShR.style.opacity="1";}
    syncRefl();
    syncStake();
+   headerBuild(YOW);
    kickoffCountdown();
    if(!running){running=true;requestAnimationFrame(loop);}}
   window.__hmSoccerStart=start;window.__hmSoccerEnd=finish;

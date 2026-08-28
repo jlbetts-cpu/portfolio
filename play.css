@@ -1107,40 +1107,72 @@ body.hmYowCup .hmScore .sbTrophy,
 body.hmYowCup .hmRaceRow,
 body.hmYowCup .battleCount{display:none}
 
-/* 3. WHAT IT DOES SAY, on one line in the header. */
-body.hmYowCup .hmScore{
-  position:fixed;left:var(--sp-40);right:auto;top:var(--sp-16);bottom:auto;
-  transform:none;z-index:60;width:auto;padding:0;pointer-events:none;
-  display:flex;align-items:center;gap:var(--sp-12);
-  color:var(--c700);
-}
-body.hmYowCup .hmScore .sbCard,
-body.hmYowCup .hmScore .sbRow{
-  display:flex;align-items:center;gap:var(--sp-12);
-  width:auto;max-width:none;padding:0;
-}
-/* ── THE NAMES ARE .sbNm, NOT .sTeam, AND THAT COST HIM A ROUND.  2026-08-27 ─
-   "cant see the names or what round its in."
-   They were rendering the whole time -- .sbNm "Milo" / "Jayden" at 53x13, and
-   .sbRound "Quarter-final" at 108x12, both visible, both in the strip. What
-   they were not was LEGIBLE: measured, .sbNm computes rgb(236,233,221) on a
-   page of rgb(253,253,253). That is about 1.08:1. The colour was correct for
-   the near-black broadcast card it used to sit on; I removed the card's ground
-   and recoloured .sbCard, .sbRound and a .sTeam THAT DOES NOT EXIST IN THIS
-   MARKUP, so the one element carrying the actual names kept its dark-board
-   ink and vanished into the paper.
-   Naming a selector that matches nothing fails silently -- no error, no
-   warning, and the rule simply does nothing. That is the whole lesson here:
-   I should have read the built markup before writing colours for it. */
-body.hmYowCup .hmScore .sbNm{
+/* 3. THE HEADER, EXACTLY AS HE SPECIFIED IT.  2026-08-27 ─────────────────
+      "where is the header with the logo why isnt the matchup and what round
+      is it built into it with an end button on the right and what round on
+      the right and matchup in the middle and logo on the left."
+      LOGO LEFT · MATCHUP CENTRE · ROUND THEN END RIGHT. That is the whole
+      layout and it needed saying plainly, because what I had built was the
+      identity strip jammed left with the stake floating in the middle -- three
+      things in a row with no rule behind where any of them sat.
+      The logo is the site's own .jbGrpL and is left alone: it was already
+      there and already left, so it is simply no longer hidden by anything.
+      The nav's centre group steps aside, because the matchup takes that spot. */
+
+/* THE HEADER'S THREE SLOTS. These elements are MOVED into .jbGrpC and
+   .jbGrpR by headerBuild(), so they need no coordinates at all -- the nav's
+   own flex alignment places them, which is what "built into it" means and why
+   four rounds of position:fixed kept failing. All that is left is type. */
+/* VISIBILITY, NOT JUST OPACITY, and that is why nothing rendered after the
+   move. Walking the chain: .jbStick and .jbNav are visible during a match --
+   body.hmYow .jbStick{visibility:visible} already restores the bar -- but the
+   GROUPS inside it are visibility:hidden, so the matchup, the round and End
+   measured correctly (47x16, 155x11, 73x38, all inside the nav) and painted
+   nothing at all. Boxes with the right geometry and no pixels is exactly the
+   failure mode a layout probe cannot see, which is why the screenshot was the
+   thing that caught it. */
+body.hmYowHdr .jbGrpL,
+body.hmYowHdr .jbGrpC,
+body.hmYowHdr .jbGrpR{visibility:visible;opacity:1;pointer-events:auto}
+body.hmYowHdr .hmHdrMatch,
+body.hmYowHdr .hmHdrRound,
+body.hmYowHdr .hmHdrEnd{visibility:visible}
+.hmHdrMatch{display:flex;align-items:center;gap:var(--sp-8);transform:none}
+.hmHdrMatch .sbNm{
   font-size:var(--fs-label);font-weight:600;letter-spacing:var(--tr-flat);
   color:var(--c950);white-space:nowrap;
 }
-body.hmYowCup .hmScore .sbVs{
-  font-size:var(--fs-label);line-height:var(--lh-flat);color:var(--c500);
+.hmHdrMatch .sbVs{font-size:var(--fs-label);line-height:var(--lh-flat);color:var(--c500)}
+/* THE HIDES HAVE TO TRAVEL WITH THE ROW. Everything that silenced the
+   counting parts was written as `body.hmYowCup .hmScore .sR` -- a DESCENDANT
+   of the board. The row now lives in the nav, so those selectors stopped
+   matching the moment it moved and the digits and the rule line came back as
+   "Dot 00-00 Kip One score wins". Re-hung on .hmHdrMatch, which is the class
+   the row carries wherever it is. */
+.hmHdrMatch .sR,.hmHdrMatch .sB,.hmHdrMatch .sBall,
+.hmHdrMatch .sbMeta,.hmHdrMatch .sbRule,.hmHdrMatch .sbTrophy{display:none}
+/* THE ROUND'S OWN RULE HAS TO WIN. It measured rgb(185,182,168) after the
+   move -- the dark-board ink again, because .sbRound has a component rule of
+   its own and a bare .hmHdrRound is only 0,1,0. Carrying both classes takes it
+   to 0,2,0 and it lands on the label ink like everything else in this bar. */
+.hmHdrRound,
+.sbRound.hmHdrRound{
+  font-size:var(--fs-label);letter-spacing:var(--tr-caps);
+  color:var(--c500);
+  white-space:nowrap;margin-right:var(--sp-12);
 }
-body.hmYowCup .hmScore .sbRound{
-  font-size:var(--fs-label);letter-spacing:var(--tr-caps);color:var(--c500);
+/* And the row brings no ground with it. .sbCard/.sbRow painted the broadcast
+   slab; in the header the matchup is type on the bar, nothing else. */
+.hmHdrMatch,
+.hmHdrMatch *{background:none;box-shadow:none;border:0}
+.hmHdrMatch,.hmHdrMatch .sbCard,.hmHdrMatch .sbRow{padding:0}
+.hmHdrEnd{margin-left:var(--sp-8);border-left:0}
+/* The board itself is now an empty shell -- everything it carried lives in the
+   header. It keeps no box of its own. */
+body.hmYowCup .hmScore{
+  position:fixed;left:0;right:0;top:var(--sp-16);
+  display:flex;justify-content:center;pointer-events:none;
+  background:none;box-shadow:none;padding:0;transform:none;z-index:60;
 }
 
 /* 4. THE WAY OUT, pinned in its own right -- there are TWO .hmScoreEnd in the
