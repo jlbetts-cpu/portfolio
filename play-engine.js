@@ -3446,8 +3446,33 @@ function teams(){
     for(var i=0;i<peers.length;i++){if(peers[i].slot===slot){peer=peers[i];break;}}
     if(!peer)return null;
     if(peer.__filler){var mj=window.__hmFillerData&&window.__hmFillerData();return{name:"Jayden",cut:(mj&&mj.cut)||peer.cut||null};}   // he is genuinely the head standing in this slot, so this is identity, not a guess
-    var h=null,idx=-1;
-    if(list)for(var j=0;j<list.length;j++){if(list[j]&&list[j].cut&&peer.cut&&list[j].cut===peer.cut){h=list[j];idx=j;break;}}
+    /* ── DO NOT NAME A SCORER OFF THE PICTURE.  2026-08-27 ────────────────────
+       Jayden: "the tracker seeing who scrored and what team it does the same
+       person for both sometimes."
+       This matched a player to a head by comparing IMAGE BYTES -- list[j].cut
+       === peer.cut -- and took the first hit. Two players carrying the same
+       head, which happens the moment a head is used on both teams or two
+       eggheads share a cut, therefore resolved to the SAME name, and the
+       tracker credited one person with the other's score. The tournament path
+       twelve lines up already says this in as many words: "one source of truth,
+       and it is not the image bytes."
+       So: prefer the head's own key, then the peer's persistent pid (the same
+       id __hmTagSlot writes and __hmSlotForPid reads), and only then fall back
+       to the picture. And if the picture is AMBIGUOUS -- more than one head in
+       the list carries it -- return null rather than guess, which drops the card
+       to the team name. A card that says "Red" is honest; a card that names the
+       wrong friend is not. */
+    var h=null,idx=-1,j;
+    if(list){
+     if(peer.key!=null)for(j=0;j<list.length;j++){if(list[j]&&list[j].key!=null&&list[j].key===peer.key){h=list[j];idx=j;break;}}
+     if(!h&&peer.pid!=null)for(j=0;j<list.length;j++){if(list[j]&&list[j].key!=null&&list[j].key===peer.pid){h=list[j];idx=j;break;}}
+     if(!h&&peer.cut){
+      var seen=0,first=-1;
+      for(j=0;j<list.length;j++){if(list[j]&&list[j].cut===peer.cut){seen++;if(first<0)first=j;}}
+      if(seen===1){h=list[first];idx=first;}
+      else if(seen>1)return null;   // ambiguous picture: the team name, never a guess
+     }
+    }
     if(!h)return null;
     var nm=(h.name&&String(h.name).trim())?String(h.name).trim().slice(0,14):("Player "+(idx+1));
     return{name:nm,cut:h.cut||null};
