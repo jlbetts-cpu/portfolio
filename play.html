@@ -298,18 +298,28 @@
     a mark that animates is a logo showing off. --c950 at .16 is the same ink
     every other quiet thing on this site is drawn in, so it sits down against
     both the light pitch and the night one. */
- /* ── ONE MARK, AND THE HEADER ALREADY HAS IT.  2026-08-27 ──────────────────
-    "my logo and watermark should be in the header", and the match capture
-    shows why it read wrong: the jb mark was drawn TWICE on a League screen --
-    once by the site header at top-left, and again here, floating fixed at the
-    bottom-right corner. Two of the same mark on one screen is not branding,
-    it is a duplicate, and a corner watermark is exactly the kind of decoration
-    this site subtracts.
-    The element stays in the markup because the League's own screens may want
-    to place it deliberately later; it simply never paints as a floating
-    corner stamp again. If it comes back it goes IN the header, which is what
-    he asked for. */
+ /* ── THE MARK COMES BACK, AND I SHOULD NOT HAVE CUT IT.  2026-08-27 ────────
+    "i think you removed the clean header and wordmark on the bottom for no
+    reason i wanted it to be worked into the ui."
+    He is right. He asked for the logo IN the header and I read that as "so
+    the bottom one is a duplicate", deleted it, and called the deletion
+    subtraction. It was not his instruction -- the header mark and a quiet
+    signature at the foot of the pitch are two different jobs, and he wanted
+    both.
+    WORKED IN RATHER THAN STAMPED ON, which is the part of my note that was
+    worth keeping: it sits on the same right inset as the header's own group
+    (--sp-40, so it lines up with End directly above it), it is small and low
+    in the ink, and it never overlaps a control. A signature, not a badge. */
  .hmYowMark{display:none}
+ body.hmYowCup .hmYowMark{
+   display:block;position:fixed;right:var(--sp-40);bottom:var(--sp-24);
+   width:22px;height:22px;z-index:46;pointer-events:none;
+   opacity:.14;color:var(--c950);
+ }
+ body.hmYowCup .hmYowMark svg{width:100%;height:100%;display:block;fill:currentColor}
+ @media(max-width:560px){
+   body.hmYowCup .hmYowMark{width:18px;height:18px;right:var(--sp-16);bottom:var(--sp-16)}
+ }
  body.pTeamOn .hero{height:52vh;margin:6vh auto auto}
  @media(max-width:880px){.hero{min-height:auto;padding-bottom:var(--sp-24)}.hero .stagewrap{width:min(64vw,calc((100svh - 322px - var(--play-hero-lead)) * .86),500px)}}
  @media(max-width:760px){.hero,body.pHubOn.hmFull .hero{height:auto;min-height:calc(100svh - var(--bar-h));padding:var(--sp-20) var(--col-inset)}.heroCopy h1{max-width:12.5em}.heroCtas{margin-top:var(--sp-14)}.heroMood .moodMenu{left:auto;right:0;width:min(var(--menu-w),calc(100vw - var(--sp-48)))}.hero .stagewrap{width:min(88vw,calc((100svh - 334px - var(--play-hero-lead)) * .86),430px);margin-top:var(--sp-8)}}
