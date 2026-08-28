@@ -1030,7 +1030,15 @@ body.hmYowCup .hmScoreEnd{
   transition:transform var(--dur-enter) var(--sp-settle),opacity var(--dur-state) linear;
 }
 .hmDropper.isIn{transform:translate(-50%,6%);opacity:1}
+/* The borrowed head is a live pitch element, so it arrives carrying the
+   engine's own absolute positioning. Inside the dropper it has to sit in flow
+   instead; .isBorrowed is added for exactly the length of the ceremony and
+   removed with the inline style when it is handed back. */
 .hmDropperHead{width:100%;height:auto;display:block}
+.hmDropper .isBorrowed{
+  position:relative;left:auto;top:auto;right:auto;bottom:auto;
+  transform:none;margin:0 auto;width:100%;height:auto;
+}
 /* The ball hangs under the head as though held, and is the same football the
    match is played with -- not a second asset that would have to be kept in
    step with the first. */

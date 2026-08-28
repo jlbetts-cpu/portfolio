@@ -2921,22 +2921,41 @@ function teams(){
        The clone is inert: it is a snapshot, so it does not consume the gaze
        loop or get animated per frame. It only has to be a face, held for a
        second, and then gone. */
-    var src=null;
+    /* ── IT IS THE HEAD ITSELF, BORROWED AND GIVEN BACK.  2026-08-27 ────────
+       "when you say real head is it the head though like i dont want a copy
+       cat." It was a copy, and he was right to ask: cloneNode(true) brings the
+       eyes and irises across but the result is a SNAPSHOT -- it never blinks,
+       never tracks, and is not registered with the gaze loop, which holds live
+       references in eyeEls3. A still face beside eight moving ones is a decoy
+       with better parts.
+       So the dropper does not build a head at all. It BORROWS one: the real
+       element is moved into the dropper for the 1.2s of the ceremony and put
+       back exactly where it came from, next to the sibling it was in front of.
+       It stays the same node the whole time, so it is still in eyeEls3 and
+       still animated -- it blinks while it holds the ball, because it is the
+       head.
+       AND IT READS AS INTENTION RATHER THAN AS A GLITCH: one player steps out
+       of the line-up, brings the ball on, and takes the field. The pitch is a
+       player short for one second at kickoff, which is exactly the second
+       before kickoff, when nobody is playing yet.
+       THE PHOTO HEAD IS PREFERRED -- it is the one he means by "the Jayden
+       head" -- found by asking which head carries no team tint. */
+    var borrowed=null, borrowHome=null, borrowNext=null, borrowStyle="";
     try{
       var live=[].slice.call(document.querySelectorAll(".stagewrap > div"))
                  .filter(function(n){return n.querySelector(".eye");});
       for(var i=0;i<live.length;i++){
-        if(!live[i].querySelector("[style*='--tcx'],[style*='filter']")){ src=live[i]; break; }
+        if(!live[i].querySelector("[style*='--tcx']")){ borrowed=live[i]; break; }
       }
-      if(!src&&live.length) src=live[0];
-    }catch(_){}
-    if(src){
-      var head=src.cloneNode(true);
-      head.className="hmDropperHead";
-      head.removeAttribute("id");
-      head.style.cssText="position:relative;left:auto;top:auto;transform:none;width:100%;height:auto";
-      dropEl.appendChild(head);
-    }else{
+      if(!borrowed&&live.length) borrowed=live[0];
+      if(borrowed){
+        borrowHome=borrowed.parentNode; borrowNext=borrowed.nextSibling;
+        borrowStyle=borrowed.getAttribute("style")||"";
+        borrowed.classList.add("isBorrowed");
+        dropEl.appendChild(borrowed);
+      }
+    }catch(_){ borrowed=null; }
+    if(!borrowed){
       var fb=document.createElement("img");
       fb.className="hmDropperHead"; fb.src="images/neutral.webp"; fb.alt=""; fb.draggable=false;
       dropEl.appendChild(fb);
@@ -2956,7 +2975,21 @@ function teams(){
       },100);
     },760);
    }catch(_){ try{done();}catch(__){} }
-   function cleanUp(){ try{ if(dropEl&&dropEl.parentNode) dropEl.parentNode.removeChild(dropEl); dropEl=null; }catch(_){} }
+   function cleanUp(){ try{
+     /* THE HEAD GOES BACK FIRST, and back to its exact place in the sibling
+        order -- insertBefore(next) rather than appendChild, or it would rejoin
+        the line-up at the end and the engine's own indexing would be reading a
+        different element than the one it moved. Its inline style is restored
+        too, because the engine writes position there every frame and the
+        dropper had overwritten it. */
+     if(borrowed&&borrowHome){
+       borrowed.classList.remove("isBorrowed");
+       if(borrowStyle) borrowed.setAttribute("style",borrowStyle); else borrowed.removeAttribute("style");
+       borrowHome.insertBefore(borrowed,borrowNext||null);
+       borrowed=null;
+     }
+     if(dropEl&&dropEl.parentNode) dropEl.parentNode.removeChild(dropEl); dropEl=null;
+   }catch(_){} }
   }
   function kickoffCountdown(){S.kickSeed=(S.kickSeed||0)+1;BUS.emit('kickoff',{seed:S.kickSeed});   // the match opener: everyone to their half, then 3-2-1
    var _bh=ballHome();bx=_bh?_bh.x:(XL+XR)/2;by=_bh?_bh.y:70;bsp=ballSpawnScale();_spawnY=by;_curveTo=(XL+XR)/2;_curving=true;_cvOn=false;bvx=0;bvy=0;_deckT=0;_cfx=bx;_cfy=by;_cfT=0;_pbx=bx;_pby=by;YTHRU=0;_ythP=0;if(goalL){goalL.classList.remove("hmThru");goalR.classList.remove("hmThru");}if(ball)ball.classList.remove("hmBehind");S.phase="count";
