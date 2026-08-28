@@ -1088,8 +1088,43 @@ img{display:block;max-width:100%;height:auto}   /* height:auto IS THE COMPANION 
 
 
 
+/* ── THE PREMIUM HOVER ZOOM.  2026-08-27 ────────────────────────────────────
+   "when hovering over the case studies i feel like there should be that
+   premium zoom that people do that it slightly zooms into the mockups its used
+   a lot and it looks very nice."
+   THE MOVE IS THE IMAGE INSIDE A FIXED FRAME, NOT THE FRAME. Scaling the
+   container would push the paragraph under it down and reflow the page on
+   hover; scaling the picture inside a clipped box makes the crop tighten and
+   nothing around it moves. That is why the effect reads as expensive rather
+   than as a card getting bigger.
+   1.04, not 1.08 -- his "slightly", and small enough that a phone screenshot
+   does not go soft. --dur-move (280ms) on --ease-out is the rung the rest of
+   this site uses for something changing position.
+   HOVER-CAPABLE POINTERS ONLY. On a touch screen :hover latches after a tap
+   and the mockup would stay zoomed with no way to release it. */
+@media (hover:hover) and (pointer:fine){
+ .content :is(.playerStage,.tv.tvPhone .tvFrame,.shot,.baCol figure,.photoFig .media--mockup){
+  overflow:hidden;
+ }
+ .content :is(.playerStage,.tv.tvPhone .tvFrame,.shot,.baCol figure,.photoFig .media--mockup)>img{
+  transition:transform var(--dur-move) var(--ease-out);
+  will-change:transform;
+ }
+ .content :is(.playerStage,.tv.tvPhone .tvFrame,.shot,.baCol figure,.photoFig .media--mockup):hover>img{
+  transform:scale(1.04);
+ }
+}
+@media (prefers-reduced-motion:reduce){
+ .content :is(.playerStage,.tv.tvPhone .tvFrame,.shot,.baCol figure,.photoFig .media--mockup)>img{
+  transition:none}
+ .content :is(.playerStage,.tv.tvPhone .tvFrame,.shot,.baCol figure,.photoFig .media--mockup):hover>img{
+  transform:none}
+}
+
 @media(prefers-reduced-motion:reduce){
  .content :is(.playerStage,.tv.tvPhone .tvFrame){transition:none}
+
+
 }
 
 /* --- 4px corner softening pass --- */
