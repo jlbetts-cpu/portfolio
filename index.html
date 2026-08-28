@@ -774,10 +774,47 @@ body.heroEmpathy .jbStick .jbNav{--nav-mat:var(--ctl-ground);--nav-rim:var(--ctl
    changing position. Hover-capable pointers only -- on a touch screen :hover
    latches after a tap and the card would stay zoomed with nothing to release
    it. */
+/* ── THE CURVE, AGAINST docs/apple-design.md ────────────────────────────────
+   "make sure the zoom animatin is premium like follow the apple.md."
+   FOUR THINGS THAT DOCUMENT ASKS FOR, and what each one changed here:
+
+   §4 "Behavior over animation -- use springs." A linear-to-ease-out ramp is a
+   pre-scripted curve; it arrives and stops. --sp-settle is one of this site's
+   hand-tuned linear() springs and it settles WITHOUT overshoot, which is what a
+   hover wants -- a card that bounces under the cursor reads as a toy, and a
+   pointer can leave mid-flight, so the motion has to be interruptible and calm
+   rather than theatrical. --sp-pop and --sp-bounce both overshoot and were
+   rejected for exactly that.
+
+   THE IN AND THE OUT ARE NOT THE SAME, which is the site's own convention
+   before it is Apple's: --dur-state 160 in, --dur-state-out 240 out. Arriving
+   is a spring settling into place; leaving is a quiet release, and giving the
+   exit the spring too would make a mouse crossing a grid of cards feel like it
+   was dragging them.
+
+   §11 "Animate only compositor-friendly properties." transform only. No
+   width, no filter, and deliberately NO `will-change`: it would promote every
+   thumbnail on the page to its own layer for the whole session, which is
+   memory spent on the 11 cards nobody is pointing at. A transform on an <img>
+   composites without it.
+
+   §11 "Keep the per-frame positional change below the perception threshold."
+   A 2/1 card ~560px wide scaling to 1.04 moves its edge ~11px over 360ms --
+   about 0.5px a frame at 60fps, well under the threshold, so it reads as
+   continuous rather than as steps.
+
+   §"prefers-reduced-motion" -- handled below: the transform is dropped
+   entirely rather than merely shortened. */
 @media (hover:hover) and (pointer:fine){
- .csImg{transition:transform var(--dur-move) var(--ease-out)}
+ .csImg{
+  transform:scale(1);
+  transition:transform var(--dur-state-out) var(--ease-out);
+ }
  .csGo:hover .csImg,
- .csGo:focus-visible .csImg{transform:scale(1.04)}
+ .csGo:focus-visible .csImg{
+  transform:scale(1.04);
+  transition:transform var(--sp-settle-dur) var(--sp-settle);
+ }
 }
 @media (prefers-reduced-motion:reduce){
  .csImg{transition:none}

@@ -2276,7 +2276,21 @@ function matchLength(round){
    field size and says "quarter-final" only when a quarter-final is what comes next. */
 function stakesLine(round){
   var last = T.br.rounds.length - 1;
-  if (round >= last) return 'The winner takes the cup.';
+  /* ── THE FINAL IS FOR THE 1.01, AND IT SHOULD SAY SO.  2026-08-27 ──────────
+     Jayden: "the final game should be the 101 game" -- and, asked what 101 is,
+     "the 101 is the first pick in the draft".
+     "The winner takes the cup" was naming a trophy that does not exist. This
+     bracket has one purpose and the file already says so three hundred lines
+     down: it settles the order of a real twelve-team draft, and what the final
+     is worth is the first overall pick. The consolation ladder has been telling
+     the truth about its stakes all along -- "Winner takes the 1.01, first
+     overall" -- while the one screen a viewer reads BEFORE the biggest match of
+     the cup called it a cup.
+     slot() is the sourced notation, round dot pick, and it is a hoisted
+     function declaration so it is in scope here despite living below. "first
+     overall" stays beside it because that is how the number is said out loud
+     and it is the half a non-drafter can read. */
+  if (round >= last) return 'The winner takes the ' + slot(1) + ', first overall.';
   var next = T.br.rounds[round + 1];
   if (!next) return '';
   return round + 1 === last ? 'The winner is in the final.'
